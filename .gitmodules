@@ -1,0 +1,27 @@
+[submodule "thirdparty/openvr"]
+	path = thirdparty/openvr
+	url = https://github.com/ValveSoftware/openvr.git
+[submodule "thirdparty/glm"]
+	path = thirdparty/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "thirdparty/imgui"]
+	path = thirdparty/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "thirdparty/Configuru"]
+	path = thirdparty/Configuru
+	url = https://github.com/emilk/Configuru.git
+[submodule "thirdparty/stb"]
+	path = thirdparty/stb
+	url = https://github.com/nothings/stb.git
+[submodule "thirdparty/OBJ-loader"]
+	path = thirdparty/OBJ-loader
+	url = https://github.com/Bly7/OBJ-Loader.git
+[submodule "thirdparty/imgui-filebrowser"]
+	path = thirdparty/imgui-filebrowser
+	url = https://github.com/AirGuanZ/imgui-filebrowser.git
+[submodule "thirdparty/luaaa"]
+	path = thirdparty/luaaa
+	url = https://github.com/gengyong/luaaa.git
+[submodule "thirdparty/fast-cpp-csv-parser"]
+	path = thirdparty/fast-cpp-csv-parser
+	url = https://github.com/ben-strasser/fast-cpp-csv-parser.git

@@ -1,0 +1,32 @@
+{
+	"version":                   1,
+	"friendly_name":             "ElGato CamLink 4k",
+	"usb_product_id":            102,
+	"usb_vendor_id":             4057,
+  "device_type":               "MonoVideoSource",
+	"supported_modes":[
+		{
+			"mode_name":                 "1920x1080(60FPS)",
+			"is_frame_mirrored":         false,
+			"is_buffer_mirrored":        false,
+			"frame_rate":                60.0,
+			"frame_width":               1920,
+			"frame_height":              1080,
+			"buffer_format":             "YUY2",
+			"intrinsics_type":           "mono",
+      "hfov":                           55.261427913080496,
+      "vfov":                           42.87019919871058,
+      "zNear":                          0.01,
+      "zFar":                           200.0,
+      "camera_matrix":                  [ 611.3048598196905, 0.0, 0.0, 0.0, 611.3048598196905, 0.0, 319.5, 239.5, 1.0 ],
+      "distortion.k1":                  0.09440059384405813,
+      "distortion.k2":                  -0.12873711051283526,
+      "distortion.k3":                  0.0,
+      "distortion.k4":                  0.0,
+      "distortion.k5":                  0.0,
+      "distortion.k6":                  0.19706305876960442,
+      "distortion.p1":                  0.0,
+      "distortion.p2":                  0.0
+		}
+	]
+}

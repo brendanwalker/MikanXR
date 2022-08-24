@@ -1,0 +1,9 @@
+key, text
+main_menu,メインメニュー
+calibration_pattern_settings,キャリブレーションパターン設定
+camera_settings,カメラ設定
+vr_device_settings,VRデバイス設定
+spatial_anchor_setup,空間アンカーの設定
+video_compositor,ビデオコンポジター
+exit,出口
+return_to_main_menu,メインメニューに戻る

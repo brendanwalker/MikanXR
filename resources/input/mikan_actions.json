@@ -1,0 +1,39 @@
+{
+    "actions": [
+    {
+      "name": "/actions/mikan/in/triggerhaptic",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/mikan/in/AnalogInput",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/mikan/in/Hand_Right",
+      "type": "pose"
+    },
+    {
+      "name": "/actions/mikan/in/Hand_Left",
+      "type": "pose"
+    },
+    {
+      "name": "/actions/mikan/out/haptic_left",
+      "type": "vibration"
+    },
+    {
+      "name": "/actions/mikan/mikan/haptic_right",
+      "type": "vibration"
+    }
+  ],
+    "localization" : [
+        {
+            "language_tag": "en_US",
+            "/actions/mikan/in/triggerhaptic" : "Trigger Haptic Pulse",
+            "/actions/mikan/in/AnalogInput" : "Analog Input",
+            "/actions/mikan/in/Hand_Right" : "Right Hand Pose",
+            "/actions/mikan/in/Hand_Left" : "Left Hand Pose",
+            "/actions/mikan/out/haptic_left" : "Left Haptic Feedback",
+            "/actions/mikan/out/haptic_right" : "Right Haptic Feedback"
+        }
+    ]
+}
