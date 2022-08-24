@@ -1,7 +1,7 @@
 # MikanXR
 A simple tool for mixed reality camera calibration and video compositing
 
-![Watch the video](https://user-images.githubusercontent.com/3753542/186327162-e775ed7c-5caa-484b-afee-804d27fa2b6a.mp4)
+[![Watch the video(https://user-images.githubusercontent.com/3753542/186327800-949914af-447a-473b-88ae-83e3d18be67d.png)]](https://user-images.githubusercontent.com/3753542/186327162-e775ed7c-5caa-484b-afee-804d27fa2b6a.mp4)
 
 # IMPORTANT NOTE
 This project is still heavily under development and is not really in a usuable state yet. Look at this issue for last status of things
