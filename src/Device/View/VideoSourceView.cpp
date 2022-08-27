@@ -7,6 +7,7 @@
 #include "OpenCVVideoSource.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
+#include "MikanServer.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoDeviceEnumerator.h"
 #include "VRDeviceView.h"
@@ -187,8 +188,12 @@ bool VideoSourceView::open(const class DeviceEnumerator* enumerator)
 	{
 		// Allocate the open cv buffers used for tracking filtering
 		reallocateOpencvBufferState();
+
 		// Recompute the projection matrix
 		recomputeCameraProjectionMatrix();
+
+		// Let any connected clients know that the video source opened
+		MikanServer::getInstance()->publishVideoSourceOpenedEvent();
 	}
 
 	return bSuccess;
@@ -206,6 +211,9 @@ void VideoSourceView::close()
 			m_opencv_buffer_state[i] = nullptr;
 		}
 	}
+
+	// Let any connected clients know that the video source closed
+	MikanServer::getInstance()->publishVideoSourceClosedEvent();
 }
 
 bool VideoSourceView::startVideoStream()
@@ -424,8 +432,12 @@ bool VideoSourceView::setVideoMode(const std::string& new_mode)
 		{
 			// Resize the opencv buffers
 			reallocateOpencvBufferState();
+
 			// Recompute the projection matrix
 			recomputeCameraProjectionMatrix();
+
+			// Let any connected clients know that the video mode changed
+			MikanServer::getInstance()->publishVideoSourceModeChangedEvent();
 
 			bUpdatedMode= true;
 		}
@@ -519,6 +531,9 @@ void VideoSourceView::setCameraIntrinsics(const MikanVideoSourceIntrinsics& came
 {
 	m_device->setCameraIntrinsics(camera_intrinsics);
 	recomputeCameraProjectionMatrix();
+
+	// Let any connected clients know that the video source intrinsics changed
+	MikanServer::getInstance()->publishVideoSourceIntrinsicsChangedEvent();
 }
 
 MikanQuatd VideoSourceView::getCameraOffsetOrientation() const
@@ -534,6 +549,9 @@ MikanVector3d VideoSourceView::getCameraOffsetPosition() const
 void VideoSourceView::setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p)
 {
 	m_device->setCameraPoseOffset(q, p);
+
+	// Let any connected clients know that the video source attachment settings changed
+	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
 }
 
 glm::mat4 VideoSourceView::getCameraPose(VRDeviceViewPtr attachedVRDevicePtr) const

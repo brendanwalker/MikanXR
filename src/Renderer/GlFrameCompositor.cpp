@@ -404,7 +404,7 @@ void GlFrameCompositor::update()
 
 		// Tell all clients that we have a new frame to render
 		MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Send frame " << m_pendingCompositeFrameIndex;
-		MikanServer::getInstance()->publishNewVideoFrameEvent(newFrameEvent);
+		MikanServer::getInstance()->publishVideoSourceNewFrameEvent(newFrameEvent);
 	}
 }
 

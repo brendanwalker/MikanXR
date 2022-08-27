@@ -5,6 +5,7 @@
 #include "AppStage_MainMenu.h"
 #include "App.h"
 #include "MathUtility.h"
+#include "MikanServer.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
 #include "VRDeviceView.h"
@@ -99,6 +100,7 @@ void AppStage_VRDeviceSettings::renderUI()
 	if (m_selectedCameraVRTrackerIndex != -1)
 	{
 		int oldSelectedIndex= m_selectedCameraVRTrackerIndex;
+		bool bCameraSettingsChanged= false;
 
 		if (ImGui::Button("<##VRCameraDevice"))
 		{
@@ -123,7 +125,29 @@ void AppStage_VRDeviceSettings::renderUI()
 		if (oldSelectedIndex != m_selectedCameraVRTrackerIndex)
 		{
 			profileConfig->cameraVRDevicePath = getSelectedCameraVRTracker()->getDevicePath();
+			bCameraSettingsChanged = true;
+		}
+
+		MikanSpatialAnchorInfo spatialAnchor;
+		bool bValidAnchor = profileConfig->getSpatialAnchorInfo(profileConfig->cameraParentAnchorId, spatialAnchor);
+		const char* anchorName = bValidAnchor ? spatialAnchor.anchor_name : "No Anchor";
+		if (ImGui::Button(anchorName))
+		{
+			profileConfig->cameraParentAnchorId = profileConfig->getNextSpatialAnchorId(profileConfig->cameraParentAnchorId);
+			bCameraSettingsChanged = true;
+		}
+
+		if (ImGui::InputFloat("Camera Scale", &profileConfig->cameraScale, 0.01f, 0.1f, "%.2f"))
+		{
+			bCameraSettingsChanged= true;
+		}
+
+		if (bCameraSettingsChanged)
+		{
 			profileConfig->save();
+
+			// Let any connected clients know that the video source attachment settings changed
+			MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
 		}
 	}
 	else

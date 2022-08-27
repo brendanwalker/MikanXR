@@ -69,6 +69,8 @@ public:
 	std::string videoSourcePath;
 
 	std::string cameraVRDevicePath;
+	MikanSpatialAnchorID cameraParentAnchorId;
+	float cameraScale;
 	std::string matVRDevicePath;
 	std::string calibrationComponentName;
 	int vrFrameDelay;

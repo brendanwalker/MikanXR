@@ -302,8 +302,10 @@ typedef struct
 /// Static properties 
 typedef struct
 {
+	MikanSpatialAnchorID parent_anchor_id;
 	MikanVRDeviceID attached_vr_device_id;
 	MikanMatrix4f vr_device_offset_xform;
+	float camera_scale;
 } MikanVideoSourceAttachmentInfo;
 
 /// Static properties about a video source
@@ -388,7 +390,6 @@ typedef struct
 {
 	MikanMatrix4f transform;
 	MikanSpatialAnchorID anchor_id;
-	uint64_t frame;
 } MikanAnchorPoseUpdateEvent;
 
 /// A container for all MikanXR Client API events

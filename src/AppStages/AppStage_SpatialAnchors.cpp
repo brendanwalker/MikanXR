@@ -10,6 +10,7 @@
 #include "GlTextRenderer.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
+#include "MikanServer.h"
 #include "ProfileConfig.h"
 #include "StringUtils.h"
 #include "VRDeviceView.h"
@@ -155,6 +156,7 @@ void AppStage_SpatialAnchors::renderUI()
 	VRDeviceViewPtr anchorVRDevice= getSelectedAnchorVRTracker();
 
 	ImGui::Text("Anchors");
+	bool bAnchorListChanged= false;
 	MikanSpatialAnchorID anchorIdToDelete= INVALID_MIKAN_ID;
 	for (auto it= m_profile->spatialAnchorList.begin(); it != m_profile->spatialAnchorList.end(); ++it)
 	{
@@ -169,6 +171,16 @@ void AppStage_SpatialAnchors::renderUI()
 				const glm::mat4 anchorXform = anchorVRDevice->getCalibrationPose();
 				anchor.anchor_xform= glm_mat4_to_MikanMatrix4f(anchorXform);
 				m_profile->updateAnchor(anchor);
+
+				// Tell any connected clients that the anchor pose changed
+				{
+					MikanAnchorPoseUpdateEvent poseUpdateEvent;
+					memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
+					poseUpdateEvent.anchor_id= anchor.anchor_id;
+					poseUpdateEvent.transform= anchor.anchor_xform;
+
+					MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
+				}
 			}
 		}
 		else
@@ -191,6 +203,7 @@ void AppStage_SpatialAnchors::renderUI()
 	if (anchorIdToDelete != INVALID_MIKAN_ID)
 	{
 		m_profile->removeAnchor(anchorIdToDelete);
+		bAnchorListChanged= true;
 	}
 
 	if (m_profile->canAddAnchor() && anchorVRDevice != nullptr)
@@ -204,11 +217,18 @@ void AppStage_SpatialAnchors::renderUI()
 			StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", m_profile->nextAnchorId);
 
 			m_profile->addNewAnchor("New Anchor", mikanXform);
+			bAnchorListChanged = true;
 		}
 	}
 	else
 	{
 		ImGui::TextDisabled("New Anchor");
+	}
+
+	// Tell any connected clients that the anchor list changed
+	if (bAnchorListChanged)
+	{
+		MikanServer::getInstance()->publishAnchorListChangedEvent();
 	}
 
 	if (ImGui::Button("Return to Main Menu"))

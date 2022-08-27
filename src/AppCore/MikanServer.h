@@ -13,7 +13,7 @@ struct MikanClientConnectionInfo
 {
 	std::string clientId;
 	MikanClientInfo clientInfo;
-	InterprocessRenderTargetReadAccessor* renderTargetReadAccessor;
+	class InterprocessRenderTargetReadAccessor* renderTargetReadAccessor;
 
 	bool hasAllocatedRenderTarget() const;
 };
@@ -30,7 +30,17 @@ public:
 	void update();
 	void shutdown();
 
-	void publishNewVideoFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent);
+	// Video Source Events
+	void publishVideoSourceOpenedEvent();
+	void publishVideoSourceClosedEvent();
+	void publishVideoSourceNewFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent);
+	void publishVideoSourceAttachmentChangedEvent();
+	void publishVideoSourceIntrinsicsChangedEvent();
+	void publishVideoSourceModeChangedEvent();
+
+	// Spatial Anchor Events
+	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent);
+	void publishAnchorListChangedEvent();
 
 	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
 	void getAllStencilList(std::vector<const MikanStencilQuad*>& outStencilList) const;
@@ -75,7 +85,11 @@ protected:
 	void findSpatialAnchorInfoByName(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
 	// VRManager Callbacks
+	void publishVRDeviceListChanged();
 	void publishVRDevicePoses(uint64_t newFrameIndex);
+
+	// Publish helpers
+	void publishSimpleEvent(MikanEventType eventType);
 
 private:
 	static MikanServer* m_instance;

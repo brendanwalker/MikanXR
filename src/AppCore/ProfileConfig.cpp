@@ -44,6 +44,8 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, videoSourcePath("")
 	// Tracker
 	, cameraVRDevicePath("")
+	, cameraParentAnchorId(INVALID_MIKAN_ID)
+	, cameraScale(1.f)
 	, matVRDevicePath("")
 	, calibrationComponentName("front_rolled")
 	, vrFrameDelay(0)
@@ -79,6 +81,8 @@ const configuru::Config ProfileConfig::writeToJSON()
 		{"videoSourcePath", videoSourcePath},
 		// Tracker
 		{"cameraVRDevicePath", cameraVRDevicePath},
+		{"cameraParentAnchorId", cameraParentAnchorId},
+		{"cameraScale", cameraScale},
 		{"matVRDevicePath", matVRDevicePath},
 		{"calibrationComponentName", calibrationComponentName},
 		{"vrFrameDelay", vrFrameDelay},
@@ -180,6 +184,9 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 
 	// VR Devices
 	cameraVRDevicePath = pt.get_or<std::string>("cameraVRDevicePath", cameraVRDevicePath);
+	cameraParentAnchorId = pt.get_or<int>("cameraParentAnchorId", cameraParentAnchorId);
+	cameraScale = pt.get_or<float>("cameraScale", cameraScale);
+
 	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);
 	calibrationComponentName = pt.get_or<std::string>("calibrationComponentName", calibrationComponentName);
 	vrFrameDelay = pt.get_or<int>("vrFrameDelay", vrFrameDelay);

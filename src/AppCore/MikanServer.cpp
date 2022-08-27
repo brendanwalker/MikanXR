@@ -147,6 +147,17 @@ public:
 		m_connectionInfo.renderTargetReadAccessor->dispose();
 	}
 
+	// Video Source Events
+	void publishVideoSourceOpenedEvent()
+	{
+		publishSimpleEvent(MikanEvent_videoSourceOpened);
+	}
+
+	void publishVideoSourceClosedEvent()
+	{
+		publishSimpleEvent(MikanEvent_videoSourceClosed);
+	}
+
 	void publishNewVideoFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent)
 	{
 		EASY_FUNCTION();
@@ -159,6 +170,22 @@ public:
 		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
 	}
 
+	void publishVideoSourceAttachmentChangedEvent()
+	{
+		publishSimpleEvent(MikanEvent_videoSourceAttachmentChanged);
+	}
+
+	void publishVideoSourceIntrinsicsChangedEvent()
+	{
+		publishSimpleEvent(MikanEvent_videoSourceIntrinsicsChanged);
+	}
+
+	void publishVideoSourceModeChangedEvent()
+	{
+		publishSimpleEvent(MikanEvent_videoSourceModeChanged);
+	}
+
+	// VR Device Events
 	void publishVRDevicePoses(uint64_t newVRFrameIndex)
 	{
 		EASY_FUNCTION();
@@ -188,6 +215,40 @@ public:
 				m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
 			}
 		}
+	}
+
+	void publishVRDeviceListChangedEvent()
+	{
+		publishSimpleEvent(MikanEvent_vrDeviceListUpdated);
+	}
+
+	// Spatial Anchor Events
+	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent)
+	{
+		EASY_FUNCTION();
+
+		MikanEvent mikanEvent;
+		memset(&mikanEvent, 0, sizeof(MikanEvent));
+		mikanEvent.event_type = MikanEvent_anchorPoseUpdated;
+		mikanEvent.event_payload.anchor_pose_updated = newPoseEvent;
+
+		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
+	}
+
+	void publishAnchorListChangedEvent()
+	{
+		publishSimpleEvent(MikanEvent_anchorListUpdated);
+	}
+
+	void publishSimpleEvent(MikanEventType eventType)
+	{
+		EASY_FUNCTION();
+
+		MikanEvent mikanEvent;
+		memset(&mikanEvent, 0, sizeof(MikanEvent));
+		mikanEvent.event_type = eventType;
+
+		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
 	}
 
 private:
@@ -257,6 +318,7 @@ bool MikanServer::startup()
 	m_messageServer->setRPCHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
 	m_messageServer->setRPCHandler("findSpatialAnchorInfoByName", std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));	
 
+	VRDeviceManager::getInstance()->OnDeviceListChanged += MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
 	VRDeviceManager::getInstance()->OnDevicePosesChanged += MakeDelegate(this, &MikanServer::publishVRDevicePoses);
 
 	return true;
@@ -307,7 +369,18 @@ void MikanServer::shutdown()
 	m_messageServer->dispose();
 }
 
-void MikanServer::publishNewVideoFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent)
+// Video Source Events
+void MikanServer::publishVideoSourceOpenedEvent()
+{
+	publishSimpleEvent(MikanEvent_videoSourceOpened);
+}
+
+void MikanServer::publishVideoSourceClosedEvent()
+{
+	publishSimpleEvent(MikanEvent_videoSourceClosed);
+}
+
+void MikanServer::publishVideoSourceNewFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent)
 {
 	EASY_FUNCTION();
 
@@ -317,6 +390,62 @@ void MikanServer::publishNewVideoFrameEvent(const MikanVideoSourceNewFrameEvent&
 	}
 }
 
+void MikanServer::publishVideoSourceAttachmentChangedEvent()
+{
+	publishSimpleEvent(MikanEvent_videoSourceAttachmentChanged);
+}
+
+void MikanServer::publishVideoSourceIntrinsicsChangedEvent()
+{
+	publishSimpleEvent(MikanEvent_videoSourceIntrinsicsChanged);
+}
+
+void MikanServer::publishVideoSourceModeChangedEvent()
+{
+	publishSimpleEvent(MikanEvent_videoSourceModeChanged);
+}
+
+// Spatial Anchor Events
+void MikanServer::publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent)
+{
+	EASY_FUNCTION();
+
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishAnchorPoseUpdatedEvent(newPoseEvent);
+	}
+}
+
+void MikanServer::publishAnchorListChangedEvent()
+{
+	publishSimpleEvent(MikanEvent_anchorListUpdated);
+}
+
+// VRManager Callbacks
+void MikanServer::publishVRDeviceListChanged()
+{
+	publishSimpleEvent(MikanEvent_vrDeviceListUpdated);
+}
+
+void MikanServer::publishVRDevicePoses(uint64_t newFrameIndex)
+{
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishVRDevicePoses(newFrameIndex);
+	}
+}
+
+void MikanServer::publishSimpleEvent(MikanEventType eventType)
+{
+	EASY_FUNCTION();
+
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishSimpleEvent(eventType);
+	}
+}
+
+// RPC Callbacks
 void MikanServer::getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const
 {
 	outClientList.clear();
@@ -378,14 +507,6 @@ void MikanServer::getRelevantModelStencilList(
 		{
 			outStencilList.push_back(&stencil);
 		}
-	}
-}
-
-void MikanServer::publishVRDevicePoses(uint64_t newFrameIndex)
-{
-	for (auto& connection_it : m_clientConnections)
-	{
-		connection_it.second->publishVRDevicePoses(newFrameIndex);
 	}
 }
 
@@ -532,6 +653,14 @@ void MikanServer::getVideoSourceAttachment(
 				glm::translate(glm::mat4(1.0), cameraOffsetPos) *
 				glm::mat4_cast(cameraOffsetQuat);
 			info.vr_device_offset_xform = glm_mat4_to_MikanMatrix4f(cameraOffsetXform);
+
+			// Get the camera parent anchor properties
+			{
+				ProfileConfig* profile = App::getInstance()->getProfileConfig();
+
+				info.parent_anchor_id = profile->cameraParentAnchorId;
+				info.camera_scale = profile->cameraScale;
+			}
 
 			outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanVideoSourceAttachmentInfo));
 			outResult->setResultCode(MikanResult_Success);
