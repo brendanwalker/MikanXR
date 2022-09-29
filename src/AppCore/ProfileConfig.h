@@ -46,6 +46,11 @@ public:
 	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
 	bool updateQuadStencil(const MikanStencilQuad& info);
 
+	bool getBoxStencilInfo(MikanStencilID stencilId, MikanStencilBox& outInfo) const;
+	glm::mat4 getBoxStencilWorldTransform(const MikanStencilBox* stencil) const;
+	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
+	bool updateBoxStencil(const MikanStencilBox& info);
+
 	bool getModelStencilInfo(MikanStencilID stencilId, MikanStencilModel& outInfo) const;
 	glm::mat4 getModelStencilWorldTransform(const MikanStencilModel* stencil) const;
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
@@ -81,6 +86,7 @@ public:
 	MikanSpatialAnchorID nextAnchorId;
 
 	std::vector<MikanStencilQuad> quadStencilList;
+	std::vector<MikanStencilBox> boxStencilList;
 	std::vector<MikanStencilModelConfig> modelStencilList;
 	MikanStencilID nextStencilId;
 

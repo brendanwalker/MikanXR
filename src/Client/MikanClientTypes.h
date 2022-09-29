@@ -203,6 +203,20 @@ typedef struct
 {
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
+	MikanVector3f box_center;
+	MikanVector3f box_x_axis;
+	MikanVector3f box_y_axis;
+	MikanVector3f box_z_axis;
+	float box_x_size;
+	float box_y_size;
+	float box_z_size;
+	bool is_disabled;
+} MikanStencilBox;
+
+typedef struct
+{
+	MikanStencilID stencil_id; // filled in on allocation
+	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
 	MikanVector3f model_position;
 	MikanRotator3f model_rotator;
 	MikanVector3f model_scale;

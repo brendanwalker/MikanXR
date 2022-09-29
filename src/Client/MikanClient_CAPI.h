@@ -83,6 +83,8 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetStencilList(MikanStencilList* out_st
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetQuadStencil(MikanStencilID device_id, MikanStencilQuad* out_stencil);
 
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetBoxStencil(MikanStencilID device_id, MikanStencilBox* out_stencil);
+
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetModelStencil(MikanStencilID device_id, MikanStencilModel* out_stencil);
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetSpatialAnchorList(MikanSpatialAnchorList* out_anchor_list);

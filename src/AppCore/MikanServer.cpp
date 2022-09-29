@@ -453,18 +453,6 @@ void MikanServer::getConnectedClientInfoList(std::vector<MikanClientConnectionIn
 	}
 }
 
-void MikanServer::getAllStencilList(
-	std::vector<const MikanStencilQuad*>& outStencilList) const
-{
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	outStencilList.clear();
-	for (const MikanStencilQuad& stencil : profile->quadStencilList)
-	{
-		outStencilList.push_back(&stencil);
-	}
-}
-
 void MikanServer::getRelevantQuadStencilList(
 	const glm::vec3& cameraPosition,
 	const glm::vec3& cameraForward,
@@ -493,8 +481,40 @@ void MikanServer::getRelevantQuadStencilList(
 	}
 }
 
-void MikanServer::getRelevantModelStencilList(
-	std::vector<const MikanStencilModelConfig*>& outStencilList) const
+void MikanServer::getRelevantBoxStencilList(
+	const glm::vec3& cameraPosition,
+	const glm::vec3& cameraForward,
+	std::vector<const MikanStencilBox*>& outStencilList) const
+{
+	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
+
+	outStencilList.clear();
+	for (const MikanStencilBox& stencil : profile->boxStencilList)
+	{
+		if (!stencil.is_disabled)
+		{
+			const glm::mat4 worldXform = profile->getBoxStencilWorldTransform(&stencil);
+			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
+			const glm::vec3 stencilZAxis = glm::vec3(worldXform[2]); // Z is 2nd column
+			const glm::vec3 stencilYAxis = glm::vec3(worldXform[1]); // Y is 1st column
+			const glm::vec3 stencilXAxis = glm::vec3(worldXform[0]); // X is 0th column
+			const glm::vec3 cameraToStencil = stencilCenter - cameraPosition;
+
+			const bool bIsStencilInFrontOfCamera= glm::dot(cameraToStencil, cameraForward) > 0.f;
+			const bool bIsCameraInStecil=
+				fabsf(glm::dot(cameraToStencil, stencilXAxis)) <= stencil.box_x_size &&
+				fabsf(glm::dot(cameraToStencil, stencilYAxis)) <= stencil.box_y_size &&
+				fabsf(glm::dot(cameraToStencil, stencilZAxis)) <= stencil.box_z_size;
+
+			if (bIsStencilInFrontOfCamera || bIsCameraInStecil)
+			{
+				outStencilList.push_back(&stencil);
+			}
+		}
+	}
+}
+
+void MikanServer::getRelevantModelStencilList(std::vector<const MikanStencilModelConfig*>& outStencilList) const
 {
 	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
 

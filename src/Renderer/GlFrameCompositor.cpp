@@ -684,10 +684,13 @@ bool GlFrameCompositor::updateStencils()
 	std::vector<const MikanStencilQuad*> quadStencilList;
 	MikanServer::getInstance()->getRelevantQuadStencilList(cameraPosition, cameraForward, quadStencilList);
 
+	std::vector<const MikanStencilBox*> boxStencilList;
+	MikanServer::getInstance()->getRelevantBoxStencilList(cameraPosition, cameraForward, boxStencilList);
+
 	std::vector<const MikanStencilModelConfig*> modelStencilList;
 	MikanServer::getInstance()->getRelevantModelStencilList(modelStencilList);
 
-	if (quadStencilList.size() == 0 && modelStencilList.size() == 0)
+	if (boxStencilList.size() == 0 && quadStencilList.size() == 0 && modelStencilList.size() == 0)
 		return false;
 
 	// Add any missing stencil models to the model cache
@@ -777,6 +780,30 @@ bool GlFrameCompositor::updateStencils()
 
 		glBindVertexArray(m_stencilQuadVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+	}
+
+	// Then draw stencil boxes ...
+	for (const MikanStencilBox* stencil : boxStencilList)
+	{
+		// Set the model matrix of stencil quad
+		const glm::mat4 xform = profileConfig->getBoxStencilWorldTransform(stencil);
+		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencil->box_x_size;
+		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencil->box_y_size;
+		const glm::vec3 z_axis = glm::vec3(xform[2]) * stencil->box_z_size;
+		const glm::vec3 position = glm::vec3(xform[3]);
+		const glm::mat4 modelMatrix =
+			glm::mat4(
+				glm::vec4(x_axis, 0.f),
+				glm::vec4(y_axis, 0.f),
+				glm::vec4(z_axis, 0.f),
+				glm::vec4(position, 1.f));
+
+		// Set the model-view-projection matrix on the stencil shader
+		m_stencilShader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * modelMatrix);
+
+		glBindVertexArray(m_stencilBoxVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6*6);
 		glBindVertexArray(0);
 	}
 
@@ -1219,7 +1246,7 @@ void GlFrameCompositor::createVertexBuffers()
 		 1.0f,  1.0f,  1.0f, 0.0f
 	};
 
-	// vertex attributes for quad that represents a 3d scaled stencil quad
+	// vertex attributes that represents a 3d scaled stencil quad
 	const float stencilQuadVertices[] = {
 		// positions
 		-0.5f,  0.5f, 0.0f,
@@ -1229,6 +1256,58 @@ void GlFrameCompositor::createVertexBuffers()
 		-0.5f,  0.5f, 0.0f,
 		 0.5f, -0.5f, 0.0f,
 		 0.5f,  0.5f, 0.0f,
+	};
+
+	// vertex attributes that represents a 3d scaled stencil box
+	const float stencilBoxVertices[] = {
+		// positions
+		-0.5f,-0.5f,-0.5f,
+		-0.5f,-0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f,
+
+		0.5f, 0.5f,-0.5f,
+		-0.5f,-0.5f,-0.5f,
+		-0.5f, 0.5f,-0.5f,
+
+		0.5f,-0.5f, 0.5f,
+		-0.5f,-0.5f,-0.5f,
+		0.5f,-0.5f,-0.5f,
+
+		0.5f, 0.5f,-0.5f,
+		0.5f,-0.5f,-0.5f,
+		-0.5f,-0.5f,-0.5f,
+
+		-0.5f,-0.5f,-0.5f,
+		-0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f,-0.5f,
+
+		0.5f,-0.5f, 0.5f,
+		-0.5f,-0.5f, 0.5f,
+		-0.5f,-0.5f,-0.5f,
+
+		-0.5f, 0.5f, 0.5f,
+		-0.5f,-0.5f, 0.5f,
+		0.5f,-0.5f, 0.5f,
+
+		0.5f, 0.5f, 0.5f,
+		0.5f,-0.5f,-0.5f,
+		0.5f, 0.5f,-0.5f,
+
+		0.5f,-0.5f,-0.5f,
+		0.5f, 0.5f, 0.5f,
+		0.5f,-0.5f, 0.5f,
+
+		0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f,-0.5f,
+		-0.5f, 0.5f,-0.5f,
+
+		0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f,-0.5f,
+		-0.5f, 0.5f, 0.5f,
+
+		0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f,
+		0.5f,-0.5f, 0.5f
 	};
 
 	// layer quad VAO/VBO
@@ -1259,6 +1338,15 @@ void GlFrameCompositor::createVertexBuffers()
 	glBindVertexArray(m_stencilQuadVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_stencilQuadVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(stencilQuadVertices), &stencilQuadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+	// stencil box VAO/VBO
+	glGenVertexArrays(1, &m_stencilBoxVAO);
+	glGenBuffers(1, &m_stencilBoxVBO);
+	glBindVertexArray(m_stencilBoxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_stencilBoxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(stencilBoxVertices), &stencilBoxVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 }
@@ -1296,6 +1384,17 @@ void GlFrameCompositor::freeVertexBuffers()
 	{
 		glDeleteBuffers(1, &m_stencilQuadVBO);
 		m_stencilQuadVBO = 0;
+	}
+
+	if (m_stencilBoxVAO != 0)
+	{
+		glDeleteVertexArrays(1, &m_stencilBoxVAO);
+		m_stencilBoxVAO = 0;
+	}
+	if (m_stencilBoxVBO != 0)
+	{
+		glDeleteBuffers(1, &m_stencilBoxVBO);
+		m_stencilBoxVBO = 0;
 	}
 }
 
