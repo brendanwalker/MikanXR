@@ -236,7 +236,13 @@ list(APPEND MIKAN_REQ_LIBS
 
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+set(APP_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/winapp_resources.rc")
+add_executable(Mikan WIN32 ${MIKAN_SRC} ${APP_RESOURCE_WINDOWS})
+ELSE() #Linux/Darwin
 add_executable(Mikan ${MIKAN_SRC})
+ENDIF()
+
 target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
 target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
 
