@@ -204,7 +204,7 @@ void AppStage_Compositor::onNewFrameComposited()
 	{		
 		GlTexture* bgrTexture = m_frameCompositor->getBGRVideoFrameTexture();
 
-		if (bgrTexture != nullptr && m_videoWriter != nullptr)
+		if (bgrTexture != nullptr && m_videoWriter != nullptr && m_videoWriter->getIsOpened())
 		{
 			m_videoWriter->write(bgrTexture);
 		}
