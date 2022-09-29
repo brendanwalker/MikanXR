@@ -36,11 +36,9 @@ public:
 	MikanResult publishRenderTargetBuffers(uint64_t frame_index);
 	MikanResult freeRenderTargetBuffers();
 
-	MikanResult allocateQuadStencil(MikanStencilQuad& stencil);
 	MikanResult getStencilList(MikanStencilList& out_stencil_list);
 	MikanResult getQuadStencil(MikanStencilID stencil_id, MikanStencilQuad& out_stencil);
-	MikanResult updateQuadStencil(const MikanStencilQuad& stencil);
-	MikanResult freeQuadStencil(MikanStencilID stencil_id);
+	MikanResult getModelStencil(MikanStencilID stencil_id, MikanStencilModel& out_stencil);
 
 	MikanResult getSpatialAnchorList(MikanSpatialAnchorList& out_anchor_list);
 	MikanResult getSpatialAnchorInfo(MikanSpatialAnchorID anchor_id, MikanSpatialAnchorInfo& out_anchor_info);

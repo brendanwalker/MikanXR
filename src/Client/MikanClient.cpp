@@ -224,22 +224,6 @@ MikanResult MikanClient::freeRenderTargetBuffers()
 	return resultCode;
 }
 
-MikanResult MikanClient::allocateQuadStencil(MikanStencilQuad& stencil)
-{
-	MikanResult resultCode = MikanResult_NotConnected;
-
-	if (m_messageClient->getIsConnected())
-	{
-		resultCode = callRPC(
-			m_messageClient,
-			"allocateQuadStencil", 
-			(uint8_t*)&stencil, sizeof(MikanStencilQuad), 
-			stencil.stencil_id);
-	}
-
-	return resultCode;
-}
-
 MikanResult MikanClient::getStencilList(MikanStencilList& out_stencil_list)
 {
 	return callRPC(m_messageClient, "getStencilList", nullptr, 0, out_stencil_list);
@@ -250,28 +234,9 @@ MikanResult MikanClient::getQuadStencil(MikanStencilID stencil_id, MikanStencilQ
 	return callRPC(m_messageClient, "getQuadStencil", (uint8_t*)&stencil_id, sizeof(MikanStencilID), out_stencil);
 }
 
-MikanResult MikanClient::updateQuadStencil(const MikanStencilQuad& stencil)
+MikanResult MikanClient::getModelStencil(MikanStencilID stencil_id, MikanStencilModel& out_stencil)
 {
-	MikanResult resultCode = MikanResult_NotConnected;
-
-	if (m_messageClient->getIsConnected())
-	{
-		resultCode= callRPC(m_messageClient, "updateQuadStencil", (uint8_t*)&stencil, sizeof(MikanStencilQuad));
-	}
-
-	return resultCode;
-}
-
-MikanResult MikanClient::freeQuadStencil(MikanStencilID stencil_id)
-{
-	MikanResult resultCode = MikanResult_NotConnected;
-
-	if (m_messageClient->getIsConnected())
-	{
-		resultCode = callRPC(m_messageClient, "freeQuadStencil", (uint8_t*)&stencil_id, sizeof(MikanStencilID));
-	}
-
-	return resultCode;
+	return callRPC(m_messageClient, "getModelStencil", (uint8_t*)&stencil_id, sizeof(MikanStencilID), out_stencil);
 }
 
 MikanResult MikanClient::getSpatialAnchorList(MikanSpatialAnchorList& out_anchor_list)

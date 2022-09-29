@@ -74,11 +74,9 @@ protected:
 	void allocateRenderTargetBuffers(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void freeRenderTargetBuffers(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
-	void allocateQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getStencilList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void updateQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void freeQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void getModelStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
 	void getSpatialAnchorList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getSpatialAnchorInfo(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);

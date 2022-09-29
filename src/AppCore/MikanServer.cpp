@@ -309,11 +309,9 @@ bool MikanServer::startup()
 	m_messageServer->setRPCHandler("unsubscribeFromVRDevicePoseUpdates", std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
 	m_messageServer->setRPCHandler("allocateRenderTargetBuffers", std::bind(&MikanServer::allocateRenderTargetBuffers, this, _1, _2));
 	m_messageServer->setRPCHandler("freeRenderTargetBuffers", std::bind(&MikanServer::freeRenderTargetBuffers, this, _1, _2));
-	m_messageServer->setRPCHandler("allocateQuadStencil", std::bind(&MikanServer::allocateQuadStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
 	m_messageServer->setRPCHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
-	m_messageServer->setRPCHandler("updateQuadStencil", std::bind(&MikanServer::updateQuadStencil, this, _1, _2));
-	m_messageServer->setRPCHandler("freeQuadStencil", std::bind(&MikanServer::freeQuadStencil, this, _1, _2));
+	m_messageServer->setRPCHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
 	m_messageServer->setRPCHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
 	m_messageServer->setRPCHandler("findSpatialAnchorInfoByName", std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));	
@@ -857,31 +855,6 @@ void MikanServer::freeRenderTargetBuffers(
 	}
 }
 
-void MikanServer::allocateQuadStencil(
-	const MikanRemoteFunctionCall* inFunctionCall, 
-	MikanRemoteFunctionResult* outResult)
-{
-	MikanStencilQuad stencil;
-	if (!inFunctionCall->extractParameters(stencil))
-	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
-		return;
-	}
-
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	stencil.stencil_id= profile->addNewQuadStencil(stencil);
-
-	outResult->setResultBuffer((uint8_t*)&stencil.stencil_id, sizeof(MikanStencilID));
-	if (stencil.stencil_id != INVALID_MIKAN_ID)
-	{
-		outResult->setResultCode(MikanResult_Success);
-	}
-	else
-	{
-		outResult->setResultCode(MikanResult_TooManyStencils);
-	}
-}
-
 void MikanServer::getStencilList(
 	const MikanRemoteFunctionCall* inFunctionCall,
 	MikanRemoteFunctionResult* outResult)
@@ -929,42 +902,21 @@ void MikanServer::getQuadStencil(
 	}
 }
 
-void MikanServer::updateQuadStencil(
-	const MikanRemoteFunctionCall* inFunctionCall, 
+void MikanServer::getModelStencil(
+	const MikanRemoteFunctionCall* inFunctionCall,
 	MikanRemoteFunctionResult* outResult)
 {
-	MikanStencilQuad stencil;
+	MikanStencilModel stencil;
 	if (!inFunctionCall->extractParameters(stencil))
 	{
 		outResult->setResultCode(MikanResult_MalformedParameters);
 		return;
 	}
 
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	if (profile->updateQuadStencil(stencil))
+	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
+	if (profile->getModelStencilInfo(stencil.stencil_id, stencil))
 	{
-		outResult->setResultCode(MikanResult_Success);
-	}
-	else
-	{
-		outResult->setResultCode(MikanResult_InvalidStencilID);
-	}
-}
-
-void MikanServer::freeQuadStencil(
-	const MikanRemoteFunctionCall* inFunctionCall, 
-	MikanRemoteFunctionResult* outResult)
-{
-	MikanStencilID stencilId;
-	if (!inFunctionCall->extractParameters(stencilId))
-	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
-		return;
-	}
-
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	if (profile->removeStencil(stencilId))
-	{
+		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilModel));
 		outResult->setResultCode(MikanResult_Success);
 	}
 	else
