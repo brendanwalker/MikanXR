@@ -16,7 +16,7 @@ public:
 	bool getIsConnected() const;
 
     // -- ClientPSMoveAPI System -----
-    MikanResult startup(LogSeverityLevel log_level, const char *log_filename);
+    MikanResult startup(LogSeverityLevel log_level, t_logCallback log_callback);
 	MikanResult connect(MikanClientInfo& ClientInfo);
 	MikanResult disconnect();
 	MikanResult pollNextEvent(MikanEvent& message);

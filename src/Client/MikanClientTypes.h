@@ -74,6 +74,8 @@ typedef enum
 	MikanLogLevel_Fatal
 } MikanLogLevel;
 
+typedef void (*MikanLogCallback)(int /*log_level*/, const char* /*log_message*/);
+
 typedef enum
 {
 	MikanVideoSourceType_MONO,

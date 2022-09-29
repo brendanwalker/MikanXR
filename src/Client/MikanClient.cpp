@@ -23,12 +23,16 @@ MikanClient::~MikanClient()
 }
 
 // -- ClientPSMoveAPI System -----
-MikanResult MikanClient::startup(LogSeverityLevel log_level, const char* log_filename)
+MikanResult MikanClient::startup(LogSeverityLevel log_level, t_logCallback log_callback)
 {
 	// Reset status flags
 	m_bIsConnected= false;
 
-	log_init(log_level, log_filename != nullptr ? log_filename : "");
+	LoggerSettings settings = {};
+	settings.min_log_level = log_level;
+	settings.log_callback= log_callback;
+
+	log_init(settings);
 
     return MikanResult_Success;
 }

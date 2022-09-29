@@ -26,7 +26,7 @@
 
  \returns MikanResult_Success on success or MikanResult_Error on a general connection error.
  */
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_Initialize(MikanLogLevel log_level, const char *log_filename);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_Initialize(MikanLogLevel min_log_level, MikanLogCallback log_callback);
 
 MIKAN_PUBLIC_FUNCTION(bool) Mikan_GetIsInitialized();
 
