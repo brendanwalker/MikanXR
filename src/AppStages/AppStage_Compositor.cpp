@@ -204,7 +204,7 @@ void AppStage_Compositor::onNewFrameComposited()
 	{		
 		GlTexture* bgrTexture = m_frameCompositor->getBGRVideoFrameTexture();
 
-		if (bgrTexture != nullptr && m_videoWriter != nullptr)
+		if (bgrTexture != nullptr && m_videoWriter != nullptr && m_videoWriter->getIsOpened())
 		{
 			m_videoWriter->write(bgrTexture);
 		}
@@ -269,6 +269,23 @@ void AppStage_Compositor::debugRenderStencils() const
 			const glm::vec3 position = glm::vec3(xform[3]);
 			
 			drawTransformedQuad(xform, stencil->quad_width, stencil->quad_height, Colors::Yellow);
+			drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
+			drawTextAtWorldPosition(style, position, L"Stencil %d", stencil->stencil_id);
+		}
+	}
+
+	// Render all stencil boxes in view of the tracked camera
+	std::vector<const MikanStencilBox*> boxStencilList;
+	MikanServer::getInstance()->getRelevantBoxStencilList(cameraPosition, cameraForward, boxStencilList);
+	for (const MikanStencilBox* stencil : boxStencilList)
+	{
+		if (!stencil->is_disabled)
+		{
+			const glm::mat4 xform = profile->getBoxStencilWorldTransform(stencil);
+			const glm::vec3 half_extents(stencil->box_x_size / 2.f, stencil->box_y_size / 2.f, stencil->box_z_size / 2.f);
+			const glm::vec3 position = glm::vec3(xform[3]);
+
+			drawTransformedBox(xform, half_extents, Colors::Yellow);
 			drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
 			drawTextAtWorldPosition(style, position, L"Stencil %d", stencil->stencil_id);
 		}
@@ -553,6 +570,81 @@ void AppStage_Compositor::renderUI()
 				}
 			}
 
+			// Box Stencils
+			for (int stencilIndex = 0; stencilIndex < profile->boxStencilList.size(); ++stencilIndex)
+			{
+				bool bIsStencilStillValid = true;
+
+				MikanStencilBox stencil = profile->boxStencilList[stencilIndex];
+				bool bStencilChanged = false;
+
+				ImGui::Separator();
+
+				ImGui::PushID(stencil.stencil_id);
+				ImGui::Text("Box Stencil #%d", stencil.stencil_id);
+
+				MikanSpatialAnchorInfo spatialAnchor;
+				bool bValidAnchor = profile->getSpatialAnchorInfo(stencil.parent_anchor_id, spatialAnchor);
+				const char* anchorName = bValidAnchor ? spatialAnchor.anchor_name : "No Anchor";
+				if (ImGui::Button(anchorName))
+				{
+					stencil.parent_anchor_id = profile->getNextSpatialAnchorId(stencil.parent_anchor_id);
+					bStencilChanged = true;
+				}
+
+				float position[3] = { stencil.box_center.x, stencil.box_center.y, stencil.box_center.z };
+				if (ImGui::InputFloat3("Position", position, "%.2f"))
+				{
+					stencil.box_center.x = position[0];
+					stencil.box_center.y = position[1];
+					stencil.box_center.z = position[2];
+					bStencilChanged = true;
+				}
+
+				float angles[3];
+				MikanOrientationToEulerAngles(
+					stencil.box_x_axis, stencil.box_y_axis, stencil.box_z_axis,
+					angles[0], angles[1], angles[2]);
+				if (ImGui::InputFloat3("Rotation", angles, "%.1f"))
+				{
+					EulerAnglesToMikanOrientation(
+						angles[0], angles[1], angles[2],
+						stencil.box_x_axis, stencil.box_y_axis, stencil.box_z_axis);
+					bStencilChanged = true;
+				}
+
+				float size[3] = { stencil.box_x_size, stencil.box_y_size, stencil.box_z_size };
+				if (ImGui::InputFloat3("Size", size, "%.2f"))
+				{
+					stencil.box_x_size = size[0];
+					stencil.box_y_size = size[1];
+					stencil.box_z_size = size[2];
+					bStencilChanged = true;
+				}
+
+				if (ImGui::Checkbox("Disabled", &stencil.is_disabled))
+				{
+					bStencilChanged = true;
+				}
+
+				if (ImGui::Button("Delete"))
+				{
+					profile->removeStencil(stencil.stencil_id);
+					bIsStencilStillValid = false;
+				}
+				else if (bStencilChanged)
+				{
+					profile->updateBoxStencil(stencil);
+				}
+
+				ImGui::PopID();
+
+				if (!bIsStencilStillValid)
+				{
+					break;
+				}
+			}
+
 			// Model Stencils
 			for (int stencilIndex = 0; stencilIndex < profile->modelStencilList.size(); ++stencilIndex)
 			{
@@ -657,7 +749,22 @@ void AppStage_Compositor::renderUI()
 					profile->addNewQuadStencil(quad);
 				}
 				
-				ImGui::SameLine();
+				if (ImGui::Button("Add Box Stencil"))
+				{
+					MikanStencilBox box;
+					memset(&box, 0, sizeof(MikanStencilBox));
+
+					box.parent_anchor_id = INVALID_MIKAN_ID;
+					box.box_center = { 0.f, 0.f, 0.f };
+					box.box_x_axis = { 1.f, 0.f, 0.f };
+					box.box_y_axis = { 0.f, 1.f, 0.f };
+					box.box_z_axis = { 0.f, 0.f, 1.f };
+					box.box_x_size = 0.25f;
+					box.box_y_size = 0.25f;
+					box.box_z_size = 0.25f;
+
+					profile->addNewBoxStencil(box);
+				}
 
 				if (ImGui::Button("Add Model Stencil"))
 				{

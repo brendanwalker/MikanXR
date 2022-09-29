@@ -13,7 +13,7 @@ struct MikanClientConnectionInfo
 {
 	std::string clientId;
 	MikanClientInfo clientInfo;
-	InterprocessRenderTargetReadAccessor* renderTargetReadAccessor;
+	class InterprocessRenderTargetReadAccessor* renderTargetReadAccessor;
 
 	bool hasAllocatedRenderTarget() const;
 };
@@ -30,16 +30,31 @@ public:
 	void update();
 	void shutdown();
 
-	void publishNewVideoFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent);
+	// Video Source Events
+	void publishVideoSourceOpenedEvent();
+	void publishVideoSourceClosedEvent();
+	void publishVideoSourceNewFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent);
+	void publishVideoSourceAttachmentChangedEvent();
+	void publishVideoSourceIntrinsicsChangedEvent();
+	void publishVideoSourceModeChangedEvent();
+
+	// Spatial Anchor Events
+	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent);
+	void publishAnchorListChangedEvent();
 
 	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
-	void getAllStencilList(std::vector<const MikanStencilQuad*>& outStencilList) const;
 	void getRelevantQuadStencilList(
 		const glm::vec3& cameraPosition, 
 		const glm::vec3& cameraForward,
 		std::vector<const MikanStencilQuad*>& outStencilList) const;
+	void getRelevantBoxStencilList(
+		const glm::vec3& cameraPosition,
+		const glm::vec3& cameraForward,
+		std::vector<const MikanStencilBox*>& outStencilList) const;
 	void getRelevantModelStencilList(
 		std::vector<const struct MikanStencilModelConfig*>& outStencilList) const;
+
+
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientConnected;
 	MulticastDelegate<void(const std::string& clientId)> OnClientDisconnected;
@@ -64,18 +79,20 @@ protected:
 	void allocateRenderTargetBuffers(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void freeRenderTargetBuffers(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
-	void allocateQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getStencilList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void updateQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void freeQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void getModelStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
 	void getSpatialAnchorList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getSpatialAnchorInfo(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void findSpatialAnchorInfoByName(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
 	// VRManager Callbacks
+	void publishVRDeviceListChanged();
 	void publishVRDevicePoses(uint64_t newFrameIndex);
+
+	// Publish helpers
+	void publishSimpleEvent(MikanEventType eventType);
 
 private:
 	static MikanServer* m_instance;

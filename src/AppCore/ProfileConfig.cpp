@@ -44,6 +44,8 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, videoSourcePath("")
 	// Tracker
 	, cameraVRDevicePath("")
+	, cameraParentAnchorId(INVALID_MIKAN_ID)
+	, cameraScale(1.f)
 	, matVRDevicePath("")
 	, calibrationComponentName("front_rolled")
 	, vrFrameDelay(0)
@@ -79,6 +81,8 @@ const configuru::Config ProfileConfig::writeToJSON()
 		{"videoSourcePath", videoSourcePath},
 		// Tracker
 		{"cameraVRDevicePath", cameraVRDevicePath},
+		{"cameraParentAnchorId", cameraParentAnchorId},
+		{"cameraScale", cameraScale},
 		{"matVRDevicePath", matVRDevicePath},
 		{"calibrationComponentName", calibrationComponentName},
 		{"vrFrameDelay", vrFrameDelay},
@@ -131,6 +135,28 @@ const configuru::Config ProfileConfig::writeToJSON()
 	}
 	pt.insert_or_assign(std::string("quadStencils"), stencilQuadConfigs);
 
+	// Write out the box stencils
+	std::vector<configuru::Config> stencilBoxConfigs;
+	for (const MikanStencilBox& stencil : boxStencilList)
+	{
+		configuru::Config stencilConfig{
+			{"stencil_id", stencil.stencil_id},
+			{"parent_anchor_id", stencil.parent_anchor_id},
+			{"box_x_size", stencil.box_x_size},
+			{"box_y_size", stencil.box_y_size},
+			{"box_z_size", stencil.box_z_size},
+			{"is_disabled", stencil.is_disabled},
+		};
+
+		writeVector3f(stencilConfig, "box_center", stencil.box_center);
+		writeVector3f(stencilConfig, "box_x_axis", stencil.box_x_axis);
+		writeVector3f(stencilConfig, "box_y_axis", stencil.box_y_axis);
+		writeVector3f(stencilConfig, "box_z_axis", stencil.box_z_axis);
+
+		stencilBoxConfigs.push_back(stencilConfig);
+	}
+	pt.insert_or_assign(std::string("boxStencils"), stencilBoxConfigs);
+
 	// Write out the model stencils
 	std::vector<configuru::Config> stencilModelConfigs;
 	for (const MikanStencilModelConfig& stencil : modelStencilList)
@@ -180,6 +206,9 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 
 	// VR Devices
 	cameraVRDevicePath = pt.get_or<std::string>("cameraVRDevicePath", cameraVRDevicePath);
+	cameraParentAnchorId = pt.get_or<int>("cameraParentAnchorId", cameraParentAnchorId);
+	cameraScale = pt.get_or<float>("cameraScale", cameraScale);
+
 	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);
 	calibrationComponentName = pt.get_or<std::string>("calibrationComponentName", calibrationComponentName);
 	vrFrameDelay = pt.get_or<int>("vrFrameDelay", vrFrameDelay);
@@ -241,6 +270,33 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				stencil.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
 
 				quadStencilList.push_back(stencil);
+			}
+		}
+	}
+
+	// Read in the quad stencils
+	quadStencilList.clear();
+	if (pt.has_key("boxStencils"))
+	{
+		for (const configuru::Config& stencilConfig : pt["boxStencils"].as_array())
+		{
+			if (stencilConfig.has_key("stencil_id"))
+			{
+				MikanStencilBox stencil;
+				memset(&stencil, 0, sizeof(stencil));
+
+				stencil.stencil_id = stencilConfig.get<int>("stencil_id");
+				stencil.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);
+				readVector3f(stencilConfig, "box_center", stencil.box_center);
+				readVector3f(stencilConfig, "box_x_axis", stencil.box_x_axis);
+				readVector3f(stencilConfig, "box_y_axis", stencil.box_y_axis);
+				readVector3f(stencilConfig, "box_z_axis", stencil.box_z_axis);
+				stencil.box_x_size = stencilConfig.get_or<float>("box_x_size", 0.25f);
+				stencil.box_y_size = stencilConfig.get_or<float>("box_y_size", 0.25f);
+				stencil.box_z_size = stencilConfig.get_or<float>("box_z_size", 0.25f);
+				stencil.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
+
+				boxStencilList.push_back(stencil);
 			}
 		}
 	}
@@ -416,9 +472,26 @@ bool ProfileConfig::getQuadStencilInfo(MikanStencilID stencilId, MikanStencilQua
 	return false;
 }
 
+bool ProfileConfig::getBoxStencilInfo(MikanStencilID stencilId, MikanStencilBox& outBox) const
+{
+	auto it = std::find_if(
+		boxStencilList.begin(), boxStencilList.end(),
+		[stencilId](const MikanStencilBox& box) {
+		return box.stencil_id == stencilId;
+	});
+
+	if (it != boxStencilList.end())
+	{
+		outBox = *it;
+		return true;
+	}
+
+	return false;
+}
+
 bool ProfileConfig::canAddStencil() const
 {
-	return (quadStencilList.size() + modelStencilList.size() < MAX_MIKAN_STENCILS);
+	return (boxStencilList.size() + quadStencilList.size() + modelStencilList.size() < MAX_MIKAN_STENCILS);
 }
 
 bool ProfileConfig::removeStencil(MikanStencilID stencilId)
@@ -434,6 +507,23 @@ bool ProfileConfig::removeStencil(MikanStencilID stencilId)
 		if (it != quadStencilList.end())
 		{
 			quadStencilList.erase(it);
+			save();
+
+			return true;
+		}
+	}
+
+	// Then try the box stencil list
+	{
+		auto it = std::find_if(
+			boxStencilList.begin(), boxStencilList.end(),
+			[stencilId](const MikanStencilBox& b) {
+			return b.stencil_id == stencilId;
+		});
+
+		if (it != boxStencilList.end())
+		{
+			boxStencilList.erase(it);
 			save();
 
 			return true;
@@ -515,6 +605,69 @@ glm::mat4 ProfileConfig::getQuadStencilWorldTransform(
 	if (getSpatialAnchorInfo(stencil->parent_anchor_id, anchor))
 	{		
 		worldXform= MikanMatrix4f_to_glm_mat4(anchor.anchor_xform) * localXform;
+	}
+	else
+	{
+		worldXform = localXform;
+	}
+
+	return worldXform;
+}
+
+MikanStencilID ProfileConfig::addNewBoxStencil(const MikanStencilBox& box)
+{
+	if (!canAddStencil())
+		return INVALID_MIKAN_ID;
+
+	MikanStencilBox newStencil = box;
+	newStencil.stencil_id = nextStencilId;
+	nextStencilId++;
+
+	boxStencilList.push_back(newStencil);
+	save();
+
+	return newStencil.stencil_id;
+}
+
+bool ProfileConfig::updateBoxStencil(const MikanStencilBox& box)
+{
+	MikanStencilID stencilId = box.stencil_id;
+
+	auto it = std::find_if(
+		boxStencilList.begin(), boxStencilList.end(),
+		[stencilId](const MikanStencilBox& b) {
+			return b.stencil_id == stencilId;
+		});
+
+	if (it != boxStencilList.end())
+	{
+		*it = box;
+		save();
+		return true;
+	}
+
+	return false;
+}
+
+glm::mat4 ProfileConfig::getBoxStencilWorldTransform(
+	const MikanStencilBox* stencil) const
+{
+	const glm::vec3 xAxis = MikanVector3f_to_glm_vec3(stencil->box_x_axis);
+	const glm::vec3 yAxis = MikanVector3f_to_glm_vec3(stencil->box_y_axis);
+	const glm::vec3 zAxis = MikanVector3f_to_glm_vec3(stencil->box_z_axis);
+	const glm::vec3 position = MikanVector3f_to_glm_vec3(stencil->box_center);
+	const glm::mat4 localXform =
+		glm::mat4(
+			glm::vec4(xAxis, 0.f),
+			glm::vec4(yAxis, 0.f),
+			glm::vec4(zAxis, 0.f),
+			glm::vec4(position, 1.f));
+
+	glm::mat4 worldXform;
+	MikanSpatialAnchorInfo anchor;
+	if (getSpatialAnchorInfo(stencil->parent_anchor_id, anchor))
+	{
+		worldXform = MikanMatrix4f_to_glm_mat4(anchor.anchor_xform) * localXform;
 	}
 	else
 	{

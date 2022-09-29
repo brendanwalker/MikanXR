@@ -20,17 +20,17 @@ class LoggerStream
 {
 protected:
 	std::ostringstream m_lineBuffer;
-	bool m_bEmitLine;
+	LogSeverityLevel m_level;
 
 public:
-	LoggerStream(bool bEmit);
+	LoggerStream(LogSeverityLevel level);
 	virtual ~LoggerStream();
 
 	// accepts just about anything
 	template<class T>
 	LoggerStream &operator<<(const T &x)
 	{
-		if (m_bEmitLine)
+		if (log_can_emit_level(m_level))
 		{
 			m_lineBuffer << x;
 		}
@@ -45,21 +45,31 @@ protected:
 class ThreadSafeLoggerStream : public LoggerStream
 {
 public:
-	ThreadSafeLoggerStream(bool bEmit);
+	ThreadSafeLoggerStream(LogSeverityLevel level);
 
 protected:
 	void write_line() override;
 };
 
+typedef void (*t_logCallback)(int, const char*);
+
+struct LoggerSettings
+{
+	LogSeverityLevel min_log_level;
+	std::string log_filename;
+	bool enable_console;
+	t_logCallback log_callback;
+};
+
 //-- interface -----
-void log_init(LogSeverityLevel log_level, const std::string &log_filename="");
+void log_init(const LoggerSettings& settings);
 void log_dispose();
 bool log_can_emit_level(LogSeverityLevel level);
 std::string log_get_timestamp_prefix();
 
 //-- macros -----
-#define SELECT_LOG_STREAM(level) LoggerStream(log_can_emit_level(level))
-#define SELECT_MT_LOG_STREAM(level) ThreadSafeLoggerStream(log_can_emit_level(level))
+#define SELECT_LOG_STREAM(level) LoggerStream(level)
+#define SELECT_MT_LOG_STREAM(level) ThreadSafeLoggerStream(level)
 
 // Non Thread Safe Logger Macros
 // Almost everything is on the main thread, so you almost always want to use these

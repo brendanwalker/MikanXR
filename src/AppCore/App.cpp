@@ -111,7 +111,12 @@ bool App::startup(int argc, char** argv)
 {
 	bool success = true;
 
-	log_init(LogSeverityLevel::debug, "MikanXR.log");
+	LoggerSettings settings = {};
+	settings.min_log_level = LogSeverityLevel::debug;
+	settings.enable_console= true;
+	settings.log_filename= "MikanXR.log";
+
+	log_init(settings);
 
 	profiler::startListen();
 

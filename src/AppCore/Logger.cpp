@@ -12,24 +12,86 @@
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': localtime
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 //-- globals -----
 bool g_is_initialized= false;
 LogSeverityLevel g_min_log_level= LogSeverityLevel::info;
-std::ostream *g_console_stream= nullptr;
-std::ostream *g_file_stream = nullptr;
-std::mutex *g_logger_mutex = nullptr;
+bool g_is_console_log_enabled= false;
+std::ostream* g_file_stream = nullptr;
+std::mutex* g_logger_mutex = nullptr;
+t_logCallback g_logger_callback = nullptr;
+
+void log_default_callback(int log_level, const char* line)
+{
+	if (g_is_console_log_enabled)
+	{
+		if (log_level >= (int)LogSeverityLevel::error)
+			std::cerr << line << std::endl;
+		else
+			std::cout << line << std::endl;
+	}
+
+	if (g_file_stream != nullptr)
+	{
+		*g_file_stream << line << std::endl;
+	}
+}
 
 //-- public implementation -----
-void log_init(LogSeverityLevel log_level, const std::string &log_filename)
+#ifdef WIN32
+bool RedirectIOToConsole()
+{
+	if (!AllocConsole())
+	{
+		return false;
+	}
+
+	FILE* fDummy;
+	freopen_s(&fDummy, "CONOUT$", "w", stdout);
+	freopen_s(&fDummy, "CONOUT$", "w", stderr);
+	freopen_s(&fDummy, "CONIN$", "r", stdin);
+	std::cout.clear();
+	std::clog.clear();
+	std::cerr.clear();
+	std::cin.clear();
+
+	return true;
+}
+#endif // WIN32
+
+void log_init(const LoggerSettings& settings)
 {
 	if (!g_is_initialized)
 	{
-		g_min_log_level = log_level;
+		g_min_log_level = settings.min_log_level;
 
-		g_console_stream = new std::ostream(std::cout.rdbuf());
-		if (log_filename.length() > 0)
+		if (settings.enable_console)
 		{
-			g_file_stream = new std::ofstream(log_filename, std::ofstream::out);
+#ifdef WIN32
+			if (RedirectIOToConsole())
+			{
+				g_is_console_log_enabled = true;
+			}
+#else
+			g_is_console_log_enabled = true;
+#endif			
+		}
+
+		if (settings.log_filename.length() > 0)
+		{
+			g_file_stream = new std::ofstream(settings.log_filename, std::ofstream::out);
+		}
+
+		if (settings.log_callback != nullptr)
+		{
+			g_logger_callback= settings.log_callback;
+		}
+		else
+		{
+			g_logger_callback= log_default_callback;
 		}
 		
 		g_logger_mutex = new std::mutex();
@@ -40,12 +102,6 @@ void log_init(LogSeverityLevel log_level, const std::string &log_filename)
 
 void log_dispose()
 {
-	if (g_console_stream != nullptr)
-	{
-		delete g_console_stream;
-		g_console_stream = nullptr;
-	}
-
 	if (g_file_stream != nullptr)
 	{
 		delete g_file_stream;
@@ -56,6 +112,14 @@ void log_dispose()
 	{
 		delete g_logger_mutex;
 		g_logger_mutex = nullptr;
+	}
+
+	if (g_is_console_log_enabled)
+	{
+#ifdef WIN32
+		FreeConsole();
+#endif
+		g_is_console_log_enabled = false;
 	}
 
 	g_is_initialized = false;
@@ -80,8 +144,8 @@ std::string log_get_timestamp_prefix()
 }
 
 //-- member functions -----
-LoggerStream::LoggerStream(bool bEmit) :
-	m_bEmitLine(bEmit)
+LoggerStream::LoggerStream(LogSeverityLevel level) :
+	m_level(level)
 {
 }
 
@@ -92,24 +156,16 @@ LoggerStream::~LoggerStream()
 
 void LoggerStream::write_line()
 {
-	if (g_is_initialized && m_bEmitLine)
+	if (g_is_initialized && g_logger_callback != nullptr && log_can_emit_level(m_level))
 	{
 		const std::string line = m_lineBuffer.str();
 
-		if (g_console_stream != nullptr)
-		{
-			*g_console_stream << line << std::endl;
-		}
-
-		if (g_file_stream != nullptr)
-		{
-			*g_file_stream << line << std::endl;
-		}
+		(*g_logger_callback)((int)m_level, line.c_str());
 	}
 }
 
-ThreadSafeLoggerStream::ThreadSafeLoggerStream(bool bEmit) :
-	LoggerStream(bEmit)
+ThreadSafeLoggerStream::ThreadSafeLoggerStream(LogSeverityLevel level) :
+	LoggerStream(level)
 {
 }
 

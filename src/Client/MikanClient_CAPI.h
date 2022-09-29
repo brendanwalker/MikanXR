@@ -26,7 +26,7 @@
 
  \returns MikanResult_Success on success or MikanResult_Error on a general connection error.
  */
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_Initialize(MikanLogLevel log_level, const char *log_filename);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_Initialize(MikanLogLevel min_log_level, MikanLogCallback log_callback);
 
 MIKAN_PUBLIC_FUNCTION(bool) Mikan_GetIsInitialized();
 
@@ -79,15 +79,13 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_PublishRenderTargetBuffers(uint64_t fra
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeRenderTargetBuffers();
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_AllocateQuadStencil(MikanStencilQuad* stencil);
-
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetStencilList(MikanStencilList* out_stencil_list);
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetQuadStencil(MikanStencilID device_id, MikanStencilQuad* out_stencil);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_UpdateQuadStencil(const MikanStencilQuad* stencil);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetBoxStencil(MikanStencilID device_id, MikanStencilBox* out_stencil);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeQuadStencil(MikanStencilID stencil_id);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetModelStencil(MikanStencilID device_id, MikanStencilModel* out_stencil);
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetSpatialAnchorList(MikanSpatialAnchorList* out_anchor_list);
 

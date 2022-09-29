@@ -34,7 +34,8 @@ bool VideoWriter::open(
 	int fheight,
 	int bpp)
 {
-	close();
+	if (m_bIsOpened)
+		close();
 
 	int error = avio_open(&m_avioContext, filename.c_str(), AVIO_FLAG_WRITE);
 	if (error < 0)
@@ -65,12 +66,16 @@ bool VideoWriter::open(
 		return false;
 
 	startThread();
+	m_bIsOpened = true;
 
 	return true;
 }
 
 void VideoWriter::close()
 {
+	if (!m_bIsOpened)
+		return;
+
 	stopThread();
 
 	if (m_avFormatContext != nullptr)
@@ -245,6 +250,9 @@ bool VideoWriter::write(GlTexture* bgrTexture)
 	EASY_FUNCTION();
 
 	assert (bgrTexture != nullptr);
+
+	if (!m_bIsOpened)
+		return false;
 
 	if (bgrTexture->getTextureWidth() != m_frameWidth ||
 		bgrTexture->getTextureHeight() != m_frameHeight ||

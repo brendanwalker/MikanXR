@@ -29,14 +29,14 @@ void* g_graphicsDeviceInterfaces[MikanClientGraphicsAPI_COUNT] = {
 
 // -- public interface -----
 
-MikanResult Mikan_Initialize(MikanLogLevel log_level, const char* log_filename)
+MikanResult Mikan_Initialize(MikanLogLevel log_level, MikanLogCallback log_callback)
 {
     if (g_mikanClient != nullptr)
         return MikanResult_Success;
 
     g_mikanClient = new MikanClient();
 
-	MikanResult resultCode= g_mikanClient->startup((LogSeverityLevel)log_level, log_filename);
+	MikanResult resultCode= g_mikanClient->startup((LogSeverityLevel)log_level, log_callback);
     if (resultCode != MikanResult_Success)
     {
         delete g_mikanClient;
@@ -215,16 +215,6 @@ MikanResult Mikan_FreeRenderTargetBuffers()
 	return g_mikanClient->freeRenderTargetBuffers();
 }
 
-MikanResult Mikan_AllocateQuadStencil(MikanStencilQuad* stencil)
-{
-	if (g_mikanClient == nullptr)
-		return MikanResult_Uninitialized;
-	if (stencil == nullptr)
-		return MikanResult_NullParam;
-	
-	return g_mikanClient->allocateQuadStencil(*stencil);
-}
-
 MikanResult Mikan_GetStencilList(MikanStencilList* out_stencil_list)
 {
 	if (g_mikanClient == nullptr)
@@ -245,22 +235,14 @@ MikanResult Mikan_GetQuadStencil(MikanStencilID stencil_id, MikanStencilQuad* ou
 	return g_mikanClient->getQuadStencil(stencil_id, *out_stencil);
 }
 
-MikanResult Mikan_UpdateQuadStencil(const MikanStencilQuad* stencil)
+MikanResult Mikan_GetModelStencil(MikanStencilID stencil_id, MikanStencilModel* out_stencil)
 {
 	if (g_mikanClient == nullptr)
 		return MikanResult_Uninitialized;
-	if (stencil == nullptr)
+	if (out_stencil == nullptr)
 		return MikanResult_NullParam;
 
-	return g_mikanClient->updateQuadStencil(*stencil);
-}
-
-MikanResult Mikan_FreeQuadStencil(MikanStencilID stencil_id)
-{
-	if (g_mikanClient == nullptr)
-		return MikanResult_Uninitialized;
-
-	return g_mikanClient->freeQuadStencil(stencil_id);
+	return g_mikanClient->getModelStencil(stencil_id, *out_stencil);
 }
 
 MikanResult Mikan_Disconnect()

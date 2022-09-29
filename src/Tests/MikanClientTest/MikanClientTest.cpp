@@ -133,7 +133,11 @@ protected:
 	{
 		bool success = true;
 
-		log_init(LogSeverityLevel::info);
+		LoggerSettings settings = {};
+		settings.min_log_level = LogSeverityLevel::info;
+		settings.enable_console = true;
+
+		log_init(settings);
 
 		if (Mikan_Initialize(MikanLogLevel_Info, nullptr) == MikanResult_Success)
 		{

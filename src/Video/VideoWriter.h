@@ -14,6 +14,7 @@ public:
 	~VideoWriter();
 
 	bool open(const std::string& filename, float fps, int fwidth, int fheight, int bpp);
+	bool getIsOpened() const { return m_bIsOpened; }
 	void close();
 
 	bool write(class GlTexture* bgrTexture);
@@ -23,6 +24,7 @@ protected:
 
 private:
 	std::string m_filepath;
+	bool m_bIsOpened= false;
 	float m_fps;
 	int m_frameWidth;
 	int m_frameHeight;
