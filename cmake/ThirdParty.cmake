@@ -67,8 +67,8 @@ else()
   find_package(LUA REQUIRED)
 endif()
 
-# Luaaa
-set (LUAAA_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/luaaa)
+# LuaBridge3
+set (LUA_BRIDGE_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/LuaBridge3/Source)
 
 # fast-cpp-csv-parser
 set (FastCSV_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/fast-cpp-csv-parser)
