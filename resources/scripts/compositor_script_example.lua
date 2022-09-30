@@ -1,8 +1,8 @@
 local easing = require("resources/scripts/easing")
 
 local function torii_scale_bounce_coroutine()
-  local model_stencil_list= ModelStencilList.new()
-  local torii_stencil= ModelStencil.new(model_stencil_list:getStencilId(0))
+  local model_stencil_list= ModelStencilList()
+  local torii_stencil= ModelStencil(model_stencil_list:getStencilId(0))
   local final_scale= torii_stencil:getModelScale()
   local elapsed_time = 0
   local duration = 2
@@ -12,7 +12,7 @@ local function torii_scale_bounce_coroutine()
     local start= 0
     local change= 1 - start
     local s = easing.outBounce(elapsed_time, start, change, duration)
-    local current_scale = Vec3fMath.scaleUniform(final_scale, s)
+    local current_scale = final_scale:scaleUniform(s)
     torii_stencil:setModelScale(current_scale)
     wait_next_frame()
     elapsed_time= elapsed_time + get_frame_delta_seconds()
@@ -20,8 +20,8 @@ local function torii_scale_bounce_coroutine()
 end
 
 local function quad_scale_bounce_coroutine()
-  local quad_stencil_list= QuadStencilList.new()
-  local quad_stencil= QuadStencil.new(quad_stencil_list:getStencilId(0))
+  local quad_stencil_list= QuadStencilList()
+  local quad_stencil= QuadStencil(quad_stencil_list:getStencilId(0))
   local final_width= quad_stencil:getQuadWidth()
   local final_height= quad_stencil:getQuadHeight()
   local elapsed_time = 0
