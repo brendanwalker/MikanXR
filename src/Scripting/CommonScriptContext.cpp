@@ -4,20 +4,12 @@
 #include "Logger.h"
 
 #include <algorithm>
-
-#ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable: 4267) // conversion from 'size_t' to 'int', possible loss of data
-#endif
 #include <assert.h>
-#include "luaaa.hpp"
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif
+
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
 
 #include "easy/profiler.h"
-
-using namespace luaaa;
 
 // -- CommonScriptContext -----
 CommonScriptContext::CommonScriptContext()
@@ -248,10 +240,12 @@ bool CommonScriptContext::addLuaCoroutineScheduler()
 
 void CommonScriptContext::bindCommonScriptFunctions()
 {
-	LuaModule(m_luaState, "ScriptContext")
-	.fun("registerTrigger", [this](const char* functionName) {
-		m_triggers.push_back(functionName);
-	});
+	luabridge::getGlobalNamespace(m_luaState)
+		.beginNamespace("ScriptContext")
+			.addFunction("registerTrigger", [this](const char* functionName) {
+				m_triggers.push_back(functionName);
+			})
+		.endNamespace();
 }
 
 void CommonScriptContext::disposeScriptState()
