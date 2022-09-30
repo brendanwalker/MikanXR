@@ -17,7 +17,9 @@ public:
 	{ }
 
 	int getStencilCount() const { return (int)m_stencilIdList.size(); }
-	int getStencilId(int listIndex) const { return m_stencilIdList[listIndex]; }
+	int getStencilId(int listIndex) const { 
+		return (listIndex >= 0 && listIndex < getStencilCount()) ? m_stencilIdList[listIndex] : INVALID_MIKAN_ID; 
+	}
 
 protected:
 	std::vector<int> m_stencilIdList;
