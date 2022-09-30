@@ -199,6 +199,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR
   ${IMGUI_DIR}
+  ${RMLUI_INCLUDE_DIR}
   ${ROOT_DIR}/thirdparty/imgui-filebrowser
   ${ROOT_DIR}/thirdparty/glm/
   ${ROOT_DIR}/thirdparty/Configuru/
@@ -232,6 +233,7 @@ list(APPEND MIKAN_REQ_LIBS
   ${FFMPEG_avutil_LIBRARY}
   ${FFMPEG_swscale_LIBRARY}
   ${LUA_LIBRARIES}
+  ${RMLUI_LIBRARIES}
   easy_profiler)
 
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -365,7 +367,14 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
     "${LUA_SHARED_LIBRARIES}" 
-    $<TARGET_FILE_DIR:Mikan>)    
+    $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+    "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
+    "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
+    "${RMLUI_BINARIES_DIR}/RmlLua.dll" 
+    $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${ROOT_DIR}/resources $<TARGET_FILE_DIR:Mikan>/resources)
@@ -451,7 +460,20 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(FILES "${LUA_SHARED_LIBRARIES}"
       CONFIGURATIONS Release
       DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
-
+      
+  install(FILES 
+      "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
+      "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
+      "${RMLUI_BINARIES_DIR}/RmlLua.dll" 
+      CONFIGURATIONS Debug
+      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
+  install(FILES 
+      "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
+      "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
+      "${RMLUI_BINARIES_DIR}/RmlLua.dll" 
+      CONFIGURATIONS Release
+      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      
   install(FILES 
       "${SDL2_IMAGE_DLL_FOLDER}/libjpeg-9.dll" 
       "${SDL2_IMAGE_DLL_FOLDER}/libpng16-16.dll"

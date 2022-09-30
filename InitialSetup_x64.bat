@@ -162,6 +162,27 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+:: Download and make a build of RmlUi with some custom build settings
+echo "Downloading RML source..."
+curl -L https://github.com/mikke89/RmlUi/archive/refs/tags/4.4.zip --output RML.zip
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error RML.zip"
+  goto failure
+)
+7z e RML.zip -y -r -spf -oRML
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping RML.zip"
+  goto failure
+)
+set LUA_DIR=%~dp0\thirdparty\lua
+pushd RML\RmlUi-4.4
+echo "Configuring RML project..."
+cmake -B Build -S . -DBUILD_SAMPLES=OFF -DBUILD_LUA_BINDINGS=ON -DNO_FONT_INTERFACE_DEFAULT=ON
+echo "Building RML Release config..."
+cmake --build Build --config Release
+popd
+set "LUA_DIR="
+
 :: Exit back out of the deps folder
 popd
 

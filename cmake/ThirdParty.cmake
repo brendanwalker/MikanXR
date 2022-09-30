@@ -58,10 +58,22 @@ list(APPEND IMGUI_SOURCE
      ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
 )
 
+# RMLUI
+if (WIN32) 
+  set (RMLUI_INCLUDE_DIR ${ROOT_DIR}/deps/RML/RmlUi-4.4/Include)
+  set (RMLUI_BINARIES_DIR ${ROOT_DIR}/deps/RML/RmlUi-4.4/Build/Release)
+  list (APPEND RMLUI_LIBRARIES 
+    ${RMLUI_BINARIES_DIR}/RmlCore.lib
+    ${RMLUI_BINARIES_DIR}/RmlDebugger.lib
+    ${RMLUI_BINARIES_DIR}/RmlLua.lib)
+else()
+  #TODO
+endif()
+
 # Lua
 if (WIN32) 
   set (LUA_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/lua/include)
-  set (LUA_LIBRARIES ${ROOT_DIR}/thirdparty/lua/liblua54.lib)
+  set (LUA_LIBRARIES ${ROOT_DIR}/thirdparty/lua/lua54.lib)
   set (LUA_SHARED_LIBRARIES ${ROOT_DIR}/thirdparty/lua/lua54.dll)
 else()
   find_package(LUA REQUIRED)
@@ -89,7 +101,7 @@ find_package(FFMPEG REQUIRED)
 find_package(easy_profiler REQUIRED)
 
 # Spout2
-if (WIN32) 
+if (WIN32)
   set (SPOUT2_SDK_DIR ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK/SpoutLibrary/Binaries/x64)
   list (APPEND SPOUT2_INCLUDE_DIRS 
     ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK
