@@ -6,6 +6,10 @@
 //-- typedefs -----
 typedef union SDL_Event SDL_Event;
 
+namespace Rml {
+	class Context;
+};
+
 class AppStage
 {
 public:
@@ -18,18 +22,21 @@ public:
 	virtual ~AppStage() {}
 
 	const std::string getAppStageName() const { return m_appStageName; }
+	Rml::Context* getRmlContext() const { return m_context; }
 
-	virtual void enter() {}
-	virtual void exit() {}
-	virtual void pause() {}
-	virtual void resume() {}
-	virtual void update() {}
-	virtual void render() {};
-	virtual void renderUI() {}
+	virtual void enter();
+	virtual void exit();
+	virtual void pause();
+	virtual void resume();
+	virtual void update();
+	virtual void render();
+	virtual void renderUI();
 
 	virtual void onSDLEvent(SDL_Event* event) {}
 
 protected:
 	class App* m_app;
 	std::string m_appStageName;
+
+	Rml::Context* m_context= nullptr;
 };

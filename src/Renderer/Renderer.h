@@ -54,8 +54,6 @@ public:
 		return (float)m_sdlWindowWidth / (float)m_sdlWindowHeight;
 	}
 
-	std::string getRmlContextName() const;
-
 	bool getIsRenderingStage()
 	{
 		return m_isRenderingStage;

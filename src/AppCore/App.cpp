@@ -48,8 +48,6 @@ App::App()
 
 App::~App()
 {
-	shutdown();
-
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
 	delete m_renderer;	
@@ -217,6 +215,8 @@ void App::shutdown()
 	{
 		popAppState();
 	}
+
+	Rml::Shutdown();
 
 	if (m_mikanServer != nullptr)
 	{
@@ -394,21 +394,23 @@ double App::GetElapsedTime()
 
 int App::TranslateString(Rml::String& translated, const Rml::String& input)
 {
-	const std::string& contextName= Renderer::getInstance()->getRmlContextName();
+	translated = input;
 
-	bool bHasString= false;
-	const char* result= locTextUTF8(contextName.c_str(), input.c_str(), &bHasString);
+	AppStage* appStage= getCurrentAppStage();
+	if (appStage != nullptr)
+	{
+		bool bHasString = false;
+		const std::string& contextName = appStage->getAppStageName();
+		const char* result = locTextUTF8(contextName.c_str(), input.c_str(), &bHasString);
 
-	if (bHasString)
-	{
-		translated = result;
-		return 1;
+		if (bHasString)
+		{
+			translated = result;
+			return 1;
+		}
 	}
-	else
-	{
-		translated= input;
-		return 0;
-	}
+
+	return 0;
 }
 
 bool App::LogMessage(Rml::Log::Type type, const Rml::String& message)

@@ -610,11 +610,6 @@ void Renderer::renderEnd()
 	SDL_GL_SwapWindow(m_sdlWindow);
 }
 
-std::string Renderer::getRmlContextName() const
-{
-	return m_rmlUiRenderer->GetContext()->GetName();
-}
-
 GlCamera* Renderer::getCurrentCamera() const
 {
 	return m_cameraStack.size() > 0 ? m_cameraStack[m_cameraStack.size() - 1] : nullptr;

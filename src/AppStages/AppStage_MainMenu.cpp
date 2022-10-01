@@ -5,10 +5,15 @@
 #include "AppStage_CameraSettings.h"
 #include "AppStage_VRDeviceSettings.h"
 #include "App.h"
+#include "PathUtils.h"
 #include "Renderer.h"
 #include "Logger.h"
 
 #include "imgui.h"
+
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/ElementDocument.h>
 
 //-- statics ----
 const char* AppStage_MainMenu::APP_STAGE_NAME = "MainMenu";
@@ -19,8 +24,34 @@ AppStage_MainMenu::AppStage_MainMenu(App* app)
 { 
 }
 
+void AppStage_MainMenu::enter()
+{
+	AppStage::enter();
+
+	const std::string rmlPath = PathUtils::getResourceDirectory() + "\\rml\\window.rml";
+	m_document = getRmlContext()->LoadDocument(rmlPath);
+	if (m_document != nullptr)
+	{
+		m_document->Show();
+	}
+}
+
+void AppStage_MainMenu::exit()
+{
+	if (m_document != nullptr)
+	{
+		m_document->Hide();
+		getRmlContext()->UnloadDocument(m_document);
+		m_document= nullptr;
+	}
+
+	AppStage::exit();
+}
+
 void AppStage_MainMenu::renderUI()
 {
+	AppStage::renderUI();
+
 	const ImGuiWindowFlags window_flags =
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove |
