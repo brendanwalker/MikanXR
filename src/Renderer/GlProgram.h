@@ -136,7 +136,5 @@ protected:
 
 	GlProgramCode m_code;
 	uint32_t m_programID = 0;
-	int m_modelViewProjectionMatrixId = -1;
-	int m_modelColorId = -1;
 	std::map<eUniformSemantic, Uniform> m_uniformLocationMap;
 };

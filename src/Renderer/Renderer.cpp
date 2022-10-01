@@ -100,6 +100,7 @@ Renderer::Renderer()
 	, m_rmlUiRenderer(std::unique_ptr<GlRmlUiRender>(new GlRmlUiRender))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
+	, m_shaderCache(std::unique_ptr<GlShaderCache>(new GlShaderCache))
 {
 }
 
@@ -118,6 +119,7 @@ bool Renderer::startup()
 	bool success = true;
 
 	MIKAN_LOG_INFO("Renderer::init()") << "Initializing Renderer Context";
+	m_instance = this;
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
 	{
@@ -191,6 +193,12 @@ bool Renderer::startup()
 			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize window: " << SDL_GetError();
 			success = false;
 		}
+	}
+
+	if (success && !m_shaderCache->startup())
+	{
+		MIKAN_LOG_ERROR("Renderer::init") << "Failed to initialize shader cache!";
+		success = false;
 	}
 
 	if (success)
@@ -369,8 +377,6 @@ bool Renderer::startup()
 
 		// Create the base camera on the camera stack
 		pushCamera();
-
-		m_instance = this;
 	}
 
 	return success;
@@ -459,6 +465,11 @@ void Renderer::shutdown()
 	{
 		SDL_FreeCursor(cursor_unavailable);
 		cursor_unavailable = nullptr;
+	}
+
+	if (m_shaderCache != nullptr)
+	{
+		m_shaderCache->shutdown();
 	}
 
 	if (m_glContext != NULL)

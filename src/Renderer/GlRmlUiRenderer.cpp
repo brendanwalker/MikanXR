@@ -109,7 +109,7 @@ namespace RmlGfx {
 		// vertex shader
 		shader_main_vertex,
 		//fragment shader
-		shader_main_fragment_color)
+		shader_main_fragment_texture)
 		.addUniform("_translate", eUniformSemantic::screenPosition)
 		.addUniform("_transform", eUniformSemantic::transformMatrix)
 		.addUniform("_tex", eUniformSemantic::texture0);
@@ -157,8 +157,8 @@ namespace RmlGfx {
 			return false;
 		}
 
-		out_shaders.program_color = GlShaderCache::getInstance()->fetchCompiledGlProgram(&texture_program_code);
-		if (out_shaders.program_color == nullptr)
+		out_shaders.program_texture = GlShaderCache::getInstance()->fetchCompiledGlProgram(&texture_program_code);
+		if (out_shaders.program_texture == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
 			return false;
@@ -167,24 +167,7 @@ namespace RmlGfx {
 		return true;
 	}
 
-	static void DestroyShaders(ShadersData& shaders)
-	{
-		if (shaders.program_color != nullptr)
-		{
-			delete shaders.program_color;
-		}
-
-		if (shaders.program_color != nullptr)
-		{
-			delete shaders.program_texture;
-		}
-
-		shaders = {};
-	}
-
 } // namespace RmlGfx
-
-#include <RmlUi/Core/Context.h>
 
 namespace RmlInput
 {
@@ -374,66 +357,68 @@ bool GlRmlUiRender::startup()
 void GlRmlUiRender::shutdown()
 {
 	Rml::SetRenderInterface(nullptr);
-	RmlGfx::DestroyShaders(*shaders);
 }
 
 bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 {
-	Rml::Context* context= GetContext();
-	bool result= false;
+	bool result = false;
 
-	switch (event->type)
+	Rml::Context* context = GetContext();
+	if (context != nullptr)
 	{
-	case SDL_MOUSEMOTION:
-		result = context->ProcessMouseMove(event->motion.x, event->motion.y, RmlInput::GetKeyModifierState());
-		break;
-	case SDL_MOUSEBUTTONDOWN:
-		result = context->ProcessMouseButtonDown(
-			RmlInput::ConvertMouseButton(event->button.button), 
-			RmlInput::GetKeyModifierState());
-		SDL_CaptureMouse(SDL_TRUE);
-		break;
-	case SDL_MOUSEBUTTONUP:
-		SDL_CaptureMouse(SDL_FALSE);
-		result = context->ProcessMouseButtonUp(
-			RmlInput::ConvertMouseButton(event->button.button),
-			RmlInput::GetKeyModifierState());
-		break;
-	case SDL_MOUSEWHEEL:
-		result = context->ProcessMouseWheel(
-			float(-event->wheel.y), 
-			RmlInput::GetKeyModifierState());
-		break;
-	case SDL_KEYDOWN:
-		result = context->ProcessKeyDown(
-			RmlInput::ConvertKey(event->key.keysym.sym),
-			RmlInput::GetKeyModifierState());
-		if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER)
-			result &= context->ProcessTextInput('\n');
-		break;
-	case SDL_KEYUP:
-		result = context->ProcessKeyUp(
-			RmlInput::ConvertKey(event->key.keysym.sym),
-			RmlInput::GetKeyModifierState());
-		break;
-	case SDL_TEXTINPUT:
-		result = context->ProcessTextInput(Rml::String(&event->text.text[0]));
-		break;
-	case SDL_WINDOWEVENT:
+		switch (event->type)
 		{
-			switch (event->window.event)
+		case SDL_MOUSEMOTION:
+			result = context->ProcessMouseMove(event->motion.x, event->motion.y, RmlInput::GetKeyModifierState());
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			result = context->ProcessMouseButtonDown(
+				RmlInput::ConvertMouseButton(event->button.button),
+				RmlInput::GetKeyModifierState());
+			SDL_CaptureMouse(SDL_TRUE);
+			break;
+		case SDL_MOUSEBUTTONUP:
+			SDL_CaptureMouse(SDL_FALSE);
+			result = context->ProcessMouseButtonUp(
+				RmlInput::ConvertMouseButton(event->button.button),
+				RmlInput::GetKeyModifierState());
+			break;
+		case SDL_MOUSEWHEEL:
+			result = context->ProcessMouseWheel(
+				float(-event->wheel.y),
+				RmlInput::GetKeyModifierState());
+			break;
+		case SDL_KEYDOWN:
+			result = context->ProcessKeyDown(
+				RmlInput::ConvertKey(event->key.keysym.sym),
+				RmlInput::GetKeyModifierState());
+			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER)
+				result &= context->ProcessTextInput('\n');
+			break;
+		case SDL_KEYUP:
+			result = context->ProcessKeyUp(
+				RmlInput::ConvertKey(event->key.keysym.sym),
+				RmlInput::GetKeyModifierState());
+			break;
+		case SDL_TEXTINPUT:
+			result = context->ProcessTextInput(Rml::String(&event->text.text[0]));
+			break;
+		case SDL_WINDOWEVENT:
 			{
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				setViewport(event->window.data1, event->window.data2);
-				break;
-			case SDL_WINDOWEVENT_LEAVE:
-				//context->ProcessMouseLeave();
-				break;
+				switch (event->window.event)
+				{
+				case SDL_WINDOWEVENT_SIZE_CHANGED:
+					setViewport(event->window.data1, event->window.data2);
+					break;
+				case SDL_WINDOWEVENT_LEAVE:
+					//context->ProcessMouseLeave();
+					break;
+				}
 			}
+		break;
+		default:
+			break;
 		}
-		break;
-	default:
-		break;
 	}
 
 	return result;
@@ -441,10 +426,14 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 
 void GlRmlUiRender::setViewport(int width, int height)
 {
+	Rml::Context* context = GetContext();
+	if (context != nullptr)
+	{
+		context->SetDimensions(Rml::Vector2i(width, height));
+	}
+
 	viewport_width = width;
 	viewport_height = height;
-
-	GetContext()->SetDimensions(Rml::Vector2i(width, height));
 }
 
 void GlRmlUiRender::beginFrame()

@@ -15,7 +15,7 @@ GlWireframeMesh::GlWireframeMesh(
 	uint32_t lineCount,
 	bool bOwnsVertexData)
 {
-	m_program = App::getInstance()->getShaderCache()->fetchCompiledGlProgram(getShaderCode());
+	m_program = GlShaderCache::getInstance()->fetchCompiledGlProgram(getShaderCode());
 	if (m_program == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlWireframeMesh") << "Failed to build shader program";

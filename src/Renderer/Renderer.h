@@ -105,6 +105,9 @@ private:
 	bool m_isRenderingStage;
 	bool m_isRenderingUI;
 
+	// OpenGL shader program cache
+	std::unique_ptr< class GlShaderCache > m_shaderCache;
+
 	static Renderer* m_instance;
 };
 

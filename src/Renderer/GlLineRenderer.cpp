@@ -82,7 +82,7 @@ const GlVertexDefinition* GlLineRenderer::getVertexDefinition()
 
 bool GlLineRenderer::startup()
 {
-	m_program = App::getInstance()->getShaderCache()->fetchCompiledGlProgram(getShaderCode());
+	m_program = GlShaderCache::getInstance()->fetchCompiledGlProgram(getShaderCode());
 	if (m_program == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to build shader program";

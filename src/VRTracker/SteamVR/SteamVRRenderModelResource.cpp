@@ -219,7 +219,7 @@ GlMaterial* SteamVRRenderModelResource::createMaterial(
 	const GlProgramCode* code,
 	const GlTexture* texture)
 {
-	GlShaderCache* resourceManager = App::getInstance()->getShaderCache();
+	GlShaderCache* resourceManager = GlShaderCache::getInstance();
 	GlProgram* program = resourceManager->fetchCompiledGlProgram(code);
 	
 	if (program != nullptr)

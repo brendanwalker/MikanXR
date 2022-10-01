@@ -38,7 +38,6 @@ App::App()
 	, m_inputManager(new InputManager())
 	, m_localizationManager(new LocalizationManager())
 	, m_renderer(new Renderer())
-	, m_shaderCache(new GlShaderCache())
 	, m_fontManager(new FontManager())
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
@@ -53,7 +52,6 @@ App::~App()
 
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
-	delete m_shaderCache;
 	delete m_renderer;	
 	delete m_localizationManager;
 	delete m_inputManager;
@@ -144,12 +142,6 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	if (success && !m_shaderCache->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize asset manager!";
-		success = false;
-	}
-
 	if (success && !m_renderer->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize renderer!";
@@ -230,11 +222,6 @@ void App::shutdown()
 	if (m_fontManager != nullptr)
 	{
 		m_fontManager->shutdown();
-	}
-
-	if (m_shaderCache != nullptr)
-	{
-		m_shaderCache->shutdown();
 	}
 
 	if (m_renderer != nullptr)

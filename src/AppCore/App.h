@@ -20,7 +20,6 @@ public:
 	inline class ProfileConfig* getProfileConfig() const { return m_profileConfig; }
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
 	inline class Renderer* getRenderer() const { return m_renderer; }
-	inline class GlShaderCache* getShaderCache() const { return m_shaderCache; }
 	inline class FontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
@@ -114,9 +113,6 @@ private:
 
 	// OpenGL renderer
 	class Renderer* m_renderer= nullptr;
-
-	// OpenGL shader program chache
-	class GlShaderCache *m_shaderCache = nullptr;
 
 	// OpenGL/SDL font/baked text string texture cache
 	class FontManager* m_fontManager = nullptr;

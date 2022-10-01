@@ -6,16 +6,16 @@ GlShaderCache* GlShaderCache::m_instance= nullptr;
 
 GlShaderCache::GlShaderCache()
 {
-	m_instance= this;
 }
 
 GlShaderCache::~GlShaderCache()
 {
-	m_instance= nullptr;
 }
 
 bool GlShaderCache::startup()
 {
+	m_instance = this;
+
 	return true;
 }
 
@@ -27,6 +27,8 @@ void GlShaderCache::shutdown()
 		delete it->second;
 	}
 	m_compileProgramCache.clear();
+
+	m_instance = nullptr;
 }
 
 GlProgram* GlShaderCache::fetchCompiledGlProgram(
