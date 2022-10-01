@@ -189,6 +189,25 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
+	struct FontFace {
+		const char* filename;
+		bool fallback_face;
+	};
+	FontFace font_faces[] = {
+		{"LatoLatin-Regular", false},
+		{"LatoLatin-Italic", false},
+		{"LatoLatin-Bold", false},
+		{"LatoLatin-BoldItalic", false},
+		{"NotoEmoji-Regular", true},
+	};
+
+	for (const FontFace& face : font_faces)
+	{
+		const std::string fontPath = getFontPath(face.filename);
+
+		Rml::LoadFontFace(fontPath, face.fallback_face);
+	}
+
 	return success;
 }
 
