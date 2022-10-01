@@ -61,7 +61,7 @@ list(APPEND IMGUI_SOURCE
 # RMLUI
 if (WIN32) 
   set (RMLUI_INCLUDE_DIR ${ROOT_DIR}/deps/RML/RmlUi-4.4/Include)
-  set (RMLUI_BINARIES_DIR ${ROOT_DIR}/deps/RML/RmlUi-4.4/Build/Release)
+  set (RMLUI_BINARIES_DIR ${ROOT_DIR}/deps/RML/RmlUi-4.4/Build/Debug)
   set (FREETYPE_SHARED_LIBRARY ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/win64/freetype.dll)
   list (APPEND RMLUI_LIBRARIES 
     ${RMLUI_BINARIES_DIR}/RmlCore.lib
