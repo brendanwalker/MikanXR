@@ -12,10 +12,11 @@
 
 enum class eUniformSemantic : int
 {
+	transformMatrix,
 	modelViewProjectionMatrix,
 	diffuseColorRGBA,
 	diffuseColorRGB,
-	screenDimensions,
+	screenPosition,
 	floatConstant0,
 	floatConstant1,
 	floatConstant2,

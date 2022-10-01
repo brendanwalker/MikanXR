@@ -36,7 +36,7 @@ bool GlProgram::setMatrix4x4Uniform(
 	const eUniformSemantic semantic,
 	const glm::mat4& mat)
 {
-	assert(semantic == eUniformSemantic::modelViewProjectionMatrix);
+	assert(semantic == eUniformSemantic::transformMatrix || semantic == eUniformSemantic::modelViewProjectionMatrix);
 	auto iter= m_uniformLocationMap.find(semantic);
 	if (iter != m_uniformLocationMap.end())
 	{
@@ -66,7 +66,7 @@ bool GlProgram::setVector2Uniform(
 	const eUniformSemantic semantic, 
 	const glm::vec2& vec)
 {
-	assert(semantic == eUniformSemantic::screenDimensions);
+	assert(semantic == eUniformSemantic::screenPosition);
 	auto iter = m_uniformLocationMap.find(semantic);
 	if (iter != m_uniformLocationMap.end())
 	{

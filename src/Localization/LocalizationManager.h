@@ -25,8 +25,8 @@ public:
 	bool setLanguage(const t_language_tags& langCodes);
 	bool setLanguage(const std::string& languageId);
 	const std::string& getLanguage() const { return m_currentLanguageCode; }
-	const char* fetchUTF8Text(const char* tableName, const char* stringKey);
-	const wchar_t* fetchUTF16Text(const char* tableName, const char* stringKey);
+	const char* fetchUTF8Text(const char* tableName, const char* stringKey, bool* outHasString = nullptr);
+	const wchar_t* fetchUTF16Text(const char* tableName, const char* stringKey, bool* outHasString = nullptr);
 
 private:
 	void unloadLanguages();
@@ -54,5 +54,5 @@ private:
 	Language* m_currentLanguage;
 };
 
-const char* locTextUTF8(const char* tableName, const char* stringKey);
-const wchar_t* locTextUTF16(const char* tableName, const char* stringKey);
+const char* locTextUTF8(const char* tableName, const char* stringKey, bool* outHasString = nullptr);
+const wchar_t* locTextUTF16(const char* tableName, const char* stringKey, bool* outHasString = nullptr);

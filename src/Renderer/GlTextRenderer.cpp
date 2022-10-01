@@ -1,9 +1,8 @@
 #include "App.h"
+#include "FontManager.h"
 #include "GlCamera.h"
 #include "GlCommon.h"
 #include "GlTextRenderer.h"
-#include "GlBakedTextCache.h"
-#include "GlBakedTextCache.h"
 #include "GlTexture.h"
 #include "Logger.h"
 #include "MathGLM.h"
@@ -121,7 +120,7 @@ void GlTextRenderer::addTextAtScreenPosition(
 	const glm::vec2& screenCoords, 
 	const std::wstring& text)
 {
-	GlTexture* texture= App::getInstance()->getBakedTextCache()->fetchBakedText(style, text);
+	GlTexture* texture= App::getInstance()->getFontManager()->fetchBakedText(style, text);
 
 	if (texture != nullptr)
 	{

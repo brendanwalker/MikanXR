@@ -6,9 +6,10 @@
 #include <vector>
 #include <assert.h>
 #include <stdint.h>
+#include <RmlUi/Core/SystemInterface.h>
 
 //-- definitions -----
-class App
+class App : public Rml::SystemInterface
 {
 public:
 	App();
@@ -20,7 +21,7 @@ public:
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
 	inline class Renderer* getRenderer() const { return m_renderer; }
 	inline class GlShaderCache* getShaderCache() const { return m_shaderCache; }
-	inline class GlBakedTextCache* getBakedTextCache() const { return m_bakedTextCache; }
+	inline class FontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
 
@@ -85,6 +86,14 @@ protected:
 	void update();
 	void render();
 
+	// Rml::SystemInterface
+	virtual double GetElapsedTime() override;
+	virtual int TranslateString(Rml::String& translated, const Rml::String& input) override;
+	virtual bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
+	virtual void SetMouseCursor(const Rml::String& cursor_name) override;
+	virtual void SetClipboardText(const Rml::String& text) override;
+	virtual void GetClipboardText(Rml::String& text) override;
+
 private:
 	static App* m_instance;
 
@@ -110,7 +119,7 @@ private:
 	class GlShaderCache *m_shaderCache = nullptr;
 
 	// OpenGL/SDL font/baked text string texture cache
-	class GlBakedTextCache* m_bakedTextCache = nullptr;
+	class FontManager* m_fontManager = nullptr;
 
 	// Keeps track of currently connected camera
 	class VideoSourceManager* m_videoSourceManager = nullptr;

@@ -1,4 +1,4 @@
-#include "GlBakedTextCache.h"
+#include "FontManager.h"
 #include "GlCommon.h"
 #include "GlShaderCache.h"
 #include "GlStaticMeshInstance.h"
@@ -14,15 +14,17 @@
 
 #include <easy/profiler.h>
 
-GlBakedTextCache::GlBakedTextCache()
+#include <RmlUi/Core/Core.h>
+
+FontManager::FontManager()
 {
 }
 
-GlBakedTextCache::~GlBakedTextCache()
+FontManager::~FontManager()
 {
 }
 
-bool GlBakedTextCache::startup()
+bool FontManager::startup()
 {
 	EASY_FUNCTION();
 
@@ -30,21 +32,23 @@ bool GlBakedTextCache::startup()
 	{
 		if (TTF_Init() == -1)
 		{
-			MIKAN_LOG_ERROR("GlBakedTextCache::startup") << "GlBakedTextCache failed to initialize SDL TTF lib.";
+			MIKAN_LOG_ERROR("FontManager::startup") << "FontManager failed to initialize SDL TTF lib.";
 			return false;
 		}
 	}
 
+	Rml::SetFontEngineInterface(this);
+
 	return true;
 }
 
-void GlBakedTextCache::garbageCollect()
+void FontManager::garbageCollect()
 {
 	EASY_FUNCTION();
 
 	for (auto it = m_bakedTextCache.begin(); it != m_bakedTextCache.end(); )
 	{
-		GlBakedTextCache::GlBakedText& bakedText = it->second;
+		FontManager::GlBakedText& bakedText = it->second;
 
 		// Age the baked text
 		--bakedText.lifetime;
@@ -64,12 +68,12 @@ void GlBakedTextCache::garbageCollect()
 	}
 }
 
-void GlBakedTextCache::shutdown()
+void FontManager::shutdown()
 {	
 	// Flush any remaining baked textures
 	for (auto it = m_bakedTextCache.begin(); it != m_bakedTextCache.end(); ++it)
 	{
-		const GlBakedTextCache::GlBakedText& bakedText= it->second;
+		const FontManager::GlBakedText& bakedText= it->second;
 
 		bakedText.texture->disposeTexture();
 		delete bakedText.texture;
@@ -98,7 +102,7 @@ size_t computeTextHash(const TextStyle& style, const std::wstring& text)
 	return hasher(text + szStyleString);
 }
 
-GlTexture* GlBakedTextCache::fetchBakedText(
+GlTexture* FontManager::fetchBakedText(
 	const TextStyle& style, 
 	const std::wstring& text)
 {
@@ -169,7 +173,7 @@ size_t computeFontHash(const std::string& fontName, int pointSize)
 	return hasher(szStyleString);
 }
 
-void* GlBakedTextCache::fetchFont(const std::string& fontName, int pointSize)
+void* FontManager::fetchFont(const std::string& fontName, int pointSize)
 {
 	const size_t hash = computeFontHash(fontName, pointSize);
 
@@ -189,8 +193,100 @@ void* GlBakedTextCache::fetchFont(const std::string& fontName, int pointSize)
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("GlBakedTextCache::fetchFont") << "Failed to find font path: " << fontPath;
+			MIKAN_LOG_ERROR("FontManager::fetchFont") << "Failed to find font path: " << fontPath;
 			return nullptr;
 		}
 	}
+}
+
+// -- Rml::FontEngineInterface -----
+bool FontManager::LoadFontFace(
+	const Rml::String& file_path,
+	bool fallback_face,
+	Rml::Style::FontWeight weight)
+{
+	//TTF_Font* font = (TTF_Font*)fetchFont(style.fontName, style.pointSize);
+	return false;
+}
+
+bool FontManager::LoadFontFace(
+	const Rml::byte* data, int data_size,
+	const Rml::String& font_family, Rml::Style::FontStyle style,
+	Rml::Style::FontWeight weight, bool fallback_face)
+{
+	//SDL_RWops* memReader = SDL_RWFromConstMem(data, data_size);
+	//TTF_Font* font = TTF_OpenFontRW(memReader, 0, weight);
+	//SDL_RWclose(SDL_RWops * context);
+
+	return false;
+}
+
+Rml::FontFaceHandle FontManager::GetFontFaceHandle(
+	const Rml::String& family,
+	Rml::Style::FontStyle style,
+	Rml::Style::FontWeight weight,
+	int size)
+{
+	return 0;
+}
+
+Rml::FontEffectsHandle FontManager::PrepareFontEffects(
+	Rml::FontFaceHandle handle,
+	const Rml::FontEffectList& font_effects)
+{
+	return 0;
+}
+
+int FontManager::GetSize(Rml::FontFaceHandle handle)
+{
+	return 0;
+}
+
+int FontManager::GetXHeight(Rml::FontFaceHandle handle)
+{
+	return 0;
+}
+
+int FontManager::GetLineHeight(Rml::FontFaceHandle handle)
+{
+	return 0;
+}
+
+int FontManager::GetBaseline(Rml::FontFaceHandle handle)
+{
+	return 0;
+}
+
+float FontManager::GetUnderline(Rml::FontFaceHandle handle, float& thickness)
+{
+	return 0;
+}
+
+int FontManager::GetStringWidth(
+	Rml::FontFaceHandle handle,
+	const Rml::String& string,
+	Rml::Character prior_character)
+{
+	return 0;
+}
+
+int FontManager::GenerateString(
+	Rml::FontFaceHandle face_handle,
+	Rml::FontEffectsHandle font_effects_handle,
+	const Rml::String& string,
+	const Rml::Vector2f& position,
+	const Rml::Colourb& colour,
+	float opacity,
+	Rml::GeometryList& geometry)
+{
+	return 0;
+}
+
+int FontManager::GetVersion(Rml::FontFaceHandle handle)
+{
+	return 0;
+}
+
+void FontManager::ReleaseFontResources()
+{
 }

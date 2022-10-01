@@ -6,9 +6,12 @@
 
 enum class eVertexSemantic : int
 {
+	position2f,
 	position3f,
 	normal3f,
 	color3f,
+	color4f,
+	color4b,
 	colorAndSize4f,
 	texel2f
 };

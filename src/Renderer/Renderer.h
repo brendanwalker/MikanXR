@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include <memory>
+#include <string>
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -18,6 +19,7 @@ public:
 	bool startup();
 	void shutdown();
 
+	void setSDLMouseCursor(const std::string& cursor_name);
 	bool onSDLEvent(const SDL_Event* event);
 
 	void renderBegin();
@@ -52,6 +54,8 @@ public:
 		return (float)m_sdlWindowWidth / (float)m_sdlWindowHeight;
 	}
 
+	std::string getRmlContextName() const;
+
 	bool getIsRenderingStage()
 	{
 		return m_isRenderingStage;
@@ -73,6 +77,14 @@ public:
 private:
 	bool m_sdlInitialized;
 
+	struct SDL_Cursor* cursor_default = nullptr;
+	struct SDL_Cursor* cursor_move = nullptr;
+	struct SDL_Cursor* cursor_pointer = nullptr;
+	struct SDL_Cursor* cursor_resize = nullptr;
+	struct SDL_Cursor* cursor_cross = nullptr;
+	struct SDL_Cursor* cursor_text = nullptr;
+	struct SDL_Cursor* cursor_unavailable = nullptr;
+
 	struct SDL_Window* m_sdlWindow;
 	int m_sdlWindowWidth, m_sdlWindowHeight;
 
@@ -87,6 +99,8 @@ private:
 	struct ImGuiContext* m_imguiContext;
 	bool m_imguiOpenGLBackendInitialised;
 	bool m_imguiSDLBackendInitialised;
+
+	std::unique_ptr< class GlRmlUiRender > m_rmlUiRenderer;
 
 	bool m_isRenderingStage;
 	bool m_isRenderingUI;

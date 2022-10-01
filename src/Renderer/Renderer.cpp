@@ -3,6 +3,10 @@
 #include "Logger.h"
 #include "Version.h"
 
+#include "GlRmlUiRenderer.h"
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Context.h>
+
 #include "imgui.h"
 #include "backends/imgui_impl_sdl.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -10,11 +14,13 @@
 #if defined(_WIN32)
 	#include <SDL.h>
 	#include <SDL_events.h>
+	#include <SDL_mouse.h>
 	#include <SDL_syswm.h>
 	#include <SDL_image.h>
 #else
 	#include <SDL2/SDL.h>
 	#include <SDL2/SDL_events.h>
+	#include <SDL2/SDL_mouse.h>
 	#include <SDL2/SDL_image.h>
 	#include <SDL2/SDL_syswm.h>
 #endif
@@ -91,6 +97,7 @@ Renderer::Renderer()
 	, m_imguiContext(nullptr)
 	, m_imguiOpenGLBackendInitialised(false)
 	, m_imguiSDLBackendInitialised(false)
+	, m_rmlUiRenderer(std::unique_ptr<GlRmlUiRender>(new GlRmlUiRender))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
 {
@@ -110,7 +117,7 @@ bool Renderer::startup()
 
 	bool success = true;
 
-	 MIKAN_LOG_INFO("Renderer::init()") << "Initializing Renderer Context";
+	MIKAN_LOG_INFO("Renderer::init()") << "Initializing Renderer Context";
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
 	{
@@ -184,6 +191,17 @@ bool Renderer::startup()
 			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize window: " << SDL_GetError();
 			success = false;
 		}
+	}
+
+	if (success)
+	{
+		cursor_default = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+		cursor_move = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+		cursor_pointer = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+		cursor_resize = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
+		cursor_cross = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+		cursor_text = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
+		cursor_unavailable = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
 	}
 
 	// Setup ImGui key-bindings context
@@ -324,6 +342,15 @@ bool Renderer::startup()
 
 	if (success)
 	{
+		if (!m_rmlUiRenderer->startup())
+		{
+			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize RmlUi Renderer";
+			success = false;
+		}
+	}
+
+	if (success)
+	{
 		glClearColor(k_clear_color.r, k_clear_color.g, k_clear_color.b, k_clear_color.a);
 		glViewport(0, 0, m_sdlWindowWidth, m_sdlWindowHeight);
 
@@ -354,6 +381,11 @@ void Renderer::shutdown()
 	while (m_cameraStack.size() > 0)
 	{
 		popCamera();
+	}
+
+	if (m_rmlUiRenderer != nullptr)
+	{
+		m_rmlUiRenderer->shutdown();
 	}
 
 	if (m_modelResourceManager != nullptr)
@@ -392,6 +424,43 @@ void Renderer::shutdown()
 		m_imguiContext= NULL;
 	}
 
+	// Free cursors
+	if (cursor_default != nullptr)
+	{
+		SDL_FreeCursor(cursor_default);
+		cursor_default= nullptr;
+	}
+	if (cursor_move != nullptr)
+	{
+		SDL_FreeCursor(cursor_move);
+		cursor_move = nullptr;
+	}
+	if (cursor_pointer != nullptr)
+	{
+		SDL_FreeCursor(cursor_pointer);
+		cursor_pointer = nullptr;
+	}
+	if (cursor_resize != nullptr)
+	{
+		SDL_FreeCursor(cursor_resize);
+		cursor_resize = nullptr;
+	}
+	if (cursor_cross != nullptr)
+	{
+		SDL_FreeCursor(cursor_cross);
+		cursor_cross = nullptr;
+	}
+	if (cursor_text != nullptr)
+	{
+		SDL_FreeCursor(cursor_text);
+		cursor_text = nullptr;
+	}
+	if (cursor_unavailable != nullptr)
+	{
+		SDL_FreeCursor(cursor_unavailable);
+		cursor_unavailable = nullptr;
+	}
+
 	if (m_glContext != NULL)
 	{
 		SDL_GL_DeleteContext(m_glContext);
@@ -420,8 +489,46 @@ void Renderer::renderBegin()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void Renderer::setSDLMouseCursor(const std::string& cursor_name)
+{
+	SDL_Cursor* cursor = nullptr;
+
+	if (cursor_name.empty() || cursor_name == "arrow")
+		cursor = cursor_default;
+	else if (cursor_name == "move")
+		cursor = cursor_move;
+	else if (cursor_name == "pointer")
+		cursor = cursor_pointer;
+	else if (cursor_name == "resize")
+		cursor = cursor_resize;
+	else if (cursor_name == "cross")
+		cursor = cursor_cross;
+	else if (cursor_name == "text")
+		cursor = cursor_text;
+	else if (cursor_name == "unavailable")
+		cursor = cursor_unavailable;
+
+	if (cursor)
+		SDL_SetCursor(cursor);
+}
+
 bool Renderer::onSDLEvent(const SDL_Event* event)
 {
+	if (event->type == SDL_WINDOWEVENT)
+	{
+		switch (event->window.event)
+		{
+		case SDL_WINDOWEVENT_SIZE_CHANGED:
+			{
+				m_sdlWindowWidth = event->window.data1;
+				m_sdlWindowHeight = event->window.data2;
+			}
+			break;
+		}
+	}
+
+	m_rmlUiRenderer->onSDLEvent(event);
+
 	return ImGui_ImplSDL2_ProcessEvent(event);
 }
 
@@ -467,6 +574,8 @@ void Renderer::renderUIBegin()
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
 
+	m_rmlUiRenderer->beginFrame();
+
 	m_isRenderingUI = true;
 }
 
@@ -478,6 +587,8 @@ void Renderer::renderUIEnd()
 	glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+	m_rmlUiRenderer->endFrame();
+
 	m_isRenderingUI = false;
 }
 
@@ -486,6 +597,11 @@ void Renderer::renderEnd()
 	EASY_FUNCTION();
 
 	SDL_GL_SwapWindow(m_sdlWindow);
+}
+
+std::string Renderer::getRmlContextName() const
+{
+	return m_rmlUiRenderer->GetContext()->GetName();
 }
 
 GlCamera* Renderer::getCurrentCamera() const
@@ -568,3 +684,4 @@ bool saveTextureToPNG(GlTexture* texture, const char* filename)
 
 	return bSuccess;
 }
+

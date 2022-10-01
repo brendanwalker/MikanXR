@@ -2,9 +2,9 @@
 #include "App.h"
 #include "AppStage.h"
 #include "AppStage_MainMenu.h"
+#include "FontManager.h"
 #include "FrameTimer.h"
 #include "GlShaderCache.h"
-#include "GlBakedTextCache.h"
 #include "GlFrameCompositor.h"
 #include "GlTextRenderer.h"
 #include "InputManager.h"
@@ -17,8 +17,11 @@
 #include "VRDeviceManager.h"
 
 #include "SDL_timer.h"
+#include "SDL_clipboard.h"
 
 #include <easy/profiler.h>
+
+#include <RmlUi/Core.h>
 
 #ifdef _WIN32
 #include "Objbase.h"
@@ -36,7 +39,7 @@ App::App()
 	, m_localizationManager(new LocalizationManager())
 	, m_renderer(new Renderer())
 	, m_shaderCache(new GlShaderCache())
-	, m_bakedTextCache(new GlBakedTextCache())
+	, m_fontManager(new FontManager())
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
 	, m_bShutdownRequested(false)
@@ -129,6 +132,9 @@ bool App::startup(int argc, char** argv)
 	}
 #endif // _WIN32
 
+	// Tell the UI libary this class implements the RML System Interface
+	Rml::SetSystemInterface(this);
+
 	// Load any saved config
 	m_profileConfig->load();
 
@@ -150,7 +156,7 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	if (success && !m_bakedTextCache->startup())
+	if (success && !m_fontManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";
 		success = false;
@@ -185,6 +191,12 @@ bool App::startup(int argc, char** argv)
 		m_lastFrameTimestamp= SDL_GetTicks();
 	}
 
+	if (success && !Rml::Initialise())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the RmlUi";
+		success = false;
+	}
+
 	return success;
 }
 
@@ -215,9 +227,9 @@ void App::shutdown()
 		m_vrDeviceManager->shutdown();
 	}
 
-	if (m_bakedTextCache != nullptr)
+	if (m_fontManager != nullptr)
 	{
-		m_bakedTextCache->shutdown();
+		m_fontManager->shutdown();
 	}
 
 	if (m_shaderCache != nullptr)
@@ -273,7 +285,7 @@ void App::update()
 	m_frameCompositor->update();
 
 	// Garbage collect stale baked text
-	m_bakedTextCache->garbageCollect();
+	m_fontManager->garbageCollect();
 
 	// Disallow app stack operations during enter or exit
 	bAppStackOperationAllowed = false;
@@ -367,3 +379,71 @@ void App::render()
 
 	m_renderer->renderEnd();
 }
+
+// Rml::SystemInterface
+double App::GetElapsedTime()
+{
+	return double(SDL_GetTicks()) / 1000.0;
+}
+
+int App::TranslateString(Rml::String& translated, const Rml::String& input)
+{
+	const std::string& contextName= Renderer::getInstance()->getRmlContextName();
+
+	bool bHasString= false;
+	const char* result= locTextUTF8(contextName.c_str(), input.c_str(), &bHasString);
+
+	if (bHasString)
+	{
+		translated = result;
+		return 1;
+	}
+	else
+	{
+		translated= input;
+		return 0;
+	}
+}
+
+bool App::LogMessage(Rml::Log::Type type, const Rml::String& message)
+{
+	switch (type)
+	{
+	case Rml::Log::LT_ASSERT:
+		MIKAN_LOG_FATAL("Rml::LogMessage") << message;
+		return true;
+	case Rml::Log::LT_ALWAYS:
+	case Rml::Log::LT_ERROR:
+		MIKAN_LOG_ERROR("Rml::LogMessage") << message;
+		return true;
+	case Rml::Log::LT_WARNING:
+		MIKAN_LOG_WARNING("Rml::LogMessage") << message;
+		return true;
+	case Rml::Log::LT_INFO:
+		MIKAN_LOG_INFO("Rml::LogMessage") << message;
+		return true;
+	case Rml::Log::LT_DEBUG:
+		MIKAN_LOG_DEBUG("Rml::LogMessage") << message;
+		return true;
+	}
+
+	return false;
+}
+
+void App::SetMouseCursor(const Rml::String& cursor_name)
+{
+	m_renderer->setSDLMouseCursor(cursor_name);
+}
+
+void App::SetClipboardText(const Rml::String& text_utf8)
+{
+	SDL_SetClipboardText(text_utf8.c_str());
+}
+
+void App::GetClipboardText(Rml::String& text)
+{
+	char* raw_text = SDL_GetClipboardText();
+	text = Rml::String(raw_text);
+	SDL_free(raw_text);
+}
+

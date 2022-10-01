@@ -7,6 +7,7 @@ GlVertexAttribute::GlVertexAttribute(uint32_t _index, eVertexSemantic _semantic,
 	semantic= _semantic;
 	switch (semantic)
 	{
+	case eVertexSemantic::position2f:
 	case eVertexSemantic::texel2f:
 		size = 2;
 		type = GL_FLOAT;
@@ -17,9 +18,14 @@ GlVertexAttribute::GlVertexAttribute(uint32_t _index, eVertexSemantic _semantic,
 		size = 3;
 		type = GL_FLOAT;
 		break;
+	case eVertexSemantic::color4f:
 	case eVertexSemantic::colorAndSize4f:
 		size = 4;
 		type = GL_FLOAT;
+		break;
+	case eVertexSemantic::color4b:
+		size = 4;
+		type = GL_UNSIGNED_BYTE;
 		break;
 	default:
 		size = 0;
