@@ -373,7 +373,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy 
     "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
     "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-    "${RMLUI_BINARIES_DIR}/RmlLua.dll" 
+    "${RMLUI_BINARIES_DIR}/RmlLua.dll"
+    "${FREETYPE_SHARED_LIBRARY}"
     $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -464,13 +465,15 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(FILES 
       "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
       "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlLua.dll" 
+      "${RMLUI_BINARIES_DIR}/RmlLua.dll"
+      "${FREETYPE_SHARED_LIBRARY}"
       CONFIGURATIONS Debug
       DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
   install(FILES 
       "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
       "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlLua.dll" 
+      "${RMLUI_BINARIES_DIR}/RmlLua.dll"
+      "${FREETYPE_SHARED_LIBRARY}"
       CONFIGURATIONS Release
       DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
       
