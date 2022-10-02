@@ -14,6 +14,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Debugger.h>
 
 //-- statics ----
 const char* AppStage_MainMenu::APP_STAGE_NAME = "MainMenu";
@@ -28,8 +29,7 @@ void AppStage_MainMenu::enter()
 {
 	AppStage::enter();
 
-	const std::string rmlPath = PathUtils::getResourceDirectory() + "\\rml\\window.rml";
-	m_document = getRmlContext()->LoadDocument(rmlPath);
+	m_document = getRmlContext()->LoadDocument("rml\\main_menu.rml");
 	if (m_document != nullptr)
 	{
 		m_document->Show();

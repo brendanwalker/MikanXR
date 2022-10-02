@@ -1,0 +1,24 @@
+<rml>
+	<head>
+		<link type="text/rcss" href="rml.rcss"/>
+		<link type="text/rcss" href="mikan.rcss"/>
+		<link type="text/template" href="window.rml" />
+		<title>main_menu</title>
+		<style>
+			body
+			{
+				width: 400dp;
+				height: 300dp;
+
+				margin: auto;
+			}
+		</style>
+	</head>
+	<body template="window">
+		<button onclick="goto_compositor">video_compositor</button>
+		<button onclick="goto_pattern_settings">calibration_pattern_settings</button>
+		<button onclick="goto_camera_settings">camera_settings</button>
+		<button onclick="goto_vr_device_settings">vr_device_settings</button>
+		<button onclick="exit_mikan">exit</button>
+	</body>
+</rml>

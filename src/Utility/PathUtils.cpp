@@ -14,6 +14,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <filesystem>
+
 #if defined WIN32 || defined _WIN32 || defined WINCE
 #include <windows.h>
 #include <direct.h>
@@ -36,6 +38,16 @@
 // -- public methods -----
 namespace PathUtils
 {
+	bool isAbsolutePath(const std::string& path_str)
+	{
+		return std::filesystem::path(path_str).is_absolute();
+	}
+
+	bool isRelativePath(const std::string& path_str)
+	{
+		return std::filesystem::path(path_str).is_relative();
+	}
+
 	std::string getCurrentDirectory()
 	{
 		char buff[FILENAME_MAX];
@@ -53,6 +65,18 @@ namespace PathUtils
 	std::string getResourceDirectory()
 	{
 		return getCurrentDirectory() + std::string("/resources");
+	}
+
+	std::string makeAbsoluteResourceFilePath(const std::string& relative_path_str)
+	{
+		std::filesystem::path relative_path(relative_path_str);
+		if (relative_path.is_absolute())
+			return relative_path.string();
+
+		std::filesystem::path full_path(getResourceDirectory());
+		full_path /= relative_path;
+
+		return full_path.string();
 	}
 
 	std::string getHomeDirectory()

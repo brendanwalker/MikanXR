@@ -6,11 +6,20 @@
 //-- utility methods -----
 namespace PathUtils
 {
+	/// Return true if the given path is an absolute path (using std::filesystem::path::is_absolute)
+	bool isAbsolutePath(const std::string& path_str);
+
+	/// Return true if the given path is a relative path (using std::filesystem::path::is_relative)
+	bool isRelativePath(const std::string& path_str);
+
 	/// Get the current working directory
 	std::string getCurrentDirectory();
 
 	/// Get the location of resource files 
 	std::string getResourceDirectory();
+
+	/// Make a relative 
+	std::string makeAbsoluteResourceFilePath(const std::string& relative_path_str);
 
 	/// Get the "home" location where config files can be stored
 	std::string getHomeDirectory();

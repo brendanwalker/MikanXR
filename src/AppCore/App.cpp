@@ -10,6 +10,7 @@
 #include "InputManager.h"
 #include "LocalizationManager.h"
 #include "MikanServer.h"
+#include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
 #include "Logger.h"
@@ -22,6 +23,7 @@
 #include <easy/profiler.h>
 
 #include <RmlUi/Core.h>
+#include <RmlUi/Core/FileInterface.h>
 
 #ifdef _WIN32
 #include "Objbase.h"
@@ -29,6 +31,57 @@
 
 //-- static members -----
 App* App::m_instance= nullptr;
+
+class MikanFileInterface : public Rml::FileInterface
+{
+public:
+	MikanFileInterface() {}
+	virtual ~MikanFileInterface() {}
+
+	/// Opens a file.		
+	Rml::FileHandle Open(const Rml::String& path) override
+	{
+		if (PathUtils::isAbsolutePath(path))
+		{
+			// Attempt to open the absolute file relative 
+			FILE* fp = fopen(path.c_str(), "rb");
+			return (Rml::FileHandle)fp;
+		}
+		else
+		{
+			std::string absPath = PathUtils::makeAbsoluteResourceFilePath(path);
+
+			// Attempt to open the file relative to the application's root.
+			FILE* fp = fopen(absPath.c_str(), "rb");
+			return (Rml::FileHandle)fp;
+		}
+	}
+
+	/// Closes a previously opened file.		
+	void Close(Rml::FileHandle file) override
+	{
+		fclose((FILE*)file);
+	}
+
+	/// Reads data from a previously opened file.		
+	size_t Read(void* buffer, size_t size, Rml::FileHandle file) override
+	{
+		return fread(buffer, 1, size, (FILE*)file);
+	}
+
+	/// Seeks to a point in a previously opened file.		
+	bool Seek(Rml::FileHandle file, long offset, int origin) override
+	{
+		return fseek((FILE*)file, offset, origin) == 0;
+	}
+
+	/// Returns the current position of the file pointer.		
+	size_t Tell(Rml::FileHandle file) override
+	{
+		return ftell((FILE*)file);
+	}
+};
+
 
 //-- public methods -----
 App::App()
@@ -130,6 +183,7 @@ bool App::startup(int argc, char** argv)
 
 	// Tell the UI libary this class implements the RML System Interface
 	Rml::SetSystemInterface(this);
+	Rml::SetFileInterface(new MikanFileInterface());
 
 	// Load any saved config
 	m_profileConfig->load();
@@ -192,18 +246,16 @@ bool App::startup(int argc, char** argv)
 		bool fallback_face;
 	};
 	FontFace font_faces[] = {
-		{"LatoLatin-Regular", false},
-		{"LatoLatin-Italic", false},
-		{"LatoLatin-Bold", false},
-		{"LatoLatin-BoldItalic", false},
-		{"NotoEmoji-Regular", true},
+		{"font/LatoLatin-Regular.ttf", false},
+		{"font/LatoLatin-Italic.ttf", false},
+		{"font/LatoLatin-Bold.ttf", false},
+		{"font/LatoLatin-BoldItalic.ttf", false},
+		{"font/NotoEmoji-Regular.ttf", true},
 	};
 
 	for (const FontFace& face : font_faces)
 	{
-		const std::string fontPath = getFontPath(face.filename);
-
-		Rml::LoadFontFace(fontPath, face.fallback_face);
+		Rml::LoadFontFace(face.filename, face.fallback_face);
 	}
 
 	return success;

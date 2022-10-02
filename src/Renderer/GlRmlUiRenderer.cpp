@@ -32,6 +32,7 @@
 #include "GlProgram.h"
 #include "GlVertexDefinition.h"
 #include "Logger.h"
+#include "PathUtils.h"
 #include "Renderer.h"
 
 #include <RmlUi/Core/Core.h>
@@ -629,7 +630,9 @@ bool GlRmlUiRender::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2
 {
 	bool success= true;
 
-	SDL_Surface* sdlSurface = IMG_Load(source.c_str());
+	std::string absSourcePath= PathUtils::makeAbsoluteResourceFilePath(source);
+
+	SDL_Surface* sdlSurface = IMG_Load(absSourcePath.c_str());
 	if (sdlSurface == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlRmlUiRender::LoadTexture") << "Failed to load texture: " << source;
