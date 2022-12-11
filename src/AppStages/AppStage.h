@@ -34,6 +34,8 @@ public:
 
 	virtual void onSDLEvent(SDL_Event* event) {}
 
+	virtual void onRmlClickEvent(const std::string& value) {}
+
 protected:
 	class App* m_app;
 	std::string m_appStageName;

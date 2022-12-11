@@ -108,6 +108,9 @@ private:
 	// Input Manager
 	class InputManager* m_inputManager= nullptr;
 
+	// Rml UI Event processor
+	class AppRmlEventInstancer* m_rmlEventInstancer = nullptr;
+
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;
 

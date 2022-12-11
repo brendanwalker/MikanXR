@@ -24,10 +24,68 @@
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Core/FileInterface.h>
+#include <RmlUi/Core/EventListener.h>
+#include <RmlUi/Core/EventListenerInstancer.h>
+
 
 #ifdef _WIN32
 #include "Objbase.h"
 #endif //_WIN32
+
+//-- private classes -----
+class AppStageEventListener : public Rml::EventListener
+{
+public:
+	AppStageEventListener(
+		App* app,
+		const Rml::String& value,
+		Rml::Element* element)
+		: m_app(app)
+		, m_value(value)
+		, m_element(element)
+	{
+
+	}
+
+	virtual void ProcessEvent(Rml::Event& event) override
+	{
+		AppStage* appStage= m_app->getCurrentAppStage();
+		if (appStage == nullptr)
+			return;
+
+		switch (event.GetId())
+		{
+			case Rml::EventId::Click:
+				appStage->onRmlClickEvent(m_value);
+				break;
+			default:
+				break;
+		}
+	}
+
+private:
+	App* m_app = nullptr;
+	Rml::String m_value;
+	Rml::Element* m_element;
+};
+
+class AppRmlEventInstancer : public Rml::EventListenerInstancer
+{
+public:
+	AppRmlEventInstancer(App* app)
+		: m_app(app)
+	{
+
+	}
+	Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override
+	{
+		return new AppStageEventListener(m_app, value, element);
+	}
+
+private:
+	App* m_app = nullptr;
+};
+
 
 //-- static members -----
 App* App::m_instance= nullptr;
@@ -89,6 +147,7 @@ App::App()
 	, m_mikanServer(new MikanServer())
 	, m_frameCompositor(new GlFrameCompositor())
 	, m_inputManager(new InputManager())
+	, m_rmlEventInstancer(new AppRmlEventInstancer(this))
 	, m_localizationManager(new LocalizationManager())
 	, m_renderer(new Renderer())
 	, m_fontManager(new FontManager())
@@ -106,6 +165,7 @@ App::~App()
 	delete m_renderer;	
 	delete m_localizationManager;
 	delete m_inputManager;
+	delete m_rmlEventInstancer;
 	delete m_mikanServer;
 	delete m_frameCompositor;
 	delete m_profileConfig;
@@ -184,6 +244,7 @@ bool App::startup(int argc, char** argv)
 	// Tell the UI libary this class implements the RML System Interface
 	Rml::SetSystemInterface(this);
 	Rml::SetFileInterface(new MikanFileInterface());
+	Rml::Factory::RegisterEventListenerInstancer(m_rmlEventInstancer);
 
 	// Load any saved config
 	m_profileConfig->load();

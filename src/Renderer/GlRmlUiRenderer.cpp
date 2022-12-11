@@ -27,6 +27,8 @@
  *
  */
 
+#include "App.h"
+#include "AppStage.h"
 #include "GlCommon.h"
 #include "GlShaderCache.h"
 #include "GlProgram.h"
@@ -364,7 +366,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 {
 	bool result = false;
 
-	Rml::Context* context = GetContext();
+	Rml::Context* context = App::getInstance()->getCurrentAppStage()->getRmlContext();
 	if (context != nullptr)
 	{
 		switch (event->type)
@@ -427,7 +429,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 
 void GlRmlUiRender::setViewport(int width, int height)
 {
-	Rml::Context* context = GetContext();
+	Rml::Context* context = App::getInstance()->getCurrentAppStage()->getRmlContext();
 	if (context != nullptr)
 	{
 		context->SetDimensions(Rml::Vector2i(width, height));
@@ -441,6 +443,8 @@ void GlRmlUiRender::beginFrame()
 {
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
 	glViewport(0, 0, viewport_width, viewport_height);
+
+	glDisable(GL_DEPTH_TEST);
 
 	glClearStencil(0);
 	glClearColor(0, 0, 0, 1);
@@ -462,6 +466,7 @@ void GlRmlUiRender::beginFrame()
 
 void GlRmlUiRender::endFrame() 
 {
+	glEnable(GL_DEPTH_TEST);
 }
 
 void GlRmlUiRender::clear()

@@ -32,6 +32,7 @@
 #include "GlCommon.h"
 #include "GlCamera.h"
 #include "GlTexture.h"
+#include "GlShaderCache.h"
 #include "GlTextRenderer.h"
 #include "GlLineRenderer.h"
 #include "GlModelResourceManager.h"
