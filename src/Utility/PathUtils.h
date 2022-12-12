@@ -29,6 +29,10 @@ namespace PathUtils
 
 	/// Attempts to build a list of all of the files in a directory
 	bool fetchFilenamesInDirectory(std::string path, std::vector<std::string>& out_filenames);
+	enum class ListType { Files, Directories };
+	std::vector<std::string> listFilesOrDirectories(ListType type, const std::string& directory, const std::string& extension);
+	std::vector<std::string> listDirectories(const std::string& in_directory);
+	std::vector<std::string> listFiles(const std::string& in_directory, const std::string& extension= std::string());
 
 	/// Returns true if a file exists
 	bool doesFileExist(const std::string& filename);

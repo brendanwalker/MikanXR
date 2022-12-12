@@ -17,6 +17,7 @@
 #include <filesystem>
 
 #if defined WIN32 || defined _WIN32 || defined WINCE
+#include <io.h>
 #include <windows.h>
 #include <direct.h>
 #include <algorithm>
@@ -166,6 +167,85 @@ namespace PathUtils
 		}
 #endif
 		return bSuccess;
+	}
+
+	std::vector<std::string> listFilesOrDirectories(ListType type, const std::string& directory, const std::string& extension)
+	{
+		if (directory.empty())
+			return std::vector<std::string>();
+
+		std::vector<std::string> result;
+
+#if defined WIN32 || defined _WIN32 || defined WINCE
+		const std::string find_path = directory + "/*." + (extension.empty() ? std::string("*") : extension);
+
+		_finddata_t find_data;
+		intptr_t find_handle = _findfirst(find_path.c_str(), &find_data);
+		if (find_handle != -1)
+		{
+			do
+			{
+				if (strcmp(find_data.name, ".") == 0 ||
+					strcmp(find_data.name, "..") == 0)
+					continue;
+
+				bool is_directory = ((find_data.attrib & _A_SUBDIR) == _A_SUBDIR);
+				bool is_file = (!is_directory && ((find_data.attrib & _A_NORMAL) == _A_NORMAL));
+
+				if (((type == ListType::Files) && is_file) ||
+					((type == ListType::Directories) && is_directory))
+				{
+					result.push_back(find_data.name);
+				}
+
+			} while (_findnext(find_handle, &find_data) == 0);
+
+			_findclose(find_handle);
+		}
+	#else
+		struct dirent** file_list = nullptr;
+		const int file_count = scandir(directory.c_str(), &file_list, 0, alphasort);
+		if (file_count == -1)
+			return std::vector<std::string>();
+
+		for (int i = 0; i < file_count; i++)
+		{
+			if (strcmp(file_list[i]->d_name, ".") == 0 ||
+				strcmp(file_list[i]->d_name, "..") == 0)
+				continue;
+
+			bool is_directory = ((file_list[i]->d_type & DT_DIR) == DT_DIR);
+			bool is_file = ((file_list[i]->d_type & DT_REG) == DT_REG);
+
+			if (!extension.empty())
+			{
+				const char* last_dot = strrchr(file_list[i]->d_name, '.');
+				if (!last_dot || strcmp(last_dot + 1, extension.c_str()) != 0)
+					continue;
+			}
+
+			if ((type == ListType::Files && is_file) ||
+				(type == ListType::Directories && is_directory))
+			{
+				result.push_back(file_list[i]->d_name);
+			}
+		}
+		for (int i = 0; i < file_count; i++)
+			free(file_list[i]);
+		free(file_list);
+	#endif
+
+		return result;
+	}
+
+	std::vector<std::string> listDirectories(const std::string& in_directory)
+	{
+		return listFilesOrDirectories(ListType::Directories, in_directory, std::string());
+	}
+
+	std::vector<std::string> listFiles(const std::string& in_directory, const std::string& extension)
+	{
+		return listFilesOrDirectories(ListType::Files, in_directory, extension);
 	}
 
 	bool doesFileExist(const std::string& filename)
