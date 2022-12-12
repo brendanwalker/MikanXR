@@ -22,7 +22,7 @@ public:
 	virtual ~AppStage() {}
 
 	const std::string getAppStageName() const { return m_appStageName; }
-	Rml::Context* getRmlContext() const { return m_context; }
+	Rml::Context* getRmlContext() const;
 
 	virtual void enter();
 	virtual void exit();
@@ -39,6 +39,4 @@ public:
 protected:
 	class App* m_app;
 	std::string m_appStageName;
-
-	Rml::Context* m_context= nullptr;
 };

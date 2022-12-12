@@ -1,3 +1,4 @@
+#include "App.h"
 #include "AppStage.h"
 #include "Renderer.h"
 
@@ -5,27 +6,21 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Debugger.h>
 
+Rml::Context* AppStage::getRmlContext() const 
+{
+	return m_app->getRmlUIContext(); 
+}
+
 void AppStage::enter() 
 {
 	Renderer* renderer= Renderer::getInstance();
 	int window_width = renderer->getSDLWindowWidth();
 	int window_height = renderer->getSDLWindowHeight();
-
-	m_context = Rml::CreateContext(m_appStageName, Rml::Vector2i(window_width, window_height));
-	if (m_context != nullptr)
-	{
-		Rml::Debugger::Initialise(m_context);
-	}
 }
 
 void AppStage::exit() 
 {
-	if (m_context != nullptr)
-	{
-		Rml::Debugger::Shutdown();
-		Rml::RemoveContext(m_appStageName);
-		m_context = nullptr;
-	}
+
 }
 
 void AppStage::pause() 
@@ -38,9 +33,9 @@ void AppStage::resume()
 
 void AppStage::update() 
 {
-	if (m_context != nullptr)
+	if (getRmlContext() != nullptr)
 	{
-		m_context->Update();
+		getRmlContext()->Update();
 	}
 }
 
@@ -50,8 +45,8 @@ void AppStage::render()
 
 void AppStage::renderUI() 
 {
-	if (m_context != nullptr)
+	if (getRmlContext() != nullptr)
 	{
-		m_context->Render();
+		getRmlContext()->Render();
 	}
 }

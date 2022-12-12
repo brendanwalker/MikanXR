@@ -8,6 +8,11 @@
 #include <stdint.h>
 #include <RmlUi/Core/SystemInterface.h>
 
+namespace Rml
+{
+	class Context;
+};
+
 //-- definitions -----
 class App : public Rml::SystemInterface
 {
@@ -23,6 +28,7 @@ public:
 	inline class FontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
+	inline Rml::Context* getRmlUIContext() const { return m_rmlUIContext; }
 
 	inline float getFPS() const { return m_fps; }
 
@@ -110,6 +116,9 @@ private:
 
 	// Rml UI Event processor
 	class AppRmlEventInstancer* m_rmlEventInstancer = nullptr;
+
+	// Rml UI Context
+	Rml::Context* m_rmlUIContext= nullptr;
 
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;

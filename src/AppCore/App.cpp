@@ -23,6 +23,7 @@
 #include <easy/profiler.h>
 
 #include <RmlUi/Core.h>
+#include <RmlUi/Debugger.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/EventListenerInstancer.h>
@@ -302,21 +303,30 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	struct FontFace {
-		const char* filename;
-		bool fallback_face;
-	};
-	FontFace font_faces[] = {
-		{"font/LatoLatin-Regular.ttf", false},
-		{"font/LatoLatin-Italic.ttf", false},
-		{"font/LatoLatin-Bold.ttf", false},
-		{"font/LatoLatin-BoldItalic.ttf", false},
-		{"font/NotoEmoji-Regular.ttf", true},
-	};
-
-	for (const FontFace& face : font_faces)
+	if (success)
 	{
-		Rml::LoadFontFace(face.filename, face.fallback_face);
+		struct FontFace
+		{
+			const char* filename;
+			bool fallback_face;
+		};
+		FontFace font_faces[] = {
+			{"font/LatoLatin-Regular.ttf", false},
+			{"font/LatoLatin-Italic.ttf", false},
+			{"font/LatoLatin-Bold.ttf", false},
+			{"font/LatoLatin-BoldItalic.ttf", false},
+			{"font/NotoEmoji-Regular.ttf", true},
+		};
+
+		for (const FontFace& face : font_faces)
+		{
+			Rml::LoadFontFace(face.filename, face.fallback_face);
+		}
+
+		int window_width = m_renderer->getSDLWindowWidth();
+		int window_height = m_renderer->getSDLWindowHeight();
+		m_rmlUIContext = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
+		Rml::Debugger::Initialise(m_rmlUIContext);
 	}
 
 	return success;
@@ -329,7 +339,11 @@ void App::shutdown()
 		popAppState();
 	}
 
-	Rml::Shutdown();
+	if (m_rmlUIContext != nullptr)
+	{
+		Rml::Shutdown();
+		m_rmlUIContext = nullptr;
+	}
 
 	if (m_mikanServer != nullptr)
 	{
