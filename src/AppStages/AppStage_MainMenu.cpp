@@ -29,23 +29,7 @@ void AppStage_MainMenu::enter()
 {
 	AppStage::enter();
 
-	m_document = getRmlContext()->LoadDocument("rml\\main_menu.rml");
-	if (m_document != nullptr)
-	{
-		m_document->Show();
-	}
-}
-
-void AppStage_MainMenu::exit()
-{
-	if (m_document != nullptr)
-	{
-		m_document->Hide();
-		getRmlContext()->UnloadDocument(m_document);
-		m_document= nullptr;
-	}
-
-	AppStage::exit();
+	pushRmlDocument("rml\\main_menu.rml");
 }
 
 void AppStage_MainMenu::onRmlClickEvent(const std::string& value)

@@ -120,23 +120,7 @@ void AppStage_FileBrowser::enter()
 	constructor.Bind("files", &m_data->files);
 	constructor.BindEventCallback("toggle_expand", &FileBrowserData::ToggleExpand, m_data);
 
-	m_document = getRmlContext()->LoadDocument("rml\\file_browser.rml");
-	if (m_document != nullptr)
-	{
-		m_document->Show();
-	}
-}
-
-void AppStage_FileBrowser::exit()
-{
-	if (m_document != nullptr)
-	{
-		m_document->Hide();
-		getRmlContext()->UnloadDocument(m_document);
-		m_document = nullptr;
-	}
-
-	AppStage::exit();
+	pushRmlDocument("rml\\file_browser.rml");
 }
 
 void AppStage_FileBrowser::onRmlClickEvent(const std::string& value)

@@ -8,6 +8,7 @@ typedef union SDL_Event SDL_Event;
 
 namespace Rml {
 	class Context;
+	class ElementDocument;
 };
 
 class AppStage
@@ -22,7 +23,6 @@ public:
 	virtual ~AppStage() {}
 
 	const std::string getAppStageName() const { return m_appStageName; }
-	Rml::Context* getRmlContext() const;
 
 	virtual void enter();
 	virtual void exit();
@@ -34,9 +34,14 @@ public:
 
 	virtual void onSDLEvent(SDL_Event* event) {}
 
+	Rml::Context* getRmlContext() const;
+	Rml::ElementDocument* getCurrentRmlDocument() const;
+	Rml::ElementDocument* pushRmlDocument(const std::string& docPath);
+	bool popRmlDocument();
 	virtual void onRmlClickEvent(const std::string& value) {}
 
 protected:
 	class App* m_app;
 	std::string m_appStageName;
+	std::vector<Rml::ElementDocument*> m_documentStack;
 };

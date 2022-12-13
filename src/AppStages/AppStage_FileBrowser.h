@@ -21,13 +21,11 @@ public:
 	SinglecastDelegate<void()> OnRejectFilePath;
 
 	virtual void enter() override;
-	virtual void exit() override;
-
+	
 	virtual void onRmlClickEvent(const std::string& value) override;
 
 	static const char* APP_STAGE_NAME;
 
 protected:
 	struct FileBrowserData* m_data= nullptr;
-	Rml::ElementDocument* m_document = nullptr;
 };
