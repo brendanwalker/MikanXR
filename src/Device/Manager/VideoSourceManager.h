@@ -74,6 +74,7 @@ public:
 	VideoSourceViewPtr getCurrent() const;
 	bool goPrevious();
 	bool goNext();
+	bool goToIndex(int new_index);
 
 private:
 	VideoSourceList m_videoSourceList;

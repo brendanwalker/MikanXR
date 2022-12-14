@@ -199,3 +199,19 @@ bool VideoSourceListIterator::goNext()
 
 	return m_listIndex != oldListIndex;
 }
+
+bool VideoSourceListIterator::goToIndex(int new_index)
+{
+	int sourceCount = (int)m_videoSourceList.size();
+
+	if (new_index >= 0 && new_index < sourceCount)
+	{
+		int oldListIndex = m_listIndex;
+
+		m_listIndex= new_index;
+
+		return m_listIndex != oldListIndex;
+	}
+
+	return false;
+}

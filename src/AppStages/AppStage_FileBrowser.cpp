@@ -123,6 +123,13 @@ void AppStage_FileBrowser::enter()
 	pushRmlDocument("rml\\file_browser.rml");
 }
 
+void AppStage_FileBrowser::exit()
+{
+	getRmlContext()->RemoveDataModel("filebrowser");
+
+	AppStage::exit();
+}
+
 void AppStage_FileBrowser::onRmlClickEvent(const std::string& value)
 {
 	if (value == "accept_filepath")

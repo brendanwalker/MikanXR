@@ -21,6 +21,7 @@ public:
 	SinglecastDelegate<void()> OnRejectFilePath;
 
 	virtual void enter() override;
+	virtual void exit() override;
 	
 	virtual void onRmlClickEvent(const std::string& value) override;
 

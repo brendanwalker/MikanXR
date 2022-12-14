@@ -18,11 +18,16 @@ public:
 		class App* app,
 		const std::string& stageName)
 		: m_app(app)
+		, m_bIsEntered(false)
+		, m_bIsPaused(false)
 		, m_appStageName(stageName)
 	{ }
 	virtual ~AppStage() {}
 
 	const std::string getAppStageName() const { return m_appStageName; }
+	bool getHasEntered() const { return m_bIsEntered; }
+	bool getIsPaused() const { return m_bIsPaused; }
+	bool getIsUpdateActive() const { return getHasEntered() && !getIsPaused(); }
 
 	virtual void enter();
 	virtual void exit();
@@ -32,7 +37,7 @@ public:
 	virtual void render();
 	virtual void renderUI();
 
-	virtual void onSDLEvent(SDL_Event* event) {}
+	virtual void onSDLEvent(SDL_Event* event);
 
 	Rml::Context* getRmlContext() const;
 	Rml::ElementDocument* getCurrentRmlDocument() const;
@@ -42,6 +47,8 @@ public:
 
 protected:
 	class App* m_app;
+	bool m_bIsEntered= false;
+	bool m_bIsPaused= false;
 	std::string m_appStageName;
 	std::vector<Rml::ElementDocument*> m_documentStack;
 };

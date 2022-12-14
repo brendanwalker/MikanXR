@@ -23,7 +23,9 @@ public:
 	virtual void update() override;
 	virtual void render() override;
 
-	virtual void renderUI() override;
+	//virtual void renderUI() override;
+
+	virtual void onRmlClickEvent(const std::string& value);
 
 	static const char* APP_STAGE_NAME;
 
@@ -31,10 +33,8 @@ protected:
 	void startVideoSource(VideoSourceViewPtr videoSource);
 	void stopVideoSource(VideoSourceViewPtr videoSource);
 
+	struct CameraSettingsDataModel* m_dataModel = nullptr;
+
 	class VideoSourceListIterator* m_videoSourceIterator= nullptr;
 	class VideoFrameDistortionView* m_videoBufferView = nullptr;
-	int m_brightness= 0;
-	int m_brightnessMin = 0;
-	int m_brightnessMax = 0;
-	int m_brightnessStep = 0;
 };

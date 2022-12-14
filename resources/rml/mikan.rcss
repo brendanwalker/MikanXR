@@ -262,7 +262,7 @@ input.submit
 	padding-top: 12dp;
 	vertical-align: -18dp;
 
-	font-size: 16dp;
+	font-size: 12dp;
 	text-align: center;
 	tab-index: auto;
 
@@ -317,7 +317,7 @@ dataselect,
 textarea
 {
 	color: #333;
-	font-size: 13dp;
+	font-size: 12dp;
 }
 
 datagrid input.text, table input.text

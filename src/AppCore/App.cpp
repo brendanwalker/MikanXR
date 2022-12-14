@@ -468,10 +468,16 @@ void App::update()
 
 	// Update the current app stage last
 	AppStage* appStage = getCurrentAppStage();
-	if (appStage != nullptr)
+	if (appStage != nullptr && appStage->getIsUpdateActive())
 	{
 		EASY_BLOCK("appStage Update");
 		appStage->update();
+	}
+
+	// Update the UI layout and data models
+	if (m_rmlUIContext != nullptr)
+	{
+		m_rmlUIContext->Update();
 	}
 }
 
