@@ -3,7 +3,7 @@
 		<link type="text/rcss" href="rml.rcss"/>
 		<link type="text/rcss" href="mikan.rcss"/>
 		<link type="text/template" href="window.rml" />
-		<title>main_menu</title>
+		<title>Demo Sample</title>
 		<style>
 			body
 			{
@@ -15,20 +15,27 @@
 		</style>
 	</head>
 	<body template="window">
+		<div id="title_bar">
+			<handle move_target="#document">
+				<div id="icon"></div>
+				<span id="title">Main Menu</span>
+			</handle>
+		</div>
+		<div style="height: 40dp" />
 		<div>
 			<button onclick="goto_compositor">video_compositor</button>
-    </div>
-    <div>
-			<button onclick="goto_pattern_settings">calibration_pattern_settings</button>
-    </div>
-    <div>
+		</div>
+		<div>
+			<button style="width: 220dp" onclick="goto_pattern_settings">calibration_pattern_settings</button>
+		</div>
+		<div>
 			<button onclick="goto_camera_settings">camera_settings</button>
-    </div>
-    <div>
+		</div>
+		<div>
 			<button onclick="goto_vr_device_settings">vr_device_settings</button>
-    </div>
-    <div>
+		</div>
+		<div>
 			<button onclick="exit_mikan">exit</button>
-    </div>
+		</div>
 	</body>
 </rml>

@@ -39,8 +39,17 @@
 	window-br: 136px 140px 10px 11px;
 	
 	button: 247px 0px 159px 45px;
+	button-l: 247px 0px 15px 45px;
+	button-c: 262px 0px 129px 45px;
+	button-r: 391px 0px 15px 45px;
 	button-hover:  247px 45px 159px 45px;
+	button-hover-l:  247px 45px 15px 45px;
+	button-hover-c:  262px 45px 129px 45px;
+	button-hover-r:  391px 45px 15px 45px;
 	button-active: 247px 90px 159px 45px;
+	button-active-l: 247px 90px 15px 45px;
+	button-active-c: 262px 90px 129px 45px;
+	button-active-r: 391px 90px 15px 45px;
 	
 	button-inner: 259px 19px 135px 1px;
 	button-inner-hover:  259px 64px 135px 1px;
@@ -256,17 +265,17 @@ input.submit
 {
 	display: inline-block;
 
-	width: 159dp;
+	width: 200dp;
 	height: 33dp;
 
 	padding-top: 12dp;
 	vertical-align: -18dp;
 
-	font-size: 12dp;
+	font-size: 16dp;
 	text-align: center;
 	tab-index: auto;
 
-	decorator: image(button);
+	decorator: tiled-horizontal( button-l, button-c, button-r );
 }
 
 button:focus,
@@ -278,13 +287,13 @@ input.submit:focus
 button:hover,
 input.submit:hover
 {
-	decorator: image(button-hover);
+	decorator: tiled-horizontal(button-hover-l, button-hover-c, button-hover-r);
 }
 
 button:active,
 input.submit:active
 {
-	decorator: image(button-active);
+	decorator: tiled-horizontal(button-active-l, button-active-c, button-active-r);
 }
 
 input.submit:disabled
