@@ -7,7 +7,49 @@
 #include "Logger.h"
 #include "MathUtility.h"
 
-#include "imgui.h"
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/DataModelHandle.h>
+#include <RmlUi/Core/ElementDocument.h>
+
+
+struct CalibrationPatternSettingsDataModel
+{
+	Rml::DataModelHandle model_handle;
+
+	int selected_pattern= 0;
+
+	int chessboard_rows = 5;
+	int chessboard_cols = 5;
+	float square_length = 30.f;
+
+	int circle_grid_rows = 11;
+	int circle_grid_cols = 4;
+	float circle_spacing = 20.f;
+	float circle_diameter = 15.f;
+
+	float puck_horiz_offset = 75.f;
+	float puck_vert_offset = 89.f;
+	float puck_depth_offset = 0.f;
+
+	void init(const ProfileConfig* profileConfig)
+	{
+		selected_pattern = (int)profileConfig->calibrationPatternType;
+
+		chessboard_rows = profileConfig->chessbordRows;
+		chessboard_cols = profileConfig->chessbordCols;
+		square_length = profileConfig->squareLengthMM;
+
+		circle_grid_rows = profileConfig->circleGridRows;
+		circle_grid_cols = profileConfig->circleGridCols;
+		circle_spacing = profileConfig->circleSpacingMM;
+		circle_diameter = profileConfig->circleDiameterMM;
+
+		puck_horiz_offset = profileConfig->puckHorizontalOffsetMM;
+		puck_vert_offset = profileConfig->puckVerticalOffsetMM;
+		puck_depth_offset = profileConfig->puckDepthOffsetMM;
+	}
+};
 
 //-- statics ----
 const char* AppStage_CalibrationPatternSettings::APP_STAGE_NAME = "CalibrationPatternSettings";
@@ -15,134 +57,120 @@ const char* AppStage_CalibrationPatternSettings::APP_STAGE_NAME = "CalibrationPa
 //-- public methods -----
 AppStage_CalibrationPatternSettings::AppStage_CalibrationPatternSettings(App* app)
 	: AppStage(app, AppStage_CalibrationPatternSettings::APP_STAGE_NAME)
+	, m_dataModel(new CalibrationPatternSettingsDataModel)
 {
-}
-
-void AppStage_CalibrationPatternSettings::renderUI()
-{
-	ProfileConfig* profileConfig= App::getInstance()->getProfileConfig();
-
-	ImGuiWindowFlags window_flags =
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoCollapse;
-	const ImVec2 displayCenter = ImGui::GetMainViewport()->GetCenter();
-	const ImVec2 panelSize = ImVec2(300, 350);
-
-	bool bDirty= false;
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowPos(displayCenter, 0, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(panelSize);
-	ImGui::Begin("Calibration Pattern Settings", nullptr, window_flags);
-	{
-		ImGui::SetNextItemWidth(150);
-		const char* patterns[] = { "Chessboard", "Circle Grid" };
-		bDirty |= ImGui::Combo("Pattern Type", (int*)&profileConfig->calibrationPatternType, patterns, IM_ARRAYSIZE(patterns));
-
-		ImGui::PushItemWidth(100);
-		ImGui::Separator();
-
-		int* chessbordRows = &profileConfig->chessbordRows;
-		if (ImGui::InputInt("Chessboard Rows", chessbordRows))
-		{
-			*chessbordRows = int_clamp(*chessbordRows, 5, 15);
-			bDirty = true;
-		}
-
-		int* chessbordCols = &profileConfig->chessbordCols;
-		if (ImGui::InputInt("Chessboard Columns", chessbordCols))
-		{
-			*chessbordCols = int_clamp(*chessbordCols, 5, 15);
-			bDirty = true;
-		}
-
-		float* squareLength = &profileConfig->squareLengthMM;
-		if (ImGui::InputFloat("Square Length (mm)", squareLength, 0.5f, 1.f))
-		{
-			*squareLength = clampf(*squareLength, 1.f, 100.f);
-			bDirty = true;
-		}
-
-		ImGui::Separator();
-
-		int* circleGridRows = &profileConfig->circleGridRows;
-		if (ImGui::InputInt("Circle Grid Rows", circleGridRows))
-		{
-			*circleGridRows = int_clamp(*circleGridRows, 5, 15);
-			bDirty = true;
-		}
-
-		int* circleGridCols = &profileConfig->circleGridCols;
-		if (ImGui::InputInt("Circle Grid Columns", circleGridCols))
-		{
-			*circleGridCols = int_clamp(*circleGridCols, 5, 15);
-			bDirty = true;
-		}
-
-		float* circleSpacingMM = &profileConfig->circleSpacingMM;
-		if (ImGui::InputFloat("Circle Spacing (mm)", circleSpacingMM, 0.5f, 1.f))
-		{
-			*circleSpacingMM = clampf(*circleSpacingMM, 1.f, 100.f);
-			bDirty = true;
-		}
-
-		float* circleDiameterMM = &profileConfig->circleDiameterMM;
-		if (ImGui::InputFloat("Circle Diameter (mm)", circleDiameterMM, 0.5f, 1.f))
-		{
-			*circleDiameterMM = clampf(*circleDiameterMM, 1.f, 100.f);
-			bDirty = true;
-		}
-
-		ImGui::Separator();
-
-		float* puckHorizontalOffset = &profileConfig->puckHorizontalOffsetMM;
-		if (ImGui::InputFloat("Puck Horizontal Offset (mm)", puckHorizontalOffset, 0.5f, 1.f))
-		{
-			*puckHorizontalOffset = clampf(*puckHorizontalOffset, 1.f, 200.f);
-			bDirty = true;
-		}
-
-		float* puckVerticalOffset = &profileConfig->puckVerticalOffsetMM;
-		if (ImGui::InputFloat("Puck Vertical Offset (mm)", puckVerticalOffset, 0.5f, 1.f))
-		{
-			*puckVerticalOffset = clampf(*puckVerticalOffset, 1.f, 200.f);
-			bDirty = true;
-		}
-
-		float* puckDepthOffset = &profileConfig->puckDepthOffsetMM;
-		if (ImGui::InputFloat("Puck Depth Offset (mm)", puckDepthOffset, 0.5f, 1.f))
-		{
-			*puckDepthOffset = clampf(*puckDepthOffset, 1.f, 10.f);
-			bDirty = true;
-		}
-
-		ImGui::PopItemWidth();
-
-		const ImVec2 buttonSize = ImVec2(150, 25);
-		ImGui::NewLine();
-		ImGui::SameLine((panelSize.x / 2) - (buttonSize.x / 2));
-		if (ImGui::Button(locTextUTF8("", "return_to_main_menu"), buttonSize))
-		{
-			m_app->popAppState();
-		}
-
-		if (bDirty)
-		{
-			profileConfig->save();
-		}
-	}
-	ImGui::End();
-	ImGui::PopStyleVar(1);
 }
 
 void AppStage_CalibrationPatternSettings::enter()
 {
+	AppStage::enter();
+	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 
+	Rml::DataModelConstructor constructor = getRmlContext()->CreateDataModel("calibration_pattern_settings");
+	if (!constructor)
+		return;
+
+	m_dataModel->init(profileConfig);
+
+	constructor.Bind("selected_pattern", &m_dataModel->selected_pattern);
+	constructor.Bind("chessboard_rows", &m_dataModel->chessboard_rows);
+	constructor.Bind("chessboard_cols", &m_dataModel->chessboard_cols);
+	constructor.Bind("square_length", &m_dataModel->square_length);
+	constructor.Bind("circle_grid_rows", &m_dataModel->circle_grid_rows);
+	constructor.Bind("circle_grid_cols", &m_dataModel->circle_grid_cols);
+	constructor.Bind("circle_spacing", &m_dataModel->circle_spacing);
+	constructor.Bind("circle_diameter", &m_dataModel->circle_diameter);
+	constructor.Bind("puck_horiz_offset", &m_dataModel->puck_horiz_offset);
+	constructor.Bind("puck_vert_offset", &m_dataModel->puck_vert_offset);
+	constructor.Bind("puck_depth_offset", &m_dataModel->puck_depth_offset);
+
+	m_dataModel->model_handle = constructor.GetModelHandle();
+
+	pushRmlDocument("rml\\calibration_pattern_settings.rml");
 }
 
 void AppStage_CalibrationPatternSettings::exit()
 {
+	// Clean up the data model
+	getRmlContext()->RemoveDataModel("calibration_pattern_settings");
 
+	AppStage::exit();
+}
+
+void AppStage_CalibrationPatternSettings::update()
+{
+	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	bool bDirty= false;
+
+	if (m_dataModel->model_handle.IsVariableDirty("selected_pattern"))
+	{
+		profileConfig->calibrationPatternType= (eCalibrationPatternType)m_dataModel->selected_pattern;
+		bDirty= true;
+	}
+
+	if (m_dataModel->model_handle.IsVariableDirty("chessboard_rows"))
+	{
+		profileConfig->chessbordRows = m_dataModel->chessboard_rows;
+		bDirty = true;
+	}
+	if (m_dataModel->model_handle.IsVariableDirty("chessboard_cols"))
+	{
+		profileConfig->chessbordCols = m_dataModel->chessboard_cols;
+		bDirty = true;
+	}
+	if (m_dataModel->model_handle.IsVariableDirty("square_length"))
+	{
+		profileConfig->squareLengthMM = m_dataModel->square_length;
+		bDirty = true;
+	}
+
+	if (m_dataModel->model_handle.IsVariableDirty("chessboard_rows"))
+	{
+		profileConfig->chessbordRows = m_dataModel->chessboard_rows;
+		bDirty = true;
+	}
+	if (m_dataModel->model_handle.IsVariableDirty("circle_grid_cols"))
+	{
+		profileConfig->circleGridCols = m_dataModel->circle_grid_cols;
+		bDirty = true;
+	}
+	if (m_dataModel->model_handle.IsVariableDirty("circle_spacing"))
+	{
+		profileConfig->circleSpacingMM = m_dataModel->circle_spacing;
+		bDirty = true;
+	}
+	if (m_dataModel->model_handle.IsVariableDirty("circle_diameter"))
+	{
+		profileConfig->circleDiameterMM = m_dataModel->circle_diameter;
+		bDirty = true;
+	}
+
+	if (m_dataModel->model_handle.IsVariableDirty("puck_horiz_offset"))
+	{
+		profileConfig->puckHorizontalOffsetMM = m_dataModel->puck_horiz_offset;
+		bDirty = true;
+	}
+	if (m_dataModel->model_handle.IsVariableDirty("puck_vert_offset"))
+	{
+		profileConfig->puckVerticalOffsetMM = m_dataModel->puck_vert_offset;
+		bDirty = true;
+	}
+	if (m_dataModel->model_handle.IsVariableDirty("puck_depth_offset"))
+	{
+		profileConfig->puckDepthOffsetMM = m_dataModel->puck_depth_offset;
+		bDirty = true;
+	}
+
+	if (bDirty)
+	{
+		profileConfig->save();
+	}
+}
+
+void AppStage_CalibrationPatternSettings::onRmlClickEvent(const std::string& value)
+{
+	if (value == "goto_main_menu")
+	{
+		m_app->popAppState();
+	}
 }

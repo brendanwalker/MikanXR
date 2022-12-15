@@ -23,8 +23,6 @@ public:
 	virtual void update() override;
 	virtual void render() override;
 
-	//virtual void renderUI() override;
-
 	virtual void onRmlClickEvent(const std::string& value);
 
 	static const char* APP_STAGE_NAME;
