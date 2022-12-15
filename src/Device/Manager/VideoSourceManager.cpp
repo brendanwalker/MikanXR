@@ -11,6 +11,8 @@
 
 #include <fstream>
 
+#include <easy/profiler.h>
+
 VideoSourceManager* VideoSourceManager::m_instance= nullptr;
 
 //-- Video Source Manager Config -----
