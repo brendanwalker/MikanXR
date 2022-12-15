@@ -528,11 +528,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(DIRECTORY ${ROOT_DIR}/resources
     CONFIGURATIONS Debug
     DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua")
+    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.rml" PATTERN "*.rcss")
   install(DIRECTORY ${ROOT_DIR}/resources
     CONFIGURATIONS Release
     DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua")
+    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.rml" PATTERN "*.rcss")
     
   install(TARGETS Mikan_CAPI
       CONFIGURATIONS Debug
