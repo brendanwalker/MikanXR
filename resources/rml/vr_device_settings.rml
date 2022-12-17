@@ -1,0 +1,67 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>VR Device Settings</title>
+        <style>
+            body
+            {
+                width: 400dp;
+                height: 425dp;
+                margin: auto;
+            }
+        </style>
+	</head>
+	<body template="window">
+        <div id="title_bar">
+            <handle move_target="#document">
+                <div id="icon"></div>
+                <span id="title">VR Device Settings</span>
+            </handle>
+        </div>  
+        <panel id="controls" data-model="vr_device_settings">
+            <br/>
+            <div data-if="selected_camera_tracker_device != -1">
+                <h2>Camera VR Device</h2>
+                <div>
+                    <select id="select" name="camera_tracker_device" data-value="selected_camera_tracker_device">
+                        <option data-for="s : tracker_devices" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+                    </select>
+                </div>
+                <br/>
+                <h2>Camera Parent Anchor</h2>
+                <div data-if="spatial_anchors.size > 0">
+                    <select id="select" name="camera_spatial_anchor" data-value="selected_camera_spatial_anchor">
+                        <option data-for="s : spatial_anchors" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+                    </select>
+                </div>
+                <br/>
+                <h2>Camera Scale</h2>
+                <input type="range" name="camera_scale" min="0.01" max="100" step="0.1" value="1" data-value="camera_scale"/>
+            </div>
+            <div data-if="selected_camera_tracker_device == -1">
+                {{camera_vr_device_path}}
+            </div>
+            <h2>Mat VR Device</h2>
+            <div data-if="selected_mat_tracker_device != -1">
+                <select id="select" name="camera_tracker_device" data-value="selected_mat_tracker_device">
+                    <option data-for="s : tracker_devices" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+                </select>
+            </div>
+            <div data-if="selected_mat_tracker_device == -1">
+                {{mat_vr_device_path}}
+            </div>            
+            <div data-if="selected_camera_tracker_device != selected_mat_tracker_device && tracker_devices.size >= 2">
+                <button onclick="calibrate_vr_camera_alignment">Calibrate VR/Camera Alignment</button>
+                <button onclick="test_vr_camera_alignment">Test VR/Camera Alignment</button>
+            </div>
+            <div>
+                <button onclick="goto_spatial_anchor_setup">Spatial Anchor Setup</button>
+            </div>
+            <div>
+                <button onclick="goto_main_menu">Return to Main Menu</button>
+            </div>            
+        </panel>
+    </body>
+</rml>

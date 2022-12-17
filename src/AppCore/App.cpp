@@ -327,6 +327,12 @@ bool App::startup(int argc, char** argv)
 		int window_height = m_renderer->getSDLWindowHeight();
 		m_rmlUIContext = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 		Rml::Debugger::Initialise(m_rmlUIContext);
+
+		// Register common data model types
+		{
+			Rml::DataModelConstructor constructor = m_rmlUIContext->CreateDataModel("data_model_globals");
+			constructor.RegisterArray<Rml::Vector<Rml::String>>();
+		}
 	}
 
 	return success;

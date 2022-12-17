@@ -54,7 +54,6 @@ void AppStage_CameraSettings::enter()
 	if (!constructor)
 		return;
 
-	constructor.RegisterArray<Rml::Vector<Rml::String>>();
 	constructor.Bind("brightness", &m_dataModel->brightness);
 	constructor.Bind("video_sources", &m_dataModel->video_sources);
 	constructor.Bind("selected_video_source", &m_dataModel->selected_video_source);

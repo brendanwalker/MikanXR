@@ -14,6 +14,7 @@ class AppStage_VRDeviceSettings : public AppStage
 {
 public:
 	AppStage_VRDeviceSettings(class App* app);
+	virtual ~AppStage_VRDeviceSettings();
 
 	void setSelectedCameraVRTrackerIndex(int index);
 	void setSelectedMatVRTrackerIndex(int index);
@@ -26,14 +27,17 @@ public:
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update() override;
-	virtual void render() override;
 
-	virtual void renderUI() override;
+	//virtual void renderUI() override;
+
+	virtual void onRmlClickEvent(const std::string& value) override;
 
 	static const char* APP_STAGE_NAME;
 
 protected:
 	void rebuildVRTrackerList();
+
+	struct VRDeviceSettingsDataModel* m_dataModel = nullptr;
 
 	VRDeviceList m_vrTrackers;
 

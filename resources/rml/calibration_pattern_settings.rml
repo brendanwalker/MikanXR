@@ -1,0 +1,53 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Calibration Pattern Settings</title>
+        <style>
+            body
+            {
+                width: 400dp;
+                height: 425dp;
+                margin: auto;
+            }
+
+            input.range 
+            {
+                width: 75dp;
+            }
+        </style>
+	</head>
+	<body template="window">
+        <div id="title_bar">
+            <handle move_target="#document">
+                <div id="icon"></div>
+                <span id="title">Calibration Pattern Settings</span>
+            </handle>
+        </div>  
+        <panel id="controls" data-model="calibration_pattern_settings">
+            <br/>
+            <div>
+                <select name="pattern_type" data-value="selected_pattern">
+                    <option value="chessboard">Chessboard</option>
+                    <option value="circlegrid">Circle Grid</option>        
+                </select>
+            </div>    
+            <div>
+                <li>{{chessboard_rows}}<input type="range" name="chessboard_rows" min="5" max="15" step="1" value="5" data-value="chessboard_rows"/>Chessboard Rows</li><br/>
+                <li>{{chessboard_cols}}<input type="range" name="chessboard_cols" min="5" max="15" step="1" value="5" data-value="chessboard_cols"/>Chessboard Columns</li><br/>
+                <li>{{square_length}}<input type="range" name="square_length" min="1" max="100" step="0.5" value="30" data-value="square_length"/>Square Length (mm)</li><br/>
+                <li>{{circle_grid_rows}}<input type="range" name="circle_grid_rows" min="5" max="15" step="1" value="5" data-value="circle_grid_rows"/>Circle Grid Rows</li><br/>
+                <li>{{circle_grid_cols}}<input type="range" name="circle_grid_cols" min="5" max="15" step="1" value="5" data-value="circle_grid_cols"/>Circle Grid Columns</li><br/>
+                <li>{{circle_spacing}}<input type="range" name="circle_spacing" min="1" max="100" step="0.5" value="20" data-value="circle_spacing"/>Circle Spacing (mm)</li><br/>
+                <li>{{circle_diameter}}<input type="range" name="circle_diameter" min="1" max="100" step="0.5" value="15" data-value="circle_diameter"/>Circle Diameter (mm)</li><br/>
+                <li>{{puck_horiz_offset}}<input type="range" name="puck_horiz_offset" min="0" max="200" step="0.5" value="75" data-value="puck_horiz_offset"/>Puck Horizontal Offset (mm)</li><br/>
+                <li>{{puck_vert_offset}}<input type="range" name="puck_vert_offset" min="0" max="200" step="0.5" value="89" data-value="puck_vert_offset"/>Puck Vertical Offset (mm)</li><br/>
+                <li>{{puck_depth_offset}}<input type="range" name="puck_depth_offset" min="0" max="10" step="0.5" value="0" data-value="puck_depth_offset"/>Puck Depth Offset (mm)</li><br/>
+            </div>
+            <div>
+                <button onclick="goto_main_menu">Return to Main Menu</button>
+            </div>
+        </panel>
+    </body>
+</rml>
