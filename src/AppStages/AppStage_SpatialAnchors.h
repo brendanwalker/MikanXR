@@ -21,7 +21,7 @@ public:
 	virtual void update() override;
 	virtual void render() override;
 
-	virtual void renderUI() override;
+	//virtual void renderUI() override;
 
 	static const char* APP_STAGE_NAME;
 
@@ -30,9 +30,10 @@ protected:
 	void setSelectedAnchorVRTrackerIndex(int index);
 	VRDeviceViewPtr getSelectedAnchorVRTracker() const;
 
+	struct SpatialAnchorSetupDataModel* m_dataModel = nullptr;
+
 	VRDeviceList m_vrTrackers;
 	class GlScene *m_scene;
 	class GlCamera *m_camera;
 	class ProfileConfig *m_profile;
-	int m_selectedAnchorVRTrackerIndex;
 };

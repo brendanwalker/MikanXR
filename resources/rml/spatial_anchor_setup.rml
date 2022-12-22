@@ -1,0 +1,50 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Spatial Anchor Setup</title>
+        <style>
+            body
+            {
+                width: 550dp;
+                height: 225dp;
+                margin: auto;
+            }
+        </style>
+	</head>
+	<body template="window">
+        <div id="title_bar">
+            <handle move_target="#document">
+                <div id="icon"></div>
+                <span id="title">Spatial Anchor Setup</span>
+            </handle>
+        </div>  
+        <panel id="controls" data-model="spatial_anchor_settings">
+            <br/>
+            <div data-if="tracker_devices.size > 0">
+                <h2>Anchor VR Device</h2>
+                <select id="select" name="tracker_devices" data-value="selected_tracker_device">
+                    <option data-for="s : tracker_devices" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+                </select>
+            </div>
+            <div data-if="tracker_devices.size == 0">
+                {{anchor_vr_device_path}}
+            </div>
+            <h2>Anchors</h2>
+			<div class="picker">
+				<p data-for="anchor_name : spatial_anchors">
+					<button data-event-click="update_anchor_pose(it_index)">Set Pose</button>&nbsp;
+                    <input type="text" style="width: 100dp" data-event-change="update_anchor_name(it_index)"/><br/>
+                    <button style="width: 20dp" data-event-click="erase_anchor(it_index)">x</button>
+				</p>
+			</div>
+            <div data-if="spatial_anchors.size < max_spatial_anchors">
+                <button data-event-click="add_new_anchor()">New Anchor</button>
+            </div>            
+            <div>
+                <button data-event-click="goto_main_menu()">Return to Main Menu</button>
+            </div>
+        </panel>
+    </body>
+</rml>
