@@ -7,37 +7,35 @@
         <style>
             body
             {
+                left: 10dp;
+                top: -30dp;
                 width: 550dp;
-                height: 225dp;
+                height: 300dp;
                 margin: auto;
             }
         </style>
 	</head>
 	<body template="window">
-        <div id="title_bar">
-            <handle move_target="#document">
-                <div id="icon"></div>
-                <span id="title">Spatial Anchor Setup</span>
-            </handle>
-        </div>  
         <panel id="controls" data-model="spatial_anchor_settings">
             <br/>
+            <h1>Anchor VR Device</h1>
             <div data-if="tracker_devices.size > 0">
-                <h2>Anchor VR Device</h2>
-                <select id="select" name="tracker_devices" data-value="selected_tracker_device">
+                <select id="select" name="tracker_devices" data-value="selected_tracker_device" style="width: 200dp">
                     <option data-for="s : tracker_devices" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
                 </select>
             </div>
-            <div data-if="tracker_devices.size == 0">
+            <div data-if="tracker_devices.size == 0" style="width: 500dp">
                 {{anchor_vr_device_path}}
             </div>
-            <h2>Anchors</h2>
+            <br/>
+            <h1>Anchors</h1>
 			<div class="picker">
-				<p data-for="anchor_name : spatial_anchors">
-					<button data-event-click="update_anchor_pose(it_index)">Set Pose</button>&nbsp;
-                    <input type="text" style="width: 100dp" data-event-change="update_anchor_name(it_index)"/><br/>
-                    <button style="width: 20dp" data-event-click="erase_anchor(it_index)">x</button>
-				</p>
+				<span data-for="anchor_name : spatial_anchors" class="foo">
+					<button style="width: 100dp" data-event-click="update_anchor_pose(it_index)">Set Pose</button>
+                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="update_anchor_name(it_index)" data-value="anchor_name"/>
+                    <button style="width: 40dp" data-event-click="erase_anchor(it_index)">x</button>
+                    <br/>
+				</span>
 			</div>
             <div data-if="spatial_anchors.size < max_spatial_anchors">
                 <button data-event-click="add_new_anchor()">New Anchor</button>

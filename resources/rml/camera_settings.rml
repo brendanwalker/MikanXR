@@ -30,7 +30,7 @@
       </div>
       <h2>Video Source</h2>
       <div>
-        <select id="select" name="video_source" data-value="selected_video_source">
+        <select id="select" name="video_source" data-value="selected_video_source" style="width: 20dp">
           <option data-for="s : video_sources" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
         </select>
       </div>
