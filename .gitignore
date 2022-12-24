@@ -51,3 +51,7 @@ deps
 
 #vscode
 .vs
+
+#Mikan
+imgui.ini
+MikanXR.log

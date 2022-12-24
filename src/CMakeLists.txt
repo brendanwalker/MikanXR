@@ -306,7 +306,7 @@ set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
-  set_property(TARGET Mikan PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:Mikan>")
+  set_property(TARGET Mikan PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "../..")
 
   add_custom_command(
     TARGET Mikan POST_BUILD
@@ -376,9 +376,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     "${RMLUI_BINARIES_DIR}/RmlLua.dll"
     "${FREETYPE_SHARED_LIBRARY}"
     $<TARGET_FILE_DIR:Mikan>)
-  add_custom_command(TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${ROOT_DIR}/resources $<TARGET_FILE_DIR:Mikan>/resources)
 ELSE() #Linux/Darwin
 ENDIF()
 
