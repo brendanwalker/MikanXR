@@ -26,7 +26,6 @@ public:
 	static const char* APP_STAGE_NAME;
 
 protected:
-	void setSelectedAnchorVRTrackerIndex(int index);
 	VRDeviceViewPtr getSelectedAnchorVRTracker() const;
 
 	struct SpatialAnchorSetupDataModel* m_dataModel = nullptr;

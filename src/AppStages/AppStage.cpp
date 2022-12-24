@@ -28,7 +28,17 @@ void AppStage::exit()
 {
 	if (m_bIsEntered)
 	{
-		while (popRmlDocument());
+		for (auto it = m_rmlDocuments.begin(); it != m_rmlDocuments.end(); it++)
+		{
+			Rml::ElementDocument* document = *it;
+
+			if (document != nullptr)
+			{
+				document->Close();
+			}
+		}
+		m_rmlDocuments.clear();
+
 		m_bIsEntered = false;
 	}
 }
@@ -40,10 +50,14 @@ void AppStage::onSDLEvent(SDL_Event* event)
 	case SDL_KEYDOWN:
 		if (event->key.keysym.sym == SDLK_F5)
 		{
-			Rml::ElementDocument* document= getCurrentRmlDocument();
-			if (document != nullptr)
+			for (auto it = m_rmlDocuments.begin(); it != m_rmlDocuments.end(); it++)
 			{
-				document->ReloadStyleSheet();
+				Rml::ElementDocument* document= *it;
+
+				if (document != nullptr)
+				{
+					document->ReloadStyleSheet();
+				}
 			}
 		}
 		break;
@@ -52,30 +66,28 @@ void AppStage::onSDLEvent(SDL_Event* event)
 	}
 }
 
-Rml::ElementDocument* AppStage::getCurrentRmlDocument() const
-{
-	return (m_documentStack.size() > 0) ? m_documentStack.back() : nullptr;
-}
-
-Rml::ElementDocument* AppStage::pushRmlDocument(const std::string& docPath)
+Rml::ElementDocument* AppStage::addRmlDocument(const std::string& docPath)
 {
 	Rml::ElementDocument* document = getRmlContext()->LoadDocument(docPath);
 	if (document != nullptr)
 	{
-		m_documentStack.push_back(document);
+		m_rmlDocuments.push_back(document);
 		document->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
 	}
 
 	return document;
 }
 
-bool AppStage::popRmlDocument()
+bool AppStage::removeRmlDocument(Rml::ElementDocument* doc)
 {
-	if (m_documentStack.size() > 0)
+	for (auto it = m_rmlDocuments.begin(); it != m_rmlDocuments.end(); it++)
 	{
-		m_documentStack.back()->Close();
-		m_documentStack.pop_back();
-		return true;
+		if (*it == doc)
+		{
+			m_rmlDocuments.erase(it);
+			doc->Close();
+			return true;
+		}
 	}
 
 	return false;
@@ -85,7 +97,7 @@ void AppStage::pause()
 {
 	if (!m_bIsPaused)
 	{
-		for (Rml::ElementDocument* doc : m_documentStack)
+		for (Rml::ElementDocument* doc : m_rmlDocuments)
 		{
 			doc->Hide();
 		}
@@ -98,7 +110,7 @@ void AppStage::resume()
 {
 	if (m_bIsPaused)
 	{
-		for (Rml::ElementDocument* doc : m_documentStack)
+		for (Rml::ElementDocument* doc : m_rmlDocuments)
 		{
 			doc->Show();
 		}

@@ -120,7 +120,7 @@ void AppStage_FileBrowser::enter()
 	constructor.Bind("files", &m_data->files);
 	constructor.BindEventCallback("toggle_expand", &FileBrowserData::ToggleExpand, m_data);
 
-	pushRmlDocument("rml\\file_browser.rml");
+	addRmlDocument("rml\\file_browser.rml");
 }
 
 void AppStage_FileBrowser::exit()

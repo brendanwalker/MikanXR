@@ -86,7 +86,7 @@ void AppStage_CalibrationPatternSettings::enter()
 
 	m_dataModel->model_handle = constructor.GetModelHandle();
 
-	pushRmlDocument("rml\\calibration_pattern_settings.rml");
+	addRmlDocument("rml\\calibration_pattern_settings.rml");
 }
 
 void AppStage_CalibrationPatternSettings::exit()

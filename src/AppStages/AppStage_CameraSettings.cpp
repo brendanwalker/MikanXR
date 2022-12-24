@@ -86,7 +86,7 @@ void AppStage_CameraSettings::enter()
 		m_dataModel->selected_video_source= 0;
 	}
 
-	pushRmlDocument("rml\\camera_settings.rml");
+	addRmlDocument("rml\\camera_settings.rml");
 }
 
 void AppStage_CameraSettings::exit()

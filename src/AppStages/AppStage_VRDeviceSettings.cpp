@@ -100,7 +100,7 @@ void AppStage_VRDeviceSettings::enter()
 	m_dataModel->selected_camera_spatial_anchor = anchorListIndex;
 	
 
-	pushRmlDocument("rml\\vr_device_settings.rml");
+	addRmlDocument("rml\\vr_device_settings.rml");
 }
 
 void AppStage_VRDeviceSettings::exit()

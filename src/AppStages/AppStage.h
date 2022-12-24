@@ -40,9 +40,8 @@ public:
 	virtual void onSDLEvent(SDL_Event* event);
 
 	Rml::Context* getRmlContext() const;
-	Rml::ElementDocument* getCurrentRmlDocument() const;
-	Rml::ElementDocument* pushRmlDocument(const std::string& docPath);
-	bool popRmlDocument();
+	Rml::ElementDocument* addRmlDocument(const std::string& docPath);
+	bool AppStage::removeRmlDocument(Rml::ElementDocument* doc);
 	virtual void onRmlClickEvent(const std::string& value) {}
 
 protected:
@@ -50,5 +49,5 @@ protected:
 	bool m_bIsEntered= false;
 	bool m_bIsPaused= false;
 	std::string m_appStageName;
-	std::vector<Rml::ElementDocument*> m_documentStack;
+	std::vector<Rml::ElementDocument*> m_rmlDocuments;
 };

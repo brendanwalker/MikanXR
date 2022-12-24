@@ -29,7 +29,7 @@ void AppStage_MainMenu::enter()
 {
 	AppStage::enter();
 
-	pushRmlDocument("rml\\main_menu.rml");
+	addRmlDocument("rml\\main_menu.rml");
 }
 
 void AppStage_MainMenu::onRmlClickEvent(const std::string& value)
