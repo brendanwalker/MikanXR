@@ -14,38 +14,102 @@
 
 #include "SDL_keycode.h"
 
-#include <imgui.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/DataModelHandle.h>
+#include <RmlUi/Core/ElementDocument.h>
+
+struct MonoLensCalibrationDataModel
+{
+	Rml::DataModelHandle model_handle;
+
+	// Menu state
+	int menu_state = 0;
+	bool are_current_image_points_valid= false;
+	float calibration_progress= 0.f;
+	float reprojection_error= 0.f;
+
+	// Tracker Settings state
+	Rml::Vector<Rml::String> video_display_modes = {"BGR", "Undistorted", "Grayscale"};
+	int video_display_mode= (int)eVideoDisplayMode::mode_bgr;
+	int brightness = 0;
+	int brightness_min = 0;
+	int brightness_max = 0;
+	int brightness_step = 0;
+	bool bypass_calibration_flag = false;
+
+	void resetCalibrationState()
+	{
+		are_current_image_points_valid = false;
+		model_handle.DirtyVariable("are_current_image_points_valid");
+
+		calibration_progress = 0.f;
+		model_handle.DirtyVariable("calibration_progress");
+
+		reprojection_error = 0.f;
+		model_handle.DirtyVariable("reprojection_error");
+	}
+};
+
 
 //-- statics ----
 const char* AppStage_MonoLensCalibration::APP_STAGE_NAME = "MonoCalibration";
 
 //-- constants -----
-static const char* k_video_display_mode_names[] = {
-	"BGR",
-	"Undistorted",
-	"Grayscale"
-};
-
 #define DESIRED_CAPTURE_BOARD_COUNT 12
 #define BOARD_NEW_LOCATION_PIXEL_DIST 100 
 
 //-- public methods -----
 AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(App* app)
 	: AppStage(app, AppStage_MonoLensCalibration::APP_STAGE_NAME)
-	, m_menuState(AppStage_MonoLensCalibration::inactive)
-	, m_brightness(0)
-	, m_brightnessMin(0)
-	, m_brightnessMax(0)
-	, m_brightnessStep(0)
-	, m_bypassCalibrationFlag(false)
+	, m_dataModel(new MonoLensCalibrationDataModel)
 	, m_videoSourceView()
 	, m_monoLensCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
 {
 }
 
+AppStage_MonoLensCalibration::~AppStage_MonoLensCalibration()
+{
+	delete m_dataModel;
+}
+
+void AppStage_MonoLensCalibration::setBypassCalibrationFlag(bool flag)
+{ 
+	m_dataModel->bypass_calibration_flag = flag; 
+}
+
+void AppStage_MonoLensCalibration::setMenuState(eMonoLensCalibrationMenuState newState)
+{
+	if (m_dataModel->menu_state != (int)newState)
+	{
+		// Update menu state on the data model
+		m_dataModel->menu_state = (int)newState;
+		m_dataModel->model_handle.DirtyVariable("menu_state");
+
+		// Show or hide the camera controls based on menu state
+		const bool bIsCameraSettingsVisible = m_cameraSettingsDoc->IsVisible();
+		const bool bWantCameraSettingsVisibility= 
+			(newState == eMonoLensCalibrationMenuState::capture) ||
+			(newState == eMonoLensCalibrationMenuState::testCalibration);
+		if (bWantCameraSettingsVisibility != bIsCameraSettingsVisible)
+		{
+			if (bWantCameraSettingsVisibility)
+			{
+				m_cameraSettingsDoc->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
+			}
+			else
+			{
+				m_cameraSettingsDoc->Hide();
+			}
+		}
+	}
+}
+
 void AppStage_MonoLensCalibration::enter()
 {
+	AppStage::enter();
+
 	// Get the current video source based on the config
 	const ProfileConfig* profileConfig= App::getInstance()->getProfileConfig();
 	m_videoSourceView= VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
@@ -54,6 +118,50 @@ void AppStage_MonoLensCalibration::enter()
 	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_SPACE)->OnKeyPressed+= 
 		MakeDelegate(this, &AppStage_MonoLensCalibration::captureRequested);
 
+	// Create Datamodel
+	Rml::DataModelConstructor constructor = getRmlContext()->CreateDataModel("mono_lens_calibration");
+	if (!constructor)
+		return;
+
+	// Register Data Model Fields
+	constructor.Bind("menu_state", &m_dataModel->menu_state);
+	constructor.Bind("are_current_image_points_valid", &m_dataModel->are_current_image_points_valid);
+	constructor.Bind("calibration_progress", &m_dataModel->calibration_progress);
+	constructor.Bind("reprojection_error", &m_dataModel->reprojection_error);
+	constructor.Bind("video_display_modes", &m_dataModel->video_display_modes);
+	constructor.Bind("video_display_mode", &m_dataModel->video_display_mode);
+	constructor.Bind("brightness", &m_dataModel->brightness);
+	constructor.Bind("brightness_min", &m_dataModel->brightness_min);
+	constructor.Bind("brightness_max", &m_dataModel->brightness_max);
+	constructor.Bind("brightness_step", &m_dataModel->brightness_step);
+	constructor.Bind("bypass_calibration_flag", &m_dataModel->bypass_calibration_flag);
+	constructor.BindEventCallback(
+		"restart",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			// Clear out all of the calibration data we recorded
+			m_monoLensCalibrator->resetCalibrationState();
+	
+			// Reset the distortion map back to the camera intrinsics we started with
+			m_monoLensCalibrator->resetDistortionView();
+			
+			// Clear out data model calibration state
+			m_dataModel->resetCalibrationState();
+
+			// Go back to the capture state
+			setMenuState(eMonoLensCalibrationMenuState::capture);
+		});
+	constructor.BindEventCallback(
+		"goto_main_menu",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			m_app->popAppState();
+		});
+	m_dataModel->model_handle = constructor.GetModelHandle();
+
+
+	// Reset the model calibration vars
+	m_dataModel->resetCalibrationState();
+
+	eMonoLensCalibrationMenuState newState;
 	if (m_videoSourceView->startVideoStream())
 	{
 		// Allocate all distortion and video buffers
@@ -66,36 +174,43 @@ void AppStage_MonoLensCalibration::enter()
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
 
+		// Fetch the initial video display mode
+		m_dataModel->video_display_mode = m_monoDistortionView->getVideoDisplayMode();
+
 		// Cache off the brightness properties
-		m_brightnessMin = m_videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
-		m_brightnessMax = m_videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);
-		m_brightnessStep = m_videoSourceView->getVideoPropertyConstraintStep(VideoPropertyType::Brightness);
-		m_brightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
+		m_dataModel->brightness_min = m_videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
+		m_dataModel->brightness_max = m_videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);
+		m_dataModel->brightness_step = m_videoSourceView->getVideoPropertyConstraintStep(VideoPropertyType::Brightness);
+		m_dataModel->brightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
 
 		// If bypassing the calibration, then jump straight to the test calibration state
-		if (m_bypassCalibrationFlag)
+		if (m_dataModel->bypass_calibration_flag)
 		{
-			m_menuState = AppStage_MonoLensCalibration::testCalibration;
+			newState= eMonoLensCalibrationMenuState::testCalibration;
 		}
 		else
 		{
-			m_menuState = AppStage_MonoLensCalibration::capture;
+			newState= eMonoLensCalibrationMenuState::capture;
 		}
 	}
 	else
 	{
-		m_menuState = AppStage_MonoLensCalibration::failedVideoStartStreamRequest;
+		newState= eMonoLensCalibrationMenuState::failedVideoStartStreamRequest;
 	}
 
+	addRmlDocument("rml\\mono_lens_calibration.rml");
+	m_cameraSettingsDoc= addRmlDocument("rml\\mono_lens_camera_settings.rml");
+
+	setMenuState(newState);
 }
 
 void AppStage_MonoLensCalibration::exit()
 {
-	m_menuState = AppStage_MonoLensCalibration::inactive;
+	setMenuState(eMonoLensCalibrationMenuState::inactive);
 
 	// Save all modified camera config values 
 	// (i.e. camera intrinsics and distortion coefficients)
-	if (!m_bypassCalibrationFlag)
+	if (!m_dataModel->bypass_calibration_flag)
 	{
 		m_videoSourceView->saveSettings();
 	}
@@ -117,270 +232,154 @@ void AppStage_MonoLensCalibration::exit()
 	// Turn back off the video feed
 	m_videoSourceView->stopVideoStream();
 	m_videoSourceView = nullptr;
+
+	// Clean up the data model
+	getRmlContext()->RemoveDataModel("mono_lens_calibration");
+
+	AppStage::exit();
 }
 
 void AppStage_MonoLensCalibration::update()
 {
-	if (m_menuState == AppStage_MonoLensCalibration::testCalibration)	
+	switch ((eMonoLensCalibrationMenuState)m_dataModel->menu_state)
 	{
-		// Update the video frame buffers using the existing distortion calibration
-		m_monoDistortionView->readAndProcessVideoFrame();
-	}
-	else if (m_menuState == AppStage_MonoLensCalibration::capture)
-	{
-		// Update the video frame buffers
-		m_monoDistortionView->readAndProcessVideoFrame();
-
-		// Update the chess board capture state
-		m_monoLensCalibrator->findNewCalibrationPattern(BOARD_NEW_LOCATION_PIXEL_DIST);
-
-		// See if we have gotten all the samples we require
-		if (m_monoLensCalibrator->hasSampledAllCalibrationPatterns())
-		{
-			// Kick off the async task (very expensive)
-			m_monoLensCalibrator->computeCameraCalibration();
-			m_menuState = AppStage_MonoLensCalibration::processingCalibration;
-		}
-	}
-	else if (m_menuState == AppStage_MonoLensCalibration::processingCalibration)
-	{
-		MikanMonoIntrinsics new_mono_intrinsics;
-
-		if (m_monoLensCalibrator->getIsCameraCalibrationComplete())
-		{
-			if (m_monoLensCalibrator->getCameraCalibration(&new_mono_intrinsics))
+		case eMonoLensCalibrationMenuState::inactive:
 			{
-				// Update the camera intrinsics for this camera
-				MikanVideoSourceIntrinsics cameraIntrinsics;
-				cameraIntrinsics.intrinsics.mono = new_mono_intrinsics;
-				cameraIntrinsics.intrinsics_type = MONO_CAMERA_INTRINSICS;
-				m_videoSourceView->setCameraIntrinsics(cameraIntrinsics);
 
-				// Rebuild the distortion map to reflect the updated calibration
-				m_monoDistortionView->rebuildDistortionMap(&new_mono_intrinsics);
+			} break;
 
-				// Switch back to the color video feed
-				m_monoDistortionView->setVideoDisplayMode(mode_undistored);
-
-				// Go to the test calibration state
-				m_menuState = AppStage_MonoLensCalibration::testCalibration;
-			}
-			else
+		case eMonoLensCalibrationMenuState::capture:
 			{
-				m_menuState = AppStage_MonoLensCalibration::failedCalibration;
-			}
-		}
+				assert(m_monoLensCalibrator != nullptr);
+
+				// Update video display property data bindings
+				updateVideoDisplayProperties();
+
+				// Update calibration progress data binding
+				const float newProgress= m_monoLensCalibrator->computeCalibrationProgress() * 100.f;
+				if (m_dataModel->calibration_progress != newProgress)
+				{
+					m_dataModel->calibration_progress = newProgress;
+					m_dataModel->model_handle.DirtyVariable("calibration_progress");
+				}
+
+				// Update image points valid flag data binding
+				const bool bNewImagePointsValid= m_monoLensCalibrator->areCurrentImagePointsValid();
+				if (m_dataModel->are_current_image_points_valid != bNewImagePointsValid)
+				{
+					m_dataModel->are_current_image_points_valid = bNewImagePointsValid;
+					m_dataModel->model_handle.DirtyVariable("are_current_image_points_valid");
+				}
+
+				// Update the video frame buffers
+				m_monoDistortionView->readAndProcessVideoFrame();
+
+				// Update the chess board capture state
+				m_monoLensCalibrator->findNewCalibrationPattern(BOARD_NEW_LOCATION_PIXEL_DIST);
+
+				// See if we have gotten all the samples we require
+				if (m_monoLensCalibrator->hasSampledAllCalibrationPatterns())
+				{
+					// Kick off the async task (very expensive)
+					m_monoLensCalibrator->computeCameraCalibration();
+					setMenuState(eMonoLensCalibrationMenuState::processingCalibration);
+				}
+			} break;
+
+		case eMonoLensCalibrationMenuState::processingCalibration:
+			{
+				MikanMonoIntrinsics new_mono_intrinsics;
+
+				if (m_monoLensCalibrator->getIsCameraCalibrationComplete())
+				{
+					if (m_monoLensCalibrator->getCameraCalibration(&new_mono_intrinsics))
+					{
+						// Update the camera intrinsics for this camera
+						MikanVideoSourceIntrinsics cameraIntrinsics;
+						cameraIntrinsics.intrinsics.mono = new_mono_intrinsics;
+						cameraIntrinsics.intrinsics_type = MONO_CAMERA_INTRINSICS;
+						m_videoSourceView->setCameraIntrinsics(cameraIntrinsics);
+
+						// Rebuild the distortion map to reflect the updated calibration
+						m_monoDistortionView->rebuildDistortionMap(&new_mono_intrinsics);
+
+						// Switch back to the color video feed
+						m_monoDistortionView->setVideoDisplayMode(mode_undistored);
+
+						// Go to the test calibration state
+						setMenuState(eMonoLensCalibrationMenuState::testCalibration);
+					}
+					else
+					{
+						setMenuState(eMonoLensCalibrationMenuState::failedCalibration);
+					}
+				}
+			} break;
+
+		case eMonoLensCalibrationMenuState::testCalibration:
+			{
+				updateVideoDisplayProperties();
+
+				// Update reprojection error
+				const float newReprojectionError= m_monoLensCalibrator->getReprojectionError();
+				if (newReprojectionError != m_dataModel->reprojection_error)
+				{
+					m_dataModel->reprojection_error = newReprojectionError;
+					m_dataModel->model_handle.DirtyVariable("reprojection_error");
+				}
+
+				// Update the video frame buffers using the existing distortion calibration
+				m_monoDistortionView->readAndProcessVideoFrame();
+			} break;
+
+		case eMonoLensCalibrationMenuState::failedCalibration:
+			{
+
+			} break;
+
+		case eMonoLensCalibrationMenuState::failedVideoStartStreamRequest:
+			{
+
+			} break;
+
+		default:
+			assert(0 && "unreachable");
+	}
+}
+
+void AppStage_MonoLensCalibration::updateVideoDisplayProperties()
+{
+	if (m_dataModel->model_handle.IsVariableDirty("video_display_mode"))
+	{
+		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode(m_dataModel->video_display_mode));
+	}
+	if (m_dataModel->model_handle.IsVariableDirty("brightness"))
+	{
+		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, m_dataModel->brightness, true);
+		m_dataModel->brightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
 	}
 }
 
 void AppStage_MonoLensCalibration::render()
 {
-	if (m_menuState == AppStage_MonoLensCalibration::capture)
+	eMonoLensCalibrationMenuState menuState = (eMonoLensCalibrationMenuState)m_dataModel->menu_state;
+
+	if (menuState == eMonoLensCalibrationMenuState::capture)
 	{
 		m_monoDistortionView->renderSelectedVideoBuffers();
 		m_monoLensCalibrator->renderCalibrationState();
 	}
-	else if (m_menuState == AppStage_MonoLensCalibration::testCalibration)
+	else if (menuState == eMonoLensCalibrationMenuState::testCalibration)
 	{
 		m_monoDistortionView->renderSelectedVideoBuffers();
-	}
-}
-
-void AppStage_MonoLensCalibration::renderCameraSettingsUI()
-{
-	const ImGuiWindowFlags window_flags =
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoCollapse;
-
-	ImGui::SetNextWindowPos(ImVec2(10.f, ImGui::GetIO().DisplaySize.y - 100 - 10.f));
-	ImGui::SetNextWindowSize(ImVec2(275, 100));
-	ImGui::Begin("Video Controls", nullptr, window_flags);
-
-	if (ImGui::Button("<##Filter"))
-	{
-		m_monoDistortionView->setVideoDisplayMode(
-			static_cast<eVideoDisplayMode>(
-				(m_monoDistortionView->getVideoDisplayMode() + eVideoDisplayMode::MAX_VIDEO_DISPLAY_MODES - 1)
-				% eVideoDisplayMode::MAX_VIDEO_DISPLAY_MODES));
-	}
-	ImGui::SameLine();
-	if (ImGui::Button(">##Filter"))
-	{
-		m_monoDistortionView->setVideoDisplayMode(
-			static_cast<eVideoDisplayMode>(
-				(m_monoDistortionView->getVideoDisplayMode() + 1) % eVideoDisplayMode::MAX_VIDEO_DISPLAY_MODES));
-	}
-	ImGui::SameLine();
-	ImGui::Text("Video Filter Mode: %s", k_video_display_mode_names[m_monoDistortionView->getVideoDisplayMode()]);
-	
-	if (ImGui::Button("-##Brightness"))
-	{
-		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, m_brightness - m_brightnessStep, true);
-		m_brightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("+##Brightness"))
-	{
-		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, m_brightness + m_brightnessStep, true);
-		m_brightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
-	}
-	ImGui::SameLine();
-	ImGui::Text("Brightness: %d", m_brightness);
-
-	ImGui::End();
-}
-
-void AppStage_MonoLensCalibration::renderUI()
-{
-	ProfileConfig* profileConfig= App::getInstance()->getProfileConfig();
-
-	const float k_panel_width = 200.f;
-	const char* k_window_title = "Distortion Calibration";
-	const ImGuiWindowFlags window_flags =
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoCollapse;
-
-	switch (m_menuState)
-	{
-	case eMenuState::capture:
-	{
-		assert(m_monoLensCalibrator != nullptr);
-
-		renderCameraSettingsUI();
-
-		{
-			ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2.f - k_panel_width / 2.f, 20.f));
-			ImGui::SetNextWindowSize(ImVec2(k_panel_width, 110));
-			ImGui::Begin(k_window_title, nullptr, window_flags);
-
-			ImGui::ProgressBar(m_monoLensCalibrator->computeCalibrationProgress(), ImVec2(k_panel_width - 20, 20));
-
-			if (ImGui::Button("Restart"))
-			{
-				// Clear out all of the calibration data we recorded
-				m_monoLensCalibrator->resetCalibrationState();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
-			{
-				m_app->popAppState();
-			}
-			else if (m_monoLensCalibrator->areCurrentImagePointsValid())
-			{
-				ImGui::Text("Press spacebar to capture");
-			}
-
-			ImGui::End();
-		}
-	} break;
-
-	case eMenuState::processingCalibration:
-	{
-		const float k_wide_panel_width = 250.f;
-		ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2.f - k_wide_panel_width / 2.f, 20.f));
-		ImGui::SetNextWindowSize(ImVec2(k_wide_panel_width, 100));
-
-		ImGui::Begin("PROCESSING", nullptr, window_flags);
-
-		ImGui::TextWrapped(
-			"Computing distortion calibration.\n" \
-			"This may take a few seconds...");
-
-		ImGui::End();
-	} break;
-
-	case eMenuState::testCalibration:
-	{
-		renderCameraSettingsUI();
-
-		ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2.f - k_panel_width / 2.f, 10.f));
-		ImGui::SetNextWindowSize(ImVec2(k_panel_width, 110));
-		ImGui::Begin(k_window_title, nullptr, window_flags);
-
-		if (!m_bypassCalibrationFlag)
-		{
-			ImGui::Text("Calibration complete!");
-			ImGui::Text("Avg Error: %f", m_monoLensCalibrator->getReprojectionError());
-		}
-
-		if (!m_bypassCalibrationFlag)
-		{
-			if (ImGui::Button("Redo Calibration"))
-			{
-				// Clear out all of the calibration data we recorded
-				m_monoLensCalibrator->resetCalibrationState();
-
-				// Reset the distortion map back to the camera intrinsics we started with
-				m_monoLensCalibrator->resetDistortionView();
-
-				m_menuState = eMenuState::capture;
-			}
-			ImGui::SameLine();
-		}
-		if (ImGui::Button("Ok"))
-		{
-			m_app->popAppState();
-		}
-
-		ImGui::End();
-	} break;
-
-	case eMenuState::failedCalibration:
-	{
-		ImGui::SetNextWindowSize(ImVec2(k_panel_width, 130));
-		ImGui::Begin(k_window_title, nullptr, window_flags);
-
-		ImGui::Text("Failed calibration! See log for details.");
-
-		if (ImGui::Button("Redo Calibration"))
-		{
-			// Clear out all of the calibration data we recorded
-			m_monoLensCalibrator->resetCalibrationState();
-
-			// Reset the distortion map back to the camera intrinsics we started with
-			m_monoLensCalibrator->resetDistortionView();
-
-			m_menuState = eMenuState::capture;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Ok"))
-		{
-			m_app->popAppState();
-		}
-
-		ImGui::End();
-	} break;
-
-	case eMenuState::failedVideoStartStreamRequest:
-	{
-		ImGui::SetNextWindowSize(ImVec2(k_panel_width, 130));
-		ImGui::Begin(k_window_title, nullptr, window_flags);
-
-		if (m_menuState == eMenuState::failedVideoStartStreamRequest)
-			ImGui::Text("Failed to start tracker stream!");
-		else
-			ImGui::Text("Failed to open tracker stream!");
-
-		if (ImGui::Button("Ok"))
-		{
-			m_app->popAppState();
-		}
-
-		ImGui::End();
-	} break;
-
-	default:
-		assert(0 && "unreachable");
 	}
 }
 
 void AppStage_MonoLensCalibration::captureRequested()
 {
-	if (m_menuState == eMenuState::capture)
+	eMonoLensCalibrationMenuState menuState = (eMonoLensCalibrationMenuState)m_dataModel->menu_state;
+
+	if (menuState == eMonoLensCalibrationMenuState::capture)
 	{
 		// Update the chess board capture state
 		if (m_monoLensCalibrator != nullptr)
