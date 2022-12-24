@@ -38,10 +38,10 @@
 				</span>
 			</div>
             <div data-if="spatial_anchors.size < max_spatial_anchors">
-                <button data-event-click="add_new_anchor()">New Anchor</button>
+                <button data-event-click="add_new_anchor">New Anchor</button>
             </div>            
             <div>
-                <button data-event-click="goto_main_menu()">Return to Main Menu</button>
+                <button data-event-click="goto_main_menu">Return to Main Menu</button>
             </div>
         </panel>
     </body>

@@ -210,10 +210,6 @@ void AppStage_SpatialAnchors::enter()
 			}
 		}
 	}
-	//else
-	//{
-	//	m_dataModel->tracker_devices.push_back("No VR Trackers");
-	//}
 
 	m_dataModel->rebuildSpatialAnchors(m_profile);
 
