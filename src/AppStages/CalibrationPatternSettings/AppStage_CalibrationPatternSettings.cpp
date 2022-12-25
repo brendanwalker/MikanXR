@@ -1,6 +1,6 @@
 //-- inludes -----
-#include "AppStage_MainMenu.h"
-#include "AppStage_CalibrationPatternSettings.h"
+#include "MainMenu/AppStage_MainMenu.h"
+#include "CalibrationPatternSettings/AppStage_CalibrationPatternSettings.h"
 #include "App.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"

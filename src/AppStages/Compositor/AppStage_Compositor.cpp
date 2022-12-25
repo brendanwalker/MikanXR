@@ -1,6 +1,6 @@
 ///-- includes -----
 #include "App.h"
-#include "AppStage_Compositor.h"
+#include "Compositor/AppStage_Compositor.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "GlCommon.h"

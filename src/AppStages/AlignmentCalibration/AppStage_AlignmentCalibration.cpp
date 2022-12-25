@@ -1,8 +1,8 @@
 // Derived From example 11-1 of "Learning OpenCV: Computer Vision with the OpenCV Library" by Gary Bradski
 
 //-- includes -----
-#include "AppStage_CameraSettings.h"
-#include "AppStage_AlignmentCalibration.h"
+#include "CameraSettings/AppStage_CameraSettings.h"
+#include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "App.h"
 #include "GlCamera.h"
 #include "GlLineRenderer.h"

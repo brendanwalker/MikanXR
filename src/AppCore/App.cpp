@@ -1,7 +1,7 @@
 //-- includes -----
 #include "App.h"
 #include "AppStage.h"
-#include "AppStage_MainMenu.h"
+#include "MainMenu/AppStage_MainMenu.h"
 #include "FontManager.h"
 #include "FrameTimer.h"
 #include "GlShaderCache.h"

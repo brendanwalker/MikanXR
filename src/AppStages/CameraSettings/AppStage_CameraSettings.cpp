@@ -1,7 +1,7 @@
 //-- inludes -----
-#include "AppStage_CameraSettings.h"
-#include "AppStage_MonoLensCalibration.h"
-#include "AppStage_MainMenu.h"
+#include "CameraSettings/AppStage_CameraSettings.h"
+#include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
+#include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"

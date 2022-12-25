@@ -1,6 +1,6 @@
 ﻿//-- inludes -----
-#include "AppStage_SpatialAnchors.h"
-#include "AppStage_MainMenu.h"
+#include "SpatialAnchors/AppStage_SpatialAnchors.h"
+#include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
 #include "Colors.h"
 #include "GlCamera.h"

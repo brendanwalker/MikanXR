@@ -1,7 +1,7 @@
 // Derived From example 11-1 of "Learning OpenCV: Computer Vision with the OpenCV Library" by Gary Bradski
 
 //-- includes -----
-#include "AppStage_MonoLensCalibration.h"
+#include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "App.h"
 #include "InputManager.h"
 #include "MonoLensDistortionCalibrator.h"

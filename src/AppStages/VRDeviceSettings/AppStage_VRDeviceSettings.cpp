@@ -1,8 +1,8 @@
 //-- inludes -----
-#include "AppStage_VRDeviceSettings.h"
-#include "AppStage_AlignmentCalibration.h"
-#include "AppStage_SpatialAnchors.h"
-#include "AppStage_MainMenu.h"
+#include "VRDeviceSettings/AppStage_VRDeviceSettings.h"
+#include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
+#include "SpatialAnchors/AppStage_SpatialAnchors.h"
+#include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
 #include "MathUtility.h"
 #include "MikanServer.h"
