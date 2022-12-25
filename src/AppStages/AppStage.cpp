@@ -39,6 +39,9 @@ void AppStage::exit()
 		}
 		m_rmlDocuments.clear();
 
+		// Force an update to clear all deleted documents
+		getRmlContext()->Update();
+
 		m_bIsEntered = false;
 	}
 }
