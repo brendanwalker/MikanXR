@@ -3,7 +3,7 @@
 //-- includes -----
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MonoLensCalibration/RmlModel_MonoLensCalibration.h"
-#include "Shared/RmlModel_CalibrationCameraSettings.h"
+#include "MonoLensCalibration/RmlModel_MonoCameraSettings.h"
 #include "App.h"
 #include "InputManager.h"
 #include "MonoLensDistortionCalibrator.h"
@@ -28,7 +28,7 @@ const char* AppStage_MonoLensCalibration::APP_STAGE_NAME = "MonoCalibration";
 AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(App* app)
 	: AppStage(app, AppStage_MonoLensCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_MonoLensCalibration)
-	, m_cameraSettingsModel(new RmlModel_CalibrationCameraSettings)
+	, m_cameraSettingsModel(new RmlModel_MonoCameraSettings)
 	, m_videoSourceView()
 	, m_monoLensCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
@@ -105,7 +105,7 @@ void AppStage_MonoLensCalibration::enter()
 		m_calibrationView = addRmlDocument("rml\\mono_lens_calibration.rml");
 
 		// Init camera settings view now that the dependent model has been created
-		m_cameraSettingsView = addRmlDocument("rml\\calibration_camera_settings.rml");
+		m_cameraSettingsView = addRmlDocument("rml\\mono_camera_settings.rml");
 	}
 
 	setMenuState(newState);

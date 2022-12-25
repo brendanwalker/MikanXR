@@ -1,13 +1,13 @@
 #pragma once
 
-#include "RmlModel.h"
+#include "Shared/RmlModel.h"
 #include "VideoDisplayConstants.h"
 
 class VideoFrameDistortionView;
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
-class RmlModel_CalibrationCameraSettings : public RmlModel
+class RmlModel_MonoCameraSettings : public RmlModel
 {
 public:
 	bool init(

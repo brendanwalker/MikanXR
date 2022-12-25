@@ -42,7 +42,7 @@ private:
 	class RmlModel_MonoLensCalibration* m_calibrationModel = nullptr;
 	Rml::ElementDocument* m_calibrationView= nullptr;
 
-	class RmlModel_CalibrationCameraSettings* m_cameraSettingsModel = nullptr;
+	class RmlModel_MonoCameraSettings* m_cameraSettingsModel = nullptr;
 	Rml::ElementDocument* m_cameraSettingsView= nullptr;
 
 	VideoSourceViewPtr m_videoSourceView;

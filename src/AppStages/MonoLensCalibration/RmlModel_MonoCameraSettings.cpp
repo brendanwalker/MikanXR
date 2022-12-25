@@ -1,4 +1,4 @@
-#include "RmlModel_CalibrationCameraSettings.h"
+#include "RmlModel_MonoCameraSettings.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceInterface.h"
 #include "VideoSourceView.h"
@@ -7,7 +7,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-bool RmlModel_CalibrationCameraSettings::init(
+bool RmlModel_MonoCameraSettings::init(
 	Rml::Context* rmlContext,
 	VideoSourceViewPtr videoSourceView,
 	VideoFrameDistortionView* monoDistortionView)
@@ -16,7 +16,7 @@ bool RmlModel_CalibrationCameraSettings::init(
 	m_monoDistortionView = monoDistortionView;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "calibration_camera_settings");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "mono_camera_settings");
 	if (!constructor)
 		return false;
 
@@ -39,7 +39,7 @@ bool RmlModel_CalibrationCameraSettings::init(
 	return true;
 }
 
-void RmlModel_CalibrationCameraSettings::update()
+void RmlModel_MonoCameraSettings::update()
 {
 	if (m_modelHandle.IsVariableDirty("video_display_mode"))
 	{
@@ -52,7 +52,7 @@ void RmlModel_CalibrationCameraSettings::update()
 	}
 }
 
-void RmlModel_CalibrationCameraSettings::setVideoDisplayMode(eVideoDisplayMode newMode)
+void RmlModel_MonoCameraSettings::setVideoDisplayMode(eVideoDisplayMode newMode)
 {
 	int intNewMode= int(newMode);
 
