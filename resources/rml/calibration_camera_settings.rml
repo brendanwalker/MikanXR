@@ -24,7 +24,7 @@
                 <span id="title">Video Controls</span>
             </handle>
         </div>
-        <panel id="controls" data-model="mono_lens_calibration">
+        <panel id="controls" data-model="calibration_camera_settings">
             <h2>Filter</h2>
             <div>
                 <select id="select" name="video_display_mode" data-value="video_display_mode">

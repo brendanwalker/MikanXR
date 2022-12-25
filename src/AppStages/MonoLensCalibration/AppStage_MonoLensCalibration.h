@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "Constants_MonoLensCalibration.h"
 #include <memory>
 
 class VideoSourceView;
@@ -13,16 +14,6 @@ namespace Rml
 };
 
 //-- definitions -----
-enum class eMonoLensCalibrationMenuState : int
-{
-	inactive = 0,
-	capture = 1,
-	processingCalibration = 2,
-	testCalibration = 3,
-	failedCalibration = 4,
-	failedVideoStartStreamRequest = 5,
-};
-
 class AppStage_MonoLensCalibration : public AppStage
 {
 public:
@@ -43,9 +34,16 @@ protected:
 	void captureRequested();
 	void updateVideoDisplayProperties();
 
+	// Calibration Model Events
+	void onRestartEvent();
+	void onGotoMainMenuEvent();
+
 private:
-	struct MonoLensCalibrationDataModel* m_dataModel = nullptr;
-	Rml::ElementDocument* m_cameraSettingsDoc= nullptr;
+	class RmlModel_MonoLensCalibration* m_calibrationModel = nullptr;
+	Rml::ElementDocument* m_calibrationView= nullptr;
+
+	class RmlModel_CalibrationCameraSettings* m_cameraSettingsModel = nullptr;
+	Rml::ElementDocument* m_cameraSettingsView= nullptr;
 
 	VideoSourceViewPtr m_videoSourceView;
 	class MonoLensDistortionCalibrator* m_monoLensCalibrator;
