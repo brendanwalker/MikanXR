@@ -35,8 +35,8 @@ bool RmlModel_AlignmentCalibration::init(
 	constructor.BindEventCallback(
 		"return",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-		if (OnReturnEvent) OnReturnEvent();
-	});
+			if (OnReturnEvent) OnReturnEvent();
+		});
 
 	setCalibrationFraction(0.f);
 	setMenuState(eAlignmentCalibrationMenuState::inactive);
@@ -46,8 +46,10 @@ bool RmlModel_AlignmentCalibration::init(
 
 void RmlModel_AlignmentCalibration::dispose()
 {
+	OnBeginEvent.Clear();
 	OnRestartEvent.Clear();
 	OnCancelEvent.Clear();
+	OnReturnEvent.Clear();
 	RmlModel::dispose();
 }
 

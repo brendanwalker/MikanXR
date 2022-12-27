@@ -9,12 +9,8 @@
 
 bool RmlModel_MonoCameraSettings::init(
 	Rml::Context* rmlContext,
-	VideoSourceViewPtr videoSourceView,
-	VideoFrameDistortionView* monoDistortionView)
+	VideoSourceViewConstPtr videoSourceView)
 {
-	m_videoSourceView = videoSourceView;
-	m_monoDistortionView = monoDistortionView;
-
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "mono_camera_settings");
 	if (!constructor)
@@ -31,10 +27,10 @@ bool RmlModel_MonoCameraSettings::init(
 	// Set defaults
 	m_videoDisplayModes = {"BGR", "Undistorted", "Grayscale"};
 	m_videoDisplayMode = (int)eVideoDisplayMode::mode_bgr;
-	m_brightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
-	m_brightnessMin = m_videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
-	m_brightnessMax = m_videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);
-	m_brightnessStep = m_videoSourceView->getVideoPropertyConstraintStep(VideoPropertyType::Brightness);
+	m_brightness = videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
+	m_brightnessMin = videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
+	m_brightnessMax = videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);
+	m_brightnessStep = videoSourceView->getVideoPropertyConstraintStep(VideoPropertyType::Brightness);
 
 	return true;
 }
@@ -43,13 +39,17 @@ void RmlModel_MonoCameraSettings::update()
 {
 	if (m_modelHandle.IsVariableDirty("video_display_mode"))
 	{
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode(m_videoDisplayMode));
+		if (OnVideoDisplayModeChanged) OnVideoDisplayModeChanged(eVideoDisplayMode(m_videoDisplayMode));
 	}
 	if (m_modelHandle.IsVariableDirty("brightness"))
 	{
-		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, m_brightness, true);
-		m_brightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
+		if (OnBrightnessChanged) OnBrightnessChanged(m_brightness);
 	}
+}
+
+eVideoDisplayMode RmlModel_MonoCameraSettings::getVideoDisplayMode() const
+{
+	return eVideoDisplayMode(m_videoDisplayMode);
 }
 
 void RmlModel_MonoCameraSettings::setVideoDisplayMode(eVideoDisplayMode newMode)
@@ -60,6 +60,5 @@ void RmlModel_MonoCameraSettings::setVideoDisplayMode(eVideoDisplayMode newMode)
 	{
 		m_videoDisplayMode= intNewMode;
 		m_modelHandle.DirtyVariable("video_display_mode");
-		m_monoDistortionView->setVideoDisplayMode(newMode);
 	}
 }

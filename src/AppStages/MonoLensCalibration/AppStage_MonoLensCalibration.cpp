@@ -94,12 +94,15 @@ void AppStage_MonoLensCalibration::enter()
 		Rml::Context* context = getRmlContext();
 
 		// Init calibration model
-		m_calibrationModel->init(context, m_monoLensCalibrator);
+		m_calibrationModel->init(context);
+		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onCancelEvent);
 		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onRestartEvent);
-		m_calibrationModel->OnGotoMainMenuEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onGotoMainMenuEvent);
+		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onReturnEvent);
 
 		// Init camera settings model
-		m_cameraSettingsModel->init(context, m_videoSourceView, m_monoDistortionView);
+		m_cameraSettingsModel->init(context, m_videoSourceView);
+		m_cameraSettingsModel->OnVideoDisplayModeChanged = MakeDelegate(this, &AppStage_MonoLensCalibration::onVideoDisplayModeChanged);
+		m_cameraSettingsModel->OnBrightnessChanged = MakeDelegate(this, &AppStage_MonoLensCalibration::onBrightnessChanged);
 
 		// Init calibration view now that the dependent model has been created
 		m_calibrationView = addRmlDocument("rml\\mono_lens_calibration.rml");
@@ -161,6 +164,12 @@ void AppStage_MonoLensCalibration::update()
 			{
 				assert(m_monoLensCalibrator != nullptr);
 
+				// Update calibration progress UI data binding
+				m_calibrationModel->setCalibrationFraction(m_monoLensCalibrator->computeCalibrationProgress());
+
+				// Update image points valid flag UI data binding
+				m_calibrationModel->setCurrentImagePointsValid(m_monoLensCalibrator->areCurrentImagePointsValid());
+
 				// Update the video frame buffers
 				m_monoDistortionView->readAndProcessVideoFrame();
 
@@ -208,6 +217,9 @@ void AppStage_MonoLensCalibration::update()
 
 		case eMonoLensCalibrationMenuState::testCalibration:
 			{
+				// Update reprojection error in the UI data binding
+				m_calibrationModel->setReprojectionError(m_monoLensCalibrator->getReprojectionError());
+
 				// Update the video frame buffers using the existing distortion calibration
 				m_monoDistortionView->readAndProcessVideoFrame();
 			} break;
@@ -282,8 +294,12 @@ void AppStage_MonoLensCalibration::setMenuState(eMonoLensCalibrationMenuState ne
 	}
 }
 
+// Calibration Model UI Events
 void AppStage_MonoLensCalibration::onRestartEvent()
 {
+	// Clear out data model calibration state
+	m_calibrationModel->resetCalibrationState();
+
 	// Clear out all of the calibration data we recorded
 	m_monoLensCalibrator->resetCalibrationState();
 
@@ -294,7 +310,23 @@ void AppStage_MonoLensCalibration::onRestartEvent()
 	setMenuState(eMonoLensCalibrationMenuState::capture);
 }
 
-void AppStage_MonoLensCalibration::onGotoMainMenuEvent()
+void AppStage_MonoLensCalibration::onReturnEvent()
 {
 	m_app->popAppState();
+}
+
+void AppStage_MonoLensCalibration::onCancelEvent()
+{
+	m_app->popAppState();
+}
+
+// Camera Settings Model UI Events
+void AppStage_MonoLensCalibration::onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode)
+{
+	m_monoDistortionView->setVideoDisplayMode(newDisplayMode);
+}
+
+void AppStage_MonoLensCalibration::onBrightnessChanged(int newBrightness)
+{
+	m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, newBrightness, false);
 }

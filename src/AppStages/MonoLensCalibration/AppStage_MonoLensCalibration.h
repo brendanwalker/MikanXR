@@ -3,6 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include "Constants_MonoLensCalibration.h"
+#include "VideoDisplayConstants.h"
 #include <memory>
 
 class VideoSourceView;
@@ -34,9 +35,14 @@ protected:
 	void captureRequested();
 	void updateVideoDisplayProperties();
 
-	// Calibration Model Events
+	// Calibration Model UI Events
 	void onRestartEvent();
-	void onGotoMainMenuEvent();
+	void onReturnEvent();
+	void onCancelEvent();
+
+	// Camera Settings Model UI Events
+	void onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode);
+	void onBrightnessChanged(int newBrightness);
 
 private:
 	class RmlModel_MonoLensCalibration* m_calibrationModel = nullptr;

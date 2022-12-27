@@ -18,12 +18,12 @@
     <body template="window">
         <panel id="controls" data-model="mono_lens_calibration">
             <div data-if="menu_state == 1">
-                <progress id="progress_horizontal" direction="right" value="calibration_progress" max="100" />
-                <div id="progress_value">{{calibration_progress}}%</div>
+                <progress id="progress_horizontal" direction="right" data-attr-value="calibration_percent" max="100" />
+                <div id="progress_value">{{calibration_percent}}%</div>
                 <br />
                 <span>
                     <button data-event-click="restart">Restart</button>
-                    <button data-event-click="goto_main_menu">Cancel</button>
+                    <button data-event-click="cancel">Cancel</button>
                 </span>
                 <br />
                 <label data-if="are_current_image_points_valid">Press spacebar to capture</label>
@@ -38,19 +38,19 @@
                 Avg Error: {{reprojection_error}}
                 <br />
                 <button data-event-click="restart">Redo Calibration</button>
-                <button data-event-click="goto_main_menu">Ok</button>
+                <button data-event-click="return">Ok</button>
             </div>
             <div data-if="menu_state == 3 && bypass_calibration_flag">
-                <button data-event-click="goto_main_menu">Ok</button>
+                <button data-event-click="return">Ok</button>
             </div>
             <div data-if="menu_state == 4">
                 Failed calibration! See log for details.<br />
                 <button data-event-click="restart">Redo Calibration</button>
-                <button data-event-click="goto_main_menu">Ok</button>
+                <button data-event-click="return">Ok</button>
             </div>
             <div data-if="menu_state == 5">
                 Failed to open video stream.<br />
-                <button data-event-click="goto_main_menu">Ok</button>
+                <button data-event-click="return">Ok</button>
             </div>
         </panel>
     </body>
