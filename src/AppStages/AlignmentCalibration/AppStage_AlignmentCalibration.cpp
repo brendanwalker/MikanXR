@@ -3,6 +3,8 @@
 //-- includes -----
 #include "CameraSettings/AppStage_CameraSettings.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
+#include "AlignmentCalibration/RmlModel_AlignmentCalibration.h"
+#include "AlignmentCalibration/RmlModel_AlignmentCameraSettings.h"
 #include "App.h"
 #include "GlCamera.h"
 #include "GlLineRenderer.h"
@@ -22,9 +24,11 @@
 
 #include "SDL_keycode.h"
 
-#include <imgui.h>
-
 #include "glm/gtc/quaternion.hpp"
+
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/ElementDocument.h>
 
 //-- statics ----
 const char* AppStage_AlignmentCalibration::APP_STAGE_NAME = "AlignmentCalibration";
@@ -35,15 +39,12 @@ static const char* k_calibration_pattern_names[] = {
 	"Circle Grid",
 };
 
-#define DESIRED_CAPTURE_BOARD_COUNT 12
-#define BOARD_NEW_LOCATION_PIXEL_DIST 100 
 
 //-- public methods -----
 AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(App* app)
 	: AppStage(app, AppStage_AlignmentCalibration::APP_STAGE_NAME)
-	, m_menuState(eMenuState::inactive)
-	, m_uiBrightness(0)
-	, m_bypassCalibrationFlag(false)
+	, m_calibrationModel(new RmlModel_AlignmentCalibration)
+	, m_cameraSettingsModel(new RmlModel_AlignmentCameraSettings)
 	, m_videoSourceView()
 	, m_trackerPoseCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
@@ -54,11 +55,20 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(App* app)
 
 AppStage_AlignmentCalibration::~AppStage_AlignmentCalibration()
 {
+	delete m_calibrationModel;
+	delete m_cameraSettingsModel;
 	delete m_scene;
+}
+
+void AppStage_AlignmentCalibration::setBypassCalibrationFlag(bool flag)
+{
+	m_calibrationModel->setBypassCalibrationFlag(flag);
 }
 
 void AppStage_AlignmentCalibration::enter()
 {
+	AppStage::enter();
+
 	// Get the current video source based on the config
 	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
@@ -85,7 +95,8 @@ void AppStage_AlignmentCalibration::enter()
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
-	// Fire up the video scene in the background
+	// Fire up the video scene in the background + pose calibrator
+	eAlignmentCalibrationMenuState newState;
 	if (m_videoSourceView->startVideoStream())
 	{
 		// Allocate all distortion and video buffers
@@ -111,33 +122,63 @@ void AppStage_AlignmentCalibration::enter()
 				m_videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness)) / 2;
 		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, newBrightnessValue, false);
 
-		// Cache off the current brightness setting into a value that ui can display
-		// so that we aren't polling the video property every tick .
-		m_uiBrightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
-
 		// If bypassing the calibration, then jump straight to the test calibration state
-		if (m_bypassCalibrationFlag)
+		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
-			m_menuState = eMenuState::testCalibration;
+			newState = eAlignmentCalibrationMenuState::testCalibration;
 			m_monoDistortionView->setGrayscaleUndistortDisabled(true);
-			setViewpointMode(eViewpointMode::mixedRealityViewpoint);
 		}
 		else
 		{
-			m_menuState = eMenuState::verifySetup;
+			newState = eAlignmentCalibrationMenuState::verifySetup;
 			m_monoDistortionView->setGrayscaleUndistortDisabled(false);
-			setViewpointMode(eViewpointMode::cameraViewpoint);
 		}
 	}
 	else
 	{
-		m_menuState = eMenuState::failedVideoStartStreamRequest;
+		newState = eAlignmentCalibrationMenuState::failedVideoStartStreamRequest;
 	}
+
+	// Create app stage UI models and views
+	// (Auto cleaned up on app state exit)
+	{
+		Rml::Context* context = getRmlContext();
+
+		// Init calibration model
+		m_calibrationModel->init(context);
+		m_calibrationModel->OnBeginEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onBeginEvent);
+		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onRestartEvent);
+		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onCancelEvent);
+		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onReturnEvent);
+
+		// Init camera settings model
+		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
+		m_cameraSettingsModel->OnVideoDisplayModeChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onVideoDisplayModeChanged);
+		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onViewportModeChanged);
+		m_cameraSettingsModel->OnBrightnessChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onBrightnessChanged);
+		m_cameraSettingsModel->OnVRFrameDelayChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onVRFrameDelayChanged);
+		if (m_calibrationModel->getBypassCalibrationFlag())
+		{
+			m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
+		}
+		else
+		{
+			m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+		}
+
+		// Init calibration view now that the dependent model has been created
+		m_calibrationView = addRmlDocument("rml\\alignment_calibration.rml");
+
+		// Init camera settings view now that the dependent model has been created
+		m_cameraSettingsView = addRmlDocument("rml\\alignment_camera_settings.rml");
+	}
+
+	setMenuState(newState);
 }
 
 void AppStage_AlignmentCalibration::exit()
 {
-	m_menuState = eMenuState::inactive;
+	setMenuState(eAlignmentCalibrationMenuState::inactive);
 
 	App::getInstance()->getRenderer()->popCamera();
 	m_camera= nullptr;
@@ -148,17 +189,25 @@ void AppStage_AlignmentCalibration::exit()
 		it->getVRDeviceInterface()->removeFromBoundScene();
 	}
 
-	// Save all modified camera config values 
-	// (i.e. camera intrinsics and distortion coefficients)
-	if (!m_bypassCalibrationFlag)
+	if (m_videoSourceView)
 	{
-		m_videoSourceView->saveSettings();
-	}
+		if (m_bHasModifiedCameraSettings)
+		{
+			// Save updated camera settings:
+			// * intrinsics and distortion coefficients if we completed calibration
+			// * VR frame delay if it was modified in the UI
+			m_videoSourceView->saveSettings();
+		}
+		else
+		{
+			// Restore video source settings back to what was saved 
+			m_videoSourceView->loadSettings();
+		}
 
-	// Re-Load settings back from config 
-	// This will reset an modified video properties not saved in the config
-	// (i.e. the camera brightness settings we modified)
-	m_videoSourceView->loadSettings();
+		// Turn back off the video feed
+		m_videoSourceView->stopVideoStream();
+		m_videoSourceView = nullptr;
+	}
 
 	// Free the calibrator
 	if (m_trackerPoseCalibrator != nullptr)
@@ -174,53 +223,28 @@ void AppStage_AlignmentCalibration::exit()
 		m_monoDistortionView = nullptr;
 	}
 
-	// Turn back off the video feed
-	m_videoSourceView->stopVideoStream();
-	m_videoSourceView = nullptr;
-}
-
-void AppStage_AlignmentCalibration::setViewpointMode(eViewpointMode newViewMode)
-{
-	if (newViewMode != m_viewMode)
-	{
-		switch (newViewMode)
-		{
-		case eViewpointMode::cameraViewpoint:
-			m_camera->setIsLocked(true);
-			break;
-		case eViewpointMode::vrViewpoint:
-			m_camera->setIsLocked(false);
-			break;
-		case eViewpointMode::mixedRealityViewpoint:
-			m_camera->setIsLocked(true);
-			break;
-		default:
-			break;
-		}
-
-		m_viewMode= newViewMode;
-	}
+	AppStage::exit();
 }
 
 void AppStage_AlignmentCalibration::updateCamera()
 {
-	switch (m_viewMode)
+	switch (m_cameraSettingsModel->getViewpointMode())
 	{
-	case eViewpointMode::cameraViewpoint:
+	case eAlignmentCalibrationViewpointMode::cameraViewpoint:
 		{
 			m_camera->setModelViewMatrix(glm::mat4(1.f));
 		}
 		break;
-	case eViewpointMode::vrViewpoint:
+	case eAlignmentCalibrationViewpointMode::vrViewpoint:
 		{
 			m_camera->recomputeModelViewMatrix();
 		}
 		break;
-	case eViewpointMode::mixedRealityViewpoint:
+	case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
 		{
 			// Update the transform of the camera so that vr models align over the tracking puck
 			glm::mat4 cameraPose;
-			if (m_menuState == eMenuState::testCalibration)
+			if (m_calibrationModel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
 				cameraPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
@@ -239,50 +263,60 @@ void AppStage_AlignmentCalibration::updateCamera()
 
 void AppStage_AlignmentCalibration::update()
 {
+	m_calibrationModel->update();
+	m_cameraSettingsModel->update();
+
 	updateCamera();
 
-	if (m_menuState == eMenuState::verifySetup)
+	switch(m_calibrationModel->getMenuState())
 	{
-		// Update the video frame buffers to preview the calibration mat
-		m_monoDistortionView->readAndProcessVideoFrame();
+		case eAlignmentCalibrationMenuState::verifySetup:
+			// Update the video frame buffers to preview the calibration mat
+			m_monoDistortionView->readAndProcessVideoFrame();
 
-		// Look for a calibration pattern so that we can preview if it's in frame
-		m_trackerPoseCalibrator->computeCameraToPuckXform();
-	}
-	else if (m_menuState == eMenuState::capture)
-	{
-		// Update the video frame buffers
-		m_monoDistortionView->readAndProcessVideoFrame();
+			// Look for a calibration pattern so that we can preview if it's in frame
+			m_trackerPoseCalibrator->computeCameraToPuckXform();
+			break;
+		case eAlignmentCalibrationMenuState::capture:
+			// Update the video frame buffers
+			m_monoDistortionView->readAndProcessVideoFrame();
 
-		// Update the chess board capture state
-		if (m_trackerPoseCalibrator->computeCameraToPuckXform())
-		{
-			m_trackerPoseCalibrator->sampleLastCameraToPuckXform();
-		}
-
-		// See if we have gotten all the samples we require
-		if (m_trackerPoseCalibrator->hasFinishedSampling())
-		{
-			MikanQuatd rotationOffset;
-			MikanVector3d translationOffset;
-			if (m_trackerPoseCalibrator->computeCalibratedCameraTrackerOffset(
-				rotationOffset,
-				translationOffset))
+			// Update the chess board capture state
+			if (m_trackerPoseCalibrator->computeCameraToPuckXform())
 			{
-				m_videoSourceView->setCameraPoseOffset(rotationOffset, translationOffset);
-				m_videoSourceView->saveSettings();
+				m_trackerPoseCalibrator->sampleLastCameraToPuckXform();
 
-				// Go to the test calibration state
-				m_menuState = eMenuState::testCalibration;
-				m_monoDistortionView->setGrayscaleUndistortDisabled(true);
-				setViewpointMode(eViewpointMode::mixedRealityViewpoint);
+				// Update the calibration fraction on the UI Model
+				m_calibrationModel->setCalibrationFraction(m_trackerPoseCalibrator->getCalibrationProgress());
 			}
-		}
-	}
-	else if (m_menuState == eMenuState::testCalibration)
-	{
-		// Update the video frame buffers using the existing distortion calibration
-		m_monoDistortionView->readAndProcessVideoFrame();
+
+			// See if we have gotten all the samples we require
+			if (m_trackerPoseCalibrator->hasFinishedSampling())
+			{
+				MikanQuatd rotationOffset;
+				MikanVector3d translationOffset;
+				if (m_trackerPoseCalibrator->computeCalibratedCameraTrackerOffset(
+					rotationOffset,
+					translationOffset))
+				{
+					// Store the calibrated camera offset on the video source settings
+					m_videoSourceView->setCameraPoseOffset(rotationOffset, translationOffset);
+
+					// Flag that calibration has modified camera pose
+					// (Used to decide if we should save settings on state exit)
+					m_bHasModifiedCameraSettings= true;
+
+					// Go to the test calibration state
+					m_monoDistortionView->setGrayscaleUndistortDisabled(true);
+					m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
+					setMenuState(eAlignmentCalibrationMenuState::testCalibration);
+				}
+			}
+			break;
+		case eAlignmentCalibrationMenuState::testCalibration:
+			// Update the video frame buffers using the existing distortion calibration
+			m_monoDistortionView->readAndProcessVideoFrame();
+			break;
 	}
 }
 
@@ -290,33 +324,34 @@ void AppStage_AlignmentCalibration::render()
 {
 	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 
-	if (m_menuState == eMenuState::verifySetup)
+	switch (m_calibrationModel->getMenuState())
 	{
-		if (m_viewMode == eViewpointMode::cameraViewpoint)
-		{
+		case eAlignmentCalibrationMenuState::verifySetup:
+			{
+				switch (m_cameraSettingsModel->getViewpointMode())
+				{
+					case eAlignmentCalibrationViewpointMode::cameraViewpoint:
+						m_monoDistortionView->renderSelectedVideoBuffers();
+						m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
+						break;
+					case eAlignmentCalibrationViewpointMode::vrViewpoint:
+						m_trackerPoseCalibrator->renderVRSpaceCalibrationState();
+						renderVRScene();
+						break;
+					case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
+						m_monoDistortionView->renderSelectedVideoBuffers();
+						renderVRScene();
+						break;
+				}
+			}
+			break;
+		case eAlignmentCalibrationMenuState::capture:
 			m_monoDistortionView->renderSelectedVideoBuffers();
 			m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
-		}
-		else if (m_viewMode == eViewpointMode::vrViewpoint)
-		{
-			m_trackerPoseCalibrator->renderVRSpaceCalibrationState();
-			renderVRScene();
-		}
-		else if (m_viewMode == eViewpointMode::mixedRealityViewpoint)
-		{
+			break;
+		case eAlignmentCalibrationMenuState::testCalibration:
 			m_monoDistortionView->renderSelectedVideoBuffers();
-			renderVRScene();
-		}
-	}
-	else if (m_menuState == eMenuState::capture)
-	{
-		m_monoDistortionView->renderSelectedVideoBuffers();
-		m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
-	}
-	else if (m_menuState == eMenuState::testCalibration)
-	{
-		m_monoDistortionView->renderSelectedVideoBuffers();
-		renderVRScene();
+			break;
 	}
 }
 
@@ -332,194 +367,109 @@ void AppStage_AlignmentCalibration::renderVRScene()
 	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 1.f), L"Z");
 }
 
-void AppStage_AlignmentCalibration::renderCameraSettingsUI()
+void AppStage_AlignmentCalibration::setMenuState(eAlignmentCalibrationMenuState newState)
 {
-	ProfileConfig* config= App::getInstance()->getProfileConfig();
-	const ImGuiWindowFlags window_flags =
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoCollapse;
+	if (m_calibrationModel->getMenuState() != newState)
+	{
+		// Update menu state on the data model
+		m_calibrationModel->setMenuState(newState);
 
-	const float kPanelHeight= (m_menuState == eMenuState::verifySetup) ? 150.f : 100.f;
-	ImGui::SetNextWindowPos(ImVec2(10.f, ImGui::GetIO().DisplaySize.y - kPanelHeight - 10.f));
-	ImGui::SetNextWindowSize(ImVec2(275, kPanelHeight));
-	ImGui::Begin("Video Controls", nullptr, window_flags);
-
-	const int brightnessStep = m_videoSourceView->getVideoPropertyConstraintStep(VideoPropertyType::Brightness);
-	if (ImGui::Button("-##Brightness"))
-	{
-		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, m_uiBrightness - brightnessStep, false);
-		m_uiBrightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("+##Brightness"))
-	{
-		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, m_uiBrightness + brightnessStep, false);
-		m_uiBrightness = m_videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
-	}
-	ImGui::SameLine();
-	ImGui::Text("Brightness: %d", m_uiBrightness);
-
-	if (ImGui::Button("-##FrameDelay"))
-	{
-		config->vrFrameDelay= int_max(config->vrFrameDelay - 1, 0);
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("+##FrameDelay"))
-	{
-		config->vrFrameDelay = int_min(config->vrFrameDelay + 1, 100);
-	}
-	ImGui::SameLine();
-	ImGui::Text("VR Frame Delay: %d", config->vrFrameDelay);
-
-	if (m_menuState == eMenuState::verifySetup)
-	{
-		if (ImGui::RadioButton("Camera Viewpoint", m_viewMode == eViewpointMode::cameraViewpoint))
+		// Show or hide the camera controls based on menu state
+		const bool bIsCameraSettingsVisible = m_cameraSettingsView->IsVisible();
+		const bool bWantCameraSettingsVisibility =
+			(newState == eAlignmentCalibrationMenuState::capture) ||
+			(newState == eAlignmentCalibrationMenuState::testCalibration);
+		if (bWantCameraSettingsVisibility != bIsCameraSettingsVisible)
 		{
-			setViewpointMode(eViewpointMode::cameraViewpoint);
-		}
-		else if (ImGui::RadioButton("VR Viewpoint", m_viewMode == eViewpointMode::vrViewpoint))
-		{
-			setViewpointMode(eViewpointMode::vrViewpoint);
-		}
-		else if (ImGui::RadioButton("Mixed Reality", m_viewMode == eViewpointMode::mixedRealityViewpoint))
-		{
-			setViewpointMode(eViewpointMode::mixedRealityViewpoint);
+			if (bWantCameraSettingsVisibility)
+			{
+				m_cameraSettingsView->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
+			}
+			else
+			{
+				m_cameraSettingsView->Hide();
+			}
 		}
 	}
-
-	ImGui::End();
 }
 
-void AppStage_AlignmentCalibration::renderUI()
+// Calibration Model UI Events
+void AppStage_AlignmentCalibration::onBeginEvent()
 {
-	const float k_panel_width = 200.f;
-	const char* k_window_title = "Alignment Calibration";
-	const ImGuiWindowFlags window_flags =
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoCollapse;
+	// Clear out all of the calibration data we recorded
+	m_trackerPoseCalibrator->resetCalibrationState();
 
-	switch (m_menuState)
+	// Reset all calibration state on the calibration UI model
+	m_calibrationModel->setCalibrationFraction(0.f);
+
+	// Go back to the camera viewpoint (in case we are in VR view)
+	m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+
+	// Advance to the capture state
+	setMenuState(eAlignmentCalibrationMenuState::capture);
+}
+
+void AppStage_AlignmentCalibration::onRestartEvent()
+{
+	// Clear out all of the calibration data we recorded
+	m_trackerPoseCalibrator->resetCalibrationState();
+
+	// Reset all calibration state on the calibration UI model
+	m_calibrationModel->setCalibrationFraction(0.f);
+
+	// Go back to the camera viewpoint (in case we are in VR view)
+	m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+
+	// Re-enable gray scale undistort mode
+	m_monoDistortionView->setGrayscaleUndistortDisabled(false);
+
+	// Return to the capture state
+	setMenuState(eAlignmentCalibrationMenuState::verifySetup);
+}
+
+void AppStage_AlignmentCalibration::onCancelEvent()
+{
+	m_app->popAppState();
+}
+
+void AppStage_AlignmentCalibration::onReturnEvent()
+{
+	m_app->popAppState();
+}
+
+// Camera Settings Model UI Events
+void AppStage_AlignmentCalibration::onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode)
+{
+	m_monoDistortionView->setVideoDisplayMode(newDisplayMode);
+}
+
+void AppStage_AlignmentCalibration::onViewportModeChanged(eAlignmentCalibrationViewpointMode newViewMode)
+{
+	switch (newViewMode)
 	{
-	case eMenuState::verifySetup:
-	{
-		renderCameraSettingsUI();
-
-		{
-			ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2.f - k_panel_width / 2.f, 20.f));
-			ImGui::SetNextWindowSize(ImVec2(k_panel_width, 110));
-			ImGui::Begin(k_window_title, nullptr, window_flags);
-
-			ImGui::Text("Place the mat tracking puck on the mat. Hit begin to start the calibration.");
-
-			if (ImGui::Button("Begin"))
-			{
-				// Clear out all of the calibration data we recorded
-				m_trackerPoseCalibrator->resetCalibrationState();
-
-				// Move on to the capture state
-				m_menuState= eMenuState::capture;
-
-				// Go back to the camera viewpoint (in case we are in VR view)
-				setViewpointMode(eViewpointMode::cameraViewpoint);
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
-			{
-				m_app->popAppState();
-			}
-
-			ImGui::End();
-		}
-
-	} break;
-
-	case eMenuState::capture:
-	{
-		assert(m_trackerPoseCalibrator != nullptr);
-
-		renderCameraSettingsUI();
-
-		{
-			ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2.f - k_panel_width / 2.f, 20.f));
-			ImGui::SetNextWindowSize(ImVec2(k_panel_width, 110));
-			ImGui::Begin(k_window_title, nullptr, window_flags);
-
-			ImGui::ProgressBar(m_trackerPoseCalibrator->getCalibrationProgress(), ImVec2(k_panel_width - 20, 20));
-
-			if (ImGui::Button("Restart"))
-			{
-				// Clear out all of the calibration data we recorded
-				m_trackerPoseCalibrator->resetCalibrationState();
-
-				// Move back to the wait for ready state
-				m_menuState = eMenuState::verifySetup;
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
-			{
-				m_app->popAppState();
-			}
-
-			ImGui::End();
-		}
-	} break;
-
-	case eMenuState::testCalibration:
-	{
-		renderCameraSettingsUI();
-
-		ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2.f - k_panel_width / 2.f, 10.f));
-		ImGui::SetNextWindowSize(ImVec2(k_panel_width, 110));
-		ImGui::Begin(k_window_title, nullptr, window_flags);
-
-		if (!m_bypassCalibrationFlag)
-		{
-			ImGui::Text("Calibration complete!");
-		}
-
-		if (!m_bypassCalibrationFlag)
-		{
-			if (ImGui::Button("Redo Calibration"))
-			{
-				// Clear out all of the calibration data we recorded
-				m_trackerPoseCalibrator->resetCalibrationState();
-
-				m_monoDistortionView->setGrayscaleUndistortDisabled(false);
-				m_menuState = eMenuState::verifySetup;
-			}
-			ImGui::SameLine();
-		}
-		if (ImGui::Button("Ok"))
-		{
-			m_app->popAppState();
-		}
-
-		ImGui::End();
-	} break;
-
-	case eMenuState::failedVideoStartStreamRequest:
-	{
-		ImGui::SetNextWindowSize(ImVec2(k_panel_width, 130));
-		ImGui::Begin(k_window_title, nullptr, window_flags);
-
-		if (m_menuState == eMenuState::failedVideoStartStreamRequest)
-			ImGui::Text("Failed to start tracker stream!");
-		else
-			ImGui::Text("Failed to open tracker stream!");
-
-		if (ImGui::Button("Ok"))
-		{
-			m_app->popAppState();
-		}
-
-		ImGui::End();
-	} break;
-
-	default:
-		assert(0 && "unreachable");
+		case eAlignmentCalibrationViewpointMode::cameraViewpoint:
+			m_camera->setIsLocked(true);
+			break;
+		case eAlignmentCalibrationViewpointMode::vrViewpoint:
+			m_camera->setIsLocked(false);
+			break;
+		case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
+			m_camera->setIsLocked(true);
+			break;
+		default:
+			break;
 	}
+}
+
+void AppStage_AlignmentCalibration::onBrightnessChanged(int newBrightness)
+{
+	m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, newBrightness, false);
+}
+
+void AppStage_AlignmentCalibration::onVRFrameDelayChanged(int newVRFrameDelay)
+{
+	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+
+	profileConfig->vrFrameDelay = newVRFrameDelay;
+	m_bHasModifiedCameraSettings = true;
 }

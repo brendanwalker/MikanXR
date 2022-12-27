@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-
+#include "MikanMathTypes.h"
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
 #include "glm/ext/matrix_double4x4.hpp"

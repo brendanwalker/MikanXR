@@ -2,6 +2,8 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "Constants_AlignmentCalibration.h"
+#include "VideoDisplayConstants.h"
 #include <memory>
 
 class VideoSourceView;
@@ -19,46 +21,38 @@ public:
 	AppStage_AlignmentCalibration(class App* app);
 	virtual ~AppStage_AlignmentCalibration();
 
-	inline void setBypassCalibrationFlag(bool flag) { m_bypassCalibrationFlag = flag; }
+	void setBypassCalibrationFlag(bool flag);
 
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update() override;
 	virtual void render() override;
-	virtual void renderUI() override;
 
 protected:
-	enum class eMenuState : int
-	{
-		inactive,
-		verifySetup,
-		capture,
-		testCalibration,
-		failedVideoStartStreamRequest,
-	};
-
-	enum class eViewpointMode : int
-	{
-		cameraViewpoint,
-		vrViewpoint,
-		mixedRealityViewpoint,
-
-		COUNT
-	};
-
-	void renderVRScene();
-	void renderCameraSettingsUI();
-	void setViewpointMode(eViewpointMode viewMode);
 	void updateCamera();
+	void renderVRScene();
+	void setMenuState(eAlignmentCalibrationMenuState newState);
 
+	// Calibration Model UI Events
+	void onBeginEvent();
+	void onRestartEvent();
+	void onCancelEvent();
+	void onReturnEvent();
+
+	// Camera Settings Model UI Events
+	void onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode);
+	void onViewportModeChanged(eAlignmentCalibrationViewpointMode newViewMode);
+	void onBrightnessChanged(int newBrightness);
+	void onVRFrameDelayChanged(int newVRFrameDelay);
+	
 private:
-	// Menu state
-	eMenuState m_menuState = eMenuState::inactive;
-	eViewpointMode m_viewMode= eViewpointMode::cameraViewpoint;
+	class RmlModel_AlignmentCalibration* m_calibrationModel = nullptr;
+	Rml::ElementDocument* m_calibrationView = nullptr;
 
-	// Tracker Settings state
-	int m_uiBrightness = 0;
-	bool m_bypassCalibrationFlag = false;
+	class RmlModel_AlignmentCameraSettings* m_cameraSettingsModel = nullptr;
+	Rml::ElementDocument* m_cameraSettingsView = nullptr;
+
+	bool m_bHasModifiedCameraSettings= false;
 
 	VideoSourceViewPtr m_videoSourceView;
 
