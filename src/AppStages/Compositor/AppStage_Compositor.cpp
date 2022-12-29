@@ -1,6 +1,7 @@
 ///-- includes -----
 #include "App.h"
 #include "Compositor/AppStage_Compositor.h"
+#include "Compositor/RmlModel_Compositor.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "GlCommon.h"
@@ -22,22 +23,14 @@
 #include "VideoSourceView.h"
 #include "VideoWriter.h"
 
-#include <imgui.h>
-#include <misc/cpp/imgui_stdlib.h>
+//#include <imgui.h>
+//#include <misc/cpp/imgui_stdlib.h>
 #include <easy/profiler.h>
 
-#include "imfilebrowser.h"
+//#include "imfilebrowser.h"
 
 #include "opencv2/opencv.hpp"
 
-enum eSupportedCodec
-{
-	SUPPORTED_CODEC_MP4V,
-	SUPPORTED_CODEC_MJPG,
-	SUPPORTED_CODEC_SELECT,
-
-	SUPPORTED_CODEC_COUNT
-};
 std::string g_supportedCodecName[SUPPORTED_CODEC_COUNT] = {
 	"MP4V",
 	"MJPG",
@@ -60,33 +53,37 @@ const char* AppStage_Compositor::APP_STAGE_NAME = "Compositor";
 //-- public methods -----
 AppStage_Compositor::AppStage_Compositor(App* app)
 	: AppStage(app, AppStage_Compositor::APP_STAGE_NAME)
+	, m_compositorModel(new RmlModel_Compositor)
 	, m_scriptContext(new CompositorScriptContext)
 	, m_videoWriter(new VideoWriter)
-	, m_modelFileDialog(new ImGui::FileBrowser)
-	, m_scriptFileDialog(new ImGui::FileBrowser)
+	//, m_modelFileDialog(new ImGui::FileBrowser)
+	//, m_scriptFileDialog(new ImGui::FileBrowser)
 {
 }
 
 AppStage_Compositor::~AppStage_Compositor()
 {
+	delete m_compositorModel;
 	delete m_scriptContext;
 	delete m_videoWriter;
-	delete m_modelFileDialog;
-	delete m_scriptFileDialog;
+	//delete m_modelFileDialog;
+	//delete m_scriptFileDialog;
 }
 
 void AppStage_Compositor::enter()
 {
+	AppStage::enter();
+
 	m_camera= Renderer::getInstance()->pushCamera();
 
 	m_frameCompositor= GlFrameCompositor::getInstance();
 	m_frameCompositor->start();
 
-	m_modelFileDialog->SetTitle("Select Stencil Model");
-	m_modelFileDialog->SetTypeFilters({".obj"});
+	//m_modelFileDialog->SetTitle("Select Stencil Model");
+	//m_modelFileDialog->SetTypeFilters({".obj"});
 
-	m_scriptFileDialog->SetTitle("Select Scene Script");
-	m_scriptFileDialog->SetTypeFilters({ ".lua" });
+	//m_scriptFileDialog->SetTitle("Select Scene Script");
+	//m_scriptFileDialog->SetTypeFilters({ ".lua" });
 
 	// Apply video source camera intrinsics to the camera
 	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
@@ -108,12 +105,33 @@ void AppStage_Compositor::enter()
 			profile->save();
 		}
 	}
+
+	// Create app stage UI models and views
+	// (Auto cleaned up on app state exit)
+	{
+		Rml::Context* context = getRmlContext();
+
+		// Init calibration model
+		m_compositorModel->init(context);
+		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
+		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersEvent);
+		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingEvent);
+		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingEvent);
+		m_compositorModel->OnToggleQuadStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleQuadStencilsEvent);
+		m_compositorModel->OnToggleBoxStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleBoxStencilsEvent);
+		m_compositorModel->OnToggleModelStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleModelStencilsEvent);
+
+		// Init calibration view now that the dependent model has been created
+		m_compositiorView = addRmlDocument("rml\\compositor.rml");
+	}
 }
 
 void AppStage_Compositor::exit()
 {
 	m_frameCompositor->stop();
 	App::getInstance()->getRenderer()->popCamera();
+
+	AppStage::exit();
 }
 
 void AppStage_Compositor::update()
@@ -209,6 +227,36 @@ void AppStage_Compositor::onNewFrameComposited()
 			m_videoWriter->write(bgrTexture);
 		}
 	}
+}
+
+// Compositor Model UI Events
+void AppStage_Compositor::onReturnEvent()
+{
+	m_app->popAppState();
+}
+
+void AppStage_Compositor::onToggleLayersEvent()
+{
+}
+
+void AppStage_Compositor::onToggleRecordingEvent()
+{
+}
+
+void AppStage_Compositor::onToggleScriptingEvent()
+{
+}
+
+void AppStage_Compositor::onToggleQuadStencilsEvent()
+{
+}
+
+void AppStage_Compositor::onToggleBoxStencilsEvent()
+{
+}
+
+void AppStage_Compositor::onToggleModelStencilsEvent()
+{
 }
 
 void AppStage_Compositor::render()
@@ -339,6 +387,7 @@ void AppStage_Compositor::debugRenderAnchors() const
 	}
 }
 
+#if 0
 void AppStage_Compositor::renderUI()
 {
 	ProfileConfig* profile = App::getInstance()->getProfileConfig();
@@ -796,3 +845,4 @@ void AppStage_Compositor::renderUI()
 		ImGui::End();
 	}
 }
+#endif

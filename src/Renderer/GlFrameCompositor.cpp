@@ -25,20 +25,13 @@
 
 #include <easy/profiler.h>
 
-const std::string g_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::COUNT] = {
-	"NoAlpha",
-	"ColorKey",
-	"AlphaChannel",
-	"MagicPortal"
-};
-const std::string* k_compositorLayerAlphaStrings = g_compositorLayerAlphaStrings;
 
 // -- CompositorLayerConfig ------
 const configuru::Config CompositorLayerConfig::writeToJSON() const
 {
 	configuru::Config pt{
 		{"appName", appName},
-		{"alphaMode", g_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::NoAlpha]},
+		{"alphaMode", k_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::NoAlpha]},
 	};
 
 	return pt;
@@ -51,11 +44,11 @@ void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
 	std::string alphaModeString = 
 		pt.get_or<std::string>(
 			"alphaMode", 
-			g_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::NoAlpha]);
+			k_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::NoAlpha]);
 	alphaMode =
 		StringUtils::FindEnumValue<eCompositorLayerAlphaMode>(
 			alphaModeString,
-			g_compositorLayerAlphaStrings);
+			k_compositorLayerAlphaStrings);
 }
 
 // -- GlFrameCompositorConfig ------
@@ -1099,7 +1092,7 @@ std::string GlFrameCompositor::getLayerAlphaModeString(int layerIndex) const
 
 		if (layer.alphaMode != eCompositorLayerAlphaMode::INVALID)
 		{
-			return g_compositorLayerAlphaStrings[(int)layer.alphaMode];
+			return k_compositorLayerAlphaStrings[(int)layer.alphaMode];
 		}
 	}
 

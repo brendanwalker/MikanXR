@@ -3,6 +3,7 @@
 #include <MikanClientTypes.h>
 #include <MulticastDelegate.h>
 #include "CommonConfig.h"
+#include "FrameCompositorConstants.h"
 #include <memory>
 #include <string>
 #include <map>
@@ -21,18 +22,6 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-
-enum class eCompositorLayerAlphaMode : int
-{
-	INVALID = -1,
-
-	NoAlpha,
-	ColorKey,
-	AlphaChannel,
-	MagicPortal,
-
-	COUNT
-};
 
 struct CompositorLayerConfig
 {
