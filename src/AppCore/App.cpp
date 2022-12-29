@@ -27,6 +27,8 @@
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/EventListenerInstancer.h>
+// Mikan extensions for RmlUI
+#include "RmlMikanPlugin.h"
 
 
 #ifdef _WIN32
@@ -245,6 +247,7 @@ bool App::startup(int argc, char** argv)
 	// Tell the UI libary this class implements the RML System Interface
 	Rml::SetSystemInterface(this);
 	Rml::SetFileInterface(new MikanFileInterface());
+	Rml::Mikan::Initialise();
 	Rml::Factory::RegisterEventListenerInstancer(m_rmlEventInstancer);
 
 	// Load any saved config
@@ -331,7 +334,39 @@ bool App::startup(int argc, char** argv)
 		// Register common data model types
 		{
 			Rml::DataModelConstructor constructor = m_rmlUIContext->CreateDataModel("data_model_globals");
+			
+			// String arrays
 			constructor.RegisterArray<Rml::Vector<Rml::String>>();
+
+			// Vector2f
+			if (auto struct_handle = constructor.RegisterStruct<Rml::Vector2f>())
+			{
+				struct_handle.RegisterMember("x", &Rml::Vector2f::x);
+				struct_handle.RegisterMember("y", &Rml::Vector2f::y);
+			}
+
+			// Vector3f
+			if (auto struct_handle = constructor.RegisterStruct<Rml::Vector3f>())
+			{
+				struct_handle.RegisterMember("x", &Rml::Vector3f::x);
+				struct_handle.RegisterMember("y", &Rml::Vector3f::y);
+				struct_handle.RegisterMember("z", &Rml::Vector3f::z);
+			}
+
+			// Transform function for converting anchor id to anchor name
+			constructor.RegisterTransformFunc(
+				"to_anchor_name",
+				[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+					const MikanSpatialAnchorID anchorId = variant.Get<int>(-1);
+
+					MikanSpatialAnchorInfo anchorInfo;
+					if (getProfileConfig()->getSpatialAnchorInfo(anchorId, anchorInfo))
+					{
+						variant = Rml::String(anchorInfo.anchor_name);
+						return true;
+					}
+					return false;
+				});
 		}
 	}
 

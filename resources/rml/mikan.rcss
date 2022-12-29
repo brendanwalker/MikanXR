@@ -236,11 +236,13 @@ h1 {
 
 
 input,
+numeric,
 select,
 dataselect {
 	margin-left: 20dp;
 }
 
+numeric.submit,
 input.submit {
 	margin-left: 0;
 }
@@ -248,6 +250,7 @@ input.submit {
 
 
 button,
+numeric.submit,
 input.submit {
 	display: inline-block;
 
@@ -265,26 +268,31 @@ input.submit {
 }
 
 button:focus,
+numeric.submit:focus,
 input.submit:focus {
 	font-effect: blur(3dp #fff);
 }
 
 button:hover,
+numeric.submit:hover,
 input.submit:hover {
 	decorator: tiled-horizontal(button-hover-l, button-hover-c, button-hover-r);
 }
 
 button:active,
+numeric.submit:active,
 input.submit:active {
 	decorator: tiled-horizontal(button-active-l, button-active-c, button-active-r);
 }
 
+numeric.submit:disabled,
 input.submit:disabled {
 	decorator: image(button);
 	image-color: rgba(50, 150, 150, 120);
 	cursor: unavailable;
 }
 
+numeric,
 input.text,
 input.password {
 	box-sizing: border-box;
@@ -303,6 +311,7 @@ textarea {
 
 input.text,
 input.password,
+numeric,
 select,
 dataselect,
 textarea {
