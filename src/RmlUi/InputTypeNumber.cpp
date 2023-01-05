@@ -1,26 +1,27 @@
 #include "InputTypeNumber.h"
-#include "WidgetTextInputFloat.h"
-#include "WidgetTextInputInt.h"
+#include "WidgetNumericInputFloat.h"
+#include "WidgetNumericInputInt.h"
+#include "ElementFormControlNumericInput.h"
 #include <RmlUi/Core/ElementUtilities.h>
-#include <RmlUi/Core/Elements/ElementFormControlInput.h>
+//#include <RmlUi/Core/Elements/ElementFormControlInput.h>
 #include <RmlUi/Core/PropertyIdSet.h>
 
 namespace Rml {
 
-InputTypeNumber::InputTypeNumber(ElementFormControlInput* element, NumberType numberType) 
-	: InputType(element)
+InputTypeNumber::InputTypeNumber(ElementFormControlNumericInput* in_element, NumberType numberType) 
+	: element(in_element)
 	, m_numberType(numberType)
 {
 	if (m_numberType == NumberType::FLOAT)
 	{
-		WidgetTextInputFloat* floatWidget = new WidgetTextInputFloat(element);
+		WidgetNumericInputFloat* floatWidget = new WidgetNumericInputFloat(element);
 		floatWidget->SetPrecision(element->GetAttribute< int >("precision", 2));
 
 		widget = floatWidget;
 	}
 	else
 	{
-		widget = new WidgetTextInputInt(element);
+		widget = new WidgetNumericInputInt(element);
 	}
 
 	widget->SetMaxLength(element->GetAttribute< int >("maxlength", -1));
@@ -32,6 +33,18 @@ InputTypeNumber::InputTypeNumber(ElementFormControlInput* element, NumberType nu
 InputTypeNumber::~InputTypeNumber()
 {
 	delete widget;
+}
+
+// Returns a string representation of the current value of the form control.
+String InputTypeNumber::GetValue() const
+{
+	return element->GetAttribute< String >("value", "");
+}
+
+// Returns if this value should be submitted with the form.
+bool InputTypeNumber::IsSubmitted()
+{
+	return true;
 }
 
 // Called every update from the host element.
@@ -83,7 +96,7 @@ bool InputTypeNumber::OnAttributeChange(const ElementAttributes& changed_attribu
 
 			if (newPrecision != -1)
 			{
-				((WidgetTextInputFloat*)widget)->SetPrecision(newPrecision);
+				((WidgetNumericInputFloat*)widget)->SetPrecision(newPrecision);
 			}
 		}
 	}
@@ -91,7 +104,12 @@ bool InputTypeNumber::OnAttributeChange(const ElementAttributes& changed_attribu
 	// Check if the value has been changed.
 	it = changed_attributes.find("value");
 	if (it != changed_attributes.end())
-		widget->SetValue(it->second.Get<String>());
+	{
+		const String rawValue= it->second.Get<String>();
+		const String sanitizedValue= widget->SanitiseValue(rawValue);
+
+		widget->SetValue(sanitizedValue);
+	}
 
 	return !dirty_layout;
 }
@@ -120,6 +138,16 @@ bool InputTypeNumber::GetIntrinsicDimensions(Vector2f& dimensions, float& /*rati
 	dimensions.y = element->GetLineHeight() + 2.0f;
 
 	return true;
+}
+
+// Called when the element is added into a hierarchy.
+void InputTypeNumber::OnChildAdd()
+{
+}
+
+// Called when the element is removed from a hierarchy.
+void InputTypeNumber::OnChildRemove()
+{
 }
 
 } // namespace Rml

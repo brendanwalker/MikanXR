@@ -50,25 +50,29 @@ bool RmlModel_CompositorQuads::init(
 		});
 	constructor.BindEventCallback(
 		"modify_stencil",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int listIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnModifyQuadStencilEvent && listIndex >= 0) {
-				OnModifyQuadStencilEvent(m_stencilQuads[listIndex].stencil_id);
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				if (OnModifyQuadStencilEvent && stencil_id >= 0)
+				{
+					OnModifyQuadStencilEvent(stencil_id);
+				}				
 			}
 		});
 	constructor.BindEventCallback(
 		"delete_stencil",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int listIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnDeleteQuadStencilEvent && listIndex >= 0)
-			{
-				OnDeleteQuadStencilEvent(m_stencilQuads[listIndex].stencil_id);
+			const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (OnDeleteQuadStencilEvent && stencil_id >= 0) {
+				OnDeleteQuadStencilEvent(stencil_id);
 			}
 		});
 
 	// Fill in the data model
 	rebuildAnchorList(profile);
-	rebuildStencilList(profile);
+	rebuildUIQuadsFromProfile(profile);
 
 	return true;
 }
@@ -88,14 +92,15 @@ void RmlModel_CompositorQuads::rebuildAnchorList(const ProfileConfig* profile)
 	{
 		m_spatialAnchors.push_back(anchorInfo.anchor_id);
 	}
+	m_modelHandle.DirtyVariable("spatial_anchors");
 }
 
-void RmlModel_CompositorQuads::rebuildStencilList(const ProfileConfig* profile)
+void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile(const ProfileConfig* profile)
 {
 	m_stencilQuads.clear();
 	for (const MikanStencilQuad& quad : profile->quadStencilList)
 	{
-		float angles[3];
+		float angles[3]{};
 		MikanOrientationToEulerAngles(
 			quad.quad_x_axis, quad.quad_y_axis, quad.quad_normal,
 			angles[0], angles[1], angles[2]);
@@ -110,5 +115,40 @@ void RmlModel_CompositorQuads::rebuildStencilList(const ProfileConfig* profile)
 			quad.is_disabled
 		};
 		m_stencilQuads.push_back(uiQuad);
+	}
+	m_modelHandle.DirtyVariable("stencil_quads");
+}
+
+void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id, ProfileConfig* profile) const
+{
+	auto it = std::find_if(
+		m_stencilQuads.begin(), m_stencilQuads.end(),
+		[stencil_id](const RmlModel_CompositorQuad& quad) {
+		return quad.stencil_id == stencil_id;
+	});
+	if (it != m_stencilQuads.end())
+	{
+		const RmlModel_CompositorQuad& uiQuad = *it;
+
+		MikanVector3f quad_x_axis;
+		MikanVector3f quad_y_axis;
+		MikanVector3f quad_normal;
+		EulerAnglesToMikanOrientation(
+			uiQuad.angles.x, uiQuad.angles.y, uiQuad.angles.z,
+			quad_x_axis, quad_y_axis, quad_normal);
+
+		MikanStencilQuad quad = {
+			uiQuad.stencil_id,
+			uiQuad.parent_anchor_id,
+			{uiQuad.position.x, uiQuad.position.y, uiQuad.position.z},
+			quad_x_axis,
+			quad_y_axis,
+			quad_normal,
+			uiQuad.size.x,
+			uiQuad.size.y,
+			uiQuad.double_sided,
+			uiQuad.disabled
+		};
+		profile->updateQuadStencil(quad);
 	}
 }

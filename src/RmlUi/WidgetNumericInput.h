@@ -43,15 +43,17 @@ class ElementFormControl;
 	@author Peter Curry
  */
 
-class WidgetTextInput : public EventListener
+class WidgetNumericInput : public EventListener
 {
 public:
-	WidgetTextInput(ElementFormControl* parent);
-	virtual ~WidgetTextInput();
+	WidgetNumericInput(ElementFormControl* parent);
+	virtual ~WidgetNumericInput();
 
 	/// Sets the value of the text field.
 	/// @param[in] value The new value to set on the text field.
 	virtual void SetValue(const String& value);
+
+	virtual String SanitiseValue(const String& value) = 0;
 
 	/// Sets the maximum length (in characters) of this text field.
 	/// @param[in] max_length The new maximum length of the text field. A number lower than zero will mean infinite characters.
@@ -82,7 +84,7 @@ public:
 	Vector2f GetTextDimensions() const;
 
 protected:
-	enum class CursorMovement { Begin = -4, BeginLine = -3, PreviousWord = -2, Left = -1, Right = 1, NextWord = 2, EndLine = 3, End = 4 };
+	enum class CursorMovement { Begin = -2, Left = -1, Right = 1, End = 2 };
 
 	/// Processes the "keydown" and "textinput" event to write to the input field, and the "focus" and
 	/// "blur" to set the state of the cursor.
@@ -96,12 +98,16 @@ protected:
 	/// @param[in] direction Movement of cursor for deletion.
 	/// @return True if a character was deleted, false otherwise.
 	bool DeleteCharacters(CursorMovement direction);
+	/// Returns true if the current numeric text content is valid numeric value
+	/// @param[in] character The character to validate.
+	/// @return True if the content is valid, false if not.
+	virtual bool IsNumericContentValid(const String& content) = 0;
 	/// Returns true if the given character is permitted in the input field, false if not.
 	/// @param[in] character The character to validate.
 	/// @return True if the character is allowed, false if not.
 	virtual bool IsCharacterValid(char character) = 0;
 	/// Called when the user pressed enter.
-	virtual void LineBreak() = 0;
+	virtual void LineBreak();
 
 	/// Returns the absolute index of the cursor.
 	int GetCursorIndex() const;
@@ -109,8 +115,11 @@ protected:
 	/// Gets the parent element containing the widget.
 	Element* GetElement() const;
 
-	/// Dispatches a change event to the widget's element.
-	void DispatchChangeEvent(bool linebreak = false);
+	/// Dispatches a change event to the widget's element due to an edit action.
+	void DispatchChangeEvent();
+
+	/// Dispatches a submit event to the widget's element due to a submit action (enter key).
+	void DispatchSubmitEvent();
 
 private:
 	
@@ -118,10 +127,6 @@ private:
 	/// @param[in] movement Cursor movement operation.
 	/// @param[in] select True if the movement will also move the selection cursor, false if not.
 	void MoveCursorHorizontal(CursorMovement movement, bool select);
-	/// Moves the cursor up and down the text field.
-	/// @param[in] x How far to move the cursor.
-	/// @param[in] select True if the movement will also move the selection cursor, false if not.
-	void MoveCursorVertical(int distance, bool select);
 	// Move the cursor to utf-8 boundaries, in case it was moved into the middle of a multibyte character.
 	/// @param[in] forward True to seek forward, else back.
 	void MoveCursorToCharacterBoundaries(bool forward);
@@ -129,20 +134,15 @@ private:
 	void ExpandSelection();
 
 	/// Updates the absolute cursor index from the relative cursor indices.
-	void UpdateAbsoluteCursor();
+	void ResetEditCursor();
 	/// Updates the relative cursor indices from the absolute cursor index.
-	void UpdateRelativeCursor();
+	void ResetEditCursorAndUpdateCurssorPosition();
 
-	/// Calculates the line index under a specific vertical position.
-	/// @param[in] position The position to query.
-	/// @return The index of the line under the mouse cursor.
-	int CalculateLineIndex(float position);
 	/// Calculates the character index along a line under a specific horizontal position.
-	/// @param[in] line_index The line to query.
 	/// @param[in] position The position to query.
 	/// @param[out] on_right_side True if position is on the right side of the returned character, else left side.
 	/// @return The index of the character under the mouse cursor.
-	int CalculateCharacterIndex(int line_index, float position);
+	int CalculateCharacterIndex(float position);
 
 	/// Shows or hides the cursor.
 	/// @param[in] show True to show the cursor, false to hide it.
@@ -176,6 +176,7 @@ private:
 	/// @param[in] line_begin The absolute index at the beginning of the line.
 	void GetLineSelection(String& pre_selection, String& selection, String& post_selection, const String& line, int line_begin);
 
+	/*
 	struct Line
 	{
 		// The contents of the line (including the trailing endline, if that terminated the line).
@@ -187,6 +188,7 @@ private:
 		// case of a soft return, this may be negative.
 		int extra_characters;
 	};
+	*/
 
 	ElementFormControl* parent;
 
@@ -195,8 +197,7 @@ private:
 	Vector2f internal_dimensions;
 	Vector2f scroll_offset;
 
-	typedef Vector< Line > LineList;
-	LineList lines;
+	//Line numberContent;
 
 	// Length in number of characters.
 	int max_length;
@@ -205,8 +206,7 @@ private:
 	int edit_index;
 	
 	int absolute_cursor_index;
-	int cursor_line_index;
-	int cursor_character_index;
+	//int cursor_character_index;
 
 	bool cursor_on_right_side_of_character;
 	bool cancel_next_drag;

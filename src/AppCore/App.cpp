@@ -337,6 +337,7 @@ bool App::startup(int argc, char** argv)
 			
 			// String arrays
 			constructor.RegisterArray<Rml::Vector<Rml::String>>();
+			constructor.RegisterArray<Rml::Vector<int>>();
 
 			// Vector2f
 			if (auto struct_handle = constructor.RegisterStruct<Rml::Vector2f>())

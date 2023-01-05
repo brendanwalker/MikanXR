@@ -22,7 +22,8 @@ public:
 	virtual void dispose() override;
 
 	void rebuildAnchorList(const ProfileConfig* profile);
-	void rebuildStencilList(const ProfileConfig* profile);
+	void rebuildUIQuadsFromProfile(const ProfileConfig* profile);
+	void copyUIQuadToProfile(int stencil_id, ProfileConfig* profile) const;
 
 	SinglecastDelegate<void()> OnAddQuadStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteQuadStencilEvent;
@@ -34,4 +35,3 @@ private:
 
 	static bool s_bHasRegisteredTypes;
 };
-#pragma once

@@ -1,4 +1,5 @@
 #include "ElementFormControlNumericInput.h"
+#include "ElementNumericSelection.h"
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/ElementInstancer.h>
 #include <RmlUi/Core/Factory.h>
@@ -13,9 +14,11 @@ class RmlMikanPlugin : public Plugin {
 public:
 	void OnInitialise() override
 	{
-		instancer = MakeUnique<ElementInstancerGeneric<ElementFormControlNumericInput> >();
+		numeric_instancer = MakeUnique<ElementInstancerGeneric<ElementFormControlNumericInput> >();
+		numeric_selection_instancer = MakeUnique<ElementInstancerGeneric<ElementNumericSelection> >();
 		
-		Factory::RegisterElementInstancer("numeric", instancer.get());
+		Factory::RegisterElementInstancer("numeric", numeric_instancer.get());
+		Factory::RegisterElementInstancer("#numeric_selection", numeric_selection_instancer.get());
 
 		Log::Message(Log::LT_INFO, "Mikan-RML plugin initialised.");
 	}
@@ -31,7 +34,8 @@ public:
 	}
 
 private:
-	UniquePtr<ElementInstancerGeneric<ElementFormControlNumericInput>> instancer;
+	UniquePtr<ElementInstancerGeneric<ElementFormControlNumericInput>> numeric_instancer;
+	UniquePtr<ElementInstancerGeneric<ElementNumericSelection>> numeric_selection_instancer;
 };
 
 

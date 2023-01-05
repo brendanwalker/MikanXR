@@ -2,6 +2,10 @@
 #include "App.h"
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
+#include "Compositor/RmlModel_CompositorLayers.h"
+#include "Compositor/RmlModel_CompositorQuads.h"
+#include "Compositor/RmlModel_CompositorRecording.h"
+#include "Compositor/RmlModel_CompositorScripting.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "GlCommon.h"
@@ -54,6 +58,10 @@ const char* AppStage_Compositor::APP_STAGE_NAME = "Compositor";
 AppStage_Compositor::AppStage_Compositor(App* app)
 	: AppStage(app, AppStage_Compositor::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
+	, m_compositorLayersModel(new RmlModel_CompositorLayers)
+	, m_compositorQuadsModel(new RmlModel_CompositorQuads)
+	, m_compositorRecordingModel(new RmlModel_CompositorRecording)
+	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_scriptContext(new CompositorScriptContext)
 	, m_videoWriter(new VideoWriter)
 	//, m_modelFileDialog(new ImGui::FileBrowser)
@@ -64,6 +72,10 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 AppStage_Compositor::~AppStage_Compositor()
 {
 	delete m_compositorModel;
+	delete m_compositorLayersModel;
+	delete m_compositorQuadsModel;
+	delete m_compositorRecordingModel;
+	delete m_compositorScriptingModel;
 	delete m_scriptContext;
 	delete m_videoWriter;
 	//delete m_modelFileDialog;
@@ -96,13 +108,13 @@ void AppStage_Compositor::enter()
 	}
 
 	// Load the compositor script
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	if (!profile->compositorScript.empty())
+	m_profile = App::getInstance()->getProfileConfig();
+	if (!m_profile->compositorScript.empty())
 	{
-		if (!m_scriptContext->loadScript(profile->compositorScript))
+		if (!m_scriptContext->loadScript(m_profile->compositorScript))
 		{
-			profile->compositorScript = "";
-			profile->save();
+			m_profile->compositorScript = "";
+			m_profile->save();
 		}
 	}
 
@@ -111,23 +123,53 @@ void AppStage_Compositor::enter()
 	{
 		Rml::Context* context = getRmlContext();
 
-		// Init calibration model
+		// Init main compositor UI
 		m_compositorModel->init(context);
 		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
-		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersEvent);
-		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingEvent);
-		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingEvent);
-		m_compositorModel->OnToggleQuadStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleQuadStencilsEvent);
-		m_compositorModel->OnToggleBoxStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleBoxStencilsEvent);
-		m_compositorModel->OnToggleModelStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleModelStencilsEvent);
-
-		// Init calibration view now that the dependent model has been created
+		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersWindowEvent);
+		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingWindowEvent);
+		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingWindowEvent);
+		m_compositorModel->OnToggleQuadStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleQuadStencilsWindowEvent);
+		m_compositorModel->OnToggleBoxStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleBoxStencilsWindowEvent);
+		m_compositorModel->OnToggleModelStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleModelStencilsWindowEvent);
 		m_compositiorView = addRmlDocument("rml\\compositor.rml");
+
+		// Init Layers UI
+		m_compositorLayersModel->init(context, m_frameCompositor);
+		m_compositorLayersModel->OnLayerAlphaModeChangedEvent = MakeDelegate(this, &AppStage_Compositor::onLayerAlphaModeChangedEvent);
+		m_compositorLayersModel->OnScreenshotLayerEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotLayerEvent);
+		//m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
+
+		// Init Quad Stencils UI
+		m_compositorQuadsModel->init(context, m_profile);
+		m_compositorQuadsModel->OnAddQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddQuadStencilEvent);
+		m_compositorQuadsModel->OnDeleteQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteQuadStencilEvent);
+		m_compositorQuadsModel->OnModifyQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyQuadStencilEvent);
+		m_compositiorQuadsView = addRmlDocument("rml\\compositor_quads.rml");
+
+		// Init Recording UI
+		m_compositorRecordingModel->init(context, m_frameCompositor);
+		m_compositorRecordingModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingEvent);
+		m_compositorRecordingModel->OnVideoCodecChangedEvent = MakeDelegate(this, &AppStage_Compositor::onVideoCodecChangedEvent);
+		//m_compositiorRecordingView = addRmlDocument("rml\\compositor_recording.rml");
+
+		// Init Scripting UI
+		m_compositorScriptingModel->init(context, m_profile);
+		m_compositorScriptingModel->OnSelectCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onSelectCompositorScriptFileEvent);
+		m_compositorScriptingModel->OnReloadCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onReloadCompositorScriptFileEvent);
+		m_compositorScriptingModel->OnInvokeScriptTriggerEvent = MakeDelegate(this, &AppStage_Compositor::onInvokeScriptTriggerEvent);
+		//m_compositiorScriptingView = addRmlDocument("rml\\compositor_scripting.rml");
 	}
 }
 
 void AppStage_Compositor::exit()
 {
+	m_compositorLayersModel->dispose();
+	m_compositorQuadsModel->dispose();
+	m_compositorRecordingModel->dispose();
+	m_compositorScriptingModel->dispose();
+	m_compositorModel->dispose();
+
 	m_frameCompositor->stop();
 	App::getInstance()->getRenderer()->popCamera();
 
@@ -180,7 +222,7 @@ bool AppStage_Compositor::startRecording()
 	
 	const std::string suffix= g_supportedCodecFileSuffix[m_videoCodecIndex];
 	const int fourcc = g_supportedCodecFourCC[m_videoCodecIndex];
-	const std::string outputFile = App::getInstance()->getProfileConfig()->generateTimestampedFilePath("video", suffix);
+	const std::string outputFile = m_profile->generateTimestampedFilePath("video", suffix);
 	const int width = compositorTexture->getTextureWidth();
 	const int height = compositorTexture->getTextureHeight();
 	const cv::Size size(width, height);
@@ -235,27 +277,92 @@ void AppStage_Compositor::onReturnEvent()
 	m_app->popAppState();
 }
 
-void AppStage_Compositor::onToggleLayersEvent()
+void AppStage_Compositor::onToggleLayersWindowEvent()
 {
 }
 
+void AppStage_Compositor::onToggleRecordingWindowEvent()
+{
+}
+
+void AppStage_Compositor::onToggleScriptingWindowEvent()
+{
+}
+
+void AppStage_Compositor::onToggleQuadStencilsWindowEvent()
+{
+}
+
+void AppStage_Compositor::onToggleBoxStencilsWindowEvent()
+{
+}
+
+void AppStage_Compositor::onToggleModelStencilsWindowEvent()
+{
+}
+
+// Compositor Layers UI Events
+void AppStage_Compositor::onLayerAlphaModeChangedEvent(int layerIndex, eCompositorLayerAlphaMode alphaMode)
+{
+}
+
+void AppStage_Compositor::onScreenshotLayerEvent(int layerIndex)
+{
+}
+
+// Quad Stencils UI Events
+void AppStage_Compositor::onAddQuadStencilEvent()
+{
+	MikanStencilQuad quad;
+	memset(&quad, 0, sizeof(MikanStencilQuad));
+
+	quad.is_double_sided = true;
+	quad.parent_anchor_id = INVALID_MIKAN_ID;
+	quad.quad_center = {0.f, 0.f, 0.f};
+	quad.quad_x_axis = {1.f, 0.f, 0.f};
+	quad.quad_y_axis = {0.f, 1.f, 0.f};
+	quad.quad_normal = {0.f, 0.f, 1.f};
+	quad.quad_width = 0.25f;
+	quad.quad_height = 0.25f;
+
+	if (m_profile->addNewQuadStencil(quad) != INVALID_MIKAN_ID)
+	{
+		m_compositorQuadsModel->rebuildUIQuadsFromProfile(m_profile);
+	}
+}
+
+void AppStage_Compositor::onDeleteQuadStencilEvent(int stencilID)
+{
+	if (m_profile->removeStencil(stencilID))
+	{
+		m_compositorQuadsModel->rebuildUIQuadsFromProfile(m_profile);
+	}
+}
+
+void AppStage_Compositor::onModifyQuadStencilEvent(int stencilID)
+{
+	m_compositorQuadsModel->copyUIQuadToProfile(stencilID, m_profile);
+}
+
+// Recording UI Events
 void AppStage_Compositor::onToggleRecordingEvent()
 {
 }
 
-void AppStage_Compositor::onToggleScriptingEvent()
+void AppStage_Compositor::onVideoCodecChangedEvent(eSupportedCodec codec)
 {
 }
 
-void AppStage_Compositor::onToggleQuadStencilsEvent()
+// Scripting UI Events
+void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
 }
 
-void AppStage_Compositor::onToggleBoxStencilsEvent()
+void AppStage_Compositor::onReloadCompositorScriptFileEvent()
 {
 }
 
-void AppStage_Compositor::onToggleModelStencilsEvent()
+void AppStage_Compositor::onInvokeScriptTriggerEvent(const std::string& triggerEvent)
 {
 }
 
@@ -304,8 +411,7 @@ void AppStage_Compositor::debugRenderStencils() const
 	const glm::vec3 cameraPosition = m_camera->getCameraPosition();
 	const glm::vec3 cameraForward = m_camera->getCameraForward();
 
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	
+
 	// Render all stencil quads in view of the tracked camera
 	std::vector<const MikanStencilQuad*> quadStencilList;
 	MikanServer::getInstance()->getRelevantQuadStencilList(cameraPosition, cameraForward, quadStencilList);
@@ -313,7 +419,7 @@ void AppStage_Compositor::debugRenderStencils() const
 	{
 		if (!stencil->is_disabled && stencil->is_double_sided)
 		{
-			const glm::mat4 xform = profile->getQuadStencilWorldTransform(stencil);
+			const glm::mat4 xform = m_profile->getQuadStencilWorldTransform(stencil);
 			const glm::vec3 position = glm::vec3(xform[3]);
 			
 			drawTransformedQuad(xform, stencil->quad_width, stencil->quad_height, Colors::Yellow);
@@ -329,7 +435,7 @@ void AppStage_Compositor::debugRenderStencils() const
 	{
 		if (!stencil->is_disabled)
 		{
-			const glm::mat4 xform = profile->getBoxStencilWorldTransform(stencil);
+			const glm::mat4 xform = m_profile->getBoxStencilWorldTransform(stencil);
 			const glm::vec3 half_extents(stencil->box_x_size / 2.f, stencil->box_y_size / 2.f, stencil->box_z_size / 2.f);
 			const glm::vec3 position = glm::vec3(xform[3]);
 
@@ -346,7 +452,7 @@ void AppStage_Compositor::debugRenderStencils() const
 	{
 		if (!stencil->modelInfo.is_disabled)
 		{
-			const glm::mat4 xform = profile->getModelStencilWorldTransform(&stencil->modelInfo);
+			const glm::mat4 xform = m_profile->getModelStencilWorldTransform(&stencil->modelInfo);
 			const glm::vec3 position = glm::vec3(xform[3]);
 
 			// Draw the wireframes for the stencil mesh
@@ -374,8 +480,7 @@ void AppStage_Compositor::debugRenderAnchors() const
 {
 	TextStyle style = getDefaultTextStyle();
 
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	for (const MikanSpatialAnchorInfo& anchor : profile->spatialAnchorList)
+	for (const MikanSpatialAnchorInfo& anchor : m_profile->spatialAnchorList)
 	{
 		wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
 		StringUtils::convertMbsToWcs(anchor.anchor_name, wszAnchorName, sizeof(wszAnchorName));

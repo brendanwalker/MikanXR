@@ -32,7 +32,7 @@
 
 namespace Rml {
 
-class WidgetTextInput;
+class WidgetNumericInput;
 
 /**
 	A stub element used by the WidgetTextInput to query the RCSS-specified text colour and
@@ -41,24 +41,24 @@ class WidgetTextInput;
 	@author Peter Curry
  */
 
-class ElementTextSelection : public Element
+class ElementNumericSelection : public Element
 {
 public:
-	RMLUI_RTTI_DefineWithParent(ElementTextSelection, Element)
+	RMLUI_RTTI_DefineWithParent(ElementNumericSelection, Element)
 
-	ElementTextSelection(const String& tag);
-	virtual ~ElementTextSelection();
+	ElementNumericSelection(const String& tag);
+	virtual ~ElementNumericSelection();
 
 	/// Set the widget that this selection element was created for. This is the widget that will be
 	/// notified when this element's properties are altered.
-	void SetWidget(WidgetTextInput* widget);
+	void SetWidget(WidgetNumericInput* widget);
 
 protected:
 	/// Processes 'color' and 'background-color' property changes.
 	void OnPropertyChange(const PropertyIdSet& changed_properties) override;
 
 private:
-	WidgetTextInput* widget;
+	WidgetNumericInput* widget;
 };
 
 } // namespace Rml

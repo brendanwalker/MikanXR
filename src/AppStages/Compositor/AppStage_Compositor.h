@@ -3,6 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include <memory>
+#include "FrameCompositorConstants.h"
 
 //namespace ImGui
 //{
@@ -33,21 +34,53 @@ protected:
 	void stopRecording();
 	void onNewFrameComposited();
 
-	// Compositor Model UI Events
+	// Main Compositor UI Events
 	void onReturnEvent();
-	void onToggleLayersEvent();
+	void onToggleLayersWindowEvent();
+	void onToggleRecordingWindowEvent();
+	void onToggleScriptingWindowEvent();
+	void onToggleQuadStencilsWindowEvent();
+	void onToggleBoxStencilsWindowEvent();
+	void onToggleModelStencilsWindowEvent();
+
+	// Layers UI Events
+	void onLayerAlphaModeChangedEvent(int layerIndex, eCompositorLayerAlphaMode alphaMode);
+	void onScreenshotLayerEvent(int layerIndex);
+
+	// Quad Stencils UI Events
+	void onAddQuadStencilEvent();
+	void onDeleteQuadStencilEvent(int stencilID);
+	void onModifyQuadStencilEvent(int stencilID);
+
+	// Recording UI Events
 	void onToggleRecordingEvent();
-	void onToggleScriptingEvent();
-	void onToggleQuadStencilsEvent();
-	void onToggleBoxStencilsEvent();
-	void onToggleModelStencilsEvent();
+	void onVideoCodecChangedEvent(eSupportedCodec codec);
+
+	// Scripting UI Events
+	void onSelectCompositorScriptFileEvent();
+	void onReloadCompositorScriptFileEvent();
+	void onInvokeScriptTriggerEvent(const std::string& triggerEvent);
 
 	void debugRenderOrigin() const;
 	void debugRenderStencils() const;
 	void debugRenderAnchors() const;
 
+	class ProfileConfig* m_profile = nullptr;
+
 	class RmlModel_Compositor* m_compositorModel = nullptr;
 	Rml::ElementDocument* m_compositiorView = nullptr;
+
+	class RmlModel_CompositorLayers* m_compositorLayersModel = nullptr;
+	Rml::ElementDocument* m_compositiorLayersView = nullptr;
+
+	class RmlModel_CompositorQuads* m_compositorQuadsModel = nullptr;
+	Rml::ElementDocument* m_compositiorQuadsView = nullptr;
+
+	class RmlModel_CompositorRecording* m_compositorRecordingModel = nullptr;
+	Rml::ElementDocument* m_compositiorRecordingView = nullptr;
+
+	class RmlModel_CompositorScripting* m_compositorScriptingModel = nullptr;
+	Rml::ElementDocument* m_compositiorScriptingView = nullptr;
 
 	class CompositorScriptContext* m_scriptContext= nullptr;
 	class GlFrameCompositor* m_frameCompositor= nullptr;

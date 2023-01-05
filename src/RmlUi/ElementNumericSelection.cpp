@@ -26,29 +26,29 @@
  *
  */
 
-#include "ElementTextSelection.h"
-#include "WidgetTextInput.h"
+#include "ElementNumericSelection.h"
+#include "WidgetNumericInput.h"
 #include <RmlUi/Core/PropertyIdSet.h>
 
 namespace Rml {
 
-ElementTextSelection::ElementTextSelection(const String& tag) : Element(tag)
+ElementNumericSelection::ElementNumericSelection(const String& tag) : Element(tag)
 {
 	widget = nullptr;
 }
 
-ElementTextSelection::~ElementTextSelection()
+ElementNumericSelection::~ElementNumericSelection()
 {
 }
 
 // Set the widget that this selection element was created for.
-void ElementTextSelection::SetWidget(WidgetTextInput* _widget)
+void ElementNumericSelection::SetWidget(WidgetNumericInput* _widget)
 {
 	widget = _widget;
 }
 
 // Processes 'color' and 'background-color' property changes.
-void ElementTextSelection::OnPropertyChange(const PropertyIdSet& changed_properties)
+void ElementNumericSelection::OnPropertyChange(const PropertyIdSet& changed_properties)
 {
 	Element::OnPropertyChange(changed_properties);
 
