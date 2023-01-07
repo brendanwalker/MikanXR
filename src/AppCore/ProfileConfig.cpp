@@ -274,8 +274,8 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 		}
 	}
 
-	// Read in the quad stencils
-	quadStencilList.clear();
+	// Read in the box stencils
+	boxStencilList.clear();
 	if (pt.has_key("boxStencils"))
 	{
 		for (const configuru::Config& stencilConfig : pt["boxStencils"].as_array())
