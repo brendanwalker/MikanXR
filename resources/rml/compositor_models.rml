@@ -1,0 +1,69 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Model Stencils</title>
+        <style>
+            body
+            {
+                left: 10dp;
+                top: 20dp;
+                width: 300dp;
+                height: 500dp;
+                margin: auto;
+            }
+            numeric{
+                width: 50dp;
+                margin-left: 0dp;
+                vertical-align: -8dp;
+            }            
+        </style>
+	</head>
+	<body template="window">
+        <panel id="controls" data-model="compositor_models">
+			<div class="picker">
+				<div data-for="stencil : stencil_models">
+                    <label>Model Stencil ID: {{stencil.stencil_id}}</label>
+                    <br/>
+                    <div data-if="spatial_anchors.size > 0">
+                        <select id="select" name="parent_anchor_id" data-value="stencil.parent_anchor_id">
+                            <option data-for="spatial_anchor_id : spatial_anchors" data-value="spatial_anchor_id">{{spatial_anchor_id | to_anchor_name}}</option>
+                        </select>
+                    </div>            
+                    <br/>
+                    <span>
+                        Position&nbsp;
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.x"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.y"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.z"/>
+                    </span>
+                    <br/>
+                    <span>
+                        Rotation&nbsp;
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.x"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.y"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.z"/>
+                    </span>
+                    <br/>
+                    <span>
+                        Size&nbsp;
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.x"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.y"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.z"/>
+                    </span>
+                    <span>
+                        <label>{{stencil.model_path}}</label>
+                        <button style="width: 40dp" data-event-click="select_stencil_model_path(stencil.stencil_id)">...</button>
+                    </span>
+                    <br/> 
+                    <label><input type="checkbox" name="disabled" data-event-change="modify_stencil(stencil.stencil_id)" data-value="stencil.disabled" /> Disabled </label>
+                    <button data-event-click="delete_stencil(stencil.stencil_id)">Delete</button>
+				</div>
+			</div>
+            <div>
+                <button data-event-click="add_stencil()">Add Model Stencil</button>
+            </div>            
+        </panel>
+    </body>
+</rml>

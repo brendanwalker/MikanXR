@@ -1,0 +1,65 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Box Stencils</title>
+        <style>
+            body
+            {
+                left: 10dp;
+                top: 20dp;
+                width: 300dp;
+                height: 500dp;
+                margin: auto;
+            }
+            numeric{
+                width: 50dp;
+                margin-left: 0dp;
+                vertical-align: -8dp;
+            }            
+        </style>
+	</head>
+	<body template="window">
+        <panel id="controls" data-model="compositor_boxes">
+			<div class="picker">
+				<div data-for="stencil : stencil_boxes">
+                    <label>Box Stencil ID: {{stencil.stencil_id}}</label>
+                    <br/>
+                    <div data-if="spatial_anchors.size > 0">
+                        <select id="select" name="parent_anchor_id" data-value="stencil.parent_anchor_id">
+                            <option data-for="spatial_anchor_id : spatial_anchors" data-value="spatial_anchor_id">{{spatial_anchor_id | to_anchor_name}}</option>
+                        </select>
+                    </div>            
+                    <br/>
+                    <span>
+                        Position&nbsp;
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.box_center.x"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.box_center.y"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.box_center.z"/>
+                    </span>
+                    <br/>
+                    <span>
+                        Rotation&nbsp;
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.x"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.y"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.z"/>
+                    </span>
+                    <br/>
+                    <span>
+                        Size&nbsp;
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.x"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.y"/>
+                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.z"/>
+                    </span>
+                    <br/> 
+                    <label><input type="checkbox" name="disabled" data-event-change="modify_stencil(stencil.stencil_id)" data-value="stencil.disabled" /> Disabled </label>
+                    <button data-event-click="delete_stencil(stencil.stencil_id)">Delete</button>
+				</div>
+			</div>
+            <div>
+                <button data-event-click="add_stencil()">Add Box Stencil</button>
+            </div>            
+        </panel>
+    </body>
+</rml>

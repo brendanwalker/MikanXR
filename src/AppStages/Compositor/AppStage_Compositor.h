@@ -42,6 +42,7 @@ protected:
 	void onToggleQuadStencilsWindowEvent();
 	void onToggleBoxStencilsWindowEvent();
 	void onToggleModelStencilsWindowEvent();
+	void hideAllSubWindows();
 
 	// Layers UI Events
 	void onLayerAlphaModeChangedEvent(int layerIndex, eCompositorLayerAlphaMode alphaMode);
@@ -51,6 +52,17 @@ protected:
 	void onAddQuadStencilEvent();
 	void onDeleteQuadStencilEvent(int stencilID);
 	void onModifyQuadStencilEvent(int stencilID);
+
+	// Box Stencils UI Events
+	void onAddBoxStencilEvent();
+	void onDeleteBoxStencilEvent(int stencilID);
+	void onModifyBoxStencilEvent(int stencilID);
+
+	// Model Stencils UI Events
+	void onAddModelStencilEvent();
+	void onDeleteModelStencilEvent(int stencilID);
+	void onModifyModelStencilEvent(int stencilID);
+	void onSelectModelStencilPathEvent(int stencilID);
 
 	// Recording UI Events
 	void onToggleRecordingEvent();
@@ -75,6 +87,12 @@ protected:
 
 	class RmlModel_CompositorQuads* m_compositorQuadsModel = nullptr;
 	Rml::ElementDocument* m_compositiorQuadsView = nullptr;
+
+	class RmlModel_CompositorBoxes* m_compositorBoxesModel = nullptr;
+	Rml::ElementDocument* m_compositiorBoxesView = nullptr;
+
+	class RmlModel_CompositorModels* m_compositorModelsModel = nullptr;
+	Rml::ElementDocument* m_compositiorModelsView = nullptr;
 
 	class RmlModel_CompositorRecording* m_compositorRecordingModel = nullptr;
 	Rml::ElementDocument* m_compositiorRecordingView = nullptr;
