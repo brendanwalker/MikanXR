@@ -8,7 +8,7 @@ struct RmlModel_CompositorLayer
 {
 	Rml::String client_id;
 	Rml::String app_name;
-	int alpha_mode_index;
+	Rml::String alpha_mode;
 };
 
 class RmlModel_CompositorLayers : public RmlModel

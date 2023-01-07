@@ -91,8 +91,8 @@ public:
 	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
 	inline GlTexture* getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
 	void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
-	void cycleNextLayerAlphaMode(int layerIndex);
-	std::string getLayerAlphaModeString(int layerIndex) const;
+	eCompositorLayerAlphaMode getLayerAlphaMode(int layerIndex) const;
+	void setLayerAlphaMode(int layerIndex, eCompositorLayerAlphaMode alphaMode);
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 

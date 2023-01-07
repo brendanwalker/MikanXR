@@ -1050,54 +1050,34 @@ void GlFrameCompositor::removeLayer(
 	}
 }
 
-void GlFrameCompositor::cycleNextLayerAlphaMode(int layerIndex)
+eCompositorLayerAlphaMode GlFrameCompositor::getLayerAlphaMode(int layerIndex) const
 {
-	if (layerIndex < 0 && layerIndex >= (int)m_layers.size())
-		return;
-
-	Layer& layer= m_layers[layerIndex];
-	eCompositorLayerAlphaMode newAlphaMode = layer.alphaMode;
-	for (int attempt = 0; attempt < (int)eCompositorLayerAlphaMode::COUNT; ++attempt)
-	{
-		newAlphaMode= (eCompositorLayerAlphaMode)(((int)newAlphaMode + 1) % (int)eCompositorLayerAlphaMode::COUNT);
-
-		if (newAlphaMode == eCompositorLayerAlphaMode::NoAlpha)
-			break;
-		if (newAlphaMode == eCompositorLayerAlphaMode::ColorKey)
-			break;
-		if (newAlphaMode == eCompositorLayerAlphaMode::AlphaChannel && layer.desc.color_buffer_type == MikanColorBuffer_RGBA32)
-			break;
-		if (newAlphaMode == eCompositorLayerAlphaMode::MagicPortal && layer.desc.color_buffer_type == MikanColorBuffer_RGBA32)
-			break;
-	}
-
-	if (newAlphaMode != layer.alphaMode)
-	{
-		layer.alphaMode= newAlphaMode;
-
-		CompositorLayerConfig* layerConfig= m_config.findLayerConfig(layer.clientInfo);
-		if (layerConfig != nullptr)
-		{
-			layerConfig->alphaMode = newAlphaMode;
-			m_config.save();
-		}
-	}
+	if (layerIndex >= 0 && layerIndex < (int)m_layers.size())
+		return m_layers[layerIndex].alphaMode;
+	else
+		return eCompositorLayerAlphaMode::INVALID;
 }
 
-std::string GlFrameCompositor::getLayerAlphaModeString(int layerIndex) const
+void GlFrameCompositor::setLayerAlphaMode(int layerIndex, eCompositorLayerAlphaMode newAlphaMode)
 {
 	if (layerIndex >= 0 && layerIndex < (int)m_layers.size())
 	{
-		const Layer& layer = m_layers[layerIndex];
+		Layer& layer = m_layers[layerIndex];
 
-		if (layer.alphaMode != eCompositorLayerAlphaMode::INVALID)
+		if (newAlphaMode != layer.alphaMode)
 		{
-			return k_compositorLayerAlphaStrings[(int)layer.alphaMode];
+			layer.alphaMode = newAlphaMode;
+
+			CompositorLayerConfig* layerConfig = m_config.findLayerConfig(layer.clientInfo);
+			if (layerConfig != nullptr)
+			{
+				layerConfig->alphaMode = newAlphaMode;
+				m_config.save();
+			}
 		}
 	}
-
-	return "";
 }
+
 
 bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16_t height)
 {

@@ -147,7 +147,8 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->init(context, m_frameCompositor);
 		m_compositorLayersModel->OnLayerAlphaModeChangedEvent = MakeDelegate(this, &AppStage_Compositor::onLayerAlphaModeChangedEvent);
 		m_compositorLayersModel->OnScreenshotLayerEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotLayerEvent);
-		//m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
+		m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
+		m_compositiorLayersView->Show();
 
 		// Init Quad Stencils UI
 		m_compositorQuadsModel->init(context, m_profile);
@@ -345,10 +346,20 @@ void AppStage_Compositor::onToggleModelStencilsWindowEvent()
 // Compositor Layers UI Events
 void AppStage_Compositor::onLayerAlphaModeChangedEvent(int layerIndex, eCompositorLayerAlphaMode alphaMode)
 {
+	m_frameCompositor->setLayerAlphaMode(layerIndex, alphaMode);
 }
 
 void AppStage_Compositor::onScreenshotLayerEvent(int layerIndex)
 {
+	const std::vector<GlFrameCompositor::Layer>& layers = m_frameCompositor->getLayers();
+	if (layerIndex >= 0 && layerIndex < (int)layers.size())
+	{
+		const GlFrameCompositor::Layer& layer = layers[layerIndex];
+		if (layer.colorTexture != nullptr)
+		{
+			saveTextureToPNG(layer.colorTexture, "layerScreenshot.png");
+		}
+	}
 }
 
 void AppStage_Compositor::hideAllSubWindows()

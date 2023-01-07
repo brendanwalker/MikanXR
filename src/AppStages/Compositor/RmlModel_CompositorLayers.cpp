@@ -1,9 +1,11 @@
 #include "RmlModel_CompositorLayers.h"
 #include "GlFrameCompositor.h"
+#include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/Event.h>
 
 bool RmlModel_CompositorLayers::s_bHasRegisteredTypes= false;
 
@@ -24,7 +26,7 @@ bool RmlModel_CompositorLayers::init(
 		{
 			layer_model_handle.RegisterMember("client_id", &RmlModel_CompositorLayer::client_id);
 			layer_model_handle.RegisterMember("app_name", &RmlModel_CompositorLayer::app_name);
-			layer_model_handle.RegisterMember("alpha_mode_index", &RmlModel_CompositorLayer::alpha_mode_index);
+			layer_model_handle.RegisterMember("alpha_mode", &RmlModel_CompositorLayer::alpha_mode);
 		}
 
 		// One time registration for an array of compositor layer.
@@ -35,7 +37,7 @@ bool RmlModel_CompositorLayers::init(
 
 	// Register Data Model Fields
 	constructor.Bind("alpha_modes", &m_alphaModes);
-	constructor.Bind("compositor_layers", &m_compositorLayers);	
+	constructor.Bind("layers", &m_compositorLayers);	
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
@@ -46,12 +48,13 @@ bool RmlModel_CompositorLayers::init(
 		});
 	constructor.BindEventCallback(
 		"set_layer_alpha_mode",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const int listIndex = (arguments.size() >= 1 ? arguments[0].Get<int>(-1) : -1);
-			const eCompositorLayerAlphaMode alphaMode = 
-				(arguments.size() >= 2) 
-				 ? eCompositorLayerAlphaMode(arguments[1].Get<int>(-1)) 
-				 : eCompositorLayerAlphaMode::INVALID;
+			const std::string alphaModeString = ev.GetParameter<Rml::String>("value", "");
+			const eCompositorLayerAlphaMode alphaMode= 
+				StringUtils::FindEnumValue<eCompositorLayerAlphaMode>(
+					alphaModeString, k_compositorLayerAlphaStrings);
+
 			if (OnLayerAlphaModeChangedEvent && listIndex >= 0 && alphaMode != eCompositorLayerAlphaMode::INVALID) 
 			{
 				OnLayerAlphaModeChangedEvent(listIndex, alphaMode);
@@ -85,7 +88,7 @@ void RmlModel_CompositorLayers::rebuildLayers(
 		{
 			layer.clientId,
 			layer.clientInfo.applicationName,
-			(int)layer.alphaMode
+			k_compositorLayerAlphaStrings[(int)layer.alphaMode]
 		};
 		m_compositorLayers.push_back(uiLayer);
 	}
