@@ -166,11 +166,12 @@ void AppStage_Compositor::enter()
 		m_compositiorRecordingView->Hide();
 
 		// Init Scripting UI
-		m_compositorScriptingModel->init(context, m_profile);
+		m_compositorScriptingModel->init(context, m_profile, m_scriptContext);
 		m_compositorScriptingModel->OnSelectCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onSelectCompositorScriptFileEvent);
 		m_compositorScriptingModel->OnReloadCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onReloadCompositorScriptFileEvent);
 		m_compositorScriptingModel->OnInvokeScriptTriggerEvent = MakeDelegate(this, &AppStage_Compositor::onInvokeScriptTriggerEvent);
-		//m_compositiorScriptingView = addRmlDocument("rml\\compositor_scripting.rml");
+		m_compositiorScriptingView = addRmlDocument("rml\\compositor_scripting.rml");
+		m_compositiorScriptingView->Hide();
 	}
 }
 
@@ -487,14 +488,26 @@ void AppStage_Compositor::onToggleRecordingEvent()
 // Scripting UI Events
 void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
+	//m_scriptFileDialog->Open();
 }
 
 void AppStage_Compositor::onReloadCompositorScriptFileEvent()
 {
+	if (m_scriptContext->hasScriptFilename())
+	{
+		if (m_scriptContext->reloadScript())
+		{
+			m_compositorScriptingModel->rebuildScriptTriggers(m_scriptContext);
+		}
+	}
 }
 
 void AppStage_Compositor::onInvokeScriptTriggerEvent(const std::string& triggerEvent)
 {
+	if (m_scriptContext->hasLoadedScript())
+	{
+		m_scriptContext->invokeScriptTrigger(triggerEvent);
+	}
 }
 
 void AppStage_Compositor::render()

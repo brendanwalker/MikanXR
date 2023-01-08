@@ -1,0 +1,34 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Scripting</title>
+        <style>
+            body
+            {
+                left: 10dp;
+                top: 20dp;
+                width: 300dp;
+                height: 400dp;
+                margin: auto;
+            } 
+        </style>
+	</head>
+	<body template="window">
+        <panel id="controls" data-model="compositor_scripting">
+            <span>
+                <label>{{compositor_script_path}}</label>
+                <button style="width: 40dp" data-event-click="select_compositor_script_file()">...</button>
+            </span>
+            <br/>
+            <div>
+                <button data-event-click="reload_compositor_script_file()">Reload Script</button>
+            </div>
+            <br/>
+            <div data-for="script_trigger : script_triggers">
+                <button data-event-click="invoke_script_trigger(script_trigger)">{{script_trigger}}</button>
+            </div>
+        </panel>
+    </body>
+</rml>

@@ -1,4 +1,5 @@
 #include "RmlModel_CompositorScripting.h"
+#include "CompositorScriptContext.h"
 #include "ProfileConfig.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -8,7 +9,8 @@
 
 bool RmlModel_CompositorScripting::init(
 	Rml::Context* rmlContext,
-	const ProfileConfig* profile)
+	const ProfileConfig* profile,
+	CompositorScriptContext* scriptContext)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_scripting");
@@ -34,14 +36,15 @@ bool RmlModel_CompositorScripting::init(
 	constructor.BindEventCallback(
 		"invoke_script_trigger",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int listIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnInvokeScriptTriggerEvent && listIndex >= 0 && listIndex < (int)m_scriptTriggers.size()){
-				OnInvokeScriptTriggerEvent(m_scriptTriggers[listIndex]);
+		const Rml::String scriptTrigger = (arguments.size() == 1 ? arguments[0].Get<Rml::String>("") : "");
+			if (OnInvokeScriptTriggerEvent && !scriptTrigger.empty()){
+				OnInvokeScriptTriggerEvent(scriptTrigger);
 			}
 		});	
 
 	// Set defaults
 	setCompositorScriptPath(profile->compositorScript);
+	rebuildScriptTriggers(scriptContext);
 
 	return true;
 }
@@ -64,7 +67,7 @@ void RmlModel_CompositorScripting::setCompositorScriptPath(const Rml::String& ne
 	if (newScriptPath != m_compositorScriptPath)
 	{
 		m_compositorScriptPath= newScriptPath;
-		m_modelHandle.DirtyVariable("");
+		m_modelHandle.DirtyVariable("compositor_script_path");
 		
 		bool bNewValidPath = m_compositorScriptPath.size() > 0;
 		if (bNewValidPath != m_bHasValidCompositorScriptPath)
@@ -75,13 +78,13 @@ void RmlModel_CompositorScripting::setCompositorScriptPath(const Rml::String& ne
 	}
 }
 
-const Rml::Vector<Rml::String>& RmlModel_CompositorScripting::getScriptTriggers() const
+void RmlModel_CompositorScripting::rebuildScriptTriggers(CompositorScriptContext* scriptContext)
 {
-	return m_scriptTriggers;
-}
-
-void RmlModel_CompositorScripting::setScriptTriggers(const Rml::Vector<Rml::String>& newTriggers)
-{
-	m_scriptTriggers= newTriggers;
+	const std::vector<std::string>& sourceTriggers= scriptContext->getScriptTriggers();
+	m_scriptTriggers.clear();
+	for (const std::string& scriptTrigger : sourceTriggers)
+	{
+		m_scriptTriggers.push_back(scriptTrigger);
+	}
 	m_modelHandle.DirtyVariable("script_triggers");
 }

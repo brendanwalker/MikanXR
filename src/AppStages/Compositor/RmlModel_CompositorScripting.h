@@ -6,14 +6,16 @@
 class RmlModel_CompositorScripting : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext, const class ProfileConfig* profile);
+	bool init(
+		Rml::Context* rmlContext, 
+		const class ProfileConfig* profile,
+		class CompositorScriptContext* scriptContext);
 	virtual void dispose() override;
 
 	const Rml::String& getCompositorScriptPath() const;
 	void setCompositorScriptPath(const Rml::String& newScriptPath);
 
-	const Rml::Vector<Rml::String>& getScriptTriggers() const;
-	void setScriptTriggers(const Rml::Vector<Rml::String>& newTriggers);
+	void rebuildScriptTriggers(class CompositorScriptContext* scriptContext);
 
 	SinglecastDelegate<void()> OnSelectCompositorScriptFileEvent;
 	SinglecastDelegate<void()> OnReloadCompositorScriptFileEvent;
