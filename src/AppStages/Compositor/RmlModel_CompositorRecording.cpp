@@ -1,5 +1,6 @@
 #include "RmlModel_CompositorRecording.h"
 #include "GlFrameCompositor.h"
+#include "StringUtils.h"
 #include "VideoSourceView.h"
 #include "VideoCapabilitiesConfig.h"
 
@@ -25,10 +26,31 @@ bool RmlModel_CompositorRecording::init(
 	constructor.Bind("is_recording", &m_bIsRecording);
 
 	// Bind data model callbacks
+	constructor.BindEventCallback(
+		"toggle_recording",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			if (OnToggleRecordingEvent) OnToggleRecordingEvent();
+		});
+	constructor.BindEventCallback(
+		"changed_codec",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const std::string codecString = ev.GetParameter<Rml::String>("value", "");
+			const eSupportedCodec codec = 
+				StringUtils::FindEnumValue<eSupportedCodec>(
+					codecString, k_supportedCodecName);
+
+			if (OnVideoCodecChangedEvent && codec != eSupportedCodec::INVALID)
+			{
+				OnVideoCodecChangedEvent(codec);
+			}
+		});
 
 	// Set defaults
-	m_videoCodecs= {"MP4V", "MJPG", "RGBA"};
-	m_selectedCodec= int(eSupportedCodec::SUPPORTED_CODEC_MP4V);
+	for (int modeIndex = 0; modeIndex < (int)eSupportedCodec::COUNT; ++modeIndex)
+	{
+		m_videoCodecs.push_back(k_supportedCodecName[modeIndex]);
+	}
+	m_selectedCodec= k_supportedCodecName[int(eSupportedCodec::MP4V)];
 	m_bIsRecording= false;
 
 	VideoSourceViewPtr videoSource= compositor->getVideoSource();
@@ -53,14 +75,6 @@ void RmlModel_CompositorRecording::dispose()
 	OnToggleRecordingEvent.Clear();
 	OnVideoCodecChangedEvent.Clear();
 	RmlModel::dispose();
-}
-
-void RmlModel_CompositorRecording::update()
-{
-	if (m_modelHandle.IsVariableDirty("selected_codec"))
-	{
-		if (OnVideoCodecChangedEvent) OnVideoCodecChangedEvent(eSupportedCodec(m_selectedCodec));
-	}
 }
 
 const Rml::String& RmlModel_CompositorRecording::getVideoSourceName() const
@@ -100,15 +114,15 @@ void RmlModel_CompositorRecording::setVideoModeName(const Rml::String& newName)
 
 eSupportedCodec RmlModel_CompositorRecording::getSelectedVideoCodec() const
 {
-	return eSupportedCodec(m_selectedCodec);
+	return StringUtils::FindEnumValue<eSupportedCodec>(m_selectedCodec, k_supportedCodecName);
 }
 
 void RmlModel_CompositorRecording::setSelectedVideoCodec(eSupportedCodec newCodec)
 {
-	int newCodecIndex= int(newCodec);
-	if (newCodecIndex != m_selectedCodec)
+	Rml::String newCodecString= k_supportedCodecName[int(newCodec)];
+	if (newCodecString != m_selectedCodec)
 	{
-		m_selectedCodec = newCodecIndex;
+		m_selectedCodec = newCodecString;
 		m_modelHandle.DirtyVariable("selected_codec");
 	}
 }

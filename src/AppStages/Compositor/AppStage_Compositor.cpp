@@ -40,22 +40,6 @@
 
 #include "opencv2/opencv.hpp"
 
-std::string g_supportedCodecName[SUPPORTED_CODEC_COUNT] = {
-	"MP4V",
-	"MJPG",
-	"RGBA",
-};
-std::string g_supportedCodecFileSuffix[SUPPORTED_CODEC_COUNT] = {
-	".m4v",
-	".avi",
-	".avi",
-};
-int g_supportedCodecFourCC[SUPPORTED_CODEC_COUNT] = {	
-	cv::VideoWriter::fourcc('m','p','4','v'),
-	cv::VideoWriter::fourcc('M','J','P','G'),
-	cv::VideoWriter::fourcc('R','G','B','A'),
-};
-
 //-- statics ----
 const char* AppStage_Compositor::APP_STAGE_NAME = "Compositor";
 
@@ -178,8 +162,8 @@ void AppStage_Compositor::enter()
 		// Init Recording UI
 		m_compositorRecordingModel->init(context, m_frameCompositor);
 		m_compositorRecordingModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingEvent);
-		m_compositorRecordingModel->OnVideoCodecChangedEvent = MakeDelegate(this, &AppStage_Compositor::onVideoCodecChangedEvent);
-		//m_compositiorRecordingView = addRmlDocument("rml\\compositor_recording.rml");
+		m_compositiorRecordingView = addRmlDocument("rml\\compositor_recording.rml");
+		m_compositiorRecordingView->Hide();
 
 		// Init Scripting UI
 		m_compositorScriptingModel->init(context, m_profile);
@@ -250,8 +234,9 @@ bool AppStage_Compositor::startRecording()
 	if (matType == 0)
 		return false;
 	
-	const std::string suffix= g_supportedCodecFileSuffix[m_videoCodecIndex];
-	const int fourcc = g_supportedCodecFourCC[m_videoCodecIndex];
+	const eSupportedCodec selectedCodex= m_compositorRecordingModel->getSelectedVideoCodec();
+	const std::string suffix= k_supportedCodecFileSuffix[(int)selectedCodex];
+	const int fourcc = k_supportedCodecFourCC[(int)selectedCodex];
 	const std::string outputFile = m_profile->generateTimestampedFilePath("video", suffix);
 	const int width = compositorTexture->getTextureWidth();
 	const int height = compositorTexture->getTextureHeight();
@@ -266,31 +251,29 @@ bool AppStage_Compositor::startRecording()
 
 	// Listen for new frames to write out
 	m_frameCompositor->OnNewFrameComposited+= MakeDelegate(this, &AppStage_Compositor::onNewFrameComposited);
-	m_bIsRecording= true;
+	m_compositorRecordingModel->setIsRecording(true);
 
 	return true;
 }
 
 void AppStage_Compositor::stopRecording()
 {
-
 	// Stop listening for new frames to write out
-	if (m_bIsRecording)
+	if (m_compositorRecordingModel->getIsRecording())
 	{
 		m_frameCompositor->setGenerateBGRVideoTexture(false);
 		m_frameCompositor->OnNewFrameComposited -= MakeDelegate(this, &AppStage_Compositor::onNewFrameComposited);
 	}
 
 	m_videoWriter->close();
-
-	m_bIsRecording= false;
+	m_compositorRecordingModel->setIsRecording(false);
 }
 
 void AppStage_Compositor::onNewFrameComposited()
 {
 	EASY_FUNCTION();
 
-	if (m_bIsRecording)
+	if (m_compositorRecordingModel->getIsRecording())
 	{		
 		GlTexture* bgrTexture = m_frameCompositor->getBGRVideoFrameTexture();
 
@@ -495,10 +478,10 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 // Recording UI Events
 void AppStage_Compositor::onToggleRecordingEvent()
 {
-}
-
-void AppStage_Compositor::onVideoCodecChangedEvent(eSupportedCodec codec)
-{
+	if (m_compositorRecordingModel->getIsRecording())
+		stopRecording();
+	else
+		startRecording();
 }
 
 // Scripting UI Events

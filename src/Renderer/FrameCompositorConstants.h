@@ -2,14 +2,19 @@
 
 #include <string>
 
-enum eSupportedCodec
+enum class eSupportedCodec : int
 {
-	SUPPORTED_CODEC_MP4V,
-	SUPPORTED_CODEC_MJPG,
-	SUPPORTED_CODEC_SELECT,
+	INVALID = -1,
 
-	SUPPORTED_CODEC_COUNT
+	MP4V,
+	MJPG,
+	RGBA,
+
+	COUNT
 };
+extern const std::string* k_supportedCodecName;
+extern const std::string* k_supportedCodecFileSuffix;
+extern const int* k_supportedCodecFourCC;
 
 enum class eCompositorLayerAlphaMode : int
 {

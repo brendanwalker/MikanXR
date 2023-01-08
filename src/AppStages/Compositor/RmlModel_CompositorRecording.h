@@ -9,7 +9,6 @@ class RmlModel_CompositorRecording : public RmlModel
 public:
 	bool init(Rml::Context* rmlContext, const class GlFrameCompositor* compositor);
 	virtual void dispose() override;
-	virtual void update() override;
 
 	const Rml::String& getVideoSourceName() const;
 	void setVideoSourceName(const Rml::String& newName);
@@ -32,6 +31,6 @@ private:
 	bool m_bHasValidVideoSource= false;
 	Rml::String m_videoModeName;
 	Rml::Vector<Rml::String> m_videoCodecs;
-	int m_selectedCodec= 0;
+	Rml::String m_selectedCodec;
 	bool m_bIsRecording= false;
 };

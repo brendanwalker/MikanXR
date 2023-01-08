@@ -66,7 +66,6 @@ protected:
 
 	// Recording UI Events
 	void onToggleRecordingEvent();
-	void onVideoCodecChangedEvent(eSupportedCodec codec);
 
 	// Scripting UI Events
 	void onSelectCompositorScriptFileEvent();
@@ -109,8 +108,6 @@ protected:
 	bool m_bDebugRenderAnchors = true;
 
 	class VideoWriter* m_videoWriter= nullptr;
-	int m_videoCodecIndex= 0;
-	bool m_bIsRecording= false;
 
 	//ImGui::FileBrowser* m_modelFileDialog = nullptr;
 	//int m_pendingModelFilenameStencilID= -1;
