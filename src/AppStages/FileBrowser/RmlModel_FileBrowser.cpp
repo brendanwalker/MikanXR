@@ -74,6 +74,8 @@ bool RmlModel_FileBrowser::init(Rml::Context* rmlContext)
 
 	setCurrentFilePath("");
 	setDirectoryPath(m_initialDirectory);
+
+	return true;
 }
 
 void RmlModel_FileBrowser::dispose()
