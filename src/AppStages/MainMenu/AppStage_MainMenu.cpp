@@ -9,8 +9,6 @@
 #include "Renderer.h"
 #include "Logger.h"
 
-#include "imgui.h"
-
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>

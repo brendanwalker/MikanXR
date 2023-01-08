@@ -7,10 +7,6 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-#include "imgui.h"
-#include "backends/imgui_impl_sdl.h"
-#include "backends/imgui_impl_opengl3.h"
-
 #if defined(_WIN32)
 	#include <SDL.h>
 	#include <SDL_events.h>
@@ -213,66 +209,6 @@ bool Renderer::startup()
 		cursor_unavailable = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
 	}
 
-	// Setup ImGui key-bindings context
-	if (success)
-	{
-		// Setup ImGui context
-		IMGUI_CHECKVERSION();
-		m_imguiContext= ImGui::CreateContext();
-		if (m_imguiContext != NULL)
-		{
-			ImGuiIO& io = ImGui::GetIO();
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-			io.Fonts->AddFontFromFileTTF(getDefaultJapaneseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesJapanese());
-			//TODO: Find these fonts
-			//io.Fonts->AddFontFromFileTTF(getDefaultKoreanFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesKorean();
-			//io.Fonts->AddFontFromFileTTF(getDefaultChineseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesChineseFull();
-			//io.Fonts->AddFontFromFileTTF(getDefaultCyrillicFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic();
-			//io.Fonts->AddFontFromFileTTF(getDefaultThaiFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesThai();
-			//io.Fonts->AddFontFromFileTTF(getDefaultVietnameseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesVietnamese();
-
-			// Setup Dear ImGui style
-			ImGui::StyleColorsDark();
-			//ImGui::StyleColorsClassic();
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("Renderer::init") << "Unable to create imgui context";
-			success = false;
-		}
-	}
-
-	// Setup ImGui SDL backend
-	if (success)
-	{
-		// Setup Platform/Renderer backends
-		if (ImGui_ImplSDL2_InitForOpenGL(m_sdlWindow, m_glContext))
-		{
-			m_imguiSDLBackendInitialised= true;
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize imgui SDL backend";
-			success = false;
-		}
-	}
-
-	// Setup ImGui OpenGL backend
-	if (success)
-	{
-		if (ImGui_ImplOpenGL3_Init(glsl_version))
-		{
-			m_imguiOpenGLBackendInitialised = true;
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize imgui openGL backend";
-			success = false;
-		}
-	}
-
 	// Setup OpenCL
 	if (success)
 	{
@@ -413,24 +349,6 @@ void Renderer::shutdown()
 		m_lineRenderer = nullptr;
 	}
 
-	if (m_imguiOpenGLBackendInitialised)
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		m_imguiOpenGLBackendInitialised= false;
-	}
-
-	if (m_imguiSDLBackendInitialised)
-	{
-		ImGui_ImplSDL2_Shutdown();
-		m_imguiSDLBackendInitialised= false;
-	}
-
-	if (m_imguiContext != NULL)
-	{
-		ImGui::DestroyContext(m_imguiContext);
-		m_imguiContext= NULL;
-	}
-
 	// Free cursors
 	if (cursor_default != nullptr)
 	{
@@ -539,9 +457,7 @@ bool Renderer::onSDLEvent(const SDL_Event* event)
 		}
 	}
 
-	m_rmlUiRenderer->onSDLEvent(event);
-
-	return ImGui_ImplSDL2_ProcessEvent(event);
+	return m_rmlUiRenderer->onSDLEvent(event);
 }
 
 void Renderer::renderStageBegin()
@@ -582,10 +498,6 @@ void Renderer::renderUIBegin()
 {
 	EASY_FUNCTION();
 
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame();
-	ImGui::NewFrame();
-
 	m_rmlUiRenderer->beginFrame();
 
 	m_isRenderingUI = true;
@@ -593,11 +505,7 @@ void Renderer::renderUIBegin()
 
 void Renderer::renderUIEnd()
 {
-	EASY_FUNCTION();
-
-	ImGui::Render();
-	glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	EASY_FUNCTION();	
 
 	m_rmlUiRenderer->endFrame();
 

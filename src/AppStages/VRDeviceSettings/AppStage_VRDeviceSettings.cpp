@@ -12,7 +12,6 @@
 #include "VRDeviceManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-//#include <imgui.h>
 
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>

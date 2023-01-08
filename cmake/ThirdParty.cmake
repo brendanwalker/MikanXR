@@ -45,19 +45,6 @@ else()
   find_package(GLEW REQUIRED)
 endif()
 
-# ImGUI
-set(IMGUI_DIR ${ROOT_DIR}/thirdparty/imgui)
-set(IMGUI_SOURCE "")
-list(APPEND IMGUI_SOURCE
-     ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp
-     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-     ${IMGUI_DIR}/imgui.cpp
-     ${IMGUI_DIR}/imgui_draw.cpp
-     ${IMGUI_DIR}/imgui_tables.cpp
-     ${IMGUI_DIR}/imgui_widgets.cpp
-     ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
-)
-
 # RMLUI
 if (WIN32) 
   set (RMLUI_INCLUDE_DIR ${ROOT_DIR}/deps/RML/RmlUi-4.4/Include)
@@ -92,7 +79,7 @@ set (BOOST_INTERPROCESS_INCLUDE_DIRS ${ROOT_DIR}/deps/boost_1_78_0)
 # stb
 set (STB_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/stb)
 
-# stb
+# obj loader
 set (OBJ_LOADER_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/OBJ-loader/Source)
 
 # ffmpeg

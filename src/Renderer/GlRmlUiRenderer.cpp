@@ -466,6 +466,7 @@ void GlRmlUiRender::beginFrame()
 
 void GlRmlUiRender::endFrame() 
 {
+	glViewport(0, 0, (int)viewport_width, (int)viewport_height);
 	glEnable(GL_DEPTH_TEST);
 }
 
