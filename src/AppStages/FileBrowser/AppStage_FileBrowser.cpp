@@ -1,6 +1,7 @@
 //-- inludes -----
 #include "App.h"
 #include "FileBrowser/AppStage_FileBrowser.h"
+#include "FileBrowser/RmlModel_FileBrowser.h"
 #include "PathUtils.h"
 #include "Renderer.h"
 #include "Logger.h"
@@ -13,139 +14,73 @@
 //-- statics ----
 const char* AppStage_FileBrowser::APP_STAGE_NAME = "FileBrowser";
 
-struct FileBrowserEntry
-{
-	FileBrowserEntry(bool directory, int depth, Rml::String name)
-		: visible(depth == 0), directory(directory), collapsed(true), depth(depth), name(std::move(name))
-	{}
-
-	bool visible;
-	bool directory;
-	bool collapsed;
-	int depth;
-	std::string name;
-};
-
-struct FileBrowserData
-{
-	std::string initialDirectory;
-	std::string currentFilePath;
-	std::vector<FileBrowserEntry> files;
-
-	void BuildTree(const std::string& current_directory, int current_depth)
-	{
-		const Rml::StringList directories = PathUtils::listDirectories(current_directory);
-
-		for (const Rml::String& directory : directories)
-		{
-			files.push_back(FileBrowserEntry(true, current_depth, directory));
-
-			// Recurse into the child directory
-			const std::string next_directory = current_directory + directory + '/';
-			BuildTree(next_directory, current_depth + 1);
-		}
-
-		const Rml::StringList filenames = PathUtils::listFiles(current_directory);
-		for (const std::string& filename : filenames)
-		{
-			files.push_back(FileBrowserEntry(false, current_depth, filename));
-		}
-	}
-
-	void ToggleExpand(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters)
-	{
-		if (parameters.empty())
-			return;
-
-		// The index of the file/directory being toggled is passed in as the first parameter.
-		const size_t toggle_index = (size_t)parameters[0].Get<int>();
-		if (toggle_index >= files.size())
-			return;
-
-		FileBrowserEntry& toggle_file = files[toggle_index];
-
-		const bool collapsing = !toggle_file.collapsed;
-		const int depth = toggle_file.depth;
-
-		toggle_file.collapsed = collapsing;
-
-		// Loop through all descendent entries.
-		for (size_t i = toggle_index + 1; i < files.size() && files[i].depth > depth; i++)
-		{
-			// Hide all items if we are collapsing. If instead we are expanding, make all direct children visible.
-			files[i].visible = !collapsing && (files[i].depth == depth + 1);
-			files[i].collapsed = true;
-		}
-
-		handle.DirtyVariable("files");
-	}
-};
-
 //-- public methods -----
 AppStage_FileBrowser::AppStage_FileBrowser(App* app)
 	: AppStage(app, AppStage_FileBrowser::APP_STAGE_NAME)
-	, m_data(new FileBrowserData)
+	, m_filebrowserModel(new RmlModel_FileBrowser)
 {}
 
 AppStage_FileBrowser::~AppStage_FileBrowser()
 {
-	delete m_data;
+	delete m_filebrowserModel;
 }
 
-void AppStage_FileBrowser::setInitialDirectory(const std::string& initial_directory)
+bool AppStage_FileBrowser::browseFile(
+	const std::string& title,
+	const std::string& initialDirectory,
+	const std::vector<std::string>& typeFilters,
+	AcceptFilePathCallback acceptCallback,
+	RejectFilePathCallback rejectCallback)
 {
-	m_data->initialDirectory= initial_directory;
+	App* app= App::getInstance();
+
+	if (app->getCurrentAppStage()->getAppStageName() == AppStage_FileBrowser::APP_STAGE_NAME)
+		return false;
+
+	AppStage_FileBrowser* fileBrowser= app->pushAppStage<AppStage_FileBrowser>();
+	fileBrowser->m_filebrowserModel->setTitle(title);
+	fileBrowser->m_filebrowserModel->setInitialDirectory(initialDirectory);
+	fileBrowser->m_filebrowserModel->setTypeFilter(typeFilters);
+	fileBrowser->m_acceptCallback= acceptCallback;
+	fileBrowser->m_rejectCallback= rejectCallback;
+
+	return true;
 }
 
 void AppStage_FileBrowser::enter()
 {
 	AppStage::enter();
 
-	m_data->BuildTree(m_data->initialDirectory, 0);
+	Rml::Context* context = getRmlContext();
 
-	Rml::DataModelConstructor constructor = getRmlContext()->CreateDataModel("filebrowser");
-	if (!constructor)
-		return;
-
-	if (auto file_handle = constructor.RegisterStruct<FileBrowserEntry>())
-	{
-		file_handle.RegisterMember("visible", &FileBrowserEntry::visible);
-		file_handle.RegisterMember("directory", &FileBrowserEntry::directory);
-		file_handle.RegisterMember("collapsed", &FileBrowserEntry::collapsed);
-		file_handle.RegisterMember("depth", &FileBrowserEntry::depth);
-		file_handle.RegisterMember("name", &FileBrowserEntry::name);
-	}
-
-	constructor.RegisterArray<decltype(m_data->files)>();
-	constructor.Bind("files", &m_data->files);
-	constructor.BindEventCallback("toggle_expand", &FileBrowserData::ToggleExpand, m_data);
-
-	addRmlDocument("rml\\file_browser.rml");
+	m_filebrowserModel->init(context);
+	m_filebrowserModel->OnAcceptFilePath = MakeDelegate(this, &AppStage_FileBrowser::onAcceptFilePath);
+	m_filebrowserModel->OnRejectFilePath = MakeDelegate(this, &AppStage_FileBrowser::onRejectFilePath);
+	m_filebrowserView = addRmlDocument("rml\\file_browser.rml");
 }
 
 void AppStage_FileBrowser::exit()
 {
-	getRmlContext()->RemoveDataModel("filebrowser");
-
+	m_filebrowserModel->dispose();
 	AppStage::exit();
 }
 
-void AppStage_FileBrowser::onRmlClickEvent(const std::string& value)
+void AppStage_FileBrowser::onAcceptFilePath(const Rml::String& filepath)
 {
-	if (value == "accept_filepath")
+	if (m_acceptCallback)
 	{
-		if (OnAcceptFilePath)
-		{
-			OnAcceptFilePath(m_data->currentFilePath);
-		}
-		m_app->popAppState();
+		m_acceptCallback(filepath);
 	}
-	else if (value == "reject_filepath")
+
+	m_app->popAppState();
+}
+
+void AppStage_FileBrowser::onRejectFilePath()
+{
+	if (m_rejectCallback)
 	{
-		if (OnRejectFilePath)
-		{
-			OnRejectFilePath();
-		}
-		m_app->popAppState();
+		m_rejectCallback();
 	}
+
+	m_app->popAppState();
 }

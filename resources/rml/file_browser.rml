@@ -38,21 +38,31 @@
 		</style>
 	</head>
 	<body template="window">
-		<table data-model="filebrowser">
-			<thead>
-				<tr><td style="margin-left: 10dp; margin-right: 10dp;"></td></tr>
-			</thead>
-			<tbody>
-				<tr data-for="file : files" data-if="file.visible">
-					<td>
-						<spacer data-style-width="25 * (1 - file.directory + file.depth) + 'dp'"/>
-						<expand data-if="file.directory" data-class-collapsed="file.collapsed" data-event-click="toggle_expand(it_index)"/>
-						{{ file.name }}
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<button onclick="accept_filepath">ok</button>
-		<button onclick="reject_filepath">canel</button>
+		<panel id="controls" data-model="filebrowser">	
+			<h2>{{title}}</h2>
+			<br/>
+			<span>
+				<button style="width: 40dp" data-event-click="exit_directory()">^</button>
+				<label style="text-align: right">{{current_dirpath}}</label>			
+			</span>
+			<br/>
+			<table>
+				<thead>
+					<tr><td style="margin-left: 10dp; margin-right: 10dp;"></td></tr>
+				</thead>
+				<tbody>
+					<tr data-for="file : files">
+						<td>
+							<label data-if="file.directory" data-event-click="select_file_entry(it_index)">📁{{ file.name }}</label>
+							<label data-if="!file.directory" data-event-click="select_file_entry(it_index)">{{ file.name }}</label>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<label style="text-align: right">{{current_filepath}}</label>			
+			<br/>
+			<button data-event-click="accept_filepath()">open</button>
+			<button data-event-click="reject_filepath()">cancel</button>
+		</panel>
 	</body>
 </rml>

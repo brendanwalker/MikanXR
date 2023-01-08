@@ -8,6 +8,7 @@
 #include "Compositor/RmlModel_CompositorModels.h"
 #include "Compositor/RmlModel_CompositorRecording.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
+#include "FileBrowser/AppStage_FileBrowser.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "GlCommon.h"
@@ -23,6 +24,7 @@
 #include "MikanServer.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
+#include "PathUtils.h"
 #include "RmlUtility.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
@@ -55,8 +57,6 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_scriptContext(new CompositorScriptContext)
 	, m_videoWriter(new VideoWriter)
-	//, m_modelFileDialog(new ImGui::FileBrowser)
-	//, m_scriptFileDialog(new ImGui::FileBrowser)
 {
 }
 
@@ -71,8 +71,6 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorScriptingModel;
 	delete m_scriptContext;
 	delete m_videoWriter;
-	//delete m_modelFileDialog;
-	//delete m_scriptFileDialog;
 }
 
 void AppStage_Compositor::enter()
@@ -83,12 +81,6 @@ void AppStage_Compositor::enter()
 
 	m_frameCompositor= GlFrameCompositor::getInstance();
 	m_frameCompositor->start();
-
-	//m_modelFileDialog->SetTitle("Select Stencil Model");
-	//m_modelFileDialog->SetTypeFilters({".obj"});
-
-	//m_scriptFileDialog->SetTitle("Select Scene Script");
-	//m_scriptFileDialog->SetTypeFilters({ ".lua" });
 
 	// Apply video source camera intrinsics to the camera
 	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
@@ -458,22 +450,17 @@ void AppStage_Compositor::onModifyModelStencilEvent(int stencilID)
 
 void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 {
-
-	//if (m_modelFileDialog->HasSelected())
-	//{
-	//	if (m_pendingModelFilenameStencilID != -1)
-	//	{
-	//		const std::string filename = m_modelFileDialog->GetSelected().string();
-
-	//		if (profile->updateModelStencilFilename(m_pendingModelFilenameStencilID, filename))
-	//		{
-	//			m_frameCompositor->flushStencilRenderModel(m_pendingModelFilenameStencilID);
-	//		}
-	//		m_pendingModelFilenameStencilID = -1;
-	//	}
-
-	//	m_modelFileDialog->Close();
-	//}
+	AppStage_FileBrowser::browseFile(
+		"Select Stencil Model", 
+		PathUtils::getCurrentDirectory(), 
+		{"obj"}, 
+		[this, stencilID](const std::string& filepath) {
+			if (m_profile->updateModelStencilFilename(stencilID, filepath))
+			{
+				m_frameCompositor->flushStencilRenderModel(stencilID);
+				m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
+			}
+		});
 }
 
 // Recording UI Events
@@ -488,7 +475,20 @@ void AppStage_Compositor::onToggleRecordingEvent()
 // Scripting UI Events
 void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
-	//m_scriptFileDialog->Open();
+	AppStage_FileBrowser::browseFile(
+		"Select Scene Script",
+		PathUtils::getCurrentDirectory(),
+		{"lua"},
+		[this](const std::string& filepath) {
+
+			if (m_scriptContext->loadScript(filepath))
+			{
+				m_profile->compositorScript = filepath;
+				m_profile->save();
+
+				m_compositorScriptingModel->setCompositorScriptPath(filepath);
+			}
+		});
 }
 
 void AppStage_Compositor::onReloadCompositorScriptFileEvent()
