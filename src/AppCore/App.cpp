@@ -13,135 +13,22 @@
 #include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
+#include "RmlManager.h"
 #include "Logger.h"
 #include "VideoSourceManager.h"
 #include "VRDeviceManager.h"
 
 #include "SDL_timer.h"
-#include "SDL_clipboard.h"
 
 #include <easy/profiler.h>
-
-#include <RmlUi/Core.h>
-#include <RmlUi/Debugger.h>
-#include <RmlUi/Core/FileInterface.h>
-#include <RmlUi/Core/EventListener.h>
-#include <RmlUi/Core/EventListenerInstancer.h>
-// Mikan extensions for RmlUI
-#include "RmlMikanPlugin.h"
-
 
 #ifdef _WIN32
 #include "Objbase.h"
 #endif //_WIN32
 
-//-- private classes -----
-class AppStageEventListener : public Rml::EventListener
-{
-public:
-	AppStageEventListener(
-		App* app,
-		const Rml::String& value,
-		Rml::Element* element)
-		: m_app(app)
-		, m_value(value)
-		, m_element(element)
-	{
-
-	}
-
-	virtual void ProcessEvent(Rml::Event& event) override
-	{
-		AppStage* appStage= m_app->getCurrentAppStage();
-		if (appStage == nullptr)
-			return;
-
-		switch (event.GetId())
-		{
-			case Rml::EventId::Click:
-				appStage->onRmlClickEvent(m_value);
-				break;
-			default:
-				break;
-		}
-	}
-
-private:
-	App* m_app = nullptr;
-	Rml::String m_value;
-	Rml::Element* m_element;
-};
-
-class AppRmlEventInstancer : public Rml::EventListenerInstancer
-{
-public:
-	AppRmlEventInstancer(App* app)
-		: m_app(app)
-	{
-
-	}
-	Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override
-	{
-		return new AppStageEventListener(m_app, value, element);
-	}
-
-private:
-	App* m_app = nullptr;
-};
-
-
 //-- static members -----
 App* App::m_instance= nullptr;
 
-class MikanFileInterface : public Rml::FileInterface
-{
-public:
-	MikanFileInterface() {}
-	virtual ~MikanFileInterface() {}
-
-	/// Opens a file.		
-	Rml::FileHandle Open(const Rml::String& path) override
-	{
-		if (PathUtils::isAbsolutePath(path))
-		{
-			// Attempt to open the absolute file relative 
-			FILE* fp = fopen(path.c_str(), "rb");
-			return (Rml::FileHandle)fp;
-		}
-		else
-		{
-			std::string absPath = PathUtils::makeAbsoluteResourceFilePath(path);
-
-			// Attempt to open the file relative to the application's root.
-			FILE* fp = fopen(absPath.c_str(), "rb");
-			return (Rml::FileHandle)fp;
-		}
-	}
-
-	/// Closes a previously opened file.		
-	void Close(Rml::FileHandle file) override
-	{
-		fclose((FILE*)file);
-	}
-
-	/// Reads data from a previously opened file.		
-	size_t Read(void* buffer, size_t size, Rml::FileHandle file) override
-	{
-		return fread(buffer, 1, size, (FILE*)file);
-	}
-
-	/// Seeks to a point in a previously opened file.		
-	bool Seek(Rml::FileHandle file, long offset, int origin) override
-	{
-		return fseek((FILE*)file, offset, origin) == 0;
-	}
-
-	/// Returns the current position of the file pointer.		
-	size_t Tell(Rml::FileHandle file) override
-	{
-		return ftell((FILE*)file);
-	}
-};
 
 
 //-- public methods -----
@@ -150,7 +37,7 @@ App::App()
 	, m_mikanServer(new MikanServer())
 	, m_frameCompositor(new GlFrameCompositor())
 	, m_inputManager(new InputManager())
-	, m_rmlEventInstancer(new AppRmlEventInstancer(this))
+	, m_rmlManager(new RmlManager(this))
 	, m_localizationManager(new LocalizationManager())
 	, m_renderer(new Renderer())
 	, m_fontManager(new FontManager())
@@ -168,7 +55,7 @@ App::~App()
 	delete m_renderer;	
 	delete m_localizationManager;
 	delete m_inputManager;
-	delete m_rmlEventInstancer;
+	delete m_rmlManager;
 	delete m_mikanServer;
 	delete m_frameCompositor;
 	delete m_profileConfig;
@@ -244,14 +131,14 @@ bool App::startup(int argc, char** argv)
 	}
 #endif // _WIN32
 
-	// Tell the UI libary this class implements the RML System Interface
-	Rml::SetSystemInterface(this);
-	Rml::SetFileInterface(new MikanFileInterface());
-	Rml::Mikan::Initialise();
-	Rml::Factory::RegisterEventListenerInstancer(m_rmlEventInstancer);
-
 	// Load any saved config
 	m_profileConfig->load();
+
+	if (success && !m_rmlManager->preRendererStartup())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
+		success = false;
+	}
 
 	if (success && !m_localizationManager->startup())
 	{
@@ -295,80 +182,15 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	if (success)
+	if (success && !m_rmlManager->postRendererStartup())
 	{
-		m_lastFrameTimestamp= SDL_GetTicks();
-	}
-
-	if (success && !Rml::Initialise())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the RmlUi";
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
 		success = false;
 	}
 
 	if (success)
 	{
-		struct FontFace
-		{
-			const char* filename;
-			bool fallback_face;
-		};
-		FontFace font_faces[] = {
-			{"font/LatoLatin-Regular.ttf", false},
-			{"font/LatoLatin-Italic.ttf", false},
-			{"font/LatoLatin-Bold.ttf", false},
-			{"font/LatoLatin-BoldItalic.ttf", false},
-			{"font/NotoEmoji-Regular.ttf", true},
-		};
-
-		for (const FontFace& face : font_faces)
-		{
-			Rml::LoadFontFace(face.filename, face.fallback_face);
-		}
-
-		int window_width = m_renderer->getSDLWindowWidth();
-		int window_height = m_renderer->getSDLWindowHeight();
-		m_rmlUIContext = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
-		Rml::Debugger::Initialise(m_rmlUIContext);
-
-		// Register common data model types
-		{
-			Rml::DataModelConstructor constructor = m_rmlUIContext->CreateDataModel("data_model_globals");
-			
-			// String arrays
-			constructor.RegisterArray<Rml::Vector<Rml::String>>();
-			constructor.RegisterArray<Rml::Vector<int>>();
-
-			// Vector2f
-			if (auto struct_handle = constructor.RegisterStruct<Rml::Vector2f>())
-			{
-				struct_handle.RegisterMember("x", &Rml::Vector2f::x);
-				struct_handle.RegisterMember("y", &Rml::Vector2f::y);
-			}
-
-			// Vector3f
-			if (auto struct_handle = constructor.RegisterStruct<Rml::Vector3f>())
-			{
-				struct_handle.RegisterMember("x", &Rml::Vector3f::x);
-				struct_handle.RegisterMember("y", &Rml::Vector3f::y);
-				struct_handle.RegisterMember("z", &Rml::Vector3f::z);
-			}
-
-			// Transform function for converting anchor id to anchor name
-			constructor.RegisterTransformFunc(
-				"to_anchor_name",
-				[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-					const MikanSpatialAnchorID anchorId = variant.Get<int>(-1);
-
-					MikanSpatialAnchorInfo anchorInfo;
-					if (getProfileConfig()->getSpatialAnchorInfo(anchorId, anchorInfo))
-					{
-						variant = Rml::String(anchorInfo.anchor_name);
-						return true;
-					}
-					return false;
-				});
-		}
+		m_lastFrameTimestamp= SDL_GetTicks();
 	}
 
 	return success;
@@ -381,10 +203,9 @@ void App::shutdown()
 		popAppState();
 	}
 
-	if (m_rmlUIContext != nullptr)
+	if (m_rmlManager != nullptr)
 	{
-		Rml::Shutdown();
-		m_rmlUIContext = nullptr;
+		m_rmlManager->shutdown();
 	}
 
 	if (m_mikanServer != nullptr)
@@ -517,10 +338,7 @@ void App::update()
 	}
 
 	// Update the UI layout and data models
-	if (m_rmlUIContext != nullptr)
-	{
-		m_rmlUIContext->Update();
-	}
+	m_rmlManager->update();
 }
 
 void App::render()
@@ -560,73 +378,3 @@ void App::render()
 
 	m_renderer->renderEnd();
 }
-
-// Rml::SystemInterface
-double App::GetElapsedTime()
-{
-	return double(SDL_GetTicks()) / 1000.0;
-}
-
-int App::TranslateString(Rml::String& translated, const Rml::String& input)
-{
-	translated = input;
-
-	AppStage* appStage= getCurrentAppStage();
-	if (appStage != nullptr)
-	{
-		bool bHasString = false;
-		const std::string& contextName = appStage->getAppStageName();
-		const char* result = locTextUTF8(contextName.c_str(), input.c_str(), &bHasString);
-
-		if (bHasString)
-		{
-			translated = result;
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-bool App::LogMessage(Rml::Log::Type type, const Rml::String& message)
-{
-	switch (type)
-	{
-	case Rml::Log::LT_ASSERT:
-		MIKAN_LOG_FATAL("Rml::LogMessage") << message;
-		return true;
-	case Rml::Log::LT_ALWAYS:
-	case Rml::Log::LT_ERROR:
-		MIKAN_LOG_ERROR("Rml::LogMessage") << message;
-		return true;
-	case Rml::Log::LT_WARNING:
-		MIKAN_LOG_WARNING("Rml::LogMessage") << message;
-		return true;
-	case Rml::Log::LT_INFO:
-		MIKAN_LOG_INFO("Rml::LogMessage") << message;
-		return true;
-	case Rml::Log::LT_DEBUG:
-		MIKAN_LOG_DEBUG("Rml::LogMessage") << message;
-		return true;
-	}
-
-	return false;
-}
-
-void App::SetMouseCursor(const Rml::String& cursor_name)
-{
-	m_renderer->setSDLMouseCursor(cursor_name);
-}
-
-void App::SetClipboardText(const Rml::String& text_utf8)
-{
-	SDL_SetClipboardText(text_utf8.c_str());
-}
-
-void App::GetClipboardText(Rml::String& text)
-{
-	char* raw_text = SDL_GetClipboardText();
-	text = Rml::String(raw_text);
-	SDL_free(raw_text);
-}
-

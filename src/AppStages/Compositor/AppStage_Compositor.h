@@ -5,10 +5,6 @@
 #include <memory>
 #include "FrameCompositorConstants.h"
 
-//namespace ImGui
-//{
-//	class FileBrowser;
-//};
 namespace Rml
 {
 	class ElementDocument;
@@ -27,7 +23,6 @@ public:
 	virtual void exit() override;
 	virtual void update() override;
 	virtual void render() override;
-	//virtual void renderUI() override;
 
 protected:
 	bool startRecording();

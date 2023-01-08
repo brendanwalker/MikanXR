@@ -33,7 +33,6 @@ public:
 protected:
 	void setMenuState(eMonoLensCalibrationMenuState newState);
 	void captureRequested();
-	void updateVideoDisplayProperties();
 
 	// Calibration Model UI Events
 	void onRestartEvent();

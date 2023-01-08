@@ -1,6 +1,7 @@
 #include "App.h"
 #include "AppStage.h"
 #include "Renderer.h"
+#include "RmlManager.h"
 
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
@@ -9,7 +10,7 @@
 
 Rml::Context* AppStage::getRmlContext() const 
 {
-	return m_app->getRmlUIContext(); 
+	return m_app->getRmlManager()->getRmlUIContext(); 
 }
 
 void AppStage::enter() 

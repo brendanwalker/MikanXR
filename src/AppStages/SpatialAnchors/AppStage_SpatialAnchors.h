@@ -21,8 +21,6 @@ public:
 	virtual void update() override;
 	virtual void render() override;
 
-	//virtual void renderUI() override;
-
 	static const char* APP_STAGE_NAME;
 
 protected:

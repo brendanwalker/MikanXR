@@ -6,15 +6,9 @@
 #include <vector>
 #include <assert.h>
 #include <stdint.h>
-#include <RmlUi/Core/SystemInterface.h>
-
-namespace Rml
-{
-	class Context;
-};
 
 //-- definitions -----
-class App : public Rml::SystemInterface
+class App 
 {
 public:
 	App();
@@ -28,7 +22,7 @@ public:
 	inline class FontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
-	inline Rml::Context* getRmlUIContext() const { return m_rmlUIContext; }
+	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
 
 	inline float getFPS() const { return m_fps; }
 
@@ -91,14 +85,6 @@ protected:
 	void update();
 	void render();
 
-	// Rml::SystemInterface
-	virtual double GetElapsedTime() override;
-	virtual int TranslateString(Rml::String& translated, const Rml::String& input) override;
-	virtual bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
-	virtual void SetMouseCursor(const Rml::String& cursor_name) override;
-	virtual void SetClipboardText(const Rml::String& text) override;
-	virtual void GetClipboardText(Rml::String& text) override;
-
 private:
 	static App* m_instance;
 
@@ -114,11 +100,8 @@ private:
 	// Input Manager
 	class InputManager* m_inputManager= nullptr;
 
-	// Rml UI Event processor
-	class AppRmlEventInstancer* m_rmlEventInstancer = nullptr;
-
-	// Rml UI Context
-	Rml::Context* m_rmlUIContext= nullptr;
+	// Rml UI Manager
+	class RmlManager* m_rmlManager= nullptr;
 
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;
