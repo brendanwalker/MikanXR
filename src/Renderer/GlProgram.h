@@ -12,6 +12,8 @@
 
 enum class eUniformSemantic : int
 {
+	INVALID = -1,
+
 	transformMatrix,
 	modelViewProjectionMatrix,
 	diffuseColorRGBA,
@@ -52,8 +54,11 @@ enum class eUniformSemantic : int
 	texture28,
 	texture29,
 	texture30,
-	texture31
+	texture31,
+
+	COUNT
 };
+extern const std::string* k_UniformSemanticName;
 
 class GlProgramCode
 {
@@ -69,6 +74,8 @@ public:
 		const std::string &filename, 
 		const std::string& vertexCode, 
 		const std::string& fragmentCode);
+
+	bool loadFromConfig(const class GlProgramConfig* config);
 
 	const std::string& getFilename() const { return m_filename; }
 	inline const char* getVertexShaderCode() const { return m_vertexShaderCode.c_str(); }

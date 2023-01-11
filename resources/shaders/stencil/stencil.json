@@ -1,0 +1,9 @@
+{
+    "materialName": "stencil",
+    "vertexShaderPath": "stencil.vert",
+    "fragmentShaderPath": "stencil.frag",
+    "uniforms":
+    {
+        "mvpMatrix": "modelViewProjectionMatrix"
+    }
+}

@@ -1,13 +1,64 @@
 #include "GlCommon.h"
 #include "GlProgram.h"
+#include "GlProgramConfig.h"
 #include "GlTexture.h"
 #include "Logger.h"
+#include "StringUtils.h"
 
 #include "glm/gtc/type_ptr.hpp"
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <unordered_map>
 #include <assert.h>
 
+const std::string g_UniformSemanticName[(int)eUniformSemantic::COUNT] = {
+	"transformMatrix",
+	"modelViewProjectionMatrix",
+	"diffuseColorRGBA",
+	"diffuseColorRGB",
+	"screenPosition",
+	"floatConstant0",
+	"floatConstant1",
+	"floatConstant2",
+	"floatConstant3",
+	"texture0",
+	"texture1",
+	"texture2",
+	"texture3",
+	"texture4",
+	"texture5",
+	"texture6",
+	"texture7",
+	"texture8",
+	"texture9",
+	"texture10",
+	"texture11",
+	"texture12",
+	"texture13",
+	"texture14",
+	"texture15",
+	"texture16",
+	"texture17",
+	"texture18",
+	"texture19",
+	"texture20",
+	"texture21",
+	"texture22",
+	"texture23",
+	"texture24",
+	"texture25",
+	"texture26",
+	"texture27",
+	"texture28",
+	"texture29",
+	"texture30",
+	"texture31",
+};
+const std::string* k_UniformSemanticName = g_UniformSemanticName;
+
+// -- GlProgramCode -----
 GlProgramCode::GlProgramCode(
 	const std::string& filename,
 	const std::string& vertexCode, 
@@ -21,6 +72,67 @@ GlProgramCode::GlProgramCode(
 	m_shaderCodeHash= hasher(vertexCode + fragmentCode);
 }
 
+bool GlProgramCode::loadFromConfig(const GlProgramConfig* config)
+{
+	bool bSuccess= true;
+
+	m_filename= config->getConfigPath();
+
+	try
+	{
+		std::ifstream t(config->vertexShaderPath.string());
+		std::stringstream buffer;
+		buffer << t.rdbuf();
+		m_vertexShaderCode= buffer.str();
+	}
+	catch (const std::ifstream::failure& e)
+	{
+		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfig")
+			<< m_filename
+			<< " - unable to load vertex shader file!";
+		bSuccess= false;
+	}
+
+	try
+	{
+		std::ifstream t(config->fragmentShaderPath.string());
+		std::stringstream buffer;
+		buffer << t.rdbuf();
+		m_framementShaderCode= buffer.str();
+	}
+	catch (const std::ifstream::failure& e)
+	{
+		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfig")
+			<< m_filename
+			<< " - unable to load fragment shader file!";
+		bSuccess = false;
+	}
+
+	for (const auto& [name, semanticString] : config->uniforms)
+	{
+		eUniformSemantic semantic= 
+			StringUtils::FindEnumValue<eUniformSemantic>(
+				semanticString, g_UniformSemanticName);
+
+		if (semantic != eUniformSemantic::INVALID)
+		{
+			m_uniformList.push_back({name, semantic});
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("GlProgramCode::loadFromConfig")
+				<< "Invalid semantic: "
+				<< name
+				<< " -> "
+				<< semanticString;
+			bSuccess = false;
+		}
+	}
+
+	return bSuccess;
+}
+
+// -- GlProgram -----
 GlProgram::GlProgram(const GlProgramCode& code)
 	: m_code(code)
 {

@@ -25,7 +25,7 @@ CommonConfig::CommonConfig(const std::string &fnamebase)
 {
 }
 
-const std::string CommonConfig::getConfigPath()
+const std::string CommonConfig::getConfigPath() const
 {
     std::string home_dir= PathUtils::getHomeDirectory();  
     std::string config_path = home_dir + "/Mikan";

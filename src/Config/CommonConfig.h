@@ -33,6 +33,7 @@ class CommonConfig
 public:
     CommonConfig(const std::string &fnamebase = std::string("CommonConfig"));
 
+	const std::string getConfigPath() const;
     void save();
 	void save(const std::string &path);
     bool load();
@@ -147,7 +148,4 @@ public:
 		const configuru::Config& pt,
 		const char* fieldName,
         eDeviceType& outDeviceType);
-
-private:
-    const std::string getConfigPath();
 };
