@@ -54,6 +54,10 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#define SCREEN_POSITION_UNIFORM_NAME	"_translate"
+#define TRANSFORM_UNIFORM_NAME			"_transform"
+#define TEXTURE_UNIFORM_NAME			"_tex"
+
 namespace RmlGfx {
 	static const char* shader_main_vertex =
 		R""""(
@@ -104,18 +108,18 @@ namespace RmlGfx {
 		shader_main_vertex,
 		//fragment shader
 		shader_main_fragment_color)
-		.addUniform("_translate", eUniformSemantic::screenPosition)
-		.addUniform("_transform", eUniformSemantic::transformMatrix);
+		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
+		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix);
 
 	static GlProgramCode texture_program_code = GlProgramCode(
 		"Rml UI Texture Program",
-		// vertex shader
+		// vertex shader`
 		shader_main_vertex,
 		//fragment shader
 		shader_main_fragment_texture)
-		.addUniform("_translate", eUniformSemantic::screenPosition)
-		.addUniform("_transform", eUniformSemantic::transformMatrix)
-		.addUniform("_tex", eUniformSemantic::texture0);
+		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
+		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix)
+		.addUniform(TEXTURE_UNIFORM_NAME, eUniformSemantic::texture0);
 
 	struct CompiledGeometryData {
 		GLuint texture;
@@ -541,7 +545,8 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 
 		glBindTexture(GL_TEXTURE_2D, geometry->texture);
 		SubmitTransformUniform(ProgramId::Texture);
-		program->setVector2Uniform(eUniformSemantic::screenPosition, glm::vec2(translation.x, translation.y));
+
+		program->setVector2Uniform(SCREEN_POSITION_UNIFORM_NAME, glm::vec2(translation.x, translation.y));
 	}
 	else
 	{
@@ -550,7 +555,8 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		SubmitTransformUniform(ProgramId::Color);
-		program->setVector2Uniform(eUniformSemantic::screenPosition, glm::vec2(translation.x, translation.y));
+
+		program->setVector2Uniform(SCREEN_POSITION_UNIFORM_NAME, glm::vec2(translation.x, translation.y));
 	}
 
 	glBindVertexArray(geometry->vao);
@@ -738,7 +744,7 @@ void GlRmlUiRender::SubmitTransformUniform(ProgramId program_id)
 		#ifdef RMLUI_MATRIX_ROW_MAJOR
 			#error We are assuming that the Rml is using colomn major matrices, like glm
 		#endif
-			program->setMatrix4x4Uniform(eUniformSemantic::transformMatrix, glm::make_mat4(transform.data()));
+			program->setMatrix4x4Uniform(TRANSFORM_UNIFORM_NAME, glm::make_mat4(transform.data()));
 		}
 
 		transform_dirty_state = ProgramId((int)transform_dirty_state & ~(int)program_id);

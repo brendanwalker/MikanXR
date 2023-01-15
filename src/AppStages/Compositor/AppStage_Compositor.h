@@ -40,8 +40,8 @@ protected:
 	void hideAllSubWindows();
 
 	// Layers UI Events
-	void onLayerAlphaModeChangedEvent(int layerIndex, eCompositorLayerAlphaMode alphaMode);
-	void onScreenshotLayerEvent(int layerIndex);
+	void onCompositorConfigChangedEvent(const std::string& configName);
+	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
 	// Quad Stencils UI Events
 	void onAddQuadStencilEvent();

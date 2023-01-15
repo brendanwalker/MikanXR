@@ -29,3 +29,16 @@ const int g_supportedCodecFourCC[(int)eSupportedCodec::COUNT] = {
 	cv::VideoWriter::fourcc('R','G','B','A'),
 };
 const int* k_supportedCodecFourCC= g_supportedCodecFourCC;
+
+const std::string g_compositorStencilModeStrings[(int)eCompositorStencilMode::COUNT] = {
+	"noStencil",
+	"insideStencil",
+	"outsideStencil"
+};
+extern const std::string* k_compositorStencilModeStrings= g_compositorStencilModeStrings;
+
+const std::string g_compositorBlendModeStrings[(int)eCompositorBlendMode::COUNT] = {
+	"blendOff",
+	"blendOn"
+};
+extern const std::string* k_compositorBlendModeStrings = g_compositorBlendModeStrings;

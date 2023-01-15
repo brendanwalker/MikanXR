@@ -1,12 +1,15 @@
 #include "App.h"
 #include "GlCommon.h"
 #include "GlFrameCompositor.h"
+#include "GlMaterial.h"
 #include "GlTexture.h"
 #include "GlTextRenderer.h"
+#include "GlProgramConfig.h"
 #include "InterprocessRenderTargetReader.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"
+#include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
 #include "StringUtils.h"
@@ -25,120 +28,7 @@
 
 #include <easy/profiler.h>
 
-
-// -- CompositorLayerConfig ------
-const configuru::Config CompositorLayerConfig::writeToJSON() const
-{
-	configuru::Config pt{
-		{"appName", appName},
-		{"alphaMode", k_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::NoAlpha]},
-	};
-
-	return pt;
-}
-
-void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
-{
-	appName = pt.get_or<std::string>("appName", appName);
-
-	std::string alphaModeString = 
-		pt.get_or<std::string>(
-			"alphaMode", 
-			k_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::NoAlpha]);
-	alphaMode =
-		StringUtils::FindEnumValue<eCompositorLayerAlphaMode>(
-			alphaModeString,
-			k_compositorLayerAlphaStrings);
-}
-
-// -- GlFrameCompositorConfig ------
-const configuru::Config GlFrameCompositorConfig::writeToJSON()
-{
-	configuru::Config pt= configuru::Config::object();
-
-	// Write out the layers
-	std::vector<configuru::Config> layerConfigs;
-	for (const CompositorLayerConfig& layer : layers)
-	{
-		layerConfigs.push_back(layer.writeToJSON());
-	}
-	pt.insert_or_assign(std::string("layers"), layerConfigs);
-
-	return pt;
-}
-
-void GlFrameCompositorConfig::readFromJSON(
-	const configuru::Config& pt)
-{
-	layers.clear();
-	if (pt.has_key("layers"))
-	{
-		for (const configuru::Config& layerConfig : pt["layers"].as_array())
-		{
-			CompositorLayerConfig layer;
-
-			layer.readFromJSON(layerConfig);
-			layers.push_back(layer);
-		}
-	}
-}
-
-const CompositorLayerConfig& GlFrameCompositorConfig::findOrAddDefaultLayerConfig(
-	const MikanClientInfo& clientInfo,
-	const MikanRenderTargetDescriptor& renderTargetDesc)
-{
-	// Key layer config off of the appName
-	const std::string appName= clientInfo.applicationName;
-
-	auto it = std::find_if(
-		layers.begin(), layers.end(),
-		[appName](const CompositorLayerConfig& layerConfig) {
-		return layerConfig.appName == appName;
-	});
-
-	if (it == layers.end())
-	{
-		CompositorLayerConfig layerConfig;
-		layerConfig.appName= clientInfo.applicationName;
-	
-		if (renderTargetDesc.color_buffer_type == MikanColorBuffer_RGBA32)
-		{
-			layerConfig.alphaMode = eCompositorLayerAlphaMode::AlphaChannel;
-		}
-		else
-		{
-			layerConfig.alphaMode = eCompositorLayerAlphaMode::ColorKey;
-		}
-
-		layers.push_back(layerConfig);
-		save();
-
-		return layers[layers.size() - 1];
-	}
-	else
-	{
-		return *it;
-	}
-}
-
-CompositorLayerConfig* GlFrameCompositorConfig::findLayerConfig(const MikanClientInfo& clientInfo)
-{
-	// Key layer config off of the appName
-	const std::string appName = clientInfo.applicationName;
-
-	auto it = std::find_if(
-		layers.begin(), layers.end(),
-		[appName](const CompositorLayerConfig& layerConfig) {
-		return layerConfig.appName == appName;
-	});
-
-	if (it != layers.end())
-	{
-		return &(*it);
-	}
-
-	return nullptr;
-}
+#define STENCIL_MVP_UNIFORM_NAME	"mvpMatrix"
 
 // -- GlFrameCompositor ------
 GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
@@ -157,12 +47,15 @@ bool GlFrameCompositor::startup()
 {
 	EASY_FUNCTION();
 
-	m_rgbUndistortionFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBUndistortionFrameShaderCode());
-	if (m_rgbUndistortionFrameShader == nullptr)
-	{
-		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb undistortion frame shader";
-		return false;
-	}
+	reloadAllCompositorShaders();
+	reloadAllCompositorConfigurations();
+
+	//m_rgbUndistortionFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBUndistortionFrameShaderCode());
+	//if (m_rgbUndistortionFrameShader == nullptr)
+	//{
+	//	MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb undistortion frame shader";
+	//	return false;
+	//}
 
 	m_rgbFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBFrameShaderCode());
 	if (m_rgbFrameShader == nullptr)
@@ -178,19 +71,19 @@ bool GlFrameCompositor::startup()
 		return false;
 	}
 
-	m_rgbColorKeyLayerShader= GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBColorKeyLayerShaderCode());
-	if (m_rgbColorKeyLayerShader == nullptr)
-	{
-		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RGB color key shader";
-		return false;
-	}
+	//m_rgbColorKeyLayerShader= GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBColorKeyLayerShaderCode());
+	//if (m_rgbColorKeyLayerShader == nullptr)
+	//{
+	//	MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RGB color key shader";
+	//	return false;
+	//}
 
-	m_rgbaLayerShader= GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBALayerShaderCode());
-	if (m_rgbaLayerShader == nullptr)
-	{
-		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RGBA layer shader";
-		return false;
-	}
+	//m_rgbaLayerShader= GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBALayerShaderCode());
+	//if (m_rgbaLayerShader == nullptr)
+	//{
+	//	MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RGBA layer shader";
+	//	return false;
+	//}
 
 	m_stencilShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getStencilShaderCode());
 	if (m_stencilShader == nullptr)
@@ -210,6 +103,159 @@ void GlFrameCompositor::shutdown()
 {
 	stop();
 	freeVertexBuffers();
+	clearAllCompositorConfigurations();
+
+	// Clean up any allocated clientSources
+	for (auto iter = m_clientSources.getMap().begin(); iter != m_clientSources.getMap().end(); iter++)
+	{
+		GlFrameCompositor::ClientSource* clientSource = iter->second;
+
+		if (clientSource->colorTexture != nullptr)
+		{
+			clientSource->colorTexture->disposeTexture();
+			delete clientSource->colorTexture;
+		}
+
+		if (clientSource->depthTexture != nullptr)
+		{
+			clientSource->depthTexture->disposeTexture();
+			delete clientSource->depthTexture;
+		}
+
+		delete clientSource;
+	}
+	m_clientSources.clear();
+
+	// Clean up any allocated materials
+	for (auto iter = m_materialSources.getMap().begin(); iter != m_materialSources.getMap().end(); iter++)
+	{
+		delete iter->second;
+	}
+	m_materialSources.clear();
+}
+
+void GlFrameCompositor::reloadAllCompositorConfigurations()
+{
+	std::filesystem::path compositorShaderDir = PathUtils::getResourceDirectory();
+	compositorShaderDir /= "config";
+	compositorShaderDir /= "compositor";
+
+	clearAllCompositorConfigurations();
+
+	std::vector<std::string> configFiles = PathUtils::listFiles(compositorShaderDir.string(), "json");
+	for (const auto& configFilePath : configFiles)
+	{
+		GlFrameCompositorConfig* compositorConfig = new GlFrameCompositorConfig;
+		if (compositorConfig->load(configFilePath))
+		{
+			m_compositorConfigurations.setValue(compositorConfig->name, compositorConfig);
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("GlFrameCompositor::reloadAllCompositorConfigurations") << "Failed to parse JSON: " << configFilePath;
+		}
+	}
+}
+
+void GlFrameCompositor::clearAllCompositorConfigurations()
+{
+	for (auto it = m_compositorConfigurations.getMap().begin(); it != m_compositorConfigurations.getMap().end(); it++)
+	{
+		delete it->second;
+	}
+	m_compositorConfigurations.clear();
+}
+
+void GlFrameCompositor::rebuildLayersFromConfig()
+{
+	m_layers.clear();
+	for (int layerIndex= 0; layerIndex < (int)m_config.layers.size(); ++layerIndex)
+	{
+		const CompositorLayerConfig& layerConfig = m_config.layers[layerIndex];
+		GlMaterial* material= m_materialSources.getValueOrDefault(layerConfig.shaderConfig.materialName, nullptr);
+
+		const Layer layer = {layerIndex, material, -1};
+		m_layers.push_back(layer);
+	}
+}
+
+std::vector<std::string> GlFrameCompositor::getConfigurationNames() const
+{
+	std::vector<std::string> configurationNames;
+
+	for (auto it = m_compositorConfigurations.getMap().begin(); it != m_compositorConfigurations.getMap().end(); it++)
+	{
+		configurationNames.push_back(it->first);
+	}
+
+	return configurationNames;
+}
+
+const std::string& GlFrameCompositor::getCurrentConfigurationName() const
+{
+	return m_config.name;
+}
+
+bool GlFrameCompositor::setConfiguration(const std::string& configurationName)
+{
+	if (configurationName == m_config.name)
+		return false;
+
+	GlFrameCompositorConfig* newConfig;
+	if (m_compositorConfigurations.tryGetValue(configurationName, newConfig))
+	{
+		m_config= *newConfig;
+		m_config.save();
+
+		// Recreate the compositor layers for the current config
+		rebuildLayersFromConfig();
+	}
+
+	return true;
+}
+
+void GlFrameCompositor::reloadAllCompositorShaders()
+{
+	std::filesystem::path compositorShaderDir= PathUtils::getResourceDirectory();
+	compositorShaderDir/= "shaders";
+	compositorShaderDir/= "compositor";
+
+	std::vector<std::string> shaderFolderPaths= PathUtils::listDirectories(compositorShaderDir.string());
+	for (const auto& shaderFolderPath : shaderFolderPaths)
+	{
+		std::vector<std::string> shaderFiles= PathUtils::listFiles(shaderFolderPath, "json");
+		for (const auto& shaderPath : shaderFiles)
+		{
+			GlProgramConfig programConfig;
+			if (programConfig.load(shaderPath))
+			{
+				GlProgramCode programCode;
+				if (programCode.loadFromConfig(&programConfig))
+				{
+					GlProgram* program= GlShaderCache::getInstance()->fetchCompiledGlProgram(&programCode);
+					GlMaterial* material= m_materialSources.getValueOrDefault(programConfig.materialName, nullptr);
+
+					if (material != nullptr)
+					{
+						material->setProgram(program);
+					}
+					else
+					{
+						material = new GlMaterial(programConfig.materialName, program);
+						m_materialSources.setValue(programConfig.materialName, material);
+					}
+				}
+				else
+				{
+					MIKAN_LOG_ERROR("GlFrameCompositor::reloadAllCompositorShaders") << "Failed to load program code: " << shaderPath;
+				}
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("GlFrameCompositor::reloadAllCompositorShaders") << "Failed to parse JSON: " << shaderPath;
+			}
+		}
+	}
 }
 
 bool GlFrameCompositor::start()
@@ -254,23 +300,6 @@ bool GlFrameCompositor::start()
 
 void GlFrameCompositor::stop()
 {
-	// Clean up any allocated layers
-	for (GlFrameCompositor::Layer& layer : m_layers)
-	{
-		if (layer.colorTexture != nullptr)
-		{
-			layer.colorTexture->disposeTexture();
-			delete layer.colorTexture;
-		}
-
-		if (layer.depthTexture != nullptr)
-		{
-			layer.depthTexture->disposeTexture();
-			delete layer.depthTexture;
-		}
-	}
-	m_layers.clear();
-
 	// Stop listening to render target events
 	{
 		MikanServer* mikanServer = MikanServer::getInstance();
@@ -316,17 +345,19 @@ void GlFrameCompositor::update()
 	if (m_pendingCompositeFrameIndex != 0)
 	{
 		// See if all client render targets have been updated
-		size_t layerReadyCount = 0;
-		for (GlFrameCompositor::Layer& layer : m_layers)
+		size_t clientSourceReadyCount = 0;
+		for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
 		{
-			if (!layer.bIsPendingRender)
+			const GlFrameCompositor::ClientSource* clientSource= it->second;
+
+			if (!clientSource->bIsPendingRender)
 			{
-				layerReadyCount++;
+				clientSourceReadyCount++;
 			}
 		}
 
-		// If the video frame and layers are fresh, composite them together
-		if (layerReadyCount == m_layers.size())
+		// If the video frame and client sources are fresh, composite them together
+		if (clientSourceReadyCount == m_clientSources.getMap().size())
 		{
 			// Pop the frame event from the queue now that we are compositing it
 			assert(m_frameEventQueue.front().frame == m_pendingCompositeFrameIndex);
@@ -386,10 +417,12 @@ void GlFrameCompositor::update()
 		// Grab the next frame event off the queue
 		MikanVideoSourceNewFrameEvent newFrameEvent= m_frameEventQueue.front();
 
-		// Mark all layers as pending
-		for (GlFrameCompositor::Layer& layer : m_layers)
+		// Mark all client sources as pending
+		for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
 		{
-			layer.bIsPendingRender= true;
+			GlFrameCompositor::ClientSource* clientSource = it->second;
+
+			clientSource->bIsPendingRender= true;
 		}
 
 		// Track the index of the pending frame
@@ -401,6 +434,318 @@ void GlFrameCompositor::update()
 	}
 }
 
+void GlFrameCompositor::updateCompositeFrame()
+{
+	EASY_FUNCTION();
+
+	assert(m_pendingCompositeFrameIndex != 0);
+
+	// Cache the last viewport dimensions
+	GLint last_viewport[4];
+
+	{
+		EASY_BLOCK("Begin Composite")
+
+		glGetIntegerv(GL_VIEWPORT, last_viewport);
+
+		// Change the viewport to match the frame buffer texture
+		glViewport(0, 0, m_compositedFrame->getTextureWidth(), m_compositedFrame->getTextureHeight());
+
+		// bind to framebuffer and draw scene as we normally would to color texture 
+		glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
+
+		// Turn off depth testing for compositing
+		glDisable(GL_DEPTH_TEST);
+
+		// make sure we clear the framebuffer's content
+		glClearColor(0.f, 0.f, 0.f, 0.f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+	for (GlFrameCompositor::Layer& layer : m_layers)
+	{
+		const CompositorLayerConfig* layerConfig= getLayerConfig(layer.layerIndex);
+		if (layerConfig == nullptr)
+			continue;
+
+		EASY_BLOCK(layerConfig->shaderConfig.materialName);
+
+		// Attempt to apply data sources to the layers material parameters
+		bool bValidMaterialDataSources= true;
+		bValidMaterialDataSources&= refreshLayerMaterialFloatValues(*layerConfig, layer);
+		bValidMaterialDataSources&= refreshLayerMaterialFloat2Values(*layerConfig, layer);
+		bValidMaterialDataSources&= refreshLayerMaterialFloat3Values(*layerConfig, layer);
+		bValidMaterialDataSources&= refreshLayerMaterialFloat4Values(*layerConfig, layer);
+		bValidMaterialDataSources&= refreshLayerMaterialMat4Values(*layerConfig, layer);
+		bValidMaterialDataSources&= refreshLayerMaterialTextures(*layerConfig, layer);
+		if (!bValidMaterialDataSources)
+			continue;
+
+		// Set the blend mode
+		switch (layerConfig->blendMode)
+		{
+			case eCompositorBlendMode::blendOff:
+				{
+					glDisable(GL_BLEND);
+				}
+				break;
+			case eCompositorBlendMode::blendOn:
+				{
+					// https://www.andersriggelsen.dk/glblendfunc.php
+					// (sR*sA) + (dR*(1-sA)) = rR
+					// (sG*sA) + (dG*(1-sA)) = rG
+					// (sB*sA) + (dB*(1-sA)) = rB
+					// (sA*sA) + (dA*(1-sA)) = rA
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glBlendEquation(GL_FUNC_ADD);
+				}
+				break;
+		}
+
+		// Apply stencil shapes, if any, to the layer
+		bool bIsUsingStencils= false;
+		bIsUsingStencils|= updateQuadStencils(layerConfig->quadStencilConfig);
+		bIsUsingStencils|= updateBoxStencils(layerConfig->boxStencilConfig);
+		bIsUsingStencils|= updateModelStencils(layerConfig->modelStencilConfig);
+
+		// Bind the layer shader program and uniform parameters.
+		// This will fail unless all of the shader uniform parameters are bound.
+		if (layer.layerMaterial != nullptr && layer.layerMaterial->bindMaterial())
+		{
+			glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
+
+			layer.layerMaterial->unbindMaterial();
+		}
+
+		// Turn back off stencils if we enabled them
+		if (bIsUsingStencils)
+		{
+			glDisable(GL_STENCIL_TEST);
+		}
+	}
+
+	// Unbind the layer frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Optionally bake our a BGR video frame, if requested
+	if (m_bGenerateBGRVideoTexture)
+	{
+		EASY_BLOCK("Render BGR Frame")
+
+		// bind to bgr framebuffer and draw composited frame, but use shader to convert from RGB to BGR
+		glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
+
+		m_rgbToBgrFrameShader->bindProgram();
+		
+		std::string uniformName;
+		m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::texture0, uniformName);
+		m_rgbToBgrFrameShader->setTextureUniform(uniformName);
+
+		m_compositedFrame->bindTexture(0);
+
+		glBindVertexArray(m_videoQuadVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+
+		m_compositedFrame->clearTexture(0);
+
+		m_rgbToBgrFrameShader->unbindProgram();
+
+		// unbind the bghr frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	// Turn back on depth testing for compositing
+	glEnable(GL_DEPTH_TEST);
+
+	// Restore the viewport
+	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
+
+	// Remember the index of the last frame we composited
+	m_lastCompositedFrameIndex = m_pendingCompositeFrameIndex;
+
+	// Clear the pending composite frame index
+	m_pendingCompositeFrameIndex = 0;
+
+	// Tell any listeners that a new frame was composited
+	if (OnNewFrameComposited)
+	{
+		OnNewFrameComposited();
+	}
+}
+
+bool GlFrameCompositor::refreshLayerMaterialFloatValues(
+	const CompositorLayerConfig& layerConfig, 
+	GlFrameCompositor::Layer& layer)
+{
+	bool bSuccess = true;
+
+	GlMaterial* material = layer.layerMaterial;
+	for (auto it = layerConfig.shaderConfig.floatSourceMap.begin();
+		 it != layerConfig.shaderConfig.floatSourceMap.end();
+		 it++)
+	{
+		const std::string& uniformName = it->first;
+		const std::string& dataSourceName = it->second;
+
+		float floatValue;
+		if (m_floatSources.tryGetValue(dataSourceName, floatValue))
+		{
+			bSuccess = material->setFloatByUniformName(uniformName, floatValue);
+		}
+		else
+		{
+			bSuccess = false;
+		}
+	}
+
+	return bSuccess;
+}
+
+bool GlFrameCompositor::refreshLayerMaterialFloat2Values(
+	const CompositorLayerConfig& layerConfig, 
+	GlFrameCompositor::Layer& layer)
+{
+	bool bSuccess = true;
+
+	GlMaterial* material = layer.layerMaterial;
+	for (auto it = layerConfig.shaderConfig.float2SourceMap.begin();
+		 it != layerConfig.shaderConfig.float2SourceMap.end();
+		 it++)
+	{
+		const std::string& uniformName = it->first;
+		const std::string& dataSourceName = it->second;
+
+		glm::vec2 float2Value;
+		if (m_float2Sources.tryGetValue(dataSourceName, float2Value))
+		{
+			bSuccess = material->setVec2ByUniformName(uniformName, float2Value);
+		}
+		else
+		{
+			bSuccess = false;
+		}
+	}
+
+	return bSuccess;
+}
+
+bool GlFrameCompositor::refreshLayerMaterialFloat3Values(
+	const CompositorLayerConfig& layerConfig, 
+	GlFrameCompositor::Layer& layer)
+{
+	bool bSuccess = true;
+
+	GlMaterial* material = layer.layerMaterial;
+	for (auto it = layerConfig.shaderConfig.float3SourceMap.begin();
+		 it != layerConfig.shaderConfig.float3SourceMap.end();
+		 it++)
+	{
+		const std::string& uniformName = it->first;
+		const std::string& dataSourceName = it->second;
+
+		glm::vec3 float3Value;
+		if (m_float3Sources.tryGetValue(dataSourceName, float3Value))
+		{
+			bSuccess = material->setVec3ByUniformName(uniformName, float3Value);
+		}
+		else
+		{
+			bSuccess = false;
+		}
+	}
+
+	return bSuccess;
+}
+
+bool GlFrameCompositor::refreshLayerMaterialFloat4Values(
+	const CompositorLayerConfig& layerConfig, 
+	GlFrameCompositor::Layer& layer)
+{
+	bool bSuccess = true;
+
+	GlMaterial* material = layer.layerMaterial;
+	for (auto it = layerConfig.shaderConfig.float4SourceMap.begin();
+		 it != layerConfig.shaderConfig.float4SourceMap.end();
+		 it++)
+	{
+		const std::string& uniformName = it->first;
+		const std::string& dataSourceName = it->second;
+
+		glm::vec4 float4Value;
+		if (m_float4Sources.tryGetValue(dataSourceName, float4Value))
+		{
+			bSuccess = material->setVec4ByUniformName(uniformName, float4Value);
+		}
+		else
+		{
+			bSuccess = false;
+		}
+	}
+
+	return bSuccess;
+}
+
+bool GlFrameCompositor::refreshLayerMaterialMat4Values(
+	const CompositorLayerConfig& layerConfig, 
+	GlFrameCompositor::Layer& layer)
+{
+	bool bSuccess = true;
+
+	GlMaterial* material = layer.layerMaterial;
+	for (auto it = layerConfig.shaderConfig.mat4SourceMap.begin();
+		 it != layerConfig.shaderConfig.mat4SourceMap.end();
+		 it++)
+	{
+		const std::string& uniformName = it->first;
+		const std::string& dataSourceName = it->second;
+
+		glm::mat4 mat4Value;
+		if (m_mat4Sources.tryGetValue(dataSourceName, mat4Value))
+		{
+			bSuccess = material->setMat4ByUniformName(uniformName, mat4Value);
+		}
+		else
+		{
+			bSuccess = false;
+		}
+	}
+
+	return bSuccess;
+}
+
+bool GlFrameCompositor::refreshLayerMaterialTextures(
+	const CompositorLayerConfig& layerConfig,
+	GlFrameCompositor::Layer& layer)
+{
+	bool bSuccess= true;
+
+	GlMaterial* material= layer.layerMaterial;
+	for (auto it = layerConfig.shaderConfig.colorTextureSourceMap.begin();
+		 it != layerConfig.shaderConfig.colorTextureSourceMap.end();
+		 it++)
+	{
+		const std::string& uniformName= it->first;
+		const std::string& dataSourceName= it->second;
+
+		GlTexture* dataSourceTexture;
+		if (m_colorTextureSources.tryGetValue(dataSourceName, dataSourceTexture) && dataSourceTexture != nullptr)
+		{
+			bSuccess= material->setTextureByUniformName(uniformName, dataSourceTexture);
+		}
+		else
+		{
+			bSuccess= false;
+		}
+	}
+
+	return bSuccess;
+}
+
+#if 0
 void GlFrameCompositor::updateCompositeFrame()
 {
 	EASY_FUNCTION();
@@ -634,6 +979,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		OnNewFrameComposited();
 	}
 }
+#endif
 
 const GlRenderModelResource* GlFrameCompositor::getStencilRenderModel(MikanStencilID stencilId) const
 {
@@ -658,6 +1004,317 @@ void GlFrameCompositor::flushStencilRenderModel(MikanStencilID stencilId)
 	}
 }
 
+bool GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig)
+{
+	EASY_FUNCTION();
+
+	// Bail if we don't want any of this kind of stencil
+	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
+		return false;
+
+	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+
+	// Can't apply stencils unless we have a valid tracked camera pose
+	glm::mat4 cameraXform;
+	if (!getVideoSourceCameraPose(cameraXform))
+		return false;
+
+	// Collect stencil in view of the tracked camera
+	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
+	const glm::vec3 cameraPosition(cameraXform[3]);
+
+	std::vector<const MikanStencilQuad*> quadStencilList;
+	MikanServer::getInstance()->getRelevantQuadStencilList(
+		&stencilConfig.quadStencils,
+		cameraPosition, 
+		cameraForward, 
+		quadStencilList);
+
+	if (quadStencilList.size() == 0)
+		return false;
+
+	// If the camera is behind all double sided stencil quads
+	// reverse the stencil function so that video is drawn inside the stencil.
+	// This makes the stencils act like a magic portal into the virtual layers.
+	bool bInvertStencils = false;
+	if (stencilConfig.bInvertWhenCameraInside)
+	{
+		int cameraBehindStencilCount = 0;
+		int doubleSidedStencilCount = 0;
+		for (const MikanStencilQuad* stencil : quadStencilList)
+		{
+			if (!stencil->is_disabled && stencil->is_double_sided)
+			{
+				const glm::mat4 xform = profileConfig->getQuadStencilWorldTransform(stencil);
+				const glm::vec3 quadCenter = glm::vec3(xform[3]);
+				const glm::vec3 quadNormal = glm::vec3(xform[2]);
+				const glm::vec3 cameraToQuadCenter = quadCenter - cameraPosition;
+
+				if (glm::dot(quadNormal, cameraToQuadCenter) > 0.f)
+				{
+					cameraBehindStencilCount++;
+				}
+
+				doubleSidedStencilCount++;
+			}
+		}
+		bInvertStencils =
+			cameraBehindStencilCount > 0 &&
+			cameraBehindStencilCount == doubleSidedStencilCount;
+	}
+
+	glClearStencil(0);
+	glStencilMask(0xFF);
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	// Do not draw any pixels on the back buffer
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+	// Enables testing AND writing functionalities
+	glEnable(GL_STENCIL_TEST);
+	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+	// Make every test succeed
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+
+	// Compute the view-projection matrix for the tracked video source
+	const glm::mat4 vpMatrix = m_videoSourceView->getCameraViewProjectionMatrix(m_cameraTrackingPuckView);
+
+	m_stencilShader->bindProgram();
+
+	// Draw stencil quads first
+	for (const MikanStencilQuad* stencil : quadStencilList)
+	{
+		// Set the model matrix of stencil quad
+		const glm::mat4 xform = profileConfig->getQuadStencilWorldTransform(stencil);
+		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencil->quad_width;
+		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencil->quad_height;
+		const glm::vec3 z_axis = glm::vec3(xform[2]);
+		const glm::vec3 position = glm::vec3(xform[3]);
+		const glm::mat4 modelMatrix =
+			glm::mat4(
+				glm::vec4(x_axis, 0.f),
+				glm::vec4(y_axis, 0.f),
+				glm::vec4(z_axis, 0.f),
+				glm::vec4(position, 1.f));
+
+		// Set the model-view-projection matrix on the stencil shader
+		m_stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
+
+		glBindVertexArray(m_stencilQuadVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+	}
+
+	m_stencilShader->unbindProgram();
+
+	// Make sure you will no longer (over)write stencil values, even if any test succeeds
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	// Make sure we draw on the backbuffer again.
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
+	GLenum stencilMode = (stencilConfig.stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
+	if (bInvertStencils)
+	{
+		// Flip the stencil mode from whatever the default was
+		stencilMode= (stencilMode == GL_EQUAL) ? GL_NOTEQUAL : GL_EQUAL;
+	}
+	glStencilFunc(stencilMode, 1, 0xFF);
+
+	return true;
+}
+
+bool GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig)
+{
+	EASY_FUNCTION();
+
+	// Bail if we don't want any of this kind of stencil
+	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
+		return false;
+
+	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+
+	// Can't apply stencils unless we have a valid tracked camera pose
+	glm::mat4 cameraXform;
+	if (!getVideoSourceCameraPose(cameraXform))
+		return false;
+
+	// Collect stencil in view of the tracked camera
+	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
+	const glm::vec3 cameraPosition(cameraXform[3]);
+
+	std::vector<const MikanStencilBox*> boxStencilList;
+	MikanServer::getInstance()->getRelevantBoxStencilList(
+		&stencilConfig.boxStencils,
+		cameraPosition, 
+		cameraForward, 
+		boxStencilList);
+
+	if (boxStencilList.size() == 0)
+		return false;
+
+	glClearStencil(0);
+	glStencilMask(0xFF);
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	// Do not draw any pixels on the back buffer
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+	// Enables testing AND writing functionalities
+	glEnable(GL_STENCIL_TEST);
+	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+	// Make every test succeed
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+
+	// Compute the view-projection matrix for the tracked video source
+	const glm::mat4 vpMatrix = m_videoSourceView->getCameraViewProjectionMatrix(m_cameraTrackingPuckView);
+
+	m_stencilShader->bindProgram();
+
+	// Then draw stencil boxes ...
+	for (const MikanStencilBox* stencil : boxStencilList)
+	{
+		// Set the model matrix of stencil quad
+		const glm::mat4 xform = profileConfig->getBoxStencilWorldTransform(stencil);
+		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencil->box_x_size;
+		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencil->box_y_size;
+		const glm::vec3 z_axis = glm::vec3(xform[2]) * stencil->box_z_size;
+		const glm::vec3 position = glm::vec3(xform[3]);
+		const glm::mat4 modelMatrix =
+			glm::mat4(
+				glm::vec4(x_axis, 0.f),
+				glm::vec4(y_axis, 0.f),
+				glm::vec4(z_axis, 0.f),
+				glm::vec4(position, 1.f));
+
+		// Set the model-view-projection matrix on the stencil shader
+		m_stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
+
+		glBindVertexArray(m_stencilBoxVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6 * 6);
+		glBindVertexArray(0);
+	}
+
+	m_stencilShader->unbindProgram();
+
+	// Make sure you will no longer (over)write stencil values, even if any test succeeds
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	// Make sure we draw on the backbuffer again.
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
+	const GLenum stencilMode = (stencilConfig.stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
+	glStencilFunc(stencilMode, 1, 0xFF);
+
+	return true;
+}
+
+bool GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig)
+{
+	EASY_FUNCTION();
+
+	// Bail if we don't want any of this kind of stencil
+	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
+		return false;
+
+	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	std::unique_ptr<class GlModelResourceManager>& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
+
+	std::vector<const MikanStencilModelConfig*> modelStencilList;
+	MikanServer::getInstance()->getRelevantModelStencilList(
+		&stencilConfig.modelStencils,
+		modelStencilList);
+
+	if (modelStencilList.size() == 0)
+		return false;
+
+	// Add any missing stencil models to the model cache
+	for (const MikanStencilModelConfig* modelConfig : modelStencilList)
+	{
+		const MikanStencilID stencil_id = modelConfig->modelInfo.stencil_id;
+
+		if (m_stencilMeshCache.find(stencil_id) == m_stencilMeshCache.end())
+		{
+			// It's possible that the model path isn't valid, 
+			// in which case renderModelResource will be null.
+			// Go ahead an occupy a slot in the m_stencilMeshCache until
+			// the entry us explicitly cleared by flushStencilRenderModel.
+			GlRenderModelResource* renderModelResource =
+				modelResourceManager->fetchRenderModel(
+					modelConfig->modelPath,
+					getStencilModelVertexDefinition());
+
+			m_stencilMeshCache.insert({stencil_id, renderModelResource});
+		}
+	}
+
+	glClearStencil(0);
+	glStencilMask(0xFF);
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	// Do not draw any pixels on the back buffer
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+	// Enables testing AND writing functionalities
+	glEnable(GL_STENCIL_TEST);
+	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+	// Make every test succeed
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+
+	// Compute the view-projection matrix for the tracked video source
+	const glm::mat4 vpMatrix = m_videoSourceView->getCameraViewProjectionMatrix(m_cameraTrackingPuckView);
+
+	m_stencilShader->bindProgram();
+
+	// Then draw stencil models
+	for (const MikanStencilModelConfig* modelConfig : modelStencilList)
+	{
+		const MikanStencilID stencil_id = modelConfig->modelInfo.stencil_id;
+		auto it = m_stencilMeshCache.find(stencil_id);
+
+		if (it != m_stencilMeshCache.end())
+		{
+			GlRenderModelResource* renderModelResource = it->second;
+
+			if (renderModelResource != nullptr)
+			{
+				// Set the model matrix of stencil model
+				const glm::mat4 modelMatrix = profileConfig->getModelStencilWorldTransform(&modelConfig->modelInfo);
+
+				// Set the model-view-projection matrix on the stencil shader
+				m_stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
+
+				for (int meshIndex = 0; meshIndex < (int)renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
+				{
+					const GlTriangulatedMesh* mesh = renderModelResource->getTriangulatedMesh(meshIndex);
+
+					mesh->drawElements();
+				}
+			}
+		}
+	}
+
+	m_stencilShader->unbindProgram();
+
+	// Make sure you will no longer (over)write stencil values, even if any test succeeds
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	// Make sure we draw on the backbuffer again.
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
+	const GLenum stencilMode = (stencilConfig.stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
+	glStencilFunc(stencilMode, 1, 0xFF);
+
+	return true;
+}
+
+#if 0
 bool GlFrameCompositor::updateStencils()
 {
 	EASY_FUNCTION();
@@ -840,6 +1497,7 @@ bool GlFrameCompositor::updateStencils()
 
 	return true;
 }
+#endif
 
 void GlFrameCompositor::render() const
 {
@@ -903,6 +1561,10 @@ bool GlFrameCompositor::openVideoSource()
 		// The frame compositor will do the undistortion work in a shader
 		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_bgr);
 		m_videoDistortionView->setColorUndistortDisabled(true);
+
+		// Add the video textures to the color texture data source table
+		m_colorTextureSources.setValue("videoTexture", m_videoDistortionView->getVideoTexture());
+		m_colorTextureSources.setValue("distortionTexture", m_videoDistortionView->getVideoTexture());
 	}
 	else
 	{
@@ -915,6 +1577,10 @@ bool GlFrameCompositor::openVideoSource()
 
 void GlFrameCompositor::closeVideoSource()
 {
+	// Remove the video texture entries from the color texture data source table
+	m_colorTextureSources.removeValue("videoTexture");
+	m_colorTextureSources.removeValue("distortionTexture");
+
 	freeLayerFrameBuffer();
 	freeBGRVideoFrameBuffer();
 
@@ -940,144 +1606,152 @@ bool GlFrameCompositor::bindCameraVRTracker()
 	return m_cameraTrackingPuckView != nullptr;
 }
 
-void GlFrameCompositor::addLayer(
+bool GlFrameCompositor::addClientSource(
 	const std::string& clientId, 
 	const MikanClientInfo& clientInfo,
 	InterprocessRenderTargetReadAccessor* readAccessor)
 {
-	ProfileConfig* profile= App::getInstance()->getProfileConfig();
+	if (m_clientSources.hasValue(clientId))
+		return false;
 
-	GlFrameCompositor::Layer newLayer;
-	memset(&newLayer, 0, sizeof(GlFrameCompositor::Layer));
+	GlFrameCompositor::ClientSource* clientSource = new GlFrameCompositor::ClientSource;
+	memset(clientSource, 0, sizeof(GlFrameCompositor::ClientSource));
 
 	const MikanRenderTargetDescriptor& desc= readAccessor->getRenderTargetDescriptor();
-	const CompositorLayerConfig& layerConfig = m_config.findOrAddDefaultLayerConfig(clientInfo, desc);
-	newLayer.alphaMode = layerConfig.alphaMode;
-	newLayer.clientInfo = clientInfo;
-	newLayer.clientId = clientId;
-	newLayer.desc = desc;
-	newLayer.frameIndex = 0;
-	newLayer.bIsPendingRender = false;
+	clientSource->clientSourceIndex= m_clientSources.getNumEntries();
+	clientSource->clientId = clientId;
+	clientSource->clientInfo = clientInfo;
+	clientSource->desc = desc;
+	clientSource->frameIndex = 0;
 
 	switch (desc.color_buffer_type)
 	{
 	case MikanColorBuffer_RGB24:
-		newLayer.colorTexture = new GlTexture();
-		newLayer.colorTexture->setTextureFormat(GL_RGB);
-		newLayer.colorTexture->setBufferFormat(GL_RGB);
+		clientSource->colorTexture = new GlTexture();
+		clientSource->colorTexture->setTextureFormat(GL_RGB);
+		clientSource->colorTexture->setBufferFormat(GL_RGB);
 		break;
 	case MikanColorBuffer_RGBA32:
-		newLayer.colorTexture = new GlTexture();
-		newLayer.colorTexture->setTextureFormat(GL_RGBA);
-		newLayer.colorTexture->setBufferFormat(GL_RGBA);
+		clientSource->colorTexture = new GlTexture();
+		clientSource->colorTexture->setTextureFormat(GL_RGBA);
+		clientSource->colorTexture->setBufferFormat(GL_RGBA);
 		break;
 	}
 
-	if (newLayer.colorTexture != nullptr)
+	if (clientSource->colorTexture != nullptr)
 	{
-		newLayer.colorTexture->setSize(desc.width, desc.height);
-		newLayer.colorTexture->setGenerateMipMap(false);
-		newLayer.colorTexture->setPixelBufferObjectMode(
+		clientSource->colorTexture->setSize(desc.width, desc.height);
+		clientSource->colorTexture->setGenerateMipMap(false);
+		clientSource->colorTexture->setPixelBufferObjectMode(
 			desc.graphicsAPI == MikanClientGraphicsAPI_UNKNOWN 
 			? GlTexture::PixelBufferObjectMode::DoublePBOWrite
 			: GlTexture::PixelBufferObjectMode::NoPBO);
-		newLayer.colorTexture->createTexture();
+		clientSource->colorTexture->createTexture();
 
-		readAccessor->setColorTexture(newLayer.colorTexture);
+		readAccessor->setColorTexture(clientSource->colorTexture);
 	}
 
 	switch (desc.depth_buffer_type)
 	{
 	case MikanDepthBuffer_DEPTH16:
-		newLayer.depthTexture = new GlTexture();
-		newLayer.depthTexture->setTextureFormat(GL_DEPTH_COMPONENT16);
-		newLayer.depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
+		clientSource->depthTexture = new GlTexture();
+		clientSource->depthTexture->setTextureFormat(GL_DEPTH_COMPONENT16);
+		clientSource->depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
 		break;
 	case MikanDepthBuffer_DEPTH32:
-		newLayer.depthTexture = new GlTexture();
-		newLayer.depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
-		newLayer.depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
+		clientSource->depthTexture = new GlTexture();
+		clientSource->depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
+		clientSource->depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
 		break;
 	}
 
-	if (newLayer.depthTexture != nullptr)
+	if (clientSource->depthTexture != nullptr)
 	{
-		newLayer.depthTexture->setSize(desc.width, desc.height);
-		newLayer.depthTexture->setPixelBufferObjectMode(
+		clientSource->depthTexture->setSize(desc.width, desc.height);
+		clientSource->depthTexture->setPixelBufferObjectMode(
 			desc.graphicsAPI == MikanClientGraphicsAPI_UNKNOWN
 			? GlTexture::PixelBufferObjectMode::DoublePBOWrite
 			: GlTexture::PixelBufferObjectMode::NoPBO);
-		newLayer.depthTexture->createTexture();
+		clientSource->depthTexture->createTexture();
 
-		readAccessor->setDepthTexture(newLayer.depthTexture);
+		readAccessor->setDepthTexture(clientSource->depthTexture);
 	}
 
-	m_layers.push_back(newLayer);
+	// Add the client source to the data source table
+	m_clientSources.setValue(clientId, clientSource);
+
+	// If the client source has a valid color texture
+	// add it to the color texture data source table
+	if (clientSource->colorTexture != nullptr)
+	{
+		{
+			// Use standard naming based on client connection order 
+			// so that we can refer to the render texture data source in GlFrameCompositorConfig templates
+			char dataSourceName[32];
+			StringUtils::formatString(
+				dataSourceName, sizeof(dataSourceName), 
+				"clientRenderTexture_%d", clientSource->clientSourceIndex);
+
+			m_colorTextureSources.setValue(dataSourceName, clientSource->colorTexture);
+		}
+
+		{
+			// Use standard naming based on client connection order 
+			// so that we can refer to the color key data source in GlFrameCompositorConfig templates
+			char dataSourceName[32];
+			StringUtils::formatString(
+				dataSourceName, sizeof(dataSourceName),
+				"clientColorKey_%d", clientSource->clientSourceIndex);
+
+			const glm::vec3 color_key(desc.color_key.r, desc.color_key.g, desc.color_key.b);
+			m_float3Sources.setValue(dataSourceName, color_key);
+
+		}
+	}
+
+	return true;
 }
 
-void GlFrameCompositor::removeLayer(
+bool GlFrameCompositor::removeClientSource(
 	const std::string& clientId,
 	InterprocessRenderTargetReadAccessor* readAccessor)
 {
-	auto it =
-		std::find_if(
-			m_layers.begin(), m_layers.end(),
-			[&clientId](const GlFrameCompositor::Layer& elem) {
-		return elem.clientId == clientId;
-	});
+	GlFrameCompositor::ClientSource* clientSource = m_clientSources.getValueOrDefault(clientId, nullptr);
+	if (clientSource == nullptr)
+		return false;
 
-	if (it != m_layers.end())
+	if (clientSource->colorTexture != nullptr)
 	{
-		GlFrameCompositor::Layer& layer = *it;
+		clientSource->colorTexture->disposeTexture();
+		delete clientSource->colorTexture;
 
-		if (layer.colorTexture != nullptr)
-		{
-			layer.colorTexture->disposeTexture();
-			delete layer.colorTexture;
-
-			readAccessor->setColorTexture(nullptr);
-		}
-
-		if (layer.depthTexture != nullptr)
-		{
-			layer.depthTexture->disposeTexture();
-			delete layer.depthTexture;
-
-			readAccessor->setDepthTexture(nullptr);
-		}
-
-		m_layers.erase(it);
+		readAccessor->setColorTexture(nullptr);
 	}
-}
 
-eCompositorLayerAlphaMode GlFrameCompositor::getLayerAlphaMode(int layerIndex) const
-{
-	if (layerIndex >= 0 && layerIndex < (int)m_layers.size())
-		return m_layers[layerIndex].alphaMode;
-	else
-		return eCompositorLayerAlphaMode::INVALID;
-}
-
-void GlFrameCompositor::setLayerAlphaMode(int layerIndex, eCompositorLayerAlphaMode newAlphaMode)
-{
-	if (layerIndex >= 0 && layerIndex < (int)m_layers.size())
+	if (clientSource->depthTexture != nullptr)
 	{
-		Layer& layer = m_layers[layerIndex];
+		clientSource->depthTexture->disposeTexture();
+		delete clientSource->depthTexture;
 
-		if (newAlphaMode != layer.alphaMode)
-		{
-			layer.alphaMode = newAlphaMode;
-
-			CompositorLayerConfig* layerConfig = m_config.findLayerConfig(layer.clientInfo);
-			if (layerConfig != nullptr)
-			{
-				layerConfig->alphaMode = newAlphaMode;
-				m_config.save();
-			}
-		}
+		readAccessor->setDepthTexture(nullptr);
 	}
+
+	// Remove the client source entries from the data source tables
+	m_clientSources.removeValue(clientId);
+	m_colorTextureSources.removeValue(clientId);
+
+	// NOTE: There may still be layers that refer to this now invalid clientID but that is ok.
+	// We want to allow the existing layer config to work again if the client source reconnects.
+	// The existing layer will just stop drawing while the associated data sources are invalid.
+
+	delete clientSource;
+
+	return true;
 }
 
+void rebuildLayersFromConfig()
+{
+}
 
 bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16_t height)
 {
@@ -1377,14 +2051,14 @@ void GlFrameCompositor::onClientRenderTargetAllocated(
 	const MikanClientInfo& clientInfo,
 	InterprocessRenderTargetReadAccessor* readAccessor)
 {
-	addLayer(clientId, clientInfo, readAccessor);
+	addClientSource(clientId, clientInfo, readAccessor);
 }
 
 void GlFrameCompositor::onClientRenderTargetReleased(
 	const std::string& clientId,
 	InterprocessRenderTargetReadAccessor* readAccessor)
 {
-	removeLayer(clientId, readAccessor);
+	removeClientSource(clientId, readAccessor);
 }
 
 void GlFrameCompositor::onClientRenderTargetUpdated(
@@ -1395,26 +2069,19 @@ void GlFrameCompositor::onClientRenderTargetUpdated(
 
 	MIKAN_LOG_TRACE("GlFrameCompositor::onClientRenderTargetUpdated") << "Recv frame " << frameIndex;
 
-	auto it =
-		std::find_if(
-			m_layers.begin(), m_layers.end(),
-			[&clientId](const GlFrameCompositor::Layer& elem) {
-		return elem.clientId == clientId;
-	});
-
-	if (it != m_layers.end())
+	GlFrameCompositor::ClientSource* clientSource;	
+	if (m_clientSources.tryGetValue(clientId, clientSource))
 	{
-		GlFrameCompositor::Layer& layer = *it;
-
 		// Update the frame index
-		layer.frameIndex = frameIndex;
+		clientSource->frameIndex = frameIndex;
 
-		// Mark that the layer is no longer pending the render
-		//assert(layer.bIsPendingRender);
-		layer.bIsPendingRender = false;
+		// Mark that the client source is no longer pending the render
+		//assert(clientSource->bIsPendingRender);
+		clientSource->bIsPendingRender = false;
 	}
 }
 
+#if 0
 const GlProgramCode* GlFrameCompositor::getRGBUndistortionFrameShaderCode()
 {
 	static GlProgramCode x_shaderCode = GlProgramCode(
@@ -1456,11 +2123,12 @@ const GlProgramCode* GlFrameCompositor::getRGBUndistortionFrameShaderCode()
 
 	return &x_shaderCode;
 }
+#endif 
 
 const GlProgramCode* GlFrameCompositor::getRGBFrameShaderCode()
 {
 	static GlProgramCode x_shaderCode = GlProgramCode(
-		"RGB Frame Shader Code",
+		"Internal RGB Frame Shader Code",
 		// vertex shader
 		R""""(
 			#version 330 core
@@ -1498,7 +2166,7 @@ const GlProgramCode* GlFrameCompositor::getRGBFrameShaderCode()
 const GlProgramCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 {
 	static GlProgramCode x_shaderCode = GlProgramCode(
-		"BGR Frame Shader Code",
+		"Internal BGR Frame Shader Code",
 		// vertex shader
 		R""""(
 			#version 330 core
@@ -1533,6 +2201,7 @@ const GlProgramCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 	return &x_shaderCode;
 }
 
+#if 0
 const GlProgramCode* GlFrameCompositor::getRGBColorKeyLayerShaderCode()
 {
 	static GlProgramCode x_shaderCode = GlProgramCode(
@@ -1611,11 +2280,12 @@ const GlProgramCode* GlFrameCompositor::getRGBALayerShaderCode()
 
 	return &x_shaderCode;
 }
+#endif
 
 const GlProgramCode* GlFrameCompositor::getStencilShaderCode()
 {
 	static GlProgramCode x_shaderCode = GlProgramCode(
-		"Stencil Shader Code",
+		"Internal Stencil Shader Code",
 		// vertex shader
 		R""""(
 			#version 330 core
@@ -1638,7 +2308,7 @@ const GlProgramCode* GlFrameCompositor::getStencilShaderCode()
 				FragColor = vec4(1, 1, 1, 1);
 			}
 			)"""")
-		.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix);
 
 	return &x_shaderCode;
 }

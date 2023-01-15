@@ -1,0 +1,28 @@
+{
+    "layers":[
+        {
+            "blendMode": "blendOff",
+            "verticalFlip": true,
+            "shaderConfig": {
+                "materialName": "rgbUndistortionFrame",
+                "textureSourceMap": {
+                    "rgbTexture": "videoTexture",
+                    "distortion": "distortionTexture"
+                }
+            }
+        },
+        {
+            "blendMode": "blendOn",
+            "verticalFlip": false,
+            "shaderConfig": {
+                "materialName": "rgbColorKeyFrame",
+                "float3SourceMap":{
+                    "colorKey": "clientColorKey_0"
+                },
+                "textureSourceMap": {
+                    "colorKeyTexture": "clientRenderTexture_0"                  
+                }
+            }
+        }
+    ]
+}

@@ -76,11 +76,17 @@ bool GlProgramCode::loadFromConfig(const GlProgramConfig* config)
 {
 	bool bSuccess= true;
 
-	m_filename= config->getConfigPath();
+	m_filename = config->getLoadedConfigPath();
+	
+	std::filesystem::path shaderFolderPath = m_filename;
+	shaderFolderPath.remove_filename();
 
 	try
 	{
-		std::ifstream t(config->vertexShaderPath.string());
+		std::filesystem::path vertexShaderPath = shaderFolderPath;
+		vertexShaderPath/= config->vertexShaderPath;
+
+		std::ifstream t(vertexShaderPath.string());
 		std::stringstream buffer;
 		buffer << t.rdbuf();
 		m_vertexShaderCode= buffer.str();
@@ -95,7 +101,10 @@ bool GlProgramCode::loadFromConfig(const GlProgramConfig* config)
 
 	try
 	{
-		std::ifstream t(config->fragmentShaderPath.string());
+		std::filesystem::path fragmentShaderPath = shaderFolderPath;
+		fragmentShaderPath /= config->fragmentShaderPath;
+
+		std::ifstream t(fragmentShaderPath.string());
 		std::stringstream buffer;
 		buffer << t.rdbuf();
 		m_framementShaderCode= buffer.str();
@@ -144,12 +153,140 @@ GlProgram::~GlProgram()
 	deleteProgram();
 }
 
+bool GlProgram::getUniformSemantic(const std::string uniformName, eUniformSemantic& outSemantic) const
+{
+	auto it= m_uniformLocationMap.find(uniformName);
+	if (it != m_uniformLocationMap.end())
+	{
+		outSemantic= it->second.semantic;
+		return true;
+	}
+
+	return false;
+}
+
+eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic)
+{
+	eUniformDataType dataType= eUniformDataType::INVALID;
+
+	switch (semantic)
+	{
+		case eUniformSemantic::transformMatrix:
+		case eUniformSemantic::modelViewProjectionMatrix:
+			dataType= eUniformDataType::datatype_mat4;
+			break;
+		case eUniformSemantic::diffuseColorRGBA:
+			dataType= eUniformDataType::datatype_float4;
+			break;
+		case eUniformSemantic::diffuseColorRGB:
+			dataType= eUniformDataType::datatype_float3;
+			break;
+		case eUniformSemantic::screenPosition:
+			dataType= eUniformDataType::datatype_float2;
+			break;
+		case eUniformSemantic::floatConstant0:
+		case eUniformSemantic::floatConstant1:
+		case eUniformSemantic::floatConstant2:
+		case eUniformSemantic::floatConstant3:
+		case eUniformSemantic::texture0:
+		case eUniformSemantic::texture1:
+		case eUniformSemantic::texture2:
+		case eUniformSemantic::texture3:
+		case eUniformSemantic::texture4:
+		case eUniformSemantic::texture5:
+		case eUniformSemantic::texture6:
+		case eUniformSemantic::texture7:
+		case eUniformSemantic::texture8:
+		case eUniformSemantic::texture9:
+		case eUniformSemantic::texture10:
+		case eUniformSemantic::texture11:
+		case eUniformSemantic::texture12:
+		case eUniformSemantic::texture13:
+		case eUniformSemantic::texture14:
+		case eUniformSemantic::texture15:
+		case eUniformSemantic::texture16:
+		case eUniformSemantic::texture17:
+		case eUniformSemantic::texture18:
+		case eUniformSemantic::texture19:
+		case eUniformSemantic::texture20:
+		case eUniformSemantic::texture21:
+		case eUniformSemantic::texture22:
+		case eUniformSemantic::texture23:
+		case eUniformSemantic::texture24:
+		case eUniformSemantic::texture25:
+		case eUniformSemantic::texture26:
+		case eUniformSemantic::texture27:
+		case eUniformSemantic::texture28:
+		case eUniformSemantic::texture29:
+		case eUniformSemantic::texture30:
+		case eUniformSemantic::texture31:
+			dataType= eUniformDataType::datatype_texture;
+			break;
+		default:
+			assert(false);
+	}
+
+	return dataType;
+}
+
+bool GlProgram::getUniformDataType(const std::string uniformName, eUniformDataType& outDataType) const
+{
+	eUniformSemantic semantic;
+	if (getUniformSemantic(uniformName, semantic))
+	{
+		outDataType= GlProgram::getUniformSemanticDataType(semantic);
+		return true;
+	}
+
+	return false;
+}
+
+bool GlProgram::getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::string& outUniformName) const
+{
+	for (auto it = getUniformBegin(); it != getUniformEnd(); ++it)
+	{
+		if (it->second.semantic == semantic)
+		{
+			outUniformName= it->first;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool GlProgram::getTextureUniformUnit(eUniformSemantic semantic, int& outTextureUnit)
+{
+	const int enumValue = (int)semantic;
+	const int startTextureIndex = (int)eUniformSemantic::texture0;
+	const int endTextureIndex = (int)eUniformSemantic::texture31;
+
+	if (enumValue >= startTextureIndex && enumValue < endTextureIndex)
+	{
+		outTextureUnit= enumValue - startTextureIndex;
+		return true;
+	}
+
+	return false;
+}
+
+bool GlProgram::getUniformTextureUnit(const std::string uniformName, int& outTextureUnit) const
+{
+	eUniformSemantic semantic;
+	if (getUniformSemantic(uniformName, semantic) &&
+		getTextureUniformUnit(semantic, outTextureUnit))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 bool GlProgram::setMatrix4x4Uniform(
-	const eUniformSemantic semantic,
+	const std::string uniformName,
 	const glm::mat4& mat)
 {
-	assert(semantic == eUniformSemantic::transformMatrix || semantic == eUniformSemantic::modelViewProjectionMatrix);
-	auto iter= m_uniformLocationMap.find(semantic);
+	auto iter= m_uniformLocationMap.find(uniformName);
 	if (iter != m_uniformLocationMap.end())
 	{
 		GLint uniformId = iter->second.locationId;
@@ -160,11 +297,10 @@ bool GlProgram::setMatrix4x4Uniform(
 }
 
 bool GlProgram::setFloatUniform(
-	const eUniformSemantic semantic,
+	const std::string uniformName,
 	const float value)
 {
-	assert(semantic >= eUniformSemantic::floatConstant0 && semantic <= eUniformSemantic::floatConstant3);
-	auto iter = m_uniformLocationMap.find(semantic);
+	auto iter = m_uniformLocationMap.find(uniformName);
 	if (iter != m_uniformLocationMap.end())
 	{
 		GLint uniformId = iter->second.locationId;
@@ -175,11 +311,10 @@ bool GlProgram::setFloatUniform(
 }
 
 bool GlProgram::setVector2Uniform(
-	const eUniformSemantic semantic, 
+	const std::string uniformName,
 	const glm::vec2& vec)
 {
-	assert(semantic == eUniformSemantic::screenPosition);
-	auto iter = m_uniformLocationMap.find(semantic);
+	auto iter = m_uniformLocationMap.find(uniformName);
 	if (iter != m_uniformLocationMap.end())
 	{
 		GLint uniformId = iter->second.locationId;
@@ -190,11 +325,10 @@ bool GlProgram::setVector2Uniform(
 }
 
 bool GlProgram::setVector3Uniform(
-	const eUniformSemantic semantic, 
+	const std::string uniformName,
 	const glm::vec3& vec)
 {
-	assert(semantic == eUniformSemantic::diffuseColorRGB);
-	auto iter = m_uniformLocationMap.find(semantic);
+	auto iter = m_uniformLocationMap.find(uniformName);
 	if (iter != m_uniformLocationMap.end())
 	{
 		GLint uniformId = iter->second.locationId;
@@ -205,11 +339,10 @@ bool GlProgram::setVector3Uniform(
 }
 
 bool GlProgram::setVector4Uniform(
-	const eUniformSemantic semantic,
+	const std::string uniformName,
 	const glm::vec4& vec)
 {
-	assert(semantic == eUniformSemantic::diffuseColorRGBA);
-	auto iter = m_uniformLocationMap.find(semantic);
+	auto iter = m_uniformLocationMap.find(uniformName);
 	if (iter != m_uniformLocationMap.end())
 	{
 		GLint uniformId = iter->second.locationId;
@@ -220,17 +353,19 @@ bool GlProgram::setVector4Uniform(
 }
 
 bool GlProgram::setTextureUniform(
-	const eUniformSemantic semantic)
+	const std::string uniformName)
 {
-	assert(semantic >= eUniformSemantic::texture0 && semantic <= eUniformSemantic::texture31);
-	auto iter = m_uniformLocationMap.find(semantic);
+	auto iter = m_uniformLocationMap.find(uniformName);
 	if (iter != m_uniformLocationMap.end())
 	{
-		GLint uniformId = iter->second.locationId;
-		GLint textureUnit = (GLint)semantic - (GLint)eUniformSemantic::texture0;
+		GLint textureUnit;
+		if (getTextureUniformUnit(iter->second.semantic, textureUnit))
+		{
+			const GLint uniformId = iter->second.locationId;
 
-		glUniform1i(uniformId, textureUnit);
-		return true;
+			glUniform1i(uniformId, textureUnit);
+			return true;
+		}
 	}
 
 	return false;
@@ -334,9 +469,9 @@ bool GlProgram::createProgram()
 			if (uniformId != -1)
 			{
 				m_uniformLocationMap.insert({
-					codeUniform.semantic, // key=eUniformSemantic
-					{ codeUniform.name, codeUniform.semantic, uniformId } // value=GlProgram::Uniform
-					});
+					codeUniform.name, // key=Uniform name
+					{ codeUniform.semantic, uniformId } // value=GlProgramUniform
+				});
 			}
 			else
 			{

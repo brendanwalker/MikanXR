@@ -5,6 +5,8 @@
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
+#include <string>
+
 class GlLineRenderer
 {
 public:
@@ -77,6 +79,7 @@ protected:
 	};
 
 	class GlProgram* m_program = nullptr;
+	std::string m_modelViewUniformName;
 
 	PointBufferState m_points3d;
 	PointBufferState m_lines3d;

@@ -217,7 +217,7 @@ GlTexture* SteamVRRenderModelResource::createTextureResource(
 
 GlMaterial* SteamVRRenderModelResource::createMaterial(
 	const GlProgramCode* code,
-	const GlTexture* texture)
+	GlTexture* texture)
 {
 	GlShaderCache* resourceManager = GlShaderCache::getInstance();
 	GlProgram* program = resourceManager->fetchCompiledGlProgram(code);
@@ -229,7 +229,7 @@ GlMaterial* SteamVRRenderModelResource::createMaterial(
 
 		if (texture)
 		{
-			material->setTexture(texture);
+			material->setTextureBySemantic(eUniformSemantic::texture0, texture);
 		}
 
 		return material;

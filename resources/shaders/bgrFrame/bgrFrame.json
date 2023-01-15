@@ -1,9 +1,0 @@
-{
-    "materialName": "bgrFrame",
-    "vertexShaderPath": "bgrFrame.vert",
-    "fragmentShaderPath": "bgrFrame.frag",
-    "uniforms":
-    {
-        "rgbTexture": "texture0"
-    }
-}

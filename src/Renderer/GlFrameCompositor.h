@@ -1,9 +1,12 @@
 #pragma once
 
-#include <MikanClientTypes.h>
-#include <MulticastDelegate.h>
-#include "CommonConfig.h"
+#include "MikanClientTypes.h"
+#include "MulticastDelegate.h"
+#include "NamedValueTable.h"
+#include "GlFrameCompositorConfig.h"
 #include "FrameCompositorConstants.h"
+
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <map>
@@ -12,6 +15,7 @@
 #include <glm/ext/matrix_float4x4.hpp>
 #include <stdint.h>
 
+class GlMaterial;
 class GlProgram;
 class GlTexture;
 class GlTriangulatedMesh;
@@ -23,47 +27,27 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
-struct CompositorLayerConfig
-{
-	const configuru::Config writeToJSON() const;
-	void readFromJSON(const configuru::Config& pt);
-
-	std::string appName;
-	eCompositorLayerAlphaMode alphaMode;
-};
-
-class GlFrameCompositorConfig : public CommonConfig
-{
-public:
-	GlFrameCompositorConfig(const std::string& fnamebase = "FrameCompositorConfig")
-	: CommonConfig(fnamebase)
-	{}
-
-	virtual const configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-
-	const CompositorLayerConfig& findOrAddDefaultLayerConfig(
-		const MikanClientInfo& clientInfo,
-		const MikanRenderTargetDescriptor& renderTargetDesc);
-	CompositorLayerConfig* findLayerConfig(const MikanClientInfo& clientInfo);
-
-	std::vector<CompositorLayerConfig> layers;
-};
-
 class GlFrameCompositor
 {
 public:
 
-	struct Layer
+	struct ClientSource
 	{
+		int clientSourceIndex;
 		std::string clientId;
 		MikanClientInfo clientInfo;
 		MikanRenderTargetDescriptor desc;
-		eCompositorLayerAlphaMode alphaMode;
 		GlTexture* colorTexture;
 		GlTexture* depthTexture;
 		uint64_t frameIndex;
 		bool bIsPendingRender;
+	};
+
+	struct Layer
+	{
+		int layerIndex;
+		GlMaterial* layerMaterial;
+		uint64_t frameIndex;
 	};
 
 	static GlFrameCompositor* getInstance() { return m_instance; }
@@ -73,6 +57,13 @@ public:
 
 	bool startup();
 	void shutdown();
+
+	void reloadAllCompositorConfigurations();
+	std::vector<std::string> getConfigurationNames() const;
+	const std::string& getCurrentConfigurationName() const;
+	bool setConfiguration(const std::string& configurationName);
+
+	void reloadAllCompositorShaders();
 
 	bool start();
 	bool getIsRunning() const { return m_bIsRunning; }
@@ -86,18 +77,22 @@ public:
 
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
+	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 	inline const std::vector<Layer>& getLayers() const { return m_layers; }
+	inline const CompositorLayerConfig* getLayerConfig(int layerIndex) { 
+		if (layerIndex >= 0 && layerIndex < (int)m_config.layers.size())
+			return &m_config.layers[layerIndex]; 
+		else
+			return nullptr;
+	}
 	inline const GlTexture* getCompositedFrameTexture() const { return m_compositedFrame; }
 	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
 	inline GlTexture* getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
 	void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
-	eCompositorLayerAlphaMode getLayerAlphaMode(int layerIndex) const;
-	void setLayerAlphaMode(int layerIndex, eCompositorLayerAlphaMode alphaMode);
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 
 protected:
-
 	bool openVideoSource();
 	void closeVideoSource();
 
@@ -112,16 +107,19 @@ protected:
 	void createVertexBuffers();
 	void freeVertexBuffers();
 
-	void addLayer(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
-	void removeLayer(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
+	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
+	bool removeClientSource(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
 
 	void updateCompositeFrame();
-	bool updateStencils();
-	static const class GlProgramCode* getRGBUndistortionFrameShaderCode();
+	bool updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig);
+	bool updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig);
+	bool updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig);
+
+	//static const class GlProgramCode* getRGBUndistortionFrameShaderCode();
 	static const class GlProgramCode* getRGBFrameShaderCode();
 	static const class GlProgramCode* getRGBtoBGRVideoFrameShaderCode();
-	static const class GlProgramCode* getRGBColorKeyLayerShaderCode();
-	static const class GlProgramCode* getRGBALayerShaderCode();
+	//static const class GlProgramCode* getRGBColorKeyLayerShaderCode();
+	//static const class GlProgramCode* getRGBALayerShaderCode();
 	static const class GlProgramCode* getStencilShaderCode();
 	static const struct GlVertexDefinition* getStencilModelVertexDefinition();
 
@@ -131,6 +129,16 @@ protected:
 	void onClientRenderTargetUpdated(const std::string& clientId, uint64_t frameIndex);
 
 private:
+	void rebuildLayersFromConfig();
+	void clearAllCompositorConfigurations();
+
+	bool refreshLayerMaterialFloatValues(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool refreshLayerMaterialFloat2Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool refreshLayerMaterialFloat3Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool refreshLayerMaterialFloat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool refreshLayerMaterialMat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool refreshLayerMaterialTextures(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+
 	static GlFrameCompositor* m_instance;
 
 	GlFrameCompositorConfig m_config;
@@ -154,14 +162,27 @@ private:
 	unsigned int m_stencilQuadVAO = 0, m_stencilQuadVBO = 0;
 	unsigned int m_stencilBoxVAO = 0, m_stencilBoxVBO = 0;
 	bool m_bGenerateBGRVideoTexture = false;
-	GlProgram* m_rgbUndistortionFrameShader= nullptr;
+	//GlProgram* m_rgbUndistortionFrameShader= nullptr;
 	GlProgram* m_rgbFrameShader = nullptr;
-	GlProgram* m_rgbToBgrFrameShader = nullptr;
-	GlProgram* m_rgbColorKeyLayerShader = nullptr;
-	GlProgram* m_rgbaLayerShader = nullptr;
-	GlProgram* m_stencilShader = nullptr;
+	GlProgram* m_rgbToBgrFrameShader = nullptr; // Keep
+	//GlProgram* m_rgbColorKeyLayerShader = nullptr;
+	//GlProgram* m_rgbaLayerShader = nullptr;
+	GlProgram* m_stencilShader = nullptr; // Keep
 	GlTexture* m_compositedFrame = nullptr;
 	GlTexture* m_bgrVideoFrame = nullptr; // BGR, flipped video frame
+
+	// List of compositor configurations from resources/config/compositor
+	NamedValueTable<GlFrameCompositorConfig*> m_compositorConfigurations;
+
+	// Data sources used by the compositor layers
+	NamedValueTable<float> m_floatSources;
+	NamedValueTable<glm::vec2> m_float2Sources;
+	NamedValueTable<glm::vec3> m_float3Sources;
+	NamedValueTable<glm::vec4> m_float4Sources;
+	NamedValueTable<glm::mat4> m_mat4Sources;
+	NamedValueTable<GlTexture*> m_colorTextureSources;
+	NamedValueTable<GlMaterial*> m_materialSources;
+	NamedValueTable<ClientSource*> m_clientSources;
 
 	bool m_bIsRunning= false;
 	uint64_t m_lastReadVideoFrameIndex = 0;

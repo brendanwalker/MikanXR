@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glm/ext/vector_float4.hpp"
+#include <string>
 
 class GlMaterialInstance
 {
@@ -17,4 +18,5 @@ public:
 private:
 	const class GlMaterial* m_material = nullptr;
 	glm::vec4 m_diffuseColor;
+	std::string m_diffuseColorUniformName;
 };

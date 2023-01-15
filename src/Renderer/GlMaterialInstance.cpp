@@ -12,9 +12,14 @@ GlMaterialInstance::GlMaterialInstance(const GlMaterial* material)
 	: m_material(material)
 	, m_diffuseColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f))
 {
+	m_material->getProgram()->getFirstUniformNameOfSemantic(
+		eUniformSemantic::diffuseColorRGBA, 
+		m_diffuseColorUniformName);
 }
 
 void GlMaterialInstance::applyMaterialInstanceParameters()
 {
-	m_material->getProgram()->setVector4Uniform(eUniformSemantic::diffuseColorRGBA, m_diffuseColor);
+	m_material->getProgram()->setVector4Uniform(
+		m_diffuseColorUniformName, 
+		m_diffuseColor);
 }

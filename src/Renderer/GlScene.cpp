@@ -82,8 +82,13 @@ void GlScene::render() const
 				{
 					// Set the ModelViewProjection matrix transform on the shader program
 					const glm::mat4 mvpMatrix = VPMatrix * instance->getModelMatrix();
-					material->getProgram()->setMatrix4x4Uniform(
-						eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);
+
+					GlProgram* program= material->getProgram();
+					std::string uniformName;
+					if (program->getFirstUniformNameOfSemantic(eUniformSemantic::modelViewProjectionMatrix, uniformName))
+					{
+						material->getProgram()->setMatrix4x4Uniform(uniformName, mvpMatrix);
+					}
 
 					// Apply other material instance parameters (color, etc)
 					instance->getMaterialInstance()->applyMaterialInstanceParameters();

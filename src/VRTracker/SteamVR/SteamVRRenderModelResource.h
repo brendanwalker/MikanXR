@@ -32,7 +32,7 @@ protected:
 		const struct vr::RenderModel_TextureMap_t* steamvrTexture);
 	class GlMaterial* createMaterial(
 		const class GlProgramCode* code, 
-		const class GlTexture* texture);
+		class GlTexture* texture);
 	class GlTriangulatedMesh* createTriangulatedMeshResource(
 		const std::string& meshName,
 		const struct GlVertexDefinition* vertexDefinition,

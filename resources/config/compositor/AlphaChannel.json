@@ -1,0 +1,26 @@
+{
+    "name": "Alpha Channel",
+    "layers":[
+        {
+            "blendMode": "blendOff",
+            "verticalFlip": true,
+            "shaderConfig": {
+                "materialName": "rgbUndistortionFrame",
+                "textureSourceMap": {
+                    "rgbTexture": "videoTexture",
+                    "distortion": "distortionTexture"
+                }
+            }
+        },
+        {
+            "blendMode": "blendOn",
+            "verticalFlip": false,
+            "shaderConfig": {
+                "materialName": "rgbaFrame",
+                "textureSourceMap": {
+                    "rgbaTexture": "clientRenderTexture_0"
+                }
+            }
+        }
+    ]
+}

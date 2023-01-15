@@ -44,16 +44,18 @@ public:
 
 	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
 	void getRelevantQuadStencilList(
+		const std::vector<MikanStencilID>* allowedStencils,
 		const glm::vec3& cameraPosition, 
 		const glm::vec3& cameraForward,
 		std::vector<const MikanStencilQuad*>& outStencilList) const;
 	void getRelevantBoxStencilList(
+		const std::vector<MikanStencilID>* allowedStencils,
 		const glm::vec3& cameraPosition,
 		const glm::vec3& cameraForward,
 		std::vector<const MikanStencilBox*>& outStencilList) const;
 	void getRelevantModelStencilList(
+		const std::vector<MikanStencilID>* allowedStencils,
 		std::vector<const struct MikanStencilModelConfig*>& outStencilList) const;
-
 
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientConnected;

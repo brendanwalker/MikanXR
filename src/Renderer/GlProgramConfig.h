@@ -5,12 +5,11 @@
 #include <string>
 #include <map>
 
-struct GlProgramConfig : public CommonConfig
+class GlProgramConfig : public CommonConfig
 {
-	GlProgramConfig(const std::string &program_name);
-
-	const configuru::Config writeToJSON() const;
-	void readFromJSON(const configuru::Config& pt);
+public:
+	virtual const configuru::Config writeToJSON() override;
+	virtual void readFromJSON(const configuru::Config& pt) override;
 
 	std::string materialName;
 	std::filesystem::path vertexShaderPath;

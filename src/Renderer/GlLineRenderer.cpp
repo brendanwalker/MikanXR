@@ -89,6 +89,12 @@ bool GlLineRenderer::startup()
 		return false;
 	}
 
+	if (!m_program->getFirstUniformNameOfSemantic(eUniformSemantic::modelViewProjectionMatrix, m_modelViewUniformName))
+	{
+		MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to find model view projection uniform";
+		return false;
+	}
+
 	m_points2d.createGlBufferState();
 	m_lines2d.createGlBufferState();
 
@@ -116,7 +122,7 @@ void GlLineRenderer::render()
 			{
 				const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-				m_program->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, cameraVPMatrix);
+				m_program->setMatrix4x4Uniform(m_modelViewUniformName, cameraVPMatrix);
 
 				m_points3d.drawGlBufferState(GL_POINTS);
 				m_lines3d.drawGlBufferState(GL_LINES);
@@ -129,7 +135,7 @@ void GlLineRenderer::render()
 			const float windowHeight = renderer->getSDLWindowHeight();
 			const glm::mat4 orthoMat = glm::ortho(0.f, windowWidth, windowHeight, 0.0f, 1.0f, -1.0f);
 
-			m_program->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, orthoMat);
+			m_program->setMatrix4x4Uniform(m_modelViewUniformName, orthoMat);
 
 			// disable the depth buffer to allow overdraw 
 			glDisable(GL_DEPTH_TEST);

@@ -7,6 +7,9 @@
 #include "Renderer.h"
 #include "Logger.h"
 
+#define WIREFRAME_MVP_MATRIX_UNIFORM_NAME	"mvpMatrix"
+#define WIREFRAME_COLOR_UNIFORM_NAME		"wireframeColor"
+
 GlWireframeMesh::GlWireframeMesh(
 	std::string name,
 	const uint8_t* vertexData,
@@ -127,8 +130,8 @@ const GlProgramCode* GlWireframeMesh::getShaderCode()
 			out_FragColor = v_Color;
 		}
 		)"""")
-		.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
-		.addUniform("wireframeColor", eUniformSemantic::diffuseColorRGB);
+		.addUniform(WIREFRAME_MVP_MATRIX_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix)
+		.addUniform(WIREFRAME_COLOR_UNIFORM_NAME, eUniformSemantic::diffuseColorRGB);
 
 	return &x_shaderCode;
 }
@@ -168,8 +171,8 @@ void drawTransformedWireframeMesh(
 	{
 		const glm::mat4 vpMatrix = camera->getViewProjectionMatrix();
 
-		shader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * transform);
-		shader->setVector3Uniform(eUniformSemantic::diffuseColorRGB, color);
+		shader->setMatrix4x4Uniform(WIREFRAME_MVP_MATRIX_UNIFORM_NAME, vpMatrix * transform);
+		shader->setVector3Uniform(WIREFRAME_COLOR_UNIFORM_NAME, color);
 
 		wireframeMesh->drawElements();
 	}

@@ -117,8 +117,8 @@ void AppStage_Compositor::enter()
 
 		// Init Layers UI
 		m_compositorLayersModel->init(context, m_frameCompositor);
-		m_compositorLayersModel->OnLayerAlphaModeChangedEvent = MakeDelegate(this, &AppStage_Compositor::onLayerAlphaModeChangedEvent);
-		m_compositorLayersModel->OnScreenshotLayerEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotLayerEvent);
+		m_compositorLayersModel->OnCompositorConfigChangedEvent = MakeDelegate(this, &AppStage_Compositor::onCompositorConfigChangedEvent);
+		m_compositorLayersModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
 		m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
 		m_compositiorLayersView->Show();
 
@@ -316,20 +316,21 @@ void AppStage_Compositor::onToggleModelStencilsWindowEvent()
 }
 
 // Compositor Layers UI Events
-void AppStage_Compositor::onLayerAlphaModeChangedEvent(int layerIndex, eCompositorLayerAlphaMode alphaMode)
+void AppStage_Compositor::onCompositorConfigChangedEvent(const std::string& configName)
 {
-	m_frameCompositor->setLayerAlphaMode(layerIndex, alphaMode);
+	m_frameCompositor->setConfiguration(configName);
 }
 
-void AppStage_Compositor::onScreenshotLayerEvent(int layerIndex)
+void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
 {
-	const std::vector<GlFrameCompositor::Layer>& layers = m_frameCompositor->getLayers();
-	if (layerIndex >= 0 && layerIndex < (int)layers.size())
-	{
-		const GlFrameCompositor::Layer& layer = layers[layerIndex];
-		if (layer.colorTexture != nullptr)
+	const NamedValueTable<GlFrameCompositor::ClientSource*>& clientSources = m_frameCompositor->getClientSources();
+
+	GlFrameCompositor::ClientSource* clientSource= nullptr;
+	if (clientSources.tryGetValue(clientSourceName, clientSource))
+	{		
+		if (clientSource->colorTexture != nullptr)
 		{
-			saveTextureToPNG(layer.colorTexture, "layerScreenshot.png");
+			saveTextureToPNG(clientSource->colorTexture, "layerScreenshot.png");
 		}
 	}
 }
@@ -554,7 +555,7 @@ void AppStage_Compositor::debugRenderStencils() const
 
 	// Render all stencil quads in view of the tracked camera
 	std::vector<const MikanStencilQuad*> quadStencilList;
-	MikanServer::getInstance()->getRelevantQuadStencilList(cameraPosition, cameraForward, quadStencilList);
+	MikanServer::getInstance()->getRelevantQuadStencilList(nullptr, cameraPosition, cameraForward, quadStencilList);
 	for (const MikanStencilQuad* stencil : quadStencilList)
 	{
 		if (!stencil->is_disabled && stencil->is_double_sided)
@@ -570,7 +571,7 @@ void AppStage_Compositor::debugRenderStencils() const
 
 	// Render all stencil boxes in view of the tracked camera
 	std::vector<const MikanStencilBox*> boxStencilList;
-	MikanServer::getInstance()->getRelevantBoxStencilList(cameraPosition, cameraForward, boxStencilList);
+	MikanServer::getInstance()->getRelevantBoxStencilList(nullptr, cameraPosition, cameraForward, boxStencilList);
 	for (const MikanStencilBox* stencil : boxStencilList)
 	{
 		if (!stencil->is_disabled)
@@ -587,7 +588,7 @@ void AppStage_Compositor::debugRenderStencils() const
 
 	// Render all relevant stencil models
 	std::vector<const MikanStencilModelConfig*> modelStencilList;
-	MikanServer::getInstance()->getRelevantModelStencilList(modelStencilList);
+	MikanServer::getInstance()->getRelevantModelStencilList(nullptr, modelStencilList);
 	for (const MikanStencilModelConfig* stencil : modelStencilList)
 	{
 		if (!stencil->modelInfo.is_disabled)

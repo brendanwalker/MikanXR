@@ -17,21 +17,34 @@
 	</head>
 	<body template="window">
         <panel id="controls" data-model="compositor_layers">
+            <h2>Layers</h2>
+            <div data-if="configuration_names.size > 0">
+                <select id="select" name="config_select" data-value="current_configuration" data-event-change="set_configuration()">
+                    <option data-for="config_name : configuration_names" data-value="current_configuration">{{config_name}}</option>
+                </select>
+            </div>
+            <div data-if="configuration_names.size == 0">
+                <label>No Configurations</label>
+            </div>            
 			<div class="picker" data-if="layers.size > 0">
 				<div data-for="layer : layers">
-                    <label>Layer #{{it_index}}: {{layer.app_name}}</label>
-                    <br/>
-                    <div>
-                        <select id="select" name="alpha_mode_select" data-value="layer.alpha_mode" data-event-change="set_layer_alpha_mode(it_index)">
-                            <option data-for="alpha_mode : alpha_modes" data-value="alpha_mode">{{alpha_mode}}</option>
-                        </select>
-                    </div>            
-                    <button data-event-click="screenshot(it_index)">Screenshot</button>
+                    <label>Layer #{{layer.layer_index}}: {{layer.material_name}}</label>
 				</div>
 			</div>
             <div data-if="layers.size == 0">
-                <label>No connected clients</label>
+                <label>No layers</label>
             </div>
+            <h2>Clients</h2>
+			<div class="picker" data-if="layers.size > 0">
+				<div data-for="client : clients">
+                    <label>Client #{{it_index}}: {{client.app_name}}</label>
+                    <br/>    
+                    <button data-event-click="screenshot(it_index)">Screenshot</button>
+				</div>        
+            </div>
+            <div data-if="clients.size == 0">
+                <label>No connected clients</label>
+            </div>            
         </panel>
     </body>
 </rml>

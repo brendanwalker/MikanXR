@@ -454,6 +454,7 @@ void MikanServer::getConnectedClientInfoList(std::vector<MikanClientConnectionIn
 }
 
 void MikanServer::getRelevantQuadStencilList(
+	const std::vector<MikanStencilID>* allowedStencils,
 	const glm::vec3& cameraPosition,
 	const glm::vec3& cameraForward,
 	std::vector<const MikanStencilQuad*>& outStencilList) const
@@ -463,7 +464,21 @@ void MikanServer::getRelevantQuadStencilList(
 	outStencilList.clear();
 	for (const MikanStencilQuad& stencil : profile->quadStencilList)
 	{
-		if (!stencil.is_disabled)
+		if (stencil.is_disabled)
+			continue;
+
+		// If there is an active allow list, make sure stencil is on it
+		if (allowedStencils != nullptr)
+		{
+			if (std::find(
+					allowedStencils->begin(), allowedStencils->end(), 
+					stencil.stencil_id) 
+				== allowedStencils->end())
+			{
+				continue;
+			}
+		}
+
 		{
 			const glm::mat4 worldXform= profile->getQuadStencilWorldTransform(&stencil);
 			const glm::vec3 stencilCenter= glm::vec3(worldXform[3]); // position is 3rd column
@@ -482,6 +497,7 @@ void MikanServer::getRelevantQuadStencilList(
 }
 
 void MikanServer::getRelevantBoxStencilList(
+	const std::vector<MikanStencilID>* allowedStencils,
 	const glm::vec3& cameraPosition,
 	const glm::vec3& cameraForward,
 	std::vector<const MikanStencilBox*>& outStencilList) const
@@ -491,7 +507,21 @@ void MikanServer::getRelevantBoxStencilList(
 	outStencilList.clear();
 	for (const MikanStencilBox& stencil : profile->boxStencilList)
 	{
-		if (!stencil.is_disabled)
+		if (stencil.is_disabled)
+			continue;
+
+		// If there is an active allow list, make sure stencil is on it
+		if (allowedStencils != nullptr)
+		{
+			if (std::find(
+				allowedStencils->begin(), allowedStencils->end(),
+				stencil.stencil_id)
+				== allowedStencils->end())
+			{
+				continue;
+			}
+		}
+		
 		{
 			const glm::mat4 worldXform = profile->getBoxStencilWorldTransform(&stencil);
 			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
@@ -514,17 +544,34 @@ void MikanServer::getRelevantBoxStencilList(
 	}
 }
 
-void MikanServer::getRelevantModelStencilList(std::vector<const MikanStencilModelConfig*>& outStencilList) const
+void MikanServer::getRelevantModelStencilList(
+	const std::vector<MikanStencilID>* allowedStencils,
+	std::vector<const MikanStencilModelConfig*>& outStencilList) const
 {
 	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
 
 	outStencilList.clear();
 	for (const MikanStencilModelConfig& stencil : profile->modelStencilList)
 	{
-		if (!stencil.modelInfo.is_disabled && stencil.modelPath.c_str() > 0)
+		if (stencil.modelInfo.is_disabled)
+			continue;
+
+		if (stencil.modelPath.c_str() == 0)
+			continue;
+
+		// If there is an active allow list, make sure stencil is on it
+		if (allowedStencils != nullptr)
 		{
-			outStencilList.push_back(&stencil);
+			if (std::find(
+				allowedStencils->begin(), allowedStencils->end(),
+				stencil.modelInfo.stencil_id)
+				== allowedStencils->end())
+			{
+				continue;
+			}
 		}
+
+		outStencilList.push_back(&stencil);
 	}
 }
 

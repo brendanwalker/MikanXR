@@ -28,3 +28,26 @@ enum class eCompositorLayerAlphaMode : int
 	COUNT
 };
 extern const std::string* k_compositorLayerAlphaStrings;
+
+enum class eCompositorStencilMode
+{
+	INVALID = -1,
+
+	noStencil,
+	insideStencil,
+	outsideStencil,
+
+	COUNT
+};
+extern const std::string* k_compositorStencilModeStrings;
+
+enum class eCompositorBlendMode
+{
+	INVALID = -1,
+
+	blendOff,
+	blendOn,
+
+	COUNT
+};
+extern const std::string* k_compositorBlendModeStrings;
