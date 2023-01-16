@@ -1,9 +1,7 @@
 #include "GlCommon.h"
 #include "GlProgram.h"
-#include "GlProgramConfig.h"
 #include "GlTexture.h"
 #include "Logger.h"
-#include "StringUtils.h"
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -72,11 +70,15 @@ GlProgramCode::GlProgramCode(
 	m_shaderCodeHash= hasher(vertexCode + fragmentCode);
 }
 
-bool GlProgramCode::loadFromConfig(const GlProgramConfig* config)
+bool GlProgramCode::loadFromConfigData(
+	const std::string& shaderConfigPath,
+	const std::filesystem::path& vertexShaderPath,
+	const std::filesystem::path& fragmentShaderPath,
+	const std::map<std::string, std::string>& uniforms)
 {
 	bool bSuccess= true;
 
-	m_filename = config->getLoadedConfigPath();
+	m_filename = shaderConfigPath;
 	
 	std::filesystem::path shaderFolderPath = m_filename;
 	shaderFolderPath.remove_filename();
@@ -84,7 +86,7 @@ bool GlProgramCode::loadFromConfig(const GlProgramConfig* config)
 	try
 	{
 		std::filesystem::path vertexShaderPath = shaderFolderPath;
-		vertexShaderPath/= config->vertexShaderPath;
+		vertexShaderPath/= vertexShaderPath;
 
 		std::ifstream t(vertexShaderPath.string());
 		std::stringstream buffer;
@@ -102,7 +104,7 @@ bool GlProgramCode::loadFromConfig(const GlProgramConfig* config)
 	try
 	{
 		std::filesystem::path fragmentShaderPath = shaderFolderPath;
-		fragmentShaderPath /= config->fragmentShaderPath;
+		fragmentShaderPath /= fragmentShaderPath;
 
 		std::ifstream t(fragmentShaderPath.string());
 		std::stringstream buffer;
@@ -117,11 +119,17 @@ bool GlProgramCode::loadFromConfig(const GlProgramConfig* config)
 		bSuccess = false;
 	}
 
-	for (const auto& [name, semanticString] : config->uniforms)
+	for (const auto& [name, semanticString] : uniforms)
 	{
-		eUniformSemantic semantic= 
-			StringUtils::FindEnumValue<eUniformSemantic>(
-				semanticString, g_UniformSemanticName);
+		eUniformSemantic semantic= eUniformSemantic::INVALID;
+		for (int enumIntValue = 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
+		{
+			if (g_UniformSemanticName[enumIntValue] == semanticString)
+			{
+				semantic= (eUniformSemantic)enumIntValue;
+				break;
+			}
+		}
 
 		if (semantic != eUniformSemantic::INVALID)
 		{

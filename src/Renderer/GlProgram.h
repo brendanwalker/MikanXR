@@ -4,6 +4,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/vector_float4.hpp"
 
+#include <filesystem>
 #include <map>
 #include <string>
 #include <vector>
@@ -87,7 +88,11 @@ public:
 		const std::string& vertexCode, 
 		const std::string& fragmentCode);
 
-	bool loadFromConfig(const class GlProgramConfig* config);
+	bool loadFromConfigData(
+		const std::string& shaderConfigPath,
+		const std::filesystem::path& vertexShaderPath,
+		const std::filesystem::path& fragmentShaderPath,
+		const std::map<std::string, std::string>& uniforms);
 
 	const std::string& getFilename() const { return m_filename; }
 	inline const char* getVertexShaderCode() const { return m_vertexShaderCode.c_str(); }

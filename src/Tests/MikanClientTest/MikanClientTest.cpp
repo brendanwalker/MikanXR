@@ -44,6 +44,9 @@ static const glm::vec4 k_background_color_key = glm::vec4(0.f, 0.f, 0.0f, 0.f);
 #define k_real_pi 3.14159265f
 #define degrees_to_radians(x) (((x) * k_real_pi) / 180.f)
 
+#define SCENE_SHADER_MVP_UNIFORM		"mvpMatrix"
+#define SCENE_SHADER_DIFFUSE_UNIFORM	"diffuse"
+
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& xform)
 {
 	const float(&m)[4][4] = xform.m;
@@ -531,7 +534,7 @@ protected:
 
 				const glm::mat4 boxXform = m_originSpatialAnchorXform;
 				const glm::mat4 scale = glm::scale(glm::mat4(1.f), glm::vec3(0.1f, 0.1f, 0.1f));
-				m_shader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * boxXform * scale);
+				m_shader->setMatrix4x4Uniform(SCENE_SHADER_MVP_UNIFORM, vpMatrix * boxXform * scale);
 
 				glBindVertexArray(m_cubeVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -546,7 +549,7 @@ protected:
 
 				const glm::mat4 boxXform = m_originSpatialAnchorXform;
 				const glm::mat4 scale = glm::scale(glm::mat4(1.f), glm::vec3(10.0f, 10.0f, 10.0f));
-				m_shader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * boxXform * scale);
+				m_shader->setMatrix4x4Uniform(SCENE_SHADER_MVP_UNIFORM, vpMatrix * boxXform * scale);
 
 				glBindVertexArray(m_cubeVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -628,8 +631,8 @@ protected:
 				FragColor = texture(diffuse, TexCoords);
 			}
 			)"""")
-			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
-			.addUniform("diffuse", eUniformSemantic::texture0);
+			.addUniform(SCENE_SHADER_MVP_UNIFORM, eUniformSemantic::modelViewProjectionMatrix)
+			.addUniform(SCENE_SHADER_DIFFUSE_UNIFORM, eUniformSemantic::texture0);
 
 		return x_shaderCode;
 	}

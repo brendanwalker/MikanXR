@@ -11,6 +11,8 @@ public:
 	virtual const configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
+	bool loadGlProgramCode(class GlProgramCode* outProgramCode);
+
 	std::string materialName;
 	std::filesystem::path vertexShaderPath;
 	std::filesystem::path fragmentShaderPath;

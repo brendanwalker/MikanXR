@@ -22,3 +22,12 @@ void GlProgramConfig::readFromJSON(const configuru::Config& pt)
 	fragmentShaderPath = pt.get_or<std::string>("fragmentShaderPath", fragmentShaderPath.string());
 	CommonConfig::readStdMap(pt, "uniforms", uniforms);
 }
+
+bool GlProgramConfig::loadGlProgramCode(GlProgramCode* outProgramCode)
+{
+	return outProgramCode->loadFromConfigData(
+		getLoadedConfigPath(),
+		vertexShaderPath,
+		fragmentShaderPath,
+		uniforms);
+}
