@@ -24,6 +24,8 @@
         <panel id="controls" data-model="compositor_models">
 			<div class="picker">
 				<div data-for="stencil : stencil_models">
+                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="modify_stencil_name(it_index)" data-value="stencil.stencil_name"/>
+                    <br/>                
                     <label>Model Stencil ID: {{stencil.stencil_id}}</label>
                     <br/>
                     <div data-if="spatial_anchors.size > 0">

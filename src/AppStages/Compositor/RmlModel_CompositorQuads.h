@@ -6,6 +6,7 @@
 
 struct RmlModel_CompositorQuad
 {
+	Rml::String stencil_name;
 	int stencil_id;
 	int parent_anchor_id;
 	Rml::Vector3f position;

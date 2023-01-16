@@ -1,6 +1,7 @@
 #include "RmlModel_CompositorBoxes.h"
 #include "MathMikan.h"
 #include "ProfileConfig.h"
+#include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -23,6 +24,7 @@ bool RmlModel_CompositorBoxes::init(
 		// One time registration for compositor layer struct.
 		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorBox>())
 		{
+			layer_model_handle.RegisterMember("stencil_name", &RmlModel_CompositorBox::stencil_name);
 			layer_model_handle.RegisterMember("stencil_id", &RmlModel_CompositorBox::stencil_id);
 			layer_model_handle.RegisterMember("parent_anchor_id", &RmlModel_CompositorBox::parent_anchor_id);
 			layer_model_handle.RegisterMember("box_center", &RmlModel_CompositorBox::box_center);
@@ -46,6 +48,24 @@ bool RmlModel_CompositorBoxes::init(
 		"add_stencil",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			if (OnAddBoxStencilEvent) OnAddBoxStencilEvent();
+		});
+	constructor.BindEventCallback(
+		"modify_stencil_name",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int stencilIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (stencilIndex >= 0 && stencilIndex < (int)m_stencilBoxes.size())
+			{
+				const bool isLineBreak = ev.GetParameter("linebreak", false);
+
+				if (isLineBreak)
+				{
+					const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+					if (OnModifyBoxStencilEvent && stencil_id >= 0)
+					{
+						OnModifyBoxStencilEvent(stencil_id);
+					}
+				}
+			}
 		});
 	constructor.BindEventCallback(
 		"modify_stencil",
@@ -105,6 +125,7 @@ void RmlModel_CompositorBoxes::rebuildUIBoxesFromProfile(const ProfileConfig* pr
 			angles[0], angles[1], angles[2]);
 
 		RmlModel_CompositorBox uiQuad = {
+			box.stencil_name,
 			box.stencil_id,
 			box.parent_anchor_id,
 			Rml::Vector3f(box.box_center.x, box.box_center.y, box.box_center.z),
@@ -146,6 +167,7 @@ void RmlModel_CompositorBoxes::copyUIBoxToProfile(int stencil_id, ProfileConfig*
 			uiBox.size.y,
 			uiBox.disabled
 		};
+		StringUtils::formatString(box.stencil_name, sizeof(box.stencil_name), "%s", uiBox.stencil_name.c_str());
 		profile->updateBoxStencil(box);
 	}
 }

@@ -1,6 +1,7 @@
 #include "RmlModel_CompositorQuads.h"
 #include "MathMikan.h"
 #include "ProfileConfig.h"
+#include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -23,6 +24,7 @@ bool RmlModel_CompositorQuads::init(
 		// One time registration for compositor layer struct.
 		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorQuad>())
 		{
+			layer_model_handle.RegisterMember("stencil_name", &RmlModel_CompositorQuad::stencil_name);
 			layer_model_handle.RegisterMember("stencil_id", &RmlModel_CompositorQuad::stencil_id);
 			layer_model_handle.RegisterMember("parent_anchor_id", &RmlModel_CompositorQuad::parent_anchor_id);
 			layer_model_handle.RegisterMember("position", &RmlModel_CompositorQuad::position);
@@ -47,6 +49,24 @@ bool RmlModel_CompositorQuads::init(
 		"add_stencil",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			if (OnAddQuadStencilEvent) OnAddQuadStencilEvent();
+		});
+	constructor.BindEventCallback(
+		"modify_stencil_name",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int stencilIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (stencilIndex >= 0 && stencilIndex < (int)m_stencilQuads.size())
+			{
+				const bool isLineBreak = ev.GetParameter("linebreak", false);
+
+				if (isLineBreak)
+				{
+					const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+					if (OnModifyQuadStencilEvent && stencil_id >= 0)
+					{
+						OnModifyQuadStencilEvent(stencil_id);
+					}
+				}
+			}
 		});
 	constructor.BindEventCallback(
 		"modify_stencil",
@@ -106,6 +126,7 @@ void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile(const ProfileConfig* pr
 			angles[0], angles[1], angles[2]);
 
 		RmlModel_CompositorQuad uiQuad = {
+			quad.stencil_name,
 			quad.stencil_id,
 			quad.parent_anchor_id,
 			Rml::Vector3f(quad.quad_center.x, quad.quad_center.y, quad.quad_center.z),
@@ -149,6 +170,9 @@ void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id, ProfileConfig
 			uiQuad.double_sided,
 			uiQuad.disabled
 		};
+
+		StringUtils::formatString(quad.stencil_name, sizeof(quad.stencil_name), "%s", uiQuad.stencil_name.c_str());
+
 		profile->updateQuadStencil(quad);
 	}
 }

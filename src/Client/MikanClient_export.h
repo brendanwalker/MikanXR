@@ -17,11 +17,6 @@
  * your own software will use the right convention, even if another convention 
  * is being used by default within your codebase.
  *
- * The one consideration that you must apply in your software is to mark
- * all functions which you use as MIKANResponseCallbacks with this MIKAN_CALL
- * annotation, so that they too get compiled for the correct calling
- * convention.
- *
  * On non-Windows operating systems, this macro is defined as nothing. This
  * means that you can apply it to your code without worrying about
  * cross-platform compatibility.
@@ -29,8 +24,10 @@
 #ifndef MIKAN_CALL
     #if defined _WIN32 || defined __CYGWIN__
         #define MIKAN_CALL __cdecl
+        #define MIKAN_CALLBACK __stdcall
     #else
         #define MIKAN_CALL
+        #define MIKAN_CALLBACK
     #endif
 #endif
 

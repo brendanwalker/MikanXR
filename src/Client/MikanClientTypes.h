@@ -30,6 +30,7 @@ typedef int32_t MikanSpatialAnchorID;
 #define INVALID_MIKAN_ID			-1
 #define MAX_MIKAN_VR_DEVICES		64
 #define MAX_MIKAN_STENCILS			16
+#define MAX_MIKAN_STENCIL_NAME_LEN	128
 #define MAX_MIKAN_SPATIAL_ANCHORS	64
 #define MAX_MIKAN_ANCHOR_NAME_LEN	128
 
@@ -73,8 +74,6 @@ typedef enum
 	MikanLogLevel_Error,
 	MikanLogLevel_Fatal
 } MikanLogLevel;
-
-typedef void (*MikanLogCallback)(int /*log_level*/, const char* /*log_message*/);
 
 typedef enum
 {
@@ -199,6 +198,7 @@ typedef struct
 	float quad_height;
 	bool is_double_sided;
 	bool is_disabled;
+	char stencil_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanStencilQuad;
 
 typedef struct
@@ -213,6 +213,7 @@ typedef struct
 	float box_y_size;
 	float box_z_size;
 	bool is_disabled;
+	char stencil_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanStencilBox;
 
 typedef struct
@@ -223,14 +224,8 @@ typedef struct
 	MikanRotator3f model_rotator;
 	MikanVector3f model_scale;
 	bool is_disabled;
+	char stencil_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanStencilModel;
-
-typedef enum
-{
-	MikanStencilType_NONE,
-	MikanStencilType_QUAD,
-	MikanStencilType_MODEL,
-} MikanStencilType;
 
 typedef struct
 {

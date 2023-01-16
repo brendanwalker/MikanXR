@@ -230,7 +230,7 @@ void GlFrameCompositor::reloadAllCompositorShaders()
 			if (programConfig.load(shaderPath))
 			{
 				GlProgramCode programCode;
-				if (programCode.loadFromConfig(&programConfig))
+				if (programConfig.loadGlProgramCode(&programCode))
 				{
 					GlProgram* program= GlShaderCache::getInstance()->fetchCompiledGlProgram(&programCode);
 					GlMaterial* material= m_materialSources.getValueOrDefault(programConfig.materialName, nullptr);
@@ -1025,7 +1025,7 @@ bool GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfi
 
 	std::vector<const MikanStencilQuad*> quadStencilList;
 	MikanServer::getInstance()->getRelevantQuadStencilList(
-		&stencilConfig.quadStencils,
+		&stencilConfig.quadStencilNames,
 		cameraPosition, 
 		cameraForward, 
 		quadStencilList);
@@ -1147,7 +1147,7 @@ bool GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig&
 
 	std::vector<const MikanStencilBox*> boxStencilList;
 	MikanServer::getInstance()->getRelevantBoxStencilList(
-		&stencilConfig.boxStencils,
+		&stencilConfig.boxStencilNames,
 		cameraPosition, 
 		cameraForward, 
 		boxStencilList);
@@ -1226,7 +1226,7 @@ bool GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerCon
 
 	std::vector<const MikanStencilModelConfig*> modelStencilList;
 	MikanServer::getInstance()->getRelevantModelStencilList(
-		&stencilConfig.modelStencils,
+		&stencilConfig.modelStencilNames,
 		modelStencilList);
 
 	if (modelStencilList.size() == 0)

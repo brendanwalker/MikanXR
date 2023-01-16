@@ -1,6 +1,7 @@
 #include "RmlModel_CompositorModels.h"
 #include "MathMikan.h"
 #include "ProfileConfig.h"
+#include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -23,6 +24,7 @@ bool RmlModel_CompositorModels::init(
 		// One time registration for compositor layer struct.
 		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorModel>())
 		{
+			layer_model_handle.RegisterMember("stencil_name", &RmlModel_CompositorModel::stencil_name);
 			layer_model_handle.RegisterMember("stencil_id", &RmlModel_CompositorModel::stencil_id);
 			layer_model_handle.RegisterMember("parent_anchor_id", &RmlModel_CompositorModel::parent_anchor_id);
 			layer_model_handle.RegisterMember("model_path", &RmlModel_CompositorModel::model_path);
@@ -47,6 +49,24 @@ bool RmlModel_CompositorModels::init(
 		"add_stencil",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			if (OnAddModelStencilEvent) OnAddModelStencilEvent();
+		});
+	constructor.BindEventCallback(
+		"modify_stencil_name",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int stencilIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (stencilIndex >= 0 && stencilIndex < (int)m_stencilModels.size())
+			{
+				const bool isLineBreak = ev.GetParameter("linebreak", false);
+
+				if (isLineBreak)
+				{
+					const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+					if (OnModifyModelStencilEvent && stencil_id >= 0)
+					{
+						OnModifyModelStencilEvent(stencil_id);
+					}
+				}
+			}
 		});
 	constructor.BindEventCallback(
 		"modify_stencil",
@@ -113,6 +133,7 @@ void RmlModel_CompositorModels::rebuildUIModelsFromProfile(const ProfileConfig* 
 		const MikanStencilModel& modelInfo= modelConfig.modelInfo;
 
 		RmlModel_CompositorModel uiModel = {
+			modelInfo.stencil_name,
 			modelInfo.stencil_id,
 			modelInfo.parent_anchor_id,
 			modelConfig.modelPath,
@@ -145,6 +166,8 @@ void RmlModel_CompositorModels::copyUIModelToProfile(int stencil_id, ProfileConf
 			{uiModel.model_scale.x, uiModel.model_scale.y, uiModel.model_scale.z},
 			uiModel.disabled
 		};
+		StringUtils::formatString(modelInfo.stencil_name, sizeof(modelInfo.stencil_name), "%s", uiModel.stencil_name.c_str());
+
 		// NOTE: This intentionally excludes the model path
 		// That's handled in OnSelectModelStencilPathEvent
 		profile->updateModelStencil(modelInfo);

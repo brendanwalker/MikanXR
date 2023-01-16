@@ -124,6 +124,7 @@ const configuru::Config ProfileConfig::writeToJSON()
 			{"quad_height", stencil.quad_height},
 			{"is_double_sided", stencil.is_double_sided},
 			{"is_disabled", stencil.is_disabled},
+			{"stencil_name", stencil.stencil_name}
 		};
 
 		writeVector3f(stencilConfig, "quad_center", stencil.quad_center);
@@ -146,6 +147,7 @@ const configuru::Config ProfileConfig::writeToJSON()
 			{"box_y_size", stencil.box_y_size},
 			{"box_z_size", stencil.box_z_size},
 			{"is_disabled", stencil.is_disabled},
+			{"stencil_name", stencil.stencil_name}
 		};
 
 		writeVector3f(stencilConfig, "box_center", stencil.box_center);
@@ -166,6 +168,7 @@ const configuru::Config ProfileConfig::writeToJSON()
 			{"stencil_id", stencil.modelInfo.stencil_id},
 			{"parent_anchor_id", stencil.modelInfo.parent_anchor_id},
 			{"is_disabled", stencil.modelInfo.is_disabled},
+			{"stencil_name", stencil.modelInfo.stencil_name}
 		};
 
 		writeVector3f(stencilConfig, "model_position", stencil.modelInfo.model_position);
@@ -269,6 +272,9 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				stencil.is_double_sided = stencilConfig.get_or<bool>("is_double_sided", false);
 				stencil.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
 
+				const std::string stencil_name= stencilConfig.get_or<std::string>("stencil_name", "");
+				StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
+
 				quadStencilList.push_back(stencil);
 			}
 		}
@@ -296,6 +302,9 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				stencil.box_z_size = stencilConfig.get_or<float>("box_z_size", 0.25f);
 				stencil.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
 
+				const std::string stencil_name = stencilConfig.get_or<std::string>("stencil_name", "");
+				StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
+
 				boxStencilList.push_back(stencil);
 			}
 		}
@@ -320,6 +329,9 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				readRotator3f(stencilConfig, "model_rotator", modelInfo.model_rotator);
 				readVector3f(stencilConfig, "model_scale", modelInfo.model_scale);
 				modelInfo.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
+
+				const std::string stencil_name = stencilConfig.get_or<std::string>("stencil_name", "");
+				StringUtils::formatString(modelInfo.stencil_name, sizeof(modelInfo.stencil_name), "%s", stencil_name.c_str());
 
 				modelStencilList.push_back(modelConfig);
 			}

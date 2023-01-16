@@ -20,6 +20,8 @@
 // Wrapper Types
 //--------------
 
+typedef void (MIKAN_CALLBACK* MikanLogCallback)(int /*log_level*/, const char* /*log_message*/);
+
 /** \brief Initializes the MikanXR Client API.
  This function must be called before calling any other client functions. 
  Calling this function after the api is already initialized will return MikanResult_Success.
@@ -81,11 +83,11 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeRenderTargetBuffers();
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetStencilList(MikanStencilList* out_stencil_list);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetQuadStencil(MikanStencilID device_id, MikanStencilQuad* out_stencil);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetQuadStencil(MikanStencilID stencil_id, MikanStencilQuad* out_stencil);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetBoxStencil(MikanStencilID device_id, MikanStencilBox* out_stencil);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetBoxStencil(MikanStencilID stencil_id, MikanStencilBox* out_stencil);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetModelStencil(MikanStencilID device_id, MikanStencilModel* out_stencil);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetModelStencil(MikanStencilID stencil_id, MikanStencilModel* out_stencil);
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetSpatialAnchorList(MikanSpatialAnchorList* out_anchor_list);
 
