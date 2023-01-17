@@ -28,7 +28,8 @@
 
 #include <easy/profiler.h>
 
-#define STENCIL_MVP_UNIFORM_NAME	"mvpMatrix"
+#define DEFAULT_COMPOSITOR_CONFIG_NAME	"Alpha Channel"
+#define STENCIL_MVP_UNIFORM_NAME		"mvpMatrix"
 
 // -- GlFrameCompositor ------
 GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
@@ -94,7 +95,14 @@ bool GlFrameCompositor::startup()
 
 	createVertexBuffers();
 
+	// Load the last use compositor configuration
 	m_config.load();
+
+	// If no named configuration is set, load the default one
+	if (m_config.name.empty())
+	{
+		setConfiguration(DEFAULT_COMPOSITOR_CONFIG_NAME);
+	}
 
 	return true;
 }
@@ -142,11 +150,14 @@ void GlFrameCompositor::reloadAllCompositorConfigurations()
 
 	clearAllCompositorConfigurations();
 
-	std::vector<std::string> configFiles = PathUtils::listFiles(compositorShaderDir.string(), "json");
-	for (const auto& configFilePath : configFiles)
+	std::vector<std::string> configFileNames = PathUtils::listFiles(compositorShaderDir.string(), "json");
+	for (const auto& configFileName : configFileNames)
 	{
+		std::filesystem::path configFilePath = compositorShaderDir;
+		configFilePath /= configFileName;
+
 		GlFrameCompositorConfig* compositorConfig = new GlFrameCompositorConfig;
-		if (compositorConfig->load(configFilePath))
+		if (compositorConfig->load(configFilePath.string()))
 		{
 			m_compositorConfigurations.setValue(compositorConfig->name, compositorConfig);
 		}
@@ -220,14 +231,20 @@ void GlFrameCompositor::reloadAllCompositorShaders()
 	compositorShaderDir/= "shaders";
 	compositorShaderDir/= "compositor";
 
-	std::vector<std::string> shaderFolderPaths= PathUtils::listDirectories(compositorShaderDir.string());
-	for (const auto& shaderFolderPath : shaderFolderPaths)
+	std::vector<std::string> shaderFolderNames= PathUtils::listDirectories(compositorShaderDir.string());
+	for (const auto& shaderFolderName : shaderFolderNames)
 	{
-		std::vector<std::string> shaderFiles= PathUtils::listFiles(shaderFolderPath, "json");
-		for (const auto& shaderPath : shaderFiles)
+		std::filesystem::path shaderFolderPath = compositorShaderDir;
+		shaderFolderPath/= shaderFolderName;
+
+		std::vector<std::string> shaderFileNames= PathUtils::listFiles(shaderFolderPath.string(), "json");
+		for (const auto& shaderFileName : shaderFileNames)
 		{
+			std::filesystem::path shaderFilePath = shaderFolderPath;
+			shaderFilePath/= shaderFileName;
+
 			GlProgramConfig programConfig;
-			if (programConfig.load(shaderPath))
+			if (programConfig.load(shaderFilePath.string()))
 			{
 				GlProgramCode programCode;
 				if (programConfig.loadGlProgramCode(&programCode))
@@ -247,12 +264,12 @@ void GlFrameCompositor::reloadAllCompositorShaders()
 				}
 				else
 				{
-					MIKAN_LOG_ERROR("GlFrameCompositor::reloadAllCompositorShaders") << "Failed to load program code: " << shaderPath;
+					MIKAN_LOG_ERROR("GlFrameCompositor::reloadAllCompositorShaders") << "Failed to load program code: " << shaderFilePath.string();
 				}
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GlFrameCompositor::reloadAllCompositorShaders") << "Failed to parse JSON: " << shaderPath;
+				MIKAN_LOG_ERROR("GlFrameCompositor::reloadAllCompositorShaders") << "Failed to parse JSON: " << shaderFilePath.string();
 			}
 		}
 	}

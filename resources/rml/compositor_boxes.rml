@@ -24,7 +24,7 @@
         <panel id="controls" data-model="compositor_boxes">
 			<div class="picker">
 				<div data-for="stencil : stencil_boxes">
-                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="modify_stencil_name(it_index)" data-value="stencil.stencil_name"/>
+                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="modify_stencil_name(stencil.stencil_id)" data-value="stencil.stencil_name"/>
                     <br/>
                     <label>Box Stencil ID: {{stencil.stencil_id}}</label>
                     <br/>

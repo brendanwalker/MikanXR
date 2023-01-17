@@ -53,8 +53,7 @@ bool RmlModel_CompositorModels::init(
 	constructor.BindEventCallback(
 		"modify_stencil_name",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const int stencilIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (stencilIndex >= 0 && stencilIndex < (int)m_stencilModels.size())
+			if (ev.GetId() == Rml::EventId::Change)
 			{
 				const bool isLineBreak = ev.GetParameter("linebreak", false);
 

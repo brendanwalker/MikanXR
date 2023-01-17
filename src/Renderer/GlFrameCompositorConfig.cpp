@@ -8,7 +8,7 @@ static eCompositorStencilMode parseCompositorStencilMode(const configuru::Config
 			"stencilMode",
 			k_compositorStencilModeStrings[(int)eCompositorStencilMode::insideStencil]);
 
-	return StringUtils::FindEnumValue<eCompositorStencilMode>(stencilModeString, k_compositorLayerAlphaStrings);
+	return StringUtils::FindEnumValue<eCompositorStencilMode>(stencilModeString, k_compositorStencilModeStrings);
 }
 
 // -- CompositorLayerConfig ------
@@ -61,7 +61,7 @@ const configuru::Config CompositorQuadStencilLayerConfig::writeToJSON() const
 	};
 
 	if (quadStencilNames.size() > 0)
-		CommonConfig::writeStdVector(pt, "quadStencils", quadStencilNames);
+		CommonConfig::writeStdVector(pt, "quadStencilNames", quadStencilNames);
 
 	return pt;
 }
@@ -71,8 +71,8 @@ void CompositorQuadStencilLayerConfig::readFromJSON(const configuru::Config& pt)
 	stencilMode = parseCompositorStencilMode(pt);
 	bInvertWhenCameraInside = pt.get_or<bool>("bInvertWhenCameraInside", bInvertWhenCameraInside);
 
-	if (pt.has_key("quadStencils"))
-		CommonConfig::readStdVector(pt, "quadStencils", quadStencilNames);
+	if (pt.has_key("quadStencilNames"))
+		CommonConfig::readStdVector(pt, "quadStencilNames", quadStencilNames);
 }
 
 // -- CompositorBoxStencilLayerConfig ------
@@ -83,7 +83,7 @@ const configuru::Config CompositorBoxStencilLayerConfig::writeToJSON() const
 	};
 
 	if (boxStencilNames.size() > 0)
-		CommonConfig::writeStdVector(pt, "boxStencils", boxStencilNames);
+		CommonConfig::writeStdVector(pt, "boxStencilNames", boxStencilNames);
 
 	return pt;
 }
@@ -92,8 +92,8 @@ void CompositorBoxStencilLayerConfig::readFromJSON(const configuru::Config& pt)
 {
 	stencilMode = parseCompositorStencilMode(pt);
 
-	if (pt.has_key("boxStencils"))
-		CommonConfig::readStdVector(pt, "boxStencils", boxStencilNames);
+	if (pt.has_key("boxStencilNames"))
+		CommonConfig::readStdVector(pt, "boxStencilNames", boxStencilNames);
 }
 
 // -- CompositorModelStencilLayerConfig ------
@@ -104,7 +104,7 @@ const configuru::Config CompositorModelStencilLayerConfig::writeToJSON() const
 	};
 
 	if (modelStencilNames.size() > 0)
-		CommonConfig::writeStdVector(pt, "modelStencils", modelStencilNames);
+		CommonConfig::writeStdVector(pt, "modelStencilNames", modelStencilNames);
 
 	return pt;
 }
@@ -113,8 +113,8 @@ void CompositorModelStencilLayerConfig::readFromJSON(const configuru::Config& pt
 {
 	stencilMode = parseCompositorStencilMode(pt);
 
-	if (pt.has_key("modelStencils"))
-		CommonConfig::readStdVector(pt, "modelStencils", modelStencilNames);
+	if (pt.has_key("modelStencilNames"))
+		CommonConfig::readStdVector(pt, "modelStencilNames", modelStencilNames);
 }
 
 // -- CompositorLayerConfig -----

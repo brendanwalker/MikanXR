@@ -72,8 +72,8 @@ GlProgramCode::GlProgramCode(
 
 bool GlProgramCode::loadFromConfigData(
 	const std::string& shaderConfigPath,
-	const std::filesystem::path& vertexShaderPath,
-	const std::filesystem::path& fragmentShaderPath,
+	const std::filesystem::path& vertexShaderFileName,
+	const std::filesystem::path& fragmentShaderFileName,
 	const std::map<std::string, std::string>& uniforms)
 {
 	bool bSuccess= true;
@@ -86,7 +86,7 @@ bool GlProgramCode::loadFromConfigData(
 	try
 	{
 		std::filesystem::path vertexShaderPath = shaderFolderPath;
-		vertexShaderPath/= vertexShaderPath;
+		vertexShaderPath/= vertexShaderFileName;
 
 		std::ifstream t(vertexShaderPath.string());
 		std::stringstream buffer;
@@ -95,7 +95,7 @@ bool GlProgramCode::loadFromConfigData(
 	}
 	catch (const std::ifstream::failure& e)
 	{
-		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfig")
+		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
 			<< m_filename
 			<< " - unable to load vertex shader file!";
 		bSuccess= false;
@@ -104,7 +104,7 @@ bool GlProgramCode::loadFromConfigData(
 	try
 	{
 		std::filesystem::path fragmentShaderPath = shaderFolderPath;
-		fragmentShaderPath /= fragmentShaderPath;
+		fragmentShaderPath /= fragmentShaderFileName;
 
 		std::ifstream t(fragmentShaderPath.string());
 		std::stringstream buffer;
@@ -113,7 +113,7 @@ bool GlProgramCode::loadFromConfigData(
 	}
 	catch (const std::ifstream::failure& e)
 	{
-		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfig")
+		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
 			<< m_filename
 			<< " - unable to load fragment shader file!";
 		bSuccess = false;
@@ -137,7 +137,7 @@ bool GlProgramCode::loadFromConfigData(
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("GlProgramCode::loadFromConfig")
+			MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
 				<< "Invalid semantic: "
 				<< name
 				<< " -> "

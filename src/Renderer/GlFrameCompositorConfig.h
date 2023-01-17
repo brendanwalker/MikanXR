@@ -31,8 +31,8 @@ struct CompositorQuadStencilLayerConfig
 	const configuru::Config writeToJSON() const;
 	void readFromJSON(const configuru::Config& pt);
 
-	eCompositorStencilMode stencilMode;
-	bool bInvertWhenCameraInside;
+	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
+	bool bInvertWhenCameraInside = false;
 	std::vector<std::string> quadStencilNames;
 };
 
@@ -41,7 +41,7 @@ struct CompositorBoxStencilLayerConfig
 	const configuru::Config writeToJSON() const;
 	void readFromJSON(const configuru::Config& pt);
 
-	eCompositorStencilMode stencilMode;
+	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
 	std::vector<std::string> boxStencilNames;
 };
 
@@ -50,7 +50,7 @@ struct CompositorModelStencilLayerConfig
 	const configuru::Config writeToJSON() const;
 	void readFromJSON(const configuru::Config& pt);
 
-	eCompositorStencilMode stencilMode;
+	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
 	std::vector<std::string> modelStencilNames;
 };
 
@@ -59,8 +59,8 @@ struct CompositorLayerConfig
 	const configuru::Config writeToJSON() const;
 	void readFromJSON(const configuru::Config& pt);
 
-	bool verticalFlip;
-	eCompositorBlendMode blendMode;
+	bool verticalFlip = false;
+	eCompositorBlendMode blendMode= eCompositorBlendMode::blendOff;
 	CompositorLayerShaderConfig shaderConfig;
 	CompositorQuadStencilLayerConfig quadStencilConfig;
 	CompositorBoxStencilLayerConfig boxStencilConfig;

@@ -90,8 +90,8 @@ public:
 
 	bool loadFromConfigData(
 		const std::string& shaderConfigPath,
-		const std::filesystem::path& vertexShaderPath,
-		const std::filesystem::path& fragmentShaderPath,
+		const std::filesystem::path& vertexShaderFileName,
+		const std::filesystem::path& fragmentShaderFileName,
 		const std::map<std::string, std::string>& uniforms);
 
 	const std::string& getFilename() const { return m_filename; }
