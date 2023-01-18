@@ -146,6 +146,13 @@ bool GlProgramCode::loadFromConfigData(
 		}
 	}
 
+	if (bSuccess)
+	{
+		std::hash<std::string> hasher;
+
+		m_shaderCodeHash = hasher(m_vertexShaderCode + m_framementShaderCode);
+	}
+
 	return bSuccess;
 }
 

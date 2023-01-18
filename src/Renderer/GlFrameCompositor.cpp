@@ -103,6 +103,11 @@ bool GlFrameCompositor::startup()
 	{
 		setConfiguration(DEFAULT_COMPOSITOR_CONFIG_NAME);
 	}
+	// Otherwise rebuild layers from existing configuration
+	else
+	{
+		rebuildLayersFromConfig();
+	}
 
 	return true;
 }
@@ -1764,10 +1769,6 @@ bool GlFrameCompositor::removeClientSource(
 	delete clientSource;
 
 	return true;
-}
-
-void rebuildLayersFromConfig()
-{
 }
 
 bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16_t height)
