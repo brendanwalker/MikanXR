@@ -140,7 +140,7 @@ void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
 			k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOff]);
 	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
-	pt.get_or<bool>("verticalFlip", verticalFlip);
+	verticalFlip= pt.get_or<bool>("verticalFlip", verticalFlip);
 
 	shaderConfig.readFromJSON(pt["shaderConfig"]);
 	
