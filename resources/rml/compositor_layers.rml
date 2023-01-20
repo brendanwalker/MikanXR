@@ -20,7 +20,7 @@
             <h2>Layers</h2>
             <div data-if="configuration_names.size > 0">
                 <select id="select" name="config_select" data-value="current_configuration" data-event-change="set_configuration()">
-                    <option data-for="config_name : configuration_names" data-value="current_configuration">{{config_name}}</option>
+                    <option data-for="config_name : configuration_names" data-value="config_name">{{config_name}}</option>
                 </select>
             </div>
             <div data-if="configuration_names.size == 0">

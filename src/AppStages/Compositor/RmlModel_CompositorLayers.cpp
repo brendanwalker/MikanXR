@@ -99,6 +99,7 @@ void RmlModel_CompositorLayers::rebuild(
 
 		m_compositorLayers.push_back(uiLayer);
 	}
+	m_modelHandle.DirtyVariable("layers");
 
 	const auto& clientSources = compositor->getClientSources();
 	m_compositorClients.clear();
@@ -109,4 +110,5 @@ void RmlModel_CompositorLayers::rebuild(
 
 		m_compositorClients.push_back(uiClient);
 	}
+	m_modelHandle.DirtyVariable("clients");
 }

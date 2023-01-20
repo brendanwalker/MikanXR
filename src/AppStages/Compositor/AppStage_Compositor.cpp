@@ -318,7 +318,10 @@ void AppStage_Compositor::onToggleModelStencilsWindowEvent()
 // Compositor Layers UI Events
 void AppStage_Compositor::onCompositorConfigChangedEvent(const std::string& configName)
 {
-	m_frameCompositor->setConfiguration(configName);
+	if (m_frameCompositor->setConfiguration(configName))
+	{
+		m_compositorLayersModel->rebuild(m_frameCompositor);
+	}
 }
 
 void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
