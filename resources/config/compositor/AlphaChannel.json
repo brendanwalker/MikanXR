@@ -10,6 +10,15 @@
                     "rgbTexture": "videoTexture",
                     "distortion": "distortionTexture"
                 }
+            },
+            "quadStencilConfig": {
+                "stencilMode": "noStencil"
+            },
+            "boxStencilConfig": {
+                "stencilMode": "noStencil"
+            },
+            "modelStencilConfig": {
+                "stencilMode": "noStencil"
             }
         },
         {
