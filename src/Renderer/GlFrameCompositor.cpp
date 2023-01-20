@@ -484,6 +484,18 @@ void GlFrameCompositor::updateCompositeFrame()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
+	// Read the next queued frame into a texture to composite
+	if (m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex))
+	{
+		m_colorTextureSources.setValue("videoTexture", m_videoDistortionView->getVideoTexture());
+		m_colorTextureSources.setValue("distortionTexture", m_videoDistortionView->getDistortionTexture());
+	}
+	else
+	{
+		m_colorTextureSources.setValue("videoTexture", nullptr);
+		m_colorTextureSources.setValue("distortionTexture", nullptr);
+	}
+
 	for (GlFrameCompositor::Layer& layer : m_layers)
 	{
 		const CompositorLayerConfig* layerConfig= getLayerConfig(layer.layerIndex);
@@ -1584,9 +1596,10 @@ bool GlFrameCompositor::openVideoSource()
 		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_bgr);
 		m_videoDistortionView->setColorUndistortDisabled(true);
 
-		// Add the video textures to the color texture data source table
-		m_colorTextureSources.setValue("videoTexture", m_videoDistortionView->getVideoTexture());
-		m_colorTextureSources.setValue("distortionTexture", m_videoDistortionView->getVideoTexture());
+		// Add the video textures to the color texture data source table, 
+		// but initially mark as invalid until we read in a video frame
+		m_colorTextureSources.setValue("videoTexture", nullptr);
+		m_colorTextureSources.setValue("distortionTexture", nullptr);
 	}
 	else
 	{
