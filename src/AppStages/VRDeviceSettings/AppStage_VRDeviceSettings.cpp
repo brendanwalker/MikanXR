@@ -28,11 +28,11 @@ struct VRDeviceSettingsDataModel
 	Rml::String camera_vr_device_path;
 	Rml::String mat_vr_device_path;
 	Rml::Vector<Rml::String> spatial_anchors;
-	int selected_camera_spatial_anchor = 0;
+	Rml::String selected_camera_spatial_anchor;
 	float camera_scale= 1.f;
 };
 
-//-- statics ----__
+//-- statics ----
 const char* AppStage_VRDeviceSettings::APP_STAGE_NAME = "VRDeviceSettings";
 
 //-- public methods -----
@@ -84,20 +84,16 @@ void AppStage_VRDeviceSettings::enter()
 	m_dataModel->camera_vr_device_path = profileConfig->cameraVRDevicePath;
 	m_dataModel->mat_vr_device_path = profileConfig->matVRDevicePath;
 
-	int anchorListIndex= 0;
 	m_dataModel->spatial_anchors.push_back("NONE");
+	m_dataModel->selected_camera_spatial_anchor="NONE";
 	for (const MikanSpatialAnchorInfo& anchorInfo : profileConfig->spatialAnchorList)
 	{
 		m_dataModel->spatial_anchors.push_back(anchorInfo.anchor_name);
 		if (anchorInfo.anchor_id == profileConfig->cameraParentAnchorId)
 		{
-			m_dataModel->selected_camera_spatial_anchor= anchorListIndex + 1;
+			m_dataModel->selected_camera_spatial_anchor= anchorInfo.anchor_name;
 		}
-
-		anchorListIndex++;
 	}
-	m_dataModel->selected_camera_spatial_anchor = anchorListIndex;
-	
 
 	addRmlDocument("rml\\vr_device_settings.rml");
 }
@@ -130,11 +126,12 @@ void AppStage_VRDeviceSettings::update()
 
 	if (m_dataModel->model_handle.IsVariableDirty("selected_camera_spatial_anchor"))
 	{
-		int anchorListIndex= m_dataModel->selected_camera_spatial_anchor - 1;
+		const Rml::String& spatialAnchorName= m_dataModel->selected_camera_spatial_anchor;
 
-		if (anchorListIndex >= 0)
+		MikanSpatialAnchorInfo spatialAnchorInfo;
+		if (profileConfig->findSpatialAnchorInfoByName(spatialAnchorName.c_str(), spatialAnchorInfo))
 		{
-			profileConfig->cameraParentAnchorId = profileConfig->spatialAnchorList[anchorListIndex].anchor_id;
+			profileConfig->cameraParentAnchorId = spatialAnchorInfo.anchor_id;
 		}
 		else
 		{
