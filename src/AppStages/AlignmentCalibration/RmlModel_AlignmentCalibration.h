@@ -25,7 +25,8 @@ public:
 	SinglecastDelegate<void()> OnReturnEvent;
 
 private:
-	int m_menuState = 0;
+	Rml::String m_menuState;
+	Rml::String m_viewpointMode;
 	float m_calibrationPercent = 0.f;
 	bool m_bypassCalibrationFlag = false;
 };

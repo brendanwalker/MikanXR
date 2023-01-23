@@ -17,7 +17,7 @@
 
     <body template="window">
         <panel id="controls" data-model="alignment_calibration">
-            <div data-if="menu_state == 1">
+            <div data-if="menu_state == 'verifySetup'">
                 Place the mat tracking puck on the mat.<br />
                 Hit begin to start the calibration.<br />
                 <span>
@@ -25,7 +25,7 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>            
-            <div data-if="menu_state == 2">
+            <div data-if="menu_state == 'capture'">
                 <progress id="progress_horizontal" direction="right" data-attr-value="calibration_percent" max="100" />
                 <div id="progress_value">{{calibration_percent}}%</div>
                 <br />
@@ -34,17 +34,17 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
-            <div data-if="menu_state == 3 && !bypass_calibration_flag">
+            <div data-if="menu_state == 'testCalibration' && !bypass_calibration_flag">
                 Calibration complete!<br />
                 <span>
                     <button data-event-click="restart">Redo Calibration</button>
                     <button data-event-click="return">Ok</button>
                 </span>
             </div>
-            <div data-if="menu_state == 3 && bypass_calibration_flag">
+            <div data-if="menu_state == 'testCalibration' && bypass_calibration_flag">
                 <button data-event-click="return">Ok</button>
             </div>     
-            <div data-if="menu_state == 4">
+            <div data-if="menu_state == 'failedVideoStartStreamRequest'">
                 Failed to open video stream.<br />
                 <button data-event-click="return">Ok</button>
             </div>

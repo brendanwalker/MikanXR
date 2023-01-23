@@ -1,4 +1,6 @@
 #include "RmlModel_AlignmentCalibration.h"
+#include "Constants_AlignmentCalibration.h"
+#include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -74,15 +76,18 @@ void RmlModel_AlignmentCalibration::setBypassCalibrationFlag(const bool bNewFlag
 
 eAlignmentCalibrationMenuState RmlModel_AlignmentCalibration::getMenuState() const
 {
-	return eAlignmentCalibrationMenuState(m_menuState);
+	return StringUtils::FindEnumValue<eAlignmentCalibrationMenuState>(
+		m_menuState, k_alignmentCalibrationMenuStateStrings);
 }
 
 void RmlModel_AlignmentCalibration::setMenuState(eAlignmentCalibrationMenuState newState)
 {
-	if (m_menuState != (int)newState)
+	Rml::String newStateString= k_alignmentCalibrationMenuStateStrings[(int)newState];
+
+	if (m_menuState != newStateString)
 	{
 		// Update menu state on the data model
-		m_menuState = (int)newState;
+		m_menuState = newStateString;
 		m_modelHandle.DirtyVariable("menu_state");
 	}
 }

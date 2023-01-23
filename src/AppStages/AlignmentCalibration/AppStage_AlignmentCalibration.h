@@ -40,7 +40,6 @@ protected:
 	void onReturnEvent();
 
 	// Camera Settings Model UI Events
-	void onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode);
 	void onViewportModeChanged(eAlignmentCalibrationViewpointMode newViewMode);
 	void onBrightnessChanged(int newBrightness);
 	void onVRFrameDelayChanged(int newVRFrameDelay);

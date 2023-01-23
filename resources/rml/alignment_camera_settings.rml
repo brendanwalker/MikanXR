@@ -9,8 +9,8 @@
             body {
                 left: 10dp;
                 top: 25dp;
-                width: 275dp;
-                height: 100dp;
+                width: 300dp;
+                height: 225dp;
 
                 margin: auto;
             }
@@ -27,20 +27,22 @@
         <panel id="controls" data-model="alignment_camera_settings">
             <h2>Brightness</h2>
             <div>
-                <input type="range" name="brightness" min="0" max="255" step="1" value="128" data-value="brightness" />
+                <input type="range" name="brightness" min="0" max="255" step="1" value="128" data-value="brightness" data-event-change="brightness_changed()" />
                 {{brightness}}
             </div>
             <h2>VR Frame Delay</h2>
             <div>
-                <input type="range" name="vr_frame_delay" min="0" max="100" step="1" value="0" data-value="vr_frame_delay" />
+                <input type="range" name="vr_frame_delay" min="0" max="100" step="1" value="0" data-value="vr_frame_delay" data-event-change="vr_frame_delay_changed()" />
                 {{vr_frame_delay}}
             </div>
-            <h2>Filter</h2>
-            <div data-if="show_video_display_mode">
-                <select id="select" name="video_display_mode" data-value="video_display_mode">
-                    <option data-for="mode : video_display_modes" data-value="it_index">{{mode}}</option>
-                </select>
-            </div>        
+            <div data-if="menu_state == 'testCalibration'">
+                <h2>Viewport Display Mode</h2>
+                <div>
+                    <label><input type="radio" name="viewpoint mode" value="cameraViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> Camera Viewpoint</label><br/>
+                    <label><input type="radio" name="viewpoint mode" value="vrViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> VR Viewpoint</label><br/>
+                    <label><input type="radio" name="viewpoint mode" value="mixedRealityViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()""/> Mixed Reality Viewpoint</label>
+                </div>
+            </div>            
         </panel>
     </body>
 </rml>

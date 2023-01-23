@@ -153,7 +153,6 @@ void AppStage_AlignmentCalibration::enter()
 
 		// Init camera settings model
 		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
-		m_cameraSettingsModel->OnVideoDisplayModeChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onVideoDisplayModeChanged);
 		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onViewportModeChanged);
 		m_cameraSettingsModel->OnBrightnessChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onBrightnessChanged);
 		m_cameraSettingsModel->OnVRFrameDelayChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onVRFrameDelayChanged);
@@ -263,9 +262,6 @@ void AppStage_AlignmentCalibration::updateCamera()
 
 void AppStage_AlignmentCalibration::update()
 {
-	m_calibrationModel->update();
-	m_cameraSettingsModel->update();
-
 	updateCamera();
 
 	switch(m_calibrationModel->getMenuState())
@@ -351,6 +347,7 @@ void AppStage_AlignmentCalibration::render()
 			break;
 		case eAlignmentCalibrationMenuState::testCalibration:
 			m_monoDistortionView->renderSelectedVideoBuffers();
+			renderVRScene();
 			break;
 	}
 }
@@ -371,8 +368,9 @@ void AppStage_AlignmentCalibration::setMenuState(eAlignmentCalibrationMenuState 
 {
 	if (m_calibrationModel->getMenuState() != newState)
 	{
-		// Update menu state on the data model
+		// Update menu state on the data models
 		m_calibrationModel->setMenuState(newState);
+		m_cameraSettingsModel->setMenuState(newState);
 
 		// Show or hide the camera controls based on menu state
 		const bool bIsCameraSettingsVisible = m_cameraSettingsView->IsVisible();
@@ -438,11 +436,6 @@ void AppStage_AlignmentCalibration::onReturnEvent()
 }
 
 // Camera Settings Model UI Events
-void AppStage_AlignmentCalibration::onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode)
-{
-	m_monoDistortionView->setVideoDisplayMode(newDisplayMode);
-}
-
 void AppStage_AlignmentCalibration::onViewportModeChanged(eAlignmentCalibrationViewpointMode newViewMode)
 {
 	switch (newViewMode)
