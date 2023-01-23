@@ -25,7 +25,7 @@ GlScene::~GlScene()
 
 void GlScene::addInstance(const GlStaticMeshInstance* instance)
 {
-	const GlMaterial *material= instance->getMaterialInstance()->getMaterial();
+	const GlMaterial *material= instance->getMaterialInstanceConst()->getMaterial();
 
 	if (m_drawCalls.find(material) == m_drawCalls.end())
 	{
@@ -70,34 +70,33 @@ void GlScene::render() const
 		const GlMaterial* material = drawCallIter->first;
 		const GlDrawCall* drawCall = drawCallIter->second;
 
-		if (material->bindMaterial())
+		// Bind material program (unbound when materialBinding goes out of scope)
+		auto materialBinding= material->bindMaterial();
+		if (materialBinding)
 		{			
 			for(auto instanceIter= drawCall->instances.begin(); 
 				instanceIter != drawCall->instances.end(); 
 				instanceIter++)
 			{
-				const GlStaticMeshInstance* instance= *instanceIter;
+				const GlStaticMeshInstance* meshInstance= *instanceIter;
 
-				if (instance->getVisible())
+				if (meshInstance->getVisible())
 				{
-					// Set the ModelViewProjection matrix transform on the shader program
-					const glm::mat4 mvpMatrix = VPMatrix * instance->getModelMatrix();
+					GlMaterialInstance* materialInstance= meshInstance->getMaterialInstance();
 
-					GlProgram* program= material->getProgram();
-					std::string uniformName;
-					if (program->getFirstUniformNameOfSemantic(eUniformSemantic::modelViewProjectionMatrix, uniformName))
+					// Bind material instance parameters (unbound when materialInstanceBinding goes out of scope)
+					auto materialInstanceBinding=  materialInstance->bindMaterialInstance(&materialBinding);
+					if (materialInstanceBinding)
 					{
-						material->getProgram()->setMatrix4x4Uniform(uniformName, mvpMatrix);
+						// Set the per-mesh-instance ModelViewProjection matrix transform on the shader program
+						const glm::mat4 mvpMatrix = VPMatrix * meshInstance->getModelMatrix();
+						materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);
+
+						// Draw the mesh
+						meshInstance->render();
 					}
-
-					// Apply other material instance parameters (color, etc)
-					instance->getMaterialInstance()->applyMaterialInstanceParameters();
-
-					instance->render();
 				}
-			}
-			
-			material->unbindMaterial();
+			}			
 		}
 	}
 }

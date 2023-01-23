@@ -24,6 +24,7 @@ public:
 	inline const glm::mat4& getModelMatrix() const { return m_modelMatrix; }
 	inline void setModelMatrix(const glm::mat4& mat) { m_modelMatrix = mat; }
 
+	inline const class GlMaterialInstance* getMaterialInstanceConst() const { return m_materialInstance; }
 	inline class GlMaterialInstance* getMaterialInstance() const { return m_materialInstance; }
 	inline const class GlTriangulatedMesh* getMesh() const { return m_mesh; }
 

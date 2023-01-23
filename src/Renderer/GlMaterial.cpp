@@ -322,7 +322,7 @@ bool GlMaterial::getTextureByUniformName(const std::string uniformName, GlTextur
 	return false;
 }
 
-bool GlMaterial::bindMaterial() const
+GlScopedMaterialBinding GlMaterial::bindMaterial() const
 {	
 	bool bSuccess= true;
 
@@ -434,7 +434,7 @@ bool GlMaterial::bindMaterial() const
 		bSuccess= false;
 	}
 
-	return bSuccess;
+	return GlScopedMaterialBinding(bSuccess ? this : nullptr);
 }
 
 void GlMaterial::unbindMaterial() const
@@ -454,4 +454,13 @@ void GlMaterial::unbindMaterial() const
 
 	// Unbind the shader program
 	m_program->unbindProgram();
+}
+
+// -- GlMaterialBinding ------
+GlScopedMaterialBinding::~GlScopedMaterialBinding()
+{
+	if (m_boundMaterial != nullptr)
+	{
+		m_boundMaterial->unbindMaterial();
+	}
 }

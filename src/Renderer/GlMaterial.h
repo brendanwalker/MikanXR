@@ -14,6 +14,20 @@
 class GlTexture;
 typedef GlTexture* GlTexturePtr;
 
+class GlScopedMaterialBinding
+{
+public: 
+	GlScopedMaterialBinding() : m_boundMaterial(nullptr) {}
+	GlScopedMaterialBinding(const class GlMaterial* material) : m_boundMaterial(material) {}
+	virtual ~GlScopedMaterialBinding();
+
+	inline const GlMaterial* getBoundMaterial() const { return m_boundMaterial; }
+	inline operator bool() const { return m_boundMaterial != nullptr; }
+
+private:
+	const class GlMaterial* m_boundMaterial= nullptr;	
+};
+
 class GlMaterial
 {
 public:
@@ -55,7 +69,10 @@ public:
 	bool setTextureByUniformName(const std::string uniformName, GlTexturePtr texture);
 	bool getTextureByUniformName(const std::string uniformName, GlTexturePtr& outTexture) const;
 
-	bool bindMaterial() const;
+	GlScopedMaterialBinding bindMaterial() const;
+
+protected:
+	friend class GlScopedMaterialBinding;
 	void unbindMaterial() const;
 
 private:

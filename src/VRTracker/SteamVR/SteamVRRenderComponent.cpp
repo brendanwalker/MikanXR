@@ -171,6 +171,6 @@ void SteamVRRenderComponent::setDiffuseColor(const glm::vec4& diffuseColor)
 {
 	if (m_glMeshInstance != nullptr)
 	{
-		m_glMeshInstance->getMaterialInstance()->setDiffuseColor(diffuseColor);
+		m_glMeshInstance->getMaterialInstance()->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, diffuseColor);
 	}
 }

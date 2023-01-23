@@ -18,7 +18,7 @@ public:
 	void disposeRenderResources();
 
 	const std::string& getRenderModelName() const { return m_renderModelName; }
-	const class GlMaterial* getMaterial() const { return m_glMaterial; }
+	class GlMaterial* getMaterial() const { return m_glMaterial; }
 	const class GlTriangulatedMesh* getTriangulatedMesh() const { return m_glMesh; }
 
 protected:

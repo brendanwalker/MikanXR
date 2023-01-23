@@ -545,13 +545,16 @@ void GlFrameCompositor::updateCompositeFrame()
 
 		// Bind the layer shader program and uniform parameters.
 		// This will fail unless all of the shader uniform parameters are bound.
-		if (layer.layerMaterial != nullptr && layer.layerMaterial->bindMaterial())
+		if (layer.layerMaterial != nullptr)
 		{
-			glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindVertexArray(0);
+			GlScopedMaterialBinding materialBinding= layer.layerMaterial->bindMaterial();
 
-			layer.layerMaterial->unbindMaterial();
+			if (materialBinding)
+			{
+				glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+				glBindVertexArray(0);
+			}
 		}
 
 		// Turn back off stencils if we enabled them
