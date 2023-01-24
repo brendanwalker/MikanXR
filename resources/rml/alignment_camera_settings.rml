@@ -14,6 +14,11 @@
 
                 margin: auto;
             }
+            radioblock {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }            
         </style>
     </head>
 
@@ -37,11 +42,11 @@
             </div>
             <div data-if="menu_state == 'testCalibration'">
                 <h2>Viewport Display Mode</h2>
-                <div>
-                    <label><input type="radio" name="viewpoint mode" value="cameraViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> Camera Viewpoint</label><br/>
-                    <label><input type="radio" name="viewpoint mode" value="vrViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> VR Viewpoint</label><br/>
+                <radioblock>
+                    <label><input type="radio" name="viewpoint mode" value="cameraViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> Camera Viewpoint</label>
+                    <label><input type="radio" name="viewpoint mode" value="vrViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> VR Viewpoint</label>
                     <label><input type="radio" name="viewpoint mode" value="mixedRealityViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()""/> Mixed Reality Viewpoint</label>
-                </div>
+                </radioblock>
             </div>            
         </panel>
     </body>
