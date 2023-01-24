@@ -346,8 +346,14 @@ void AppStage_AlignmentCalibration::render()
 			m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
 			break;
 		case eAlignmentCalibrationMenuState::testCalibration:
-			m_monoDistortionView->renderSelectedVideoBuffers();
-			renderVRScene();
+			{
+				if (m_cameraSettingsModel->getViewpointMode() == eAlignmentCalibrationViewpointMode::mixedRealityViewpoint)
+				{
+					m_monoDistortionView->renderSelectedVideoBuffers();
+				}
+
+				renderVRScene();
+			}
 			break;
 	}
 }
