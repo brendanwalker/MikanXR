@@ -64,6 +64,8 @@ public:
 		return m_isRenderingUI;
 	}
 
+	class GlStateStack* getGlStateStack() const { return m_glStateStack; }
+
 	class GlLineRenderer* getLineRenderer() const { return m_lineRenderer; }
 	class GlTextRenderer* getTextRenderer() const { return m_textRenderer; }
 	std::unique_ptr<class GlModelResourceManager>& getModelResourceManager() { return m_modelResourceManager; }
@@ -88,15 +90,12 @@ private:
 
 	void* m_glContext;
 	std::vector<class GlCamera*> m_cameraStack;
+	class GlStateStack* m_glStateStack;
 
 	class GlLineRenderer* m_lineRenderer;
 	class GlTextRenderer* m_textRenderer;
 
 	std::unique_ptr< class GlModelResourceManager > m_modelResourceManager;
-
-	struct ImGuiContext* m_imguiContext;
-	bool m_imguiOpenGLBackendInitialised;
-	bool m_imguiSDLBackendInitialised;
 
 	std::unique_ptr< class GlRmlUiRender > m_rmlUiRenderer;
 

@@ -2,6 +2,7 @@
 #include "FontManager.h"
 #include "GlCamera.h"
 #include "GlCommon.h"
+#include "GlStateStack.h"
 #include "GlTextRenderer.h"
 #include "GlTexture.h"
 #include "Logger.h"
@@ -38,14 +39,13 @@ void GlTextRenderer::render()
 		glPushMatrix();
 		glLoadIdentity();
 
+		GLScopedState stateScope= renderer->getGlStateStack()->createScopedState();
+		stateScope.getStackState()
+			.disableFlag(eGlStateFlagType::depthTest);
+
 		// Turn on alpha blending for text rendering text
 		//glEnable(GL_BLEND);
 		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		GLboolean wasDepthTestEnabled = glIsEnabled(GL_DEPTH_TEST);
-		if (wasDepthTestEnabled)
-		{
-			glDisable(GL_DEPTH_TEST);
-		}
 
 		// Render all of the baked quads
 		for (const BakedTextQuad& bakedQuad : m_bakedTextQuads)
@@ -97,11 +97,6 @@ void GlTextRenderer::render()
 
 		// Turn back off alpha blending
 		//glDisable(GL_BLEND);
-
-		if (wasDepthTestEnabled)
-		{
-			glEnable(GL_DEPTH_TEST);
-		}
 
 		// Restore the projection matrix
 		glMatrixMode(GL_PROJECTION);

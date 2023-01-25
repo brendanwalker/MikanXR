@@ -27,6 +27,7 @@
 
 #include "GlCommon.h"
 #include "GlCamera.h"
+#include "GlStateStack.h"
 #include "GlTexture.h"
 #include "GlShaderCache.h"
 #include "GlTextRenderer.h"
@@ -88,12 +89,10 @@ Renderer::Renderer()
 	, m_sdlWindowWidth(0)
 	, m_sdlWindowHeight(0)
 	, m_glContext(nullptr)
+	, m_glStateStack(nullptr)
 	, m_lineRenderer(nullptr)
 	, m_textRenderer(nullptr)
 	, m_modelResourceManager(std::unique_ptr<GlModelResourceManager>(new GlModelResourceManager))
-	, m_imguiContext(nullptr)
-	, m_imguiOpenGLBackendInitialised(false)
-	, m_imguiSDLBackendInitialised(false)
 	, m_rmlUiRenderer(std::unique_ptr<GlRmlUiRender>(new GlRmlUiRender))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
@@ -299,18 +298,17 @@ bool Renderer::startup()
 		glClearColor(k_clear_color.r, k_clear_color.g, k_clear_color.b, k_clear_color.a);
 		glViewport(0, 0, m_sdlWindowWidth, m_sdlWindowHeight);
 
-		glEnable(GL_LIGHT0);
-		glEnable(GL_TEXTURE_2D);
-		//glClearDepth(1.0f);
-		glEnable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
+		// Create the OpenGL state flag stack
+		m_glStateStack = new GlStateStack();
+
+		// Set default state flags at the base of the stack
+		m_glStateStack->createState()
+		.enableFlag(eGlStateFlagType::light0)
+		.enableFlag(eGlStateFlagType::texture2d)
+		.enableFlag(eGlStateFlagType::depthTest)
+		.disableFlag(eGlStateFlagType::cullFace)
 		// This has to be enabled since the point drawing shader will use gl_PointSize.
-		glEnable(GL_PROGRAM_POINT_SIZE);
-		//glDepthFunc(GL_LEQUAL);
-		//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBlendEquation(GL_FUNC_ADD);
+		.enableFlag(eGlStateFlagType::programPointSize);
 
 		// Create the base camera on the camera stack
 		pushCamera();
@@ -324,6 +322,12 @@ void Renderer::shutdown()
 	while (m_cameraStack.size() > 0)
 	{
 		popCamera();
+	}
+
+	if (m_glStateStack != nullptr)
+	{
+		delete m_glStateStack;
+		m_glStateStack= nullptr;
 	}
 
 	if (m_rmlUiRenderer != nullptr)
