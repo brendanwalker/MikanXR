@@ -50,8 +50,8 @@ public:
 	void setViewport(int viewport_width, int viewport_height);
 
 	// Sets up OpenGL states for taking rendering commands from RmlUi.
-	void beginFrame();
-	void endFrame();
+	void beginFrame(class Renderer* renderer);
+	void endFrame(class Renderer* renderer);
 
 	// Optional, can be used to clear the framebuffer.
 	void clear();

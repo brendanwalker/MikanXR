@@ -4,6 +4,7 @@
 #include "GlCommon.h"
 #include "GlLineRenderer.h"
 #include "GlProgram.h"
+#include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
 #include "Logger.h"
@@ -105,13 +106,11 @@ bool GlLineRenderer::startup()
 }
 
 
-void GlLineRenderer::render()
+void GlLineRenderer::render(Renderer* renderer)
 {
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
 	{
-		Renderer* renderer = App::getInstance()->getRenderer();
-
 		m_program->bindProgram();
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
@@ -137,11 +136,14 @@ void GlLineRenderer::render()
 
 			m_program->setMatrix4x4Uniform(m_modelViewUniformName, orthoMat);
 
-			// disable the depth buffer to allow overdraw 
-			glDisable(GL_DEPTH_TEST);
-			m_points2d.drawGlBufferState(GL_POINTS);
-			m_lines2d.drawGlBufferState(GL_LINES);
-			glEnable(GL_DEPTH_TEST);
+			{
+				// disable the depth buffer to allow overdraw 
+				GLScopedState scopedState = renderer->getGlStateStack()->createScopedState();
+				scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+
+				m_points2d.drawGlBufferState(GL_POINTS);
+				m_lines2d.drawGlBufferState(GL_LINES);
+			}
 		}
 
 		m_program->unbindProgram();

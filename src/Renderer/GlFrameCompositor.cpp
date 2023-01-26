@@ -14,6 +14,7 @@
 #include "Renderer.h"
 #include "StringUtils.h"
 #include "GlShaderCache.h"
+#include "GlStateStack.h"
 #include "GlProgram.h"
 #include "GlModelResourceManager.h"
 #include "GlRenderModelResource.h"
@@ -51,13 +52,6 @@ bool GlFrameCompositor::startup()
 	reloadAllCompositorShaders();
 	reloadAllCompositorConfigurations();
 
-	//m_rgbUndistortionFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBUndistortionFrameShaderCode());
-	//if (m_rgbUndistortionFrameShader == nullptr)
-	//{
-	//	MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb undistortion frame shader";
-	//	return false;
-	//}
-
 	m_rgbFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBFrameShaderCode());
 	if (m_rgbFrameShader == nullptr)
 	{
@@ -71,20 +65,6 @@ bool GlFrameCompositor::startup()
 		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb-to-gbr frame shader";
 		return false;
 	}
-
-	//m_rgbColorKeyLayerShader= GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBColorKeyLayerShaderCode());
-	//if (m_rgbColorKeyLayerShader == nullptr)
-	//{
-	//	MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RGB color key shader";
-	//	return false;
-	//}
-
-	//m_rgbaLayerShader= GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBALayerShaderCode());
-	//if (m_rgbaLayerShader == nullptr)
-	//{
-	//	MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RGBA layer shader";
-	//	return false;
-	//}
 
 	m_stencilShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getStencilShaderCode());
 	if (m_stencilShader == nullptr)
@@ -464,25 +444,22 @@ void GlFrameCompositor::updateCompositeFrame()
 
 	// Cache the last viewport dimensions
 	GLint last_viewport[4];
+	glGetIntegerv(GL_VIEWPORT, last_viewport);
 
-	{
-		EASY_BLOCK("Begin Composite")
+	// Change the viewport to match the frame buffer texture
+	glViewport(0, 0, m_compositedFrame->getTextureWidth(), m_compositedFrame->getTextureHeight());
 
-		glGetIntegerv(GL_VIEWPORT, last_viewport);
+	// bind to framebuffer and draw scene as we normally would to color texture 
+	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
 
-		// Change the viewport to match the frame buffer texture
-		glViewport(0, 0, m_compositedFrame->getTextureWidth(), m_compositedFrame->getTextureHeight());
+	// Turn off depth testing for compositing
+	Renderer* renderer= Renderer::getInstance();
+	GLScopedState updateCompositeGlStateScope = renderer->getGlStateStack()->createScopedState();
+	updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
-		// bind to framebuffer and draw scene as we normally would to color texture 
-		glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
-
-		// Turn off depth testing for compositing
-		glDisable(GL_DEPTH_TEST);
-
-		// make sure we clear the framebuffer's content
-		glClearColor(0.f, 0.f, 0.f, 0.f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+	// make sure we clear the framebuffer's content
+	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Read the next queued frame into a texture to composite
 	if (m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex))
@@ -504,6 +481,8 @@ void GlFrameCompositor::updateCompositeFrame()
 
 		EASY_BLOCK(layerConfig->shaderConfig.materialName);
 
+		GLScopedState layerGlStateScope = renderer->getGlStateStack()->createScopedState();
+
 		// Attempt to apply data sources to the layers material parameters
 		bool bValidMaterialDataSources= true;
 		bValidMaterialDataSources&= refreshLayerMaterialFloatValues(*layerConfig, layer);
@@ -520,7 +499,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		{
 			case eCompositorBlendMode::blendOff:
 				{
-					glDisable(GL_BLEND);
+					layerGlStateScope.getStackState().disableFlag(eGlStateFlagType::blend);
 				}
 				break;
 			case eCompositorBlendMode::blendOn:
@@ -530,7 +509,7 @@ void GlFrameCompositor::updateCompositeFrame()
 					// (sG*sA) + (dG*(1-sA)) = rG
 					// (sB*sA) + (dB*(1-sA)) = rB
 					// (sA*sA) + (dA*(1-sA)) = rA
-					glEnable(GL_BLEND);
+					layerGlStateScope.getStackState().enableFlag(eGlStateFlagType::blend);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glBlendEquation(GL_FUNC_ADD);
 				}
@@ -538,10 +517,9 @@ void GlFrameCompositor::updateCompositeFrame()
 		}
 
 		// Apply stencil shapes, if any, to the layer
-		bool bIsUsingStencils= false;
-		bIsUsingStencils|= updateQuadStencils(layerConfig->quadStencilConfig);
-		bIsUsingStencils|= updateBoxStencils(layerConfig->boxStencilConfig);
-		bIsUsingStencils|= updateModelStencils(layerConfig->modelStencilConfig);
+		updateQuadStencils(layerConfig->quadStencilConfig);
+		updateBoxStencils(layerConfig->boxStencilConfig);
+		updateModelStencils(layerConfig->modelStencilConfig);
 
 		// Bind the layer shader program and uniform parameters.
 		// This will fail unless all of the shader uniform parameters are bound.
@@ -555,12 +533,6 @@ void GlFrameCompositor::updateCompositeFrame()
 				glDrawArrays(GL_TRIANGLES, 0, 6);
 				glBindVertexArray(0);
 			}
-		}
-
-		// Turn back off stencils if we enabled them
-		if (bIsUsingStencils)
-		{
-			glDisable(GL_STENCIL_TEST);
 		}
 	}
 
@@ -594,9 +566,6 @@ void GlFrameCompositor::updateCompositeFrame()
 		// unbind the bghr frame buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
-
-	// Turn back on depth testing for compositing
-	glEnable(GL_DEPTH_TEST);
 
 	// Restore the viewport
 	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
@@ -782,242 +751,6 @@ bool GlFrameCompositor::refreshLayerMaterialTextures(
 	return bSuccess;
 }
 
-#if 0
-void GlFrameCompositor::updateCompositeFrame()
-{
-	EASY_FUNCTION();
-
-	assert(m_pendingCompositeFrameIndex != 0);
-
-	// Cache the last viewport dimensions
-	GLint last_viewport[4];
-
-	{
-		EASY_BLOCK("Begin Composite")
-
-		glGetIntegerv(GL_VIEWPORT, last_viewport);
-
-		// Change the viewport to match the frame buffer texture
-		glViewport(0, 0, m_compositedFrame->getTextureWidth(), m_compositedFrame->getTextureHeight());
-
-		// bind to framebuffer and draw scene as we normally would to color texture 
-		glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
-
-		// Turn off depth testing for compositing
-		glDisable(GL_DEPTH_TEST);
-
-		// Turn off blending for the base layer
-		glDisable(GL_BLEND);
-
-		// make sure we clear the framebuffer's content
-		glClearColor(0.f, 0.f, 0.f, 0.f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-
-	// Read the next queued frame into a texture to composite
-	if (m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex))
-	{
-		EASY_BLOCK("Render Video Frame")
-
-		// Draw the base video frame first
-		m_rgbUndistortionFrameShader->bindProgram();
-
-		// Bind the distorted frame texture + un-distortion textures
-		GlTexture* videoTexture = m_videoDistortionView->getVideoTexture();
-		GlTexture* distortionTexture = m_videoDistortionView->getDistortionTexture();
-		if (videoTexture && distortionTexture)
-		{
-			m_rgbUndistortionFrameShader->setTextureUniform(eUniformSemantic::texture0);
-			m_rgbUndistortionFrameShader->setTextureUniform(eUniformSemantic::texture1);
-
-			videoTexture->bindTexture(0);
-			distortionTexture->bindTexture(1);
-
-			glBindVertexArray(m_videoQuadVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindVertexArray(0);
-
-			videoTexture->clearTexture(0);
-			distortionTexture->clearTexture(1);
-		}
-		m_rgbUndistortionFrameShader->unbindProgram();
-	}
-
-	// Turn back on blending for compositing
-	// https://www.andersriggelsen.dk/glblendfunc.php
-	// (sR*sA) + (dR*(1-sA)) = rR
-	// (sG*sA) + (dG*(1-sA)) = rG
-	// (sB*sA) + (dB*(1-sA)) = rB
-	// (sA*sA) + (dA*(1-sA)) = rA
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
-
-	{
-		EASY_BLOCK("Render Layers")
-
-		// Draw each of the layers next
-		for (GlFrameCompositor::Layer& layer : m_layers)
-		{
-			// Render the color buffer
-			switch (layer.alphaMode)
-			{
-				case eCompositorLayerAlphaMode::NoAlpha:
-				{
-					// Render the stencil
-					bool bIsUsingStencils = updateStencils();
-
-					m_rgbFrameShader->bindProgram();
-					layer.colorTexture->bindTexture();
-
-					glBindVertexArray(m_layerQuadVAO);
-					glDrawArrays(GL_TRIANGLES, 0, 6);
-					glBindVertexArray(0);
-
-					layer.colorTexture->clearTexture();
-					m_rgbFrameShader->unbindProgram();
-
-					// Turn back off stencils if we enabled them
-					if (bIsUsingStencils)
-					{
-						glDisable(GL_STENCIL_TEST);
-					}
-				} break;
-			case eCompositorLayerAlphaMode::ColorKey:
-				{
-					// Render the stencil
-					bool bIsUsingStencils = updateStencils();
-
-					const MikanColorRGB& colorKey = layer.desc.color_key;
-					const glm::vec3 glmColorKey(colorKey.r, colorKey.g, colorKey.b);
-
-					m_rgbColorKeyLayerShader->bindProgram();
-					m_rgbColorKeyLayerShader->setVector3Uniform(eUniformSemantic::diffuseColorRGB, glmColorKey);
-					layer.colorTexture->bindTexture();
-
-					glBindVertexArray(m_layerQuadVAO);
-					glDrawArrays(GL_TRIANGLES, 0, 6);
-					glBindVertexArray(0);
-
-					layer.colorTexture->clearTexture();
-					m_rgbColorKeyLayerShader->unbindProgram();
-
-					// Turn back off stencils if we enabled them
-					if (bIsUsingStencils)
-					{
-						glDisable(GL_STENCIL_TEST);
-					}
-				} break;
-			case eCompositorLayerAlphaMode::AlphaChannel:
-				{
-					// Render the stencil
-					bool bIsUsingStencils = updateStencils();
-
-					m_rgbaLayerShader->bindProgram();
-					layer.colorTexture->bindTexture();
-
-					glBindVertexArray(m_layerQuadVAO);
-					glDrawArrays(GL_TRIANGLES, 0, 6);
-					glBindVertexArray(0);
-
-					layer.colorTexture->clearTexture();
-					m_rgbaLayerShader->unbindProgram();
-
-					// Turn back off stencils if we enabled them
-					if (bIsUsingStencils)
-					{
-						glDisable(GL_STENCIL_TEST);
-					}
-				} break;
-			case eCompositorLayerAlphaMode::MagicPortal:
-				{
-					// Render the stencil
-					bool bIsUsingStencils = updateStencils();
-
-					// Render the no-alpha frame first (presumably stenciled out)
-					m_rgbFrameShader->bindProgram();
-					layer.colorTexture->bindTexture();
-
-					glBindVertexArray(m_layerQuadVAO);
-					glDrawArrays(GL_TRIANGLES, 0, 6);
-					glBindVertexArray(0);
-
-					layer.colorTexture->clearTexture();
-					m_rgbFrameShader->unbindProgram();
-
-					// Turn back off stencils if we enabled them
-					if (bIsUsingStencils)
-					{
-						glDisable(GL_STENCIL_TEST);
-					}
-
-					// Render the alpha frame second (without the stencil
-					m_rgbaLayerShader->bindProgram();
-					layer.colorTexture->bindTexture();
-
-					glBindVertexArray(m_layerQuadVAO);
-					glDrawArrays(GL_TRIANGLES, 0, 6);
-					glBindVertexArray(0);
-
-					layer.colorTexture->clearTexture();
-					m_rgbaLayerShader->unbindProgram();
-
-				}
-			}
-
-			// Render the depth buffer
-		}
-	}
-
-	// Unbind the layer frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// Optionally bake our a BGR video frame, if requested
-	if (m_bGenerateBGRVideoTexture)
-	{
-		EASY_BLOCK("Render BGR Frame")
-
-		// bind to bgr framebuffer and draw composited frame, but use shader to convert from RGB to BGR
-		glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
-
-		m_rgbToBgrFrameShader->bindProgram();
-		m_rgbToBgrFrameShader->setTextureUniform(eUniformSemantic::texture0);
-
-		m_compositedFrame->bindTexture(0);
-
-		glBindVertexArray(m_videoQuadVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		glBindVertexArray(0);
-
-		m_compositedFrame->clearTexture(0);
-
-		m_rgbToBgrFrameShader->unbindProgram();
-
-		// unbind the bghr frame buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-
-	// Turn back on depth testing for compositing
-	glEnable(GL_DEPTH_TEST);
-
-
-	// Restore the viewport
-	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
-
-	// Remember the index of the last frame we composited
-	m_lastCompositedFrameIndex = m_pendingCompositeFrameIndex;
-
-	// Clear the pending composite frame index
-	m_pendingCompositeFrameIndex = 0;
-
-	// Tell any listeners that a new frame was composited
-	if (OnNewFrameComposited)
-	{
-		OnNewFrameComposited();
-	}
-}
-#endif
-
 const GlRenderModelResource* GlFrameCompositor::getStencilRenderModel(MikanStencilID stencilId) const
 {
 	auto it = m_stencilMeshCache.find(stencilId);
@@ -1041,20 +774,20 @@ void GlFrameCompositor::flushStencilRenderModel(MikanStencilID stencilId)
 	}
 }
 
-bool GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig)
+void GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig)
 {
 	EASY_FUNCTION();
 
 	// Bail if we don't want any of this kind of stencil
 	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
-		return false;
+		return;
 
 	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 
 	// Can't apply stencils unless we have a valid tracked camera pose
 	glm::mat4 cameraXform;
 	if (!getVideoSourceCameraPose(cameraXform))
-		return false;
+		return;
 
 	// Collect stencil in view of the tracked camera
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
@@ -1068,7 +801,7 @@ bool GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfi
 		quadStencilList);
 
 	if (quadStencilList.size() == 0)
-		return false;
+		return;
 
 	// If the camera is behind all double sided stencil quads
 	// reverse the stencil function so that video is drawn inside the stencil.
@@ -1108,7 +841,8 @@ bool GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfi
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
 	// Enables testing AND writing functionalities
-	glEnable(GL_STENCIL_TEST);
+	GLScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
+	glStateScope.getStackState().enableFlag(eGlStateFlagType::stencilTest);
 	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilMask(0xFF);
@@ -1159,24 +893,22 @@ bool GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfi
 		stencilMode= (stencilMode == GL_EQUAL) ? GL_NOTEQUAL : GL_EQUAL;
 	}
 	glStencilFunc(stencilMode, 1, 0xFF);
-
-	return true;
 }
 
-bool GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig)
+void GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig)
 {
 	EASY_FUNCTION();
 
 	// Bail if we don't want any of this kind of stencil
 	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
-		return false;
+		return;
 
 	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 
 	// Can't apply stencils unless we have a valid tracked camera pose
 	glm::mat4 cameraXform;
 	if (!getVideoSourceCameraPose(cameraXform))
-		return false;
+		return;
 
 	// Collect stencil in view of the tracked camera
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
@@ -1190,7 +922,7 @@ bool GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig&
 		boxStencilList);
 
 	if (boxStencilList.size() == 0)
-		return false;
+		return;
 
 	glClearStencil(0);
 	glStencilMask(0xFF);
@@ -1200,7 +932,8 @@ bool GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig&
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
 	// Enables testing AND writing functionalities
-	glEnable(GL_STENCIL_TEST);
+	GLScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
+	glStateScope.getStackState().enableFlag(eGlStateFlagType::stencilTest);
 	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilMask(0xFF);
@@ -1246,17 +979,15 @@ bool GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig&
 	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
 	const GLenum stencilMode = (stencilConfig.stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
 	glStencilFunc(stencilMode, 1, 0xFF);
-
-	return true;
 }
 
-bool GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig)
+void GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig)
 {
 	EASY_FUNCTION();
 
 	// Bail if we don't want any of this kind of stencil
 	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
-		return false;
+		return;
 
 	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 	std::unique_ptr<class GlModelResourceManager>& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
@@ -1267,7 +998,7 @@ bool GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerCon
 		modelStencilList);
 
 	if (modelStencilList.size() == 0)
-		return false;
+		return;
 
 	// Add any missing stencil models to the model cache
 	for (const MikanStencilModelConfig* modelConfig : modelStencilList)
@@ -1297,7 +1028,8 @@ bool GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerCon
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
 	// Enables testing AND writing functionalities
-	glEnable(GL_STENCIL_TEST);
+	GLScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
+	glStateScope.getStackState().enableFlag(eGlStateFlagType::stencilTest);
 	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilMask(0xFF);
@@ -1347,194 +1079,7 @@ bool GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerCon
 	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
 	const GLenum stencilMode = (stencilConfig.stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
 	glStencilFunc(stencilMode, 1, 0xFF);
-
-	return true;
 }
-
-#if 0
-bool GlFrameCompositor::updateStencils()
-{
-	EASY_FUNCTION();
-
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();	
-	std::unique_ptr<class GlModelResourceManager>& modelResourceManager= Renderer::getInstance()->getModelResourceManager();
-
-	// Can't apply stencils unless we have a valid tracked camera pose
-	glm::mat4 cameraXform;
-	if (!getVideoSourceCameraPose(cameraXform))
-		return false;
-
-	// Collect stencil in view of the tracked camera
-	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
-	const glm::vec3 cameraPosition(cameraXform[3]);
-
-	std::vector<const MikanStencilQuad*> quadStencilList;
-	MikanServer::getInstance()->getRelevantQuadStencilList(cameraPosition, cameraForward, quadStencilList);
-
-	std::vector<const MikanStencilBox*> boxStencilList;
-	MikanServer::getInstance()->getRelevantBoxStencilList(cameraPosition, cameraForward, boxStencilList);
-
-	std::vector<const MikanStencilModelConfig*> modelStencilList;
-	MikanServer::getInstance()->getRelevantModelStencilList(modelStencilList);
-
-	if (boxStencilList.size() == 0 && quadStencilList.size() == 0 && modelStencilList.size() == 0)
-		return false;
-
-	// Add any missing stencil models to the model cache
-	for (const MikanStencilModelConfig* modelConfig : modelStencilList)
-	{		
-		const MikanStencilID stencil_id= modelConfig->modelInfo.stencil_id;
-
-		if (m_stencilMeshCache.find(stencil_id) == m_stencilMeshCache.end())
-		{
-			// It's possible that the model path isn't valid, 
-			// in which case renderModelResource will be null.
-			// Go ahead an occupy a slot in the m_stencilMeshCache until
-			// the entry us explicitly cleared by flushStencilRenderModel.
-			GlRenderModelResource* renderModelResource=
-				modelResourceManager->fetchRenderModel(
-					modelConfig->modelPath, 
-					getStencilModelVertexDefinition());
-
-			m_stencilMeshCache.insert({ stencil_id, renderModelResource });
-		}
-	}
-
-	// If the camera is behind all double sided stencil quads
-	// reverse the stencil function so that video is drawn inside the stencil.
-	// This makes the stencils act like a magic portal into the virtual layers.
-	int cameraBehindStencilCount= 0;
-	int doubleSidedStencilCount= 0;
-	for (const MikanStencilQuad* stencil : quadStencilList)
-	{
-		if (!stencil->is_disabled && stencil->is_double_sided)
-		{
-			const glm::mat4 xform = profileConfig->getQuadStencilWorldTransform(stencil);
-			const glm::vec3 quadCenter = glm::vec3(xform[3]);
-			const glm::vec3 quadNormal = glm::vec3(xform[2]);
-			const glm::vec3 cameraToQuadCenter = quadCenter - cameraPosition;
-
-			if (glm::dot(quadNormal, cameraToQuadCenter) > 0.f)
-			{
-				cameraBehindStencilCount++;
-			}
-
-			doubleSidedStencilCount++;
-		}
-	}
-	const bool bIsCameraBehindAllStencilPlanes = 
-		cameraBehindStencilCount > 0 && 
-		cameraBehindStencilCount == doubleSidedStencilCount;
-
-	glClearStencil(0);
-	glStencilMask(0xFF);
-	glClear(GL_STENCIL_BUFFER_BIT);
-
-	// Do not draw any pixels on the back buffer
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); 
-	glDepthMask(GL_FALSE);
-	// Enables testing AND writing functionalities
-	glEnable(GL_STENCIL_TEST); 
-	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
-	glStencilFunc(GL_ALWAYS, 1, 0xFF); 
-	glStencilMask(0xFF);
-	// Make every test succeed
-	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); 
-
-	// Compute the view-projection matrix for the tracked video source
-	const glm::mat4 vpMatrix = m_videoSourceView->getCameraViewProjectionMatrix(m_cameraTrackingPuckView);
-
-	m_stencilShader->bindProgram();
-
-	// Draw stencil quads first
-	for (const MikanStencilQuad* stencil : quadStencilList)
-	{
-		// Set the model matrix of stencil quad
-		const glm::mat4 xform = profileConfig->getQuadStencilWorldTransform(stencil);
-		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencil->quad_width;
-		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencil->quad_height;
-		const glm::vec3 z_axis = glm::vec3(xform[2]);
-		const glm::vec3 position = glm::vec3(xform[3]);
-		const glm::mat4 modelMatrix= 
-			glm::mat4(
-				glm::vec4(x_axis, 0.f),
-				glm::vec4(y_axis, 0.f),
-				glm::vec4(z_axis, 0.f),
-				glm::vec4(position, 1.f));
-
-		// Set the model-view-projection matrix on the stencil shader
-		m_stencilShader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * modelMatrix);
-
-		glBindVertexArray(m_stencilQuadVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		glBindVertexArray(0);
-	}
-
-	// Then draw stencil boxes ...
-	for (const MikanStencilBox* stencil : boxStencilList)
-	{
-		// Set the model matrix of stencil quad
-		const glm::mat4 xform = profileConfig->getBoxStencilWorldTransform(stencil);
-		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencil->box_x_size;
-		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencil->box_y_size;
-		const glm::vec3 z_axis = glm::vec3(xform[2]) * stencil->box_z_size;
-		const glm::vec3 position = glm::vec3(xform[3]);
-		const glm::mat4 modelMatrix =
-			glm::mat4(
-				glm::vec4(x_axis, 0.f),
-				glm::vec4(y_axis, 0.f),
-				glm::vec4(z_axis, 0.f),
-				glm::vec4(position, 1.f));
-
-		// Set the model-view-projection matrix on the stencil shader
-		m_stencilShader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * modelMatrix);
-
-		glBindVertexArray(m_stencilBoxVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6*6);
-		glBindVertexArray(0);
-	}
-
-	// Then draw stencil models
-	for (const MikanStencilModelConfig* modelConfig : modelStencilList)
-	{
-		const MikanStencilID stencil_id = modelConfig->modelInfo.stencil_id;
-		auto it= m_stencilMeshCache.find(stencil_id);
-
-		if (it != m_stencilMeshCache.end())
-		{
-			GlRenderModelResource* renderModelResource = it->second;
-
-			if (renderModelResource != nullptr)
-			{
-				// Set the model matrix of stencil model
-				const glm::mat4 modelMatrix = profileConfig->getModelStencilWorldTransform(&modelConfig->modelInfo);
-
-				// Set the model-view-projection matrix on the stencil shader
-				m_stencilShader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * modelMatrix);
-
-				for (int meshIndex = 0; meshIndex < (int)renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
-				{
-					const GlTriangulatedMesh* mesh= renderModelResource->getTriangulatedMesh(meshIndex);
-
-					mesh->drawElements();
-				}
-			}
-		}
-	}
-
-	m_stencilShader->unbindProgram();
-
-	// Make sure you will no longer (over)write stencil values, even if any test succeeds
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); 
-	// Make sure we draw on the backbuffer again.
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); 
-	glDepthMask(GL_TRUE);
-	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
-	glStencilFunc(bIsCameraBehindAllStencilPlanes ? GL_NOTEQUAL : GL_EQUAL, 1, 0xFF); 
-
-	return true;
-}
-#endif
 
 void GlFrameCompositor::render() const
 {
@@ -1543,7 +1088,8 @@ void GlFrameCompositor::render() const
 
 	if (m_compositedFrame != nullptr)
 	{
-		glDisable(GL_DEPTH_TEST);
+		GLScopedState scopedState= Renderer::getInstance()->getGlStateStack()->createScopedState();
+		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 		// Draw the composited video frame
 		m_rgbFrameShader->bindProgram();
@@ -1553,8 +1099,6 @@ void GlFrameCompositor::render() const
 		glBindVertexArray(0);
 		m_compositedFrame->clearTexture();
 		m_rgbFrameShader->unbindProgram();
-
-		glEnable(GL_DEPTH_TEST);
 	}
 }
 
@@ -2115,50 +1659,6 @@ void GlFrameCompositor::onClientRenderTargetUpdated(
 	}
 }
 
-#if 0
-const GlProgramCode* GlFrameCompositor::getRGBUndistortionFrameShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		"RGB Undistortion Frame Shader Code",
-		// vertex shader
-		R""""(
-			#version 330 core
-			layout (location = 0) in vec2 aPos;
-			layout (location = 1) in vec2 aTexCoords;
-
-			out vec2 TexCoords;
-
-			void main()
-			{
-				TexCoords = aTexCoords;
-				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
-			}  
-			)"""",
-		//fragment shader
-		R""""(
-			#version 330 core
-			out vec4 FragColor;
-
-			in vec2 TexCoords;
-
-			uniform sampler2D rgbTexture;
-			uniform sampler2D distortion;
-
-			void main()
-			{
-				vec2 offset = texture(distortion, TexCoords.xy).rg;
-				vec3 col = texture(rgbTexture, offset).rgb;
-
-				FragColor = vec4(col, 1.0);
-			} 
-			)"""")
-		.addUniform("rgbTexture", eUniformSemantic::texture0)
-		.addUniform("distortion", eUniformSemantic::texture1);
-
-	return &x_shaderCode;
-}
-#endif 
-
 const GlProgramCode* GlFrameCompositor::getRGBFrameShaderCode()
 {
 	static GlProgramCode x_shaderCode = GlProgramCode(
@@ -2234,87 +1734,6 @@ const GlProgramCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 
 	return &x_shaderCode;
 }
-
-#if 0
-const GlProgramCode* GlFrameCompositor::getRGBColorKeyLayerShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		"RGBColorKey Shader Code",
-		// vertex shader
-		R""""(
-			#version 330 core
-			layout (location = 0) in vec2 aPos;
-			layout (location = 1) in vec2 aTexCoords;
-
-			out vec2 TexCoords;
-
-			void main()
-			{
-				TexCoords = aTexCoords;
-				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
-			}  
-			)"""",
-		//fragment shader
-		R""""(
-			#version 330 core
-			out vec4 FragColor;
-
-			in vec2 TexCoords;
-
-			uniform vec3 colorKey;
-			uniform sampler2D colorKeyTexture;
-
-			void main()
-			{
-				vec3 col = texture(colorKeyTexture, TexCoords).rgb;
-				float alpha= (col == colorKey) ? 0.0 : 1.0;
-
-				FragColor = vec4(col, alpha);
-			} 
-			)"""")
-		.addUniform("colorKey", eUniformSemantic::diffuseColorRGB)
-		.addUniform("colorKeyTexture", eUniformSemantic::texture0);
-
-	return &x_shaderCode;
-}
-
-const GlProgramCode* GlFrameCompositor::getRGBALayerShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		"RGBA Layer Shader Code",
-		// vertex shader
-		R""""(
-			#version 330 core
-			layout (location = 0) in vec2 aPos;
-			layout (location = 1) in vec2 aTexCoords;
-
-			out vec2 TexCoords;
-
-			void main()
-			{
-				TexCoords = aTexCoords;
-				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
-			}  
-			)"""",
-		//fragment shader
-		R""""(
-			#version 330 core
-			out vec4 FragColor;
-
-			in vec2 TexCoords;
-
-			uniform sampler2D rgbaTexture;
-
-			void main()
-			{
-				FragColor = texture(rgbaTexture, TexCoords).rgba;
-			} 
-			)"""")
-		.addUniform("rgbaTexture", eUniformSemantic::texture0);
-
-	return &x_shaderCode;
-}
-#endif
 
 const GlProgramCode* GlFrameCompositor::getStencilShaderCode()
 {

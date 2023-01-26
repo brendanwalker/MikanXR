@@ -302,7 +302,7 @@ bool Renderer::startup()
 		m_glStateStack = new GlStateStack();
 
 		// Set default state flags at the base of the stack
-		m_glStateStack->createState()
+		m_glStateStack->pushState()
 		.enableFlag(eGlStateFlagType::light0)
 		.enableFlag(eGlStateFlagType::texture2d)
 		.enableFlag(eGlStateFlagType::depthTest)
@@ -490,10 +490,10 @@ void Renderer::renderStageEnd()
 	EASY_FUNCTION();
 
 	// Render any line segments emitted by the AppStage
-	m_lineRenderer->render();
+	m_lineRenderer->render(this);
 
 	// Render any glyphs emitted by the AppStage
-	m_textRenderer->render();
+	m_textRenderer->render(this);
 
 	m_isRenderingStage = false;
 }
@@ -502,7 +502,7 @@ void Renderer::renderUIBegin()
 {
 	EASY_FUNCTION();
 
-	m_rmlUiRenderer->beginFrame();
+	m_rmlUiRenderer->beginFrame(this);
 
 	m_isRenderingUI = true;
 }
@@ -511,7 +511,7 @@ void Renderer::renderUIEnd()
 {
 	EASY_FUNCTION();	
 
-	m_rmlUiRenderer->endFrame();
+	m_rmlUiRenderer->endFrame(this);
 
 	m_isRenderingUI = false;
 }

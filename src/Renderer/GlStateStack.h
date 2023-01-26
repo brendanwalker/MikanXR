@@ -9,6 +9,9 @@ enum class eGlStateFlagType : int
 	light0,
 	texture2d,
 	depthTest,
+	stencilTest,
+	scissorTest,
+	blend,
 	cullFace,
 	programPointSize,
 
@@ -61,9 +64,11 @@ public:
 	GlStateStack() = default;
 	virtual ~GlStateStack();
 
-	GLState& createState();
+	GLState& pushState();
+	void popState();
+
+	int getCurrentStackDepth() const;
 	GLState* getState(const int depth) const;
-	void freeState(GLState& state);
 
 	GLScopedState createScopedState();
 

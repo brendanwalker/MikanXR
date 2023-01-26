@@ -15,12 +15,11 @@ GlTextRenderer::GlTextRenderer()
 {
 }
 
-void GlTextRenderer::render()
+void GlTextRenderer::render(Renderer* renderer)
 {
 	if (m_bakedTextQuads.size() > 0)
 	{
 		// Fetch the window resolution
-		Renderer* renderer = Renderer::getInstance();
 		const float screenWidth = renderer->getSDLWindowWidth();
 		const float screenHeight = renderer->getSDLWindowHeight();
 
@@ -41,11 +40,11 @@ void GlTextRenderer::render()
 
 		GLScopedState stateScope= renderer->getGlStateStack()->createScopedState();
 		stateScope.getStackState()
-			.disableFlag(eGlStateFlagType::depthTest);
+			.disableFlag(eGlStateFlagType::depthTest)
+			.enableFlag(eGlStateFlagType::blend);
 
 		// Turn on alpha blending for text rendering text
-		//glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Render all of the baked quads
 		for (const BakedTextQuad& bakedQuad : m_bakedTextQuads)
@@ -94,9 +93,6 @@ void GlTextRenderer::render()
 
 			bakedQuad.texture->clearTexture();
 		}
-
-		// Turn back off alpha blending
-		//glDisable(GL_BLEND);
 
 		// Restore the projection matrix
 		glMatrixMode(GL_PROJECTION);

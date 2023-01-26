@@ -111,15 +111,12 @@ protected:
 	bool removeClientSource(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
 
 	void updateCompositeFrame();
-	bool updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig);
-	bool updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig);
-	bool updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig);
+	void updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig);
+	void updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig);
+	void updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig);
 
-	//static const class GlProgramCode* getRGBUndistortionFrameShaderCode();
 	static const class GlProgramCode* getRGBFrameShaderCode();
 	static const class GlProgramCode* getRGBtoBGRVideoFrameShaderCode();
-	//static const class GlProgramCode* getRGBColorKeyLayerShaderCode();
-	//static const class GlProgramCode* getRGBALayerShaderCode();
 	static const class GlProgramCode* getStencilShaderCode();
 	static const struct GlVertexDefinition* getStencilModelVertexDefinition();
 
@@ -162,11 +159,8 @@ private:
 	unsigned int m_stencilQuadVAO = 0, m_stencilQuadVBO = 0;
 	unsigned int m_stencilBoxVAO = 0, m_stencilBoxVBO = 0;
 	bool m_bGenerateBGRVideoTexture = false;
-	//GlProgram* m_rgbUndistortionFrameShader= nullptr;
 	GlProgram* m_rgbFrameShader = nullptr;
 	GlProgram* m_rgbToBgrFrameShader = nullptr; // Keep
-	//GlProgram* m_rgbColorKeyLayerShader = nullptr;
-	//GlProgram* m_rgbaLayerShader = nullptr;
 	GlProgram* m_stencilShader = nullptr; // Keep
 	GlTexture* m_compositedFrame = nullptr;
 	GlTexture* m_bgrVideoFrame = nullptr; // BGR, flipped video frame

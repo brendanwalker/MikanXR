@@ -32,6 +32,7 @@
 #include "GlCommon.h"
 #include "GlShaderCache.h"
 #include "GlProgram.h"
+#include "GlStateStack.h"
 #include "GlVertexDefinition.h"
 #include "Logger.h"
 #include "PathUtils.h"
@@ -443,23 +444,24 @@ void GlRmlUiRender::setViewport(int width, int height)
 	viewport_height = height;
 }
 
-void GlRmlUiRender::beginFrame()
+void GlRmlUiRender::beginFrame(Renderer* renderer)
 {
+	GLState& glState= renderer->getGlStateStack()->pushState();
+
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
 	glViewport(0, 0, viewport_width, viewport_height);
 
-	glDisable(GL_DEPTH_TEST);
+	glState.disableFlag(eGlStateFlagType::depthTest);
 
 	glClearStencil(0);
 	glClearColor(0, 0, 0, 1);
+	glState.disableFlag(eGlStateFlagType::cullFace);
 
-	glDisable(GL_CULL_FACE);
-
-	glEnable(GL_STENCIL_TEST);
+	glState.enableFlag(eGlStateFlagType::stencilTest);
 	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-	glEnable(GL_BLEND);
+	glState.enableFlag(eGlStateFlagType::blend);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -468,10 +470,11 @@ void GlRmlUiRender::beginFrame()
 	SetTransform(nullptr);
 }
 
-void GlRmlUiRender::endFrame() 
+void GlRmlUiRender::endFrame(Renderer* renderer) 
 {
 	glViewport(0, 0, (int)viewport_width, (int)viewport_height);
-	glEnable(GL_DEPTH_TEST);
+	
+	renderer->getGlStateStack()->popState();
 }
 
 void GlRmlUiRender::clear()

@@ -6,6 +6,9 @@ GLenum g_glFlagTypeMapping[(int)eGlStateFlagType::COUNT] = {
 	GL_LIGHT0,				// light0,
 	GL_TEXTURE_2D,			// texture2d,
 	GL_DEPTH_TEST,			// depthTest,
+	GL_STENCIL_TEST,		// stencilTest
+	GL_SCISSOR_TEST,		// scissorTest
+	GL_BLEND,				// blend,
 	GL_CULL_FACE,			// cullFace,
 	GL_PROGRAM_POINT_SIZE,	// programPointSize,
 };
@@ -85,7 +88,9 @@ GLScopedState::GLScopedState(GLState& state) : m_state(state)
 
 GLScopedState::~GLScopedState()
 {
-	m_state.getOwnerStateStack().freeState(m_state);
+	// Make sure we are deleting the state on the top of the stack
+	assert(m_state.getOwnerStateStack().getCurrentStackDepth() == m_state.getStackDepth());
+	m_state.getOwnerStateStack().popState();
 }
 
 // -- GlStateStack -----
@@ -93,11 +98,11 @@ GlStateStack::~GlStateStack()
 {
 	while (!m_stateStack.empty())
 	{
-		freeState(*m_stateStack[m_stateStack.size() - 1]);
+		popState();
 	}
 }
 
-GLState& GlStateStack::createState()
+GLState& GlStateStack::pushState()
 {
 	// Create a new GlState and initialize it from the parent state on this stack
 	GLState* state = new GLState(*this, (int)m_stateStack.size());
@@ -108,26 +113,32 @@ GLState& GlStateStack::createState()
 	return *state;
 }
 
+int GlStateStack::getCurrentStackDepth() const
+{
+	return (int)m_stateStack.size() - 1;
+}
+
 GLState* GlStateStack::getState(const int depth) const
 {
 	return (depth >= 0 && depth < (int)m_stateStack.size()) ? m_stateStack[depth] : nullptr;
 }
 
-void GlStateStack::freeState(GLState& state)
+void GlStateStack::popState()
 {
-	// Make sure we are deleting the state on the top of the stack
-	const int currentDepth = (int)m_stateStack.size() - 1;
-	assert(currentDepth == state.getStackDepth());
+	const int currentDepth = getCurrentStackDepth();
 
-	// Cleaning up the state will undo all the flags it set
-	delete m_stateStack[currentDepth];
+	if (currentDepth >= 0)
+	{
+		// Cleaning up the state will undo all the flags it set
+		delete m_stateStack[currentDepth];
 
-	// Remove the state from the top of the stack
-	m_stateStack.pop_back();
+		// Remove the state from the top of the stack
+		m_stateStack.pop_back();
+	}
 }
 
 GLScopedState GlStateStack::createScopedState()
 {
 	// Create a state that will get auto cleaned up when GLScopedState goes out of scope
-	return GLScopedState(createState());
+	return GLScopedState(pushState());
 }

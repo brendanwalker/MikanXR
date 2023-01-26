@@ -14,7 +14,7 @@ public:
 	~GlLineRenderer();
 
 	bool startup();
-	void render();
+	void render(class Renderer* renderer);
 	void shutdown();
 
 	// Draw 3d points and lines in world space
