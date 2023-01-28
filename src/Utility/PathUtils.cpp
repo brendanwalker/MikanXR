@@ -171,40 +171,67 @@ namespace PathUtils
 
 	std::vector<std::string> listFilesOrDirectories(ListType type, const std::string& directory, const std::string& extension)
 	{
-		if (directory.empty())
-			return std::vector<std::string>();
-
 		std::vector<std::string> result;
 
 #if defined WIN32 || defined _WIN32 || defined WINCE
-		const std::string find_path = directory + "/*." + (extension.empty() ? std::string("*") : extension);
-
-		_finddata_t find_data;
-		intptr_t find_handle = _findfirst(find_path.c_str(), &find_data);
-		if (find_handle != -1)
+		if (!directory.empty())
 		{
-			do
+			const std::string find_path = directory + "/*." + (extension.empty() ? std::string("*") : extension);
+
+			_finddata_t find_data;
+			intptr_t find_handle = _findfirst(find_path.c_str(), &find_data);
+			if (find_handle != -1)
 			{
-				if (strcmp(find_data.name, ".") == 0 ||
-					strcmp(find_data.name, "..") == 0)
-					continue;
-
-				bool is_directory = ((find_data.attrib & _A_SUBDIR) == _A_SUBDIR);
-				bool is_file = (!is_directory && ((find_data.attrib & _A_NORMAL) == _A_NORMAL));
-
-				if (((type == ListType::Files) && is_file) ||
-					((type == ListType::Directories) && is_directory))
+				do
 				{
-					result.push_back(find_data.name);
+					if (strcmp(find_data.name, ".") == 0 ||
+						strcmp(find_data.name, "..") == 0)
+						continue;
+
+					bool is_directory = ((find_data.attrib & _A_SUBDIR) == _A_SUBDIR);
+					bool is_file = (!is_directory && ((find_data.attrib & _A_NORMAL) == _A_NORMAL));
+
+					if (((type == ListType::Files) && is_file) ||
+						((type == ListType::Directories) && is_directory))
+					{
+						result.push_back(find_data.name);
+					}
+
+				} while (_findnext(find_handle, &find_data) == 0);
+
+				_findclose(find_handle);
+			}
+		}
+		else
+		{
+			// In windows, if given an empty directory and the search type is "Directories",
+			// provide a list of root drive letters
+			if (type == ListType::Directories)
+			{
+				char szLogicalDrives[MAX_PATH] = {0};
+				DWORD dwResult= GetLogicalDriveStringsA(MAX_PATH, szLogicalDrives);
+				if (dwResult > 0 && dwResult <= MAX_PATH)
+				{
+					char* szSingleDrive = szLogicalDrives;
+					while (*szSingleDrive)
+					{
+						result.push_back(szSingleDrive);
+
+						// get the next drive
+						szSingleDrive += strlen(szSingleDrive) + 1;
+					}
 				}
-
-			} while (_findnext(find_handle, &find_data) == 0);
-
-			_findclose(find_handle);
+			}
+			else
+			{
+				result= std::vector<std::string>();
+			}
 		}
 	#else
+		std::string scan_directory = !directory.empty() ? directory : "/";
+
 		struct dirent** file_list = nullptr;
-		const int file_count = scandir(directory.c_str(), &file_list, 0, alphasort);
+		const int file_count = scandir(scan_directory.c_str(), &file_list, 0, alphasort);
 		if (file_count == -1)
 			return std::vector<std::string>();
 
