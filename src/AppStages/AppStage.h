@@ -6,6 +6,8 @@
 //-- typedefs -----
 typedef union SDL_Event SDL_Event;
 
+class ModalDialog;
+
 namespace Rml {
 	class Context;
 	class ElementDocument;
@@ -40,9 +42,25 @@ public:
 	virtual void onSDLEvent(SDL_Event* event);
 
 	Rml::Context* getRmlContext() const;
-	Rml::ElementDocument* addRmlDocument(const std::string& docPath);
+	Rml::ElementDocument* addRmlDocument(const std::string& docPath, bool isModal= false);
 	bool AppStage::removeRmlDocument(Rml::ElementDocument* doc);
 	virtual void onRmlClickEvent(const std::string& value) {}
+
+	inline ModalDialog* getCurrentModalDialog() const
+	{
+		return (m_modalDialogStack.size() > 0) ? m_modalDialogStack[m_modalDialogStack.size() - 1] : nullptr;
+	}
+
+	template<typename t_modal_dialog>
+	t_modal_dialog* pushModalDialog()
+	{
+		t_modal_dialog* modalDialog = new t_modal_dialog(this);
+		m_modalDialogStack.push_back(modalDialog);
+
+		return modalDialog;
+	}
+
+	void popModalDialog();
 
 protected:
 	class App* m_app;
@@ -50,4 +68,5 @@ protected:
 	bool m_bIsPaused= false;
 	std::string m_appStageName;
 	std::vector<Rml::ElementDocument*> m_rmlDocuments;
+	std::vector<class ModalDialog*> m_modalDialogStack;
 };
