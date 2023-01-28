@@ -59,7 +59,10 @@ bool RmlModel_FileBrowser::init(Rml::Context* rmlContext)
 	constructor.BindEventCallback(
 		"exit_directory",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			setDirectoryPath(m_currentDirectoryPath.parent_path());
+			// If the parent path generates the same path as the current path, we must be at the root
+			// Pass in an empty path in this case to get a list of drives
+			const auto parentPath= m_currentDirectoryPath.parent_path();
+			setDirectoryPath(parentPath != m_currentDirectoryPath ? parentPath : std::filesystem::path());
 		});
 	constructor.BindEventCallback(
 		"accept_filepath",

@@ -1,12 +1,14 @@
 #pragma once
 
 //-- includes -----
-#include "AppStage.h"
+#include "Shared/ModalDialog.h"
 #include "SinglecastDelegate.h"
 
 #include <string>
 #include <vector>
 #include <functional>
+
+class AppStage;
 
 namespace Rml
 {
@@ -15,17 +17,15 @@ namespace Rml
 
 //-- definitions -----
 
-class AppStage_FileBrowser : public AppStage
+class ModalDialog_FileBrowser : public ModalDialog
 {
 public:
-	AppStage_FileBrowser(class App* app);
-	virtual ~AppStage_FileBrowser();
-
-	virtual void enter() override;
-	virtual void exit() override;
+	ModalDialog_FileBrowser(AppStage* ownerAppStage);
+	virtual ~ModalDialog_FileBrowser();
 
 	using AcceptFilePathCallback = std::function<void(const std::string& filepath)>;
 	using RejectFilePathCallback = std::function<void()>;
+	using ErrorCallback = std::function<void(const std::string& errorMesg)>;
 	static bool browseFile(
 		const std::string& title,
 		const std::string& initialDirectory,
@@ -33,15 +33,19 @@ public:
 		AcceptFilePathCallback acceptCallback={},
 		RejectFilePathCallback rejectCallback={});
 
-	static const char* APP_STAGE_NAME;
-
 protected:
-	class RmlModel_FileBrowser* m_filebrowserModel = nullptr;
-	Rml::ElementDocument* m_filebrowserView = nullptr;
+	class RmlModel_FileBrowser* m_fileBrowserModel = nullptr;
+	Rml::ElementDocument* m_fileBrowserView = nullptr;
 
 	AcceptFilePathCallback m_acceptCallback;
 	RejectFilePathCallback m_rejectCallback;
 
-	void onAcceptFilePath(const Rml::String& filepath);
+	bool init(
+		const std::string& title,
+		const std::string& initialDirectory,
+		const std::vector<std::string>& typeFilters,
+		AcceptFilePathCallback acceptCallback,
+		RejectFilePathCallback rejectCallback);
+	void onAcceptFilePath(const std::string& filepath);
 	void onRejectFilePath();
 };

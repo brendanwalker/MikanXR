@@ -8,7 +8,7 @@
 #include "Compositor/RmlModel_CompositorModels.h"
 #include "Compositor/RmlModel_CompositorRecording.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
-#include "FileBrowser/AppStage_FileBrowser.h"
+#include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "GlCommon.h"
@@ -181,6 +181,8 @@ void AppStage_Compositor::exit()
 
 void AppStage_Compositor::update()
 {
+	AppStage::update();
+
 	// Copy the compositor's camera pose to the app stage's camera for debug rendering
 	glm::mat4 cameraXform;
 	if (m_frameCompositor->getVideoSourceCameraPose(cameraXform))
@@ -450,7 +452,7 @@ void AppStage_Compositor::onModifyModelStencilEvent(int stencilID)
 
 void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 {
-	AppStage_FileBrowser::browseFile(
+	ModalDialog_FileBrowser::browseFile(
 		"Select Stencil Model", 
 		PathUtils::getCurrentDirectory(), 
 		{"obj"}, 
@@ -475,7 +477,7 @@ void AppStage_Compositor::onToggleRecordingEvent()
 // Scripting UI Events
 void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
-	AppStage_FileBrowser::browseFile(
+	ModalDialog_FileBrowser::browseFile(
 		"Select Scene Script",
 		PathUtils::getCurrentDirectory(),
 		{"lua"},
