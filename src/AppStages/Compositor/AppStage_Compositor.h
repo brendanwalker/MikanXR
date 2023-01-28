@@ -103,9 +103,4 @@ protected:
 	bool m_bDebugRenderAnchors = true;
 
 	class VideoWriter* m_videoWriter= nullptr;
-
-	//ImGui::FileBrowser* m_modelFileDialog = nullptr;
-	//int m_pendingModelFilenameStencilID= -1;
-
-	//ImGui::FileBrowser* m_scriptFileDialog = nullptr;
 };
