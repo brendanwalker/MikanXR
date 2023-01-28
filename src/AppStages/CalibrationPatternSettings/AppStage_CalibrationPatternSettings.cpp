@@ -99,6 +99,8 @@ void AppStage_CalibrationPatternSettings::exit()
 
 void AppStage_CalibrationPatternSettings::update()
 {
+	AppStage::update();
+
 	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 	bool bDirty= false;
 

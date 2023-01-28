@@ -111,6 +111,8 @@ void AppStage_VRDeviceSettings::exit()
 
 void AppStage_VRDeviceSettings::update()
 {
+	AppStage::update();
+
 	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 
 	bool bCameraSettingsChanged= false;

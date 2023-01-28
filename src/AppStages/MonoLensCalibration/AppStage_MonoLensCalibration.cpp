@@ -148,6 +148,8 @@ void AppStage_MonoLensCalibration::exit()
 
 void AppStage_MonoLensCalibration::update()
 {
+	AppStage::update();
+
 	// Update data bindings on child models
 	m_calibrationModel->update();
 	m_cameraSettingsModel->update();

@@ -238,6 +238,8 @@ void AppStage_SpatialAnchors::exit()
 
 void AppStage_SpatialAnchors::update()
 {
+	AppStage::update();
+
 	if (m_dataModel->model_handle.IsVariableDirty("selected_tracker_device"))
 	{
 		const int newSelectedIndex = m_dataModel->selected_tracker_device;
