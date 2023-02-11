@@ -164,8 +164,10 @@ void RmlModel_CompositorBoxes::copyUIBoxToProfile(int stencil_id, ProfileConfig*
 			box_z_axis,
 			uiBox.size.x,
 			uiBox.size.y,
+			uiBox.size.z,
 			uiBox.disabled
 		};
+
 		StringUtils::formatString(box.stencil_name, sizeof(box.stencil_name), "%s", uiBox.stencil_name.c_str());
 		profile->updateBoxStencil(box);
 	}
