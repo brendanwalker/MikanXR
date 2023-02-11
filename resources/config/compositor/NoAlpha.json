@@ -12,13 +12,13 @@
                 }
             },
             "quadStencilConfig": {
-                "stencilMode": "noStencil"
+                "stencilMode": "insideStencil"
             },
             "boxStencilConfig": {
-                "stencilMode": "noStencil"
+                "stencilMode": "insideStencil"
             },
             "modelStencilConfig": {
-                "stencilMode": "noStencil"
+                "stencilMode": "insideStencil"
             }
         },
         {
