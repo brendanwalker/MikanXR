@@ -67,6 +67,20 @@ struct CompositorLayerConfig
 	CompositorModelStencilLayerConfig modelStencilConfig;
 };
 
+class CompositorPreset : public CommonConfig
+{
+public:
+	CompositorPreset(const std::string& fnamebase = "CompositorPreset")
+		: CommonConfig(fnamebase)
+	{}
+
+	virtual const configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	std::string name;
+	std::vector<CompositorLayerConfig> layers;
+};
+
 class GlFrameCompositorConfig : public CommonConfig
 {
 public:
@@ -77,6 +91,5 @@ public:
 	virtual const configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	std::string name;
-	std::vector<CompositorLayerConfig> layers;
+	std::string presetName;
 };

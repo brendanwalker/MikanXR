@@ -176,8 +176,8 @@ void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-// -- GlFrameCompositorConfig ------
-const configuru::Config GlFrameCompositorConfig::writeToJSON()
+// -- CompositorPreset ------
+const configuru::Config CompositorPreset::writeToJSON()
 {
 	configuru::Config pt = configuru::Config::object();
 
@@ -193,7 +193,7 @@ const configuru::Config GlFrameCompositorConfig::writeToJSON()
 	return pt;
 }
 
-void GlFrameCompositorConfig::readFromJSON(
+void CompositorPreset::readFromJSON(
 	const configuru::Config& pt)
 {
 	name= pt.get_or<std::string>("name", name);
@@ -209,4 +209,20 @@ void GlFrameCompositorConfig::readFromJSON(
 			layers.push_back(layer);
 		}
 	}
+}
+
+// -- GlFrameCompositorConfig ------
+const configuru::Config GlFrameCompositorConfig::writeToJSON()
+{
+	configuru::Config pt = configuru::Config::object();
+
+	pt["presetName"] = presetName;
+
+	return pt;
+}
+
+void GlFrameCompositorConfig::readFromJSON(
+	const configuru::Config& pt)
+{
+	presetName = pt.get_or<std::string>("presetName", presetName);
 }

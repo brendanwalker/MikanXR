@@ -88,8 +88,8 @@ void RmlModel_CompositorLayers::dispose()
 void RmlModel_CompositorLayers::rebuild(
 	const GlFrameCompositor* compositor)
 {
-	m_currentConfigurationName= compositor->getCurrentConfigurationName();
-	m_configurationNames= compositor->getConfigurationNames();
+	m_currentConfigurationName= compositor->getCurrentPresetName();
+	m_configurationNames= compositor->getPresetNames();
 
 	m_compositorLayers.clear();
 	for (const auto& layer : compositor->getLayers())

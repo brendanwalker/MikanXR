@@ -468,7 +468,7 @@ void MikanServer::getRelevantQuadStencilList(
 			continue;
 
 		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilNames != nullptr)
+		if (allowedStencilNames != nullptr && allowedStencilNames->size() > 0)
 		{
 			if (std::find(
 					allowedStencilNames->begin(), allowedStencilNames->end(), 
@@ -511,7 +511,7 @@ void MikanServer::getRelevantBoxStencilList(
 			continue;
 
 		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilNames != nullptr)
+		if (allowedStencilNames != nullptr && allowedStencilNames->size() > 0)
 		{
 			if (std::find(
 				allowedStencilNames->begin(), allowedStencilNames->end(),
@@ -560,7 +560,7 @@ void MikanServer::getRelevantModelStencilList(
 			continue;
 
 		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilNames != nullptr)
+		if (allowedStencilNames != nullptr && allowedStencilNames->size() > 0)
 		{
 			if (std::find(
 				allowedStencilNames->begin(), allowedStencilNames->end(),

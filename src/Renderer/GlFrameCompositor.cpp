@@ -50,7 +50,7 @@ bool GlFrameCompositor::startup()
 	EASY_FUNCTION();
 
 	reloadAllCompositorShaders();
-	reloadAllCompositorConfigurations();
+	reloadAllCompositorPresets();
 
 	m_rgbFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBFrameShaderCode());
 	if (m_rgbFrameShader == nullptr)
@@ -78,15 +78,16 @@ bool GlFrameCompositor::startup()
 	// Load the last use compositor configuration
 	m_config.load();
 
-	// If no named configuration is set, load the default one
-	if (m_config.name.empty())
+	if (m_config.presetName.empty())
 	{
-		setConfiguration(DEFAULT_COMPOSITOR_CONFIG_NAME);
+		// If no preset name is set, try the default one
+		applyLayerPreset(DEFAULT_COMPOSITOR_CONFIG_NAME);
 	}
-	// Otherwise rebuild layers from existing configuration
 	else
 	{
+		// Recreate the compositor layers for the current config
 		rebuildLayersFromConfig();
+
 	}
 
 	return true;
@@ -127,7 +128,7 @@ void GlFrameCompositor::shutdown()
 	m_materialSources.clear();
 }
 
-void GlFrameCompositor::reloadAllCompositorConfigurations()
+void GlFrameCompositor::reloadAllCompositorPresets()
 {
 	std::filesystem::path compositorShaderDir = PathUtils::getResourceDirectory();
 	compositorShaderDir /= "config";
@@ -141,10 +142,10 @@ void GlFrameCompositor::reloadAllCompositorConfigurations()
 		std::filesystem::path configFilePath = compositorShaderDir;
 		configFilePath /= configFileName;
 
-		GlFrameCompositorConfig* compositorConfig = new GlFrameCompositorConfig;
-		if (compositorConfig->load(configFilePath.string()))
+		CompositorPreset* compositorPreset = new CompositorPreset;
+		if (compositorPreset->load(configFilePath.string()))
 		{
-			m_compositorConfigurations.setValue(compositorConfig->name, compositorConfig);
+			m_compositorPresets.setValue(compositorPreset->name, compositorPreset);
 		}
 		else
 		{
@@ -155,31 +156,49 @@ void GlFrameCompositor::reloadAllCompositorConfigurations()
 
 void GlFrameCompositor::clearAllCompositorConfigurations()
 {
-	for (auto it = m_compositorConfigurations.getMap().begin(); it != m_compositorConfigurations.getMap().end(); it++)
+	for (auto it = m_compositorPresets.getMap().begin(); it != m_compositorPresets.getMap().end(); it++)
 	{
 		delete it->second;
 	}
-	m_compositorConfigurations.clear();
+	m_compositorPresets.clear();
+}
+
+const CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfig(int layerIndex)
+{
+	CompositorPreset* preset = nullptr;
+	if (m_compositorPresets.tryGetValue(m_config.presetName, preset))
+	{
+		if (layerIndex >= 0 && layerIndex < (int)preset->layers.size())
+		{
+			return &preset->layers[layerIndex];
+		}
+	}
+
+	return nullptr;
 }
 
 void GlFrameCompositor::rebuildLayersFromConfig()
 {
-	m_layers.clear();
-	for (int layerIndex= 0; layerIndex < (int)m_config.layers.size(); ++layerIndex)
+	CompositorPreset* preset = nullptr;
+	if (m_compositorPresets.tryGetValue(m_config.presetName, preset))
 	{
-		const CompositorLayerConfig& layerConfig = m_config.layers[layerIndex];
-		GlMaterial* material= m_materialSources.getValueOrDefault(layerConfig.shaderConfig.materialName, nullptr);
+		m_layers.clear();
+		for (int layerIndex = 0; layerIndex < (int)preset->layers.size(); ++layerIndex)
+		{
+			const CompositorLayerConfig& layerConfig = preset->layers[layerIndex];
+			GlMaterial* material = m_materialSources.getValueOrDefault(layerConfig.shaderConfig.materialName, nullptr);
 
-		const Layer layer = {layerIndex, material, -1};
-		m_layers.push_back(layer);
+			const Layer layer = {layerIndex, material, -1};
+			m_layers.push_back(layer);
+		}
 	}
 }
 
-std::vector<std::string> GlFrameCompositor::getConfigurationNames() const
+std::vector<std::string> GlFrameCompositor::getPresetNames() const
 {
 	std::vector<std::string> configurationNames;
 
-	for (auto it = m_compositorConfigurations.getMap().begin(); it != m_compositorConfigurations.getMap().end(); it++)
+	for (auto it = m_compositorPresets.getMap().begin(); it != m_compositorPresets.getMap().end(); it++)
 	{
 		configurationNames.push_back(it->first);
 	}
@@ -187,20 +206,19 @@ std::vector<std::string> GlFrameCompositor::getConfigurationNames() const
 	return configurationNames;
 }
 
-const std::string& GlFrameCompositor::getCurrentConfigurationName() const
+const std::string& GlFrameCompositor::getCurrentPresetName() const
 {
-	return m_config.name;
+	return m_config.presetName;
 }
 
-bool GlFrameCompositor::setConfiguration(const std::string& configurationName)
+bool GlFrameCompositor::applyLayerPreset(const std::string& presetName)
 {
-	if (configurationName == m_config.name)
+	if (presetName == m_config.presetName)
 		return false;
 
-	GlFrameCompositorConfig* newConfig;
-	if (m_compositorConfigurations.tryGetValue(configurationName, newConfig))
+	if (m_compositorPresets.hasValue(presetName))
 	{
-		m_config= *newConfig;
+		m_config.presetName= presetName;
 		m_config.save();
 
 		// Recreate the compositor layers for the current config
@@ -475,7 +493,7 @@ void GlFrameCompositor::updateCompositeFrame()
 
 	for (GlFrameCompositor::Layer& layer : m_layers)
 	{
-		const CompositorLayerConfig* layerConfig= getLayerConfig(layer.layerIndex);
+		const CompositorLayerConfig* layerConfig= getCurrentPresetLayerConfig(layer.layerIndex);
 		if (layerConfig == nullptr)
 			continue;
 
@@ -516,22 +534,27 @@ void GlFrameCompositor::updateCompositeFrame()
 				break;
 		}
 
-		// Apply stencil shapes, if any, to the layer
-		updateQuadStencils(layerConfig->quadStencilConfig);
-		updateBoxStencils(layerConfig->boxStencilConfig);
-		updateModelStencils(layerConfig->modelStencilConfig);
-
-		// Bind the layer shader program and uniform parameters.
-		// This will fail unless all of the shader uniform parameters are bound.
-		if (layer.layerMaterial != nullptr)
 		{
-			GlScopedMaterialBinding materialBinding= layer.layerMaterial->bindMaterial();
+			GLScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
+			GLState& glState= glStateScope.getStackState();
 
-			if (materialBinding)
+			// Apply stencil shapes, if any, to the layer
+			updateQuadStencils(layerConfig->quadStencilConfig, &glState);
+			updateBoxStencils(layerConfig->boxStencilConfig, &glState);
+			updateModelStencils(layerConfig->modelStencilConfig, &glState);
+
+			// Bind the layer shader program and uniform parameters.
+			// This will fail unless all of the shader uniform parameters are bound.
+			if (layer.layerMaterial != nullptr)
 			{
-				glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
-				glDrawArrays(GL_TRIANGLES, 0, 6);
-				glBindVertexArray(0);
+				GlScopedMaterialBinding materialBinding = layer.layerMaterial->bindMaterial();
+
+				if (materialBinding)
+				{
+					glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
+					glDrawArrays(GL_TRIANGLES, 0, 6);
+					glBindVertexArray(0);
+				}
 			}
 		}
 	}
@@ -774,7 +797,9 @@ void GlFrameCompositor::flushStencilRenderModel(MikanStencilID stencilId)
 	}
 }
 
-void GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig)
+void GlFrameCompositor::updateQuadStencils(
+	const CompositorQuadStencilLayerConfig& stencilConfig,
+	GLState* glState)
 {
 	EASY_FUNCTION();
 
@@ -841,8 +866,7 @@ void GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfi
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
 	// Enables testing AND writing functionalities
-	GLScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
-	glStateScope.getStackState().enableFlag(eGlStateFlagType::stencilTest);
+	glState->enableFlag(eGlStateFlagType::stencilTest);
 	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilMask(0xFF);
@@ -895,7 +919,9 @@ void GlFrameCompositor::updateQuadStencils(const CompositorQuadStencilLayerConfi
 	glStencilFunc(stencilMode, 1, 0xFF);
 }
 
-void GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig)
+void GlFrameCompositor::updateBoxStencils(
+	const CompositorBoxStencilLayerConfig& stencilConfig,
+	GLState* glState)
 {
 	EASY_FUNCTION();
 
@@ -932,8 +958,7 @@ void GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig&
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
 	// Enables testing AND writing functionalities
-	GLScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
-	glStateScope.getStackState().enableFlag(eGlStateFlagType::stencilTest);
+	glState->enableFlag(eGlStateFlagType::stencilTest);
 	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilMask(0xFF);
@@ -981,7 +1006,9 @@ void GlFrameCompositor::updateBoxStencils(const CompositorBoxStencilLayerConfig&
 	glStencilFunc(stencilMode, 1, 0xFF);
 }
 
-void GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig)
+void GlFrameCompositor::updateModelStencils(
+	const CompositorModelStencilLayerConfig& stencilConfig,
+	GLState* glState)
 {
 	EASY_FUNCTION();
 
@@ -1028,8 +1055,7 @@ void GlFrameCompositor::updateModelStencils(const CompositorModelStencilLayerCon
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
 	// Enables testing AND writing functionalities
-	GLScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
-	glStateScope.getStackState().enableFlag(eGlStateFlagType::stencilTest);
+	glState->enableFlag(eGlStateFlagType::stencilTest);
 	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilMask(0xFF);

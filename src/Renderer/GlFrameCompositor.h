@@ -17,6 +17,7 @@
 
 class GlMaterial;
 class GlProgram;
+class GLState;
 class GlTexture;
 class GlTriangulatedMesh;
 class VideoFrameDistortionView;
@@ -58,10 +59,11 @@ public:
 	bool startup();
 	void shutdown();
 
-	void reloadAllCompositorConfigurations();
-	std::vector<std::string> getConfigurationNames() const;
-	const std::string& getCurrentConfigurationName() const;
-	bool setConfiguration(const std::string& configurationName);
+	void reloadAllCompositorPresets();
+	std::vector<std::string> getPresetNames() const;
+	const std::string& getCurrentPresetName() const;
+	bool applyLayerPreset(const std::string& configurationName);
+	const CompositorLayerConfig* getCurrentPresetLayerConfig(int layerIndex);
 
 	void reloadAllCompositorShaders();
 
@@ -79,12 +81,6 @@ public:
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 	inline const std::vector<Layer>& getLayers() const { return m_layers; }
-	inline const CompositorLayerConfig* getLayerConfig(int layerIndex) { 
-		if (layerIndex >= 0 && layerIndex < (int)m_config.layers.size())
-			return &m_config.layers[layerIndex]; 
-		else
-			return nullptr;
-	}
 	inline const GlTexture* getCompositedFrameTexture() const { return m_compositedFrame; }
 	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
 	inline GlTexture* getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
@@ -111,9 +107,9 @@ protected:
 	bool removeClientSource(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
 
 	void updateCompositeFrame();
-	void updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig);
-	void updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig);
-	void updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig);
+	void updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig, GLState* glState);
+	void updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig, GLState* glState);
+	void updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig, GLState* glState);
 
 	static const class GlProgramCode* getRGBFrameShaderCode();
 	static const class GlProgramCode* getRGBtoBGRVideoFrameShaderCode();
@@ -165,8 +161,8 @@ private:
 	GlTexture* m_compositedFrame = nullptr;
 	GlTexture* m_bgrVideoFrame = nullptr; // BGR, flipped video frame
 
-	// List of compositor configurations from resources/config/compositor
-	NamedValueTable<GlFrameCompositorConfig*> m_compositorConfigurations;
+	// List of compositor presets from resources/config/compositor
+	NamedValueTable<CompositorPreset*> m_compositorPresets;
 
 	// Data sources used by the compositor layers
 	NamedValueTable<float> m_floatSources;
