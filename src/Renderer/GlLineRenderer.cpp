@@ -138,7 +138,7 @@ void GlLineRenderer::render(Renderer* renderer)
 
 			{
 				// disable the depth buffer to allow overdraw 
-				GLScopedState scopedState = renderer->getGlStateStack()->createScopedState();
+				GlScopedState scopedState = renderer->getGlStateStack()->createScopedState();
 				scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 				m_points2d.drawGlBufferState(GL_POINTS);

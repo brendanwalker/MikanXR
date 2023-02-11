@@ -446,7 +446,7 @@ void GlRmlUiRender::setViewport(int width, int height)
 
 void GlRmlUiRender::beginFrame(Renderer* renderer)
 {
-	GLState& glState= renderer->getGlStateStack()->pushState();
+	GlState& glState= renderer->getGlStateStack()->pushState();
 
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
 	glViewport(0, 0, viewport_width, viewport_height);

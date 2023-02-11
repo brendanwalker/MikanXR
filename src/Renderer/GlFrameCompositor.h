@@ -17,7 +17,7 @@
 
 class GlMaterial;
 class GlProgram;
-class GLState;
+class GlState;
 class GlTexture;
 class GlTriangulatedMesh;
 class VideoFrameDistortionView;
@@ -107,9 +107,9 @@ protected:
 	bool removeClientSource(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
 
 	void updateCompositeFrame();
-	void updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig, GLState* glState);
-	void updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig, GLState* glState);
-	void updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig, GLState* glState);
+	void updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig, GlState* glState);
+	void updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig, GlState* glState);
+	void updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig, GlState* glState);
 
 	static const class GlProgramCode* getRGBFrameShaderCode();
 	static const class GlProgramCode* getRGBtoBGRVideoFrameShaderCode();

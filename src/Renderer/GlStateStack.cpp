@@ -14,7 +14,7 @@ GLenum g_glFlagTypeMapping[(int)eGlStateFlagType::COUNT] = {
 };
 
 // -- GLScopedState -----
-GLState::GLState(GlStateStack& ownerStack, const int stackDepth)
+GlState::GlState(GlStateStack& ownerStack, const int stackDepth)
 	: m_ownerStack(ownerStack)
 	, m_parentState(ownerStack.getState(stackDepth - 1))
 	, m_stackDepth(stackDepth)
@@ -31,7 +31,7 @@ GLState::GLState(GlStateStack& ownerStack, const int stackDepth)
 	}
 }
 
-GLState::~GLState()
+GlState::~GlState()
 {
 	for (int flagIndex = 0; flagIndex < (int)eGlStateFlagType::COUNT; ++flagIndex)
 	{
@@ -57,7 +57,7 @@ GLState::~GLState()
 	}
 }
 
-GLState& GLState::enableFlag(eGlStateFlagType flagType)
+GlState& GlState::enableFlag(eGlStateFlagType flagType)
 {
 	const eGlStateFlagValue flagValue= m_flags[(int)flagType];
 	if (flagValue != eGlStateFlagValue::enabled)
@@ -69,7 +69,7 @@ GLState& GLState::enableFlag(eGlStateFlagType flagType)
 	return *this;
 }
 
-GLState& GLState::disableFlag(eGlStateFlagType flagType)
+GlState& GlState::disableFlag(eGlStateFlagType flagType)
 {
 	const eGlStateFlagValue flagValue = m_flags[(int)flagType];
 	if (flagValue != eGlStateFlagValue::disabled)
@@ -82,11 +82,11 @@ GLState& GLState::disableFlag(eGlStateFlagType flagType)
 }
 
 // -- GlScopedState -----
-GLScopedState::GLScopedState(GLState& state) : m_state(state)
+GlScopedState::GlScopedState(GlState& state) : m_state(state)
 {
 }
 
-GLScopedState::~GLScopedState()
+GlScopedState::~GlScopedState()
 {
 	// Make sure we are deleting the state on the top of the stack
 	assert(m_state.getOwnerStateStack().getCurrentStackDepth() == m_state.getStackDepth());
@@ -102,10 +102,10 @@ GlStateStack::~GlStateStack()
 	}
 }
 
-GLState& GlStateStack::pushState()
+GlState& GlStateStack::pushState()
 {
 	// Create a new GlState and initialize it from the parent state on this stack
-	GLState* state = new GLState(*this, (int)m_stateStack.size());
+	GlState* state = new GlState(*this, (int)m_stateStack.size());
 
 	// Add it to the top of the stack
 	m_stateStack.push_back(state);
@@ -118,7 +118,7 @@ int GlStateStack::getCurrentStackDepth() const
 	return (int)m_stateStack.size() - 1;
 }
 
-GLState* GlStateStack::getState(const int depth) const
+GlState* GlStateStack::getState(const int depth) const
 {
 	return (depth >= 0 && depth < (int)m_stateStack.size()) ? m_stateStack[depth] : nullptr;
 }
@@ -137,8 +137,8 @@ void GlStateStack::popState()
 	}
 }
 
-GLScopedState GlStateStack::createScopedState()
+GlScopedState GlStateStack::createScopedState()
 {
 	// Create a state that will get auto cleaned up when GLScopedState goes out of scope
-	return GLScopedState(pushState());
+	return GlScopedState(pushState());
 }

@@ -472,7 +472,7 @@ void GlFrameCompositor::updateCompositeFrame()
 
 	// Turn off depth testing for compositing
 	Renderer* renderer= Renderer::getInstance();
-	GLScopedState updateCompositeGlStateScope = renderer->getGlStateStack()->createScopedState();
+	GlScopedState updateCompositeGlStateScope = renderer->getGlStateStack()->createScopedState();
 	updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 	// make sure we clear the framebuffer's content
@@ -499,7 +499,7 @@ void GlFrameCompositor::updateCompositeFrame()
 
 		EASY_BLOCK(layerConfig->shaderConfig.materialName);
 
-		GLScopedState layerGlStateScope = renderer->getGlStateStack()->createScopedState();
+		GlScopedState layerGlStateScope = renderer->getGlStateStack()->createScopedState();
 
 		// Attempt to apply data sources to the layers material parameters
 		bool bValidMaterialDataSources= true;
@@ -535,8 +535,8 @@ void GlFrameCompositor::updateCompositeFrame()
 		}
 
 		{
-			GLScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
-			GLState& glState= glStateScope.getStackState();
+			GlScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
+			GlState& glState= glStateScope.getStackState();
 
 			// Apply stencil shapes, if any, to the layer
 			updateQuadStencils(layerConfig->quadStencilConfig, &glState);
@@ -799,7 +799,7 @@ void GlFrameCompositor::flushStencilRenderModel(MikanStencilID stencilId)
 
 void GlFrameCompositor::updateQuadStencils(
 	const CompositorQuadStencilLayerConfig& stencilConfig,
-	GLState* glState)
+	GlState* glState)
 {
 	EASY_FUNCTION();
 
@@ -921,7 +921,7 @@ void GlFrameCompositor::updateQuadStencils(
 
 void GlFrameCompositor::updateBoxStencils(
 	const CompositorBoxStencilLayerConfig& stencilConfig,
-	GLState* glState)
+	GlState* glState)
 {
 	EASY_FUNCTION();
 
@@ -1008,7 +1008,7 @@ void GlFrameCompositor::updateBoxStencils(
 
 void GlFrameCompositor::updateModelStencils(
 	const CompositorModelStencilLayerConfig& stencilConfig,
-	GLState* glState)
+	GlState* glState)
 {
 	EASY_FUNCTION();
 
@@ -1114,7 +1114,7 @@ void GlFrameCompositor::render() const
 
 	if (m_compositedFrame != nullptr)
 	{
-		GLScopedState scopedState= Renderer::getInstance()->getGlStateStack()->createScopedState();
+		GlScopedState scopedState= Renderer::getInstance()->getGlStateStack()->createScopedState();
 		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 		// Draw the composited video frame

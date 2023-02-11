@@ -25,37 +25,37 @@ enum class eGlStateFlagValue : unsigned char
 	disabled
 };
 
-class GLState
+class GlState
 {
 public:
-	GLState(class GlStateStack& ownerStack, const int stackDepth);
-	virtual ~GLState();
+	GlState(class GlStateStack& ownerStack, const int stackDepth);
+	virtual ~GlState();
 
 	inline GlStateStack& getOwnerStateStack() const { return m_ownerStack; }
 	inline int getStackDepth() const { return m_stackDepth; }
 
-	GLState& enableFlag(eGlStateFlagType flagType);
-	GLState& disableFlag(eGlStateFlagType flagType);
+	GlState& enableFlag(eGlStateFlagType flagType);
+	GlState& disableFlag(eGlStateFlagType flagType);
 
 private:
 	class GlStateStack& m_ownerStack;
-	const GLState* m_parentState;
+	const GlState* m_parentState;
 	int m_stackDepth = -1;
 
 	eGlStateFlagValue m_flags[(int)eGlStateFlagType::COUNT];
 };
 
-class GLScopedState
+class GlScopedState
 {
 public:
-	GLScopedState(class GLState& state);
-	virtual ~GLScopedState();
+	GlScopedState(class GlState& state);
+	virtual ~GlScopedState();
 
-	inline GLState& getStackState() const { return m_state; }
+	inline GlState& getStackState() const { return m_state; }
 	inline int getStackDepth() const { return m_state.getStackDepth(); }
 
 private:
-	GLState& m_state;
+	GlState& m_state;
 };
 
 class GlStateStack
@@ -64,14 +64,14 @@ public:
 	GlStateStack() = default;
 	virtual ~GlStateStack();
 
-	GLState& pushState();
+	GlState& pushState();
 	void popState();
 
 	int getCurrentStackDepth() const;
-	GLState* getState(const int depth) const;
+	GlState* getState(const int depth) const;
 
-	GLScopedState createScopedState();
+	GlScopedState createScopedState();
 
 private:
-	std::vector<class GLState*> m_stateStack;
+	std::vector<class GlState*> m_stateStack;
 };

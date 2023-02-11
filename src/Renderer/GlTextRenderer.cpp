@@ -38,7 +38,7 @@ void GlTextRenderer::render(Renderer* renderer)
 		glPushMatrix();
 		glLoadIdentity();
 
-		GLScopedState stateScope= renderer->getGlStateStack()->createScopedState();
+		GlScopedState stateScope= renderer->getGlStateStack()->createScopedState();
 		stateScope.getStackState()
 			.disableFlag(eGlStateFlagType::depthTest)
 			.enableFlag(eGlStateFlagType::blend);
