@@ -287,7 +287,7 @@ MikanServer::~MikanServer()
 	m_instance= nullptr;
 }
 
-// -- ClientPSMoveAPI System -----
+// -- ClientMikanAPI System -----
 bool MikanServer::startup()
 {
 	EASY_FUNCTION();

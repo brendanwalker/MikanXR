@@ -22,7 +22,7 @@ MikanClient::~MikanClient()
 	delete m_messageClient;
 }
 
-// -- ClientPSMoveAPI System -----
+// -- ClientMikanAPI System -----
 MikanResult MikanClient::startup(LogSeverityLevel log_level, t_logCallback log_callback)
 {
 	// Reset status flags

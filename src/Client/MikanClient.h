@@ -15,7 +15,7 @@ public:
 	// -- State Queries ----
 	bool getIsConnected() const;
 
-    // -- ClientPSMoveAPI System -----
+    // -- ClientMikanAPI System -----
     MikanResult startup(LogSeverityLevel log_level, t_logCallback log_callback);
 	MikanResult connect(MikanClientInfo& ClientInfo);
 	MikanResult disconnect();
