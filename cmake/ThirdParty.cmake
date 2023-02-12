@@ -97,3 +97,10 @@ if (WIN32)
   set (SPOUT2_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.lib)
   set (SPOUT2_SHARED_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.dll)
 endif()
+
+# SWIG
+if (WIN32)
+    set (SWIG_DIR ${ROOT_DIR}/deps/swigwin-4.1.1)
+    set (SWIG_EXECUTABLE ${SWIG_DIR}/swig.exe)
+endif()
+FIND_PACKAGE(SWIG REQUIRED)

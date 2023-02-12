@@ -201,6 +201,22 @@ cmake --build Build --config Release
 popd
 set "LUA_DIR="
 
+: Download prebuilt SWIG
+set(SWIG_VERSION "4.1.1")
+        # Download and install pre-compiled SWIG for Windows into deps folder
+        set(SWIG_DOWNLOAD_URL "http://sourceforge.net/projects/swig/files/swigwin/swigwin-${SWIG_VERSION}/swigwin-${SWIG_VERSION}.zip")
+echo "Downloading FreeType Binaries..."
+curl -L http://sourceforge.net/projects/swig/files/swigwin/swigwin-4.1.1/swigwin-4.1.1.zip --output swigwin-4.1.1.zip
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error swigwin-4.1.1.zip"
+  goto failure
+)
+7z e swigwin-4.1.1.zip -y -r -spf
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping swigwin-4.1.1.zip"
+  goto failure
+)
+
 :: Exit back out of the deps folder
 popd
 
