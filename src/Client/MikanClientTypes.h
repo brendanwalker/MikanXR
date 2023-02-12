@@ -6,6 +6,7 @@
 #define __MIKAN_CLIENT_TYPES_H
 #include "MikanMathTypes.h"
 #include <stdint.h>
+#include <stdbool.h>
 //cut_before
 
 /**
