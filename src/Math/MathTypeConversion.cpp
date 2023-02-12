@@ -237,13 +237,15 @@ cv::Matx81d Mikan_distortion_to_cv_vec8(const MikanDistortionCoefficients& disto
 cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in)
 {
 	cv::Matx33d out;
+	auto m = reinterpret_cast<const float(*)[4][4]>(&in);
+
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 3; ++col)
 		{
 			// Mikan indexed by column first
 			// OpenCV indexed by row first
-			out(row, col) = in.m[col][row];
+			out(row, col) = (*m)[col][row];
 		}
 	}
 
@@ -253,13 +255,15 @@ cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in)
 MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in)
 {
 	MikanMatrix3d out;
+	auto m = reinterpret_cast<float(*)[4][4]>(&out);
+
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 3; ++col)
 		{
 			// Mikan indexed by column first
 			// OpenCV indexed by row first
-			out.m[col][row] = in(row, col);
+			(*m)[col][row] = in(row, col);
 		}
 	}
 
@@ -269,13 +273,15 @@ MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in)
 cv::Matx34d MikanMatrix4x3d_to_cv_mat34d(const MikanMatrix4x3d& in)
 {
 	cv::Matx34d out;
+	auto m = reinterpret_cast<const float(*)[4][3]>(&in);
+
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 4; ++col)
 		{
 			// GLM indexed by column first
 			// OpenCV indexed by row first
-			out(row, col) = in.m[col][row];
+			out(row, col) = (*m)[col][row];
 		}
 	}
 
@@ -285,13 +291,15 @@ cv::Matx34d MikanMatrix4x3d_to_cv_mat34d(const MikanMatrix4x3d& in)
 MikanMatrix4x3d MikanMatrix4x3d_to_cv_mat34d(const cv::Matx34d& in)
 {
 	MikanMatrix4x3d out;
+	auto m = reinterpret_cast<float(*)[4][3]>(&out);
+
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 4; ++col)
 		{
 			// GLM indexed by column first
 			// OpenCV indexed by row first
-			out.m[col][row] = in(row, col);
+			(*m)[col][row] = in(row, col);
 		}
 	}
 
@@ -322,12 +330,13 @@ glm::dquat MikanQuatd_to_glm_dquat(const MikanQuatd& in)
 MikanMatrix4f glm_mat4_to_MikanMatrix4f(const glm::mat4& in)
 {
 	MikanMatrix4f out;
+	auto m = reinterpret_cast<float(*)[4][4]>(&out);
 
 	for (int row = 0; row < 4; ++row)
 	{
 		for (int col = 0; col < 4; ++col)
 		{
-			out.m[col][row] = in[col][row];
+			(*m)[col][row] = in[col][row];
 		}
 	}
 
@@ -337,12 +346,13 @@ MikanMatrix4f glm_mat4_to_MikanMatrix4f(const glm::mat4& in)
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& in)
 {
 	glm::mat4 out;
+	auto m = reinterpret_cast<const float(*)[4][4]>(&in);
 
 	for (int row = 0; row < 4; ++row)
 	{
 		for (int col = 0; col < 4; ++col)
 		{
-			out[col][row] = in.m[col][row];
+			out[col][row] = (*m)[col][row];
 		}
 	}
 

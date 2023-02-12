@@ -41,14 +41,29 @@ typedef struct
 /** A 4x4 matrix with float components
     storage is column major order:
 
-    | x0 y0 z0 px |
-    | x1 y1 z1 py |
-    | x2 y2 z2 pz |
-    |  0  0  0  1 |
+    | x0 y0 z0 w0 |
+    | x1 y1 z1 w1 |
+    | x2 y2 z2 w2 |
+    | x3 y3 z3 w3 |
  */
 typedef struct
 {
-    float m[4][4];
+	float x0;
+	float x1;
+	float x2;
+	float x3;
+	float y0;
+	float y1;
+	float y2;
+	float y3;
+	float z0;
+	float z1;
+	float z2;
+	float z3;
+	float w0;
+	float w1;
+	float w2;
+	float w3;
 } MikanMatrix4f;
 
 /** A 3x3 matrix with double components
@@ -60,32 +75,66 @@ typedef struct
  */
 typedef struct
 {
-    double m[3][3];
+	double x0;
+	double x1;
+	double x2;
+	double y0;
+	double y1;
+	double y2;
+	double z0;
+	double z1;
+	double z2;
 } MikanMatrix3d;
 
 /** A 4x3 matrix with double components
     storage is column major order:
 
-    | x0 y0 z0 px|
-    | x1 y1 z1 py|
-    | x2 y2 z2 pz|
+    | x0 y0 z0 w0|
+    | x1 y1 z1 w1|
+    | x2 y2 z2 w2|
  */
 typedef struct
 {
-    double m[4][3];
+	double x0;
+	double x1;
+	double x2;
+	double x3;
+	double y0;
+	double y1;
+	double y2;
+	double y3;
+	double z0;
+	double z1;
+	double z2;
+	double z3;
 } MikanMatrix4x3d;
 
 /** A 4x4 matrix with double components
     storage is column major order:
 
-    | x0 y0 z0 px |
-    | x1 y1 z1 py |
-    | x2 y2 z2 pz |
-    |  0  0  0 1 |
+    | x0 y0 z0 w0 |
+    | x1 y1 z1 w1 |
+    | x2 y2 z2 w2 |
+    | x3 y3 z3 w3 |
  */
 typedef struct
 {
-    double m[4][4];
+	double x0;
+	double x1;
+	double x2;
+	double x3;
+	double y0;
+	double y1;
+	double y2;
+	double y3;
+	double z0;
+	double z1;
+	double z2;
+	double z3;
+	double w0;
+	double w1;
+	double w2;
+	double w3;
 } MikanMatrix4d;
 
 /// A quaternion rotation.

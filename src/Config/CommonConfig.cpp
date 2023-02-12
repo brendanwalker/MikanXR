@@ -234,13 +234,14 @@ void CommonConfig::readDistortionCoefficients(
 void CommonConfig::writeMatrix3d(
     configuru::Config &pt,
     const char *matrix_name,
-    const MikanMatrix3d& m)
+    const MikanMatrix3d& mat)
 {
     // Write out 3 columns (3 entries per column)
+    auto m = reinterpret_cast<const float(*)[4][4]>(&mat);
     pt[matrix_name]= configuru::Config::array({
-        m.m[0][0], m.m[0][1], m.m[0][2],
-        m.m[1][0], m.m[1][1], m.m[1][2],
-        m.m[2][0], m.m[2][1], m.m[2][2]});
+        (*m)[0][0], (*m)[0][1], (*m)[0][2],
+        (*m)[1][0], (*m)[1][1], (*m)[1][2],
+		(*m)[2][0], (*m)[2][1], (*m)[2][2]});
 }
 
 void CommonConfig::readMatrix3d(
@@ -252,9 +253,10 @@ void CommonConfig::readMatrix3d(
     {
         int row= 0;
         int col= 0;
+        auto m = reinterpret_cast<float(*)[4][4]>(&outMatrix);
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
-            outMatrix.m[col][row]= element.as_double();
+            (*m)[col][row]= element.as_double();
 
             ++row;
             if (row >= 3)
@@ -271,14 +273,16 @@ void CommonConfig::readMatrix3d(
 void CommonConfig::writeMatrix43d(
     configuru::Config &pt,
     const char *matrix_name,
-    const MikanMatrix4x3d& m)
+    const MikanMatrix4x3d& mat)
 {
+    auto m = reinterpret_cast<const float(*)[4][3]>(&mat);
+
     // Write out 4 columns (3 entries per column)
     pt[matrix_name]= configuru::Config::array({
-		m.m[0][0], m.m[0][1], m.m[0][2],
-		m.m[1][0], m.m[1][1], m.m[1][2],
-		m.m[2][0], m.m[2][1], m.m[2][2], 
-        m.m[3][0], m.m[3][1], m.m[3][2]});
+		(*m)[0][0], (*m)[0][1], (*m)[0][2],
+		(*m)[1][0], (*m)[1][1], (*m)[1][2],
+		(*m)[2][0], (*m)[2][1], (*m)[2][2],
+		(*m)[3][0], (*m)[3][1], (*m)[3][2]});
 }
 
 void CommonConfig::readMatrix43d(
@@ -290,9 +294,11 @@ void CommonConfig::readMatrix43d(
     {
         int row= 0;
         int col= 0;
+        auto m = reinterpret_cast<float(*)[4][3]>(&outMatrix);
+
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
-            outMatrix.m[col][row]= element.as_double();
+            (*m)[col][row] = element.as_double();
 
             ++row;
             if (row >= 3)
@@ -309,13 +315,15 @@ void CommonConfig::readMatrix43d(
 void CommonConfig::writeMatrix4d(
     configuru::Config &pt,
     const char *matrix_name,
-    const MikanMatrix4d& m)
+    const MikanMatrix4d& mat)
 {
+    auto m = reinterpret_cast<const float(*)[4][4]>(&mat);
+
     pt[matrix_name]= configuru::Config::array({
-		m.m[0][0], m.m[0][1], m.m[0][2], m.m[0][3],
-		m.m[1][0], m.m[1][1], m.m[1][2], m.m[1][3],
-		m.m[2][0], m.m[2][1], m.m[2][2], m.m[2][3],
-		m.m[3][0], m.m[3][1], m.m[3][2], m.m[3][3] });
+		(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3],
+		(*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[1][3],
+		(*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3],
+		(*m)[3][0], (*m)[3][1], (*m)[3][2], (*m)[3][3]});
 }
 
 void CommonConfig::readMatrix4d(
@@ -327,9 +335,10 @@ void CommonConfig::readMatrix4d(
     {
         int row= 0;
         int col= 0;
+        auto m = reinterpret_cast<float(*)[4][4]>(&outMatrix);
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
-            outMatrix.m[col][row]= element.as_double();
+            (*m)[col][row] = element.as_double();
 
             ++row;
             if (row >= 4)
@@ -346,13 +355,15 @@ void CommonConfig::readMatrix4d(
 void CommonConfig::writeMatrix4f(
 	configuru::Config& pt,
 	const char* matrix_name,
-	const MikanMatrix4f& m)
+	const MikanMatrix4f& mat)
 {
+    auto m = reinterpret_cast<const float(*)[4][4]>(&mat);
+
 	pt[matrix_name] = configuru::Config::array({
-		m.m[0][0], m.m[0][1], m.m[0][2], m.m[0][3],
-		m.m[1][0], m.m[1][1], m.m[1][2], m.m[1][3],
-		m.m[2][0], m.m[2][1], m.m[2][2], m.m[2][3],
-		m.m[3][0], m.m[3][1], m.m[3][2], m.m[3][3] });
+		(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3],
+		(*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[1][3],
+		(*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3],
+		(*m)[3][0], (*m)[3][1], (*m)[3][2], (*m)[3][3] });
 }
 
 void CommonConfig::readMatrix4f(
@@ -360,13 +371,15 @@ void CommonConfig::readMatrix4f(
 	const char* matrix_name,
 	MikanMatrix4f& outMatrix)
 {
+    auto m = reinterpret_cast<float(*)[4][4]>(&outMatrix);
+
 	if (pt[matrix_name].is_array())
 	{
 		int row = 0;
 		int col = 0;
 		for (const configuru::Config& element : pt[matrix_name].as_array())
 		{
-			outMatrix.m[col][row] = element.as_float();
+			(*m)[col][row] = element.as_float();
 
 			++row;
 			if (row >= 4)

@@ -28,16 +28,16 @@ WMFStereoTrackerConfig::WMFStereoTrackerConfig(const std::string &fnamebase)
     tracker_intrinsics.znear= 10.0; // cm
     tracker_intrinsics.zfar= 200.0; // cm
 
-	tracker_intrinsics.left_camera_matrix = {{
-		{554.2563, 0, 320.0}, // f_x, 0, c_x
-		{0, 554.2563, 240.0}, // 0, f_y, c_y
-		{0.0, 0.0, 1.0 }
-	}};
-    tracker_intrinsics.right_camera_matrix = {{
-		{554.2563, 0, 320.0}, // f_x, 0, c_x
-		{0, 554.2563, 240.0}, // 0, f_y, c_y
-		{0.0, 0.0, 1.0 }
-    }};
+	tracker_intrinsics.left_camera_matrix = {
+		554.2563, 0, 320.0, // f_x, 0, c_x
+		0, 554.2563, 240.0, // 0, f_y, c_y
+		0.0, 0.0, 1.0 
+	};
+    tracker_intrinsics.right_camera_matrix = {
+		554.2563, 0, 320.0, // f_x, 0, c_x
+		0, 554.2563, 240.0, // 0, f_y, c_y
+		0.0, 0.0, 1.0
+    };
 
     tracker_intrinsics.left_distortion_coefficients= {
         -0.10771770030260086, 0.1213262677192688, 0.04875476285815239, // K1, K2, K3
@@ -47,18 +47,18 @@ WMFStereoTrackerConfig::WMFStereoTrackerConfig(const std::string &fnamebase)
         0.00091733073350042105, 0.00010589254816295579};  // P1, P2
 
     // All identity matrices
-	const MikanMatrix3d matrix3_identity = {{
-		{1.0, 0.0, 0.0},
-		{0.0, 1.0, 0.0},
-		{0.0, 0.0, 1.0}
-	}};
+	const MikanMatrix3d matrix3_identity = {
+		1.0, 0.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 0.0, 1.0
+	};
 
-	const MikanMatrix4x3d matrix4x3_identity = {{
-		{1.0, 0.0, 0.0},
-		{0.0, 1.0, 0.0},
-		{0.0, 0.0, 1.0},
-		{0.0, 0.0, 0.0}
-	}};
+	const MikanMatrix4x3d matrix4x3_identity = {
+		1.0, 0.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 0.0, 1.0,
+		0.0, 0.0, 0.0
+	};
 
     tracker_intrinsics.left_rectification_rotation= matrix3_identity;
     tracker_intrinsics.right_rectification_rotation= matrix3_identity;
@@ -68,12 +68,12 @@ WMFStereoTrackerConfig::WMFStereoTrackerConfig(const std::string &fnamebase)
     tracker_intrinsics.translation_between_cameras= {0.0, 0.0, 0.0};
     tracker_intrinsics.essential_matrix= matrix3_identity;
     tracker_intrinsics.fundamental_matrix= matrix3_identity;
-    tracker_intrinsics.reprojection_matrix= {{
-		{1.0, 0.0, 0.0, 0.0},
-		{0.0, 1.0, 0.0, 0.0},
-		{0.0, 0.0, 0.0, 0.0},
-		{0.0, 0.0, 0.0, 0.0}
-	}};
+    tracker_intrinsics.reprojection_matrix= {
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 0.0, 0.0,
+		0.0, 0.0, 0.0, 0.0
+	};
 };
 
 const configuru::Config 

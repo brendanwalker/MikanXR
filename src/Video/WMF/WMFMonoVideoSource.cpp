@@ -32,11 +32,11 @@ WMFMonoVideoConfig::WMFMonoVideoConfig(const std::string &fnamebase)
     tracker_intrinsics.vfov= 45.0; // degrees
     tracker_intrinsics.znear= 0.01; // meters
     tracker_intrinsics.zfar= 200.0; // meters
-    tracker_intrinsics.camera_matrix= {{
-		{554.2563, 0, 320.0}, // f_x, 0, c_x
-		{0, 554.2563, 240.0}, // 0, f_y, c_y
-		{0.0, 0.0, 1.0 }
-	}};
+    tracker_intrinsics.camera_matrix= {
+		554.2563, 0, 320.0, // f_x, 0, c_x
+		0, 554.2563, 240.0, // 0, f_y, c_y
+		0.0, 0.0, 1.0 
+	};
     tracker_intrinsics.distortion_coefficients= {
         -0.10771770030260086, 0.1213262677192688, 0.04875476285815239, // K1, K2, K3
         0.00091733073350042105, 0.00010589254816295579};  // P1, P2
