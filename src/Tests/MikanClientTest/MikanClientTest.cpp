@@ -49,13 +49,13 @@ static const glm::vec4 k_background_color_key = glm::vec4(0.f, 0.f, 0.0f, 0.f);
 
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& xform)
 {
-	const float(&m)[4][4] = xform.m;
+	auto m = reinterpret_cast<const float(*)[4][4]>(&xform);
 
 	glm::mat4 mat = {
-		{m[0][0], m[0][1], m[0][2], m[0][3]}, // columns 0
-		{m[1][0], m[1][1], m[1][2], m[1][3]}, // columns 1
-		{m[2][0], m[2][1], m[2][2], m[2][3]}, // columns 2
-		{m[3][0], m[3][1], m[3][2], m[3][3]}, // columns 3
+		{(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3]}, // columns 0
+		{(*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[1][3]}, // columns 1
+		{(*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3]}, // columns 2
+		{(*m)[3][0], (*m)[3][1], (*m)[3][2], (*m)[3][3]}, // columns 3
 	};
 
 	return mat;
