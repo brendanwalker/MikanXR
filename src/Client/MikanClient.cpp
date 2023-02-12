@@ -238,6 +238,11 @@ MikanResult MikanClient::getQuadStencil(MikanStencilID stencil_id, MikanStencilQ
 	return callRPC(m_messageClient, "getQuadStencil", (uint8_t*)&stencil_id, sizeof(MikanStencilID), out_stencil);
 }
 
+MikanResult MikanClient::getBoxStencil(MikanStencilID stencil_id, MikanStencilBox& out_stencil)
+{
+	return callRPC(m_messageClient, "getBoxStencil", (uint8_t*)&stencil_id, sizeof(MikanStencilID), out_stencil);
+}
+
 MikanResult MikanClient::getModelStencil(MikanStencilID stencil_id, MikanStencilModel& out_stencil)
 {
 	return callRPC(m_messageClient, "getModelStencil", (uint8_t*)&stencil_id, sizeof(MikanStencilID), out_stencil);

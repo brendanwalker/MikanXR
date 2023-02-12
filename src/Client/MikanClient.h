@@ -38,6 +38,7 @@ public:
 
 	MikanResult getStencilList(MikanStencilList& out_stencil_list);
 	MikanResult getQuadStencil(MikanStencilID stencil_id, MikanStencilQuad& out_stencil);
+	MikanResult getBoxStencil(MikanStencilID stencil_id, MikanStencilBox& out_stencil);
 	MikanResult getModelStencil(MikanStencilID stencil_id, MikanStencilModel& out_stencil);
 
 	MikanResult getSpatialAnchorList(MikanSpatialAnchorList& out_anchor_list);

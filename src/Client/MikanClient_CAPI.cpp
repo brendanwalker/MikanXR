@@ -235,6 +235,16 @@ MikanResult Mikan_GetQuadStencil(MikanStencilID stencil_id, MikanStencilQuad* ou
 	return g_mikanClient->getQuadStencil(stencil_id, *out_stencil);
 }
 
+MikanResult Mikan_GetBoxStencil(MikanStencilID stencil_id, MikanStencilBox* out_stencil)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+	if (out_stencil == nullptr)
+		return MikanResult_NullParam;
+
+	return g_mikanClient->getBoxStencil(stencil_id, *out_stencil);
+}
+
 MikanResult Mikan_GetModelStencil(MikanStencilID stencil_id, MikanStencilModel* out_stencil)
 {
 	if (g_mikanClient == nullptr)

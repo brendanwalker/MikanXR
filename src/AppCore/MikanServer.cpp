@@ -311,6 +311,7 @@ bool MikanServer::startup()
 	m_messageServer->setRPCHandler("freeRenderTargetBuffers", std::bind(&MikanServer::freeRenderTargetBuffers, this, _1, _2));
 	m_messageServer->setRPCHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
 	m_messageServer->setRPCHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
+	m_messageServer->setRPCHandler("getBoxStencil", std::bind(&MikanServer::getBoxStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
 	m_messageServer->setRPCHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
@@ -961,6 +962,29 @@ void MikanServer::getQuadStencil(
 	if (profile->getQuadStencilInfo(stencil.stencil_id, stencil))
 	{
 		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilQuad));
+		outResult->setResultCode(MikanResult_Success);
+	}
+	else
+	{
+		outResult->setResultCode(MikanResult_InvalidStencilID);
+	}
+}
+
+void MikanServer::getBoxStencil(
+	const MikanRemoteFunctionCall* inFunctionCall,
+	MikanRemoteFunctionResult* outResult)
+{
+	MikanStencilBox stencil;
+	if (!inFunctionCall->extractParameters(stencil))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
+	if (profile->getBoxStencilInfo(stencil.stencil_id, stencil))
+	{
+		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilBox));
 		outResult->setResultCode(MikanResult_Success);
 	}
 	else
