@@ -212,7 +212,7 @@ CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
   spatial_anchor_id_list, 
   int,
   int, 
-  MikanSpatialAnchorList_anchorId_get,
+  MikanSpatialAnchorList_spatial_anchor_id_list_get,
   this.spatial_anchor_count);
 
 // Marshall the stencil_id_list on MikanStencilList from unmanaged to managed memory
@@ -220,7 +220,7 @@ CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
   stencil_id_list, 
   int,
   int, 
-  MikanStencilList_stencilId_get,
+  MikanStencilList_stencil_id_list_get,
   this.stencil_count);
 
 // Marshall the vr_device_id_list on MikanVRDeviceList from unmanaged to managed memory
@@ -228,5 +228,5 @@ CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
   vr_device_id_list, 
   int,
   int, 
-  MikanVRDeviceList_deviceId_get,
+  MikanVRDeviceList_vr_device_id_list_get,
   this.vr_device_count);

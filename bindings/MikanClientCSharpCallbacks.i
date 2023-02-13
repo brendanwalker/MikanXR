@@ -10,22 +10,11 @@
 
 // Insert the C# delegate type into the MikanClient class
 %pragma(csharp) modulecode=%{
-  public delegate void MikanLogDelegate(int log_level, string message);
-
   [global::System.Runtime.InteropServices.UnmanagedFunctionPointer(global::System.Runtime.InteropServices.CallingConvention.Cdecl)]
   public delegate void MikanLogCallback(
     int log_level,
-    [MarshalAs(UnmanagedType.LPStr)]
-    string log_message); 
-  
-  public static MikanResult Mikan_Initialize(MikanLogLevel min_log_level, MikanLogCallback log_delegate) {
-    MikanLogCallback callback = (log_level, message) => {
-      log_delegate(log_level, message);
-    };
-   
-    MikanResult ret = (MikanResult)MikanClientPINVOKE.Mikan_Initialize(min_log_level, callback);
-    return ret;
-  }  
+    [global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPStr)]
+    string log_message);   
 %}
 
 // Register function pointer types in the typemap

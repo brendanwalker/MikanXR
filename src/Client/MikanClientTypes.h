@@ -128,13 +128,13 @@ typedef enum
 
 typedef enum
 {
-	MikanFeature_NONE = 0L,
+	MikanFeature_NONE = 0,
 
 	// Render target options
-	MikanFeature_RenderTarget_RGB24 = 1L << 0,
-	MikanFeature_RenderTarget_RGBA32 = 1L << 1,
-	MikanFeature_RenderTarget_DEPTH16 = 1L << 2,
-	MikanFeature_RenderTarget_DEPTH32 = 1L << 3,
+	MikanFeature_RenderTarget_RGB24 = 1 << 0,
+	MikanFeature_RenderTarget_RGBA32 = 1 << 1,
+	MikanFeature_RenderTarget_DEPTH16 = 1 << 2,
+	MikanFeature_RenderTarget_DEPTH32 = 1 << 3,
 } MikanClientFeatures;
 
 typedef enum

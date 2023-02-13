@@ -34,6 +34,9 @@
 %include "MikanClientCSharpCallbacks.i"
 #endif  /* SWIGCSHARP */
 
+// TODO: Figure out how to properly support void* out parameters
+%ignore Mikan_GetGraphicsDeviceInterface;
+
 %include "../src/Client/MikanConstants.h"
 %include "../src/Client/MikanMathTypes.h"
 
