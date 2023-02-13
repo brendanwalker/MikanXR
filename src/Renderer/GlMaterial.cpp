@@ -445,7 +445,7 @@ void GlMaterial::unbindMaterial() const
 		const std::string& uniformName= it->first;
 		GlTexturePtr texture= it->second;
 
-		int textureUnit;
+		int textureUnit= -1;
 		if (m_program->getUniformTextureUnit(uniformName, textureUnit))
 		{
 			it->second->clearTexture(textureUnit);

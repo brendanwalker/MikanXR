@@ -246,7 +246,7 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 
 bool GlProgram::getUniformDataType(const std::string uniformName, eUniformDataType& outDataType) const
 {
-	eUniformSemantic semantic;
+	eUniformSemantic semantic = eUniformSemantic::INVALID;
 	if (getUniformSemantic(uniformName, semantic))
 	{
 		outDataType= GlProgram::getUniformSemanticDataType(semantic);
@@ -287,7 +287,7 @@ bool GlProgram::getTextureUniformUnit(eUniformSemantic semantic, int& outTexture
 
 bool GlProgram::getUniformTextureUnit(const std::string uniformName, int& outTextureUnit) const
 {
-	eUniformSemantic semantic;
+	eUniformSemantic semantic = eUniformSemantic::INVALID;
 	if (getUniformSemantic(uniformName, semantic) &&
 		getTextureUniformUnit(semantic, outTextureUnit))
 	{
