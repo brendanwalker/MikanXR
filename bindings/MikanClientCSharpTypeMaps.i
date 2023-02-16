@@ -44,24 +44,7 @@ CSHARP_ARRAYS(char *,string)
         System.IntPtr cPtr = $imcall;$excode 
         return cPtr; 
    } 
-%} 
-
-%typemap(ctype)  void** "void **"
-%typemap(imtype) void** "ref System.IntPtr"
-%typemap(cstype) void** "ref System.IntPtr"
-%typemap(csin)   void** "$csinput"
-%typemap(in)     void** %{ $1 = $input; %}
-%typemap(out)    void** %{ $result = $1; %}
-%typemap(csout, excode=SWIGEXCODE)  void** { 
-    System.IntPtr cPtr = $imcall;$excode
-    return cPtr;
-    }
-%typemap(csvarout, excode=SWIGEXCODE2) void** %{ 
-    get {
-        System.IntPtr cPtr = $imcall;$excode 
-        return cPtr; 
-   } 
-%} 
+%}  
 
 //------------------------------Complex Typemaps--------------------------
 
@@ -85,19 +68,19 @@ size_t STRUCT_TYPE ## _getSize();
   Macro to marshall a primitive type array property from C to C#.
   NOTE: This makes a new copy of the managed copy of the primitive type array every time this accessor is called.
   
-  PROPERTY_NAME - The array property name we want exposed
+  ARRAY_PROPERTY - The array property name we want exposed
+  LENGTH_PROPERTY - Property used to determine the length of the array
   C_TYPE - The C primitive array type
   CS_TYPE - The corresponding C# primitive array type
-  IN_DATA_GET_FUNCTION - The swig-generated p/invoke call that fetches the array pointer (ex: PSMVirtualController_axisStates_get)
-  LENGTH_EXPRESSION - Expression used to determine the length of the array
+  IN_DATA_GET_FUNCTION - The swig-generated p/invoke call that fetches the array pointer (ex: MikanSpatialAnchorList_spatial_anchor_id_list_get)
 */
-%define CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(PROPERTY_NAME,C_TYPE,CS_TYPE,IN_DATA_GET_FUNCTION,LENGTH_EXPRESSION)
-  %typemap(cstype, out="CS_TYPE[]") C_TYPE PROPERTY_NAME[ANY] "CS_TYPE[]"
-  %typemap(csvarout, excode=SWIGEXCODE2) C_TYPE PROPERTY_NAME[ANY]
+%define CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(ARRAY_PROPERTY,LENGTH_PROPERTY,C_TYPE,CS_TYPE,IN_DATA_GET_FUNCTION)
+  %typemap(cstype, out="CS_TYPE[]") C_TYPE ARRAY_PROPERTY[ANY] "CS_TYPE[]"
+  %typemap(csvarout, excode=SWIGEXCODE2) C_TYPE ARRAY_PROPERTY[ANY]
   %{
     get {
       System.IntPtr cPtr = MikanClientPINVOKE.IN_DATA_GET_FUNCTION(swigCPtr);
-      int len = (int)LENGTH_EXPRESSION;
+      int len = (int)LENGTH_PROPERTY;
       if (len<=0)
       {
         return null;
@@ -105,131 +88,40 @@ size_t STRUCT_TYPE ## _getSize();
       CS_TYPE[] returnArray = new CS_TYPE[len];
       System.Runtime.InteropServices.Marshal.Copy(cPtr, returnArray, 0, len);
        
-      return returnArray;
-    }
-  %}
-%enddef
-
-/*
-  Macro to marshall a enum type array property from C to C#.
-  NOTE: This makes a new copy of the managed copy of the enum type array every time this accessor is called.
-  
-  PROPERTY_NAME - The array property name we want exposed
-  ENUM_TYPE - The corresponding C# primitive array type
-  IN_DATA_GET_FUNCTION - The swig-generated p/invoke call that fetches the array pointer (ex: PSMVirtualController_axisStates_get)
-  LENGTH_EXPRESSION - Expression used to determine the length of the array
-*/
-%define CUSTOM_READONLY_ENUM_TYPE_ARRAY_PROPERTY(PROPERTY_NAME,ENUM_TYPE,IN_DATA_GET_FUNCTION,LENGTH_EXPRESSION)
-  %typemap(cstype, out="ENUM_TYPE[]") ENUM_TYPE PROPERTY_NAME[ANY] "ENUM_TYPE[]"
-  %typemap(csvarout, excode=SWIGEXCODE2) ENUM_TYPE PROPERTY_NAME[ANY]
-  %{
-    get {
-      System.IntPtr cPtr = MikanClientPINVOKE.IN_DATA_GET_FUNCTION(swigCPtr);
-      int len = (int)LENGTH_EXPRESSION;
-      if (len<=0)
-      {
-        return null;
-      }
-      ENUM_TYPE[] returnArray = new ENUM_TYPE[len];
-      byte[] intermediateArray = new byte[len];
-      System.Runtime.InteropServices.Marshal.Copy(cPtr, intermediateArray, 0, len);
-      for (int i = 0; i < len; ++i)
-      {
-        returnArray[i] = (ENUM_TYPE)intermediateArray[i];
-      }
-       
-      return returnArray;
-    }
-  %}
-%enddef
-
-/*
-  Macro to marshall a primitive type buffer property from C to C#.
-  NOTE: This makes a new copy of the managed copy of the primitive type buffer every time this accessor is called.
-  
-  PROPERTY_NAME - The array property name we want exposed
-  C_TYPE - The C primitive array type
-  CS_TYPE - The corresponding C# primitive array type
-  IN_DATA_GET_FUNCTION - The swig-generated p/invoke call that fetches the array pointer (ex: PSMVirtualController_axisStates_get)
-  LENGTH_EXPRESSION - Expression used to determine the length of the array
-*/
-%define CUSTOM_READONLY_PRIMITIVE_TYPE_BUFFER_PROPERTY(PROPERTY_NAME,C_TYPE,CS_TYPE,IN_DATA_GET_FUNCTION,LENGTH_EXPRESSION)
-  %typemap(cstype, out="CS_TYPE[]") C_TYPE* PROPERTY_NAME "CS_TYPE[]"
-  %typemap(csvarout, excode=SWIGEXCODE2) C_TYPE* PROPERTY_NAME
-  %{
-    get {
-      System.IntPtr cPtr = MikanClientPINVOKE.IN_DATA_GET_FUNCTION(swigCPtr);
-      int len = (int)LENGTH_EXPRESSION;
-      if (len<=0)
-      {
-        return null;
-      }
-      CS_TYPE[] returnArray = new CS_TYPE[len];
-      System.Runtime.InteropServices.Marshal.Copy(cPtr, returnArray, 0, len);
-       
-      return returnArray;
-    }
-  %}
-%enddef
-
-/*
-  Macro to marshall a struct array property from C to C#.
-  NOTE: This makes a new copy of the managed copy of the struct array every time this accessor is called.
-  
-  PROPERTY_NAME - The array property name we want exposed
-  STRUCT_TYPE - The C# structure type
-  IN_DATA_GET_FUNCTION - The swig-generated p/invoke call that fetches the array pointer (ex: PSMTrackerList_trackers_get)
-  LENGTH_EXPRESSION - Expression used to determine the length of the array
-*/
-%define CUSTOM_READONLY_STRUCT_ARRAY_PROPERTY(PROPERTY_NAME,STRUCT_TYPE,IN_DATA_GET_FUNCTION,LENGTH_EXPRESSION) 
-  %typemap(cstype, out="STRUCT_TYPE[]") STRUCT_TYPE PROPERTY_NAME[ANY] "STRUCT_TYPE[]"
-  %typemap(csvarout, excode=SWIGEXCODE2) STRUCT_TYPE PROPERTY_NAME[ANY]
-  %{
-    get {
-      STRUCT_TYPE[] returnArray;
-      
-      int structSize = (int)MikanClientPINVOKE. ## STRUCT_TYPE ## _getSize();
-      System.IntPtr cPtr = MikanClientPINVOKE.IN_DATA_GET_FUNCTION(swigCPtr);
-      int len = LENGTH_EXPRESSION;
-      if (len<=0)
-      {
-        return null;
-      }
-      returnArray = new STRUCT_TYPE[len];
-      for (int i = 0; i < len; ++i)
-      {
-          System.IntPtr data = new System.IntPtr(cPtr.ToInt64() + structSize * i);
-          returnArray[i] = new STRUCT_TYPE(data, false);        
-      }
-
       return returnArray;
     }
   %}
 %enddef
 
 // Marshall the spatial_anchor_id_list on MikanSpatialAnchorList from unmanaged to managed memory
+%immutable spatial_anchor_id_list;
+%immutable spatial_anchor_count;
 CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
-  spatial_anchor_id_list, 
+  spatial_anchor_id_list,
+  spatial_anchor_count,
   int,
   int, 
-  MikanSpatialAnchorList_spatial_anchor_id_list_get,
-  this.spatial_anchor_count);
+  MikanSpatialAnchorList_spatial_anchor_id_list_get);
 
 // Marshall the stencil_id_list on MikanStencilList from unmanaged to managed memory
+%immutable stencil_id_list;
+%immutable stencil_count;
 CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
-  stencil_id_list, 
+  stencil_id_list,
+  stencil_count,
   int,
   int, 
-  MikanStencilList_stencil_id_list_get,
-  this.stencil_count);
+  MikanStencilList_stencil_id_list_get);
 
 // Marshall the vr_device_id_list on MikanVRDeviceList from unmanaged to managed memory
+%immutable vr_device_id_list;
+%immutable vr_device_count;
 CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
   vr_device_id_list, 
+  vr_device_count,
   int,
   int, 
-  MikanVRDeviceList_vr_device_id_list_get,
-  this.vr_device_count);
+  MikanVRDeviceList_vr_device_id_list_get);
 
 // Apply a rule for renaming the enum elements to avoid the common prefixes
 // which are redundant in C#/Java

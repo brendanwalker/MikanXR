@@ -39,8 +39,5 @@
 
 %include "../src/Client/MikanConstants.h"
 %include "../src/Client/MikanMathTypes.h"
-
-// Make all variables read-only in exposed structs in MikanClient_CAPI.h
-%immutable;
 %include "../src/Client/MikanClientTypes.h"
 %include "../src/Client/MikanClient_CAPI.h"
