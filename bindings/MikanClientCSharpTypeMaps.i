@@ -230,3 +230,7 @@ CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
   int, 
   MikanVRDeviceList_vr_device_id_list_get,
   this.vr_device_count);
+
+// Apply a rule for renaming the enum elements to avoid the common prefixes
+// which are redundant in C#/Java
+%rename("%(regex:/^([A-Z][a-z]+)+_(.*)/\\2/)s", %$isenumitem) ""; // MikanResult_Success -> Success

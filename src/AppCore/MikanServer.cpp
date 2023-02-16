@@ -265,8 +265,8 @@ bool MikanClientConnectionInfo::hasAllocatedRenderTarget() const
 		const MikanRenderTargetDescriptor& desc = renderTargetReadAccessor->getRenderTargetDescriptor();
 
 		return
-			desc.color_buffer_type != MikanColorBuffer_NONE ||
-			desc.depth_buffer_type != MikanDepthBuffer_NONE;
+			desc.color_buffer_type != MikanColorBuffer_NOCOLOR ||
+			desc.depth_buffer_type != MikanDepthBuffer_NODEPTH;
 	}
 
 	return false;

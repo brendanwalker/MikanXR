@@ -114,21 +114,21 @@ typedef enum
 
 typedef enum
 {
-	MikanColorBuffer_NONE,
+	MikanColorBuffer_NOCOLOR,
 	MikanColorBuffer_RGB24,
 	MikanColorBuffer_RGBA32,
 } MikanColorBufferType;
 
 typedef enum
 {
-	MikanDepthBuffer_NONE,
+	MikanDepthBuffer_NODEPTH,
 	MikanDepthBuffer_DEPTH16,
 	MikanDepthBuffer_DEPTH32,
 } MikanDepthBufferType;
 
 typedef enum
 {
-	MikanFeature_NONE = 0,
+	MikanFeature_RenderTarget_NONE = 0,
 
 	// Render target options
 	MikanFeature_RenderTarget_RGB24 = 1 << 0,
