@@ -478,7 +478,7 @@ protected:
 			desc.height = mode.resolution_y;
 			desc.color_key = {k_background_color_key.r, k_background_color_key.g, k_background_color_key.b};
 			desc.color_buffer_type = MikanColorBuffer_RGBA32;
-			desc.depth_buffer_type = MikanDepthBuffer_NONE;
+			desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
 			desc.graphicsAPI = MikanClientGraphicsAPI_OpenGL;
 
 			Mikan_AllocateRenderTargetBuffers(&desc, &m_renderTargetMemory);

@@ -246,7 +246,7 @@ void reallocateRenderBuffers()
 		desc.height = mode.resolution_y;
 		desc.color_key = { 0, 0, 0 };
 		desc.color_buffer_type = MikanColorBuffer_RGBA32;
-		desc.depth_buffer_type = MikanDepthBuffer_NONE;
+		desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
 		desc.graphicsAPI = MikanClientGraphicsAPI_Direct3D11;
 
 		Mikan_AllocateRenderTargetBuffers(&desc, &g_renderTargetMemory);
