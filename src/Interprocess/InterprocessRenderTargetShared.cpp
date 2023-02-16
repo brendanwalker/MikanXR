@@ -86,7 +86,7 @@ size_t computeRenderTargetColorBufferSize(MikanColorBufferType colorBufferType, 
 		return width * height * 3;
 	case MikanColorBuffer_RGBA32:
 		return width * height * 4;
-	case MikanColorBuffer_NONE:
+	case MikanColorBuffer_NOCOLOR:
 	default:
 		return 0;
 	}
@@ -100,7 +100,7 @@ size_t computeRenderTargetDepthBufferSize(MikanDepthBufferType depthBufferType, 
 		return width * height * 2;
 	case MikanDepthBuffer_DEPTH32:
 		return width * height * 4;
-	case MikanDepthBuffer_NONE:
+	case MikanDepthBuffer_NODEPTH:
 	default:
 		return 0;
 	}

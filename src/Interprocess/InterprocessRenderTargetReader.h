@@ -18,7 +18,7 @@ public:
 	class GlTexture* getDepthTexture() { return m_depthTexture; }
 	bool readRenderTargetMemory();
 	
-	MikanClientGraphicsAPI getClientGraphicsAPI() const { return m_descriptor.graphicsAPI; }
+	MikanClientGraphicsApi getClientGraphicsAPI() const { return m_descriptor.graphicsAPI; }
 	MikanRenderTargetDescriptor& getRenderTargetDescriptor() { return m_descriptor; }
 	const MikanRenderTargetMemory& getLocalMemory() { return m_localMemory; }
 	uint64_t getLocalFrameIndex() const { return m_localFrameIndex; }

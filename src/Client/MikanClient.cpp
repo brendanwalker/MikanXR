@@ -22,7 +22,7 @@ MikanClient::~MikanClient()
 	delete m_messageClient;
 }
 
-// -- ClientPSMoveAPI System -----
+// -- ClientMikanAPI System -----
 MikanResult MikanClient::startup(LogSeverityLevel log_level, t_logCallback log_callback)
 {
 	// Reset status flags
@@ -175,7 +175,7 @@ MikanResult MikanClient::allocateRenderTargetBuffers(
 
 	// Fetch the cached graphics API interface, if any
 	void* apiInterface = nullptr;
-	if (descriptor.graphicsAPI != MikanClientGraphicsAPI_UNKNOWN)
+	if (descriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
 	{
 		Mikan_GetGraphicsDeviceInterface(descriptor.graphicsAPI, &apiInterface);
 	}
@@ -236,6 +236,11 @@ MikanResult MikanClient::getStencilList(MikanStencilList& out_stencil_list)
 MikanResult MikanClient::getQuadStencil(MikanStencilID stencil_id, MikanStencilQuad& out_stencil)
 {
 	return callRPC(m_messageClient, "getQuadStencil", (uint8_t*)&stencil_id, sizeof(MikanStencilID), out_stencil);
+}
+
+MikanResult MikanClient::getBoxStencil(MikanStencilID stencil_id, MikanStencilBox& out_stencil)
+{
+	return callRPC(m_messageClient, "getBoxStencil", (uint8_t*)&stencil_id, sizeof(MikanStencilID), out_stencil);
 }
 
 MikanResult MikanClient::getModelStencil(MikanStencilID stencil_id, MikanStencilModel& out_stencil)

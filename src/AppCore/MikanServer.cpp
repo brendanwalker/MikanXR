@@ -77,7 +77,7 @@ public:
 		return m_connectionInfo.renderTargetReadAccessor->getLocalMemory();
 	}
 
-	MikanClientGraphicsAPI getClientGraphicsAPI() const
+	MikanClientGraphicsApi getClientGraphicsAPI() const
 	{
 		return m_connectionInfo.renderTargetReadAccessor->getClientGraphicsAPI();
 	}
@@ -265,8 +265,8 @@ bool MikanClientConnectionInfo::hasAllocatedRenderTarget() const
 		const MikanRenderTargetDescriptor& desc = renderTargetReadAccessor->getRenderTargetDescriptor();
 
 		return
-			desc.color_buffer_type != MikanColorBuffer_NONE ||
-			desc.depth_buffer_type != MikanDepthBuffer_NONE;
+			desc.color_buffer_type != MikanColorBuffer_NOCOLOR ||
+			desc.depth_buffer_type != MikanDepthBuffer_NODEPTH;
 	}
 
 	return false;
@@ -287,7 +287,7 @@ MikanServer::~MikanServer()
 	m_instance= nullptr;
 }
 
-// -- ClientPSMoveAPI System -----
+// -- ClientMikanAPI System -----
 bool MikanServer::startup()
 {
 	EASY_FUNCTION();
@@ -311,6 +311,7 @@ bool MikanServer::startup()
 	m_messageServer->setRPCHandler("freeRenderTargetBuffers", std::bind(&MikanServer::freeRenderTargetBuffers, this, _1, _2));
 	m_messageServer->setRPCHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
 	m_messageServer->setRPCHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
+	m_messageServer->setRPCHandler("getBoxStencil", std::bind(&MikanServer::getBoxStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
 	m_messageServer->setRPCHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
@@ -346,7 +347,7 @@ void MikanServer::update()
 			{
 				const std::string clientId= connection->getClientId();
 				const uint64_t frameIndex= connection->getLocalRenderTargetFrameIndex();
-				const MikanClientGraphicsAPI api= connection->getClientGraphicsAPI();
+				const MikanClientGraphicsApi api= connection->getClientGraphicsAPI();
 
 				OnClientRenderTargetUpdated(clientId, frameIndex);
 			}
@@ -961,6 +962,29 @@ void MikanServer::getQuadStencil(
 	if (profile->getQuadStencilInfo(stencil.stencil_id, stencil))
 	{
 		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilQuad));
+		outResult->setResultCode(MikanResult_Success);
+	}
+	else
+	{
+		outResult->setResultCode(MikanResult_InvalidStencilID);
+	}
+}
+
+void MikanServer::getBoxStencil(
+	const MikanRemoteFunctionCall* inFunctionCall,
+	MikanRemoteFunctionResult* outResult)
+{
+	MikanStencilBox stencil;
+	if (!inFunctionCall->extractParameters(stencil))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
+	if (profile->getBoxStencilInfo(stencil.stencil_id, stencil))
+	{
+		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilBox));
 		outResult->setResultCode(MikanResult_Success);
 	}
 	else

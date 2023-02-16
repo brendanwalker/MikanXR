@@ -15,7 +15,7 @@ public:
 	// -- State Queries ----
 	bool getIsConnected() const;
 
-    // -- ClientPSMoveAPI System -----
+    // -- ClientMikanAPI System -----
     MikanResult startup(LogSeverityLevel log_level, t_logCallback log_callback);
 	MikanResult connect(MikanClientInfo& ClientInfo);
 	MikanResult disconnect();
@@ -38,6 +38,7 @@ public:
 
 	MikanResult getStencilList(MikanStencilList& out_stencil_list);
 	MikanResult getQuadStencil(MikanStencilID stencil_id, MikanStencilQuad& out_stencil);
+	MikanResult getBoxStencil(MikanStencilID stencil_id, MikanStencilBox& out_stencil);
 	MikanResult getModelStencil(MikanStencilID stencil_id, MikanStencilModel& out_stencil);
 
 	MikanResult getSpatialAnchorList(MikanSpatialAnchorList& out_anchor_list);

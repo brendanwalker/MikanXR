@@ -6,6 +6,7 @@
 #define __MIKAN_CLIENT_TYPES_H
 #include "MikanMathTypes.h"
 #include <stdint.h>
+#include <stdbool.h>
 //cut_before
 
 /**
@@ -113,40 +114,40 @@ typedef enum
 
 typedef enum
 {
-	MikanColorBuffer_NONE,
+	MikanColorBuffer_NOCOLOR,
 	MikanColorBuffer_RGB24,
 	MikanColorBuffer_RGBA32,
 } MikanColorBufferType;
 
 typedef enum
 {
-	MikanDepthBuffer_NONE,
+	MikanDepthBuffer_NODEPTH,
 	MikanDepthBuffer_DEPTH16,
 	MikanDepthBuffer_DEPTH32,
 } MikanDepthBufferType;
 
 typedef enum
 {
-	MikanFeature_NONE = 0L,
+	MikanFeature_RenderTarget_NONE = 0,
 
 	// Render target options
-	MikanFeature_RenderTarget_RGB24 = 1L << 0,
-	MikanFeature_RenderTarget_RGBA32 = 1L << 1,
-	MikanFeature_RenderTarget_DEPTH16 = 1L << 2,
-	MikanFeature_RenderTarget_DEPTH32 = 1L << 3,
+	MikanFeature_RenderTarget_RGB24 = 1 << 0,
+	MikanFeature_RenderTarget_RGBA32 = 1 << 1,
+	MikanFeature_RenderTarget_DEPTH16 = 1 << 2,
+	MikanFeature_RenderTarget_DEPTH32 = 1 << 3,
 } MikanClientFeatures;
 
 typedef enum
 {
-	MikanClientGraphicsAPI_UNKNOWN,
+	MikanClientGraphicsApi_UNKNOWN,
 
-	MikanClientGraphicsAPI_Direct3D9,
-	MikanClientGraphicsAPI_Direct3D11,
-	MikanClientGraphicsAPI_Direct3D12,
-	MikanClientGraphicsAPI_OpenGL,
+	MikanClientGraphicsApi_Direct3D9,
+	MikanClientGraphicsApi_Direct3D11,
+	MikanClientGraphicsApi_Direct3D12,
+	MikanClientGraphicsApi_OpenGL,
 
-	MikanClientGraphicsAPI_COUNT,
-} MikanClientGraphicsAPI;
+	MikanClientGraphicsApi_COUNT,
+} MikanClientGraphicsApi;
 
 typedef struct
 {
@@ -157,7 +158,7 @@ typedef struct
 	char applicationVersion[32];
 	char xrDeviceName[32];
 	char mikanSdkVersion[32];
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 } MikanClientInfo;
 
 /// A float RGB color with [0,1] components.
@@ -173,7 +174,7 @@ typedef struct
 	MikanDepthBufferType depth_buffer_type;
 	uint32_t width;
 	uint32_t height;
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 } MikanRenderTargetDescriptor;
 
 typedef struct
