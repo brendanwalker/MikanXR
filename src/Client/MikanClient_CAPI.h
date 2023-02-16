@@ -69,9 +69,9 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SubscribeToVRDevicePoseUpdates(MikanVRD
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_UnsubscribeFromVRDevicePoseUpdates(MikanVRDeviceID device_id);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI api, void* graphicsDeviceInterface);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetGraphicsDeviceInterface(MikanClientGraphicsAPI api, void** outGraphicsDeviceInterface);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_AllocateRenderTargetBuffers(const MikanRenderTargetDescriptor *descriptor, MikanRenderTargetMemory *out_memory_ptr);
 

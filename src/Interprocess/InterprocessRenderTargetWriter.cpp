@@ -295,7 +295,7 @@ struct RenderTargetWriterImpl
 		SpoutOpenGLTextureWriter* spoutOpenGLTextureWriter;
 		BoostSharedMemoryWriter* boostSharedMemoryWriter;
 	} writerApi;
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 };
 
 InterprocessRenderTargetWriteAccessor::InterprocessRenderTargetWriteAccessor(const std::string& clientName)
@@ -323,24 +323,24 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 
 	m_localFrameIndex = 0;
 
-	if (descriptor->graphicsAPI == MikanClientGraphicsAPI_Direct3D11)
+	if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
 	{
 		m_writerImpl->writerApi.spoutDX11TextureWriter = new SpoutDX11TextureWriter(m_clientName);
-		m_writerImpl->graphicsAPI = MikanClientGraphicsAPI_Direct3D11;
+		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
 		bSuccess = m_writerImpl->writerApi.spoutDX11TextureWriter->init(descriptor, apiDeviceInterface);
 	}
-	else if (descriptor->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	else if (descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		m_writerImpl->writerApi.spoutOpenGLTextureWriter = new SpoutOpenGLTextureWriter(m_clientName);
-		m_writerImpl->graphicsAPI = MikanClientGraphicsAPI_OpenGL;
+		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
 		bSuccess = m_writerImpl->writerApi.spoutOpenGLTextureWriter->init(descriptor);
 	}
 	else
 	{
 		m_writerImpl->writerApi.boostSharedMemoryWriter = new BoostSharedMemoryWriter(m_clientName, m_localMemory);
-		m_writerImpl->graphicsAPI = MikanClientGraphicsAPI_UNKNOWN;
+		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 
 		bSuccess= m_writerImpl->writerApi.boostSharedMemoryWriter->init(descriptor);
 	}
@@ -350,7 +350,7 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 
 void InterprocessRenderTargetWriteAccessor::dispose()
 {
-	if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D11)
+	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
 	{
 		if (m_writerImpl->writerApi.spoutDX11TextureWriter != nullptr)
 		{
@@ -359,7 +359,7 @@ void InterprocessRenderTargetWriteAccessor::dispose()
 			m_writerImpl->writerApi.spoutDX11TextureWriter = nullptr;
 		}
 	}
-	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		if (m_writerImpl->writerApi.spoutOpenGLTextureWriter != nullptr)
 		{
@@ -378,14 +378,14 @@ void InterprocessRenderTargetWriteAccessor::dispose()
 		}
 	}
 
-	m_writerImpl->graphicsAPI= MikanClientGraphicsAPI_UNKNOWN;
+	m_writerImpl->graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
 }
 
 bool InterprocessRenderTargetWriteAccessor::writeRenderTargetMemory(uint64_t frame_index)
 {
 	bool bSuccess= false; 
 
-	if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_UNKNOWN)
+	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_UNKNOWN)
 	{
 		bSuccess = m_writerImpl->writerApi.boostSharedMemoryWriter->writeRenderTargetMemory(frame_index);
 	}
@@ -407,13 +407,13 @@ bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTe
 {
 	bool bSuccess = false;
 
-	if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D11)
+	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
 	{
 		ID3D11Texture2D* dx11Texture= (ID3D11Texture2D*)apiTexturePtr;
 
 		bSuccess= m_writerImpl->writerApi.spoutDX11TextureWriter->writeRenderTargetTexture(dx11Texture);
 	}
-	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		GLuint* textureId= (GLuint*)apiTexturePtr;
 

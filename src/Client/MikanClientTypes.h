@@ -139,15 +139,15 @@ typedef enum
 
 typedef enum
 {
-	MikanClientGraphicsAPI_UNKNOWN,
+	MikanClientGraphicsApi_UNKNOWN,
 
-	MikanClientGraphicsAPI_Direct3D9,
-	MikanClientGraphicsAPI_Direct3D11,
-	MikanClientGraphicsAPI_Direct3D12,
-	MikanClientGraphicsAPI_OpenGL,
+	MikanClientGraphicsApi_Direct3D9,
+	MikanClientGraphicsApi_Direct3D11,
+	MikanClientGraphicsApi_Direct3D12,
+	MikanClientGraphicsApi_OpenGL,
 
-	MikanClientGraphicsAPI_COUNT,
-} MikanClientGraphicsAPI;
+	MikanClientGraphicsApi_COUNT,
+} MikanClientGraphicsApi;
 
 typedef struct
 {
@@ -158,7 +158,7 @@ typedef struct
 	char applicationVersion[32];
 	char xrDeviceName[32];
 	char mikanSdkVersion[32];
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 } MikanClientInfo;
 
 /// A float RGB color with [0,1] components.
@@ -174,7 +174,7 @@ typedef struct
 	MikanDepthBufferType depth_buffer_type;
 	uint32_t width;
 	uint32_t height;
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 } MikanRenderTargetDescriptor;
 
 typedef struct

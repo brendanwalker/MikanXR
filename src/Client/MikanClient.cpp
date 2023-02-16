@@ -175,7 +175,7 @@ MikanResult MikanClient::allocateRenderTargetBuffers(
 
 	// Fetch the cached graphics API interface, if any
 	void* apiInterface = nullptr;
-	if (descriptor.graphicsAPI != MikanClientGraphicsAPI_UNKNOWN)
+	if (descriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
 	{
 		Mikan_GetGraphicsDeviceInterface(descriptor.graphicsAPI, &apiInterface);
 	}

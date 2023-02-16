@@ -278,7 +278,7 @@ struct RenderTargetReaderImpl
 		SpoutTextureReader* spoutTextureReader;
 		BoostSharedMemoryReader* boostSharedMemoryReader;
 	} readerApi;
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 };
 
 InterprocessRenderTargetReadAccessor::InterprocessRenderTargetReadAccessor(const std::string& clientName)
@@ -291,7 +291,7 @@ InterprocessRenderTargetReadAccessor::InterprocessRenderTargetReadAccessor(const
 	memset(&m_descriptor, 0, sizeof(MikanRenderTargetDescriptor));
 	memset(&m_localMemory, 0, sizeof(MikanRenderTargetMemory));
 	m_readerImpl->readerApi.boostSharedMemoryReader= nullptr;
-	m_readerImpl->graphicsAPI = MikanClientGraphicsAPI_UNKNOWN;
+	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 }
 
 InterprocessRenderTargetReadAccessor::~InterprocessRenderTargetReadAccessor()
@@ -309,10 +309,10 @@ bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDes
 	m_descriptor= *descriptor;
 	m_localFrameIndex = 0;
 
-	if (descriptor->graphicsAPI == MikanClientGraphicsAPI_Direct3D9 ||
-		descriptor->graphicsAPI == MikanClientGraphicsAPI_Direct3D11 ||
-		descriptor->graphicsAPI == MikanClientGraphicsAPI_Direct3D12 ||
-		descriptor->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
+		descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
+		descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
+		descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		m_readerImpl->readerApi.spoutTextureReader = new SpoutTextureReader(this, m_clientName);
 		m_readerImpl->graphicsAPI = descriptor->graphicsAPI;
@@ -322,7 +322,7 @@ bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDes
 	else
 	{
 		m_readerImpl->readerApi.boostSharedMemoryReader = new BoostSharedMemoryReader(this, m_clientName, m_localMemory);
-		m_readerImpl->graphicsAPI = MikanClientGraphicsAPI_UNKNOWN;
+		m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 
 		bSuccess = m_readerImpl->readerApi.boostSharedMemoryReader->init(descriptor);
 	}
@@ -332,10 +332,10 @@ bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDes
 
 void InterprocessRenderTargetReadAccessor::dispose()
 {
-	if (m_readerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D9 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D11 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D12 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
+		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
+		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
+		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		if (m_readerImpl->readerApi.spoutTextureReader != nullptr)
 		{
@@ -354,17 +354,17 @@ void InterprocessRenderTargetReadAccessor::dispose()
 		}
 	}
 
-	m_readerImpl->graphicsAPI = MikanClientGraphicsAPI_UNKNOWN;
+	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 }
 
 bool InterprocessRenderTargetReadAccessor::readRenderTargetMemory()
 {
 	bool bSuccess = false;
 
-	if (m_readerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D9 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D11 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D12 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
+		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
+		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
+		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		if (m_readerImpl->readerApi.spoutTextureReader != nullptr &&
 			m_readerImpl->readerApi.spoutTextureReader->readRenderTargetTexture())

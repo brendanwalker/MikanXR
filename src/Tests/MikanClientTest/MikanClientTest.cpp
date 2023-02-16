@@ -412,7 +412,7 @@ protected:
 				strncpy(ClientInfo.applicationName, "MikanXR Test", sizeof(ClientInfo.applicationName) - 1);
 				strncpy(ClientInfo.applicationVersion, "1.0", sizeof(ClientInfo.applicationVersion) - 1);
 				ClientInfo.xrDeviceName[0] = '\0';
-				ClientInfo.graphicsAPI = MikanClientGraphicsAPI_OpenGL;
+				ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 				strncpy(ClientInfo.mikanSdkVersion, Mikan_GetVersionString(), sizeof(ClientInfo.mikanSdkVersion) - 1);
 
 				if (Mikan_Connect(&ClientInfo) != MikanResult_Success)
@@ -479,7 +479,7 @@ protected:
 			desc.color_key = {k_background_color_key.r, k_background_color_key.g, k_background_color_key.b};
 			desc.color_buffer_type = MikanColorBuffer_RGBA32;
 			desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
-			desc.graphicsAPI = MikanClientGraphicsAPI_OpenGL;
+			desc.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
 			Mikan_AllocateRenderTargetBuffers(&desc, &m_renderTargetMemory);
 			createFrameBuffer(mode.resolution_x, mode.resolution_y);

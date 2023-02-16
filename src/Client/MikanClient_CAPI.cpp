@@ -18,7 +18,7 @@
 
 // -- private data ---
 MikanClient *g_mikanClient= nullptr;
-void* g_graphicsDeviceInterfaces[MikanClientGraphicsAPI_COUNT] = {
+void* g_graphicsDeviceInterfaces[MikanClientGraphicsApi_COUNT] = {
 	nullptr, // Unknown
 	nullptr, // DirectX9
 	nullptr, // DirectX11
@@ -152,9 +152,9 @@ MikanResult Mikan_UnsubscribeFromVRDevicePoseUpdates(MikanVRDeviceID device_id)
 	return g_mikanClient->unsubscribeFromVRDevicePoseUpdates(device_id) ;
 }
 
-MikanResult Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI api, void* graphicsDeviceInterface)
+MikanResult Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface)
 {
-	if (api < 0 || api >= MikanClientGraphicsAPI_COUNT)
+	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
 		return MikanResult_InvalidAPI;
 
 	g_graphicsDeviceInterfaces[api]= graphicsDeviceInterface;
@@ -162,9 +162,9 @@ MikanResult Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI api, void* g
 	return MikanResult_Success;
 }
 
-MikanResult Mikan_GetGraphicsDeviceInterface(MikanClientGraphicsAPI api, void** outGraphicsDeviceInterface)
+MikanResult Mikan_GetGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface)
 {
-	if (api < 0 || api >= MikanClientGraphicsAPI_COUNT)
+	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
 		return MikanResult_InvalidAPI;
 	if (outGraphicsDeviceInterface == nullptr)
 		return MikanResult_NullParam;

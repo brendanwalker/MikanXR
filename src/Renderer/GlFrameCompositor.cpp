@@ -1251,7 +1251,7 @@ bool GlFrameCompositor::addClientSource(
 		clientSource->colorTexture->setSize(desc.width, desc.height);
 		clientSource->colorTexture->setGenerateMipMap(false);
 		clientSource->colorTexture->setPixelBufferObjectMode(
-			desc.graphicsAPI == MikanClientGraphicsAPI_UNKNOWN 
+			desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN 
 			? GlTexture::PixelBufferObjectMode::DoublePBOWrite
 			: GlTexture::PixelBufferObjectMode::NoPBO);
 		clientSource->colorTexture->createTexture();
@@ -1277,7 +1277,7 @@ bool GlFrameCompositor::addClientSource(
 	{
 		clientSource->depthTexture->setSize(desc.width, desc.height);
 		clientSource->depthTexture->setPixelBufferObjectMode(
-			desc.graphicsAPI == MikanClientGraphicsAPI_UNKNOWN
+			desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
 			? GlTexture::PixelBufferObjectMode::DoublePBOWrite
 			: GlTexture::PixelBufferObjectMode::NoPBO);
 		clientSource->depthTexture->createTexture();

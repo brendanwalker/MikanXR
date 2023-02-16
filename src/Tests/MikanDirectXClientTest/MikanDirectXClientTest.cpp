@@ -111,7 +111,7 @@ bool initMikan()
 
 	if (Mikan_Initialize(MikanLogLevel_Info, nullptr) == MikanResult_Success)
 	{
-        Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_Direct3D11, g_pd3dDevice);
+        Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
 		g_mikanInitialized = true;
 	}
 	else
@@ -181,7 +181,7 @@ void updateMikan()
 			strncpy(ClientInfo.applicationName, "MikanXR Test", sizeof(ClientInfo.applicationName) - 1);
 			strncpy(ClientInfo.applicationVersion, "1.0", sizeof(ClientInfo.applicationVersion) - 1);
 			ClientInfo.xrDeviceName[0] = '\0';
-			ClientInfo.graphicsAPI = MikanClientGraphicsAPI_Direct3D11;
+			ClientInfo.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 			strncpy(ClientInfo.mikanSdkVersion, Mikan_GetVersionString(), sizeof(ClientInfo.mikanSdkVersion) - 1);
 
 			if (Mikan_Connect(&ClientInfo) != MikanResult_Success)
@@ -247,7 +247,7 @@ void reallocateRenderBuffers()
 		desc.color_key = { 0, 0, 0 };
 		desc.color_buffer_type = MikanColorBuffer_RGBA32;
 		desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
-		desc.graphicsAPI = MikanClientGraphicsAPI_Direct3D11;
+		desc.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
 		Mikan_AllocateRenderTargetBuffers(&desc, &g_renderTargetMemory);
 		createFrameBuffer(mode.resolution_x, mode.resolution_y);

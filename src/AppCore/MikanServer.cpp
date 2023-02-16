@@ -77,7 +77,7 @@ public:
 		return m_connectionInfo.renderTargetReadAccessor->getLocalMemory();
 	}
 
-	MikanClientGraphicsAPI getClientGraphicsAPI() const
+	MikanClientGraphicsApi getClientGraphicsAPI() const
 	{
 		return m_connectionInfo.renderTargetReadAccessor->getClientGraphicsAPI();
 	}
@@ -347,7 +347,7 @@ void MikanServer::update()
 			{
 				const std::string clientId= connection->getClientId();
 				const uint64_t frameIndex= connection->getLocalRenderTargetFrameIndex();
-				const MikanClientGraphicsAPI api= connection->getClientGraphicsAPI();
+				const MikanClientGraphicsApi api= connection->getClientGraphicsAPI();
 
 				OnClientRenderTargetUpdated(clientId, frameIndex);
 			}
