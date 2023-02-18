@@ -12,7 +12,23 @@
                 width: 300dp;
                 height: 500dp;
                 margin: auto;
-            }         
+            }
+            layerblock 
+            {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            layer_label {
+                font-size: 16dp;
+                color: #17202A;
+                margin-bottom: 1em;
+                margin-top: 1em;
+            }      
+            mapping_label {
+                font-size: 14dp;
+                color: #17202A;
+            }            
         </style>
 	</head>
 	<body template="window">
@@ -28,12 +44,25 @@
             </div>            
 			<div class="picker" data-if="layers.size > 0">
 				<div data-for="layer : layers">
-                    <label>Layer #{{layer.layer_index}}: {{layer.material_name}}</label>
+                    <layerblock>
+                        <layer_label>Layer #{{layer.layer_index}}: {{layer.material_name}}</layer_label>
+                        <br/>
+                        <div data-for="color_texture_source : layer.color_texture_sources">
+                            &nbsp;&nbsp;
+                            <mapping_label>
+                                {{color_texture_source.uniform_name}}:
+                                <select id="select" name="color_texture_select" data-value="color_texture_source.data_source_name" data-event-change="set_color_texture_mapping(layer.layer_index, color_texture_source.uniform_name)">
+                                    <option data-for="source_name : color_texture_sources" data-value="source_name">{{source_name}}</option>
+                                </select>
+                            </mapping_label>
+                        </div>
+                    </layerblock>
 				</div>
 			</div>
             <div data-if="layers.size == 0">
                 <label>No layers</label>
             </div>
+            <br/>  
             <h2>Clients</h2>
 			<div class="picker" data-if="layers.size > 0">
 				<div data-for="client : clients">

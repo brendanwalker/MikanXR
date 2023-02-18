@@ -1,4 +1,5 @@
 #include "App.h"
+#include "Colors.h"
 #include "GlCommon.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
@@ -31,6 +32,7 @@
 
 #define DEFAULT_COMPOSITOR_CONFIG_NAME	"Alpha Channel"
 #define STENCIL_MVP_UNIFORM_NAME		"mvpMatrix"
+#define MAX_CLIENT_SOURCES				8
 
 // -- GlFrameCompositor ------
 GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
@@ -87,7 +89,16 @@ bool GlFrameCompositor::startup()
 	{
 		// Recreate the compositor layers for the current config
 		rebuildLayersFromConfig();
+	}
 
+	// Create data source defaults
+	for (int clientSourceIndex= 0; clientSourceIndex < MAX_CLIENT_SOURCES; ++clientSourceIndex)
+	{
+		const std::string colorTextureSourceName = makeClientRendererTextureName(clientSourceIndex);
+		m_colorTextureSources.setValue(colorTextureSourceName, nullptr);
+
+		const std::string colorKeySourceName = makeClientColorKeyName(clientSourceIndex);
+		m_float3Sources.setValue(colorKeySourceName, Colors::Black);
 	}
 
 	return true;
@@ -163,10 +174,26 @@ void GlFrameCompositor::clearAllCompositorConfigurations()
 	m_compositorPresets.clear();
 }
 
-const CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfig(int layerIndex)
+const CompositorPreset* GlFrameCompositor::getCurrentPresetConfig() const
 {
 	CompositorPreset* preset = nullptr;
 	if (m_compositorPresets.tryGetValue(m_config.presetName, preset))
+	{
+		return preset;
+	}
+
+	return nullptr;
+}
+
+CompositorPreset* GlFrameCompositor::getCurrentPresetConfigMutable() const
+{
+	return const_cast<CompositorPreset*>(getCurrentPresetConfig());
+}
+
+const CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfig(int layerIndex) const
+{
+	const CompositorPreset* preset = getCurrentPresetConfig();
+	if (preset != nullptr)
 	{
 		if (layerIndex >= 0 && layerIndex < (int)preset->layers.size())
 		{
@@ -175,6 +202,20 @@ const CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfig(int 
 	}
 
 	return nullptr;
+}
+
+CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfigMutable(int layerIndex)
+{
+	return const_cast<CompositorLayerConfig*>(getCurrentPresetLayerConfig(layerIndex));
+}
+
+void GlFrameCompositor::saveCurrentPresetConfig()
+{
+	CompositorPreset* preset= getCurrentPresetConfigMutable();
+	if (preset != nullptr)
+	{
+		preset->save(preset->getLoadedConfigPath());
+	}
 }
 
 void GlFrameCompositor::rebuildLayersFromConfig()
@@ -454,6 +495,25 @@ void GlFrameCompositor::update()
 	}
 }
 
+void GlFrameCompositor::setColorTextureMapping(
+	const int layerIndex,
+	const std::string& uniformName, 
+	const std::string& dataSourceName)
+{
+	CompositorLayerConfig* layerConfig= getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig == nullptr)
+		return;
+
+	auto& sourceMap= layerConfig->shaderConfig.colorTextureSourceMap;
+	if (sourceMap.find(uniformName) != sourceMap.end() &&
+		m_colorTextureSources.hasValue(dataSourceName) && 
+		sourceMap[uniformName] != dataSourceName)
+	{
+		sourceMap[uniformName]= dataSourceName;
+		saveCurrentPresetConfig();
+	}
+}
+
 void GlFrameCompositor::updateCompositeFrame()
 {
 	EASY_FUNCTION();
@@ -503,12 +563,12 @@ void GlFrameCompositor::updateCompositeFrame()
 
 		// Attempt to apply data sources to the layers material parameters
 		bool bValidMaterialDataSources= true;
-		bValidMaterialDataSources&= refreshLayerMaterialFloatValues(*layerConfig, layer);
-		bValidMaterialDataSources&= refreshLayerMaterialFloat2Values(*layerConfig, layer);
-		bValidMaterialDataSources&= refreshLayerMaterialFloat3Values(*layerConfig, layer);
-		bValidMaterialDataSources&= refreshLayerMaterialFloat4Values(*layerConfig, layer);
-		bValidMaterialDataSources&= refreshLayerMaterialMat4Values(*layerConfig, layer);
-		bValidMaterialDataSources&= refreshLayerMaterialTextures(*layerConfig, layer);
+		bValidMaterialDataSources&= applyLayerMaterialFloatValues(*layerConfig, layer);
+		bValidMaterialDataSources&= applyLayerMaterialFloat2Values(*layerConfig, layer);
+		bValidMaterialDataSources&= applyLayerMaterialFloat3Values(*layerConfig, layer);
+		bValidMaterialDataSources&= applyLayerMaterialFloat4Values(*layerConfig, layer);
+		bValidMaterialDataSources&= applyLayerMaterialMat4Values(*layerConfig, layer);
+		bValidMaterialDataSources&= applyLayerMaterialTextures(*layerConfig, layer);
 		if (!bValidMaterialDataSources)
 			continue;
 
@@ -606,7 +666,7 @@ void GlFrameCompositor::updateCompositeFrame()
 	}
 }
 
-bool GlFrameCompositor::refreshLayerMaterialFloatValues(
+bool GlFrameCompositor::applyLayerMaterialFloatValues(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
@@ -634,7 +694,7 @@ bool GlFrameCompositor::refreshLayerMaterialFloatValues(
 	return bSuccess;
 }
 
-bool GlFrameCompositor::refreshLayerMaterialFloat2Values(
+bool GlFrameCompositor::applyLayerMaterialFloat2Values(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
@@ -662,7 +722,7 @@ bool GlFrameCompositor::refreshLayerMaterialFloat2Values(
 	return bSuccess;
 }
 
-bool GlFrameCompositor::refreshLayerMaterialFloat3Values(
+bool GlFrameCompositor::applyLayerMaterialFloat3Values(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
@@ -690,7 +750,7 @@ bool GlFrameCompositor::refreshLayerMaterialFloat3Values(
 	return bSuccess;
 }
 
-bool GlFrameCompositor::refreshLayerMaterialFloat4Values(
+bool GlFrameCompositor::applyLayerMaterialFloat4Values(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
@@ -718,7 +778,7 @@ bool GlFrameCompositor::refreshLayerMaterialFloat4Values(
 	return bSuccess;
 }
 
-bool GlFrameCompositor::refreshLayerMaterialMat4Values(
+bool GlFrameCompositor::applyLayerMaterialMat4Values(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
@@ -746,7 +806,7 @@ bool GlFrameCompositor::refreshLayerMaterialMat4Values(
 	return bSuccess;
 }
 
-bool GlFrameCompositor::refreshLayerMaterialTextures(
+bool GlFrameCompositor::applyLayerMaterialTextures(
 	const CompositorLayerConfig& layerConfig,
 	GlFrameCompositor::Layer& layer)
 {
@@ -1214,6 +1274,30 @@ bool GlFrameCompositor::bindCameraVRTracker()
 	return m_cameraTrackingPuckView != nullptr;
 }
 
+std::string GlFrameCompositor::makeClientRendererTextureName(int clientSourceIndex)
+{
+	// Use standard naming based on client connection order 
+	// so that we can refer to the render texture data source in GlFrameCompositorConfig templates
+	char dataSourceName[32];
+	StringUtils::formatString(
+		dataSourceName, sizeof(dataSourceName),
+		"clientRenderTexture_%d", clientSourceIndex);
+
+	return dataSourceName;
+}
+
+std::string GlFrameCompositor::makeClientColorKeyName(int clientSourceIndex)
+{
+	// Use standard naming based on client connection order 
+	// so that we can refer to the color key data source in GlFrameCompositorConfig templates
+	char dataSourceName[32];
+	StringUtils::formatString(
+		dataSourceName, sizeof(dataSourceName),
+		"clientColorKey_%d", clientSourceIndex);
+
+	return dataSourceName;
+}
+
 bool GlFrameCompositor::addClientSource(
 	const std::string& clientId, 
 	const MikanClientInfo& clientInfo,
@@ -1292,29 +1376,12 @@ bool GlFrameCompositor::addClientSource(
 	// add it to the color texture data source table
 	if (clientSource->colorTexture != nullptr)
 	{
-		{
-			// Use standard naming based on client connection order 
-			// so that we can refer to the render texture data source in GlFrameCompositorConfig templates
-			char dataSourceName[32];
-			StringUtils::formatString(
-				dataSourceName, sizeof(dataSourceName), 
-				"clientRenderTexture_%d", clientSource->clientSourceIndex);
+		const std::string colorTextureSourceName = makeClientRendererTextureName(clientSource->clientSourceIndex);
+		m_colorTextureSources.setValue(colorTextureSourceName, clientSource->colorTexture);
 
-			m_colorTextureSources.setValue(dataSourceName, clientSource->colorTexture);
-		}
-
-		{
-			// Use standard naming based on client connection order 
-			// so that we can refer to the color key data source in GlFrameCompositorConfig templates
-			char dataSourceName[32];
-			StringUtils::formatString(
-				dataSourceName, sizeof(dataSourceName),
-				"clientColorKey_%d", clientSource->clientSourceIndex);
-
-			const glm::vec3 color_key(desc.color_key.r, desc.color_key.g, desc.color_key.b);
-			m_float3Sources.setValue(dataSourceName, color_key);
-
-		}
+		const glm::vec3 color_key(desc.color_key.r, desc.color_key.g, desc.color_key.b);
+		const std::string colorKeySourceName = makeClientColorKeyName(clientSource->clientSourceIndex);
+		m_float3Sources.setValue(colorKeySourceName, color_key);
 	}
 
 	return true;

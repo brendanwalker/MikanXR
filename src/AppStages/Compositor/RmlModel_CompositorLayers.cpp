@@ -32,11 +32,22 @@ bool RmlModel_CompositorLayers::init(
 		// One time registration for an array of compositor clients.
 		constructor.RegisterArray<decltype(m_compositorClients)>();
 
+		// One time registration for layer data source struct.
+		if (auto data_source_model_handle = constructor.RegisterStruct<RmlModel_LayerDataSourceMapping>())
+		{
+			data_source_model_handle.RegisterMember("uniform_name", &RmlModel_LayerDataSourceMapping::uniform_name);
+			data_source_model_handle.RegisterMember("data_source_name", &RmlModel_LayerDataSourceMapping::data_source_name);
+		}
+
+		// One time registration for an array of layer data source mappings.
+		constructor.RegisterArray<Rml::Vector<RmlModel_LayerDataSourceMapping>>();
+
 		// One time registration for compositor layer struct.
 		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorLayer>())
 		{
 			layer_model_handle.RegisterMember("layer_index", &RmlModel_CompositorLayer::layer_index);
 			layer_model_handle.RegisterMember("material_name", &RmlModel_CompositorLayer::material_name);
+			layer_model_handle.RegisterMember("color_texture_sources", &RmlModel_CompositorLayer::color_texture_sources);
 		}
 
 		// One time registration for an array of compositor layer.
@@ -48,6 +59,7 @@ bool RmlModel_CompositorLayers::init(
 	// Register Data Model Fields
 	constructor.Bind("current_configuration", &m_currentConfigurationName);
 	constructor.Bind("configuration_names", &m_configurationNames);
+	constructor.Bind("color_texture_sources", &m_colorTextureSources);
 	constructor.Bind("clients", &m_compositorClients);
 	constructor.Bind("layers", &m_compositorLayers);
 
@@ -71,6 +83,18 @@ bool RmlModel_CompositorLayers::init(
 				OnCompositorConfigChangedEvent(configurationName);
 			}
 		});
+	constructor.BindEventCallback(
+		"set_color_texture_mapping",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int layer_index = (arguments.size() == 2 ? arguments[0].Get<int>() : -1);
+			const std::string uniform_name = (arguments.size() == 2 ? arguments[1].Get<std::string>() : "");
+			const std::string data_source_name = ev.GetParameter<Rml::String>("value", "");
+
+			if (OnColorTextureMappingChangedEvent)
+			{
+				OnColorTextureMappingChangedEvent(layer_index, uniform_name, data_source_name);
+			}
+		});
 
 	// Set initial values for data model
 	rebuild(compositor);
@@ -91,16 +115,42 @@ void RmlModel_CompositorLayers::rebuild(
 	m_currentConfigurationName= compositor->getCurrentPresetName();
 	m_configurationNames= compositor->getPresetNames();
 
+	// Add color texture source names
+	m_colorTextureSources.clear();
+	for (auto it = compositor->getColorTextureSources().getMap().begin();
+		 it != compositor->getColorTextureSources().getMap().end();
+		 it++)
+	{
+		m_colorTextureSources.push_back(it->first);
+	}
+	m_modelHandle.DirtyVariable("color_texture_sources");
+
+	// Add layers
 	m_compositorLayers.clear();
 	for (const auto& layer : compositor->getLayers())
 	{
-		const std::string materialName= layer.layerMaterial != nullptr ? layer.layerMaterial->getName() : "INVALID";
-		const RmlModel_CompositorLayer uiLayer= { layer.layerIndex, materialName};
+		const GlMaterial* layerMaterial= layer.layerMaterial;
+		const CompositorLayerConfig* layerConfig= compositor->getCurrentPresetLayerConfig(layer.layerIndex);
+		const std::string materialName= layerMaterial != nullptr ? layerMaterial->getName() : "INVALID";
+		RmlModel_CompositorLayer uiLayer;
+		uiLayer.layer_index= layer.layerIndex;
+		uiLayer.material_name= materialName;
+
+		if (layerConfig != nullptr)
+		{
+			for (auto it = layerConfig->shaderConfig.colorTextureSourceMap.begin();
+				 it != layerConfig->shaderConfig.colorTextureSourceMap.end();
+				 it++)
+			{
+				uiLayer.color_texture_sources.push_back({it->first, it->second});
+			}
+		}
 
 		m_compositorLayers.push_back(uiLayer);
 	}
 	m_modelHandle.DirtyVariable("layers");
 
+	// Add clients
 	const auto& clientSources = compositor->getClientSources();
 	m_compositorClients.clear();
 	for (auto it = clientSources.getMap().begin(); it != clientSources.getMap().end(); it++)

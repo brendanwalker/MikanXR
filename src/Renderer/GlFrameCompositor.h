@@ -63,7 +63,11 @@ public:
 	std::vector<std::string> getPresetNames() const;
 	const std::string& getCurrentPresetName() const;
 	bool applyLayerPreset(const std::string& configurationName);
-	const CompositorLayerConfig* getCurrentPresetLayerConfig(int layerIndex);
+	const CompositorPreset* getCurrentPresetConfig() const;
+	CompositorPreset* getCurrentPresetConfigMutable() const;
+	const CompositorLayerConfig* getCurrentPresetLayerConfig(int layerIndex) const;
+	CompositorLayerConfig* getCurrentPresetLayerConfigMutable(int layerIndex);
+	void saveCurrentPresetConfig();
 
 	void reloadAllCompositorShaders();
 
@@ -79,7 +83,17 @@ public:
 
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
+
+	inline const NamedValueTable<float>& getFloatSources() const { return m_floatSources; }
+	inline const NamedValueTable<glm::vec2>& getFloat2Sources() const { return m_float2Sources; }
+	inline const NamedValueTable<glm::vec3>& getFloat3Sources() const { return m_float3Sources; }
+	inline const NamedValueTable<glm::vec4>& getFloat4Sources() const { return m_float4Sources; }
+	inline const NamedValueTable<glm::mat4>& getMat4Sources() const { return m_mat4Sources; }
+	inline const NamedValueTable<GlTexture*>& getColorTextureSources() const { return m_colorTextureSources; }
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
+
+	void setColorTextureMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+
 	inline const std::vector<Layer>& getLayers() const { return m_layers; }
 	inline const GlTexture* getCompositedFrameTexture() const { return m_compositedFrame; }
 	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
@@ -105,7 +119,7 @@ protected:
 
 	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
 	bool removeClientSource(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
-
+\
 	void updateCompositeFrame();
 	void updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig, GlState* glState);
 	void updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig, GlState* glState);
@@ -125,12 +139,15 @@ private:
 	void rebuildLayersFromConfig();
 	void clearAllCompositorConfigurations();
 
-	bool refreshLayerMaterialFloatValues(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool refreshLayerMaterialFloat2Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool refreshLayerMaterialFloat3Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool refreshLayerMaterialFloat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool refreshLayerMaterialMat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool refreshLayerMaterialTextures(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool applyLayerMaterialFloatValues(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool applyLayerMaterialFloat2Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool applyLayerMaterialFloat3Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool applyLayerMaterialFloat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool applyLayerMaterialMat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	bool applyLayerMaterialTextures(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+
+	static std::string makeClientRendererTextureName(int clientSourceIndex);
+	static std::string makeClientColorKeyName(int clientSourceIndex);
 
 	static GlFrameCompositor* m_instance;
 

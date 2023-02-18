@@ -41,6 +41,7 @@ protected:
 
 	// Layers UI Events
 	void onCompositorConfigChangedEvent(const std::string& configName);
+	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
 	// Quad Stencils UI Events

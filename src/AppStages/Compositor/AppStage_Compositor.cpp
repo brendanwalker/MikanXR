@@ -118,6 +118,7 @@ void AppStage_Compositor::enter()
 		// Init Layers UI
 		m_compositorLayersModel->init(context, m_frameCompositor);
 		m_compositorLayersModel->OnCompositorConfigChangedEvent = MakeDelegate(this, &AppStage_Compositor::onCompositorConfigChangedEvent);
+		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
 		m_compositorLayersModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
 		m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
 		m_compositiorLayersView->Show();
@@ -324,6 +325,14 @@ void AppStage_Compositor::onCompositorConfigChangedEvent(const std::string& conf
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
+}
+
+void AppStage_Compositor::onColorTextureMappingChangedEvent(
+	const int layerIndex,
+	const std::string& uniformName, 
+	const std::string& dataSourceName)
+{
+	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
 }
 
 void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
