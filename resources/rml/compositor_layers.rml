@@ -54,6 +54,13 @@
 				<div data-for="layer : layers">
                     <layerblock>
                         <layer_label>Layer #{{layer.layer_index}}: {{layer.material_name}}</layer_label>
+                        <div>
+                            &nbsp;&nbsp;
+                            <mapping_label>Material:</mapping_label>
+                            <select id="select" name="material_select" data-value="layer.material_name" data-event-change="update_material_name(layer.layer_index)">
+                                <option data-for="material_name : material_names" data-value="material_name">{{material_name}}</option>
+                            </select>                            
+                        </div>
                         <label><input type="checkbox" name="vertical_flip" data-event-change="update_vertical_flip(layer.layer_index)" data-checked="layer.vertical_flip" />Vertical Flip </label>
                         <div data-for="mapping : layer.float_mappings">
                             &nbsp;&nbsp;

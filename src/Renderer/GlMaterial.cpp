@@ -4,10 +4,20 @@
 
 GlMaterial::GlMaterial(
 	const std::string& name, 
-	GlProgram* program)
+	GlProgramPtr program)
 	: m_name(name)
 	, m_program(program)
 {
+}
+
+void GlMaterial::setProgram(GlProgramPtr program) 
+{ 
+	m_program = program; 
+}
+
+GlProgramPtr GlMaterial::getProgram() const 
+{
+	return m_program; 
 }
 
 bool GlMaterial::setFloatBySemantic(eUniformSemantic semantic, float value)
@@ -454,13 +464,4 @@ void GlMaterial::unbindMaterial() const
 
 	// Unbind the shader program
 	m_program->unbindProgram();
-}
-
-// -- GlMaterialBinding ------
-GlScopedMaterialBinding::~GlScopedMaterialBinding()
-{
-	if (m_boundMaterial != nullptr)
-	{
-		m_boundMaterial->unbindMaterial();
-	}
 }

@@ -6,72 +6,13 @@
 
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <stdint.h>
 
-enum class eUniformDataType : int
-{
-	INVALID = -1,
-
-	datatype_float,
-	datatype_float2,
-	datatype_float3,
-	datatype_float4,
-	datatype_mat4,
-	datatype_texture,
-};
-
-enum class eUniformSemantic : int
-{
-	INVALID = -1,
-
-	transformMatrix,
-	modelViewProjectionMatrix,
-	diffuseColorRGBA,
-	diffuseColorRGB,
-	screenPosition,
-	floatConstant0,
-	floatConstant1,
-	floatConstant2,
-	floatConstant3,
-	texture0,
-	texture1,
-	texture2,
-	texture3,
-	texture4,
-	texture5,
-	texture6,
-	texture7,
-	texture8,
-	texture9,
-	texture10,
-	texture11,
-	texture12,
-	texture13,
-	texture14,
-	texture15,
-	texture16,
-	texture17,
-	texture18,
-	texture19,
-	texture20,
-	texture21,
-	texture22,
-	texture23,
-	texture24,
-	texture25,
-	texture26,
-	texture27,
-	texture28,
-	texture29,
-	texture30,
-	texture31,
-
-	COUNT
-};
-extern const std::string* k_UniformSemanticName;
+#include "GlProgramConstants.h"
 
 class GlProgramCode
 {
@@ -84,7 +25,7 @@ public:
 
 	GlProgramCode() = default;
 	GlProgramCode(
-		const std::string &filename, 
+		const std::string& programName, 
 		const std::string& vertexCode, 
 		const std::string& fragmentCode);
 
@@ -94,7 +35,7 @@ public:
 		const std::filesystem::path& fragmentShaderFileName,
 		const std::map<std::string, std::string>& uniforms);
 
-	const std::string& getFilename() const { return m_filename; }
+	const std::string& getProgramName() const { return m_programName; }
 	inline const char* getVertexShaderCode() const { return m_vertexShaderCode.c_str(); }
 	inline const char* getFragmentShaderCode() const { return m_framementShaderCode.c_str(); }
 	inline size_t getCodeHash() const { return m_shaderCodeHash; }
@@ -122,7 +63,7 @@ public:
 	}
 
 protected:
-	std::string m_filename;
+	std::string m_programName;
 	std::string m_vertexShaderCode;
 	std::string m_framementShaderCode;
 	std::vector<Uniform> m_uniformList;
@@ -145,6 +86,7 @@ public:
 	GlProgram(const GlProgramCode &shaderCode);
 	virtual ~GlProgram();
 
+	inline const GlProgramCode& getProgramCode() const { return m_code; }
 	static eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic);
 	bool getUniformSemantic(const std::string uniformName, eUniformSemantic& outSemantic) const;
 	bool getUniformDataType(const std::string uniformName, eUniformDataType& outDataType) const;
@@ -172,3 +114,4 @@ protected:
 	uint32_t m_programID = 0;
 	GlProgramUniformMap m_uniformLocationMap;
 };
+typedef std::shared_ptr<GlProgram> GlProgramPtr;

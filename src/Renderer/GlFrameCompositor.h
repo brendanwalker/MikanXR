@@ -15,12 +15,18 @@
 #include <glm/ext/matrix_float4x4.hpp>
 #include <stdint.h>
 
-class GlMaterial;
-class GlProgram;
 class GlState;
-class GlTexture;
 class GlTriangulatedMesh;
 class VideoFrameDistortionView;
+
+class GlMaterial;
+typedef std::shared_ptr<GlMaterial> GlMaterialPtr;
+
+class GlTexture;
+typedef std::shared_ptr<GlTexture> GlTexturePtr;
+
+class GlProgram;
+typedef std::shared_ptr<GlProgram> GlProgramPtr;
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
@@ -38,8 +44,8 @@ public:
 		std::string clientId;
 		MikanClientInfo clientInfo;
 		MikanRenderTargetDescriptor desc;
-		GlTexture* colorTexture;
-		GlTexture* depthTexture;
+		GlTexturePtr colorTexture;
+		GlTexturePtr depthTexture;
 		uint64_t frameIndex;
 		bool bIsPendingRender;
 	};
@@ -47,7 +53,7 @@ public:
 	struct Layer
 	{
 		int layerIndex;
-		GlMaterial* layerMaterial;
+		GlMaterialPtr layerMaterial;
 		uint64_t frameIndex;
 	};
 
@@ -70,6 +76,8 @@ public:
 	void saveCurrentPresetConfig();
 
 	void reloadAllCompositorShaders();
+	std::vector<std::string> getAllCompositorShaderNames() const;
+	MulticastDelegate<void()> OnCompositorShadersReloaded;
 
 	bool start();
 	bool getIsRunning() const { return m_bIsRunning; }
@@ -89,9 +97,10 @@ public:
 	inline const NamedValueTable<glm::vec3>& getFloat3Sources() const { return m_float3Sources; }
 	inline const NamedValueTable<glm::vec4>& getFloat4Sources() const { return m_float4Sources; }
 	inline const NamedValueTable<glm::mat4>& getMat4Sources() const { return m_mat4Sources; }
-	inline const NamedValueTable<GlTexture*>& getColorTextureSources() const { return m_colorTextureSources; }
+	inline const NamedValueTable<GlTexturePtr>& getColorTextureSources() const { return m_colorTextureSources; }
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 
+	bool setLayerMaterialName(const int layerIndex, const std::string& materialName);
 	void setIsLayerVerticalFlipped(const int layerIndex, bool bIsFlipped);
 
 	void setFloatMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
@@ -102,9 +111,9 @@ public:
 	void setColorTextureMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 
 	inline const std::vector<Layer>& getLayers() const { return m_layers; }
-	inline const GlTexture* getCompositedFrameTexture() const { return m_compositedFrame; }
+	inline const GlTexturePtr getCompositedFrameTexture() const { return m_compositedFrame; }
 	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
-	inline GlTexture* getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
+	inline GlTexturePtr getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
 	void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
 
 	MulticastDelegate<void()> OnNewFrameComposited;
@@ -179,11 +188,11 @@ private:
 	unsigned int m_stencilQuadVAO = 0, m_stencilQuadVBO = 0;
 	unsigned int m_stencilBoxVAO = 0, m_stencilBoxVBO = 0;
 	bool m_bGenerateBGRVideoTexture = false;
-	GlProgram* m_rgbFrameShader = nullptr;
-	GlProgram* m_rgbToBgrFrameShader = nullptr; // Keep
-	GlProgram* m_stencilShader = nullptr; // Keep
-	GlTexture* m_compositedFrame = nullptr;
-	GlTexture* m_bgrVideoFrame = nullptr; // BGR, flipped video frame
+	GlProgramPtr m_rgbFrameShader = nullptr;
+	GlProgramPtr m_rgbToBgrFrameShader = nullptr; // Keep
+	GlProgramPtr m_stencilShader = nullptr; // Keep
+	GlTexturePtr m_compositedFrame = nullptr;
+	GlTexturePtr m_bgrVideoFrame = nullptr; // BGR, flipped video frame
 
 	// List of compositor presets from resources/config/compositor
 	NamedValueTable<CompositorPreset*> m_compositorPresets;
@@ -194,8 +203,8 @@ private:
 	NamedValueTable<glm::vec3> m_float3Sources;
 	NamedValueTable<glm::vec4> m_float4Sources;
 	NamedValueTable<glm::mat4> m_mat4Sources;
-	NamedValueTable<GlTexture*> m_colorTextureSources;
-	NamedValueTable<GlMaterial*> m_materialSources;
+	NamedValueTable<GlTexturePtr> m_colorTextureSources;
+	NamedValueTable<GlMaterialPtr> m_materialSources;
 	NamedValueTable<ClientSource*> m_clientSources;
 
 	bool m_bIsRunning= false;

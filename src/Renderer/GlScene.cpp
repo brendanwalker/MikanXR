@@ -25,7 +25,7 @@ GlScene::~GlScene()
 
 void GlScene::addInstance(const GlStaticMeshInstance* instance)
 {
-	const GlMaterial *material= instance->getMaterialInstanceConst()->getMaterial();
+	GlMaterialConstPtr material= instance->getMaterialInstanceConst()->getMaterial();
 
 	if (m_drawCalls.find(material) == m_drawCalls.end())
 	{
@@ -37,7 +37,7 @@ void GlScene::addInstance(const GlStaticMeshInstance* instance)
 
 void GlScene::removeInstance(const GlStaticMeshInstance* instance)
 {
-	const GlMaterial* material = instance->getMaterialInstance()->getMaterial();
+	GlMaterialConstPtr material = instance->getMaterialInstance()->getMaterial();
 
 	auto drawCallIter= m_drawCalls.find(material);
 	if (drawCallIter != m_drawCalls.end())
@@ -67,7 +67,7 @@ void GlScene::render() const
 
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
 	{
-		const GlMaterial* material = drawCallIter->first;
+		GlMaterialConstPtr material = drawCallIter->first;
 		const GlDrawCall* drawCall = drawCallIter->second;
 
 		// Bind material program (unbound when materialBinding goes out of scope)
@@ -82,10 +82,10 @@ void GlScene::render() const
 
 				if (meshInstance->getVisible())
 				{
-					GlMaterialInstance* materialInstance= meshInstance->getMaterialInstance();
+					GlMaterialInstancePtr materialInstance= meshInstance->getMaterialInstance();
 
 					// Bind material instance parameters (unbound when materialInstanceBinding goes out of scope)
-					auto materialInstanceBinding=  materialInstance->bindMaterialInstance(&materialBinding);
+					auto materialInstanceBinding=  materialInstance->bindMaterialInstance(materialBinding);
 					if (materialInstanceBinding)
 					{
 						// Set the per-mesh-instance ModelViewProjection matrix transform on the shader program

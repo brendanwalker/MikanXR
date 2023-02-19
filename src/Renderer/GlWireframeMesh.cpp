@@ -161,7 +161,7 @@ void drawTransformedWireframeMesh(
 	Renderer* renderer = Renderer::getInstance();
 	assert(renderer->getIsRenderingStage());
 
-	GlProgram* shader= wireframeMesh->getDefaultWireframeShader();
+	GlProgramPtr shader= wireframeMesh->getDefaultWireframeShader();
 
 	shader->bindProgram();
 

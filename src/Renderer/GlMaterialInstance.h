@@ -1,10 +1,12 @@
 #pragma once
 
-#include "GlProgram.h"
+#include "GlProgramConstants.h"
+#include "GlScopedMaterialBinding.h"
 #include "NamedValueTable.h"
 
 #include <string>
 #include <map>
+#include <memory>
 
 #include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
@@ -12,7 +14,10 @@
 #include "glm/ext/matrix_float4x4.hpp"
 
 class GlTexture;
-typedef GlTexture* GlTexturePtr;
+typedef std::shared_ptr<GlTexture> GlTexturePtr;
+
+class GlMaterial;
+typedef std::shared_ptr<const GlMaterial> GlMaterialConstPtr;
 
 class GlScopedMaterialInstanceBinding
 {
@@ -33,9 +38,9 @@ class GlMaterialInstance
 {
 public:
 	GlMaterialInstance();
-	GlMaterialInstance(const class GlMaterial* material);
+	GlMaterialInstance(GlMaterialConstPtr material);
 
-	const class GlMaterial* getMaterial() const { return m_parentMaterial; }
+	GlMaterialConstPtr getMaterial() const { return m_parentMaterial; }
 
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
@@ -67,14 +72,14 @@ public:
 	bool setTextureByUniformName(const std::string uniformName, GlTexturePtr texture);
 	bool getTextureByUniformName(const std::string uniformName, GlTexturePtr& outTexture) const;
 
-	GlScopedMaterialInstanceBinding bindMaterialInstance(const class GlScopedMaterialBinding *materialBinding);
+	GlScopedMaterialInstanceBinding bindMaterialInstance(const GlScopedMaterialBinding& materialBinding);
 
 protected: 
 	friend class GlScopedMaterialInstanceBinding;
 	void unbindMaterialInstance();
 
 private:
-	const class GlMaterial* m_parentMaterial = nullptr;
+	GlMaterialConstPtr m_parentMaterial = nullptr;
 	bool m_bIsMaterialInstanceBound = false;
 
 	// Material Override Parameters
@@ -83,5 +88,5 @@ private:
 	NamedValueTable<glm::vec3> m_float3Sources;
 	NamedValueTable<glm::vec4> m_float4Sources;
 	NamedValueTable<glm::mat4> m_mat4Sources;
-	NamedValueTable<GlTexture*> m_textureSources;
+	NamedValueTable<GlTexturePtr> m_textureSources;
 };

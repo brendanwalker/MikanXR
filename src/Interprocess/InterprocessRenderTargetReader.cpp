@@ -141,7 +141,7 @@ public:
 
 		if (bNewFrame)
 		{
-			GlTexture* colorTexture= m_parentAccessor->getColorTexture();
+			GlTexturePtr colorTexture= m_parentAccessor->getColorTexture();
 			if (colorTexture != nullptr)
 			{
 				EASY_BLOCK("copy to color texture");
@@ -149,7 +149,7 @@ public:
 				colorTexture->copyBufferIntoTexture(m_localMemory.color_buffer);
 			}
 
-			GlTexture* depthTexture = m_parentAccessor->getDepthTexture();
+			GlTexturePtr depthTexture = m_parentAccessor->getDepthTexture();
 			if (depthTexture != nullptr)
 			{
 				EASY_BLOCK("copy to depth texture");
@@ -230,7 +230,7 @@ public:
 	{
 		bool bIsNewFrame= false;
 
-		GlTexture* colorTexture = m_parentAccessor->getColorTexture();
+		GlTexturePtr colorTexture = m_parentAccessor->getColorTexture();
 		if (colorTexture != nullptr)
 		{
 			EASY_BLOCK("receive texture");

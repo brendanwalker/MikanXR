@@ -27,6 +27,9 @@ public:
 protected:
 	bool startRecording();
 	void stopRecording();
+
+	// Compositor Events
+	void onCompositorShadersReloaded();
 	void onNewFrameComposited();
 
 	// Main Compositor UI Events
@@ -41,7 +44,7 @@ protected:
 
 	// Layers UI Events
 	void onCompositorConfigChangedEvent(const std::string& configName);
-	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
+	void onMaterialNameChangeEvent(const int layerIndex, const std::string& materialName);
 	void onVerticalFlipChangedEvent(const int layerIndex, bool bIsFlipped);
 	void onFloatMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onFloat2MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
@@ -49,6 +52,7 @@ protected:
 	void onFloat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onMat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
 	// Quad Stencils UI Events
 	void onAddQuadStencilEvent();

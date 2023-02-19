@@ -2,10 +2,15 @@
 
 #include "GlVertexDefinition.h"
 #include "stdint.h"
+
+#include <memory>
 #include <string>
 
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
+
+class GlProgram;
+typedef std::shared_ptr<GlProgram> GlProgramPtr;
 
 class GlWireframeMesh
 {
@@ -20,7 +25,7 @@ public:
 		bool bOwnsVertexData);
 	virtual ~GlWireframeMesh();
 
-	inline class GlProgram* getDefaultWireframeShader() const { return m_program; }
+	inline GlProgramPtr getDefaultWireframeShader() const { return m_program; }
 
 	void drawElements() const;
 	bool createBuffers();
@@ -43,7 +48,7 @@ protected:
 	uint32_t m_glVertArray = 0; 
 	uint32_t m_glVertBuffer = 0;
 	uint32_t m_glIndexBuffer = 0;
-	class GlProgram* m_program = nullptr;
+	GlProgramPtr m_program = nullptr;
 };
 
 void drawTransformedWireframeMesh(

@@ -76,11 +76,10 @@ bool SteamVRRenderComponent::initComponent()
 					m_renderModelName.c_str());
 			}
 
-			m_glMeshInstance =
-				new GlStaticMeshInstance(
-					szInstanceName,
-					modelResource->getTriangulatedMesh(),
-					modelResource->getMaterial());
+			m_glMeshInstance = std::make_shared<GlStaticMeshInstance>(
+				szInstanceName,
+				modelResource->getTriangulatedMesh(),
+				modelResource->getMaterial());
 
 			return true;
 		}
@@ -145,8 +144,6 @@ void SteamVRRenderComponent::disposeComponent()
 	if (m_glMeshInstance != nullptr)
 	{
 		m_glMeshInstance->removeFromBoundScene();
-
-		delete m_glMeshInstance;
 		m_glMeshInstance= nullptr;
 	}
 }

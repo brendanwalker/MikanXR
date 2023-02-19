@@ -38,6 +38,7 @@ public:
 	SinglecastDelegate<void(const Rml::String& configName)> OnCompositorConfigChangedEvent;
 	SinglecastDelegate<void(const Rml::String& clientSourceName)> OnScreenshotClientSourceEvent;
 
+	SinglecastDelegate<void(const int layerIndex, const Rml::String& materialName)> OnMaterialNameChangeEvent;
 	SinglecastDelegate<void(const int layerIndex, bool bFlipFlag)> OnVerticalFlipChangeEvent;
 
 	using MappingChangedDelegate = SinglecastDelegate<void(const int layerIndex, const Rml::String& uniformName, const Rml::String& dataSourceName)>;
@@ -58,9 +59,9 @@ public:
 private:
 	Rml::String m_currentConfigurationName;
 	Rml::Vector<Rml::String> m_configurationNames;
+	Rml::Vector<Rml::String> m_materialNames;
 	Rml::Vector<RmlModel_CompositorClient> m_compositorClients;
 	Rml::Vector<RmlModel_CompositorLayer> m_compositorLayers;
-
 	Rml::Vector<Rml::String> m_floatSources;
 	Rml::Vector<Rml::String> m_float2Sources;
 	Rml::Vector<Rml::String> m_float3Sources;

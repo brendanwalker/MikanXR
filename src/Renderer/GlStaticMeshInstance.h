@@ -1,7 +1,19 @@
 #pragma once
 
+#include <memory>
 #include <string>
+
 #include "glm/ext/matrix_float4x4.hpp"
+
+class GlMaterial;
+typedef std::shared_ptr<const GlMaterial> GlMaterialConstPtr;
+
+class GlMaterialInstance;
+typedef std::shared_ptr<GlMaterialInstance> GlMaterialInstancePtr;
+typedef std::shared_ptr<const GlMaterialInstance> GlMaterialInstanceConstPtr;
+
+class GlTriangulatedMesh;
+typedef std::shared_ptr<const GlTriangulatedMesh> GlTriangulatedMeshConstPtr;
 
 class GlStaticMeshInstance
 {
@@ -9,8 +21,8 @@ public:
 	GlStaticMeshInstance() = default;
 	GlStaticMeshInstance(
 		const std::string& name, 
-		const class GlTriangulatedMesh* mesh, 
-		const class GlMaterial* material);
+		GlTriangulatedMeshConstPtr mesh, 
+		GlMaterialConstPtr material);
 	virtual ~GlStaticMeshInstance();
 
 	const std::string& getName() const { return m_name; }
@@ -24,9 +36,9 @@ public:
 	inline const glm::mat4& getModelMatrix() const { return m_modelMatrix; }
 	inline void setModelMatrix(const glm::mat4& mat) { m_modelMatrix = mat; }
 
-	inline const class GlMaterialInstance* getMaterialInstanceConst() const { return m_materialInstance; }
-	inline class GlMaterialInstance* getMaterialInstance() const { return m_materialInstance; }
-	inline const class GlTriangulatedMesh* getMesh() const { return m_mesh; }
+	inline const GlMaterialInstanceConstPtr getMaterialInstanceConst() const { return m_materialInstance; }
+	inline GlMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; }
+	inline GlTriangulatedMeshConstPtr getMesh() const { return m_mesh; }
 
 	void render() const;
 
@@ -34,7 +46,7 @@ private:
 	std::string m_name;
 	bool m_visible= false;
 	glm::mat4 m_modelMatrix;
-	class GlMaterialInstance* m_materialInstance= nullptr;
-	const class GlTriangulatedMesh* m_mesh= nullptr;
+	GlMaterialInstancePtr m_materialInstance= nullptr;
+	GlTriangulatedMeshConstPtr m_mesh= nullptr;
 	class GlScene* m_boundScene= nullptr;
 };

@@ -1,7 +1,13 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <map>
+
+//-- typedefs -----
+class GlProgramCode;
+class GlProgram;
+typedef std::shared_ptr<GlProgram> GlProgramPtr;
 
 class GlShaderCache
 {
@@ -14,10 +20,10 @@ public:
 	bool startup();
 	void shutdown();
 
-	class GlProgram* fetchCompiledGlProgram(const class GlProgramCode* code);
+	GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code);
 
 private:
 	static GlShaderCache* m_instance;
 
-	std::map<size_t, class GlProgram*> m_compileProgramCache;
+	std::map<std::string, GlProgramPtr> m_compileProgramCache;
 };

@@ -1,9 +1,11 @@
 #pragma once
 
-#include "GlProgram.h"
 #include "NamedValueTable.h"
+#include "GlProgramConstants.h"
+#include "GlScopedMaterialBinding.h"
 
 #include <string>
+#include <memory>
 #include <map>
 
 #include "glm/ext/vector_float2.hpp"
@@ -12,32 +14,21 @@
 #include "glm/ext/matrix_float4x4.hpp"
 
 class GlTexture;
-typedef GlTexture* GlTexturePtr;
+typedef std::shared_ptr<GlTexture> GlTexturePtr;
 
-class GlScopedMaterialBinding
-{
-public: 
-	GlScopedMaterialBinding() : m_boundMaterial(nullptr) {}
-	GlScopedMaterialBinding(const class GlMaterial* material) : m_boundMaterial(material) {}
-	virtual ~GlScopedMaterialBinding();
-
-	inline const GlMaterial* getBoundMaterial() const { return m_boundMaterial; }
-	inline operator bool() const { return m_boundMaterial != nullptr; }
-
-private:
-	const class GlMaterial* m_boundMaterial= nullptr;	
-};
+class GlProgram;
+typedef std::shared_ptr<GlProgram> GlProgramPtr;
 
 class GlMaterial
 {
 public:
 	GlMaterial() = default;
-	GlMaterial(const std::string& name, class GlProgram* program);
+	GlMaterial(const std::string& name, GlProgramPtr program);
 
 	const std::string& getName() const { return m_name; }
 
-	void setProgram(class GlProgram* program) { m_program= program; }
-	class GlProgram* getProgram() const { return m_program; }
+	void setProgram(GlProgramPtr program);
+	GlProgramPtr getProgram() const;
 
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
@@ -77,7 +68,7 @@ protected:
 
 private:
 	std::string m_name;
-	class GlProgram* m_program = nullptr;
+	GlProgramPtr m_program = nullptr;
 
 	// Program Parameters
 	NamedValueTable<float> m_floatSources;
@@ -85,5 +76,5 @@ private:
 	NamedValueTable<glm::vec3> m_float3Sources;
 	NamedValueTable<glm::vec4> m_float4Sources;
 	NamedValueTable<glm::mat4> m_mat4Sources;
-	NamedValueTable<GlTexture*> m_textureSources;
+	NamedValueTable<GlTexturePtr> m_textureSources;
 };

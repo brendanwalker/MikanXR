@@ -77,6 +77,7 @@ void AppStage_Compositor::enter()
 
 	m_frameCompositor= GlFrameCompositor::getInstance();
 	m_frameCompositor->start();
+	m_frameCompositor->OnCompositorShadersReloaded += MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
 	// Apply video source camera intrinsics to the camera
 	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
@@ -118,7 +119,7 @@ void AppStage_Compositor::enter()
 		// Init Layers UI
 		m_compositorLayersModel->init(context, m_frameCompositor);
 		m_compositorLayersModel->OnCompositorConfigChangedEvent = MakeDelegate(this, &AppStage_Compositor::onCompositorConfigChangedEvent);
-		m_compositorLayersModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
+		m_compositorLayersModel->OnMaterialNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onMaterialNameChangeEvent);
 		m_compositorLayersModel->OnVerticalFlipChangeEvent = MakeDelegate(this, &AppStage_Compositor::onVerticalFlipChangedEvent);
 		m_compositorLayersModel->OnFloatMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloatMappingChangedEvent);
 		m_compositorLayersModel->OnFloat2MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat2MappingChangedEvent);
@@ -126,6 +127,7 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->OnFloat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat4MappingChangedEvent);
 		m_compositorLayersModel->OnMat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onMat4MappingChangedEvent);
 		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
+		m_compositorLayersModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
 		m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
 		m_compositiorLayersView->Show();
 
@@ -172,6 +174,8 @@ void AppStage_Compositor::enter()
 
 void AppStage_Compositor::exit()
 {
+		m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
+
 	m_compositorLayersModel->dispose();
 	m_compositorBoxesModel->dispose();
 	m_compositorModelsModel->dispose();
@@ -209,7 +213,7 @@ bool AppStage_Compositor::startRecording()
 	if (!videoSource)
 		return false;
 
-	const GlTexture* compositorTexture= m_frameCompositor->getBGRVideoFrameTexture();
+	GlTexturePtr compositorTexture= m_frameCompositor->getBGRVideoFrameTexture();
 	if (compositorTexture == nullptr)
 		return false;
 
@@ -267,17 +271,22 @@ void AppStage_Compositor::stopRecording()
 	m_compositorRecordingModel->setIsRecording(false);
 }
 
+void AppStage_Compositor::onCompositorShadersReloaded()
+{
+	m_compositorLayersModel->rebuild(m_frameCompositor);
+}
+
 void AppStage_Compositor::onNewFrameComposited()
 {
 	EASY_FUNCTION();
 
 	if (m_compositorRecordingModel->getIsRecording())
 	{		
-		GlTexture* bgrTexture = m_frameCompositor->getBGRVideoFrameTexture();
+		GlTexturePtr bgrTexture = m_frameCompositor->getBGRVideoFrameTexture();
 
 		if (bgrTexture != nullptr && m_videoWriter != nullptr && m_videoWriter->getIsOpened())
 		{
-			m_videoWriter->write(bgrTexture);
+			m_videoWriter->write(bgrTexture.get());
 		}
 	}
 }
@@ -328,6 +337,16 @@ void AppStage_Compositor::onToggleModelStencilsWindowEvent()
 void AppStage_Compositor::onCompositorConfigChangedEvent(const std::string& configName)
 {
 	if (m_frameCompositor->applyLayerPreset(configName))
+	{
+		m_compositorLayersModel->rebuild(m_frameCompositor);
+	}
+}
+
+void AppStage_Compositor::onMaterialNameChangeEvent(
+	const int layerIndex, 
+	const std::string& materialName)
+{
+	if (m_frameCompositor->setLayerMaterialName(layerIndex, materialName))
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
@@ -397,7 +416,7 @@ void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clien
 	{		
 		if (clientSource->colorTexture != nullptr)
 		{
-			saveTextureToPNG(clientSource->colorTexture, "layerScreenshot.png");
+			saveTextureToPNG(clientSource->colorTexture.get(), "layerScreenshot.png");
 		}
 	}
 }

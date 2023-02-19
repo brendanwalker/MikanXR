@@ -21,36 +21,40 @@ bool GlShaderCache::startup()
 
 void GlShaderCache::shutdown()
 {
-	for (auto it = m_compileProgramCache.begin(); it != m_compileProgramCache.end(); ++it)
-	{
-		it->second->deleteProgram();
-		delete it->second;
-	}
 	m_compileProgramCache.clear();
-
 	m_instance = nullptr;
 }
 
-GlProgram* GlShaderCache::fetchCompiledGlProgram(
+GlProgramPtr GlShaderCache::fetchCompiledGlProgram(
 	const GlProgramCode* code)
 {
-	if (m_compileProgramCache.find(code->getCodeHash()) != m_compileProgramCache.end())
+	auto it = m_compileProgramCache.find(code->getProgramName());
+	if (it != m_compileProgramCache.end())
 	{
-		return m_compileProgramCache[code->getCodeHash()];
-	}
-	else
-	{
-		GlProgram* program = new GlProgram(*code);
+		GlProgramPtr compiledProgram= it->second;
 
-		if (program->createProgram())
+		if (compiledProgram->getProgramCode().getCodeHash() == code->getCodeHash())
 		{
-			m_compileProgramCache[code->getCodeHash()] = program;
-			return program;
+			// Found a compiled version of the code
+			return compiledProgram;
 		}
 		else
 		{
-			delete program;
-			return nullptr;
+			// Old compiled program is stale so delete it
+			m_compileProgramCache.erase(it);
 		}
+	}
+
+	// (Re)compile program and add it to the cache
+	GlProgramPtr program = std::make_shared<GlProgram>(*code);
+	if (program->createProgram())
+	{
+		m_compileProgramCache[code->getProgramName()] = program;
+		return program;
+	}
+	else
+	{
+		// Clean up the program if it failed to compile
+		return nullptr;
 	}
 }

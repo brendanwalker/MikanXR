@@ -131,8 +131,8 @@ namespace RmlGfx {
 	};
 
 	struct ShadersData {
-		GlProgram* program_color;
-		GlProgram* program_texture;
+		GlProgramPtr program_color;
+		GlProgramPtr program_texture;
 	};
 
 	const GlVertexDefinition* GetVertexDefinition()
@@ -539,7 +539,7 @@ Rml::CompiledGeometryHandle GlRmlUiRender::CompileGeometry(
 void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation)
 {
 	RmlGfx::CompiledGeometryData* geometry = (RmlGfx::CompiledGeometryData*)handle;
-	GlProgram* program= nullptr;
+	GlProgramPtr program= nullptr;
 
 	if (geometry->texture)
 	{
@@ -730,7 +730,7 @@ void GlRmlUiRender::SubmitTransformUniform(ProgramId program_id)
 {
 	if ((int)program_id & (int)transform_dirty_state)
 	{
-		GlProgram* program= nullptr;
+		GlProgramPtr program= nullptr;
 
 		switch (program_id)
 		{

@@ -8,7 +8,7 @@ GlMaterialInstance::GlMaterialInstance()
 {
 }
 
-GlMaterialInstance::GlMaterialInstance(const GlMaterial* material)
+GlMaterialInstance::GlMaterialInstance(GlMaterialConstPtr material)
 	: m_parentMaterial(material)
 {
 }
@@ -362,17 +362,17 @@ bool GlMaterialInstance::getTextureByUniformName(const std::string uniformName, 
 	return false;
 }
 
-GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(const GlScopedMaterialBinding *materialBinding)
+GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(const GlScopedMaterialBinding& materialBinding)
 {
 	if (m_parentMaterial == nullptr)
 		return GlScopedMaterialInstanceBinding();
 
-	if (materialBinding->getBoundMaterial() != m_parentMaterial)
+	if (materialBinding.getBoundMaterial() != m_parentMaterial.get())
 		return GlScopedMaterialInstanceBinding();
 
 	if (!m_bIsMaterialInstanceBound)
 	{
-		GlProgram* program= m_parentMaterial->getProgram();
+		GlProgramPtr program= m_parentMaterial->getProgram();
 
 		// Apply float overrides
 		for (auto it = m_floatSources.getMap().begin(); it != m_floatSources.getMap().end(); ++it)

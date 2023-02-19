@@ -5,6 +5,12 @@
 
 #include "glm/ext/vector_float4.hpp"
 
+class GlMaterial;
+typedef std::shared_ptr<const GlMaterial> GlMaterialConstPtr;
+
+class GlMaterialInstance;
+typedef std::shared_ptr<GlMaterialInstance> GlMaterialInstancePtr;
+
 struct GlDrawCall
 {
 	std::vector<const class GlStaticMeshInstance*> instances;
@@ -28,5 +34,5 @@ public:
 	void render() const;
 
 private:
-	class std::map<const class GlMaterial*, GlDrawCall*> m_drawCalls;
+	class std::map<GlMaterialConstPtr, GlDrawCall*> m_drawCalls;
 };

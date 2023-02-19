@@ -1,5 +1,6 @@
 #include "GlCommon.h"
 #include "GlProgram.h"
+#include "GlProgramConstants.h"
 #include "GlTexture.h"
 #include "Logger.h"
 
@@ -11,57 +12,12 @@
 #include <unordered_map>
 #include <assert.h>
 
-const std::string g_UniformSemanticName[(int)eUniformSemantic::COUNT] = {
-	"transformMatrix",
-	"modelViewProjectionMatrix",
-	"diffuseColorRGBA",
-	"diffuseColorRGB",
-	"screenPosition",
-	"floatConstant0",
-	"floatConstant1",
-	"floatConstant2",
-	"floatConstant3",
-	"texture0",
-	"texture1",
-	"texture2",
-	"texture3",
-	"texture4",
-	"texture5",
-	"texture6",
-	"texture7",
-	"texture8",
-	"texture9",
-	"texture10",
-	"texture11",
-	"texture12",
-	"texture13",
-	"texture14",
-	"texture15",
-	"texture16",
-	"texture17",
-	"texture18",
-	"texture19",
-	"texture20",
-	"texture21",
-	"texture22",
-	"texture23",
-	"texture24",
-	"texture25",
-	"texture26",
-	"texture27",
-	"texture28",
-	"texture29",
-	"texture30",
-	"texture31",
-};
-const std::string* k_UniformSemanticName = g_UniformSemanticName;
-
 // -- GlProgramCode -----
 GlProgramCode::GlProgramCode(
 	const std::string& filename,
 	const std::string& vertexCode, 
 	const std::string& fragmentCode)
-	: m_filename(filename)
+	: m_programName(filename)
 	, m_vertexShaderCode(vertexCode)
 	, m_framementShaderCode(fragmentCode)
 {
@@ -78,9 +34,9 @@ bool GlProgramCode::loadFromConfigData(
 {
 	bool bSuccess= true;
 
-	m_filename = shaderConfigPath;
+	m_programName = shaderConfigPath;
 	
-	std::filesystem::path shaderFolderPath = m_filename;
+	std::filesystem::path shaderFolderPath = m_programName;
 	shaderFolderPath.remove_filename();
 
 	try
@@ -96,7 +52,7 @@ bool GlProgramCode::loadFromConfigData(
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
-			<< m_filename
+			<< m_programName
 			<< " - unable to load vertex shader file!";
 		bSuccess= false;
 	}
@@ -114,7 +70,7 @@ bool GlProgramCode::loadFromConfigData(
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
-			<< m_filename
+			<< m_programName
 			<< " - unable to load fragment shader file!";
 		bSuccess = false;
 	}
@@ -124,7 +80,7 @@ bool GlProgramCode::loadFromConfigData(
 		eUniformSemantic semantic= eUniformSemantic::INVALID;
 		for (int enumIntValue = 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
 		{
-			if (g_UniformSemanticName[enumIntValue] == semanticString)
+			if (k_UniformSemanticName[enumIntValue] == semanticString)
 			{
 				semantic= (eUniformSemantic)enumIntValue;
 				break;
@@ -405,7 +361,7 @@ bool GlProgram::createProgram()
 		if (vShaderCompiled != 1)
 		{
 			MIKAN_LOG_ERROR("GlProgram::createProgram")
-				<< m_code.getFilename()
+				<< m_code.getProgramName()
 				<< " - Unable to compile vertex shader "
 				<< nSceneVertexShader;
 
@@ -435,7 +391,7 @@ bool GlProgram::createProgram()
 		if (fShaderCompiled != 1)
 		{
 			MIKAN_LOG_ERROR("GlProgram::CreateGLResources")
-				<< m_code.getFilename()
+				<< m_code.getProgramName()
 				<< " - Unable to compile fragment shader "
 				<< nSceneFragmentShader;
 
@@ -462,7 +418,7 @@ bool GlProgram::createProgram()
 		if (programSuccess != 1)
 		{
 			MIKAN_LOG_ERROR("GlProgram::CreateGLResources")
-				<< m_code.getFilename()
+				<< m_code.getProgramName()
 				<< " - Error linking program "
 				<< m_programID;
 
@@ -491,7 +447,7 @@ bool GlProgram::createProgram()
 			else
 			{
 				MIKAN_LOG_WARNING("GlProgram::CreateGLResources")
-					<< m_code.getFilename()
+					<< m_code.getProgramName()
 					<< " - Unable to find " << codeUniform.name << " uniform!";
 			}
 		}

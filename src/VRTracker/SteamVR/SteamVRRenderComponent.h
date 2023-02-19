@@ -2,6 +2,8 @@
 
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
+
+#include <memory>
 #include <string>
 
 namespace vr
@@ -11,6 +13,9 @@ namespace vr
 	struct RenderModel_ComponentState_t;
 	struct RenderModel_ControllerMode_State_t;
 };
+
+class GlStaticMeshInstance;
+typedef std::shared_ptr<GlStaticMeshInstance> GlStaticMeshInstancePtr;
 
 class SteamVRRenderComponent
 {
@@ -34,7 +39,7 @@ public:
 	inline const std::string& getComponentName() const { return m_componentName; }
 	inline const std::string& getRenderModelName() const { return m_renderModelName; }
 	inline bool getIsRenderable() const { return m_bIsRenderable; }
-	inline class GlStaticMeshInstance* getStaticMeshInstance() const { return m_glMeshInstance; }
+	inline GlStaticMeshInstancePtr getStaticMeshInstance() const { return m_glMeshInstance; }
 	inline glm::mat4 getRenderPoseMatrix() const { return m_renderPoseMatrix; }
 	inline glm::mat4 getComponentPoseMatrix() const { return m_componentPoseMatrix; }
 	void setDiffuseColor(const glm::vec4& diffuseColor);
@@ -44,7 +49,7 @@ private:
 	std::string m_componentName;
 	std::string m_renderModelName;
 	bool m_bIsRenderable;
-	class GlStaticMeshInstance* m_glMeshInstance;
+	GlStaticMeshInstancePtr m_glMeshInstance;
 	vr::VRControllerState_t* m_controllerState;
 	vr::RenderModel_ComponentState_t* m_componentState;
 	vr::RenderModel_ControllerMode_State_t* m_componentModeState;

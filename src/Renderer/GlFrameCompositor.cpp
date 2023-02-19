@@ -115,27 +115,14 @@ void GlFrameCompositor::shutdown()
 	{
 		GlFrameCompositor::ClientSource* clientSource = iter->second;
 
-		if (clientSource->colorTexture != nullptr)
-		{
-			clientSource->colorTexture->disposeTexture();
-			delete clientSource->colorTexture;
-		}
-
-		if (clientSource->depthTexture != nullptr)
-		{
-			clientSource->depthTexture->disposeTexture();
-			delete clientSource->depthTexture;
-		}
+		clientSource->colorTexture = nullptr;
+		clientSource->depthTexture = nullptr;
 
 		delete clientSource;
 	}
 	m_clientSources.clear();
 
 	// Clean up any allocated materials
-	for (auto iter = m_materialSources.getMap().begin(); iter != m_materialSources.getMap().end(); iter++)
-	{
-		delete iter->second;
-	}
 	m_materialSources.clear();
 }
 
@@ -227,7 +214,7 @@ void GlFrameCompositor::rebuildLayersFromConfig()
 		for (int layerIndex = 0; layerIndex < (int)preset->layers.size(); ++layerIndex)
 		{
 			const CompositorLayerConfig& layerConfig = preset->layers[layerIndex];
-			GlMaterial* material = m_materialSources.getValueOrDefault(layerConfig.shaderConfig.materialName, nullptr);
+			GlMaterialPtr material = m_materialSources.getValueOrDefault(layerConfig.shaderConfig.materialName, nullptr);
 
 			const Layer layer = {layerIndex, material, -1};
 			m_layers.push_back(layer);
@@ -293,8 +280,8 @@ void GlFrameCompositor::reloadAllCompositorShaders()
 				GlProgramCode programCode;
 				if (programConfig.loadGlProgramCode(&programCode))
 				{
-					GlProgram* program= GlShaderCache::getInstance()->fetchCompiledGlProgram(&programCode);
-					GlMaterial* material= m_materialSources.getValueOrDefault(programConfig.materialName, nullptr);
+					GlProgramPtr program= GlShaderCache::getInstance()->fetchCompiledGlProgram(&programCode);
+					GlMaterialPtr material= m_materialSources.getValueOrDefault(programConfig.materialName, nullptr);
 
 					if (material != nullptr)
 					{
@@ -302,7 +289,7 @@ void GlFrameCompositor::reloadAllCompositorShaders()
 					}
 					else
 					{
-						material = new GlMaterial(programConfig.materialName, program);
+						material = std::make_shared<GlMaterial>(programConfig.materialName, program);
 						m_materialSources.setValue(programConfig.materialName, material);
 					}
 				}
@@ -317,6 +304,22 @@ void GlFrameCompositor::reloadAllCompositorShaders()
 			}
 		}
 	}
+
+	if (OnCompositorShadersReloaded)
+	{
+		OnCompositorShadersReloaded();
+	}
+}
+
+std::vector<std::string> GlFrameCompositor::getAllCompositorShaderNames() const
+{
+	std::vector<std::string> shaderNames;
+	for (auto it = m_materialSources.getMap().begin(); it != m_materialSources.getMap().end(); ++it)
+	{
+		shaderNames.push_back(it->first);
+	}
+
+	return shaderNames;
 }
 
 bool GlFrameCompositor::start()
@@ -493,6 +496,29 @@ void GlFrameCompositor::update()
 		MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Send frame " << m_pendingCompositeFrameIndex;
 		MikanServer::getInstance()->publishVideoSourceNewFrameEvent(newFrameEvent);
 	}
+}
+
+bool GlFrameCompositor::setLayerMaterialName(
+	const int layerIndex, 
+	const std::string& materialName)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig != nullptr &&
+		layerConfig->shaderConfig.materialName != materialName && 
+		m_materialSources.hasValue(materialName))
+	{
+		// Update which material is being used by the given layer in the layer config
+		layerConfig->shaderConfig.materialName = materialName;
+
+		// Save the layer config
+		saveCurrentPresetConfig();
+
+		// Rebuild the runtime layer list to update the runtime layer material assignment
+		rebuildLayersFromConfig();
+		return true;
+	}
+
+	return false;
 }
 
 void GlFrameCompositor::setIsLayerVerticalFlipped(
@@ -780,7 +806,7 @@ bool GlFrameCompositor::applyLayerMaterialFloatValues(
 {
 	bool bSuccess = true;
 
-	GlMaterial* material = layer.layerMaterial;
+	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.floatSourceMap.begin();
 		 it != layerConfig.shaderConfig.floatSourceMap.end();
 		 it++)
@@ -808,7 +834,7 @@ bool GlFrameCompositor::applyLayerMaterialFloat2Values(
 {
 	bool bSuccess = true;
 
-	GlMaterial* material = layer.layerMaterial;
+	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.float2SourceMap.begin();
 		 it != layerConfig.shaderConfig.float2SourceMap.end();
 		 it++)
@@ -836,7 +862,7 @@ bool GlFrameCompositor::applyLayerMaterialFloat3Values(
 {
 	bool bSuccess = true;
 
-	GlMaterial* material = layer.layerMaterial;
+	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.float3SourceMap.begin();
 		 it != layerConfig.shaderConfig.float3SourceMap.end();
 		 it++)
@@ -864,7 +890,7 @@ bool GlFrameCompositor::applyLayerMaterialFloat4Values(
 {
 	bool bSuccess = true;
 
-	GlMaterial* material = layer.layerMaterial;
+	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.float4SourceMap.begin();
 		 it != layerConfig.shaderConfig.float4SourceMap.end();
 		 it++)
@@ -892,7 +918,7 @@ bool GlFrameCompositor::applyLayerMaterialMat4Values(
 {
 	bool bSuccess = true;
 
-	GlMaterial* material = layer.layerMaterial;
+	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.mat4SourceMap.begin();
 		 it != layerConfig.shaderConfig.mat4SourceMap.end();
 		 it++)
@@ -920,7 +946,7 @@ bool GlFrameCompositor::applyLayerMaterialTextures(
 {
 	bool bSuccess= true;
 
-	GlMaterial* material= layer.layerMaterial;
+	GlMaterialPtr material= layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.colorTextureSourceMap.begin();
 		 it != layerConfig.shaderConfig.colorTextureSourceMap.end();
 		 it++)
@@ -928,7 +954,7 @@ bool GlFrameCompositor::applyLayerMaterialTextures(
 		const std::string& uniformName= it->first;
 		const std::string& dataSourceName= it->second;
 
-		GlTexture* dataSourceTexture;
+		GlTexturePtr dataSourceTexture;
 		if (m_colorTextureSources.tryGetValue(dataSourceName, dataSourceTexture) && dataSourceTexture != nullptr)
 		{
 			bSuccess= material->setTextureByUniformName(uniformName, dataSourceTexture);
@@ -1427,12 +1453,12 @@ bool GlFrameCompositor::addClientSource(
 	switch (desc.color_buffer_type)
 	{
 	case MikanColorBuffer_RGB24:
-		clientSource->colorTexture = new GlTexture();
+		clientSource->colorTexture = std::make_shared<GlTexture>();
 		clientSource->colorTexture->setTextureFormat(GL_RGB);
 		clientSource->colorTexture->setBufferFormat(GL_RGB);
 		break;
 	case MikanColorBuffer_RGBA32:
-		clientSource->colorTexture = new GlTexture();
+		clientSource->colorTexture = std::make_shared<GlTexture>();
 		clientSource->colorTexture->setTextureFormat(GL_RGBA);
 		clientSource->colorTexture->setBufferFormat(GL_RGBA);
 		break;
@@ -1454,12 +1480,12 @@ bool GlFrameCompositor::addClientSource(
 	switch (desc.depth_buffer_type)
 	{
 	case MikanDepthBuffer_DEPTH16:
-		clientSource->depthTexture = new GlTexture();
+		clientSource->depthTexture = std::make_shared<GlTexture>();
 		clientSource->depthTexture->setTextureFormat(GL_DEPTH_COMPONENT16);
 		clientSource->depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
 		break;
 	case MikanDepthBuffer_DEPTH32:
-		clientSource->depthTexture = new GlTexture();
+		clientSource->depthTexture = std::make_shared<GlTexture>();
 		clientSource->depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
 		clientSource->depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
 		break;
@@ -1503,21 +1529,11 @@ bool GlFrameCompositor::removeClientSource(
 	if (clientSource == nullptr)
 		return false;
 
-	if (clientSource->colorTexture != nullptr)
-	{
-		clientSource->colorTexture->disposeTexture();
-		delete clientSource->colorTexture;
+	clientSource->colorTexture = nullptr;
+	readAccessor->setColorTexture(nullptr);
 
-		readAccessor->setColorTexture(nullptr);
-	}
-
-	if (clientSource->depthTexture != nullptr)
-	{
-		clientSource->depthTexture->disposeTexture();
-		delete clientSource->depthTexture;
-
-		readAccessor->setDepthTexture(nullptr);
-	}
+	clientSource->depthTexture= nullptr;
+	readAccessor->setDepthTexture(nullptr);
 
 	// Remove the client source entries from the data source tables
 	m_clientSources.removeValue(clientId);
@@ -1540,12 +1556,11 @@ bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16
 	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
 
 	// create a color attachment texture
-	m_compositedFrame =
-		(new GlTexture())
-		->setSize(width, height)
-		->setTextureFormat(GL_RGB)
-		->setBufferFormat(GL_RGB)
-		->setGenerateMipMap(false);
+	m_compositedFrame = std::make_shared<GlTexture>();
+	m_compositedFrame->setSize(width, height);
+	m_compositedFrame->setTextureFormat(GL_RGB);
+	m_compositedFrame->setBufferFormat(GL_RGB);
+	m_compositedFrame->setGenerateMipMap(false);
 	m_compositedFrame->createTexture();
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_compositedFrame->getGlTextureId(), 0);
 
@@ -1575,12 +1590,7 @@ void GlFrameCompositor::freeLayerFrameBuffer()
 		m_layerRBO = 0;
 	}
 
-	if (m_compositedFrame != nullptr)
-	{
-		m_compositedFrame->disposeTexture();
-		delete m_compositedFrame;
-		m_compositedFrame = nullptr;
-	}
+	m_compositedFrame = nullptr;
 
 	if (m_layerFramebuffer != 0)
 	{
@@ -1597,13 +1607,12 @@ bool GlFrameCompositor::createBGRVideoFrameBuffer(uint16_t width, uint16_t heigh
 	glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
 
 	// create a color attachment texture with a double buffered pixel-buffer-object for reading
-	m_bgrVideoFrame =
-		(new GlTexture())
-		->setSize(width, height)
-		->setTextureFormat(GL_RGB)
-		->setBufferFormat(GL_RGB)
-		->setGenerateMipMap(false)
-		->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
+	m_bgrVideoFrame = std::make_shared<GlTexture>();
+	m_bgrVideoFrame->setSize(width, height);
+	m_bgrVideoFrame->setTextureFormat(GL_RGB);
+	m_bgrVideoFrame->setBufferFormat(GL_RGB);
+	m_bgrVideoFrame->setGenerateMipMap(false);
+	m_bgrVideoFrame->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
 	m_bgrVideoFrame->createTexture();
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_bgrVideoFrame->getGlTextureId(), 0);
 
@@ -1633,12 +1642,7 @@ void GlFrameCompositor::freeBGRVideoFrameBuffer()
 		m_bgrRBO = 0;
 	}
 
-	if (m_bgrVideoFrame != nullptr)
-	{
-		m_bgrVideoFrame->disposeTexture();
-		delete m_bgrVideoFrame;
-		m_bgrVideoFrame = nullptr;
-	}
+	m_bgrVideoFrame = nullptr;
 
 	if (m_bgrFramebuffer != 0)
 	{

@@ -65,6 +65,7 @@ bool RmlModel_CompositorLayers::init(
 	// Register Data Model Fields
 	constructor.Bind("current_configuration", &m_currentConfigurationName);
 	constructor.Bind("configuration_names", &m_configurationNames);
+	constructor.Bind("material_names", &m_materialNames);
 	constructor.Bind("clients", &m_compositorClients);
 	constructor.Bind("layers", &m_compositorLayers);
 	constructor.Bind("float_sources", &m_floatSources);
@@ -92,6 +93,17 @@ bool RmlModel_CompositorLayers::init(
 			if (OnCompositorConfigChangedEvent) 
 			{
 				OnCompositorConfigChangedEvent(configurationName);
+			}
+		});
+	constructor.BindEventCallback(
+		"update_material_name",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnMaterialNameChangeEvent)
+			{
+				const int layer_index = (arguments.size() == 1 ? arguments[0].Get<int>() : -1);
+				const std::string material_name = ev.GetParameter<Rml::String>("value", "");
+
+				OnMaterialNameChangeEvent(layer_index, material_name);
 			}
 		});
 	constructor.BindEventCallback(
@@ -174,6 +186,7 @@ void RmlModel_CompositorLayers::rebuild(
 {
 	m_currentConfigurationName= compositor->getCurrentPresetName();
 	m_configurationNames= compositor->getPresetNames();
+	m_materialNames= compositor->getAllCompositorShaderNames();
 	
 	// Add float data source names
 	m_floatSources.clear();
@@ -233,7 +246,7 @@ void RmlModel_CompositorLayers::rebuild(
 	m_compositorLayers.clear();
 	for (const auto& layer : compositor->getLayers())
 	{
-		const GlMaterial* layerMaterial= layer.layerMaterial;
+		const GlMaterialPtr layerMaterial= layer.layerMaterial;
 		const CompositorLayerConfig* layerConfig= compositor->getCurrentPresetLayerConfig(layer.layerIndex);
 		const std::string materialName= layerMaterial != nullptr ? layerMaterial->getName() : "INVALID";
 		

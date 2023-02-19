@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
 namespace vr
@@ -7,6 +8,15 @@ namespace vr
 	struct RenderModel_t;
 	struct RenderModel_TextureMap_t;
 };
+
+class GlTexture;
+typedef std::shared_ptr<GlTexture> GlTexturePtr; 
+
+class GlMaterial;
+typedef std::shared_ptr<GlMaterial> GlMaterialPtr;
+
+class GlTriangulatedMesh;
+typedef std::shared_ptr<GlTriangulatedMesh> GlTriangulatedMeshPtr;
 
 class SteamVRRenderModelResource
 {
@@ -18,8 +28,8 @@ public:
 	void disposeRenderResources();
 
 	const std::string& getRenderModelName() const { return m_renderModelName; }
-	class GlMaterial* getMaterial() const { return m_glMaterial; }
-	const class GlTriangulatedMesh* getTriangulatedMesh() const { return m_glMesh; }
+	GlMaterialPtr getMaterial() const { return m_glMaterial; }
+	const GlTriangulatedMeshPtr getTriangulatedMesh() const { return m_glMesh; }
 
 protected:
 	bool loadSteamVRResources();
@@ -28,12 +38,12 @@ protected:
 	static const class GlProgramCode* getShaderCode();
 	static const struct GlVertexDefinition* getVertexDefinition();
 
-	class GlTexture* createTextureResource(
+	GlTexturePtr createTextureResource(
 		const struct vr::RenderModel_TextureMap_t* steamvrTexture);
-	class GlMaterial* createMaterial(
+	GlMaterialPtr createMaterial(
 		const class GlProgramCode* code, 
-		class GlTexture* texture);
-	class GlTriangulatedMesh* createTriangulatedMeshResource(
+		GlTexturePtr texture);
+	GlTriangulatedMeshPtr createTriangulatedMeshResource(
 		const std::string& meshName,
 		const struct GlVertexDefinition* vertexDefinition,
 		const struct vr::RenderModel_t* steamVRRenderModel);
@@ -43,7 +53,7 @@ protected:
 	vr::RenderModel_t* m_steamVRRenderModel= nullptr;
 	vr::RenderModel_TextureMap_t* m_steamVRTextureMap= nullptr;
 
-	class GlTriangulatedMesh* m_glMesh = nullptr;
-	class GlTexture* m_glDiffuseTexture = nullptr;
-	class GlMaterial *m_glMaterial= nullptr;
+	GlTriangulatedMeshPtr m_glMesh = nullptr;
+	GlTexturePtr m_glDiffuseTexture = nullptr;
+	GlMaterialPtr m_glMaterial= nullptr;
 };

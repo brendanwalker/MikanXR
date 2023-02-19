@@ -5,6 +5,9 @@
 #include "OpenCVFwd.h"
 #include <memory>
 
+class GlTexture;
+typedef std::shared_ptr<GlTexture> GlTexturePtr;
+
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
@@ -32,8 +35,8 @@ public:
 	inline cv::Mat* getBGRGrayscaleUndistortBuffer() const { return m_bgrGsUndistortBuffer; }
 	inline cv::Mat* getGrayscaleSourceBuffer() const { return m_gsSourceBuffer; }
 	inline cv::Mat* getGrayscaleSmallBuffer() const { return m_gsSmallBuffer; }
-	inline class GlTexture* getDistortionTexture() const { return m_distortionTextureMap; }
-	inline class GlTexture* getVideoTexture() const { return m_videoTexture; }
+	inline GlTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
+	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
 
 	bool hasNewVideoFrame() const;
 	uint64_t readNextVideoFrame();
@@ -77,10 +80,10 @@ protected:
 	// Distortion preview
 	cv::Mat* m_distortionMapX;
 	cv::Mat* m_distortionMapY;
-	class GlTexture* m_distortionTextureMap;
+	GlTexturePtr m_distortionTextureMap= nullptr;
 
 	// Texture used for display
-	class GlTexture* m_videoTexture;
+	GlTexturePtr m_videoTexture = nullptr;
 
 	// Runtime flags
 	bool m_bColorUndistortDisabled= false;

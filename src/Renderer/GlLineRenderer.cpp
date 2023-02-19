@@ -27,7 +27,7 @@ GlLineRenderer::GlLineRenderer()
 
 GlLineRenderer::~GlLineRenderer()
 {
-	delete m_program;
+	m_program= nullptr;
 }
 
 const GlProgramCode* GlLineRenderer::getShaderCode()
