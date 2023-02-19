@@ -19,8 +19,8 @@ struct RmlModel_LayerDataSourceMapping
 struct RmlModel_CompositorLayer
 {
 	int layer_index;
+	bool vertical_flip;
 	Rml::String material_name;
-
 	Rml::Vector<RmlModel_LayerDataSourceMapping> float_mappings;
 	Rml::Vector<RmlModel_LayerDataSourceMapping> float2_mappings;
 	Rml::Vector<RmlModel_LayerDataSourceMapping> float3_mappings;
@@ -37,6 +37,8 @@ public:
 
 	SinglecastDelegate<void(const Rml::String& configName)> OnCompositorConfigChangedEvent;
 	SinglecastDelegate<void(const Rml::String& clientSourceName)> OnScreenshotClientSourceEvent;
+
+	SinglecastDelegate<void(const int layerIndex, bool bFlipFlag)> OnVerticalFlipChangeEvent;
 
 	using MappingChangedDelegate = SinglecastDelegate<void(const int layerIndex, const Rml::String& uniformName, const Rml::String& dataSourceName)>;
 	MappingChangedDelegate OnFloatMappingChangedEvent;

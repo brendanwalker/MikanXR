@@ -92,6 +92,8 @@ public:
 	inline const NamedValueTable<GlTexture*>& getColorTextureSources() const { return m_colorTextureSources; }
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 
+	void setIsLayerVerticalFlipped(const int layerIndex, bool bIsFlipped);
+
 	void setFloatMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void setFloat2Mapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void setFloat3Mapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);

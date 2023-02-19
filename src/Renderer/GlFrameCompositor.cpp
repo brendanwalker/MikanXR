@@ -495,6 +495,19 @@ void GlFrameCompositor::update()
 	}
 }
 
+void GlFrameCompositor::setIsLayerVerticalFlipped(
+	const int layerIndex, 
+	bool bIsFlipped)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig != nullptr && 
+		layerConfig->verticalFlip != bIsFlipped)
+	{
+		layerConfig->verticalFlip = bIsFlipped;
+		saveCurrentPresetConfig();
+	}
+}
+
 void GlFrameCompositor::setFloatMapping(
 	const int layerIndex,
 	const std::string& uniformName,

@@ -119,6 +119,7 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->init(context, m_frameCompositor);
 		m_compositorLayersModel->OnCompositorConfigChangedEvent = MakeDelegate(this, &AppStage_Compositor::onCompositorConfigChangedEvent);
 		m_compositorLayersModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
+		m_compositorLayersModel->OnVerticalFlipChangeEvent = MakeDelegate(this, &AppStage_Compositor::onVerticalFlipChangedEvent);
 		m_compositorLayersModel->OnFloatMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloatMappingChangedEvent);
 		m_compositorLayersModel->OnFloat2MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat2MappingChangedEvent);
 		m_compositorLayersModel->OnFloat3MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat3MappingChangedEvent);
@@ -330,6 +331,13 @@ void AppStage_Compositor::onCompositorConfigChangedEvent(const std::string& conf
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
+}
+
+void AppStage_Compositor::onVerticalFlipChangedEvent(
+	const int layerIndex,
+	bool bIsFlipped)
+{
+	m_frameCompositor->setIsLayerVerticalFlipped(layerIndex, bIsFlipped);
 }
 
 void AppStage_Compositor::onFloatMappingChangedEvent(

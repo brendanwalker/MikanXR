@@ -47,6 +47,7 @@ bool RmlModel_CompositorLayers::init(
 		{
 			layer_model_handle.RegisterMember("layer_index", &RmlModel_CompositorLayer::layer_index);
 			layer_model_handle.RegisterMember("material_name", &RmlModel_CompositorLayer::material_name);
+			layer_model_handle.RegisterMember("vertical_flip", &RmlModel_CompositorLayer::vertical_flip);
 			layer_model_handle.RegisterMember("float_mappings", &RmlModel_CompositorLayer::float_mappings);
 			layer_model_handle.RegisterMember("float2_mappings", &RmlModel_CompositorLayer::float2_mappings);
 			layer_model_handle.RegisterMember("float3_mappings", &RmlModel_CompositorLayer::float3_mappings);
@@ -91,6 +92,21 @@ bool RmlModel_CompositorLayers::init(
 			if (OnCompositorConfigChangedEvent) 
 			{
 				OnCompositorConfigChangedEvent(configurationName);
+			}
+		});
+	constructor.BindEventCallback(
+		"update_vertical_flip",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnVerticalFlipChangeEvent)
+			{
+				const int layer_index = (arguments.size() == 1 ? arguments[0].Get<int>() : -1);
+				const std::string value = ev.GetParameter<Rml::String>("value", "");
+				const bool bIsChecked= !value.empty();
+
+				if (layer_index != -1)
+				{
+					OnVerticalFlipChangeEvent(layer_index, bIsChecked);
+				}
 			}
 		});
 	constructor.BindEventCallback(
@@ -244,6 +260,8 @@ void RmlModel_CompositorLayers::rebuild(
 			copyMaterialSources(shaderConfig.float4SourceMap, uiLayer.float4_mappings);
 			copyMaterialSources(shaderConfig.mat4SourceMap, uiLayer.mat4_mappings);
 			copyMaterialSources(shaderConfig.colorTextureSourceMap, uiLayer.color_texture_mappings);
+
+			uiLayer.vertical_flip = layerConfig->verticalFlip;
 		}
 
 		m_compositorLayers.push_back(uiLayer);
