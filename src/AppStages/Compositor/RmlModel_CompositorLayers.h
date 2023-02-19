@@ -20,7 +20,13 @@ struct RmlModel_CompositorLayer
 {
 	int layer_index;
 	Rml::String material_name;
-	Rml::Vector<RmlModel_LayerDataSourceMapping> color_texture_sources;
+
+	Rml::Vector<RmlModel_LayerDataSourceMapping> float_mappings;
+	Rml::Vector<RmlModel_LayerDataSourceMapping> float2_mappings;
+	Rml::Vector<RmlModel_LayerDataSourceMapping> float3_mappings;
+	Rml::Vector<RmlModel_LayerDataSourceMapping> float4_mappings;
+	Rml::Vector<RmlModel_LayerDataSourceMapping> mat4_mappings;
+	Rml::Vector<RmlModel_LayerDataSourceMapping> color_texture_mappings;
 };
 
 class RmlModel_CompositorLayers : public RmlModel
@@ -31,16 +37,34 @@ public:
 
 	SinglecastDelegate<void(const Rml::String& configName)> OnCompositorConfigChangedEvent;
 	SinglecastDelegate<void(const Rml::String& clientSourceName)> OnScreenshotClientSourceEvent;
-	SinglecastDelegate<void(const int layerIndex, const Rml::String& uniformName, const Rml::String& dataSourceName)> OnColorTextureMappingChangedEvent;
+
+	using MappingChangedDelegate = SinglecastDelegate<void(const int layerIndex, const Rml::String& uniformName, const Rml::String& dataSourceName)>;
+	MappingChangedDelegate OnFloatMappingChangedEvent;
+	MappingChangedDelegate OnFloat2MappingChangedEvent;
+	MappingChangedDelegate OnFloat3MappingChangedEvent;
+	MappingChangedDelegate OnFloat4MappingChangedEvent;
+	MappingChangedDelegate OnMat4MappingChangedEvent;
+	MappingChangedDelegate OnColorTextureMappingChangedEvent;
+	void invokeMappingChangeDelegate(
+		Rml::DataModelHandle model,
+		Rml::Event& ev,
+		const Rml::VariantList& arguments,
+		MappingChangedDelegate& mappingChangedDelegate);
 
 	void rebuild(const class GlFrameCompositor* compositor);
 
 private:
 	Rml::String m_currentConfigurationName;
 	Rml::Vector<Rml::String> m_configurationNames;
-	Rml::Vector<Rml::String> m_colorTextureSources;
 	Rml::Vector<RmlModel_CompositorClient> m_compositorClients;
 	Rml::Vector<RmlModel_CompositorLayer> m_compositorLayers;
+
+	Rml::Vector<Rml::String> m_floatSources;
+	Rml::Vector<Rml::String> m_float2Sources;
+	Rml::Vector<Rml::String> m_float3Sources;
+	Rml::Vector<Rml::String> m_float4Sources;
+	Rml::Vector<Rml::String> m_mat4Sources;
+	Rml::Vector<Rml::String> m_colorTextureSources;
 
 	static bool s_bHasRegisteredTypes;
 };

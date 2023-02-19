@@ -28,7 +28,14 @@
             mapping_label {
                 font-size: 14dp;
                 color: #17202A;
-            }            
+                margin-left: 0dp;
+                vertical-align: 14dp;
+            }
+            select {
+                margin-left: 0dp;
+                margin-top: 0dp;
+            }
+ 
         </style>
 	</head>
 	<body template="window">
@@ -46,15 +53,57 @@
 				<div data-for="layer : layers">
                     <layerblock>
                         <layer_label>Layer #{{layer.layer_index}}: {{layer.material_name}}</layer_label>
-                        <br/>
-                        <div data-for="color_texture_source : layer.color_texture_sources">
+                        <div data-for="mapping : layer.float_mappings">
                             &nbsp;&nbsp;
                             <mapping_label>
-                                {{color_texture_source.uniform_name}}:
-                                <select id="select" name="color_texture_select" data-value="color_texture_source.data_source_name" data-event-change="set_color_texture_mapping(layer.layer_index, color_texture_source.uniform_name)">
-                                    <option data-for="source_name : color_texture_sources" data-value="source_name">{{source_name}}</option>
+                                {{mapping.uniform_name}}:
+                                <select id="select" name="float_select" data-value="mapping.data_source_name" data-event-change="update_float_mapping(layer.layer_index, mapping.uniform_name)">
+                                    <option data-for="source_name : float_sources" data-value="source_name">{{source_name}}</option>
                                 </select>
                             </mapping_label>
+                        </div>
+                        <div data-for="mapping : layer.float2_mappings">
+                            &nbsp;&nbsp;
+                            <mapping_label>
+                                {{mapping.uniform_name}}:
+                                <select id="select" name="float2_select" data-value="mapping.data_source_name" data-event-change="update_float2_mapping(layer.layer_index, mapping.uniform_name)">
+                                    <option data-for="source_name : float2_sources" data-value="source_name">{{source_name}}</option>
+                                </select>
+                            </mapping_label>
+                        </div>
+                        <div data-for="mapping : layer.float3_mappings">
+                            &nbsp;&nbsp;
+                            <mapping_label>
+                                {{mapping.uniform_name}}:
+                                <select id="select" name="float3_select" data-value="mapping.data_source_name" data-event-change="update_float3_mapping(layer.layer_index, mapping.uniform_name)">
+                                    <option data-for="source_name : float3_sources" data-value="source_name">{{source_name}}</option>
+                                </select>
+                            </mapping_label>
+                        </div>
+                        <div data-for="mapping : layer.float4_mappings">
+                            &nbsp;&nbsp;
+                            <mapping_label>
+                                {{mapping.uniform_name}}:
+                                <select id="select" name="float4_select" data-value="mapping.data_source_name" data-event-change="update_float4_mapping(layer.layer_index, mapping.uniform_name)">
+                                    <option data-for="source_name : float4_sources" data-value="source_name">{{source_name}}</option>
+                                </select>
+                            </mapping_label>
+                        </div>
+                        <div data-for="mapping : layer.mat4_mappings">
+                            &nbsp;&nbsp;
+                            <mapping_label>
+                                {{mapping.uniform_name}}:
+                                <select id="select" name="mat4_select" data-value="mapping.data_source_name" data-event-change="update_mat4_mapping(layer.layer_index, mapping.uniform_name)">
+                                    <option data-for="source_name : mat4_sources" data-value="source_name">{{source_name}}</option>
+                                </select>
+                            </mapping_label>
+                        </div>
+                        <div data-for="mapping : layer.color_texture_mappings">
+                            &nbsp;&nbsp;
+                            <mapping_label>{{mapping.uniform_name}}:</mapping_label>
+                            <select id="select" name="color_texture_select" data-value="mapping.data_source_name" data-event-change="update_color_texture_mapping(layer.layer_index, mapping.uniform_name)">
+                                <option data-for="source_name : color_texture_sources" data-value="source_name">{{source_name}}</option>
+                            </select>
                         </div>
                     </layerblock>
 				</div>

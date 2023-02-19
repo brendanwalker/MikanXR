@@ -495,6 +495,101 @@ void GlFrameCompositor::update()
 	}
 }
 
+void GlFrameCompositor::setFloatMapping(
+	const int layerIndex,
+	const std::string& uniformName,
+	const std::string& dataSourceName)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig == nullptr)
+		return;
+
+	auto& sourceMap = layerConfig->shaderConfig.floatSourceMap;
+	if (sourceMap.find(uniformName) != sourceMap.end() &&
+		m_floatSources.hasValue(dataSourceName) &&
+		sourceMap[uniformName] != dataSourceName)
+	{
+		sourceMap[uniformName] = dataSourceName;
+		saveCurrentPresetConfig();
+	}
+}
+
+void GlFrameCompositor::setFloat2Mapping(
+	const int layerIndex,
+	const std::string& uniformName,
+	const std::string& dataSourceName)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig == nullptr)
+		return;
+
+	auto& sourceMap = layerConfig->shaderConfig.float2SourceMap;
+	if (sourceMap.find(uniformName) != sourceMap.end() &&
+		m_float2Sources.hasValue(dataSourceName) &&
+		sourceMap[uniformName] != dataSourceName)
+	{
+		sourceMap[uniformName] = dataSourceName;
+		saveCurrentPresetConfig();
+	}
+}
+
+void GlFrameCompositor::setFloat3Mapping(
+	const int layerIndex,
+	const std::string& uniformName,
+	const std::string& dataSourceName)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig == nullptr)
+		return;
+
+	auto& sourceMap = layerConfig->shaderConfig.float3SourceMap;
+	if (sourceMap.find(uniformName) != sourceMap.end() &&
+		m_float3Sources.hasValue(dataSourceName) &&
+		sourceMap[uniformName] != dataSourceName)
+	{
+		sourceMap[uniformName] = dataSourceName;
+		saveCurrentPresetConfig();
+	}
+}
+
+void GlFrameCompositor::setFloat4Mapping(
+	const int layerIndex,
+	const std::string& uniformName,
+	const std::string& dataSourceName)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig == nullptr)
+		return;
+
+	auto& sourceMap = layerConfig->shaderConfig.float4SourceMap;
+	if (sourceMap.find(uniformName) != sourceMap.end() &&
+		m_float4Sources.hasValue(dataSourceName) &&
+		sourceMap[uniformName] != dataSourceName)
+	{
+		sourceMap[uniformName] = dataSourceName;
+		saveCurrentPresetConfig();
+	}
+}
+
+void GlFrameCompositor::setMat4Mapping(
+	const int layerIndex,
+	const std::string& uniformName,
+	const std::string& dataSourceName)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig == nullptr)
+		return;
+
+	auto& sourceMap = layerConfig->shaderConfig.mat4SourceMap;
+	if (sourceMap.find(uniformName) != sourceMap.end() &&
+		m_mat4Sources.hasValue(dataSourceName) &&
+		sourceMap[uniformName] != dataSourceName)
+	{
+		sourceMap[uniformName] = dataSourceName;
+		saveCurrentPresetConfig();
+	}
+}
+
 void GlFrameCompositor::setColorTextureMapping(
 	const int layerIndex,
 	const std::string& uniformName, 

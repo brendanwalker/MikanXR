@@ -118,8 +118,13 @@ void AppStage_Compositor::enter()
 		// Init Layers UI
 		m_compositorLayersModel->init(context, m_frameCompositor);
 		m_compositorLayersModel->OnCompositorConfigChangedEvent = MakeDelegate(this, &AppStage_Compositor::onCompositorConfigChangedEvent);
-		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
 		m_compositorLayersModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
+		m_compositorLayersModel->OnFloatMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloatMappingChangedEvent);
+		m_compositorLayersModel->OnFloat2MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat2MappingChangedEvent);
+		m_compositorLayersModel->OnFloat3MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat3MappingChangedEvent);
+		m_compositorLayersModel->OnFloat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat4MappingChangedEvent);
+		m_compositorLayersModel->OnMat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onMat4MappingChangedEvent);
+		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
 		m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
 		m_compositiorLayersView->Show();
 
@@ -325,6 +330,46 @@ void AppStage_Compositor::onCompositorConfigChangedEvent(const std::string& conf
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
+}
+
+void AppStage_Compositor::onFloatMappingChangedEvent(
+	const int layerIndex, 
+	const std::string& uniformName, 
+	const std::string& dataSourceName)
+{
+	m_frameCompositor->setFloatMapping(layerIndex, uniformName, dataSourceName);
+}
+
+void AppStage_Compositor::onFloat2MappingChangedEvent(
+	const int layerIndex, 
+	const std::string& uniformName, 
+	const std::string& dataSourceName)
+{
+	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
+}
+
+void AppStage_Compositor::onFloat3MappingChangedEvent(
+	const int layerIndex, 
+	const std::string& uniformName, 
+	const std::string& dataSourceName)
+{
+	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
+}
+
+void AppStage_Compositor::onFloat4MappingChangedEvent(
+	const int layerIndex, 
+	const std::string& uniformName, 
+	const std::string& dataSourceName)
+{
+	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
+}
+
+void AppStage_Compositor::onMat4MappingChangedEvent(
+	const int layerIndex, 
+	const std::string& uniformName, 
+	const std::string& dataSourceName)
+{
+	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
 }
 
 void AppStage_Compositor::onColorTextureMappingChangedEvent(

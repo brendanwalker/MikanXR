@@ -92,6 +92,11 @@ public:
 	inline const NamedValueTable<GlTexture*>& getColorTextureSources() const { return m_colorTextureSources; }
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 
+	void setFloatMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void setFloat2Mapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void setFloat3Mapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void setFloat4Mapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void setMat4Mapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void setColorTextureMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 
 	inline const std::vector<Layer>& getLayers() const { return m_layers; }

@@ -41,8 +41,13 @@ protected:
 
 	// Layers UI Events
 	void onCompositorConfigChangedEvent(const std::string& configName);
-	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
+	void onFloatMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onFloat2MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onFloat3MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onFloat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onMat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 
 	// Quad Stencils UI Events
 	void onAddQuadStencilEvent();

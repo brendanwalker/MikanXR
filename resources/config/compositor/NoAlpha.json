@@ -1,35 +1,46 @@
 {
-    "name": "No Alpha",
-    "layers":[
-        {
-            "blendMode": "blendOff",
-            "verticalFlip": true,
-            "shaderConfig": {
-                "materialName": "rgbUndistortionFrame",
-                "textureSourceMap": {
-                    "rgbTexture": "videoTexture",
-                    "distortion": "distortionTexture"
-                }
-            },
-            "quadStencilConfig": {
-                "stencilMode": "insideStencil"
-            },
-            "boxStencilConfig": {
-                "stencilMode": "insideStencil"
-            },
-            "modelStencilConfig": {
-                "stencilMode": "insideStencil"
-            }
-        },
-        {
-            "blendMode": "blendOff",
-            "verticalFlip": false,
-            "shaderConfig": {
-                "materialName": "rgbFrame",
-                "textureSourceMap": {
-                    "rgbTexture": "clientRenderTexture_0"
-                }
-            }
-        }
-    ]
+	"layers": [
+		{
+			"verticalFlip":       true,
+			"blendMode":          "blendOff",
+			"shaderConfig":       {
+				"materialName":     "rgbUndistortionFrame",
+				"textureSourceMap": {
+					"distortion": "distortionTexture",
+					"rgbTexture": "videoTexture"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "insideStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "insideStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "insideStencil"
+			}
+		},
+		{
+			"verticalFlip":       false,
+			"blendMode":          "blendOff",
+			"shaderConfig":       {
+				"materialName":     "rgbFrame",
+				"textureSourceMap": {
+					"rgbTexture": "clientRenderTexture_0"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "insideStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "insideStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "insideStencil"
+			}
+		}
+	],
+	"name":   "No Alpha"
 }
