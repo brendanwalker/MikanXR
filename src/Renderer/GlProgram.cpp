@@ -212,6 +212,24 @@ bool GlProgram::getUniformDataType(const std::string uniformName, eUniformDataTy
 	return false;
 }
 
+std::vector<std::string> GlProgram::getUniformNamesOfDataType(const eUniformDataType dataType) const
+{
+	std::vector<std::string> uniformNames;
+
+	for (auto it = m_uniformLocationMap.begin(); it != m_uniformLocationMap.end(); it++)
+	{
+		const eUniformSemantic uniformSemantic= it->second.semantic;
+		const eUniformDataType uniformDataType= getUniformSemanticDataType(uniformSemantic);
+
+		if (uniformDataType == dataType)
+		{
+			uniformNames.push_back(it->first);
+		}
+	}
+
+	return uniformNames;
+}
+
 bool GlProgram::getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::string& outUniformName) const
 {
 	for (auto it = getUniformBegin(); it != getUniformEnd(); ++it)

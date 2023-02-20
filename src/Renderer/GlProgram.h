@@ -90,6 +90,7 @@ public:
 	static eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic);
 	bool getUniformSemantic(const std::string uniformName, eUniformSemantic& outSemantic) const;
 	bool getUniformDataType(const std::string uniformName, eUniformDataType& outDataType) const;
+	std::vector<std::string> getUniformNamesOfDataType(const eUniformDataType dataType) const;
 	static bool getTextureUniformUnit(eUniformSemantic semantic, int& outTextureUnit);
 	bool getUniformTextureUnit(const std::string uniformName, int& outTextureUnit) const;
 	GlProgramUniformIter getUniformBegin() const { return m_uniformLocationMap.begin(); }
@@ -115,3 +116,4 @@ protected:
 	GlProgramUniformMap m_uniformLocationMap;
 };
 typedef std::shared_ptr<GlProgram> GlProgramPtr;
+typedef std::shared_ptr<const GlProgram> GlProgramConstPtr;
