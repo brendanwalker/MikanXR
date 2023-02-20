@@ -61,7 +61,6 @@
                                 <option data-for="material_name : material_names" data-value="material_name">{{material_name}}</option>
                             </select>                            
                         </div>
-                        <label><input type="checkbox" name="vertical_flip" data-event-change="update_vertical_flip(layer.layer_index)" data-checked="layer.vertical_flip" />Vertical Flip </label>
                         <div data-for="mapping : layer.float_mappings">
                             &nbsp;&nbsp;
                             <mapping_label>{{mapping.uniform_name}}:</mapping_label>
@@ -104,6 +103,7 @@
                                 <option data-for="source_name : color_texture_sources" data-value="source_name">{{source_name}}</option>
                             </select>
                         </div>
+                        <label><input type="checkbox" name="vertical_flip" data-event-change="update_vertical_flip(layer.layer_index)" data-checked="layer.vertical_flip" />Vertical Flip </label>
                     </layerblock>
 				</div>
 			</div>
