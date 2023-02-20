@@ -1,7 +1,8 @@
 #pragma once
 
-#include <map>
 #include <string>
+#include <map>
+#include <vector>
 
 template<typename t_value_type>
 class NamedValueTable
@@ -47,6 +48,17 @@ public:
 	const NamedValueMap& getMap() const
 	{
 		return dataValueMap;
+	}
+	std::vector<std::string> getNames() const
+	{
+		std::vector<std::string> names;
+
+		for (auto it = dataValueMap.begin(); it != dataValueMap.end(); it++)
+		{
+			names.push_back(it->first);
+		}
+
+		return names;
 	}
 	void clear()
 	{
