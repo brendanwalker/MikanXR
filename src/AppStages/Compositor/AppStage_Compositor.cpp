@@ -372,7 +372,7 @@ void AppStage_Compositor::onFloat2MappingChangedEvent(
 	const std::string& uniformName, 
 	const std::string& dataSourceName)
 {
-	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
+	m_frameCompositor->setFloat2Mapping(layerIndex, uniformName, dataSourceName);
 }
 
 void AppStage_Compositor::onFloat3MappingChangedEvent(
@@ -380,7 +380,7 @@ void AppStage_Compositor::onFloat3MappingChangedEvent(
 	const std::string& uniformName, 
 	const std::string& dataSourceName)
 {
-	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
+	m_frameCompositor->setFloat3Mapping(layerIndex, uniformName, dataSourceName);
 }
 
 void AppStage_Compositor::onFloat4MappingChangedEvent(
@@ -388,7 +388,7 @@ void AppStage_Compositor::onFloat4MappingChangedEvent(
 	const std::string& uniformName, 
 	const std::string& dataSourceName)
 {
-	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
+	m_frameCompositor->setFloat4Mapping(layerIndex, uniformName, dataSourceName);
 }
 
 void AppStage_Compositor::onMat4MappingChangedEvent(
@@ -396,7 +396,7 @@ void AppStage_Compositor::onMat4MappingChangedEvent(
 	const std::string& uniformName, 
 	const std::string& dataSourceName)
 {
-	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
+	m_frameCompositor->setMat4Mapping(layerIndex, uniformName, dataSourceName);
 }
 
 void AppStage_Compositor::onColorTextureMappingChangedEvent(
