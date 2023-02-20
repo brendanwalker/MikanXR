@@ -595,6 +595,19 @@ void GlFrameCompositor::setIsLayerVerticalFlipped(
 	}
 }
 
+void GlFrameCompositor::setLayerBlendMode(
+	const int layerIndex,
+	eCompositorBlendMode blendMode)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig != nullptr &&
+		layerConfig->blendMode != blendMode)
+	{
+		layerConfig->blendMode = blendMode;
+		saveCurrentPresetConfig();
+	}
+}
+
 void GlFrameCompositor::setFloatMapping(
 	const int layerIndex,
 	const std::string& uniformName,

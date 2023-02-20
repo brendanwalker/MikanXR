@@ -56,6 +56,13 @@
                         <layer_label>Layer #{{layer.layer_index}}: {{layer.material_name}}</layer_label>
                         <div>
                             &nbsp;&nbsp;
+                            <mapping_label>Blend Mode:</mapping_label>
+                            <select id="select" name="blend_mode_select" data-value="layer.blend_mode" data-event-change="update_blend_mode(layer.layer_index)">
+                                <option data-for="blend_mode : blend_modes" data-value="blend_mode">{{blend_mode}}</option>
+                            </select>                                                    
+                        </div>
+                        <div>
+                            &nbsp;&nbsp;
                             <mapping_label>Material:</mapping_label>
                             <select id="select" name="material_select" data-value="layer.material_name" data-event-change="update_material_name(layer.layer_index)">
                                 <option data-for="material_name : material_names" data-value="material_name">{{material_name}}</option>

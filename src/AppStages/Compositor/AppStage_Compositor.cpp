@@ -121,6 +121,7 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->OnCompositorConfigChangedEvent = MakeDelegate(this, &AppStage_Compositor::onCompositorConfigChangedEvent);
 		m_compositorLayersModel->OnMaterialNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onMaterialNameChangeEvent);
 		m_compositorLayersModel->OnVerticalFlipChangeEvent = MakeDelegate(this, &AppStage_Compositor::onVerticalFlipChangedEvent);
+		m_compositorLayersModel->OnBlendModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onBlendModeChangedEvent);
 		m_compositorLayersModel->OnFloatMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloatMappingChangedEvent);
 		m_compositorLayersModel->OnFloat2MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat2MappingChangedEvent);
 		m_compositorLayersModel->OnFloat3MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat3MappingChangedEvent);
@@ -357,6 +358,13 @@ void AppStage_Compositor::onVerticalFlipChangedEvent(
 	bool bIsFlipped)
 {
 	m_frameCompositor->setIsLayerVerticalFlipped(layerIndex, bIsFlipped);
+}
+
+void AppStage_Compositor::onBlendModeChangedEvent(
+	const int layerIndex, 
+	eCompositorBlendMode blendMode)
+{
+	m_frameCompositor->setLayerBlendMode(layerIndex, blendMode);
 }
 
 void AppStage_Compositor::onFloatMappingChangedEvent(

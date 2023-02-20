@@ -9,6 +9,8 @@
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Event.h>
 
+#include <vector>
+
 bool RmlModel_CompositorLayers::s_bHasRegisteredTypes= false;
 
 bool RmlModel_CompositorLayers::init(
@@ -49,6 +51,7 @@ bool RmlModel_CompositorLayers::init(
 			layer_model_handle.RegisterMember("layer_index", &RmlModel_CompositorLayer::layer_index);
 			layer_model_handle.RegisterMember("material_name", &RmlModel_CompositorLayer::material_name);
 			layer_model_handle.RegisterMember("vertical_flip", &RmlModel_CompositorLayer::vertical_flip);
+			layer_model_handle.RegisterMember("blend_mode", &RmlModel_CompositorLayer::blend_mode);
 			layer_model_handle.RegisterMember("float_mappings", &RmlModel_CompositorLayer::float_mappings);
 			layer_model_handle.RegisterMember("float2_mappings", &RmlModel_CompositorLayer::float2_mappings);
 			layer_model_handle.RegisterMember("float3_mappings", &RmlModel_CompositorLayer::float3_mappings);
@@ -67,6 +70,7 @@ bool RmlModel_CompositorLayers::init(
 	constructor.Bind("current_configuration", &m_currentConfigurationName);
 	constructor.Bind("configuration_names", &m_configurationNames);
 	constructor.Bind("material_names", &m_materialNames);
+	constructor.Bind("blend_modes", &m_blendModes);
 	constructor.Bind("clients", &m_compositorClients);
 	constructor.Bind("layers", &m_compositorLayers);
 	constructor.Bind("float_sources", &m_floatSources);
@@ -119,6 +123,25 @@ bool RmlModel_CompositorLayers::init(
 				if (layer_index != -1)
 				{
 					OnVerticalFlipChangeEvent(layer_index, bIsChecked);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"update_blend_mode",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnBlendModeChangeEvent)
+			{
+				const int layer_index = (arguments.size() == 1 ? arguments[0].Get<int>() : -1);
+
+				if (layer_index != -1)
+				{
+					const std::string blendModeString = ev.GetParameter<Rml::String>("value", "");
+					const eCompositorBlendMode blendMode =
+						StringUtils::FindEnumValue<eCompositorBlendMode>(
+							blendModeString,
+							k_compositorBlendModeStrings);
+
+					OnBlendModeChangeEvent(layer_index, blendMode);
 				}
 			}
 		});
@@ -188,6 +211,11 @@ void RmlModel_CompositorLayers::rebuild(
 	m_currentConfigurationName= compositor->getCurrentPresetName();
 	m_configurationNames= compositor->getPresetNames();
 	m_materialNames= compositor->getAllCompositorShaderNames();
+
+	// Fill in blend mode strings
+	size_t blendModeCount = (size_t)eCompositorBlendMode::COUNT;
+	m_blendModes= Rml::Vector<Rml::String>(blendModeCount);
+	std::copy(k_compositorBlendModeStrings, k_compositorBlendModeStrings+blendModeCount, m_blendModes.begin());
 	
 	// Add float data source names
 	m_floatSources.clear();
@@ -254,6 +282,7 @@ void RmlModel_CompositorLayers::rebuild(
 		RmlModel_CompositorLayer uiLayer;
 		uiLayer.layer_index= layer.layerIndex;
 		uiLayer.material_name= materialName;
+		uiLayer.blend_mode= k_compositorBlendModeStrings[(int)layerConfig->blendMode];
 
 		if (layerMaterial != nullptr)
 		{

@@ -102,6 +102,7 @@ public:
 
 	bool setLayerMaterialName(const int layerIndex, const std::string& materialName);
 	void setIsLayerVerticalFlipped(const int layerIndex, bool bIsFlipped);
+	void setLayerBlendMode(const int layerIndex, eCompositorBlendMode blendMode);
 
 	void setFloatMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void setFloat2Mapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
