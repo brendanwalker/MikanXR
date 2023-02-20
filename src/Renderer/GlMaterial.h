@@ -30,6 +30,13 @@ public:
 	void setProgram(GlProgramPtr program);
 	GlProgramPtr getProgram() const;
 
+	inline const NamedValueTable<float>& getFloatSources() const { return m_floatSources; }
+	inline const NamedValueTable<glm::vec2>& getFloat2Sources() const { return m_float2Sources; }
+	inline const NamedValueTable<glm::vec3>& getFloat3Sources() const { return m_float3Sources; }
+	inline const NamedValueTable<glm::vec4>& getFloat4Sources() const { return m_float4Sources; }
+	inline const NamedValueTable<glm::mat4>& getMat4Sources() const { return m_mat4Sources; }
+	inline const NamedValueTable<GlTexturePtr>& getTextureSources() const { return m_textureSources; }
+
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
 	bool setFloatByUniformName(const std::string uniformName, float value);

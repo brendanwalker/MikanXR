@@ -1,6 +1,7 @@
 #include "RmlModel_CompositorLayers.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
+#include "GlProgram.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -254,25 +255,61 @@ void RmlModel_CompositorLayers::rebuild(
 		uiLayer.layer_index= layer.layerIndex;
 		uiLayer.material_name= materialName;
 
-		if (layerConfig != nullptr)
+		if (layerMaterial != nullptr)
 		{
-			auto copyMaterialSources= [](
-				const std::map<std::string, std::string>& configSourceMappings,
+			auto copyMaterialBindings= [](
+				const std::vector<std::string>& materialUniformNames,
+				const std::map<std::string, std::string>* configSourceMappings,
 				Rml::Vector<RmlModel_LayerDataSourceMapping>& uiSourceMappings)
 			{
-				for (auto it = configSourceMappings.begin(); it != configSourceMappings.end(); it++)
+				// For each material uniform, use the mapping found in the config
+				// to find the name of the source in the compositor it pulls data from
+				for (const std::string& uniformName : materialUniformNames)
 				{
-					uiSourceMappings.push_back({it->first, it->second});
+					if (configSourceMappings != nullptr)
+					{
+						auto it = configSourceMappings->find(uniformName);
+
+						if (it != configSourceMappings->end())
+						{
+							uiSourceMappings.push_back({uniformName, it->second});
+							continue;
+						}
+					}
+
+					// Fallback to empty mapping if no corresponding mapping found in the config
+					uiSourceMappings.push_back({uniformName, "empty"});
 				}
 			};
 
-			const CompositorLayerShaderConfig& shaderConfig= layerConfig->shaderConfig;
-			copyMaterialSources(shaderConfig.floatSourceMap, uiLayer.float_mappings);
-			copyMaterialSources(shaderConfig.float2SourceMap, uiLayer.float2_mappings);
-			copyMaterialSources(shaderConfig.float3SourceMap, uiLayer.float3_mappings);
-			copyMaterialSources(shaderConfig.float4SourceMap, uiLayer.float4_mappings);
-			copyMaterialSources(shaderConfig.mat4SourceMap, uiLayer.mat4_mappings);
-			copyMaterialSources(shaderConfig.colorTextureSourceMap, uiLayer.color_texture_mappings);
+			const CompositorLayerShaderConfig* shaderConfig= 
+				(layerConfig != nullptr) ? &layerConfig->shaderConfig : nullptr;
+			GlProgramConstPtr program= layerMaterial->getProgram();
+
+			copyMaterialBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_float),
+				(shaderConfig != nullptr) ? &shaderConfig->floatSourceMap : nullptr,
+				uiLayer.float_mappings);
+			copyMaterialBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_float2),
+				(shaderConfig != nullptr) ? &shaderConfig->float2SourceMap : nullptr,
+				uiLayer.float2_mappings);
+			copyMaterialBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_float3),
+				(shaderConfig != nullptr) ? &shaderConfig->float3SourceMap : nullptr,
+				uiLayer.float3_mappings);
+			copyMaterialBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_float4),
+				(shaderConfig != nullptr) ? &shaderConfig->float4SourceMap : nullptr,
+				uiLayer.float4_mappings);
+			copyMaterialBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_mat4),
+				(shaderConfig != nullptr) ? &shaderConfig->mat4SourceMap : nullptr,
+				uiLayer.mat4_mappings);
+			copyMaterialBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_texture),
+				(shaderConfig != nullptr) ? &shaderConfig->colorTextureSourceMap : nullptr, 
+				uiLayer.color_texture_mappings);
 
 			uiLayer.vertical_flip = layerConfig->verticalFlip;
 		}

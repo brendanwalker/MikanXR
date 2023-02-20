@@ -33,6 +33,7 @@
 #define DEFAULT_COMPOSITOR_CONFIG_NAME	"Alpha Channel"
 #define STENCIL_MVP_UNIFORM_NAME		"mvpMatrix"
 #define MAX_CLIENT_SOURCES				8
+#define EMPTY_SOURCE_NAME				"empty"
 
 // -- GlFrameCompositor ------
 GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
@@ -77,6 +78,24 @@ bool GlFrameCompositor::startup()
 
 	createVertexBuffers();
 
+	// Create empty data soruces
+	m_floatSources.setValue(EMPTY_SOURCE_NAME, 0);
+	m_float2Sources.setValue(EMPTY_SOURCE_NAME, glm::vec2());
+	m_float3Sources.setValue(EMPTY_SOURCE_NAME, glm::vec3());
+	m_float4Sources.setValue(EMPTY_SOURCE_NAME, glm::vec4());
+	m_mat4Sources.setValue(EMPTY_SOURCE_NAME, glm::mat4(1));
+	m_colorTextureSources.setValue(EMPTY_SOURCE_NAME, GlTexturePtr());
+
+	// Create client data sources
+	for (int clientSourceIndex = 0; clientSourceIndex < MAX_CLIENT_SOURCES; ++clientSourceIndex)
+	{
+		const std::string colorTextureSourceName = makeClientRendererTextureName(clientSourceIndex);
+		m_colorTextureSources.setValue(colorTextureSourceName, nullptr);
+
+		const std::string colorKeySourceName = makeClientColorKeyName(clientSourceIndex);
+		m_float3Sources.setValue(colorKeySourceName, Colors::Black);
+	}
+
 	// Load the last use compositor configuration
 	m_config.load();
 
@@ -88,17 +107,8 @@ bool GlFrameCompositor::startup()
 	else
 	{
 		// Recreate the compositor layers for the current config
-		rebuildLayersFromConfig();
-	}
-
-	// Create data source defaults
-	for (int clientSourceIndex= 0; clientSourceIndex < MAX_CLIENT_SOURCES; ++clientSourceIndex)
-	{
-		const std::string colorTextureSourceName = makeClientRendererTextureName(clientSourceIndex);
-		m_colorTextureSources.setValue(colorTextureSourceName, nullptr);
-
-		const std::string colorKeySourceName = makeClientColorKeyName(clientSourceIndex);
-		m_float3Sources.setValue(colorKeySourceName, Colors::Black);
+		// Save config back out if we had to add any missing mappings
+		rebuildAllLayerSettings(false);
 	}
 
 	return true;
@@ -121,6 +131,14 @@ void GlFrameCompositor::shutdown()
 		delete clientSource;
 	}
 	m_clientSources.clear();
+
+	// Empty our sources
+	m_floatSources.clear();
+	m_float2Sources.clear();
+	m_float3Sources.clear();
+	m_float4Sources.clear();
+	m_mat4Sources.clear();
+	m_colorTextureSources.clear();
 
 	// Clean up any allocated materials
 	m_materialSources.clear();
@@ -205,20 +223,66 @@ void GlFrameCompositor::saveCurrentPresetConfig()
 	}
 }
 
-void GlFrameCompositor::rebuildLayersFromConfig()
+void GlFrameCompositor::rebuildAllLayerSettings(bool bForceConfigSave)
 {
+	bool bIsConfigDirty= bForceConfigSave;
+
 	CompositorPreset* preset = nullptr;
 	if (m_compositorPresets.tryGetValue(m_config.presetName, preset))
 	{
 		m_layers.clear();
 		for (int layerIndex = 0; layerIndex < (int)preset->layers.size(); ++layerIndex)
 		{
-			const CompositorLayerConfig& layerConfig = preset->layers[layerIndex];
-			GlMaterialPtr material = m_materialSources.getValueOrDefault(layerConfig.shaderConfig.materialName, nullptr);
+			CompositorLayerShaderConfig& shaderConfig = preset->layers[layerIndex].shaderConfig;
+			GlMaterialPtr layerMaterial = m_materialSources.getValueOrDefault(shaderConfig.materialName, nullptr);
+			GlProgramConstPtr program = layerMaterial->getProgram();
 
-			const Layer layer = {layerIndex, material, -1};
+			// For each material uniform, make sure there is corresponding mapping in the layer config
+			// Assign empty sources to any missing uniform bindings
+			auto createMissingConfigBindings = [&bIsConfigDirty](
+				const std::vector<std::string>& materialUniformNames,
+				std::map<std::string, std::string>& configSourceMappings) 
+			{
+				for (const std::string& uniformName : materialUniformNames)
+				{
+					auto it = configSourceMappings.find(uniformName);
+
+					if (it == configSourceMappings.end())
+					{
+						configSourceMappings.insert({uniformName, EMPTY_SOURCE_NAME});
+						bIsConfigDirty= true;
+					}
+				}
+			};
+
+			createMissingConfigBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_float),
+				shaderConfig.floatSourceMap);
+			createMissingConfigBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_float2),
+				shaderConfig.float2SourceMap);
+			createMissingConfigBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_float3),
+				shaderConfig.float3SourceMap);
+			createMissingConfigBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_float4),
+				shaderConfig.float4SourceMap);
+			createMissingConfigBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_mat4),
+				shaderConfig.mat4SourceMap);
+			createMissingConfigBindings(
+				program->getUniformNamesOfDataType(eUniformDataType::datatype_texture),
+				shaderConfig.colorTextureSourceMap);
+
+			const Layer layer = {layerIndex, layerMaterial, -1};
 			m_layers.push_back(layer);
 		}
+	}
+
+	// Write the layer configuration back if it was modified by the 
+	if (bIsConfigDirty)
+	{
+		saveCurrentPresetConfig();
 	}
 }
 
@@ -247,10 +311,9 @@ bool GlFrameCompositor::applyLayerPreset(const std::string& presetName)
 	if (m_compositorPresets.hasValue(presetName))
 	{
 		m_config.presetName= presetName;
-		m_config.save();
 
-		// Recreate the compositor layers for the current config
-		rebuildLayersFromConfig();
+		// Recreate the compositor layer for the currently assigned preset
+		rebuildAllLayerSettings(true);
 	}
 
 	return true;
@@ -510,11 +573,9 @@ bool GlFrameCompositor::setLayerMaterialName(
 		// Update which material is being used by the given layer in the layer config
 		layerConfig->shaderConfig.materialName = materialName;
 
-		// Save the layer config
-		saveCurrentPresetConfig();
-
 		// Rebuild the runtime layer list to update the runtime layer material assignment
-		rebuildLayersFromConfig();
+		rebuildAllLayerSettings(true);
+
 		return true;
 	}
 

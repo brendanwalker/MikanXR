@@ -1,35 +1,46 @@
 {
-    "name": "Alpha Channel",
-    "layers":[
-        {
-            "blendMode": "blendOff",
-            "verticalFlip": true,
-            "shaderConfig": {
-                "materialName": "rgbUndistortionFrame",
-                "textureSourceMap": {
-                    "rgbTexture": "videoTexture",
-                    "distortion": "distortionTexture"
-                }
-            },
-            "quadStencilConfig": {
-                "stencilMode": "noStencil"
-            },
-            "boxStencilConfig": {
-                "stencilMode": "noStencil"
-            },
-            "modelStencilConfig": {
-                "stencilMode": "noStencil"
-            }
-        },
-        {
-            "blendMode": "blendOn",
-            "verticalFlip": false,
-            "shaderConfig": {
-                "materialName": "rgbaFrame",
-                "textureSourceMap": {
-                    "rgbaTexture": "clientRenderTexture_0"
-                }
-            }
-        }
-    ]
+	"layers": [
+		{
+			"verticalFlip":       true,
+			"blendMode":          "blendOff",
+			"shaderConfig":       {
+				"materialName":     "rgbUndistortionFrame",
+				"textureSourceMap": {
+					"distortion": "distortionTexture",
+					"rgbTexture": "videoTexture"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "noStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "noStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "noStencil"
+			}
+		},
+		{
+			"verticalFlip":       false,
+			"blendMode":          "blendOn",
+			"shaderConfig":       {
+				"materialName":     "rgbaFrame",
+				"textureSourceMap": {
+					"rgbaTexture": "clientRenderTexture_0"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "insideStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "insideStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "insideStencil"
+			}
+		}
+	],
+	"name":   "Alpha Channel"
 }

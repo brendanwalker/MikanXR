@@ -152,7 +152,7 @@ protected:
 	void onClientRenderTargetUpdated(const std::string& clientId, uint64_t frameIndex);
 
 private:
-	void rebuildLayersFromConfig();
+	void rebuildAllLayerSettings(bool bForceConfigSave=false);
 	void clearAllCompositorConfigurations();
 
 	bool applyLayerMaterialFloatValues(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);

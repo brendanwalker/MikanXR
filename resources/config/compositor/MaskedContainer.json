@@ -47,9 +47,13 @@
 			"blendMode":          "blendOff",
 			"shaderConfig":       {
 				"materialName":     "rgbUndistortionFrame",
+				"float3SourceMap":  {
+					"colorKey": "clientColorKey_0"
+				},
 				"textureSourceMap": {
-					"distortion": "distortionTexture",
-					"rgbTexture": "videoTexture"
+					"colorKeyTexture": "clientRenderTexture_0",
+					"distortion":      "distortionTexture",
+					"rgbTexture":      "videoTexture"
 				}
 			},
 			"quadStencilConfig":  {
