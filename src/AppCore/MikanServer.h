@@ -44,17 +44,17 @@ public:
 
 	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
 	void getRelevantQuadStencilList(
-		const std::vector<std::string>* allowedStencilNames,
+		const std::vector<MikanStencilID>* allowedStencilIds,
 		const glm::vec3& cameraPosition, 
 		const glm::vec3& cameraForward,
 		std::vector<const MikanStencilQuad*>& outStencilList) const;
 	void getRelevantBoxStencilList(
-		const std::vector<std::string>* allowedStencilNames,
+		const std::vector<MikanStencilID>* allowedStencilIds,
 		const glm::vec3& cameraPosition,
 		const glm::vec3& cameraForward,
 		std::vector<const MikanStencilBox*>& outStencilList) const;
 	void getRelevantModelStencilList(
-		const std::vector<std::string>* allowedStencilNames,
+		const std::vector<MikanStencilID>* allowedStencilIds,
 		std::vector<const struct MikanStencilModelConfig*>& outStencilList) const;
 
 

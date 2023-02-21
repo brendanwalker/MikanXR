@@ -224,6 +224,21 @@ void RmlManager::registerCommonDataModelTypes()
 			}
 			return false;
 		});
+
+	// Transform function for converting stencil id to stencil name
+	constructor.RegisterTransformFunc(
+		"to_stencil_name",
+		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanStencilID stencilId = variant.Get<int>(-1);
+
+			Rml::String stencilName;
+			if (m_app->getProfileConfig()->getStencilName(stencilId, stencilName))
+			{
+				variant = stencilName;
+				return true;
+			}
+			return false;
+		});
 }
 
 void RmlManager::update()

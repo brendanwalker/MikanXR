@@ -117,11 +117,17 @@ void AppStage_Compositor::enter()
 		m_compositiorView = addRmlDocument("rml\\compositor.rml");
 
 		// Init Layers UI
-		m_compositorLayersModel->init(context, m_frameCompositor);
+		m_compositorLayersModel->init(context, m_frameCompositor, m_profile);
 		m_compositorLayersModel->OnCompositorConfigChangedEvent = MakeDelegate(this, &AppStage_Compositor::onCompositorConfigChangedEvent);
 		m_compositorLayersModel->OnMaterialNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onMaterialNameChangeEvent);
 		m_compositorLayersModel->OnVerticalFlipChangeEvent = MakeDelegate(this, &AppStage_Compositor::onVerticalFlipChangedEvent);
 		m_compositorLayersModel->OnBlendModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onBlendModeChangedEvent);
+		m_compositorLayersModel->OnInvertQuadsFlagChangeEvent = MakeDelegate(this, &AppStage_Compositor::onInvertQuadsFlagChangeEvent);
+		m_compositorLayersModel->OnQuadStencilModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onQuadStencilModeChangeEvent);
+		m_compositorLayersModel->OnBoxStencilModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onBoxStencilModeChangeEvent);
+		m_compositorLayersModel->OnModelStencilModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onModelStencilModeChangeEvent);
+		m_compositorLayersModel->OnStencilRefAddedEvent = MakeDelegate(this, &AppStage_Compositor::onStencilRefAddedEvent);
+		m_compositorLayersModel->OnStencilRefRemovedEvent = MakeDelegate(this, &AppStage_Compositor::onStencilRefRemovedEvent);
 		m_compositorLayersModel->OnFloatMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloatMappingChangedEvent);
 		m_compositorLayersModel->OnFloat2MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat2MappingChangedEvent);
 		m_compositorLayersModel->OnFloat3MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat3MappingChangedEvent);
@@ -274,7 +280,7 @@ void AppStage_Compositor::stopRecording()
 
 void AppStage_Compositor::onCompositorShadersReloaded()
 {
-	m_compositorLayersModel->rebuild(m_frameCompositor);
+	m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 }
 
 void AppStage_Compositor::onNewFrameComposited()
@@ -339,7 +345,7 @@ void AppStage_Compositor::onCompositorConfigChangedEvent(const std::string& conf
 {
 	if (m_frameCompositor->applyLayerPreset(configName))
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
@@ -349,7 +355,7 @@ void AppStage_Compositor::onMaterialNameChangeEvent(
 {
 	if (m_frameCompositor->setLayerMaterialName(layerIndex, materialName))
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
@@ -365,6 +371,44 @@ void AppStage_Compositor::onBlendModeChangedEvent(
 	eCompositorBlendMode blendMode)
 {
 	m_frameCompositor->setLayerBlendMode(layerIndex, blendMode);
+}
+
+void AppStage_Compositor::onInvertQuadsFlagChangeEvent(const int layerIndex, bool bInvertFlag)
+{
+	m_frameCompositor->setInvertQuadsWhenCameraInside(layerIndex, bInvertFlag);
+}
+
+void AppStage_Compositor::onQuadStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode)
+{
+	m_frameCompositor->setQuadStencilMode(layerIndex, stencilMode);
+}
+
+void AppStage_Compositor::onBoxStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode)
+{
+	m_frameCompositor->setBoxStencilMode(layerIndex, stencilMode);
+}
+
+void AppStage_Compositor::onModelStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode)
+{
+	m_frameCompositor->setModelStencilMode(layerIndex, stencilMode);
+}
+
+void AppStage_Compositor::onStencilRefAddedEvent(const int layerIndex, int stencilId)
+{
+	eStencilType stencilType= m_profile->getStencilType(stencilId);
+	if (m_frameCompositor->addLayerStencilRef(layerIndex, stencilType, stencilId))
+	{
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+	}
+}
+
+void AppStage_Compositor::onStencilRefRemovedEvent(const int layerIndex, int stencilId)
+{
+	eStencilType stencilType = m_profile->getStencilType(stencilId);
+	if (m_frameCompositor->removeLayerStencilRef(layerIndex, stencilType, stencilId))
+	{
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+	}
 }
 
 void AppStage_Compositor::onFloatMappingChangedEvent(

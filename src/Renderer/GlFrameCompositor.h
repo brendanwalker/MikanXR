@@ -5,6 +5,7 @@
 #include "NamedValueTable.h"
 #include "GlFrameCompositorConfig.h"
 #include "FrameCompositorConstants.h"
+#include "ProfileConfigConstants.h"
 
 #include <filesystem>
 #include <memory>
@@ -103,6 +104,12 @@ public:
 	bool setLayerMaterialName(const int layerIndex, const std::string& materialName);
 	void setIsLayerVerticalFlipped(const int layerIndex, bool bIsFlipped);
 	void setLayerBlendMode(const int layerIndex, eCompositorBlendMode blendMode);
+	void setInvertQuadsWhenCameraInside(const int layerIndex, bool invertFlag);
+	void setQuadStencilMode(const int layerIndex, eCompositorStencilMode stencilMode);
+	void setBoxStencilMode(const int layerIndex, eCompositorStencilMode stencilMode);
+	void setModelStencilMode(const int layerIndex, eCompositorStencilMode stencilMode);
+	bool addLayerStencilRef(const int layerIndex, const eStencilType stencilType, const MikanStencilID stencilId);
+	bool removeLayerStencilRef(const int layerIndex, const eStencilType stencilType, const MikanStencilID stencilId);
 
 	void setFloatMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void setFloat2Mapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);

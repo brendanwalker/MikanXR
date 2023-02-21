@@ -47,6 +47,12 @@ protected:
 	void onMaterialNameChangeEvent(const int layerIndex, const std::string& materialName);
 	void onVerticalFlipChangedEvent(const int layerIndex, bool bIsFlipped);
 	void onBlendModeChangedEvent(const int layerIndex, eCompositorBlendMode blendMode);
+	void onInvertQuadsFlagChangeEvent(const int layerIndex, bool bInvertFlag);
+	void onQuadStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
+	void onBoxStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
+	void onModelStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
+	void onStencilRefAddedEvent(const int layerIndex, int stencilId);
+	void onStencilRefRemovedEvent(const int layerIndex, int stencilId);
 	void onFloatMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onFloat2MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onFloat3MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);

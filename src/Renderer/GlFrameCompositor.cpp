@@ -608,6 +608,125 @@ void GlFrameCompositor::setLayerBlendMode(
 	}
 }
 
+void GlFrameCompositor::setInvertQuadsWhenCameraInside(
+	const int layerIndex,
+	bool invertFlag)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig != nullptr &&
+		layerConfig->quadStencilConfig.bInvertWhenCameraInside != invertFlag)
+	{
+		layerConfig->quadStencilConfig.bInvertWhenCameraInside = invertFlag;
+		saveCurrentPresetConfig();
+	}
+}
+
+void GlFrameCompositor::setQuadStencilMode(const int layerIndex, eCompositorStencilMode stencilMode)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig != nullptr &&
+		layerConfig->quadStencilConfig.stencilMode != stencilMode)
+	{
+		layerConfig->quadStencilConfig.stencilMode = stencilMode;
+		saveCurrentPresetConfig();
+	}
+}
+
+void GlFrameCompositor::setBoxStencilMode(const int layerIndex, eCompositorStencilMode stencilMode)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig != nullptr &&
+		layerConfig->boxStencilConfig.stencilMode != stencilMode)
+	{
+		layerConfig->boxStencilConfig.stencilMode = stencilMode;
+		saveCurrentPresetConfig();
+	}
+}
+
+void GlFrameCompositor::setModelStencilMode(const int layerIndex, eCompositorStencilMode stencilMode)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig != nullptr &&
+		layerConfig->modelStencilConfig.stencilMode != stencilMode)
+	{
+		layerConfig->modelStencilConfig.stencilMode = stencilMode;
+		saveCurrentPresetConfig();
+	}
+}
+
+bool GlFrameCompositor::addLayerStencilRef(
+	const int layerIndex, 
+	const eStencilType stencilType, 
+	const MikanStencilID stencilId)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig == nullptr)
+		return false;
+
+	std::vector<int>* stencilIds= nullptr;
+	switch (stencilType)
+	{
+		case eStencilType::quad:
+			stencilIds= &layerConfig->quadStencilConfig.quadStencilIds;
+			break;
+		case eStencilType::box:
+			stencilIds= &layerConfig->boxStencilConfig.boxStencilIds;
+			break;
+		case eStencilType::model:
+			stencilIds= &layerConfig->modelStencilConfig.modelStencilIds;
+			break;
+	}
+
+	if (stencilIds != nullptr)
+	{
+		if (std::find(stencilIds->begin(), stencilIds->end(), stencilId) == stencilIds->end())
+		{
+			stencilIds->push_back(stencilId);
+			saveCurrentPresetConfig();
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool GlFrameCompositor::removeLayerStencilRef(
+	const int layerIndex, 
+	const eStencilType stencilType,
+	const MikanStencilID stencilId)
+{
+	CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfigMutable(layerIndex);
+	if (layerConfig == nullptr)
+		return false;
+
+	std::vector<int>* stencilIds = nullptr;
+	switch (stencilType)
+	{
+		case eStencilType::quad:
+			stencilIds = &layerConfig->quadStencilConfig.quadStencilIds;
+			break;
+		case eStencilType::box:
+			stencilIds = &layerConfig->boxStencilConfig.boxStencilIds;
+			break;
+		case eStencilType::model:
+			stencilIds = &layerConfig->modelStencilConfig.modelStencilIds;
+			break;
+	}
+
+	if (stencilIds != nullptr)
+	{
+		auto it = std::find(stencilIds->begin(), stencilIds->end(), stencilId);
+		if (it != stencilIds->end())
+		{
+			stencilIds->erase(it);
+			saveCurrentPresetConfig();
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void GlFrameCompositor::setFloatMapping(
 	const int layerIndex,
 	const std::string& uniformName,
@@ -1088,7 +1207,7 @@ void GlFrameCompositor::updateQuadStencils(
 
 	std::vector<const MikanStencilQuad*> quadStencilList;
 	MikanServer::getInstance()->getRelevantQuadStencilList(
-		&stencilConfig.quadStencilNames,
+		&stencilConfig.quadStencilIds,
 		cameraPosition, 
 		cameraForward, 
 		quadStencilList);
@@ -1210,7 +1329,7 @@ void GlFrameCompositor::updateBoxStencils(
 
 	std::vector<const MikanStencilBox*> boxStencilList;
 	MikanServer::getInstance()->getRelevantBoxStencilList(
-		&stencilConfig.boxStencilNames,
+		&stencilConfig.boxStencilIds,
 		cameraPosition, 
 		cameraForward, 
 		boxStencilList);
@@ -1289,7 +1408,7 @@ void GlFrameCompositor::updateModelStencils(
 
 	std::vector<const MikanStencilModelConfig*> modelStencilList;
 	MikanServer::getInstance()->getRelevantModelStencilList(
-		&stencilConfig.modelStencilNames,
+		&stencilConfig.modelStencilIds,
 		modelStencilList);
 
 	if (modelStencilList.size() == 0)

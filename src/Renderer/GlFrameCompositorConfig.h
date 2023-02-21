@@ -33,7 +33,7 @@ struct CompositorQuadStencilLayerConfig
 
 	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
 	bool bInvertWhenCameraInside = false;
-	std::vector<std::string> quadStencilNames;
+	std::vector<int> quadStencilIds;
 };
 
 struct CompositorBoxStencilLayerConfig
@@ -42,7 +42,7 @@ struct CompositorBoxStencilLayerConfig
 	void readFromJSON(const configuru::Config& pt);
 
 	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
-	std::vector<std::string> boxStencilNames;
+	std::vector<int> boxStencilIds;
 };
 
 struct CompositorModelStencilLayerConfig
@@ -51,7 +51,7 @@ struct CompositorModelStencilLayerConfig
 	void readFromJSON(const configuru::Config& pt);
 
 	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
-	std::vector<std::string> modelStencilNames;
+	std::vector<int> modelStencilIds;
 };
 
 struct CompositorLayerConfig

@@ -19,12 +19,6 @@
 #define DEFAULT_PUCK_VERTICAL_OFFSET_MM  89
 #define DEFAULT_PUCK_DEPTH_OFFSET_MM  0
 
-const std::string g_patternTypeStrings[(int)eCalibrationPatternType::COUNT] = {
-	"chessboard",
-	"circlegrid"
-};
-const std::string* k_patternTypeStrings = g_patternTypeStrings;
-
 // -- WMF Stereo Tracker Config
 ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
@@ -66,7 +60,7 @@ const configuru::Config ProfileConfig::writeToJSON()
 {
 	configuru::Config pt{
 		// Pattern Defaults
-		{"calibrationPatternType", g_patternTypeStrings[(int)eCalibrationPatternType::mode_chessboard]},
+		{"calibrationPatternType", k_patternTypeStrings[(int)eCalibrationPatternType::mode_chessboard]},
 		{"chessbordRows", chessbordRows},
 		{"chessbordCols", chessbordCols},
 		{"squareLengthMM", squareLengthMM},
@@ -188,7 +182,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	const std::string patternString =
 		pt.get_or<std::string>(
 			"calibrationPatternType",
-			g_patternTypeStrings[(int)eCalibrationPatternType::mode_chessboard]);
+			k_patternTypeStrings[(int)eCalibrationPatternType::mode_chessboard]);
 	calibrationPatternType = 
 		StringUtils::FindEnumValue<eCalibrationPatternType>(
 			patternString, 
@@ -542,7 +536,7 @@ bool ProfileConfig::removeStencil(MikanStencilID stencilId)
 		}
 	}
 
-	// Then try model stencil list first
+	// Then try model stencil list last
 	{
 		auto it = std::find_if(
 			modelStencilList.begin(), modelStencilList.end(),
@@ -555,6 +549,105 @@ bool ProfileConfig::removeStencil(MikanStencilID stencilId)
 			modelStencilList.erase(it);
 			save();
 
+			return true;
+		}
+	}
+
+
+	return false;
+}
+
+eStencilType ProfileConfig::getStencilType(MikanStencilID stencilId) const
+{
+	// Try quad stencil list first
+	{
+		auto it = std::find_if(
+			quadStencilList.begin(), quadStencilList.end(),
+			[stencilId](const MikanStencilQuad& q) {
+			return q.stencil_id == stencilId;
+		});
+
+		if (it != quadStencilList.end())
+		{
+			return eStencilType::quad;
+		}
+	}
+
+	// Then try the box stencil list
+	{
+		auto it = std::find_if(
+			boxStencilList.begin(), boxStencilList.end(),
+			[stencilId](const MikanStencilBox& b) {
+			return b.stencil_id == stencilId;
+		});
+
+		if (it != boxStencilList.end())
+		{
+			return eStencilType::box;
+		}
+	}
+
+	// Then try model stencil list last
+	{
+		auto it = std::find_if(
+			modelStencilList.begin(), modelStencilList.end(),
+			[stencilId](const MikanStencilModelConfig& m) {
+			return m.modelInfo.stencil_id == stencilId;
+		});
+
+		if (it != modelStencilList.end())
+		{
+			return eStencilType::model;
+		}
+	}
+
+
+	return eStencilType::INVALID;
+}
+
+bool ProfileConfig::getStencilName(MikanStencilID stencilId, std::string& outStencilName) const
+{
+	// Try quad stencil list first
+	{
+		auto it = std::find_if(
+			quadStencilList.begin(), quadStencilList.end(),
+			[stencilId](const MikanStencilQuad& q) {
+			return q.stencil_id == stencilId;
+		});
+
+		if (it != quadStencilList.end())
+		{
+			outStencilName= it->stencil_name;
+			return true;
+		}
+	}
+
+	// Then try the box stencil list
+	{
+		auto it = std::find_if(
+			boxStencilList.begin(), boxStencilList.end(),
+			[stencilId](const MikanStencilBox& b) {
+			return b.stencil_id == stencilId;
+		});
+
+		if (it != boxStencilList.end())
+		{
+			outStencilName= it->stencil_name;
+			return true;
+		}
+	}
+
+	// Then try model stencil list last
+	{
+		auto it = std::find_if(
+			modelStencilList.begin(), modelStencilList.end(),
+			[stencilId](const MikanStencilModelConfig& m) {
+			return m.modelInfo.stencil_id == stencilId;
+		});
+
+		if (it != modelStencilList.end())
+		{
+			outStencilName= it->modelInfo.stencil_name;
 			return true;
 		}
 	}

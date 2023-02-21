@@ -2,6 +2,7 @@
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
+#include "ProfileConfig.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -15,7 +16,8 @@ bool RmlModel_CompositorLayers::s_bHasRegisteredTypes= false;
 
 bool RmlModel_CompositorLayers::init(
 	Rml::Context* rmlContext,
-	const GlFrameCompositor* compositor)
+	const GlFrameCompositor* compositor,
+	const ProfileConfig* profile)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_layers");
@@ -35,7 +37,7 @@ bool RmlModel_CompositorLayers::init(
 		// One time registration for an array of compositor clients.
 		constructor.RegisterArray<decltype(m_compositorClients)>();
 
-		// One time registration for layer data source struct.
+		// One time registration for layer data source mapping struct.
 		if (auto data_source_model_handle = constructor.RegisterStruct<RmlModel_LayerDataSourceMapping>())
 		{
 			data_source_model_handle.RegisterMember("uniform_name", &RmlModel_LayerDataSourceMapping::uniform_name);
@@ -44,6 +46,16 @@ bool RmlModel_CompositorLayers::init(
 
 		// One time registration for an array of layer data source mappings.
 		constructor.RegisterArray<Rml::Vector<RmlModel_LayerDataSourceMapping>>();
+		
+		// One time registration for layer stencil flag struct.
+		if (auto data_source_model_handle = constructor.RegisterStruct<RmlModel_LayerStencilFlag>())
+		{
+			data_source_model_handle.RegisterMember("stencil_id", &RmlModel_LayerStencilFlag::stencil_id);
+			data_source_model_handle.RegisterMember("stencil_enabled", &RmlModel_LayerStencilFlag::stencil_enabled);
+		}
+
+		// One time registration for an array of layer stencil flags.
+		constructor.RegisterArray<Rml::Vector<RmlModel_LayerStencilFlag>>();
 
 		// One time registration for compositor layer struct.
 		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorLayer>())
@@ -58,6 +70,13 @@ bool RmlModel_CompositorLayers::init(
 			layer_model_handle.RegisterMember("float4_mappings", &RmlModel_CompositorLayer::float4_mappings);
 			layer_model_handle.RegisterMember("mat4_mappings", &RmlModel_CompositorLayer::mat4_mappings);
 			layer_model_handle.RegisterMember("color_texture_mappings", &RmlModel_CompositorLayer::color_texture_mappings);
+			layer_model_handle.RegisterMember("quad_stencil_mode", &RmlModel_CompositorLayer::quad_stencil_mode);
+			layer_model_handle.RegisterMember("quad_stencil_flags", &RmlModel_CompositorLayer::quad_stencil_flags);
+			layer_model_handle.RegisterMember("invert_quads_when_camera_inside", &RmlModel_CompositorLayer::invert_quads_when_camera_inside);
+			layer_model_handle.RegisterMember("box_stencil_mode", &RmlModel_CompositorLayer::box_stencil_mode);
+			layer_model_handle.RegisterMember("box_stencil_flags", &RmlModel_CompositorLayer::box_stencil_flags);
+			layer_model_handle.RegisterMember("model_stencil_mode", &RmlModel_CompositorLayer::model_stencil_mode);
+			layer_model_handle.RegisterMember("model_stencil_flags", &RmlModel_CompositorLayer::model_stencil_flags);
 		}
 
 		// One time registration for an array of compositor layer.
@@ -71,6 +90,7 @@ bool RmlModel_CompositorLayers::init(
 	constructor.Bind("configuration_names", &m_configurationNames);
 	constructor.Bind("material_names", &m_materialNames);
 	constructor.Bind("blend_modes", &m_blendModes);
+	constructor.Bind("stencil_modes", &m_stencilModes);
 	constructor.Bind("clients", &m_compositorClients);
 	constructor.Bind("layers", &m_compositorLayers);
 	constructor.Bind("float_sources", &m_floatSources);
@@ -146,6 +166,58 @@ bool RmlModel_CompositorLayers::init(
 			}
 		});
 	constructor.BindEventCallback(
+		"toggle_invert_quads",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnInvertQuadsFlagChangeEvent)
+			{
+				const int layer_index = (arguments.size() == 1 ? arguments[0].Get<int>() : -1);
+				const std::string value = ev.GetParameter<Rml::String>("value", "");
+				const bool bIsChecked = !value.empty();
+
+				if (layer_index != -1)
+				{
+					OnInvertQuadsFlagChangeEvent(layer_index, bIsChecked);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"update_quad_stencil_mode",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			invokeStencilModeChangeDelegate(model, ev, arguments, OnQuadStencilModeChangeEvent);
+		});
+	constructor.BindEventCallback(
+		"update_box_stencil_mode",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			invokeStencilModeChangeDelegate(model, ev, arguments, OnBoxStencilModeChangeEvent);
+		});
+	constructor.BindEventCallback(
+		"update_model_stencil_mode",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			invokeStencilModeChangeDelegate(model, ev, arguments, OnModelStencilModeChangeEvent);
+		});
+	constructor.BindEventCallback(
+		"toggle_stencil_enabled",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int layer_index = (arguments.size() == 2 ? arguments[0].Get<int>() : -1);
+			const MikanStencilID stencil_id = (arguments.size() == 2 ? arguments[1].Get<int>() : INVALID_MIKAN_ID);
+			const std::string value = ev.GetParameter<Rml::String>("value", "");
+			const bool bIsEnabled = !value.empty();
+
+			if (layer_index != -1 && stencil_id != INVALID_MIKAN_ID)
+			{
+				if (bIsEnabled)
+				{
+					if (OnStencilRefAddedEvent)
+						OnStencilRefAddedEvent(layer_index, stencil_id);
+				}
+				else
+				{
+					if (OnStencilRefRemovedEvent)
+						OnStencilRefRemovedEvent(layer_index, stencil_id);
+				}
+			}
+		});
+	constructor.BindEventCallback(
 		"update_float_mapping",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			invokeMappingChangeDelegate(model, ev, arguments, OnFloatMappingChangedEvent);
@@ -177,9 +249,32 @@ bool RmlModel_CompositorLayers::init(
 		});
 
 	// Set initial values for data model
-	rebuild(compositor);
+	rebuild(compositor, profile);
 
 	return true;
+}
+
+void RmlModel_CompositorLayers::invokeStencilModeChangeDelegate(
+	Rml::DataModelHandle model,
+	Rml::Event& ev,
+	const Rml::VariantList& arguments,
+	StencilModeChangedDelegate& stencilModeChangedDelegate)
+{
+	if (stencilModeChangedDelegate)
+	{
+		const int layer_index = (arguments.size() == 1 ? arguments[0].Get<int>() : -1);
+
+		if (layer_index != -1)
+		{
+			const std::string stencilModeString = ev.GetParameter<Rml::String>("value", "");
+			const eCompositorStencilMode stencilMode =
+				StringUtils::FindEnumValue<eCompositorStencilMode>(
+					stencilModeString,
+					k_compositorStencilModeStrings);
+
+			stencilModeChangedDelegate(layer_index, stencilMode);
+		}
+	}
 }
 
 void RmlModel_CompositorLayers::invokeMappingChangeDelegate(
@@ -206,7 +301,8 @@ void RmlModel_CompositorLayers::dispose()
 }
 
 void RmlModel_CompositorLayers::rebuild(
-	const GlFrameCompositor* compositor)
+	const GlFrameCompositor* compositor,
+	const ProfileConfig* profile)
 {
 	m_currentConfigurationName= compositor->getCurrentPresetName();
 	m_configurationNames= compositor->getPresetNames();
@@ -215,8 +311,17 @@ void RmlModel_CompositorLayers::rebuild(
 	// Fill in blend mode strings
 	size_t blendModeCount = (size_t)eCompositorBlendMode::COUNT;
 	m_blendModes= Rml::Vector<Rml::String>(blendModeCount);
-	std::copy(k_compositorBlendModeStrings, k_compositorBlendModeStrings+blendModeCount, m_blendModes.begin());
-	
+	std::copy(k_compositorBlendModeStrings, 
+			  k_compositorBlendModeStrings+blendModeCount, 
+			  m_blendModes.begin());
+
+	// Fill in stencil mode strings
+	size_t stencilModeCount = (size_t)eCompositorStencilMode::COUNT;
+	m_stencilModes = Rml::Vector<Rml::String>(stencilModeCount);
+	std::copy(k_compositorStencilModeStrings, 
+			  k_compositorStencilModeStrings + stencilModeCount, 
+			  m_stencilModes.begin());	
+
 	// Add float data source names
 	m_floatSources.clear();
 	for (auto it = compositor->getFloatSources().getMap().begin();
@@ -283,6 +388,62 @@ void RmlModel_CompositorLayers::rebuild(
 		uiLayer.layer_index= layer.layerIndex;
 		uiLayer.material_name= materialName;
 		uiLayer.blend_mode= k_compositorBlendModeStrings[(int)layerConfig->blendMode];
+		uiLayer.vertical_flip = layerConfig->verticalFlip;
+
+		// Add quad stencil properties
+		uiLayer.quad_stencil_mode = k_compositorStencilModeStrings[(int)layerConfig->quadStencilConfig.stencilMode];
+		uiLayer.invert_quads_when_camera_inside = layerConfig->quadStencilConfig.bInvertWhenCameraInside;
+		uiLayer.quad_stencil_flags.clear();
+		for (const auto& stencil : profile->quadStencilList)
+		{
+			const auto& enabledStencilIds= layerConfig->quadStencilConfig.quadStencilIds;
+
+			RmlModel_LayerStencilFlag stencilFlag;
+			stencilFlag.stencil_id= stencil.stencil_id;
+			stencilFlag.stencil_enabled= 
+				std::find(
+					enabledStencilIds.begin(),
+					enabledStencilIds.end(),
+					stencil.stencil_id) != enabledStencilIds.end();
+
+			uiLayer.quad_stencil_flags.push_back(stencilFlag);
+		}
+
+		// Add box stencil IDs
+		uiLayer.box_stencil_mode = k_compositorStencilModeStrings[(int)layerConfig->boxStencilConfig.stencilMode];
+		uiLayer.box_stencil_flags.clear();
+		for (const auto& stencil : profile->boxStencilList)
+		{
+			const auto& enabledStencilIds= layerConfig->boxStencilConfig.boxStencilIds;
+
+			RmlModel_LayerStencilFlag stencilFlag;
+			stencilFlag.stencil_id = stencil.stencil_id;
+			stencilFlag.stencil_enabled =
+				std::find(
+					enabledStencilIds.begin(),
+					enabledStencilIds.end(),
+					stencil.stencil_id) != enabledStencilIds.end();
+
+			uiLayer.box_stencil_flags.push_back(stencilFlag);
+		}
+
+		// Add model stencil IDs
+		uiLayer.model_stencil_mode = k_compositorStencilModeStrings[(int)layerConfig->modelStencilConfig.stencilMode];
+		uiLayer.model_stencil_flags.clear();
+		for (const auto& stencil : profile->modelStencilList)
+		{
+			const auto& enabledStencilIds= layerConfig->modelStencilConfig.modelStencilIds;
+			
+			RmlModel_LayerStencilFlag stencilFlag;
+			stencilFlag.stencil_id = stencil.modelInfo.stencil_id;
+			stencilFlag.stencil_enabled =
+				std::find(
+					enabledStencilIds.begin(),
+					enabledStencilIds.end(),
+					stencil.modelInfo.stencil_id) != enabledStencilIds.end();
+
+			uiLayer.model_stencil_flags.push_back(stencilFlag);
+		}
 
 		if (layerMaterial != nullptr)
 		{
@@ -339,8 +500,6 @@ void RmlModel_CompositorLayers::rebuild(
 				program->getUniformNamesOfDataType(eUniformDataType::datatype_texture),
 				(shaderConfig != nullptr) ? &shaderConfig->colorTextureSourceMap : nullptr, 
 				uiLayer.color_texture_mappings);
-
-			uiLayer.vertical_flip = layerConfig->verticalFlip;
 		}
 
 		m_compositorLayers.push_back(uiLayer);

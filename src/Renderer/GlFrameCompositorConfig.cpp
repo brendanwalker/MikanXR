@@ -60,8 +60,8 @@ const configuru::Config CompositorQuadStencilLayerConfig::writeToJSON() const
 		{"bInvertWhenCameraInside", bInvertWhenCameraInside},
 	};
 
-	if (quadStencilNames.size() > 0)
-		CommonConfig::writeStdVector(pt, "quadStencilNames", quadStencilNames);
+	if (quadStencilIds.size() > 0)
+		CommonConfig::writeStdVector(pt, "quadStencilIds", quadStencilIds);
 
 	return pt;
 }
@@ -71,8 +71,8 @@ void CompositorQuadStencilLayerConfig::readFromJSON(const configuru::Config& pt)
 	stencilMode = parseCompositorStencilMode(pt);
 	bInvertWhenCameraInside = pt.get_or<bool>("bInvertWhenCameraInside", bInvertWhenCameraInside);
 
-	if (pt.has_key("quadStencilNames"))
-		CommonConfig::readStdVector(pt, "quadStencilNames", quadStencilNames);
+	if (pt.has_key("quadStencilIds"))
+		CommonConfig::readStdVector(pt, "quadStencilIds", quadStencilIds);
 }
 
 // -- CompositorBoxStencilLayerConfig ------
@@ -82,8 +82,8 @@ const configuru::Config CompositorBoxStencilLayerConfig::writeToJSON() const
 		{"stencilMode", k_compositorStencilModeStrings[(int)stencilMode]},
 	};
 
-	if (boxStencilNames.size() > 0)
-		CommonConfig::writeStdVector(pt, "boxStencilNames", boxStencilNames);
+	if (boxStencilIds.size() > 0)
+		CommonConfig::writeStdVector(pt, "boxStencilIds", boxStencilIds);
 
 	return pt;
 }
@@ -92,8 +92,8 @@ void CompositorBoxStencilLayerConfig::readFromJSON(const configuru::Config& pt)
 {
 	stencilMode = parseCompositorStencilMode(pt);
 
-	if (pt.has_key("boxStencilNames"))
-		CommonConfig::readStdVector(pt, "boxStencilNames", boxStencilNames);
+	if (pt.has_key("boxStencilIds"))
+		CommonConfig::readStdVector(pt, "boxStencilIds", boxStencilIds);
 }
 
 // -- CompositorModelStencilLayerConfig ------
@@ -103,8 +103,8 @@ const configuru::Config CompositorModelStencilLayerConfig::writeToJSON() const
 		{"stencilMode", k_compositorStencilModeStrings[(int)stencilMode]},
 	};
 
-	if (modelStencilNames.size() > 0)
-		CommonConfig::writeStdVector(pt, "modelStencilNames", modelStencilNames);
+	if (modelStencilIds.size() > 0)
+		CommonConfig::writeStdVector(pt, "modelStencilIds", modelStencilIds);
 
 	return pt;
 }
@@ -113,8 +113,8 @@ void CompositorModelStencilLayerConfig::readFromJSON(const configuru::Config& pt
 {
 	stencilMode = parseCompositorStencilMode(pt);
 
-	if (pt.has_key("modelStencilNames"))
-		CommonConfig::readStdVector(pt, "modelStencilNames", modelStencilNames);
+	if (pt.has_key("modelStencilIds"))
+		CommonConfig::readStdVector(pt, "modelStencilIds", modelStencilIds);
 }
 
 // -- CompositorLayerConfig -----
@@ -151,7 +151,7 @@ void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
 	else
 	{
 		quadStencilConfig.bInvertWhenCameraInside= false;
-		quadStencilConfig.quadStencilNames.clear();
+		quadStencilConfig.quadStencilIds.clear();
 		quadStencilConfig.stencilMode = eCompositorStencilMode::insideStencil;
 	}
 
@@ -161,7 +161,7 @@ void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
 	}
 	else
 	{
-		boxStencilConfig.boxStencilNames.clear();
+		boxStencilConfig.boxStencilIds.clear();
 		boxStencilConfig.stencilMode = eCompositorStencilMode::insideStencil;
 	}
 
@@ -171,7 +171,7 @@ void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
 	}
 	else
 	{
-		modelStencilConfig.modelStencilNames.clear();
+		modelStencilConfig.modelStencilIds.clear();
 		modelStencilConfig.stencilMode = eCompositorStencilMode::insideStencil;
 	}
 }

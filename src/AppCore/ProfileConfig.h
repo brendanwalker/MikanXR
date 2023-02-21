@@ -2,18 +2,7 @@
 
 // -- includes -----
 #include "CommonConfig.h"
-
-// -- Constants ----
-enum class eCalibrationPatternType : int
-{
-	INVALID= -1,
-
-	mode_chessboard,
-	mode_circlegrid,
-
-	COUNT
-};
-extern const std::string* k_patternTypeStrings;
+#include "ProfileConfigConstants.h"
 
 struct MikanStencilModelConfig
 {
@@ -40,6 +29,8 @@ public:
 
 	bool canAddStencil() const;
 	bool removeStencil(MikanStencilID stencilId);
+	eStencilType getStencilType(MikanStencilID stencilId) const;
+	bool getStencilName(MikanStencilID stencilId, std::string& outStencilName) const;
 
 	bool getQuadStencilInfo(MikanStencilID stencilId, MikanStencilQuad& outInfo) const;
 	glm::mat4 getQuadStencilWorldTransform(const MikanStencilQuad* stencil) const;

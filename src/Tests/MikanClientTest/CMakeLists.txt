@@ -10,6 +10,8 @@ file(GLOB MIKAN_TEST_SRC
     "${ROOT_DIR}/src/Renderer/GlCommon.cpp"
     "${ROOT_DIR}/src/Renderer/GlProgram.h"
     "${ROOT_DIR}/src/Renderer/GlProgram.cpp"
+    "${ROOT_DIR}/src/Renderer/GlProgramConstants.h"
+    "${ROOT_DIR}/src/Renderer/GlProgramConstants.cpp"
     "${ROOT_DIR}/src/Renderer/GlTexture.h"
     "${ROOT_DIR}/src/Renderer/GlTexture.cpp"
 )

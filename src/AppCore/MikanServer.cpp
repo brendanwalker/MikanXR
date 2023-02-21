@@ -455,7 +455,7 @@ void MikanServer::getConnectedClientInfoList(std::vector<MikanClientConnectionIn
 }
 
 void MikanServer::getRelevantQuadStencilList(
-	const std::vector<std::string>* allowedStencilNames,
+	const std::vector<MikanStencilID>* allowedStencilIds,
 	const glm::vec3& cameraPosition,
 	const glm::vec3& cameraForward,
 	std::vector<const MikanStencilQuad*>& outStencilList) const
@@ -469,12 +469,12 @@ void MikanServer::getRelevantQuadStencilList(
 			continue;
 
 		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilNames != nullptr && allowedStencilNames->size() > 0)
+		if (allowedStencilIds != nullptr)
 		{
 			if (std::find(
-					allowedStencilNames->begin(), allowedStencilNames->end(), 
-					stencil.stencil_name) 
-				== allowedStencilNames->end())
+					allowedStencilIds->begin(), allowedStencilIds->end(), 
+					stencil.stencil_id) 
+				== allowedStencilIds->end())
 			{
 				continue;
 			}
@@ -498,7 +498,7 @@ void MikanServer::getRelevantQuadStencilList(
 }
 
 void MikanServer::getRelevantBoxStencilList(
-	const std::vector<std::string>* allowedStencilNames,
+	const std::vector<MikanStencilID>* allowedStencilIds,
 	const glm::vec3& cameraPosition,
 	const glm::vec3& cameraForward,
 	std::vector<const MikanStencilBox*>& outStencilList) const
@@ -512,12 +512,12 @@ void MikanServer::getRelevantBoxStencilList(
 			continue;
 
 		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilNames != nullptr && allowedStencilNames->size() > 0)
+		if (allowedStencilIds != nullptr)
 		{
 			if (std::find(
-				allowedStencilNames->begin(), allowedStencilNames->end(),
-				stencil.stencil_name)
-				== allowedStencilNames->end())
+				allowedStencilIds->begin(), allowedStencilIds->end(),
+				stencil.stencil_id)
+				== allowedStencilIds->end())
 			{
 				continue;
 			}
@@ -546,7 +546,7 @@ void MikanServer::getRelevantBoxStencilList(
 }
 
 void MikanServer::getRelevantModelStencilList(
-	const std::vector<std::string>* allowedStencilNames,
+	const std::vector<MikanStencilID>* allowedStencilIds,
 	std::vector<const MikanStencilModelConfig*>& outStencilList) const
 {
 	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
@@ -561,12 +561,12 @@ void MikanServer::getRelevantModelStencilList(
 			continue;
 
 		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilNames != nullptr && allowedStencilNames->size() > 0)
+		if (allowedStencilIds != nullptr)
 		{
 			if (std::find(
-				allowedStencilNames->begin(), allowedStencilNames->end(),
-				stencil.modelInfo.stencil_name)
-				== allowedStencilNames->end())
+				allowedStencilIds->begin(), allowedStencilIds->end(),
+				stencil.modelInfo.stencil_id)
+				== allowedStencilIds->end())
 			{
 				continue;
 			}

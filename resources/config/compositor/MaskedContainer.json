@@ -38,8 +38,7 @@
 				"stencilMode": "noStencil"
 			},
 			"modelStencilConfig": {
-				"stencilMode":       "insideStencil",
-				"modelStencilNames": [ "containerInteriorMask" ]
+				"stencilMode": "insideStencil"
 			}
 		},
 		{
@@ -61,11 +60,11 @@
 				"bInvertWhenCameraInside": false
 			},
 			"boxStencilConfig":   {
-				"stencilMode": "noStencil"
+				"stencilMode":   "noStencil",
+				"boxStencilIds": [ 25 ]
 			},
 			"modelStencilConfig": {
-				"stencilMode":       "insideStencil",
-				"modelStencilNames": [ "containerExteriorMask" ]
+				"stencilMode": "insideStencil"
 			}
 		}
 	],
