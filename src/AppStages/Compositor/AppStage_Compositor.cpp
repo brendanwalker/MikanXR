@@ -8,6 +8,7 @@
 #include "Compositor/RmlModel_CompositorModels.h"
 #include "Compositor/RmlModel_CompositorRecording.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
+#include "Compositor/RmlModel_CompositorSources.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
@@ -51,6 +52,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorModelsModel(new RmlModel_CompositorModels)
 	, m_compositorRecordingModel(new RmlModel_CompositorRecording)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
+	, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_scriptContext(new CompositorScriptContext)
 	, m_videoWriter(new VideoWriter)
 {
@@ -65,6 +67,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorModelsModel;
 	delete m_compositorRecordingModel;
 	delete m_compositorScriptingModel;
+	delete m_compositorSourcesModel;
 	delete m_scriptContext;
 	delete m_videoWriter;
 }
@@ -114,6 +117,7 @@ void AppStage_Compositor::enter()
 		m_compositorModel->OnToggleQuadStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleQuadStencilsWindowEvent);
 		m_compositorModel->OnToggleBoxStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleBoxStencilsWindowEvent);
 		m_compositorModel->OnToggleModelStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleModelStencilsWindowEvent);
+		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesWindowEvent);
 		m_compositiorView = addRmlDocument("rml\\compositor.rml");
 
 		// Init Layers UI
@@ -134,7 +138,6 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->OnFloat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat4MappingChangedEvent);
 		m_compositorLayersModel->OnMat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onMat4MappingChangedEvent);
 		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
-		m_compositorLayersModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
 		m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
 		m_compositiorLayersView->Show();
 
@@ -176,12 +179,18 @@ void AppStage_Compositor::enter()
 		m_compositorScriptingModel->OnInvokeScriptTriggerEvent = MakeDelegate(this, &AppStage_Compositor::onInvokeScriptTriggerEvent);
 		m_compositiorScriptingView = addRmlDocument("rml\\compositor_scripting.rml");
 		m_compositiorScriptingView->Hide();
+
+		// Init Sources UI
+		m_compositorSourcesModel->init(context, m_frameCompositor);
+		m_compositorSourcesModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
+		m_compositiorSourcesView = addRmlDocument("rml\\compositor_sources.rml");
+		m_compositiorSourcesView->Hide();
 	}
 }
 
 void AppStage_Compositor::exit()
 {
-		m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
+	m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
 	m_compositorLayersModel->dispose();
 	m_compositorBoxesModel->dispose();
@@ -190,6 +199,7 @@ void AppStage_Compositor::exit()
 	m_compositorRecordingModel->dispose();
 	m_compositorScriptingModel->dispose();
 	m_compositorModel->dispose();
+	m_compositorSourcesModel->dispose();
 
 	m_frameCompositor->stop();
 	App::getInstance()->getRenderer()->popCamera();
@@ -210,6 +220,9 @@ void AppStage_Compositor::update()
 
 	// tick the compositor lua script (if any is active)
 	m_scriptContext->updateScript();
+
+	// Update the sources model now that the app stage has updated
+	m_compositorSourcesModel->update();
 }
 
 bool AppStage_Compositor::startRecording()
@@ -338,6 +351,12 @@ void AppStage_Compositor::onToggleModelStencilsWindowEvent()
 {
 	hideAllSubWindows();
 	if (m_compositiorModelsView) m_compositiorModelsView->Show();
+}
+
+void AppStage_Compositor::onToggleSourcesWindowEvent()
+{
+	hideAllSubWindows();
+	if (m_compositiorSourcesView) m_compositiorSourcesView->Show();
 }
 
 // Compositor Layers UI Events
@@ -481,6 +500,7 @@ void AppStage_Compositor::hideAllSubWindows()
 	if (m_compositiorModelsView) m_compositiorModelsView->Hide();
 	if (m_compositiorRecordingView) m_compositiorRecordingView->Hide();
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Hide();
+	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
 }
 
 

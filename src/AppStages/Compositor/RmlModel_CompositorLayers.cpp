@@ -102,15 +102,6 @@ bool RmlModel_CompositorLayers::init(
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
-		"screenshot",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int listIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnScreenshotClientSourceEvent && listIndex >= 0)
-			{
-				OnScreenshotClientSourceEvent(m_compositorClients[listIndex].client_id);
-			}
-		});
-	constructor.BindEventCallback(
 		"set_configuration",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const std::string configurationName = ev.GetParameter<Rml::String>("value", "");
@@ -296,7 +287,6 @@ void RmlModel_CompositorLayers::invokeMappingChangeDelegate(
 void RmlModel_CompositorLayers::dispose()
 {
 	OnCompositorConfigChangedEvent.Clear();
-	OnScreenshotClientSourceEvent.Clear();
 	RmlModel::dispose();
 }
 

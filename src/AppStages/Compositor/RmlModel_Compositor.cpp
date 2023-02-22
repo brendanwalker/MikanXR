@@ -50,6 +50,11 @@ bool RmlModel_Compositor::init(
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			if (OnToggleModelStencilsEvent) OnToggleModelStencilsEvent();
 		});
+	constructor.BindEventCallback(
+		"toggle_sources",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+		if (OnToggleSourcesEvent) OnToggleSourcesEvent();
+	});
 
 	// Set defaults
 
@@ -65,5 +70,6 @@ void RmlModel_Compositor::dispose()
 	OnToggleQuadStencilsEvent.Clear();
 	OnToggleBoxStencilsEvent.Clear();
 	OnToggleModelStencilsEvent.Clear();
+	OnToggleSourcesEvent.Clear();
 	RmlModel::dispose();
 }

@@ -167,18 +167,6 @@
             <div data-if="layers.size == 0">
                 <label>No layers</label>
             </div>
-            <br/>  
-            <h2>Clients</h2>
-			<div class="picker" data-if="layers.size > 0">
-				<div data-for="client : clients">
-                    <label>Client #{{it_index}}: {{client.app_name}}</label>
-                    <br/>    
-                    <button data-event-click="screenshot(it_index)">Screenshot</button>
-				</div>        
-            </div>
-            <div data-if="clients.size == 0">
-                <label>No connected clients</label>
-            </div>            
         </panel>
     </body>
 </rml>

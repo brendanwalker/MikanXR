@@ -28,6 +28,7 @@
                 <button style="width: 150dp" data-event-click="toggle_quad_stencils">Quad Stencils</button>
                 <button style="width: 150dp" data-event-click="toggle_box_stencils">Box Stencils</button>
                 <button style="width: 150dp" data-event-click="toggle_model_stencils">Model Stencils</button>
+                <button style="width: 150dp" data-event-click="toggle_sources">Sources</button>
             </span>
         </panel>
     </body>

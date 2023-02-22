@@ -53,7 +53,6 @@ public:
 	virtual void dispose() override;
 
 	SinglecastDelegate<void(const Rml::String& configName)> OnCompositorConfigChangedEvent;
-	SinglecastDelegate<void(const Rml::String& clientSourceName)> OnScreenshotClientSourceEvent;
 	SinglecastDelegate<void(const int layerIndex, const Rml::String& materialName)> OnMaterialNameChangeEvent;
 	SinglecastDelegate<void(const int layerIndex, bool bFlipFlag)> OnVerticalFlipChangeEvent;
 	SinglecastDelegate<void(const int layerIndex, eCompositorBlendMode blendMode)> OnBlendModeChangeEvent;

@@ -16,6 +16,7 @@ public:
 	SinglecastDelegate<void()> OnToggleQuadStencilsEvent;
 	SinglecastDelegate<void()> OnToggleBoxStencilsEvent;
 	SinglecastDelegate<void()> OnToggleModelStencilsEvent;
+	SinglecastDelegate<void()> OnToggleSourcesEvent;
 
 private:
 };

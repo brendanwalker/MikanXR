@@ -30,11 +30,6 @@
 
 #include <easy/profiler.h>
 
-#define DEFAULT_COMPOSITOR_CONFIG_NAME	"Alpha Channel"
-#define STENCIL_MVP_UNIFORM_NAME		"mvpMatrix"
-#define MAX_CLIENT_SOURCES				8
-#define EMPTY_SOURCE_NAME				"empty"
-
 // -- GlFrameCompositor ------
 GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
 

@@ -40,6 +40,7 @@ protected:
 	void onToggleQuadStencilsWindowEvent();
 	void onToggleBoxStencilsWindowEvent();
 	void onToggleModelStencilsWindowEvent();
+	void onToggleSourcesWindowEvent();
 	void hideAllSubWindows();
 
 	// Layers UI Events
@@ -111,6 +112,9 @@ protected:
 
 	class RmlModel_CompositorScripting* m_compositorScriptingModel = nullptr;
 	Rml::ElementDocument* m_compositiorScriptingView = nullptr;
+
+	class RmlModel_CompositorSources* m_compositorSourcesModel = nullptr;
+	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
 
 	class CompositorScriptContext* m_scriptContext= nullptr;
 	class GlFrameCompositor* m_frameCompositor= nullptr;
