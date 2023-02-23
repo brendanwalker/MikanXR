@@ -4,12 +4,6 @@
 #include "SinglecastDelegate.h"
 #include "FrameCompositorConstants.h"
 
-struct RmlModel_CompositorClient
-{
-	Rml::String client_id;
-	Rml::String app_name;
-};
-
 struct RmlModel_LayerDataSourceMapping
 {
 	Rml::String uniform_name;
@@ -52,7 +46,14 @@ public:
 		const class ProfileConfig* profile);
 	virtual void dispose() override;
 
-	SinglecastDelegate<void(const Rml::String& configName)> OnCompositorConfigChangedEvent;
+	SinglecastDelegate<void()> OnConfigAddEvent;
+	SinglecastDelegate<void()> OnConfigDeleteEvent;
+	SinglecastDelegate<void(const Rml::String& newConfigName)> OnConfigNameChangeEvent;
+	SinglecastDelegate<void(const Rml::String& configName)> OnConfigSelectEvent;
+
+	SinglecastDelegate<void()> OnLayerAddEvent;
+	SinglecastDelegate<void(const int layerIndex)> OnLayerDeleteEvent;
+
 	SinglecastDelegate<void(const int layerIndex, const Rml::String& materialName)> OnMaterialNameChangeEvent;
 	SinglecastDelegate<void(const int layerIndex, bool bFlipFlag)> OnVerticalFlipChangeEvent;
 	SinglecastDelegate<void(const int layerIndex, eCompositorBlendMode blendMode)> OnBlendModeChangeEvent;
@@ -89,11 +90,11 @@ public:
 
 private:
 	Rml::String m_currentConfigurationName;
+	bool m_bIsBuiltInConfiguration;
 	Rml::Vector<Rml::String> m_configurationNames;
 	Rml::Vector<Rml::String> m_materialNames;
 	Rml::Vector<Rml::String> m_blendModes;
 	Rml::Vector<Rml::String> m_stencilModes;
-	Rml::Vector<RmlModel_CompositorClient> m_compositorClients;
 	Rml::Vector<RmlModel_CompositorLayer> m_compositorLayers;
 	Rml::Vector<Rml::String> m_floatSources;
 	Rml::Vector<Rml::String> m_float2Sources;

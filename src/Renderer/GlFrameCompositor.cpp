@@ -97,7 +97,7 @@ bool GlFrameCompositor::startup()
 	if (m_config.presetName.empty())
 	{
 		// If no preset name is set, try the default one
-		applyLayerPreset(DEFAULT_COMPOSITOR_CONFIG_NAME);
+		selectPreset(DEFAULT_COMPOSITOR_CONFIG_NAME);
 	}
 	else
 	{
@@ -139,18 +139,25 @@ void GlFrameCompositor::shutdown()
 	m_materialSources.clear();
 }
 
+std::filesystem::path GlFrameCompositor::getCompositorPresetPath() const
+{
+	std::filesystem::path compositorPresetDir = PathUtils::getResourceDirectory();
+	compositorPresetDir /= "config";
+	compositorPresetDir /= "compositor";
+
+	return compositorPresetDir;
+}
+
 void GlFrameCompositor::reloadAllCompositorPresets()
 {
-	std::filesystem::path compositorShaderDir = PathUtils::getResourceDirectory();
-	compositorShaderDir /= "config";
-	compositorShaderDir /= "compositor";
+	std::filesystem::path compositorPresetDir = getCompositorPresetPath();
 
 	clearAllCompositorConfigurations();
 
-	std::vector<std::string> configFileNames = PathUtils::listFiles(compositorShaderDir.string(), "json");
+	std::vector<std::string> configFileNames = PathUtils::listFiles(compositorPresetDir.string(), "json");
 	for (const auto& configFileName : configFileNames)
 	{
-		std::filesystem::path configFilePath = compositorShaderDir;
+		std::filesystem::path configFilePath = compositorPresetDir;
 		configFilePath /= configFileName;
 
 		CompositorPreset* compositorPreset = new CompositorPreset;
@@ -207,6 +214,136 @@ const CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfig(int 
 CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfigMutable(int layerIndex)
 {
 	return const_cast<CompositorLayerConfig*>(getCurrentPresetLayerConfig(layerIndex));
+}
+
+bool GlFrameCompositor::addNewPreset()
+{
+	int nextId= m_config.nextPresetId;
+	m_config.nextPresetId++;
+
+	char szPresetName[64];
+	StringUtils::formatString(szPresetName, sizeof(szPresetName), "CompositorPreset%d", nextId);
+
+	const std::filesystem::path compositorPresetDir = getCompositorPresetPath();
+	std::filesystem::path compositorPresetPath = compositorPresetDir;
+	compositorPresetPath /= szPresetName;
+	compositorPresetPath.replace_extension("json");
+
+	CompositorPreset* newPreset = new CompositorPreset(szPresetName);
+	newPreset->name= szPresetName;
+
+	// Add a single default layer to render the video
+	if (m_materialSources.hasValue(DEFAULT_COMPOSITOR_VIDEO_MATERIAL_NAME))
+	{
+		CompositorLayerConfig layerConfig= {};
+		
+		layerConfig.verticalFlip= true;
+		layerConfig.blendMode= eCompositorBlendMode::blendOff;
+		layerConfig.shaderConfig.materialName= DEFAULT_COMPOSITOR_VIDEO_MATERIAL_NAME;
+		layerConfig.shaderConfig.colorTextureSourceMap.insert({"distortion", "distortionTexture"});
+		layerConfig.shaderConfig.colorTextureSourceMap.insert({"rgbTexture", "videoTexture"});
+
+		newPreset->layers.push_back(layerConfig);
+	}
+
+	newPreset->save(compositorPresetPath.string());	
+	m_compositorPresets.setValue(szPresetName, newPreset);
+
+	return selectPreset(szPresetName);
+}
+
+bool GlFrameCompositor::deleteCurrentPreset()
+{
+	CompositorPreset* preset = getCurrentPresetConfigMutable();
+	if (preset == nullptr)
+		return false;
+
+	// Not allowed to delete built in presets
+	if (preset->builtIn)
+		return false;
+
+	// Delete the preset config off disk
+	const std::filesystem::path presetPath= preset->getLoadedConfigPath();
+	if (!std::filesystem::remove(presetPath))
+		return false;
+
+	// Clear out the preset from memory
+	m_compositorPresets.removeValue(preset->name);
+	delete preset;
+
+	// Drop back to the default built-in preset
+	return selectPreset(DEFAULT_COMPOSITOR_CONFIG_NAME);
+}
+
+bool GlFrameCompositor::setCurrentPresetName(const std::string& newPresetName)
+{
+	CompositorPreset* preset = getCurrentPresetConfigMutable();
+	if (preset == nullptr)
+		return false;
+
+	// Bail if the name didn't actually change
+	if (preset->name == newPresetName)
+		return false;
+
+	// for built-in presets, say we succeeded, but do nothing so that we refresh the UI back to defaults
+	if (preset->builtIn)
+		return true;
+
+	// Update the current preset name
+	m_compositorPresets.removeValue(preset->name);
+	preset->name= newPresetName;
+	m_config.presetName= newPresetName;
+	m_compositorPresets.setValue(preset->name, preset);
+	saveCurrentPresetConfig();
+
+	return true;
+}
+
+bool GlFrameCompositor::addLayerToCurrentPreset()
+{
+	CompositorPreset* preset = getCurrentPresetConfigMutable();
+	if (preset == nullptr)
+		return false;
+
+	// for built-in presets, say we succeeded, but do nothing so that we refresh the UI back to defaults
+	if (preset->builtIn)
+		return true;
+
+	// Add a default alpha client video layer
+	if (m_materialSources.hasValue(DEFAULT_COMPOSITOR_CLIENT_MATERIAL_NAME))
+	{
+		CompositorLayerConfig layerConfig = {};
+
+		layerConfig.verticalFlip = false;
+		layerConfig.blendMode = eCompositorBlendMode::blendOn;
+		layerConfig.shaderConfig.materialName = DEFAULT_COMPOSITOR_CLIENT_MATERIAL_NAME;
+		layerConfig.shaderConfig.colorTextureSourceMap.insert({"rgbaTexture", "clientRenderTexture_0"});
+
+		preset->layers.push_back(layerConfig);
+	}
+
+	rebuildAllLayerSettings(true);
+
+	return true;
+}
+
+bool GlFrameCompositor::removeLayerFromCurrentPreset(const int layerIndex)
+{
+	CompositorPreset* preset = getCurrentPresetConfigMutable();
+	if (preset == nullptr)
+		return false;
+
+	// for built-in presets, say we succeeded, but do nothing so that we refresh the UI back to defaults
+	if (preset->builtIn)
+		return true;
+
+	if (layerIndex < 0 || layerIndex >= (int)preset->layers.size())
+		return false;
+
+	preset->layers.erase(preset->layers.begin() + layerIndex);
+	rebuildAllLayerSettings(true);
+
+	return true;
 }
 
 void GlFrameCompositor::saveCurrentPresetConfig()
@@ -298,7 +435,7 @@ const std::string& GlFrameCompositor::getCurrentPresetName() const
 	return m_config.presetName;
 }
 
-bool GlFrameCompositor::applyLayerPreset(const std::string& presetName)
+bool GlFrameCompositor::selectPreset(const std::string& presetName)
 {
 	if (presetName == m_config.presetName)
 		return false;

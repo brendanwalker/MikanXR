@@ -1,5 +1,5 @@
 {
-	"layers": [
+	"layers":  [
 		{
 			"verticalFlip":       true,
 			"blendMode":          "blendOff",
@@ -42,5 +42,6 @@
 			}
 		}
 	],
-	"name":   "Alpha Channel"
+	"name":    "Alpha Channel",
+	"builtIn": true
 }

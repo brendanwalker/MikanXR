@@ -54,13 +54,13 @@ bool ModalDialog_Confirm::init(
 	ConfirmCallback acceptCallback,
 	ConfirmCallback rejectCallback)
 {
-	// Set UI properties on the model
-	m_confirmModel->setTitle(title);
-	m_confirmModel->setQuestion(question);
-
 	// Finish model initialization
 	if (!m_confirmModel->init(getRmlContext()))
 		return false;
+
+	// Set UI properties on the model
+	m_confirmModel->setTitle(title);
+	m_confirmModel->setQuestion(question);
 
 	// Bind event delegates to model events
 	m_confirmModel->OnAcceptQuestion = MakeDelegate(this, &ModalDialog_Confirm::onAcceptQuestion);

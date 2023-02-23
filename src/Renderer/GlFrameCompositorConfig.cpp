@@ -189,6 +189,7 @@ const configuru::Config CompositorPreset::writeToJSON()
 	}
 	pt.insert_or_assign(std::string("layers"), layerConfigs);
 	pt["name"] = name;
+	pt["builtIn"]= builtIn;
 
 	return pt;
 }
@@ -197,6 +198,7 @@ void CompositorPreset::readFromJSON(
 	const configuru::Config& pt)
 {
 	name= pt.get_or<std::string>("name", name);
+	builtIn= pt.get_or<bool>("builtIn", builtIn);
 
 	layers.clear();
 	if (pt.has_key("layers"))
@@ -217,6 +219,7 @@ const configuru::Config GlFrameCompositorConfig::writeToJSON()
 	configuru::Config pt = configuru::Config::object();
 
 	pt["presetName"] = presetName;
+	pt["nextPresetId"] = nextPresetId;
 
 	return pt;
 }
@@ -225,4 +228,5 @@ void GlFrameCompositorConfig::readFromJSON(
 	const configuru::Config& pt)
 {
 	presetName = pt.get_or<std::string>("presetName", presetName);
+	nextPresetId = pt.get_or<int>("nextPresetId", nextPresetId);
 }

@@ -44,7 +44,12 @@ protected:
 	void hideAllSubWindows();
 
 	// Layers UI Events
-	void onCompositorConfigChangedEvent(const std::string& configName);
+	void onConfigAddEvent();
+	void onConfigDeleteEvent();
+	void onConfigNameChangeEvent(const std::string& newConfigName);
+	void onConfigSelectEvent(const std::string& configName);
+	void onLayerAddEvent();
+	void onLayerDeleteEvent(const int layerIndex);
 	void onMaterialNameChangeEvent(const int layerIndex, const std::string& materialName);
 	void onVerticalFlipChangedEvent(const int layerIndex, bool bIsFlipped);
 	void onBlendModeChangedEvent(const int layerIndex, eCompositorBlendMode blendMode);

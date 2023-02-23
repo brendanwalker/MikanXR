@@ -27,16 +27,6 @@ bool RmlModel_CompositorLayers::init(
 	// One time data model types registration
 	if (!s_bHasRegisteredTypes)
 	{
-		// One time registration for compositor client struct.
-		if (auto client_model_handle = constructor.RegisterStruct<RmlModel_CompositorClient>())
-		{
-			client_model_handle.RegisterMember("client_id", &RmlModel_CompositorClient::client_id);
-			client_model_handle.RegisterMember("app_name", &RmlModel_CompositorClient::app_name);
-		}
-
-		// One time registration for an array of compositor clients.
-		constructor.RegisterArray<decltype(m_compositorClients)>();
-
 		// One time registration for layer data source mapping struct.
 		if (auto data_source_model_handle = constructor.RegisterStruct<RmlModel_LayerDataSourceMapping>())
 		{
@@ -87,11 +77,11 @@ bool RmlModel_CompositorLayers::init(
 
 	// Register Data Model Fields
 	constructor.Bind("current_configuration", &m_currentConfigurationName);
+	constructor.Bind("is_builtin_configuration", &m_bIsBuiltInConfiguration);
 	constructor.Bind("configuration_names", &m_configurationNames);
 	constructor.Bind("material_names", &m_materialNames);
 	constructor.Bind("blend_modes", &m_blendModes);
 	constructor.Bind("stencil_modes", &m_stencilModes);
-	constructor.Bind("clients", &m_compositorClients);
 	constructor.Bind("layers", &m_compositorLayers);
 	constructor.Bind("float_sources", &m_floatSources);
 	constructor.Bind("float2_sources", &m_float2Sources);
@@ -102,13 +92,50 @@ bool RmlModel_CompositorLayers::init(
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
-		"set_configuration",
+		"add_config",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const std::string configurationName = ev.GetParameter<Rml::String>("value", "");
-
-			if (OnCompositorConfigChangedEvent) 
+			if (OnConfigAddEvent) OnConfigAddEvent();
+		});
+	constructor.BindEventCallback(
+		"delete_config",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnConfigDeleteEvent) OnConfigDeleteEvent();
+		});
+	constructor.BindEventCallback(
+		"modify_config_name",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+		if (OnConfigNameChangeEvent && ev.GetId() == Rml::EventId::Change)
+		{
+			const bool isLineBreak = ev.GetParameter("linebreak", false);
+			const std::string newConfigName = ev.GetParameter<Rml::String>("value", "");
+			if (isLineBreak && !newConfigName.empty())
 			{
-				OnCompositorConfigChangedEvent(configurationName);
+					OnConfigNameChangeEvent(newConfigName);
+			}
+		}
+	});
+	constructor.BindEventCallback(
+		"select_configuration",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnConfigSelectEvent) 
+			{
+				const std::string configurationName = ev.GetParameter<Rml::String>("value", "");
+				OnConfigSelectEvent(configurationName);
+			}
+		});
+	constructor.BindEventCallback(
+		"add_layer",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnLayerAddEvent) OnLayerAddEvent();
+		});
+	constructor.BindEventCallback(
+		"delete_layer",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnLayerDeleteEvent)
+			{
+				const int layer_index = (arguments.size() == 1 ? arguments[0].Get<int>() : -1);
+
+				OnLayerDeleteEvent(layer_index);
 			}
 		});
 	constructor.BindEventCallback(
@@ -286,7 +313,7 @@ void RmlModel_CompositorLayers::invokeMappingChangeDelegate(
 
 void RmlModel_CompositorLayers::dispose()
 {
-	OnCompositorConfigChangedEvent.Clear();
+	OnConfigSelectEvent.Clear();
 	RmlModel::dispose();
 }
 
@@ -294,8 +321,11 @@ void RmlModel_CompositorLayers::rebuild(
 	const GlFrameCompositor* compositor,
 	const ProfileConfig* profile)
 {
-	m_currentConfigurationName= compositor->getCurrentPresetName();
-	m_configurationNames= compositor->getPresetNames();
+	const CompositorPreset* currentPreset= compositor->getCurrentPresetConfig();
+
+	m_configurationNames = compositor->getPresetNames();
+	m_currentConfigurationName= currentPreset->name;
+	m_bIsBuiltInConfiguration= currentPreset->builtIn;
 	m_materialNames= compositor->getAllCompositorShaderNames();
 
 	// Fill in blend mode strings
@@ -494,17 +524,18 @@ void RmlModel_CompositorLayers::rebuild(
 
 		m_compositorLayers.push_back(uiLayer);
 	}
+
+	m_modelHandle.DirtyVariable("material_names");
+	m_modelHandle.DirtyVariable("is_builtin_configuration");
+	m_modelHandle.DirtyVariable("configuration_names");
+	m_modelHandle.DirtyVariable("blend_modes");
+	m_modelHandle.DirtyVariable("stencil_modes");
+	m_modelHandle.DirtyVariable("float_sources");
+	m_modelHandle.DirtyVariable("float2_sources");
+	m_modelHandle.DirtyVariable("float3_sources");
+	m_modelHandle.DirtyVariable("float4_sources");
+	m_modelHandle.DirtyVariable("mat4_sources");
+	m_modelHandle.DirtyVariable("color_texture_sources");
 	m_modelHandle.DirtyVariable("layers");
-
-	// Add clients
-	const auto& clientSources = compositor->getClientSources();
-	m_compositorClients.clear();
-	for (auto it = clientSources.getMap().begin(); it != clientSources.getMap().end(); it++)
-	{
-		const GlFrameCompositor::ClientSource* clientSource= it->second;
-		const RmlModel_CompositorClient uiClient = {clientSource->clientId, clientSource->clientInfo.applicationName };
-
-		m_compositorClients.push_back(uiClient);
-	}
-	m_modelHandle.DirtyVariable("clients");
+	m_modelHandle.DirtyVariable("current_configuration");
 }

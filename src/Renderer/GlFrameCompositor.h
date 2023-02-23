@@ -66,14 +66,20 @@ public:
 	bool startup();
 	void shutdown();
 
+	std::filesystem::path getCompositorPresetPath() const;
 	void reloadAllCompositorPresets();
 	std::vector<std::string> getPresetNames() const;
 	const std::string& getCurrentPresetName() const;
-	bool applyLayerPreset(const std::string& configurationName);
+	bool selectPreset(const std::string& configurationName);
 	const CompositorPreset* getCurrentPresetConfig() const;
 	CompositorPreset* getCurrentPresetConfigMutable() const;
 	const CompositorLayerConfig* getCurrentPresetLayerConfig(int layerIndex) const;
 	CompositorLayerConfig* getCurrentPresetLayerConfigMutable(int layerIndex);
+	bool addNewPreset();
+	bool deleteCurrentPreset();
+	bool setCurrentPresetName(const std::string& newPresetName);
+	bool addLayerToCurrentPreset();
+	bool removeLayerFromCurrentPreset(const int layerIndex);
 	void saveCurrentPresetConfig();
 
 	void reloadAllCompositorShaders();

@@ -78,6 +78,7 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	std::string name;
+	bool builtIn= false;
 	std::vector<CompositorLayerConfig> layers;
 };
 
@@ -92,4 +93,5 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	std::string presetName;
+	int nextPresetId= 0;
 };

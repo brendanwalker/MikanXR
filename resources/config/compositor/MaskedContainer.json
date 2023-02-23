@@ -1,5 +1,5 @@
 {
-	"layers": [
+	"layers":  [
 		{
 			"verticalFlip":       true,
 			"blendMode":          "blendOff",
@@ -68,5 +68,6 @@
 			}
 		}
 	],
-	"name":   "Masked Container"
+	"name":    "Masked Container",
+	"builtIn": false
 }

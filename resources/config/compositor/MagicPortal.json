@@ -1,5 +1,6 @@
 {
     "name": "Magic Portal",
+	"builtIn": true,
     "layers":[
         {
             "blendMode": "blendOff",

@@ -42,5 +42,6 @@
 			}
 		}
 	],
-	"name":   "No Alpha"
+	"name":   "No Alpha",
+	"builtIn": true
 }

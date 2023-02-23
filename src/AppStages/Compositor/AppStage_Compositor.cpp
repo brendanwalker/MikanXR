@@ -10,6 +10,7 @@
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSources.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
+#include "ModalConfirm/ModalDialog_Confirm.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "GlCommon.h"
@@ -122,7 +123,12 @@ void AppStage_Compositor::enter()
 
 		// Init Layers UI
 		m_compositorLayersModel->init(context, m_frameCompositor, m_profile);
-		m_compositorLayersModel->OnCompositorConfigChangedEvent = MakeDelegate(this, &AppStage_Compositor::onCompositorConfigChangedEvent);
+		m_compositorLayersModel->OnConfigAddEvent = MakeDelegate(this, &AppStage_Compositor::onConfigAddEvent);
+		m_compositorLayersModel->OnConfigDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onConfigDeleteEvent);
+		m_compositorLayersModel->OnConfigNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onConfigNameChangeEvent);
+		m_compositorLayersModel->OnConfigSelectEvent = MakeDelegate(this, &AppStage_Compositor::onConfigSelectEvent);
+		m_compositorLayersModel->OnLayerAddEvent = MakeDelegate(this, &AppStage_Compositor::onLayerAddEvent);
+		m_compositorLayersModel->OnLayerDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onLayerDeleteEvent);
 		m_compositorLayersModel->OnMaterialNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onMaterialNameChangeEvent);
 		m_compositorLayersModel->OnVerticalFlipChangeEvent = MakeDelegate(this, &AppStage_Compositor::onVerticalFlipChangedEvent);
 		m_compositorLayersModel->OnBlendModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onBlendModeChangedEvent);
@@ -222,6 +228,7 @@ void AppStage_Compositor::update()
 	m_scriptContext->updateScript();
 
 	// Update the sources model now that the app stage has updated
+	m_compositorLayersModel->update();
 	m_compositorSourcesModel->update();
 }
 
@@ -360,9 +367,63 @@ void AppStage_Compositor::onToggleSourcesWindowEvent()
 }
 
 // Compositor Layers UI Events
-void AppStage_Compositor::onCompositorConfigChangedEvent(const std::string& configName)
+void AppStage_Compositor::onConfigAddEvent()
 {
-	if (m_frameCompositor->applyLayerPreset(configName))
+	if (m_frameCompositor->addNewPreset())
+	{
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+	}
+}
+
+void AppStage_Compositor::onConfigDeleteEvent()
+{
+	const CompositorPreset* preset= m_frameCompositor->getCurrentPresetConfig();
+	if (preset == nullptr)
+		return;
+
+	char szQuestion[512];
+	StringUtils::formatString(
+		szQuestion, sizeof(szQuestion), 
+		"Are you sure you want to delete config \'%s\'", 
+		preset->name.c_str());
+
+	ModalDialog_Confirm::confirmQuestion(
+		"Delete Config", szQuestion,
+		[this]() {
+			if (m_frameCompositor->deleteCurrentPreset())
+			{
+				m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+			}
+		});
+}
+
+void AppStage_Compositor::onConfigNameChangeEvent(const std::string& newConfigName)
+{
+	if (m_frameCompositor->setCurrentPresetName(newConfigName))
+	{
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+	}
+}
+
+void AppStage_Compositor::onLayerAddEvent()
+{
+	if (m_frameCompositor->addLayerToCurrentPreset())
+	{
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+	}
+}
+
+void AppStage_Compositor::onLayerDeleteEvent(const int layerIndex)
+{
+	if (m_frameCompositor->removeLayerFromCurrentPreset(layerIndex))
+	{
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+	}
+}
+
+void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
+{
+	if (m_frameCompositor->selectPreset(configName))
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
