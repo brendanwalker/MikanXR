@@ -1,0 +1,30 @@
+<rml>
+	<head>
+		<link type="text/rcss" href="rml.rcss"/>
+		<link type="text/rcss" href="mikan.rcss"/>
+		<link type="text/template" href="window.rml" />
+		<title>Confirm</title>
+		<style>
+			body {
+				width: 450dp;
+				height: 200dp;
+				margin: auto;
+			}
+			
+			/* Hide the window icon. */
+			div#title_bar div#icon {
+				display: none;
+			}
+		</style>
+	</head>
+	<body template="window">
+		<panel id="controls" data-model="modal_confirm">	
+			<h2>{{title}}</h2>
+			<br/>
+			<label>{{question}}</label>			
+			<br/>
+			<button data-event-click="accept_question()">yes</button>
+			<button data-event-click="reject_question()">no</button>
+		</panel>
+	</body>
+</rml>
