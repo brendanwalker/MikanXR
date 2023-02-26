@@ -446,6 +446,9 @@ bool GlFrameCompositor::selectPreset(const std::string& presetName)
 
 		// Recreate the compositor layer for the currently assigned preset
 		rebuildAllLayerSettings(true);
+
+		// Write the compositor configuration back out
+		m_config.save();
 	}
 
 	return true;
