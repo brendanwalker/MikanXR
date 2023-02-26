@@ -169,12 +169,12 @@ private:
 	void rebuildAllLayerSettings(bool bForceConfigSave=false);
 	void clearAllCompositorConfigurations();
 
-	bool applyLayerMaterialFloatValues(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool applyLayerMaterialFloat2Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool applyLayerMaterialFloat3Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool applyLayerMaterialFloat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool applyLayerMaterialMat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
-	bool applyLayerMaterialTextures(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	void applyLayerMaterialFloatValues(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	void applyLayerMaterialFloat2Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	void applyLayerMaterialFloat3Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	void applyLayerMaterialFloat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	void applyLayerMaterialMat4Values(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
+	void applyLayerMaterialTextures(const CompositorLayerConfig& layerConfig, GlFrameCompositor::Layer& layer);
 
 	static std::string makeClientRendererTextureName(int clientSourceIndex);
 	static std::string makeClientColorKeyName(int clientSourceIndex);

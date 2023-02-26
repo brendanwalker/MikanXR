@@ -1024,15 +1024,12 @@ void GlFrameCompositor::updateCompositeFrame()
 		GlScopedState layerGlStateScope = renderer->getGlStateStack()->createScopedState();
 
 		// Attempt to apply data sources to the layers material parameters
-		bool bValidMaterialDataSources= true;
-		bValidMaterialDataSources&= applyLayerMaterialFloatValues(*layerConfig, layer);
-		bValidMaterialDataSources&= applyLayerMaterialFloat2Values(*layerConfig, layer);
-		bValidMaterialDataSources&= applyLayerMaterialFloat3Values(*layerConfig, layer);
-		bValidMaterialDataSources&= applyLayerMaterialFloat4Values(*layerConfig, layer);
-		bValidMaterialDataSources&= applyLayerMaterialMat4Values(*layerConfig, layer);
-		bValidMaterialDataSources&= applyLayerMaterialTextures(*layerConfig, layer);
-		if (!bValidMaterialDataSources)
-			continue;
+		applyLayerMaterialFloatValues(*layerConfig, layer);
+		applyLayerMaterialFloat2Values(*layerConfig, layer);
+		applyLayerMaterialFloat3Values(*layerConfig, layer);
+		applyLayerMaterialFloat4Values(*layerConfig, layer);
+		applyLayerMaterialMat4Values(*layerConfig, layer);
+		applyLayerMaterialTextures(*layerConfig, layer);
 
 		// Set the blend mode
 		switch (layerConfig->blendMode)
@@ -1128,12 +1125,10 @@ void GlFrameCompositor::updateCompositeFrame()
 	}
 }
 
-bool GlFrameCompositor::applyLayerMaterialFloatValues(
+void GlFrameCompositor::applyLayerMaterialFloatValues(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
-	bool bSuccess = true;
-
 	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.floatSourceMap.begin();
 		 it != layerConfig.shaderConfig.floatSourceMap.end();
@@ -1145,23 +1140,15 @@ bool GlFrameCompositor::applyLayerMaterialFloatValues(
 		float floatValue;
 		if (m_floatSources.tryGetValue(dataSourceName, floatValue))
 		{
-			bSuccess = material->setFloatByUniformName(uniformName, floatValue);
-		}
-		else
-		{
-			bSuccess = false;
+			material->setFloatByUniformName(uniformName, floatValue);
 		}
 	}
-
-	return bSuccess;
 }
 
-bool GlFrameCompositor::applyLayerMaterialFloat2Values(
+void GlFrameCompositor::applyLayerMaterialFloat2Values(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
-	bool bSuccess = true;
-
 	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.float2SourceMap.begin();
 		 it != layerConfig.shaderConfig.float2SourceMap.end();
@@ -1173,23 +1160,15 @@ bool GlFrameCompositor::applyLayerMaterialFloat2Values(
 		glm::vec2 float2Value;
 		if (m_float2Sources.tryGetValue(dataSourceName, float2Value))
 		{
-			bSuccess = material->setVec2ByUniformName(uniformName, float2Value);
-		}
-		else
-		{
-			bSuccess = false;
+			material->setVec2ByUniformName(uniformName, float2Value);
 		}
 	}
-
-	return bSuccess;
 }
 
-bool GlFrameCompositor::applyLayerMaterialFloat3Values(
+void GlFrameCompositor::applyLayerMaterialFloat3Values(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
-	bool bSuccess = true;
-
 	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.float3SourceMap.begin();
 		 it != layerConfig.shaderConfig.float3SourceMap.end();
@@ -1201,23 +1180,15 @@ bool GlFrameCompositor::applyLayerMaterialFloat3Values(
 		glm::vec3 float3Value;
 		if (m_float3Sources.tryGetValue(dataSourceName, float3Value))
 		{
-			bSuccess = material->setVec3ByUniformName(uniformName, float3Value);
-		}
-		else
-		{
-			bSuccess = false;
+			material->setVec3ByUniformName(uniformName, float3Value);
 		}
 	}
-
-	return bSuccess;
 }
 
-bool GlFrameCompositor::applyLayerMaterialFloat4Values(
+void GlFrameCompositor::applyLayerMaterialFloat4Values(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
-	bool bSuccess = true;
-
 	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.float4SourceMap.begin();
 		 it != layerConfig.shaderConfig.float4SourceMap.end();
@@ -1229,23 +1200,15 @@ bool GlFrameCompositor::applyLayerMaterialFloat4Values(
 		glm::vec4 float4Value;
 		if (m_float4Sources.tryGetValue(dataSourceName, float4Value))
 		{
-			bSuccess = material->setVec4ByUniformName(uniformName, float4Value);
-		}
-		else
-		{
-			bSuccess = false;
+			material->setVec4ByUniformName(uniformName, float4Value);
 		}
 	}
-
-	return bSuccess;
 }
 
-bool GlFrameCompositor::applyLayerMaterialMat4Values(
+void GlFrameCompositor::applyLayerMaterialMat4Values(
 	const CompositorLayerConfig& layerConfig, 
 	GlFrameCompositor::Layer& layer)
 {
-	bool bSuccess = true;
-
 	GlMaterialPtr material = layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.mat4SourceMap.begin();
 		 it != layerConfig.shaderConfig.mat4SourceMap.end();
@@ -1257,23 +1220,15 @@ bool GlFrameCompositor::applyLayerMaterialMat4Values(
 		glm::mat4 mat4Value;
 		if (m_mat4Sources.tryGetValue(dataSourceName, mat4Value))
 		{
-			bSuccess = material->setMat4ByUniformName(uniformName, mat4Value);
-		}
-		else
-		{
-			bSuccess = false;
+			material->setMat4ByUniformName(uniformName, mat4Value);
 		}
 	}
-
-	return bSuccess;
 }
 
-bool GlFrameCompositor::applyLayerMaterialTextures(
+void GlFrameCompositor::applyLayerMaterialTextures(
 	const CompositorLayerConfig& layerConfig,
 	GlFrameCompositor::Layer& layer)
 {
-	bool bSuccess= true;
-
 	GlMaterialPtr material= layer.layerMaterial;
 	for (auto it = layerConfig.shaderConfig.colorTextureSourceMap.begin();
 		 it != layerConfig.shaderConfig.colorTextureSourceMap.end();
@@ -1285,15 +1240,9 @@ bool GlFrameCompositor::applyLayerMaterialTextures(
 		GlTexturePtr dataSourceTexture;
 		if (m_colorTextureSources.tryGetValue(dataSourceName, dataSourceTexture) && dataSourceTexture != nullptr)
 		{
-			bSuccess= material->setTextureByUniformName(uniformName, dataSourceTexture);
-		}
-		else
-		{
-			bSuccess= false;
+			material->setTextureByUniformName(uniformName, dataSourceTexture);
 		}
 	}
-
-	return bSuccess;
 }
 
 const GlRenderModelResource* GlFrameCompositor::getStencilRenderModel(MikanStencilID stencilId) const
