@@ -51,7 +51,7 @@
             <h1>Config</h1>
             <div class="tiled-box">
                 <label>Select:</label>
-                <select id="select" name="config_select" style="width: 150dp; margin-left: 0; vertical-align: 0dp;"  data-value="current_configuration" data-event-change="select_configuration()">
+                <select id="config_select" style="width: 150dp; margin-left: 0; vertical-align: 0dp;"  data-value="current_configuration" data-event-change="select_configuration()">
                     <option data-for="config_name : configuration_names" data-value="config_name">{{config_name}}</option>
                 </select>
                 <br/>

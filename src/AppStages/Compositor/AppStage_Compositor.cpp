@@ -34,7 +34,9 @@
 #include "VideoSourceView.h"
 #include "VideoWriter.h"
 
+#include <RmlUi/Core/Context.h>
 #include "RmlUI/Core/ElementDocument.h"
+#include "RmlUI/Core/Elements/ElementFormControlSelect.h"
 
 #include <easy/profiler.h>
 
@@ -369,10 +371,28 @@ void AppStage_Compositor::onToggleSourcesWindowEvent()
 // Compositor Layers UI Events
 void AppStage_Compositor::onConfigAddEvent()
 {
+	m_bAddingNewConfig= true;
+
 	if (m_frameCompositor->addNewPreset())
-	{
+	{	
+		// Get the name of the newly created preset
+		const std::string newPresetName = m_frameCompositor->getCurrentPresetName();
+
+		// Rebuild the layers UI to make sure the new layer exists
 		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		getRmlContext()->Update();
+
+		// Force select the new preset (by default RML preserves the current selection)
+		Rml::ElementFormControlSelect* select_element= 
+			rmlui_dynamic_cast< Rml::ElementFormControlSelect* >(
+				m_compositiorLayersView->GetElementById("config_select"));
+		if (select_element != nullptr)
+		{
+			select_element->SetValue(newPresetName);
+		}
 	}
+
+	m_bAddingNewConfig= false;
 }
 
 void AppStage_Compositor::onConfigDeleteEvent()
@@ -423,6 +443,10 @@ void AppStage_Compositor::onLayerDeleteEvent(const int layerIndex)
 
 void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
 {
+	// Ignore this UI event if we are in the middle of adding a new config
+	if (m_bAddingNewConfig)
+		return;
+
 	if (m_frameCompositor->selectPreset(configName))
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);

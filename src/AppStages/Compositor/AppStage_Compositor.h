@@ -128,6 +128,7 @@ protected:
 	bool m_bDebugRenderOrigin = true;
 	bool m_bDebugRenderStencils = true;
 	bool m_bDebugRenderAnchors = true;
+	bool m_bAddingNewConfig= false;
 
 	class VideoWriter* m_videoWriter= nullptr;
 };
