@@ -35,7 +35,7 @@
 				"bInvertWhenCameraInside": false
 			},
 			"boxStencilConfig":   {
-				"stencilMode": "noStencil"
+				"stencilMode": "insideStencil"
 			},
 			"modelStencilConfig": {
 				"stencilMode": "insideStencil"
@@ -43,7 +43,7 @@
 		},
 		{
 			"verticalFlip":       true,
-			"blendMode":          "blendOff",
+			"blendMode":          "blendOn",
 			"shaderConfig":       {
 				"materialName":     "rgbUndistortionFrame",
 				"float3SourceMap":  {
@@ -60,11 +60,11 @@
 				"bInvertWhenCameraInside": false
 			},
 			"boxStencilConfig":   {
-				"stencilMode":   "noStencil",
-				"boxStencilIds": [ 25 ]
+				"stencilMode": "noStencil"
 			},
 			"modelStencilConfig": {
-				"stencilMode": "insideStencil"
+				"stencilMode":     "insideStencil",
+				"modelStencilIds": [ 26 ]
 			}
 		}
 	],
