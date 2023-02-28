@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
+#include <filesystem>
 #include <string>
+#include <vector>
 
 //-- predeclarations -----
 struct lua_State;
@@ -14,7 +15,7 @@ public:
 	CommonScriptContext();
 	virtual ~CommonScriptContext();
 
-	bool loadScript(const std::string& scriptPath);
+	bool loadScript(const std::filesystem::path& scriptPath);
 	bool reloadScript();
 	void disposeScriptState();
 	void updateScript();
@@ -34,7 +35,7 @@ protected:
 	void bindGLMFunctions();
 	bool addLuaCoroutineScheduler();
 
-	std::string m_scriptFilename;
+	std::filesystem::path m_scriptFilename;
 	std::vector<std::string> m_triggers;
 	lua_State* m_luaState;
 };

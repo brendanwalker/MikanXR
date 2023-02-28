@@ -219,8 +219,9 @@ bool SteamVRManager::tryConnect()
 		return false;
 	}
 
-	std::string actionManifestPath = PathUtils::getResourceDirectory() + std::string("\\input\\");
-	vr::EVRInputError eVRInputError = vr::VRInput()->SetActionManifestPath(actionManifestPath.c_str());
+	const std::filesystem::path actionManifestPath = PathUtils::getResourceDirectory() / "input";
+	const std::string actionManifestPathString= actionManifestPath.string();
+	vr::EVRInputError eVRInputError = vr::VRInput()->SetActionManifestPath(actionManifestPathString.c_str());
 	if (eVRInputError != vr::VRInitError_None)
 	{
 		MIKAN_LOG_WARNING("SteamVRManager::startup") << "Failed to set action manifest path: " << eVRInputError;

@@ -88,13 +88,16 @@ void RmlModel_FileBrowser::dispose()
 	RmlModel::dispose();
 }
 
-void RmlModel_FileBrowser::setDirectoryPath(const std::filesystem::path& newDirecoryPath)
+void RmlModel_FileBrowser::setDirectoryPath(const std::filesystem::path& newDirectoryPath)
 {
-	m_currentDirectoryPath = newDirecoryPath;
-	m_currentDirectoryPathString = newDirecoryPath.string();
+	m_currentDirectoryPath = newDirectoryPath;
+	m_currentDirectoryPathString = newDirectoryPath.string();
 	m_modelHandle.DirtyVariable("current_dirpath");
 
-	const Rml::StringList directories = PathUtils::listDirectories(m_currentDirectoryPathString);
+	const Rml::StringList directories = 
+		!m_currentDirectoryPathString.empty()
+		? PathUtils::listDirectoriesInDirectory(m_currentDirectoryPathString)
+		: PathUtils::listVolumes();
 
 	m_files.clear();
 
@@ -103,23 +106,29 @@ void RmlModel_FileBrowser::setDirectoryPath(const std::filesystem::path& newDire
 		m_files.push_back(RmlModel_FileBrowserEntry(true, directory));
 	}
 
-	if (m_typeFilters.size() > 0)
+	if (!m_currentDirectoryPathString.empty())
 	{
-		for (const std::string& extension : m_typeFilters)
+		if (m_typeFilters.size() > 0)
 		{
-			const Rml::StringList filenames = PathUtils::listFiles(m_currentDirectoryPathString, extension);
+			for (const std::string& extension : m_typeFilters)
+			{
+				const Rml::StringList filenames =
+					PathUtils::listFilenamesInDirectory(
+						m_currentDirectoryPathString, extension);
+				for (const std::string& filename : filenames)
+				{
+					m_files.push_back(RmlModel_FileBrowserEntry(false, filename));
+				}
+			}
+		}
+		else
+		{
+			const Rml::StringList filenames =
+				PathUtils::listFilenamesInDirectory(m_currentDirectoryPathString);
 			for (const std::string& filename : filenames)
 			{
 				m_files.push_back(RmlModel_FileBrowserEntry(false, filename));
 			}
-		}
-	}
-	else
-	{
-		const Rml::StringList filenames = PathUtils::listFiles(m_currentDirectoryPathString);
-		for (const std::string& filename : filenames)
-		{
-			m_files.push_back(RmlModel_FileBrowserEntry(false, filename));
 		}
 	}
 

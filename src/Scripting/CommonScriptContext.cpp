@@ -85,7 +85,7 @@ bool CommonScriptContext::checkLuaResult(int ret, const char* filename, int line
 	return true;
 }
 
-bool CommonScriptContext::loadScript(const std::string& scriptPath)
+bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 {
 	disposeScriptState();
 
@@ -106,7 +106,8 @@ bool CommonScriptContext::loadScript(const std::string& scriptPath)
 		return false;
 	}
 
-	int ret= luaL_dofile(m_luaState, scriptPath.c_str());
+	const std::string scriptPathString= scriptPath.string();
+	int ret= luaL_dofile(m_luaState, scriptPathString.c_str());
 	if (!checkLuaResult(ret, __FILE__, __LINE__))
 	{
 		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to load lua script " << scriptPath;

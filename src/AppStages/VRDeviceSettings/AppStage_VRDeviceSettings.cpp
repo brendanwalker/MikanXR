@@ -95,7 +95,7 @@ void AppStage_VRDeviceSettings::enter()
 		}
 	}
 
-	addRmlDocument("rml\\vr_device_settings.rml");
+	addRmlDocument("vr_device_settings.rml");
 }
 
 void AppStage_VRDeviceSettings::exit()

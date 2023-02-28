@@ -50,9 +50,9 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	// Stencils
 	, nextStencilId(0)
 	// Compositor
-	, compositorScript("")
+	, compositorScriptFilePath("")
 	// Output Settings
-	, outputPath("")
+	, outputFilePath("")
 {
 };
 
@@ -87,9 +87,9 @@ const configuru::Config ProfileConfig::writeToJSON()
 		// Stencils
 		{"nextStencilId", nextStencilId},
 		// Compositor
-		{"compositorScript", compositorScript},
+		{"compositorScript", compositorScriptFilePath.string()},
 		// Output Settings
-		{"outputPath", outputPath}
+		{"outputPath", outputFilePath.string()}
 	};
 
 	// Write out the spatial anchors
@@ -158,7 +158,7 @@ const configuru::Config ProfileConfig::writeToJSON()
 	for (const MikanStencilModelConfig& stencil : modelStencilList)
 	{
 		configuru::Config stencilConfig{
-			{"model_path", stencil.modelPath},
+			{"model_path", stencil.modelPath.string()},
 			{"stencil_id", stencil.modelInfo.stencil_id},
 			{"parent_anchor_id", stencil.modelInfo.parent_anchor_id},
 			{"is_disabled", stencil.modelInfo.is_disabled},
@@ -242,7 +242,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	nextStencilId = pt.get_or<int>("nextStencilId", nextStencilId);
 
 	// Compositor
-	compositorScript = pt.get_or<std::string>("compositorScript", compositorScript);
+	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
 
 	// Read in the quad stencils
 	quadStencilList.clear();
@@ -333,7 +333,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	}
 
 	// Output Path
-	outputPath = pt.get_or<std::string>("outputPath", outputPath);
+	outputFilePath = pt.get_or<std::string>("outputPath", outputFilePath.string());
 }
 
 bool ProfileConfig::getSpatialAnchorInfo(
@@ -885,11 +885,11 @@ bool ProfileConfig::updateModelStencilFilename(MikanStencilID stencilId, const s
 	return false;
 }
 
-std::string ProfileConfig::generateTimestampedFilePath(
+std::filesystem::path ProfileConfig::generateTimestampedFilePath(
 	const std::string& prefix, 
 	const std::string& suffix) const
 {
-	const std::string parentDir= outputPath.size() > 0 ? outputPath : PathUtils::getCurrentDirectory();
+	const std::filesystem::path parentDir= !outputFilePath.empty() ? outputFilePath : std::filesystem::current_path();
 
 	return PathUtils::makeTimestampedFilePath(parentDir, prefix, suffix);
 }

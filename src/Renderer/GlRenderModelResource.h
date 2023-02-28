@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -13,14 +14,14 @@ class GlRenderModelResource
 {
 public:
 	GlRenderModelResource(
-		const std::string& renderModelFilepath,
+		const std::filesystem::path& modelFilePath,
 		const struct GlVertexDefinition* vertexDefinition);
 	virtual ~GlRenderModelResource();
 
 	bool createRenderResources();
 	void disposeRenderResources();
 
-	const std::string& getRenderModelFilepath() const { return m_renderModelFilepath; }
+	const std::filesystem::path& getRenderModelFilepath() const { return m_renderModelFilepath; }
 	const GlVertexDefinition* getVertexDefinition() const { return m_vertexDefinition; }
 
 	size_t getTriangulatedMeshCount() const { return m_glMeshes.size(); }
@@ -43,7 +44,7 @@ protected:
 
 	objl::Loader* m_objLoader= nullptr;
 
-	std::string m_renderModelFilepath;
+	const std::filesystem::path m_renderModelFilepath;
 	struct GlVertexDefinition* m_vertexDefinition= nullptr;
 	std::vector<class GlTriangulatedMesh*> m_glMeshes;
 	std::vector<class GlWireframeMesh*> m_glWireframeMeshes;

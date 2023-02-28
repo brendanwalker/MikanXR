@@ -80,20 +80,23 @@ public:
 	virtual ~RmlMikanFileInterface() {}
 
 	/// Opens a file.		
-	Rml::FileHandle Open(const Rml::String& path) override
+	Rml::FileHandle Open(const Rml::String& pathString) override
 	{
-		if (PathUtils::isAbsolutePath(path))
+		const std::filesystem::path path= pathString;
+
+		if (path.is_absolute())
 		{
 			// Attempt to open the absolute file relative 
-			FILE* fp = fopen(path.c_str(), "rb");
+			FILE* fp = fopen(pathString.c_str(), "rb");
 			return (Rml::FileHandle)fp;
 		}
 		else
 		{
-			std::string absPath = PathUtils::makeAbsoluteResourceFilePath(path);
+			const std::filesystem::path absPath = PathUtils::makeAbsoluteResourceFilePath(path);
+			const std::string absPathString = absPath.string();
 
 			// Attempt to open the file relative to the application's root.
-			FILE* fp = fopen(absPath.c_str(), "rb");
+			FILE* fp = fopen(absPathString.c_str(), "rb");
 			return (Rml::FileHandle)fp;
 		}
 	}

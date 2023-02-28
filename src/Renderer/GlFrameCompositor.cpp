@@ -150,18 +150,18 @@ std::filesystem::path GlFrameCompositor::getCompositorPresetPath() const
 
 void GlFrameCompositor::reloadAllCompositorPresets()
 {
-	std::filesystem::path compositorPresetDir = getCompositorPresetPath();
+	const std::filesystem::path compositorPresetDir = getCompositorPresetPath();
 
 	clearAllCompositorConfigurations();
 
-	std::vector<std::string> configFileNames = PathUtils::listFiles(compositorPresetDir.string(), "json");
+	const std::vector<std::string> configFileNames = 
+		PathUtils::listFilenamesInDirectory(compositorPresetDir, ".json");
 	for (const auto& configFileName : configFileNames)
 	{
-		std::filesystem::path configFilePath = compositorPresetDir;
-		configFilePath /= configFileName;
+		const std::filesystem::path configFilePath = compositorPresetDir / configFileName;
 
 		CompositorPreset* compositorPreset = new CompositorPreset;
-		if (compositorPreset->load(configFilePath.string()))
+		if (compositorPreset->load(configFilePath))
 		{
 			m_compositorPresets.setValue(compositorPreset->name, compositorPreset);
 		}
@@ -456,24 +456,23 @@ bool GlFrameCompositor::selectPreset(const std::string& presetName)
 
 void GlFrameCompositor::reloadAllCompositorShaders()
 {
-	std::filesystem::path compositorShaderDir= PathUtils::getResourceDirectory();
-	compositorShaderDir/= "shaders";
-	compositorShaderDir/= "compositor";
+	const std::filesystem::path compositorShaderDir= 
+		PathUtils::getResourceDirectory() / "shaders" / "compositor";
+	const std::vector<std::string> shaderFolderNames= 
+		PathUtils::listDirectoriesInDirectory(compositorShaderDir.string());
 
-	std::vector<std::string> shaderFolderNames= PathUtils::listDirectories(compositorShaderDir.string());
 	for (const auto& shaderFolderName : shaderFolderNames)
 	{
-		std::filesystem::path shaderFolderPath = compositorShaderDir;
-		shaderFolderPath/= shaderFolderName;
+		const std::filesystem::path shaderFolderPath = compositorShaderDir / shaderFolderName;
+		const std::vector<std::string> shaderFileNames= 
+			PathUtils::listFilenamesInDirectory(shaderFolderPath, ".json");
 
-		std::vector<std::string> shaderFileNames= PathUtils::listFiles(shaderFolderPath.string(), "json");
 		for (const auto& shaderFileName : shaderFileNames)
 		{
-			std::filesystem::path shaderFilePath = shaderFolderPath;
-			shaderFilePath/= shaderFileName;
+			const std::filesystem::path shaderFilePath = shaderFolderPath / shaderFileName;
 
 			GlProgramConfig programConfig;
-			if (programConfig.load(shaderFilePath.string()))
+			if (programConfig.load(shaderFilePath))
 			{
 				GlProgramCode programCode;
 				if (programConfig.loadGlProgramCode(&programCode))
@@ -1485,6 +1484,11 @@ void GlFrameCompositor::updateModelStencils(
 
 	// Bail if we don't want any of this kind of stencil
 	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
+		return;
+
+	// Can't apply stencils unless we have a valid tracked camera pose
+	glm::mat4 cameraXform;
+	if (!getVideoSourceCameraPose(cameraXform))
 		return;
 
 	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();

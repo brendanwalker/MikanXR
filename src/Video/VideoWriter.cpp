@@ -3,6 +3,7 @@
 #include "Logger.h"
 
 #include <assert.h>
+#include <filesystem>
 #include <chrono>
 using namespace std::chrono_literals;
 
@@ -28,7 +29,7 @@ VideoWriter::~VideoWriter()
 }
 
 bool VideoWriter::open(
-	const std::string& filename,
+	const std::filesystem::path& filename,
 	float fps,
 	int fwidth,
 	int fheight,
@@ -37,7 +38,8 @@ bool VideoWriter::open(
 	if (m_bIsOpened)
 		close();
 
-	int error = avio_open(&m_avioContext, filename.c_str(), AVIO_FLAG_WRITE);
+	const std::string filenameString = filename.string();
+	int error = avio_open(&m_avioContext, filenameString.c_str(), AVIO_FLAG_WRITE);
 	if (error < 0)
 	{
 		char errorBuf[255];
@@ -218,6 +220,8 @@ bool VideoWriter::setupEncoder()
 
 bool VideoWriter::addVideoStream()
 {
+	const std::string filenameString = m_filepath.string();
+
 	m_avFormatContext = avformat_alloc_context();
 	if (!m_avFormatContext)
 	{
@@ -227,7 +231,7 @@ bool VideoWriter::addVideoStream()
 
 	m_avStream = avformat_new_stream(m_avFormatContext, NULL);//allocate new stream
 	m_avFormatContext->pb = m_avioContext;
-	m_avFormatContext->oformat = av_guess_format(NULL, m_filepath.c_str(), NULL);//new AVOutputFormat;
+	m_avFormatContext->oformat = av_guess_format(NULL, filenameString.c_str(), NULL);//new AVOutputFormat;
 	MIKAN_LOG_INFO("VideoWriter::add_video_stream") 
 		<< "oformat name: " << m_avFormatContext->oformat->name 
 		<< ", full: " << m_avFormatContext->oformat->long_name 

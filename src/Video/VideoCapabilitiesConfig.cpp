@@ -171,16 +171,13 @@ void VideoCapabilitiesConfig::getAvailableVideoModes(std::vector<std::string> &o
 
 bool VideoCapabilitiesSet::reloadSupportedVideoCapabilities()
 {
-	std::string capability_directory= PathUtils::getResourceDirectory() + std::string("\\supported_trackers\\");
-	std::string search_path= capability_directory + std::string("*.json");
-
-	std::vector<std::string> filenames;
-	PathUtils::fetchFilenamesInDirectory(search_path, filenames);
+	const std::filesystem::path capability_directory= PathUtils::getResourceDirectory() / std::string("supported_trackers");
+	const std::vector<std::string> filenames= PathUtils::listFilenamesInDirectory(capability_directory, ".json");
 
 	m_supportedTrackers.clear();
 	for (std::string filename : filenames)
 	{
-		std::string filepath= capability_directory+filename;
+		const std::filesystem::path filepath= capability_directory / filename;
 		VideoCapabilitiesConfig config(filename);
 
 		if (config.load(filepath))

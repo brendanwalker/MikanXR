@@ -4,6 +4,7 @@
 
 #include "openvr.h"
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -28,8 +29,8 @@ public:
 	const std::string& getModelNumber() const { return m_modelNumber; }
 	const std::string& getManufacturerName() const { return m_manufacturerName; }
 	const std::string& getSerialNumber() const { return m_serialNumber; }
-	const std::string& getResourcesPath() const { return m_resourcesPath; }
-	const std::string& getReadyIconPath() const { return m_readyIconPath; }
+	const std::filesystem::path& getResourcesPath() const { return m_resourcesPath; }
+	const std::filesystem::path& getReadyIconPath() const { return m_readyIconPath; }
 	const std::string& getRenderModelName() const { return m_renderModelName; }
 	const std::vector<RenderComponentInfo>& getRenderComponentNames() const { return m_renderComponentNames; }
 
@@ -56,8 +57,8 @@ private:
 	std::string m_modelNumber;
 	std::string m_manufacturerName;
 	std::string m_serialNumber;
-	std::string m_resourcesPath;
-	std::string m_readyIconPath;
+	std::filesystem::path m_resourcesPath;
+	std::filesystem::path m_readyIconPath;
 	std::string m_renderModelName;
 	std::vector<RenderComponentInfo> m_renderComponentNames;
 };

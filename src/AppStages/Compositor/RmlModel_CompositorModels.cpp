@@ -135,7 +135,7 @@ void RmlModel_CompositorModels::rebuildUIModelsFromProfile(const ProfileConfig* 
 			modelInfo.stencil_name,
 			modelInfo.stencil_id,
 			modelInfo.parent_anchor_id,
-			modelConfig.modelPath,
+			modelConfig.modelPath.string(),
 			Rml::Vector3f(modelInfo.model_position.x, modelInfo.model_position.y, modelInfo.model_position.z),
 			Rml::Vector3f(modelInfo.model_rotator.x_angle, modelInfo.model_rotator.y_angle, modelInfo.model_rotator.z_angle),
 			Rml::Vector3f(modelInfo.model_scale.x, modelInfo.model_scale.y, modelInfo.model_scale.z),

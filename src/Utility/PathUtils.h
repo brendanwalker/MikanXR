@@ -1,51 +1,35 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
 //-- utility methods -----
 namespace PathUtils
 {
-	/// Return true if the given path is an absolute path (using std::filesystem::path::is_absolute)
-	bool isAbsolutePath(const std::string& path_str);
-
-	/// Return true if the given path is a relative path (using std::filesystem::path::is_relative)
-	bool isRelativePath(const std::string& path_str);
-
-	/// Get the current working directory
-	std::string getCurrentDirectory();
-
 	/// Get the location of resource files 
-	std::string getResourceDirectory();
+	std::filesystem::path getResourceDirectory();
 
 	/// Make a relative 
-	std::string makeAbsoluteResourceFilePath(const std::string& relative_path_str);
+	std::filesystem::path makeAbsoluteResourceFilePath(const std::filesystem::path& relative_path);
 
 	/// Get the "home" location where config files can be stored
-	std::string getHomeDirectory();
-
-	/// Attempts to create a directory at the given path. Returns 0 on success
-	bool createDirectory(const std::string& path);
+	std::filesystem::path getHomeDirectory();
 
 	/// Attempts to build a list of all of the files in a directory
-	bool fetchFilenamesInDirectory(std::string path, std::vector<std::string>& out_filenames);
-	enum class ListType { Files, Directories };
-	std::vector<std::string> listFilesOrDirectories(ListType type, const std::string& directory, const std::string& extension);
-	std::vector<std::string> listDirectories(const std::string& in_directory);
-	std::vector<std::string> listFiles(const std::string& in_directory, const std::string& extension= std::string());
-
-	/// Returns true if a file exists
-	bool doesFileExist(const std::string& filename);
-
-	/// Returns true if a directory exists
-	bool doesDirectoryExist(const std::string& dirPath);
-
-	// Extracts the filename from a full file path
-	std::string baseFileName(const std::string& path, std::string delims = "/\\");
-
+	std::vector<std::string> listFilenamesInDirectory(
+		const std::filesystem::path& path, 
+		const std::string& extension_filter= std::string());
+	std::vector<std::string> listDirectoriesInDirectory(
+		const std::filesystem::path& path);
+	std::vector<std::string> listVolumes();
+	
 	// Strips the extension from a filename
 	std::string removeFileExtension(std::string& filename);
 
 	// Create a unique timestamped filename
-	std::string makeTimestampedFilePath(const std::string& parentDir, const std::string& prefix, const std::string& suffix);
+	std::filesystem::path makeTimestampedFilePath(
+		const std::filesystem::path& parentDir, 
+		const std::string& prefix, 
+		const std::string& suffix);
 };

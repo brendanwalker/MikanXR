@@ -179,9 +179,10 @@ void* FontManager::fetchFont(const std::string& fontName, int pointSize)
 	}
 	else
 	{
-		const std::string fontPath= getFontPath(fontName);
+		const std::filesystem::path fontPath= getFontPath(fontName);
+		const std::string fontPathString= fontPath.string();
 
-		TTF_Font* font= TTF_OpenFont(fontPath.c_str(), pointSize);
+		TTF_Font* font= TTF_OpenFont(fontPathString.c_str(), pointSize);
 		if (font != nullptr)
 		{
 			m_ttfFontCache.insert({hash, font});
@@ -189,7 +190,7 @@ void* FontManager::fetchFont(const std::string& fontName, int pointSize)
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("FontManager::fetchFont") << "Failed to find font path: " << fontPath;
+			MIKAN_LOG_ERROR("FontManager::fetchFont") << "Failed to find font path: " << fontPathString;
 			return nullptr;
 		}
 	}

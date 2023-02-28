@@ -30,7 +30,7 @@ public:
 		const std::string& fragmentCode);
 
 	bool loadFromConfigData(
-		const std::string& shaderConfigPath,
+		const std::filesystem::path& shaderConfigPath,
 		const std::filesystem::path& vertexShaderFileName,
 		const std::filesystem::path& fragmentShaderFileName,
 		const std::map<std::string, std::string>& uniforms);

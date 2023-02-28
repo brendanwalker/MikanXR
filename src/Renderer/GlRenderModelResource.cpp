@@ -18,9 +18,9 @@
 #include <limits>
 
 GlRenderModelResource::GlRenderModelResource(
-	const std::string& renderModelFilepath,
+	const std::filesystem::path& modelFilePath,
 	const GlVertexDefinition* vertexDefinition)
-	: m_renderModelFilepath(renderModelFilepath)
+	: m_renderModelFilepath(modelFilePath)
 	, m_vertexDefinition(new GlVertexDefinition(*vertexDefinition))
 {
 }
@@ -89,7 +89,7 @@ void GlRenderModelResource::disposeRenderResources()
 
 bool GlRenderModelResource::loadObjFileResources()
 {
-	if (m_renderModelFilepath.size() == 0)
+	if (m_renderModelFilepath.empty())
 	{
 		return false;
 	}
@@ -97,7 +97,7 @@ bool GlRenderModelResource::loadObjFileResources()
 	disposeRenderResources();
 
 	m_objLoader = new objl::Loader();
-	if (!m_objLoader->LoadFile(m_renderModelFilepath))
+	if (!m_objLoader->LoadFile(m_renderModelFilepath.string()))
 	{
 		return false;
 	}

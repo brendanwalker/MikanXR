@@ -71,7 +71,7 @@ bool ModalDialog_Confirm::init(
 	m_rejectCallback = rejectCallback;
 
 	// Create the view now that the model is safely initialized
-	m_confirmView = m_ownerAppStage->addRmlDocument("rml\\modal_confirm.rml", false);
+	m_confirmView = m_ownerAppStage->addRmlDocument("modal_confirm.rml", false);
 
 	return true;
 }

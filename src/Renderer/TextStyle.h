@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include "glm/ext/vector_float3.hpp"
 
@@ -34,7 +35,6 @@ struct TextStyle
 };
 
 const TextStyle& getDefaultTextStyle();
-const std::string& getDefaultJapaneseFontPath();
-
-std::string getFontPath(const std::string& fontName);
+const std::filesystem::path getDefaultJapaneseFontPath();
+const std::filesystem::path getFontPath(const std::string& fontName);
 

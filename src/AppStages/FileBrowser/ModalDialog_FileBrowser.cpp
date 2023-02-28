@@ -31,7 +31,7 @@ ModalDialog_FileBrowser::~ModalDialog_FileBrowser()
 
 bool ModalDialog_FileBrowser::browseFile(
 	const std::string& title,
-	const std::string& initialDirectory,
+	const std::filesystem::path& initialDirectory,
 	const std::vector<std::string>& typeFilters,
 	AcceptFilePathCallback acceptCallback,
 	RejectFilePathCallback rejectCallback)
@@ -54,14 +54,14 @@ bool ModalDialog_FileBrowser::browseFile(
 
 bool ModalDialog_FileBrowser::init(
 	const std::string& title,
-	const std::string& initialDirectory,
+	const std::filesystem::path& initialDirectory,
 	const std::vector<std::string>& typeFilters,
 	AcceptFilePathCallback acceptCallback,
 	RejectFilePathCallback rejectCallback)
 {
 	// Set UI properties on the model
 	m_fileBrowserModel->setTitle(title);
-	m_fileBrowserModel->setInitialDirectory(initialDirectory);
+	m_fileBrowserModel->setInitialDirectory(initialDirectory.string());
 	m_fileBrowserModel->setTypeFilter(typeFilters);
 
 	// Finish model initialization
@@ -77,7 +77,7 @@ bool ModalDialog_FileBrowser::init(
 	m_rejectCallback = rejectCallback;
 
 	// Create the view now that the model is safely initialized
-	m_fileBrowserView = m_ownerAppStage->addRmlDocument("rml\\file_browser.rml", false);
+	m_fileBrowserView = m_ownerAppStage->addRmlDocument("file_browser.rml", false);
 
 	return true;
 }

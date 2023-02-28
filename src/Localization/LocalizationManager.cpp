@@ -105,14 +105,13 @@ void LocalizationManager::reloadLangages()
 {
 	unloadLanguages();
 
-	const std::string locPath = PathUtils::getResourceDirectory() + "\\localization\\*.csv";
-	std::vector<std::string> locFiles;
-	PathUtils::fetchFilenamesInDirectory(locPath, locFiles);
+	const std::filesystem::path locFolderPath = PathUtils::getResourceDirectory() / std::string("localization");
+	const std::vector<std::string> locFiles= PathUtils::listFilenamesInDirectory(locFolderPath, ".csv");
 
 	for (auto baseFileName : locFiles)
 	{
-		std::string filename = PathUtils::getResourceDirectory() + "\\localization\\" + baseFileName;
-		std::string baseFileNameNoExt = PathUtils::removeFileExtension(baseFileName);
+		const std::filesystem::path locFilePath = locFolderPath / baseFileName;
+		std::string baseFileNameNoExt = std::filesystem::path(baseFileName).stem().string();
 		std::vector<std::string> parts= StringUtils::splitString(baseFileNameNoExt, '_');
 
 		if (parts.size() == 2)
@@ -146,7 +145,7 @@ void LocalizationManager::reloadLangages()
 				language->stringTables.insert({ tableName, stringTable });
 			}
 
-			io::CSVReader<2> in(filename);
+			io::CSVReader<2> in(locFilePath.string());
 			in.read_header(io::ignore_extra_column, "key", "text");
 			
 			std::string key; char* utf8Text;
@@ -171,7 +170,7 @@ void LocalizationManager::reloadLangages()
 		}
 		else
 		{
-			MIKAN_LOG_WARNING("LocalizationManager::reloadLangages") << "Malformed loc filename: " << filename;
+			MIKAN_LOG_WARNING("LocalizationManager::reloadLangages") << "Malformed loc filename: " << locFilePath;
 		}
 	}
 }

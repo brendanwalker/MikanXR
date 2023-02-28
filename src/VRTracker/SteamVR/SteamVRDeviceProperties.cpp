@@ -82,11 +82,11 @@ void SteamVRDeviceProperties::updateResourcesPath()
 	if (m_trackingSystem.size() == 0)
 		return;
 
-	std::string resourcesPath = PathUtils::getResourceDirectory();
-	if (resourcesPath.size() == 0)
+	std::filesystem::path resourcesPath = PathUtils::getResourceDirectory();
+	if (resourcesPath.empty())
 		return;
 
-	if (PathUtils::doesDirectoryExist(resourcesPath))
+	if (std::filesystem::exists(resourcesPath))
 	{
 		m_resourcesPath = resourcesPath;
 	}
@@ -94,9 +94,9 @@ void SteamVRDeviceProperties::updateResourcesPath()
 
 bool SteamVRDeviceProperties::updateReadyIconPath()
 {
-	std::string newIconPath = "";
+	std::filesystem::path newIconPath;
 
-	if (m_resourcesPath.size() != 0)
+	if (!m_resourcesPath.empty())
 	{
 		std::string partialIconPath = fetchStringDeviceProperty(vr::Prop_NamedIconPathDeviceReady_String, "");
 		if (partialIconPath.size() != 0)
@@ -106,9 +106,10 @@ bool SteamVRDeviceProperties::updateReadyIconPath()
 			size_t startPos= partialIconPath.find(resourcesToken);
 			if (startPos != std::string::npos)
 			{
-				std::string fullIconPath = partialIconPath.replace(startPos, resourcesToken.size(), m_resourcesPath + "\\icons\\");
+				std::filesystem::path iconPath = m_resourcesPath / "icons";
+				std::filesystem::path fullIconPath= partialIconPath.replace(startPos, resourcesToken.size(), iconPath.string());
 
-				if (PathUtils::doesFileExist(fullIconPath))
+				if (std::filesystem::exists(fullIconPath))
 				{
 					newIconPath = fullIconPath;
 				}
@@ -129,7 +130,7 @@ bool SteamVRDeviceProperties::updateRenderModelComponents()
 {
 	std::string newRenderModelName = "";
 
-	if (m_resourcesPath.size() > 0)
+	if (!m_resourcesPath.empty())
 	{
 		newRenderModelName = fetchStringDeviceProperty(vr::Prop_RenderModelName_String, "");
 	}

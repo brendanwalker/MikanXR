@@ -16,14 +16,16 @@ const TextStyle& getDefaultTextStyle()
 	return gDefaultTextStyle;
 }
 
-const std::string& getDefaultJapaneseFontPath()
+const std::filesystem::path getDefaultJapaneseFontPath()
 {
-	static std::string japaneseFontPath= getFontPath("mona");
+	const std::filesystem::path japaneseFontPath= getFontPath("mona");
 
 	return japaneseFontPath;
 }
 
-std::string getFontPath(const std::string& fontName)
+const std::filesystem::path getFontPath(const std::string& fontName)
 {
-	return PathUtils::getResourceDirectory() + "\\font\\" + fontName + ".ttf";
+	const std::string fileFilename= fontName + ".ttf";
+
+	return PathUtils::getResourceDirectory() / "font" / fileFilename;
 }

@@ -29,12 +29,12 @@ void GlModelResourceManager::cleanup()
 }
 
 GlRenderModelResource* GlModelResourceManager::fetchRenderModel(
-	const std::string& renderModelName,
+	const std::filesystem::path& modelFilePath,
 	const GlVertexDefinition* vertexDefinition)
 {
-	if (renderModelName.size() > 0)
+	if (!modelFilePath.empty())
 	{
-		std::string hashName = renderModelName + vertexDefinition->getVertexDefinitionDesc();
+		std::string hashName = modelFilePath.string() + vertexDefinition->getVertexDefinitionDesc();
 
 		if (m_renderModelCache.find(hashName) != m_renderModelCache.end())
 		{
@@ -42,7 +42,7 @@ GlRenderModelResource* GlModelResourceManager::fetchRenderModel(
 		}
 		else
 		{
-			GlRenderModelResource* resource = new GlRenderModelResource(renderModelName, vertexDefinition);
+			GlRenderModelResource* resource = new GlRenderModelResource(modelFilePath, vertexDefinition);
 
 			if (resource->createRenderResources())
 			{

@@ -3,11 +3,12 @@
 // -- includes -----
 #include "CommonConfig.h"
 #include "ProfileConfigConstants.h"
+#include <filesystem>
 
 struct MikanStencilModelConfig
 {
 	MikanStencilModel modelInfo;
-	std::string modelPath;
+	std::filesystem::path modelPath;
 };
 
 // -- definitions -----
@@ -48,7 +49,7 @@ public:
 	bool updateModelStencil(const MikanStencilModel& info);
 	bool updateModelStencilFilename(MikanStencilID stencilID, const std::string& filename);
 
-	std::string generateTimestampedFilePath(const std::string& prefix, const std::string& suffix) const;
+	std::filesystem::path generateTimestampedFilePath(const std::string& prefix, const std::string& suffix) const;
 
 	eCalibrationPatternType calibrationPatternType;
 	int chessbordRows;
@@ -81,7 +82,6 @@ public:
 	std::vector<MikanStencilModelConfig> modelStencilList;
 	MikanStencilID nextStencilId;
 
-	std::string compositorScript;
-
-	std::string outputPath;
+	std::filesystem::path compositorScriptFilePath;
+	std::filesystem::path outputFilePath;
 };

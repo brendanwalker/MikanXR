@@ -645,9 +645,10 @@ bool GlRmlUiRender::LoadTexture(Rml::TextureHandle& texture_handle, Rml::Vector2
 {
 	bool success= true;
 
-	std::string absSourcePath= PathUtils::makeAbsoluteResourceFilePath(source);
+	const std::filesystem::path absSourcePath= PathUtils::makeAbsoluteResourceFilePath(source);
+	const std::string absSourcePathString = absSourcePath.string();
 
-	SDL_Surface* sdlSurface = IMG_Load(absSourcePath.c_str());
+	SDL_Surface* sdlSurface = IMG_Load(absSourcePathString.c_str());
 	if (sdlSurface == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlRmlUiRender::LoadTexture") << "Failed to load texture: " << source;

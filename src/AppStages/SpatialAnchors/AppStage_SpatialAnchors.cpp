@@ -213,7 +213,7 @@ void AppStage_SpatialAnchors::enter()
 
 	m_dataModel->rebuildSpatialAnchors(m_profile);
 
-	addRmlDocument("rml\\spatial_anchor_setup.rml");
+	addRmlDocument("spatial_anchor_setup.rml");
 }
 
 void AppStage_SpatialAnchors::exit()

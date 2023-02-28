@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <mutex>
 #include <string>
 #include <stdint.h>
@@ -13,7 +14,7 @@ public:
 	VideoWriter();
 	~VideoWriter();
 
-	bool open(const std::string& filename, float fps, int fwidth, int fheight, int bpp);
+	bool open(const std::filesystem::path& filename, float fps, int fwidth, int fheight, int bpp);
 	bool getIsOpened() const { return m_bIsOpened; }
 	void close();
 
@@ -23,7 +24,7 @@ protected:
 	virtual bool doWork() override;
 
 private:
-	std::string m_filepath;
+	std::filesystem::path m_filepath;
 	bool m_bIsOpened= false;
 	float m_fps;
 	int m_frameWidth;

@@ -166,10 +166,10 @@ void AppStage_AlignmentCalibration::enter()
 		}
 
 		// Init calibration view now that the dependent model has been created
-		m_calibrationView = addRmlDocument("rml\\alignment_calibration.rml");
+		m_calibrationView = addRmlDocument("alignment_calibration.rml");
 
 		// Init camera settings view now that the dependent model has been created
-		m_cameraSettingsView = addRmlDocument("rml\\alignment_camera_settings.rml");
+		m_cameraSettingsView = addRmlDocument("alignment_camera_settings.rml");
 	}
 
 	setMenuState(newState);

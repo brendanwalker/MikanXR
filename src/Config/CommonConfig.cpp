@@ -25,17 +25,21 @@ CommonConfig::CommonConfig(const std::string &fnamebase)
 {
 }
 
-const std::string CommonConfig::getDefaultConfigPath() const
+const std::filesystem::path CommonConfig::getDefaultConfigPath() const
 {
-    std::string home_dir= PathUtils::getHomeDirectory();  
-    std::string config_path = home_dir + "/Mikan";
+    const std::filesystem::path home_dir= PathUtils::getHomeDirectory();  
+    const std::filesystem::path config_path = home_dir / "Mikan";
     
-    if (!PathUtils::createDirectory(config_path))
+    if (!std::filesystem::exists(config_path))
     {
-        MIKAN_LOG_ERROR("CommonConfig::getConfigPath") << "Failed to create config directory: " << config_path;
+		if (!std::filesystem::create_directory(config_path))
+		{
+			MIKAN_LOG_ERROR("CommonConfig::getConfigPath") << "Failed to create config directory: " << config_path;
+		}
     }
 
-    std::string config_filepath = config_path + "/" + m_configFileBase + ".json";
+    const std::string configFilename= m_configFileBase + ".json";
+    const std::filesystem::path config_filepath = config_path / configFilename;
 
     return config_filepath;
 }
@@ -46,11 +50,11 @@ void CommonConfig::save()
 }
 
 void 
-CommonConfig::save(const std::string &path)
+CommonConfig::save(const std::filesystem::path& path)
 {
     m_configFullFilePath= path;
 
-	configuru::dump_file(path, writeToJSON(), configuru::JSON);
+	configuru::dump_file(path.string(), writeToJSON(), configuru::JSON);
 }
 
 bool
@@ -60,15 +64,15 @@ CommonConfig::load()
 }
 
 bool 
-CommonConfig::load(const std::string &path)
+CommonConfig::load(const std::filesystem::path& path)
 {
     bool bLoadedOk = false;
-
-    if (PathUtils::doesFileExist( path ) )
+    
+    if (std::filesystem::exists(path))
     {
         m_configFullFilePath= path;
 
-        configuru::Config cfg = configuru::parse_file(path, configuru::JSON);
+        configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
         readFromJSON(cfg);
         bLoadedOk = true;
     }

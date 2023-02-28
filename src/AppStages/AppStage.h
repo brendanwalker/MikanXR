@@ -42,7 +42,7 @@ public:
 	virtual void onSDLEvent(SDL_Event* event);
 
 	Rml::Context* getRmlContext() const;
-	Rml::ElementDocument* addRmlDocument(const std::string& docPath, bool isModal= false);
+	Rml::ElementDocument* addRmlDocument(const std::string& docFilename, bool isModal= false);
 	bool AppStage::removeRmlDocument(Rml::ElementDocument* doc);
 	virtual void onRmlClickEvent(const std::string& value) {}
 

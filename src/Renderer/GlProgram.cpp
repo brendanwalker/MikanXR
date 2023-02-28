@@ -14,10 +14,10 @@
 
 // -- GlProgramCode -----
 GlProgramCode::GlProgramCode(
-	const std::string& filename,
+	const std::string& programName,
 	const std::string& vertexCode, 
 	const std::string& fragmentCode)
-	: m_programName(filename)
+	: m_programName(programName)
 	, m_vertexShaderCode(vertexCode)
 	, m_framementShaderCode(fragmentCode)
 {
@@ -27,14 +27,14 @@ GlProgramCode::GlProgramCode(
 }
 
 bool GlProgramCode::loadFromConfigData(
-	const std::string& shaderConfigPath,
+	const std::filesystem::path& shaderConfigPath,
 	const std::filesystem::path& vertexShaderFileName,
 	const std::filesystem::path& fragmentShaderFileName,
 	const std::map<std::string, std::string>& uniforms)
 {
 	bool bSuccess= true;
 
-	m_programName = shaderConfigPath;
+	m_programName = shaderConfigPath.string();
 	
 	std::filesystem::path shaderFolderPath = m_programName;
 	shaderFolderPath.remove_filename();

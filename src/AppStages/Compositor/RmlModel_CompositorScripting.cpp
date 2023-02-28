@@ -43,7 +43,7 @@ bool RmlModel_CompositorScripting::init(
 		});	
 
 	// Set defaults
-	setCompositorScriptPath(profile->compositorScript);
+	setCompositorScriptPath(profile->compositorScriptFilePath.string());
 	rebuildScriptTriggers(scriptContext);
 
 	return true;

@@ -4,6 +4,7 @@
 #include "MikanClientTypes.h"
 #include "DeviceInterface.h"
 
+#include <filesystem>
 #include <string>
 
 #include "glm/ext/quaternion_double.hpp"
@@ -33,12 +34,12 @@ class CommonConfig
 public:
     CommonConfig(const std::string &fnamebase = std::string("CommonConfig"));
 
-	const std::string getDefaultConfigPath() const;
-    const std::string& getLoadedConfigPath() const { return m_configFullFilePath; }
+	const std::filesystem::path getDefaultConfigPath() const;
+    const std::filesystem::path& getLoadedConfigPath() const { return m_configFullFilePath; }
     void save();
-	void save(const std::string &path);
+	void save(const std::filesystem::path& path);
     bool load();
-	bool load(const std::string &path);
+	bool load(const std::filesystem::path& path);
 
     virtual const configuru::Config writeToJSON() = 0;  // Implement by each device class' own Config
     virtual void readFromJSON(const configuru::Config &pt) = 0;  // Implement by each device class' own Config
@@ -215,5 +216,5 @@ public:
 
 protected:
 	std::string m_configFileBase;
-	std::string m_configFullFilePath;
+	std::filesystem::path m_configFullFilePath;
 };

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <string>
+#include <filesystem>
 #include <map>
+#include <string>
 
 class GlModelResourceManager
 {
@@ -13,7 +14,7 @@ public:
 	void cleanup();
 
 	class GlRenderModelResource* fetchRenderModel(
-		const std::string& modelFilePath,
+		const std::filesystem::path& modelFilePath,
 		const struct GlVertexDefinition* vertexDefinition);
 
 private:

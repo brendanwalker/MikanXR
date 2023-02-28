@@ -4,9 +4,10 @@
 #include "Shared/ModalDialog.h"
 #include "SinglecastDelegate.h"
 
+#include <filesystem>
+#include <functional>
 #include <string>
 #include <vector>
-#include <functional>
 
 class AppStage;
 
@@ -28,7 +29,7 @@ public:
 	using ErrorCallback = std::function<void(const std::string& errorMesg)>;
 	static bool browseFile(
 		const std::string& title,
-		const std::string& initialDirectory,
+		const std::filesystem::path& initialDirectory,
 		const std::vector<std::string>& typeFilters,
 		AcceptFilePathCallback acceptCallback={},
 		RejectFilePathCallback rejectCallback={});
@@ -42,7 +43,7 @@ protected:
 
 	bool init(
 		const std::string& title,
-		const std::string& initialDirectory,
+		const std::filesystem::path& initialDirectory,
 		const std::vector<std::string>& typeFilters,
 		AcceptFilePathCallback acceptCallback,
 		RejectFilePathCallback rejectCallback);

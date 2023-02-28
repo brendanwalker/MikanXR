@@ -9,6 +9,8 @@
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Debugger.h>
 
+#include <filesystem>
+
 Rml::Context* AppStage::getRmlContext() const 
 {
 	return m_app->getRmlManager()->getRmlUIContext(); 
@@ -78,9 +80,12 @@ void AppStage::onSDLEvent(SDL_Event* event)
 	}
 }
 
-Rml::ElementDocument* AppStage::addRmlDocument(const std::string& docPath, bool isModal)
+Rml::ElementDocument* AppStage::addRmlDocument(const std::string& docFilename, bool isModal)
 {
-	Rml::ElementDocument* document = getRmlContext()->LoadDocument(docPath);
+	std::filesystem::path relDocPath = "rml";
+	relDocPath/= docFilename;
+
+	Rml::ElementDocument* document = getRmlContext()->LoadDocument(relDocPath.string());
 	if (document != nullptr)
 	{
 		m_rmlDocuments.push_back(document);

@@ -97,11 +97,11 @@ void AppStage_Compositor::enter()
 
 	// Load the compositor script
 	m_profile = App::getInstance()->getProfileConfig();
-	if (!m_profile->compositorScript.empty())
+	if (!m_profile->compositorScriptFilePath.empty())
 	{
-		if (!m_scriptContext->loadScript(m_profile->compositorScript))
+		if (!m_scriptContext->loadScript(m_profile->compositorScriptFilePath))
 		{
-			m_profile->compositorScript = "";
+			m_profile->compositorScriptFilePath = "";
 			m_profile->save();
 		}
 	}
@@ -121,7 +121,7 @@ void AppStage_Compositor::enter()
 		m_compositorModel->OnToggleBoxStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleBoxStencilsWindowEvent);
 		m_compositorModel->OnToggleModelStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleModelStencilsWindowEvent);
 		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesWindowEvent);
-		m_compositiorView = addRmlDocument("rml\\compositor.rml");
+		m_compositiorView = addRmlDocument("compositor.rml");
 
 		// Init Layers UI
 		m_compositorLayersModel->init(context, m_frameCompositor, m_profile);
@@ -146,7 +146,7 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->OnFloat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat4MappingChangedEvent);
 		m_compositorLayersModel->OnMat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onMat4MappingChangedEvent);
 		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
-		m_compositiorLayersView = addRmlDocument("rml\\compositor_layers.rml");
+		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
 		m_compositiorLayersView->Show();
 
 		// Init Quad Stencils UI
@@ -154,7 +154,7 @@ void AppStage_Compositor::enter()
 		m_compositorQuadsModel->OnAddQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddQuadStencilEvent);
 		m_compositorQuadsModel->OnDeleteQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteQuadStencilEvent);
 		m_compositorQuadsModel->OnModifyQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyQuadStencilEvent);
-		m_compositiorQuadsView = addRmlDocument("rml\\compositor_quads.rml");
+		m_compositiorQuadsView = addRmlDocument("compositor_quads.rml");
 		m_compositiorQuadsView->Hide();
 
 		// Init Box Stencils UI
@@ -162,7 +162,7 @@ void AppStage_Compositor::enter()
 		m_compositorBoxesModel->OnAddBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddBoxStencilEvent);
 		m_compositorBoxesModel->OnDeleteBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteBoxStencilEvent);
 		m_compositorBoxesModel->OnModifyBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyBoxStencilEvent);
-		m_compositiorBoxesView = addRmlDocument("rml\\compositor_boxes.rml");
+		m_compositiorBoxesView = addRmlDocument("compositor_boxes.rml");
 		m_compositiorBoxesView->Hide();
 
 		// Init Models Stencils UI
@@ -171,13 +171,13 @@ void AppStage_Compositor::enter()
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
 		m_compositorModelsModel->OnModifyModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilEvent);
 		m_compositorModelsModel->OnSelectModelStencilPathEvent = MakeDelegate(this, &AppStage_Compositor::onSelectModelStencilPathEvent);
-		m_compositiorModelsView = addRmlDocument("rml\\compositor_models.rml");
+		m_compositiorModelsView = addRmlDocument("compositor_models.rml");
 		m_compositiorModelsView->Hide();
 
 		// Init Recording UI
 		m_compositorRecordingModel->init(context, m_frameCompositor);
 		m_compositorRecordingModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingEvent);
-		m_compositiorRecordingView = addRmlDocument("rml\\compositor_recording.rml");
+		m_compositiorRecordingView = addRmlDocument("compositor_recording.rml");
 		m_compositiorRecordingView->Hide();
 
 		// Init Scripting UI
@@ -185,13 +185,13 @@ void AppStage_Compositor::enter()
 		m_compositorScriptingModel->OnSelectCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onSelectCompositorScriptFileEvent);
 		m_compositorScriptingModel->OnReloadCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onReloadCompositorScriptFileEvent);
 		m_compositorScriptingModel->OnInvokeScriptTriggerEvent = MakeDelegate(this, &AppStage_Compositor::onInvokeScriptTriggerEvent);
-		m_compositiorScriptingView = addRmlDocument("rml\\compositor_scripting.rml");
+		m_compositiorScriptingView = addRmlDocument("compositor_scripting.rml");
 		m_compositiorScriptingView->Hide();
 
 		// Init Sources UI
 		m_compositorSourcesModel->init(context, m_frameCompositor);
 		m_compositorSourcesModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
-		m_compositiorSourcesView = addRmlDocument("rml\\compositor_sources.rml");
+		m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
 		m_compositiorSourcesView->Hide();
 	}
 }
@@ -268,7 +268,7 @@ bool AppStage_Compositor::startRecording()
 	const eSupportedCodec selectedCodex= m_compositorRecordingModel->getSelectedVideoCodec();
 	const std::string suffix= k_supportedCodecFileSuffix[(int)selectedCodex];
 	const int fourcc = k_supportedCodecFourCC[(int)selectedCodex];
-	const std::string outputFile = m_profile->generateTimestampedFilePath("video", suffix);
+	const std::filesystem::path outputFile = m_profile->generateTimestampedFilePath("video", suffix);
 	const int width = compositorTexture->getTextureWidth();
 	const int height = compositorTexture->getTextureHeight();
 	const cv::Size size(width, height);
@@ -692,8 +692,8 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 {
 	ModalDialog_FileBrowser::browseFile(
 		"Select Stencil Model", 
-		PathUtils::getCurrentDirectory(), 
-		{"obj"}, 
+		std::filesystem::current_path(),
+		{".obj"}, 
 		[this, stencilID](const std::string& filepath) {
 			if (m_profile->updateModelStencilFilename(stencilID, filepath))
 			{
@@ -717,13 +717,13 @@ void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
 	ModalDialog_FileBrowser::browseFile(
 		"Select Scene Script",
-		PathUtils::getCurrentDirectory(),
-		{"lua"},
+		std::filesystem::current_path(),
+		{".lua"},
 		[this](const std::string& filepath) {
 
 			if (m_scriptContext->loadScript(filepath))
 			{
-				m_profile->compositorScript = filepath;
+				m_profile->compositorScriptFilePath = filepath;
 				m_profile->save();
 
 				m_compositorScriptingModel->setCompositorScriptPath(filepath);

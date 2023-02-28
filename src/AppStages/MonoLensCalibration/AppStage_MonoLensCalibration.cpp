@@ -105,10 +105,10 @@ void AppStage_MonoLensCalibration::enter()
 		m_cameraSettingsModel->OnBrightnessChanged = MakeDelegate(this, &AppStage_MonoLensCalibration::onBrightnessChanged);
 
 		// Init calibration view now that the dependent model has been created
-		m_calibrationView = addRmlDocument("rml\\mono_lens_calibration.rml");
+		m_calibrationView = addRmlDocument("mono_lens_calibration.rml");
 
 		// Init camera settings view now that the dependent model has been created
-		m_cameraSettingsView = addRmlDocument("rml\\mono_camera_settings.rml");
+		m_cameraSettingsView = addRmlDocument("mono_camera_settings.rml");
 	}
 
 	setMenuState(newState);
