@@ -22,7 +22,7 @@ public:
 	bool init(Rml::Context* rmlContext);
 	virtual void dispose() override;
 
-	SinglecastDelegate<void(const Rml::String& filepath)> OnAcceptFilePath;
+	SinglecastDelegate<void(const std::filesystem::path& filepath)> OnAcceptFilePath;
 	SinglecastDelegate<void()> OnRejectFilePath;
 
 protected:

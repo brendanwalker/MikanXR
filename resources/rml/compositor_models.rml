@@ -17,7 +17,19 @@
                 width: 50dp;
                 margin-left: 0dp;
                 vertical-align: -8dp;
-            }            
+            }
+            .filename-box
+            {
+                margin-top: 5dp;
+                decorator: gradient( vertical #415857 #5990A3 );
+                border: 3dp #415857;
+                border-radius: 8dp;
+            }
+            filename
+            {
+                font-size: 14dp;
+                vertical-align: -5dp;
+            }                 
         </style>
 	</head>
 	<body template="window">
@@ -54,10 +66,10 @@
                         <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.y"/>
                         <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.z"/>
                     </span>
-                    <span>
-                        <label>{{stencil.model_path}}</label>
+                    <div class="filename-box">
+                        <filename>{{stencil.model_path | to_short_path(30)}}</filename>
                         <button style="width: 40dp" data-event-click="select_stencil_model_path(stencil.stencil_id)">...</button>
-                    </span>
+                    </div>                    
                     <br/> 
                     <label><input type="checkbox" name="disabled" data-event-change="modify_stencil(stencil.stencil_id)" data-value="stencil.disabled" /> Disabled </label>
                     <button data-event-click="delete_stencil(stencil.stencil_id)">Delete</button>

@@ -47,7 +47,7 @@ public:
 	glm::mat4 getModelStencilWorldTransform(const MikanStencilModel* stencil) const;
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
 	bool updateModelStencil(const MikanStencilModel& info);
-	bool updateModelStencilFilename(MikanStencilID stencilID, const std::string& filename);
+	bool updateModelStencilFilename(MikanStencilID stencilID, const std::filesystem::path& filename);
 
 	std::filesystem::path generateTimestampedFilePath(const std::string& prefix, const std::string& suffix) const;
 

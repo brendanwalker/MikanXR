@@ -867,7 +867,9 @@ bool ProfileConfig::updateModelStencil(const MikanStencilModel& info)
 	return false;
 }
 
-bool ProfileConfig::updateModelStencilFilename(MikanStencilID stencilId, const std::string& filename)
+bool ProfileConfig::updateModelStencilFilename(
+	MikanStencilID stencilId, 
+	const std::filesystem::path& filename)
 {
 	auto it = std::find_if(
 		modelStencilList.begin(), modelStencilList.end(),

@@ -24,7 +24,7 @@ public:
 	ModalDialog_FileBrowser(AppStage* ownerAppStage);
 	virtual ~ModalDialog_FileBrowser();
 
-	using AcceptFilePathCallback = std::function<void(const std::string& filepath)>;
+	using AcceptFilePathCallback = std::function<void(const std::filesystem::path& filepath)>;
 	using RejectFilePathCallback = std::function<void()>;
 	using ErrorCallback = std::function<void(const std::string& errorMesg)>;
 	static bool browseFile(
@@ -47,6 +47,6 @@ protected:
 		const std::vector<std::string>& typeFilters,
 		AcceptFilePathCallback acceptCallback,
 		RejectFilePathCallback rejectCallback);
-	void onAcceptFilePath(const std::string& filepath);
+	void onAcceptFilePath(const std::filesystem::path& filepath);
 	void onRejectFilePath();
 };

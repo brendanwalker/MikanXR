@@ -3,6 +3,9 @@
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 
+#include <filesystem>
+#include <string>
+
 class RmlModel_CompositorScripting : public RmlModel
 {
 public:
@@ -12,11 +15,11 @@ public:
 		class CompositorScriptContext* scriptContext);
 	virtual void dispose() override;
 
-	const Rml::String& getCompositorScriptPath() const;
-	void setCompositorScriptPath(const Rml::String& newScriptPath);
-
+	const std::filesystem::path getCompositorScriptPath() const;
+	void setCompositorScriptPath(const std::filesystem::path& newScriptPath);
 	void rebuildScriptTriggers(class CompositorScriptContext* scriptContext);
 
+	SinglecastDelegate<void(const std::filesystem::path&)> OnScriptFileChangeEvent;
 	SinglecastDelegate<void()> OnSelectCompositorScriptFileEvent;
 	SinglecastDelegate<void()> OnReloadCompositorScriptFileEvent;
 	SinglecastDelegate<void(const std::string&)> OnInvokeScriptTriggerEvent;

@@ -242,6 +242,18 @@ void RmlManager::registerCommonDataModelTypes()
 			}
 			return false;
 		});
+
+	// Transform function for converting full file path to a trimmed path
+	constructor.RegisterTransformFunc(
+		"to_short_path",
+		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+			const Rml::String filePath = variant.Get<Rml::String>("");
+			const size_t maxLength = arguments[0].Get<int>(20);
+
+			variant= PathUtils::createTrimmedPathString(filePath, maxLength);
+
+			return true;
+		});
 }
 
 void RmlManager::update()

@@ -82,7 +82,7 @@ bool ModalDialog_FileBrowser::init(
 	return true;
 }
 
-void ModalDialog_FileBrowser::onAcceptFilePath(const std::string& filepath)
+void ModalDialog_FileBrowser::onAcceptFilePath(const std::filesystem::path& filepath)
 {
 	if (m_acceptCallback)
 	{

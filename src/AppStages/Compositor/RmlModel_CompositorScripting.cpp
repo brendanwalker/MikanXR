@@ -24,6 +24,19 @@ bool RmlModel_CompositorScripting::init(
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
+		"edit_compositor_script_file",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnScriptFileChangeEvent && ev.GetId() == Rml::EventId::Change)
+			{
+				const bool isLineBreak = ev.GetParameter("linebreak", false);
+				const std::filesystem::path newScriptFile = ev.GetParameter<Rml::String>("value", "");
+				if (isLineBreak && !newScriptFile.empty())
+				{
+					OnScriptFileChangeEvent(newScriptFile);
+				}
+			}
+		});
+	constructor.BindEventCallback(
 		"select_compositor_script_file",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			if (OnSelectCompositorScriptFileEvent) OnSelectCompositorScriptFileEvent();
@@ -57,16 +70,19 @@ void RmlModel_CompositorScripting::dispose()
 	RmlModel::dispose();
 }
 
-const Rml::String& RmlModel_CompositorScripting::getCompositorScriptPath() const
+const std::filesystem::path RmlModel_CompositorScripting::getCompositorScriptPath() const
 {
 	return m_compositorScriptPath;
 }
 
-void RmlModel_CompositorScripting::setCompositorScriptPath(const Rml::String& newScriptPath)
+void RmlModel_CompositorScripting::setCompositorScriptPath(
+	const std::filesystem::path& newScriptPath)
 {
-	if (newScriptPath != m_compositorScriptPath)
+	const std::string newScriptPathString = newScriptPath.string();
+
+	if (newScriptPathString != m_compositorScriptPath)
 	{
-		m_compositorScriptPath= newScriptPath;
+		m_compositorScriptPath= newScriptPathString;
 		m_modelHandle.DirtyVariable("compositor_script_path");
 		
 		bool bNewValidPath = m_compositorScriptPath.size() > 0;

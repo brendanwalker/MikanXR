@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include <filesystem>
 #include <memory>
 #include "FrameCompositorConstants.h"
 
@@ -87,6 +88,7 @@ protected:
 	void onToggleRecordingEvent();
 
 	// Scripting UI Events
+	void onScriptFileChangeEvent(const std::filesystem::path& scriptFileChangeEvent);
 	void onSelectCompositorScriptFileEvent();
 	void onReloadCompositorScriptFileEvent();
 	void onInvokeScriptTriggerEvent(const std::string& triggerEvent);

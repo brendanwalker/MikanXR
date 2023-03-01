@@ -32,4 +32,8 @@ namespace PathUtils
 		const std::filesystem::path& parentDir, 
 		const std::string& prefix, 
 		const std::string& suffix);
+
+	// Create a string from a path but trims it to a max character limit
+	// Prefixes the resulting string with "..." if max length is exceeded
+	std::string createTrimmedPathString(const std::filesystem::path& path, const size_t maxLength);
 };

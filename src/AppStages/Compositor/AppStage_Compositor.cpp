@@ -182,6 +182,7 @@ void AppStage_Compositor::enter()
 
 		// Init Scripting UI
 		m_compositorScriptingModel->init(context, m_profile, m_scriptContext);
+		m_compositorScriptingModel->OnScriptFileChangeEvent = MakeDelegate(this, &AppStage_Compositor::onScriptFileChangeEvent);
 		m_compositorScriptingModel->OnSelectCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onSelectCompositorScriptFileEvent);
 		m_compositorScriptingModel->OnReloadCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onReloadCompositorScriptFileEvent);
 		m_compositorScriptingModel->OnInvokeScriptTriggerEvent = MakeDelegate(this, &AppStage_Compositor::onInvokeScriptTriggerEvent);
@@ -694,7 +695,7 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 		"Select Stencil Model", 
 		std::filesystem::current_path(),
 		{".obj"}, 
-		[this, stencilID](const std::string& filepath) {
+		[this, stencilID](const std::filesystem::path& filepath) {
 			if (m_profile->updateModelStencilFilename(stencilID, filepath))
 			{
 				m_frameCompositor->flushStencilRenderModel(stencilID);
@@ -713,21 +714,26 @@ void AppStage_Compositor::onToggleRecordingEvent()
 }
 
 // Scripting UI Events
+void AppStage_Compositor::onScriptFileChangeEvent(
+	const std::filesystem::path& filepath)
+{
+	if (m_scriptContext->loadScript(filepath))
+	{
+		m_profile->compositorScriptFilePath = filepath;
+		m_profile->save();
+
+		m_compositorScriptingModel->setCompositorScriptPath(filepath);
+	}
+}
+
 void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
 	ModalDialog_FileBrowser::browseFile(
 		"Select Scene Script",
 		std::filesystem::current_path(),
 		{".lua"},
-		[this](const std::string& filepath) {
-
-			if (m_scriptContext->loadScript(filepath))
-			{
-				m_profile->compositorScriptFilePath = filepath;
-				m_profile->save();
-
-				m_compositorScriptingModel->setCompositorScriptPath(filepath);
-			}
+		[this](const std::filesystem::path& filepath) {
+			onScriptFileChangeEvent(filepath);
 		});
 }
 

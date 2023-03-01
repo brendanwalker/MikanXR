@@ -148,4 +148,20 @@ namespace PathUtils
 
 		return result;
 	}
+
+	std::string createTrimmedPathString(
+		const std::filesystem::path& path,
+		const size_t maxLength)
+	{
+		const std::string pathString = path.string();
+
+		if (pathString.length() > maxLength)
+		{
+			return "..." + pathString.substr(pathString.length() - maxLength);
+		}
+		else
+		{
+			return pathString;
+		}
+	}
 };
