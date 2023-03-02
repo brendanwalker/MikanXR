@@ -20,9 +20,14 @@ void RmlModel_FileBrowser::setTitle(const Rml::String& title)
 	m_title= title;
 }
 
-void RmlModel_FileBrowser::setInitialDirectory(const Rml::String& initialDirectory)
+void RmlModel_FileBrowser::setInitialDirectory(const std::filesystem::path& initialDirectory)
 {
-	m_initialDirectory= std::filesystem::path(initialDirectory);
+	m_initialDirectory= !initialDirectory.empty() ? initialDirectory : std::filesystem::current_path();
+}
+
+void RmlModel_FileBrowser::setInitialFile(const std::filesystem::path& initialFile)
+{
+	m_initialFile = initialFile;
 }
 
 void RmlModel_FileBrowser::setTypeFilter(const Rml::Vector<Rml::String>& typeFilters)
@@ -75,7 +80,7 @@ bool RmlModel_FileBrowser::init(Rml::Context* rmlContext)
 			if (OnRejectFilePath) OnRejectFilePath();
 		});
 
-	setCurrentFilePath("");
+	setCurrentFilePathString(m_initialFile.string());
 	setDirectoryPath(m_initialDirectory);
 
 	return true;
@@ -155,11 +160,11 @@ void RmlModel_FileBrowser::selectFileEntry(
 	}
 	else
 	{
-		setCurrentFilePath((m_currentDirectoryPath / selectedFile.name).string());
+		setCurrentFilePathString((m_currentDirectoryPath / selectedFile.name).string());
 	}	
 }
 
-void RmlModel_FileBrowser::setCurrentFilePath(const Rml::String& filepath)
+void RmlModel_FileBrowser::setCurrentFilePathString(const Rml::String& filepath)
 {
 	m_currentFilePathString= filepath;
 	m_modelHandle.DirtyVariable("current_filepath");

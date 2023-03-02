@@ -6,8 +6,8 @@
 		<title>File Browser</title>
 		<style>
 			body {
-				width: 450dp;
-				height: 400dp;
+				width: 600dp;
+				height: 500dp;
 				margin: auto;
 			}
 			
@@ -35,20 +35,31 @@
 				white-space: nowrap;
 				overflow: hidden;
 			}
+            .filename-box
+            {
+                margin-top: 5dp;
+                decorator: gradient( vertical #415857 #5990A3 );
+                border: 3dp #415857;
+                border-radius: 8dp;
+            }
+            filename
+            {
+                font-size: 14dp;
+                vertical-align: -5dp;
+            }			
 		</style>
 	</head>
 	<body template="window">
 		<panel id="controls" data-model="filebrowser">	
 			<h2>{{title}}</h2>
-			<br/>
-			<span>
-				<button style="width: 40dp" data-event-click="exit_directory()">^</button>
-				<label style="text-align: right">{{current_dirpath}}</label>			
-			</span>
-			<br/>
 			<table>
 				<thead>
-					<tr><td style="margin-left: 10dp; margin-right: 10dp;"></td></tr>
+					<tr>
+						<td style="margin-left: 10dp; margin-right: 10dp;">
+							<button style="width: 40dp; height: 20dp; vertical-align: 0dp; padding-top:4dp;" data-event-click="exit_directory()">⤴</button>
+							{{current_dirpath | to_short_path(64)}}
+						</td>
+					</tr>
 				</thead>
 				<tbody>
 					<tr data-for="file : files">
@@ -59,7 +70,9 @@
 					</tr>
 				</tbody>
 			</table>
-			<label style="text-align: right">{{current_filepath}}</label>			
+            <div class="filename-box">
+                <filename>{{current_filepath | to_short_path(80)}}</filename>
+            </div>			
 			<br/>
 			<button data-event-click="accept_filepath()">open</button>
 			<button data-event-click="reject_filepath()">cancel</button>

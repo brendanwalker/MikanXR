@@ -30,6 +30,7 @@ public:
 	static bool browseFile(
 		const std::string& title,
 		const std::filesystem::path& initialDirectory,
+		const std::filesystem::path& initialFile,
 		const std::vector<std::string>& typeFilters,
 		AcceptFilePathCallback acceptCallback={},
 		RejectFilePathCallback rejectCallback={});
@@ -44,6 +45,7 @@ protected:
 	bool init(
 		const std::string& title,
 		const std::filesystem::path& initialDirectory,
+		const std::filesystem::path& initialFile,
 		const std::vector<std::string>& typeFilters,
 		AcceptFilePathCallback acceptCallback,
 		RejectFilePathCallback rejectCallback);

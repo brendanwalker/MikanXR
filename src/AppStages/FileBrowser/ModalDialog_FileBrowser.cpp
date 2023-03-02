@@ -32,6 +32,7 @@ ModalDialog_FileBrowser::~ModalDialog_FileBrowser()
 bool ModalDialog_FileBrowser::browseFile(
 	const std::string& title,
 	const std::filesystem::path& initialDirectory,
+	const std::filesystem::path& initialFile,
 	const std::vector<std::string>& typeFilters,
 	AcceptFilePathCallback acceptCallback,
 	RejectFilePathCallback rejectCallback)
@@ -41,7 +42,7 @@ bool ModalDialog_FileBrowser::browseFile(
 	ModalDialog_FileBrowser* fileBrowser = ownerAppStage->pushModalDialog<ModalDialog_FileBrowser>();
 
 	// Attempt to initialize the filebrowser
-	if (!fileBrowser->init(title, initialDirectory, typeFilters, acceptCallback, rejectCallback))
+	if (!fileBrowser->init(title, initialDirectory, initialFile, typeFilters, acceptCallback, rejectCallback))
 	{
 		// On failure, destroy the modal dialog we just created
 		ownerAppStage->popModalDialog();
@@ -55,6 +56,7 @@ bool ModalDialog_FileBrowser::browseFile(
 bool ModalDialog_FileBrowser::init(
 	const std::string& title,
 	const std::filesystem::path& initialDirectory,
+	const std::filesystem::path& initialFile,
 	const std::vector<std::string>& typeFilters,
 	AcceptFilePathCallback acceptCallback,
 	RejectFilePathCallback rejectCallback)
@@ -62,6 +64,7 @@ bool ModalDialog_FileBrowser::init(
 	// Set UI properties on the model
 	m_fileBrowserModel->setTitle(title);
 	m_fileBrowserModel->setInitialDirectory(initialDirectory.string());
+	m_fileBrowserModel->setInitialFile(initialFile.string());
 	m_fileBrowserModel->setTypeFilter(typeFilters);
 
 	// Finish model initialization

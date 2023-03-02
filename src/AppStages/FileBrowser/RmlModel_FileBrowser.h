@@ -16,7 +16,8 @@ class RmlModel_FileBrowser : public RmlModel
 {
 public:
 	void setTitle(const Rml::String& title);
-	void setInitialDirectory(const Rml::String& initialDirectory);
+	void setInitialDirectory(const std::filesystem::path& initialDirectory);
+	void setInitialFile(const std::filesystem::path& initialFile);
 	void setTypeFilter(const Rml::Vector<Rml::String> &typeFilters);
 
 	bool init(Rml::Context* rmlContext);
@@ -28,6 +29,7 @@ public:
 protected:
 	Rml::String m_title;
 	std::filesystem::path m_initialDirectory;
+	std::filesystem::path m_initialFile;
 	std::filesystem::path m_currentDirectoryPath;
 	Rml::String m_currentDirectoryPathString;
 	Rml::String m_currentFilePathString;
@@ -36,7 +38,7 @@ protected:
 
 	void setDirectoryPath(const std::filesystem::path& newDirecoryPath);
 	void selectFileEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void setCurrentFilePath(const Rml::String& filepath);
+	void setCurrentFilePathString(const Rml::String& filepath);
 
 	static bool s_bHasRegisteredTypes;
 };

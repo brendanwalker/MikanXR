@@ -43,6 +43,7 @@ public:
 	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
 	bool updateBoxStencil(const MikanStencilBox& info);
 
+	const MikanStencilModelConfig* getModelStencilConfig(MikanStencilID stencilId) const;
 	bool getModelStencilInfo(MikanStencilID stencilId, MikanStencilModel& outInfo) const;
 	glm::mat4 getModelStencilWorldTransform(const MikanStencilModel* stencil) const;
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);

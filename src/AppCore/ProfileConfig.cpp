@@ -782,6 +782,27 @@ glm::mat4 ProfileConfig::getBoxStencilWorldTransform(
 	return worldXform;
 }
 
+const MikanStencilModelConfig* ProfileConfig::getModelStencilConfig(MikanStencilID stencilId) const
+{
+	auto it = std::find_if(
+		modelStencilList.begin(),
+		modelStencilList.end(),
+		[stencilId](const MikanStencilModelConfig& stencil) {
+			return stencil.modelInfo.stencil_id == stencilId;
+		});
+
+	if (it != modelStencilList.end())
+	{
+		const MikanStencilModelConfig& modelConfig = *it;
+
+		return &modelConfig;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
 bool ProfileConfig::getModelStencilInfo(MikanStencilID stencilId, MikanStencilModel& outInfo) const
 {
 	auto it = std::find_if(

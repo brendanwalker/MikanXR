@@ -630,26 +630,7 @@ bool LuaStencilModel::setIsDisabled(bool flag)
 
 const MikanStencilModelConfig* LuaStencilModel::findConstStencilByID(int stencilId) const
 {
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	auto it = std::find_if(
-		profile->modelStencilList.begin(),
-		profile->modelStencilList.end(),
-		[stencilId](const MikanStencilModelConfig& stencil)
-	{
-		return stencil.modelInfo.stencil_id == stencilId;
-	});
-
-	if (it != profile->modelStencilList.end())
-	{
-		const MikanStencilModelConfig& modelConfig = *it;
-
-		return &modelConfig;
-	}
-	else
-	{
-		return nullptr;
-	}
+	return App::getInstance()->getProfileConfig()->getModelStencilConfig(stencilId);
 }
 
 MikanStencilModelConfig* LuaStencilModel::findStencilByID(int stencilId)

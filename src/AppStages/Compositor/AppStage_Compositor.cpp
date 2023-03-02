@@ -691,9 +691,20 @@ void AppStage_Compositor::onModifyModelStencilEvent(int stencilID)
 
 void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 {
+	std::filesystem::path current_dir;
+	std::filesystem::path current_file;
+
+	const MikanStencilModelConfig* modelConfig= m_profile->getModelStencilConfig(stencilID);
+	if (modelConfig != nullptr)
+	{
+		current_file= modelConfig->modelPath;
+		current_dir= current_file.remove_filename();
+	}
+
 	ModalDialog_FileBrowser::browseFile(
 		"Select Stencil Model", 
-		std::filesystem::current_path(),
+		current_dir,
+		current_file,
 		{".obj"}, 
 		[this, stencilID](const std::filesystem::path& filepath) {
 			if (m_profile->updateModelStencilFilename(stencilID, filepath))
@@ -728,9 +739,19 @@ void AppStage_Compositor::onScriptFileChangeEvent(
 
 void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
+	std::filesystem::path current_dir;
+	std::filesystem::path current_file;
+
+	if (!m_profile->compositorScriptFilePath.empty())
+	{
+		current_file = m_profile->compositorScriptFilePath;
+		current_dir = current_file.remove_filename();
+	}
+
 	ModalDialog_FileBrowser::browseFile(
 		"Select Scene Script",
-		std::filesystem::current_path(),
+		current_dir,
+		current_file,
 		{".lua"},
 		[this](const std::filesystem::path& filepath) {
 			onScriptFileChangeEvent(filepath);
