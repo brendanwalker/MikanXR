@@ -49,9 +49,15 @@ public:
 	WidgetNumericInput(ElementFormControl* parent);
 	virtual ~WidgetNumericInput();
 
+	/// Initializes the numeric inputs hidden elements.
+	bool Initialize();
+
 	/// Sets the value of the text field.
 	/// @param[in] value The new value to set on the text field.
 	virtual void SetValue(const String& value);
+
+	virtual void OnValueDecrement() {}
+	virtual void OnValueIncrement() {}
 
 	virtual String SanitiseValue(const String& value) = 0;
 
@@ -80,6 +86,8 @@ public:
 
 	/// Returns the input element's underlying text element.
 	ElementText* GetTextElement();
+	/// Returns the input element's underlying text element.
+	const ElementText* GetTextElementConst() const;
 	/// Returns the input element's maximum allowed text dimensions.
 	Vector2f GetTextDimensions() const;
 
@@ -136,7 +144,7 @@ private:
 	/// Updates the absolute cursor index from the relative cursor indices.
 	void ResetEditCursor();
 	/// Updates the relative cursor indices from the absolute cursor index.
-	void ResetEditCursorAndUpdateCurssorPosition();
+	void ResetEditCursorAndUpdateCursorPosition();
 
 	/// Calculates the character index along a line under a specific horizontal position.
 	/// @param[in] position The position to query.
@@ -194,8 +202,12 @@ private:
 
 	ElementText* text_element;
 	ElementText* selected_text_element;
+	Element* arrows[2];
 	Vector2f internal_dimensions;
 	Vector2f scroll_offset;
+
+	// Set to the auto-repeat timer if either of the arrow buttons have been pressed, -1 if they haven't.
+	float arrow_timers[2];
 
 	//Line numberContent;
 

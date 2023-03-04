@@ -16,6 +16,7 @@
             numeric{
                 width: 50dp;
                 margin-left: 0dp;
+                margin-right: 5dp;
                 vertical-align: -8dp;
             }
             .filename-box
@@ -48,23 +49,23 @@
                     <br/>
                     <span>
                         Position&nbsp;
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.x"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.y"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.z"/>
+                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.x"/>
+                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.y"/>
+                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.z"/>
                     </span>
                     <br/>
                     <span>
                         Rotation&nbsp;
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.x"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.y"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.z"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.x"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.y"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.z"/>
                     </span>
                     <br/>
                     <span>
                         Size&nbsp;
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.x"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.y"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.z"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.x"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.y"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.z"/>
                     </span>
                     <div class="filename-box">
                         <filename>{{stencil.model_path | to_short_path(30)}}</filename>

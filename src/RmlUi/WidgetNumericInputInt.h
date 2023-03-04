@@ -16,6 +16,13 @@ public:
 	WidgetNumericInputInt(ElementFormControl* parent);
 	virtual ~WidgetNumericInputInt();
 
+	/// Sets the minimum value of the slider.
+	void SetMinValue(int min_value);
+	/// Sets the maximum value of the slider.
+	void SetMaxValue(int max_value);
+	/// Sets the slider's value increment.
+	void SetStep(int step);
+
 	/// Strips all non-numeric characters from the string.
 	String SanitiseValue(const String& value);
 
@@ -28,6 +35,10 @@ protected:
 	/// @param[in] character The character to validate.
 	/// @return True if the character is allowed, false if not.
 	bool IsCharacterValid(char character) override;
+
+	int min_value= 0;
+	int max_value= 100;
+	int step= 1;
 };
 
 } // namespace Rml

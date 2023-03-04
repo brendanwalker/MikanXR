@@ -24,6 +24,7 @@ InputTypeNumber::InputTypeNumber(ElementFormControlNumericInput* in_element, Num
 		widget = new WidgetNumericInputInt(element);
 	}
 
+	widget->Initialize();
 	widget->SetMaxLength(element->GetAttribute< int >("maxlength", -1));
 	widget->SetValue(element->GetAttribute< String >("value", ""));
 
@@ -89,6 +90,20 @@ bool InputTypeNumber::OnAttributeChange(const ElementAttributes& changed_attribu
 
 	if (m_numberType == NumberType::FLOAT)
 	{
+		WidgetNumericInputFloat* floatWidget= (WidgetNumericInputFloat *)widget;
+
+		auto it_step = changed_attributes.find("step");
+		if (it_step != changed_attributes.end())
+			floatWidget->SetStep(it_step->second.Get<float>(1.0f));
+
+		auto it_min = changed_attributes.find("min");
+		if (it_min != changed_attributes.end())
+			floatWidget->SetMinValue(it_min->second.Get<float>(0.0f));
+
+		auto it_max = changed_attributes.find("max");
+		if (it_max != changed_attributes.end())
+			floatWidget->SetMaxValue(it_max->second.Get<float>(100.f));
+
 		auto it = changed_attributes.find("precision");
 		if (it != changed_attributes.end())
 		{
@@ -96,9 +111,25 @@ bool InputTypeNumber::OnAttributeChange(const ElementAttributes& changed_attribu
 
 			if (newPrecision != -1)
 			{
-				((WidgetNumericInputFloat*)widget)->SetPrecision(newPrecision);
+				floatWidget->SetPrecision(newPrecision);
 			}
 		}
+	}
+	else if (m_numberType == NumberType::INT)
+	{
+		WidgetNumericInputInt* intWidget = (WidgetNumericInputInt*)widget;
+
+		auto it_step = changed_attributes.find("step");
+		if (it_step != changed_attributes.end())
+			intWidget->SetStep(it_step->second.Get<int>(1));
+
+		auto it_min = changed_attributes.find("min");
+		if (it_min != changed_attributes.end())
+			intWidget->SetMinValue(it_min->second.Get<int>(0));
+
+		auto it_max = changed_attributes.find("max");
+		if (it_max != changed_attributes.end())
+			intWidget->SetMaxValue(it_max->second.Get<int>(100));
 	}
 
 	// Check if the value has been changed.

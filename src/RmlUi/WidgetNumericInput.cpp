@@ -47,13 +47,21 @@
 
 namespace Rml {
 
+static constexpr float DEFAULT_REPEAT_DELAY = 0.5f;
+static constexpr float DEFAULT_REPEAT_PERIOD = 0.1f;
 static constexpr float CURSOR_BLINK_TIME = 0.7f;
 
 static bool IsNumericCharacter(char c) {
 	return (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '+';
 }
 
-WidgetNumericInput::WidgetNumericInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
+WidgetNumericInput::WidgetNumericInput(ElementFormControl* _parent) 
+	: internal_dimensions(0, 0)
+	, scroll_offset(0, 0)
+	, selection_geometry(_parent)
+	, cursor_position(0, 0)
+	, cursor_size(0, 0)
+	, cursor_geometry(_parent)
 {
 	keyboard_showed = false;
 	
@@ -94,6 +102,13 @@ WidgetNumericInput::WidgetNumericInput(ElementFormControl* _parent) : internal_d
 		parent->AppendChild(std::move(unique_selection), false);
 	}
 
+	arrows[0] = nullptr;
+	arrows[1] = nullptr;
+
+	arrow_timers[0] = -1;
+	arrow_timers[1] = -1;
+	last_update_time = 0;
+
 	edit_index = 0;
 	absolute_cursor_index = 0;
 	cursor_on_right_side_of_character = true;
@@ -106,8 +121,6 @@ WidgetNumericInput::WidgetNumericInput(ElementFormControl* _parent) : internal_d
 	selection_anchor_index = 0;
 	selection_begin_index = 0;
 	selection_length = 0;
-
-	last_update_time = 0;
 
 	ShowCursor(false);
 }
@@ -126,6 +139,36 @@ WidgetNumericInput::~WidgetNumericInput()
 	parent->RemoveChild(text_element);
 	parent->RemoveChild(selected_text_element);
 	parent->RemoveChild(selection_element);
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (arrows[i] != nullptr)
+		{
+			arrows[i]->RemoveEventListener(EventId::Mousedown, this);
+			arrows[i]->RemoveEventListener(EventId::Mouseup, this);
+			arrows[i]->RemoveEventListener(EventId::Mouseout, this);
+			parent->RemoveChild(arrows[i]);
+		}
+	}
+}
+
+// Initializes the slider to a given orientation.
+bool WidgetNumericInput::Initialize()
+{
+	// Create all of our child elements as standard elements, and abort if we can't create them.
+	ElementPtr arrow0_element = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
+	ElementPtr arrow1_element = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
+
+	if (!arrow0_element || !arrow1_element)
+	{
+		return false;
+	}
+
+	// Add them as non-DOM elements.
+	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
+	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
+
+	return true;
 }
 
 // Sets the value of the text field.
@@ -134,7 +177,7 @@ void WidgetNumericInput::SetValue(const String& value)
 	text_element->SetText(value);
 	FormatElement();
 
-	ResetEditCursorAndUpdateCurssorPosition();
+	ResetEditCursorAndUpdateCursorPosition();
 }
 
 // Sets the maximum length (in characters) of this text field.
@@ -218,9 +261,10 @@ void WidgetNumericInput::UpdateSelectionColours()
 // Updates the cursor, if necessary.
 void WidgetNumericInput::OnUpdate()
 {
+	double current_time = GetSystemInterface()->GetElapsedTime();
+
 	if (cursor_timer > 0)
 	{
-		double current_time = GetSystemInterface()->GetElapsedTime();
 		cursor_timer -= float(current_time - last_update_time);
 		last_update_time = current_time;
 
@@ -228,6 +272,31 @@ void WidgetNumericInput::OnUpdate()
 		{
 			cursor_timer += CURSOR_BLINK_TIME;
 			cursor_visible = !cursor_visible;
+		}
+	}
+
+	for (int i = 0; i < 2; i++)
+	{
+		bool updated_time = false;
+		float delta_time = 0;
+
+		if (arrow_timers[i] > 0)
+		{
+			if (!updated_time)
+			{
+				delta_time = float(current_time - last_update_time);
+				last_update_time = current_time;
+			}
+
+			arrow_timers[i] -= delta_time;
+			while (arrow_timers[i] <= 0)
+			{
+				arrow_timers[i] += DEFAULT_REPEAT_PERIOD;
+				if (i == 0)
+					OnValueDecrement();
+				else
+					OnValueIncrement();
+			}
 		}
 	}
 }
@@ -275,6 +344,12 @@ void WidgetNumericInput::OnLayout()
 
 // Returns the input element's underlying text element.
 ElementText* WidgetNumericInput::GetTextElement()
+{
+	return text_element;
+}
+
+/// Returns the input element's underlying text element.
+const ElementText* WidgetNumericInput::GetTextElementConst() const
 {
 	return text_element;
 }
@@ -341,13 +416,23 @@ void WidgetNumericInput::ProcessEvent(Event& event)
 		case Input::KI_NUMPAD1:	if (numlock) break; //-fallthrough
 		case Input::KI_END:		MoveCursorHorizontal(CursorMovement::End, shift); break;
 
+		case Input::KI_UP:
+		case Input::KI_NUMPAD8:
+			OnValueIncrement();
+			break;
+
+		case Input::KI_DOWN:
+		case Input::KI_NUMPAD2:
+			OnValueDecrement();
+			break;
+
 		case Input::KI_BACK:
 		{
 			CursorMovement direction = (CursorMovement::Left);
 			if (DeleteCharacters(direction))
 			{
 				FormatElement();
-				ResetEditCursorAndUpdateCurssorPosition();
+				ResetEditCursorAndUpdateCursorPosition();
 			}
 
 			ShowCursor(true);
@@ -361,7 +446,7 @@ void WidgetNumericInput::ProcessEvent(Event& event)
 			if (DeleteCharacters(direction))
 			{
 				FormatElement();
-				ResetEditCursorAndUpdateCurssorPosition();
+				ResetEditCursorAndUpdateCursorPosition();
 			}
 
 			ShowCursor(true);
@@ -488,6 +573,18 @@ void WidgetNumericInput::ProcessEvent(Event& event)
 
 			ShowCursor(true); 
 			cancel_next_drag = false;
+		}
+		else if (event.GetTargetElement() == arrows[0])
+		{
+			arrow_timers[0] = DEFAULT_REPEAT_DELAY;
+			last_update_time = GetSystemInterface()->GetElapsedTime();
+			OnValueIncrement();
+		}
+		else if (event.GetTargetElement() == arrows[1])
+		{
+			arrow_timers[1] = DEFAULT_REPEAT_DELAY;
+			last_update_time = GetSystemInterface()->GetElapsedTime();
+			OnValueDecrement();
 		}
 	}
 	break;
@@ -633,7 +730,7 @@ void WidgetNumericInput::MoveCursorHorizontal(CursorMovement movement, bool sele
 	
 	absolute_cursor_index = Math::Max(0, absolute_cursor_index);
 
-	ResetEditCursorAndUpdateCurssorPosition();
+	ResetEditCursorAndUpdateCursorPosition();
 	MoveCursorToCharacterBoundaries(seek_forward);
 
 	ideal_cursor_position = cursor_position.x;
@@ -715,12 +812,12 @@ void WidgetNumericInput::ExpandSelection()
 	}
 
 	absolute_cursor_index -= int(p_index - p_left);
-	ResetEditCursorAndUpdateCurssorPosition();
+	ResetEditCursorAndUpdateCursorPosition();
 	MoveCursorToCharacterBoundaries(false);
 	UpdateSelection(false);
 
 	absolute_cursor_index += int(p_right - p_left);
-	ResetEditCursorAndUpdateCurssorPosition();
+	ResetEditCursorAndUpdateCursorPosition();
 	MoveCursorToCharacterBoundaries(true);
 	UpdateSelection(true);
 }
@@ -732,7 +829,7 @@ void WidgetNumericInput::ResetEditCursor()
 }
 
 // Updates the relative cursor indices from the absolute cursor index.
-void WidgetNumericInput::ResetEditCursorAndUpdateCurssorPosition()
+void WidgetNumericInput::ResetEditCursorAndUpdateCursorPosition()
 {
 	edit_index = absolute_cursor_index;
 
@@ -822,50 +919,49 @@ void WidgetNumericInput::ShowCursor(bool show, bool move_to_cursor)
 void WidgetNumericInput::FormatElement()
 {
 	using namespace Style;
-	ElementScroll* scroll = parent->GetElementScroll();
-	float width = parent->GetBox().GetSize(Box::PADDING).x;
-
-	Overflow x_overflow_property = parent->GetComputedValues().overflow_x();
-	Overflow y_overflow_property = parent->GetComputedValues().overflow_y();
-
-	if (x_overflow_property == Overflow::Scroll)
-		scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
-	else
-		scroll->DisableScrollbar(ElementScroll::HORIZONTAL);
-
-	if (y_overflow_property == Overflow::Scroll)
-		scroll->EnableScrollbar(ElementScroll::VERTICAL, width);
-	else
-		scroll->DisableScrollbar(ElementScroll::VERTICAL);
+	Rml::Vector2f parentBoxSize = parent->GetBox().GetSize(Box::PADDING);
 
 	// Format the text and determine its total area.
 	Vector2f content_area = FormatText();
 
-	// If we're set to automatically generate horizontal scrollbars, check for that now.
-	if (x_overflow_property == Overflow::Auto)
-	{
-		if (parent->GetClientWidth() < content_area.x)
-			scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
-	}
-
-	// Now check for vertical overflow. If we do turn on the scrollbar, this will cause a reflow.
-	if (y_overflow_property == Overflow::Auto)
-	{
-		if (parent->GetClientHeight() < content_area.y)
-		{
-			scroll->EnableScrollbar(ElementScroll::VERTICAL, width);
-			content_area = FormatText();
-
-			if (x_overflow_property == Overflow::Auto &&
-				parent->GetClientWidth() < content_area.x)
-			{
-				scroll->EnableScrollbar(ElementScroll::HORIZONTAL, width);
-			}
-		}
-	}
-
 	parent->SetContentBox(Vector2f(0, 0), content_area);
-	scroll->FormatScrollbars();
+
+	// Now we size the arrows.
+	for (int i = 0; i < 2; i++)
+	{
+		Box arrow_box;
+		ElementUtilities::BuildBox(arrow_box, parentBoxSize, arrows[i]);
+
+		// Clamp the size to (0, 0).
+		Vector2f arrow_size = arrow_box.GetSize();
+		if (arrow_size.x < 0 ||
+			arrow_size.y < 0)
+			arrow_box.SetContent(Vector2f(0, 0));
+
+		arrows[i]->SetBox(arrow_box);
+	}
+
+	{
+		const float rightPadding = parent->GetBox().GetEdge(Box::PADDING, Box::RIGHT);
+		const Vector2f offset(parentBoxSize.x - rightPadding, 0.f);
+
+		arrows[0]->SetOffset(offset, parent);
+	}
+
+	{
+		const float rightPadding = parent->GetBox().GetEdge(Box::PADDING, Box::RIGHT);
+		const float arrowContentHeight = arrows[1]->GetBox().GetSize(Box::CONTENT).y;
+		const Vector2f offset(parentBoxSize.x - rightPadding, parentBoxSize.y - arrowContentHeight);
+
+		arrows[1]->SetOffset(offset, parent);
+	}
+
+	if (parent->IsDisabled())
+	{
+		// Propagate disabled state to child elements
+		arrows[0]->SetPseudoClass("disabled", true);
+		arrows[1]->SetPseudoClass("disabled", true);
+	}
 }
 
 // Formats the input element's text field.
@@ -1059,7 +1155,7 @@ void WidgetNumericInput::DeleteSelection()
 
 		// Move the cursor to the beginning of the old selection.
 		absolute_cursor_index = selection_begin_index;
-		ResetEditCursorAndUpdateCurssorPosition();
+		ResetEditCursorAndUpdateCursorPosition();
 
 		// Erase our record of the selection.
 		ClearSelection();

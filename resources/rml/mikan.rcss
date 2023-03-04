@@ -319,6 +319,36 @@ textarea {
 	font-size: 12dp;
 }
 
+numeric sliderarrowdec,
+numeric sliderarrowinc {
+	width: 17dp;
+	height: 17dp;
+}
+
+numeric sliderarrowdec {
+	decorator: image(range-dec);
+}
+
+numeric sliderarrowinc {
+	decorator: image(range-inc);
+}
+
+numeric sliderarrowdec:hover {
+	decorator: image(range-dec-hover);
+}
+
+numeric sliderarrowinc:hover {
+	decorator: image(range-inc-hover);
+}
+
+numeric sliderarrowdec:active {
+	decorator: image(range-dec-active);
+}
+
+numeric sliderarrowinc:active {
+	decorator: image(range-inc-active);
+}
+
 datagrid input.text,
 table input.text {
 	box-sizing: border-box;

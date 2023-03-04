@@ -24,10 +24,32 @@ bool WidgetNumericInputInt::IsNumericContentValid(const String& content)
 	}
 }
 
+// Sets the minimum value of the slider.
+void WidgetNumericInputInt::SetMinValue(int _min_value)
+{
+	min_value = _min_value;
+}
+
+// Sets the maximum value of the slider.
+void WidgetNumericInputInt::SetMaxValue(int _max_value)
+{
+	max_value = _max_value;
+}
+
+// Sets the slider's value increment.
+void WidgetNumericInputInt::SetStep(int _step)
+{
+	// Can't have a zero step!
+	if (_step == 0)
+		return;
+
+	step = _step;
+}
+
 // Returns true if the given character is permitted in the input field, false if not.
 bool WidgetNumericInputInt::IsCharacterValid(char character)
 {
-	return isdigit(character) || character == '-' || character == '+';
+	return isdigit(character) || character == '-';
 }
 
 // Strips all non-numeric characters from the string.
