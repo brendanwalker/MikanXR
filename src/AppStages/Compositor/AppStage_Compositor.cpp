@@ -608,6 +608,7 @@ void AppStage_Compositor::onAddQuadStencilEvent()
 	if (m_profile->addNewQuadStencil(quad) != INVALID_MIKAN_ID)
 	{
 		m_compositorQuadsModel->rebuildUIQuadsFromProfile(m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
@@ -616,6 +617,7 @@ void AppStage_Compositor::onDeleteQuadStencilEvent(int stencilID)
 	if (m_profile->removeStencil(stencilID))
 	{
 		m_compositorQuadsModel->rebuildUIQuadsFromProfile(m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
@@ -642,6 +644,7 @@ void AppStage_Compositor::onAddBoxStencilEvent()
 	if (m_profile->addNewBoxStencil(box) != INVALID_MIKAN_ID)
 	{
 		m_compositorBoxesModel->rebuildUIBoxesFromProfile(m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
@@ -650,6 +653,7 @@ void AppStage_Compositor::onDeleteBoxStencilEvent(int stencilID)
 	if (m_profile->removeStencil(stencilID))
 	{
 		m_compositorBoxesModel->rebuildUIBoxesFromProfile(m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
@@ -673,6 +677,7 @@ void AppStage_Compositor::onAddModelStencilEvent()
 	if (m_profile->addNewModelStencil(model) != INVALID_MIKAN_ID)
 	{
 		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
@@ -681,6 +686,7 @@ void AppStage_Compositor::onDeleteModelStencilEvent(int stencilID)
 	if (m_profile->removeStencil(stencilID))
 	{
 		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
