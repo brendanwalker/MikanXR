@@ -14,10 +14,11 @@
                 margin: auto;
             }
             numeric{
-                width: 50dp;
+                width: 60dp;
                 margin-left: 0dp;
+                margin-right: 5dp;
                 vertical-align: -8dp;
-            }            
+            }          
         </style>
 	</head>
 	<body template="window">
@@ -36,22 +37,22 @@
                     <br/>
                     <span>
                         Position&nbsp;
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.position.x"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.position.y"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.position.z"/>
+                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.position.x"/>
+                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.position.y"/>
+                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.position.z"/>
                     </span>
                     <br/>
                     <span>
                         Rotation&nbsp;
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.x"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.y"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.z"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.x"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.y"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.angles.z"/>
                     </span>
                     <br/>
                     <span>
                         Size&nbsp;
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.x"/>
-                        <numeric type="float" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.y"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.x"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.y"/>
                     </span>
                     <br/> 
                     <label><input type="checkbox" name="double_sided" data-event-change="modify_stencil(stencil.stencil_id)" data-value="stencil.double_sided" /> Double Sided </label>

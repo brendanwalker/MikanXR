@@ -1,4 +1,5 @@
 #include "WidgetNumericInputFloat.h"
+#include "MathUtility.h"
 #include <RmlUi/Core/ElementText.h>
 
 #include <iomanip>
@@ -114,7 +115,7 @@ String WidgetNumericInputFloat::SanitiseValue(const String& value)
 	
 	try
 	{
-		parsedFloat = std::stof(value);
+		parsedFloat = clampf(std::stof(value), min_value, max_value);
 	}
 	catch (std::exception e)
 	{

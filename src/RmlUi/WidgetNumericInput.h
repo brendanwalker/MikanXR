@@ -49,9 +49,6 @@ public:
 	WidgetNumericInput(ElementFormControl* parent);
 	virtual ~WidgetNumericInput();
 
-	/// Initializes the numeric inputs hidden elements.
-	bool Initialize();
-
 	/// Sets the value of the text field.
 	/// @param[in] value The new value to set on the text field.
 	virtual void SetValue(const String& value);
@@ -242,7 +239,8 @@ private:
 	/// @param[in] active True if need activate keyboard, false if need deactivate.
 	void SetKeyboardActive(bool active);
 
-	double last_update_time;
+	double last_cursor_update_time;
+	double last_arrow_update_time;
 
 	// The cursor geometry.
 	float ideal_cursor_position;

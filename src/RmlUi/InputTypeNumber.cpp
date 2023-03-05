@@ -24,7 +24,6 @@ InputTypeNumber::InputTypeNumber(ElementFormControlNumericInput* in_element, Num
 		widget = new WidgetNumericInputInt(element);
 	}
 
-	widget->Initialize();
 	widget->SetMaxLength(element->GetAttribute< int >("maxlength", -1));
 	widget->SetValue(element->GetAttribute< String >("value", ""));
 

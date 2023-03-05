@@ -77,6 +77,7 @@ WidgetNumericInput::WidgetNumericInput(ElementFormControl* _parent)
 	parent->AddEventListener(EventId::Focus, this, true);
 	parent->AddEventListener(EventId::Blur, this, true);
 	parent->AddEventListener(EventId::Mousedown, this, true);
+	parent->AddEventListener(EventId::Mouseup, this, true);
 	parent->AddEventListener(EventId::Dblclick, this, true);
 	parent->AddEventListener(EventId::Drag, this, true);
 
@@ -102,17 +103,33 @@ WidgetNumericInput::WidgetNumericInput(ElementFormControl* _parent)
 		parent->AppendChild(std::move(unique_selection), false);
 	}
 
-	arrows[0] = nullptr;
-	arrows[1] = nullptr;
+	ElementPtr arrow0_element = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
+	if (arrow0_element)
+	{
+		arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
+	}
 
-	arrow_timers[0] = -1;
-	arrow_timers[1] = -1;
-	last_update_time = 0;
+	ElementPtr arrow1_element = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
+	if (arrow1_element)
+	{
+		arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
+	}
+
+	for (int arrow_index = 0; arrow_index < 2; arrow_index++)
+	{
+		arrows[arrow_index]->AddEventListener(EventId::Mousedown, this);
+		arrows[arrow_index]->AddEventListener(EventId::Mouseup, this);
+		arrows[arrow_index]->AddEventListener(EventId::Mouseout, this);
+		arrow_timers[arrow_index] = -1;
+	}
+
+	last_arrow_update_time = 0;
 
 	edit_index = 0;
 	absolute_cursor_index = 0;
 	cursor_on_right_side_of_character = true;
 	cancel_next_drag = false;
+	last_cursor_update_time = 0;
 
 	ideal_cursor_position = 0;
 
@@ -135,11 +152,6 @@ WidgetNumericInput::~WidgetNumericInput()
 	parent->RemoveEventListener(EventId::Dblclick, this, true);
 	parent->RemoveEventListener(EventId::Drag, this, true);
 
-	// Remove all the children added by the text widget.
-	parent->RemoveChild(text_element);
-	parent->RemoveChild(selected_text_element);
-	parent->RemoveChild(selection_element);
-
 	for (int i = 0; i < 2; i++)
 	{
 		if (arrows[i] != nullptr)
@@ -150,25 +162,11 @@ WidgetNumericInput::~WidgetNumericInput()
 			parent->RemoveChild(arrows[i]);
 		}
 	}
-}
 
-// Initializes the slider to a given orientation.
-bool WidgetNumericInput::Initialize()
-{
-	// Create all of our child elements as standard elements, and abort if we can't create them.
-	ElementPtr arrow0_element = Factory::InstanceElement(parent, "*", "sliderarrowinc", XMLAttributes());
-	ElementPtr arrow1_element = Factory::InstanceElement(parent, "*", "sliderarrowdec", XMLAttributes());
-
-	if (!arrow0_element || !arrow1_element)
-	{
-		return false;
-	}
-
-	// Add them as non-DOM elements.
-	arrows[0] = parent->AppendChild(std::move(arrow0_element), false);
-	arrows[1] = parent->AppendChild(std::move(arrow1_element), false);
-
-	return true;
+	// Remove all the children added by the text widget.
+	parent->RemoveChild(text_element);
+	parent->RemoveChild(selected_text_element);
+	parent->RemoveChild(selection_element);
 }
 
 // Sets the value of the text field.
@@ -265,8 +263,8 @@ void WidgetNumericInput::OnUpdate()
 
 	if (cursor_timer > 0)
 	{
-		cursor_timer -= float(current_time - last_update_time);
-		last_update_time = current_time;
+		cursor_timer -= float(current_time - last_cursor_update_time);
+		last_cursor_update_time = current_time;
 
 		while (cursor_timer <= 0)
 		{
@@ -284,8 +282,8 @@ void WidgetNumericInput::OnUpdate()
 		{
 			if (!updated_time)
 			{
-				delta_time = float(current_time - last_update_time);
-				last_update_time = current_time;
+				delta_time = float(current_time - last_arrow_update_time);
+				last_arrow_update_time = current_time;
 			}
 
 			arrow_timers[i] -= delta_time;
@@ -577,15 +575,24 @@ void WidgetNumericInput::ProcessEvent(Event& event)
 		else if (event.GetTargetElement() == arrows[0])
 		{
 			arrow_timers[0] = DEFAULT_REPEAT_DELAY;
-			last_update_time = GetSystemInterface()->GetElapsedTime();
+			last_arrow_update_time = GetSystemInterface()->GetElapsedTime();
 			OnValueIncrement();
 		}
 		else if (event.GetTargetElement() == arrows[1])
 		{
 			arrow_timers[1] = DEFAULT_REPEAT_DELAY;
-			last_update_time = GetSystemInterface()->GetElapsedTime();
+			last_arrow_update_time = GetSystemInterface()->GetElapsedTime();
 			OnValueDecrement();
 		}
+	}
+	break;
+	case EventId::Mouseup:
+	case EventId::Mouseout:
+	{
+		if (event.GetTargetElement() == arrows[0])
+			arrow_timers[0] = -1;
+		else if (event.GetTargetElement() == arrows[1])
+			arrow_timers[1] = -1;
 	}
 	break;
 	case EventId::Dblclick:
@@ -722,7 +729,11 @@ void WidgetNumericInput::MoveCursorHorizontal(CursorMovement movement, bool sele
 			absolute_cursor_index += 1;
 		break;
 	case CursorMovement::End:
-		absolute_cursor_index = INT_MAX;
+		{
+			const String& line= text_element->GetText();
+
+			absolute_cursor_index = line.size();
+		}
 		break;
 	default:
 		break;
@@ -881,7 +892,7 @@ void WidgetNumericInput::ShowCursor(bool show, bool move_to_cursor)
 		keyboard_showed = true;
 		
 		cursor_timer = CURSOR_BLINK_TIME;
-		last_update_time = GetSystemInterface()->GetElapsedTime();
+		last_cursor_update_time = GetSystemInterface()->GetElapsedTime();
 
 		// Shift the cursor into view.
 		if (move_to_cursor)
@@ -906,7 +917,7 @@ void WidgetNumericInput::ShowCursor(bool show, bool move_to_cursor)
 	{
 		cursor_visible = false;
 		cursor_timer = -1;
-		last_update_time = 0;
+		last_cursor_update_time = 0;
 		if (keyboard_showed)
 		{
 			SetKeyboardActive(false);
@@ -924,6 +935,7 @@ void WidgetNumericInput::FormatElement()
 	// Format the text and determine its total area.
 	Vector2f content_area = FormatText();
 
+	//content_area.x= parentBoxSize.x;
 	parent->SetContentBox(Vector2f(0, 0), content_area);
 
 	// Now we size the arrows.
@@ -941,17 +953,19 @@ void WidgetNumericInput::FormatElement()
 		arrows[i]->SetBox(arrow_box);
 	}
 
+	const float topMargin = 2;
 	{
-		const float rightPadding = parent->GetBox().GetEdge(Box::PADDING, Box::RIGHT);
-		const Vector2f offset(parentBoxSize.x - rightPadding, 0.f);
+		const float topPadding = parent->GetBox().GetEdge(Box::PADDING, Box::TOP);
+		const float arrowHalfWidth = arrows[0]->GetBox().GetSize(Box::CONTENT).x * 0.5f;
+		const Vector2f offset(parentBoxSize.x - arrowHalfWidth, topPadding - topMargin);
 
 		arrows[0]->SetOffset(offset, parent);
 	}
 
 	{
-		const float rightPadding = parent->GetBox().GetEdge(Box::PADDING, Box::RIGHT);
-		const float arrowContentHeight = arrows[1]->GetBox().GetSize(Box::CONTENT).y;
-		const Vector2f offset(parentBoxSize.x - rightPadding, parentBoxSize.y - arrowContentHeight);
+		const float arrowHalfWidth = arrows[1]->GetBox().GetSize(Box::CONTENT).x * 0.5f;
+		const float arrowHeight = arrows[1]->GetBox().GetSize(Box::CONTENT).y;
+		const Vector2f offset(parentBoxSize.x - arrowHalfWidth, parentBoxSize.y - arrowHeight - topMargin);
 
 		arrows[1]->SetOffset(offset, parent);
 	}

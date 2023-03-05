@@ -1,5 +1,6 @@
 #include <RmlUi/Core/ElementText.h>
 #include "WidgetNumericInputInt.h"
+#include "MathUtility.h"
 
 namespace Rml {
 
@@ -59,7 +60,7 @@ String WidgetNumericInputInt::SanitiseValue(const String& inValue)
 
 	try
 	{
-		parsedInt = std::stoi(inValue);
+		parsedInt = int_clamp(std::stoi(inValue), min_value, max_value);
 	}
 	catch (std::exception e)
 	{

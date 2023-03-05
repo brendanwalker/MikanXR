@@ -14,7 +14,7 @@
                 margin: auto;
             }
             numeric{
-                width: 50dp;
+                width: 60dp;
                 margin-left: 0dp;
                 margin-right: 5dp;
                 vertical-align: -8dp;
