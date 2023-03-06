@@ -284,9 +284,13 @@ void WidgetNumericInput::OnUpdate()
 			{
 				arrow_timers[i] += DEFAULT_REPEAT_PERIOD;
 				if (i == 0)
-					OnValueDecrement();
-				else
+				{
 					OnValueIncrement();
+				}
+				else
+				{
+					OnValueDecrement();
+				}
 			}
 		}
 	}
@@ -381,6 +385,8 @@ void WidgetNumericInput::DispatchSubmitEvent()
 // the state of the cursor.
 void WidgetNumericInput::ProcessEvent(Event& event)
 {
+	const double eventTime= GetSystemInterface()->GetElapsedTime();
+
 	if (parent->IsDisabled())
 		return;
 
@@ -567,15 +573,21 @@ void WidgetNumericInput::ProcessEvent(Event& event)
 		}
 		else if (event.GetTargetElement() == arrows[0])
 		{
-			arrow_timers[0] = DEFAULT_REPEAT_DELAY;
-			last_arrow_update_time = GetSystemInterface()->GetElapsedTime();
-			OnValueIncrement();
+			if (last_arrow_update_time != eventTime)
+			{
+				arrow_timers[0] = DEFAULT_REPEAT_DELAY;
+				last_arrow_update_time = eventTime;
+				OnValueIncrement();
+			}
 		}
 		else if (event.GetTargetElement() == arrows[1])
 		{
-			arrow_timers[1] = DEFAULT_REPEAT_DELAY;
-			last_arrow_update_time = GetSystemInterface()->GetElapsedTime();
-			OnValueDecrement();
+			if (last_arrow_update_time != eventTime)
+			{
+				arrow_timers[1] = DEFAULT_REPEAT_DELAY;
+				last_arrow_update_time = eventTime;
+				OnValueDecrement();
+			}
 		}
 	}
 	break;
