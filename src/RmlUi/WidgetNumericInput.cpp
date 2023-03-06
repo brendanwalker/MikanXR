@@ -77,7 +77,6 @@ WidgetNumericInput::WidgetNumericInput(ElementFormControl* _parent)
 	parent->AddEventListener(EventId::Focus, this, true);
 	parent->AddEventListener(EventId::Blur, this, true);
 	parent->AddEventListener(EventId::Mousedown, this, true);
-	parent->AddEventListener(EventId::Mouseup, this, true);
 	parent->AddEventListener(EventId::Dblclick, this, true);
 	parent->AddEventListener(EventId::Drag, this, true);
 
@@ -159,14 +158,8 @@ WidgetNumericInput::~WidgetNumericInput()
 			arrows[i]->RemoveEventListener(EventId::Mousedown, this);
 			arrows[i]->RemoveEventListener(EventId::Mouseup, this);
 			arrows[i]->RemoveEventListener(EventId::Mouseout, this);
-			parent->RemoveChild(arrows[i]);
 		}
 	}
-
-	// Remove all the children added by the text widget.
-	parent->RemoveChild(text_element);
-	parent->RemoveChild(selected_text_element);
-	parent->RemoveChild(selection_element);
 }
 
 // Sets the value of the text field.
