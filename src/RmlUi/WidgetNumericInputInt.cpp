@@ -47,10 +47,48 @@ void WidgetNumericInputInt::SetStep(int _step)
 	step = _step;
 }
 
+void WidgetNumericInputInt::OnValueDecrement()
+{
+	const int old_value = GetIntValue();
+	const int new_value = int_max(old_value - step, min_value);
+
+	if (new_value < old_value)
+	{
+		SetValue(std::to_string(new_value));
+		LineBreak();
+	}
+}
+
+void WidgetNumericInputInt::OnValueIncrement()
+{
+	const int old_value = GetIntValue();
+	const int new_value = int_min(old_value + step, max_value);
+
+	if (new_value > old_value)
+	{
+		SetValue(std::to_string(new_value));
+		LineBreak();
+	}
+}
+
 // Returns true if the given character is permitted in the input field, false if not.
 bool WidgetNumericInputInt::IsCharacterValid(char character)
 {
 	return isdigit(character) || character == '-';
+}
+
+int WidgetNumericInputInt::GetIntValue() const
+{
+	try
+	{
+		const Rml::String& stringValue = GetTextElementConst()->GetText();
+
+		return std::stoi(stringValue.c_str());
+	}
+	catch (std::exception e)
+	{
+		return 0.f;
+	}
 }
 
 // Strips all non-numeric characters from the string.

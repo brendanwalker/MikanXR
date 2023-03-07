@@ -23,10 +23,15 @@ public:
 	/// Sets the slider's value increment.
 	void SetStep(int step);
 
+	void OnValueDecrement() override;
+	void OnValueIncrement() override;
+
 	/// Strips all non-numeric characters from the string.
 	String SanitiseValue(const String& value);
 
 protected:
+	int GetIntValue() const;
+
 	/// Returns true if the current numeric text content is valid numeric value
 	/// @param[in] character The character to validate.
 	/// @return True if the content is valid, false if not.
