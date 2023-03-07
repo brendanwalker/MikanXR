@@ -83,6 +83,7 @@ protected:
 	void onSDLEvent(SDL_Event& e);
 
 	void update();
+	void updateAutoSave(float deltaSeconds);
 	void render();
 
 private:
@@ -90,6 +91,7 @@ private:
 
 	// Profile Config
 	class ProfileConfig* m_profileConfig= nullptr;
+	float m_profileSaveCooldown= -1.f;
 
 	// Mikan API Server
 	class MikanServer* m_mikanServer= nullptr;

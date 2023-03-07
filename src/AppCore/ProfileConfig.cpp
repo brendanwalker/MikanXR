@@ -417,7 +417,7 @@ bool ProfileConfig::addNewAnchor(const char* anchorName, const MikanMatrix4f& xf
 	nextAnchorId++;
 
 	spatialAnchorList.push_back(anchor);
-	save();
+	markDirty();
 
 	return true;
 }
@@ -435,7 +435,7 @@ bool ProfileConfig::updateAnchor(const MikanSpatialAnchorInfo& info)
 	if (it != spatialAnchorList.end())
 	{
 		*it= info;
-		save();
+		markDirty();
 		return true;
 	}
 
@@ -453,7 +453,7 @@ bool ProfileConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 	if (it != spatialAnchorList.end())
 	{
 		spatialAnchorList.erase(it);
-		save();
+		markDirty();
 
 		return true;
 	}
@@ -513,7 +513,7 @@ bool ProfileConfig::removeStencil(MikanStencilID stencilId)
 		if (it != quadStencilList.end())
 		{
 			quadStencilList.erase(it);
-			save();
+			markDirty();
 
 			return true;
 		}
@@ -530,7 +530,7 @@ bool ProfileConfig::removeStencil(MikanStencilID stencilId)
 		if (it != boxStencilList.end())
 		{
 			boxStencilList.erase(it);
-			save();
+			markDirty();
 
 			return true;
 		}
@@ -547,7 +547,7 @@ bool ProfileConfig::removeStencil(MikanStencilID stencilId)
 		if (it != modelStencilList.end())
 		{
 			modelStencilList.erase(it);
-			save();
+			markDirty();
 
 			return true;
 		}
@@ -666,7 +666,7 @@ MikanStencilID ProfileConfig::addNewQuadStencil(const MikanStencilQuad& quad)
 	nextStencilId++;
 
 	quadStencilList.push_back(newStencil);
-	save();
+	markDirty();
 
 	return newStencil.stencil_id;
 }
@@ -684,7 +684,7 @@ bool ProfileConfig::updateQuadStencil(const MikanStencilQuad& quad)
 	if (it != quadStencilList.end())
 	{
 		*it = quad;
-		save();
+		markDirty();
 		return true;
 	}
 
@@ -729,7 +729,7 @@ MikanStencilID ProfileConfig::addNewBoxStencil(const MikanStencilBox& box)
 	nextStencilId++;
 
 	boxStencilList.push_back(newStencil);
-	save();
+	markDirty();
 
 	return newStencil.stencil_id;
 }
@@ -747,7 +747,7 @@ bool ProfileConfig::updateBoxStencil(const MikanStencilBox& box)
 	if (it != boxStencilList.end())
 	{
 		*it = box;
-		save();
+		markDirty();
 		return true;
 	}
 
@@ -863,7 +863,7 @@ MikanStencilID ProfileConfig::addNewModelStencil(const MikanStencilModel& modelI
 	nextStencilId++;
 
 	modelStencilList.push_back(newStencil);
-	save();
+	markDirty();
 
 	return newStencil.modelInfo.stencil_id;
 }
@@ -881,7 +881,7 @@ bool ProfileConfig::updateModelStencil(const MikanStencilModel& info)
 	if (it != modelStencilList.end())
 	{
 		it->modelInfo = info;
-		save();
+		markDirty();
 		return true;
 	}
 
@@ -901,7 +901,7 @@ bool ProfileConfig::updateModelStencilFilename(
 	if (it != modelStencilList.end())
 	{
 		it->modelPath= filename;
-		save();
+		markDirty();
 		return true;
 	}
 

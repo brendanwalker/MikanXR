@@ -34,6 +34,9 @@ class CommonConfig
 public:
     CommonConfig(const std::string &fnamebase = std::string("CommonConfig"));
 
+	void markDirty() { m_bIsDirty= true; }
+	bool isMarkedDirty() const { return m_bIsDirty; }
+
 	const std::filesystem::path getDefaultConfigPath() const;
     const std::filesystem::path& getLoadedConfigPath() const { return m_configFullFilePath; }
     void save();
@@ -215,6 +218,7 @@ public:
         eDeviceType& outDeviceType);
 
 protected:
+	bool m_bIsDirty= false;
 	std::string m_configFileBase;
 	std::filesystem::path m_configFullFilePath;
 };

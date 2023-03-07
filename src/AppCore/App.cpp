@@ -26,10 +26,10 @@
 #include "Objbase.h"
 #endif //_WIN32
 
+#define PROFILE_SAVE_COOLDOWN	3.f
+
 //-- static members -----
 App* App::m_instance= nullptr;
-
-
 
 //-- public methods -----
 App::App()
@@ -339,6 +339,35 @@ void App::update()
 
 	// Update the UI layout and data models
 	m_rmlManager->update();
+
+	// Update profile auto-save
+	updateAutoSave(deltaSeconds);
+}
+
+void App::updateAutoSave(float deltaSeconds)
+{
+	// We change the profile constantly as changes are made in the UI
+	// Put the save to disk on a cooldown so we aren't writing to disk constantly
+	if (m_profileSaveCooldown >= 0.f)
+	{
+		if (m_profileConfig->isMarkedDirty())
+		{
+			m_profileSaveCooldown -= deltaSeconds;
+			if (m_profileSaveCooldown < 0.f)
+			{
+				m_profileConfig->save();
+				m_profileSaveCooldown = -1.f;
+			}
+		}
+		else
+		{
+			m_profileSaveCooldown = -1.f;
+		}
+	}
+	else if (m_profileConfig->isMarkedDirty())
+	{
+		m_profileSaveCooldown = PROFILE_SAVE_COOLDOWN;
+	}
 }
 
 void App::render()

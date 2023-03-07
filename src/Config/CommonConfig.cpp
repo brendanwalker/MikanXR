@@ -55,6 +55,7 @@ CommonConfig::save(const std::filesystem::path& path)
     m_configFullFilePath= path;
 
 	configuru::dump_file(path.string(), writeToJSON(), configuru::JSON);
+    m_bIsDirty= false;
 }
 
 bool
@@ -74,6 +75,7 @@ CommonConfig::load(const std::filesystem::path& path)
 
         configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
         readFromJSON(cfg);
+        m_bIsDirty= false;
         bLoadedOk = true;
     }
 
