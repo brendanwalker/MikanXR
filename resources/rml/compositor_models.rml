@@ -63,9 +63,9 @@
                     <br/>
                     <span>
                         Size&nbsp;
-                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.x"/>
-                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.y"/>
-                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.z"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.x"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.y"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.z"/>
                     </span>
                     <div class="filename-box">
                         <filename>{{stencil.model_path | to_short_path(30)}}</filename>

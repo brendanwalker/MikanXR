@@ -51,8 +51,8 @@
                     <br/>
                     <span>
                         Size&nbsp;
-                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.x"/>
-                        <numeric type="float" min="0.0" max="10.0" step="0.1" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.y"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.x"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.size.y"/>
                     </span>
                     <br/> 
                     <label><input type="checkbox" name="double_sided" data-event-change="modify_stencil(stencil.stencil_id)" data-value="stencil.double_sided" /> Double Sided </label>
