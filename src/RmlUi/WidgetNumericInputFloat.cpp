@@ -74,7 +74,7 @@ void WidgetNumericInputFloat::OnValueDecrement()
 		std::string newStringValue= stream.str();
 
 		SetValue(newStringValue);
-		DispatchChangeEvent();
+		LineBreak();
 	}
 }
 
@@ -90,7 +90,7 @@ void WidgetNumericInputFloat::OnValueIncrement()
 		std::string newStringValue = stream.str();
 
 		SetValue(newStringValue);
-		DispatchChangeEvent();
+		LineBreak();
 	}
 }
 

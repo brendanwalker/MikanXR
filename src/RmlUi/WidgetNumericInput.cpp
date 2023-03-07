@@ -684,6 +684,7 @@ void WidgetNumericInput::LineBreak()
 		GetElement()->SetAttribute("value", textElementValue);
 
 		// Tell event listeners that a value was committed
+		DispatchChangeEvent();
 		DispatchSubmitEvent();
 	}
 	else
