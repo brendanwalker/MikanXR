@@ -6,7 +6,7 @@ namespace Rml
 {
 	namespace Utilities
 	{
-		void ToggleElementDocumentVisibility(ElementDocument* elementDoc)
+		bool IsElementDocumentVisible(ElementDocument* elementDoc)
 		{
 			if (elementDoc != nullptr)
 			{
@@ -16,15 +16,21 @@ namespace Rml
 				{
 					const auto Visibility = (Rml::Style::Visibility)property->Get<int>();
 
-					if (Visibility == Rml::Style::Visibility::Hidden)
-					{
-						elementDoc->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
-					}
-					else
-					{
-						elementDoc->Hide();
-					}
+					return Visibility == Rml::Style::Visibility::Visible;
 				}
+			}
+
+		}
+
+		void ToggleElementDocumentVisibility(ElementDocument* elementDoc)
+		{
+			if (IsElementDocumentVisible(elementDoc))
+			{
+				elementDoc->Hide();
+			}
+			else
+			{
+				elementDoc->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
 			}
 		}
 	}

@@ -231,8 +231,10 @@ void AppStage_Compositor::update()
 	m_scriptContext->updateScript();
 
 	// Update the sources model now that the app stage has updated
-	m_compositorLayersModel->update();
-	m_compositorSourcesModel->update();
+	if (Rml::Utilities::IsElementDocumentVisible(m_compositiorSourcesView))
+	{
+		m_compositorSourcesModel->update();
+	}
 }
 
 bool AppStage_Compositor::startRecording()
