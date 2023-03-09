@@ -36,6 +36,7 @@ protected:
 	// Main Compositor UI Events
 	void onReturnEvent();
 	void onToggleLayersWindowEvent();
+	void onToggleAnchorsWindowEvent();
 	void onToggleRecordingWindowEvent();
 	void onToggleScriptingWindowEvent();
 	void onToggleQuadStencilsWindowEvent();
@@ -67,6 +68,10 @@ protected:
 	void onMat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
+
+	// Anchors UI Events
+	void onAddAnchorFastenerEvent(int parentAnchorId);
+	void onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID);
 
 	// Quad Stencils UI Events
 	void onAddQuadStencilEvent();
@@ -104,6 +109,9 @@ protected:
 
 	class RmlModel_CompositorLayers* m_compositorLayersModel = nullptr;
 	Rml::ElementDocument* m_compositiorLayersView = nullptr;
+
+	class RmlModel_CompositorAnchors* m_compositorAnchorsModel = nullptr;
+	Rml::ElementDocument* m_compositiorAnchorsView = nullptr;
 
 	class RmlModel_CompositorQuads* m_compositorQuadsModel = nullptr;
 	Rml::ElementDocument* m_compositiorQuadsView = nullptr;

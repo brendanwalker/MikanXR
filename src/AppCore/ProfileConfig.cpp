@@ -600,6 +600,23 @@ bool ProfileConfig::findSpatialFastenerInfoByName(
 	return false;
 }
 
+std::vector<MikanSpatialFastenerID> ProfileConfig::getSpatialFastenersWithParent(
+	const MikanFastenerParentType parentType, 
+	const MikanSpatialAnchorID parentObjectId) const
+{
+	std::vector<MikanSpatialFastenerID> result;
+
+	for (const MikanSpatialFastenerInfo& info : spatialFastenerList)
+	{
+		if (info.parent_object_type == parentType && info.parent_object_id == parentObjectId)
+		{
+			result.push_back(info.fastener_id);
+		}
+	}
+
+	return result;
+}
+
 bool ProfileConfig::canAddFastener() const
 {
 	return (spatialFastenerList.size() < MAX_MIKAN_SPATIAL_ANCHORS);

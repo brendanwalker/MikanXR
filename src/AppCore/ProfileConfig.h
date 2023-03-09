@@ -31,8 +31,9 @@ public:
 	bool getSpatialFastenerInfo(MikanSpatialFastenerID fastenerId, MikanSpatialFastenerInfo& outInfo) const;
 	MikanSpatialFastenerID getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const;
 	bool findSpatialFastenerInfoByName(const char* fastenerName, MikanSpatialFastenerInfo& outInfo) const;
+	std::vector<MikanSpatialFastenerID> getSpatialFastenersWithParent(const MikanFastenerParentType parentType, const int32_t objectId) const;
 	bool canAddFastener() const;
-	bool addNewFastener(const char* fastenerName, const MikanVector3f points[3], const MikanFastenerParentType parentType, const MikanSpatialAnchorID parentAnchorId);
+	bool addNewFastener(const char* fastenerName, const MikanVector3f points[3], const MikanFastenerParentType parentType, const int32_t parentObjectId);
 	bool updateFastener(const MikanSpatialFastenerInfo& info);
 	bool removeFastener(MikanSpatialFastenerID fastenerId);
 

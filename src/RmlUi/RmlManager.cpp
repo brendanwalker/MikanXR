@@ -228,6 +228,21 @@ void RmlManager::registerCommonDataModelTypes()
 			return false;
 		});
 
+	// Transform function for converting fastener id to fastener name
+	constructor.RegisterTransformFunc(
+		"to_fastener_name",
+		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanSpatialFastenerID fastenerId = variant.Get<int>(-1);
+
+			MikanSpatialFastenerInfo fastenerInfo;
+			if (m_app->getProfileConfig()->getSpatialFastenerInfo(fastenerId, fastenerInfo))
+			{
+				variant = Rml::String(fastenerInfo.fastener_name);
+				return true;
+			}
+			return false;
+		});
+
 	// Transform function for converting stencil id to stencil name
 	constructor.RegisterTransformFunc(
 		"to_stencil_name",

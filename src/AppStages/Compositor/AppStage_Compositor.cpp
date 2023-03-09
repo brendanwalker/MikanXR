@@ -3,6 +3,7 @@
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
 #include "Compositor/RmlModel_CompositorLayers.h"
+#include "Compositor/RmlModel_CompositorAnchors.h"
 #include "Compositor/RmlModel_CompositorBoxes.h"
 #include "Compositor/RmlModel_CompositorQuads.h"
 #include "Compositor/RmlModel_CompositorModels.h"
@@ -50,6 +51,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	: AppStage(app, AppStage_Compositor::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
 	, m_compositorLayersModel(new RmlModel_CompositorLayers)
+	, m_compositorAnchorsModel(new RmlModel_CompositorAnchors)
 	, m_compositorQuadsModel(new RmlModel_CompositorQuads)
 	, m_compositorBoxesModel(new RmlModel_CompositorBoxes)
 	, m_compositorModelsModel(new RmlModel_CompositorModels)
@@ -65,6 +67,7 @@ AppStage_Compositor::~AppStage_Compositor()
 {
 	delete m_compositorModel;
 	delete m_compositorLayersModel;
+	delete m_compositorAnchorsModel;
 	delete m_compositorQuadsModel;
 	delete m_compositorBoxesModel;
 	delete m_compositorModelsModel;
@@ -115,6 +118,7 @@ void AppStage_Compositor::enter()
 		m_compositorModel->init(context);
 		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
 		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersWindowEvent);
+		m_compositorModel->OnToggleAnchorsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleAnchorsWindowEvent);
 		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingWindowEvent);
 		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingWindowEvent);
 		m_compositorModel->OnToggleQuadStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleQuadStencilsWindowEvent);
@@ -148,6 +152,13 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
 		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
 		m_compositiorLayersView->Show();
+
+		// Init Anchors UI
+		m_compositorAnchorsModel->init(context, m_profile);
+		m_compositorAnchorsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddAnchorFastenerEvent);
+		m_compositorAnchorsModel->OnDeleteFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteAnchorFastenerEvent);
+		m_compositiorAnchorsView = addRmlDocument("compositor_anchors.rml");
+		m_compositiorAnchorsView->Hide();
 
 		// Init Quad Stencils UI
 		m_compositorQuadsModel->init(context, m_profile);
@@ -202,6 +213,7 @@ void AppStage_Compositor::exit()
 	m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
 	m_compositorLayersModel->dispose();
+	m_compositorAnchorsModel->dispose();
 	m_compositorBoxesModel->dispose();
 	m_compositorModelsModel->dispose();
 	m_compositorQuadsModel->dispose();
@@ -333,6 +345,12 @@ void AppStage_Compositor::onToggleLayersWindowEvent()
 {
 	hideAllSubWindows();
 	if (m_compositiorLayersView) m_compositiorLayersView->Show();
+}
+
+void AppStage_Compositor::onToggleAnchorsWindowEvent()
+{
+	hideAllSubWindows();
+	if (m_compositiorAnchorsView) m_compositiorAnchorsView->Show();
 }
 
 void AppStage_Compositor::onToggleRecordingWindowEvent()
@@ -583,6 +601,7 @@ void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clien
 void AppStage_Compositor::hideAllSubWindows()
 {
 	if (m_compositiorLayersView) m_compositiorLayersView->Hide();
+	if (m_compositiorAnchorsView) m_compositiorAnchorsView->Hide();
 	if (m_compositiorQuadsView) m_compositiorQuadsView->Hide();
 	if (m_compositiorBoxesView) m_compositiorBoxesView->Hide();
 	if (m_compositiorModelsView) m_compositiorModelsView->Hide();
@@ -591,6 +610,19 @@ void AppStage_Compositor::hideAllSubWindows()
 	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
 }
 
+// Anchors UI Events
+void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
+{
+
+}
+
+void AppStage_Compositor::onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID)
+{
+	if (m_profile->removeFastener(fastenerID))
+	{
+		m_compositorAnchorsModel->rebuildAnchorList(m_profile);
+	}
+}
 
 // Quad Stencils UI Events
 void AppStage_Compositor::onAddQuadStencilEvent()

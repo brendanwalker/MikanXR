@@ -1,0 +1,36 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Anchors</title>
+        <style>
+            body
+            {
+                left: 10dp;
+                top: 20dp;
+                width: 300dp;
+                height: 500dp;
+                margin: auto;
+            }
+            numeric{
+                width: 60dp;
+                margin-left: 0dp;
+                margin-right: 5dp;
+                vertical-align: -8dp;
+            }          
+        </style>
+	</head>
+	<body template="window">
+        <panel id="controls" data-model="compositor_anchors">
+            <div data-for="anchor : spatial_anchors">
+                <label>{{anchor.anchor_id | to_anchor_name}}</label>
+                <div data-for="fastener_id : anchor.child_fastener_ids">
+                    <label>{{fastener_id | to_fastener_name}}</label>
+                    <button data-event-click="delete_fastener(anchor.anchor_id, fastener_id)">Delete</button>
+                </div>
+                <button data-event-click="add_fastener(anchor.anchor_id)">Add Quad Stencil</button>
+            </div>
+        </panel>
+    </body>
+</rml>
