@@ -103,6 +103,16 @@ CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
   int, 
   MikanSpatialAnchorList_spatial_anchor_id_list_get);
 
+// Marshall the spatial_fastener_id_list on MikanSpatialFastenerList from unmanaged to managed memory
+%immutable spatial_fastener_id_list;
+%immutable spatial_fastener_count;
+CUSTOM_READONLY_PRIMITIVE_TYPE_ARRAY_PROPERTY(
+  spatial_fastener_id_list,
+  spatial_fastener_count,
+  int,
+  int, 
+  MikanSpatialFastenerList_spatial_fastener_id_list_get);
+
 // Marshall the stencil_id_list on MikanStencilList from unmanaged to managed memory
 %immutable stencil_id_list;
 %immutable stencil_count;
