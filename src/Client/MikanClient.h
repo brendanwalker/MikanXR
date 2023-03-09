@@ -44,6 +44,10 @@ public:
 	MikanResult getSpatialAnchorList(MikanSpatialAnchorList& out_anchor_list);
 	MikanResult getSpatialAnchorInfo(MikanSpatialAnchorID anchor_id, MikanSpatialAnchorInfo& out_anchor_info);
 	MikanResult findSpatialAnchorInfoByName(const char* anchor_name, MikanSpatialAnchorInfo& out_anchor_info);
+
+	MikanResult getSpatialFastenerList(MikanSpatialFastenerList& out_fastener_list);
+	MikanResult getSpatialFastenerInfo(MikanSpatialFastenerID fastener_id, MikanSpatialFastenerInfo& out_fastener_info);
+	MikanResult findSpatialFastenerInfoByName(const char* fastener_name, MikanSpatialFastenerInfo& out_fastener_info);
  
 private:   
 	std::string m_clientName;

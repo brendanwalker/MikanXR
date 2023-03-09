@@ -1083,3 +1083,71 @@ void MikanServer::findSpatialAnchorInfoByName(
 	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialAnchorInfo));
 	outResult->setResultCode(MikanResult_Success);
 }
+
+void MikanServer::getSpatialFastenerList(
+	const MikanRemoteFunctionCall* inFunctionCall,
+	MikanRemoteFunctionResult* outResult)
+{
+	MikanSpatialFastenerList fastenerListResult;
+	memset(&fastenerListResult, 0, sizeof(MikanSpatialFastenerList));
+
+	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
+	for (const MikanSpatialFastenerInfo& spatialFastener : profile->spatialFastenerList)
+	{
+		fastenerListResult.spatial_fastener_id_list[fastenerListResult.spatial_fastener_count] = spatialFastener.fastener_id;
+		++fastenerListResult.spatial_fastener_count;
+
+		assert(fastenerListResult.spatial_fastener_count < MAX_MIKAN_SPATIAL_FASTENERS);
+		if (fastenerListResult.spatial_fastener_count >= MAX_MIKAN_SPATIAL_FASTENERS)
+		{
+			break;
+		}
+	}
+
+	outResult->setResultBuffer((uint8_t*)&fastenerListResult, sizeof(MikanSpatialFastenerList));
+	outResult->setResultCode(MikanResult_Success);
+}
+
+void MikanServer::getSpatialFastenerInfo(
+	const MikanRemoteFunctionCall* inFunctionCall,
+	MikanRemoteFunctionResult* outResult)
+{
+	MikanSpatialFastenerID fastenerId;
+	if (!inFunctionCall->extractParameters(fastenerId))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	MikanSpatialFastenerInfo info;
+	if (!App::getInstance()->getProfileConfig()->getSpatialFastenerInfo(fastenerId, info))
+	{
+		outResult->setResultCode(MikanResult_InvalidDeviceID);
+		return;
+	}
+
+	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialFastenerInfo));
+	outResult->setResultCode(MikanResult_Success);
+}
+
+void MikanServer::findSpatialFastenerInfoByName(
+	const MikanRemoteFunctionCall* inFunctionCall,
+	MikanRemoteFunctionResult* outResult)
+{
+	char nameBuffer[MAX_MIKAN_ANCHOR_NAME_LEN];
+	if (!inFunctionCall->extractParameters(nameBuffer))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	MikanSpatialFastenerInfo info;
+	if (!App::getInstance()->getProfileConfig()->findSpatialFastenerInfoByName(nameBuffer, info))
+	{
+		outResult->setResultCode(MikanResult_InvalidDeviceID);
+		return;
+	}
+
+	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialFastenerInfo));
+	outResult->setResultCode(MikanResult_Success);
+}

@@ -311,3 +311,39 @@ MikanResult Mikan_FindSpatialAnchorInfoByName(
 
 	return g_mikanClient->findSpatialAnchorInfoByName(anchor_name, *out_anchor_info);
 }
+
+MikanResult Mikan_GetSpatialFastenerList(MikanSpatialFastenerList* out_fastener_list)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+	if (out_fastener_list == nullptr)
+		return MikanResult_NullParam;
+
+	return g_mikanClient->getSpatialFastenerList(*out_fastener_list);
+}
+
+MikanResult Mikan_GetSpatialFastenerInfo(
+	MikanSpatialFastenerID fastener_id,
+	MikanSpatialFastenerInfo* out_fastener_info)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+	if (out_fastener_info == nullptr)
+		return MikanResult_NullParam;
+
+	return g_mikanClient->getSpatialFastenerInfo(fastener_id, *out_fastener_info);
+}
+
+MikanResult Mikan_FindSpatialFastenerInfoByName(
+	const char* fastener_name,
+	MikanSpatialFastenerInfo* out_fastener_info)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+	if (fastener_name == nullptr)
+		return MikanResult_NullParam;
+	if (out_fastener_info == nullptr)
+		return MikanResult_NullParam;
+
+	return g_mikanClient->findSpatialFastenerInfoByName(fastener_name, *out_fastener_info);
+}

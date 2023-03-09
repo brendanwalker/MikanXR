@@ -28,12 +28,17 @@ typedef int32_t MikanStencilID;
 /// The ID of a spatial anchor
 typedef int32_t MikanSpatialAnchorID;
 
+/// The ID of a spatial anchor
+typedef int32_t MikanSpatialFastenerID;
+
 #define INVALID_MIKAN_ID			-1
 #define MAX_MIKAN_VR_DEVICES		64
 #define MAX_MIKAN_STENCILS			16
 #define MAX_MIKAN_STENCIL_NAME_LEN	128
 #define MAX_MIKAN_SPATIAL_ANCHORS	64
+#define MAX_MIKAN_SPATIAL_FASTENERS	64
 #define MAX_MIKAN_ANCHOR_NAME_LEN	128
+#define MAX_MIKAN_FASTENER_NAME_LEN	128
 
 // Shared Constants
 //-----------------
@@ -357,6 +362,20 @@ typedef struct
 	MikanMatrix4f anchor_xform;
 	char anchor_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanSpatialAnchorInfo;
+
+typedef struct
+{
+	MikanSpatialFastenerID spatial_fastener_id_list[MAX_MIKAN_SPATIAL_FASTENERS];
+	int32_t spatial_fastener_count;
+} MikanSpatialFastenerList;
+
+typedef struct  
+{
+	MikanSpatialFastenerID fastener_id;
+	MikanSpatialAnchorID parent_anchor_id;
+	MikanVector3f fastener_points[3];
+	char fastener_name[MAX_MIKAN_FASTENER_NAME_LEN];
+} MikanSpatialFastenerInfo;
 
 // Message Container
 //------------------

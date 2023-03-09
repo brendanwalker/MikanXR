@@ -47,6 +47,8 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	// Anchor
 	, anchorVRDevicePath("")
 	, nextAnchorId(0)
+	// Fastener
+	, nextFastenerId(0)
 	// Stencils
 	, nextStencilId(0)
 	// Compositor
@@ -84,7 +86,9 @@ const configuru::Config ProfileConfig::writeToJSON()
 		// Anchors
 		{"anchorVRDevicePath", anchorVRDevicePath},
 		{"nextAnchorId", nextAnchorId},
-		// Stencils
+		// Anchors
+		{"nextFastenerId", nextFastenerId},
+		// Fasteners
 		{"nextStencilId", nextStencilId},
 		// Compositor
 		{"compositorScript", compositorScriptFilePath.string()},
@@ -106,6 +110,24 @@ const configuru::Config ProfileConfig::writeToJSON()
 		anchorConfigs.push_back(anchorConfig);
 	}
 	pt.insert_or_assign(std::string("spatialAnchors"), anchorConfigs);
+
+	// Write out the spatial fasteners
+	std::vector<configuru::Config> fastenerConfigs;
+	for (const MikanSpatialFastenerInfo& fastener : spatialFastenerList)
+	{
+		configuru::Config fastenerConfig{
+			{"id", fastener.fastener_id},
+			{"parent_anchor_id", fastener.parent_anchor_id},
+			{"name", fastener.fastener_name},
+		};
+
+		writeVector3f(fastenerConfig, "point0", fastener.fastener_points[0]);
+		writeVector3f(fastenerConfig, "point1", fastener.fastener_points[0]);
+		writeVector3f(fastenerConfig, "point2", fastener.fastener_points[0]);
+
+		fastenerConfigs.push_back(fastenerConfig);
+	}
+	pt.insert_or_assign(std::string("spatialFasteners"), fastenerConfigs);
 
 	// Write out the quad stencils
 	std::vector<configuru::Config> stencilQuadConfigs;
@@ -215,6 +237,9 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	anchorVRDevicePath= pt.get_or<std::string>("anchorVRDevicePath", anchorVRDevicePath);
 	nextAnchorId= pt.get_or<int>("nextAnchorId", nextAnchorId);
 
+	// Fasteners
+	nextFastenerId= pt.get_or<int>("nextFastenerId", nextFastenerId);
+
 	// Read in the spatial anchors
 	spatialAnchorList.clear();
 	if (pt.has_key("spatialAnchors"))
@@ -234,6 +259,37 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				readMatrix4f(anchorConfig, "xform", anchorInfo.anchor_xform);
 
 				spatialAnchorList.push_back(anchorInfo);
+			}
+		}
+	}
+
+	// Read in the spatial fasteners
+	spatialAnchorList.clear();
+	if (pt.has_key("spatialFasteners"))
+	{
+		for (const configuru::Config& fastenerConfig : pt["spatialFasteners"].as_array())
+		{
+			if (fastenerConfig.has_key("id") && 
+				fastenerConfig.has_key("parent_anchor_id") &&
+				fastenerConfig.has_key("name") && 
+				fastenerConfig.has_key("point0") &&
+				fastenerConfig.has_key("point1") &&
+				fastenerConfig.has_key("point2"))
+			{
+				MikanSpatialFastenerInfo fastenerInfo;
+				memset(&fastenerInfo, 0, sizeof(fastenerInfo));
+
+				std::string fastenerName = fastenerConfig.get<std::string>("name");
+				strncpy(fastenerInfo.fastener_name, fastenerName.c_str(), sizeof(fastenerInfo.fastener_name) - 1);
+
+				fastenerInfo.fastener_id = fastenerConfig.get<int>("id");
+				fastenerInfo.parent_anchor_id = fastenerConfig.get<int>("parent_anchor_id");
+
+				readVector3f(fastenerConfig, "point0", fastenerInfo.fastener_points[0]);
+				readVector3f(fastenerConfig, "point1", fastenerInfo.fastener_points[1]);
+				readVector3f(fastenerConfig, "point2", fastenerInfo.fastener_points[2]);
+
+				spatialFastenerList.push_back(fastenerInfo);
 			}
 		}
 	}
@@ -453,6 +509,135 @@ bool ProfileConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 	if (it != spatialAnchorList.end())
 	{
 		spatialAnchorList.erase(it);
+		markDirty();
+
+		return true;
+	}
+
+	return false;
+}
+
+bool ProfileConfig::getSpatialFastenerInfo(
+	MikanSpatialFastenerID fastenerId,
+	MikanSpatialFastenerInfo& outInfo) const
+{
+	auto it = std::find_if(
+		spatialFastenerList.begin(), spatialFastenerList.end(),
+		[fastenerId](const MikanSpatialFastenerInfo& info) {
+		return info.fastener_id == fastenerId;
+	});
+
+	if (it != spatialFastenerList.end())
+	{
+		outInfo = *it;
+		return true;
+	}
+
+	return false;
+}
+
+MikanSpatialFastenerID ProfileConfig::getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const
+{
+	// If the given fastener id is invalid, return the first valid fastener id
+	if (fastenerId == INVALID_MIKAN_ID)
+	{
+		return spatialFastenerList.size() > 0 ? spatialFastenerList[0].fastener_id : INVALID_MIKAN_ID;
+	}
+
+	// Find the list index for the fastener with the matching ID
+	int listIndex = 0;
+	while (listIndex < spatialFastenerList.size())
+	{
+		if (spatialFastenerList[listIndex].fastener_id == fastenerId)
+			break;
+
+		++listIndex;
+	}
+
+	// Move to the next entry in the list
+	++listIndex;
+
+	// If this list entry is still in the list, return it
+	return (listIndex < spatialFastenerList.size()) ? spatialFastenerList[listIndex].fastener_id : INVALID_MIKAN_ID;
+}
+
+bool ProfileConfig::findSpatialFastenerInfoByName(
+	const char* fastenerName,
+	MikanSpatialFastenerInfo& outInfo) const
+{
+	auto it = std::find_if(
+		spatialFastenerList.begin(), spatialFastenerList.end(),
+		[fastenerName](const MikanSpatialFastenerInfo& info) {
+			return strncmp(info.fastener_name, fastenerName, MAX_MIKAN_ANCHOR_NAME_LEN) == 0;
+		});
+
+	if (it != spatialFastenerList.end())
+	{
+		outInfo = *it;
+		return true;
+	}
+
+	return false;
+}
+
+bool ProfileConfig::canAddFastener() const
+{
+	return (spatialFastenerList.size() < MAX_MIKAN_SPATIAL_ANCHORS);
+}
+
+bool ProfileConfig::addNewFastener(
+	const char* fastenerName, 	
+	const MikanVector3f points[3],
+	const MikanSpatialAnchorID parentAnchorId)
+{
+	if (!canAddFastener())
+		return false;
+
+	MikanSpatialFastenerInfo fastener;
+	memset(&fastener, 0, sizeof(MikanSpatialFastenerInfo));
+	fastener.fastener_id = nextFastenerId;
+	strncpy(fastener.fastener_name, fastenerName, sizeof(fastener.fastener_name) - 1);
+	memcpy(fastener.fastener_points, points, sizeof(fastener.fastener_points));
+	fastener.parent_anchor_id= parentAnchorId;
+	nextFastenerId++;
+
+	spatialFastenerList.push_back(fastener);
+	markDirty();
+
+	return true;
+}
+
+bool ProfileConfig::updateFastener(const MikanSpatialFastenerInfo& info)
+{
+	MikanSpatialFastenerID fastenerId = info.fastener_id;
+
+	auto it = std::find_if(
+		spatialFastenerList.begin(), spatialFastenerList.end(),
+		[fastenerId](const MikanSpatialFastenerInfo& info) {
+			return info.fastener_id == fastenerId;
+		});
+
+	if (it != spatialFastenerList.end())
+	{
+		*it = info;
+		markDirty();
+		return true;
+	}
+
+	return false;
+}
+
+bool ProfileConfig::removeFastener(MikanSpatialFastenerID fastenerId)
+{
+	auto it = std::find_if(
+		spatialFastenerList.begin(), spatialFastenerList.end(),
+		[fastenerId](const MikanSpatialFastenerInfo& info) {
+		return info.fastener_id == fastenerId;
+	});
+
+	if (it != spatialFastenerList.end())
+	{
+		spatialFastenerList.erase(it);
 		markDirty();
 
 		return true;

@@ -270,3 +270,26 @@ MikanResult MikanClient::findSpatialAnchorInfoByName(const char* anchor_name, Mi
 		(uint8_t*)&nameBuffer, sizeof(nameBuffer), 
 		out_anchor_info);
 }
+
+MikanResult MikanClient::getSpatialFastenerList(MikanSpatialFastenerList& out_fastener_list)
+{
+	return callRPC(m_messageClient, "getSpatialFastenerList", nullptr, 0, out_fastener_list);
+}
+
+MikanResult MikanClient::getSpatialFastenerInfo(MikanSpatialFastenerID fastener_id, MikanSpatialFastenerInfo& out_fastener_info)
+{
+	return callRPC(m_messageClient, "getSpatialFastenerInfo", (uint8_t*)&fastener_id, sizeof(MikanVRDeviceID), out_fastener_info);
+}
+
+MikanResult MikanClient::findSpatialFastenerInfoByName(const char* fastener_name, MikanSpatialFastenerInfo& out_fastener_info)
+{
+	char nameBuffer[MAX_MIKAN_FASTENER_NAME_LEN];
+	memset(&nameBuffer, 0, sizeof(nameBuffer));
+	strncpy(nameBuffer, fastener_name, sizeof(nameBuffer) - 1);
+
+	return callRPC(
+		m_messageClient,
+		"findSpatialFastenerInfoByName",
+		(uint8_t*)&nameBuffer, sizeof(nameBuffer),
+		out_fastener_info);
+}

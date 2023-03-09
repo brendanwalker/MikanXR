@@ -28,6 +28,14 @@ public:
 	bool updateAnchor(const MikanSpatialAnchorInfo& info);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
+	bool getSpatialFastenerInfo(MikanSpatialFastenerID fastenerId, MikanSpatialFastenerInfo& outInfo) const;
+	MikanSpatialFastenerID getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const;
+	bool findSpatialFastenerInfoByName(const char* fastenerName, MikanSpatialFastenerInfo& outInfo) const;
+	bool canAddFastener() const;
+	bool addNewFastener(const char* fastenerName, const MikanVector3f points[3], const MikanSpatialAnchorID parentAnchorId = INVALID_MIKAN_ID);
+	bool updateFastener(const MikanSpatialFastenerInfo& info);
+	bool removeFastener(MikanSpatialFastenerID fastenerId);
+
 	bool canAddStencil() const;
 	bool removeStencil(MikanStencilID stencilId);
 	eStencilType getStencilType(MikanStencilID stencilId) const;
@@ -77,6 +85,9 @@ public:
 	std::string anchorVRDevicePath;
 	std::vector<MikanSpatialAnchorInfo> spatialAnchorList;
 	MikanSpatialAnchorID nextAnchorId;
+
+	std::vector<MikanSpatialFastenerInfo> spatialFastenerList;
+	MikanSpatialFastenerID nextFastenerId;
 
 	std::vector<MikanStencilQuad> quadStencilList;
 	std::vector<MikanStencilBox> boxStencilList;

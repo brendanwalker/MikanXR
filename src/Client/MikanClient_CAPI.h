@@ -95,6 +95,12 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetSpatialAnchorInfo(MikanSpatialAnchor
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FindSpatialAnchorInfoByName(const char* anchor_name, MikanSpatialAnchorInfo* out_anchor_info);
 
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetSpatialFastenerList(MikanSpatialFastenerList* out_fastener_list);
+
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetSpatialFastenerInfo(MikanSpatialFastenerID anchor_id, MikanSpatialFastenerInfo* out_fastener_info);
+
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FindSpatialFastenerInfoByName(const char* fastener_name, MikanSpatialFastenerInfo* out_fastener_info);
+
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_Disconnect();
 
 /** \brief Cleans up the MikanXR Client API
