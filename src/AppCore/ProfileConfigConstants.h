@@ -25,3 +25,5 @@ enum class eStencilType : int
 	COUNT
 };
 extern const std::string* k_stencilTypeStrings;
+
+extern const std::string* k_fastenerParentTypeStrings;

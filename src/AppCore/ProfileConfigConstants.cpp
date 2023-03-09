@@ -1,4 +1,5 @@
 #include "ProfileConfigConstants.h"
+#include "MikanClientTypes.h"
 
 const std::string g_patternTypeStrings[(int)eCalibrationPatternType::COUNT] = {
 	"chessboard",
@@ -12,3 +13,9 @@ const std::string g_stencilTypeStrings[(int)eStencilType::COUNT] = {
 	"model",
 };
 extern const std::string* k_stencilTypeStrings = g_stencilTypeStrings;
+
+const std::string g_fastenerParentTypeStrings[MikanFastenerParentType_COUNT] = {
+	"SpatialAnchor",
+	"Stencil"
+};
+extern const std::string* k_fastenerParentTypeStrings = g_fastenerParentTypeStrings;

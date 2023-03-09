@@ -117,7 +117,8 @@ const configuru::Config ProfileConfig::writeToJSON()
 	{
 		configuru::Config fastenerConfig{
 			{"id", fastener.fastener_id},
-			{"parent_anchor_id", fastener.parent_anchor_id},
+			{"parent_object_id", fastener.parent_object_id},
+			{"parent_object_type", k_fastenerParentTypeStrings[fastener.parent_object_type]},
 			{"name", fastener.fastener_name},
 		};
 
@@ -270,7 +271,8 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 		for (const configuru::Config& fastenerConfig : pt["spatialFasteners"].as_array())
 		{
 			if (fastenerConfig.has_key("id") && 
-				fastenerConfig.has_key("parent_anchor_id") &&
+				fastenerConfig.has_key("parent_object_id") &&
+				fastenerConfig.has_key("parent_object_type") &&
 				fastenerConfig.has_key("name") && 
 				fastenerConfig.has_key("point0") &&
 				fastenerConfig.has_key("point1") &&
@@ -283,7 +285,25 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				strncpy(fastenerInfo.fastener_name, fastenerName.c_str(), sizeof(fastenerInfo.fastener_name) - 1);
 
 				fastenerInfo.fastener_id = fastenerConfig.get<int>("id");
-				fastenerInfo.parent_anchor_id = fastenerConfig.get<int>("parent_anchor_id");
+				fastenerInfo.parent_object_id = fastenerConfig.get<int>("parent_object_id");
+
+				// Parse the parent object type enum
+				{
+					const std::string parentTypeString =
+						pt.get_or<std::string>(
+							"parent_object_type",
+							k_fastenerParentTypeStrings[MikanFastenerParentType_SpatialAnchor]);
+
+					fastenerInfo.parent_object_type = MikanFastenerParentType_UNKNOWN;
+					for (size_t enum_index = 0; enum_index < MikanFastenerParentType_COUNT; ++enum_index)
+					{
+						if (parentTypeString == k_fastenerParentTypeStrings[enum_index])
+						{
+							fastenerInfo.parent_object_type = (MikanFastenerParentType)enum_index;
+							break;
+						}
+					}
+				}
 
 				readVector3f(fastenerConfig, "point0", fastenerInfo.fastener_points[0]);
 				readVector3f(fastenerConfig, "point1", fastenerInfo.fastener_points[1]);
@@ -312,7 +332,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				memset(&stencil, 0, sizeof(stencil));
 
 				stencil.stencil_id = stencilConfig.get<int>("stencil_id");
-				stencil.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);			
+				stencil.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);
 				readVector3f(stencilConfig, "quad_center", stencil.quad_center);
 				readVector3f(stencilConfig, "quad_x_axis", stencil.quad_x_axis);
 				readVector3f(stencilConfig, "quad_y_axis", stencil.quad_y_axis);
@@ -588,7 +608,8 @@ bool ProfileConfig::canAddFastener() const
 bool ProfileConfig::addNewFastener(
 	const char* fastenerName, 	
 	const MikanVector3f points[3],
-	const MikanSpatialAnchorID parentAnchorId)
+	const MikanFastenerParentType parentType,
+	const int32_t parentObjectId)
 {
 	if (!canAddFastener())
 		return false;
@@ -598,7 +619,8 @@ bool ProfileConfig::addNewFastener(
 	fastener.fastener_id = nextFastenerId;
 	strncpy(fastener.fastener_name, fastenerName, sizeof(fastener.fastener_name) - 1);
 	memcpy(fastener.fastener_points, points, sizeof(fastener.fastener_points));
-	fastener.parent_anchor_id= parentAnchorId;
+	fastener.parent_object_type= parentType;
+	fastener.parent_object_id= parentObjectId;
 	nextFastenerId++;
 
 	spatialFastenerList.push_back(fastener);

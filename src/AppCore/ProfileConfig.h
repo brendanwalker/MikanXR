@@ -32,7 +32,7 @@ public:
 	MikanSpatialFastenerID getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const;
 	bool findSpatialFastenerInfoByName(const char* fastenerName, MikanSpatialFastenerInfo& outInfo) const;
 	bool canAddFastener() const;
-	bool addNewFastener(const char* fastenerName, const MikanVector3f points[3], const MikanSpatialAnchorID parentAnchorId = INVALID_MIKAN_ID);
+	bool addNewFastener(const char* fastenerName, const MikanVector3f points[3], const MikanFastenerParentType parentType, const MikanSpatialAnchorID parentAnchorId);
 	bool updateFastener(const MikanSpatialFastenerInfo& info);
 	bool removeFastener(MikanSpatialFastenerID fastenerId);
 

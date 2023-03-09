@@ -369,10 +369,21 @@ typedef struct
 	int32_t spatial_fastener_count;
 } MikanSpatialFastenerList;
 
+typedef enum
+{
+	MikanFastenerParentType_UNKNOWN,
+
+	MikanFastenerParentType_SpatialAnchor,
+	MikanFastenerParentType_Stencil,
+
+	MikanFastenerParentType_COUNT,
+} MikanFastenerParentType;
+
 typedef struct  
 {
 	MikanSpatialFastenerID fastener_id;
-	MikanSpatialAnchorID parent_anchor_id;
+	int32_t parent_object_id;
+	MikanFastenerParentType parent_object_type;
 	MikanVector3f fastener_points[3];
 	char fastener_name[MAX_MIKAN_FASTENER_NAME_LEN];
 } MikanSpatialFastenerInfo;
