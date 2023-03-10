@@ -47,10 +47,13 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	// Anchor
 	, anchorVRDevicePath("")
 	, nextAnchorId(0)
+	, debugRenderAnchors(true)
 	// Fastener
 	, nextFastenerId(0)
+	, debugRenderFasteners(true)
 	// Stencils
 	, nextStencilId(0)
+	, debugRenderStencils(true)
 	// Compositor
 	, compositorScriptFilePath("")
 	// Output Settings
@@ -86,10 +89,13 @@ const configuru::Config ProfileConfig::writeToJSON()
 		// Anchors
 		{"anchorVRDevicePath", anchorVRDevicePath},
 		{"nextAnchorId", nextAnchorId},
-		// Anchors
-		{"nextFastenerId", nextFastenerId},
+		{"debugRenderAnchors", debugRenderAnchors},
 		// Fasteners
+		{"nextFastenerId", nextFastenerId},
+		{"debugRenderFasteners", debugRenderFasteners},
+		// Stencils
 		{"nextStencilId", nextStencilId},
+		{"debugRenderStencils", debugRenderStencils},
 		// Compositor
 		{"compositorScript", compositorScriptFilePath.string()},
 		// Output Settings
@@ -237,9 +243,11 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	// Anchors
 	anchorVRDevicePath= pt.get_or<std::string>("anchorVRDevicePath", anchorVRDevicePath);
 	nextAnchorId= pt.get_or<int>("nextAnchorId", nextAnchorId);
+	debugRenderAnchors= pt.get_or<bool>("debugRenderAnchors", debugRenderAnchors);
 
 	// Fasteners
 	nextFastenerId= pt.get_or<int>("nextFastenerId", nextFastenerId);
+	debugRenderFasteners= pt.get_or<bool>("debugRenderFasteners", debugRenderFasteners);
 
 	// Read in the spatial anchors
 	spatialAnchorList.clear();
@@ -316,6 +324,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 
 	// Stencils
 	nextStencilId = pt.get_or<int>("nextStencilId", nextStencilId);
+	debugRenderStencils= pt.get_or<bool>("debugRenderStencils", debugRenderStencils);
 
 	// Compositor
 	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
@@ -425,6 +434,21 @@ bool ProfileConfig::getSpatialAnchorInfo(
 	if (it != spatialAnchorList.end())
 	{
 		outInfo = *it;
+		return true;
+	}
+
+	return false;
+}
+
+bool ProfileConfig::getSpatialAnchorWorldTransform(
+	MikanSpatialAnchorID anchorId,
+	glm::mat4& outXform) const
+{
+	MikanSpatialAnchorInfo anchor;
+
+	if (getSpatialAnchorInfo(anchorId, anchor))
+	{
+		outXform= MikanMatrix4f_to_glm_mat4(anchor.anchor_xform);
 		return true;
 	}
 
@@ -554,6 +578,45 @@ bool ProfileConfig::getSpatialFastenerInfo(
 	}
 
 	return false;
+}
+
+bool ProfileConfig::getFastenerWorldTransform(MikanSpatialFastenerID fastenerId, glm::mat4& outXform) const
+{
+	MikanSpatialFastenerInfo fastener;
+	if (getSpatialFastenerInfo(fastenerId, fastener))
+	{
+		outXform = getFastenerWorldTransform(&fastener);
+		return true;
+	}
+
+	return false;
+}
+
+glm::mat4 ProfileConfig::getFastenerWorldTransform(const MikanSpatialFastenerInfo* fastener) const
+{
+	if (fastener->parent_object_id != INVALID_MIKAN_ID)
+	{
+		if (fastener->parent_object_type == MikanFastenerParentType_SpatialAnchor)
+		{
+			glm::mat4 xform;
+
+			if (getSpatialAnchorWorldTransform(fastener->parent_object_id, xform))
+				return xform;
+		}
+		else if (fastener->parent_object_type == MikanFastenerParentType_Stencil)
+		{
+			glm::mat4 xform;
+
+			if (getModelStencilWorldTransform(fastener->parent_object_id, xform))
+				return xform;
+			else if (getBoxStencilWorldTransform(fastener->parent_object_id, xform))
+				return xform;
+			else if (getQuadStencilWorldTransform(fastener->parent_object_id, xform))
+				return xform;
+		}
+	}
+
+	return glm::mat4(1.f);
 }
 
 MikanSpatialFastenerID ProfileConfig::getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const
@@ -915,6 +978,18 @@ bool ProfileConfig::updateQuadStencil(const MikanStencilQuad& quad)
 	return false;
 }
 
+bool ProfileConfig::getQuadStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
+{
+	MikanStencilQuad stencil;
+	if (getQuadStencilInfo(stencilId, stencil))
+	{
+		outXform = getQuadStencilWorldTransform(&stencil);
+		return true;
+	}
+
+	return false;
+}
+
 glm::mat4 ProfileConfig::getQuadStencilWorldTransform(
 	const MikanStencilQuad* stencil) const
 {
@@ -972,6 +1047,18 @@ bool ProfileConfig::updateBoxStencil(const MikanStencilBox& box)
 	{
 		*it = box;
 		markDirty();
+		return true;
+	}
+
+	return false;
+}
+
+bool ProfileConfig::getBoxStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
+{
+	MikanStencilBox stencil;
+	if (getBoxStencilInfo(stencilId, stencil))
+	{
+		outXform = getBoxStencilWorldTransform(&stencil);
 		return true;
 	}
 
@@ -1044,6 +1131,18 @@ bool ProfileConfig::getModelStencilInfo(MikanStencilID stencilId, MikanStencilMo
 	return false;
 }
 
+bool ProfileConfig::getModelStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
+{
+	MikanStencilModel stencil;
+	if (getModelStencilInfo(stencilId, stencil))
+	{
+		outXform= getModelStencilWorldTransform(&stencil);
+		return true;
+	}
+
+	return false;
+}
+
 glm::mat4 ProfileConfig::getModelStencilWorldTransform(const MikanStencilModel* stencil) const
 {
 	MikanVector3f stencilXAxis, stencilYAxis, stencilZAxis;
@@ -1063,10 +1162,11 @@ glm::mat4 ProfileConfig::getModelStencilWorldTransform(const MikanStencilModel* 
 			glm::vec4(position, 1.f));
 
 	glm::mat4 worldXform;
+	glm::mat4 anchorXform;
 	MikanSpatialAnchorInfo anchor;
-	if (getSpatialAnchorInfo(stencil->parent_anchor_id, anchor))
+	if (getSpatialAnchorWorldTransform(stencil->parent_anchor_id, anchorXform))
 	{
-		worldXform = MikanMatrix4f_to_glm_mat4(anchor.anchor_xform) * localXform;
+		worldXform = anchorXform * localXform;
 	}
 	else
 	{

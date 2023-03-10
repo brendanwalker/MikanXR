@@ -22,6 +22,7 @@ public:
 
 	bool getSpatialAnchorInfo(MikanSpatialAnchorID anchorId, MikanSpatialAnchorInfo& outInfo) const;
 	MikanSpatialAnchorID getNextSpatialAnchorId(MikanSpatialAnchorID anchorId) const;
+	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
 	bool findSpatialAnchorInfoByName(const char* anchorName, MikanSpatialAnchorInfo& outInfo) const;
 	bool canAddAnchor() const;
 	bool addNewAnchor(const char* anchorName, const MikanMatrix4f& xform);
@@ -29,6 +30,8 @@ public:
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 	bool getSpatialFastenerInfo(MikanSpatialFastenerID fastenerId, MikanSpatialFastenerInfo& outInfo) const;
+	bool getFastenerWorldTransform(MikanSpatialFastenerID fastenerId, glm::mat4& outXform) const;
+	glm::mat4 getFastenerWorldTransform(const MikanSpatialFastenerInfo* fastener) const;
 	MikanSpatialFastenerID getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const;
 	bool findSpatialFastenerInfoByName(const char* fastenerName, MikanSpatialFastenerInfo& outInfo) const;
 	std::vector<MikanSpatialFastenerID> getSpatialFastenersWithParent(const MikanFastenerParentType parentType, const int32_t objectId) const;
@@ -43,17 +46,20 @@ public:
 	bool getStencilName(MikanStencilID stencilId, std::string& outStencilName) const;
 
 	bool getQuadStencilInfo(MikanStencilID stencilId, MikanStencilQuad& outInfo) const;
+	bool getQuadStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;
 	glm::mat4 getQuadStencilWorldTransform(const MikanStencilQuad* stencil) const;
 	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
 	bool updateQuadStencil(const MikanStencilQuad& info);
 
 	bool getBoxStencilInfo(MikanStencilID stencilId, MikanStencilBox& outInfo) const;
+	bool getBoxStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;
 	glm::mat4 getBoxStencilWorldTransform(const MikanStencilBox* stencil) const;
 	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
 	bool updateBoxStencil(const MikanStencilBox& info);
 
 	const MikanStencilModelConfig* getModelStencilConfig(MikanStencilID stencilId) const;
 	bool getModelStencilInfo(MikanStencilID stencilId, MikanStencilModel& outInfo) const;
+	bool getModelStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;
 	glm::mat4 getModelStencilWorldTransform(const MikanStencilModel* stencil) const;
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
 	bool updateModelStencil(const MikanStencilModel& info);
@@ -86,14 +92,17 @@ public:
 	std::string anchorVRDevicePath;
 	std::vector<MikanSpatialAnchorInfo> spatialAnchorList;
 	MikanSpatialAnchorID nextAnchorId;
+	bool debugRenderAnchors;
 
 	std::vector<MikanSpatialFastenerInfo> spatialFastenerList;
 	MikanSpatialFastenerID nextFastenerId;
+	bool debugRenderFasteners;
 
 	std::vector<MikanStencilQuad> quadStencilList;
 	std::vector<MikanStencilBox> boxStencilList;
 	std::vector<MikanStencilModelConfig> modelStencilList;
 	MikanStencilID nextStencilId;
+	bool debugRenderStencils;
 
 	std::filesystem::path compositorScriptFilePath;
 	std::filesystem::path outputFilePath;

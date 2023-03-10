@@ -822,23 +822,24 @@ void AppStage_Compositor::render()
 	// Render the video frame + composited frame buffers
 	m_frameCompositor->render();
 
-	if (m_bDebugRenderOrigin || 
-		m_bDebugRenderAnchors ||
-		m_bDebugRenderStencils)
+	if (m_profile->debugRenderAnchors || 
+		m_profile->debugRenderFasteners ||
+		m_profile->debugRenderStencils)
 	{
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		if (m_bDebugRenderOrigin)
+		if (m_profile->debugRenderAnchors)
 		{
 			debugRenderOrigin();
-		}
-
-		if (m_bDebugRenderAnchors)
-		{
 			debugRenderAnchors();
 		}
 
-		if (m_bDebugRenderStencils)
+		if (m_profile->debugRenderFasteners)
+		{
+			debugRenderFasteners();
+		}
+
+		if (m_profile->debugRenderStencils)
 		{
 			debugRenderStencils();
 		}
@@ -940,5 +941,27 @@ void AppStage_Compositor::debugRenderAnchors() const
 
 		drawTransformedAxes(anchorXform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
+	}
+}
+
+void AppStage_Compositor::debugRenderFasteners() const
+{
+	TextStyle style = getDefaultTextStyle();
+
+	for (const MikanSpatialFastenerInfo& fastener : m_profile->spatialFastenerList)
+	{
+		wchar_t wszFastenerName[MAX_MIKAN_FASTENER_NAME_LEN];
+		StringUtils::convertMbsToWcs(fastener.fastener_name, wszFastenerName, sizeof(wszFastenerName));
+
+		const glm::mat4 xform = m_profile->getFastenerWorldTransform(&fastener);
+		const glm::vec3 p0= MikanVector3f_to_glm_vec3(fastener.fastener_points[0]);
+		const glm::vec3 p1= MikanVector3f_to_glm_vec3(fastener.fastener_points[1]);
+		const glm::vec3 p2= MikanVector3f_to_glm_vec3(fastener.fastener_points[2]);
+
+		drawArrow(xform, p0, p1, 0.1f, Colors::Red);
+		drawArrow(xform, p0, p2, 0.1f, Colors::Green);
+
+		const glm::vec3 text_pos= xform * glm::vec4(p0, 1.f);
+		drawTextAtWorldPosition(style, text_pos, L"%s", wszFastenerName);
 	}
 }

@@ -101,6 +101,7 @@ protected:
 	void debugRenderOrigin() const;
 	void debugRenderStencils() const;
 	void debugRenderAnchors() const;
+	void debugRenderFasteners() const;
 
 	class ProfileConfig* m_profile = nullptr;
 
@@ -135,9 +136,6 @@ protected:
 	class GlFrameCompositor* m_frameCompositor= nullptr;
 	class GlCamera* m_camera= nullptr;
 
-	bool m_bDebugRenderOrigin = true;
-	bool m_bDebugRenderStencils = true;
-	bool m_bDebugRenderAnchors = true;
 	bool m_bAddingNewConfig= false;
 
 	class VideoWriter* m_videoWriter= nullptr;
