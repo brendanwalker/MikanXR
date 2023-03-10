@@ -142,7 +142,7 @@ void RmlModel_AlignmentCameraSettings::setBrightness(int newBrightness)
 	if (newBrightness != m_brightness)
 	{
 		m_brightness = newBrightness;
-		m_modelHandle.DirtyVariable("vr_frame_delay");
+		m_modelHandle.DirtyVariable("brightness");
 	}
 }
 
@@ -156,6 +156,6 @@ void RmlModel_AlignmentCameraSettings::setVRFrameDelay(int newFrameDelay)
 	if (newFrameDelay != m_vrFrameDelay)
 	{
 		m_vrFrameDelay = newFrameDelay;
-		m_modelHandle.DirtyVariable("brightness");
+		m_modelHandle.DirtyVariable("vr_frame_delay");
 	}
 }
