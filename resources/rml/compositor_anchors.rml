@@ -27,6 +27,7 @@
                 <label>{{anchor.anchor_id | to_anchor_name}}</label>
                 <div data-for="fastener_id : anchor.child_fastener_ids">
                     <label>{{fastener_id | to_fastener_name}}</label>
+                    <button data-event-click="edit_fastener(fastener_id)">Edit</button>
                     <button data-event-click="delete_fastener(anchor.anchor_id, fastener_id)">Delete</button>
                 </div>
                 <button data-event-click="add_fastener(anchor.anchor_id)">Add Quad Stencil</button>

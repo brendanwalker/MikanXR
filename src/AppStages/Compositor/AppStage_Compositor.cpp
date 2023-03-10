@@ -156,6 +156,7 @@ void AppStage_Compositor::enter()
 		// Init Anchors UI
 		m_compositorAnchorsModel->init(context, m_profile);
 		m_compositorAnchorsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddAnchorFastenerEvent);
+		m_compositorAnchorsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditAnchorFastenerEvent);
 		m_compositorAnchorsModel->OnDeleteFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteAnchorFastenerEvent);
 		m_compositiorAnchorsView = addRmlDocument("compositor_anchors.rml");
 		m_compositiorAnchorsView->Hide();
@@ -612,6 +613,11 @@ void AppStage_Compositor::hideAllSubWindows()
 
 // Anchors UI Events
 void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
+{
+
+}
+
+void AppStage_Compositor::onEditAnchorFastenerEvent(int fastenerID)
 {
 
 }

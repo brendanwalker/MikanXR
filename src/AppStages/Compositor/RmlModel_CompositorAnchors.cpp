@@ -42,6 +42,15 @@ bool RmlModel_CompositorAnchors::init(
 			if (OnAddFastenerEvent) OnAddFastenerEvent(anchor_id);
 		});
 	constructor.BindEventCallback(
+		"edit_fastener",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			const int fastener_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (OnEditFastenerEvent && fastener_id >= 0)
+			{
+				OnEditFastenerEvent(fastener_id);
+			}
+		});
+	constructor.BindEventCallback(
 		"delete_fastener",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			const int anchor_id = (arguments.size() == 2 ? arguments[0].Get<int>(-1) : -1);

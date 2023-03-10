@@ -19,10 +19,12 @@ public:
 	void rebuildAnchorList(const ProfileConfig* profile);
 
 	SinglecastDelegate<void(int anchorID)> OnAddFastenerEvent;
+	SinglecastDelegate<void(int fastenerID)> OnEditFastenerEvent;
 	SinglecastDelegate<void(int anchorID, int fastenerID)> OnDeleteFastenerEvent;
 
 private:
 	Rml::Vector<RmlModel_CompositorAnchor> m_spatialAnchors;
+	bool m_bShowAnchors;
 
 	static bool s_bHasRegisteredTypes;
 };

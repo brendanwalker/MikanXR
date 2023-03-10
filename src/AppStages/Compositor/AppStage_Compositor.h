@@ -71,6 +71,7 @@ protected:
 
 	// Anchors UI Events
 	void onAddAnchorFastenerEvent(int parentAnchorId);
+	void onEditAnchorFastenerEvent(int fastenerID);
 	void onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID);
 
 	// Quad Stencils UI Events
