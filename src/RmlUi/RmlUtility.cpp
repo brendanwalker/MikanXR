@@ -20,6 +20,7 @@ namespace Rml
 				}
 			}
 
+			return false;
 		}
 
 		void ToggleElementDocumentVisibility(ElementDocument* elementDoc)
