@@ -8,10 +8,17 @@
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
+#include <memory>
+
+class VideoSourceView;
+typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
+class VRDeviceView;
+typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
+
 // -- interface -----
-glm::mat4 computeGLMCameraTransformMatrix(const class IVideoSourceInterface *tracker_device);
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform);
-void computeOpenCVCameraExtrinsicMatrix(const class IVideoSourceInterface *tracker_device, cv::Matx34f &out);
+void computeOpenCVCameraExtrinsicMatrix(VideoSourceViewPtr videoSource, VRDeviceViewPtr trackingPuck, cv::Matx34f &out);
 
 bool computeOpenCVCameraRelativePatternTransform(
 	const MikanMonoIntrinsics& intrinsics,
@@ -24,16 +31,18 @@ void convertOpenCVCameraRelativePoseToGLMMat(
 	const cv::Vec3d& positionMM,
 	glm::dmat4& outXform);
 
-void computeOpenCVCameraIntrinsicMatrix(const class IVideoSourceInterface *tracker_device,
-                                        VideoFrameSection section,
-                                        cv::Matx33d &intrinsicOut,
-                                        cv::Matx81d &distortionOut);
-void extractCameraIntrinsicMatrixParameters(const cv::Matx33f &intrinsic_matrix,
-											float &out_focal_length_x,
-											float &out_focal_length_y,
-											float &out_principal_point_x,
-											float &out_principal_point_y);
-bool computeOpenCVCameraRectification(const class IVideoSourceInterface *tracker_device,
-                                        VideoFrameSection section,
-                                        cv::Matx33d &rotationOut,
-                                        cv::Matx34d &projectionOut);
+void computeOpenCVCameraIntrinsicMatrix(
+	VideoSourceViewPtr videoSource,
+	VideoFrameSection section,
+	cv::Matx33f &intrinsicOut);
+void extractCameraIntrinsicMatrixParameters(
+	const cv::Matx33f &intrinsic_matrix,
+	float &out_focal_length_x,
+	float &out_focal_length_y,
+	float &out_principal_point_x,
+	float &out_principal_point_y);
+bool computeOpenCVCameraRectification(
+	VideoSourceViewPtr videoSource,
+	VideoFrameSection section,
+	cv::Matx33d &rotationOut,
+	cv::Matx34d &projectionOut);
