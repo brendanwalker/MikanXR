@@ -49,6 +49,8 @@ public:
 
 	void onSDLEvent(SDL_Event& e);
 
+	void getMouseScreenPosition(int &outScreenX, int &outScreenY) const;
+
 	KeyEventBindings* getKeyBindings(SDL_Keycode key);
 	KeyEventBindings* fetchOrAddKeyBindings(SDL_Keycode key);
 

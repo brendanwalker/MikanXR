@@ -92,6 +92,11 @@ void InputManager::onSDLEvent(SDL_Event& e)
 	}
 }
 
+void InputManager::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
+{
+	SDL_GetMouseState(&outScreenX, &outScreenY);
+}
+
 KeyEventBindings* InputManager::getKeyBindings(SDL_Keycode key)
 {
 	EventBindingSet* bindingSet= getCurrentEventBindingSet();
