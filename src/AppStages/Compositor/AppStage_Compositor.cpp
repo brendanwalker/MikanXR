@@ -1,5 +1,6 @@
 ///-- includes -----
 #include "App.h"
+#include "FastenerCalibration/AppStage_FastenerCalibration.h"
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
 #include "Compositor/RmlModel_CompositorLayers.h"
@@ -227,6 +228,16 @@ void AppStage_Compositor::exit()
 	App::getInstance()->getRenderer()->popCamera();
 
 	AppStage::exit();
+}
+
+void AppStage_Compositor::pause()
+{
+	AppStage::pause();
+}
+
+void AppStage_Compositor::resume()
+{
+	AppStage::resume();
 }
 
 void AppStage_Compositor::update()
@@ -614,12 +625,30 @@ void AppStage_Compositor::hideAllSubWindows()
 // Anchors UI Events
 void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
 {
+	MikanSpatialFastenerInfo fastener;
+	memset(&fastener, 0, sizeof(MikanSpatialFastenerInfo));
 
+	StringUtils::formatString(
+		fastener.fastener_name, sizeof(fastener.fastener_name),
+		"Fastener_%d", m_profile->nextFastenerId);
+	fastener.parent_object_type = MikanFastenerParentType_SpatialAnchor;
+	fastener.parent_object_id = parentAnchorId;
+
+	if (m_profile->addNewFastener(fastener) != INVALID_MIKAN_ID)
+	{
+		m_compositorAnchorsModel->rebuildAnchorList(m_profile);
+
+		// Show Fastener calibration tool
+		AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
+		fastenerCalibration->setTargetFastenerId(fastener.fastener_id);
+	}
 }
 
 void AppStage_Compositor::onEditAnchorFastenerEvent(int fastenerID)
 {
-
+	// Show Fastener calibration tool
+	AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
+	fastenerCalibration->setTargetFastenerId(fastenerID);
 }
 
 void AppStage_Compositor::onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID)

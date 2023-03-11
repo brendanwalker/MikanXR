@@ -22,6 +22,8 @@ public:
 
 	virtual void enter() override;
 	virtual void exit() override;
+	virtual void pause() override;
+	virtual void resume() override;
 	virtual void update() override;
 	virtual void render() override;
 

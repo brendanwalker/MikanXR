@@ -42,7 +42,7 @@ AppStage_FastenerCalibration::AppStage_FastenerCalibration(App* app)
 	, m_videoSourceView()
 	, m_fastenerCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_targetFastener(nullptr)
+	, m_targetFastenerId(INVALID_MIKAN_ID)
 	, m_scene(new GlScene)
 	, m_camera(nullptr)
 {
@@ -231,7 +231,15 @@ void AppStage_FastenerCalibration::update()
 					}
 					else
 					{
-						m_fastenerCalibrator->computeFastenerPoints(m_targetFastener);
+						ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+
+						MikanSpatialFastenerInfo fastener;
+						if (profileConfig->getSpatialFastenerInfo(m_targetFastenerId, fastener))
+						{
+							m_fastenerCalibrator->computeFastenerPoints(&fastener);
+							profileConfig->updateFastener(fastener);
+						}
+
 						nextMenuState = eFastenerCalibrationMenuState::testCalibration;
 					}
 				}

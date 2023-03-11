@@ -685,28 +685,20 @@ bool ProfileConfig::canAddFastener() const
 	return (spatialFastenerList.size() < MAX_MIKAN_SPATIAL_ANCHORS);
 }
 
-bool ProfileConfig::addNewFastener(
-	const char* fastenerName, 	
-	const MikanVector3f points[3],
-	const MikanFastenerParentType parentType,
-	const int32_t parentObjectId)
+MikanSpatialFastenerID ProfileConfig::addNewFastener(
+	const MikanSpatialFastenerInfo& fastener)
 {
 	if (!canAddFastener())
-		return false;
+		return INVALID_MIKAN_ID;
 
-	MikanSpatialFastenerInfo fastener;
-	memset(&fastener, 0, sizeof(MikanSpatialFastenerInfo));
-	fastener.fastener_id = nextFastenerId;
-	strncpy(fastener.fastener_name, fastenerName, sizeof(fastener.fastener_name) - 1);
-	memcpy(fastener.fastener_points, points, sizeof(fastener.fastener_points));
-	fastener.parent_object_type= parentType;
-	fastener.parent_object_id= parentObjectId;
+	MikanSpatialFastenerInfo newFastener = fastener;
+	newFastener.fastener_id = nextFastenerId;
 	nextFastenerId++;
 
-	spatialFastenerList.push_back(fastener);
+	spatialFastenerList.push_back(newFastener);
 	markDirty();
 
-	return true;
+	return newFastener.fastener_id;
 }
 
 bool ProfileConfig::updateFastener(const MikanSpatialFastenerInfo& info)
