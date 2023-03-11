@@ -99,6 +99,7 @@ protected:
 	void onReloadCompositorScriptFileEvent();
 	void onInvokeScriptTriggerEvent(const std::string& triggerEvent);
 
+	// Debug Rendering
 	void debugRenderOrigin() const;
 	void debugRenderStencils() const;
 	void debugRenderAnchors() const;

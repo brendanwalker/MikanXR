@@ -267,51 +267,57 @@ void AppStage_AlignmentCalibration::update()
 	switch(m_calibrationModel->getMenuState())
 	{
 		case eAlignmentCalibrationMenuState::verifySetup:
-			// Update the video frame buffers to preview the calibration mat
-			m_monoDistortionView->readAndProcessVideoFrame();
+			{
+				// Update the video frame buffers to preview the calibration mat
+				m_monoDistortionView->readAndProcessVideoFrame();
 
-			// Look for a calibration pattern so that we can preview if it's in frame
-			m_trackerPoseCalibrator->computeCameraToPuckXform();
+				// Look for a calibration pattern so that we can preview if it's in frame
+				m_trackerPoseCalibrator->computeCameraToPuckXform();
+			}
 			break;
 		case eAlignmentCalibrationMenuState::capture:
-			// Update the video frame buffers
-			m_monoDistortionView->readAndProcessVideoFrame();
-
-			// Update the chess board capture state
-			if (m_trackerPoseCalibrator->computeCameraToPuckXform())
 			{
-				m_trackerPoseCalibrator->sampleLastCameraToPuckXform();
+				// Update the video frame buffers
+				m_monoDistortionView->readAndProcessVideoFrame();
 
-				// Update the calibration fraction on the UI Model
-				m_calibrationModel->setCalibrationFraction(m_trackerPoseCalibrator->getCalibrationProgress());
-			}
-
-			// See if we have gotten all the samples we require
-			if (m_trackerPoseCalibrator->hasFinishedSampling())
-			{
-				MikanQuatd rotationOffset;
-				MikanVector3d translationOffset;
-				if (m_trackerPoseCalibrator->computeCalibratedCameraTrackerOffset(
-					rotationOffset,
-					translationOffset))
+				// Update the chess board capture state
+				if (m_trackerPoseCalibrator->computeCameraToPuckXform())
 				{
-					// Store the calibrated camera offset on the video source settings
-					m_videoSourceView->setCameraPoseOffset(rotationOffset, translationOffset);
+					m_trackerPoseCalibrator->sampleLastCameraToPuckXform();
 
-					// Flag that calibration has modified camera pose
-					// (Used to decide if we should save settings on state exit)
-					m_bHasModifiedCameraSettings= true;
+					// Update the calibration fraction on the UI Model
+					m_calibrationModel->setCalibrationFraction(m_trackerPoseCalibrator->getCalibrationProgress());
+				}
 
-					// Go to the test calibration state
-					m_monoDistortionView->setGrayscaleUndistortDisabled(true);
-					m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
-					setMenuState(eAlignmentCalibrationMenuState::testCalibration);
+				// See if we have gotten all the samples we require
+				if (m_trackerPoseCalibrator->hasFinishedSampling())
+				{
+					MikanQuatd rotationOffset;
+					MikanVector3d translationOffset;
+					if (m_trackerPoseCalibrator->computeCalibratedCameraTrackerOffset(
+						rotationOffset,
+						translationOffset))
+					{
+						// Store the calibrated camera offset on the video source settings
+						m_videoSourceView->setCameraPoseOffset(rotationOffset, translationOffset);
+
+						// Flag that calibration has modified camera pose
+						// (Used to decide if we should save settings on state exit)
+						m_bHasModifiedCameraSettings = true;
+
+						// Go to the test calibration state
+						m_monoDistortionView->setGrayscaleUndistortDisabled(true);
+						m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
+						setMenuState(eAlignmentCalibrationMenuState::testCalibration);
+					}
 				}
 			}
 			break;
 		case eAlignmentCalibrationMenuState::testCalibration:
-			// Update the video frame buffers using the existing distortion calibration
-			m_monoDistortionView->readAndProcessVideoFrame();
+			{
+				// Update the video frame buffers using the existing distortion calibration
+				m_monoDistortionView->readAndProcessVideoFrame();
+			}
 			break;
 	}
 }
@@ -342,8 +348,10 @@ void AppStage_AlignmentCalibration::render()
 			}
 			break;
 		case eAlignmentCalibrationMenuState::capture:
-			m_monoDistortionView->renderSelectedVideoBuffers();
-			m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
+			{
+				m_monoDistortionView->renderSelectedVideoBuffers();
+				m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
+			}
 			break;
 		case eAlignmentCalibrationMenuState::testCalibration:
 			{
