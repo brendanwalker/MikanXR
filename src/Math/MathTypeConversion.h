@@ -43,6 +43,7 @@ MikanQuatd cv_quatd_to_MikanQuatd(const cv::Quatd& in);
 MikanDistortionCoefficients cv_vec8_to_Mikan_distortion(const cv::Matx81d& cv_distortion_coeffs);
 cv::Matx81d Mikan_distortion_to_cv_vec8(const MikanDistortionCoefficients& distortion_coeffs);
 cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in);
+cv::Matx33f MikanMatrix3d_to_cv_mat33f(const MikanMatrix3d& in);
 MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in);
 cv::Matx34d MikanMatrix4x3d_to_cv_mat34d(const MikanMatrix4x3d& in);
 MikanMatrix4x3d MikanMatrix4x3d_to_cv_mat34d(const cv::Matx34d& in);

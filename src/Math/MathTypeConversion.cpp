@@ -237,7 +237,7 @@ cv::Matx81d Mikan_distortion_to_cv_vec8(const MikanDistortionCoefficients& disto
 cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in)
 {
 	cv::Matx33d out;
-	auto m = reinterpret_cast<const float(*)[4][4]>(&in);
+	auto m = reinterpret_cast<const double(*)[4][4]>(&in);
 
 	for (int row = 0; row < 3; ++row)
 	{
@@ -252,10 +252,28 @@ cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in)
 	return out;
 }
 
+cv::Matx33f MikanMatrix3d_to_cv_mat33f(const MikanMatrix3d& in)
+{
+	cv::Matx33f out;
+	auto m = reinterpret_cast<const double(*)[4][4]>(&in);
+
+	for (int row = 0; row < 3; ++row)
+	{
+		for (int col = 0; col < 3; ++col)
+		{
+			// Mikan indexed by column first
+			// OpenCV indexed by row first
+			out(row, col) = (float)(*m)[col][row];
+		}
+	}
+
+	return out;
+}
+
 MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in)
 {
 	MikanMatrix3d out;
-	auto m = reinterpret_cast<float(*)[4][4]>(&out);
+	auto m = reinterpret_cast<double(*)[4][4]>(&out);
 
 	for (int row = 0; row < 3; ++row)
 	{
@@ -273,7 +291,7 @@ MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in)
 cv::Matx34d MikanMatrix4x3d_to_cv_mat34d(const MikanMatrix4x3d& in)
 {
 	cv::Matx34d out;
-	auto m = reinterpret_cast<const float(*)[4][3]>(&in);
+	auto m = reinterpret_cast<const double(*)[4][3]>(&in);
 
 	for (int row = 0; row < 3; ++row)
 	{
@@ -291,7 +309,7 @@ cv::Matx34d MikanMatrix4x3d_to_cv_mat34d(const MikanMatrix4x3d& in)
 MikanMatrix4x3d MikanMatrix4x3d_to_cv_mat34d(const cv::Matx34d& in)
 {
 	MikanMatrix4x3d out;
-	auto m = reinterpret_cast<float(*)[4][3]>(&out);
+	auto m = reinterpret_cast<double(*)[4][3]>(&out);
 
 	for (int row = 0; row < 3; ++row)
 	{
