@@ -158,6 +158,11 @@ glm::dmat4x3 cv_mat34d_to_glm_dmat4x3(const cv::Matx34d& in)
 	return out;
 }
 
+glm::vec3 cv_vec3f_to_glm_vec3(const cv::Vec3f& in)
+{
+	return glm::vec3(in(0), in(1), in(2));
+}
+
 glm::dvec3 cv_vec3d_to_glm_dvec3(const cv::Vec3d& in)
 {
 	return glm::dvec3(in(0), in(1), in(2));

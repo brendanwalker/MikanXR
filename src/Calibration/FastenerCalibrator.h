@@ -22,7 +22,6 @@ public:
 	virtual ~FastenerCalibrator();
 
 	bool hasFinishedSampling() const;
-	//float getCalibrationProgress() const;
 	void resetCalibrationState();
 
 	void sampleMouseScreenPosition();

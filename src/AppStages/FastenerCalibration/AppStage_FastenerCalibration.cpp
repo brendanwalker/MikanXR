@@ -8,7 +8,6 @@
 #include "App.h"
 #include "GlCamera.h"
 #include "GlLineRenderer.h"
-#include "GlScene.h"
 #include "GlTextRenderer.h"
 #include "InputManager.h"
 #include "MathTypeConversion.h"
@@ -43,7 +42,6 @@ AppStage_FastenerCalibration::AppStage_FastenerCalibration(App* app)
 	, m_fastenerCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_targetFastenerId(INVALID_MIKAN_ID)
-	, m_scene(new GlScene)
 	, m_camera(nullptr)
 {
 }
@@ -52,7 +50,6 @@ AppStage_FastenerCalibration::~AppStage_FastenerCalibration()
 {
 	delete m_calibrationModel;
 	delete m_cameraSettingsModel;
-	delete m_scene;
 }
 
 void AppStage_FastenerCalibration::setBypassCalibrationFlag(bool flag)
@@ -266,7 +263,15 @@ void AppStage_FastenerCalibration::render()
 	switch (m_calibrationModel->getMenuState())
 	{
 		case eFastenerCalibrationMenuState::verifySetup1:
+		case eFastenerCalibrationMenuState::capture1:
 		case eFastenerCalibrationMenuState::verifySetup2:
+		case eFastenerCalibrationMenuState::capture2:
+			{
+				m_monoDistortionView->renderSelectedVideoBuffers();
+				m_fastenerCalibrator->renderCameraSpaceCalibrationState();
+			}
+			break;
+		case eFastenerCalibrationMenuState::testCalibration:
 			{
 				switch (m_cameraSettingsModel->getViewpointMode())
 				{
@@ -281,26 +286,11 @@ void AppStage_FastenerCalibration::render()
 				}
 			}
 			break;
-		case eFastenerCalibrationMenuState::capture1:
-		case eFastenerCalibrationMenuState::capture2:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_fastenerCalibrator->renderCameraSpaceCalibrationState();
-			}
-			break;
-		case eFastenerCalibrationMenuState::testCalibration:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				renderVRScene();
-			}
-			break;
 	}
 }
 
 void AppStage_FastenerCalibration::renderVRScene()
 {
-	m_scene->render();
-
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 
 	TextStyle style = getDefaultTextStyle();

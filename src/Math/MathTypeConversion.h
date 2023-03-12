@@ -31,6 +31,7 @@ glm::mat3 cv_mat33f_to_glm_mat3(const cv::Matx33f& in);
 glm::dmat3 cv_mat33d_to_glm_dmat3(const cv::Matx33d& in);
 glm::dmat4 cv_mat44d_to_glm_dmat4(const cv::Matx44d& in);
 glm::dmat4x3 cv_mat34d_to_glm_dmat4x3(const cv::Matx34d& in);
+glm::vec3 cv_vec3f_to_glm_vec3(const cv::Vec3f& in);
 glm::dvec3 cv_vec3d_to_glm_dvec3(const cv::Vec3d& in);
 glm::dquat cv_quatd_to_glm_dquat(const cv::Quatd& in);
 

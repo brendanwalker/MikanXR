@@ -1,4 +1,5 @@
 #include "App.h"
+#include "CalibrationRenderHelpers.h"
 #include "FontManager.h"
 #include "GlCamera.h"
 #include "GlCommon.h"
@@ -173,5 +174,39 @@ void drawTextAtScreenPosition(
 
 	Renderer* renderer = Renderer::getInstance();
 	GlTextRenderer* textRenderer = renderer->getTextRenderer();
+	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
+}
+
+void drawTextAtCameraPosition(
+	const TextStyle& style,
+	const float cameraWidth, const float cameraHeight,
+	const glm::vec2& cameraCoords,
+	const wchar_t* format,
+	...)
+{
+	// Bake out the text string
+	wchar_t text[1024];
+	va_list args;
+	va_start(args, format);
+	int w = vswprintf(text, sizeof(text), format, args);
+	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
+	va_end(args);
+
+	Renderer* renderer = Renderer::getInstance();
+	GlTextRenderer* textRenderer = renderer->getTextRenderer();
+
+	const float windowWidth = renderer->getSDLWindowWidth();
+	const float windowHeight = renderer->getSDLWindowHeight();
+	const float windowX0 = 0.0f, windowY0 = 0.f;
+	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
+
+	// Remaps the camera relative segment to window relative coordinates
+	const glm::vec2 screenCoords =
+		remapPointIntoSubWindow(
+			cameraWidth, cameraHeight,
+			windowX0, windowY0,
+			windowX1, windowY1,
+			cameraCoords);
+
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
 }

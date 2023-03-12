@@ -290,6 +290,19 @@ void GlLineRenderer::PointBufferState::addPoint2d(
 }
 
 //-- Drawing Methods -----
+void drawSegment(
+	const glm::mat4& transform,
+	const glm::vec3& start,
+	const glm::vec3& end,
+	const glm::vec3& color)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	lineRenderer->addSegment3d(transform, start, color, end, color);
+}
+
 void drawArrow(
 	const glm::mat4& transform,
 	const glm::vec3& start,
