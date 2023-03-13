@@ -16,7 +16,7 @@ bool RmlModel_FastenerCameraSettings::init(
 	const ProfileConfig* profileConfig)
 {
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "fastener_calibration");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "fastener_camera_settings");
 	if (!constructor)
 		return false;
 
