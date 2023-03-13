@@ -242,7 +242,7 @@ cv::Matx81d Mikan_distortion_to_cv_vec8(const MikanDistortionCoefficients& disto
 cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in)
 {
 	cv::Matx33d out;
-	auto m = reinterpret_cast<const double(*)[4][4]>(&in);
+	auto m = reinterpret_cast<const double(*)[3][3]>(&in);
 
 	for (int row = 0; row < 3; ++row)
 	{
@@ -260,7 +260,7 @@ cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in)
 cv::Matx33f MikanMatrix3d_to_cv_mat33f(const MikanMatrix3d& in)
 {
 	cv::Matx33f out;
-	auto m = reinterpret_cast<const double(*)[4][4]>(&in);
+	auto m = reinterpret_cast<const double(*)[3][3]>(&in);
 
 	for (int row = 0; row < 3; ++row)
 	{

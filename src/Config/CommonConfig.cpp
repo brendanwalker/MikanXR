@@ -243,7 +243,7 @@ void CommonConfig::writeMatrix3d(
     const MikanMatrix3d& mat)
 {
     // Write out 3 columns (3 entries per column)
-    auto m = reinterpret_cast<const float(*)[4][4]>(&mat);
+    auto m = reinterpret_cast<const double(*)[3][3]>(&mat);
     pt[matrix_name]= configuru::Config::array({
         (*m)[0][0], (*m)[0][1], (*m)[0][2],
         (*m)[1][0], (*m)[1][1], (*m)[1][2],
@@ -259,7 +259,7 @@ void CommonConfig::readMatrix3d(
     {
         int row= 0;
         int col= 0;
-        auto m = reinterpret_cast<float(*)[4][4]>(&outMatrix);
+        auto m = reinterpret_cast<double(*)[3][3]>(&outMatrix);
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
             (*m)[col][row]= element.as_double();
@@ -281,7 +281,7 @@ void CommonConfig::writeMatrix43d(
     const char *matrix_name,
     const MikanMatrix4x3d& mat)
 {
-    auto m = reinterpret_cast<const float(*)[4][3]>(&mat);
+    auto m = reinterpret_cast<const double(*)[4][3]>(&mat);
 
     // Write out 4 columns (3 entries per column)
     pt[matrix_name]= configuru::Config::array({
@@ -300,7 +300,7 @@ void CommonConfig::readMatrix43d(
     {
         int row= 0;
         int col= 0;
-        auto m = reinterpret_cast<float(*)[4][3]>(&outMatrix);
+        auto m = reinterpret_cast<double(*)[4][3]>(&outMatrix);
 
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
@@ -323,7 +323,7 @@ void CommonConfig::writeMatrix4d(
     const char *matrix_name,
     const MikanMatrix4d& mat)
 {
-    auto m = reinterpret_cast<const float(*)[4][4]>(&mat);
+    auto m = reinterpret_cast<const double(*)[4][4]>(&mat);
 
     pt[matrix_name]= configuru::Config::array({
 		(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3],
@@ -341,7 +341,7 @@ void CommonConfig::readMatrix4d(
     {
         int row= 0;
         int col= 0;
-        auto m = reinterpret_cast<float(*)[4][4]>(&outMatrix);
+        auto m = reinterpret_cast<double(*)[4][4]>(&outMatrix);
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
             (*m)[col][row] = element.as_double();
