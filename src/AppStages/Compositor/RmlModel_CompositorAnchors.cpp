@@ -28,6 +28,9 @@ bool RmlModel_CompositorAnchors::init(
 			layer_model_handle.RegisterMember("child_fastener_ids", &RmlModel_CompositorAnchor::child_fastener_ids);
 		}
 
+		// One time registration for an array of stencil quads.
+		constructor.RegisterArray<decltype(m_spatialAnchors)>();
+
 		s_bHasRegisteredTypes = true;
 	}
 

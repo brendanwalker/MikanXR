@@ -30,7 +30,7 @@
                     <button data-event-click="edit_fastener(fastener_id)">Edit</button>
                     <button data-event-click="delete_fastener(anchor.anchor_id, fastener_id)">Delete</button>
                 </div>
-                <button data-event-click="add_fastener(anchor.anchor_id)">Add Quad Stencil</button>
+                <button data-event-click="add_fastener(anchor.anchor_id)">Add Fastener</button>
             </div>
         </panel>
     </body>

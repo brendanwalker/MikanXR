@@ -86,8 +86,8 @@ void AppStage_FastenerCalibration::enter()
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
 				m_videoSourceView, 
-				VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);		
+				VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
+		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 		// Create a calibrator to do the actual pattern recording and calibration
 		m_fastenerCalibrator =
@@ -197,6 +197,8 @@ void AppStage_FastenerCalibration::updateCamera()
 
 void AppStage_FastenerCalibration::update()
 {
+	AppStage::update();
+
 	updateCamera();
 
 	const eFastenerCalibrationMenuState currentMenuState= m_calibrationModel->getMenuState();
@@ -343,20 +345,27 @@ void AppStage_FastenerCalibration::onMouseButtonUp(int button)
 // Calibration Model UI Events
 void AppStage_FastenerCalibration::onContinueEvent()
 {
-	// Clear out all of the calibration data we recorded
-	m_fastenerCalibrator->resetCalibrationState();
-
-	// Reset all calibration state on the calibration UI model
-	m_calibrationModel->setCapturedPointCount(0);
-
-	// Go back to the camera viewpoint (in case we are in VR view)
-	m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
-
 	// Advance to the capture state
 	if (m_calibrationModel->getMenuState() == eFastenerCalibrationMenuState::verifySetup1)
+	{
+		// Clear out all of the calibration data we recorded
+		m_fastenerCalibrator->resetCalibrationState();
+
+		// Reset the capture point count on the UI model
+		m_calibrationModel->setCapturedPointCount(0);
+
+		// Go back to the camera viewpoint (in case we are in VR view)
+		m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
+
 		setMenuState(eFastenerCalibrationMenuState::capture1);
+	}
 	else if (m_calibrationModel->getMenuState() == eFastenerCalibrationMenuState::verifySetup2)
+	{
+		// Reset all calibration state on the calibration UI model
+		m_calibrationModel->setCapturedPointCount(0);
+
 		setMenuState(eFastenerCalibrationMenuState::capture2);
+	}
 }
 
 void AppStage_FastenerCalibration::onRestartEvent()
@@ -364,7 +373,7 @@ void AppStage_FastenerCalibration::onRestartEvent()
 	// Clear out all of the calibration data we recorded
 	m_fastenerCalibrator->resetCalibrationState();
 
-	// Reset all calibration state on the calibration UI model
+	// Reset the capture point count on the UI model
 	m_calibrationModel->setCapturedPointCount(0);
 
 	// Go back to the camera viewpoint (in case we are in VR view)

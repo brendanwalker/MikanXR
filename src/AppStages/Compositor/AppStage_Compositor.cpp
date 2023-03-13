@@ -233,11 +233,15 @@ void AppStage_Compositor::exit()
 void AppStage_Compositor::pause()
 {
 	AppStage::pause();
+
+	m_frameCompositor->stop();
 }
 
 void AppStage_Compositor::resume()
 {
 	AppStage::resume();
+
+	m_frameCompositor->start();
 }
 
 void AppStage_Compositor::update()

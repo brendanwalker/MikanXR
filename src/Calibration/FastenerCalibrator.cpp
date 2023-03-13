@@ -180,8 +180,11 @@ bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo* fastene
 
 void FastenerCalibrator::renderCameraSpaceCalibrationState()
 {
-	const cvFastenerPointArray& pointArray= 
-		m_calibrationState->pointSamples[m_calibrationState->sampledCameraPoseCount];
+	const int currentTriangleIndex= (int)m_calibrationState->pointSamples->size() - 1;
+	if (currentTriangleIndex < 0)
+		return;
+
+	const cvFastenerPointArray& pointArray= m_calibrationState->pointSamples[currentTriangleIndex];
 
 	glm::vec3 glm_points[3];
 	const int pointCount = (int)pointArray.size();
