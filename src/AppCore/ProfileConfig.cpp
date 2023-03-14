@@ -273,7 +273,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	}
 
 	// Read in the spatial fasteners
-	spatialAnchorList.clear();
+	spatialFastenerList.clear();
 	if (pt.has_key("spatialFasteners"))
 	{
 		for (const configuru::Config& fastenerConfig : pt["spatialFasteners"].as_array())

@@ -21,6 +21,8 @@ public:
 	void render(class Renderer* renderer);
 	void shutdown();
 
+	void setDisable3dDepth(bool bFlag) { m_bDisable3dDepth= bFlag; }
+
 	// Draw 3d points and lines in world space
 	void addPoint3d(
 		const glm::mat4& xform,
@@ -89,6 +91,8 @@ protected:
 	PointBufferState m_lines3d;
 	PointBufferState m_points2d;
 	PointBufferState m_lines2d;
+
+	bool m_bDisable3dDepth = false;
 };
 
 //-- drawing methods -----

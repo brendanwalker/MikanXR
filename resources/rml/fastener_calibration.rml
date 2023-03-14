@@ -21,7 +21,7 @@
                 Make sure the object you want to place all 3 fastener points on is in view.<br />
                 Hit begin to start the calibration.<br />
                 <span>
-                    <button data-event-click="continue">Begin</button>
+                    <button data-event-click="ok">Begin</button>
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
@@ -29,7 +29,15 @@
                 <div id="progress_value">{{captured_point_count}} / 3</div>
                 <br />
                 <span>
-                    <button data-event-click="restart">Restart</button>
+                    <button data-event-click="redo">Redo</button>
+                    <button data-event-click="cancel">Cancel</button>
+                </span>
+            </div>
+            <div data-if="menu_state == 'verifyCapture1'">
+                Do the 3 points look correct?<br />
+                <span>
+                    <button data-event-click="ok">Yes</button>
+                    <button data-event-click="redo">No</button>
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
@@ -37,7 +45,7 @@
                 Now move the camera ~10cm while keeping the same 3 points in view<br />
                 Hit continue after the camera has been moved.<br />
                 <span>
-                    <button data-event-click="continue">Continue</button>
+                    <button data-event-click="ok">Continue</button>
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
@@ -46,23 +54,31 @@
                 <div id="progress_value">{{captured_point_count}} / 3</div>
                 <br />
                 <span>
-                    <button data-event-click="restart">Restart</button>
+                    <button data-event-click="redo">Redo</button>
                     <button data-event-click="cancel">Cancel</button>
                 </span>
-            </div>            
+            </div>
+            <div data-if="menu_state == 'verifyCapture2'">
+                Do the 3 points look correct?<br />
+                <span>
+                    <button data-event-click="ok">Yes</button>
+                    <button data-event-click="redo">No</button>
+                    <button data-event-click="cancel">Cancel</button>
+                </span>
+            </div>       
             <div data-if="menu_state == 'testCalibration' && !bypass_calibration_flag">
                 Calibration complete!<br />
                 <span>
-                    <button data-event-click="restart">Redo Calibration</button>
+                    <button data-event-click="redo">Redo</button>
                     <button data-event-click="return">Ok</button>
                 </span>
             </div>
             <div data-if="menu_state == 'testCalibration' && bypass_calibration_flag">
-                <button data-event-click="return">Ok</button>
+                <button data-event-click="ok">Ok</button>
             </div>     
             <div data-if="menu_state == 'failedVideoStartStreamRequest'">
                 Failed to open video stream.<br />
-                <button data-event-click="return">Ok</button>
+                <button data-event-click="ok">Ok</button>
             </div>
         </panel>
     </body>

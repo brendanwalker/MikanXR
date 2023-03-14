@@ -61,6 +61,9 @@ void AppStage_FastenerCalibration::enter()
 {
 	AppStage::enter();
 
+	// Disable depth testing on the line renderer while in this app stage
+	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(true);
+
 	// Get the current video source based on the config
 	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
@@ -118,10 +121,9 @@ void AppStage_FastenerCalibration::enter()
 
 		// Init calibration model
 		m_calibrationModel->init(context);
-		m_calibrationModel->OnContinueEvent = MakeDelegate(this, &AppStage_FastenerCalibration::onContinueEvent);
-		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_FastenerCalibration::onRestartEvent);
+		m_calibrationModel->OnOkEvent = MakeDelegate(this, &AppStage_FastenerCalibration::onOkEvent);
+		m_calibrationModel->OnRedoEvent = MakeDelegate(this, &AppStage_FastenerCalibration::onRedoEvent);
 		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_FastenerCalibration::onCancelEvent);
-		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_FastenerCalibration::onReturnEvent);
 
 		// Init camera settings model
 		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
@@ -150,6 +152,9 @@ void AppStage_FastenerCalibration::enter()
 void AppStage_FastenerCalibration::exit()
 {
 	setMenuState(eFastenerCalibrationMenuState::inactive);
+
+	// Re-Enable depth testing on the line renderer while in this app stage
+	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(false);
 
 	App::getInstance()->getRenderer()->popCamera();
 	m_camera= nullptr;
@@ -208,6 +213,8 @@ void AppStage_FastenerCalibration::update()
 	{
 		case eFastenerCalibrationMenuState::verifySetup1:
 		case eFastenerCalibrationMenuState::verifySetup2:
+		case eFastenerCalibrationMenuState::verifyCapture1:
+		case eFastenerCalibrationMenuState::verifyCapture2:
 			{
 				// Update the video frame buffers to preview the calibration mat
 				m_monoDistortionView->readAndProcessVideoFrame();
@@ -226,20 +233,11 @@ void AppStage_FastenerCalibration::update()
 
 					if (currentMenuState == eFastenerCalibrationMenuState::capture1)
 					{
-						nextMenuState = eFastenerCalibrationMenuState::verifySetup2;
+						nextMenuState = eFastenerCalibrationMenuState::verifyCapture1;
 					}
 					else
 					{
-						ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
-
-						MikanSpatialFastenerInfo fastener;
-						if (profileConfig->getSpatialFastenerInfo(m_targetFastenerId, fastener))
-						{
-							m_fastenerCalibrator->computeFastenerPoints(&fastener);
-							profileConfig->updateFastener(fastener);
-						}
-
-						nextMenuState = eFastenerCalibrationMenuState::testCalibration;
+						nextMenuState = eFastenerCalibrationMenuState::verifyCapture2;
 					}
 				}
 			}
@@ -266,11 +264,33 @@ void AppStage_FastenerCalibration::render()
 	{
 		case eFastenerCalibrationMenuState::verifySetup1:
 		case eFastenerCalibrationMenuState::capture1:
-		case eFastenerCalibrationMenuState::verifySetup2:
-		case eFastenerCalibrationMenuState::capture2:
+		case eFastenerCalibrationMenuState::verifyCapture1:
 			{
 				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_fastenerCalibrator->renderCameraSpaceCalibrationState();
+				m_fastenerCalibrator->renderCameraSpaceCalibrationState(0);
+			}
+			break;
+		case eFastenerCalibrationMenuState::verifySetup2:
+			{
+				switch (m_cameraSettingsModel->getViewpointMode())
+				{
+					case eFastenerCalibrationViewpointMode::cameraViewpoint:
+						m_monoDistortionView->renderSelectedVideoBuffers();
+						m_fastenerCalibrator->renderVRSpacePreCalibrationState(0);
+						break;
+					case eFastenerCalibrationViewpointMode::vrViewpoint:
+						m_fastenerCalibrator->renderVRSpacePreCalibrationState(0);
+						renderVRScene();
+						break;
+				}
+			}
+			break;
+		case eFastenerCalibrationMenuState::capture2:
+		case eFastenerCalibrationMenuState::verifyCapture2:
+			{
+				m_monoDistortionView->renderSelectedVideoBuffers();
+				m_fastenerCalibrator->renderVRSpacePreCalibrationState(0);
+				m_fastenerCalibrator->renderCameraSpaceCalibrationState(1);
 			}
 			break;
 		case eFastenerCalibrationMenuState::testCalibration:
@@ -279,10 +299,10 @@ void AppStage_FastenerCalibration::render()
 				{
 					case eFastenerCalibrationViewpointMode::cameraViewpoint:
 						m_monoDistortionView->renderSelectedVideoBuffers();
-						m_fastenerCalibrator->renderCameraSpaceCalibrationState();
+						m_fastenerCalibrator->renderVRSpacePostCalibrationState();
 						break;
 					case eFastenerCalibrationViewpointMode::vrViewpoint:
-						m_fastenerCalibrator->renderVRSpaceCalibrationState();
+						m_fastenerCalibrator->renderVRSpacePostCalibrationState();
 						renderVRScene();
 						break;
 				}
@@ -312,8 +332,7 @@ void AppStage_FastenerCalibration::setMenuState(eFastenerCalibrationMenuState ne
 		// Show or hide the camera controls based on menu state
 		const bool bIsCameraSettingsVisible = m_cameraSettingsView->IsVisible();
 		const bool bWantCameraSettingsVisibility =
-			(newState == eFastenerCalibrationMenuState::capture1) ||
-			(newState == eFastenerCalibrationMenuState::capture2) ||
+			(newState == eFastenerCalibrationMenuState::verifySetup2) ||
 			(newState == eFastenerCalibrationMenuState::testCalibration);
 		if (bWantCameraSettingsVisibility != bIsCameraSettingsVisible)
 		{
@@ -343,32 +362,56 @@ void AppStage_FastenerCalibration::onMouseButtonUp(int button)
 }
 
 // Calibration Model UI Events
-void AppStage_FastenerCalibration::onContinueEvent()
+void AppStage_FastenerCalibration::onOkEvent()
 {
-	// Advance to the capture state
-	if (m_calibrationModel->getMenuState() == eFastenerCalibrationMenuState::verifySetup1)
+	switch (m_calibrationModel->getMenuState())
 	{
-		// Clear out all of the calibration data we recorded
-		m_fastenerCalibrator->resetCalibrationState();
+		case eFastenerCalibrationMenuState::verifySetup1:
+			{
+				// Clear out all of the calibration data we recorded
+				m_fastenerCalibrator->resetCalibrationState();
 
-		// Reset the capture point count on the UI model
-		m_calibrationModel->setCapturedPointCount(0);
+				// Reset the capture point count on the UI model
+				m_calibrationModel->setCapturedPointCount(0);
 
-		// Go back to the camera viewpoint (in case we are in VR view)
-		m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
+				// Go back to the camera viewpoint (in case we are in VR view)
+				m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
 
-		setMenuState(eFastenerCalibrationMenuState::capture1);
-	}
-	else if (m_calibrationModel->getMenuState() == eFastenerCalibrationMenuState::verifySetup2)
-	{
-		// Reset all calibration state on the calibration UI model
-		m_calibrationModel->setCapturedPointCount(0);
+				setMenuState(eFastenerCalibrationMenuState::capture1);
+			} break;
+		case eFastenerCalibrationMenuState::verifyCapture1:
+			{
+				setMenuState(eFastenerCalibrationMenuState::verifySetup2);
+			} break;
+		case eFastenerCalibrationMenuState::verifySetup2:
+			{
+				// Reset all calibration state on the calibration UI model
+				m_calibrationModel->setCapturedPointCount(0);
 
-		setMenuState(eFastenerCalibrationMenuState::capture2);
+				setMenuState(eFastenerCalibrationMenuState::capture2);
+			} break;
+		case eFastenerCalibrationMenuState::verifyCapture2:
+			{
+				ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+
+				MikanSpatialFastenerInfo fastener;
+				if (profileConfig->getSpatialFastenerInfo(m_targetFastenerId, fastener))
+				{
+					m_fastenerCalibrator->computeFastenerPoints(&fastener);
+					profileConfig->updateFastener(fastener);
+				}
+
+				setMenuState(eFastenerCalibrationMenuState::testCalibration);
+			} break;
+		case eFastenerCalibrationMenuState::testCalibration:
+		case eFastenerCalibrationMenuState::failedVideoStartStreamRequest:
+			{
+				m_app->popAppState();
+			} break;
 	}
 }
 
-void AppStage_FastenerCalibration::onRestartEvent()
+void AppStage_FastenerCalibration::onRedoEvent()
 {
 	// Clear out all of the calibration data we recorded
 	m_fastenerCalibrator->resetCalibrationState();
@@ -380,15 +423,21 @@ void AppStage_FastenerCalibration::onRestartEvent()
 	m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
 
 	// Return to the capture state
-	setMenuState(eFastenerCalibrationMenuState::verifySetup1);
+	switch (m_calibrationModel->getMenuState())
+	{
+		case eFastenerCalibrationMenuState::capture1:
+		case eFastenerCalibrationMenuState::verifyCapture1:
+		case eFastenerCalibrationMenuState::testCalibration:
+			setMenuState(eFastenerCalibrationMenuState::capture1);
+			break;
+		case eFastenerCalibrationMenuState::capture2:
+		case eFastenerCalibrationMenuState::verifyCapture2:
+			setMenuState(eFastenerCalibrationMenuState::capture2);
+			break;
+	}
 }
 
 void AppStage_FastenerCalibration::onCancelEvent()
-{
-	m_app->popAppState();
-}
-
-void AppStage_FastenerCalibration::onReturnEvent()
 {
 	m_app->popAppState();
 }

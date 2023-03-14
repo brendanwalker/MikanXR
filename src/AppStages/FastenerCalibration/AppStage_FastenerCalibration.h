@@ -39,10 +39,9 @@ protected:
 	void onMouseButtonUp(int button);
 
 	// Calibration Model UI Events
-	void onContinueEvent();
-	void onRestartEvent();
+	void onOkEvent();
+	void onRedoEvent();
 	void onCancelEvent();
-	void onReturnEvent();
 
 	// Camera Settings Model UI Events
 	void onViewportModeChanged(eFastenerCalibrationViewpointMode newViewMode);

@@ -19,11 +19,10 @@ public:
 	int getCapturedPointCount() const;
 	void setCapturedPointCount(const int newCount);
 
-	SinglecastDelegate<void()> OnContinueEvent;
-	SinglecastDelegate<void()> OnRestartEvent;
+	SinglecastDelegate<void()> OnOkEvent;
+	SinglecastDelegate<void()> OnRedoEvent;
 	SinglecastDelegate<void()> OnCancelEvent;
-	SinglecastDelegate<void()> OnReturnEvent;
-
+	
 private:
 	Rml::String m_menuState;
 	Rml::String m_viewpointMode;

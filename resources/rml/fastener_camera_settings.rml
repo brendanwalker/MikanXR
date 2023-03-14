@@ -35,7 +35,7 @@
                 <input type="range" name="brightness" min="0" max="255" step="1" value="128" data-value="brightness" data-event-change="brightness_changed()" />
                 {{brightness}}
             </div>
-            <div data-if="menu_state == 'testCalibration'">
+            <div>
                 <h2>Viewport Display Mode</h2>
                 <radioblock>
                     <label><input type="radio" name="viewpoint mode" value="cameraViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> Camera Viewpoint</label>

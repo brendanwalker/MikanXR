@@ -24,7 +24,7 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
-typedef std::vector<cv::Vec2d> cvFastenerPointArray;
+typedef std::vector<cv::Vec2f> cvFastenerPointArray;
 
 struct FastenerCalibrationState
 {
@@ -33,6 +33,7 @@ struct FastenerCalibrationState
 
 	// Sample State
 	cvFastenerPointArray pointSamples[2];
+	cv::Matx34f extrinsicMatrixSamples[2];
 	cv::Matx34f pinholeMatrixSamples[2];
 	int sampledCameraPoseCount;
 
@@ -53,6 +54,8 @@ struct FastenerCalibrationState
 	{
 		pointSamples[0].clear();
 		pointSamples[1].clear();
+		extrinsicMatrixSamples[0]= cv::Matx34f();
+		extrinsicMatrixSamples[1]= cv::Matx34f();
 		pinholeMatrixSamples[0]= cv::Matx34f();
 		pinholeMatrixSamples[1]= cv::Matx34f();
 		sampledCameraPoseCount= 0;
@@ -99,12 +102,12 @@ void FastenerCalibrator::sampleMouseScreenPosition()
 	InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
 
 	Renderer* renderer = Renderer::getInstance();
-	const double screenWidth = renderer->getSDLWindowWidth();
-	const double screenHeight = renderer->getSDLWindowHeight();
+	const float screenWidth = renderer->getSDLWindowWidth();
+	const float screenHeight = renderer->getSDLWindowHeight();
 
-	cv::Vec2d cameraSample(
-		((double)mouseScreenX * (double)m_frameWidth) / screenWidth,
-		((double)mouseScreenY * (double)m_frameHeight) / screenHeight);
+	cv::Vec2f cameraSample(
+		((float)mouseScreenX * m_frameWidth) / screenWidth,
+		((float)mouseScreenY * m_frameHeight) / screenHeight);
 
 	if (m_calibrationState->sampledCameraPoseCount < 2)
 	{
@@ -132,19 +135,20 @@ void FastenerCalibrator::sampleCameraPose()
 
 	if (m_calibrationState->sampledCameraPoseCount < 2)
 	{
-		const int triIndex= m_calibrationState->sampledCameraPoseCount;
+		const int cameraPoseIndex= m_calibrationState->sampledCameraPoseCount;
 
 		// Compute the pinhole camera matrix for each tracker that allows you to raycast
 		// from the tracker center in world space through the screen location, into the world
 		// See: http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
-		m_calibrationState->pinholeMatrixSamples[triIndex] = intrinsic_matrix * extrinsic_matrix;
+		m_calibrationState->extrinsicMatrixSamples[cameraPoseIndex] = extrinsic_matrix;
+		m_calibrationState->pinholeMatrixSamples[cameraPoseIndex] = intrinsic_matrix * extrinsic_matrix;
 		m_calibrationState->sampledCameraPoseCount++;
 	}
 }
 
 bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo* fastener)
 {
-	if (m_calibrationState->sampledCameraPoseCount >= 2)
+	if (m_calibrationState->sampledCameraPoseCount < 2)
 		return false;
 
 	// Triangulate the world position from the two cameras
@@ -178,20 +182,16 @@ bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo* fastene
 	return true;
 }
 
-void FastenerCalibrator::renderCameraSpaceCalibrationState()
+void FastenerCalibrator::renderCameraSpaceCalibrationState(const int cameraPoseIndex)
 {
-	const int currentTriangleIndex= (int)m_calibrationState->pointSamples->size() - 1;
-	if (currentTriangleIndex < 0)
-		return;
-
-	const cvFastenerPointArray& pointArray= m_calibrationState->pointSamples[currentTriangleIndex];
+	const cvFastenerPointArray& pointArray= m_calibrationState->pointSamples[cameraPoseIndex];
 
 	glm::vec3 glm_points[3];
 	const int pointCount = (int)pointArray.size();
 
 	for (int i = 0; i < pointCount; i++)
 	{
-		const cv::Vec2d& cv_point= pointArray[i];
+		const cv::Vec2f& cv_point= pointArray[i];
 
 		glm_points[i]= glm::vec3(cv_point(0), cv_point(1), 0.5f);
 
@@ -218,7 +218,46 @@ void FastenerCalibrator::renderCameraSpaceCalibrationState()
 	drawPointList2d(m_frameWidth, m_frameHeight, glm_points, pointCount, Colors::Yellow, 2.f);
 }
 
-void FastenerCalibrator::renderVRSpaceCalibrationState()
+void FastenerCalibrator::renderVRSpacePreCalibrationState(const int cameraPoseIndex)
+{
+	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
+
+	const cvFastenerPointArray& pointArray = m_calibrationState->pointSamples[cameraPoseIndex];
+
+	// See How to calculate the ray of a camera with the help of the camera matrix?
+	// https://stackoverflow.com/questions/68249598/how-to-calculate-the-ray-of-a-camera-with-the-help-of-the-camera-matrix
+	cv::Matx34f extrinsic_matrix= m_calibrationState->extrinsicMatrixSamples[cameraPoseIndex];
+
+	cv::Matx33f intrinsic_matrix;
+	computeOpenCVCameraIntrinsicMatrix(
+		videoSource,
+		VideoFrameSection::Primary,
+		intrinsic_matrix);
+	const cv::Matx33f inv_intrinsic_matrix= intrinsic_matrix.inv();
+
+	const cv::Vec3f camCenter = extrinsic_matrix * cv::Vec4f(0, 0, 0, 1);
+	const glm::vec3 glmCamCenter = cv_vec3f_to_glm_vec3(camCenter);
+
+	for (int i = 0; i < 3; i++)
+	{
+		// Get the next image point
+		const cv::Vec2f imgPt2d= pointArray[i];
+		// Use the inverse intrinsic camera matrix to compute position on image plane
+		const cv::Vec3f camPt= inv_intrinsic_matrix * cv::Vec3f(imgPt2d(0), imgPt2d(1), 0.f);
+		// Use the extrinsic camera matrix compute a world space location
+		const cv::Vec3f worldPoint= extrinsic_matrix * cv::Vec4f(camPt(0), camPt(1), camPt(2), 1.f);
+		// Compute a ray from camera center to image place point
+		cv::Vec3f rayVec= worldPoint - camCenter;
+		rayVec = rayVec / cv::norm(rayVec);
+
+		const glm::vec3 glmRayVec = cv_vec3f_to_glm_vec3(rayVec);
+		const glm::vec3 glmSegmentEnd = glmCamCenter + glmRayVec*10.f;
+
+		drawSegment(glm::mat4(1.f), glmCamCenter, glmSegmentEnd, Colors::Yellow);
+	}
+}
+
+void FastenerCalibrator::renderVRSpacePostCalibrationState()
 {
 	const glm::vec3 p0= m_calibrationState->fastenerPoints[0];
 	const glm::vec3 p1= m_calibrationState->fastenerPoints[1];

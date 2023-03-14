@@ -28,8 +28,9 @@ public:
 	void sampleCameraPose();
 	bool computeFastenerPoints(MikanSpatialFastenerInfo* fastener);
 
-	void renderCameraSpaceCalibrationState();
-	void renderVRSpaceCalibrationState();
+	void renderCameraSpaceCalibrationState(const int cameraPoseIndex);
+	void renderVRSpacePreCalibrationState(const int cameraPoseIndex);
+	void renderVRSpacePostCalibrationState();
 
 protected:
 	float m_frameWidth;

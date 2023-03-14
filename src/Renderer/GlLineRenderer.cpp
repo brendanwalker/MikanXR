@@ -121,6 +121,12 @@ void GlLineRenderer::render(Renderer* renderer)
 			{
 				const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
+				GlScopedState scopedState = renderer->getGlStateStack()->createScopedState();
+				if (m_bDisable3dDepth)
+				{
+					scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+				}
+
 				m_program->setMatrix4x4Uniform(m_modelViewUniformName, cameraVPMatrix);
 
 				m_points3d.drawGlBufferState(GL_POINTS);

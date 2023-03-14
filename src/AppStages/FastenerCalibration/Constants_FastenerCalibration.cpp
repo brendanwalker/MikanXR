@@ -4,8 +4,10 @@ const std::string g_fastenerCalibrationMenuStateStrings[(int)eFastenerCalibratio
 	"inactive",
 	"verifySetup1",
 	"capture1",
+	"verifyCapture1",
 	"verifySetup2",
 	"capture2",
+	"verifyCapture2",
 	"testCalibration",
 	"failedVideoStartStreamRequest"
 };

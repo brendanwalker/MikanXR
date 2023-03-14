@@ -18,26 +18,19 @@ bool RmlModel_FastenerCalibration::init(
 	constructor.Bind("captured_point_count", &m_capturedPointCount);
 	constructor.Bind("bypass_calibration_flag", &m_bypassCalibrationFlag);
 	constructor.BindEventCallback(
-		"continue",
+		"ok",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			// Tell the parent app state that we started calibration
-			if (OnContinueEvent) OnContinueEvent();
+			if (OnOkEvent) OnOkEvent();
 		});
 	constructor.BindEventCallback(
-		"restart",
+		"redo",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			// Tell the parent app state that we restarted
-			if (OnRestartEvent) OnRestartEvent();
+			if (OnRedoEvent) OnRedoEvent();
 		});
 	constructor.BindEventCallback(
 		"cancel",
-			[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			if (OnCancelEvent) OnCancelEvent();
-		});
-	constructor.BindEventCallback(
-		"return",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			if (OnReturnEvent) OnReturnEvent();
+			if (OnCancelEvent) OnCancelEvent();
 		});
 
 	setCapturedPointCount(0);
@@ -48,10 +41,9 @@ bool RmlModel_FastenerCalibration::init(
 
 void RmlModel_FastenerCalibration::dispose()
 {
-	OnContinueEvent.Clear();
-	OnRestartEvent.Clear();
+	OnOkEvent.Clear();
+	OnRedoEvent.Clear();
 	OnCancelEvent.Clear();
-	OnReturnEvent.Clear();
 	RmlModel::dispose();
 }
 

@@ -9,8 +9,10 @@ enum class eFastenerCalibrationMenuState : int
 	inactive,
 	verifySetup1,
 	capture1,
+	verifyCapture1,
 	verifySetup2,
 	capture2,
+	verifyCapture2,
 	testCalibration,
 	failedVideoStartStreamRequest,
 
