@@ -24,7 +24,7 @@ enum class eFastenerCalibrationViewpointMode : int
 {
 	INVALID = -1,
 
-	cameraViewpoint,
+	mixedRealityViewpoint,
 	vrViewpoint,
 
 	COUNT

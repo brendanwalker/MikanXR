@@ -63,7 +63,7 @@ bool RmlModel_FastenerCameraSettings::init(
 
 	// Set defaults
 	setMenuState(eFastenerCalibrationMenuState::inactive);
-	setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
+	setViewpointMode(eFastenerCalibrationViewpointMode::mixedRealityViewpoint);
 	setBrightness(videoSourceView->getVideoProperty(VideoPropertyType::Brightness));
 	m_brightnessMin = videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
 	m_brightnessMax = videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);

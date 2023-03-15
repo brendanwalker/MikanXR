@@ -14,7 +14,7 @@ const std::string g_fastenerCalibrationMenuStateStrings[(int)eFastenerCalibratio
 const std::string* k_fastenerCalibrationMenuStateStrings = g_fastenerCalibrationMenuStateStrings;
 
 const std::string g_fastenerCalibrationViewpointModeStrings[(int)eFastenerCalibrationViewpointMode::COUNT] = {
-	"cameraViewpoint",
+	"mixedRealityViewpoint",
 	"vrViewpoint"
 };
 extern const std::string* k_fastenerCalibrationViewpointModeStrings = g_fastenerCalibrationViewpointModeStrings;

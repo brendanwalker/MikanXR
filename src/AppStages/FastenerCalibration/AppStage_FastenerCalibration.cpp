@@ -129,7 +129,7 @@ void AppStage_FastenerCalibration::enter()
 		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
 		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_FastenerCalibration::onViewportModeChanged);
 		m_cameraSettingsModel->OnBrightnessChanged = MakeDelegate(this, &AppStage_FastenerCalibration::onBrightnessChanged);
-		m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
+		m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::mixedRealityViewpoint);
 
 		// Init calibration view now that the dependent model has been created
 		m_calibrationView = addRmlDocument("fastener_calibration.rml");
@@ -187,9 +187,12 @@ void AppStage_FastenerCalibration::updateCamera()
 {
 	switch (m_cameraSettingsModel->getViewpointMode())
 	{
-	case eFastenerCalibrationViewpointMode::cameraViewpoint:
+	case eFastenerCalibrationViewpointMode::mixedRealityViewpoint:
 		{
-			m_camera->setModelViewMatrix(glm::mat4(1.f));
+			// Update the transform of the camera so that vr models align over the tracking puck
+			const glm::mat4 cameraPose = m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
+	
+			m_camera->setCameraPose(cameraPose);
 		}
 		break;
 	case eFastenerCalibrationViewpointMode::vrViewpoint:
@@ -274,7 +277,7 @@ void AppStage_FastenerCalibration::render()
 			{
 				switch (m_cameraSettingsModel->getViewpointMode())
 				{
-					case eFastenerCalibrationViewpointMode::cameraViewpoint:
+					case eFastenerCalibrationViewpointMode::mixedRealityViewpoint:
 						m_monoDistortionView->renderSelectedVideoBuffers();
 						m_fastenerCalibrator->renderVRSpacePreCalibrationState(0);
 						break;
@@ -297,7 +300,7 @@ void AppStage_FastenerCalibration::render()
 			{
 				switch (m_cameraSettingsModel->getViewpointMode())
 				{
-					case eFastenerCalibrationViewpointMode::cameraViewpoint:
+					case eFastenerCalibrationViewpointMode::mixedRealityViewpoint:
 						m_monoDistortionView->renderSelectedVideoBuffers();
 						m_fastenerCalibrator->renderVRSpacePostCalibrationState();
 						break;
@@ -375,7 +378,7 @@ void AppStage_FastenerCalibration::onOkEvent()
 				m_calibrationModel->setCapturedPointCount(0);
 
 				// Go back to the camera viewpoint (in case we are in VR view)
-				m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
+				m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::mixedRealityViewpoint);
 
 				setMenuState(eFastenerCalibrationMenuState::capture1);
 			} break;
@@ -420,7 +423,7 @@ void AppStage_FastenerCalibration::onRedoEvent()
 	m_calibrationModel->setCapturedPointCount(0);
 
 	// Go back to the camera viewpoint (in case we are in VR view)
-	m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::cameraViewpoint);
+	m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::mixedRealityViewpoint);
 
 	// Return to the capture state
 	switch (m_calibrationModel->getMenuState())
@@ -447,7 +450,7 @@ void AppStage_FastenerCalibration::onViewportModeChanged(eFastenerCalibrationVie
 {
 	switch (newViewMode)
 	{
-		case eFastenerCalibrationViewpointMode::cameraViewpoint:
+		case eFastenerCalibrationViewpointMode::mixedRealityViewpoint:
 			m_camera->setIsLocked(true);
 			break;
 		case eFastenerCalibrationViewpointMode::vrViewpoint:

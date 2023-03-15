@@ -33,6 +33,7 @@ struct FastenerCalibrationState
 
 	// Sample State
 	cvFastenerPointArray pointSamples[2];
+	glm::mat4 cameraTransformSamples[2];
 	cv::Matx34f extrinsicMatrixSamples[2];
 	cv::Matx34f pinholeMatrixSamples[2];
 	int sampledCameraPoseCount;
@@ -42,10 +43,11 @@ struct FastenerCalibrationState
 
 	void init(VideoSourceViewPtr videoSourceView)
 	{
-		// Get the current camera intrinsics being used by the video source
+		// Get the current mono camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
+		inputCameraIntrinsics= cameraIntrinsics.intrinsics.mono;
 
 		resetCalibration();
 	}
@@ -54,6 +56,8 @@ struct FastenerCalibrationState
 	{
 		pointSamples[0].clear();
 		pointSamples[1].clear();
+		cameraTransformSamples[0]= glm::mat4(1.f);
+		cameraTransformSamples[1]= glm::mat4(1.f);
 		extrinsicMatrixSamples[0]= cv::Matx34f();
 		extrinsicMatrixSamples[1]= cv::Matx34f();
 		pinholeMatrixSamples[0]= cv::Matx34f();
@@ -136,6 +140,9 @@ void FastenerCalibrator::sampleCameraPose()
 	if (m_calibrationState->sampledCameraPoseCount < 2)
 	{
 		const int cameraPoseIndex= m_calibrationState->sampledCameraPoseCount;
+
+		const glm::mat4 glm_camera_xform = videoSource->getCameraPose(m_cameraTrackingPuckView);
+		m_calibrationState->cameraTransformSamples[cameraPoseIndex]= glm_camera_xform;
 
 		// Compute the pinhole camera matrix for each tracker that allows you to raycast
 		// from the tracker center in world space through the screen location, into the world
@@ -255,6 +262,18 @@ void FastenerCalibrator::renderVRSpacePreCalibrationState(const int cameraPoseIn
 
 		drawSegment(glm::mat4(1.f), glmCamCenter, glmSegmentEnd, Colors::Yellow);
 	}
+
+	const glm::mat4 glm_camera_xform =  m_calibrationState->cameraTransformSamples[cameraPoseIndex];
+	const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
+	const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
+	const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
+	const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
+	drawTransformedFrustum(
+		glm_camera_xform,
+		hfov_radians, vfov_radians,
+		zNear, zFar,
+		Colors::Yellow);
+	drawTransformedAxes(glm_camera_xform, 0.1f);
 }
 
 void FastenerCalibrator::renderVRSpacePostCalibrationState()

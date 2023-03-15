@@ -38,8 +38,8 @@
             <div>
                 <h2>Viewport Display Mode</h2>
                 <radioblock>
-                    <label><input type="radio" name="viewpoint mode" value="cameraViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> Camera Viewpoint</label>
-                    <label><input type="radio" name="viewpoint mode" value="vrViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/> VR Viewpoint</label>
+                    <label><input type="radio" name="viewpoint mode" value="mixedRealityViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/>XR Viewpoint</label>
+                    <label><input type="radio" name="viewpoint mode" value="vrViewpoint" data-checked="viewpoint_mode" data-event-change="viewpoint_mode_changed()"/>VR Viewpoint</label>
                 </radioblock>
             </div>            
         </panel>
