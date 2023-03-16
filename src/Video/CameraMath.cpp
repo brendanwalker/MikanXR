@@ -161,6 +161,19 @@ void computeOpenCVCameraIntrinsicMatrix(
 }
 
 void extractCameraIntrinsicMatrixParameters(
+    const MikanMatrix3d& intrinsic_matrix,
+    float& out_focal_length_x,
+    float& out_focal_length_y,
+    float& out_principal_point_x,
+    float& out_principal_point_y)
+{
+	out_focal_length_x = intrinsic_matrix.x0;
+	out_focal_length_y = intrinsic_matrix.y1;
+	out_principal_point_x = intrinsic_matrix.z0;
+	out_principal_point_y = intrinsic_matrix.z1;
+}
+
+void extractCameraIntrinsicMatrixParameters(
     const cv::Matx33f &intrinsic_matrix,
     float &out_focal_length_x,
     float &out_focal_length_y,

@@ -36,6 +36,12 @@ void computeOpenCVCameraIntrinsicMatrix(
 	VideoFrameSection section,
 	cv::Matx33f &intrinsicOut);
 void extractCameraIntrinsicMatrixParameters(
+	const MikanMatrix3d& intrinsic_matrix,
+	float& out_focal_length_x,
+	float& out_focal_length_y,
+	float& out_principal_point_x,
+	float& out_principal_point_y);
+void extractCameraIntrinsicMatrixParameters(
 	const cv::Matx33f &intrinsic_matrix,
 	float &out_focal_length_x,
 	float &out_focal_length_y,
