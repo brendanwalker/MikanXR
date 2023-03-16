@@ -21,18 +21,28 @@ public:
 		class VideoFrameDistortionView* distortionView);
 	virtual ~FastenerCalibrator();
 
-	bool hasFinishedSampling() const;
+	bool hasFinishedInitialPointSampling() const;
+	bool hasFinishedTriangulatedPointSampling() const;
 	void resetCalibrationState();
 
-	void sampleMouseScreenPosition();
 	void sampleCameraPose();
+	void sampleMouseScreenPosition();
+	void computeCurrentTriangulation();
 	bool computeFastenerPoints(MikanSpatialFastenerInfo* fastener);
 
-	void renderCameraSpaceCalibrationState(const int cameraPoseIndex);
-	void renderVRSpacePreCalibrationState(const int cameraPoseIndex);
-	void renderVRSpacePostCalibrationState();
+	void renderInitialPoint2dSegements();
+	void renderCurrentPointTriangulation();
+	void renderInitialPoint3dRays();
+	void renderAllTriangulatedPoints(bool bShowCameraFrustum);
 
 protected:
+	glm::vec2 computeMouseScreenPosition() const;
+	void computeCameraRayAtPixel(
+		const glm::mat4 cameraXform,
+		const glm::vec2& imagePoint,
+		glm::vec3& outRayStart,
+		glm::vec3& outRayDirection) const;
+
 	float m_frameWidth;
 	float m_frameHeight;
 	const class ProfileConfig* m_profileConfig;

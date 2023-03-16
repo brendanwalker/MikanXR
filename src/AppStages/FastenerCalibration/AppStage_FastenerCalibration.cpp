@@ -89,7 +89,7 @@ void AppStage_FastenerCalibration::enter()
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
 				m_videoSourceView, 
-				VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
+				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 		// Create a calibrator to do the actual pattern recording and calibration
@@ -106,7 +106,7 @@ void AppStage_FastenerCalibration::enter()
 		}
 		else
 		{
-			newState = eFastenerCalibrationMenuState::verifySetup1;
+			newState = eFastenerCalibrationMenuState::verifyInitialCameraSetup;
 		}
 	}
 	else
@@ -214,41 +214,42 @@ void AppStage_FastenerCalibration::update()
 
 	switch(m_calibrationModel->getMenuState())
 	{
-		case eFastenerCalibrationMenuState::verifySetup1:
-		case eFastenerCalibrationMenuState::verifySetup2:
-		case eFastenerCalibrationMenuState::verifyCapture1:
-		case eFastenerCalibrationMenuState::verifyCapture2:
+		case eFastenerCalibrationMenuState::verifyInitialCameraSetup:
+		case eFastenerCalibrationMenuState::moveCamera:
+		case eFastenerCalibrationMenuState::verifyInitialPointCapture:
+		case eFastenerCalibrationMenuState::verifyTriangulatedPoints:
+		case eFastenerCalibrationMenuState::testCalibration:
 			{
 				// Update the video frame buffers to preview the calibration mat
 				m_monoDistortionView->readAndProcessVideoFrame();
 			}
 			break;
-		case eFastenerCalibrationMenuState::capture1:
-		case eFastenerCalibrationMenuState::capture2:
+		case eFastenerCalibrationMenuState::captureInitialPoints:
 			{
 				// Update the video frame buffers
 				m_monoDistortionView->readAndProcessVideoFrame();
 
 				// See if we have gotten all the samples we require
-				if (m_fastenerCalibrator->hasFinishedSampling())
+				if (m_fastenerCalibrator->hasFinishedInitialPointSampling())
 				{
-					m_fastenerCalibrator->sampleCameraPose();
-
-					if (currentMenuState == eFastenerCalibrationMenuState::capture1)
-					{
-						nextMenuState = eFastenerCalibrationMenuState::verifyCapture1;
-					}
-					else
-					{
-						nextMenuState = eFastenerCalibrationMenuState::verifyCapture2;
-					}
+					nextMenuState = eFastenerCalibrationMenuState::verifyInitialPointCapture;
 				}
 			}
 			break;
-		case eFastenerCalibrationMenuState::testCalibration:
+		case eFastenerCalibrationMenuState::captureTriangulatedPoints:
 			{
-				// Update the video frame buffers using the existing distortion calibration
+				// Update the video frame buffers
 				m_monoDistortionView->readAndProcessVideoFrame();
+
+				// See if we have gotten all the samples we require
+				if (m_fastenerCalibrator->hasFinishedTriangulatedPointSampling())
+				{
+					nextMenuState = eFastenerCalibrationMenuState::verifyTriangulatedPoints;
+				}
+				else
+				{
+					m_fastenerCalibrator->computeCurrentTriangulation();
+				}
 			}
 			break;
 	}
@@ -265,35 +266,34 @@ void AppStage_FastenerCalibration::render()
 
 	switch (m_calibrationModel->getMenuState())
 	{
-		case eFastenerCalibrationMenuState::verifySetup1:
-		case eFastenerCalibrationMenuState::capture1:
-		case eFastenerCalibrationMenuState::verifyCapture1:
+		case eFastenerCalibrationMenuState::verifyInitialCameraSetup:
+		case eFastenerCalibrationMenuState::captureInitialPoints:
+		case eFastenerCalibrationMenuState::verifyInitialPointCapture:
 			{
 				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_fastenerCalibrator->renderCameraSpaceCalibrationState(0);
+				m_fastenerCalibrator->renderInitialPoint2dSegements();
 			}
 			break;
-		case eFastenerCalibrationMenuState::verifySetup2:
+		case eFastenerCalibrationMenuState::moveCamera:
 			{
 				switch (m_cameraSettingsModel->getViewpointMode())
 				{
 					case eFastenerCalibrationViewpointMode::mixedRealityViewpoint:
 						m_monoDistortionView->renderSelectedVideoBuffers();
-						m_fastenerCalibrator->renderVRSpacePreCalibrationState(0);
+						m_fastenerCalibrator->renderInitialPoint3dRays();
 						break;
 					case eFastenerCalibrationViewpointMode::vrViewpoint:
-						m_fastenerCalibrator->renderVRSpacePreCalibrationState(0);
+						m_fastenerCalibrator->renderInitialPoint3dRays();
 						renderVRScene();
 						break;
 				}
 			}
 			break;
-		case eFastenerCalibrationMenuState::capture2:
-		case eFastenerCalibrationMenuState::verifyCapture2:
+		case eFastenerCalibrationMenuState::captureTriangulatedPoints:
+		case eFastenerCalibrationMenuState::verifyTriangulatedPoints:
 			{
 				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_fastenerCalibrator->renderVRSpacePreCalibrationState(0);
-				m_fastenerCalibrator->renderCameraSpaceCalibrationState(1);
+				m_fastenerCalibrator->renderCurrentPointTriangulation();
 			}
 			break;
 		case eFastenerCalibrationMenuState::testCalibration:
@@ -302,10 +302,10 @@ void AppStage_FastenerCalibration::render()
 				{
 					case eFastenerCalibrationViewpointMode::mixedRealityViewpoint:
 						m_monoDistortionView->renderSelectedVideoBuffers();
-						m_fastenerCalibrator->renderVRSpacePostCalibrationState();
+						m_fastenerCalibrator->renderAllTriangulatedPoints(false);
 						break;
 					case eFastenerCalibrationViewpointMode::vrViewpoint:
-						m_fastenerCalibrator->renderVRSpacePostCalibrationState();
+						m_fastenerCalibrator->renderAllTriangulatedPoints(true);
 						renderVRScene();
 						break;
 				}
@@ -335,7 +335,7 @@ void AppStage_FastenerCalibration::setMenuState(eFastenerCalibrationMenuState ne
 		// Show or hide the camera controls based on menu state
 		const bool bIsCameraSettingsVisible = m_cameraSettingsView->IsVisible();
 		const bool bWantCameraSettingsVisibility =
-			(newState == eFastenerCalibrationMenuState::verifySetup2) ||
+			(newState == eFastenerCalibrationMenuState::moveCamera) ||
 			(newState == eFastenerCalibrationMenuState::testCalibration);
 		if (bWantCameraSettingsVisibility != bIsCameraSettingsVisible)
 		{
@@ -354,8 +354,8 @@ void AppStage_FastenerCalibration::setMenuState(eFastenerCalibrationMenuState ne
 // Input Events
 void AppStage_FastenerCalibration::onMouseButtonUp(int button)
 {
-	if (m_calibrationModel->getMenuState() == eFastenerCalibrationMenuState::capture1 ||
-		m_calibrationModel->getMenuState() == eFastenerCalibrationMenuState::capture2)
+	if (m_calibrationModel->getMenuState() == eFastenerCalibrationMenuState::captureInitialPoints ||
+		m_calibrationModel->getMenuState() == eFastenerCalibrationMenuState::captureTriangulatedPoints)
 	{
 		if (button == SDL_BUTTON_LEFT)
 		{
@@ -369,10 +369,13 @@ void AppStage_FastenerCalibration::onOkEvent()
 {
 	switch (m_calibrationModel->getMenuState())
 	{
-		case eFastenerCalibrationMenuState::verifySetup1:
+		case eFastenerCalibrationMenuState::verifyInitialCameraSetup:
 			{
 				// Clear out all of the calibration data we recorded
 				m_fastenerCalibrator->resetCalibrationState();
+
+				// Record the initial camera post
+				m_fastenerCalibrator->sampleCameraPose();
 
 				// Reset the capture point count on the UI model
 				m_calibrationModel->setCapturedPointCount(0);
@@ -380,20 +383,20 @@ void AppStage_FastenerCalibration::onOkEvent()
 				// Go back to the camera viewpoint (in case we are in VR view)
 				m_cameraSettingsModel->setViewpointMode(eFastenerCalibrationViewpointMode::mixedRealityViewpoint);
 
-				setMenuState(eFastenerCalibrationMenuState::capture1);
+				setMenuState(eFastenerCalibrationMenuState::captureInitialPoints);
 			} break;
-		case eFastenerCalibrationMenuState::verifyCapture1:
+		case eFastenerCalibrationMenuState::verifyInitialPointCapture:
 			{
-				setMenuState(eFastenerCalibrationMenuState::verifySetup2);
+				setMenuState(eFastenerCalibrationMenuState::moveCamera);
 			} break;
-		case eFastenerCalibrationMenuState::verifySetup2:
+		case eFastenerCalibrationMenuState::moveCamera:
 			{
 				// Reset all calibration state on the calibration UI model
 				m_calibrationModel->setCapturedPointCount(0);
 
-				setMenuState(eFastenerCalibrationMenuState::capture2);
+				setMenuState(eFastenerCalibrationMenuState::captureTriangulatedPoints);
 			} break;
-		case eFastenerCalibrationMenuState::verifyCapture2:
+		case eFastenerCalibrationMenuState::verifyTriangulatedPoints:
 			{
 				ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 
@@ -428,14 +431,14 @@ void AppStage_FastenerCalibration::onRedoEvent()
 	// Return to the capture state
 	switch (m_calibrationModel->getMenuState())
 	{
-		case eFastenerCalibrationMenuState::capture1:
-		case eFastenerCalibrationMenuState::verifyCapture1:
+		case eFastenerCalibrationMenuState::captureInitialPoints:
+		case eFastenerCalibrationMenuState::verifyInitialPointCapture:
 		case eFastenerCalibrationMenuState::testCalibration:
-			setMenuState(eFastenerCalibrationMenuState::capture1);
+			setMenuState(eFastenerCalibrationMenuState::captureInitialPoints);
 			break;
-		case eFastenerCalibrationMenuState::capture2:
-		case eFastenerCalibrationMenuState::verifyCapture2:
-			setMenuState(eFastenerCalibrationMenuState::capture2);
+		case eFastenerCalibrationMenuState::captureTriangulatedPoints:
+		case eFastenerCalibrationMenuState::verifyTriangulatedPoints:
+			setMenuState(eFastenerCalibrationMenuState::captureTriangulatedPoints);
 			break;
 	}
 }

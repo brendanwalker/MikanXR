@@ -17,7 +17,7 @@
 
     <body template="window">
         <panel id="controls" data-model="fastener_calibration">
-            <div data-if="menu_state == 'verifySetup1'">
+            <div data-if="menu_state == 'verifyInitialCameraSetup'">
                 Make sure the object you want to place all 3 fastener points on is in view.<br />
                 Hit begin to start the calibration.<br />
                 <span>
@@ -25,7 +25,7 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
-            <div data-if="menu_state == 'capture1'">
+            <div data-if="menu_state == 'captureInitialPoints'">
                 <div id="progress_value">{{captured_point_count}} / 3</div>
                 <br />
                 <span>
@@ -33,7 +33,7 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
-            <div data-if="menu_state == 'verifyCapture1'">
+            <div data-if="menu_state == 'verifyInitialPointCapture'">
                 Do the 3 points look correct?<br />
                 <span>
                     <button data-event-click="ok">Yes</button>
@@ -41,7 +41,7 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
-            <div data-if="menu_state == 'verifySetup2'">
+            <div data-if="menu_state == 'moveCamera'">
                 Now move the camera ~10cm while keeping the same 3 points in view<br />
                 Hit continue after the camera has been moved.<br />
                 <span>
@@ -49,7 +49,7 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
-            <div data-if="menu_state == 'capture2'">
+            <div data-if="menu_state == 'captureTriangulatedPoints'">
                 Capture the same 3 points from the new view point to triangulate the fastener.<br />
                 <div id="progress_value">{{captured_point_count}} / 3</div>
                 <br />
@@ -58,8 +58,8 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
-            <div data-if="menu_state == 'verifyCapture2'">
-                Do the 3 points look correct?<br />
+            <div data-if="menu_state == 'verifyTriangulatedPoints'">
+                Do the 3 triangulated points look correct?<br />
                 <span>
                     <button data-event-click="ok">Yes</button>
                     <button data-event-click="redo">No</button>
@@ -67,7 +67,7 @@
                 </span>
             </div>       
             <div data-if="menu_state == 'testCalibration' && !bypass_calibration_flag">
-                Calibration complete!<br />
+                Move the camera to verify the 3 points are aligned correctly<br />
                 <span>
                     <button data-event-click="redo">Redo</button>
                     <button data-event-click="return">Ok</button>

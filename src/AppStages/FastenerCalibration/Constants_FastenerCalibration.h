@@ -7,12 +7,12 @@ enum class eFastenerCalibrationMenuState : int
 	INVALID = -1,
 
 	inactive,
-	verifySetup1,
-	capture1,
-	verifyCapture1,
-	verifySetup2,
-	capture2,
-	verifyCapture2,
+	verifyInitialCameraSetup,
+	captureInitialPoints,
+	verifyInitialPointCapture,
+	moveCamera,
+	captureTriangulatedPoints,
+	verifyTriangulatedPoints,
 	testCalibration,
 	failedVideoStartStreamRequest,
 

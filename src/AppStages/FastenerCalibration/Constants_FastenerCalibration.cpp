@@ -1,15 +1,17 @@
 #include "Constants_FastenerCalibration.h"
 
+
+
 const std::string g_fastenerCalibrationMenuStateStrings[(int)eFastenerCalibrationMenuState::COUNT] = {
 	"inactive",
-	"verifySetup1",
-	"capture1",
-	"verifyCapture1",
-	"verifySetup2",
-	"capture2",
-	"verifyCapture2",
+	"verifyInitialCameraSetup",
+	"captureInitialPoints",
+	"verifyInitialPointCapture",
+	"moveCamera",
+	"captureTriangulatedPoints",
+	"verifyTriangulatedPoints",
 	"testCalibration",
-	"failedVideoStartStreamRequest"
+	"failedVideoStartStreamRequest",
 };
 const std::string* k_fastenerCalibrationMenuStateStrings = g_fastenerCalibrationMenuStateStrings;
 

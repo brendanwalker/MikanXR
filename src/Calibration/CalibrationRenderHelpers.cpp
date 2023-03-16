@@ -21,7 +21,7 @@ glm::vec2 remapPointIntoSubWindow(
 void drawSegment2d(
 	const float cameraWidth, const float cameraHeight,
 	const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd,
-	const glm::vec3& color)
+	const glm::vec3& colorStart, const glm::vec3& colorEnd)
 {
 	Renderer* renderer = Renderer::getInstance();
 	assert(renderer->getIsRenderingStage());
@@ -44,7 +44,7 @@ void drawSegment2d(
 			windowX1, windowY1,
 			cameraSegmentEnd);
 
-	renderer->getLineRenderer()->addSegment2d(windowSegmentStart, color, windowSegmentEnd, color);
+	renderer->getLineRenderer()->addSegment2d(windowSegmentStart, colorStart, windowSegmentEnd, colorEnd);
 }
 
 void drawPointList2d(

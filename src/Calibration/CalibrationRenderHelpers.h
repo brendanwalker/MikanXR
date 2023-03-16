@@ -13,7 +13,7 @@ glm::vec2 remapPointIntoSubWindow(
 void drawSegment2d(
 	const float cameraWidth, const float cameraHeight,
 	const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd,
-	const glm::vec3& color);
+	const glm::vec3& colorStart, const glm::vec3& colorEnd);
 
 void drawPointList2d(
 	const float trackerWidth, const float trackerHeight,

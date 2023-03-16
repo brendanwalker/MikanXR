@@ -10,6 +10,7 @@
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
+#include "MathGLM.h"
 #include "MikanClientTypes.h"
 #include "Renderer.h"
 #include "TextStyle.h"
@@ -24,7 +25,7 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
-typedef std::vector<cv::Vec2f> cvFastenerPointArray;
+static const glm::vec3 k_fastenerRayColors[3] = {Colors::Red, Colors::Green, Colors::Blue};
 
 struct FastenerCalibrationState
 {
@@ -32,14 +33,12 @@ struct FastenerCalibrationState
 	MikanMonoIntrinsics inputCameraIntrinsics;
 
 	// Sample State
-	cvFastenerPointArray pointSamples[2];
-	glm::mat4 cameraTransformSamples[2];
-	cv::Matx34f extrinsicMatrixSamples[2];
-	cv::Matx34f pinholeMatrixSamples[2];
-	int sampledCameraPoseCount;
-
-	// Result
-	glm::vec3 fastenerPoints[3];
+	glm::vec2 initialPointSamples[3];
+	glm::mat4 initialCameraPoseSample;
+	int initialPointSampleCount;
+	glm::vec3 lastWorldTriangulatedPoint;
+	glm::vec3 triangulatedPointSamples[3];
+	int triangulatedPointSampleCount;
 
 	void init(VideoSourceViewPtr videoSourceView)
 	{
@@ -54,15 +53,16 @@ struct FastenerCalibrationState
 
 	void resetCalibration()
 	{
-		pointSamples[0].clear();
-		pointSamples[1].clear();
-		cameraTransformSamples[0]= glm::mat4(1.f);
-		cameraTransformSamples[1]= glm::mat4(1.f);
-		extrinsicMatrixSamples[0]= cv::Matx34f();
-		extrinsicMatrixSamples[1]= cv::Matx34f();
-		pinholeMatrixSamples[0]= cv::Matx34f();
-		pinholeMatrixSamples[1]= cv::Matx34f();
-		sampledCameraPoseCount= 0;
+		initialPointSamples[0]= glm::vec2();
+		initialPointSamples[1]= glm::vec2();
+		initialPointSamples[2]= glm::vec2();
+		initialCameraPoseSample = glm::mat4(1.f);
+		initialPointSampleCount= 0;
+		lastWorldTriangulatedPoint= glm::vec3();
+		triangulatedPointSamples[0] = glm::vec3();
+		triangulatedPointSamples[1] = glm::vec3();
+		triangulatedPointSamples[2] = glm::vec3();
+		triangulatedPointSampleCount= 0;
 	}
 };
 
@@ -88,11 +88,14 @@ FastenerCalibrator::~FastenerCalibrator()
 	delete m_calibrationState;
 }
 
-bool FastenerCalibrator::hasFinishedSampling() const
+bool FastenerCalibrator::hasFinishedInitialPointSampling() const
 {
-	return 
-		m_calibrationState->sampledCameraPoseCount >= 2 || 
-		m_calibrationState->pointSamples[m_calibrationState->sampledCameraPoseCount].size() >= 3;
+	return m_calibrationState->initialPointSampleCount >= 3;
+}
+
+bool FastenerCalibrator::hasFinishedTriangulatedPointSampling() const
+{
+	return m_calibrationState->triangulatedPointSampleCount >= 3;
 }
 
 void FastenerCalibrator::resetCalibrationState()
@@ -102,6 +105,26 @@ void FastenerCalibrator::resetCalibrationState()
 
 void FastenerCalibrator::sampleMouseScreenPosition()
 {
+	const glm::vec2 pointSample= computeMouseScreenPosition();
+
+	if (m_calibrationState->initialPointSampleCount < 3)
+	{
+		const int sampleCount= m_calibrationState->initialPointSampleCount;
+
+		m_calibrationState->initialPointSamples[sampleCount]= pointSample;
+		m_calibrationState->initialPointSampleCount= sampleCount + 1;
+	}
+	else if (m_calibrationState->triangulatedPointSampleCount < 3)
+	{
+		const int sampleCount= m_calibrationState->triangulatedPointSampleCount;
+
+		m_calibrationState->triangulatedPointSamples[sampleCount]= m_calibrationState->lastWorldTriangulatedPoint;
+		m_calibrationState->triangulatedPointSampleCount= sampleCount + 1;
+	}
+}
+
+glm::vec2 FastenerCalibrator::computeMouseScreenPosition() const
+{
 	int mouseScreenX = 0, mouseScreenY;
 	InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
 
@@ -109,98 +132,89 @@ void FastenerCalibrator::sampleMouseScreenPosition()
 	const float screenWidth = renderer->getSDLWindowWidth();
 	const float screenHeight = renderer->getSDLWindowHeight();
 
-	cv::Vec2f cameraSample(
+	glm::vec2 pointSample(
 		((float)mouseScreenX * m_frameWidth) / screenWidth,
 		((float)mouseScreenY * m_frameHeight) / screenHeight);
 
-	if (m_calibrationState->sampledCameraPoseCount < 2)
-	{
-		const int triIndex= m_calibrationState->sampledCameraPoseCount;
-		cvFastenerPointArray& fastenerPoints = m_calibrationState->pointSamples[triIndex];
-
-		if (fastenerPoints.size() < 3)
-		{
-			fastenerPoints.push_back(cameraSample);
-		}
-	}
+	return pointSample;
 }
 
 void FastenerCalibrator::sampleCameraPose()
 {
-	cv::Matx34f extrinsic_matrix;
 	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
-	computeOpenCVCameraExtrinsicMatrix(videoSource, m_cameraTrackingPuckView, extrinsic_matrix);
+	const glm::mat4 glm_camera_xform = videoSource->getCameraPose(m_cameraTrackingPuckView);
 
-	cv::Matx33f intrinsic_matrix;
-	computeOpenCVCameraIntrinsicMatrix(
-		videoSource,
-		VideoFrameSection::Primary,
-		intrinsic_matrix);
+	m_calibrationState->initialCameraPoseSample= glm_camera_xform;
+}
 
-	if (m_calibrationState->sampledCameraPoseCount < 2)
-	{
-		const int cameraPoseIndex= m_calibrationState->sampledCameraPoseCount;
+void FastenerCalibrator::computeCurrentTriangulation()
+{
+	const int sampleIndex= m_calibrationState->triangulatedPointSampleCount;
+	if (sampleIndex >= 3)
+		return;
 
-		const glm::mat4 glm_camera_xform = videoSource->getCameraPose(m_cameraTrackingPuckView);
-		m_calibrationState->cameraTransformSamples[cameraPoseIndex]= glm_camera_xform;
+	// Compute a ray for the initial sample pixel
+	glm::vec3 initialPointRayStart;
+	glm::vec3 initialPointRayDirection;
+	computeCameraRayAtPixel(
+		m_calibrationState->initialCameraPoseSample,
+		m_calibrationState->initialPointSamples[sampleIndex],
+		initialPointRayStart,
+		initialPointRayDirection);
 
-		// Compute the pinhole camera matrix for each tracker that allows you to raycast
-		// from the tracker center in world space through the screen location, into the world
-		// See: http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
-		m_calibrationState->extrinsicMatrixSamples[cameraPoseIndex] = extrinsic_matrix;
-		m_calibrationState->pinholeMatrixSamples[cameraPoseIndex] = intrinsic_matrix * extrinsic_matrix;
-		m_calibrationState->sampledCameraPoseCount++;
-	}
+	// Compute a ray for triangulating new sample pixel
+	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
+	const glm::mat4 triangulatingCameraXform = videoSource->getCameraPose(m_cameraTrackingPuckView);
+	const glm::vec2 triangulatingPointSample = computeMouseScreenPosition();
+	glm::vec3 triangulatingPointRayStart;
+	glm::vec3 triangulatingPointRayDirection;
+	computeCameraRayAtPixel(
+		triangulatingCameraXform,
+		triangulatingPointSample,
+		triangulatingPointRayStart,
+		triangulatingPointRayDirection);
+
+	// Triangulate the two points by finding the point on the 
+	// initial ray closest to the triangulating ray
+	m_calibrationState->lastWorldTriangulatedPoint=
+		glm_closest_point_between_rays(
+			triangulatingPointRayStart,
+			triangulatingPointRayDirection,
+			initialPointRayStart,
+			initialPointRayDirection);
 }
 
 bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo* fastener)
 {
-	if (m_calibrationState->sampledCameraPoseCount < 2)
+	if (m_calibrationState->triangulatedPointSampleCount < 3)
 		return false;
-
-	// Triangulate the world position from the two cameras
-	const int kNumPoints= 3;
-	cv::Mat resultPoint3D(1, kNumPoints, CV_32FC4);
-	cv::triangulatePoints(
-		m_calibrationState->pinholeMatrixSamples[0],
-		m_calibrationState->pinholeMatrixSamples[1], 
-		m_calibrationState->pointSamples[0], 
-		m_calibrationState->pointSamples[1], 
-		resultPoint3D);
 
 	// Compute the fastener world to local transform
 	const glm::mat4 localToWorldXform = m_profileConfig->getFastenerWorldTransform(fastener);
 	const glm::mat4 worldToLocalXform = glm::inverse(localToWorldXform);
 
 	// Convert triangulated world space points into local space
-	for (int index = 0; index < kNumPoints; ++index)
+	for (int index = 0; index < 3; ++index)
 	{
-		const float w = resultPoint3D.at<float>(3, index);
-		const glm::vec3 worldPoint(
-			resultPoint3D.at<float>(0, index) / w,
-			resultPoint3D.at<float>(1, index) / w,
-			resultPoint3D.at<float>(2, index) / w);
+		const glm::vec3 worldPoint = m_calibrationState->triangulatedPointSamples[index];
 		const glm::vec3 localPoint = worldToLocalXform * glm::vec4(worldPoint, 1.f);
 
-		m_calibrationState->fastenerPoints[index]= worldPoint;
 		fastener->fastener_points[index] = glm_vec3_to_MikanVector3f(localPoint);
 	}
 
 	return true;
 }
 
-void FastenerCalibrator::renderCameraSpaceCalibrationState(const int cameraPoseIndex)
+void FastenerCalibrator::renderInitialPoint2dSegements()
 {
-	const cvFastenerPointArray& pointArray= m_calibrationState->pointSamples[cameraPoseIndex];
-
 	glm::vec3 glm_points[3];
-	const int pointCount = (int)pointArray.size();
+	const int pointCount = m_calibrationState->initialPointSampleCount;
 
 	for (int i = 0; i < pointCount; i++)
 	{
-		const cv::Vec2f& cv_point= pointArray[i];
+		const glm::vec2& imagePoint= m_calibrationState->initialPointSamples[i];
 
-		glm_points[i]= glm::vec3(cv_point(0), cv_point(1), 0.5f);
+		glm_points[i]= glm::vec3(imagePoint.x, imagePoint.y, 0.5f);
 
 		TextStyle style = getDefaultTextStyle();
 		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
@@ -214,94 +228,150 @@ void FastenerCalibrator::renderCameraSpaceCalibrationState(const int cameraPoseI
 
 	if (pointCount >= 2)
 	{
-		drawSegment2d(m_frameWidth, m_frameHeight, glm_points[0], glm_points[1], Colors::Red);
+		drawSegment2d(m_frameWidth, m_frameHeight, glm_points[0], glm_points[1], Colors::Red, Colors::Green);
 	}
 
-	if (pointArray.size() >= 3)
+	if (pointCount >= 3)
 	{
-		drawSegment2d(m_frameWidth, m_frameHeight, glm_points[0], glm_points[2], Colors::Green);
+		drawSegment2d(m_frameWidth, m_frameHeight, glm_points[0], glm_points[2], Colors::Red, Colors::Blue);
 	}
 
 	drawPointList2d(m_frameWidth, m_frameHeight, glm_points, pointCount, Colors::Yellow, 2.f);
 }
 
-void FastenerCalibrator::renderVRSpacePreCalibrationState(const int cameraPoseIndex)
+void FastenerCalibrator::renderInitialPoint3dRays()
 {
-	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
+	const glm::mat4 glmCameraXform = m_calibrationState->initialCameraPoseSample;
 
-	const cvFastenerPointArray& pointArray = m_calibrationState->pointSamples[cameraPoseIndex];
-
-	// See How to calculate the ray of a camera with the help of the camera matrix?
-	// https://stackoverflow.com/questions/68249598/how-to-calculate-the-ray-of-a-camera-with-the-help-of-the-camera-matrix
-	cv::Matx34f extrinsic_matrix= m_calibrationState->extrinsicMatrixSamples[cameraPoseIndex];
-
-	cv::Matx33f intrinsic_matrix;
-	computeOpenCVCameraIntrinsicMatrix(
-		videoSource,
-		VideoFrameSection::Primary,
-		intrinsic_matrix);
-	const cv::Matx33f inv_intrinsic_matrix= intrinsic_matrix.inv();
-
-	const cv::Vec3f camCenter = extrinsic_matrix * cv::Vec4f(0, 0, 0, 1);
-	const glm::vec3 glmCamCenter = cv_vec3f_to_glm_vec3(camCenter);
-
-	for (int i = 0; i < 3; i++)
-	{
-		// Get the next image point
-		const cv::Vec2f imgPt2d= pointArray[i];
-		// Use the inverse intrinsic camera matrix to compute position on image plane
-		const cv::Vec3f camPt= inv_intrinsic_matrix * cv::Vec3f(imgPt2d(0), imgPt2d(1), 0.f);
-		// Use the extrinsic camera matrix compute a world space location
-		const cv::Vec3f worldPoint= extrinsic_matrix * cv::Vec4f(camPt(0), camPt(1), camPt(2), 1.f);
-		// Compute a ray from camera center to image place point
-		cv::Vec3f rayVec= worldPoint - camCenter;
-		rayVec = rayVec / cv::norm(rayVec);
-
-		const glm::vec3 glmRayVec = cv_vec3f_to_glm_vec3(rayVec);
-		const glm::vec3 glmSegmentEnd = glmCamCenter + glmRayVec*10.f;
-
-		drawSegment(glm::mat4(1.f), glmCamCenter, glmSegmentEnd, Colors::Yellow);
-	}
-
-	const glm::mat4 glm_camera_xform =  m_calibrationState->cameraTransformSamples[cameraPoseIndex];
+	// Draw the frustum for the initial camera pose
 	const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
 	const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
 	const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
 	const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
 	drawTransformedFrustum(
-		glm_camera_xform,
+		glmCameraXform,
 		hfov_radians, vfov_radians,
 		zNear, zFar,
 		Colors::Yellow);
-	drawTransformedAxes(glm_camera_xform, 0.1f);
+	drawTransformedAxes(glmCameraXform, 0.1f);
+
+	// Draw the rays corresponding to each pixel sample
+	for (int i = 0; i < 3; i++)
+	{
+		// Get the next image point
+		const glm::vec2& imagePoint= m_calibrationState->initialPointSamples[i];
+
+		// Compute a ray for each sample pixel
+		glm::vec3 rayStart;
+		glm::vec3 rayDirection;
+		computeCameraRayAtPixel(
+			glmCameraXform,
+			imagePoint,
+			rayStart,
+			rayDirection);
+		glm::vec3 rayEnd= rayStart + rayDirection*1000.f;
+
+		drawSegment(glm::mat4(1.f), rayStart, rayEnd, k_fastenerRayColors[i]);
+	}
 }
 
-void FastenerCalibrator::renderVRSpacePostCalibrationState()
+void FastenerCalibrator::renderCurrentPointTriangulation()
 {
-	const glm::vec3 p0= m_calibrationState->fastenerPoints[0];
-	const glm::vec3 p1= m_calibrationState->fastenerPoints[1];
-	const glm::vec3 p2= m_calibrationState->fastenerPoints[2];
+	if (m_calibrationState->initialPointSampleCount < 3)
+		return;
+
+	// Get the next image point
+	const int sampleIndex= m_calibrationState->triangulatedPointSampleCount;
+	const glm::vec2& imagePoint = m_calibrationState->initialPointSamples[sampleIndex];
+
+	// Draw the ray for the current initial sample point we are trying to triangulate
+	glm::vec3 initialPointRayStart;
+	glm::vec3 initialPointRayDirection;
+	computeCameraRayAtPixel(
+		m_calibrationState->initialCameraPoseSample,
+		m_calibrationState->initialPointSamples[sampleIndex],
+		initialPointRayStart,
+		initialPointRayDirection);
+	glm::vec3 initialPointRayEnd = initialPointRayStart + initialPointRayDirection * 1000.f;
+	drawSegment(glm::mat4(1.f), initialPointRayStart, initialPointRayEnd, k_fastenerRayColors[sampleIndex]);
+	
+	// Draw the most recently computed triangulation
+	drawPoint(glm::mat4(1.f), m_calibrationState->lastWorldTriangulatedPoint, Colors::Yellow, 5.f);
+
+	// Draw the label for the current point index
+	TextStyle style = getDefaultTextStyle();
+	style.horizontalAlignment = eHorizontalTextAlignment::Middle;
+	style.verticalAlignment = eVerticalTextAlignment::Bottom;
+	drawTextAtCameraPosition(
+		style,
+		m_frameWidth, m_frameHeight,
+		m_calibrationState->lastWorldTriangulatedPoint,
+		L"P%d", sampleIndex);
+}
+
+void FastenerCalibrator::computeCameraRayAtPixel(
+	const glm::mat4 cameraXform,
+	const glm::vec2& imagePoint,
+	glm::vec3& outRayStart,
+	glm::vec3& outRayDirection) const
+{
+	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
+
+	const glm::vec3 glmCameraRight = cameraXform[0];
+	const glm::vec3 glmCameraUp = cameraXform[1];
+	const glm::vec3 glmCameraForward = cameraXform[2] * -1.f; // camera forward is down -z
+	const glm::vec3 glmCameraCenter = cameraXform[3];
+
+	float focal_length_x;
+	float focal_length_y;
+	float principal_point_x;
+	float principal_point_y;
+	extractCameraIntrinsicMatrixParameters(
+		m_calibrationState->inputCameraIntrinsics.camera_matrix,
+		focal_length_x,
+		focal_length_y,
+		principal_point_x,
+		principal_point_y);
+
+	const float local_x = (imagePoint.x - principal_point_x) / focal_length_x;
+	const float local_y = (principal_point_y - imagePoint.y) / focal_length_y; // flip y-axis
+	
+	outRayStart= glmCameraCenter;
+	outRayDirection =
+		glm::normalize(
+			local_x * glmCameraRight
+			+ local_y * glmCameraUp
+			+ glmCameraForward);
+}
+
+void FastenerCalibrator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
+{
+	const glm::vec3 p0= m_calibrationState->triangulatedPointSamples[0];
+	const glm::vec3 p1= m_calibrationState->triangulatedPointSamples[1];
+	const glm::vec3 p2= m_calibrationState->triangulatedPointSamples[2];
 
 	drawSegment(glm::mat4(1.f), p0, p1, Colors::Red);
 	drawSegment(glm::mat4(1.f), p0, p2, Colors::Green);
 
 	TextStyle style = getDefaultTextStyle();
-	const int kNumPoints= 3;
-	for (int i = 0; i < kNumPoints; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		drawTextAtWorldPosition(style, m_calibrationState->fastenerPoints[i], L"P%d", i);
+		drawTextAtWorldPosition(style, m_calibrationState->triangulatedPointSamples[i], L"P%d", i);
 	}
 
-	// Draw the most recently derived camera transform derived from the mat puck
-	const glm::mat4 glm_camera_xform = m_distortionView->getVideoSourceView()->getCameraPose(m_cameraTrackingPuckView);
-	const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
-	const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
-	const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
-	const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
-	drawTransformedFrustum(
-		glm_camera_xform,
-		hfov_radians, vfov_radians,
-		zNear, zFar,
-		Colors::Yellow);
-	drawTransformedAxes(glm_camera_xform, 0.1f);
+	if (bShowCameraFrustum)
+	{
+		// Draw the most recently derived camera transform derived from the mat puck
+		const glm::mat4 glm_camera_xform = m_distortionView->getVideoSourceView()->getCameraPose(m_cameraTrackingPuckView);
+		const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
+		const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
+		const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
+		const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
+		drawTransformedFrustum(
+			glm_camera_xform,
+			hfov_radians, vfov_radians,
+			zNear, zFar,
+			Colors::Yellow);
+		drawTransformedAxes(glm_camera_xform, 0.1f);
+	}
 }
