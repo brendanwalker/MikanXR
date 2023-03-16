@@ -296,6 +296,19 @@ void GlLineRenderer::PointBufferState::addPoint2d(
 }
 
 //-- Drawing Methods -----
+void drawPoint(
+	const glm::mat4& transform, 
+	const glm::vec3& point, 
+	const glm::vec3& color,
+	const float size)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	lineRenderer->addPoint3d(transform, point, color, size);
+}
+
 void drawSegment(
 	const glm::mat4& transform,
 	const glm::vec3& start,
