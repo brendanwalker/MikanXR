@@ -27,39 +27,39 @@ glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& posi
 	return transform;
 }
 
-glm::vec3 glm_closest_point_between_rays(
+bool glm_closest_point_on_ray_to_ray(
 	const glm::vec3& ray1_start,
 	const glm::vec3& ray1_direction,
 	const glm::vec3& ray2_start,
-	const glm::vec3& ray2_direction)
+	const glm::vec3& ray2_direction,
+	float& out_ray1_closest_time,
+	glm::vec3& out_ray1_closest_point)
 {
-	// Calculate the cross product of the two direction vectors to find 
-	// the normal vector of the plane containing the two rays.
-	glm::vec3 plane_normal = glm::cross(ray1_direction, ray2_direction);
+	//see https://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
+	const glm::vec3& a= ray1_direction;
+	const glm::vec3& b= ray2_direction;
+	const glm::vec3& c= ray2_start - ray1_start;
 
-	// If the normal vector is (nearly) zero, it means the two rays are parallel, so there is no closest point. 
-	// In this case, you can return any point on one of the rays.
-	const float normal_length= glm::length(plane_normal);
-	if (normal_length <= k_normal_epsilon)
+	const float a_dot_a= glm::dot(a, a);
+	const float a_dot_b= glm::dot(a, b);
+	const float a_dot_c= glm::dot(a, c);
+	const float b_dot_b= glm::dot(b, b);
+	const float b_dot_c= glm::dot(b, c);
+
+	const float denomenator = a_dot_a*b_dot_b - a_dot_b*a_dot_b;
+	if (!is_nearly_zero(a_dot_a) && // i.e. ray1_direction != 0
+		!is_nearly_zero(b_dot_b) && // i.e. ray2_direction != 0
+		!is_nearly_zero(denomenator)) // i.e. rays not parallel
 	{
-		return ray1_start;
+		const float numerator = a_dot_c*b_dot_b - a_dot_b*b_dot_c;
+
+		out_ray1_closest_time= numerator / denomenator;
+		out_ray1_closest_point= ray1_start + ray1_direction * out_ray1_closest_time;
 	}
-
-	// Normalize the normal vector and use it to define a plane passing through the origin.
-	plane_normal /= normal_length;
-
-	// Calculate the closest point between the two rays by finding the intersection point 
-	// between the plane and a line passing through the two starting points of the rays 
-	// and perpendicular to the plane.
-	const glm::vec3 ray1_end = ray1_start + ray1_direction;
-	const glm::vec3 ray2_end = ray2_start + ray2_direction;
-	const glm::vec3 line_direction = glm::cross(plane_normal, glm::cross(ray1_direction, plane_normal));
-	const glm::vec3 line = glm::normalize(line_direction);
-
-	const float ray2_time = 
-		glm::dot(plane_normal, ray1_start) 
-		/ glm::dot(line, ray1_start - ray2_start);
-	const glm::vec3 closest_point = ray2_start + ray2_time * (ray2_end - ray2_start);
-
-	return closest_point;
+	else
+	{
+		out_ray1_closest_time= 0.f;
+		out_ray1_closest_point= ray1_start;
+		return false;
+	}
 }
