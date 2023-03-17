@@ -10,7 +10,7 @@
                 left: 10dp;
                 top: 25dp;
                 width: 300dp;
-                height: 225dp;
+                height: 150dp;
 
                 margin: auto;
             }

@@ -638,13 +638,14 @@ void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
 	fastener.parent_object_type = MikanFastenerParentType_SpatialAnchor;
 	fastener.parent_object_id = parentAnchorId;
 
-	if (m_profile->addNewFastener(fastener) != INVALID_MIKAN_ID)
+	MikanSpatialFastenerID fastenerId= m_profile->addNewFastener(fastener);
+	if (fastenerId != INVALID_MIKAN_ID)
 	{
 		m_compositorAnchorsModel->rebuildAnchorList(m_profile);
 
 		// Show Fastener calibration tool
 		AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
-		fastenerCalibration->setTargetFastenerId(fastener.fastener_id);
+		fastenerCalibration->setTargetFastenerId(fastenerId);
 	}
 }
 
@@ -997,8 +998,8 @@ void AppStage_Compositor::debugRenderFasteners() const
 		const glm::vec3 p1= MikanVector3f_to_glm_vec3(fastener.fastener_points[1]);
 		const glm::vec3 p2= MikanVector3f_to_glm_vec3(fastener.fastener_points[2]);
 
-		drawArrow(xform, p0, p1, 0.1f, Colors::Red);
-		drawArrow(xform, p0, p2, 0.1f, Colors::Green);
+		drawArrow(xform, p0, p1, 0.01f, Colors::Red);
+		drawArrow(xform, p0, p2, 0.01f, Colors::Green);
 
 		const glm::vec3 text_pos= xform * glm::vec4(p0, 1.f);
 		drawTextAtWorldPosition(style, text_pos, L"%s", wszFastenerName);

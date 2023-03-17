@@ -7,15 +7,22 @@
         <title>Fastener Calibration</title>
         <style>
             body {
-                top: -30dp;
-                width: 300dp;
-                height: 200dp;
+                left: 10dp;
+                top: 25dp;                
+                width: 400dp;
+                height: 150dp;
                 margin: auto;
             }
         </style>
     </head>
 
     <body template="window">
+        <div id="title_bar">
+            <handle move_target="#document">
+                <div id="icon"></div>
+                <span id="title">Fastener Calibration</span>
+            </handle>
+        </div>    
         <panel id="controls" data-model="fastener_calibration">
             <div data-if="menu_state == 'verifyInitialCameraSetup'">
                 Make sure the object you want to place all 3 fastener points on is in view.<br />
@@ -70,7 +77,7 @@
                 Move the camera to verify the 3 points are aligned correctly<br />
                 <span>
                     <button data-event-click="redo">Redo</button>
-                    <button data-event-click="return">Ok</button>
+                    <button data-event-click="ok">Ok</button>
                 </span>
             </div>
             <div data-if="menu_state == 'testCalibration' && bypass_calibration_flag">

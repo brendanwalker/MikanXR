@@ -290,10 +290,15 @@ void AppStage_FastenerCalibration::render()
 			}
 			break;
 		case eFastenerCalibrationMenuState::captureTriangulatedPoints:
-		case eFastenerCalibrationMenuState::verifyTriangulatedPoints:
 			{
 				m_monoDistortionView->renderSelectedVideoBuffers();
 				m_fastenerCalibrator->renderCurrentPointTriangulation();
+			}
+			break;
+		case eFastenerCalibrationMenuState::verifyTriangulatedPoints:
+			{
+				m_monoDistortionView->renderSelectedVideoBuffers();
+				m_fastenerCalibrator->renderAllTriangulatedPoints(false);
 			}
 			break;
 		case eFastenerCalibrationMenuState::testCalibration:

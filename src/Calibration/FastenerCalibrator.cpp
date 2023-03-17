@@ -176,12 +176,16 @@ void FastenerCalibrator::computeCurrentTriangulation()
 
 	// Triangulate the two points by finding the point on the 
 	// initial ray closest to the triangulating ray
-	m_calibrationState->lastWorldTriangulatedPoint=
-		glm_closest_point_between_rays(
-			triangulatingPointRayStart,
-			triangulatingPointRayDirection,
-			initialPointRayStart,
-			initialPointRayDirection);
+	float closestTime;
+	glm::vec3 closesPoint;
+	if (glm_closest_point_on_ray_to_ray(
+		initialPointRayStart, initialPointRayDirection,
+		triangulatingPointRayStart, triangulatingPointRayDirection,
+		closestTime, closesPoint) 
+		&& closestTime >= 0.f)
+	{
+		m_calibrationState->lastWorldTriangulatedPoint= closesPoint;
+	}
 }
 
 bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo* fastener)
