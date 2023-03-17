@@ -129,8 +129,8 @@ const configuru::Config ProfileConfig::writeToJSON()
 		};
 
 		writeVector3f(fastenerConfig, "point0", fastener.fastener_points[0]);
-		writeVector3f(fastenerConfig, "point1", fastener.fastener_points[0]);
-		writeVector3f(fastenerConfig, "point2", fastener.fastener_points[0]);
+		writeVector3f(fastenerConfig, "point1", fastener.fastener_points[1]);
+		writeVector3f(fastenerConfig, "point2", fastener.fastener_points[2]);
 
 		fastenerConfigs.push_back(fastenerConfig);
 	}
