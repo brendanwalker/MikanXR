@@ -71,9 +71,16 @@
                         <filename>{{stencil.model_path | to_short_path(30)}}</filename>
                         <button style="width: 40dp" data-event-click="select_stencil_model_path(stencil.stencil_id)">...</button>
                     </div>                    
-                    <br/> 
+                    <br/>
                     <label><input type="checkbox" name="disabled" data-event-change="modify_stencil(stencil.stencil_id)" data-value="stencil.disabled" /> Disabled </label>
                     <button data-event-click="delete_stencil(stencil.stencil_id)">Delete</button>
+                    <br/> 
+                    <div data-for="fastener_id : stencil.child_fastener_ids">
+                        <label>{{fastener_id | to_fastener_name}}</label>
+                        <button data-event-click="edit_fastener(fastener_id)">Edit</button>
+                        <button data-event-click="delete_fastener(stencil.anchor_id, fastener_id)">Delete</button>
+                    </div>
+                    <button data-event-click="add_fastener(stencil.stencil_id)">Add Fastener</button>
 				</div>
 			</div>
             <div>

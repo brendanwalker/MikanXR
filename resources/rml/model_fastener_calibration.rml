@@ -1,0 +1,53 @@
+<rml>
+
+    <head>
+        <link type="text/rcss" href="rml.rcss" />
+        <link type="text/rcss" href="mikan.rcss" />
+        <link type="text/template" href="window.rml" />
+        <title>Fastener Calibration</title>
+        <style>
+            body {
+                left: 10dp;
+                top: 25dp;                
+                width: 400dp;
+                height: 150dp;
+                margin: auto;
+            }
+        </style>
+    </head>
+
+    <body template="window">
+        <div id="title_bar">
+            <handle move_target="#document">
+                <div id="icon"></div>
+                <span id="title">Model Fastener Calibration</span>
+            </handle>
+        </div>    
+        <panel id="controls" data-model="model_fastener_calibration">
+            <div data-if="menu_state == 'verifyModel'">
+                Is this the correct model stencil you want to create a fastener on?<br />
+                Hit begin to start the calibration.<br />
+                <span>
+                    <button data-event-click="ok">Begin</button>
+                    <button data-event-click="cancel">Cancel</button>
+                </span>
+            </div>
+            <div data-if="menu_state == 'captureModelVertices'">
+                <div id="progress_value">{{captured_point_count}} / 3</div>
+                <br />
+                <span>
+                    <button data-event-click="redo">Redo</button>
+                    <button data-event-click="cancel">Cancel</button>
+                </span>
+            </div>
+            <div data-if="menu_state == 'verifyVerticesCapture'">
+                Do the 3 points look correct?<br />
+                <span>
+                    <button data-event-click="ok">Yes</button>
+                    <button data-event-click="redo">No</button>
+                    <button data-event-click="cancel">Cancel</button>
+                </span>
+            </div>       
+        </panel>
+    </body>
+</rml>

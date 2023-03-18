@@ -1,6 +1,7 @@
 ///-- includes -----
 #include "App.h"
 #include "FastenerCalibration/AppStage_FastenerCalibration.h"
+#include "ModelFastenerCalibration/AppStage_ModelFastenerCalibration.h"
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
 #include "Compositor/RmlModel_CompositorLayers.h"
@@ -184,6 +185,9 @@ void AppStage_Compositor::enter()
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
 		m_compositorModelsModel->OnModifyModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilEvent);
 		m_compositorModelsModel->OnSelectModelStencilPathEvent = MakeDelegate(this, &AppStage_Compositor::onSelectModelStencilPathEvent);
+		m_compositorModelsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilFastenerEvent);
+		m_compositorModelsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditModelStencilFastenerEvent);
+		m_compositorModelsModel->OnDeleteFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilFastenerEvent);
 		m_compositiorModelsView = addRmlDocument("compositor_models.rml");
 		m_compositiorModelsView->Hide();
 
@@ -793,6 +797,43 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 				m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
 			}
 		});
+}
+
+void AppStage_Compositor::onAddModelStencilFastenerEvent(int parentStencilID)
+{
+	MikanSpatialFastenerInfo fastener;
+	memset(&fastener, 0, sizeof(MikanSpatialFastenerInfo));
+
+	StringUtils::formatString(
+		fastener.fastener_name, sizeof(fastener.fastener_name),
+		"Fastener_%d", m_profile->nextFastenerId);
+	fastener.parent_object_type = MikanFastenerParentType_Stencil;
+	fastener.parent_object_id = parentStencilID;
+
+	MikanSpatialFastenerID fastenerId = m_profile->addNewFastener(fastener);
+	if (fastenerId != INVALID_MIKAN_ID)
+	{
+		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
+
+		// Show Fastener calibration tool
+		AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
+		fastenerCalibration->setTargetFastenerId(fastenerId);
+	}
+}
+
+void AppStage_Compositor::onEditModelStencilFastenerEvent(int fastenerID)
+{
+	// Show Fastener calibration tool
+	AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
+	fastenerCalibration->setTargetFastenerId(fastenerID);
+}
+
+void AppStage_Compositor::onDeleteModelStencilFastenerEvent(int stencilID, int fastenerID)
+{
+	if (m_profile->removeFastener(fastenerID))
+	{
+		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
+	}
 }
 
 // Recording UI Events

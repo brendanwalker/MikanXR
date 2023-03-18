@@ -9,6 +9,7 @@ struct RmlModel_CompositorModel
 	Rml::String stencil_name;
 	int stencil_id;
 	int parent_anchor_id;
+	Rml::Vector<int> child_fastener_ids;
 	Rml::String model_path;
 	Rml::Vector3f model_position;
 	Rml::Vector3f model_angles;
@@ -30,6 +31,9 @@ public:
 	SinglecastDelegate<void(int stencilID)> OnDeleteModelStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnModifyModelStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnSelectModelStencilPathEvent;
+	SinglecastDelegate<void(int stencilID)> OnAddFastenerEvent;
+	SinglecastDelegate<void(int fastenerID)> OnEditFastenerEvent;
+	SinglecastDelegate<void(int stencilID, int fastenerID)> OnDeleteFastenerEvent;
 
 private:
 	Rml::Vector<int> m_spatialAnchors;

@@ -23,6 +23,7 @@ public:
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
+	inline class GlFrameCompositor* getFrameCompositor() const { return m_frameCompositor; }
 
 	inline float getFPS() const { return m_fps; }
 

@@ -27,6 +27,7 @@ bool RmlModel_CompositorModels::init(
 			layer_model_handle.RegisterMember("stencil_name", &RmlModel_CompositorModel::stencil_name);
 			layer_model_handle.RegisterMember("stencil_id", &RmlModel_CompositorModel::stencil_id);
 			layer_model_handle.RegisterMember("parent_anchor_id", &RmlModel_CompositorModel::parent_anchor_id);
+			layer_model_handle.RegisterMember("child_fastener_ids", &RmlModel_CompositorModel::child_fastener_ids);
 			layer_model_handle.RegisterMember("model_path", &RmlModel_CompositorModel::model_path);
 			layer_model_handle.RegisterMember("model_position", &RmlModel_CompositorModel::model_position);
 			layer_model_handle.RegisterMember("model_angles", &RmlModel_CompositorModel::model_angles);
@@ -97,6 +98,31 @@ bool RmlModel_CompositorModels::init(
 				OnSelectModelStencilPathEvent(stencil_id);
 			}
 		});
+	constructor.BindEventCallback(
+		"add_fastener",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (OnAddFastenerEvent) OnAddFastenerEvent(stencil_id);
+		});
+	constructor.BindEventCallback(
+		"edit_fastener",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			const int fastener_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (OnEditFastenerEvent && fastener_id >= 0)
+			{
+				OnEditFastenerEvent(fastener_id);
+			}
+		});
+	constructor.BindEventCallback(
+		"delete_fastener",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			const int stencil_id = (arguments.size() == 2 ? arguments[0].Get<int>(-1) : -1);
+			const int fastener_id = (arguments.size() == 2 ? arguments[1].Get<int>(-1) : -1);
+			if (OnDeleteFastenerEvent && fastener_id >= 0)
+			{
+				OnDeleteFastenerEvent(stencil_id, fastener_id);
+			}
+		});
 
 	// Fill in the data model
 	rebuildAnchorList(profile);
@@ -130,11 +156,15 @@ void RmlModel_CompositorModels::rebuildUIModelsFromProfile(const ProfileConfig* 
 	for (const MikanStencilModelConfig& modelConfig : profile->modelStencilList)
 	{
 		const MikanStencilModel& modelInfo= modelConfig.modelInfo;
+		const std::vector<MikanSpatialFastenerID> child_fastener_ids=
+			profile->getSpatialFastenersWithParent(
+				MikanFastenerParentType_Stencil, modelConfig.modelInfo.stencil_id);
 
 		RmlModel_CompositorModel uiModel = {
 			modelInfo.stencil_name,
 			modelInfo.stencil_id,
 			modelInfo.parent_anchor_id,
+			child_fastener_ids,
 			modelConfig.modelPath.string(),
 			Rml::Vector3f(modelInfo.model_position.x, modelInfo.model_position.y, modelInfo.model_position.z),
 			Rml::Vector3f(modelInfo.model_rotator.x_angle, modelInfo.model_rotator.y_angle, modelInfo.model_rotator.z_angle),
