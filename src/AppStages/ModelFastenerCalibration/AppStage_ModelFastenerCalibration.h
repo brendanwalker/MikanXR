@@ -31,7 +31,10 @@ public:
 
 protected:
 	void updateCamera();
-	void renderModelScene();
+	void updateClosestModelVertex();
+	void renderModelScene() const;
+	void renderClosestModelVertex() const;
+	void renderCaptureModelVertices() const;
 	void setMenuState(eModelFastenerCalibrationMenuState newState);
 
 	// Input Events
@@ -50,6 +53,7 @@ private:
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
 	MikanSpatialFastenerID m_targetFastenerId;
+	struct ModelFastenerCalibrationState* m_calibrationState;
 
 	class GlScene* m_scene;
 	class GlCamera* m_camera;

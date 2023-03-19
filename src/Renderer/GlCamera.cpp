@@ -31,7 +31,7 @@ GlCamera::GlCamera()
 	m_cameraOrbitRadius = 1.0f;
 	m_cameraTarget= glm::vec3(0.0f);
 	m_cameraPosition = glm::vec3(0.0f, 0.0f, 100.0f);
-	m_isPanningOrbitCamera = false;
+	m_isRotatingOrbitCamera = false;
 	m_isLocked = false;
 	m_bIsInputBound= false;
 	setCameraOrbitLocation(m_cameraOrbitYawDegrees, m_cameraOrbitPitchDegrees, m_cameraOrbitRadius);
@@ -74,7 +74,7 @@ void GlCamera::unbindInput()
 
 void GlCamera::onMouseMotion(int deltaX, int deltaY)
 {
-	if (!m_isLocked && m_isPanningOrbitCamera) 
+	if (!m_isLocked && m_isRotatingOrbitCamera) 
 	{
 		float deltaYaw = -(float)deltaX * k_camera_mouse_pan_scalar;
 		float deltaPitch = (float)deltaY * k_camera_mouse_pan_scalar;
@@ -88,17 +88,17 @@ void GlCamera::onMouseMotion(int deltaX, int deltaY)
 
 void GlCamera::onMouseButtonDown(int button)
 {
-	if (!m_isLocked && button == SDL_BUTTON_LEFT)
+	if (!m_isLocked && button == SDL_BUTTON_RIGHT)
 	{
-		m_isPanningOrbitCamera = true;
+		m_isRotatingOrbitCamera = true;
 	}
 }
 
 void GlCamera::onMouseButtonUp(int button)
 {
-	if (!m_isLocked && button == SDL_BUTTON_LEFT)
+	if (!m_isLocked && button == SDL_BUTTON_RIGHT)
 	{
-		m_isPanningOrbitCamera = false;
+		m_isRotatingOrbitCamera = false;
 	}
 }
 
@@ -120,7 +120,7 @@ void GlCamera::setIsLocked(bool locked)
 	if (locked) 
 	{
 		m_isLocked = true;
-		m_isPanningOrbitCamera = false;
+		m_isRotatingOrbitCamera = false;
 	}
 	else 
 	{
@@ -268,4 +268,30 @@ const glm::mat4 GlCamera::getCameraTransform() const
 			glm::vec4(getCameraUp(), 0.f),
 			glm::vec4(getCameraForward()*-1.f, 0.f), // Camera forward is along negative Z-axis
 			glm::vec4(getCameraPosition(), 1.f));
+}
+
+void GlCamera::computeCameraRayThruPixel(
+	const glm::vec2& pixelLocation,
+	glm::vec3& outRayOrigin,
+	glm::vec3& outRayDirection) const
+{
+	Renderer* renderer= App::getInstance()->getRenderer();
+
+	// https://antongerdelan.net/opengl/raycasting.html
+	// Convert the pixel location into normalized device coordinates
+	const glm::vec3 ray_nds(
+		((2.f * pixelLocation.x) / renderer->getSDLWindowWidth()) - 1.f,
+		1.f - ((2.f * pixelLocation.y) / renderer->getSDLWindowHeight()),
+		1.f);
+	
+	// Convert the nds ray into a 4d-clip space ray
+	const glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.f, 1.0);
+	
+	// Convert the clip space ray back into an eye space ray
+	glm::vec4 ray_eye= glm::inverse(m_projectionMatrix) * ray_clip;
+	ray_eye= glm::vec4(ray_eye.x, ray_eye.y, -1.f, 0.f);
+
+	// Convert the eye space ray to world space
+	outRayDirection= glm::inverse(m_modelViewMatrix) * ray_eye;
+	outRayOrigin= getCameraPosition();
 }

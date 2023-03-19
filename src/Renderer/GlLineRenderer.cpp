@@ -322,6 +322,17 @@ void drawSegment(
 	lineRenderer->addSegment3d(transform, start, color, end, color);
 }
 
+void drawSegment(const glm::mat4& transform,
+				 const glm::vec3& start, const glm::vec3& end,
+				 const glm::vec3& colorStart, const glm::vec3& colorEnd)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	lineRenderer->addSegment3d(transform, start, colorStart, end, colorEnd);
+}
+
 void drawArrow(
 	const glm::mat4& transform,
 	const glm::vec3& start,

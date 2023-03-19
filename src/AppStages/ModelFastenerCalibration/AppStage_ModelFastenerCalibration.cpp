@@ -35,21 +35,69 @@
 #include <RmlUi/Core/ElementDocument.h>
 
 //-- statics ----
+static const glm::vec3 k_modelFastenerColors[3] = {Colors::Red, Colors::Green, Colors::Blue};
 const char* AppStage_ModelFastenerCalibration::APP_STAGE_NAME = "ModelFastenerCalibration";
+
+struct ModelFastenerCalibrationState
+{
+	glm::vec3 closestModelVertex;
+	bool closestModelVertexValid = false;
+
+	glm::vec3 capturedVertices[3];
+	int capturedVertexCount = 0.f;
+
+	void resetClosestModelVertex()
+	{
+		closestModelVertex = glm::vec3(0.f);
+		closestModelVertexValid = false;
+	}
+
+	void setClosestModelVertex(const glm::vec3& vertex)
+	{
+		closestModelVertex = vertex;
+		closestModelVertexValid = true;
+	}
+
+	void resetCapturedVertices()
+	{
+		capturedVertices[0] = glm::vec3(0.f);
+		capturedVertices[1] = glm::vec3(0.f);
+		capturedVertices[2] = glm::vec3(0.f);
+		capturedVertexCount = 0;
+	}
+
+	void captureClosestModelVertex()
+	{
+		if (closestModelVertexValid && capturedVertexCount < 3)
+		{
+			capturedVertices[capturedVertexCount] = closestModelVertex;
+			capturedVertexCount++;
+		}
+	}
+
+	void reset()
+	{
+		resetClosestModelVertex();
+		resetCapturedVertices();
+	}
+};
 
 //-- public methods -----
 AppStage_ModelFastenerCalibration::AppStage_ModelFastenerCalibration(App* app)
 	: AppStage(app, AppStage_ModelFastenerCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_ModelFastenerCalibration)
 	, m_targetFastenerId(INVALID_MIKAN_ID)
+	, m_calibrationState(new ModelFastenerCalibrationState)
 	, m_camera(nullptr)
 	, m_modelResource(nullptr)
 {
+	m_calibrationState->reset();
 }
 
 AppStage_ModelFastenerCalibration::~AppStage_ModelFastenerCalibration()
 {
 	delete m_calibrationModel;
+	delete m_calibrationState;
 }
 
 void AppStage_ModelFastenerCalibration::enter()
@@ -112,9 +160,6 @@ void AppStage_ModelFastenerCalibration::exit()
 {
 	setMenuState(eModelFastenerCalibrationMenuState::inactive);
 
-	// Re-Enable depth testing on the line renderer while in this app stage
-	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(false);
-
 	App::getInstance()->getRenderer()->popCamera();
 	m_camera= nullptr;
 
@@ -126,6 +171,42 @@ void AppStage_ModelFastenerCalibration::updateCamera()
 	m_camera->recomputeModelViewMatrix();
 }
 
+void AppStage_ModelFastenerCalibration::updateClosestModelVertex()
+{
+	int mouseScreenX = 0, mouseScreenY;
+	InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
+	const glm::vec2 pixelLocation((float)mouseScreenX, (float)mouseScreenY);
+
+	glm::vec3 rayOrigin, rayDirection;
+	m_camera->computeCameraRayThruPixel(pixelLocation, rayOrigin, rayDirection);
+
+	float closestDotProduct= -1.f;
+
+	m_calibrationState->resetClosestModelVertex();
+
+	for (int meshIndex = 0; meshIndex < (int)m_modelResource->getWireframeMeshCount(); ++meshIndex)
+	{
+		const GlWireframeMesh* wireframeMesh= m_modelResource->getWireframeMesh(meshIndex);
+
+		const uint32_t vertexCount= wireframeMesh->getVertexCount();
+		const glm::vec3* vertexData= wireframeMesh->getVertexData();
+
+		for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+		{
+			const glm::vec3& vertex= vertexData[vertexIndex];
+			const glm::vec3 rayOriginToVertex= glm::normalize(vertex - rayOrigin);
+			const float dotProduct= glm::dot(rayDirection, rayOriginToVertex);
+
+			if (!m_calibrationState->closestModelVertexValid || 
+				dotProduct > closestDotProduct)
+			{
+				closestDotProduct = dotProduct;
+				m_calibrationState->setClosestModelVertex(vertex);
+			}
+		}
+	}
+}
+
 void AppStage_ModelFastenerCalibration::update()
 {
 	AppStage::update();
@@ -135,16 +216,14 @@ void AppStage_ModelFastenerCalibration::update()
 	const eModelFastenerCalibrationMenuState currentMenuState= m_calibrationModel->getMenuState();
 	eModelFastenerCalibrationMenuState nextMenuState= currentMenuState;
 
-	switch(m_calibrationModel->getMenuState())
+	if (m_calibrationModel->getMenuState() == eModelFastenerCalibrationMenuState::captureModelVertices)
 	{
-		case eModelFastenerCalibrationMenuState::captureModelVertices:
-			{
-			}
-			break;
-		case eModelFastenerCalibrationMenuState::verifyVerticesCapture:
-			{
-			}
-			break;
+		updateClosestModelVertex();
+
+		if (m_calibrationState->capturedVertexCount >= 3)
+		{
+			nextMenuState= eModelFastenerCalibrationMenuState::verifyVerticesCapture;
+		}
 	}
 
 	if (nextMenuState != currentMenuState)
@@ -155,28 +234,24 @@ void AppStage_ModelFastenerCalibration::update()
 
 void AppStage_ModelFastenerCalibration::render()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
-
-	renderModelScene();
-
 	switch (m_calibrationModel->getMenuState())
 	{
 		case eModelFastenerCalibrationMenuState::verifyModel:
-			{
-			}
+			renderModelScene();
 			break;
 		case eModelFastenerCalibrationMenuState::captureModelVertices:
-			{
-			}
+			renderModelScene();
+			renderClosestModelVertex();
+			renderCaptureModelVertices();
 			break;
 		case eModelFastenerCalibrationMenuState::verifyVerticesCapture:
-			{
-			}
+			renderModelScene();
+			renderCaptureModelVertices();
 			break;
 	}
 }
 
-void AppStage_ModelFastenerCalibration::renderModelScene()
+void AppStage_ModelFastenerCalibration::renderModelScene() const
 {
 	if (m_modelResource != nullptr)
 	{
@@ -186,7 +261,7 @@ void AppStage_ModelFastenerCalibration::renderModelScene()
 
 			if (mesh != nullptr)
 			{
-				drawTransformedWireframeMesh(glm::mat4(1.f), mesh, Colors::Yellow);
+				drawTransformedWireframeMesh(glm::mat4(1.f), mesh, Colors::Gray);
 			}
 		}
 	}
@@ -199,10 +274,68 @@ void AppStage_ModelFastenerCalibration::renderModelScene()
 	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 1.f), L"Z");
 }
 
+void AppStage_ModelFastenerCalibration::renderClosestModelVertex() const
+{
+	int mouseScreenX = 0, mouseScreenY;
+	InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
+	const glm::vec2 pixelLocation((float)mouseScreenX, (float)mouseScreenY);
+
+	glm::vec3 rayOrigin, rayDirection;
+	m_camera->computeCameraRayThruPixel(pixelLocation, rayOrigin, rayDirection);
+
+	drawArrow(glm::mat4(1.f), rayOrigin, rayOrigin + rayDirection * 1.f, 0.01f, Colors::CornflowerBlue);
+
+	// Draw the closest point
+	if (m_calibrationState->closestModelVertexValid)
+	{
+		drawPoint(glm::mat4(1.f), m_calibrationState->closestModelVertex, Colors::Yellow, 5.f);
+	}
+}
+
+void AppStage_ModelFastenerCalibration::renderCaptureModelVertices() const
+{
+	for (int i = 0; i < m_calibrationState->capturedVertexCount; i++)
+	{
+		const glm::vec3& vertex = m_calibrationState->capturedVertices[i];
+
+		TextStyle style = getDefaultTextStyle();
+		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
+		style.verticalAlignment = eVerticalTextAlignment::Bottom;
+		drawTextAtWorldPosition(style, vertex, L"P%d", i);
+
+		drawPoint(glm::mat4(1.f), vertex, k_modelFastenerColors[i], 5.f);
+
+		if (i >= 1)
+		{
+			drawSegment(
+				glm::mat4(1.f),
+				m_calibrationState->capturedVertices[0], m_calibrationState->capturedVertices[i],
+				k_modelFastenerColors[0], k_modelFastenerColors[i]);
+		}
+	}
+}
+
 void AppStage_ModelFastenerCalibration::setMenuState(eModelFastenerCalibrationMenuState newState)
 {
 	if (m_calibrationModel->getMenuState() != newState)
 	{
+		// Handle state entry
+		switch (newState)
+		{
+			case eModelFastenerCalibrationMenuState::verifyModel:
+			{
+
+			} break;
+			case eModelFastenerCalibrationMenuState::captureModelVertices:
+			{
+				m_calibrationState->reset();
+			} break;
+			case eModelFastenerCalibrationMenuState::verifyVerticesCapture:
+			{
+
+			} break;
+		}
+
 		// Update menu state on the data models
 		m_calibrationModel->setMenuState(newState);
 	}
@@ -215,14 +348,8 @@ void AppStage_ModelFastenerCalibration::onMouseButtonUp(int button)
 	{
 		if (button == SDL_BUTTON_LEFT)
 		{
-			int mouseScreenX = 0, mouseScreenY;
-			InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
-
-			Renderer* renderer = Renderer::getInstance();
-			const float screenWidth = renderer->getSDLWindowWidth();
-			const float screenHeight = renderer->getSDLWindowHeight();
-
-			glm::vec2 pointSample((float)mouseScreenX,(float)mouseScreenY);
+			m_calibrationState->captureClosestModelVertex();
+			m_calibrationModel->setCapturedPointCount(m_calibrationState->capturedVertexCount);
 		}
 	}
 }
@@ -236,12 +363,22 @@ void AppStage_ModelFastenerCalibration::onOkEvent()
 			{
 				setMenuState(eModelFastenerCalibrationMenuState::captureModelVertices);
 			} break;
-		case eModelFastenerCalibrationMenuState::captureModelVertices:
-			{
-				setMenuState(eModelFastenerCalibrationMenuState::verifyVerticesCapture);
-			} break;
 		case eModelFastenerCalibrationMenuState::verifyVerticesCapture:
 			{
+				ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+
+				MikanSpatialFastenerInfo fastener;
+				if (profileConfig->getSpatialFastenerInfo(m_targetFastenerId, fastener))
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						fastener.fastener_points[i]= 
+							glm_vec3_to_MikanVector3f(m_calibrationState->capturedVertices[i]);
+					}
+
+					profileConfig->updateFastener(fastener);
+				}
+
 				m_app->popAppState();
 			} break;
 	}

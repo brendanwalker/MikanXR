@@ -26,6 +26,8 @@ public:
 	virtual ~GlWireframeMesh();
 
 	inline GlProgramPtr getDefaultWireframeShader() const { return m_program; }
+	const glm::vec3* getVertexData() const { return (const glm::vec3*)m_vertexData; }
+	const uint32_t getVertexCount() const { return m_vertexCount; };
 
 	void drawElements() const;
 	bool createBuffers();

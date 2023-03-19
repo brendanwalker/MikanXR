@@ -98,6 +98,9 @@ protected:
 //-- drawing methods -----
 void drawPoint(const glm::mat4& transform, const glm::vec3& point, const glm::vec3& color, const float size);
 void drawSegment(const glm::mat4& transform, const glm::vec3& start, const glm::vec3& end, const glm::vec3& color);
+void drawSegment(const glm::mat4& transform, 
+				 const glm::vec3& start, const glm::vec3& end, 
+				 const glm::vec3& colorStart, const glm::vec3& colorEnd);
 void drawArrow(const glm::mat4& transform, const glm::vec3& start, const glm::vec3& end, const float headFraction, const glm::vec3& color);
 void drawGrid(const glm::mat4& transform, float xSize, float ySize, int xSubDiv, int ySubDiv, const glm::vec3& color);
 void drawTransformedQuad(const glm::mat4& transform, float xSize, float ySize, const glm::vec3& color);

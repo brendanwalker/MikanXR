@@ -22,6 +22,10 @@ public:
 	const glm::vec3 getCameraRight() const;
 	const glm::vec3 getCameraUp() const;
 	const glm::mat4 getCameraTransform() const;
+	void computeCameraRayThruPixel(
+		const glm::vec2& pixelLocation,
+		glm::vec3& outRayOrigin,
+		glm::vec3& outRayDirection) const;
 
 	void setIsLocked(bool locked);
 	void setModelViewMatrix(const glm::mat4& modelViewMat) { m_modelViewMatrix= modelViewMat; }
@@ -58,7 +62,7 @@ protected:
 	float m_cameraOrbitRadius;
 	glm::vec3 m_cameraTarget;
 	glm::vec3 m_cameraPosition;
-	bool m_isPanningOrbitCamera;
+	bool m_isRotatingOrbitCamera;
 	bool m_isLocked;
 	bool m_bIsInputBound;
 };

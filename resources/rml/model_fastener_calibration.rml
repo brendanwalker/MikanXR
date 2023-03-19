@@ -33,6 +33,7 @@
                 </span>
             </div>
             <div data-if="menu_state == 'captureModelVertices'">
+                Left click to select the highlighted vertex.
                 <div id="progress_value">{{captured_point_count}} / 3</div>
                 <br />
                 <span>
