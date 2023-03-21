@@ -185,6 +185,7 @@ void AppStage_Compositor::enter()
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
 		m_compositorModelsModel->OnModifyModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilEvent);
 		m_compositorModelsModel->OnSelectModelStencilPathEvent = MakeDelegate(this, &AppStage_Compositor::onSelectModelStencilPathEvent);
+		m_compositorModelsModel->OnSnapFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onSnapFastenerEvent);
 		m_compositorModelsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilFastenerEvent);
 		m_compositorModelsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditModelStencilFastenerEvent);
 		m_compositorModelsModel->OnDeleteFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilFastenerEvent);
@@ -802,6 +803,11 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 				m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
 			}
 		});
+}
+
+void AppStage_Compositor::onSnapFastenerEvent(int stencilID)
+{
+
 }
 
 void AppStage_Compositor::onAddModelStencilFastenerEvent(int parentStencilID)

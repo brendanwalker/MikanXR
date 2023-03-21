@@ -103,6 +103,12 @@ bool RmlModel_CompositorModels::init(
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
 			if (OnAddFastenerEvent) OnAddFastenerEvent(stencil_id);
+		});	
+	constructor.BindEventCallback(
+		"snap_fastener",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (OnSnapFastenerEvent) OnSnapFastenerEvent(stencil_id);
 		});
 	constructor.BindEventCallback(
 		"edit_fastener",
