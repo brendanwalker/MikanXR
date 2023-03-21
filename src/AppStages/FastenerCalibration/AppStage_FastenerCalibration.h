@@ -23,7 +23,7 @@ public:
 	virtual ~AppStage_FastenerCalibration();
 
 	void setBypassCalibrationFlag(bool flag);
-	void setTargetFastenerId(MikanSpatialFastenerID fastenerId) { m_targetFastenerId= fastenerId; }
+	void setTargetFastener(const MikanSpatialFastenerInfo& fastener) { m_targetFastener= fastener; }
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -62,7 +62,7 @@ private:
 	class FastenerCalibrator* m_fastenerCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
-	MikanSpatialFastenerID m_targetFastenerId;
+	MikanSpatialFastenerInfo m_targetFastener;
 
 	class GlScene* m_scene;
 	class GlCamera* m_camera;

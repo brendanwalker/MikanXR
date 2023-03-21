@@ -246,6 +246,9 @@ void AppStage_Compositor::resume()
 	AppStage::resume();
 
 	m_frameCompositor->start();
+
+	hideAllSubWindows();
+	m_compositiorLayersView->Show();
 }
 
 void AppStage_Compositor::update()
@@ -641,23 +644,25 @@ void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
 		"Fastener_%d", m_profile->nextFastenerId);
 	fastener.parent_object_type = MikanFastenerParentType_SpatialAnchor;
 	fastener.parent_object_id = parentAnchorId;
+	fastener.fastener_id= INVALID_MIKAN_ID;
 
-	MikanSpatialFastenerID fastenerId= m_profile->addNewFastener(fastener);
-	if (fastenerId != INVALID_MIKAN_ID)
+	if (m_profile->canAddFastener())
 	{
-		m_compositorAnchorsModel->rebuildAnchorList(m_profile);
-
 		// Show Fastener calibration tool
 		AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
-		fastenerCalibration->setTargetFastenerId(fastenerId);
+		fastenerCalibration->setTargetFastener(fastener);
 	}
 }
 
 void AppStage_Compositor::onEditAnchorFastenerEvent(int fastenerID)
 {
 	// Show Fastener calibration tool
-	AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
-	fastenerCalibration->setTargetFastenerId(fastenerID);
+	MikanSpatialFastenerInfo fastenerInfo;
+	if (m_profile->getSpatialFastenerInfo(fastenerID, fastenerInfo))
+	{
+		AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
+		fastenerCalibration->setTargetFastener(fastenerInfo);
+	}
 }
 
 void AppStage_Compositor::onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID)
@@ -809,23 +814,26 @@ void AppStage_Compositor::onAddModelStencilFastenerEvent(int parentStencilID)
 		"Fastener_%d", m_profile->nextFastenerId);
 	fastener.parent_object_type = MikanFastenerParentType_Stencil;
 	fastener.parent_object_id = parentStencilID;
+	fastener.fastener_id = INVALID_MIKAN_ID;
 
 	MikanSpatialFastenerID fastenerId = m_profile->addNewFastener(fastener);
-	if (fastenerId != INVALID_MIKAN_ID)
+	if (m_profile->canAddFastener())
 	{
-		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
-
 		// Show Fastener calibration tool
 		AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
-		fastenerCalibration->setTargetFastenerId(fastenerId);
+		fastenerCalibration->setTargetFastener(fastener);
 	}
 }
 
 void AppStage_Compositor::onEditModelStencilFastenerEvent(int fastenerID)
 {
 	// Show Fastener calibration tool
-	AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
-	fastenerCalibration->setTargetFastenerId(fastenerID);
+	MikanSpatialFastenerInfo fastenerInfo;
+	if (m_profile->getSpatialFastenerInfo(fastenerID, fastenerInfo))
+	{
+		AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
+		fastenerCalibration->setTargetFastener(fastenerInfo);
+	}
 }
 
 void AppStage_Compositor::onDeleteModelStencilFastenerEvent(int stencilID, int fastenerID)

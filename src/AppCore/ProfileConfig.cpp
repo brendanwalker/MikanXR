@@ -298,7 +298,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				// Parse the parent object type enum
 				{
 					const std::string parentTypeString =
-						pt.get_or<std::string>(
+						fastenerConfig.get_or<std::string>(
 							"parent_object_type",
 							k_fastenerParentTypeStrings[MikanFastenerParentType_SpatialAnchor]);
 

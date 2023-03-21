@@ -371,7 +371,7 @@ typedef struct
 
 typedef enum
 {
-	MikanFastenerParentType_UNKNOWN,
+	MikanFastenerParentType_UNKNOWN = -1,
 
 	MikanFastenerParentType_SpatialAnchor,
 	MikanFastenerParentType_Stencil,

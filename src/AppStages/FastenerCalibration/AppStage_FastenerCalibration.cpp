@@ -41,9 +41,10 @@ AppStage_FastenerCalibration::AppStage_FastenerCalibration(App* app)
 	, m_videoSourceView()
 	, m_fastenerCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_targetFastenerId(INVALID_MIKAN_ID)
 	, m_camera(nullptr)
 {
+	memset(&m_targetFastener, 0, sizeof(MikanSpatialFastenerInfo));
+	m_targetFastener.parent_object_type = MikanFastenerParentType_UNKNOWN;
 }
 
 AppStage_FastenerCalibration::~AppStage_FastenerCalibration()
@@ -405,11 +406,18 @@ void AppStage_FastenerCalibration::onOkEvent()
 			{
 				ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 
-				MikanSpatialFastenerInfo fastener;
-				if (profileConfig->getSpatialFastenerInfo(m_targetFastenerId, fastener))
+				if (m_targetFastener.parent_object_type != MikanFastenerParentType_UNKNOWN)
 				{
-					m_fastenerCalibrator->computeFastenerPoints(&fastener);
-					profileConfig->updateFastener(fastener);
+					m_fastenerCalibrator->computeFastenerPoints(&m_targetFastener);
+
+					if (m_targetFastener.fastener_id == INVALID_MIKAN_ID)
+					{
+						profileConfig->addNewFastener(m_targetFastener);
+					}
+					else
+					{
+						profileConfig->updateFastener(m_targetFastener);
+					}
 				}
 
 				setMenuState(eFastenerCalibrationMenuState::testCalibration);

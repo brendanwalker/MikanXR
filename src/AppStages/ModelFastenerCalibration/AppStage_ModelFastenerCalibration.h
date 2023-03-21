@@ -22,7 +22,7 @@ public:
 	AppStage_ModelFastenerCalibration(class App* app);
 	virtual ~AppStage_ModelFastenerCalibration();
 
-	void setTargetFastenerId(MikanSpatialFastenerID fastenerId) { m_targetFastenerId= fastenerId; }
+	void setTargetFastener(const MikanSpatialFastenerInfo& fastener) { m_targetFastener= fastener; }
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -52,7 +52,7 @@ private:
 	// Tracking puck used for calibration
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
-	MikanSpatialFastenerID m_targetFastenerId;
+	MikanSpatialFastenerInfo m_targetFastener;
 	struct ModelFastenerCalibrationState* m_calibrationState;
 
 	class GlScene* m_scene;

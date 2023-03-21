@@ -86,11 +86,13 @@ struct ModelFastenerCalibrationState
 AppStage_ModelFastenerCalibration::AppStage_ModelFastenerCalibration(App* app)
 	: AppStage(app, AppStage_ModelFastenerCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_ModelFastenerCalibration)
-	, m_targetFastenerId(INVALID_MIKAN_ID)
 	, m_calibrationState(new ModelFastenerCalibrationState)
 	, m_camera(nullptr)
 	, m_modelResource(nullptr)
 {
+	memset(&m_targetFastener, 0, sizeof(MikanSpatialFastenerInfo));
+	m_targetFastener.parent_object_type = MikanFastenerParentType_UNKNOWN;
+
 	m_calibrationState->reset();
 }
 
@@ -140,11 +142,11 @@ void AppStage_ModelFastenerCalibration::enter()
 	}
 
 	// Cache the stencil geometry
-	MikanSpatialFastenerInfo fastenerInfo;
-	if (profileConfig->getSpatialFastenerInfo(m_targetFastenerId, fastenerInfo) &&
-		fastenerInfo.parent_object_type == MikanFastenerParentType_Stencil)
+	if (m_targetFastener.parent_object_type == MikanFastenerParentType_Stencil)
 	{
-		const MikanStencilModelConfig* stencil = profileConfig->getModelStencilConfig(fastenerInfo.parent_object_id);
+		const MikanStencilModelConfig* stencil = 
+			profileConfig->getModelStencilConfig(m_targetFastener.parent_object_id);
+
 		if (stencil != nullptr)
 		{
 			m_modelResource= modelResourceManager->fetchRenderModel(
@@ -367,16 +369,19 @@ void AppStage_ModelFastenerCalibration::onOkEvent()
 			{
 				ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 
-				MikanSpatialFastenerInfo fastener;
-				if (profileConfig->getSpatialFastenerInfo(m_targetFastenerId, fastener))
+				for (int i = 0; i < 3; i++)
 				{
-					for (int i = 0; i < 3; i++)
-					{
-						fastener.fastener_points[i]= 
-							glm_vec3_to_MikanVector3f(m_calibrationState->capturedVertices[i]);
-					}
+					m_targetFastener.fastener_points[i]= 
+						glm_vec3_to_MikanVector3f(m_calibrationState->capturedVertices[i]);
+				}
 
-					profileConfig->updateFastener(fastener);
+				if (m_targetFastener.fastener_id == INVALID_MIKAN_ID)
+				{
+					profileConfig->addNewFastener(m_targetFastener);
+				}
+				else
+				{
+					profileConfig->updateFastener(m_targetFastener);
 				}
 
 				m_app->popAppState();
