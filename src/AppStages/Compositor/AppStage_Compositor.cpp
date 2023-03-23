@@ -14,6 +14,7 @@
 #include "Compositor/RmlModel_CompositorSources.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
+#include "ModalSnap/ModalDialog_Snap.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "GlCommon.h"
@@ -24,6 +25,8 @@
 #include "GlRenderModelResource.h"
 #include "GlWireframeMesh.h"
 #include "GlTexture.h"
+#include "MathGLM.h"
+#include "MathFastener.h"
 #include "MathTypeConversion.h"
 #include "MathMikan.h"
 #include "MikanServer.h"
@@ -805,9 +808,26 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 		});
 }
 
-void AppStage_Compositor::onSnapFastenerEvent(int stencilID)
+void AppStage_Compositor::onSnapFastenerEvent(int fastenerID)
 {
+	ModalDialog_Snap::selectSnapTarget(
+		fastenerID,
+		[this](MikanSpatialFastenerID sourceId, MikanSpatialFastenerID targetId) {
+			MikanSpatialFastenerInfo sourceFastener;
 
+			if (m_profile->getSpatialFastenerInfo(sourceId, sourceFastener))
+			{
+				glm::mat4 newStencilXform;
+				glm::vec3 newStencilPoints[3];
+
+				if (align_stencil_fastener_to_anchor_fastener(
+					sourceId, targetId,
+					newStencilXform, newStencilPoints))
+				{
+					m_profile->setStencilWorldTransform(sourceFastener.parent_object_id, newStencilXform);
+				}
+			}
+		});
 }
 
 void AppStage_Compositor::onAddModelStencilFastenerEvent(int parentStencilID)

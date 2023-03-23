@@ -2,9 +2,12 @@
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MathMikan.h"
+#include "MathGLM.h"
 #include "ProfileConfig.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
+
+#include <glm/gtx/matrix_decompose.hpp>
 
 #define CHESSBOARD_PATTERN_W 7 // Internal corners
 #define CHESSBOARD_PATTERN_H 5
@@ -607,16 +610,26 @@ glm::mat4 ProfileConfig::getFastenerWorldTransform(const MikanSpatialFastenerInf
 		{
 			glm::mat4 xform;
 
-			if (getModelStencilWorldTransform(fastener->parent_object_id, xform))
-				return xform;
-			else if (getBoxStencilWorldTransform(fastener->parent_object_id, xform))
-				return xform;
-			else if (getQuadStencilWorldTransform(fastener->parent_object_id, xform))
+			if (getStencilWorldTransform(fastener->parent_object_id, xform))
 				return xform;
 		}
 	}
 
 	return glm::mat4(1.f);
+}
+
+void ProfileConfig::getFastenerWorldPoints(
+	const MikanSpatialFastenerInfo* fastener, 
+	glm::vec3 outWorldPoints[3]) const
+{
+	const glm::mat4 localToWorld= getFastenerWorldTransform(fastener);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		const glm::vec3 localPoint= MikanVector3f_to_glm_vec3(fastener->fastener_points[i]);
+
+		outWorldPoints[i] = localToWorld * glm::vec4(localPoint, 1.f);
+	}
 }
 
 MikanSpatialFastenerID ProfileConfig::getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const
@@ -935,6 +948,32 @@ bool ProfileConfig::getStencilName(MikanStencilID stencilId, std::string& outSte
 	return false;
 }
 
+bool ProfileConfig::getStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
+{
+	glm::mat4 xform;
+
+	if (getModelStencilWorldTransform(stencilId, xform))
+		return true;
+	else if (getBoxStencilWorldTransform(stencilId, xform))
+		return true;
+	else if (getQuadStencilWorldTransform(stencilId, xform))
+		return true;
+
+	return false;
+}
+
+bool ProfileConfig::setStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& xform)
+{
+	if (setModelStencilWorldTransform(stencilId, xform))
+		return true;
+	else if (setBoxStencilWorldTransform(stencilId, xform))
+		return true;
+	else if (setQuadStencilWorldTransform(stencilId, xform))
+		return true;
+
+	return false;
+}
+
 MikanStencilID ProfileConfig::addNewQuadStencil(const MikanStencilQuad& quad)
 {
 	if (!canAddStencil())
@@ -1010,6 +1049,32 @@ glm::mat4 ProfileConfig::getQuadStencilWorldTransform(
 	return worldXform;
 }
 
+bool ProfileConfig::setQuadStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)
+{
+	MikanStencilQuad stencil;
+	if (getQuadStencilInfo(stencilId, stencil))
+	{
+		glm::mat4 localXform= worldXform;
+		MikanSpatialAnchorInfo anchor;
+		if (getSpatialAnchorInfo(stencil.parent_anchor_id, anchor))
+		{
+			const glm::mat4 invParentXform = glm::inverse(MikanMatrix4f_to_glm_mat4(anchor.anchor_xform));
+
+			// Convert transform to the space of the parent anchor
+			localXform= glm_composite_xform(worldXform, invParentXform);
+		}
+
+		stencil.quad_x_axis= glm_vec3_to_MikanVector3f(localXform[0]);
+		stencil.quad_y_axis= glm_vec3_to_MikanVector3f(localXform[1]);
+		stencil.quad_normal= glm_vec3_to_MikanVector3f(localXform[2]);
+		stencil.quad_center= glm_vec3_to_MikanVector3f(localXform[3]);
+
+		return updateQuadStencil(stencil);
+	}
+
+	return false;
+}
+
 MikanStencilID ProfileConfig::addNewBoxStencil(const MikanStencilBox& box)
 {
 	if (!canAddStencil())
@@ -1083,6 +1148,32 @@ glm::mat4 ProfileConfig::getBoxStencilWorldTransform(
 	}
 
 	return worldXform;
+}
+
+bool ProfileConfig::setBoxStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)
+{
+	MikanStencilBox stencil;
+	if (getBoxStencilInfo(stencilId, stencil))
+	{
+		glm::mat4 localXform = worldXform;
+		MikanSpatialAnchorInfo anchor;
+		if (getSpatialAnchorInfo(stencil.parent_anchor_id, anchor))
+		{
+			const glm::mat4 invParentXform = glm::inverse(MikanMatrix4f_to_glm_mat4(anchor.anchor_xform));
+
+			// Convert transform to the space of the parent anchor
+			localXform = glm_composite_xform(worldXform, invParentXform);
+		}
+
+		stencil.box_x_axis = glm_vec3_to_MikanVector3f(localXform[0]);
+		stencil.box_y_axis = glm_vec3_to_MikanVector3f(localXform[1]);
+		stencil.box_z_axis = glm_vec3_to_MikanVector3f(localXform[2]);
+		stencil.box_center = glm_vec3_to_MikanVector3f(localXform[3]);
+
+		return updateBoxStencil(stencil);
+	}
+
+	return false;
 }
 
 const MikanStencilModelConfig* ProfileConfig::getModelStencilConfig(MikanStencilID stencilId) const
@@ -1166,6 +1257,46 @@ glm::mat4 ProfileConfig::getModelStencilWorldTransform(const MikanStencilModel* 
 	}
 
 	return worldXform;
+}
+
+bool ProfileConfig::setModelStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)
+{
+	MikanStencilModel stencil;
+	if (getModelStencilInfo(stencilId, stencil))
+	{
+		glm::mat4 localXform = worldXform;
+		MikanSpatialAnchorInfo anchor;
+		if (getSpatialAnchorInfo(stencil.parent_anchor_id, anchor))
+		{
+			const glm::mat4 invParentXform = glm::inverse(MikanMatrix4f_to_glm_mat4(anchor.anchor_xform));
+
+			// Convert transform to the space of the parent anchor
+			localXform = glm_composite_xform(worldXform, invParentXform);
+		}
+
+		// Extract position scale and rotation from the local transform
+		glm::vec3 scale;
+		glm::quat orientation;
+		glm::vec3 translation;
+		glm::vec3 skew;
+		glm::vec4 perspective;
+		if (glm::decompose(
+			localXform,
+			scale, orientation, translation, skew, perspective))
+		{
+			stencil.model_position= glm_vec3_to_MikanVector3f(translation);
+			stencil.model_scale= glm_vec3_to_MikanVector3f(scale);
+			glm_quat_to_euler_angles(
+				orientation,
+				stencil.model_rotator.x_angle,
+				stencil.model_rotator.y_angle,
+				stencil.model_rotator.z_angle);
+		}
+
+		return updateModelStencil(stencil);
+	}
+
+	return false;
 }
 
 MikanStencilID ProfileConfig::addNewModelStencil(const MikanStencilModel& modelInfo)

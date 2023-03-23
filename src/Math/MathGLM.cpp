@@ -1,6 +1,8 @@
 //-- includes -----
 #include "MathGLM.h"
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/intersect.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 //-- public methods -----
 float glm_vec3_normalize_with_default(glm::vec3& v, const glm::vec3& default_result)
@@ -18,13 +20,66 @@ glm::vec3 glm_vec3_lerp(const glm::vec3& a, const glm::vec3& b, const float u)
 	return a * (1.f - u) + b * u;
 }
 
+glm::mat4 glm_scale_along_axis(const glm::vec3& axis, const float scale)
+{
+	const glm::vec3 unit_axis = glm::normalize(axis);
+	
+	// Rotate the axis to the x-axis
+	const glm::quat undo_rot= glm::rotation(unit_axis, glm::vec3(1.f, 0.f, 0.f));
+	glm::mat4 result= glm::mat4_cast(undo_rot);
+	
+	// Scale along the x-axis by the scale factor
+	glm::scale(result, glm::vec3(scale, 1.f, 1.f));
+
+	// Re-apply the rotation back to what is was
+	const glm::quat redo_rot= glm::inverse(undo_rot);
+	glm_composite_xform(result, glm::mat4_cast(redo_rot));
+
+	return result;
+}
+
+void glm_quat_to_euler_angles(
+	const glm::quat& orientation,
+	float& out_x_angle, float& out_y_angle, float& out_z_angle)
+{
+	const glm::mat4 R = glm::mat4_cast(orientation);
+
+	float xRadians = 0, yRadians = 0, zRadians = 0;
+	glm::extractEulerAngleXYZ(R, xRadians, yRadians, zRadians);
+
+	out_x_angle = xRadians * k_radians_to_degreees;
+	out_y_angle = yRadians * k_radians_to_degreees;
+	out_z_angle = zRadians * k_radians_to_degreees;
+}
+
+glm::mat4 glm_composite_xform(const glm::mat4& first, const glm::mat4& second)
+{
+	return second * first;
+}
+
 glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& position)
 {
 	glm::mat4 rot = glm::mat4_cast(orientation);
 	glm::mat4 trans = glm::translate(glm::mat4(1.0f), position);
-	glm::mat4 transform = trans * rot;
+	glm::mat4 transform = glm_composite_xform(rot, trans);
 
 	return transform;
+}
+
+void glm_xform_points(const glm::mat4& xform, glm::vec3* points, size_t point_count)
+{
+	for (size_t i = 0; i < point_count; i++)
+	{
+		points[i]= xform * glm::vec4(points[i], 1); 
+	}
+}
+
+void glm_xform_vectors(const glm::mat4& xform, glm::vec3* points, size_t point_count)
+{
+	for (size_t i = 0; i < point_count; i++)
+	{
+		points[i] = xform * glm::vec4(points[i], 0);
+	}
 }
 
 bool glm_closest_point_on_ray_to_ray(

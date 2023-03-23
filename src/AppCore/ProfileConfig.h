@@ -32,6 +32,7 @@ public:
 	bool getSpatialFastenerInfo(MikanSpatialFastenerID fastenerId, MikanSpatialFastenerInfo& outInfo) const;
 	bool getFastenerWorldTransform(MikanSpatialFastenerID fastenerId, glm::mat4& outXform) const;
 	glm::mat4 getFastenerWorldTransform(const MikanSpatialFastenerInfo* fastener) const;
+	void getFastenerWorldPoints(const MikanSpatialFastenerInfo* fastener, glm::vec3 outWorldPoints[3]) const;
 	MikanSpatialFastenerID getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const;
 	bool findSpatialFastenerInfoByName(const char* fastenerName, MikanSpatialFastenerInfo& outInfo) const;
 	std::vector<MikanSpatialFastenerID> getSpatialFastenersWithParent(const MikanFastenerParentType parentType, const int32_t objectId) const;
@@ -44,16 +45,20 @@ public:
 	bool removeStencil(MikanStencilID stencilId);
 	eStencilType getStencilType(MikanStencilID stencilId) const;
 	bool getStencilName(MikanStencilID stencilId, std::string& outStencilName) const;
+	bool getStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;
+	bool setStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& xform);
 
 	bool getQuadStencilInfo(MikanStencilID stencilId, MikanStencilQuad& outInfo) const;
 	bool getQuadStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;
 	glm::mat4 getQuadStencilWorldTransform(const MikanStencilQuad* stencil) const;
+	bool setQuadStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& xform);
 	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
 	bool updateQuadStencil(const MikanStencilQuad& info);
 
 	bool getBoxStencilInfo(MikanStencilID stencilId, MikanStencilBox& outInfo) const;
 	bool getBoxStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;
 	glm::mat4 getBoxStencilWorldTransform(const MikanStencilBox* stencil) const;
+	bool setBoxStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& xform);
 	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
 	bool updateBoxStencil(const MikanStencilBox& info);
 
@@ -61,6 +66,7 @@ public:
 	bool getModelStencilInfo(MikanStencilID stencilId, MikanStencilModel& outInfo) const;
 	bool getModelStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;
 	glm::mat4 getModelStencilWorldTransform(const MikanStencilModel* stencil) const;
+	bool setModelStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& xform);
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
 	bool updateModelStencil(const MikanStencilModel& info);
 	bool updateModelStencilFilename(MikanStencilID stencilID, const std::filesystem::path& filename);
