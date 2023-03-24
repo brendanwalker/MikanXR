@@ -693,6 +693,28 @@ std::vector<MikanSpatialFastenerID> ProfileConfig::getSpatialFastenersWithParent
 	return result;
 }
 
+std::vector<MikanSpatialFastenerID> ProfileConfig::getValidSpatialFastenerSnapTargets(
+	const MikanSpatialFastenerID sourceFastenerId) const
+{
+	std::vector<MikanSpatialFastenerID> result;
+
+	MikanSpatialFastenerInfo sourceFastenerInfo;
+	if (getSpatialFastenerInfo(sourceFastenerId, sourceFastenerInfo) && 
+		sourceFastenerInfo.parent_object_type == MikanFastenerParentType_Stencil)
+	{
+		for (const MikanSpatialFastenerInfo& otherFastenerInfo : spatialFastenerList)
+		{
+			if (otherFastenerInfo.fastener_id != sourceFastenerId && 
+				otherFastenerInfo.parent_object_type == MikanFastenerParentType_SpatialAnchor)
+			{
+				result.push_back(otherFastenerInfo.fastener_id);
+			}
+		}
+	}
+
+	return result;
+}
+
 bool ProfileConfig::canAddFastener() const
 {
 	return (spatialFastenerList.size() < MAX_MIKAN_SPATIAL_ANCHORS);
@@ -950,13 +972,11 @@ bool ProfileConfig::getStencilName(MikanStencilID stencilId, std::string& outSte
 
 bool ProfileConfig::getStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
 {
-	glm::mat4 xform;
-
-	if (getModelStencilWorldTransform(stencilId, xform))
+	if (getModelStencilWorldTransform(stencilId, outXform))
 		return true;
-	else if (getBoxStencilWorldTransform(stencilId, xform))
+	else if (getBoxStencilWorldTransform(stencilId, outXform))
 		return true;
-	else if (getQuadStencilWorldTransform(stencilId, xform))
+	else if (getQuadStencilWorldTransform(stencilId, outXform))
 		return true;
 
 	return false;

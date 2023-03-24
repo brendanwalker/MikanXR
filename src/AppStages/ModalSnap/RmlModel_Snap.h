@@ -6,14 +6,9 @@
 class RmlModel_Snap : public RmlModel
 {
 public:
-	inline void setSource(const int sourceFastenerId) { m_sourceFastenerId= sourceFastenerId; }
-
-	bool init(Rml::Context* rmlContext);
+	bool init(Rml::Context* rmlContext, class ProfileConfig* profile, int sourceFastenerId);
 	virtual void dispose() override;
-	void setSourceFastenerId(int sourceFastenerId);
-	void setTargetFastenerId(int targetFastenerId);
-	void rebuildCompatibleTargetFasteners();
-
+	int getTargetFastenerId(int targetFastenerId) { return m_targetFastenerId; }
 
 	SinglecastDelegate<void(int sourceFastenerId, int targetFastenerId)> OnRequestFastenerSnap;
 	SinglecastDelegate<void()> OnCancelFastenerSnap;

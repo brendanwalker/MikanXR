@@ -32,11 +32,13 @@ bool ModalDialog_Snap::selectSnapTarget(
 	CancelCallback cancelCallback)
 {
 	// Allocate a new file browser modal dialog
-	AppStage* ownerAppStage = App::getInstance()->getCurrentAppStage();
+	App* app= App::getInstance();
+	AppStage* ownerAppStage = app->getCurrentAppStage();
+	ProfileConfig* profile= app->getProfileConfig();
 	ModalDialog_Snap* confirmModal = ownerAppStage->pushModalDialog<ModalDialog_Snap>();
 
 	// Attempt to initialize the confirm modal
-	if (!confirmModal->init(sourceId, snapCallback, cancelCallback))
+	if (!confirmModal->init(profile, sourceId, snapCallback, cancelCallback))
 	{
 		// On failure, destroy the modal dialog we just created
 		ownerAppStage->popModalDialog();
@@ -48,16 +50,14 @@ bool ModalDialog_Snap::selectSnapTarget(
 }
 
 bool ModalDialog_Snap::init(
+	ProfileConfig* profile,
 	MikanSpatialFastenerID sourceId,
 	SnapCallback snapCallback,
 	CancelCallback cancelCallback)
 {
 	// Finish model initialization
-	if (!m_snapModel->init(getRmlContext()))
+	if (!m_snapModel->init(getRmlContext(), profile, sourceId))
 		return false;
-
-	// Set UI properties on the model
-	m_snapModel->setSource(sourceId);
 
 	// Bind event delegates to model events
 	m_snapModel->OnRequestFastenerSnap = MakeDelegate(this, &ModalDialog_Snap::onRequestFastenerSnap);

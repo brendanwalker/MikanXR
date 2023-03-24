@@ -41,6 +41,7 @@ protected:
 	CancelCallback m_cancelCallback;
 
 	bool init(
+		class ProfileConfig* profile,
 		MikanSpatialFastenerID sourceId,
 		SnapCallback acceptCallback,
 		CancelCallback rejectCallback);

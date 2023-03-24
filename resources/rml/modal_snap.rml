@@ -23,11 +23,14 @@
             <br/>            
             <div data-if="targetFastenerIds.size > 0">
                 <select id="select" name="target_fastener_id" data-value="targetFastenerId">
-                    <option data-for="fastener_id : spatial_anchors" data-value="fastener_id">{{fastener_id | to_fastener_name}}</option>
+                    <option data-for="fastener_id : targetFastenerIds" data-value="fastener_id">{{fastener_id | to_fastener_name}}</option>
                 </select>
+                <br/>
+                <button data-event-click="request_snap()">snap</button>
+            </div>
+            <div data-if="targetFastenerIds.size == 0">
+                No valid spatial fastener targets!
             </div>            
-			<br/>
-			<button data-event-click="request_snap()">snap</button>
 			<button data-event-click="cancel_snap()">cancel</button>
 		</panel>
 	</body>

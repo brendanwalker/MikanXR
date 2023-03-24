@@ -1,10 +1,14 @@
 #include "RmlModel_Snap.h"
+#include "ProfileConfig.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-bool RmlModel_Snap::init(Rml::Context* rmlContext)
+bool RmlModel_Snap::init(
+	Rml::Context* rmlContext, 
+	ProfileConfig* profile,
+	int sourceFastenerId)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "modal_snap");
@@ -25,6 +29,18 @@ bool RmlModel_Snap::init(Rml::Context* rmlContext)
 			if (OnCancelFastenerSnap) OnCancelFastenerSnap();
 		});
 
+	m_sourceFastenerId = sourceFastenerId;
+	m_modelHandle.DirtyVariable("sourceFastenerId");
+
+	m_compatibleTargetFastenerIds= profile->getValidSpatialFastenerSnapTargets(sourceFastenerId);
+	m_modelHandle.DirtyVariable("targetFastenerIds");
+
+	m_targetFastenerId = 
+		m_compatibleTargetFastenerIds.size() > 0 
+		? m_compatibleTargetFastenerIds[0] 
+		: INVALID_MIKAN_ID;
+	m_modelHandle.DirtyVariable("targetFastenerId");
+
 	return true;
 }
 
@@ -33,23 +49,4 @@ void RmlModel_Snap::dispose()
 	OnRequestFastenerSnap.Clear();
 	OnCancelFastenerSnap.Clear();
 	RmlModel::dispose();
-}
-
-void RmlModel_Snap::setSourceFastenerId(int sourceFastenerId)
-{
-	m_sourceFastenerId = sourceFastenerId;
-	m_modelHandle.DirtyVariable("sourceFastenerId");
-
-	rebuildCompatibleTargetFasteners();
-}
-
-void RmlModel_Snap::rebuildCompatibleTargetFasteners()
-{
-
-}
-
-void RmlModel_Snap::setTargetFastenerId(int targetFastenerId)
-{
-	m_targetFastenerId = targetFastenerId;
-	m_modelHandle.DirtyVariable("targetFastenerId");
 }

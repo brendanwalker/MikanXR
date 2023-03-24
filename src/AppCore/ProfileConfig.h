@@ -36,6 +36,7 @@ public:
 	MikanSpatialFastenerID getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const;
 	bool findSpatialFastenerInfoByName(const char* fastenerName, MikanSpatialFastenerInfo& outInfo) const;
 	std::vector<MikanSpatialFastenerID> getSpatialFastenersWithParent(const MikanFastenerParentType parentType, const int32_t objectId) const;
+	std::vector<MikanSpatialFastenerID> getValidSpatialFastenerSnapTargets(const MikanSpatialFastenerID sourceFastenerId) const;
 	bool canAddFastener() const;
 	MikanSpatialFastenerID addNewFastener(const MikanSpatialFastenerInfo& fastener);
 	bool updateFastener(const MikanSpatialFastenerInfo& fastener);
