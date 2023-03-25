@@ -824,7 +824,8 @@ void AppStage_Compositor::onSnapFastenerEvent(int fastenerID)
 					sourceId, targetId,
 					newStencilXform, newStencilPoints))
 				{
-					m_profile->setStencilWorldTransform(sourceFastener.parent_object_id, newStencilXform);
+					m_profile->setStencilLocalTransform(sourceFastener.parent_object_id, newStencilXform);
+					m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
 				}
 			}
 		});
@@ -945,7 +946,6 @@ void AppStage_Compositor::render()
 
 		if (m_profile->debugRenderAnchors)
 		{
-			debugRenderOrigin();
 			debugRenderAnchors();
 		}
 
@@ -959,6 +959,7 @@ void AppStage_Compositor::render()
 			debugRenderStencils();
 		}
 
+		debugRenderOrigin();
 	}
 }
 

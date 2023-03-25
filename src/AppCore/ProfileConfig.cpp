@@ -618,17 +618,27 @@ glm::mat4 ProfileConfig::getFastenerWorldTransform(const MikanSpatialFastenerInf
 	return glm::mat4(1.f);
 }
 
+void ProfileConfig::getFastenerLocalPoints(
+	const MikanSpatialFastenerInfo* fastener, 
+	glm::vec3 outLocalPoints[3]) const
+{
+	for (int i = 0; i < 3; ++i)
+	{
+		outLocalPoints[i] = MikanVector3f_to_glm_vec3(fastener->fastener_points[i]);
+	}
+}
+
 void ProfileConfig::getFastenerWorldPoints(
 	const MikanSpatialFastenerInfo* fastener, 
 	glm::vec3 outWorldPoints[3]) const
 {
 	const glm::mat4 localToWorld= getFastenerWorldTransform(fastener);
 
+	glm::vec3 localPoints[3];
+	getFastenerLocalPoints(fastener, localPoints);
 	for (int i = 0; i < 3; ++i)
 	{
-		const glm::vec3 localPoint= MikanVector3f_to_glm_vec3(fastener->fastener_points[i]);
-
-		outWorldPoints[i] = localToWorld * glm::vec4(localPoint, 1.f);
+		outWorldPoints[i] = localToWorld * glm::vec4(localPoints[i], 1.f);
 	}
 }
 
@@ -982,6 +992,18 @@ bool ProfileConfig::getStencilWorldTransform(MikanStencilID stencilId, glm::mat4
 	return false;
 }
 
+bool ProfileConfig::setStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& xform)
+{
+	if (setModelStencilLocalTransform(stencilId, xform))
+		return true;
+	else if (setBoxStencilLocalTransform(stencilId, xform))
+		return true;
+	else if (setQuadStencilLocalTransform(stencilId, xform))
+		return true;
+
+	return false;
+}
+
 bool ProfileConfig::setStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& xform)
 {
 	if (setModelStencilWorldTransform(stencilId, xform))
@@ -1067,6 +1089,22 @@ glm::mat4 ProfileConfig::getQuadStencilWorldTransform(
 	}
 
 	return worldXform;
+}
+
+bool ProfileConfig::setQuadStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& localXform)
+{
+	MikanStencilQuad stencil;
+	if (getQuadStencilInfo(stencilId, stencil))
+	{
+		stencil.quad_x_axis = glm_vec3_to_MikanVector3f(localXform[0]);
+		stencil.quad_y_axis = glm_vec3_to_MikanVector3f(localXform[1]);
+		stencil.quad_normal = glm_vec3_to_MikanVector3f(localXform[2]);
+		stencil.quad_center = glm_vec3_to_MikanVector3f(localXform[3]);
+
+		return updateQuadStencil(stencil);
+	}
+
+	return false;
 }
 
 bool ProfileConfig::setQuadStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)
@@ -1168,6 +1206,22 @@ glm::mat4 ProfileConfig::getBoxStencilWorldTransform(
 	}
 
 	return worldXform;
+}
+
+bool ProfileConfig::setBoxStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& localXform)
+{
+	MikanStencilBox stencil;
+	if (getBoxStencilInfo(stencilId, stencil))
+	{
+		stencil.box_x_axis = glm_vec3_to_MikanVector3f(localXform[0]);
+		stencil.box_y_axis = glm_vec3_to_MikanVector3f(localXform[1]);
+		stencil.box_z_axis = glm_vec3_to_MikanVector3f(localXform[2]);
+		stencil.box_center = glm_vec3_to_MikanVector3f(localXform[3]);
+
+		return updateBoxStencil(stencil);
+	}
+
+	return false;
 }
 
 bool ProfileConfig::setBoxStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)
@@ -1277,6 +1331,36 @@ glm::mat4 ProfileConfig::getModelStencilWorldTransform(const MikanStencilModel* 
 	}
 
 	return worldXform;
+}
+
+bool ProfileConfig::setModelStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& localXform)
+{
+	MikanStencilModel stencil;
+	if (getModelStencilInfo(stencilId, stencil))
+	{
+		// Extract position scale and rotation from the local transform
+		glm::vec3 scale;
+		glm::quat orientation;
+		glm::vec3 translation;
+		glm::vec3 skew;
+		glm::vec4 perspective;
+		if (glm::decompose(
+			localXform,
+			scale, orientation, translation, skew, perspective))
+		{
+			stencil.model_position = glm_vec3_to_MikanVector3f(translation);
+			stencil.model_scale = glm_vec3_to_MikanVector3f(scale);
+			glm_quat_to_euler_angles(
+				orientation,
+				stencil.model_rotator.x_angle,
+				stencil.model_rotator.y_angle,
+				stencil.model_rotator.z_angle);
+		}
+
+		return updateModelStencil(stencil);
+	}
+
+	return false;
 }
 
 bool ProfileConfig::setModelStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)

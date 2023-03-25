@@ -24,8 +24,8 @@ bool align_stencil_fastener_to_anchor_fastener(
 		{
 			glm::vec3 stencilPoints[3];
 			glm::vec3 anchorPoints[3];
-			profile->getFastenerWorldPoints(&sourceFastenerInfo, stencilPoints);
-			profile->getFastenerWorldPoints(&targetFastenerInfo, anchorPoints);
+			profile->getFastenerLocalPoints(&sourceFastenerInfo, stencilPoints);
+			profile->getFastenerLocalPoints(&targetFastenerInfo, anchorPoints);
 
 			// Anchor edge properties remain constant, so we can compute these up front
 			const glm::vec3 anchorEdge0 = anchorPoints[1] - anchorPoints[0];
@@ -38,13 +38,13 @@ bool align_stencil_fastener_to_anchor_fastener(
 			// -------
 
 			// Move stencil points so outStencilPoints is at the origin
-			glm::mat4 translateStencilToOrigin = glm::translate(glm::mat4(1.f), -stencilPoints[0]);
+			const glm::mat4 translateStencilToOrigin = glm::translate(glm::mat4(1.f), -stencilPoints[0]);
 			glm_xform_points(translateStencilToOrigin, stencilPoints, 3);
 
 			// Stretch stencil edge1 to match the length anchor edge 1
 			// NOTE: if stencil edge0 isn't perpendicular to edge1 then 
 			// this scaling will effect length of edge 0 as well
-			glm::mat4 scaleAlongStencilEdge1;
+			glm::mat4 scaleAlongStencilEdge1= glm::mat4(1.f);
 			{
 				const glm::vec3 stencilEdge1 = stencilPoints[2] - stencilPoints[0];
 				const float stencilEdge1Len = glm::length(stencilEdge1);
@@ -57,7 +57,7 @@ bool align_stencil_fastener_to_anchor_fastener(
 			// Stretch stencil edge0 to match the length anchor edge 0
 			// NOTE: if stencil edge1 isn't perpendicular to edge0 then 
 			// this scaling will effect length of edge 1 as well
-			glm::mat4 scaleAlongStencilEdge0;
+			glm::mat4 scaleAlongStencilEdge0= glm::mat4(1.f);
 			{
 				const glm::vec3 stencilEdge0 = stencilPoints[1] - stencilPoints[0];
 				const float stencilEdge0Len = glm::length(stencilEdge0);
@@ -68,7 +68,7 @@ bool align_stencil_fastener_to_anchor_fastener(
 			}
 
 			// Rotate the stencil normal to align with anchor normal
-			glm::mat4 rotateStencilToAnchor;
+			glm::mat4 rotateStencilToAnchor= glm::mat4(1.f);
 			{
 				const glm::vec3 stencilEdge0 = stencilPoints[1] - stencilPoints[0];
 				const glm::vec3 stencilEdge1 = stencilPoints[2] - stencilPoints[0];
@@ -80,19 +80,8 @@ bool align_stencil_fastener_to_anchor_fastener(
 			}
 
 			// Translate the stencil back to the anchor
-			glm::mat4 translateStencilToAnchor = glm::translate(glm::mat4(1.f), anchorPoints[0]);
-			glm_xform_points(translateStencilToOrigin, stencilPoints, 3);
-
-			// Undo the effect of the current stencil transform
-			glm::mat4 inverseStencilXform = glm::mat4(1.f);
-			{
-				glm::mat4 stencilXform;
-				if (profile->getStencilWorldTransform(sourceFastenerInfo.parent_object_id, stencilXform))
-				{
-					inverseStencilXform = glm::inverse(stencilXform);
-					glm_xform_points(inverseStencilXform, stencilPoints, 3);
-				}
-			}
+			const glm::mat4 translateStencilToAnchor = glm::translate(glm::mat4(1.f), anchorPoints[0]);
+			glm_xform_points(translateStencilToAnchor, stencilPoints, 3);
 
 			// Composite the transforms together to make a net transform
 			// that will align the stencil points with the anchor points
@@ -100,8 +89,7 @@ bool align_stencil_fastener_to_anchor_fastener(
 			outNewStencilXform = glm_composite_xform(outNewStencilXform, scaleAlongStencilEdge1);
 			outNewStencilXform = glm_composite_xform(outNewStencilXform, scaleAlongStencilEdge0);
 			outNewStencilXform = glm_composite_xform(outNewStencilXform, rotateStencilToAnchor);
-			outNewStencilXform = glm_composite_xform(outNewStencilXform, translateStencilToOrigin);
-			outNewStencilXform = glm_composite_xform(outNewStencilXform, inverseStencilXform);
+			outNewStencilXform = glm_composite_xform(outNewStencilXform, translateStencilToAnchor);
 
 			// Also return the new fastener points on the stencil
 			memcpy(outNewStencilPoints, &stencilPoints, 3*sizeof(glm::vec3));

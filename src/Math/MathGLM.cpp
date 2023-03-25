@@ -54,6 +54,7 @@ void glm_quat_to_euler_angles(
 
 glm::mat4 glm_composite_xform(const glm::mat4& first, const glm::mat4& second)
 {
+	//http://www.c-jump.com/bcc/common/Talk3/Math/GLM/GLM.html#W01_0140_matrix_multiplication
 	return second * first;
 }
 
@@ -61,7 +62,7 @@ glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& posi
 {
 	glm::mat4 rot = glm::mat4_cast(orientation);
 	glm::mat4 trans = glm::translate(glm::mat4(1.0f), position);
-	glm::mat4 transform = glm_composite_xform(rot, trans);
+	glm::mat4 transform = trans * rot;
 
 	return transform;
 }
