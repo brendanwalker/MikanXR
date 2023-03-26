@@ -25,17 +25,22 @@ glm::mat4 glm_scale_along_axis(const glm::vec3& axis, const float scale)
 	const glm::vec3 unit_axis = glm::normalize(axis);
 	
 	// Rotate the axis to the x-axis
-	const glm::quat undo_rot= glm::rotation(unit_axis, glm::vec3(1.f, 0.f, 0.f));
-	glm::mat4 result= glm::mat4_cast(undo_rot);
+	const glm::quat undo_quat= glm::rotation(unit_axis, glm::vec3(1.f, 0.f, 0.f));
+	const glm::mat4 undo_rot= glm::mat4_cast(undo_quat);
 	
 	// Scale along the x-axis by the scale factor
-	glm::scale(result, glm::vec3(scale, 1.f, 1.f));
+	const glm::mat4 x_scale = glm::scale(glm::mat4(1.f), glm::vec3(scale, 1.f, 1.f));
 
 	// Re-apply the rotation back to what is was
-	const glm::quat redo_rot= glm::inverse(undo_rot);
-	glm_composite_xform(result, glm::mat4_cast(redo_rot));
+	const glm::quat redo_quat= glm::inverse(undo_quat);
+	const glm::mat4 redo_rot= glm::mat4_cast(redo_quat);
 
-	return result;
+	// Combine all transforms together
+	glm::mat scale_along_axis_xform= undo_rot;
+	scale_along_axis_xform= glm_composite_xform(scale_along_axis_xform, x_scale);
+	scale_along_axis_xform= glm_composite_xform(scale_along_axis_xform, redo_rot);
+
+	return scale_along_axis_xform;
 }
 
 void glm_quat_to_euler_angles(
