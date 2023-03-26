@@ -22,6 +22,10 @@ bool align_stencil_fastener_to_anchor_fastener(
 		if (sourceFastenerInfo.parent_object_type == MikanFastenerParentType_Stencil &&
 			targetFastenerInfo.parent_object_type == MikanFastenerParentType_SpatialAnchor)
 		{
+			const MikanSpatialAnchorID sourceAnchorId =
+				profile->getStencilParentAnchorId(sourceFastenerInfo.parent_object_id);
+			const MikanSpatialAnchorID targetAnchorId = targetFastenerInfo.parent_object_id;
+
 			glm::vec3 stencilPoints[3];
 			glm::vec3 anchorPoints[3];
 			profile->getFastenerLocalPoints(&sourceFastenerInfo, stencilPoints);
@@ -83,13 +87,33 @@ bool align_stencil_fastener_to_anchor_fastener(
 			const glm::mat4 translateStencilToAnchor = glm::translate(glm::mat4(1.f), anchorPoints[0]);
 			glm_xform_points(translateStencilToAnchor, stencilPoints, 3);
 
+			// If the source and target fasteners are children of different anchors
+			// append the relative transform from source to target anchor
+			glm::mat4 anchorRelativeXform = glm::mat4(1.f);
+			if (sourceAnchorId != targetAnchorId)
+			{
+				glm::mat4 sourceAnchorXform = glm::mat4(1.f);
+				profile->getSpatialAnchorWorldTransform(sourceAnchorId, sourceAnchorXform);
+
+				glm::mat4 targetAnchorXform = glm::mat4(1.f);
+				profile->getSpatialAnchorWorldTransform(targetAnchorId, targetAnchorXform);
+
+				// Apply the offset transform to target anchor
+				anchorRelativeXform = glm::inverse(sourceAnchorXform) * targetAnchorXform;
+				glm_xform_points(anchorRelativeXform, stencilPoints, 3);
+			}
+
 			// Composite the transforms together to make a net transform
 			// that will align the stencil points with the anchor points
-			outNewStencilXform = glm_composite_xform(glm::mat4(1.f), translateStencilToOrigin);
+			outNewStencilXform = translateStencilToOrigin;
 			outNewStencilXform = glm_composite_xform(outNewStencilXform, scaleAlongStencilEdge1);
 			outNewStencilXform = glm_composite_xform(outNewStencilXform, scaleAlongStencilEdge0);
 			outNewStencilXform = glm_composite_xform(outNewStencilXform, rotateStencilToAnchor);
 			outNewStencilXform = glm_composite_xform(outNewStencilXform, translateStencilToAnchor);
+			if (sourceAnchorId != targetAnchorId)
+			{
+				outNewStencilXform = glm_composite_xform(outNewStencilXform, anchorRelativeXform);
+			}
 
 			// Also return the new fastener points on the stencil
 			memcpy(outNewStencilPoints, &stencilPoints, 3*sizeof(glm::vec3));

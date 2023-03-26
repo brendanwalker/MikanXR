@@ -50,6 +50,7 @@ public:
 	bool getStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;
 	bool setStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& xform);
 	bool setStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& xform);
+	MikanSpatialAnchorID getStencilParentAnchorId(MikanStencilID stencilId) const;
 
 	bool getQuadStencilInfo(MikanStencilID stencilId, MikanStencilQuad& outInfo) const;
 	bool getQuadStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const;

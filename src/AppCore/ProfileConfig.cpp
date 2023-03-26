@@ -1016,6 +1016,29 @@ bool ProfileConfig::setStencilWorldTransform(MikanStencilID stencilId, const glm
 	return false;
 }
 
+MikanSpatialAnchorID ProfileConfig::getStencilParentAnchorId(MikanStencilID stencilId) const
+{
+	MikanStencilModel modelInfo;
+	if (getModelStencilInfo(stencilId, modelInfo))
+	{
+		return modelInfo.parent_anchor_id;
+	}
+
+	MikanStencilBox boxInfo;
+	if (getBoxStencilInfo(stencilId, boxInfo))
+	{
+		return boxInfo.parent_anchor_id;
+	}
+
+	MikanStencilQuad quadInfo;
+	if (getQuadStencilInfo(stencilId, quadInfo))
+	{
+		return quadInfo.parent_anchor_id;
+	}
+
+	return INVALID_MIKAN_ID;
+}
+
 MikanStencilID ProfileConfig::addNewQuadStencil(const MikanStencilQuad& quad)
 {
 	if (!canAddStencil())
