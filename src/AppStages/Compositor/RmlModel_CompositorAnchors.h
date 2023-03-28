@@ -23,6 +23,7 @@ public:
 	SinglecastDelegate<void(int anchorID, int fastenerID)> OnDeleteFastenerEvent;
 
 private:
+	int m_originAnchorId;
 	Rml::Vector<RmlModel_CompositorAnchor> m_spatialAnchors;
 	bool m_bShowAnchors;
 

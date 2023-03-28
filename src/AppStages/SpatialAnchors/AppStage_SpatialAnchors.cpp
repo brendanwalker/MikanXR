@@ -29,17 +29,21 @@ struct SpatialAnchorSetupDataModel
 
 	Rml::Vector<Rml::String> tracker_devices;
 	int selected_tracker_device = 0;
-	Rml::Vector<Rml::String> spatial_anchors;
+	Rml::Vector<int> spatial_anchors;
 	int max_spatial_anchors = MAX_MIKAN_SPATIAL_ANCHORS;
+	int origin_anchor_id = INVALID_MIKAN_ID;
 
 	void rebuildSpatialAnchors(ProfileConfig *profile)
 	{
 		spatial_anchors.clear();
 		for (const MikanSpatialAnchorInfo& anchorInfo : profile->spatialAnchorList)
 		{
-			spatial_anchors.push_back(anchorInfo.anchor_name);
+			spatial_anchors.push_back(anchorInfo.anchor_id);
 		}
 		model_handle.DirtyVariable("spatial_anchors");
+
+		origin_anchor_id= profile->originAnchorId;
+		model_handle.DirtyVariable("origin_anchor_id");
 	}
 };
 
@@ -109,7 +113,7 @@ void AppStage_SpatialAnchors::enter()
 			char newAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
 			StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", m_profile->nextAnchorId);
 
-			if (m_profile->addNewAnchor("New Anchor", mikanXform))
+			if (m_profile->addNewAnchor(newAnchorName, mikanXform))
 			{
 				m_dataModel->rebuildSpatialAnchors(m_profile);
 
@@ -121,10 +125,11 @@ void AppStage_SpatialAnchors::enter()
 		"update_anchor_pose", 
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) 
 		{
-			const int anchorIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (anchorIndex >= 0 && anchorIndex < (int)m_dataModel->spatial_anchors.size())
+			const int anchorId = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+
+			MikanSpatialAnchorInfo anchor;
+			if (m_profile->getSpatialAnchorInfo(anchorId, anchor))
 			{
-				MikanSpatialAnchorInfo& anchor= m_profile->spatialAnchorList[anchorIndex];
 				VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
 				if (anchorVRDevice != nullptr)
 				{
@@ -148,20 +153,15 @@ void AppStage_SpatialAnchors::enter()
 		"update_anchor_name",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) 
 		{
-			const int anchorIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (anchorIndex >= 0 && anchorIndex < (int)m_dataModel->spatial_anchors.size())
+			const int anchorId = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			const bool isLineBreak = ev.GetParameter("linebreak", false);
+
+			if (isLineBreak)
 			{
-				const bool isLineBreak = ev.GetParameter("linebreak", false);
+				const Rml::String stringValue = ev.GetParameter("value", Rml::String());
 
-				if (isLineBreak)
+				if (m_profile->setAnchorName(anchorId, stringValue))
 				{
-					const Rml::String stringValue = ev.GetParameter("value", Rml::String());
-
-					MikanSpatialAnchorInfo& anchor = m_profile->spatialAnchorList[anchorIndex];
-					StringUtils::formatString(anchor.anchor_name, sizeof(anchor.anchor_name), "%s", stringValue.c_str());
-
-					m_profile->save();
-
 					// Tell any connected clients that the anchor list changed
 					MikanServer::getInstance()->publishAnchorListChangedEvent();
 				}
@@ -171,18 +171,14 @@ void AppStage_SpatialAnchors::enter()
 		"erase_anchor",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) 
 		{
-			const int deleteAnchorIndex = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : 0);
-			if (deleteAnchorIndex >= 0 && deleteAnchorIndex < (int)m_dataModel->spatial_anchors.size())
+			const int deleteAnchorId = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : 0);
+
+			if (m_profile->removeAnchor(deleteAnchorId))
 			{
-				const MikanSpatialAnchorInfo& deleteAnchor = m_profile->spatialAnchorList[deleteAnchorIndex];
+				m_dataModel->rebuildSpatialAnchors(m_profile);
 
-				if (m_profile->removeAnchor(deleteAnchor.anchor_id))
-				{
-					m_dataModel->rebuildSpatialAnchors(m_profile);
-
-					// Tell any connected clients that the anchor list changed
-					MikanServer::getInstance()->publishAnchorListChangedEvent();
-				}
+				// Tell any connected clients that the anchor list changed
+				MikanServer::getInstance()->publishAnchorListChangedEvent();
 			}
 		});
 	constructor.BindEventCallback(

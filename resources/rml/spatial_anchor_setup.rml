@@ -30,10 +30,15 @@
             <br/>
             <h1>Anchors</h1>
 			<div class="picker">
-				<span data-for="anchor_name : spatial_anchors" class="foo">
-					<button style="width: 100dp" data-event-click="update_anchor_pose(it_index)">Set Pose</button>
-                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="update_anchor_name(it_index)" data-value="anchor_name"/>
-                    <button style="width: 40dp" data-event-click="erase_anchor(it_index)">x</button>
+				<span data-for="anchor_id : spatial_anchors" class="foo">
+					<button style="width: 100dp" data-event-click="update_anchor_pose(anchor_id)">Set Pose</button>
+                    <div data-if="anchor_id == origin_anchor_id">
+                        {{spatial_anchor_id | to_anchor_name}}
+                    </div>
+                    <div data-if="anchor_id != origin_anchor_id">
+                        <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="update_anchor_name(anchor_id)" data-value="{{anchor_id | to_anchor_name}}"/>
+                        <button style="width: 40dp" data-event-click="erase_anchor(anchor_id)">x</button>
+                    </div>
                     <br/>
 				</span>
 			</div>

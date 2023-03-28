@@ -22,6 +22,8 @@
 #define DEFAULT_PUCK_VERTICAL_OFFSET_MM  89
 #define DEFAULT_PUCK_DEPTH_OFFSET_MM  0
 
+#define ORIGIN_SPATIAL_ANCHOR_NAME	"Origin"
+
 // -- WMF Stereo Tracker Config
 ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
@@ -273,6 +275,20 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 				spatialAnchorList.push_back(anchorInfo);
 			}
 		}
+	}
+
+	// Special case: Origin spatial anchor
+	MikanSpatialAnchorInfo originAnchorInfo;
+	if (findSpatialAnchorInfoByName(ORIGIN_SPATIAL_ANCHOR_NAME, originAnchorInfo))
+	{
+		originAnchorId= originAnchorInfo.anchor_id;
+	}
+	else
+	{
+		const MikanMatrix4f originXform= glm_mat4_to_MikanMatrix4f(glm::mat4(1.f));
+
+		originAnchorId= nextAnchorId;
+		addNewAnchor(ORIGIN_SPATIAL_ANCHOR_NAME, originXform);
 	}
 
 	// Read in the spatial fasteners
@@ -537,8 +553,35 @@ bool ProfileConfig::updateAnchor(const MikanSpatialAnchorInfo& info)
 
 	if (it != spatialAnchorList.end())
 	{
-		*it= info;
+		it->anchor_id= info.anchor_id;
+		it->anchor_xform= info.anchor_xform;
+
+		// only update the anchor name for the non origin
+		if (it->anchor_id != originAnchorId)
+		{
+			strncpy(it->anchor_name, info.anchor_name, sizeof(info.anchor_name) - 1);
+		}
+
 		markDirty();
+		return true;
+	}
+
+	return false;
+}
+
+bool ProfileConfig::setAnchorName(MikanSpatialAnchorID anchorId, const std::string& newAnchorName)
+{
+	auto it = std::find_if(
+		spatialAnchorList.begin(), spatialAnchorList.end(),
+		[anchorId](const MikanSpatialAnchorInfo& info) {
+			return info.anchor_id == anchorId;
+		});
+
+	if (it != spatialAnchorList.end())
+	{		
+		StringUtils::formatString(it->anchor_name, sizeof(it->anchor_name), "%s", newAnchorName.c_str());
+		markDirty();
+
 		return true;
 	}
 
@@ -553,7 +596,8 @@ bool ProfileConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 		return info.anchor_id == anchorId;
 	});
 
-	if (it != spatialAnchorList.end())
+	if (it != spatialAnchorList.end() && 
+		it->anchor_id != originAnchorId)
 	{
 		spatialAnchorList.erase(it);
 		markDirty();

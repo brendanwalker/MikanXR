@@ -35,6 +35,7 @@ bool RmlModel_CompositorAnchors::init(
 	}
 
 	// Register Data Model Fields
+	constructor.Bind("origin_anchor_id", &m_originAnchorId);
 	constructor.Bind("spatial_anchors", &m_spatialAnchors);
 
 	// Bind data model callbacks
@@ -79,6 +80,9 @@ void RmlModel_CompositorAnchors::dispose()
 
 void RmlModel_CompositorAnchors::rebuildAnchorList(const ProfileConfig* profile)
 {
+	m_originAnchorId= profile->originAnchorId;
+	m_modelHandle.DirtyVariable("origin_anchor_id");
+
 	m_spatialAnchors.clear();
 	for (const MikanSpatialAnchorInfo& anchorInfo : profile->spatialAnchorList)
 	{

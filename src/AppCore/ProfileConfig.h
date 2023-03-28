@@ -27,6 +27,7 @@ public:
 	bool canAddAnchor() const;
 	bool addNewAnchor(const char* anchorName, const MikanMatrix4f& xform);
 	bool updateAnchor(const MikanSpatialAnchorInfo& info);
+	bool setAnchorName(MikanSpatialAnchorID anchorId, const std::string& newAnchorName);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 	bool getSpatialFastenerInfo(MikanSpatialFastenerID fastenerId, MikanSpatialFastenerInfo& outInfo) const;
@@ -105,6 +106,7 @@ public:
 	std::string anchorVRDevicePath;
 	std::vector<MikanSpatialAnchorInfo> spatialAnchorList;
 	MikanSpatialAnchorID nextAnchorId;
+	MikanSpatialAnchorID originAnchorId;
 	bool debugRenderAnchors;
 
 	std::vector<MikanSpatialFastenerInfo> spatialFastenerList;

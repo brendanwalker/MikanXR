@@ -23,6 +23,7 @@
 	</head>
 	<body template="window">
         <panel id="controls" data-model="compositor_anchors">
+            <button data-event-click="add_fastener(anchor.anchor_id)">Add Fastener</button>
             <div data-for="anchor : spatial_anchors">
                 <label>{{anchor.anchor_id | to_anchor_name}}</label>
                 <div data-for="fastener_id : anchor.child_fastener_ids">
