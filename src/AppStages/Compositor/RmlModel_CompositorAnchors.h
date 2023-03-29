@@ -17,13 +17,14 @@ public:
 	virtual void dispose() override;
 
 	void rebuildAnchorList(const ProfileConfig* profile);
-
+	
+	SinglecastDelegate<void()> OnUpdateOriginPose;
 	SinglecastDelegate<void(int anchorID)> OnAddFastenerEvent;
 	SinglecastDelegate<void(int fastenerID)> OnEditFastenerEvent;
 	SinglecastDelegate<void(int anchorID, int fastenerID)> OnDeleteFastenerEvent;
 
 private:
-	int m_originAnchorId;
+	int m_originAnchorId= -1;
 	Rml::Vector<RmlModel_CompositorAnchor> m_spatialAnchors;
 	bool m_bShowAnchors;
 

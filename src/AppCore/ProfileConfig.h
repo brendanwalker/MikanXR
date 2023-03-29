@@ -99,6 +99,7 @@ public:
 	MikanSpatialAnchorID cameraParentAnchorId;
 	float cameraScale;
 	std::string matVRDevicePath;
+	std::string originVRDevicePath;
 	std::string calibrationComponentName;
 	int vrFrameDelay;
 	int videoFrameQueueSize;

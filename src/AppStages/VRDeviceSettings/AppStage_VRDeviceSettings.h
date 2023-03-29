@@ -16,17 +16,8 @@ public:
 	AppStage_VRDeviceSettings(class App* app);
 	virtual ~AppStage_VRDeviceSettings();
 
-	void setSelectedCameraVRTrackerIndex(int index);
-	void setSelectedMatVRTrackerIndex(int index);
-
-	int getVRTrackerCount() const;
-
-	VRDeviceViewPtr getSelectedCameraVRTracker() const;
-	VRDeviceViewPtr getSelectedMatVRTracker() const;
-
 	virtual void enter() override;
 	virtual void exit() override;
-	virtual void update() override;
 
 	virtual void onRmlClickEvent(const std::string& value) override;
 
@@ -35,10 +26,15 @@ public:
 protected:
 	void rebuildVRTrackerList();
 
-	struct VRDeviceSettingsDataModel* m_dataModel = nullptr;
+	// VR Device Setting Model UI Events
+	void onUpdateCameraVRDevicePath(const std::string& devicePath);
+	void onUpdateCameraParentAnchorId(int anchorId);
+	void onUpdateMatVRDevicePath(const std::string& devicePath);
+	void onUpdateOriginVRDevicePath(const std::string& devicePath);
+	void onUpdateCameraScale(const float newScale);
+
+	class RmlModel_VRDeviceSettings* m_vrDeviceSettingsModel = nullptr;
+	Rml::ElementDocument* m_vrDeviceSettingsView = nullptr;
 
 	VRDeviceList m_vrTrackers;
-
-	int m_selectedCameraVRTrackerIndex;
-	int m_selectedMatVRTrackerIndex;
 };

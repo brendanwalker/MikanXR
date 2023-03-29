@@ -7,6 +7,8 @@
 #include "ProfileConfig.h"
 #include "PathUtils.h"
 #include "Renderer.h"
+#include "VRDeviceManager.h"
+#include "VRDeviceView.h"
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
@@ -268,6 +270,24 @@ void RmlManager::registerCommonDataModelTypes()
 			variant= PathUtils::createTrimmedPathString(filePath, maxLength);
 
 			return true;
+		});
+
+	// Transform function for converting full file path to a trimmed path
+	constructor.RegisterTransformFunc(
+		"to_vr_device_friendly_name",
+		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+			const Rml::String devicePath = variant.Get<Rml::String>("");
+
+			VRDeviceViewPtr deviceView= VRDeviceListIterator(eDeviceType::VRTracker, devicePath).getCurrent();
+			if (deviceView)
+			{
+				const Rml::String friendlyName = deviceView->getTrackerRole() + " - " + deviceView->getSerialNumber();
+
+				variant= friendlyName;
+				return true;
+			}
+
+			return false;
 		});
 }
 

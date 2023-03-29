@@ -38,7 +38,12 @@ bool RmlModel_CompositorAnchors::init(
 	constructor.Bind("origin_anchor_id", &m_originAnchorId);
 	constructor.Bind("spatial_anchors", &m_spatialAnchors);
 
-	// Bind data model callbacks
+	// Bind data model callbacks	
+	constructor.BindEventCallback(
+		"update_origin_pose",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			if (OnUpdateOriginPose) OnUpdateOriginPose();
+		});
 	constructor.BindEventCallback(
 		"add_fastener",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {

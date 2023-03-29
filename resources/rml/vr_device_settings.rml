@@ -21,38 +21,46 @@
             </handle>
         </div>  
         <panel id="controls" data-model="vr_device_settings">
-            <br/>
-            <div data-if="selected_camera_tracker_device != -1">
-                <h2>Camera VR Device</h2>
+            <h2>Origin VR Device</h2>
+            <div data-if="tracker_devices.size > 0">
+                <select id="select" name="origin_tracker_device" style="width: 250dp" data-value="origin_vr_device_path" data-event-change="update_origin_tracker_device()">
+                    <option data-for="device_path : tracker_devices" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
+                </select>
+            </div>
+            <div data-if="tracker_devices.size == 0">
+                {{origin_vr_device_path}}
+            </div> 
+            <h2>Camera VR Device</h2>
+            <div data-if="tracker_devices.size > 0">
                 <div>
-                    <select id="select" name="camera_tracker_device" style="width: 250dp" data-value="selected_camera_tracker_device">
-                        <option data-for="s : tracker_devices" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+                    <select id="select" name="camera_tracker_device" style="width: 250dp" data-value="camera_vr_device_path" data-event-change="update_camera_tracker_device()">
+                        <option data-for="device_path : tracker_devices" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
                     </select>
                 </div>
                 <br/>
                 <h2>Camera Parent Anchor</h2>
                 <div data-if="spatial_anchors.size > 1">
-                    <select id="select" name="camera_spatial_anchor" data-value="selected_camera_spatial_anchor">
-                        <option data-for="anchor_name : spatial_anchors" data-value="anchor_name">{{anchor_name}}</option>
+                    <select id="select" name="camera_spatial_anchor" data-value="camera_parent_anchor_id" data-event-change="update_camera_parent_anchor_id()">
+                        <option data-for="anchor_id : spatial_anchors" data-value="anchor_name">{{anchor_id | to_anchor_name}}</option>
                     </select>
                 </div>
                 <br/>
                 <h2>Camera Scale</h2>
-                <input type="range" name="camera_scale" style="width: 220dp" min="0.01" max="100" step="0.1" value="1" data-value="camera_scale"/>
+                <input type="range" name="camera_scale" style="width: 220dp" min="0.01" max="100" step="0.1" value="1" data-value="camera_scale" data-event-change="update_camera_scale()"/>
             </div>
-            <div data-if="selected_camera_tracker_device == -1">
+            <div data-if="tracker_devices.size == 0">
                 {{camera_vr_device_path}}
             </div>
             <h2>Mat VR Device</h2>
-            <div data-if="selected_mat_tracker_device != -1">
-                <select id="select" name="camera_tracker_device" style="width: 250dp" data-value="selected_mat_tracker_device">
-                    <option data-for="s : tracker_devices" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+            <div data-if="tracker_devices.size > 0">
+                <select id="select" name="camera_tracker_device" style="width: 250dp" data-value="mat_vr_device_path" data-event-change="update_mat_tracker_device()">
+                    <option data-for="device_path : tracker_devices" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
                 </select>
             </div>
-            <div data-if="selected_mat_tracker_device == -1">
+            <div data-if="tracker_devices.size == 0">
                 {{mat_vr_device_path}}
             </div>            
-            <div data-if="selected_camera_tracker_device != selected_mat_tracker_device && tracker_devices.size >= 2">
+            <div data-if="camera_vr_device_path != mat_vr_device_path && tracker_devices.size >= 2">
                 <button style="width: 260dp" onclick="calibrate_vr_camera_alignment">Calibrate VR/Camera Alignment</button>
                 <button style="width: 260dp" onclick="test_vr_camera_alignment">Test VR/Camera Alignment</button>
             </div>
