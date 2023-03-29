@@ -39,6 +39,8 @@
 #include "VideoCapabilitiesConfig.h"
 #include "VideoSourceView.h"
 #include "VideoWriter.h"
+#include "VRDeviceManager.h"
+#include "VRDeviceView.h"
 
 #include <RmlUi/Core/Context.h>
 #include "RmlUI/Core/ElementDocument.h"
@@ -160,6 +162,7 @@ void AppStage_Compositor::enter()
 
 		// Init Anchors UI
 		m_compositorAnchorsModel->init(context, m_profile);
+		m_compositorAnchorsModel->OnUpdateOriginPose = MakeDelegate(this, &AppStage_Compositor::onUpdateOriginEvent);
 		m_compositorAnchorsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddAnchorFastenerEvent);
 		m_compositorAnchorsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditAnchorFastenerEvent);
 		m_compositorAnchorsModel->OnDeleteFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteAnchorFastenerEvent);
@@ -638,6 +641,33 @@ void AppStage_Compositor::hideAllSubWindows()
 }
 
 // Anchors UI Events
+void AppStage_Compositor::onUpdateOriginEvent()
+{
+	VRDeviceViewPtr vrDeviceView =
+		VRDeviceListIterator(eDeviceType::VRTracker, m_profile->originVRDevicePath).getCurrent();
+
+	if (vrDeviceView != nullptr)
+	{
+		MikanSpatialAnchorInfo anchor;
+		if (m_profile->getSpatialAnchorInfo(m_profile->originAnchorId, anchor))
+		{
+			const glm::mat4 anchorXform = vrDeviceView->getCalibrationPose();
+			anchor.anchor_xform = glm_mat4_to_MikanMatrix4f(anchorXform);
+			m_profile->updateAnchor(anchor);
+
+			// Tell any connected clients that the anchor pose changed
+			{
+				MikanAnchorPoseUpdateEvent poseUpdateEvent;
+				memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
+				poseUpdateEvent.anchor_id = anchor.anchor_id;
+				poseUpdateEvent.transform = anchor.anchor_xform;
+
+				MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
+			}
+		}
+	}
+}
+
 void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
 {
 	MikanSpatialFastenerInfo fastener;

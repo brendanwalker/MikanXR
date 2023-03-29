@@ -72,6 +72,7 @@ protected:
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
 	// Anchors UI Events
+	void onUpdateOriginEvent();
 	void onAddAnchorFastenerEvent(int parentAnchorId);
 	void onEditAnchorFastenerEvent(int fastenerID);
 	void onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID);
