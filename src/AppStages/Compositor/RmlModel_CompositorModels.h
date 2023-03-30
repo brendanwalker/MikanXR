@@ -29,6 +29,7 @@ public:
 
 	SinglecastDelegate<void()> OnAddModelStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteModelStencilEvent;
+	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyModelStencilParentAnchorEvent;
 	SinglecastDelegate<void(int stencilID)> OnModifyModelStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnSelectModelStencilPathEvent;
 	SinglecastDelegate<void(int stencilID)> OnAddFastenerEvent;

@@ -189,6 +189,7 @@ void AppStage_Compositor::enter()
 		m_compositorModelsModel->init(context, m_profile);
 		m_compositorModelsModel->OnAddModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilEvent);
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
+		m_compositorModelsModel->OnModifyModelStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilParentAnchorEvent);
 		m_compositorModelsModel->OnModifyModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilEvent);
 		m_compositorModelsModel->OnSelectModelStencilPathEvent = MakeDelegate(this, &AppStage_Compositor::onSelectModelStencilPathEvent);
 		m_compositorModelsModel->OnSnapFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onSnapFastenerEvent);
@@ -804,6 +805,17 @@ void AppStage_Compositor::onDeleteModelStencilEvent(int stencilID)
 	{
 		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
 		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+	}
+}
+
+void AppStage_Compositor::onModifyModelStencilParentAnchorEvent(int stencilID, int newAnchorID)
+{
+	MikanStencilModel stencilInfo;
+	if (m_profile->getModelStencilInfo(stencilID, stencilInfo) && 
+		stencilInfo.parent_anchor_id != newAnchorID)
+	{
+		stencilInfo.parent_anchor_id= newAnchorID;
+		m_profile->updateModelStencil(stencilInfo);
 	}
 }
 

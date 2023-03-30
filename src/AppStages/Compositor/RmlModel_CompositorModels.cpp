@@ -69,6 +69,22 @@ bool RmlModel_CompositorModels::init(
 			}
 		});
 	constructor.BindEventCallback(
+		"modify_stencil_parent_anchor",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (ev.GetId() == Rml::EventId::Change)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const int new_anchor_id = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+				if (OnModifyModelStencilParentAnchorEvent && 
+					stencil_id != INVALID_MIKAN_ID && 
+					new_anchor_id != INVALID_MIKAN_ID)
+				{
+					OnModifyModelStencilParentAnchorEvent(stencil_id, new_anchor_id);
+				}
+			}
+		});
+	constructor.BindEventCallback(
 		"modify_stencil",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			// Only consider change events when it resulted in a valid value

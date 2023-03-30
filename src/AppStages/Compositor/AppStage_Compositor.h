@@ -91,6 +91,7 @@ protected:
 	void onAddModelStencilEvent();
 	void onDeleteModelStencilEvent(int stencilID);
 	void onModifyModelStencilEvent(int stencilID);
+	void onModifyModelStencilParentAnchorEvent(int stencilID, int anchorID);
 	void onSelectModelStencilPathEvent(int stencilID);
 	void onSnapFastenerEvent(int stencilID);
 	void onAddModelStencilFastenerEvent(int stencilID);
