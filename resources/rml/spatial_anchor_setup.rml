@@ -21,7 +21,7 @@
             <h1>Anchor VR Device</h1>
             <div data-if="tracker_devices.size > 0">
                 <select id="select" name="tracker_devices" data-value="selected_tracker_device" style="width: 200dp">
-                    <option data-for="s : tracker_devices" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+                    <option data-for="device_path : tracker_devices" data-value="it_index">{{device_path | to_vr_device_friendly_name}}</option>
                 </select>
             </div>
             <div data-if="tracker_devices.size == 0" style="width: 500dp">
