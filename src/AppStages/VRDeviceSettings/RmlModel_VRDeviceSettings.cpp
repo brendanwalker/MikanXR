@@ -27,6 +27,7 @@ bool RmlModel_VRDeviceSettings::init(
 	constructor.Bind("camera_scale", &m_cameraScale);
 	constructor.Bind("mat_vr_device_path", &m_matVRDevicePath);
 	constructor.Bind("origin_vr_device_path", &m_originVRDevicePath);
+	constructor.Bind("origin_vertical_align_flag", &m_originVerticalAlignFlag);
 
 	// Bind data model callbacks	
 	constructor.BindEventCallback(
@@ -59,6 +60,17 @@ bool RmlModel_VRDeviceSettings::init(
 			const std::string vrDevicePath = ev.GetParameter<Rml::String>("value", "");
 			if (OnUpdateOriginVRDevicePath) OnUpdateOriginVRDevicePath(vrDevicePath);
 		});
+	constructor.BindEventCallback(
+		"update_vertical_align_flag",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnUpdateOriginVerticalAlignFlag)
+			{
+				const std::string value = ev.GetParameter<Rml::String>("value", "");
+				const bool bIsChecked = !value.empty();
+
+				OnUpdateOriginVerticalAlignFlag(bIsChecked);
+			}
+		});
 
 	// Fill in the data model
 	rebuildVRDeviceList(vrDeviceManager);
@@ -68,6 +80,7 @@ bool RmlModel_VRDeviceSettings::init(
 	m_cameraScale = profile->cameraScale;
 	m_matVRDevicePath = profile->matVRDevicePath;
 	m_originVRDevicePath = profile->originVRDevicePath;
+	m_originVerticalAlignFlag = profile->originVerticalAlignFlag;
 
 	return true;
 }

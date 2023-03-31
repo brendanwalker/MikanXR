@@ -9,7 +9,7 @@
             {
                 left: 10dp;
                 top: 20dp;
-                width: 300dp;
+                width: 350dp;
                 height: 500dp;
                 margin: auto;
             }
@@ -49,9 +49,9 @@
                     <br/>
                     <span>
                         Position&nbsp;
-                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.x"/>
-                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.y"/>
-                        <numeric type="float" min="-10.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.z"/>
+                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.x"/>
+                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.y"/>
+                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.z"/>
                     </span>
                     <br/>
                     <span>

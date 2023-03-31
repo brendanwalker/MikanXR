@@ -31,6 +31,7 @@ protected:
 	void onUpdateCameraParentAnchorId(int anchorId);
 	void onUpdateMatVRDevicePath(const std::string& devicePath);
 	void onUpdateOriginVRDevicePath(const std::string& devicePath);
+	void onUpdateOriginVerticalAlignFlag(bool bFlag);
 	void onUpdateCameraScale(const float newScale);
 
 	class RmlModel_VRDeviceSettings* m_vrDeviceSettingsModel = nullptr;

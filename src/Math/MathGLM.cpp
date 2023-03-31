@@ -72,6 +72,26 @@ glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& posi
 	return transform;
 }
 
+glm::vec3 glm_mat4_forward(const glm::mat4& xform)
+{
+	return xform[0]; // x-axis
+}
+
+glm::vec3 glm_mat4_up(const glm::mat4& xform)
+{
+	return xform[1]; // y-axis
+}
+
+glm::vec3 glm_mat4_right(const glm::mat4& xform)
+{
+	return xform[2]; // z-axis
+}
+
+glm::vec3 glm_mat4_position(const glm::mat4& xform)
+{
+	return xform[3]; // position
+}
+
 void glm_xform_points(const glm::mat4& xform, glm::vec3* points, size_t point_count)
 {
 	for (size_t i = 0; i < point_count; i++)

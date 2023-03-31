@@ -81,11 +81,13 @@ protected:
 	void onAddQuadStencilEvent();
 	void onDeleteQuadStencilEvent(int stencilID);
 	void onModifyQuadStencilEvent(int stencilID);
+	void onModifyQuadStencilParentAnchorEvent(int stencilID, int anchorID);
 
 	// Box Stencils UI Events
 	void onAddBoxStencilEvent();
 	void onDeleteBoxStencilEvent(int stencilID);
 	void onModifyBoxStencilEvent(int stencilID);
+	void onModifyBoxStencilParentAnchorEvent(int stencilID, int anchorID);
 
 	// Model Stencils UI Events
 	void onAddModelStencilEvent();

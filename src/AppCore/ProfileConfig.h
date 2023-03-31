@@ -100,6 +100,7 @@ public:
 	float cameraScale;
 	std::string matVRDevicePath;
 	std::string originVRDevicePath;
+	bool originVerticalAlignFlag;
 	std::string calibrationComponentName;
 	int vrFrameDelay;
 	int videoFrameQueueSize;

@@ -47,6 +47,7 @@ void AppStage_VRDeviceSettings::enter()
 		m_vrDeviceSettingsModel->OnUpdateCameraParentAnchorId= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateCameraParentAnchorId);
 		m_vrDeviceSettingsModel->OnUpdateMatVRDevicePath= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateMatVRDevicePath);
 		m_vrDeviceSettingsModel->OnUpdateOriginVRDevicePath= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateOriginVRDevicePath);
+		m_vrDeviceSettingsModel->OnUpdateOriginVerticalAlignFlag= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateOriginVerticalAlignFlag);
 		m_vrDeviceSettingsModel->OnUpdateCameraScale= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateCameraScale);
 
 		// Init vr device settings view now that the dependent model has been created
@@ -101,6 +102,13 @@ void AppStage_VRDeviceSettings::onUpdateOriginVRDevicePath(const std::string& de
 {
 	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->originVRDevicePath = devicePath;
+	profileConfig->markDirty();
+}
+
+void AppStage_VRDeviceSettings::onUpdateOriginVerticalAlignFlag(bool bFlag)
+{
+	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	profileConfig->originVerticalAlignFlag = bFlag;
 	profileConfig->markDirty();
 }
 

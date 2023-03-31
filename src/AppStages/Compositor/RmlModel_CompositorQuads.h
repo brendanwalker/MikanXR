@@ -29,6 +29,7 @@ public:
 	SinglecastDelegate<void()> OnAddQuadStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteQuadStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnModifyQuadStencilEvent;
+	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyQuadStencilParentAnchorEvent;
 
 private:
 	Rml::Vector<int> m_spatialAnchors;

@@ -30,10 +30,10 @@
                     <label>Quad Stencil ID: {{stencil.stencil_id}}</label>
                     <br/>
                     <div data-if="spatial_anchors.size > 0">
-                        <select id="select" name="parent_anchor_id" data-value="stencil.parent_anchor_id">
+                        <select id="select" name="parent_anchor_id" data-value="stencil.parent_anchor_id" data-event-change="modify_stencil_parent_anchor(stencil.stencil_id)">
                             <option data-for="spatial_anchor_id : spatial_anchors" data-value="spatial_anchor_id">{{spatial_anchor_id | to_anchor_name}}</option>
                         </select>
-                    </div>            
+                    </div>           
                     <br/>
                     <span>
                         Position&nbsp;

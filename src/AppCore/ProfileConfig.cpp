@@ -47,6 +47,7 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, cameraScale(1.f)
 	, matVRDevicePath("")
 	, originVRDevicePath("")
+	, originVerticalAlignFlag(false)
 	, calibrationComponentName("front_rolled")
 	, vrFrameDelay(0)
 	, videoFrameQueueSize(3)
@@ -90,6 +91,7 @@ const configuru::Config ProfileConfig::writeToJSON()
 		{"cameraScale", cameraScale},
 		{"matVRDevicePath", matVRDevicePath},
 		{"originVRDevicePath", originVRDevicePath},
+		{"originVerticalAlignFlag", originVerticalAlignFlag},
 		{"calibrationComponentName", calibrationComponentName},
 		{"vrFrameDelay", vrFrameDelay},
 		{"videoFrameQueueSize", videoFrameQueueSize},
@@ -244,6 +246,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 
 	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);
 	originVRDevicePath = pt.get_or<std::string>("originVRDevicePath", originVRDevicePath);
+	originVerticalAlignFlag = pt.get_or<bool>("originVerticalAlignFlag", originVerticalAlignFlag);
 	calibrationComponentName = pt.get_or<std::string>("calibrationComponentName", calibrationComponentName);
 	vrFrameDelay = pt.get_or<int>("vrFrameDelay", vrFrameDelay);
 	videoFrameQueueSize = int_min(int_max(pt.get_or<int>("videoFrameQueueSize", videoFrameQueueSize), 1), 8);

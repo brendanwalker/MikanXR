@@ -174,6 +174,7 @@ void AppStage_Compositor::enter()
 		m_compositorQuadsModel->OnAddQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddQuadStencilEvent);
 		m_compositorQuadsModel->OnDeleteQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteQuadStencilEvent);
 		m_compositorQuadsModel->OnModifyQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyQuadStencilEvent);
+		m_compositorQuadsModel->OnModifyQuadStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyQuadStencilParentAnchorEvent);
 		m_compositiorQuadsView = addRmlDocument("compositor_quads.rml");
 		m_compositiorQuadsView->Hide();
 
@@ -182,6 +183,7 @@ void AppStage_Compositor::enter()
 		m_compositorBoxesModel->OnAddBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddBoxStencilEvent);
 		m_compositorBoxesModel->OnDeleteBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteBoxStencilEvent);
 		m_compositorBoxesModel->OnModifyBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyBoxStencilEvent);
+		m_compositorBoxesModel->OnModifyBoxStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyBoxStencilParentAnchorEvent);
 		m_compositiorBoxesView = addRmlDocument("compositor_boxes.rml");
 		m_compositiorBoxesView->Hide();
 
@@ -652,8 +654,20 @@ void AppStage_Compositor::onUpdateOriginEvent()
 		MikanSpatialAnchorInfo anchor;
 		if (m_profile->getSpatialAnchorInfo(m_profile->originAnchorId, anchor))
 		{
-			const glm::mat4 anchorXform = vrDeviceView->getCalibrationPose();
+			const glm::mat4 devicePose = vrDeviceView->getCalibrationPose();
+
+			glm::mat4 anchorXform= devicePose;
+			if (m_profile->originVerticalAlignFlag)
+			{
+				const glm::vec3 deviceForward = glm_mat4_forward(devicePose);
+				const glm::vec3 devicePosition = glm_mat4_position(devicePose);
+				const glm::quat yawOnlyOrientation = glm::quatLookAt(deviceForward, glm::vec3(0.f, 1.f, 0.f));
+
+				anchorXform = glm_mat4_from_pose(yawOnlyOrientation, devicePosition);
+			}
+
 			anchor.anchor_xform = glm_mat4_to_MikanMatrix4f(anchorXform);
+
 			m_profile->updateAnchor(anchor);
 
 			// Tell any connected clients that the anchor pose changed
@@ -744,6 +758,17 @@ void AppStage_Compositor::onModifyQuadStencilEvent(int stencilID)
 	m_compositorQuadsModel->copyUIQuadToProfile(stencilID, m_profile);
 }
 
+void AppStage_Compositor::onModifyQuadStencilParentAnchorEvent(int stencilID, int newAnchorID)
+{
+	MikanStencilQuad stencilInfo;
+	if (m_profile->getQuadStencilInfo(stencilID, stencilInfo) &&
+		stencilInfo.parent_anchor_id != newAnchorID)
+	{
+		stencilInfo.parent_anchor_id = newAnchorID;
+		m_profile->updateQuadStencil(stencilInfo);
+	}
+}
+
 // Box Stencils UI Events
 void AppStage_Compositor::onAddBoxStencilEvent()
 {
@@ -778,6 +803,17 @@ void AppStage_Compositor::onDeleteBoxStencilEvent(int stencilID)
 void AppStage_Compositor::onModifyBoxStencilEvent(int stencilID)
 {
 	m_compositorBoxesModel->copyUIBoxToProfile(stencilID, m_profile);
+}
+
+void AppStage_Compositor::onModifyBoxStencilParentAnchorEvent(int stencilID, int newAnchorID)
+{
+	MikanStencilBox stencilInfo;
+	if (m_profile->getBoxStencilInfo(stencilID, stencilInfo) &&
+		stencilInfo.parent_anchor_id != newAnchorID)
+	{
+		stencilInfo.parent_anchor_id = newAnchorID;
+		m_profile->updateBoxStencil(stencilInfo);
+	}
 }
 
 // Model Stencils UI Events

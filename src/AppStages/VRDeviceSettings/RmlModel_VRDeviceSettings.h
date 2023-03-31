@@ -21,6 +21,7 @@ public:
 	SinglecastDelegate<void(const std::string& devicePath)> OnUpdateMatVRDevicePath;
 	SinglecastDelegate<void(const std::string& devicePath)> OnUpdateOriginVRDevicePath;
 	SinglecastDelegate<void(const float newScale)> OnUpdateCameraScale;
+	SinglecastDelegate<void(const bool newFlag)> OnUpdateOriginVerticalAlignFlag;
 
 private:
 	Rml::Vector<Rml::String> m_vrDeviceList;
@@ -31,4 +32,5 @@ private:
 	float m_cameraScale = 1.f;
 	Rml::String m_matVRDevicePath;
 	Rml::String m_originVRDevicePath;
+	bool m_originVerticalAlignFlag;
 };

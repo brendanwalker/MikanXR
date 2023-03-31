@@ -33,6 +33,11 @@
                 <select id="select" name="origin_tracker_device" style="width: 250dp" data-value="origin_vr_device_path" data-event-change="update_origin_tracker_device()">
                     <option data-for="device_path : tracker_devices" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
                 </select>
+                <br/>
+                <label>
+                    <input type="checkbox" name="vertical_align" data-event-change="update_vertical_align_flag()" data-checked="origin_vertical_align_flag" />
+                    Vertical Align 
+                </label>
             </div>
             <div data-if="tracker_devices.size == 0">
                 {{origin_vr_device_path}}

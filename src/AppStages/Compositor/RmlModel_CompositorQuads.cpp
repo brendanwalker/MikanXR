@@ -81,6 +81,22 @@ bool RmlModel_CompositorQuads::init(
 			}
 		});
 	constructor.BindEventCallback(
+		"modify_stencil_parent_anchor",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (ev.GetId() == Rml::EventId::Change)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const int new_anchor_id = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+				if (OnModifyQuadStencilParentAnchorEvent &&
+					stencil_id != INVALID_MIKAN_ID &&
+					new_anchor_id != INVALID_MIKAN_ID)
+				{
+					OnModifyQuadStencilParentAnchorEvent(stencil_id, new_anchor_id);
+				}
+			}
+		});
+	constructor.BindEventCallback(
 		"delete_stencil",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
