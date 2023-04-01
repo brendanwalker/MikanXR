@@ -738,7 +738,7 @@ void WidgetNumericInput::MoveCursorHorizontal(CursorMovement movement, bool sele
 		{
 			const String& line= text_element->GetText();
 
-			absolute_cursor_index = line.size();
+			absolute_cursor_index = (int)line.size();
 		}
 		break;
 	default:
