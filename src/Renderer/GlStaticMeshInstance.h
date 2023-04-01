@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IGLSceneRenderable.h"
+
 #include <memory>
 #include <string>
 
@@ -15,7 +17,7 @@ typedef std::shared_ptr<const GlMaterialInstance> GlMaterialInstanceConstPtr;
 class GlTriangulatedMesh;
 typedef std::shared_ptr<const GlTriangulatedMesh> GlTriangulatedMeshConstPtr;
 
-class GlStaticMeshInstance
+class GlStaticMeshInstance : public IGlSceneRenderable
 {
 public:
 	GlStaticMeshInstance() = default;
@@ -30,17 +32,17 @@ public:
 	void bindToScene(class GlScene* scene);
 	void removeFromBoundScene();
 
-	inline bool getVisible() const { return m_visible; }
 	inline void setVisible(bool bNewVisible) { m_visible = bNewVisible; }
-
-	inline const glm::mat4& getModelMatrix() const { return m_modelMatrix; }
 	inline void setModelMatrix(const glm::mat4& mat) { m_modelMatrix = mat; }
 
-	inline const GlMaterialInstanceConstPtr getMaterialInstanceConst() const { return m_materialInstance; }
-	inline GlMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; }
 	inline GlTriangulatedMeshConstPtr getMesh() const { return m_mesh; }
 
-	void render() const;
+	// -- IGlSceneRenderable
+	virtual bool getVisible() const override;
+	virtual const glm::mat4& getModelMatrix() const override;
+	virtual const GlMaterialInstanceConstPtr getMaterialInstanceConst() const override;
+	virtual GlMaterialInstancePtr getMaterialInstance() const override;
+	virtual void render() const override;
 
 private:
 	std::string m_name;

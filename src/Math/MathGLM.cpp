@@ -136,6 +136,7 @@ bool glm_closest_point_on_ray_to_ray(
 
 		out_ray1_closest_time= numerator / denomenator;
 		out_ray1_closest_point= ray1_start + ray1_direction * out_ray1_closest_time;
+		return true;
 	}
 	else
 	{

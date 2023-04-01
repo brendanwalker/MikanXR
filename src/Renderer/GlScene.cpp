@@ -23,7 +23,7 @@ GlScene::~GlScene()
 	}
 }
 
-void GlScene::addInstance(const GlStaticMeshInstance* instance)
+void GlScene::addInstance(const IGlSceneRenderable* instance)
 {
 	GlMaterialConstPtr material= instance->getMaterialInstanceConst()->getMaterial();
 
@@ -35,9 +35,9 @@ void GlScene::addInstance(const GlStaticMeshInstance* instance)
 	m_drawCalls[material]->instances.push_back(instance);
 }
 
-void GlScene::removeInstance(const GlStaticMeshInstance* instance)
+void GlScene::removeInstance(const IGlSceneRenderable* instance)
 {
-	GlMaterialConstPtr material = instance->getMaterialInstance()->getMaterial();
+	GlMaterialConstPtr material = instance->getMaterialInstanceConst()->getMaterial();
 
 	auto drawCallIter= m_drawCalls.find(material);
 	if (drawCallIter != m_drawCalls.end())
@@ -78,25 +78,25 @@ void GlScene::render() const
 				instanceIter != drawCall->instances.end(); 
 				instanceIter++)
 			{
-				const GlStaticMeshInstance* meshInstance= *instanceIter;
+				const IGlSceneRenderable* renderableInstance= *instanceIter;
 
-				if (meshInstance->getVisible())
+				if (renderableInstance->getVisible())
 				{
-					GlMaterialInstancePtr materialInstance= meshInstance->getMaterialInstance();
+					GlMaterialInstancePtr materialInstance= renderableInstance->getMaterialInstance();
 
 					// Bind material instance parameters (unbound when materialInstanceBinding goes out of scope)
 					auto materialInstanceBinding=  materialInstance->bindMaterialInstance(materialBinding);
 					if (materialInstanceBinding)
 					{
 						// Set the per-mesh-instance ModelViewProjection matrix transform on the shader program
-						const glm::mat4 mvpMatrix = VPMatrix * meshInstance->getModelMatrix();
+						const glm::mat4 mvpMatrix = VPMatrix * renderableInstance->getModelMatrix();
 						materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);
 
-						// Draw the mesh
-						meshInstance->render();
+						// Draw the renderable
+						renderableInstance->render();
 					}
 				}
-			}			
+			}
 		}
 	}
 }

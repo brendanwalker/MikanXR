@@ -22,6 +22,9 @@ public:
 		return component;
 	}
 
+	inline std::vector<MikanComponent*>& getComponentsConst() { return m_components; }
+	inline const std::vector<MikanComponent*>& getComponentsConst() const { return m_components; }
+
 	template<class t_component_type>
 	t_component_type* getComponentOfType()
 	{

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IGLSceneRenderable.h"
+
 #include <map>
 #include <vector>
 
@@ -13,7 +15,7 @@ typedef std::shared_ptr<GlMaterialInstance> GlMaterialInstancePtr;
 
 struct GlDrawCall
 {
-	std::vector<const class GlStaticMeshInstance*> instances;
+	std::vector<const IGlSceneRenderable*> instances;
 };
 
 class GlScene
@@ -28,8 +30,8 @@ public:
 	GlScene();
 	virtual ~GlScene();
 
-	void addInstance(const class GlStaticMeshInstance *instance);
-	void removeInstance(const class GlStaticMeshInstance* instance);
+	void addInstance(const IGlSceneRenderable *instance);
+	void removeInstance(const IGlSceneRenderable* instance);
 
 	void render() const;
 

@@ -39,6 +39,27 @@ void GlStaticMeshInstance::removeFromBoundScene()
 	}
 }
 
+// -- IGlSceneRenderable
+bool GlStaticMeshInstance::getVisible() const 
+{ 
+	return m_visible; 
+}
+
+const glm::mat4& GlStaticMeshInstance::getModelMatrix() const 
+{
+	return m_modelMatrix; 
+}
+
+const GlMaterialInstanceConstPtr GlStaticMeshInstance::getMaterialInstanceConst() const 
+{ 
+	return m_materialInstance; 
+}
+
+GlMaterialInstancePtr GlStaticMeshInstance::getMaterialInstance() const 
+{ 
+	return m_materialInstance; 
+}
+
 void GlStaticMeshInstance::render() const
 {
 	m_mesh->drawElements();
