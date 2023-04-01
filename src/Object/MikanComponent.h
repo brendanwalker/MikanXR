@@ -24,10 +24,10 @@ protected:
 };
 typedef std::weak_ptr<MikanObject> MikanComponentWeakPtr;
 
-template<class t_component_type>
-t_component_type* ComponentCast(MikanComponent* component)
+template<class t_derived_type, class t_base_type>
+t_derived_type* ComponentCast(t_base_type* component)
 {
-	return dynamic_cast<t_component_type>(component);
+	return dynamic_cast<t_derived_type *>(component);
 }
 
 template<class t_component_type>
