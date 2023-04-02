@@ -6,6 +6,7 @@
 #include <vector>
 
 class MikanSceneComponent;
+typedef std::shared_ptr<MikanSceneComponent> MikanSceneComponentPtr;
 
 class MikanObject final
 {
@@ -14,23 +15,23 @@ public:
 	~MikanObject();
 
 	template<class t_component_type>
-	t_component_type* addComponent()
+	std::shared_ptr<t_component_type> addComponent()
 	{
 
-		t_component_type* component= std::make_shared<t_component_type>(this);
+		std::shared_ptr<t_component_type> component= std::make_shared<t_component_type>(this);
 		m_components.push_back(component);
 		return component;
 	}
 
-	inline std::vector<MikanComponent*>& getComponentsConst() { return m_components; }
-	inline const std::vector<MikanComponent*>& getComponentsConst() const { return m_components; }
+	inline std::vector<MikanComponentPtr>& getComponentsConst() { return m_components; }
+	inline const std::vector<MikanComponentPtr>& getComponentsConst() const { return m_components; }
 
 	template<class t_component_type>
-	t_component_type* getComponentOfType()
+	std::shared_ptr<t_component_type> getComponentOfType()
 	{
-		for(MikanComponent* component : m_components)
+		for(MikanComponentPtr component : m_components)
 		{
-			t_component_type* derivedComponent= ComponentCast<t_component_type>(component);
+			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
 
 			if (derivedComponent != nullptr)
 			{
@@ -42,11 +43,11 @@ public:
 	}
 
 	template<class t_component_type>
-	void getComponentsOfType(std::vector<t_component_type*>& outComponents)
+	void getComponentsOfType(std::vector< std::shared_ptr<t_component_type> >& outComponents)
 	{
-		for (MikanComponent* component : m_components)
+		for (MikanComponentPtr component : m_components)
 		{
-			t_component_type* derivedComponent = ComponentCast<t_component_type>(component);
+			std::shared_ptr<t_component_type> derivedComponent = ComponentCast<t_component_type>(component);
 
 			if (derivedComponent != nullptr)
 			{
@@ -60,8 +61,8 @@ public:
 	void update();
 
 protected:
-	MikanSceneComponent* m_rootSceneComponent= nullptr;
-	std::vector<MikanComponent*> m_components;
+	MikanSceneComponentPtr m_rootSceneComponent;
+	std::vector<MikanComponentPtr> m_components;
 };
 typedef std::shared_ptr<MikanObject> MikanObjectPtr;
 typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;

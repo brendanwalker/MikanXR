@@ -22,18 +22,19 @@ public:
 protected:
 	MikanObjectWeakPtr m_ownerObject;
 };
-typedef std::weak_ptr<MikanObject> MikanComponentWeakPtr;
+typedef std::shared_ptr<MikanComponent> MikanComponentPtr;
+typedef std::weak_ptr<MikanComponent> MikanComponentWeakPtr;
 
-template<class t_derived_type, class t_base_type>
-t_derived_type* ComponentCast(t_base_type* component)
+template<class t_derived_type>
+std::shared_ptr<t_derived_type> ComponentCast(MikanComponentPtr component)
 {
-	return dynamic_cast<t_derived_type *>(component);
+	return std::dynamic_pointer_cast<t_derived_type>(component);
 }
 
 template<class t_component_type>
-const char* ComponentTypeName(const t_component_type* component)
+const char* ComponentTypeName(MikanComponentPtr component)
 {
-	return typeid(*component).name();
+	return typeid(*component.get()).name();
 }
 
 template<class t_component_type>

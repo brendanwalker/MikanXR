@@ -12,7 +12,7 @@ MikanObject::~MikanObject()
 
 void MikanObject::init()
 {
-	for (MikanComponent* component : m_components)
+	for (MikanComponentPtr component : m_components)
 	{
 		component->init();
 	}
@@ -20,10 +20,9 @@ void MikanObject::init()
 
 void MikanObject::dispose()
 {
-	for (MikanComponent* component : m_components)
+	for (MikanComponentPtr component : m_components)
 	{
 		component->dispose();
-		delete component;
 	}
 
 	m_components.clear();
@@ -31,7 +30,7 @@ void MikanObject::dispose()
 
 void MikanObject::update()
 {
-	for (MikanComponent* component : m_components)
+	for (MikanComponentPtr component : m_components)
 	{
 		component->update();
 	}
