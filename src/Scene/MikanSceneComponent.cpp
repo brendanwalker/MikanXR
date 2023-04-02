@@ -57,7 +57,6 @@ void MikanSceneComponent::detachFromParent()
 	}
 
 	m_parentComponent = MikanSceneComponentPtr();
-	m_worldTransform = m_relativeTransform.getMat4();
 }
 
 void MikanSceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
@@ -73,11 +72,21 @@ void MikanSceneComponent::setRelativeTransform(const GlmTransform& newRelativeXf
 	{
 		m_worldTransform= newRelativeXform.getMat4();
 	}
+
+	if (m_renderable != nullptr)
+	{
+		m_renderable->setModelMatrix(m_worldTransform);
+	}
 }
 
 void MikanSceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
 	m_worldTransform= newWorldXform;
+
+	if (m_renderable != nullptr)
+	{
+		m_renderable->setModelMatrix(m_worldTransform);
+	}
 	
 	glm::mat4 invParentXform= glm::mat4(1.f);
 	MikanSceneComponentPtr parent = m_parentComponent.lock();

@@ -2,6 +2,7 @@
 
 #include "MikanComponent.h"
 #include "Transform.h"
+#include "IGLSceneRenderable.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -38,9 +39,19 @@ public:
 		return m_worldTransform;
 	}
 
+	inline IGlSceneRenderablePtr getGlSceneRenderable() const
+	{
+		return m_renderable;
+	}
+
+	inline IGlSceneRenderableConstPtr getGlSceneRenderableConst() const
+	{
+		return m_renderable;
+	}
+
 	virtual void init() override;
 	virtual void dispose() override;
-
+	
 	void attachToComponent(MikanSceneComponentWeakPtr newParentComponent);
 	void detachFromParent();
 
@@ -52,4 +63,5 @@ protected:
 	glm::mat4 m_worldTransform;
 	MikanSceneComponentWeakPtr m_parentComponent;
 	MikanSceneComponentList m_childComponents;
+	IGlSceneRenderablePtr m_renderable;
 };
