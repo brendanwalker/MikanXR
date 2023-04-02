@@ -148,6 +148,8 @@ protected:
 	class GlFrameCompositor* m_frameCompositor= nullptr;
 	class GlCamera* m_camera= nullptr;
 
+	class MikanScene* m_mikanScene= nullptr;
+
 	bool m_bAddingNewConfig= false;
 
 	class VideoWriter* m_videoWriter= nullptr;
