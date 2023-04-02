@@ -1,5 +1,6 @@
 #include "MikanScene.h"
 #include "MikanObject.h"
+#include "MikanSceneComponent.h"
 #include "IGLSceneRenderable.h"
 #include "GlScene.h"
 
@@ -28,11 +29,16 @@ void MikanScene::addMikanObject(MikanObjectPtr objectPtr)
 {
 	m_objects.push_back(objectPtr);
 
-	std::vector<IGlSceneRenderable*> renderableComponents;
-	objectPtr->getComponentsOfType(renderableComponents);
-	for (IGlSceneRenderable* renderableComponent : renderableComponents)
+	std::vector<MikanSceneComponent*> sceneComponents;
+	objectPtr->getComponentsOfType(sceneComponents);
+	for (MikanSceneComponent* sceneComponent : sceneComponents)
 	{
-		m_glScene->addInstance(renderableComponent);
+		IGlSceneRenderableConstPtr renderable= sceneComponent->getGlSceneRenderableConst();
+		
+		if (renderable)
+		{
+			m_glScene->addInstance(renderable);
+		}
 	}	
 }
 
@@ -43,11 +49,16 @@ void MikanScene::removeMikanObject(MikanObjectPtr objectPtr)
 	{
 		MikanObjectPtr objectPtr= *it;
 
-		std::vector<IGlSceneRenderable*> renderableComponents;
-		objectPtr->getComponentsOfType(renderableComponents);
-		for (IGlSceneRenderable* renderableComponent : renderableComponents)
+		std::vector<MikanSceneComponent*> sceneComponents;
+		objectPtr->getComponentsOfType(sceneComponents);
+		for (MikanSceneComponent* sceneComponent : sceneComponents)
 		{
-			m_glScene->removeInstance(renderableComponent);
+			IGlSceneRenderableConstPtr renderable= sceneComponent->getGlSceneRenderableConst();
+
+			if (renderable)
+			{
+				m_glScene->removeInstance(renderable);
+			}
 		}
 
 		m_objects.erase(it);
