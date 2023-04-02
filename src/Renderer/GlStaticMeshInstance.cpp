@@ -5,7 +5,7 @@
 
 GlStaticMeshInstance::GlStaticMeshInstance(
 	const std::string& name, 
-	GlTriangulatedMeshConstPtr mesh, 
+	IGlMeshConstPtr mesh, 
 	GlMaterialConstPtr material)
 {
 	m_name = name;
@@ -27,14 +27,14 @@ void GlStaticMeshInstance::bindToScene(GlScene* scene)
 	removeFromBoundScene();
 
 	m_boundScene= scene;
-	m_boundScene->addInstance(this);
+	m_boundScene->addInstance(IGlSceneRenderableConstPtr(this));
 }
 
 void GlStaticMeshInstance::removeFromBoundScene()
 {
 	if (m_boundScene != nullptr)
 	{
-		m_boundScene->removeInstance(this);
+		m_boundScene->removeInstance(IGlSceneRenderableConstPtr(this));
 		m_boundScene = nullptr;
 	}
 }
@@ -45,9 +45,19 @@ bool GlStaticMeshInstance::getVisible() const
 	return m_visible; 
 }
 
+void GlStaticMeshInstance::setVisible(bool bNewVisible) 
+{ 
+	m_visible = bNewVisible; 
+}
+
 const glm::mat4& GlStaticMeshInstance::getModelMatrix() const 
 {
 	return m_modelMatrix; 
+}
+
+void GlStaticMeshInstance::setModelMatrix(const glm::mat4& mat) 
+{ 
+	m_modelMatrix = mat; 
 }
 
 const GlMaterialInstanceConstPtr GlStaticMeshInstance::getMaterialInstanceConst() const 

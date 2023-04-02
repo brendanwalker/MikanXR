@@ -4,7 +4,6 @@
 #include "GlMaterialInstance.h"
 #include "GlProgram.h"
 #include "GlScene.h"
-#include "GlStaticMeshInstance.h"
 #include "GlShaderCache.h"
 #include "Renderer.h"
 
@@ -23,7 +22,7 @@ GlScene::~GlScene()
 	}
 }
 
-void GlScene::addInstance(const IGlSceneRenderable* instance)
+void GlScene::addInstance(IGlSceneRenderableConstPtr instance)
 {
 	GlMaterialConstPtr material= instance->getMaterialInstanceConst()->getMaterial();
 
@@ -35,7 +34,7 @@ void GlScene::addInstance(const IGlSceneRenderable* instance)
 	m_drawCalls[material]->instances.push_back(instance);
 }
 
-void GlScene::removeInstance(const IGlSceneRenderable* instance)
+void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 {
 	GlMaterialConstPtr material = instance->getMaterialInstanceConst()->getMaterial();
 
@@ -78,7 +77,7 @@ void GlScene::render() const
 				instanceIter != drawCall->instances.end(); 
 				instanceIter++)
 			{
-				const IGlSceneRenderable* renderableInstance= *instanceIter;
+				IGlSceneRenderableConstPtr renderableInstance= *instanceIter;
 
 				if (renderableInstance->getVisible())
 				{

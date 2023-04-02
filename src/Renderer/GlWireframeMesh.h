@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IGlMesh.h"
 #include "GlVertexDefinition.h"
 #include "stdint.h"
 
@@ -12,7 +13,7 @@
 class GlProgram;
 typedef std::shared_ptr<GlProgram> GlProgramPtr;
 
-class GlWireframeMesh
+class GlWireframeMesh : public IGlMesh
 {
 public:
 	GlWireframeMesh() = default;
@@ -29,9 +30,9 @@ public:
 	const glm::vec3* getVertexData() const { return (const glm::vec3*)m_vertexData; }
 	const uint32_t getVertexCount() const { return m_vertexCount; };
 
-	void drawElements() const;
-	bool createBuffers();
-	void deleteBuffers();
+	virtual void drawElements() const override;
+	virtual bool createBuffers() override;
+	virtual void deleteBuffers() override;
 
 protected:
 	static const class GlProgramCode* getShaderCode();

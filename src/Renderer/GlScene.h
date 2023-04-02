@@ -15,7 +15,7 @@ typedef std::shared_ptr<GlMaterialInstance> GlMaterialInstancePtr;
 
 struct GlDrawCall
 {
-	std::vector<const IGlSceneRenderable*> instances;
+	std::vector<IGlSceneRenderableConstPtr> instances;
 };
 
 class GlScene
@@ -30,8 +30,8 @@ public:
 	GlScene();
 	virtual ~GlScene();
 
-	void addInstance(const IGlSceneRenderable *instance);
-	void removeInstance(const IGlSceneRenderable* instance);
+	void addInstance(IGlSceneRenderableConstPtr instance);
+	void removeInstance(IGlSceneRenderableConstPtr instance);
 
 	void render() const;
 

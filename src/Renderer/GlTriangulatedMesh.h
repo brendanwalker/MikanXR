@@ -1,10 +1,11 @@
 #pragma once
 
+#include "IGlMesh.h"
 #include "GlVertexDefinition.h"
 #include "stdint.h"
 #include <string>
 
-class GlTriangulatedMesh
+class GlTriangulatedMesh : public IGlMesh
 {
 public:
 	GlTriangulatedMesh() = default; 
@@ -18,9 +19,9 @@ public:
 		bool bOwnsVertexData);
 	virtual ~GlTriangulatedMesh();
 
-	void drawElements() const;
-	bool createBuffers();
-	void deleteBuffers();
+	virtual void drawElements() const override;
+	virtual bool createBuffers() override;
+	virtual void deleteBuffers() override;
 
 protected:
 	std::string m_name;
