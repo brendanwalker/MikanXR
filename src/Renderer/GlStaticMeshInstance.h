@@ -49,3 +49,4 @@ private:
 	IGlMeshConstPtr m_mesh= nullptr;
 	class GlScene* m_boundScene= nullptr;
 };
+typedef std::shared_ptr<GlStaticMeshInstance> GlStaticMeshInstancePtr;
