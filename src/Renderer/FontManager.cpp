@@ -1,7 +1,6 @@
 #include "FontManager.h"
 #include "GlCommon.h"
 #include "GlShaderCache.h"
-#include "GlStaticMeshInstance.h"
 #include "GlProgram.h"
 #include "GlTexture.h"
 #include "Logger.h"

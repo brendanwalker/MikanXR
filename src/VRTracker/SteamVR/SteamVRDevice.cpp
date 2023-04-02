@@ -1,5 +1,4 @@
 #include "App.h"
-#include "GlStaticMeshInstance.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "SteamVRDevice.h"

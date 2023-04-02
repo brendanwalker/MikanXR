@@ -1,5 +1,4 @@
 #include "GlShaderCache.h"
-#include "GlStaticMeshInstance.h"
 #include "GlProgram.h"
 
 GlShaderCache* GlShaderCache::m_instance= nullptr;
