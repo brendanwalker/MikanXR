@@ -8,7 +8,7 @@
 class MikanSceneComponent;
 typedef std::shared_ptr<MikanSceneComponent> MikanSceneComponentPtr;
 
-class MikanObject final : public std::enable_shared_from_this<MikanObject>
+class MikanObject : public std::enable_shared_from_this<MikanObject>
 {
 public:
 	MikanObject();
@@ -66,3 +66,21 @@ protected:
 };
 typedef std::shared_ptr<MikanObject> MikanObjectPtr;
 typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
+
+template<class t_derived_type>
+std::shared_ptr<t_derived_type> ObjectCast(MikanObjectPtr object)
+{
+	return std::dynamic_pointer_cast<t_derived_type>(object);
+}
+
+template<class t_object_type>
+const char* ObjectTypeName(MikanObjectPtr object)
+{
+	return typeid(*object.get()).name();
+}
+
+template<class t_object_type>
+const char* ObjectTypeName()
+{
+	return typeid(t_object_type).name();
+}
