@@ -15,4 +15,8 @@ GlStaticMeshInstancePtr MikanStaticMeshComponent::getStaticMesh() const
 void MikanStaticMeshComponent::setStaticMesh(GlStaticMeshInstancePtr meshInstance)
 {
 	m_renderable= meshInstance;
+	if (OnMeshChanged)
+	{
+		OnMeshChanged(getSelfWeakPtr<MikanStaticMeshComponent>());
+	}
 }

@@ -67,3 +67,16 @@ std::string GlVertexDefinition::getVertexDefinitionDesc() const
 
 	return desc;
 }
+
+const GlVertexAttribute* GlVertexDefinition::getFirstAttributeBySemantic(eVertexSemantic semantic) const
+{
+	for (const GlVertexAttribute& attrib : attributes)
+	{
+		if (attrib.semantic == semantic)
+		{
+			return &attrib;
+		}
+	}
+
+	return nullptr;
+}

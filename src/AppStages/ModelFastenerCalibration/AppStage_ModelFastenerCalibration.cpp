@@ -191,7 +191,7 @@ void AppStage_ModelFastenerCalibration::updateClosestModelVertex()
 		const GlWireframeMesh* wireframeMesh= m_modelResource->getWireframeMesh(meshIndex);
 
 		const uint32_t vertexCount= wireframeMesh->getVertexCount();
-		const glm::vec3* vertexData= wireframeMesh->getVertexData();
+		const glm::vec3* vertexData= (glm::vec3*)wireframeMesh->getVertexData();
 
 		for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
 		{

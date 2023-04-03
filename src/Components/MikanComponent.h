@@ -7,13 +7,25 @@ class MikanObject;
 typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
 typedef std::shared_ptr<MikanObject> MikanObjectPtr;
 
-class MikanComponent
+class MikanComponent : public std::enable_shared_from_this<MikanComponent>
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
 	virtual ~MikanComponent();
 	
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
+
+	template <class t_derived_type>
+	std::shared_ptr<t_derived_type> getSelfPtr()
+	{
+		return std::dynamic_pointer_cast<t_derived_type>(shared_from_this());
+	}
+
+	template <class t_derived_type>
+	std::weak_ptr<t_derived_type> getSelfWeakPtr()
+	{
+		return getSelfPtr<t_derived_type>();
+	}
 
 	virtual void init();
 	virtual void dispose();

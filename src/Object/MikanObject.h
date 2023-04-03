@@ -8,7 +8,7 @@
 class MikanSceneComponent;
 typedef std::shared_ptr<MikanSceneComponent> MikanSceneComponentPtr;
 
-class MikanObject final
+class MikanObject final : public std::enable_shared_from_this<MikanObject>
 {
 public:
 	MikanObject();
@@ -18,7 +18,7 @@ public:
 	std::shared_ptr<t_component_type> addComponent()
 	{
 
-		std::shared_ptr<t_component_type> component= std::make_shared<t_component_type>(this);
+		std::shared_ptr<t_component_type> component= std::make_shared<t_component_type>(shared_from_this());
 		m_components.push_back(component);
 		return component;
 	}

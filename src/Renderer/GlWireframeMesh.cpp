@@ -76,7 +76,11 @@ bool GlWireframeMesh::createBuffers()
 		// Create and populate the index buffer
 		glGenBuffers(1, &m_glIndexBuffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_glIndexBuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * m_lineCount * 2, m_indexData, GL_STATIC_DRAW);
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER, 
+			getElementCount() * getIndexPerElementCount() * getIndexSize(), // index array size in bytes
+			m_indexData, 
+			GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
 
@@ -136,7 +140,7 @@ const GlProgramCode* GlWireframeMesh::getShaderCode()
 	return &x_shaderCode;
 }
 
-const GlVertexDefinition* GlWireframeMesh::getVertexDefinition()
+const GlVertexDefinition* GlWireframeMesh::getVertexDefinitionInternal()
 {
 	static GlVertexDefinition x_vertexDefinition;
 

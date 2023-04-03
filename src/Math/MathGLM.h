@@ -11,6 +11,14 @@
 #define assert_glm_vector3f_is_normalized(v) assert(is_nearly_equal(v.length(), 1.f, k_normal_epsilon))
 #define assert_glm_vectors_are_perpendicular(a,b) assert(is_nearly_equal(glm::dot(a,b), 0.f, k_normal_epsilon))
 
+//-- types -----
+struct GlmTriangle
+{
+	glm::vec3 v0;
+	glm::vec3 v1;
+	glm::vec3 v2;
+};
+
 //-- interface -----
 float glm_vec3_normalize_with_default(glm::vec3& v, const glm::vec3& default_result);
 glm::vec3 glm_vec3_lerp(const glm::vec3& a, const glm::vec3& b, const float u);
@@ -33,3 +41,7 @@ bool glm_closest_point_on_ray_to_ray(
 	const glm::vec3& ray2_direction,
 	float& out_ray1_closest_time,
 	glm::vec3& out_ray1_closest_point);
+bool glm_intersect_tri_with_ray(
+	const GlmTriangle& tri, 
+	const glm::vec3& ray_start, const glm::vec3& ray_direction,
+	float& outIntDistance, glm::vec3& outIntPoint, glm::vec3& outIntNormal);

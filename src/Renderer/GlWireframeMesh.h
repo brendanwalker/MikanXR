@@ -27,8 +27,15 @@ public:
 	virtual ~GlWireframeMesh();
 
 	inline GlProgramPtr getDefaultWireframeShader() const { return m_program; }
-	const glm::vec3* getVertexData() const { return (const glm::vec3*)m_vertexData; }
-	const uint32_t getVertexCount() const { return m_vertexCount; };
+
+	virtual const GlVertexDefinition* getVertexDefinition() const override { return getVertexDefinitionInternal(); }
+	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
+	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
+
+	virtual const uint8_t* getIndexData() const override { return m_indexData; }
+	virtual const size_t getElementCount() const override { return m_lineCount; }
+	virtual const size_t getIndexPerElementCount() const override { return 2; }
+	virtual const size_t getIndexSize() const override { return sizeof(uint16_t); }
 
 	virtual void drawElements() const override;
 	virtual bool createBuffers() override;
@@ -36,11 +43,9 @@ public:
 
 protected:
 	static const class GlProgramCode* getShaderCode();
-	static const struct GlVertexDefinition* getVertexDefinition();
+	static const struct GlVertexDefinition* getVertexDefinitionInternal();
 
 	std::string m_name;
-
-	GlVertexDefinition m_vertexDefinition;
 
 	const uint8_t* m_vertexData = nullptr;
 	uint32_t m_vertexCount = 0;

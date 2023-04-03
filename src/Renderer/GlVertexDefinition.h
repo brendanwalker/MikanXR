@@ -50,4 +50,5 @@ struct GlVertexDefinition
 
 	void applyVertexDefintion() const;
 	std::string getVertexDefinitionDesc() const;
+	const GlVertexAttribute* getFirstAttributeBySemantic(eVertexSemantic semantic) const;
 };

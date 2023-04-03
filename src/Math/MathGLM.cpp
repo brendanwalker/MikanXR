@@ -145,3 +145,28 @@ bool glm_closest_point_on_ray_to_ray(
 		return false;
 	}
 }
+
+bool glm_intersect_tri_with_ray(
+	const GlmTriangle& tri,
+	const glm::vec3& ray_start, const glm::vec3& ray_direction,
+	float& outIntDistance, glm::vec3& outIntPoint, glm::vec3& outIntNormal)
+{
+	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
+
+	glm::vec2 baryPosition;
+	if (glm::intersectRayTriangle(
+		ray_start, ray_unit_direction,
+		tri.v0, tri.v1, tri.v2,
+		baryPosition, outIntDistance))
+	{
+		const glm::vec3 edge1 = tri.v1 - tri.v0;
+		const glm::vec3 edge2 = tri.v2 - tri.v0;
+
+		outIntPoint= ray_start + ray_direction*outIntDistance;
+		outIntNormal= glm::normalize(glm::cross(edge1, edge2));
+
+		return true;
+	}
+
+	return false;
+}
