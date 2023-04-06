@@ -3,13 +3,9 @@
 // -- includes -----
 #include "CommonConfig.h"
 #include "ProfileConfigConstants.h"
+#include "AnchorObjectSystem.h"
+#include "StencilObjectSystem.h"
 #include <filesystem>
-
-struct MikanStencilModelConfig
-{
-	MikanStencilModel modelInfo;
-	std::filesystem::path modelPath;
-};
 
 // -- definitions -----
 class ProfileConfig : public CommonConfig
@@ -105,6 +101,7 @@ public:
 	int vrFrameDelay;
 	int videoFrameQueueSize;
 
+	AnchorObjectSystemConfig anchorConfig;
 	std::string anchorVRDevicePath;
 	std::vector<MikanSpatialAnchorInfo> spatialAnchorList;
 	MikanSpatialAnchorID nextAnchorId;
@@ -115,6 +112,7 @@ public:
 	MikanSpatialFastenerID nextFastenerId;
 	bool debugRenderFasteners;
 
+	StencilObjectSystemConfig stencilConfig;
 	std::vector<MikanStencilQuad> quadStencilList;
 	std::vector<MikanStencilBox> boxStencilList;
 	std::vector<MikanStencilModelConfig> modelStencilList;

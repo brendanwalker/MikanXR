@@ -56,6 +56,8 @@ public:
 		}
 	}
 
+	inline void setRootComponent(MikanSceneComponentPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }
+
 	void init();
 	void dispose();
 	void update();

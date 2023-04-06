@@ -13,7 +13,6 @@ MikanObjectSystem::~MikanObjectSystem()
 
 void MikanObjectSystem::init()
 {
-
 }
 
 void MikanObjectSystem::dispose()

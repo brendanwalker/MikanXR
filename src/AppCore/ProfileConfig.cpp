@@ -22,8 +22,6 @@
 #define DEFAULT_PUCK_VERTICAL_OFFSET_MM  89
 #define DEFAULT_PUCK_DEPTH_OFFSET_MM  0
 
-#define ORIGIN_SPATIAL_ANCHOR_NAME	"Origin"
-
 // -- WMF Stereo Tracker Config
 ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
@@ -112,6 +110,7 @@ const configuru::Config ProfileConfig::writeToJSON()
 	};
 
 	// Write out the spatial anchors
+	pt["anchorConfig"]= anchorConfig.writeToJSON();
 	std::vector<configuru::Config> anchorConfigs;
 	for (const MikanSpatialAnchorInfo& anchor : spatialAnchorList)
 	{
@@ -144,6 +143,9 @@ const configuru::Config ProfileConfig::writeToJSON()
 		fastenerConfigs.push_back(fastenerConfig);
 	}
 	pt.insert_or_assign(std::string("spatialFasteners"), fastenerConfigs);
+
+	// Write out the stencil configuration
+	pt["stencilConfig"]= stencilConfig.writeToJSON();
 
 	// Write out the quad stencils
 	std::vector<configuru::Config> stencilQuadConfigs;
@@ -252,6 +254,10 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	videoFrameQueueSize = int_min(int_max(pt.get_or<int>("videoFrameQueueSize", videoFrameQueueSize), 1), 8);
 
 	// Anchors
+	if (pt.has_key("anchorConfig"))
+	{
+		anchorConfig.readFromJSON(pt["anchorConfig"]);
+	}
 	anchorVRDevicePath= pt.get_or<std::string>("anchorVRDevicePath", anchorVRDevicePath);
 	nextAnchorId= pt.get_or<int>("nextAnchorId", nextAnchorId);
 	debugRenderAnchors= pt.get_or<bool>("debugRenderAnchors", debugRenderAnchors);
@@ -348,6 +354,10 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	}
 
 	// Stencils
+	if (pt.has_key("stencilConfig"))
+	{
+		stencilConfig.readFromJSON(pt["stencilConfig"]);
+	}
 	nextStencilId = pt.get_or<int>("nextStencilId", nextStencilId);
 	debugRenderStencils= pt.get_or<bool>("debugRenderStencils", debugRenderStencils);
 

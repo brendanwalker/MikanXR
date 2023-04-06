@@ -39,6 +39,8 @@ typedef int32_t MikanSpatialFastenerID;
 #define MAX_MIKAN_SPATIAL_FASTENERS	64
 #define MAX_MIKAN_ANCHOR_NAME_LEN	128
 #define MAX_MIKAN_FASTENER_NAME_LEN	128
+#define ORIGIN_SPATIAL_ANCHOR_NAME	"Origin"
+
 
 // Shared Constants
 //-----------------

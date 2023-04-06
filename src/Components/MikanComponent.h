@@ -2,10 +2,15 @@
 
 #include <memory>
 #include <typeinfo>
+#include "MulticastDelegate.h"
 
 class MikanObject;
 typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
 typedef std::shared_ptr<MikanObject> MikanObjectPtr;
+
+class MikanComponent;
+typedef std::shared_ptr<MikanComponent> MikanComponentPtr;
+typedef std::weak_ptr<MikanComponent> MikanComponentWeakPtr;
 
 class MikanComponent : public std::enable_shared_from_this<MikanComponent>
 {
@@ -34,8 +39,6 @@ public:
 protected:
 	MikanObjectWeakPtr m_ownerObject;
 };
-typedef std::shared_ptr<MikanComponent> MikanComponentPtr;
-typedef std::weak_ptr<MikanComponent> MikanComponentWeakPtr;
 
 template<class t_derived_type>
 std::shared_ptr<t_derived_type> ComponentCast(MikanComponentPtr component)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanComponent.h"
+#include "MikanObject.h"
 
 #include <memory>
 #include <vector>
@@ -15,10 +16,9 @@ public:
 	MikanObjectSystem();
 	virtual ~MikanObjectSystem();
 
-	template<class t_object_type>
-	MikanObjectWeakPtr newObject()
+	MikanObjectPtr newObject()
 	{
-		std::shared_ptr<t_object_type> objectPtr = std::make_shared<t_object_type>();
+		MikanObjectPtr objectPtr = std::make_shared<MikanObject>();
 		objectPtr->init();
 
 		addObject(objectPtr);
@@ -46,6 +46,8 @@ public:
 
 	virtual void addObject(MikanObjectPtr objectPtr);
 	virtual void removeObject(MikanObjectPtr objectPtr);
+
+	MulticastDelegate<void(MikanComponent* componentPtr, const std::string& propertyName, const std::string& propertyType)> OnComponentPropertyChaged;
 
 protected:
 	std::vector<MikanObjectPtr> m_objects;
