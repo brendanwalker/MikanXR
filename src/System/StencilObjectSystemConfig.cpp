@@ -171,5 +171,211 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 			}
 		}
 	}
+}
 
+bool StencilObjectSystemConfig::canAddStencil() const
+{
+	return (boxStencilList.size() + quadStencilList.size() + modelStencilList.size() < MAX_MIKAN_STENCILS);
+}
+
+bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
+{
+	// Try quad stencil list first
+	{
+		auto it = std::find_if(
+			quadStencilList.begin(), quadStencilList.end(),
+			[stencilId](const MikanStencilQuad& q) {
+			return q.stencil_id == stencilId;
+		});
+
+		if (it != quadStencilList.end())
+		{
+			quadStencilList.erase(it);
+			markDirty();
+
+			return true;
+		}
+	}
+
+	// Then try the box stencil list
+	{
+		auto it = std::find_if(
+			boxStencilList.begin(), boxStencilList.end(),
+			[stencilId](const MikanStencilBox& b) {
+			return b.stencil_id == stencilId;
+		});
+
+		if (it != boxStencilList.end())
+		{
+			boxStencilList.erase(it);
+			markDirty();
+
+			return true;
+		}
+	}
+
+	// Then try model stencil list last
+	{
+		auto it = std::find_if(
+			modelStencilList.begin(), modelStencilList.end(),
+			[stencilId](const MikanStencilModelConfig& m) {
+			return m.modelInfo.stencil_id == stencilId;
+		});
+
+		if (it != modelStencilList.end())
+		{
+			modelStencilList.erase(it);
+			markDirty();
+
+			return true;
+		}
+	}
+
+
+	return false;
+}
+
+eStencilType StencilObjectSystemConfig::getStencilType(MikanStencilID stencilId) const
+{
+	// Try quad stencil list first
+	{
+		auto it = std::find_if(
+			quadStencilList.begin(), quadStencilList.end(),
+			[stencilId](const MikanStencilQuad& q) {
+			return q.stencil_id == stencilId;
+		});
+
+		if (it != quadStencilList.end())
+		{
+			return eStencilType::quad;
+		}
+	}
+
+	// Then try the box stencil list
+	{
+		auto it = std::find_if(
+			boxStencilList.begin(), boxStencilList.end(),
+			[stencilId](const MikanStencilBox& b) {
+			return b.stencil_id == stencilId;
+		});
+
+		if (it != boxStencilList.end())
+		{
+			return eStencilType::box;
+		}
+	}
+
+	// Then try model stencil list last
+	{
+		auto it = std::find_if(
+			modelStencilList.begin(), modelStencilList.end(),
+			[stencilId](const MikanStencilModelConfig& m) {
+			return m.modelInfo.stencil_id == stencilId;
+		});
+
+		if (it != modelStencilList.end())
+		{
+			return eStencilType::model;
+		}
+	}
+
+
+	return eStencilType::INVALID;
+}
+
+const MikanStencilQuad* StencilObjectSystemConfig::getQuadStencilInfo(MikanStencilID stencilId) const
+{
+	auto it = std::find_if(
+		quadStencilList.begin(), quadStencilList.end(),
+		[stencilId](const MikanStencilQuad& quad) {
+		return quad.stencil_id == stencilId;
+	});
+
+	if (it != quadStencilList.end())
+	{
+		return &(*it);
+	}
+
+	return nullptr;
+}
+
+MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQuad& quadInfo)
+{
+	if (!canAddStencil())
+		return INVALID_MIKAN_ID;
+
+	MikanStencilQuad newStencil = quadInfo;
+	newStencil.stencil_id = nextStencilId;
+	nextStencilId++;
+
+	quadStencilList.push_back(newStencil);
+	markDirty();
+
+	return newStencil.stencil_id;
+}
+
+const MikanStencilBox* StencilObjectSystemConfig::getBoxStencilInfo(MikanStencilID stencilId) const
+{
+	auto it = std::find_if(
+		boxStencilList.begin(), boxStencilList.end(),
+		[stencilId](const MikanStencilBox& box) {
+		return box.stencil_id == stencilId;
+	});
+
+	if (it != boxStencilList.end())
+	{
+		return &(*it);
+	}
+
+	return nullptr;
+}
+
+MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBox& boxInfo)
+{
+	if (!canAddStencil())
+		return INVALID_MIKAN_ID;
+
+	MikanStencilBox newStencil = boxInfo;
+	newStencil.stencil_id = nextStencilId;
+	nextStencilId++;
+
+	boxStencilList.push_back(newStencil);
+	markDirty();
+
+	return newStencil.stencil_id;
+}
+
+const MikanStencilModelConfig* StencilObjectSystemConfig::getModelStencilConfig(MikanStencilID stencilId) const
+{
+	auto it = std::find_if(
+		modelStencilList.begin(),
+		modelStencilList.end(),
+		[stencilId](const MikanStencilModelConfig& stencil) {
+		return stencil.modelInfo.stencil_id == stencilId;
+	});
+
+	if (it != modelStencilList.end())
+	{
+		return &(*it);
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+MikanStencilID StencilObjectSystemConfig::addNewModelStencil(const MikanStencilModel& modelInfo)
+{
+	if (!canAddStencil())
+		return INVALID_MIKAN_ID;
+
+	MikanStencilModelConfig newStencil;
+	newStencil.modelInfo = modelInfo;
+	newStencil.modelInfo.stencil_id = nextStencilId;
+	nextStencilId++;
+
+	modelStencilList.push_back(newStencil);
+	markDirty();
+
+	return newStencil.modelInfo.stencil_id;
 }

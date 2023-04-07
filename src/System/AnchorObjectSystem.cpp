@@ -89,11 +89,14 @@ MikanAnchorComponentPtr AnchorObjectSystem::createAnchorObject(const MikanSpatia
 	// Add a scene component to the anchor
 	MikanSceneComponentPtr sceneComponentPtr= anchorObject->addComponent<MikanSceneComponent>();
 	anchorObject->setRootComponent(sceneComponentPtr);
+	// TODO add a IGlSceneRenderable to the scene component to draw the anchor
 
 	// Add spatial anchor component to the object
 	MikanAnchorComponentPtr anchorComponentPtr= anchorObject->addComponent<MikanAnchorComponent>();
 	anchorComponentPtr->setSpatialAnchor(anchorInfo);
 	m_anchorComponents.insert({anchorInfo.anchor_id, anchorComponentPtr});
+
+	// TODO: Add a collider component 
 
 	// Init the object once all components are added
 	anchorObject->init();
