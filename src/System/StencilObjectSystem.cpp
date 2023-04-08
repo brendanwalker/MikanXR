@@ -1,11 +1,18 @@
 #include "App.h"
 #include "BoxStencilComponent.h"
+#include "GlModelResourceManager.h"
+#include "GlRenderModelResource.h"
+#include "GlStaticMeshInstance.h"
+#include "GlTriangulatedMesh.h"
 #include "MathTypeConversion.h"
+#include "MikanMeshColliderComponent.h"
 #include "MikanObject.h""
 #include "MikanSceneComponent.h"
+#include "MikanStaticMeshComponent.h"
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
+#include "Renderer.h"
 #include "StencilObjectSystem.h"
 
 StencilObjectSystem* StencilObjectSystem::s_stencilObjectSystem= nullptr;
@@ -26,9 +33,20 @@ void StencilObjectSystem::init()
 	MikanObjectSystem::init();
 
 	const StencilObjectSystemConfig& stencilConfig = getStencilConfigConst();
+
 	for (const MikanStencilQuad& quadInfo : stencilConfig.quadStencilList)
 	{
 		createQuadStencilObject(quadInfo);
+	}
+
+	for (const MikanStencilBox& boxInfo : stencilConfig.boxStencilList)
+	{
+		createBoxStencilObject(boxInfo);
+	}
+
+	for (const MikanStencilModelConfig& modelInfo : stencilConfig.modelStencilList)
+	{
+		createModelStencilObject(modelInfo);
 	}
 }
 
@@ -162,21 +180,48 @@ void StencilObjectSystem::disposeBoxStencilObject(MikanStencilID stencilId)
 	}
 }
 
-ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const MikanStencilModel& stencilInfo)
+ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const MikanStencilModelConfig& modelInfo)
 {
 	MikanObjectPtr stencilObject = newObject();
 
-	// Add a scene component to the anchor
+	// Add a scene component to the model stencil
 	MikanSceneComponentPtr sceneComponentPtr = stencilObject->addComponent<MikanSceneComponent>();
 	stencilObject->setRootComponent(sceneComponentPtr);
-	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
+
+	// Fetch the model resource
+	auto& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
+	GlRenderModelResourcePtr modelResourcePtr = modelResourceManager->fetchRenderModel(
+		modelInfo.modelPath,
+		GlRenderModelResource::getDefaultVertexDefinition());
+
+	for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
+	{
+		// Fetch the mesh and material resources
+		GlTriangulatedMeshPtr triMeshPtr= modelResourcePtr->getTriangulatedMesh((int)meshIndex);
+		GlMaterialInstancePtr materialInstancePtr= modelResourcePtr->getTriangulatedMeshMaterial((int)meshIndex);
+
+		// Create a new static mesh instance from the mesh resources
+		GlStaticMeshInstancePtr triMeshInstancePtr = 
+			std::make_shared<GlStaticMeshInstance>(
+				triMeshPtr->getName(),
+				triMeshPtr,
+				materialInstancePtr);
+
+		// Create a static mesh component to hold the mesh instance
+		MikanStaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<MikanStaticMeshComponent>();
+		meshComponentPtr->setStaticMesh(triMeshInstancePtr);
+		meshComponentPtr->attachToComponent(sceneComponentPtr);
+
+		// Add a mesh collider component that generates collision from the mesh data
+		MikanMeshColliderComponentPtr colliderPtr= stencilObject->addComponent<MikanMeshColliderComponent>();
+		colliderPtr->setStaticMeshComponent(meshComponentPtr);
+		meshComponentPtr->attachToComponent(sceneComponentPtr);
+	}
 
 	// Add spatial anchor component to the object
 	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();
-	stencilComponentPtr->setModelStencil(stencilInfo);
-	m_modelStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
-
-	// TODO: Add a collider component 
+	stencilComponentPtr->setModelStencil(modelInfo.modelInfo);
+	m_modelStencilComponents.insert({modelInfo.modelInfo.stencil_id, stencilComponentPtr});
 
 	// Init the object once all components are added
 	stencilObject->init();

@@ -7,12 +7,26 @@ GlStaticMeshInstance::GlStaticMeshInstance(
 	const std::string& name, 
 	IGlMeshConstPtr mesh, 
 	GlMaterialConstPtr material)
+	: m_name(name)
+	, m_visible(true)
+	, m_mesh(mesh)
+	, m_materialInstance(std::make_shared<GlMaterialInstance>(material))
+	, m_modelMatrix(glm::mat4(1.f))
 {
-	m_name = name;
-	m_visible = true;
-	m_mesh = mesh;
-	m_materialInstance = std::make_shared<GlMaterialInstance>(material);
-	m_modelMatrix= glm::mat4(1.f);
+
+}
+
+GlStaticMeshInstance::GlStaticMeshInstance(
+	const std::string& name,
+	IGlMeshConstPtr mesh,
+	GlMaterialInstancePtr materialInstance)
+	: m_name(name)
+	, m_visible(true)
+	, m_mesh(mesh)
+	, m_materialInstance(materialInstance)
+	, m_modelMatrix(glm::mat4(1.f))
+{
+
 }
 
 GlStaticMeshInstance::~GlStaticMeshInstance()

@@ -188,7 +188,7 @@ void AppStage_ModelFastenerCalibration::updateClosestModelVertex()
 
 	for (int meshIndex = 0; meshIndex < (int)m_modelResource->getWireframeMeshCount(); ++meshIndex)
 	{
-		const GlWireframeMesh* wireframeMesh= m_modelResource->getWireframeMesh(meshIndex);
+		GlWireframeMeshPtr wireframeMesh= m_modelResource->getWireframeMesh(meshIndex);
 
 		const uint32_t vertexCount= wireframeMesh->getVertexCount();
 		const glm::vec3* vertexData= (glm::vec3*)wireframeMesh->getVertexData();
@@ -259,11 +259,11 @@ void AppStage_ModelFastenerCalibration::renderModelScene() const
 	{
 		for (int meshIndex = 0; meshIndex < m_modelResource->getWireframeMeshCount(); ++meshIndex)
 		{
-			const GlWireframeMesh* mesh = m_modelResource->getWireframeMesh(meshIndex);
+			GlWireframeMeshPtr mesh = m_modelResource->getWireframeMesh(meshIndex);
 
 			if (mesh != nullptr)
 			{
-				drawTransformedWireframeMesh(glm::mat4(1.f), mesh, Colors::Gray);
+				drawTransformedWireframeMesh(glm::mat4(1.f), mesh.get(), Colors::Gray);
 			}
 		}
 	}

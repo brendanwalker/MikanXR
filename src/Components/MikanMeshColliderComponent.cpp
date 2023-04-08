@@ -11,27 +11,15 @@ MikanMeshColliderComponent::MikanMeshColliderComponent(MikanObjectWeakPtr owner)
 {
 }
 
-void MikanMeshColliderComponent::init()
-{
-	auto staticMeshPtr= getOwnerObject()->getComponentOfType<MikanStaticMeshComponent>();
-	if (staticMeshPtr)
-	{
-		staticMeshPtr->OnMeshChanged+= MakeDelegate(this, &MikanMeshColliderComponent::onStaticMeshChanged);
-		rebuildCollionGeometry();
-	}
-
-	m_staticMeshPtr= staticMeshPtr;
-}
-
 void MikanMeshColliderComponent::dispose()
 {
-	auto staticMeshPtr= m_staticMeshPtr.lock();
+	auto staticMeshPtr= m_staticMeshWeakPtr.lock();
 	if (staticMeshPtr)
 	{
 		staticMeshPtr->OnMeshChanged-= MakeDelegate(this, &MikanMeshColliderComponent::onStaticMeshChanged);
 	}
 
-	m_staticMeshPtr.reset();
+	m_staticMeshWeakPtr.reset();
 }
 
 bool MikanMeshColliderComponent::computeRayIntersection(
@@ -92,12 +80,27 @@ bool MikanMeshColliderComponent::computeRayIntersection(
 	return bFoundHit;
 }
 
-void MikanMeshColliderComponent::onStaticMeshChanged(MikanStaticMeshComponentWeakPtr meshComponent)
+void MikanMeshColliderComponent::setStaticMeshComponent(MikanStaticMeshComponentWeakPtr staticMeshWeakPtr)
 {
-	if (meshComponent.lock() == m_staticMeshPtr.lock())
+	if (m_staticMeshWeakPtr.lock() == staticMeshWeakPtr.lock())
 	{
-		rebuildCollionGeometry();
+		dispose();
+
+		auto staticMeshPtr= staticMeshWeakPtr.lock();
+		if (staticMeshPtr)
+		{
+			staticMeshPtr->OnMeshChanged += MakeDelegate(this, &MikanMeshColliderComponent::onStaticMeshChanged);
+			rebuildCollionGeometry();
+		}
+
+		m_staticMeshWeakPtr = staticMeshWeakPtr;
 	}
+}
+
+void MikanMeshColliderComponent::onStaticMeshChanged(MikanStaticMeshComponentWeakPtr meshComponentWeakPtr)
+{
+	assert(m_staticMeshWeakPtr.lock() == meshComponentWeakPtr.lock());
+	rebuildCollionGeometry();
 }
 
 void MikanMeshColliderComponent::rebuildCollionGeometry()
@@ -106,7 +109,7 @@ void MikanMeshColliderComponent::rebuildCollionGeometry()
 	m_meshCenterPoint= glm::vec3(0.f);
 	m_meshMaxCornerPoint= glm::vec3(0.f);
 
-	auto staticMeshPtr = m_staticMeshPtr.lock();
+	auto staticMeshPtr = m_staticMeshWeakPtr.lock();
 	if (!staticMeshPtr)
 		return;
 

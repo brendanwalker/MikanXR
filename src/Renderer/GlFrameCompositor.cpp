@@ -1244,7 +1244,7 @@ void GlFrameCompositor::applyLayerMaterialTextures(
 	}
 }
 
-const GlRenderModelResource* GlFrameCompositor::getStencilRenderModel(MikanStencilID stencilId) const
+GlRenderModelResourcePtr GlFrameCompositor::getStencilRenderModel(MikanStencilID stencilId) const
 {
 	auto it = m_stencilMeshCache.find(stencilId);
 
@@ -1513,7 +1513,7 @@ void GlFrameCompositor::updateModelStencils(
 			// in which case renderModelResource will be null.
 			// Go ahead an occupy a slot in the m_stencilMeshCache until
 			// the entry us explicitly cleared by flushStencilRenderModel.
-			GlRenderModelResource* renderModelResource =
+			GlRenderModelResourcePtr renderModelResource =
 				modelResourceManager->fetchRenderModel(
 					modelConfig->modelPath,
 					getStencilModelVertexDefinition());
@@ -1550,7 +1550,7 @@ void GlFrameCompositor::updateModelStencils(
 
 		if (it != m_stencilMeshCache.end())
 		{
-			GlRenderModelResource* renderModelResource = it->second;
+			GlRenderModelResourcePtr renderModelResource = it->second;
 
 			if (renderModelResource != nullptr)
 			{
@@ -1562,7 +1562,7 @@ void GlFrameCompositor::updateModelStencils(
 
 				for (int meshIndex = 0; meshIndex < (int)renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
 				{
-					const GlTriangulatedMesh* mesh = renderModelResource->getTriangulatedMesh(meshIndex);
+					GlTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
 
 					mesh->drawElements();
 				}

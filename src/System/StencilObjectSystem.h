@@ -45,7 +45,7 @@ protected:
 	BoxStencilComponentPtr createBoxStencilObject(const MikanStencilBox& stencilInfo);
 	void disposeBoxStencilObject(MikanStencilID stencilId);
 
-	ModelStencilComponentPtr createModelStencilObject(const MikanStencilModel& stencilInfo);
+	ModelStencilComponentPtr createModelStencilObject(const MikanStencilModelConfig& stencilInfo);
 	void disposeModelStencilObject(MikanStencilID stencilId);
 
 	const StencilObjectSystemConfig& getStencilConfigConst() const;

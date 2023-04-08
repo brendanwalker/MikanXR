@@ -28,6 +28,7 @@ public:
 
 	inline GlProgramPtr getDefaultWireframeShader() const { return m_program; }
 
+	virtual std::string getName() const override { return m_name; }
 	virtual const GlVertexDefinition* getVertexDefinition() const override { return getVertexDefinitionInternal(); }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }

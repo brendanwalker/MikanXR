@@ -21,8 +21,10 @@ class MikanMeshColliderComponent : public MikanColliderComponent
 public:
 	MikanMeshColliderComponent(MikanObjectWeakPtr owner);
 
-	virtual void init() override;
 	virtual void dispose() override;
+
+	void setStaticMeshComponent(MikanStaticMeshComponentWeakPtr meshComponent);
+	inline MikanStaticMeshComponentWeakPtr getStaticMeshComponent() const { return m_staticMeshWeakPtr; }
 
 	virtual bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
@@ -32,8 +34,10 @@ private:
 	void onStaticMeshChanged(MikanStaticMeshComponentWeakPtr meshComponent);
 	void rebuildCollionGeometry();
 
-	MikanStaticMeshComponentWeakPtr m_staticMeshPtr;
+	MikanStaticMeshComponentWeakPtr m_staticMeshWeakPtr;
 	std::vector<GlmTriangle> m_meshTriangles;
 	glm::vec3 m_meshCenterPoint;
 	glm::vec3 m_meshMaxCornerPoint;
 };
+typedef std::shared_ptr<MikanMeshColliderComponent> MikanMeshColliderComponentPtr;
+typedef std::weak_ptr<MikanMeshColliderComponent> MikanMeshColliderComponentWeakPtr;

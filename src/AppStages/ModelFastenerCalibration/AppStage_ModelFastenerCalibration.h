@@ -13,6 +13,9 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
+class GlRenderModelResource;
+using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
+
 //-- definitions -----
 class AppStage_ModelFastenerCalibration : public AppStage
 {
@@ -57,5 +60,5 @@ private:
 
 	class GlScene* m_scene;
 	class GlCamera* m_camera;
-	const class GlRenderModelResource* m_modelResource;
+	GlRenderModelResourcePtr m_modelResource;
 };

@@ -23,6 +23,10 @@ public:
 		const std::string& name, 
 		IGlMeshConstPtr mesh, 
 		GlMaterialConstPtr material);
+	GlStaticMeshInstance(
+		const std::string& name,
+		IGlMeshConstPtr mesh,
+		GlMaterialInstancePtr materialInstance);
 	virtual ~GlStaticMeshInstance();
 
 	const std::string& getName() const { return m_name; }

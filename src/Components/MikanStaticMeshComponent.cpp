@@ -1,6 +1,8 @@
+#include "GlModelResourceManager.h"
+#include "GlStaticMeshInstance.h"
 #include "MikanStaticMeshComponent.h"
 #include "MikanObject.h"
-#include "GlStaticMeshInstance.h"
+#include "Renderer.h"
 
 MikanStaticMeshComponent::MikanStaticMeshComponent(MikanObjectWeakPtr owner)
 	: MikanSceneComponent(owner)

@@ -23,6 +23,7 @@ public:
 	virtual bool createBuffers() override;
 	virtual void deleteBuffers() override;
 
+	virtual std::string getName() const override { return m_name; }
 	virtual const GlVertexDefinition* getVertexDefinition() const override { return &m_vertexDefinition; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }

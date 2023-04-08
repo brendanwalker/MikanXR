@@ -3,6 +3,7 @@
 #include "GlVertexDefinition.h"
 
 #include <memory>
+#include <string>
 
 class IGlMesh
 {
@@ -11,6 +12,7 @@ public:
 	virtual bool createBuffers() = 0;
 	virtual void deleteBuffers() = 0;
 
+	virtual std::string getName() const = 0;
 	virtual const GlVertexDefinition* getVertexDefinition() const = 0;
 	virtual const uint8_t* getVertexData() const = 0;
 	virtual const uint32_t getVertexCount() const = 0;

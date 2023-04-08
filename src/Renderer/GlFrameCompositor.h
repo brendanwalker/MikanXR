@@ -35,6 +35,9 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
+class GlRenderModelResource;
+using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
+
 class GlFrameCompositor
 {
 public:
@@ -93,7 +96,7 @@ public:
 	void update();
 	void render() const;
 
-	const class GlRenderModelResource* getStencilRenderModel(MikanStencilID stencilId) const;
+	GlRenderModelResourcePtr getStencilRenderModel(MikanStencilID stencilId) const;
 	void flushStencilRenderModel(MikanStencilID stencilId);
 
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
@@ -192,7 +195,7 @@ private:
 
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
-	std::map<MikanStencilID, class GlRenderModelResource*> m_stencilMeshCache;
+	std::map<MikanStencilID, GlRenderModelResourcePtr> m_stencilMeshCache;
 
 	unsigned int m_layerFramebuffer = 0;	
 	unsigned int m_layerRBO = 0;

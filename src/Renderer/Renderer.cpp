@@ -275,6 +275,15 @@ bool Renderer::startup()
 
 	if (success)
 	{
+		if (!m_modelResourceManager->startup())
+		{
+			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize model resource manager";
+			success = false;
+		}
+	}
+
+	if (success)
+	{
 		m_textRenderer = new GlTextRenderer();
 		m_lineRenderer= new GlLineRenderer();
 		if (!m_lineRenderer->startup())
@@ -337,7 +346,7 @@ void Renderer::shutdown()
 
 	if (m_modelResourceManager != nullptr)
 	{
-		m_modelResourceManager->cleanup();
+		m_modelResourceManager->shutdown();
 	}
 
 	if (m_textRenderer != nullptr)

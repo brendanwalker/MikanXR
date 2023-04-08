@@ -1,6 +1,8 @@
 #include "App.h"
 #include "GlCommon.h"
 #include "GlMaterial.h"
+#include "GlMaterialInstance.h"
+#include "GlModelResourceManager.h"
 #include "GlTriangulatedMesh.h"
 #include "GlWireframeMesh.h"
 #include "GlVertexDefinition.h"
@@ -17,6 +19,12 @@
 
 #include <limits>
 
+GlRenderModelResource::GlRenderModelResource(const std::filesystem::path& modelFilePath)
+	: m_renderModelFilepath(modelFilePath)
+	, m_vertexDefinition(new GlVertexDefinition(*getVertexDefinition()))
+{
+}
+
 GlRenderModelResource::GlRenderModelResource(
 	const std::filesystem::path& modelFilePath,
 	const GlVertexDefinition* vertexDefinition)
@@ -31,6 +39,35 @@ GlRenderModelResource::~GlRenderModelResource()
 	delete m_vertexDefinition;
 }
 
+const GlVertexDefinition* GlRenderModelResource::getDefaultVertexDefinition()
+{
+	static GlVertexDefinition x_vertexDefinition;
+
+	if (x_vertexDefinition.attributes.size() == 0)
+	{
+		const uint32_t positionSize = (uint32_t)sizeof(float) * 3;
+		const uint32_t normalSize = (uint32_t)sizeof(float) * 3;
+		const uint32_t texelSize = (uint32_t)sizeof(float) * 2;
+		const uint32_t vertexSize = positionSize + normalSize + texelSize;
+		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
+
+		size_t offset= 0;
+		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, offset));
+		offset+= positionSize;
+
+		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::normal3f, false, vertexSize, offset));
+		offset+= normalSize;
+
+		attribs.push_back(GlVertexAttribute(2, eVertexSemantic::texel2f, false, vertexSize, offset));
+		offset+= texelSize;
+
+		assert(offset == vertexSize);
+		x_vertexDefinition.vertexSize = vertexSize;
+	}
+
+	return &x_vertexDefinition;
+}
+
 bool GlRenderModelResource::createRenderResources()
 {
 	bool bSuccess = false;
@@ -39,16 +76,19 @@ bool GlRenderModelResource::createRenderResources()
 	{
 		for (const objl::Mesh& mesh : m_objLoader->LoadedMeshes)
 		{
-			GlTriangulatedMesh* glMesh = 
+			GlTriangulatedMeshPtr glMesh = 
 				createTriangulatedMeshResource(
 					mesh.MeshName, getVertexDefinition(), &mesh);
-			GlWireframeMesh* glWireframeMesh =
+			GlMaterialInstancePtr glMaterial =
+				createMaterialResource(
+					mesh.MeshMaterial.name, &mesh.MeshMaterial);
+			GlWireframeMeshPtr glWireframeMesh =
 				createWireframeMeshResource(
 					mesh.MeshName, &mesh);
 
 			if (glMesh != nullptr)
 			{
-				m_glMeshes.push_back(glMesh);
+				m_glTriMeshResources.push_back({glMesh, glMaterial});
 			}
 
 			if (glWireframeMesh != nullptr)
@@ -57,7 +97,7 @@ bool GlRenderModelResource::createRenderResources()
 			}
 		}
 
-		bSuccess = m_glMeshes.size() > 0;
+		bSuccess = m_glTriMeshResources.size() > 0;
 	}
 
 	if (!bSuccess)
@@ -70,17 +110,15 @@ bool GlRenderModelResource::createRenderResources()
 
 void GlRenderModelResource::disposeRenderResources()
 {
-	for (GlTriangulatedMesh* glMesh : m_glMeshes)
+	for (MeshResourceEntry& glMeshResource : m_glTriMeshResources)
 	{
-		glMesh->deleteBuffers();
-		delete glMesh;
+		glMeshResource.glMesh->deleteBuffers();
 	}
-	m_glMeshes.clear();
+	m_glTriMeshResources.clear();
 
-	for (GlWireframeMesh* glWireframeMesh : m_glWireframeMeshes)
+	for (GlWireframeMeshPtr glWireframeMesh : m_glWireframeMeshes)
 	{
 		glWireframeMesh->deleteBuffers();
-		delete glWireframeMesh;
 	}
 	m_glWireframeMeshes.clear();
 
@@ -114,12 +152,12 @@ void GlRenderModelResource::disposeObjFileResources()
 	}
 }
 
-GlTriangulatedMesh* GlRenderModelResource::createTriangulatedMeshResource(
+GlTriangulatedMeshPtr GlRenderModelResource::createTriangulatedMeshResource(
 	const std::string& meshName,
 	const GlVertexDefinition* vertexDefinition,
 	const objl::Mesh* objMesh)
 {
-	GlTriangulatedMesh* glMesh = nullptr;
+	GlTriangulatedMeshPtr glMesh = nullptr;	
 
 	if (objMesh != nullptr && objMesh->Indices.size() <= std::numeric_limits<uint16_t>::max())
 	{
@@ -180,7 +218,7 @@ GlTriangulatedMesh* GlRenderModelResource::createTriangulatedMeshResource(
 			}
 		}
 
-		glMesh = new GlTriangulatedMesh(
+		glMesh = std::make_shared<GlTriangulatedMesh>(
 			meshName,
 			*vertexDefinition,
 			(const uint8_t*)vertexData,
@@ -191,7 +229,6 @@ GlTriangulatedMesh* GlRenderModelResource::createTriangulatedMeshResource(
 
 		if (!glMesh->createBuffers())
 		{
-			delete glMesh;
 			glMesh = nullptr;
 		}
 	}
@@ -199,11 +236,34 @@ GlTriangulatedMesh* GlRenderModelResource::createTriangulatedMeshResource(
 	return glMesh;
 }
 
-GlWireframeMesh* GlRenderModelResource::createWireframeMeshResource(
+GlMaterialInstancePtr GlRenderModelResource::createMaterialResource(
+	const std::string& materialName,
+	const objl::Material* objMaterial)
+{
+	GlMaterialConstPtr phongMaterial= GlModelResourceManager::getInstance()->getPhongMaterial();
+	GlMaterialInstancePtr glMaterialInstance = std::make_shared<GlMaterialInstance>(phongMaterial);
+
+	glMaterialInstance->setVec4BySemantic(
+		eUniformSemantic::ambientColorRGBA, 
+		glm::vec4(objMaterial->Ka.X, objMaterial->Ka.Y, objMaterial->Ka.Z, 1.f));
+	glMaterialInstance->setVec4BySemantic(
+		eUniformSemantic::diffuseColorRGBA,
+		glm::vec4(objMaterial->Kd.X, objMaterial->Kd.Y, objMaterial->Kd.Z, 1.f));
+	glMaterialInstance->setVec4BySemantic(
+		eUniformSemantic::specularColorRGBA,
+		glm::vec4(objMaterial->Ks.X, objMaterial->Ks.Y, objMaterial->Ks.Z, 1.f));
+	glMaterialInstance->setFloatBySemantic(
+		eUniformSemantic::shininess,
+		objMaterial->Ns);
+
+	return glMaterialInstance;
+}
+
+GlWireframeMeshPtr GlRenderModelResource::createWireframeMeshResource(
 	const std::string& meshName,
 	const objl::Mesh* objMesh)
 {
-	GlWireframeMesh* glWireframeMesh = nullptr;
+	GlWireframeMeshPtr glWireframeMesh = nullptr;
 
 	if (objMesh != nullptr && objMesh->Indices.size() <= std::numeric_limits<uint16_t>::max())
 	{
@@ -249,7 +309,7 @@ GlWireframeMesh* GlRenderModelResource::createWireframeMeshResource(
 			}
 		}
 
-		glWireframeMesh = new GlWireframeMesh(
+		glWireframeMesh = std::make_shared<GlWireframeMesh>(
 			meshName,
 			(const uint8_t*)vertexData,
 			(uint32_t)vertexCount,
@@ -259,7 +319,6 @@ GlWireframeMesh* GlRenderModelResource::createWireframeMeshResource(
 
 		if (!glWireframeMesh->createBuffers())
 		{
-			delete glWireframeMesh;
 			glWireframeMesh = nullptr;
 		}
 	}
