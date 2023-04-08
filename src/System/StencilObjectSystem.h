@@ -40,7 +40,13 @@ public:
 
 protected:
 	QuadStencilComponentPtr createQuadStencilObject(const MikanStencilQuad& stencilInfo);
-	void disposeAnchorObject(MikanStencilID stencilId);
+	void disposeQuadStencilObject(MikanStencilID stencilId);
+
+	BoxStencilComponentPtr createBoxStencilObject(const MikanStencilBox& stencilInfo);
+	void disposeBoxStencilObject(MikanStencilID stencilId);
+
+	ModelStencilComponentPtr createModelStencilObject(const MikanStencilModel& stencilInfo);
+	void disposeModelStencilObject(MikanStencilID stencilId);
 
 	const StencilObjectSystemConfig& getStencilConfigConst() const;
 	StencilObjectSystemConfig& getStencilConfig();

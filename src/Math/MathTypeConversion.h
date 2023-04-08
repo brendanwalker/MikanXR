@@ -56,3 +56,4 @@ MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in);
 glm::dquat MikanQuatd_to_glm_dquat(const MikanQuatd& in);
 MikanMatrix4f glm_mat4_to_MikanMatrix4f(const glm::mat4& in);
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& in);
+glm::quat MikanRotator3f_to_glm_quat(const MikanRotator3f& in);

@@ -31,6 +31,7 @@ public:
 	bool getIsDisabled() const { return IsDisabled; }
 	const std::string& getStencilName() const { return StencilName; }
 
+	virtual glm::mat4 getStencilLocalTransform() const = 0;
 	virtual glm::mat4 getStencilWorldTransform() const = 0;
 	virtual void setStencilLocalTransform(const glm::mat4& xform) = 0;
 	virtual void setStencilWorldTransform(const glm::mat4& xform) = 0;

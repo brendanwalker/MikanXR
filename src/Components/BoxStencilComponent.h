@@ -12,12 +12,12 @@
 class MikanObject;
 typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
 
-class QuadStencilComponent : public MikanStencilComponent
+class BoxStencilComponent : public MikanStencilComponent
 {
 public:
-	QuadStencilComponent(MikanObjectWeakPtr owner);
+	BoxStencilComponent(MikanObjectWeakPtr owner);
 
-	void setQuadStencil(const MikanStencilQuad& stencil);
+	void setBoxStencil(const MikanStencilBox& stencil);
 
 	virtual glm::mat4 getStencilLocalTransform() const override;
 	virtual glm::mat4 getStencilWorldTransform() const override;
@@ -25,13 +25,13 @@ public:
 	virtual void setStencilWorldTransform(const glm::mat4& xform) override;
 
 protected:
-	COMPONENT_PROPERTY(glm::vec3, QuadCenter);
-	COMPONENT_PROPERTY(glm::vec3, QuadXAxis);
-	COMPONENT_PROPERTY(glm::vec3, QuadYAxis);
-	COMPONENT_PROPERTY(glm::vec3, QuadNormal);
-	COMPONENT_PROPERTY(float, QuadWidth);
-	COMPONENT_PROPERTY(float, QuadHeight);
-	COMPONENT_PROPERTY(bool, IsDoubleSided);
+	COMPONENT_PROPERTY(glm::vec3, BoxCenter);
+	COMPONENT_PROPERTY(glm::vec3, BoxXAxis);
+	COMPONENT_PROPERTY(glm::vec3, BoxYAxis);
+	COMPONENT_PROPERTY(glm::vec3, BoxZAxis);
+	COMPONENT_PROPERTY(float, BoxXSize);
+	COMPONENT_PROPERTY(float, BoxYSize);
+	COMPONENT_PROPERTY(float, BoxZSize);
 
 	void updateSceneComponentTransform();
 };

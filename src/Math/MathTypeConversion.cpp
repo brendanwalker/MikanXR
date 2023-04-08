@@ -2,6 +2,8 @@
 #include "MathGLM.h"
 #include <assert.h>
 
+#include "glm/gtx/euler_angles.hpp"
+
 // GLM types to OpenCV types
 cv::Matx33f glm_mat3_to_cv_mat33f(const glm::mat3& in)
 {
@@ -380,4 +382,13 @@ glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& in)
 	}
 
 	return out;
+}
+
+glm::quat MikanRotator3f_to_glm_quat(const MikanRotator3f& in)
+{
+	const float xRadians = in.x_angle * k_degrees_to_radians;
+	const float yRadians = in.y_angle * k_degrees_to_radians;
+	const float zRadians = in.z_angle * k_degrees_to_radians;
+	
+	return glm::quat(glm::mat3(glm::eulerAngleXYZ(xRadians, yRadians, zRadians)));
 }

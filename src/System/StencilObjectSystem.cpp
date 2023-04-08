@@ -1,7 +1,9 @@
 #include "App.h"
+#include "BoxStencilComponent.h"
+#include "MathTypeConversion.h"
 #include "MikanObject.h""
 #include "MikanSceneComponent.h"
-#include "MathTypeConversion.h"
+#include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
 #include "StencilObjectSystem.h"
@@ -81,7 +83,7 @@ QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStenci
 bool StencilObjectSystem::removeQuadStencil(MikanStencilID stencilId)
 {
 	getStencilConfig().removeStencil(stencilId);
-	disposeAnchorObject(stencilId);
+	disposeQuadStencilObject(stencilId);
 
 	return false;
 }
@@ -95,7 +97,7 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const Mikan
 	stencilObject->setRootComponent(sceneComponentPtr);
 	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
 
-	// Add spatial anchor component to the object
+	// Add quad stencil component to the object
 	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
 	stencilComponentPtr->setQuadStencil(stencilInfo);
 	m_quadStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
@@ -108,7 +110,7 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const Mikan
 	return stencilComponentPtr;
 }
 
-void StencilObjectSystem::disposeAnchorObject(MikanStencilID stencilId)
+void StencilObjectSystem::disposeQuadStencilObject(MikanStencilID stencilId)
 {
 	auto it = m_quadStencilComponents.find(stencilId);
 	if (it != m_quadStencilComponents.end())
@@ -117,6 +119,80 @@ void StencilObjectSystem::disposeAnchorObject(MikanStencilID stencilId)
 
 		// Remove for component list
 		m_quadStencilComponents.erase(it);
+
+		// Free the corresponding object
+		removeObject(stencilComponentPtr->getOwnerObject());
+	}
+}
+
+BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(const MikanStencilBox& stencilInfo)
+{
+	MikanObjectPtr stencilObject = newObject();
+
+	// Add a scene component to the anchor
+	MikanSceneComponentPtr sceneComponentPtr = stencilObject->addComponent<MikanSceneComponent>();
+	stencilObject->setRootComponent(sceneComponentPtr);
+	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
+
+	// Add spatial anchor component to the object
+	BoxStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<BoxStencilComponent>();
+	stencilComponentPtr->setBoxStencil(stencilInfo);
+	m_boxStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
+
+	// TODO: Add a collider component 
+
+	// Init the object once all components are added
+	stencilObject->init();
+
+	return stencilComponentPtr;
+}
+
+void StencilObjectSystem::disposeBoxStencilObject(MikanStencilID stencilId)
+{
+	auto it = m_boxStencilComponents.find(stencilId);
+	if (it != m_boxStencilComponents.end())
+	{
+		BoxStencilComponentPtr stencilComponentPtr = it->second.lock();
+
+		// Remove for component list
+		m_boxStencilComponents.erase(it);
+
+		// Free the corresponding object
+		removeObject(stencilComponentPtr->getOwnerObject());
+	}
+}
+
+ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const MikanStencilModel& stencilInfo)
+{
+	MikanObjectPtr stencilObject = newObject();
+
+	// Add a scene component to the anchor
+	MikanSceneComponentPtr sceneComponentPtr = stencilObject->addComponent<MikanSceneComponent>();
+	stencilObject->setRootComponent(sceneComponentPtr);
+	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
+
+	// Add spatial anchor component to the object
+	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();
+	stencilComponentPtr->setModelStencil(stencilInfo);
+	m_modelStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
+
+	// TODO: Add a collider component 
+
+	// Init the object once all components are added
+	stencilObject->init();
+
+	return stencilComponentPtr;
+}
+
+void StencilObjectSystem::disposeModelStencilObject(MikanStencilID stencilId)
+{
+	auto it = m_modelStencilComponents.find(stencilId);
+	if (it != m_modelStencilComponents.end())
+	{
+		ModelStencilComponentPtr stencilComponentPtr = it->second.lock();
+
+		// Remove for component list
+		m_modelStencilComponents.erase(it);
 
 		// Free the corresponding object
 		removeObject(stencilComponentPtr->getOwnerObject());

@@ -39,13 +39,18 @@ void QuadStencilComponent::setQuadStencil(const MikanStencilQuad& stencil)
 	updateSceneComponentTransform();
 }
 
-glm::mat4 QuadStencilComponent::getStencilWorldTransform() const
+glm::mat4 QuadStencilComponent::getStencilLocalTransform() const
 {
-	const glm::mat4 localXform(
+	return glm::mat4(
 		glm::vec4(QuadXAxis, 0.f),
 		glm::vec4(QuadYAxis, 0.f),
 		glm::vec4(QuadNormal, 0.f),
 		glm::vec4(QuadCenter, 1.f));
+}
+
+glm::mat4 QuadStencilComponent::getStencilWorldTransform() const
+{
+	const glm::mat4 localXform= getStencilLocalTransform();
 
 	glm::mat4 worldXform= localXform;
 	MikanAnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
