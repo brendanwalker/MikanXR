@@ -47,7 +47,7 @@
 #define is_double_nearly_zero(x) is_double_nearly_equal(x, 0.0, DBL_EPSILON)
 
 #ifndef sgn
-#define sgn(x) (((x) >= 0) ? 1 : -1)
+#define sgn(x) (((x) >= 0.f) ? 1.f : -1.f)
 #endif
 
 #ifdef NDEBUG

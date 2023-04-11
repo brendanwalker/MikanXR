@@ -1,6 +1,7 @@
 #include "AnchorObjectSystem.h"
 #include "MikanAnchorComponent.h"
 #include "MikanSceneComponent.h"
+#include "MikanBoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "QuadStencilComponent.h"
@@ -15,6 +16,13 @@ QuadStencilComponent::QuadStencilComponent(MikanObjectWeakPtr owner)
 	, QuadHeight(0.f)
 	, IsDoubleSided(false)
 {
+}
+
+void QuadStencilComponent::init()
+{
+	MikanComponent::init();
+
+	m_boxCollider = getOwnerObject()->getComponentOfType<MikanBoxColliderComponent>();
 }
 
 void QuadStencilComponent::setQuadStencil(const MikanStencilQuad& stencil)
@@ -37,6 +45,7 @@ void QuadStencilComponent::setQuadStencil(const MikanStencilQuad& stencil)
 	}
 
 	updateSceneComponentTransform();
+	updateBoxColliderExtents();
 }
 
 glm::mat4 QuadStencilComponent::getStencilLocalTransform() const
@@ -100,5 +109,14 @@ void QuadStencilComponent::updateSceneComponentTransform()
 		const glm::mat4 worldXform = getStencilWorldTransform();
 
 		sceneComponent->setWorldTransform(worldXform);
+	}
+}
+
+void QuadStencilComponent::updateBoxColliderExtents()
+{
+	MikanBoxColliderComponentPtr boxCollider = m_boxCollider.lock();
+	if (boxCollider)
+	{
+		boxCollider->setHalfExtents(glm::vec3(QuadWidth, QuadHeight, 0.01f) * 0.5f);
 	}
 }

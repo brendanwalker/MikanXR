@@ -12,10 +12,14 @@
 class MikanObject;
 typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
 
+class MikanBoxColliderComponent;
+using MikanBoxColliderComponentWeakPtr = std::weak_ptr<MikanBoxColliderComponent>;
+
 class QuadStencilComponent : public MikanStencilComponent
 {
 public:
 	QuadStencilComponent(MikanObjectWeakPtr owner);
+	virtual void init() override;
 
 	void setQuadStencil(const MikanStencilQuad& stencil);
 
@@ -34,6 +38,9 @@ protected:
 	COMPONENT_PROPERTY(bool, IsDoubleSided);
 
 	void updateSceneComponentTransform();
+	void updateBoxColliderExtents();
+
+	MikanBoxColliderComponentWeakPtr m_boxCollider;
 };
 using MikanStencilComponentPtr = std::shared_ptr<MikanStencilComponent>;
 using MikanStencilComponentWeakPtr = std::weak_ptr<MikanStencilComponent>;

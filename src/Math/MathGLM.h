@@ -45,3 +45,12 @@ bool glm_intersect_tri_with_ray(
 	const GlmTriangle& tri, 
 	const glm::vec3& ray_start, const glm::vec3& ray_direction,
 	float& outIntDistance, glm::vec3& outIntPoint, glm::vec3& outIntNormal);
+bool glm_intersect_obb_with_ray(
+	const glm::vec3 ray_start,		// Ray origin, in world space
+	const glm::vec3 ray_direction,	// Ray direction, in world space. 
+	const glm::vec3 aabb_min,		// Minimum X,Y,Z coords of the mesh when not transformed at all.
+	const glm::vec3 aabb_max,		// Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+	const glm::mat4 xform,			// Transformation applied to the mesh (which will thus be also applied to its bounding box)
+	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
+	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
+	glm::vec3& outIntNormal);		// Output: intersection normal on the surface of the OBB

@@ -170,3 +170,146 @@ bool glm_intersect_tri_with_ray(
 
 	return false;
 }
+
+// Adapted from: https://github.com/opengl-tutorials/ogl/blob/master/misc05_picking/misc05_picking_custom.cpp
+bool glm_intersect_obb_with_ray(
+	const glm::vec3 ray_start,		// Ray origin, in world space
+	const glm::vec3 ray_direction,	// Ray direction, in world space. 
+	const glm::vec3 aabb_min,		// Minimum X,Y,Z coords of the mesh when not transformed at all.
+	const glm::vec3 aabb_max,		// Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+	const glm::mat4 xform,			// Transformation applied to the mesh (which will thus be also applied to its bounding box)
+	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
+	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
+	glm::vec3& outIntNormal)		// Output: intersection normal on the surface of the OBB
+{
+	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
+
+	// Intersection method from Real-Time Rendering and Essential Mathematics for Games
+	float tMin = 0.0f;
+	float tMax = k_real_max;
+	glm::vec3 normal;
+
+	glm::vec3 obb_center(xform[3]);
+	glm::vec3 delta = obb_center - ray_start;
+
+	// Test intersection with the 2 planes perpendicular to the OBB's X axis
+	{
+		glm::vec3 xaxis(xform[0]);
+		float e = glm::dot(xaxis, delta);
+		float f = glm::dot(ray_unit_direction, xaxis);
+
+		if (fabs(f) > 0.001f)
+		{ // Standard case
+
+			float t1 = (e + aabb_min.x) / f; // Intersection with the "left" plane
+			float t2 = (e + aabb_max.x) / f; // Intersection with the "right" plane
+			// t1 and t2 now contain distances betwen ray origin and ray-plane intersections
+
+			// We want t1 to represent the nearest intersection, 
+			// so if it's not the case, invert t1 and t2
+			if (t1 > t2)
+			{
+				float w = t1; t1 = t2; t2 = w; // swap t1 and t2
+			}
+
+			// tMax is the nearest "far" intersection (amongst the X,Y and Z planes pairs)
+			if (t2 < tMax)
+				tMax = t2;
+			// tMin is the farthest "near" intersection (amongst the X,Y and Z planes pairs)
+			if (t1 > tMin)
+				tMin = t1;
+
+			// And here's the trick :
+			// If "far" is closer than "near", then there is NO intersection.
+			// See the images in the tutorials for the visual explanation.
+			if (tMax < tMin)
+				return false;
+
+			// Collision normal is a vector on the x-axis point away from the 
+			normal= xaxis * sgn(e) * -1.f;
+		}
+		else
+		{ // Rare case : the ray is almost parallel to the planes, so they don't have any "intersection"
+			if (-e + aabb_min.x > 0.0f || -e + aabb_max.x < 0.0f)
+				return false;
+		}
+	}
+
+
+	// Test intersection with the 2 planes perpendicular to the OBB's Y axis
+	// Exactly the same thing than above.
+	{
+		glm::vec3 yaxis(xform[1]);
+		float e = glm::dot(yaxis, delta);
+		float f = glm::dot(ray_unit_direction, yaxis);
+
+		if (fabs(f) > 0.001f)
+		{
+
+			float t1 = (e + aabb_min.y) / f;
+			float t2 = (e + aabb_max.y) / f;
+
+			if (t1 > t2) { float w = t1; t1 = t2; t2 = w; }
+
+			if (t2 < tMax)
+				tMax = t2;
+
+			if (t1 > tMin)
+			{
+				tMin = t1;
+				normal= yaxis * sgn(e) * -1.f;
+			}
+
+			if (tMin > tMax)
+				return false;
+
+		}
+		else
+		{
+			if (-e + aabb_min.y > 0.0f || -e + aabb_max.y < 0.0f)
+				return false;
+		}
+	}
+
+
+	// Test intersection with the 2 planes perpendicular to the OBB's Z axis
+	// Exactly the same thing than above.
+	{
+		glm::vec3 zaxis(xform[2]);
+		float e = glm::dot(zaxis, delta);
+		float f = glm::dot(ray_unit_direction, zaxis);
+
+		if (fabs(f) > 0.001f)
+		{
+
+			float t1 = (e + aabb_min.z) / f;
+			float t2 = (e + aabb_max.z) / f;
+
+			if (t1 > t2) { float w = t1; t1 = t2; t2 = w; }
+
+			if (t2 < tMax)
+				tMax = t2;
+
+			if (t1 > tMin)
+			{
+				tMin = t1;
+				normal= zaxis * sgn(e) * -1.f;
+			}
+
+			if (tMin > tMax)
+				return false;
+
+		}
+		else
+		{
+			if (-e + aabb_min.z > 0.0f || -e + aabb_max.z < 0.0f)
+				return false;
+		}
+	}
+
+	outIntDistance = tMin;
+	outIntPoint= ray_start + ray_direction*outIntDistance;
+	outIntNormal= normal;
+
+	return true;
+}

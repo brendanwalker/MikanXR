@@ -1,6 +1,7 @@
 #include "AnchorObjectSystem.h"
 #include "MikanAnchorComponent.h"
 #include "MikanSceneComponent.h"
+#include "MikanBoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "BoxStencilComponent.h"
@@ -15,6 +16,13 @@ BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
 	, BoxYSize(0.f)
 	, BoxZSize(0.f)
 {}
+
+void BoxStencilComponent::init()
+{
+	MikanComponent::init();
+
+	m_boxCollider = getOwnerObject()->getComponentOfType<MikanBoxColliderComponent>();
+}
 
 void BoxStencilComponent::setBoxStencil(const MikanStencilBox& stencil)
 {
@@ -36,6 +44,7 @@ void BoxStencilComponent::setBoxStencil(const MikanStencilBox& stencil)
 	}
 
 	updateSceneComponentTransform();
+	updateBoxColliderExtents();
 }
 
 glm::mat4 BoxStencilComponent::getStencilLocalTransform() const
@@ -99,5 +108,14 @@ void BoxStencilComponent::updateSceneComponentTransform()
 		const glm::mat4 worldXform = getStencilWorldTransform();
 
 		sceneComponent->setWorldTransform(worldXform);
+	}
+}
+
+void BoxStencilComponent::updateBoxColliderExtents()
+{
+	MikanBoxColliderComponentPtr boxCollider= m_boxCollider.lock();
+	if (boxCollider)
+	{
+		boxCollider->setHalfExtents(glm::vec3(BoxXSize, BoxYSize, BoxZSize) * 0.5f);
 	}
 }

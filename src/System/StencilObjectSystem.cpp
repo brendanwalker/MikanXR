@@ -5,6 +5,7 @@
 #include "GlStaticMeshInstance.h"
 #include "GlTriangulatedMesh.h"
 #include "MathTypeConversion.h"
+#include "MikanBoxColliderComponent.h"
 #include "MikanMeshColliderComponent.h"
 #include "MikanObject.h""
 #include "MikanSceneComponent.h"
@@ -115,14 +116,16 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const Mikan
 	stencilObject->setRootComponent(sceneComponentPtr);
 	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
 
+	// Add a box collider
+	MikanBoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<MikanBoxColliderComponent>();
+	boxColliderPtr->setHalfExtents(glm::vec3(stencilInfo.quad_width * 0.5f, stencilInfo.quad_height * 0.5f, 0.01f));
+
 	// Add quad stencil component to the object
 	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
 	stencilComponentPtr->setQuadStencil(stencilInfo);
 	m_quadStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
 
-	// TODO: Add a collider component 
-
-	// Init the object once all components are added
+		// Init the object once all components are added
 	stencilObject->init();
 
 	return stencilComponentPtr;
@@ -152,12 +155,18 @@ BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(const MikanSt
 	stencilObject->setRootComponent(sceneComponentPtr);
 	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
 
+	// Add a box collider
+	MikanBoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<MikanBoxColliderComponent>();
+	boxColliderPtr->setHalfExtents(
+		glm::vec3(
+			stencilInfo.box_x_size * 0.5f, 
+			stencilInfo.box_y_size * 0.5f, 
+			stencilInfo.box_z_size * 0.5f));
+
 	// Add spatial anchor component to the object
 	BoxStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<BoxStencilComponent>();
 	stencilComponentPtr->setBoxStencil(stencilInfo);
 	m_boxStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
-
-	// TODO: Add a collider component 
 
 	// Init the object once all components are added
 	stencilObject->init();
