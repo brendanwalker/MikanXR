@@ -1,4 +1,5 @@
 #include "App.h"
+#include "Colors.h"
 #include "GlCommon.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
@@ -76,24 +77,27 @@ bool GlRenderModelResource::createRenderResources()
 	{
 		for (const objl::Mesh& mesh : m_objLoader->LoadedMeshes)
 		{
-			GlTriangulatedMeshPtr glMesh = 
+			GlTriangulatedMeshPtr glTriMesh = 
 				createTriangulatedMeshResource(
 					mesh.MeshName, getVertexDefinition(), &mesh);
-			GlMaterialInstancePtr glMaterial =
-				createMaterialResource(
+			GlMaterialInstancePtr glTriMeshMaterial =
+				createTriMeshMaterialResource(
 					mesh.MeshMaterial.name, &mesh.MeshMaterial);
 			GlWireframeMeshPtr glWireframeMesh =
 				createWireframeMeshResource(
 					mesh.MeshName, &mesh);
+			GlMaterialInstancePtr glWireframeMeshMaterial =
+				createWireframeMeshMaterialResource(
+					mesh.MeshMaterial.name);
 
-			if (glMesh != nullptr)
+			if (glTriMesh != nullptr)
 			{
-				m_glTriMeshResources.push_back({glMesh, glMaterial});
+				m_glTriMeshResources.push_back({glTriMesh, glTriMeshMaterial});
 			}
 
 			if (glWireframeMesh != nullptr)
 			{
-				m_glWireframeMeshes.push_back(glWireframeMesh);
+				m_glWireframeMeshResources.push_back({glWireframeMesh, glWireframeMeshMaterial});
 			}
 		}
 
@@ -110,17 +114,17 @@ bool GlRenderModelResource::createRenderResources()
 
 void GlRenderModelResource::disposeRenderResources()
 {
-	for (MeshResourceEntry& glMeshResource : m_glTriMeshResources)
+	for (TriMeshResourceEntry& glMeshResource : m_glTriMeshResources)
 	{
 		glMeshResource.glMesh->deleteBuffers();
 	}
 	m_glTriMeshResources.clear();
 
-	for (GlWireframeMeshPtr glWireframeMesh : m_glWireframeMeshes)
+	for (WireframeMeshResourceEntry glWireframeMesh : m_glWireframeMeshResources)
 	{
-		glWireframeMesh->deleteBuffers();
+		glWireframeMesh.glMesh->deleteBuffers();
 	}
-	m_glWireframeMeshes.clear();
+	m_glWireframeMeshResources.clear();
 
 	disposeObjFileResources();
 }
@@ -236,7 +240,7 @@ GlTriangulatedMeshPtr GlRenderModelResource::createTriangulatedMeshResource(
 	return glMesh;
 }
 
-GlMaterialInstancePtr GlRenderModelResource::createMaterialResource(
+GlMaterialInstancePtr GlRenderModelResource::createTriMeshMaterialResource(
 	const std::string& materialName,
 	const objl::Material* objMaterial)
 {
@@ -324,4 +328,15 @@ GlWireframeMeshPtr GlRenderModelResource::createWireframeMeshResource(
 	}
 
 	return glWireframeMesh;
+}
+
+GlMaterialInstancePtr GlRenderModelResource::createWireframeMeshMaterialResource(
+	const std::string& materialName)
+{
+	GlMaterialConstPtr wireframeMaterial = GlModelResourceManager::getInstance()->getWireframeMaterial();
+	GlMaterialInstancePtr glMaterialInstance = std::make_shared<GlMaterialInstance>(wireframeMaterial);
+
+	glMaterialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(Colors::Yellow, 1.f));
+
+	return glMaterialInstance;
 }

@@ -20,6 +20,7 @@ class BoxStencilComponent : public MikanStencilComponent
 public:
 	BoxStencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
+	virtual void update() override;
 
 	void setBoxStencil(const MikanStencilBox& stencil);
 

@@ -20,6 +20,7 @@ class QuadStencilComponent : public MikanStencilComponent
 public:
 	QuadStencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
+	virtual void update() override;
 
 	void setQuadStencil(const MikanStencilQuad& stencil);
 

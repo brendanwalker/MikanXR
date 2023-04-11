@@ -32,6 +32,17 @@ bool GlModelResourceManager::startup()
 		return false;
 	}
 
+	m_wireframeShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getWireframeShaderCode());
+	if (m_wireframeShader != nullptr)
+	{
+		m_wireframeMaterial = std::make_shared<GlMaterial>("Simple Wireframe", m_phongShader);
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile wireframe shader";
+		return false;
+	}
+
 	return true;
 }
 
@@ -175,6 +186,36 @@ const GlProgramCode* GlModelResourceManager::getPhongShaderCode()
 		.addUniform(PHONG_LIGHT_COLOR_UNIFORM_NAME, eUniformSemantic::lightColor)
 		.addUniform(PHONG_LIGHT_DIRECTION_UNIFORM_NAME, eUniformSemantic::lightDirection)
 		.addUniform(PHONG_CAMERA_POSITION_UNIFORM_NAME, eUniformSemantic::cameraPosition);
+
+	return &x_shaderCode;
+}
+
+const GlProgramCode* GlModelResourceManager::getWireframeShaderCode()
+{
+	static GlProgramCode x_shaderCode = GlProgramCode(
+		"wireframe line shader",
+		// vertex shader
+		R""""(
+		#version 410 
+		uniform vec4 mvpMatrix; 
+		layout(location = 0) in vec3 in_position; 
+		void main() 
+		{ 
+			gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
+		}
+		)"""",
+		//fragment shader
+		R""""(
+		#version 410 core
+		uniform vec4 diffuseColor; 
+		out vec4 out_FragColor;
+		void main()
+		{
+			out_FragColor = diffuseColor;
+		}
+		)"""")
+		.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
+		.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 
 	return &x_shaderCode;
 }

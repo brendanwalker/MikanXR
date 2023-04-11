@@ -1,10 +1,14 @@
 #include "AnchorObjectSystem.h"
+#include "Colors.h"
+#include "GlLineRenderer.h"
+#include "GlTextRenderer.h"
 #include "MikanAnchorComponent.h"
 #include "MikanSceneComponent.h"
 #include "MikanBoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "QuadStencilComponent.h"
+#include "TextStyle.h"
 
 QuadStencilComponent::QuadStencilComponent(MikanObjectWeakPtr owner)
 	: MikanStencilComponent(owner)
@@ -23,6 +27,23 @@ void QuadStencilComponent::init()
 	MikanComponent::init();
 
 	m_boxCollider = getOwnerObject()->getComponentOfType<MikanBoxColliderComponent>();
+}
+
+void QuadStencilComponent::update()
+{
+	MikanComponent::update();
+
+	if (!IsDisabled)
+	{
+		TextStyle style = getDefaultTextStyle();
+
+		const glm::mat4 xform = m_sceneComponent.lock()->getWorldTransform();
+		const glm::vec3 position = glm::vec3(xform[3]);
+
+		drawTransformedQuad(xform, QuadWidth, QuadHeight, Colors::Yellow);
+		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
+		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
+	}
 }
 
 void QuadStencilComponent::setQuadStencil(const MikanStencilQuad& stencil)

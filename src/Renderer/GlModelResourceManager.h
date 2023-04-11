@@ -19,6 +19,7 @@
 #define PHONG_LIGHT_COLOR_UNIFORM_NAME					"lightColor"
 #define PHONG_LIGHT_DIRECTION_UNIFORM_NAME				"lightDirection"
 
+
 class GlRenderModelResource;
 using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
 using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;
@@ -28,6 +29,8 @@ using GlProgramPtr= std::shared_ptr<GlProgram>;
 
 class GlMaterial;
 using GlMaterialConstPtr= std::shared_ptr<const GlMaterial>;
+
+class GlProgramCode;
 
 class GlModelResourceManager
 {
@@ -47,10 +50,17 @@ public:
 	GlProgramPtr getPhongShader() const { return m_phongShader; }
 	GlMaterialConstPtr getPhongMaterial() const { return m_phongMaterial; }
 
+	GlProgramPtr getWireframeShader() const { return m_wireframeShader; }
+	GlMaterialConstPtr getWireframeMaterial() const { return m_wireframeMaterial; }
+
 private:
-	static const class GlProgramCode* getPhongShaderCode();
+	static const GlProgramCode* getPhongShaderCode();
 	GlProgramPtr m_phongShader = nullptr;
 	GlMaterialConstPtr m_phongMaterial = nullptr;
+
+	static const GlProgramCode* getWireframeShaderCode();
+	GlProgramPtr m_wireframeShader = nullptr;
+	GlMaterialConstPtr m_wireframeMaterial = nullptr;
 
 	std::map<std::string, GlRenderModelResourcePtr> m_renderModelCache;
 

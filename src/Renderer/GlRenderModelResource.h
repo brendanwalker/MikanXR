@@ -44,8 +44,11 @@ public:
 	GlMaterialInstancePtr getTriangulatedMeshMaterial(int meshIndex) const
 	{ return m_glTriMeshResources[meshIndex].glMaterialInstance; }
 
-	size_t getWireframeMeshCount() const { return m_glWireframeMeshes.size(); }
-	GlWireframeMeshPtr getWireframeMesh(int meshIndex) const { return m_glWireframeMeshes[meshIndex]; }
+	size_t getWireframeMeshCount() const { return m_glWireframeMeshResources.size(); }
+	GlWireframeMeshPtr getWireframeMesh(int meshIndex) const 
+	{ return m_glWireframeMeshResources[meshIndex].glMesh; }
+	GlMaterialInstancePtr getWireframeMeshMaterial(int meshIndex) const
+	{ return m_glWireframeMeshResources[meshIndex].glMaterialInstance; }
 
 protected:
 	bool loadObjFileResources();
@@ -55,26 +58,33 @@ protected:
 		const std::string& meshName,
 		const struct GlVertexDefinition* vertexDefinition,
 		const objl::Mesh* objMesh);
-	GlMaterialInstancePtr createMaterialResource(
+	GlMaterialInstancePtr createTriMeshMaterialResource(
 		const std::string& materialName,
 		const objl::Material* objMaterial);
 	GlWireframeMeshPtr createWireframeMeshResource(
 		const std::string& meshName,
 		const objl::Mesh* objMesh);
+	GlMaterialInstancePtr createWireframeMeshMaterialResource(
+		const std::string& materialName);
 
 	objl::Loader* m_objLoader= nullptr;
 
 	const std::filesystem::path m_renderModelFilepath;
 	struct GlVertexDefinition* m_vertexDefinition= nullptr;
 
-	struct MeshResourceEntry
+	struct TriMeshResourceEntry
 	{
 		GlTriangulatedMeshPtr glMesh;
 		GlMaterialInstancePtr glMaterialInstance;
 	};
+	std::vector<TriMeshResourceEntry> m_glTriMeshResources;
 
-	std::vector<MeshResourceEntry> m_glTriMeshResources;
-	std::vector<GlWireframeMeshPtr> m_glWireframeMeshes;
+	struct WireframeMeshResourceEntry
+	{
+		GlWireframeMeshPtr glMesh;
+		GlMaterialInstancePtr glMaterialInstance;
+	};
+	std::vector<WireframeMeshResourceEntry> m_glWireframeMeshResources;
 };
 using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
 using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;

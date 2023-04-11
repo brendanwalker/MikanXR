@@ -23,5 +23,6 @@ public:
 
 	GlStaticMeshInstancePtr getStaticMesh() const;
 	void setStaticMesh(GlStaticMeshInstancePtr meshInstance);
+
 	MulticastDelegate<void(MikanStaticMeshComponentWeakPtr meshComponent)> OnMeshChanged;
 };

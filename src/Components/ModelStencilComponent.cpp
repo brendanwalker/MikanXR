@@ -1,6 +1,11 @@
 #include "AnchorObjectSystem.h"
+#include "Colors.h"
+#include "GlLineRenderer.h"
+#include "GlTextRenderer.h"
+#include "GlStaticMeshInstance.h"
 #include "MikanAnchorComponent.h"
 #include "MikanSceneComponent.h"
+#include "MikanStaticMeshComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "ModelStencilComponent.h"
@@ -13,6 +18,39 @@ ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 	, ModelQuat(glm::quat())
 	, ModelScale(glm::vec3(1.f, 1.f, 1.f))
 {}
+
+void ModelStencilComponent::init()
+{
+	MikanStencilComponent::init();
+
+	// Get a list of all the attached wireframe meshes
+	std::vector<MikanStaticMeshComponentPtr> meshComponents;
+	getOwnerObject()->getComponentsOfType<MikanStaticMeshComponent>(meshComponents);
+	for (auto& meshComponentPtr : meshComponents)
+	{
+		GlStaticMeshInstancePtr staticMeshPtr= meshComponentPtr->getStaticMesh();
+		if (staticMeshPtr && staticMeshPtr->getName() == "wireframe")
+		{
+			m_wireframeMeshes.push_back(staticMeshPtr);
+		}
+	}
+}
+
+void ModelStencilComponent::update()
+{
+	MikanStencilComponent::update();
+
+	if (!IsDisabled)
+	{
+		TextStyle style = getDefaultTextStyle();
+
+		const glm::mat4 xform = m_sceneComponent.lock()->getWorldTransform();
+		const glm::vec3 position = glm::vec3(xform[3]);
+
+		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
+		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
+	}
+}
 
 void ModelStencilComponent::setModelStencil(const MikanStencilModel& stencil)
 {

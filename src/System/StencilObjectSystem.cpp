@@ -4,6 +4,7 @@
 #include "GlRenderModelResource.h"
 #include "GlStaticMeshInstance.h"
 #include "GlTriangulatedMesh.h"
+#include "GlWireframeMesh.h"
 #include "MathTypeConversion.h"
 #include "MikanBoxColliderComponent.h"
 #include "MikanMeshColliderComponent.h"
@@ -203,6 +204,7 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const Mik
 		modelInfo.modelPath,
 		GlRenderModelResource::getDefaultVertexDefinition());
 
+	// Add static tri meshes
 	for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
 	{
 		// Fetch the mesh and material resources
@@ -224,6 +226,27 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const Mik
 		// Add a mesh collider component that generates collision from the mesh data
 		MikanMeshColliderComponentPtr colliderPtr= stencilObject->addComponent<MikanMeshColliderComponent>();
 		colliderPtr->setStaticMeshComponent(meshComponentPtr);
+		meshComponentPtr->attachToComponent(sceneComponentPtr);
+	}
+
+	// Add static wireframe meshes
+	for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
+	{
+		// Fetch the mesh and material resources
+		GlWireframeMeshPtr wireframeMeshPtr= modelResourcePtr->getWireframeMesh((int)meshIndex);
+		GlMaterialInstancePtr materialInstancePtr= modelResourcePtr->getWireframeMeshMaterial((int)meshIndex);
+
+		// Create a new (hidden) static mesh instance from the mesh resources
+		GlStaticMeshInstancePtr wireframeMeshInstancePtr =
+			std::make_shared<GlStaticMeshInstance>(
+				"wireframe",
+				wireframeMeshPtr,
+				materialInstancePtr);
+		wireframeMeshInstancePtr->setVisible(false);
+
+		// Create a static mesh component to hold the mesh instance
+		MikanStaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<MikanStaticMeshComponent>();
+		meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
 		meshComponentPtr->attachToComponent(sceneComponentPtr);
 	}
 

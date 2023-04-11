@@ -1,10 +1,14 @@
 #include "AnchorObjectSystem.h"
+#include "BoxStencilComponent.h"
+#include "Colors.h"
+#include "GlLineRenderer.h"
+#include "GlTextRenderer.h"
 #include "MikanAnchorComponent.h"
 #include "MikanSceneComponent.h"
 #include "MikanBoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
-#include "BoxStencilComponent.h"
+#include "TextStyle.h"
 
 BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
 	: MikanStencilComponent(owner)
@@ -22,6 +26,24 @@ void BoxStencilComponent::init()
 	MikanComponent::init();
 
 	m_boxCollider = getOwnerObject()->getComponentOfType<MikanBoxColliderComponent>();
+}
+
+void BoxStencilComponent::update()
+{
+	MikanComponent: update();
+
+	if (!IsDisabled)
+	{
+		TextStyle style = getDefaultTextStyle();
+
+		const glm::mat4 xform = m_sceneComponent.lock()->getWorldTransform();
+		const glm::vec3 half_extents(BoxXSize / 2.f, BoxYSize / 2.f, BoxZSize / 2.f);
+		const glm::vec3 position = glm::vec3(xform[3]);
+
+		drawTransformedBox(xform, half_extents, Colors::Yellow);
+		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
+		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
+	}
 }
 
 void BoxStencilComponent::setBoxStencil(const MikanStencilBox& stencil)
