@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererFwd.h"
+
 #include <filesystem>
 #include <map>
 #include <string>
@@ -19,18 +21,6 @@
 #define PHONG_LIGHT_COLOR_UNIFORM_NAME					"lightColor"
 #define PHONG_LIGHT_DIRECTION_UNIFORM_NAME				"lightDirection"
 
-
-class GlRenderModelResource;
-using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
-using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;
-
-class GlProgram;
-using GlProgramPtr= std::shared_ptr<GlProgram>;
-
-class GlMaterial;
-using GlMaterialConstPtr= std::shared_ptr<const GlMaterial>;
-
-class GlProgramCode;
 
 class GlModelResourceManager
 {

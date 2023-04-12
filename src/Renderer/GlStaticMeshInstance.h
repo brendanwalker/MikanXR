@@ -2,18 +2,13 @@
 
 #include "IGLSceneRenderable.h"
 #include "IGlMesh.h"
+#include "RendererFwd.h"
 
 #include <memory>
 #include <string>
 
 #include "glm/ext/matrix_float4x4.hpp"
 
-class GlMaterial;
-typedef std::shared_ptr<const GlMaterial> GlMaterialConstPtr;
-
-class GlMaterialInstance;
-typedef std::shared_ptr<GlMaterialInstance> GlMaterialInstancePtr;
-typedef std::shared_ptr<const GlMaterialInstance> GlMaterialInstanceConstPtr;
 
 class GlStaticMeshInstance : public IGlSceneRenderable
 {
@@ -53,4 +48,3 @@ private:
 	IGlMeshConstPtr m_mesh= nullptr;
 	class GlScene* m_boundScene= nullptr;
 };
-typedef std::shared_ptr<GlStaticMeshInstance> GlStaticMeshInstancePtr;

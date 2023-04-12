@@ -2,6 +2,8 @@
 
 #include "IGlMesh.h"
 #include "GlVertexDefinition.h"
+#include "RendererFwd.h"
+
 #include "stdint.h"
 
 #include <memory>
@@ -9,9 +11,6 @@
 
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
-
-class GlProgram;
-typedef std::shared_ptr<GlProgram> GlProgramPtr;
 
 class GlWireframeMesh : public IGlMesh
 {

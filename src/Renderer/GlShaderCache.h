@@ -1,13 +1,10 @@
 #pragma once
 
+#include "RendererFwd.h"
+
 #include <memory>
 #include <string>
 #include <map>
-
-//-- typedefs -----
-class GlProgramCode;
-class GlProgram;
-typedef std::shared_ptr<GlProgram> GlProgramPtr;
 
 class GlShaderCache
 {

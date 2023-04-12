@@ -3,6 +3,7 @@
 #include "NamedValueTable.h"
 #include "GlProgramConstants.h"
 #include "GlScopedMaterialBinding.h"
+#include "RendererFwd.h"
 
 #include <string>
 #include <memory>
@@ -12,12 +13,6 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
-
-class GlTexture;
-typedef std::shared_ptr<GlTexture> GlTexturePtr;
-
-class GlProgram;
-typedef std::shared_ptr<GlProgram> GlProgramPtr;
 
 class GlMaterial
 {

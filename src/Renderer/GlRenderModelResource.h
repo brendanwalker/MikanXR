@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererFwd.h"
+
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -11,15 +13,6 @@ namespace objl
 	struct Mesh;
 	struct Material;
 };
-
-class GlTriangulatedMesh;
-using GlTriangulatedMeshPtr = std::shared_ptr<GlTriangulatedMesh>;
-
-class GlWireframeMesh;
-using GlWireframeMeshPtr = std::shared_ptr<GlWireframeMesh>;
-
-class GlMaterialInstance;
-using GlMaterialInstancePtr= std::shared_ptr<GlMaterialInstance>;
 
 class GlRenderModelResource
 {
@@ -86,5 +79,3 @@ protected:
 	};
 	std::vector<WireframeMeshResourceEntry> m_glWireframeMeshResources;
 };
-using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
-using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;

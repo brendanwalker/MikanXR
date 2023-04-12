@@ -13,6 +13,7 @@
 #include <stdint.h>
 
 #include "GlProgramConstants.h"
+#include "RendererFwd.h"
 
 class GlProgramCode
 {
@@ -115,5 +116,3 @@ protected:
 	uint32_t m_programID = 0;
 	GlProgramUniformMap m_uniformLocationMap;
 };
-typedef std::shared_ptr<GlProgram> GlProgramPtr;
-typedef std::shared_ptr<const GlProgram> GlProgramConstPtr;

@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <string>
+
 #include "glm/ext/vector_float3.hpp"
 
 #define TEXT_STYLE_NORMAL        0x00
