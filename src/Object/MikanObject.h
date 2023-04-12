@@ -5,9 +5,6 @@
 #include <memory>
 #include <vector>
 
-class SceneComponent;
-typedef std::shared_ptr<SceneComponent> SceneComponentPtr;
-
 class MikanObject : public std::enable_shared_from_this<MikanObject>
 {
 public:
@@ -66,8 +63,6 @@ protected:
 	SceneComponentPtr m_rootSceneComponent;
 	std::vector<MikanComponentPtr> m_components;
 };
-typedef std::shared_ptr<MikanObject> MikanObjectPtr;
-typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
 
 template<class t_derived_type>
 std::shared_ptr<t_derived_type> ObjectCast(MikanObjectPtr object)

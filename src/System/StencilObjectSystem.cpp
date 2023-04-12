@@ -10,6 +10,7 @@
 #include "MeshColliderComponent.h"
 #include "MikanObject.h""
 #include "SceneComponent.h"
+#include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
@@ -112,10 +113,12 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const Mikan
 {
 	MikanObjectPtr stencilObject = newObject();
 
-	// Add a scene component to the anchor
+	// Add a selection component
+	stencilObject->addComponent<SelectionComponent>();
+
+	// Add a scene component
 	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
 	stencilObject->setRootComponent(sceneComponentPtr);
-	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
 
 	// Add a box collider
 	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
@@ -126,7 +129,7 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const Mikan
 	stencilComponentPtr->setQuadStencil(stencilInfo);
 	m_quadStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
 
-		// Init the object once all components are added
+	// Init the object once all components are added
 	stencilObject->init();
 
 	return stencilComponentPtr;
@@ -154,7 +157,9 @@ BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(const MikanSt
 	// Add a scene component to the anchor
 	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
 	stencilObject->setRootComponent(sceneComponentPtr);
-	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
+
+	// Add a selection component
+	stencilObject->addComponent<SelectionComponent>();
 
 	// Add a box collider
 	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
@@ -197,6 +202,9 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const Mik
 	// Add a scene component to the model stencil
 	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
 	stencilObject->setRootComponent(sceneComponentPtr);
+
+	// Add a selection component
+	stencilObject->addComponent<SelectionComponent>();
 
 	// Fetch the model resource
 	auto& modelResourceManager = Renderer::getInstance()->getModelResourceManager();

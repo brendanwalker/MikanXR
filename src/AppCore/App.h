@@ -21,6 +21,7 @@ public:
 
 	inline class ProfileConfig* getProfileConfig() const { return m_profileConfig; }
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
+	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemPtr; }
 	inline class Renderer* getRenderer() const { return m_renderer; }
 	inline class FontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
