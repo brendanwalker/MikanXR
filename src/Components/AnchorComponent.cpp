@@ -1,23 +1,23 @@
-#include "MikanAnchorComponent.h"
-#include "MikanSceneComponent.h"
+#include "AnchorComponent.h"
+#include "SceneComponent.h"
 #include "MikanObject.h"
 #include "MathTypeConversion.h"
 
-MikanAnchorComponent::MikanAnchorComponent(MikanObjectWeakPtr owner)
+AnchorComponent::AnchorComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 	, AnchorId(INVALID_MIKAN_ID)
 	, AnchorXform(glm::mat4(1.f))
 	, AnchorName("")
 {}
 
-void MikanAnchorComponent::init()
+void AnchorComponent::init()
 {
 	MikanComponent::init();
 
-	m_sceneComponent = getOwnerObject()->getComponentOfType<MikanSceneComponent>();
+	m_sceneComponent = getOwnerObject()->getComponentOfType<SceneComponent>();
 }
 
-void MikanAnchorComponent::setSpatialAnchor(const MikanSpatialAnchorInfo& anchor)
+void AnchorComponent::setSpatialAnchor(const MikanSpatialAnchorInfo& anchor)
 {
 	AnchorId= anchor.anchor_id;
 	AnchorXform= MikanMatrix4f_to_glm_mat4(anchor.anchor_xform);
@@ -31,22 +31,22 @@ void MikanAnchorComponent::setSpatialAnchor(const MikanSpatialAnchorInfo& anchor
 	updateSceneComponentTransform();
 }
 
-void MikanAnchorComponent::setAnchorXform(const glm::mat4& xform)
+void AnchorComponent::setAnchorXform(const glm::mat4& xform)
 {
 	AnchorXform= xform;
 	notifyAnchorXformChanged();
 	updateSceneComponentTransform();
 }
 
-void MikanAnchorComponent::setAnchorName(const std::string& newAnchorName)
+void AnchorComponent::setAnchorName(const std::string& newAnchorName)
 {
 	AnchorName= newAnchorName;
 	notifyAnchorNameChanged();
 }
 
-void MikanAnchorComponent::updateSceneComponentTransform()
+void AnchorComponent::updateSceneComponentTransform()
 {
-	MikanSceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
 	if (sceneComponent)
 	{
 		const glm::mat4 worldXform = getAnchorXform();

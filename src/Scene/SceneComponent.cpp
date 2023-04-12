@@ -1,35 +1,35 @@
-#include "MikanSceneComponent.h"
+#include "SceneComponent.h"
 #include "MikanObject.h"
 #include "MathGLM.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
-MikanSceneComponent::MikanSceneComponent(MikanObjectWeakPtr owner)
+SceneComponent::SceneComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
 }
 
-void MikanSceneComponent::init()
+void SceneComponent::init()
 {
 	MikanComponent::init();
 }
 
-void MikanSceneComponent::dispose()
+void SceneComponent::dispose()
 {
 	detachFromParent();
 	MikanComponent::dispose();
 }
 
-void MikanSceneComponent::attachToComponent(MikanSceneComponentWeakPtr newParentComponent)
+void SceneComponent::attachToComponent(SceneComponentWeakPtr newParentComponent)
 {
 	detachFromParent();
 
-	MikanSceneComponentPtr parent = m_parentComponent.lock();
+	SceneComponentPtr parent = m_parentComponent.lock();
 	if (parent != nullptr)
 	{
-		MikanSceneComponentList& parentChildList= parent->m_childComponents;
+		SceneComponentList& parentChildList= parent->m_childComponents;
 
-		parentChildList.push_back(MikanSceneComponentPtr(this));
+		parentChildList.push_back(SceneComponentPtr(this));
 		m_parentComponent = newParentComponent;
 
 		// Refresh world transform
@@ -37,16 +37,16 @@ void MikanSceneComponent::attachToComponent(MikanSceneComponentWeakPtr newParent
 	}
 }
 
-void MikanSceneComponent::detachFromParent()
+void SceneComponent::detachFromParent()
 {
-	MikanSceneComponentPtr parent= m_parentComponent.lock();
+	SceneComponentPtr parent= m_parentComponent.lock();
 	if (parent != nullptr)
 	{
-		MikanSceneComponentList& parentChildList= parent->m_childComponents;
+		SceneComponentList& parentChildList= parent->m_childComponents;
 
 		for (auto it = parentChildList.begin(); it != parentChildList.end(); ++it)
 		{
-			MikanSceneComponentPtr sceneComponent= it->lock(); 
+			SceneComponentPtr sceneComponent= it->lock(); 
 
 			if (sceneComponent.get() == this)
 			{
@@ -56,14 +56,14 @@ void MikanSceneComponent::detachFromParent()
 		}
 	}
 
-	m_parentComponent = MikanSceneComponentPtr();
+	m_parentComponent = SceneComponentPtr();
 }
 
-void MikanSceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
+void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 {
 	m_relativeTransform= newRelativeXform;
 
-	MikanSceneComponentPtr parent = m_parentComponent.lock();
+	SceneComponentPtr parent = m_parentComponent.lock();
 	if (parent != nullptr)
 	{
 		m_worldTransform= glm_composite_xform(parent->getWorldTransform(), newRelativeXform.getMat4());
@@ -79,7 +79,7 @@ void MikanSceneComponent::setRelativeTransform(const GlmTransform& newRelativeXf
 	}
 }
 
-void MikanSceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
+void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
 	m_worldTransform= newWorldXform;
 
@@ -89,7 +89,7 @@ void MikanSceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	}
 	
 	glm::mat4 invParentXform= glm::mat4(1.f);
-	MikanSceneComponentPtr parent = m_parentComponent.lock();
+	SceneComponentPtr parent = m_parentComponent.lock();
 	if (parent != nullptr)
 	{
 		invParentXform= glm::inverse(parent->getWorldTransform());

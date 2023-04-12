@@ -1,7 +1,7 @@
 #include "App.h"
 #include "AnchorObjectSystem.h"
-#include "MikanAnchorComponent.h"
-#include "MikanSceneComponent.h"
+#include "AnchorComponent.h"
+#include "SceneComponent.h"
 #include "MathTypeConversion.h"
 #include "ProfileConfig.h"
 
@@ -34,7 +34,7 @@ void AnchorObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
-MikanAnchorComponentWeakPtr AnchorObjectSystem::getSpatialAnchorById(MikanSpatialAnchorID anchorId) const
+AnchorComponentWeakPtr AnchorObjectSystem::getSpatialAnchorById(MikanSpatialAnchorID anchorId) const
 {
 	auto iter= m_anchorComponents.find(anchorId);
 	if (iter != m_anchorComponents.end())
@@ -42,14 +42,14 @@ MikanAnchorComponentWeakPtr AnchorObjectSystem::getSpatialAnchorById(MikanSpatia
 		return iter->second;
 	}
 
-	return MikanAnchorComponentWeakPtr();
+	return AnchorComponentWeakPtr();
 }
 
-MikanAnchorComponentWeakPtr AnchorObjectSystem::getSpatialAnchorByName(const std::string& anchorName) const
+AnchorComponentWeakPtr AnchorObjectSystem::getSpatialAnchorByName(const std::string& anchorName) const
 {
 	for (auto it = m_anchorComponents.begin(); it != m_anchorComponents.end(); it++)
 	{
-		MikanAnchorComponentPtr componentPtr= it->second.lock();
+		AnchorComponentPtr componentPtr= it->second.lock();
 
 		if (componentPtr && componentPtr->getAnchorName() == anchorName)
 		{
@@ -57,10 +57,10 @@ MikanAnchorComponentWeakPtr AnchorObjectSystem::getSpatialAnchorByName(const std
 		}
 	}
 
-	return MikanAnchorComponentWeakPtr();
+	return AnchorComponentWeakPtr();
 }
 
-MikanAnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorName, const glm::mat4& xform)
+AnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorName, const glm::mat4& xform)
 {
 	AnchorObjectSystemConfig& anchorConfig = getAnchorConfig();
 
@@ -71,7 +71,7 @@ MikanAnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anch
 		assert(anchorInfo != nullptr);
 	}
 
-	return MikanAnchorComponentPtr();
+	return AnchorComponentPtr();
 }
 
 bool AnchorObjectSystem::removeAnchor(MikanSpatialAnchorID anchorId)
@@ -82,17 +82,17 @@ bool AnchorObjectSystem::removeAnchor(MikanSpatialAnchorID anchorId)
 	return false;
 }
 
-MikanAnchorComponentPtr AnchorObjectSystem::createAnchorObject(const MikanSpatialAnchorInfo& anchorInfo)
+AnchorComponentPtr AnchorObjectSystem::createAnchorObject(const MikanSpatialAnchorInfo& anchorInfo)
 {
 	MikanObjectPtr anchorObject= newObject();
 
 	// Add a scene component to the anchor
-	MikanSceneComponentPtr sceneComponentPtr= anchorObject->addComponent<MikanSceneComponent>();
+	SceneComponentPtr sceneComponentPtr= anchorObject->addComponent<SceneComponent>();
 	anchorObject->setRootComponent(sceneComponentPtr);
 	// TODO add a IGlSceneRenderable to the scene component to draw the anchor
 
 	// Add spatial anchor component to the object
-	MikanAnchorComponentPtr anchorComponentPtr= anchorObject->addComponent<MikanAnchorComponent>();
+	AnchorComponentPtr anchorComponentPtr= anchorObject->addComponent<AnchorComponent>();
 	anchorComponentPtr->setSpatialAnchor(anchorInfo);
 	m_anchorComponents.insert({anchorInfo.anchor_id, anchorComponentPtr});
 
@@ -109,7 +109,7 @@ void AnchorObjectSystem::disposeAnchorObject(MikanSpatialAnchorID anchorId)
 	auto it= m_anchorComponents.find(anchorId);
 	if (it != m_anchorComponents.end())
 	{
-		MikanAnchorComponentPtr anchorComponentPtr= it->second.lock();
+		AnchorComponentPtr anchorComponentPtr= it->second.lock();
 
 		// Remove for component list
 		m_anchorComponents.erase(it);

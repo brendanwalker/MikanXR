@@ -10,7 +10,7 @@ class MikanObject;
 typedef std::shared_ptr<MikanObject> MikanObjectPtr;
 typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
 
-class MikanObjectSystem : public std::enable_shared_from_this<MikanObject>
+class MikanObjectSystem : public std::enable_shared_from_this<MikanObjectSystem>
 {
 public:
 	MikanObjectSystem();
@@ -52,5 +52,3 @@ public:
 protected:
 	std::vector<MikanObjectPtr> m_objects;
 };
-typedef std::shared_ptr<MikanObjectSystem> MikanObjectSystemPtr;
-typedef std::weak_ptr<MikanObjectSystem> MikanObjectSystemWeakPtr;

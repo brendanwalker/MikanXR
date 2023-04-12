@@ -2,7 +2,10 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "ObjectSystemFwd.h"
 #include "SDL_events.h"
+
+#include <memory>
 #include <vector>
 #include <assert.h>
 #include <stdint.h>
@@ -108,6 +111,9 @@ private:
 
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;
+
+	// Object System manager
+	ObjectSystemManagerPtr m_objectSystemPtr;
 
 	// OpenGL renderer
 	class Renderer* m_renderer= nullptr;

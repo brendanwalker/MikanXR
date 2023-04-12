@@ -1,12 +1,10 @@
 #pragma once
 
-#include "MikanSceneComponent.h"
+#include "SceneComponent.h"
 #include "IGlMesh.h"
+#include "ObjectFwd.h"
 
 #include <memory>
-
-class MikanObject;
-typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
 
 struct ColliderRaycastHitRequest
 {
@@ -21,14 +19,12 @@ struct ColliderRaycastHitResult
 	glm::vec3 hitNormal;
 };
 
-class MikanColliderComponent : public MikanSceneComponent
+class ColliderComponent : public SceneComponent
 {
 public:
-	MikanColliderComponent(MikanObjectWeakPtr owner);
+	ColliderComponent(MikanObjectWeakPtr owner);
 
 	virtual bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
 		ColliderRaycastHitResult& outResult) const;
 };
-typedef std::weak_ptr<MikanColliderComponent> MikanColliderComponentWeakPtr;
-typedef std::shared_ptr<MikanColliderComponent> MikanColliderComponentPtr;

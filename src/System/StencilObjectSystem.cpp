@@ -6,11 +6,11 @@
 #include "GlTriangulatedMesh.h"
 #include "GlWireframeMesh.h"
 #include "MathTypeConversion.h"
-#include "MikanBoxColliderComponent.h"
-#include "MikanMeshColliderComponent.h"
+#include "BoxColliderComponent.h"
+#include "MeshColliderComponent.h"
 #include "MikanObject.h""
-#include "MikanSceneComponent.h"
-#include "MikanStaticMeshComponent.h"
+#include "SceneComponent.h"
+#include "StaticMeshComponent.h"
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
@@ -113,12 +113,12 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const Mikan
 	MikanObjectPtr stencilObject = newObject();
 
 	// Add a scene component to the anchor
-	MikanSceneComponentPtr sceneComponentPtr = stencilObject->addComponent<MikanSceneComponent>();
+	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
 	stencilObject->setRootComponent(sceneComponentPtr);
 	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
 
 	// Add a box collider
-	MikanBoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<MikanBoxColliderComponent>();
+	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
 	boxColliderPtr->setHalfExtents(glm::vec3(stencilInfo.quad_width * 0.5f, stencilInfo.quad_height * 0.5f, 0.01f));
 
 	// Add quad stencil component to the object
@@ -152,12 +152,12 @@ BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(const MikanSt
 	MikanObjectPtr stencilObject = newObject();
 
 	// Add a scene component to the anchor
-	MikanSceneComponentPtr sceneComponentPtr = stencilObject->addComponent<MikanSceneComponent>();
+	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
 	stencilObject->setRootComponent(sceneComponentPtr);
 	// TODO add a IGlSceneRenderable to the scene component to draw the stencil
 
 	// Add a box collider
-	MikanBoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<MikanBoxColliderComponent>();
+	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
 	boxColliderPtr->setHalfExtents(
 		glm::vec3(
 			stencilInfo.box_x_size * 0.5f, 
@@ -195,7 +195,7 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const Mik
 	MikanObjectPtr stencilObject = newObject();
 
 	// Add a scene component to the model stencil
-	MikanSceneComponentPtr sceneComponentPtr = stencilObject->addComponent<MikanSceneComponent>();
+	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
 	stencilObject->setRootComponent(sceneComponentPtr);
 
 	// Fetch the model resource
@@ -219,12 +219,12 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const Mik
 				materialInstancePtr);
 
 		// Create a static mesh component to hold the mesh instance
-		MikanStaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<MikanStaticMeshComponent>();
+		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
 		meshComponentPtr->setStaticMesh(triMeshInstancePtr);
 		meshComponentPtr->attachToComponent(sceneComponentPtr);
 
 		// Add a mesh collider component that generates collision from the mesh data
-		MikanMeshColliderComponentPtr colliderPtr= stencilObject->addComponent<MikanMeshColliderComponent>();
+		MeshColliderComponentPtr colliderPtr= stencilObject->addComponent<MeshColliderComponent>();
 		colliderPtr->setStaticMeshComponent(meshComponentPtr);
 		meshComponentPtr->attachToComponent(sceneComponentPtr);
 	}
@@ -245,7 +245,7 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const Mik
 		wireframeMeshInstancePtr->setVisible(false);
 
 		// Create a static mesh component to hold the mesh instance
-		MikanStaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<MikanStaticMeshComponent>();
+		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
 		meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
 		meshComponentPtr->attachToComponent(sceneComponentPtr);
 	}

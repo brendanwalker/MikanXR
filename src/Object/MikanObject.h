@@ -5,8 +5,8 @@
 #include <memory>
 #include <vector>
 
-class MikanSceneComponent;
-typedef std::shared_ptr<MikanSceneComponent> MikanSceneComponentPtr;
+class SceneComponent;
+typedef std::shared_ptr<SceneComponent> SceneComponentPtr;
 
 class MikanObject : public std::enable_shared_from_this<MikanObject>
 {
@@ -56,14 +56,14 @@ public:
 		}
 	}
 
-	inline void setRootComponent(MikanSceneComponentPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }
+	inline void setRootComponent(SceneComponentPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }
 
 	void init();
 	void dispose();
 	void update();
 
 protected:
-	MikanSceneComponentPtr m_rootSceneComponent;
+	SceneComponentPtr m_rootSceneComponent;
 	std::vector<MikanComponentPtr> m_components;
 };
 typedef std::shared_ptr<MikanObject> MikanObjectPtr;

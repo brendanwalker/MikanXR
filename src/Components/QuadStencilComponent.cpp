@@ -2,16 +2,16 @@
 #include "Colors.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
-#include "MikanAnchorComponent.h"
-#include "MikanSceneComponent.h"
-#include "MikanBoxColliderComponent.h"
+#include "AnchorComponent.h"
+#include "SceneComponent.h"
+#include "BoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "QuadStencilComponent.h"
 #include "TextStyle.h"
 
 QuadStencilComponent::QuadStencilComponent(MikanObjectWeakPtr owner)
-	: MikanStencilComponent(owner)
+	: StencilComponent(owner)
 	, QuadCenter(glm::vec3(0.f))
 	, QuadXAxis(glm::vec3(1.f, 0.f, 0.f))
 	, QuadYAxis(glm::vec3(0.f, 1.f, 0.f))
@@ -26,7 +26,7 @@ void QuadStencilComponent::init()
 {
 	MikanComponent::init();
 
-	m_boxCollider = getOwnerObject()->getComponentOfType<MikanBoxColliderComponent>();
+	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
 }
 
 void QuadStencilComponent::update()
@@ -83,7 +83,7 @@ glm::mat4 QuadStencilComponent::getStencilWorldTransform() const
 	const glm::mat4 localXform= getStencilLocalTransform();
 
 	glm::mat4 worldXform= localXform;
-	MikanAnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
+	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
 	if (anchorPtr)
 	{
 		worldXform = anchorPtr->getAnchorXform() * localXform;
@@ -110,7 +110,7 @@ void QuadStencilComponent::setStencilLocalTransform(const glm::mat4& localXform)
 void QuadStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
 {
 	glm::mat4 localXform = worldXform;
-	MikanAnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
+	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
 	if (anchorPtr)
 	{
 		const glm::mat4 invParentXform = glm::inverse(anchorPtr->getAnchorXform());
@@ -124,7 +124,7 @@ void QuadStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
 
 void QuadStencilComponent::updateSceneComponentTransform()
 {
-	MikanSceneComponentPtr sceneComponent= m_sceneComponent.lock();
+	SceneComponentPtr sceneComponent= m_sceneComponent.lock();
 	if (sceneComponent)
 	{
 		const glm::mat4 worldXform = getStencilWorldTransform();
@@ -135,7 +135,7 @@ void QuadStencilComponent::updateSceneComponentTransform()
 
 void QuadStencilComponent::updateBoxColliderExtents()
 {
-	MikanBoxColliderComponentPtr boxCollider = m_boxCollider.lock();
+	BoxColliderComponentPtr boxCollider = m_boxCollider.lock();
 	if (boxCollider)
 	{
 		boxCollider->setHalfExtents(glm::vec3(QuadWidth, QuadHeight, 0.01f) * 0.5f);

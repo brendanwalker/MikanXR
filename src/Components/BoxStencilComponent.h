@@ -1,21 +1,18 @@
 #pragma once
 
-#include "MikanStencilComponent.h"
+#include "StencilComponent.h"
 #include "MikanClientTypes.h"
 #include "ComponentProperty.h"
+#include "ComponentFwd.h"
+#include "ObjectFwd.h"
 
 #include <memory>
 #include <string>
 
 #include "glm/ext/vector_float3.hpp"
 
-class MikanObject;
-using MikanObjectWeakPtr = std::weak_ptr<MikanObject>;
 
-class MikanBoxColliderComponent;
-using MikanBoxColliderComponentWeakPtr = std::weak_ptr<MikanBoxColliderComponent>;
-
-class BoxStencilComponent : public MikanStencilComponent
+class BoxStencilComponent : public StencilComponent
 {
 public:
 	BoxStencilComponent(MikanObjectWeakPtr owner);
@@ -41,7 +38,5 @@ protected:
 	void updateSceneComponentTransform();
 	void updateBoxColliderExtents();
 
-	MikanBoxColliderComponentWeakPtr m_boxCollider;
+	BoxColliderComponentWeakPtr m_boxCollider;
 };
-using MikanStencilComponentPtr = std::shared_ptr<MikanStencilComponent>;
-using MikanStencilComponentWeakPtr = std::weak_ptr<MikanStencilComponent>;

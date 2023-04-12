@@ -6,8 +6,8 @@
 class MikanObject;
 typedef std::shared_ptr<MikanObject> MikanObjectPtr;
 
-class MikanColliderComponent;
-typedef std::weak_ptr<MikanColliderComponent> MikanColliderComponentWeakPtr;
+class ColliderComponent;
+typedef std::weak_ptr<ColliderComponent> ColliderComponentWeakPtr;
 
 class MikanScene final
 {
@@ -27,5 +27,5 @@ public:
 private:
 	class GlScene* m_glScene= nullptr;
 	std::vector<MikanObjectPtr> m_objects;
-	std::vector<MikanColliderComponentWeakPtr> m_colliders;
+	std::vector<ColliderComponentWeakPtr> m_colliders;
 };

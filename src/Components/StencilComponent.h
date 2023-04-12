@@ -4,26 +4,15 @@
 #include "MikanClientTypes.h"
 #include "ComponentProperty.h"
 
-#include <memory>
 #include <string>
 
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-class MikanObject;
-typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
-
-class MikanSceneComponent;
-using MikanSceneComponentWeakPtr= std::weak_ptr<MikanSceneComponent>;
-
-class MikanStencilComponent;
-typedef std::shared_ptr<MikanStencilComponent> MikanStencilComponentPtr;
-typedef std::weak_ptr<MikanStencilComponent> MikanStencilComponentWeakPtr;
-
-class MikanStencilComponent : public MikanComponent
+class StencilComponent : public MikanComponent
 {
 public:
-	MikanStencilComponent(MikanObjectWeakPtr owner);
+	StencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 
 	MikanStencilID getStencilId() const { return StencilId; }
@@ -42,5 +31,5 @@ protected:
 	COMPONENT_PROPERTY(bool, IsDisabled);
 	COMPONENT_PROPERTY(std::string, StencilName);
 
-	MikanSceneComponentWeakPtr m_sceneComponent;
+	SceneComponentWeakPtr m_sceneComponent;
 };

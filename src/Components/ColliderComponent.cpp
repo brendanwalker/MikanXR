@@ -1,11 +1,11 @@
-#include "MikanColliderComponent.h"
+#include "ColliderComponent.h"
 
-MikanColliderComponent::MikanColliderComponent(MikanObjectWeakPtr owner)
-	: MikanSceneComponent(owner)
+ColliderComponent::ColliderComponent(MikanObjectWeakPtr owner)
+	: SceneComponent(owner)
 {
 }
 
-bool MikanColliderComponent::computeRayIntersection(
+bool ColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {

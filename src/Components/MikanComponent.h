@@ -1,16 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <typeinfo>
+#include "ComponentFwd.h"
+#include "ObjectFwd.h"
 #include "MulticastDelegate.h"
 
-class MikanObject;
-typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
-typedef std::shared_ptr<MikanObject> MikanObjectPtr;
+#include <memory>
+#include <typeinfo>
 
-class MikanComponent;
-typedef std::shared_ptr<MikanComponent> MikanComponentPtr;
-typedef std::weak_ptr<MikanComponent> MikanComponentWeakPtr;
 
 class MikanComponent : public std::enable_shared_from_this<MikanComponent>
 {

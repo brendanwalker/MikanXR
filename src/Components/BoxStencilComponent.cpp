@@ -3,15 +3,15 @@
 #include "Colors.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
-#include "MikanAnchorComponent.h"
-#include "MikanSceneComponent.h"
-#include "MikanBoxColliderComponent.h"
+#include "AnchorComponent.h"
+#include "SceneComponent.h"
+#include "BoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "TextStyle.h"
 
 BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
-	: MikanStencilComponent(owner)
+	: StencilComponent(owner)
 	, BoxCenter(glm::vec3(0.f))
 	, BoxXAxis(glm::vec3(1.f, 0.f, 0.f))
 	, BoxYAxis(glm::vec3(0.f, 1.f, 0.f))
@@ -25,7 +25,7 @@ void BoxStencilComponent::init()
 {
 	MikanComponent::init();
 
-	m_boxCollider = getOwnerObject()->getComponentOfType<MikanBoxColliderComponent>();
+	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
 }
 
 void BoxStencilComponent::update()
@@ -83,7 +83,7 @@ glm::mat4 BoxStencilComponent::getStencilWorldTransform() const
 	const glm::mat4 localXform= getStencilLocalTransform();
 
 	glm::mat4 worldXform = localXform;
-	MikanAnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
+	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
 	if (anchorPtr)
 	{
 		worldXform = anchorPtr->getAnchorXform() * localXform;
@@ -110,7 +110,7 @@ void BoxStencilComponent::setStencilLocalTransform(const glm::mat4& localXform)
 void BoxStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
 {
 	glm::mat4 localXform = worldXform;
-	MikanAnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
+	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
 	if (anchorPtr)
 	{
 		const glm::mat4 invParentXform = glm::inverse(anchorPtr->getAnchorXform());
@@ -124,7 +124,7 @@ void BoxStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
 
 void BoxStencilComponent::updateSceneComponentTransform()
 {
-	MikanSceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
 	if (sceneComponent)
 	{
 		const glm::mat4 worldXform = getStencilWorldTransform();
@@ -135,7 +135,7 @@ void BoxStencilComponent::updateSceneComponentTransform()
 
 void BoxStencilComponent::updateBoxColliderExtents()
 {
-	MikanBoxColliderComponentPtr boxCollider= m_boxCollider.lock();
+	BoxColliderComponentPtr boxCollider= m_boxCollider.lock();
 	if (boxCollider)
 	{
 		boxCollider->setHalfExtents(glm::vec3(BoxXSize, BoxYSize, BoxZSize) * 0.5f);

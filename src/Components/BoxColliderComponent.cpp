@@ -1,17 +1,17 @@
-#include "MikanBoxColliderComponent.h"
+#include "BoxColliderComponent.h"
 #include "MikanObject.h"
-#include "MikanStaticMeshComponent.h"
+#include "StaticMeshComponent.h"
 #include "MulticastDelegate.h"
 #include "GlStaticMeshInstance.h"
 
 #include <glm/gtx/intersect.hpp>
 
-MikanBoxColliderComponent::MikanBoxColliderComponent(MikanObjectWeakPtr owner)
-	: MikanColliderComponent(owner)
+BoxColliderComponent::BoxColliderComponent(MikanObjectWeakPtr owner)
+	: ColliderComponent(owner)
 {
 }
 
-bool MikanBoxColliderComponent::computeRayIntersection(
+bool BoxColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {

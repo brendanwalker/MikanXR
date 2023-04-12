@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MikanColliderComponent.h"
+#include "ColliderComponent.h"
 #include "IGlMesh.h"
 #include "MathGLM.h"
 
@@ -12,14 +12,14 @@ typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
 class GlStaticMeshInstance;
 typedef std::shared_ptr<GlStaticMeshInstance> GlStaticMeshInstancePtr;
 
-class MikanStaticMeshComponent;
-typedef std::shared_ptr<MikanStaticMeshComponent> MikanStaticMeshComponentPtr;
-typedef std::weak_ptr<MikanStaticMeshComponent> MikanStaticMeshComponentWeakPtr;
+class StaticMeshComponent;
+typedef std::shared_ptr<StaticMeshComponent> StaticMeshComponentPtr;
+typedef std::weak_ptr<StaticMeshComponent> StaticMeshComponentWeakPtr;
 
-class MikanBoxColliderComponent : public MikanColliderComponent
+class BoxColliderComponent : public ColliderComponent
 {
 public:
-	MikanBoxColliderComponent(MikanObjectWeakPtr owner);
+	BoxColliderComponent(MikanObjectWeakPtr owner);
 
 	void setHalfExtents(const glm::vec3 halfExtents) { m_halfExtents= halfExtents; }
 
@@ -30,5 +30,5 @@ public:
 private:
 	glm::vec3 m_halfExtents;
 };
-typedef std::shared_ptr<MikanBoxColliderComponent> MikanBoxColliderComponentPtr;
-typedef std::weak_ptr<MikanBoxColliderComponent> MikanBoxColliderComponentWeakPtr;
+typedef std::shared_ptr<BoxColliderComponent> BoxColliderComponentPtr;
+typedef std::weak_ptr<BoxColliderComponent> BoxColliderComponentWeakPtr;

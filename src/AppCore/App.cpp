@@ -10,6 +10,7 @@
 #include "InputManager.h"
 #include "LocalizationManager.h"
 #include "MikanServer.h"
+#include "ObjectSystemManager.h"
 #include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
@@ -38,7 +39,8 @@ App::App()
 	, m_frameCompositor(new GlFrameCompositor())
 	, m_inputManager(new InputManager())
 	, m_rmlManager(new RmlManager(this))
-	, m_localizationManager(new LocalizationManager())
+	, m_localizationManager(new LocalizationManager())	
+	, m_objectSystemPtr(std::make_shared<ObjectSystemManager>())
 	, m_renderer(new Renderer())
 	, m_fontManager(new FontManager())
 	, m_videoSourceManager(new VideoSourceManager())
@@ -50,6 +52,8 @@ App::App()
 
 App::~App()
 {
+	m_objectSystemPtr = nullptr;
+
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
 	delete m_renderer;	
@@ -190,6 +194,9 @@ bool App::startup(int argc, char** argv)
 
 	if (success)
 	{
+		// Initialize all of the object systems now that the all of the app systems are online
+		m_objectSystemPtr->init();
+
 		m_lastFrameTimestamp= SDL_GetTicks();
 	}
 
@@ -198,11 +205,16 @@ bool App::startup(int argc, char** argv)
 
 void App::shutdown()
 {
+	// Tear down all active app stages
 	while (getCurrentAppStage() != nullptr)
 	{
 		popAppState();
 	}
 
+	// Dispose all ObjectSystems
+	m_objectSystemPtr->dispose();
+
+	// Tear down all app systems
 	if (m_rmlManager != nullptr)
 	{
 		m_rmlManager->shutdown();
@@ -317,7 +329,7 @@ void App::update()
 				inputManager->popEventBindingSet();
 
 				// Resume the parent app stage we are restoring
-				pendingAppStageOp.parentAppStage->resume();				
+				pendingAppStageOp.parentAppStage->resume();
 
 				// Free the app state
 				delete pendingAppStageOp.appStage;
@@ -328,6 +340,9 @@ void App::update()
 
 	// App stack operations allowed during update
 	bAppStackOperationAllowed = true;
+
+	// Update any simulating object systems
+	m_objectSystemPtr->update();
 
 	// Update the current app stage last
 	AppStage* appStage = getCurrentAppStage();

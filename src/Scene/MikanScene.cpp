@@ -1,7 +1,7 @@
 #include "MikanScene.h"
 #include "MikanObject.h"
-#include "MikanSceneComponent.h"
-#include "MikanColliderComponent.h"
+#include "SceneComponent.h"
+#include "ColliderComponent.h"
 #include "IGLSceneRenderable.h"
 #include "GlScene.h"
 
@@ -31,9 +31,9 @@ void MikanScene::addMikanObject(MikanObjectPtr objectPtr)
 	m_objects.push_back(objectPtr);
 
 	// Add renderable components to the GlScene
-	std::vector<MikanSceneComponentPtr> sceneComponents;
+	std::vector<SceneComponentPtr> sceneComponents;
 	objectPtr->getComponentsOfType(sceneComponents);
-	for (MikanSceneComponentPtr sceneComponent : sceneComponents)
+	for (SceneComponentPtr sceneComponent : sceneComponents)
 	{
 		IGlSceneRenderableConstPtr renderable= sceneComponent->getGlSceneRenderableConst();
 		
@@ -44,11 +44,11 @@ void MikanScene::addMikanObject(MikanObjectPtr objectPtr)
 	}
 
 	// Track collidable component for raycasts
-	std::vector<MikanColliderComponentPtr> colliderComponents;
+	std::vector<ColliderComponentPtr> colliderComponents;
 	objectPtr->getComponentsOfType(colliderComponents);
-	for (MikanColliderComponentPtr colliderComponent : colliderComponents)
+	for (ColliderComponentPtr colliderComponent : colliderComponents)
 	{
-		MikanColliderComponentWeakPtr weakPtr(colliderComponent);
+		ColliderComponentWeakPtr weakPtr(colliderComponent);
 		m_colliders.push_back(weakPtr);
 	}
 }
@@ -61,9 +61,9 @@ void MikanScene::removeMikanObject(MikanObjectPtr objectPtr)
 		MikanObjectPtr objectPtr= *object_it;
 
 		// Remove renderable components from the GlScene
-		std::vector<MikanSceneComponentPtr> sceneComponents;
+		std::vector<SceneComponentPtr> sceneComponents;
 		objectPtr->getComponentsOfType(sceneComponents);
-		for (MikanSceneComponentPtr sceneComponent : sceneComponents)
+		for (SceneComponentPtr sceneComponent : sceneComponents)
 		{
 			IGlSceneRenderableConstPtr renderable= sceneComponent->getGlSceneRenderableConst();
 
@@ -74,9 +74,9 @@ void MikanScene::removeMikanObject(MikanObjectPtr objectPtr)
 		}
 
 		// Forget about collidable components associated with the object
-		std::vector<MikanColliderComponentPtr> colliderComponents;
+		std::vector<ColliderComponentPtr> colliderComponents;
 		objectPtr->getComponentsOfType(colliderComponents);
-		for (MikanColliderComponentPtr colliderComponent : colliderComponents)
+		for (ColliderComponentPtr colliderComponent : colliderComponents)
 		{
 			for (auto collider_it = m_colliders.begin(); collider_it != m_colliders.end(); ++collider_it)
 			{

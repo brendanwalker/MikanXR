@@ -3,9 +3,9 @@
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "GlStaticMeshInstance.h"
-#include "MikanAnchorComponent.h"
-#include "MikanSceneComponent.h"
-#include "MikanStaticMeshComponent.h"
+#include "AnchorComponent.h"
+#include "SceneComponent.h"
+#include "StaticMeshComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "ModelStencilComponent.h"
@@ -13,7 +13,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
-	: MikanStencilComponent(owner)
+	: StencilComponent(owner)
 	, ModelPosition(glm::vec3(0.f))
 	, ModelQuat(glm::quat())
 	, ModelScale(glm::vec3(1.f, 1.f, 1.f))
@@ -21,11 +21,11 @@ ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 
 void ModelStencilComponent::init()
 {
-	MikanStencilComponent::init();
+	StencilComponent::init();
 
 	// Get a list of all the attached wireframe meshes
-	std::vector<MikanStaticMeshComponentPtr> meshComponents;
-	getOwnerObject()->getComponentsOfType<MikanStaticMeshComponent>(meshComponents);
+	std::vector<StaticMeshComponentPtr> meshComponents;
+	getOwnerObject()->getComponentsOfType<StaticMeshComponent>(meshComponents);
 	for (auto& meshComponentPtr : meshComponents)
 	{
 		GlStaticMeshInstancePtr staticMeshPtr= meshComponentPtr->getStaticMesh();
@@ -38,7 +38,7 @@ void ModelStencilComponent::init()
 
 void ModelStencilComponent::update()
 {
-	MikanStencilComponent::update();
+	StencilComponent::update();
 
 	if (!IsDisabled)
 	{
@@ -83,7 +83,7 @@ glm::mat4 ModelStencilComponent::getStencilWorldTransform() const
 	const glm::mat4 localXform= getStencilLocalTransform();
 
 	glm::mat4 worldXform = localXform;
-	MikanAnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
+	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
 	if (anchorPtr)
 	{
 		worldXform = anchorPtr->getAnchorXform() * localXform;
@@ -119,7 +119,7 @@ void ModelStencilComponent::setStencilLocalTransform(const glm::mat4& localXform
 void ModelStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
 {
 	glm::mat4 localXform = worldXform;
-	MikanAnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
+	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
 	if (anchorPtr)
 	{
 		const glm::mat4 invParentXform = glm::inverse(anchorPtr->getAnchorXform());
@@ -133,7 +133,7 @@ void ModelStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform
 
 void ModelStencilComponent::updateSceneComponentTransform()
 {
-	MikanSceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
 	if (sceneComponent)
 	{
 		const glm::mat4 worldXform = getStencilWorldTransform();

@@ -3,22 +3,21 @@
 #include "MikanComponent.h"
 #include "MikanClientTypes.h"
 #include "ComponentProperty.h"
+#include "ComponentFwd.h"
+#include "ObjectFwd.h"
 
 #include <memory>
 #include <string>
 
 #include "glm/ext/matrix_float4x4.hpp"
 
-class MikanObject;
-typedef std::weak_ptr<MikanObject> MikanObjectWeakPtr;
+class SceneComponent;
+using SceneComponentWeakPtr = std::weak_ptr<SceneComponent>;
 
-class MikanSceneComponent;
-using MikanSceneComponentWeakPtr = std::weak_ptr<MikanSceneComponent>;
-
-class MikanAnchorComponent : public MikanComponent
+class AnchorComponent : public MikanComponent
 {
 public:
-	MikanAnchorComponent(MikanObjectWeakPtr owner);
+	AnchorComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 
 	void setSpatialAnchor(const MikanSpatialAnchorInfo& anchor);
@@ -34,8 +33,6 @@ protected:
 	COMPONENT_PROPERTY(glm::mat4, AnchorXform);
 	COMPONENT_PROPERTY(std::string, AnchorName);
 
-	MikanSceneComponentWeakPtr m_sceneComponent;
+	SceneComponentWeakPtr m_sceneComponent;
 	void updateSceneComponentTransform();
 };
-using MikanAnchorComponentPtr= std::shared_ptr<MikanAnchorComponent>;
-using MikanAnchorComponentWeakPtr= std::weak_ptr<MikanAnchorComponent>;

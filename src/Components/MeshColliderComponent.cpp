@@ -1,28 +1,28 @@
-#include "MikanMeshColliderComponent.h"
+#include "MeshColliderComponent.h"
 #include "MikanObject.h"
-#include "MikanStaticMeshComponent.h"
+#include "StaticMeshComponent.h"
 #include "MulticastDelegate.h"
 #include "GlStaticMeshInstance.h"
 
 #include <glm/gtx/intersect.hpp>
 
-MikanMeshColliderComponent::MikanMeshColliderComponent(MikanObjectWeakPtr owner)
-	: MikanColliderComponent(owner)
+MeshColliderComponent::MeshColliderComponent(MikanObjectWeakPtr owner)
+	: ColliderComponent(owner)
 {
 }
 
-void MikanMeshColliderComponent::dispose()
+void MeshColliderComponent::dispose()
 {
 	auto staticMeshPtr= m_staticMeshWeakPtr.lock();
 	if (staticMeshPtr)
 	{
-		staticMeshPtr->OnMeshChanged-= MakeDelegate(this, &MikanMeshColliderComponent::onStaticMeshChanged);
+		staticMeshPtr->OnMeshChanged-= MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
 	}
 
 	m_staticMeshWeakPtr.reset();
 }
 
-bool MikanMeshColliderComponent::computeRayIntersection(
+bool MeshColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {
@@ -80,7 +80,7 @@ bool MikanMeshColliderComponent::computeRayIntersection(
 	return bFoundHit;
 }
 
-void MikanMeshColliderComponent::setStaticMeshComponent(MikanStaticMeshComponentWeakPtr staticMeshWeakPtr)
+void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr staticMeshWeakPtr)
 {
 	if (m_staticMeshWeakPtr.lock() == staticMeshWeakPtr.lock())
 	{
@@ -89,7 +89,7 @@ void MikanMeshColliderComponent::setStaticMeshComponent(MikanStaticMeshComponent
 		auto staticMeshPtr= staticMeshWeakPtr.lock();
 		if (staticMeshPtr)
 		{
-			staticMeshPtr->OnMeshChanged += MakeDelegate(this, &MikanMeshColliderComponent::onStaticMeshChanged);
+			staticMeshPtr->OnMeshChanged += MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
 			rebuildCollionGeometry();
 		}
 
@@ -97,13 +97,13 @@ void MikanMeshColliderComponent::setStaticMeshComponent(MikanStaticMeshComponent
 	}
 }
 
-void MikanMeshColliderComponent::onStaticMeshChanged(MikanStaticMeshComponentWeakPtr meshComponentWeakPtr)
+void MeshColliderComponent::onStaticMeshChanged(StaticMeshComponentWeakPtr meshComponentWeakPtr)
 {
 	assert(m_staticMeshWeakPtr.lock() == meshComponentWeakPtr.lock());
 	rebuildCollionGeometry();
 }
 
-void MikanMeshColliderComponent::rebuildCollionGeometry()
+void MeshColliderComponent::rebuildCollionGeometry()
 {
 	m_meshTriangles.clear();
 	m_meshCenterPoint= glm::vec3(0.f);
