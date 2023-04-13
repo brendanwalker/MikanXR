@@ -2,6 +2,8 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "RendererFwd.h"
+
 #include <filesystem>
 #include <memory>
 #include "FrameCompositorConstants.h"
@@ -146,7 +148,7 @@ protected:
 
 	class CompositorScriptContext* m_scriptContext= nullptr;
 	class GlFrameCompositor* m_frameCompositor= nullptr;
-	class GlCamera* m_camera= nullptr;
+	GlCameraPtr m_camera= nullptr;
 
 	class MikanScene* m_mikanScene= nullptr;
 

@@ -2,6 +2,8 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "RendererFwd.h"
+
 #include <memory>
 #include <vector>
 
@@ -30,6 +32,6 @@ protected:
 
 	VRDeviceList m_vrTrackers;
 	class GlScene *m_scene;
-	class GlCamera *m_camera;
+	GlCameraPtr m_camera;
 	class ProfileConfig *m_profile;
 };

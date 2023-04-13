@@ -3,6 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include "Constants_AlignmentCalibration.h"
+#include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
@@ -63,5 +64,5 @@ private:
 	class VideoFrameDistortionView* m_monoDistortionView;
 
 	class GlScene* m_scene;
-	class GlCamera* m_camera;
+	GlCameraPtr m_camera;
 };

@@ -32,6 +32,7 @@
 #include "GlShaderCache.h"
 #include "GlTextRenderer.h"
 #include "GlLineRenderer.h"
+#include "GlViewport.h"
 #include "GlModelResourceManager.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
@@ -319,8 +320,8 @@ bool Renderer::startup()
 		// This has to be enabled since the point drawing shader will use gl_PointSize.
 		.enableFlag(eGlStateFlagType::programPointSize);
 
-		// Create the base camera on the camera stack
-		pushCamera();
+		// Create a fullscreen viewport for the UI (which creates it's own camera)
+		m_uiViewport = std::make_shared<GlViewport>();
 	}
 
 	return success;
@@ -328,10 +329,7 @@ bool Renderer::startup()
 
 void Renderer::shutdown()
 {
-	while (m_cameraStack.size() > 0)
-	{
-		popCamera();
-	}
+	m_uiViewport= nullptr;
 
 	if (m_glStateStack != nullptr)
 	{
@@ -473,23 +471,12 @@ bool Renderer::onSDLEvent(const SDL_Event* event)
 	return m_rmlUiRenderer->onSDLEvent(event);
 }
 
-void Renderer::renderStageBegin()
+void Renderer::renderStageBegin(GlViewportConstPtr targetViewport)
 {
 	EASY_FUNCTION();
 
-	GlCamera *camera= getCurrentCamera();
-
-	if (camera != nullptr)
-	{
-		glm::mat4 projection = camera->getProjectionMatrix();
-		glm::mat4 modelView = camera->getModelViewMatrix();
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(glm::value_ptr(projection));
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(glm::value_ptr(modelView));
-	}
+	m_currentViewport= targetViewport;
+	m_currentViewport->applyViewport();
 
 	m_isRenderingStage = true;
 }
@@ -504,12 +491,16 @@ void Renderer::renderStageEnd()
 	// Render any glyphs emitted by the AppStage
 	m_textRenderer->render(this);
 
+	m_currentViewport= nullptr;
 	m_isRenderingStage = false;
 }
 
 void Renderer::renderUIBegin()
 {
 	EASY_FUNCTION();
+
+	m_currentViewport= m_uiViewport;
+	m_currentViewport->applyViewport();
 
 	m_rmlUiRenderer->beginFrame(this);
 
@@ -522,6 +513,13 @@ void Renderer::renderUIEnd()
 
 	m_rmlUiRenderer->endFrame(this);
 
+	// Render any line segments emitted by the AppStage renderUI phase
+	m_lineRenderer->render(this);
+
+	// Render any glyphs emitted by the AppStage renderUI phase
+	m_textRenderer->render(this);
+
+	m_currentViewport= nullptr;
 	m_isRenderingUI = false;
 }
 
@@ -530,28 +528,6 @@ void Renderer::renderEnd()
 	EASY_FUNCTION();
 
 	SDL_GL_SwapWindow(m_sdlWindow);
-}
-
-GlCamera* Renderer::getCurrentCamera() const
-{
-	return m_cameraStack.size() > 0 ? m_cameraStack[m_cameraStack.size() - 1] : nullptr;
-}
-
-GlCamera* Renderer::pushCamera()
-{
-	GlCamera* newCamera= new GlCamera();
-	m_cameraStack.push_back(newCamera);
-
-	return newCamera;
-}
-
-void Renderer::popCamera()
-{
-	if (m_cameraStack.size() > 0)
-	{
-		delete m_cameraStack[m_cameraStack.size() - 1];
-		m_cameraStack.pop_back();
-	}
 }
 
 bool saveTextureToPNG(GlTexture* texture, const char* filename)

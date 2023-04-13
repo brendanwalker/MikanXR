@@ -390,35 +390,39 @@ void App::render()
 	EASY_FUNCTION();
 
 	AppStage* appStage = getCurrentAppStage();
+	if (appStage == nullptr)
+		return;
 
 	m_renderer->renderBegin();
 
-	m_renderer->renderStageBegin();
-	if (appStage != nullptr)
+	// Render all 3d viewports for the app state
+	for (GlViewportPtr viewpoint : appStage->getViewportList())
 	{
 		EASY_BLOCK("appStage render");
 
+		m_renderer->renderStageBegin(viewpoint);
 		appStage->render();
-
-		// Draw shared app rendering
-		TextStyle style= getDefaultTextStyle();
-		style.horizontalAlignment= eHorizontalTextAlignment::Right;
-		style.verticalAlignment= eVerticalTextAlignment::Bottom;
-		drawTextAtScreenPosition(
-			style, 
-			glm::vec2(m_renderer->getSDLWindowWidth() - 1, m_renderer->getSDLWindowHeight() - 1),
-			L"%.1ffps", m_fps);
+		m_renderer->renderStageEnd();
 	}
-	m_renderer->renderStageEnd();
 
-	m_renderer->renderUIBegin();
-	if (appStage != nullptr)
+	// Render the UI on top
 	{
 		EASY_BLOCK("appStage renderUI");
+		m_renderer->renderUIBegin();
 
 		appStage->renderUI();
+
+		// Always draw the FPS in the lower right
+		TextStyle style = getDefaultTextStyle();
+		style.horizontalAlignment = eHorizontalTextAlignment::Right;
+		style.verticalAlignment = eVerticalTextAlignment::Bottom;
+		drawTextAtScreenPosition(
+			style,
+			glm::vec2(m_renderer->getSDLWindowWidth() - 1, m_renderer->getSDLWindowHeight() - 1),
+			L"%.1ffps", m_fps);
+
+		m_renderer->renderUIEnd();
 	}
-	m_renderer->renderUIEnd();
 
 	m_renderer->renderEnd();
 }

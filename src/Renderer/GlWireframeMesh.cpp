@@ -4,6 +4,7 @@
 #include "GlShaderCache.h"
 #include "GlProgram.h"
 #include "GlWireframeMesh.h"
+#include "GlViewport.h"
 #include "Renderer.h"
 #include "Logger.h"
 
@@ -169,7 +170,7 @@ void drawTransformedWireframeMesh(
 
 	shader->bindProgram();
 
-	GlCamera* camera = renderer->getCurrentCamera();
+	GlCameraPtr camera = renderer->getCurrentViewport()->getCurrentCamera();
 
 	if (camera != nullptr)
 	{

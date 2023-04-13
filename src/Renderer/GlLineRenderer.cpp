@@ -7,6 +7,7 @@
 #include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
+#include "GlViewport.h"
 #include "Logger.h"
 #include "MathGLM.h"
 #include "Renderer.h"
@@ -115,7 +116,7 @@ void GlLineRenderer::render(Renderer* renderer)
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
 		{
-			GlCamera* camera = renderer->getCurrentCamera();
+			GlCameraPtr camera = renderer->getCurrentViewport()->getCurrentCamera();
 
 			if (camera != nullptr)
 			{

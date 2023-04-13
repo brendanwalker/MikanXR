@@ -23,6 +23,7 @@
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "GlRenderModelResource.h"
+#include "GlViewport.h"
 #include "GlWireframeMesh.h"
 #include "GlTexture.h"
 #include "MathGLM.h"
@@ -30,6 +31,7 @@
 #include "MathTypeConversion.h"
 #include "MathMikan.h"
 #include "MikanServer.h"
+#include "MikanScene.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
 #include "PathUtils.h"
@@ -66,6 +68,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_scriptContext(new CompositorScriptContext)
+	, m_mikanScene(new MikanScene)
 	, m_videoWriter(new VideoWriter)
 {
 }
@@ -82,6 +85,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorScriptingModel;
 	delete m_compositorSourcesModel;
 	delete m_scriptContext;
+	delete m_mikanScene;
 	delete m_videoWriter;
 }
 
@@ -89,7 +93,7 @@ void AppStage_Compositor::enter()
 {
 	AppStage::enter();
 
-	m_camera= Renderer::getInstance()->pushCamera();
+	m_camera= getFirstViewport()->getCurrentCamera();
 
 	m_frameCompositor= GlFrameCompositor::getInstance();
 	m_frameCompositor->start();
@@ -239,7 +243,7 @@ void AppStage_Compositor::exit()
 	m_compositorSourcesModel->dispose();
 
 	m_frameCompositor->stop();
-	App::getInstance()->getRenderer()->popCamera();
+	m_camera= nullptr;
 
 	AppStage::exit();
 }
@@ -274,6 +278,9 @@ void AppStage_Compositor::update()
 
 	// tick the compositor lua script (if any is active)
 	m_scriptContext->updateScript();
+
+	// Update the MikanObjects in the scene
+	m_mikanScene->update();
 
 	// Update the sources model now that the app stage has updated
 	if (Rml::Utilities::IsElementDocumentVisible(m_compositiorSourcesView))
@@ -1016,6 +1023,9 @@ void AppStage_Compositor::render()
 	// Render the video frame + composited frame buffers
 	m_frameCompositor->render();
 
+	// Render the scene
+	m_mikanScene->render();
+
 	if (m_profile->debugRenderAnchors || 
 		m_profile->debugRenderFasteners ||
 		m_profile->debugRenderStencils)
@@ -1102,16 +1112,16 @@ void AppStage_Compositor::debugRenderStencils() const
 			const glm::vec3 position = glm::vec3(xform[3]);
 
 			// Draw the wireframes for the stencil mesh
-			const GlRenderModelResource* modelResource= m_frameCompositor->getStencilRenderModel(stencil->modelInfo.stencil_id);
+			GlRenderModelResourcePtr modelResource= m_frameCompositor->getStencilRenderModel(stencil->modelInfo.stencil_id);
 			if (modelResource != nullptr)
 			{
 				for (int meshIndex = 0; meshIndex < modelResource->getWireframeMeshCount(); ++meshIndex)
 				{
-					const GlWireframeMesh* mesh= modelResource->getWireframeMesh(meshIndex);
+					GlWireframeMeshPtr mesh= modelResource->getWireframeMesh(meshIndex);
 
 					if (mesh != nullptr)
 					{
-						drawTransformedWireframeMesh(xform, mesh, Colors::Yellow);
+						drawTransformedWireframeMesh(xform, mesh.get(), Colors::Yellow);
 					}
 				}
 			}

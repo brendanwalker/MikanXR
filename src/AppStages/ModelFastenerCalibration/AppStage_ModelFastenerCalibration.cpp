@@ -12,6 +12,7 @@
 #include "GlTextRenderer.h"
 #include "GlFrameCompositor.h"
 #include "GlRenderModelResource.h"
+#include "GlViewport.h"
 #include "GlWireframeMesh.h"
 #include "InputManager.h"
 #include "MathTypeConversion.h"
@@ -87,7 +88,6 @@ AppStage_ModelFastenerCalibration::AppStage_ModelFastenerCalibration(App* app)
 	: AppStage(app, AppStage_ModelFastenerCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_ModelFastenerCalibration)
 	, m_calibrationState(new ModelFastenerCalibrationState)
-	, m_camera(nullptr)
 	, m_modelResource(nullptr)
 {
 	memset(&m_targetFastener, 0, sizeof(MikanSpatialFastenerInfo));
@@ -113,10 +113,6 @@ void AppStage_ModelFastenerCalibration::enter()
 
 	m_cameraTrackingPuckView =
 		VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
-
-	// Create a new camera to view the scene
-	m_camera = App::getInstance()->getRenderer()->pushCamera();
-	m_camera->bindInput();
 
 	// Create app stage UI models and views
 	// (Auto cleaned up on app state exit)
@@ -162,15 +158,12 @@ void AppStage_ModelFastenerCalibration::exit()
 {
 	setMenuState(eModelFastenerCalibrationMenuState::inactive);
 
-	App::getInstance()->getRenderer()->popCamera();
-	m_camera= nullptr;
-
 	AppStage::exit();
 }
 
 void AppStage_ModelFastenerCalibration::updateCamera()
 {
-	m_camera->recomputeModelViewMatrix();
+	getFirstViewport()->getCurrentCamera()->recomputeModelViewMatrix();
 }
 
 void AppStage_ModelFastenerCalibration::updateClosestModelVertex()
@@ -180,7 +173,9 @@ void AppStage_ModelFastenerCalibration::updateClosestModelVertex()
 	const glm::vec2 pixelLocation((float)mouseScreenX, (float)mouseScreenY);
 
 	glm::vec3 rayOrigin, rayDirection;
-	m_camera->computeCameraRayThruPixel(pixelLocation, rayOrigin, rayDirection);
+	GlViewportPtr viewport= getFirstViewport();
+	GlCameraPtr camera= viewport->getCurrentCamera();
+	camera->computeCameraRayThruPixel(viewport, pixelLocation, rayOrigin, rayDirection);
 
 	float closestDotProduct= -1.f;
 
@@ -283,7 +278,9 @@ void AppStage_ModelFastenerCalibration::renderClosestModelVertex() const
 	const glm::vec2 pixelLocation((float)mouseScreenX, (float)mouseScreenY);
 
 	glm::vec3 rayOrigin, rayDirection;
-	m_camera->computeCameraRayThruPixel(pixelLocation, rayOrigin, rayDirection);
+	GlViewportPtr viewport = getFirstViewport();
+	GlCameraPtr camera = viewport->getCurrentCamera();
+	camera->computeCameraRayThruPixel(viewport, pixelLocation, rayOrigin, rayDirection);
 
 	drawArrow(glm::mat4(1.f), rayOrigin, rayOrigin + rayDirection * 1.f, 0.01f, Colors::CornflowerBlue);
 

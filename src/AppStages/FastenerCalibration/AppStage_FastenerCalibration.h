@@ -4,6 +4,7 @@
 #include "AppStage.h"
 #include "Constants_FastenerCalibration.h"
 #include "MikanClientTypes.h"
+#include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
@@ -65,5 +66,5 @@ private:
 	MikanSpatialFastenerInfo m_targetFastener;
 
 	class GlScene* m_scene;
-	class GlCamera* m_camera;
+	GlCameraPtr m_camera;
 };

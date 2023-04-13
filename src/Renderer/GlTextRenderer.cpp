@@ -6,6 +6,7 @@
 #include "GlStateStack.h"
 #include "GlTextRenderer.h"
 #include "GlTexture.h"
+#include "GlViewport.h"
 #include "Logger.h"
 #include "MathGLM.h"
 #include "Renderer.h"
@@ -133,7 +134,7 @@ void drawTextAtWorldPosition(
 {
 	Renderer* renderer= Renderer::getInstance();
 	GlTextRenderer* textRenderer= renderer->getTextRenderer();
-	GlCamera* camera = renderer->getCurrentCamera();
+	GlCameraPtr camera = renderer->getCurrentViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 

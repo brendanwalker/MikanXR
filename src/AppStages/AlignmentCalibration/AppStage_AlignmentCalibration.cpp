@@ -10,6 +10,7 @@
 #include "GlLineRenderer.h"
 #include "GlScene.h"
 #include "GlTextRenderer.h"
+#include "GlViewport.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MonoLensTrackerPoseCalibrator.h"
@@ -85,9 +86,8 @@ void AppStage_AlignmentCalibration::enter()
 		it->getVRDeviceInterface()->bindToScene(m_scene);
 	}
 
-	// Create a new camera to view the scene
-	m_camera = App::getInstance()->getRenderer()->pushCamera();
-	m_camera->bindInput();
+	// Fetch the new camera associated with the viewport
+	m_camera= getFirstViewport()->getCurrentCamera();
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
@@ -179,7 +179,6 @@ void AppStage_AlignmentCalibration::exit()
 {
 	setMenuState(eAlignmentCalibrationMenuState::inactive);
 
-	App::getInstance()->getRenderer()->popCamera();
 	m_camera= nullptr;
 
 	VRDeviceList vrDeviceList = VRDeviceManager::getInstance()->getVRDeviceList();

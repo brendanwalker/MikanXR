@@ -1,5 +1,6 @@
 #include "App.h"
 #include "AppStage.h"
+#include "GlViewport.h"
 #include "Renderer.h"
 #include "RmlManager.h"
 #include "Shared/ModalDialog.h"
@@ -10,6 +11,31 @@
 #include <RmlUi/Debugger.h>
 
 #include <filesystem>
+
+AppStage::AppStage(
+	App* app,
+	const std::string& stageName)
+	: m_app(app)
+	, m_bIsEntered(false)
+	, m_bIsPaused(false)
+	, m_appStageName(stageName)
+{
+}
+
+AppStage::~AppStage() 
+{
+}
+
+GlViewportPtr AppStage::addViewport()
+{
+	GlViewportPtr viewport= std::make_shared<GlViewport>();
+	m_viewports.push_back(viewport);
+
+	// Start listing to mouse input
+	viewport->bindInput();
+
+	return viewport;
+}
 
 Rml::Context* AppStage::getRmlContext() const 
 {
@@ -24,6 +50,9 @@ void AppStage::enter()
 		int window_width = renderer->getSDLWindowWidth();
 		int window_height = renderer->getSDLWindowHeight();
 
+		// Add a default fullscreen viewport for each appstage
+		addViewport();
+
 		m_bIsEntered = true;
 	}
 }
@@ -32,6 +61,13 @@ void AppStage::exit()
 {
 	if (m_bIsEntered)
 	{
+		// Destroy all viewports
+		for (GlViewportPtr viewport : m_viewports)
+		{
+			viewport->unbindInput();
+		}
+		m_viewports.clear();
+
 		// Destroy all modal dialogs first
 		while (m_modalDialogStack.size() > 0)
 		{

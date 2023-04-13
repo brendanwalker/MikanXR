@@ -1,9 +1,12 @@
 #pragma once
 
 //-- includes -----
+#include "RendererFwd.h"
+
 #include <memory>
 #include <string>
 #include <vector>
+
 #include <glm/glm.hpp>
 
 //-- typedefs -----
@@ -23,7 +26,7 @@ public:
 	bool onSDLEvent(const SDL_Event* event);
 
 	void renderBegin();
-	void renderStageBegin();
+	void renderStageBegin(GlViewportConstPtr targetViewport);
 	void renderStageEnd();
 	void renderUIBegin();
 	void renderUIEnd();
@@ -64,15 +67,12 @@ public:
 		return m_isRenderingUI;
 	}
 
+	GlViewportConstPtr getCurrentViewport() const { return m_currentViewport; }
 	class GlStateStack* getGlStateStack() const { return m_glStateStack; }
 
 	class GlLineRenderer* getLineRenderer() const { return m_lineRenderer; }
 	class GlTextRenderer* getTextRenderer() const { return m_textRenderer; }
 	std::unique_ptr<class GlModelResourceManager>& getModelResourceManager() { return m_modelResourceManager; }
-
-	class GlCamera* getCurrentCamera() const;
-	class GlCamera* pushCamera();
-	void popCamera();
 
 private:
 	bool m_sdlInitialized;
@@ -89,7 +89,8 @@ private:
 	int m_sdlWindowWidth, m_sdlWindowHeight;
 
 	void* m_glContext;
-	std::vector<class GlCamera*> m_cameraStack;
+	GlViewportPtr m_uiViewport;
+	GlViewportConstPtr m_currentViewport;
 	class GlStateStack* m_glStateStack;
 
 	class GlLineRenderer* m_lineRenderer;

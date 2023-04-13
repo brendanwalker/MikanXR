@@ -1,12 +1,17 @@
 #pragma once
 
 #include "LocalizationManager.h"
+#include "RendererFwd.h"
+
 #include <string>
+#include <vector>
 
 //-- typedefs -----
 typedef union SDL_Event SDL_Event;
 
 class ModalDialog;
+
+using GlViewportList = std::vector<GlViewportPtr>;
 
 namespace Rml {
 	class Context;
@@ -18,13 +23,8 @@ class AppStage
 public:
 	AppStage(
 		class App* app,
-		const std::string& stageName)
-		: m_app(app)
-		, m_bIsEntered(false)
-		, m_bIsPaused(false)
-		, m_appStageName(stageName)
-	{ }
-	virtual ~AppStage() {}
+		const std::string& stageName);
+	virtual ~AppStage();
 
 	const std::string getAppStageName() const { return m_appStageName; }
 	bool getHasEntered() const { return m_bIsEntered; }
@@ -40,6 +40,10 @@ public:
 	virtual void renderUI();
 
 	virtual void onSDLEvent(SDL_Event* event);
+
+	GlViewportPtr getFirstViewport() const { return m_viewports[0]; }
+	const GlViewportList& getViewportList() const { return m_viewports; }
+	GlViewportPtr addViewport();
 
 	Rml::Context* getRmlContext() const;
 	Rml::ElementDocument* addRmlDocument(const std::string& docFilename, bool isModal= false);
@@ -67,6 +71,7 @@ protected:
 	bool m_bIsEntered= false;
 	bool m_bIsPaused= false;
 	std::string m_appStageName;
+	GlViewportList m_viewports;
 	std::vector<Rml::ElementDocument*> m_rmlDocuments;
 	std::vector<class ModalDialog*> m_modalDialogStack;
 };

@@ -5,6 +5,7 @@
 #include "GlProgram.h"
 #include "GlScene.h"
 #include "GlShaderCache.h"
+#include "GlViewport.h"
 #include "Renderer.h"
 
 #include <algorithm>
@@ -58,7 +59,7 @@ void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 
 void GlScene::render() const
 {
-	GlCamera *camera= App::getInstance()->getRenderer()->getCurrentCamera();
+	GlCameraPtr camera= App::getInstance()->getRenderer()->getCurrentViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 

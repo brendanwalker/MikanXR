@@ -8,6 +8,7 @@
 #include "Renderer.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
+#include "GlViewport.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MikanServer.h"
@@ -83,11 +84,10 @@ void AppStage_SpatialAnchors::enter()
 	}
 
 	// Setup orbit camera
-	m_camera = app->getRenderer()->pushCamera();
+	m_camera = getFirstViewport()->getCurrentCamera();
 	m_camera->setCameraOrbitPitch(20.0f);
 	m_camera->setCameraOrbitYaw(45.0f);
 	m_camera->setCameraOrbitRadius(3.5f);
-	m_camera->bindInput();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = getRmlContext()->CreateDataModel("spatial_anchor_settings");
@@ -217,7 +217,7 @@ void AppStage_SpatialAnchors::exit()
 	// Clean up the data model
 	getRmlContext()->RemoveDataModel("spatial_anchor_settings");
 
-	App::getInstance()->getRenderer()->popCamera();
+	m_camera= nullptr;
 
 	for (auto it : m_vrTrackers)
 	{

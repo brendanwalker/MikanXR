@@ -9,6 +9,7 @@
 #include "GlCamera.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
+#include "GlViewport.h"
 #include "InputManager.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
@@ -73,8 +74,7 @@ void AppStage_FastenerCalibration::enter()
 		VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
 
 	// Create a new camera to view the scene
-	m_camera = App::getInstance()->getRenderer()->pushCamera();
-	m_camera->bindInput();
+	m_camera = getFirstViewport()->getCurrentCamera();
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
@@ -157,7 +157,6 @@ void AppStage_FastenerCalibration::exit()
 	// Re-Enable depth testing on the line renderer while in this app stage
 	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(false);
 
-	App::getInstance()->getRenderer()->popCamera();
 	m_camera= nullptr;
 
 	if (m_videoSourceView)

@@ -4,6 +4,7 @@
 #include "AppStage.h"
 #include "Constants_ModelFastenerCalibration.h"
 #include "MikanClientTypes.h"
+#include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
@@ -12,9 +13,6 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-
-class GlRenderModelResource;
-using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
 
 //-- definitions -----
 class AppStage_ModelFastenerCalibration : public AppStage
@@ -59,6 +57,5 @@ private:
 	struct ModelFastenerCalibrationState* m_calibrationState;
 
 	class GlScene* m_scene;
-	class GlCamera* m_camera;
 	GlRenderModelResourcePtr m_modelResource;
 };

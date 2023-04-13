@@ -1,6 +1,7 @@
 #include "App.h"
 #include "CameraMath.h"
 #include "GlCamera.h"
+#include "GlViewport.h"
 #include "InputManager.h"
 #include "MathUtility.h"
 #include "Renderer.h"
@@ -31,101 +32,8 @@ GlCamera::GlCamera()
 	m_cameraOrbitRadius = 1.0f;
 	m_cameraTarget= glm::vec3(0.0f);
 	m_cameraPosition = glm::vec3(0.0f, 0.0f, 100.0f);
-	m_isRotatingOrbitCamera = false;
 	m_isLocked = false;
-	m_bIsInputBound= false;
 	setCameraOrbitLocation(m_cameraOrbitYawDegrees, m_cameraOrbitPitchDegrees, m_cameraOrbitRadius);
-}
-
-GlCamera::~GlCamera()
-{
-	unbindInput();
-}
-
-void GlCamera::bindInput()
-{
-	if (!m_bIsInputBound)
-	{
-		EventBindingSet* bindingSet = InputManager::getInstance()->getCurrentEventBindingSet();
-		
-		bindingSet->OnMouseButtonPressedEvent += MakeDelegate(this, &GlCamera::onMouseButtonDown);
-		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &GlCamera::onMouseButtonUp);
-		bindingSet->OnMouseMotionEvent += MakeDelegate(this, &GlCamera::onMouseMotion);
-		bindingSet->OnMouseWheelScrolledEvent += MakeDelegate(this, &GlCamera::onMouseWheel);
-
-		m_bIsInputBound = true;
-	}
-}
-
-void GlCamera::unbindInput()
-{
-	if (m_bIsInputBound)
-	{
-		EventBindingSet* bindingSet = InputManager::getInstance()->getCurrentEventBindingSet();
-
-		bindingSet->OnMouseButtonPressedEvent -= MakeDelegate(this, &GlCamera::onMouseButtonDown);
-		bindingSet->OnMouseButtonReleasedEvent -= MakeDelegate(this, &GlCamera::onMouseButtonUp);
-		bindingSet->OnMouseMotionEvent -= MakeDelegate(this, &GlCamera::onMouseMotion);
-		bindingSet->OnMouseWheelScrolledEvent -= MakeDelegate(this, &GlCamera::onMouseWheel);
-
-		m_bIsInputBound= false;
-	}
-}
-
-void GlCamera::onMouseMotion(int deltaX, int deltaY)
-{
-	if (!m_isLocked && m_isRotatingOrbitCamera) 
-	{
-		float deltaYaw = -(float)deltaX * k_camera_mouse_pan_scalar;
-		float deltaPitch = (float)deltaY * k_camera_mouse_pan_scalar;
-
-		setCameraOrbitLocation(
-			m_cameraOrbitYawDegrees + deltaYaw,
-			m_cameraOrbitPitchDegrees + deltaPitch,
-			m_cameraOrbitRadius);
-	}
-}
-
-void GlCamera::onMouseButtonDown(int button)
-{
-	if (!m_isLocked && button == SDL_BUTTON_RIGHT)
-	{
-		m_isRotatingOrbitCamera = true;
-	}
-}
-
-void GlCamera::onMouseButtonUp(int button)
-{
-	if (!m_isLocked && button == SDL_BUTTON_RIGHT)
-	{
-		m_isRotatingOrbitCamera = false;
-	}
-}
-
-void GlCamera::onMouseWheel(int scrollAmount)
-{
-	if (!m_isLocked) 
-	{
-		float deltaRadius = (float)scrollAmount * k_camera_mouse_zoom_scalar;
-
-		setCameraOrbitLocation(
-			m_cameraOrbitYawDegrees,
-			m_cameraOrbitPitchDegrees,
-			m_cameraOrbitRadius + deltaRadius);
-	}
-}
-
-void GlCamera::setIsLocked(bool locked)
-{
-	if (locked) 
-	{
-		m_isLocked = true;
-		m_isRotatingOrbitCamera = false;
-	}
-	else 
-	{
-		m_isLocked = false;
-	}
 }
 
 void GlCamera::setCameraOrbitLocation(float yawDegrees, float pitchDegrees, float radius)
@@ -157,6 +65,28 @@ void GlCamera::setCameraOrbitRadius(float radius)
 {
 	m_cameraOrbitRadius= radius;
 	recomputeModelViewMatrix();
+}
+
+void GlCamera::adjustCameraOrbitAngles(float deltaYaw, float deltaPitch)
+{
+	if (!m_isLocked)
+	{
+		setCameraOrbitLocation(
+			m_cameraOrbitYawDegrees + deltaYaw,
+			m_cameraOrbitPitchDegrees + deltaPitch,
+			m_cameraOrbitRadius);
+	}
+}
+
+void GlCamera::adjustCameraOrbitRadius(float deltaRadius)
+{
+	if (!m_isLocked)
+	{
+		setCameraOrbitLocation(
+			m_cameraOrbitYawDegrees,
+			m_cameraOrbitPitchDegrees,
+			m_cameraOrbitRadius + deltaRadius);
+	}
 }
 
 void GlCamera::setCameraViewTarget(const glm::vec3& cameraTarget)
@@ -271,17 +201,20 @@ const glm::mat4 GlCamera::getCameraTransform() const
 }
 
 void GlCamera::computeCameraRayThruPixel(
-	const glm::vec2& pixelLocation,
+	GlViewportConstPtr viewport,
+	const glm::vec2& viewportLocation,
 	glm::vec3& outRayOrigin,
 	glm::vec3& outRayDirection) const
 {
-	Renderer* renderer= App::getInstance()->getRenderer();
+	glm::i32vec2 viewportSize= viewport->getViewportSize();
+	const float viewportWidth= (float)viewportSize.x;
+	const float viewportHeight= (float)viewportSize.y;
 
 	// https://antongerdelan.net/opengl/raycasting.html
 	// Convert the pixel location into normalized device coordinates
 	const glm::vec3 ray_nds(
-		((2.f * pixelLocation.x) / renderer->getSDLWindowWidth()) - 1.f,
-		1.f - ((2.f * pixelLocation.y) / renderer->getSDLWindowHeight()),
+		((2.f * viewportLocation.x) / viewportWidth) - 1.f,
+		1.f - ((2.f * viewportLocation.y) / viewportHeight),
 		1.f);
 	
 	// Convert the nds ray into a 4d-clip space ray
