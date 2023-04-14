@@ -6,6 +6,9 @@
 
 #include <vector>
 
+using MikanObjectWeakList = std::vector<MikanObjectWeakPtr>;
+using SelectionComponentWeakList = std::vector<SelectionComponentWeakPtr>;
+
 class MikanScene final
 {
 public:
@@ -15,14 +18,17 @@ public:
 	void init();
 	void dispose();
 
-	void addMikanObject(MikanObjectPtr objectPtr);
-	void removeMikanObject(MikanObjectPtr objectPtr);
+	const MikanObjectWeakList& getObjectList() const { return m_objects; }
+	const SelectionComponentWeakList& getSelectionComponentList() const { return m_selectionComponents; }
+
+	void addMikanObject(MikanObjectWeakPtr objectWeakPtr);
+	void removeMikanObject(MikanObjectWeakPtr objectWeakPtr);
 
 	void update();
 	void render();
 
 private:
 	GlScenePtr m_glScene;
-	std::vector<MikanObjectPtr> m_objects;
-	std::vector<ColliderComponentWeakPtr> m_colliders;
+	MikanObjectWeakList m_objects;
+	SelectionComponentWeakList m_selectionComponents;
 };

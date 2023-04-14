@@ -6,6 +6,8 @@
 
 #include <vector>
 
+using MikanObjectList = std::vector<MikanObjectPtr>;
+
 class MikanObjectSystem : public std::enable_shared_from_this<MikanObjectSystem>
 {
 public:
@@ -18,10 +20,11 @@ public:
 
 	MikanObjectWeakPtr newObject();
 	void deleteObject(MikanObjectWeakPtr objectPtr);
+	const MikanObjectList& getObjectList() const;
 
 	MulticastDelegate<void(MikanObjectSystem&, MikanObject&)> OnObjectAdded;
 	MulticastDelegate<void(MikanObjectSystem&, MikanObject&)> OnObjectRemoved;
 
 protected:
-	std::vector<MikanObjectPtr> m_objects;
+	MikanObjectList m_objects;
 };

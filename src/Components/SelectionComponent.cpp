@@ -1,6 +1,5 @@
 #include "App.h"
 #include "ColliderComponent.h"
-#include "EditorObjectSystem.h"
 #include "MikanObject.h"
 #include "SelectionComponent.h"
 #include "ObjectSystemManager.h"
@@ -17,19 +16,11 @@ SelectionComponent::~SelectionComponent()
 
 void SelectionComponent::init()
 {
-	auto editorSystem= App::getInstance()->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
-
-	editorSystem->registerSelectionComponent(getSelfWeakPtr<SelectionComponent>());
-
 	getOwnerObject()->getComponentsOfType<ColliderComponent>(m_colliders);
 }
 
 void SelectionComponent::dispose()
 {
-	auto editorSystem = App::getInstance()->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
-
-	editorSystem->unregisterSelectionComponent(getSelfWeakPtr<SelectionComponent>());
-
 	m_colliders.clear();
 }
 

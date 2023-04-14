@@ -38,6 +38,7 @@ using GlTriangulatedMeshPtr = std::shared_ptr<GlTriangulatedMesh>;
 
 class GlViewport;
 using GlViewportPtr = std::shared_ptr<GlViewport>;
+using GlViewportWeakPtr = std::weak_ptr<GlViewport>;
 using GlViewportConstPtr = std::shared_ptr<const GlViewport>;
 
 class GlWireframeMesh;

@@ -22,8 +22,8 @@ public:
 
 	MulticastDelegate<void()> OnInteractionRayOverlapEnter;
 	MulticastDelegate<void()> OnInteractionRayOverlapExit;
-	MulticastDelegate<void()> OnInteractionRayClick;
-	MulticastDelegate<void()> OnInteractionRayRelease;
+	MulticastDelegate<void(int button)> OnInteractionRayPress;
+	MulticastDelegate<void(int button)> OnInteractionRayRelease;
 
 protected:
 	std::vector<ColliderComponentPtr> m_colliders;

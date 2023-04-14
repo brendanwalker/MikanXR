@@ -1,7 +1,7 @@
 #include "MikanScene.h"
 #include "MikanObject.h"
 #include "SceneComponent.h"
-#include "ColliderComponent.h"
+#include "SelectionComponent.h"
 #include "IGLSceneRenderable.h"
 #include "GlScene.h"
 
@@ -22,12 +22,18 @@ void MikanScene::init()
 
 void MikanScene::dispose()
 {
+	m_glScene= nullptr;
 	m_objects.clear();
+	m_selectionComponents.clear();
 }
 
-void MikanScene::addMikanObject(MikanObjectPtr objectPtr)
+void MikanScene::addMikanObject(MikanObjectWeakPtr objectWeakPtr)
 {
-	m_objects.push_back(objectPtr);
+	MikanObjectPtr objectPtr= objectWeakPtr.lock();
+	if (!objectPtr)
+		return;
+
+	m_objects.push_back(objectWeakPtr);
 
 	// Add renderable components to the GlScene
 	std::vector<SceneComponentPtr> sceneComponents;
@@ -42,26 +48,32 @@ void MikanScene::addMikanObject(MikanObjectPtr objectPtr)
 		}
 	}
 
-	// Track collidable component for raycasts
-	std::vector<ColliderComponentPtr> colliderComponents;
-	objectPtr->getComponentsOfType(colliderComponents);
-	for (ColliderComponentPtr colliderComponent : colliderComponents)
+	// Track selection component for raycasts
+	std::vector<SelectionComponentPtr> SelectionComponents;
+	objectPtr->getComponentsOfType(SelectionComponents);
+	for (SelectionComponentPtr SelectionComponent : SelectionComponents)
 	{
-		ColliderComponentWeakPtr weakPtr(colliderComponent);
-		m_colliders.push_back(weakPtr);
+		SelectionComponentWeakPtr weakPtr(SelectionComponent);
+		m_selectionComponents.push_back(weakPtr);
 	}
 }
 
-void MikanScene::removeMikanObject(MikanObjectPtr objectPtr)
+void MikanScene::removeMikanObject(MikanObjectWeakPtr objectWeakPtr)
 {
-	auto object_it= std::find(m_objects.begin(), m_objects.end(), objectPtr);
-	if (object_it != m_objects.end())
+	MikanObjectPtr objectPtr = objectWeakPtr.lock();
+	if (!objectPtr)
+		return;
+
+	for (auto it = m_objects.begin(); it != m_objects.end(); it++)
 	{
-		MikanObjectPtr objectPtr= *object_it;
+		// See if this the element we are looking for
+		MikanObjectPtr elemPtr = it->lock();
+		if (elemPtr != objectPtr)
+			continue;
 
 		// Remove renderable components from the GlScene
 		std::vector<SceneComponentPtr> sceneComponents;
-		objectPtr->getComponentsOfType(sceneComponents);
+		elemPtr->getComponentsOfType(sceneComponents);
 		for (SceneComponentPtr sceneComponent : sceneComponents)
 		{
 			IGlSceneRenderableConstPtr renderable= sceneComponent->getGlSceneRenderableConst();
@@ -72,30 +84,34 @@ void MikanScene::removeMikanObject(MikanObjectPtr objectPtr)
 			}
 		}
 
-		// Forget about collidable components associated with the object
-		std::vector<ColliderComponentPtr> colliderComponents;
-		objectPtr->getComponentsOfType(colliderComponents);
-		for (ColliderComponentPtr colliderComponent : colliderComponents)
+		// Forget about selection components associated with the object
+		std::vector<SelectionComponentPtr> SelectionComponents;
+		elemPtr->getComponentsOfType(SelectionComponents);
+		for (SelectionComponentPtr SelectionComponent : SelectionComponents)
 		{
-			for (auto collider_it = m_colliders.begin(); collider_it != m_colliders.end(); ++collider_it)
+			for (auto component_it = m_selectionComponents.begin(); component_it != m_selectionComponents.end(); ++component_it)
 			{
-				if (colliderComponent == collider_it->lock())
+				if (SelectionComponent == component_it->lock())
 				{
-					m_colliders.erase(collider_it);
+					m_selectionComponents.erase(component_it);
 					break;
 				}
 			}
 		}
 
-		m_objects.erase(object_it);
+		m_objects.erase(it);
 	}
 }
 
 void MikanScene::update()
 {
-	for (MikanObjectPtr objectPtr : m_objects)
+	for (MikanObjectWeakPtr objectWeakPtr : m_objects)
 	{
-		objectPtr->update();
+		MikanObjectPtr objectPtr = objectWeakPtr.lock();
+		if (objectPtr)
+		{
+			objectPtr->update();
+		}
 	}
 }
 
