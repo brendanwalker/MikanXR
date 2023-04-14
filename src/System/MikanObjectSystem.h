@@ -20,7 +20,7 @@ public:
 
 	MikanObjectWeakPtr newObject();
 	void deleteObject(MikanObjectWeakPtr objectPtr);
-	const MikanObjectList& getObjectList() const;
+	inline const MikanObjectList& getObjectList() const { return m_objects; }
 
 	MulticastDelegate<void(MikanObjectSystem&, MikanObject&)> OnObjectAdded;
 	MulticastDelegate<void(MikanObjectSystem&, MikanObject&)> OnObjectRemoved;

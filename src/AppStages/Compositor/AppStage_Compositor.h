@@ -3,6 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include "RendererFwd.h"
+#include "SceneFwd.h"
 
 #include <filesystem>
 #include <memory>
@@ -150,7 +151,7 @@ protected:
 	class GlFrameCompositor* m_frameCompositor= nullptr;
 	GlCameraPtr m_camera= nullptr;
 
-	class MikanScene* m_mikanScene= nullptr;
+	MikanScenePtr m_mikanScene;
 
 	bool m_bAddingNewConfig= false;
 

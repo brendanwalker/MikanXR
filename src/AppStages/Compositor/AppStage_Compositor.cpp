@@ -12,11 +12,13 @@
 #include "Compositor/RmlModel_CompositorRecording.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSources.h"
+#include "EditorObjectSystem.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
 #include "ModalSnap/ModalDialog_Snap.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
+#include "EditorObjectSystem.h"
 #include "GlCommon.h"
 #include "GlCamera.h"
 #include "GlFrameCompositor.h"
@@ -28,10 +30,12 @@
 #include "GlTexture.h"
 #include "MathGLM.h"
 #include "MathFastener.h"
+#include "MikanObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathMikan.h"
 #include "MikanServer.h"
 #include "MikanScene.h"
+#include "ObjectSystemManager.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
 #include "PathUtils.h"
@@ -68,13 +72,15 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_scriptContext(new CompositorScriptContext)
-	, m_mikanScene(new MikanScene)
+	, m_mikanScene(std::make_shared<MikanScene>())
 	, m_videoWriter(new VideoWriter)
 {
 }
 
 AppStage_Compositor::~AppStage_Compositor()
 {
+	m_mikanScene= nullptr;
+
 	delete m_compositorModel;
 	delete m_compositorLayersModel;
 	delete m_compositorAnchorsModel;
@@ -85,17 +91,21 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorScriptingModel;
 	delete m_compositorSourcesModel;
 	delete m_scriptContext;
-	delete m_mikanScene;
 	delete m_videoWriter;
 }
 
 void AppStage_Compositor::enter()
 {
 	AppStage::enter();
+	App* app= App::getInstance();
 
 	m_frameCompositor= GlFrameCompositor::getInstance();
 	m_frameCompositor->start();
 	m_frameCompositor->OnCompositorShadersReloaded += MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
+
+	// Register the scene with the primary viewport
+	EditorObjectSystemPtr editorSystem= app->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
+	editorSystem->bindViewport(getFirstViewport());
 
 	// Apply video source camera intrinsics to the camera
 	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
@@ -111,7 +121,7 @@ void AppStage_Compositor::enter()
 	}
 
 	// Load the compositor script
-	m_profile = App::getInstance()->getProfileConfig();
+	m_profile = app->getProfileConfig();
 	if (!m_profile->compositorScriptFilePath.empty())
 	{
 		if (!m_scriptContext->loadScript(m_profile->compositorScriptFilePath))
@@ -231,6 +241,11 @@ void AppStage_Compositor::enter()
 
 void AppStage_Compositor::exit()
 {
+	// Unregister all viewports from the editor
+	App* app= App::getInstance();
+	EditorObjectSystemPtr editorSystem = app->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
+	editorSystem->clearViewports();
+
 	m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
 	m_compositorLayersModel->dispose();

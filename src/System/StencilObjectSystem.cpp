@@ -8,7 +8,7 @@
 #include "MathTypeConversion.h"
 #include "BoxColliderComponent.h"
 #include "MeshColliderComponent.h"
-#include "MikanObject.h""
+#include "MikanObject.h"
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"

@@ -3,6 +3,7 @@
 #include "MikanObjectSystem.h"
 #include "ColliderQuery.h"
 #include "ComponentFwd.h"
+#include "RendererFwd.h"
 #include "SceneFwd.h"
 
 #include <vector>
