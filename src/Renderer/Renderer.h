@@ -67,7 +67,7 @@ public:
 		return m_isRenderingUI;
 	}
 
-	GlViewportConstPtr getCurrentViewport() const { return m_currentViewport; }
+	GlViewportConstPtr getRenderingViewport() const { return m_renderingViewport; }
 	class GlStateStack* getGlStateStack() const { return m_glStateStack; }
 
 	class GlLineRenderer* getLineRenderer() const { return m_lineRenderer; }
@@ -90,7 +90,7 @@ private:
 
 	void* m_glContext;
 	GlViewportPtr m_uiViewport;
-	GlViewportConstPtr m_currentViewport;
+	GlViewportConstPtr m_renderingViewport;
 	class GlStateStack* m_glStateStack;
 
 	class GlLineRenderer* m_lineRenderer;

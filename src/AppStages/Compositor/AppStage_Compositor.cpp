@@ -93,8 +93,6 @@ void AppStage_Compositor::enter()
 {
 	AppStage::enter();
 
-	m_camera= getFirstViewport()->getCurrentCamera();
-
 	m_frameCompositor= GlFrameCompositor::getInstance();
 	m_frameCompositor->start();
 	m_frameCompositor->OnCompositorShadersReloaded += MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
@@ -106,7 +104,10 @@ void AppStage_Compositor::enter()
 		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 
-		m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+		for (GlViewportPtr viewport : getViewportList())
+		{
+			viewport->getCurrentCamera()->applyMonoCameraIntrinsics(&cameraIntrinsics);
+		}
 	}
 
 	// Load the compositor script
@@ -243,7 +244,6 @@ void AppStage_Compositor::exit()
 	m_compositorSourcesModel->dispose();
 
 	m_frameCompositor->stop();
-	m_camera= nullptr;
 
 	AppStage::exit();
 }
@@ -273,7 +273,7 @@ void AppStage_Compositor::update()
 	glm::mat4 cameraXform;
 	if (m_frameCompositor->getVideoSourceCameraPose(cameraXform))
 	{
-		m_camera->setCameraPose(cameraXform);
+		getFirstViewport()->getCurrentCamera()->setCameraPose(cameraXform);
 	}
 
 	// tick the compositor lua script (if any is active)

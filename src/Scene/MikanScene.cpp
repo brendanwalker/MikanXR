@@ -6,7 +6,7 @@
 #include "GlScene.h"
 
 MikanScene::MikanScene()
-	: m_glScene(new GlScene())
+	: m_glScene(std::make_shared<GlScene>())
 {
 
 }
@@ -14,7 +14,6 @@ MikanScene::MikanScene()
 MikanScene::~MikanScene()
 {
 	dispose();
-	delete m_glScene;
 }
 
 void MikanScene::init()

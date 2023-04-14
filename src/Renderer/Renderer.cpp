@@ -475,8 +475,8 @@ void Renderer::renderStageBegin(GlViewportConstPtr targetViewport)
 {
 	EASY_FUNCTION();
 
-	m_currentViewport= targetViewport;
-	m_currentViewport->applyViewport();
+	m_renderingViewport= targetViewport;
+	m_renderingViewport->applyViewport();
 
 	m_isRenderingStage = true;
 }
@@ -491,7 +491,7 @@ void Renderer::renderStageEnd()
 	// Render any glyphs emitted by the AppStage
 	m_textRenderer->render(this);
 
-	m_currentViewport= nullptr;
+	m_renderingViewport= nullptr;
 	m_isRenderingStage = false;
 }
 
@@ -499,8 +499,8 @@ void Renderer::renderUIBegin()
 {
 	EASY_FUNCTION();
 
-	m_currentViewport= m_uiViewport;
-	m_currentViewport->applyViewport();
+	m_renderingViewport= m_uiViewport;
+	m_renderingViewport->applyViewport();
 
 	m_rmlUiRenderer->beginFrame(this);
 
@@ -519,7 +519,7 @@ void Renderer::renderUIEnd()
 	// Render any glyphs emitted by the AppStage renderUI phase
 	m_textRenderer->render(this);
 
-	m_currentViewport= nullptr;
+	m_renderingViewport= nullptr;
 	m_isRenderingUI = false;
 }
 

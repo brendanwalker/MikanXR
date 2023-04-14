@@ -37,6 +37,11 @@ GlViewportPtr AppStage::addViewport()
 	return viewport;
 }
 
+GlViewportConstPtr AppStage::getRenderingViewport() const
+{
+	return Renderer::getInstance()->getRenderingViewport();
+}
+
 Rml::Context* AppStage::getRmlContext() const 
 {
 	return m_app->getRmlManager()->getRmlUIContext(); 

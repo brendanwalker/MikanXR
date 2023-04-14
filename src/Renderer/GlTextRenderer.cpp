@@ -134,7 +134,7 @@ void drawTextAtWorldPosition(
 {
 	Renderer* renderer= Renderer::getInstance();
 	GlTextRenderer* textRenderer= renderer->getTextRenderer();
-	GlCameraPtr camera = renderer->getCurrentViewport()->getCurrentCamera();
+	GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 

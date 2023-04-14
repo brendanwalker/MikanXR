@@ -59,7 +59,7 @@ void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 
 void GlScene::render() const
 {
-	GlCameraPtr camera= App::getInstance()->getRenderer()->getCurrentViewport()->getCurrentCamera();
+	GlCameraPtr camera= App::getInstance()->getRenderer()->getRenderingViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 

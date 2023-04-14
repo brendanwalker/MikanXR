@@ -170,7 +170,7 @@ void drawTransformedWireframeMesh(
 
 	shader->bindProgram();
 
-	GlCameraPtr camera = renderer->getCurrentViewport()->getCurrentCamera();
+	GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
 
 	if (camera != nullptr)
 	{

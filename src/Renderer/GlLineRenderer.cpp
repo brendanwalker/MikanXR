@@ -116,7 +116,7 @@ void GlLineRenderer::render(Renderer* renderer)
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
 		{
-			GlCameraPtr camera = renderer->getCurrentViewport()->getCurrentCamera();
+			GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
 
 			if (camera != nullptr)
 			{

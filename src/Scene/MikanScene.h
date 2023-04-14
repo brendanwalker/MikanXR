@@ -1,13 +1,10 @@
 #pragma once
 
-#include <memory>
+#include "ComponentFwd.h"
+#include "ObjectFwd.h"
+#include "RendererFwd.h"
+
 #include <vector>
-
-class MikanObject;
-typedef std::shared_ptr<MikanObject> MikanObjectPtr;
-
-class ColliderComponent;
-typedef std::weak_ptr<ColliderComponent> ColliderComponentWeakPtr;
 
 class MikanScene final
 {
@@ -25,7 +22,7 @@ public:
 	void render();
 
 private:
-	class GlScene* m_glScene= nullptr;
+	GlScenePtr m_glScene;
 	std::vector<MikanObjectPtr> m_objects;
 	std::vector<ColliderComponentWeakPtr> m_colliders;
 };

@@ -43,6 +43,7 @@ public:
 
 	GlViewportPtr getFirstViewport() const { return m_viewports[0]; }
 	const GlViewportList& getViewportList() const { return m_viewports; }
+	GlViewportConstPtr getRenderingViewport() const;
 	GlViewportPtr addViewport();
 
 	Rml::Context* getRmlContext() const;
