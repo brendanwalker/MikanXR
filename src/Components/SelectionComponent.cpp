@@ -1,6 +1,7 @@
 #include "App.h"
 #include "ColliderComponent.h"
 #include "EditorObjectSystem.h"
+#include "MikanObject.h"
 #include "SelectionComponent.h"
 #include "ObjectSystemManager.h"
 

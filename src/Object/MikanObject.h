@@ -1,14 +1,23 @@
 #pragma once
 
-#include "MikanComponent.h"
+#include "ComponentFwd.h"
+#include "MulticastDelegate.h"
+#include "ObjectFwd.h"
+#include "ObjectSystemFwd.h"
 
-#include <memory>
 #include <vector>
+
+class ObjectEvents
+{
+public:
+	static MulticastDelegate<void(MikanObject&)> OnObjectInitialized;
+	static MulticastDelegate<void(const MikanObject&)> OnObjectDisposed;
+};
 
 class MikanObject : public std::enable_shared_from_this<MikanObject>
 {
 public:
-	MikanObject();
+	MikanObject(MikanObjectSystemWeakPtr ownerSystemPtr);
 	~MikanObject();
 
 	template<class t_component_type>
@@ -53,31 +62,16 @@ public:
 		}
 	}
 
-	inline void setRootComponent(SceneComponentPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }
+	inline MikanObjectSystemWeakPtr getOwnerSystem() const { return m_ownerObjectSystem; }
+	inline SceneComponentWeakPtr getRootComponent() const { return m_rootSceneComponent; }
+	inline void setRootComponent(SceneComponentWeakPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }
 
 	void init();
 	void dispose();
 	void update();
 
 protected:
-	SceneComponentPtr m_rootSceneComponent;
+	MikanObjectSystemWeakPtr m_ownerObjectSystem;
+	SceneComponentWeakPtr m_rootSceneComponent;
 	std::vector<MikanComponentPtr> m_components;
 };
-
-template<class t_derived_type>
-std::shared_ptr<t_derived_type> ObjectCast(MikanObjectPtr object)
-{
-	return std::dynamic_pointer_cast<t_derived_type>(object);
-}
-
-template<class t_object_type>
-const char* ObjectTypeName(MikanObjectPtr object)
-{
-	return typeid(*object.get()).name();
-}
-
-template<class t_object_type>
-const char* ObjectTypeName()
-{
-	return typeid(t_object_type).name();
-}

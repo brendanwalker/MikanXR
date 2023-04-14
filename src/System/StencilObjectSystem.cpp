@@ -111,7 +111,7 @@ bool StencilObjectSystem::removeQuadStencil(MikanStencilID stencilId)
 
 QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const MikanStencilQuad& stencilInfo)
 {
-	MikanObjectPtr stencilObject = newObject();
+	MikanObjectPtr stencilObject = newObject().lock();
 
 	// Add a selection component
 	stencilObject->addComponent<SelectionComponent>();
@@ -146,13 +146,13 @@ void StencilObjectSystem::disposeQuadStencilObject(MikanStencilID stencilId)
 		m_quadStencilComponents.erase(it);
 
 		// Free the corresponding object
-		removeObject(stencilComponentPtr->getOwnerObject());
+		deleteObject(stencilComponentPtr->getOwnerObject());
 	}
 }
 
 BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(const MikanStencilBox& stencilInfo)
 {
-	MikanObjectPtr stencilObject = newObject();
+	MikanObjectPtr stencilObject = newObject().lock();
 
 	// Add a scene component to the anchor
 	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
@@ -191,13 +191,13 @@ void StencilObjectSystem::disposeBoxStencilObject(MikanStencilID stencilId)
 		m_boxStencilComponents.erase(it);
 
 		// Free the corresponding object
-		removeObject(stencilComponentPtr->getOwnerObject());
+		deleteObject(stencilComponentPtr->getOwnerObject());
 	}
 }
 
 ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const MikanStencilModelConfig& modelInfo)
 {
-	MikanObjectPtr stencilObject = newObject();
+	MikanObjectPtr stencilObject = newObject().lock();
 
 	// Add a scene component to the model stencil
 	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
@@ -280,7 +280,7 @@ void StencilObjectSystem::disposeModelStencilObject(MikanStencilID stencilId)
 		m_modelStencilComponents.erase(it);
 
 		// Free the corresponding object
-		removeObject(stencilComponentPtr->getOwnerObject());
+		deleteObject(stencilComponentPtr->getOwnerObject());
 	}
 }
 

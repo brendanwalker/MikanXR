@@ -3,6 +3,7 @@
 #include "AnchorComponent.h"
 #include "SceneComponent.h"
 #include "MathTypeConversion.h"
+#include "MikanObject.h"
 #include "ProfileConfig.h"
 
 AnchorObjectSystem* AnchorObjectSystem::s_anchorObjectSystem= nullptr;
@@ -84,7 +85,7 @@ bool AnchorObjectSystem::removeAnchor(MikanSpatialAnchorID anchorId)
 
 AnchorComponentPtr AnchorObjectSystem::createAnchorObject(const MikanSpatialAnchorInfo& anchorInfo)
 {
-	MikanObjectPtr anchorObject= newObject();
+	MikanObjectPtr anchorObject= newObject().lock();
 
 	// Add a scene component to the anchor
 	SceneComponentPtr sceneComponentPtr= anchorObject->addComponent<SceneComponent>();
@@ -115,7 +116,7 @@ void AnchorObjectSystem::disposeAnchorObject(MikanSpatialAnchorID anchorId)
 		m_anchorComponents.erase(it);
 
 		// Free the corresponding object
-		removeObject(anchorComponentPtr->getOwnerObject());
+		deleteObject(anchorComponentPtr->getOwnerObject());
 	}
 }
 

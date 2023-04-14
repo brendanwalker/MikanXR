@@ -28,16 +28,30 @@ void MikanObjectSystem::update()
 	}
 }
 
-void MikanObjectSystem::addObject(MikanObjectPtr objectPtr)
+MikanObjectWeakPtr MikanObjectSystem::newObject()
 {
+	MikanObjectPtr objectPtr = std::make_shared<MikanObject>(shared_from_this());
 	m_objects.push_back(objectPtr);
+
+	if (OnObjectAdded)
+		OnObjectAdded(*this, *objectPtr.get());
+
+	return objectPtr;
 }
 
-void MikanObjectSystem::removeObject(MikanObjectPtr objectPtr)
+void MikanObjectSystem::deleteObject(MikanObjectWeakPtr objectWeakPtr)
 {
-	auto it= std::find(m_objects.begin(), m_objects.end(), objectPtr);
-	if (it != m_objects.end())
+	MikanObjectPtr objectPtr= objectWeakPtr.lock();
+
+	if (objectPtr)
 	{
-		m_objects.erase(it);
+		auto it = std::find(m_objects.begin(), m_objects.end(), objectPtr);
+		if (it != m_objects.end())
+		{
+			if (OnObjectRemoved)
+				OnObjectRemoved(*this, *objectPtr.get());
+
+			m_objects.erase(it);
+		}
 	}
 }

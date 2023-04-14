@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AnchorObjectSystemConfig.h"
+#include "ComponentFwd.h"
 #include "MikanObjectSystem.h"
 #include "MikanClientTypes.h"
 
@@ -8,10 +9,6 @@
 #include <memory>
 
 #include <glm/glm.hpp>
-
-class AnchorComponent;
-using AnchorComponentPtr = std::shared_ptr<AnchorComponent>;
-using AnchorComponentWeakPtr = std::weak_ptr<AnchorComponent>;
 
 class AnchorObjectSystem : public MikanObjectSystem
 {

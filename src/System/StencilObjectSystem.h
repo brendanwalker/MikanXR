@@ -1,6 +1,7 @@
 #pragma once
 #include "MikanObjectSystem.h"
 #include "MikanClientTypes.h"
+#include "ComponentFwd.h"
 #include "StencilObjectSystemConfig.h"
 
 #include <filesystem>
@@ -9,18 +10,6 @@
 #include <vector>
 
 #include <glm/glm.hpp>
-
-class QuadStencilComponent;
-using QuadStencilComponentPtr = std::shared_ptr<QuadStencilComponent>;
-using QuadStencilComponentWeakPtr = std::weak_ptr<QuadStencilComponent>;
-
-class BoxStencilComponent;
-using BoxStencilComponentPtr = std::shared_ptr<BoxStencilComponent>;
-using BoxStencilComponentWeakPtr = std::weak_ptr<BoxStencilComponent>;
-
-class ModelStencilComponent;
-using ModelStencilComponentPtr = std::shared_ptr<ModelStencilComponent>;
-using ModelStencilComponentWeakPtr = std::weak_ptr<ModelStencilComponent>;
 
 class StencilObjectSystem : public MikanObjectSystem
 {
