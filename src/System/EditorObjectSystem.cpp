@@ -1,4 +1,5 @@
 #include "EditorObjectSystem.h"
+#include "MikanScene.h"
 
 EditorObjectSystem::EditorObjectSystem() : MikanObjectSystem()
 {
@@ -12,10 +13,14 @@ EditorObjectSystem::~EditorObjectSystem()
 void EditorObjectSystem::init()
 {
 	MikanObjectSystem::init();
+
+	m_scene = std::make_shared<MikanScene>();
+	m_scene->init();
 }
 
 void EditorObjectSystem::dispose()
 {
+	m_scene= nullptr;
 	m_selectionComponents.clear();
 }
 

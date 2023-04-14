@@ -4,6 +4,7 @@
 #include "MulticastDelegate.h"
 #include "ObjectFwd.h"
 #include "ObjectSystemFwd.h"
+#include "SceneFwd.h"
 
 #include <vector>
 
@@ -14,7 +15,7 @@ public:
 	static MulticastDelegate<void(const MikanObject&)> OnObjectDisposed;
 };
 
-class MikanObject : public std::enable_shared_from_this<MikanObject>
+class MikanObject final : public std::enable_shared_from_this<MikanObject>
 {
 public:
 	MikanObject(MikanObjectSystemWeakPtr ownerSystemPtr);

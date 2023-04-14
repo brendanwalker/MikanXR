@@ -2,6 +2,7 @@
 
 #include "MikanObjectSystem.h"
 #include "ComponentFwd.h"
+#include "SceneFwd.h"
 
 class EditorObjectSystem : public MikanObjectSystem
 {
@@ -17,4 +18,5 @@ public:
 
 protected:
 	std::vector<SelectionComponentWeakPtr> m_selectionComponents;
+	MikanScenePtr m_scene;
 };

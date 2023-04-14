@@ -5,6 +5,7 @@
 #include "IGLSceneRenderable.h"
 #include "ComponentFwd.h"
 #include "ObjectFwd.h"
+#include "SceneFwd.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 

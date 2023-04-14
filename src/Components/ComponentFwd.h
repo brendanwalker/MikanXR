@@ -15,11 +15,6 @@ class SelectionComponent;
 using SelectionComponentPtr = std::shared_ptr<SelectionComponent>;
 using SelectionComponentWeakPtr = std::weak_ptr<SelectionComponent>;
 
-// Scene Components
-class SceneComponent;
-using SceneComponentWeakPtr = std::weak_ptr<SceneComponent>;
-using SceneComponentPtr = std::shared_ptr<SceneComponent>;
-
 // Mesh Components
 class StaticMeshComponent;
 using StaticMeshComponentPtr = std::shared_ptr<StaticMeshComponent>;
