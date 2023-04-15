@@ -12,8 +12,12 @@ class MikanComponent : public std::enable_shared_from_this<MikanComponent>
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
+	MikanComponent(const std::string& name, MikanObjectWeakPtr owner);
 	virtual ~MikanComponent();
 	
+	void setName(const std::string& name) { m_name= name; }
+	const std::string& getName() const { return m_name; }
+
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
 
 	template <class t_derived_type>
@@ -33,6 +37,7 @@ public:
 	virtual void update();
 
 protected:
+	std::string m_name;
 	MikanObjectWeakPtr m_ownerObject;
 };
 

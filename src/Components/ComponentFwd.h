@@ -29,6 +29,10 @@ class BoxColliderComponent;
 using BoxColliderComponentPtr = std::shared_ptr<BoxColliderComponent>;
 using BoxColliderComponentWeakPtr = std::weak_ptr<BoxColliderComponent>;
 
+class DiskColliderComponent;
+using DiskColliderComponentPtr = std::shared_ptr<DiskColliderComponent>;
+using DiskColliderComponentWeakPtr = std::weak_ptr<DiskColliderComponent>;
+
 class MeshColliderComponent;
 using MeshColliderComponentPtr= std::shared_ptr<MeshColliderComponent>;
 using MeshColliderComponentWeakPtr= std::weak_ptr<MeshColliderComponent>;

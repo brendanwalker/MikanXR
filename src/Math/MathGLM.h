@@ -45,6 +45,15 @@ bool glm_intersect_tri_with_ray(
 	const GlmTriangle& tri, 
 	const glm::vec3& ray_start, const glm::vec3& ray_direction,
 	float& outIntDistance, glm::vec3& outIntPoint, glm::vec3& outIntNormal);
+bool glm_intersect_disk_with_ray(
+	const glm::vec3 ray_start,		// Ray origin, in world space
+	const glm::vec3 ray_direction,	// Ray direction, in world space. 
+	const glm::vec3 disk_center,	// Disk center, in world space
+	const glm::vec3 disk_normal,	// Disk normal, in world space
+	const float disk_radius,
+	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
+	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
+	glm::vec3& outIntNormal);		// Output: intersection normal on the surface of the OBB
 bool glm_intersect_obb_with_ray(
 	const glm::vec3 ray_start,		// Ray origin, in world space
 	const glm::vec3 ray_direction,	// Ray direction, in world space. 

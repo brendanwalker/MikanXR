@@ -1,22 +1,21 @@
-#include "BoxColliderComponent.h"
+#include "DiskColliderComponent.h"
 #include "MikanObject.h"
 #include "MathGLM.h"
 
-BoxColliderComponent::BoxColliderComponent(MikanObjectWeakPtr owner)
+DiskColliderComponent::DiskColliderComponent(MikanObjectWeakPtr owner)
 	: ColliderComponent(owner)
-{
-}
+{}
 
-bool BoxColliderComponent::computeRayIntersection(
+bool DiskColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {
-	return glm_intersect_obb_with_ray(
+	return glm_intersect_disk_with_ray(
 		request.rayOrigin,
 		request.rayDirection,
-		m_halfExtents,
-		m_halfExtents*-1.f,
-		getWorldTransform(),
+		m_worldTransform[3], // center
+		m_worldTransform[1], // y-axis
+		m_radius,
 		outResult.hitDistance,
 		outResult.hitLocation,
 		outResult.hitNormal);

@@ -1,8 +1,9 @@
 #pragma once
 
+#include "ComponentProperty.h"
 #include "MikanComponent.h"
 #include "MikanClientTypes.h"
-#include "ComponentProperty.h"
+#include "SceneFwd.h"
 
 #include <string>
 

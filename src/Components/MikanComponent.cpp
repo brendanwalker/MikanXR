@@ -6,6 +6,15 @@ MikanComponent::MikanComponent(MikanObjectWeakPtr owner)
 {
 }
 
+MikanComponent::MikanComponent(
+	const std::string& name, 
+	MikanObjectWeakPtr owner)
+	: m_name(name)
+	, m_ownerObject(owner)
+{
+
+}
+
 MikanComponent::~MikanComponent()
 {
 

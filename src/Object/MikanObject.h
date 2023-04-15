@@ -30,6 +30,15 @@ public:
 		return component;
 	}
 
+	template<class t_component_type>
+	std::shared_ptr<t_component_type> addComponent(const std::string& name)
+	{
+
+		std::shared_ptr<t_component_type> component = std::make_shared<t_component_type>(name, shared_from_this());
+		m_components.push_back(component);
+		return component;
+	}
+
 	inline std::vector<MikanComponentPtr>& getComponentsConst() { return m_components; }
 	inline const std::vector<MikanComponentPtr>& getComponentsConst() const { return m_components; }
 
@@ -41,6 +50,22 @@ public:
 			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
 
 			if (derivedComponent != nullptr)
+			{
+				return derivedComponent;
+			}
+		}
+
+		return nullptr;
+	}
+
+	template<class t_component_type>
+	std::shared_ptr<t_component_type> getComponentOfTypeAndName(const std::string& name)
+	{
+		for (MikanComponentPtr component : m_components)
+		{
+			std::shared_ptr<t_component_type> derivedComponent = ComponentCast<t_component_type>(component);
+
+			if (derivedComponent != nullptr && component->getName() == name)
 			{
 				return derivedComponent;
 			}

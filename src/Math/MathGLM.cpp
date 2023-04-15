@@ -171,6 +171,39 @@ bool glm_intersect_tri_with_ray(
 	return false;
 }
 
+bool glm_intersect_disk_with_ray(
+	const glm::vec3 ray_start,		// Ray origin, in world space
+	const glm::vec3 ray_direction,	// Ray direction, in world space. 
+	const glm::vec3 disk_center,
+	const glm::vec3 disk_normal,
+	const float disk_radius,
+	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
+	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
+	glm::vec3& outIntNormal)		// Output: intersection normal on the surface of the OBB
+{
+	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
+
+	float intDistance= 0.f;
+	if (glm::intersectRayPlane(
+		ray_start, ray_unit_direction,
+		disk_center, disk_normal,
+		intDistance))
+	{
+		const glm::vec3 intPoint= ray_start + ray_direction*intDistance;
+		const float intRadiusSqrd= glm::distance2(intPoint, disk_center);
+
+		if (intRadiusSqrd <= disk_radius * disk_radius)
+		{
+			outIntDistance= intDistance;
+			outIntNormal= disk_normal;
+			outIntPoint= intPoint;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 // Adapted from: https://github.com/opengl-tutorials/ogl/blob/master/misc05_picking/misc05_picking_custom.cpp
 bool glm_intersect_obb_with_ray(
 	const glm::vec3 ray_start,		// Ray origin, in world space
@@ -187,7 +220,7 @@ bool glm_intersect_obb_with_ray(
 	// Intersection method from Real-Time Rendering and Essential Mathematics for Games
 	float tMin = 0.0f;
 	float tMax = k_real_max;
-	glm::vec3 normal;
+	glm::vec3 normal(0.f);
 
 	glm::vec3 obb_center(xform[3]);
 	glm::vec3 delta = obb_center - ray_start;

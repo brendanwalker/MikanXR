@@ -4,19 +4,17 @@
 #include "ObjectFwd.h"
 #include "ColliderComponent.h"
 
-#include <glm/ext/vector_float3.hpp>
-
-class BoxColliderComponent : public ColliderComponent
+class DiskColliderComponent : public ColliderComponent
 {
 public:
-	BoxColliderComponent(MikanObjectWeakPtr owner);
+	DiskColliderComponent(MikanObjectWeakPtr owner);
 
-	void setHalfExtents(const glm::vec3 halfExtents) { m_halfExtents= halfExtents; }
+	void setRadius(float radius) { m_radius= radius; }
 
 	virtual bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
 		ColliderRaycastHitResult& outResult) const override;
 
 private:
-	glm::vec3 m_halfExtents;
+	float m_radius;
 };
