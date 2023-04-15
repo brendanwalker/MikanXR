@@ -34,7 +34,8 @@ public:
 	std::shared_ptr<t_component_type> addComponent(const std::string& name)
 	{
 
-		std::shared_ptr<t_component_type> component = std::make_shared<t_component_type>(name, shared_from_this());
+		std::shared_ptr<t_component_type> component = std::make_shared<t_component_type>(shared_from_this());
+		component->setName(name);
 		m_components.push_back(component);
 		return component;
 	}

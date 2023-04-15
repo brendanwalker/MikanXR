@@ -12,7 +12,6 @@ class MikanComponent : public std::enable_shared_from_this<MikanComponent>
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
-	MikanComponent(const std::string& name, MikanObjectWeakPtr owner);
 	virtual ~MikanComponent();
 	
 	void setName(const std::string& name) { m_name= name; }

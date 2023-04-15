@@ -3,6 +3,7 @@
 #include "MikanObjectSystem.h"
 #include "ColliderQuery.h"
 #include "ComponentFwd.h"
+#include "GizmoFwd.h"
 #include "RendererFwd.h"
 #include "SceneFwd.h"
 
@@ -26,6 +27,8 @@ protected:
 	MikanScenePtr m_scene;
 	std::vector<GlViewportWeakPtr> m_viewports;
 	SelectionComponentWeakPtr m_selectionHoverWeakPtr;
+	MikanObjectWeakPtr m_gizmoObjectWeakPtr;
+	GizmoTransformComponentWeakPtr m_gizmoComponentWeakPtr;
 
 	// Object System Events
 	void onObjectAdded(MikanObjectSystem& system, MikanObject& object);
@@ -37,6 +40,18 @@ protected:
 	void onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);
 
 	// Helpers
+	void createTransformGizmo();
+	void createGizmoBoxCollider(
+		MikanObjectPtr gizmoObjectPtr, 
+		const std::string& name,
+		const glm::vec3& center,
+		const glm::vec3& halfExtents);
+	void createGizmoDiskCollider(
+		MikanObjectPtr gizmoObjectPtr,
+		const std::string& name,
+		const glm::vec3& center,
+		const glm::vec3& normal,
+		const float radius);
 	SelectionComponentWeakPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin, const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
