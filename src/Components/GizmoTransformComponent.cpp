@@ -4,7 +4,10 @@
 #include "GizmoTranslateComponent.h"
 #include "GizmoRotateComponent.h"
 #include "GizmoScaleComponent.h"
+#include "InputManager.h"
 #include "MikanObject.h"
+
+#include "SDL_keycode.h"
 
 GizmoTransformComponent::GizmoTransformComponent(MikanObjectWeakPtr owner)
 	: SceneComponent(owner)
@@ -20,6 +23,19 @@ void GizmoTransformComponent::init()
 	m_translateComponent = owner->getComponentOfType<GizmoTranslateComponent>();
 	m_rotateComponent = owner->getComponentOfType<GizmoRotateComponent>();
 	m_scaleComponent = owner->getComponentOfType<GizmoScaleComponent>();
+
+	// Following Unity gizmo hotkey defaults
+	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed +=
+		MakeDelegate(this, &GizmoTransformComponent::selectTranslateMode);
+	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed +=
+		MakeDelegate(this, &GizmoTransformComponent::selectRotateMode);
+	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_r)->OnKeyPressed +=
+		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
+}
+
+void GizmoTransformComponent::dispose()
+{
+	SceneComponent::dispose();
 }
 
 void GizmoTransformComponent::setGizmoMode(eGizmoMode newMode)
@@ -49,4 +65,22 @@ void GizmoTransformComponent::setGizmoMode(eGizmoMode newMode)
 	}
 
 	m_gizmoMode= newMode;
+}
+
+void GizmoTransformComponent::selectTranslateMode()
+{
+	if (m_gizmoMode != eGizmoMode::none)
+		setGizmoMode(eGizmoMode::translate);
+}
+
+void GizmoTransformComponent::selectRotateMode()
+{
+	if (m_gizmoMode != eGizmoMode::none)
+		setGizmoMode(eGizmoMode::rotate);
+}
+
+void GizmoTransformComponent::selectScaleMode()
+{
+	if (m_gizmoMode != eGizmoMode::none)
+		setGizmoMode(eGizmoMode::translate);
 }
