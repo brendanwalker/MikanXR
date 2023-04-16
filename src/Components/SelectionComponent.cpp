@@ -45,3 +45,31 @@ bool SelectionComponent::computeRayIntersection(
 
 	return bAnyHits;
 }
+
+void SelectionComponent::notifyHoverEnter()
+{
+	m_bIsHovered= true;
+	if (OnInteractionRayOverlapEnter)
+		OnInteractionRayOverlapEnter();
+}
+
+void SelectionComponent::notifyHoverExit()
+{
+	m_bIsHovered= false;
+	if (OnInteractionRayOverlapExit)
+		OnInteractionRayOverlapExit();
+}
+
+void SelectionComponent::notifySelected()
+{
+	m_bIsSelected= true;
+	if (OnInteractionSelected)
+		OnInteractionSelected();
+}
+
+void SelectionComponent::notifyUnselected()
+{
+	m_bIsSelected= false;
+	if (OnInteractionUnselected)
+		OnInteractionUnselected();
+}

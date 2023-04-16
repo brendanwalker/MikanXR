@@ -1,13 +1,16 @@
 #include "AnchorObjectSystem.h"
 #include "Colors.h"
 #include "GlLineRenderer.h"
+#include "GlMaterialInstance.h"
 #include "GlTextRenderer.h"
 #include "GlStaticMeshInstance.h"
 #include "AnchorComponent.h"
 #include "SceneComponent.h"
+#include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
+#include "MikanObject.h"
 #include "ModelStencilComponent.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
@@ -31,8 +34,19 @@ void ModelStencilComponent::init()
 		GlStaticMeshInstancePtr staticMeshPtr= meshComponentPtr->getStaticMesh();
 		if (staticMeshPtr && staticMeshPtr->getName() == "wireframe")
 		{
+			staticMeshPtr->setVisible(false);
 			m_wireframeMeshes.push_back(staticMeshPtr);
 		}
+	}
+
+	SelectionComponentPtr selectionComponentPtr= getOwnerObject()->getComponentOfType<SelectionComponent>();
+	if (selectionComponentPtr)
+	{
+		selectionComponentPtr->OnInteractionRayOverlapEnter+= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit+= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected+= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected+= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+		m_selectionComponentWeakPtr= selectionComponentPtr;
 	}
 }
 
@@ -50,6 +64,21 @@ void ModelStencilComponent::update()
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
 	}
+}
+
+void ModelStencilComponent::dispose()
+{
+	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
+	if (selectionComponentPtr)
+	{
+		selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected -= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected -= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+		m_selectionComponentWeakPtr = selectionComponentPtr;
+	}
+
+	StencilComponent::dispose();
 }
 
 void ModelStencilComponent::setModelStencil(const MikanStencilModel& stencil)
@@ -139,5 +168,66 @@ void ModelStencilComponent::updateSceneComponentTransform()
 		const glm::mat4 worldXform = getStencilWorldTransform();
 
 		sceneComponent->setWorldTransform(worldXform);
+	}
+}
+
+void ModelStencilComponent::onInteractionRayOverlapEnter()
+{
+	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
+	if (selectionComponentPtr && !selectionComponentPtr->getIsSelected())
+	{
+		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+		{
+			meshPtr->getMaterialInstance()->setVec3BySemantic(eUniformSemantic::diffuseColorRGB, Colors::LightGray);
+			meshPtr->setVisible(true);
+		}
+	}
+}
+
+void ModelStencilComponent::onInteractionRayOverlapExit()
+{
+	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
+	if (selectionComponentPtr && !selectionComponentPtr->getIsSelected())
+	{
+		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+		{
+			meshPtr->setVisible(false);
+		}
+	}
+}
+
+void ModelStencilComponent::onInteractionSelected()
+{
+	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
+	if (selectionComponentPtr)
+	{
+		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+		{
+			meshPtr->getMaterialInstance()->setVec3BySemantic(eUniformSemantic::diffuseColorRGB, Colors::Yellow);
+			meshPtr->setVisible(true);
+		}
+	}
+}
+
+void ModelStencilComponent::onInteractionUnselected()
+{
+	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
+	if (selectionComponentPtr)
+	{
+		if (selectionComponentPtr->getIsHovered())
+		{
+			for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+			{
+				meshPtr->getMaterialInstance()->setVec3BySemantic(eUniformSemantic::diffuseColorRGB, Colors::LightGray);
+				meshPtr->setVisible(true);
+			}
+		}
+		else
+		{
+			for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+			{
+				meshPtr->setVisible(false);
+			}
+		}
 	}
 }

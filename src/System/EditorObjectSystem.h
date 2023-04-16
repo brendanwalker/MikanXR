@@ -26,7 +26,8 @@ public:
 protected:
 	MikanScenePtr m_scene;
 	std::vector<GlViewportWeakPtr> m_viewports;
-	SelectionComponentWeakPtr m_selectionHoverWeakPtr;
+	SelectionComponentWeakPtr m_hoverComponentWeakPtr;
+	SelectionComponentWeakPtr m_selectedComponentWeakPtr;
 	MikanObjectWeakPtr m_gizmoObjectWeakPtr;
 	GizmoTransformComponentWeakPtr m_gizmoComponentWeakPtr;
 
@@ -38,6 +39,7 @@ protected:
 	void onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
 	void onMouseRayButtonDown(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);
 	void onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);
+	void onSelectionChanged(SelectionComponentPtr oldComponentPtr, SelectionComponentPtr newComponentPtr);
 
 	// Helpers
 	void createTransformGizmo();

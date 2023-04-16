@@ -7,7 +7,9 @@
 #include "SceneComponent.h"
 #include "BoxColliderComponent.h"
 #include "MathGLM.h"
+#include "MikanObject.h"
 #include "MathTypeConversion.h"
+#include "SelectionComponent.h"
 #include "TextStyle.h"
 
 BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
@@ -26,6 +28,7 @@ void BoxStencilComponent::init()
 	MikanComponent::init();
 
 	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
+	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 }
 
 void BoxStencilComponent::update()
@@ -40,7 +43,17 @@ void BoxStencilComponent::update()
 		const glm::vec3 half_extents(BoxXSize / 2.f, BoxYSize / 2.f, BoxZSize / 2.f);
 		const glm::vec3 position = glm::vec3(xform[3]);
 
-		drawTransformedBox(xform, half_extents, Colors::Yellow);
+		glm::vec3 color= Colors::DarkGray;
+		SelectionComponentPtr selectionComponent= m_selectionComponent.lock();
+		if (selectionComponent)
+		{
+			if (selectionComponent->getIsSelected())
+				color= Colors::Yellow;
+			else if (selectionComponent->getIsHovered())
+				color= Colors::LightGray;
+		}
+
+		drawTransformedBox(xform, half_extents, color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
 	}

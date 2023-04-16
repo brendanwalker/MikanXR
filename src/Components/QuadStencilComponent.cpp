@@ -7,7 +7,9 @@
 #include "BoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
+#include "MikanObject.h"
 #include "QuadStencilComponent.h"
+#include "SelectionComponent.h"
 #include "TextStyle.h"
 
 QuadStencilComponent::QuadStencilComponent(MikanObjectWeakPtr owner)
@@ -27,6 +29,7 @@ void QuadStencilComponent::init()
 	MikanComponent::init();
 
 	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
+	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 }
 
 void QuadStencilComponent::update()
@@ -40,7 +43,17 @@ void QuadStencilComponent::update()
 		const glm::mat4 xform = m_sceneComponent.lock()->getWorldTransform();
 		const glm::vec3 position = glm::vec3(xform[3]);
 
-		drawTransformedQuad(xform, QuadWidth, QuadHeight, Colors::Yellow);
+		glm::vec3 color = Colors::DarkGray;
+		SelectionComponentPtr selectionComponent = m_selectionComponent.lock();
+		if (selectionComponent)
+		{
+			if (selectionComponent->getIsSelected())
+				color = Colors::Yellow;
+			else if (selectionComponent->getIsHovered())
+				color = Colors::LightGray;
+		}
+
+		drawTransformedQuad(xform, QuadWidth, QuadHeight, color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
 	}

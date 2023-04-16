@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentProperty.h"
+#include "ComponentFwd.h"
 #include "MikanClientTypes.h"
 #include "RendererFwd.h"
 #include "StencilComponent.h"
@@ -18,6 +19,7 @@ public:
 	ModelStencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 	virtual void update() override;
+	virtual void dispose() override;
 
 	void setModelStencil(const MikanStencilModel& stencil);
 
@@ -26,6 +28,12 @@ public:
 	virtual void setStencilLocalTransform(const glm::mat4& xform) override;
 	virtual void setStencilWorldTransform(const glm::mat4& xform) override;
 
+	// Selection Events
+	void onInteractionRayOverlapEnter();
+	void onInteractionRayOverlapExit();
+	void onInteractionSelected();
+	void onInteractionUnselected();
+
 protected:
 	COMPONENT_PROPERTY(glm::vec3, ModelPosition);
 	COMPONENT_PROPERTY(glm::quat, ModelQuat);
@@ -33,5 +41,6 @@ protected:
 
 	void updateSceneComponentTransform();
 
+	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<GlStaticMeshInstancePtr> m_wireframeMeshes;
 };

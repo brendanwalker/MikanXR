@@ -38,5 +38,6 @@ protected:
 	void updateSceneComponentTransform();
 	void updateBoxColliderExtents();
 
+	SelectionComponentWeakPtr m_selectionComponent;
 	BoxColliderComponentWeakPtr m_boxCollider;
 };
