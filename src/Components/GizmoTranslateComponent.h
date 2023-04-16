@@ -10,6 +10,8 @@ public:
 	virtual void init() override;
 	virtual void update() override;
 
+	void setEnabled(bool bEnabled);
+
 protected:
 	BoxColliderComponentWeakPtr m_centerHandle;
 	BoxColliderComponentWeakPtr m_xyHandle;

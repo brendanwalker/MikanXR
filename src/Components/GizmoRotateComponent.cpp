@@ -23,3 +23,10 @@ void GizmoRotateComponent::update()
 {
 	MikanComponent::update();
 }
+
+void GizmoRotateComponent::setEnabled(bool bEnabled)
+{
+	m_xAxisHandle.lock()->setEnabled(bEnabled);
+	m_yAxisHandle.lock()->setEnabled(bEnabled);
+	m_zAxisHandle.lock()->setEnabled(bEnabled);
+}

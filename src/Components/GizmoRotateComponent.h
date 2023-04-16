@@ -10,6 +10,8 @@ public:
 	virtual void init() override;
 	virtual void update() override;
 
+	void setEnabled(bool bEnabled);
+
 protected:
 	DiskColliderComponentWeakPtr m_xAxisHandle;
 	DiskColliderComponentWeakPtr m_yAxisHandle;

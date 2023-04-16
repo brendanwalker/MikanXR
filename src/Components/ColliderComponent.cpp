@@ -5,6 +5,11 @@ ColliderComponent::ColliderComponent(MikanObjectWeakPtr owner)
 {
 }
 
+void ColliderComponent::setEnabled(bool bEnabled)
+{
+	m_bEnabled= bEnabled;
+}
+
 bool ColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
