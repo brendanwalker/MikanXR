@@ -23,12 +23,18 @@ void GizmoScaleComponent::init()
 void GizmoScaleComponent::update()
 {
 	MikanComponent::update();
+	if (!m_bEnabled)
+		return;
 }
 
 void GizmoScaleComponent::setEnabled(bool bEnabled)
 {
-	m_centerHandle.lock()->setEnabled(bEnabled);
-	m_xAxisHandle.lock()->setEnabled(bEnabled);
-	m_yAxisHandle.lock()->setEnabled(bEnabled);
-	m_zAxisHandle.lock()->setEnabled(bEnabled);
+	if (m_bEnabled != bEnabled)
+	{
+		m_centerHandle.lock()->setEnabled(bEnabled);
+		m_xAxisHandle.lock()->setEnabled(bEnabled);
+		m_yAxisHandle.lock()->setEnabled(bEnabled);
+		m_zAxisHandle.lock()->setEnabled(bEnabled);
+		m_bEnabled= bEnabled;
+	}
 }

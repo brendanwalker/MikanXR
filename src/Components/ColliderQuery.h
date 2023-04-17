@@ -10,7 +10,18 @@ struct ColliderRaycastHitRequest
 
 struct ColliderRaycastHitResult
 {
+	bool hitValid;
 	float hitDistance;
 	glm::vec3 hitLocation;
 	glm::vec3 hitNormal;
+	ColliderComponentWeakPtr hitComponent;
+
+	ColliderRaycastHitResult()
+	{
+		hitValid= false;
+		hitDistance= -1.f;
+		hitLocation= glm::vec3(0.f);
+		hitNormal= glm::vec3(0.f);
+		hitComponent.reset();
+	}
 };

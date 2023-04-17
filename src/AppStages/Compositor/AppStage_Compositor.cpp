@@ -294,9 +294,6 @@ void AppStage_Compositor::update()
 	// tick the compositor lua script (if any is active)
 	m_scriptContext->updateScript();
 
-	// Update the MikanObjects in the scene
-	m_mikanScene->update();
-
 	// Update the sources model now that the app stage has updated
 	if (Rml::Utilities::IsElementDocumentVisible(m_compositiorSourcesView))
 	{

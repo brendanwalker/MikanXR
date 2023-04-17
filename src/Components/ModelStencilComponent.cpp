@@ -171,7 +171,7 @@ void ModelStencilComponent::updateSceneComponentTransform()
 	}
 }
 
-void ModelStencilComponent::onInteractionRayOverlapEnter()
+void ModelStencilComponent::onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult)
 {
 	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
 	if (selectionComponentPtr && !selectionComponentPtr->getIsSelected())
@@ -184,7 +184,7 @@ void ModelStencilComponent::onInteractionRayOverlapEnter()
 	}
 }
 
-void ModelStencilComponent::onInteractionRayOverlapExit()
+void ModelStencilComponent::onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult)
 {
 	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
 	if (selectionComponentPtr && !selectionComponentPtr->getIsSelected())

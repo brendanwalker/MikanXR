@@ -32,13 +32,16 @@ bool SelectionComponent::computeRayIntersection(
 
 	for (auto& colliderPtr : m_colliders)
 	{
-		ColliderRaycastHitResult result;
-		if (colliderPtr->computeRayIntersection(request, result))
+		if (colliderPtr->getEnabled())
 		{
-			if (!bAnyHits || result.hitDistance < outResult.hitDistance)
+			ColliderRaycastHitResult result;
+			if (colliderPtr->computeRayIntersection(request, result))
 			{
-				outResult= result;
-				bAnyHits= true;
+				if (!bAnyHits || result.hitDistance < outResult.hitDistance)
+				{
+					outResult = result;
+					bAnyHits = true;
+				}
 			}
 		}
 	}
@@ -46,18 +49,18 @@ bool SelectionComponent::computeRayIntersection(
 	return bAnyHits;
 }
 
-void SelectionComponent::notifyHoverEnter()
+void SelectionComponent::notifyHoverEnter(const ColliderRaycastHitResult& hitResult)
 {
 	m_bIsHovered= true;
 	if (OnInteractionRayOverlapEnter)
-		OnInteractionRayOverlapEnter();
+		OnInteractionRayOverlapEnter(hitResult);
 }
 
-void SelectionComponent::notifyHoverExit()
+void SelectionComponent::notifyHoverExit(const ColliderRaycastHitResult& hitResult)
 {
 	m_bIsHovered= false;
 	if (OnInteractionRayOverlapExit)
-		OnInteractionRayOverlapExit();
+		OnInteractionRayOverlapExit(hitResult);
 }
 
 void SelectionComponent::notifySelected()

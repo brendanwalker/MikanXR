@@ -103,18 +103,6 @@ void MikanScene::removeMikanObject(MikanObjectWeakPtr objectWeakPtr)
 	}
 }
 
-void MikanScene::update()
-{
-	for (MikanObjectWeakPtr objectWeakPtr : m_objects)
-	{
-		MikanObjectPtr objectPtr = objectWeakPtr.lock();
-		if (objectPtr)
-		{
-			objectPtr->update();
-		}
-	}
-}
-
 void MikanScene::render()
 {
 	m_glScene->render();

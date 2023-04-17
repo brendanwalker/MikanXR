@@ -26,7 +26,7 @@ bool MeshColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {
-	bool bFoundHit = false;
+	outResult.hitValid = false;
 	outResult.hitLocation = glm::vec3(0.f);
 	outResult.hitNormal = glm::vec3(0.f);
 	outResult.hitDistance = -1.f;
@@ -71,13 +71,13 @@ bool MeshColliderComponent::computeRayIntersection(
 					outResult.hitLocation = triIntPoint;
 					outResult.hitNormal = triIntNormal;
 					outResult.hitDistance = triIntDistance;
-					bFoundHit= true;
+					outResult.hitValid = true;
 				}
 			}
 		}
 	}
 
-	return bFoundHit;
+	return outResult.hitValid;
 }
 
 void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr staticMeshWeakPtr)

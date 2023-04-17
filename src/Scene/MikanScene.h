@@ -24,7 +24,6 @@ public:
 	void addMikanObject(MikanObjectWeakPtr objectWeakPtr);
 	void removeMikanObject(MikanObjectWeakPtr objectWeakPtr);
 
-	void update();
 	void render();
 
 private:

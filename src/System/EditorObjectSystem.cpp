@@ -28,6 +28,10 @@ void EditorObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
+	m_lastestRaycastResult= ColliderRaycastHitResult();
+	m_hoverComponentWeakPtr.reset();
+	m_selectedComponentWeakPtr.reset();
+
 	m_scene = std::make_shared<MikanScene>();
 	m_scene->init();
 
@@ -60,6 +64,8 @@ void EditorObjectSystem::createTransformGizmo()
 	GizmoTransformComponentPtr transformGizmoPtr= gizmoObjectPtr->addComponent<GizmoTransformComponent>();
 	gizmoObjectPtr->setRootComponent(transformGizmoPtr);
 
+	gizmoObjectPtr->addComponent<SelectionComponent>();
+
 	const float R= 0.5f;
 
 	gizmoObjectPtr->addComponent<GizmoTranslateComponent>();	
@@ -81,6 +87,10 @@ void EditorObjectSystem::createTransformGizmo()
 	createGizmoBoxCollider(gizmoObjectPtr, "xAxisScaleHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, 0.01f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "yAxisScaleHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(0.01f, R/2.f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "zAxisScaleHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(0.01f, 0.01f, R/2.f));
+
+	gizmoObjectPtr->init();
+
+	m_scene->addMikanObject(m_gizmoObjectWeakPtr);
 }
 
 void EditorObjectSystem::createGizmoBoxCollider(
@@ -156,19 +166,22 @@ void EditorObjectSystem::onObjectRemoved(MikanObjectSystem& system, MikanObject&
 
 void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
-	ColliderRaycastHitResult raycastResult;
-	SelectionComponentWeakPtr newHoverComponentWeakPtr= findClosestSelectionTarget(rayOrigin, rayDir, raycastResult);
+	ColliderRaycastHitResult prevRaycastResult= m_lastestRaycastResult;
+	m_lastestRaycastResult= ColliderRaycastHitResult();
+	SelectionComponentWeakPtr newHoverComponentWeakPtr= 
+		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
+
 	SelectionComponentPtr newHoverComponentPtr= newHoverComponentWeakPtr.lock();
 	SelectionComponentPtr selectionHoverPtr= m_hoverComponentWeakPtr.lock();
 
 	if (newHoverComponentPtr && !selectionHoverPtr)
 	{
 		m_hoverComponentWeakPtr= newHoverComponentWeakPtr;
-		newHoverComponentPtr->notifyHoverEnter();
+		newHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
 	}
 	else if (!newHoverComponentPtr && selectionHoverPtr)
 	{
-		selectionHoverPtr->notifyHoverExit();
+		selectionHoverPtr->notifyHoverExit(prevRaycastResult);
 		m_hoverComponentWeakPtr= SelectionComponentWeakPtr();
 	}
 }
@@ -193,7 +206,7 @@ void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const 
 		}
 
 		if (currentHoverPtr->OnInteractionRayPress)
-			currentHoverPtr->OnInteractionRayPress(button);
+			currentHoverPtr->OnInteractionRayPress(m_lastestRaycastResult, button);
 	}
 }
 
@@ -203,19 +216,45 @@ void EditorObjectSystem::onMouseRayButtonUp(const glm::vec3& rayOrigin, const gl
 	if (selectionHoverPtr)
 	{
 		if (selectionHoverPtr->OnInteractionRayRelease)
-			selectionHoverPtr->OnInteractionRayPress(button);
+			selectionHoverPtr->OnInteractionRayPress(m_lastestRaycastResult, button);
 	}
 }
 
 void EditorObjectSystem::onSelectionChanged(SelectionComponentPtr oldComponentPtr, SelectionComponentPtr newComponentPtr)
 {
+	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
+	eGizmoMode oldGizmoMode= gizmoComponentPtr->getGizmoMode();
+	eGizmoMode newGizmoMode= oldGizmoMode;
+
 	// Tell the old selection that it's getting unselected
 	if (oldComponentPtr)
+	{
 		oldComponentPtr->notifyUnselected();
+
+		newGizmoMode= eGizmoMode::none;
+	}
 
 	// Tell the new selection that it's getting selected
 	if (newComponentPtr)
+	{
 		newComponentPtr->notifySelected();
+
+		if (oldGizmoMode != eGizmoMode::none)
+			newGizmoMode= oldGizmoMode;
+		else
+			newGizmoMode= eGizmoMode::translate;
+
+		// Snap gizmo to the newly selected component
+		SceneComponentWeakPtr weakPtr= newComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr newScenePtr= weakPtr.lock();
+		if (newScenePtr)
+		{
+			gizmoComponentPtr->setWorldTransform(newScenePtr->getWorldTransform());
+		}
+	}
+
+	// Update the desired gizmo state
+	gizmoComponentPtr->setGizmoMode(newGizmoMode);
 }
 
 SelectionComponentWeakPtr EditorObjectSystem::findClosestSelectionTarget(

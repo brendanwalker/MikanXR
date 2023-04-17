@@ -29,8 +29,8 @@ public:
 	virtual void setStencilWorldTransform(const glm::mat4& xform) override;
 
 	// Selection Events
-	void onInteractionRayOverlapEnter();
-	void onInteractionRayOverlapExit();
+	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
+	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
 	void onInteractionSelected();
 	void onInteractionUnselected();
 

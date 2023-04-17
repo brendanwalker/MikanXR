@@ -13,6 +13,7 @@ public:
 	void setEnabled(bool bEnabled);
 
 protected:
+	bool m_bEnabled= false;
 	BoxColliderComponentWeakPtr m_xAxisHandle;
 	BoxColliderComponentWeakPtr m_yAxisHandle;
 	BoxColliderComponentWeakPtr m_zAxisHandle;

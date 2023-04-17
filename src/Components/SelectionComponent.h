@@ -20,14 +20,14 @@ public:
 		const ColliderRaycastHitRequest& request,
 		ColliderRaycastHitResult& outResult) const;
 
-	void notifyHoverEnter();
-	MulticastDelegate<void()> OnInteractionRayOverlapEnter;
-	void notifyHoverExit();
-	MulticastDelegate<void()> OnInteractionRayOverlapExit;
+	void notifyHoverEnter(const ColliderRaycastHitResult& hitResult);
+	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult)> OnInteractionRayOverlapEnter;
+	void notifyHoverExit(const ColliderRaycastHitResult& hitResult);
+	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult)> OnInteractionRayOverlapExit;
 	bool getIsHovered() const { return m_bIsHovered; }
 
-	MulticastDelegate<void(int button)> OnInteractionRayPress;
-	MulticastDelegate<void(int button)> OnInteractionRayRelease;
+	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult, int button)> OnInteractionRayPress;
+	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult, int button)> OnInteractionRayRelease;
 
 	void notifySelected();
 	MulticastDelegate<void()> OnInteractionSelected;

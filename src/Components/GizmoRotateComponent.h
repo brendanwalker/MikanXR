@@ -13,6 +13,7 @@ public:
 	void setEnabled(bool bEnabled);
 
 protected:
+	bool m_bEnabled= false;
 	DiskColliderComponentWeakPtr m_xAxisHandle;
 	DiskColliderComponentWeakPtr m_yAxisHandle;
 	DiskColliderComponentWeakPtr m_zAxisHandle;

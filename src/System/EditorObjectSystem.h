@@ -26,8 +26,11 @@ public:
 protected:
 	MikanScenePtr m_scene;
 	std::vector<GlViewportWeakPtr> m_viewports;
+	
+	ColliderRaycastHitResult m_lastestRaycastResult;
 	SelectionComponentWeakPtr m_hoverComponentWeakPtr;
 	SelectionComponentWeakPtr m_selectedComponentWeakPtr;
+
 	MikanObjectWeakPtr m_gizmoObjectWeakPtr;
 	GizmoTransformComponentWeakPtr m_gizmoComponentWeakPtr;
 
