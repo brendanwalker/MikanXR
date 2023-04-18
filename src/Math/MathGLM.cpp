@@ -108,6 +108,22 @@ void glm_xform_vectors(const glm::mat4& xform, glm::vec3* points, size_t point_c
 	}
 }
 
+bool glm_closest_point_on_ray_to_point(
+	const glm::vec3& ray_start,
+	const glm::vec3& ray_direction,
+	const glm::vec3& point,
+	float& out_ray_closest_time,
+	glm::vec3& out_ray_closest_point)
+{
+	const glm::vec3 ray_start_to_point = point - ray_start;
+	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
+
+	out_ray_closest_time= glm::dot(ray_start_to_point, ray_unit_direction);
+	out_ray_closest_point= ray_start + ray_direction*out_ray_closest_time;
+
+	return out_ray_closest_time >= 0.f;
+}
+
 bool glm_closest_point_on_ray_to_ray(
 	const glm::vec3& ray1_start,
 	const glm::vec3& ray1_direction,

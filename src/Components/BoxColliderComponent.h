@@ -11,6 +11,7 @@ class BoxColliderComponent : public ColliderComponent
 public:
 	BoxColliderComponent(MikanObjectWeakPtr owner);
 
+	const glm::vec3 getHalfExtents() const { return m_halfExtents; }
 	void setHalfExtents(const glm::vec3 halfExtents) { m_halfExtents= halfExtents; }
 
 	virtual bool computeRayIntersection(

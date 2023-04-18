@@ -63,6 +63,26 @@ void SelectionComponent::notifyHoverExit(const ColliderRaycastHitResult& hitResu
 		OnInteractionRayOverlapExit(hitResult);
 }
 
+void SelectionComponent::notifyGrab(const ColliderRaycastHitResult& hitResult)
+{
+	m_bIsGrabbed= true;
+	if (OnInteractionGrab)
+		OnInteractionGrab(hitResult);
+}
+
+void SelectionComponent::notifyMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
+{
+	if (OnInteractionMove)
+		OnInteractionMove(rayOrigin, rayDir);
+}
+
+void SelectionComponent::notifyRelease()
+{
+	m_bIsGrabbed= false;
+	if (OnInteractionRelease)
+		OnInteractionRelease();
+}
+
 void SelectionComponent::notifySelected()
 {
 	m_bIsSelected= true;

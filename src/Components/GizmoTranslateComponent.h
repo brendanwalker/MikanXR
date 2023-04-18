@@ -3,6 +3,9 @@
 #include "ColliderQuery.h"
 #include "ObjectSystemFwd.h"
 #include "MikanComponent.h"
+#include "SinglecastDelegate.h"
+
+#include <glm/ext/vector_float3.hpp>
 
 class GizmoTranslateComponent : public MikanComponent
 {
@@ -14,11 +17,18 @@ public:
 
 	void setEnabled(bool bEnabled);
 
+	SinglecastDelegate<void(const glm::vec3& translation)> OnTranslationRequested;
+
 protected:
+	glm::vec3 getColliderColor(BoxColliderComponentWeakPtr colliderPtr);
+
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
-	void onInteractionRayPress(const ColliderRaycastHitResult& hitResult, int button);
-	void onInteractionRayRelease(const ColliderRaycastHitResult& hitResult, int button);
+	void onInteractionGrab(const ColliderRaycastHitResult& hitResult);
+	void onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
+	void onInteractionRelease();
+
+	void requestTranslation(const glm::vec3& translation);
 	
 	bool m_bEnabled= false;
 	BoxColliderComponentWeakPtr m_centerHandle;
@@ -32,4 +42,5 @@ protected:
 	SelectionComponentWeakPtr m_selectionComponent;
 	ColliderComponentWeakPtr m_hoverComponent;
 	ColliderComponentWeakPtr m_dragComponent;
+	glm::vec3 m_dragOrigin;
 };

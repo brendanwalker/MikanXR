@@ -39,8 +39,8 @@ protected:
 	void onObjectRemoved(MikanObjectSystem& system, MikanObject& object);
 
 	// Viewport Events
-	void onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
 	void onMouseRayButtonDown(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);
+	void onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
 	void onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);
 	void onSelectionChanged(SelectionComponentPtr oldComponentPtr, SelectionComponentPtr newComponentPtr);
 

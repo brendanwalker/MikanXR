@@ -164,28 +164,6 @@ void EditorObjectSystem::onObjectRemoved(MikanObjectSystem& system, MikanObject&
 	m_scene->removeMikanObject(object.shared_from_this());
 }
 
-void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
-{
-	ColliderRaycastHitResult prevRaycastResult= m_lastestRaycastResult;
-	m_lastestRaycastResult= ColliderRaycastHitResult();
-	SelectionComponentWeakPtr newHoverComponentWeakPtr= 
-		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
-
-	SelectionComponentPtr newHoverComponentPtr= newHoverComponentWeakPtr.lock();
-	SelectionComponentPtr selectionHoverPtr= m_hoverComponentWeakPtr.lock();
-
-	if (newHoverComponentPtr && !selectionHoverPtr)
-	{
-		m_hoverComponentWeakPtr= newHoverComponentWeakPtr;
-		newHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
-	}
-	else if (!newHoverComponentPtr && selectionHoverPtr)
-	{
-		selectionHoverPtr->notifyHoverExit(prevRaycastResult);
-		m_hoverComponentWeakPtr= SelectionComponentWeakPtr();
-	}
-}
-
 void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)
 {
 	SelectionComponentPtr currentHoverPtr= m_hoverComponentWeakPtr.lock();
@@ -194,29 +172,59 @@ void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const 
 		if (button == SDL_BUTTON_LEFT)
 		{
 			// See if the current selection is changing
-			SelectionComponentPtr currentSelectedPtr = m_selectedComponentWeakPtr.lock();
-			if (currentSelectedPtr != currentHoverPtr)
+			SelectionComponentPtr oldSelectedComponentPtr = m_selectedComponentWeakPtr.lock();
+			SelectionComponentPtr newSelectedComponentPtr = currentHoverPtr;
+			if (oldSelectedComponentPtr != newSelectedComponentPtr)
 			{
 				// Update the selection component weak ptr
-				m_selectedComponentWeakPtr = m_hoverComponentWeakPtr;
+				m_selectedComponentWeakPtr = newSelectedComponentPtr;
 
 				// Send notification of selection change
-				onSelectionChanged(currentSelectedPtr, currentHoverPtr);
+				onSelectionChanged(oldSelectedComponentPtr, newSelectedComponentPtr);
+			}
+
+			// Send notification of selection grab
+			if (newSelectedComponentPtr)
+			{
+				newSelectedComponentPtr->notifyGrab(m_lastestRaycastResult);
 			}
 		}
+	}
+}
 
-		if (currentHoverPtr->OnInteractionRayPress)
-			currentHoverPtr->OnInteractionRayPress(m_lastestRaycastResult, button);
+void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
+{
+	ColliderRaycastHitResult prevRaycastResult = m_lastestRaycastResult;
+	m_lastestRaycastResult = ColliderRaycastHitResult();
+	SelectionComponentWeakPtr newHoverComponentWeakPtr =
+		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
+
+	SelectionComponentPtr oldHoverComponentPtr = m_hoverComponentWeakPtr.lock();
+	SelectionComponentPtr newHoverComponentPtr = newHoverComponentWeakPtr.lock();
+	if (newHoverComponentPtr && !oldHoverComponentPtr)
+	{
+		m_hoverComponentWeakPtr = newHoverComponentWeakPtr;
+		newHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
+	}
+	else if (!newHoverComponentPtr && oldHoverComponentPtr)
+	{
+		oldHoverComponentPtr->notifyHoverExit(prevRaycastResult);
+		m_hoverComponentWeakPtr = SelectionComponentWeakPtr();
+	}
+
+	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
+	if (selectedComponentPtr)
+	{
+		selectedComponentPtr->notifyMove(rayOrigin, rayDir);
 	}
 }
 
 void EditorObjectSystem::onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)
 {
-	SelectionComponentPtr selectionHoverPtr = m_hoverComponentWeakPtr.lock();
-	if (selectionHoverPtr)
+	SelectionComponentPtr currentSelectedPtr = m_selectedComponentWeakPtr.lock();
+	if (currentSelectedPtr)
 	{
-		if (selectionHoverPtr->OnInteractionRayRelease)
-			selectionHoverPtr->OnInteractionRayPress(m_lastestRaycastResult, button);
+		currentSelectedPtr->notifyRelease();
 	}
 }
 

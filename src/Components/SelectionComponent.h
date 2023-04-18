@@ -26,8 +26,13 @@ public:
 	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult)> OnInteractionRayOverlapExit;
 	bool getIsHovered() const { return m_bIsHovered; }
 
-	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult, int button)> OnInteractionRayPress;
-	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult, int button)> OnInteractionRayRelease;
+	void notifyGrab(const ColliderRaycastHitResult& hitResult);
+	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult)> OnInteractionGrab;
+	void notifyMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
+	MulticastDelegate<void(const glm::vec3& rayOrigin, const glm::vec3& rayDir)> OnInteractionMove;
+	void notifyRelease();
+	MulticastDelegate<void()> OnInteractionRelease;
+	bool getIsGrabbed() const { return m_bIsGrabbed; }
 
 	void notifySelected();
 	MulticastDelegate<void()> OnInteractionSelected;
@@ -38,5 +43,6 @@ public:
 protected:
 	std::vector<ColliderComponentPtr> m_colliders;
 	bool m_bIsHovered = false;
+	bool m_bIsGrabbed = false;
 	bool m_bIsSelected= false;
 };

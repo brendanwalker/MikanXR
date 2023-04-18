@@ -34,6 +34,12 @@ glm::vec3 glm_mat4_right(const glm::mat4& xform);
 glm::vec3 glm_mat4_position(const glm::mat4& xform);
 void glm_xform_points(const glm::mat4& xform, glm::vec3* points, size_t point_count);
 void glm_xform_vectors(const glm::mat4& xform, glm::vec3* points, size_t point_count);
+bool glm_closest_point_on_ray_to_point(
+	const glm::vec3& ray_start,
+	const glm::vec3& ray_direction,
+	const glm::vec3& point,
+	float& out_ray_closest_time,
+	glm::vec3& out_ray_closest_point);
 bool glm_closest_point_on_ray_to_ray(
 	const glm::vec3& ray1_start,
 	const glm::vec3& ray1_direction,

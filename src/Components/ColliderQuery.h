@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "glm/ext/vector_float3.hpp"
 
 struct ColliderRaycastHitRequest
