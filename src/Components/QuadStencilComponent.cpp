@@ -105,7 +105,7 @@ glm::mat4 QuadStencilComponent::getStencilWorldTransform() const
 	return worldXform;
 }
 
-void QuadStencilComponent::setStencilLocalTransform(const glm::mat4& localXform)
+void QuadStencilComponent::setStencilLocalTransformProperty(const glm::mat4& localXform)
 {
 	QuadXAxis = localXform[0];
 	QuadYAxis = localXform[1];
@@ -116,11 +116,9 @@ void QuadStencilComponent::setStencilLocalTransform(const glm::mat4& localXform)
 	notifyQuadYAxisChanged();
 	notifyQuadNormalChanged();
 	notifyQuadCenterChanged();
-
-	updateSceneComponentTransform();
 }
 
-void QuadStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
+void QuadStencilComponent::setStencilWorldTransformProperty(const glm::mat4& worldXform)
 {
 	glm::mat4 localXform = worldXform;
 	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
@@ -132,7 +130,7 @@ void QuadStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
 		localXform = glm_composite_xform(worldXform, invParentXform);
 	}
 
-	setStencilLocalTransform(localXform);
+	setStencilLocalTransformProperty(localXform);
 }
 
 void QuadStencilComponent::updateSceneComponentTransform()

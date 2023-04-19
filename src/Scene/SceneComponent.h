@@ -56,6 +56,7 @@ public:
 
 	void setRelativeTransform(const GlmTransform& newRelativeXform);
 	void setWorldTransform(const glm::mat4& newWorldXform);
+	MulticastDelegate<void(SceneComponentPtr sceneComponent)> OnTranformChaged;
 
 protected:
 	GlmTransform m_relativeTransform;

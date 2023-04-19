@@ -47,6 +47,10 @@ bool glm_closest_point_on_ray_to_ray(
 	const glm::vec3& ray2_direction,
 	float& out_ray1_closest_time,
 	glm::vec3& out_ray1_closest_point);
+bool glm_intersect_plane_with_ray(
+	const glm::vec3& point_on_plane, const glm::vec3& plane_normal,
+	const glm::vec3& ray_start, const glm::vec3& ray_direction,
+	float& outIntDistance, glm::vec3& outIntPoint);
 bool glm_intersect_tri_with_ray(
 	const GlmTriangle& tri, 
 	const glm::vec3& ray_start, const glm::vec3& ray_direction,

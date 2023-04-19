@@ -43,6 +43,7 @@ protected:
 	void onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
 	void onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);
 	void onSelectionChanged(SelectionComponentPtr oldComponentPtr, SelectionComponentPtr newComponentPtr);
+	void onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation);
 
 	// Helpers
 	void createTransformGizmo();

@@ -19,8 +19,8 @@ public:
 
 	virtual glm::mat4 getStencilLocalTransform() const override;
 	virtual glm::mat4 getStencilWorldTransform() const override;
-	virtual void setStencilLocalTransform(const glm::mat4& xform) override;
-	virtual void setStencilWorldTransform(const glm::mat4& xform) override;
+	virtual void setStencilLocalTransformProperty(const glm::mat4& xform) override;
+	virtual void setStencilWorldTransformProperty(const glm::mat4& xform) override;
 
 protected:
 	COMPONENT_PROPERTY(glm::vec3, QuadCenter);

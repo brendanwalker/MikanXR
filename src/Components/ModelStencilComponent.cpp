@@ -121,7 +121,7 @@ glm::mat4 ModelStencilComponent::getStencilWorldTransform() const
 	return worldXform;
 }
 
-void ModelStencilComponent::setStencilLocalTransform(const glm::mat4& localXform)
+void ModelStencilComponent::setStencilLocalTransformProperty(const glm::mat4& localXform)
 {
 	// Extract position scale and rotation from the local transform
 	glm::vec3 scale;
@@ -141,11 +141,9 @@ void ModelStencilComponent::setStencilLocalTransform(const glm::mat4& localXform
 	notifyModelScaleChanged();
 	notifyModelQuatChanged();
 	notifyModelScaleChanged();
-
-	updateSceneComponentTransform();
 }
 
-void ModelStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
+void ModelStencilComponent::setStencilWorldTransformProperty(const glm::mat4& worldXform)
 {
 	glm::mat4 localXform = worldXform;
 	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
@@ -157,7 +155,7 @@ void ModelStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform
 		localXform = glm_composite_xform(worldXform, invParentXform);
 	}
 
-	setStencilLocalTransform(localXform);
+	setStencilLocalTransformProperty(localXform);
 }
 
 void ModelStencilComponent::updateSceneComponentTransform()

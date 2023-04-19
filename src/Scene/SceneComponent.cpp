@@ -77,6 +77,9 @@ void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 	{
 		m_renderable->setModelMatrix(m_worldTransform);
 	}
+
+	if (OnTranformChaged)
+		OnTranformChaged(getSelfPtr<SceneComponent>());
 }
 
 void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
@@ -111,4 +114,7 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	{
 		m_relativeTransform= GlmTransform();
 	}
+
+	if (OnTranformChaged)
+		OnTranformChaged(getSelfPtr<SceneComponent>());
 }

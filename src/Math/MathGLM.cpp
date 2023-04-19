@@ -162,6 +162,23 @@ bool glm_closest_point_on_ray_to_ray(
 	}
 }
 
+bool glm_intersect_plane_with_ray(
+	const glm::vec3& point_on_plane, const glm::vec3& plane_normal,
+	const glm::vec3& ray_start, const glm::vec3& ray_direction,
+	float& outIntDistance, glm::vec3& outIntPoint)
+{
+	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
+
+	if (glm::intersectRayPlane(ray_start, ray_unit_direction, point_on_plane, plane_normal, outIntDistance))
+	{
+		outIntPoint= ray_start + ray_unit_direction*outIntDistance;
+		
+		return true;
+	}
+
+	return false;
+}
+
 bool glm_intersect_tri_with_ray(
 	const GlmTriangle& tri,
 	const glm::vec3& ray_start, const glm::vec3& ray_direction,

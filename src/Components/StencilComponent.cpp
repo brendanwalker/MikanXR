@@ -15,5 +15,19 @@ void StencilComponent::init()
 {
 	MikanComponent::init();
 
-	m_sceneComponent= getOwnerObject()->getComponentOfType<SceneComponent>();
+	SceneComponentPtr sceneComponentPtr= getOwnerObject()->getComponentOfType<SceneComponent>();
+	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
+	m_sceneComponent= sceneComponentPtr;
+}
+
+void StencilComponent::dispose()
+{
+	SceneComponentPtr sceneComponentPtr = m_sceneComponent.lock();
+	sceneComponentPtr->OnTranformChaged -= MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
+}
+
+void StencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
+{
+	// Update stencil transform properties
+	setStencilWorldTransformProperty(sceneComponentPtr->getWorldTransform());
 }

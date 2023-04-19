@@ -20,7 +20,7 @@ public:
 	SinglecastDelegate<void(const glm::vec3& translation)> OnTranslationRequested;
 
 protected:
-	glm::vec3 getColliderColor(BoxColliderComponentWeakPtr colliderPtr);
+	glm::vec3 getColliderColor(BoxColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor);
 
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
@@ -28,7 +28,7 @@ protected:
 	void onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
 	void onInteractionRelease();
 
-	void requestTranslation(const glm::vec3& translation);
+	void requestTranslation(const glm::vec3& worldSpaceTranslation);
 	
 	bool m_bEnabled= false;
 	BoxColliderComponentWeakPtr m_centerHandle;

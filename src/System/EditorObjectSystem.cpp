@@ -68,7 +68,7 @@ void EditorObjectSystem::createTransformGizmo()
 
 	const float R= 0.5f;
 
-	gizmoObjectPtr->addComponent<GizmoTranslateComponent>();	
+	GizmoTranslateComponentPtr translateComponentPtr= gizmoObjectPtr->addComponent<GizmoTranslateComponent>();	
 	createGizmoBoxCollider(gizmoObjectPtr, "centerTranslateHandle", glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.01f, 0.01f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "xyTranslateHandle", glm::vec3(0.025f, 0.025f, 0.f), glm::vec3(0.025f, 0.025f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "xzTranslateHandle", glm::vec3(0.025f, 0.f, 0.025f), glm::vec3(0.025f, 0.01f, 0.025f));
@@ -76,6 +76,7 @@ void EditorObjectSystem::createTransformGizmo()
 	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, 0.01f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(0.01f, R/2.f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(0.01f, 0.01f, R/2.f));
+	translateComponentPtr->OnTranslationRequested= MakeDelegate(this, &EditorObjectSystem::onSelectionTranslationRequested);
 
 	gizmoObjectPtr->addComponent<GizmoRotateComponent>();
 	createGizmoDiskCollider(gizmoObjectPtr, "xAxisRotateHandle", glm::vec3(0.f), glm::vec3(1.f, 0.f, 0.f), R);
@@ -228,24 +229,26 @@ void EditorObjectSystem::onMouseRayButtonUp(const glm::vec3& rayOrigin, const gl
 	}
 }
 
-void EditorObjectSystem::onSelectionChanged(SelectionComponentPtr oldComponentPtr, SelectionComponentPtr newComponentPtr)
+void EditorObjectSystem::onSelectionChanged(
+	SelectionComponentPtr oldSelectedComponentPtr, 
+	SelectionComponentPtr newSelectedComponentPtr)
 {
 	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
 	eGizmoMode oldGizmoMode= gizmoComponentPtr->getGizmoMode();
 	eGizmoMode newGizmoMode= oldGizmoMode;
 
 	// Tell the old selection that it's getting unselected
-	if (oldComponentPtr)
+	if (oldSelectedComponentPtr)
 	{
-		oldComponentPtr->notifyUnselected();
+		oldSelectedComponentPtr->notifyUnselected();
 
 		newGizmoMode= eGizmoMode::none;
 	}
 
 	// Tell the new selection that it's getting selected
-	if (newComponentPtr)
+	if (newSelectedComponentPtr)
 	{
-		newComponentPtr->notifySelected();
+		newSelectedComponentPtr->notifySelected();
 
 		if (oldGizmoMode != eGizmoMode::none)
 			newGizmoMode= oldGizmoMode;
@@ -253,16 +256,37 @@ void EditorObjectSystem::onSelectionChanged(SelectionComponentPtr oldComponentPt
 			newGizmoMode= eGizmoMode::translate;
 
 		// Snap gizmo to the newly selected component
-		SceneComponentWeakPtr weakPtr= newComponentPtr->getOwnerObject()->getRootComponent();
-		SceneComponentPtr newScenePtr= weakPtr.lock();
-		if (newScenePtr)
+		SceneComponentWeakPtr selectedRootWeakPtr= newSelectedComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr selectedRootPtr= selectedRootWeakPtr.lock();
+		if (selectedRootPtr)
 		{
-			gizmoComponentPtr->setWorldTransform(newScenePtr->getWorldTransform());
+			gizmoComponentPtr->setWorldTransform(selectedRootPtr->getWorldTransform());
 		}
 	}
 
 	// Update the desired gizmo state
 	gizmoComponentPtr->setGizmoMode(newGizmoMode);
+}
+
+void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& translation)
+{
+	// Translate the gizmo in world space
+	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
+	const glm::mat4 oldGizmoXform= gizmoComponentPtr->getWorldTransform();
+	const glm::mat4 newGizmoXform= glm::translate(oldGizmoXform, translation);
+	gizmoComponentPtr->setWorldTransform(newGizmoXform);
+
+	// If we have a selected object, snap it to the gizmo transform
+	SelectionComponentPtr selectedComponentPtr= m_selectedComponentWeakPtr.lock();
+	if (selectedComponentPtr)
+	{
+		SceneComponentWeakPtr selectedRootWeakPtr= selectedComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr selectedRootPtr= selectedRootWeakPtr.lock();
+		if (selectedRootPtr)
+		{
+			selectedRootPtr->setWorldTransform(newGizmoXform);
+		}
+	}
 }
 
 SelectionComponentWeakPtr EditorObjectSystem::findClosestSelectionTarget(

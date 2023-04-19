@@ -33,7 +33,7 @@ void BoxStencilComponent::init()
 
 void BoxStencilComponent::update()
 {
-	MikanComponent: update();
+	MikanComponent::update();
 
 	if (!IsDisabled)
 	{
@@ -105,7 +105,7 @@ glm::mat4 BoxStencilComponent::getStencilWorldTransform() const
 	return worldXform;
 }
 
-void BoxStencilComponent::setStencilLocalTransform(const glm::mat4& localXform)
+void BoxStencilComponent::setStencilLocalTransformProperty(const glm::mat4& localXform)
 {
 	BoxXAxis = localXform[0];
 	BoxYAxis = localXform[1];
@@ -116,11 +116,9 @@ void BoxStencilComponent::setStencilLocalTransform(const glm::mat4& localXform)
 	notifyBoxYAxisChanged();
 	notifyBoxZAxisChanged();
 	notifyBoxCenterChanged();
-
-	updateSceneComponentTransform();
 }
 
-void BoxStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
+void BoxStencilComponent::setStencilWorldTransformProperty(const glm::mat4& worldXform)
 {
 	glm::mat4 localXform = worldXform;
 	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
@@ -132,7 +130,7 @@ void BoxStencilComponent::setStencilWorldTransform(const glm::mat4& worldXform)
 		localXform = glm_composite_xform(worldXform, invParentXform);
 	}
 
-	setStencilLocalTransform(localXform);
+	setStencilLocalTransformProperty(localXform);
 }
 
 void BoxStencilComponent::updateSceneComponentTransform()
