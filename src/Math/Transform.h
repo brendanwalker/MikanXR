@@ -12,9 +12,9 @@ public:
 	GlmTransform(const glm::vec3& position, const glm::quat& orientation);
 	GlmTransform(const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale);
 
-	inline void getScale(const glm::vec3& scale) { m_scale= scale; rebuildMat(); }
-	inline void getOrientation(const glm::quat& orientation) { m_orientation= orientation; rebuildMat(); }
-	inline void getPosition(const glm::vec3& position) { m_position= position; rebuildMat(); }
+	inline void setScale(const glm::vec3& scale) { m_scale= scale; rebuildMat(); }
+	inline void setOrientation(const glm::quat& orientation) { m_orientation= orientation; rebuildMat(); }
+	inline void setPosition(const glm::vec3& position) { m_position= position; rebuildMat(); }
 	inline void setTransform(const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale)
 	{
 		m_position= position;

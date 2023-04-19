@@ -83,11 +83,12 @@ void EditorObjectSystem::createTransformGizmo()
 	createGizmoDiskCollider(gizmoObjectPtr, "yAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f), R);
 	createGizmoDiskCollider(gizmoObjectPtr, "zAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), R);
 
-	gizmoObjectPtr->addComponent<GizmoScaleComponent>();
+	GizmoScaleComponentPtr scaleComponentPtr= gizmoObjectPtr->addComponent<GizmoScaleComponent>();
 	createGizmoBoxCollider(gizmoObjectPtr, "centerScaleHandle", glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.01f, 0.01f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "xAxisScaleHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, 0.01f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "yAxisScaleHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(0.01f, R/2.f, 0.01f));
 	createGizmoBoxCollider(gizmoObjectPtr, "zAxisScaleHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(0.01f, 0.01f, R/2.f));
+	scaleComponentPtr->OnScaleRequested= MakeDelegate(this, &EditorObjectSystem::onSelectionScaleRequested);
 
 	gizmoObjectPtr->init();
 
@@ -268,12 +269,12 @@ void EditorObjectSystem::onSelectionChanged(
 	gizmoComponentPtr->setGizmoMode(newGizmoMode);
 }
 
-void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& translation)
+void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation)
 {
 	// Translate the gizmo in world space
 	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
 	const glm::mat4 oldGizmoXform= gizmoComponentPtr->getWorldTransform();
-	const glm::mat4 newGizmoXform= glm::translate(oldGizmoXform, translation);
+	const glm::mat4 newGizmoXform= glm::translate(oldGizmoXform, worldSpaceTranslation);
 	gizmoComponentPtr->setWorldTransform(newGizmoXform);
 
 	// If we have a selected object, snap it to the gizmo transform
@@ -285,6 +286,27 @@ void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& transl
 		if (selectedRootPtr)
 		{
 			selectedRootPtr->setWorldTransform(newGizmoXform);
+		}
+	}
+}
+
+void EditorObjectSystem::onSelectionScaleRequested(const glm::vec3& objectSpaceScale)
+{
+	// Scale the gizmo in object space
+	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
+	GlmTransform relativeTransform = gizmoComponentPtr->getRelativeTransform();
+	relativeTransform.setScale(objectSpaceScale);
+	gizmoComponentPtr->setRelativeTransform(relativeTransform);
+
+	// If we have a selected object, snap it to the gizmo transform
+	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
+	if (selectedComponentPtr)
+	{
+		SceneComponentWeakPtr selectedRootWeakPtr = selectedComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr selectedRootPtr = selectedRootWeakPtr.lock();
+		if (selectedRootPtr)
+		{
+			selectedRootPtr->setRelativeTransform(relativeTransform);
 		}
 	}
 }
