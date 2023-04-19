@@ -9,6 +9,7 @@ class DiskColliderComponent : public ColliderComponent
 public:
 	DiskColliderComponent(MikanObjectWeakPtr owner);
 
+	float getRadius() const { return m_radius; }
 	void setRadius(float radius) { m_radius= radius; }
 
 	virtual bool computeRayIntersection(

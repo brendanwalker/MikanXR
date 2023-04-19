@@ -1,8 +1,11 @@
 #pragma once
 
+#include "ColliderQuery.h"
 #include "ObjectSystemFwd.h"
 #include "MikanComponent.h"
 #include "SinglecastDelegate.h"
+
+#include <glm/ext/vector_float3.hpp>
 
 class GizmoScaleComponent : public MikanComponent
 {
