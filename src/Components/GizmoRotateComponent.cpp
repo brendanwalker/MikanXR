@@ -11,6 +11,8 @@
 
 #include "SDL_mouse.h"
 
+static const float k_dragAngleFactor= k_real_two_pi; // 360 degrees / meter
+
 GizmoRotateComponent::GizmoRotateComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {}
@@ -34,7 +36,8 @@ void GizmoRotateComponent::init()
 	m_selectionComponent = selectionComponentPtr;
 
 	m_dragComponent.reset();
-	m_dragOrigin = glm::vec3(0.f);
+	m_dragBasis = glm::mat4(1.f);
+	m_dragStart = glm::vec3(0.f);
 }
 
 void GizmoRotateComponent::dispose()
@@ -61,14 +64,50 @@ glm::vec3 GizmoRotateComponent::getColliderColor(
 		return Colors::DarkGray;
 }
 
+bool GizmoRotateComponent::getColliderRotationAxis(
+	ColliderComponentWeakPtr colliderWeakPtr,
+	glm::vec3& outOrigin,
+	glm::vec3& outAxis)
+{
+	ColliderComponentPtr dragColliderPtr = colliderWeakPtr.lock();
+
+	if (dragColliderPtr)
+	{
+		const glm::mat4 centerXform = dragColliderPtr->getWorldTransform();
+		const glm::vec3 xAxis = glm_mat4_forward(centerXform);
+		const glm::vec3 yAxis = glm_mat4_up(centerXform);
+		const glm::vec3 zAxis = glm_mat4_right(centerXform);
+
+		outOrigin = glm_mat4_position(centerXform);
+
+		if (dragColliderPtr == m_xAxisHandle.lock())
+		{
+			outAxis = xAxis;
+			return true;
+		}
+		else if (dragColliderPtr == m_yAxisHandle.lock())
+		{
+			outAxis = yAxis;
+			return true;
+		}
+		else if (dragColliderPtr == m_zAxisHandle.lock())
+		{
+			outAxis = zAxis;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
 {
 	DiskColliderComponentPtr collidePtr = colliderWeakPtr.lock();
 
-	//const glm::mat4 xform = collidePtr->getWorldTransform();
-	//const float radius = collidePtr->getRadius();
+	const glm::mat4 xform = collidePtr->getWorldTransform();
+	const float radius = collidePtr->getRadius();
 
-	//drawTransformedCircle(xform, radius, color);
+	drawTransformedCircle(xform, radius, color);
 }
 
 void GizmoRotateComponent::update()
@@ -80,6 +119,15 @@ void GizmoRotateComponent::update()
 		drawRotateDiscHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red));
 		drawRotateDiscHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
 		drawRotateDiscHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
+
+		ColliderComponentPtr dragComponentPtr = m_dragComponent.lock();
+		if (dragComponentPtr)
+		{
+			auto diskComponentPtr = std::static_pointer_cast<DiskColliderComponent>(dragComponentPtr);
+			const float radius = diskComponentPtr->getRadius();
+
+			drawTransformedSpiralArc(m_dragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow);
+		}
 	}
 }
 
@@ -106,54 +154,45 @@ void GizmoRotateComponent::onInteractionRayOverlapExit(const ColliderRaycastHitR
 
 void GizmoRotateComponent::onInteractionGrab(const ColliderRaycastHitResult& hitResult)
 {
-	m_dragComponent = hitResult.hitComponent;
-	m_dragOrigin = hitResult.hitLocation;
+	glm::vec3 rotationOrigin;
+	glm::vec3 rotationAxis;
+	if (getColliderRotationAxis(hitResult.hitComponent, rotationOrigin, rotationAxis))
+	{
+		// Drag Basis is:
+		// * Centered at rotation origin
+		// * Looking at the drag start location (along +X)
+		// * Point up along the rotation axis (along +Y)
+		// * Positive drag angle along +Z
+		m_dragBasis= glm::lookAt(rotationOrigin, hitResult.hitLocation, rotationAxis);
+		m_dragComponent = hitResult.hitComponent;
+		m_dragStart= hitResult.hitLocation;
+		m_dragAngle= 0.f;
+	}
 }
 
 void GizmoRotateComponent::onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
-	ColliderComponentPtr dragColliderPtr = m_dragComponent.lock();
-
-	const glm::mat4 centerXform = dragColliderPtr->getWorldTransform();
-	const glm::vec3 origin = glm_mat4_position(centerXform);
-	const glm::vec3 xAxis = glm_mat4_forward(centerXform);
-	const glm::vec3 yAxis = glm_mat4_up(centerXform);
-	const glm::vec3 zAxis = glm_mat4_right(centerXform);
-
-	float int_time = 0.f;
-	glm::vec3 int_point = m_dragOrigin;
-	bool has_int = false;
-
-	glm::quat newRotation;
-
-	// X Axis drag
-	if (dragColliderPtr == m_xAxisHandle.lock())
+	glm::vec3 rotationOrigin;
+	glm::vec3 rotationAxis;
+	if (getColliderRotationAxis(m_dragComponent, rotationOrigin, rotationAxis))
 	{
-		has_int = glm_intersect_plane_with_ray(
-			origin, xAxis,
+		const glm::vec3 dragPositiveDir = glm_mat4_right(m_dragBasis);
+
+		float int_time = 0.f;
+		glm::vec3 int_point = m_dragStart;
+
+		if (glm_closest_point_on_ray_to_ray(
+			m_dragStart, dragPositiveDir,
 			rayOrigin, rayDir,
-			int_time, int_point);
-	}
-	// Y Axis drag
-	else if (dragColliderPtr == m_yAxisHandle.lock())
-	{
-		has_int = glm_intersect_plane_with_ray(
-			origin, yAxis,
-			rayOrigin, rayDir,
-			int_time, int_point);
-	}
-	// Z Axis drag
-	else if (dragColliderPtr == m_zAxisHandle.lock())
-	{
-		has_int = glm_intersect_plane_with_ray(
-			origin, zAxis,
-			rayOrigin, rayDir,
-			int_time, int_point);
-	}
+			int_time, int_point))
+		{
+			const float newDragAngle = int_time * k_dragAngleFactor;
+			const float dragAngleDelta = newDragAngle - m_dragAngle;
+			const glm::quat deltaRotation = glm::angleAxis(dragAngleDelta, rotationAxis);
 
-	if (has_int)
-	{
-		requestRotation(newRotation);
+			requestRotation(deltaRotation);
+			m_dragAngle = newDragAngle;
+		}
 	}
 }
 

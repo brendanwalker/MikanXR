@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "glm/ext/vector_float3.hpp"
+#include "glm/ext/quaternion_float.hpp"
 
 class EditorObjectSystem : public MikanObjectSystem
 {
@@ -44,6 +45,7 @@ protected:
 	void onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);
 	void onSelectionChanged(SelectionComponentPtr oldComponentPtr, SelectionComponentPtr newComponentPtr);
 	void onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation);
+	void onSelectionRotationRequested(const glm::quat& objectSpaceRotation);
 	void onSelectionScaleRequested(const glm::vec3& objectSpaceScale);
 
 	// Helpers

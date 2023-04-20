@@ -104,6 +104,13 @@ void drawSegment(const glm::mat4& transform,
 void drawArrow(const glm::mat4& transform, const glm::vec3& start, const glm::vec3& end, const float headFraction, const glm::vec3& color);
 void drawGrid(const glm::mat4& transform, float xSize, float ySize, int xSubDiv, int ySubDiv, const glm::vec3& color);
 void drawTransformedQuad(const glm::mat4& transform, float xSize, float ySize, const glm::vec3& color);
+void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::vec3& color);
+void drawTransformedSpiralArc(
+	const glm::mat4& transform,
+	float radius,
+	float radiusFractionPerCircle,
+	float totalAngle,
+	const glm::vec3& color);
 void drawTransformedAxes(const glm::mat4& transform, float scale);
 void drawTransformedAxes(const glm::mat4& transform, float xScale, float yScale, float zScale);
 void drawTransformedBox(const glm::mat4& transform, const glm::vec3& half_extents, const glm::vec3& color);

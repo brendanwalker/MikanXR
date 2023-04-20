@@ -22,6 +22,10 @@ public:
 
 protected:
 	glm::vec3 getColliderColor(DiskColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor);
+	bool getColliderRotationAxis(
+		ColliderComponentWeakPtr colliderWeakPtr,
+		glm::vec3& outOrigin,
+		glm::vec3& outAxis);
 
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
@@ -39,5 +43,7 @@ protected:
 	SelectionComponentWeakPtr m_selectionComponent;
 	ColliderComponentWeakPtr m_hoverComponent;
 	ColliderComponentWeakPtr m_dragComponent;
-	glm::vec3 m_dragOrigin;
+	glm::mat4 m_dragBasis;
+	glm::vec3 m_dragStart;
+	float m_dragAngle= 0.f;
 };

@@ -396,6 +396,66 @@ void drawTransformedAxes(const glm::mat4& transform, float xScale, float yScale,
 	lineRenderer->addSegment3d(transform, origin, Colors::Blue, zAxis, Colors::Blue);
 }
 
+void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::vec3& color)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	static const float k_segmentMaxLength= 0.01f;
+	static const float k_minAngleStep= k_real_quarter_pi;
+	const float angleStep= fmaxf(k_segmentMaxLength / radius, k_minAngleStep);
+	
+	glm::vec3 prevPoint= glm::vec3(radius, 0.f, 0.f);
+	for (float angle= angleStep; angleStep < k_real_two_pi; angle+= angleStep)
+	{
+		const glm::vec3 nextPoint= glm::vec3(cosf(angle), 0.f, sin(angle)) * radius;
+
+		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color);
+		prevPoint= nextPoint;
+	}
+}
+
+void drawTransformedSpiralArc(
+	const glm::mat4& transform, 
+	float radius, 
+	float radiusFractionPerCircle, 
+	float totalAngle, 
+	const glm::vec3& color)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	static const float k_segmentMaxLength = 0.01f;
+	static const float k_minAngleStep = k_real_quarter_pi;
+	const float angleStep = fmaxf(k_segmentMaxLength / radius, k_minAngleStep) * sgn(totalAngle);
+	const float radiusStep= radius * radiusFractionPerCircle * totalAngle / k_real_two_pi;
+	const int totalSteps= int(fabsf(totalAngle) / angleStep);
+
+	float angle = angleStep; 
+	float spiralRadius = radius;
+	glm::vec3 prevPoint = glm::vec3(spiralRadius, 0.f, 0.f);
+
+	// Draw start radial line
+	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
+
+	// Draw the spiral arc
+	for (int step= 0; step < totalSteps; ++step)
+	{
+		const glm::vec3 nextPoint = glm::vec3(cosf(angle), 0.f, sin(angle)) * spiralRadius;
+
+		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color);
+		prevPoint = nextPoint;
+
+		angle += angleStep;
+		spiralRadius += radiusStep;
+	}
+
+	// Draw the end radial line
+	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
+}
+
 void drawGrid(const glm::mat4& transform, float xSize, float zSize, int xSubDiv, int zSubDiv, const glm::vec3& color)
 {
 	Renderer* renderer = Renderer::getInstance();

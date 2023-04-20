@@ -78,10 +78,11 @@ void EditorObjectSystem::createTransformGizmo()
 	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(0.01f, 0.01f, R/2.f));
 	translateComponentPtr->OnTranslationRequested= MakeDelegate(this, &EditorObjectSystem::onSelectionTranslationRequested);
 
-	gizmoObjectPtr->addComponent<GizmoRotateComponent>();
+	GizmoRotateComponentPtr rotateComponentPtr= gizmoObjectPtr->addComponent<GizmoRotateComponent>();
 	createGizmoDiskCollider(gizmoObjectPtr, "xAxisRotateHandle", glm::vec3(0.f), glm::vec3(1.f, 0.f, 0.f), R);
 	createGizmoDiskCollider(gizmoObjectPtr, "yAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f), R);
 	createGizmoDiskCollider(gizmoObjectPtr, "zAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), R);
+	rotateComponentPtr->OnRotateRequested= MakeDelegate(this, &EditorObjectSystem::onSelectionRotationRequested);
 
 	GizmoScaleComponentPtr scaleComponentPtr= gizmoObjectPtr->addComponent<GizmoScaleComponent>();
 	createGizmoBoxCollider(gizmoObjectPtr, "centerScaleHandle", glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.01f, 0.01f, 0.01f));
@@ -286,6 +287,27 @@ void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& worldS
 		if (selectedRootPtr)
 		{
 			selectedRootPtr->setWorldTransform(newGizmoXform);
+		}
+	}
+}
+
+void EditorObjectSystem::onSelectionRotationRequested(const glm::quat& objectSpaceRotation)
+{
+	// Scale the gizmo in object space
+	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
+	GlmTransform relativeTransform = gizmoComponentPtr->getRelativeTransform();
+	relativeTransform.setOrientation(objectSpaceRotation);
+	gizmoComponentPtr->setRelativeTransform(relativeTransform);
+
+	// If we have a selected object, snap it to the gizmo transform
+	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
+	if (selectedComponentPtr)
+	{
+		SceneComponentWeakPtr selectedRootWeakPtr = selectedComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr selectedRootPtr = selectedRootWeakPtr.lock();
+		if (selectedRootPtr)
+		{
+			selectedRootPtr->setRelativeTransform(relativeTransform);
 		}
 	}
 }
