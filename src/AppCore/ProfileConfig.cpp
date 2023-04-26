@@ -1,11 +1,14 @@
 // -- includes -----
+#include "AnchorObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MathMikan.h"
 #include "MathGLM.h"
 #include "ProfileConfig.h"
 #include "PathUtils.h"
+#include "StencilObjectSystem.h"
 #include "StringUtils.h"
+#include "SinglecastDelegate.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -49,81 +52,59 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, calibrationComponentName("front_rolled")
 	, vrFrameDelay(0)
 	, videoFrameQueueSize(3)
-	// Anchor
-	, anchorVRDevicePath("")
-	, nextAnchorId(0)
-	, debugRenderAnchors(true)
 	// Fastener
 	, nextFastenerId(0)
 	, debugRenderFasteners(true)
-	// Stencils
-	, nextStencilId(0)
-	, debugRenderStencils(true)
 	// Compositor
 	, compositorScriptFilePath("")
 	// Output Settings
 	, outputFilePath("")
 {
+	anchorConfig= addChildConfig<AnchorObjectSystemConfig>("anchors");
+	stencilConfig= addChildConfig<StencilObjectSystemConfig>("stencils");
 };
 
-const configuru::Config ProfileConfig::writeToJSON()
+configuru::Config ProfileConfig::writeToJSON()
 {
-	configuru::Config pt{
-		// Pattern Defaults
-		{"calibrationPatternType", k_patternTypeStrings[(int)eCalibrationPatternType::mode_chessboard]},
-		{"chessbordRows", chessbordRows},
-		{"chessbordCols", chessbordCols},
-		{"squareLengthMM", squareLengthMM},
-		{"circleGridRows", circleGridRows},
-		{"circleGridCols", circleGridCols},
-		{"circleSpacingMM", circleSpacingMM},
-		{"circleDiameterMM", circleDiameterMM},
-		{"puckHorizontalOffsetMM", puckHorizontalOffsetMM},
-		{"puckVerticalOffsetMM", puckVerticalOffsetMM},
-		{"puckDepthOffsetMM", puckDepthOffsetMM},
-		// VideoSource Defaults
-		{"videoSourcePath", videoSourcePath},
-		// Tracker
-		{"cameraVRDevicePath", cameraVRDevicePath},
-		{"cameraParentAnchorId", cameraParentAnchorId},
-		{"cameraScale", cameraScale},
-		{"matVRDevicePath", matVRDevicePath},
-		{"originVRDevicePath", originVRDevicePath},
-		{"originVerticalAlignFlag", originVerticalAlignFlag},
-		{"calibrationComponentName", calibrationComponentName},
-		{"vrFrameDelay", vrFrameDelay},
-		{"videoFrameQueueSize", videoFrameQueueSize},
-		// Anchors
-		{"anchorVRDevicePath", anchorVRDevicePath},
-		{"nextAnchorId", nextAnchorId},
-		{"debugRenderAnchors", debugRenderAnchors},
-		// Fasteners
-		{"nextFastenerId", nextFastenerId},
-		{"debugRenderFasteners", debugRenderFasteners},
-		// Stencils
-		{"nextStencilId", nextStencilId},
-		{"debugRenderStencils", debugRenderStencils},
-		// Compositor
-		{"compositorScript", compositorScriptFilePath.string()},
-		// Output Settings
-		{"outputPath", outputFilePath.string()}
-	};
+	configuru::Config pt= CommonConfig::writeToJSON();
 
-	// Write out the spatial anchors
-	pt["anchorConfig"]= anchorConfig.writeToJSON();
-	std::vector<configuru::Config> anchorConfigs;
-	for (const MikanSpatialAnchorInfo& anchor : spatialAnchorList)
-	{
-		configuru::Config anchorConfig{
-			{"id", anchor.anchor_id},
-			{"name", anchor.anchor_name},
-		};
+	// Pattern Defaults
+	pt["calibrationPatternType"]= k_patternTypeStrings[(int)eCalibrationPatternType::mode_chessboard];
+	pt["chessbordRows"]= chessbordRows;
+	pt["chessbordCols"]= chessbordCols;
+	pt["squareLengthMM"]= squareLengthMM;
+	pt["circleGridRows"]= circleGridRows;
+	pt["circleGridCols"]= circleGridCols;
+	pt["circleSpacingMM"]= circleSpacingMM;
+	pt["circleDiameterMM"]= circleDiameterMM;
+	pt["puckHorizontalOffsetMM"]= puckHorizontalOffsetMM;
+	pt["puckVerticalOffsetMM"]= puckVerticalOffsetMM;
+	pt["puckDepthOffsetMM"]= puckDepthOffsetMM;
+	// VideoSource Defaults
+	pt["videoSourcePath"]= videoSourcePath;
+	// Tracker
+	pt["cameraVRDevicePath"]= cameraVRDevicePath;
+	pt["cameraParentAnchorId"]= cameraParentAnchorId;
+	pt["cameraScale"]= cameraScale;
+	pt["matVRDevicePath"]= matVRDevicePath;
+	pt["originVRDevicePath"]= originVRDevicePath;
+	pt["originVerticalAlignFlag"]= originVerticalAlignFlag;
+	pt["calibrationComponentName"]= calibrationComponentName;
+	pt["vrFrameDelay"]= vrFrameDelay;
+	pt["videoFrameQueueSize"]= videoFrameQueueSize;
+	// Fasteners
+	pt["nextFastenerId"]= nextFastenerId;
+	pt["debugRenderFasteners"]= debugRenderFasteners;
+	// Compositor
+	pt["compositorScript"]= compositorScriptFilePath.string();
+	// Output Settings
+	pt["outputPath"]= outputFilePath.string();
 
-		writeMatrix4f(anchorConfig, "xform", anchor.anchor_xform);
+	// Write the anchor system config
+	pt[anchorConfig->getConfigName()]= anchorConfig->writeToJSON();
 
-		anchorConfigs.push_back(anchorConfig);
-	}
-	pt.insert_or_assign(std::string("spatialAnchors"), anchorConfigs);
+	// Write the stencil system config
+	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
 
 	// Write out the spatial fasteners
 	std::vector<configuru::Config> fastenerConfigs;
@@ -144,80 +125,13 @@ const configuru::Config ProfileConfig::writeToJSON()
 	}
 	pt.insert_or_assign(std::string("spatialFasteners"), fastenerConfigs);
 
-	// Write out the stencil configuration
-	pt["stencilConfig"]= stencilConfig.writeToJSON();
-
-	// Write out the quad stencils
-	std::vector<configuru::Config> stencilQuadConfigs;
-	for (const MikanStencilQuad& stencil : quadStencilList)
-	{
-		configuru::Config stencilConfig{
-			{"stencil_id", stencil.stencil_id},
-			{"parent_anchor_id", stencil.parent_anchor_id},
-			{"quad_width", stencil.quad_width},
-			{"quad_height", stencil.quad_height},
-			{"is_double_sided", stencil.is_double_sided},
-			{"is_disabled", stencil.is_disabled},
-			{"stencil_name", stencil.stencil_name}
-		};
-
-		writeVector3f(stencilConfig, "quad_center", stencil.quad_center);
-		writeVector3f(stencilConfig, "quad_x_axis", stencil.quad_x_axis);
-		writeVector3f(stencilConfig, "quad_y_axis", stencil.quad_y_axis);
-		writeVector3f(stencilConfig, "quad_normal", stencil.quad_normal);
-
-		stencilQuadConfigs.push_back(stencilConfig);
-	}
-	pt.insert_or_assign(std::string("quadStencils"), stencilQuadConfigs);
-
-	// Write out the box stencils
-	std::vector<configuru::Config> stencilBoxConfigs;
-	for (const MikanStencilBox& stencil : boxStencilList)
-	{
-		configuru::Config stencilConfig{
-			{"stencil_id", stencil.stencil_id},
-			{"parent_anchor_id", stencil.parent_anchor_id},
-			{"box_x_size", stencil.box_x_size},
-			{"box_y_size", stencil.box_y_size},
-			{"box_z_size", stencil.box_z_size},
-			{"is_disabled", stencil.is_disabled},
-			{"stencil_name", stencil.stencil_name}
-		};
-
-		writeVector3f(stencilConfig, "box_center", stencil.box_center);
-		writeVector3f(stencilConfig, "box_x_axis", stencil.box_x_axis);
-		writeVector3f(stencilConfig, "box_y_axis", stencil.box_y_axis);
-		writeVector3f(stencilConfig, "box_z_axis", stencil.box_z_axis);
-
-		stencilBoxConfigs.push_back(stencilConfig);
-	}
-	pt.insert_or_assign(std::string("boxStencils"), stencilBoxConfigs);
-
-	// Write out the model stencils
-	std::vector<configuru::Config> stencilModelConfigs;
-	for (const MikanStencilModelConfig& stencil : modelStencilList)
-	{
-		configuru::Config stencilConfig{
-			{"model_path", stencil.modelPath.string()},
-			{"stencil_id", stencil.modelInfo.stencil_id},
-			{"parent_anchor_id", stencil.modelInfo.parent_anchor_id},
-			{"is_disabled", stencil.modelInfo.is_disabled},
-			{"stencil_name", stencil.modelInfo.stencil_name}
-		};
-
-		writeVector3f(stencilConfig, "model_position", stencil.modelInfo.model_position);
-		writeRotator3f(stencilConfig, "model_rotator", stencil.modelInfo.model_rotator);
-		writeVector3f(stencilConfig, "model_scale", stencil.modelInfo.model_scale);
-
-		stencilModelConfigs.push_back(stencilConfig);
-	}
-	pt.insert_or_assign(std::string("modelStencils"), stencilModelConfigs);
-
 	return pt;
 }
 
 void ProfileConfig::readFromJSON(const configuru::Config& pt)
 {
+	CommonConfig::readFromJSON(pt);
+
 	// Pattern Defaults
 	const std::string patternString =
 		pt.get_or<std::string>(
@@ -253,55 +167,21 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	vrFrameDelay = pt.get_or<int>("vrFrameDelay", vrFrameDelay);
 	videoFrameQueueSize = int_min(int_max(pt.get_or<int>("videoFrameQueueSize", videoFrameQueueSize), 1), 8);
 
-	// Anchors
-	if (pt.has_key("anchorConfig"))
+	// Read the anchor system config
+	if (pt.has_key(anchorConfig->getConfigName()))
 	{
-		anchorConfig.readFromJSON(pt["anchorConfig"]);
+		anchorConfig->readFromJSON(pt[anchorConfig->getConfigName()]);
 	}
-	anchorVRDevicePath= pt.get_or<std::string>("anchorVRDevicePath", anchorVRDevicePath);
-	nextAnchorId= pt.get_or<int>("nextAnchorId", nextAnchorId);
-	debugRenderAnchors= pt.get_or<bool>("debugRenderAnchors", debugRenderAnchors);
+
+	// Read the stencil system config
+	if (pt.has_key(stencilConfig->getConfigName()))
+	{
+		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
+	}
 
 	// Fasteners
 	nextFastenerId= pt.get_or<int>("nextFastenerId", nextFastenerId);
 	debugRenderFasteners= pt.get_or<bool>("debugRenderFasteners", debugRenderFasteners);
-
-	// Read in the spatial anchors
-	spatialAnchorList.clear();
-	if (pt.has_key("spatialAnchors"))
-	{
-		for (const configuru::Config& anchorConfig : pt["spatialAnchors"].as_array())
-		{
-			if (anchorConfig.has_key("id") && anchorConfig.has_key("name") && anchorConfig.has_key("xform"))
-			{
-				MikanSpatialAnchorInfo anchorInfo;
-				memset(&anchorInfo, 0, sizeof(anchorInfo));
-
-				std::string anchorName= anchorConfig.get<std::string>("name");
-				strncpy(anchorInfo.anchor_name, anchorName.c_str(), sizeof(anchorInfo.anchor_name) - 1);
-
-				anchorInfo.anchor_id = anchorConfig.get<int>("id");
-
-				readMatrix4f(anchorConfig, "xform", anchorInfo.anchor_xform);
-
-				spatialAnchorList.push_back(anchorInfo);
-			}
-		}
-	}
-
-	// Special case: Origin spatial anchor
-	MikanSpatialAnchorInfo originAnchorInfo;
-	if (findSpatialAnchorInfoByName(ORIGIN_SPATIAL_ANCHOR_NAME, originAnchorInfo))
-	{
-		originAnchorId= originAnchorInfo.anchor_id;
-	}
-	else
-	{
-		const MikanMatrix4f originXform= glm_mat4_to_MikanMatrix4f(glm::mat4(1.f));
-
-		originAnchorId= nextAnchorId;
-		addNewAnchor(ORIGIN_SPATIAL_ANCHOR_NAME, originXform);
-	}
 
 	// Read in the spatial fasteners
 	spatialFastenerList.clear();
@@ -353,277 +233,14 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 		}
 	}
 
-	// Stencils
-	if (pt.has_key("stencilConfig"))
-	{
-		stencilConfig.readFromJSON(pt["stencilConfig"]);
-	}
-	nextStencilId = pt.get_or<int>("nextStencilId", nextStencilId);
-	debugRenderStencils= pt.get_or<bool>("debugRenderStencils", debugRenderStencils);
-
 	// Compositor
 	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
-
-	// Read in the quad stencils
-	quadStencilList.clear();
-	if (pt.has_key("quadStencils"))
-	{
-		for (const configuru::Config& stencilConfig : pt["quadStencils"].as_array())
-		{
-			if (stencilConfig.has_key("stencil_id"))
-			{
-				MikanStencilQuad stencil;
-				memset(&stencil, 0, sizeof(stencil));
-
-				stencil.stencil_id = stencilConfig.get<int>("stencil_id");
-				stencil.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);
-				readVector3f(stencilConfig, "quad_center", stencil.quad_center);
-				readVector3f(stencilConfig, "quad_x_axis", stencil.quad_x_axis);
-				readVector3f(stencilConfig, "quad_y_axis", stencil.quad_y_axis);
-				readVector3f(stencilConfig, "quad_normal", stencil.quad_normal);
-				stencil.quad_width = stencilConfig.get_or<float>("quad_width", 0.25f);
-				stencil.quad_height = stencilConfig.get_or<float>("quad_height", 0.25f);
-				stencil.is_double_sided = stencilConfig.get_or<bool>("is_double_sided", false);
-				stencil.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
-
-				const std::string stencil_name= stencilConfig.get_or<std::string>("stencil_name", "");
-				StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
-
-				quadStencilList.push_back(stencil);
-			}
-		}
-	}
-
-	// Read in the box stencils
-	boxStencilList.clear();
-	if (pt.has_key("boxStencils"))
-	{
-		for (const configuru::Config& stencilConfig : pt["boxStencils"].as_array())
-		{
-			if (stencilConfig.has_key("stencil_id"))
-			{
-				MikanStencilBox stencil;
-				memset(&stencil, 0, sizeof(stencil));
-
-				stencil.stencil_id = stencilConfig.get<int>("stencil_id");
-				stencil.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);
-				readVector3f(stencilConfig, "box_center", stencil.box_center);
-				readVector3f(stencilConfig, "box_x_axis", stencil.box_x_axis);
-				readVector3f(stencilConfig, "box_y_axis", stencil.box_y_axis);
-				readVector3f(stencilConfig, "box_z_axis", stencil.box_z_axis);
-				stencil.box_x_size = stencilConfig.get_or<float>("box_x_size", 0.25f);
-				stencil.box_y_size = stencilConfig.get_or<float>("box_y_size", 0.25f);
-				stencil.box_z_size = stencilConfig.get_or<float>("box_z_size", 0.25f);
-				stencil.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
-
-				const std::string stencil_name = stencilConfig.get_or<std::string>("stencil_name", "");
-				StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
-
-				boxStencilList.push_back(stencil);
-			}
-		}
-	}
-	
-	// Read in the model stencils
-	modelStencilList.clear();
-	if (pt.has_key("modelStencils"))
-	{
-		for (const configuru::Config& stencilConfig : pt["modelStencils"].as_array())
-		{
-			if (stencilConfig.has_key("stencil_id"))
-			{
-				MikanStencilModelConfig modelConfig;
-				MikanStencilModel& modelInfo= modelConfig.modelInfo;
-				memset(&modelInfo, 0, sizeof(MikanStencilModel));
-
-				modelConfig.modelPath= stencilConfig.get<std::string>("model_path");
-				modelInfo.stencil_id = stencilConfig.get<int>("stencil_id");
-				modelInfo.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);
-				readVector3f(stencilConfig, "model_position", modelInfo.model_position);
-				readRotator3f(stencilConfig, "model_rotator", modelInfo.model_rotator);
-				readVector3f(stencilConfig, "model_scale", modelInfo.model_scale);
-				modelInfo.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
-
-				const std::string stencil_name = stencilConfig.get_or<std::string>("stencil_name", "");
-				StringUtils::formatString(modelInfo.stencil_name, sizeof(modelInfo.stencil_name), "%s", stencil_name.c_str());
-
-				modelStencilList.push_back(modelConfig);
-			}
-		}
-	}
 
 	// Output Path
 	outputFilePath = pt.get_or<std::string>("outputPath", outputFilePath.string());
 }
 
-bool ProfileConfig::getSpatialAnchorInfo(
-	MikanSpatialAnchorID anchorId,
-	MikanSpatialAnchorInfo& outInfo) const
-{
-	auto it = std::find_if(
-		spatialAnchorList.begin(), spatialAnchorList.end(),
-		[anchorId](const MikanSpatialAnchorInfo& info) {
-		return info.anchor_id == anchorId;
-	});
-
-	if (it != spatialAnchorList.end())
-	{
-		outInfo = *it;
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::getSpatialAnchorWorldTransform(
-	MikanSpatialAnchorID anchorId,
-	glm::mat4& outXform) const
-{
-	MikanSpatialAnchorInfo anchor;
-
-	if (getSpatialAnchorInfo(anchorId, anchor))
-	{
-		outXform= MikanMatrix4f_to_glm_mat4(anchor.anchor_xform);
-		return true;
-	}
-
-	return false;
-}
-
-MikanSpatialAnchorID ProfileConfig::getNextSpatialAnchorId(MikanSpatialAnchorID anchorId) const
-{
-	// If the given anchor id is invalid, return the first valid anchor id
-	if (anchorId == INVALID_MIKAN_ID)
-	{
-		return spatialAnchorList.size() > 0 ? spatialAnchorList[0].anchor_id : INVALID_MIKAN_ID;
-	}
-
-	// Find the list index for the anchor with the matching ID
-	int listIndex= 0;
-	while (listIndex < spatialAnchorList.size())
-	{
-		if (spatialAnchorList[listIndex].anchor_id == anchorId)
-			break;
-
-		++listIndex;
-	}
-
-	// Move to the next entry in the list
-	++listIndex;
-
-	// If this list entry is still in the list, return it
-	return (listIndex < spatialAnchorList.size()) ? spatialAnchorList[listIndex].anchor_id : INVALID_MIKAN_ID;
-}
-
-bool ProfileConfig::findSpatialAnchorInfoByName(
-	const char* anchorName,
-	MikanSpatialAnchorInfo& outInfo) const
-{
-	auto it = std::find_if(
-		spatialAnchorList.begin(), spatialAnchorList.end(),
-		[anchorName](const MikanSpatialAnchorInfo& info) {
-		return strncmp(info.anchor_name, anchorName, MAX_MIKAN_ANCHOR_NAME_LEN) == 0;
-	});
-
-	if (it != spatialAnchorList.end())
-	{
-		outInfo = *it;
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::canAddAnchor() const
-{
-	return (spatialAnchorList.size() < MAX_MIKAN_SPATIAL_ANCHORS);
-}
-
-bool ProfileConfig::addNewAnchor(const char* anchorName, const MikanMatrix4f& xform)
-{
-	if (!canAddAnchor())
-		return false;
-
-	MikanSpatialAnchorInfo anchor;
-	memset(&anchor, 0, sizeof(MikanSpatialAnchorInfo));
-	anchor.anchor_id= nextAnchorId;
-	strncpy(anchor.anchor_name, anchorName, sizeof(anchor.anchor_name)-1);
-	anchor.anchor_xform= xform;
-	nextAnchorId++;
-
-	spatialAnchorList.push_back(anchor);
-	markDirty();
-
-	return true;
-}
-
-bool ProfileConfig::updateAnchor(const MikanSpatialAnchorInfo& info)
-{
-	MikanSpatialAnchorID anchorId= info.anchor_id;
-
-	auto it = std::find_if(
-		spatialAnchorList.begin(), spatialAnchorList.end(),
-		[anchorId](const MikanSpatialAnchorInfo& info) {
-		return info.anchor_id == anchorId;
-	});
-
-	if (it != spatialAnchorList.end())
-	{
-		it->anchor_id= info.anchor_id;
-		it->anchor_xform= info.anchor_xform;
-
-		// only update the anchor name for the non origin
-		if (it->anchor_id != originAnchorId)
-		{
-			strncpy(it->anchor_name, info.anchor_name, sizeof(info.anchor_name) - 1);
-		}
-
-		markDirty();
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::setAnchorName(MikanSpatialAnchorID anchorId, const std::string& newAnchorName)
-{
-	auto it = std::find_if(
-		spatialAnchorList.begin(), spatialAnchorList.end(),
-		[anchorId](const MikanSpatialAnchorInfo& info) {
-			return info.anchor_id == anchorId;
-		});
-
-	if (it != spatialAnchorList.end())
-	{		
-		StringUtils::formatString(it->anchor_name, sizeof(it->anchor_name), "%s", newAnchorName.c_str());
-		markDirty();
-
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::removeAnchor(MikanSpatialAnchorID anchorId)
-{
-	auto it = std::find_if(
-		spatialAnchorList.begin(), spatialAnchorList.end(),
-		[anchorId](const MikanSpatialAnchorInfo& info) {
-		return info.anchor_id == anchorId;
-	});
-
-	if (it != spatialAnchorList.end() && 
-		it->anchor_id != originAnchorId)
-	{
-		spatialAnchorList.erase(it);
-		markDirty();
-
-		return true;
-	}
-
-	return false;
-}
-
+#if 0
 bool ProfileConfig::getSpatialFastenerInfo(
 	MikanSpatialFastenerID fastenerId,
 	MikanSpatialFastenerInfo& outInfo) const
@@ -844,703 +461,7 @@ bool ProfileConfig::removeFastener(MikanSpatialFastenerID fastenerId)
 
 	return false;
 }
-
-bool ProfileConfig::getQuadStencilInfo(MikanStencilID stencilId, MikanStencilQuad& outQuad) const
-{
-	auto it = std::find_if(
-		quadStencilList.begin(), quadStencilList.end(),
-		[stencilId](const MikanStencilQuad& quad) {
-		return quad.stencil_id == stencilId;
-	});
-
-	if (it != quadStencilList.end())
-	{
-		outQuad = *it;
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::getBoxStencilInfo(MikanStencilID stencilId, MikanStencilBox& outBox) const
-{
-	auto it = std::find_if(
-		boxStencilList.begin(), boxStencilList.end(),
-		[stencilId](const MikanStencilBox& box) {
-		return box.stencil_id == stencilId;
-	});
-
-	if (it != boxStencilList.end())
-	{
-		outBox = *it;
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::canAddStencil() const
-{
-	return (boxStencilList.size() + quadStencilList.size() + modelStencilList.size() < MAX_MIKAN_STENCILS);
-}
-
-bool ProfileConfig::removeStencil(MikanStencilID stencilId)
-{
-	// Try quad stencil list first
-	{
-		auto it = std::find_if(
-			quadStencilList.begin(), quadStencilList.end(),
-			[stencilId](const MikanStencilQuad& q) {
-			return q.stencil_id == stencilId;
-		});
-
-		if (it != quadStencilList.end())
-		{
-			quadStencilList.erase(it);
-			markDirty();
-
-			return true;
-		}
-	}
-
-	// Then try the box stencil list
-	{
-		auto it = std::find_if(
-			boxStencilList.begin(), boxStencilList.end(),
-			[stencilId](const MikanStencilBox& b) {
-			return b.stencil_id == stencilId;
-		});
-
-		if (it != boxStencilList.end())
-		{
-			boxStencilList.erase(it);
-			markDirty();
-
-			return true;
-		}
-	}
-
-	// Then try model stencil list last
-	{
-		auto it = std::find_if(
-			modelStencilList.begin(), modelStencilList.end(),
-			[stencilId](const MikanStencilModelConfig& m) {
-			return m.modelInfo.stencil_id == stencilId;
-		});
-
-		if (it != modelStencilList.end())
-		{
-			modelStencilList.erase(it);
-			markDirty();
-
-			return true;
-		}
-	}
-
-
-	return false;
-}
-
-eStencilType ProfileConfig::getStencilType(MikanStencilID stencilId) const
-{
-	// Try quad stencil list first
-	{
-		auto it = std::find_if(
-			quadStencilList.begin(), quadStencilList.end(),
-			[stencilId](const MikanStencilQuad& q) {
-			return q.stencil_id == stencilId;
-		});
-
-		if (it != quadStencilList.end())
-		{
-			return eStencilType::quad;
-		}
-	}
-
-	// Then try the box stencil list
-	{
-		auto it = std::find_if(
-			boxStencilList.begin(), boxStencilList.end(),
-			[stencilId](const MikanStencilBox& b) {
-			return b.stencil_id == stencilId;
-		});
-
-		if (it != boxStencilList.end())
-		{
-			return eStencilType::box;
-		}
-	}
-
-	// Then try model stencil list last
-	{
-		auto it = std::find_if(
-			modelStencilList.begin(), modelStencilList.end(),
-			[stencilId](const MikanStencilModelConfig& m) {
-			return m.modelInfo.stencil_id == stencilId;
-		});
-
-		if (it != modelStencilList.end())
-		{
-			return eStencilType::model;
-		}
-	}
-
-
-	return eStencilType::INVALID;
-}
-
-bool ProfileConfig::getStencilName(MikanStencilID stencilId, std::string& outStencilName) const
-{
-	// Try quad stencil list first
-	{
-		auto it = std::find_if(
-			quadStencilList.begin(), quadStencilList.end(),
-			[stencilId](const MikanStencilQuad& q) {
-			return q.stencil_id == stencilId;
-		});
-
-		if (it != quadStencilList.end())
-		{
-			outStencilName= it->stencil_name;
-			return true;
-		}
-	}
-
-	// Then try the box stencil list
-	{
-		auto it = std::find_if(
-			boxStencilList.begin(), boxStencilList.end(),
-			[stencilId](const MikanStencilBox& b) {
-			return b.stencil_id == stencilId;
-		});
-
-		if (it != boxStencilList.end())
-		{
-			outStencilName= it->stencil_name;
-			return true;
-		}
-	}
-
-	// Then try model stencil list last
-	{
-		auto it = std::find_if(
-			modelStencilList.begin(), modelStencilList.end(),
-			[stencilId](const MikanStencilModelConfig& m) {
-			return m.modelInfo.stencil_id == stencilId;
-		});
-
-		if (it != modelStencilList.end())
-		{
-			outStencilName= it->modelInfo.stencil_name;
-			return true;
-		}
-	}
-
-
-	return false;
-}
-
-bool ProfileConfig::getStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
-{
-	if (getModelStencilWorldTransform(stencilId, outXform))
-		return true;
-	else if (getBoxStencilWorldTransform(stencilId, outXform))
-		return true;
-	else if (getQuadStencilWorldTransform(stencilId, outXform))
-		return true;
-
-	return false;
-}
-
-bool ProfileConfig::setStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& xform)
-{
-	if (setModelStencilLocalTransform(stencilId, xform))
-		return true;
-	else if (setBoxStencilLocalTransform(stencilId, xform))
-		return true;
-	else if (setQuadStencilLocalTransform(stencilId, xform))
-		return true;
-
-	return false;
-}
-
-bool ProfileConfig::setStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& xform)
-{
-	if (setModelStencilWorldTransform(stencilId, xform))
-		return true;
-	else if (setBoxStencilWorldTransform(stencilId, xform))
-		return true;
-	else if (setQuadStencilWorldTransform(stencilId, xform))
-		return true;
-
-	return false;
-}
-
-MikanSpatialAnchorID ProfileConfig::getStencilParentAnchorId(MikanStencilID stencilId) const
-{
-	MikanStencilModel modelInfo;
-	if (getModelStencilInfo(stencilId, modelInfo))
-	{
-		return modelInfo.parent_anchor_id;
-	}
-
-	MikanStencilBox boxInfo;
-	if (getBoxStencilInfo(stencilId, boxInfo))
-	{
-		return boxInfo.parent_anchor_id;
-	}
-
-	MikanStencilQuad quadInfo;
-	if (getQuadStencilInfo(stencilId, quadInfo))
-	{
-		return quadInfo.parent_anchor_id;
-	}
-
-	return INVALID_MIKAN_ID;
-}
-
-MikanStencilID ProfileConfig::addNewQuadStencil(const MikanStencilQuad& quad)
-{
-	if (!canAddStencil())
-		return INVALID_MIKAN_ID;
-
-	MikanStencilQuad newStencil= quad;	
-	newStencil.stencil_id = nextStencilId;
-	nextStencilId++;
-
-	quadStencilList.push_back(newStencil);
-	markDirty();
-
-	return newStencil.stencil_id;
-}
-
-bool ProfileConfig::updateQuadStencil(const MikanStencilQuad& quad)
-{
-	MikanStencilID stencilId = quad.stencil_id;
-
-	auto it = std::find_if(
-		quadStencilList.begin(), quadStencilList.end(),
-		[stencilId](const MikanStencilQuad& q) {
-		return q.stencil_id == stencilId;
-	});
-
-	if (it != quadStencilList.end())
-	{
-		*it = quad;
-		markDirty();
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::getQuadStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
-{
-	MikanStencilQuad stencil;
-	if (getQuadStencilInfo(stencilId, stencil))
-	{
-		outXform = getQuadStencilWorldTransform(&stencil);
-		return true;
-	}
-
-	return false;
-}
-
-glm::mat4 ProfileConfig::getQuadStencilWorldTransform(
-	const MikanStencilQuad* stencil) const
-{
-	const glm::vec3 xAxis = MikanVector3f_to_glm_vec3(stencil->quad_x_axis);
-	const glm::vec3 yAxis = MikanVector3f_to_glm_vec3(stencil->quad_y_axis);
-	const glm::vec3 zAxis = MikanVector3f_to_glm_vec3(stencil->quad_normal);
-	const glm::vec3 position = MikanVector3f_to_glm_vec3(stencil->quad_center);
-	const glm::mat4 localXform =
-		glm::mat4(
-			glm::vec4(xAxis, 0.f),
-			glm::vec4(yAxis, 0.f),
-			glm::vec4(zAxis, 0.f),
-			glm::vec4(position, 1.f));
-
-	glm::mat4 worldXform;
-	MikanSpatialAnchorInfo anchor;
-	if (getSpatialAnchorInfo(stencil->parent_anchor_id, anchor))
-	{		
-		worldXform= MikanMatrix4f_to_glm_mat4(anchor.anchor_xform) * localXform;
-	}
-	else
-	{
-		worldXform = localXform;
-	}
-
-	return worldXform;
-}
-
-bool ProfileConfig::setQuadStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& localXform)
-{
-	MikanStencilQuad stencil;
-	if (getQuadStencilInfo(stencilId, stencil))
-	{
-		stencil.quad_x_axis = glm_vec3_to_MikanVector3f(localXform[0]);
-		stencil.quad_y_axis = glm_vec3_to_MikanVector3f(localXform[1]);
-		stencil.quad_normal = glm_vec3_to_MikanVector3f(localXform[2]);
-		stencil.quad_center = glm_vec3_to_MikanVector3f(localXform[3]);
-
-		return updateQuadStencil(stencil);
-	}
-
-	return false;
-}
-
-bool ProfileConfig::setQuadStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)
-{
-	MikanStencilQuad stencil;
-	if (getQuadStencilInfo(stencilId, stencil))
-	{
-		glm::mat4 localXform= worldXform;
-		MikanSpatialAnchorInfo anchor;
-		if (getSpatialAnchorInfo(stencil.parent_anchor_id, anchor))
-		{
-			const glm::mat4 invParentXform = glm::inverse(MikanMatrix4f_to_glm_mat4(anchor.anchor_xform));
-
-			// Convert transform to the space of the parent anchor
-			localXform= glm_composite_xform(worldXform, invParentXform);
-		}
-
-		stencil.quad_x_axis= glm_vec3_to_MikanVector3f(localXform[0]);
-		stencil.quad_y_axis= glm_vec3_to_MikanVector3f(localXform[1]);
-		stencil.quad_normal= glm_vec3_to_MikanVector3f(localXform[2]);
-		stencil.quad_center= glm_vec3_to_MikanVector3f(localXform[3]);
-
-		return updateQuadStencil(stencil);
-	}
-
-	return false;
-}
-
-MikanStencilID ProfileConfig::addNewBoxStencil(const MikanStencilBox& box)
-{
-	if (!canAddStencil())
-		return INVALID_MIKAN_ID;
-
-	MikanStencilBox newStencil = box;
-	newStencil.stencil_id = nextStencilId;
-	nextStencilId++;
-
-	boxStencilList.push_back(newStencil);
-	markDirty();
-
-	return newStencil.stencil_id;
-}
-
-bool ProfileConfig::updateBoxStencil(const MikanStencilBox& box)
-{
-	MikanStencilID stencilId = box.stencil_id;
-
-	auto it = std::find_if(
-		boxStencilList.begin(), boxStencilList.end(),
-		[stencilId](const MikanStencilBox& b) {
-			return b.stencil_id == stencilId;
-		});
-
-	if (it != boxStencilList.end())
-	{
-		*it = box;
-		markDirty();
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::getBoxStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
-{
-	MikanStencilBox stencil;
-	if (getBoxStencilInfo(stencilId, stencil))
-	{
-		outXform = getBoxStencilWorldTransform(&stencil);
-		return true;
-	}
-
-	return false;
-}
-
-glm::mat4 ProfileConfig::getBoxStencilWorldTransform(
-	const MikanStencilBox* stencil) const
-{
-	const glm::vec3 xAxis = MikanVector3f_to_glm_vec3(stencil->box_x_axis);
-	const glm::vec3 yAxis = MikanVector3f_to_glm_vec3(stencil->box_y_axis);
-	const glm::vec3 zAxis = MikanVector3f_to_glm_vec3(stencil->box_z_axis);
-	const glm::vec3 position = MikanVector3f_to_glm_vec3(stencil->box_center);
-	const glm::mat4 localXform =
-		glm::mat4(
-			glm::vec4(xAxis, 0.f),
-			glm::vec4(yAxis, 0.f),
-			glm::vec4(zAxis, 0.f),
-			glm::vec4(position, 1.f));
-
-	glm::mat4 worldXform;
-	MikanSpatialAnchorInfo anchor;
-	if (getSpatialAnchorInfo(stencil->parent_anchor_id, anchor))
-	{
-		worldXform = MikanMatrix4f_to_glm_mat4(anchor.anchor_xform) * localXform;
-	}
-	else
-	{
-		worldXform = localXform;
-	}
-
-	return worldXform;
-}
-
-bool ProfileConfig::setBoxStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& localXform)
-{
-	MikanStencilBox stencil;
-	if (getBoxStencilInfo(stencilId, stencil))
-	{
-		stencil.box_x_axis = glm_vec3_to_MikanVector3f(localXform[0]);
-		stencil.box_y_axis = glm_vec3_to_MikanVector3f(localXform[1]);
-		stencil.box_z_axis = glm_vec3_to_MikanVector3f(localXform[2]);
-		stencil.box_center = glm_vec3_to_MikanVector3f(localXform[3]);
-
-		return updateBoxStencil(stencil);
-	}
-
-	return false;
-}
-
-bool ProfileConfig::setBoxStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)
-{
-	MikanStencilBox stencil;
-	if (getBoxStencilInfo(stencilId, stencil))
-	{
-		glm::mat4 localXform = worldXform;
-		MikanSpatialAnchorInfo anchor;
-		if (getSpatialAnchorInfo(stencil.parent_anchor_id, anchor))
-		{
-			const glm::mat4 invParentXform = glm::inverse(MikanMatrix4f_to_glm_mat4(anchor.anchor_xform));
-
-			// Convert transform to the space of the parent anchor
-			localXform = glm_composite_xform(worldXform, invParentXform);
-		}
-
-		stencil.box_x_axis = glm_vec3_to_MikanVector3f(localXform[0]);
-		stencil.box_y_axis = glm_vec3_to_MikanVector3f(localXform[1]);
-		stencil.box_z_axis = glm_vec3_to_MikanVector3f(localXform[2]);
-		stencil.box_center = glm_vec3_to_MikanVector3f(localXform[3]);
-
-		return updateBoxStencil(stencil);
-	}
-
-	return false;
-}
-
-const MikanStencilModelConfig* ProfileConfig::getModelStencilConfig(MikanStencilID stencilId) const
-{
-	auto it = std::find_if(
-		modelStencilList.begin(),
-		modelStencilList.end(),
-		[stencilId](const MikanStencilModelConfig& stencil) {
-			return stencil.modelInfo.stencil_id == stencilId;
-		});
-
-	if (it != modelStencilList.end())
-	{
-		const MikanStencilModelConfig& modelConfig = *it;
-
-		return &modelConfig;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-bool ProfileConfig::getModelStencilInfo(MikanStencilID stencilId, MikanStencilModel& outInfo) const
-{
-	auto it = std::find_if(
-		modelStencilList.begin(), modelStencilList.end(),
-		[stencilId](const MikanStencilModelConfig& modelConfig) {
-		return modelConfig.modelInfo.stencil_id == stencilId;
-	});
-
-	if (it != modelStencilList.end())
-	{
-		outInfo = it->modelInfo;
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::getModelStencilWorldTransform(MikanStencilID stencilId, glm::mat4& outXform) const
-{
-	MikanStencilModel stencil;
-	if (getModelStencilInfo(stencilId, stencil))
-	{
-		outXform= getModelStencilWorldTransform(&stencil);
-		return true;
-	}
-
-	return false;
-}
-
-glm::mat4 ProfileConfig::getModelStencilWorldTransform(const MikanStencilModel* stencil) const
-{
-	MikanVector3f stencilXAxis, stencilYAxis, stencilZAxis;
-	EulerAnglesToMikanOrientation(
-		stencil->model_rotator.x_angle, stencil->model_rotator.y_angle, stencil->model_rotator.z_angle,
-		stencilXAxis, stencilYAxis, stencilZAxis);
-
-	const glm::vec3 xAxis = MikanVector3f_to_glm_vec3(stencilXAxis) * stencil->model_scale.x;
-	const glm::vec3 yAxis = MikanVector3f_to_glm_vec3(stencilYAxis) * stencil->model_scale.y;
-	const glm::vec3 zAxis = MikanVector3f_to_glm_vec3(stencilZAxis) * stencil->model_scale.z;
-	const glm::vec3 position = MikanVector3f_to_glm_vec3(stencil->model_position);
-	const glm::mat4 localXform =
-		glm::mat4(
-			glm::vec4(xAxis, 0.f),
-			glm::vec4(yAxis, 0.f),
-			glm::vec4(zAxis, 0.f),
-			glm::vec4(position, 1.f));
-
-	glm::mat4 worldXform;
-	glm::mat4 anchorXform;
-	MikanSpatialAnchorInfo anchor;
-	if (getSpatialAnchorWorldTransform(stencil->parent_anchor_id, anchorXform))
-	{
-		worldXform = anchorXform * localXform;
-	}
-	else
-	{
-		worldXform = localXform;
-	}
-
-	return worldXform;
-}
-
-bool ProfileConfig::setModelStencilLocalTransform(MikanStencilID stencilId, const glm::mat4& localXform)
-{
-	MikanStencilModel stencil;
-	if (getModelStencilInfo(stencilId, stencil))
-	{
-		// Extract position scale and rotation from the local transform
-		glm::vec3 scale;
-		glm::quat orientation;
-		glm::vec3 translation;
-		glm::vec3 skew;
-		glm::vec4 perspective;
-		if (glm::decompose(
-			localXform,
-			scale, orientation, translation, skew, perspective))
-		{
-			stencil.model_position = glm_vec3_to_MikanVector3f(translation);
-			stencil.model_scale = glm_vec3_to_MikanVector3f(scale);
-			glm_quat_to_euler_angles(
-				orientation,
-				stencil.model_rotator.x_angle,
-				stencil.model_rotator.y_angle,
-				stencil.model_rotator.z_angle);
-		}
-
-		return updateModelStencil(stencil);
-	}
-
-	return false;
-}
-
-bool ProfileConfig::setModelStencilWorldTransform(MikanStencilID stencilId, const glm::mat4& worldXform)
-{
-	MikanStencilModel stencil;
-	if (getModelStencilInfo(stencilId, stencil))
-	{
-		glm::mat4 localXform = worldXform;
-		MikanSpatialAnchorInfo anchor;
-		if (getSpatialAnchorInfo(stencil.parent_anchor_id, anchor))
-		{
-			const glm::mat4 invParentXform = glm::inverse(MikanMatrix4f_to_glm_mat4(anchor.anchor_xform));
-
-			// Convert transform to the space of the parent anchor
-			localXform = glm_composite_xform(worldXform, invParentXform);
-		}
-
-		// Extract position scale and rotation from the local transform
-		glm::vec3 scale;
-		glm::quat orientation;
-		glm::vec3 translation;
-		glm::vec3 skew;
-		glm::vec4 perspective;
-		if (glm::decompose(
-			localXform,
-			scale, orientation, translation, skew, perspective))
-		{
-			stencil.model_position= glm_vec3_to_MikanVector3f(translation);
-			stencil.model_scale= glm_vec3_to_MikanVector3f(scale);
-			glm_quat_to_euler_angles(
-				orientation,
-				stencil.model_rotator.x_angle,
-				stencil.model_rotator.y_angle,
-				stencil.model_rotator.z_angle);
-		}
-
-		return updateModelStencil(stencil);
-	}
-
-	return false;
-}
-
-MikanStencilID ProfileConfig::addNewModelStencil(const MikanStencilModel& modelInfo)
-{
-	if (!canAddStencil())
-		return INVALID_MIKAN_ID;
-
-	MikanStencilModelConfig newStencil;
-	newStencil.modelInfo= modelInfo;
-	newStencil.modelInfo.stencil_id = nextStencilId;
-	nextStencilId++;
-
-	modelStencilList.push_back(newStencil);
-	markDirty();
-
-	return newStencil.modelInfo.stencil_id;
-}
-
-bool ProfileConfig::updateModelStencil(const MikanStencilModel& info)
-{
-	MikanStencilID stencilId = info.stencil_id;
-
-	auto it = std::find_if(
-		modelStencilList.begin(), modelStencilList.end(),
-		[stencilId](const MikanStencilModelConfig& modelConfig) {
-		return modelConfig.modelInfo.stencil_id == stencilId;
-	});
-
-	if (it != modelStencilList.end())
-	{
-		it->modelInfo = info;
-		markDirty();
-		return true;
-	}
-
-	return false;
-}
-
-bool ProfileConfig::updateModelStencilFilename(
-	MikanStencilID stencilId, 
-	const std::filesystem::path& filename)
-{
-	auto it = std::find_if(
-		modelStencilList.begin(), modelStencilList.end(),
-		[stencilId](const MikanStencilModelConfig& modelConfig) {
-		return modelConfig.modelInfo.stencil_id == stencilId;
-	});
-
-	if (it != modelStencilList.end())
-	{
-		it->modelPath= filename;
-		markDirty();
-		return true;
-	}
-
-	return false;
-}
+#endif
 
 std::filesystem::path ProfileConfig::generateTimestampedFilePath(
 	const std::string& prefix, 

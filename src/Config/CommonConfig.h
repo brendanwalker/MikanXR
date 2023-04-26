@@ -1,11 +1,15 @@
 #pragma once
 
 //-- includes -----
+#include "CommonConfigFwd.h"
 #include "MikanClientTypes.h"
 #include "DeviceInterface.h"
+#include "MulticastDelegate.h"
 
+#include <memory>
 #include <filesystem>
 #include <string>
+#include <vector>
 
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
@@ -29,14 +33,25 @@
     pt.get_or<type>(), respectively, to convert between member variables and the
     property tree. 
 */
-class CommonConfig 
+class CommonConfig: public std::enable_shared_from_this<CommonConfig> 
 {
 public:
-    CommonConfig(const std::string &fnamebase = std::string("CommonConfig"));
+    CommonConfig(const std::string &configName = std::string("CommonConfig"));
 
-	void markDirty() { m_bIsDirty= true; }
-	bool isMarkedDirty() const { return m_bIsDirty; }
+	template <class t_config_type>
+	std::shared_ptr<t_config_type> addChildConfig(const std::string& configName)
+	{
+		std::shared_ptr<t_config_type> childConfig= std::make_shared<t_config_type>(configName);
+		childConfig->OnMarkedDirty+= MakeDelegate(this, &CommonConfig::onChildConfigMarkedDirty);
+		m_childConfigs.push_back(childConfig);
 
+		return childConfig;
+	}
+	bool isMarkedDirty() const;
+	void markDirty();
+	MulticastDelegate<void(CommonConfigPtr configPtr)> OnMarkedDirty;
+
+	const std::string& getConfigName() const { return m_configName; }
 	const std::filesystem::path getDefaultConfigPath() const;
     const std::filesystem::path& getLoadedConfigPath() const { return m_configFullFilePath; }
     void save();
@@ -44,8 +59,8 @@ public:
     bool load();
 	bool load(const std::filesystem::path& path);
 
-    virtual const configuru::Config writeToJSON() = 0;  // Implement by each device class' own Config
-    virtual void readFromJSON(const configuru::Config &pt) = 0;  // Implement by each device class' own Config
+    virtual configuru::Config writeToJSON();  // Implement by each device class' own Config
+    virtual void readFromJSON(const configuru::Config &pt);  // Implement by each device class' own Config
     
 	template<typename t_value_type>
 	static void writeStdVector(
@@ -218,7 +233,11 @@ public:
         eDeviceType& outDeviceType);
 
 protected:
+	std::vector<CommonConfigPtr> m_childConfigs;
+	void onChildConfigMarkedDirty(CommonConfigPtr configPtr);
+	void clearDirty();
+
 	bool m_bIsDirty= false;
-	std::string m_configFileBase;
+	std::string m_configName;
 	std::filesystem::path m_configFullFilePath;
 };

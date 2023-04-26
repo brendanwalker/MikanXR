@@ -1,78 +1,40 @@
+#include "BoxStencilComponent.h"
+#include "ModelStencilComponent.h"
 #include "StencilObjectSystemConfig.h"
+#include "QuadStencilComponent.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 
-const configuru::Config StencilObjectSystemConfig::writeToJSON()
+// -- StencilObjectSystemConfig -----
+configuru::Config StencilObjectSystemConfig::writeToJSON()
 {
-	configuru::Config pt{
-		// Stencils
-		{"nextStencilId", nextStencilId},
-		{"debugRenderStencils", debugRenderStencils},
-	};
+	configuru::Config pt= CommonConfig::writeToJSON();
+
+	// Stencils
+	pt["nextStencilId"]= nextStencilId;
+	pt["debugRenderStencils"]= debugRenderStencils;
 
 	// Write out the quad stencils
 	std::vector<configuru::Config> stencilQuadConfigs;
-	for (const MikanStencilQuad& stencil : quadStencilList)
+	for (QuadStencilConfigPtr stencil : quadStencilList)
 	{
-		configuru::Config stencilConfig{
-			{"stencil_id", stencil.stencil_id},
-			{"parent_anchor_id", stencil.parent_anchor_id},
-			{"quad_width", stencil.quad_width},
-			{"quad_height", stencil.quad_height},
-			{"is_double_sided", stencil.is_double_sided},
-			{"is_disabled", stencil.is_disabled},
-			{"stencil_name", stencil.stencil_name}
-		};
-
-		writeVector3f(stencilConfig, "quad_center", stencil.quad_center);
-		writeVector3f(stencilConfig, "quad_x_axis", stencil.quad_x_axis);
-		writeVector3f(stencilConfig, "quad_y_axis", stencil.quad_y_axis);
-		writeVector3f(stencilConfig, "quad_normal", stencil.quad_normal);
-
-		stencilQuadConfigs.push_back(stencilConfig);
+		stencilQuadConfigs.push_back(stencil->writeToJSON());
 	}
 	pt.insert_or_assign(std::string("quadStencils"), stencilQuadConfigs);
 
 	// Write out the box stencils
 	std::vector<configuru::Config> stencilBoxConfigs;
-	for (const MikanStencilBox& stencil : boxStencilList)
+	for (BoxStencilConfigPtr stencil : boxStencilList)
 	{
-		configuru::Config stencilConfig{
-			{"stencil_id", stencil.stencil_id},
-			{"parent_anchor_id", stencil.parent_anchor_id},
-			{"box_x_size", stencil.box_x_size},
-			{"box_y_size", stencil.box_y_size},
-			{"box_z_size", stencil.box_z_size},
-			{"is_disabled", stencil.is_disabled},
-			{"stencil_name", stencil.stencil_name}
-		};
-
-		writeVector3f(stencilConfig, "box_center", stencil.box_center);
-		writeVector3f(stencilConfig, "box_x_axis", stencil.box_x_axis);
-		writeVector3f(stencilConfig, "box_y_axis", stencil.box_y_axis);
-		writeVector3f(stencilConfig, "box_z_axis", stencil.box_z_axis);
-
-		stencilBoxConfigs.push_back(stencilConfig);
+		stencilBoxConfigs.push_back(stencil->writeToJSON());
 	}
 	pt.insert_or_assign(std::string("boxStencils"), stencilBoxConfigs);
 
 	// Write out the model stencils
 	std::vector<configuru::Config> stencilModelConfigs;
-	for (const MikanStencilModelConfig& stencil : modelStencilList)
+	for (ModelStencilConfigPtr stencil : modelStencilList)
 	{
-		configuru::Config stencilConfig{
-			{"model_path", stencil.modelPath.string()},
-			{"stencil_id", stencil.modelInfo.stencil_id},
-			{"parent_anchor_id", stencil.modelInfo.parent_anchor_id},
-			{"is_disabled", stencil.modelInfo.is_disabled},
-			{"stencil_name", stencil.modelInfo.stencil_name}
-		};
-
-		writeVector3f(stencilConfig, "model_position", stencil.modelInfo.model_position);
-		writeRotator3f(stencilConfig, "model_rotator", stencil.modelInfo.model_rotator);
-		writeVector3f(stencilConfig, "model_scale", stencil.modelInfo.model_scale);
-
-		stencilModelConfigs.push_back(stencilConfig);
+		stencilModelConfigs.push_back(stencil->writeToJSON());
 	}
 	pt.insert_or_assign(std::string("modelStencils"), stencilModelConfigs);
 
@@ -81,6 +43,8 @@ const configuru::Config StencilObjectSystemConfig::writeToJSON()
 
 void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 {
+	CommonConfig::readFromJSON(pt);
+
 	nextStencilId = pt.get_or<int>("nextStencilId", nextStencilId);
 	debugRenderStencils = pt.get_or<bool>("debugRenderStencils", debugRenderStencils);
 
@@ -88,29 +52,12 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	quadStencilList.clear();
 	if (pt.has_key("quadStencils"))
 	{
-		for (const configuru::Config& stencilConfig : pt["quadStencils"].as_array())
+		for (const configuru::Config& stencil : pt["quadStencils"].as_array())
 		{
-			if (stencilConfig.has_key("stencil_id"))
-			{
-				MikanStencilQuad stencil;
-				memset(&stencil, 0, sizeof(stencil));
+			QuadStencilConfigPtr configPtr = std::make_shared<QuadStencilConfig>();
+			configPtr->readFromJSON(pt);
 
-				stencil.stencil_id = stencilConfig.get<int>("stencil_id");
-				stencil.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);
-				readVector3f(stencilConfig, "quad_center", stencil.quad_center);
-				readVector3f(stencilConfig, "quad_x_axis", stencil.quad_x_axis);
-				readVector3f(stencilConfig, "quad_y_axis", stencil.quad_y_axis);
-				readVector3f(stencilConfig, "quad_normal", stencil.quad_normal);
-				stencil.quad_width = stencilConfig.get_or<float>("quad_width", 0.25f);
-				stencil.quad_height = stencilConfig.get_or<float>("quad_height", 0.25f);
-				stencil.is_double_sided = stencilConfig.get_or<bool>("is_double_sided", false);
-				stencil.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
-
-				const std::string stencil_name = stencilConfig.get_or<std::string>("stencil_name", "");
-				StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
-
-				quadStencilList.push_back(stencil);
-			}
+			quadStencilList.push_back(configPtr);
 		}
 	}
 
@@ -120,27 +67,10 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	{
 		for (const configuru::Config& stencilConfig : pt["boxStencils"].as_array())
 		{
-			if (stencilConfig.has_key("stencil_id"))
-			{
-				MikanStencilBox stencil;
-				memset(&stencil, 0, sizeof(stencil));
+			BoxStencilConfigPtr configPtr = std::make_shared<BoxStencilConfig>();
+			configPtr->readFromJSON(pt);
 
-				stencil.stencil_id = stencilConfig.get<int>("stencil_id");
-				stencil.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);
-				readVector3f(stencilConfig, "box_center", stencil.box_center);
-				readVector3f(stencilConfig, "box_x_axis", stencil.box_x_axis);
-				readVector3f(stencilConfig, "box_y_axis", stencil.box_y_axis);
-				readVector3f(stencilConfig, "box_z_axis", stencil.box_z_axis);
-				stencil.box_x_size = stencilConfig.get_or<float>("box_x_size", 0.25f);
-				stencil.box_y_size = stencilConfig.get_or<float>("box_y_size", 0.25f);
-				stencil.box_z_size = stencilConfig.get_or<float>("box_z_size", 0.25f);
-				stencil.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
-
-				const std::string stencil_name = stencilConfig.get_or<std::string>("stencil_name", "");
-				StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
-
-				boxStencilList.push_back(stencil);
-			}
+			boxStencilList.push_back(configPtr);
 		}
 	}
 
@@ -150,25 +80,10 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	{
 		for (const configuru::Config& stencilConfig : pt["modelStencils"].as_array())
 		{
-			if (stencilConfig.has_key("stencil_id"))
-			{
-				MikanStencilModelConfig modelConfig;
-				MikanStencilModel& modelInfo = modelConfig.modelInfo;
-				memset(&modelInfo, 0, sizeof(MikanStencilModel));
+			ModelStencilConfigPtr configPtr = std::make_shared<ModelStencilConfig>();
+			configPtr->readFromJSON(pt);
 
-				modelConfig.modelPath = stencilConfig.get<std::string>("model_path");
-				modelInfo.stencil_id = stencilConfig.get<int>("stencil_id");
-				modelInfo.parent_anchor_id = stencilConfig.get_or<int>("parent_anchor_id", -1);
-				readVector3f(stencilConfig, "model_position", modelInfo.model_position);
-				readRotator3f(stencilConfig, "model_rotator", modelInfo.model_rotator);
-				readVector3f(stencilConfig, "model_scale", modelInfo.model_scale);
-				modelInfo.is_disabled = stencilConfig.get_or<bool>("is_disabled", false);
-
-				const std::string stencil_name = stencilConfig.get_or<std::string>("stencil_name", "");
-				StringUtils::formatString(modelInfo.stencil_name, sizeof(modelInfo.stencil_name), "%s", stencil_name.c_str());
-
-				modelStencilList.push_back(modelConfig);
-			}
+			modelStencilList.push_back(configPtr);
 		}
 	}
 }
@@ -184,8 +99,8 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 	{
 		auto it = std::find_if(
 			quadStencilList.begin(), quadStencilList.end(),
-			[stencilId](const MikanStencilQuad& q) {
-			return q.stencil_id == stencilId;
+			[stencilId](QuadStencilConfigPtr q) {
+			return q->getStencilId() == stencilId;
 		});
 
 		if (it != quadStencilList.end())
@@ -201,8 +116,8 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 	{
 		auto it = std::find_if(
 			boxStencilList.begin(), boxStencilList.end(),
-			[stencilId](const MikanStencilBox& b) {
-			return b.stencil_id == stencilId;
+			[stencilId](BoxStencilConfigPtr b) {
+			return b->getStencilId() == stencilId;
 		});
 
 		if (it != boxStencilList.end())
@@ -218,8 +133,8 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 	{
 		auto it = std::find_if(
 			modelStencilList.begin(), modelStencilList.end(),
-			[stencilId](const MikanStencilModelConfig& m) {
-			return m.modelInfo.stencil_id == stencilId;
+			[stencilId](ModelStencilConfigPtr m) {
+			return m->getStencilId() == stencilId;
 		});
 
 		if (it != modelStencilList.end())
@@ -241,8 +156,8 @@ eStencilType StencilObjectSystemConfig::getStencilType(MikanStencilID stencilId)
 	{
 		auto it = std::find_if(
 			quadStencilList.begin(), quadStencilList.end(),
-			[stencilId](const MikanStencilQuad& q) {
-			return q.stencil_id == stencilId;
+			[stencilId](QuadStencilConfigPtr q) {
+			return q->getStencilId() == stencilId;
 		});
 
 		if (it != quadStencilList.end())
@@ -255,8 +170,8 @@ eStencilType StencilObjectSystemConfig::getStencilType(MikanStencilID stencilId)
 	{
 		auto it = std::find_if(
 			boxStencilList.begin(), boxStencilList.end(),
-			[stencilId](const MikanStencilBox& b) {
-			return b.stencil_id == stencilId;
+			[stencilId](BoxStencilConfigPtr b) {
+			return b->getStencilId() == stencilId;
 		});
 
 		if (it != boxStencilList.end())
@@ -269,8 +184,8 @@ eStencilType StencilObjectSystemConfig::getStencilType(MikanStencilID stencilId)
 	{
 		auto it = std::find_if(
 			modelStencilList.begin(), modelStencilList.end(),
-			[stencilId](const MikanStencilModelConfig& m) {
-			return m.modelInfo.stencil_id == stencilId;
+			[stencilId](ModelStencilConfigPtr m) {
+			return m->getStencilId() == stencilId;
 		});
 
 		if (it != modelStencilList.end())
@@ -283,20 +198,25 @@ eStencilType StencilObjectSystemConfig::getStencilType(MikanStencilID stencilId)
 	return eStencilType::INVALID;
 }
 
-const MikanStencilQuad* StencilObjectSystemConfig::getQuadStencilInfo(MikanStencilID stencilId) const
+QuadStencilConfigConstPtr StencilObjectSystemConfig::getQuadStencilInfoConst(MikanStencilID stencilId) const
 {
 	auto it = std::find_if(
 		quadStencilList.begin(), quadStencilList.end(),
-		[stencilId](const MikanStencilQuad& quad) {
-		return quad.stencil_id == stencilId;
+		[stencilId](QuadStencilConfigPtr quadConfig) {
+		return quadConfig->getStencilId() == stencilId;
 	});
 
 	if (it != quadStencilList.end())
 	{
-		return &(*it);
+		return *it;
 	}
 
 	return nullptr;
+}
+
+QuadStencilConfigPtr StencilObjectSystemConfig::getQuadStencilInfo(MikanStencilID stencilId)
+{
+	return std::const_pointer_cast<QuadStencilConfig>(getQuadStencilInfoConst(stencilId));
 }
 
 MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQuad& quadInfo)
@@ -304,30 +224,38 @@ MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQu
 	if (!canAddStencil())
 		return INVALID_MIKAN_ID;
 
-	MikanStencilQuad newStencil = quadInfo;
-	newStencil.stencil_id = nextStencilId;
+	MikanStencilQuad localQuadInfo= quadInfo;
+	localQuadInfo.stencil_id= nextStencilId;
 	nextStencilId++;
 
-	quadStencilList.push_back(newStencil);
+	QuadStencilConfigPtr configPtr = std::make_shared<QuadStencilConfig>();
+	configPtr->setQuadInfo(localQuadInfo);
+
+	quadStencilList.push_back(configPtr);
 	markDirty();
 
-	return newStencil.stencil_id;
+	return configPtr->getStencilId();
 }
 
-const MikanStencilBox* StencilObjectSystemConfig::getBoxStencilInfo(MikanStencilID stencilId) const
+BoxStencilConfigConstPtr StencilObjectSystemConfig::getBoxStencilInfoConst(MikanStencilID stencilId) const
 {
 	auto it = std::find_if(
 		boxStencilList.begin(), boxStencilList.end(),
-		[stencilId](const MikanStencilBox& box) {
-		return box.stencil_id == stencilId;
+		[stencilId](BoxStencilConfigPtr box) {
+		return box->getStencilId() == stencilId;
 	});
 
 	if (it != boxStencilList.end())
 	{
-		return &(*it);
+		return *it;
 	}
 
 	return nullptr;
+}
+
+BoxStencilConfigPtr StencilObjectSystemConfig::getBoxStencilInfo(MikanStencilID stencilId)
+{
+	return std::const_pointer_cast<BoxStencilConfig>(getBoxStencilInfoConst(stencilId));
 }
 
 MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBox& boxInfo)
@@ -335,28 +263,31 @@ MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBox
 	if (!canAddStencil())
 		return INVALID_MIKAN_ID;
 
-	MikanStencilBox newStencil = boxInfo;
-	newStencil.stencil_id = nextStencilId;
+	MikanStencilBox localBoxInfo = boxInfo;
+	localBoxInfo.stencil_id = nextStencilId;
 	nextStencilId++;
 
-	boxStencilList.push_back(newStencil);
+	BoxStencilConfigPtr configPtr = std::make_shared<BoxStencilConfig>();
+	configPtr->setBoxInfo(localBoxInfo);
+
+	boxStencilList.push_back(configPtr);
 	markDirty();
 
-	return newStencil.stencil_id;
+	return configPtr->getStencilId();
 }
 
-const MikanStencilModelConfig* StencilObjectSystemConfig::getModelStencilConfig(MikanStencilID stencilId) const
+ModelStencilConfigConstPtr StencilObjectSystemConfig::getModelStencilConfigConst(MikanStencilID stencilId) const
 {
 	auto it = std::find_if(
 		modelStencilList.begin(),
 		modelStencilList.end(),
-		[stencilId](const MikanStencilModelConfig& stencil) {
-		return stencil.modelInfo.stencil_id == stencilId;
+		[stencilId](ModelStencilConfigPtr stencil) {
+		return stencil->getStencilId() == stencilId;
 	});
 
 	if (it != modelStencilList.end())
 	{
-		return &(*it);
+		return *it;
 	}
 	else
 	{
@@ -364,18 +295,25 @@ const MikanStencilModelConfig* StencilObjectSystemConfig::getModelStencilConfig(
 	}
 }
 
+ModelStencilConfigPtr StencilObjectSystemConfig::getModelStencilConfig(MikanStencilID stencilId)
+{
+	return std::const_pointer_cast<ModelStencilConfig>(getModelStencilConfigConst(stencilId));
+}
+
 MikanStencilID StencilObjectSystemConfig::addNewModelStencil(const MikanStencilModel& modelInfo)
 {
 	if (!canAddStencil())
 		return INVALID_MIKAN_ID;
 
-	MikanStencilModelConfig newStencil;
-	newStencil.modelInfo = modelInfo;
-	newStencil.modelInfo.stencil_id = nextStencilId;
+	MikanStencilModel localModelInfo = modelInfo;
+	localModelInfo.stencil_id = nextStencilId;
 	nextStencilId++;
 
-	modelStencilList.push_back(newStencil);
+	ModelStencilConfigPtr configPtr = std::make_shared<ModelStencilConfig>();
+	configPtr->setModelInfo(localModelInfo);
+
+	modelStencilList.push_back(configPtr);
 	markDirty();
 
-	return newStencil.modelInfo.stencil_id;
+	return configPtr->getStencilId();
 }

@@ -176,7 +176,7 @@ void AppStage_Compositor::enter()
 		m_compositiorLayersView->Show();
 
 		// Init Anchors UI
-		m_compositorAnchorsModel->init(context, m_profile);
+		m_compositorAnchorsModel->init(context, m_profile->anchorConfig);
 		m_compositorAnchorsModel->OnUpdateOriginPose = MakeDelegate(this, &AppStage_Compositor::onUpdateOriginEvent);
 		m_compositorAnchorsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddAnchorFastenerEvent);
 		m_compositorAnchorsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditAnchorFastenerEvent);
@@ -805,7 +805,7 @@ void AppStage_Compositor::onAddBoxStencilEvent()
 
 	if (m_profile->addNewBoxStencil(box) != INVALID_MIKAN_ID)
 	{
-		m_compositorBoxesModel->rebuildUIBoxesFromProfile(m_profile);
+		m_compositorBoxesModel->rebuildUIBoxesFromStencilSystem(m_profile);
 		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
@@ -814,14 +814,14 @@ void AppStage_Compositor::onDeleteBoxStencilEvent(int stencilID)
 {
 	if (m_profile->removeStencil(stencilID))
 	{
-		m_compositorBoxesModel->rebuildUIBoxesFromProfile(m_profile);
+		m_compositorBoxesModel->rebuildUIBoxesFromStencilSystem(m_profile);
 		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
 	}
 }
 
 void AppStage_Compositor::onModifyBoxStencilEvent(int stencilID)
 {
-	m_compositorBoxesModel->copyUIBoxToProfile(stencilID, m_profile);
+	m_compositorBoxesModel->copyUIBoxToStencilSystem(stencilID, m_profile);
 }
 
 void AppStage_Compositor::onModifyBoxStencilParentAnchorEvent(int stencilID, int newAnchorID)

@@ -1,12 +1,50 @@
 #pragma once
 
-#include "ComponentProperty.h"
 #include "MikanClientTypes.h"
+#include "MikanMathTypes.h"
+#include "ObjectSystemConfigFwd.h"
 #include "StencilComponent.h"
 
 #include <string>
 
 #include "glm/ext/vector_float3.hpp"
+
+class QuadStencilConfig : public CommonConfig
+{
+public:
+	QuadStencilConfig();
+	QuadStencilConfig(MikanStencilID stencilId);
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	const MikanStencilQuad& getQuadInfo() const { return m_quadInfo; }
+	void setQuadInfo(const MikanStencilQuad& quadInfo);
+
+	MikanStencilID getStencilId() const { return m_quadInfo.stencil_id; }
+	MikanStencilID getParentAnchorId() const { return m_quadInfo.parent_anchor_id; }
+
+	const glm::mat4 getQuadXform() const;
+	void setQuadXform(const glm::mat4& xform);
+
+	float getQuadWidth() const { return m_quadInfo.quad_width; }
+	void setQuadWidth(float width);
+
+	float getQuadHeight() const { return m_quadInfo.quad_height; }
+	void setQuadHeight(float height);
+
+	bool getIsDoubleSided() const { return m_quadInfo.is_double_sided; }
+	void setIsDoubleSided(bool flag);
+
+	bool getIsDisabled() const { return m_quadInfo.is_disabled; }
+	void setIsDisabled(bool flag);
+
+	const std::string getStencilName() const { return m_quadInfo.stencil_name; }
+	void setStencilName(const std::string& stencilName);
+
+private:
+	MikanStencilQuad m_quadInfo;
+};
 
 class QuadStencilComponent : public StencilComponent
 {
@@ -15,7 +53,8 @@ public:
 	virtual void init() override;
 	virtual void update() override;
 
-	void setQuadStencil(const MikanStencilQuad& stencil);
+	inline QuadStencilConfigPtr getConfig() const { return m_config; }
+	void setConfig(QuadStencilConfigPtr config);
 
 	virtual glm::mat4 getStencilLocalTransform() const override;
 	virtual glm::mat4 getStencilWorldTransform() const override;
@@ -23,17 +62,10 @@ public:
 	virtual void setStencilWorldTransformProperty(const glm::mat4& xform) override;
 
 protected:
-	COMPONENT_PROPERTY(glm::vec3, QuadCenter);
-	COMPONENT_PROPERTY(glm::vec3, QuadXAxis);
-	COMPONENT_PROPERTY(glm::vec3, QuadYAxis);
-	COMPONENT_PROPERTY(glm::vec3, QuadNormal);
-	COMPONENT_PROPERTY(float, QuadWidth);
-	COMPONENT_PROPERTY(float, QuadHeight);
-	COMPONENT_PROPERTY(bool, IsDoubleSided);
-
 	void updateSceneComponentTransform();
 	void updateBoxColliderExtents();
 
+	QuadStencilConfigPtr m_config;
 	SelectionComponentWeakPtr m_selectionComponent;
 	BoxColliderComponentWeakPtr m_boxCollider;
 };

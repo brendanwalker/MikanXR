@@ -22,17 +22,19 @@ VideoSourceManagerConfig::VideoSourceManagerConfig(const std::string& fnamebase)
 
 };
 
-const configuru::Config VideoSourceManagerConfig::writeToJSON()
+configuru::Config VideoSourceManagerConfig::writeToJSON()
 {
-	configuru::Config pt{
-		{"rtmp_server_port", rtmp_server_port},
-	};
+	configuru::Config pt= CommonConfig::writeToJSON();
+
+	pt["rtmp_server_port"]= rtmp_server_port;
 
 	return pt;
 }
 
 void VideoSourceManagerConfig::readFromJSON(const configuru::Config& pt)
 {
+	CommonConfig::readFromJSON(pt);
+
 	rtmp_server_port = pt.get_or<unsigned int>("rtmp_server_port", rtmp_server_port);
 }
 

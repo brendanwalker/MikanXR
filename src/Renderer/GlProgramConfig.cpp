@@ -2,13 +2,13 @@
 #include "GlProgram.h"
 
 // -- CompositorLayerConfig ------
-const configuru::Config GlProgramConfig::writeToJSON()
+configuru::Config GlProgramConfig::writeToJSON()
 {
-	configuru::Config pt{
-		{"materialName", materialName},
-		{"vertexShaderPath", vertexShaderPath.string()},
-		{"fragmentShaderPath", fragmentShaderPath.string()},
-	};
+	configuru::Config pt= CommonConfig::writeToJSON();
+
+	pt["materialName"]= materialName;
+	pt["vertexShaderPath"]= vertexShaderPath.string();
+	pt["fragmentShaderPath"]= fragmentShaderPath.string();
 
 	CommonConfig::writeStdMap(pt, "uniforms", uniforms);
 
@@ -17,6 +17,8 @@ const configuru::Config GlProgramConfig::writeToJSON()
 
 void GlProgramConfig::readFromJSON(const configuru::Config& pt)
 {
+	CommonConfig::readFromJSON(pt);
+
 	materialName = pt.get_or<std::string>("materialName", materialName);
 	vertexShaderPath = pt.get_or<std::string>("vertexShaderPath", vertexShaderPath.string());
 	fragmentShaderPath = pt.get_or<std::string>("fragmentShaderPath", fragmentShaderPath.string());

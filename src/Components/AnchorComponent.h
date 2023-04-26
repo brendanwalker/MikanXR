@@ -1,9 +1,10 @@
 #pragma once
 
+#include "CommonConfig.h"
+#include "ComponentFwd.h"
 #include "MikanComponent.h"
 #include "MikanClientTypes.h"
-#include "ComponentProperty.h"
-#include "ComponentFwd.h"
+#include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
 
 #include <memory>
@@ -14,24 +15,48 @@
 class SceneComponent;
 using SceneComponentWeakPtr = std::weak_ptr<SceneComponent>;
 
+class AnchorConfig : public CommonConfig
+{
+public:
+	AnchorConfig();
+	AnchorConfig(
+		MikanSpatialAnchorID anchorId,
+		const std::string& anchorName,
+		const MikanMatrix4f& xform);
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	MikanSpatialAnchorID getAnchorId() const { return m_anchorInfo.anchor_id; }
+	const MikanSpatialAnchorInfo& getAnchorInfo() const { return m_anchorInfo; }
+
+	const glm::mat4 getAnchorXform() const;
+	void setAnchorXform(const glm::mat4& xform);
+
+	const std::string getAnchorName() const;
+	void setAnchorName(const std::string& anchorName);
+
+private:
+	MikanSpatialAnchorInfo m_anchorInfo;
+};
+
 class AnchorComponent : public MikanComponent
 {
 public:
 	AnchorComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 
-	void setSpatialAnchor(const MikanSpatialAnchorInfo& anchor);
+	inline AnchorConfigPtr getConfig() const { return m_config; }
+	void setConfig(AnchorConfigPtr config);
+
+	const glm::mat4 getAnchorXform() const;
 	void setAnchorXform(const glm::mat4& xform);
+
+	const std::string getAnchorName();
 	void setAnchorName(const std::string& newAnchorName);
 
-	MikanSpatialAnchorID getAnchorId() const { return AnchorId; }
-	const glm::mat4 getAnchorXform() const { return AnchorXform; }
-	const std::string& getAnchorName() const { return AnchorName; }
-
 protected:
-	COMPONENT_PROPERTY(MikanSpatialAnchorID, AnchorId);
-	COMPONENT_PROPERTY(glm::mat4, AnchorXform);
-	COMPONENT_PROPERTY(std::string, AnchorName);
+	AnchorConfigPtr m_config;
 
 	SceneComponentWeakPtr m_sceneComponent;
 	void updateSceneComponentTransform();

@@ -177,9 +177,9 @@ void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- CompositorPreset ------
-const configuru::Config CompositorPreset::writeToJSON()
+configuru::Config CompositorPreset::writeToJSON()
 {
-	configuru::Config pt = configuru::Config::object();
+	configuru::Config pt = CommonConfig::writeToJSON();
 
 	// Write out the layers
 	std::vector<configuru::Config> layerConfigs;
@@ -197,6 +197,8 @@ const configuru::Config CompositorPreset::writeToJSON()
 void CompositorPreset::readFromJSON(
 	const configuru::Config& pt)
 {
+	CommonConfig::writeToJSON();
+
 	name= pt.get_or<std::string>("name", name);
 	builtIn= pt.get_or<bool>("builtIn", builtIn);
 
@@ -214,9 +216,9 @@ void CompositorPreset::readFromJSON(
 }
 
 // -- GlFrameCompositorConfig ------
-const configuru::Config GlFrameCompositorConfig::writeToJSON()
+configuru::Config GlFrameCompositorConfig::writeToJSON()
 {
-	configuru::Config pt = configuru::Config::object();
+	configuru::Config pt = CommonConfig::writeToJSON();
 
 	pt["presetName"] = presetName;
 	pt["nextPresetId"] = nextPresetId;
@@ -227,6 +229,8 @@ const configuru::Config GlFrameCompositorConfig::writeToJSON()
 void GlFrameCompositorConfig::readFromJSON(
 	const configuru::Config& pt)
 {
+	CommonConfig::readFromJSON(pt);
+
 	presetName = pt.get_or<std::string>("presetName", presetName);
 	nextPresetId = pt.get_or<int>("nextPresetId", nextPresetId);
 }

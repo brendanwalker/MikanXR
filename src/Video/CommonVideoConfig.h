@@ -11,7 +11,7 @@ class CommonVideoConfig : public CommonConfig
 public:
     CommonVideoConfig(const std::string &fnamebase = "CommonVideoConfig");
     
-    virtual const configuru::Config writeToJSON();
+    virtual configuru::Config writeToJSON();
     virtual void readFromJSON(const configuru::Config &pt);
 
     bool is_valid;

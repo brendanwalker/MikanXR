@@ -74,7 +74,7 @@ public:
 		: CommonConfig(fnamebase)
 	{}
 
-	virtual const configuru::Config writeToJSON();
+	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	std::string name;
@@ -89,7 +89,7 @@ public:
 		: CommonConfig(fnamebase)
 	{}
 
-	virtual const configuru::Config writeToJSON();
+	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	std::string presetName;

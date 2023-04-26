@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "ComponentProperty.h"
 #include "ObjectFwd.h"
 #include "MulticastDelegate.h"
 
@@ -35,7 +36,11 @@ public:
 	virtual void dispose();
 	virtual void update();
 
+	MulticastDelegate<void(const ComponentProperty&)> OnComponentPropertyChanged;
+
 protected:
+	virtual void notifyComponentPropertyChanged(const ComponentProperty& property);
+
 	std::string m_name;
 	MikanObjectWeakPtr m_ownerObject;
 };

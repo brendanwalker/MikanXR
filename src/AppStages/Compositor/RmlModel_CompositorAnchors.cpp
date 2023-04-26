@@ -1,3 +1,5 @@
+#include "AnchorObjectSystem.h"
+#include "AnchorComponent.h"
 #include "RmlModel_CompositorAnchors.h"
 #include "MathMikan.h"
 #include "ProfileConfig.h"
@@ -11,8 +13,11 @@ bool RmlModel_CompositorAnchors::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorAnchors::init(
 	Rml::Context* rmlContext,
-	const ProfileConfig* profile)
+	AnchorObjectSystemConfigWeakPtr anchorSystemWeakPtr)
 {
+	auto anchorSystemConfig = anchorSystemWeakPtr.lock();
+	m_anchorSystemConfigWeakPtr= anchorSystemWeakPtr;
+
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_anchors");
 	if (!constructor)
@@ -71,31 +76,43 @@ bool RmlModel_CompositorAnchors::init(
 		});
 
 	// Fill in the data model
-	rebuildAnchorList(profile);
+	rebuildAnchorList();
+
+	// Listen for anchor system config changes
+	anchorSystemConfig->OnMarkedDirty+= MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
 
 	return true;
 }
 
 void RmlModel_CompositorAnchors::dispose()
 {
+	auto anchorSystemConfig = m_anchorSystemConfigWeakPtr.lock();
+	anchorSystemConfig->OnMarkedDirty-= MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
+
 	OnAddFastenerEvent.Clear();
 	OnDeleteFastenerEvent.Clear();
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorAnchors::rebuildAnchorList(const ProfileConfig* profile)
+void RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr)
 {
-	m_originAnchorId= profile->originAnchorId;
+	rebuildAnchorList();
+}
+
+void RmlModel_CompositorAnchors::rebuildAnchorList()
+{
+	auto anchorSystemConfig= m_anchorSystemConfigWeakPtr.lock();
+
+	m_originAnchorId= anchorSystemConfig->originAnchorId;
 	m_modelHandle.DirtyVariable("origin_anchor_id");
 
 	m_spatialAnchors.clear();
-	for (const MikanSpatialAnchorInfo& anchorInfo : profile->spatialAnchorList)
+	for (AnchorConfigPtr anchorConfig : anchorSystemConfig->spatialAnchorList)
 	{
 		RmlModel_CompositorAnchor uiAnchorInfo;
-		uiAnchorInfo.anchor_id= anchorInfo.anchor_id;
-		uiAnchorInfo.child_fastener_ids= 
-			profile->getSpatialFastenersWithParent(
-				MikanFastenerParentType_SpatialAnchor, anchorInfo.anchor_id);
+		uiAnchorInfo.anchor_id= anchorConfig->getAnchorId();
+		profile->getSpatialFastenersWithParent(
+			MikanFastenerParentType_SpatialAnchor, anchorInfo.anchor_id);
 
 		m_spatialAnchors.push_back(uiAnchorInfo);
 	}

@@ -25,3 +25,9 @@ void MikanComponent::dispose()
 {
 
 }
+
+void MikanComponent::notifyComponentPropertyChanged(const ComponentProperty& property)
+{
+	if (OnComponentPropertyChanged)
+		OnComponentPropertyChanged(property);
+}

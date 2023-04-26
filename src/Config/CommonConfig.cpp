@@ -21,8 +21,39 @@
 #endif
 
 CommonConfig::CommonConfig(const std::string &fnamebase)
-    : m_configFileBase(fnamebase)
+    : m_configName(fnamebase)
 {
+}
+
+void CommonConfig::onChildConfigMarkedDirty(CommonConfigPtr configPtr) 
+{ 
+	m_bIsDirty = true;
+	if (OnMarkedDirty)
+		OnMarkedDirty(configPtr);
+}
+
+bool CommonConfig::isMarkedDirty() const 
+{ 
+    return m_bIsDirty; 
+}
+
+void CommonConfig::markDirty() 
+{ 
+    if (!m_bIsDirty)
+    {
+		m_bIsDirty = true;
+        if (OnMarkedDirty)
+            OnMarkedDirty(shared_from_this());
+    }
+}
+
+void CommonConfig::clearDirty()
+{
+    m_bIsDirty= false;
+    for (CommonConfigPtr childConfigPtr : m_childConfigs)
+    {
+        childConfigPtr->clearDirty();
+    }
 }
 
 const std::filesystem::path CommonConfig::getDefaultConfigPath() const
@@ -38,7 +69,7 @@ const std::filesystem::path CommonConfig::getDefaultConfigPath() const
 		}
     }
 
-    const std::string configFilename= m_configFileBase + ".json";
+    const std::string configFilename= m_configName + ".json";
     const std::filesystem::path config_filepath = config_path / configFilename;
 
     return config_filepath;
@@ -55,7 +86,7 @@ CommonConfig::save(const std::filesystem::path& path)
     m_configFullFilePath= path;
 
 	configuru::dump_file(path.string(), writeToJSON(), configuru::JSON);
-    m_bIsDirty= false;
+    clearDirty();
 }
 
 bool
@@ -75,13 +106,21 @@ CommonConfig::load(const std::filesystem::path& path)
 
         configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
         readFromJSON(cfg);
-        m_bIsDirty= false;
+        clearDirty();
         bLoadedOk = true;
     }
 
     return bLoadedOk;
 }
 
+configuru::Config CommonConfig::writeToJSON()
+{
+    return configuru::Config::object();
+}
+
+void CommonConfig::readFromJSON(const configuru::Config& pt)
+{
+}
 
 void CommonConfig::writeMonoTrackerIntrinsics(
     configuru::Config& pt,

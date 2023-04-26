@@ -44,8 +44,8 @@ class VideoCapabilitiesConfig : public CommonConfig
 public:
     VideoCapabilitiesConfig(const std::string &fnamebase = "CommonTrackerConfig");
     
-    virtual const configuru::Config writeToJSON();
-    virtual void readFromJSON(const configuru::Config &pt);
+    virtual configuru::Config writeToJSON() override;
+    virtual void readFromJSON(const configuru::Config &pt) override;
 
 	int findVideoModeIndex(const std::string& mode_name) const;
 	const VideoModeConfig* findVideoMode(const std::string &mode_name) const;
@@ -57,14 +57,16 @@ public:
 	eDeviceType deviceType;
 	std::vector<VideoModeConfig> supportedModes;	
 };
+using VideoCapabilitiesConfigPtr = std::shared_ptr<VideoCapabilitiesConfig>;
+using VideoCapabilitiesConfigConstPtr = std::shared_ptr<const VideoCapabilitiesConfig>;
 
 class VideoCapabilitiesSet
 {
 public:
 	bool reloadSupportedVideoCapabilities();
 	bool supportsVideoSource(unsigned short vendor_id, unsigned short product_id) const;
-	const VideoCapabilitiesConfig *getVideoSourceCapabilities(unsigned short vendor_id, unsigned short product_id) const;
+	VideoCapabilitiesConfigConstPtr getVideoSourceCapabilities(unsigned short vendor_id, unsigned short product_id) const;
 
 private:
-	std::vector<VideoCapabilitiesConfig> m_supportedTrackers;
+	std::vector<VideoCapabilitiesConfigConstPtr> m_supportedTrackers;
 };

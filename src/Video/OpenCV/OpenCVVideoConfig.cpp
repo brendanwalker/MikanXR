@@ -46,7 +46,7 @@ OpenCVVideoConfig::OpenCVVideoConfig(const std::string &fnamebase)
 	cameraIntrinsics.distortion_coefficients.p2= 0.0;
 };
 
-const configuru::Config OpenCVVideoConfig::writeToJSON()
+configuru::Config OpenCVVideoConfig::writeToJSON()
 {
     configuru::Config pt= CommonVideoConfig::writeToJSON();
 

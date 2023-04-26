@@ -2,15 +2,11 @@
 
 #include "CommonConfig.h"
 #include "MikanClientTypes.h"
+#include "ObjectSystemConfigFwd.h"
 #include "ProfileConfigConstants.h"
 
 #include <filesystem>
 
-struct MikanStencilModelConfig
-{
-	MikanStencilModel modelInfo;
-	std::filesystem::path modelPath;
-};
 
 class StencilObjectSystemConfig : public CommonConfig
 {
@@ -19,25 +15,28 @@ public:
 		: CommonConfig(fnamebase)
 	{}
 
-	virtual const configuru::Config writeToJSON();
+	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	bool canAddStencil() const;
 	bool removeStencil(MikanStencilID stencilId);
 	eStencilType getStencilType(MikanStencilID stencilId) const;
 
-	const MikanStencilQuad* getQuadStencilInfo(MikanStencilID stencilId) const;
+	QuadStencilConfigConstPtr getQuadStencilInfoConst(MikanStencilID stencilId) const;
+	QuadStencilConfigPtr getQuadStencilInfo(MikanStencilID stencilId);
 	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
 
-	const MikanStencilBox* getBoxStencilInfo(MikanStencilID stencilId) const;
+	BoxStencilConfigConstPtr getBoxStencilInfoConst(MikanStencilID stencilId) const;
+	BoxStencilConfigPtr getBoxStencilInfo(MikanStencilID stencilId);
 	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
 
-	const MikanStencilModelConfig* getModelStencilConfig(MikanStencilID stencilId) const;
+	ModelStencilConfigConstPtr getModelStencilConfigConst(MikanStencilID stencilId) const;
+	ModelStencilConfigPtr getModelStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
 
-	std::vector<MikanStencilQuad> quadStencilList;
-	std::vector<MikanStencilBox> boxStencilList;
-	std::vector<MikanStencilModelConfig> modelStencilList;
+	std::vector<QuadStencilConfigPtr> quadStencilList;
+	std::vector<BoxStencilConfigPtr> boxStencilList;
+	std::vector<ModelStencilConfigPtr> modelStencilList;
 	MikanStencilID nextStencilId;
 	bool debugRenderStencils;
 };

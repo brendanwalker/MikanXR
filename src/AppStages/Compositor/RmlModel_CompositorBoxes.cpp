@@ -1,6 +1,9 @@
+#include "AnchorObjectSystem.h"
+#include "BoxStencilComponent.h"
 #include "RmlModel_CompositorBoxes.h"
 #include "MathMikan.h"
 #include "ProfileConfig.h"
+#include "StencilObjectSystem.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -11,8 +14,12 @@ bool RmlModel_CompositorBoxes::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorBoxes::init(
 	Rml::Context* rmlContext,
-	const ProfileConfig* profile)
+	AnchorObjectSystemWeakPtr anchorSystemPtr,
+	StencilObjectSystemWeakPtr stencilSystemPtr)
 {
+	m_anchorSystemPtr= anchorSystemPtr;
+	m_stencilSystemPtr= stencilSystemPtr;
+
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_boxes");
 	if (!constructor)
@@ -105,8 +112,8 @@ bool RmlModel_CompositorBoxes::init(
 		});
 
 	// Fill in the data model
-	rebuildAnchorList(profile);
-	rebuildUIBoxesFromProfile(profile);
+	rebuildAnchorList();
+	rebuildUIBoxesFromStencilSystem();
 
 	return true;
 }
@@ -119,21 +126,33 @@ void RmlModel_CompositorBoxes::dispose()
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorBoxes::rebuildAnchorList(const ProfileConfig* profile)
+void RmlModel_CompositorBoxes::rebuildAnchorList()
 {
+	AnchorObjectSystemPtr anchorSystem= m_anchorSystemPtr.lock();
+	auto& anchorMap= anchorSystem->getAnchorMap();
+
 	m_spatialAnchors.clear();
-	for (const MikanSpatialAnchorInfo& anchorInfo : profile->spatialAnchorList)
+	for (auto it = anchorMap.begin(); it != anchorMap.end(); ++it)
 	{
-		m_spatialAnchors.push_back(anchorInfo.anchor_id);
+		const MikanSpatialAnchorID anchorId= it->first;
+
+		m_spatialAnchors.push_back(anchorId);
 	}
 	m_modelHandle.DirtyVariable("spatial_anchors");
 }
 
-void RmlModel_CompositorBoxes::rebuildUIBoxesFromProfile(const ProfileConfig* profile)
+void RmlModel_CompositorBoxes::rebuildUIBoxesFromStencilSystem()
 {
+	StencilObjectSystemPtr stencilSystem= m_stencilSystemPtr.lock();
+	auto& stencilMap= stencilSystem->getBoxStencilMap();
+
 	m_stencilBoxes.clear();
-	for (const MikanStencilBox& box : profile->boxStencilList)
+	for (auto it = stencilMap.begin(); it != stencilMap.end(); ++it)
 	{
+		BoxStencilComponentPtr stencilPtr= it->second.lock();
+		BoxStencilConfigPtr configPtr= stencilPtr->getConfig();
+		const MikanStencilBox& box= configPtr->getBoxInfo();
+
 		float angles[3]{};
 		MikanOrientationToEulerAngles(
 			box.box_x_axis, box.box_y_axis, box.box_z_axis,
@@ -153,38 +172,42 @@ void RmlModel_CompositorBoxes::rebuildUIBoxesFromProfile(const ProfileConfig* pr
 	m_modelHandle.DirtyVariable("stencil_boxes");
 }
 
-void RmlModel_CompositorBoxes::copyUIBoxToProfile(int stencil_id, ProfileConfig* profile) const
+void RmlModel_CompositorBoxes::copyUIBoxToStencilSystem(int stencil_id) const
 {
 	auto it = std::find_if(
 		m_stencilBoxes.begin(), m_stencilBoxes.end(),
 		[stencil_id](const RmlModel_CompositorBox& box) {
 		return box.stencil_id == stencil_id;
 	});
+
 	if (it != m_stencilBoxes.end())
 	{
-		const RmlModel_CompositorBox& uiBox = *it;
+		StencilObjectSystemPtr stencilSystem= m_stencilSystemPtr.lock();
 
-		MikanVector3f box_x_axis;
-		MikanVector3f box_y_axis;
-		MikanVector3f box_z_axis;
+		const RmlModel_CompositorBox& uiBox = *it;
+		BoxStencilComponentPtr stencilPtr = stencilSystem->getBoxStencilById(stencil_id).lock();
+		BoxStencilConfigPtr configPtr= stencilPtr->getConfig();
+		MikanStencilBox box= configPtr->getBoxInfo();
+
+		box.parent_anchor_id= uiBox.parent_anchor_id;
+
 		EulerAnglesToMikanOrientation(
 			uiBox.angles.x, uiBox.angles.y, uiBox.angles.z,
-			box_x_axis, box_y_axis, box_z_axis);
+			box.box_x_axis, 
+			box.box_y_axis, 
+			box.box_z_axis);
 
-		MikanStencilBox box = {
-			uiBox.stencil_id,
-			uiBox.parent_anchor_id,
-			{uiBox.box_center.x, uiBox.box_center.y, uiBox.box_center.z},
-			box_x_axis,
-			box_y_axis,
-			box_z_axis,
-			uiBox.size.x,
-			uiBox.size.y,
-			uiBox.size.z,
-			uiBox.disabled
-		};
+		box.box_center= {uiBox.box_center.x, uiBox.box_center.y, uiBox.box_center.z};
+		box.box_x_size= uiBox.size.x;
+		box.box_y_size= uiBox.size.y;
+		box.box_z_size= uiBox.size.z;
 
-		StringUtils::formatString(box.stencil_name, sizeof(box.stencil_name), "%s", uiBox.stencil_name.c_str());
-		profile->updateBoxStencil(box);
+		box.is_disabled= uiBox.disabled;
+
+		StringUtils::formatString(
+			box.stencil_name, sizeof(box.stencil_name), "%s", 
+			uiBox.stencil_name.c_str());
+
+		configPtr->setBoxInfo(box);
 	}
 }

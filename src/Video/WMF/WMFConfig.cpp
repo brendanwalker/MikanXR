@@ -8,16 +8,14 @@ WMFVideoConfig::WMFVideoConfig(const std::string &fnamebase)
 {
 };
 
-const configuru::Config 
-WMFVideoConfig::writeToJSON()
+configuru::Config WMFVideoConfig::writeToJSON()
 {
 	configuru::Config pt = CommonVideoConfig::writeToJSON();
 
     return pt;
 }
 
-void 
-WMFVideoConfig::readFromJSON(const configuru::Config &pt)
+void WMFVideoConfig::readFromJSON(const configuru::Config &pt)
 {
 	CommonVideoConfig::readFromJSON(pt);
 }

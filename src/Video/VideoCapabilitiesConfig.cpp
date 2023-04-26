@@ -98,13 +98,13 @@ VideoCapabilitiesConfig::VideoCapabilitiesConfig(const std::string &fnamebase)
 {
 }
 
-const configuru::Config VideoCapabilitiesConfig::writeToJSON()
+configuru::Config VideoCapabilitiesConfig::writeToJSON()
 {
-    configuru::Config pt{
-        {"friendly_name", friendlyName},
-		{"usb_product_id", usbProductId},
-		{"usb_vendor_id", usbVendorId},
-    };
+	configuru::Config pt= CommonConfig::writeToJSON();
+
+	pt["friendly_name"]= friendlyName;
+	pt["usb_product_id"]= usbProductId;
+	pt["usb_vendor_id"]= usbVendorId;
 
 	writeDeviceType(pt, "device_type", deviceType);
 
@@ -120,6 +120,8 @@ const configuru::Config VideoCapabilitiesConfig::writeToJSON()
 
 void VideoCapabilitiesConfig::readFromJSON(const configuru::Config &pt)
 {
+	CommonConfig::readFromJSON(pt);
+
 	friendlyName= pt.get_or<std::string>("friendly_name", friendlyName);
 	usbProductId= pt.get_or<int>("usb_product_id", usbProductId);
 	usbVendorId= pt.get_or<int>("usb_vendor_id", usbVendorId);
@@ -178,9 +180,9 @@ bool VideoCapabilitiesSet::reloadSupportedVideoCapabilities()
 	for (std::string filename : filenames)
 	{
 		const std::filesystem::path filepath= capability_directory / filename;
-		VideoCapabilitiesConfig config(filename);
+		VideoCapabilitiesConfigPtr config = std::make_shared<VideoCapabilitiesConfig>(filename);
 
-		if (config.load(filepath))
+		if (config->load(filepath))
 		{
 			m_supportedTrackers.push_back(config);
 		}
@@ -195,14 +197,14 @@ bool VideoCapabilitiesSet::supportsVideoSource(
 	return getVideoSourceCapabilities(vendor_id, product_id) != nullptr;
 }
 
-const VideoCapabilitiesConfig *VideoCapabilitiesSet::getVideoSourceCapabilities(
+VideoCapabilitiesConfigConstPtr VideoCapabilitiesSet::getVideoSourceCapabilities(
 	unsigned short vendor_id, unsigned short product_id) const
 {
-	for (const VideoCapabilitiesConfig &filter : m_supportedTrackers)
+	for (auto filter : m_supportedTrackers)
 	{
-		if (filter.usbVendorId == vendor_id && filter.usbProductId == product_id)
+		if (filter->usbVendorId == vendor_id && filter->usbProductId == product_id)
 		{
-			return &filter;
+			return filter;
 		}
 	}
 

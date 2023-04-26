@@ -8,7 +8,7 @@
 class GlProgramConfig : public CommonConfig
 {
 public:
-	virtual const configuru::Config writeToJSON() override;
+	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
 	bool loadGlProgramCode(class GlProgramCode* outProgramCode);

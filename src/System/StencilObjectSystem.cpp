@@ -35,21 +35,21 @@ void StencilObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
-	const StencilObjectSystemConfig& stencilConfig = getStencilConfigConst();
+	StencilObjectSystemConfigConstPtr stencilSystemConfig = getStencilSystemConfigConst();
 
-	for (const MikanStencilQuad& quadInfo : stencilConfig.quadStencilList)
+	for (QuadStencilConfigPtr quadConfig : stencilSystemConfig->quadStencilList)
 	{
-		createQuadStencilObject(quadInfo);
+		createQuadStencilObject(quadConfig);
 	}
 
-	for (const MikanStencilBox& boxInfo : stencilConfig.boxStencilList)
+	for (BoxStencilConfigPtr boxConfig : stencilSystemConfig->boxStencilList)
 	{
-		createBoxStencilObject(boxInfo);
+		createBoxStencilObject(boxConfig);
 	}
 
-	for (const MikanStencilModelConfig& modelInfo : stencilConfig.modelStencilList)
+	for (ModelStencilConfigPtr modelConfig : stencilSystemConfig->modelStencilList)
 	{
-		createModelStencilObject(modelInfo);
+		createModelStencilObject(modelConfig);
 	}
 }
 
@@ -78,7 +78,7 @@ QuadStencilComponentWeakPtr StencilObjectSystem::getQuadStencilByName(const std:
 	{
 		QuadStencilComponentPtr componentPtr = it->second.lock();
 
-		if (componentPtr && componentPtr->getStencilName() == stencilName)
+		if (componentPtr && componentPtr->getConfig()->getStencilName() == stencilName)
 		{
 			return componentPtr;
 		}
@@ -89,13 +89,15 @@ QuadStencilComponentWeakPtr StencilObjectSystem::getQuadStencilByName(const std:
 
 QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStencilQuad& stencilInfo)
 {
-	StencilObjectSystemConfig& anchorConfig = getStencilConfig();
+	StencilObjectSystemConfigPtr stencilSystemConfig = getStencilSystemConfig();
 
-	MikanStencilID stencilId = anchorConfig.addNewQuadStencil(stencilInfo);
+	MikanStencilID stencilId = stencilSystemConfig->addNewQuadStencil(stencilInfo);
 	if (stencilId != INVALID_MIKAN_ID)
 	{
-		const MikanStencilQuad* stencilInfo = anchorConfig.getQuadStencilInfo(stencilId);
-		assert(stencilInfo != nullptr);
+		QuadStencilConfigPtr configPtr = stencilSystemConfig->getQuadStencilInfo(stencilId);
+		assert(configPtr != nullptr);
+
+		return createQuadStencilObject(configPtr);
 	}
 
 	return QuadStencilComponentPtr();
@@ -103,13 +105,13 @@ QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStenci
 
 bool StencilObjectSystem::removeQuadStencil(MikanStencilID stencilId)
 {
-	getStencilConfig().removeStencil(stencilId);
+	getStencilSystemConfig()->removeStencil(stencilId);
 	disposeQuadStencilObject(stencilId);
 
 	return false;
 }
 
-QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const MikanStencilQuad& stencilInfo)
+QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(QuadStencilConfigPtr quadConfig)
 {
 	MikanObjectPtr stencilObject = newObject().lock();
 
@@ -122,12 +124,12 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(const Mikan
 
 	// Add a box collider
 	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
-	boxColliderPtr->setHalfExtents(glm::vec3(stencilInfo.quad_width * 0.5f, stencilInfo.quad_height * 0.5f, 0.01f));
+	boxColliderPtr->setHalfExtents(glm::vec3(quadConfig->getQuadWidth() * 0.5f, quadConfig->getQuadHeight() * 0.5f, 0.01f));
 
 	// Add quad stencil component to the object
 	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
-	stencilComponentPtr->setQuadStencil(stencilInfo);
-	m_quadStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
+	stencilComponentPtr->setConfig(quadConfig);
+	m_quadStencilComponents.insert({quadConfig->getStencilId(), stencilComponentPtr});
 
 	// Init the object once all components are added
 	stencilObject->init();
@@ -150,7 +152,57 @@ void StencilObjectSystem::disposeQuadStencilObject(MikanStencilID stencilId)
 	}
 }
 
-BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(const MikanStencilBox& stencilInfo)
+BoxStencilComponentWeakPtr StencilObjectSystem::getBoxStencilById(MikanStencilID stencilId) const
+{
+	auto iter = m_boxStencilComponents.find(stencilId);
+	if (iter != m_boxStencilComponents.end())
+	{
+		return iter->second;
+	}
+
+	return BoxStencilComponentWeakPtr();
+}
+
+BoxStencilComponentWeakPtr StencilObjectSystem::getBoxStencilByName(const std::string& stencilName) const
+{
+	for (auto it = m_boxStencilComponents.begin(); it != m_boxStencilComponents.end(); it++)
+	{
+		BoxStencilComponentPtr componentPtr = it->second.lock();
+
+		if (componentPtr && componentPtr->getConfig()->getStencilName() == stencilName)
+		{
+			return componentPtr;
+		}
+	}
+
+	return BoxStencilComponentWeakPtr();
+}
+
+BoxStencilComponentPtr StencilObjectSystem::addNewBoxStencil(const MikanStencilBox& stencilInfo)
+{
+	StencilObjectSystemConfigPtr stencilSystemConfig = getStencilSystemConfig();
+
+	MikanStencilID stencilId = stencilSystemConfig->addNewBoxStencil(stencilInfo);
+	if (stencilId != INVALID_MIKAN_ID)
+	{
+		BoxStencilConfigPtr configPtr = stencilSystemConfig->getBoxStencilInfo(stencilId);
+		assert(configPtr != nullptr);
+
+		return createBoxStencilObject(configPtr);
+	}
+
+	return BoxStencilComponentPtr();
+}
+
+bool StencilObjectSystem::removeBoxStencil(MikanStencilID stencilId)
+{
+	getStencilSystemConfig()->removeStencil(stencilId);
+	disposeBoxStencilObject(stencilId);
+
+	return false;
+}
+
+BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(BoxStencilConfigPtr boxConfig)
 {
 	MikanObjectPtr stencilObject = newObject().lock();
 
@@ -165,14 +217,14 @@ BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(const MikanSt
 	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
 	boxColliderPtr->setHalfExtents(
 		glm::vec3(
-			stencilInfo.box_x_size * 0.5f, 
-			stencilInfo.box_y_size * 0.5f, 
-			stencilInfo.box_z_size * 0.5f));
+			boxConfig->getBoxXSize() * 0.5f, 
+			boxConfig->getBoxYSize() * 0.5f, 
+			boxConfig->getBoxZSize() * 0.5f));
 
 	// Add spatial anchor component to the object
 	BoxStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<BoxStencilComponent>();
-	stencilComponentPtr->setBoxStencil(stencilInfo);
-	m_boxStencilComponents.insert({stencilInfo.stencil_id, stencilComponentPtr});
+	stencilComponentPtr->setConfig(boxConfig);
+	m_boxStencilComponents.insert({boxConfig->getStencilId(), stencilComponentPtr});
 
 	// Init the object once all components are added
 	stencilObject->init();
@@ -195,7 +247,57 @@ void StencilObjectSystem::disposeBoxStencilObject(MikanStencilID stencilId)
 	}
 }
 
-ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const MikanStencilModelConfig& modelInfo)
+ModelStencilComponentWeakPtr StencilObjectSystem::getModelStencilById(MikanStencilID stencilId) const
+{
+	auto iter = m_modelStencilComponents.find(stencilId);
+	if (iter != m_modelStencilComponents.end())
+	{
+		return iter->second;
+	}
+
+	return ModelStencilComponentWeakPtr();
+}
+
+ModelStencilComponentWeakPtr StencilObjectSystem::getModelStencilByName(const std::string& stencilName) const
+{
+	for (auto it = m_modelStencilComponents.begin(); it != m_modelStencilComponents.end(); it++)
+	{
+		ModelStencilComponentPtr componentPtr = it->second.lock();
+
+		if (componentPtr && componentPtr->getConfig()->getStencilName() == stencilName)
+		{
+			return componentPtr;
+		}
+	}
+
+	return ModelStencilComponentWeakPtr();
+}
+
+ModelStencilComponentPtr StencilObjectSystem::addNewModelStencil(const MikanStencilModel& stencilInfo)
+{
+	StencilObjectSystemConfigPtr stencilSystemConfig = getStencilSystemConfig();
+
+	MikanStencilID stencilId = stencilSystemConfig->addNewModelStencil(stencilInfo);
+	if (stencilId != INVALID_MIKAN_ID)
+	{
+		ModelStencilConfigPtr configPtr = stencilSystemConfig->getModelStencilConfig(stencilId);
+		assert(configPtr != nullptr);
+
+		return createModelStencilObject(configPtr);
+	}
+
+	return ModelStencilComponentPtr();
+}
+
+bool StencilObjectSystem::removeModelStencil(MikanStencilID stencilId)
+{
+	getStencilSystemConfig()->removeStencil(stencilId);
+	disposeModelStencilObject(stencilId);
+
+	return false;
+}
+
+ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelStencilConfigPtr modelConfig)
 {
 	MikanObjectPtr stencilObject = newObject().lock();
 
@@ -209,7 +311,7 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const Mik
 	// Fetch the model resource
 	auto& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
 	GlRenderModelResourcePtr modelResourcePtr = modelResourceManager->fetchRenderModel(
-		modelInfo.modelPath,
+		modelConfig->getModelPath(),
 		GlRenderModelResource::getDefaultVertexDefinition());
 
 	// Add static tri meshes
@@ -260,8 +362,8 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(const Mik
 
 	// Add spatial anchor component to the object
 	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();
-	stencilComponentPtr->setModelStencil(modelInfo.modelInfo);
-	m_modelStencilComponents.insert({modelInfo.modelInfo.stencil_id, stencilComponentPtr});
+	stencilComponentPtr->setConfig(modelConfig);
+	m_modelStencilComponents.insert({modelConfig->getStencilId(), stencilComponentPtr});
 
 	// Init the object once all components are added
 	stencilObject->init();
@@ -284,12 +386,12 @@ void StencilObjectSystem::disposeModelStencilObject(MikanStencilID stencilId)
 	}
 }
 
-const StencilObjectSystemConfig& StencilObjectSystem::getStencilConfigConst() const
+StencilObjectSystemConfigConstPtr StencilObjectSystem::getStencilSystemConfigConst() const
 {
 	return App::getInstance()->getProfileConfig()->stencilConfig;
 }
 
-StencilObjectSystemConfig& StencilObjectSystem::getStencilConfig()
+StencilObjectSystemConfigPtr StencilObjectSystem::getStencilSystemConfig()
 {
-	return const_cast<StencilObjectSystemConfig&>(getStencilConfigConst());
+	return std::const_pointer_cast<StencilObjectSystemConfig>(getStencilSystemConfigConst());
 }

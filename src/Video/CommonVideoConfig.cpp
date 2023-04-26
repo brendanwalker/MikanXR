@@ -14,31 +14,31 @@ CommonVideoConfig::CommonVideoConfig(const std::string &fnamebase)
 	memset(video_properties, 0, sizeof(video_properties));
 };
 
-const configuru::Config CommonVideoConfig::writeToJSON()
+configuru::Config CommonVideoConfig::writeToJSON()
 {
-    configuru::Config pt{
-        {"is_valid", is_valid},
-        {"max_poll_failure_count", max_poll_failure_count},
-		{"current_mode", current_mode},
-        {"brightness", video_properties[(int)VideoPropertyType::Brightness]},
-		{"contrast", video_properties[(int)VideoPropertyType::Contrast]},
-		{"hue", video_properties[(int)VideoPropertyType::Hue]},
-		{"saturation", video_properties[(int)VideoPropertyType::Saturation]},
-		{"sharpness", video_properties[(int)VideoPropertyType::Sharpness]},
-		{"gamma", video_properties[(int)VideoPropertyType::Gamma]},
-		{"whitebalance", video_properties[(int)VideoPropertyType::WhiteBalance]},
-		{"redbalance", video_properties[(int)VideoPropertyType::RedBalance]},
-		{"greenbalance", video_properties[(int)VideoPropertyType::GreenBalance]},
-		{"bluebalance", video_properties[(int)VideoPropertyType::BlueBalance]},
-		{"gain", video_properties[(int)VideoPropertyType::Gain]},
-		{"pan", video_properties[(int)VideoPropertyType::Pan]},
-		{"tilt", video_properties[(int)VideoPropertyType::Tilt]},
-		{"roll", video_properties[(int)VideoPropertyType::Roll]},
-		{"zoom", video_properties[(int)VideoPropertyType::Zoom]},
-		{"exposure", video_properties[(int)VideoPropertyType::Exposure]},
-		{"iris", video_properties[(int)VideoPropertyType::Iris]},
-		{"focus", video_properties[(int)VideoPropertyType::Focus]},
-    };
+	configuru::Config pt= CommonConfig::writeToJSON();
+
+	pt["is_valid"]= is_valid;
+	pt["max_poll_failure_count"]= max_poll_failure_count;
+	pt["current_mode"]= current_mode;
+	pt["brightness"]= video_properties[(int)VideoPropertyType::Brightness];
+	pt["contrast"]= video_properties[(int)VideoPropertyType::Contrast];
+	pt["hue"]= video_properties[(int)VideoPropertyType::Hue];
+	pt["saturation"]= video_properties[(int)VideoPropertyType::Saturation];
+	pt["sharpness"]= video_properties[(int)VideoPropertyType::Sharpness];
+	pt["gamma"]= video_properties[(int)VideoPropertyType::Gamma];
+	pt["whitebalance"]= video_properties[(int)VideoPropertyType::WhiteBalance];
+	pt["redbalance"]= video_properties[(int)VideoPropertyType::RedBalance];
+	pt["greenbalance"]= video_properties[(int)VideoPropertyType::GreenBalance];
+	pt["bluebalance"]= video_properties[(int)VideoPropertyType::BlueBalance];
+	pt["gain"]= video_properties[(int)VideoPropertyType::Gain];
+	pt["pan"]= video_properties[(int)VideoPropertyType::Pan];
+	pt["tilt"]= video_properties[(int)VideoPropertyType::Tilt];
+	pt["roll"]= video_properties[(int)VideoPropertyType::Roll];
+	pt["zoom"]= video_properties[(int)VideoPropertyType::Zoom];
+	pt["exposure"]= video_properties[(int)VideoPropertyType::Exposure];
+	pt["iris"]= video_properties[(int)VideoPropertyType::Iris];
+	pt["focus"]= video_properties[(int)VideoPropertyType::Focus];
 
 	writeQuaderntiond(pt, "orientationOffset", orientationOffset);
 	writeVector3d(pt, "positionOffset", positionOffset);
@@ -48,6 +48,8 @@ const configuru::Config CommonVideoConfig::writeToJSON()
 
 void CommonVideoConfig::readFromJSON(const configuru::Config &pt)
 {
+	CommonConfig::readFromJSON(pt);
+
     is_valid = pt.get_or<bool>("is_valid", false);
     max_poll_failure_count = pt.get_or<long>("max_poll_failure_count", 100);
 	current_mode= pt.get_or<std::string>("current_mode", current_mode);

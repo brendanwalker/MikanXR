@@ -10,17 +10,126 @@
 #include "MikanObject.h"
 #include "MathTypeConversion.h"
 #include "SelectionComponent.h"
+#include "StringUtils.h"
 #include "TextStyle.h"
 
+// -- BoxStencilComponent -----
+BoxStencilConfig::BoxStencilConfig()
+{
+	memset(&m_boxInfo, 0, sizeof(MikanStencilBox));
+	m_boxInfo.stencil_id = INVALID_MIKAN_ID;
+	m_boxInfo.parent_anchor_id = INVALID_MIKAN_ID;
+}
+
+BoxStencilConfig::BoxStencilConfig(MikanStencilID stencilId)
+{
+	memset(&m_boxInfo, 0, sizeof(MikanStencilBox));
+	m_boxInfo.stencil_id = stencilId;
+	m_boxInfo.parent_anchor_id = INVALID_MIKAN_ID;
+}
+
+configuru::Config BoxStencilConfig::writeToJSON()
+{
+	configuru::Config pt = CommonConfig::writeToJSON();
+
+	pt["stencil_id"] = m_boxInfo.stencil_id;
+	pt["parent_anchor_id"] = m_boxInfo.parent_anchor_id;
+	pt["box_x_size"] = m_boxInfo.box_x_size;
+	pt["box_y_size"] = m_boxInfo.box_y_size;
+	pt["box_z_size"] = m_boxInfo.box_z_size;
+	pt["is_disabled"] = m_boxInfo.is_disabled;
+	pt["stencil_name"] = m_boxInfo.stencil_name;
+
+	writeVector3f(pt, "box_center", m_boxInfo.box_center);
+	writeVector3f(pt, "box_x_axis", m_boxInfo.box_x_axis);
+	writeVector3f(pt, "box_y_axis", m_boxInfo.box_y_axis);
+	writeVector3f(pt, "box_z_axis", m_boxInfo.box_z_axis);
+
+	return pt;
+}
+
+void BoxStencilConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	if (pt.has_key("stencil_id"))
+	{
+		MikanStencilBox stencil;
+		memset(&stencil, 0, sizeof(stencil));
+
+		stencil.stencil_id = pt.get<int>("stencil_id");
+		stencil.parent_anchor_id = pt.get_or<int>("parent_anchor_id", -1);
+		readVector3f(pt, "box_center", stencil.box_center);
+		readVector3f(pt, "box_x_axis", stencil.box_x_axis);
+		readVector3f(pt, "box_y_axis", stencil.box_y_axis);
+		readVector3f(pt, "box_z_axis", stencil.box_z_axis);
+		stencil.box_x_size = pt.get_or<float>("box_x_size", 0.25f);
+		stencil.box_y_size = pt.get_or<float>("box_y_size", 0.25f);
+		stencil.box_z_size = pt.get_or<float>("box_z_size", 0.25f);
+		stencil.is_disabled = pt.get_or<bool>("is_disabled", false);
+
+		const std::string stencil_name = pt.get_or<std::string>("stencil_name", "");
+		StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
+	}
+}
+
+void BoxStencilConfig::setBoxInfo(const MikanStencilBox& box)
+{
+	m_boxInfo= box;
+	markDirty();
+}
+
+const glm::mat4 BoxStencilConfig::getBoxXform() const
+{
+	return glm::mat4(
+		glm::vec4(MikanVector3f_to_glm_vec3(m_boxInfo.box_x_axis), 0.f),
+		glm::vec4(MikanVector3f_to_glm_vec3(m_boxInfo.box_y_axis), 0.f),
+		glm::vec4(MikanVector3f_to_glm_vec3(m_boxInfo.box_z_axis), 0.f),
+		glm::vec4(MikanVector3f_to_glm_vec3(m_boxInfo.box_center), 1.f));
+}
+
+void BoxStencilConfig::setBoxXform(const glm::mat4& xform)
+{
+	m_boxInfo.box_x_axis = glm_vec3_to_MikanVector3f(xform[0]);
+	m_boxInfo.box_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
+	m_boxInfo.box_z_axis = glm_vec3_to_MikanVector3f(xform[2]);
+	m_boxInfo.box_center = glm_vec3_to_MikanVector3f(xform[3]);
+	markDirty();
+}
+
+void BoxStencilConfig::setBoxXSize(float size)
+{
+	m_boxInfo.box_x_size = size;
+	markDirty();
+}
+
+void BoxStencilConfig::setBoxYSize(float size)
+{
+	m_boxInfo.box_y_size = size;
+	markDirty();
+}
+
+void BoxStencilConfig::setBoxZSize(float size)
+{
+	m_boxInfo.box_z_size = size;
+	markDirty();
+}
+
+void BoxStencilConfig::setIsDisabled(bool flag)
+{
+	m_boxInfo.is_disabled = flag;
+	markDirty();
+}
+
+void BoxStencilConfig::setStencilName(const std::string& stencilName)
+{
+	strncpy(m_boxInfo.stencil_name, stencilName.c_str(), sizeof(m_boxInfo.stencil_name) - 1);
+	markDirty();
+}
+
+// -- BoxStencilComponent -----
 BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
-	, BoxCenter(glm::vec3(0.f))
-	, BoxXAxis(glm::vec3(1.f, 0.f, 0.f))
-	, BoxYAxis(glm::vec3(0.f, 1.f, 0.f))
-	, BoxZAxis(glm::vec3(0.f, 0.f, 1.f))
-	, BoxXSize(0.f)
-	, BoxYSize(0.f)
-	, BoxZSize(0.f)
 {}
 
 void BoxStencilComponent::init()
@@ -39,8 +148,11 @@ void BoxStencilComponent::update()
 	{
 		TextStyle style = getDefaultTextStyle();
 
+		const float xSize= m_config->getBoxXSize();
+		const float ySize= m_config->getBoxYSize();
+		const float zSize= m_config->getBoxZSize();
 		const glm::mat4 xform = m_sceneComponent.lock()->getWorldTransform();
-		const glm::vec3 half_extents(BoxXSize / 2.f, BoxYSize / 2.f, BoxZSize / 2.f);
+		const glm::vec3 half_extents(xSize / 2.f, ySize / 2.f, zSize / 2.f);
 		const glm::vec3 position = glm::vec3(xform[3]);
 
 		glm::vec3 color= Colors::DarkGray;
@@ -59,36 +171,16 @@ void BoxStencilComponent::update()
 	}
 }
 
-void BoxStencilComponent::setBoxStencil(const MikanStencilBox& stencil)
+void BoxStencilComponent::setConfig(BoxStencilConfigPtr config)
 {
-	StencilId = stencil.stencil_id;
-	ParentAnchorId = stencil.parent_anchor_id;
-	BoxCenter = MikanVector3f_to_glm_vec3(stencil.box_center);
-	BoxXAxis = MikanVector3f_to_glm_vec3(stencil.box_x_axis);
-	BoxYAxis = MikanVector3f_to_glm_vec3(stencil.box_y_axis);
-	BoxZAxis = MikanVector3f_to_glm_vec3(stencil.box_z_axis);
-	BoxXSize = stencil.box_x_size;
-	BoxYSize = stencil.box_y_size;
-	BoxZSize = stencil.box_z_size;
-	IsDisabled = stencil.is_disabled;
-	StencilName = stencil.stencil_name;
-
-	if (ComponentPropertyEvents::OnComponentChanged)
-	{
-		ComponentPropertyEvents::OnComponentChanged(*this);
-	}
-
+	m_config= config;
 	updateSceneComponentTransform();
 	updateBoxColliderExtents();
 }
 
 glm::mat4 BoxStencilComponent::getStencilLocalTransform() const
 {
-	return glm::mat4(
-		glm::vec4(BoxXAxis, 0.f),
-		glm::vec4(BoxYAxis, 0.f),
-		glm::vec4(BoxZAxis, 0.f),
-		glm::vec4(BoxCenter, 1.f));
+	return m_config->getBoxXform();
 }
 
 glm::mat4 BoxStencilComponent::getStencilWorldTransform() const
@@ -107,15 +199,7 @@ glm::mat4 BoxStencilComponent::getStencilWorldTransform() const
 
 void BoxStencilComponent::setStencilLocalTransformProperty(const glm::mat4& localXform)
 {
-	BoxXAxis = localXform[0];
-	BoxYAxis = localXform[1];
-	BoxZAxis = localXform[2];
-	BoxCenter = localXform[3];
-
-	notifyBoxXAxisChanged();
-	notifyBoxYAxisChanged();
-	notifyBoxZAxisChanged();
-	notifyBoxCenterChanged();
+	m_config->setBoxXform(localXform);
 }
 
 void BoxStencilComponent::setStencilWorldTransformProperty(const glm::mat4& worldXform)
@@ -149,6 +233,10 @@ void BoxStencilComponent::updateBoxColliderExtents()
 	BoxColliderComponentPtr boxCollider= m_boxCollider.lock();
 	if (boxCollider)
 	{
-		boxCollider->setHalfExtents(glm::vec3(BoxXSize, BoxYSize, BoxZSize) * 0.5f);
+		const float xSize = m_config->getBoxXSize();
+		const float ySize = m_config->getBoxYSize();
+		const float zSize = m_config->getBoxZSize();
+
+		boxCollider->setHalfExtents(glm::vec3(xSize, ySize, zSize) * 0.5f);
 	}
 }

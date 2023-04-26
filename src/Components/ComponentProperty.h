@@ -37,6 +37,10 @@ public:
 		const std::string& propertyName,
 		ComponentPropertyAccessorPtr valueAccessor);
 
+	inline MikanComponent& getOwnerComponent() const { return m_ownerComponent; }
+	inline const std::string& getPropertyTypeString() const { return m_propertyTypeString; }
+	inline const std::string& getPropertyName() const { return m_propertyName; }
+
 	template <class t_requested_type>
 	inline const t_requested_type& getValueConst() const
 	{
@@ -53,21 +57,15 @@ private:
 	ComponentPropertyAccessorPtr m_valueAccessor;
 };
 
-class ComponentPropertyEvents
-{
-public:
-	static MulticastDelegate<void(const ComponentProperty&)> OnComponentPropertyChanged;
-	static MulticastDelegate<void(const MikanComponent&)> OnComponentChanged;
-};
-
 #define COMPONENT_PROPERTY(PROPERTY_TYPE, PROPERTY_NAME)												\
 	PROPERTY_TYPE PROPERTY_NAME;																		\
-	inline void notify ## PROPERTY_NAME ## Changed()													\
+	void notify ## PROPERTY_NAME ## Changed()															\
 	{																									\
 		auto accessor= std::make_shared< TComponentPropertyAccessor<PROPERTY_TYPE> >(PROPERTY_NAME);	\
-		ComponentProperty componentProperty(*this, #PROPERTY_TYPE, #PROPERTY_NAME, accessor);			\
-		if (ComponentPropertyEvents::OnComponentPropertyChanged)										\
-			ComponentPropertyEvents::OnComponentPropertyChanged(componentProperty);						\
+		ComponentProperty componentProperty(															\
+			*this,																						\
+			#PROPERTY_TYPE,																				\
+			#PROPERTY_NAME,																				\
+			accessor);																					\
+		notifyComponentPropertyChanged(componentProperty);												\
 	}																									\
-	
-
