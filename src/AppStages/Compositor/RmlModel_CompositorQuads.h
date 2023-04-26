@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 #include "FrameCompositorConstants.h"
@@ -19,12 +20,15 @@ struct RmlModel_CompositorQuad
 class RmlModel_CompositorQuads : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext, const class ProfileConfig* profile);
+	bool init(
+		Rml::Context* rmlContext,
+		AnchorObjectSystemWeakPtr anchorSystemPtr,
+		StencilObjectSystemWeakPtr objectSystemPtr);
 	virtual void dispose() override;
 
-	void rebuildAnchorList(const ProfileConfig* profile);
-	void rebuildUIQuadsFromProfile(const ProfileConfig* profile);
-	void copyUIQuadToProfile(int stencil_id, ProfileConfig* profile) const;
+	void rebuildAnchorList();
+	void rebuildUIQuadsFromProfile();
+	void copyUIQuadToProfile(int stencil_id) const;
 
 	SinglecastDelegate<void()> OnAddQuadStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteQuadStencilEvent;
@@ -32,6 +36,8 @@ public:
 	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyQuadStencilParentAnchorEvent;
 
 private:
+	AnchorObjectSystemWeakPtr m_anchorSystemPtr;
+	StencilObjectSystemWeakPtr m_stencilSystemPtr;
 	Rml::Vector<int> m_spatialAnchors;
 	Rml::Vector<RmlModel_CompositorQuad> m_stencilQuads;
 

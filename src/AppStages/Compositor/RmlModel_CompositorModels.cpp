@@ -1,6 +1,8 @@
+#include "AnchorObjectSystem.h"
+#include "ModelStencilComponent.h"
 #include "RmlModel_CompositorModels.h"
 #include "MathMikan.h"
-#include "ProfileConfig.h"
+#include "StencilObjectSystem.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -11,8 +13,12 @@ bool RmlModel_CompositorModels::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorModels::init(
 	Rml::Context* rmlContext,
-	const ProfileConfig* profile)
+	AnchorObjectSystemWeakPtr anchorSystemPtr,
+	StencilObjectSystemWeakPtr stencilSystemPtr)
 {
+	m_anchorSystemPtr = anchorSystemPtr;
+	m_stencilSystemPtr = stencilSystemPtr;
+
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_models");
 	if (!constructor)
@@ -147,8 +153,8 @@ bool RmlModel_CompositorModels::init(
 		});
 
 	// Fill in the data model
-	rebuildAnchorList(profile);
-	rebuildUIModelsFromProfile(profile);
+	rebuildAnchorList();
+	rebuildUIModelsFromProfile();
 
 	return true;
 }
@@ -162,32 +168,43 @@ void RmlModel_CompositorModels::dispose()
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorModels::rebuildAnchorList(const ProfileConfig* profile)
+void RmlModel_CompositorModels::rebuildAnchorList()
 {
+	AnchorObjectSystemPtr anchorSystem = m_anchorSystemPtr.lock();
+	auto& anchorMap = anchorSystem->getAnchorMap();
+
 	m_spatialAnchors.clear();
-	for (const MikanSpatialAnchorInfo& anchorInfo : profile->spatialAnchorList)
+	for (auto it = anchorMap.begin(); it != anchorMap.end(); ++it)
 	{
-		m_spatialAnchors.push_back(anchorInfo.anchor_id);
+		const MikanSpatialAnchorID anchorId= it->first;
+
+		m_spatialAnchors.push_back(anchorId);
 	}
 	m_modelHandle.DirtyVariable("spatial_anchors");
 }
 
-void RmlModel_CompositorModels::rebuildUIModelsFromProfile(const ProfileConfig* profile)
+void RmlModel_CompositorModels::rebuildUIModelsFromProfile()
 {
+	StencilObjectSystemPtr stencilSystem = m_stencilSystemPtr.lock();
+	auto& stencilMap = stencilSystem->getModelStencilMap();
+
 	m_stencilModels.clear();
-	for (const MikanStencilModelConfig& modelConfig : profile->modelStencilList)
+	for (auto it = stencilMap.begin(); it != stencilMap.end(); ++it)
 	{
-		const MikanStencilModel& modelInfo= modelConfig.modelInfo;
+		ModelStencilComponentPtr stencilPtr = it->second.lock();
+		ModelStencilConfigPtr configPtr = stencilPtr->getConfig();
+		const MikanStencilModel& modelInfo = configPtr->getModelInfo();
+
 		const std::vector<MikanSpatialFastenerID> child_fastener_ids=
 			profile->getSpatialFastenersWithParent(
-				MikanFastenerParentType_Stencil, modelConfig.modelInfo.stencil_id);
+				MikanFastenerParentType_Stencil, modelInfo.stencil_id);
 
 		RmlModel_CompositorModel uiModel = {
 			modelInfo.stencil_name,
 			modelInfo.stencil_id,
 			modelInfo.parent_anchor_id,
 			child_fastener_ids,
-			modelConfig.modelPath.string(),
+			configPtr->getModelPath().string(),
 			Rml::Vector3f(modelInfo.model_position.x, modelInfo.model_position.y, modelInfo.model_position.z),
 			Rml::Vector3f(modelInfo.model_rotator.x_angle, modelInfo.model_rotator.y_angle, modelInfo.model_rotator.z_angle),
 			Rml::Vector3f(modelInfo.model_scale.x, modelInfo.model_scale.y, modelInfo.model_scale.z),
@@ -198,29 +215,33 @@ void RmlModel_CompositorModels::rebuildUIModelsFromProfile(const ProfileConfig* 
 	m_modelHandle.DirtyVariable("stencil_models");
 }
 
-void RmlModel_CompositorModels::copyUIModelToProfile(int stencil_id, ProfileConfig* profile) const
+void RmlModel_CompositorModels::copyUIModelToProfile(int stencil_id) const
 {
 	auto it = std::find_if(
 		m_stencilModels.begin(), m_stencilModels.end(),
-		[stencil_id](const RmlModel_CompositorModel& quad) {
-			return quad.stencil_id == stencil_id;
+		[stencil_id](const RmlModel_CompositorModel& model) {
+			return model.stencil_id == stencil_id;
 		});
 	if (it != m_stencilModels.end())
 	{
+		StencilObjectSystemPtr stencilSystem= m_stencilSystemPtr.lock();
+
 		const RmlModel_CompositorModel& uiModel = *it;
 
-		MikanStencilModel modelInfo = {
-			uiModel.stencil_id,
-			uiModel.parent_anchor_id,
-			{uiModel.model_position.x, uiModel.model_position.y, uiModel.model_position.z},
-			{uiModel.model_angles.x, uiModel.model_angles.y, uiModel.model_angles.z},
-			{uiModel.model_scale.x, uiModel.model_scale.y, uiModel.model_scale.z},
-			uiModel.disabled
-		};
+		ModelStencilComponentPtr stencilPtr = stencilSystem->getModelStencilById(stencil_id).lock();
+		ModelStencilConfigPtr configPtr = stencilPtr->getConfig();
+		MikanStencilModel modelInfo = configPtr->getModelInfo();
+
+		modelInfo.parent_anchor_id= uiModel.parent_anchor_id;
+		modelInfo.model_position= {uiModel.model_position.x, uiModel.model_position.y, uiModel.model_position.z};
+		modelInfo.model_rotator= {uiModel.model_angles.x, uiModel.model_angles.y, uiModel.model_angles.z};
+		modelInfo.model_scale= {uiModel.model_scale.x, uiModel.model_scale.y, uiModel.model_scale.z};
+		modelInfo.is_disabled= uiModel.disabled;
+
 		StringUtils::formatString(modelInfo.stencil_name, sizeof(modelInfo.stencil_name), "%s", uiModel.stencil_name.c_str());
 
 		// NOTE: This intentionally excludes the model path
 		// That's handled in OnSelectModelStencilPathEvent
-		profile->updateModelStencil(modelInfo);
+		configPtr->setModelInfo(modelInfo);
 	}
 }

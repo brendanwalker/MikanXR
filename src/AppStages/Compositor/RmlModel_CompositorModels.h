@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 #include "FrameCompositorConstants.h"
@@ -20,12 +21,15 @@ struct RmlModel_CompositorModel
 class RmlModel_CompositorModels : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext, const class ProfileConfig* profile);
+	bool init(
+		Rml::Context* rmlContext,
+		AnchorObjectSystemWeakPtr anchorSystemPtr,
+		StencilObjectSystemWeakPtr objectSystemPtr);
 	virtual void dispose() override;
 
-	void rebuildAnchorList(const ProfileConfig* profile);
-	void rebuildUIModelsFromProfile(const ProfileConfig* profile);
-	void copyUIModelToProfile(int stencil_id, ProfileConfig* profile) const;
+	void rebuildAnchorList();
+	void rebuildUIModelsFromProfile();
+	void copyUIModelToProfile(int stencil_id) const;
 
 	SinglecastDelegate<void()> OnAddModelStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteModelStencilEvent;
@@ -38,6 +42,8 @@ public:
 	SinglecastDelegate<void(int stencilID, int fastenerID)> OnDeleteFastenerEvent;
 
 private:
+	AnchorObjectSystemWeakPtr m_anchorSystemPtr;
+	StencilObjectSystemWeakPtr m_stencilSystemPtr;
 	Rml::Vector<int> m_spatialAnchors;
 	Rml::Vector<RmlModel_CompositorModel> m_stencilModels;
 

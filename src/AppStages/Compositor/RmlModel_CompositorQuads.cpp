@@ -1,6 +1,9 @@
+#include "AnchorObjectSystem.h"
 #include "RmlModel_CompositorQuads.h"
 #include "MathMikan.h"
 #include "ProfileConfig.h"
+#include "QuadStencilComponent.h"
+#include "StencilObjectSystem.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -11,7 +14,8 @@ bool RmlModel_CompositorQuads::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorQuads::init(
 	Rml::Context* rmlContext,
-	const ProfileConfig* profile)
+	AnchorObjectSystemWeakPtr anchorSystemPtr,
+	StencilObjectSystemWeakPtr stencilSystemPtr)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_quads");
@@ -106,8 +110,8 @@ bool RmlModel_CompositorQuads::init(
 		});
 
 	// Fill in the data model
-	rebuildAnchorList(profile);
-	rebuildUIQuadsFromProfile(profile);
+	rebuildAnchorList();
+	rebuildUIQuadsFromProfile();
 
 	return true;
 }
@@ -120,21 +124,33 @@ void RmlModel_CompositorQuads::dispose()
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorQuads::rebuildAnchorList(const ProfileConfig* profile)
+void RmlModel_CompositorQuads::rebuildAnchorList()
 {
+	AnchorObjectSystemPtr anchorSystem = m_anchorSystemPtr.lock();
+	auto& anchorMap = anchorSystem->getAnchorMap();
+
 	m_spatialAnchors.clear();
-	for (const MikanSpatialAnchorInfo& anchorInfo : profile->spatialAnchorList)
+	for (auto it = anchorMap.begin(); it != anchorMap.end(); ++it)
 	{
-		m_spatialAnchors.push_back(anchorInfo.anchor_id);
+		const MikanSpatialAnchorID anchorId= it->first;
+
+		m_spatialAnchors.push_back(anchorId);
 	}
 	m_modelHandle.DirtyVariable("spatial_anchors");
 }
 
-void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile(const ProfileConfig* profile)
+void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile()
 {
+	StencilObjectSystemPtr stencilSystem = m_stencilSystemPtr.lock();
+	auto& stencilMap = stencilSystem->getQuadStencilMap();
+
 	m_stencilQuads.clear();
-	for (const MikanStencilQuad& quad : profile->quadStencilList)
+	for (auto it = stencilMap.begin(); it != stencilMap.end(); ++it)
 	{
+		QuadStencilComponentPtr stencilPtr = it->second.lock();
+		QuadStencilConfigPtr configPtr = stencilPtr->getConfig();
+		const MikanStencilQuad& quad = configPtr->getQuadInfo();
+
 		float angles[3]{};
 		MikanOrientationToEulerAngles(
 			quad.quad_x_axis, quad.quad_y_axis, quad.quad_normal,
@@ -155,7 +171,7 @@ void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile(const ProfileConfig* pr
 	m_modelHandle.DirtyVariable("stencil_quads");
 }
 
-void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id, ProfileConfig* profile) const
+void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id) const
 {
 	auto it = std::find_if(
 		m_stencilQuads.begin(), m_stencilQuads.end(),
@@ -164,30 +180,27 @@ void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id, ProfileConfig
 	});
 	if (it != m_stencilQuads.end())
 	{
+		StencilObjectSystemPtr stencilSystem= m_stencilSystemPtr.lock();
+
+		QuadStencilComponentPtr stencilPtr = stencilSystem->getQuadStencilById(stencil_id).lock();
+		QuadStencilConfigPtr configPtr = stencilPtr->getConfig();
+		MikanStencilQuad quad = configPtr->getQuadInfo();
+
 		const RmlModel_CompositorQuad& uiQuad = *it;
 
-		MikanVector3f quad_x_axis;
-		MikanVector3f quad_y_axis;
-		MikanVector3f quad_normal;
 		EulerAnglesToMikanOrientation(
 			uiQuad.angles.x, uiQuad.angles.y, uiQuad.angles.z,
-			quad_x_axis, quad_y_axis, quad_normal);
+			quad.quad_x_axis, quad.quad_y_axis, quad.quad_normal);
 
-		MikanStencilQuad quad = {
-			uiQuad.stencil_id,
-			uiQuad.parent_anchor_id,
-			{uiQuad.position.x, uiQuad.position.y, uiQuad.position.z},
-			quad_x_axis,
-			quad_y_axis,
-			quad_normal,
-			uiQuad.size.x,
-			uiQuad.size.y,
-			uiQuad.double_sided,
-			uiQuad.disabled
-		};
+		quad.parent_anchor_id= uiQuad.parent_anchor_id;
+		quad.quad_center= {uiQuad.position.x, uiQuad.position.y, uiQuad.position.z};
+		quad.quad_width= uiQuad.size.x;
+		quad.quad_height= uiQuad.size.y;
+		quad.is_double_sided= uiQuad.double_sided;
+		quad.is_disabled= uiQuad.disabled;
 
 		StringUtils::formatString(quad.stencil_name, sizeof(quad.stencil_name), "%s", uiQuad.stencil_name.c_str());
 
-		profile->updateQuadStencil(quad);
+		configPtr->setQuadInfo(quad);
 	}
 }
