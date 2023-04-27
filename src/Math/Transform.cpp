@@ -1,5 +1,7 @@
 #include "Transform.h"
 
+#include <glm/gtx/matrix_decompose.hpp>
+
 GlmTransform::GlmTransform()
 	: m_position(glm::vec3(0.f))
 	, m_orientation(glm::quat())
@@ -36,6 +38,37 @@ GlmTransform::GlmTransform(
 	, m_scale(glm::vec3(1.f, 1.f, 1.f))
 {
 	rebuildMat();
+}
+
+GlmTransform::GlmTransform(const glm::mat4& mat4)
+	: m_position(glm::vec3(0.f))
+	, m_orientation(glm::quat())
+	, m_scale(glm::vec3(1.f, 1.f, 1.f))
+	, m_mat(glm::mat4(1.f))
+{
+	setMat4(mat4);
+}
+
+void GlmTransform::setMat4(const glm::mat4& mat4)
+{
+	// Extract position scale and rotation from the local transform
+	glm::vec3 scale;
+	glm::quat orientation;
+	glm::vec3 translation;
+	glm::vec3 skew;
+	glm::vec4 perspective;
+	if (glm::decompose(
+		mat4,
+		scale, orientation, translation, skew, perspective))
+	{
+		m_position= translation;
+		m_orientation= orientation;
+		m_scale= scale;
+
+		// Since the matrix could have had skew or perspective transforms in it
+		// we have to rebuild it from just the decomposed TRS values
+		rebuildMat();
+	}
 }
 
 void GlmTransform::rebuildMat()

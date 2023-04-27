@@ -76,48 +76,33 @@ void ModelStencilConfig::setModelInfo(const MikanStencilModel& modelInfo)
 	markDirty();
 }
 
-const glm::mat4 ModelStencilConfig::getModelXform() const
+const glm::mat4 ModelStencilConfig::getModelMat4() const
 {
-	MikanVector3f stencilXAxis, stencilYAxis, stencilZAxis;
-	EulerAnglesToMikanOrientation(
-		m_modelInfo.model_rotator.x_angle, m_modelInfo.model_rotator.y_angle, m_modelInfo.model_rotator.z_angle,
-		stencilXAxis, stencilYAxis, stencilZAxis);
-
-	const glm::vec3 xAxis = MikanVector3f_to_glm_vec3(stencilXAxis) * m_modelInfo.model_scale.x;
-	const glm::vec3 yAxis = MikanVector3f_to_glm_vec3(stencilYAxis) * m_modelInfo.model_scale.y;
-	const glm::vec3 zAxis = MikanVector3f_to_glm_vec3(stencilZAxis) * m_modelInfo.model_scale.z;
-	const glm::vec3 position = MikanVector3f_to_glm_vec3(m_modelInfo.model_position);
-	const glm::mat4 localXform =
-		glm::mat4(
-			glm::vec4(xAxis, 0.f),
-			glm::vec4(yAxis, 0.f),
-			glm::vec4(zAxis, 0.f),
-			glm::vec4(position, 1.f));
-
-	return localXform;
+	return getModelTransform().getMat4();
 }
 
-void ModelStencilConfig::setModelXform(const glm::mat4& xform)
+void ModelStencilConfig::setModelMat4(const glm::mat4& mat4)
 {
-	// Extract position scale and rotation from the local transform
-	glm::vec3 scale;
-	glm::quat orientation;
-	glm::vec3 translation;
-	glm::vec3 skew;
-	glm::vec4 perspective;
-	if (glm::decompose(
-		xform,
-		scale, orientation, translation, skew, perspective))
-	{
-		m_modelInfo.model_position = glm_vec3_to_MikanVector3f(translation);
-		m_modelInfo.model_scale = glm_vec3_to_MikanVector3f(scale);
-		glm_quat_to_euler_angles(
-			orientation,
-			m_modelInfo.model_rotator.x_angle,
-			m_modelInfo.model_rotator.y_angle,
-			m_modelInfo.model_rotator.z_angle);
-		markDirty();
-	}
+	setModelTransform(GlmTransform(mat4));
+}
+
+const GlmTransform ModelStencilConfig::getModelTransform() const
+{
+	return GlmTransform(
+		MikanVector3f_to_glm_vec3(m_modelInfo.model_position),
+		MikanRotator3f_to_glm_quat(m_modelInfo.model_rotator),
+		MikanVector3f_to_glm_vec3(m_modelInfo.model_scale));
+}
+
+void ModelStencilConfig::setModelTransform(const GlmTransform& transform)
+{
+	glm::mat4 xform = transform.getMat4();
+
+	m_modelInfo.model_position= glm_vec3_to_MikanVector3f(transform.getPosition());
+	m_modelInfo.model_rotator= glm_quat_to_MikanRotator3f(transform.getOrientation());
+	m_modelInfo.model_scale= glm_vec3_to_MikanVector3f(transform.getScale());
+
+	markDirty();
 }
 
 void ModelStencilConfig::setModelPath(const std::filesystem::path& path)
@@ -175,7 +160,7 @@ void ModelStencilComponent::update()
 {
 	StencilComponent::update();
 
-	if (!IsDisabled)
+	if (!m_config->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 
@@ -183,7 +168,7 @@ void ModelStencilComponent::update()
 		const glm::vec3 position = glm::vec3(xform[3]);
 
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
+		drawTextAtWorldPosition(style, position, L"Stencil %d", m_config->getStencilId());
 	}
 }
 
@@ -204,47 +189,21 @@ void ModelStencilComponent::dispose()
 
 void ModelStencilComponent::setConfig(ModelStencilConfigPtr config)
 {
+	MikanSpatialAnchorID currentParentId = m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
+	MikanSpatialAnchorID newParentId = config ? config->getParentAnchorId() : INVALID_MIKAN_ID;
+	if (currentParentId != newParentId)
+	{
+		attachSceneComponentToAnchor(newParentId);
+	}
+
 	m_config = config;
+
 	updateSceneComponentTransform();
 }
 
-glm::mat4 ModelStencilComponent::getStencilLocalTransform() const
+void ModelStencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
 {
-	return m_config->getModelXform();
-}
-
-glm::mat4 ModelStencilComponent::getStencilWorldTransform() const
-{
-	const glm::mat4 localXform= getStencilLocalTransform();
-
-	glm::mat4 worldXform = localXform;
-	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
-	if (anchorPtr)
-	{
-		worldXform = anchorPtr->getAnchorXform() * localXform;
-	}
-
-	return worldXform;
-}
-
-void ModelStencilComponent::setStencilLocalTransformProperty(const glm::mat4& localXform)
-{
-	m_config->setModelXform(localXform);
-}
-
-void ModelStencilComponent::setStencilWorldTransformProperty(const glm::mat4& worldXform)
-{
-	glm::mat4 localXform = worldXform;
-	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
-	if (anchorPtr)
-	{
-		const glm::mat4 invParentXform = glm::inverse(anchorPtr->getAnchorXform());
-
-		// Convert transform to the space of the parent anchor
-		localXform = glm_composite_xform(worldXform, invParentXform);
-	}
-
-	setStencilLocalTransformProperty(localXform);
+	m_config->setModelTransform(sceneComponentPtr->getRelativeTransform());
 }
 
 void ModelStencilComponent::updateSceneComponentTransform()
@@ -252,9 +211,7 @@ void ModelStencilComponent::updateSceneComponentTransform()
 	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
 	if (sceneComponent)
 	{
-		const glm::mat4 worldXform = getStencilWorldTransform();
-
-		sceneComponent->setWorldTransform(worldXform);
+		sceneComponent->setRelativeTransform(m_config->getModelTransform());
 	}
 }
 

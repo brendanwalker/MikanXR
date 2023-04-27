@@ -28,6 +28,9 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
+	StencilComponentWeakPtr getStencilById(MikanStencilID stencilId) const;
+	bool getStencilWorldTransform(MikanStencilID parentStencilId, glm::mat4& outXform) const;
+
 	const QuadStencilMap& getQuadStencilMap() const { return m_quadStencilComponents; }
 	QuadStencilComponentWeakPtr getQuadStencilById(MikanStencilID stencilId) const;
 	QuadStencilComponentWeakPtr getQuadStencilByName(const std::string& stencilName) const;

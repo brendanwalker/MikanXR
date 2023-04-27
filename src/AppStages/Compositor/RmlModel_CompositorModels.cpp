@@ -1,4 +1,5 @@
 #include "AnchorObjectSystem.h"
+#include "FastenerObjectSystem.h"
 #include "ModelStencilComponent.h"
 #include "RmlModel_CompositorModels.h"
 #include "MathMikan.h"
@@ -196,7 +197,7 @@ void RmlModel_CompositorModels::rebuildUIModelsFromProfile()
 		const MikanStencilModel& modelInfo = configPtr->getModelInfo();
 
 		const std::vector<MikanSpatialFastenerID> child_fastener_ids=
-			profile->getSpatialFastenersWithParent(
+			FastenerObjectSystem::getSystem()->getSpatialFastenersWithParent(
 				MikanFastenerParentType_Stencil, modelInfo.stencil_id);
 
 		RmlModel_CompositorModel uiModel = {

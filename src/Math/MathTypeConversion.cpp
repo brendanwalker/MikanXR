@@ -392,3 +392,15 @@ glm::quat MikanRotator3f_to_glm_quat(const MikanRotator3f& in)
 	
 	return glm::quat(glm::mat3(glm::eulerAngleXYZ(xRadians, yRadians, zRadians)));
 }
+
+MikanRotator3f glm_quat_to_MikanRotator3f(const glm::quat& in)
+{
+	float xRadians, yRadians, zRadians;
+	glm_quat_to_euler_angles(in, xRadians, yRadians, zRadians);
+
+	return {
+		xRadians * k_radians_to_degrees,
+		yRadians * k_radians_to_degrees,
+		zRadians * k_radians_to_degrees
+	};
+}

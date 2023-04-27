@@ -45,16 +45,10 @@ glm::mat4 glm_scale_along_axis(const glm::vec3& axis, const float scale)
 
 void glm_quat_to_euler_angles(
 	const glm::quat& orientation,
-	float& out_x_angle, float& out_y_angle, float& out_z_angle)
+	float& out_x_radians, float& out_y_radians, float& out_z_radians)
 {
 	const glm::mat4 R = glm::mat4_cast(orientation);
-
-	float xRadians = 0, yRadians = 0, zRadians = 0;
-	glm::extractEulerAngleXYZ(R, xRadians, yRadians, zRadians);
-
-	out_x_angle = xRadians * k_radians_to_degreees;
-	out_y_angle = yRadians * k_radians_to_degreees;
-	out_z_angle = zRadians * k_radians_to_degreees;
+	glm::extractEulerAngleXYZ(R, out_x_radians, out_y_radians, out_z_radians);
 }
 
 glm::mat4 glm_composite_xform(const glm::mat4& first, const glm::mat4& second)

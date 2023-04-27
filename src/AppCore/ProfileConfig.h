@@ -16,22 +16,6 @@ public:
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
-#if 0
-	bool getSpatialFastenerInfo(MikanSpatialFastenerID fastenerId, MikanSpatialFastenerInfo& outInfo) const;
-	bool getFastenerWorldTransform(MikanSpatialFastenerID fastenerId, glm::mat4& outXform) const;
-	glm::mat4 getFastenerWorldTransform(const MikanSpatialFastenerInfo* fastener) const;
-	void getFastenerLocalPoints(const MikanSpatialFastenerInfo* fastener, glm::vec3 outLocalPoints[3]) const;
-	void getFastenerWorldPoints(const MikanSpatialFastenerInfo* fastener, glm::vec3 outWorldPoints[3]) const;
-	MikanSpatialFastenerID getNextSpatialFastenerId(MikanSpatialFastenerID fastenerId) const;
-	bool findSpatialFastenerInfoByName(const char* fastenerName, MikanSpatialFastenerInfo& outInfo) const;
-	std::vector<MikanSpatialFastenerID> getSpatialFastenersWithParent(const MikanFastenerParentType parentType, const int32_t objectId) const;
-	std::vector<MikanSpatialFastenerID> getValidSpatialFastenerSnapTargets(const MikanSpatialFastenerID sourceFastenerId) const;
-	bool canAddFastener() const;
-	MikanSpatialFastenerID addNewFastener(const MikanSpatialFastenerInfo& fastener);
-	bool updateFastener(const MikanSpatialFastenerInfo& fastener);
-	bool removeFastener(MikanSpatialFastenerID fastenerId);
-#endif
-
 	std::filesystem::path generateTimestampedFilePath(const std::string& prefix, const std::string& suffix) const;
 
 	eCalibrationPatternType calibrationPatternType;
@@ -66,5 +50,6 @@ public:
 	std::filesystem::path outputFilePath;
 
 	AnchorObjectSystemConfigPtr anchorConfig;
+	FastenerObjectSystemConfigPtr fastenerConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 };

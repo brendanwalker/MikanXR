@@ -1,5 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
+#include "FastenerObjectSystem.h"
 #include "RmlModel_CompositorAnchors.h"
 #include "MathMikan.h"
 #include "ProfileConfig.h"
@@ -111,8 +112,9 @@ void RmlModel_CompositorAnchors::rebuildAnchorList()
 	{
 		RmlModel_CompositorAnchor uiAnchorInfo;
 		uiAnchorInfo.anchor_id= anchorConfig->getAnchorId();
-		profile->getSpatialFastenersWithParent(
-			MikanFastenerParentType_SpatialAnchor, anchorInfo.anchor_id);
+		uiAnchorInfo.child_fastener_ids=
+			FastenerObjectSystem::getSystem()->getSpatialFastenersWithParent(
+				MikanFastenerParentType_SpatialAnchor, anchorConfig->getAnchorId());
 
 		m_spatialAnchors.push_back(uiAnchorInfo);
 	}

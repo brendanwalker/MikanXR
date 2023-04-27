@@ -11,6 +11,10 @@ class AnchorComponent;
 using AnchorComponentPtr = std::shared_ptr<AnchorComponent>;
 using AnchorComponentWeakPtr = std::weak_ptr<AnchorComponent>;
 
+class FastenerComponent;
+using FastenerComponentPtr = std::shared_ptr<FastenerComponent>;
+using FastenerComponentWeakPtr = std::weak_ptr<FastenerComponent>;
+
 class SelectionComponent;
 using SelectionComponentPtr = std::shared_ptr<SelectionComponent>;
 using SelectionComponentWeakPtr = std::weak_ptr<SelectionComponent>;

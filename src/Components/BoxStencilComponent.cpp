@@ -79,7 +79,7 @@ void BoxStencilConfig::setBoxInfo(const MikanStencilBox& box)
 	markDirty();
 }
 
-const glm::mat4 BoxStencilConfig::getBoxXform() const
+const glm::mat4 BoxStencilConfig::getBoxMat4() const
 {
 	return glm::mat4(
 		glm::vec4(MikanVector3f_to_glm_vec3(m_boxInfo.box_x_axis), 0.f),
@@ -88,8 +88,29 @@ const glm::mat4 BoxStencilConfig::getBoxXform() const
 		glm::vec4(MikanVector3f_to_glm_vec3(m_boxInfo.box_center), 1.f));
 }
 
-void BoxStencilConfig::setBoxXform(const glm::mat4& xform)
+void BoxStencilConfig::setBoxMat4(const glm::mat4& xform)
 {
+	m_boxInfo.box_x_axis = glm_vec3_to_MikanVector3f(xform[0]);
+	m_boxInfo.box_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
+	m_boxInfo.box_z_axis = glm_vec3_to_MikanVector3f(xform[2]);
+	m_boxInfo.box_center = glm_vec3_to_MikanVector3f(xform[3]);
+	markDirty();
+}
+
+const GlmTransform BoxStencilConfig::getBoxTransform() const
+{
+	return GlmTransform(
+		MikanVector3f_to_glm_vec3(m_boxInfo.box_center),
+		glm::quat_cast(glm::mat3(
+			MikanVector3f_to_glm_vec3(m_boxInfo.box_x_axis),
+			MikanVector3f_to_glm_vec3(m_boxInfo.box_y_axis),
+			MikanVector3f_to_glm_vec3(m_boxInfo.box_z_axis))));
+}
+
+void BoxStencilConfig::setBoxTransform(const GlmTransform& transform)
+{
+	glm::mat4 xform = transform.getMat4();
+
 	m_boxInfo.box_x_axis = glm_vec3_to_MikanVector3f(xform[0]);
 	m_boxInfo.box_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
 	m_boxInfo.box_z_axis = glm_vec3_to_MikanVector3f(xform[2]);
@@ -144,7 +165,7 @@ void BoxStencilComponent::update()
 {
 	MikanComponent::update();
 
-	if (!IsDisabled)
+	if (!m_config->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 
@@ -167,54 +188,28 @@ void BoxStencilComponent::update()
 
 		drawTransformedBox(xform, half_extents, color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
+		drawTextAtWorldPosition(style, position, L"Stencil %d", m_config->getStencilId());
 	}
 }
 
 void BoxStencilComponent::setConfig(BoxStencilConfigPtr config)
 {
+	MikanSpatialAnchorID currentParentId = m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
+	MikanSpatialAnchorID newParentId = config ? config->getParentAnchorId() : INVALID_MIKAN_ID;
+	if (currentParentId != newParentId)
+	{
+		attachSceneComponentToAnchor(newParentId);
+	}
+
 	m_config= config;
+
 	updateSceneComponentTransform();
 	updateBoxColliderExtents();
 }
 
-glm::mat4 BoxStencilComponent::getStencilLocalTransform() const
+void BoxStencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
 {
-	return m_config->getBoxXform();
-}
-
-glm::mat4 BoxStencilComponent::getStencilWorldTransform() const
-{
-	const glm::mat4 localXform= getStencilLocalTransform();
-
-	glm::mat4 worldXform = localXform;
-	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
-	if (anchorPtr)
-	{
-		worldXform = anchorPtr->getAnchorXform() * localXform;
-	}
-
-	return worldXform;
-}
-
-void BoxStencilComponent::setStencilLocalTransformProperty(const glm::mat4& localXform)
-{
-	m_config->setBoxXform(localXform);
-}
-
-void BoxStencilComponent::setStencilWorldTransformProperty(const glm::mat4& worldXform)
-{
-	glm::mat4 localXform = worldXform;
-	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
-	if (anchorPtr)
-	{
-		const glm::mat4 invParentXform = glm::inverse(anchorPtr->getAnchorXform());
-
-		// Convert transform to the space of the parent anchor
-		localXform = glm_composite_xform(worldXform, invParentXform);
-	}
-
-	setStencilLocalTransformProperty(localXform);
+	m_config->setBoxTransform(sceneComponentPtr->getRelativeTransform());
 }
 
 void BoxStencilComponent::updateSceneComponentTransform()

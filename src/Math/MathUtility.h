@@ -23,7 +23,7 @@
 #define k_real_quarter_pi 0.25f*k_real_pi // 45 degrees
 
 #define k_degrees_to_radians (k_real_pi / 180.f)
-#define k_radians_to_degreees (180.f / k_real_pi)
+#define k_radians_to_degrees (180.f / k_real_pi)
 
 #define k_real64_pi 3.14159265358979323846
 #define k_real64_two_pi 2.0*k_real64_pi // 360 degrees

@@ -100,15 +100,14 @@ void AnchorComponent::setConfig(AnchorConfigPtr config)
 	updateSceneComponentTransform();
 }
 
-const glm::mat4 AnchorComponent::getAnchorXform() const
+glm::mat4 AnchorComponent::getAnchorLocalTransform() const
 {
-	return m_config->getAnchorXform();
+	return m_sceneComponent.lock()->getRelativeTransform().getMat4();
 }
 
-void AnchorComponent::setAnchorXform(const glm::mat4& xform)
+glm::mat4 AnchorComponent::getAnchorWorldTransform() const
 {
-	m_config->setAnchorXform(xform);
-	updateSceneComponentTransform();
+	return m_sceneComponent.lock()->getWorldTransform();
 }
 
 const std::string AnchorComponent::getAnchorName()
@@ -126,6 +125,8 @@ void AnchorComponent::updateSceneComponentTransform()
 	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
 	if (sceneComponent)
 	{
-		sceneComponent->setWorldTransform(m_config->getAnchorXform());
+		GlmTransform relativeTransform(m_config->getAnchorXform());
+
+		sceneComponent->setRelativeTransform(relativeTransform);
 	}
 }

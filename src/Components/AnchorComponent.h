@@ -49,8 +49,8 @@ public:
 	inline AnchorConfigPtr getConfig() const { return m_config; }
 	void setConfig(AnchorConfigPtr config);
 
-	const glm::mat4 getAnchorXform() const;
-	void setAnchorXform(const glm::mat4& xform);
+	glm::mat4 getAnchorLocalTransform() const;
+	glm::mat4 getAnchorWorldTransform() const;
 
 	const std::string getAnchorName();
 	void setAnchorName(const std::string& newAnchorName);

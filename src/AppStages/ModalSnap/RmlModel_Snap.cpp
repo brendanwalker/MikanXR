@@ -1,3 +1,4 @@
+#include "FastenerObjectSystem.h"
 #include "RmlModel_Snap.h"
 #include "ProfileConfig.h"
 
@@ -32,7 +33,8 @@ bool RmlModel_Snap::init(
 	m_sourceFastenerId = sourceFastenerId;
 	m_modelHandle.DirtyVariable("sourceFastenerId");
 
-	m_compatibleTargetFastenerIds= profile->getValidSpatialFastenerSnapTargets(sourceFastenerId);
+	m_compatibleTargetFastenerIds= 
+		FastenerObjectSystem::getSystem()->getValidSpatialFastenerSnapTargets(sourceFastenerId);
 	m_modelHandle.DirtyVariable("targetFastenerIds");
 
 	m_targetFastenerId = 

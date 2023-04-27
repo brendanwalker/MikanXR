@@ -1,4 +1,6 @@
 #include "App.h"
+#include "AnchorComponent.h"
+#include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
 #include "GlModelResourceManager.h"
 #include "GlRenderModelResource.h"
@@ -59,6 +61,43 @@ void StencilObjectSystem::dispose()
 	m_boxStencilComponents.clear();
 	m_modelStencilComponents.clear();
 	MikanObjectSystem::dispose();
+}
+
+StencilComponentWeakPtr StencilObjectSystem::getStencilById(MikanStencilID stencilId) const
+{
+	QuadStencilComponentPtr quadPtr = getQuadStencilById(stencilId).lock();
+	if (quadPtr)
+	{
+		return quadPtr;
+	}
+
+	BoxStencilComponentPtr boxPtr = getBoxStencilById(stencilId).lock();
+	if (quadPtr)
+	{
+		return boxPtr;
+	}
+
+	ModelStencilComponentPtr modelPtr = getModelStencilById(stencilId).lock();
+	if (modelPtr)
+	{
+		return modelPtr;
+	}
+
+	return StencilComponentWeakPtr();
+}
+
+bool StencilObjectSystem::getStencilWorldTransform(
+	MikanStencilID parentStencilId, 
+	glm::mat4& outXform) const
+{
+	StencilComponentPtr stencilComponent= getStencilById(parentStencilId).lock();
+	if (stencilComponent)
+	{
+		outXform = stencilComponent->getStencilWorldTransform();
+		return true;
+	}
+
+	return false;
 }
 
 QuadStencilComponentWeakPtr StencilObjectSystem::getQuadStencilById(MikanStencilID stencilId) const
@@ -130,6 +169,18 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(QuadStencil
 	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
 	stencilComponentPtr->setConfig(quadConfig);
 	m_quadStencilComponents.insert({quadConfig->getStencilId(), stencilComponentPtr});
+
+	// Attach to parent anchor, if any
+	MikanSpatialAnchorID parentAnchorId= quadConfig->getParentAnchorId();
+	if (parentAnchorId != INVALID_MIKAN_ID)
+	{
+		AnchorComponentPtr parentAnchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(parentAnchorId);
+
+		if (parentAnchor)
+		{
+			sceneComponentPtr->attachToComponent(parentAnchor->getOwnerObject()->getRootComponent());
+		}
+	}
 
 	// Init the object once all components are added
 	stencilObject->init();
@@ -225,6 +276,18 @@ BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(BoxStencilCon
 	BoxStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<BoxStencilComponent>();
 	stencilComponentPtr->setConfig(boxConfig);
 	m_boxStencilComponents.insert({boxConfig->getStencilId(), stencilComponentPtr});
+
+	// Attach to parent anchor, if any
+	MikanSpatialAnchorID parentAnchorId = boxConfig->getParentAnchorId();
+	if (parentAnchorId != INVALID_MIKAN_ID)
+	{
+		AnchorComponentPtr parentAnchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(parentAnchorId);
+
+		if (parentAnchor)
+		{
+			sceneComponentPtr->attachToComponent(parentAnchor->getOwnerObject()->getRootComponent());
+		}
+	}
 
 	// Init the object once all components are added
 	stencilObject->init();
@@ -364,6 +427,18 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();
 	stencilComponentPtr->setConfig(modelConfig);
 	m_modelStencilComponents.insert({modelConfig->getStencilId(), stencilComponentPtr});
+
+	// Attach to parent anchor, if any
+	MikanSpatialAnchorID parentAnchorId = modelConfig->getParentAnchorId();
+	if (parentAnchorId != INVALID_MIKAN_ID)
+	{
+		AnchorComponentPtr parentAnchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(parentAnchorId);
+
+		if (parentAnchor)
+		{
+			sceneComponentPtr->attachToComponent(parentAnchor->getOwnerObject()->getRootComponent());
+		}
+	}
 
 	// Init the object once all components are added
 	stencilObject->init();

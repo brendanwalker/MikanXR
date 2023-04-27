@@ -6,6 +6,7 @@
 #include "ComponentFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
+#include "Transform.h"
 
 #include <memory>
 #include <string>
@@ -27,8 +28,11 @@ public:
 	MikanStencilID getStencilId() const { return m_boxInfo.stencil_id; }
 	MikanStencilID getParentAnchorId() const { return m_boxInfo.parent_anchor_id; }
 
-	const glm::mat4 getBoxXform() const;
-	void setBoxXform(const glm::mat4& xform);
+	const glm::mat4 getBoxMat4() const;
+	void setBoxMat4(const glm::mat4& xform);
+
+	const GlmTransform getBoxTransform() const;
+	void setBoxTransform(const GlmTransform& transform);
 
 	float getBoxXSize() const { return m_boxInfo.box_x_size; }
 	void setBoxXSize(float size);
@@ -59,12 +63,8 @@ public:
 	inline BoxStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(BoxStencilConfigPtr config);
 
-	virtual glm::mat4 getStencilLocalTransform() const override;
-	virtual glm::mat4 getStencilWorldTransform() const override;
-	virtual void setStencilLocalTransformProperty(const glm::mat4& xform) override;
-	virtual void setStencilWorldTransformProperty(const glm::mat4& xform) override;
-
 protected:
+	void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) override;
 	void updateSceneComponentTransform();
 	void updateBoxColliderExtents();
 

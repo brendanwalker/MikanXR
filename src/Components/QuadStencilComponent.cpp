@@ -82,7 +82,7 @@ void QuadStencilConfig::setQuadInfo(const MikanStencilQuad& quadInfo)
 	markDirty();
 }
 
-const glm::mat4 QuadStencilConfig::getQuadXform() const
+const glm::mat4 QuadStencilConfig::getQuadMat4() const
 {
 	return glm::mat4 (
 		glm::vec4(MikanVector3f_to_glm_vec3(m_quadInfo.quad_x_axis), 0.f),
@@ -91,8 +91,29 @@ const glm::mat4 QuadStencilConfig::getQuadXform() const
 		glm::vec4(MikanVector3f_to_glm_vec3(m_quadInfo.quad_center), 1.f));
 }
 
-void QuadStencilConfig::setQuadXform(const glm::mat4& xform)
+void QuadStencilConfig::setQuadMat4(const glm::mat4& xform)
 {
+	m_quadInfo.quad_x_axis = glm_vec3_to_MikanVector3f(xform[0]);
+	m_quadInfo.quad_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
+	m_quadInfo.quad_normal = glm_vec3_to_MikanVector3f(xform[2]);
+	m_quadInfo.quad_center = glm_vec3_to_MikanVector3f(xform[3]);
+	markDirty();
+}
+
+const GlmTransform QuadStencilConfig::getQuadTransform() const
+{
+	return GlmTransform(
+		MikanVector3f_to_glm_vec3(m_quadInfo.quad_center),
+		glm::quat_cast(glm::mat3(
+			MikanVector3f_to_glm_vec3(m_quadInfo.quad_x_axis),
+			MikanVector3f_to_glm_vec3(m_quadInfo.quad_y_axis),
+			MikanVector3f_to_glm_vec3(m_quadInfo.quad_normal))));
+}
+
+void QuadStencilConfig::setQuadTransform(const GlmTransform& transform)
+{
+	glm::mat4 xform= transform.getMat4();
+
 	m_quadInfo.quad_x_axis = glm_vec3_to_MikanVector3f(xform[0]);
 	m_quadInfo.quad_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
 	m_quadInfo.quad_normal = glm_vec3_to_MikanVector3f(xform[2]);
@@ -151,7 +172,7 @@ void QuadStencilComponent::update()
 {
 	MikanComponent::update();
 
-	if (!IsDisabled)
+	if (!m_config->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 
@@ -170,54 +191,28 @@ void QuadStencilComponent::update()
 
 		drawTransformedQuad(xform, m_config->getQuadWidth(), m_config->getQuadHeight(), color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", StencilId);
+		drawTextAtWorldPosition(style, position, L"Stencil %d", m_config->getStencilId());
 	}
 }
 
 void QuadStencilComponent::setConfig(QuadStencilConfigPtr config)
 {
+	MikanSpatialAnchorID currentParentId= m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
+	MikanSpatialAnchorID newParentId= config ? config->getParentAnchorId() : INVALID_MIKAN_ID;
+	if (currentParentId != newParentId)
+	{
+		attachSceneComponentToAnchor(newParentId);
+	}
+
 	m_config= config;
+
 	updateSceneComponentTransform();
 	updateBoxColliderExtents();
 }
 
-glm::mat4 QuadStencilComponent::getStencilLocalTransform() const
+void QuadStencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
 {
-	return m_config->getQuadXform();
-}
-
-glm::mat4 QuadStencilComponent::getStencilWorldTransform() const
-{
-	const glm::mat4 localXform= getStencilLocalTransform();
-
-	glm::mat4 worldXform= localXform;
-	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
-	if (anchorPtr)
-	{
-		worldXform = anchorPtr->getAnchorXform() * localXform;
-	}
-
-	return worldXform;
-}
-
-void QuadStencilComponent::setStencilLocalTransformProperty(const glm::mat4& localXform)
-{
-	m_config->setQuadXform(localXform);
-}
-
-void QuadStencilComponent::setStencilWorldTransformProperty(const glm::mat4& worldXform)
-{
-	glm::mat4 localXform = worldXform;
-	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(ParentAnchorId).lock();
-	if (anchorPtr)
-	{
-		const glm::mat4 invParentXform = glm::inverse(anchorPtr->getAnchorXform());
-
-		// Convert transform to the space of the parent anchor
-		localXform = glm_composite_xform(worldXform, invParentXform);
-	}
-
-	setStencilLocalTransformProperty(localXform);
+	m_config->setQuadTransform(sceneComponentPtr->getRelativeTransform());
 }
 
 void QuadStencilComponent::updateSceneComponentTransform()
@@ -225,9 +220,7 @@ void QuadStencilComponent::updateSceneComponentTransform()
 	SceneComponentPtr sceneComponent= m_sceneComponent.lock();
 	if (sceneComponent)
 	{
-		const glm::mat4 worldXform = getStencilWorldTransform();
-
-		sceneComponent->setWorldTransform(worldXform);
+		sceneComponent->setRelativeTransform(m_config->getQuadTransform());
 	}
 }
 

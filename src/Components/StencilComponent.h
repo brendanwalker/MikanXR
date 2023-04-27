@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ComponentProperty.h"
 #include "MikanComponent.h"
 #include "MikanClientTypes.h"
 #include "SceneFwd.h"
@@ -17,18 +16,12 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
-	virtual glm::mat4 getStencilLocalTransform() const = 0;
-	virtual glm::mat4 getStencilWorldTransform() const = 0;
-	virtual void setStencilLocalTransformProperty(const glm::mat4& xform) = 0;
-	virtual void setStencilWorldTransformProperty(const glm::mat4& xform) = 0;
-
-	COMPONENT_PROPERTY(MikanStencilID, StencilId);
-	COMPONENT_PROPERTY(MikanSpatialAnchorID, ParentAnchorId);
-	COMPONENT_PROPERTY(bool, IsDisabled);
-	COMPONENT_PROPERTY(std::string, StencilName);
+	glm::mat4 getStencilLocalTransform() const;
+	glm::mat4 getStencilWorldTransform() const;
 
 protected:
-	void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr);
+	void attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId);
+	virtual void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) {};
 
 	SceneComponentWeakPtr m_sceneComponent;
 };

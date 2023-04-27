@@ -1,13 +1,11 @@
+#include "AnchorObjectSystem.h"
+#include "AnchorComponent.h"
 #include "StencilComponent.h"
 #include "SceneComponent.h"
 #include "MikanObject.h"
 
 StencilComponent::StencilComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
-	, StencilId(INVALID_MIKAN_ID)
-	, ParentAnchorId(INVALID_MIKAN_ID)
-	, IsDisabled(false)
-	, StencilName("")
 {
 }
 
@@ -15,7 +13,7 @@ void StencilComponent::init()
 {
 	MikanComponent::init();
 
-	SceneComponentPtr sceneComponentPtr= getOwnerObject()->getComponentOfType<SceneComponent>();
+	SceneComponentPtr sceneComponentPtr= getOwnerObject()->getRootComponent().lock();
 	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
 	m_sceneComponent= sceneComponentPtr;
 }
@@ -26,8 +24,35 @@ void StencilComponent::dispose()
 	sceneComponentPtr->OnTranformChaged -= MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
 }
 
-void StencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
+glm::mat4 StencilComponent::getStencilLocalTransform() const
 {
-	// Update stencil transform properties
-	setStencilWorldTransformProperty(sceneComponentPtr->getWorldTransform());
+	return m_sceneComponent.lock()->getRelativeTransform().getMat4();
+}
+
+glm::mat4 StencilComponent::getStencilWorldTransform() const
+{
+	return m_sceneComponent.lock()->getWorldTransform();
+}
+
+void StencilComponent::attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId)
+{
+	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
+
+	if (newParentId != INVALID_MIKAN_ID)
+	{
+		AnchorComponentPtr anchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(newParentId);
+
+		if (anchor)
+		{
+			sceneComponent->attachToComponent(anchor->getOwnerObject()->getRootComponent());
+		}
+		else
+		{
+			sceneComponent->detachFromParent();
+		}
+	}
+	else
+	{
+		sceneComponent->detachFromParent();
+	}
 }

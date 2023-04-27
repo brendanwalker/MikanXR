@@ -1,9 +1,13 @@
+#include "BoxStencilComponent.h"
 #include "RmlModel_CompositorLayers.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
+#include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
+#include "QuadStencilComponent.h"
 #include "StringUtils.h"
+#include "StencilObjectSystem.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -414,17 +418,20 @@ void RmlModel_CompositorLayers::rebuild(
 		uiLayer.quad_stencil_mode = k_compositorStencilModeStrings[(int)layerConfig->quadStencilConfig.stencilMode];
 		uiLayer.invert_quads_when_camera_inside = layerConfig->quadStencilConfig.bInvertWhenCameraInside;
 		uiLayer.quad_stencil_flags.clear();
-		for (const auto& stencil : profile->quadStencilList)
+		auto quadMap= StencilObjectSystem::getSystem()->getQuadStencilMap();
+		for (auto it = quadMap.begin(); it != quadMap.end(); it++)
 		{
+			QuadStencilComponentPtr stencil= it->second.lock();
+			MikanStencilID stencil_id= stencil->getConfig()->getStencilId();
 			const auto& enabledStencilIds= layerConfig->quadStencilConfig.quadStencilIds;
 
 			RmlModel_LayerStencilFlag stencilFlag;
-			stencilFlag.stencil_id= stencil.stencil_id;
+			stencilFlag.stencil_id= stencil_id;
 			stencilFlag.stencil_enabled= 
 				std::find(
 					enabledStencilIds.begin(),
 					enabledStencilIds.end(),
-					stencil.stencil_id) != enabledStencilIds.end();
+					stencil_id) != enabledStencilIds.end();
 
 			uiLayer.quad_stencil_flags.push_back(stencilFlag);
 		}
@@ -432,17 +439,20 @@ void RmlModel_CompositorLayers::rebuild(
 		// Add box stencil IDs
 		uiLayer.box_stencil_mode = k_compositorStencilModeStrings[(int)layerConfig->boxStencilConfig.stencilMode];
 		uiLayer.box_stencil_flags.clear();
-		for (const auto& stencil : profile->boxStencilList)
+		auto boxMap= StencilObjectSystem::getSystem()->getBoxStencilMap();
+		for (auto it = boxMap.begin(); it != boxMap.end(); it++)
 		{
+			BoxStencilComponentPtr stencil = it->second.lock();
+			MikanStencilID stencil_id = stencil->getConfig()->getStencilId();
 			const auto& enabledStencilIds= layerConfig->boxStencilConfig.boxStencilIds;
 
 			RmlModel_LayerStencilFlag stencilFlag;
-			stencilFlag.stencil_id = stencil.stencil_id;
+			stencilFlag.stencil_id = stencil_id;
 			stencilFlag.stencil_enabled =
 				std::find(
 					enabledStencilIds.begin(),
 					enabledStencilIds.end(),
-					stencil.stencil_id) != enabledStencilIds.end();
+					stencil_id) != enabledStencilIds.end();
 
 			uiLayer.box_stencil_flags.push_back(stencilFlag);
 		}
@@ -450,17 +460,20 @@ void RmlModel_CompositorLayers::rebuild(
 		// Add model stencil IDs
 		uiLayer.model_stencil_mode = k_compositorStencilModeStrings[(int)layerConfig->modelStencilConfig.stencilMode];
 		uiLayer.model_stencil_flags.clear();
-		for (const auto& stencil : profile->modelStencilList)
+		auto modelMap= StencilObjectSystem::getSystem()->getModelStencilMap();
+		for (auto it = modelMap.begin(); it != modelMap.end(); it++)
 		{
+			ModelStencilComponentPtr stencil = it->second.lock();
+			MikanStencilID stencil_id = stencil->getConfig()->getStencilId();
 			const auto& enabledStencilIds= layerConfig->modelStencilConfig.modelStencilIds;
 			
 			RmlModel_LayerStencilFlag stencilFlag;
-			stencilFlag.stencil_id = stencil.modelInfo.stencil_id;
+			stencilFlag.stencil_id = stencil_id;
 			stencilFlag.stencil_enabled =
 				std::find(
 					enabledStencilIds.begin(),
 					enabledStencilIds.end(),
-					stencil.modelInfo.stencil_id) != enabledStencilIds.end();
+					stencil_id) != enabledStencilIds.end();
 
 			uiLayer.model_stencil_flags.push_back(stencilFlag);
 		}

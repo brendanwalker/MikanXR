@@ -5,6 +5,7 @@
 #include "MikanClientTypes.h"
 #include "RendererFwd.h"
 #include "StencilComponent.h"
+#include "Transform.h"
 
 #include <memory>
 #include <string>
@@ -28,8 +29,11 @@ public:
 	MikanStencilID getStencilId() const { return m_modelInfo.stencil_id; }
 	MikanStencilID getParentAnchorId() const { return m_modelInfo.parent_anchor_id; }
 
-	const glm::mat4 getModelXform() const;
-	void setModelXform(const glm::mat4& xform);
+	const glm::mat4 getModelMat4() const;
+	void setModelMat4(const glm::mat4& xform);
+
+	const GlmTransform getModelTransform() const;
+	void setModelTransform(const GlmTransform& transform);
 
 	const std::filesystem::path& getModelPath() const { return m_modelPath; }
 	void setModelPath(const std::filesystem::path& path);
@@ -56,11 +60,6 @@ public:
 	inline ModelStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(ModelStencilConfigPtr config);
 
-	virtual glm::mat4 getStencilLocalTransform() const override;
-	virtual glm::mat4 getStencilWorldTransform() const override;
-	virtual void setStencilLocalTransformProperty(const glm::mat4& xform) override;
-	virtual void setStencilWorldTransformProperty(const glm::mat4& xform) override;
-
 	// Selection Events
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
@@ -68,6 +67,7 @@ public:
 	void onInteractionUnselected();
 
 protected:
+	void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) override;
 	void updateSceneComponentTransform();
 
 	ModelStencilConfigPtr m_config;

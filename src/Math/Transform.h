@@ -11,6 +11,7 @@ public:
 	GlmTransform(const glm::vec3& position);
 	GlmTransform(const glm::vec3& position, const glm::quat& orientation);
 	GlmTransform(const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale);
+	GlmTransform(const glm::mat4& mat4);
 
 	inline void setScale(const glm::vec3& scale) { m_scale= scale; rebuildMat(); }
 	inline void setOrientation(const glm::quat& orientation) { m_orientation= orientation; rebuildMat(); }
@@ -22,6 +23,7 @@ public:
 		m_scale= scale; 
 		rebuildMat();
 	}
+	void setMat4(const glm::mat4& mat4);
 
 	const glm::vec3& getScale() const { return m_scale; }
 	const glm::quat& getOrientation() const { return m_orientation; }

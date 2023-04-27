@@ -28,8 +28,8 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	bool canAddAnchor() const;
-	AnchorConfigPtr getSpatialAnchorInfo(MikanSpatialAnchorID anchorId) const;
-	AnchorConfigPtr getSpatialAnchorInfoByName(const std::string& anchorName) const;
+	AnchorConfigPtr getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const;
+	AnchorConfigPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
 	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const MikanMatrix4f& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
@@ -53,19 +53,21 @@ public:
 	virtual void dispose() override;
 
 	const AnchorMap& getAnchorMap() const { return m_anchorComponents; }
-	AnchorComponentWeakPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const;
-	AnchorComponentWeakPtr getSpatialAnchorByName(const std::string& anchorName) const;
+	AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const;
+	AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const;
+	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
 	AnchorComponentPtr addNewAnchor(const std::string& anchorName, const glm::mat4& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 protected:
-	AnchorObjectSystemConfigConstPtr getAnchorConfigConst() const;
-	AnchorObjectSystemConfigPtr getAnchorConfig();
+	AnchorObjectSystemConfigConstPtr getAnchorSystemConfigConst() const;
+	AnchorObjectSystemConfigPtr getAnchorSystemConfig();
 
-	AnchorComponentPtr createAnchorObject(const MikanSpatialAnchorInfo& anchorInfo);
+	AnchorComponentPtr createAnchorObject(AnchorConfigPtr anchorConfig);
 	void disposeAnchorObject(MikanSpatialAnchorID anchorId);
 
 	AnchorMap m_anchorComponents;
+	AnchorComponentPtr m_originAnchor;
 
 	static AnchorObjectSystem* s_anchorObjectSystem;
 };

@@ -4,6 +4,7 @@
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "StencilComponent.h"
+#include "Transform.h"
 
 #include <string>
 
@@ -22,10 +23,13 @@ public:
 	void setQuadInfo(const MikanStencilQuad& quadInfo);
 
 	MikanStencilID getStencilId() const { return m_quadInfo.stencil_id; }
-	MikanStencilID getParentAnchorId() const { return m_quadInfo.parent_anchor_id; }
+	MikanSpatialAnchorID getParentAnchorId() const { return m_quadInfo.parent_anchor_id; }
 
-	const glm::mat4 getQuadXform() const;
-	void setQuadXform(const glm::mat4& xform);
+	const glm::mat4 getQuadMat4() const;
+	void setQuadMat4(const glm::mat4& xform);
+
+	const GlmTransform getQuadTransform() const;
+	void setQuadTransform(const GlmTransform& transform);
 
 	float getQuadWidth() const { return m_quadInfo.quad_width; }
 	void setQuadWidth(float width);
@@ -56,12 +60,8 @@ public:
 	inline QuadStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(QuadStencilConfigPtr config);
 
-	virtual glm::mat4 getStencilLocalTransform() const override;
-	virtual glm::mat4 getStencilWorldTransform() const override;
-	virtual void setStencilLocalTransformProperty(const glm::mat4& xform) override;
-	virtual void setStencilWorldTransformProperty(const glm::mat4& xform) override;
-
 protected:
+	void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) override;
 	void updateSceneComponentTransform();
 	void updateBoxColliderExtents();
 
