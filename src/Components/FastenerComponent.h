@@ -21,7 +21,7 @@ public:
 	FastenerConfig();
 	FastenerConfig(
 		MikanSpatialFastenerID fastenerId,
-		const std::string& fastenerName);
+		const MikanSpatialFastenerInfo& fastenerInfo);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

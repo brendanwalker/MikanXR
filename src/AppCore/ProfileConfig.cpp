@@ -48,9 +48,6 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, calibrationComponentName("front_rolled")
 	, vrFrameDelay(0)
 	, videoFrameQueueSize(3)
-	// Fastener
-	, nextFastenerId(0)
-	, debugRenderFasteners(true)
 	// Compositor
 	, compositorScriptFilePath("")
 	// Output Settings
@@ -89,9 +86,6 @@ configuru::Config ProfileConfig::writeToJSON()
 	pt["calibrationComponentName"]= calibrationComponentName;
 	pt["vrFrameDelay"]= vrFrameDelay;
 	pt["videoFrameQueueSize"]= videoFrameQueueSize;
-	// Fasteners
-	pt["nextFastenerId"]= nextFastenerId;
-	pt["debugRenderFasteners"]= debugRenderFasteners;
 	// Compositor
 	pt["compositorScript"]= compositorScriptFilePath.string();
 	// Output Settings

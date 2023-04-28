@@ -22,12 +22,11 @@ FastenerConfig::FastenerConfig()
 
 FastenerConfig::FastenerConfig(
 	MikanSpatialFastenerID fastenerId,
-	const std::string& fastenerName)
+	const MikanSpatialFastenerInfo& fastenerInfo)
 	: CommonConfig(StringUtils::stringify("fastener_", fastenerId))
 {
-	memset(&m_fastenerInfo, 0, sizeof(MikanSpatialFastenerInfo));
+	m_fastenerInfo= fastenerInfo;
 	m_fastenerInfo.fastener_id = fastenerId;
-	strncpy(m_fastenerInfo.fastener_name, fastenerName.c_str(), sizeof(m_fastenerInfo.fastener_name) - 1);
 }
 
 configuru::Config FastenerConfig::writeToJSON()

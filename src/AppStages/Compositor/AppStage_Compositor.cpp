@@ -1,5 +1,8 @@
 ///-- includes -----
 #include "App.h"
+#include "AnchorComponent.h"
+#include "AnchorObjectSystem.h"
+#include "BoxStencilComponent.h"
 #include "FastenerCalibration/AppStage_FastenerCalibration.h"
 #include "ModelFastenerCalibration/AppStage_ModelFastenerCalibration.h"
 #include "Compositor/AppStage_Compositor.h"
@@ -13,6 +16,8 @@
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSources.h"
 #include "EditorObjectSystem.h"
+#include "FastenerComponent.h"
+#include "FastenerObjectSystem.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
 #include "ModalSnap/ModalDialog_Snap.h"
@@ -33,14 +38,19 @@
 #include "MikanObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathMikan.h"
+#include "MikanObject.h"
 #include "MikanServer.h"
 #include "MikanScene.h"
+#include "ModelStencilComponent.h"
 #include "ObjectSystemManager.h"
 #include "ProfileConfig.h"
+#include "QuadStencilComponent.h"
 #include "Renderer.h"
 #include "PathUtils.h"
 #include "RmlUtility.h"
+#include "SceneComponent.h"
 #include "StringUtils.h"
+#include "StencilObjectSystem.h"
 #include "TextStyle.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoSourceView.h"
@@ -71,7 +81,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorRecordingModel(new RmlModel_CompositorRecording)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorSourcesModel(new RmlModel_CompositorSources)
-	, m_scriptContext(new CompositorScriptContext)
+	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 	, m_mikanScene(std::make_shared<MikanScene>())
 	, m_videoWriter(new VideoWriter)
 {
@@ -90,7 +100,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorRecordingModel;
 	delete m_compositorScriptingModel;
 	delete m_compositorSourcesModel;
-	delete m_scriptContext;
+	m_scriptContext.reset();
 	delete m_videoWriter;
 }
 
@@ -99,13 +109,20 @@ void AppStage_Compositor::enter()
 	AppStage::enter();
 	App* app= App::getInstance();
 
+	// Cache object systems we'll be accessing
+	ObjectSystemManagerPtr objectSystemManager = app->getObjectSystemManager();
+	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
+	m_fastenerObjectSystem = objectSystemManager->getSystemOfType<FastenerObjectSystem>();
+	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
+	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
+
+	// Start the frame compositor
 	m_frameCompositor= GlFrameCompositor::getInstance();
 	m_frameCompositor->start();
 	m_frameCompositor->OnCompositorShadersReloaded += MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
 	// Register the scene with the primary viewport
-	EditorObjectSystemPtr editorSystem= app->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
-	editorSystem->bindViewport(getFirstViewport());
+	m_editorSystem->bindViewport(getFirstViewport());
 
 	// Apply video source camera intrinsics to the camera
 	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
@@ -150,7 +167,7 @@ void AppStage_Compositor::enter()
 		m_compositiorView = addRmlDocument("compositor.rml");
 
 		// Init Layers UI
-		m_compositorLayersModel->init(context, m_frameCompositor, m_profile);
+		m_compositorLayersModel->init(context, m_frameCompositor);
 		m_compositorLayersModel->OnConfigAddEvent = MakeDelegate(this, &AppStage_Compositor::onConfigAddEvent);
 		m_compositorLayersModel->OnConfigDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onConfigDeleteEvent);
 		m_compositorLayersModel->OnConfigNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onConfigNameChangeEvent);
@@ -176,7 +193,7 @@ void AppStage_Compositor::enter()
 		m_compositiorLayersView->Show();
 
 		// Init Anchors UI
-		m_compositorAnchorsModel->init(context, m_profile->anchorConfig);
+		m_compositorAnchorsModel->init(context, m_anchorObjectSystem);
 		m_compositorAnchorsModel->OnUpdateOriginPose = MakeDelegate(this, &AppStage_Compositor::onUpdateOriginEvent);
 		m_compositorAnchorsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddAnchorFastenerEvent);
 		m_compositorAnchorsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditAnchorFastenerEvent);
@@ -185,7 +202,7 @@ void AppStage_Compositor::enter()
 		m_compositiorAnchorsView->Hide();
 
 		// Init Quad Stencils UI
-		m_compositorQuadsModel->init(context, m_profile);
+		m_compositorQuadsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
 		m_compositorQuadsModel->OnAddQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddQuadStencilEvent);
 		m_compositorQuadsModel->OnDeleteQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteQuadStencilEvent);
 		m_compositorQuadsModel->OnModifyQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyQuadStencilEvent);
@@ -194,7 +211,7 @@ void AppStage_Compositor::enter()
 		m_compositiorQuadsView->Hide();
 
 		// Init Box Stencils UI
-		m_compositorBoxesModel->init(context, m_profile);
+		m_compositorBoxesModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
 		m_compositorBoxesModel->OnAddBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddBoxStencilEvent);
 		m_compositorBoxesModel->OnDeleteBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteBoxStencilEvent);
 		m_compositorBoxesModel->OnModifyBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyBoxStencilEvent);
@@ -203,7 +220,7 @@ void AppStage_Compositor::enter()
 		m_compositiorBoxesView->Hide();
 
 		// Init Models Stencils UI
-		m_compositorModelsModel->init(context, m_profile);
+		m_compositorModelsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
 		m_compositorModelsModel->OnAddModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilEvent);
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
 		m_compositorModelsModel->OnModifyModelStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilParentAnchorEvent);
@@ -369,7 +386,7 @@ void AppStage_Compositor::stopRecording()
 
 void AppStage_Compositor::onCompositorShadersReloaded()
 {
-	m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+	m_compositorLayersModel->rebuild(m_frameCompositor);
 }
 
 void AppStage_Compositor::onNewFrameComposited()
@@ -452,7 +469,7 @@ void AppStage_Compositor::onConfigAddEvent()
 		const std::string newPresetName = m_frameCompositor->getCurrentPresetName();
 
 		// Rebuild the layers UI to make sure the new layer exists
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 		getRmlContext()->Update();
 
 		// Force select the new preset (by default RML preserves the current selection)
@@ -485,7 +502,7 @@ void AppStage_Compositor::onConfigDeleteEvent()
 		[this]() {
 			if (m_frameCompositor->deleteCurrentPreset())
 			{
-				m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+				m_compositorLayersModel->rebuild(m_frameCompositor);
 			}
 		});
 }
@@ -494,7 +511,7 @@ void AppStage_Compositor::onConfigNameChangeEvent(const std::string& newConfigNa
 {
 	if (m_frameCompositor->setCurrentPresetName(newConfigName))
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
@@ -502,7 +519,7 @@ void AppStage_Compositor::onLayerAddEvent()
 {
 	if (m_frameCompositor->addLayerToCurrentPreset())
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
@@ -510,7 +527,7 @@ void AppStage_Compositor::onLayerDeleteEvent(const int layerIndex)
 {
 	if (m_frameCompositor->removeLayerFromCurrentPreset(layerIndex))
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
@@ -522,7 +539,7 @@ void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
 
 	if (m_frameCompositor->selectPreset(configName))
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
@@ -532,7 +549,7 @@ void AppStage_Compositor::onMaterialNameChangeEvent(
 {
 	if (m_frameCompositor->setLayerMaterialName(layerIndex, materialName))
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
@@ -572,19 +589,19 @@ void AppStage_Compositor::onModelStencilModeChangeEvent(const int layerIndex, eC
 
 void AppStage_Compositor::onStencilRefAddedEvent(const int layerIndex, int stencilId)
 {
-	eStencilType stencilType= m_profile->getStencilType(stencilId);
+	eStencilType stencilType= m_stencilObjectSystem->getStencilType(stencilId);
 	if (m_frameCompositor->addLayerStencilRef(layerIndex, stencilType, stencilId))
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
 void AppStage_Compositor::onStencilRefRemovedEvent(const int layerIndex, int stencilId)
 {
-	eStencilType stencilType = m_profile->getStencilType(stencilId);
+	eStencilType stencilType = m_stencilObjectSystem->getStencilType(stencilId);
 	if (m_frameCompositor->removeLayerStencilRef(layerIndex, stencilType, stencilId))
 	{
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
@@ -670,8 +687,8 @@ void AppStage_Compositor::onUpdateOriginEvent()
 
 	if (vrDeviceView != nullptr)
 	{
-		MikanSpatialAnchorInfo anchor;
-		if (m_profile->getSpatialAnchorInfo(m_profile->originAnchorId, anchor))
+		AnchorComponentPtr originSpatialAnchor= m_anchorObjectSystem->getOriginSpatialAnchor();
+		if (originSpatialAnchor)
 		{
 			const glm::mat4 devicePose = vrDeviceView->getCalibrationPose();
 
@@ -685,40 +702,33 @@ void AppStage_Compositor::onUpdateOriginEvent()
 				anchorXform = glm_mat4_from_pose(yawOnlyOrientation, devicePosition);
 			}
 
-			anchor.anchor_xform = glm_mat4_to_MikanMatrix4f(anchorXform);
-
-			m_profile->updateAnchor(anchor);
-
-			// Tell any connected clients that the anchor pose changed
-			{
-				MikanAnchorPoseUpdateEvent poseUpdateEvent;
-				memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
-				poseUpdateEvent.anchor_id = anchor.anchor_id;
-				poseUpdateEvent.transform = anchor.anchor_xform;
-
-				MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
-			}
+			// Update origin anchor transform
+			SceneComponentPtr anchorSceneComponent= 
+				originSpatialAnchor->getOwnerObject()->getRootComponent().lock();
+			anchorSceneComponent->setWorldTransform(anchorXform);
 		}
 	}
 }
 
 void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
 {
-	MikanSpatialFastenerInfo fastener;
-	memset(&fastener, 0, sizeof(MikanSpatialFastenerInfo));
+	MikanSpatialFastenerInfo fastenerInfo;
+	memset(&fastenerInfo, 0, sizeof(MikanSpatialFastenerInfo));
 
+	const MikanStencilID nextStencilId= m_stencilObjectSystem->getStencilSystemConfigConst()->nextStencilId;
 	StringUtils::formatString(
-		fastener.fastener_name, sizeof(fastener.fastener_name),
-		"Fastener_%d", m_profile->nextFastenerId);
-	fastener.parent_object_type = MikanFastenerParentType_SpatialAnchor;
-	fastener.parent_object_id = parentAnchorId;
-	fastener.fastener_id= INVALID_MIKAN_ID;
+		fastenerInfo.fastener_name, sizeof(fastenerInfo.fastener_name),
+		"Fastener_%d", nextStencilId);
+	fastenerInfo.parent_object_type = MikanFastenerParentType_SpatialAnchor;
+	fastenerInfo.parent_object_id = parentAnchorId;
+	fastenerInfo.fastener_id= INVALID_MIKAN_ID;
 
-	if (m_profile->canAddFastener())
+	FastenerComponentPtr fastenerComponent= m_fastenerObjectSystem->addNewFastener(fastenerInfo);
+	if (fastenerComponent != nullptr)
 	{
 		// Show Fastener calibration tool
 		AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
-		fastenerCalibration->setTargetFastener(fastener);
+		fastenerCalibration->setTargetFastener(fastenerInfo);
 	}
 }
 
@@ -726,8 +736,11 @@ void AppStage_Compositor::onEditAnchorFastenerEvent(int fastenerID)
 {
 	// Show Fastener calibration tool
 	MikanSpatialFastenerInfo fastenerInfo;
-	if (m_profile->getSpatialFastenerInfo(fastenerID, fastenerInfo))
+	FastenerComponentPtr fastenerComponent= m_fastenerObjectSystem->getSpatialFastenerById(fastenerID);
+	if (fastenerComponent != nullptr)
 	{
+		const MikanSpatialFastenerInfo& fastenerInfo= fastenerComponent->getConfig()->getFastenerInfo();
+
 		AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
 		fastenerCalibration->setTargetFastener(fastenerInfo);
 	}
@@ -735,9 +748,9 @@ void AppStage_Compositor::onEditAnchorFastenerEvent(int fastenerID)
 
 void AppStage_Compositor::onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID)
 {
-	if (m_profile->removeFastener(fastenerID))
+	if (m_fastenerObjectSystem->removeFastener(fastenerID))
 	{
-		m_compositorAnchorsModel->rebuildAnchorList(m_profile);
+		m_compositorAnchorsModel->rebuildAnchorList();
 	}
 }
 
@@ -756,35 +769,33 @@ void AppStage_Compositor::onAddQuadStencilEvent()
 	quad.quad_width = 0.25f;
 	quad.quad_height = 0.25f;
 
-	if (m_profile->addNewQuadStencil(quad) != INVALID_MIKAN_ID)
+	if (m_stencilObjectSystem->addNewQuadStencil(quad) != nullptr)
 	{
-		m_compositorQuadsModel->rebuildUIQuadsFromProfile(m_profile);
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorQuadsModel->rebuildUIQuadsFromProfile();
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
 void AppStage_Compositor::onDeleteQuadStencilEvent(int stencilID)
 {
-	if (m_profile->removeStencil(stencilID))
+	if (m_stencilObjectSystem->removeQuadStencil(stencilID))
 	{
-		m_compositorQuadsModel->rebuildUIQuadsFromProfile(m_profile);
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorQuadsModel->rebuildUIQuadsFromProfile();
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
 void AppStage_Compositor::onModifyQuadStencilEvent(int stencilID)
 {
-	m_compositorQuadsModel->copyUIQuadToProfile(stencilID, m_profile);
+	m_compositorQuadsModel->copyUIQuadToProfile(stencilID);
 }
 
 void AppStage_Compositor::onModifyQuadStencilParentAnchorEvent(int stencilID, int newAnchorID)
 {
-	MikanStencilQuad stencilInfo;
-	if (m_profile->getQuadStencilInfo(stencilID, stencilInfo) &&
-		stencilInfo.parent_anchor_id != newAnchorID)
+	QuadStencilComponentPtr quadStencil= m_stencilObjectSystem->getQuadStencilById(stencilID);
+	if (quadStencil != nullptr)
 	{
-		stencilInfo.parent_anchor_id = newAnchorID;
-		m_profile->updateQuadStencil(stencilInfo);
+		quadStencil->attachSceneComponentToAnchor(newAnchorID);
 	}
 }
 
@@ -803,35 +814,33 @@ void AppStage_Compositor::onAddBoxStencilEvent()
 	box.box_y_size = 0.25f;
 	box.box_z_size = 0.25f;
 
-	if (m_profile->addNewBoxStencil(box) != INVALID_MIKAN_ID)
+	if (m_stencilObjectSystem->addNewBoxStencil(box) != nullptr)
 	{
-		m_compositorBoxesModel->rebuildUIBoxesFromStencilSystem(m_profile);
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorBoxesModel->rebuildUIBoxesFromStencilSystem();
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
 void AppStage_Compositor::onDeleteBoxStencilEvent(int stencilID)
 {
-	if (m_profile->removeStencil(stencilID))
+	if (m_stencilObjectSystem->removeBoxStencil(stencilID))
 	{
-		m_compositorBoxesModel->rebuildUIBoxesFromStencilSystem(m_profile);
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorBoxesModel->rebuildUIBoxesFromStencilSystem();
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
 void AppStage_Compositor::onModifyBoxStencilEvent(int stencilID)
 {
-	m_compositorBoxesModel->copyUIBoxToStencilSystem(stencilID, m_profile);
+	m_compositorBoxesModel->copyUIBoxToStencilSystem(stencilID);
 }
 
 void AppStage_Compositor::onModifyBoxStencilParentAnchorEvent(int stencilID, int newAnchorID)
 {
-	MikanStencilBox stencilInfo;
-	if (m_profile->getBoxStencilInfo(stencilID, stencilInfo) &&
-		stencilInfo.parent_anchor_id != newAnchorID)
+	BoxStencilComponentPtr boxStencil= m_stencilObjectSystem->getBoxStencilById(stencilID);
+	if (boxStencil != nullptr)
 	{
-		stencilInfo.parent_anchor_id = newAnchorID;
-		m_profile->updateBoxStencil(stencilInfo);
+		boxStencil->attachSceneComponentToAnchor(newAnchorID);
 	}
 }
 
@@ -847,36 +856,34 @@ void AppStage_Compositor::onAddModelStencilEvent()
 	model.model_rotator = {0.f, 0.f, 1.f};
 	model.model_scale = {1.f, 1.f, 1.f};
 
-	if (m_profile->addNewModelStencil(model) != INVALID_MIKAN_ID)
+	if (m_stencilObjectSystem->addNewModelStencil(model) != nullptr)
 	{
-		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorModelsModel->rebuildUIModelsFromProfile();
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
 void AppStage_Compositor::onDeleteModelStencilEvent(int stencilID)
 {
-	if (m_profile->removeStencil(stencilID))
+	if (m_stencilObjectSystem->removeModelStencil(stencilID))
 	{
-		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
-		m_compositorLayersModel->rebuild(m_frameCompositor, m_profile);
+		m_compositorModelsModel->rebuildUIModelsFromProfile();
+		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
 
 void AppStage_Compositor::onModifyModelStencilParentAnchorEvent(int stencilID, int newAnchorID)
 {
-	MikanStencilModel stencilInfo;
-	if (m_profile->getModelStencilInfo(stencilID, stencilInfo) && 
-		stencilInfo.parent_anchor_id != newAnchorID)
+	ModelStencilComponentPtr modelStencil= m_stencilObjectSystem->getModelStencilById(stencilID);
+	if (modelStencil != nullptr)
 	{
-		stencilInfo.parent_anchor_id= newAnchorID;
-		m_profile->updateModelStencil(stencilInfo);
+		modelStencil->attachSceneComponentToAnchor(newAnchorID);
 	}
 }
 
 void AppStage_Compositor::onModifyModelStencilEvent(int stencilID)
 {
-	m_compositorModelsModel->copyUIModelToProfile(stencilID, m_profile);	
+	m_compositorModelsModel->copyUIModelToProfile(stencilID);
 }
 
 void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
@@ -884,10 +891,10 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 	std::filesystem::path current_dir;
 	std::filesystem::path current_file;
 
-	const MikanStencilModelConfig* modelConfig= m_profile->getModelStencilConfig(stencilID);
-	if (modelConfig != nullptr)
+	ModelStencilComponentPtr modelStencil= m_stencilObjectSystem->getModelStencilById(stencilID);
+	if (modelStencil != nullptr)
 	{
-		current_file= modelConfig->modelPath;
+		current_file= modelStencil->getConfig()->getModelPath();
 		current_dir= current_file.remove_filename();
 	}
 
@@ -896,12 +903,10 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 		current_dir,
 		current_file,
 		{".obj"}, 
-		[this, stencilID](const std::filesystem::path& filepath) {
-			if (m_profile->updateModelStencilFilename(stencilID, filepath))
-			{
-				m_frameCompositor->flushStencilRenderModel(stencilID);
-				m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
-			}
+		[this, modelStencil](const std::filesystem::path& filepath) {
+			modelStencil->getConfig()->setModelPath(filepath);
+			m_frameCompositor->flushStencilRenderModel(modelStencil->getConfig()->getStencilId());
+			m_compositorModelsModel->rebuildUIModelsFromProfile();
 		});
 }
 
@@ -910,19 +915,29 @@ void AppStage_Compositor::onSnapFastenerEvent(int fastenerID)
 	ModalDialog_Snap::selectSnapTarget(
 		fastenerID,
 		[this](MikanSpatialFastenerID sourceId, MikanSpatialFastenerID targetId) {
-			MikanSpatialFastenerInfo sourceFastener;
 
-			if (m_profile->getSpatialFastenerInfo(sourceId, sourceFastener))
+			FastenerComponentPtr sourceFastener= m_fastenerObjectSystem->getSpatialFastenerById(sourceId);
+			FastenerComponentPtr targetFastener= m_fastenerObjectSystem->getSpatialFastenerById(targetId);
+			if (sourceFastener != nullptr)
 			{
 				glm::mat4 newStencilXform;
 				glm::vec3 newStencilPoints[3];
 
 				if (align_stencil_fastener_to_anchor_fastener(
-					sourceId, targetId,
+					sourceFastener, targetFastener,
 					newStencilXform, newStencilPoints))
 				{
-					m_profile->setStencilLocalTransform(sourceFastener.parent_object_id, newStencilXform);
-					m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
+					SceneComponentPtr sourceFastenerSceneComponent=
+						sourceFastener->getOwnerObject()->getRootComponent().lock();
+					SceneComponentPtr stencilSceneComponent=
+						sourceFastenerSceneComponent->getParentComponent().lock();
+
+					if (stencilSceneComponent != nullptr)
+					{
+						stencilSceneComponent->setRelativeTransform(GlmTransform(newStencilXform));
+
+						m_compositorModelsModel->rebuildUIModelsFromProfile();
+					}
 				}
 			}
 		});
@@ -930,31 +945,34 @@ void AppStage_Compositor::onSnapFastenerEvent(int fastenerID)
 
 void AppStage_Compositor::onAddModelStencilFastenerEvent(int parentStencilID)
 {
-	MikanSpatialFastenerInfo fastener;
-	memset(&fastener, 0, sizeof(MikanSpatialFastenerInfo));
+	MikanSpatialFastenerInfo fastenerInfo;
+	memset(&fastenerInfo, 0, sizeof(MikanSpatialFastenerInfo));
+
+	MikanSpatialFastenerID nextFastenerId= m_fastenerObjectSystem->getFastenerSystemConfigConst()->nextFastenerId;
 
 	StringUtils::formatString(
-		fastener.fastener_name, sizeof(fastener.fastener_name),
-		"Fastener_%d", m_profile->nextFastenerId);
-	fastener.parent_object_type = MikanFastenerParentType_Stencil;
-	fastener.parent_object_id = parentStencilID;
-	fastener.fastener_id = INVALID_MIKAN_ID;
+		fastenerInfo.fastener_name, sizeof(fastenerInfo.fastener_name),
+		"Fastener_%d", nextFastenerId);
+	fastenerInfo.parent_object_type = MikanFastenerParentType_Stencil;
+	fastenerInfo.parent_object_id = parentStencilID;
+	fastenerInfo.fastener_id = INVALID_MIKAN_ID;
 
-	MikanSpatialFastenerID fastenerId = m_profile->addNewFastener(fastener);
-	if (m_profile->canAddFastener())
+	if (m_fastenerObjectSystem->getFastenerSystemConfig()->canAddFastener())
 	{
 		// Show Fastener calibration tool
 		AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
-		fastenerCalibration->setTargetFastener(fastener);
+		fastenerCalibration->setTargetFastener(fastenerInfo);
 	}
 }
 
 void AppStage_Compositor::onEditModelStencilFastenerEvent(int fastenerID)
 {
 	// Show Fastener calibration tool
-	MikanSpatialFastenerInfo fastenerInfo;
-	if (m_profile->getSpatialFastenerInfo(fastenerID, fastenerInfo))
+	FastenerComponentPtr fastenerComponent= m_fastenerObjectSystem->getSpatialFastenerById(fastenerID);
+	if (fastenerComponent != nullptr)
 	{
+		const MikanSpatialFastenerInfo& fastenerInfo= fastenerComponent->getConfig()->getFastenerInfo();
+
 		AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
 		fastenerCalibration->setTargetFastener(fastenerInfo);
 	}
@@ -962,9 +980,9 @@ void AppStage_Compositor::onEditModelStencilFastenerEvent(int fastenerID)
 
 void AppStage_Compositor::onDeleteModelStencilFastenerEvent(int stencilID, int fastenerID)
 {
-	if (m_profile->removeFastener(fastenerID))
+	if (m_fastenerObjectSystem->removeFastener(fastenerID))
 	{
-		m_compositorModelsModel->rebuildUIModelsFromProfile(m_profile);
+		m_compositorModelsModel->rebuildUIModelsFromProfile();
 	}
 }
 
@@ -1017,7 +1035,7 @@ void AppStage_Compositor::onReloadCompositorScriptFileEvent()
 	{
 		if (m_scriptContext->reloadScript())
 		{
-			m_compositorScriptingModel->rebuildScriptTriggers(m_scriptContext);
+			m_compositorScriptingModel->rebuildScriptTriggers();
 		}
 	}
 }
@@ -1038,6 +1056,7 @@ void AppStage_Compositor::render()
 	// Render the scene
 	m_mikanScene->render();
 
+#if 0
 	if (m_profile->debugRenderAnchors || 
 		m_profile->debugRenderFasteners ||
 		m_profile->debugRenderStencils)
@@ -1058,9 +1077,9 @@ void AppStage_Compositor::render()
 		{
 			debugRenderStencils();
 		}
-
-		debugRenderOrigin();
 	}
+#endif
+	debugRenderOrigin();
 }
 
 void AppStage_Compositor::debugRenderOrigin() const
@@ -1071,6 +1090,7 @@ void AppStage_Compositor::debugRenderOrigin() const
 	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
 }
 
+#if 0
 void AppStage_Compositor::debugRenderStencils() const
 {
 	TextStyle style = getDefaultTextStyle();
@@ -1181,3 +1201,4 @@ void AppStage_Compositor::debugRenderFasteners() const
 		drawTextAtWorldPosition(style, text_pos, L"%s", wszFastenerName);
 	}
 }
+#endif

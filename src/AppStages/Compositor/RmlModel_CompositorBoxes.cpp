@@ -14,8 +14,8 @@ bool RmlModel_CompositorBoxes::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorBoxes::init(
 	Rml::Context* rmlContext,
-	AnchorObjectSystemWeakPtr anchorSystemPtr,
-	StencilObjectSystemWeakPtr stencilSystemPtr)
+	AnchorObjectSystemPtr anchorSystemPtr,
+	StencilObjectSystemPtr stencilSystemPtr)
 {
 	m_anchorSystemPtr= anchorSystemPtr;
 	m_stencilSystemPtr= stencilSystemPtr;
@@ -128,8 +128,7 @@ void RmlModel_CompositorBoxes::dispose()
 
 void RmlModel_CompositorBoxes::rebuildAnchorList()
 {
-	AnchorObjectSystemPtr anchorSystem= m_anchorSystemPtr.lock();
-	auto& anchorMap= anchorSystem->getAnchorMap();
+	auto& anchorMap= m_anchorSystemPtr->getAnchorMap();
 
 	m_spatialAnchors.clear();
 	for (auto it = anchorMap.begin(); it != anchorMap.end(); ++it)
@@ -143,8 +142,7 @@ void RmlModel_CompositorBoxes::rebuildAnchorList()
 
 void RmlModel_CompositorBoxes::rebuildUIBoxesFromStencilSystem()
 {
-	StencilObjectSystemPtr stencilSystem= m_stencilSystemPtr.lock();
-	auto& stencilMap= stencilSystem->getBoxStencilMap();
+	auto& stencilMap= m_stencilSystemPtr->getBoxStencilMap();
 
 	m_stencilBoxes.clear();
 	for (auto it = stencilMap.begin(); it != stencilMap.end(); ++it)
@@ -182,10 +180,8 @@ void RmlModel_CompositorBoxes::copyUIBoxToStencilSystem(int stencil_id) const
 
 	if (it != m_stencilBoxes.end())
 	{
-		StencilObjectSystemPtr stencilSystem= m_stencilSystemPtr.lock();
-
 		const RmlModel_CompositorBox& uiBox = *it;
-		BoxStencilComponentPtr stencilPtr = stencilSystem->getBoxStencilById(stencil_id).lock();
+		BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id).lock();
 		BoxStencilConfigPtr configPtr= stencilPtr->getConfig();
 		MikanStencilBox box= configPtr->getBoxInfo();
 

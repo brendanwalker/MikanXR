@@ -42,8 +42,7 @@ class RmlModel_CompositorLayers : public RmlModel
 public:
 	bool init(
 		Rml::Context* rmlContext, 
-		const class GlFrameCompositor* compositor,
-		const class ProfileConfig* profile);
+		const class GlFrameCompositor* compositor);
 	virtual void dispose() override;
 
 	SinglecastDelegate<void()> OnConfigAddEvent;
@@ -86,7 +85,7 @@ public:
 		const Rml::VariantList& arguments,
 		MappingChangedDelegate& mappingChangedDelegate);
 
-	void rebuild(const class GlFrameCompositor* compositor, const class ProfileConfig* profile);
+	void rebuild(const class GlFrameCompositor* compositor);
 
 private:
 	Rml::String m_currentConfigurationName;

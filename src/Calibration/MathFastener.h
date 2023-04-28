@@ -1,11 +1,10 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-typedef int32_t MikanSpatialFastenerID;
-
 bool align_stencil_fastener_to_anchor_fastener(
-	MikanSpatialFastenerID sourceId,
-	MikanSpatialFastenerID targetId,
+	FastenerComponentPtr sourceFastener,
+	FastenerComponentPtr targetFastener,
 	glm::mat4& outNewStencilXform,
 	glm::vec3 outNewStencilPoints[3]);

@@ -54,12 +54,12 @@ bool FastenerObjectSystemConfig::canAddFastener() const
 	return (spatialFastenerList.size() < MAX_MIKAN_SPATIAL_FASTENERS);
 }
 
-FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpatialFastenerID FastenerId) const
+FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId) const
 {
 	auto it = std::find_if(
 		spatialFastenerList.begin(), spatialFastenerList.end(),
-		[FastenerId](FastenerConfigPtr configPtr) {
-		return configPtr->getFastenerId() == FastenerId;
+		[fastenerId](FastenerConfigPtr configPtr) {
+		return configPtr->getFastenerId() == fastenerId;
 	});
 
 	if (it != spatialFastenerList.end())
@@ -70,12 +70,12 @@ FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpat
 	return FastenerConfigPtr();
 }
 
-FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfigByName(const std::string& FastenerName) const
+FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfigByName(const std::string& fastenerName) const
 {
 	auto it = std::find_if(
 		spatialFastenerList.begin(), spatialFastenerList.end(),
-		[FastenerName](FastenerConfigPtr configPtr) {
-		return strncmp(configPtr->getFastenerInfo().fastener_name, FastenerName.c_str(), MAX_MIKAN_FASTENER_NAME_LEN) == 0;
+		[fastenerName](FastenerConfigPtr configPtr) {
+		return strncmp(configPtr->getFastenerInfo().fastener_name, fastenerName.c_str(), MAX_MIKAN_FASTENER_NAME_LEN) == 0;
 	});
 
 	if (it != spatialFastenerList.end())
@@ -87,12 +87,12 @@ FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfigByName(con
 }
 
 
-MikanSpatialFastenerID FastenerObjectSystemConfig::addNewFastener(const std::string& fastenerName)
+MikanSpatialFastenerID FastenerObjectSystemConfig::addNewFastener(const MikanSpatialFastenerInfo& fastenerInfo)
 {
 	if (!canAddFastener())
 		return INVALID_MIKAN_ID;
 
-	FastenerConfigPtr fastenerConfig = std::make_shared<FastenerConfig>(nextFastenerId, fastenerName);
+	FastenerConfigPtr fastenerConfig = std::make_shared<FastenerConfig>(nextFastenerId, fastenerInfo);
 	nextFastenerId++;
 
 	spatialFastenerList.push_back(fastenerConfig);
@@ -101,12 +101,12 @@ MikanSpatialFastenerID FastenerObjectSystemConfig::addNewFastener(const std::str
 	return fastenerConfig->getFastenerId();
 }
 
-bool FastenerObjectSystemConfig::removeFastener(MikanSpatialFastenerID FastenerId)
+bool FastenerObjectSystemConfig::removeFastener(MikanSpatialFastenerID fastenerId)
 {
 	auto it = std::find_if(
 		spatialFastenerList.begin(), spatialFastenerList.end(),
-		[FastenerId](FastenerConfigPtr configPtr) {
-		return configPtr->getFastenerId() == FastenerId;
+		[fastenerId](FastenerConfigPtr configPtr) {
+		return configPtr->getFastenerId() == fastenerId;
 	});
 
 	if (it != spatialFastenerList.end() &&
@@ -151,9 +151,9 @@ void FastenerObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
-FastenerComponentPtr FastenerObjectSystem::getSpatialFastenerById(MikanSpatialFastenerID FastenerId) const
+FastenerComponentPtr FastenerObjectSystem::getSpatialFastenerById(MikanSpatialFastenerID fastenerId) const
 {
-	auto iter = m_fastenerComponents.find(FastenerId);
+	auto iter = m_fastenerComponents.find(fastenerId);
 	if (iter != m_fastenerComponents.end())
 	{
 		return iter->second.lock();
@@ -162,13 +162,13 @@ FastenerComponentPtr FastenerObjectSystem::getSpatialFastenerById(MikanSpatialFa
 	return FastenerComponentPtr();
 }
 
-FastenerComponentPtr FastenerObjectSystem::getSpatialFastenerByName(const std::string& FastenerName) const
+FastenerComponentPtr FastenerObjectSystem::getSpatialFastenerByName(const std::string& fastenerName) const
 {
 	for (auto it = m_fastenerComponents.begin(); it != m_fastenerComponents.end(); it++)
 	{
 		FastenerComponentPtr componentPtr = it->second.lock();
 
-		if (componentPtr && componentPtr->getFastenerName() == FastenerName)
+		if (componentPtr && componentPtr->getFastenerName() == fastenerName)
 		{
 			return componentPtr;
 		}
@@ -221,14 +221,14 @@ std::vector<MikanSpatialFastenerID> FastenerObjectSystem::getValidSpatialFastene
 	return result;
 }
 
-FastenerComponentPtr FastenerObjectSystem::addNewFastener(const std::string& FastenerName)
+FastenerComponentPtr FastenerObjectSystem::addNewFastener(const MikanSpatialFastenerInfo& fastenerInfo)
 {
 	FastenerObjectSystemConfigPtr fastenerSystemConfig = getFastenerSystemConfig();
 
-	MikanSpatialFastenerID FastenerId = fastenerSystemConfig->addNewFastener(FastenerName);
-	if (FastenerId != INVALID_MIKAN_ID)
+	MikanSpatialFastenerID fastenerId = fastenerSystemConfig->addNewFastener(fastenerInfo);
+	if (fastenerId != INVALID_MIKAN_ID)
 	{
-		FastenerConfigPtr fastenerConfig = fastenerSystemConfig->getSpatialFastenerConfig(FastenerId);
+		FastenerConfigPtr fastenerConfig = fastenerSystemConfig->getSpatialFastenerConfig(fastenerId);
 		assert(fastenerConfig != nullptr);
 
 		return createFastenerObject(fastenerConfig);
@@ -288,9 +288,9 @@ FastenerComponentPtr FastenerObjectSystem::createFastenerObject(FastenerConfigPt
 	return fastenerComponent;
 }
 
-void FastenerObjectSystem::disposeFastenerObject(MikanSpatialFastenerID FastenerId)
+void FastenerObjectSystem::disposeFastenerObject(MikanSpatialFastenerID fastenerId)
 {
-	auto it = m_fastenerComponents.find(FastenerId);
+	auto it = m_fastenerComponents.find(fastenerId);
 	if (it != m_fastenerComponents.end())
 	{
 		FastenerComponentPtr FastenerComponentPtr = it->second.lock();

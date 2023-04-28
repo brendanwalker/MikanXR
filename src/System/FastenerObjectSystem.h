@@ -26,12 +26,11 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	bool canAddFastener() const;
-	FastenerConfigPtr getSpatialFastenerConfig(MikanSpatialFastenerID FastenerId) const;
-	FastenerConfigPtr getSpatialFastenerConfigByName(const std::string& FastenerName) const;
-	MikanSpatialFastenerID addNewFastener(const std::string& FastenerName);
-	bool removeFastener(MikanSpatialFastenerID FastenerId);
+	FastenerConfigPtr getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId) const;
+	FastenerConfigPtr getSpatialFastenerConfigByName(const std::string& fastenerName) const;
+	MikanSpatialFastenerID addNewFastener(const MikanSpatialFastenerInfo& fastenerInfo);
+	bool removeFastener(MikanSpatialFastenerID fastenerId);
 
-	std::string FastenerVRDevicePath;
 	std::vector<FastenerConfigPtr> spatialFastenerList;
 	MikanSpatialFastenerID nextFastenerId;
 	MikanSpatialFastenerID originFastenerId;
@@ -47,6 +46,9 @@ public:
 
 	static FastenerObjectSystem* getSystem() { return s_fastenerObjectSystem; }
 
+	FastenerObjectSystemConfigConstPtr getFastenerSystemConfigConst() const;
+	FastenerObjectSystemConfigPtr getFastenerSystemConfig();
+
 	virtual void init() override;
 	virtual void dispose() override;
 
@@ -58,13 +60,10 @@ public:
 		const MikanSpatialAnchorID parentObjectId) const;
 	std::vector<MikanSpatialFastenerID> getValidSpatialFastenerSnapTargets(
 		const MikanSpatialFastenerID sourceFastenerId) const;
-	FastenerComponentPtr addNewFastener(const std::string& FastenerName);
+	FastenerComponentPtr addNewFastener(const MikanSpatialFastenerInfo& fastenerInfo);
 	bool removeFastener(MikanSpatialFastenerID FastenerId);
 
 protected:
-	FastenerObjectSystemConfigConstPtr getFastenerSystemConfigConst() const;
-	FastenerObjectSystemConfigPtr getFastenerSystemConfig();
-
 	FastenerComponentPtr createFastenerObject(FastenerConfigPtr fastenerConfig);
 	void disposeFastenerObject(MikanSpatialFastenerID FastenerId);
 

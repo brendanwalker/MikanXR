@@ -99,21 +99,7 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	}
 
 	const glm::mat4 relativeXform= glm_composite_xform(invParentXform, m_worldTransform);
-	glm::vec3 scale;
-	glm::quat orientation;
-	glm::vec3 translation;
-	glm::vec3 skew;
-	glm::vec4 perspective;
-	if (glm::decompose(
-		relativeXform,
-		scale, orientation, translation, skew, perspective))
-	{
-		m_relativeTransform= GlmTransform(translation, orientation, scale);
-	}
-	else
-	{
-		m_relativeTransform= GlmTransform();
-	}
+	m_relativeTransform= GlmTransform(relativeXform);
 
 	if (OnTranformChaged)
 		OnTranformChaged(getSelfPtr<SceneComponent>());

@@ -23,8 +23,8 @@ class RmlModel_CompositorModels : public RmlModel
 public:
 	bool init(
 		Rml::Context* rmlContext,
-		AnchorObjectSystemWeakPtr anchorSystemPtr,
-		StencilObjectSystemWeakPtr objectSystemPtr);
+		AnchorObjectSystemPtr anchorSystemPtr,
+		StencilObjectSystemPtr objectSystemPtr);
 	virtual void dispose() override;
 
 	void rebuildAnchorList();
@@ -42,8 +42,8 @@ public:
 	SinglecastDelegate<void(int stencilID, int fastenerID)> OnDeleteFastenerEvent;
 
 private:
-	AnchorObjectSystemWeakPtr m_anchorSystemPtr;
-	StencilObjectSystemWeakPtr m_stencilSystemPtr;
+	AnchorObjectSystemPtr m_anchorSystemPtr;
+	StencilObjectSystemPtr m_stencilSystemPtr;
 	Rml::Vector<int> m_spatialAnchors;
 	Rml::Vector<RmlModel_CompositorModel> m_stencilModels;
 

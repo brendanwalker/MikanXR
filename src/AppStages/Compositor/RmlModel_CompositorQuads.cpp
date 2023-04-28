@@ -14,9 +14,12 @@ bool RmlModel_CompositorQuads::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorQuads::init(
 	Rml::Context* rmlContext,
-	AnchorObjectSystemWeakPtr anchorSystemPtr,
-	StencilObjectSystemWeakPtr stencilSystemPtr)
+	AnchorObjectSystemPtr anchorSystemPtr,
+	StencilObjectSystemPtr stencilSystemPtr)
 {
+	m_anchorSystemPtr= anchorSystemPtr;
+	m_stencilSystemPtr= stencilSystemPtr;
+
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_quads");
 	if (!constructor)
@@ -126,10 +129,9 @@ void RmlModel_CompositorQuads::dispose()
 
 void RmlModel_CompositorQuads::rebuildAnchorList()
 {
-	AnchorObjectSystemPtr anchorSystem = m_anchorSystemPtr.lock();
-	auto& anchorMap = anchorSystem->getAnchorMap();
-
 	m_spatialAnchors.clear();
+
+	auto& anchorMap = m_anchorSystemPtr->getAnchorMap();
 	for (auto it = anchorMap.begin(); it != anchorMap.end(); ++it)
 	{
 		const MikanSpatialAnchorID anchorId= it->first;
@@ -141,10 +143,9 @@ void RmlModel_CompositorQuads::rebuildAnchorList()
 
 void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile()
 {
-	StencilObjectSystemPtr stencilSystem = m_stencilSystemPtr.lock();
-	auto& stencilMap = stencilSystem->getQuadStencilMap();
-
 	m_stencilQuads.clear();
+
+	auto& stencilMap = m_stencilSystemPtr->getQuadStencilMap();
 	for (auto it = stencilMap.begin(); it != stencilMap.end(); ++it)
 	{
 		QuadStencilComponentPtr stencilPtr = it->second.lock();
@@ -180,9 +181,7 @@ void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id) const
 	});
 	if (it != m_stencilQuads.end())
 	{
-		StencilObjectSystemPtr stencilSystem= m_stencilSystemPtr.lock();
-
-		QuadStencilComponentPtr stencilPtr = stencilSystem->getQuadStencilById(stencil_id).lock();
+		QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id).lock();
 		QuadStencilConfigPtr configPtr = stencilPtr->getConfig();
 		MikanStencilQuad quad = configPtr->getQuadInfo();
 

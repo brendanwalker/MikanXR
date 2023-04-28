@@ -34,7 +34,7 @@ App* App::m_instance= nullptr;
 
 //-- public methods -----
 App::App()
-	: m_profileConfig(new ProfileConfig())
+	: m_profileConfig(std::make_shared<ProfileConfig>())
 	, m_mikanServer(new MikanServer())
 	, m_frameCompositor(new GlFrameCompositor())
 	, m_inputManager(new InputManager())
@@ -62,7 +62,7 @@ App::~App()
 	delete m_rmlManager;
 	delete m_mikanServer;
 	delete m_frameCompositor;
-	delete m_profileConfig;
+	m_profileConfig.reset();
 
 	m_instance= nullptr;
 }

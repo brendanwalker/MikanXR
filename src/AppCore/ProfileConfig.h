@@ -42,10 +42,6 @@ public:
 	int vrFrameDelay;
 	int videoFrameQueueSize;
 
-	std::vector<MikanSpatialFastenerInfo> spatialFastenerList;
-	MikanSpatialFastenerID nextFastenerId;
-	bool debugRenderFasteners;
-
 	std::filesystem::path compositorScriptFilePath;
 	std::filesystem::path outputFilePath;
 

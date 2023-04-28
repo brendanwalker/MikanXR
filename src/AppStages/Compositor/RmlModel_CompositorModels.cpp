@@ -14,8 +14,8 @@ bool RmlModel_CompositorModels::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorModels::init(
 	Rml::Context* rmlContext,
-	AnchorObjectSystemWeakPtr anchorSystemPtr,
-	StencilObjectSystemWeakPtr stencilSystemPtr)
+	AnchorObjectSystemPtr anchorSystemPtr,
+	StencilObjectSystemPtr stencilSystemPtr)
 {
 	m_anchorSystemPtr = anchorSystemPtr;
 	m_stencilSystemPtr = stencilSystemPtr;
@@ -171,10 +171,9 @@ void RmlModel_CompositorModels::dispose()
 
 void RmlModel_CompositorModels::rebuildAnchorList()
 {
-	AnchorObjectSystemPtr anchorSystem = m_anchorSystemPtr.lock();
-	auto& anchorMap = anchorSystem->getAnchorMap();
-
 	m_spatialAnchors.clear();
+
+	auto& anchorMap = m_anchorSystemPtr->getAnchorMap();
 	for (auto it = anchorMap.begin(); it != anchorMap.end(); ++it)
 	{
 		const MikanSpatialAnchorID anchorId= it->first;
@@ -186,10 +185,9 @@ void RmlModel_CompositorModels::rebuildAnchorList()
 
 void RmlModel_CompositorModels::rebuildUIModelsFromProfile()
 {
-	StencilObjectSystemPtr stencilSystem = m_stencilSystemPtr.lock();
-	auto& stencilMap = stencilSystem->getModelStencilMap();
-
 	m_stencilModels.clear();
+
+	auto& stencilMap = m_stencilSystemPtr->getModelStencilMap();
 	for (auto it = stencilMap.begin(); it != stencilMap.end(); ++it)
 	{
 		ModelStencilComponentPtr stencilPtr = it->second.lock();
@@ -225,11 +223,9 @@ void RmlModel_CompositorModels::copyUIModelToProfile(int stencil_id) const
 		});
 	if (it != m_stencilModels.end())
 	{
-		StencilObjectSystemPtr stencilSystem= m_stencilSystemPtr.lock();
-
 		const RmlModel_CompositorModel& uiModel = *it;
 
-		ModelStencilComponentPtr stencilPtr = stencilSystem->getModelStencilById(stencil_id).lock();
+		ModelStencilComponentPtr stencilPtr = m_stencilSystemPtr->getModelStencilById(stencil_id).lock();
 		ModelStencilConfigPtr configPtr = stencilPtr->getConfig();
 		MikanStencilModel modelInfo = configPtr->getModelInfo();
 

@@ -33,7 +33,7 @@
     pt.get_or<type>(), respectively, to convert between member variables and the
     property tree. 
 */
-class CommonConfig: public std::enable_shared_from_this<CommonConfig> 
+class CommonConfig : public std::enable_shared_from_this<CommonConfig> 
 {
 public:
     CommonConfig(const std::string &configName = std::string("CommonConfig"));

@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "SDL_events.h"
 
@@ -19,7 +20,7 @@ public:
 
 	static App* getInstance() { return m_instance; }
 
-	inline class ProfileConfig* getProfileConfig() const { return m_profileConfig; }
+	inline ProfileConfigPtr getProfileConfig() const { return m_profileConfig; }
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
 	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemPtr; }
 	inline class Renderer* getRenderer() const { return m_renderer; }
@@ -95,7 +96,7 @@ private:
 	static App* m_instance;
 
 	// Profile Config
-	class ProfileConfig* m_profileConfig= nullptr;
+	ProfileConfigPtr m_profileConfig;
 	float m_profileSaveCooldown= -1.f;
 
 	// Mikan API Server

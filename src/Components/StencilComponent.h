@@ -19,8 +19,9 @@ public:
 	glm::mat4 getStencilLocalTransform() const;
 	glm::mat4 getStencilWorldTransform() const;
 
-protected:
 	void attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId);
+
+protected:
 	virtual void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) {};
 
 	SceneComponentWeakPtr m_sceneComponent;

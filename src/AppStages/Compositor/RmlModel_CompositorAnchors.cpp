@@ -3,7 +3,6 @@
 #include "FastenerObjectSystem.h"
 #include "RmlModel_CompositorAnchors.h"
 #include "MathMikan.h"
-#include "ProfileConfig.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -14,10 +13,9 @@ bool RmlModel_CompositorAnchors::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorAnchors::init(
 	Rml::Context* rmlContext,
-	AnchorObjectSystemConfigWeakPtr anchorSystemWeakPtr)
+	AnchorObjectSystemPtr anchorSystemPtr)
 {
-	auto anchorSystemConfig = anchorSystemWeakPtr.lock();
-	m_anchorSystemConfigWeakPtr= anchorSystemWeakPtr;
+	m_anchorSystemPtr= anchorSystemPtr;
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_anchors");
@@ -80,15 +78,14 @@ bool RmlModel_CompositorAnchors::init(
 	rebuildAnchorList();
 
 	// Listen for anchor system config changes
-	anchorSystemConfig->OnMarkedDirty+= MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
+	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty+= MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
 
 	return true;
 }
 
 void RmlModel_CompositorAnchors::dispose()
 {
-	auto anchorSystemConfig = m_anchorSystemConfigWeakPtr.lock();
-	anchorSystemConfig->OnMarkedDirty-= MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
+	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty-= MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
 
 	OnAddFastenerEvent.Clear();
 	OnDeleteFastenerEvent.Clear();
@@ -102,19 +99,20 @@ void RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty(CommonConfigPtr c
 
 void RmlModel_CompositorAnchors::rebuildAnchorList()
 {
-	auto anchorSystemConfig= m_anchorSystemConfigWeakPtr.lock();
-
-	m_originAnchorId= anchorSystemConfig->originAnchorId;
+	m_originAnchorId= m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
 	m_modelHandle.DirtyVariable("origin_anchor_id");
 
 	m_spatialAnchors.clear();
-	for (AnchorConfigPtr anchorConfig : anchorSystemConfig->spatialAnchorList)
+	auto anchorMap= m_anchorSystemPtr->getAnchorMap();
+	for (auto it= anchorMap.begin(); it != anchorMap.end(); it++)
 	{
+		const MikanSpatialAnchorID anchorId= it->first;
+
 		RmlModel_CompositorAnchor uiAnchorInfo;
-		uiAnchorInfo.anchor_id= anchorConfig->getAnchorId();
+		uiAnchorInfo.anchor_id= anchorId;
 		uiAnchorInfo.child_fastener_ids=
 			FastenerObjectSystem::getSystem()->getSpatialFastenersWithParent(
-				MikanFastenerParentType_SpatialAnchor, anchorConfig->getAnchorId());
+				MikanFastenerParentType_SpatialAnchor, anchorId);
 
 		m_spatialAnchors.push_back(uiAnchorInfo);
 	}

@@ -52,17 +52,18 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
+	AnchorObjectSystemConfigConstPtr getAnchorSystemConfigConst() const;
+	AnchorObjectSystemConfigPtr getAnchorSystemConfig();
+
 	const AnchorMap& getAnchorMap() const { return m_anchorComponents; }
 	AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const;
 	AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const;
+	AnchorComponentPtr getOriginSpatialAnchor() const { return m_originAnchor; }
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
 	AnchorComponentPtr addNewAnchor(const std::string& anchorName, const glm::mat4& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 protected:
-	AnchorObjectSystemConfigConstPtr getAnchorSystemConfigConst() const;
-	AnchorObjectSystemConfigPtr getAnchorSystemConfig();
-
 	AnchorComponentPtr createAnchorObject(AnchorConfigPtr anchorConfig);
 	void disposeAnchorObject(MikanSpatialAnchorID anchorId);
 

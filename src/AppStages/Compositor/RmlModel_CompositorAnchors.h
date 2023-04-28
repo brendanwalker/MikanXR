@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 #include "FrameCompositorConstants.h"
@@ -14,7 +14,7 @@ struct RmlModel_CompositorAnchor
 class RmlModel_CompositorAnchors : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext, AnchorObjectSystemConfigWeakPtr anchorSystemWeakPtr);
+	bool init(Rml::Context* rmlContext, AnchorObjectSystemPtr anchorSystemPtr);
 	virtual void dispose() override;
 
 	void rebuildAnchorList();
@@ -27,7 +27,7 @@ public:
 private:
 	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr);
 
-	AnchorObjectSystemConfigWeakPtr m_anchorSystemConfigWeakPtr;
+	AnchorObjectSystemPtr m_anchorSystemPtr;
 	int m_originAnchorId= -1;
 	Rml::Vector<RmlModel_CompositorAnchor> m_spatialAnchors;
 	bool m_bShowAnchors;

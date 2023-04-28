@@ -22,8 +22,8 @@ class RmlModel_CompositorQuads : public RmlModel
 public:
 	bool init(
 		Rml::Context* rmlContext,
-		AnchorObjectSystemWeakPtr anchorSystemPtr,
-		StencilObjectSystemWeakPtr objectSystemPtr);
+		AnchorObjectSystemPtr anchorSystemPtr,
+		StencilObjectSystemPtr stencilSystemPtr);
 	virtual void dispose() override;
 
 	void rebuildAnchorList();
@@ -36,8 +36,8 @@ public:
 	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyQuadStencilParentAnchorEvent;
 
 private:
-	AnchorObjectSystemWeakPtr m_anchorSystemPtr;
-	StencilObjectSystemWeakPtr m_stencilSystemPtr;
+	AnchorObjectSystemPtr m_anchorSystemPtr;
+	StencilObjectSystemPtr m_stencilSystemPtr;
 	Rml::Vector<int> m_spatialAnchors;
 	Rml::Vector<RmlModel_CompositorQuad> m_stencilQuads;
 

@@ -1,6 +1,7 @@
 #include "AnchorComponent.h"
 #include "SceneComponent.h"
 #include "MikanObject.h"
+#include "MikanServer.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 
@@ -68,6 +69,16 @@ void AnchorConfig::setAnchorXform(const glm::mat4& xform)
 {
 	m_anchorInfo.anchor_xform = glm_mat4_to_MikanMatrix4f(xform);
 	markDirty();
+
+	// Tell any connected clients that the anchor pose changed
+	{
+		MikanAnchorPoseUpdateEvent poseUpdateEvent;
+		memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
+		poseUpdateEvent.anchor_id = m_anchorInfo.anchor_id;
+		poseUpdateEvent.transform = m_anchorInfo.anchor_xform;
+
+		MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
+	}
 }
 
 const std::string AnchorConfig::getAnchorName() const
@@ -90,14 +101,24 @@ void AnchorComponent::init()
 {
 	MikanComponent::init();
 
-	m_sceneComponent = getOwnerObject()->getComponentOfType<SceneComponent>();
-	updateSceneComponentTransform();
+	SceneComponentPtr sceneComponentPtr = getOwnerObject()->getComponentOfType<SceneComponent>();
+	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &AnchorComponent::applySceneComponentTransformToConfig);
+	m_sceneComponent= sceneComponentPtr;
+
+	applyConfigTransformToSceneComponent();
 }
+
+void AnchorComponent::dispose()
+{
+	SceneComponentPtr sceneComponentPtr = m_sceneComponent.lock();
+	sceneComponentPtr->OnTranformChaged -= MakeDelegate(this, &AnchorComponent::applySceneComponentTransformToConfig);
+}
+
 
 void AnchorComponent::setConfig(AnchorConfigPtr config)
 {
 	m_config= config;
-	updateSceneComponentTransform();
+	applyConfigTransformToSceneComponent();
 }
 
 glm::mat4 AnchorComponent::getAnchorLocalTransform() const
@@ -120,13 +141,24 @@ void AnchorComponent::setAnchorName(const std::string& newAnchorName)
 	m_config->setAnchorName(newAnchorName);
 }
 
-void AnchorComponent::updateSceneComponentTransform()
+void AnchorComponent::applyConfigTransformToSceneComponent()
 {
 	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
 	if (sceneComponent)
 	{
 		GlmTransform relativeTransform(m_config->getAnchorXform());
 
+		m_bIsApplyingConfigTransform= true;
 		sceneComponent->setRelativeTransform(relativeTransform);
+		m_bIsApplyingConfigTransform= false;
 	}
+}
+
+void AnchorComponent::applySceneComponentTransformToConfig(SceneComponentPtr sceneComponent)
+{
+	// Ignore this call if we were invoked from applyConfigTransformToSceneComponent()
+	if (m_bIsApplyingConfigTransform)
+		return;
+
+	m_config->setAnchorXform(sceneComponent->getRelativeTransform().getMat4());
 }

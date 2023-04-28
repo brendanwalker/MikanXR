@@ -1,15 +1,14 @@
 #pragma once
 
+#include "ScriptingFwd.h"
+
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 
-//-- predeclarations -----
-struct lua_State;
-typedef struct lua_State lua_State;
-
 //-- definitions -----
-class CommonScriptContext
+class CommonScriptContext : public std::enable_shared_from_this<CommonScriptContext> 
 {
 public:
 	CommonScriptContext();
@@ -32,7 +31,6 @@ protected:
 
 	virtual bool bindContextFunctions();
 	void bindCommonScriptFunctions();
-	void bindGLMFunctions();
 	bool addLuaCoroutineScheduler();
 
 	std::filesystem::path m_scriptFilename;

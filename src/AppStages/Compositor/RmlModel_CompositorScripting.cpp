@@ -9,9 +9,12 @@
 
 bool RmlModel_CompositorScripting::init(
 	Rml::Context* rmlContext,
-	const ProfileConfig* profile,
-	CompositorScriptContext* scriptContext)
+	ProfileConfigPtr profile,
+	CompositorScriptContextPtr scriptContext)
 {
+	m_profile= profile;
+	m_scriptContext= scriptContext;
+
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_scripting");
 	if (!constructor)
@@ -57,13 +60,15 @@ bool RmlModel_CompositorScripting::init(
 
 	// Set defaults
 	setCompositorScriptPath(profile->compositorScriptFilePath.string());
-	rebuildScriptTriggers(scriptContext);
+	rebuildScriptTriggers();
 
 	return true;
 }
 
 void RmlModel_CompositorScripting::dispose()
 {
+	m_profile.reset();
+	m_scriptContext.reset();
 	OnSelectCompositorScriptFileEvent.Clear();
 	OnReloadCompositorScriptFileEvent.Clear();
 	OnInvokeScriptTriggerEvent.Clear();
@@ -94,9 +99,9 @@ void RmlModel_CompositorScripting::setCompositorScriptPath(
 	}
 }
 
-void RmlModel_CompositorScripting::rebuildScriptTriggers(CompositorScriptContext* scriptContext)
+void RmlModel_CompositorScripting::rebuildScriptTriggers()
 {
-	const std::vector<std::string>& sourceTriggers= scriptContext->getScriptTriggers();
+	const std::vector<std::string>& sourceTriggers= m_scriptContext->getScriptTriggers();
 	m_scriptTriggers.clear();
 	for (const std::string& scriptTrigger : sourceTriggers)
 	{

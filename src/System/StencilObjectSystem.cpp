@@ -63,34 +63,57 @@ void StencilObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
-StencilComponentWeakPtr StencilObjectSystem::getStencilById(MikanStencilID stencilId) const
+StencilComponentPtr StencilObjectSystem::getStencilById(MikanStencilID stencilId) const
 {
-	QuadStencilComponentPtr quadPtr = getQuadStencilById(stencilId).lock();
+	QuadStencilComponentPtr quadPtr = getQuadStencilById(stencilId);
 	if (quadPtr)
 	{
 		return quadPtr;
 	}
 
-	BoxStencilComponentPtr boxPtr = getBoxStencilById(stencilId).lock();
+	BoxStencilComponentPtr boxPtr = getBoxStencilById(stencilId);
 	if (quadPtr)
 	{
 		return boxPtr;
 	}
 
-	ModelStencilComponentPtr modelPtr = getModelStencilById(stencilId).lock();
+	ModelStencilComponentPtr modelPtr = getModelStencilById(stencilId);
 	if (modelPtr)
 	{
 		return modelPtr;
 	}
 
-	return StencilComponentWeakPtr();
+	return StencilComponentPtr();
+}
+
+eStencilType StencilObjectSystem::getStencilType(MikanStencilID stencilId) const
+{
+	QuadStencilComponentPtr quadPtr = getQuadStencilById(stencilId);
+	if (quadPtr)
+	{
+		return eStencilType::quad;
+	}
+
+	BoxStencilComponentPtr boxPtr = getBoxStencilById(stencilId);
+	if (quadPtr)
+	{
+		return eStencilType::box;
+	}
+
+	ModelStencilComponentPtr modelPtr = getModelStencilById(stencilId);
+	if (modelPtr)
+	{
+		return eStencilType::model;
+	}
+
+	return eStencilType::INVALID;
 }
 
 bool StencilObjectSystem::getStencilWorldTransform(
 	MikanStencilID parentStencilId, 
 	glm::mat4& outXform) const
 {
-	StencilComponentPtr stencilComponent= getStencilById(parentStencilId).lock();
+	StencilComponentPtr stencilComponent= getStencilById(parentStencilId);
 	if (stencilComponent)
 	{
 		outXform = stencilComponent->getStencilWorldTransform();
@@ -100,18 +123,18 @@ bool StencilObjectSystem::getStencilWorldTransform(
 	return false;
 }
 
-QuadStencilComponentWeakPtr StencilObjectSystem::getQuadStencilById(MikanStencilID stencilId) const
+QuadStencilComponentPtr StencilObjectSystem::getQuadStencilById(MikanStencilID stencilId) const
 {
 	auto iter = m_quadStencilComponents.find(stencilId);
 	if (iter != m_quadStencilComponents.end())
 	{
-		return iter->second;
+		return iter->second.lock();
 	}
 
-	return QuadStencilComponentWeakPtr();
+	return QuadStencilComponentPtr();
 }
 
-QuadStencilComponentWeakPtr StencilObjectSystem::getQuadStencilByName(const std::string& stencilName) const
+QuadStencilComponentPtr StencilObjectSystem::getQuadStencilByName(const std::string& stencilName) const
 {
 	for (auto it = m_quadStencilComponents.begin(); it != m_quadStencilComponents.end(); it++)
 	{
@@ -123,7 +146,7 @@ QuadStencilComponentWeakPtr StencilObjectSystem::getQuadStencilByName(const std:
 		}
 	}
 
-	return QuadStencilComponentWeakPtr();
+	return QuadStencilComponentPtr();
 }
 
 QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStencilQuad& stencilInfo)
@@ -203,18 +226,18 @@ void StencilObjectSystem::disposeQuadStencilObject(MikanStencilID stencilId)
 	}
 }
 
-BoxStencilComponentWeakPtr StencilObjectSystem::getBoxStencilById(MikanStencilID stencilId) const
+BoxStencilComponentPtr StencilObjectSystem::getBoxStencilById(MikanStencilID stencilId) const
 {
 	auto iter = m_boxStencilComponents.find(stencilId);
 	if (iter != m_boxStencilComponents.end())
 	{
-		return iter->second;
+		return iter->second.lock();
 	}
 
-	return BoxStencilComponentWeakPtr();
+	return BoxStencilComponentPtr();
 }
 
-BoxStencilComponentWeakPtr StencilObjectSystem::getBoxStencilByName(const std::string& stencilName) const
+BoxStencilComponentPtr StencilObjectSystem::getBoxStencilByName(const std::string& stencilName) const
 {
 	for (auto it = m_boxStencilComponents.begin(); it != m_boxStencilComponents.end(); it++)
 	{
@@ -226,7 +249,7 @@ BoxStencilComponentWeakPtr StencilObjectSystem::getBoxStencilByName(const std::s
 		}
 	}
 
-	return BoxStencilComponentWeakPtr();
+	return BoxStencilComponentPtr();
 }
 
 BoxStencilComponentPtr StencilObjectSystem::addNewBoxStencil(const MikanStencilBox& stencilInfo)
@@ -310,18 +333,18 @@ void StencilObjectSystem::disposeBoxStencilObject(MikanStencilID stencilId)
 	}
 }
 
-ModelStencilComponentWeakPtr StencilObjectSystem::getModelStencilById(MikanStencilID stencilId) const
+ModelStencilComponentPtr StencilObjectSystem::getModelStencilById(MikanStencilID stencilId) const
 {
 	auto iter = m_modelStencilComponents.find(stencilId);
 	if (iter != m_modelStencilComponents.end())
 	{
-		return iter->second;
+		return iter->second.lock();
 	}
 
-	return ModelStencilComponentWeakPtr();
+	return ModelStencilComponentPtr();
 }
 
-ModelStencilComponentWeakPtr StencilObjectSystem::getModelStencilByName(const std::string& stencilName) const
+ModelStencilComponentPtr StencilObjectSystem::getModelStencilByName(const std::string& stencilName) const
 {
 	for (auto it = m_modelStencilComponents.begin(); it != m_modelStencilComponents.end(); it++)
 	{
@@ -333,7 +356,7 @@ ModelStencilComponentWeakPtr StencilObjectSystem::getModelStencilByName(const st
 		}
 	}
 
-	return ModelStencilComponentWeakPtr();
+	return ModelStencilComponentPtr();
 }
 
 ModelStencilComponentPtr StencilObjectSystem::addNewModelStencil(const MikanStencilModel& stencilInfo)

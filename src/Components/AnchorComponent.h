@@ -6,6 +6,7 @@
 #include "MikanClientTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
+#include "SceneFwd.h"
 
 #include <memory>
 #include <string>
@@ -45,6 +46,7 @@ class AnchorComponent : public MikanComponent
 public:
 	AnchorComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
+	virtual void dispose() override;
 
 	inline AnchorConfigPtr getConfig() const { return m_config; }
 	void setConfig(AnchorConfigPtr config);
@@ -59,5 +61,7 @@ protected:
 	AnchorConfigPtr m_config;
 
 	SceneComponentWeakPtr m_sceneComponent;
-	void updateSceneComponentTransform();
+	bool m_bIsApplyingConfigTransform= false;
+	void applyConfigTransformToSceneComponent();
+	void applySceneComponentTransformToConfig(SceneComponentPtr sceneComponent);
 };

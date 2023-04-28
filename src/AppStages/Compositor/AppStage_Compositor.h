@@ -4,6 +4,7 @@
 #include "AppStage.h"
 #include "RendererFwd.h"
 #include "SceneFwd.h"
+#include "ScriptingFwd.h"
 
 #include <filesystem>
 #include <memory>
@@ -118,7 +119,12 @@ protected:
 	void debugRenderAnchors() const;
 	void debugRenderFasteners() const;
 
-	class ProfileConfig* m_profile = nullptr;
+	ProfileConfigPtr m_profile;
+
+	AnchorObjectSystemPtr m_anchorObjectSystem;
+	StencilObjectSystemPtr m_stencilObjectSystem;
+	FastenerObjectSystemPtr m_fastenerObjectSystem;
+	EditorObjectSystemPtr m_editorSystem;
 
 	class RmlModel_Compositor* m_compositorModel = nullptr;
 	Rml::ElementDocument* m_compositiorView = nullptr;
@@ -147,7 +153,7 @@ protected:
 	class RmlModel_CompositorSources* m_compositorSourcesModel = nullptr;
 	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
 
-	class CompositorScriptContext* m_scriptContext= nullptr;
+	CompositorScriptContextPtr m_scriptContext;
 	class GlFrameCompositor* m_frameCompositor= nullptr;
 	GlCameraPtr m_camera= nullptr;
 

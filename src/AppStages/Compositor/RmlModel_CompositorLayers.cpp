@@ -20,8 +20,7 @@ bool RmlModel_CompositorLayers::s_bHasRegisteredTypes= false;
 
 bool RmlModel_CompositorLayers::init(
 	Rml::Context* rmlContext,
-	const GlFrameCompositor* compositor,
-	const ProfileConfig* profile)
+	const GlFrameCompositor* compositor)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_layers");
@@ -271,7 +270,7 @@ bool RmlModel_CompositorLayers::init(
 		});
 
 	// Set initial values for data model
-	rebuild(compositor, profile);
+	rebuild(compositor);
 
 	return true;
 }
@@ -322,8 +321,7 @@ void RmlModel_CompositorLayers::dispose()
 }
 
 void RmlModel_CompositorLayers::rebuild(
-	const GlFrameCompositor* compositor,
-	const ProfileConfig* profile)
+	const GlFrameCompositor* compositor)
 {
 	const CompositorPreset* currentPreset= compositor->getCurrentPresetConfig();
 
