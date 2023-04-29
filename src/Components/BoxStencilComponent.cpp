@@ -118,6 +118,30 @@ void BoxStencilConfig::setBoxTransform(const GlmTransform& transform)
 	markDirty();
 }
 
+void BoxStencilConfig::setBoxXAxis(const MikanVector3f& xAxis)
+{
+	m_boxInfo.box_x_axis = xAxis;
+	markDirty();
+}
+
+void BoxStencilConfig::setBoxYAxis(const MikanVector3f& yAxis)
+{
+	m_boxInfo.box_y_axis = yAxis;
+	markDirty();
+}
+
+void BoxStencilConfig::setBoxZAxis(const MikanVector3f& normal)
+{
+	m_boxInfo.box_z_axis = normal;
+	markDirty();
+}
+
+void BoxStencilConfig::setBoxCenter(const MikanVector3f& center)
+{
+	m_boxInfo.box_center = center;
+	markDirty();
+}
+
 void BoxStencilConfig::setBoxXSize(float size)
 {
 	m_boxInfo.box_x_size = size;

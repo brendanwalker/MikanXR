@@ -1,7 +1,10 @@
 #pragma once
 
-#include <memory>
 #include "MikanMathTypes.h"
+#include "ObjectSystemConfigFwd.h"
+
+#include <memory>
+
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
 #include "glm/ext/matrix_double4x4.hpp"
@@ -16,7 +19,7 @@ class MonoLensTrackerPoseCalibrator
 {
 public:
 	MonoLensTrackerPoseCalibrator(
-		const class ProfileConfig* profileConfig,
+		ProfileConfigConstPtr profileConfig,
 		VRDeviceViewPtr cameraTrackingPuckView,
 		VRDeviceViewPtr matTrackingPuckView,
 		class VideoFrameDistortionView* distortionView,

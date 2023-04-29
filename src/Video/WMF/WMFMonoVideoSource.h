@@ -5,6 +5,8 @@
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
 #include "WMFConfig.h"
+#include "VideoFwd.h"
+
 #include <string>
 #include <vector>
 #include <array>
@@ -16,7 +18,7 @@ class WMFMonoVideoConfig : public WMFVideoConfig
 public:
     WMFMonoVideoConfig(const std::string &fnamebase = "WMFMonoCameraConfig");
     
-    virtual const configuru::Config writeToJSON() override;
+    virtual configuru::Config writeToJSON() override;
     virtual void readFromJSON(const configuru::Config &pt) override;
 
     bool areIntrinsicsUserCalibrated;
@@ -74,14 +76,14 @@ public:
 	void setVideoSourceListener(IVideoSourceListener *listener) override;
 
     // -- Getters
-    inline const WMFMonoVideoConfig &getConfig() const
+    inline WMFMonoVideoConfigConstPtr getConfig() const
     { return m_cfg; }
 
 private:
-	const class VideoCapabilitiesConfig *m_capabilities;
+	VideoCapabilitiesConfigConstPtr m_capabilities;
 	const struct VideoModeConfig *m_currentMode;
 
-    WMFMonoVideoConfig m_cfg;
+    WMFMonoVideoConfigPtr m_cfg;
     std::string m_device_identifier;
 
 	class WMFVideoDevice *m_videoDevice;

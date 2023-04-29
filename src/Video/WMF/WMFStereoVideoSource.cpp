@@ -16,9 +16,9 @@
 
 // -- public methods
 // -- WMF Stereo Tracker Config
-const int WMFStereoTrackerConfig::CONFIG_VERSION = 1;
+const int WMFStereoVideoConfig::CONFIG_VERSION = 1;
 
-WMFStereoTrackerConfig::WMFStereoTrackerConfig(const std::string &fnamebase)
+WMFStereoVideoConfig::WMFStereoVideoConfig(const std::string &fnamebase)
     : WMFVideoConfig(fnamebase)
 {
 	tracker_intrinsics.pixel_width= 640;
@@ -76,22 +76,22 @@ WMFStereoTrackerConfig::WMFStereoTrackerConfig(const std::string &fnamebase)
 	};
 };
 
-const configuru::Config 
-WMFStereoTrackerConfig::writeToJSON()
+configuru::Config WMFStereoVideoConfig::writeToJSON()
 {
     configuru::Config pt= WMFVideoConfig::writeToJSON();
 
-    pt["version"]= WMFStereoTrackerConfig::CONFIG_VERSION;
+    pt["version"]= WMFStereoVideoConfig::CONFIG_VERSION;
 	writeStereoTrackerIntrinsics(pt, tracker_intrinsics);
 
     return pt;
 }
 
-void 
-WMFStereoTrackerConfig::readFromJSON(const configuru::Config &pt)
+void WMFStereoVideoConfig::readFromJSON(const configuru::Config &pt)
 {
+	WMFVideoConfig::readFromJSON(pt);
+
     int config_version = pt.get_or<int>("version", 0);
-    if (config_version == WMFStereoTrackerConfig::CONFIG_VERSION)
+    if (config_version == WMFStereoVideoConfig::CONFIG_VERSION)
     {
 		WMFVideoConfig::readFromJSON(pt);
 		readStereoTrackerIntrinsics(pt, tracker_intrinsics);
@@ -100,7 +100,7 @@ WMFStereoTrackerConfig::readFromJSON(const configuru::Config &pt)
     {
         MIKAN_LOG_WARNING("WMFStereoTrackerConfig") <<
             "Config version " << config_version << " does not match expected version " <<
-            WMFStereoTrackerConfig::CONFIG_VERSION << ", Using defaults.";
+            WMFStereoVideoConfig::CONFIG_VERSION << ", Using defaults.";
     }
 }
 
@@ -184,25 +184,25 @@ bool WMFStereoVideoSource::open(const DeviceEnumerator *enumerator)
         StringUtils::formatString(config_name, sizeof(config_name), "WMFStereoCamera_%s", unique_id);
 
         // Load the config file for the tracker
-        m_cfg = WMFStereoTrackerConfig(config_name);
-        m_cfg.load();
+        m_cfg = std::make_shared<WMFStereoVideoConfig>(config_name);
+        m_cfg->load();
 
 		// Fetch the camera capabilities
 		m_capabilities= wmf_enumerator->getVideoCapabilities();
         if (m_capabilities != nullptr)
         {
 		    // If no mode is specified, then default to the first mode
-		    if (m_cfg.current_mode == "")
+		    if (m_cfg->current_mode == "")
 		    {
-			    m_cfg.current_mode= m_capabilities->supportedModes[0].modeName;
+			    m_cfg->current_mode= m_capabilities->supportedModes[0].modeName;
 		    }
 
 		    // Find the camera mode by name
-		    m_currentMode= m_capabilities->findVideoMode(m_cfg.current_mode);
+		    m_currentMode= m_capabilities->findVideoMode(m_cfg->current_mode);
 		    if (m_currentMode != nullptr)
 		    {
 			    // Copy the tracker intrinsics over from the capabilities
-			    m_cfg.tracker_intrinsics= m_currentMode->intrinsics.intrinsics.stereo;
+			    m_cfg->tracker_intrinsics= m_currentMode->intrinsics.intrinsics.stereo;
 
 			    // Attempt to find a compatible WMF video format
 			    std::string mfvideoformat= std::string("MFVideoFormat_")+m_currentMode->bufferFormat;
@@ -225,7 +225,7 @@ bool WMFStereoVideoSource::open(const DeviceEnumerator *enumerator)
 		    }
 
 		    // Save the config back out again in case defaults changed
-            m_cfg.save();
+            m_cfg->save();
         }
         else
         {
@@ -344,7 +344,7 @@ void WMFStereoVideoSource::loadSettings()
 {
 	const VideoPropertyConstraint *constraints= m_videoDevice->getVideoPropertyConstraints();
 
-    m_cfg.load();
+    m_cfg->load();
 
 	for (int prop_index = 0; prop_index < (int)VideoPropertyType::COUNT; ++prop_index)
 	{
@@ -354,7 +354,7 @@ void WMFStereoVideoSource::loadSettings()
 		if (constraint.is_supported)
 		{
 			int currentValue= getVideoProperty(prop_type);
-			int desiredValue= m_cfg.video_properties[prop_index];
+			int desiredValue= m_cfg->video_properties[prop_index];
 
 			if (desiredValue != currentValue)
 			{
@@ -375,7 +375,7 @@ void WMFStereoVideoSource::loadSettings()
 
 void WMFStereoVideoSource::saveSettings()
 {
-    m_cfg.save();
+    m_cfg->save();
 }
 
 bool WMFStereoVideoSource::getAvailableTrackerModes(std::vector<std::string> &out_mode_names) const
@@ -408,7 +408,7 @@ bool WMFStereoVideoSource::setVideoMode(const std::string mode_name)
 			(unsigned int)new_mode->frameRate,
 			mfvideoformat.c_str());
 
-		m_cfg.tracker_intrinsics= new_mode->intrinsics.intrinsics.stereo;
+		m_cfg->tracker_intrinsics= new_mode->intrinsics.intrinsics.stereo;
 		m_currentMode= new_mode;
 
 		if (desiredFormatIndex != INVALID_DEVICE_FORMAT_INDEX)
@@ -416,7 +416,7 @@ bool WMFStereoVideoSource::setVideoMode(const std::string mode_name)
 			m_videoDevice->open(desiredFormatIndex, m_cfg, m_listener);
 		}
 
-		m_cfg.save();
+		m_cfg->save();
 
 		return true;
 	}
@@ -450,7 +450,7 @@ void WMFStereoVideoSource::setVideoProperty(const VideoPropertyType property_typ
 
 	if (bUpdateConfig)
 	{
-		m_cfg.video_properties[(int)property_type] = desired_value;
+		m_cfg->video_properties[(int)property_type] = desired_value;
 	}
 }
 
@@ -463,42 +463,42 @@ void WMFStereoVideoSource::getCameraIntrinsics(
     MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= STEREO_CAMERA_INTRINSICS;
-    out_tracker_intrinsics.intrinsics.stereo= m_cfg.tracker_intrinsics;
+    out_tracker_intrinsics.intrinsics.stereo= m_cfg->tracker_intrinsics;
 }
 
 void WMFStereoVideoSource::setCameraIntrinsics(
     const MikanVideoSourceIntrinsics& tracker_intrinsics)
 {
     assert(tracker_intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS);
-    m_cfg.tracker_intrinsics= tracker_intrinsics.intrinsics.stereo;
+    m_cfg->tracker_intrinsics= tracker_intrinsics.intrinsics.stereo;
 }
 
 MikanQuatd WMFStereoVideoSource::getCameraOffsetOrientation() const
 {
-    return m_cfg.orientationOffset;
+    return m_cfg->orientationOffset;
 }
 
 MikanVector3d WMFStereoVideoSource::getCameraOffsetPosition() const
 {
-    return m_cfg.positionOffset;
+    return m_cfg->positionOffset;
 }
 
 void WMFStereoVideoSource::setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p)
 {
-    m_cfg.orientationOffset= q;
-    m_cfg.positionOffset= p;
+    m_cfg->orientationOffset= q;
+    m_cfg->positionOffset= p;
 }
 
 void WMFStereoVideoSource::getFOV(float &outHFOV, float &outVFOV) const
 {
-    outHFOV = static_cast<float>(m_cfg.tracker_intrinsics.hfov);
-    outVFOV = static_cast<float>(m_cfg.tracker_intrinsics.vfov);
+	outHFOV = static_cast<float>(m_cfg->tracker_intrinsics.hfov);
+	outVFOV = static_cast<float>(m_cfg->tracker_intrinsics.vfov);
 }
 
 void WMFStereoVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
-    outZNear = static_cast<float>(m_cfg.tracker_intrinsics.znear);
-    outZFar = static_cast<float>(m_cfg.tracker_intrinsics.zfar);
+    outZNear = static_cast<float>(m_cfg->tracker_intrinsics.znear);
+    outZFar = static_cast<float>(m_cfg->tracker_intrinsics.zfar);
 }
 
 void WMFStereoVideoSource::setVideoSourceListener(IVideoSourceListener *listener)

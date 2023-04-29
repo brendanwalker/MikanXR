@@ -13,7 +13,7 @@
 bool RmlModel_FastenerCameraSettings::init(
 	Rml::Context* rmlContext,
 	VideoSourceViewConstPtr videoSourceView,
-	const ProfileConfig* profileConfig)
+	ProfileConfigConstPtr profileConfig)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "fastener_camera_settings");

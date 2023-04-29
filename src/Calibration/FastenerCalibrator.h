@@ -1,7 +1,9 @@
 #pragma once
 
-#include <memory>
 #include "MikanClientTypes.h"
+
+#include <memory>
+
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
 #include "glm/ext/matrix_double4x4.hpp"
@@ -16,7 +18,6 @@ class FastenerCalibrator
 {
 public:
 	FastenerCalibrator(
-		const class ProfileConfig* profileConfig,
 		VRDeviceViewPtr cameraTrackingPuckView,
 		class VideoFrameDistortionView* distortionView);
 	virtual ~FastenerCalibrator();
@@ -28,7 +29,7 @@ public:
 	void sampleCameraPose();
 	void sampleMouseScreenPosition();
 	void computeCurrentTriangulation();
-	bool computeFastenerPoints(MikanSpatialFastenerInfo* fastener);
+	bool computeFastenerPoints(MikanSpatialFastenerInfo& fastenerInfo);
 
 	void renderInitialPoint2dSegements();
 	void renderCurrentPointTriangulation();
@@ -45,7 +46,6 @@ protected:
 
 	float m_frameWidth;
 	float m_frameHeight;
-	const class ProfileConfig* m_profileConfig;
 
 	// Internal Calibration State
 	struct FastenerCalibrationState* m_calibrationState;

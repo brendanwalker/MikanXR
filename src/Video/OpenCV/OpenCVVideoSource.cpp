@@ -78,29 +78,29 @@ bool OpenCVVideoSource::open(const DeviceEnumerator *enumerator)
 		m_driverType= IVideoSourceInterface::eDriverType::OpenCV;
 
 		// Copy the video capabilities from the enumerator
-		m_videoCapabilities = *cameraEnumerator->getVideoCapabilities();
+		m_videoCapabilities = cameraEnumerator->getVideoCapabilities();
 
         // Load the config file for the tracker
-        m_cfg = OpenCVVideoConfig(m_deviceIdentifier);
-        m_cfg.load();
+        m_cfg = std::make_shared<OpenCVVideoConfig>(m_deviceIdentifier);
+        m_cfg->load();
 
 		// If no mode is specified, then default to the first mode
-		if (m_cfg.current_mode == "")
+		if (m_cfg->current_mode == "")
 		{
-			m_cfg.current_mode= m_videoCapabilities.supportedModes[0].modeName;
+			m_cfg->current_mode= m_videoCapabilities->supportedModes[0].modeName;
 		}
 
 		// Create a new OpenCV video device to manage the video stream
 		m_videoDevice =
 			new OpenCVVideoDevice(
 				cameraIndex,
-				*cameraEnumerator->getVideoCapabilities());
+				cameraEnumerator->getVideoCapabilities());
 
 		// Set the video mode based on what was loaded from the config
-		bSuccess= setVideoMode(m_cfg.current_mode);
+		bSuccess= setVideoMode(m_cfg->current_mode);
 
 		// Save the config back out again in case defaults changed
-        m_cfg.save();
+        m_cfg->save();
     }
     
     if (!bSuccess)
@@ -203,7 +203,7 @@ void OpenCVVideoSource::loadSettings()
 {
 	const VideoPropertyConstraint *constraints= m_videoDevice->getVideoPropertyConstraints();
 
-    m_cfg.load();
+    m_cfg->load();
 
 	for (int prop_index = 0; prop_index < (int)VideoPropertyType::COUNT; ++prop_index)
 	{
@@ -213,7 +213,7 @@ void OpenCVVideoSource::loadSettings()
 		if (constraint.is_supported)
 		{
 			int currentValue= getVideoProperty(prop_type);
-			int desiredValue= m_cfg.video_properties[prop_index];
+			int desiredValue= m_cfg->video_properties[prop_index];
 
 			if (desiredValue != currentValue)
 			{
@@ -234,27 +234,27 @@ void OpenCVVideoSource::loadSettings()
 
 void OpenCVVideoSource::saveSettings()
 {
-    m_cfg.save();
+    m_cfg->save();
 }
 
 bool OpenCVVideoSource::getAvailableTrackerModes(std::vector<std::string> &out_mode_names) const
 {
-	m_videoCapabilities.getAvailableVideoModes(out_mode_names);
+	m_videoCapabilities->getAvailableVideoModes(out_mode_names);
 	return true;
 }
 
 const VideoModeConfig *OpenCVVideoSource::getVideoMode() const
 {
-	return m_currentModeIndex != -1 ? &m_videoCapabilities.supportedModes[m_currentModeIndex] : nullptr;
+	return m_currentModeIndex != -1 ? &m_videoCapabilities->supportedModes[m_currentModeIndex] : nullptr;
 }
 
 bool OpenCVVideoSource::setVideoMode(const std::string mode_name)
 {
-	const int newModeIndex= m_videoCapabilities.findVideoModeIndex(mode_name);
+	const int newModeIndex= m_videoCapabilities->findVideoModeIndex(mode_name);
 
 	if (newModeIndex != -1 && newModeIndex != m_currentModeIndex)
 	{	
-		const VideoModeConfig &newVideoMode= m_videoCapabilities.supportedModes[newModeIndex];
+		const VideoModeConfig &newVideoMode= m_videoCapabilities->supportedModes[newModeIndex];
 
 		if (m_videoDevice->open(newModeIndex, m_cfg, m_listener))
 		{
@@ -262,13 +262,13 @@ bool OpenCVVideoSource::setVideoMode(const std::string mode_name)
 			//m_cfg.trackerIntrinsics= new_mode->intrinsics.intrinsics.mono;
 
 			// Update the current mode name on the config
-			m_cfg.current_mode= newVideoMode.modeName;
+			m_cfg->current_mode= newVideoMode.modeName;
 
 			// Remember the index of the currently selected video mode
 			m_currentModeIndex = newModeIndex;
 
 			// Save the config back to disk
-			m_cfg.save();
+			m_cfg->save();
 
 			return true;
 		}
@@ -309,7 +309,7 @@ void OpenCVVideoSource::setVideoProperty(const VideoPropertyType property_type, 
 
 	if (bUpdateConfig)
 	{
-		m_cfg.video_properties[(int)property_type] = desired_value;
+		m_cfg->video_properties[(int)property_type] = desired_value;
 	}
 }
 
@@ -322,43 +322,43 @@ void OpenCVVideoSource::getCameraIntrinsics(
 	MikanVideoSourceIntrinsics& outCameraIntrinsics) const
 {
 	outCameraIntrinsics.intrinsics_type = MONO_CAMERA_INTRINSICS;
-	outCameraIntrinsics.intrinsics.mono = m_cfg.cameraIntrinsics;
+	outCameraIntrinsics.intrinsics.mono = m_cfg->cameraIntrinsics;
 }
 
 void OpenCVVideoSource::setCameraIntrinsics(
 	const MikanVideoSourceIntrinsics& cameraIntrinsics)
 {
 	assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-	m_cfg.cameraIntrinsics = cameraIntrinsics.intrinsics.mono;
+	m_cfg->cameraIntrinsics = cameraIntrinsics.intrinsics.mono;
 }
 
 MikanQuatd OpenCVVideoSource::getCameraOffsetOrientation() const
 {
-	return m_cfg.orientationOffset;
+	return m_cfg->orientationOffset;
 }
 
 MikanVector3d OpenCVVideoSource::getCameraOffsetPosition() const
 {
-	return m_cfg.positionOffset;
+	return m_cfg->positionOffset;
 }
 
 void OpenCVVideoSource::setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p)
 {
-	m_cfg.orientationOffset = q;
-	m_cfg.positionOffset = p;
-	m_cfg.save();
+	m_cfg->orientationOffset = q;
+	m_cfg->positionOffset = p;
+	m_cfg->save();
 }
 
 void OpenCVVideoSource::getFOV(float &outHFOV, float &outVFOV) const
 {
-	outHFOV = static_cast<float>(m_cfg.cameraIntrinsics.hfov);
-	outVFOV = static_cast<float>(m_cfg.cameraIntrinsics.vfov);
+	outHFOV = static_cast<float>(m_cfg->cameraIntrinsics.hfov);
+	outVFOV = static_cast<float>(m_cfg->cameraIntrinsics.vfov);
 }
 
 void OpenCVVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
-    outZNear = static_cast<float>(m_cfg.cameraIntrinsics.znear);
-    outZFar = static_cast<float>(m_cfg.cameraIntrinsics.zfar);
+    outZNear = static_cast<float>(m_cfg->cameraIntrinsics.znear);
+    outZFar = static_cast<float>(m_cfg->cameraIntrinsics.zfar);
 }
 
 void OpenCVVideoSource::setVideoSourceListener(IVideoSourceListener *listener)

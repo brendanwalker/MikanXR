@@ -105,6 +105,24 @@ void ModelStencilConfig::setModelTransform(const GlmTransform& transform)
 	markDirty();
 }
 
+void ModelStencilConfig::setModelScale(const MikanVector3f& scale)
+{
+	m_modelInfo.model_scale= scale;
+	markDirty();
+}
+
+void ModelStencilConfig::setModelRotator(const MikanRotator3f& rotator)
+{
+	m_modelInfo.model_rotator= rotator;
+	markDirty();
+}
+
+void ModelStencilConfig::setModelPosition(const MikanVector3f& position)
+{
+	m_modelInfo.model_position= position;
+	markDirty();
+}
+
 void ModelStencilConfig::setModelPath(const std::filesystem::path& path)
 {
 	m_modelPath= path;

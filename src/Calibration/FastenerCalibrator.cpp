@@ -7,12 +7,14 @@
 #include "GlTextRenderer.h"
 #include "InputManager.h"
 #include "FastenerCalibrator.h"
+#include "FastenerObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
 #include "MikanClientTypes.h"
 #include "Renderer.h"
+#include "SceneComponent.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
@@ -68,11 +70,9 @@ struct FastenerCalibrationState
 
 //-- MonoDistortionCalibrator ----
 FastenerCalibrator::FastenerCalibrator(
-	const ProfileConfig* profileConfig,
 	VRDeviceViewPtr cameraTrackingPuckView,
 	VideoFrameDistortionView* distortionView)
-	: m_profileConfig(profileConfig)
-	, m_calibrationState(new FastenerCalibrationState)
+	: m_calibrationState(new FastenerCalibrationState)
 	, m_cameraTrackingPuckView(cameraTrackingPuckView)
 	, m_distortionView(distortionView)
 {
@@ -188,13 +188,15 @@ void FastenerCalibrator::computeCurrentTriangulation()
 	}
 }
 
-bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo* fastener)
+bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo& fastenerInfo)
 {
 	if (m_calibrationState->triangulatedPointSampleCount < 3)
 		return false;
 
 	// Compute the fastener world to local transform
-	const glm::mat4 localToWorldXform = m_profileConfig->getFastenerWorldTransform(fastener);
+	SceneComponentPtr parentSceneComponentPtr= 
+		FastenerObjectSystem::getFastenerParentSceneComponent(fastenerInfo);
+	const glm::mat4 localToWorldXform = parentSceneComponentPtr->getWorldTransform();
 	const glm::mat4 worldToLocalXform = glm::inverse(localToWorldXform);
 
 	// Convert triangulated world space points into local space
@@ -203,7 +205,7 @@ bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo* fastene
 		const glm::vec3 worldPoint = m_calibrationState->triangulatedPointSamples[index];
 		const glm::vec3 localPoint = worldToLocalXform * glm::vec4(worldPoint, 1.f);
 
-		fastener->fastener_points[index] = glm_vec3_to_MikanVector3f(localPoint);
+		fastenerInfo.fastener_points[index] = glm_vec3_to_MikanVector3f(localPoint);
 	}
 
 	return true;

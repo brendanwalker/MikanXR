@@ -2,6 +2,8 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "ObjectSystemFwd.h"
+#include "ObjectSystemConfigFwd.h"
 #include "RendererFwd.h"
 
 #include <memory>
@@ -33,5 +35,8 @@ protected:
 	VRDeviceList m_vrTrackers;
 	class GlScene *m_scene;
 	GlCameraPtr m_camera;
-	class ProfileConfig *m_profile;
+
+	ProfileConfigPtr m_profile;
+	AnchorObjectSystemConfigPtr m_anchorSystemConfig;
+	AnchorObjectSystemPtr m_anchorSystem;
 };

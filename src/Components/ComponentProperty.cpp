@@ -1,9 +1,5 @@
 #include "ComponentProperty.h"
 
-// Component Events
-MulticastDelegate<void(const ComponentProperty&)> ComponentPropertyEvents::OnComponentPropertyChanged;
-MulticastDelegate<void(const MikanComponent&)> ComponentPropertyEvents::OnComponentChanged;
-
 // Component Property
 ComponentProperty::ComponentProperty(
 	MikanComponent& ownerComponent,

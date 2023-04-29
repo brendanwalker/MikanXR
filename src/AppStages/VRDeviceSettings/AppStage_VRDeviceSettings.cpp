@@ -38,7 +38,7 @@ void AppStage_VRDeviceSettings::enter()
 
 	// Init the UI
 	{
-		const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+		ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 		Rml::Context* context = getRmlContext();
 
 		// Init the vr device settings model
@@ -70,7 +70,7 @@ void AppStage_VRDeviceSettings::exit()
 // VR Device Setting Model UI Events
 void AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath(const std::string& devicePath)
 {
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->cameraVRDevicePath= devicePath;
 	profileConfig->markDirty();
 
@@ -80,7 +80,7 @@ void AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath(const std::string& de
 
 void AppStage_VRDeviceSettings::onUpdateCameraParentAnchorId(int anchorId)
 {
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->cameraParentAnchorId = anchorId;
 	profileConfig->markDirty();
 
@@ -90,7 +90,7 @@ void AppStage_VRDeviceSettings::onUpdateCameraParentAnchorId(int anchorId)
 
 void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devicePath)
 {
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->matVRDevicePath = devicePath;
 	profileConfig->markDirty();
 
@@ -100,21 +100,21 @@ void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devic
 
 void AppStage_VRDeviceSettings::onUpdateOriginVRDevicePath(const std::string& devicePath)
 {
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->originVRDevicePath = devicePath;
 	profileConfig->markDirty();
 }
 
 void AppStage_VRDeviceSettings::onUpdateOriginVerticalAlignFlag(bool bFlag)
 {
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->originVerticalAlignFlag = bFlag;
 	profileConfig->markDirty();
 }
 
 void AppStage_VRDeviceSettings::onUpdateCameraScale(const float newScale)
 {
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->cameraScale = newScale;
 	profileConfig->markDirty();
 

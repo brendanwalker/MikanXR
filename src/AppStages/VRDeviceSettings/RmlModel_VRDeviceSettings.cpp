@@ -1,3 +1,5 @@
+#include "AnchorComponent.h"
+#include "AnchorObjectSystem.h"
 #include "RmlModel_VRDeviceSettings.h"
 #include "MathMikan.h"
 #include "ProfileConfig.h"
@@ -11,7 +13,7 @@
 
 bool RmlModel_VRDeviceSettings::init(
 	Rml::Context* rmlContext,
-	const ProfileConfig* profile,
+	const ProfileConfigConstPtr profile,
 	const VRDeviceManager* vrDeviceManager)
 {
 	// Create Datamodel
@@ -108,12 +110,12 @@ void RmlModel_VRDeviceSettings::rebuildVRDeviceList(const VRDeviceManager* vrDev
 	m_modelHandle.DirtyVariable("tracker_devices");
 }
 
-void RmlModel_VRDeviceSettings::rebuildAnchorList(const ProfileConfig* profile)
+void RmlModel_VRDeviceSettings::rebuildAnchorList(ProfileConfigConstPtr profile)
 {
 	m_spatialAnchors.clear();
-	for (const MikanSpatialAnchorInfo& anchorInfo : profile->spatialAnchorList)
+	for (AnchorConfigPtr anchorInfo : profile->anchorConfig->spatialAnchorList)
 	{
-		m_spatialAnchors.push_back(anchorInfo.anchor_id);
+		m_spatialAnchors.push_back(anchorInfo->getAnchorId());
 	}
 	m_modelHandle.DirtyVariable("spatial_anchors");
 }

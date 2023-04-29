@@ -5,6 +5,7 @@
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
 #include "VideoCapabilitiesConfig.h"
+#include "VideoFwd.h"
 
 #include <string>
 #include <vector>
@@ -59,14 +60,14 @@ public:
 	void setVideoSourceListener(IVideoSourceListener* listener) override;
 
     // -- Getters
-    inline const OpenCVVideoConfig &getConfig() const
+    inline OpenCVVideoConfigConstPtr getConfig() const
     { return m_cfg; }
 
 private:
-	VideoCapabilitiesConfig m_videoCapabilities;
+	VideoCapabilitiesConfigConstPtr m_videoCapabilities;
 	int m_currentModeIndex;
 
-    OpenCVVideoConfig m_cfg;
+    OpenCVVideoConfigPtr m_cfg;
     std::string m_deviceIdentifier;
 
     class OpenCVVideoDevice *m_videoDevice;

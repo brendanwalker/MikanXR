@@ -225,7 +225,7 @@ void RmlModel_CompositorModels::copyUIModelToProfile(int stencil_id) const
 	{
 		const RmlModel_CompositorModel& uiModel = *it;
 
-		ModelStencilComponentPtr stencilPtr = m_stencilSystemPtr->getModelStencilById(stencil_id).lock();
+		ModelStencilComponentPtr stencilPtr = m_stencilSystemPtr->getModelStencilById(stencil_id);
 		ModelStencilConfigPtr configPtr = stencilPtr->getConfig();
 		MikanStencilModel modelInfo = configPtr->getModelInfo();
 

@@ -90,6 +90,9 @@ void AnchorConfig::setAnchorName(const std::string& anchorName)
 {
 	strncpy(m_anchorInfo.anchor_name, anchorName.c_str(), sizeof(m_anchorInfo.anchor_name) - 1);
 	markDirty();
+
+	// Tell any connected clients that the anchor list changed
+	MikanServer::getInstance()->publishAnchorListChangedEvent();
 }
 
 // -- AnchorComponent -----
@@ -129,6 +132,16 @@ glm::mat4 AnchorComponent::getAnchorLocalTransform() const
 glm::mat4 AnchorComponent::getAnchorWorldTransform() const
 {
 	return m_sceneComponent.lock()->getWorldTransform();
+}
+
+void AnchorComponent::setAnchorLocalTransform(const GlmTransform& localTransform)
+{
+	m_sceneComponent.lock()->setRelativeTransform(localTransform);
+}
+
+void AnchorComponent::setAnchorWorldTransform(const glm::mat4& worldMat)
+{
+	m_sceneComponent.lock()->setWorldTransform(worldMat);
 }
 
 const std::string AnchorComponent::getAnchorName()

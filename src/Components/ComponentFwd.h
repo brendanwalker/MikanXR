@@ -44,16 +44,20 @@ using MeshColliderComponentWeakPtr= std::weak_ptr<MeshColliderComponent>;
 // Stencil Components
 class StencilComponent;
 using StencilComponentPtr= std::shared_ptr<StencilComponent>;
+using StencilComponentConstPtr= std::shared_ptr<const StencilComponent>;
 using StencilComponentWeakPtr=  std::weak_ptr<StencilComponent>;
 
 class QuadStencilComponent;
 using QuadStencilComponentPtr = std::shared_ptr<QuadStencilComponent>;
+using QuadStencilComponentConstPtr = std::shared_ptr<const QuadStencilComponent>;
 using QuadStencilComponentWeakPtr = std::weak_ptr<QuadStencilComponent>;
 
 class ModelStencilComponent;
 using ModelStencilComponentPtr = std::shared_ptr<ModelStencilComponent>;
+using ModelStencilComponentConstPtr = std::shared_ptr<const ModelStencilComponent>;
 using ModelStencilComponentWeakPtr = std::weak_ptr<ModelStencilComponent>;
 
 class BoxStencilComponent;
 using BoxStencilComponentPtr = std::shared_ptr<BoxStencilComponent>;
+using BoxStencilComponentConstPtr = std::shared_ptr<const BoxStencilComponent>;
 using BoxStencilComponentWeakPtr = std::weak_ptr<BoxStencilComponent>;

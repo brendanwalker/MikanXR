@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 #include "FrameCompositorConstants.h"
@@ -9,12 +10,12 @@ class RmlModel_VRDeviceSettings : public RmlModel
 {
 public:
 	bool init(Rml::Context* rmlContext, 
-			  const class ProfileConfig* profile,
+			  ProfileConfigConstPtr profile,
 			  const class VRDeviceManager* vrDeviceManager);
 	virtual void dispose() override;
 
 	void rebuildVRDeviceList(const class VRDeviceManager* vrDeviceManager);
-	void rebuildAnchorList(const class ProfileConfig* profile);
+	void rebuildAnchorList(ProfileConfigConstPtr profile);
 
 	SinglecastDelegate<void(const std::string& devicePath)> OnUpdateCameraVRDevicePath;
 	SinglecastDelegate<void(int anchorId)> OnUpdateCameraParentAnchorId;

@@ -10,6 +10,8 @@
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "GlViewport.h"
+#include "FastenerComponent.h"
+#include "FastenerObjectSystem.h"
 #include "InputManager.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
@@ -67,7 +69,7 @@ void AppStage_FastenerCalibration::enter()
 	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(true);
 
 	// Get the current video source based on the config
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 	m_cameraTrackingPuckView =
@@ -96,7 +98,6 @@ void AppStage_FastenerCalibration::enter()
 		// Create a calibrator to do the actual pattern recording and calibration
 		m_fastenerCalibrator =
 			new FastenerCalibrator(
-				profileConfig,
 				m_cameraTrackingPuckView,
 				m_monoDistortionView);
 
@@ -262,8 +263,6 @@ void AppStage_FastenerCalibration::update()
 
 void AppStage_FastenerCalibration::render()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
-
 	switch (m_calibrationModel->getMenuState())
 	{
 		case eFastenerCalibrationMenuState::verifyInitialCameraSetup:
@@ -403,19 +402,21 @@ void AppStage_FastenerCalibration::onOkEvent()
 			} break;
 		case eFastenerCalibrationMenuState::verifyTriangulatedPoints:
 			{
-				ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
-
 				if (m_targetFastener.parent_object_type != MikanFastenerParentType_UNKNOWN)
 				{
-					m_fastenerCalibrator->computeFastenerPoints(&m_targetFastener);
+					m_fastenerCalibrator->computeFastenerPoints(m_targetFastener);
 
 					if (m_targetFastener.fastener_id == INVALID_MIKAN_ID)
 					{
-						profileConfig->addNewFastener(m_targetFastener);
+						FastenerObjectSystem::getSystem()->addNewFastener(m_targetFastener);
 					}
 					else
 					{
-						profileConfig->updateFastener(m_targetFastener);
+						FastenerComponentPtr fastenerComponent=
+							FastenerObjectSystem::getSystem()->getSpatialFastenerById(
+								m_targetFastener.fastener_id);
+
+						fastenerComponent->getConfig()->setFastenerLocalPoints(m_targetFastener.fastener_points);
 					}
 				}
 

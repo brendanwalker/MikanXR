@@ -4,6 +4,7 @@
 #include "SceneComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
+#include "MikanServer.h"
 #include "ProfileConfig.h"
 #include "StringUtils.h"
 
@@ -110,6 +111,9 @@ MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& a
 	spatialAnchorList.push_back(anchorConfigPtr);
 	markDirty();
 
+	// Tell any connected clients that the anchor list changed
+	MikanServer::getInstance()->publishAnchorListChangedEvent();
+
 	return anchorConfigPtr->getAnchorId();
 }
 
@@ -126,6 +130,9 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 	{
 		spatialAnchorList.erase(it);
 		markDirty();
+
+		// Tell any connected clients that the anchor list changed
+		MikanServer::getInstance()->publishAnchorListChangedEvent();
 
 		return true;
 	}
@@ -197,6 +204,8 @@ bool AnchorObjectSystem::getSpatialAnchorWorldTransform(MikanSpatialAnchorID anc
 		outXform= anchorPtr->getAnchorWorldTransform();
 		return true;
 	}
+
+	return false;
 }
 
 AnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorName, const glm::mat4& xform)

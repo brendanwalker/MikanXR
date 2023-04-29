@@ -181,7 +181,7 @@ void RmlModel_CompositorBoxes::copyUIBoxToStencilSystem(int stencil_id) const
 	if (it != m_stencilBoxes.end())
 	{
 		const RmlModel_CompositorBox& uiBox = *it;
-		BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id).lock();
+		BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id);
 		BoxStencilConfigPtr configPtr= stencilPtr->getConfig();
 		MikanStencilBox box= configPtr->getBoxInfo();
 

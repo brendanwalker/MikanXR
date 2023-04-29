@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "MikanClientTypes.h"
 #include "LuaMath.h"
 
@@ -79,8 +80,8 @@ public:
 	static void bindFunctions(lua_State* L);
 
 private:
-	const MikanStencilQuad* findConstStencilByID(int stencilId) const;
-	MikanStencilQuad* findStencilByID(int stencilId);
+	QuadStencilComponentConstPtr findConstStencilByID(int stencilId) const;
+	QuadStencilComponentPtr findStencilByID(int stencilId);
 
 	MikanStencilID m_stencilId; // filled in on allocation
 };
@@ -113,8 +114,8 @@ public:
 	static void bindFunctions(lua_State* L);
 
 private:
-	const MikanStencilBox* findConstStencilByID(int stencilId) const;
-	MikanStencilBox* findStencilByID(int stencilId);
+	BoxStencilComponentConstPtr findConstStencilByID(int stencilId) const;
+	BoxStencilComponentPtr findStencilByID(int stencilId);
 
 	MikanStencilID m_stencilId; // filled in on allocation
 };
@@ -139,8 +140,8 @@ public:
 	static void bindFunctions(lua_State* L);
 
 private:
-	const struct MikanStencilModelConfig* findConstStencilByID(int stencilId) const;
-	struct MikanStencilModelConfig* findStencilByID(int stencilId);
+	ModelStencilComponentConstPtr findConstStencilByID(int stencilId) const;
+	ModelStencilComponentPtr findStencilByID(int stencilId);
 
 	MikanStencilID m_stencilId; // filled in on allocation
 };

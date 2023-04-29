@@ -2,10 +2,11 @@
 
 #pragma once
 
+#include "Constants_FastenerCalibration.h"
+#include "ObjectSystemConfigFwd.h"
 #include "SinglecastDelegate.h"
 #include "Shared/RmlModel.h"
 #include "VideoDisplayConstants.h"
-#include "Constants_FastenerCalibration.h"
 
 class ProfileConfig;
 
@@ -18,7 +19,7 @@ public:
 	bool init(
 		Rml::Context* rmlContext,
 		VideoSourceViewConstPtr videoSourceView,
-		const ProfileConfig* profileConfig);
+		ProfileConfigConstPtr profileConfig);
 	virtual void dispose() override;
 
 	eFastenerCalibrationMenuState getMenuState() const;

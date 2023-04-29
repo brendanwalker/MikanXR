@@ -2,6 +2,7 @@
 
 // -- includes -----
 #include "DeviceEnumerator.h"
+#include "VideoFwd.h"
 
 #include <vector>
 #include <string>
@@ -90,7 +91,7 @@ public:
 
 	const char* getUniqueIdentifier() const;
 	const WMFDeviceInfo *getDeviceInfo() const;
-	const class VideoCapabilitiesConfig *getVideoCapabilities() const;
+	VideoCapabilitiesConfigConstPtr getVideoCapabilities() const;
 
 private:
 	struct WMFDeviceList *m_wmfDeviceList;

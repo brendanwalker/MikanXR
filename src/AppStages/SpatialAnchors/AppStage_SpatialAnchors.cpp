@@ -1,6 +1,8 @@
 ﻿//-- inludes -----
 #include "SpatialAnchors/AppStage_SpatialAnchors.h"
 #include "MainMenu/AppStage_MainMenu.h"
+#include "AnchorComponent.h"
+#include "AnchorObjectSystem.h"
 #include "App.h"
 #include "Colors.h"
 #include "GlCamera.h"
@@ -12,6 +14,7 @@
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MikanServer.h"
+#include "ObjectSystemManager.h"
 #include "ProfileConfig.h"
 #include "StringUtils.h"
 #include "VRDeviceView.h"
@@ -34,16 +37,16 @@ struct SpatialAnchorSetupDataModel
 	int max_spatial_anchors = MAX_MIKAN_SPATIAL_ANCHORS;
 	int origin_anchor_id = INVALID_MIKAN_ID;
 
-	void rebuildSpatialAnchors(ProfileConfig *profile)
+	void rebuildSpatialAnchors(ProfileConfigConstPtr profile)
 	{
 		spatial_anchors.clear();
-		for (const MikanSpatialAnchorInfo& anchorInfo : profile->spatialAnchorList)
+		for (AnchorConfigPtr anchorInfo : profile->anchorConfig->spatialAnchorList)
 		{
-			spatial_anchors.push_back(anchorInfo.anchor_id);
+			spatial_anchors.push_back(anchorInfo->getAnchorId());
 		}
 		model_handle.DirtyVariable("spatial_anchors");
 
-		origin_anchor_id= profile->originAnchorId;
+		origin_anchor_id= AnchorObjectSystem::getSystem()->getAnchorSystemConfigConst()->originAnchorId;
 		model_handle.DirtyVariable("origin_anchor_id");
 	}
 };
@@ -73,6 +76,8 @@ void AppStage_SpatialAnchors::enter()
 
 	App* app= App::getInstance();
 	m_profile = app->getProfileConfig();
+	m_anchorSystem= app->getObjectSystemManager()->getSystemOfType<AnchorObjectSystem>();
+	m_anchorSystemConfig = m_anchorSystem->getAnchorSystemConfig();
 
 	// Build the list of VR trackers
 	m_vrTrackers = m_app->getVRDeviceManager()->getFilteredVRDeviceList(eDeviceType::VRTracker);
@@ -97,7 +102,7 @@ void AppStage_SpatialAnchors::enter()
 	// Register Data Model Fields
 	constructor.Bind("tracker_devices", &m_dataModel->tracker_devices);
 	constructor.Bind("selected_tracker_device", &m_dataModel->selected_tracker_device);
-	constructor.Bind("anchor_vr_device_path", &m_profile->anchorVRDevicePath);
+	constructor.Bind("anchor_vr_device_path", &m_profile->anchorConfig->anchorVRDevicePath);
 	constructor.Bind("spatial_anchors", &m_dataModel->spatial_anchors);
 	constructor.Bind("max_spatial_anchors", &m_dataModel->max_spatial_anchors);
 
@@ -108,12 +113,11 @@ void AppStage_SpatialAnchors::enter()
 		{
 			VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
 			const glm::mat4 anchorXform = (anchorVRDevice) ? anchorVRDevice->getCalibrationPose() : glm::mat4(1.f);
-			MikanMatrix4f mikanXform = glm_mat4_to_MikanMatrix4f(anchorXform);
 
 			char newAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
-			StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", m_profile->nextAnchorId);
+			StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", m_anchorSystemConfig->nextAnchorId);
 
-			if (m_profile->addNewAnchor(newAnchorName, mikanXform))
+			if (m_anchorSystem->addNewAnchor(newAnchorName, anchorXform))
 			{
 				m_dataModel->rebuildSpatialAnchors(m_profile);
 
@@ -127,25 +131,15 @@ void AppStage_SpatialAnchors::enter()
 		{
 			const int anchorId = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
 
-			MikanSpatialAnchorInfo anchor;
-			if (m_profile->getSpatialAnchorInfo(anchorId, anchor))
+			AnchorComponentPtr anchorComponent= m_anchorSystem->getSpatialAnchorById(anchorId);
+			if (anchorComponent != nullptr)
 			{
 				VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
 				if (anchorVRDevice != nullptr)
 				{
 					const glm::mat4 anchorXform = anchorVRDevice->getCalibrationPose();
-					anchor.anchor_xform = glm_mat4_to_MikanMatrix4f(anchorXform);
-					m_profile->updateAnchor(anchor);
 
-					// Tell any connected clients that the anchor pose changed
-					{
-						MikanAnchorPoseUpdateEvent poseUpdateEvent;
-						memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
-						poseUpdateEvent.anchor_id = anchor.anchor_id;
-						poseUpdateEvent.transform = anchor.anchor_xform;
-
-						MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
-					}
+					anchorComponent->setAnchorWorldTransform(anchorXform);
 				}
 			}
 		});
@@ -160,10 +154,10 @@ void AppStage_SpatialAnchors::enter()
 			{
 				const Rml::String stringValue = ev.GetParameter("value", Rml::String());
 
-				if (m_profile->setAnchorName(anchorId, stringValue))
+				AnchorComponentPtr anchorComponent= m_anchorSystem->getSpatialAnchorById(anchorId);
+				if (anchorComponent != nullptr)
 				{
-					// Tell any connected clients that the anchor list changed
-					MikanServer::getInstance()->publishAnchorListChangedEvent();
+					anchorComponent->setAnchorName(stringValue);
 				}
 			}
 		});
@@ -173,12 +167,9 @@ void AppStage_SpatialAnchors::enter()
 		{
 			const int deleteAnchorId = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : 0);
 
-			if (m_profile->removeAnchor(deleteAnchorId))
+			if (m_anchorSystem->removeAnchor(deleteAnchorId))
 			{
 				m_dataModel->rebuildSpatialAnchors(m_profile);
-
-				// Tell any connected clients that the anchor list changed
-				MikanServer::getInstance()->publishAnchorListChangedEvent();
 			}
 		});
 	constructor.BindEventCallback(
@@ -200,7 +191,7 @@ void AppStage_SpatialAnchors::enter()
 
 			m_dataModel->tracker_devices.push_back(friendlyName);
 
-			if (deviceView->getDevicePath() == m_profile->anchorVRDevicePath)
+			if (deviceView->getDevicePath() == m_anchorSystemConfig->anchorVRDevicePath)
 			{
 				m_dataModel->selected_tracker_device = deviceIndex;
 			}
@@ -242,8 +233,8 @@ void AppStage_SpatialAnchors::update()
 
 		if (newSelectedIndex >= 0 && newSelectedIndex < (int)m_vrTrackers.size())
 		{
-			m_profile->anchorVRDevicePath = m_vrTrackers[newSelectedIndex]->getDevicePath();
-			m_profile->save();
+			m_anchorSystemConfig->anchorVRDevicePath = m_vrTrackers[newSelectedIndex]->getDevicePath();
+			m_anchorSystemConfig->markDirty();
 		}
 	}
 }
@@ -270,11 +261,11 @@ void AppStage_SpatialAnchors::render()
 	}
 
 	// Draw the anchors
-	for (const MikanSpatialAnchorInfo& anchor : m_profile->spatialAnchorList)
+	for (AnchorConfigPtr anchorConfig : m_anchorSystemConfig->spatialAnchorList)
 	{
 		wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
-		StringUtils::convertMbsToWcs(anchor.anchor_name, wszAnchorName, sizeof(wszAnchorName));
-		glm::mat4 anchorXform = MikanMatrix4f_to_glm_mat4(anchor.anchor_xform);
+		StringUtils::convertMbsToWcs(anchorConfig->getAnchorName().c_str(), wszAnchorName, sizeof(wszAnchorName));
+		glm::mat4 anchorXform = anchorConfig->getAnchorXform();
 		glm::vec3 anchorPos(anchorXform[3]);
 
 		drawTransformedAxes(anchorXform, 0.1f);

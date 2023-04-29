@@ -22,7 +22,7 @@ struct MonoLensTrackerCalibrationState
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
 	OpenCVCalibrationGeometry inputObjectGeometry;
-	const ProfileConfig* profileConfig;
+	ProfileConfigConstPtr profileConfig;
 	int desiredSampleCount;
 
 	// Computed every frame
@@ -41,7 +41,7 @@ struct MonoLensTrackerCalibrationState
 	glm::dquat rotationOffset;
 	glm::dvec3 translationOffset;
 
-	void init(const ProfileConfig* config, VideoSourceViewPtr videoSourceView, int patternCount)
+	void init(ProfileConfigConstPtr config, VideoSourceViewPtr videoSourceView, int patternCount)
 	{
 		profileConfig= config;
 
@@ -77,7 +77,7 @@ struct MonoLensTrackerCalibrationState
 
 //-- MonoDistortionCalibrator ----
 MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
-	const ProfileConfig* profileConfig,
+	ProfileConfigConstPtr profileConfig,
 	VRDeviceViewPtr cameraTrackingPuckView,
 	VRDeviceViewPtr matTrackingPuckView,
 	VideoFrameDistortionView* distortionView,
@@ -172,7 +172,7 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 
 	// Compute the VR tracking space offset from matPuck to calibration pattern
 	// using the measured offsets on the paper calibration mat
-	const ProfileConfig* config= m_calibrationState->profileConfig;
+	ProfileConfigConstPtr config= m_calibrationState->profileConfig;
 	const double horizOffset = (double)config->puckHorizontalOffsetMM * k_millimeters_to_meters;
 	const double vertOffset = (double)config->puckVerticalOffsetMM * k_millimeters_to_meters;
 	const double depthOffset = (double)config->puckDepthOffsetMM * k_millimeters_to_meters;
@@ -264,7 +264,7 @@ void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 		const glm::mat4 patternXform = glm::mat4(m_calibrationState->cameraToPatternXform);
 
 		// Compute the mat puck location relative to the mat transform we computed
-		const ProfileConfig* config = m_calibrationState->profileConfig;
+		ProfileConfigConstPtr config = m_calibrationState->profileConfig;
 		const float xOffset = -config->puckHorizontalOffsetMM * k_millimeters_to_meters;
 		const float yOffset = config->puckDepthOffsetMM * k_millimeters_to_meters;
 		const float zOffset = config->puckVerticalOffsetMM * k_millimeters_to_meters;

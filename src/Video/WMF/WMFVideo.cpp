@@ -27,7 +27,7 @@ WMFVideoDevice::~WMFVideoDevice()
 
 bool WMFVideoDevice::open(
 	int desiredFormatIndex, 
-	WMFVideoConfig &cfg, 
+	WMFVideoConfigPtr cfg, 
 	IVideoSourceListener *videoSourceListener)
 {
 	HRESULT hr;
@@ -138,10 +138,10 @@ bool WMFVideoDevice::open(
 				if (constraint.is_supported)
 				{
 					// Use the properties from the config if we used this video mode previously
-					if (desiredFormatIndex == cfg.wmfVideoFormatIndex)
+					if (desiredFormatIndex == cfg->wmfVideoFormatIndex)
 					{
 						int currentValue= getVideoProperty(prop_type);
-						int desiredValue= cfg.video_properties[prop_index];
+						int desiredValue= cfg->video_properties[prop_index];
 
 						if (desiredValue != currentValue ||
 							prop_type == VideoPropertyType::Focus) // always set focus to disable auto-focus
@@ -155,7 +155,7 @@ bool WMFVideoDevice::open(
 							// Otherwise update the config to use the current value
 							else
 							{
-								cfg.video_properties[prop_index]= currentValue;
+								cfg->video_properties[prop_index]= currentValue;
 							}
 						}
 					}
@@ -168,21 +168,21 @@ bool WMFVideoDevice::open(
 						if (currentValue >= constraint.min_value &&
 							currentValue <= constraint.max_value)
 						{
-							cfg.video_properties[prop_index]= currentValue;
+							cfg->video_properties[prop_index]= currentValue;
 						}
 						else
 						{
 							// If the current value is somehow out-of-range
 							// fallback to the default value
 							setVideoProperty(prop_type, constraint.default_value);
-							cfg.video_properties[prop_index]= constraint.default_value;
+							cfg->video_properties[prop_index]= constraint.default_value;
 						}
 					}
 				}
 			}
 
 			// Remember which video format index that was last successfully opened
-			cfg.wmfVideoFormatIndex= desiredFormatIndex;
+			cfg->wmfVideoFormatIndex= desiredFormatIndex;
 		}
 
 		MemoryUtils::safeReleaseAllCount(&pPD);

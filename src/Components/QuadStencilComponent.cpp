@@ -121,6 +121,30 @@ void QuadStencilConfig::setQuadTransform(const GlmTransform& transform)
 	markDirty();
 }
 
+void QuadStencilConfig::setQuadXAxis(const MikanVector3f& xAxis)
+{
+	m_quadInfo.quad_x_axis = xAxis;
+	markDirty();
+}
+
+void QuadStencilConfig::setQuadYAxis(const MikanVector3f& yAxis)
+{
+	m_quadInfo.quad_y_axis = yAxis;
+	markDirty();
+}
+
+void QuadStencilConfig::setQuadNormal(const MikanVector3f& normal)
+{
+	m_quadInfo.quad_normal = normal;
+	markDirty();
+}
+
+void QuadStencilConfig::setQuadCenter(const MikanVector3f& center)
+{
+	m_quadInfo.quad_center = center;
+	markDirty();
+}
+
 void QuadStencilConfig::setQuadWidth(float width)
 {
 	m_quadInfo.quad_width = width;

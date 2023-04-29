@@ -1,9 +1,10 @@
 #pragma once
 
 // -- includes -----
-#include "MikanClientTypes.h"
 #include "CommonConfig.h"
 #include "DeviceInterface.h"
+#include "MikanClientTypes.h"
+#include "VideoFwd.h"
 
 // -- constants -----
 #define CAMERA_BUFFER_FORMAT_MJPG			"MJPG"
@@ -55,10 +56,8 @@ public:
 	int usbProductId;
 	int usbVendorId;
 	eDeviceType deviceType;
-	std::vector<VideoModeConfig> supportedModes;	
+	std::vector<VideoModeConfig> supportedModes;
 };
-using VideoCapabilitiesConfigPtr = std::shared_ptr<VideoCapabilitiesConfig>;
-using VideoCapabilitiesConfigConstPtr = std::shared_ptr<const VideoCapabilitiesConfig>;
 
 class VideoCapabilitiesSet
 {

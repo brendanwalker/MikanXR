@@ -37,6 +37,7 @@ public:
 	void setFastenerName(const std::string& fastenerName);
 
 	void getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) const;
+	void setFastenerLocalPoints(MikanVector3f inLocalPoints[3]);
 
 private:
 	MikanSpatialFastenerInfo m_fastenerInfo;

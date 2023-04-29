@@ -31,6 +31,18 @@ public:
 	const GlmTransform getQuadTransform() const;
 	void setQuadTransform(const GlmTransform& transform);
 
+	const MikanVector3f getQuadXAxis() const { return m_quadInfo.quad_x_axis; }
+	void setQuadXAxis(const MikanVector3f& xAxis);
+
+	const MikanVector3f getQuadYAxis() const { return m_quadInfo.quad_y_axis; }
+	void setQuadYAxis(const MikanVector3f& yAxis);
+
+	const MikanVector3f getQuadNormal() const  { return m_quadInfo.quad_normal; }
+	void setQuadNormal(const MikanVector3f& normal);
+
+	const MikanVector3f getQuadCenter() const  { return m_quadInfo.quad_center; }
+	void setQuadCenter(const MikanVector3f& center);
+
 	float getQuadWidth() const { return m_quadInfo.quad_width; }
 	void setQuadWidth(float width);
 

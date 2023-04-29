@@ -1,3 +1,4 @@
+#include "AnchorObjectSystem.h"
 #include "FastenerComponent.h"
 #include "MathGLM.h"
 #include "MathFastener.h"
@@ -15,14 +16,13 @@ bool align_stencil_fastener_to_anchor_fastener(
 	if (sourceFastener->getConfig()->getFastenerParentType() == MikanFastenerParentType_Stencil &&
 		targetFastener->getConfig()->getFastenerParentType() == MikanFastenerParentType_SpatialAnchor)
 	{
-		const MikanSpatialAnchorID sourceAnchorId =
-			profile->getStencilParentAnchorId(sourceFastenerInfo.parent_object_id);
-		const MikanSpatialAnchorID targetAnchorId = targetFastenerInfo.parent_object_id;
+		const MikanSpatialAnchorID sourceAnchorId = sourceFastener->getConfig()->getParentObjectId();
+		const MikanSpatialAnchorID targetAnchorId = targetFastener->getConfig()->getParentObjectId();
 
 		glm::vec3 stencilPoints[3];
 		glm::vec3 anchorPoints[3];
-		profile->getFastenerLocalPoints(&sourceFastenerInfo, stencilPoints);
-		profile->getFastenerLocalPoints(&targetFastenerInfo, anchorPoints);
+		sourceFastener->getFastenerLocalPoints(stencilPoints);
+		targetFastener->getFastenerLocalPoints(anchorPoints);
 
 		// Anchor edge properties remain constant, so we can compute these up front
 		const glm::vec3 anchorEdge0 = anchorPoints[1] - anchorPoints[0];
@@ -86,10 +86,10 @@ bool align_stencil_fastener_to_anchor_fastener(
 		if (sourceAnchorId != targetAnchorId)
 		{
 			glm::mat4 sourceAnchorXform = glm::mat4(1.f);
-			profile->getSpatialAnchorWorldTransform(sourceAnchorId, sourceAnchorXform);
+			AnchorObjectSystem::getSystem()->getSpatialAnchorWorldTransform(sourceAnchorId, sourceAnchorXform);
 
 			glm::mat4 targetAnchorXform = glm::mat4(1.f);
-			profile->getSpatialAnchorWorldTransform(targetAnchorId, targetAnchorXform);
+			AnchorObjectSystem::getSystem()->getSpatialAnchorWorldTransform(targetAnchorId, targetAnchorXform);
 
 			// Apply the offset transform to target anchor
 			anchorRelativeXform = glm::inverse(sourceAnchorXform) * targetAnchorXform;

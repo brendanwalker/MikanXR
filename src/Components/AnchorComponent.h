@@ -7,6 +7,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
+#include "Transform.h"
 
 #include <memory>
 #include <string>
@@ -53,6 +54,9 @@ public:
 
 	glm::mat4 getAnchorLocalTransform() const;
 	glm::mat4 getAnchorWorldTransform() const;
+
+	void setAnchorLocalTransform(const GlmTransform& localTransform);
+	void setAnchorWorldTransform(const glm::mat4& worldMat);
 
 	const std::string getAnchorName();
 	void setAnchorName(const std::string& newAnchorName);

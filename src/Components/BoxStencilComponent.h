@@ -34,6 +34,18 @@ public:
 	const GlmTransform getBoxTransform() const;
 	void setBoxTransform(const GlmTransform& transform);
 
+	const MikanVector3f getBoxXAxis() const { return m_boxInfo.box_x_axis; }
+	void setBoxXAxis(const MikanVector3f& xAxis);
+
+	const MikanVector3f getBoxYAxis() const { return m_boxInfo.box_y_axis; }
+	void setBoxYAxis(const MikanVector3f& yAxis);
+
+	const MikanVector3f getBoxZAxis() const { return m_boxInfo.box_z_axis; }
+	void setBoxZAxis(const MikanVector3f& zAxis);
+
+	const MikanVector3f getBoxCenter() const { return m_boxInfo.box_center; }
+	void setBoxCenter(const MikanVector3f& center);
+
 	float getBoxXSize() const { return m_boxInfo.box_x_size; }
 	void setBoxXSize(float size);
 

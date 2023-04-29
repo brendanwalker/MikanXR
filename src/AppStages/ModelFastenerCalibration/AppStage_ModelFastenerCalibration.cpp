@@ -14,12 +14,16 @@
 #include "GlRenderModelResource.h"
 #include "GlViewport.h"
 #include "GlWireframeMesh.h"
+#include "FastenerObjectSystem.h"
 #include "InputManager.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
+#include "ModelStencilComponent.h"
 #include "FastenerCalibrator.h"
+#include "FastenerComponent.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
+#include "StencilObjectSystemConfig.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -107,7 +111,7 @@ void AppStage_ModelFastenerCalibration::enter()
 	AppStage::enter();
 
 	App* app= App::getInstance();
-	const ProfileConfig* profileConfig = app->getProfileConfig();
+	ProfileConfigPtr profileConfig = app->getProfileConfig();
 	std::unique_ptr<class GlModelResourceManager>& modelResourceManager = 
 		app->getRenderer()->getModelResourceManager();
 
@@ -140,13 +144,13 @@ void AppStage_ModelFastenerCalibration::enter()
 	// Cache the stencil geometry
 	if (m_targetFastener.parent_object_type == MikanFastenerParentType_Stencil)
 	{
-		const MikanStencilModelConfig* stencil = 
-			profileConfig->getModelStencilConfig(m_targetFastener.parent_object_id);
+		ModelStencilConfigPtr modelStencilConfigPtr=
+			profileConfig->stencilConfig->getModelStencilConfig(m_targetFastener.parent_object_id);
 
-		if (stencil != nullptr)
+		if (modelStencilConfigPtr != nullptr)
 		{
 			m_modelResource= modelResourceManager->fetchRenderModel(
-				stencil->modelPath, 
+				modelStencilConfigPtr->getModelPath(), 
 				GlFrameCompositor::getStencilModelVertexDefinition());
 		}
 	}
@@ -364,7 +368,7 @@ void AppStage_ModelFastenerCalibration::onOkEvent()
 			} break;
 		case eModelFastenerCalibrationMenuState::verifyVerticesCapture:
 			{
-				ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+				ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
 				for (int i = 0; i < 3; i++)
 				{
@@ -374,11 +378,15 @@ void AppStage_ModelFastenerCalibration::onOkEvent()
 
 				if (m_targetFastener.fastener_id == INVALID_MIKAN_ID)
 				{
-					profileConfig->addNewFastener(m_targetFastener);
+					FastenerObjectSystem::getSystem()->addNewFastener(m_targetFastener);
 				}
 				else
 				{
-					profileConfig->updateFastener(m_targetFastener);
+					FastenerComponentPtr fastenerComponent= 
+						FastenerObjectSystem::getSystem()->getSpatialFastenerById(
+							m_targetFastener.fastener_id);
+
+					fastenerComponent->getConfig()->setFastenerLocalPoints(m_targetFastener.fastener_points);
 				}
 
 				m_app->popAppState();

@@ -126,7 +126,7 @@ void VRDeviceView::getComponentNames(std::vector<std::string>& outComponentName)
 
 glm::mat4 VRDeviceView::getCalibrationPose() const
 {
-	const ProfileConfig* config= App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr config= App::getInstance()->getProfileConfig();
 	const std::string& componentName = config->calibrationComponentName;
 
 	glm::mat4 componentPose= glm::mat4(1.f);

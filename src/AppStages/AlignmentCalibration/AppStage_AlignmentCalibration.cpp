@@ -71,7 +71,7 @@ void AppStage_AlignmentCalibration::enter()
 	AppStage::enter();
 
 	// Get the current video source based on the config
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 	m_cameraTrackingPuckView= 

@@ -1,8 +1,13 @@
 #include "App.h"
-#include "ProfileConfig.h"
+#include "BoxStencilComponent.h"
 #include "LuaStencil.h"
 #include "MathTypeConversion.h"
 #include "MikanClientTypes.h"
+#include "ModelStencilComponent.h"
+#include "ProfileConfig.h"
+#include "QuadStencilComponent.h"
+#include "StencilObjectSystem.h"
+#include "StencilObjectSystemConfig.h"
 
 #include <algorithm>
 
@@ -12,11 +17,11 @@
 // -- LuaQuadStencilList -----
 LuaQuadStencilList::LuaQuadStencilList()
 {
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
 
-	for (const MikanStencilQuad& stencil : profile->quadStencilList)
+	for (QuadStencilConfigPtr quadConfig : profile->stencilConfig->quadStencilList)
 	{
-		m_stencilIdList.push_back(stencil.stencil_id);
+		m_stencilIdList.push_back(quadConfig->getStencilId());
 	}
 }
 
@@ -33,11 +38,11 @@ void LuaQuadStencilList::bindFunctions(lua_State* L)
 // -- LuaBoxStencilList -----
 LuaBoxStencilList::LuaBoxStencilList()
 {
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
 
-	for (const MikanStencilBox& stencil : profile->boxStencilList)
+	for (BoxStencilConfigPtr boxStencil : profile->stencilConfig->boxStencilList)
 	{
-		m_stencilIdList.push_back(stencil.stencil_id);
+		m_stencilIdList.push_back(boxStencil->getStencilId());
 	}
 }
 
@@ -54,11 +59,11 @@ void LuaBoxStencilList::bindFunctions(lua_State* L)
 // -- LuaModelStencilList -----
 LuaModelStencilList::LuaModelStencilList()
 {
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
 
-	for (const MikanStencilModelConfig& stencil : profile->modelStencilList)
+	for (ModelStencilConfigPtr modelStencil : profile->stencilConfig->modelStencilList)
 	{
-		m_stencilIdList.push_back(stencil.modelInfo.stencil_id);
+		m_stencilIdList.push_back(modelStencil->getStencilId());
 	}
 }
 
@@ -80,199 +85,180 @@ LuaStencilQuad::LuaStencilQuad(int stencilId)
 
 int LuaStencilQuad::getStencilId() const { return m_stencilId; }
 int LuaStencilQuad::getParentSpatialAnchorId() const {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->parent_anchor_id;
+		return stencil->getConfig()->getParentAnchorId();
 	}
 	return -1;
 }
 
 LuaVec3f LuaStencilQuad::getQuadCenter() const
 {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->quad_center);
+		result = LuaVec3f(stencil->getConfig()->getQuadCenter());
 	}
 	return result;
 }
 LuaVec3f LuaStencilQuad::getQuadXAxis() const
 {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->quad_x_axis);
+		result = LuaVec3f(stencil->getConfig()->getQuadXAxis());
 	}
 	return result;
 }
 LuaVec3f LuaStencilQuad::getQuadYAxis() const
 {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->quad_y_axis);
+		result = LuaVec3f(stencil->getConfig()->getQuadYAxis());
 	}
 	return result;
 }
 LuaVec3f LuaStencilQuad::getQuadNormal() const
 {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->quad_normal);
+		result = LuaVec3f(stencil->getConfig()->getQuadNormal());
 	}
 	return result;
 }
 float LuaStencilQuad::getQuadWidth() const
 {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->quad_width;
+		return stencil->getConfig()->getQuadWidth();
 	}
 	return 0.f;
 }
 float LuaStencilQuad::getQuadHeight() const
 {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->quad_height;
+		return stencil->getConfig()->getQuadHeight();
 	}
 	return 0.f;
 }
 bool LuaStencilQuad::getIsDoubleSided() const
 {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->is_double_sided;
+		return stencil->getConfig()->getIsDoubleSided();
 	}
 	return false;
 }
 bool LuaStencilQuad::getIsDisabled() const
 {
-	const MikanStencilQuad* stencil = findConstStencilByID(m_stencilId);
+	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->is_disabled;
+		return stencil->getConfig()->getIsDisabled();
 	}
 	return false;
 }
 
 bool LuaStencilQuad::setQuadCenter(const LuaVec3f& center)
 {
-	MikanStencilQuad* stencil = findStencilByID(m_stencilId);
+	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->quad_center = center.toMikanVector3f();
+		stencil->getConfig()->setQuadCenter(center.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilQuad::setQuadXAxis(const LuaVec3f& x_axis)
 {
-	MikanStencilQuad* stencil = findStencilByID(m_stencilId);
+	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->quad_x_axis = x_axis.toMikanVector3f();
+		stencil->getConfig()->setQuadXAxis(x_axis.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilQuad::setQuadYAxis(const LuaVec3f& y_axis)
 {
-	MikanStencilQuad* stencil = findStencilByID(m_stencilId);
+	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->quad_y_axis = y_axis.toMikanVector3f();
+		stencil->getConfig()->setQuadYAxis(y_axis.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilQuad::setQuadNormal(const LuaVec3f& normal)
 {
-	MikanStencilQuad* stencil = findStencilByID(m_stencilId);
+	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->quad_normal = normal.toMikanVector3f();
+		stencil->getConfig()->setQuadNormal(normal.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilQuad::setQuadWidth(float width)
 {
-	MikanStencilQuad* stencil = findStencilByID(m_stencilId);
+	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->quad_width = width;
+		stencil->getConfig()->setQuadWidth(width);
 		return true;
 	}
 	return false;
 }
 bool LuaStencilQuad::setQuadHeight(float height)
 {
-	MikanStencilQuad* stencil = findStencilByID(m_stencilId);
+	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->quad_height = height;
+		stencil->getConfig()->setQuadHeight(height);
 		return true;
 	}
 	return false;
 }
 bool LuaStencilQuad::setIsDoubleSided(bool flag)
 {
-	MikanStencilQuad* stencil = findStencilByID(m_stencilId);
+	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->is_double_sided = flag;
+		stencil->getConfig()->setIsDoubleSided(flag);
 		return true;
 	}
 	return false;
 }
 bool LuaStencilQuad::setIsDisabled(bool flag)
 {
-	MikanStencilQuad* stencil = findStencilByID(m_stencilId);
+	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->is_disabled = flag;
+		stencil->getConfig()->setIsDisabled(flag);
 		return true;
 	}
 	return false;
 }
 
-const MikanStencilQuad* LuaStencilQuad::findConstStencilByID(int stencilId) const
+QuadStencilComponentConstPtr LuaStencilQuad::findConstStencilByID(int stencilId) const
 {
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	auto it = std::find_if(
-		profile->quadStencilList.begin(),
-		profile->quadStencilList.end(),
-		[stencilId](const MikanStencilQuad& stencil)
-	{
-		return stencil.stencil_id == stencilId;
-	});
-
-	if (it != profile->quadStencilList.end())
-	{
-		const MikanStencilQuad& stencil = *it;
-
-		return &stencil;
-	}
-	else
-	{
-		return nullptr;
-	}
+	return StencilObjectSystem::getSystem()->getQuadStencilById(stencilId);
 }
 
-MikanStencilQuad* LuaStencilQuad::findStencilByID(int stencilId)
+QuadStencilComponentPtr LuaStencilQuad::findStencilByID(int stencilId)
 {
-	return const_cast<MikanStencilQuad*>(findConstStencilByID(stencilId));
+	return std::const_pointer_cast<QuadStencilComponent>(findConstStencilByID(stencilId));
 }
 
 void LuaStencilQuad::bindFunctions(lua_State* L)
@@ -309,199 +295,180 @@ LuaStencilBox::LuaStencilBox(int stencilId)
 
 int LuaStencilBox::getStencilId() const { return m_stencilId; }
 int LuaStencilBox::getParentSpatialAnchorId() const {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->parent_anchor_id;
+		return stencil->getConfig()->getParentAnchorId();
 	}
 	return -1;
 }
 
 LuaVec3f LuaStencilBox::getBoxCenter() const
 {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->box_center);
+		result = LuaVec3f(stencil->getConfig()->getBoxCenter());
 	}
 	return result;
 }
 LuaVec3f LuaStencilBox::getBoxXAxis() const
 {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->box_x_axis);
+		result = LuaVec3f(stencil->getConfig()->getBoxXAxis());
 	}
 	return result;
 }
 LuaVec3f LuaStencilBox::getBoxYAxis() const
 {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->box_y_axis);
+		result = LuaVec3f(stencil->getConfig()->getBoxYAxis());
 	}
 	return result;
 }
 LuaVec3f LuaStencilBox::getBoxZAxis() const
 {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->box_z_axis);
+		result = LuaVec3f(stencil->getConfig()->getBoxZAxis());
 	}
 	return result;
 }
 float LuaStencilBox::getBoxXSize() const
 {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->box_x_size;
+		return stencil->getConfig()->getBoxXSize();
 	}
 	return 0.f;
 }
 float LuaStencilBox::getBoxYSize() const
 {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->box_y_size;
+		return stencil->getConfig()->getBoxYSize();
 	}
 	return 0.f;
 }
 float LuaStencilBox::getBoxZSize() const
 {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->box_z_size;
+		return stencil->getConfig()->getBoxZSize();
 	}
 	return 0.f;
 }
 bool LuaStencilBox::getIsDisabled() const
 {
-	const MikanStencilBox* stencil = findConstStencilByID(m_stencilId);
+	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->is_disabled;
+		return stencil->getConfig()->getIsDisabled();
 	}
 	return false;
 }
 
 bool LuaStencilBox::setBoxCenter(const LuaVec3f& center)
 {
-	MikanStencilBox* stencil = findStencilByID(m_stencilId);
+	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->box_center = center.toMikanVector3f();
+		stencil->getConfig()->setBoxCenter(center.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilBox::setBoxXAxis(const LuaVec3f& x_axis)
 {
-	MikanStencilBox* stencil = findStencilByID(m_stencilId);
+	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->box_x_axis = x_axis.toMikanVector3f();
+		stencil->getConfig()->setBoxXAxis(x_axis.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilBox::setBoxYAxis(const LuaVec3f& y_axis)
 {
-	MikanStencilBox* stencil = findStencilByID(m_stencilId);
+	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->box_y_axis = y_axis.toMikanVector3f();
+		stencil->getConfig()->setBoxYAxis(y_axis.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
-bool LuaStencilBox::setBoxZAxis(const LuaVec3f& normal)
+bool LuaStencilBox::setBoxZAxis(const LuaVec3f& z_axis)
 {
-	MikanStencilBox* stencil = findStencilByID(m_stencilId);
+	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->box_z_axis = normal.toMikanVector3f();
+		stencil->getConfig()->setBoxZAxis(z_axis.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilBox::setBoxXSize(float size)
 {
-	MikanStencilBox* stencil = findStencilByID(m_stencilId);
+	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->box_x_size = size;
+		stencil->getConfig()->setBoxXSize(size);
 		return true;
 	}
 	return false;
 }
 bool LuaStencilBox::setBoxYSize(float size)
 {
-	MikanStencilBox* stencil = findStencilByID(m_stencilId);
+	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->box_y_size = size;
+		stencil->getConfig()->setBoxYSize(size);
 		return true;
 	}
 	return false;
 }
 bool LuaStencilBox::setBoxZSize(float size)
 {
-	MikanStencilBox* stencil = findStencilByID(m_stencilId);
+	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->box_z_size = size;
+		stencil->getConfig()->setBoxZSize(size);
 		return true;
 	}
 	return false;
 }
 bool LuaStencilBox::setIsDisabled(bool flag)
 {
-	MikanStencilBox* stencil = findStencilByID(m_stencilId);
+	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->is_disabled = flag;
+		stencil->getConfig()->setIsDisabled(flag);
 		return true;
 	}
 	return false;
 }
 
-const MikanStencilBox* LuaStencilBox::findConstStencilByID(int stencilId) const
+BoxStencilComponentConstPtr LuaStencilBox::findConstStencilByID(int stencilId) const
 {
-	ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	auto it = std::find_if(
-		profile->boxStencilList.begin(),
-		profile->boxStencilList.end(),
-		[stencilId](const MikanStencilBox& stencil)
-	{
-		return stencil.stencil_id == stencilId;
-	});
-
-	if (it != profile->boxStencilList.end())
-	{
-		const MikanStencilBox& stencil = *it;
-
-		return &stencil;
-	}
-	else
-	{
-		return nullptr;
-	}
+	return StencilObjectSystem::getSystem()->getBoxStencilById(stencilId);
 }
 
-MikanStencilBox* LuaStencilBox::findStencilByID(int stencilId)
+BoxStencilComponentPtr LuaStencilBox::findStencilByID(int stencilId)
 {
-	return const_cast<MikanStencilBox*>(findConstStencilByID(stencilId));
+	return std::const_pointer_cast<BoxStencilComponent>(findConstStencilByID(stencilId));
 }
 
 void LuaStencilBox::bindFunctions(lua_State* L)
@@ -539,103 +506,103 @@ LuaStencilModel::LuaStencilModel(int stencilId)
 int LuaStencilModel::getStencilId() const { return m_stencilId; }
 int LuaStencilModel::getParentSpatialAnchorId() const
 {
-	const MikanStencilModelConfig* stencil = findConstStencilByID(m_stencilId);
+	ModelStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->modelInfo.parent_anchor_id;
+		return stencil->getConfig()->getParentAnchorId();
 	}
 	return -1;
 }
 
 LuaVec3f LuaStencilModel::getModelPosition() const
 {
-	const MikanStencilModelConfig* stencil = findConstStencilByID(m_stencilId);
+	ModelStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->modelInfo.model_position);
+		result = LuaVec3f(stencil->getConfig()->getModelPosition());
 	}
 	return result;
 }
 LuaVec3f LuaStencilModel::getModelRotator() const
 {
-	const MikanStencilModelConfig* stencil = findConstStencilByID(m_stencilId);
+	ModelStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->modelInfo.model_rotator);
+		result = LuaVec3f(stencil->getConfig()->getModelRotator());
 	}
 	return result;
 }
 LuaVec3f LuaStencilModel::getModelScale() const
 {
-	const MikanStencilModelConfig* stencil = findConstStencilByID(m_stencilId);
+	ModelStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->modelInfo.model_scale);
+		result = LuaVec3f(stencil->getConfig()->getModelScale());
 	}
 	return result;
 }
 bool LuaStencilModel::getIsDisabled() const
 {
-	const MikanStencilModelConfig* stencil = findConstStencilByID(m_stencilId);
+	ModelStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->modelInfo.is_disabled;
+		return stencil->getConfig()->getIsDisabled();
 	}
 	return true;
 }
 
 bool LuaStencilModel::setModelPosition(const LuaVec3f & position)
 {
-	MikanStencilModelConfig* stencil = findStencilByID(m_stencilId);
+	ModelStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->modelInfo.model_position = position.toMikanVector3f();
+		stencil->getConfig()->setModelPosition(position.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilModel::setModelRotator(const LuaVec3f & rotator)
 {
-	MikanStencilModelConfig* stencil = findStencilByID(m_stencilId);
+	ModelStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->modelInfo.model_rotator = rotator.toMikanRotator3f();
+		stencil->getConfig()->setModelRotator(rotator.toMikanRotator3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilModel::setModelScale(const LuaVec3f & scale)
 {
-	MikanStencilModelConfig* stencil = findStencilByID(m_stencilId);
+	ModelStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->modelInfo.model_scale = scale.toMikanVector3f();
+		stencil->getConfig()->setModelScale(scale.toMikanVector3f());
 		return true;
 	}
 	return false;
 }
 bool LuaStencilModel::setIsDisabled(bool flag)
 {
-	MikanStencilModelConfig* stencil = findStencilByID(m_stencilId);
+	ModelStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->modelInfo.is_disabled = flag;
+		stencil->getConfig()->setIsDisabled(flag);
 		return true;
 	}
 	return false;
 }
 
-const MikanStencilModelConfig* LuaStencilModel::findConstStencilByID(int stencilId) const
+ModelStencilComponentConstPtr LuaStencilModel::findConstStencilByID(int stencilId) const
 {
-	return App::getInstance()->getProfileConfig()->getModelStencilConfig(stencilId);
+	return StencilObjectSystem::getSystem()->getModelStencilById(stencilId);
 }
 
-MikanStencilModelConfig* LuaStencilModel::findStencilByID(int stencilId)
+ModelStencilComponentPtr LuaStencilModel::findStencilByID(int stencilId)
 {
-	return const_cast<MikanStencilModelConfig*>(findConstStencilByID(stencilId));
+	return std::const_pointer_cast<ModelStencilComponent>(findConstStencilByID(stencilId));
 }
 
 void LuaStencilModel::bindFunctions(lua_State* L)

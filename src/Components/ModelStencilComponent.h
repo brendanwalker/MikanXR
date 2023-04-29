@@ -35,6 +35,15 @@ public:
 	const GlmTransform getModelTransform() const;
 	void setModelTransform(const GlmTransform& transform);
 
+	const MikanVector3f getModelScale() const { return m_modelInfo.model_scale; }
+	void setModelScale(const MikanVector3f& scale);
+
+	const MikanRotator3f getModelRotator() const { return m_modelInfo.model_rotator; }
+	void setModelRotator(const MikanRotator3f& rotator);
+
+	const MikanVector3f getModelPosition() const { return m_modelInfo.model_position; }
+	void setModelPosition(const MikanVector3f& position);
+
 	const std::filesystem::path& getModelPath() const { return m_modelPath; }
 	void setModelPath(const std::filesystem::path& path);
 

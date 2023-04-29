@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ObjectSystemConfigFwd.h"
 #include "ProfileConfig.h"
 
 #include <memory>
@@ -34,7 +35,7 @@ public:
 	virtual ~CalibrationPatternFinder();
 
 	static CalibrationPatternFinder* allocatePatternFinder(
-		const class ProfileConfig* profileConfig, 
+		ProfileConfigConstPtr profileConfig, 
 		class VideoFrameDistortionView* distortionView);
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const = 0;

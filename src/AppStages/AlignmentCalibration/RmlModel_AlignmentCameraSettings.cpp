@@ -13,7 +13,7 @@
 bool RmlModel_AlignmentCameraSettings::init(
 	Rml::Context* rmlContext,
 	VideoSourceViewConstPtr videoSourceView,
-	const ProfileConfig* profileConfig)
+	ProfileConfigConstPtr profileConfig)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "alignment_camera_settings");

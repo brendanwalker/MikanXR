@@ -14,7 +14,7 @@
 #include <opencv2/videoio.hpp>
 
 // -- WMF Video Device -----
-OpenCVVideoDevice::OpenCVVideoDevice(const int deviceIndex, const VideoCapabilitiesConfig& videoCaps)
+OpenCVVideoDevice::OpenCVVideoDevice(const int deviceIndex, VideoCapabilitiesConfigConstPtr videoCaps)
 	: m_deviceIndex(deviceIndex)
 	, m_videoCapabilities(videoCaps)
 	, m_videoFrameProcessor(nullptr)
@@ -29,7 +29,7 @@ OpenCVVideoDevice::~OpenCVVideoDevice()
 
 bool OpenCVVideoDevice::open(
 	int desiredModeIndex,
-	OpenCVVideoConfig& cfg,
+	OpenCVVideoConfigPtr cfg,
 	IVideoSourceListener* videoSourceListener)
 {
 	if (getIsOpen() && desiredModeIndex == m_deviceModeIndex)
@@ -47,7 +47,7 @@ bool OpenCVVideoDevice::open(
 	m_videoFrameProcessor = new OpenCVVideoFrameProcessor(m_deviceIndex, videoSourceListener);
 
 	// Attempt to open the desired video mode
-	const VideoModeConfig& desiredModeConfig = m_videoCapabilities.supportedModes[desiredModeIndex];
+	const VideoModeConfig& desiredModeConfig = m_videoCapabilities->supportedModes[desiredModeIndex];
 	if (m_videoFrameProcessor->openVideoMode(desiredModeConfig))
 	{
 		// Update the property constraints for the current video format
@@ -65,10 +65,10 @@ bool OpenCVVideoDevice::open(
 			if (constraint.is_supported)
 			{
 				// Use the properties from the config if we used this video mode previously
-				if (desiredModeConfig.modeName == cfg.current_mode)
+				if (desiredModeConfig.modeName == cfg->current_mode)
 				{
 					int currentValue = getVideoProperty(prop_type);
-					int desiredValue = cfg.video_properties[prop_index];
+					int desiredValue = cfg->video_properties[prop_index];
 
 					if (desiredValue != currentValue ||
 						prop_type == VideoPropertyType::Focus) // always set focus to disable auto-focus
@@ -82,7 +82,7 @@ bool OpenCVVideoDevice::open(
 						// Otherwise update the config to use the current value
 						else
 						{
-							cfg.video_properties[prop_index] = currentValue;
+							cfg->video_properties[prop_index] = currentValue;
 						}
 					}
 				}
@@ -95,14 +95,14 @@ bool OpenCVVideoDevice::open(
 					if (currentValue >= constraint.min_value &&
 						currentValue <= constraint.max_value)
 					{
-						cfg.video_properties[prop_index] = currentValue;
+						cfg->video_properties[prop_index] = currentValue;
 					}
 					else
 					{
 						// If the current value is somehow out-of-range
 						// fallback to the default value
 						setVideoProperty(prop_type, constraint.default_value);
-						cfg.video_properties[prop_index] = constraint.default_value;
+						cfg->video_properties[prop_index] = constraint.default_value;
 					}
 				}
 			}
@@ -110,7 +110,7 @@ bool OpenCVVideoDevice::open(
 
 		// Remember which video format index that was last successfully opened
 		m_deviceModeIndex = desiredModeIndex;
-		cfg.current_mode = desiredModeConfig.modeName;
+		cfg->current_mode = desiredModeConfig.modeName;
 	}
 
 	if (!m_videoFrameProcessor->getIsCameraOpen())
@@ -170,7 +170,7 @@ const VideoModeConfig* OpenCVVideoDevice::getCurrentVideoMode() const
 {
 	return
 		(m_deviceModeIndex != -1)
-		? &m_videoCapabilities.supportedModes[m_deviceModeIndex]
+		? &m_videoCapabilities->supportedModes[m_deviceModeIndex]
 		: nullptr;
 }
 

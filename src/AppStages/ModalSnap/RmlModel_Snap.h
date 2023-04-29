@@ -6,7 +6,7 @@
 class RmlModel_Snap : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext, class ProfileConfig* profile, int sourceFastenerId);
+	bool init(Rml::Context* rmlContext, int sourceFastenerId);
 	virtual void dispose() override;
 	int getTargetFastenerId(int targetFastenerId) { return m_targetFastenerId; }
 

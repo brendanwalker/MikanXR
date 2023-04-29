@@ -1,6 +1,5 @@
 #include "FastenerObjectSystem.h"
 #include "RmlModel_Snap.h"
-#include "ProfileConfig.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -8,7 +7,6 @@
 
 bool RmlModel_Snap::init(
 	Rml::Context* rmlContext, 
-	ProfileConfig* profile,
 	int sourceFastenerId)
 {
 	// Create Datamodel

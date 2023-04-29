@@ -130,13 +130,21 @@ void FastenerConfig::setFastenerName(const std::string& fastenerName)
 	markDirty();
 }
 
-void FastenerConfig::getFastenerLocalPoints(
-	glm::vec3 outLocalPoints[3]) const
+void FastenerConfig::getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) const
 {
 	for (int i = 0; i < 3; ++i)
 	{
 		outLocalPoints[i] = MikanVector3f_to_glm_vec3(m_fastenerInfo.fastener_points[i]);
 	}
+}
+
+void FastenerConfig::setFastenerLocalPoints(MikanVector3f inLocalPoints[3])
+{
+	for (int i = 0; i < 3; ++i)
+	{
+		m_fastenerInfo.fastener_points[i]= inLocalPoints[i];
+	}
+	markDirty();
 }
 
 // -- FastenerComponent -----

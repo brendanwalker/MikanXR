@@ -4,6 +4,7 @@
 #include "WMFCameraEnumerator.h"
 #include "WMFConfig.h"
 #include "WorkerThread.h"
+#include "VideoFwd.h"
 
 #include <Mfidl.h>
 #include <Mfapi.h>
@@ -81,7 +82,7 @@ public:
     WMFVideoDevice(const WMFDeviceInfo &device_info);
 	~WMFVideoDevice();
 
-	bool open(int desiredFormatIndex, WMFVideoConfig &cfg, class IVideoSourceListener *trackerListener);
+	bool open(int desiredFormatIndex, WMFVideoConfigPtr cfg, class IVideoSourceListener *trackerListener);
 	bool getIsOpen() const;
 	void close();
 

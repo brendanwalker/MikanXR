@@ -181,7 +181,7 @@ void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id) const
 	});
 	if (it != m_stencilQuads.end())
 	{
-		QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id).lock();
+		QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
 		QuadStencilConfigPtr configPtr = stencilPtr->getConfig();
 		MikanStencilQuad quad = configPtr->getQuadInfo();
 

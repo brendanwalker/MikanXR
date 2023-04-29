@@ -5,6 +5,7 @@
 #include "MikanObjectSystem.h"
 #include "MikanClientTypes.h"
 #include "ObjectSystemConfigFwd.h"
+#include "SceneFwd.h"
 
 #include <map>
 #include <memory>
@@ -55,6 +56,7 @@ public:
 	const FastenerMap& getFastenerMap() const { return m_fastenerComponents; }
 	FastenerComponentPtr getSpatialFastenerById(MikanSpatialFastenerID FastenerId) const;
 	FastenerComponentPtr getSpatialFastenerByName(const std::string& FastenerName) const;
+	static SceneComponentPtr getFastenerParentSceneComponent(const MikanSpatialFastenerInfo& fastenerInfo);
 	std::vector<MikanSpatialFastenerID> getSpatialFastenersWithParent(
 		const MikanFastenerParentType parentType,
 		const MikanSpatialAnchorID parentObjectId) const;

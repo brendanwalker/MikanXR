@@ -245,6 +245,38 @@ bool FastenerObjectSystem::removeFastener(MikanSpatialFastenerID FastenerId)
 	return false;
 }
 
+SceneComponentPtr FastenerObjectSystem::getFastenerParentSceneComponent(
+	const MikanSpatialFastenerInfo& fastenerInfo)
+{
+	if (fastenerInfo.parent_object_id != INVALID_MIKAN_ID)
+	{
+		if (fastenerInfo.parent_object_type == MikanFastenerParentType_SpatialAnchor)
+		{
+			AnchorComponentPtr parentAnchor = 
+				AnchorObjectSystem::getSystem()->getSpatialAnchorById(fastenerInfo.parent_object_id);
+
+			if (parentAnchor)
+			{
+				return parentAnchor->getOwnerObject()->getRootComponent().lock();
+			}
+		}
+
+		// Attach to parent stencil, if any
+		if (fastenerInfo.parent_object_type == MikanFastenerParentType_Stencil)
+		{
+			StencilComponentPtr parentStencil = 
+				StencilObjectSystem::getSystem()->getStencilById(fastenerInfo.parent_object_id);
+
+			if (parentStencil)
+			{
+				return parentStencil->getOwnerObject()->getRootComponent().lock();
+			}
+		}
+	}
+
+	return SceneComponentPtr();
+}
+
 FastenerComponentPtr FastenerObjectSystem::createFastenerObject(FastenerConfigPtr fastenerConfig)
 {
 	MikanObjectPtr fastenerObject = newObject().lock();
@@ -258,28 +290,12 @@ FastenerComponentPtr FastenerObjectSystem::createFastenerObject(FastenerConfigPt
 	fastenerComponent->setConfig(fastenerConfig);
 	m_fastenerComponents.insert({fastenerConfig->getFastenerId(), fastenerComponent});
 
-	// Attach to parent anchor, if any
-	MikanSpatialAnchorID parentAnchorId;
-	if (fastenerConfig->getParentAnchorId(parentAnchorId))
+	// Attach to parent scene component
+	const MikanSpatialFastenerInfo& fastenerInfo= fastenerConfig->getFastenerInfo();
+	SceneComponentPtr parentSceneComponent= getFastenerParentSceneComponent(fastenerInfo);
+	if (parentSceneComponent != nullptr)
 	{
-		AnchorComponentPtr parentAnchor= AnchorObjectSystem::getSystem()->getSpatialAnchorById(parentAnchorId);
-
-		if (parentAnchor)
-		{
-			sceneComponentPtr->attachToComponent(parentAnchor->getOwnerObject()->getRootComponent());
-		}
-	}
-
-	// Attach to parent stencil, if any
-	MikanStencilID parentStencilId;
-	if (fastenerConfig->getParentStencilId(parentStencilId))
-	{
-		StencilComponentPtr parentStencil = StencilObjectSystem::getSystem()->getStencilById(parentStencilId).lock();
-
-		if (parentStencil)
-		{
-			sceneComponentPtr->attachToComponent(parentStencil->getOwnerObject()->getRootComponent());
-		}
+		sceneComponentPtr->attachToComponent(parentSceneComponent);
 	}
 
 	// Init the object once all components are added
