@@ -3,6 +3,7 @@
 #include "ComponentFwd.h"
 #include "MikanObjectSystem.h"
 #include "MikanClientTypes.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "StencilObjectSystemConfig.h"
 
@@ -23,7 +24,7 @@ public:
 	StencilObjectSystem();
 	virtual ~StencilObjectSystem();
 
-	static StencilObjectSystem* getSystem() { return s_stencilObjectSystem; }
+	static StencilObjectSystemPtr getSystem() { return s_stencilObjectSystem.lock(); }
 
 	virtual void init() override;
 	virtual void dispose() override;
@@ -80,5 +81,5 @@ protected:
 	BoxStencilMap m_boxStencilComponents;
 	ModelStencilMap m_modelStencilComponents;
 
-	static StencilObjectSystem* s_stencilObjectSystem;
+	static StencilObjectSystemWeakPtr s_stencilObjectSystem;
 };

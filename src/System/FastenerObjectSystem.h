@@ -4,6 +4,7 @@
 #include "ComponentFwd.h"
 #include "MikanObjectSystem.h"
 #include "MikanClientTypes.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "SceneFwd.h"
 
@@ -45,7 +46,7 @@ public:
 	FastenerObjectSystem();
 	virtual ~FastenerObjectSystem();
 
-	static FastenerObjectSystem* getSystem() { return s_fastenerObjectSystem; }
+	static FastenerObjectSystemPtr getSystem() { return s_fastenerObjectSystem.lock(); }
 
 	FastenerObjectSystemConfigConstPtr getFastenerSystemConfigConst() const;
 	FastenerObjectSystemConfigPtr getFastenerSystemConfig();
@@ -71,5 +72,5 @@ protected:
 
 	FastenerMap m_fastenerComponents;
 
-	static FastenerObjectSystem* s_fastenerObjectSystem;
+	static FastenerObjectSystemWeakPtr s_fastenerObjectSystem;
 };

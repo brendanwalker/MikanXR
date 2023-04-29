@@ -122,16 +122,16 @@ bool FastenerObjectSystemConfig::removeFastener(MikanSpatialFastenerID fastenerI
 }
 
 // -- FastenerObjectSystem -----
-FastenerObjectSystem* FastenerObjectSystem::s_fastenerObjectSystem = nullptr;
+FastenerObjectSystemWeakPtr FastenerObjectSystem::s_fastenerObjectSystem;
 
 FastenerObjectSystem::FastenerObjectSystem()
 {
-	s_fastenerObjectSystem = this;
+	s_fastenerObjectSystem = std::static_pointer_cast<FastenerObjectSystem>(shared_from_this());
 }
 
 FastenerObjectSystem::~FastenerObjectSystem()
 {
-	s_fastenerObjectSystem = nullptr;
+	s_fastenerObjectSystem.reset();
 }
 
 void FastenerObjectSystem::init()
@@ -257,7 +257,7 @@ SceneComponentPtr FastenerObjectSystem::getFastenerParentSceneComponent(
 
 			if (parentAnchor)
 			{
-				return parentAnchor->getOwnerObject()->getRootComponent().lock();
+				return parentAnchor->getOwnerObject()->getRootComponent();
 			}
 		}
 
@@ -269,7 +269,7 @@ SceneComponentPtr FastenerObjectSystem::getFastenerParentSceneComponent(
 
 			if (parentStencil)
 			{
-				return parentStencil->getOwnerObject()->getRootComponent().lock();
+				return parentStencil->getOwnerObject()->getRootComponent();
 			}
 		}
 	}

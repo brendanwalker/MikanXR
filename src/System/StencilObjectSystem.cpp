@@ -20,17 +20,17 @@
 #include "Renderer.h"
 #include "StencilObjectSystem.h"
 
-StencilObjectSystem* StencilObjectSystem::s_stencilObjectSystem= nullptr;
+StencilObjectSystemWeakPtr StencilObjectSystem::s_stencilObjectSystem;
 
 StencilObjectSystem::StencilObjectSystem() 
 	: MikanObjectSystem()
 {
-	s_stencilObjectSystem = this;
+	s_stencilObjectSystem = std::static_pointer_cast<StencilObjectSystem>(shared_from_this());
 }
 
 StencilObjectSystem::~StencilObjectSystem()
 {
-	s_stencilObjectSystem = nullptr;
+	s_stencilObjectSystem.reset();
 }
 
 void StencilObjectSystem::init()

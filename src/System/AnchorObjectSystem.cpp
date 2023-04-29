@@ -141,16 +141,16 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 }
 
 // -- AnchorObjectSystem -----
-AnchorObjectSystem* AnchorObjectSystem::s_anchorObjectSystem= nullptr;
+AnchorObjectSystemWeakPtr AnchorObjectSystem::s_anchorObjectSystem;
 
 AnchorObjectSystem::AnchorObjectSystem()
 {
-	s_anchorObjectSystem = this;
+	s_anchorObjectSystem = std::static_pointer_cast<AnchorObjectSystem>(shared_from_this());
 }
 
 AnchorObjectSystem::~AnchorObjectSystem()
 {
-	s_anchorObjectSystem= nullptr;
+	s_anchorObjectSystem.reset();
 }
 
 void AnchorObjectSystem::init()

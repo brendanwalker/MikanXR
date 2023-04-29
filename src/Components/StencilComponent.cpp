@@ -13,7 +13,7 @@ void StencilComponent::init()
 {
 	MikanComponent::init();
 
-	SceneComponentPtr sceneComponentPtr= getOwnerObject()->getRootComponent().lock();
+	SceneComponentPtr sceneComponentPtr= getOwnerObject()->getRootComponent();
 	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
 	m_sceneComponent= sceneComponentPtr;
 }

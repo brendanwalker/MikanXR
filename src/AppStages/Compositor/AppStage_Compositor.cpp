@@ -704,7 +704,7 @@ void AppStage_Compositor::onUpdateOriginEvent()
 
 			// Update origin anchor transform
 			SceneComponentPtr anchorSceneComponent= 
-				originSpatialAnchor->getOwnerObject()->getRootComponent().lock();
+				originSpatialAnchor->getOwnerObject()->getRootComponent();
 			anchorSceneComponent->setWorldTransform(anchorXform);
 		}
 	}
@@ -928,9 +928,9 @@ void AppStage_Compositor::onSnapFastenerEvent(int fastenerID)
 					newStencilXform, newStencilPoints))
 				{
 					SceneComponentPtr sourceFastenerSceneComponent=
-						sourceFastener->getOwnerObject()->getRootComponent().lock();
+						sourceFastener->getOwnerObject()->getRootComponent();
 					SceneComponentPtr stencilSceneComponent=
-						sourceFastenerSceneComponent->getParentComponent().lock();
+						sourceFastenerSceneComponent->getParentComponent();
 
 					if (stencilSceneComponent != nullptr)
 					{

@@ -89,8 +89,8 @@ public:
 		}
 	}
 
-	inline MikanObjectSystemWeakPtr getOwnerSystem() const { return m_ownerObjectSystem; }
-	inline SceneComponentWeakPtr getRootComponent() const { return m_rootSceneComponent; }
+	inline MikanObjectSystemPtr getOwnerSystem() const { return m_ownerObjectSystem.lock(); }
+	inline SceneComponentPtr getRootComponent() const { return m_rootSceneComponent.lock(); }
 	inline void setRootComponent(SceneComponentWeakPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }
 
 	void init();

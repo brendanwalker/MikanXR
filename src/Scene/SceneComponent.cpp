@@ -20,7 +20,7 @@ void SceneComponent::dispose()
 	MikanComponent::dispose();
 }
 
-void SceneComponent::attachToComponent(SceneComponentWeakPtr newParentComponent)
+void SceneComponent::attachToComponent(SceneComponentPtr newParentComponent)
 {
 	detachFromParent();
 

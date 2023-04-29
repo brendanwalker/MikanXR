@@ -258,8 +258,8 @@ void EditorObjectSystem::onSelectionChanged(
 			newGizmoMode= eGizmoMode::translate;
 
 		// Snap gizmo to the newly selected component
-		SceneComponentWeakPtr selectedRootWeakPtr= newSelectedComponentPtr->getOwnerObject()->getRootComponent();
-		SceneComponentPtr selectedRootPtr= selectedRootWeakPtr.lock();
+		SceneComponentPtr selectedRootWeakPtr= newSelectedComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr selectedRootPtr= selectedRootWeakPtr;
 		if (selectedRootPtr)
 		{
 			gizmoComponentPtr->setWorldTransform(selectedRootPtr->getWorldTransform());
@@ -282,8 +282,8 @@ void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& worldS
 	SelectionComponentPtr selectedComponentPtr= m_selectedComponentWeakPtr.lock();
 	if (selectedComponentPtr)
 	{
-		SceneComponentWeakPtr selectedRootWeakPtr= selectedComponentPtr->getOwnerObject()->getRootComponent();
-		SceneComponentPtr selectedRootPtr= selectedRootWeakPtr.lock();
+		SceneComponentPtr selectedRootWeakPtr= selectedComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr selectedRootPtr= selectedRootWeakPtr;
 		if (selectedRootPtr)
 		{
 			selectedRootPtr->setWorldTransform(newGizmoXform);
@@ -303,8 +303,8 @@ void EditorObjectSystem::onSelectionRotationRequested(const glm::quat& objectSpa
 	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
 	if (selectedComponentPtr)
 	{
-		SceneComponentWeakPtr selectedRootWeakPtr = selectedComponentPtr->getOwnerObject()->getRootComponent();
-		SceneComponentPtr selectedRootPtr = selectedRootWeakPtr.lock();
+		SceneComponentPtr selectedRootWeakPtr = selectedComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr selectedRootPtr = selectedRootWeakPtr;
 		if (selectedRootPtr)
 		{
 			selectedRootPtr->setRelativeTransform(relativeTransform);
@@ -324,8 +324,8 @@ void EditorObjectSystem::onSelectionScaleRequested(const glm::vec3& objectSpaceS
 	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
 	if (selectedComponentPtr)
 	{
-		SceneComponentWeakPtr selectedRootWeakPtr = selectedComponentPtr->getOwnerObject()->getRootComponent();
-		SceneComponentPtr selectedRootPtr = selectedRootWeakPtr.lock();
+		SceneComponentPtr selectedRootWeakPtr = selectedComponentPtr->getOwnerObject()->getRootComponent();
+		SceneComponentPtr selectedRootPtr = selectedRootWeakPtr;
 		if (selectedRootPtr)
 		{
 			selectedRootPtr->setRelativeTransform(relativeTransform);

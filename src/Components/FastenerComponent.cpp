@@ -169,7 +169,7 @@ void FastenerComponent::setFastenerName(const std::string& newFastenerName)
 
 glm::mat4 FastenerComponent::getFastenerWorldTransform() const
 {
-	return getOwnerObject()->getRootComponent().lock()->getWorldTransform();
+	return getOwnerObject()->getRootComponent()->getWorldTransform();
 }
 
 void FastenerComponent::getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) const

@@ -18,9 +18,9 @@ class SceneComponent : public MikanComponent
 public:
 	SceneComponent(MikanObjectWeakPtr owner);
 
-	inline SceneComponentWeakPtr getParentComponent() const
+	inline SceneComponentPtr getParentComponent() const
 	{
-		return m_parentComponent;
+		return m_parentComponent.lock();
 	}
 
 	inline const SceneComponentList& getChildComponents() const
@@ -51,7 +51,7 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 	
-	void attachToComponent(SceneComponentWeakPtr newParentComponent);
+	void attachToComponent(SceneComponentPtr newParentComponent);
 	void detachFromParent();
 
 	void setRelativeTransform(const GlmTransform& newRelativeXform);

@@ -6,6 +6,7 @@
 #include "ComponentFwd.h"
 #include "MikanObjectSystem.h"
 #include "MikanClientTypes.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 
 #include <map>
@@ -47,7 +48,7 @@ public:
 	AnchorObjectSystem();
 	virtual ~AnchorObjectSystem();
 
-	static AnchorObjectSystem* getSystem() { return s_anchorObjectSystem; }
+	static AnchorObjectSystemPtr getSystem() { return s_anchorObjectSystem.lock(); }
 
 	virtual void init() override;
 	virtual void dispose() override;
@@ -70,5 +71,5 @@ protected:
 	AnchorMap m_anchorComponents;
 	AnchorComponentPtr m_originAnchor;
 
-	static AnchorObjectSystem* s_anchorObjectSystem;
+	static AnchorObjectSystemWeakPtr s_anchorObjectSystem;
 };
