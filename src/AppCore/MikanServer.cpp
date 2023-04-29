@@ -1,11 +1,19 @@
 //-- includes -----
 #include "App.h"
+#include "AnchorComponent.h"
+#include "AnchorObjectSystem.h"
+#include "BoxStencilComponent.h"
+#include "FastenerComponent.h"
+#include "FastenerObjectSystem.h"
 #include "InterprocessRenderTargetReader.h"
 #include "InterprocessMessages.h"
 #include "MathTypeConversion.h"
 #include "Logger.h"
 #include "MikanServer.h"
+#include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
+#include "QuadStencilComponent.h"
+#include "StencilObjectSystemConfig.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -454,138 +462,16 @@ void MikanServer::getConnectedClientInfoList(std::vector<MikanClientConnectionIn
 	}
 }
 
-void MikanServer::getRelevantQuadStencilList(
-	const std::vector<MikanStencilID>* allowedStencilIds,
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraForward,
-	std::vector<const MikanStencilQuad*>& outStencilList) const
-{
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	outStencilList.clear();
-	for (const MikanStencilQuad& stencil : profile->quadStencilList)
-	{
-		if (stencil.is_disabled)
-			continue;
-
-		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilIds != nullptr)
-		{
-			if (std::find(
-					allowedStencilIds->begin(), allowedStencilIds->end(), 
-					stencil.stencil_id) 
-				== allowedStencilIds->end())
-			{
-				continue;
-			}
-		}
-
-		{
-			const glm::mat4 worldXform= profile->getQuadStencilWorldTransform(&stencil);
-			const glm::vec3 stencilCenter= glm::vec3(worldXform[3]); // position is 3rd column
-			const glm::vec3 stencilForward= glm::vec3(worldXform[2]); // forward is 2nd column
-			const glm::vec3 cameraToStencil= stencilCenter - cameraPosition;
-
-			// Stencil is in front of the camera
-			// Stencil is facing the camera (or double sided)
-			if (glm::dot(cameraToStencil, cameraForward) > 0.f && 
-				(stencil.is_double_sided || glm::dot(stencilForward, cameraForward) < 0.f))
-			{
-				outStencilList.push_back(&stencil);
-			}
-		}
-	}
-}
-
-void MikanServer::getRelevantBoxStencilList(
-	const std::vector<MikanStencilID>* allowedStencilIds,
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraForward,
-	std::vector<const MikanStencilBox*>& outStencilList) const
-{
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	outStencilList.clear();
-	for (const MikanStencilBox& stencil : profile->boxStencilList)
-	{
-		if (stencil.is_disabled)
-			continue;
-
-		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilIds != nullptr)
-		{
-			if (std::find(
-				allowedStencilIds->begin(), allowedStencilIds->end(),
-				stencil.stencil_id)
-				== allowedStencilIds->end())
-			{
-				continue;
-			}
-		}
-		
-		{
-			const glm::mat4 worldXform = profile->getBoxStencilWorldTransform(&stencil);
-			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
-			const glm::vec3 stencilZAxis = glm::vec3(worldXform[2]); // Z is 2nd column
-			const glm::vec3 stencilYAxis = glm::vec3(worldXform[1]); // Y is 1st column
-			const glm::vec3 stencilXAxis = glm::vec3(worldXform[0]); // X is 0th column
-			const glm::vec3 cameraToStencil = stencilCenter - cameraPosition;
-
-			const bool bIsStencilInFrontOfCamera= glm::dot(cameraToStencil, cameraForward) > 0.f;
-			const bool bIsCameraInStecil=
-				fabsf(glm::dot(cameraToStencil, stencilXAxis)) <= stencil.box_x_size &&
-				fabsf(glm::dot(cameraToStencil, stencilYAxis)) <= stencil.box_y_size &&
-				fabsf(glm::dot(cameraToStencil, stencilZAxis)) <= stencil.box_z_size;
-
-			if (bIsStencilInFrontOfCamera || bIsCameraInStecil)
-			{
-				outStencilList.push_back(&stencil);
-			}
-		}
-	}
-}
-
-void MikanServer::getRelevantModelStencilList(
-	const std::vector<MikanStencilID>* allowedStencilIds,
-	std::vector<const MikanStencilModelConfig*>& outStencilList) const
-{
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	outStencilList.clear();
-	for (const MikanStencilModelConfig& stencil : profile->modelStencilList)
-	{
-		if (stencil.modelInfo.is_disabled)
-			continue;
-
-		if (stencil.modelPath.c_str() == 0)
-			continue;
-
-		// If there is an active allow list, make sure stencil is on it
-		if (allowedStencilIds != nullptr)
-		{
-			if (std::find(
-				allowedStencilIds->begin(), allowedStencilIds->end(),
-				stencil.modelInfo.stencil_id)
-				== allowedStencilIds->end())
-			{
-				continue;
-			}
-		}
-
-		outStencilList.push_back(&stencil);
-	}
-}
-
 static VideoSourceViewPtr getCurrentVideoSource()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	return VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 }
 
 static VRDeviceViewPtr getCurrentCameraVRDevice()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	return VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
 }
@@ -722,7 +608,7 @@ void MikanServer::getVideoSourceAttachment(
 
 			// Get the camera parent anchor properties
 			{
-				ProfileConfig* profile = App::getInstance()->getProfileConfig();
+				ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
 
 				info.parent_anchor_id = profile->cameraParentAnchorId;
 				info.camera_scale = profile->cameraScale;
@@ -930,10 +816,10 @@ void MikanServer::getStencilList(
 	MikanStencilList stencilListResult;
 	memset(&stencilListResult, 0, sizeof(MikanStencilList));
 
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	for (const MikanStencilQuad& stencil : profile->quadStencilList)
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	for (QuadStencilConfigPtr quadConfig : stencilSystemConfig->quadStencilList)
 	{
-		stencilListResult.stencil_id_list[stencilListResult.stencil_count] = stencil.stencil_id;
+		stencilListResult.stencil_id_list[stencilListResult.stencil_count] = quadConfig->getStencilId();
 		++stencilListResult.stencil_count;
 
 		assert(stencilListResult.stencil_count < MAX_MIKAN_STENCILS);
@@ -951,16 +837,19 @@ void MikanServer::getQuadStencil(
 	const MikanRemoteFunctionCall* inFunctionCall,
 	MikanRemoteFunctionResult* outResult)
 {
-	MikanStencilQuad stencil;
-	if (!inFunctionCall->extractParameters(stencil))
+	MikanStencilID stencilId;
+	if (!inFunctionCall->extractParameters(stencilId))
 	{
 		outResult->setResultCode(MikanResult_MalformedParameters);
 		return;
 	}
 
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	if (profile->getQuadStencilInfo(stencil.stencil_id, stencil))
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto quadConfig= stencilSystemConfig->getQuadStencilInfo(stencilId);
+	if (quadConfig != nullptr)
 	{
+		MikanStencilQuad stencil= quadConfig->getQuadInfo();
+
 		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilQuad));
 		outResult->setResultCode(MikanResult_Success);
 	}
@@ -974,16 +863,19 @@ void MikanServer::getBoxStencil(
 	const MikanRemoteFunctionCall* inFunctionCall,
 	MikanRemoteFunctionResult* outResult)
 {
-	MikanStencilBox stencil;
-	if (!inFunctionCall->extractParameters(stencil))
+	MikanStencilID stencilId;
+	if (!inFunctionCall->extractParameters(stencilId))
 	{
 		outResult->setResultCode(MikanResult_MalformedParameters);
 		return;
 	}
 
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	if (profile->getBoxStencilInfo(stencil.stencil_id, stencil))
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto boxConfig = stencilSystemConfig->getBoxStencilInfo(stencilId);
+	if (boxConfig != nullptr)
 	{
+		MikanStencilBox stencil = boxConfig->getBoxInfo();
+
 		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilBox));
 		outResult->setResultCode(MikanResult_Success);
 	}
@@ -997,16 +889,19 @@ void MikanServer::getModelStencil(
 	const MikanRemoteFunctionCall* inFunctionCall,
 	MikanRemoteFunctionResult* outResult)
 {
-	MikanStencilModel stencil;
-	if (!inFunctionCall->extractParameters(stencil))
+	MikanStencilID stencilId;
+	if (!inFunctionCall->extractParameters(stencilId))
 	{
 		outResult->setResultCode(MikanResult_MalformedParameters);
 		return;
 	}
 
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	if (profile->getModelStencilInfo(stencil.stencil_id, stencil))
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto modelConfig = stencilSystemConfig->getModelStencilConfig(stencilId);
+	if (modelConfig != nullptr)
 	{
+		MikanStencilModel stencil = modelConfig->getModelInfo();
+
 		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilModel));
 		outResult->setResultCode(MikanResult_Success);
 	}
@@ -1023,10 +918,10 @@ void MikanServer::getSpatialAnchorList(
 	MikanSpatialAnchorList anchorListResult;
 	memset(&anchorListResult, 0, sizeof(MikanSpatialAnchorList));
 
-	const ProfileConfig* profile= App::getInstance()->getProfileConfig();
-	for (const MikanSpatialAnchorInfo& spatialAnchor : profile->spatialAnchorList)
+	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
+	for (AnchorConfigPtr spatialAnchor : anchorSystemConfig->spatialAnchorList)
 	{
-		anchorListResult.spatial_anchor_id_list[anchorListResult.spatial_anchor_count] = spatialAnchor.anchor_id;
+		anchorListResult.spatial_anchor_id_list[anchorListResult.spatial_anchor_count] = spatialAnchor->getAnchorId();
 		++anchorListResult.spatial_anchor_count;
 
 		assert(anchorListResult.spatial_anchor_count < MAX_MIKAN_SPATIAL_ANCHORS);
@@ -1051,14 +946,16 @@ void MikanServer::getSpatialAnchorInfo(
 		return;
 	}
 
-	MikanSpatialAnchorInfo info;
-	if (!App::getInstance()->getProfileConfig()->getSpatialAnchorInfo(anchorId, info))
+	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
+	auto anchorConfig= anchorSystemConfig->getSpatialAnchorConfig(anchorId);
+	if (anchorConfig == nullptr)
 	{
 		outResult->setResultCode(MikanResult_InvalidDeviceID);
 		return;
 	}
 	
-	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialAnchorInfo));
+	MikanSpatialAnchorInfo anchorInfo= anchorConfig->getAnchorInfo();
+	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
 	outResult->setResultCode(MikanResult_Success);
 }
 
@@ -1073,14 +970,16 @@ void MikanServer::findSpatialAnchorInfoByName(
 		return;
 	}
 
-	MikanSpatialAnchorInfo info;
-	if (!App::getInstance()->getProfileConfig()->findSpatialAnchorInfoByName(nameBuffer, info))
+	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
+	auto anchorConfig = anchorSystemConfig->getSpatialAnchorConfigByName(nameBuffer);
+	if (anchorConfig == nullptr)
 	{
 		outResult->setResultCode(MikanResult_InvalidDeviceID);
 		return;
 	}
 
-	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialAnchorInfo));
+	MikanSpatialAnchorInfo anchorInfo= anchorConfig->getAnchorInfo();
+	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
 	outResult->setResultCode(MikanResult_Success);
 }
 
@@ -1091,10 +990,11 @@ void MikanServer::getSpatialFastenerList(
 	MikanSpatialFastenerList fastenerListResult;
 	memset(&fastenerListResult, 0, sizeof(MikanSpatialFastenerList));
 
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	for (const MikanSpatialFastenerInfo& spatialFastener : profile->spatialFastenerList)
+	auto fastenerSystemConfig = App::getInstance()->getProfileConfig()->fastenerConfig;
+	for (FastenerConfigPtr fastenerConfig : fastenerSystemConfig->spatialFastenerList)
 	{
-		fastenerListResult.spatial_fastener_id_list[fastenerListResult.spatial_fastener_count] = spatialFastener.fastener_id;
+		fastenerListResult.spatial_fastener_id_list[fastenerListResult.spatial_fastener_count] = 
+			fastenerConfig->getFastenerId();
 		++fastenerListResult.spatial_fastener_count;
 
 		assert(fastenerListResult.spatial_fastener_count < MAX_MIKAN_SPATIAL_FASTENERS);
@@ -1119,13 +1019,15 @@ void MikanServer::getSpatialFastenerInfo(
 		return;
 	}
 
-	MikanSpatialFastenerInfo info;
-	if (!App::getInstance()->getProfileConfig()->getSpatialFastenerInfo(fastenerId, info))
+	auto fastenerSystemConfig = App::getInstance()->getProfileConfig()->fastenerConfig;
+	auto fastenerConfig = fastenerSystemConfig->getSpatialFastenerConfig(fastenerId);
+	if (fastenerConfig == nullptr)
 	{
 		outResult->setResultCode(MikanResult_InvalidDeviceID);
 		return;
 	}
 
+	MikanSpatialFastenerInfo info= fastenerConfig->getFastenerInfo();
 	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialFastenerInfo));
 	outResult->setResultCode(MikanResult_Success);
 }
@@ -1141,13 +1043,15 @@ void MikanServer::findSpatialFastenerInfoByName(
 		return;
 	}
 
-	MikanSpatialFastenerInfo info;
-	if (!App::getInstance()->getProfileConfig()->findSpatialFastenerInfoByName(nameBuffer, info))
+	auto fastenerSystemConfig = App::getInstance()->getProfileConfig()->fastenerConfig;
+	auto fastenerConfig = fastenerSystemConfig->getSpatialFastenerConfigByName(nameBuffer);
+	if (fastenerConfig == nullptr)
 	{
 		outResult->setResultCode(MikanResult_InvalidDeviceID);
 		return;
 	}
-
+	
+	MikanSpatialFastenerInfo info= fastenerConfig->getFastenerInfo();
 	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialFastenerInfo));
 	outResult->setResultCode(MikanResult_Success);
 }

@@ -323,8 +323,6 @@ void AppStage_AlignmentCalibration::update()
 
 void AppStage_AlignmentCalibration::render()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
-
 	switch (m_calibrationModel->getMenuState())
 	{
 		case eAlignmentCalibrationMenuState::verifySetup:
@@ -474,7 +472,7 @@ void AppStage_AlignmentCalibration::onBrightnessChanged(int newBrightness)
 
 void AppStage_AlignmentCalibration::onVRFrameDelayChanged(int newVRFrameDelay)
 {
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	profileConfig->vrFrameDelay = newVRFrameDelay;
 	m_bHasModifiedCameraSettings = true;

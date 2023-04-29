@@ -56,7 +56,7 @@ void AppStage_MonoLensCalibration::enter()
 		MakeDelegate(this, &AppStage_MonoLensCalibration::captureRequested);
 
 	// Get the current video source based on the config
-	const ProfileConfig* profileConfig= App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr profileConfig= App::getInstance()->getProfileConfig();
 	m_videoSourceView= VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Initialize video stream + lens calibrator

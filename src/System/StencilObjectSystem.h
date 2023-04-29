@@ -40,18 +40,31 @@ public:
 	QuadStencilComponentPtr getQuadStencilByName(const std::string& stencilName) const;
 	QuadStencilComponentPtr addNewQuadStencil(const MikanStencilQuad& stencilInfo);
 	bool removeQuadStencil(MikanStencilID stencilId);
+	void getRelevantQuadStencilList(
+		const std::vector<MikanStencilID>* allowedStencilIds,
+		const glm::vec3& cameraPosition,
+		const glm::vec3& cameraForward,
+		std::vector<QuadStencilComponentPtr>& outStencilList) const;
 
 	const BoxStencilMap& getBoxStencilMap() const { return m_boxStencilComponents; }
 	BoxStencilComponentPtr getBoxStencilById(MikanStencilID stencilId) const;
 	BoxStencilComponentPtr getBoxStencilByName(const std::string& stencilName) const;
 	BoxStencilComponentPtr addNewBoxStencil(const MikanStencilBox& stencilInfo);
 	bool removeBoxStencil(MikanStencilID stencilId);
+	void getRelevantBoxStencilList(
+		const std::vector<MikanStencilID>* allowedStencilIds,
+		const glm::vec3& cameraPosition,
+		const glm::vec3& cameraForward,
+		std::vector<BoxStencilComponentPtr>& outStencilList) const;
 
 	const ModelStencilMap& getModelStencilMap() const { return m_modelStencilComponents; }
 	ModelStencilComponentPtr getModelStencilById(MikanStencilID stencilId) const;
 	ModelStencilComponentPtr getModelStencilByName(const std::string& stencilName) const;
 	ModelStencilComponentPtr addNewModelStencil(const MikanStencilModel& stencilInfo);
 	bool removeModelStencil(MikanStencilID stencilId);
+	void getRelevantModelStencilList(
+		const std::vector<MikanStencilID>* allowedStencilIds,
+		std::vector<ModelStencilComponentPtr>& outStencilList) const;
 
 protected:
 	QuadStencilComponentPtr createQuadStencilObject(QuadStencilConfigPtr quadConfig);

@@ -32,7 +32,7 @@ struct CalibrationPatternSettingsDataModel
 	float puck_vert_offset = 89.f;
 	float puck_depth_offset = 0.f;
 
-	void init(const ProfileConfig* profileConfig)
+	void init(ProfileConfigConstPtr profileConfig)
 	{
 		selected_pattern = (int)profileConfig->calibrationPatternType;
 
@@ -64,7 +64,7 @@ AppStage_CalibrationPatternSettings::AppStage_CalibrationPatternSettings(App* ap
 void AppStage_CalibrationPatternSettings::enter()
 {
 	AppStage::enter();
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	Rml::DataModelConstructor constructor = getRmlContext()->CreateDataModel("calibration_pattern_settings");
 	if (!constructor)
@@ -101,7 +101,7 @@ void AppStage_CalibrationPatternSettings::update()
 {
 	AppStage::update();
 
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	bool bDirty= false;
 
 	if (m_dataModel->model_handle.IsVariableDirty("selected_pattern"))

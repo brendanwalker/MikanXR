@@ -43,20 +43,6 @@ public:
 	void publishAnchorListChangedEvent();
 
 	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
-	void getRelevantQuadStencilList(
-		const std::vector<MikanStencilID>* allowedStencilIds,
-		const glm::vec3& cameraPosition, 
-		const glm::vec3& cameraForward,
-		std::vector<const MikanStencilQuad*>& outStencilList) const;
-	void getRelevantBoxStencilList(
-		const std::vector<MikanStencilID>* allowedStencilIds,
-		const glm::vec3& cameraPosition,
-		const glm::vec3& cameraForward,
-		std::vector<const MikanStencilBox*>& outStencilList) const;
-	void getRelevantModelStencilList(
-		const std::vector<MikanStencilID>* allowedStencilIds,
-		std::vector<const struct MikanStencilModelConfig*>& outStencilList) const;
-
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientConnected;
 	MulticastDelegate<void(const std::string& clientId)> OnClientDisconnected;

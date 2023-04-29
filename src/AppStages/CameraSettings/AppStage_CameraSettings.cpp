@@ -48,7 +48,7 @@ AppStage_CameraSettings::~AppStage_CameraSettings()
 void AppStage_CameraSettings::enter()
 {
 	AppStage::enter();
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	Rml::DataModelConstructor constructor = getRmlContext()->CreateDataModel("camera_settings");
 	if (!constructor)
@@ -159,7 +159,7 @@ void AppStage_CameraSettings::update()
 {
 	AppStage::update();
 
-	ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	VideoSourceViewPtr videoSource= m_videoSourceIterator->getCurrent();
 
 	if (m_dataModel->model_handle.IsVariableDirty("brightness"))

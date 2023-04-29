@@ -1,12 +1,18 @@
 #include "RmlManager.h"
 
+#include "AnchorComponent.h"
+#include "AnchorObjectSystem.h"
 #include "App.h"
 #include "AppStage.h"
+#include "FastenerComponent.h"
+#include "FastenerObjectSystem.h"
 #include "Logger.h"
 #include "MikanClientTypes.h"
 #include "ProfileConfig.h"
 #include "PathUtils.h"
 #include "Renderer.h"
+#include "StencilComponent.h"
+#include "StencilObjectSystem.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
 
@@ -221,10 +227,10 @@ void RmlManager::registerCommonDataModelTypes()
 		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanSpatialAnchorID anchorId = variant.Get<int>(-1);
 
-			MikanSpatialAnchorInfo anchorInfo;
-			if (m_app->getProfileConfig()->getSpatialAnchorInfo(anchorId, anchorInfo))
+			auto anchorComponent= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
+			if (anchorComponent != nullptr)
 			{
-				variant = Rml::String(anchorInfo.anchor_name);
+				variant = Rml::String(anchorComponent->getAnchorName());
 				return true;
 			}
 			return false;
@@ -236,10 +242,10 @@ void RmlManager::registerCommonDataModelTypes()
 		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanSpatialFastenerID fastenerId = variant.Get<int>(-1);
 
-			MikanSpatialFastenerInfo fastenerInfo;
-			if (m_app->getProfileConfig()->getSpatialFastenerInfo(fastenerId, fastenerInfo))
+			auto fastenerComponent= FastenerObjectSystem::getSystem()->getSpatialFastenerById(fastenerId);
+			if (fastenerComponent != nullptr)
 			{
-				variant = Rml::String(fastenerInfo.fastener_name);
+				variant = Rml::String(fastenerComponent->getName());
 				return true;
 			}
 			return false;
@@ -251,10 +257,10 @@ void RmlManager::registerCommonDataModelTypes()
 		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanStencilID stencilId = variant.Get<int>(-1);
 
-			Rml::String stencilName;
-			if (m_app->getProfileConfig()->getStencilName(stencilId, stencilName))
+			auto stencilComponent= StencilObjectSystem::getSystem()->getStencilById(stencilId);
+			if (stencilComponent != nullptr)
 			{
-				variant = stencilName;
+				variant = stencilComponent->getName();
 				return true;
 			}
 			return false;

@@ -173,6 +173,47 @@ bool StencilObjectSystem::removeQuadStencil(MikanStencilID stencilId)
 	return false;
 }
 
+void StencilObjectSystem::getRelevantQuadStencilList(
+	const std::vector<MikanStencilID>* allowedStencilIds,
+	const glm::vec3& cameraPosition,
+	const glm::vec3& cameraForward,
+	std::vector<QuadStencilComponentPtr>& outStencilList) const
+{
+	outStencilList.clear();
+	for (auto it = m_quadStencilComponents.begin(); it != m_quadStencilComponents.end(); it++)
+	{
+		MikanStencilID stencilId= it->first;
+		QuadStencilComponentPtr componentPtr = it->second.lock();
+
+		if (componentPtr->getConfig()->getIsDisabled())
+			continue;
+
+		// If there is an active allow list, make sure stencil is on it
+		if (allowedStencilIds != nullptr)
+		{
+			if (std::find(allowedStencilIds->begin(), allowedStencilIds->end(), stencilId) == allowedStencilIds->end())
+			{
+				continue;
+			}
+		}
+
+		{
+			const glm::mat4 worldXform = componentPtr->getStencilWorldTransform();
+			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
+			const glm::vec3 stencilForward = glm::vec3(worldXform[2]); // forward is 2nd column
+			const glm::vec3 cameraToStencil = stencilCenter - cameraPosition;
+
+			// Stencil is in front of the camera
+			// Stencil is facing the camera (or double sided)
+			if (glm::dot(cameraToStencil, cameraForward) > 0.f &&
+				(componentPtr->getConfig()->getIsDoubleSided() || glm::dot(stencilForward, cameraForward) < 0.f))
+			{
+				outStencilList.push_back(componentPtr);
+			}
+		}
+	}
+}
+
 QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(QuadStencilConfigPtr quadConfig)
 {
 	MikanObjectPtr stencilObject = newObject().lock();
@@ -274,6 +315,58 @@ bool StencilObjectSystem::removeBoxStencil(MikanStencilID stencilId)
 	disposeBoxStencilObject(stencilId);
 
 	return false;
+}
+
+void StencilObjectSystem::getRelevantBoxStencilList(
+	const std::vector<MikanStencilID>* allowedStencilIds,
+	const glm::vec3& cameraPosition,
+	const glm::vec3& cameraForward,
+	std::vector<BoxStencilComponentPtr>& outStencilList) const
+{
+	outStencilList.clear();
+	for (auto it = m_boxStencilComponents.begin(); it != m_boxStencilComponents.end(); it++)
+	{
+		MikanSpatialAnchorID stencilId= it->first;
+		BoxStencilComponentPtr componentPtr = it->second.lock();
+
+		if (componentPtr->getConfig()->getIsDisabled())
+			continue;
+
+		// If there is an active allow list, make sure stencil is on it
+		if (allowedStencilIds != nullptr)
+		{
+			if (std::find(
+				allowedStencilIds->begin(), allowedStencilIds->end(), stencilId)
+				== allowedStencilIds->end())
+			{
+				continue;
+			}
+		}
+
+		{
+			const glm::mat4 worldXform = componentPtr->getStencilWorldTransform();
+			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
+			const glm::vec3 stencilZAxis = glm::vec3(worldXform[2]); // Z is 2nd column
+			const glm::vec3 stencilYAxis = glm::vec3(worldXform[1]); // Y is 1st column
+			const glm::vec3 stencilXAxis = glm::vec3(worldXform[0]); // X is 0th column
+			BoxStencilConfigConstPtr configPtr= componentPtr->getConfig();
+			const float boxXSize= configPtr->getBoxXSize();
+			const float boxYSize= configPtr->getBoxYSize();
+			const float boxZSize= configPtr->getBoxZSize();
+			const glm::vec3 cameraToStencil = stencilCenter - cameraPosition;
+
+			const bool bIsStencilInFrontOfCamera = glm::dot(cameraToStencil, cameraForward) > 0.f;
+			const bool bIsCameraInStecil =
+				fabsf(glm::dot(cameraToStencil, stencilXAxis)) <= boxXSize &&
+				fabsf(glm::dot(cameraToStencil, stencilYAxis)) <= boxYSize &&
+				fabsf(glm::dot(cameraToStencil, stencilZAxis)) <= boxZSize;
+
+			if (bIsStencilInFrontOfCamera || bIsCameraInStecil)
+			{
+				outStencilList.push_back(componentPtr);
+			}
+		}
+	}
 }
 
 BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(BoxStencilConfigPtr boxConfig)
@@ -381,6 +474,35 @@ bool StencilObjectSystem::removeModelStencil(MikanStencilID stencilId)
 	disposeModelStencilObject(stencilId);
 
 	return false;
+}
+
+void StencilObjectSystem::getRelevantModelStencilList(
+	const std::vector<MikanStencilID>* allowedStencilIds,
+	std::vector<ModelStencilComponentPtr>& outStencilList) const
+{
+	outStencilList.clear();
+	for (auto it = m_modelStencilComponents.begin(); it != m_modelStencilComponents.end(); it++)
+	{
+		MikanStencilID stencilId = it->first;
+		ModelStencilComponentPtr componentPtr = it->second.lock();
+
+		if (componentPtr->getConfig()->getIsDisabled())
+			continue;
+
+		if (componentPtr->getConfig()->getModelPath().empty())
+			continue;
+
+		// If there is an active allow list, make sure stencil is on it
+		if (allowedStencilIds != nullptr)
+		{
+			if (std::find(allowedStencilIds->begin(), allowedStencilIds->end(), stencilId) == allowedStencilIds->end())
+			{
+				continue;
+			}
+		}
+
+		outStencilList.push_back(componentPtr);
+	}
 }
 
 ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelStencilConfigPtr modelConfig)

@@ -1,4 +1,5 @@
 #include "App.h"
+#include "BoxStencilComponent.h"
 #include "Colors.h"
 #include "GlCommon.h"
 #include "GlFrameCompositor.h"
@@ -10,6 +11,7 @@
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"
+#include "ModelStencilComponent.h"
 #include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
@@ -21,6 +23,8 @@
 #include "GlRenderModelResource.h"
 #include "GlTriangulatedMesh.h"
 #include "GlVertexDefinition.h"
+#include "QuadStencilComponent.h"
+#include "StencilObjectSystem.h"
 #include "VideoSourceManager.h"
 #include "VideoSourceView.h"
 #include "VideoFrameDistortionView.h"
@@ -1277,8 +1281,6 @@ void GlFrameCompositor::updateQuadStencils(
 	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
 		return;
 
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
-
 	// Can't apply stencils unless we have a valid tracked camera pose
 	glm::mat4 cameraXform;
 	if (!getVideoSourceCameraPose(cameraXform))
@@ -1288,8 +1290,8 @@ void GlFrameCompositor::updateQuadStencils(
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
-	std::vector<const MikanStencilQuad*> quadStencilList;
-	MikanServer::getInstance()->getRelevantQuadStencilList(
+	std::vector<QuadStencilComponentPtr> quadStencilList;
+	StencilObjectSystem::getSystem()->getRelevantQuadStencilList(
 		&stencilConfig.quadStencilIds,
 		cameraPosition, 
 		cameraForward, 
@@ -1306,11 +1308,13 @@ void GlFrameCompositor::updateQuadStencils(
 	{
 		int cameraBehindStencilCount = 0;
 		int doubleSidedStencilCount = 0;
-		for (const MikanStencilQuad* stencil : quadStencilList)
+		for (QuadStencilComponentPtr stencil : quadStencilList)
 		{
-			if (!stencil->is_disabled && stencil->is_double_sided)
+			auto stencilConfig= stencil->getConfig();
+
+			if (!stencilConfig->getIsDisabled() && stencilConfig->getIsDoubleSided())
 			{
-				const glm::mat4 xform = profileConfig->getQuadStencilWorldTransform(stencil);
+				const glm::mat4 xform = stencil->getStencilWorldTransform();
 				const glm::vec3 quadCenter = glm::vec3(xform[3]);
 				const glm::vec3 quadNormal = glm::vec3(xform[2]);
 				const glm::vec3 cameraToQuadCenter = quadCenter - cameraPosition;
@@ -1349,12 +1353,13 @@ void GlFrameCompositor::updateQuadStencils(
 	m_stencilShader->bindProgram();
 
 	// Draw stencil quads first
-	for (const MikanStencilQuad* stencil : quadStencilList)
+	for (QuadStencilComponentPtr stencil : quadStencilList)
 	{
 		// Set the model matrix of stencil quad
-		const glm::mat4 xform = profileConfig->getQuadStencilWorldTransform(stencil);
-		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencil->quad_width;
-		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencil->quad_height;
+		auto stencilConfig= stencil->getConfig();
+		const glm::mat4 xform = stencil->getStencilWorldTransform();
+		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
+		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
 		const glm::vec3 z_axis = glm::vec3(xform[2]);
 		const glm::vec3 position = glm::vec3(xform[3]);
 		const glm::mat4 modelMatrix =
@@ -1399,8 +1404,6 @@ void GlFrameCompositor::updateBoxStencils(
 	if (stencilConfig.stencilMode == eCompositorStencilMode::noStencil)
 		return;
 
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
-
 	// Can't apply stencils unless we have a valid tracked camera pose
 	glm::mat4 cameraXform;
 	if (!getVideoSourceCameraPose(cameraXform))
@@ -1410,8 +1413,8 @@ void GlFrameCompositor::updateBoxStencils(
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
-	std::vector<const MikanStencilBox*> boxStencilList;
-	MikanServer::getInstance()->getRelevantBoxStencilList(
+	std::vector<BoxStencilComponentPtr> boxStencilList;
+	StencilObjectSystem::getSystem()->getRelevantBoxStencilList(
 		&stencilConfig.boxStencilIds,
 		cameraPosition, 
 		cameraForward, 
@@ -1441,13 +1444,14 @@ void GlFrameCompositor::updateBoxStencils(
 	m_stencilShader->bindProgram();
 
 	// Then draw stencil boxes ...
-	for (const MikanStencilBox* stencil : boxStencilList)
+	for (BoxStencilComponentPtr stencil : boxStencilList)
 	{
 		// Set the model matrix of stencil quad
-		const glm::mat4 xform = profileConfig->getBoxStencilWorldTransform(stencil);
-		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencil->box_x_size;
-		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencil->box_y_size;
-		const glm::vec3 z_axis = glm::vec3(xform[2]) * stencil->box_z_size;
+		auto stencilConfig = stencil->getConfig();
+		const glm::mat4 xform = stencil->getStencilWorldTransform();
+		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
+		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
+		const glm::vec3 z_axis = glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
 		const glm::vec3 position = glm::vec3(xform[3]);
 		const glm::mat4 modelMatrix =
 			glm::mat4(
@@ -1491,11 +1495,10 @@ void GlFrameCompositor::updateModelStencils(
 	if (!getVideoSourceCameraPose(cameraXform))
 		return;
 
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
 	std::unique_ptr<class GlModelResourceManager>& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
 
-	std::vector<const MikanStencilModelConfig*> modelStencilList;
-	MikanServer::getInstance()->getRelevantModelStencilList(
+	std::vector<ModelStencilComponentPtr> modelStencilList;
+	StencilObjectSystem::getSystem()->getRelevantModelStencilList(
 		&stencilConfig.modelStencilIds,
 		modelStencilList);
 
@@ -1503,11 +1506,12 @@ void GlFrameCompositor::updateModelStencils(
 		return;
 
 	// Add any missing stencil models to the model cache
-	for (const MikanStencilModelConfig* modelConfig : modelStencilList)
+	for (ModelStencilComponentPtr stencil : modelStencilList)
 	{
-		const MikanStencilID stencil_id = modelConfig->modelInfo.stencil_id;
+		auto stencilConfig= stencil->getConfig();
+		const MikanStencilID stencilId = stencilConfig->getStencilId();
 
-		if (m_stencilMeshCache.find(stencil_id) == m_stencilMeshCache.end())
+		if (m_stencilMeshCache.find(stencilId) == m_stencilMeshCache.end())
 		{
 			// It's possible that the model path isn't valid, 
 			// in which case renderModelResource will be null.
@@ -1515,10 +1519,10 @@ void GlFrameCompositor::updateModelStencils(
 			// the entry us explicitly cleared by flushStencilRenderModel.
 			GlRenderModelResourcePtr renderModelResource =
 				modelResourceManager->fetchRenderModel(
-					modelConfig->modelPath,
+					stencilConfig->getModelPath(),
 					getStencilModelVertexDefinition());
 
-			m_stencilMeshCache.insert({stencil_id, renderModelResource});
+			m_stencilMeshCache.insert({stencilId, renderModelResource});
 		}
 	}
 
@@ -1543,10 +1547,11 @@ void GlFrameCompositor::updateModelStencils(
 	m_stencilShader->bindProgram();
 
 	// Then draw stencil models
-	for (const MikanStencilModelConfig* modelConfig : modelStencilList)
+	for (ModelStencilComponentPtr stencil : modelStencilList)
 	{
-		const MikanStencilID stencil_id = modelConfig->modelInfo.stencil_id;
-		auto it = m_stencilMeshCache.find(stencil_id);
+		auto stencilConfig = stencil->getConfig();
+		const MikanStencilID stencilId = stencilConfig->getStencilId();
+		auto it = m_stencilMeshCache.find(stencilId);
 
 		if (it != m_stencilMeshCache.end())
 		{
@@ -1555,7 +1560,7 @@ void GlFrameCompositor::updateModelStencils(
 			if (renderModelResource != nullptr)
 			{
 				// Set the model matrix of stencil model
-				const glm::mat4 modelMatrix = profileConfig->getModelStencilWorldTransform(&modelConfig->modelInfo);
+				const glm::mat4 modelMatrix = stencil->getStencilWorldTransform();
 
 				// Set the model-view-projection matrix on the stencil shader
 				m_stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
@@ -1605,7 +1610,7 @@ void GlFrameCompositor::render() const
 
 bool GlFrameCompositor::openVideoSource()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	m_videoSourceView= VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 	bool bSuccess= m_videoSourceView != nullptr;
@@ -1682,7 +1687,7 @@ void GlFrameCompositor::closeVideoSource()
 
 bool GlFrameCompositor::bindCameraVRTracker()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	m_cameraTrackingPuckView= VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
 
