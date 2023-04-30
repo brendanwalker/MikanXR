@@ -15,6 +15,7 @@ void StencilComponent::init()
 
 	SceneComponentPtr sceneComponentPtr= getOwnerObject()->getRootComponent();
 	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
+	sceneComponentPtr->setGlLineRenderable(getSelfPtr<StencilComponent>());
 	m_sceneComponent= sceneComponentPtr;
 }
 
@@ -22,6 +23,10 @@ void StencilComponent::dispose()
 {
 	SceneComponentPtr sceneComponentPtr = m_sceneComponent.lock();
 	sceneComponentPtr->OnTranformChaged -= MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
+}
+
+void StencilComponent::renderLines() const
+{
 }
 
 glm::mat4 StencilComponent::getStencilLocalTransform() const

@@ -8,6 +8,7 @@
 
 using MikanObjectWeakList = std::vector<MikanObjectWeakPtr>;
 using SelectionComponentWeakList = std::vector<SelectionComponentWeakPtr>;
+using LineRenderableWeakList = std::vector<IGlLineRenderableConstWeakPtr>;
 
 class MikanScene final
 {
@@ -30,4 +31,5 @@ private:
 	GlScenePtr m_glScene;
 	MikanObjectWeakList m_objects;
 	SelectionComponentWeakList m_selectionComponents;
+	LineRenderableWeakList m_lineRenderables;
 };

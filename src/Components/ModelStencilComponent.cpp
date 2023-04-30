@@ -174,10 +174,8 @@ void ModelStencilComponent::init()
 	}
 }
 
-void ModelStencilComponent::update()
+void ModelStencilComponent::renderLines() const
 {
-	StencilComponent::update();
-
 	if (!m_config->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();

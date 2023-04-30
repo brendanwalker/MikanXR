@@ -184,10 +184,8 @@ void BoxStencilComponent::init()
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 }
 
-void BoxStencilComponent::update()
+void BoxStencilComponent::renderLines() const
 {
-	StencilComponent::update();
-
 	if (!m_config->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();

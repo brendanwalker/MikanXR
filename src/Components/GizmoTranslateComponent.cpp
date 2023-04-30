@@ -54,7 +54,7 @@ void GizmoTranslateComponent::dispose()
 
 glm::vec3 GizmoTranslateComponent::getColliderColor(
 	BoxColliderComponentWeakPtr colliderPtr, 
-	const glm::vec3& defaultColor)
+	const glm::vec3& defaultColor) const
 {
 	if (colliderPtr.lock() == m_dragComponent.lock())
 		return Colors::Yellow;
@@ -88,10 +88,8 @@ static void drawTranslationArrowHandle(
 	drawArrow(glm::mat4(1.f), origin, axisEnd, 0.05f, color);
 }
 
-void GizmoTranslateComponent::update()
+void GizmoTranslateComponent::renderLines() const
 {
-	MikanComponent::update();
-	
 	if (m_bEnabled)
 	{
 		drawTranslationBoxHandle(m_centerHandle, getColliderColor(m_centerHandle, Colors::DarkGray));

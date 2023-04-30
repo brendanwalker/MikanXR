@@ -106,9 +106,15 @@ void AnchorComponent::init()
 
 	SceneComponentPtr sceneComponentPtr = getOwnerObject()->getComponentOfType<SceneComponent>();
 	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &AnchorComponent::applySceneComponentTransformToConfig);
+	sceneComponentPtr->setGlLineRenderable(getSelfPtr<AnchorComponent>());
 	m_sceneComponent= sceneComponentPtr;
 
 	applyConfigTransformToSceneComponent();
+}
+
+void AnchorComponent::renderLines() const
+{
+
 }
 
 void AnchorComponent::dispose()

@@ -54,7 +54,7 @@ void GizmoRotateComponent::dispose()
 
 glm::vec3 GizmoRotateComponent::getColliderColor(
 	DiskColliderComponentWeakPtr colliderPtr,
-	const glm::vec3& defaultColor)
+	const glm::vec3& defaultColor) const
 {
 	if (colliderPtr.lock() == m_dragComponent.lock())
 		return Colors::Yellow;
@@ -110,10 +110,8 @@ static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, c
 	drawTransformedCircle(xform, radius, color);
 }
 
-void GizmoRotateComponent::update()
+void GizmoRotateComponent::renderLines() const
 {
-	MikanComponent::update();
-
 	if (m_bEnabled)
 	{
 		drawRotateDiscHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red));

@@ -1,18 +1,19 @@
 #pragma once
 
 #include "ColliderQuery.h"
+#include "IGlLineRenderable.h"
 #include "ObjectSystemFwd.h"
 #include "MikanComponent.h"
 #include "SinglecastDelegate.h"
 
 #include <glm/ext/vector_float3.hpp>
 
-class GizmoScaleComponent : public MikanComponent
+class GizmoScaleComponent : public MikanComponent, public IGlLineRenderable
 {
 public:
 	GizmoScaleComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void update() override;
+	virtual void renderLines() const override;
 	virtual void dispose() override;
 
 	void setEnabled(bool bEnabled);
@@ -20,7 +21,7 @@ public:
 	SinglecastDelegate<void(const glm::vec3& objectSpaceScale)> OnScaleRequested;
 
 protected:
-	glm::vec3 getColliderColor(BoxColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor);
+	glm::vec3 getColliderColor(BoxColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor) const;
 
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);

@@ -191,10 +191,8 @@ void QuadStencilComponent::init()
 	updateBoxColliderExtents();
 }
 
-void QuadStencilComponent::update()
+void QuadStencilComponent::renderLines() const
 {
-	StencilComponent::update();
-
 	if (!m_config->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();

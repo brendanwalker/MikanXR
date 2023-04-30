@@ -40,11 +40,17 @@ void MikanScene::addMikanObject(MikanObjectWeakPtr objectWeakPtr)
 	objectPtr->getComponentsOfType(sceneComponents);
 	for (SceneComponentPtr sceneComponent : sceneComponents)
 	{
-		IGlSceneRenderableConstPtr renderable= sceneComponent->getGlSceneRenderableConst();
-		
-		if (renderable)
+		IGlSceneRenderableConstPtr sceneRenderable= sceneComponent->getGlSceneRenderableConst();
+		IGlLineRenderableConstPtr lineRenderable= sceneComponent->getGlLineRenderableConst();
+	
+		if (sceneRenderable)
 		{
-			m_glScene->addInstance(renderable);
+			m_glScene->addInstance(sceneRenderable);
+		}
+
+		if (lineRenderable)
+		{
+			m_lineRenderables.push_back(lineRenderable);
 		}
 	}
 
@@ -77,10 +83,20 @@ void MikanScene::removeMikanObject(MikanObjectWeakPtr objectWeakPtr)
 		for (SceneComponentPtr sceneComponent : sceneComponents)
 		{
 			IGlSceneRenderableConstPtr renderable= sceneComponent->getGlSceneRenderableConst();
+			IGlLineRenderableConstPtr lineRenderable= sceneComponent->getGlLineRenderableConst();
 
 			if (renderable)
 			{
 				m_glScene->removeInstance(renderable);
+			}
+
+			for (auto it = m_lineRenderables.begin(); it != m_lineRenderables.end(); ++it)
+			{
+				if (it->lock() == lineRenderable)
+				{
+					m_lineRenderables.erase(it);
+					break;
+				}
 			}
 		}
 
@@ -106,4 +122,14 @@ void MikanScene::removeMikanObject(MikanObjectWeakPtr objectWeakPtr)
 void MikanScene::render()
 {
 	m_glScene->render();
+
+	for (IGlLineRenderableConstWeakPtr lineRenderableWeakPtr : m_lineRenderables)
+	{
+		IGlLineRenderableConstPtr lineRenderable= lineRenderableWeakPtr.lock();
+
+		if (lineRenderable != nullptr)
+		{
+			lineRenderable->renderLines();
+		}
+	}
 }

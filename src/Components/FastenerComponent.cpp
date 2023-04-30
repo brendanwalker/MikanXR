@@ -152,6 +152,19 @@ FastenerComponent::FastenerComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {}
 
+void FastenerComponent::init()
+{
+	MikanComponent::init();
+
+	SceneComponentPtr sceneComponentPtr = getOwnerObject()->getRootComponent();
+	sceneComponentPtr->setGlLineRenderable(getSelfPtr<FastenerComponent>());
+}
+
+void FastenerComponent::renderLines() const
+{
+
+}
+
 void FastenerComponent::setConfig(FastenerConfigPtr config)
 {
 	m_config = config;

@@ -53,7 +53,7 @@ void GizmoScaleComponent::dispose()
 
 glm::vec3 GizmoScaleComponent::getColliderColor(
 	BoxColliderComponentWeakPtr colliderPtr,
-	const glm::vec3& defaultColor)
+	const glm::vec3& defaultColor) const
 {
 	if (colliderPtr.lock() == m_dragComponent.lock())
 		return Colors::Yellow;
@@ -88,10 +88,8 @@ static void drawScaleArrowHandle(
 	drawSegment(glm::mat4(1.f), origin, axisBoxCenter, color);
 }
 
-void GizmoScaleComponent::update()
+void GizmoScaleComponent::renderLines() const
 {
-	MikanComponent::update();
-
 	if (m_bEnabled)
 	{
 		drawScaleBoxHandle(m_centerHandle, getColliderColor(m_centerHandle, Colors::DarkGray));

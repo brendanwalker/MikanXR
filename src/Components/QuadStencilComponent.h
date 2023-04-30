@@ -67,7 +67,7 @@ class QuadStencilComponent : public StencilComponent
 public:
 	QuadStencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void update() override;
+	virtual void renderLines() const override;
 
 	inline QuadStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(QuadStencilConfigPtr config);

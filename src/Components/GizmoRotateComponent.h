@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ColliderQuery.h"
+#include "IGlLineRenderable.h"
 #include "ObjectSystemFwd.h"
 #include "MikanComponent.h"
 #include "SinglecastDelegate.h"
@@ -8,12 +9,12 @@
 #include <glm/ext/quaternion_float.hpp>
 #include <glm/ext/vector_float3.hpp>
 
-class GizmoRotateComponent : public MikanComponent
+class GizmoRotateComponent : public MikanComponent, public IGlLineRenderable
 {
 public:
 	GizmoRotateComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void update() override;
+	virtual void renderLines() const override;
 	virtual void dispose() override;
 
 	void setEnabled(bool bEnabled);
@@ -21,7 +22,7 @@ public:
 	SinglecastDelegate<void(const glm::quat& objectSpaceRotation)> OnRotateRequested;
 
 protected:
-	glm::vec3 getColliderColor(DiskColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor);
+	glm::vec3 getColliderColor(DiskColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor) const;
 	bool getColliderRotationAxis(
 		ColliderComponentWeakPtr colliderWeakPtr,
 		glm::vec3& outOrigin,

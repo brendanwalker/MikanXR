@@ -20,6 +20,8 @@ void GizmoTransformComponent::init()
 
 	MikanObjectPtr owner= getOwnerObject();
 
+	setGlLineRenderable(getSelfPtr<GizmoTransformComponent>());
+
 	m_translateComponent = owner->getComponentOfType<GizmoTranslateComponent>();
 	m_rotateComponent = owner->getComponentOfType<GizmoRotateComponent>();
 	m_scaleComponent = owner->getComponentOfType<GizmoScaleComponent>();
@@ -31,6 +33,26 @@ void GizmoTransformComponent::init()
 		MakeDelegate(this, &GizmoTransformComponent::selectRotateMode);
 	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_r)->OnKeyPressed +=
 		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
+}
+
+void GizmoTransformComponent::renderLines() const
+{
+	GizmoTranslateComponentPtr translatePtr = m_translateComponent.lock();
+	GizmoRotateComponentPtr rotatePtr = m_rotateComponent.lock();
+	GizmoScaleComponentPtr scalePtr = m_scaleComponent.lock();
+
+	switch (m_gizmoMode)
+	{
+	case eGizmoMode::rotate:
+		rotatePtr->setEnabled(true);
+		break;
+	case eGizmoMode::translate:
+		translatePtr->setEnabled(true);
+		break;
+	case eGizmoMode::scale:
+		scalePtr->setEnabled(true);
+		break;
+	}
 }
 
 void GizmoTransformComponent::dispose()

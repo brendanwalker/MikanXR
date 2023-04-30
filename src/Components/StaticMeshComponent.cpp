@@ -11,12 +11,12 @@ StaticMeshComponent::StaticMeshComponent(MikanObjectWeakPtr owner)
 
 GlStaticMeshInstancePtr StaticMeshComponent::getStaticMesh() const 
 { 
-	return std::dynamic_pointer_cast<GlStaticMeshInstance>(m_renderable); 
+	return std::dynamic_pointer_cast<GlStaticMeshInstance>(m_sceneRenderable); 
 }
 
 void StaticMeshComponent::setStaticMesh(GlStaticMeshInstancePtr meshInstance)
 {
-	m_renderable= meshInstance;
+	m_sceneRenderable= meshInstance;
 	if (OnMeshChanged)
 	{
 		OnMeshChanged(getSelfWeakPtr<StaticMeshComponent>());

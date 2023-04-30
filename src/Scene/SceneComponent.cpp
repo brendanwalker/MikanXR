@@ -112,9 +112,9 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 void SceneComponent::propogateWorldTransformChange()
 {
 	// Update the world transform on the attached IGlSceneRenderable
-	if (m_renderable != nullptr)
+	if (m_sceneRenderable != nullptr)
 	{
-		m_renderable->setModelMatrix(m_worldTransform);
+		m_sceneRenderable->setModelMatrix(m_worldTransform);
 	}
 
 	// Broadcast to anyone that cares our transform changed
