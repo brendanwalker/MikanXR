@@ -63,6 +63,7 @@ void EditorObjectSystem::createTransformGizmo()
 
 	GizmoTransformComponentPtr transformGizmoPtr= gizmoObjectPtr->addComponent<GizmoTransformComponent>();
 	gizmoObjectPtr->setRootComponent(transformGizmoPtr);
+	m_gizmoComponentWeakPtr= transformGizmoPtr;
 
 	gizmoObjectPtr->addComponent<SelectionComponent>();
 
