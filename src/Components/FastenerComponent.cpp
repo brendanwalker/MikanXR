@@ -1,4 +1,7 @@
 #include "AnchorObjectSystem.h"
+#include "Colors.h"
+#include "GlLineRenderer.h"
+#include "GlTextRenderer.h"
 #include "FastenerComponent.h"
 #include "SceneComponent.h"
 #include "MikanObject.h"
@@ -162,7 +165,22 @@ void FastenerComponent::init()
 
 void FastenerComponent::renderLines() const
 {
+	TextStyle style = getDefaultTextStyle();
 
+	const MikanSpatialFastenerInfo& fastener = m_config->getFastenerInfo();
+	wchar_t wszFastenerName[MAX_MIKAN_FASTENER_NAME_LEN];
+	StringUtils::convertMbsToWcs(fastener.fastener_name, wszFastenerName, sizeof(wszFastenerName));
+
+	const glm::mat4 xform = getFastenerWorldTransform();
+	const glm::vec3 p0 = MikanVector3f_to_glm_vec3(fastener.fastener_points[0]);
+	const glm::vec3 p1 = MikanVector3f_to_glm_vec3(fastener.fastener_points[1]);
+	const glm::vec3 p2 = MikanVector3f_to_glm_vec3(fastener.fastener_points[2]);
+
+	drawArrow(xform, p0, p1, 0.01f, Colors::Red);
+	drawArrow(xform, p0, p2, 0.01f, Colors::Green);
+
+	const glm::vec3 text_pos = xform * glm::vec4(p0, 1.f);
+	drawTextAtWorldPosition(style, text_pos, L"%s", wszFastenerName);
 }
 
 void FastenerComponent::setConfig(FastenerConfigPtr config)

@@ -1,4 +1,6 @@
 #include "AnchorComponent.h"
+#include "GlLineRenderer.h"
+#include "GlTextRenderer.h"
 #include "SceneComponent.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
@@ -113,8 +115,16 @@ void AnchorComponent::init()
 }
 
 void AnchorComponent::renderLines() const
-{
+{	
+	TextStyle style = getDefaultTextStyle();
 
+	wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
+	StringUtils::convertMbsToWcs(m_config->getAnchorName().c_str(), wszAnchorName, sizeof(wszAnchorName));
+	glm::mat4 anchorXform = m_config->getAnchorXform();
+	glm::vec3 anchorPos(anchorXform[3]);
+
+	drawTransformedAxes(anchorXform, 0.1f, 0.1f, 0.1f);
+	drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
 }
 
 void AnchorComponent::dispose()
