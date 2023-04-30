@@ -54,22 +54,21 @@ void BoxStencilConfig::readFromJSON(const configuru::Config& pt)
 
 	if (pt.has_key("stencil_id"))
 	{
-		MikanStencilBox stencil;
-		memset(&stencil, 0, sizeof(stencil));
+		memset(&m_boxInfo, 0, sizeof(m_boxInfo));
 
-		stencil.stencil_id = pt.get<int>("stencil_id");
-		stencil.parent_anchor_id = pt.get_or<int>("parent_anchor_id", -1);
-		readVector3f(pt, "box_center", stencil.box_center);
-		readVector3f(pt, "box_x_axis", stencil.box_x_axis);
-		readVector3f(pt, "box_y_axis", stencil.box_y_axis);
-		readVector3f(pt, "box_z_axis", stencil.box_z_axis);
-		stencil.box_x_size = pt.get_or<float>("box_x_size", 0.25f);
-		stencil.box_y_size = pt.get_or<float>("box_y_size", 0.25f);
-		stencil.box_z_size = pt.get_or<float>("box_z_size", 0.25f);
-		stencil.is_disabled = pt.get_or<bool>("is_disabled", false);
+		m_boxInfo.stencil_id = pt.get<int>("stencil_id");
+		m_boxInfo.parent_anchor_id = pt.get_or<int>("parent_anchor_id", -1);
+		readVector3f(pt, "box_center", m_boxInfo.box_center);
+		readVector3f(pt, "box_x_axis", m_boxInfo.box_x_axis);
+		readVector3f(pt, "box_y_axis", m_boxInfo.box_y_axis);
+		readVector3f(pt, "box_z_axis", m_boxInfo.box_z_axis);
+		m_boxInfo.box_x_size = pt.get_or<float>("box_x_size", 0.25f);
+		m_boxInfo.box_y_size = pt.get_or<float>("box_y_size", 0.25f);
+		m_boxInfo.box_z_size = pt.get_or<float>("box_z_size", 0.25f);
+		m_boxInfo.is_disabled = pt.get_or<bool>("is_disabled", false);
 
 		const std::string stencil_name = pt.get_or<std::string>("stencil_name", "");
-		StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
+		StringUtils::formatString(m_boxInfo.stencil_name, sizeof(m_boxInfo.stencil_name), "%s", stencil_name.c_str());
 	}
 }
 
@@ -179,7 +178,7 @@ BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
 
 void BoxStencilComponent::init()
 {
-	MikanComponent::init();
+	StencilComponent::init();
 
 	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
@@ -187,7 +186,7 @@ void BoxStencilComponent::init()
 
 void BoxStencilComponent::update()
 {
-	MikanComponent::update();
+	StencilComponent::update();
 
 	if (!m_config->getIsDisabled())
 	{
@@ -209,7 +208,7 @@ void BoxStencilComponent::update()
 			else if (selectionComponent->getIsHovered())
 				color= Colors::LightGray;
 		}
-
+		
 		drawTransformedBox(xform, half_extents, color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(style, position, L"Stencil %d", m_config->getStencilId());

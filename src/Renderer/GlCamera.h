@@ -13,8 +13,8 @@ public:
 	virtual ~GlCamera() = default;
 
 	const glm::mat4& getProjectionMatrix() const { return m_projectionMatrix; }
-	const glm::mat4& getModelViewMatrix() const { return m_modelViewMatrix; }
-	const glm::mat4 getViewProjectionMatrix() const { return m_projectionMatrix*m_modelViewMatrix; }
+	const glm::mat4& getViewMatrix() const { return m_viewMatrix; }
+	const glm::mat4 getViewProjectionMatrix() const { return m_projectionMatrix*m_viewMatrix; }
 
 	const glm::vec3 getCameraPosition() const;
 	const glm::vec3 getCameraForward() const;
@@ -29,7 +29,7 @@ public:
 
 	bool getIsLocked() { return m_isLocked; }
 	void setIsLocked(bool locked) { m_isLocked= locked; }
-	void setModelViewMatrix(const glm::mat4& modelViewMat) { m_modelViewMatrix= modelViewMat; }
+	void setViewMatrix(const glm::mat4& viewMat) { m_viewMatrix= viewMat; }
 	void setCameraPose(const glm::mat4& poseXform);
 	void setCameraOrbitLocation(float yawDegrees, float pitchDegrees, float radius);
 	void setCameraOrbitYaw(float yawDegrees);
@@ -50,7 +50,7 @@ protected:
 	const float k_camera_min_zoom = 0.01f;
 
 	glm::mat4 m_projectionMatrix;
-	glm::mat4 m_modelViewMatrix;
+	glm::mat4 m_viewMatrix;
 
 	float m_cameraOrbitYawDegrees;
 	float m_cameraOrbitPitchDegrees;

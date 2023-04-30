@@ -57,22 +57,21 @@ void QuadStencilConfig::readFromJSON(const configuru::Config& pt)
 
 	if (pt.has_key("stencil_id"))
 	{
-		MikanStencilQuad stencil;
-		memset(&stencil, 0, sizeof(stencil));
+		memset(&m_quadInfo, 0, sizeof(m_quadInfo));
 
-		stencil.stencil_id = pt.get<int>("stencil_id");
-		stencil.parent_anchor_id = pt.get_or<int>("parent_anchor_id", -1);
-		readVector3f(pt, "quad_center", stencil.quad_center);
-		readVector3f(pt, "quad_x_axis", stencil.quad_x_axis);
-		readVector3f(pt, "quad_y_axis", stencil.quad_y_axis);
-		readVector3f(pt, "quad_normal", stencil.quad_normal);
-		stencil.quad_width = pt.get_or<float>("quad_width", 0.25f);
-		stencil.quad_height = pt.get_or<float>("quad_height", 0.25f);
-		stencil.is_double_sided = pt.get_or<bool>("is_double_sided", false);
-		stencil.is_disabled = pt.get_or<bool>("is_disabled", false);
+		m_quadInfo.stencil_id = pt.get<int>("stencil_id");
+		m_quadInfo.parent_anchor_id = pt.get_or<int>("parent_anchor_id", -1);
+		readVector3f(pt, "quad_center", m_quadInfo.quad_center);
+		readVector3f(pt, "quad_x_axis", m_quadInfo.quad_x_axis);
+		readVector3f(pt, "quad_y_axis", m_quadInfo.quad_y_axis);
+		readVector3f(pt, "quad_normal", m_quadInfo.quad_normal);
+		m_quadInfo.quad_width = pt.get_or<float>("quad_width", 0.25f);
+		m_quadInfo.quad_height = pt.get_or<float>("quad_height", 0.25f);
+		m_quadInfo.is_double_sided = pt.get_or<bool>("is_double_sided", false);
+		m_quadInfo.is_disabled = pt.get_or<bool>("is_disabled", false);
 
 		const std::string stencil_name = pt.get_or<std::string>("stencil_name", "");
-		StringUtils::formatString(stencil.stencil_name, sizeof(stencil.stencil_name), "%s", stencil_name.c_str());
+		StringUtils::formatString(m_quadInfo.stencil_name, sizeof(m_quadInfo.stencil_name), "%s", stencil_name.c_str());
 	}
 }
 
@@ -183,7 +182,7 @@ QuadStencilComponent::QuadStencilComponent(MikanObjectWeakPtr owner)
 
 void QuadStencilComponent::init()
 {
-	MikanComponent::init();
+	StencilComponent::init();
 
 	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
@@ -194,7 +193,7 @@ void QuadStencilComponent::init()
 
 void QuadStencilComponent::update()
 {
-	MikanComponent::update();
+	StencilComponent::update();
 
 	if (!m_config->getIsDisabled())
 	{

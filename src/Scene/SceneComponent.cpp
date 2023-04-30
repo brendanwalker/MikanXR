@@ -16,20 +16,24 @@ void SceneComponent::init()
 
 void SceneComponent::dispose()
 {
-	detachFromParent();
+	detachFromParent(true);
 	MikanComponent::dispose();
 }
 
 void SceneComponent::attachToComponent(SceneComponentPtr newParentComponent)
 {
-	detachFromParent();
+	const bool bHasNewParent= newParentComponent != nullptr;
 
-	SceneComponentPtr parent = m_parentComponent.lock();
-	if (parent != nullptr)
+	// Don't bother propagating world transform changes if we have a new parent,
+	// since the attachment to the new parent will propagate changes anyway
+	const bool bUpdateChildWorldTransforms= !bHasNewParent;
+	detachFromParent(bUpdateChildWorldTransforms);
+
+	if (bHasNewParent)
 	{
-		SceneComponentList& parentChildList= parent->m_childComponents;
+		SceneComponentList& parentChildList= newParentComponent->m_childComponents;
 
-		parentChildList.push_back(SceneComponentPtr(this));
+		parentChildList.push_back(getSelfWeakPtr<SceneComponent>());
 		m_parentComponent = newParentComponent;
 
 		// Refresh world transform
@@ -37,7 +41,7 @@ void SceneComponent::attachToComponent(SceneComponentPtr newParentComponent)
 	}
 }
 
-void SceneComponent::detachFromParent()
+void SceneComponent::detachFromParent(bool bUpdateChildWorldTransforms)
 {
 	SceneComponentPtr parent= m_parentComponent.lock();
 	if (parent != nullptr)
@@ -57,50 +61,74 @@ void SceneComponent::detachFromParent()
 	}
 
 	m_parentComponent = SceneComponentPtr();
+
+	// World transform is now the same as relative transform
+	m_worldTransform= m_relativeTransform.getMat4();
+
+	// Propagate world transform change to children (unless caller doesn't want us to)
+	if (bUpdateChildWorldTransforms)
+	{
+		propogateWorldTransformChange();
+	}
 }
 
 void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 {
+	// Set the new relative transform directly
 	m_relativeTransform= newRelativeXform;
 
+	// Concat our transform to our parent's world transform
 	SceneComponentPtr parent = m_parentComponent.lock();
 	if (parent != nullptr)
 	{
-		m_worldTransform= glm_composite_xform(parent->getWorldTransform(), newRelativeXform.getMat4());
+		m_worldTransform = glm_composite_xform(parent->getWorldTransform(), m_relativeTransform.getMat4());
 	}
 	else
 	{
-		m_worldTransform= newRelativeXform.getMat4();
+		m_worldTransform = m_relativeTransform.getMat4();
 	}
 
-	if (m_renderable != nullptr)
-	{
-		m_renderable->setModelMatrix(m_worldTransform);
-	}
-
-	if (OnTranformChaged)
-		OnTranformChaged(getSelfPtr<SceneComponent>());
+	propogateWorldTransformChange();
 }
 
 void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
+	// Set the new world transform directly
 	m_worldTransform= newWorldXform;
 
-	if (m_renderable != nullptr)
-	{
-		m_renderable->setModelMatrix(m_worldTransform);
-	}
-	
+	// Subtract our new world transform from out parent to compute new relative transform
 	glm::mat4 invParentXform= glm::mat4(1.f);
 	SceneComponentPtr parent = m_parentComponent.lock();
 	if (parent != nullptr)
 	{
 		invParentXform= glm::inverse(parent->getWorldTransform());
 	}
-
 	const glm::mat4 relativeXform= glm_composite_xform(invParentXform, m_worldTransform);
 	m_relativeTransform= GlmTransform(relativeXform);
 
+	propogateWorldTransformChange();
+}
+
+void SceneComponent::propogateWorldTransformChange()
+{
+	// Update the world transform on the attached IGlSceneRenderable
+	if (m_renderable != nullptr)
+	{
+		m_renderable->setModelMatrix(m_worldTransform);
+	}
+
+	// Broadcast to anyone that cares our transform changed
 	if (OnTranformChaged)
 		OnTranformChaged(getSelfPtr<SceneComponent>());
+
+	// Propagate our updated world transform to our children
+	for (SceneComponentWeakPtr childComponentWeakPtr : m_childComponents)
+	{
+		SceneComponentPtr childComponent= childComponentWeakPtr.lock();
+
+		if (childComponent != nullptr)
+		{
+			childComponent->propogateWorldTransformChange();
+		}
+	}
 }

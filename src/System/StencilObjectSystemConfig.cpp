@@ -52,10 +52,10 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	quadStencilList.clear();
 	if (pt.has_key("quadStencils"))
 	{
-		for (const configuru::Config& stencil : pt["quadStencils"].as_array())
+		for (const configuru::Config& stencilConfig : pt["quadStencils"].as_array())
 		{
 			QuadStencilConfigPtr configPtr = std::make_shared<QuadStencilConfig>();
-			configPtr->readFromJSON(pt);
+			configPtr->readFromJSON(stencilConfig);
 
 			quadStencilList.push_back(configPtr);
 		}
@@ -68,7 +68,7 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 		for (const configuru::Config& stencilConfig : pt["boxStencils"].as_array())
 		{
 			BoxStencilConfigPtr configPtr = std::make_shared<BoxStencilConfig>();
-			configPtr->readFromJSON(pt);
+			configPtr->readFromJSON(stencilConfig);
 
 			boxStencilList.push_back(configPtr);
 		}
@@ -81,7 +81,7 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 		for (const configuru::Config& stencilConfig : pt["modelStencils"].as_array())
 		{
 			ModelStencilConfigPtr configPtr = std::make_shared<ModelStencilConfig>();
-			configPtr->readFromJSON(pt);
+			configPtr->readFromJSON(stencilConfig);
 
 			modelStencilList.push_back(configPtr);
 		}

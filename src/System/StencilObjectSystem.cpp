@@ -22,17 +22,6 @@
 
 StencilObjectSystemWeakPtr StencilObjectSystem::s_stencilObjectSystem;
 
-StencilObjectSystem::StencilObjectSystem() 
-	: MikanObjectSystem()
-{
-	s_stencilObjectSystem = std::static_pointer_cast<StencilObjectSystem>(shared_from_this());
-}
-
-StencilObjectSystem::~StencilObjectSystem()
-{
-	s_stencilObjectSystem.reset();
-}
-
 void StencilObjectSystem::init()
 {
 	MikanObjectSystem::init();
@@ -53,10 +42,13 @@ void StencilObjectSystem::init()
 	{
 		createModelStencilObject(modelConfig);
 	}
+
+	s_stencilObjectSystem = std::static_pointer_cast<StencilObjectSystem>(shared_from_this());
 }
 
 void StencilObjectSystem::dispose()
 {
+	s_stencilObjectSystem.reset();
 	m_quadStencilComponents.clear();
 	m_boxStencilComponents.clear();
 	m_modelStencilComponents.clear();

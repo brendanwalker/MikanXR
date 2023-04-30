@@ -19,7 +19,7 @@ GlCamera::GlCamera()
 {
 	Renderer* renderer= App::getInstance()->getRenderer();
 
-	m_modelViewMatrix = glm::mat4(1.f);
+	m_viewMatrix = glm::mat4(1.f);
 	m_projectionMatrix =
 		glm::perspective(
 			degrees_to_radians(k_default_camera_vfov),
@@ -46,7 +46,7 @@ void GlCamera::setCameraOrbitLocation(float yawDegrees, float pitchDegrees, floa
 
 void GlCamera::setCameraPose(const glm::mat4& poseXform)
 {
-	m_modelViewMatrix = computeGLMCameraViewMatrix(poseXform);
+	m_viewMatrix = computeGLMCameraViewMatrix(poseXform);
 }
 
 void GlCamera::setCameraOrbitYaw(float yawDegrees)
@@ -148,7 +148,7 @@ void GlCamera::recomputeModelViewMatrix()
 
 	if (fabsf(m_cameraOrbitPitchDegrees) < 85.0f)
 	{
-		m_modelViewMatrix =
+		m_viewMatrix =
 			glm::lookAt(
 				m_cameraPosition,
 				m_cameraTarget, // Look at tracking origin
@@ -156,7 +156,7 @@ void GlCamera::recomputeModelViewMatrix()
 	}
 	else
 	{
-		m_modelViewMatrix =
+		m_viewMatrix =
 			glm::lookAt(
 				m_cameraPosition,
 				m_cameraTarget, // Look at tracking origin
@@ -167,8 +167,8 @@ void GlCamera::recomputeModelViewMatrix()
 const glm::vec3 GlCamera::getCameraPosition() const
 {
 	// Assumes no scaling 
-	const glm::mat3 rotMat(m_modelViewMatrix);
-	const glm::vec3 d(m_modelViewMatrix[3]);
+	const glm::mat3 rotMat(m_viewMatrix);
+	const glm::vec3 d(m_viewMatrix[3]);
 	const glm::vec3 position = -d * rotMat;
 
 	return position;
@@ -176,18 +176,18 @@ const glm::vec3 GlCamera::getCameraPosition() const
 
 const glm::vec3 GlCamera::getCameraRight() const
 {
-	return glm::vec3(m_modelViewMatrix[0][0], m_modelViewMatrix[1][0], m_modelViewMatrix[2][0]);
+	return glm::vec3(m_viewMatrix[0][0], m_viewMatrix[1][0], m_viewMatrix[2][0]);
 }
 
 const glm::vec3 GlCamera::getCameraUp() const
 {
-	return glm::vec3(m_modelViewMatrix[0][1], m_modelViewMatrix[1][1], m_modelViewMatrix[2][1]);
+	return glm::vec3(m_viewMatrix[0][1], m_viewMatrix[1][1], m_viewMatrix[2][1]);
 }
 
 const glm::vec3 GlCamera::getCameraForward() const
 {
 	// Camera forward is along negative Z-axis
-	return glm::vec3(m_modelViewMatrix[0][2], m_modelViewMatrix[1][2], m_modelViewMatrix[2][2]) * -1.f;
+	return glm::vec3(m_viewMatrix[0][2], m_viewMatrix[1][2], m_viewMatrix[2][2]) * -1.f;
 }
 
 const glm::mat4 GlCamera::getCameraTransform() const
@@ -225,6 +225,6 @@ void GlCamera::computeCameraRayThruPixel(
 	ray_eye= glm::vec4(ray_eye.x, ray_eye.y, -1.f, 0.f);
 
 	// Convert the eye space ray to world space
-	outRayDirection= glm::inverse(m_modelViewMatrix) * ray_eye;
+	outRayDirection= glm::inverse(m_viewMatrix) * ray_eye;
 	outRayOrigin= getCameraPosition();
 }

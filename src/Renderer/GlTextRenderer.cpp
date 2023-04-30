@@ -144,7 +144,7 @@ void drawTextAtWorldPosition(
 	glm::vec3 screenCoords =
 		glm::project(
 			position,
-			camera->getModelViewMatrix(),
+			camera->getViewMatrix(),
 			camera->getProjectionMatrix(),
 			glm::vec4(0, screenHeight, screenWidth, -screenHeight));
 

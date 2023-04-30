@@ -143,29 +143,35 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 // -- AnchorObjectSystem -----
 AnchorObjectSystemWeakPtr AnchorObjectSystem::s_anchorObjectSystem;
 
-AnchorObjectSystem::AnchorObjectSystem()
-{
-	s_anchorObjectSystem = std::static_pointer_cast<AnchorObjectSystem>(shared_from_this());
-}
-
-AnchorObjectSystem::~AnchorObjectSystem()
-{
-	s_anchorObjectSystem.reset();
-}
-
 void AnchorObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
-	AnchorObjectSystemConfigConstPtr anchorConfig = getAnchorSystemConfigConst();
-	for (AnchorConfigPtr anchorConfig : anchorConfig->spatialAnchorList)
+	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
+
+	// Create the origin anchor object first
+	AnchorConfigPtr originAnchorConfig= 
+		anchorSystemConfig->getSpatialAnchorConfig(anchorSystemConfig->originAnchorId);
+	if (originAnchorConfig != nullptr)
 	{
-		createAnchorObject(anchorConfig);
+		createAnchorObject(originAnchorConfig);
 	}
+
+	// Then create all the child anchors
+	for (AnchorConfigPtr anchorConfig : anchorSystemConfig->spatialAnchorList)
+	{
+		if (anchorConfig != originAnchorConfig)
+		{
+			createAnchorObject(anchorConfig);
+		}
+	}
+
+	s_anchorObjectSystem = std::static_pointer_cast<AnchorObjectSystem>(shared_from_this());
 }
 
 void AnchorObjectSystem::dispose()
 {
+	s_anchorObjectSystem.reset();
 	m_anchorComponents.clear();
 	MikanObjectSystem::dispose();
 }

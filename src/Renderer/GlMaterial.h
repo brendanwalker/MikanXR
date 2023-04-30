@@ -14,7 +14,7 @@
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-class GlMaterial
+class GlMaterial : public std::enable_shared_from_this<GlMaterial>
 {
 public:
 	GlMaterial() = default;
@@ -62,7 +62,7 @@ public:
 	bool setTextureByUniformName(const std::string uniformName, GlTexturePtr texture);
 	bool getTextureByUniformName(const std::string uniformName, GlTexturePtr& outTexture) const;
 
-	GlScopedMaterialBinding bindMaterial() const;
+	GlScopedMaterialBinding bindMaterial(GlSceneConstPtr scene, GlCameraConstPtr camera) const;
 
 protected:
 	friend class GlScopedMaterialBinding;

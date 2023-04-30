@@ -124,16 +124,6 @@ bool FastenerObjectSystemConfig::removeFastener(MikanSpatialFastenerID fastenerI
 // -- FastenerObjectSystem -----
 FastenerObjectSystemWeakPtr FastenerObjectSystem::s_fastenerObjectSystem;
 
-FastenerObjectSystem::FastenerObjectSystem()
-{
-	s_fastenerObjectSystem = std::static_pointer_cast<FastenerObjectSystem>(shared_from_this());
-}
-
-FastenerObjectSystem::~FastenerObjectSystem()
-{
-	s_fastenerObjectSystem.reset();
-}
-
 void FastenerObjectSystem::init()
 {
 	MikanObjectSystem::init();
@@ -143,10 +133,13 @@ void FastenerObjectSystem::init()
 	{
 		createFastenerObject(fastenerConfig);
 	}
+
+	s_fastenerObjectSystem = std::static_pointer_cast<FastenerObjectSystem>(shared_from_this());
 }
 
 void FastenerObjectSystem::dispose()
 {
+	s_fastenerObjectSystem.reset();
 	m_fastenerComponents.clear();
 	MikanObjectSystem::dispose();
 }

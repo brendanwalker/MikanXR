@@ -68,7 +68,9 @@ public:
 	bool setTextureByUniformName(const std::string uniformName, GlTexturePtr texture);
 	bool getTextureByUniformName(const std::string uniformName, GlTexturePtr& outTexture) const;
 
-	GlScopedMaterialInstanceBinding bindMaterialInstance(const GlScopedMaterialBinding& materialBinding);
+	GlScopedMaterialInstanceBinding bindMaterialInstance(
+		const GlScopedMaterialBinding& materialBinding,
+		IGlSceneRenderableConstPtr renderable);
 
 protected: 
 	friend class GlScopedMaterialInstanceBinding;

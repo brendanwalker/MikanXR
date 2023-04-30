@@ -4,8 +4,10 @@
 #include "RendererFwd.h"
 
 #include <map>
+#include <memory>
 #include <vector>
 
+#include "glm/ext/vector_float3.hpp"
 #include "glm/ext/vector_float4.hpp"
 
 struct GlDrawCall
@@ -13,7 +15,7 @@ struct GlDrawCall
 	std::vector<IGlSceneRenderableConstPtr> instances;
 };
 
-class GlScene
+class GlScene : public std::enable_shared_from_this<GlScene>
 {
 public:
 	const glm::vec4 k_clear_color = glm::vec4(0.447f, 0.565f, 0.604f, 1.0f);
@@ -28,8 +30,17 @@ public:
 	void addInstance(IGlSceneRenderableConstPtr instance);
 	void removeInstance(IGlSceneRenderableConstPtr instance);
 
+	void setLightColor(const glm::vec4& lightColor) { m_lightColor= lightColor; }
+	const glm::vec4& getLightColor() const { return m_lightColor; }
+
+	void setLightDirection(const glm::vec3& lightDirection) { m_lightDirection = lightDirection; }
+	const glm::vec3& getLightDirection() const { return m_lightDirection; }
+
 	void render() const;
 
 private:
+	glm::vec4 m_lightColor;
+	glm::vec3 m_lightDirection;
+
 	class std::map<GlMaterialConstPtr, GlDrawCall*> m_drawCalls;
 };

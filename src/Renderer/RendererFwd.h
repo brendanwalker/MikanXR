@@ -4,6 +4,7 @@
 
 class GlCamera;
 using GlCameraPtr = std::shared_ptr<GlCamera>;
+using GlCameraConstPtr = std::shared_ptr<const GlCamera>;
 
 class GlMaterial;
 using GlMaterialPtr = std::shared_ptr<GlMaterial>;
@@ -26,6 +27,7 @@ using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;
 
 class GlScene;
 using GlScenePtr = std::shared_ptr<GlScene>;
+using GlSceneConstPtr = std::shared_ptr<const GlScene>;
 
 class GlStaticMeshInstance;
 using GlStaticMeshInstancePtr = std::shared_ptr<GlStaticMeshInstance>;
@@ -43,3 +45,7 @@ using GlViewportConstPtr = std::shared_ptr<const GlViewport>;
 
 class GlWireframeMesh;
 using GlWireframeMeshPtr = std::shared_ptr<GlWireframeMesh>;
+
+class IGlSceneRenderable;
+using IGlSceneRenderablePtr= std::shared_ptr<IGlSceneRenderable>;
+using IGlSceneRenderableConstPtr = std::shared_ptr<const IGlSceneRenderable>;

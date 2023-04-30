@@ -21,9 +21,6 @@ using ModelStencilMap = std::map<MikanStencilID, ModelStencilComponentWeakPtr>;
 class StencilObjectSystem : public MikanObjectSystem
 {
 public:
-	StencilObjectSystem();
-	virtual ~StencilObjectSystem();
-
 	static StencilObjectSystemPtr getSystem() { return s_stencilObjectSystem.lock(); }
 
 	virtual void init() override;

@@ -143,18 +143,28 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 	switch (semantic)
 	{
 		case eUniformSemantic::transformMatrix:
+		case eUniformSemantic::modelMatrix:
+		case eUniformSemantic::normalMatrix:
+		case eUniformSemantic::viewMatrix:
+		case eUniformSemantic::projectionMatrix:
 		case eUniformSemantic::modelViewProjectionMatrix:
 			dataType= eUniformDataType::datatype_mat4;
 			break;
+		case eUniformSemantic::ambientColorRGBA:
 		case eUniformSemantic::diffuseColorRGBA:
+		case eUniformSemantic::specularColorRGBA:
+		case eUniformSemantic::lightColor:
 			dataType= eUniformDataType::datatype_float4;
 			break;
 		case eUniformSemantic::diffuseColorRGB:
+		case eUniformSemantic::cameraPosition:
+		case eUniformSemantic::lightDirection:
 			dataType= eUniformDataType::datatype_float3;
 			break;
 		case eUniformSemantic::screenPosition:
 			dataType= eUniformDataType::datatype_float2;
 			break;
+		case eUniformSemantic::shininess:
 		case eUniformSemantic::floatConstant0:
 		case eUniformSemantic::floatConstant1:
 		case eUniformSemantic::floatConstant2:

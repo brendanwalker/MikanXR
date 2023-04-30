@@ -11,6 +11,8 @@
 #include <algorithm>
 
 GlScene::GlScene()
+	: m_lightColor(glm::vec4(1.f))
+	, m_lightDirection(glm::vec3(0.f, 0.f, -1.f))
 {
 }
 
@@ -63,15 +65,13 @@ void GlScene::render() const
 	if (camera == nullptr)
 		return;
 
-	glm::mat4 VPMatrix = camera->getViewProjectionMatrix();
-
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
 	{
 		GlMaterialConstPtr material = drawCallIter->first;
 		const GlDrawCall* drawCall = drawCallIter->second;
 
 		// Bind material program (unbound when materialBinding goes out of scope)
-		auto materialBinding= material->bindMaterial();
+		auto materialBinding= material->bindMaterial(shared_from_this(), camera);
 		if (materialBinding)
 		{			
 			for(auto instanceIter= drawCall->instances.begin(); 
@@ -85,13 +85,13 @@ void GlScene::render() const
 					GlMaterialInstancePtr materialInstance= renderableInstance->getMaterialInstance();
 
 					// Bind material instance parameters (unbound when materialInstanceBinding goes out of scope)
-					auto materialInstanceBinding=  materialInstance->bindMaterialInstance(materialBinding);
+					auto materialInstanceBinding= 
+						materialInstance->bindMaterialInstance(
+							materialBinding, 
+							renderableInstance);
+
 					if (materialInstanceBinding)
 					{
-						// Set the per-mesh-instance ModelViewProjection matrix transform on the shader program
-						const glm::mat4 mvpMatrix = VPMatrix * renderableInstance->getModelMatrix();
-						materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);
-
 						// Draw the renderable
 						renderableInstance->render();
 					}

@@ -35,6 +35,7 @@ public:
 	virtual bool getVisible() const override;
 	virtual void setVisible(bool bNewVisible) override;
 	virtual const glm::mat4& getModelMatrix() const override;
+	virtual const glm::mat4& getNormalMatrix() const override;
 	virtual void setModelMatrix(const glm::mat4& mat) override;
 	virtual const GlMaterialInstanceConstPtr getMaterialInstanceConst() const override;
 	virtual GlMaterialInstancePtr getMaterialInstance() const override;
@@ -44,6 +45,7 @@ private:
 	std::string m_name;
 	bool m_visible= false;
 	glm::mat4 m_modelMatrix;
+	glm::mat4 m_normalMatrix;
 	GlMaterialInstancePtr m_materialInstance= nullptr;
 	IGlMeshConstPtr m_mesh= nullptr;
 	class GlScene* m_boundScene= nullptr;

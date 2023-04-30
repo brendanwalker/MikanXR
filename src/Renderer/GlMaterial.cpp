@@ -1,5 +1,7 @@
+#include "GlCamera.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
+#include "GlScene.h"
 #include "GlTexture.h"
 
 GlMaterial::GlMaterial(
@@ -332,7 +334,9 @@ bool GlMaterial::getTextureByUniformName(const std::string uniformName, GlTextur
 	return false;
 }
 
-GlScopedMaterialBinding GlMaterial::bindMaterial() const
+GlScopedMaterialBinding GlMaterial::bindMaterial(
+	GlSceneConstPtr scene,
+	GlCameraConstPtr camera) const
 {	
 	bool bSuccess= true;
 
@@ -381,6 +385,34 @@ GlScopedMaterialBinding GlMaterial::bindMaterial() const
 					}
 					else
 					{
+						switch (uniformSemantic)
+						{
+							case eUniformSemantic::cameraPosition:
+								if (camera != nullptr)
+								{
+									value= camera->getCameraPosition();
+									m_program->setVector3Uniform(uniformName, value);
+								}
+								else
+								{
+									bSuccess= false;
+								}
+								break;
+							case eUniformSemantic::lightDirection:
+								if (scene != nullptr)
+								{
+									value = scene->getLightDirection();
+									m_program->setVector3Uniform(uniformName, value);
+								}
+								else
+								{
+									bSuccess = false;
+								}
+								break;
+							default:
+								bSuccess = false;
+						}
+
 						bSuccess = false;
 					}
 				}
@@ -394,6 +426,23 @@ GlScopedMaterialBinding GlMaterial::bindMaterial() const
 					}
 					else
 					{
+						switch (uniformSemantic)
+						{
+							case eUniformSemantic::lightColor:
+								if (scene != nullptr)
+								{
+									value = scene->getLightColor();
+									m_program->setVector3Uniform(uniformName, value);
+								}
+								else
+								{
+									bSuccess = false;
+								}
+								break;
+							default:
+								bSuccess = false;
+						}
+
 						bSuccess = false;
 					}
 				}
@@ -407,7 +456,35 @@ GlScopedMaterialBinding GlMaterial::bindMaterial() const
 					}
 					else
 					{
-						bSuccess = false;
+						switch (uniformSemantic)
+						{
+							case eUniformSemantic::viewMatrix:
+								if (camera != nullptr)
+								{
+									value = camera->getViewMatrix();
+
+									m_program->setMatrix4x4Uniform(uniformName, value);
+								}
+								else
+								{
+									bSuccess= false;
+								}
+								break;
+							case eUniformSemantic::projectionMatrix:
+								if (camera != nullptr)
+								{
+									value = camera->getProjectionMatrix();
+
+									m_program->setMatrix4x4Uniform(uniformName, value);
+								}
+								else
+								{
+									bSuccess = false;
+								}
+								break;
+							default:
+								bSuccess = false;
+						}
 					}
 				}
 				break;
@@ -444,7 +521,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial() const
 		bSuccess= false;
 	}
 
-	return GlScopedMaterialBinding(bSuccess ? this : nullptr);
+	return GlScopedMaterialBinding(scene, camera, bSuccess ? shared_from_this() : nullptr);
 }
 
 void GlMaterial::unbindMaterial() const

@@ -38,21 +38,24 @@ void StencilComponent::attachSceneComponentToAnchor(MikanSpatialAnchorID newPare
 {
 	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
 
-	if (newParentId != INVALID_MIKAN_ID)
+	if (sceneComponent != nullptr)
 	{
-		AnchorComponentPtr anchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(newParentId);
-
-		if (anchor)
+		if (newParentId != INVALID_MIKAN_ID)
 		{
-			sceneComponent->attachToComponent(anchor->getOwnerObject()->getRootComponent());
+			AnchorComponentPtr anchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(newParentId);
+
+			if (anchor)
+			{
+				sceneComponent->attachToComponent(anchor->getOwnerObject()->getRootComponent());
+			}
+			else
+			{
+				sceneComponent->detachFromParent();
+			}
 		}
 		else
 		{
 			sceneComponent->detachFromParent();
 		}
-	}
-	else
-	{
-		sceneComponent->detachFromParent();
 	}
 }

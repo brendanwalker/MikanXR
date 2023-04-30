@@ -43,9 +43,6 @@ public:
 class FastenerObjectSystem : public MikanObjectSystem
 {
 public:
-	FastenerObjectSystem();
-	virtual ~FastenerObjectSystem();
-
 	static FastenerObjectSystemPtr getSystem() { return s_fastenerObjectSystem.lock(); }
 
 	FastenerObjectSystemConfigConstPtr getFastenerSystemConfigConst() const;

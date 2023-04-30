@@ -20,7 +20,7 @@ enum class eUniformSemantic : int
 
 	transformMatrix,
 	modelMatrix,
-	inverseModelMatrix,
+	normalMatrix, // inverse transpose of the model matrix
 	viewMatrix,
 	projectionMatrix,
 	modelViewProjectionMatrix,

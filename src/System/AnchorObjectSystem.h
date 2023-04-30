@@ -45,9 +45,6 @@ public:
 class AnchorObjectSystem : public MikanObjectSystem
 {
 public:
-	AnchorObjectSystem();
-	virtual ~AnchorObjectSystem();
-
 	static AnchorObjectSystemPtr getSystem() { return s_anchorObjectSystem.lock(); }
 
 	virtual void init() override;

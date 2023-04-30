@@ -138,8 +138,13 @@ bool GlRenderModelResource::loadObjFileResources()
 
 	disposeRenderResources();
 
+	std::string filepath= m_renderModelFilepath.string();
+	// ObjLoader expects paths with forward slashes in path
+	// If we don't convert, materials won't load correctly
+	std::replace( filepath.begin(), filepath.end(), '\\', '/' );
+
 	m_objLoader = new objl::Loader();
-	if (!m_objLoader->LoadFile(m_renderModelFilepath.string()))
+	if (!m_objLoader->LoadFile(filepath))
 	{
 		return false;
 	}

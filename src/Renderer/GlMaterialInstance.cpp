@@ -1,7 +1,10 @@
+#include "GlCamera.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
+#include "GlScene.h"
 #include "GlTexture.h"
+#include "IGlSceneRenderable.h"
 
 GlMaterialInstance::GlMaterialInstance()
 	: m_parentMaterial(nullptr)
@@ -362,17 +365,60 @@ bool GlMaterialInstance::getTextureByUniformName(const std::string uniformName, 
 	return false;
 }
 
-GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(const GlScopedMaterialBinding& materialBinding)
+GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
+	const GlScopedMaterialBinding& materialBinding,
+	IGlSceneRenderableConstPtr renderable)
 {
 	if (m_parentMaterial == nullptr)
 		return GlScopedMaterialInstanceBinding();
 
-	if (materialBinding.getBoundMaterial() != m_parentMaterial.get())
+	if (materialBinding.getBoundMaterial() != m_parentMaterial)
 		return GlScopedMaterialInstanceBinding();
 
 	if (!m_bIsMaterialInstanceBound)
 	{
 		GlProgramPtr program= m_parentMaterial->getProgram();
+
+		// Auto-apply renderable specific uniforms
+		for (auto it = program->getUniformBegin(); it != program->getUniformEnd(); it++)
+		{
+			const std::string& uniformName= it->first;
+			const GlProgramUniform& uniform = it->second;
+
+			switch (uniform.semantic)
+			{
+				case eUniformSemantic::modelMatrix:
+					{
+						const glm::mat4 modelMat = renderable->getModelMatrix();
+
+						program->setMatrix4x4Uniform(uniformName, modelMat);
+					}
+					break;
+				case eUniformSemantic::normalMatrix:
+					{
+						const glm::mat4 normalMat = renderable->getNormalMatrix();
+
+						program->setMatrix4x4Uniform(uniformName, normalMat);
+					}
+					break;
+				case eUniformSemantic::modelViewProjectionMatrix:
+					{
+						GlCameraConstPtr cameraPtr= materialBinding.getBoundCamera();
+
+						if (cameraPtr != nullptr)
+						{
+							const glm::mat4 viewProjMat = cameraPtr->getViewProjectionMatrix();
+							const glm::mat4 modelMat = renderable->getModelMatrix();
+							const glm::mat4 modelViewProjMatrix = viewProjMat * modelMat;
+
+							program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix);
+						}
+					}
+					break;
+				default:
+					break;
+			}
+		}
 
 		// Apply float overrides
 		for (auto it = m_floatSources.getMap().begin(); it != m_floatSources.getMap().end(); ++it)

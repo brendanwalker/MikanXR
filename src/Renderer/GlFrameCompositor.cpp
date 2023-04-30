@@ -1069,7 +1069,10 @@ void GlFrameCompositor::updateCompositeFrame()
 			// This will fail unless all of the shader uniform parameters are bound.
 			if (layer.layerMaterial != nullptr)
 			{
-				GlScopedMaterialBinding materialBinding = layer.layerMaterial->bindMaterial();
+				GlScopedMaterialBinding materialBinding = 
+					layer.layerMaterial->bindMaterial(
+						GlSceneConstPtr(),
+						GlCameraConstPtr());
 
 				if (materialBinding)
 				{

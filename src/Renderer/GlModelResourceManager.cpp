@@ -100,7 +100,7 @@ const GlProgramCode* GlModelResourceManager::getPhongShaderCode()
 			#version 330 core
 			layout (location = 0) in vec3 position;
 			layout (location = 1) in vec3 normal;
-			layout (location = 2) in vec2 texcord;
+			layout (location = 2) in vec2 texcoord;
 
 			uniform mat4 cameraLookAt; //camera look at matrix
 			uniform mat4 cameraProjection; //camera projection matrix
@@ -178,7 +178,7 @@ const GlProgramCode* GlModelResourceManager::getPhongShaderCode()
 		.addUniform(PHONG_CAMERA_LOOKAT_UNIFORM_NAME, eUniformSemantic::viewMatrix)
 		.addUniform(PHONG_CAMERA_PROJECTION_UNIFORM_NAME, eUniformSemantic::projectionMatrix)
 		.addUniform(PHONG_MESH_TRANSFORM_UNIFORM_NAME, eUniformSemantic::modelMatrix)
-		.addUniform(PHONG_INV_MESH_TRANSFORM_UNIFORM_NAME, eUniformSemantic::inverseModelMatrix)
+		.addUniform(PHONG_INV_MESH_TRANSFORM_UNIFORM_NAME, eUniformSemantic::normalMatrix)
 		.addUniform(PHONG_AMBIENT_COLOR_UNIFORM_NAME, eUniformSemantic::ambientColorRGBA)
 		.addUniform(PHONG_DIFFUSE_COLOR_UNIFORM_NAME, eUniformSemantic::diffuseColorRGBA)
 		.addUniform(PHONG_SPECULAR_COLOR_UNIFORM_NAME, eUniformSemantic::specularColorRGBA)

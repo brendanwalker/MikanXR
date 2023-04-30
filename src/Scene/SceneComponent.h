@@ -52,13 +52,15 @@ public:
 	virtual void dispose() override;
 	
 	void attachToComponent(SceneComponentPtr newParentComponent);
-	void detachFromParent();
+	void detachFromParent(bool bPropogateWorldTransformChange=true);
 
 	void setRelativeTransform(const GlmTransform& newRelativeXform);
 	void setWorldTransform(const glm::mat4& newWorldXform);
 	MulticastDelegate<void(SceneComponentPtr sceneComponent)> OnTranformChaged;
 
 protected:
+	void propogateWorldTransformChange();
+
 	GlmTransform m_relativeTransform;
 	glm::mat4 m_worldTransform;
 	SceneComponentWeakPtr m_parentComponent;

@@ -230,7 +230,7 @@ void AppStage_AlignmentCalibration::updateCamera()
 	{
 	case eAlignmentCalibrationViewpointMode::cameraViewpoint:
 		{
-			m_camera->setModelViewMatrix(glm::mat4(1.f));
+			m_camera->setViewMatrix(glm::mat4(1.f));
 		}
 		break;
 	case eAlignmentCalibrationViewpointMode::vrViewpoint:

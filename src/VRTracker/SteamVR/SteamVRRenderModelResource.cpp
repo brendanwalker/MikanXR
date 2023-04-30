@@ -216,7 +216,6 @@ GlMaterialPtr SteamVRRenderModelResource::createMaterial(
 			material->setTextureBySemantic(eUniformSemantic::texture0, texture);
 		}
 		material->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
-		material->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, glm::mat4(1.f));
 
 		return material;
 	}
