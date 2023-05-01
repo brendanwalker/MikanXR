@@ -33,7 +33,7 @@ protected:
 	struct SpatialAnchorSetupDataModel* m_dataModel = nullptr;
 
 	VRDeviceList m_vrTrackers;
-	class GlScene *m_scene;
+	GlScenePtr m_scene;
 	GlCameraPtr m_camera;
 
 	ProfileConfigPtr m_profile;

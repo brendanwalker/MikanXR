@@ -58,7 +58,7 @@ const char* AppStage_SpatialAnchors::APP_STAGE_NAME = "Spatial Anchor Setup";
 AppStage_SpatialAnchors::AppStage_SpatialAnchors(App* app)
 	: AppStage(app, AppStage_SpatialAnchors::APP_STAGE_NAME)
 	, m_dataModel(new SpatialAnchorSetupDataModel)
-	, m_scene(new GlScene)
+	, m_scene(std::make_shared<GlScene>())
 	, m_camera(nullptr)
 	, m_profile(nullptr)
 { 
@@ -67,7 +67,6 @@ AppStage_SpatialAnchors::AppStage_SpatialAnchors(App* app)
 AppStage_SpatialAnchors::~AppStage_SpatialAnchors()
 {
 	delete m_dataModel;
-	delete m_scene;
 }
 
 void AppStage_SpatialAnchors::enter()

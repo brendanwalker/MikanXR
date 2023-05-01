@@ -18,7 +18,6 @@ SteamVRDevice::SteamVRDevice()
 	, m_devicePath("")
 	, m_driverType(IVRDeviceInterface::eDriverType::SteamVR)
 	, m_deviceType(eDeviceType::INVALID)
-	, m_boundScene(nullptr)
 	, m_vrTrackerState(new CommonVRDeviceState)
 	, m_poseMatrix(glm::mat4(1.0f))
 	, m_isPoseValid(false)
@@ -94,7 +93,7 @@ void SteamVRDevice::updatePose()
 	}
 }
 
-void SteamVRDevice::bindToScene(GlScene* scene)
+void SteamVRDevice::bindToScene(GlScenePtr scene)
 {
 	removeFromBoundScene();
 
@@ -111,7 +110,7 @@ void SteamVRDevice::removeFromBoundScene()
 	{
 		it->second->removeFromBoundScene();
 	}
-	m_boundScene= nullptr;
+	m_boundScene.reset();
 }
 
 bool SteamVRDevice::matchesDeviceEnumerator(const DeviceEnumerator* enumerator) const
@@ -240,9 +239,11 @@ void SteamVRDevice::rebuildRenderComponents()
 
 			renderComponent->initComponent();
 			renderComponent->updateComponent();
-			if (m_boundScene != nullptr)
+
+			GlScenePtr boundScene= m_boundScene.lock();
+			if (boundScene != nullptr)
 			{
-				renderComponent->bindToScene(m_boundScene);
+				renderComponent->bindToScene(boundScene);
 			}
 
 			m_renderComponents.insert({ componentInfo.componentName, renderComponent });

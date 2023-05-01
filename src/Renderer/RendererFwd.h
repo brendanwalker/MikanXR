@@ -27,6 +27,7 @@ using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;
 
 class GlScene;
 using GlScenePtr = std::shared_ptr<GlScene>;
+using GlSceneWeakPtr = std::weak_ptr<GlScene>;
 using GlSceneConstPtr = std::shared_ptr<const GlScene>;
 
 class GlStaticMeshInstance;

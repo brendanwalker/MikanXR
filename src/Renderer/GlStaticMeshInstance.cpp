@@ -33,25 +33,26 @@ GlStaticMeshInstance::GlStaticMeshInstance(
 
 GlStaticMeshInstance::~GlStaticMeshInstance()
 {
-	assert(m_boundScene == nullptr);
+	assert(m_boundScene.lock() == nullptr);
 
 	m_materialInstance= nullptr;
 }
 
-void GlStaticMeshInstance::bindToScene(GlScene* scene)
+void GlStaticMeshInstance::bindToScene(GlScenePtr scene)
 {
 	removeFromBoundScene();
 
 	m_boundScene= scene;
-	m_boundScene->addInstance(IGlSceneRenderableConstPtr(this));
+	scene->addInstance(IGlSceneRenderableConstPtr(this));
 }
 
 void GlStaticMeshInstance::removeFromBoundScene()
 {
-	if (m_boundScene != nullptr)
+	GlScenePtr scene= m_boundScene.lock();
+	if (scene != nullptr)
 	{
-		m_boundScene->removeInstance(IGlSceneRenderableConstPtr(this));
-		m_boundScene = nullptr;
+		scene->removeInstance(IGlSceneRenderableConstPtr(this));
+		m_boundScene.reset();
 	}
 }
 

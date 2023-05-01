@@ -63,6 +63,6 @@ private:
 	class MonoLensTrackerPoseCalibrator* m_trackerPoseCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
-	class GlScene* m_scene;
+	GlScenePtr m_scene;
 	GlCameraPtr m_camera;
 };

@@ -56,6 +56,5 @@ private:
 	MikanSpatialFastenerInfo m_targetFastener;
 	struct ModelFastenerCalibrationState* m_calibrationState;
 
-	class GlScene* m_scene;
 	GlRenderModelResourcePtr m_modelResource;
 };

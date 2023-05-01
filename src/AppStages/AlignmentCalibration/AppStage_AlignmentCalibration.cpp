@@ -49,7 +49,7 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(App* app)
 	, m_videoSourceView()
 	, m_trackerPoseCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_scene(new GlScene)
+	, m_scene(std::make_shared<GlScene>())
 	, m_camera(nullptr)
 {
 }
@@ -58,7 +58,6 @@ AppStage_AlignmentCalibration::~AppStage_AlignmentCalibration()
 {
 	delete m_calibrationModel;
 	delete m_cameraSettingsModel;
-	delete m_scene;
 }
 
 void AppStage_AlignmentCalibration::setBypassCalibrationFlag(bool flag)

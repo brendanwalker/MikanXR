@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererFwd.h"
+
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
@@ -13,9 +15,6 @@ namespace vr
 	struct RenderModel_ComponentState_t;
 	struct RenderModel_ControllerMode_State_t;
 };
-
-class GlStaticMeshInstance;
-typedef std::shared_ptr<GlStaticMeshInstance> GlStaticMeshInstancePtr;
 
 class SteamVRRenderComponent
 {
@@ -32,7 +31,7 @@ public:
 	void updateComponent();
 	void disposeComponent();
 
-	void bindToScene(class GlScene* scene);
+	void bindToScene(GlScenePtr scene);
 	void removeFromBoundScene();
 
 	inline class SteamVRDevice* getOwnerDevice() const { return m_ownerDevice; }

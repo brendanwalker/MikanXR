@@ -65,6 +65,5 @@ private:
 
 	MikanSpatialFastenerInfo m_targetFastener;
 
-	class GlScene* m_scene;
 	GlCameraPtr m_camera;
 };

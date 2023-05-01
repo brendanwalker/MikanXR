@@ -148,7 +148,7 @@ void SteamVRRenderComponent::disposeComponent()
 	}
 }
 
-void SteamVRRenderComponent::bindToScene(GlScene* scene)
+void SteamVRRenderComponent::bindToScene(GlScenePtr scene)
 {
 	if (m_glMeshInstance != nullptr)
 	{

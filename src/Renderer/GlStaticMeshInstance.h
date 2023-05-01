@@ -26,7 +26,7 @@ public:
 
 	const std::string& getName() const { return m_name; }
 
-	void bindToScene(class GlScene* scene);
+	void bindToScene(GlScenePtr scene);
 	void removeFromBoundScene();
 
 	inline IGlMeshConstPtr getMesh() const { return m_mesh; }
@@ -48,5 +48,5 @@ private:
 	glm::mat4 m_normalMatrix;
 	GlMaterialInstancePtr m_materialInstance= nullptr;
 	IGlMeshConstPtr m_mesh= nullptr;
-	class GlScene* m_boundScene= nullptr;
+	GlSceneWeakPtr m_boundScene;
 };
