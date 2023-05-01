@@ -43,7 +43,7 @@ void GlStaticMeshInstance::bindToScene(GlScenePtr scene)
 	removeFromBoundScene();
 
 	m_boundScene= scene;
-	scene->addInstance(IGlSceneRenderableConstPtr(this));
+	scene->addInstance(getConstSelfPointer());
 }
 
 void GlStaticMeshInstance::removeFromBoundScene()
@@ -51,12 +51,17 @@ void GlStaticMeshInstance::removeFromBoundScene()
 	GlScenePtr scene= m_boundScene.lock();
 	if (scene != nullptr)
 	{
-		scene->removeInstance(IGlSceneRenderableConstPtr(this));
+		scene->removeInstance(getConstSelfPointer());
 		m_boundScene.reset();
 	}
 }
 
 // -- IGlSceneRenderable
+IGlSceneRenderableConstPtr GlStaticMeshInstance::getConstSelfPointer() const
+{
+	return std::static_pointer_cast<const IGlSceneRenderable>(shared_from_this());
+}
+
 bool GlStaticMeshInstance::getVisible() const 
 { 
 	return m_visible; 

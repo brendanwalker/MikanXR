@@ -12,8 +12,10 @@
 
 struct GlDrawCall
 {
-	std::vector<IGlSceneRenderableConstPtr> instances;
+	std::vector<IGlSceneRenderableConstWeakPtr> instances;
 };
+using GlDrawCallPtr = std::shared_ptr<GlDrawCall>;
+using GlDrawCallConstPtr = std::shared_ptr<const GlDrawCall>;
 
 class GlScene : public std::enable_shared_from_this<GlScene>
 {
@@ -42,5 +44,5 @@ private:
 	glm::vec4 m_lightColor;
 	glm::vec3 m_lightDirection;
 
-	class std::map<GlMaterialConstPtr, GlDrawCall*> m_drawCalls;
+	class std::map<GlMaterialConstPtr, GlDrawCallPtr> m_drawCalls;
 };

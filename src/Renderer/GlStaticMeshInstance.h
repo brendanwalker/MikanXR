@@ -10,7 +10,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 
 
-class GlStaticMeshInstance : public IGlSceneRenderable
+class GlStaticMeshInstance : public IGlSceneRenderable, public std::enable_shared_from_this<GlStaticMeshInstance>
 {
 public:
 	GlStaticMeshInstance() = default;
@@ -32,6 +32,7 @@ public:
 	inline IGlMeshConstPtr getMesh() const { return m_mesh; }
 
 	// -- IGlSceneRenderable
+	virtual IGlSceneRenderableConstPtr getConstSelfPointer() const override;
 	virtual bool getVisible() const override;
 	virtual void setVisible(bool bNewVisible) override;
 	virtual const glm::mat4& getModelMatrix() const override;

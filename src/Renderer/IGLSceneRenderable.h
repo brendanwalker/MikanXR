@@ -9,6 +9,7 @@
 class IGlSceneRenderable
 {
 public:
+	virtual IGlSceneRenderableConstPtr getConstSelfPointer() const = 0;
 	virtual bool getVisible() const = 0;
 	virtual void setVisible(bool bNewVisible) = 0;
 	virtual const glm::mat4& getModelMatrix() const = 0;

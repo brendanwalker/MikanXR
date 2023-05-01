@@ -19,10 +19,7 @@ GlScene::GlScene()
 GlScene::~GlScene()
 {
 	// Clean up all draw calls
-	for (auto it = m_drawCalls.begin(); it != m_drawCalls.end(); it++)
-	{
-		delete it->second;
-	}
+	m_drawCalls.clear();
 }
 
 void GlScene::addInstance(IGlSceneRenderableConstPtr instance)
@@ -31,7 +28,7 @@ void GlScene::addInstance(IGlSceneRenderableConstPtr instance)
 
 	if (m_drawCalls.find(material) == m_drawCalls.end())
 	{
-		m_drawCalls.insert({material, new GlDrawCall});
+		m_drawCalls.insert({material, std::make_shared<GlDrawCall>()});
 	}
 
 	m_drawCalls[material]->instances.push_back(instance);
@@ -44,17 +41,23 @@ void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 	auto drawCallIter= m_drawCalls.find(material);
 	if (drawCallIter != m_drawCalls.end())
 	{
-		GlDrawCall* drawCall = drawCallIter->second;
-		auto& instances= drawCall->instances;
+		GlDrawCallPtr drawCall = drawCallIter->second;
 
-		instances.erase(
-			std::remove(instances.begin(), instances.end(), instance),
-			instances.end());
+		// Remove any existing instances from the draw call
+		for (auto it = drawCall->instances.begin(); it != drawCall->instances.end(); it++)
+		{
+			IGlSceneRenderableConstPtr existingInstance= it->lock();
 
-		if (instances.size() == 0)
+			if (existingInstance == instance)
+			{
+				drawCall->instances.erase(it);
+				break;
+			}
+		}
+
+		if (drawCall->instances.size() == 0)
 		{
 			m_drawCalls.erase(drawCallIter);
-			delete drawCall;
 		}
 	}
 }
@@ -68,7 +71,7 @@ void GlScene::render() const
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
 	{
 		GlMaterialConstPtr material = drawCallIter->first;
-		const GlDrawCall* drawCall = drawCallIter->second;
+		GlDrawCallConstPtr drawCall = drawCallIter->second;
 
 		// Bind material program (unbound when materialBinding goes out of scope)
 		auto materialBinding= material->bindMaterial(shared_from_this(), camera);
@@ -78,9 +81,9 @@ void GlScene::render() const
 				instanceIter != drawCall->instances.end(); 
 				instanceIter++)
 			{
-				IGlSceneRenderableConstPtr renderableInstance= *instanceIter;
+				IGlSceneRenderableConstPtr renderableInstance= instanceIter->lock();
 
-				if (renderableInstance->getVisible())
+				if (renderableInstance != nullptr && renderableInstance->getVisible())
 				{
 					GlMaterialInstancePtr materialInstance= renderableInstance->getMaterialInstance();
 
