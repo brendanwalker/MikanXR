@@ -1,5 +1,6 @@
 #include "MikanComponent.h"
 #include "MikanObject.h"
+#include "MikanObjectSystem.h"
 
 MikanComponent::MikanComponent(MikanObjectWeakPtr owner)
 	: m_ownerObject(owner)
@@ -13,21 +14,26 @@ MikanComponent::~MikanComponent()
 
 void MikanComponent::init()
 {
+	if (m_bWantsUpdate)
+	{
+		getOwnerObject()->getOwnerSystem()->onUpdate+= MakeDelegate(this, &MikanComponent::update);
+	}
 
-}
-
-void MikanComponent::update()
-{
-
+	if (m_bWantsCustomRender)
+	{
+		getOwnerObject()->getOwnerSystem()->onCustomRender += MakeDelegate(this, &MikanComponent::customRender);
+	}
 }
 
 void MikanComponent::dispose()
 {
+	if (m_bWantsUpdate)
+	{
+		getOwnerObject()->getOwnerSystem()->onUpdate -= MakeDelegate(this, &MikanComponent::update);
+	}
 
-}
-
-void MikanComponent::notifyComponentPropertyChanged(const ComponentProperty& property)
-{
-	if (OnComponentPropertyChanged)
-		OnComponentPropertyChanged(property);
+	if (m_bWantsCustomRender)
+	{
+		getOwnerObject()->getOwnerSystem()->onCustomRender -= MakeDelegate(this, &MikanComponent::customRender);
+	}
 }

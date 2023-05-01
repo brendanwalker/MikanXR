@@ -95,7 +95,6 @@ public:
 
 	void init();
 	void dispose();
-	void update();
 
 protected:
 	MikanObjectSystemWeakPtr m_ownerObjectSystem;

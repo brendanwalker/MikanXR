@@ -17,6 +17,7 @@ public:
 	virtual void init();
 	virtual void dispose();
 	virtual void update();
+	virtual void customRender();
 
 	MikanObjectWeakPtr newObject();
 	void deleteObject(MikanObjectWeakPtr objectPtr);
@@ -27,4 +28,9 @@ public:
 
 protected:
 	MikanObjectList m_objects;
+
+	MulticastDelegate<void()> onUpdate;
+	MulticastDelegate<void()> onCustomRender;
+
+	friend class MikanComponent;
 };

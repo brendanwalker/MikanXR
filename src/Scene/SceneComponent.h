@@ -3,7 +3,6 @@
 #include "MikanComponent.h"
 #include "Transform.h"
 #include "IGlSceneRenderable.h"
-#include "IGlLineRenderable.h"
 #include "ComponentFwd.h"
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
@@ -49,16 +48,6 @@ public:
 		return m_sceneRenderable;
 	}
 
-	inline void setGlLineRenderable(IGlLineRenderablePtr lineRenderable)
-	{
-		m_lineRenderable= lineRenderable;
-	}
-
-	inline IGlLineRenderableConstPtr getGlLineRenderableConst() const
-	{
-		return m_lineRenderable;
-	}
-
 	virtual void init() override;
 	virtual void dispose() override;
 	
@@ -77,5 +66,4 @@ protected:
 	SceneComponentWeakPtr m_parentComponent;
 	SceneComponentList m_childComponents;
 	IGlSceneRenderablePtr m_sceneRenderable;
-	IGlLineRenderablePtr m_lineRenderable;
 };

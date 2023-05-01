@@ -1,6 +1,8 @@
 #include "MikanObject.h"
 #include "MikanComponent.h"
 
+#include "assert.h"
+
 MulticastDelegate<void(MikanObject&)> ObjectEvents::OnObjectInitialized;
 MulticastDelegate<void(const MikanObject&)> ObjectEvents::OnObjectDisposed;
 
@@ -11,7 +13,8 @@ MikanObject::MikanObject(MikanObjectSystemWeakPtr ownerSystemPtr)
 
 MikanObject::~MikanObject()
 {
-	dispose();
+	// dispose should have been called already
+	assert(m_components.empty());
 }
 
 void MikanObject::init()
@@ -36,12 +39,4 @@ void MikanObject::dispose()
 	}
 
 	m_components.clear();
-}
-
-void MikanObject::update()
-{
-	for (MikanComponentPtr component : m_components)
-	{
-		component->update();
-	}
 }

@@ -16,12 +16,16 @@ SelectionComponent::~SelectionComponent()
 
 void SelectionComponent::init()
 {
+	MikanComponent::init();
+
 	getOwnerObject()->getComponentsOfType<ColliderComponent>(m_colliders);
 }
 
 void SelectionComponent::dispose()
 {
 	m_colliders.clear();
+
+	MikanComponent::dispose();
 }
 
 bool SelectionComponent::computeRayIntersection(

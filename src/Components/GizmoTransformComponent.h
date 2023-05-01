@@ -13,12 +13,12 @@ enum class eGizmoMode : int
 	scale
 };
 
-class GizmoTransformComponent : public SceneComponent, public IGlLineRenderable
+class GizmoTransformComponent : public SceneComponent
 {
 public:
 	GizmoTransformComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void renderLines() const override;
+	virtual void customRender() override;
 	virtual void dispose() override;
 
 	inline eGizmoMode getGizmoMode() const { return m_gizmoMode; }

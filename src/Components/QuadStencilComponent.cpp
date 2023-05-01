@@ -178,6 +178,7 @@ void QuadStencilConfig::setStencilName(const std::string& stencilName)
 QuadStencilComponent::QuadStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
 {
+	m_bWantsCustomRender= true;
 }
 
 void QuadStencilComponent::init()
@@ -191,7 +192,7 @@ void QuadStencilComponent::init()
 	updateBoxColliderExtents();
 }
 
-void QuadStencilComponent::renderLines() const
+void QuadStencilComponent::customRender()
 {
 	if (!m_config->getIsDisabled())
 	{

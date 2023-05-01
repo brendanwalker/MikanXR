@@ -144,7 +144,9 @@ void ModelStencilConfig::setStencilName(const std::string& stencilName)
 // -- ModelStencilComponent -----
 ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
-{}
+{
+	m_bWantsCustomRender= true;
+}
 
 void ModelStencilComponent::init()
 {
@@ -174,7 +176,7 @@ void ModelStencilComponent::init()
 	}
 }
 
-void ModelStencilComponent::renderLines() const
+void ModelStencilComponent::customRender()
 {
 	if (!m_config->getIsDisabled())
 	{

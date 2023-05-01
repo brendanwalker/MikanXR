@@ -63,7 +63,7 @@ class ModelStencilComponent : public StencilComponent
 public:
 	ModelStencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void renderLines() const override;
+	virtual void customRender() override;
 	virtual void dispose() override;
 
 	inline ModelStencilConfigPtr getConfig() const { return m_config; }

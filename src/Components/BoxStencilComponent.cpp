@@ -174,7 +174,9 @@ void BoxStencilConfig::setStencilName(const std::string& stencilName)
 // -- BoxStencilComponent -----
 BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
-{}
+{
+	m_bWantsCustomRender= true;
+}
 
 void BoxStencilComponent::init()
 {
@@ -184,7 +186,7 @@ void BoxStencilComponent::init()
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 }
 
-void BoxStencilComponent::renderLines() const
+void BoxStencilComponent::customRender()
 {
 	if (!m_config->getIsDisabled())
 	{

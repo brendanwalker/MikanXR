@@ -173,6 +173,7 @@ void AnchorObjectSystem::dispose()
 {
 	s_anchorObjectSystem.reset();
 	m_anchorComponents.clear();
+
 	MikanObjectSystem::dispose();
 }
 

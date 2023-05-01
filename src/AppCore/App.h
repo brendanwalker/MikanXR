@@ -22,7 +22,7 @@ public:
 
 	inline ProfileConfigPtr getProfileConfig() const { return m_profileConfig; }
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
-	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemPtr; }
+	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemManager; }
 	inline class Renderer* getRenderer() const { return m_renderer; }
 	inline class FontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
@@ -115,7 +115,7 @@ private:
 	class LocalizationManager* m_localizationManager= nullptr;
 
 	// Object System manager
-	ObjectSystemManagerPtr m_objectSystemPtr;
+	ObjectSystemManagerPtr m_objectSystemManager;
 
 	// OpenGL renderer
 	class Renderer* m_renderer= nullptr;

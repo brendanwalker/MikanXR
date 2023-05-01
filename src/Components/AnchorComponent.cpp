@@ -100,7 +100,9 @@ void AnchorConfig::setAnchorName(const std::string& anchorName)
 // -- AnchorComponent -----
 AnchorComponent::AnchorComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
-{}
+{
+	m_bWantsCustomRender= true;
+}
 
 void AnchorComponent::init()
 {
@@ -108,13 +110,12 @@ void AnchorComponent::init()
 
 	SceneComponentPtr sceneComponentPtr = getOwnerObject()->getComponentOfType<SceneComponent>();
 	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &AnchorComponent::applySceneComponentTransformToConfig);
-	sceneComponentPtr->setGlLineRenderable(getSelfPtr<AnchorComponent>());
 	m_sceneComponent= sceneComponentPtr;
 
 	applyConfigTransformToSceneComponent();
 }
 
-void AnchorComponent::renderLines() const
+void AnchorComponent::customRender()
 {	
 	TextStyle style = getDefaultTextStyle();
 
@@ -131,6 +132,8 @@ void AnchorComponent::dispose()
 {
 	SceneComponentPtr sceneComponentPtr = m_sceneComponent.lock();
 	sceneComponentPtr->OnTranformChaged -= MakeDelegate(this, &AnchorComponent::applySceneComponentTransformToConfig);
+
+	MikanComponent::dispose();
 }
 
 

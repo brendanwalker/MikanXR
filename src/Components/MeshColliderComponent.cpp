@@ -20,6 +20,8 @@ void MeshColliderComponent::dispose()
 	}
 
 	m_staticMeshWeakPtr.reset();
+
+	ColliderComponent::dispose();
 }
 
 bool MeshColliderComponent::computeRayIntersection(

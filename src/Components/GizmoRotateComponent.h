@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ColliderQuery.h"
-#include "IGlLineRenderable.h"
 #include "ObjectSystemFwd.h"
 #include "MikanComponent.h"
 #include "SinglecastDelegate.h"
@@ -9,12 +8,12 @@
 #include <glm/ext/quaternion_float.hpp>
 #include <glm/ext/vector_float3.hpp>
 
-class GizmoRotateComponent : public MikanComponent, public IGlLineRenderable
+class GizmoRotateComponent : public MikanComponent
 {
 public:
 	GizmoRotateComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void renderLines() const override;
+	virtual void customRender() override;
 	virtual void dispose() override;
 
 	void setEnabled(bool bEnabled);

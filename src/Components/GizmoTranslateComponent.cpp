@@ -12,7 +12,7 @@
 
 GizmoTranslateComponent::GizmoTranslateComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
-{}
+{ }
 
 void GizmoTranslateComponent::init()
 {
@@ -42,14 +42,14 @@ void GizmoTranslateComponent::init()
 
 void GizmoTranslateComponent::dispose()
 {
-	MikanComponent::dispose();
-
 	SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
 	selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
 	selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
 	selectionComponentPtr->OnInteractionGrab -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionGrab);
 	selectionComponentPtr->OnInteractionMove -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionMove);
 	selectionComponentPtr->OnInteractionRelease -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
+
+	MikanComponent::dispose();
 }
 
 glm::vec3 GizmoTranslateComponent::getColliderColor(
@@ -88,7 +88,7 @@ static void drawTranslationArrowHandle(
 	drawArrow(glm::mat4(1.f), origin, axisEnd, 0.05f, color);
 }
 
-void GizmoTranslateComponent::renderLines() const
+void GizmoTranslateComponent::customRender()
 {
 	if (m_bEnabled)
 	{

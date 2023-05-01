@@ -2,7 +2,6 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "IGlLineRenderable.h"
 #include "MikanComponent.h"
 #include "MikanClientTypes.h"
 #include "ObjectSystemConfigFwd.h"
@@ -43,12 +42,12 @@ private:
 	MikanSpatialAnchorInfo m_anchorInfo;
 };
 
-class AnchorComponent : public MikanComponent, public IGlLineRenderable
+class AnchorComponent : public MikanComponent
 {
 public:
 	AnchorComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void renderLines() const override;
+	virtual void customRender() override;
 	virtual void dispose() override;
 
 	inline AnchorConfigPtr getConfig() const { return m_config; }

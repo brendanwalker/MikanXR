@@ -40,7 +40,7 @@ App::App()
 	, m_inputManager(new InputManager())
 	, m_rmlManager(new RmlManager(this))
 	, m_localizationManager(new LocalizationManager())	
-	, m_objectSystemPtr(std::make_shared<ObjectSystemManager>())
+	, m_objectSystemManager(std::make_shared<ObjectSystemManager>())
 	, m_renderer(new Renderer())
 	, m_fontManager(new FontManager())
 	, m_videoSourceManager(new VideoSourceManager())
@@ -52,7 +52,7 @@ App::App()
 
 App::~App()
 {
-	m_objectSystemPtr = nullptr;
+	m_objectSystemManager = nullptr;
 
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
@@ -195,7 +195,7 @@ bool App::startup(int argc, char** argv)
 	if (success)
 	{
 		// Initialize all of the object systems now that the all of the app systems are online
-		m_objectSystemPtr->init();
+		m_objectSystemManager->init();
 
 		m_lastFrameTimestamp= SDL_GetTicks();
 	}
@@ -212,7 +212,7 @@ void App::shutdown()
 	}
 
 	// Dispose all ObjectSystems
-	m_objectSystemPtr->dispose();
+	m_objectSystemManager->dispose();
 
 	// Tear down all app systems
 	if (m_rmlManager != nullptr)
@@ -340,9 +340,6 @@ void App::update()
 
 	// App stack operations allowed during update
 	bAppStackOperationAllowed = true;
-
-	// Update any simulating object systems
-	m_objectSystemPtr->update();
 
 	// Update the current app stage last
 	AppStage* appStage = getCurrentAppStage();

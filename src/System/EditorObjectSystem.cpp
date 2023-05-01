@@ -15,15 +15,6 @@
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
 
-EditorObjectSystem::EditorObjectSystem() : MikanObjectSystem()
-{
-}
-
-EditorObjectSystem::~EditorObjectSystem()
-{
-	dispose();
-}
-
 void EditorObjectSystem::init()
 {
 	MikanObjectSystem::init();
@@ -128,6 +119,8 @@ void EditorObjectSystem::dispose()
 	m_gizmoObjectWeakPtr.reset();
 	m_gizmoComponentWeakPtr.reset();
 	m_scene= nullptr;
+
+	MikanObjectSystem::dispose();
 }
 
 void EditorObjectSystem::bindViewport(GlViewportWeakPtr viewportWeakPtr)

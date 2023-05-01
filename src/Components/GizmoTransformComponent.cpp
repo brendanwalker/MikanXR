@@ -12,6 +12,7 @@
 GizmoTransformComponent::GizmoTransformComponent(MikanObjectWeakPtr owner)
 	: SceneComponent(owner)
 {
+	m_bWantsCustomRender= true;
 }
 
 void GizmoTransformComponent::init()
@@ -19,8 +20,6 @@ void GizmoTransformComponent::init()
 	SceneComponent::init();
 
 	MikanObjectPtr owner= getOwnerObject();
-
-	setGlLineRenderable(getSelfPtr<GizmoTransformComponent>());
 
 	m_translateComponent = owner->getComponentOfType<GizmoTranslateComponent>();
 	m_rotateComponent = owner->getComponentOfType<GizmoRotateComponent>();
@@ -35,7 +34,7 @@ void GizmoTransformComponent::init()
 		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
 }
 
-void GizmoTransformComponent::renderLines() const
+void GizmoTransformComponent::customRender()
 {
 	GizmoTranslateComponentPtr translatePtr = m_translateComponent.lock();
 	GizmoRotateComponentPtr rotatePtr = m_rotateComponent.lock();
@@ -44,19 +43,27 @@ void GizmoTransformComponent::renderLines() const
 	switch (m_gizmoMode)
 	{
 	case eGizmoMode::rotate:
-		rotatePtr->setEnabled(true);
+		rotatePtr->customRender();
 		break;
 	case eGizmoMode::translate:
-		translatePtr->setEnabled(true);
+		translatePtr->customRender();
 		break;
 	case eGizmoMode::scale:
-		scalePtr->setEnabled(true);
+		scalePtr->customRender();
 		break;
 	}
 }
 
 void GizmoTransformComponent::dispose()
 {
+	// Clean up hot key bindings
+	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed -=
+		MakeDelegate(this, &GizmoTransformComponent::selectTranslateMode);
+	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed -=
+		MakeDelegate(this, &GizmoTransformComponent::selectRotateMode);
+	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_r)->OnKeyPressed -=
+		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
+
 	SceneComponent::dispose();
 }
 

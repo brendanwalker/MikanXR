@@ -15,7 +15,7 @@ static const float k_dragAngleFactor= k_real_two_pi; // 360 degrees / meter
 
 GizmoRotateComponent::GizmoRotateComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
-{}
+{ }
 
 void GizmoRotateComponent::init()
 {
@@ -42,14 +42,14 @@ void GizmoRotateComponent::init()
 
 void GizmoRotateComponent::dispose()
 {
-	MikanComponent::dispose();
-
 	SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
 	selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapEnter);
 	selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapExit);
 	selectionComponentPtr->OnInteractionGrab -= MakeDelegate(this, &GizmoRotateComponent::onInteractionGrab);
 	selectionComponentPtr->OnInteractionMove -= MakeDelegate(this, &GizmoRotateComponent::onInteractionMove);
 	selectionComponentPtr->OnInteractionRelease -= MakeDelegate(this, &GizmoRotateComponent::onInteractionRelease);
+
+	MikanComponent::dispose();
 }
 
 glm::vec3 GizmoRotateComponent::getColliderColor(
@@ -110,7 +110,7 @@ static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, c
 	drawTransformedCircle(xform, radius, color);
 }
 
-void GizmoRotateComponent::renderLines() const
+void GizmoRotateComponent::customRender()
 {
 	if (m_bEnabled)
 	{

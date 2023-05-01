@@ -15,9 +15,6 @@
 class EditorObjectSystem : public MikanObjectSystem
 {
 public:
-	EditorObjectSystem();
-	virtual ~EditorObjectSystem();
-
 	virtual void init() override;
 	virtual void dispose() override;
 

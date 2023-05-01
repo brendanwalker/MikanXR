@@ -1,6 +1,8 @@
 #include "MikanObjectSystem.h"
 #include "MikanObject.h"
 
+#include "assert.h"
+
 MikanObjectSystem::MikanObjectSystem()
 {
 
@@ -8,7 +10,7 @@ MikanObjectSystem::MikanObjectSystem()
 
 MikanObjectSystem::~MikanObjectSystem()
 {
-	dispose();
+	assert(m_objects.empty());
 }
 
 void MikanObjectSystem::init()
@@ -17,15 +19,23 @@ void MikanObjectSystem::init()
 
 void MikanObjectSystem::dispose()
 {
+	for (MikanObjectPtr objectPtr : m_objects)
+	{
+		objectPtr->dispose();
+	}
 	m_objects.clear();
 }
 
 void MikanObjectSystem::update()
 {
-	for (MikanObjectPtr object : m_objects)
-	{
-		object->update();
-	}
+	if (onUpdate)
+		onUpdate();
+}
+
+void MikanObjectSystem::customRender()
+{
+	if (onCustomRender)
+		onCustomRender();
 }
 
 MikanObjectWeakPtr MikanObjectSystem::newObject()
@@ -45,6 +55,8 @@ void MikanObjectSystem::deleteObject(MikanObjectWeakPtr objectWeakPtr)
 
 	if (objectPtr)
 	{
+		objectPtr->dispose();
+
 		auto it = std::find(m_objects.begin(), m_objects.end(), objectPtr);
 		if (it != m_objects.end())
 		{

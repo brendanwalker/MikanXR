@@ -2,7 +2,6 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "IGlLineRenderable.h"
 #include "MikanComponent.h"
 #include "MikanClientTypes.h"
 #include "ObjectSystemConfigFwd.h"
@@ -44,13 +43,13 @@ private:
 	MikanSpatialFastenerInfo m_fastenerInfo;
 };
 
-class FastenerComponent : public MikanComponent, public IGlLineRenderable
+class FastenerComponent : public MikanComponent
 {
 public:
 	FastenerComponent(MikanObjectWeakPtr owner);
 
 	virtual void init() override;
-	virtual void renderLines() const override;
+	virtual void customRender() override;
 
 	inline FastenerConfigPtr getConfig() const { return m_config; }
 	void setConfig(FastenerConfigPtr config);

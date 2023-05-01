@@ -49,8 +49,3 @@ using GlWireframeMeshPtr = std::shared_ptr<GlWireframeMesh>;
 class IGlSceneRenderable;
 using IGlSceneRenderablePtr= std::shared_ptr<IGlSceneRenderable>;
 using IGlSceneRenderableConstPtr = std::shared_ptr<const IGlSceneRenderable>;
-
-class IGlLineRenderable;
-using IGlLineRenderablePtr = std::shared_ptr<IGlLineRenderable>;
-using IGlLineRenderableConstPtr = std::shared_ptr<const IGlLineRenderable>;
-using IGlLineRenderableConstWeakPtr = std::weak_ptr<const IGlLineRenderable>;

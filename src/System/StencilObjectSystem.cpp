@@ -52,6 +52,7 @@ void StencilObjectSystem::dispose()
 	m_quadStencilComponents.clear();
 	m_boxStencilComponents.clear();
 	m_modelStencilComponents.clear();
+
 	MikanObjectSystem::dispose();
 }
 
@@ -64,7 +65,7 @@ StencilComponentPtr StencilObjectSystem::getStencilById(MikanStencilID stencilId
 	}
 
 	BoxStencilComponentPtr boxPtr = getBoxStencilById(stencilId);
-	if (quadPtr)
+	if (boxPtr)
 	{
 		return boxPtr;
 	}
@@ -87,7 +88,7 @@ eStencilType StencilObjectSystem::getStencilType(MikanStencilID stencilId) const
 	}
 
 	BoxStencilComponentPtr boxPtr = getBoxStencilById(stencilId);
-	if (quadPtr)
+	if (boxPtr)
 	{
 		return eStencilType::box;
 	}

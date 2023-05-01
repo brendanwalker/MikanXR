@@ -141,6 +141,7 @@ void FastenerObjectSystem::dispose()
 {
 	s_fastenerObjectSystem.reset();
 	m_fastenerComponents.clear();
+
 	MikanObjectSystem::dispose();
 }
 

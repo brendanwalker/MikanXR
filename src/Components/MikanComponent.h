@@ -34,13 +34,16 @@ public:
 
 	virtual void init();
 	virtual void dispose();
-	virtual void update();
+	
+	// set m_bWantsUpdate to true in constructor to make this function be called
+	virtual void update() {}
 
-	MulticastDelegate<void(const ComponentProperty&)> OnComponentPropertyChanged;
+	// set m_bWantsCustomRender to true in constructor to make this function be called
+	virtual void customRender() {}
 
 protected:
-	virtual void notifyComponentPropertyChanged(const ComponentProperty& property);
-
+	bool m_bWantsUpdate= false;
+	bool m_bWantsCustomRender= false;
 	std::string m_name;
 	MikanObjectWeakPtr m_ownerObject;
 };

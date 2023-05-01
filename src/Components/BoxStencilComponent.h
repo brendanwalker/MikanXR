@@ -70,7 +70,7 @@ class BoxStencilComponent : public StencilComponent
 public:
 	BoxStencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void renderLines() const override;
+	virtual void customRender() override;
 
 	inline BoxStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(BoxStencilConfigPtr config);

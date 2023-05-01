@@ -14,7 +14,7 @@ static const float k_dragScaleFactor= 0.1f;
 
 GizmoScaleComponent::GizmoScaleComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
-{}
+{ }
 
 void GizmoScaleComponent::init()
 {
@@ -41,14 +41,14 @@ void GizmoScaleComponent::init()
 
 void GizmoScaleComponent::dispose()
 {
-	MikanComponent::dispose();
-
 	SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
 	selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
 	selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
 	selectionComponentPtr->OnInteractionGrab -= MakeDelegate(this, &GizmoScaleComponent::onInteractionGrab);
 	selectionComponentPtr->OnInteractionMove -= MakeDelegate(this, &GizmoScaleComponent::onInteractionMove);
 	selectionComponentPtr->OnInteractionRelease -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
+
+	MikanComponent::dispose();
 }
 
 glm::vec3 GizmoScaleComponent::getColliderColor(
@@ -88,7 +88,7 @@ static void drawScaleArrowHandle(
 	drawSegment(glm::mat4(1.f), origin, axisBoxCenter, color);
 }
 
-void GizmoScaleComponent::renderLines() const
+void GizmoScaleComponent::customRender()
 {
 	if (m_bEnabled)
 	{

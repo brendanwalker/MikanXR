@@ -308,6 +308,9 @@ void AppStage_Compositor::update()
 		getFirstViewport()->getCurrentCamera()->setCameraPose(cameraXform);
 	}
 
+	// Update objects in the object system
+	m_app->getObjectSystemManager()->update();
+
 	// tick the compositor lua script (if any is active)
 	m_scriptContext->updateScript();
 
@@ -1055,6 +1058,9 @@ void AppStage_Compositor::render()
 
 	// Render the scene
 	m_mikanScene->render();
+
+	// Perform component custom rendering
+	m_app->getObjectSystemManager()->customRender();
 
 	debugRenderOrigin();
 }

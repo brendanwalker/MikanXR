@@ -153,17 +153,18 @@ void FastenerConfig::setFastenerLocalPoints(MikanVector3f inLocalPoints[3])
 // -- FastenerComponent -----
 FastenerComponent::FastenerComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
-{}
+{
+	m_bWantsCustomRender= true;
+}
 
 void FastenerComponent::init()
 {
 	MikanComponent::init();
 
 	SceneComponentPtr sceneComponentPtr = getOwnerObject()->getRootComponent();
-	sceneComponentPtr->setGlLineRenderable(getSelfPtr<FastenerComponent>());
 }
 
-void FastenerComponent::renderLines() const
+void FastenerComponent::customRender()
 {
 	TextStyle style = getDefaultTextStyle();
 
