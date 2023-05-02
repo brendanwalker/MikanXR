@@ -141,7 +141,7 @@ void GlViewport::onMouseMotion(int deltaX, int deltaY)
 	if (camera && getCursorViewportLocation(viewportPos))
 	{
 		glm::vec3 rayOrigin, rayDir;
-		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayOrigin);
+		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
 
 		// Broadcast to any viewport raycast listeners
 		if (OnMouseRayChanged)
