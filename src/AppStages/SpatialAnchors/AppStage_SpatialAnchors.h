@@ -13,6 +13,11 @@ class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 typedef std::vector<VRDeviceViewPtr> VRDeviceList;
 
+namespace Rml
+{
+	class ElementDocument;
+};
+
 //-- definitions -----
 class AppStage_SpatialAnchors : public AppStage
 {
@@ -22,15 +27,22 @@ public:
 
 	virtual void enter() override;
 	virtual void exit() override;
-	virtual void update() override;
 	virtual void render() override;
 
 	static const char* APP_STAGE_NAME;
 
 protected:
-	VRDeviceViewPtr getSelectedAnchorVRTracker() const;
+	class RmlModel_SpatialAnchors* m_dataModel = nullptr;
+	Rml::ElementDocument* m_compositiorView = nullptr;
 
-	struct SpatialAnchorSetupDataModel* m_dataModel = nullptr;
+	void onAddNewAnchor();
+	void onUpdateAnchorPose(int anchorId);
+	void onUpdateAnchorVRDevicePath(const std::string& vrDevicePath);
+	void onUpdateAnchorName(int anchorId, const std::string& anchorName);
+	void onDeleteAnchor(int deleteAnchorId);
+	void onGotoMainMenu();
+
+	VRDeviceViewPtr getSelectedAnchorVRTracker() const;
 
 	VRDeviceList m_vrTrackers;
 	GlScenePtr m_scene;

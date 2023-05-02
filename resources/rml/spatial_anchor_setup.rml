@@ -19,25 +19,25 @@
         <panel id="controls" data-model="spatial_anchor_settings">
             <br/>
             <h1>Anchor VR Device</h1>
-            <div data-if="tracker_devices.size > 0">
-                <select id="select" name="tracker_devices" data-value="selected_tracker_device" style="width: 200dp">
-                    <option data-for="device_path : tracker_devices" data-value="it_index">{{device_path | to_vr_device_friendly_name}}</option>
+            <div data-if="vr_device_list.size > 0">
+                <select id="select" name="vr_device_list" data-value="anchor_vr_device_path" data-event-change="update_anchor_vr_device_path()" style="width: 200dp">
+                    <option data-for="device_path : vr_device_list" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
                 </select>
             </div>
-            <div data-if="tracker_devices.size == 0" style="width: 500dp">
+            <div data-if="vr_device_list.size == 0" style="width: 500dp">
                 {{anchor_vr_device_path}}
             </div>
             <br/>
             <h1>Anchors</h1>
 			<div class="picker">
-				<span data-for="anchor_id : spatial_anchors" class="foo">
-					<button style="width: 100dp" data-event-click="update_anchor_pose(anchor_id)">Set Pose</button>
-                    <div data-if="anchor_id == origin_anchor_id">
-                        {{spatial_anchor_id | to_anchor_name}}
+				<span data-for="anchor : spatial_anchors">
+					<button style="width: 100dp" data-event-click="update_anchor_pose(anchor.anchor_id)">Set Pose</button>
+                    <div data-if="anchor.anchor_id == origin_anchor_id">
+                        {{anchor.anchor_name}}
                     </div>
-                    <div data-if="anchor_id != origin_anchor_id">
-                        <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="update_anchor_name(anchor_id)" data-value="{{anchor_id | to_anchor_name}}"/>
-                        <button style="width: 40dp" data-event-click="erase_anchor(anchor_id)">x</button>
+                    <div data-if="anchor.anchor_id != origin_anchor_id">
+                        <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="update_anchor_name(anchor.anchor_id)" data-value="anchor.anchor_name"/>
+                        <button style="width: 40dp" data-event-click="erase_anchor(anchor.anchor_id)">x</button>
                     </div>
                     <br/>
 				</span>

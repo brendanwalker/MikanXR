@@ -11,45 +11,17 @@
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "GlViewport.h"
-#include "MathTypeConversion.h"
 #include "MathUtility.h"
-#include "MikanServer.h"
 #include "ObjectSystemManager.h"
-#include "ProfileConfig.h"
+#include "RmlModel_SpatialAnchors.h"
 #include "StringUtils.h"
 #include "VRDeviceView.h"
 #include "VRDeviceManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/ElementDocument.h>
-
-struct SpatialAnchorSetupDataModel
-{
-	Rml::DataModelHandle model_handle;
-
-	Rml::Vector<Rml::String> tracker_devices;
-	int selected_tracker_device = 0;
-	Rml::Vector<int> spatial_anchors;
-	int max_spatial_anchors = MAX_MIKAN_SPATIAL_ANCHORS;
-	int origin_anchor_id = INVALID_MIKAN_ID;
-
-	void rebuildSpatialAnchors(ProfileConfigConstPtr profile)
-	{
-		spatial_anchors.clear();
-		for (AnchorConfigPtr anchorInfo : profile->anchorConfig->spatialAnchorList)
-		{
-			spatial_anchors.push_back(anchorInfo->getAnchorId());
-		}
-		model_handle.DirtyVariable("spatial_anchors");
-
-		origin_anchor_id= AnchorObjectSystem::getSystem()->getAnchorSystemConfigConst()->originAnchorId;
-		model_handle.DirtyVariable("origin_anchor_id");
-	}
-};
 
 //-- statics ----__
 const char* AppStage_SpatialAnchors::APP_STAGE_NAME = "Spatial Anchor Setup";
@@ -57,7 +29,7 @@ const char* AppStage_SpatialAnchors::APP_STAGE_NAME = "Spatial Anchor Setup";
 //-- public methods -----
 AppStage_SpatialAnchors::AppStage_SpatialAnchors(App* app)
 	: AppStage(app, AppStage_SpatialAnchors::APP_STAGE_NAME)
-	, m_dataModel(new SpatialAnchorSetupDataModel)
+	, m_dataModel(new RmlModel_SpatialAnchors)
 	, m_scene(std::make_shared<GlScene>())
 	, m_camera(nullptr)
 	, m_profile(nullptr)
@@ -93,119 +65,86 @@ void AppStage_SpatialAnchors::enter()
 	m_camera->setCameraOrbitYaw(45.0f);
 	m_camera->setCameraOrbitRadius(3.5f);
 
-	// Create Datamodel
-	Rml::DataModelConstructor constructor = getRmlContext()->CreateDataModel("spatial_anchor_settings");
-	if (!constructor)
-		return;
+	Rml::Context* context = getRmlContext();
 
-	// Register Data Model Fields
-	constructor.Bind("tracker_devices", &m_dataModel->tracker_devices);
-	constructor.Bind("selected_tracker_device", &m_dataModel->selected_tracker_device);
-	constructor.Bind("anchor_vr_device_path", &m_profile->anchorConfig->anchorVRDevicePath);
-	constructor.Bind("spatial_anchors", &m_dataModel->spatial_anchors);
-	constructor.Bind("max_spatial_anchors", &m_dataModel->max_spatial_anchors);
-
-	// Bind data model callbacks
-	constructor.BindEventCallback(
-		"add_new_anchor",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) 
-		{
-			VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
-			const glm::mat4 anchorXform = (anchorVRDevice) ? anchorVRDevice->getCalibrationPose() : glm::mat4(1.f);
-
-			char newAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
-			StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", m_anchorSystemConfig->nextAnchorId);
-
-			if (m_anchorSystem->addNewAnchor(newAnchorName, anchorXform))
-			{
-				m_dataModel->rebuildSpatialAnchors(m_profile);
-
-				// Tell any connected clients that the anchor list changed
-				MikanServer::getInstance()->publishAnchorListChangedEvent();
-			}
-		});
-	constructor.BindEventCallback(
-		"update_anchor_pose", 
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) 
-		{
-			const int anchorId = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-
-			AnchorComponentPtr anchorComponent= m_anchorSystem->getSpatialAnchorById(anchorId);
-			if (anchorComponent != nullptr)
-			{
-				VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
-				if (anchorVRDevice != nullptr)
-				{
-					const glm::mat4 anchorXform = anchorVRDevice->getCalibrationPose();
-
-					anchorComponent->setAnchorWorldTransform(anchorXform);
-				}
-			}
-		});
-	constructor.BindEventCallback(
-		"update_anchor_name",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) 
-		{
-			const int anchorId = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			const bool isLineBreak = ev.GetParameter("linebreak", false);
-
-			if (isLineBreak)
-			{
-				const Rml::String stringValue = ev.GetParameter("value", Rml::String());
-
-				AnchorComponentPtr anchorComponent= m_anchorSystem->getSpatialAnchorById(anchorId);
-				if (anchorComponent != nullptr)
-				{
-					anchorComponent->setAnchorName(stringValue);
-				}
-			}
-		});
-	constructor.BindEventCallback(
-		"erase_anchor",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) 
-		{
-			const int deleteAnchorId = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : 0);
-
-			if (m_anchorSystem->removeAnchor(deleteAnchorId))
-			{
-				m_dataModel->rebuildSpatialAnchors(m_profile);
-			}
-		});
-	constructor.BindEventCallback(
-		"goto_main_menu",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) 
-		{
-			m_app->popAppState();
-		});
-	m_dataModel->model_handle = constructor.GetModelHandle();
-
-	// Fill in Data Model initial values	
-	m_dataModel->selected_tracker_device = 0;
-	if (m_vrTrackers.size() > 0)
-	{
-		for (int deviceIndex= 0; deviceIndex < (int)m_vrTrackers.size(); ++deviceIndex)
-		{
-			VRDeviceViewPtr deviceView= m_vrTrackers[deviceIndex];
-			const Rml::String friendlyName = deviceView->getTrackerRole() + " - " + deviceView->getSerialNumber();
-
-			m_dataModel->tracker_devices.push_back(friendlyName);
-
-			if (deviceView->getDevicePath() == m_anchorSystemConfig->anchorVRDevicePath)
-			{
-				m_dataModel->selected_tracker_device = deviceIndex;
-			}
-		}
-	}
-
-	m_dataModel->rebuildSpatialAnchors(m_profile);
+	m_dataModel->init(context, m_anchorSystem);
+	m_dataModel->OnAddNewAnchor= MakeDelegate(this, &AppStage_SpatialAnchors::onAddNewAnchor);
+	m_dataModel->OnUpdateAnchorPose= MakeDelegate(this, &AppStage_SpatialAnchors::onUpdateAnchorPose);
+	m_dataModel->OnUpdateAnchorName= MakeDelegate(this, &AppStage_SpatialAnchors::onUpdateAnchorName);
+	m_dataModel->OnUpdateAnchorVRDevicePath= MakeDelegate(this, &AppStage_SpatialAnchors::onUpdateAnchorVRDevicePath);
+	m_dataModel->OnDeleteAnchor= MakeDelegate(this, &AppStage_SpatialAnchors::onDeleteAnchor);
+	m_dataModel->OnGotoMainMenu= MakeDelegate(this, &AppStage_SpatialAnchors::onGotoMainMenu);
 
 	addRmlDocument("spatial_anchor_setup.rml");
+}
+
+void AppStage_SpatialAnchors::onAddNewAnchor()
+{
+	VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
+	const glm::mat4 anchorXform = (anchorVRDevice) ? anchorVRDevice->getCalibrationPose() : glm::mat4(1.f);
+
+	char newAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
+	StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", m_anchorSystemConfig->nextAnchorId);
+
+	if (m_anchorSystem->addNewAnchor(newAnchorName, anchorXform))
+	{
+		m_dataModel->rebuildAnchorList();
+	}
+}
+
+void AppStage_SpatialAnchors::onUpdateAnchorPose(int anchorId)
+{
+	AnchorComponentPtr anchorComponent = m_anchorSystem->getSpatialAnchorById(anchorId);
+	if (anchorComponent != nullptr)
+	{
+		VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
+		if (anchorVRDevice != nullptr)
+		{
+			const glm::mat4 anchorXform = anchorVRDevice->getCalibrationPose();
+
+			anchorComponent->setAnchorWorldTransform(anchorXform);
+		}
+	}
+}
+
+void AppStage_SpatialAnchors::onUpdateAnchorName(int anchorId, const std::string& anchorName)
+{
+	AnchorComponentPtr anchorComponent = m_anchorSystem->getSpatialAnchorById(anchorId);
+	if (anchorComponent != nullptr)
+	{
+		anchorComponent->setAnchorName(anchorName);
+	}
+}
+
+void AppStage_SpatialAnchors::onUpdateAnchorVRDevicePath(const std::string& vrDevicePath)
+{
+	AnchorObjectSystemConfigPtr configPtr= m_anchorSystem->getAnchorSystemConfig();
+	if (configPtr->anchorVRDevicePath != vrDevicePath)
+	{
+		configPtr->anchorVRDevicePath= vrDevicePath;
+		configPtr->markDirty();
+
+		m_dataModel->rebuildAnchorList();
+	}
+}
+
+void AppStage_SpatialAnchors::onDeleteAnchor(int deleteAnchorId)
+{
+	if (m_anchorSystem->removeAnchor(deleteAnchorId))
+	{
+		m_dataModel->rebuildAnchorList();
+	}
+}
+
+void AppStage_SpatialAnchors::onGotoMainMenu()
+{
+	m_app->popAppState();
 }
 
 void AppStage_SpatialAnchors::exit()
 {
 	// Clean up the data model
-	getRmlContext()->RemoveDataModel("spatial_anchor_settings");
+	m_dataModel->dispose();
 
 	m_camera= nullptr;
 
@@ -220,22 +159,6 @@ void AppStage_SpatialAnchors::exit()
 	}
 
 	AppStage::exit();
-}
-
-void AppStage_SpatialAnchors::update()
-{
-	AppStage::update();
-
-	if (m_dataModel->model_handle.IsVariableDirty("selected_tracker_device"))
-	{
-		const int newSelectedIndex = m_dataModel->selected_tracker_device;
-
-		if (newSelectedIndex >= 0 && newSelectedIndex < (int)m_vrTrackers.size())
-		{
-			m_anchorSystemConfig->anchorVRDevicePath = m_vrTrackers[newSelectedIndex]->getDevicePath();
-			m_anchorSystemConfig->markDirty();
-		}
-	}
 }
 
 void AppStage_SpatialAnchors::render()
@@ -274,8 +197,7 @@ void AppStage_SpatialAnchors::render()
 
 VRDeviceViewPtr AppStage_SpatialAnchors::getSelectedAnchorVRTracker() const
 {
-	return
-		(m_dataModel->selected_tracker_device >= 0 && m_dataModel->selected_tracker_device < (int)m_vrTrackers.size())
-		? m_vrTrackers[m_dataModel->selected_tracker_device]
-		: nullptr;
+	const std::string vrDevicePath= m_dataModel->getAnchorVRDevicePath();
+
+	return VRDeviceListIterator(eDeviceType::VRTracker, vrDevicePath).getCurrent();
 }
