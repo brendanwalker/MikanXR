@@ -482,6 +482,14 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 									bSuccess = false;
 								}
 								break;
+							case eUniformSemantic::modelMatrix:
+							case eUniformSemantic::normalMatrix:
+							case eUniformSemantic::modelViewProjectionMatrix:
+								// Default per-model matrix params to the identity
+								// Assume they get filled in as part of the bindMaterialInstance bindings
+								m_program->setMatrix4x4Uniform(uniformName, glm::mat4(1.f));
+								bSuccess = true;
+								break;
 							default:
 								bSuccess = false;
 						}
