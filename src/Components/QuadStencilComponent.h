@@ -72,9 +72,10 @@ public:
 	inline QuadStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(QuadStencilConfigPtr config);
 
+	virtual void setConfigTransform(const GlmTransform& transform) override;
+	virtual const GlmTransform getConfigTransform() override;
+
 protected:
-	void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) override;
-	void updateSceneComponentTransform();
 	void updateBoxColliderExtents();
 
 	QuadStencilConfigPtr m_config;

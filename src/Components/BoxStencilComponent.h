@@ -75,9 +75,10 @@ public:
 	inline BoxStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(BoxStencilConfigPtr config);
 
+	virtual void setConfigTransform(const GlmTransform& transform) override;
+	virtual const GlmTransform getConfigTransform() override;
+
 protected:
-	void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) override;
-	void updateSceneComponentTransform();
 	void updateBoxColliderExtents();
 
 	BoxStencilConfigPtr m_config;

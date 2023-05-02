@@ -216,21 +216,18 @@ void ModelStencilComponent::setConfig(ModelStencilConfigPtr config)
 
 	m_config = config;
 
-	updateSceneComponentTransform();
+	applyConfigTransformToSceneComponent();
 }
 
-void ModelStencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
+void ModelStencilComponent::setConfigTransform(const GlmTransform& transform)
 {
-	m_config->setModelTransform(sceneComponentPtr->getRelativeTransform());
+	if (m_config)
+		m_config->setModelTransform(transform);
 }
 
-void ModelStencilComponent::updateSceneComponentTransform()
+const GlmTransform ModelStencilComponent::getConfigTransform()
 {
-	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
-	if (sceneComponent)
-	{
-		sceneComponent->setRelativeTransform(m_config->getModelTransform());
-	}
+	return m_config ? m_config->getModelTransform() : GlmTransform();
 }
 
 void ModelStencilComponent::onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult)

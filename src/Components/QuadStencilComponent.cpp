@@ -188,7 +188,7 @@ void QuadStencilComponent::init()
 	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 
-	updateSceneComponentTransform();
+	applyConfigTransformToSceneComponent();
 	updateBoxColliderExtents();
 }
 
@@ -228,22 +228,19 @@ void QuadStencilComponent::setConfig(QuadStencilConfigPtr config)
 
 	m_config= config;
 
-	updateSceneComponentTransform();
+	applyConfigTransformToSceneComponent();
 	updateBoxColliderExtents();
 }
 
-void QuadStencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
+void QuadStencilComponent::setConfigTransform(const GlmTransform& transform)
 {
-	m_config->setQuadTransform(sceneComponentPtr->getRelativeTransform());
+	if (m_config)
+		m_config->setQuadTransform(transform);
 }
 
-void QuadStencilComponent::updateSceneComponentTransform()
+const GlmTransform QuadStencilComponent::getConfigTransform()
 {
-	SceneComponentPtr sceneComponent= m_sceneComponent.lock();
-	if (sceneComponent)
-	{
-		sceneComponent->setRelativeTransform(m_config->getQuadTransform());
-	}
+	return m_config ? m_config->getQuadTransform() : GlmTransform();
 }
 
 void QuadStencilComponent::updateBoxColliderExtents()

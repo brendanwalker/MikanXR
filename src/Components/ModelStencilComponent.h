@@ -69,6 +69,9 @@ public:
 	inline ModelStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(ModelStencilConfigPtr config);
 
+	virtual void setConfigTransform(const GlmTransform& transform) override;
+	virtual const GlmTransform getConfigTransform() override;
+
 	// Selection Events
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
@@ -76,9 +79,6 @@ public:
 	void onInteractionUnselected();
 
 protected:
-	void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) override;
-	void updateSceneComponentTransform();
-
 	ModelStencilConfigPtr m_config;
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<GlStaticMeshInstancePtr> m_wireframeMeshes;

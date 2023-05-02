@@ -61,3 +61,22 @@ void StencilComponent::attachSceneComponentToAnchor(MikanSpatialAnchorID newPare
 		}
 	}
 }
+
+void StencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
+{
+	if (!m_bUpdatingSceneComponentTransform)
+	{
+		setConfigTransform(sceneComponentPtr->getRelativeTransform());
+	}
+}
+
+void StencilComponent::applyConfigTransformToSceneComponent()
+{
+	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	if (sceneComponent)
+	{
+		m_bUpdatingSceneComponentTransform = true;
+		sceneComponent->setRelativeTransform(getConfigTransform());
+		m_bUpdatingSceneComponentTransform = false;
+	}
+}

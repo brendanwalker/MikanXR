@@ -225,31 +225,25 @@ void BoxStencilComponent::setConfig(BoxStencilConfigPtr config)
 	}
 
 	m_config= config;
-
-	updateSceneComponentTransform();
+	applyConfigTransformToSceneComponent();
 	updateBoxColliderExtents();
 }
 
-void BoxStencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
+void BoxStencilComponent::setConfigTransform(const GlmTransform& transform)
 {
-	m_config->setBoxTransform(sceneComponentPtr->getRelativeTransform());
+	if (m_config)
+		m_config->setBoxTransform(transform);
 }
 
-void BoxStencilComponent::updateSceneComponentTransform()
+const GlmTransform BoxStencilComponent::getConfigTransform()
 {
-	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
-	if (sceneComponent)
-	{
-		const glm::mat4 worldXform = getStencilWorldTransform();
-
-		sceneComponent->setWorldTransform(worldXform);
-	}
+	return m_config ? m_config->getBoxTransform() : GlmTransform();
 }
 
 void BoxStencilComponent::updateBoxColliderExtents()
 {
 	BoxColliderComponentPtr boxCollider= m_boxCollider.lock();
-	if (boxCollider)
+	if (boxCollider && m_config)
 	{
 		const float xSize = m_config->getBoxXSize();
 		const float ySize = m_config->getBoxYSize();

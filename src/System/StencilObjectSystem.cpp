@@ -214,33 +214,23 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(QuadStencil
 	// Add a selection component
 	stencilObject->addComponent<SelectionComponent>();
 
-	// Add a scene component
-	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
-	stencilObject->setRootComponent(sceneComponentPtr);
-
-	// Add a box collider
+	// Make the box collider the root scene component of the object
 	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
 	boxColliderPtr->setHalfExtents(glm::vec3(quadConfig->getQuadWidth() * 0.5f, quadConfig->getQuadHeight() * 0.5f, 0.01f));
+	stencilObject->setRootComponent(boxColliderPtr);
 
 	// Add quad stencil component to the object
 	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
-	stencilComponentPtr->setConfig(quadConfig);
-	m_quadStencilComponents.insert({quadConfig->getStencilId(), stencilComponentPtr});
-
-	// Attach to parent anchor, if any
-	MikanSpatialAnchorID parentAnchorId= quadConfig->getParentAnchorId();
-	if (parentAnchorId != INVALID_MIKAN_ID)
-	{
-		AnchorComponentPtr parentAnchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(parentAnchorId);
-
-		if (parentAnchor)
-		{
-			sceneComponentPtr->attachToComponent(parentAnchor->getOwnerObject()->getRootComponent());
-		}
-	}
 
 	// Init the object once all components are added
 	stencilObject->init();
+
+	// Apply stencil config once the components are initialized
+	// (need to wait for stencil component to bind to root scene component)
+	stencilComponentPtr->setConfig(quadConfig);
+
+	// Keep track of all the quad stencils in the stencil system
+	m_quadStencilComponents.insert({quadConfig->getStencilId(), stencilComponentPtr});
 
 	return stencilComponentPtr;
 }
@@ -366,40 +356,30 @@ BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(BoxStencilCon
 {
 	MikanObjectPtr stencilObject = newObject().lock();
 
-	// Add a scene component to the anchor
-	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
-	stencilObject->setRootComponent(sceneComponentPtr);
+	// Make the box collider the root scene component
+	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
+	boxColliderPtr->setHalfExtents(
+		glm::vec3(
+			boxConfig->getBoxXSize() * 0.5f,
+			boxConfig->getBoxYSize() * 0.5f,
+			boxConfig->getBoxZSize() * 0.5f));
+	stencilObject->setRootComponent(boxColliderPtr);
 
 	// Add a selection component
 	stencilObject->addComponent<SelectionComponent>();
 
-	// Add a box collider
-	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
-	boxColliderPtr->setHalfExtents(
-		glm::vec3(
-			boxConfig->getBoxXSize() * 0.5f, 
-			boxConfig->getBoxYSize() * 0.5f, 
-			boxConfig->getBoxZSize() * 0.5f));
-
-	// Add spatial anchor component to the object
+	// Add stencil anchor component to the object
 	BoxStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<BoxStencilComponent>();
-	stencilComponentPtr->setConfig(boxConfig);
-	m_boxStencilComponents.insert({boxConfig->getStencilId(), stencilComponentPtr});
-
-	// Attach to parent anchor, if any
-	MikanSpatialAnchorID parentAnchorId = boxConfig->getParentAnchorId();
-	if (parentAnchorId != INVALID_MIKAN_ID)
-	{
-		AnchorComponentPtr parentAnchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(parentAnchorId);
-
-		if (parentAnchor)
-		{
-			sceneComponentPtr->attachToComponent(parentAnchor->getOwnerObject()->getRootComponent());
-		}
-	}
 
 	// Init the object once all components are added
 	stencilObject->init();
+
+	// Apply stencil config once the components are initialized
+	// (need to wait for stencil component to bind to root scene component)
+	stencilComponentPtr->setConfig(boxConfig);
+
+	// Keep track of all the box stencils in the stencil system
+	m_boxStencilComponents.insert({boxConfig->getStencilId(), stencilComponentPtr});
 
 	return stencilComponentPtr;
 }
@@ -563,23 +543,16 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 
 	// Add spatial anchor component to the object
 	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();
-	stencilComponentPtr->setConfig(modelConfig);
-	m_modelStencilComponents.insert({modelConfig->getStencilId(), stencilComponentPtr});
-
-	// Attach to parent anchor, if any
-	MikanSpatialAnchorID parentAnchorId = modelConfig->getParentAnchorId();
-	if (parentAnchorId != INVALID_MIKAN_ID)
-	{
-		AnchorComponentPtr parentAnchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(parentAnchorId);
-
-		if (parentAnchor)
-		{
-			sceneComponentPtr->attachToComponent(parentAnchor->getOwnerObject()->getRootComponent());
-		}
-	}
 
 	// Init the object once all components are added
 	stencilObject->init();
+
+	// Apply stencil config once the components are initialized
+	// (need to wait for stencil component to bind to root scene component)
+	stencilComponentPtr->setConfig(modelConfig);
+
+	// Add the model stencil to the list of stencils
+	m_modelStencilComponents.insert({modelConfig->getStencilId(), stencilComponentPtr});
 
 	return stencilComponentPtr;
 }

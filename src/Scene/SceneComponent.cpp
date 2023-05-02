@@ -6,6 +6,8 @@
 
 SceneComponent::SceneComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
+	, m_relativeTransform()
+	, m_worldTransform(glm::mat4(1.f))
 {
 }
 

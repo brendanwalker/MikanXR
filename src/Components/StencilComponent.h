@@ -3,6 +3,7 @@
 #include "MikanComponent.h"
 #include "MikanClientTypes.h"
 #include "SceneFwd.h"
+#include "Transform.h"
 
 #include <string>
 
@@ -19,10 +20,15 @@ public:
 	glm::mat4 getStencilLocalTransform() const;
 	glm::mat4 getStencilWorldTransform() const;
 
+	virtual void setConfigTransform(const GlmTransform& transform) = 0;
+	virtual const GlmTransform getConfigTransform() = 0;
+
 	void attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId);
 
 protected:
-	virtual void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr) {};
+	void onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr);
+	void applyConfigTransformToSceneComponent();
 
+	bool m_bUpdatingSceneComponentTransform = false;
 	SceneComponentWeakPtr m_sceneComponent;
 };
