@@ -20,6 +20,7 @@ struct GlmTriangle
 };
 
 //-- interface -----
+bool glm_vec3_is_nearly_equal(const glm::vec3& a, const glm::vec3& b, const float epsilon);
 float glm_vec3_normalize_with_default(glm::vec3& v, const glm::vec3& default_result);
 glm::vec3 glm_vec3_lerp(const glm::vec3& a, const glm::vec3& b, const float u);
 glm::mat4 glm_scale_along_axis(const glm::vec3& axis, const float scale);

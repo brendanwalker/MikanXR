@@ -1,0 +1,195 @@
+//-- includes -----
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
+#include "MathGLM.h"
+#include "MathUtility.h"
+#include "unit_test.h"
+
+//-- public interface -----
+bool run_math_glm_unit_tests()
+{
+	UNIT_TEST_MODULE_BEGIN("math_glm")
+		UNIT_TEST_MODULE_CALL_TEST(math_glm_test_intersect_obb_with_ray);
+	UNIT_TEST_MODULE_END()
+}
+
+//-- private functions -----
+bool intersect_unit_obb_outside(const glm::mat4& xform, const glm::vec3& normal)
+{
+	bool success= false;
+
+	glm::vec3 xformedNormal = glm::normalize(xform * glm::vec4(normal, 0.f));
+	glm::vec3 rayStart= xform * glm::vec4(normal * 2.f, 1.f);
+	glm::vec3 rayDirection= xform * glm::vec4(normal * -1.f, 0.f);
+
+	float intDistance;
+	glm::vec3 intPoint;
+	glm::vec3 intNormal;
+	bool bIntersects =
+		glm_intersect_obb_with_ray(
+			rayStart,
+			rayDirection,
+			glm::vec3(-1, -1, -1),	// Minimum X,Y,Z 
+			glm::vec3(1, 1, 1),		// Maximum X,Y,Z
+			xform,	
+			intDistance, intPoint, intNormal);
+
+	success = bIntersects;
+	assert(success);
+	success = is_nearly_equal(intDistance, 1.f, k_normal_epsilon);
+	assert(success);
+	success = glm_vec3_is_nearly_equal(intPoint, xformedNormal, k_normal_epsilon);
+	assert(success);
+	success = glm_vec3_is_nearly_equal(intNormal, xformedNormal, k_normal_epsilon);
+
+	return success;
+}
+
+bool intersect_unit_obb_inside(const glm::mat4& xform, const glm::vec3& rayDirection)
+{
+	bool success = false;
+
+	glm::vec3 xformRayStart = xform * glm::vec4(glm::vec3(0.f), 1.f);
+	glm::vec3 xformedRayDirection = xform * glm::vec4(rayDirection, 0.f);
+	glm::vec3 xformedNormal = xform * glm::vec4(rayDirection * -1.f, 0.f);
+
+	float intDistance;
+	glm::vec3 intPoint;
+	glm::vec3 intNormal;
+	bool bIntersects =
+		glm_intersect_obb_with_ray(
+			xformRayStart,
+			xformedRayDirection,
+			glm::vec3(-1, -1, -1),	// Minimum X,Y,Z 
+			glm::vec3(1, 1, 1),		// Maximum X,Y,Z
+			xform,
+			intDistance, intPoint, intNormal);
+
+	success = bIntersects;
+	assert(success);
+	success = is_nearly_equal(intDistance, 0.f, k_normal_epsilon);
+	assert(success);
+	success = glm_vec3_is_nearly_equal(intPoint, xformRayStart, k_normal_epsilon);
+	assert(success);
+	success = glm_vec3_is_nearly_equal(intNormal, xformedNormal, k_normal_epsilon);
+
+	return success;
+}
+
+bool no_intersect_unit_obb(const glm::mat4& xform, const glm::vec3& normal, const glm::vec3& rayDir)
+{
+	bool success = false;
+
+	glm::vec3 rayStart = xform * glm::vec4(normal * 2.f, 1.f);
+	glm::vec3 rayDirection = xform * glm::vec4(rayDir, 0.f);
+
+	float intDistance;
+	glm::vec3 intPoint;
+	glm::vec3 intNormal;
+	bool bIntersects =
+		glm_intersect_obb_with_ray(
+			rayStart,
+			rayDirection,
+			glm::vec3(-1, -1, -1),	// Minimum X,Y,Z 
+			glm::vec3(1, 1, 1),		// Maximum X,Y,Z
+			xform,
+			intDistance, intPoint, intNormal);
+
+	success = !bIntersects;
+	assert(success);
+
+	return success;
+}
+
+bool math_glm_test_intersect_obb_with_ray()
+{
+	UNIT_TEST_BEGIN("intersect obb with ray")
+
+	const int k_xform_count= 4;
+	glm::mat4 test_xforms[k_xform_count] = {
+		glm::mat4(1.f),
+		glm::rotate(glm::mat4(1.f), k_real_quarter_pi, glm::vec3(1.f, 0.f, 0.f)),
+		glm::rotate(glm::mat4(1.f), k_real_quarter_pi, glm::vec3(0.f, 1.f, 0.f)),
+		glm::rotate(glm::mat4(1.f), k_real_quarter_pi, glm::vec3(0.f, 0.f, 1.f)),
+	};
+
+	// Test unit cube intersection from outside
+	for (int i = 0; i < k_xform_count; ++i)
+	{
+		const glm::mat4& xform= test_xforms[i];
+
+		success = intersect_unit_obb_outside(xform, glm::vec3(1.f, 0.f, 0.f));
+		assert(success);
+		success = intersect_unit_obb_outside(xform, glm::vec3(-1.f, 0.f, 0.f));
+		assert(success);
+		success = intersect_unit_obb_outside(xform, glm::vec3(0.f, 1.f, 0.f));
+		assert(success);
+		success = intersect_unit_obb_outside(xform, glm::vec3(0.f, -1.f, 0.f));
+		assert(success);
+		success = intersect_unit_obb_outside(xform, glm::vec3(0.f, 0.f, 1.f));
+		assert(success);
+		success = intersect_unit_obb_outside(xform, glm::vec3(0.f, 0.f, -1.f));
+		assert(success);
+	}
+
+	// Test unit cube from inside
+	for (int i = 0; i < k_xform_count; ++i)
+	{
+		const glm::mat4& xform = test_xforms[i];
+
+		success = intersect_unit_obb_inside(xform, glm::vec3(1.f, 0.f, 0.f));
+		assert(success);
+		success = intersect_unit_obb_inside(xform, glm::vec3(-1.f, 0.f, 0.f));
+		assert(success);
+		success = intersect_unit_obb_inside(xform, glm::vec3(0.f, 1.f, 0.f));
+		assert(success);
+		success = intersect_unit_obb_inside(xform, glm::vec3(0.f, -1.f, 0.f));
+		assert(success);
+		success = intersect_unit_obb_inside(xform, glm::vec3(0.f, 0.f, 1.f));
+		assert(success);
+		success = intersect_unit_obb_inside(xform, glm::vec3(0.f, 0.f, -1.f));
+		assert(success);
+	}
+
+	// Test unit cube no intersection with ray pointing away from cube
+	for (int i = 0; i < k_xform_count; ++i)
+	{
+		const glm::mat4& xform = test_xforms[i];
+
+		success = no_intersect_unit_obb(xform, glm::vec3(1.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(-1.f, 0.f, 0.f), glm::vec3(-1.f, 0.f, 0.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(0.f, -1.f, 0.f), glm::vec3(0.f, -1.f, 0.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 1.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 0.f, -1.f));
+		assert(success);
+	}
+
+	// Test unit cube no intersection with ray pointing parallel to cube
+	for (int i = 0; i < k_xform_count; ++i)
+	{
+		const glm::mat4& xform = test_xforms[i];
+
+		success = no_intersect_unit_obb(xform, glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(-1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 1.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(0.f, -1.f, 0.f), glm::vec3(0.f, 0.f, 1.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(0.f, 0.f, 1.f), glm::vec3(1.f, 0.f, 0.f));
+		assert(success);
+		success = no_intersect_unit_obb(xform, glm::vec3(0.f, 0.f, -1.f), glm::vec3(1.f, 0.f, 0.f));
+		assert(success);
+	}
+	
+	UNIT_TEST_COMPLETE()
+}

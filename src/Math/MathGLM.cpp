@@ -5,6 +5,14 @@
 #include <glm/gtx/euler_angles.hpp>
 
 //-- public methods -----
+bool glm_vec3_is_nearly_equal(const glm::vec3& a, const glm::vec3& b, const float epsilon)
+{
+	return 
+		is_nearly_equal(a.x, b.x, epsilon) &&
+		is_nearly_equal(a.y, b.y, epsilon) &&
+		is_nearly_equal(a.z, b.z, epsilon);
+}
+
 float glm_vec3_normalize_with_default(glm::vec3& v, const glm::vec3& default_result)
 {
 	const float length = glm::length(v);
@@ -369,7 +377,7 @@ bool glm_intersect_obb_with_ray(
 
 	outIntDistance = tMin;
 	outIntPoint= ray_start + ray_direction*outIntDistance;
-	outIntNormal= normal;
+	outIntNormal= (outIntDistance > k_normal_epsilon) ? normal : -ray_unit_direction;
 
 	return true;
 }
