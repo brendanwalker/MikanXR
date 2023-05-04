@@ -33,6 +33,7 @@
 #include "GlViewport.h"
 #include "GlWireframeMesh.h"
 #include "GlTexture.h"
+#include "InputManager.h"
 #include "MathGLM.h"
 #include "MathFastener.h"
 #include "MikanObjectSystem.h"
@@ -90,6 +91,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 AppStage_Compositor::~AppStage_Compositor()
 {
 	m_mikanScene= nullptr;
+	m_viewport= nullptr;
 
 	delete m_compositorModel;
 	delete m_compositorLayersModel;
@@ -121,8 +123,11 @@ void AppStage_Compositor::enter()
 	m_frameCompositor->start();
 	m_frameCompositor->OnCompositorShadersReloaded += MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
+	// Create and bind cameras
+	setupCameras();
+
 	// Register the scene with the primary viewport
-	m_editorSystem->bindViewport(getFirstViewport());
+	m_editorSystem->bindViewport(m_viewport);
 
 	// Apply video source camera intrinsics to the camera
 	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
@@ -133,7 +138,9 @@ void AppStage_Compositor::enter()
 
 		for (GlViewportPtr viewport : getViewportList())
 		{
-			viewport->getCurrentCamera()->applyMonoCameraIntrinsics(&cameraIntrinsics);
+			GlCameraPtr camera= getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+
+			camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 		}
 	}
 
@@ -301,12 +308,8 @@ void AppStage_Compositor::update()
 {
 	AppStage::update();
 
-	// Copy the compositor's camera pose to the app stage's camera for debug rendering
-	glm::mat4 cameraXform;
-	if (m_frameCompositor->getVideoSourceCameraPose(cameraXform))
-	{
-		getFirstViewport()->getCurrentCamera()->setCameraPose(cameraXform);
-	}
+	// Update the camera pose for the currently active camera
+	updateCamera();
 
 	// Update objects in the object system
 	m_app->getObjectSystemManager()->update();
@@ -404,6 +407,88 @@ void AppStage_Compositor::onNewFrameComposited()
 		{
 			m_videoWriter->write(bgrTexture.get());
 		}
+	}
+}
+
+// Camera
+void AppStage_Compositor::setupCameras()
+{
+	m_viewport = getFirstViewport();
+	for (int cameraIndex = 0; cameraIndex < (int)eCompositorViewpointMode::COUNT; ++cameraIndex)
+	{
+		if (cameraIndex == m_viewport->getCameraCount())
+		{
+			m_viewport->addCamera();
+		}
+
+		// Unlock every camera for input control except for the first one (the XR camera(
+		m_viewport->getCameraByIndex(cameraIndex)->setIsLocked(cameraIndex == 0);
+	}
+	
+	// Default to the XR Camera view
+	setXRCamera();
+
+	// Bind viewpoint hot keys
+	{
+		InputManager* inputManager = InputManager::getInstance();
+
+		inputManager->fetchOrAddKeyBindings(SDLK_1)->OnKeyPressed +=
+			MakeDelegate(this, &AppStage_Compositor::setXRCamera);
+		inputManager->fetchOrAddKeyBindings(SDLK_2)->OnKeyPressed +=
+			MakeDelegate(this, &AppStage_Compositor::setVRCamera);
+	}
+}
+
+void AppStage_Compositor::setXRCamera()
+{
+	setCurrentCameraMode(eCompositorViewpointMode::mixedRealityViewpoint);
+}
+
+void AppStage_Compositor::setVRCamera()
+{
+	setCurrentCameraMode(eCompositorViewpointMode::vrViewpoint);
+}
+
+void AppStage_Compositor::setCurrentCameraMode(eCompositorViewpointMode viewportMode)
+{
+	m_viewportMode= viewportMode;
+	m_viewport->setCurrentCamera((int)m_viewportMode);
+}
+
+eCompositorViewpointMode AppStage_Compositor::getCurrentCameraMode() const
+{
+	return (eCompositorViewpointMode)m_viewport->getCurrentCameraIndex();
+}
+
+GlCameraPtr AppStage_Compositor::getViewpointCamera(eCompositorViewpointMode viewportMode) const
+{
+	return m_viewport->getCameraByIndex((int)viewportMode);
+}
+
+void AppStage_Compositor::updateCamera()
+{
+	switch (getCurrentCameraMode())
+	{
+		case eCompositorViewpointMode::mixedRealityViewpoint:
+			{
+				// Copy the compositor's camera pose to the app stage's camera for debug rendering
+				glm::mat4 cameraXform;
+				if (m_frameCompositor->getVideoSourceCameraPose(cameraXform))
+				{
+					GlCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+
+					camera->setCameraPose(cameraXform);
+				}
+			}
+			break;
+		case eCompositorViewpointMode::vrViewpoint:
+			{
+				// Update the vr viewpoint camera pose
+				GlCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::vrViewpoint);
+
+				camera->recomputeModelViewMatrix();
+			}
+			break;
 	}
 }
 
@@ -1053,16 +1138,68 @@ void AppStage_Compositor::onInvokeScriptTriggerEvent(const std::string& triggerE
 
 void AppStage_Compositor::render()
 {
-	// Render the video frame + composited frame buffers
-	m_frameCompositor->render();
+	switch (getCurrentCameraMode())
+	{
+	case eCompositorViewpointMode::mixedRealityViewpoint:
+		{
+			// Render the video frame + composited frame buffers
+			m_frameCompositor->render();
 
-	// Render the scene
-	m_mikanScene->render();
+			// Render the scene
+			m_mikanScene->render();
 
-	// Perform component custom rendering
-	m_app->getObjectSystemManager()->customRender();
+			// Perform component custom rendering
+			m_app->getObjectSystemManager()->customRender();
+		}
+		break;
+	case eCompositorViewpointMode::vrViewpoint:
+		{
+			// Render the scene
+			m_mikanScene->render();
 
-	debugRenderOrigin();
+			// Perform component custom rendering
+			m_app->getObjectSystemManager()->customRender();
+
+			#if 0
+			// Draw the mouse cursor ray from the pov of the xr camera
+			GlCameraPtr xrCamera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+			if (xrCamera)
+			{
+				const glm::mat4 glmCameraXform= xrCamera->getCameraTransform();
+
+				// Draw the frustum for the initial camera pose
+				const float hfov_radians = degrees_to_radians(xrCamera->getHorizontalFOVDegrees());
+				const float vfov_radians = degrees_to_radians(xrCamera->getVerticalFOVDegrees());
+				const float zNear = fmaxf(xrCamera->getZNear(), 0.1f);
+				const float zFar = fminf(xrCamera->getZFar(), 2.0f);
+
+				drawTransformedFrustum(
+					glmCameraXform,
+					hfov_radians, vfov_radians,
+					zNear, zFar,
+					Colors::Yellow);
+				drawTransformedAxes(glmCameraXform, 0.1f);
+
+				// Draw the rays corresponding mouse cursor position on the viewport
+				glm::vec2 viewportPos;
+				if (m_viewport->getCursorViewportPixelPos(viewportPos))
+				{
+					// Compute a ray for each sample pixel
+					glm::vec3 rayOrigin, rayDir;
+					xrCamera->computeCameraRayThruPixel(m_viewport, viewportPos, rayOrigin, rayDir);
+					glm::vec3 rayEnd = rayOrigin + rayDir * 1000.f;
+
+					drawSegment(glm::mat4(1.f), rayOrigin, rayEnd, Colors::GhostWhite);
+				}
+			}
+			#endif 
+
+			// Draw tracking space
+			drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
+			debugRenderOrigin();
+		}
+		break;
+	}
 }
 
 void AppStage_Compositor::debugRenderOrigin() const

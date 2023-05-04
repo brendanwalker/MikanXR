@@ -15,6 +15,16 @@ namespace Rml
 	class ElementDocument;
 };
 
+enum class eCompositorViewpointMode : int
+{
+	INVALID = -1,
+
+	mixedRealityViewpoint,
+	vrViewpoint,
+
+	COUNT
+};
+
 //-- definitions -----
 class AppStage_Compositor : public AppStage
 {
@@ -34,6 +44,15 @@ public:
 protected:
 	bool startRecording();
 	void stopRecording();
+
+	// Camera
+	void setupCameras();
+	void setCurrentCameraMode(eCompositorViewpointMode viewportMode);
+	eCompositorViewpointMode getCurrentCameraMode() const;
+	GlCameraPtr getViewpointCamera(eCompositorViewpointMode viewportMode) const;
+	void updateCamera();
+	void setXRCamera();
+	void setVRCamera();
 
 	// Compositor Events
 	void onCompositorShadersReloaded();
@@ -155,7 +174,9 @@ protected:
 
 	CompositorScriptContextPtr m_scriptContext;
 	class GlFrameCompositor* m_frameCompositor= nullptr;
-	GlCameraPtr m_camera= nullptr;
+
+	GlViewportPtr m_viewport;
+	eCompositorViewpointMode m_viewportMode= eCompositorViewpointMode::mixedRealityViewpoint;
 
 	MikanScenePtr m_mikanScene;
 
