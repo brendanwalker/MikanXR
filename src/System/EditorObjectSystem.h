@@ -58,7 +58,7 @@ protected:
 		const glm::vec3& center,
 		const glm::vec3& normal,
 		const float radius);
-	SelectionComponentWeakPtr findClosestSelectionTarget(
+	SelectionComponentPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin, const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
 };

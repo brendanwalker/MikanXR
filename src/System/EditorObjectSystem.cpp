@@ -51,6 +51,7 @@ void EditorObjectSystem::createTransformGizmo()
 {
 	m_gizmoObjectWeakPtr = newObject();
 	MikanObjectPtr gizmoObjectPtr= m_gizmoObjectWeakPtr.lock();
+	gizmoObjectPtr->setName("Gizmo");
 
 	GizmoTransformComponentPtr transformGizmoPtr= gizmoObjectPtr->addComponent<GizmoTransformComponent>();
 	gizmoObjectPtr->setRootComponent(transformGizmoPtr);
@@ -96,8 +97,10 @@ void EditorObjectSystem::createGizmoBoxCollider(
 {
 	BoxColliderComponentPtr colliderPtr= gizmoObjectPtr->addComponent<BoxColliderComponent>(name);
 
+	colliderPtr->setName(name);
 	colliderPtr->setHalfExtents(halfExtents);
 	colliderPtr->setRelativeTransform(GlmTransform(center));
+	colliderPtr->setEnabled(false);
 }
 
 void EditorObjectSystem::createGizmoDiskCollider(
@@ -112,6 +115,8 @@ void EditorObjectSystem::createGizmoDiskCollider(
 	glm::quat orientation= glm::quat(glm::vec3(0.f, 1.f, 0.f), normal);
 	colliderPtr->setRelativeTransform(GlmTransform(center, orientation));
 	colliderPtr->setRadius(radius);
+	colliderPtr->setName(name);
+	colliderPtr->setEnabled(false);
 }
 
 void EditorObjectSystem::dispose()
@@ -193,14 +198,14 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 {
 	ColliderRaycastHitResult prevRaycastResult = m_lastestRaycastResult;
 	m_lastestRaycastResult = ColliderRaycastHitResult();
-	SelectionComponentWeakPtr newHoverComponentWeakPtr =
-		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
 
 	SelectionComponentPtr oldHoverComponentPtr = m_hoverComponentWeakPtr.lock();
-	SelectionComponentPtr newHoverComponentPtr = newHoverComponentWeakPtr.lock();
+	SelectionComponentPtr newHoverComponentPtr =
+		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
+
 	if (newHoverComponentPtr && !oldHoverComponentPtr)
 	{
-		m_hoverComponentWeakPtr = newHoverComponentWeakPtr;
+		m_hoverComponentWeakPtr = newHoverComponentPtr;
 		newHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
 	}
 	else if (!newHoverComponentPtr && oldHoverComponentPtr)
@@ -327,12 +332,12 @@ void EditorObjectSystem::onSelectionScaleRequested(const glm::vec3& objectSpaceS
 	}
 }
 
-SelectionComponentWeakPtr EditorObjectSystem::findClosestSelectionTarget(
+SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 	const glm::vec3& rayOrigin, 
 	const glm::vec3& rayDir,
 	ColliderRaycastHitResult& outRaycastResult) const
 {
-	SelectionComponentWeakPtr closestComponent;
+	SelectionComponentPtr closestSelectionComponent;
 	
 	outRaycastResult.hitDistance= k_real_max;
 	outRaycastResult.hitLocation = glm::vec3();
@@ -350,10 +355,10 @@ SelectionComponentWeakPtr EditorObjectSystem::findClosestSelectionTarget(
 		if (selectionComponentPtr->computeRayIntersection(request, result) && 
 			result.hitDistance < outRaycastResult.hitDistance)
 		{
-			closestComponent= selectionComponentWeakPtr;
+			closestSelectionComponent= selectionComponentPtr;
 			outRaycastResult= result;
 		}
 	}
 
-	return closestComponent;
+	return closestSelectionComponent;
 }

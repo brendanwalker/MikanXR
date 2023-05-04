@@ -58,7 +58,7 @@ glm::vec3 GizmoTranslateComponent::getColliderColor(
 {
 	if (colliderPtr.lock() == m_dragComponent.lock())
 		return Colors::Yellow;
-	else if (colliderPtr.lock() == m_dragComponent.lock())
+	else if (colliderPtr.lock() == m_hoverComponent.lock())
 		return Colors::LightGray;
 	else
 		return Colors::DarkGray;

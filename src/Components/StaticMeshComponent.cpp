@@ -19,6 +19,8 @@ void StaticMeshComponent::setStaticMesh(GlStaticMeshInstancePtr meshInstance)
 	m_sceneRenderable= meshInstance;
 	if (OnMeshChanged)
 	{
-		OnMeshChanged(getSelfWeakPtr<StaticMeshComponent>());
+		StaticMeshComponentWeakPtr meshComponent= getSelfWeakPtr<StaticMeshComponent>();
+
+		OnMeshChanged(meshComponent);
 	}
 }
