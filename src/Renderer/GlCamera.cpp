@@ -20,12 +20,19 @@ GlCamera::GlCamera()
 	Renderer* renderer= App::getInstance()->getRenderer();
 
 	m_viewMatrix = glm::mat4(1.f);
+
+	const float aspectRatio= renderer->getSDLWindowAspectRatio();
+	m_hFOVDegrees= k_default_camera_vfov*aspectRatio;
+	m_vFOVDegrees= k_default_camera_vfov;
+	m_zNear= k_default_camera_z_near;
+	m_zFar= k_default_camera_z_far;
+
 	m_projectionMatrix =
 		glm::perspective(
-			degrees_to_radians(k_default_camera_vfov),
+			degrees_to_radians(m_vFOVDegrees),
 			renderer->getSDLWindowAspectRatio(),
-			k_default_camera_z_near,
-			k_default_camera_z_far);
+			m_zNear,
+			m_zFar);
 
 	m_cameraOrbitYawDegrees = 0.0f;
 	m_cameraOrbitPitchDegrees = 0.0f;
@@ -97,33 +104,40 @@ void GlCamera::setCameraViewTarget(const glm::vec3& cameraTarget)
 
 void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
 {
+	float aspectRatio;
+
 	switch (cameraIntrinsics->intrinsics_type)
 	{
 	case MONO_CAMERA_INTRINSICS:
 		{
 			const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->intrinsics.mono;
 
-			m_projectionMatrix =
-				glm::perspective(
-					degrees_to_radians((float)monoIntrinsics.vfov),
-					(float)(monoIntrinsics.pixel_width / monoIntrinsics.pixel_height),
-					(float)monoIntrinsics.znear,
-					(float)monoIntrinsics.zfar);
+			aspectRatio= (float)(monoIntrinsics.pixel_width / monoIntrinsics.pixel_height);
+			m_vFOVDegrees = (float)monoIntrinsics.vfov;
+			m_hFOVDegrees = m_vFOVDegrees * aspectRatio;
+			m_zNear = (float)monoIntrinsics.znear;
+			m_zFar = (float)monoIntrinsics.zfar;
 		} break;
 	case STEREO_CAMERA_INTRINSICS:
 		{
 			const MikanStereoIntrinsics& stereoIntrinsics = cameraIntrinsics->intrinsics.stereo;
 
-			m_projectionMatrix =
-				glm::perspective(
-					degrees_to_radians((float)stereoIntrinsics.vfov),
-					(float)(stereoIntrinsics.pixel_width / stereoIntrinsics.pixel_height),
-					(float)stereoIntrinsics.znear,
-					(float)stereoIntrinsics.zfar);
+			aspectRatio = (float)(stereoIntrinsics.pixel_width / stereoIntrinsics.pixel_height);
+			m_vFOVDegrees = (float)stereoIntrinsics.vfov;
+			m_hFOVDegrees = m_vFOVDegrees * aspectRatio;
+			m_zNear = (float)stereoIntrinsics.znear;
+			m_zFar = (float)stereoIntrinsics.zfar;
 		} break;
 	default:
 		break;
 	} 
+
+	m_projectionMatrix =
+		glm::perspective(
+			degrees_to_radians(m_vFOVDegrees),
+			aspectRatio,
+			m_zNear,
+			m_zFar);
 }
 
 void GlCamera::resetOrientation()
@@ -202,7 +216,7 @@ const glm::mat4 GlCamera::getCameraTransform() const
 
 void GlCamera::computeCameraRayThruPixel(
 	GlViewportConstPtr viewport,
-	const glm::vec2& viewportLocation,
+	const glm::vec2& viewportPixelPos,
 	glm::vec3& outRayOrigin,
 	glm::vec3& outRayDirection) const
 {
@@ -213,8 +227,8 @@ void GlCamera::computeCameraRayThruPixel(
 	// https://antongerdelan.net/opengl/raycasting.html
 	// Convert the pixel location into normalized device coordinates
 	const glm::vec3 ray_nds(
-		((2.f * viewportLocation.x) / viewportWidth) - 1.f,
-		1.f - ((2.f * viewportLocation.y) / viewportHeight),
+		((2.f * viewportPixelPos.x) / viewportWidth) - 1.f,
+		1.f - ((2.f * viewportPixelPos.y) / viewportHeight),
 		1.f);
 	
 	// Convert the nds ray into a 4d-clip space ray

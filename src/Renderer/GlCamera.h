@@ -16,6 +16,11 @@ public:
 	const glm::mat4& getViewMatrix() const { return m_viewMatrix; }
 	const glm::mat4 getViewProjectionMatrix() const { return m_projectionMatrix*m_viewMatrix; }
 
+	float getHorizontalFOVDegrees() const { return m_hFOVDegrees; }
+	float getVerticalFOVDegrees() const { return m_vFOVDegrees; }
+	float getZNear() const { return m_zNear; }
+	float getZFar() const { return m_zFar; }
+
 	const glm::vec3 getCameraPosition() const;
 	const glm::vec3 getCameraForward() const;
 	const glm::vec3 getCameraRight() const;
@@ -49,6 +54,10 @@ protected:
 	const float k_default_camera_z_far = 5000.f;
 	const float k_camera_min_zoom = 0.01f;
 
+	float m_hFOVDegrees;
+	float m_vFOVDegrees;
+	float m_zNear;
+	float m_zFar;
 	glm::mat4 m_projectionMatrix;
 	glm::mat4 m_viewMatrix;
 
