@@ -30,11 +30,14 @@ public:
 	void applyViewport() const;
 
 	GlCameraPtr getCurrentCamera() const;
+	int getCurrentCameraIndex() const;
 	GlCameraPtr addCamera();
 	int getCameraCount() const;
+	GlCameraPtr getCameraByIndex(int cameraIndex);
 	void setCurrentCamera(int cameraIndex);
 
-	bool getCursorViewportLocation(glm::vec2& outViewportLocation) const;
+	// Convert cursor pixel position from app window relative to viewport relative
+	bool getCursorViewportPixelPos(glm::vec2& outViewportLocation) const;
 
 	MulticastDelegate<void(const glm::vec3& rayOrigin, const glm::vec3& rayDir)> OnMouseRayChanged;
 	MulticastDelegate<void(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)> OnMouseRayButtonDown;

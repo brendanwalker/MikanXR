@@ -62,6 +62,11 @@ GlCameraPtr GlViewport::getCurrentCamera() const
 	return m_cameraPool[m_currentCameraIndex];
 }
 
+int GlViewport::getCurrentCameraIndex() const
+{
+	return m_currentCameraIndex;
+}
+
 GlCameraPtr GlViewport::addCamera()
 {
 	GlCameraPtr newCamera = std::make_shared<GlCamera>();
@@ -73,6 +78,16 @@ GlCameraPtr GlViewport::addCamera()
 int GlViewport::getCameraCount() const
 {
 	return (int)m_cameraPool.size();
+}
+
+GlCameraPtr GlViewport::getCameraByIndex(int cameraIndex)
+{
+	if (cameraIndex >= 0 && cameraIndex < getCameraCount())
+	{
+		return m_cameraPool[cameraIndex];
+	}
+
+	return nullptr;
 }
 
 void GlViewport::setCurrentCamera(int cameraIndex)
@@ -113,7 +128,7 @@ void GlViewport::unbindInput()
 	}
 }
 
-bool GlViewport::getCursorViewportLocation(glm::vec2& outViewportLocation) const
+bool GlViewport::getCursorViewportPixelPos(glm::vec2& outViewportLocation) const
 {
 	int mouse_x, mouse_y;
 	InputManager::getInstance()->getMouseScreenPosition(mouse_x, mouse_y);
@@ -125,8 +140,8 @@ bool GlViewport::getCursorViewportLocation(glm::vec2& outViewportLocation) const
 
 	if (mouse_x >= min_x && mouse_x <= max_x && mouse_y >= min_y && mouse_y <= max_y)
 	{
-		outViewportLocation.x= ((float)mouse_x - (float)min_x) / (float)(max_x - min_x);
-		outViewportLocation.y= ((float)mouse_y - (float)min_y) / (float)(max_y - min_y);
+		outViewportLocation.x= (float)mouse_x - (float)min_x;
+		outViewportLocation.y= (float)mouse_y - (float)min_y;
 		return true;
 	}
 
@@ -138,7 +153,7 @@ void GlViewport::onMouseMotion(int deltaX, int deltaY)
 	GlCameraPtr camera = getCurrentCamera();
 
 	glm::vec2 viewportPos;
-	if (camera && getCursorViewportLocation(viewportPos))
+	if (camera && getCursorViewportPixelPos(viewportPos))
 	{
 		glm::vec3 rayOrigin, rayDir;
 		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
@@ -162,7 +177,7 @@ void GlViewport::onMouseButtonDown(int button)
 	GlCameraPtr camera = getCurrentCamera();
 
 	glm::vec2 viewportPos;
-	if (camera && getCursorViewportLocation(viewportPos))
+	if (camera && getCursorViewportPixelPos(viewportPos))
 	{
 		glm::vec3 rayOrigin, rayDir;
 		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayOrigin);
@@ -183,7 +198,7 @@ void GlViewport::onMouseButtonUp(int button)
 	GlCameraPtr camera = getCurrentCamera();
 
 	glm::vec2 viewportPos;
-	if (camera && getCursorViewportLocation(viewportPos))
+	if (camera && getCursorViewportPixelPos(viewportPos))
 	{
 		glm::vec3 rayOrigin, rayDir;
 		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayOrigin);
