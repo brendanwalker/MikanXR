@@ -21,6 +21,9 @@ public:
 	MikanObject(MikanObjectSystemWeakPtr ownerSystemPtr);
 	~MikanObject();
 
+	void setName(const std::string& name) { m_name = name; }
+	const std::string& getName() const { return m_name; }
+
 	template<class t_component_type>
 	std::shared_ptr<t_component_type> addComponent()
 	{
@@ -97,6 +100,7 @@ public:
 	void dispose();
 
 protected:
+	std::string m_name;
 	MikanObjectSystemWeakPtr m_ownerObjectSystem;
 	SceneComponentWeakPtr m_rootSceneComponent;
 	std::vector<MikanComponentPtr> m_components;
