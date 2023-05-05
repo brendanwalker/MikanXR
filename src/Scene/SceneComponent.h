@@ -59,7 +59,7 @@ public:
 	MulticastDelegate<void(SceneComponentPtr sceneComponent)> OnTranformChaged;
 
 protected:
-	void propogateWorldTransformChange();
+	void propogateWorldTransformChange(bool bRebuildWorldTransform);
 
 	GlmTransform m_relativeTransform;
 	glm::mat4 m_worldTransform;

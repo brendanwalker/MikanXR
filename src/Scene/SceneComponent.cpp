@@ -70,7 +70,7 @@ void SceneComponent::detachFromParent(bool bUpdateChildWorldTransforms)
 	// Propagate world transform change to children (unless caller doesn't want us to)
 	if (bUpdateChildWorldTransforms)
 	{
-		propogateWorldTransformChange();
+		propogateWorldTransformChange(false);
 	}
 }
 
@@ -79,18 +79,7 @@ void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 	// Set the new relative transform directly
 	m_relativeTransform= newRelativeXform;
 
-	// Concat our transform to our parent's world transform
-	SceneComponentPtr parent = m_parentComponent.lock();
-	if (parent != nullptr)
-	{
-		m_worldTransform = glm_composite_xform(parent->getWorldTransform(), m_relativeTransform.getMat4());
-	}
-	else
-	{
-		m_worldTransform = m_relativeTransform.getMat4();
-	}
-
-	propogateWorldTransformChange();
+	propogateWorldTransformChange(true);
 }
 
 void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
@@ -108,11 +97,26 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	const glm::mat4 relativeXform= glm_composite_xform(invParentXform, m_worldTransform);
 	m_relativeTransform= GlmTransform(relativeXform);
 
-	propogateWorldTransformChange();
+	propogateWorldTransformChange(false);
 }
 
-void SceneComponent::propogateWorldTransformChange()
+void SceneComponent::propogateWorldTransformChange(bool bRebuildWorldTransform)
 {
+	// Recompute our world transform, if requested
+	if (bRebuildWorldTransform)
+	{
+		// Concat our transform to our parent's world transform
+		SceneComponentPtr parent = m_parentComponent.lock();
+		if (parent != nullptr)
+		{
+			m_worldTransform = glm_composite_xform(parent->getWorldTransform(), m_relativeTransform.getMat4());
+		}
+		else
+		{
+			m_worldTransform = m_relativeTransform.getMat4();
+		}
+	}
+
 	// Update the world transform on the attached IGlSceneRenderable
 	if (m_sceneRenderable != nullptr)
 	{
@@ -130,7 +134,7 @@ void SceneComponent::propogateWorldTransformChange()
 
 		if (childComponent != nullptr)
 		{
-			childComponent->propogateWorldTransformChange();
+			childComponent->propogateWorldTransformChange(true);
 		}
 	}
 }
