@@ -28,13 +28,7 @@ void GizmoTranslateComponent::init()
 	m_yAxisHandle= owner->getComponentOfTypeAndName<BoxColliderComponent>("yAxisTranslateHandle");
 	m_zAxisHandle= owner->getComponentOfTypeAndName<BoxColliderComponent>("zAxisTranslateHandle");
 
-	SelectionComponentPtr selectionComponentPtr= owner->getComponentOfType<SelectionComponent>();
-	selectionComponentPtr->OnInteractionRayOverlapEnter += MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
-	selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
-	selectionComponentPtr->OnInteractionGrab += MakeDelegate(this, &GizmoTranslateComponent::onInteractionGrab);
-	selectionComponentPtr->OnInteractionMove += MakeDelegate(this, &GizmoTranslateComponent::onInteractionMove);
-	selectionComponentPtr->OnInteractionRelease += MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
-	m_selectionComponent= selectionComponentPtr;
+	m_selectionComponent= owner->getComponentOfType<SelectionComponent>();
 
 	m_dragComponent.reset();
 	m_dragOrigin= glm::vec3(0.f);
@@ -42,26 +36,22 @@ void GizmoTranslateComponent::init()
 
 void GizmoTranslateComponent::dispose()
 {
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
-	selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
-	selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
-	selectionComponentPtr->OnInteractionGrab -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionGrab);
-	selectionComponentPtr->OnInteractionMove -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionMove);
-	selectionComponentPtr->OnInteractionRelease -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
+	setEnabled(false);
 
 	MikanComponent::dispose();
 }
 
 glm::vec3 GizmoTranslateComponent::getColliderColor(
 	BoxColliderComponentWeakPtr colliderPtr, 
-	const glm::vec3& defaultColor) const
+	const glm::vec3& defaultColor,
+	const glm::vec3& hilightColor) const
 {
 	if (colliderPtr.lock() == m_dragComponent.lock())
 		return Colors::Yellow;
 	else if (colliderPtr.lock() == m_hoverComponent.lock())
-		return Colors::LightGray;
+		return hilightColor;
 	else
-		return Colors::DarkGray;
+		return defaultColor;
 }
 
 static void drawTranslationBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
@@ -92,13 +82,13 @@ void GizmoTranslateComponent::customRender()
 {
 	if (m_bEnabled)
 	{
-		drawTranslationBoxHandle(m_centerHandle, getColliderColor(m_centerHandle, Colors::DarkGray));
-		drawTranslationBoxHandle(m_xyHandle, getColliderColor(m_xyHandle, Colors::DarkGray));
-		drawTranslationBoxHandle(m_xzHandle, getColliderColor(m_xzHandle, Colors::DarkGray));
-		drawTranslationBoxHandle(m_yzHandle, getColliderColor(m_yzHandle, Colors::DarkGray));
-		drawTranslationArrowHandle(m_centerHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red));
-		drawTranslationArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
-		drawTranslationArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
+		drawTranslationBoxHandle(m_centerHandle, getColliderColor(m_centerHandle, Colors::DarkGray, Colors::LightGray));
+		drawTranslationBoxHandle(m_xyHandle, getColliderColor(m_xyHandle, Colors::DarkGray, Colors::LightGray));
+		drawTranslationBoxHandle(m_xzHandle, getColliderColor(m_xzHandle, Colors::DarkGray, Colors::LightGray));
+		drawTranslationBoxHandle(m_yzHandle, getColliderColor(m_yzHandle, Colors::DarkGray, Colors::LightGray));
+		drawTranslationArrowHandle(m_centerHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red,  Colors::Pink));
+		drawTranslationArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green, Colors::LightGreen));
+		drawTranslationArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue));
 	}
 }
 
@@ -106,6 +96,25 @@ void GizmoTranslateComponent::setEnabled(bool bEnabled)
 {
 	if (m_bEnabled != bEnabled)
 	{
+		SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
+
+		if (bEnabled)
+		{
+			selectionComponentPtr->OnInteractionRayOverlapEnter += MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionGrab += MakeDelegate(this, &GizmoTranslateComponent::onInteractionGrab);
+			selectionComponentPtr->OnInteractionMove += MakeDelegate(this, &GizmoTranslateComponent::onInteractionMove);
+			selectionComponentPtr->OnInteractionRelease += MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
+		}
+		else
+		{
+			selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionGrab -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionGrab);
+			selectionComponentPtr->OnInteractionMove -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionMove);
+			selectionComponentPtr->OnInteractionRelease -= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
+		}
+
 		m_centerHandle.lock()->setEnabled(bEnabled);
 		m_xyHandle.lock()->setEnabled(bEnabled);
 		m_xzHandle.lock()->setEnabled(bEnabled);

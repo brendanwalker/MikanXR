@@ -27,13 +27,7 @@ void GizmoScaleComponent::init()
 	m_yAxisHandle = owner->getComponentOfTypeAndName<BoxColliderComponent>("yAxisScaleHandle");
 	m_zAxisHandle = owner->getComponentOfTypeAndName<BoxColliderComponent>("zAxisScaleHandle");
 
-	SelectionComponentPtr selectionComponentPtr = owner->getComponentOfType<SelectionComponent>();
-	selectionComponentPtr->OnInteractionRayOverlapEnter += MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
-	selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
-	selectionComponentPtr->OnInteractionGrab += MakeDelegate(this, &GizmoScaleComponent::onInteractionGrab);
-	selectionComponentPtr->OnInteractionMove += MakeDelegate(this, &GizmoScaleComponent::onInteractionMove);
-	selectionComponentPtr->OnInteractionRelease += MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
-	m_selectionComponent = selectionComponentPtr;
+	m_selectionComponent = owner->getComponentOfType<SelectionComponent>();
 
 	m_dragComponent.reset();
 	m_dragOrigin = glm::vec3(0.f);
@@ -41,13 +35,7 @@ void GizmoScaleComponent::init()
 
 void GizmoScaleComponent::dispose()
 {
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
-	selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
-	selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
-	selectionComponentPtr->OnInteractionGrab -= MakeDelegate(this, &GizmoScaleComponent::onInteractionGrab);
-	selectionComponentPtr->OnInteractionMove -= MakeDelegate(this, &GizmoScaleComponent::onInteractionMove);
-	selectionComponentPtr->OnInteractionRelease -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
-
+	setEnabled(false);
 	MikanComponent::dispose();
 }
 
@@ -103,6 +91,25 @@ void GizmoScaleComponent::setEnabled(bool bEnabled)
 {
 	if (m_bEnabled != bEnabled)
 	{
+		SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
+
+		if (bEnabled)
+		{
+			selectionComponentPtr->OnInteractionRayOverlapEnter += MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionGrab += MakeDelegate(this, &GizmoScaleComponent::onInteractionGrab);
+			selectionComponentPtr->OnInteractionMove += MakeDelegate(this, &GizmoScaleComponent::onInteractionMove);
+			selectionComponentPtr->OnInteractionRelease += MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
+		}
+		else
+		{
+			selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionGrab -= MakeDelegate(this, &GizmoScaleComponent::onInteractionGrab);
+			selectionComponentPtr->OnInteractionMove -= MakeDelegate(this, &GizmoScaleComponent::onInteractionMove);
+			selectionComponentPtr->OnInteractionRelease -= MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
+		}
+
 		m_centerHandle.lock()->setEnabled(bEnabled);
 		m_xAxisHandle.lock()->setEnabled(bEnabled);
 		m_yAxisHandle.lock()->setEnabled(bEnabled);

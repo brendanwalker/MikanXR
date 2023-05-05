@@ -20,7 +20,10 @@ public:
 	SinglecastDelegate<void(const glm::vec3& translation)> OnTranslationRequested;
 
 protected:
-	glm::vec3 getColliderColor(BoxColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor) const;
+	glm::vec3 getColliderColor(
+		BoxColliderComponentWeakPtr colliderPtr, 
+		const glm::vec3& defaultColor,
+		const glm::vec3& hilightColor) const;
 
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
