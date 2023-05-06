@@ -1,5 +1,6 @@
 // -- includes -----
 #include "AnchorObjectSystem.h"
+#include "EditorObjectSystem.h"
 #include "FastenerObjectSystem.h"
 #include "MathUtility.h"
 #include "ProfileConfig.h"
@@ -54,6 +55,7 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, outputFilePath("")
 {
 	anchorConfig= addChildConfig<AnchorObjectSystemConfig>("anchors");
+	editorConfig= addChildConfig<EditorObjectSystemConfig>("editor");
 	stencilConfig= addChildConfig<StencilObjectSystemConfig>("stencils");
 	fastenerConfig= addChildConfig<FastenerObjectSystemConfig>("fasteners");
 };
@@ -93,6 +95,9 @@ configuru::Config ProfileConfig::writeToJSON()
 
 	// Write the anchor system config
 	pt[anchorConfig->getConfigName()]= anchorConfig->writeToJSON();
+
+	// Write the editor system config
+	pt[editorConfig->getConfigName()] = editorConfig->writeToJSON();
 
 	// Write the stencil system config
 	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
@@ -146,6 +151,12 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(anchorConfig->getConfigName()))
 	{
 		anchorConfig->readFromJSON(pt[anchorConfig->getConfigName()]);
+	}
+
+	// Read the editor system config
+	if (pt.has_key(editorConfig->getConfigName()))
+	{
+		editorConfig->readFromJSON(pt[editorConfig->getConfigName()]);
 	}
 
 	// Read the stencil system config

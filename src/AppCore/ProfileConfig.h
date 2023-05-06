@@ -46,6 +46,7 @@ public:
 	std::filesystem::path outputFilePath;
 
 	AnchorObjectSystemConfigPtr anchorConfig;
+	EditorObjectSystemConfigPtr editorConfig;
 	FastenerObjectSystemConfigPtr fastenerConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 };

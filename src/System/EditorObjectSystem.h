@@ -2,8 +2,10 @@
 
 #include "MikanObjectSystem.h"
 #include "ColliderQuery.h"
+#include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "GizmoFwd.h"
+#include "ObjectSystemConfigFwd.h"
 #include "RendererFwd.h"
 #include "SceneFwd.h"
 
@@ -12,16 +14,35 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/quaternion_float.hpp"
 
+class EditorObjectSystemConfig : public CommonConfig
+{
+public:
+	EditorObjectSystemConfig(const std::string& configName)
+		: CommonConfig(configName)
+	{}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	float cameraSpeed= 1.f;
+};
+
 class EditorObjectSystem : public MikanObjectSystem
 {
 public:
+	static EditorObjectSystemPtr getSystem() { return s_editorObjectSystem.lock(); }
+
 	virtual void init() override;
 	virtual void dispose() override;
+
+	EditorObjectSystemConfigConstPtr getEditorSystemConfigConst() const;
+	EditorObjectSystemConfigPtr getEditorSystemConfig();
 
 	void bindViewport(GlViewportWeakPtr viewportWeakPtr);
 	void clearViewports();
 
 protected:
+
 	MikanScenePtr m_scene;
 	std::vector<GlViewportWeakPtr> m_viewports;
 	
@@ -61,4 +82,6 @@ protected:
 	SelectionComponentPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin, const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
+
+	static EditorObjectSystemWeakPtr s_editorObjectSystem;
 };

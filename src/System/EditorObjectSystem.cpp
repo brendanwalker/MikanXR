@@ -12,8 +12,29 @@
 #include "MathUtility.h"
 #include "MikanObject.h"
 #include "MikanScene.h"
+#include "ProfileConfig.h"
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
+
+// -- AnchorObjectSystemConfig -----
+configuru::Config EditorObjectSystemConfig::writeToJSON()
+{
+	configuru::Config pt = CommonConfig::writeToJSON();
+
+	pt["cameraSpeed"] = cameraSpeed;
+
+	return pt;
+}
+
+void EditorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	cameraSpeed = pt.get_or<float>("cameraSpeed", cameraSpeed);
+}
+
+// -- EditorObjectSystem -----
+EditorObjectSystemWeakPtr EditorObjectSystem::s_editorObjectSystem;
 
 void EditorObjectSystem::init()
 {
@@ -45,6 +66,8 @@ void EditorObjectSystem::init()
 	}
 
 	createTransformGizmo();
+
+	s_editorObjectSystem = std::static_pointer_cast<EditorObjectSystem>(shared_from_this());
 }
 
 void EditorObjectSystem::createTransformGizmo()
@@ -124,11 +147,23 @@ void EditorObjectSystem::createGizmoDiskCollider(
 
 void EditorObjectSystem::dispose()
 {
+	s_editorObjectSystem.reset();
+
 	m_gizmoObjectWeakPtr.reset();
 	m_gizmoComponentWeakPtr.reset();
 	m_scene= nullptr;
 
 	MikanObjectSystem::dispose();
+}
+
+EditorObjectSystemConfigConstPtr EditorObjectSystem::getEditorSystemConfigConst() const
+{
+	return App::getInstance()->getProfileConfig()->editorConfig;
+}
+
+EditorObjectSystemConfigPtr EditorObjectSystem::getEditorSystemConfig()
+{
+	return std::const_pointer_cast<EditorObjectSystemConfig>(getEditorSystemConfigConst());
 }
 
 void EditorObjectSystem::bindViewport(GlViewportWeakPtr viewportWeakPtr)
