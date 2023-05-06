@@ -74,24 +74,44 @@ glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& posi
 	return transform;
 }
 
-glm::vec3 glm_mat4_forward(const glm::mat4& xform)
+glm::vec3 glm_mat4_get_x_axis(const glm::mat4& xform)
 {
 	return xform[0]; // x-axis
 }
 
-glm::vec3 glm_mat4_up(const glm::mat4& xform)
+glm::vec3 glm_mat4_get_y_axis(const glm::mat4& xform)
 {
 	return xform[1]; // y-axis
 }
 
-glm::vec3 glm_mat4_right(const glm::mat4& xform)
+glm::vec3 glm_mat4_get_z_axis(const glm::mat4& xform)
 {
 	return xform[2]; // z-axis
 }
 
-glm::vec3 glm_mat4_position(const glm::mat4& xform)
+glm::vec3 glm_mat4_get_position(const glm::mat4& xform)
 {
 	return xform[3]; // position
+}
+
+void glm_mat4_set_x_axis(glm::mat4& xform, const glm::vec3& v)
+{
+	xform[0]= glm::vec4(v, 0.f);  // x-axis
+}
+
+void glm_mat4_set_y_axis(glm::mat4& xform, const glm::vec3& v)
+{
+	xform[1]= glm::vec4(v, 0.f);  // y-axis
+}
+
+void glm_mat4_set_z_axis(glm::mat4& xform, const glm::vec3& v)
+{
+	xform[2]= glm::vec4(v, 0.f);  // z-axis
+}
+
+void glm_mat4_set_position(glm::mat4& xform, const glm::vec3& v)
+{
+	xform[3]= glm::vec4(v, 1.f); // position
 }
 
 void glm_xform_points(const glm::mat4& xform, glm::vec3* points, size_t point_count)

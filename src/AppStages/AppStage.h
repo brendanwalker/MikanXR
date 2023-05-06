@@ -35,7 +35,7 @@ public:
 	virtual void exit();
 	virtual void pause();
 	virtual void resume();
-	virtual void update();
+	virtual void update(float deltaSeconds);
 	virtual void render();
 	virtual void renderUI();
 

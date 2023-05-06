@@ -62,11 +62,11 @@ bool GizmoRotateComponent::getColliderRotationAxis(
 	if (dragColliderPtr)
 	{
 		const glm::mat4 centerXform = dragColliderPtr->getWorldTransform();
-		const glm::vec3 xAxis = glm_mat4_forward(centerXform);
-		const glm::vec3 yAxis = glm_mat4_up(centerXform);
-		const glm::vec3 zAxis = glm_mat4_right(centerXform);
+		const glm::vec3 xAxis = glm_mat4_get_x_axis(centerXform);
+		const glm::vec3 yAxis = glm_mat4_get_y_axis(centerXform);
+		const glm::vec3 zAxis = glm_mat4_get_z_axis(centerXform);
 
-		outOrigin = glm_mat4_position(centerXform);
+		outOrigin = glm_mat4_get_position(centerXform);
 
 		if (dragColliderPtr == m_xAxisHandle.lock())
 		{
@@ -181,7 +181,7 @@ void GizmoRotateComponent::onInteractionMove(const glm::vec3& rayOrigin, const g
 	glm::vec3 rotationAxis;
 	if (getColliderRotationAxis(m_dragComponent, rotationOrigin, rotationAxis))
 	{
-		const glm::vec3 dragPositiveDir = glm_mat4_right(m_dragBasis);
+		const glm::vec3 dragPositiveDir = glm_mat4_get_z_axis(m_dragBasis);
 
 		float int_time = 0.f;
 		glm::vec3 int_point = m_dragStart;

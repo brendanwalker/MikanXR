@@ -228,13 +228,9 @@ void AppStage_AlignmentCalibration::updateCamera()
 	switch (m_cameraSettingsModel->getViewpointMode())
 	{
 	case eAlignmentCalibrationViewpointMode::cameraViewpoint:
-		{
-			m_camera->setViewMatrix(glm::mat4(1.f));
-		}
-		break;
 	case eAlignmentCalibrationViewpointMode::vrViewpoint:
 		{
-			m_camera->recomputeModelViewMatrix();
+			// Nothing to do
 		}
 		break;
 	case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
@@ -252,13 +248,13 @@ void AppStage_AlignmentCalibration::updateCamera()
 				cameraPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckView);
 			}
 
-			m_camera->setCameraPose(cameraPose);
+			m_camera->setCameraTransform(cameraPose);
 		}
 		break;
 	}
 }
 
-void AppStage_AlignmentCalibration::update()
+void AppStage_AlignmentCalibration::update(float deltaSeconds)
 {
 	updateCamera();
 
@@ -451,14 +447,18 @@ void AppStage_AlignmentCalibration::onViewportModeChanged(eAlignmentCalibrationV
 	switch (newViewMode)
 	{
 		case eAlignmentCalibrationViewpointMode::cameraViewpoint:
-			m_camera->setIsLocked(true);
-			break;
+			{
+				m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+				m_camera->setCameraTransform(glm::mat4(1.f));
+			} break;
 		case eAlignmentCalibrationViewpointMode::vrViewpoint:
-			m_camera->setIsLocked(false);
-			break;
+			{
+				m_camera->setCameraMovementMode(eCameraMovementMode::fly);
+			} break;
 		case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
-			m_camera->setIsLocked(true);
-			break;
+			{
+				m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+			} break;
 		default:
 			break;
 	}

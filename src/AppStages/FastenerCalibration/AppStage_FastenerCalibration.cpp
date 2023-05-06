@@ -193,20 +193,20 @@ void AppStage_FastenerCalibration::updateCamera()
 			// Update the transform of the camera so that vr models align over the tracking puck
 			const glm::mat4 cameraPose = m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
 	
-			m_camera->setCameraPose(cameraPose);
+			m_camera->setCameraTransform(cameraPose);
 		}
 		break;
 	case eFastenerCalibrationViewpointMode::vrViewpoint:
 		{
-			m_camera->recomputeModelViewMatrix();
+			// Nothing to do
 		}
 		break;
 	}
 }
 
-void AppStage_FastenerCalibration::update()
+void AppStage_FastenerCalibration::update(float deltaSeconds)
 {
-	AppStage::update();
+	AppStage::update(deltaSeconds);
 
 	updateCamera();
 
@@ -467,10 +467,10 @@ void AppStage_FastenerCalibration::onViewportModeChanged(eFastenerCalibrationVie
 	switch (newViewMode)
 	{
 		case eFastenerCalibrationViewpointMode::mixedRealityViewpoint:
-			m_camera->setIsLocked(true);
+			m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
 			break;
 		case eFastenerCalibrationViewpointMode::vrViewpoint:
-			m_camera->setIsLocked(false);
+			m_camera->setCameraMovementMode(eCameraMovementMode::fly);
 			break;
 		default:
 			break;

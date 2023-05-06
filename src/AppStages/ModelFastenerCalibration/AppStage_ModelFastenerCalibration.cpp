@@ -165,11 +165,6 @@ void AppStage_ModelFastenerCalibration::exit()
 	AppStage::exit();
 }
 
-void AppStage_ModelFastenerCalibration::updateCamera()
-{
-	getFirstViewport()->getCurrentCamera()->recomputeModelViewMatrix();
-}
-
 void AppStage_ModelFastenerCalibration::updateClosestModelVertex()
 {
 	int mouseScreenX = 0, mouseScreenY;
@@ -208,11 +203,9 @@ void AppStage_ModelFastenerCalibration::updateClosestModelVertex()
 	}
 }
 
-void AppStage_ModelFastenerCalibration::update()
+void AppStage_ModelFastenerCalibration::update(float deltaSeconds)
 {
-	AppStage::update();
-
-	updateCamera();
+	AppStage::update(deltaSeconds);
 
 	const eModelFastenerCalibrationMenuState currentMenuState= m_calibrationModel->getMenuState();
 	eModelFastenerCalibrationMenuState nextMenuState= currentMenuState;

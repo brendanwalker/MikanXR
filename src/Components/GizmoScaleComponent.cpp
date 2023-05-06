@@ -1,5 +1,6 @@
 #pragma once
 
+#include "App.h"
 #include "BoxColliderComponent.h"
 #include "Colors.h"
 #include "GizmoScaleComponent.h"
@@ -7,6 +8,7 @@
 #include "SelectionComponent.h"
 #include "MathGLM.h"
 #include "MikanObject.h"
+#include "ProfileConfig.h"
 
 #include "SDL_mouse.h"
 
@@ -71,8 +73,8 @@ static void drawScaleArrowHandle(
 	drawTransformedBox(axisBoxXform, axisBoxHalfExtents, color);
 
 	BoxColliderComponentPtr centerCollidePtr = centerColliderWeakPtr.lock();
-	const glm::vec3 origin = glm_mat4_position(centerCollidePtr->getWorldTransform());
-	const glm::vec3 axisBoxCenter = glm_mat4_position(axisBoxXform);
+	const glm::vec3 origin = glm_mat4_get_position(centerCollidePtr->getWorldTransform());
+	const glm::vec3 axisBoxCenter = glm_mat4_get_position(axisBoxXform);
 	drawSegment(glm::mat4(1.f), origin, axisBoxCenter, color);
 }
 
@@ -152,10 +154,10 @@ void GizmoScaleComponent::onInteractionMove(const glm::vec3& rayOrigin, const gl
 	ColliderComponentPtr centerColliderPtr = m_centerHandle.lock();
 
 	const glm::mat4 centerXform = centerColliderPtr->getWorldTransform();
-	const glm::vec3 origin = glm_mat4_position(centerXform);
-	const glm::vec3 xAxis = glm_mat4_forward(centerXform);
-	const glm::vec3 yAxis = glm_mat4_up(centerXform);
-	const glm::vec3 zAxis = glm_mat4_right(centerXform);
+	const glm::vec3 origin = glm_mat4_get_position(centerXform);
+	const glm::vec3 xAxis = glm_mat4_get_x_axis(centerXform);
+	const glm::vec3 yAxis = glm_mat4_get_y_axis(centerXform);
+	const glm::vec3 zAxis = glm_mat4_get_z_axis(centerXform);
 
 	float int_time = 0.f;
 	glm::vec3 int_point = m_dragOrigin;

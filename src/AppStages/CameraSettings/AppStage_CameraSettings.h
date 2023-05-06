@@ -20,7 +20,7 @@ public:
 	virtual void exit() override;
 	virtual void pause() override;
 	virtual void resume() override;
-	virtual void update() override;
+	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
 
 	virtual void onRmlClickEvent(const std::string& value);

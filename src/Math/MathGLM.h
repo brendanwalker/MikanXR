@@ -29,10 +29,17 @@ void glm_quat_to_euler_angles(
 	float& out_x_radians, float& out_y_radians, float& out_z_radians);
 glm::mat4 glm_composite_xform(const glm::mat4& first, const glm::mat4& second);
 glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& position);
-glm::vec3 glm_mat4_forward(const glm::mat4& xform);
-glm::vec3 glm_mat4_up(const glm::mat4& xform);
-glm::vec3 glm_mat4_right(const glm::mat4& xform);
-glm::vec3 glm_mat4_position(const glm::mat4& xform);
+
+glm::vec3 glm_mat4_get_x_axis(const glm::mat4& xform);
+glm::vec3 glm_mat4_get_y_axis(const glm::mat4& xform);
+glm::vec3 glm_mat4_get_z_axis(const glm::mat4& xform);
+glm::vec3 glm_mat4_get_position(const glm::mat4& xform);
+
+void glm_mat4_set_x_axis(glm::mat4& xform, const glm::vec3& v);
+void glm_mat4_set_y_axis(glm::mat4& xform, const glm::vec3& v);
+void glm_mat4_set_z_axis(glm::mat4& xform, const glm::vec3& v);
+void glm_mat4_set_position(glm::mat4& xform, const glm::vec3& v);
+
 void glm_xform_points(const glm::mat4& xform, glm::vec3* points, size_t point_count);
 void glm_xform_vectors(const glm::mat4& xform, glm::vec3* points, size_t point_count);
 bool glm_closest_point_on_ray_to_point(

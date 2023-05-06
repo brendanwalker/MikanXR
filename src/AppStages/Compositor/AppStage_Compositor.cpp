@@ -304,9 +304,9 @@ void AppStage_Compositor::resume()
 	m_compositiorLayersView->Show();
 }
 
-void AppStage_Compositor::update()
+void AppStage_Compositor::update(float deltaSeconds)
 {
-	AppStage::update();
+	AppStage::update(deltaSeconds);
 
 	// Update the camera pose for the currently active camera
 	updateCamera();
@@ -421,8 +421,12 @@ void AppStage_Compositor::setupCameras()
 			m_viewport->addCamera();
 		}
 
-		// Unlock every camera for input control except for the first one (the XR camera(
-		m_viewport->getCameraByIndex(cameraIndex)->setIsLocked(cameraIndex == 0);
+		// Use fly-cam input control for every camera except for the first one (the XR camera)
+		GlCameraPtr camera= m_viewport->getCameraByIndex(cameraIndex);
+		if (cameraIndex == 0)
+			camera->setCameraMovementMode(eCameraMovementMode::stationary);
+		else
+			camera->setCameraMovementMode(eCameraMovementMode::fly);
 	}
 	
 	// Default to the XR Camera view
@@ -477,16 +481,13 @@ void AppStage_Compositor::updateCamera()
 				{
 					GlCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
 
-					camera->setCameraPose(cameraXform);
+					camera->setCameraTransform(cameraXform);
 				}
 			}
 			break;
 		case eCompositorViewpointMode::vrViewpoint:
 			{
-				// Update the vr viewpoint camera pose
-				GlCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::vrViewpoint);
-
-				camera->recomputeModelViewMatrix();
+				// Nothing to do
 			}
 			break;
 	}
@@ -783,8 +784,8 @@ void AppStage_Compositor::onUpdateOriginEvent()
 			glm::mat4 anchorXform= devicePose;
 			if (m_profile->originVerticalAlignFlag)
 			{
-				const glm::vec3 deviceForward = glm_mat4_forward(devicePose);
-				const glm::vec3 devicePosition = glm_mat4_position(devicePose);
+				const glm::vec3 deviceForward = glm_mat4_get_x_axis(devicePose);
+				const glm::vec3 devicePosition = glm_mat4_get_position(devicePose);
 				const glm::quat yawOnlyOrientation = glm::quatLookAt(deviceForward, glm::vec3(0.f, 1.f, 0.f));
 
 				anchorXform = glm_mat4_from_pose(yawOnlyOrientation, devicePosition);

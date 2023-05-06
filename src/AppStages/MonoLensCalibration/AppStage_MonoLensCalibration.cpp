@@ -146,9 +146,9 @@ void AppStage_MonoLensCalibration::exit()
 	AppStage::exit();
 }
 
-void AppStage_MonoLensCalibration::update()
+void AppStage_MonoLensCalibration::update(float deltaSeconds)
 {
-	AppStage::update();
+	AppStage::update(deltaSeconds);
 
 	// Update data bindings on child models
 	m_calibrationModel->update();

@@ -97,9 +97,9 @@ void AppStage_CalibrationPatternSettings::exit()
 	AppStage::exit();
 }
 
-void AppStage_CalibrationPatternSettings::update()
+void AppStage_CalibrationPatternSettings::update(float deltaSeconds)
 {
-	AppStage::update();
+	AppStage::update(deltaSeconds);
 
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	bool bDirty= false;

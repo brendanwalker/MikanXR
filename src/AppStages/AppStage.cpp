@@ -179,13 +179,19 @@ void AppStage::resume()
 	}
 }
 
-void AppStage::update() 
+void AppStage::update(float deltaSeconds) 
 {
 	// Update the modal dialog on the top of the stack
 	ModalDialog* modalDialog= getCurrentModalDialog();
 	if (modalDialog != nullptr)
 	{
 		modalDialog->update();
+	}
+
+	// Process input in each viewport
+	for (GlViewportPtr viewport : m_viewports)
+	{
+		viewport->update(deltaSeconds);
 	}
 
 	if (getRmlContext() != nullptr)

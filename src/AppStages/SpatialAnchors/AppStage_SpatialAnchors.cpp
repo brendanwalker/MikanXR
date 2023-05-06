@@ -61,9 +61,9 @@ void AppStage_SpatialAnchors::enter()
 
 	// Setup orbit camera
 	m_camera = getFirstViewport()->getCurrentCamera();
-	m_camera->setCameraOrbitPitch(20.0f);
-	m_camera->setCameraOrbitYaw(45.0f);
-	m_camera->setCameraOrbitRadius(3.5f);
+	m_camera->setOrbitPitch(20.0f);
+	m_camera->setOrbitYaw(45.0f);
+	m_camera->setOrbitRadius(3.5f);
 
 	Rml::Context* context = getRmlContext();
 

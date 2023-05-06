@@ -11,7 +11,7 @@ public:
 
 	virtual void enter() override;
 	virtual void exit() override;
-	virtual void update() override;
+	virtual void update(float deltaSeconds) override;
 
 	virtual void onRmlClickEvent(const std::string& value) override;
 

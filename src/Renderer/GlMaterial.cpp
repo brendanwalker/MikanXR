@@ -390,7 +390,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 							case eUniformSemantic::cameraPosition:
 								if (camera != nullptr)
 								{
-									value= camera->getCameraPosition();
+									value= camera->getCameraPositionFromViewMatrix();
 									m_program->setVector3Uniform(uniformName, value);
 								}
 								else

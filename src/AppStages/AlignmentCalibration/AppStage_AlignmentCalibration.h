@@ -26,7 +26,7 @@ public:
 
 	virtual void enter() override;
 	virtual void exit() override;
-	virtual void update() override;
+	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
 
 protected:

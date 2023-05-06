@@ -1,8 +1,10 @@
 #include "App.h"
+#include "EditorObjectSystem.h"
 #include "GlViewport.h"
 #include "GlCommon.h"
 #include "GlCamera.h"
 #include "GlScene.h"
+#include "MathUtility.h"
 #include "Renderer.h"
 #include "Colors.h"
 #include "InputManager.h"
@@ -57,6 +59,48 @@ void GlViewport::applyViewport() const
 		m_viewportSize.x, m_viewportSize.y);
 }
 
+void GlViewport::update(float deltaSeconds)
+{
+	// Don't process input if the cursor isn't in the viewport
+	glm::vec2 viewportLocation;
+	if (!getCursorViewportPixelPos(viewportLocation))
+		return;
+
+	GlCameraPtr camera= getCurrentCamera();
+	if (!camera)
+		return;
+
+	if (camera->getCameraMovementMode() == fly)
+	{
+		const float cameraSpeed = EditorObjectSystem::getSystem()->getEditorSystemConfig()->cameraSpeed;
+		const float moveDelta = cameraSpeed * deltaSeconds;
+
+		if (m_isLeftPressed || m_isRightPressed)
+		{
+			const float leftDelta = (m_isLeftPressed) ? -moveDelta : 0.f;
+			const float rightDelta = (m_isRightPressed) ? moveDelta : 0.f;
+
+			camera->adjustFlyRight(leftDelta + rightDelta);
+		}
+
+		if (m_isForwardPressed || m_isBackwardPressed)
+		{
+			const float forwardDelta = (m_isForwardPressed) ? moveDelta : 0.f;
+			const float backwardDelta = (m_isBackwardPressed) ? -moveDelta : 0.f;
+
+			camera->adjustFlyForward(forwardDelta + backwardDelta);
+		}
+
+		if (m_isUpPressed || m_isDownPressed)
+		{
+			const float upDelta = (m_isUpPressed) ? moveDelta : 0.f;
+			const float downDelta = (m_isDownPressed) ? -moveDelta : 0.f;
+
+			camera->adjustFlyUp(upDelta + downDelta);
+		}
+	}
+}
+
 GlCameraPtr GlViewport::getCurrentCamera() const
 {
 	return m_cameraPool[m_currentCameraIndex];
@@ -102,12 +146,40 @@ void GlViewport::bindInput()
 {
 	if (!m_bIsInputBound)
 	{
-		EventBindingSet* bindingSet = InputManager::getInstance()->getCurrentEventBindingSet();
+		InputManager* inputManager= InputManager::getInstance();
+		EventBindingSet* bindingSet = inputManager->getCurrentEventBindingSet();
 
-		bindingSet->OnMouseButtonPressedEvent += MakeDelegate(this, &GlViewport::onMouseButtonDown);
-		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &GlViewport::onMouseButtonUp);
+		bindingSet->OnMouseButtonPressedEvent += MakeDelegate(this, &GlViewport::onMouseButtonPressed);
+		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &GlViewport::onMouseButtonReleased);
 		bindingSet->OnMouseMotionEvent += MakeDelegate(this, &GlViewport::onMouseMotion);
 		bindingSet->OnMouseWheelScrolledEvent += MakeDelegate(this, &GlViewport::onMouseWheel);
+
+		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyPressed += 
+			MakeDelegate(this, &GlViewport::onLeftButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyReleased += 
+			MakeDelegate(this, &GlViewport::onLeftButtonReleased);
+		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyPressed += 
+			MakeDelegate(this, &GlViewport::onRightButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyReleased += 
+			MakeDelegate(this, &GlViewport::onRightButtonReleased);
+
+		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed +=
+			MakeDelegate(this, &GlViewport::onForwardButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyReleased +=
+			MakeDelegate(this, &GlViewport::onForwardButtonReleased);
+		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyPressed +=
+			MakeDelegate(this, &GlViewport::onBackwardButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyReleased +=
+			MakeDelegate(this, &GlViewport::onBackwardButtonReleased);
+
+		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed +=
+			MakeDelegate(this, &GlViewport::onUpButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyReleased +=
+			MakeDelegate(this, &GlViewport::onUpButtonReleased);
+		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyPressed +=
+			MakeDelegate(this, &GlViewport::onDownButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyReleased +=
+			MakeDelegate(this, &GlViewport::onDownButtonReleased);
 
 		m_bIsInputBound = true;
 	}
@@ -117,12 +189,40 @@ void GlViewport::unbindInput()
 {
 	if (m_bIsInputBound)
 	{
-		EventBindingSet* bindingSet = InputManager::getInstance()->getCurrentEventBindingSet();
+		InputManager* inputManager = InputManager::getInstance();
+		EventBindingSet* bindingSet = inputManager->getCurrentEventBindingSet();
 
-		bindingSet->OnMouseButtonPressedEvent -= MakeDelegate(this, &GlViewport::onMouseButtonDown);
-		bindingSet->OnMouseButtonReleasedEvent -= MakeDelegate(this, &GlViewport::onMouseButtonUp);
+		bindingSet->OnMouseButtonPressedEvent -= MakeDelegate(this, &GlViewport::onMouseButtonPressed);
+		bindingSet->OnMouseButtonReleasedEvent -= MakeDelegate(this, &GlViewport::onMouseButtonReleased);
 		bindingSet->OnMouseMotionEvent -= MakeDelegate(this, &GlViewport::onMouseMotion);
 		bindingSet->OnMouseWheelScrolledEvent -= MakeDelegate(this, &GlViewport::onMouseWheel);
+
+		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyPressed -=
+			MakeDelegate(this, &GlViewport::onLeftButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyReleased -=
+			MakeDelegate(this, &GlViewport::onLeftButtonReleased);
+		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyPressed -=
+			MakeDelegate(this, &GlViewport::onRightButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyReleased -=
+			MakeDelegate(this, &GlViewport::onRightButtonReleased);
+
+		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed -=
+			MakeDelegate(this, &GlViewport::onForwardButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyReleased -=
+			MakeDelegate(this, &GlViewport::onForwardButtonReleased);
+		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyPressed -=
+			MakeDelegate(this, &GlViewport::onBackwardButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyReleased -=
+			MakeDelegate(this, &GlViewport::onBackwardButtonReleased);
+
+		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed -=
+			MakeDelegate(this, &GlViewport::onUpButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyReleased -=
+			MakeDelegate(this, &GlViewport::onUpButtonReleased);
+		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyPressed -=
+			MakeDelegate(this, &GlViewport::onDownButtonPressed);
+		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyReleased -=
+			MakeDelegate(this, &GlViewport::onDownButtonReleased);
 
 		m_bIsInputBound = false;
 	}
@@ -167,12 +267,28 @@ void GlViewport::onMouseMotion(int deltaX, int deltaY)
 			float deltaYaw = -(float)deltaX * k_camera_mouse_pan_scalar;
 			float deltaPitch = (float)deltaY * k_camera_mouse_pan_scalar;
 
-			camera->adjustCameraOrbitAngles(deltaYaw, deltaPitch);
+			switch (camera->getCameraMovementMode())
+			{
+				case eCameraMovementMode::fly:
+					{
+						if (!is_nearly_zero(deltaYaw))
+							camera->adjustFlyYaw(deltaYaw);
+
+						if (!is_nearly_zero(deltaPitch))
+							camera->adjustFlyPitch(deltaPitch);
+					} break;
+				case eCameraMovementMode::orbit:
+					{
+						camera->adjustOrbitAngles(deltaYaw, deltaPitch);
+					} break;
+				default:
+					break;
+			}
 		}
 	}
 }
 
-void GlViewport::onMouseButtonDown(int button)
+void GlViewport::onMouseButtonPressed(int button)
 {
 	GlCameraPtr camera = getCurrentCamera();
 
@@ -193,7 +309,7 @@ void GlViewport::onMouseButtonDown(int button)
 	}
 }
 
-void GlViewport::onMouseButtonUp(int button)
+void GlViewport::onMouseButtonReleased(int button)
 {
 	GlCameraPtr camera = getCurrentCamera();
 
@@ -221,6 +337,6 @@ void GlViewport::onMouseWheel(int scrollAmount)
 	GlCameraPtr camera = getCurrentCamera();
 	if (camera)
 	{
-		camera->adjustCameraOrbitRadius(deltaRadius);
+		camera->adjustOrbitRadius(deltaRadius);
 	}
 }

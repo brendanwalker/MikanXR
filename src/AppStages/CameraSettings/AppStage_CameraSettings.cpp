@@ -155,9 +155,9 @@ void AppStage_CameraSettings::stopVideoSource(VideoSourceViewPtr videoSource)
 	}
 }
 
-void AppStage_CameraSettings::update()
+void AppStage_CameraSettings::update(float deltaSeconds)
 {
-	AppStage::update();
+	AppStage::update(deltaSeconds);
 
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	VideoSourceViewPtr videoSource= m_videoSourceIterator->getCurrent();

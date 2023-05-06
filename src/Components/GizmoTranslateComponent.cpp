@@ -71,8 +71,8 @@ static void drawTranslationArrowHandle(
 	BoxColliderComponentPtr centerCollidePtr = centerColliderWeakPtr.lock();
 	BoxColliderComponentPtr axisCollidePtr = axisColliderWeakPtr.lock();
 
-	const glm::vec3 origin = glm_mat4_position(centerCollidePtr->getWorldTransform());
-	const glm::vec3 axisCenter = glm_mat4_position(axisCollidePtr->getWorldTransform());
+	const glm::vec3 origin = glm_mat4_get_position(centerCollidePtr->getWorldTransform());
+	const glm::vec3 axisCenter = glm_mat4_get_position(axisCollidePtr->getWorldTransform());
 	const glm::vec3 axisEnd= origin + (axisCenter - origin) * 2.f;
 
 	drawArrow(glm::mat4(1.f), origin, axisEnd, 0.05f, color);
@@ -86,9 +86,15 @@ void GizmoTranslateComponent::customRender()
 		drawTranslationBoxHandle(m_xyHandle, getColliderColor(m_xyHandle, Colors::DarkGray, Colors::LightGray));
 		drawTranslationBoxHandle(m_xzHandle, getColliderColor(m_xzHandle, Colors::DarkGray, Colors::LightGray));
 		drawTranslationBoxHandle(m_yzHandle, getColliderColor(m_yzHandle, Colors::DarkGray, Colors::LightGray));
+
 		drawTranslationArrowHandle(m_centerHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red,  Colors::Pink));
+		drawTranslationBoxHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::DarkGray, Colors::LightGray));
+
 		drawTranslationArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green, Colors::LightGreen));
+		drawTranslationBoxHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::DarkGray, Colors::LightGray));
+
 		drawTranslationArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue));
+		drawTranslationBoxHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::DarkGray, Colors::LightGray));
 	}
 }
 
@@ -148,10 +154,10 @@ void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, cons
 	ColliderComponentPtr centerColliderPtr= m_centerHandle.lock();
 
 	const glm::mat4 centerXform= centerColliderPtr->getWorldTransform();
-	const glm::vec3 origin= glm_mat4_position(centerXform);
-	const glm::vec3 xAxis= glm_mat4_forward(centerXform);
-	const glm::vec3 yAxis = glm_mat4_up(centerXform);
-	const glm::vec3 zAxis= glm_mat4_right(centerXform);
+	const glm::vec3 origin= glm_mat4_get_position(centerXform);
+	const glm::vec3 xAxis= glm_mat4_get_x_axis(centerXform);
+	const glm::vec3 yAxis = glm_mat4_get_y_axis(centerXform);
+	const glm::vec3 zAxis= glm_mat4_get_z_axis(centerXform);
 	
 	float int_time = 0.f;
 	glm::vec3 int_point= m_dragOrigin;

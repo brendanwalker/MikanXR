@@ -28,6 +28,7 @@ public:
 	void unbindInput();
 
 	void applyViewport() const;
+	void update(float deltaSeconds);
 
 	GlCameraPtr getCurrentCamera() const;
 	int getCurrentCameraIndex() const;
@@ -45,13 +46,34 @@ public:
 
 protected:
 	void onMouseMotion(int deltaX, int deltaY);
-	void onMouseButtonDown(int button);
-	void onMouseButtonUp(int button);
+	void onMouseButtonPressed(int button);
+	void onMouseButtonReleased(int button);
 	void onMouseWheel(int scrollAmount);
+
+	void onLeftButtonPressed() { m_isLeftPressed= true; }
+	void onLeftButtonReleased() { m_isLeftPressed= false; }
+	void onRightButtonPressed() { m_isRightPressed= true; }
+	void onRightButtonReleased() { m_isRightPressed= false; }
+
+	void onForwardButtonPressed() { m_isForwardPressed= true; }
+	void onForwardButtonReleased() { m_isForwardPressed= false; }
+	void onBackwardButtonPressed() { m_isBackwardPressed= true; }
+	void onBackwardButtonReleased() { m_isBackwardPressed= false; }
+
+	void onUpButtonPressed() { m_isUpPressed= true; }
+	void onUpButtonReleased() { m_isUpPressed= false; }
+	void onDownButtonPressed() { m_isDownPressed= true; }
+	void onDownButtonReleased() { m_isDownPressed= false; }
 
 private:
 	bool m_bIsInputBound= false;
 	bool m_isCameraRotateButtonPressed= false;
+	bool m_isLeftPressed= false;
+	bool m_isRightPressed= false;
+	bool m_isForwardPressed= false;
+	bool m_isBackwardPressed= false;
+	bool m_isUpPressed= false;
+	bool m_isDownPressed= false;
 
 	glm::i32vec2 m_windowSize;
 	glm::i32vec2 m_viewportOrigin;

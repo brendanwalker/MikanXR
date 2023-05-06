@@ -346,7 +346,7 @@ void App::update()
 	if (appStage != nullptr && appStage->getIsUpdateActive())
 	{
 		EASY_BLOCK("appStage Update");
-		appStage->update();
+		appStage->update(deltaSeconds);
 	}
 
 	// Update the UI layout and data models
