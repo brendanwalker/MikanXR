@@ -196,6 +196,8 @@ robocopy ..\..\..\freetype-windows-binaries-2.10.4\include include /s /e
 popd
 echo "Configuring RML project..."
 cmake -B Build -S . -DBUILD_SAMPLES=OFF -DBUILD_LUA_BINDINGS=ON
+echo "Building RML Debug config..."
+cmake --build Build --config Debug
 echo "Building RML Release config..."
 cmake --build Build --config Release
 popd

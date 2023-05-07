@@ -1,11 +1,22 @@
 @echo on
 
+pushd %~dp0\bindings
+call RebuildCSharpBindings.bat
+popd 
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error generating C# bindings"
+  goto failure
+)
+
 IF NOT EXIST build mkdir build
 pushd build
 
 echo "Rebuilding Mikan x64 Project files..."
 set DEPS_ROOT_PATH=%~dp0\deps
 set THIRDPARTY_ROOT_PATH=%~dp0\thirdparty
+set SWIG_DIR="%DEPS_ROOT_PATH%\swigwin-4.1.1\swig.exe"
+set SWIG_EXECUTABLE="%DEPS_ROOT_PATH%\swigwin-4.1.1\"
+
 cmake .. -G "Visual Studio 17 2022" -A x64 ^
 -DOpenCV_DIR=%DEPS_ROOT_PATH%\opencv\build ^
 -DOPENVR_ROOT_DIR=%THIRDPARTY_ROOT_PATH%\openvr ^
