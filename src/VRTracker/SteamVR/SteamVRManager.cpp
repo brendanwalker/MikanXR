@@ -12,6 +12,7 @@
 
 #define MAX_POSE_HISTORY_FRAMES 60
 const float SteamVRManager::k_reconnectTimeoutDuration = 1.f;
+const int SteamVRManager::k_maxReconnectAttempts = 5;
 
 struct DeviceSetPoseSample
 {
@@ -144,7 +145,7 @@ void SteamVRManager::update(float deltaTime)
 	EASY_FUNCTION();
 
 	vr::IVRSystem* vrSystem= vr::VRSystem();
-	if (vrSystem == nullptr)
+	if (vrSystem == nullptr && m_reconnectAttemptCount < k_maxReconnectAttempts)
 	{
 		m_reconnectTimeout -= deltaTime;
 
@@ -209,6 +210,9 @@ void SteamVRManager::shutdown()
 bool SteamVRManager::tryConnect()
 {
 	EASY_FUNCTION();
+
+	m_reconnectAttemptCount++;
+	MIKAN_LOG_INFO("SteamVRManager::startup") << "Connect attempt #" << m_reconnectAttemptCount;
 
 	vr::EVRInitError vrInitError = vr::VRInitError_None;
 	vr::IVRSystem* vrSystem = vr::VR_Init(&vrInitError, vr::EVRApplicationType::VRApplication_Overlay);
