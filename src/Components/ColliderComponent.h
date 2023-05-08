@@ -13,8 +13,11 @@ class ColliderComponent : public SceneComponent
 public:
 	ColliderComponent(MikanObjectWeakPtr owner);
 
-	inline bool getEnabled() { return m_bEnabled; }
+	inline bool getEnabled() const { return m_bEnabled; }
 	void setEnabled(bool bEnabled);
+
+	inline int getPriority() const { return m_priority; }
+	void setPriority(int priority) { m_priority= priority; }
 
 	virtual bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
@@ -22,4 +25,5 @@ public:
 
 protected:
 	bool m_bEnabled= true;
+	int m_priority= 0;
 };

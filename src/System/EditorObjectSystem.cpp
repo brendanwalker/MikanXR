@@ -126,6 +126,7 @@ void EditorObjectSystem::createGizmoBoxCollider(
 	colliderPtr->setRelativeTransform(GlmTransform(center));
 	colliderPtr->attachToComponent(gizmoObjectPtr->getRootComponent());
 	colliderPtr->setEnabled(false);
+	colliderPtr->setPriority(1);
 }
 
 void EditorObjectSystem::createGizmoDiskCollider(
@@ -143,6 +144,7 @@ void EditorObjectSystem::createGizmoDiskCollider(
 	colliderPtr->setRadius(radius);
 	colliderPtr->setName(name);
 	colliderPtr->setEnabled(false);
+	colliderPtr->setPriority(1);
 }
 
 void EditorObjectSystem::dispose()
@@ -239,15 +241,19 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 	SelectionComponentPtr newHoverComponentPtr =
 		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
 
-	if (newHoverComponentPtr && !oldHoverComponentPtr)
+	if (newHoverComponentPtr != oldHoverComponentPtr)
 	{
+		if (oldHoverComponentPtr)
+		{
+			oldHoverComponentPtr->notifyHoverExit(prevRaycastResult);
+		}
+
+		if (newHoverComponentPtr)
+		{
+			newHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
+		}
+
 		m_hoverComponentWeakPtr = newHoverComponentPtr;
-		newHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
-	}
-	else if (!newHoverComponentPtr && oldHoverComponentPtr)
-	{
-		oldHoverComponentPtr->notifyHoverExit(prevRaycastResult);
-		m_hoverComponentWeakPtr = SelectionComponentWeakPtr();
 	}
 
 	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
@@ -375,6 +381,7 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 	SelectionComponentPtr closestSelectionComponent;
 	
 	outRaycastResult.hitDistance= k_real_max;
+	outRaycastResult.hitPriority= 0;
 	outRaycastResult.hitLocation = glm::vec3();
 	outRaycastResult.hitNormal = glm::vec3();
 
@@ -388,7 +395,7 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 		ColliderRaycastHitResult result;
 
 		if (selectionComponentPtr->computeRayIntersection(request, result) && 
-			result.hitDistance < outRaycastResult.hitDistance)
+			(result.hitDistance < outRaycastResult.hitDistance || result.hitPriority > outRaycastResult.hitPriority))
 		{
 			closestSelectionComponent= selectionComponentPtr;
 			outRaycastResult= result;

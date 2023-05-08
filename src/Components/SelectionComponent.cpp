@@ -41,7 +41,9 @@ bool SelectionComponent::computeRayIntersection(
 			ColliderRaycastHitResult result;
 			if (colliderPtr->computeRayIntersection(request, result))
 			{
-				if (!bAnyHits || result.hitDistance < outResult.hitDistance)
+				if (!bAnyHits || 
+					result.hitDistance < outResult.hitDistance || 
+					result.hitPriority > outResult.hitPriority)
 				{
 					outResult = result;
 					bAnyHits = true;
