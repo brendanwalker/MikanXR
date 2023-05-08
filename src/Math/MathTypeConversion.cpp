@@ -280,7 +280,7 @@ cv::Matx33f MikanMatrix3d_to_cv_mat33f(const MikanMatrix3d& in)
 MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in)
 {
 	MikanMatrix3d out;
-	auto m = reinterpret_cast<double(*)[4][4]>(&out);
+	auto m = reinterpret_cast<double(*)[3][3]>(&out);
 
 	for (int row = 0; row < 3; ++row)
 	{
