@@ -36,9 +36,9 @@ public:
 
 	std::string anchorVRDevicePath;
 	std::vector<AnchorConfigPtr> spatialAnchorList;
-	MikanSpatialAnchorID nextAnchorId;
-	MikanSpatialAnchorID originAnchorId;
-	bool debugRenderAnchors;
+	MikanSpatialAnchorID nextAnchorId= 0;
+	MikanSpatialAnchorID originAnchorId= INVALID_MIKAN_ID;
+	bool debugRenderAnchors= false;
 };
 
 

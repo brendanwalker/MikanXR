@@ -34,9 +34,9 @@ public:
 	bool removeFastener(MikanSpatialFastenerID fastenerId);
 
 	std::vector<FastenerConfigPtr> spatialFastenerList;
-	MikanSpatialFastenerID nextFastenerId;
-	MikanSpatialFastenerID originFastenerId;
-	bool debugRenderFasteners;
+	MikanSpatialFastenerID nextFastenerId= 0;
+	MikanSpatialFastenerID originFastenerId= INVALID_MIKAN_ID;
+	bool debugRenderFasteners= false;
 };
 
 

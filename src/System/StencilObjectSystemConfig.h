@@ -37,6 +37,6 @@ public:
 	std::vector<QuadStencilConfigPtr> quadStencilList;
 	std::vector<BoxStencilConfigPtr> boxStencilList;
 	std::vector<ModelStencilConfigPtr> modelStencilList;
-	MikanStencilID nextStencilId;
-	bool debugRenderStencils;
+	MikanStencilID nextStencilId= 0;
+	bool debugRenderStencils= false;
 };
