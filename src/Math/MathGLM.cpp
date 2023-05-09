@@ -65,6 +65,12 @@ glm::mat4 glm_composite_xform(const glm::mat4& first, const glm::mat4& second)
 	return second * first;
 }
 
+glm::quat glm_composite_rotation(const glm::quat& first, const glm::quat& second)
+{
+	//http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/#how-do-i-cumulate-2-rotations-
+	return second * first;
+}
+
 glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& position)
 {
 	glm::mat4 rot = glm::mat4_cast(orientation);

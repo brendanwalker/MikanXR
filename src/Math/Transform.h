@@ -25,6 +25,10 @@ public:
 	}
 	void setMat4(const glm::mat4& mat4);
 
+	void appendScale(const glm::vec3& deltaScale);
+	void appendOrientation(const glm::quat& deltaRotation);
+	void appendPosition(const glm::vec3& deltaPosition);
+
 	const glm::vec3& getScale() const { return m_scale; }
 	const glm::quat& getOrientation() const { return m_orientation; }
 	const glm::vec3& getPosition() const { return m_position; }

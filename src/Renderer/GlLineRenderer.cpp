@@ -403,8 +403,8 @@ void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::
 	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
 
 	static const float k_segmentMaxLength= 0.01f;
-	static const float k_minAngleStep= k_real_quarter_pi;
-	const float angleStep= fmaxf(k_segmentMaxLength / radius, k_minAngleStep);
+	static const float k_maxAngleStep= k_real_quarter_pi;
+	const float angleStep= fminf(k_segmentMaxLength / radius, k_maxAngleStep);
 	
 	glm::vec3 prevPoint= glm::vec3(radius, 0.f, 0.f);
 	for (float angle= angleStep; angle < k_real_two_pi; angle+= angleStep)
@@ -428,8 +428,8 @@ void drawTransformedSpiralArc(
 	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
 
 	static const float k_segmentMaxLength = 0.01f;
-	static const float k_minAngleStep = k_real_quarter_pi;
-	const float angleStep = fmaxf(k_segmentMaxLength / radius, k_minAngleStep) * sgn(totalAngle);
+	static const float k_maxAngleStep = k_real_quarter_pi;
+	const float angleStep = fminf(k_segmentMaxLength / radius, k_maxAngleStep) * sgn(totalAngle);
 	const float radiusStep= radius * radiusFractionPerCircle * totalAngle / k_real_two_pi;
 	const int totalSteps= int(fabsf(totalAngle) / angleStep);
 

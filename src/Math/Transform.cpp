@@ -71,6 +71,24 @@ void GlmTransform::setMat4(const glm::mat4& mat4)
 	}
 }
 
+void GlmTransform::appendScale(const glm::vec3& deltaScale)
+{
+	m_scale+= deltaScale;
+	rebuildMat();
+}
+
+void GlmTransform::appendOrientation(const glm::quat& deltaRotation)
+{
+	m_orientation= glm_composite_rotation(m_orientation, deltaRotation);
+	rebuildMat();
+}
+
+void GlmTransform::appendPosition(const glm::vec3& deltaPosition)
+{
+	m_position+= deltaPosition;
+	rebuildMat();
+}
+
 void GlmTransform::rebuildMat()
 {
 	m_mat= glm::mat4_cast(m_orientation) * glm::scale(glm::mat4(1.f), m_scale);

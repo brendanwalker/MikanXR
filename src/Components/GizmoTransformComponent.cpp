@@ -28,12 +28,11 @@ void GizmoTransformComponent::init()
 
 void GizmoTransformComponent::bindInput()
 {
-	// Following Unity gizmo hotkey defaults
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed +=
+	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_t)->OnKeyPressed +=
 		MakeDelegate(this, &GizmoTransformComponent::selectTranslateMode);
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed +=
-		MakeDelegate(this, &GizmoTransformComponent::selectRotateMode);
 	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_r)->OnKeyPressed +=
+		MakeDelegate(this, &GizmoTransformComponent::selectRotateMode);
+	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_y)->OnKeyPressed +=
 		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
 }
 

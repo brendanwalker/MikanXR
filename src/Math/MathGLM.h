@@ -28,6 +28,7 @@ void glm_quat_to_euler_angles(
 	const glm::quat& orientation,
 	float& out_x_radians, float& out_y_radians, float& out_z_radians);
 glm::mat4 glm_composite_xform(const glm::mat4& first, const glm::mat4& second);
+glm::quat glm_composite_rotation(const glm::quat& first, const glm::quat& second);
 glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& position);
 
 glm::vec3 glm_mat4_get_x_axis(const glm::mat4& xform);

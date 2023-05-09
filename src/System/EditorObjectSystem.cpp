@@ -343,9 +343,9 @@ void EditorObjectSystem::onSelectionRotationRequested(const glm::quat& objectSpa
 {
 	// Rotate the gizmo in object space
 	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
-	GlmTransform relativeTransform = gizmoComponentPtr->getRelativeTransform();
-	relativeTransform.setOrientation(objectSpaceRotation);
-	gizmoComponentPtr->setRelativeTransform(relativeTransform);
+	GlmTransform newGizmoRelativeTransform = gizmoComponentPtr->getRelativeTransform();
+	newGizmoRelativeTransform.appendOrientation(objectSpaceRotation);
+	gizmoComponentPtr->setRelativeTransform(newGizmoRelativeTransform);
 
 	// Apply gizmo transform to gizmo's transform target
 	gizmoComponentPtr->applyTransformToTarget();
@@ -355,9 +355,9 @@ void EditorObjectSystem::onSelectionScaleRequested(const glm::vec3& objectSpaceS
 {
 	// Scale the gizmo in object space
 	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
-	GlmTransform relativeTransform = gizmoComponentPtr->getRelativeTransform();
-	relativeTransform.setScale(objectSpaceScale);
-	gizmoComponentPtr->setRelativeTransform(relativeTransform);
+	GlmTransform newGizmoRelativeTransform = gizmoComponentPtr->getRelativeTransform();
+	newGizmoRelativeTransform.appendScale(objectSpaceScale);
+	gizmoComponentPtr->setRelativeTransform(newGizmoRelativeTransform);
 
 	// Apply gizmo transform to gizmo's transform target
 	gizmoComponentPtr->applyTransformToTarget();

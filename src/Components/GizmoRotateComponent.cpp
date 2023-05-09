@@ -30,8 +30,10 @@ void GizmoRotateComponent::init()
 	m_selectionComponent = owner->getComponentOfType<SelectionComponent>();
 
 	m_dragComponent.reset();
-	m_dragBasis = glm::mat4(1.f);
-	m_dragStart = glm::vec3(0.f);
+	m_dragAngle = 0.f;
+	m_worldSpaceDragBasis = glm::mat4(1.f);
+	m_worldSpaceDragStart = glm::vec3(0.f);
+	m_objectSpaceRotationAxis = glm::vec3(0.f);
 }
 
 void GizmoRotateComponent::dispose()
@@ -54,8 +56,9 @@ glm::vec3 GizmoRotateComponent::getColliderColor(
 
 bool GizmoRotateComponent::getColliderRotationAxis(
 	ColliderComponentWeakPtr colliderWeakPtr,
-	glm::vec3& outOrigin,
-	glm::vec3& outAxis)
+	glm::vec3& outWorldSpaceOrigin,
+	glm::vec3& outWorldSpaceAxis,
+	glm::vec3& outObjectSpaceAxis)
 {
 	ColliderComponentPtr dragColliderPtr = colliderWeakPtr.lock();
 
@@ -66,21 +69,24 @@ bool GizmoRotateComponent::getColliderRotationAxis(
 		const glm::vec3 yAxis = glm_mat4_get_y_axis(centerXform);
 		const glm::vec3 zAxis = glm_mat4_get_z_axis(centerXform);
 
-		outOrigin = glm_mat4_get_position(centerXform);
+		outWorldSpaceOrigin = glm_mat4_get_position(centerXform);
 
 		if (dragColliderPtr == m_xAxisHandle.lock())
 		{
-			outAxis = xAxis;
+			outObjectSpaceAxis = glm::vec3(1.f, 0.f, 0.f);
+			outWorldSpaceAxis = xAxis;
 			return true;
 		}
 		else if (dragColliderPtr == m_yAxisHandle.lock())
 		{
-			outAxis = yAxis;
+			outObjectSpaceAxis = glm::vec3(0.f, 1.f, 0.f);
+			outWorldSpaceAxis = yAxis;
 			return true;
 		}
 		else if (dragColliderPtr == m_zAxisHandle.lock())
 		{
-			outAxis = zAxis;
+			outObjectSpaceAxis = glm::vec3(0.f, 0.f, 1.f);
+			outWorldSpaceAxis = zAxis;
 			return true;
 		}
 	}
@@ -112,7 +118,7 @@ void GizmoRotateComponent::customRender()
 			auto diskComponentPtr = std::static_pointer_cast<DiskColliderComponent>(dragComponentPtr);
 			const float radius = diskComponentPtr->getRadius();
 
-			drawTransformedSpiralArc(m_dragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow);
+			drawTransformedSpiralArc(m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow);
 		}
 	}
 }
@@ -159,41 +165,42 @@ void GizmoRotateComponent::onInteractionRayOverlapExit(const ColliderRaycastHitR
 
 void GizmoRotateComponent::onInteractionGrab(const ColliderRaycastHitResult& hitResult)
 {
-	glm::vec3 rotationOrigin;
-	glm::vec3 rotationAxis;
-	if (getColliderRotationAxis(hitResult.hitComponent, rotationOrigin, rotationAxis))
+	glm::vec3 worldSpaceRotationOrigin;
+	glm::vec3 worldSpaceRotationAxis;
+	if (getColliderRotationAxis(
+		hitResult.hitComponent, 
+		worldSpaceRotationOrigin, worldSpaceRotationAxis,
+		m_objectSpaceRotationAxis))
 	{
 		// Drag Basis is:
 		// * Centered at rotation origin
 		// * Looking at the drag start location (along +X)
 		// * Point up along the rotation axis (along +Y)
 		// * Positive drag angle along +Z
-		m_dragBasis= glm::lookAt(rotationOrigin, hitResult.hitLocation, rotationAxis);
+		m_worldSpaceDragBasis = glm::lookAt(worldSpaceRotationOrigin, hitResult.hitLocation, worldSpaceRotationAxis);
+		m_worldSpaceDragStart = hitResult.hitLocation;
+
 		m_dragComponent = hitResult.hitComponent;
-		m_dragStart= hitResult.hitLocation;
 		m_dragAngle= 0.f;
 	}
 }
 
 void GizmoRotateComponent::onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
-	glm::vec3 rotationOrigin;
-	glm::vec3 rotationAxis;
-	if (getColliderRotationAxis(m_dragComponent, rotationOrigin, rotationAxis))
+	if (m_dragComponent.lock() != nullptr)
 	{
-		const glm::vec3 dragPositiveDir = glm_mat4_get_z_axis(m_dragBasis);
-
-		float int_time = 0.f;
-		glm::vec3 int_point = m_dragStart;
+		glm::vec3 worldSpaceDragPosDir = glm_mat4_get_z_axis(m_worldSpaceDragBasis);
+		float dragRayTime = 0.f;
+		glm::vec3 dragRayPoint = m_worldSpaceDragStart;
 
 		if (glm_closest_point_on_ray_to_ray(
-			m_dragStart, dragPositiveDir,
+			m_worldSpaceDragStart, worldSpaceDragPosDir,
 			rayOrigin, rayDir,
-			int_time, int_point))
+			dragRayTime, dragRayPoint))
 		{
-			const float newDragAngle = int_time * k_dragAngleFactor;
+			const float newDragAngle = dragRayTime * k_dragAngleFactor;
 			const float dragAngleDelta = newDragAngle - m_dragAngle;
-			const glm::quat deltaRotation = glm::angleAxis(dragAngleDelta, rotationAxis);
+			const glm::quat deltaRotation = glm::angleAxis(dragAngleDelta, m_objectSpaceRotationAxis);
 
 			requestRotation(deltaRotation);
 			m_dragAngle = newDragAngle;
@@ -204,6 +211,10 @@ void GizmoRotateComponent::onInteractionMove(const glm::vec3& rayOrigin, const g
 void GizmoRotateComponent::onInteractionRelease()
 {
 	m_dragComponent.reset();
+	m_dragAngle = 0.f;
+	m_worldSpaceDragBasis = glm::mat4(1.f);
+	m_worldSpaceDragStart = glm::vec3(0.f);
+	m_objectSpaceRotationAxis = glm::vec3(0.f);
 }
 
 void GizmoRotateComponent::requestRotation(const glm::quat& objectSpaceRotation)
