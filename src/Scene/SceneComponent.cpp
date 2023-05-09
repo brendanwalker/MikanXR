@@ -100,6 +100,11 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	propogateWorldTransformChange(false);
 }
 
+const glm::vec3 SceneComponent::getWorldLocation() const
+{
+	return glm_mat4_get_position(m_worldTransform);
+}
+
 void SceneComponent::propogateWorldTransformChange(bool bRebuildWorldTransform)
 {
 	// Recompute our world transform, if requested

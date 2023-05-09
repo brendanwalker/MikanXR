@@ -38,6 +38,8 @@ public:
 		return m_worldTransform;
 	}
 
+	const glm::vec3 getWorldLocation() const;
+
 	inline IGlSceneRenderablePtr getGlSceneRenderable() const
 	{
 		return m_sceneRenderable;
