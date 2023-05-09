@@ -19,7 +19,8 @@ public:
 	GizmoTransformComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 	virtual void customRender() override;
-	virtual void dispose() override;
+
+	void bindInput();
 
 	inline eGizmoMode getGizmoMode() const { return m_gizmoMode; }
 	void setGizmoMode(eGizmoMode newMode);
@@ -27,9 +28,15 @@ public:
 	void selectRotateMode();
 	void selectScaleMode();
 
+	SceneComponentPtr getTransformTarget() const;
+	void setTransformTarget(SceneComponentPtr sceneComponentTarget);
+	void clearTransformTarget();
+	void applyTransformToTarget();
+
 protected:
 	eGizmoMode m_gizmoMode= eGizmoMode::none;
 	GizmoTranslateComponentWeakPtr m_translateComponent;
 	GizmoRotateComponentWeakPtr m_rotateComponent;
 	GizmoScaleComponentWeakPtr m_scaleComponent;
+	SceneComponentWeakPtr m_targetSceneComponent;
 };

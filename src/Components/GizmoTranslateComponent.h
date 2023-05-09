@@ -46,4 +46,5 @@ protected:
 	ColliderComponentWeakPtr m_hoverComponent;
 	ColliderComponentWeakPtr m_dragComponent;
 	glm::vec3 m_dragOrigin;
+	bool m_bValidDragOrigin= false;
 };

@@ -53,6 +53,9 @@ protected:
 	MikanObjectWeakPtr m_gizmoObjectWeakPtr;
 	GizmoTransformComponentWeakPtr m_gizmoComponentWeakPtr;
 
+	// App Events
+	void onAppStageEntered(class AppStage* appStage);
+
 	// Object System Events
 	void onObjectAdded(MikanObjectSystem& system, MikanObject& object);
 	void onObjectRemoved(MikanObjectSystem& system, MikanObject& object);

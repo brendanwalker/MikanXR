@@ -24,7 +24,10 @@ void GizmoTransformComponent::init()
 	m_translateComponent = owner->getComponentOfType<GizmoTranslateComponent>();
 	m_rotateComponent = owner->getComponentOfType<GizmoRotateComponent>();
 	m_scaleComponent = owner->getComponentOfType<GizmoScaleComponent>();
+}
 
+void GizmoTransformComponent::bindInput()
+{
 	// Following Unity gizmo hotkey defaults
 	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed +=
 		MakeDelegate(this, &GizmoTransformComponent::selectTranslateMode);
@@ -52,19 +55,6 @@ void GizmoTransformComponent::customRender()
 		scalePtr->customRender();
 		break;
 	}
-}
-
-void GizmoTransformComponent::dispose()
-{
-	// Clean up hot key bindings
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed -=
-		MakeDelegate(this, &GizmoTransformComponent::selectTranslateMode);
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed -=
-		MakeDelegate(this, &GizmoTransformComponent::selectRotateMode);
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_r)->OnKeyPressed -=
-		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
-
-	SceneComponent::dispose();
 }
 
 void GizmoTransformComponent::setGizmoMode(eGizmoMode newMode)
@@ -112,4 +102,47 @@ void GizmoTransformComponent::selectScaleMode()
 {
 	if (m_gizmoMode != eGizmoMode::none)
 		setGizmoMode(eGizmoMode::translate);
+}
+
+SceneComponentPtr GizmoTransformComponent::getTransformTarget() const
+{
+	return m_targetSceneComponent.lock();
+}
+
+void GizmoTransformComponent::setTransformTarget(SceneComponentPtr sceneComponentTarget)
+{
+	// Remember the new transform target
+	m_targetSceneComponent= sceneComponentTarget;
+
+	eGizmoMode oldGizmoMode = getGizmoMode();
+	eGizmoMode newGizmoMode = eGizmoMode::none;
+
+	// Default to a transform mode gizmo if the gizmo wasn't active before
+	if (oldGizmoMode != eGizmoMode::none)
+		newGizmoMode = oldGizmoMode;
+	else
+		newGizmoMode = eGizmoMode::translate;
+
+	// Update the desired gizmo state
+	setGizmoMode(newGizmoMode);
+
+	// Snap the gizmo to the target scene component
+	setWorldTransform(sceneComponentTarget->getWorldTransform());
+}
+
+void GizmoTransformComponent::clearTransformTarget()
+{
+	m_targetSceneComponent.reset();
+	setGizmoMode(eGizmoMode::none);
+	setWorldTransform(glm::mat4(1.f));
+}
+
+void GizmoTransformComponent::applyTransformToTarget()
+{
+	SceneComponentPtr sceneComponentTarget= m_targetSceneComponent.lock();
+
+	if (sceneComponentTarget)
+	{
+		sceneComponentTarget->setWorldTransform(getWorldTransform());
+	}
 }

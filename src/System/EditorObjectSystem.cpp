@@ -1,5 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "App.h"
+#include "Compositor/AppStage_Compositor.h"
 #include "BoxColliderComponent.h"
 #include "DiskColliderComponent.h"
 #include "EditorObjectSystem.h"
@@ -9,6 +10,7 @@
 #include "GizmoTranslateComponent.h"
 #include "GlViewport.h"
 #include "ObjectSystemManager.h"
+#include "MathGLM.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
 #include "MikanScene.h"
@@ -39,6 +41,8 @@ EditorObjectSystemWeakPtr EditorObjectSystem::s_editorObjectSystem;
 void EditorObjectSystem::init()
 {
 	MikanObjectSystem::init();
+
+	App::getInstance()->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
 
 	m_lastestRaycastResult= ColliderRaycastHitResult();
 	m_hoverComponentWeakPtr.reset();
@@ -196,6 +200,16 @@ void EditorObjectSystem::clearViewports()
 	m_viewports.clear();
 }
 
+// App Events
+void EditorObjectSystem::onAppStageEntered(class AppStage* appStage)
+{
+	if (appStage->getAppStageName() == AppStage_Compositor::APP_STAGE_NAME)
+	{
+		m_gizmoComponentWeakPtr.lock()->bindInput();
+	}
+}
+
+// Object System Events
 void EditorObjectSystem::onObjectAdded(MikanObjectSystem& system, MikanObject& object)
 {
 	m_scene->addMikanObject(object.shared_from_this());
@@ -276,16 +290,12 @@ void EditorObjectSystem::onSelectionChanged(
 	SelectionComponentPtr oldSelectedComponentPtr, 
 	SelectionComponentPtr newSelectedComponentPtr)
 {
-	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
-	eGizmoMode oldGizmoMode= gizmoComponentPtr->getGizmoMode();
-	eGizmoMode newGizmoMode= oldGizmoMode;
+	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
 
 	// Tell the old selection that it's getting unselected
 	if (oldSelectedComponentPtr)
 	{
 		oldSelectedComponentPtr->notifyUnselected();
-
-		newGizmoMode= eGizmoMode::none;
 	}
 
 	// Tell the new selection that it's getting selected
@@ -293,63 +303,52 @@ void EditorObjectSystem::onSelectionChanged(
 	{
 		newSelectedComponentPtr->notifySelected();
 
-		if (oldGizmoMode != eGizmoMode::none)
-			newGizmoMode= oldGizmoMode;
-		else
-			newGizmoMode= eGizmoMode::translate;
-
-		// Snap gizmo to the newly selected component
-		SceneComponentPtr selectedRootPtr= newSelectedComponentPtr->getOwnerObject()->getRootComponent();
-		if (selectedRootPtr)
+		// Is the component selected NOT the gizmo?
+		if (newSelectedComponentPtr->getOwnerObject() != m_gizmoObjectWeakPtr.lock())
 		{
-			gizmoComponentPtr->setWorldTransform(selectedRootPtr->getWorldTransform());
+			// Get the gizmo's current transform target
+			SceneComponentPtr oldGizmoTargetPtr= gizmoComponentPtr->getTransformTarget();
+
+			// Get the root scene component for the newly selected object
+			SceneComponentPtr newGizmoTargetPtr = newSelectedComponentPtr->getOwnerObject()->getRootComponent();
+
+			// Is the newly selected object not the one the transform gizmo is currently attached to?
+			if (newGizmoTargetPtr && oldGizmoTargetPtr != newGizmoTargetPtr)
+			{
+				// Snap gizmo to the newly selected component
+				gizmoComponentPtr->setTransformTarget(newGizmoTargetPtr);
+			}
 		}
 	}
-
-	// Update the desired gizmo state
-	gizmoComponentPtr->setGizmoMode(newGizmoMode);
+	else
+	{
+		gizmoComponentPtr->clearTransformTarget();
+	}
 }
 
 void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation)
 {
 	// Translate the gizmo in world space
 	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
-	const glm::mat4 oldGizmoXform= gizmoComponentPtr->getWorldTransform();
-	const glm::mat4 newGizmoXform= glm::translate(oldGizmoXform, worldSpaceTranslation);
+	glm::mat4 newGizmoXform = gizmoComponentPtr->getWorldTransform();
+	glm::vec3 newGizmoPosition = glm_mat4_get_position(newGizmoXform) + worldSpaceTranslation;
+	glm_mat4_set_position(newGizmoXform, newGizmoPosition);
 	gizmoComponentPtr->setWorldTransform(newGizmoXform);
 
-	// If we have a selected object, snap it to the gizmo transform
-	SelectionComponentPtr selectedComponentPtr= m_selectedComponentWeakPtr.lock();
-	if (selectedComponentPtr)
-	{
-		SceneComponentPtr selectedRootWeakPtr= selectedComponentPtr->getOwnerObject()->getRootComponent();
-		SceneComponentPtr selectedRootPtr= selectedRootWeakPtr;
-		if (selectedRootPtr)
-		{
-			selectedRootPtr->setWorldTransform(newGizmoXform);
-		}
-	}
+	// Apply gizmo transform to gizmo's transform target
+	gizmoComponentPtr->applyTransformToTarget();
 }
 
 void EditorObjectSystem::onSelectionRotationRequested(const glm::quat& objectSpaceRotation)
 {
-	// Scale the gizmo in object space
+	// Rotate the gizmo in object space
 	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
 	GlmTransform relativeTransform = gizmoComponentPtr->getRelativeTransform();
 	relativeTransform.setOrientation(objectSpaceRotation);
 	gizmoComponentPtr->setRelativeTransform(relativeTransform);
 
-	// If we have a selected object, snap it to the gizmo transform
-	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
-	if (selectedComponentPtr)
-	{
-		SceneComponentPtr selectedRootWeakPtr = selectedComponentPtr->getOwnerObject()->getRootComponent();
-		SceneComponentPtr selectedRootPtr = selectedRootWeakPtr;
-		if (selectedRootPtr)
-		{
-			selectedRootPtr->setRelativeTransform(relativeTransform);
-		}
-	}
+	// Apply gizmo transform to gizmo's transform target
+	gizmoComponentPtr->applyTransformToTarget();
 }
 
 void EditorObjectSystem::onSelectionScaleRequested(const glm::vec3& objectSpaceScale)
@@ -360,17 +359,8 @@ void EditorObjectSystem::onSelectionScaleRequested(const glm::vec3& objectSpaceS
 	relativeTransform.setScale(objectSpaceScale);
 	gizmoComponentPtr->setRelativeTransform(relativeTransform);
 
-	// If we have a selected object, snap it to the gizmo transform
-	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
-	if (selectedComponentPtr)
-	{
-		SceneComponentPtr selectedRootWeakPtr = selectedComponentPtr->getOwnerObject()->getRootComponent();
-		SceneComponentPtr selectedRootPtr = selectedRootWeakPtr;
-		if (selectedRootPtr)
-		{
-			selectedRootPtr->setRelativeTransform(relativeTransform);
-		}
-	}
+	// Apply gizmo transform to gizmo's transform target
+	gizmoComponentPtr->applyTransformToTarget();
 }
 
 SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(

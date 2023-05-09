@@ -144,91 +144,112 @@ void GizmoTranslateComponent::onInteractionRayOverlapExit(const ColliderRaycastH
 
 void GizmoTranslateComponent::onInteractionGrab(const ColliderRaycastHitResult& hitResult)
 {
+	ColliderComponentPtr dragColliderPtr = hitResult.hitComponent.lock();
+
 	m_dragComponent = hitResult.hitComponent;
-	m_dragOrigin= hitResult.hitLocation;
 }
 
 void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
-	ColliderComponentPtr dragColliderPtr= m_dragComponent.lock();
-	ColliderComponentPtr centerColliderPtr= m_centerHandle.lock();
+	ColliderComponentPtr dragColliderPtr = m_dragComponent.lock();
+	ColliderComponentPtr centerColliderPtr = m_centerHandle.lock();
 
-	const glm::mat4 centerXform= centerColliderPtr->getWorldTransform();
-	const glm::vec3 origin= glm_mat4_get_position(centerXform);
-	const glm::vec3 xAxis= glm_mat4_get_x_axis(centerXform);
+	const glm::mat4 centerXform = centerColliderPtr->getWorldTransform();
+	const glm::vec3 origin = glm_mat4_get_position(centerXform);
+	const glm::vec3 xAxis = glm_mat4_get_x_axis(centerXform);
 	const glm::vec3 yAxis = glm_mat4_get_y_axis(centerXform);
-	const glm::vec3 zAxis= glm_mat4_get_z_axis(centerXform);
-	
-	float int_time = 0.f;
-	glm::vec3 int_point= m_dragOrigin;
-	bool has_int= false;
+	const glm::vec3 zAxis = glm_mat4_get_z_axis(centerXform);
+
+	float closestTime = 0.f;
+	glm::vec3 closestPoint = rayOrigin;
+	bool hasClosestPoint = false;
 
 	// Center handle drag
 	if (dragColliderPtr == m_centerHandle.lock())
 	{
-		has_int= glm_closest_point_on_ray_to_point(
-			rayOrigin, rayDir, m_dragOrigin,
-			int_time, int_point);
+		if (m_bValidDragOrigin)
+		{
+			hasClosestPoint = glm_closest_point_on_ray_to_point(
+				rayOrigin, rayDir, m_dragOrigin,
+				closestTime, closestPoint);
+		}
+		else
+		{
+			closestPoint = dragColliderPtr->getWorldLocation();
+			hasClosestPoint = true;
+		}
 	}
 	// XY handle drag
 	else if (dragColliderPtr == m_xyHandle.lock())
-	{		
-		has_int= glm_intersect_plane_with_ray(
+	{
+		hasClosestPoint = glm_intersect_plane_with_ray(
 			origin, zAxis,
-			rayOrigin, rayDir, 
-			int_time, int_point);
+			rayOrigin, rayDir,
+			closestTime, closestPoint);
 	}
 	// XZ handle drag
 	else if (dragColliderPtr == m_xzHandle.lock())
 	{
-		has_int = glm_intersect_plane_with_ray(
+		hasClosestPoint = glm_intersect_plane_with_ray(
 			origin, yAxis,
 			rayOrigin, rayDir,
-			int_time, int_point);
+			closestTime, closestPoint);
 	}
 	// YZ handle drag
 	else if (dragColliderPtr == m_yzHandle.lock())
 	{
-		has_int = glm_intersect_plane_with_ray(
+		hasClosestPoint = glm_intersect_plane_with_ray(
 			origin, xAxis,
 			rayOrigin, rayDir,
-			int_time, int_point);
+			closestTime, closestPoint);
 	}
 	// X Axis drag
 	else if (dragColliderPtr == m_xAxisHandle.lock())
 	{
-		has_int = glm_closest_point_on_ray_to_ray(
-			rayOrigin, rayDir, 
-			origin, xAxis, 
-			int_time, int_point);
+		hasClosestPoint = glm_closest_point_on_ray_to_ray(
+			origin, xAxis,
+			rayOrigin, rayDir,
+			closestTime, closestPoint);
 	}
 	// Y Axis drag
 	else if (dragColliderPtr == m_yAxisHandle.lock())
 	{
-		has_int = glm_closest_point_on_ray_to_ray(
-			rayOrigin, rayDir,
+		hasClosestPoint = glm_closest_point_on_ray_to_ray(
 			origin, yAxis,
-			int_time, int_point);
+			rayOrigin, rayDir,
+			closestTime, closestPoint);
 	}
 	// Z Axis drag
 	else if (dragColliderPtr == m_zAxisHandle.lock())
 	{
-		has_int = glm_closest_point_on_ray_to_ray(
-			rayOrigin, rayDir,
+		hasClosestPoint = glm_closest_point_on_ray_to_ray(
 			origin, zAxis,
-			int_time, int_point);
+			rayOrigin, rayDir,
+			closestTime, closestPoint);
 	}
 
-	if (has_int)
+	if (hasClosestPoint)
 	{
-		const glm::vec3 translation = int_point - m_dragOrigin;
-		requestTranslation(translation);
+		if (m_bValidDragOrigin)
+		{
+			const glm::vec3 translation = closestPoint - m_dragOrigin;
+			m_dragOrigin = closestPoint;
+
+			requestTranslation(translation);
+		}
+		else
+		{
+			m_dragOrigin = closestPoint;
+			m_bValidDragOrigin = true;
+		}
 	}
 }
 
 void GizmoTranslateComponent::onInteractionRelease()
 {
 	m_dragComponent.reset();
+	m_dragOrigin= glm::vec3(0.f);
+	m_bValidDragOrigin= false;
 }
 
 void GizmoTranslateComponent::requestTranslation(const glm::vec3& worldSpaceTranslation)
