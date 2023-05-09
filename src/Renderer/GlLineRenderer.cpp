@@ -407,7 +407,7 @@ void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::
 	const float angleStep= fmaxf(k_segmentMaxLength / radius, k_minAngleStep);
 	
 	glm::vec3 prevPoint= glm::vec3(radius, 0.f, 0.f);
-	for (float angle= angleStep; angleStep < k_real_two_pi; angle+= angleStep)
+	for (float angle= angleStep; angle < k_real_two_pi; angle+= angleStep)
 	{
 		const glm::vec3 nextPoint= glm::vec3(cosf(angle), 0.f, sin(angle)) * radius;
 
