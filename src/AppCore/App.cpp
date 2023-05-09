@@ -317,10 +317,18 @@ void App::update()
 
 				// Enter the new app stage
 				pendingAppStageOp.appStage->enter();
+
+				// Notify any object systems that care about app stage transitions 
+				if (OnAppStageEntered)
+					OnAppStageEntered(pendingAppStageOp.appStage);
 			} break;
 		case AppStageOperation::exit:
 			{
 				EASY_BLOCK("appStage Exit");
+
+				// Notify any object systems that care about app stage transitions 
+				if (OnAppStageExited)
+					OnAppStageEntered(pendingAppStageOp.appStage);
 
 				// Exit the app stage we are leaving
 				pendingAppStageOp.appStage->exit();

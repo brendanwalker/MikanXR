@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "SDL_events.h"
@@ -81,6 +82,9 @@ public:
 			m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::exit });
 		}
 	}
+
+	MulticastDelegate<void(AppStage* appStage)> OnAppStageEntered;
+	MulticastDelegate<void(AppStage* appStage)> OnAppStageExited;
 
 protected:
 	bool startup(int argc, char** argv);
