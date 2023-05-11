@@ -156,9 +156,9 @@ void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, cons
 
 	const glm::mat4 centerXform = centerColliderPtr->getWorldTransform();
 	const glm::vec3 origin = glm_mat4_get_position(centerXform);
-	const glm::vec3 xAxis = glm_mat4_get_x_axis(centerXform);
-	const glm::vec3 yAxis = glm_mat4_get_y_axis(centerXform);
-	const glm::vec3 zAxis = glm_mat4_get_z_axis(centerXform);
+	const glm::vec3 xAxis = glm::normalize(glm_mat4_get_x_axis(centerXform));
+	const glm::vec3 yAxis = glm::normalize(glm_mat4_get_y_axis(centerXform));
+	const glm::vec3 zAxis = glm::normalize(glm_mat4_get_z_axis(centerXform));
 
 	float closestTime = 0.f;
 	glm::vec3 closestPoint = rayOrigin;
@@ -232,10 +232,11 @@ void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, cons
 	{
 		if (m_bValidDragOrigin)
 		{
-			const glm::vec3 translation = closestPoint - m_dragOrigin;
+			// Compute the world space drag delta
+			const glm::vec3 worldSpaceTranslation = closestPoint - m_dragOrigin;
 			m_dragOrigin = closestPoint;
 
-			requestTranslation(translation);
+			requestTranslation(worldSpaceTranslation);
 		}
 		else
 		{
