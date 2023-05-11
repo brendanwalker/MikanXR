@@ -1,5 +1,6 @@
 #include "Transform.h"
 
+#include "MathGLM.h"
 #include <glm/gtx/matrix_decompose.hpp>
 
 GlmTransform::GlmTransform()
@@ -77,13 +78,13 @@ void GlmTransform::appendScale(const glm::vec3& deltaScale)
 	rebuildMat();
 }
 
-void GlmTransform::appendOrientation(const glm::quat& deltaRotation)
+void GlmTransform::appendRotation(const glm::quat& deltaRotation)
 {
 	m_orientation= glm_composite_rotation(m_orientation, deltaRotation);
 	rebuildMat();
 }
 
-void GlmTransform::appendPosition(const glm::vec3& deltaPosition)
+void GlmTransform::appendTranslation(const glm::vec3& deltaPosition)
 {
 	m_position+= deltaPosition;
 	rebuildMat();
@@ -91,6 +92,9 @@ void GlmTransform::appendPosition(const glm::vec3& deltaPosition)
 
 void GlmTransform::rebuildMat()
 {
-	m_mat= glm::mat4_cast(m_orientation) * glm::scale(glm::mat4(1.f), m_scale);
-	m_mat= glm::translate(m_mat, m_position);
+	const glm::mat4 scale= glm::scale(glm::mat4(1.f), m_scale);
+	const glm::mat4 rotation= glm::mat4_cast(m_orientation);
+	const glm::mat4 translation= glm::translate(glm::mat4(1.f), m_position);
+
+	m_mat= glm_composite_xform(glm_composite_xform(scale, rotation), translation);
 }
