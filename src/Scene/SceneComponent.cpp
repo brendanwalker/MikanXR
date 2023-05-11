@@ -114,7 +114,7 @@ void SceneComponent::propogateWorldTransformChange(bool bRebuildWorldTransform)
 		SceneComponentPtr parent = m_parentComponent.lock();
 		if (parent != nullptr)
 		{
-			m_worldTransform = glm_composite_xform(parent->getWorldTransform(), m_relativeTransform.getMat4());
+			m_worldTransform = glm_composite_xform(m_relativeTransform.getMat4(), parent->getWorldTransform());
 		}
 		else
 		{
