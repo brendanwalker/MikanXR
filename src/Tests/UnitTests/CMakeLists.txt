@@ -8,6 +8,8 @@ file(GLOB UNIT_TEST_SRC
     "${ROOT_DIR}/src/Math/MathUtility.h"
     "${ROOT_DIR}/src/Math/MathGLM.cpp"    
     "${ROOT_DIR}/src/Math/MathUtility.cpp"
+    "${ROOT_DIR}/src/Math/Transform.h"
+    "${ROOT_DIR}/src/Math/Transform.cpp"
 )
 
 list(APPEND UNIT_TEST_INCL_DIRS

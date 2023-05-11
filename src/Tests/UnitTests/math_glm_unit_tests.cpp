@@ -5,6 +5,8 @@
 
 #include "MathGLM.h"
 #include "MathUtility.h"
+#include "Transform.h"
+
 #include "unit_test.h"
 
 //-- public interface -----
@@ -12,6 +14,7 @@ bool run_math_glm_unit_tests()
 {
 	UNIT_TEST_MODULE_BEGIN("math_glm")
 		UNIT_TEST_MODULE_CALL_TEST(math_glm_test_intersect_obb_with_ray);
+		UNIT_TEST_MODULE_CALL_TEST(math_glm_test_mat4_composite);
 	UNIT_TEST_MODULE_END()
 }
 
@@ -191,5 +194,29 @@ bool math_glm_test_intersect_obb_with_ray()
 		assert(success);
 	}
 	
+	UNIT_TEST_COMPLETE()
+}
+
+bool math_glm_test_mat4_composite()
+{
+	UNIT_TEST_BEGIN("mat4 composite")
+
+	GlmTransform parentTransform(glm::vec3(0.f, 0.f, 0.f), glm::angleAxis(k_real_half_pi, glm::vec3(0.f, 0.f, 1.f)));
+	GlmTransform childTransform(glm::vec3(1.f, 0.f, 0.f));
+	glm::mat4 compositeTransform = glm_composite_xform(childTransform.getMat4(), parentTransform.getMat4());
+	glm::vec3 x_axis= glm_mat4_get_x_axis(compositeTransform);
+	glm::vec3 y_axis= glm_mat4_get_y_axis(compositeTransform);
+	glm::vec3 z_axis= glm_mat4_get_z_axis(compositeTransform);
+	glm::vec3 position= glm_mat4_get_position(compositeTransform);
+
+	success = glm_vec3_is_nearly_equal(position, glm::vec3(0.f, 1.f, 0.f), k_normal_epsilon);
+	assert(success);
+	success = glm_vec3_is_nearly_equal(x_axis, glm::vec3(0.f, 1.f, 0.f), k_normal_epsilon);
+	assert(success);
+	success = glm_vec3_is_nearly_equal(y_axis, glm::vec3(-1.f, 0.f, 0.f), k_normal_epsilon);
+	assert(success);
+	success = glm_vec3_is_nearly_equal(z_axis, glm::vec3(0.f, 0.f, 1.f), k_normal_epsilon);
+	assert(success);
+
 	UNIT_TEST_COMPLETE()
 }
