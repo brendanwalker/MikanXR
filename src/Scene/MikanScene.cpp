@@ -100,6 +100,7 @@ void MikanScene::removeMikanObject(MikanObjectWeakPtr objectWeakPtr)
 		}
 
 		m_objects.erase(it);
+		break;
 	}
 }
 
