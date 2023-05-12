@@ -25,8 +25,7 @@ protected:
 	bool getColliderRotationAxis(
 		ColliderComponentWeakPtr colliderWeakPtr,
 		glm::vec3& outWorldSpaceOrigin,
-		glm::vec3& outWorldSpaceAxis,
-		glm::vec3& outObjectSpaceAxis);
+		glm::vec3& outWorldSpaceAxis);
 
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
@@ -34,7 +33,7 @@ protected:
 	void onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
 	void onInteractionRelease();
 
-	void requestRotation(const glm::quat& objectSpaceRotation);
+	void requestRotation(const glm::quat& worldSpaceRotation);
 
 	bool m_bEnabled= false;
 	DiskColliderComponentWeakPtr m_xAxisHandle;
@@ -46,6 +45,6 @@ protected:
 	ColliderComponentWeakPtr m_dragComponent;
 	glm::mat4 m_worldSpaceDragBasis;
 	glm::vec3 m_worldSpaceDragStart;
-	glm::vec3 m_objectSpaceRotationAxis;
+	glm::vec3 m_worldSpaceRotationAxis;
 	float m_dragAngle= 0.f;
 };

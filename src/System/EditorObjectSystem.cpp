@@ -339,13 +339,25 @@ void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& worldS
 	gizmoComponentPtr->applyTransformToTarget();
 }
 
-void EditorObjectSystem::onSelectionRotationRequested(const glm::quat& objectSpaceRotation)
+void EditorObjectSystem::onSelectionRotationRequested(const glm::quat& worldSpaceRotation)
 {
 	// Rotate the gizmo in object space
 	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
-	GlmTransform newGizmoRelativeTransform = gizmoComponentPtr->getRelativeTransform();
-	newGizmoRelativeTransform.appendRotation(objectSpaceRotation);
-	gizmoComponentPtr->setRelativeTransform(newGizmoRelativeTransform);
+	const glm::mat4 oldGizmoTransform = gizmoComponentPtr->getWorldTransform();
+
+	// Compute composite transform to apply world space rotation
+	const glm::vec3 gizmoPosition = glm_mat4_get_position(oldGizmoTransform);
+	const glm::mat4 undoTranslation = glm::translate(glm::mat4(1.f), -gizmoPosition);
+	const glm::mat4 rotation = glm::mat4_cast(worldSpaceRotation);
+	const glm::mat4 redoTranslation = glm::translate(glm::mat4(1.f), gizmoPosition);
+	const glm::mat4 applyTransform =
+		glm_composite_xform(glm_composite_xform(undoTranslation, rotation), redoTranslation);
+
+	// Compute new gizmo worldspace transform 
+	const glm::mat4 newGizmoTransform = glm_composite_xform(oldGizmoTransform, applyTransform);
+
+	// Apply new gizmo transform to gizmo
+	gizmoComponentPtr->setWorldTransform(newGizmoTransform);
 
 	// Apply gizmo transform to gizmo's transform target
 	gizmoComponentPtr->applyTransformToTarget();
