@@ -430,8 +430,8 @@ void drawTransformedSpiralArc(
 	static const float k_segmentMaxLength = 0.01f;
 	static const float k_maxAngleStep = k_real_quarter_pi;
 	const float angleStep = fminf(k_segmentMaxLength / radius, k_maxAngleStep) * sgn(totalAngle);
-	const float radiusStep= radius * radiusFractionPerCircle * totalAngle / k_real_two_pi;
-	const int totalSteps= int(fabsf(totalAngle) / angleStep);
+	const float radiusStep = -radius * radiusFractionPerCircle * fabsf(angleStep) / k_real_two_pi;
+	const int totalSteps= int(fabsf(totalAngle) / fabsf(angleStep));
 
 	float angle = angleStep; 
 	float spiralRadius = radius;
