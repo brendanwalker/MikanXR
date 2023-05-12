@@ -278,7 +278,7 @@ void App::update()
 
 	// Update the frame rate
 	const uint32_t now = SDL_GetTicks();
-	const float deltaSeconds= (float)(now - m_lastFrameTimestamp) / 1000.f;
+	const float deltaSeconds= fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
 	m_fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 	m_lastFrameTimestamp= now;
 
