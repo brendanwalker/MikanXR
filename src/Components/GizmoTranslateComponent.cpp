@@ -88,13 +88,13 @@ void GizmoTranslateComponent::customRender()
 		drawTranslationBoxHandle(m_yzHandle, getColliderColor(m_yzHandle, Colors::DarkGray, Colors::LightGray));
 
 		drawTranslationArrowHandle(m_centerHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red,  Colors::Pink));
-		drawTranslationBoxHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::DarkGray, Colors::LightGray));
+		//drawTranslationBoxHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::DarkGray, Colors::LightGray));
 
 		drawTranslationArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green, Colors::LightGreen));
-		drawTranslationBoxHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::DarkGray, Colors::LightGray));
+		//drawTranslationBoxHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::DarkGray, Colors::LightGray));
 
 		drawTranslationArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue));
-		drawTranslationBoxHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::DarkGray, Colors::LightGray));
+		//drawTranslationBoxHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::DarkGray, Colors::LightGray));
 	}
 }
 

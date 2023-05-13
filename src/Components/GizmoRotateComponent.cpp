@@ -51,7 +51,7 @@ glm::vec3 GizmoRotateComponent::getColliderColor(
 	else if (colliderPtr.lock() == m_hoverComponent.lock())
 		return Colors::LightGray;
 	else
-		return Colors::DarkGray;
+		return defaultColor;
 }
 
 bool GizmoRotateComponent::getColliderRotationAxis(

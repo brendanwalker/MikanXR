@@ -5,6 +5,7 @@
 #include "GizmoRotateComponent.h"
 #include "GizmoScaleComponent.h"
 #include "InputManager.h"
+#include "MathGLM.h"
 #include "MikanObject.h"
 
 #include "SDL_keycode.h"
@@ -21,9 +22,17 @@ void GizmoTransformComponent::init()
 
 	MikanObjectPtr owner= getOwnerObject();
 
-	m_translateComponent = owner->getComponentOfType<GizmoTranslateComponent>();
-	m_rotateComponent = owner->getComponentOfType<GizmoRotateComponent>();
-	m_scaleComponent = owner->getComponentOfType<GizmoScaleComponent>();
+	GizmoTranslateComponentPtr translateComponent = owner->getComponentOfType<GizmoTranslateComponent>();
+	GizmoRotateComponentPtr rotateComponent = owner->getComponentOfType<GizmoRotateComponent>();
+	GizmoScaleComponentPtr scaleComponent = owner->getComponentOfType<GizmoScaleComponent>();
+
+	translateComponent->OnTranslationRequested = MakeDelegate(this, &GizmoTransformComponent::onSelectionTranslationRequested);
+	rotateComponent->OnRotateRequested = MakeDelegate(this, &GizmoTransformComponent::onSelectionRotationRequested);
+	scaleComponent->OnScaleRequested = MakeDelegate(this, &GizmoTransformComponent::onSelectionScaleRequested);
+
+	m_translateComponent = translateComponent;
+	m_rotateComponent = rotateComponent;
+	m_scaleComponent = scaleComponent;
 }
 
 void GizmoTransformComponent::bindInput()
@@ -100,12 +109,56 @@ void GizmoTransformComponent::selectRotateMode()
 void GizmoTransformComponent::selectScaleMode()
 {
 	if (m_gizmoMode != eGizmoMode::none)
-		setGizmoMode(eGizmoMode::translate);
+		setGizmoMode(eGizmoMode::scale);
 }
 
 SceneComponentPtr GizmoTransformComponent::getTransformTarget() const
 {
 	return m_targetSceneComponent.lock();
+}
+
+void GizmoTransformComponent::onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation)
+{
+	// Translate the gizmo in world space
+	glm::mat4 newGizmoWorldTransform = this->getWorldTransform();
+	const glm::vec3 newGizmoPosition = glm_mat4_get_position(newGizmoWorldTransform) + worldSpaceTranslation;
+	glm_mat4_set_position(newGizmoWorldTransform, newGizmoPosition);
+	this->setWorldTransform(newGizmoWorldTransform);
+
+	// Apply gizmo transform to gizmo's transform target
+	applyTransformToTarget();
+}
+
+void GizmoTransformComponent::onSelectionRotationRequested(const glm::quat& worldSpaceRotation)
+{
+	// Rotate the gizmo in object space
+	const glm::mat4 oldGizmoTransform = this->getWorldTransform();
+
+	// Compute composite transform to apply world space rotation
+	const glm::vec3 gizmoPosition = glm_mat4_get_position(oldGizmoTransform);
+	const glm::mat4 undoTranslation = glm::translate(glm::mat4(1.f), -gizmoPosition);
+	const glm::mat4 rotation = glm::mat4_cast(worldSpaceRotation);
+	const glm::mat4 redoTranslation = glm::translate(glm::mat4(1.f), gizmoPosition);
+	const glm::mat4 applyTransform =
+		glm_composite_xform(glm_composite_xform(undoTranslation, rotation), redoTranslation);
+
+	// Compute new gizmo worldspace transform 
+	const glm::mat4 newGizmoTransform = glm_composite_xform(oldGizmoTransform, applyTransform);
+
+	// Apply new gizmo transform to gizmo
+	this->setWorldTransform(newGizmoTransform);
+
+	// Apply gizmo transform to gizmo's transform target
+	applyTransformToTarget();
+}
+
+void GizmoTransformComponent::onSelectionScaleRequested(const glm::vec3& objectSpaceScale)
+{
+	// Scale the gizmo in object space
+	m_targetScale+= objectSpaceScale;
+
+	// Apply gizmo transform to gizmo's transform target
+	applyTransformToTarget();
 }
 
 void GizmoTransformComponent::setTransformTarget(SceneComponentPtr sceneComponentTarget)
@@ -125,8 +178,26 @@ void GizmoTransformComponent::setTransformTarget(SceneComponentPtr sceneComponen
 	// Update the desired gizmo state
 	setGizmoMode(newGizmoMode);
 
+	// Extract scale from rotation&translation on target world transform
+	const glm::mat4 srtTransform = sceneComponentTarget->getWorldTransform();
+	const glm::vec3 xAxis = glm_mat4_get_x_axis(srtTransform);
+	const glm::vec3 yAxis = glm_mat4_get_y_axis(srtTransform);
+	const glm::vec3 zAxis = glm_mat4_get_z_axis(srtTransform);
+	const glm::vec3 position = glm_mat4_get_position(srtTransform);
+	const float xScale = glm::length(xAxis);
+	const float yScale = glm::length(yAxis);
+	const float zScale = glm::length(zAxis);
+	const glm::mat4 rtTransform = glm::mat4(
+		glm::vec4(xAxis / xScale, 0.f),
+		glm::vec4(yAxis / yScale, 0.f),
+		glm::vec4(zAxis / zScale, 0.f),
+		glm::vec4(position, 1.f));
+
 	// Snap the gizmo to the target scene component
-	setWorldTransform(sceneComponentTarget->getWorldTransform());
+	setWorldTransform(rtTransform);
+
+	// Store the 
+	m_targetScale= glm::vec3(xScale, yScale, zScale);
 }
 
 void GizmoTransformComponent::clearTransformTarget()
@@ -142,6 +213,18 @@ void GizmoTransformComponent::applyTransformToTarget()
 
 	if (sceneComponentTarget)
 	{
-		sceneComponentTarget->setWorldTransform(getWorldTransform());
+		// Apply scale back to rotation&translation on target world transform
+		const glm::mat4 rtTransform = getWorldTransform();
+		const glm::vec3 xAxis = glm_mat4_get_x_axis(rtTransform);
+		const glm::vec3 yAxis = glm_mat4_get_y_axis(rtTransform);
+		const glm::vec3 zAxis = glm_mat4_get_z_axis(rtTransform);
+		const glm::vec3 position = glm_mat4_get_position(rtTransform);
+		const glm::mat4 srtTransform = glm::mat4(
+			glm::vec4(xAxis * m_targetScale.x, 0.f),
+			glm::vec4(yAxis * m_targetScale.y, 0.f),
+			glm::vec4(zAxis * m_targetScale.z, 0.f),
+			glm::vec4(position, 1.f));
+
+		sceneComponentTarget->setWorldTransform(srtTransform);
 	}
 }

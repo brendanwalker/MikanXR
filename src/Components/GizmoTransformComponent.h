@@ -39,4 +39,10 @@ protected:
 	GizmoRotateComponentWeakPtr m_rotateComponent;
 	GizmoScaleComponentWeakPtr m_scaleComponent;
 	SceneComponentWeakPtr m_targetSceneComponent;
+
+	glm::vec3 m_targetScale;
+
+	void onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation);
+	void onSelectionRotationRequested(const glm::quat& worldSpaceRotation);
+	void onSelectionScaleRequested(const glm::vec3& objectSpaceScale);
 };

@@ -10,7 +10,6 @@
 #include "GizmoTranslateComponent.h"
 #include "GlViewport.h"
 #include "ObjectSystemManager.h"
-#include "MathGLM.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
 #include "MikanScene.h"
@@ -97,20 +96,17 @@ void EditorObjectSystem::createTransformGizmo()
 	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, W, W));
 	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(W, R/2.f, W));
 	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(W, W, R/2.f));
-	translateComponentPtr->OnTranslationRequested= MakeDelegate(this, &EditorObjectSystem::onSelectionTranslationRequested);
 
 	GizmoRotateComponentPtr rotateComponentPtr= gizmoObjectPtr->addComponent<GizmoRotateComponent>();
 	createGizmoDiskCollider(gizmoObjectPtr, "xAxisRotateHandle", glm::vec3(0.f), glm::vec3(1.f, 0.f, 0.f), R);
 	createGizmoDiskCollider(gizmoObjectPtr, "yAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f), R);
 	createGizmoDiskCollider(gizmoObjectPtr, "zAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), R);
-	rotateComponentPtr->OnRotateRequested= MakeDelegate(this, &EditorObjectSystem::onSelectionRotationRequested);
 
 	GizmoScaleComponentPtr scaleComponentPtr= gizmoObjectPtr->addComponent<GizmoScaleComponent>();
 	createGizmoBoxCollider(gizmoObjectPtr, "centerScaleHandle", glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.01f, 0.01f, 0.01f));
-	createGizmoBoxCollider(gizmoObjectPtr, "xAxisScaleHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, W, W));
-	createGizmoBoxCollider(gizmoObjectPtr, "yAxisScaleHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(W, R/2.f, W));
-	createGizmoBoxCollider(gizmoObjectPtr, "zAxisScaleHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(W, W, R/2.f));
-	scaleComponentPtr->OnScaleRequested= MakeDelegate(this, &EditorObjectSystem::onSelectionScaleRequested);
+	createGizmoBoxCollider(gizmoObjectPtr, "xAxisScaleHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(W, W, W));
+	createGizmoBoxCollider(gizmoObjectPtr, "yAxisScaleHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(W, W, W));
+	createGizmoBoxCollider(gizmoObjectPtr, "zAxisScaleHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(W, W, W));
 
 	gizmoObjectPtr->init();
 
@@ -324,55 +320,6 @@ void EditorObjectSystem::onSelectionChanged(
 	{
 		gizmoComponentPtr->clearTransformTarget();
 	}
-}
-
-void EditorObjectSystem::onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation)
-{
-	// Translate the gizmo in world space
-	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
-	glm::mat4 newGizmoWorldTransform = gizmoComponentPtr->getWorldTransform();
-	const glm::vec3 newGizmoPosition= glm_mat4_get_position(newGizmoWorldTransform) + worldSpaceTranslation;
-	glm_mat4_set_position(newGizmoWorldTransform, newGizmoPosition);
-	gizmoComponentPtr->setWorldTransform(newGizmoWorldTransform);
-
-	// Apply gizmo transform to gizmo's transform target
-	gizmoComponentPtr->applyTransformToTarget();
-}
-
-void EditorObjectSystem::onSelectionRotationRequested(const glm::quat& worldSpaceRotation)
-{
-	// Rotate the gizmo in object space
-	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
-	const glm::mat4 oldGizmoTransform = gizmoComponentPtr->getWorldTransform();
-
-	// Compute composite transform to apply world space rotation
-	const glm::vec3 gizmoPosition = glm_mat4_get_position(oldGizmoTransform);
-	const glm::mat4 undoTranslation = glm::translate(glm::mat4(1.f), -gizmoPosition);
-	const glm::mat4 rotation = glm::mat4_cast(worldSpaceRotation);
-	const glm::mat4 redoTranslation = glm::translate(glm::mat4(1.f), gizmoPosition);
-	const glm::mat4 applyTransform =
-		glm_composite_xform(glm_composite_xform(undoTranslation, rotation), redoTranslation);
-
-	// Compute new gizmo worldspace transform 
-	const glm::mat4 newGizmoTransform = glm_composite_xform(oldGizmoTransform, applyTransform);
-
-	// Apply new gizmo transform to gizmo
-	gizmoComponentPtr->setWorldTransform(newGizmoTransform);
-
-	// Apply gizmo transform to gizmo's transform target
-	gizmoComponentPtr->applyTransformToTarget();
-}
-
-void EditorObjectSystem::onSelectionScaleRequested(const glm::vec3& objectSpaceScale)
-{
-	// Scale the gizmo in object space
-	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
-	GlmTransform newGizmoRelativeTransform = gizmoComponentPtr->getRelativeTransform();
-	newGizmoRelativeTransform.appendScale(objectSpaceScale);
-	gizmoComponentPtr->setRelativeTransform(newGizmoRelativeTransform);
-
-	// Apply gizmo transform to gizmo's transform target
-	gizmoComponentPtr->applyTransformToTarget();
 }
 
 SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(

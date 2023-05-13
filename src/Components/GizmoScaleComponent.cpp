@@ -12,7 +12,7 @@
 
 #include "SDL_mouse.h"
 
-static const float k_dragScaleFactor= 0.1f;
+static const float k_dragScaleFactor= 1.f;
 
 GizmoScaleComponent::GizmoScaleComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
@@ -33,6 +33,7 @@ void GizmoScaleComponent::init()
 
 	m_dragComponent.reset();
 	m_dragOrigin = glm::vec3(0.f);
+	m_lastClosestPoint = glm::vec3(0.f);
 }
 
 void GizmoScaleComponent::dispose()
@@ -50,7 +51,7 @@ glm::vec3 GizmoScaleComponent::getColliderColor(
 	else if (colliderPtr.lock() == m_hoverComponent.lock())
 		return Colors::LightGray;
 	else
-		return Colors::DarkGray;
+		return defaultColor;
 }
 
 static void drawScaleBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
@@ -74,7 +75,7 @@ static void drawScaleArrowHandle(
 
 	BoxColliderComponentPtr centerCollidePtr = centerColliderWeakPtr.lock();
 	const glm::vec3 origin = glm_mat4_get_position(centerCollidePtr->getWorldTransform());
-	const glm::vec3 axisBoxCenter = glm_mat4_get_position(axisBoxXform);
+	const glm::vec3 axisBoxCenter = axisBoxXform * glm::vec4(glm::vec3(0.f), 1.f);
 	drawSegment(glm::mat4(1.f), origin, axisBoxCenter, color);
 }
 
@@ -134,18 +135,21 @@ void GizmoScaleComponent::onInteractionGrab(const ColliderRaycastHitResult& hitR
 {
 	m_dragComponent = hitResult.hitComponent;
 	m_dragOrigin = hitResult.hitLocation;
+	m_lastClosestPoint= m_dragOrigin;
 }
 
-static float computeScaleFactor(
-	const glm::vec3& gizmo_center, 
+static float computeScaleDelta(
+	const glm::vec3& gizmo_center,
+	const glm::vec3& drag_origin,
 	const glm::vec3& drag_start,
 	const glm::vec3& drag_end)
 {
 	const float dragDistance= glm::length(drag_start - drag_end);
-	const float scaleMagnitude = (1.f + dragDistance) * k_dragScaleFactor;
-	const float scaleSign= sgn(glm::dot(drag_start - gizmo_center, drag_end - gizmo_center));
+	const float deltaMagnitude = dragDistance * k_dragScaleFactor;
+	const float dragSign= sgn(glm::dot(drag_end - drag_start, drag_start - gizmo_center));
+	const float originSign= sgn(glm::dot(drag_origin - gizmo_center, drag_start - gizmo_center));
 
-	return scaleSign * scaleMagnitude;
+	return originSign * dragSign * deltaMagnitude;
 }
 
 void GizmoScaleComponent::onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
@@ -159,59 +163,60 @@ void GizmoScaleComponent::onInteractionMove(const glm::vec3& rayOrigin, const gl
 	const glm::vec3 yAxis = glm_mat4_get_y_axis(centerXform);
 	const glm::vec3 zAxis = glm_mat4_get_z_axis(centerXform);
 
-	float int_time = 0.f;
-	glm::vec3 int_point = m_dragOrigin;
-	bool has_int = false;
+	float closestTime = 0.f;
+	glm::vec3 closestPoint = m_dragOrigin;
+	bool hasClosestPoint = false;
 
-	glm::vec3 newScale(1.f, 1.f, 1.f);
+	glm::vec3 scaleDelta(0.f, 0.f, 0.f);
 
 	// Center handle drag
 	if (dragColliderPtr == m_centerHandle.lock())
 	{
-		has_int = glm_closest_point_on_ray_to_point(
+		hasClosestPoint = glm_closest_point_on_ray_to_point(
 			rayOrigin, rayDir, m_dragOrigin,
-			int_time, int_point);
+			closestTime, closestPoint);
 		
-		const float scale= computeScaleFactor(origin, m_dragOrigin, int_point);
-		newScale= glm::vec3(scale, scale, scale);
+		const float delta= computeScaleDelta(origin, m_dragOrigin, m_lastClosestPoint, closestPoint);
+		scaleDelta= glm::vec3(delta, delta, delta);
 	}
 	// X Axis drag
 	else if (dragColliderPtr == m_xAxisHandle.lock())
 	{
-		has_int = glm_closest_point_on_ray_to_ray(
+		hasClosestPoint = glm_closest_point_on_ray_to_ray(
 			rayOrigin, rayDir,
 			origin, xAxis,
-			int_time, int_point);
+			closestTime, closestPoint);
 
-		const float scale = computeScaleFactor(origin, m_dragOrigin, int_point);
-		newScale = glm::vec3(scale, 1.f, 1.f);
+		const float delta = computeScaleDelta(origin, m_dragOrigin, m_lastClosestPoint, closestPoint);
+		scaleDelta = glm::vec3(delta, 0.f, 0.f);
 	}
 	// Y Axis drag
 	else if (dragColliderPtr == m_yAxisHandle.lock())
 	{
-		has_int = glm_closest_point_on_ray_to_ray(
+		hasClosestPoint = glm_closest_point_on_ray_to_ray(
 			rayOrigin, rayDir,
 			origin, yAxis,
-			int_time, int_point);
+			closestTime, closestPoint);
 
-		const float scale = computeScaleFactor(origin, m_dragOrigin, int_point);
-		newScale = glm::vec3(1.f, scale, 1.f);
+		const float delta = computeScaleDelta(origin, m_dragOrigin, m_lastClosestPoint, closestPoint);
+		scaleDelta = glm::vec3(0.f, delta, 0.f);
 	}
 	// Z Axis drag
 	else if (dragColliderPtr == m_zAxisHandle.lock())
 	{
-		has_int = glm_closest_point_on_ray_to_ray(
+		hasClosestPoint = glm_closest_point_on_ray_to_ray(
 			rayOrigin, rayDir,
 			origin, zAxis,
-			int_time, int_point);
+			closestTime, closestPoint);
 
-		const float scale = computeScaleFactor(origin, m_dragOrigin, int_point);
-		newScale = glm::vec3(1.f, 1.f, scale);
+		const float delta = computeScaleDelta(origin, m_dragOrigin, m_lastClosestPoint, closestPoint);
+		scaleDelta = glm::vec3(0.f, 0.f, delta);
 	}
 
-	if (has_int)
+	if (hasClosestPoint)
 	{
-		requestScale(newScale);
+		requestScale(scaleDelta);
+		m_lastClosestPoint = closestPoint;
 	}
 }
 

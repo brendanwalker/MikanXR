@@ -40,4 +40,5 @@ protected:
 	ColliderComponentWeakPtr m_hoverComponent;
 	ColliderComponentWeakPtr m_dragComponent;
 	glm::vec3 m_dragOrigin;
+	glm::vec3 m_lastClosestPoint;
 };
