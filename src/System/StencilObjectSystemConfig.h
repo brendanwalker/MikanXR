@@ -2,6 +2,7 @@
 
 #include "CommonConfig.h"
 #include "MikanClientTypes.h"
+#include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProfileConfigConstants.h"
 
@@ -25,14 +26,20 @@ public:
 	QuadStencilConfigConstPtr getQuadStencilInfoConst(MikanStencilID stencilId) const;
 	QuadStencilConfigPtr getQuadStencilInfo(MikanStencilID stencilId);
 	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
+	MulticastDelegate<void()> OnQuadStencilListChanged;
+	MulticastDelegate<void(MikanStencilID stencilId)> OnQuadStencilModified;
 
 	BoxStencilConfigConstPtr getBoxStencilInfoConst(MikanStencilID stencilId) const;
 	BoxStencilConfigPtr getBoxStencilInfo(MikanStencilID stencilId);
 	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
+	MulticastDelegate<void()> OnBoxStencilListChanged;
+	MulticastDelegate<void(MikanStencilID stencilId)> OnBoxStencilModified;
 
 	ModelStencilConfigConstPtr getModelStencilConfigConst(MikanStencilID stencilId) const;
 	ModelStencilConfigPtr getModelStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
+	MulticastDelegate<void()> OnModelStencilListChanged;
+	MulticastDelegate<void(MikanStencilID stencilId)> OnModelStencilModified;
 
 	std::vector<QuadStencilConfigPtr> quadStencilList;
 	std::vector<BoxStencilConfigPtr> boxStencilList;

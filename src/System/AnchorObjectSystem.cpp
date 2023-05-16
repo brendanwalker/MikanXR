@@ -110,6 +110,8 @@ MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& a
 
 	spatialAnchorList.push_back(anchorConfigPtr);
 	markDirty();
+	if (OnAnchorListChanged)
+		OnAnchorListChanged();
 
 	// Tell any connected clients that the anchor list changed
 	MikanServer::getInstance()->publishAnchorListChangedEvent();
@@ -130,9 +132,8 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 	{
 		spatialAnchorList.erase(it);
 		markDirty();
-
-		// Tell any connected clients that the anchor list changed
-		MikanServer::getInstance()->publishAnchorListChangedEvent();
+		if (OnAnchorListChanged)
+			OnAnchorListChanged();
 
 		return true;
 	}
@@ -143,7 +144,7 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 // -- AnchorObjectSystem -----
 AnchorObjectSystemWeakPtr AnchorObjectSystem::s_anchorObjectSystem;
 
-void AnchorObjectSystem::init()
+bool AnchorObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
@@ -167,6 +168,7 @@ void AnchorObjectSystem::init()
 	}
 
 	s_anchorObjectSystem = std::static_pointer_cast<AnchorObjectSystem>(shared_from_this());
+	return true;
 }
 
 void AnchorObjectSystem::dispose()
@@ -175,6 +177,15 @@ void AnchorObjectSystem::dispose()
 	m_anchorComponents.clear();
 
 	MikanObjectSystem::dispose();
+}
+
+void AnchorObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
+{
+	AnchorComponentPtr anchorComponent= objectPtr->getComponentOfType<AnchorComponent>();
+	if (anchorComponent != nullptr)
+	{
+		removeAnchor(anchorComponent->getConfig()->getAnchorId());
+	}
 }
 
 AnchorComponentPtr AnchorObjectSystem::getSpatialAnchorById(MikanSpatialAnchorID anchorId) const
@@ -242,7 +253,7 @@ bool AnchorObjectSystem::removeAnchor(MikanSpatialAnchorID anchorId)
 AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorConfigPtr anchorConfig)
 {
 	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
-	MikanObjectPtr anchorObject= newObject().lock();
+	MikanObjectPtr anchorObject= newObject();
 
 	// Add a scene component to the anchor
 	SceneComponentPtr sceneComponentPtr= anchorObject->addComponent<SceneComponent>();

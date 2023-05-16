@@ -14,13 +14,14 @@ public:
 	MikanObjectSystem();
 	virtual ~MikanObjectSystem();
 
-	virtual void init();
+	virtual bool init();
 	virtual void dispose();
 	virtual void update();
 	virtual void customRender();
 
-	MikanObjectWeakPtr newObject();
-	void deleteObject(MikanObjectWeakPtr objectPtr);
+	MikanObjectPtr newObject();
+	void deleteObject(MikanObjectPtr objectPtr);
+	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) { }
 	inline const MikanObjectList& getObjectList() const { return m_objects; }
 
 	MulticastDelegate<void(MikanObjectSystem&, MikanObject&)> OnObjectAdded;

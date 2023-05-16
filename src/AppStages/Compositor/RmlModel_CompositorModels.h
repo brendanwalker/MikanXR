@@ -27,14 +27,9 @@ public:
 		StencilObjectSystemPtr objectSystemPtr);
 	virtual void dispose() override;
 
-	void rebuildAnchorList();
-	void rebuildUIModelsFromProfile();
-	void copyUIModelToProfile(int stencil_id) const;
-
 	SinglecastDelegate<void()> OnAddModelStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteModelStencilEvent;
 	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyModelStencilParentAnchorEvent;
-	SinglecastDelegate<void(int stencilID)> OnModifyModelStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnSelectModelStencilPathEvent;
 	SinglecastDelegate<void(int stencilID)> OnAddFastenerEvent;
 	SinglecastDelegate<void(int fastenerID)> OnSnapFastenerEvent;
@@ -42,6 +37,11 @@ public:
 	SinglecastDelegate<void(int stencilID, int fastenerID)> OnDeleteFastenerEvent;
 
 private:
+	void rebuildAnchorList();
+	void rebuildUIModelsFromProfile();
+	void copyUIModelToProfile(int stencil_id) const;
+	void copyStencilSystemToUIModel(int stencil_id);
+
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	StencilObjectSystemPtr m_stencilSystemPtr;
 	Rml::Vector<int> m_spatialAnchors;

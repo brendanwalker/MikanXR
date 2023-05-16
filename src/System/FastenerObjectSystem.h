@@ -4,6 +4,7 @@
 #include "ComponentFwd.h"
 #include "MikanObjectSystem.h"
 #include "MikanClientTypes.h"
+#include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "SceneFwd.h"
@@ -28,10 +29,13 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	bool canAddFastener() const;
-	FastenerConfigPtr getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId) const;
-	FastenerConfigPtr getSpatialFastenerConfigByName(const std::string& fastenerName) const;
+	FastenerConfigConstPtr getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId) const;
+	FastenerConfigPtr getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId);
+	FastenerConfigConstPtr getSpatialFastenerConfigByName(const std::string& fastenerName) const;
 	MikanSpatialFastenerID addNewFastener(const MikanSpatialFastenerInfo& fastenerInfo);
 	bool removeFastener(MikanSpatialFastenerID fastenerId);
+	MulticastDelegate<void()> OnFastenerListChanged;
+	MulticastDelegate<void(MikanSpatialFastenerID fastenerId)> OnFastenerModified;
 
 	std::vector<FastenerConfigPtr> spatialFastenerList;
 	MikanSpatialFastenerID nextFastenerId= 0;
@@ -48,8 +52,9 @@ public:
 	FastenerObjectSystemConfigConstPtr getFastenerSystemConfigConst() const;
 	FastenerObjectSystemConfigPtr getFastenerSystemConfig();
 
-	virtual void init() override;
+	virtual bool init() override;
 	virtual void dispose() override;
+	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
 	const FastenerMap& getFastenerMap() const { return m_fastenerComponents; }
 	FastenerComponentPtr getSpatialFastenerById(MikanSpatialFastenerID FastenerId) const;

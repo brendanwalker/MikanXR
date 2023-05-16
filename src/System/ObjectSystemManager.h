@@ -31,8 +31,8 @@ public:
 		return nullptr;
 	}
 	
-	void init();
-	void dispose();
+	bool startup();
+	void shutdown();
 	void update();
 	void customRender();
 

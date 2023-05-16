@@ -54,7 +54,7 @@ bool FastenerObjectSystemConfig::canAddFastener() const
 	return (spatialFastenerList.size() < MAX_MIKAN_SPATIAL_FASTENERS);
 }
 
-FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId) const
+FastenerConfigConstPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId) const
 {
 	auto it = std::find_if(
 		spatialFastenerList.begin(), spatialFastenerList.end(),
@@ -64,13 +64,18 @@ FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpat
 
 	if (it != spatialFastenerList.end())
 	{
-		return FastenerConfigPtr(*it);
+		return FastenerConfigConstPtr(*it);
 	}
 
-	return FastenerConfigPtr();
+	return FastenerConfigConstPtr();
 }
 
-FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfigByName(const std::string& fastenerName) const
+FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId)
+{
+	return std::const_pointer_cast<FastenerConfig>(getSpatialFastenerConfig(fastenerId));
+}
+
+FastenerConfigConstPtr FastenerObjectSystemConfig::getSpatialFastenerConfigByName(const std::string& fastenerName) const
 {
 	auto it = std::find_if(
 		spatialFastenerList.begin(), spatialFastenerList.end(),
@@ -80,10 +85,10 @@ FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfigByName(con
 
 	if (it != spatialFastenerList.end())
 	{
-		return FastenerConfigPtr(*it);
+		return FastenerConfigConstPtr(*it);
 	}
 
-	return FastenerConfigPtr();
+	return FastenerConfigConstPtr();
 }
 
 
@@ -97,6 +102,8 @@ MikanSpatialFastenerID FastenerObjectSystemConfig::addNewFastener(const MikanSpa
 
 	spatialFastenerList.push_back(fastenerConfig);
 	markDirty();
+	if (OnFastenerListChanged)
+		OnFastenerListChanged();
 
 	return fastenerConfig->getFastenerId();
 }
@@ -114,6 +121,8 @@ bool FastenerObjectSystemConfig::removeFastener(MikanSpatialFastenerID fastenerI
 	{
 		spatialFastenerList.erase(it);
 		markDirty();
+		if (OnFastenerListChanged)
+			OnFastenerListChanged();
 
 		return true;
 	}
@@ -124,7 +133,7 @@ bool FastenerObjectSystemConfig::removeFastener(MikanSpatialFastenerID fastenerI
 // -- FastenerObjectSystem -----
 FastenerObjectSystemWeakPtr FastenerObjectSystem::s_fastenerObjectSystem;
 
-void FastenerObjectSystem::init()
+bool FastenerObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
@@ -135,6 +144,7 @@ void FastenerObjectSystem::init()
 	}
 
 	s_fastenerObjectSystem = std::static_pointer_cast<FastenerObjectSystem>(shared_from_this());
+	return true;
 }
 
 void FastenerObjectSystem::dispose()
@@ -143,6 +153,15 @@ void FastenerObjectSystem::dispose()
 	m_fastenerComponents.clear();
 
 	MikanObjectSystem::dispose();
+}
+
+void FastenerObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
+{
+	FastenerComponentPtr fastener = objectPtr->getComponentOfType<FastenerComponent>();
+	if (fastener != nullptr)
+	{
+		removeFastener(fastener->getConfig()->getFastenerId());
+	}
 }
 
 FastenerComponentPtr FastenerObjectSystem::getSpatialFastenerById(MikanSpatialFastenerID fastenerId) const
@@ -273,7 +292,7 @@ SceneComponentPtr FastenerObjectSystem::getFastenerParentSceneComponent(
 
 FastenerComponentPtr FastenerObjectSystem::createFastenerObject(FastenerConfigPtr fastenerConfig)
 {
-	MikanObjectPtr fastenerObject = newObject().lock();
+	MikanObjectPtr fastenerObject = newObject();
 
 	// Add a scene component to the Fastener
 	SceneComponentPtr sceneComponentPtr = fastenerObject->addComponent<SceneComponent>();

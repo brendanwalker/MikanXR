@@ -96,8 +96,13 @@ public:
 	inline SceneComponentPtr getRootComponent() const { return m_rootSceneComponent.lock(); }
 	inline void setRootComponent(SceneComponentWeakPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }
 
+	// Called from owning object system
 	void init();
 	void dispose();
+
+	// Tell owning object system to free this object's config, 
+	// which should then free this object as a side effect
+	void deleteSelfConfig();
 
 protected:
 	std::string m_name;

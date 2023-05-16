@@ -25,16 +25,16 @@ public:
 		StencilObjectSystemPtr objectSystemPtr);
 	virtual void dispose() override;
 
-	void rebuildAnchorList();
-	void rebuildUIBoxesFromStencilSystem();
-	void copyUIBoxToStencilSystem(int stencil_id) const;
-
 	SinglecastDelegate<void()> OnAddBoxStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteBoxStencilEvent;
-	SinglecastDelegate<void(int stencilID)> OnModifyBoxStencilEvent;
 	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyBoxStencilParentAnchorEvent;
 
 private:
+	void rebuildAnchorList();
+	void rebuildUIBoxesFromStencilSystem();
+	void copyUIBoxToStencilSystem(int stencil_id) const;
+	void copyStencilSystemToUIBox(int stencil_id);
+
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	StencilObjectSystemPtr m_stencilSystemPtr;
 	Rml::Vector<int> m_spatialAnchors;

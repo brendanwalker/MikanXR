@@ -23,8 +23,9 @@ class StencilObjectSystem : public MikanObjectSystem
 public:
 	static StencilObjectSystemPtr getSystem() { return s_stencilObjectSystem.lock(); }
 
-	virtual void init() override;
+	virtual bool init() override;
 	virtual void dispose() override;
+	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
 	StencilObjectSystemConfigConstPtr getStencilSystemConfigConst() const;
 	StencilObjectSystemConfigPtr getStencilSystemConfig();

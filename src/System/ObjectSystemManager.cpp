@@ -6,7 +6,7 @@
 #include "FastenerObjectSystem.h"
 #include "StencilObjectSystem.h"
 
-void ObjectSystemManager::init()
+bool ObjectSystemManager::startup()
 {
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
@@ -15,11 +15,16 @@ void ObjectSystemManager::init()
 
 	for (MikanObjectSystemPtr system : m_systems)
 	{
-		system->init();
+		if (!system->init())
+		{
+			return false;
+		}
 	}
+
+	return true;
 }
 
-void ObjectSystemManager::dispose()
+void ObjectSystemManager::shutdown()
 {
 	for (MikanObjectSystemPtr system : m_systems)
 	{

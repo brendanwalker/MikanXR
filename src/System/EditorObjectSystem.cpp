@@ -9,6 +9,7 @@
 #include "GizmoTransformComponent.h"
 #include "GizmoTranslateComponent.h"
 #include "GlViewport.h"
+#include "InputManager.h"
 #include "ObjectSystemManager.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
@@ -37,7 +38,7 @@ void EditorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 // -- EditorObjectSystem -----
 EditorObjectSystemWeakPtr EditorObjectSystem::s_editorObjectSystem;
 
-void EditorObjectSystem::init()
+bool EditorObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
@@ -71,6 +72,7 @@ void EditorObjectSystem::init()
 	createTransformGizmo();
 
 	s_editorObjectSystem = std::static_pointer_cast<EditorObjectSystem>(shared_from_this());
+	return true;
 }
 
 void EditorObjectSystem::createTransformGizmo()
@@ -202,6 +204,33 @@ void EditorObjectSystem::onAppStageEntered(class AppStage* appStage)
 	if (appStage->getAppStageName() == AppStage_Compositor::APP_STAGE_NAME)
 	{
 		m_gizmoComponentWeakPtr.lock()->bindInput();
+
+		InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_DELETE)->OnKeyPressed +=
+			MakeDelegate(this, &EditorObjectSystem::onDeletePressed);
+	}
+}
+
+// Keyboard Events
+void EditorObjectSystem::onDeletePressed()
+{
+	SelectionComponentPtr selectedComponent= m_selectedComponentWeakPtr.lock();
+	SelectionComponentPtr hoverComponentPtr= m_hoverComponentWeakPtr.lock();
+
+	if (selectedComponent != nullptr)
+	{
+		// Signal that the selection changed to nothing
+		onSelectionChanged(selectedComponent, nullptr);
+
+		// Clear the hover component if it's the currently selected component
+		if (hoverComponentPtr == selectedComponent)
+		{
+			hoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
+			m_hoverComponentWeakPtr.reset();
+		}
+
+		// Clean up the config associated with owning object
+		selectedComponent->getOwnerObject()->deleteSelfConfig();
+		m_selectedComponentWeakPtr.reset();
 	}
 }
 

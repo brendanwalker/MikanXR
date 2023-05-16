@@ -13,8 +13,9 @@ MikanObjectSystem::~MikanObjectSystem()
 	assert(m_objects.empty());
 }
 
-void MikanObjectSystem::init()
+bool MikanObjectSystem::init()
 {
+	return true;
 }
 
 void MikanObjectSystem::dispose()
@@ -38,7 +39,7 @@ void MikanObjectSystem::customRender()
 		onCustomRender();
 }
 
-MikanObjectWeakPtr MikanObjectSystem::newObject()
+MikanObjectPtr MikanObjectSystem::newObject()
 {
 	MikanObjectPtr objectPtr = std::make_shared<MikanObject>(shared_from_this());
 	m_objects.push_back(objectPtr);
@@ -49,10 +50,8 @@ MikanObjectWeakPtr MikanObjectSystem::newObject()
 	return objectPtr;
 }
 
-void MikanObjectSystem::deleteObject(MikanObjectWeakPtr objectWeakPtr)
+void MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr)
 {
-	MikanObjectPtr objectPtr= objectWeakPtr.lock();
-
 	if (objectPtr)
 	{
 		objectPtr->dispose();

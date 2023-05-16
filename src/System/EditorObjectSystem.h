@@ -32,7 +32,7 @@ class EditorObjectSystem : public MikanObjectSystem
 public:
 	static EditorObjectSystemPtr getSystem() { return s_editorObjectSystem.lock(); }
 
-	virtual void init() override;
+	virtual bool init() override;
 	virtual void dispose() override;
 
 	EditorObjectSystemConfigConstPtr getEditorSystemConfigConst() const;
@@ -59,6 +59,9 @@ protected:
 	// Object System Events
 	void onObjectAdded(MikanObjectSystem& system, MikanObject& object);
 	void onObjectRemoved(MikanObjectSystem& system, MikanObject& object);
+
+	// Keyboard Events
+	void onDeletePressed();
 
 	// Viewport Events
 	void onMouseRayButtonDown(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);

@@ -8,6 +8,8 @@
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
+#include "StencilObjectSystem.h"
+#include "StencilObjectSystemConfig.h"
 #include "MathGLM.h"
 #include "MathMikan.h"
 #include "MathTypeConversion.h"
@@ -70,10 +72,18 @@ void ModelStencilConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
+void ModelStencilConfig::notifyStencilChanged()
+{
+	StencilObjectSystemConfigPtr stencilConfig = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+	if (stencilConfig->OnModelStencilModified)
+		stencilConfig->OnModelStencilModified(m_modelInfo.stencil_id);
+}
+
 void ModelStencilConfig::setModelInfo(const MikanStencilModel& modelInfo)
 {
 	m_modelInfo= modelInfo;
 	markDirty();
+	notifyStencilChanged();
 }
 
 const glm::mat4 ModelStencilConfig::getModelMat4() const
@@ -103,42 +113,49 @@ void ModelStencilConfig::setModelTransform(const GlmTransform& transform)
 	m_modelInfo.model_scale= glm_vec3_to_MikanVector3f(transform.getScale());
 
 	markDirty();
+	notifyStencilChanged();
 }
 
 void ModelStencilConfig::setModelScale(const MikanVector3f& scale)
 {
 	m_modelInfo.model_scale= scale;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void ModelStencilConfig::setModelRotator(const MikanRotator3f& rotator)
 {
 	m_modelInfo.model_rotator= rotator;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void ModelStencilConfig::setModelPosition(const MikanVector3f& position)
 {
 	m_modelInfo.model_position= position;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void ModelStencilConfig::setModelPath(const std::filesystem::path& path)
 {
 	m_modelPath= path;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void ModelStencilConfig::setIsDisabled(bool flag)
 {
 	m_modelInfo.is_disabled = flag;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void ModelStencilConfig::setStencilName(const std::string& stencilName)
 {
 	strncpy(m_modelInfo.stencil_name, stencilName.c_str(), sizeof(m_modelInfo.stencil_name) - 1);
 	markDirty();
+	notifyStencilChanged();
 }
 
 // -- ModelStencilComponent -----

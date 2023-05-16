@@ -10,6 +10,8 @@
 #include "MikanObject.h"
 #include "QuadStencilComponent.h"
 #include "SelectionComponent.h"
+#include "StencilObjectSystemConfig.h"
+#include "StencilObjectSystem.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 
@@ -79,6 +81,7 @@ void QuadStencilConfig::setQuadInfo(const MikanStencilQuad& quadInfo)
 {
 	m_quadInfo= quadInfo;
 	markDirty();
+	notifyStencilChanged();
 }
 
 const glm::mat4 QuadStencilConfig::getQuadMat4() const
@@ -97,6 +100,7 @@ void QuadStencilConfig::setQuadMat4(const glm::mat4& xform)
 	m_quadInfo.quad_normal = glm_vec3_to_MikanVector3f(xform[2]);
 	m_quadInfo.quad_center = glm_vec3_to_MikanVector3f(xform[3]);
 	markDirty();
+	notifyStencilChanged();
 }
 
 const GlmTransform QuadStencilConfig::getQuadTransform() const
@@ -118,60 +122,77 @@ void QuadStencilConfig::setQuadTransform(const GlmTransform& transform)
 	m_quadInfo.quad_normal = glm_vec3_to_MikanVector3f(xform[2]);
 	m_quadInfo.quad_center = glm_vec3_to_MikanVector3f(xform[3]);
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setQuadXAxis(const MikanVector3f& xAxis)
 {
 	m_quadInfo.quad_x_axis = xAxis;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setQuadYAxis(const MikanVector3f& yAxis)
 {
 	m_quadInfo.quad_y_axis = yAxis;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setQuadNormal(const MikanVector3f& normal)
 {
 	m_quadInfo.quad_normal = normal;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setQuadCenter(const MikanVector3f& center)
 {
 	m_quadInfo.quad_center = center;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setQuadWidth(float width)
 {
 	m_quadInfo.quad_width = width;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setQuadHeight(float height)
 {
 	m_quadInfo.quad_height = height;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setIsDoubleSided(bool flag)
 {
 	m_quadInfo.is_double_sided = flag;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setIsDisabled(bool flag)
 {
 	m_quadInfo.is_disabled = flag;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void QuadStencilConfig::setStencilName(const std::string& stencilName)
 {
 	strncpy(m_quadInfo.stencil_name, stencilName.c_str(), sizeof(m_quadInfo.stencil_name) - 1);
 	markDirty();
+	notifyStencilChanged();
+}
+
+void QuadStencilConfig::notifyStencilChanged()
+{
+	StencilObjectSystemConfigPtr stencilConfig = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+	if (stencilConfig->OnQuadStencilModified)
+		stencilConfig->OnQuadStencilModified(m_quadInfo.stencil_id);
 }
 
 // -- QuadStencilComponent -----

@@ -10,6 +10,8 @@
 #include "MikanObject.h"
 #include "MathTypeConversion.h"
 #include "SelectionComponent.h"
+#include "StencilObjectSystem.h"
+#include "StencilObjectSystemConfig.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 
@@ -76,6 +78,7 @@ void BoxStencilConfig::setBoxInfo(const MikanStencilBox& box)
 {
 	m_boxInfo= box;
 	markDirty();
+	notifyStencilChanged();
 }
 
 const glm::mat4 BoxStencilConfig::getBoxMat4() const
@@ -94,6 +97,7 @@ void BoxStencilConfig::setBoxMat4(const glm::mat4& xform)
 	m_boxInfo.box_z_axis = glm_vec3_to_MikanVector3f(xform[2]);
 	m_boxInfo.box_center = glm_vec3_to_MikanVector3f(xform[3]);
 	markDirty();
+	notifyStencilChanged();
 }
 
 const GlmTransform BoxStencilConfig::getBoxTransform() const
@@ -115,60 +119,77 @@ void BoxStencilConfig::setBoxTransform(const GlmTransform& transform)
 	m_boxInfo.box_z_axis = glm_vec3_to_MikanVector3f(xform[2]);
 	m_boxInfo.box_center = glm_vec3_to_MikanVector3f(xform[3]);
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setBoxXAxis(const MikanVector3f& xAxis)
 {
 	m_boxInfo.box_x_axis = xAxis;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setBoxYAxis(const MikanVector3f& yAxis)
 {
 	m_boxInfo.box_y_axis = yAxis;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setBoxZAxis(const MikanVector3f& normal)
 {
 	m_boxInfo.box_z_axis = normal;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setBoxCenter(const MikanVector3f& center)
 {
 	m_boxInfo.box_center = center;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setBoxXSize(float size)
 {
 	m_boxInfo.box_x_size = size;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setBoxYSize(float size)
 {
 	m_boxInfo.box_y_size = size;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setBoxZSize(float size)
 {
 	m_boxInfo.box_z_size = size;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setIsDisabled(bool flag)
 {
 	m_boxInfo.is_disabled = flag;
 	markDirty();
+	notifyStencilChanged();
 }
 
 void BoxStencilConfig::setStencilName(const std::string& stencilName)
 {
 	strncpy(m_boxInfo.stencil_name, stencilName.c_str(), sizeof(m_boxInfo.stencil_name) - 1);
 	markDirty();
+	notifyStencilChanged();
+}
+
+void BoxStencilConfig::notifyStencilChanged()
+{
+	StencilObjectSystemConfigPtr stencilConfig = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+	if (stencilConfig->OnBoxStencilModified)
+		stencilConfig->OnBoxStencilModified(m_boxInfo.stencil_id);
 }
 
 // -- BoxStencilComponent -----

@@ -212,7 +212,6 @@ void AppStage_Compositor::enter()
 		m_compositorQuadsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
 		m_compositorQuadsModel->OnAddQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddQuadStencilEvent);
 		m_compositorQuadsModel->OnDeleteQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteQuadStencilEvent);
-		m_compositorQuadsModel->OnModifyQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyQuadStencilEvent);
 		m_compositorQuadsModel->OnModifyQuadStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyQuadStencilParentAnchorEvent);
 		m_compositiorQuadsView = addRmlDocument("compositor_quads.rml");
 		m_compositiorQuadsView->Hide();
@@ -221,7 +220,6 @@ void AppStage_Compositor::enter()
 		m_compositorBoxesModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
 		m_compositorBoxesModel->OnAddBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddBoxStencilEvent);
 		m_compositorBoxesModel->OnDeleteBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteBoxStencilEvent);
-		m_compositorBoxesModel->OnModifyBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyBoxStencilEvent);
 		m_compositorBoxesModel->OnModifyBoxStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyBoxStencilParentAnchorEvent);
 		m_compositiorBoxesView = addRmlDocument("compositor_boxes.rml");
 		m_compositiorBoxesView->Hide();
@@ -231,7 +229,6 @@ void AppStage_Compositor::enter()
 		m_compositorModelsModel->OnAddModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilEvent);
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
 		m_compositorModelsModel->OnModifyModelStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilParentAnchorEvent);
-		m_compositorModelsModel->OnModifyModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilEvent);
 		m_compositorModelsModel->OnSelectModelStencilPathEvent = MakeDelegate(this, &AppStage_Compositor::onSelectModelStencilPathEvent);
 		m_compositorModelsModel->OnSnapFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onSnapFastenerEvent);
 		m_compositorModelsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilFastenerEvent);
@@ -860,7 +857,6 @@ void AppStage_Compositor::onAddQuadStencilEvent()
 
 	if (m_stencilObjectSystem->addNewQuadStencil(quad) != nullptr)
 	{
-		m_compositorQuadsModel->rebuildUIQuadsFromProfile();
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
@@ -869,14 +865,8 @@ void AppStage_Compositor::onDeleteQuadStencilEvent(int stencilID)
 {
 	if (m_stencilObjectSystem->removeQuadStencil(stencilID))
 	{
-		m_compositorQuadsModel->rebuildUIQuadsFromProfile();
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
-}
-
-void AppStage_Compositor::onModifyQuadStencilEvent(int stencilID)
-{
-	m_compositorQuadsModel->copyUIQuadToProfile(stencilID);
 }
 
 void AppStage_Compositor::onModifyQuadStencilParentAnchorEvent(int stencilID, int newAnchorID)
@@ -905,7 +895,6 @@ void AppStage_Compositor::onAddBoxStencilEvent()
 
 	if (m_stencilObjectSystem->addNewBoxStencil(box) != nullptr)
 	{
-		m_compositorBoxesModel->rebuildUIBoxesFromStencilSystem();
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
@@ -914,14 +903,8 @@ void AppStage_Compositor::onDeleteBoxStencilEvent(int stencilID)
 {
 	if (m_stencilObjectSystem->removeBoxStencil(stencilID))
 	{
-		m_compositorBoxesModel->rebuildUIBoxesFromStencilSystem();
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
-}
-
-void AppStage_Compositor::onModifyBoxStencilEvent(int stencilID)
-{
-	m_compositorBoxesModel->copyUIBoxToStencilSystem(stencilID);
 }
 
 void AppStage_Compositor::onModifyBoxStencilParentAnchorEvent(int stencilID, int newAnchorID)
@@ -947,7 +930,6 @@ void AppStage_Compositor::onAddModelStencilEvent()
 
 	if (m_stencilObjectSystem->addNewModelStencil(model) != nullptr)
 	{
-		m_compositorModelsModel->rebuildUIModelsFromProfile();
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
@@ -956,7 +938,6 @@ void AppStage_Compositor::onDeleteModelStencilEvent(int stencilID)
 {
 	if (m_stencilObjectSystem->removeModelStencil(stencilID))
 	{
-		m_compositorModelsModel->rebuildUIModelsFromProfile();
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
 }
@@ -968,11 +949,6 @@ void AppStage_Compositor::onModifyModelStencilParentAnchorEvent(int stencilID, i
 	{
 		modelStencil->attachSceneComponentToAnchor(newAnchorID);
 	}
-}
-
-void AppStage_Compositor::onModifyModelStencilEvent(int stencilID)
-{
-	m_compositorModelsModel->copyUIModelToProfile(stencilID);
 }
 
 void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
@@ -995,7 +971,6 @@ void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
 		[this, modelStencil](const std::filesystem::path& filepath) {
 			modelStencil->getConfig()->setModelPath(filepath);
 			m_frameCompositor->flushStencilRenderModel(modelStencil->getConfig()->getStencilId());
-			m_compositorModelsModel->rebuildUIModelsFromProfile();
 		});
 }
 
@@ -1024,8 +999,6 @@ void AppStage_Compositor::onSnapFastenerEvent(int fastenerID)
 					if (stencilSceneComponent != nullptr)
 					{
 						stencilSceneComponent->setRelativeTransform(GlmTransform(newStencilXform));
-
-						m_compositorModelsModel->rebuildUIModelsFromProfile();
 					}
 				}
 			}
@@ -1069,10 +1042,7 @@ void AppStage_Compositor::onEditModelStencilFastenerEvent(int fastenerID)
 
 void AppStage_Compositor::onDeleteModelStencilFastenerEvent(int stencilID, int fastenerID)
 {
-	if (m_fastenerObjectSystem->removeFastener(fastenerID))
-	{
-		m_compositorModelsModel->rebuildUIModelsFromProfile();
-	}
+	m_fastenerObjectSystem->removeFastener(fastenerID);
 }
 
 // Recording UI Events

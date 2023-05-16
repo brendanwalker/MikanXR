@@ -1,3 +1,4 @@
+#include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "RmlModel_CompositorQuads.h"
 #include "MathMikan.h"
@@ -67,9 +68,9 @@ bool RmlModel_CompositorQuads::init(
 				if (isLineBreak)
 				{
 					const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-					if (OnModifyQuadStencilEvent && stencil_id >= 0)
+					if (stencil_id >= 0)
 					{
-						OnModifyQuadStencilEvent(stencil_id);
+						copyUIQuadToStencilSystem(stencil_id);
 					}
 				}
 			}
@@ -81,9 +82,9 @@ bool RmlModel_CompositorQuads::init(
 			if (ev.GetId() == Rml::EventId::Submit)
 			{
 				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-				if (OnModifyQuadStencilEvent && stencil_id >= 0)
+				if (stencil_id >= 0)
 				{
-					OnModifyQuadStencilEvent(stencil_id);
+					copyUIQuadToStencilSystem(stencil_id);
 				}				
 			}
 		});
@@ -112,6 +113,20 @@ bool RmlModel_CompositorQuads::init(
 			}
 		});
 
+	// Listen for anchor config changes
+	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged +=
+		MakeDelegate(this, &RmlModel_CompositorQuads::rebuildAnchorList);
+
+	// Listen for box stencil config changes
+	{
+		StencilObjectSystemConfigPtr configPtr = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+
+		configPtr->OnQuadStencilListChanged +=
+			MakeDelegate(this, &RmlModel_CompositorQuads::rebuildUIQuadsFromProfile);
+		configPtr->OnQuadStencilModified +=
+			MakeDelegate(this, &RmlModel_CompositorQuads::copyStencilSystemToUIQuad);
+	}
+
 	// Fill in the data model
 	rebuildAnchorList();
 	rebuildUIQuadsFromProfile();
@@ -121,9 +136,18 @@ bool RmlModel_CompositorQuads::init(
 
 void RmlModel_CompositorQuads::dispose()
 {
+	StencilObjectSystemConfigPtr configPtr = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+
+	configPtr->OnQuadStencilListChanged -=
+		MakeDelegate(this, &RmlModel_CompositorQuads::rebuildUIQuadsFromProfile);
+	configPtr->OnQuadStencilModified -=
+		MakeDelegate(this, &RmlModel_CompositorQuads::copyStencilSystemToUIQuad);
+
+	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged -=
+		MakeDelegate(this, &RmlModel_CompositorQuads::rebuildAnchorList);
+
 	OnAddQuadStencilEvent.Clear();
 	OnDeleteQuadStencilEvent.Clear();
-	OnModifyQuadStencilEvent.Clear();
 	RmlModel::dispose();
 }
 
@@ -131,10 +155,10 @@ void RmlModel_CompositorQuads::rebuildAnchorList()
 {
 	m_spatialAnchors.clear();
 
-	auto& anchorMap = m_anchorSystemPtr->getAnchorMap();
-	for (auto it = anchorMap.begin(); it != anchorMap.end(); ++it)
+	auto& anchorList = m_anchorSystemPtr->getAnchorSystemConfig()->spatialAnchorList;
+	for (AnchorConfigPtr configPtr : anchorList)
 	{
-		const MikanSpatialAnchorID anchorId= it->first;
+		const MikanSpatialAnchorID anchorId= configPtr->getAnchorId();
 
 		m_spatialAnchors.push_back(anchorId);
 	}
@@ -143,13 +167,11 @@ void RmlModel_CompositorQuads::rebuildAnchorList()
 
 void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile()
 {
-	m_stencilQuads.clear();
+	auto& stencilList = m_stencilSystemPtr->getStencilSystemConfigConst()->quadStencilList;
 
-	auto& stencilMap = m_stencilSystemPtr->getQuadStencilMap();
-	for (auto it = stencilMap.begin(); it != stencilMap.end(); ++it)
+	m_stencilQuads.clear();
+	for (QuadStencilConfigPtr configPtr : stencilList)
 	{
-		QuadStencilComponentPtr stencilPtr = it->second.lock();
-		QuadStencilConfigPtr configPtr = stencilPtr->getConfig();
 		const MikanStencilQuad& quad = configPtr->getQuadInfo();
 
 		float angles[3]{};
@@ -172,7 +194,7 @@ void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile()
 	m_modelHandle.DirtyVariable("stencil_quads");
 }
 
-void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id) const
+void RmlModel_CompositorQuads::copyUIQuadToStencilSystem(int stencil_id) const
 {
 	auto it = std::find_if(
 		m_stencilQuads.begin(), m_stencilQuads.end(),
@@ -201,5 +223,38 @@ void RmlModel_CompositorQuads::copyUIQuadToProfile(int stencil_id) const
 		StringUtils::formatString(quad.stencil_name, sizeof(quad.stencil_name), "%s", uiQuad.stencil_name.c_str());
 
 		configPtr->setQuadInfo(quad);
+	}
+}
+
+void RmlModel_CompositorQuads::copyStencilSystemToUIQuad(int stencil_id)
+{
+	auto it = std::find_if(
+		m_stencilQuads.begin(), m_stencilQuads.end(),
+		[stencil_id](RmlModel_CompositorQuad& quad) {
+			return quad.stencil_id == stencil_id;
+		});
+	if (it != m_stencilQuads.end())
+	{
+		QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
+
+		if (stencilPtr != nullptr)
+		{
+			QuadStencilConfigPtr configPtr = stencilPtr->getConfig();
+			const MikanStencilQuad quad = configPtr->getQuadInfo();
+
+			RmlModel_CompositorQuad& uiQuad = *it;
+
+			MikanOrientationToEulerAngles(
+				quad.quad_x_axis, quad.quad_y_axis, quad.quad_normal,
+				uiQuad.angles.x, uiQuad.angles.y, uiQuad.angles.z);
+
+			uiQuad.parent_anchor_id = quad.parent_anchor_id;
+			uiQuad.position = {quad.quad_center.x, quad.quad_center.y, quad.quad_center.z};
+			uiQuad.size.x = quad.quad_width;
+			uiQuad.size.y = quad.quad_height;
+			uiQuad.double_sided = quad.is_double_sided;
+			uiQuad.disabled = quad.is_disabled;
+			uiQuad.stencil_name = quad.stencil_name;
+		}
 	}
 }

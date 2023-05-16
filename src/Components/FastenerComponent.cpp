@@ -3,6 +3,7 @@
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "FastenerComponent.h"
+#include "FastenerObjectSystem.h"
 #include "SceneComponent.h"
 #include "MikanObject.h"
 #include "MathTypeConversion.h"
@@ -131,6 +132,7 @@ void FastenerConfig::setFastenerName(const std::string& fastenerName)
 {
 	strncpy(m_fastenerInfo.fastener_name, fastenerName.c_str(), sizeof(m_fastenerInfo.fastener_name) - 1);
 	markDirty();
+	notifyFastenerChanged();
 }
 
 void FastenerConfig::getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) const
@@ -148,6 +150,15 @@ void FastenerConfig::setFastenerLocalPoints(MikanVector3f inLocalPoints[3])
 		m_fastenerInfo.fastener_points[i]= inLocalPoints[i];
 	}
 	markDirty();
+	notifyFastenerChanged();
+}
+
+void FastenerConfig::notifyFastenerChanged()
+{
+	FastenerObjectSystemConfigPtr configPtr= FastenerObjectSystem::getSystem()->getFastenerSystemConfig();
+
+	if (configPtr->OnFastenerModified)
+		configPtr->OnFastenerModified(m_fastenerInfo.fastener_id);
 }
 
 // -- FastenerComponent -----

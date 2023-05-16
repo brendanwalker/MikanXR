@@ -6,6 +6,7 @@
 #include "ComponentFwd.h"
 #include "MikanObjectSystem.h"
 #include "MikanClientTypes.h"
+#include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 
@@ -33,6 +34,7 @@ public:
 	AnchorConfigPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
 	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const MikanMatrix4f& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
+	MulticastDelegate<void()> OnAnchorListChanged;
 
 	std::string anchorVRDevicePath;
 	std::vector<AnchorConfigPtr> spatialAnchorList;
@@ -47,8 +49,9 @@ class AnchorObjectSystem : public MikanObjectSystem
 public:
 	static AnchorObjectSystemPtr getSystem() { return s_anchorObjectSystem.lock(); }
 
-	virtual void init() override;
+	virtual bool init() override;
 	virtual void dispose() override;
+	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
 	AnchorObjectSystemConfigConstPtr getAnchorSystemConfigConst() const;
 	AnchorObjectSystemConfigPtr getAnchorSystemConfig();

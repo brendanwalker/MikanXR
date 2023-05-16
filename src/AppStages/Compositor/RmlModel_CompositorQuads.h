@@ -26,16 +26,16 @@ public:
 		StencilObjectSystemPtr stencilSystemPtr);
 	virtual void dispose() override;
 
-	void rebuildAnchorList();
-	void rebuildUIQuadsFromProfile();
-	void copyUIQuadToProfile(int stencil_id) const;
-
 	SinglecastDelegate<void()> OnAddQuadStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteQuadStencilEvent;
-	SinglecastDelegate<void(int stencilID)> OnModifyQuadStencilEvent;
 	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyQuadStencilParentAnchorEvent;
 
 private:
+	void rebuildAnchorList();
+	void rebuildUIQuadsFromProfile();
+	void copyUIQuadToStencilSystem(int stencil_id) const;
+	void copyStencilSystemToUIQuad(int stencil_id);
+
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	StencilObjectSystemPtr m_stencilSystemPtr;
 	Rml::Vector<int> m_spatialAnchors;

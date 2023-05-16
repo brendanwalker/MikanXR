@@ -54,6 +54,8 @@ public:
 	void setStencilName(const std::string& stencilName);
 
 private:
+	void notifyStencilChanged();
+
 	MikanStencilModel m_modelInfo;
 	std::filesystem::path m_modelPath;
 };

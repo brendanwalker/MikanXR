@@ -62,6 +62,8 @@ public:
 	void setStencilName(const std::string& stencilName);
 
 private:
+	void notifyStencilChanged();
+
 	MikanStencilBox m_boxInfo;
 };
 

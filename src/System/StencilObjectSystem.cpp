@@ -22,7 +22,7 @@
 
 StencilObjectSystemWeakPtr StencilObjectSystem::s_stencilObjectSystem;
 
-void StencilObjectSystem::init()
+bool StencilObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
@@ -44,6 +44,7 @@ void StencilObjectSystem::init()
 	}
 
 	s_stencilObjectSystem = std::static_pointer_cast<StencilObjectSystem>(shared_from_this());
+	return true;
 }
 
 void StencilObjectSystem::dispose()
@@ -54,6 +55,30 @@ void StencilObjectSystem::dispose()
 	m_modelStencilComponents.clear();
 
 	MikanObjectSystem::dispose();
+}
+
+void StencilObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
+{
+	QuadStencilComponentPtr quadStencil= objectPtr->getComponentOfType<QuadStencilComponent>();
+	if (quadStencil != nullptr)
+	{
+		removeQuadStencil(quadStencil->getConfig()->getStencilId());
+		return;
+	}
+
+	BoxStencilComponentPtr boxStencil = objectPtr->getComponentOfType<BoxStencilComponent>();
+	if (boxStencil != nullptr)
+	{
+		removeBoxStencil(boxStencil->getConfig()->getStencilId());
+		return;
+	}
+
+	ModelStencilComponentPtr modelStencil = objectPtr->getComponentOfType<ModelStencilComponent>();
+	if (modelStencil != nullptr)
+	{
+		removeModelStencil(modelStencil->getConfig()->getStencilId());
+		return;
+	}
 }
 
 StencilComponentPtr StencilObjectSystem::getStencilById(MikanStencilID stencilId) const
@@ -160,8 +185,8 @@ QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStenci
 
 bool StencilObjectSystem::removeQuadStencil(MikanStencilID stencilId)
 {
-	getStencilSystemConfig()->removeStencil(stencilId);
 	disposeQuadStencilObject(stencilId);
+	getStencilSystemConfig()->removeStencil(stencilId);
 
 	return false;
 }
@@ -209,7 +234,7 @@ void StencilObjectSystem::getRelevantQuadStencilList(
 
 QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(QuadStencilConfigPtr quadConfig)
 {
-	MikanObjectPtr stencilObject = newObject().lock();
+	MikanObjectPtr stencilObject = newObject();
 
 	// Add a selection component
 	stencilObject->addComponent<SelectionComponent>();
@@ -294,8 +319,8 @@ BoxStencilComponentPtr StencilObjectSystem::addNewBoxStencil(const MikanStencilB
 
 bool StencilObjectSystem::removeBoxStencil(MikanStencilID stencilId)
 {
-	getStencilSystemConfig()->removeStencil(stencilId);
 	disposeBoxStencilObject(stencilId);
+	getStencilSystemConfig()->removeStencil(stencilId);
 
 	return false;
 }
@@ -354,7 +379,7 @@ void StencilObjectSystem::getRelevantBoxStencilList(
 
 BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(BoxStencilConfigPtr boxConfig)
 {
-	MikanObjectPtr stencilObject = newObject().lock();
+	MikanObjectPtr stencilObject = newObject();
 
 	// Make the box collider the root scene component
 	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
@@ -443,8 +468,8 @@ ModelStencilComponentPtr StencilObjectSystem::addNewModelStencil(const MikanSten
 
 bool StencilObjectSystem::removeModelStencil(MikanStencilID stencilId)
 {
-	getStencilSystemConfig()->removeStencil(stencilId);
 	disposeModelStencilObject(stencilId);
+	getStencilSystemConfig()->removeStencil(stencilId);
 
 	return false;
 }
@@ -480,7 +505,7 @@ void StencilObjectSystem::getRelevantModelStencilList(
 
 ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelStencilConfigPtr modelConfig)
 {
-	MikanObjectPtr stencilObject = newObject().lock();
+	MikanObjectPtr stencilObject = newObject();
 
 	// Add a scene component to the model stencil
 	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();

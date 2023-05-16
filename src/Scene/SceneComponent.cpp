@@ -18,7 +18,7 @@ void SceneComponent::init()
 
 void SceneComponent::dispose()
 {
-	detachFromParent(true);
+	detachFromParent(false);
 	MikanComponent::dispose();
 }
 

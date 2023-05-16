@@ -59,6 +59,8 @@ public:
 	void setStencilName(const std::string& stencilName);
 
 private:
+	void notifyStencilChanged();
+
 	MikanStencilQuad m_quadInfo;
 };
 

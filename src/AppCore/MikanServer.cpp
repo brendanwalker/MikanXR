@@ -328,6 +328,9 @@ bool MikanServer::startup()
 	VRDeviceManager::getInstance()->OnDeviceListChanged += MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
 	VRDeviceManager::getInstance()->OnDevicePosesChanged += MakeDelegate(this, &MikanServer::publishVRDevicePoses);
 
+	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged+= 
+		MakeDelegate(this, &MikanServer::publishAnchorListChangedEvent);
+
 	return true;
 }
 
@@ -365,6 +368,9 @@ void MikanServer::update()
 
 void MikanServer::shutdown()
 {
+	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged -=
+		MakeDelegate(this, &MikanServer::publishAnchorListChangedEvent);
+
 	VRDeviceManager::getInstance()->OnDevicePosesChanged -= MakeDelegate(this, &MikanServer::publishVRDevicePoses);
 
 	for (auto& connection_it : m_clientConnections)

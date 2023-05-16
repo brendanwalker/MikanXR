@@ -107,6 +107,8 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 		{
 			quadStencilList.erase(it);
 			markDirty();
+			if (OnQuadStencilListChanged)
+				OnQuadStencilListChanged();
 
 			return true;
 		}
@@ -124,6 +126,8 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 		{
 			boxStencilList.erase(it);
 			markDirty();
+			if (OnBoxStencilListChanged)
+				OnBoxStencilListChanged();
 
 			return true;
 		}
@@ -141,6 +145,8 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 		{
 			modelStencilList.erase(it);
 			markDirty();
+			if (OnModelStencilListChanged)
+				OnModelStencilListChanged();
 
 			return true;
 		}
@@ -233,6 +239,8 @@ MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQu
 
 	quadStencilList.push_back(configPtr);
 	markDirty();
+	if (OnQuadStencilListChanged)
+		OnQuadStencilListChanged();
 
 	return configPtr->getStencilId();
 }
@@ -272,6 +280,8 @@ MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBox
 
 	boxStencilList.push_back(configPtr);
 	markDirty();
+	if (OnBoxStencilListChanged)
+		OnBoxStencilListChanged();
 
 	return configPtr->getStencilId();
 }
@@ -314,6 +324,8 @@ MikanStencilID StencilObjectSystemConfig::addNewModelStencil(const MikanStencilM
 
 	modelStencilList.push_back(configPtr);
 	markDirty();
+	if (OnModelStencilListChanged)
+		OnModelStencilListChanged();
 
 	return configPtr->getStencilId();
 }

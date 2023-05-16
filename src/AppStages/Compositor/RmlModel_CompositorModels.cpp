@@ -1,4 +1,5 @@
 #include "AnchorObjectSystem.h"
+#include "AnchorComponent.h"
 #include "FastenerObjectSystem.h"
 #include "ModelStencilComponent.h"
 #include "RmlModel_CompositorModels.h"
@@ -68,9 +69,9 @@ bool RmlModel_CompositorModels::init(
 				if (isLineBreak)
 				{
 					const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-					if (OnModifyModelStencilEvent && stencil_id >= 0)
+					if (stencil_id >= 0)
 					{
-						OnModifyModelStencilEvent(stencil_id);
+						copyUIModelToProfile(stencil_id);
 					}
 				}
 			}
@@ -98,9 +99,9 @@ bool RmlModel_CompositorModels::init(
 			if (ev.GetId() == Rml::EventId::Submit)
 			{
 				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-				if (OnModifyModelStencilEvent && stencil_id >= 0)
+				if (stencil_id >= 0)
 				{
-					OnModifyModelStencilEvent(stencil_id);
+					copyUIModelToProfile(stencil_id);
 				}				
 			}
 		});
@@ -153,6 +154,25 @@ bool RmlModel_CompositorModels::init(
 			}
 		});
 
+	// Listen for anchor config changes
+	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged +=
+		MakeDelegate(this, &RmlModel_CompositorModels::rebuildAnchorList);
+
+	// Listen for box stencil config changes
+	{
+		StencilObjectSystemConfigPtr configPtr = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+
+		configPtr->OnModelStencilListChanged += MakeDelegate(this, &RmlModel_CompositorModels::rebuildUIModelsFromProfile);
+		configPtr->OnModelStencilModified += MakeDelegate(this, &RmlModel_CompositorModels::copyStencilSystemToUIModel);
+	}
+
+	// Listen from fastener config changes
+	{
+		FastenerObjectSystemConfigPtr configPtr = FastenerObjectSystem::getSystem()->getFastenerSystemConfig();
+
+		configPtr->OnFastenerListChanged += MakeDelegate(this, &RmlModel_CompositorModels::rebuildUIModelsFromProfile);
+	}
+
 	// Fill in the data model
 	rebuildAnchorList();
 	rebuildUIModelsFromProfile();
@@ -162,21 +182,38 @@ bool RmlModel_CompositorModels::init(
 
 void RmlModel_CompositorModels::dispose()
 {
+	{
+		StencilObjectSystemConfigPtr configPtr = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+
+		configPtr->OnModelStencilListChanged -=
+			MakeDelegate(this, &RmlModel_CompositorModels::rebuildUIModelsFromProfile);
+		configPtr->OnModelStencilModified -=
+			MakeDelegate(this, &RmlModel_CompositorModels::copyStencilSystemToUIModel);
+	}
+
+	{
+		FastenerObjectSystemConfigPtr configPtr = FastenerObjectSystem::getSystem()->getFastenerSystemConfig();
+
+		configPtr->OnFastenerListChanged -= MakeDelegate(this, &RmlModel_CompositorModels::rebuildUIModelsFromProfile);
+	}
+
+	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged -=
+		MakeDelegate(this, &RmlModel_CompositorModels::rebuildAnchorList);
+
 	OnAddModelStencilEvent.Clear();
 	OnDeleteModelStencilEvent.Clear();
-	OnModifyModelStencilEvent.Clear();
 	OnSelectModelStencilPathEvent.Clear();
 	RmlModel::dispose();
 }
 
 void RmlModel_CompositorModels::rebuildAnchorList()
 {
-	m_spatialAnchors.clear();
+	auto& anchorList = m_anchorSystemPtr->getAnchorSystemConfigConst()->spatialAnchorList;
 
-	auto& anchorMap = m_anchorSystemPtr->getAnchorMap();
-	for (auto it = anchorMap.begin(); it != anchorMap.end(); ++it)
+	m_spatialAnchors.clear();
+	for (AnchorConfigPtr configPtr : anchorList)
 	{
-		const MikanSpatialAnchorID anchorId= it->first;
+		const MikanSpatialAnchorID anchorId= configPtr->getAnchorId();
 
 		m_spatialAnchors.push_back(anchorId);
 	}
@@ -185,13 +222,11 @@ void RmlModel_CompositorModels::rebuildAnchorList()
 
 void RmlModel_CompositorModels::rebuildUIModelsFromProfile()
 {
-	m_stencilModels.clear();
+	auto& modelStencilList= m_stencilSystemPtr->getStencilSystemConfigConst()->modelStencilList;
 
-	auto& stencilMap = m_stencilSystemPtr->getModelStencilMap();
-	for (auto it = stencilMap.begin(); it != stencilMap.end(); ++it)
+	m_stencilModels.clear();
+	for (ModelStencilConfigPtr configPtr : modelStencilList)
 	{
-		ModelStencilComponentPtr stencilPtr = it->second.lock();
-		ModelStencilConfigPtr configPtr = stencilPtr->getConfig();
 		const MikanStencilModel& modelInfo = configPtr->getModelInfo();
 
 		const std::vector<MikanSpatialFastenerID> child_fastener_ids=
@@ -240,5 +275,37 @@ void RmlModel_CompositorModels::copyUIModelToProfile(int stencil_id) const
 		// NOTE: This intentionally excludes the model path
 		// That's handled in OnSelectModelStencilPathEvent
 		configPtr->setModelInfo(modelInfo);
+	}
+}
+
+void RmlModel_CompositorModels::copyStencilSystemToUIModel(int stencil_id)
+{
+	auto it = std::find_if(
+		m_stencilModels.begin(), m_stencilModels.end(),
+		[stencil_id](const RmlModel_CompositorModel& model) {
+		return model.stencil_id == stencil_id;
+	});
+	if (it != m_stencilModels.end())
+	{
+		ModelStencilComponentPtr stencilPtr = m_stencilSystemPtr->getModelStencilById(stencil_id);
+
+		if (stencilPtr != nullptr)
+		{
+			ModelStencilConfigPtr configPtr = stencilPtr->getConfig();
+			const MikanStencilModel& modelInfo = configPtr->getModelInfo();
+
+			RmlModel_CompositorModel& uiModel = *it;
+
+			uiModel.parent_anchor_id = modelInfo.parent_anchor_id;
+			uiModel.model_position = {uiModel.model_position.x, uiModel.model_position.y, uiModel.model_position.z};
+			uiModel.model_angles = {
+				modelInfo.model_rotator.x_angle,
+				modelInfo.model_rotator.y_angle,
+				modelInfo.model_rotator.z_angle};
+			uiModel.model_scale = {modelInfo.model_scale.x, modelInfo.model_scale.y, modelInfo.model_scale.z};
+			uiModel.disabled = modelInfo.is_disabled;
+
+			uiModel.stencil_name = modelInfo.stencil_name;
+		}
 	}
 }

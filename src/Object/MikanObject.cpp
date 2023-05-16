@@ -1,4 +1,5 @@
 #include "MikanObject.h"
+#include "MikanObjectSystem.h"
 #include "MikanComponent.h"
 
 #include "assert.h"
@@ -39,4 +40,14 @@ void MikanObject::dispose()
 	}
 
 	m_components.clear();
+	m_ownerObjectSystem.reset();
+}
+
+void MikanObject::deleteSelfConfig()
+{
+	MikanObjectSystemPtr ownerSystem= getOwnerSystem();
+	if (ownerSystem != nullptr)
+	{
+		ownerSystem->deleteObjectConfig(shared_from_this());
+	}
 }

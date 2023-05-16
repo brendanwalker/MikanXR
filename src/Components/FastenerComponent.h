@@ -40,6 +40,8 @@ public:
 	void setFastenerLocalPoints(MikanVector3f inLocalPoints[3]);
 
 private:
+	void notifyFastenerChanged();
+
 	MikanSpatialFastenerInfo m_fastenerInfo;
 };
 

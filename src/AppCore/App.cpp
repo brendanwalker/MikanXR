@@ -180,6 +180,12 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
+	if (success && !m_objectSystemManager->startup())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
+		success = false;
+	}
+
 	if (success && !m_mikanServer->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
@@ -194,9 +200,6 @@ bool App::startup(int argc, char** argv)
 
 	if (success)
 	{
-		// Initialize all of the object systems now that the all of the app systems are online
-		m_objectSystemManager->init();
-
 		m_lastFrameTimestamp= SDL_GetTicks();
 	}
 
@@ -211,9 +214,6 @@ void App::shutdown()
 		popAppState();
 	}
 
-	// Dispose all ObjectSystems
-	m_objectSystemManager->dispose();
-
 	// Tear down all app systems
 	if (m_rmlManager != nullptr)
 	{
@@ -223,6 +223,12 @@ void App::shutdown()
 	if (m_mikanServer != nullptr)
 	{
 		m_mikanServer->shutdown();
+	}
+
+	if (m_objectSystemManager != nullptr)
+	{
+		// Dispose all ObjectSystems
+		m_objectSystemManager->shutdown();
 	}
 
 	if (m_frameCompositor != nullptr)
