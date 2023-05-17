@@ -1131,12 +1131,11 @@ void AppStage_Compositor::render()
 			// Perform component custom rendering
 			m_app->getObjectSystemManager()->customRender();
 
-			#if 0
 			// Draw the mouse cursor ray from the pov of the xr camera
 			GlCameraPtr xrCamera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
 			if (xrCamera)
 			{
-				const glm::mat4 glmCameraXform= xrCamera->getCameraTransform();
+				const glm::mat4 glmCameraXform= xrCamera->getCameraTransformFromViewMatrix();
 
 				// Draw the frustum for the initial camera pose
 				const float hfov_radians = degrees_to_radians(xrCamera->getHorizontalFOVDegrees());
@@ -1150,20 +1149,7 @@ void AppStage_Compositor::render()
 					zNear, zFar,
 					Colors::Yellow);
 				drawTransformedAxes(glmCameraXform, 0.1f);
-
-				// Draw the rays corresponding mouse cursor position on the viewport
-				glm::vec2 viewportPos;
-				if (m_viewport->getCursorViewportPixelPos(viewportPos))
-				{
-					// Compute a ray for each sample pixel
-					glm::vec3 rayOrigin, rayDir;
-					xrCamera->computeCameraRayThruPixel(m_viewport, viewportPos, rayOrigin, rayDir);
-					glm::vec3 rayEnd = rayOrigin + rayDir * 1000.f;
-
-					drawSegment(glm::mat4(1.f), rayOrigin, rayEnd, Colors::GhostWhite);
-				}
 			}
-			#endif 
 
 			// Draw tracking space
 			drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
