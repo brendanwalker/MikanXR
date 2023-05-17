@@ -54,7 +54,7 @@ bool FastenerObjectSystemConfig::canAddFastener() const
 	return (spatialFastenerList.size() < MAX_MIKAN_SPATIAL_FASTENERS);
 }
 
-FastenerConfigConstPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId) const
+FastenerConfigConstPtr FastenerObjectSystemConfig::getSpatialFastenerConfigConst(MikanSpatialFastenerID fastenerId) const
 {
 	auto it = std::find_if(
 		spatialFastenerList.begin(), spatialFastenerList.end(),
@@ -72,7 +72,7 @@ FastenerConfigConstPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(Mika
 
 FastenerConfigPtr FastenerObjectSystemConfig::getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId)
 {
-	return std::const_pointer_cast<FastenerConfig>(getSpatialFastenerConfig(fastenerId));
+	return std::const_pointer_cast<FastenerConfig>(getSpatialFastenerConfigConst(fastenerId));
 }
 
 FastenerConfigConstPtr FastenerObjectSystemConfig::getSpatialFastenerConfigByName(const std::string& fastenerName) const

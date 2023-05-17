@@ -23,14 +23,14 @@ public:
 	bool removeStencil(MikanStencilID stencilId);
 	eStencilType getStencilType(MikanStencilID stencilId) const;
 
-	QuadStencilConfigConstPtr getQuadStencilInfoConst(MikanStencilID stencilId) const;
-	QuadStencilConfigPtr getQuadStencilInfo(MikanStencilID stencilId);
+	QuadStencilConfigConstPtr getQuadStencilConfigConst(MikanStencilID stencilId) const;
+	QuadStencilConfigPtr getQuadStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
 	MulticastDelegate<void()> OnQuadStencilListChanged;
 	MulticastDelegate<void(MikanStencilID stencilId)> OnQuadStencilModified;
 
-	BoxStencilConfigConstPtr getBoxStencilInfoConst(MikanStencilID stencilId) const;
-	BoxStencilConfigPtr getBoxStencilInfo(MikanStencilID stencilId);
+	BoxStencilConfigConstPtr getBoxStencilConfigConst(MikanStencilID stencilId) const;
+	BoxStencilConfigPtr getBoxStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
 	MulticastDelegate<void()> OnBoxStencilListChanged;
 	MulticastDelegate<void(MikanStencilID stencilId)> OnBoxStencilModified;

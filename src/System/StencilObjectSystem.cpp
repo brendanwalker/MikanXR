@@ -174,7 +174,7 @@ QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStenci
 	MikanStencilID stencilId = stencilSystemConfig->addNewQuadStencil(stencilInfo);
 	if (stencilId != INVALID_MIKAN_ID)
 	{
-		QuadStencilConfigPtr configPtr = stencilSystemConfig->getQuadStencilInfo(stencilId);
+		QuadStencilConfigPtr configPtr = stencilSystemConfig->getQuadStencilConfig(stencilId);
 		assert(configPtr != nullptr);
 
 		return createQuadStencilObject(configPtr);
@@ -308,7 +308,7 @@ BoxStencilComponentPtr StencilObjectSystem::addNewBoxStencil(const MikanStencilB
 	MikanStencilID stencilId = stencilSystemConfig->addNewBoxStencil(stencilInfo);
 	if (stencilId != INVALID_MIKAN_ID)
 	{
-		BoxStencilConfigPtr configPtr = stencilSystemConfig->getBoxStencilInfo(stencilId);
+		BoxStencilConfigPtr configPtr = stencilSystemConfig->getBoxStencilConfig(stencilId);
 		assert(configPtr != nullptr);
 
 		return createBoxStencilObject(configPtr);

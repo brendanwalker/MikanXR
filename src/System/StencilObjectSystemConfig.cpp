@@ -204,7 +204,7 @@ eStencilType StencilObjectSystemConfig::getStencilType(MikanStencilID stencilId)
 	return eStencilType::INVALID;
 }
 
-QuadStencilConfigConstPtr StencilObjectSystemConfig::getQuadStencilInfoConst(MikanStencilID stencilId) const
+QuadStencilConfigConstPtr StencilObjectSystemConfig::getQuadStencilConfigConst(MikanStencilID stencilId) const
 {
 	auto it = std::find_if(
 		quadStencilList.begin(), quadStencilList.end(),
@@ -220,9 +220,9 @@ QuadStencilConfigConstPtr StencilObjectSystemConfig::getQuadStencilInfoConst(Mik
 	return nullptr;
 }
 
-QuadStencilConfigPtr StencilObjectSystemConfig::getQuadStencilInfo(MikanStencilID stencilId)
+QuadStencilConfigPtr StencilObjectSystemConfig::getQuadStencilConfig(MikanStencilID stencilId)
 {
-	return std::const_pointer_cast<QuadStencilConfig>(getQuadStencilInfoConst(stencilId));
+	return std::const_pointer_cast<QuadStencilConfig>(getQuadStencilConfigConst(stencilId));
 }
 
 MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQuad& quadInfo)
@@ -245,7 +245,7 @@ MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQu
 	return configPtr->getStencilId();
 }
 
-BoxStencilConfigConstPtr StencilObjectSystemConfig::getBoxStencilInfoConst(MikanStencilID stencilId) const
+BoxStencilConfigConstPtr StencilObjectSystemConfig::getBoxStencilConfigConst(MikanStencilID stencilId) const
 {
 	auto it = std::find_if(
 		boxStencilList.begin(), boxStencilList.end(),
@@ -261,9 +261,9 @@ BoxStencilConfigConstPtr StencilObjectSystemConfig::getBoxStencilInfoConst(Mikan
 	return nullptr;
 }
 
-BoxStencilConfigPtr StencilObjectSystemConfig::getBoxStencilInfo(MikanStencilID stencilId)
+BoxStencilConfigPtr StencilObjectSystemConfig::getBoxStencilConfig(MikanStencilID stencilId)
 {
-	return std::const_pointer_cast<BoxStencilConfig>(getBoxStencilInfoConst(stencilId));
+	return std::const_pointer_cast<BoxStencilConfig>(getBoxStencilConfigConst(stencilId));
 }
 
 MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBox& boxInfo)

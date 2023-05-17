@@ -29,7 +29,7 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	bool canAddFastener() const;
-	FastenerConfigConstPtr getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId) const;
+	FastenerConfigConstPtr getSpatialFastenerConfigConst(MikanSpatialFastenerID fastenerId) const;
 	FastenerConfigPtr getSpatialFastenerConfig(MikanSpatialFastenerID fastenerId);
 	FastenerConfigConstPtr getSpatialFastenerConfigByName(const std::string& fastenerName) const;
 	MikanSpatialFastenerID addNewFastener(const MikanSpatialFastenerInfo& fastenerInfo);
