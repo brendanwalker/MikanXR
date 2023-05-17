@@ -102,7 +102,7 @@ void MikanScene::removeMikanObject(MikanObjectConstPtr objectPtr)
 	}
 }
 
-void MikanScene::render()
+void MikanScene::render() const
 {
 	m_glScene->render();
 }

@@ -37,6 +37,7 @@ public:
 
 	EditorObjectSystemConfigConstPtr getEditorSystemConfigConst() const;
 	EditorObjectSystemConfigPtr getEditorSystemConfig();
+	MikanSceneConstPtr getEditorScene() const { return m_scene; }
 
 	void bindViewport(GlViewportWeakPtr viewportWeakPtr);
 	void clearViewports();

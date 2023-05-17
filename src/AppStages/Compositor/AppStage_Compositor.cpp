@@ -83,14 +83,12 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
-	, m_mikanScene(std::make_shared<MikanScene>())
 	, m_videoWriter(new VideoWriter)
 {
 }
 
 AppStage_Compositor::~AppStage_Compositor()
 {
-	m_mikanScene= nullptr;
 	m_viewport= nullptr;
 
 	delete m_compositorModel;
@@ -1116,8 +1114,8 @@ void AppStage_Compositor::render()
 			// Render the video frame + composited frame buffers
 			m_frameCompositor->render();
 
-			// Render the scene
-			m_mikanScene->render();
+			// Render the editor scene
+			EditorObjectSystem::getSystem()->getEditorScene()->render();
 
 			// Perform component custom rendering
 			m_app->getObjectSystemManager()->customRender();
@@ -1125,8 +1123,8 @@ void AppStage_Compositor::render()
 		break;
 	case eCompositorViewpointMode::vrViewpoint:
 		{
-			// Render the scene
-			m_mikanScene->render();
+			// Render the editor scene
+			EditorObjectSystem::getSystem()->getEditorScene()->render();
 
 			// Perform component custom rendering
 			m_app->getObjectSystemManager()->customRender();

@@ -175,8 +175,6 @@ protected:
 	GlViewportPtr m_viewport;
 	eCompositorViewpointMode m_viewportMode= eCompositorViewpointMode::mixedRealityViewpoint;
 
-	MikanScenePtr m_mikanScene;
-
 	bool m_bAddingNewConfig= false;
 
 	class VideoWriter* m_videoWriter= nullptr;

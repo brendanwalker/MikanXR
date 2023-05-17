@@ -24,7 +24,7 @@ public:
 	void addMikanObject(MikanObjectPtr objectWeakPtr);
 	void removeMikanObject(MikanObjectConstPtr objectWeakPtr);
 
-	void render();
+	void render() const;
 
 private:
 	GlScenePtr m_glScene;
