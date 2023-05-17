@@ -851,7 +851,7 @@ void MikanServer::getQuadStencil(
 	}
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
-	auto quadConfig= stencilSystemConfig->getQuadStencilInfo(stencilId);
+	auto quadConfig= stencilSystemConfig->getQuadStencilConfigConst(stencilId);
 	if (quadConfig != nullptr)
 	{
 		MikanStencilQuad stencil= quadConfig->getQuadInfo();
@@ -877,7 +877,7 @@ void MikanServer::getBoxStencil(
 	}
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
-	auto boxConfig = stencilSystemConfig->getBoxStencilInfo(stencilId);
+	auto boxConfig = stencilSystemConfig->getBoxStencilConfigConst(stencilId);
 	if (boxConfig != nullptr)
 	{
 		MikanStencilBox stencil = boxConfig->getBoxInfo();
@@ -903,7 +903,7 @@ void MikanServer::getModelStencil(
 	}
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
-	auto modelConfig = stencilSystemConfig->getModelStencilConfig(stencilId);
+	auto modelConfig = stencilSystemConfig->getModelStencilConfigConst(stencilId);
 	if (modelConfig != nullptr)
 	{
 		MikanStencilModel stencil = modelConfig->getModelInfo();
