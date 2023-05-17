@@ -54,16 +54,16 @@ bool EditorObjectSystem::init()
 	ObjectSystemManagerPtr objSystemMgr= App::getInstance()->getObjectSystemManager();
 
 	AnchorObjectSystemPtr anchorObjectSystem= objSystemMgr->getSystemOfType<AnchorObjectSystem>();
-	anchorObjectSystem->OnObjectAdded+= MakeDelegate(this, &EditorObjectSystem::onObjectAdded);
-	anchorObjectSystem->OnObjectRemoved+= MakeDelegate(this, &EditorObjectSystem::onObjectRemoved);
+	anchorObjectSystem->OnObjectInitialized+= MakeDelegate(this, &EditorObjectSystem::onObjectInitialized);
+	anchorObjectSystem->OnObjectDisposed+= MakeDelegate(this, &EditorObjectSystem::onObjectDisposed);
 	for (MikanObjectPtr objectPtr : anchorObjectSystem->getObjectList())
 	{
 		m_scene->addMikanObject(objectPtr);
 	}
 
 	StencilObjectSystemPtr stencilObjectSystem= objSystemMgr->getSystemOfType<StencilObjectSystem>();
-	stencilObjectSystem->OnObjectAdded += MakeDelegate(this, &EditorObjectSystem::onObjectAdded);
-	stencilObjectSystem->OnObjectRemoved += MakeDelegate(this, &EditorObjectSystem::onObjectRemoved);
+	stencilObjectSystem->OnObjectInitialized += MakeDelegate(this, &EditorObjectSystem::onObjectInitialized);
+	stencilObjectSystem->OnObjectDisposed += MakeDelegate(this, &EditorObjectSystem::onObjectDisposed);
 	for (MikanObjectPtr objectPtr : stencilObjectSystem->getObjectList())
 	{
 		m_scene->addMikanObject(objectPtr);
@@ -112,7 +112,7 @@ void EditorObjectSystem::createTransformGizmo()
 
 	gizmoObjectPtr->init();
 
-	m_scene->addMikanObject(m_gizmoObjectWeakPtr);
+	m_scene->addMikanObject(gizmoObjectPtr);
 }
 
 void EditorObjectSystem::createGizmoBoxCollider(
@@ -235,14 +235,14 @@ void EditorObjectSystem::onDeletePressed()
 }
 
 // Object System Events
-void EditorObjectSystem::onObjectAdded(MikanObjectSystem& system, MikanObject& object)
+void EditorObjectSystem::onObjectInitialized(MikanObjectSystemPtr system, MikanObjectPtr object)
 {
-	m_scene->addMikanObject(object.shared_from_this());
+	m_scene->addMikanObject(object);
 }
 
-void EditorObjectSystem::onObjectRemoved(MikanObjectSystem& system, MikanObject& object)
+void EditorObjectSystem::onObjectDisposed(MikanObjectSystemPtr system, MikanObjectConstPtr object)
 {
-	m_scene->removeMikanObject(object.shared_from_this());
+	m_scene->removeMikanObject(object);
 }
 
 void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)

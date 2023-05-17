@@ -57,8 +57,8 @@ protected:
 	void onAppStageEntered(class AppStage* appStage);
 
 	// Object System Events
-	void onObjectAdded(MikanObjectSystem& system, MikanObject& object);
-	void onObjectRemoved(MikanObjectSystem& system, MikanObject& object);
+	void onObjectInitialized(MikanObjectSystemPtr system, MikanObjectPtr object);
+	void onObjectDisposed(MikanObjectSystemPtr system, MikanObjectConstPtr object);
 
 	// Keyboard Events
 	void onDeletePressed();

@@ -27,13 +27,12 @@ void MikanScene::dispose()
 	m_selectionComponents.clear();
 }
 
-void MikanScene::addMikanObject(MikanObjectWeakPtr objectWeakPtr)
+void MikanScene::addMikanObject(MikanObjectPtr objectPtr)
 {
-	MikanObjectPtr objectPtr= objectWeakPtr.lock();
 	if (!objectPtr)
 		return;
 
-	m_objects.push_back(objectWeakPtr);
+	m_objects.push_back(objectPtr);
 
 	// Add renderable components to the GlScene
 	std::vector<SceneComponentPtr> sceneComponents;
@@ -58,9 +57,8 @@ void MikanScene::addMikanObject(MikanObjectWeakPtr objectWeakPtr)
 	}
 }
 
-void MikanScene::removeMikanObject(MikanObjectWeakPtr objectWeakPtr)
+void MikanScene::removeMikanObject(MikanObjectConstPtr objectPtr)
 {
-	MikanObjectPtr objectPtr = objectWeakPtr.lock();
 	if (!objectPtr)
 		return;
 

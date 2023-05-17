@@ -21,8 +21,8 @@ public:
 	const MikanObjectWeakList& getObjectList() const { return m_objects; }
 	const SelectionComponentWeakList& getSelectionComponentList() const { return m_selectionComponents; }
 
-	void addMikanObject(MikanObjectWeakPtr objectWeakPtr);
-	void removeMikanObject(MikanObjectWeakPtr objectWeakPtr);
+	void addMikanObject(MikanObjectPtr objectWeakPtr);
+	void removeMikanObject(MikanObjectConstPtr objectWeakPtr);
 
 	void render();
 

@@ -4,9 +4,6 @@
 
 #include "assert.h"
 
-MulticastDelegate<void(MikanObject&)> ObjectEvents::OnObjectInitialized;
-MulticastDelegate<void(const MikanObject&)> ObjectEvents::OnObjectDisposed;
-
 MikanObject::MikanObject(MikanObjectSystemWeakPtr ownerSystemPtr)
 	: m_ownerObjectSystem(ownerSystemPtr)
 {
@@ -25,14 +22,16 @@ void MikanObject::init()
 		component->init();
 	}
 
-	if (ObjectEvents::OnObjectInitialized)
-		ObjectEvents::OnObjectInitialized(*this);
+	MikanObjectSystemPtr objectSystem= m_ownerObjectSystem.lock();
+	if (objectSystem->OnObjectInitialized)
+		objectSystem->OnObjectInitialized(objectSystem, shared_from_this());
 }
 
 void MikanObject::dispose()
 {
-	if (ObjectEvents::OnObjectDisposed)
-		ObjectEvents::OnObjectDisposed(*this);
+	MikanObjectSystemPtr objectSystem = m_ownerObjectSystem.lock();
+	if (objectSystem->OnObjectDisposed)
+		objectSystem->OnObjectDisposed(objectSystem, shared_from_this());
 
 	for (MikanComponentPtr component : m_components)
 	{

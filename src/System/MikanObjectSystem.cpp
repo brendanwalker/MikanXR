@@ -44,9 +44,6 @@ MikanObjectPtr MikanObjectSystem::newObject()
 	MikanObjectPtr objectPtr = std::make_shared<MikanObject>(shared_from_this());
 	m_objects.push_back(objectPtr);
 
-	if (OnObjectAdded)
-		OnObjectAdded(*this, *objectPtr.get());
-
 	return objectPtr;
 }
 
@@ -59,9 +56,6 @@ void MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr)
 		auto it = std::find(m_objects.begin(), m_objects.end(), objectPtr);
 		if (it != m_objects.end())
 		{
-			if (OnObjectRemoved)
-				OnObjectRemoved(*this, *objectPtr.get());
-
 			m_objects.erase(it);
 		}
 	}

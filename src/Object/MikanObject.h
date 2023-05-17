@@ -8,13 +8,6 @@
 
 #include <vector>
 
-class ObjectEvents
-{
-public:
-	static MulticastDelegate<void(MikanObject&)> OnObjectInitialized;
-	static MulticastDelegate<void(const MikanObject&)> OnObjectDisposed;
-};
-
 class MikanObject final : public std::enable_shared_from_this<MikanObject>
 {
 public:

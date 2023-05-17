@@ -24,8 +24,8 @@ public:
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) { }
 	inline const MikanObjectList& getObjectList() const { return m_objects; }
 
-	MulticastDelegate<void(MikanObjectSystem&, MikanObject&)> OnObjectAdded;
-	MulticastDelegate<void(MikanObjectSystem&, MikanObject&)> OnObjectRemoved;
+	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectPtr)> OnObjectInitialized;
+	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectConstPtr)> OnObjectDisposed;
 
 protected:
 	MikanObjectList m_objects;
