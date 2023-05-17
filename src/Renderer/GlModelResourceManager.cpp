@@ -35,7 +35,7 @@ bool GlModelResourceManager::startup()
 	m_wireframeShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getWireframeShaderCode());
 	if (m_wireframeShader != nullptr)
 	{
-		m_wireframeMaterial = std::make_shared<GlMaterial>("Simple Wireframe", m_phongShader);
+		m_wireframeMaterial = std::make_shared<GlMaterial>("Simple Wireframe", m_wireframeShader);
 	}
 	else
 	{
