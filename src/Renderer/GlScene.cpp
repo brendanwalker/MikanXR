@@ -73,30 +73,47 @@ void GlScene::render() const
 		GlMaterialConstPtr material = drawCallIter->first;
 		GlDrawCallConstPtr drawCall = drawCallIter->second;
 
-		// Bind material program (unbound when materialBinding goes out of scope)
-		auto materialBinding= material->bindMaterial(shared_from_this(), camera);
-		if (materialBinding)
-		{			
-			for(auto instanceIter= drawCall->instances.begin(); 
-				instanceIter != drawCall->instances.end(); 
-				instanceIter++)
+		bool bAnyInstancesVisible= false;
+		for (auto instanceIter = drawCall->instances.begin();
+			 instanceIter != drawCall->instances.end();
+			 instanceIter++)
+		{
+			IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
+
+			if (renderableInstance->getVisible())
 			{
-				IGlSceneRenderableConstPtr renderableInstance= instanceIter->lock();
+				bAnyInstancesVisible= true;
+				break;
+			}
+		}
 
-				if (renderableInstance != nullptr && renderableInstance->getVisible())
+		if (bAnyInstancesVisible)
+		{
+			// Bind material program (unbound when materialBinding goes out of scope)
+			auto materialBinding = material->bindMaterial(shared_from_this(), camera);
+			if (materialBinding)
+			{
+				for (auto instanceIter = drawCall->instances.begin();
+					 instanceIter != drawCall->instances.end();
+					 instanceIter++)
 				{
-					GlMaterialInstancePtr materialInstance= renderableInstance->getMaterialInstance();
+					IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
-					// Bind material instance parameters (unbound when materialInstanceBinding goes out of scope)
-					auto materialInstanceBinding= 
-						materialInstance->bindMaterialInstance(
-							materialBinding, 
-							renderableInstance);
-
-					if (materialInstanceBinding)
+					if (renderableInstance != nullptr && renderableInstance->getVisible())
 					{
-						// Draw the renderable
-						renderableInstance->render();
+						GlMaterialInstancePtr materialInstance = renderableInstance->getMaterialInstance();
+
+						// Bind material instance parameters (unbound when materialInstanceBinding goes out of scope)
+						auto materialInstanceBinding =
+							materialInstance->bindMaterialInstance(
+								materialBinding,
+								renderableInstance);
+
+						if (materialInstanceBinding)
+						{
+							// Draw the renderable
+							renderableInstance->render();
+						}
 					}
 				}
 			}
