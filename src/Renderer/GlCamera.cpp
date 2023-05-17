@@ -271,7 +271,7 @@ void GlCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
 
 void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
 {
-	float aspectRatio;
+	float aspectRatio= 1.f;
 
 	switch (cameraIntrinsics->intrinsics_type)
 	{
