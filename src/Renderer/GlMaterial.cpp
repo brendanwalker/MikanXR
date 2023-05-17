@@ -357,10 +357,6 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					{
 						m_program->setFloatUniform(uniformName, value);
 					}
-					else
-					{
-						bSuccess = false;
-					}
 				}
 				break;
 			case eUniformDataType::datatype_float2:
@@ -369,10 +365,6 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					if (m_float2Sources.tryGetValue(uniformName, value))
 					{
 						m_program->setVector2Uniform(uniformName, value);
-					}
-					else
-					{
-						bSuccess = false;
 					}
 				}
 				break;
@@ -409,11 +401,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 									bSuccess = false;
 								}
 								break;
-							default:
-								bSuccess = false;
 						}
-
-						bSuccess = false;
 					}
 				}
 				break;
@@ -439,11 +427,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 									bSuccess = false;
 								}
 								break;
-							default:
-								bSuccess = false;
 						}
-
-						bSuccess = false;
 					}
 				}
 				break;
@@ -490,8 +474,6 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								m_program->setMatrix4x4Uniform(uniformName, glm::mat4(1.f));
 								bSuccess = true;
 								break;
-							default:
-								bSuccess = false;
 						}
 					}
 				}
@@ -506,10 +488,6 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 						bSuccess&= 
 							m_program->setTextureUniform(uniformName) &&
 							texture->bindTexture(textureUnit);
-					}
-					else
-					{
-						bSuccess= false;
 					}
 				}
 				break;
