@@ -19,18 +19,23 @@ class GlScopedMaterialInstanceBinding
 {
 public:
 	GlScopedMaterialInstanceBinding() : m_boundMaterialInstance(nullptr) {}
-	GlScopedMaterialInstanceBinding(class GlMaterialInstance* materialInstance) 
-		: m_boundMaterialInstance(materialInstance) {}
+	GlScopedMaterialInstanceBinding(
+		GlMaterialInstanceConstPtr materialInstance,
+		bool bMaterialInstanceFailure) 
+		: m_boundMaterialInstance(materialInstance) 
+		, m_bMaterialInstanceFailure(bMaterialInstanceFailure)
+	{}
 	virtual ~GlScopedMaterialInstanceBinding();
 
-	inline const GlMaterialInstance* getBoundMaterialInstance() const { return m_boundMaterialInstance; }
-	inline operator bool() const { return m_boundMaterialInstance != nullptr; }
+	inline GlMaterialInstanceConstPtr getBoundMaterialInstance() const { return m_boundMaterialInstance; }
+	inline operator bool() const { return !m_bMaterialInstanceFailure; }
 
 private:
-	class GlMaterialInstance* m_boundMaterialInstance = nullptr;
+	GlMaterialInstanceConstPtr m_boundMaterialInstance = nullptr;
+	bool m_bMaterialInstanceFailure= false;
 };
 
-class GlMaterialInstance
+class GlMaterialInstance : public std::enable_shared_from_this<GlMaterialInstance>
 {
 public:
 	GlMaterialInstance();
@@ -70,15 +75,14 @@ public:
 
 	GlScopedMaterialInstanceBinding bindMaterialInstance(
 		const GlScopedMaterialBinding& materialBinding,
-		IGlSceneRenderableConstPtr renderable);
+		IGlSceneRenderableConstPtr renderable) const;
 
 protected: 
 	friend class GlScopedMaterialInstanceBinding;
-	void unbindMaterialInstance();
+	void unbindMaterialInstance() const;
 
 private:
 	GlMaterialConstPtr m_parentMaterial = nullptr;
-	bool m_bIsMaterialInstanceBound = false;
 
 	// Material Override Parameters
 	NamedValueTable<float> m_floatSources;

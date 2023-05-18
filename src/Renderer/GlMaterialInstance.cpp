@@ -48,10 +48,6 @@ bool GlMaterialInstance::setFloatByUniformName(const std::string uniformName, fl
 		datatype == eUniformDataType::datatype_float)
 	{
 		m_floatSources.setValue(uniformName, value);
-		if (m_bIsMaterialInstanceBound)
-		{
-			m_parentMaterial->getProgram()->setFloatUniform(uniformName, value);
-		}
 		return true;
 	}
 
@@ -107,10 +103,6 @@ bool GlMaterialInstance::setVec2ByUniformName(const std::string uniformName, con
 		datatype == eUniformDataType::datatype_float2)
 	{
 		m_float2Sources.setValue(uniformName, value);
-		if (m_bIsMaterialInstanceBound)
-		{
-			m_parentMaterial->getProgram()->setVector2Uniform(uniformName, value);
-		}
 		return true;
 	}
 
@@ -165,10 +157,6 @@ bool GlMaterialInstance::setVec3ByUniformName(const std::string uniformName, con
 		datatype == eUniformDataType::datatype_float3)
 	{
 		m_float3Sources.setValue(uniformName, value);
-		if (m_bIsMaterialInstanceBound)
-		{
-			m_parentMaterial->getProgram()->setVector3Uniform(uniformName, value);
-		}
 		return true;
 	}
 
@@ -223,10 +211,6 @@ bool GlMaterialInstance::setVec4ByUniformName(const std::string uniformName, con
 		datatype == eUniformDataType::datatype_float4)
 	{
 		m_float4Sources.setValue(uniformName, value);
-		if (m_bIsMaterialInstanceBound)
-		{
-			m_parentMaterial->getProgram()->setVector4Uniform(uniformName, value);
-		}
 		return true;
 	}
 
@@ -281,10 +265,6 @@ bool GlMaterialInstance::setMat4ByUniformName(const std::string uniformName, con
 		datatype == eUniformDataType::datatype_mat4)
 	{
 		m_mat4Sources.setValue(uniformName, value);
-		if (m_bIsMaterialInstanceBound)
-		{
-			m_parentMaterial->getProgram()->setMatrix4x4Uniform(uniformName, value);
-		}
 		return true;
 	}
 
@@ -339,10 +319,6 @@ bool GlMaterialInstance::setTextureByUniformName(const std::string uniformName, 
 		datatype == eUniformDataType::datatype_texture)
 	{
 		m_textureSources.setValue(uniformName, texture);
-		if (m_bIsMaterialInstanceBound)
-		{
-			m_parentMaterial->getProgram()->setTextureUniform(uniformName);
-		}
 		return true;
 	}
 
@@ -365,18 +341,25 @@ bool GlMaterialInstance::getTextureByUniformName(const std::string uniformName, 
 	return false;
 }
 
+static void mark_uniform_as_bound(const std::string& uniformName, UniformNameSet& uniformSet)
+{
+	auto it= uniformSet.find(uniformName);
+	if (it != uniformSet.end())
+	{
+		uniformSet.erase(it);
+	}
+}
+
 GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 	const GlScopedMaterialBinding& materialBinding,
-	IGlSceneRenderableConstPtr renderable)
+	IGlSceneRenderableConstPtr renderable) const
 {
-	if (m_parentMaterial == nullptr)
-		return GlScopedMaterialInstanceBinding();
+	bool bMaterialInstanceFailure= false;
 
-	if (materialBinding.getBoundMaterial() != m_parentMaterial)
-		return GlScopedMaterialInstanceBinding();
-
-	if (!m_bIsMaterialInstanceBound)
+	if (m_parentMaterial != nullptr && 
+		materialBinding.getBoundMaterial() == m_parentMaterial)
 	{
+		UniformNameSet unboundUniforms= materialBinding.getUnboundUniforms();
 		GlProgramPtr program= m_parentMaterial->getProgram();
 
 		// Auto-apply renderable specific uniforms
@@ -392,6 +375,7 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 						const glm::mat4 modelMat = renderable->getModelMatrix();
 
 						program->setMatrix4x4Uniform(uniformName, modelMat);
+						mark_uniform_as_bound(uniformName, unboundUniforms);
 					}
 					break;
 				case eUniformSemantic::normalMatrix:
@@ -399,6 +383,7 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 						const glm::mat4 normalMat = renderable->getNormalMatrix();
 
 						program->setMatrix4x4Uniform(uniformName, normalMat);
+						mark_uniform_as_bound(uniformName, unboundUniforms);
 					}
 					break;
 				case eUniformSemantic::modelViewProjectionMatrix:
@@ -412,6 +397,7 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 							const glm::mat4 modelViewProjMatrix = viewProjMat * modelMat;
 
 							program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix);
+							mark_uniform_as_bound(uniformName, unboundUniforms);
 						}
 					}
 					break;
@@ -423,52 +409,75 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 		// Apply float overrides
 		for (auto it = m_floatSources.getMap().begin(); it != m_floatSources.getMap().end(); ++it)
 		{
-			program->setFloatUniform(it->first, it->second);
+			if (program->setFloatUniform(it->first, it->second))
+			{
+				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
 		}
 
 		// Apply vec2 overrides
 		for (auto it = m_float2Sources.getMap().begin(); it != m_float2Sources.getMap().end(); ++it)
 		{
-			program->setVector2Uniform(it->first, it->second);
+			if (program->setVector2Uniform(it->first, it->second))
+			{
+				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
 		}
 
 		// Apply vec3 overrides
 		for (auto it = m_float3Sources.getMap().begin(); it != m_float3Sources.getMap().end(); ++it)
 		{
-			program->setVector3Uniform(it->first, it->second);
+			if (program->setVector3Uniform(it->first, it->second))
+			{
+				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
 		}
 
 		// Apply vec4 overrides
 		for (auto it = m_float4Sources.getMap().begin(); it != m_float4Sources.getMap().end(); ++it)
 		{
-			program->setVector4Uniform(it->first, it->second);
+			if (program->setVector4Uniform(it->first, it->second))
+			{
+				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
 		}
 
 		// Apply mat4 overrides
 		for (auto it = m_mat4Sources.getMap().begin(); it != m_mat4Sources.getMap().end(); ++it)
 		{
-			program->setMatrix4x4Uniform(it->first, it->second);
+			if (program->setMatrix4x4Uniform(it->first, it->second))
+			{
+				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
 		}
 
 		// Apply texture overrides
 		for (auto it = m_textureSources.getMap().begin(); it != m_textureSources.getMap().end(); ++it)
 		{
-			program->setTextureUniform(it->first);
+			if (program->setTextureUniform(it->first))
+			{
+				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
 		}
 
-		// Flag that we bound the material instance
-		m_bIsMaterialInstanceBound= true;
+		// Make sure all uniforms were bound
+		if (unboundUniforms.size() > 0)
+		{
+			// Failed to bind all material parameters
+			bMaterialInstanceFailure= true;
+		}
+	}
+	else
+	{
+		bMaterialInstanceFailure= true;
 	}
 
-	return GlScopedMaterialInstanceBinding(this);
+	return GlScopedMaterialInstanceBinding(shared_from_this(), bMaterialInstanceFailure);
 }
 
-void GlMaterialInstance::unbindMaterialInstance()
+void GlMaterialInstance::unbindMaterialInstance() const
 {
 	if (m_parentMaterial == nullptr)
-		return;
-
-	if (!m_bIsMaterialInstanceBound)
 		return;
 
 	// Unbind all textures
@@ -483,8 +492,6 @@ void GlMaterialInstance::unbindMaterialInstance()
 			it->second->clearTexture(textureUnit);
 		}
 	}
-
-	m_bIsMaterialInstanceBound= false;
 }
 
 // -- GlScopedMaterialInstanceBinding ------

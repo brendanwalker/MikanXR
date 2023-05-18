@@ -89,7 +89,8 @@ void GlScene::render() const
 
 		if (bAnyInstancesVisible)
 		{
-			// Bind material program (unbound when materialBinding goes out of scope)
+			// Bind material program.
+			// Unbound when materialBinding goes out of scope.
 			auto materialBinding = material->bindMaterial(shared_from_this(), camera);
 			if (materialBinding)
 			{
@@ -101,9 +102,10 @@ void GlScene::render() const
 
 					if (renderableInstance != nullptr && renderableInstance->getVisible())
 					{
-						GlMaterialInstancePtr materialInstance = renderableInstance->getMaterialInstance();
+						GlMaterialInstanceConstPtr materialInstance = renderableInstance->getMaterialInstanceConst();
 
-						// Bind material instance parameters (unbound when materialInstanceBinding goes out of scope)
+						// Bind material instance parameters 
+						// Unbound when materialInstanceBinding goes out of scope.
 						auto materialInstanceBinding =
 							materialInstance->bindMaterialInstance(
 								materialBinding,

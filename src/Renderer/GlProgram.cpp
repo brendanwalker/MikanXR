@@ -169,6 +169,8 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 		case eUniformSemantic::floatConstant1:
 		case eUniformSemantic::floatConstant2:
 		case eUniformSemantic::floatConstant3:
+			dataType = eUniformDataType::datatype_float;
+			break;
 		case eUniformSemantic::texture0:
 		case eUniformSemantic::texture1:
 		case eUniformSemantic::texture2:

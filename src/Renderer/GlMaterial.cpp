@@ -338,7 +338,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 	GlSceneConstPtr scene,
 	GlCameraConstPtr camera) const
 {	
-	bool bSuccess= true;
+	bool bMaterialFailure= false;
+	UniformNameSet unboundUniformNames;
 
 	if (m_program->bindProgram())
 	{
@@ -347,6 +348,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 			const std::string& uniformName= it->first;
 			eUniformSemantic uniformSemantic= it->second.semantic;
 			eUniformDataType uniformDataType= GlProgram::getUniformSemanticDataType(uniformSemantic);
+			bool bIsBound= false;
 
 			switch (uniformDataType)
 			{
@@ -356,6 +358,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					if (m_floatSources.tryGetValue(uniformName, value))
 					{
 						m_program->setFloatUniform(uniformName, value);
+						bIsBound= true;
 					}
 				}
 				break;
@@ -365,6 +368,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					if (m_float2Sources.tryGetValue(uniformName, value))
 					{
 						m_program->setVector2Uniform(uniformName, value);
+						bIsBound= true;
 					}
 				}
 				break;
@@ -374,6 +378,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					if (m_float3Sources.tryGetValue(uniformName, value))
 					{
 						m_program->setVector3Uniform(uniformName, value);
+						bIsBound= true;
 					}
 					else
 					{
@@ -384,10 +389,11 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								{
 									value= camera->getCameraPositionFromViewMatrix();
 									m_program->setVector3Uniform(uniformName, value);
+									bIsBound= true;
 								}
 								else
 								{
-									bSuccess= false;
+									bMaterialFailure= true;
 								}
 								break;
 							case eUniformSemantic::lightDirection:
@@ -395,10 +401,11 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								{
 									value = scene->getLightDirection();
 									m_program->setVector3Uniform(uniformName, value);
+									bIsBound= true;
 								}
 								else
 								{
-									bSuccess = false;
+									bMaterialFailure = true;
 								}
 								break;
 						}
@@ -411,6 +418,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					if (m_float4Sources.tryGetValue(uniformName, value))
 					{
 						m_program->setVector4Uniform(uniformName, value);
+						bIsBound= true;
 					}
 					else
 					{
@@ -421,10 +429,11 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								{
 									value = scene->getLightColor();
 									m_program->setVector3Uniform(uniformName, value);
+									bIsBound= true;
 								}
 								else
 								{
-									bSuccess = false;
+									bMaterialFailure = true;
 								}
 								break;
 						}
@@ -437,6 +446,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					if (m_mat4Sources.tryGetValue(uniformName, value))
 					{
 						m_program->setMatrix4x4Uniform(uniformName, value);
+						bIsBound= true;
 					}
 					else
 					{
@@ -448,10 +458,11 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 									value = camera->getViewMatrix();
 
 									m_program->setMatrix4x4Uniform(uniformName, value);
+									bIsBound= true;
 								}
 								else
 								{
-									bSuccess= false;
+									bMaterialFailure= true;
 								}
 								break;
 							case eUniformSemantic::projectionMatrix:
@@ -460,19 +471,12 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 									value = camera->getProjectionMatrix();
 
 									m_program->setMatrix4x4Uniform(uniformName, value);
+									bIsBound= true;
 								}
 								else
 								{
-									bSuccess = false;
+									bMaterialFailure = true;
 								}
-								break;
-							case eUniformSemantic::modelMatrix:
-							case eUniformSemantic::normalMatrix:
-							case eUniformSemantic::modelViewProjectionMatrix:
-								// Default per-model matrix params to the identity
-								// Assume they get filled in as part of the bindMaterialInstance bindings
-								m_program->setMatrix4x4Uniform(uniformName, glm::mat4(1.f));
-								bSuccess = true;
 								break;
 						}
 					}
@@ -485,29 +489,38 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					if (m_textureSources.tryGetValue(uniformName, texture) && 
 						GlProgram::getTextureUniformUnit(uniformSemantic, textureUnit))
 					{
-						bSuccess&= 
-							m_program->setTextureUniform(uniformName) &&
-							texture->bindTexture(textureUnit);
+						if (!m_program->setTextureUniform(uniformName) ||
+							!texture->bindTexture(textureUnit))
+						{
+							bMaterialFailure= true;
+						}
 					}
 				}
 				break;
 			default:
 				assert(false);
 			}
+
+			// Track all unbound material parameters.
+			// Verify in material instance that all unbound parameters are resolved.
+			if (!bIsBound)
+			{
+				unboundUniformNames.insert(uniformName);
+			}
 		}
 
-		// Unbind the program and any bound textures if we failed to bind all parameters
-		if (!bSuccess)
+		// Unbind the program if we failed to bind any material parameters that should have worked
+		if (bMaterialFailure)
 		{
 			unbindMaterial();
 		}
 	}
 	else
 	{
-		bSuccess= false;
+		bMaterialFailure= true;
 	}
 
-	return GlScopedMaterialBinding(scene, camera, bSuccess ? shared_from_this() : nullptr);
+	return GlScopedMaterialBinding(scene, camera, shared_from_this(), unboundUniformNames, bMaterialFailure);
 }
 
 void GlMaterial::unbindMaterial() const
