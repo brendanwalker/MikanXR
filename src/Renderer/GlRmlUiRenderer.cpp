@@ -524,7 +524,7 @@ Rml::CompiledGeometryHandle GlRmlUiRender::CompileGeometry(
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, (const void*)indices, draw_usage);
 	glBindVertexArray(0);
 
-	checkGLError(__FILE__, __LINE__);
+	checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 	RmlGfx::CompiledGeometryData* geometry = new RmlGfx::CompiledGeometryData;
 	geometry->texture = (GLuint)texture;
@@ -565,7 +565,7 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 	glBindVertexArray(geometry->vao);
 	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
 
-	checkGLError(__FILE__, __LINE__);
+	checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 	assert(program != nullptr);
 	program->unbindProgram();
