@@ -50,7 +50,7 @@
 #define sgn(x) (((x) >= 0.f) ? 1.f : -1.f)
 #endif
 
-#ifdef NDEBUG
+#ifdef _DEBUG
 #define assert_valid_float(x) assert(is_valid_float(x))
 #else
 #define assert_valid_float(x)     ((void)0)
