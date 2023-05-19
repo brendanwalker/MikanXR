@@ -9,6 +9,8 @@
 MeshColliderComponent::MeshColliderComponent(MikanObjectWeakPtr owner)
 	: ColliderComponent(owner)
 {
+	m_meshCenterPoint= glm::vec3();
+	m_meshMaxCornerPoint= glm::vec3();
 }
 
 void MeshColliderComponent::dispose()
@@ -69,7 +71,7 @@ bool MeshColliderComponent::computeRayIntersection(
 			glm::vec3 triIntPoint;
 			glm::vec3 triIntNormal;
 			if (glm_intersect_tri_with_ray(
-				tri,
+				worldTri,
 				request.rayOrigin, request.rayDirection,
 				triIntDistance, triIntPoint, triIntNormal))
 			{
@@ -96,9 +98,11 @@ bool MeshColliderComponent::computeRayIntersection(
 
 void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr staticMeshWeakPtr)
 {
-	if (m_staticMeshWeakPtr.lock() == staticMeshWeakPtr.lock())
+	if (m_staticMeshWeakPtr.lock() != staticMeshWeakPtr.lock())
 	{
 		dispose();
+
+		m_staticMeshWeakPtr = staticMeshWeakPtr;
 
 		auto staticMeshPtr= staticMeshWeakPtr.lock();
 		if (staticMeshPtr)
@@ -106,14 +110,12 @@ void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr st
 			staticMeshPtr->OnMeshChanged += MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
 			rebuildCollionGeometry();
 		}
-
-		m_staticMeshWeakPtr = staticMeshWeakPtr;
 	}
 }
 
 void MeshColliderComponent::onStaticMeshChanged(StaticMeshComponentWeakPtr meshComponentWeakPtr)
 {
-	assert(m_staticMeshWeakPtr.lock() == meshComponentWeakPtr.lock());
+	assert(m_staticMeshWeakPtr.lock() != meshComponentWeakPtr.lock());
 	rebuildCollionGeometry();
 }
 
@@ -137,7 +139,7 @@ void MeshColliderComponent::rebuildCollionGeometry()
 
 	// TODO: For the moment, we are only supporting triangulated meshes with 16-bit indices
 	assert(glMeshDataPtr->getIndexPerElementCount() == 3);
-	assert(glMeshDataPtr->getIndexSize() == sizeof(sizeof(uint16_t)));
+	assert(glMeshDataPtr->getIndexSize() == sizeof(uint16_t));
 
 	auto vertexDefinition= glMeshDataPtr->getVertexDefinition();
 	auto vertexAttrib= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position3f);

@@ -254,7 +254,9 @@ void ModelStencilComponent::onInteractionRayOverlapEnter(const ColliderRaycastHi
 	{
 		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
 		{
-			meshPtr->getMaterialInstance()->setVec3BySemantic(eUniformSemantic::diffuseColorRGB, Colors::LightGray);
+			meshPtr->getMaterialInstance()->setVec4BySemantic(
+				eUniformSemantic::diffuseColorRGBA, 
+				glm::vec4(Colors::LightGray, 1.f));
 			meshPtr->setVisible(true);
 		}
 	}
@@ -279,7 +281,9 @@ void ModelStencilComponent::onInteractionSelected()
 	{
 		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
 		{
-			meshPtr->getMaterialInstance()->setVec3BySemantic(eUniformSemantic::diffuseColorRGB, Colors::Yellow);
+			meshPtr->getMaterialInstance()->setVec4BySemantic(
+				eUniformSemantic::diffuseColorRGBA, 
+				glm::vec4(Colors::Yellow, 1.f));
 			meshPtr->setVisible(true);
 		}
 	}
@@ -294,7 +298,9 @@ void ModelStencilComponent::onInteractionUnselected()
 		{
 			for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
 			{
-				meshPtr->getMaterialInstance()->setVec3BySemantic(eUniformSemantic::diffuseColorRGB, Colors::LightGray);
+				meshPtr->getMaterialInstance()->setVec4BySemantic(
+					eUniformSemantic::diffuseColorRGBA, 
+					glm::vec4(Colors::LightGray, 1.f));
 				meshPtr->setVisible(true);
 			}
 		}

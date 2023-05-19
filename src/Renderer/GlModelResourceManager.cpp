@@ -197,7 +197,7 @@ const GlProgramCode* GlModelResourceManager::getWireframeShaderCode()
 		// vertex shader
 		R""""(
 		#version 410 
-		uniform vec4 mvpMatrix; 
+		uniform mat4 mvpMatrix; 
 		layout(location = 0) in vec3 in_position; 
 		void main() 
 		{ 

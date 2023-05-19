@@ -536,13 +536,15 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 
 		// Create a static mesh component to hold the mesh instance
 		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
+		meshComponentPtr->setName(triMeshPtr->getName());
 		meshComponentPtr->setStaticMesh(triMeshInstancePtr);
 		meshComponentPtr->attachToComponent(sceneComponentPtr);
 
 		// Add a mesh collider component that generates collision from the mesh data
 		MeshColliderComponentPtr colliderPtr= stencilObject->addComponent<MeshColliderComponent>();
+		colliderPtr->setName(triMeshPtr->getName());
 		colliderPtr->setStaticMeshComponent(meshComponentPtr);
-		meshComponentPtr->attachToComponent(sceneComponentPtr);
+		colliderPtr->attachToComponent(sceneComponentPtr);
 	}
 
 	// Add static wireframe meshes
@@ -562,6 +564,7 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 
 		// Create a static mesh component to hold the mesh instance
 		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
+		meshComponentPtr->setName(wireframeMeshPtr->getName());
 		meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
 		meshComponentPtr->attachToComponent(sceneComponentPtr);
 	}
