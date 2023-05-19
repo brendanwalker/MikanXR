@@ -222,13 +222,13 @@ void GlLineRenderer::PointBufferState::createGlBufferState()
 {
 	glGenVertexArrays(1, &m_pointVAO);
 	glGenBuffers(1, &m_pointVBO);
-	checkGLError(__FILE__, __LINE__);
+	checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
 	glBindVertexArray(m_pointVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_pointVBO);
 
 	glBufferData(GL_ARRAY_BUFFER, m_maxPoints * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
-	checkGLError(__FILE__, __LINE__);
+	checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
 	getVertexDefinition()->applyVertexDefintion();
 
@@ -251,7 +251,7 @@ void GlLineRenderer::PointBufferState::drawGlBufferState(unsigned int glEnumMode
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
-		checkGLError(__FILE__, __LINE__);
+		checkHasAnyGLError("GlLineRenderer::PointBufferState::drawGlBufferState", __FILE__, __LINE__);
 	}
 
 	m_pointCount= 0;

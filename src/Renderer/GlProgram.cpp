@@ -292,7 +292,7 @@ bool GlProgram::setMatrix4x4Uniform(
 	{
 		GLint uniformId = iter->second.locationId;
 		glUniformMatrix4fv(uniformId, 1, GL_FALSE, glm::value_ptr(mat));
-		return true;
+		return !checkHasAnyGLError("GlProgram::setMatrix4x4Uniform()", __FILE__, __LINE__);
 	}
 	return false;
 }
@@ -306,7 +306,7 @@ bool GlProgram::setFloatUniform(
 	{
 		GLint uniformId = iter->second.locationId;
 		glUniform1f(uniformId, value);
-		return true;
+		return !checkHasAnyGLError("GlProgram::setFloatUniform()", __FILE__, __LINE__);
 	}
 	return false;
 }
@@ -320,7 +320,7 @@ bool GlProgram::setVector2Uniform(
 	{
 		GLint uniformId = iter->second.locationId;
 		glUniform2fv(uniformId, 1, glm::value_ptr(vec));
-		return true;
+		return !checkHasAnyGLError("GlProgram::setVector2Uniform()", __FILE__, __LINE__);
 	}
 	return false;
 }
@@ -333,8 +333,8 @@ bool GlProgram::setVector3Uniform(
 	if (iter != m_uniformLocationMap.end())
 	{
 		GLint uniformId = iter->second.locationId;
-		glUniform3fv(uniformId, 1, glm::value_ptr(vec));
-		return true;
+		glUniform3fv(uniformId, 1, glm::value_ptr(vec));		
+		return !checkHasAnyGLError("GlProgram::setVector3Uniform()", __FILE__, __LINE__);
 	}
 	return false;
 }
@@ -348,7 +348,7 @@ bool GlProgram::setVector4Uniform(
 	{
 		GLint uniformId = iter->second.locationId;
 		glUniform4fv(uniformId, 1, glm::value_ptr(vec));
-		return true;
+		return !checkHasAnyGLError("GlProgram::setVector4Uniform()", __FILE__, __LINE__);
 	}
 	return false;
 }
@@ -365,7 +365,7 @@ bool GlProgram::setTextureUniform(
 			const GLint uniformId = iter->second.locationId;
 
 			glUniform1i(uniformId, textureUnit);
-			return true;
+			return !checkHasAnyGLError("GlProgram::setTextureUniform()", __FILE__, __LINE__);
 		}
 	}
 
@@ -382,11 +382,11 @@ bool GlProgram::createProgram()
 		const GLchar* vertexShaderSource = (const GLchar*)m_code.getVertexShaderCode();
 		glShaderSource(nSceneVertexShader, 1, &vertexShaderSource, nullptr);
 		glCompileShader(nSceneVertexShader);
-		checkGLError(__FILE__, __LINE__);
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 		int vShaderCompiled = 0;
 		glGetShaderiv(nSceneVertexShader, GL_COMPILE_STATUS, &vShaderCompiled);
-		checkGLError(__FILE__, __LINE__);
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 		if (vShaderCompiled != 1)
 		{
@@ -412,11 +412,11 @@ bool GlProgram::createProgram()
 		const GLchar* fragmentShaderSource = (const GLchar*)m_code.getFragmentShaderCode();
 		glShaderSource(nSceneFragmentShader, 1, &fragmentShaderSource, nullptr);
 		glCompileShader(nSceneFragmentShader);
-		checkGLError(__FILE__, __LINE__);
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 		int fShaderCompiled = 0;
 		glGetShaderiv(nSceneFragmentShader, GL_COMPILE_STATUS, &fShaderCompiled);
-		checkGLError(__FILE__, __LINE__);
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 		if (fShaderCompiled != 1)
 		{
@@ -439,11 +439,11 @@ bool GlProgram::createProgram()
 		glDeleteShader(nSceneFragmentShader); // the program hangs onto this once it's attached
 
 		glLinkProgram(m_programID);
-		checkGLError(__FILE__, __LINE__);
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 		int programSuccess = 1;
 		glGetProgramiv(m_programID, GL_LINK_STATUS, &programSuccess);
-		checkGLError(__FILE__, __LINE__);
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 		if (programSuccess != 1)
 		{
@@ -465,7 +465,7 @@ bool GlProgram::createProgram()
 		for (const GlProgramCode::Uniform& codeUniform : m_code.getUniformList())
 		{
 			GLint uniformId = glGetUniformLocation(m_programID, codeUniform.name.c_str());
-			checkGLError(__FILE__, __LINE__);
+			checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 			if (uniformId != -1)
 			{

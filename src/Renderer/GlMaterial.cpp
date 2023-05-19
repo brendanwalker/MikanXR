@@ -357,8 +357,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					float value;
 					if (m_floatSources.tryGetValue(uniformName, value))
 					{
-						m_program->setFloatUniform(uniformName, value);
-						bIsBound= true;
+						bIsBound = m_program->setFloatUniform(uniformName, value);
+						bMaterialFailure= !bIsBound;
 					}
 				}
 				break;
@@ -367,8 +367,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					glm::vec2 value;
 					if (m_float2Sources.tryGetValue(uniformName, value))
 					{
-						m_program->setVector2Uniform(uniformName, value);
-						bIsBound= true;
+						bIsBound= m_program->setVector2Uniform(uniformName, value);
+						bMaterialFailure= !bIsBound;
 					}
 				}
 				break;
@@ -377,8 +377,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					glm::vec3 value;
 					if (m_float3Sources.tryGetValue(uniformName, value))
 					{
-						m_program->setVector3Uniform(uniformName, value);
-						bIsBound= true;
+						bIsBound= m_program->setVector3Uniform(uniformName, value);
+						bMaterialFailure= !bIsBound;
 					}
 					else
 					{
@@ -388,8 +388,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								if (camera != nullptr)
 								{
 									value= camera->getCameraPositionFromViewMatrix();
-									m_program->setVector3Uniform(uniformName, value);
-									bIsBound= true;
+									bIsBound= m_program->setVector3Uniform(uniformName, value);
+									bMaterialFailure= !bIsBound;
 								}
 								else
 								{
@@ -400,8 +400,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								if (scene != nullptr)
 								{
 									value = scene->getLightDirection();
-									m_program->setVector3Uniform(uniformName, value);
-									bIsBound= true;
+									bIsBound= m_program->setVector3Uniform(uniformName, value);
+									bMaterialFailure= !bIsBound;
 								}
 								else
 								{
@@ -417,8 +417,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					glm::vec4 value;
 					if (m_float4Sources.tryGetValue(uniformName, value))
 					{
-						m_program->setVector4Uniform(uniformName, value);
-						bIsBound= true;
+						bIsBound= m_program->setVector4Uniform(uniformName, value);
+						bMaterialFailure= !bIsBound;
 					}
 					else
 					{
@@ -428,8 +428,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								if (scene != nullptr)
 								{
 									value = scene->getLightColor();
-									m_program->setVector3Uniform(uniformName, value);
-									bIsBound= true;
+									bIsBound= m_program->setVector4Uniform(uniformName, value);
+									bMaterialFailure= !bIsBound;
 								}
 								else
 								{
@@ -445,8 +445,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					glm::mat4 value;
 					if (m_mat4Sources.tryGetValue(uniformName, value))
 					{
-						m_program->setMatrix4x4Uniform(uniformName, value);
-						bIsBound= true;
+						bIsBound= m_program->setMatrix4x4Uniform(uniformName, value);
+						bMaterialFailure= !bIsBound;
 					}
 					else
 					{
@@ -457,8 +457,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								{
 									value = camera->getViewMatrix();
 
-									m_program->setMatrix4x4Uniform(uniformName, value);
-									bIsBound= true;
+									bIsBound= m_program->setMatrix4x4Uniform(uniformName, value);
+									bMaterialFailure= !bIsBound;
 								}
 								else
 								{
@@ -470,8 +470,9 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 								{
 									value = camera->getProjectionMatrix();
 
-									m_program->setMatrix4x4Uniform(uniformName, value);
-									bIsBound= true;
+									bIsBound= m_program->setMatrix4x4Uniform(uniformName, value);
+									bMaterialFailure = !bIsBound;
+
 								}
 								else
 								{

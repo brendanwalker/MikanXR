@@ -374,16 +374,20 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 					{
 						const glm::mat4 modelMat = renderable->getModelMatrix();
 
-						program->setMatrix4x4Uniform(uniformName, modelMat);
-						mark_uniform_as_bound(uniformName, unboundUniforms);
+						if (program->setMatrix4x4Uniform(uniformName, modelMat))
+							mark_uniform_as_bound(uniformName, unboundUniforms);
+						else
+							bMaterialInstanceFailure= true;
 					}
 					break;
 				case eUniformSemantic::normalMatrix:
 					{
 						const glm::mat4 normalMat = renderable->getNormalMatrix();
 
-						program->setMatrix4x4Uniform(uniformName, normalMat);
-						mark_uniform_as_bound(uniformName, unboundUniforms);
+						if (program->setMatrix4x4Uniform(uniformName, normalMat))
+							mark_uniform_as_bound(uniformName, unboundUniforms);
+						else
+							bMaterialInstanceFailure= true;
 					}
 					break;
 				case eUniformSemantic::modelViewProjectionMatrix:
@@ -396,8 +400,10 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 							const glm::mat4 modelMat = renderable->getModelMatrix();
 							const glm::mat4 modelViewProjMatrix = viewProjMat * modelMat;
 
-							program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix);
-							mark_uniform_as_bound(uniformName, unboundUniforms);
+							if (program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix))
+								mark_uniform_as_bound(uniformName, unboundUniforms);
+							else
+								bMaterialInstanceFailure= true;
 						}
 					}
 					break;
@@ -413,6 +419,10 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
 			}
+			else
+			{
+				bMaterialInstanceFailure= true;
+			}
 		}
 
 		// Apply vec2 overrides
@@ -421,6 +431,10 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 			if (program->setVector2Uniform(it->first, it->second))
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
+			else
+			{
+				bMaterialInstanceFailure = true;
 			}
 		}
 
@@ -431,6 +445,10 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
 			}
+			else
+			{
+				bMaterialInstanceFailure = true;
+			}
 		}
 
 		// Apply vec4 overrides
@@ -439,6 +457,10 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 			if (program->setVector4Uniform(it->first, it->second))
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
+			else
+			{
+				bMaterialInstanceFailure = true;
 			}
 		}
 
@@ -449,6 +471,10 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
 			}
+			else
+			{
+				bMaterialInstanceFailure = true;
+			}
 		}
 
 		// Apply texture overrides
@@ -457,6 +483,10 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 			if (program->setTextureUniform(it->first))
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
+			}
+			else
+			{
+				bMaterialInstanceFailure = true;
 			}
 		}
 

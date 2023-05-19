@@ -20,4 +20,4 @@
 	#endif
 #endif
 
-void checkGLError(const char* file, const int line);
+bool checkHasAnyGLError(const char* context, const char* file, const int line);

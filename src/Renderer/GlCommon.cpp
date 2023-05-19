@@ -24,14 +24,19 @@ static inline const char* errorToString(const GLenum errorCode)
 	} 
 }
 
-void checkGLError(const char* file, const int line)
+bool checkHasAnyGLError(const char* context, const char* file, const int line)
 {
+	bool bHasAnyError= false;
+
 	GLenum err;
 	while ((err = glGetError()) != GL_NO_ERROR)
 	{
 		MIKAN_LOG_ERROR("checkGLError") 
-			<< file << "(" << line << ") : "
+			<< context << " - " << file << "(" << line << ") : "
 			<< "GL_CORE_ERROR=0x" << std::hex << err << " - " 
 			<< errorToString(err);
+		bHasAnyError= true;
 	}
+
+	return bHasAnyError;
 }
