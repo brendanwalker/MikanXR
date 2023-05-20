@@ -23,6 +23,8 @@ public:
 	virtual void setConfigTransform(const GlmTransform& transform) = 0;
 	virtual const GlmTransform getConfigTransform() = 0;
 
+	virtual MikanStencilID getParentAnchorId() const = 0;
+
 	void attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId);
 
 protected:

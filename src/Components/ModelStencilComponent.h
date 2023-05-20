@@ -71,6 +71,8 @@ public:
 	inline ModelStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(ModelStencilConfigPtr config);
 
+	virtual MikanStencilID getParentAnchorId() const override;
+
 	virtual void setConfigTransform(const GlmTransform& transform) override;
 	virtual const GlmTransform getConfigTransform() override;
 

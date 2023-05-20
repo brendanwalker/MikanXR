@@ -246,6 +246,8 @@ void BoxStencilComponent::setConfig(BoxStencilConfigPtr config)
 	}
 
 	m_config= config;
+	setName(config->getStencilName());
+
 	applyConfigTransformToSceneComponent();
 	updateBoxColliderExtents();
 }
@@ -259,6 +261,11 @@ void BoxStencilComponent::setConfigTransform(const GlmTransform& transform)
 const GlmTransform BoxStencilComponent::getConfigTransform()
 {
 	return m_config ? m_config->getBoxTransform() : GlmTransform();
+}
+
+MikanStencilID BoxStencilComponent::getParentAnchorId() const
+{
+	return m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
 }
 
 void BoxStencilComponent::updateBoxColliderExtents()

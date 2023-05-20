@@ -248,9 +248,15 @@ void QuadStencilComponent::setConfig(QuadStencilConfigPtr config)
 	}
 
 	m_config= config;
+	setName(config->getStencilName());
 
 	applyConfigTransformToSceneComponent();
 	updateBoxColliderExtents();
+}
+
+MikanStencilID QuadStencilComponent::getParentAnchorId() const
+{
+	return m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
 }
 
 void QuadStencilComponent::setConfigTransform(const GlmTransform& transform)

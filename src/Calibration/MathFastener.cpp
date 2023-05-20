@@ -13,12 +13,14 @@ bool align_stencil_fastener_to_anchor_fastener(
 	glm::mat4& outNewStencilXform,
 	glm::vec3 outNewStencilPoints[3]) 
 {
-	if (sourceFastener->getConfig()->getFastenerParentType() == MikanFastenerParentType_Stencil &&
-		targetFastener->getConfig()->getFastenerParentType() == MikanFastenerParentType_SpatialAnchor)
-	{
-		const MikanSpatialAnchorID sourceAnchorId = sourceFastener->getConfig()->getParentObjectId();
-		const MikanSpatialAnchorID targetAnchorId = targetFastener->getConfig()->getParentObjectId();
+	MikanSpatialAnchorID sourceAnchorId = INVALID_MIKAN_ID;
+	MikanSpatialAnchorID targetAnchorId = INVALID_MIKAN_ID;
 
+	if (sourceFastener->getConfig()->getFastenerParentType() == MikanFastenerParentType_Stencil &&
+		sourceFastener->getConfig()->getParentAnchorId(sourceAnchorId) &&
+		targetFastener->getConfig()->getFastenerParentType() == MikanFastenerParentType_SpatialAnchor &&
+		targetFastener->getConfig()->getParentAnchorId(targetAnchorId))
+	{
 		glm::vec3 stencilPoints[3];
 		glm::vec3 anchorPoints[3];
 		sourceFastener->getFastenerLocalPoints(stencilPoints);

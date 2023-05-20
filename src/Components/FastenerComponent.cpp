@@ -5,6 +5,7 @@
 #include "FastenerComponent.h"
 #include "FastenerObjectSystem.h"
 #include "SceneComponent.h"
+#include "StencilComponent.h"
 #include "MikanObject.h"
 #include "MathTypeConversion.h"
 #include "StencilObjectSystem.h"
@@ -108,6 +109,17 @@ bool FastenerConfig::getParentAnchorId(MikanSpatialAnchorID& outAnchorId) const
 		outAnchorId= m_fastenerInfo.parent_object_id;
 		return true;
 	}
+	else if (m_fastenerInfo.parent_object_type == MikanFastenerParentType_Stencil)
+	{
+		StencilComponentPtr stencilPtr= 
+			StencilObjectSystem::getSystem()->getStencilById(m_fastenerInfo.parent_object_id);
+
+		if (stencilPtr != nullptr)
+		{
+			outAnchorId= stencilPtr->getParentAnchorId();
+			return true;
+		}
+	}
 
 	return false;
 }
@@ -198,6 +210,7 @@ void FastenerComponent::customRender()
 void FastenerComponent::setConfig(FastenerConfigPtr config)
 {
 	m_config = config;
+	setName(m_config->getFastenerName());
 }
 
 const std::string FastenerComponent::getFastenerName()
@@ -208,6 +221,7 @@ const std::string FastenerComponent::getFastenerName()
 void FastenerComponent::setFastenerName(const std::string& newFastenerName)
 {
 	m_config->setFastenerName(newFastenerName);
+	setName(newFastenerName);
 }
 
 glm::mat4 FastenerComponent::getFastenerWorldTransform() const

@@ -232,6 +232,7 @@ void ModelStencilComponent::setConfig(ModelStencilConfigPtr config)
 	}
 
 	m_config = config;
+	setName(config->getStencilName());
 
 	applyConfigTransformToSceneComponent();
 }
@@ -240,6 +241,11 @@ void ModelStencilComponent::setConfigTransform(const GlmTransform& transform)
 {
 	if (m_config)
 		m_config->setModelTransform(transform);
+}
+
+MikanStencilID ModelStencilComponent::getParentAnchorId() const
+{
+	return m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
 }
 
 const GlmTransform ModelStencilComponent::getConfigTransform()

@@ -74,6 +74,8 @@ public:
 	inline QuadStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(QuadStencilConfigPtr config);
 
+	virtual MikanStencilID getParentAnchorId() const override;
+
 	virtual void setConfigTransform(const GlmTransform& transform) override;
 	virtual const GlmTransform getConfigTransform() override;
 
