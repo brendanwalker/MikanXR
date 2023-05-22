@@ -19,10 +19,14 @@ void SceneComponent::init()
 void SceneComponent::dispose()
 {
 	// Detach all children from this scene component first
-	for (auto it = m_childComponents.begin(); it != m_childComponents.end(); ++it)
+	while (m_childComponents.size() > 0)
 	{
-		SceneComponentPtr childComponent= it->lock(); 
-		childComponent->detachFromParent(eDetachReason::parentDisposed);
+		SceneComponentPtr childComponent= m_childComponents[0].lock();
+
+		if (childComponent)
+		{
+			childComponent->detachFromParent(eDetachReason::parentDisposed);
+		}
 	}
 
 	// Detach from our parent next

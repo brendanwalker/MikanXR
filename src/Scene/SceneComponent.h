@@ -81,5 +81,4 @@ protected:
 	SceneComponentWeakPtr m_parentComponent;
 	SceneComponentList m_childComponents;
 	IGlSceneRenderablePtr m_sceneRenderable;
-	//bool m_bIsPropogatingTransform= false;
 };
