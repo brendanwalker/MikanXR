@@ -276,7 +276,8 @@ void BoxStencilComponent::setRelativePosition(const glm::vec3& position)
 	m_relativeTransform.setPosition(position);
 	StencilComponent::setRelativeTransform(m_relativeTransform);
 
-	m_config->setBoxCenter({position.x, position.y, position.z});
+	if (m_bIsInitialized)
+		m_config->setBoxCenter({position.x, position.y, position.z});
 }
 
 void BoxStencilComponent::setRelativeOrientation(const glm::mat3& rotation)
@@ -284,28 +285,32 @@ void BoxStencilComponent::setRelativeOrientation(const glm::mat3& rotation)
 	m_relativeTransform.setOrientation(glm::quat_cast(rotation));
 	StencilComponent::setRelativeTransform(m_relativeTransform);
 
-	m_config->setBoxOrientation(rotation);
+	if (m_bIsInitialized)
+		m_config->setBoxOrientation(rotation);
 }
 
 void BoxStencilComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 {
 	StencilComponent::setRelativeTransform(newRelativeXform);
 
-	m_config->setBoxTransform(newRelativeXform);
+	if (m_bIsInitialized)
+		m_config->setBoxTransform(newRelativeXform);
 }
 
 void BoxStencilComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
 	StencilComponent::setWorldTransform(newWorldXform);
 
-	m_config->setBoxMat4(newWorldXform);
+	if (m_bIsInitialized)
+		m_config->setBoxMat4(newWorldXform);
 }
 
 void BoxStencilComponent::setName(const std::string& name)
 {
 	StencilComponent::setName(name);
 
-	m_config->setStencilName(name);
+	if (m_bIsInitialized)
+		m_config->setStencilName(name);
 }
 
 MikanStencilID BoxStencilComponent::getParentAnchorId() const

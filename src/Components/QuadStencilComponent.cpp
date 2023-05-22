@@ -278,7 +278,8 @@ void QuadStencilComponent::setRelativePosition(const glm::vec3& position)
 	m_relativeTransform.setPosition(position);
 	StencilComponent::setRelativeTransform(m_relativeTransform);
 
-	m_config->setQuadCenter({position.x, position.y, position.z});
+	if (m_bIsInitialized)
+		m_config->setQuadCenter({position.x, position.y, position.z});
 }
 
 void QuadStencilComponent::setRelativeOrientation(const glm::mat3& rotation)
@@ -286,28 +287,32 @@ void QuadStencilComponent::setRelativeOrientation(const glm::mat3& rotation)
 	m_relativeTransform.setOrientation(glm::quat_cast(rotation));
 	StencilComponent::setRelativeTransform(m_relativeTransform);
 
-	m_config->setQuadOrientation(rotation);
+	if (m_bIsInitialized)
+		m_config->setQuadOrientation(rotation);
 }
 
 void QuadStencilComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 {
 	StencilComponent::setRelativeTransform(newRelativeXform);
 
-	m_config->setQuadTransform(newRelativeXform);
+	if (m_bIsInitialized)
+		m_config->setQuadTransform(newRelativeXform);
 }
 
 void QuadStencilComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
 	StencilComponent::setWorldTransform(newWorldXform);
 
-	m_config->setQuadMat4(newWorldXform);
+	if (m_bIsInitialized)
+		m_config->setQuadMat4(newWorldXform);
 }
 
 void QuadStencilComponent::setName(const std::string& name)
 {
 	StencilComponent::setName(name);
 
-	m_config->setStencilName(name);
+	if (m_bIsInitialized)
+		m_config->setStencilName(name);
 }
 
 MikanStencilID QuadStencilComponent::getParentAnchorId() const

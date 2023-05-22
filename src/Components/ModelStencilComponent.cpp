@@ -239,7 +239,8 @@ void ModelStencilComponent::setRelativePosition(const glm::vec3& position)
 	m_relativeTransform.setPosition(position);
 	StencilComponent::setRelativeTransform(m_relativeTransform);
 
-	m_config->setModelPosition({position.x, position.y, position.z});
+	if (m_bIsInitialized)
+		m_config->setModelPosition({position.x, position.y, position.z});
 }
 
 void ModelStencilComponent::setRelativeOrientation(const glm::vec3& eulerAnglesDegrees)
@@ -254,7 +255,8 @@ void ModelStencilComponent::setRelativeOrientation(const glm::vec3& eulerAnglesD
 	m_relativeTransform.setOrientation(glm::quat_cast(rotation));
 	StencilComponent::setRelativeTransform(m_relativeTransform);
 
-	m_config->setModelRotator({eulerAnglesDegrees.x, eulerAnglesDegrees.y, eulerAnglesDegrees.z});
+	if (m_bIsInitialized)
+		m_config->setModelRotator({eulerAnglesDegrees.x, eulerAnglesDegrees.y, eulerAnglesDegrees.z});
 }
 
 void ModelStencilComponent::setRelativeScale(const glm::vec3& scale)
@@ -262,21 +264,24 @@ void ModelStencilComponent::setRelativeScale(const glm::vec3& scale)
 	m_relativeTransform.setScale(scale);
 	StencilComponent::setRelativeTransform(m_relativeTransform);
 
-	m_config->setModelPosition({scale.x, scale.y, scale.z});
+	if (m_bIsInitialized)
+		m_config->setModelPosition({scale.x, scale.y, scale.z});
 }
 
 void ModelStencilComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 {
 	StencilComponent::setRelativeTransform(newRelativeXform);
 
-	m_config->setModelTransform(newRelativeXform);
+	if (m_bIsInitialized)
+		m_config->setModelTransform(newRelativeXform);
 }
 
 void ModelStencilComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
 	StencilComponent::setWorldTransform(newWorldXform);
 
-	m_config->setModelTransform(getRelativeTransform().getMat4());
+	if (m_bIsInitialized)
+		m_config->setModelTransform(getRelativeTransform().getMat4());
 }
 
 MikanStencilID ModelStencilComponent::getParentAnchorId() const

@@ -133,19 +133,28 @@ void AnchorComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 {
 	SceneComponent::setRelativeTransform(newRelativeXform);
 
-	m_config->setAnchorXform(newRelativeXform.getMat4());
+	if (m_bIsInitialized)
+	{
+		m_config->setAnchorXform(newRelativeXform.getMat4());
+	}
 }
 
 void AnchorComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
 	SceneComponent::setWorldTransform(newWorldXform);
 
-	m_config->setAnchorXform(getRelativeTransform().getMat4());
+	if (m_bIsInitialized)
+	{
+		m_config->setAnchorXform(getRelativeTransform().getMat4());
+	}
 }
 
 void AnchorComponent::setName(const std::string& name)
 {
 	SceneComponent::setName(name);
 
-	m_config->setAnchorName(name);
+	if (m_bIsInitialized)
+	{
+		m_config->setAnchorName(name);
+	}
 }
