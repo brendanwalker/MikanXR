@@ -12,6 +12,8 @@
 #include "StringUtils.h"
 
 // -- FastenerObjectSystemConfig -----
+const std::string  FastenerObjectSystemConfig::k_fastenerListPropertyId = "spatialFasteners";
+
 configuru::Config FastenerObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
@@ -101,9 +103,7 @@ MikanSpatialFastenerID FastenerObjectSystemConfig::addNewFastener(const MikanSpa
 	nextFastenerId++;
 
 	spatialFastenerList.push_back(fastenerConfig);
-	markDirty();
-	if (OnFastenerListChanged)
-		OnFastenerListChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_fastenerListPropertyId));
 
 	return fastenerConfig->getFastenerId();
 }
@@ -120,9 +120,7 @@ bool FastenerObjectSystemConfig::removeFastener(MikanSpatialFastenerID fastenerI
 		(*it)->getFastenerId() != originFastenerId)
 	{
 		spatialFastenerList.erase(it);
-		markDirty();
-		if (OnFastenerListChanged)
-			OnFastenerListChanged();
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_fastenerListPropertyId));
 
 		return true;
 	}
@@ -252,8 +250,8 @@ FastenerComponentPtr FastenerObjectSystem::addNewFastener(const MikanSpatialFast
 
 bool FastenerObjectSystem::removeFastener(MikanSpatialFastenerID FastenerId)
 {
-	getFastenerSystemConfig()->removeFastener(FastenerId);
 	disposeFastenerObject(FastenerId);
+	getFastenerSystemConfig()->removeFastener(FastenerId);
 
 	return false;
 }
@@ -294,12 +292,9 @@ FastenerComponentPtr FastenerObjectSystem::createFastenerObject(FastenerConfigPt
 {
 	MikanObjectPtr fastenerObject = newObject();
 
-	// Add a scene component to the Fastener
-	SceneComponentPtr sceneComponentPtr = fastenerObject->addComponent<SceneComponent>();
-	fastenerObject->setRootComponent(sceneComponentPtr);
-
-	// Add spatial Fastener component to the object
+	// Set Spatial Fastener component as the root component
 	FastenerComponentPtr fastenerComponent = fastenerObject->addComponent<FastenerComponent>();
+	fastenerObject->setRootComponent(fastenerComponent);
 	fastenerComponent->setConfig(fastenerConfig);
 	m_fastenerComponents.insert({fastenerConfig->getFastenerId(), fastenerComponent});
 
@@ -308,7 +303,7 @@ FastenerComponentPtr FastenerObjectSystem::createFastenerObject(FastenerConfigPt
 	SceneComponentPtr parentSceneComponent= getFastenerParentSceneComponent(fastenerInfo);
 	if (parentSceneComponent != nullptr)
 	{
-		sceneComponentPtr->attachToComponent(parentSceneComponent);
+		fastenerComponent->attachToComponent(parentSceneComponent);
 	}
 
 	// Init the object once all components are added

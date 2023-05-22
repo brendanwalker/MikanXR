@@ -2,6 +2,7 @@
 #define MIKAN_SERVER_H
 
 //-- includes -----
+#include "CommonConfigFwd.h"
 #include "MikanClientTypes.h"
 #include "MulticastDelegate.h"
 #include "glm/ext/matrix_float4x4.hpp"
@@ -40,7 +41,7 @@ public:
 
 	// Spatial Anchor Events
 	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent);
-	void publishAnchorListChangedEvent();
+	void handleAnchorSystemConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
 	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
 

@@ -14,7 +14,10 @@ struct RmlModel_CompositorAnchor
 class RmlModel_CompositorAnchors : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext, AnchorObjectSystemPtr anchorSystemPtr);
+	bool init(
+		Rml::Context* rmlContext, 
+		AnchorObjectSystemPtr anchorSystemPtr, 
+		FastenerObjectSystemPtr fastenerSystemPtr);
 	virtual void dispose() override;
 
 	void rebuildAnchorList();
@@ -25,9 +28,12 @@ public:
 	SinglecastDelegate<void(int anchorID, int fastenerID)> OnDeleteFastenerEvent;
 
 private:
-	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr);
+	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+	void fastenerSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;
+	FastenerObjectSystemPtr m_fastenerSystemPtr;
+
 	int m_originAnchorId= -1;
 	Rml::Vector<RmlModel_CompositorAnchor> m_spatialAnchors;
 	bool m_bShowAnchors;

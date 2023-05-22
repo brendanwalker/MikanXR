@@ -3,11 +3,14 @@
 #include "GlTextRenderer.h"
 #include "SceneComponent.h"
 #include "MikanObject.h"
-#include "MikanServer.h"
+//#include "MikanServer.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 
 // -- AnchorConfig -----
+const std::string AnchorConfig::k_anchorNamePropertyID= "anchor_name";
+const std::string AnchorConfig::k_anchorXformPropertyID= "anchor_xform";
+
 AnchorConfig::AnchorConfig()
 	: CommonConfig("")
 {
@@ -70,17 +73,7 @@ const glm::mat4 AnchorConfig::getAnchorXform() const
 void AnchorConfig::setAnchorXform(const glm::mat4& xform)
 {
 	m_anchorInfo.anchor_xform = glm_mat4_to_MikanMatrix4f(xform);
-	markDirty();
-
-	// Tell any connected clients that the anchor pose changed
-	{
-		MikanAnchorPoseUpdateEvent poseUpdateEvent;
-		memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
-		poseUpdateEvent.anchor_id = m_anchorInfo.anchor_id;
-		poseUpdateEvent.transform = m_anchorInfo.anchor_xform;
-
-		MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
-	}
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorXformPropertyID));
 }
 
 const std::string AnchorConfig::getAnchorName() const
@@ -91,15 +84,12 @@ const std::string AnchorConfig::getAnchorName() const
 void AnchorConfig::setAnchorName(const std::string& anchorName)
 {
 	strncpy(m_anchorInfo.anchor_name, anchorName.c_str(), sizeof(m_anchorInfo.anchor_name) - 1);
-	markDirty();
-
-	// Tell any connected clients that the anchor list changed
-	MikanServer::getInstance()->publishAnchorListChangedEvent();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorNamePropertyID));
 }
 
 // -- AnchorComponent -----
 AnchorComponent::AnchorComponent(MikanObjectWeakPtr owner)
-	: MikanComponent(owner)
+	: SceneComponent(owner)
 {
 	m_bWantsCustomRender= true;
 }
@@ -108,11 +98,8 @@ void AnchorComponent::init()
 {
 	MikanComponent::init();
 
-	SceneComponentPtr sceneComponentPtr = getOwnerObject()->getComponentOfType<SceneComponent>();
-	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &AnchorComponent::applySceneComponentTransformToConfig);
-	m_sceneComponent= sceneComponentPtr;
-
-	applyConfigTransformToSceneComponent();
+	// Push our world transform to all child scene components
+	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 }
 
 void AnchorComponent::customRender()
@@ -128,69 +115,37 @@ void AnchorComponent::customRender()
 	drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
 }
 
-void AnchorComponent::dispose()
-{
-	SceneComponentPtr sceneComponentPtr = m_sceneComponent.lock();
-	sceneComponentPtr->OnTranformChaged -= MakeDelegate(this, &AnchorComponent::applySceneComponentTransformToConfig);
-
-	MikanComponent::dispose();
-}
-
-
 void AnchorComponent::setConfig(AnchorConfigPtr config)
 {
+	assert(!m_bIsInitialized);
 	m_config= config;
-	applyConfigTransformToSceneComponent();
+
+	// Initially the anchor component isn't attached to anything
+	assert(m_parentComponent.lock() == nullptr);
+	m_worldTransform= config->getAnchorXform();
+	m_relativeTransform= GlmTransform(m_worldTransform);
+
+	// Make the component name match the config name
+	m_name= config->getAnchorName();
 }
 
-glm::mat4 AnchorComponent::getAnchorLocalTransform() const
+void AnchorComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 {
-	return m_sceneComponent.lock()->getRelativeTransform().getMat4();
+	SceneComponent::setRelativeTransform(newRelativeXform);
+
+	m_config->setAnchorXform(newRelativeXform.getMat4());
 }
 
-glm::mat4 AnchorComponent::getAnchorWorldTransform() const
+void AnchorComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
-	return m_sceneComponent.lock()->getWorldTransform();
+	SceneComponent::setWorldTransform(newWorldXform);
+
+	m_config->setAnchorXform(getRelativeTransform().getMat4());
 }
 
-void AnchorComponent::setAnchorLocalTransform(const GlmTransform& localTransform)
+void AnchorComponent::setName(const std::string& name)
 {
-	m_sceneComponent.lock()->setRelativeTransform(localTransform);
-}
+	SceneComponent::setName(name);
 
-void AnchorComponent::setAnchorWorldTransform(const glm::mat4& worldMat)
-{
-	m_sceneComponent.lock()->setWorldTransform(worldMat);
-}
-
-const std::string AnchorComponent::getAnchorName()
-{
-	return m_config->getAnchorName();
-}
-
-void AnchorComponent::setAnchorName(const std::string& newAnchorName)
-{
-	m_config->setAnchorName(newAnchorName);
-}
-
-void AnchorComponent::applyConfigTransformToSceneComponent()
-{
-	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
-	if (sceneComponent)
-	{
-		GlmTransform relativeTransform(m_config->getAnchorXform());
-
-		m_bIsApplyingConfigTransform= true;
-		sceneComponent->setRelativeTransform(relativeTransform);
-		m_bIsApplyingConfigTransform= false;
-	}
-}
-
-void AnchorComponent::applySceneComponentTransformToConfig(SceneComponentPtr sceneComponent)
-{
-	// Ignore this call if we were invoked from applyConfigTransformToSceneComponent()
-	if (m_bIsApplyingConfigTransform)
-		return;
-
-	m_config->setAnchorXform(sceneComponent->getRelativeTransform().getMat4());
+	m_config->setAnchorName(name);
 }

@@ -18,6 +18,9 @@ const std::string g_fastenerParentTypeStrings[MikanFastenerParentType_COUNT] = {
 extern const std::string* k_fastenerParentTypeStrings = g_fastenerParentTypeStrings;
 
 // -- FastenerConfig -----
+const std::string FastenerConfig::kFastenerNamePropertyId= "fastener_name";
+const std::string FastenerConfig::kFastenerPointsPropertyId= "fastener_points";
+
 FastenerConfig::FastenerConfig()
 	: CommonConfig("")
 {
@@ -143,8 +146,7 @@ const std::string FastenerConfig::getFastenerName() const
 void FastenerConfig::setFastenerName(const std::string& fastenerName)
 {
 	strncpy(m_fastenerInfo.fastener_name, fastenerName.c_str(), sizeof(m_fastenerInfo.fastener_name) - 1);
-	markDirty();
-	notifyFastenerChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(kFastenerNamePropertyId));
 }
 
 void FastenerConfig::getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) const
@@ -161,21 +163,12 @@ void FastenerConfig::setFastenerLocalPoints(MikanVector3f inLocalPoints[3])
 	{
 		m_fastenerInfo.fastener_points[i]= inLocalPoints[i];
 	}
-	markDirty();
-	notifyFastenerChanged();
-}
-
-void FastenerConfig::notifyFastenerChanged()
-{
-	FastenerObjectSystemConfigPtr configPtr= FastenerObjectSystem::getSystem()->getFastenerSystemConfig();
-
-	if (configPtr->OnFastenerModified)
-		configPtr->OnFastenerModified(m_fastenerInfo.fastener_id);
+	markDirty(ConfigPropertyChangeSet().addPropertyName(kFastenerPointsPropertyId));
 }
 
 // -- FastenerComponent -----
 FastenerComponent::FastenerComponent(MikanObjectWeakPtr owner)
-	: MikanComponent(owner)
+	: SceneComponent(owner)
 {
 	m_bWantsCustomRender= true;
 }
@@ -195,7 +188,7 @@ void FastenerComponent::customRender()
 	wchar_t wszFastenerName[MAX_MIKAN_FASTENER_NAME_LEN];
 	StringUtils::convertMbsToWcs(fastener.fastener_name, wszFastenerName, sizeof(wszFastenerName));
 
-	const glm::mat4 xform = getFastenerWorldTransform();
+	const glm::mat4 xform = getWorldTransform();
 	const glm::vec3 p0 = MikanVector3f_to_glm_vec3(fastener.fastener_points[0]);
 	const glm::vec3 p1 = MikanVector3f_to_glm_vec3(fastener.fastener_points[1]);
 	const glm::vec3 p2 = MikanVector3f_to_glm_vec3(fastener.fastener_points[2]);
@@ -209,8 +202,14 @@ void FastenerComponent::customRender()
 
 void FastenerComponent::setConfig(FastenerConfigPtr config)
 {
+	assert(!m_bIsInitialized);
 	m_config = config;
-	setName(m_config->getFastenerName());
+
+	// Initially the fastener component isn't attached to anything
+	assert(m_parentComponent.lock() == nullptr);
+
+	// Make the component name match the config name
+	m_name= m_config->getFastenerName();
 }
 
 const std::string FastenerComponent::getFastenerName()
@@ -224,11 +223,6 @@ void FastenerComponent::setFastenerName(const std::string& newFastenerName)
 	setName(newFastenerName);
 }
 
-glm::mat4 FastenerComponent::getFastenerWorldTransform() const
-{
-	return getOwnerObject()->getRootComponent()->getWorldTransform();
-}
-
 void FastenerComponent::getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) const
 {
 	return m_config->getFastenerLocalPoints(outLocalPoints);
@@ -236,7 +230,7 @@ void FastenerComponent::getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) cons
 
 void FastenerComponent::getFastenerWorldPoints(glm::vec3 outWorldPoints[3]) const
 {
-	const glm::mat4 localToWorld = getFastenerWorldTransform();
+	const glm::mat4 localToWorld = getWorldTransform();
 
 	glm::vec3 localPoints[3];
 	getFastenerLocalPoints(localPoints);

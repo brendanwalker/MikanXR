@@ -32,7 +32,9 @@ public:
 	SinglecastDelegate<void()> OnGotoMainMenu;
 
 private:
-	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr);
+	void anchorSystemConfigMarkedDirty(
+		CommonConfigPtr configPtr,
+		const class ConfigPropertyChangeSet& changedPropertySet);
 
 	Rml::String m_anchorVRDevicePath;
 	Rml::Vector<Rml::String> m_vrDeviceList;

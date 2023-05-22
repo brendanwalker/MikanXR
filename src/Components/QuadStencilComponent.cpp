@@ -19,6 +19,16 @@
 #include "glm/ext/matrix_float4x4_precision.hpp"
 
 // -- QuadConfig -----
+const std::string QuadStencilConfig::k_quadStencilXAxisPropertyId = "quad_x_axis";
+const std::string QuadStencilConfig::k_quadStencilYAxisPropertyId = "quad_y_axis";
+const std::string QuadStencilConfig::k_quadStencilNormalPropertyId = "quad_normal";
+const std::string QuadStencilConfig::k_quadStencilCenterPropertyId = "quad_center";
+const std::string QuadStencilConfig::k_quadStencilWidthPropertyId = "quad_width";
+const std::string QuadStencilConfig::k_quadStencilHeightPropertyId = "quad_height";
+const std::string QuadStencilConfig::k_quadStencilDisabledPropertyId = "is_disabled";
+const std::string QuadStencilConfig::k_quadStencilDoubleSidedPropertyId = "is_double_sided";
+const std::string QuadStencilConfig::k_quadStencilNamePropertyId = "stencil_name";
+
 QuadStencilConfig::QuadStencilConfig()
 {
 	memset(&m_quadInfo, 0, sizeof(MikanStencilQuad));
@@ -26,11 +36,9 @@ QuadStencilConfig::QuadStencilConfig()
 	m_quadInfo.parent_anchor_id = INVALID_MIKAN_ID;
 }
 
-QuadStencilConfig::QuadStencilConfig(MikanStencilID stencilId)
+QuadStencilConfig::QuadStencilConfig(const MikanStencilQuad& quadInfo)
 {
-	memset(&m_quadInfo, 0, sizeof(MikanStencilQuad));
-	m_quadInfo.stencil_id = stencilId;
-	m_quadInfo.parent_anchor_id = INVALID_MIKAN_ID;
+	m_quadInfo= quadInfo;
 }
 
 configuru::Config QuadStencilConfig::writeToJSON()
@@ -77,13 +85,6 @@ void QuadStencilConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-void QuadStencilConfig::setQuadInfo(const MikanStencilQuad& quadInfo)
-{
-	m_quadInfo= quadInfo;
-	markDirty();
-	notifyStencilChanged();
-}
-
 const glm::mat4 QuadStencilConfig::getQuadMat4() const
 {
 	return glm::mat4 (
@@ -99,8 +100,11 @@ void QuadStencilConfig::setQuadMat4(const glm::mat4& xform)
 	m_quadInfo.quad_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
 	m_quadInfo.quad_normal = glm_vec3_to_MikanVector3f(xform[2]);
 	m_quadInfo.quad_center = glm_vec3_to_MikanVector3f(xform[3]);
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet()
+				.addPropertyName(k_quadStencilXAxisPropertyId)
+				.addPropertyName(k_quadStencilYAxisPropertyId)
+				.addPropertyName(k_quadStencilNormalPropertyId)
+				.addPropertyName(k_quadStencilCenterPropertyId));
 }
 
 const GlmTransform QuadStencilConfig::getQuadTransform() const
@@ -121,78 +125,85 @@ void QuadStencilConfig::setQuadTransform(const GlmTransform& transform)
 	m_quadInfo.quad_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
 	m_quadInfo.quad_normal = glm_vec3_to_MikanVector3f(xform[2]);
 	m_quadInfo.quad_center = glm_vec3_to_MikanVector3f(xform[3]);
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet()
+			  .addPropertyName(k_quadStencilXAxisPropertyId)
+			  .addPropertyName(k_quadStencilYAxisPropertyId)
+			  .addPropertyName(k_quadStencilNormalPropertyId)
+			  .addPropertyName(k_quadStencilCenterPropertyId));
 }
 
 void QuadStencilConfig::setQuadXAxis(const MikanVector3f& xAxis)
 {
 	m_quadInfo.quad_x_axis = xAxis;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilXAxisPropertyId));
 }
 
 void QuadStencilConfig::setQuadYAxis(const MikanVector3f& yAxis)
 {
 	m_quadInfo.quad_y_axis = yAxis;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilYAxisPropertyId));
 }
 
 void QuadStencilConfig::setQuadNormal(const MikanVector3f& normal)
 {
 	m_quadInfo.quad_normal = normal;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilNormalPropertyId));
+}
+
+void QuadStencilConfig::setQuadOrientation(const glm::mat3& R)
+{
+	m_quadInfo.quad_x_axis = glm_vec3_to_MikanVector3f(R[0]);
+	m_quadInfo.quad_y_axis = glm_vec3_to_MikanVector3f(R[1]);
+	m_quadInfo.quad_normal = glm_vec3_to_MikanVector3f(R[2]);
+	markDirty(ConfigPropertyChangeSet()
+			  .addPropertyName(k_quadStencilXAxisPropertyId)
+			  .addPropertyName(k_quadStencilYAxisPropertyId)
+			  .addPropertyName(k_quadStencilNormalPropertyId));
 }
 
 void QuadStencilConfig::setQuadCenter(const MikanVector3f& center)
 {
 	m_quadInfo.quad_center = center;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilCenterPropertyId));
 }
 
 void QuadStencilConfig::setQuadWidth(float width)
 {
 	m_quadInfo.quad_width = width;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilWidthPropertyId));
 }
 
 void QuadStencilConfig::setQuadHeight(float height)
 {
 	m_quadInfo.quad_height = height;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilHeightPropertyId));
+}
+
+void QuadStencilConfig::setQuadSize(float width, float height)
+{
+	m_quadInfo.quad_width = width;
+	m_quadInfo.quad_height = height;
+	markDirty(ConfigPropertyChangeSet()
+				.addPropertyName(k_quadStencilWidthPropertyId)
+				.addPropertyName(k_quadStencilHeightPropertyId));
 }
 
 void QuadStencilConfig::setIsDoubleSided(bool flag)
 {
 	m_quadInfo.is_double_sided = flag;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilDoubleSidedPropertyId));
 }
 
 void QuadStencilConfig::setIsDisabled(bool flag)
 {
 	m_quadInfo.is_disabled = flag;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilDisabledPropertyId));
 }
 
 void QuadStencilConfig::setStencilName(const std::string& stencilName)
 {
 	strncpy(m_quadInfo.stencil_name, stencilName.c_str(), sizeof(m_quadInfo.stencil_name) - 1);
-	markDirty();
-	notifyStencilChanged();
-}
-
-void QuadStencilConfig::notifyStencilChanged()
-{
-	StencilObjectSystemConfigPtr stencilConfig = StencilObjectSystem::getSystem()->getStencilSystemConfig();
-	if (stencilConfig->OnQuadStencilModified)
-		stencilConfig->OnQuadStencilModified(m_quadInfo.stencil_id);
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilNamePropertyId));
 }
 
 // -- QuadStencilComponent -----
@@ -209,8 +220,10 @@ void QuadStencilComponent::init()
 	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 
-	applyConfigTransformToSceneComponent();
 	updateBoxColliderExtents();
+
+	// Push our world transform to all child scene components
+	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 }
 
 void QuadStencilComponent::customRender()
@@ -219,7 +232,7 @@ void QuadStencilComponent::customRender()
 	{
 		TextStyle style = getDefaultTextStyle();
 
-		const glm::mat4 xform = m_sceneComponent.lock()->getWorldTransform();
+		const glm::mat4 xform = getWorldTransform();
 		const glm::vec3 position = glm::vec3(xform[3]);
 
 		glm::vec3 color = Colors::DarkGray;
@@ -240,34 +253,66 @@ void QuadStencilComponent::customRender()
 
 void QuadStencilComponent::setConfig(QuadStencilConfigPtr config)
 {
+	assert(!m_bIsInitialized);
+	m_config = config;
+
+	// Initially the quad component isn't attached to anything
+	assert(m_parentComponent.lock() == nullptr);
+	m_worldTransform = config->getQuadMat4();
+	m_relativeTransform = GlmTransform(m_worldTransform);
+
+	// Make the component name match the config name
+	m_name= config->getStencilName();
+
+	// Setup initial attachment
 	MikanSpatialAnchorID currentParentId= m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
 	MikanSpatialAnchorID newParentId= config ? config->getParentAnchorId() : INVALID_MIKAN_ID;
 	if (currentParentId != newParentId)
 	{
 		attachSceneComponentToAnchor(newParentId);
 	}
+}
 
-	m_config= config;
-	setName(config->getStencilName());
+void QuadStencilComponent::setRelativePosition(const glm::vec3& position)
+{
+	m_relativeTransform.setPosition(position);
+	StencilComponent::setRelativeTransform(m_relativeTransform);
 
-	applyConfigTransformToSceneComponent();
-	updateBoxColliderExtents();
+	m_config->setQuadCenter({position.x, position.y, position.z});
+}
+
+void QuadStencilComponent::setRelativeOrientation(const glm::mat3& rotation)
+{
+	m_relativeTransform.setOrientation(glm::quat_cast(rotation));
+	StencilComponent::setRelativeTransform(m_relativeTransform);
+
+	m_config->setQuadOrientation(rotation);
+}
+
+void QuadStencilComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
+{
+	StencilComponent::setRelativeTransform(newRelativeXform);
+
+	m_config->setQuadTransform(newRelativeXform);
+}
+
+void QuadStencilComponent::setWorldTransform(const glm::mat4& newWorldXform)
+{
+	StencilComponent::setWorldTransform(newWorldXform);
+
+	m_config->setQuadMat4(newWorldXform);
+}
+
+void QuadStencilComponent::setName(const std::string& name)
+{
+	StencilComponent::setName(name);
+
+	m_config->setStencilName(name);
 }
 
 MikanStencilID QuadStencilComponent::getParentAnchorId() const
 {
 	return m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
-}
-
-void QuadStencilComponent::setConfigTransform(const GlmTransform& transform)
-{
-	if (m_config)
-		m_config->setQuadTransform(transform);
-}
-
-const GlmTransform QuadStencilComponent::getConfigTransform()
-{
-	return m_config ? m_config->getQuadTransform() : GlmTransform();
 }
 
 void QuadStencilComponent::updateBoxColliderExtents()

@@ -5,78 +5,27 @@
 #include "MikanObject.h"
 
 StencilComponent::StencilComponent(MikanObjectWeakPtr owner)
-	: MikanComponent(owner)
+	: SceneComponent(owner)
 {
-}
-
-void StencilComponent::init()
-{
-	MikanComponent::init();
-
-	SceneComponentPtr sceneComponentPtr= getOwnerObject()->getRootComponent();
-	sceneComponentPtr->OnTranformChaged += MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
-	m_sceneComponent= sceneComponentPtr;
-}
-
-void StencilComponent::dispose()
-{
-	SceneComponentPtr sceneComponentPtr = m_sceneComponent.lock();
-	sceneComponentPtr->OnTranformChaged -= MakeDelegate(this, &StencilComponent::onSceneComponentTranformChaged);
-
-	MikanComponent::dispose();
-}
-
-glm::mat4 StencilComponent::getStencilLocalTransform() const
-{
-	return m_sceneComponent.lock()->getRelativeTransform().getMat4();
-}
-
-glm::mat4 StencilComponent::getStencilWorldTransform() const
-{
-	return m_sceneComponent.lock()->getWorldTransform();
 }
 
 void StencilComponent::attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId)
 {
-	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
-
-	if (sceneComponent != nullptr)
+	if (newParentId != INVALID_MIKAN_ID)
 	{
-		if (newParentId != INVALID_MIKAN_ID)
-		{
-			AnchorComponentPtr anchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(newParentId);
+		AnchorComponentPtr anchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(newParentId);
 
-			if (anchor)
-			{
-				sceneComponent->attachToComponent(anchor->getOwnerObject()->getRootComponent());
-			}
-			else
-			{
-				sceneComponent->detachFromParent();
-			}
+		if (anchor)
+		{
+			attachToComponent(anchor->getOwnerObject()->getRootComponent());
 		}
 		else
 		{
-			sceneComponent->detachFromParent();
+			detachFromParent(eDetachReason::detachFromParent);
 		}
 	}
-}
-
-void StencilComponent::onSceneComponentTranformChaged(SceneComponentPtr sceneComponentPtr)
-{
-	if (!m_bUpdatingSceneComponentTransform)
+	else
 	{
-		setConfigTransform(sceneComponentPtr->getRelativeTransform());
-	}
-}
-
-void StencilComponent::applyConfigTransformToSceneComponent()
-{
-	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
-	if (sceneComponent)
-	{
-		m_bUpdatingSceneComponentTransform = true;
-		sceneComponent->setRelativeTransform(getConfigTransform());
-		m_bUpdatingSceneComponentTransform = false;
+		detachFromParent(eDetachReason::detachFromParent);
 	}
 }

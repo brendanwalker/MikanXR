@@ -1317,7 +1317,7 @@ void GlFrameCompositor::updateQuadStencils(
 
 			if (!stencilConfig->getIsDisabled() && stencilConfig->getIsDoubleSided())
 			{
-				const glm::mat4 xform = stencil->getStencilWorldTransform();
+				const glm::mat4 xform = stencil->getWorldTransform();
 				const glm::vec3 quadCenter = glm::vec3(xform[3]);
 				const glm::vec3 quadNormal = glm::vec3(xform[2]);
 				const glm::vec3 cameraToQuadCenter = quadCenter - cameraPosition;
@@ -1360,7 +1360,7 @@ void GlFrameCompositor::updateQuadStencils(
 	{
 		// Set the model matrix of stencil quad
 		auto stencilConfig= stencil->getConfig();
-		const glm::mat4 xform = stencil->getStencilWorldTransform();
+		const glm::mat4 xform = stencil->getWorldTransform();
 		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
 		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
 		const glm::vec3 z_axis = glm::vec3(xform[2]);
@@ -1451,7 +1451,7 @@ void GlFrameCompositor::updateBoxStencils(
 	{
 		// Set the model matrix of stencil quad
 		auto stencilConfig = stencil->getConfig();
-		const glm::mat4 xform = stencil->getStencilWorldTransform();
+		const glm::mat4 xform = stencil->getWorldTransform();
 		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
 		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
 		const glm::vec3 z_axis = glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
@@ -1563,7 +1563,7 @@ void GlFrameCompositor::updateModelStencils(
 			if (renderModelResource != nullptr)
 			{
 				// Set the model matrix of stencil model
-				const glm::mat4 modelMatrix = stencil->getStencilWorldTransform();
+				const glm::mat4 modelMatrix = stencil->getWorldTransform();
 
 				// Set the model-view-projection matrix on the stencil shader
 				m_stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);

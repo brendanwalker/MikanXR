@@ -34,13 +34,17 @@ public:
 	AnchorConfigPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
 	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const MikanMatrix4f& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
-	MulticastDelegate<void()> OnAnchorListChanged;
 
+	static const std::string k_anchorVRDevicePathPropertyId;
 	std::string anchorVRDevicePath;
+
+	static const std::string k_anchorListPropertyId;
 	std::vector<AnchorConfigPtr> spatialAnchorList;
+
 	MikanSpatialAnchorID nextAnchorId= 0;
 	MikanSpatialAnchorID originAnchorId= INVALID_MIKAN_ID;
 	bool debugRenderAnchors= false;
+
 };
 
 

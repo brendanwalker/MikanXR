@@ -49,30 +49,30 @@
                     <br/>
                     <span>
                         Position&nbsp;
-                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.x"/>
-                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.y"/>
-                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_position.z"/>
+                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_position(stencil.stencil_id)" data-value="stencil.model_position.x"/>
+                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_position(stencil.stencil_id)" data-value="stencil.model_position.y"/>
+                        <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_position(stencil.stencil_id)" data-value="stencil.model_position.z"/>
                     </span>
                     <br/>
                     <span>
                         Rotation&nbsp;
-                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.x"/>
-                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.y"/>
-                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_angles.z"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_rotation(stencil.stencil_id)" data-value="stencil.model_angles.x"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_rotation(stencil.stencil_id)" data-value="stencil.model_angles.y"/>
+                        <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_rotation(stencil.stencil_id)" data-value="stencil.model_angles.z"/>
                     </span>
                     <br/>
                     <span>
                         Size&nbsp;
-                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.x"/>
-                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.y"/>
-                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_stencil(stencil.stencil_id)" data-value="stencil.model_scale.z"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_scale(stencil.stencil_id)" data-value="stencil.model_scale.x"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_scale(stencil.stencil_id)" data-value="stencil.model_scale.y"/>
+                        <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_scale(stencil.stencil_id)" data-value="stencil.model_scale.z"/>
                     </span>
                     <div class="filename-box">
                         <filename>{{stencil.model_path | to_short_path(30)}}</filename>
                         <button style="width: 40dp" data-event-click="select_stencil_model_path(stencil.stencil_id)">...</button>
                     </div>                    
                     <br/>
-                    <label><input type="checkbox" name="disabled" data-event-change="modify_stencil(stencil.stencil_id)" data-value="stencil.disabled" /> Disabled </label>
+                    <label><input type="checkbox" name="disabled" data-event-change="modify_disabled(stencil.stencil_id)" data-value="stencil.disabled" /> Disabled </label>
                     <button data-event-click="delete_stencil(stencil.stencil_id)">Delete</button>
                     <br/> 
                     <div data-for="fastener_id : stencil.child_fastener_ids">

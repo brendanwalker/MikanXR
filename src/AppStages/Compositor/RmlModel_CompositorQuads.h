@@ -28,12 +28,15 @@ public:
 
 	SinglecastDelegate<void()> OnAddQuadStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteQuadStencilEvent;
-	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyQuadStencilParentAnchorEvent;
 
 private:
+	RmlModel_CompositorQuad* getQuadRmlModel(const int stencil_id);
+
+	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+	void stencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+
 	void rebuildAnchorList();
-	void rebuildUIQuadsFromProfile();
-	void copyUIQuadToStencilSystem(int stencil_id) const;
+	void rebuildUIQuadsFromStencilSystem();
 	void copyStencilSystemToUIQuad(int stencil_id);
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;

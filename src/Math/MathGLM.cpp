@@ -59,6 +59,23 @@ void glm_quat_to_euler_angles(
 	glm::extractEulerAngleXYZ(R, out_x_radians, out_y_radians, out_z_radians);
 }
 
+void glm_euler_angles_to_mat3(
+	float x_radians, float y_radians, float z_radians,
+	glm::mat3& out_orientation)
+{
+	out_orientation = glm::mat3(glm::eulerAngleXYZ(x_radians, y_radians, z_radians));
+}
+
+void glm_euler_angles_to_quat(
+	float x_radians, float y_radians, float z_radians,
+	glm::quat& out_orientation)
+{
+	glm::mat3 R;
+	glm_euler_angles_to_mat3(x_radians, y_radians, z_radians, R);
+
+	out_orientation= glm::quat_cast(R);
+}
+
 glm::mat4 glm_composite_xform(const glm::mat4& first, const glm::mat4& second)
 {
 	//http://www.c-jump.com/bcc/common/Talk3/Math/GLM/GLM.html#W01_0140_matrix_multiplication

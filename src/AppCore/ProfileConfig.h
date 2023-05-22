@@ -32,12 +32,24 @@ public:
 
 	std::string videoSourcePath;
 
+	static const std::string k_cameraVRDevicePathPropertyId;
 	std::string cameraVRDevicePath;
+
+	static const std::string k_cameraParentAnchorPropertyId;
 	MikanSpatialAnchorID cameraParentAnchorId;
+
+	static const std::string k_cameraScalePropertyId;
 	float cameraScale;
+
+	static const std::string k_matVRDevicePathPropertyId;
 	std::string matVRDevicePath;
+
+	static const std::string k_originVRDevicePathPropertyId;
 	std::string originVRDevicePath;
+
+	static const std::string k_originVerticalAlignFlagPropertyId;
 	bool originVerticalAlignFlag;
+
 	std::string calibrationComponentName;
 	int vrFrameDelay;
 	int videoFrameQueueSize;

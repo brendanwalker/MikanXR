@@ -2,7 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "MikanComponent.h"
+#include "SceneComponent.h"
 #include "MikanClientTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
@@ -32,9 +32,11 @@ public:
 	MikanSpatialAnchorID getAnchorId() const { return m_anchorInfo.anchor_id; }
 	const MikanSpatialAnchorInfo& getAnchorInfo() const { return m_anchorInfo; }
 
+	static const std::string k_anchorNamePropertyID;
 	const glm::mat4 getAnchorXform() const;
 	void setAnchorXform(const glm::mat4& xform);
 
+	static const std::string k_anchorXformPropertyID;
 	const std::string getAnchorName() const;
 	void setAnchorName(const std::string& anchorName);
 
@@ -42,31 +44,24 @@ private:
 	MikanSpatialAnchorInfo m_anchorInfo;
 };
 
-class AnchorComponent : public MikanComponent
+class AnchorComponent : public SceneComponent
 {
 public:
 	AnchorComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 	virtual void customRender() override;
-	virtual void dispose() override;
 
 	inline AnchorConfigPtr getConfig() const { return m_config; }
 	void setConfig(AnchorConfigPtr config);
 
-	glm::mat4 getAnchorLocalTransform() const;
-	glm::mat4 getAnchorWorldTransform() const;
+	virtual void setRelativeTransform(const GlmTransform& newRelativeXform) override;
+	virtual void setWorldTransform(const glm::mat4& newWorldXform) override;
 
-	void setAnchorLocalTransform(const GlmTransform& localTransform);
-	void setAnchorWorldTransform(const glm::mat4& worldMat);
-
-	const std::string getAnchorName();
-	void setAnchorName(const std::string& newAnchorName);
+	virtual void setName(const std::string& name) override;
 
 protected:
 	AnchorConfigPtr m_config;
 
 	SceneComponentWeakPtr m_sceneComponent;
-	bool m_bIsApplyingConfigTransform= false;
-	void applyConfigTransformToSceneComponent();
 	void applySceneComponentTransformToConfig(SceneComponentPtr sceneComponent);
 };

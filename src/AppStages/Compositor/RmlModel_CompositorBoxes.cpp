@@ -3,6 +3,7 @@
 #include "BoxStencilComponent.h"
 #include "RmlModel_CompositorBoxes.h"
 #include "MathMikan.h"
+#include "MathGLM.h"
 #include "ProfileConfig.h"
 #include "StencilObjectSystem.h"
 #include "StringUtils.h"
@@ -67,24 +68,91 @@ bool RmlModel_CompositorBoxes::init(
 				if (isLineBreak)
 				{
 					const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-					if (stencil_id >= 0)
+					const RmlModel_CompositorBox* rmlModel= getBoxRmlModel(stencil_id);
+					BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id);
+
+					if (rmlModel && stencilPtr)
 					{
-						copyUIBoxToStencilSystem(stencil_id);
+						stencilPtr->setName(rmlModel->stencil_name);
 					}
 				}
 			}
 		});
 	constructor.BindEventCallback(
-		"modify_stencil",
+		"modify_position",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			// Only consider change events when it resulted in a valid value
 			if (ev.GetId() == Rml::EventId::Submit)
 			{
 				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-				if (stencil_id >= 0)
+				const RmlModel_CompositorBox* rmlModel = getBoxRmlModel(stencil_id);
+				BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
 				{
-					copyUIBoxToStencilSystem(stencil_id);
-				}				
+					const Rml::Vector3f& uiVec= rmlModel->box_center;
+					const glm::vec3 position(uiVec.x, uiVec.y, uiVec.z);
+
+					stencilPtr->setRelativePosition(position);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"modify_rotation",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const RmlModel_CompositorBox* rmlModel = getBoxRmlModel(stencil_id);
+				BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
+				{
+					const Rml::Vector3f& uiVec = rmlModel->angles;
+					glm::mat3 orientation;
+
+					glm_euler_angles_to_mat3(
+						uiVec.x * k_degrees_to_radians, 
+						uiVec.y * k_degrees_to_radians, 
+						uiVec.z * k_degrees_to_radians, 
+						orientation);
+					stencilPtr->setRelativeOrientation(orientation);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"modify_size",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const RmlModel_CompositorBox* rmlModel = getBoxRmlModel(stencil_id);
+				BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
+				{
+					const Rml::Vector3f& uiVec = rmlModel->size;
+
+					stencilPtr->getConfig()->setBoxSize(uiVec.x, uiVec.y, uiVec.z);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"modify_disabled",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const RmlModel_CompositorBox* rmlModel = getBoxRmlModel(stencil_id);
+				BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
+				{
+					stencilPtr->getConfig()->setIsDisabled(rmlModel->disabled);
+				}
 			}
 		});
 	constructor.BindEventCallback(
@@ -95,11 +163,14 @@ bool RmlModel_CompositorBoxes::init(
 				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
 				const int new_anchor_id = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-				if (OnModifyBoxStencilParentAnchorEvent &&
-					stencil_id != INVALID_MIKAN_ID &&
+				if (stencil_id != INVALID_MIKAN_ID &&
 					new_anchor_id != INVALID_MIKAN_ID)
 				{
-					OnModifyBoxStencilParentAnchorEvent(stencil_id, new_anchor_id);
+					BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id);
+					if (stencilPtr != nullptr)
+					{
+						stencilPtr->attachSceneComponentToAnchor(new_anchor_id);
+					}
 				}
 			}
 		});
@@ -113,18 +184,12 @@ bool RmlModel_CompositorBoxes::init(
 		});
 
 	// Listen for anchor config changes
-	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged+=
-		MakeDelegate(this, &RmlModel_CompositorBoxes::rebuildAnchorList);
+	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty+=
+		MakeDelegate(this, &RmlModel_CompositorBoxes::anchorSystemConfigMarkedDirty);
 
-	// Listen for box stencil config changes
-	{
-		StencilObjectSystemConfigPtr configPtr = StencilObjectSystem::getSystem()->getStencilSystemConfig();
-
-		configPtr->OnBoxStencilListChanged +=
-			MakeDelegate(this, &RmlModel_CompositorBoxes::rebuildUIBoxesFromStencilSystem);
-		configPtr->OnBoxStencilModified +=
-			MakeDelegate(this, &RmlModel_CompositorBoxes::copyStencilSystemToUIBox);
-	}
+	// Listen for stencil config changes
+	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty +=
+		MakeDelegate(this, &RmlModel_CompositorBoxes::stencilSystemConfigMarkedDirty);
 
 	// Fill in the data model
 	rebuildAnchorList();
@@ -135,19 +200,25 @@ bool RmlModel_CompositorBoxes::init(
 
 void RmlModel_CompositorBoxes::dispose()
 {
-	StencilObjectSystemConfigPtr configPtr = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty -=
+		MakeDelegate(this, &RmlModel_CompositorBoxes::stencilSystemConfigMarkedDirty);
 
-	configPtr->OnBoxStencilListChanged -=
-		MakeDelegate(this, &RmlModel_CompositorBoxes::rebuildUIBoxesFromStencilSystem);
-	configPtr->OnBoxStencilModified -=
-		MakeDelegate(this, &RmlModel_CompositorBoxes::copyStencilSystemToUIBox);
-
-	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged -=
-		MakeDelegate(this, &RmlModel_CompositorBoxes::rebuildAnchorList);
+	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty -=
+		MakeDelegate(this, &RmlModel_CompositorBoxes::anchorSystemConfigMarkedDirty);
 
 	OnAddBoxStencilEvent.Clear();
 	OnDeleteBoxStencilEvent.Clear();
 	RmlModel::dispose();
+}
+
+void RmlModel_CompositorBoxes::anchorSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
+	{
+		rebuildAnchorList();
+	}
 }
 
 void RmlModel_CompositorBoxes::rebuildAnchorList()
@@ -157,21 +228,40 @@ void RmlModel_CompositorBoxes::rebuildAnchorList()
 	m_spatialAnchors.clear();
 	for (AnchorConfigPtr configPtr : anchorList)
 	{
-		const MikanSpatialAnchorID anchorId= configPtr->getAnchorId();
+		const MikanSpatialAnchorID anchorId = configPtr->getAnchorId();
 
 		m_spatialAnchors.push_back(anchorId);
 	}
 	m_modelHandle.DirtyVariable("spatial_anchors");
 }
 
+void RmlModel_CompositorBoxes::stencilSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_boxStencilListPropertyId))
+	{
+		rebuildUIBoxesFromStencilSystem();
+	}
+	else 
+	{
+		BoxStencilConfigPtr boxConfigPtr= std::dynamic_pointer_cast<BoxStencilConfig>(configPtr);
+
+		if (boxConfigPtr)
+		{
+			copyStencilSystemToUIBox(boxConfigPtr->getStencilId());
+		}
+	}
+}
+
 void RmlModel_CompositorBoxes::rebuildUIBoxesFromStencilSystem()
 {
-	auto& boxStencilList= m_stencilSystemPtr->getStencilSystemConfigConst()->boxStencilList;
+	auto& boxStencilList = m_stencilSystemPtr->getStencilSystemConfigConst()->boxStencilList;
 
 	m_stencilBoxes.clear();
 	for (BoxStencilConfigPtr configPtr : boxStencilList)
 	{
-		const MikanStencilBox& box= configPtr->getBoxInfo();
+		const MikanStencilBox& box = configPtr->getBoxInfo();
 
 		float angles[3]{};
 		MikanOrientationToEulerAngles(
@@ -192,42 +282,22 @@ void RmlModel_CompositorBoxes::rebuildUIBoxesFromStencilSystem()
 	m_modelHandle.DirtyVariable("stencil_boxes");
 }
 
-void RmlModel_CompositorBoxes::copyUIBoxToStencilSystem(int stencil_id) const
+RmlModel_CompositorBox* RmlModel_CompositorBoxes::getBoxRmlModel(const int stencil_id)
 {
 	auto it = std::find_if(
 		m_stencilBoxes.begin(), m_stencilBoxes.end(),
-		[stencil_id](const RmlModel_CompositorBox& box) {
+		[stencil_id](RmlModel_CompositorBox& box) {
 		return box.stencil_id == stencil_id;
 	});
-
+	
 	if (it != m_stencilBoxes.end())
 	{
-		const RmlModel_CompositorBox& uiBox = *it;
-		BoxStencilComponentPtr stencilPtr = m_stencilSystemPtr->getBoxStencilById(stencil_id);
-		BoxStencilConfigPtr configPtr= stencilPtr->getConfig();
-		MikanStencilBox box= configPtr->getBoxInfo();
-
-		box.parent_anchor_id= uiBox.parent_anchor_id;
-
-		EulerAnglesToMikanOrientation(
-			uiBox.angles.x, uiBox.angles.y, uiBox.angles.z,
-			box.box_x_axis, 
-			box.box_y_axis, 
-			box.box_z_axis);
-
-		box.box_center= {uiBox.box_center.x, uiBox.box_center.y, uiBox.box_center.z};
-		box.box_x_size= uiBox.size.x;
-		box.box_y_size= uiBox.size.y;
-		box.box_z_size= uiBox.size.z;
-
-		box.is_disabled= uiBox.disabled;
-
-		StringUtils::formatString(
-			box.stencil_name, sizeof(box.stencil_name), "%s", 
-			uiBox.stencil_name.c_str());
-
-		configPtr->setBoxInfo(box);
+		RmlModel_CompositorBox& uiBox = *it;
+		
+		return &uiBox;
 	}
+
+	return nullptr;
 }
 
 void RmlModel_CompositorBoxes::copyStencilSystemToUIBox(int stencil_id)

@@ -20,16 +20,31 @@
     #pragma warning (pop)
 #endif
 
+// -- ConfigPropertyChangeSet -----
+ConfigPropertyChangeSet& ConfigPropertyChangeSet::addPropertyName(const std::string& propertyName)
+{
+    m_changedProperties.insert(propertyName);
+    return *this;
+}
+
+bool ConfigPropertyChangeSet::hasPropertyName(const std::string& propertyName) const
+{
+    return m_changedProperties.find(propertyName) != m_changedProperties.end();
+}
+
+// -- CommonConfig -----
 CommonConfig::CommonConfig(const std::string &fnamebase)
     : m_configName(fnamebase)
 {
 }
 
-void CommonConfig::onChildConfigMarkedDirty(CommonConfigPtr configPtr) 
+void CommonConfig::onChildConfigMarkedDirty(
+    CommonConfigPtr configPtr,
+    const ConfigPropertyChangeSet& changedPropertySet) 
 { 
 	m_bIsDirty = true;
 	if (OnMarkedDirty)
-		OnMarkedDirty(configPtr);
+		OnMarkedDirty(configPtr, changedPropertySet);
 }
 
 bool CommonConfig::isMarkedDirty() const 
@@ -37,13 +52,13 @@ bool CommonConfig::isMarkedDirty() const
     return m_bIsDirty; 
 }
 
-void CommonConfig::markDirty() 
+void CommonConfig::markDirty(const ConfigPropertyChangeSet& changedPropertySet) 
 { 
     if (!m_bIsDirty)
     {
 		m_bIsDirty = true;
         if (OnMarkedDirty)
-            OnMarkedDirty(shared_from_this());
+            OnMarkedDirty(shared_from_this(), changedPropertySet);
     }
 }
 

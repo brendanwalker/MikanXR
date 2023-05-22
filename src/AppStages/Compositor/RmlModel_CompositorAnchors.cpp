@@ -13,7 +13,8 @@ bool RmlModel_CompositorAnchors::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorAnchors::init(
 	Rml::Context* rmlContext,
-	AnchorObjectSystemPtr anchorSystemPtr)
+	AnchorObjectSystemPtr anchorSystemPtr,
+	FastenerObjectSystemPtr fastenerSystemPtr)
 {
 	m_anchorSystemPtr= anchorSystemPtr;
 
@@ -78,23 +79,51 @@ bool RmlModel_CompositorAnchors::init(
 	rebuildAnchorList();
 
 	// Listen for anchor system config changes
-	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty+= MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
+	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty+= 
+		MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
+
+	// Listen for fastener system config changes
+	m_fastenerSystemPtr->getFastenerSystemConfig()->OnMarkedDirty+=
+		MakeDelegate(this, &RmlModel_CompositorAnchors::fastenerSystemConfigMarkedDirty);
 
 	return true;
 }
 
 void RmlModel_CompositorAnchors::dispose()
 {
-	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty-= MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
+	m_fastenerSystemPtr->getFastenerSystemConfig()->OnMarkedDirty-=
+		MakeDelegate(this, &RmlModel_CompositorAnchors::fastenerSystemConfigMarkedDirty);
+	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty-= 
+		MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
 
 	OnAddFastenerEvent.Clear();
 	OnDeleteFastenerEvent.Clear();
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr)
+void RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	rebuildAnchorList();
+	if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
+	{
+		rebuildAnchorList();
+	}
+	else if (changedPropertySet.hasPropertyName(AnchorConfig::k_anchorNamePropertyID))
+	{
+		// Mark list as dirty to refresh the anchor names
+		m_modelHandle.DirtyVariable("spatial_anchors");
+	}
+}
+
+void RmlModel_CompositorAnchors::fastenerSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(FastenerObjectSystemConfig::k_fastenerListPropertyId))
+	{
+		rebuildAnchorList();
+	}
 }
 
 void RmlModel_CompositorAnchors::rebuildAnchorList()

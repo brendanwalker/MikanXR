@@ -34,9 +34,8 @@ public:
 	FastenerConfigConstPtr getSpatialFastenerConfigByName(const std::string& fastenerName) const;
 	MikanSpatialFastenerID addNewFastener(const MikanSpatialFastenerInfo& fastenerInfo);
 	bool removeFastener(MikanSpatialFastenerID fastenerId);
-	MulticastDelegate<void()> OnFastenerListChanged;
-	MulticastDelegate<void(MikanSpatialFastenerID fastenerId)> OnFastenerModified;
 
+	static const std::string k_fastenerListPropertyId;
 	std::vector<FastenerConfigPtr> spatialFastenerList;
 	MikanSpatialFastenerID nextFastenerId= 0;
 	MikanSpatialFastenerID originFastenerId= INVALID_MIKAN_ID;

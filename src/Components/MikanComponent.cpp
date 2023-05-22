@@ -23,6 +23,8 @@ void MikanComponent::init()
 	{
 		getOwnerObject()->getOwnerSystem()->onCustomRender += MakeDelegate(this, &MikanComponent::customRender);
 	}
+
+	m_bIsInitialized= true;
 }
 
 void MikanComponent::dispose()
@@ -36,4 +38,6 @@ void MikanComponent::dispose()
 	{
 		getOwnerObject()->getOwnerSystem()->onCustomRender -= MakeDelegate(this, &MikanComponent::customRender);
 	}
+
+	m_bIsDisposed= true;
 }

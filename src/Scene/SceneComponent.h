@@ -53,19 +53,33 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 	
-	void attachToComponent(SceneComponentPtr newParentComponent);
-	void detachFromParent(bool bPropogateWorldTransformChange=true);
+	bool attachToComponent(SceneComponentPtr newParentComponent);
+	enum class eDetachReason : int
+	{
+		selfDisposed,
+		parentDisposed,
+		detachFromParent,
+		attachToNewParent
+	};
+	void detachFromParent(eDetachReason reason);
 
-	void setRelativeTransform(const GlmTransform& newRelativeXform);
-	void setWorldTransform(const glm::mat4& newWorldXform);
-	MulticastDelegate<void(SceneComponentPtr sceneComponent)> OnTranformChaged;
+	virtual void setRelativeTransform(const GlmTransform& newRelativeXform);
+	virtual void setWorldTransform(const glm::mat4& newWorldXform);
+
+	enum class eTransformChangeType : int
+	{
+		recomputeWorldTransformAndPropogate,
+		propogateWorldTransform,
+	};
+	//MulticastDelegate<void(SceneComponentPtr sceneComponent, eTransformChangeType changeType)> OnTranformChaged;
 
 protected:
-	void propogateWorldTransformChange(bool bRebuildWorldTransform);
+	void propogateWorldTransformChange(eTransformChangeType reason);
 
 	GlmTransform m_relativeTransform;
 	glm::mat4 m_worldTransform;
 	SceneComponentWeakPtr m_parentComponent;
 	SceneComponentList m_childComponents;
 	IGlSceneRenderablePtr m_sceneRenderable;
+	//bool m_bIsPropogatingTransform= false;
 };

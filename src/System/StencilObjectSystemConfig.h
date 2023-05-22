@@ -23,23 +23,20 @@ public:
 	bool removeStencil(MikanStencilID stencilId);
 	eStencilType getStencilType(MikanStencilID stencilId) const;
 
+	static const std::string k_quadStencilListPropertyId;
 	QuadStencilConfigConstPtr getQuadStencilConfigConst(MikanStencilID stencilId) const;
 	QuadStencilConfigPtr getQuadStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
-	MulticastDelegate<void()> OnQuadStencilListChanged;
-	MulticastDelegate<void(MikanStencilID stencilId)> OnQuadStencilModified;
 
+	static const std::string k_boxStencilListPropertyId;
 	BoxStencilConfigConstPtr getBoxStencilConfigConst(MikanStencilID stencilId) const;
 	BoxStencilConfigPtr getBoxStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
-	MulticastDelegate<void()> OnBoxStencilListChanged;
-	MulticastDelegate<void(MikanStencilID stencilId)> OnBoxStencilModified;
 
+	static const std::string k_modelStencilListPropertyId;
 	ModelStencilConfigConstPtr getModelStencilConfigConst(MikanStencilID stencilId) const;
 	ModelStencilConfigPtr getModelStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
-	MulticastDelegate<void()> OnModelStencilListChanged;
-	MulticastDelegate<void(MikanStencilID stencilId)> OnModelStencilModified;
 
 	std::vector<QuadStencilConfigPtr> quadStencilList;
 	std::vector<BoxStencilConfigPtr> boxStencilList;

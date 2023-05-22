@@ -15,7 +15,7 @@ public:
 	MikanComponent(MikanObjectWeakPtr owner);
 	virtual ~MikanComponent();
 	
-	void setName(const std::string& name) { m_name= name; }
+	virtual void setName(const std::string& name) { m_name= name; }
 	const std::string& getName() const { return m_name; }
 
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
@@ -54,6 +54,8 @@ public:
 	virtual void customRender() {}
 
 protected:
+	bool m_bIsInitialized= false;
+	bool m_bIsDisposed= false;
 	bool m_bWantsUpdate= false;
 	bool m_bWantsCustomRender= false;
 	std::string m_name;

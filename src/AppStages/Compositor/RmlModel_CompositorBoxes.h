@@ -27,16 +27,20 @@ public:
 
 	SinglecastDelegate<void()> OnAddBoxStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteBoxStencilEvent;
-	SinglecastDelegate<void(int stencilID, int anchorId)> OnModifyBoxStencilParentAnchorEvent;
 
 private:
+	RmlModel_CompositorBox* getBoxRmlModel(const int stencil_id);
+
+	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+	void stencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+
 	void rebuildAnchorList();
 	void rebuildUIBoxesFromStencilSystem();
-	void copyUIBoxToStencilSystem(int stencil_id) const;
 	void copyStencilSystemToUIBox(int stencil_id);
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	StencilObjectSystemPtr m_stencilSystemPtr;
+
 	Rml::Vector<int> m_spatialAnchors;
 	Rml::Vector<RmlModel_CompositorBox> m_stencilBoxes;
 

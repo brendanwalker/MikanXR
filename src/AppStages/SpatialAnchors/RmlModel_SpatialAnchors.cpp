@@ -112,7 +112,9 @@ void RmlModel_SpatialAnchors::dispose()
 	RmlModel::dispose();
 }
 
-void RmlModel_SpatialAnchors::anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr)
+void RmlModel_SpatialAnchors::anchorSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const class ConfigPropertyChangeSet& changedPropertySet)
 {
 	rebuildAnchorList();
 }
@@ -146,7 +148,7 @@ void RmlModel_SpatialAnchors::rebuildAnchorList()
 
 		RmlModel_SpatialAnchor uiAnchorInfo;
 		uiAnchorInfo.anchor_id = anchorId;
-		uiAnchorInfo.anchor_name = anchorComponent->getAnchorName();
+		uiAnchorInfo.anchor_name = anchorComponent->getName();
 
 		m_spatialAnchors.push_back(uiAnchorInfo);
 	}

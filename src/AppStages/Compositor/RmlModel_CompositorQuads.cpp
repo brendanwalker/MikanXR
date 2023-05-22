@@ -2,6 +2,7 @@
 #include "AnchorObjectSystem.h"
 #include "RmlModel_CompositorQuads.h"
 #include "MathMikan.h"
+#include "MathGLM.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
 #include "StencilObjectSystem.h"
@@ -68,24 +69,14 @@ bool RmlModel_CompositorQuads::init(
 				if (isLineBreak)
 				{
 					const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-					if (stencil_id >= 0)
+					const RmlModel_CompositorQuad* rmlModel = getQuadRmlModel(stencil_id);
+					QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
+
+					if (rmlModel && stencilPtr)
 					{
-						copyUIQuadToStencilSystem(stencil_id);
+						stencilPtr->setName(rmlModel->stencil_name);
 					}
 				}
-			}
-		});
-	constructor.BindEventCallback(
-		"modify_stencil",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			// Only consider change events when it resulted in a valid value
-			if (ev.GetId() == Rml::EventId::Submit)
-			{
-				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-				if (stencil_id >= 0)
-				{
-					copyUIQuadToStencilSystem(stencil_id);
-				}				
 			}
 		});
 	constructor.BindEventCallback(
@@ -96,11 +87,107 @@ bool RmlModel_CompositorQuads::init(
 				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
 				const int new_anchor_id = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-				if (OnModifyQuadStencilParentAnchorEvent &&
-					stencil_id != INVALID_MIKAN_ID &&
+				if (stencil_id != INVALID_MIKAN_ID &&
 					new_anchor_id != INVALID_MIKAN_ID)
 				{
-					OnModifyQuadStencilParentAnchorEvent(stencil_id, new_anchor_id);
+					QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
+					if (stencilPtr != nullptr)
+					{
+						stencilPtr->attachSceneComponentToAnchor(new_anchor_id);
+					}
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"modify_position",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const RmlModel_CompositorQuad* rmlModel = getQuadRmlModel(stencil_id);
+				QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
+				{
+					const Rml::Vector3f& uiVec = rmlModel->position;
+					const glm::vec3 position(uiVec.x, uiVec.y, uiVec.z);
+
+					stencilPtr->setRelativePosition(position);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"modify_rotation",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const RmlModel_CompositorQuad* rmlModel = getQuadRmlModel(stencil_id);
+				QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
+				{
+					const Rml::Vector3f& uiVec = rmlModel->angles;
+					glm::mat3 orientation;
+
+					glm_euler_angles_to_mat3(
+						uiVec.x * k_degrees_to_radians,
+						uiVec.y * k_degrees_to_radians,
+						uiVec.z * k_degrees_to_radians,
+						orientation);
+					stencilPtr->setRelativeOrientation(orientation);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"modify_size",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const RmlModel_CompositorQuad* rmlModel = getQuadRmlModel(stencil_id);
+				QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
+				{
+					const Rml::Vector2f& uiVec = rmlModel->size;
+
+					stencilPtr->getConfig()->setQuadSize(uiVec.x, uiVec.y);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"modify_disabled",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const RmlModel_CompositorQuad* rmlModel = getQuadRmlModel(stencil_id);
+				QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
+				{
+					stencilPtr->getConfig()->setIsDisabled(rmlModel->disabled);
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"modify_double_sided",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			// Only consider change events when it resulted in a valid value
+			if (ev.GetId() == Rml::EventId::Submit)
+			{
+				const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+				const RmlModel_CompositorQuad* rmlModel = getQuadRmlModel(stencil_id);
+				QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
+
+				if (rmlModel && stencilPtr)
+				{
+					stencilPtr->getConfig()->setIsDoubleSided(rmlModel->double_sided);
 				}
 			}
 		});
@@ -114,41 +201,41 @@ bool RmlModel_CompositorQuads::init(
 		});
 
 	// Listen for anchor config changes
-	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged +=
-		MakeDelegate(this, &RmlModel_CompositorQuads::rebuildAnchorList);
+	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty +=
+		MakeDelegate(this, &RmlModel_CompositorQuads::anchorSystemConfigMarkedDirty);
 
-	// Listen for box stencil config changes
-	{
-		StencilObjectSystemConfigPtr configPtr = StencilObjectSystem::getSystem()->getStencilSystemConfig();
-
-		configPtr->OnQuadStencilListChanged +=
-			MakeDelegate(this, &RmlModel_CompositorQuads::rebuildUIQuadsFromProfile);
-		configPtr->OnQuadStencilModified +=
-			MakeDelegate(this, &RmlModel_CompositorQuads::copyStencilSystemToUIQuad);
-	}
+	// Listen for stencil config changes
+	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty +=
+		MakeDelegate(this, &RmlModel_CompositorQuads::stencilSystemConfigMarkedDirty);
 
 	// Fill in the data model
 	rebuildAnchorList();
-	rebuildUIQuadsFromProfile();
+	rebuildUIQuadsFromStencilSystem();
 
 	return true;
 }
 
 void RmlModel_CompositorQuads::dispose()
 {
-	StencilObjectSystemConfigPtr configPtr = StencilObjectSystem::getSystem()->getStencilSystemConfig();
+	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty -=
+		MakeDelegate(this, &RmlModel_CompositorQuads::stencilSystemConfigMarkedDirty);
 
-	configPtr->OnQuadStencilListChanged -=
-		MakeDelegate(this, &RmlModel_CompositorQuads::rebuildUIQuadsFromProfile);
-	configPtr->OnQuadStencilModified -=
-		MakeDelegate(this, &RmlModel_CompositorQuads::copyStencilSystemToUIQuad);
-
-	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged -=
-		MakeDelegate(this, &RmlModel_CompositorQuads::rebuildAnchorList);
+	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty -=
+		MakeDelegate(this, &RmlModel_CompositorQuads::anchorSystemConfigMarkedDirty);
 
 	OnAddQuadStencilEvent.Clear();
 	OnDeleteQuadStencilEvent.Clear();
 	RmlModel::dispose();
+}
+
+void RmlModel_CompositorQuads::anchorSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
+	{
+		rebuildAnchorList();
+	}
 }
 
 void RmlModel_CompositorQuads::rebuildAnchorList()
@@ -165,7 +252,26 @@ void RmlModel_CompositorQuads::rebuildAnchorList()
 	m_modelHandle.DirtyVariable("spatial_anchors");
 }
 
-void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile()
+void RmlModel_CompositorQuads::stencilSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_quadStencilListPropertyId))
+	{
+		rebuildUIQuadsFromStencilSystem();
+	}
+	else
+	{
+		QuadStencilConfigPtr quadConfigPtr = std::dynamic_pointer_cast<QuadStencilConfig>(configPtr);
+
+		if (quadConfigPtr)
+		{
+			copyStencilSystemToUIQuad(quadConfigPtr->getStencilId());
+		}
+	}
+}
+
+void RmlModel_CompositorQuads::rebuildUIQuadsFromStencilSystem()
 {
 	auto& stencilList = m_stencilSystemPtr->getStencilSystemConfigConst()->quadStencilList;
 
@@ -194,36 +300,22 @@ void RmlModel_CompositorQuads::rebuildUIQuadsFromProfile()
 	m_modelHandle.DirtyVariable("stencil_quads");
 }
 
-void RmlModel_CompositorQuads::copyUIQuadToStencilSystem(int stencil_id) const
+RmlModel_CompositorQuad* RmlModel_CompositorQuads::getQuadRmlModel(const int stencil_id)
 {
 	auto it = std::find_if(
 		m_stencilQuads.begin(), m_stencilQuads.end(),
-		[stencil_id](const RmlModel_CompositorQuad& quad) {
-		return quad.stencil_id == stencil_id;
+		[stencil_id](RmlModel_CompositorQuad& box) {
+		return box.stencil_id == stencil_id;
 	});
+
 	if (it != m_stencilQuads.end())
 	{
-		QuadStencilComponentPtr stencilPtr = m_stencilSystemPtr->getQuadStencilById(stencil_id);
-		QuadStencilConfigPtr configPtr = stencilPtr->getConfig();
-		MikanStencilQuad quad = configPtr->getQuadInfo();
+		RmlModel_CompositorQuad& uiQuad = *it;
 
-		const RmlModel_CompositorQuad& uiQuad = *it;
-
-		EulerAnglesToMikanOrientation(
-			uiQuad.angles.x, uiQuad.angles.y, uiQuad.angles.z,
-			quad.quad_x_axis, quad.quad_y_axis, quad.quad_normal);
-
-		quad.parent_anchor_id= uiQuad.parent_anchor_id;
-		quad.quad_center= {uiQuad.position.x, uiQuad.position.y, uiQuad.position.z};
-		quad.quad_width= uiQuad.size.x;
-		quad.quad_height= uiQuad.size.y;
-		quad.is_double_sided= uiQuad.double_sided;
-		quad.is_disabled= uiQuad.disabled;
-
-		StringUtils::formatString(quad.stencil_name, sizeof(quad.stencil_name), "%s", uiQuad.stencil_name.c_str());
-
-		configPtr->setQuadInfo(quad);
+		return &uiQuad;
 	}
+
+	return nullptr;
 }
 
 void RmlModel_CompositorQuads::copyStencilSystemToUIQuad(int stencil_id)

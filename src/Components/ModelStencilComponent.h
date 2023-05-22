@@ -18,13 +18,12 @@ class ModelStencilConfig : public CommonConfig
 {
 public:
 	ModelStencilConfig();
-	ModelStencilConfig(MikanStencilID stencilId);
+	ModelStencilConfig(const MikanStencilModel& modelInfo);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	const MikanStencilModel& getModelInfo() const { return m_modelInfo; }
-	void setModelInfo(const MikanStencilModel& modelInfo);
 
 	MikanStencilID getStencilId() const { return m_modelInfo.stencil_id; }
 	MikanStencilID getParentAnchorId() const { return m_modelInfo.parent_anchor_id; }
@@ -35,27 +34,31 @@ public:
 	const GlmTransform getModelTransform() const;
 	void setModelTransform(const GlmTransform& transform);
 
+	static const std::string k_modelStencilScalePropertyId;
 	const MikanVector3f getModelScale() const { return m_modelInfo.model_scale; }
 	void setModelScale(const MikanVector3f& scale);
 
+	static const std::string k_modelStencilRotatorPropertyId;
 	const MikanRotator3f getModelRotator() const { return m_modelInfo.model_rotator; }
 	void setModelRotator(const MikanRotator3f& rotator);
 
+	static const std::string k_modelStencilPositionPropertyId;
 	const MikanVector3f getModelPosition() const { return m_modelInfo.model_position; }
 	void setModelPosition(const MikanVector3f& position);
 
+	static const std::string k_modelStencilObjPathPropertyId;
 	const std::filesystem::path& getModelPath() const { return m_modelPath; }
 	void setModelPath(const std::filesystem::path& path);
 
+	static const std::string k_modelStencilDisabledPropertyId;
 	bool getIsDisabled() const { return m_modelInfo.is_disabled; }
 	void setIsDisabled(bool flag);
 
+	static const std::string k_modelStencilNamePropertyId;
 	const std::string getStencilName() const { return m_modelInfo.stencil_name; }
 	void setStencilName(const std::string& stencilName);
 
 private:
-	void notifyStencilChanged();
-
 	MikanStencilModel m_modelInfo;
 	std::filesystem::path m_modelPath;
 };
@@ -73,8 +76,14 @@ public:
 
 	virtual MikanStencilID getParentAnchorId() const override;
 
-	virtual void setConfigTransform(const GlmTransform& transform) override;
-	virtual const GlmTransform getConfigTransform() override;
+	void setRelativePosition(const glm::vec3& position);
+	void setRelativeOrientation(const glm::vec3& eulerAnglesDegrees);
+	void setRelativeScale(const glm::vec3& scale);
+	virtual void setRelativeTransform(const GlmTransform& newRelativeXform) override;
+	virtual void setWorldTransform(const glm::mat4& newWorldXform) override;
+
+	// Config Events
+	void onModelStencilConfigChanged(MikanStencilID stencilId);
 
 	// Selection Events
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);

@@ -198,7 +198,7 @@ void AppStage_Compositor::enter()
 		m_compositiorLayersView->Show();
 
 		// Init Anchors UI
-		m_compositorAnchorsModel->init(context, m_anchorObjectSystem);
+		m_compositorAnchorsModel->init(context, m_anchorObjectSystem, m_fastenerObjectSystem);
 		m_compositorAnchorsModel->OnUpdateOriginPose = MakeDelegate(this, &AppStage_Compositor::onUpdateOriginEvent);
 		m_compositorAnchorsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddAnchorFastenerEvent);
 		m_compositorAnchorsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditAnchorFastenerEvent);
@@ -210,7 +210,6 @@ void AppStage_Compositor::enter()
 		m_compositorQuadsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
 		m_compositorQuadsModel->OnAddQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddQuadStencilEvent);
 		m_compositorQuadsModel->OnDeleteQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteQuadStencilEvent);
-		m_compositorQuadsModel->OnModifyQuadStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyQuadStencilParentAnchorEvent);
 		m_compositiorQuadsView = addRmlDocument("compositor_quads.rml");
 		m_compositiorQuadsView->Hide();
 
@@ -218,15 +217,13 @@ void AppStage_Compositor::enter()
 		m_compositorBoxesModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
 		m_compositorBoxesModel->OnAddBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddBoxStencilEvent);
 		m_compositorBoxesModel->OnDeleteBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteBoxStencilEvent);
-		m_compositorBoxesModel->OnModifyBoxStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyBoxStencilParentAnchorEvent);
 		m_compositiorBoxesView = addRmlDocument("compositor_boxes.rml");
 		m_compositiorBoxesView->Hide();
 
 		// Init Models Stencils UI
-		m_compositorModelsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
+		m_compositorModelsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem, m_fastenerObjectSystem);
 		m_compositorModelsModel->OnAddModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilEvent);
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
-		m_compositorModelsModel->OnModifyModelStencilParentAnchorEvent = MakeDelegate(this, &AppStage_Compositor::onModifyModelStencilParentAnchorEvent);
 		m_compositorModelsModel->OnSelectModelStencilPathEvent = MakeDelegate(this, &AppStage_Compositor::onSelectModelStencilPathEvent);
 		m_compositorModelsModel->OnSnapFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onSnapFastenerEvent);
 		m_compositorModelsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilFastenerEvent);
@@ -867,15 +864,6 @@ void AppStage_Compositor::onDeleteQuadStencilEvent(int stencilID)
 	}
 }
 
-void AppStage_Compositor::onModifyQuadStencilParentAnchorEvent(int stencilID, int newAnchorID)
-{
-	QuadStencilComponentPtr quadStencil= m_stencilObjectSystem->getQuadStencilById(stencilID);
-	if (quadStencil != nullptr)
-	{
-		quadStencil->attachSceneComponentToAnchor(newAnchorID);
-	}
-}
-
 // Box Stencils UI Events
 void AppStage_Compositor::onAddBoxStencilEvent()
 {
@@ -905,15 +893,6 @@ void AppStage_Compositor::onDeleteBoxStencilEvent(int stencilID)
 	}
 }
 
-void AppStage_Compositor::onModifyBoxStencilParentAnchorEvent(int stencilID, int newAnchorID)
-{
-	BoxStencilComponentPtr boxStencil= m_stencilObjectSystem->getBoxStencilById(stencilID);
-	if (boxStencil != nullptr)
-	{
-		boxStencil->attachSceneComponentToAnchor(newAnchorID);
-	}
-}
-
 // Model Stencils UI Events
 void AppStage_Compositor::onAddModelStencilEvent()
 {
@@ -937,15 +916,6 @@ void AppStage_Compositor::onDeleteModelStencilEvent(int stencilID)
 	if (m_stencilObjectSystem->removeModelStencil(stencilID))
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-void AppStage_Compositor::onModifyModelStencilParentAnchorEvent(int stencilID, int newAnchorID)
-{
-	ModelStencilComponentPtr modelStencil= m_stencilObjectSystem->getModelStencilById(stencilID);
-	if (modelStencil != nullptr)
-	{
-		modelStencil->attachSceneComponentToAnchor(newAnchorID);
 	}
 }
 

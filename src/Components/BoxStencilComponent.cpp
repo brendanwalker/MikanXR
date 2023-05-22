@@ -16,6 +16,16 @@
 #include "TextStyle.h"
 
 // -- BoxStencilComponent -----
+const std::string BoxStencilConfig::k_boxStencilXAxisPropertyId = "box_x_axis";
+const std::string BoxStencilConfig::k_boxStencilYAxisPropertyId = "box_y_axis";
+const std::string BoxStencilConfig::k_boxStencilZAxisPropertyId = "box_z_axis";
+const std::string BoxStencilConfig::k_boxStencilCenterPropertyId = "box_center";
+const std::string BoxStencilConfig::k_boxStencilXSizePropertyId = "box_x_size";
+const std::string BoxStencilConfig::k_boxStencilYSizePropertyId = "box_y_size";
+const std::string BoxStencilConfig::k_boxStencilZSizePropertyId = "box_z_size";
+const std::string BoxStencilConfig::k_boxStencilDisabledPropertyId = "is_disabled";
+const std::string BoxStencilConfig::k_boxStencilNamePropertyId = "stencil_name";
+
 BoxStencilConfig::BoxStencilConfig()
 {
 	memset(&m_boxInfo, 0, sizeof(MikanStencilBox));
@@ -23,11 +33,9 @@ BoxStencilConfig::BoxStencilConfig()
 	m_boxInfo.parent_anchor_id = INVALID_MIKAN_ID;
 }
 
-BoxStencilConfig::BoxStencilConfig(MikanStencilID stencilId)
+BoxStencilConfig::BoxStencilConfig(const MikanStencilBox& box)
 {
-	memset(&m_boxInfo, 0, sizeof(MikanStencilBox));
-	m_boxInfo.stencil_id = stencilId;
-	m_boxInfo.parent_anchor_id = INVALID_MIKAN_ID;
+	m_boxInfo= box;
 }
 
 configuru::Config BoxStencilConfig::writeToJSON()
@@ -74,13 +82,6 @@ void BoxStencilConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-void BoxStencilConfig::setBoxInfo(const MikanStencilBox& box)
-{
-	m_boxInfo= box;
-	markDirty();
-	notifyStencilChanged();
-}
-
 const glm::mat4 BoxStencilConfig::getBoxMat4() const
 {
 	return glm::mat4(
@@ -96,8 +97,11 @@ void BoxStencilConfig::setBoxMat4(const glm::mat4& xform)
 	m_boxInfo.box_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
 	m_boxInfo.box_z_axis = glm_vec3_to_MikanVector3f(xform[2]);
 	m_boxInfo.box_center = glm_vec3_to_MikanVector3f(xform[3]);
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet()
+				.addPropertyName(k_boxStencilXAxisPropertyId)
+				.addPropertyName(k_boxStencilYAxisPropertyId)
+				.addPropertyName(k_boxStencilZAxisPropertyId)
+				.addPropertyName(k_boxStencilCenterPropertyId));
 }
 
 const GlmTransform BoxStencilConfig::getBoxTransform() const
@@ -118,78 +122,87 @@ void BoxStencilConfig::setBoxTransform(const GlmTransform& transform)
 	m_boxInfo.box_y_axis = glm_vec3_to_MikanVector3f(xform[1]);
 	m_boxInfo.box_z_axis = glm_vec3_to_MikanVector3f(xform[2]);
 	m_boxInfo.box_center = glm_vec3_to_MikanVector3f(xform[3]);
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet()
+			  .addPropertyName(k_boxStencilXAxisPropertyId)
+			  .addPropertyName(k_boxStencilYAxisPropertyId)
+			  .addPropertyName(k_boxStencilZAxisPropertyId)
+			  .addPropertyName(k_boxStencilCenterPropertyId));
 }
 
 void BoxStencilConfig::setBoxXAxis(const MikanVector3f& xAxis)
 {
 	m_boxInfo.box_x_axis = xAxis;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilXAxisPropertyId));
 }
 
 void BoxStencilConfig::setBoxYAxis(const MikanVector3f& yAxis)
 {
 	m_boxInfo.box_y_axis = yAxis;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilYAxisPropertyId));
 }
 
-void BoxStencilConfig::setBoxZAxis(const MikanVector3f& normal)
+void BoxStencilConfig::setBoxZAxis(const MikanVector3f& zAxis)
 {
-	m_boxInfo.box_z_axis = normal;
-	markDirty();
-	notifyStencilChanged();
+	m_boxInfo.box_z_axis = zAxis;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilZAxisPropertyId));
+}
+
+void BoxStencilConfig::setBoxOrientation(const glm::mat3& R)
+{
+	m_boxInfo.box_x_axis = glm_vec3_to_MikanVector3f(R[0]);
+	m_boxInfo.box_y_axis = glm_vec3_to_MikanVector3f(R[1]);
+	m_boxInfo.box_z_axis = glm_vec3_to_MikanVector3f(R[2]);
+	markDirty(ConfigPropertyChangeSet()
+		.addPropertyName(k_boxStencilXAxisPropertyId)
+		.addPropertyName(k_boxStencilYAxisPropertyId)
+		.addPropertyName(k_boxStencilZAxisPropertyId));
 }
 
 void BoxStencilConfig::setBoxCenter(const MikanVector3f& center)
 {
 	m_boxInfo.box_center = center;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilCenterPropertyId));
 }
 
 void BoxStencilConfig::setBoxXSize(float size)
 {
 	m_boxInfo.box_x_size = size;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilXSizePropertyId));
 }
 
 void BoxStencilConfig::setBoxYSize(float size)
 {
 	m_boxInfo.box_y_size = size;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilYSizePropertyId));
 }
 
 void BoxStencilConfig::setBoxZSize(float size)
 {
 	m_boxInfo.box_z_size = size;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilZSizePropertyId));
+}
+
+void BoxStencilConfig::setBoxSize(float xSize, float ySize, float zSize)
+{
+	m_boxInfo.box_x_size = xSize;
+	m_boxInfo.box_y_size = ySize;
+	m_boxInfo.box_z_size = zSize;
+	markDirty(ConfigPropertyChangeSet()
+				.addPropertyName(k_boxStencilXSizePropertyId)
+				.addPropertyName(k_boxStencilYSizePropertyId)
+				.addPropertyName(k_boxStencilZSizePropertyId));
 }
 
 void BoxStencilConfig::setIsDisabled(bool flag)
 {
 	m_boxInfo.is_disabled = flag;
-	markDirty();
-	notifyStencilChanged();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilDisabledPropertyId));
 }
 
 void BoxStencilConfig::setStencilName(const std::string& stencilName)
 {
 	strncpy(m_boxInfo.stencil_name, stencilName.c_str(), sizeof(m_boxInfo.stencil_name) - 1);
-	markDirty();
-	notifyStencilChanged();
-}
-
-void BoxStencilConfig::notifyStencilChanged()
-{
-	StencilObjectSystemConfigPtr stencilConfig = StencilObjectSystem::getSystem()->getStencilSystemConfig();
-	if (stencilConfig->OnBoxStencilModified)
-		stencilConfig->OnBoxStencilModified(m_boxInfo.stencil_id);
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilNamePropertyId));
 }
 
 // -- BoxStencilComponent -----
@@ -216,7 +229,7 @@ void BoxStencilComponent::customRender()
 		const float xSize= m_config->getBoxXSize();
 		const float ySize= m_config->getBoxYSize();
 		const float zSize= m_config->getBoxZSize();
-		const glm::mat4 xform = m_sceneComponent.lock()->getWorldTransform();
+		const glm::mat4 xform = getWorldTransform();
 		const glm::vec3 half_extents(xSize / 2.f, ySize / 2.f, zSize / 2.f);
 		const glm::vec3 position = glm::vec3(xform[3]);
 
@@ -238,29 +251,61 @@ void BoxStencilComponent::customRender()
 
 void BoxStencilComponent::setConfig(BoxStencilConfigPtr config)
 {
+	assert(!m_bIsInitialized);
+	m_config = config;
+
+	// Initially the model component isn't attached to anything
+	assert(m_parentComponent.lock() == nullptr);
+	m_worldTransform = config->getBoxMat4();
+	m_relativeTransform = GlmTransform(m_worldTransform);
+
+	// Make the component name match the config name
+	m_name = config->getStencilName();
+
+	// Setup initial attachment
 	MikanSpatialAnchorID currentParentId = m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
 	MikanSpatialAnchorID newParentId = config ? config->getParentAnchorId() : INVALID_MIKAN_ID;
 	if (currentParentId != newParentId)
 	{
 		attachSceneComponentToAnchor(newParentId);
 	}
-
-	m_config= config;
-	setName(config->getStencilName());
-
-	applyConfigTransformToSceneComponent();
-	updateBoxColliderExtents();
 }
 
-void BoxStencilComponent::setConfigTransform(const GlmTransform& transform)
+void BoxStencilComponent::setRelativePosition(const glm::vec3& position)
 {
-	if (m_config)
-		m_config->setBoxTransform(transform);
+	m_relativeTransform.setPosition(position);
+	StencilComponent::setRelativeTransform(m_relativeTransform);
+
+	m_config->setBoxCenter({position.x, position.y, position.z});
 }
 
-const GlmTransform BoxStencilComponent::getConfigTransform()
+void BoxStencilComponent::setRelativeOrientation(const glm::mat3& rotation)
 {
-	return m_config ? m_config->getBoxTransform() : GlmTransform();
+	m_relativeTransform.setOrientation(glm::quat_cast(rotation));
+	StencilComponent::setRelativeTransform(m_relativeTransform);
+
+	m_config->setBoxOrientation(rotation);
+}
+
+void BoxStencilComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
+{
+	StencilComponent::setRelativeTransform(newRelativeXform);
+
+	m_config->setBoxTransform(newRelativeXform);
+}
+
+void BoxStencilComponent::setWorldTransform(const glm::mat4& newWorldXform)
+{
+	StencilComponent::setWorldTransform(newWorldXform);
+
+	m_config->setBoxMat4(newWorldXform);
+}
+
+void BoxStencilComponent::setName(const std::string& name)
+{
+	StencilComponent::setName(name);
+
+	m_config->setStencilName(name);
 }
 
 MikanStencilID BoxStencilComponent::getParentAnchorId() const

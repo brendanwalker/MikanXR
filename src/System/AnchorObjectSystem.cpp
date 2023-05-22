@@ -4,11 +4,13 @@
 #include "SceneComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
-#include "MikanServer.h"
 #include "ProfileConfig.h"
 #include "StringUtils.h"
 
 // -- AnchorObjectSystemConfig -----
+const std::string AnchorObjectSystemConfig::k_anchorVRDevicePathPropertyId= "anchorVRDevicePath";
+const std::string AnchorObjectSystemConfig::k_anchorListPropertyId= "spatialAnchors";
+
 configuru::Config AnchorObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
@@ -109,12 +111,7 @@ MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& a
 	nextAnchorId++;
 
 	spatialAnchorList.push_back(anchorConfigPtr);
-	markDirty();
-	if (OnAnchorListChanged)
-		OnAnchorListChanged();
-
-	// Tell any connected clients that the anchor list changed
-	MikanServer::getInstance()->publishAnchorListChangedEvent();
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
 
 	return anchorConfigPtr->getAnchorId();
 }
@@ -131,9 +128,7 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 		(*it)->getAnchorId() != originAnchorId)
 	{
 		spatialAnchorList.erase(it);
-		markDirty();
-		if (OnAnchorListChanged)
-			OnAnchorListChanged();
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
 
 		return true;
 	}
@@ -205,7 +200,7 @@ AnchorComponentPtr AnchorObjectSystem::getSpatialAnchorByName(const std::string&
 	{
 		AnchorComponentPtr componentPtr= it->second.lock();
 
-		if (componentPtr && componentPtr->getAnchorName() == anchorName)
+		if (componentPtr && componentPtr->getName() == anchorName)
 		{
 			return componentPtr;
 		}
@@ -219,7 +214,7 @@ bool AnchorObjectSystem::getSpatialAnchorWorldTransform(MikanSpatialAnchorID anc
 	AnchorComponentPtr anchorPtr= getSpatialAnchorById(anchorId);
 	if (anchorPtr)
 	{
-		outXform= anchorPtr->getAnchorWorldTransform();
+		outXform= anchorPtr->getWorldTransform();
 		return true;
 	}
 
@@ -255,12 +250,9 @@ AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorConfigPtr anchor
 	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
 	MikanObjectPtr anchorObject= newObject();
 
-	// Add a scene component to the anchor
-	SceneComponentPtr sceneComponentPtr= anchorObject->addComponent<SceneComponent>();
-	anchorObject->setRootComponent(sceneComponentPtr);
-
 	// Add spatial anchor component to the object
 	AnchorComponentPtr anchorComponentPtr= anchorObject->addComponent<AnchorComponent>();
+	anchorObject->setRootComponent(anchorComponentPtr);
 	anchorComponentPtr->setConfig(anchorConfig);
 	m_anchorComponents.insert({anchorConfig->getAnchorId(), anchorComponentPtr});
 
@@ -268,7 +260,7 @@ AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorConfigPtr anchor
 	if (anchorConfig->getAnchorId() != anchorSystemConfig->originAnchorId)
 	{
 		// Attach to the origin anchor
-		sceneComponentPtr->attachToComponent(m_originAnchor->getOwnerObject()->getRootComponent());
+		anchorComponentPtr->attachToComponent(m_originAnchor->getOwnerObject()->getRootComponent());
 	}
 	else
 	{

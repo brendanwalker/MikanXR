@@ -72,7 +72,9 @@ void AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath(const std::string& de
 {
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->cameraVRDevicePath= devicePath;
-	profileConfig->markDirty();
+	profileConfig->markDirty(
+		ConfigPropertyChangeSet()
+		.addPropertyName(ProfileConfig::k_cameraVRDevicePathPropertyId));
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
@@ -82,7 +84,9 @@ void AppStage_VRDeviceSettings::onUpdateCameraParentAnchorId(int anchorId)
 {
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->cameraParentAnchorId = anchorId;
-	profileConfig->markDirty();
+	profileConfig->markDirty(
+		ConfigPropertyChangeSet()
+		.addPropertyName(ProfileConfig::k_cameraParentAnchorPropertyId));	
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
@@ -92,7 +96,9 @@ void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devic
 {
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->matVRDevicePath = devicePath;
-	profileConfig->markDirty();
+	profileConfig->markDirty(
+		ConfigPropertyChangeSet()
+		.addPropertyName(ProfileConfig::k_matVRDevicePathPropertyId));
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
@@ -102,21 +108,27 @@ void AppStage_VRDeviceSettings::onUpdateOriginVRDevicePath(const std::string& de
 {
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->originVRDevicePath = devicePath;
-	profileConfig->markDirty();
+	profileConfig->markDirty(
+		ConfigPropertyChangeSet()
+		.addPropertyName(ProfileConfig::k_originVRDevicePathPropertyId));
 }
 
 void AppStage_VRDeviceSettings::onUpdateOriginVerticalAlignFlag(bool bFlag)
 {
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->originVerticalAlignFlag = bFlag;
-	profileConfig->markDirty();
+	profileConfig->markDirty(
+		ConfigPropertyChangeSet()
+		.addPropertyName(ProfileConfig::k_originVerticalAlignFlagPropertyId));
 }
 
 void AppStage_VRDeviceSettings::onUpdateCameraScale(const float newScale)
 {
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->cameraScale = newScale;
-	profileConfig->markDirty();
+	profileConfig->markDirty(
+		ConfigPropertyChangeSet()
+		.addPropertyName(ProfileConfig::k_cameraScalePropertyId));
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();

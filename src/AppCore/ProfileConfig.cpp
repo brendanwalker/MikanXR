@@ -22,7 +22,14 @@
 #define DEFAULT_PUCK_VERTICAL_OFFSET_MM  89
 #define DEFAULT_PUCK_DEPTH_OFFSET_MM  0
 
-// -- WMF Stereo Tracker Config
+// -- Profile Config
+const std::string ProfileConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
+const std::string ProfileConfig::k_cameraParentAnchorPropertyId= "cameraParentAnchorId";
+const std::string ProfileConfig::k_cameraScalePropertyId= "cameraScale";
+const std::string ProfileConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
+const std::string ProfileConfig::k_originVRDevicePathPropertyId= "originVRDevicePath";
+const std::string ProfileConfig::k_originVerticalAlignFlagPropertyId= "originVerticalAlignFlag";
+
 ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
 	// Pattern Defaults

@@ -328,8 +328,8 @@ bool MikanServer::startup()
 	VRDeviceManager::getInstance()->OnDeviceListChanged += MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
 	VRDeviceManager::getInstance()->OnDevicePosesChanged += MakeDelegate(this, &MikanServer::publishVRDevicePoses);
 
-	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged+= 
-		MakeDelegate(this, &MikanServer::publishAnchorListChangedEvent);
+	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnMarkedDirty+= 
+		MakeDelegate(this, &MikanServer::handleAnchorSystemConfigChange);
 
 	return true;
 }
@@ -368,9 +368,6 @@ void MikanServer::update()
 
 void MikanServer::shutdown()
 {
-	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnAnchorListChanged -=
-		MakeDelegate(this, &MikanServer::publishAnchorListChangedEvent);
-
 	VRDeviceManager::getInstance()->OnDevicePosesChanged -= MakeDelegate(this, &MikanServer::publishVRDevicePoses);
 
 	for (auto& connection_it : m_clientConnections)
@@ -429,9 +426,27 @@ void MikanServer::publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent
 	}
 }
 
-void MikanServer::publishAnchorListChangedEvent()
+void MikanServer::handleAnchorSystemConfigChange(
+	CommonConfigPtr configPtr,
+	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	publishSimpleEvent(MikanEvent_anchorListUpdated);
+	if (changedPropertySet.hasPropertyName(AnchorConfig::k_anchorXformPropertyID))
+	{
+		AnchorConfigPtr anchorConfig= std::static_pointer_cast<AnchorConfig>(configPtr);
+		const MikanSpatialAnchorInfo& anchorInfo= anchorConfig->getAnchorInfo();
+
+		MikanAnchorPoseUpdateEvent poseUpdateEvent;
+		memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
+		poseUpdateEvent.anchor_id = anchorInfo.anchor_id;
+		poseUpdateEvent.transform = anchorInfo.anchor_xform;
+
+		MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
+
+	}
+	else if (changedPropertySet.hasPropertyName(AnchorConfig::k_anchorXformPropertyID))
+	{
+		publishSimpleEvent(MikanEvent_anchorListUpdated);
+	}
 }
 
 // VRManager Callbacks

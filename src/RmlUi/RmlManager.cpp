@@ -230,7 +230,7 @@ void RmlManager::registerCommonDataModelTypes()
 			auto anchorComponent= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
 			if (anchorComponent != nullptr)
 			{
-				variant = Rml::String(anchorComponent->getAnchorName());
+				variant = Rml::String(anchorComponent->getName());
 				return true;
 			}
 			return false;

@@ -18,33 +18,48 @@ void SceneComponent::init()
 
 void SceneComponent::dispose()
 {
-	detachFromParent(false);
+	// Detach all children from this scene component first
+	for (auto it = m_childComponents.begin(); it != m_childComponents.end(); ++it)
+	{
+		SceneComponentPtr childComponent= it->lock(); 
+		childComponent->detachFromParent(eDetachReason::parentDisposed);
+	}
+
+	// Detach from our parent next
+	if (m_parentComponent.lock())
+	{
+		detachFromParent(eDetachReason::selfDisposed);
+	}
+
 	MikanComponent::dispose();
 }
 
-void SceneComponent::attachToComponent(SceneComponentPtr newParentComponent)
+bool SceneComponent::attachToComponent(SceneComponentPtr newParentComponent)
 {
-	const bool bHasNewParent= newParentComponent != nullptr;
+	SceneComponentPtr oldParentComponent= m_parentComponent.lock();
 
-	// Don't bother propagating world transform changes if we have a new parent,
-	// since the attachment to the new parent will propagate changes anyway
-	const bool bUpdateChildWorldTransforms= !bHasNewParent;
-	detachFromParent(bUpdateChildWorldTransforms);
+	if (!newParentComponent || newParentComponent == oldParentComponent)
+		return false;
 
-	if (bHasNewParent)
+	// Detach from old parent
+	if (oldParentComponent)
 	{
-		SceneComponentList& parentChildList= newParentComponent->m_childComponents;
-
-		parentChildList.push_back(getSelfWeakPtr<SceneComponent>());
-		m_parentComponent = newParentComponent;
-
-		// Refresh world transform
-		setRelativeTransform(m_relativeTransform);
+		detachFromParent(eDetachReason::detachFromParent);
 	}
+
+	// Attach to new parent
+	SceneComponentList& parentChildList= newParentComponent->m_childComponents;
+
+	parentChildList.push_back(getSelfWeakPtr<SceneComponent>());
+	m_parentComponent = newParentComponent;
+
+	// Refresh world transform
+	setRelativeTransform(m_relativeTransform);
 }
 
-void SceneComponent::detachFromParent(bool bUpdateChildWorldTransforms)
+void SceneComponent::detachFromParent(eDetachReason reason)
 {
+	// Remove ourselves from our current parent's child list
 	SceneComponentPtr parent= m_parentComponent.lock();
 	if (parent != nullptr)
 	{
@@ -62,15 +77,17 @@ void SceneComponent::detachFromParent(bool bUpdateChildWorldTransforms)
 		}
 	}
 
+	// Forget about our parent
 	m_parentComponent = SceneComponentPtr();
 
 	// World transform is now the same as relative transform
 	m_worldTransform= m_relativeTransform.getMat4();
 
-	// Propagate world transform change to children (unless caller doesn't want us to)
-	if (bUpdateChildWorldTransforms)
+	// Only bother propagating our new transform to our children 
+	// if we just doing a simple detach from our current parent
+	if (reason == eDetachReason::detachFromParent)
 	{
-		propogateWorldTransformChange(false);
+		propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 	}
 }
 
@@ -79,7 +96,7 @@ void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 	// Set the new relative transform directly
 	m_relativeTransform= newRelativeXform;
 
-	propogateWorldTransformChange(true);
+	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 }
 
 void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
@@ -97,7 +114,7 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	const glm::mat4 relativeXform= glm_composite_xform(invParentXform, m_worldTransform);
 	m_relativeTransform= GlmTransform(relativeXform);
 
-	propogateWorldTransformChange(false);
+	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 }
 
 const glm::vec3 SceneComponent::getWorldLocation() const
@@ -105,10 +122,10 @@ const glm::vec3 SceneComponent::getWorldLocation() const
 	return glm_mat4_get_position(m_worldTransform);
 }
 
-void SceneComponent::propogateWorldTransformChange(bool bRebuildWorldTransform)
+void SceneComponent::propogateWorldTransformChange(eTransformChangeType reason)
 {
 	// Recompute our world transform, if requested
-	if (bRebuildWorldTransform)
+	if (reason == eTransformChangeType::recomputeWorldTransformAndPropogate)
 	{
 		// Concat our transform to our parent's world transform
 		SceneComponentPtr parent = m_parentComponent.lock();
@@ -128,10 +145,6 @@ void SceneComponent::propogateWorldTransformChange(bool bRebuildWorldTransform)
 		m_sceneRenderable->setModelMatrix(m_worldTransform);
 	}
 
-	// Broadcast to anyone that cares our transform changed
-	if (OnTranformChaged)
-		OnTranformChaged(getSelfPtr<SceneComponent>());
-
 	// Propagate our updated world transform to our children
 	for (SceneComponentWeakPtr childComponentWeakPtr : m_childComponents)
 	{
@@ -139,7 +152,8 @@ void SceneComponent::propogateWorldTransformChange(bool bRebuildWorldTransform)
 
 		if (childComponent != nullptr)
 		{
-			childComponent->propogateWorldTransformChange(true);
+			// Ask all children to recompute their world transform
+			childComponent->propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 		}
 	}
 }

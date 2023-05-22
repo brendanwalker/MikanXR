@@ -103,17 +103,16 @@ protected:
 	// Quad Stencils UI Events
 	void onAddQuadStencilEvent();
 	void onDeleteQuadStencilEvent(int stencilID);
-	void onModifyQuadStencilParentAnchorEvent(int stencilID, int anchorID);
+	//void onModifyQuadStencilParentAnchorEvent(int stencilID, int anchorID);
 
 	// Box Stencils UI Events
 	void onAddBoxStencilEvent();
 	void onDeleteBoxStencilEvent(int stencilID);
-	void onModifyBoxStencilParentAnchorEvent(int stencilID, int anchorID);
 
 	// Model Stencils UI Events
 	void onAddModelStencilEvent();
 	void onDeleteModelStencilEvent(int stencilID);
-	void onModifyModelStencilParentAnchorEvent(int stencilID, int anchorID);
+	//void onModifyModelStencilParentAnchorEvent(int stencilID, int anchorID);
 	void onSelectModelStencilPathEvent(int stencilID);
 	void onSnapFastenerEvent(int stencilID);
 	void onAddModelStencilFastenerEvent(int stencilID);

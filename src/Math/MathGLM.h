@@ -27,6 +27,12 @@ glm::mat4 glm_scale_along_axis(const glm::vec3& axis, const float scale);
 void glm_quat_to_euler_angles(
 	const glm::quat& orientation,
 	float& out_x_radians, float& out_y_radians, float& out_z_radians);
+void glm_euler_angles_to_mat3(
+	float x_radians, float y_radians, float z_radians,
+	glm::mat3& out_orientation);
+void glm_euler_angles_to_quat(
+	float x_radians, float y_radians, float z_radians,
+	glm::quat& out_orientation);
 glm::mat4 glm_composite_xform(const glm::mat4& first, const glm::mat4& second);
 glm::quat glm_composite_rotation(const glm::quat& first, const glm::quat& second);
 glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& position);

@@ -2,7 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "MikanComponent.h"
+#include "SceneComponent.h"
 #include "MikanClientTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
@@ -33,19 +33,19 @@ public:
 	bool getParentStencilId(MikanStencilID& outStencilId) const;
 	const MikanSpatialFastenerInfo& getFastenerInfo() const { return m_fastenerInfo; }
 
+	static const std::string kFastenerNamePropertyId;
 	const std::string getFastenerName() const;
 	void setFastenerName(const std::string& fastenerName);
 
+	static const std::string kFastenerPointsPropertyId;
 	void getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) const;
 	void setFastenerLocalPoints(MikanVector3f inLocalPoints[3]);
 
 private:
-	void notifyFastenerChanged();
-
 	MikanSpatialFastenerInfo m_fastenerInfo;
 };
 
-class FastenerComponent : public MikanComponent
+class FastenerComponent : public SceneComponent
 {
 public:
 	FastenerComponent(MikanObjectWeakPtr owner);
@@ -58,8 +58,6 @@ public:
 
 	const std::string getFastenerName();
 	void setFastenerName(const std::string& newFastenerName);
-
-	glm::mat4 getFastenerWorldTransform() const;
 
 	void getFastenerLocalPoints(glm::vec3 outLocalPoints[3]) const;
 	void getFastenerWorldPoints(glm::vec3 outWorldPoints[3]) const;

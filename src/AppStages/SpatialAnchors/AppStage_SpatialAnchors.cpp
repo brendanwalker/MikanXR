@@ -102,7 +102,7 @@ void AppStage_SpatialAnchors::onUpdateAnchorPose(int anchorId)
 		{
 			const glm::mat4 anchorXform = anchorVRDevice->getCalibrationPose();
 
-			anchorComponent->setAnchorWorldTransform(anchorXform);
+			anchorComponent->setWorldTransform(anchorXform);
 		}
 	}
 }
@@ -112,7 +112,7 @@ void AppStage_SpatialAnchors::onUpdateAnchorName(int anchorId, const std::string
 	AnchorComponentPtr anchorComponent = m_anchorSystem->getSpatialAnchorById(anchorId);
 	if (anchorComponent != nullptr)
 	{
-		anchorComponent->setAnchorName(anchorName);
+		anchorComponent->setName(anchorName);
 	}
 }
 
@@ -122,7 +122,9 @@ void AppStage_SpatialAnchors::onUpdateAnchorVRDevicePath(const std::string& vrDe
 	if (configPtr->anchorVRDevicePath != vrDevicePath)
 	{
 		configPtr->anchorVRDevicePath= vrDevicePath;
-		configPtr->markDirty();
+		configPtr->markDirty(
+			ConfigPropertyChangeSet()
+			.addPropertyName(AnchorObjectSystemConfig::k_anchorVRDevicePathPropertyId));
 
 		m_dataModel->rebuildAnchorList();
 	}

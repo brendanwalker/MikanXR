@@ -134,7 +134,7 @@ bool StencilObjectSystem::getStencilWorldTransform(
 	StencilComponentPtr stencilComponent= getStencilById(parentStencilId);
 	if (stencilComponent)
 	{
-		outXform = stencilComponent->getStencilWorldTransform();
+		outXform = stencilComponent->getWorldTransform();
 		return true;
 	}
 
@@ -216,7 +216,7 @@ void StencilObjectSystem::getRelevantQuadStencilList(
 		}
 
 		{
-			const glm::mat4 worldXform = componentPtr->getStencilWorldTransform();
+			const glm::mat4 worldXform = componentPtr->getWorldTransform();
 			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
 			const glm::vec3 stencilForward = glm::vec3(worldXform[2]); // forward is 2nd column
 			const glm::vec3 cameraToStencil = stencilCenter - cameraPosition;
@@ -236,23 +236,21 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(QuadStencil
 {
 	MikanObjectPtr stencilObject = newObject();
 
+	// Make the QuadStencil component the root of the object
+	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
+	stencilObject->setRootComponent(stencilComponentPtr);
+	stencilComponentPtr->setConfig(quadConfig);
+
 	// Add a selection component
 	stencilObject->addComponent<SelectionComponent>();
 
-	// Make the box collider the root scene component of the object
+	// Attach a box collider to quad stencil component
 	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
 	boxColliderPtr->setHalfExtents(glm::vec3(quadConfig->getQuadWidth() * 0.5f, quadConfig->getQuadHeight() * 0.5f, 0.01f));
-	stencilObject->setRootComponent(boxColliderPtr);
-
-	// Add quad stencil component to the object
-	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
+	boxColliderPtr->attachToComponent(stencilComponentPtr);
 
 	// Init the object once all components are added
 	stencilObject->init();
-
-	// Apply stencil config once the components are initialized
-	// (need to wait for stencil component to bind to root scene component)
-	stencilComponentPtr->setConfig(quadConfig);
 
 	// Keep track of all the quad stencils in the stencil system
 	m_quadStencilComponents.insert({quadConfig->getStencilId(), stencilComponentPtr});
@@ -352,7 +350,7 @@ void StencilObjectSystem::getRelevantBoxStencilList(
 		}
 
 		{
-			const glm::mat4 worldXform = componentPtr->getStencilWorldTransform();
+			const glm::mat4 worldXform = componentPtr->getWorldTransform();
 			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
 			const glm::vec3 stencilZAxis = glm::vec3(worldXform[2]); // Z is 2nd column
 			const glm::vec3 stencilYAxis = glm::vec3(worldXform[1]); // Y is 1st column
@@ -381,27 +379,25 @@ BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(BoxStencilCon
 {
 	MikanObjectPtr stencilObject = newObject();
 
-	// Make the box collider the root scene component
+	// Make the box stencil the root scene component
+	BoxStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<BoxStencilComponent>();
+	stencilObject->setRootComponent(stencilComponentPtr);
+	stencilComponentPtr->setConfig(boxConfig);
+
+	// Attach a box collider component to the stencil
 	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
 	boxColliderPtr->setHalfExtents(
 		glm::vec3(
 			boxConfig->getBoxXSize() * 0.5f,
 			boxConfig->getBoxYSize() * 0.5f,
 			boxConfig->getBoxZSize() * 0.5f));
-	stencilObject->setRootComponent(boxColliderPtr);
+	boxColliderPtr->attachToComponent(stencilComponentPtr);
 
 	// Add a selection component
 	stencilObject->addComponent<SelectionComponent>();
 
-	// Add stencil anchor component to the object
-	BoxStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<BoxStencilComponent>();
-
 	// Init the object once all components are added
 	stencilObject->init();
-
-	// Apply stencil config once the components are initialized
-	// (need to wait for stencil component to bind to root scene component)
-	stencilComponentPtr->setConfig(boxConfig);
 
 	// Keep track of all the box stencils in the stencil system
 	m_boxStencilComponents.insert({boxConfig->getStencilId(), stencilComponentPtr});
@@ -507,12 +503,10 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 {
 	MikanObjectPtr stencilObject = newObject();
 
-	// Add a scene component to the model stencil
-	SceneComponentPtr sceneComponentPtr = stencilObject->addComponent<SceneComponent>();
-	stencilObject->setRootComponent(sceneComponentPtr);
-
-	// Add a selection component
-	stencilObject->addComponent<SelectionComponent>();
+	// Make the model stencil component the root object
+	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();
+	stencilObject->setRootComponent(stencilComponentPtr);
+	stencilComponentPtr->setConfig(modelConfig);
 
 	// Fetch the model resource
 	auto& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
@@ -538,13 +532,13 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
 		meshComponentPtr->setName(triMeshPtr->getName());
 		meshComponentPtr->setStaticMesh(triMeshInstancePtr);
-		meshComponentPtr->attachToComponent(sceneComponentPtr);
+		meshComponentPtr->attachToComponent(stencilComponentPtr);
 
 		// Add a mesh collider component that generates collision from the mesh data
 		MeshColliderComponentPtr colliderPtr= stencilObject->addComponent<MeshColliderComponent>();
 		colliderPtr->setName(triMeshPtr->getName());
 		colliderPtr->setStaticMeshComponent(meshComponentPtr);
-		colliderPtr->attachToComponent(sceneComponentPtr);
+		colliderPtr->attachToComponent(stencilComponentPtr);
 	}
 
 	// Add static wireframe meshes
@@ -566,18 +560,14 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
 		meshComponentPtr->setName(wireframeMeshPtr->getName());
 		meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
-		meshComponentPtr->attachToComponent(sceneComponentPtr);
+		meshComponentPtr->attachToComponent(stencilComponentPtr);
 	}
 
-	// Add spatial anchor component to the object
-	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();
+	// Add a selection component
+	stencilObject->addComponent<SelectionComponent>();
 
 	// Init the object once all components are added
 	stencilObject->init();
-
-	// Apply stencil config once the components are initialized
-	// (need to wait for stencil component to bind to root scene component)
-	stencilComponentPtr->setConfig(modelConfig);
 
 	// Add the model stencil to the list of stencils
 	m_modelStencilComponents.insert({modelConfig->getStencilId(), stencilComponentPtr});

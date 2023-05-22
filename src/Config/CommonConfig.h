@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <filesystem>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -33,6 +34,16 @@
     pt.get_or<type>(), respectively, to convert between member variables and the
     property tree. 
 */
+class ConfigPropertyChangeSet
+{
+public:
+	ConfigPropertyChangeSet& addPropertyName(const std::string& propertyName);
+	bool hasPropertyName(const std::string& propertyName) const;
+
+private:
+	std::set<std::string> m_changedProperties;
+};
+
 class CommonConfig : public std::enable_shared_from_this<CommonConfig> 
 {
 public:
@@ -48,8 +59,8 @@ public:
 		return childConfig;
 	}
 	bool isMarkedDirty() const;
-	void markDirty();
-	MulticastDelegate<void(CommonConfigPtr configPtr)> OnMarkedDirty;
+	void markDirty(const ConfigPropertyChangeSet& changedPropertySet);
+	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnMarkedDirty;
 
 	const std::string& getConfigName() const { return m_configName; }
 	const std::filesystem::path getDefaultConfigPath() const;
@@ -234,7 +245,7 @@ public:
 
 protected:
 	std::vector<CommonConfigPtr> m_childConfigs;
-	void onChildConfigMarkedDirty(CommonConfigPtr configPtr);
+	void onChildConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 	void clearDirty();
 
 	bool m_bIsDirty= false;
