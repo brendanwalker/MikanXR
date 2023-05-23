@@ -81,9 +81,7 @@ public:
 	void setRelativeScale(const glm::vec3& scale);
 	virtual void setRelativeTransform(const GlmTransform& newRelativeXform) override;
 	virtual void setWorldTransform(const glm::mat4& newWorldXform) override;
-
-	// Config Events
-	void onModelStencilConfigChanged(MikanStencilID stencilId);
+	virtual void setName(const std::string& name) override;
 
 	// Selection Events
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);

@@ -280,6 +280,14 @@ void ModelStencilComponent::setWorldTransform(const glm::mat4& newWorldXform)
 		m_config->setModelTransform(getRelativeTransform().getMat4());
 }
 
+void ModelStencilComponent::setName(const std::string& name)
+{
+	StencilComponent::setName(name);
+
+	if (m_bIsInitialized)
+		m_config->setStencilName(name);
+}
+
 MikanStencilID ModelStencilComponent::getParentAnchorId() const
 {
 	return m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
