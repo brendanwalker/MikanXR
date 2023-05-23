@@ -2,13 +2,10 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "RmlFwd.h"
 
 namespace sdlgui {
 	class Screen;
-}
-
-namespace Rml {
-	class ElementDocument;
 }
 
 //-- definitions -----

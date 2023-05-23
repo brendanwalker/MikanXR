@@ -3,17 +3,13 @@
 //-- includes -----
 #include "AppStage.h"
 #include "RendererFwd.h"
+#include "RmlFwd.h"
 #include "SceneFwd.h"
 #include "ScriptingFwd.h"
 
 #include <filesystem>
 #include <memory>
 #include "FrameCompositorConstants.h"
-
-namespace Rml
-{
-	class ElementDocument;
-};
 
 enum class eCompositorViewpointMode : int
 {

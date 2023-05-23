@@ -3,16 +3,12 @@
 //-- includes -----
 #include "AppStage.h"
 #include "Constants_MonoLensCalibration.h"
+#include "RmlFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
-namespace Rml
-{
-	class ElementDocument;
-};
 
 //-- definitions -----
 class AppStage_MonoLensCalibration : public AppStage

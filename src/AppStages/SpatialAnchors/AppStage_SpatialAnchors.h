@@ -5,6 +5,7 @@
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "RendererFwd.h"
+#include "RmlFwd.h"
 
 #include <memory>
 #include <vector>
@@ -12,11 +13,6 @@
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 typedef std::vector<VRDeviceViewPtr> VRDeviceList;
-
-namespace Rml
-{
-	class ElementDocument;
-};
 
 //-- definitions -----
 class AppStage_SpatialAnchors : public AppStage

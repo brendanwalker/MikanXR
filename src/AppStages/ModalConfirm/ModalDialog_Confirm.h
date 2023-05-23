@@ -1,6 +1,7 @@
 #pragma once
 
 //-- includes -----
+#include "RmlFwd.h"
 #include "Shared/ModalDialog.h"
 #include "SinglecastDelegate.h"
 
@@ -9,11 +10,6 @@
 #include <functional>
 
 class AppStage;
-
-namespace Rml
-{
-	class ElementDocument;
-}
 
 //-- definitions -----
 

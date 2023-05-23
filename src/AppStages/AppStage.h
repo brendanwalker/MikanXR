@@ -2,6 +2,7 @@
 
 #include "LocalizationManager.h"
 #include "RendererFwd.h"
+#include "RmlFwd.h"
 
 #include <string>
 #include <vector>
@@ -12,11 +13,6 @@ typedef union SDL_Event SDL_Event;
 class ModalDialog;
 
 using GlViewportList = std::vector<GlViewportPtr>;
-
-namespace Rml {
-	class Context;
-	class ElementDocument;
-};
 
 class AppStage
 {

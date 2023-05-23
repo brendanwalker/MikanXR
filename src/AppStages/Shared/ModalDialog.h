@@ -1,12 +1,8 @@
 #pragma once
 
-class AppStage;
+#include "RmlFwd.h"
 
-namespace Rml
-{
-	class Context;
-	class ElementDocument;
-};
+class AppStage;
 
 class ModalDialog
 {

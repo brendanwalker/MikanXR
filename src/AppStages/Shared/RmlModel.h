@@ -1,12 +1,8 @@
 #pragma once
 
+#include "RmlFwd.h"
 #include <RmlUi/Config/Config.h>
 #include <RmlUi/Core/DataModelHandle.h>
-
-namespace Rml
-{
-	class Context;
-};
 
 class RmlModel
 {
