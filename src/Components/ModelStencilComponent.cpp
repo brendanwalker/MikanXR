@@ -227,11 +227,7 @@ void ModelStencilComponent::setConfig(ModelStencilConfigPtr config)
 
 	// Setup initial attachment
 	MikanSpatialAnchorID currentParentId = m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
-	MikanSpatialAnchorID newParentId = config ? config->getParentAnchorId() : INVALID_MIKAN_ID;
-	if (currentParentId != newParentId)
-	{
-		attachSceneComponentToAnchor(newParentId);
-	}
+	attachSceneComponentToAnchor(currentParentId);
 }
 
 void ModelStencilComponent::setRelativePosition(const glm::vec3& position)

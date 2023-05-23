@@ -266,11 +266,7 @@ void QuadStencilComponent::setConfig(QuadStencilConfigPtr config)
 
 	// Setup initial attachment
 	MikanSpatialAnchorID currentParentId= m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
-	MikanSpatialAnchorID newParentId= config ? config->getParentAnchorId() : INVALID_MIKAN_ID;
-	if (currentParentId != newParentId)
-	{
-		attachSceneComponentToAnchor(newParentId);
-	}
+	attachSceneComponentToAnchor(currentParentId);
 }
 
 void QuadStencilComponent::setRelativePosition(const glm::vec3& position)
@@ -304,7 +300,7 @@ void QuadStencilComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	StencilComponent::setWorldTransform(newWorldXform);
 
 	if (m_bIsInitialized)
-		m_config->setQuadMat4(newWorldXform);
+		m_config->setQuadMat4(getRelativeTransform().getMat4());
 }
 
 void QuadStencilComponent::setName(const std::string& name)
