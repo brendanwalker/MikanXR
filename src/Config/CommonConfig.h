@@ -49,15 +49,8 @@ class CommonConfig : public std::enable_shared_from_this<CommonConfig>
 public:
     CommonConfig(const std::string &configName = std::string("CommonConfig"));
 
-	template <class t_config_type>
-	std::shared_ptr<t_config_type> addChildConfig(const std::string& configName)
-	{
-		std::shared_ptr<t_config_type> childConfig= std::make_shared<t_config_type>(configName);
-		childConfig->OnMarkedDirty+= MakeDelegate(this, &CommonConfig::onChildConfigMarkedDirty);
-		m_childConfigs.push_back(childConfig);
-
-		return childConfig;
-	}
+	void addChildConfig(std::shared_ptr<CommonConfig> childConfig);
+	void removeChildConfig(std::shared_ptr<CommonConfig> childConfig);
 	bool isMarkedDirty() const;
 	void markDirty(const ConfigPropertyChangeSet& changedPropertySet);
 	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnMarkedDirty;

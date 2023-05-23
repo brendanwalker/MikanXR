@@ -47,6 +47,21 @@ void CommonConfig::onChildConfigMarkedDirty(
 		OnMarkedDirty(configPtr, changedPropertySet);
 }
 
+void CommonConfig::addChildConfig(std::shared_ptr<CommonConfig> childConfig)
+{
+	childConfig->OnMarkedDirty += MakeDelegate(this, &CommonConfig::onChildConfigMarkedDirty);
+	m_childConfigs.push_back(childConfig);
+}
+
+void CommonConfig::removeChildConfig(std::shared_ptr<CommonConfig> childConfig)
+{
+    auto it= std::find(m_childConfigs.begin(), m_childConfigs.end(), childConfig);
+    if (it != m_childConfigs.end())
+    {
+        m_childConfigs.erase(it);
+    }
+}
+
 bool CommonConfig::isMarkedDirty() const 
 { 
     return m_bIsDirty; 

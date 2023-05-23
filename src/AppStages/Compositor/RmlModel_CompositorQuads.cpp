@@ -348,5 +348,6 @@ void RmlModel_CompositorQuads::copyStencilSystemToUIQuad(int stencil_id)
 			uiQuad.disabled = quad.is_disabled;
 			uiQuad.stencil_name = quad.stencil_name;
 		}
+		m_modelHandle.DirtyVariable("stencil_quads");
 	}
 }

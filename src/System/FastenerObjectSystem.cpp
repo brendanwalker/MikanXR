@@ -44,9 +44,11 @@ void FastenerObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	{
 		for (const configuru::Config& Fastener_pt : pt["spatialFasteners"].as_array())
 		{
-			FastenerConfigPtr FastenerConfigPtr = std::make_shared<FastenerConfig>();
-			FastenerConfigPtr->readFromJSON(Fastener_pt);
-			spatialFastenerList.push_back(FastenerConfigPtr);
+			FastenerConfigPtr fastenerConfigPtr = std::make_shared<FastenerConfig>();
+			fastenerConfigPtr->readFromJSON(Fastener_pt);
+
+			spatialFastenerList.push_back(fastenerConfigPtr);
+			addChildConfig(fastenerConfigPtr);
 		}
 	}
 }
@@ -103,6 +105,8 @@ MikanSpatialFastenerID FastenerObjectSystemConfig::addNewFastener(const MikanSpa
 	nextFastenerId++;
 
 	spatialFastenerList.push_back(fastenerConfig);
+	addChildConfig(fastenerConfig);
+
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_fastenerListPropertyId));
 
 	return fastenerConfig->getFastenerId();
@@ -119,6 +123,8 @@ bool FastenerObjectSystemConfig::removeFastener(MikanSpatialFastenerID fastenerI
 	if (it != spatialFastenerList.end() &&
 		(*it)->getFastenerId() != originFastenerId)
 	{
+		removeChildConfig(*it);
+
 		spatialFastenerList.erase(it);
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_fastenerListPropertyId));
 

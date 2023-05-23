@@ -387,5 +387,6 @@ void RmlModel_CompositorModels::copyStencilSystemToUIModel(int stencil_id)
 
 			uiModel.stencil_name = modelInfo.stencil_name;
 		}
+		m_modelHandle.DirtyVariable("stencil_models");
 	}
 }

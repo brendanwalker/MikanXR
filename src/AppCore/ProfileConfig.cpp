@@ -61,10 +61,17 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	// Output Settings
 	, outputFilePath("")
 {
-	anchorConfig= addChildConfig<AnchorObjectSystemConfig>("anchors");
-	editorConfig= addChildConfig<EditorObjectSystemConfig>("editor");
-	stencilConfig= addChildConfig<StencilObjectSystemConfig>("stencils");
-	fastenerConfig= addChildConfig<FastenerObjectSystemConfig>("fasteners");
+	anchorConfig= std::make_shared<AnchorObjectSystemConfig>("anchors");
+	addChildConfig(anchorConfig);
+
+	editorConfig= std::make_shared<EditorObjectSystemConfig>("editor");
+	addChildConfig(editorConfig);
+
+	stencilConfig= std::make_shared<StencilObjectSystemConfig>("stencils");
+	addChildConfig(stencilConfig);
+
+	fastenerConfig= std::make_shared<FastenerObjectSystemConfig>("fasteners");
+	addChildConfig(fastenerConfig);
 };
 
 configuru::Config ProfileConfig::writeToJSON()

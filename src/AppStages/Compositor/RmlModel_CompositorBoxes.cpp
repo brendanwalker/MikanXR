@@ -332,5 +332,6 @@ void RmlModel_CompositorBoxes::copyStencilSystemToUIBox(int stencil_id)
 			uiBox.disabled = box.is_disabled;
 			uiBox.stencil_name = box.stencil_name;
 		}
+		m_modelHandle.DirtyVariable("stencil_boxes");
 	}
 }

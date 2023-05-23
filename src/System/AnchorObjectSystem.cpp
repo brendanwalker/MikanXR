@@ -44,8 +44,11 @@ void AnchorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 		for (const configuru::Config& anchor_pt : pt["spatialAnchors"].as_array())
 		{
 			AnchorConfigPtr anchorConfigPtr = std::make_shared<AnchorConfig>();
+
 			anchorConfigPtr->readFromJSON(anchor_pt);
 			spatialAnchorList.push_back(anchorConfigPtr);
+
+			addChildConfig(anchorConfigPtr);
 		}
 	}
 
@@ -111,6 +114,8 @@ MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& a
 	nextAnchorId++;
 
 	spatialAnchorList.push_back(anchorConfigPtr);
+	addChildConfig(anchorConfigPtr);
+
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
 
 	return anchorConfigPtr->getAnchorId();
@@ -127,6 +132,8 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 	if (it != spatialAnchorList.end() &&
 		(*it)->getAnchorId() != originAnchorId)
 	{
+		removeChildConfig(*it);
+
 		spatialAnchorList.erase(it);
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
 

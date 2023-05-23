@@ -57,11 +57,12 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key("quadStencils"))
 	{
 		for (const configuru::Config& stencilConfig : pt["quadStencils"].as_array())
-		{
+		{			
 			QuadStencilConfigPtr configPtr = std::make_shared<QuadStencilConfig>();
 			configPtr->readFromJSON(stencilConfig);
 
 			quadStencilList.push_back(configPtr);
+			addChildConfig(configPtr);
 		}
 	}
 
@@ -75,6 +76,7 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 			configPtr->readFromJSON(stencilConfig);
 
 			boxStencilList.push_back(configPtr);
+			addChildConfig(configPtr);
 		}
 	}
 
@@ -88,6 +90,7 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 			configPtr->readFromJSON(stencilConfig);
 
 			modelStencilList.push_back(configPtr);
+			addChildConfig(configPtr);
 		}
 	}
 }
@@ -109,6 +112,8 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 
 		if (it != quadStencilList.end())
 		{
+			removeChildConfig(*it);
+
 			quadStencilList.erase(it);
 			markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilListPropertyId));
 
@@ -126,6 +131,8 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 
 		if (it != boxStencilList.end())
 		{
+			removeChildConfig(*it);
+
 			boxStencilList.erase(it);
 			markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilListPropertyId));
 
@@ -143,13 +150,14 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 
 		if (it != modelStencilList.end())
 		{
+			removeChildConfig(*it);
+
 			modelStencilList.erase(it);
 			markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilListPropertyId));
 
 			return true;
 		}
 	}
-
 
 	return false;
 }
@@ -233,6 +241,7 @@ MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQu
 	nextStencilId++;
 
 	QuadStencilConfigPtr configPtr = std::make_shared<QuadStencilConfig>(localQuadInfo);
+	addChildConfig(configPtr);
 
 	quadStencilList.push_back(configPtr);
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilListPropertyId));
@@ -271,6 +280,7 @@ MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBox
 	nextStencilId++;
 
 	BoxStencilConfigPtr configPtr = std::make_shared<BoxStencilConfig>(localBoxInfo);
+	addChildConfig(configPtr);
 
 	boxStencilList.push_back(configPtr);
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilListPropertyId));
@@ -312,6 +322,7 @@ MikanStencilID StencilObjectSystemConfig::addNewModelStencil(const MikanStencilM
 	nextStencilId++;
 
 	ModelStencilConfigPtr configPtr = std::make_shared<ModelStencilConfig>(localModelInfo);
+	addChildConfig(configPtr);
 
 	modelStencilList.push_back(configPtr);
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilListPropertyId));
