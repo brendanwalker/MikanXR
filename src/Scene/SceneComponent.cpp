@@ -115,7 +115,7 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	{
 		invParentXform= glm::inverse(parent->getWorldTransform());
 	}
-	const glm::mat4 relativeXform= glm_composite_xform(invParentXform, m_worldTransform);
+	const glm::mat4 relativeXform= glm_composite_xform(m_worldTransform, invParentXform);
 	m_relativeTransform= GlmTransform(relativeXform);
 
 	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
