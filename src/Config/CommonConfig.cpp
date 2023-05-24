@@ -69,12 +69,10 @@ bool CommonConfig::isMarkedDirty() const
 
 void CommonConfig::markDirty(const ConfigPropertyChangeSet& changedPropertySet) 
 { 
-    if (!m_bIsDirty)
-    {
-		m_bIsDirty = true;
-        if (OnMarkedDirty)
-            OnMarkedDirty(shared_from_this(), changedPropertySet);
-    }
+	m_bIsDirty = true;
+
+	if (OnMarkedDirty)
+		OnMarkedDirty(shared_from_this(), changedPropertySet);
 }
 
 void CommonConfig::clearDirty()
