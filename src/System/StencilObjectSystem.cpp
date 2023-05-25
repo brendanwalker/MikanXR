@@ -506,68 +506,17 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 	// Make the model stencil component the root object
 	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();
 	stencilObject->setRootComponent(stencilComponentPtr);
+	// Setting the config will spawn child mesh componets, if any
 	stencilComponentPtr->setConfig(modelConfig);
-
-	// Fetch the model resource
-	auto& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
-	GlRenderModelResourcePtr modelResourcePtr = modelResourceManager->fetchRenderModel(
-		modelConfig->getModelPath(),
-		GlRenderModelResource::getDefaultVertexDefinition());
-
-	// Add static tri meshes
-	for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
-	{
-		// Fetch the mesh and material resources
-		GlTriangulatedMeshPtr triMeshPtr= modelResourcePtr->getTriangulatedMesh((int)meshIndex);
-		GlMaterialInstancePtr materialInstancePtr= modelResourcePtr->getTriangulatedMeshMaterial((int)meshIndex);
-
-		// Create a new static mesh instance from the mesh resources
-		GlStaticMeshInstancePtr triMeshInstancePtr = 
-			std::make_shared<GlStaticMeshInstance>(
-				triMeshPtr->getName(),
-				triMeshPtr,
-				materialInstancePtr);
-
-		// Create a static mesh component to hold the mesh instance
-		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
-		meshComponentPtr->setName(triMeshPtr->getName());
-		meshComponentPtr->setStaticMesh(triMeshInstancePtr);
-		meshComponentPtr->attachToComponent(stencilComponentPtr);
-
-		// Add a mesh collider component that generates collision from the mesh data
-		MeshColliderComponentPtr colliderPtr= stencilObject->addComponent<MeshColliderComponent>();
-		colliderPtr->setName(triMeshPtr->getName());
-		colliderPtr->setStaticMeshComponent(meshComponentPtr);
-		colliderPtr->attachToComponent(stencilComponentPtr);
-	}
-
-	// Add static wireframe meshes
-	for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
-	{
-		// Fetch the mesh and material resources
-		GlWireframeMeshPtr wireframeMeshPtr= modelResourcePtr->getWireframeMesh((int)meshIndex);
-		GlMaterialInstancePtr materialInstancePtr= modelResourcePtr->getWireframeMeshMaterial((int)meshIndex);
-
-		// Create a new (hidden) static mesh instance from the mesh resources
-		GlStaticMeshInstancePtr wireframeMeshInstancePtr =
-			std::make_shared<GlStaticMeshInstance>(
-				"wireframe",
-				wireframeMeshPtr,
-				materialInstancePtr);
-		wireframeMeshInstancePtr->setVisible(false);
-
-		// Create a static mesh component to hold the mesh instance
-		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
-		meshComponentPtr->setName(wireframeMeshPtr->getName());
-		meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
-		meshComponentPtr->attachToComponent(stencilComponentPtr);
-	}
 
 	// Add a selection component
 	stencilObject->addComponent<SelectionComponent>();
 
 	// Init the object once all components are added
 	stencilObject->init();
+
+	// Create mesh mesh components for the assigned mesh target
+	stencilComponentPtr->rebuildMeshComponents();
 
 	// Add the model stencil to the list of stencils
 	m_modelStencilComponents.insert({modelConfig->getStencilId(), stencilComponentPtr});

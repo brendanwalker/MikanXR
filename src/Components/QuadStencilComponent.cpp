@@ -19,6 +19,7 @@
 #include "glm/ext/matrix_float4x4_precision.hpp"
 
 // -- QuadConfig -----
+const std::string QuadStencilConfig::k_quadParentAnchorPropertyId = "parent_anchor_id";
 const std::string QuadStencilConfig::k_quadStencilXAxisPropertyId = "quad_x_axis";
 const std::string QuadStencilConfig::k_quadStencilYAxisPropertyId = "quad_y_axis";
 const std::string QuadStencilConfig::k_quadStencilNormalPropertyId = "quad_normal";
@@ -115,6 +116,12 @@ const GlmTransform QuadStencilConfig::getQuadTransform() const
 			MikanVector3f_to_glm_vec3(m_quadInfo.quad_x_axis),
 			MikanVector3f_to_glm_vec3(m_quadInfo.quad_y_axis),
 			MikanVector3f_to_glm_vec3(m_quadInfo.quad_normal))));
+}
+
+void QuadStencilConfig::setParentAnchorId(MikanSpatialAnchorID anchorId)
+{
+	m_quadInfo.parent_anchor_id = anchorId;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadParentAnchorPropertyId));
 }
 
 void QuadStencilConfig::setQuadTransform(const GlmTransform& transform)
@@ -314,6 +321,14 @@ void QuadStencilComponent::setName(const std::string& name)
 MikanStencilID QuadStencilComponent::getParentAnchorId() const
 {
 	return m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
+}
+
+void QuadStencilComponent::onParentAnchorChanged(MikanSpatialAnchorID newParentId)
+{
+	if (m_config)
+	{
+		m_config->setParentAnchorId(newParentId);
+	}
 }
 
 void QuadStencilComponent::updateBoxColliderExtents()

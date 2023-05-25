@@ -169,6 +169,9 @@ protected:
 	void onClientRenderTargetReleased(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
 	void onClientRenderTargetUpdated(const std::string& clientId, uint64_t frameIndex);
 
+	// Stencil System Events
+	void onStencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+
 private:
 	void rebuildAllLayerSettings(bool bForceConfigSave=false);
 	void clearAllCompositorConfigurations();

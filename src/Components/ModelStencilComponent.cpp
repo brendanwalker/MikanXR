@@ -2,9 +2,14 @@
 #include "Colors.h"
 #include "GlLineRenderer.h"
 #include "GlMaterialInstance.h"
+#include "GlModelResourceManager.h"
+#include "GlRenderModelResource.h"
+#include "GlTriangulatedMesh.h"
 #include "GlTextRenderer.h"
 #include "GlStaticMeshInstance.h"
+#include "GlWireframeMesh.h"
 #include "AnchorComponent.h"
+#include "Renderer.h"
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
@@ -13,6 +18,7 @@
 #include "MathGLM.h"
 #include "MathMikan.h"
 #include "MathTypeConversion.h"
+#include "MeshColliderComponent.h"
 #include "MikanObject.h"
 #include "ModelStencilComponent.h"
 #include "StringUtils.h"
@@ -20,6 +26,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 // -- ModelStencilConfig -----
+const std::string ModelStencilConfig::k_modelParentAnchorPropertyId = "parent_anchor_id";
 const std::string ModelStencilConfig::k_modelStencilScalePropertyId = "model_scale";
 const std::string ModelStencilConfig::k_modelStencilRotatorPropertyId = "model_rotator";
 const std::string ModelStencilConfig::k_modelStencilPositionPropertyId = "model_position";
@@ -82,6 +89,12 @@ const glm::mat4 ModelStencilConfig::getModelMat4() const
 	return getModelTransform().getMat4();
 }
 
+void ModelStencilConfig::setParentAnchorId(MikanSpatialAnchorID anchorId)
+{
+	m_modelInfo.parent_anchor_id= anchorId;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelParentAnchorPropertyId));
+}
+
 void ModelStencilConfig::setModelMat4(const glm::mat4& mat4)
 {
 	setModelTransform(GlmTransform(mat4));
@@ -130,7 +143,7 @@ void ModelStencilConfig::setModelPosition(const MikanVector3f& position)
 void ModelStencilConfig::setModelPath(const std::filesystem::path& path)
 {
 	m_modelPath= path;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilPositionPropertyId));
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
 }
 
 void ModelStencilConfig::setIsDisabled(bool flag)
@@ -155,19 +168,6 @@ ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 void ModelStencilComponent::init()
 {
 	StencilComponent::init();
-
-	// Get a list of all the attached wireframe meshes
-	std::vector<StaticMeshComponentPtr> meshComponents;
-	getOwnerObject()->getComponentsOfType<StaticMeshComponent>(meshComponents);
-	for (auto& meshComponentPtr : meshComponents)
-	{
-		GlStaticMeshInstancePtr staticMeshPtr= meshComponentPtr->getStaticMesh();
-		if (staticMeshPtr && staticMeshPtr->getName() == "wireframe")
-		{
-			staticMeshPtr->setVisible(false);
-			m_wireframeMeshes.push_back(staticMeshPtr);
-		}
-	}
 
 	SelectionComponentPtr selectionComponentPtr= getOwnerObject()->getComponentOfType<SelectionComponent>();
 	if (selectionComponentPtr)
@@ -228,6 +228,98 @@ void ModelStencilComponent::setConfig(ModelStencilConfigPtr config)
 	// Setup initial attachment
 	MikanSpatialAnchorID currentParentId = m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
 	attachSceneComponentToAnchor(currentParentId);
+}
+
+void ModelStencilComponent::setModelPath(const std::filesystem::path& path)
+{
+	if (path == m_config->getModelPath())
+		return;
+
+	m_config->setModelPath(path);
+	rebuildMeshComponents();
+}
+
+void ModelStencilComponent::rebuildMeshComponents()
+{
+	MikanObjectPtr stencilObject= getOwnerObject();
+	StencilComponentPtr stencilComponentPtr= getSelfPtr<StencilComponent>();
+
+	// Clean up any previously created mesh components
+	while (m_meshComponents.size() > 0)
+	{
+		SceneComponentPtr componentPtr= m_meshComponents[m_meshComponents.size() - 1];
+		componentPtr->dispose();
+
+		m_meshComponents.pop_back();
+	}
+
+	// Forget about any wireframe meshes
+	m_wireframeMeshes.clear();
+
+	// Fetch the model resource
+	auto& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
+	GlRenderModelResourcePtr modelResourcePtr = modelResourceManager->fetchRenderModel(
+		m_config->getModelPath(),
+		GlRenderModelResource::getDefaultVertexDefinition());
+
+	// Add static tri meshes
+	for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
+	{
+		// Fetch the mesh and material resources
+		GlTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh((int)meshIndex);
+		GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getTriangulatedMeshMaterial((int)meshIndex);
+
+		// Create a new static mesh instance from the mesh resources
+		GlStaticMeshInstancePtr triMeshInstancePtr =
+			std::make_shared<GlStaticMeshInstance>(
+				triMeshPtr->getName(),
+				triMeshPtr,
+				materialInstancePtr);
+
+		// Create a static mesh component to hold the mesh instance
+		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
+		meshComponentPtr->setName(triMeshPtr->getName());
+		meshComponentPtr->setStaticMesh(triMeshInstancePtr);
+		meshComponentPtr->attachToComponent(stencilComponentPtr);
+		m_meshComponents.push_back(meshComponentPtr);
+
+		// Add a mesh collider component that generates collision from the mesh data
+		MeshColliderComponentPtr colliderPtr = stencilObject->addComponent<MeshColliderComponent>();
+		colliderPtr->setName(triMeshPtr->getName());
+		colliderPtr->setStaticMeshComponent(meshComponentPtr);
+		colliderPtr->attachToComponent(stencilComponentPtr);
+		m_meshComponents.push_back(colliderPtr);
+	}
+
+	// Add static wireframe meshes
+	for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
+	{
+		// Fetch the mesh and material resources
+		GlWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh((int)meshIndex);
+		GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getWireframeMeshMaterial((int)meshIndex);
+
+		// Create a new (hidden) static mesh instance from the mesh resources
+		GlStaticMeshInstancePtr wireframeMeshInstancePtr =
+			std::make_shared<GlStaticMeshInstance>(
+				"wireframe",
+				wireframeMeshPtr,
+				materialInstancePtr);
+		wireframeMeshInstancePtr->setVisible(false);
+		m_wireframeMeshes.push_back(wireframeMeshInstancePtr);
+
+		// Create a static mesh component to hold the mesh instance
+		StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
+		meshComponentPtr->setName(wireframeMeshPtr->getName());
+		meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
+		meshComponentPtr->attachToComponent(stencilComponentPtr);
+		m_meshComponents.push_back(meshComponentPtr);
+	}
+
+	// Initialize all of the newly created components
+	for (SceneComponentPtr childComponentPtr : m_meshComponents)
+	{
+		childComponentPtr->init();
+	}
 }
 
 void ModelStencilComponent::setRelativePosition(const glm::vec3& position)
@@ -291,6 +383,14 @@ void ModelStencilComponent::setName(const std::string& name)
 MikanStencilID ModelStencilComponent::getParentAnchorId() const
 {
 	return m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
+}
+
+void ModelStencilComponent::onParentAnchorChanged(MikanSpatialAnchorID newParentId)
+{
+	if (m_config)
+	{
+		m_config->setParentAnchorId(newParentId);
+	}
 }
 
 void ModelStencilComponent::onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult)

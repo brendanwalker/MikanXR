@@ -17,15 +17,20 @@ void StencilComponent::attachSceneComponentToAnchor(MikanSpatialAnchorID newPare
 
 		if (anchor)
 		{
-			attachToComponent(anchor->getOwnerObject()->getRootComponent());
+			if (attachToComponent(anchor->getOwnerObject()->getRootComponent()))
+			{
+				onParentAnchorChanged(newParentId);
+			}
 		}
 		else
 		{
 			detachFromParent(eDetachReason::detachFromParent);
+			onParentAnchorChanged(INVALID_MIKAN_ID);
 		}
 	}
 	else
 	{
 		detachFromParent(eDetachReason::detachFromParent);
+		onParentAnchorChanged(INVALID_MIKAN_ID);
 	}
 }

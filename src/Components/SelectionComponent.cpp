@@ -9,11 +9,6 @@ SelectionComponent::SelectionComponent(MikanObjectWeakPtr owner)
 {
 }
 
-SelectionComponent::~SelectionComponent()
-{
-	dispose();
-}
-
 void SelectionComponent::init()
 {
 	MikanComponent::init();

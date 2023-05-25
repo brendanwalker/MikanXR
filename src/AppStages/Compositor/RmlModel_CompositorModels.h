@@ -30,7 +30,6 @@ public:
 
 	SinglecastDelegate<void()> OnAddModelStencilEvent;
 	SinglecastDelegate<void(int stencilID)> OnDeleteModelStencilEvent;
-	SinglecastDelegate<void(int stencilID)> OnSelectModelStencilPathEvent;
 	SinglecastDelegate<void(int stencilID)> OnAddFastenerEvent;
 	SinglecastDelegate<void(int fastenerID)> OnSnapFastenerEvent;
 	SinglecastDelegate<void(int fastenerID)> OnEditFastenerEvent;
@@ -45,7 +44,6 @@ private:
 
 	void rebuildAnchorList();
 	void rebuildStencilUIModelsFromProfile();
-	void copyStencilSystemToUIModel(int stencil_id);
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	StencilObjectSystemPtr m_stencilSystemPtr;

@@ -174,15 +174,15 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	if (success && !m_frameCompositor->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the frame compositor";
-		success = false;
-	}
-
 	if (success && !m_objectSystemManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
+		success = false;
+	}
+
+	if (success && !m_frameCompositor->startup())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the frame compositor";
 		success = false;
 	}
 
@@ -225,15 +225,15 @@ void App::shutdown()
 		m_mikanServer->shutdown();
 	}
 
+	if (m_frameCompositor != nullptr)
+	{
+		m_frameCompositor->shutdown();
+	}
+
 	if (m_objectSystemManager != nullptr)
 	{
 		// Dispose all ObjectSystems
 		m_objectSystemManager->shutdown();
-	}
-
-	if (m_frameCompositor != nullptr)
-	{
-		m_frameCompositor->shutdown();
 	}
 
 	if (m_videoSourceManager != nullptr)

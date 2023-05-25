@@ -110,11 +110,19 @@ bool GlFrameCompositor::startup()
 		rebuildAllLayerSettings(false);
 	}
 
+	// Start listening for Model stencil changes
+	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty +=
+		MakeDelegate(this, &GlFrameCompositor::onStencilSystemConfigMarkedDirty);
+
 	return true;
 }
 
 void GlFrameCompositor::shutdown()
 {
+	// Stop listening for Model stencil changes
+	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty -=
+		MakeDelegate(this, &GlFrameCompositor::onStencilSystemConfigMarkedDirty);
+
 	stop();
 	freeVertexBuffers();
 	clearAllCompositorConfigurations();
@@ -150,6 +158,23 @@ std::filesystem::path GlFrameCompositor::getCompositorPresetPath() const
 	compositorPresetDir /= "compositor";
 
 	return compositorPresetDir;
+}
+
+void GlFrameCompositor::onStencilSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	ModelStencilConfigPtr modelStencilConfig= std::dynamic_pointer_cast<ModelStencilConfig>(configPtr);
+
+	if (modelStencilConfig != nullptr)
+	{
+		if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilObjPathPropertyId))
+		{
+			// Flush the model we have loaded for the given stencil.
+			// We'll reload it next time the compositor renders the stencil.
+			flushStencilRenderModel(modelStencilConfig->getStencilId());
+		}
+	}
 }
 
 void GlFrameCompositor::reloadAllCompositorPresets()

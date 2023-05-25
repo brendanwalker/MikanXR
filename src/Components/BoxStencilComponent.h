@@ -23,10 +23,12 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	const MikanStencilBox& getBoxInfo() const { return m_boxInfo; }
-	//void setBoxInfo(const MikanStencilBox& box);
 
 	MikanStencilID getStencilId() const { return m_boxInfo.stencil_id; }
+
+	static const std::string k_boxParentAnchorPropertyId;
 	MikanStencilID getParentAnchorId() const { return m_boxInfo.parent_anchor_id; }
+	void setParentAnchorId(MikanSpatialAnchorID anchorId);
 
 	const glm::mat4 getBoxMat4() const;
 	void setBoxMat4(const glm::mat4& xform);
@@ -89,6 +91,7 @@ public:
 	void setConfig(BoxStencilConfigPtr config);
 
 	virtual MikanStencilID getParentAnchorId() const override;
+	virtual void onParentAnchorChanged(MikanSpatialAnchorID newParentId) override;
 
 	void setRelativePosition(const glm::vec3& position);
 	void setRelativeOrientation(const glm::mat3& rotation);

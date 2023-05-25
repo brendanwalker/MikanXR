@@ -11,7 +11,6 @@ class SelectionComponent : public MikanComponent
 {
 public:
 	SelectionComponent(MikanObjectWeakPtr owner);
-	virtual ~SelectionComponent();
 
 	virtual void init() override;
 	virtual void dispose() override;

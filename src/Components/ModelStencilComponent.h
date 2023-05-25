@@ -26,7 +26,10 @@ public:
 	const MikanStencilModel& getModelInfo() const { return m_modelInfo; }
 
 	MikanStencilID getStencilId() const { return m_modelInfo.stencil_id; }
+
+	static const std::string k_modelParentAnchorPropertyId;
 	MikanStencilID getParentAnchorId() const { return m_modelInfo.parent_anchor_id; }
+	void setParentAnchorId(MikanSpatialAnchorID anchorId);
 
 	const glm::mat4 getModelMat4() const;
 	void setModelMat4(const glm::mat4& xform);
@@ -75,6 +78,10 @@ public:
 	void setConfig(ModelStencilConfigPtr config);
 
 	virtual MikanStencilID getParentAnchorId() const override;
+	virtual void onParentAnchorChanged(MikanSpatialAnchorID newParentId) override;
+
+	void setModelPath(const std::filesystem::path& path);
+	void rebuildMeshComponents();
 
 	void setRelativePosition(const glm::vec3& position);
 	void setRelativeOrientation(const glm::vec3& eulerAnglesDegrees);
@@ -93,4 +100,5 @@ protected:
 	ModelStencilConfigPtr m_config;
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<GlStaticMeshInstancePtr> m_wireframeMeshes;
+	std::vector<SceneComponentPtr> m_meshComponents;
 };

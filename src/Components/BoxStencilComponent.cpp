@@ -16,6 +16,7 @@
 #include "TextStyle.h"
 
 // -- BoxStencilComponent -----
+const std::string BoxStencilConfig::k_boxParentAnchorPropertyId = "parent_anchor_id";
 const std::string BoxStencilConfig::k_boxStencilXAxisPropertyId = "box_x_axis";
 const std::string BoxStencilConfig::k_boxStencilYAxisPropertyId = "box_y_axis";
 const std::string BoxStencilConfig::k_boxStencilZAxisPropertyId = "box_z_axis";
@@ -80,6 +81,12 @@ void BoxStencilConfig::readFromJSON(const configuru::Config& pt)
 		const std::string stencil_name = pt.get_or<std::string>("stencil_name", "");
 		StringUtils::formatString(m_boxInfo.stencil_name, sizeof(m_boxInfo.stencil_name), "%s", stencil_name.c_str());
 	}
+}
+
+void BoxStencilConfig::setParentAnchorId(MikanSpatialAnchorID anchorId)
+{
+	m_boxInfo.parent_anchor_id = anchorId;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxParentAnchorPropertyId));
 }
 
 const glm::mat4 BoxStencilConfig::getBoxMat4() const
@@ -265,6 +272,14 @@ void BoxStencilComponent::setConfig(BoxStencilConfigPtr config)
 	// Setup initial attachment
 	MikanSpatialAnchorID currentParentId = m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
 	attachSceneComponentToAnchor(currentParentId);
+}
+
+void BoxStencilComponent::onParentAnchorChanged(MikanSpatialAnchorID newParentId)
+{
+	if (m_config)
+	{
+		m_config->setParentAnchorId(newParentId);
+	}
 }
 
 void BoxStencilComponent::setRelativePosition(const glm::vec3& position)

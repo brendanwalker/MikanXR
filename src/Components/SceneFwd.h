@@ -8,5 +8,6 @@ using MikanSceneConstPtr = std::shared_ptr<const MikanScene>;
 using MikanSceneWeakPtr = std::weak_ptr<MikanScene>;
 
 class SceneComponent;
-using SceneComponentWeakPtr = std::weak_ptr<SceneComponent>;
 using SceneComponentPtr = std::shared_ptr<SceneComponent>;
+using SceneComponentConstPtr = std::shared_ptr<const SceneComponent>;
+using SceneComponentWeakPtr = std::weak_ptr<SceneComponent>;

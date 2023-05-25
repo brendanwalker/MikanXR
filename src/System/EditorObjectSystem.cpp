@@ -54,16 +54,16 @@ bool EditorObjectSystem::init()
 	ObjectSystemManagerPtr objSystemMgr= App::getInstance()->getObjectSystemManager();
 
 	AnchorObjectSystemPtr anchorObjectSystem= objSystemMgr->getSystemOfType<AnchorObjectSystem>();
-	anchorObjectSystem->OnObjectInitialized+= MakeDelegate(this, &EditorObjectSystem::onObjectInitialized);
-	anchorObjectSystem->OnObjectDisposed+= MakeDelegate(this, &EditorObjectSystem::onObjectDisposed);
+	anchorObjectSystem->OnComponentInitialized+= MakeDelegate(this, &EditorObjectSystem::onComponentInitialized);
+	anchorObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onComponentDisposed);
 	for (MikanObjectPtr objectPtr : anchorObjectSystem->getObjectList())
 	{
 		m_scene->addMikanObject(objectPtr);
 	}
 
 	StencilObjectSystemPtr stencilObjectSystem= objSystemMgr->getSystemOfType<StencilObjectSystem>();
-	stencilObjectSystem->OnObjectInitialized += MakeDelegate(this, &EditorObjectSystem::onObjectInitialized);
-	stencilObjectSystem->OnObjectDisposed += MakeDelegate(this, &EditorObjectSystem::onObjectDisposed);
+	stencilObjectSystem->OnComponentInitialized += MakeDelegate(this, &EditorObjectSystem::onComponentInitialized);
+	stencilObjectSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onComponentDisposed);
 	for (MikanObjectPtr objectPtr : stencilObjectSystem->getObjectList())
 	{
 		m_scene->addMikanObject(objectPtr);
@@ -235,14 +235,14 @@ void EditorObjectSystem::onDeletePressed()
 }
 
 // Object System Events
-void EditorObjectSystem::onObjectInitialized(MikanObjectSystemPtr system, MikanObjectPtr object)
+void EditorObjectSystem::onComponentInitialized(MikanObjectSystemPtr system, MikanComponentPtr component)
 {
-	m_scene->addMikanObject(object);
+	m_scene->addMikanComponent(component);
 }
 
-void EditorObjectSystem::onObjectDisposed(MikanObjectSystemPtr system, MikanObjectConstPtr object)
+void EditorObjectSystem::onComponentDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
 {
-	m_scene->removeMikanObject(object);
+	m_scene->removeMikanComponent(component);
 }
 
 void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)

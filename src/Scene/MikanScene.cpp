@@ -23,7 +23,6 @@ void MikanScene::init()
 void MikanScene::dispose()
 {
 	m_glScene= nullptr;
-	m_objects.clear();
 	m_selectionComponents.clear();
 }
 
@@ -32,28 +31,9 @@ void MikanScene::addMikanObject(MikanObjectPtr objectPtr)
 	if (!objectPtr)
 		return;
 
-	m_objects.push_back(objectPtr);
-
-	// Add renderable components to the GlScene
-	std::vector<SceneComponentPtr> sceneComponents;
-	objectPtr->getComponentsOfType(sceneComponents);
-	for (SceneComponentPtr sceneComponent : sceneComponents)
+	for (MikanComponentPtr componentPtr : objectPtr->getComponentsConst())
 	{
-		IGlSceneRenderableConstPtr sceneRenderable= sceneComponent->getGlSceneRenderableConst();
-	
-		if (sceneRenderable)
-		{
-			m_glScene->addInstance(sceneRenderable);
-		}
-	}
-
-	// Track selection component for raycasts
-	std::vector<SelectionComponentPtr> SelectionComponents;
-	objectPtr->getComponentsOfType(SelectionComponents);
-	for (SelectionComponentPtr SelectionComponent : SelectionComponents)
-	{
-		SelectionComponentWeakPtr weakPtr(SelectionComponent);
-		m_selectionComponents.push_back(weakPtr);
+		addMikanComponent(componentPtr);
 	}
 }
 
@@ -62,43 +42,77 @@ void MikanScene::removeMikanObject(MikanObjectConstPtr objectPtr)
 	if (!objectPtr)
 		return;
 
-	for (auto it = m_objects.begin(); it != m_objects.end(); it++)
+	for (MikanComponentPtr componentPtr : objectPtr->getComponentsConst())
 	{
-		// See if this the element we are looking for
-		MikanObjectPtr elemPtr = it->lock();
-		if (elemPtr != objectPtr)
-			continue;
+		removeMikanComponent(componentPtr);
+	}
+}
 
-		// Remove renderable components from the GlScene
-		std::vector<SceneComponentPtr> sceneComponents;
-		elemPtr->getComponentsOfType(sceneComponents);
-		for (SceneComponentPtr sceneComponent : sceneComponents)
+void MikanScene::addMikanComponent(MikanComponentPtr componentPtr)
+{
+	if (!componentPtr)
+		return;
+
+	// See if the given component is a scene component
+	SceneComponentPtr sceneComponent= std::dynamic_pointer_cast<SceneComponent>(componentPtr);
+	if (sceneComponent != nullptr)
+	{
+		IGlSceneRenderableConstPtr renderable = sceneComponent->getGlSceneRenderableConst();
+		if (renderable)
 		{
-			IGlSceneRenderableConstPtr renderable= sceneComponent->getGlSceneRenderableConst();
-
-			if (renderable)
+			// If the scene component has a renderable, add it to the GL Scene
+			m_glScene->addInstance(renderable);
+		}
+	}
+	// See if the given component is a selection component
+	SelectionComponentPtr selectionComponent = std::dynamic_pointer_cast<SelectionComponent>(componentPtr);
+	if (selectionComponent != nullptr)
+	{
+		bool bHasSelectionComponent= false;
+		for (auto component_it = m_selectionComponents.begin(); component_it != m_selectionComponents.end(); ++component_it)
+		{
+			if (selectionComponent == component_it->lock())
 			{
-				m_glScene->removeInstance(renderable);
+				bHasSelectionComponent= true;
+				break;
 			}
 		}
 
-		// Forget about selection components associated with the object
-		std::vector<SelectionComponentPtr> SelectionComponents;
-		elemPtr->getComponentsOfType(SelectionComponents);
-		for (SelectionComponentPtr SelectionComponent : SelectionComponents)
+		if (!bHasSelectionComponent)
 		{
-			for (auto component_it = m_selectionComponents.begin(); component_it != m_selectionComponents.end(); ++component_it)
+			m_selectionComponents.push_back(selectionComponent);
+		}
+	}
+}
+
+void MikanScene::removeMikanComponent(MikanComponentConstPtr componentPtr)
+{
+	if (!componentPtr)
+		return;
+
+	// See if the given component is a scene component
+	SceneComponentConstPtr sceneComponent = std::dynamic_pointer_cast<const SceneComponent>(componentPtr);
+	if (sceneComponent != nullptr)
+	{
+		IGlSceneRenderableConstPtr renderable = sceneComponent->getGlSceneRenderableConst();
+		if (renderable)
+		{
+			// If the scene component has a renderable, remove it from the GL Scene
+			m_glScene->removeInstance(renderable);
+		}
+	}
+	// See if the given component is a selection component
+	SelectionComponentConstPtr selectionComponent = std::dynamic_pointer_cast<const SelectionComponent>(componentPtr);
+	if (selectionComponent != nullptr)
+	{
+		for (auto component_it = m_selectionComponents.begin(); component_it != m_selectionComponents.end(); ++component_it)
+		{
+			if (selectionComponent == component_it->lock())
 			{
-				if (SelectionComponent == component_it->lock())
-				{
-					m_selectionComponents.erase(component_it);
-					break;
-				}
+				m_selectionComponents.erase(component_it);
+				break;
 			}
 		}
-
-		m_objects.erase(it);
-		break;
 	}
 }
 

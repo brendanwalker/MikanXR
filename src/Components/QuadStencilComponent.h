@@ -22,7 +22,10 @@ public:
 	const MikanStencilQuad& getQuadInfo() const { return m_quadInfo; }
 
 	MikanStencilID getStencilId() const { return m_quadInfo.stencil_id; }
+
+	static const std::string k_quadParentAnchorPropertyId;
 	MikanSpatialAnchorID getParentAnchorId() const { return m_quadInfo.parent_anchor_id; }
+	void setParentAnchorId(MikanSpatialAnchorID anchorId);
 
 	const glm::mat4 getQuadMat4() const;
 	void setQuadMat4(const glm::mat4& xform);
@@ -87,6 +90,7 @@ public:
 	void setConfig(QuadStencilConfigPtr config);
 
 	virtual MikanStencilID getParentAnchorId() const override;
+	virtual void onParentAnchorChanged(MikanSpatialAnchorID newParentId) override;
 
 	void setRelativePosition(const glm::vec3& position);
 	void setRelativeOrientation(const glm::mat3& rotation);

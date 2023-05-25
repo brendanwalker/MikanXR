@@ -1,6 +1,7 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
 #include "FastenerObjectSystem.h"
+#include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModelStencilComponent.h"
 #include "RmlModel_CompositorModels.h"
 #include "MathMikan.h"
@@ -185,9 +186,26 @@ bool RmlModel_CompositorModels::init(
 		"select_stencil_model_path",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnSelectModelStencilPathEvent && stencil_id >= 0)
+			if (stencil_id >= 0)
 			{
-				OnSelectModelStencilPathEvent(stencil_id);
+				std::filesystem::path current_dir;
+				std::filesystem::path current_file;
+
+				ModelStencilComponentPtr modelStencil = m_stencilSystemPtr->getModelStencilById(stencil_id);
+				if (modelStencil != nullptr)
+				{
+					current_file = modelStencil->getConfig()->getModelPath();
+					current_dir = current_file.remove_filename();
+				}
+
+				ModalDialog_FileBrowser::browseFile(
+					"Select Stencil Model",
+					current_dir,
+					current_file,
+					{".obj"},
+					[this, modelStencil](const std::filesystem::path& filepath) {
+					modelStencil->setModelPath(filepath);
+				});
 			}
 		});
 	constructor.BindEventCallback(
@@ -254,7 +272,6 @@ void RmlModel_CompositorModels::dispose()
 
 	OnAddModelStencilEvent.Clear();
 	OnDeleteModelStencilEvent.Clear();
-	OnSelectModelStencilPathEvent.Clear();
 	RmlModel::dispose();
 }
 
@@ -304,7 +321,7 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_quadStencilListPropertyId))
+	if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_modelStencilListPropertyId))
 	{
 		rebuildStencilUIModelsFromProfile();
 	}
@@ -314,7 +331,62 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 
 		if (modelConfigPtr)
 		{
-			copyStencilSystemToUIModel(modelConfigPtr->getStencilId());
+			const MikanStencilModel& modelInfo = modelConfigPtr->getModelInfo();
+			const MikanStencilID stencilId= modelConfigPtr->getStencilId();
+			auto it = std::find_if(
+				m_stencilModels.begin(), m_stencilModels.end(),
+				[stencilId](const RmlModel_CompositorModel& model) {
+				return model.stencil_id == stencilId;
+			});
+			if (it != m_stencilModels.end())
+			{
+				RmlModel_CompositorModel& uiModel = *it;
+				bool bAnyDirty= false;
+
+				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelParentAnchorPropertyId))
+				{
+					uiModel.parent_anchor_id = modelInfo.parent_anchor_id;
+					bAnyDirty= true;
+				}
+				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilPositionPropertyId))
+				{
+					uiModel.model_position = {uiModel.model_position.x, uiModel.model_position.y, uiModel.model_position.z};
+					bAnyDirty= true;
+				}
+				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilRotatorPropertyId))
+				{
+					uiModel.model_angles = {
+						modelInfo.model_rotator.x_angle,
+						modelInfo.model_rotator.y_angle,
+						modelInfo.model_rotator.z_angle};
+					bAnyDirty= true;
+				}
+				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilScalePropertyId))
+				{
+					uiModel.model_scale = {modelInfo.model_scale.x, modelInfo.model_scale.y, modelInfo.model_scale.z};
+					bAnyDirty= true;
+				}
+				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilObjPathPropertyId))
+				{
+					uiModel.model_path= modelConfigPtr->getModelPath().string();
+					bAnyDirty = true;
+				}
+				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilDisabledPropertyId))
+				{
+					uiModel.disabled = modelInfo.is_disabled;
+					bAnyDirty = true;
+				}
+				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilNamePropertyId))
+				{
+					uiModel.stencil_name = modelInfo.stencil_name;
+					bAnyDirty = true;
+				}
+
+				if (bAnyDirty)
+				{
+					m_modelHandle.DirtyVariable("stencil_models");
+				}
+			}
 		}
 	}
 }
@@ -355,38 +427,5 @@ void RmlModel_CompositorModels::fastenerSystemConfigMarkedDirty(
 	if (changedPropertySet.hasPropertyName(FastenerObjectSystemConfig::k_fastenerListPropertyId))
 	{
 		rebuildStencilUIModelsFromProfile();
-	}
-}
-
-void RmlModel_CompositorModels::copyStencilSystemToUIModel(int stencil_id)
-{
-	auto it = std::find_if(
-		m_stencilModels.begin(), m_stencilModels.end(),
-		[stencil_id](const RmlModel_CompositorModel& model) {
-		return model.stencil_id == stencil_id;
-	});
-	if (it != m_stencilModels.end())
-	{
-		ModelStencilComponentPtr stencilPtr = m_stencilSystemPtr->getModelStencilById(stencil_id);
-
-		if (stencilPtr != nullptr)
-		{
-			ModelStencilConfigPtr configPtr = stencilPtr->getConfig();
-			const MikanStencilModel& modelInfo = configPtr->getModelInfo();
-
-			RmlModel_CompositorModel& uiModel = *it;
-
-			uiModel.parent_anchor_id = modelInfo.parent_anchor_id;
-			uiModel.model_position = {uiModel.model_position.x, uiModel.model_position.y, uiModel.model_position.z};
-			uiModel.model_angles = {
-				modelInfo.model_rotator.x_angle,
-				modelInfo.model_rotator.y_angle,
-				modelInfo.model_rotator.z_angle};
-			uiModel.model_scale = {modelInfo.model_scale.x, modelInfo.model_scale.y, modelInfo.model_scale.z};
-			uiModel.disabled = modelInfo.is_disabled;
-
-			uiModel.stencil_name = modelInfo.stencil_name;
-		}
-		m_modelHandle.DirtyVariable("stencil_models");
 	}
 }

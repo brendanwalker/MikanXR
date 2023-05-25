@@ -5,6 +5,7 @@
 // Components
 class MikanComponent;
 using MikanComponentPtr= std::shared_ptr<MikanComponent>;
+using MikanComponentConstPtr= std::shared_ptr<const MikanComponent>;
 using MikanComponentWeakPtr= std::weak_ptr<MikanComponent>;
 
 class AnchorComponent;
@@ -17,6 +18,7 @@ using FastenerComponentWeakPtr = std::weak_ptr<FastenerComponent>;
 
 class SelectionComponent;
 using SelectionComponentPtr = std::shared_ptr<SelectionComponent>;
+using SelectionComponentConstPtr = std::shared_ptr<const SelectionComponent>;
 using SelectionComponentWeakPtr = std::weak_ptr<SelectionComponent>;
 
 // Mesh Components

@@ -224,7 +224,6 @@ void AppStage_Compositor::enter()
 		m_compositorModelsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem, m_fastenerObjectSystem);
 		m_compositorModelsModel->OnAddModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilEvent);
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
-		m_compositorModelsModel->OnSelectModelStencilPathEvent = MakeDelegate(this, &AppStage_Compositor::onSelectModelStencilPathEvent);
 		m_compositorModelsModel->OnSnapFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onSnapFastenerEvent);
 		m_compositorModelsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilFastenerEvent);
 		m_compositorModelsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditModelStencilFastenerEvent);
@@ -784,9 +783,7 @@ void AppStage_Compositor::onUpdateOriginEvent()
 			}
 
 			// Update origin anchor transform
-			SceneComponentPtr anchorSceneComponent= 
-				originSpatialAnchor->getOwnerObject()->getRootComponent();
-			anchorSceneComponent->setWorldTransform(anchorXform);
+			originSpatialAnchor->setWorldTransform(anchorXform);
 		}
 	}
 }
@@ -917,29 +914,6 @@ void AppStage_Compositor::onDeleteModelStencilEvent(int stencilID)
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
-}
-
-void AppStage_Compositor::onSelectModelStencilPathEvent(int stencilID)
-{
-	std::filesystem::path current_dir;
-	std::filesystem::path current_file;
-
-	ModelStencilComponentPtr modelStencil= m_stencilObjectSystem->getModelStencilById(stencilID);
-	if (modelStencil != nullptr)
-	{
-		current_file= modelStencil->getConfig()->getModelPath();
-		current_dir= current_file.remove_filename();
-	}
-
-	ModalDialog_FileBrowser::browseFile(
-		"Select Stencil Model", 
-		current_dir,
-		current_file,
-		{".obj"}, 
-		[this, modelStencil](const std::filesystem::path& filepath) {
-			modelStencil->getConfig()->setModelPath(filepath);
-			m_frameCompositor->flushStencilRenderModel(modelStencil->getConfig()->getStencilId());
-		});
 }
 
 void AppStage_Compositor::onSnapFastenerEvent(int fastenerID)

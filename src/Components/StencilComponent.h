@@ -15,6 +15,7 @@ public:
 	StencilComponent(MikanObjectWeakPtr owner);
 
 	virtual MikanStencilID getParentAnchorId() const = 0;
+	virtual void onParentAnchorChanged(MikanSpatialAnchorID newParentId) = 0;
 
 	void attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId);
 };
