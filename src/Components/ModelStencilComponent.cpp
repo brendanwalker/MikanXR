@@ -169,16 +169,6 @@ void ModelStencilComponent::init()
 {
 	StencilComponent::init();
 
-	SelectionComponentPtr selectionComponentPtr= getOwnerObject()->getComponentOfType<SelectionComponent>();
-	if (selectionComponentPtr)
-	{
-		selectionComponentPtr->OnInteractionRayOverlapEnter+= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
-		selectionComponentPtr->OnInteractionRayOverlapExit+= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
-		selectionComponentPtr->OnInteractionSelected+= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
-		selectionComponentPtr->OnInteractionUnselected+= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
-		m_selectionComponentWeakPtr= selectionComponentPtr;
-	}
-
 	// Push our world transform to all child scene components
 	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 }
@@ -253,6 +243,22 @@ void ModelStencilComponent::rebuildMeshComponents()
 		m_meshComponents.pop_back();
 	}
 
+	// Clean up existing selection component
+	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
+	if (selectionComponentPtr)
+	{
+		selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected -= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected -= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+
+		selectionComponentPtr->dispose();
+		m_selectionComponentWeakPtr.reset();
+	}
+
+	// Add a selection component
+	stencilObject->addComponent<SelectionComponent>();
+
 	// Forget about any wireframe meshes
 	m_wireframeMeshes.clear();
 
@@ -313,6 +319,23 @@ void ModelStencilComponent::rebuildMeshComponents()
 		meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
 		meshComponentPtr->attachToComponent(stencilComponentPtr);
 		m_meshComponents.push_back(meshComponentPtr);
+	}
+
+	// Create a selection component so that we can selection the mesh collision geometry
+	selectionComponentPtr = stencilObject->addComponent<SelectionComponent>();
+	if (selectionComponentPtr)
+	{
+		// Initialize the selection component first, which will gather up all of the meshes
+		selectionComponentPtr->init();
+
+		// Bind selection events
+		selectionComponentPtr->OnInteractionRayOverlapEnter += MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected += MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected += MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+
+		// Remember the selection component
+		m_selectionComponentWeakPtr = selectionComponentPtr;
 	}
 
 	// Initialize all of the newly created components
