@@ -74,14 +74,6 @@
                     <br/>
                     <label><input type="checkbox" name="disabled" data-event-change="modify_disabled(stencil.stencil_id)" data-value="stencil.disabled" /> Disabled </label>
                     <button data-event-click="delete_stencil(stencil.stencil_id)">Delete</button>
-                    <br/> 
-                    <div data-for="fastener_id : stencil.child_fastener_ids">
-                        <label>{{fastener_id | to_fastener_name}}</label>
-                        <button data-event-click="snap_fastener(fastener_id)">Snap</button>
-                        <button data-event-click="edit_fastener(fastener_id)">Edit</button>
-                        <button data-event-click="delete_fastener(stencil.anchor_id, fastener_id)">Delete</button>
-                    </div>
-                    <button data-event-click="add_fastener(stencil.stencil_id)">Add Fastener</button>
 				</div>
 			</div>
             <div>

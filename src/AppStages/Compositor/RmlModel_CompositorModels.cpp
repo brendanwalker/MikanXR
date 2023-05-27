@@ -1,6 +1,5 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
-#include "FastenerObjectSystem.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModelStencilComponent.h"
 #include "RmlModel_CompositorModels.h"
@@ -17,12 +16,10 @@ bool RmlModel_CompositorModels::s_bHasRegisteredTypes = false;
 bool RmlModel_CompositorModels::init(
 	Rml::Context* rmlContext,
 	AnchorObjectSystemPtr anchorSystemPtr,
-	StencilObjectSystemPtr stencilSystemPtr,
-	FastenerObjectSystemPtr fastenerSystemPtr)
+	StencilObjectSystemPtr stencilSystemPtr)
 {
 	m_anchorSystemPtr = anchorSystemPtr;
 	m_stencilSystemPtr = stencilSystemPtr;
-	m_fastenerSystemPtr = fastenerSystemPtr;
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_models");
@@ -38,7 +35,6 @@ bool RmlModel_CompositorModels::init(
 			layer_model_handle.RegisterMember("stencil_name", &RmlModel_CompositorModel::stencil_name);
 			layer_model_handle.RegisterMember("stencil_id", &RmlModel_CompositorModel::stencil_id);
 			layer_model_handle.RegisterMember("parent_anchor_id", &RmlModel_CompositorModel::parent_anchor_id);
-			layer_model_handle.RegisterMember("child_fastener_ids", &RmlModel_CompositorModel::child_fastener_ids);
 			layer_model_handle.RegisterMember("model_path", &RmlModel_CompositorModel::model_path);
 			layer_model_handle.RegisterMember("model_position", &RmlModel_CompositorModel::model_position);
 			layer_model_handle.RegisterMember("model_angles", &RmlModel_CompositorModel::model_angles);
@@ -208,37 +204,6 @@ bool RmlModel_CompositorModels::init(
 				});
 			}
 		});
-	constructor.BindEventCallback(
-		"add_fastener",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnAddFastenerEvent) OnAddFastenerEvent(stencil_id);
-		});	
-	constructor.BindEventCallback(
-		"snap_fastener",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int stencil_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnSnapFastenerEvent) OnSnapFastenerEvent(stencil_id);
-		});
-	constructor.BindEventCallback(
-		"edit_fastener",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int fastener_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnEditFastenerEvent && fastener_id >= 0)
-			{
-				OnEditFastenerEvent(fastener_id);
-			}
-		});
-	constructor.BindEventCallback(
-		"delete_fastener",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int stencil_id = (arguments.size() == 2 ? arguments[0].Get<int>(-1) : -1);
-			const int fastener_id = (arguments.size() == 2 ? arguments[1].Get<int>(-1) : -1);
-			if (OnDeleteFastenerEvent && fastener_id >= 0)
-			{
-				OnDeleteFastenerEvent(stencil_id, fastener_id);
-			}
-		});
 
 	// Listen for anchor config changes
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty +=
@@ -247,10 +212,6 @@ bool RmlModel_CompositorModels::init(
 	// Listen for stencil config changes
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty +=
 		MakeDelegate(this, &RmlModel_CompositorModels::stencilSystemConfigMarkedDirty);
-
-	// Listen for fastener config changes
-	m_fastenerSystemPtr->getFastenerSystemConfig()->OnMarkedDirty +=
-		MakeDelegate(this, &RmlModel_CompositorModels::fastenerSystemConfigMarkedDirty);
 
 	// Fill in the data model
 	rebuildAnchorList();
@@ -266,9 +227,6 @@ void RmlModel_CompositorModels::dispose()
 
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty -=
 		MakeDelegate(this, &RmlModel_CompositorModels::stencilSystemConfigMarkedDirty);
-
-	m_fastenerSystemPtr->getFastenerSystemConfig()->OnMarkedDirty -=
-		MakeDelegate(this, &RmlModel_CompositorModels::fastenerSystemConfigMarkedDirty);
 
 	OnAddModelStencilEvent.Clear();
 	OnDeleteModelStencilEvent.Clear();
@@ -400,15 +358,10 @@ void RmlModel_CompositorModels::rebuildStencilUIModelsFromProfile()
 	{
 		const MikanStencilModel& modelInfo = configPtr->getModelInfo();
 
-		const std::vector<MikanSpatialFastenerID> child_fastener_ids=
-			FastenerObjectSystem::getSystem()->getSpatialFastenersWithParent(
-				MikanFastenerParentType_Stencil, modelInfo.stencil_id);
-
 		RmlModel_CompositorModel uiModel = {
 			modelInfo.stencil_name,
 			modelInfo.stencil_id,
 			modelInfo.parent_anchor_id,
-			child_fastener_ids,
 			configPtr->getModelPath().string(),
 			Rml::Vector3f(modelInfo.model_position.x, modelInfo.model_position.y, modelInfo.model_position.z),
 			Rml::Vector3f(modelInfo.model_rotator.x_angle, modelInfo.model_rotator.y_angle, modelInfo.model_rotator.z_angle),
@@ -418,14 +371,4 @@ void RmlModel_CompositorModels::rebuildStencilUIModelsFromProfile()
 		m_stencilModels.push_back(uiModel);
 	}
 	m_modelHandle.DirtyVariable("stencil_models");
-}
-
-void RmlModel_CompositorModels::fastenerSystemConfigMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
-{
-	if (changedPropertySet.hasPropertyName(FastenerObjectSystemConfig::k_fastenerListPropertyId))
-	{
-		rebuildStencilUIModelsFromProfile();
-	}
 }

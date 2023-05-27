@@ -3,8 +3,6 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
-#include "FastenerCalibration/AppStage_FastenerCalibration.h"
-#include "ModelFastenerCalibration/AppStage_ModelFastenerCalibration.h"
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
 #include "Compositor/RmlModel_CompositorLayers.h"
@@ -16,11 +14,8 @@
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSources.h"
 #include "EditorObjectSystem.h"
-#include "FastenerComponent.h"
-#include "FastenerObjectSystem.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
-#include "ModalSnap/ModalDialog_Snap.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "EditorObjectSystem.h"
@@ -35,7 +30,6 @@
 #include "GlTexture.h"
 #include "InputManager.h"
 #include "MathGLM.h"
-#include "MathFastener.h"
 #include "MikanObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathMikan.h"
@@ -112,7 +106,6 @@ void AppStage_Compositor::enter()
 	// Cache object systems we'll be accessing
 	ObjectSystemManagerPtr objectSystemManager = app->getObjectSystemManager();
 	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
-	m_fastenerObjectSystem = objectSystemManager->getSystemOfType<FastenerObjectSystem>();
 	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
 	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
 
@@ -198,10 +191,7 @@ void AppStage_Compositor::enter()
 		m_compositiorLayersView->Show();
 
 		// Init Anchors UI
-		m_compositorAnchorsModel->init(context, m_profile, m_anchorObjectSystem, m_fastenerObjectSystem);
-		m_compositorAnchorsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddAnchorFastenerEvent);
-		m_compositorAnchorsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditAnchorFastenerEvent);
-		m_compositorAnchorsModel->OnDeleteFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteAnchorFastenerEvent);
+		m_compositorAnchorsModel->init(context, m_profile, m_anchorObjectSystem);
 		m_compositiorAnchorsView = addRmlDocument("compositor_anchors.rml");
 		m_compositiorAnchorsView->Hide();
 
@@ -220,13 +210,9 @@ void AppStage_Compositor::enter()
 		m_compositiorBoxesView->Hide();
 
 		// Init Models Stencils UI
-		m_compositorModelsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem, m_fastenerObjectSystem);
+		m_compositorModelsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
 		m_compositorModelsModel->OnAddModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilEvent);
 		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
-		m_compositorModelsModel->OnSnapFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onSnapFastenerEvent);
-		m_compositorModelsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilFastenerEvent);
-		m_compositorModelsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditModelStencilFastenerEvent);
-		m_compositorModelsModel->OnDeleteFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilFastenerEvent);
 		m_compositiorModelsView = addRmlDocument("compositor_models.rml");
 		m_compositiorModelsView->Hide();
 
@@ -748,51 +734,6 @@ void AppStage_Compositor::hideAllSubWindows()
 	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
 }
 
-// Anchors UI Events
-void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
-{
-	MikanSpatialFastenerInfo fastenerInfo;
-	memset(&fastenerInfo, 0, sizeof(MikanSpatialFastenerInfo));
-
-	const MikanStencilID nextStencilId= m_stencilObjectSystem->getStencilSystemConfigConst()->nextStencilId;
-	StringUtils::formatString(
-		fastenerInfo.fastener_name, sizeof(fastenerInfo.fastener_name),
-		"Fastener_%d", nextStencilId);
-	fastenerInfo.parent_object_type = MikanFastenerParentType_SpatialAnchor;
-	fastenerInfo.parent_object_id = parentAnchorId;
-	fastenerInfo.fastener_id= INVALID_MIKAN_ID;
-
-	FastenerComponentPtr fastenerComponent= m_fastenerObjectSystem->addNewFastener(fastenerInfo);
-	if (fastenerComponent != nullptr)
-	{
-		// Show Fastener calibration tool
-		AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
-		fastenerCalibration->setTargetFastener(fastenerInfo);
-	}
-}
-
-void AppStage_Compositor::onEditAnchorFastenerEvent(int fastenerID)
-{
-	// Show Fastener calibration tool
-	MikanSpatialFastenerInfo fastenerInfo;
-	FastenerComponentPtr fastenerComponent= m_fastenerObjectSystem->getSpatialFastenerById(fastenerID);
-	if (fastenerComponent != nullptr)
-	{
-		const MikanSpatialFastenerInfo& fastenerInfo= fastenerComponent->getConfig()->getFastenerInfo();
-
-		AppStage_FastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_FastenerCalibration>();
-		fastenerCalibration->setTargetFastener(fastenerInfo);
-	}
-}
-
-void AppStage_Compositor::onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID)
-{
-	if (m_fastenerObjectSystem->removeFastener(fastenerID))
-	{
-		m_compositorAnchorsModel->rebuildAnchorList();
-	}
-}
-
 // Quad Stencils UI Events
 void AppStage_Compositor::onAddQuadStencilEvent()
 {
@@ -875,77 +816,6 @@ void AppStage_Compositor::onDeleteModelStencilEvent(int stencilID)
 	{
 		m_compositorLayersModel->rebuild(m_frameCompositor);
 	}
-}
-
-void AppStage_Compositor::onSnapFastenerEvent(int fastenerID)
-{
-	ModalDialog_Snap::selectSnapTarget(
-		fastenerID,
-		[this](MikanSpatialFastenerID sourceId, MikanSpatialFastenerID targetId) {
-
-			FastenerComponentPtr sourceFastener= m_fastenerObjectSystem->getSpatialFastenerById(sourceId);
-			FastenerComponentPtr targetFastener= m_fastenerObjectSystem->getSpatialFastenerById(targetId);
-			if (sourceFastener != nullptr)
-			{
-				glm::mat4 newStencilXform;
-				glm::vec3 newStencilPoints[3];
-
-				if (align_stencil_fastener_to_anchor_fastener(
-					sourceFastener, targetFastener,
-					newStencilXform, newStencilPoints))
-				{
-					SceneComponentPtr sourceFastenerSceneComponent=
-						sourceFastener->getOwnerObject()->getRootComponent();
-					SceneComponentPtr stencilSceneComponent=
-						sourceFastenerSceneComponent->getParentComponent();
-
-					if (stencilSceneComponent != nullptr)
-					{
-						stencilSceneComponent->setRelativeTransform(GlmTransform(newStencilXform));
-					}
-				}
-			}
-		});
-}
-
-void AppStage_Compositor::onAddModelStencilFastenerEvent(int parentStencilID)
-{
-	MikanSpatialFastenerInfo fastenerInfo;
-	memset(&fastenerInfo, 0, sizeof(MikanSpatialFastenerInfo));
-
-	MikanSpatialFastenerID nextFastenerId= m_fastenerObjectSystem->getFastenerSystemConfigConst()->nextFastenerId;
-
-	StringUtils::formatString(
-		fastenerInfo.fastener_name, sizeof(fastenerInfo.fastener_name),
-		"Fastener_%d", nextFastenerId);
-	fastenerInfo.parent_object_type = MikanFastenerParentType_Stencil;
-	fastenerInfo.parent_object_id = parentStencilID;
-	fastenerInfo.fastener_id = INVALID_MIKAN_ID;
-
-	if (m_fastenerObjectSystem->getFastenerSystemConfig()->canAddFastener())
-	{
-		// Show Fastener calibration tool
-		AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
-		fastenerCalibration->setTargetFastener(fastenerInfo);
-	}
-}
-
-void AppStage_Compositor::onEditModelStencilFastenerEvent(int fastenerID)
-{
-	// Show Fastener calibration tool
-	FastenerComponentPtr fastenerComponent= m_fastenerObjectSystem->getSpatialFastenerById(fastenerID);
-	if (fastenerComponent != nullptr)
-	{
-		const MikanSpatialFastenerInfo& fastenerInfo= fastenerComponent->getConfig()->getFastenerInfo();
-
-		AppStage_ModelFastenerCalibration* fastenerCalibration = m_app->pushAppStage<AppStage_ModelFastenerCalibration>();
-		fastenerCalibration->setTargetFastener(fastenerInfo);
-	}
-}
-
-void AppStage_Compositor::onDeleteModelStencilFastenerEvent(int stencilID, int fastenerID)
-{
-	m_fastenerObjectSystem->removeFastener(fastenerID);
 }
 
 // Recording UI Events

@@ -1,6 +1,5 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
-#include "FastenerObjectSystem.h"
 #include "RmlModel_SpatialAnchors.h"
 #include "MathMikan.h"
 #include "StringUtils.h"

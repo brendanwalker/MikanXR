@@ -4,8 +4,6 @@
 #include "AnchorObjectSystem.h"
 #include "App.h"
 #include "AppStage.h"
-#include "FastenerComponent.h"
-#include "FastenerObjectSystem.h"
 #include "Logger.h"
 #include "MikanClientTypes.h"
 #include "ProfileConfig.h"
@@ -231,21 +229,6 @@ void RmlManager::registerCommonDataModelTypes()
 			if (anchorComponent != nullptr)
 			{
 				variant = Rml::String(anchorComponent->getName());
-				return true;
-			}
-			return false;
-		});
-
-	// Transform function for converting fastener id to fastener name
-	constructor.RegisterTransformFunc(
-		"to_fastener_name",
-		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const MikanSpatialFastenerID fastenerId = variant.Get<int>(-1);
-
-			auto fastenerComponent= FastenerObjectSystem::getSystem()->getSpatialFastenerById(fastenerId);
-			if (fastenerComponent != nullptr)
-			{
-				variant = Rml::String(fastenerComponent->getName());
 				return true;
 			}
 			return false;

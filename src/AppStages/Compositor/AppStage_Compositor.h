@@ -90,11 +90,6 @@ protected:
 	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
-	// Anchors UI Events
-	void onAddAnchorFastenerEvent(int parentAnchorId);
-	void onEditAnchorFastenerEvent(int fastenerID);
-	void onDeleteAnchorFastenerEvent(int parentAnchorId, int fastenerID);
-
 	// Quad Stencils UI Events
 	void onAddQuadStencilEvent();
 	void onDeleteQuadStencilEvent(int stencilID);
@@ -106,10 +101,6 @@ protected:
 	// Model Stencils UI Events
 	void onAddModelStencilEvent();
 	void onDeleteModelStencilEvent(int stencilID);
-	void onSnapFastenerEvent(int stencilID);
-	void onAddModelStencilFastenerEvent(int stencilID);
-	void onEditModelStencilFastenerEvent(int fastenerID);
-	void onDeleteModelStencilFastenerEvent(int stencilID, int fastenerID);
 
 	// Recording UI Events
 	void onToggleRecordingEvent();
@@ -124,13 +115,11 @@ protected:
 	void debugRenderOrigin() const;
 	void debugRenderStencils() const;
 	void debugRenderAnchors() const;
-	void debugRenderFasteners() const;
 
 	ProfileConfigPtr m_profile;
 
 	AnchorObjectSystemPtr m_anchorObjectSystem;
 	StencilObjectSystemPtr m_stencilObjectSystem;
-	FastenerObjectSystemPtr m_fastenerObjectSystem;
 	EditorObjectSystemPtr m_editorSystem;
 
 	class RmlModel_Compositor* m_compositorModel = nullptr;

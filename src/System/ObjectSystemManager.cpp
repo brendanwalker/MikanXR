@@ -3,14 +3,12 @@
 #include "ObjectSystemManager.h"
 #include "AnchorObjectSystem.h"
 #include "EditorObjectSystem.h"
-#include "FastenerObjectSystem.h"
 #include "StencilObjectSystem.h"
 
 bool ObjectSystemManager::startup()
 {
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
-	addSystem<FastenerObjectSystem>();
 	addSystem<EditorObjectSystem>();
 
 	for (MikanObjectSystemPtr system : m_systems)

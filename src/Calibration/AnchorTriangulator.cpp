@@ -28,7 +28,7 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
-static const glm::vec3 k_fastenerRayColors[3] = {Colors::Red, Colors::Green, Colors::Blue};
+static const glm::vec3 k_anchorRayColors[3] = {Colors::Red, Colors::Green, Colors::Blue};
 
 struct AnchorTriangulationState
 {
@@ -198,7 +198,7 @@ bool AnchorTriangulator::computeAnchorTransform(MikanSpatialAnchorInfo& anchorIn
 	if (m_calibrationState->triangulatedPointSampleCount < 3)
 		return false;
 
-	// Compute the fastener world to local transform
+	// Compute the anchor world transform
 	const glm::vec3 origin= m_calibrationState->triangulatedPointSamples[0];
 	const glm::vec3 xAxis= glm::normalize(m_calibrationState->triangulatedPointSamples[1] - origin);
 	const glm::vec3 uncorrectedYAxis = glm::normalize(m_calibrationState->triangulatedPointSamples[2] - origin);
@@ -301,7 +301,7 @@ void AnchorTriangulator::renderInitialPoint3dRays()
 			rayDirection);
 		glm::vec3 rayEnd= rayStart + rayDirection*1000.f;
 
-		drawSegment(glm::mat4(1.f), rayStart, rayEnd, k_fastenerRayColors[i]);
+		drawSegment(glm::mat4(1.f), rayStart, rayEnd, k_anchorRayColors[i]);
 	}
 }
 
@@ -323,7 +323,7 @@ void AnchorTriangulator::renderCurrentPointTriangulation()
 		initialPointRayStart,
 		initialPointRayDirection);
 	glm::vec3 initialPointRayEnd = initialPointRayStart + initialPointRayDirection * 1000.f;
-	drawSegment(glm::mat4(1.f), initialPointRayStart, initialPointRayEnd, k_fastenerRayColors[sampleIndex]);
+	drawSegment(glm::mat4(1.f), initialPointRayStart, initialPointRayEnd, k_anchorRayColors[sampleIndex]);
 	
 	// Draw the most recently computed triangulation
 	drawPoint(glm::mat4(1.f), m_calibrationState->lastWorldTriangulatedPoint, Colors::Yellow, 5.f);

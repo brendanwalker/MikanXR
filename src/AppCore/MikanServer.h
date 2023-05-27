@@ -77,10 +77,6 @@ protected:
 	void getSpatialAnchorInfo(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void findSpatialAnchorInfoByName(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
-	void getSpatialFastenerList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void getSpatialFastenerInfo(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void findSpatialFastenerInfoByName(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-
 	// VRManager Callbacks
 	void publishVRDeviceListChanged();
 	void publishVRDevicePoses(uint64_t newFrameIndex);

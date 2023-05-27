@@ -2,7 +2,6 @@
 #include "AnchorComponent.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
 #include "App.h"
-#include "FastenerObjectSystem.h"
 #include "RmlModel_CompositorAnchors.h"
 #include "MathMikan.h"
 #include "MathGLM.h"
@@ -21,12 +20,10 @@ bool RmlModel_CompositorAnchors::s_bHasRegisteredTypes = false;
 bool RmlModel_CompositorAnchors::init(
 	Rml::Context* rmlContext,
 	ProfileConfigPtr profile,
-	AnchorObjectSystemPtr anchorSystemPtr,
-	FastenerObjectSystemPtr fastenerSystemPtr)
+	AnchorObjectSystemPtr anchorSystemPtr)
 {
 	m_profile= profile;
 	m_anchorSystemPtr= anchorSystemPtr;
-	m_fastenerSystemPtr= fastenerSystemPtr;
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_anchors");
@@ -40,7 +37,6 @@ bool RmlModel_CompositorAnchors::init(
 		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorAnchor>())
 		{
 			layer_model_handle.RegisterMember("anchor_id", &RmlModel_CompositorAnchor::anchor_id);
-			layer_model_handle.RegisterMember("child_fastener_ids", &RmlModel_CompositorAnchor::child_fastener_ids);
 		}
 
 		// One time registration for an array of stencil quads.
@@ -65,37 +61,12 @@ bool RmlModel_CompositorAnchors::init(
 			onAddAnchorEvent();
 		});
 	constructor.BindEventCallback(
-		"add_fastener",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int anchor_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnAddFastenerEvent) OnAddFastenerEvent(anchor_id);
-		});
-	constructor.BindEventCallback(
-		"edit_fastener",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int fastener_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (OnEditFastenerEvent && fastener_id >= 0)
-			{
-				OnEditFastenerEvent(fastener_id);
-			}
-		});
-	constructor.BindEventCallback(
 		"edit_anchor",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			const int anchor_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
 			if (anchor_id >= 0)
 			{
 				onEditAnchorEvent(anchor_id);
-			}
-		});
-	constructor.BindEventCallback(
-		"delete_fastener",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			const int anchor_id = (arguments.size() == 2 ? arguments[0].Get<int>(-1) : -1);
-			const int fastener_id = (arguments.size() == 2 ? arguments[1].Get<int>(-1) : -1);
-			if (OnDeleteFastenerEvent && fastener_id >= 0)
-			{
-				OnDeleteFastenerEvent(anchor_id, fastener_id);
 			}
 		});
 
@@ -106,22 +77,14 @@ bool RmlModel_CompositorAnchors::init(
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty+= 
 		MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
 
-	// Listen for fastener system config changes
-	m_fastenerSystemPtr->getFastenerSystemConfig()->OnMarkedDirty+=
-		MakeDelegate(this, &RmlModel_CompositorAnchors::fastenerSystemConfigMarkedDirty);
-
 	return true;
 }
 
 void RmlModel_CompositorAnchors::dispose()
 {
-	m_fastenerSystemPtr->getFastenerSystemConfig()->OnMarkedDirty-=
-		MakeDelegate(this, &RmlModel_CompositorAnchors::fastenerSystemConfigMarkedDirty);
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty-= 
 		MakeDelegate(this, &RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty);
 
-	OnAddFastenerEvent.Clear();
-	OnDeleteFastenerEvent.Clear();
 	RmlModel::dispose();
 }
 
@@ -140,16 +103,6 @@ void RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty(
 	}
 }
 
-void RmlModel_CompositorAnchors::fastenerSystemConfigMarkedDirty(
-	CommonConfigPtr configPtr, 
-	const ConfigPropertyChangeSet& changedPropertySet)
-{
-	if (changedPropertySet.hasPropertyName(FastenerObjectSystemConfig::k_fastenerListPropertyId))
-	{
-		rebuildAnchorList();
-	}
-}
-
 void RmlModel_CompositorAnchors::rebuildAnchorList()
 {
 	m_originAnchorId= m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
@@ -163,9 +116,6 @@ void RmlModel_CompositorAnchors::rebuildAnchorList()
 
 		RmlModel_CompositorAnchor uiAnchorInfo;
 		uiAnchorInfo.anchor_id= anchorId;
-		uiAnchorInfo.child_fastener_ids=
-			FastenerObjectSystem::getSystem()->getSpatialFastenersWithParent(
-				MikanFastenerParentType_SpatialAnchor, anchorId);
 
 		m_spatialAnchors.push_back(uiAnchorInfo);
 	}

@@ -3,8 +3,6 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
-#include "FastenerComponent.h"
-#include "FastenerObjectSystem.h"
 #include "InterprocessRenderTargetReader.h"
 #include "InterprocessMessages.h"
 #include "MathTypeConversion.h"
@@ -1001,78 +999,5 @@ void MikanServer::findSpatialAnchorInfoByName(
 
 	MikanSpatialAnchorInfo anchorInfo= anchorConfig->getAnchorInfo();
 	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
-	outResult->setResultCode(MikanResult_Success);
-}
-
-void MikanServer::getSpatialFastenerList(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
-{
-	MikanSpatialFastenerList fastenerListResult;
-	memset(&fastenerListResult, 0, sizeof(MikanSpatialFastenerList));
-
-	auto fastenerSystemConfig = App::getInstance()->getProfileConfig()->fastenerConfig;
-	for (FastenerConfigPtr fastenerConfig : fastenerSystemConfig->spatialFastenerList)
-	{
-		fastenerListResult.spatial_fastener_id_list[fastenerListResult.spatial_fastener_count] = 
-			fastenerConfig->getFastenerId();
-		++fastenerListResult.spatial_fastener_count;
-
-		assert(fastenerListResult.spatial_fastener_count < MAX_MIKAN_SPATIAL_FASTENERS);
-		if (fastenerListResult.spatial_fastener_count >= MAX_MIKAN_SPATIAL_FASTENERS)
-		{
-			break;
-		}
-	}
-
-	outResult->setResultBuffer((uint8_t*)&fastenerListResult, sizeof(MikanSpatialFastenerList));
-	outResult->setResultCode(MikanResult_Success);
-}
-
-void MikanServer::getSpatialFastenerInfo(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
-{
-	MikanSpatialFastenerID fastenerId;
-	if (!inFunctionCall->extractParameters(fastenerId))
-	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
-		return;
-	}
-
-	auto fastenerSystemConfig = App::getInstance()->getProfileConfig()->fastenerConfig;
-	auto fastenerConfig = fastenerSystemConfig->getSpatialFastenerConfig(fastenerId);
-	if (fastenerConfig == nullptr)
-	{
-		outResult->setResultCode(MikanResult_InvalidDeviceID);
-		return;
-	}
-
-	MikanSpatialFastenerInfo info= fastenerConfig->getFastenerInfo();
-	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialFastenerInfo));
-	outResult->setResultCode(MikanResult_Success);
-}
-
-void MikanServer::findSpatialFastenerInfoByName(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
-{
-	char nameBuffer[MAX_MIKAN_ANCHOR_NAME_LEN];
-	if (!inFunctionCall->extractParameters(nameBuffer))
-	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
-		return;
-	}
-
-	auto fastenerSystemConfig = App::getInstance()->getProfileConfig()->fastenerConfig;
-	auto fastenerConfig = fastenerSystemConfig->getSpatialFastenerConfigByName(nameBuffer);
-	if (fastenerConfig == nullptr)
-	{
-		outResult->setResultCode(MikanResult_InvalidDeviceID);
-		return;
-	}
-	
-	MikanSpatialFastenerInfo info= fastenerConfig->getFastenerInfo();
-	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialFastenerInfo));
 	outResult->setResultCode(MikanResult_Success);
 }

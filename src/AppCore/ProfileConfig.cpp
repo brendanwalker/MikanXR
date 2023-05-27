@@ -1,7 +1,6 @@
 // -- includes -----
 #include "AnchorObjectSystem.h"
 #include "EditorObjectSystem.h"
-#include "FastenerObjectSystem.h"
 #include "MathUtility.h"
 #include "ProfileConfig.h"
 #include "PathUtils.h"
@@ -69,9 +68,6 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 
 	stencilConfig= std::make_shared<StencilObjectSystemConfig>("stencils");
 	addChildConfig(stencilConfig);
-
-	fastenerConfig= std::make_shared<FastenerObjectSystemConfig>("fasteners");
-	addChildConfig(fastenerConfig);
 };
 
 configuru::Config ProfileConfig::writeToJSON()
@@ -115,9 +111,6 @@ configuru::Config ProfileConfig::writeToJSON()
 
 	// Write the stencil system config
 	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
-
-	// Write out the spatial fasteners
-	pt[fastenerConfig->getConfigName()]= fastenerConfig->writeToJSON();
 
 	return pt;
 }
@@ -177,12 +170,6 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(stencilConfig->getConfigName()))
 	{
 		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
-	}
-
-	// Read the fastener system config
-	if (pt.has_key(fastenerConfig->getConfigName()))
-	{
-		fastenerConfig->readFromJSON(pt[fastenerConfig->getConfigName()]);
 	}
 
 	// Compositor

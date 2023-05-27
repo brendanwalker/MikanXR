@@ -59,6 +59,5 @@ public:
 
 	AnchorObjectSystemConfigPtr anchorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
-	FastenerObjectSystemConfigPtr fastenerConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 };

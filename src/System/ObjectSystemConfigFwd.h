@@ -22,16 +22,6 @@ using EditorObjectSystemConfigPtr = std::shared_ptr<EditorObjectSystemConfig>;
 using EditorObjectSystemConfigConstPtr = std::shared_ptr<const EditorObjectSystemConfig>;
 using EditorObjectSystemConfigWeakPtr = std::weak_ptr<EditorObjectSystemConfig>;
 
-class FastenerConfig;
-using FastenerConfigPtr = std::shared_ptr<FastenerConfig>;
-using FastenerConfigConstPtr = std::shared_ptr<const FastenerConfig>;
-using FastenerConfigWeakPtr = std::weak_ptr<FastenerConfig>;
-
-class FastenerObjectSystemConfig;
-using FastenerObjectSystemConfigPtr = std::shared_ptr<FastenerObjectSystemConfig>;
-using FastenerObjectSystemConfigConstPtr = std::shared_ptr<const FastenerObjectSystemConfig>;
-using FastenerObjectSystemConfigWeakPtr = std::weak_ptr<FastenerObjectSystemConfig>;
-
 class QuadStencilConfig;
 using QuadStencilConfigPtr = std::shared_ptr<QuadStencilConfig>;
 using QuadStencilConfigConstPtr = std::shared_ptr<const QuadStencilConfig>;
