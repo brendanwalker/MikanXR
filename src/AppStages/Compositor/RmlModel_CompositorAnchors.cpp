@@ -1,9 +1,16 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
+#include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
+#include "App.h"
 #include "FastenerObjectSystem.h"
 #include "RmlModel_CompositorAnchors.h"
 #include "MathMikan.h"
+#include "MathGLM.h"
+#include "MathTypeConversion.h"
+#include "ProfileConfig.h"
 #include "StringUtils.h"
+#include "VRDeviceManager.h"
+#include "VRDeviceView.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -13,10 +20,13 @@ bool RmlModel_CompositorAnchors::s_bHasRegisteredTypes = false;
 
 bool RmlModel_CompositorAnchors::init(
 	Rml::Context* rmlContext,
+	ProfileConfigPtr profile,
 	AnchorObjectSystemPtr anchorSystemPtr,
 	FastenerObjectSystemPtr fastenerSystemPtr)
 {
+	m_profile= profile;
 	m_anchorSystemPtr= anchorSystemPtr;
+	m_fastenerSystemPtr= fastenerSystemPtr;
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_anchors");
@@ -47,7 +57,12 @@ bool RmlModel_CompositorAnchors::init(
 	constructor.BindEventCallback(
 		"update_origin_pose",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			if (OnUpdateOriginPose) OnUpdateOriginPose();
+			onUpdateOriginEvent();
+		});
+	constructor.BindEventCallback(
+		"add_anchor",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			onAddAnchorEvent();
 		});
 	constructor.BindEventCallback(
 		"add_fastener",
@@ -62,6 +77,15 @@ bool RmlModel_CompositorAnchors::init(
 			if (OnEditFastenerEvent && fastener_id >= 0)
 			{
 				OnEditFastenerEvent(fastener_id);
+			}
+		});
+	constructor.BindEventCallback(
+		"edit_anchor",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			const int anchor_id = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (anchor_id >= 0)
+			{
+				onEditAnchorEvent(anchor_id);
 			}
 		});
 	constructor.BindEventCallback(
@@ -146,4 +170,64 @@ void RmlModel_CompositorAnchors::rebuildAnchorList()
 		m_spatialAnchors.push_back(uiAnchorInfo);
 	}
 	m_modelHandle.DirtyVariable("spatial_anchors");
+}
+
+void RmlModel_CompositorAnchors::onUpdateOriginEvent()
+{
+	VRDeviceViewPtr vrDeviceView =
+		VRDeviceListIterator(eDeviceType::VRTracker, m_profile->originVRDevicePath).getCurrent();
+
+	if (vrDeviceView != nullptr)
+	{
+		AnchorComponentPtr originSpatialAnchor = m_anchorSystemPtr->getOriginSpatialAnchor();
+		if (originSpatialAnchor)
+		{
+			const glm::mat4 devicePose = vrDeviceView->getCalibrationPose();
+
+			glm::mat4 anchorXform = devicePose;
+			if (m_profile->originVerticalAlignFlag)
+			{
+				const glm::vec3 deviceForward = glm_mat4_get_x_axis(devicePose);
+				const glm::vec3 devicePosition = glm_mat4_get_position(devicePose);
+				const glm::quat yawOnlyOrientation = glm::quatLookAt(deviceForward, glm::vec3(0.f, 1.f, 0.f));
+
+				anchorXform = glm_mat4_from_pose(yawOnlyOrientation, devicePosition);
+			}
+
+			// Update origin anchor transform
+			originSpatialAnchor->setWorldTransform(anchorXform);
+		}
+	}
+}
+
+void RmlModel_CompositorAnchors::onAddAnchorEvent()
+{
+	MikanSpatialAnchorInfo anchorInfo;
+	memset(&anchorInfo, 0, sizeof(MikanSpatialAnchorInfo));
+
+	const MikanSpatialAnchorID nextAnchorId = m_anchorSystemPtr->getAnchorSystemConfig()->nextAnchorId;
+	StringUtils::formatString(
+		anchorInfo.anchor_name, sizeof(anchorInfo.anchor_name),
+		"Anchor_%d", nextAnchorId);
+	anchorInfo.anchor_id = INVALID_MIKAN_ID;
+	anchorInfo.anchor_xform = glm_mat4_to_MikanMatrix4f(glm::mat4(1.f));
+
+	AnchorComponentPtr anchorComponent = m_anchorSystemPtr->addNewAnchor(anchorInfo);
+	if (anchorComponent != nullptr)
+	{
+		// Show Anchor Triangulation Tool
+		AppStage_AnchorTriangulation* anchorTriangulation = App::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
+		anchorTriangulation->setTargetAnchor(anchorInfo);
+	}
+}
+
+void RmlModel_CompositorAnchors::onEditAnchorEvent(MikanSpatialAnchorID anchor_id)
+{
+	AnchorComponentPtr anchorComponent = m_anchorSystemPtr->getSpatialAnchorById(anchor_id);
+	if (anchorComponent != nullptr)
+	{
+		// Show Anchor Triangulation Tool
+		AppStage_AnchorTriangulation* anchorTriangulation = App::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
+		anchorTriangulation->setTargetAnchor(anchorComponent->getConfig()->getAnchorInfo());
+	}
 }

@@ -60,11 +60,11 @@ void GlCamera::setOrbitLocation(float yawDegrees, float pitchDegrees, float radi
 	applyOrbitParamsToViewMatrix();
 }
 
-void GlCamera::setCameraMovementMode(eCameraMovementMode mode)
+void GlCamera::setCameraMovementMode(eCameraMovementMode newMode)
 {
-	if (mode != m_movementMode)
+	if (newMode != m_movementMode)
 	{
-		switch (m_movementMode)
+		switch (newMode)
 		{
 			case orbit:
 				applyOrbitParamsToViewMatrix();
@@ -76,7 +76,7 @@ void GlCamera::setCameraMovementMode(eCameraMovementMode mode)
 				applyStationaryParamsToViewMatrix();
 				break;
 		}
-		m_movementMode= mode;
+		m_movementMode= newMode;
 	}
 }
 

@@ -32,6 +32,7 @@ public:
 	bool canAddAnchor() const;
 	AnchorConfigPtr getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const;
 	AnchorConfigPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
+	MikanSpatialAnchorID addNewAnchor(MikanSpatialAnchorInfo& anchorInfo);
 	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const MikanMatrix4f& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
@@ -46,7 +47,6 @@ public:
 	bool debugRenderAnchors= false;
 
 };
-
 
 class AnchorObjectSystem : public MikanObjectSystem
 {
@@ -66,6 +66,7 @@ public:
 	AnchorComponentPtr getOriginSpatialAnchor() const { return m_originAnchor; }
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
 	AnchorComponentPtr addNewAnchor(const std::string& anchorName, const glm::mat4& xform);
+	AnchorComponentPtr addNewAnchor(MikanSpatialAnchorInfo& anchorInfo);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 protected:

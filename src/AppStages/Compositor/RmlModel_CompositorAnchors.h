@@ -15,7 +15,8 @@ class RmlModel_CompositorAnchors : public RmlModel
 {
 public:
 	bool init(
-		Rml::Context* rmlContext, 
+		Rml::Context* rmlContext,
+		ProfileConfigPtr profile,
 		AnchorObjectSystemPtr anchorSystemPtr, 
 		FastenerObjectSystemPtr fastenerSystemPtr);
 	virtual void dispose() override;
@@ -31,6 +32,11 @@ private:
 	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void fastenerSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
+	void onUpdateOriginEvent();
+	void onAddAnchorEvent();
+	void onEditAnchorEvent(MikanSpatialAnchorID anchor_id);
+
+	ProfileConfigPtr m_profile;
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	FastenerObjectSystemPtr m_fastenerSystemPtr;
 

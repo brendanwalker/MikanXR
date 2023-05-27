@@ -88,6 +88,13 @@ glm::quat glm_composite_rotation(const glm::quat& first, const glm::quat& second
 	return second * first;
 }
 
+glm::mat4 glm_relative_xform(const glm::mat4& parentWorldXform, const glm::mat4& childWorldXform)
+{
+	const glm::mat4 invParentXform = glm::inverse(parentWorldXform);
+
+	return glm_composite_xform(childWorldXform, invParentXform);
+}
+
 glm::mat4 glm_mat4_from_pose(const glm::quat& orientation, const glm::vec3& position)
 {
 	glm::mat4 rot = glm::mat4_cast(orientation);

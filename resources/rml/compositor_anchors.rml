@@ -24,14 +24,10 @@
 	<body template="window">
         <panel id="controls" data-model="compositor_anchors">
             <button data-event-click="update_origin_pose()">Update Origin Pose</button>
+            <button data-event-click="add_anchor()">Add Anchor</button>
             <div data-for="anchor : spatial_anchors">
                 <label>{{anchor.anchor_id | to_anchor_name}}</label>
-                <div data-for="fastener_id : anchor.child_fastener_ids">
-                    <label>{{fastener_id | to_fastener_name}}</label>
-                    <button data-event-click="edit_fastener(fastener_id)">Edit</button>
-                    <button data-event-click="delete_fastener(anchor.anchor_id, fastener_id)">Delete</button>
-                </div>
-                <button data-event-click="add_fastener(anchor.anchor_id)">Add Fastener</button>
+                <button data-event-click="edit_anchor(anchor.anchor_id)">Edit Anchor</button>
             </div>
         </panel>
     </body>

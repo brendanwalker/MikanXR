@@ -9,11 +9,11 @@
 namespace StringUtils
 {
 	template <typename t_enum_class>
-	static t_enum_class FindEnumValue(const std::string& stringValue, const std::string k_deviceTypeStrings[])
+	static t_enum_class FindEnumValue(const std::string& stringValue, const std::string enumStrings[])
 	{
 		for (int enumIntValue = 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
 		{
-			if (k_deviceTypeStrings[enumIntValue] == stringValue)
+			if (enumStrings[enumIntValue] == stringValue)
 			{
 				return (t_enum_class)enumIntValue;
 			}

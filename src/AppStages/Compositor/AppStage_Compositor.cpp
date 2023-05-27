@@ -198,8 +198,7 @@ void AppStage_Compositor::enter()
 		m_compositiorLayersView->Show();
 
 		// Init Anchors UI
-		m_compositorAnchorsModel->init(context, m_anchorObjectSystem, m_fastenerObjectSystem);
-		m_compositorAnchorsModel->OnUpdateOriginPose = MakeDelegate(this, &AppStage_Compositor::onUpdateOriginEvent);
+		m_compositorAnchorsModel->init(context, m_profile, m_anchorObjectSystem, m_fastenerObjectSystem);
 		m_compositorAnchorsModel->OnAddFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onAddAnchorFastenerEvent);
 		m_compositorAnchorsModel->OnEditFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onEditAnchorFastenerEvent);
 		m_compositorAnchorsModel->OnDeleteFastenerEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteAnchorFastenerEvent);
@@ -462,25 +461,15 @@ GlCameraPtr AppStage_Compositor::getViewpointCamera(eCompositorViewpointMode vie
 
 void AppStage_Compositor::updateCamera()
 {
-	switch (getCurrentCameraMode())
+	// Copy the compositor's camera pose to the app stage's camera for debug rendering
+	GlCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+	if (camera)
 	{
-		case eCompositorViewpointMode::mixedRealityViewpoint:
-			{
-				// Copy the compositor's camera pose to the app stage's camera for debug rendering
-				glm::mat4 cameraXform;
-				if (m_frameCompositor->getVideoSourceCameraPose(cameraXform))
-				{
-					GlCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
-
-					camera->setCameraTransform(cameraXform);
-				}
-			}
-			break;
-		case eCompositorViewpointMode::vrViewpoint:
-			{
-				// Nothing to do
-			}
-			break;
+		glm::mat4 cameraXform;
+		if (m_frameCompositor->getVideoSourceCameraPose(cameraXform))
+		{
+			camera->setCameraTransform(cameraXform);
+		}
 	}
 }
 
@@ -760,34 +749,6 @@ void AppStage_Compositor::hideAllSubWindows()
 }
 
 // Anchors UI Events
-void AppStage_Compositor::onUpdateOriginEvent()
-{
-	VRDeviceViewPtr vrDeviceView =
-		VRDeviceListIterator(eDeviceType::VRTracker, m_profile->originVRDevicePath).getCurrent();
-
-	if (vrDeviceView != nullptr)
-	{
-		AnchorComponentPtr originSpatialAnchor= m_anchorObjectSystem->getOriginSpatialAnchor();
-		if (originSpatialAnchor)
-		{
-			const glm::mat4 devicePose = vrDeviceView->getCalibrationPose();
-
-			glm::mat4 anchorXform= devicePose;
-			if (m_profile->originVerticalAlignFlag)
-			{
-				const glm::vec3 deviceForward = glm_mat4_get_x_axis(devicePose);
-				const glm::vec3 devicePosition = glm_mat4_get_position(devicePose);
-				const glm::quat yawOnlyOrientation = glm::quatLookAt(deviceForward, glm::vec3(0.f, 1.f, 0.f));
-
-				anchorXform = glm_mat4_from_pose(yawOnlyOrientation, devicePosition);
-			}
-
-			// Update origin anchor transform
-			originSpatialAnchor->setWorldTransform(anchorXform);
-		}
-	}
-}
-
 void AppStage_Compositor::onAddAnchorFastenerEvent(int parentAnchorId)
 {
 	MikanSpatialFastenerInfo fastenerInfo;

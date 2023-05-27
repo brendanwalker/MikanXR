@@ -1,3 +1,4 @@
+#include "AnchorComponent.h"
 #include "CalibrationRenderHelpers.h"
 #include "CalibrationPatternFinder.h"
 #include "CameraMath.h"
@@ -6,8 +7,8 @@
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "InputManager.h"
-#include "FastenerCalibrator.h"
-#include "FastenerObjectSystem.h"
+#include "AnchorTriangulator.h"
+#include "AnchorObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
@@ -27,9 +28,9 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
-static const glm::vec3 k_anchorRayColors[3] = {Colors::Red, Colors::Green, Colors::Blue};
+static const glm::vec3 k_fastenerRayColors[3] = {Colors::Red, Colors::Green, Colors::Blue};
 
-struct FastenerCalibrationState
+struct AnchorTriangulationState
 {
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
@@ -42,6 +43,9 @@ struct FastenerCalibrationState
 	glm::vec3 triangulatedPointSamples[3];
 	int triangulatedPointSampleCount;
 
+	// Output State
+	glm::mat4 anchorWorldXform;
+
 	void init(VideoSourceViewPtr videoSourceView)
 	{
 		// Get the current mono camera intrinsics being used by the video source
@@ -50,6 +54,7 @@ struct FastenerCalibrationState
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
 		inputCameraIntrinsics= cameraIntrinsics.intrinsics.mono;
 
+		initialCameraPoseSample = glm::mat4(1.f);
 		resetCalibration();
 	}
 
@@ -58,21 +63,21 @@ struct FastenerCalibrationState
 		initialPointSamples[0]= glm::vec2();
 		initialPointSamples[1]= glm::vec2();
 		initialPointSamples[2]= glm::vec2();
-		initialCameraPoseSample = glm::mat4(1.f);
 		initialPointSampleCount= 0;
 		lastWorldTriangulatedPoint= glm::vec3();
 		triangulatedPointSamples[0] = glm::vec3();
 		triangulatedPointSamples[1] = glm::vec3();
 		triangulatedPointSamples[2] = glm::vec3();
 		triangulatedPointSampleCount= 0;
+		anchorWorldXform= glm::mat4(1.f);
 	}
 };
 
 //-- MonoDistortionCalibrator ----
-FastenerCalibrator::FastenerCalibrator(
+AnchorTriangulator::AnchorTriangulator(
 	VRDeviceViewPtr cameraTrackingPuckView,
 	VideoFrameDistortionView* distortionView)
-	: m_calibrationState(new FastenerCalibrationState)
+	: m_calibrationState(new AnchorTriangulationState)
 	, m_cameraTrackingPuckView(cameraTrackingPuckView)
 	, m_distortionView(distortionView)
 {
@@ -83,27 +88,27 @@ FastenerCalibrator::FastenerCalibrator(
 	m_calibrationState->init(distortionView->getVideoSourceView());
 }
 
-FastenerCalibrator::~FastenerCalibrator()
+AnchorTriangulator::~AnchorTriangulator()
 {
 	delete m_calibrationState;
 }
 
-bool FastenerCalibrator::hasFinishedInitialPointSampling() const
+bool AnchorTriangulator::hasFinishedInitialPointSampling() const
 {
 	return m_calibrationState->initialPointSampleCount >= 3;
 }
 
-bool FastenerCalibrator::hasFinishedTriangulatedPointSampling() const
+bool AnchorTriangulator::hasFinishedTriangulatedPointSampling() const
 {
 	return m_calibrationState->triangulatedPointSampleCount >= 3;
 }
 
-void FastenerCalibrator::resetCalibrationState()
+void AnchorTriangulator::resetCalibrationState()
 {
 	m_calibrationState->resetCalibration();
 }
 
-void FastenerCalibrator::sampleMouseScreenPosition()
+void AnchorTriangulator::sampleMouseScreenPosition()
 {
 	const glm::vec2 pointSample= computeMouseScreenPosition();
 
@@ -123,7 +128,7 @@ void FastenerCalibrator::sampleMouseScreenPosition()
 	}
 }
 
-glm::vec2 FastenerCalibrator::computeMouseScreenPosition() const
+glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 {
 	int mouseScreenX = 0, mouseScreenY;
 	InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
@@ -139,7 +144,7 @@ glm::vec2 FastenerCalibrator::computeMouseScreenPosition() const
 	return pointSample;
 }
 
-void FastenerCalibrator::sampleCameraPose()
+void AnchorTriangulator::sampleCameraPose()
 {
 	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
 	const glm::mat4 glm_camera_xform = videoSource->getCameraPose(m_cameraTrackingPuckView);
@@ -147,7 +152,7 @@ void FastenerCalibrator::sampleCameraPose()
 	m_calibrationState->initialCameraPoseSample= glm_camera_xform;
 }
 
-void FastenerCalibrator::computeCurrentTriangulation()
+void AnchorTriangulator::computeCurrentTriangulation()
 {
 	const int sampleIndex= m_calibrationState->triangulatedPointSampleCount;
 	if (sampleIndex >= 3)
@@ -188,30 +193,49 @@ void FastenerCalibrator::computeCurrentTriangulation()
 	}
 }
 
-bool FastenerCalibrator::computeFastenerPoints(MikanSpatialFastenerInfo& fastenerInfo)
+bool AnchorTriangulator::computeAnchorTransform(MikanSpatialAnchorInfo& anchorInfo)
 {
 	if (m_calibrationState->triangulatedPointSampleCount < 3)
 		return false;
 
 	// Compute the fastener world to local transform
-	SceneComponentPtr parentSceneComponentPtr= 
-		FastenerObjectSystem::getFastenerParentSceneComponent(fastenerInfo);
-	const glm::mat4 localToWorldXform = parentSceneComponentPtr->getWorldTransform();
-	const glm::mat4 worldToLocalXform = glm::inverse(localToWorldXform);
+	const glm::vec3 origin= m_calibrationState->triangulatedPointSamples[0];
+	const glm::vec3 xAxis= glm::normalize(m_calibrationState->triangulatedPointSamples[1] - origin);
+	const glm::vec3 uncorrectedYAxis = glm::normalize(m_calibrationState->triangulatedPointSamples[2] - origin);
+	const glm::vec3 zAxis = glm::normalize(glm::cross(xAxis, uncorrectedYAxis));
+	const glm::vec3 yAxis = glm::normalize(glm::cross(zAxis, xAxis));
+	
+	m_calibrationState->anchorWorldXform= 
+		glm::mat4(
+			glm::vec4(xAxis, 0.f),
+			glm::vec4(yAxis, 0.f),
+			glm::vec4(zAxis, 0.f),
+			glm::vec4(origin, 1.f));
 
-	// Convert triangulated world space points into local space
-	for (int index = 0; index < 3; ++index)
+	// Convert triangulated world space points into local space of origin anchor
+	AnchorComponentPtr originAnchorComponentPtr =
+		AnchorObjectSystem::getSystem()->getOriginSpatialAnchor();
+
+	glm::mat4 relativeXform;
+	if (originAnchorComponentPtr->getConfig()->getAnchorId() != anchorInfo.anchor_id)
 	{
-		const glm::vec3 worldPoint = m_calibrationState->triangulatedPointSamples[index];
-		const glm::vec3 localPoint = worldToLocalXform * glm::vec4(worldPoint, 1.f);
-
-		fastenerInfo.fastener_points[index] = glm_vec3_to_MikanVector3f(localPoint);
+		// Compute transform relative to origin anchor
+		const glm::mat4 originWorldXform = originAnchorComponentPtr->getWorldTransform();
+		
+		relativeXform = glm_relative_xform(originWorldXform, m_calibrationState->anchorWorldXform);
 	}
+	else
+	{
+		// Target anchor is origin anchor, so relative transform == world transform
+		relativeXform= m_calibrationState->anchorWorldXform;
+	}
+
+	anchorInfo.anchor_xform = glm_mat4_to_MikanMatrix4f(relativeXform);
 
 	return true;
 }
 
-void FastenerCalibrator::renderInitialPoint2dSegements()
+void AnchorTriangulator::renderInitialPoint2dSegements()
 {
 	glm::vec3 glm_points[3];
 	const int pointCount = m_calibrationState->initialPointSampleCount;
@@ -245,7 +269,7 @@ void FastenerCalibrator::renderInitialPoint2dSegements()
 	drawPointList2d(m_frameWidth, m_frameHeight, glm_points, pointCount, Colors::Yellow, 2.f);
 }
 
-void FastenerCalibrator::renderInitialPoint3dRays()
+void AnchorTriangulator::renderInitialPoint3dRays()
 {
 	const glm::mat4 glmCameraXform = m_calibrationState->initialCameraPoseSample;
 
@@ -277,11 +301,11 @@ void FastenerCalibrator::renderInitialPoint3dRays()
 			rayDirection);
 		glm::vec3 rayEnd= rayStart + rayDirection*1000.f;
 
-		drawSegment(glm::mat4(1.f), rayStart, rayEnd, k_anchorRayColors[i]);
+		drawSegment(glm::mat4(1.f), rayStart, rayEnd, k_fastenerRayColors[i]);
 	}
 }
 
-void FastenerCalibrator::renderCurrentPointTriangulation()
+void AnchorTriangulator::renderCurrentPointTriangulation()
 {
 	if (m_calibrationState->initialPointSampleCount < 3)
 		return;
@@ -299,7 +323,7 @@ void FastenerCalibrator::renderCurrentPointTriangulation()
 		initialPointRayStart,
 		initialPointRayDirection);
 	glm::vec3 initialPointRayEnd = initialPointRayStart + initialPointRayDirection * 1000.f;
-	drawSegment(glm::mat4(1.f), initialPointRayStart, initialPointRayEnd, k_anchorRayColors[sampleIndex]);
+	drawSegment(glm::mat4(1.f), initialPointRayStart, initialPointRayEnd, k_fastenerRayColors[sampleIndex]);
 	
 	// Draw the most recently computed triangulation
 	drawPoint(glm::mat4(1.f), m_calibrationState->lastWorldTriangulatedPoint, Colors::Yellow, 5.f);
@@ -315,7 +339,7 @@ void FastenerCalibrator::renderCurrentPointTriangulation()
 		L"P%d", sampleIndex);
 }
 
-void FastenerCalibrator::computeCameraRayAtPixel(
+void AnchorTriangulator::computeCameraRayAtPixel(
 	const glm::mat4 cameraXform,
 	const glm::vec2& imagePoint,
 	glm::vec3& outRayStart,
@@ -350,7 +374,7 @@ void FastenerCalibrator::computeCameraRayAtPixel(
 			+ glmCameraForward);
 }
 
-void FastenerCalibrator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
+void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 {
 	const glm::vec3 p0= m_calibrationState->triangulatedPointSamples[0];
 	const glm::vec3 p1= m_calibrationState->triangulatedPointSamples[1];
@@ -380,4 +404,9 @@ void FastenerCalibrator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 			Colors::Yellow);
 		drawTransformedAxes(glm_camera_xform, 0.1f);
 	}
+}
+
+void AnchorTriangulator::renderAnchorTransform()
+{
+	drawTransformedAxes(m_calibrationState->anchorWorldXform, 0.1f, 0.1f, 0.1f);
 }

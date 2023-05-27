@@ -104,6 +104,12 @@ AnchorConfigPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const std
 	return AnchorConfigPtr();
 }
 
+MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(MikanSpatialAnchorInfo& anchorInfo)
+{
+	anchorInfo.anchor_id= addNewAnchor(anchorInfo.anchor_name, anchorInfo.anchor_xform);
+
+	return anchorInfo.anchor_id;
+}
 
 MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& anchorName, const MikanMatrix4f& xform)
 {
@@ -244,6 +250,22 @@ AnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorNam
 	return AnchorComponentPtr();
 }
 
+AnchorComponentPtr AnchorObjectSystem::addNewAnchor(MikanSpatialAnchorInfo& anchorInfo)
+{
+	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
+
+	MikanSpatialAnchorID anchorId = anchorSystemConfig->addNewAnchor(anchorInfo);
+	if (anchorId != INVALID_MIKAN_ID)
+	{
+		AnchorConfigPtr anchorConfig = anchorSystemConfig->getSpatialAnchorConfig(anchorId);
+		assert(anchorConfig != nullptr);
+
+		return createAnchorObject(anchorConfig);
+	}
+
+	return AnchorComponentPtr();
+}
+
 bool AnchorObjectSystem::removeAnchor(MikanSpatialAnchorID anchorId)
 {
 	getAnchorSystemConfig()->removeAnchor(anchorId);
@@ -267,7 +289,7 @@ AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorConfigPtr anchor
 	if (anchorConfig->getAnchorId() != anchorSystemConfig->originAnchorId)
 	{
 		// Attach to the origin anchor
-		anchorComponentPtr->attachToComponent(m_originAnchor->getOwnerObject()->getRootComponent());
+		anchorComponentPtr->attachToComponent(m_originAnchor);
 	}
 	else
 	{

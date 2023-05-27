@@ -99,7 +99,7 @@ void AnchorComponent::init()
 	MikanComponent::init();
 
 	// Push our world transform to all child scene components
-	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
+	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 }
 
 void AnchorComponent::customRender()
@@ -108,7 +108,7 @@ void AnchorComponent::customRender()
 
 	wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
 	StringUtils::convertMbsToWcs(m_config->getAnchorName().c_str(), wszAnchorName, sizeof(wszAnchorName));
-	glm::mat4 anchorXform = m_config->getAnchorXform();
+	glm::mat4 anchorXform = getWorldTransform();
 	glm::vec3 anchorPos(anchorXform[3]);
 
 	drawTransformedAxes(anchorXform, 0.1f, 0.1f, 0.1f);
