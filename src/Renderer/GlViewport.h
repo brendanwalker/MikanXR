@@ -40,6 +40,8 @@ public:
 	// Convert cursor pixel position from app window relative to viewport relative
 	bool getCursorViewportPixelPos(glm::vec2& outViewportLocation) const;
 
+	MulticastDelegate<void()> OnMouseEntered;
+	MulticastDelegate<void()> OnMouseExited;
 	MulticastDelegate<void(const glm::vec3& rayOrigin, const glm::vec3& rayDir)> OnMouseRayChanged;
 	MulticastDelegate<void(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)> OnMouseRayButtonDown;
 	MulticastDelegate<void(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)> OnMouseRayButtonUp;
@@ -74,6 +76,7 @@ private:
 	bool m_isBackwardPressed= false;
 	bool m_isUpPressed= false;
 	bool m_isDownPressed= false;
+	bool m_isMouseInViewport= false;
 
 	glm::i32vec2 m_windowSize;
 	glm::i32vec2 m_viewportOrigin;

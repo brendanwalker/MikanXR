@@ -255,6 +255,13 @@ void GlViewport::onMouseMotion(int deltaX, int deltaY)
 	glm::vec2 viewportPos;
 	if (camera && getCursorViewportPixelPos(viewportPos))
 	{
+		if (!m_isMouseInViewport)
+		{
+			m_isMouseInViewport = true;
+			if (OnMouseEntered)
+				OnMouseEntered();
+		}
+
 		glm::vec3 rayOrigin, rayDir;
 		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
 
@@ -284,6 +291,15 @@ void GlViewport::onMouseMotion(int deltaX, int deltaY)
 				default:
 					break;
 			}
+		}
+	}
+	else
+	{
+		if (m_isMouseInViewport)
+		{
+			m_isMouseInViewport = false;
+			if (OnMouseExited)
+				OnMouseExited();
 		}
 	}
 }

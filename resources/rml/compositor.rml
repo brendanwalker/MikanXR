@@ -11,9 +11,8 @@
 				right: 0dp;
 				top: -45dp;
 				bottom: 0dp;
-				min-width: 1280dp;
-				max-width: -1px;
-				max-height: 45px;
+				max-width: 1280dp;
+				max-height: 45dp;
 			}     
         </style>
     </head>

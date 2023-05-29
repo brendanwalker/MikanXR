@@ -48,8 +48,8 @@
 #endif
 
 //-- constants -----
-static const int k_window_pixel_width = 1280;
-static const int k_window_pixel_height = 720;
+static const int k_window_pixel_width = 1280 + 350;
+static const int k_window_pixel_height = 720 + 45;
 
 static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
 

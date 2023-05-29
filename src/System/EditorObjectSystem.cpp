@@ -176,6 +176,7 @@ void EditorObjectSystem::bindViewport(GlViewportWeakPtr viewportWeakPtr)
 	if (!viewportPtr)
 		return;
 
+	viewportPtr->OnMouseExited+= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
 	viewportPtr->OnMouseRayChanged+= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
 	viewportPtr->OnMouseRayButtonUp+= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
 	viewportPtr->OnMouseRayButtonDown+= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
@@ -190,6 +191,7 @@ void EditorObjectSystem::clearViewports()
 		GlViewportPtr viewportPtr = viewportWeakPtr.lock();
 		if (viewportPtr)
 		{
+			viewportPtr->OnMouseExited-= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
 			viewportPtr->OnMouseRayChanged -= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
 			viewportPtr->OnMouseRayButtonUp -= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
 			viewportPtr->OnMouseRayButtonDown -= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
@@ -243,6 +245,19 @@ void EditorObjectSystem::onComponentInitialized(MikanObjectSystemPtr system, Mik
 void EditorObjectSystem::onComponentDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
 {
 	m_scene->removeMikanComponent(component);
+}
+
+void EditorObjectSystem::onMouseExited()
+{
+	SelectionComponentPtr oldHoverComponentPtr = m_hoverComponentWeakPtr.lock();
+
+	if (oldHoverComponentPtr)
+	{
+		oldHoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
+
+		m_hoverComponentWeakPtr.reset();
+		m_lastestRaycastResult = ColliderRaycastHitResult();
+	}
 }
 
 void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)

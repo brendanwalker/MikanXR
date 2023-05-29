@@ -114,6 +114,12 @@ void AppStage_Compositor::enter()
 	m_frameCompositor->start();
 	m_frameCompositor->OnCompositorShadersReloaded += MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
+	// Setup viewport
+	m_viewport = getFirstViewport();
+	const glm::i32vec2 viewportOrigin = {0, 45};
+	const glm::i32vec2 viewportSize = {1280, 720};
+	m_viewport->setViewport(viewportOrigin, viewportSize);
+
 	// Create and bind cameras
 	setupCameras();
 
@@ -389,7 +395,6 @@ void AppStage_Compositor::onNewFrameComposited()
 // Camera
 void AppStage_Compositor::setupCameras()
 {
-	m_viewport = getFirstViewport();
 	for (int cameraIndex = 0; cameraIndex < (int)eCompositorViewpointMode::COUNT; ++cameraIndex)
 	{
 		if (cameraIndex == m_viewport->getCameraCount())

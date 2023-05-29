@@ -65,6 +65,7 @@ protected:
 	void onDeletePressed();
 
 	// Viewport Events
+	void onMouseExited();
 	void onMouseRayButtonDown(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);
 	void onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir);
 	void onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button);

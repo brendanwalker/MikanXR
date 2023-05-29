@@ -7,11 +7,11 @@
         <style>
             body
             {
-                left: 10dp;
-                top: 20dp;
+                position:absolute; 
+                right:0px;
+                top: -45dp;
                 width: 350dp;
-                height: 500dp;
-                margin: auto;
+                height: 100%;
             }
             numeric{
                 width: 60dp;
