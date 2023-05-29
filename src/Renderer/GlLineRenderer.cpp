@@ -380,7 +380,20 @@ void drawTransformedAxes(const glm::mat4& transform, float scale)
 	drawTransformedAxes(transform, scale, scale, scale);
 }
 
-void drawTransformedAxes(const glm::mat4& transform, float xScale, float yScale, float zScale)
+void drawTransformedAxes(
+	const glm::mat4& transform,
+	float xScale, float yScale, float zScale)
+{
+	drawTransformedAxes(
+		transform,
+		xScale, yScale, zScale,
+		Colors::Red, Colors::Green, Colors::Blue);
+}
+
+void drawTransformedAxes(
+	const glm::mat4& transform,
+	float xScale, float yScale, float zScale,
+	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor)
 {
 	Renderer* renderer = Renderer::getInstance();
 	assert(renderer->getIsRenderingStage());
@@ -391,9 +404,9 @@ void drawTransformedAxes(const glm::mat4& transform, float xScale, float yScale,
 	glm::vec3 yAxis(0.f, yScale, 0.f);
 	glm::vec3 zAxis(0.f, 0.f, zScale);
 
-	lineRenderer->addSegment3d(transform, origin, Colors::Red, xAxis, Colors::Red);
-	lineRenderer->addSegment3d(transform, origin, Colors::Green, yAxis, Colors::Green);
-	lineRenderer->addSegment3d(transform, origin, Colors::Blue, zAxis, Colors::Blue);
+	lineRenderer->addSegment3d(transform, origin, Colors::Red, xAxis, xColor);
+	lineRenderer->addSegment3d(transform, origin, Colors::Green, yAxis, yColor);
+	lineRenderer->addSegment3d(transform, origin, Colors::Blue, zAxis, zColor);
 }
 
 void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::vec3& color)

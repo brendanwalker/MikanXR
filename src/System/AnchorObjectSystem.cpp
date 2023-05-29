@@ -1,6 +1,7 @@
 #include "App.h"
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
+#include "BoxColliderComponent.h"
 #include "SceneComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
@@ -296,6 +297,16 @@ AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorConfigPtr anchor
 		// Make this the origin anchor
 		m_originAnchor= anchorComponentPtr;
 	}
+
+	// Add a selection component
+	anchorObject->addComponent<SelectionComponent>();
+
+	// Attach a box collider to quad stencil component
+	const float size= 0.1f;
+	BoxColliderComponentPtr boxColliderPtr = anchorObject->addComponent<BoxColliderComponent>();
+	boxColliderPtr->setHalfExtents(glm::vec3(size * 0.5f, size * 0.5f, size * 0.5f));
+	boxColliderPtr->setRelativeTransform(GlmTransform(glm::vec3(size * 0.5f, size * 0.5f, size * 0.5f)));
+	boxColliderPtr->attachToComponent(anchorComponentPtr);
 
 	// Init the object once all components are added
 	anchorObject->init();

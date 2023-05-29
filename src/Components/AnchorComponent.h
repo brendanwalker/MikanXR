@@ -62,6 +62,6 @@ public:
 protected:
 	AnchorConfigPtr m_config;
 
-	SceneComponentWeakPtr m_sceneComponent;
+	SelectionComponentWeakPtr m_selectionComponent;
 	void applySceneComponentTransformToConfig(SceneComponentPtr sceneComponent);
 };

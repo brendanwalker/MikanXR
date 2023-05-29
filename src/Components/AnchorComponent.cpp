@@ -1,9 +1,10 @@
 #include "AnchorComponent.h"
+#include "Colors.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "SceneComponent.h"
+#include "SelectionComponent.h"
 #include "MikanObject.h"
-//#include "MikanServer.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 
@@ -98,6 +99,9 @@ void AnchorComponent::init()
 {
 	MikanComponent::init();
 
+	// Watch selection changes
+	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
+
 	// Push our world transform to all child scene components
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 }
@@ -111,7 +115,27 @@ void AnchorComponent::customRender()
 	glm::mat4 anchorXform = getWorldTransform();
 	glm::vec3 anchorPos(anchorXform[3]);
 
-	drawTransformedAxes(anchorXform, 0.1f, 0.1f, 0.1f);
+	glm::vec3 xColor = Colors::DarkRed;
+	glm::vec3 yColor = Colors::DarkGreen;
+	glm::vec3 zColor = Colors::DarkBlue;
+	SelectionComponentPtr selectionComponent = m_selectionComponent.lock();
+	if (selectionComponent)
+	{
+		if (selectionComponent->getIsSelected())
+		{
+			xColor = Colors::Red;
+			yColor = Colors::Green;
+			zColor = Colors::Blue;
+		}
+		else if (selectionComponent->getIsHovered())
+		{
+			xColor = Colors::LightGreen;
+			yColor = Colors::LightGreen;
+			zColor = Colors::LightBlue;
+		}
+	}
+
+	drawTransformedAxes(anchorXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
 	drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
 }
 
