@@ -411,7 +411,7 @@ void AppStage_Compositor::setupCameras()
 	}
 	
 	// Default to the XR Camera view
-	setXRCamera();
+	setCurrentCameraMode(eCompositorViewpointMode::mixedRealityViewpoint);
 
 	// Bind viewpoint hot keys
 	{
@@ -426,12 +426,18 @@ void AppStage_Compositor::setupCameras()
 
 void AppStage_Compositor::setXRCamera()
 {
-	setCurrentCameraMode(eCompositorViewpointMode::mixedRealityViewpoint);
+	if (m_viewport->getIsMouseInViewport())
+	{
+		setCurrentCameraMode(eCompositorViewpointMode::mixedRealityViewpoint);
+	}
 }
 
 void AppStage_Compositor::setVRCamera()
 {
-	setCurrentCameraMode(eCompositorViewpointMode::vrViewpoint);
+	if (m_viewport->getIsMouseInViewport())
+	{
+		setCurrentCameraMode(eCompositorViewpointMode::vrViewpoint);
+	}
 }
 
 void AppStage_Compositor::setCurrentCameraMode(eCompositorViewpointMode viewportMode)

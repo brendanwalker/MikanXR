@@ -36,6 +36,7 @@ public:
 	int getCameraCount() const;
 	GlCameraPtr getCameraByIndex(int cameraIndex);
 	void setCurrentCamera(int cameraIndex);
+	bool getIsMouseInViewport() const { return m_isMouseInViewport; }
 
 	// Convert cursor pixel position from app window relative to viewport relative
 	bool getCursorViewportPixelPos(glm::vec2& outViewportLocation) const;
