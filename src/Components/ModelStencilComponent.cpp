@@ -384,7 +384,7 @@ void ModelStencilComponent::setRelativeScale(const glm::vec3& scale)
 	StencilComponent::setRelativeTransform(m_relativeTransform);
 
 	if (m_bIsInitialized)
-		m_config->setModelPosition({scale.x, scale.y, scale.z});
+		m_config->setModelScale({scale.x, scale.y, scale.z});
 }
 
 void ModelStencilComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
