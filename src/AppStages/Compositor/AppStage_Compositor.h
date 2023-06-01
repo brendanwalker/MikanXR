@@ -56,6 +56,7 @@ protected:
 
 	// Main Compositor UI Events
 	void onReturnEvent();
+	void onToggleOutlinerWindowEvent();
 	void onToggleLayersWindowEvent();
 	void onToggleAnchorsWindowEvent();
 	void onToggleRecordingWindowEvent();
@@ -148,6 +149,9 @@ protected:
 
 	class RmlModel_CompositorSources* m_compositorSourcesModel = nullptr;
 	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
+
+	class RmlModel_CompositorOutliner* m_compositorOutlinerModel = nullptr;
+	Rml::ElementDocument* m_compositiorOutlinerView = nullptr;
 
 	CompositorScriptContextPtr m_scriptContext;
 	class GlFrameCompositor* m_frameCompositor= nullptr;

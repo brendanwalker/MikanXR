@@ -21,6 +21,11 @@ bool RmlModel_Compositor::init(
 			if (OnReturnEvent) OnReturnEvent();
 		});
 	constructor.BindEventCallback(
+		"toggle_outliner",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			if (OnToggleOutlinerEvent) OnToggleOutlinerEvent();
+		});
+	constructor.BindEventCallback(
 		"toggle_layers",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			if (OnToggleLayersEvent) OnToggleLayersEvent();
@@ -69,6 +74,7 @@ bool RmlModel_Compositor::init(
 void RmlModel_Compositor::dispose()
 {
 	OnReturnEvent.Clear();
+	OnToggleOutlinerEvent.Clear();
 	OnToggleLayersEvent.Clear();
 	OnToggleRecordingEvent.Clear();
 	OnToggleScriptingEvent.Clear();

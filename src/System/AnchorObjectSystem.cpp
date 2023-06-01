@@ -279,6 +279,7 @@ AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorConfigPtr anchor
 {
 	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
 	MikanObjectPtr anchorObject= newObject();
+	anchorObject->setName(anchorConfig->getAnchorName());
 
 	// Add spatial anchor component to the object
 	AnchorComponentPtr anchorComponentPtr= anchorObject->addComponent<AnchorComponent>();

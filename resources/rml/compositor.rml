@@ -20,7 +20,8 @@
     <body template="window">
         <panel id="controls" data-model="compositor">
             <span>
-                <button style="width: 80dp" data-event-click="return">Exit</button>
+                <button style="width: 80dp" data-event-click="return">Back</button>
+                <button style="width: 120dp" data-event-click="toggle_outliner">Outliner</button>
                 <button style="width: 120dp" data-event-click="toggle_layers">Layers</button>
                 <button style="width: 120dp" data-event-click="toggle_recording">Recording</button>
                 <button style="width: 120dp" data-event-click="toggle_scripting">Scripting</button>

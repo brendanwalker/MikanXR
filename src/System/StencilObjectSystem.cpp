@@ -235,6 +235,7 @@ void StencilObjectSystem::getRelevantQuadStencilList(
 QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(QuadStencilConfigPtr quadConfig)
 {
 	MikanObjectPtr stencilObject = newObject();
+	stencilObject->setName(quadConfig->getStencilName());
 
 	// Make the QuadStencil component the root of the object
 	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
@@ -378,6 +379,7 @@ void StencilObjectSystem::getRelevantBoxStencilList(
 BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(BoxStencilConfigPtr boxConfig)
 {
 	MikanObjectPtr stencilObject = newObject();
+	stencilObject->setName(boxConfig->getStencilName());
 
 	// Make the box stencil the root scene component
 	BoxStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<BoxStencilComponent>();
@@ -502,6 +504,7 @@ void StencilObjectSystem::getRelevantModelStencilList(
 ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelStencilConfigPtr modelConfig)
 {
 	MikanObjectPtr stencilObject = newObject();
+	stencilObject->setName(modelConfig->getStencilName());
 
 	// Make the model stencil component the root object
 	ModelStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<ModelStencilComponent>();

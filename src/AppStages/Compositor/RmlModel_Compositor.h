@@ -10,6 +10,7 @@ public:
 	virtual void dispose() override;
 
 	SinglecastDelegate<void()> OnReturnEvent;
+	SinglecastDelegate<void()> OnToggleOutlinerEvent;
 	SinglecastDelegate<void()> OnToggleLayersEvent;
 	SinglecastDelegate<void()> OnToggleRecordingEvent;
 	SinglecastDelegate<void()> OnToggleScriptingEvent;

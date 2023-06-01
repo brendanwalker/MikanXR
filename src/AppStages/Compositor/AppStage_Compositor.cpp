@@ -8,6 +8,7 @@
 #include "Compositor/RmlModel_CompositorLayers.h"
 #include "Compositor/RmlModel_CompositorAnchors.h"
 #include "Compositor/RmlModel_CompositorBoxes.h"
+#include "Compositor/RmlModel_CompositorOutliner.h"
 #include "Compositor/RmlModel_CompositorQuads.h"
 #include "Compositor/RmlModel_CompositorModels.h"
 #include "Compositor/RmlModel_CompositorRecording.h"
@@ -76,6 +77,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorRecordingModel(new RmlModel_CompositorRecording)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorSourcesModel(new RmlModel_CompositorSources)
+	, m_compositorOutlinerModel(new RmlModel_CompositorOutliner)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 	, m_videoWriter(new VideoWriter)
 {
@@ -94,6 +96,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorRecordingModel;
 	delete m_compositorScriptingModel;
 	delete m_compositorSourcesModel;
+	delete m_compositorOutlinerModel;
 	m_scriptContext.reset();
 	delete m_videoWriter;
 }
@@ -160,6 +163,7 @@ void AppStage_Compositor::enter()
 		// Init main compositor UI
 		m_compositorModel->init(context);
 		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
+		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Compositor::onToggleOutlinerWindowEvent);
 		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersWindowEvent);
 		m_compositorModel->OnToggleAnchorsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleAnchorsWindowEvent);
 		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingWindowEvent);
@@ -169,6 +173,11 @@ void AppStage_Compositor::enter()
 		m_compositorModel->OnToggleModelStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleModelStencilsWindowEvent);
 		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesWindowEvent);
 		m_compositiorView = addRmlDocument("compositor.rml");
+
+		// Init Outliner UI
+		m_compositorOutlinerModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
+		m_compositiorOutlinerView = addRmlDocument("compositor_outliner.rml");
+		m_compositiorOutlinerView->Show();
 
 		// Init Layers UI
 		m_compositorLayersModel->init(context, m_frameCompositor);
@@ -194,7 +203,7 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->OnMat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onMat4MappingChangedEvent);
 		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
 		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
-		m_compositiorLayersView->Show();
+		m_compositiorLayersView->Hide();
 
 		// Init Anchors UI
 		m_compositorAnchorsModel->init(context, m_profile, m_anchorObjectSystem);
@@ -254,6 +263,7 @@ void AppStage_Compositor::exit()
 
 	m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
+	m_compositorOutlinerModel->dispose();
 	m_compositorLayersModel->dispose();
 	m_compositorAnchorsModel->dispose();
 	m_compositorBoxesModel->dispose();
@@ -283,7 +293,7 @@ void AppStage_Compositor::resume()
 	m_frameCompositor->start();
 
 	hideAllSubWindows();
-	m_compositiorLayersView->Show();
+	m_compositiorOutlinerView->Show();
 }
 
 void AppStage_Compositor::update(float deltaSeconds)
@@ -474,6 +484,12 @@ void AppStage_Compositor::updateCamera()
 void AppStage_Compositor::onReturnEvent()
 {
 	m_app->popAppState();
+}
+
+void AppStage_Compositor::onToggleOutlinerWindowEvent()
+{
+	hideAllSubWindows();
+	if (m_compositiorOutlinerView) m_compositiorOutlinerView->Show();
 }
 
 void AppStage_Compositor::onToggleLayersWindowEvent()
@@ -735,6 +751,7 @@ void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clien
 
 void AppStage_Compositor::hideAllSubWindows()
 {
+	if (m_compositiorOutlinerView) m_compositiorOutlinerView->Hide();
 	if (m_compositiorLayersView) m_compositiorLayersView->Hide();
 	if (m_compositiorAnchorsView) m_compositiorAnchorsView->Hide();
 	if (m_compositiorQuadsView) m_compositiorQuadsView->Hide();
