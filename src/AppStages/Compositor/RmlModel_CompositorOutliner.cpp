@@ -1,6 +1,8 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
+#include "EditorObjectSystem.h"
 #include "MikanObject.h"
+#include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
 #include "SceneComponent.h"
 #include "RmlModel_CompositorOutliner.h"
@@ -46,6 +48,7 @@ bool RmlModel_CompositorOutliner::init(
 	constructor.Bind("objects", &m_componentOutliner);
 
 	// Bind data model callbacks
+	constructor.BindEventCallback("select_object_entry", &RmlModel_CompositorOutliner::selectObjectEntry, this);
 
 	// Listen for anchor config changes
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty +=
@@ -110,7 +113,9 @@ void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneCompo
 	if (ownerObject->getRootComponent() == sceneComponentPtr)
 	{
 		const std::string& objectName= ownerObject->getName();
-		RmlModel_CompositorObject object = {objectName.empty() ? "<No Name>" : objectName, depth};
+		SelectionComponentPtr selectionComponent= ownerObject->getComponentOfType<SelectionComponent>();
+
+		RmlModel_CompositorObject object = {objectName.empty() ? "<No Name>" : objectName, depth, selectionComponent};
 		m_componentOutliner.push_back(object);
 	}
 
@@ -129,5 +134,26 @@ void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneCompo
 
 			addSceneComponent(childSceneComponentPtr, objectDepth);
 		}
+	}
+}
+
+void RmlModel_CompositorOutliner::selectObjectEntry(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	// The index of the file/directory being toggled is passed in as the first parameter.
+	const size_t toggle_index = (size_t)parameters[0].Get<int>();
+	if (toggle_index >= m_componentOutliner.size())
+		return;
+
+	const RmlModel_CompositorObject& selectedObject = m_componentOutliner[toggle_index];
+	SelectionComponentPtr selectionComponent= selectedObject.selectionComponent.lock();
+	if (selectionComponent)
+	{
+		EditorObjectSystem::getSystem()->setSelection(selectionComponent);
 	}
 }

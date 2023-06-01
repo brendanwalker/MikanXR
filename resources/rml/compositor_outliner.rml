@@ -51,7 +51,7 @@
                     <tr data-for="object : objects">
                         <td>
                             <spacer data-style-width="25 * object.depth + 'dp'"/>
-                            {{ object.name }}
+                            <label data-event-click="select_object_entry(it_index)">{{ object.name }}</label>
                         </td>
                     </tr>
                 </tbody>

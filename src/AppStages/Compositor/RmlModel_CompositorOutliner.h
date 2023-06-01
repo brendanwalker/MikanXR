@@ -8,6 +8,7 @@ struct RmlModel_CompositorObject
 {
 	Rml::String name;
 	int depth;
+	SelectionComponentWeakPtr selectionComponent;
 };
 
 class RmlModel_CompositorOutliner : public RmlModel
@@ -20,6 +21,8 @@ public:
 	virtual void dispose() override;
 
 private:
+	void selectObjectEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+
 	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void stencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 

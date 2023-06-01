@@ -366,6 +366,20 @@ void EditorObjectSystem::onSelectionChanged(
 	}
 }
 
+void EditorObjectSystem::setSelection(SelectionComponentPtr newSelectedComponentPtr)
+{
+	// See if the current selection is changing
+	SelectionComponentPtr oldSelectedComponentPtr = m_selectedComponentWeakPtr.lock();
+	if (oldSelectedComponentPtr != newSelectedComponentPtr)
+	{
+		// Update the selection component weak ptr
+		m_selectedComponentWeakPtr = newSelectedComponentPtr;
+
+		// Send notification of selection change
+		onSelectionChanged(oldSelectedComponentPtr, newSelectedComponentPtr);
+	}
+}
+
 SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 	const glm::vec3& rayOrigin, 
 	const glm::vec3& rayDir,

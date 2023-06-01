@@ -42,6 +42,8 @@ public:
 	void bindViewport(GlViewportWeakPtr viewportWeakPtr);
 	void clearViewports();
 
+	void setSelection(SelectionComponentPtr newComponentPtr);
+
 protected:
 
 	MikanScenePtr m_scene;
