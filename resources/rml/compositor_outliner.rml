@@ -48,10 +48,10 @@
                     <tr><td style="margin-left: 10dp; margin-right: 10dp;"></td></tr>
                 </thead>
                 <tbody>
-                    <tr data-for="component : components">
+                    <tr data-for="object : objects">
                         <td>
-                            <spacer data-style-width="25 * component.depth + 'dp'"/>
-                            {{ component.name }}
+                            <spacer data-style-width="25 * object.depth + 'dp'"/>
+                            {{ object.name }}
                         </td>
                     </tr>
                 </tbody>

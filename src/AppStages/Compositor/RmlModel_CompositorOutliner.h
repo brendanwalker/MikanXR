@@ -4,7 +4,7 @@
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 
-struct RmlModel_CompositorComponent
+struct RmlModel_CompositorObject
 {
 	Rml::String name;
 	int depth;
@@ -28,7 +28,7 @@ private:
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	StencilObjectSystemPtr m_stencilSystemPtr;
-	Rml::Vector<RmlModel_CompositorComponent> m_componentOutliner;
+	Rml::Vector<RmlModel_CompositorObject> m_componentOutliner;
 
 	static bool s_bHasRegisteredTypes;
 };

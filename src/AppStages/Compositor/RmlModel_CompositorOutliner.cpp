@@ -30,10 +30,10 @@ bool RmlModel_CompositorOutliner::init(
 	if (!s_bHasRegisteredTypes)
 	{
 		// One time registration for compositor layer struct.
-		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorComponent>())
+		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorObject>())
 		{
-			layer_model_handle.RegisterMember("name", &RmlModel_CompositorComponent::name);
-			layer_model_handle.RegisterMember("depth", &RmlModel_CompositorComponent::depth);
+			layer_model_handle.RegisterMember("name", &RmlModel_CompositorObject::name);
+			layer_model_handle.RegisterMember("depth", &RmlModel_CompositorObject::depth);
 		}
 
 		// One time registration for an array of stencil quads.
@@ -43,7 +43,7 @@ bool RmlModel_CompositorOutliner::init(
 	}
 
 	// Register Data Model Fields
-	constructor.Bind("components", &m_componentOutliner);
+	constructor.Bind("objects", &m_componentOutliner);
 
 	// Bind data model callbacks
 
@@ -101,14 +101,18 @@ void RmlModel_CompositorOutliner::rebuildComponentList()
 	m_componentOutliner.clear();
 	addSceneComponent(rootComponentPtr, 0);
 
-	m_modelHandle.DirtyVariable("components");
+	m_modelHandle.DirtyVariable("objects");
 }
 
 void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneComponentPtr, int depth)
 {
-	const std::string& componentName= sceneComponentPtr->getName();
-	RmlModel_CompositorComponent object = {componentName.empty() ? "<No Name>" : componentName, depth};
-	m_componentOutliner.push_back(object);
+	MikanObjectPtr ownerObject= sceneComponentPtr->getOwnerObject();
+	if (ownerObject->getRootComponent() == sceneComponentPtr)
+	{
+		const std::string& objectName= ownerObject->getName();
+		RmlModel_CompositorObject object = {objectName.empty() ? "<No Name>" : objectName, depth};
+		m_componentOutliner.push_back(object);
+	}
 
 	for (SceneComponentWeakPtr childSceneComponentWeakPtr : sceneComponentPtr->getChildComponents())
 	{
@@ -116,7 +120,14 @@ void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneCompo
 		
 		if (childSceneComponentPtr)
 		{
-			addSceneComponent(childSceneComponentPtr, depth + 1);
+			int objectDepth= depth;
+
+			if (childSceneComponentPtr->getOwnerObject() != ownerObject)
+			{
+				objectDepth++;
+			}
+
+			addSceneComponent(childSceneComponentPtr, objectDepth);
 		}
 	}
 }
