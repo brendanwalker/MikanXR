@@ -139,6 +139,13 @@ void glm_mat4_set_z_axis(glm::mat4& xform, const glm::vec3& v)
 	xform[2]= glm::vec4(v, 0.f);  // z-axis
 }
 
+void glm_mat4_set_rotation(glm::mat4& xform, const glm::mat3& R)
+{
+	glm_mat4_set_x_axis(xform, R[0]);
+	glm_mat4_set_y_axis(xform, R[1]);
+	glm_mat4_set_z_axis(xform, R[2]);
+}
+
 void glm_mat4_set_position(glm::mat4& xform, const glm::vec3& v)
 {
 	xform[3]= glm::vec4(v, 1.f); // position

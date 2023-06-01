@@ -46,6 +46,7 @@ glm::vec3 glm_mat4_get_position(const glm::mat4& xform);
 void glm_mat4_set_x_axis(glm::mat4& xform, const glm::vec3& v);
 void glm_mat4_set_y_axis(glm::mat4& xform, const glm::vec3& v);
 void glm_mat4_set_z_axis(glm::mat4& xform, const glm::vec3& v);
+void glm_mat4_set_rotation(glm::mat4& xform, const glm::mat3& R);
 void glm_mat4_set_position(glm::mat4& xform, const glm::vec3& v);
 
 void glm_xform_points(const glm::mat4& xform, glm::vec3* points, size_t point_count);

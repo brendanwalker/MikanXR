@@ -85,6 +85,8 @@ protected:
 	glm::mat4 m_stationaryTransform;
 
 	// Stationary camera parameters
+	float m_flyYawDegrees;
+	float m_flyPitchDegrees;
 	glm::mat4 m_flyTransform;
 
 	// Orbit camera parameters

@@ -8,6 +8,7 @@
 #include "Renderer.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #if defined(_WIN32)
 	#include <SDL_events.h>
@@ -48,6 +49,8 @@ GlCamera::GlCamera()
 	m_orbitTargetPosition= glm::vec3(0.0f);
 
 	// Default to fly movement
+	m_flyYawDegrees = 0.0f;
+	m_flyPitchDegrees = 0.0f;
 	m_movementMode = eCameraMovementMode::fly;
 	applyFlyParamsToViewMatrix();
 }
@@ -187,11 +190,15 @@ void GlCamera::adjustFlyYaw(float deltaDegrees)
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
 		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
-		const glm::mat4 orientation = glm::mat3(m_flyTransform);
-		const glm::vec3 yawAxis = glm_mat4_get_y_axis(m_flyTransform);
-		const glm::mat4 delta = glm::rotate(glm::mat4(1.f), deltaDegrees * k_degrees_to_radians, yawAxis);
 
-		m_flyTransform= glm_composite_xform(orientation, delta);
+		m_flyYawDegrees = wrap_degrees(m_flyYawDegrees + deltaDegrees);
+		const float yawRadians = degrees_to_radians(m_flyYawDegrees);
+		const float pitchRadians = degrees_to_radians(m_flyPitchDegrees);
+		glm::mat3 yawRot= glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
+		glm::mat3 pitchRot= glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
+		const glm::mat4 orientation = glm_composite_xform(yawRot, pitchRot);
+		
+		glm_mat4_set_rotation(m_flyTransform, orientation);
 		glm_mat4_set_position(m_flyTransform, position);
 
 		applyFlyParamsToViewMatrix();
@@ -203,11 +210,15 @@ void GlCamera::adjustFlyPitch(float deltaDegrees)
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
 		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
-		const glm::mat4 orientation = glm::mat3(m_flyTransform);
-		const glm::vec3 pitchAxis = glm_mat4_get_x_axis(m_flyTransform);
-		const glm::mat4 delta = glm::rotate(glm::mat4(1.f), -deltaDegrees * k_degrees_to_radians, pitchAxis);
 
-		m_flyTransform = glm_composite_xform(orientation, delta);
+		m_flyPitchDegrees = clampf(m_flyPitchDegrees - deltaDegrees, -90.f, 90.f);
+		const float yawRadians = degrees_to_radians(m_flyYawDegrees);
+		const float pitchRadians = degrees_to_radians(m_flyPitchDegrees);
+		glm::mat3 yawRot = glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
+		glm::mat3 pitchRot = glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
+		const glm::mat4 orientation = glm_composite_xform(yawRot, pitchRot);
+
+		glm_mat4_set_rotation(m_flyTransform, orientation);
 		glm_mat4_set_position(m_flyTransform, position);
 
 		applyFlyParamsToViewMatrix();
