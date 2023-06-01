@@ -288,6 +288,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 					triMeshPtr->getName(),
 					triMeshPtr,
 					materialInstancePtr);
+			triMeshInstancePtr->setVisible(false);
 
 			// Create a static mesh component to hold the mesh instance
 			StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
@@ -317,7 +318,9 @@ void ModelStencilComponent::rebuildMeshComponents()
 					"wireframe",
 					wireframeMeshPtr,
 					materialInstancePtr);
-			wireframeMeshInstancePtr->setVisible(false);
+			wireframeMeshInstancePtr->getMaterialInstance()->setVec4BySemantic(
+				eUniformSemantic::diffuseColorRGBA,
+				glm::vec4(Colors::DarkGray, 1.f));
 			m_wireframeMeshes.push_back(wireframeMeshInstancePtr);
 
 			// Create a static mesh component to hold the mesh instance
@@ -434,7 +437,7 @@ void ModelStencilComponent::onInteractionRayOverlapEnter(const ColliderRaycastHi
 			meshPtr->getMaterialInstance()->setVec4BySemantic(
 				eUniformSemantic::diffuseColorRGBA, 
 				glm::vec4(Colors::LightGray, 1.f));
-			meshPtr->setVisible(true);
+			//meshPtr->setVisible(true);
 		}
 	}
 }
@@ -446,7 +449,10 @@ void ModelStencilComponent::onInteractionRayOverlapExit(const ColliderRaycastHit
 	{
 		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
 		{
-			meshPtr->setVisible(false);
+			meshPtr->getMaterialInstance()->setVec4BySemantic(
+				eUniformSemantic::diffuseColorRGBA,
+				glm::vec4(Colors::DarkGray, 1.f));
+			//meshPtr->setVisible(false);
 		}
 	}
 }
@@ -461,7 +467,7 @@ void ModelStencilComponent::onInteractionSelected()
 			meshPtr->getMaterialInstance()->setVec4BySemantic(
 				eUniformSemantic::diffuseColorRGBA, 
 				glm::vec4(Colors::Yellow, 1.f));
-			meshPtr->setVisible(true);
+			//meshPtr->setVisible(true);
 		}
 	}
 }
@@ -478,14 +484,17 @@ void ModelStencilComponent::onInteractionUnselected()
 				meshPtr->getMaterialInstance()->setVec4BySemantic(
 					eUniformSemantic::diffuseColorRGBA, 
 					glm::vec4(Colors::LightGray, 1.f));
-				meshPtr->setVisible(true);
+				//meshPtr->setVisible(true);
 			}
 		}
 		else
 		{
 			for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
 			{
-				meshPtr->setVisible(false);
+				meshPtr->getMaterialInstance()->setVec4BySemantic(
+					eUniformSemantic::diffuseColorRGBA,
+					glm::vec4(Colors::DarkGray, 1.f));
+				//meshPtr->setVisible(false);
 			}
 		}
 	}
