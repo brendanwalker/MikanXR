@@ -512,6 +512,9 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 	// Setting the config will spawn child mesh componets, if any
 	stencilComponentPtr->setConfig(modelConfig);
 
+	// Add a selection component
+	stencilObject->addComponent<SelectionComponent>();
+
 	// Init the object once all components are added
 	stencilObject->init();
 

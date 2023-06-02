@@ -15,6 +15,7 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
+	void rebindColliders();
 	bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
 		ColliderRaycastHitResult& outResult) const;
@@ -40,7 +41,7 @@ public:
 	bool getIsSelected() const { return m_bIsSelected; }
 
 protected:
-	std::vector<ColliderComponentPtr> m_colliders;
+	std::vector<ColliderComponentWeakPtr> m_colliders;
 	bool m_bIsHovered = false;
 	bool m_bIsGrabbed = false;
 	bool m_bIsSelected= false;

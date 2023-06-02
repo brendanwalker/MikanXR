@@ -85,6 +85,20 @@ public:
 		}
 	}
 
+	template<class t_component_type>
+	void getComponentsOfWeakType(std::vector< std::weak_ptr<t_component_type> >& outComponents)
+	{
+		for (MikanComponentPtr component : m_components)
+		{
+			std::shared_ptr<t_component_type> derivedComponent = ComponentCast<t_component_type>(component);
+
+			if (derivedComponent != nullptr)
+			{
+				outComponents.push_back(derivedComponent);
+			}
+		}
+	}
+
 	inline MikanObjectSystemPtr getOwnerSystem() const { return m_ownerObjectSystem.lock(); }
 	inline SceneComponentPtr getRootComponent() const { return m_rootSceneComponent.lock(); }
 	inline void setRootComponent(SceneComponentWeakPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }

@@ -13,7 +13,7 @@ void SelectionComponent::init()
 {
 	MikanComponent::init();
 
-	getOwnerObject()->getComponentsOfType<ColliderComponent>(m_colliders);
+	rebindColliders();
 }
 
 void SelectionComponent::dispose()
@@ -23,15 +23,22 @@ void SelectionComponent::dispose()
 	MikanComponent::dispose();
 }
 
+void SelectionComponent::rebindColliders()
+{
+	getOwnerObject()->getComponentsOfWeakType<ColliderComponent>(m_colliders);
+}
+
 bool SelectionComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {
 	bool bAnyHits= false;
 
-	for (auto& colliderPtr : m_colliders)
+	for (auto& colliderWeakPtr : m_colliders)
 	{
-		if (colliderPtr->getEnabled())
+		auto colliderPtr= colliderWeakPtr.lock();
+
+		if (colliderPtr && colliderPtr->getEnabled())
 		{
 			ColliderRaycastHitResult result;
 			if (colliderPtr->computeRayIntersection(request, result))
