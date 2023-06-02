@@ -364,6 +364,10 @@ void EditorObjectSystem::onSelectionChanged(
 	{
 		gizmoComponentPtr->clearTransformTarget();
 	}
+
+	// Send an event for the selection changing
+	if (OnSelectionChanged)
+		OnSelectionChanged();
 }
 
 void EditorObjectSystem::setSelection(SelectionComponentPtr newSelectedComponentPtr)

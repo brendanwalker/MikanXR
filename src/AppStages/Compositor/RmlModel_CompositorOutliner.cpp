@@ -18,9 +18,11 @@ bool RmlModel_CompositorOutliner::s_bHasRegisteredTypes = false;
 bool RmlModel_CompositorOutliner::init(
 	Rml::Context* rmlContext,
 	AnchorObjectSystemPtr anchorSystemPtr,
+	EditorObjectSystemPtr editorSystemPtr,
 	StencilObjectSystemPtr stencilSystemPtr)
 {
 	m_anchorSystemPtr= anchorSystemPtr;
+	m_editorSystemPtr= editorSystemPtr;
 	m_stencilSystemPtr= stencilSystemPtr;
 
 	// Create Datamodel
@@ -46,6 +48,7 @@ bool RmlModel_CompositorOutliner::init(
 
 	// Register Data Model Fields
 	constructor.Bind("objects", &m_componentOutliner);
+	constructor.Bind("selection_index", &m_selectionIndex);	
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("select_object_entry", &RmlModel_CompositorOutliner::selectObjectEntry, this);
@@ -53,6 +56,10 @@ bool RmlModel_CompositorOutliner::init(
 	// Listen for anchor config changes
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty +=
 		MakeDelegate(this, &RmlModel_CompositorOutliner::anchorSystemConfigMarkedDirty);
+
+	// Listen for selection changes
+	m_editorSystemPtr->OnSelectionChanged += 
+		MakeDelegate(this, &RmlModel_CompositorOutliner::updateSelection);
 
 	// Listen for stencil config changes
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty +=
@@ -68,6 +75,9 @@ void RmlModel_CompositorOutliner::dispose()
 {
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty -=
 		MakeDelegate(this, &RmlModel_CompositorOutliner::stencilSystemConfigMarkedDirty);
+
+	m_editorSystemPtr->OnSelectionChanged -=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::updateSelection);
 
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty -=
 		MakeDelegate(this, &RmlModel_CompositorOutliner::anchorSystemConfigMarkedDirty);
@@ -103,8 +113,26 @@ void RmlModel_CompositorOutliner::rebuildComponentList()
 
 	m_componentOutliner.clear();
 	addSceneComponent(rootComponentPtr, 0);
-
 	m_modelHandle.DirtyVariable("objects");
+
+	updateSelection();
+}
+
+void RmlModel_CompositorOutliner::updateSelection()
+{
+	// Find the index of the currently selected component (if any)
+	m_selectionIndex = -1;
+	SelectionComponentPtr currentSelection = m_editorSystemPtr->getSelection();
+	for (int list_index = 0; list_index < m_componentOutliner.size(); ++list_index)
+	{
+		SelectionComponentPtr testComponentPtr = m_componentOutliner[list_index].selectionComponent.lock();
+		if (testComponentPtr == currentSelection)
+		{
+			m_selectionIndex = list_index;
+			break;
+		}
+	}
+	m_modelHandle.DirtyVariable("selection_index");
 }
 
 void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneComponentPtr, int depth)
@@ -154,6 +182,6 @@ void RmlModel_CompositorOutliner::selectObjectEntry(
 	SelectionComponentPtr selectionComponent= selectedObject.selectionComponent.lock();
 	if (selectionComponent)
 	{
-		EditorObjectSystem::getSystem()->setSelection(selectionComponent);
+		m_editorSystemPtr->setSelection(selectionComponent);
 	}
 }

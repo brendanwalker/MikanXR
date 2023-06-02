@@ -17,6 +17,7 @@ public:
 	bool init(
 		Rml::Context* rmlContext,
 		AnchorObjectSystemPtr anchorSystemPtr,
+		EditorObjectSystemPtr editorSystemPtr,
 		StencilObjectSystemPtr stencilSystemPtr);
 	virtual void dispose() override;
 
@@ -27,11 +28,14 @@ private:
 	void stencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
 	void rebuildComponentList();
+	void updateSelection();
 	void addSceneComponent(SceneComponentPtr sceneComponentPtr, int depth);
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;
+	EditorObjectSystemPtr m_editorSystemPtr;
 	StencilObjectSystemPtr m_stencilSystemPtr;
 	Rml::Vector<RmlModel_CompositorObject> m_componentOutliner;
+	int m_selectionIndex= -1;
 
 	static bool s_bHasRegisteredTypes;
 };

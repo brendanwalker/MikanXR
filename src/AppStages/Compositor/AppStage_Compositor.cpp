@@ -175,7 +175,7 @@ void AppStage_Compositor::enter()
 		m_compositiorView = addRmlDocument("compositor.rml");
 
 		// Init Outliner UI
-		m_compositorOutlinerModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
+		m_compositorOutlinerModel->init(context, m_anchorObjectSystem, m_editorSystem, m_stencilObjectSystem);
 		m_compositiorOutlinerView = addRmlDocument("compositor_outliner.rml");
 		m_compositiorOutlinerView->Show();
 

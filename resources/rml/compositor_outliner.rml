@@ -38,7 +38,12 @@
                 margin-left: 0dp;
                 margin-right: 5dp;
                 vertical-align: -8dp;
-            }          
+            }
+            highlight_label
+            {
+                decorator: gradient( horizontal #DB6565 #F1B58A );
+                border: 2px #DB6565;
+            }                 
         </style>
 	</head>
 	<body template="window">
@@ -51,7 +56,8 @@
                     <tr data-for="object : objects">
                         <td>
                             <spacer data-style-width="25 * object.depth + 'dp'"/>
-                            <label data-event-click="select_object_entry(it_index)">{{ object.name }}</label>
+                            <label data-if="it_index != selection_index" data-event-click="select_object_entry(it_index)">{{ object.name }}</label>
+                            <highlight_label data-if="it_index == selection_index">{{ object.name }}</highlight_label>
                         </td>
                     </tr>
                 </tbody>

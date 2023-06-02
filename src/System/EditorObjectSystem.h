@@ -5,6 +5,7 @@
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "GizmoFwd.h"
+#include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "RendererFwd.h"
 #include "SceneFwd.h"
@@ -42,7 +43,9 @@ public:
 	void bindViewport(GlViewportWeakPtr viewportWeakPtr);
 	void clearViewports();
 
+	SelectionComponentPtr getSelection() const { return m_selectedComponentWeakPtr.lock(); }
 	void setSelection(SelectionComponentPtr newComponentPtr);
+	MulticastDelegate<void()> OnSelectionChanged;
 
 protected:
 
