@@ -151,6 +151,7 @@ protected:
 	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
 
 	class RmlModel_CompositorOutliner* m_compositorOutlinerModel = nullptr;
+	class RmlModel_CompositorSelection* m_compositorSelectionModel = nullptr;
 	Rml::ElementDocument* m_compositiorOutlinerView = nullptr;
 
 	CompositorScriptContextPtr m_scriptContext;

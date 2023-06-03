@@ -39,6 +39,7 @@ class ConfigPropertyChangeSet
 public:
 	ConfigPropertyChangeSet& addPropertyName(const std::string& propertyName);
 	bool hasPropertyName(const std::string& propertyName) const;
+	const std::set<std::string>& getSet() const { return m_changedProperties; }
 
 private:
 	std::set<std::string> m_changedProperties;

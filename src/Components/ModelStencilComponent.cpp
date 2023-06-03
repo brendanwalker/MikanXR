@@ -23,6 +23,9 @@
 #include "ModelStencilComponent.h"
 #include "StringUtils.h"
 
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+
 #include <glm/gtx/matrix_decompose.hpp>
 
 // -- ModelStencilConfig -----
@@ -487,4 +490,54 @@ void ModelStencilComponent::onInteractionUnselected()
 			}
 		}
 	}
+}
+
+// -- IPropertyInterface ----
+void ModelStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilPositionPropertyId);
+}
+
+bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
+{
+	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
+	{
+		outDescriptor = {ModelStencilConfig::k_modelStencilPositionPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
+		return true;
+	}
+
+	return false;
+}
+
+bool ModelStencilComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+{
+	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
+	{
+		MikanVector3f v= m_config->getModelPosition();
+		Rml::Vector3f rml_vec(v.x, v.y, v.z);
+
+		outValue = rml_vec;
+		return true;
+	}
+
+	return false;
+}
+
+bool ModelStencilComponent::getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const
+{
+	return false;
+}
+
+bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+{
+	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
+	{
+		Rml::Vector3f rml_vec= inValue.Get<Rml::Vector3f>();
+		glm::vec3 glm_vec(rml_vec.x, rml_vec.y, rml_vec.z);
+
+		setRelativePosition(glm_vec);
+		return true;
+	}
+
+	return false;
 }

@@ -6,4 +6,5 @@ namespace Rml
 {
 	class Context;
 	class ElementDocument;
+	class Variant;
 }

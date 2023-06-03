@@ -14,6 +14,7 @@
 #include "Compositor/RmlModel_CompositorRecording.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSources.h"
+#include "Compositor/RmlModel_CompositorSelection.h"
 #include "EditorObjectSystem.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
@@ -78,6 +79,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_compositorOutlinerModel(new RmlModel_CompositorOutliner)
+	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 	, m_videoWriter(new VideoWriter)
 {
@@ -97,6 +99,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorScriptingModel;
 	delete m_compositorSourcesModel;
 	delete m_compositorOutlinerModel;
+	delete m_compositorSelectionModel;
 	m_scriptContext.reset();
 	delete m_videoWriter;
 }
@@ -176,6 +179,7 @@ void AppStage_Compositor::enter()
 
 		// Init Outliner UI
 		m_compositorOutlinerModel->init(context, m_anchorObjectSystem, m_editorSystem, m_stencilObjectSystem);
+		m_compositorSelectionModel->init(context, m_anchorObjectSystem, m_editorSystem, m_stencilObjectSystem);
 		m_compositiorOutlinerView = addRmlDocument("compositor_outliner.rml");
 		m_compositiorOutlinerView->Show();
 
@@ -263,6 +267,7 @@ void AppStage_Compositor::exit()
 
 	m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
+	m_compositorSelectionModel->dispose();
 	m_compositorOutlinerModel->dispose();
 	m_compositorLayersModel->dispose();
 	m_compositorAnchorsModel->dispose();

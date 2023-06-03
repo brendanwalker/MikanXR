@@ -74,6 +74,7 @@ public:
 	virtual void customRender() override;
 	virtual void dispose() override;
 
+	virtual CommonConfigPtr getComponentConfig() const override { return m_config; }
 	inline ModelStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(ModelStencilConfigPtr config);
 
@@ -95,6 +96,13 @@ public:
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
 	void onInteractionSelected();
 	void onInteractionUnselected();
+
+	// -- IPropertyInterface ----
+	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
+	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
+	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
 	ModelStencilConfigPtr m_config;

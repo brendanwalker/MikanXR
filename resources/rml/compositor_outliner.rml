@@ -43,7 +43,19 @@
             {
                 decorator: gradient( horizontal #DB6565 #F1B58A );
                 border: 2px #DB6565;
-            }                 
+            }
+            .filename-box
+            {
+                margin-top: 5dp;
+                decorator: gradient( vertical #415857 #5990A3 );
+                border: 3dp #415857;
+                border-radius: 8dp;
+            }
+            filename
+            {
+                font-size: 14dp;
+                vertical-align: -5dp;
+            }                
         </style>
 	</head>
 	<body template="window">
@@ -61,7 +73,62 @@
                         </td>
                     </tr>
                 </tbody>
-            </table>        
+            </table>
         </panel>
+        <panel id="scene_selection" data-model="compositor_selection">
+            <div data-if="component_fields.size > 0">
+                <table>
+                    <thead>
+                        <tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+                    </thead>
+                    <tbody>
+                        <tr data-for="field : component_fields">
+                            <td>
+                                <div data-if="field.semantic == 'name'">
+                                    Name&nbsp;
+                                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-event-change="modify_string(field.field_index)" data-value="field.string"/>
+                                </div>                              
+                                <div data-if="field.semantic == 'position'">
+                                    Position&nbsp;
+                                    <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>
+                                    <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_y"/>
+                                    <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_z"/>                                
+                                </div>
+                                <div data-if="field.semantic == 'rotation'">
+                                    Rotation&nbsp;
+                                    <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>
+                                    <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_y"/>
+                                    <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_z"/>
+                                </div>
+                                <div data-if="field.semantic == 'scale'">
+                                    Scale&nbsp;
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_y"/>
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_z"/>
+                                </div>                                                          
+                                <div data-if="field.semantic == 'size3d'">
+                                    Size&nbsp;
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_y"/>
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_z"/>                                
+                                </div>
+                                <div data-if="field.semantic == 'size2d'">
+                                    Size&nbsp;
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec2_x"/>
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec2_y"/>
+                                </div>                            
+                                <div data-if="field.semantic == 'checkbox'">
+                                    <label><input type="checkbox" name="flag" data-event-change="modify_field(field.field_index)" data-value="field.boolean" />{{field.field_name}}</label>
+                                </div>
+                                <div data-if="field.semantic == 'filename'" class="filename-box">
+                                    <filename>{{field.string | to_short_path(30)}}</filename>
+                                    <button style="width: 40dp" data-event-click="select_filepath(field.field_index)">...</button>
+                                </div>                                
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </panel>        
     </body>
 </rml>

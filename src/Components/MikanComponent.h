@@ -1,19 +1,26 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "CommonConfigFwd.h"
 #include "ComponentProperty.h"
 #include "ObjectFwd.h"
 #include "MulticastDelegate.h"
+#include "PropertyInterface.h"
 
 #include <memory>
 #include <typeinfo>
 
 
-class MikanComponent : public std::enable_shared_from_this<MikanComponent>
+class MikanComponent : 
+	public std::enable_shared_from_this<MikanComponent>,
+	public IPropertyInterface
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
 	
+	virtual CommonConfigPtr getComponentConfig() const { return CommonConfigPtr(); }
+
+	static const std::string k_componentNamePropertyId;
 	virtual void setName(const std::string& name) { m_name= name; }
 	const std::string& getName() const { return m_name; }
 
@@ -51,6 +58,13 @@ public:
 
 	// set m_bWantsCustomRender to true in constructor to make this function be called
 	virtual void customRender() {}
+
+	// -- IPropertyInterface ----
+	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
+	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
+	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
 	bool m_bIsInitialized= false;

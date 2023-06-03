@@ -219,6 +219,15 @@ void RmlManager::registerCommonDataModelTypes()
 		struct_handle.RegisterMember("z", &Rml::Vector3f::z);
 	}
 
+	// Vector4f
+	if (auto struct_handle = constructor.RegisterStruct<Rml::Vector4f>())
+	{
+		struct_handle.RegisterMember("x", &Rml::Vector4f::x);
+		struct_handle.RegisterMember("y", &Rml::Vector4f::y);
+		struct_handle.RegisterMember("z", &Rml::Vector4f::z);
+		struct_handle.RegisterMember("w", &Rml::Vector4f::w);
+	}
+
 	// Transform function for converting anchor id to anchor name
 	constructor.RegisterTransformFunc(
 		"to_anchor_name",

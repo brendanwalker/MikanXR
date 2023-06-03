@@ -86,6 +86,7 @@ public:
 	virtual void init() override;
 	virtual void customRender() override;
 
+	virtual CommonConfigPtr getComponentConfig() const override { return m_config; }
 	inline QuadStencilConfigPtr getConfig() const { return m_config; }
 	void setConfig(QuadStencilConfigPtr config);
 
