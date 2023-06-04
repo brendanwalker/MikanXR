@@ -25,19 +25,22 @@
             tbody tr {
                 height: 1.5em;
             }
+            .property_tr {
+                height: 2.5em;
+            }            
             tbody td
             {
-                padding-top: 0.1em;
+                padding-top: 0.0em;
                 height: 1.5em;
                 text-align: left;
                 white-space: nowrap;
                 overflow: hidden;
-            }            
+            }
             numeric{
                 width: 60dp;
                 margin-left: 0dp;
                 margin-right: 5dp;
-                vertical-align: -8dp;
+                vertical-align: -6dp;
             }
             highlight_label
             {
@@ -82,7 +85,7 @@
                         <tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
                     </thead>
                     <tbody>
-                        <tr data-for="field : component_fields">
+                        <tr data-for="field : component_fields" class="property_tr">
                             <td>
                                 <div data-if="field.semantic == 'name'">
                                     Name&nbsp;

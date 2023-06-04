@@ -18,61 +18,164 @@
 bool RmlModel_CompositorSelection::s_bHasRegisteredTypes = false;
 
 // -- RmlModel_ComponentField -----
+bool RmlModel_ComponentField::getBoolean() 
+{ 
+	return field_type == ePropertyDataType::datatype_bool ? valueContainer.Get<bool>() : false; 
+}
+void RmlModel_ComponentField::setBoolean(bool value) 
+{
+	if (field_type == ePropertyDataType::datatype_bool)
+		valueContainer = value; 
+}
+
+int RmlModel_ComponentField::getInt() 
+{
+	return field_type == ePropertyDataType::datatype_int ? valueContainer.Get<int>() : 0; 
+}
+void RmlModel_ComponentField::setInt(int value) 
+{ 
+	if (field_type == ePropertyDataType::datatype_int)
+		valueContainer = value; 
+}
+
+Rml::String RmlModel_ComponentField::getString() 
+{ 
+	return field_type == ePropertyDataType::datatype_string ? valueContainer.Get<Rml::String>() : "";
+}
+void RmlModel_ComponentField::setString(Rml::String value)
+{ 
+	if (field_type == ePropertyDataType::datatype_string)
+		valueContainer = value; 
+}
+
+float RmlModel_ComponentField::getFloat() 
+{ 
+	return field_type == ePropertyDataType::datatype_float ? valueContainer.Get<float>() : 0.f; 
+}
+void RmlModel_ComponentField::setFloat(float value) 
+{ 
+	if (field_type == ePropertyDataType::datatype_float)
+		valueContainer = value; 
+}
+
+float RmlModel_ComponentField::getVec2X() 
+{ 
+	return field_type == ePropertyDataType::datatype_float2 ? valueContainer.Get<Rml::Vector2f>().x : 0.f; 
+}
 void RmlModel_ComponentField::setVector2X(float value)
 {
-	Rml::Vector2f vec= valueContainer.Get<Rml::Vector2f>();
-	vec.x= value;
-	valueContainer= vec;
+	if (field_type == ePropertyDataType::datatype_float2)
+	{
+		Rml::Vector2f vec = valueContainer.Get<Rml::Vector2f>();
+		vec.x = value;
+		valueContainer = vec;
+	}
+}
+float RmlModel_ComponentField::getVec2Y() 
+{ 
+	return (field_type == ePropertyDataType::datatype_float2) ? valueContainer.Get<Rml::Vector2f>().y : 0.f; 
 }
 void RmlModel_ComponentField::setVector2Y(float value)
 {
-	Rml::Vector2f vec = valueContainer.Get<Rml::Vector2f>();
-	vec.y = value;
-	valueContainer = vec;
+	if (field_type == ePropertyDataType::datatype_float2)
+	{
+		Rml::Vector2f vec = valueContainer.Get<Rml::Vector2f>();
+		vec.y = value;
+		valueContainer = vec;
+	}
 }
 
+float RmlModel_ComponentField::getVec3X() 
+{ 
+	return (field_type == ePropertyDataType::datatype_float3) ? valueContainer.Get<Rml::Vector3f>().x : 0.f; 
+}
 void RmlModel_ComponentField::setVector3X(float value)
 {
-	Rml::Vector3f vec = valueContainer.Get<Rml::Vector3f>();
-	vec.x = value;
-	valueContainer = vec;
+	if (field_type == ePropertyDataType::datatype_float3)
+	{
+		Rml::Vector3f vec = valueContainer.Get<Rml::Vector3f>();
+		vec.x = value;
+		valueContainer = vec;
+	}
+}
+float RmlModel_ComponentField::getVec3Y() 
+{ 
+	return (field_type == ePropertyDataType::datatype_float3) ? valueContainer.Get<Rml::Vector3f>().y : 0.f; 
 }
 void RmlModel_ComponentField::setVector3Y(float value)
 {
-	Rml::Vector3f vec = valueContainer.Get<Rml::Vector3f>();
-	vec.y = value;
-	valueContainer = vec;
+	if (field_type == ePropertyDataType::datatype_float3)
+	{
+		Rml::Vector3f vec = valueContainer.Get<Rml::Vector3f>();
+		vec.y = value;
+		valueContainer = vec;
+	}
+}
+float RmlModel_ComponentField::getVec3Z() 
+{ 
+	return (field_type == ePropertyDataType::datatype_float3) ? valueContainer.Get<Rml::Vector3f>().z : 0.f; 
 }
 void RmlModel_ComponentField::setVector3Z(float value)
 {
-	Rml::Vector3f vec = valueContainer.Get<Rml::Vector3f>();
-	vec.z = value;
-	valueContainer = vec;
+	if (field_type == ePropertyDataType::datatype_float3)
+	{
+		Rml::Vector3f vec = valueContainer.Get<Rml::Vector3f>();
+		vec.z = value;
+		valueContainer = vec;
+	}
 }
 
+float RmlModel_ComponentField::getVec4X() 
+{ 
+	return (field_type == ePropertyDataType::datatype_float4) ? valueContainer.Get<Rml::Vector4f>().x : 0.f; 
+}
 void RmlModel_ComponentField::setVector4X(float value)
 {
-	Rml::Vector4f vec = valueContainer.Get<Rml::Vector4f>();
-	vec.x = value;
-	valueContainer = vec;
+	if (field_type == ePropertyDataType::datatype_float4)
+	{
+		Rml::Vector4f vec = valueContainer.Get<Rml::Vector4f>();
+		vec.x = value;
+		valueContainer = vec;
+	}
+}
+float RmlModel_ComponentField::getVec4Y() 
+{ 
+	return (field_type == ePropertyDataType::datatype_float4) ? valueContainer.Get<Rml::Vector4f>().y : 0.f; 
 }
 void RmlModel_ComponentField::setVector4Y(float value)
 {
-	Rml::Vector4f vec = valueContainer.Get<Rml::Vector4f>();
-	vec.y = value;
-	valueContainer = vec;
+	if (field_type == ePropertyDataType::datatype_float4)
+	{
+		Rml::Vector4f vec = valueContainer.Get<Rml::Vector4f>();
+		vec.y = value;
+		valueContainer = vec;
+	}
+}
+float RmlModel_ComponentField::getVec4Z() 
+{ 
+	return (field_type == ePropertyDataType::datatype_float4) ? valueContainer.Get<Rml::Vector4f>().z : 0.f; 
 }
 void RmlModel_ComponentField::setVector4Z(float value)
 {
-	Rml::Vector4f vec = valueContainer.Get<Rml::Vector4f>();
-	vec.z = value;
-	valueContainer = vec;
+	if (field_type == ePropertyDataType::datatype_float4)
+	{
+		Rml::Vector4f vec = valueContainer.Get<Rml::Vector4f>();
+		vec.z = value;
+		valueContainer = vec;
+	}
+}
+float RmlModel_ComponentField::getVec4W() 
+{ 
+	return (field_type == ePropertyDataType::datatype_float4) ? valueContainer.Get<Rml::Vector4f>().w : 0.f; 
 }
 void RmlModel_ComponentField::setVector4W(float value)
 {
-	Rml::Vector4f vec = valueContainer.Get<Rml::Vector4f>();
-	vec.z = value;
-	valueContainer = vec;
+	if (field_type == ePropertyDataType::datatype_float4)
+	{
+		Rml::Vector4f vec = valueContainer.Get<Rml::Vector4f>();
+		vec.z = value;
+		valueContainer = vec;
+	}
 }
 
 // -- RmlModel_CompositorSelection ------
@@ -337,10 +440,11 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 				currentSelection->getPropertyValue(propertyName, propertyValue))
 			{
 				int field_index= (int)m_componentFieldModels.size();
+				ePropertyDataType field_type= propertyDesc.dataType;
 				Rml::String field_name= propertyName;
 				Rml::String semantic= k_PropertySemanticNames[(int)propertyDesc.semantic];
 
-				m_componentFieldModels.push_back({field_index, field_name, semantic, propertyValue});
+				m_componentFieldModels.push_back({field_index, field_type, field_name, semantic, propertyValue});
 				m_fieldNameToIndexMap.insert({field_name, field_index});
 			}
 		}

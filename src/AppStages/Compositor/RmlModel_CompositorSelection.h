@@ -12,44 +12,42 @@
 struct RmlModel_ComponentField
 {
 	int field_index;
+	ePropertyDataType field_type;
 	Rml::String field_name;
 	Rml::String semantic;
 	Rml::Variant valueContainer;
 
-	bool getBoolean() { return valueContainer.Get<bool>(); }
-	void setBoolean(bool value) { valueContainer= value; }
+	bool getBoolean();
+	void setBoolean(bool value);
 
-	int getInt() { return valueContainer.Get<int>(); }
-	void setInt(int value) { valueContainer= value; }
+	int getInt();
+	void setInt(int value);
 
-	Rml::String getString() { return valueContainer.Get<Rml::String>(); }
-	void setString(Rml::String value) { valueContainer= value; }
+	Rml::String getString();
+	void setString(Rml::String value);
 
-	float getFloat() { return valueContainer.Get<float>(); }
-	void setFloat(float value) { valueContainer= value; }
+	float getFloat();
+	void setFloat(float value);
 
-	float getVec2X() { return valueContainer.Get<Rml::Vector2f>().x; }
-	float getVec2Y() { return valueContainer.Get<Rml::Vector2f>().y; }
-
-	float getVec3X() { return valueContainer.Get<Rml::Vector3f>().x; }
-	float getVec3Y() { return valueContainer.Get<Rml::Vector3f>().y; }
-	float getVec3Z() { return valueContainer.Get<Rml::Vector3f>().z; }
-
-	float getVec4X() { return valueContainer.Get<Rml::Vector4f>().x; }
-	float getVec4Y() { return valueContainer.Get<Rml::Vector4f>().y; }
-	float getVec4Z() { return valueContainer.Get<Rml::Vector4f>().z; }
-	float getVec4W() { return valueContainer.Get<Rml::Vector4f>().w; }
-
+	float getVec2X();
 	void setVector2X(float value);
+	float getVec2Y();
 	void setVector2Y(float value);
 
+	float getVec3X();
 	void setVector3X(float value);
+	float getVec3Y();
 	void setVector3Y(float value);
+	float getVec3Z();
 	void setVector3Z(float value);
 
+	float getVec4X();
 	void setVector4X(float value);
+	float getVec4Y();
 	void setVector4Y(float value);
+	float getVec4Z();
 	void setVector4Z(float value);
+	float getVec4W();
 	void setVector4W(float value);
 };
 

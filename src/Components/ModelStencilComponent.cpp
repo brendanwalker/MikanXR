@@ -495,11 +495,16 @@ void ModelStencilComponent::onInteractionUnselected()
 // -- IPropertyInterface ----
 void ModelStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
 {
+	StencilComponent::getPropertyNames(outPropertyNames);
+
 	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilPositionPropertyId);
 }
 
 bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
 {
+	if (StencilComponent::getPropertyDescriptor(propertyName, outDescriptor))
+		return true;
+
 	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
 	{
 		outDescriptor = {ModelStencilConfig::k_modelStencilPositionPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
@@ -511,6 +516,9 @@ bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyNam
 
 bool ModelStencilComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
 {
+	if (StencilComponent::getPropertyValue(propertyName, outValue))
+		return true;
+
 	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
 	{
 		MikanVector3f v= m_config->getModelPosition();
@@ -525,11 +533,17 @@ bool ModelStencilComponent::getPropertyValue(const std::string& propertyName, Rm
 
 bool ModelStencilComponent::getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const
 {
+	if (StencilComponent::getPropertyAttribute(propertyName, attributeName, outValue))
+		return true;
+
 	return false;
 }
 
 bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
 {
+	if (StencilComponent::setPropertyValue(propertyName, inValue))
+		return true;
+
 	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
 	{
 		Rml::Vector3f rml_vec= inValue.Get<Rml::Vector3f>();
