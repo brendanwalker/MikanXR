@@ -25,6 +25,7 @@ enum class ePropertySemantic : int
 	checkbox,
 	position,
 	rotation,
+	scale,
 	size3d,
 	size2d,
 	filename,
@@ -51,3 +52,7 @@ public:
 	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const = 0;
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) = 0;
 };
+
+// Property Attributes
+extern const std::string* k_PropertyAttributeFileBrowseTitle;
+extern const std::string* k_PropertyAttributeFileBrowseFilter;

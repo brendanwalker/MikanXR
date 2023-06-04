@@ -35,7 +35,6 @@ const std::string ModelStencilConfig::k_modelStencilRotatorPropertyId = "model_r
 const std::string ModelStencilConfig::k_modelStencilPositionPropertyId = "model_position";
 const std::string ModelStencilConfig::k_modelStencilObjPathPropertyId = "model_path";
 const std::string ModelStencilConfig::k_modelStencilDisabledPropertyId = "is_disabled";
-const std::string ModelStencilConfig::k_modelStencilNamePropertyId = "stencil_name";
 
 ModelStencilConfig::ModelStencilConfig()
 {
@@ -158,7 +157,7 @@ void ModelStencilConfig::setIsDisabled(bool flag)
 void ModelStencilConfig::setStencilName(const std::string& stencilName)
 {
 	strncpy(m_modelInfo.stencil_name, stencilName.c_str(), sizeof(m_modelInfo.stencil_name) - 1);
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilNamePropertyId));
+	markDirty(ConfigPropertyChangeSet().addPropertyName(MikanComponent::k_componentNamePropertyId));
 }
 
 // -- ModelStencilComponent -----
@@ -498,6 +497,11 @@ void ModelStencilComponent::getPropertyNames(std::vector<std::string>& outProper
 	StencilComponent::getPropertyNames(outPropertyNames);
 
 	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilPositionPropertyId);
+	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilRotatorPropertyId);
+	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilScalePropertyId);
+	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilObjPathPropertyId);
+	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilDisabledPropertyId);
+	outPropertyNames.push_back(ModelStencilConfig::k_modelParentAnchorPropertyId);
 }
 
 bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -508,6 +512,31 @@ bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyNam
 	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
 	{
 		outDescriptor = {ModelStencilConfig::k_modelStencilPositionPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilRotatorPropertyId)
+	{
+		outDescriptor = {ModelStencilConfig::k_modelStencilRotatorPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::rotation};
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilScalePropertyId)
+	{
+		outDescriptor = {ModelStencilConfig::k_modelStencilScalePropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::scale};
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilObjPathPropertyId)
+	{
+		outDescriptor = {ModelStencilConfig::k_modelStencilScalePropertyId, ePropertyDataType::datatype_string, ePropertySemantic::filename};
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilDisabledPropertyId)
+	{
+		outDescriptor = {ModelStencilConfig::k_modelStencilScalePropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox};
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelParentAnchorPropertyId)
+	{
+		outDescriptor = {ModelStencilConfig::k_modelStencilScalePropertyId, ePropertyDataType::datatype_int, ePropertySemantic::anchor_id};
 		return true;
 	}
 
@@ -527,6 +556,40 @@ bool ModelStencilComponent::getPropertyValue(const std::string& propertyName, Rm
 		outValue = rml_vec;
 		return true;
 	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilRotatorPropertyId)
+	{
+		MikanRotator3f v = m_config->getModelRotator();
+		Rml::Vector3f rml_vec(v.x_angle, v.y_angle, v.z_angle);
+
+		outValue = rml_vec;
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilScalePropertyId)
+	{
+		MikanVector3f v = m_config->getModelScale();
+		Rml::Vector3f rml_vec(v.x, v.y, v.z);
+
+		outValue = rml_vec;
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilObjPathPropertyId)
+	{
+		Rml::String filepath= m_config->getModelPath().string();
+
+		outValue= filepath;
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilDisabledPropertyId)
+	{
+		outValue= m_config->getIsDisabled();
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelParentAnchorPropertyId)
+	{
+		outValue= m_config->getParentAnchorId();
+		return true;
+	}
+
 
 	return false;
 }
@@ -535,6 +598,18 @@ bool ModelStencilComponent::getPropertyAttribute(const std::string& propertyName
 {
 	if (StencilComponent::getPropertyAttribute(propertyName, attributeName, outValue))
 		return true;
+
+	if (propertyName == ModelStencilConfig::k_modelStencilObjPathPropertyId)
+	{
+		if (attributeName == *k_PropertyAttributeFileBrowseTitle)
+		{
+			outValue= "Select a model";
+		}
+		else if (attributeName == *k_PropertyAttributeFileBrowseFilter)
+		{
+			outValue = "*.obj";
+		}
+	}
 
 	return false;
 }
@@ -550,6 +625,45 @@ bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, co
 		glm::vec3 glm_vec(rml_vec.x, rml_vec.y, rml_vec.z);
 
 		setRelativePosition(glm_vec);
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilRotatorPropertyId)
+	{
+		Rml::Vector3f rml_vec = inValue.Get<Rml::Vector3f>();
+		glm::vec3 glm_vec(rml_vec.x, rml_vec.y, rml_vec.z);
+
+		setRelativeOrientation(glm_vec);
+		return true;
+
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilScalePropertyId)
+	{
+		Rml::Vector3f rml_vec = inValue.Get<Rml::Vector3f>();
+		glm::vec3 glm_vec(rml_vec.x, rml_vec.y, rml_vec.z);
+
+		setRelativeScale(glm_vec);
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilObjPathPropertyId)
+	{
+		const Rml::String fileString= inValue.Get<Rml::String>();
+		const std::filesystem::path filePath(fileString);
+
+		setModelPath(filePath);
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelStencilDisabledPropertyId)
+	{
+		bool bIsDisabled= inValue.Get<bool>();
+
+		m_config->setIsDisabled(bIsDisabled);
+		return true;
+	}
+	else if (propertyName == ModelStencilConfig::k_modelParentAnchorPropertyId)
+	{
+		MikanSpatialAnchorID anchorId= inValue.Get<int>();
+
+		attachSceneComponentToAnchor(anchorId);
 		return true;
 	}
 

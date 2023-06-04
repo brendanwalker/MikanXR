@@ -4,6 +4,7 @@ const std::string g_PropertySemanticNames[(int)ePropertySemantic::COUNT] = {
 	"checkbox",
 	"position",
 	"rotation",
+	"scale",
 	"size3d",
 	"size2d",
 	"filename",
@@ -11,3 +12,9 @@ const std::string g_PropertySemanticNames[(int)ePropertySemantic::COUNT] = {
 	"anchor_id",
 };
 const std::string* k_PropertySemanticNames = g_PropertySemanticNames;
+
+const std::string g_PropertyAttributeFileBrowseTitle= "filebrowse_title";
+const std::string* k_PropertyAttributeFileBrowseTitle = &g_PropertyAttributeFileBrowseTitle;
+
+const std::string g_PropertyAttributeFileBrowseFilter= "filebrowse_filter";
+const std::string* k_PropertyAttributeFileBrowseFilter = &g_PropertyAttributeFileBrowseFilter;

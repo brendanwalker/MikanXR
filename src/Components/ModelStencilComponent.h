@@ -57,7 +57,6 @@ public:
 	bool getIsDisabled() const { return m_modelInfo.is_disabled; }
 	void setIsDisabled(bool flag);
 
-	static const std::string k_modelStencilNamePropertyId;
 	const std::string getStencilName() const { return m_modelInfo.stencil_name; }
 	void setStencilName(const std::string& stencilName);
 

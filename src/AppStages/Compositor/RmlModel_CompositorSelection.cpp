@@ -263,11 +263,17 @@ bool RmlModel_CompositorSelection::init(
 
 					Rml::Variant titleValue;
 					titleValue= "Select File";
-					selectedComponent->getPropertyAttribute(propertyName, "filebrowse_title", titleValue);
+					selectedComponent->getPropertyAttribute(
+						propertyName, 
+						*k_PropertyAttributeFileBrowseTitle, 
+						titleValue);
 
 					Rml::Variant filterValue;
 					filterValue = "*.*";
-					selectedComponent->getPropertyAttribute(propertyName, "filebrowse_filter", filterValue);
+					selectedComponent->getPropertyAttribute(
+						propertyName, 
+						*k_PropertyAttributeFileBrowseFilter, 
+						filterValue);
 
 					ModalDialog_FileBrowser::browseFile(
 						titleValue.Get<Rml::String>(),

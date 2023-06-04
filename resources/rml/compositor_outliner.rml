@@ -47,17 +47,12 @@
                 decorator: gradient( horizontal #DB6565 #F1B58A );
                 border: 2px #DB6565;
             }
-            .filename-box
-            {
-                margin-top: 5dp;
-                decorator: gradient( vertical #415857 #5990A3 );
-                border: 3dp #415857;
-                border-radius: 8dp;
-            }
             filename
             {
+                decorator: gradient( vertical #415857 #5990A3 );
+                border: 3dp #415857;
                 font-size: 14dp;
-                vertical-align: -5dp;
+                vertical-align: 0dp;
             }                
         </style>
 	</head>
@@ -89,7 +84,7 @@
                             <td>
                                 <div data-if="field.semantic == 'name'">
                                     Name&nbsp;
-                                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-event-change="modify_string(field.field_index)" data-value="field.string"/>
+                                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-event-change="modify_field(field.field_index)" data-value="field.string"/>
                                 </div>                              
                                 <div data-if="field.semantic == 'position'">
                                     Position&nbsp;
@@ -123,9 +118,10 @@
                                 <div data-if="field.semantic == 'checkbox'">
                                     <label><input type="checkbox" name="flag" data-event-change="modify_field(field.field_index)" data-value="field.boolean" />{{field.field_name}}</label>
                                 </div>
-                                <div data-if="field.semantic == 'filename'" class="filename-box">
+                                <div data-if="field.semantic == 'filename'">
+                                    Path&nbsp;
                                     <filename>{{field.string | to_short_path(30)}}</filename>
-                                    <button style="width: 40dp" data-event-click="select_filepath(field.field_index)">...</button>
+                                    <button style="width: 40dp; padding-top: 0.0dp; vertical-align: -6dp;" data-event-click="select_filepath(field.field_index)">...</button>
                                 </div>                                
                             </td>
                         </tr>

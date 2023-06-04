@@ -334,7 +334,7 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 					uiModel.disabled = modelInfo.is_disabled;
 					bAnyDirty = true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilNamePropertyId))
+				if (changedPropertySet.hasPropertyName(MikanComponent::k_componentNamePropertyId))
 				{
 					uiModel.stencil_name = modelInfo.stencil_name;
 					bAnyDirty = true;
