@@ -14,31 +14,20 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 
-class SceneComponent;
-using SceneComponentWeakPtr = std::weak_ptr<SceneComponent>;
-
-class AnchorConfig : public CommonConfig
+class AnchorDefinition : public SceneComponentDefinition
 {
 public:
-	AnchorConfig();
-	AnchorConfig(
+	AnchorDefinition();
+	AnchorDefinition(
 		MikanSpatialAnchorID anchorId,
 		const std::string& anchorName,
-		const MikanMatrix4f& xform);
+		const MikanTransform& xform);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	MikanSpatialAnchorID getAnchorId() const { return m_anchorInfo.anchor_id; }
 	const MikanSpatialAnchorInfo& getAnchorInfo() const { return m_anchorInfo; }
-
-	static const std::string k_anchorNamePropertyID;
-	const glm::mat4 getAnchorXform() const;
-	void setAnchorXform(const glm::mat4& xform);
-
-	static const std::string k_anchorXformPropertyID;
-	const std::string getAnchorName() const;
-	void setAnchorName(const std::string& anchorName);
 
 private:
 	MikanSpatialAnchorInfo m_anchorInfo;
@@ -51,18 +40,9 @@ public:
 	virtual void init() override;
 	virtual void customRender() override;
 
-	virtual CommonConfigPtr getComponentConfig() const override { return m_config; }
-	inline AnchorConfigPtr getConfig() const { return m_config; }
-	void setConfig(AnchorConfigPtr config);
-
-	virtual void setRelativeTransform(const GlmTransform& newRelativeXform) override;
-	virtual void setWorldTransform(const glm::mat4& newWorldXform) override;
-
-	virtual void setName(const std::string& name) override;
+	inline AnchorDefinitionPtr getAnchorDefinition() const { return m_definition; }
 
 protected:
-	AnchorConfigPtr m_config;
-
+	AnchorDefinitionPtr m_definition;
 	SelectionComponentWeakPtr m_selectionComponent;
-	void applySceneComponentTransformToConfig(SceneComponentPtr sceneComponent);
 };

@@ -66,13 +66,13 @@ public:
 		std::vector<ModelStencilComponentPtr>& outStencilList) const;
 
 protected:
-	QuadStencilComponentPtr createQuadStencilObject(QuadStencilConfigPtr quadConfig);
+	QuadStencilComponentPtr createQuadStencilObject(QuadStencilDefinitionPtr quadConfig);
 	void disposeQuadStencilObject(MikanStencilID stencilId);
 
-	BoxStencilComponentPtr createBoxStencilObject(BoxStencilConfigPtr boxConfig);
+	BoxStencilComponentPtr createBoxStencilObject(BoxStencilDefinitionPtr boxConfig);
 	void disposeBoxStencilObject(MikanStencilID stencilId);
 
-	ModelStencilComponentPtr createModelStencilObject(ModelStencilConfigPtr modelConfig);
+	ModelStencilComponentPtr createModelStencilObject(ModelStencilDefinitionPtr modelConfig);
 	void disposeModelStencilObject(MikanStencilID stencilId);
 
 	QuadStencilMap m_quadStencilComponents;

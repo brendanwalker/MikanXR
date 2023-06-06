@@ -29,135 +29,42 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 // -- ModelStencilConfig -----
-const std::string ModelStencilConfig::k_modelParentAnchorPropertyId = "parent_anchor_id";
-const std::string ModelStencilConfig::k_modelStencilScalePropertyId = "model_scale";
-const std::string ModelStencilConfig::k_modelStencilRotatorPropertyId = "model_rotator";
-const std::string ModelStencilConfig::k_modelStencilPositionPropertyId = "model_position";
-const std::string ModelStencilConfig::k_modelStencilObjPathPropertyId = "model_path";
-const std::string ModelStencilConfig::k_modelStencilDisabledPropertyId = "is_disabled";
+const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId = "model_path";
 
-ModelStencilConfig::ModelStencilConfig()
+ModelStencilDefinition::ModelStencilDefinition()
+	: StencilComponentDefinition()
 {
-	memset(&m_modelInfo, 0, sizeof(MikanStencilModel));
-	m_modelInfo.stencil_id = INVALID_MIKAN_ID;
-	m_modelInfo.parent_anchor_id = INVALID_MIKAN_ID;
 }
 
-ModelStencilConfig::ModelStencilConfig(const MikanStencilModel& modelInfo)
+ModelStencilDefinition::ModelStencilDefinition(const MikanStencilModel& modelInfo)
+	: StencilComponentDefinition(
+		modelInfo.stencil_id, 
+		modelInfo.parent_anchor_id, 
+		modelInfo.stencil_name, 
+		modelInfo.relative_transform)
 {
-	m_modelInfo= modelInfo;
 }
 
-configuru::Config ModelStencilConfig::writeToJSON()
+configuru::Config ModelStencilDefinition::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt = StencilComponentDefinition::writeToJSON();
 
 	pt["model_path"] = m_modelPath.string();
-	pt["stencil_id"] = m_modelInfo.stencil_id;
-	pt["parent_anchor_id"] = m_modelInfo.parent_anchor_id;
-	pt["is_disabled"] = m_modelInfo.is_disabled;
-	pt["stencil_name"] = m_modelInfo.stencil_name;
-
-	writeVector3f(pt, "model_position", m_modelInfo.model_position);
-	writeRotator3f(pt, "model_rotator", m_modelInfo.model_rotator);
-	writeVector3f(pt, "model_scale", m_modelInfo.model_scale);
 
 	return pt;
 }
 
-void ModelStencilConfig::readFromJSON(const configuru::Config& pt)
+void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	if (pt.has_key("stencil_id"))
-	{
-		memset(&m_modelInfo, 0, sizeof(MikanStencilModel));
-
-		m_modelPath = pt.get<std::string>("model_path");
-		m_modelInfo.stencil_id = pt.get<int>("stencil_id");
-		m_modelInfo.parent_anchor_id = pt.get_or<int>("parent_anchor_id", -1);
-		readVector3f(pt, "model_position", m_modelInfo.model_position);
-		readRotator3f(pt, "model_rotator", m_modelInfo.model_rotator);
-		readVector3f(pt, "model_scale", m_modelInfo.model_scale);
-		m_modelInfo.is_disabled = pt.get_or<bool>("is_disabled", false);
-
-		const std::string stencil_name = pt.get_or<std::string>("stencil_name", "");
-		StringUtils::formatString(m_modelInfo.stencil_name, sizeof(m_modelInfo.stencil_name), "%s", stencil_name.c_str());
-	}
+	m_modelPath = pt.get<std::string>("model_path");
 }
 
-const glm::mat4 ModelStencilConfig::getModelMat4() const
-{
-	return getModelTransform().getMat4();
-}
-
-void ModelStencilConfig::setParentAnchorId(MikanSpatialAnchorID anchorId)
-{
-	m_modelInfo.parent_anchor_id= anchorId;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelParentAnchorPropertyId));
-}
-
-void ModelStencilConfig::setModelMat4(const glm::mat4& mat4)
-{
-	setModelTransform(GlmTransform(mat4));
-}
-
-const GlmTransform ModelStencilConfig::getModelTransform() const
-{
-	return GlmTransform(
-		MikanVector3f_to_glm_vec3(m_modelInfo.model_position),
-		MikanRotator3f_to_glm_quat(m_modelInfo.model_rotator),
-		MikanVector3f_to_glm_vec3(m_modelInfo.model_scale));
-}
-
-void ModelStencilConfig::setModelTransform(const GlmTransform& transform)
-{
-	glm::mat4 xform = transform.getMat4();
-
-	m_modelInfo.model_position= glm_vec3_to_MikanVector3f(transform.getPosition());
-	m_modelInfo.model_rotator= glm_quat_to_MikanRotator3f(transform.getOrientation());
-	m_modelInfo.model_scale= glm_vec3_to_MikanVector3f(transform.getScale());
-
-	markDirty(ConfigPropertyChangeSet()
-				.addPropertyName(k_modelStencilScalePropertyId)
-				.addPropertyName(k_modelStencilRotatorPropertyId)
-				.addPropertyName(k_modelStencilPositionPropertyId));
-}
-
-void ModelStencilConfig::setModelScale(const MikanVector3f& scale)
-{
-	m_modelInfo.model_scale= scale;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilScalePropertyId));
-}
-
-void ModelStencilConfig::setModelRotator(const MikanRotator3f& rotator)
-{
-	m_modelInfo.model_rotator= rotator;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilRotatorPropertyId));
-}
-
-void ModelStencilConfig::setModelPosition(const MikanVector3f& position)
-{
-	m_modelInfo.model_position= position;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilPositionPropertyId));
-}
-
-void ModelStencilConfig::setModelPath(const std::filesystem::path& path)
+void ModelStencilDefinition::setModelPath(const std::filesystem::path& path)
 {
 	m_modelPath= path;
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
-}
-
-void ModelStencilConfig::setIsDisabled(bool flag)
-{
-	m_modelInfo.is_disabled = flag;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilDisabledPropertyId));
-}
-
-void ModelStencilConfig::setStencilName(const std::string& stencilName)
-{
-	strncpy(m_modelInfo.stencil_name, stencilName.c_str(), sizeof(m_modelInfo.stencil_name) - 1);
-	markDirty(ConfigPropertyChangeSet().addPropertyName(MikanComponent::k_componentNamePropertyId));
 }
 
 // -- ModelStencilComponent -----
@@ -191,7 +98,9 @@ void ModelStencilComponent::init()
 
 void ModelStencilComponent::customRender()
 {
-	if (!m_config->getIsDisabled())
+	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
+
+	if (!modelStencilDefinition->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 
@@ -199,7 +108,7 @@ void ModelStencilComponent::customRender()
 		const glm::vec3 position = glm::vec3(xform[3]);
 
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", m_config->getStencilId());
+		drawTextAtWorldPosition(style, position, L"Stencil %d", modelStencilDefinition->getStencilId());
 	}
 }
 
@@ -219,35 +128,20 @@ void ModelStencilComponent::dispose()
 	StencilComponent::dispose();
 }
 
-void ModelStencilComponent::setConfig(ModelStencilConfigPtr config)
-{
-	assert(!m_bIsInitialized);
-	m_config = config;
-
-	// Initially the model component isn't attached to anything
-	assert(m_parentComponent.lock() == nullptr);
-	m_worldTransform = config->getModelMat4();
-	m_relativeTransform = GlmTransform(m_worldTransform);
-
-	// Make the component name match the config name
-	m_name= config->getStencilName();
-
-	// Setup initial attachment
-	MikanSpatialAnchorID currentParentId = m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
-	attachSceneComponentToAnchor(currentParentId);
-}
-
 void ModelStencilComponent::setModelPath(const std::filesystem::path& path)
 {
-	if (path == m_config->getModelPath())
+	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
+
+	if (path == modelStencilDefinition->getModelPath())
 		return;
 
-	m_config->setModelPath(path);
+	modelStencilDefinition->setModelPath(path);
 	rebuildMeshComponents();
 }
 
 void ModelStencilComponent::rebuildMeshComponents()
 {
+	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
 	MikanObjectPtr stencilObject= getOwnerObject();
 	StencilComponentPtr stencilComponentPtr= getSelfPtr<StencilComponent>();
 
@@ -265,11 +159,11 @@ void ModelStencilComponent::rebuildMeshComponents()
 
 	// Fetch the model resource
 	GlRenderModelResourcePtr modelResourcePtr;
-	if (!m_config->getModelPath().empty())
+	if (!modelStencilDefinition->getModelPath().empty())
 	{
 		auto& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
 		modelResourcePtr = modelResourceManager->fetchRenderModel(
-			m_config->getModelPath(),
+			modelStencilDefinition->getModelPath(),
 			GlRenderModelResource::getDefaultVertexDefinition());
 	}
 
@@ -344,77 +238,6 @@ void ModelStencilComponent::rebuildMeshComponents()
 	if (selectionComponentPtr)
 	{
 		selectionComponentPtr->rebindColliders();
-	}
-}
-
-void ModelStencilComponent::setRelativePosition(const glm::vec3& position)
-{
-	m_relativeTransform.setPosition(position);
-	StencilComponent::setRelativeTransform(m_relativeTransform);
-
-	if (m_bIsInitialized)
-		m_config->setModelPosition({position.x, position.y, position.z});
-}
-
-void ModelStencilComponent::setRelativeOrientation(const glm::vec3& eulerAnglesDegrees)
-{
-	glm::mat3 rotation;
-	glm_euler_angles_to_mat3(
-		eulerAnglesDegrees.x * k_degrees_to_radians,
-		eulerAnglesDegrees.y * k_degrees_to_radians,
-		eulerAnglesDegrees.z * k_degrees_to_radians,
-		rotation);
-
-	m_relativeTransform.setOrientation(glm::quat_cast(rotation));
-	StencilComponent::setRelativeTransform(m_relativeTransform);
-
-	if (m_bIsInitialized)
-		m_config->setModelRotator({eulerAnglesDegrees.x, eulerAnglesDegrees.y, eulerAnglesDegrees.z});
-}
-
-void ModelStencilComponent::setRelativeScale(const glm::vec3& scale)
-{
-	m_relativeTransform.setScale(scale);
-	StencilComponent::setRelativeTransform(m_relativeTransform);
-
-	if (m_bIsInitialized)
-		m_config->setModelScale({scale.x, scale.y, scale.z});
-}
-
-void ModelStencilComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
-{
-	StencilComponent::setRelativeTransform(newRelativeXform);
-
-	if (m_bIsInitialized)
-		m_config->setModelTransform(newRelativeXform);
-}
-
-void ModelStencilComponent::setWorldTransform(const glm::mat4& newWorldXform)
-{
-	StencilComponent::setWorldTransform(newWorldXform);
-
-	if (m_bIsInitialized)
-		m_config->setModelTransform(getRelativeTransform().getMat4());
-}
-
-void ModelStencilComponent::setName(const std::string& name)
-{
-	StencilComponent::setName(name);
-
-	if (m_bIsInitialized)
-		m_config->setStencilName(name);
-}
-
-MikanStencilID ModelStencilComponent::getParentAnchorId() const
-{
-	return m_config ? m_config->getParentAnchorId() : INVALID_MIKAN_ID;
-}
-
-void ModelStencilComponent::onParentAnchorChanged(MikanSpatialAnchorID newParentId)
-{
-	if (m_config)
-	{
-		m_config->setParentAnchorId(newParentId);
 	}
 }
 
@@ -496,12 +319,7 @@ void ModelStencilComponent::getPropertyNames(std::vector<std::string>& outProper
 {
 	StencilComponent::getPropertyNames(outPropertyNames);
 
-	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilPositionPropertyId);
-	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilRotatorPropertyId);
-	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilScalePropertyId);
-	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilObjPathPropertyId);
-	outPropertyNames.push_back(ModelStencilConfig::k_modelStencilDisabledPropertyId);
-	outPropertyNames.push_back(ModelStencilConfig::k_modelParentAnchorPropertyId);
+	outPropertyNames.push_back(ModelStencilDefinition::k_modelStencilObjPathPropertyId);
 }
 
 bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -509,34 +327,9 @@ bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyNam
 	if (StencilComponent::getPropertyDescriptor(propertyName, outDescriptor))
 		return true;
 
-	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
+	else if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		outDescriptor = {ModelStencilConfig::k_modelStencilPositionPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilRotatorPropertyId)
-	{
-		outDescriptor = {ModelStencilConfig::k_modelStencilRotatorPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::rotation};
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilScalePropertyId)
-	{
-		outDescriptor = {ModelStencilConfig::k_modelStencilScalePropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::scale};
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilObjPathPropertyId)
-	{
-		outDescriptor = {ModelStencilConfig::k_modelStencilScalePropertyId, ePropertyDataType::datatype_string, ePropertySemantic::filename};
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilDisabledPropertyId)
-	{
-		outDescriptor = {ModelStencilConfig::k_modelStencilScalePropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox};
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelParentAnchorPropertyId)
-	{
-		outDescriptor = {ModelStencilConfig::k_modelStencilScalePropertyId, ePropertyDataType::datatype_int, ePropertySemantic::anchor_id};
+		outDescriptor = {ModelStencilDefinition::k_modelStencilObjPathPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::filename};
 		return true;
 	}
 
@@ -548,48 +341,13 @@ bool ModelStencilComponent::getPropertyValue(const std::string& propertyName, Rm
 	if (StencilComponent::getPropertyValue(propertyName, outValue))
 		return true;
 
-	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
+	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		MikanVector3f v= m_config->getModelPosition();
-		Rml::Vector3f rml_vec(v.x, v.y, v.z);
-
-		outValue = rml_vec;
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilRotatorPropertyId)
-	{
-		MikanRotator3f v = m_config->getModelRotator();
-		Rml::Vector3f rml_vec(v.x_angle, v.y_angle, v.z_angle);
-
-		outValue = rml_vec;
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilScalePropertyId)
-	{
-		MikanVector3f v = m_config->getModelScale();
-		Rml::Vector3f rml_vec(v.x, v.y, v.z);
-
-		outValue = rml_vec;
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilObjPathPropertyId)
-	{
-		Rml::String filepath= m_config->getModelPath().string();
+		Rml::String filepath= getModelStencilDefinition()->getModelPath().string();
 
 		outValue= filepath;
 		return true;
 	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilDisabledPropertyId)
-	{
-		outValue= m_config->getIsDisabled();
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelParentAnchorPropertyId)
-	{
-		outValue= m_config->getParentAnchorId();
-		return true;
-	}
-
 
 	return false;
 }
@@ -599,7 +357,7 @@ bool ModelStencilComponent::getPropertyAttribute(const std::string& propertyName
 	if (StencilComponent::getPropertyAttribute(propertyName, attributeName, outValue))
 		return true;
 
-	if (propertyName == ModelStencilConfig::k_modelStencilObjPathPropertyId)
+	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
 		if (attributeName == *k_PropertyAttributeFileBrowseTitle)
 		{
@@ -619,51 +377,12 @@ bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, co
 	if (StencilComponent::setPropertyValue(propertyName, inValue))
 		return true;
 
-	if (propertyName == ModelStencilConfig::k_modelStencilPositionPropertyId)
-	{
-		Rml::Vector3f rml_vec= inValue.Get<Rml::Vector3f>();
-		glm::vec3 glm_vec(rml_vec.x, rml_vec.y, rml_vec.z);
-
-		setRelativePosition(glm_vec);
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilRotatorPropertyId)
-	{
-		Rml::Vector3f rml_vec = inValue.Get<Rml::Vector3f>();
-		glm::vec3 glm_vec(rml_vec.x, rml_vec.y, rml_vec.z);
-
-		setRelativeOrientation(glm_vec);
-		return true;
-
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilScalePropertyId)
-	{
-		Rml::Vector3f rml_vec = inValue.Get<Rml::Vector3f>();
-		glm::vec3 glm_vec(rml_vec.x, rml_vec.y, rml_vec.z);
-
-		setRelativeScale(glm_vec);
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilObjPathPropertyId)
+	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
 		const Rml::String fileString= inValue.Get<Rml::String>();
 		const std::filesystem::path filePath(fileString);
 
 		setModelPath(filePath);
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelStencilDisabledPropertyId)
-	{
-		bool bIsDisabled= inValue.Get<bool>();
-
-		m_config->setIsDisabled(bIsDisabled);
-		return true;
-	}
-	else if (propertyName == ModelStencilConfig::k_modelParentAnchorPropertyId)
-	{
-		MikanSpatialAnchorID anchorId= inValue.Get<int>();
-
-		attachSceneComponentToAnchor(anchorId);
 		return true;
 	}
 

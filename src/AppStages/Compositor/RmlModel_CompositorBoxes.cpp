@@ -135,7 +135,7 @@ bool RmlModel_CompositorBoxes::init(
 				{
 					const Rml::Vector3f& uiVec = rmlModel->size;
 
-					stencilPtr->getConfig()->setBoxSize(uiVec.x, uiVec.y, uiVec.z);
+					stencilPtr->getDefinition()->setBoxSize(uiVec.x, uiVec.y, uiVec.z);
 				}
 			}
 		});
@@ -151,7 +151,7 @@ bool RmlModel_CompositorBoxes::init(
 
 				if (rmlModel && stencilPtr)
 				{
-					stencilPtr->getConfig()->setIsDisabled(rmlModel->disabled);
+					stencilPtr->getDefinition()->setIsDisabled(rmlModel->disabled);
 				}
 			}
 		});
@@ -226,7 +226,7 @@ void RmlModel_CompositorBoxes::rebuildAnchorList()
 	auto& anchorList = m_anchorSystemPtr->getAnchorSystemConfigConst()->spatialAnchorList;
 
 	m_spatialAnchors.clear();
-	for (AnchorConfigPtr configPtr : anchorList)
+	for (AnchorDefinitionPtr configPtr : anchorList)
 	{
 		const MikanSpatialAnchorID anchorId = configPtr->getAnchorId();
 
@@ -245,7 +245,7 @@ void RmlModel_CompositorBoxes::stencilSystemConfigMarkedDirty(
 	}
 	else 
 	{
-		BoxStencilConfigPtr boxConfigPtr= std::dynamic_pointer_cast<BoxStencilConfig>(configPtr);
+		BoxStencilDefinitionPtr boxConfigPtr= std::dynamic_pointer_cast<BoxStencilDefinition>(configPtr);
 
 		if (boxConfigPtr)
 		{
@@ -259,7 +259,7 @@ void RmlModel_CompositorBoxes::rebuildUIBoxesFromStencilSystem()
 	auto& boxStencilList = m_stencilSystemPtr->getStencilSystemConfigConst()->boxStencilList;
 
 	m_stencilBoxes.clear();
-	for (BoxStencilConfigPtr configPtr : boxStencilList)
+	for (BoxStencilDefinitionPtr configPtr : boxStencilList)
 	{
 		const MikanStencilBox& box = configPtr->getBoxInfo();
 
@@ -314,7 +314,7 @@ void RmlModel_CompositorBoxes::copyStencilSystemToUIBox(int stencil_id)
 
 		if (stencilPtr != nullptr)
 		{
-			BoxStencilConfigPtr configPtr = stencilPtr->getConfig();
+			BoxStencilDefinitionPtr configPtr = stencilPtr->getDefinition();
 			const MikanStencilBox& box = configPtr->getBoxInfo();
 
 			RmlModel_CompositorBox& uiBox = *it;

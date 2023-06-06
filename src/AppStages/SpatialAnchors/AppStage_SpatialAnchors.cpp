@@ -185,7 +185,7 @@ void AppStage_SpatialAnchors::render()
 	}
 
 	// Draw the anchors
-	for (AnchorConfigPtr anchorConfig : m_anchorSystemConfig->spatialAnchorList)
+	for (AnchorDefinitionPtr anchorConfig : m_anchorSystemConfig->spatialAnchorList)
 	{
 		wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
 		StringUtils::convertMbsToWcs(anchorConfig->getAnchorName().c_str(), wszAnchorName, sizeof(wszAnchorName));

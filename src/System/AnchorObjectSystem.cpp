@@ -6,6 +6,7 @@
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "ProfileConfig.h"
+#include "SelectionComponent.h"
 #include "StringUtils.h"
 
 // -- AnchorObjectSystemConfig -----
@@ -21,9 +22,9 @@ configuru::Config AnchorObjectSystemConfig::writeToJSON()
 	pt["debugRenderAnchors"] = debugRenderAnchors;
 
 	std::vector<configuru::Config> anchorConfigs;
-	for (AnchorConfigPtr anchorConfigPtr : spatialAnchorList)
+	for (AnchorDefinitionPtr AnchorDefinitionPtr : spatialAnchorList)
 	{
-		anchorConfigs.push_back(anchorConfigPtr->writeToJSON());
+		anchorConfigs.push_back(AnchorDefinitionPtr->writeToJSON());
 	}
 	pt.insert_or_assign(std::string("spatialAnchors"), anchorConfigs);
 
@@ -44,24 +45,27 @@ void AnchorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	{
 		for (const configuru::Config& anchor_pt : pt["spatialAnchors"].as_array())
 		{
-			AnchorConfigPtr anchorConfigPtr = std::make_shared<AnchorConfig>();
+			AnchorDefinitionPtr AnchorDefinitionPtr = std::make_shared<AnchorDefinition>();
 
-			anchorConfigPtr->readFromJSON(anchor_pt);
-			spatialAnchorList.push_back(anchorConfigPtr);
+			AnchorDefinitionPtr->readFromJSON(anchor_pt);
+			spatialAnchorList.push_back(AnchorDefinitionPtr);
 
-			addChildConfig(anchorConfigPtr);
+			addChildConfig(AnchorDefinitionPtr);
 		}
 	}
 
 	// Special case: Origin spatial anchor
-	AnchorConfigPtr originAnchorInfo = getSpatialAnchorConfigByName(ORIGIN_SPATIAL_ANCHOR_NAME);
+	AnchorDefinitionPtr originAnchorInfo = getSpatialAnchorConfigByName(ORIGIN_SPATIAL_ANCHOR_NAME);
 	if (originAnchorInfo)
 	{
 		originAnchorId = originAnchorInfo->getAnchorId();
 	}
 	else
 	{
-		const MikanMatrix4f originXform = glm_mat4_to_MikanMatrix4f(glm::mat4(1.f));
+		MikanTransform originXform;
+		originXform.rotation= {1.f, 0.f, 0.f, 0.f};
+		originXform.scale= {1.f, 1.f, 1.f};
+		originXform.translation= {0.f, 0.f, 0.f};
 
 		originAnchorId = nextAnchorId;
 		addNewAnchor(ORIGIN_SPATIAL_ANCHOR_NAME, originXform);
@@ -73,66 +77,66 @@ bool AnchorObjectSystemConfig::canAddAnchor() const
 	return (spatialAnchorList.size() < MAX_MIKAN_SPATIAL_ANCHORS);
 }
 
-AnchorConfigPtr AnchorObjectSystemConfig::getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const
+AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const
 {
 	auto it = std::find_if(
 		spatialAnchorList.begin(), spatialAnchorList.end(),
-		[anchorId](AnchorConfigPtr configPtr) {
+		[anchorId](AnchorDefinitionPtr configPtr) {
 		return configPtr->getAnchorId() == anchorId;
 	});
 
 	if (it != spatialAnchorList.end())
 	{
-		return AnchorConfigPtr(*it);
+		return AnchorDefinitionPtr(*it);
 	}
 
-	return AnchorConfigPtr();
+	return AnchorDefinitionPtr();
 }
 
-AnchorConfigPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const std::string& anchorName) const
+AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const std::string& anchorName) const
 {
 	auto it = std::find_if(
 		spatialAnchorList.begin(), spatialAnchorList.end(),
-		[anchorName](AnchorConfigPtr configPtr) {
+		[anchorName](AnchorDefinitionPtr configPtr) {
 		return strncmp(configPtr->getAnchorInfo().anchor_name, anchorName.c_str(), MAX_MIKAN_ANCHOR_NAME_LEN) == 0;
 	});
 
 	if (it != spatialAnchorList.end())
 	{
-		return AnchorConfigPtr(*it);
+		return AnchorDefinitionPtr(*it);
 	}
 
-	return AnchorConfigPtr();
+	return AnchorDefinitionPtr();
 }
 
 MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(MikanSpatialAnchorInfo& anchorInfo)
 {
-	anchorInfo.anchor_id= addNewAnchor(anchorInfo.anchor_name, anchorInfo.anchor_xform);
+	anchorInfo.anchor_id= addNewAnchor(anchorInfo.anchor_name, anchorInfo.relative_transform);
 
 	return anchorInfo.anchor_id;
 }
 
-MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& anchorName, const MikanMatrix4f& xform)
+MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& anchorName, const MikanTransform& xform)
 {
 	if (!canAddAnchor())
 		return INVALID_MIKAN_ID;
 
-	AnchorConfigPtr anchorConfigPtr = std::make_shared<AnchorConfig>(nextAnchorId, anchorName, xform);
+	AnchorDefinitionPtr AnchorDefinitionPtr = std::make_shared<AnchorDefinition>(nextAnchorId, anchorName, xform);
 	nextAnchorId++;
 
-	spatialAnchorList.push_back(anchorConfigPtr);
-	addChildConfig(anchorConfigPtr);
+	spatialAnchorList.push_back(AnchorDefinitionPtr);
+	addChildConfig(AnchorDefinitionPtr);
 
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
 
-	return anchorConfigPtr->getAnchorId();
+	return AnchorDefinitionPtr->getAnchorId();
 }
 
 bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 {
 	auto it = std::find_if(
 		spatialAnchorList.begin(), spatialAnchorList.end(),
-		[anchorId](AnchorConfigPtr configPtr) {
+		[anchorId](AnchorDefinitionPtr configPtr) {
 		return configPtr->getAnchorId() == anchorId;
 	});
 
@@ -160,7 +164,7 @@ bool AnchorObjectSystem::init()
 	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
 
 	// Create the origin anchor object first
-	AnchorConfigPtr originAnchorConfig= 
+	AnchorDefinitionPtr originAnchorConfig= 
 		anchorSystemConfig->getSpatialAnchorConfig(anchorSystemConfig->originAnchorId);
 	if (originAnchorConfig != nullptr)
 	{
@@ -168,7 +172,7 @@ bool AnchorObjectSystem::init()
 	}
 
 	// Then create all the child anchors
-	for (AnchorConfigPtr anchorConfig : anchorSystemConfig->spatialAnchorList)
+	for (AnchorDefinitionPtr anchorConfig : anchorSystemConfig->spatialAnchorList)
 	{
 		if (anchorConfig != originAnchorConfig)
 		{
@@ -193,7 +197,7 @@ void AnchorObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 	AnchorComponentPtr anchorComponent= objectPtr->getComponentOfType<AnchorComponent>();
 	if (anchorComponent != nullptr)
 	{
-		removeAnchor(anchorComponent->getConfig()->getAnchorId());
+		removeAnchor(anchorComponent->getAnchorDefinition()->getAnchorId());
 	}
 }
 
@@ -235,14 +239,14 @@ bool AnchorObjectSystem::getSpatialAnchorWorldTransform(MikanSpatialAnchorID anc
 	return false;
 }
 
-AnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorName, const glm::mat4& xform)
+AnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorName, const GlmTransform& xform)
 {
 	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
 
-	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor(anchorName, glm_mat4_to_MikanMatrix4f(xform));
+	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor(anchorName, glm_transform_to_MikanTransform(&xform));
 	if (anchorId != INVALID_MIKAN_ID)
-	{
-		AnchorConfigPtr anchorConfig= anchorSystemConfig->getSpatialAnchorConfig(anchorId);
+	{		
+		AnchorDefinitionPtr anchorConfig= anchorSystemConfig->getSpatialAnchorConfig(anchorId);
 		assert(anchorConfig != nullptr);
 
 		return createAnchorObject(anchorConfig);
@@ -258,7 +262,7 @@ AnchorComponentPtr AnchorObjectSystem::addNewAnchor(MikanSpatialAnchorInfo& anch
 	MikanSpatialAnchorID anchorId = anchorSystemConfig->addNewAnchor(anchorInfo);
 	if (anchorId != INVALID_MIKAN_ID)
 	{
-		AnchorConfigPtr anchorConfig = anchorSystemConfig->getSpatialAnchorConfig(anchorId);
+		AnchorDefinitionPtr anchorConfig = anchorSystemConfig->getSpatialAnchorConfig(anchorId);
 		assert(anchorConfig != nullptr);
 
 		return createAnchorObject(anchorConfig);
@@ -275,16 +279,16 @@ bool AnchorObjectSystem::removeAnchor(MikanSpatialAnchorID anchorId)
 	return false;
 }
 
-AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorConfigPtr anchorConfig)
+AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorDefinitionPtr anchorConfig)
 {
 	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
 	MikanObjectPtr anchorObject= newObject();
-	anchorObject->setName(anchorConfig->getAnchorName());
+	anchorObject->setName(anchorConfig->getComponentName());
 
 	// Add spatial anchor component to the object
 	AnchorComponentPtr anchorComponentPtr= anchorObject->addComponent<AnchorComponent>();
 	anchorObject->setRootComponent(anchorComponentPtr);
-	anchorComponentPtr->setConfig(anchorConfig);
+	anchorComponentPtr->setDefinition(anchorConfig);
 	m_anchorComponents.insert({anchorConfig->getAnchorId(), anchorComponentPtr});
 
 	// Setup anchor scene component attachment

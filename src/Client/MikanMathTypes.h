@@ -137,11 +137,25 @@ typedef struct
 	double w3;
 } MikanMatrix4d;
 
-/// A quaternion rotation.
+/// A double-precision quaternion rotation.
+typedef struct
+{
+	float w, x, y, z;
+} MikanQuatf;
+
+/// A double-precision quaternion rotation.
 typedef struct
 {
     double w, x, y, z;
 } MikanQuatd;
+
+/// A single-precision Scale-Rotation-Translation transform.
+typedef struct
+{
+	MikanVector3f scale;
+	MikanQuatf rotation;
+	MikanVector3f translation;
+} MikanTransform;
 
 /**
 @}

@@ -1,5 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
+#include "ComponentFwd.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModelStencilComponent.h"
 #include "RmlModel_CompositorModels.h"
@@ -166,7 +167,7 @@ bool RmlModel_CompositorModels::init(
 
 				if (rmlModel && stencilPtr)
 				{
-					stencilPtr->getConfig()->setIsDisabled(rmlModel->disabled);
+					stencilPtr->getDefinition()->setIsDisabled(rmlModel->disabled);
 				}
 			}
 		});
@@ -190,7 +191,7 @@ bool RmlModel_CompositorModels::init(
 				ModelStencilComponentPtr modelStencil = m_stencilSystemPtr->getModelStencilById(stencil_id);
 				if (modelStencil != nullptr)
 				{
-					current_file = modelStencil->getConfig()->getModelPath();
+					current_file = modelStencil->getDefinition()->getModelPath();
 					current_dir = current_file.remove_filename();
 				}
 
@@ -266,7 +267,7 @@ void RmlModel_CompositorModels::rebuildAnchorList()
 	auto& anchorList = m_anchorSystemPtr->getAnchorSystemConfigConst()->spatialAnchorList;
 
 	m_spatialAnchors.clear();
-	for (AnchorConfigPtr configPtr : anchorList)
+	for (AnchorDefinitionPtr configPtr : anchorList)
 	{
 		const MikanSpatialAnchorID anchorId= configPtr->getAnchorId();
 
@@ -285,7 +286,7 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 	}
 	else
 	{
-		ModelStencilConfigPtr modelConfigPtr = std::dynamic_pointer_cast<ModelStencilConfig>(configPtr);
+		ModelStencilDefinitionPtr modelConfigPtr = std::dynamic_pointer_cast<ModelStencilDefinition>(configPtr);
 
 		if (modelConfigPtr)
 		{
@@ -301,17 +302,17 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 				RmlModel_CompositorModel& uiModel = *it;
 				bool bAnyDirty= false;
 
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelParentAnchorPropertyId))
+				if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelParentAnchorPropertyId))
 				{
 					uiModel.parent_anchor_id = modelInfo.parent_anchor_id;
 					bAnyDirty= true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilPositionPropertyId))
+				if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilPositionPropertyId))
 				{
 					uiModel.model_position = {uiModel.model_position.x, uiModel.model_position.y, uiModel.model_position.z};
 					bAnyDirty= true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilRotatorPropertyId))
+				if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilRotatorPropertyId))
 				{
 					uiModel.model_angles = {
 						modelInfo.model_rotator.x_angle,
@@ -319,17 +320,17 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 						modelInfo.model_rotator.z_angle};
 					bAnyDirty= true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilScalePropertyId))
+				if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilScalePropertyId))
 				{
 					uiModel.model_scale = {modelInfo.model_scale.x, modelInfo.model_scale.y, modelInfo.model_scale.z};
 					bAnyDirty= true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilObjPathPropertyId))
+				if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilObjPathPropertyId))
 				{
 					uiModel.model_path= modelConfigPtr->getModelPath().string();
 					bAnyDirty = true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilDisabledPropertyId))
+				if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilDisabledPropertyId))
 				{
 					uiModel.disabled = modelInfo.is_disabled;
 					bAnyDirty = true;
@@ -354,7 +355,7 @@ void RmlModel_CompositorModels::rebuildStencilUIModelsFromProfile()
 	auto& modelStencilList= m_stencilSystemPtr->getStencilSystemConfigConst()->modelStencilList;
 
 	m_stencilModels.clear();
-	for (ModelStencilConfigPtr configPtr : modelStencilList)
+	for (ModelStencilDefinitionPtr configPtr : modelStencilList)
 	{
 		const MikanStencilModel& modelInfo = configPtr->getModelInfo();
 

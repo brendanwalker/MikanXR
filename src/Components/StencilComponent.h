@@ -9,13 +9,50 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
+class StencilComponentDefinition : public SceneComponentDefinition
+{
+public:
+	StencilComponentDefinition();
+	StencilComponentDefinition(
+		MikanStencilID stencilId,
+		MikanSpatialAnchorID parentAnchorId,
+		const std::string & componentName, 
+		const MikanTransform& xform);
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	MikanStencilID getStencilId() const { return m_stencilId; }
+
+	static const std::string k_parentAnchorPropertyId;
+	MikanStencilID getParentAnchorId() const { return m_parentAnchorId; }
+	void setParentAnchorId(MikanSpatialAnchorID anchorId);
+
+	static const std::string k_stencilDisabledPropertyId;
+	bool getIsDisabled() const { return m_bIsDisabled; }
+	void setIsDisabled(bool flag);
+
+private:
+	MikanStencilID m_stencilId= INVALID_MIKAN_ID;
+	MikanSpatialAnchorID m_parentAnchorId= INVALID_MIKAN_ID;
+	bool m_bIsDisabled= false;
+};
+
 class StencilComponent : public SceneComponent
 {
 public:
 	StencilComponent(MikanObjectWeakPtr owner);
 
-	virtual MikanStencilID getParentAnchorId() const = 0;
-	virtual void onParentAnchorChanged(MikanSpatialAnchorID newParentId) = 0;
+	inline StencilComponentConfigPtr getStencilComponentDefinition() const { 
+		return std::static_pointer_cast<StencilComponentDefinition>(m_definition); 
+	}
 
+	MikanStencilID getParentAnchorId() const;
 	void attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId);
+
+	// -- IPropertyInterface ----
+	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
+	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 };

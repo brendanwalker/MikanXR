@@ -353,7 +353,7 @@ void RmlModel_CompositorSelection::applyConfigChangesToSelection(
 {
 	SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
 
-	if (configPtr && selectedComponent && selectedComponent->getComponentConfig() == configPtr)
+	if (configPtr && selectedComponent && selectedComponent->getDefinition() == configPtr)
 	{
 		bool bUpdatedField= false;
 

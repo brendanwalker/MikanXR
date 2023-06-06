@@ -217,7 +217,7 @@ bool AnchorTriangulator::computeAnchorTransform(MikanSpatialAnchorInfo& anchorIn
 		AnchorObjectSystem::getSystem()->getOriginSpatialAnchor();
 
 	glm::mat4 relativeXform;
-	if (originAnchorComponentPtr->getConfig()->getAnchorId() != anchorInfo.anchor_id)
+	if (originAnchorComponentPtr->getDefinition()->getAnchorId() != anchorInfo.anchor_id)
 	{
 		// Compute transform relative to origin anchor
 		const glm::mat4 originWorldXform = originAnchorComponentPtr->getWorldTransform();

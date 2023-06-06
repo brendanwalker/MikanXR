@@ -96,7 +96,7 @@ void RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty(
 	{
 		rebuildAnchorList();
 	}
-	else if (changedPropertySet.hasPropertyName(AnchorConfig::k_anchorNamePropertyID))
+	else if (changedPropertySet.hasPropertyName(AnchorDefinition::k_anchorNamePropertyID))
 	{
 		// Mark list as dirty to refresh the anchor names
 		m_modelHandle.DirtyVariable("spatial_anchors");
@@ -178,6 +178,6 @@ void RmlModel_CompositorAnchors::onEditAnchorEvent(MikanSpatialAnchorID anchor_i
 	{
 		// Show Anchor Triangulation Tool
 		AppStage_AnchorTriangulation* anchorTriangulation = App::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
-		anchorTriangulation->setTargetAnchor(anchorComponent->getConfig()->getAnchorInfo());
+		anchorTriangulation->setTargetAnchor(anchorComponent->getDefinition()->getAnchorInfo());
 	}
 }

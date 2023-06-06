@@ -228,6 +228,15 @@ public:
 		const char* vector_name,
 		MikanRotator3f& outVector);
 
+	static void writeQuatf(
+		configuru::Config& pt,
+		const char* quat_name,
+		const MikanQuatf& quat);
+	static void readQuatf(
+		const configuru::Config& pt,
+		const char* quat_name,
+		MikanQuatf& outQuat);
+
 	static void writeDeviceType(
 		configuru::Config& pt,
 		const char* fieldName,
