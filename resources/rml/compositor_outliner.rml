@@ -114,7 +114,11 @@
                                     Size&nbsp;
                                     <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec2_x"/>
                                     <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec2_y"/>
-                                </div>                            
+                                </div>
+                                <div data-if="field.semantic == 'size1d'">
+                                    {{field.field_name}}&nbsp;
+                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.float"/>
+                                </div>                                  
                                 <div data-if="field.semantic == 'checkbox'">
                                     <label><input type="checkbox" name="flag" data-event-change="modify_field(field.field_index)" data-value="field.boolean" />{{field.field_name}}</label>
                                 </div>

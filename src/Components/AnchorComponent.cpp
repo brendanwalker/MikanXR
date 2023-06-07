@@ -12,11 +12,7 @@
 AnchorDefinition::AnchorDefinition()
 	: SceneComponentDefinition()
 {
-	memset(&m_anchorInfo, 0, sizeof(MikanSpatialAnchorInfo));
-	m_anchorInfo.anchor_id = INVALID_MIKAN_ID;
-	m_anchorInfo.relative_transform.scale = {1.f, 1.f, 1.f};
-	m_anchorInfo.relative_transform.rotation= {1.f, 0.0, 0.f, 0.f};
-	m_anchorInfo.relative_transform.translation= {0.f, 0.f, 0.f};
+	m_anchorId = INVALID_MIKAN_ID;
 }
 
 AnchorDefinition::AnchorDefinition(
@@ -24,18 +20,15 @@ AnchorDefinition::AnchorDefinition(
 	const std::string& anchorName,
 	const MikanTransform& xform)
 	: SceneComponentDefinition(StringUtils::stringify("Anchor_", anchorId), xform)
+	, m_anchorId(anchorId)
 {
-	memset(&m_anchorInfo, 0, sizeof(MikanSpatialAnchorInfo));
-	m_anchorInfo.anchor_id = anchorId;
-	strncpy(m_anchorInfo.anchor_name, anchorName.c_str(), sizeof(m_anchorInfo.anchor_name) - 1);
-	m_anchorInfo.relative_transform = xform;
 }
 
 configuru::Config AnchorDefinition::writeToJSON()
 {
 	configuru::Config pt = SceneComponentDefinition::writeToJSON();
 
-	pt["id"] = m_anchorInfo.anchor_id;
+	pt["id"] = m_anchorId;
 
 	return pt;
 }
@@ -46,9 +39,23 @@ void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 
 	if (pt.has_key("id"))
 	{
-		m_anchorInfo.anchor_id = pt.get<int>("id");
-		m_configName = StringUtils::stringify("Anchor_", m_anchorInfo.anchor_id);
+		m_anchorId = pt.get<int>("id");
+		m_configName = StringUtils::stringify("Anchor_", m_anchorId);
 	}
+}
+
+MikanSpatialAnchorInfo AnchorDefinition::getAnchorInfo() const
+{
+	const std::string& anchorName= getComponentName();
+	GlmTransform xform= getRelativeTransform();
+
+	MikanSpatialAnchorInfo anchorInfo;
+	memset(&anchorInfo, 0, sizeof(MikanSpatialAnchorInfo));
+	anchorInfo.anchor_id = m_anchorId;
+	strncpy(anchorInfo.anchor_name, anchorName.c_str(), sizeof(anchorInfo.anchor_name) - 1);
+	anchorInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
+
+	return anchorInfo;
 }
 
 // -- AnchorComponent -----

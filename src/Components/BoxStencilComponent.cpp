@@ -15,6 +15,9 @@
 #include "StringUtils.h"
 #include "TextStyle.h"
 
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+
 // -- BoxStencilComponent -----
 const std::string BoxStencilDefinition::k_boxStencilXSizePropertyId = "box_x_size";
 const std::string BoxStencilDefinition::k_boxStencilYSizePropertyId = "box_y_size";
@@ -55,6 +58,25 @@ void BoxStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_boxSize.x = pt.get_or<float>("box_x_size", 0.25f);
 	m_boxSize.y = pt.get_or<float>("box_y_size", 0.25f);
 	m_boxSize.z = pt.get_or<float>("box_z_size", 0.25f);
+}
+
+MikanStencilBox BoxStencilDefinition::getBoxInfo() const
+{
+	const std::string& boxName = getComponentName();
+	GlmTransform xform = getRelativeTransform();
+
+	MikanStencilBox boxInfo;
+	memset(&boxInfo, 0, sizeof(MikanStencilBox));
+	boxInfo.stencil_id = m_stencilId;
+	boxInfo.parent_anchor_id = m_parentAnchorId;
+	boxInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
+	boxInfo.box_x_size = m_boxSize.x;
+	boxInfo.box_y_size = m_boxSize.y;
+	boxInfo.box_z_size = m_boxSize.z;
+	boxInfo.is_disabled = m_bIsDisabled;
+	strncpy(boxInfo.stencil_name, boxName.c_str(), sizeof(boxInfo.stencil_name) - 1);
+
+	return boxInfo;
 }
 
 void BoxStencilDefinition::setBoxXSize(float size)
@@ -141,4 +163,95 @@ void BoxStencilComponent::updateBoxColliderExtents()
 
 		boxCollider->setHalfExtents(glm::vec3(xSize, ySize, zSize) * 0.5f);
 	}
+}
+
+// -- IPropertyInterface ----
+void BoxStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	StencilComponent::getPropertyNames(outPropertyNames);
+
+	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilXSizePropertyId);
+	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilYSizePropertyId);
+	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilZSizePropertyId);
+}
+
+bool BoxStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
+{
+	if (StencilComponent::getPropertyDescriptor(propertyName, outDescriptor))
+		return true;
+
+	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
+	{
+		outDescriptor = {BoxStencilDefinition::k_boxStencilXSizePropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		return true;
+	}
+	else if (propertyName == BoxStencilDefinition::k_boxStencilYSizePropertyId)
+	{
+		outDescriptor = {BoxStencilDefinition::k_boxStencilYSizePropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		return true;
+	}
+	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
+	{
+		outDescriptor = {BoxStencilDefinition::k_boxStencilZSizePropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		return true;
+	}
+
+	return false;
+}
+
+bool BoxStencilComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+{
+	if (StencilComponent::getPropertyValue(propertyName, outValue))
+		return true;
+
+	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
+	{
+		float xSize = getBoxStencilDefinition()->getBoxXSize();
+		outValue = xSize;
+		return true;
+	}
+	else if (propertyName == BoxStencilDefinition::k_boxStencilYSizePropertyId)
+	{
+		float ySize = getBoxStencilDefinition()->getBoxYSize();
+		outValue = ySize;
+		return true;
+	}
+	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
+	{
+		bool zSize = getBoxStencilDefinition()->getBoxZSize();
+		outValue = zSize;
+		return true;
+	}
+
+	return false;
+}
+
+bool BoxStencilComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+{
+	if (StencilComponent::setPropertyValue(propertyName, inValue))
+		return true;
+
+	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
+	{
+		float xSize = inValue.Get<float>();
+
+		getBoxStencilDefinition()->setBoxXSize(xSize);
+		return true;
+	}
+	else if (propertyName == BoxStencilDefinition::k_boxStencilYSizePropertyId)
+	{
+		float ySize = inValue.Get<float>();
+
+		getBoxStencilDefinition()->setBoxYSize(ySize);
+		return true;
+	}
+	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
+	{
+		bool zSize = inValue.Get<bool>();
+
+		getBoxStencilDefinition()->setBoxZSize(zSize);
+		return true;
+	}
+
+	return false;
 }

@@ -19,7 +19,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	//const MikanStencilQuad& getQuadInfo() const { return m_quadInfo; }
+	MikanStencilQuad getQuadInfo() const;
 
 	static const std::string k_quadStencilWidthPropertyId;
 	float getQuadWidth() const { return m_quadWidth; }
@@ -35,9 +35,7 @@ public:
 	bool getIsDoubleSided() const { return m_bIsDoubleSided; }
 	void setIsDoubleSided(bool flag);
 
-private:
-	//void notifyStencilChanged();
-
+protected:
 	float m_quadWidth;
 	float m_quadHeight;
 	bool m_bIsDoubleSided;
@@ -51,6 +49,12 @@ public:
 	virtual void customRender() override;
 
 	inline QuadStencilDefinitionPtr getQuadStencilDefinition() const { return m_definition; }
+
+	// -- IPropertyInterface ----
+	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
+	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
 	void updateBoxColliderExtents();

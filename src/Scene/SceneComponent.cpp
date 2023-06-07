@@ -6,6 +6,10 @@
 
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+#include <RmlUi/Core/Vector3.h>
+
 // -- ModelStencilConfig -----
 const std::string SceneComponentDefinition::k_relativeScalePropertyId = "relative_scale";
 const std::string SceneComponentDefinition::k_relativeQuatPropertyId = "relative_quat";
@@ -304,4 +308,109 @@ void SceneComponent::propogateWorldTransformChange(eTransformChangeType reason)
 			childComponent->propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 		}
 	}
+}
+
+// -- IPropertyInterface ----
+void SceneComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	MikanComponent::getPropertyNames(outPropertyNames);
+
+	outPropertyNames.push_back(SceneComponentDefinition::k_relativeScalePropertyId);
+	outPropertyNames.push_back(SceneComponentDefinition::k_relativeQuatPropertyId);
+	outPropertyNames.push_back(SceneComponentDefinition::k_relativeTranslationPropertyId);
+}
+
+bool SceneComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
+{
+	if (MikanComponent::getPropertyDescriptor(propertyName, outDescriptor))
+		return true;
+
+	if (propertyName == SceneComponentDefinition::k_relativeScalePropertyId)
+	{
+		outDescriptor = {SceneComponentDefinition::k_relativeScalePropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::scale};
+		return true;
+	}
+	else if (propertyName == SceneComponentDefinition::k_relativeQuatPropertyId)
+	{
+		outDescriptor = {SceneComponentDefinition::k_relativeQuatPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::rotation};
+		return true;
+	}
+	else if (propertyName == SceneComponentDefinition::k_relativeTranslationPropertyId)
+	{
+		outDescriptor = {SceneComponentDefinition::k_relativeTranslationPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
+		return true;
+	}
+
+	return false;
+}
+
+bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+{
+	if (MikanComponent::getPropertyValue(propertyName, outValue))
+		return true;
+
+	if (propertyName == SceneComponentDefinition::k_relativeScalePropertyId)
+	{
+		MikanVector3f scale = getSceneComponentDefinitionConst()->getRelativeScale();
+		outValue = Rml::Vector3f(scale.x, scale.y, scale.z);
+		return true;
+	}
+	else if (propertyName == SceneComponentDefinition::k_relativeQuatPropertyId)
+	{
+		glm::quat model_orientation = 
+			MikanQuatf_to_glm_quat(getSceneComponentDefinitionConst()->getRelativeQuat());
+
+		float angles[3]{};
+		glm_quat_to_euler_angles(model_orientation, angles[0], angles[1], angles[2]);
+		angles[0] *= k_radians_to_degrees;
+		angles[1] *= k_radians_to_degrees;
+		angles[2] *= k_radians_to_degrees;
+
+		outValue = Rml::Vector3f(angles[0], angles[1], angles[2]);
+		return true;
+	}
+	else if (propertyName == SceneComponentDefinition::k_relativeTranslationPropertyId)
+	{
+		MikanVector3f pos = getSceneComponentDefinitionConst()->getRelativeTranslation();
+		outValue = Rml::Vector3f(pos.x, pos.y, pos.z);
+		return true;
+	}
+
+	return false;
+}
+
+bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+{
+	if (MikanComponent::setPropertyValue(propertyName, inValue))
+		return true;
+
+	if (propertyName == SceneComponentDefinition::k_relativeScalePropertyId)
+	{
+		Rml::Vector3 scale = inValue.Get<Rml::Vector3f>();
+
+		setRelativeScale(glm::vec3(scale.x, scale.y, scale.z));
+		return true;
+	}
+	else if (propertyName == SceneComponentDefinition::k_relativeQuatPropertyId)
+	{
+		Rml::Vector3 angles = inValue.Get<Rml::Vector3f>();
+
+		glm::quat quat;
+		glm_euler_angles_to_quat(
+			angles.x * k_degrees_to_radians, 
+			angles.y * k_degrees_to_radians, 
+			angles.z * k_degrees_to_radians, 
+			quat);
+		setRelativeOrientation(quat);
+		return true;
+	}
+	else if (propertyName == SceneComponentDefinition::k_relativeTranslationPropertyId)
+	{
+		Rml::Vector3 pos = inValue.Get<Rml::Vector3f>();
+
+		setRelativeTransform(glm::vec3(pos.x, pos.y, pos.z));
+		return true;
+	}
+
+	return false;
 }

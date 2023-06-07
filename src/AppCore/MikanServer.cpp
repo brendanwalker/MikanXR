@@ -428,20 +428,21 @@ void MikanServer::handleAnchorSystemConfigChange(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(AnchorDefinition::k_anchorXformPropertyID))
+	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeTranslationPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeQuatPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
 	{
 		AnchorDefinitionPtr anchorConfig= std::static_pointer_cast<AnchorDefinition>(configPtr);
-		const MikanSpatialAnchorInfo& anchorInfo= anchorConfig->getAnchorInfo();
 
 		MikanAnchorPoseUpdateEvent poseUpdateEvent;
 		memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
-		poseUpdateEvent.anchor_id = anchorInfo.anchor_id;
-		poseUpdateEvent.transform = anchorInfo.anchor_xform;
+		poseUpdateEvent.anchor_id = anchorConfig->getAnchorId();
+		poseUpdateEvent.transform = glm_mat4_to_MikanMatrix4f(anchorConfig->getRelativeMat4());
 
 		MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
 
 	}
-	else if (changedPropertySet.hasPropertyName(AnchorDefinition::k_anchorXformPropertyID))
+	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
 	{
 		publishSimpleEvent(MikanEvent_anchorListUpdated);
 	}

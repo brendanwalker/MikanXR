@@ -26,11 +26,11 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanSpatialAnchorID getAnchorId() const { return m_anchorInfo.anchor_id; }
-	const MikanSpatialAnchorInfo& getAnchorInfo() const { return m_anchorInfo; }
+	MikanSpatialAnchorID getAnchorId() const { return m_anchorId; }
+	MikanSpatialAnchorInfo getAnchorInfo() const;
 
 private:
-	MikanSpatialAnchorInfo m_anchorInfo;
+	MikanSpatialAnchorID m_anchorId;
 };
 
 class AnchorComponent : public SceneComponent

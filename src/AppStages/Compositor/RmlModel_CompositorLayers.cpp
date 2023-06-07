@@ -420,7 +420,7 @@ void RmlModel_CompositorLayers::rebuild(
 		for (auto it = quadMap.begin(); it != quadMap.end(); it++)
 		{
 			QuadStencilComponentPtr stencil= it->second.lock();
-			MikanStencilID stencil_id= stencil->getDefinition()->getStencilId();
+			MikanStencilID stencil_id= stencil->getStencilComponentDefinition()->getStencilId();
 			const auto& enabledStencilIds= layerConfig->quadStencilConfig.quadStencilIds;
 
 			RmlModel_LayerStencilFlag stencilFlag;
@@ -441,7 +441,7 @@ void RmlModel_CompositorLayers::rebuild(
 		for (auto it = boxMap.begin(); it != boxMap.end(); it++)
 		{
 			BoxStencilComponentPtr stencil = it->second.lock();
-			MikanStencilID stencil_id = stencil->getDefinition()->getStencilId();
+			MikanStencilID stencil_id = stencil->getStencilComponentDefinition()->getStencilId();
 			const auto& enabledStencilIds= layerConfig->boxStencilConfig.boxStencilIds;
 
 			RmlModel_LayerStencilFlag stencilFlag;
@@ -462,7 +462,7 @@ void RmlModel_CompositorLayers::rebuild(
 		for (auto it = modelMap.begin(); it != modelMap.end(); it++)
 		{
 			ModelStencilComponentPtr stencil = it->second.lock();
-			MikanStencilID stencil_id = stencil->getDefinition()->getStencilId();
+			MikanStencilID stencil_id = stencil->getStencilComponentDefinition()->getStencilId();
 			const auto& enabledStencilIds= layerConfig->modelStencilConfig.modelStencilIds;
 			
 			RmlModel_LayerStencilFlag stencilFlag;

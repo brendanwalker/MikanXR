@@ -23,7 +23,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	//const MikanStencilModel& getModelInfo() const { return m_modelInfo; }
+	MikanStencilModel getModelInfo() const;
 
 	static const std::string k_modelStencilObjPathPropertyId;
 	const std::filesystem::path& getModelPath() const { return m_modelPath; }

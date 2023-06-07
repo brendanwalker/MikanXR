@@ -32,7 +32,7 @@ public:
 	bool getIsDisabled() const { return m_bIsDisabled; }
 	void setIsDisabled(bool flag);
 
-private:
+protected:
 	MikanStencilID m_stencilId= INVALID_MIKAN_ID;
 	MikanSpatialAnchorID m_parentAnchorId= INVALID_MIKAN_ID;
 	bool m_bIsDisabled= false;

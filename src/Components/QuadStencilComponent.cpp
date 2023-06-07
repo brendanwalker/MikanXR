@@ -18,6 +18,9 @@
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4_precision.hpp"
 
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+
 // -- QuadConfig -----
 const std::string QuadStencilDefinition::k_quadStencilWidthPropertyId = "quad_width";
 const std::string QuadStencilDefinition::k_quadStencilHeightPropertyId = "quad_height";
@@ -61,6 +64,25 @@ void QuadStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_quadWidth = pt.get_or<float>("quad_width", 0.25f);
 	m_quadHeight = pt.get_or<float>("quad_height", 0.25f);
 	m_bIsDoubleSided = pt.get_or<bool>("is_double_sided", false);
+}
+
+MikanStencilQuad QuadStencilDefinition::getQuadInfo() const
+{
+	const std::string& quadName = getComponentName();
+	GlmTransform xform = getRelativeTransform();
+
+	MikanStencilQuad quadInfo;
+	memset(&quadInfo, 0, sizeof(MikanStencilQuad));
+	quadInfo.stencil_id = m_stencilId;
+	quadInfo.parent_anchor_id = m_parentAnchorId;
+	quadInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
+	quadInfo.quad_width= m_quadWidth;
+	quadInfo.quad_height= m_quadHeight;
+	quadInfo.is_double_sided= m_bIsDoubleSided;
+	quadInfo.is_disabled= m_bIsDisabled;
+	strncpy(quadInfo.stencil_name, quadName.c_str(), sizeof(quadInfo.stencil_name) - 1);
+
+	return quadInfo;
 }
 
 void QuadStencilDefinition::setQuadWidth(float width)
@@ -142,4 +164,95 @@ void QuadStencilComponent::updateBoxColliderExtents()
 	{
 		boxCollider->setHalfExtents(glm::vec3(m_definition->getQuadWidth(), m_definition->getQuadHeight(), 0.01f) * 0.5f);
 	}
+}
+
+// -- IPropertyInterface ----
+void QuadStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	StencilComponent::getPropertyNames(outPropertyNames);
+
+	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilWidthPropertyId);
+	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilHeightPropertyId);
+	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId);
+}
+
+bool QuadStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
+{
+	if (StencilComponent::getPropertyDescriptor(propertyName, outDescriptor))
+		return true;
+
+	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
+	{
+		outDescriptor = {QuadStencilDefinition::k_quadStencilWidthPropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		return true;
+	}
+	else if (propertyName == QuadStencilDefinition::k_quadStencilHeightPropertyId)
+	{
+		outDescriptor = {QuadStencilDefinition::k_quadStencilHeightPropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		return true;
+	}
+	else if (propertyName == QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId)
+	{
+		outDescriptor = {QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox};
+		return true;
+	}
+
+	return false;
+}
+
+bool QuadStencilComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+{
+	if (StencilComponent::getPropertyValue(propertyName, outValue))
+		return true;
+
+	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
+	{
+		float width= getQuadStencilDefinition()->getQuadWidth();
+		outValue = width;
+		return true;
+	}
+	else if (propertyName == QuadStencilDefinition::k_quadStencilHeightPropertyId)
+	{
+		float height = getQuadStencilDefinition()->getQuadHeight();
+		outValue = height;
+		return true;
+	}
+	else if (propertyName == QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId)
+	{
+		bool isDoubleSided = getQuadStencilDefinition()->getIsDoubleSided();
+		outValue = isDoubleSided;
+		return true;
+	}
+
+	return false;
+}
+
+bool QuadStencilComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+{
+	if (StencilComponent::setPropertyValue(propertyName, inValue))
+		return true;
+
+	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
+	{
+		float width = inValue.Get<float>();
+
+		getQuadStencilDefinition()->setQuadWidth(width);
+		return true;
+	}
+	else if (propertyName == QuadStencilDefinition::k_quadStencilHeightPropertyId)
+	{
+		float height = inValue.Get<float>();
+
+		getQuadStencilDefinition()->setQuadHeight(height);
+		return true;
+	}
+	else if (propertyName == QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId)
+	{
+		bool isDoubleSided = inValue.Get<bool>();
+
+		getQuadStencilDefinition()->setIsDoubleSided(isDoubleSided);
+		return true;
+	}
+
+	return false;
 }

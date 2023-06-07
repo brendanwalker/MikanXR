@@ -43,7 +43,7 @@ public:
 	const MikanVector3f getRelativeTranslation() const { return m_relativeTransform.translation; }
 	void setRelativeTransition(const MikanVector3f& translation);
 
-private:
+protected:
 	MikanTransform m_relativeTransform;
 };
 
@@ -88,6 +88,10 @@ public:
 	virtual void dispose() override;
 
 	virtual void setDefinition(MikanComponentDefinitionPtr config) override;
+	inline SceneComponentDefinitionConstPtr getSceneComponentDefinitionConst() const
+	{
+		return std::static_pointer_cast<const SceneComponentDefinition>(m_definition);
+	}
 	inline SceneComponentDefinitionPtr getSceneComponentDefinition() { 
 		return std::static_pointer_cast<SceneComponentDefinition>(m_definition); 
 	}
@@ -113,7 +117,6 @@ public:
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
 	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
-	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:

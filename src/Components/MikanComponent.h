@@ -25,7 +25,7 @@ public:
 	const std::string getComponentName() const { return m_componentName; }
 	void setComponentName(const std::string& stencilName);
 
-private:
+protected:
 	std::string m_componentName;
 };
 

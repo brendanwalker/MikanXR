@@ -243,7 +243,7 @@ AnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorNam
 {
 	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
 
-	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor(anchorName, glm_transform_to_MikanTransform(&xform));
+	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor(anchorName, glm_transform_to_MikanTransform(xform));
 	if (anchorId != INVALID_MIKAN_ID)
 	{		
 		AnchorDefinitionPtr anchorConfig= anchorSystemConfig->getSpatialAnchorConfig(anchorId);

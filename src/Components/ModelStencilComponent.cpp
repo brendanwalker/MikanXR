@@ -67,6 +67,22 @@ void ModelStencilDefinition::setModelPath(const std::filesystem::path& path)
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
 }
 
+MikanStencilModel ModelStencilDefinition::getModelInfo() const
+{
+	const std::string& modelName = getComponentName();
+	GlmTransform xform = getRelativeTransform();
+
+	MikanStencilModel modelnfo;
+	memset(&modelnfo, 0, sizeof(MikanStencilModel));
+	modelnfo.stencil_id = m_stencilId;
+	modelnfo.parent_anchor_id = m_parentAnchorId;
+	modelnfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
+	modelnfo.is_disabled = m_bIsDisabled;
+	strncpy(modelnfo.stencil_name, modelName.c_str(), sizeof(modelnfo.stencil_name) - 1);
+
+	return modelnfo;
+}
+
 // -- ModelStencilComponent -----
 ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
@@ -327,7 +343,7 @@ bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyNam
 	if (StencilComponent::getPropertyDescriptor(propertyName, outDescriptor))
 		return true;
 
-	else if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
+	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
 		outDescriptor = {ModelStencilDefinition::k_modelStencilObjPathPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::filename};
 		return true;

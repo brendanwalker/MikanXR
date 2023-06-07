@@ -28,6 +28,7 @@ enum class ePropertySemantic : int
 	scale,
 	size3d,
 	size2d,
+	size1d,
 	filename,
 	name,
 	anchor_id,

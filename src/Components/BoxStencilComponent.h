@@ -22,7 +22,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	//const MikanStencilBox& getBoxInfo() const { return m_boxInfo; }
+	MikanStencilBox getBoxInfo() const;
 
 	static const std::string k_boxStencilXSizePropertyId;
 	float getBoxXSize() const { return m_boxSize.x; }
@@ -50,6 +50,12 @@ public:
 	virtual void customRender() override;
 
 	inline BoxStencilDefinitionPtr getBoxStencilDefinition() const { return m_definition; }
+
+	// -- IPropertyInterface ----
+	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
+	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
 	void updateBoxColliderExtents();
