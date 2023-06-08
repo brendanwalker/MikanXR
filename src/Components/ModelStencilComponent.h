@@ -14,54 +14,22 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/quaternion_float.hpp"
 
-class ModelStencilConfig : public CommonConfig
+class ModelStencilDefinition : public StencilComponentDefinition
 {
 public:
-	ModelStencilConfig();
-	ModelStencilConfig(const MikanStencilModel& modelInfo);
+	ModelStencilDefinition();
+	ModelStencilDefinition(const MikanStencilModel& modelInfo);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	const MikanStencilModel& getModelInfo() const { return m_modelInfo; }
-
-	MikanStencilID getStencilId() const { return m_modelInfo.stencil_id; }
-
-	static const std::string k_modelParentAnchorPropertyId;
-	MikanStencilID getParentAnchorId() const { return m_modelInfo.parent_anchor_id; }
-	void setParentAnchorId(MikanSpatialAnchorID anchorId);
-
-	const glm::mat4 getModelMat4() const;
-	void setModelMat4(const glm::mat4& xform);
-
-	const GlmTransform getModelTransform() const;
-	void setModelTransform(const GlmTransform& transform);
-
-	static const std::string k_modelStencilScalePropertyId;
-	const MikanVector3f getModelScale() const { return m_modelInfo.model_scale; }
-	void setModelScale(const MikanVector3f& scale);
-
-	static const std::string k_modelStencilRotatorPropertyId;
-	const MikanRotator3f getModelRotator() const { return m_modelInfo.model_rotator; }
-	void setModelRotator(const MikanRotator3f& rotator);
-
-	static const std::string k_modelStencilPositionPropertyId;
-	const MikanVector3f getModelPosition() const { return m_modelInfo.model_position; }
-	void setModelPosition(const MikanVector3f& position);
+	MikanStencilModel getModelInfo() const;
 
 	static const std::string k_modelStencilObjPathPropertyId;
 	const std::filesystem::path& getModelPath() const { return m_modelPath; }
 	void setModelPath(const std::filesystem::path& path);
 
-	static const std::string k_modelStencilDisabledPropertyId;
-	bool getIsDisabled() const { return m_modelInfo.is_disabled; }
-	void setIsDisabled(bool flag);
-
-	const std::string getStencilName() const { return m_modelInfo.stencil_name; }
-	void setStencilName(const std::string& stencilName);
-
 private:
-	MikanStencilModel m_modelInfo;
 	std::filesystem::path m_modelPath;
 };
 
@@ -73,22 +41,12 @@ public:
 	virtual void customRender() override;
 	virtual void dispose() override;
 
-	virtual CommonConfigPtr getComponentConfig() const override { return m_config; }
-	inline ModelStencilConfigPtr getConfig() const { return m_config; }
-	void setConfig(ModelStencilConfigPtr config);
-
-	virtual MikanStencilID getParentAnchorId() const override;
-	virtual void onParentAnchorChanged(MikanSpatialAnchorID newParentId) override;
+	inline ModelStencilDefinitionPtr getModelStencilDefinition() const { 
+		return std::static_pointer_cast<ModelStencilDefinition>(m_definition); 
+	}
 
 	void setModelPath(const std::filesystem::path& path);
 	void rebuildMeshComponents();
-
-	void setRelativePosition(const glm::vec3& position);
-	void setRelativeOrientation(const glm::vec3& eulerAnglesDegrees);
-	void setRelativeScale(const glm::vec3& scale);
-	virtual void setRelativeTransform(const GlmTransform& newRelativeXform) override;
-	virtual void setWorldTransform(const glm::mat4& newWorldXform) override;
-	virtual void setName(const std::string& name) override;
 
 	// Selection Events
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
@@ -104,7 +62,6 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
-	ModelStencilConfigPtr m_config;
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<GlStaticMeshInstancePtr> m_wireframeMeshes;
 	std::vector<SceneComponentPtr> m_meshComponents;

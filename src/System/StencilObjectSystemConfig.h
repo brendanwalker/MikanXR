@@ -24,23 +24,23 @@ public:
 	eStencilType getStencilType(MikanStencilID stencilId) const;
 
 	static const std::string k_quadStencilListPropertyId;
-	QuadStencilConfigConstPtr getQuadStencilConfigConst(MikanStencilID stencilId) const;
-	QuadStencilConfigPtr getQuadStencilConfig(MikanStencilID stencilId);
+	QuadStencilDefinitionConstPtr getQuadStencilConfigConst(MikanStencilID stencilId) const;
+	QuadStencilDefinitionPtr getQuadStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
 
 	static const std::string k_boxStencilListPropertyId;
-	BoxStencilConfigConstPtr getBoxStencilConfigConst(MikanStencilID stencilId) const;
-	BoxStencilConfigPtr getBoxStencilConfig(MikanStencilID stencilId);
+	BoxStencilDefinitionConstPtr getBoxStencilConfigConst(MikanStencilID stencilId) const;
+	BoxStencilDefinitionPtr getBoxStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
 
 	static const std::string k_modelStencilListPropertyId;
-	ModelStencilConfigConstPtr getModelStencilConfigConst(MikanStencilID stencilId) const;
-	ModelStencilConfigPtr getModelStencilConfig(MikanStencilID stencilId);
+	ModelStencilDefinitionConstPtr getModelStencilConfigConst(MikanStencilID stencilId) const;
+	ModelStencilDefinitionPtr getModelStencilConfig(MikanStencilID stencilId);
 	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
 
-	std::vector<QuadStencilConfigPtr> quadStencilList;
-	std::vector<BoxStencilConfigPtr> boxStencilList;
-	std::vector<ModelStencilConfigPtr> modelStencilList;
+	std::vector<QuadStencilDefinitionPtr> quadStencilList;
+	std::vector<BoxStencilDefinitionPtr> boxStencilList;
+	std::vector<ModelStencilDefinitionPtr> modelStencilList;
 	MikanStencilID nextStencilId= 0;
 	bool debugRenderStencils= false;
 };

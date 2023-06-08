@@ -1,9 +1,11 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
+#include "ComponentFwd.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModelStencilComponent.h"
 #include "RmlModel_CompositorModels.h"
-#include "MathMikan.h"
+#include "MathGLM.h"
+#include "MathTypeConversion.h"
 #include "StencilObjectSystem.h"
 #include "StringUtils.h"
 
@@ -166,7 +168,7 @@ bool RmlModel_CompositorModels::init(
 
 				if (rmlModel && stencilPtr)
 				{
-					stencilPtr->getConfig()->setIsDisabled(rmlModel->disabled);
+					stencilPtr->getStencilComponentDefinition()->setIsDisabled(rmlModel->disabled);
 				}
 			}
 		});
@@ -190,7 +192,7 @@ bool RmlModel_CompositorModels::init(
 				ModelStencilComponentPtr modelStencil = m_stencilSystemPtr->getModelStencilById(stencil_id);
 				if (modelStencil != nullptr)
 				{
-					current_file = modelStencil->getConfig()->getModelPath();
+					current_file = modelStencil->getModelStencilDefinition()->getModelPath();
 					current_dir = current_file.remove_filename();
 				}
 
@@ -266,7 +268,7 @@ void RmlModel_CompositorModels::rebuildAnchorList()
 	auto& anchorList = m_anchorSystemPtr->getAnchorSystemConfigConst()->spatialAnchorList;
 
 	m_spatialAnchors.clear();
-	for (AnchorConfigPtr configPtr : anchorList)
+	for (AnchorDefinitionPtr configPtr : anchorList)
 	{
 		const MikanSpatialAnchorID anchorId= configPtr->getAnchorId();
 
@@ -285,11 +287,10 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 	}
 	else
 	{
-		ModelStencilConfigPtr modelConfigPtr = std::dynamic_pointer_cast<ModelStencilConfig>(configPtr);
+		ModelStencilDefinitionPtr modelConfigPtr = std::dynamic_pointer_cast<ModelStencilDefinition>(configPtr);
 
 		if (modelConfigPtr)
 		{
-			const MikanStencilModel& modelInfo = modelConfigPtr->getModelInfo();
 			const MikanStencilID stencilId= modelConfigPtr->getStencilId();
 			auto it = std::find_if(
 				m_stencilModels.begin(), m_stencilModels.end(),
@@ -301,42 +302,50 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 				RmlModel_CompositorModel& uiModel = *it;
 				bool bAnyDirty= false;
 
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelParentAnchorPropertyId))
+				if (changedPropertySet.hasPropertyName(StencilComponentDefinition::k_parentAnchorPropertyId))
 				{
-					uiModel.parent_anchor_id = modelInfo.parent_anchor_id;
+					uiModel.parent_anchor_id = modelConfigPtr->getParentAnchorId();
 					bAnyDirty= true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilPositionPropertyId))
+				if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeTranslationPropertyId))
 				{
-					uiModel.model_position = {uiModel.model_position.x, uiModel.model_position.y, uiModel.model_position.z};
+					MikanVector3f position= modelConfigPtr->getRelativeTranslation();
+					uiModel.model_position = {position.x, position.y, position.z};
 					bAnyDirty= true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilRotatorPropertyId))
+				if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeQuatPropertyId))
 				{
-					uiModel.model_angles = {
-						modelInfo.model_rotator.x_angle,
-						modelInfo.model_rotator.y_angle,
-						modelInfo.model_rotator.z_angle};
+					glm::quat model_orientation= MikanQuatf_to_glm_quat(modelConfigPtr->getRelativeQuat());
+
+					float angles[3]{};
+					glm_quat_to_euler_angles(model_orientation, angles[0], angles[1], angles[2]);
+					angles[0] *= k_radians_to_degrees;
+					angles[1] *= k_radians_to_degrees;
+					angles[2] *= k_radians_to_degrees;
+
+					uiModel.model_angles = {angles[0], angles[1], angles[2]};
 					bAnyDirty= true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilScalePropertyId))
+				if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
 				{
-					uiModel.model_scale = {modelInfo.model_scale.x, modelInfo.model_scale.y, modelInfo.model_scale.z};
+					MikanVector3f scale = modelConfigPtr->getRelativeScale();
+
+					uiModel.model_scale = {scale.x, scale.y, scale.z};
 					bAnyDirty= true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilObjPathPropertyId))
+				if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilObjPathPropertyId))
 				{
 					uiModel.model_path= modelConfigPtr->getModelPath().string();
 					bAnyDirty = true;
 				}
-				if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilDisabledPropertyId))
+				if (changedPropertySet.hasPropertyName(StencilComponentDefinition::k_stencilDisabledPropertyId))
 				{
-					uiModel.disabled = modelInfo.is_disabled;
+					uiModel.disabled = modelConfigPtr->getIsDisabled();
 					bAnyDirty = true;
 				}
-				if (changedPropertySet.hasPropertyName(MikanComponent::k_componentNamePropertyId))
+				if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 				{
-					uiModel.stencil_name = modelInfo.stencil_name;
+					uiModel.stencil_name = modelConfigPtr->getComponentName();
 					bAnyDirty = true;
 				}
 
@@ -351,22 +360,31 @@ void RmlModel_CompositorModels::stencilSystemConfigMarkedDirty(
 
 void RmlModel_CompositorModels::rebuildStencilUIModelsFromProfile()
 {
-	auto& modelStencilList= m_stencilSystemPtr->getStencilSystemConfigConst()->modelStencilList;
+	auto& stencilList = m_stencilSystemPtr->getStencilSystemConfigConst()->modelStencilList;
 
 	m_stencilModels.clear();
-	for (ModelStencilConfigPtr configPtr : modelStencilList)
+	for (ModelStencilDefinitionPtr definitionPtr : stencilList)
 	{
-		const MikanStencilModel& modelInfo = configPtr->getModelInfo();
+		const GlmTransform model_xform = definitionPtr->getRelativeTransform();
+		const glm::vec3 model_center = model_xform.getPosition();
+		const glm::quat model_orientation = model_xform.getOrientation();
+		const glm::vec3 model_scale = model_xform.getScale();
+
+		float angles[3]{};
+		glm_quat_to_euler_angles(model_orientation, angles[0], angles[1], angles[2]);
+		angles[0] *= k_radians_to_degrees;
+		angles[1] *= k_radians_to_degrees;
+		angles[2] *= k_radians_to_degrees;
 
 		RmlModel_CompositorModel uiModel = {
-			modelInfo.stencil_name,
-			modelInfo.stencil_id,
-			modelInfo.parent_anchor_id,
-			configPtr->getModelPath().string(),
-			Rml::Vector3f(modelInfo.model_position.x, modelInfo.model_position.y, modelInfo.model_position.z),
-			Rml::Vector3f(modelInfo.model_rotator.x_angle, modelInfo.model_rotator.y_angle, modelInfo.model_rotator.z_angle),
-			Rml::Vector3f(modelInfo.model_scale.x, modelInfo.model_scale.y, modelInfo.model_scale.z),
-			modelInfo.is_disabled
+			definitionPtr->getComponentName(),
+			definitionPtr->getStencilId(),
+			definitionPtr->getParentAnchorId(),
+			definitionPtr->getModelPath().string(),
+			Rml::Vector3f(model_center.x, model_center.y, model_center.z),
+			Rml::Vector3f(angles[0], angles[1], angles[2]),
+			Rml::Vector3f(model_scale.x, model_scale.y, model_scale.z),
+			definitionPtr->getIsDisabled()
 		};
 		m_stencilModels.push_back(uiModel);
 	}

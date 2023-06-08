@@ -19,7 +19,7 @@ LuaQuadStencilList::LuaQuadStencilList()
 {
 	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
 
-	for (QuadStencilConfigPtr quadConfig : profile->stencilConfig->quadStencilList)
+	for (QuadStencilDefinitionPtr quadConfig : profile->stencilConfig->quadStencilList)
 	{
 		m_stencilIdList.push_back(quadConfig->getStencilId());
 	}
@@ -40,7 +40,7 @@ LuaBoxStencilList::LuaBoxStencilList()
 {
 	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
 
-	for (BoxStencilConfigPtr boxStencil : profile->stencilConfig->boxStencilList)
+	for (BoxStencilDefinitionPtr boxStencil : profile->stencilConfig->boxStencilList)
 	{
 		m_stencilIdList.push_back(boxStencil->getStencilId());
 	}
@@ -61,7 +61,7 @@ LuaModelStencilList::LuaModelStencilList()
 {
 	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
 
-	for (ModelStencilConfigPtr modelStencil : profile->stencilConfig->modelStencilList)
+	for (ModelStencilDefinitionPtr modelStencil : profile->stencilConfig->modelStencilList)
 	{
 		m_stencilIdList.push_back(modelStencil->getStencilId());
 	}
@@ -88,7 +88,7 @@ int LuaStencilQuad::getParentSpatialAnchorId() const {
 	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getParentAnchorId();
+		return stencil->getQuadStencilDefinition()->getParentAnchorId();
 	}
 	return -1;
 }
@@ -99,37 +99,7 @@ LuaVec3f LuaStencilQuad::getQuadCenter() const
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->getConfig()->getQuadCenter());
-	}
-	return result;
-}
-LuaVec3f LuaStencilQuad::getQuadXAxis() const
-{
-	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
-	LuaVec3f result;
-	if (stencil != nullptr)
-	{
-		result = LuaVec3f(stencil->getConfig()->getQuadXAxis());
-	}
-	return result;
-}
-LuaVec3f LuaStencilQuad::getQuadYAxis() const
-{
-	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
-	LuaVec3f result;
-	if (stencil != nullptr)
-	{
-		result = LuaVec3f(stencil->getConfig()->getQuadYAxis());
-	}
-	return result;
-}
-LuaVec3f LuaStencilQuad::getQuadNormal() const
-{
-	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
-	LuaVec3f result;
-	if (stencil != nullptr)
-	{
-		result = LuaVec3f(stencil->getConfig()->getQuadNormal());
+		result = LuaVec3f(stencil->getRelativeTransform().getPosition());
 	}
 	return result;
 }
@@ -138,7 +108,7 @@ float LuaStencilQuad::getQuadWidth() const
 	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getQuadWidth();
+		return stencil->getQuadStencilDefinition()->getQuadWidth();
 	}
 	return 0.f;
 }
@@ -147,7 +117,7 @@ float LuaStencilQuad::getQuadHeight() const
 	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getQuadHeight();
+		return stencil->getQuadStencilDefinition()->getQuadHeight();
 	}
 	return 0.f;
 }
@@ -156,7 +126,7 @@ bool LuaStencilQuad::getIsDoubleSided() const
 	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getIsDoubleSided();
+		return stencil->getQuadStencilDefinition()->getIsDoubleSided();
 	}
 	return false;
 }
@@ -165,7 +135,7 @@ bool LuaStencilQuad::getIsDisabled() const
 	QuadStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getIsDisabled();
+		return stencil->getQuadStencilDefinition()->getIsDisabled();
 	}
 	return false;
 }
@@ -175,37 +145,7 @@ bool LuaStencilQuad::setQuadCenter(const LuaVec3f& center)
 	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setQuadCenter(center.toMikanVector3f());
-		return true;
-	}
-	return false;
-}
-bool LuaStencilQuad::setQuadXAxis(const LuaVec3f& x_axis)
-{
-	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
-	if (stencil != nullptr)
-	{
-		stencil->getConfig()->setQuadXAxis(x_axis.toMikanVector3f());
-		return true;
-	}
-	return false;
-}
-bool LuaStencilQuad::setQuadYAxis(const LuaVec3f& y_axis)
-{
-	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
-	if (stencil != nullptr)
-	{
-		stencil->getConfig()->setQuadYAxis(y_axis.toMikanVector3f());
-		return true;
-	}
-	return false;
-}
-bool LuaStencilQuad::setQuadNormal(const LuaVec3f& normal)
-{
-	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
-	if (stencil != nullptr)
-	{
-		stencil->getConfig()->setQuadNormal(normal.toMikanVector3f());
+		stencil->setRelativePosition(center.toGlmVec3f());
 		return true;
 	}
 	return false;
@@ -215,7 +155,7 @@ bool LuaStencilQuad::setQuadWidth(float width)
 	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setQuadWidth(width);
+		stencil->getQuadStencilDefinition()->setQuadWidth(width);
 		return true;
 	}
 	return false;
@@ -225,7 +165,7 @@ bool LuaStencilQuad::setQuadHeight(float height)
 	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setQuadHeight(height);
+		stencil->getQuadStencilDefinition()->setQuadHeight(height);
 		return true;
 	}
 	return false;
@@ -235,7 +175,7 @@ bool LuaStencilQuad::setIsDoubleSided(bool flag)
 	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setIsDoubleSided(flag);
+		stencil->getQuadStencilDefinition()->setIsDoubleSided(flag);
 		return true;
 	}
 	return false;
@@ -245,7 +185,7 @@ bool LuaStencilQuad::setIsDisabled(bool flag)
 	QuadStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setIsDisabled(flag);
+		stencil->getQuadStencilDefinition()->setIsDisabled(flag);
 		return true;
 	}
 	return false;
@@ -269,17 +209,11 @@ void LuaStencilQuad::bindFunctions(lua_State* L)
 		.addFunction("getStencilId", &LuaStencilQuad::getStencilId)
 		.addFunction("getParentSpatialAnchorId", &LuaStencilQuad::getParentSpatialAnchorId)
 		.addFunction("getQuadCenter", &LuaStencilQuad::getQuadCenter)
-		.addFunction("getQuadXAxis", &LuaStencilQuad::getQuadXAxis)
-		.addFunction("getQuadYAxis", &LuaStencilQuad::getQuadYAxis)
-		.addFunction("getQuadNormal", &LuaStencilQuad::getQuadNormal)
 		.addFunction("getQuadWidth", &LuaStencilQuad::getQuadWidth)
 		.addFunction("getQuadHeight", &LuaStencilQuad::getQuadHeight)
 		.addFunction("getIsDoubleSided", &LuaStencilQuad::getIsDoubleSided)
 		.addFunction("getIsDisabled", &LuaStencilQuad::getIsDisabled)
 		.addFunction("setQuadCenter", &LuaStencilQuad::setQuadCenter)
-		.addFunction("setQuadXAxis", &LuaStencilQuad::setQuadXAxis)
-		.addFunction("setQuadYAxis", &LuaStencilQuad::setQuadYAxis)
-		.addFunction("setQuadNormal", &LuaStencilQuad::setQuadNormal)
 		.addFunction("setQuadWidth", &LuaStencilQuad::setQuadWidth)
 		.addFunction("setQuadHeight", &LuaStencilQuad::setQuadHeight)
 		.addFunction("setIsDoubleSided", &LuaStencilQuad::setIsDoubleSided)
@@ -298,7 +232,7 @@ int LuaStencilBox::getParentSpatialAnchorId() const {
 	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getParentAnchorId();
+		return stencil->getBoxStencilDefinition()->getParentAnchorId();
 	}
 	return -1;
 }
@@ -309,37 +243,7 @@ LuaVec3f LuaStencilBox::getBoxCenter() const
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->getConfig()->getBoxCenter());
-	}
-	return result;
-}
-LuaVec3f LuaStencilBox::getBoxXAxis() const
-{
-	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
-	LuaVec3f result;
-	if (stencil != nullptr)
-	{
-		result = LuaVec3f(stencil->getConfig()->getBoxXAxis());
-	}
-	return result;
-}
-LuaVec3f LuaStencilBox::getBoxYAxis() const
-{
-	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
-	LuaVec3f result;
-	if (stencil != nullptr)
-	{
-		result = LuaVec3f(stencil->getConfig()->getBoxYAxis());
-	}
-	return result;
-}
-LuaVec3f LuaStencilBox::getBoxZAxis() const
-{
-	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
-	LuaVec3f result;
-	if (stencil != nullptr)
-	{
-		result = LuaVec3f(stencil->getConfig()->getBoxZAxis());
+		result = LuaVec3f(stencil->getRelativeTransform().getPosition());
 	}
 	return result;
 }
@@ -348,7 +252,7 @@ float LuaStencilBox::getBoxXSize() const
 	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getBoxXSize();
+		return stencil->getBoxStencilDefinition()->getBoxXSize();
 	}
 	return 0.f;
 }
@@ -357,7 +261,7 @@ float LuaStencilBox::getBoxYSize() const
 	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getBoxYSize();
+		return stencil->getBoxStencilDefinition()->getBoxYSize();
 	}
 	return 0.f;
 }
@@ -366,7 +270,7 @@ float LuaStencilBox::getBoxZSize() const
 	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getBoxZSize();
+		return stencil->getBoxStencilDefinition()->getBoxZSize();
 	}
 	return 0.f;
 }
@@ -375,7 +279,7 @@ bool LuaStencilBox::getIsDisabled() const
 	BoxStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getIsDisabled();
+		return stencil->getBoxStencilDefinition()->getIsDisabled();
 	}
 	return false;
 }
@@ -385,37 +289,7 @@ bool LuaStencilBox::setBoxCenter(const LuaVec3f& center)
 	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setBoxCenter(center.toMikanVector3f());
-		return true;
-	}
-	return false;
-}
-bool LuaStencilBox::setBoxXAxis(const LuaVec3f& x_axis)
-{
-	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
-	if (stencil != nullptr)
-	{
-		stencil->getConfig()->setBoxXAxis(x_axis.toMikanVector3f());
-		return true;
-	}
-	return false;
-}
-bool LuaStencilBox::setBoxYAxis(const LuaVec3f& y_axis)
-{
-	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
-	if (stencil != nullptr)
-	{
-		stencil->getConfig()->setBoxYAxis(y_axis.toMikanVector3f());
-		return true;
-	}
-	return false;
-}
-bool LuaStencilBox::setBoxZAxis(const LuaVec3f& z_axis)
-{
-	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
-	if (stencil != nullptr)
-	{
-		stencil->getConfig()->setBoxZAxis(z_axis.toMikanVector3f());
+		stencil->setRelativePosition(center.toGlmVec3f());
 		return true;
 	}
 	return false;
@@ -425,7 +299,7 @@ bool LuaStencilBox::setBoxXSize(float size)
 	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setBoxXSize(size);
+		stencil->getBoxStencilDefinition()->setBoxXSize(size);
 		return true;
 	}
 	return false;
@@ -435,7 +309,7 @@ bool LuaStencilBox::setBoxYSize(float size)
 	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setBoxYSize(size);
+		stencil->getBoxStencilDefinition()->setBoxYSize(size);
 		return true;
 	}
 	return false;
@@ -445,7 +319,7 @@ bool LuaStencilBox::setBoxZSize(float size)
 	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setBoxZSize(size);
+		stencil->getBoxStencilDefinition()->setBoxZSize(size);
 		return true;
 	}
 	return false;
@@ -455,7 +329,7 @@ bool LuaStencilBox::setIsDisabled(bool flag)
 	BoxStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setIsDisabled(flag);
+		stencil->getBoxStencilDefinition()->setIsDisabled(flag);
 		return true;
 	}
 	return false;
@@ -479,17 +353,11 @@ void LuaStencilBox::bindFunctions(lua_State* L)
 		.addFunction("getStencilId", &LuaStencilBox::getStencilId)
 		.addFunction("getParentSpatialAnchorId", &LuaStencilBox::getParentSpatialAnchorId)
 		.addFunction("getBoxCenter", &LuaStencilBox::getBoxCenter)
-		.addFunction("getBoxXAxis", &LuaStencilBox::getBoxXAxis)
-		.addFunction("getBoxYAxis", &LuaStencilBox::getBoxYAxis)
-		.addFunction("getBoxZAxis", &LuaStencilBox::getBoxZAxis)
 		.addFunction("getBoxXSize", &LuaStencilBox::getBoxXSize)
 		.addFunction("getBoxYSize", &LuaStencilBox::getBoxYSize)
 		.addFunction("getBoxZSize", &LuaStencilBox::getBoxZSize)
 		.addFunction("getIsDisabled", &LuaStencilBox::getIsDisabled)
 		.addFunction("setBoxCenter", &LuaStencilBox::setBoxCenter)
-		.addFunction("setBoxXAxis", &LuaStencilBox::setBoxXAxis)
-		.addFunction("setBoxYAxis", &LuaStencilBox::setBoxYAxis)
-		.addFunction("setBoxZAxis", &LuaStencilBox::setBoxZAxis)
 		.addFunction("setBoxXSize", &LuaStencilBox::setBoxXSize)
 		.addFunction("setBoxYSize", &LuaStencilBox::setBoxYSize)
 		.addFunction("setBoxZSize", &LuaStencilBox::setBoxZSize)
@@ -509,7 +377,7 @@ int LuaStencilModel::getParentSpatialAnchorId() const
 	ModelStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getParentAnchorId();
+		return stencil->getModelStencilDefinition()->getParentAnchorId();
 	}
 	return -1;
 }
@@ -520,17 +388,7 @@ LuaVec3f LuaStencilModel::getModelPosition() const
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->getConfig()->getModelPosition());
-	}
-	return result;
-}
-LuaVec3f LuaStencilModel::getModelRotator() const
-{
-	ModelStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
-	LuaVec3f result;
-	if (stencil != nullptr)
-	{
-		result = LuaVec3f(stencil->getConfig()->getModelRotator());
+		result = LuaVec3f(stencil->getRelativeTransform().getPosition());
 	}
 	return result;
 }
@@ -540,7 +398,7 @@ LuaVec3f LuaStencilModel::getModelScale() const
 	LuaVec3f result;
 	if (stencil != nullptr)
 	{
-		result = LuaVec3f(stencil->getConfig()->getModelScale());
+		result = LuaVec3f(stencil->getRelativeTransform().getScale());
 	}
 	return result;
 }
@@ -549,7 +407,7 @@ bool LuaStencilModel::getIsDisabled() const
 	ModelStencilComponentConstPtr stencil = findConstStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		return stencil->getConfig()->getIsDisabled();
+		return stencil->getModelStencilDefinition()->getIsDisabled();
 	}
 	return true;
 }
@@ -559,17 +417,7 @@ bool LuaStencilModel::setModelPosition(const LuaVec3f & position)
 	ModelStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setModelPosition(position.toMikanVector3f());
-		return true;
-	}
-	return false;
-}
-bool LuaStencilModel::setModelRotator(const LuaVec3f & rotator)
-{
-	ModelStencilComponentPtr stencil = findStencilByID(m_stencilId);
-	if (stencil != nullptr)
-	{
-		stencil->getConfig()->setModelRotator(rotator.toMikanRotator3f());
+		stencil->setRelativePosition(position.toGlmVec3f());
 		return true;
 	}
 	return false;
@@ -579,7 +427,7 @@ bool LuaStencilModel::setModelScale(const LuaVec3f & scale)
 	ModelStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setModelScale(scale.toMikanVector3f());
+		stencil->setRelativeScale(scale.toGlmVec3f());
 		return true;
 	}
 	return false;
@@ -589,7 +437,7 @@ bool LuaStencilModel::setIsDisabled(bool flag)
 	ModelStencilComponentPtr stencil = findStencilByID(m_stencilId);
 	if (stencil != nullptr)
 	{
-		stencil->getConfig()->setIsDisabled(flag);
+		stencil->getModelStencilDefinition()->setIsDisabled(flag);
 		return true;
 	}
 	return false;
@@ -613,11 +461,9 @@ void LuaStencilModel::bindFunctions(lua_State* L)
 		.addFunction("getStencilId", &LuaStencilModel::getStencilId)
 		.addFunction("getParentSpatialAnchorId", &LuaStencilModel::getParentSpatialAnchorId)
 		.addFunction("getModelPosition", &LuaStencilModel::getModelPosition)
-		.addFunction("getModelRotator", &LuaStencilModel::getModelRotator)
 		.addFunction("getModelScale", &LuaStencilModel::getModelScale)
 		.addFunction("getIsDisabled", &LuaStencilModel::getIsDisabled)
 		.addFunction("setModelPosition", &LuaStencilModel::setModelPosition)
-		.addFunction("setModelRotator", &LuaStencilModel::setModelRotator)
 		.addFunction("setModelScale", &LuaStencilModel::setModelScale)
 		.addFunction("setIsDisabled", &LuaStencilModel::setIsDisabled)
 		.endClass();

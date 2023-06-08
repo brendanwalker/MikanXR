@@ -113,7 +113,7 @@ void RmlModel_VRDeviceSettings::rebuildVRDeviceList(const VRDeviceManager* vrDev
 void RmlModel_VRDeviceSettings::rebuildAnchorList(ProfileConfigConstPtr profile)
 {
 	m_spatialAnchors.clear();
-	for (AnchorConfigPtr anchorInfo : profile->anchorConfig->spatialAnchorList)
+	for (AnchorDefinitionPtr anchorInfo : profile->anchorConfig->spatialAnchorList)
 	{
 		m_spatialAnchors.push_back(anchorInfo->getAnchorId());
 	}

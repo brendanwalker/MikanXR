@@ -10,73 +10,35 @@
 
 #include "glm/ext/vector_float3.hpp"
 
-class QuadStencilConfig : public CommonConfig
+class QuadStencilDefinition : public StencilComponentDefinition
 {
 public:
-	QuadStencilConfig();
-	QuadStencilConfig(const MikanStencilQuad& quadInfo);
+	QuadStencilDefinition();
+	QuadStencilDefinition(const MikanStencilQuad& quadInfo);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	const MikanStencilQuad& getQuadInfo() const { return m_quadInfo; }
-
-	MikanStencilID getStencilId() const { return m_quadInfo.stencil_id; }
-
-	static const std::string k_quadParentAnchorPropertyId;
-	MikanSpatialAnchorID getParentAnchorId() const { return m_quadInfo.parent_anchor_id; }
-	void setParentAnchorId(MikanSpatialAnchorID anchorId);
-
-	const glm::mat4 getQuadMat4() const;
-	void setQuadMat4(const glm::mat4& xform);
-
-	const GlmTransform getQuadTransform() const;
-	void setQuadTransform(const GlmTransform& transform);
-
-	static const std::string k_quadStencilXAxisPropertyId;
-	const MikanVector3f getQuadXAxis() const { return m_quadInfo.quad_x_axis; }
-	void setQuadXAxis(const MikanVector3f& xAxis);
-
-	static const std::string k_quadStencilYAxisPropertyId;
-	const MikanVector3f getQuadYAxis() const { return m_quadInfo.quad_y_axis; }
-	void setQuadYAxis(const MikanVector3f& yAxis);
-
-	static const std::string k_quadStencilNormalPropertyId;
-	const MikanVector3f getQuadNormal() const  { return m_quadInfo.quad_normal; }
-	void setQuadNormal(const MikanVector3f& normal);
-
-	void setQuadOrientation(const glm::mat3& rotation);
-
-	static const std::string k_quadStencilCenterPropertyId;
-	const MikanVector3f getQuadCenter() const  { return m_quadInfo.quad_center; }
-	void setQuadCenter(const MikanVector3f& center);
+	MikanStencilQuad getQuadInfo() const;
 
 	static const std::string k_quadStencilWidthPropertyId;
-	float getQuadWidth() const { return m_quadInfo.quad_width; }
+	float getQuadWidth() const { return m_quadWidth; }
 	void setQuadWidth(float width);
 
 	static const std::string k_quadStencilHeightPropertyId;
-	float getQuadHeight() const { return m_quadInfo.quad_height; }
+	float getQuadHeight() const { return m_quadHeight; }
 	void setQuadHeight(float height);
 
 	void setQuadSize(float width, float height);
 
-	static const std::string k_quadStencilDisabledPropertyId;
-	bool getIsDoubleSided() const { return m_quadInfo.is_double_sided; }
+	static const std::string k_quadStencilDoubleSidedPropertyId;
+	bool getIsDoubleSided() const { return m_bIsDoubleSided; }
 	void setIsDoubleSided(bool flag);
 
-	static const std::string k_quadStencilDoubleSidedPropertyId;
-	bool getIsDisabled() const { return m_quadInfo.is_disabled; }
-	void setIsDisabled(bool flag);
-
-	static const std::string k_quadStencilNamePropertyId;
-	const std::string getStencilName() const { return m_quadInfo.stencil_name; }
-	void setStencilName(const std::string& stencilName);
-
-private:
-	void notifyStencilChanged();
-
-	MikanStencilQuad m_quadInfo;
+protected:
+	float m_quadWidth;
+	float m_quadHeight;
+	bool m_bIsDoubleSided;
 };
 
 class QuadStencilComponent : public StencilComponent
@@ -86,24 +48,20 @@ public:
 	virtual void init() override;
 	virtual void customRender() override;
 
-	virtual CommonConfigPtr getComponentConfig() const override { return m_config; }
-	inline QuadStencilConfigPtr getConfig() const { return m_config; }
-	void setConfig(QuadStencilConfigPtr config);
+	inline QuadStencilDefinitionPtr getQuadStencilDefinition() const
+	{
+		return std::static_pointer_cast<QuadStencilDefinition>(m_definition);
+	}
 
-	virtual MikanStencilID getParentAnchorId() const override;
-	virtual void onParentAnchorChanged(MikanSpatialAnchorID newParentId) override;
-
-	void setRelativePosition(const glm::vec3& position);
-	void setRelativeOrientation(const glm::mat3& rotation);
-	virtual void setRelativeTransform(const GlmTransform& newRelativeXform) override;
-	virtual void setWorldTransform(const glm::mat4& newWorldXform) override;
-
-	virtual void setName(const std::string& name) override;
+	// -- IPropertyInterface ----
+	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
+	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
 	void updateBoxColliderExtents();
 
-	QuadStencilConfigPtr m_config;
 	SelectionComponentWeakPtr m_selectionComponent;
 	BoxColliderComponentWeakPtr m_boxCollider;
 };

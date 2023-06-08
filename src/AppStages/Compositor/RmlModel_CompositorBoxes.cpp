@@ -135,7 +135,7 @@ bool RmlModel_CompositorBoxes::init(
 				{
 					const Rml::Vector3f& uiVec = rmlModel->size;
 
-					stencilPtr->getConfig()->setBoxSize(uiVec.x, uiVec.y, uiVec.z);
+					stencilPtr->getBoxStencilDefinition()->setBoxSize(uiVec.x, uiVec.y, uiVec.z);
 				}
 			}
 		});
@@ -151,7 +151,7 @@ bool RmlModel_CompositorBoxes::init(
 
 				if (rmlModel && stencilPtr)
 				{
-					stencilPtr->getConfig()->setIsDisabled(rmlModel->disabled);
+					stencilPtr->getBoxStencilDefinition()->setIsDisabled(rmlModel->disabled);
 				}
 			}
 		});
@@ -226,7 +226,7 @@ void RmlModel_CompositorBoxes::rebuildAnchorList()
 	auto& anchorList = m_anchorSystemPtr->getAnchorSystemConfigConst()->spatialAnchorList;
 
 	m_spatialAnchors.clear();
-	for (AnchorConfigPtr configPtr : anchorList)
+	for (AnchorDefinitionPtr configPtr : anchorList)
 	{
 		const MikanSpatialAnchorID anchorId = configPtr->getAnchorId();
 
@@ -245,7 +245,7 @@ void RmlModel_CompositorBoxes::stencilSystemConfigMarkedDirty(
 	}
 	else 
 	{
-		BoxStencilConfigPtr boxConfigPtr= std::dynamic_pointer_cast<BoxStencilConfig>(configPtr);
+		BoxStencilDefinitionPtr boxConfigPtr= std::dynamic_pointer_cast<BoxStencilDefinition>(configPtr);
 
 		if (boxConfigPtr)
 		{
@@ -256,26 +256,29 @@ void RmlModel_CompositorBoxes::stencilSystemConfigMarkedDirty(
 
 void RmlModel_CompositorBoxes::rebuildUIBoxesFromStencilSystem()
 {
-	auto& boxStencilList = m_stencilSystemPtr->getStencilSystemConfigConst()->boxStencilList;
+	auto& stencilList = m_stencilSystemPtr->getStencilSystemConfigConst()->boxStencilList;
 
 	m_stencilBoxes.clear();
-	for (BoxStencilConfigPtr configPtr : boxStencilList)
+	for (BoxStencilDefinitionPtr definitionPtr : stencilList)
 	{
-		const MikanStencilBox& box = configPtr->getBoxInfo();
+		const GlmTransform box_xform = definitionPtr->getRelativeTransform();
+		const glm::vec3 box_center = box_xform.getPosition();
+		const glm::quat box_orientation = box_xform.getOrientation();
 
 		float angles[3]{};
-		MikanOrientationToEulerAngles(
-			box.box_x_axis, box.box_y_axis, box.box_z_axis,
-			angles[0], angles[1], angles[2]);
+		glm_quat_to_euler_angles(box_orientation, angles[0], angles[1], angles[2]);
+		angles[0] *= k_radians_to_degrees;
+		angles[1] *= k_radians_to_degrees;
+		angles[2] *= k_radians_to_degrees;
 
 		RmlModel_CompositorBox uiQuad = {
-			box.stencil_name,
-			box.stencil_id,
-			box.parent_anchor_id,
-			Rml::Vector3f(box.box_center.x, box.box_center.y, box.box_center.z),
+			definitionPtr->getComponentName(),
+			definitionPtr->getStencilId(),
+			definitionPtr->getParentAnchorId(),
+			Rml::Vector3f(box_center.x, box_center.y, box_center.z),
 			Rml::Vector3f(angles[0], angles[1], angles[2]),
-			Rml::Vector3f(box.box_x_size, box.box_y_size, box.box_z_size),
-			box.is_disabled
+			Rml::Vector3f(definitionPtr->getBoxXSize(), definitionPtr->getBoxYSize(), definitionPtr->getBoxZSize()),
+			definitionPtr->getIsDisabled()
 		};
 		m_stencilBoxes.push_back(uiQuad);
 	}
@@ -314,23 +317,25 @@ void RmlModel_CompositorBoxes::copyStencilSystemToUIBox(int stencil_id)
 
 		if (stencilPtr != nullptr)
 		{
-			BoxStencilConfigPtr configPtr = stencilPtr->getConfig();
-			const MikanStencilBox& box = configPtr->getBoxInfo();
-
 			RmlModel_CompositorBox& uiBox = *it;
 
-			uiBox.parent_anchor_id = box.parent_anchor_id;
+			BoxStencilDefinitionPtr definitionPtr = stencilPtr->getBoxStencilDefinition();
+			const GlmTransform box_xform = definitionPtr->getRelativeTransform();
+			const glm::vec3 box_center = box_xform.getPosition();
+			const glm::quat box_orientation = box_xform.getOrientation();
 
-			MikanOrientationToEulerAngles(
-				box.box_x_axis, box.box_y_axis, box.box_z_axis,
-				uiBox.angles.x, uiBox.angles.y, uiBox.angles.z);
+			glm_quat_to_euler_angles(box_orientation, uiBox.angles.x, uiBox.angles.y, uiBox.angles.z);
+			uiBox.angles.x *= k_radians_to_degrees;
+			uiBox.angles.y *= k_radians_to_degrees;
+			uiBox.angles.z *= k_radians_to_degrees;
 
-			uiBox.box_center = {box.box_center.x, box.box_center.y, box.box_center.z};
-			uiBox.size.x = box.box_x_size;
-			uiBox.size.y = box.box_y_size;
-			uiBox.size.z = box.box_z_size;
-			uiBox.disabled = box.is_disabled;
-			uiBox.stencil_name = box.stencil_name;
+			uiBox.parent_anchor_id = definitionPtr->getParentAnchorId();
+			uiBox.box_center = {box_center.x, box_center.y, box_center.z};
+			uiBox.size.x = definitionPtr->getBoxXSize();
+			uiBox.size.y = definitionPtr->getBoxYSize();
+			uiBox.size.z = definitionPtr->getBoxZSize();
+			uiBox.disabled = definitionPtr->getIsDisabled();
+			uiBox.stencil_name = definitionPtr->getComponentName();
 		}
 		m_modelHandle.DirtyVariable("stencil_boxes");
 	}

@@ -19,6 +19,13 @@ LuaVec3f::LuaVec3f(float _x, float _y, float _z)
 	z = _z;
 }
 
+LuaVec3f::LuaVec3f(const glm::vec3& v)
+{
+	x = v.x;
+	y = v.y;
+	z = v.z;
+}
+
 LuaVec3f::LuaVec3f(const MikanVector3f& v)
 {
 	x = v.x;
@@ -39,6 +46,11 @@ MikanVector3f LuaVec3f::toMikanVector3f() const
 }
 
 MikanRotator3f LuaVec3f::toMikanRotator3f() const
+{
+	return { x, y, z };
+}
+
+glm::vec3 LuaVec3f::toGlmVec3f() const
 {
 	return { x, y, z };
 }

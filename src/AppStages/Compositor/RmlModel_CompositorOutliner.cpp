@@ -4,6 +4,7 @@
 #include "MikanObject.h"
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
+#include "StencilComponent.h"
 #include "SceneComponent.h"
 #include "RmlModel_CompositorOutliner.h"
 #include "ProfileConfig.h"
@@ -89,7 +90,8 @@ void RmlModel_CompositorOutliner::anchorSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
+	if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId) || 
+		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
 		rebuildComponentList();
 	}
@@ -101,7 +103,9 @@ void RmlModel_CompositorOutliner::stencilSystemConfigMarkedDirty(
 {
 	if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_quadStencilListPropertyId) || 
 		changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_boxStencilListPropertyId) ||
-		changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_modelStencilListPropertyId))
+		changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_modelStencilListPropertyId) ||
+		changedPropertySet.hasPropertyName(StencilComponentDefinition::k_parentAnchorPropertyId) ||
+		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
 		rebuildComponentList();
 	}
@@ -140,10 +144,10 @@ void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneCompo
 	MikanObjectPtr ownerObject= sceneComponentPtr->getOwnerObject();
 	if (ownerObject->getRootComponent() == sceneComponentPtr)
 	{
-		const std::string& objectName= ownerObject->getName();
+		const std::string& name= ownerObject->getRootComponent()->getName();
 		SelectionComponentPtr selectionComponent= ownerObject->getComponentOfType<SelectionComponent>();
 
-		RmlModel_CompositorObject object = {objectName.empty() ? "<No Name>" : objectName, depth, selectionComponent};
+		RmlModel_CompositorObject object = {name.empty() ? "<No Name>" : name, depth, selectionComponent};
 		m_componentOutliner.push_back(object);
 	}
 

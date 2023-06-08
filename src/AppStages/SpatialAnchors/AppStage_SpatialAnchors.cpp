@@ -185,11 +185,13 @@ void AppStage_SpatialAnchors::render()
 	}
 
 	// Draw the anchors
-	for (AnchorConfigPtr anchorConfig : m_anchorSystemConfig->spatialAnchorList)
+	for (auto it : m_anchorSystem->getAnchorMap())
 	{
+		AnchorComponentPtr anchor= it.second.lock();
+
 		wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
-		StringUtils::convertMbsToWcs(anchorConfig->getAnchorName().c_str(), wszAnchorName, sizeof(wszAnchorName));
-		glm::mat4 anchorXform = anchorConfig->getAnchorXform();
+		StringUtils::convertMbsToWcs(anchor->getName().c_str(), wszAnchorName, sizeof(wszAnchorName));
+		glm::mat4 anchorXform = anchor->getWorldTransform();
 		glm::vec3 anchorPos(anchorXform[3]);
 
 		drawTransformedAxes(anchorXform, 0.1f);

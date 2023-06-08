@@ -155,7 +155,7 @@ bool RmlModel_CompositorQuads::init(
 				{
 					const Rml::Vector2f& uiVec = rmlModel->size;
 
-					stencilPtr->getConfig()->setQuadSize(uiVec.x, uiVec.y);
+					stencilPtr->getQuadStencilDefinition()->setQuadSize(uiVec.x, uiVec.y);
 				}
 			}
 		});
@@ -171,7 +171,7 @@ bool RmlModel_CompositorQuads::init(
 
 				if (rmlModel && stencilPtr)
 				{
-					stencilPtr->getConfig()->setIsDisabled(rmlModel->disabled);
+					stencilPtr->getQuadStencilDefinition()->setIsDisabled(rmlModel->disabled);
 				}
 			}
 		});
@@ -187,7 +187,7 @@ bool RmlModel_CompositorQuads::init(
 
 				if (rmlModel && stencilPtr)
 				{
-					stencilPtr->getConfig()->setIsDoubleSided(rmlModel->double_sided);
+					stencilPtr->getQuadStencilDefinition()->setIsDoubleSided(rmlModel->double_sided);
 				}
 			}
 		});
@@ -243,7 +243,7 @@ void RmlModel_CompositorQuads::rebuildAnchorList()
 	m_spatialAnchors.clear();
 
 	auto& anchorList = m_anchorSystemPtr->getAnchorSystemConfig()->spatialAnchorList;
-	for (AnchorConfigPtr configPtr : anchorList)
+	for (AnchorDefinitionPtr configPtr : anchorList)
 	{
 		const MikanSpatialAnchorID anchorId= configPtr->getAnchorId();
 
@@ -262,7 +262,7 @@ void RmlModel_CompositorQuads::stencilSystemConfigMarkedDirty(
 	}
 	else
 	{
-		QuadStencilConfigPtr quadConfigPtr = std::dynamic_pointer_cast<QuadStencilConfig>(configPtr);
+		QuadStencilDefinitionPtr quadConfigPtr = std::dynamic_pointer_cast<QuadStencilDefinition>(configPtr);
 
 		if (quadConfigPtr)
 		{
@@ -276,24 +276,27 @@ void RmlModel_CompositorQuads::rebuildUIQuadsFromStencilSystem()
 	auto& stencilList = m_stencilSystemPtr->getStencilSystemConfigConst()->quadStencilList;
 
 	m_stencilQuads.clear();
-	for (QuadStencilConfigPtr configPtr : stencilList)
+	for (QuadStencilDefinitionPtr definitionPtr : stencilList)
 	{
-		const MikanStencilQuad& quad = configPtr->getQuadInfo();
-
+		const GlmTransform quad_xform= definitionPtr->getRelativeTransform();
+		const glm::vec3 quad_center= quad_xform.getPosition();
+		const glm::quat quad_orientation= quad_xform.getOrientation();
+		
 		float angles[3]{};
-		MikanOrientationToEulerAngles(
-			quad.quad_x_axis, quad.quad_y_axis, quad.quad_normal,
-			angles[0], angles[1], angles[2]);
+		glm_quat_to_euler_angles(quad_orientation, angles[0], angles[1], angles[2]);
+		angles[0]*= k_radians_to_degrees;
+		angles[1]*= k_radians_to_degrees;
+		angles[2]*= k_radians_to_degrees;
 
 		RmlModel_CompositorQuad uiQuad = {
-			quad.stencil_name,
-			quad.stencil_id,
-			quad.parent_anchor_id,
-			Rml::Vector3f(quad.quad_center.x, quad.quad_center.y, quad.quad_center.z),
+			definitionPtr->getComponentName(),
+			definitionPtr->getStencilId(),
+			definitionPtr->getParentAnchorId(),
+			Rml::Vector3f(quad_center.x, quad_center.y, quad_center.z),
 			Rml::Vector3f(angles[0], angles[1], angles[2]),
-			Rml::Vector2f(quad.quad_width, quad.quad_height),
-			quad.is_double_sided,
-			quad.is_disabled
+			Rml::Vector2f(definitionPtr->getQuadWidth(), definitionPtr->getQuadHeight()),
+			definitionPtr->getIsDoubleSided(),
+			definitionPtr->getIsDisabled()
 		};
 		m_stencilQuads.push_back(uiQuad);
 	}
@@ -331,22 +334,25 @@ void RmlModel_CompositorQuads::copyStencilSystemToUIQuad(int stencil_id)
 
 		if (stencilPtr != nullptr)
 		{
-			QuadStencilConfigPtr configPtr = stencilPtr->getConfig();
-			const MikanStencilQuad quad = configPtr->getQuadInfo();
-
+			QuadStencilDefinitionPtr definitionPtr= stencilPtr->getQuadStencilDefinition();
+			const GlmTransform quad_xform = definitionPtr->getRelativeTransform();
+			const glm::vec3 quad_center = quad_xform.getPosition();
+			const glm::quat quad_orientation = quad_xform.getOrientation();
+			
 			RmlModel_CompositorQuad& uiQuad = *it;
 
-			MikanOrientationToEulerAngles(
-				quad.quad_x_axis, quad.quad_y_axis, quad.quad_normal,
-				uiQuad.angles.x, uiQuad.angles.y, uiQuad.angles.z);
+			glm_quat_to_euler_angles(quad_orientation, uiQuad.angles.x, uiQuad.angles.y, uiQuad.angles.z);
+			uiQuad.angles.x *= k_radians_to_degrees;
+			uiQuad.angles.y *= k_radians_to_degrees;
+			uiQuad.angles.z *= k_radians_to_degrees;
 
-			uiQuad.parent_anchor_id = quad.parent_anchor_id;
-			uiQuad.position = {quad.quad_center.x, quad.quad_center.y, quad.quad_center.z};
-			uiQuad.size.x = quad.quad_width;
-			uiQuad.size.y = quad.quad_height;
-			uiQuad.double_sided = quad.is_double_sided;
-			uiQuad.disabled = quad.is_disabled;
-			uiQuad.stencil_name = quad.stencil_name;
+			uiQuad.parent_anchor_id = definitionPtr->getParentAnchorId();
+			uiQuad.position = {quad_center.x, quad_center.y, quad_center.z};
+			uiQuad.size.x = definitionPtr->getQuadWidth();
+			uiQuad.size.y = definitionPtr->getQuadHeight();
+			uiQuad.double_sided = definitionPtr->getIsDoubleSided();
+			uiQuad.disabled = definitionPtr->getIsDisabled();
+			uiQuad.stencil_name = definitionPtr->getComponentName();
 		}
 		m_modelHandle.DirtyVariable("stencil_quads");
 	}
