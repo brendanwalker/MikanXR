@@ -193,10 +193,7 @@ typedef struct
 {
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
-	MikanVector3f quad_center;
-	MikanVector3f quad_x_axis;
-	MikanVector3f quad_y_axis;
-	MikanVector3f quad_normal;
+	MikanTransform relative_transform; // transform relative to parent anchor
 	float quad_width;
 	float quad_height;
 	bool is_double_sided;
@@ -208,10 +205,7 @@ typedef struct
 {
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
-	MikanVector3f box_center;
-	MikanVector3f box_x_axis;
-	MikanVector3f box_y_axis;
-	MikanVector3f box_z_axis;
+	MikanTransform relative_transform; // transform relative to parent anchor
 	float box_x_size;
 	float box_y_size;
 	float box_z_size;
@@ -223,9 +217,7 @@ typedef struct
 {
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
-	MikanVector3f model_position;
-	MikanRotator3f model_rotator;
-	MikanVector3f model_scale;
+	MikanTransform relative_transform; // transform relative to parent anchor
 	bool is_disabled;
 	char stencil_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanStencilModel;
@@ -356,7 +348,7 @@ typedef struct
 typedef struct
 {
 	MikanSpatialAnchorID anchor_id;
-	MikanMatrix4f anchor_xform;
+	MikanTransform relative_transform; // transform relative to origin anchor (for origin anchor, this is a world transform)
 	char anchor_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanSpatialAnchorInfo;
 

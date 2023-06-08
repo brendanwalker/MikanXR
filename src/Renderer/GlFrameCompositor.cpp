@@ -164,11 +164,11 @@ void GlFrameCompositor::onStencilSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr, 
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	ModelStencilConfigPtr modelStencilConfig= std::dynamic_pointer_cast<ModelStencilConfig>(configPtr);
+	ModelStencilDefinitionPtr modelStencilConfig= std::dynamic_pointer_cast<ModelStencilDefinition>(configPtr);
 
 	if (modelStencilConfig != nullptr)
 	{
-		if (changedPropertySet.hasPropertyName(ModelStencilConfig::k_modelStencilObjPathPropertyId))
+		if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilObjPathPropertyId))
 		{
 			// Flush the model we have loaded for the given stencil.
 			// We'll reload it next time the compositor renders the stencil.
@@ -1338,7 +1338,7 @@ void GlFrameCompositor::updateQuadStencils(
 		int doubleSidedStencilCount = 0;
 		for (QuadStencilComponentPtr stencil : quadStencilList)
 		{
-			auto stencilConfig= stencil->getConfig();
+			auto stencilConfig= stencil->getQuadStencilDefinition();
 
 			if (!stencilConfig->getIsDisabled() && stencilConfig->getIsDoubleSided())
 			{
@@ -1384,7 +1384,7 @@ void GlFrameCompositor::updateQuadStencils(
 	for (QuadStencilComponentPtr stencil : quadStencilList)
 	{
 		// Set the model matrix of stencil quad
-		auto stencilConfig= stencil->getConfig();
+		auto stencilConfig= stencil->getQuadStencilDefinition();
 		const glm::mat4 xform = stencil->getWorldTransform();
 		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
 		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
@@ -1475,7 +1475,7 @@ void GlFrameCompositor::updateBoxStencils(
 	for (BoxStencilComponentPtr stencil : boxStencilList)
 	{
 		// Set the model matrix of stencil quad
-		auto stencilConfig = stencil->getConfig();
+		auto stencilConfig = stencil->getBoxStencilDefinition();
 		const glm::mat4 xform = stencil->getWorldTransform();
 		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
 		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
@@ -1536,7 +1536,7 @@ void GlFrameCompositor::updateModelStencils(
 	// Add any missing stencil models to the model cache
 	for (ModelStencilComponentPtr stencil : modelStencilList)
 	{
-		auto stencilConfig= stencil->getConfig();
+		auto stencilConfig= stencil->getModelStencilDefinition();
 		const MikanStencilID stencilId = stencilConfig->getStencilId();
 
 		if (m_stencilMeshCache.find(stencilId) == m_stencilMeshCache.end())
@@ -1577,7 +1577,7 @@ void GlFrameCompositor::updateModelStencils(
 	// Then draw stencil models
 	for (ModelStencilComponentPtr stencil : modelStencilList)
 	{
-		auto stencilConfig = stencil->getConfig();
+		auto stencilConfig = stencil->getModelStencilDefinition();
 		const MikanStencilID stencilId = stencilConfig->getStencilId();
 		auto it = m_stencilMeshCache.find(stencilId);
 

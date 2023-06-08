@@ -428,20 +428,21 @@ void MikanServer::handleAnchorSystemConfigChange(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(AnchorConfig::k_anchorXformPropertyID))
+	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeTranslationPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeQuatPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
 	{
-		AnchorConfigPtr anchorConfig= std::static_pointer_cast<AnchorConfig>(configPtr);
-		const MikanSpatialAnchorInfo& anchorInfo= anchorConfig->getAnchorInfo();
+		AnchorDefinitionPtr anchorConfig= std::static_pointer_cast<AnchorDefinition>(configPtr);
 
 		MikanAnchorPoseUpdateEvent poseUpdateEvent;
 		memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
-		poseUpdateEvent.anchor_id = anchorInfo.anchor_id;
-		poseUpdateEvent.transform = anchorInfo.anchor_xform;
+		poseUpdateEvent.anchor_id = anchorConfig->getAnchorId();
+		poseUpdateEvent.transform = glm_mat4_to_MikanMatrix4f(anchorConfig->getRelativeMat4());
 
 		MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
 
 	}
-	else if (changedPropertySet.hasPropertyName(AnchorConfig::k_anchorXformPropertyID))
+	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
 	{
 		publishSimpleEvent(MikanEvent_anchorListUpdated);
 	}
@@ -836,7 +837,7 @@ void MikanServer::getStencilList(
 	memset(&stencilListResult, 0, sizeof(MikanStencilList));
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
-	for (QuadStencilConfigPtr quadConfig : stencilSystemConfig->quadStencilList)
+	for (QuadStencilDefinitionPtr quadConfig : stencilSystemConfig->quadStencilList)
 	{
 		stencilListResult.stencil_id_list[stencilListResult.stencil_count] = quadConfig->getStencilId();
 		++stencilListResult.stencil_count;
@@ -938,7 +939,7 @@ void MikanServer::getSpatialAnchorList(
 	memset(&anchorListResult, 0, sizeof(MikanSpatialAnchorList));
 
 	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
-	for (AnchorConfigPtr spatialAnchor : anchorSystemConfig->spatialAnchorList)
+	for (AnchorDefinitionPtr spatialAnchor : anchorSystemConfig->spatialAnchorList)
 	{
 		anchorListResult.spatial_anchor_id_list[anchorListResult.spatial_anchor_count] = spatialAnchor->getAnchorId();
 		++anchorListResult.spatial_anchor_count;

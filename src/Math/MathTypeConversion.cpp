@@ -1,5 +1,6 @@
 #include "MathTypeConversion.h"
 #include "MathGLM.h"
+#include "Transform.h"
 #include <assert.h>
 
 #include "glm/gtx/euler_angles.hpp"
@@ -352,6 +353,14 @@ glm::dquat MikanQuatd_to_glm_dquat(const MikanQuatd& in)
 	return glm::dquat(in.w, in.x, in.y, in.z);
 }
 
+GlmTransform MikanTransform_to_glm_transform(const MikanTransform& in)
+{
+	return GlmTransform(
+		MikanVector3f_to_glm_vec3(in.translation),
+		MikanQuatf_to_glm_quat(in.rotation),
+		MikanVector3f_to_glm_vec3(in.scale));
+}
+
 MikanMatrix4f glm_mat4_to_MikanMatrix4f(const glm::mat4& in)
 {
 	MikanMatrix4f out;
@@ -393,6 +402,21 @@ glm::quat MikanRotator3f_to_glm_quat(const MikanRotator3f& in)
 	return glm::quat(glm::mat3(glm::eulerAngleXYZ(xRadians, yRadians, zRadians)));
 }
 
+glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in)
+{
+	return glm::quat(in.w, in.x, in.y, in.z);
+}
+
+MikanTransform glm_transform_to_MikanTransform(const GlmTransform& in)
+{
+	MikanTransform xform;
+	xform.rotation= glm_quat_to_MikanQuatf(in.getOrientation());
+	xform.scale= glm_vec3_to_MikanVector3f(in.getScale());
+	xform.translation= glm_vec3_to_MikanVector3f(in.getPosition());
+
+	return xform;
+}
+
 MikanRotator3f glm_quat_to_MikanRotator3f(const glm::quat& in)
 {
 	float xRadians, yRadians, zRadians;
@@ -403,4 +427,9 @@ MikanRotator3f glm_quat_to_MikanRotator3f(const glm::quat& in)
 		yRadians * k_radians_to_degrees,
 		zRadians * k_radians_to_degrees
 	};
+}
+
+MikanQuatf glm_quat_to_MikanQuatf(const glm::quat& in)
+{
+	return { in.w, in.x, in.y, in.z };
 }

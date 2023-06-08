@@ -16,6 +16,8 @@
 #define k_meters_to_millimeters		1000.0
 #define k_millimeters_to_meters		(1.0 / k_meters_to_millimeters)
 
+class GlmTransform;
+
 //-- methods -----
 // GLM types to OpenCV types
 cv::Matx33f glm_mat3_to_cv_mat33f(const glm::mat3& in);
@@ -49,12 +51,16 @@ MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in);
 cv::Matx34d MikanMatrix4x3d_to_cv_mat34d(const MikanMatrix4x3d& in);
 MikanMatrix4x3d MikanMatrix4x3d_to_cv_mat34d(const cv::Matx34d& in);
 
-// Mikan types to GLM tyoes
+// Mikan types <-> GLM tyoes
 glm::dvec3 MikanVector3d_to_glm_dvec3(const MikanVector3d& in);
 glm::vec3 MikanVector3f_to_glm_vec3(const MikanVector3f& in);
 MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in);
 glm::dquat MikanQuatd_to_glm_dquat(const MikanQuatd& in);
 MikanMatrix4f glm_mat4_to_MikanMatrix4f(const glm::mat4& in);
+GlmTransform MikanTransform_to_glm_transform(const MikanTransform& in);
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& in);
 glm::quat MikanRotator3f_to_glm_quat(const MikanRotator3f& in);
+glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in);
+MikanTransform glm_transform_to_MikanTransform(const GlmTransform& in);
 MikanRotator3f glm_quat_to_MikanRotator3f(const glm::quat& in);
+MikanQuatf glm_quat_to_MikanQuatf(const glm::quat& in);

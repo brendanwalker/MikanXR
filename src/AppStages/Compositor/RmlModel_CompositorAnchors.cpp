@@ -96,7 +96,7 @@ void RmlModel_CompositorAnchors::anchorSystemConfigMarkedDirty(
 	{
 		rebuildAnchorList();
 	}
-	else if (changedPropertySet.hasPropertyName(AnchorConfig::k_anchorNamePropertyID))
+	else if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
 		// Mark list as dirty to refresh the anchor names
 		m_modelHandle.DirtyVariable("spatial_anchors");
@@ -160,7 +160,7 @@ void RmlModel_CompositorAnchors::onAddAnchorEvent()
 		anchorInfo.anchor_name, sizeof(anchorInfo.anchor_name),
 		"Anchor_%d", nextAnchorId);
 	anchorInfo.anchor_id = INVALID_MIKAN_ID;
-	anchorInfo.anchor_xform = glm_mat4_to_MikanMatrix4f(glm::mat4(1.f));
+	anchorInfo.relative_transform = glm_transform_to_MikanTransform(GlmTransform());
 
 	AnchorComponentPtr anchorComponent = m_anchorSystemPtr->addNewAnchor(anchorInfo);
 	if (anchorComponent != nullptr)
@@ -178,6 +178,6 @@ void RmlModel_CompositorAnchors::onEditAnchorEvent(MikanSpatialAnchorID anchor_i
 	{
 		// Show Anchor Triangulation Tool
 		AppStage_AnchorTriangulation* anchorTriangulation = App::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
-		anchorTriangulation->setTargetAnchor(anchorComponent->getConfig()->getAnchorInfo());
+		anchorTriangulation->setTargetAnchor(anchorComponent->getAnchorDefinition()->getAnchorInfo());
 	}
 }

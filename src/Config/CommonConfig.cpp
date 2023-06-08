@@ -576,6 +576,35 @@ void CommonConfig::readRotator3f(
 	}
 }
 
+void CommonConfig::writeQuatf(
+    configuru::Config& pt,
+    const char* quat_name,
+    const MikanQuatf& quat)
+{
+	pt[quat_name] = configuru::Config::array({ quat.w, quat.x, quat.y, quat.z });
+}
+
+void CommonConfig::readQuatf(
+    const configuru::Config& pt,
+    const char* quat_name,
+    MikanQuatf& outQuat)
+{
+	if (pt.has_key(quat_name) && pt[quat_name].is_array())
+	{
+        outQuat.w = pt[quat_name][0].as_float();
+		outQuat.x = pt[quat_name][1].as_float();
+		outQuat.y = pt[quat_name][2].as_float();
+		outQuat.z = pt[quat_name][3].as_float();
+	}
+	else
+	{
+        outQuat.w = 1.f;
+		outQuat.x = 0.f;
+		outQuat.y = 0.f;
+		outQuat.z = 0.f;
+	}
+}
+
 void CommonConfig::writeDeviceType(
     configuru::Config& pt,
     const char* fieldName,

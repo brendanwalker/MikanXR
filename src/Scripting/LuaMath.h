@@ -2,6 +2,7 @@
 
 #include "MikanMathTypes.h"
 #include <string>
+#include "glm/ext/vector_float3.hpp"
 
 //-- predeclarations -----
 struct lua_State;
@@ -13,11 +14,13 @@ class LuaVec3f : public MikanVector3f
 public:
 	LuaVec3f();
 	LuaVec3f(float _x, float _y, float _z);
+	LuaVec3f(const glm::vec3& v);
 	LuaVec3f(const MikanVector3f& v);
 	LuaVec3f(const MikanRotator3f& r);
 
 	MikanVector3f toMikanVector3f() const;
 	MikanRotator3f toMikanRotator3f() const;
+	glm::vec3 toGlmVec3f() const;
 
 	LuaVec3f operator + (const LuaVec3f& v) const;
 	LuaVec3f operator - (const LuaVec3f& v) const;

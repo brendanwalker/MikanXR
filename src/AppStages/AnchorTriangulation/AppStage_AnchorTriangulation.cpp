@@ -333,7 +333,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 				{
 					AnchorObjectSystem::getSystem()->addNewAnchor(
 						m_targetAnchor.anchor_name, 
-						MikanMatrix4f_to_glm_mat4(m_targetAnchor.anchor_xform));
+						MikanTransform_to_glm_transform(m_targetAnchor.relative_transform));
 				}
 				else
 				{
@@ -341,8 +341,8 @@ void AppStage_AnchorTriangulation::onOkEvent()
 						AnchorObjectSystem::getSystem()->getSpatialAnchorById(
 							m_targetAnchor.anchor_id);
 
-					anchorComponent->getConfig()->setAnchorXform(
-						MikanMatrix4f_to_glm_mat4(m_targetAnchor.anchor_xform));
+					anchorComponent->setRelativeTransform(
+						MikanTransform_to_glm_transform(m_targetAnchor.relative_transform));
 				}
 
 				setMenuState(eAnchorTriangulationMenuState::testCalibration);

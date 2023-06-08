@@ -1,15 +1,33 @@
 #pragma once
 
+#include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "CommonConfigFwd.h"
 #include "ComponentProperty.h"
 #include "ObjectFwd.h"
 #include "MulticastDelegate.h"
+#include "ObjectSystemConfigFwd.h"
 #include "PropertyInterface.h"
 
 #include <memory>
 #include <typeinfo>
 
+class MikanComponentDefinition : public CommonConfig
+{
+public:
+	MikanComponentDefinition();
+	MikanComponentDefinition(const std::string& componentName);
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	static const std::string k_componentNamePropertyId;
+	const std::string getComponentName() const { return m_componentName; }
+	void setComponentName(const std::string& stencilName);
+
+protected:
+	std::string m_componentName;
+};
 
 class MikanComponent : 
 	public std::enable_shared_from_this<MikanComponent>,
@@ -18,10 +36,10 @@ class MikanComponent :
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
 	
-	virtual CommonConfigPtr getComponentConfig() const { return CommonConfigPtr(); }
+	virtual void setDefinition(MikanComponentDefinitionPtr config);
+	virtual MikanComponentDefinitionPtr getDefinition() const { return m_definition; }
 
-	static const std::string k_componentNamePropertyId;
-	virtual void setName(const std::string& name) { m_name= name; }
+	void setName(const std::string& name);
 	const std::string& getName() const { return m_name; }
 
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
@@ -73,6 +91,7 @@ protected:
 	bool m_bWantsCustomRender= false;
 	std::string m_name;
 	MikanObjectWeakPtr m_ownerObject;
+	MikanComponentDefinitionPtr m_definition;
 };
 
 template<class t_derived_type>

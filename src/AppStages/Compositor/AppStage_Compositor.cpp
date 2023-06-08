@@ -775,10 +775,9 @@ void AppStage_Compositor::onAddQuadStencilEvent()
 
 	quad.is_double_sided = true;
 	quad.parent_anchor_id = INVALID_MIKAN_ID;
-	quad.quad_center = {0.f, 0.f, 0.f};
-	quad.quad_x_axis = {1.f, 0.f, 0.f};
-	quad.quad_y_axis = {0.f, 1.f, 0.f};
-	quad.quad_normal = {0.f, 0.f, 1.f};
+	quad.relative_transform.translation = {0.f, 0.f, 0.f};
+	quad.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
+	quad.relative_transform.scale = {1.f, 1.f, 1.f};
 	quad.quad_width = 0.25f;
 	quad.quad_height = 0.25f;
 
@@ -803,10 +802,9 @@ void AppStage_Compositor::onAddBoxStencilEvent()
 	memset(&box, 0, sizeof(MikanStencilBox));
 
 	box.parent_anchor_id = INVALID_MIKAN_ID;
-	box.box_center = {0.f, 0.f, 0.f};
-	box.box_x_axis = {1.f, 0.f, 0.f};
-	box.box_y_axis = {0.f, 1.f, 0.f};
-	box.box_z_axis = {0.f, 0.f, 1.f};
+	box.relative_transform.translation = {0.f, 0.f, 0.f};
+	box.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
+	box.relative_transform.scale = {1.f, 1.f, 1.f};
 	box.box_x_size = 0.25f;
 	box.box_y_size = 0.25f;
 	box.box_z_size = 0.25f;
@@ -833,9 +831,9 @@ void AppStage_Compositor::onAddModelStencilEvent()
 
 	model.is_disabled = false;
 	model.parent_anchor_id = INVALID_MIKAN_ID;
-	model.model_position = {0.f, 0.f, 0.f};
-	model.model_rotator = {0.f, 0.f, 1.f};
-	model.model_scale = {1.f, 1.f, 1.f};
+	model.relative_transform.translation = {0.f, 0.f, 0.f};
+	model.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
+	model.relative_transform.scale = {1.f, 1.f, 1.f};
 
 	if (m_stencilObjectSystem->addNewModelStencil(model) != nullptr)
 	{

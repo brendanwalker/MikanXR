@@ -17,6 +17,8 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
+class GlmTransform;
+
 using AnchorMap = std::map<MikanSpatialAnchorID, AnchorComponentWeakPtr>;
 
 class AnchorObjectSystemConfig : public CommonConfig
@@ -30,17 +32,17 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	bool canAddAnchor() const;
-	AnchorConfigPtr getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const;
-	AnchorConfigPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
+	AnchorDefinitionPtr getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const;
+	AnchorDefinitionPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
 	MikanSpatialAnchorID addNewAnchor(MikanSpatialAnchorInfo& anchorInfo);
-	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const MikanMatrix4f& xform);
+	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const MikanTransform& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 	static const std::string k_anchorVRDevicePathPropertyId;
 	std::string anchorVRDevicePath;
 
 	static const std::string k_anchorListPropertyId;
-	std::vector<AnchorConfigPtr> spatialAnchorList;
+	std::vector<AnchorDefinitionPtr> spatialAnchorList;
 
 	MikanSpatialAnchorID nextAnchorId= 0;
 	MikanSpatialAnchorID originAnchorId= INVALID_MIKAN_ID;
@@ -65,12 +67,12 @@ public:
 	AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const;
 	AnchorComponentPtr getOriginSpatialAnchor() const { return m_originAnchor; }
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
-	AnchorComponentPtr addNewAnchor(const std::string& anchorName, const glm::mat4& xform);
+	AnchorComponentPtr addNewAnchor(const std::string& anchorName, const GlmTransform& xform);
 	AnchorComponentPtr addNewAnchor(MikanSpatialAnchorInfo& anchorInfo);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 protected:
-	AnchorComponentPtr createAnchorObject(AnchorConfigPtr anchorConfig);
+	AnchorComponentPtr createAnchorObject(AnchorDefinitionPtr anchorConfig);
 	void disposeAnchorObject(MikanSpatialAnchorID anchorId);
 
 	AnchorMap m_anchorComponents;

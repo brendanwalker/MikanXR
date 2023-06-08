@@ -60,18 +60,12 @@ public:
 	int getParentSpatialAnchorId() const;
 
 	LuaVec3f getQuadCenter() const;
-	LuaVec3f getQuadXAxis() const;
-	LuaVec3f getQuadYAxis() const;
-	LuaVec3f getQuadNormal() const;
 	float getQuadWidth() const;
 	float getQuadHeight() const;
 	bool getIsDoubleSided() const;
 	bool getIsDisabled() const;
 
 	bool setQuadCenter(const LuaVec3f& center);
-	bool setQuadXAxis(const LuaVec3f& x_axis);
-	bool setQuadYAxis(const LuaVec3f& y_axis);
-	bool setQuadNormal(const LuaVec3f& normal);
 	bool setQuadWidth(float width);
 	bool setQuadHeight(float height);
 	bool setIsDoubleSided(bool flag);
@@ -94,18 +88,12 @@ public:
 	int getStencilId() const;
 	int getParentSpatialAnchorId() const;
 	LuaVec3f getBoxCenter() const;
-	LuaVec3f getBoxXAxis() const;
-	LuaVec3f getBoxYAxis() const;
-	LuaVec3f getBoxZAxis() const;
 	float getBoxXSize() const;
 	float getBoxYSize() const;
 	float getBoxZSize() const;
 	bool getIsDisabled() const;
 
 	bool setBoxCenter(const LuaVec3f& center);
-	bool setBoxXAxis(const LuaVec3f& x_axis);
-	bool setBoxYAxis(const LuaVec3f& y_axis);
-	bool setBoxZAxis(const LuaVec3f& normal);
 	bool setBoxXSize(float size);
 	bool setBoxYSize(float size);
 	bool setBoxZSize(float size);
@@ -128,12 +116,10 @@ public:
 	int getStencilId() const;
 	int getParentSpatialAnchorId() const;
 	LuaVec3f getModelPosition() const;
-	LuaVec3f getModelRotator() const;
 	LuaVec3f getModelScale() const;
 	bool getIsDisabled() const;
 
 	bool setModelPosition(const LuaVec3f& position);
-	bool setModelRotator(const LuaVec3f& rotator);
 	bool setModelScale(const LuaVec3f& scale);
 	bool setIsDisabled(bool flag);
 
