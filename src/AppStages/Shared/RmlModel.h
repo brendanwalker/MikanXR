@@ -10,6 +10,8 @@ public:
 	RmlModel() = default;
 	virtual ~RmlModel();
 
+	inline Rml::Context* getContext() { return m_context; }
+
 	Rml::DataModelConstructor init(Rml::Context* rmlContext, const Rml::String& modelName);
 	virtual void dispose();
 	virtual void update() {}

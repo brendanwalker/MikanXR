@@ -82,6 +82,7 @@ void EditorObjectSystem::createTransformGizmo()
 	gizmoObjectPtr->setName("Gizmo");
 
 	GizmoTransformComponentPtr transformGizmoPtr= gizmoObjectPtr->addComponent<GizmoTransformComponent>();
+	transformGizmoPtr->setName("Gizmo");
 	gizmoObjectPtr->setRootComponent(transformGizmoPtr);
 	m_gizmoComponentWeakPtr= transformGizmoPtr;
 
@@ -220,6 +221,9 @@ void EditorObjectSystem::onDeletePressed()
 
 	if (selectedComponent != nullptr)
 	{
+		// Clear the currently selected component first in case selection handler asks
+		m_selectedComponentWeakPtr.reset();
+
 		// Signal that the selection changed to nothing
 		onSelectionChanged(selectedComponent, nullptr);
 
@@ -232,7 +236,6 @@ void EditorObjectSystem::onDeletePressed()
 
 		// Clean up the config associated with owning object
 		selectedComponent->getOwnerObject()->deleteSelfConfig();
-		m_selectedComponentWeakPtr.reset();
 	}
 }
 

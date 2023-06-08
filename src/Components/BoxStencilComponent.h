@@ -49,7 +49,10 @@ public:
 	virtual void init() override;
 	virtual void customRender() override;
 
-	inline BoxStencilDefinitionPtr getBoxStencilDefinition() const { return m_definition; }
+	inline BoxStencilDefinitionPtr getBoxStencilDefinition() const
+	{
+		return std::static_pointer_cast<BoxStencilDefinition>(m_definition);
+	}
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
@@ -60,7 +63,6 @@ public:
 protected:
 	void updateBoxColliderExtents();
 
-	BoxStencilDefinitionPtr m_definition;
 	SelectionComponentWeakPtr m_selectionComponent;
 	BoxColliderComponentWeakPtr m_boxCollider;
 };

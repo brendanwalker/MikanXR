@@ -40,9 +40,11 @@ public:
 	virtual void init() override;
 	virtual void customRender() override;
 
-	inline AnchorDefinitionPtr getAnchorDefinition() const { return m_definition; }
+	inline AnchorDefinitionPtr getAnchorDefinition() const
+	{
+		return std::static_pointer_cast<AnchorDefinition>(m_definition);
+	}
 
 protected:
-	AnchorDefinitionPtr m_definition;
 	SelectionComponentWeakPtr m_selectionComponent;
 };

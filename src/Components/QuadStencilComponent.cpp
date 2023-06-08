@@ -48,7 +48,7 @@ QuadStencilDefinition::QuadStencilDefinition(const MikanStencilQuad& quadInfo)
 
 configuru::Config QuadStencilDefinition::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt = StencilComponentDefinition::writeToJSON();
 
 	pt["quad_width"] = m_quadWidth;
 	pt["quad_height"] = m_quadHeight;
@@ -134,7 +134,9 @@ void QuadStencilComponent::init()
 
 void QuadStencilComponent::customRender()
 {
-	if (!m_definition->getIsDisabled())
+	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
+
+	if (!quadDefinition->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 
@@ -151,18 +153,19 @@ void QuadStencilComponent::customRender()
 				color = Colors::LightGray;
 		}
 
-		drawTransformedQuad(xform, m_definition->getQuadWidth(), m_definition->getQuadHeight(), color);
+		drawTransformedQuad(xform, quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", m_definition->getStencilId());
+		drawTextAtWorldPosition(style, position, L"Stencil %d", quadDefinition->getStencilId());
 	}
 }
 
 void QuadStencilComponent::updateBoxColliderExtents()
 {
+	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
 	BoxColliderComponentPtr boxCollider = m_boxCollider.lock();
 	if (boxCollider)
 	{
-		boxCollider->setHalfExtents(glm::vec3(m_definition->getQuadWidth(), m_definition->getQuadHeight(), 0.01f) * 0.5f);
+		boxCollider->setHalfExtents(glm::vec3(quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), 0.01f) * 0.5f);
 	}
 }
 

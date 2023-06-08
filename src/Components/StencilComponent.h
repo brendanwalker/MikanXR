@@ -47,6 +47,8 @@ public:
 		return std::static_pointer_cast<StencilComponentDefinition>(m_definition); 
 	}
 
+	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
+
 	MikanStencilID getParentAnchorId() const;
 	void attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId);
 

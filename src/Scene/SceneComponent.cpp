@@ -13,7 +13,7 @@
 // -- ModelStencilConfig -----
 const std::string SceneComponentDefinition::k_relativeScalePropertyId = "relative_scale";
 const std::string SceneComponentDefinition::k_relativeQuatPropertyId = "relative_quat";
-const std::string SceneComponentDefinition::k_relativeTranslationPropertyId = "relative_transition";
+const std::string SceneComponentDefinition::k_relativeTranslationPropertyId = "relative_translation";
 
 SceneComponentDefinition::SceneComponentDefinition()
 	: MikanComponentDefinition()
@@ -33,18 +33,18 @@ SceneComponentDefinition::SceneComponentDefinition(
 
 configuru::Config SceneComponentDefinition::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	writeVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
 	writeQuatf(pt, k_relativeQuatPropertyId.c_str(), m_relativeTransform.rotation);
-	writeVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.translation);
+	writeVector3f(pt, k_relativeTranslationPropertyId.c_str(), m_relativeTransform.translation);
 
 	return pt;
 }
 
 void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
-	CommonConfig::readFromJSON(pt);
+	MikanComponentDefinition::readFromJSON(pt);
 
 	m_relativeTransform.scale = {1.f, 1.f, 1.f};
 	m_relativeTransform.rotation = {1.f, 0.f, 0.f, 0.f};
@@ -52,7 +52,7 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 
 	readVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
 	readQuatf(pt, k_relativeQuatPropertyId.c_str(), m_relativeTransform.rotation);
-	readVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.translation);
+	readVector3f(pt, k_relativeTranslationPropertyId.c_str(), m_relativeTransform.translation);
 }
 
 const glm::mat4 SceneComponentDefinition::getRelativeMat4() const
@@ -218,7 +218,11 @@ void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	if (m_bIsInitialized)
-		getSceneComponentDefinition()->setRelativeTransform(newRelativeXform);
+	{
+		SceneComponentDefinitionPtr definitionPtr= getSceneComponentDefinition();
+		if (definitionPtr)
+			definitionPtr->setRelativeTransform(newRelativeXform);
+	}
 }
 
 void SceneComponent::setRelativePosition(const glm::vec3& position)
@@ -227,7 +231,11 @@ void SceneComponent::setRelativePosition(const glm::vec3& position)
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	if (m_bIsInitialized)
-		getSceneComponentDefinition()->setRelativeTransition(glm_vec3_to_MikanVector3f(position));
+	{
+		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
+		if (definitionPtr)
+			definitionPtr->setRelativeTransition(glm_vec3_to_MikanVector3f(position));
+	}
 }
 
 void SceneComponent::setRelativeOrientation(const glm::quat& quat)
@@ -236,7 +244,11 @@ void SceneComponent::setRelativeOrientation(const glm::quat& quat)
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	if (m_bIsInitialized)
-		getSceneComponentDefinition()->setRelativeQuat(glm_quat_to_MikanQuatf(quat));
+	{
+		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
+		if (definitionPtr)
+			definitionPtr->setRelativeQuat(glm_quat_to_MikanQuatf(quat));
+	}
 }
 
 void SceneComponent::setRelativeScale(const glm::vec3& scale)
@@ -245,7 +257,11 @@ void SceneComponent::setRelativeScale(const glm::vec3& scale)
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	if (m_bIsInitialized)
-		getSceneComponentDefinition()->setRelativeScale(glm_vec3_to_MikanVector3f(scale));
+	{
+		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
+		if (definitionPtr)
+			definitionPtr->setRelativeScale(glm_vec3_to_MikanVector3f(scale));
+	}
 }
 
 void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
@@ -265,8 +281,16 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 
 	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 
+	// If this component has an associated definition, update it too
 	if (m_bIsInitialized)
-		getSceneComponentDefinition()->setRelativeTransform(m_relativeTransform);
+	{
+		SceneComponentDefinitionPtr definitionPtr= getSceneComponentDefinition();
+
+		if (definitionPtr)
+		{
+			definitionPtr->setRelativeTransform(m_relativeTransform);
+		}
+	}
 }
 
 const glm::vec3 SceneComponent::getWorldLocation() const
@@ -351,14 +375,13 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 
 	if (propertyName == SceneComponentDefinition::k_relativeScalePropertyId)
 	{
-		MikanVector3f scale = getSceneComponentDefinitionConst()->getRelativeScale();
+		const glm::vec3& scale = getRelativeScale();
 		outValue = Rml::Vector3f(scale.x, scale.y, scale.z);
 		return true;
 	}
 	else if (propertyName == SceneComponentDefinition::k_relativeQuatPropertyId)
 	{
-		glm::quat model_orientation = 
-			MikanQuatf_to_glm_quat(getSceneComponentDefinitionConst()->getRelativeQuat());
+		const glm::quat& model_orientation = getRelativeOrientation();
 
 		float angles[3]{};
 		glm_quat_to_euler_angles(model_orientation, angles[0], angles[1], angles[2]);
@@ -371,7 +394,7 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 	}
 	else if (propertyName == SceneComponentDefinition::k_relativeTranslationPropertyId)
 	{
-		MikanVector3f pos = getSceneComponentDefinitionConst()->getRelativeTranslation();
+		const glm::vec3& pos = getRelativePosition();
 		outValue = Rml::Vector3f(pos.x, pos.y, pos.z);
 		return true;
 	}

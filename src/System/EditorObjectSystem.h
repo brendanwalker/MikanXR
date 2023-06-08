@@ -47,6 +47,8 @@ public:
 	void setSelection(SelectionComponentPtr newComponentPtr);
 	MulticastDelegate<void()> OnSelectionChanged;
 
+	inline MikanObjectPtr getGizmoObject() const { return m_gizmoObjectWeakPtr.lock(); }
+
 protected:
 
 	MikanScenePtr m_scene;

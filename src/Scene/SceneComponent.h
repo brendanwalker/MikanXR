@@ -62,18 +62,6 @@ public:
 		return m_childComponents;
 	}
 
-	inline const GlmTransform& getRelativeTransform() const
-	{
-		return m_relativeTransform;
-	}
-
-	inline const glm::mat4& getWorldTransform() const
-	{
-		return m_worldTransform;
-	}
-
-	const glm::vec3 getWorldLocation() const;
-
 	inline IGlSceneRenderablePtr getGlSceneRenderable() const
 	{
 		return m_sceneRenderable;
@@ -111,7 +99,14 @@ public:
 	void setRelativeOrientation(const glm::quat& quat);
 	void setRelativeScale(const glm::vec3& scale);
 
+	inline const GlmTransform& getRelativeTransform() const { return m_relativeTransform; }
+	inline const glm::vec3& getRelativePosition() const { return m_relativeTransform.getPosition(); }
+	inline const glm::quat& getRelativeOrientation() const { return m_relativeTransform.getOrientation(); }
+	inline const glm::vec3& getRelativeScale() const { return m_relativeTransform.getScale(); }
+
 	void setWorldTransform(const glm::mat4& newWorldXform);
+	inline const glm::mat4& getWorldTransform() const { return m_worldTransform; }
+	const glm::vec3 getWorldLocation() const;
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;

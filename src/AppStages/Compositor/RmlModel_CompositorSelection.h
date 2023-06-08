@@ -13,6 +13,7 @@ struct RmlModel_ComponentField
 {
 	int field_index;
 	ePropertyDataType field_type;
+	ePropertySemantic semantic_type;
 	Rml::String field_name;
 	Rml::String semantic;
 	Rml::Variant valueContainer;
@@ -82,6 +83,7 @@ private:
 	SceneComponentWeakPtr m_selectedComponentWeakPtr;
 	Rml::Vector<RmlModel_ComponentField> m_componentFieldModels;
 	std::map<std::string, int> m_fieldNameToIndexMap;
+	bool m_bIgnoreFieldsUpdate= false;
 
 	static bool s_bHasRegisteredTypes;
 };

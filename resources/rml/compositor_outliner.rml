@@ -85,7 +85,12 @@
                                 <div data-if="field.semantic == 'name'">
                                     Name&nbsp;
                                     <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-event-change="modify_field(field.field_index)" data-value="field.string"/>
-                                </div>                              
+                                </div>
+                                <div data-if="field.semantic == 'anchor_id'">
+                                    <select id="select" name="parent_anchor_id" data-value="field.int" data-event-change="modify_field(field.field_index)">
+                                        <option data-for="anchor_id : spatial_anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
+                                    </select>
+                                </div>                  
                                 <div data-if="field.semantic == 'position'">
                                     Position&nbsp;
                                     <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>

@@ -125,13 +125,15 @@ void BoxStencilComponent::init()
 
 void BoxStencilComponent::customRender()
 {
-	if (!m_definition->getIsDisabled())
+	BoxStencilDefinitionPtr boxDefinition= getBoxStencilDefinition();
+
+	if (!boxDefinition->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 
-		const float xSize= m_definition->getBoxXSize();
-		const float ySize= m_definition->getBoxYSize();
-		const float zSize= m_definition->getBoxZSize();
+		const float xSize= boxDefinition->getBoxXSize();
+		const float ySize= boxDefinition->getBoxYSize();
+		const float zSize= boxDefinition->getBoxZSize();
 		const glm::mat4 xform = getWorldTransform();
 		const glm::vec3 half_extents(xSize / 2.f, ySize / 2.f, zSize / 2.f);
 		const glm::vec3 position = glm::vec3(xform[3]);
@@ -148,18 +150,20 @@ void BoxStencilComponent::customRender()
 		
 		drawTransformedBox(xform, half_extents, color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", m_definition->getStencilId());
+		drawTextAtWorldPosition(style, position, L"Stencil %d", boxDefinition->getStencilId());
 	}
 }
 
 void BoxStencilComponent::updateBoxColliderExtents()
 {
+	BoxStencilDefinitionPtr boxDefinition= getBoxStencilDefinition();
 	BoxColliderComponentPtr boxCollider= m_boxCollider.lock();
-	if (boxCollider && m_definition)
+
+	if (boxCollider && boxDefinition)
 	{
-		const float xSize = m_definition->getBoxXSize();
-		const float ySize = m_definition->getBoxYSize();
-		const float zSize = m_definition->getBoxZSize();
+		const float xSize = boxDefinition->getBoxXSize();
+		const float ySize = boxDefinition->getBoxYSize();
+		const float zSize = boxDefinition->getBoxZSize();
 
 		boxCollider->setHalfExtents(glm::vec3(xSize, ySize, zSize) * 0.5f);
 	}

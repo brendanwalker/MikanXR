@@ -56,7 +56,7 @@ configuru::Config ModelStencilDefinition::writeToJSON()
 
 void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 {
-	CommonConfig::readFromJSON(pt);
+	StencilComponentDefinition::readFromJSON(pt);
 
 	m_modelPath = pt.get<std::string>("model_path");
 }

@@ -234,7 +234,10 @@ bool RmlModel_CompositorSelection::init(
 	// Bind data model callbacks
 	constructor.BindEventCallback(
 		"modify_field",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (m_bIgnoreFieldsUpdate)
+				return;
+
 			const int field_index = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
 			if (field_index >= 0)
 			{
@@ -242,7 +245,34 @@ bool RmlModel_CompositorSelection::init(
 				SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
 				if (selectedComponent)
 				{
-					selectedComponent->setPropertyValue(rmlFieldModel.field_name, rmlFieldModel.valueContainer);
+					if (rmlFieldModel.semantic_type == ePropertySemantic::anchor_id)
+					{
+						const int new_anchor_id = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+						if (new_anchor_id != INVALID_MIKAN_ID)
+						{
+							Rml::Variant value;
+							value= new_anchor_id;
+
+							selectedComponent->setPropertyValue(rmlFieldModel.field_name, value);
+						}
+					}
+					if (rmlFieldModel.semantic_type == ePropertySemantic::name)
+					{
+						const bool isLineBreak = ev.GetParameter("linebreak", false);
+
+						if (isLineBreak)
+						{
+							Rml::Variant value;
+							value= ev.GetParameter("value", Rml::String());
+
+							selectedComponent->setPropertyValue(rmlFieldModel.field_name, value);
+						}
+					}
+					else
+					{
+						selectedComponent->setPropertyValue(rmlFieldModel.field_name, rmlFieldModel.valueContainer);
+					}
 				}
 			}
 		});
@@ -412,17 +442,26 @@ RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldBySemantic(const 
 void RmlModel_CompositorSelection::updateSelection()
 {
 	SceneComponentPtr oldSelection = m_selectedComponentWeakPtr.lock();
+	SceneComponentPtr newSelection= oldSelection;
 
-	SceneComponentPtr newSelection;
 	SelectionComponentPtr selectionComponent= m_editorSystemPtr->getSelection();
 	if (selectionComponent)
 	{
-		newSelection= selectionComponent->getOwnerObject()->getRootComponent();
+		// Ignore selecting the gizmo (preserve current selection)
+		MikanObjectPtr selectionObjectPtr= selectionComponent->getOwnerObject();
+		if (selectionObjectPtr != m_editorSystemPtr->getGizmoObject())
+		{
+			newSelection = selectionComponent->getOwnerObject()->getRootComponent();
+		}
+	}
+	else
+	{
+		newSelection.reset();
 	}
 
 	if (newSelection != oldSelection)
 	{
-		m_selectedComponentWeakPtr= newSelection;;
+		m_selectedComponentWeakPtr= newSelection;
 		rebuildFieldList();
 	}
 }
@@ -447,16 +486,26 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 			{
 				int field_index= (int)m_componentFieldModels.size();
 				ePropertyDataType field_type= propertyDesc.dataType;
+				ePropertySemantic semantic_type= propertyDesc.semantic;
 				Rml::String field_name= propertyName;
 				Rml::String semantic= k_PropertySemanticNames[(int)propertyDesc.semantic];
 
-				m_componentFieldModels.push_back({field_index, field_type, field_name, semantic, propertyValue});
+				m_componentFieldModels.push_back({
+					field_index, 
+					field_type, 
+					semantic_type, 
+					field_name, 
+					semantic, 
+					propertyValue});
 				m_fieldNameToIndexMap.insert({field_name, field_index});
 			}
 		}
 	}
 
+	m_bIgnoreFieldsUpdate= true;
 	m_modelHandle.DirtyVariable("component_fields");
+	getContext()->Update();
+	m_bIgnoreFieldsUpdate= false;
 }
 
 void RmlModel_CompositorSelection::rebuildAnchorList()

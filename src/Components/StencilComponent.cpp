@@ -68,6 +68,16 @@ StencilComponent::StencilComponent(MikanObjectWeakPtr owner)
 {
 }
 
+void StencilComponent::setDefinition(MikanComponentDefinitionPtr definition)
+{
+	SceneComponent::setDefinition(definition);
+
+	// Setup initial attachment
+	auto stencilComponentConfigPtr = std::static_pointer_cast<StencilComponentDefinition>(definition);
+	MikanSpatialAnchorID currentParentId = stencilComponentConfigPtr->getParentAnchorId();
+	attachSceneComponentToAnchor(currentParentId);
+}
+
 void StencilComponent::attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId)
 {
 	if (newParentId != INVALID_MIKAN_ID)

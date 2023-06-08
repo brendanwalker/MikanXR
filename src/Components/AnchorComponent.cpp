@@ -80,8 +80,9 @@ void AnchorComponent::customRender()
 {	
 	TextStyle style = getDefaultTextStyle();
 
+	AnchorDefinitionPtr anchorDefinition= getAnchorDefinition();
 	wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
-	StringUtils::convertMbsToWcs(m_definition->getComponentName().c_str(), wszAnchorName, sizeof(wszAnchorName));
+	StringUtils::convertMbsToWcs(anchorDefinition->getComponentName().c_str(), wszAnchorName, sizeof(wszAnchorName));
 	glm::mat4 anchorXform = getWorldTransform();
 	glm::vec3 anchorPos(anchorXform[3]);
 

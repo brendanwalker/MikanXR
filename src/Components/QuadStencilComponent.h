@@ -48,7 +48,10 @@ public:
 	virtual void init() override;
 	virtual void customRender() override;
 
-	inline QuadStencilDefinitionPtr getQuadStencilDefinition() const { return m_definition; }
+	inline QuadStencilDefinitionPtr getQuadStencilDefinition() const
+	{
+		return std::static_pointer_cast<QuadStencilDefinition>(m_definition);
+	}
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
@@ -59,7 +62,6 @@ public:
 protected:
 	void updateBoxColliderExtents();
 
-	QuadStencilDefinitionPtr m_definition;
 	SelectionComponentWeakPtr m_selectionComponent;
 	BoxColliderComponentWeakPtr m_boxCollider;
 };
