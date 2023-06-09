@@ -5,11 +5,15 @@
 #include "Colors.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
+#include "MathGLM.h"
+#include "ProfileConfig.h"
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
 #include "MikanObject.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
+#include "VRDeviceManager.h"
+#include "VRDeviceView.h"
 
 // -- AnchorConfig -----
 AnchorDefinition::AnchorDefinition()
@@ -114,12 +118,20 @@ void AnchorComponent::customRender()
 }
 
 // -- IFunctionInterface ----
+const std::string AnchorComponent::k_updateOriginAnchorPoseFunctionId = "update_origin_pose";
 const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
 const std::string AnchorComponent::k_deleteAnchorFunctionId = "delete_anchor";
 
 void AnchorComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
 {
 	SceneComponent::getFunctionNames(outPropertyNames);
+
+	AnchorObjectSystemPtr anchorSystemPtr = AnchorObjectSystem::getSystem();
+	AnchorComponentPtr originSpatialAnchor = anchorSystemPtr->getOriginSpatialAnchor();
+	if (originSpatialAnchor->getAnchorDefinition()->getAnchorId() == getAnchorDefinition()->getAnchorId())
+	{
+		outPropertyNames.push_back(k_updateOriginAnchorPoseFunctionId);
+	}
 
 	outPropertyNames.push_back(k_editAnchorFunctionId);
 	outPropertyNames.push_back(k_deleteAnchorFunctionId);
@@ -130,7 +142,12 @@ bool AnchorComponent::getFunctionDescriptor(const std::string& functionName, Fun
 	if (SceneComponent::getFunctionDescriptor(functionName, outDescriptor))
 		return true;
 
-	if (functionName == AnchorComponent::k_editAnchorFunctionId)
+	if (functionName == AnchorComponent::k_updateOriginAnchorPoseFunctionId)
+	{
+		outDescriptor = {AnchorComponent::k_updateOriginAnchorPoseFunctionId, "Update Origin Pose"};
+		return true;
+	}
+	else if (functionName == AnchorComponent::k_editAnchorFunctionId)
 	{
 		outDescriptor = {AnchorComponent::k_editAnchorFunctionId, "Edit Anchor"};
 		return true;
@@ -149,7 +166,11 @@ bool AnchorComponent::invokeFunction(const std::string& functionName)
 	if (SceneComponent::invokeFunction(functionName))
 		return true;
 
-	if (functionName == AnchorComponent::k_editAnchorFunctionId)
+	if (functionName == AnchorComponent::k_updateOriginAnchorPoseFunctionId)
+	{
+		updateOriginAnchorPose();
+	}
+	else if (functionName == AnchorComponent::k_editAnchorFunctionId)
 	{
 		editAnchor();
 	}
@@ -159,6 +180,36 @@ bool AnchorComponent::invokeFunction(const std::string& functionName)
 	}
 
 	return false;
+}
+
+void AnchorComponent::updateOriginAnchorPose()
+{
+	ProfileConfigPtr profile= App::getInstance()->getProfileConfig();
+	VRDeviceViewPtr vrDeviceView =
+		VRDeviceListIterator(eDeviceType::VRTracker, profile->originVRDevicePath).getCurrent();
+
+	if (vrDeviceView != nullptr)
+	{
+		AnchorObjectSystemPtr anchorSystemPtr= AnchorObjectSystem::getSystem();
+		AnchorComponentPtr originSpatialAnchor = anchorSystemPtr->getOriginSpatialAnchor();
+		if (originSpatialAnchor)
+		{
+			const glm::mat4 devicePose = vrDeviceView->getCalibrationPose();
+
+			glm::mat4 anchorXform = devicePose;
+			if (profile->originVerticalAlignFlag)
+			{
+				const glm::vec3 deviceForward = glm_mat4_get_x_axis(devicePose);
+				const glm::vec3 devicePosition = glm_mat4_get_position(devicePose);
+				const glm::quat yawOnlyOrientation = glm::quatLookAt(deviceForward, glm::vec3(0.f, 1.f, 0.f));
+
+				anchorXform = glm_mat4_from_pose(yawOnlyOrientation, devicePosition);
+			}
+
+			// Update origin anchor transform
+			originSpatialAnchor->setWorldTransform(anchorXform);
+		}
+	}
 }
 
 void AnchorComponent::editAnchor()
