@@ -221,19 +221,6 @@ void EditorObjectSystem::onDeletePressed()
 
 	if (selectedComponent != nullptr)
 	{
-		// Clear the currently selected component first in case selection handler asks
-		m_selectedComponentWeakPtr.reset();
-
-		// Signal that the selection changed to nothing
-		onSelectionChanged(selectedComponent, nullptr);
-
-		// Clear the hover component if it's the currently selected component
-		if (hoverComponentPtr == selectedComponent)
-		{
-			hoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
-			m_hoverComponentWeakPtr.reset();
-		}
-
 		// Clean up the config associated with owning object
 		selectedComponent->getOwnerObject()->deleteSelfConfig();
 	}
@@ -248,6 +235,23 @@ void EditorObjectSystem::onComponentInitialized(MikanObjectSystemPtr system, Mik
 void EditorObjectSystem::onComponentDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
 {
 	m_scene->removeMikanComponent(component);
+
+	SelectionComponentPtr hoverComponentPtr= m_hoverComponentWeakPtr.lock();
+	if (hoverComponentPtr == component)
+	{
+		hoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
+		m_hoverComponentWeakPtr.reset();
+	}
+
+	SelectionComponentPtr selectedComponent= m_selectedComponentWeakPtr.lock();
+	if (selectedComponent == component)
+	{
+		// Clear the currently selected component first in case selection handler asks
+		m_selectedComponentWeakPtr.reset();
+
+		// Signal that the selection changed to nothing
+		onSelectionChanged(selectedComponent, nullptr);
+	}
 }
 
 void EditorObjectSystem::onMouseExited()

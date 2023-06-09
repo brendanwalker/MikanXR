@@ -52,6 +52,13 @@ struct RmlModel_ComponentField
 	void setVector4W(float value);
 };
 
+struct RmlModel_ComponentFunction
+{
+	int function_index;
+	Rml::String function_name;
+	Rml::String display_name;
+};
+
 class RmlModel_CompositorSelection : public RmlModel
 {
 public:
@@ -69,6 +76,7 @@ private:
 
 	void updateSelection();
 	void rebuildFieldList();
+	void rebuildFunctionList();
 	void rebuildAnchorList();
 
 	RmlModel_ComponentField* getFieldByPropertyName(const std::string& propertyName);
@@ -84,6 +92,8 @@ private:
 	Rml::Vector<RmlModel_ComponentField> m_componentFieldModels;
 	std::map<std::string, int> m_fieldNameToIndexMap;
 	bool m_bIgnoreFieldsUpdate= false;
+
+	Rml::Vector<RmlModel_ComponentFunction> m_componentFunctionModels;
 
 	static bool s_bHasRegisteredTypes;
 };

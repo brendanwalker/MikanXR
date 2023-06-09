@@ -197,38 +197,48 @@ bool RmlModel_CompositorSelection::init(
 	// One time data model types registration
 	if (!s_bHasRegisteredTypes)
 	{
-		// One time registration for compositor layer struct.
-		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_ComponentField>())
+		// One time registration for component field struct.
+		if (auto field_model_handle = constructor.RegisterStruct<RmlModel_ComponentField>())
 		{
-			layer_model_handle.RegisterMember("field_index", &RmlModel_ComponentField::field_index);
-			layer_model_handle.RegisterMember("field_name", &RmlModel_ComponentField::field_name);
-			layer_model_handle.RegisterMember("semantic", &RmlModel_ComponentField::semantic);
-			layer_model_handle.RegisterMember("boolean", &RmlModel_ComponentField::getBoolean, &RmlModel_ComponentField::setBoolean);
-			layer_model_handle.RegisterMember("int", &RmlModel_ComponentField::getInt, &RmlModel_ComponentField::setInt);
-			layer_model_handle.RegisterMember("float", &RmlModel_ComponentField::getFloat, &RmlModel_ComponentField::setFloat);
-			layer_model_handle.RegisterMember("string", &RmlModel_ComponentField::getString, &RmlModel_ComponentField::setString);
+			field_model_handle.RegisterMember("field_index", &RmlModel_ComponentField::field_index);
+			field_model_handle.RegisterMember("field_name", &RmlModel_ComponentField::field_name);
+			field_model_handle.RegisterMember("semantic", &RmlModel_ComponentField::semantic);
+			field_model_handle.RegisterMember("boolean", &RmlModel_ComponentField::getBoolean, &RmlModel_ComponentField::setBoolean);
+			field_model_handle.RegisterMember("int", &RmlModel_ComponentField::getInt, &RmlModel_ComponentField::setInt);
+			field_model_handle.RegisterMember("float", &RmlModel_ComponentField::getFloat, &RmlModel_ComponentField::setFloat);
+			field_model_handle.RegisterMember("string", &RmlModel_ComponentField::getString, &RmlModel_ComponentField::setString);
 
-			layer_model_handle.RegisterMember("vec2_x", &RmlModel_ComponentField::getVec2X, &RmlModel_ComponentField::setVector2X);
-			layer_model_handle.RegisterMember("vec2_y", &RmlModel_ComponentField::getVec2Y, &RmlModel_ComponentField::setVector2Y);
+			field_model_handle.RegisterMember("vec2_x", &RmlModel_ComponentField::getVec2X, &RmlModel_ComponentField::setVector2X);
+			field_model_handle.RegisterMember("vec2_y", &RmlModel_ComponentField::getVec2Y, &RmlModel_ComponentField::setVector2Y);
 
-			layer_model_handle.RegisterMember("vec3_x", &RmlModel_ComponentField::getVec3X, &RmlModel_ComponentField::setVector3X);
-			layer_model_handle.RegisterMember("vec3_y", &RmlModel_ComponentField::getVec3Y, &RmlModel_ComponentField::setVector3Y);
-			layer_model_handle.RegisterMember("vec3_z", &RmlModel_ComponentField::getVec3Z, &RmlModel_ComponentField::setVector3Z);
+			field_model_handle.RegisterMember("vec3_x", &RmlModel_ComponentField::getVec3X, &RmlModel_ComponentField::setVector3X);
+			field_model_handle.RegisterMember("vec3_y", &RmlModel_ComponentField::getVec3Y, &RmlModel_ComponentField::setVector3Y);
+			field_model_handle.RegisterMember("vec3_z", &RmlModel_ComponentField::getVec3Z, &RmlModel_ComponentField::setVector3Z);
 
-			layer_model_handle.RegisterMember("vec4_x", &RmlModel_ComponentField::getVec4X, &RmlModel_ComponentField::setVector4X);
-			layer_model_handle.RegisterMember("vec4_y", &RmlModel_ComponentField::getVec4Y, &RmlModel_ComponentField::setVector4Y);
-			layer_model_handle.RegisterMember("vec4_z", &RmlModel_ComponentField::getVec4Z, &RmlModel_ComponentField::setVector4Z);
-			layer_model_handle.RegisterMember("vec4_w", &RmlModel_ComponentField::getVec4W, &RmlModel_ComponentField::setVector4W);
+			field_model_handle.RegisterMember("vec4_x", &RmlModel_ComponentField::getVec4X, &RmlModel_ComponentField::setVector4X);
+			field_model_handle.RegisterMember("vec4_y", &RmlModel_ComponentField::getVec4Y, &RmlModel_ComponentField::setVector4Y);
+			field_model_handle.RegisterMember("vec4_z", &RmlModel_ComponentField::getVec4Z, &RmlModel_ComponentField::setVector4Z);
+			field_model_handle.RegisterMember("vec4_w", &RmlModel_ComponentField::getVec4W, &RmlModel_ComponentField::setVector4W);
 		}
 
-		// One time registration for an array of component fields.
+		// One time registration for component function struct
+		if (auto function_model_handle = constructor.RegisterStruct<RmlModel_ComponentFunction>())
+		{
+			function_model_handle.RegisterMember("function_index", &RmlModel_ComponentFunction::function_index);
+			function_model_handle.RegisterMember("function_name", &RmlModel_ComponentFunction::function_name);
+			function_model_handle.RegisterMember("display_name", &RmlModel_ComponentFunction::display_name);
+		}
+
+		// One time registration for an arrays
 		constructor.RegisterArray<decltype(m_componentFieldModels)>();
+		constructor.RegisterArray<decltype(m_componentFunctionModels)>();
 
 		s_bHasRegisteredTypes = true;
 	}
 
 	// Register Data Model Fields
 	constructor.Bind("component_fields", &m_componentFieldModels);
+	constructor.Bind("component_functions", &m_componentFunctionModels);
 	constructor.Bind("spatial_anchor_ids", &m_spatialAnchorIds);	
 
 	// Bind data model callbacks
@@ -316,6 +326,21 @@ bool RmlModel_CompositorSelection::init(
 							selectedComponent->setPropertyValue(propertyName, pathValue);
 					});
 
+				}
+			}
+		});
+	constructor.BindEventCallback(
+		"invoke_function",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			const int function_index = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
+			if (function_index >= 0)
+			{			
+				SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
+				if (selectedComponent)
+				{
+					const RmlModel_ComponentFunction& rmlFunctionModel = m_componentFunctionModels[function_index];
+
+					selectedComponent->invokeFunction(rmlFunctionModel.function_name);
 				}
 			}
 		});
@@ -463,6 +488,7 @@ void RmlModel_CompositorSelection::updateSelection()
 	{
 		m_selectedComponentWeakPtr= newSelection;
 		rebuildFieldList();
+		rebuildFunctionList();
 	}
 }
 
@@ -506,6 +532,35 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 	m_modelHandle.DirtyVariable("component_fields");
 	getContext()->Update();
 	m_bIgnoreFieldsUpdate= false;
+}
+
+void RmlModel_CompositorSelection::rebuildFunctionList()
+{
+	m_componentFunctionModels.clear();
+
+	SceneComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
+	if (currentSelection)
+	{
+		std::vector<std::string> functionNames;
+		currentSelection->getFunctionNames(functionNames);
+
+		for (const std::string& functionName : functionNames)
+		{
+			FunctionDescriptor functionDesc;
+			Rml::Variant propertyValue;
+			if (currentSelection->getFunctionDescriptor(functionName, functionDesc))
+			{
+				int function_index = (int)m_componentFunctionModels.size();
+
+				m_componentFunctionModels.push_back({
+					function_index,
+					functionName,
+					functionDesc.displayName});
+			}
+		}
+	}
+
+	m_modelHandle.DirtyVariable("component_functions");
 }
 
 void RmlModel_CompositorSelection::rebuildAnchorList()

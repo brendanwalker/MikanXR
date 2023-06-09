@@ -131,12 +131,16 @@
                                     Path&nbsp;
                                     <filename>{{field.string | to_short_path(30)}}</filename>
                                     <button style="width: 40dp; padding-top: 0.0dp; vertical-align: -6dp;" data-event-click="select_filepath(field.field_index)">...</button>
-                                </div>                                
+                                </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            <br/>
+            <div data-for="function : component_functions">
+                <button data-event-click="invoke_function(function.function_index)">{{function.display_name}}</button>
+            </div>            
         </panel>        
     </body>
 </rml>

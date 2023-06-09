@@ -159,3 +159,18 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Rml
 
 	return false;
 }
+
+// -- IFunctionInterface ----
+void MikanComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+}
+
+bool MikanComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
+{
+	return false;
+}
+
+bool MikanComponent::invokeFunction(const std::string& propertyName)
+{
+	return false;
+}

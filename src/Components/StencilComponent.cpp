@@ -1,6 +1,7 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
 #include "StencilComponent.h"
+#include "StencilObjectSystem.h"
 #include "SceneComponent.h"
 #include "MikanObject.h"
 
@@ -118,7 +119,7 @@ bool StencilComponent::getPropertyDescriptor(const std::string& propertyName, Pr
 	if (SceneComponent::getPropertyDescriptor(propertyName, outDescriptor))
 		return true;
 
-	else if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
+	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
 	{
 		outDescriptor = {StencilComponentDefinition::k_stencilDisabledPropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox};
 		return true;
@@ -173,4 +174,46 @@ bool StencilComponent::setPropertyValue(const std::string& propertyName, const R
 	}
 
 	return false;
+}
+
+// -- IFunctionInterface ----
+const std::string StencilComponent::k_deleteStencilFunctionId= "delete_stencil";
+
+void StencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	SceneComponent::getFunctionNames(outPropertyNames);
+
+	outPropertyNames.push_back(k_deleteStencilFunctionId);
+}
+
+bool StencilComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
+{
+	if (SceneComponent::getFunctionDescriptor(functionName, outDescriptor))
+		return true;
+
+	if (functionName == StencilComponent::k_deleteStencilFunctionId)
+	{
+		outDescriptor = {StencilComponent::k_deleteStencilFunctionId, "Delete Stencil"};
+		return true;
+	}
+
+	return false;
+}
+
+bool StencilComponent::invokeFunction(const std::string& functionName)
+{
+	if (SceneComponent::invokeFunction(functionName))
+		return true;
+
+	if (functionName == StencilComponent::k_deleteStencilFunctionId)
+	{
+		deleteStencil();
+	}
+
+	return false;
+}
+
+void StencilComponent::deleteStencil()
+{
+	getOwnerObject()->deleteSelfConfig();
 }

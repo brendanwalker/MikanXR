@@ -141,6 +141,24 @@ bool StencilObjectSystem::getStencilWorldTransform(
 	return false;
 }
 
+bool StencilObjectSystem::removeStencil(MikanStencilID stencilId)
+{
+	switch (getStencilType(stencilId))
+	{
+	case eStencilType::quad:
+		return removeQuadStencil(stencilId);
+		break;
+	case eStencilType::box:
+		return removeBoxStencil(stencilId);
+		break;
+	case eStencilType::model:
+		return removeModelStencil(stencilId);
+		break;
+	}
+
+	return false;
+}
+
 QuadStencilComponentPtr StencilObjectSystem::getQuadStencilById(MikanStencilID stencilId) const
 {
 	auto iter = m_quadStencilComponents.find(stencilId);
@@ -185,10 +203,9 @@ QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStenci
 
 bool StencilObjectSystem::removeQuadStencil(MikanStencilID stencilId)
 {
-	disposeQuadStencilObject(stencilId);
-	getStencilSystemConfig()->removeStencil(stencilId);
-
-	return false;
+	return
+		disposeQuadStencilObject(stencilId) &&
+		getStencilSystemConfig()->removeStencil(stencilId);
 }
 
 void StencilObjectSystem::getRelevantQuadStencilList(
@@ -259,7 +276,7 @@ QuadStencilComponentPtr StencilObjectSystem::createQuadStencilObject(QuadStencil
 	return stencilComponentPtr;
 }
 
-void StencilObjectSystem::disposeQuadStencilObject(MikanStencilID stencilId)
+bool StencilObjectSystem::disposeQuadStencilObject(MikanStencilID stencilId)
 {
 	auto it = m_quadStencilComponents.find(stencilId);
 	if (it != m_quadStencilComponents.end())
@@ -271,7 +288,11 @@ void StencilObjectSystem::disposeQuadStencilObject(MikanStencilID stencilId)
 
 		// Free the corresponding object
 		deleteObject(stencilComponentPtr->getOwnerObject());
+
+		return true;
 	}
+
+	return false;
 }
 
 BoxStencilComponentPtr StencilObjectSystem::getBoxStencilById(MikanStencilID stencilId) const
@@ -318,10 +339,9 @@ BoxStencilComponentPtr StencilObjectSystem::addNewBoxStencil(const MikanStencilB
 
 bool StencilObjectSystem::removeBoxStencil(MikanStencilID stencilId)
 {
-	disposeBoxStencilObject(stencilId);
-	getStencilSystemConfig()->removeStencil(stencilId);
-
-	return false;
+	return
+		disposeBoxStencilObject(stencilId) &&
+		getStencilSystemConfig()->removeStencil(stencilId);
 }
 
 void StencilObjectSystem::getRelevantBoxStencilList(
@@ -407,7 +427,7 @@ BoxStencilComponentPtr StencilObjectSystem::createBoxStencilObject(BoxStencilDef
 	return stencilComponentPtr;
 }
 
-void StencilObjectSystem::disposeBoxStencilObject(MikanStencilID stencilId)
+bool StencilObjectSystem::disposeBoxStencilObject(MikanStencilID stencilId)
 {
 	auto it = m_boxStencilComponents.find(stencilId);
 	if (it != m_boxStencilComponents.end())
@@ -419,7 +439,11 @@ void StencilObjectSystem::disposeBoxStencilObject(MikanStencilID stencilId)
 
 		// Free the corresponding object
 		deleteObject(stencilComponentPtr->getOwnerObject());
+
+		return true;
 	}
+
+	return false;
 }
 
 ModelStencilComponentPtr StencilObjectSystem::getModelStencilById(MikanStencilID stencilId) const
@@ -466,10 +490,9 @@ ModelStencilComponentPtr StencilObjectSystem::addNewModelStencil(const MikanSten
 
 bool StencilObjectSystem::removeModelStencil(MikanStencilID stencilId)
 {
-	disposeModelStencilObject(stencilId);
-	getStencilSystemConfig()->removeStencil(stencilId);
-
-	return false;
+	return 
+		disposeModelStencilObject(stencilId) &&
+		getStencilSystemConfig()->removeStencil(stencilId);
 }
 
 void StencilObjectSystem::getRelevantModelStencilList(
@@ -527,7 +550,7 @@ ModelStencilComponentPtr StencilObjectSystem::createModelStencilObject(ModelSten
 	return stencilComponentPtr;
 }
 
-void StencilObjectSystem::disposeModelStencilObject(MikanStencilID stencilId)
+bool StencilObjectSystem::disposeModelStencilObject(MikanStencilID stencilId)
 {
 	auto it = m_modelStencilComponents.find(stencilId);
 	if (it != m_modelStencilComponents.end())
@@ -539,7 +562,11 @@ void StencilObjectSystem::disposeModelStencilObject(MikanStencilID stencilId)
 
 		// Free the corresponding object
 		deleteObject(stencilComponentPtr->getOwnerObject());
+
+		return true;
 	}
+
+	return false;
 }
 
 StencilObjectSystemConfigConstPtr StencilObjectSystem::getStencilSystemConfigConst() const

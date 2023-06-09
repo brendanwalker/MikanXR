@@ -33,6 +33,7 @@ public:
 	StencilComponentPtr getStencilById(MikanStencilID stencilId) const;
 	eStencilType getStencilType(MikanStencilID stencilId) const;
 	bool getStencilWorldTransform(MikanStencilID parentStencilId, glm::mat4& outXform) const;
+	bool removeStencil(MikanStencilID stencilId);
 
 	const QuadStencilMap& getQuadStencilMap() const { return m_quadStencilComponents; }
 	QuadStencilComponentPtr getQuadStencilById(MikanStencilID stencilId) const;
@@ -67,13 +68,13 @@ public:
 
 protected:
 	QuadStencilComponentPtr createQuadStencilObject(QuadStencilDefinitionPtr quadConfig);
-	void disposeQuadStencilObject(MikanStencilID stencilId);
+	bool disposeQuadStencilObject(MikanStencilID stencilId);
 
 	BoxStencilComponentPtr createBoxStencilObject(BoxStencilDefinitionPtr boxConfig);
-	void disposeBoxStencilObject(MikanStencilID stencilId);
+	bool disposeBoxStencilObject(MikanStencilID stencilId);
 
 	ModelStencilComponentPtr createModelStencilObject(ModelStencilDefinitionPtr modelConfig);
-	void disposeModelStencilObject(MikanStencilID stencilId);
+	bool disposeModelStencilObject(MikanStencilID stencilId);
 
 	QuadStencilMap m_quadStencilComponents;
 	BoxStencilMap m_boxStencilComponents;

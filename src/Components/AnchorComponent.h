@@ -45,6 +45,16 @@ public:
 		return std::static_pointer_cast<AnchorDefinition>(m_definition);
 	}
 
+	// -- IFunctionInterface ----
+	static const std::string k_editAnchorFunctionId;
+	static const std::string k_deleteAnchorFunctionId;
+	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
+	virtual bool invokeFunction(const std::string& functionName) override;
+
+	void editAnchor();
+	void deleteAnchor();
+
 protected:
 	SelectionComponentWeakPtr m_selectionComponent;
 };

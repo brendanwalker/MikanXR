@@ -3,10 +3,10 @@
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "CommonConfigFwd.h"
-#include "ComponentProperty.h"
 #include "ObjectFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
+#include "FunctionInterface.h"
 #include "PropertyInterface.h"
 
 #include <memory>
@@ -31,7 +31,8 @@ protected:
 
 class MikanComponent : 
 	public std::enable_shared_from_this<MikanComponent>,
-	public IPropertyInterface
+	public IPropertyInterface,
+	public IFunctionInterface
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
@@ -83,6 +84,11 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
 	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
+
+	// -- IFunctionInterface ----
+	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
+	virtual bool invokeFunction(const std::string& propertyName) override;
 
 protected:
 	bool m_bIsInitialized= false;
