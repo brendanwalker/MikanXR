@@ -6,11 +6,7 @@
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
 #include "Compositor/RmlModel_CompositorLayers.h"
-#include "Compositor/RmlModel_CompositorAnchors.h"
-#include "Compositor/RmlModel_CompositorBoxes.h"
 #include "Compositor/RmlModel_CompositorOutliner.h"
-#include "Compositor/RmlModel_CompositorQuads.h"
-#include "Compositor/RmlModel_CompositorModels.h"
 #include "Compositor/RmlModel_CompositorRecording.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSources.h"
@@ -38,10 +34,8 @@
 #include "MikanObject.h"
 #include "MikanServer.h"
 #include "MikanScene.h"
-#include "ModelStencilComponent.h"
 #include "ObjectSystemManager.h"
 #include "ProfileConfig.h"
-#include "QuadStencilComponent.h"
 #include "Renderer.h"
 #include "PathUtils.h"
 #include "RmlUtility.h"
@@ -71,10 +65,6 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	: AppStage(app, AppStage_Compositor::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
 	, m_compositorLayersModel(new RmlModel_CompositorLayers)
-	, m_compositorAnchorsModel(new RmlModel_CompositorAnchors)
-	, m_compositorQuadsModel(new RmlModel_CompositorQuads)
-	, m_compositorBoxesModel(new RmlModel_CompositorBoxes)
-	, m_compositorModelsModel(new RmlModel_CompositorModels)
 	, m_compositorRecordingModel(new RmlModel_CompositorRecording)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorSourcesModel(new RmlModel_CompositorSources)
@@ -91,10 +81,6 @@ AppStage_Compositor::~AppStage_Compositor()
 
 	delete m_compositorModel;
 	delete m_compositorLayersModel;
-	delete m_compositorAnchorsModel;
-	delete m_compositorQuadsModel;
-	delete m_compositorBoxesModel;
-	delete m_compositorModelsModel;
 	delete m_compositorRecordingModel;
 	delete m_compositorScriptingModel;
 	delete m_compositorSourcesModel;
@@ -168,12 +154,8 @@ void AppStage_Compositor::enter()
 		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
 		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Compositor::onToggleOutlinerWindowEvent);
 		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersWindowEvent);
-		m_compositorModel->OnToggleAnchorsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleAnchorsWindowEvent);
 		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingWindowEvent);
 		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingWindowEvent);
-		m_compositorModel->OnToggleQuadStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleQuadStencilsWindowEvent);
-		m_compositorModel->OnToggleBoxStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleBoxStencilsWindowEvent);
-		m_compositorModel->OnToggleModelStencilsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleModelStencilsWindowEvent);
 		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesWindowEvent);
 		m_compositiorView = addRmlDocument("compositor.rml");
 
@@ -208,32 +190,6 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
 		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
 		m_compositiorLayersView->Hide();
-
-		// Init Anchors UI
-		m_compositorAnchorsModel->init(context, m_profile, m_anchorObjectSystem);
-		m_compositiorAnchorsView = addRmlDocument("compositor_anchors.rml");
-		m_compositiorAnchorsView->Hide();
-
-		// Init Quad Stencils UI
-		m_compositorQuadsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
-		m_compositorQuadsModel->OnAddQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddQuadStencilEvent);
-		m_compositorQuadsModel->OnDeleteQuadStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteQuadStencilEvent);
-		m_compositiorQuadsView = addRmlDocument("compositor_quads.rml");
-		m_compositiorQuadsView->Hide();
-
-		// Init Box Stencils UI
-		m_compositorBoxesModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
-		m_compositorBoxesModel->OnAddBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddBoxStencilEvent);
-		m_compositorBoxesModel->OnDeleteBoxStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteBoxStencilEvent);
-		m_compositiorBoxesView = addRmlDocument("compositor_boxes.rml");
-		m_compositiorBoxesView->Hide();
-
-		// Init Models Stencils UI
-		m_compositorModelsModel->init(context, m_anchorObjectSystem, m_stencilObjectSystem);
-		m_compositorModelsModel->OnAddModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onAddModelStencilEvent);
-		m_compositorModelsModel->OnDeleteModelStencilEvent = MakeDelegate(this, &AppStage_Compositor::onDeleteModelStencilEvent);
-		m_compositiorModelsView = addRmlDocument("compositor_models.rml");
-		m_compositiorModelsView->Hide();
 
 		// Init Recording UI
 		m_compositorRecordingModel->init(context, m_frameCompositor);
@@ -270,10 +226,6 @@ void AppStage_Compositor::exit()
 	m_compositorSelectionModel->dispose();
 	m_compositorOutlinerModel->dispose();
 	m_compositorLayersModel->dispose();
-	m_compositorAnchorsModel->dispose();
-	m_compositorBoxesModel->dispose();
-	m_compositorModelsModel->dispose();
-	m_compositorQuadsModel->dispose();
 	m_compositorRecordingModel->dispose();
 	m_compositorScriptingModel->dispose();
 	m_compositorModel->dispose();
@@ -503,12 +455,6 @@ void AppStage_Compositor::onToggleLayersWindowEvent()
 	if (m_compositiorLayersView) m_compositiorLayersView->Show();
 }
 
-void AppStage_Compositor::onToggleAnchorsWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorAnchorsView) m_compositiorAnchorsView->Show();
-}
-
 void AppStage_Compositor::onToggleRecordingWindowEvent()
 {
 	hideAllSubWindows();
@@ -519,24 +465,6 @@ void AppStage_Compositor::onToggleScriptingWindowEvent()
 {
 	hideAllSubWindows();
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Show();
-}
-
-void AppStage_Compositor::onToggleQuadStencilsWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorQuadsView) m_compositiorQuadsView->Show();
-}
-
-void AppStage_Compositor::onToggleBoxStencilsWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorBoxesView) m_compositiorBoxesView->Show();
-}
-
-void AppStage_Compositor::onToggleModelStencilsWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorModelsView) m_compositiorModelsView->Show();
 }
 
 void AppStage_Compositor::onToggleSourcesWindowEvent()
@@ -758,95 +686,9 @@ void AppStage_Compositor::hideAllSubWindows()
 {
 	if (m_compositiorOutlinerView) m_compositiorOutlinerView->Hide();
 	if (m_compositiorLayersView) m_compositiorLayersView->Hide();
-	if (m_compositiorAnchorsView) m_compositiorAnchorsView->Hide();
-	if (m_compositiorQuadsView) m_compositiorQuadsView->Hide();
-	if (m_compositiorBoxesView) m_compositiorBoxesView->Hide();
-	if (m_compositiorModelsView) m_compositiorModelsView->Hide();
 	if (m_compositiorRecordingView) m_compositiorRecordingView->Hide();
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Hide();
 	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
-}
-
-// Quad Stencils UI Events
-void AppStage_Compositor::onAddQuadStencilEvent()
-{
-	MikanStencilQuad quad;
-	memset(&quad, 0, sizeof(MikanStencilQuad));
-
-	quad.is_double_sided = true;
-	quad.parent_anchor_id = INVALID_MIKAN_ID;
-	quad.relative_transform.translation = {0.f, 0.f, 0.f};
-	quad.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
-	quad.relative_transform.scale = {1.f, 1.f, 1.f};
-	quad.quad_width = 0.25f;
-	quad.quad_height = 0.25f;
-
-	if (m_stencilObjectSystem->addNewQuadStencil(quad) != nullptr)
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-void AppStage_Compositor::onDeleteQuadStencilEvent(int stencilID)
-{
-	if (m_stencilObjectSystem->removeQuadStencil(stencilID))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-// Box Stencils UI Events
-void AppStage_Compositor::onAddBoxStencilEvent()
-{
-	MikanStencilBox box;
-	memset(&box, 0, sizeof(MikanStencilBox));
-
-	box.parent_anchor_id = INVALID_MIKAN_ID;
-	box.relative_transform.translation = {0.f, 0.f, 0.f};
-	box.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
-	box.relative_transform.scale = {1.f, 1.f, 1.f};
-	box.box_x_size = 0.25f;
-	box.box_y_size = 0.25f;
-	box.box_z_size = 0.25f;
-
-	if (m_stencilObjectSystem->addNewBoxStencil(box) != nullptr)
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-void AppStage_Compositor::onDeleteBoxStencilEvent(int stencilID)
-{
-	if (m_stencilObjectSystem->removeBoxStencil(stencilID))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-// Model Stencils UI Events
-void AppStage_Compositor::onAddModelStencilEvent()
-{
-	MikanStencilModel model;
-	memset(&model, 0, sizeof(MikanStencilModel));
-
-	model.is_disabled = false;
-	model.parent_anchor_id = INVALID_MIKAN_ID;
-	model.relative_transform.translation = {0.f, 0.f, 0.f};
-	model.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
-	model.relative_transform.scale = {1.f, 1.f, 1.f};
-
-	if (m_stencilObjectSystem->addNewModelStencil(model) != nullptr)
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-void AppStage_Compositor::onDeleteModelStencilEvent(int stencilID)
-{
-	if (m_stencilObjectSystem->removeModelStencil(stencilID))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
 }
 
 // Recording UI Events

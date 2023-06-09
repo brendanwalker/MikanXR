@@ -60,12 +60,8 @@ protected:
 	void onReturnEvent();
 	void onToggleOutlinerWindowEvent();
 	void onToggleLayersWindowEvent();
-	void onToggleAnchorsWindowEvent();
 	void onToggleRecordingWindowEvent();
 	void onToggleScriptingWindowEvent();
-	void onToggleQuadStencilsWindowEvent();
-	void onToggleBoxStencilsWindowEvent();
-	void onToggleModelStencilsWindowEvent();
 	void onToggleSourcesWindowEvent();
 	void hideAllSubWindows();
 
@@ -93,18 +89,6 @@ protected:
 	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
-	// Quad Stencils UI Events
-	void onAddQuadStencilEvent();
-	void onDeleteQuadStencilEvent(int stencilID);
-
-	// Box Stencils UI Events
-	void onAddBoxStencilEvent();
-	void onDeleteBoxStencilEvent(int stencilID);
-
-	// Model Stencils UI Events
-	void onAddModelStencilEvent();
-	void onDeleteModelStencilEvent(int stencilID);
-
 	// Recording UI Events
 	void onToggleRecordingEvent();
 
@@ -116,8 +100,6 @@ protected:
 
 	// Debug Rendering
 	void debugRenderOrigin() const;
-	void debugRenderStencils() const;
-	void debugRenderAnchors() const;
 
 	ProfileConfigPtr m_profile;
 
@@ -130,18 +112,6 @@ protected:
 
 	class RmlModel_CompositorLayers* m_compositorLayersModel = nullptr;
 	Rml::ElementDocument* m_compositiorLayersView = nullptr;
-
-	class RmlModel_CompositorAnchors* m_compositorAnchorsModel = nullptr;
-	Rml::ElementDocument* m_compositiorAnchorsView = nullptr;
-
-	class RmlModel_CompositorQuads* m_compositorQuadsModel = nullptr;
-	Rml::ElementDocument* m_compositiorQuadsView = nullptr;
-
-	class RmlModel_CompositorBoxes* m_compositorBoxesModel = nullptr;
-	Rml::ElementDocument* m_compositiorBoxesView = nullptr;
-
-	class RmlModel_CompositorModels* m_compositorModelsModel = nullptr;
-	Rml::ElementDocument* m_compositiorModelsView = nullptr;
 
 	class RmlModel_CompositorRecording* m_compositorRecordingModel = nullptr;
 	Rml::ElementDocument* m_compositiorRecordingView = nullptr;

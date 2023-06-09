@@ -25,10 +25,6 @@
                 <button style="width: 120dp" data-event-click="toggle_layers">Layers</button>
                 <button style="width: 120dp" data-event-click="toggle_recording">Recording</button>
                 <button style="width: 120dp" data-event-click="toggle_scripting">Scripting</button>
-                <button style="width: 120dp" data-event-click="toggle_anchors">Anchors</button>
-                <button style="width: 150dp" data-event-click="toggle_quad_stencils">Quad Stencils</button>
-                <button style="width: 150dp" data-event-click="toggle_box_stencils">Box Stencils</button>
-                <button style="width: 150dp" data-event-click="toggle_model_stencils">Model Stencils</button>
                 <button style="width: 120dp" data-event-click="toggle_sources">Sources</button>
             </span>
         </panel>
