@@ -6,6 +6,7 @@
 #include "StencilObjectSystem.h"
 #include "StencilComponent.h"
 #include "SceneComponent.h"
+#include "StencilObjectSystemConfig.h"
 #include "RmlModel_CompositorOutliner.h"
 #include "ProfileConfig.h"
 #include "StringUtils.h"
@@ -52,6 +53,10 @@ bool RmlModel_CompositorOutliner::init(
 	constructor.Bind("selection_index", &m_selectionIndex);	
 
 	// Bind data model callbacks
+	constructor.BindEventCallback("add_new_anchor",&RmlModel_CompositorOutliner::addNewAnchor, this);
+	constructor.BindEventCallback("add_new_quad",&RmlModel_CompositorOutliner::addNewQuad, this);
+	constructor.BindEventCallback("add_new_box",&RmlModel_CompositorOutliner::addNewBox, this);
+	constructor.BindEventCallback("add_new_model",&RmlModel_CompositorOutliner::addNewModel, this);
 	constructor.BindEventCallback("select_object_entry", &RmlModel_CompositorOutliner::selectObjectEntry, this);
 
 	// Listen for anchor config changes
@@ -167,6 +172,84 @@ void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneCompo
 			addSceneComponent(childSceneComponentPtr, objectDepth);
 		}
 	}
+}
+
+void RmlModel_CompositorOutliner::addNewAnchor(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	const glm::mat4 anchorXform = glm::mat4(1.f);
+	char newAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
+
+	AnchorObjectSystemConfigPtr anchorSystemConfig= m_anchorSystemPtr->getAnchorSystemConfig();
+	StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", anchorSystemConfig->nextAnchorId);
+
+	m_anchorSystemPtr->addNewAnchor(newAnchorName, anchorXform);
+}
+
+void RmlModel_CompositorOutliner::addNewQuad(
+	Rml::DataModelHandle handle, 
+	Rml::Event& /*ev*/, 
+	const Rml::VariantList& parameters)
+{
+	MikanStencilQuad quad;
+	memset(&quad, 0, sizeof(MikanStencilQuad));
+
+	quad.is_double_sided = true;
+	quad.parent_anchor_id = INVALID_MIKAN_ID;
+	quad.relative_transform.translation = {0.f, 0.f, 0.f};
+	quad.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
+	quad.relative_transform.scale = {1.f, 1.f, 1.f};
+	quad.quad_width = 0.25f;
+	quad.quad_height = 0.25f;
+
+	StencilObjectSystemConfigPtr stencilSystemConfig = m_stencilSystemPtr->getStencilSystemConfig();
+	StringUtils::formatString(quad.stencil_name, sizeof(quad.stencil_name), "Quad %d", stencilSystemConfig->nextStencilId);
+
+	m_stencilSystemPtr->addNewQuadStencil(quad);
+}
+
+void RmlModel_CompositorOutliner::addNewBox(
+	Rml::DataModelHandle handle, 
+	Rml::Event& /*ev*/, 
+	const Rml::VariantList& parameters)
+{
+	MikanStencilBox box;
+	memset(&box, 0, sizeof(MikanStencilBox));
+
+	box.parent_anchor_id = INVALID_MIKAN_ID;
+	box.relative_transform.translation = {0.f, 0.f, 0.f};
+	box.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
+	box.relative_transform.scale = {1.f, 1.f, 1.f};
+	box.box_x_size = 0.25f;
+	box.box_y_size = 0.25f;
+	box.box_z_size = 0.25f;
+
+	StencilObjectSystemConfigPtr stencilSystemConfig= m_stencilSystemPtr->getStencilSystemConfig();
+	StringUtils::formatString(box.stencil_name, sizeof(box.stencil_name), "Box %d", stencilSystemConfig->nextStencilId);
+
+	m_stencilSystemPtr->addNewBoxStencil(box);
+}
+
+void RmlModel_CompositorOutliner::addNewModel(
+	Rml::DataModelHandle handle, 
+	Rml::Event& /*ev*/, 
+	const Rml::VariantList& parameters)
+{
+	MikanStencilModel model;
+	memset(&model, 0, sizeof(MikanStencilModel));
+
+	model.is_disabled = false;
+	model.parent_anchor_id = INVALID_MIKAN_ID;
+	model.relative_transform.translation = {0.f, 0.f, 0.f};
+	model.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
+	model.relative_transform.scale = {1.f, 1.f, 1.f};
+
+	StencilObjectSystemConfigPtr stencilSystemConfig = m_stencilSystemPtr->getStencilSystemConfig();
+	StringUtils::formatString(model.stencil_name, sizeof(model.stencil_name), "Model %d", stencilSystemConfig->nextStencilId);
+
+	m_stencilSystemPtr->addNewModelStencil(model);
 }
 
 void RmlModel_CompositorOutliner::selectObjectEntry(

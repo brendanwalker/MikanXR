@@ -19,13 +19,10 @@
 	huditem-r: 231px 55px 15px -55px;
 
 	icon-help: 128px 152px 51px 39px;
-	icon-invader: 179px 152px 51px 39px;
-	icon-game: 230px 152px 51px 39px;
-	icon-hiscore: 281px 152px 51px 39px;
-	icon-waves: 332px 152px 51px 39px;
-	icon-flag: 336px 191px 51px 39px;
-	icon-lives: 383px 152px 51px 39px;
-	icon-score: 434px 152px 51px 39px;
+	icon-anchor: 175px 140px 50px 50px;
+	icon-box: 225px 140px 50px 50px;
+	icon-quad: 275px 140px 50px 50px;
+	icon-model: 325px 140px 50px 50px;
 
 	window-tl: 0px 0px 133px 140px;
 	window-t: 134px 0px 1px 140px;

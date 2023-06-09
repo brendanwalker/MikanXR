@@ -53,11 +53,17 @@
                 border: 3dp #415857;
                 font-size: 14dp;
                 vertical-align: 0dp;
-            }                
+            }
         </style>
 	</head>
 	<body template="window">
-        <panel id="scene_outliner" data-model="compositor_outliner">
+        <panel id="scene_outliner" data-model="compositor_outliner">            
+            <div>
+                <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_anchor()"><img sprite="icon-anchor"/></button>
+                <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_quad()"><img sprite="icon-quad"/></button>
+                <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_box()"><img sprite="icon-box"/></button>
+                <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_model()"><img sprite="icon-model"/></button>
+            </div>
             <table>
                 <thead>
                     <tr><td style="margin-left: 10dp; margin-right: 10dp;"></td></tr>
