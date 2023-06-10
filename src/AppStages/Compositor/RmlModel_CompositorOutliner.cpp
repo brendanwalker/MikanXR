@@ -59,17 +59,25 @@ bool RmlModel_CompositorOutliner::init(
 	constructor.BindEventCallback("add_new_model",&RmlModel_CompositorOutliner::addNewModel, this);
 	constructor.BindEventCallback("select_object_entry", &RmlModel_CompositorOutliner::selectObjectEntry, this);
 
-	// Listen for anchor config changes
+	// Listen for anchor changes
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty +=
 		MakeDelegate(this, &RmlModel_CompositorOutliner::anchorSystemConfigMarkedDirty);
+	m_anchorSystemPtr->OnObjectInitialized +=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::onObjectInitialized);
+	m_anchorSystemPtr->OnObjectDisposed +=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::onObjectDisposed);
 
 	// Listen for selection changes
 	m_editorSystemPtr->OnSelectionChanged += 
 		MakeDelegate(this, &RmlModel_CompositorOutliner::updateSelection);
 
-	// Listen for stencil config changes
+	// Listen for stencil changes
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty +=
 		MakeDelegate(this, &RmlModel_CompositorOutliner::stencilSystemConfigMarkedDirty);
+	m_stencilSystemPtr->OnObjectInitialized +=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::onObjectInitialized);
+	m_stencilSystemPtr->OnObjectDisposed +=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::onObjectDisposed);
 
 	// Fill in the data model
 	rebuildComponentList();
@@ -81,12 +89,20 @@ void RmlModel_CompositorOutliner::dispose()
 {
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty -=
 		MakeDelegate(this, &RmlModel_CompositorOutliner::stencilSystemConfigMarkedDirty);
+	m_stencilSystemPtr->OnObjectInitialized -=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::onObjectInitialized);
+	m_stencilSystemPtr->OnObjectDisposed -=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::onObjectDisposed);
 
 	m_editorSystemPtr->OnSelectionChanged -=
 		MakeDelegate(this, &RmlModel_CompositorOutliner::updateSelection);
 
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty -=
 		MakeDelegate(this, &RmlModel_CompositorOutliner::anchorSystemConfigMarkedDirty);
+	m_anchorSystemPtr->OnObjectInitialized -=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::onObjectInitialized);
+	m_anchorSystemPtr->OnObjectDisposed -=
+		MakeDelegate(this, &RmlModel_CompositorOutliner::onObjectDisposed);
 
 	RmlModel::dispose();
 }
@@ -95,8 +111,7 @@ void RmlModel_CompositorOutliner::anchorSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId) || 
-		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
+	if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
 		rebuildComponentList();
 	}
@@ -106,14 +121,25 @@ void RmlModel_CompositorOutliner::stencilSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_quadStencilListPropertyId) || 
-		changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_boxStencilListPropertyId) ||
-		changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_modelStencilListPropertyId) ||
-		changedPropertySet.hasPropertyName(StencilComponentDefinition::k_parentAnchorPropertyId) ||
+	if (changedPropertySet.hasPropertyName(StencilComponentDefinition::k_parentAnchorPropertyId) ||
 		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
 		rebuildComponentList();
 	}
+}
+
+void RmlModel_CompositorOutliner::onObjectInitialized(
+	MikanObjectSystemPtr objectSystemPtr, 
+	MikanObjectPtr objectPtr)
+{
+	rebuildComponentList();
+}
+
+void RmlModel_CompositorOutliner::onObjectDisposed(
+	MikanObjectSystemPtr objectSystemPtr, 
+	MikanObjectConstPtr objectPtr)
+{
+	rebuildComponentList();
 }
 
 void RmlModel_CompositorOutliner::rebuildComponentList()
@@ -146,6 +172,9 @@ void RmlModel_CompositorOutliner::updateSelection()
 
 void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneComponentPtr, int depth)
 {
+	if (!sceneComponentPtr || sceneComponentPtr->getWasDisposed())
+		return;
+
 	MikanObjectPtr ownerObject= sceneComponentPtr->getOwnerObject();
 	if (ownerObject->getRootComponent() == sceneComponentPtr)
 	{

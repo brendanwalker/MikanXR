@@ -321,7 +321,10 @@ AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorDefinitionPtr an
 
 void AnchorObjectSystem::disposeAnchorObject(MikanSpatialAnchorID anchorId)
 {
-	m_originAnchor.reset();
+	if (m_originAnchor && m_originAnchor->getAnchorDefinition()->getAnchorId() == anchorId)
+	{
+		m_originAnchor.reset();
+	}
 
 	auto it= m_anchorComponents.find(anchorId);
 	if (it != m_anchorComponents.end())

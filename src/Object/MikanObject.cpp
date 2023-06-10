@@ -29,14 +29,14 @@ void MikanObject::init()
 
 void MikanObject::dispose()
 {
-	MikanObjectSystemPtr objectSystem = m_ownerObjectSystem.lock();
-	if (objectSystem->OnObjectDisposed)
-		objectSystem->OnObjectDisposed(objectSystem, shared_from_this());
-
 	for (MikanComponentPtr component : m_components)
 	{
 		component->dispose();
 	}
+
+	MikanObjectSystemPtr objectSystem = m_ownerObjectSystem.lock();
+	if (objectSystem->OnObjectDisposed)
+		objectSystem->OnObjectDisposed(objectSystem, shared_from_this());
 
 	m_components.clear();
 	m_ownerObjectSystem.reset();

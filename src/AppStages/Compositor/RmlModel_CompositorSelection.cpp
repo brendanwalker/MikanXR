@@ -395,9 +395,6 @@ void RmlModel_CompositorSelection::anchorSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	AnchorComponentPtr selectedAnchor= 
-		std::dynamic_pointer_cast<AnchorComponent>(m_selectedComponentWeakPtr.lock());
-
 	if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
 	{
 		rebuildAnchorList();
@@ -672,10 +669,10 @@ void RmlModel_CompositorSelection::rebuildFunctionList()
 void RmlModel_CompositorSelection::rebuildAnchorList()
 {
 	m_spatialAnchorIds.clear();
-	auto anchorMap = m_anchorSystemPtr->getAnchorMap();
-	for (auto it = anchorMap.begin(); it != anchorMap.end(); it++)
+	auto anchorList = m_anchorSystemPtr->getAnchorSystemConfig()->spatialAnchorList;
+	for (AnchorDefinitionPtr definition : anchorList)
 	{
-		const MikanSpatialAnchorID anchorId = it->first;
+		const MikanSpatialAnchorID anchorId = definition->getAnchorId();
 
 		m_spatialAnchorIds.push_back(anchorId);
 	}
