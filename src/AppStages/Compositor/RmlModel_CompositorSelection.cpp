@@ -230,14 +230,25 @@ bool RmlModel_CompositorSelection::init(
 		}
 
 		// One time registration for an arrays
-		constructor.RegisterArray<decltype(m_componentFieldModels)>();
-		constructor.RegisterArray<decltype(m_componentFunctionModels)>();
+		constructor.RegisterArray< Rml::Vector<RmlModel_ComponentField> >();
+		constructor.RegisterArray< Rml::Vector<RmlModel_ComponentFunction> >();
 
 		s_bHasRegisteredTypes = true;
 	}
 
 	// Register Data Model Fields
-	constructor.Bind("component_fields", &m_componentFieldModels);
+	constructor.Bind("field_count", &m_fieldCount);
+	constructor.Bind("name_fields", &m_componentNameFieldModels);
+	constructor.Bind("anchor_id_fields", &m_componentAnchorIdFieldModels);
+	constructor.Bind("position_fields", &m_componentPositionFieldModels);
+	constructor.Bind("rotation_fields", &m_componentRotationFieldModels);
+	constructor.Bind("scale_fields", &m_componentScaleFieldModels);
+	constructor.Bind("size3d_fields", &m_componentSize3dFieldModels);
+	constructor.Bind("size2d_fields", &m_componentSize2dFieldModels);
+	constructor.Bind("side1d_fields", &m_componentSize1dFieldModels);
+	constructor.Bind("checkbox_fields", &m_componentCheckboxFieldModels);
+	constructor.Bind("filename_fields", &m_componentFilenameFieldModels);
+	
 	constructor.Bind("component_functions", &m_componentFunctionModels);
 	constructor.Bind("spatial_anchor_ids", &m_spatialAnchorIds);	
 
@@ -248,14 +259,14 @@ bool RmlModel_CompositorSelection::init(
 			if (m_bIgnoreFieldsUpdate)
 				return;
 
-			const int field_index = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
-			if (field_index >= 0)
+			const Rml::String fieldName = (arguments.size() == 1 ? arguments[0].Get<Rml::String>() : "");
+			RmlModel_ComponentField* rmlFieldModel= getFieldByPropertyName(fieldName);
+			if (rmlFieldModel != nullptr)
 			{
-				const RmlModel_ComponentField& rmlFieldModel= m_componentFieldModels[field_index];
 				SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
 				if (selectedComponent)
 				{
-					if (rmlFieldModel.semantic_type == ePropertySemantic::anchor_id)
+					if (rmlFieldModel->semantic_type == ePropertySemantic::anchor_id)
 					{
 						const int new_anchor_id = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
@@ -264,10 +275,10 @@ bool RmlModel_CompositorSelection::init(
 							Rml::Variant value;
 							value= new_anchor_id;
 
-							selectedComponent->setPropertyValue(rmlFieldModel.field_name, value);
+							selectedComponent->setPropertyValue(fieldName, value);
 						}
 					}
-					if (rmlFieldModel.semantic_type == ePropertySemantic::name)
+					if (rmlFieldModel->semantic_type == ePropertySemantic::name)
 					{
 						const bool isLineBreak = ev.GetParameter("linebreak", false);
 
@@ -276,12 +287,12 @@ bool RmlModel_CompositorSelection::init(
 							Rml::Variant value;
 							value= ev.GetParameter("value", Rml::String());
 
-							selectedComponent->setPropertyValue(rmlFieldModel.field_name, value);
+							selectedComponent->setPropertyValue(fieldName, value);
 						}
 					}
 					else
 					{
-						selectedComponent->setPropertyValue(rmlFieldModel.field_name, rmlFieldModel.valueContainer);
+						selectedComponent->setPropertyValue(fieldName, rmlFieldModel->valueContainer);
 					}
 				}
 			}
@@ -292,7 +303,7 @@ bool RmlModel_CompositorSelection::init(
 			const int field_index = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
 			if (field_index >= 0)
 			{
-				const RmlModel_ComponentField& rmlFieldModel = m_componentFieldModels[field_index];
+				const RmlModel_ComponentField& rmlFieldModel = m_componentFilenameFieldModels[field_index];
 				const std::string propertyName = rmlFieldModel.field_name;
 
 				SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
@@ -421,48 +432,74 @@ void RmlModel_CompositorSelection::applyConfigChangesToSelection(
 				if (rmlFieldModel != nullptr)
 				{
 					rmlFieldModel->valueContainer= value;
-					bUpdatedField= true;
+					
+					switch (rmlFieldModel->semantic_type)
+					{
+					case ePropertySemantic::name:
+						m_modelHandle.DirtyVariable("name_fields");
+						break;
+					case ePropertySemantic::anchor_id:
+						m_modelHandle.DirtyVariable("anchor_id_fields");
+						break;
+					case ePropertySemantic::position:
+						m_modelHandle.DirtyVariable("position_fields");
+						break;
+					case ePropertySemantic::rotation:
+						m_modelHandle.DirtyVariable("rotation_fields");
+						break;
+					case ePropertySemantic::scale:
+						m_modelHandle.DirtyVariable("scale_fields");
+						break;
+					case ePropertySemantic::size3d:
+						m_modelHandle.DirtyVariable("size3d_fields");
+						break;
+					case ePropertySemantic::size2d:
+						m_modelHandle.DirtyVariable("size2d_fields");
+						break;
+					case ePropertySemantic::size1d:
+						m_modelHandle.DirtyVariable("side1d_fields");
+						break;
+					case ePropertySemantic::checkbox:
+						m_modelHandle.DirtyVariable("checkbox_fields");
+						break;
+					case ePropertySemantic::filename:
+						m_modelHandle.DirtyVariable("filename_fields");
+						break;
+					}
 				}
 			}
-		}
-
-		if (bUpdatedField)
-		{
-			m_modelHandle.DirtyVariable("component_fields");
 		}
 	}
 }
 
 RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldByPropertyName(const std::string& propertyName)
 {
-	auto it= m_fieldNameToIndexMap.find(propertyName);
-	if (it != m_fieldNameToIndexMap.end())
+	auto it= m_fieldNameToFieldMap.find(propertyName);
+	if (it != m_fieldNameToFieldMap.end())
 	{
-		const int fieldIndex = it->second;
-
-		return &m_componentFieldModels[fieldIndex];
+		return it->second;
 	}
 
 	return nullptr;
 }
 
-RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldBySemantic(const std::string& semantic)
-{
-	auto it = std::find_if(
-		m_componentFieldModels.begin(), m_componentFieldModels.end(), 
-		[&semantic](const RmlModel_ComponentField& field) {
-			return field.semantic == semantic;
-		});
-
-	if (it != m_componentFieldModels.end())
-	{
-		RmlModel_ComponentField& field = *it;
-
-		return &field;
-	}
-
-	return nullptr;
-}
+//RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldBySemantic(const std::string& semantic)
+//{
+//	auto it = std::find_if(
+//		m_componentFieldModels.begin(), m_componentFieldModels.end(), 
+//		[&semantic](const RmlModel_ComponentField& field) {
+//			return field.semantic == semantic;
+//		});
+//
+//	if (it != m_componentFieldModels.end())
+//	{
+//		RmlModel_ComponentField& field = *it;
+//
+//		return &field;
+//	}
+//
+//	return nullptr;
+//}
 
 void RmlModel_CompositorSelection::updateSelection()
 {
@@ -494,8 +531,16 @@ void RmlModel_CompositorSelection::updateSelection()
 
 void RmlModel_CompositorSelection::rebuildFieldList()
 {
-	m_fieldNameToIndexMap.clear();
-	m_componentFieldModels.clear();
+	m_componentNameFieldModels.clear();
+	m_componentAnchorIdFieldModels.clear();
+	m_componentPositionFieldModels.clear();
+	m_componentRotationFieldModels.clear();
+	m_componentScaleFieldModels.clear();
+	m_componentSize3dFieldModels.clear();
+	m_componentSize2dFieldModels.clear();
+	m_componentSize1dFieldModels.clear();
+	m_componentCheckboxFieldModels.clear();
+	m_componentFilenameFieldModels.clear();
 
 	SceneComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
 	if (currentSelection)
@@ -510,28 +555,104 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 			if (currentSelection->getPropertyDescriptor(propertyName, propertyDesc) &&
 				currentSelection->getPropertyValue(propertyName, propertyValue))
 			{
-				int field_index= (int)m_componentFieldModels.size();
-				ePropertyDataType field_type= propertyDesc.dataType;
-				ePropertySemantic semantic_type= propertyDesc.semantic;
-				Rml::String field_name= propertyName;
-				Rml::String semantic= k_PropertySemanticNames[(int)propertyDesc.semantic];
+				RmlModel_ComponentField field;
+				field.field_index= -1;
+				field.field_type= propertyDesc.dataType;
+				field.semantic_type= propertyDesc.semantic;
+				field.field_name= propertyName;
+				field.semantic= k_PropertySemanticNames[(int)propertyDesc.semantic];
+				field.valueContainer= propertyValue;
 
-				m_componentFieldModels.push_back({
-					field_index, 
-					field_type, 
-					semantic_type, 
-					field_name, 
-					semantic, 
-					propertyValue});
-				m_fieldNameToIndexMap.insert({field_name, field_index});
+				switch (propertyDesc.semantic)
+				{
+					case ePropertySemantic::checkbox:
+						field.field_index= (int)m_componentCheckboxFieldModels.size();
+						m_componentCheckboxFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::position:
+						field.field_index = (int)m_componentPositionFieldModels.size();
+						m_componentPositionFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::rotation:
+						field.field_index = (int)m_componentRotationFieldModels.size();
+						m_componentRotationFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::scale:
+						field.field_index = (int)m_componentScaleFieldModels.size();
+						m_componentScaleFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::size3d:
+						field.field_index = (int)m_componentSize3dFieldModels.size();
+						m_componentSize3dFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::size2d:
+						field.field_index = (int)m_componentSize2dFieldModels.size();
+						m_componentSize2dFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::size1d:
+						field.field_index = (int)m_componentSize1dFieldModels.size();
+						m_componentSize1dFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::filename:
+						field.field_index = (int)m_componentFilenameFieldModels.size();
+						m_componentFilenameFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::name:
+						field.field_index = (int)m_componentNameFieldModels.size();
+						m_componentNameFieldModels.push_back(field);
+						break;
+					case ePropertySemantic::anchor_id:
+						field.field_index = (int)m_componentAnchorIdFieldModels.size();
+						m_componentAnchorIdFieldModels.push_back(field);
+						break;
+					default:
+						break;
+				}
 			}
 		}
 	}
 
+	m_fieldCount = 0;
+	appendFieldListToFieldMap(m_componentNameFieldModels);
+	appendFieldListToFieldMap(m_componentAnchorIdFieldModels);
+	appendFieldListToFieldMap(m_componentPositionFieldModels);
+	appendFieldListToFieldMap(m_componentRotationFieldModels);
+	appendFieldListToFieldMap(m_componentScaleFieldModels);
+	appendFieldListToFieldMap(m_componentSize3dFieldModels);
+	appendFieldListToFieldMap(m_componentSize2dFieldModels);
+	appendFieldListToFieldMap(m_componentSize1dFieldModels);
+	appendFieldListToFieldMap(m_componentCheckboxFieldModels);
+	appendFieldListToFieldMap(m_componentFilenameFieldModels);
+
 	m_bIgnoreFieldsUpdate= true;
-	m_modelHandle.DirtyVariable("component_fields");
+	m_modelHandle.DirtyVariable("field_count");
+	m_modelHandle.DirtyVariable("name_fields");
+	m_modelHandle.DirtyVariable("anchor_id_fields");
+	m_modelHandle.DirtyVariable("position_fields");
+	m_modelHandle.DirtyVariable("rotation_fields");
+	m_modelHandle.DirtyVariable("scale_fields");
+	m_modelHandle.DirtyVariable("size3d_fields");
+	m_modelHandle.DirtyVariable("size2d_fields");
+	m_modelHandle.DirtyVariable("side1d_fields");
+	m_modelHandle.DirtyVariable("checkbox_fields");
+	m_modelHandle.DirtyVariable("filename_fields");
 	getContext()->Update();
 	m_bIgnoreFieldsUpdate= false;
+
+	//if (OnComponentFieldsChanged)
+	//{
+	//	OnComponentFieldsChanged();
+	//}
+}
+
+void RmlModel_CompositorSelection::appendFieldListToFieldMap(
+	Rml::Vector<RmlModel_ComponentField>& fieldList)
+{
+	for (RmlModel_ComponentField& field : fieldList)
+	{
+		m_fieldNameToFieldMap.insert({field.field_name, &field});
+		m_fieldCount++;
+	}
 }
 
 void RmlModel_CompositorSelection::rebuildFunctionList()

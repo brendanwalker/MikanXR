@@ -80,64 +80,81 @@
             </table>
         </panel>
         <panel id="scene_selection" data-model="compositor_selection">
-            <div data-if="component_fields.size > 0">
+            <div data-if="field_count > 0">
                 <table>
                     <thead>
                         <tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
                     </thead>
                     <tbody>
-                        <tr data-for="field : component_fields" class="property_tr">
+                        <tr data-for="field : name_fields" class="property_tr">
                             <td>
-                                <div data-if="field.semantic == 'name'">
-                                    Name&nbsp;
-                                    <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-event-change="modify_field(field.field_index)" data-value="field.string"/>
-                                </div>
-                                <div data-if="field.semantic == 'anchor_id'">
-                                    <select id="select" name="parent_anchor_id" data-value="field.int" data-event-change="modify_field(field.field_index)">
-                                        <option data-for="anchor_id : spatial_anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
-                                    </select>
-                                </div>                  
-                                <div data-if="field.semantic == 'position'">
-                                    Position&nbsp;
-                                    <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>
-                                    <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_y"/>
-                                    <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_z"/>                                
-                                </div>
-                                <div data-if="field.semantic == 'rotation'">
-                                    Rotation&nbsp;
-                                    <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>
-                                    <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_y"/>
-                                    <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_z"/>
-                                </div>
-                                <div data-if="field.semantic == 'scale'">
-                                    Scale&nbsp;
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_y"/>
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_z"/>
-                                </div>                                                          
-                                <div data-if="field.semantic == 'size3d'">
-                                    Size&nbsp;
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_x"/>
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_y"/>
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec3_z"/>                                
-                                </div>
-                                <div data-if="field.semantic == 'size2d'">
-                                    Size&nbsp;
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec2_x"/>
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.vec2_y"/>
-                                </div>
-                                <div data-if="field.semantic == 'size1d'">
-                                    {{field.field_name}}&nbsp;
-                                    <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_index)" data-value="field.float"/>
-                                </div>                                  
-                                <div data-if="field.semantic == 'checkbox'">
-                                    <label><input type="checkbox" name="flag" data-event-change="modify_field(field.field_index)" data-value="field.boolean" />{{field.field_name}}</label>
-                                </div>
-                                <div data-if="field.semantic == 'filename'">
-                                    Path&nbsp;
-                                    <filename>{{field.string | to_short_path(30)}}</filename>
-                                    <button style="width: 40dp; padding-top: 0.0dp; vertical-align: -6dp;" data-event-click="select_filepath(field.field_index)">...</button>
-                                </div>
+                                Name&nbsp;
+                                <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-event-change="modify_field(field.field_name)" data-value="field.string"/>
+                            </td>
+                        </tr>                                
+                        <tr data-for="field : anchor_id_fields" class="property_tr">
+                            <td>
+                                <label style="vertical-align: 12dp;">Parent Anchor</label>
+                                <select id="select" name="parent_anchor_id" data-value="field.int" data-event-change="modify_field(field.field_name)">
+                                    <option data-for="anchor_id : spatial_anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
+                                </select>
+                            </td>
+                        </tr>                                
+                        <tr data-for="field : position_fields" class="property_tr">
+                            <td>
+                                Position&nbsp;
+                                <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_x"/>
+                                <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_y"/>
+                                <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_z"/>                                
+                            </td>
+                        </tr>                                
+                        <tr data-for="field : rotation_fields" class="property_tr">
+                            <td>
+                                Rotation&nbsp;
+                                <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_x"/>
+                                <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_y"/>
+                                <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_z"/>
+                            </td>
+                        </tr>                                
+                        <tr data-for="field : scale_fields" class="property_tr">
+                            <td>
+                                Scale&nbsp;
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_x"/>
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_y"/>
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_z"/>
+                            </td>
+                        </tr>                                                                                 
+                        <tr data-for="field : size3d_fields" class="property_tr">
+                            <td>
+                                Size&nbsp;
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_x"/>
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_y"/>
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_z"/>                                
+                            </td>
+                        </tr>                                
+                        <tr data-for="field : size2d_fields" class="property_tr">
+                            <td>                                
+                                Size&nbsp;
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec2_x"/>
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec2_y"/>
+                            </td>
+                        </tr>                                
+                        <tr data-for="field : side1d_fields" class="property_tr">
+                            <td>                                
+                                {{field.field_name}}&nbsp;
+                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.float"/>
+                            </td>
+                        </tr>                                
+                        <tr data-for="field : checkbox_fields" class="property_tr">
+                            <td>                                
+                                <label><input type="checkbox" name="flag" data-event-change="modify_field(field.field_name)" data-value="field.boolean" />{{field.field_name}}</label>
+                            </td>
+                        </tr>                                
+                        <tr data-for="field : filename_fields" class="property_tr">
+                            <td>                                
+                                Path&nbsp;
+                                <filename>{{field.string | to_short_path(30)}}</filename>
+                                <button style="width: 40dp; padding-top: 0.0dp; vertical-align: -6dp;" data-event-click="select_filepath(field.field_index)">...</button>
                             </td>
                         </tr>
                     </tbody>

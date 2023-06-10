@@ -2,6 +2,7 @@
 
 #include "CommonConfigFwd.h"
 #include "ObjectSystemFwd.h"
+#include "PropertyInterface.h"
 #include "SceneFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
@@ -69,6 +70,9 @@ public:
 		StencilObjectSystemPtr stencilSystemPtr);
 	virtual void dispose() override;
 
+	//SinglecastDelegate<void()> OnComponentFieldsChanged;
+	//const Rml::Vector<RmlModel_ComponentField>& getComponentFields() const { return m_componentFieldModels; }
+
 private:
 	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void stencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
@@ -76,11 +80,12 @@ private:
 
 	void updateSelection();
 	void rebuildFieldList();
+	void appendFieldListToFieldMap(Rml::Vector<RmlModel_ComponentField>& fieldList);
 	void rebuildFunctionList();
 	void rebuildAnchorList();
 
 	RmlModel_ComponentField* getFieldByPropertyName(const std::string& propertyName);
-	RmlModel_ComponentField* getFieldBySemantic(const std::string& semantic);
+	//RmlModel_ComponentField* getFieldBySemantic(const std::string& semantic);
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	EditorObjectSystemPtr m_editorSystemPtr;
@@ -89,8 +94,19 @@ private:
 	Rml::Vector<int> m_spatialAnchorIds;
 
 	SceneComponentWeakPtr m_selectedComponentWeakPtr;
-	Rml::Vector<RmlModel_ComponentField> m_componentFieldModels;
-	std::map<std::string, int> m_fieldNameToIndexMap;
+
+	Rml::Vector<RmlModel_ComponentField> m_componentNameFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentAnchorIdFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentPositionFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentRotationFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentScaleFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentSize3dFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentSize2dFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentSize1dFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentCheckboxFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentFilenameFieldModels;
+	std::map<std::string, RmlModel_ComponentField*> m_fieldNameToFieldMap;
+	int m_fieldCount= 0;
 	bool m_bIgnoreFieldsUpdate= false;
 
 	Rml::Vector<RmlModel_ComponentFunction> m_componentFunctionModels;
