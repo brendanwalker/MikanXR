@@ -483,24 +483,6 @@ RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldByPropertyName(co
 	return nullptr;
 }
 
-//RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldBySemantic(const std::string& semantic)
-//{
-//	auto it = std::find_if(
-//		m_componentFieldModels.begin(), m_componentFieldModels.end(), 
-//		[&semantic](const RmlModel_ComponentField& field) {
-//			return field.semantic == semantic;
-//		});
-//
-//	if (it != m_componentFieldModels.end())
-//	{
-//		RmlModel_ComponentField& field = *it;
-//
-//		return &field;
-//	}
-//
-//	return nullptr;
-//}
-
 void RmlModel_CompositorSelection::updateSelection()
 {
 	SceneComponentPtr oldSelection = m_selectedComponentWeakPtr.lock();

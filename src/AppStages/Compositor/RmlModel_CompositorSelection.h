@@ -5,7 +5,6 @@
 #include "PropertyInterface.h"
 #include "SceneFwd.h"
 #include "Shared/RmlModel.h"
-#include "SinglecastDelegate.h"
 
 #include <map>
 #include <vector>
@@ -70,9 +69,6 @@ public:
 		StencilObjectSystemPtr stencilSystemPtr);
 	virtual void dispose() override;
 
-	//SinglecastDelegate<void()> OnComponentFieldsChanged;
-	//const Rml::Vector<RmlModel_ComponentField>& getComponentFields() const { return m_componentFieldModels; }
-
 private:
 	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void stencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
@@ -85,7 +81,6 @@ private:
 	void rebuildAnchorList();
 
 	RmlModel_ComponentField* getFieldByPropertyName(const std::string& propertyName);
-	//RmlModel_ComponentField* getFieldBySemantic(const std::string& semantic);
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	EditorObjectSystemPtr m_editorSystemPtr;
