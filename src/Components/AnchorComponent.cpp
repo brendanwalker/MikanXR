@@ -186,7 +186,7 @@ void AnchorComponent::updateOriginAnchorPose()
 {
 	ProfileConfigPtr profile= App::getInstance()->getProfileConfig();
 	VRDeviceViewPtr vrDeviceView =
-		VRDeviceListIterator(eDeviceType::VRTracker, profile->originVRDevicePath).getCurrent();
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profile->originVRDevicePath);
 
 	if (vrDeviceView != nullptr)
 	{

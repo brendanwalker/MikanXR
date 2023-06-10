@@ -200,7 +200,7 @@ public:
 
 		for (auto deviceId : m_subscribedVRDevices)
 		{
-			VRDeviceViewPtr vrDeviceView= vrDeviceManager->getVRDeviceViewPtr(deviceId);
+			VRDeviceViewPtr vrDeviceView= vrDeviceManager->getVRDeviceViewById(deviceId);
 
 			if (vrDeviceView && vrDeviceView->getIsOpen() && vrDeviceView->getIsPoseValid())
 			{
@@ -493,7 +493,7 @@ static VRDeviceViewPtr getCurrentCameraVRDevice()
 {
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
-	return VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
+	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 }
 
 void MikanServer::connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult)
@@ -684,7 +684,7 @@ void MikanServer::getVRDeviceInfo(
 		return;
 	}
 
-	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewPtr(deviceId);
+	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewById(deviceId);
 	if (!vrDeviceView)
 	{
 		outResult->setResultCode(MikanResult_InvalidDeviceID);

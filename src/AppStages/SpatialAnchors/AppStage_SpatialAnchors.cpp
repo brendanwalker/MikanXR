@@ -203,5 +203,5 @@ VRDeviceViewPtr AppStage_SpatialAnchors::getSelectedAnchorVRTracker() const
 {
 	const std::string vrDevicePath= m_dataModel->getAnchorVRDevicePath();
 
-	return VRDeviceListIterator(eDeviceType::VRTracker, vrDevicePath).getCurrent();
+	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(vrDevicePath);
 }

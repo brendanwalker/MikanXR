@@ -72,7 +72,7 @@ void AppStage_AnchorTriangulation::enter()
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 	m_cameraTrackingPuckView =
-		VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 
 	// Create a new camera to view the scene
 	m_camera = getFirstViewport()->getCurrentCamera();

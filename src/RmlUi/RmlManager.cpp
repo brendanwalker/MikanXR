@@ -276,7 +276,7 @@ void RmlManager::registerCommonDataModelTypes()
 		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const Rml::String devicePath = variant.Get<Rml::String>("");
 
-			VRDeviceViewPtr deviceView= VRDeviceListIterator(eDeviceType::VRTracker, devicePath).getCurrent();
+			VRDeviceViewPtr deviceView= VRDeviceManager::getInstance()->getVRDeviceViewByPath(devicePath);
 			if (deviceView)
 			{
 				const Rml::String friendlyName = deviceView->getTrackerRole() + " - " + deviceView->getSerialNumber();

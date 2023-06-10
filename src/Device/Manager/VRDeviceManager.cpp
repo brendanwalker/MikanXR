@@ -56,7 +56,7 @@ void VRDeviceManager::closeAllVRTrackers()
 {
 	for (int VRTrackerId = 0; VRTrackerId < k_max_devices; ++VRTrackerId)
 	{
-		VRDeviceViewPtr tracker_view = getVRDeviceViewPtr(VRTrackerId);
+		VRDeviceViewPtr tracker_view = getVRDeviceViewById(VRTrackerId);
 
 		if (tracker_view->getIsOpen())
 		{
@@ -80,11 +80,26 @@ DeviceView* VRDeviceManager::allocateDeviceView(int device_id)
 	return new VRDeviceView(device_id);
 }
 
-VRDeviceViewPtr VRDeviceManager::getVRDeviceViewPtr(int device_id) const
+VRDeviceViewPtr VRDeviceManager::getVRDeviceViewById(int device_id) const
 {
 	assert(m_deviceViews != nullptr);
 
 	return std::static_pointer_cast<VRDeviceView>(m_deviceViews[device_id]);
+}
+
+VRDeviceViewPtr VRDeviceManager::getVRDeviceViewByPath(const std::string& devicePath) const
+{
+	for (int VRTrackerId = 0; VRTrackerId < k_max_devices; ++VRTrackerId)
+	{
+		VRDeviceViewPtr devicePtr = getVRDeviceViewById(VRTrackerId);
+
+		if (devicePtr && devicePtr->getDevicePath() == devicePath)
+		{
+			return devicePtr;
+		}
+	}
+
+	return VRDeviceViewPtr();
 }
 
 VRDeviceList VRDeviceManager::getVRDeviceList() const
@@ -93,7 +108,7 @@ VRDeviceList VRDeviceManager::getVRDeviceList() const
 
 	for (int VRTrackerId = 0; VRTrackerId < k_max_devices; ++VRTrackerId)
 	{
-		VRDeviceViewPtr VRTrackerPtr = getVRDeviceViewPtr(VRTrackerId);
+		VRDeviceViewPtr VRTrackerPtr = getVRDeviceViewById(VRTrackerId);
 
 		if (VRTrackerPtr->getIsOpen())
 		{
@@ -110,7 +125,7 @@ VRDeviceList VRDeviceManager::getFilteredVRDeviceList(eDeviceType deviceType) co
 
 	for (int VRTrackerId = 0; VRTrackerId < k_max_devices; ++VRTrackerId)
 	{
-		VRDeviceViewPtr VRTrackerPtr = getVRDeviceViewPtr(VRTrackerId);
+		VRDeviceViewPtr VRTrackerPtr = getVRDeviceViewById(VRTrackerId);
 
 		if (VRTrackerPtr->getIsOpen() && VRTrackerPtr->getVRDeviceType() == deviceType)
 		{
@@ -133,7 +148,7 @@ void VRDeviceManager::onActiveDeviceListChanged()
 
 void VRDeviceManager::onDevicePropertyChanged(int deviceId)
 {
-	VRDeviceViewPtr tracker_view = getVRDeviceViewPtr(deviceId);
+	VRDeviceViewPtr tracker_view = getVRDeviceViewById(deviceId);
 
 	if (tracker_view != nullptr && tracker_view->getIsOpen())
 	{
@@ -145,7 +160,7 @@ void VRDeviceManager::onDevicePosesChanged(uint64_t newVRFrameIndex)
 {
 	for (int VRTrackerId = 0; VRTrackerId < k_max_devices; ++VRTrackerId)
 	{
-		VRDeviceViewPtr VRTrackerPtr = getVRDeviceViewPtr(VRTrackerId);
+		VRDeviceViewPtr VRTrackerPtr = getVRDeviceViewById(VRTrackerId);
 
 		if (VRTrackerPtr->getIsOpen())
 		{
@@ -160,7 +175,7 @@ void VRDeviceManager::onDevicePosesChanged(uint64_t newVRFrameIndex)
 }
 
 // -- VRDeviceListIterator -----
-VRDeviceListIterator::VRDeviceListIterator(eDeviceType deviceType, const std::string& devicePath)
+VRDeviceListIterator::VRDeviceListIterator(eDeviceType deviceType)
 {
 	m_vrDeviceList = VRDeviceManager::getInstance()->getFilteredVRDeviceList(deviceType);
 	m_listIndex = -1;
@@ -169,17 +184,11 @@ VRDeviceListIterator::VRDeviceListIterator(eDeviceType deviceType, const std::st
 	{
 		VRDeviceViewPtr vrDevicePtr = m_vrDeviceList[testIndex];
 
-		if (vrDevicePtr->getDevicePath() == devicePath)
+		if (vrDevicePtr)
 		{
 			m_listIndex = testIndex;
 			break;
 		}
-	}
-
-	// If no matching vr device, was found, just pick the first one
-	if (m_listIndex == -1 && m_vrDeviceList.size() > 0)
-	{
-		m_listIndex = 0;
 	}
 }
 

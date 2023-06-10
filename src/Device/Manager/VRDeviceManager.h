@@ -42,7 +42,8 @@ public:
 
 	inline class SteamVRManager* getSteamVRManager() const { return m_steamVRManager; }
 
-	VRDeviceViewPtr getVRDeviceViewPtr(int device_id) const;
+	VRDeviceViewPtr getVRDeviceViewById(int device_id) const;
+	VRDeviceViewPtr getVRDeviceViewByPath( const std::string& devicePath) const;
 	VRDeviceList getVRDeviceList() const;
 	VRDeviceList getFilteredVRDeviceList(eDeviceType deviceType) const;
 
@@ -68,7 +69,7 @@ class VRDeviceListIterator
 {
 public:
 	VRDeviceListIterator() = default;
-	VRDeviceListIterator(eDeviceType deviceType, const std::string& devicePath);
+	VRDeviceListIterator(eDeviceType deviceType);
 
 	inline bool hasVRDevices() const { return m_vrDeviceList.size() > 0; }
 	inline int getCurrentIndex() const { return m_listIndex; }

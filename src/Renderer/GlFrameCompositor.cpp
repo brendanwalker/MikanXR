@@ -1717,7 +1717,8 @@ bool GlFrameCompositor::bindCameraVRTracker()
 {
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
-	m_cameraTrackingPuckView= VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
+	m_cameraTrackingPuckView= 
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 
 	return m_cameraTrackingPuckView != nullptr;
 }

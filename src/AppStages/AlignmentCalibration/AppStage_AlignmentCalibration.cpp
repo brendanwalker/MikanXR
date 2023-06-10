@@ -74,9 +74,9 @@ void AppStage_AlignmentCalibration::enter()
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 	m_cameraTrackingPuckView= 
-		VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 	m_matTrackingPuckView =
-		VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->matVRDevicePath).getCurrent();
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->matVRDevicePath);
 
 	// Add all VR devices to the 3d scene
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
