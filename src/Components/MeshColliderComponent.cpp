@@ -100,7 +100,11 @@ void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr st
 {
 	if (m_staticMeshWeakPtr.lock() != staticMeshWeakPtr.lock())
 	{
-		dispose();
+		auto oldStaticMeshPtr = m_staticMeshWeakPtr.lock();
+		if (oldStaticMeshPtr)
+		{
+			oldStaticMeshPtr->OnMeshChanged -= MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
+		}
 
 		m_staticMeshWeakPtr = staticMeshWeakPtr;
 
@@ -108,8 +112,9 @@ void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr st
 		if (staticMeshPtr)
 		{
 			staticMeshPtr->OnMeshChanged += MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
-			rebuildCollionGeometry();
 		}
+
+		rebuildCollionGeometry();
 	}
 }
 
