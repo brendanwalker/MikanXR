@@ -606,20 +606,23 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 	appendFieldListToFieldMap(m_componentCheckboxFieldModels);
 	appendFieldListToFieldMap(m_componentFilenameFieldModels);
 
-	m_bIgnoreFieldsUpdate= true;
 	m_modelHandle.DirtyVariable("field_count");
-	m_modelHandle.DirtyVariable("name_fields");
-	m_modelHandle.DirtyVariable("anchor_id_fields");
-	m_modelHandle.DirtyVariable("position_fields");
-	m_modelHandle.DirtyVariable("rotation_fields");
-	m_modelHandle.DirtyVariable("scale_fields");
-	m_modelHandle.DirtyVariable("size3d_fields");
-	m_modelHandle.DirtyVariable("size2d_fields");
-	m_modelHandle.DirtyVariable("side1d_fields");
-	m_modelHandle.DirtyVariable("checkbox_fields");
-	m_modelHandle.DirtyVariable("filename_fields");
-	getContext()->Update();
-	m_bIgnoreFieldsUpdate= false;
+	if (m_selectedComponentWeakPtr.lock())
+	{
+		m_bIgnoreFieldsUpdate = true;
+		m_modelHandle.DirtyVariable("name_fields");
+		m_modelHandle.DirtyVariable("anchor_id_fields");
+		m_modelHandle.DirtyVariable("position_fields");
+		m_modelHandle.DirtyVariable("rotation_fields");
+		m_modelHandle.DirtyVariable("scale_fields");
+		m_modelHandle.DirtyVariable("size3d_fields");
+		m_modelHandle.DirtyVariable("size2d_fields");
+		m_modelHandle.DirtyVariable("side1d_fields");
+		m_modelHandle.DirtyVariable("checkbox_fields");
+		m_modelHandle.DirtyVariable("filename_fields");
+		getContext()->Update();
+		m_bIgnoreFieldsUpdate = false;
+	}
 
 	//if (OnComponentFieldsChanged)
 	//{
