@@ -50,7 +50,7 @@ MikanComponent::MikanComponent(MikanObjectWeakPtr owner)
 
 void MikanComponent::init()
 {
-	if (m_bIsInitialized)
+	if (m_bWasInitialized)
 		return;
 
 	MikanObjectSystemPtr objectSystemPtr= getOwnerObject()->getOwnerSystem();
@@ -65,7 +65,7 @@ void MikanComponent::init()
 		objectSystemPtr->onCustomRender += MakeDelegate(this, &MikanComponent::customRender);
 	}
 
-	m_bIsInitialized= true;
+	m_bWasInitialized= true;
 
 	if (objectSystemPtr->OnComponentInitialized)
 	{
@@ -75,8 +75,10 @@ void MikanComponent::init()
 
 void MikanComponent::dispose()
 {
-	if (m_bIsDisposed)
+	if (m_bWasDisposed)
 		return;
+
+	m_bWasDisposed = true;
 
 	MikanObjectSystemPtr objectSystemPtr= getOwnerObject()->getOwnerSystem();
 
@@ -95,12 +97,11 @@ void MikanComponent::dispose()
 		objectSystemPtr->onCustomRender -= MakeDelegate(this, &MikanComponent::customRender);
 	}
 
-	m_bIsDisposed= true;
 }
 
 void MikanComponent::setDefinition(MikanComponentDefinitionPtr config)
 {
-	assert(!m_bIsInitialized);
+	assert(!m_bWasInitialized);
 	m_definition = config;
 
 	// Make the component name match the config name
@@ -111,7 +112,7 @@ void MikanComponent::setName(const std::string& name)
 {
 	m_name= name;
 
-	if (m_bIsInitialized)
+	if (m_bWasInitialized)
 		m_definition->setComponentName(name);
 }
 

@@ -36,6 +36,9 @@ class MikanComponent :
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
+
+	inline bool getWasInitialized() const { return m_bWasInitialized; }
+	inline bool getWasDisposed() const { return m_bWasDisposed; }
 	
 	virtual void setDefinition(MikanComponentDefinitionPtr config);
 	virtual MikanComponentDefinitionPtr getDefinition() const { return m_definition; }
@@ -91,8 +94,8 @@ public:
 	virtual bool invokeFunction(const std::string& propertyName) override;
 
 protected:
-	bool m_bIsInitialized= false;
-	bool m_bIsDisposed= false;
+	bool m_bWasInitialized= false;
+	bool m_bWasDisposed= false;
 	bool m_bWantsUpdate= false;
 	bool m_bWantsCustomRender= false;
 	std::string m_name;

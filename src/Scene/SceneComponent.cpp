@@ -217,7 +217,7 @@ void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 	m_relativeTransform= newRelativeXform;
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
-	if (m_bIsInitialized)
+	if (m_bWasInitialized)
 	{
 		SceneComponentDefinitionPtr definitionPtr= getSceneComponentDefinition();
 		if (definitionPtr)
@@ -230,7 +230,7 @@ void SceneComponent::setRelativePosition(const glm::vec3& position)
 	m_relativeTransform.setPosition(position);
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
-	if (m_bIsInitialized)
+	if (m_bWasInitialized)
 	{
 		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
 		if (definitionPtr)
@@ -243,7 +243,7 @@ void SceneComponent::setRelativeRotation(const glm::quat& quat)
 	m_relativeTransform.setRotation(quat);
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
-	if (m_bIsInitialized)
+	if (m_bWasInitialized)
 	{
 		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
 		if (definitionPtr)
@@ -256,7 +256,7 @@ void SceneComponent::setRelativeScale(const glm::vec3& scale)
 	m_relativeTransform.setScale(scale);
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
-	if (m_bIsInitialized)
+	if (m_bWasInitialized)
 	{
 		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
 		if (definitionPtr)
@@ -282,7 +282,7 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 
 	// If this component has an associated definition, update it too
-	if (m_bIsInitialized)
+	if (m_bWasInitialized)
 	{
 		SceneComponentDefinitionPtr definitionPtr= getSceneComponentDefinition();
 
