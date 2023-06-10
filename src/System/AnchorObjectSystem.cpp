@@ -65,7 +65,7 @@ void AnchorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 		MikanTransform originXform;
 		originXform.rotation= {1.f, 0.f, 0.f, 0.f};
 		originXform.scale= {1.f, 1.f, 1.f};
-		originXform.translation= {0.f, 0.f, 0.f};
+		originXform.position= {0.f, 0.f, 0.f};
 
 		originAnchorId = nextAnchorId;
 		addNewAnchor(ORIGIN_SPATIAL_ANCHOR_NAME, originXform);

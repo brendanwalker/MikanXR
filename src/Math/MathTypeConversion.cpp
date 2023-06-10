@@ -356,7 +356,7 @@ glm::dquat MikanQuatd_to_glm_dquat(const MikanQuatd& in)
 GlmTransform MikanTransform_to_glm_transform(const MikanTransform& in)
 {
 	return GlmTransform(
-		MikanVector3f_to_glm_vec3(in.translation),
+		MikanVector3f_to_glm_vec3(in.position),
 		MikanQuatf_to_glm_quat(in.rotation),
 		MikanVector3f_to_glm_vec3(in.scale));
 }
@@ -410,9 +410,9 @@ glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in)
 MikanTransform glm_transform_to_MikanTransform(const GlmTransform& in)
 {
 	MikanTransform xform;
-	xform.rotation= glm_quat_to_MikanQuatf(in.getOrientation());
+	xform.rotation= glm_quat_to_MikanQuatf(in.getRotation());
 	xform.scale= glm_vec3_to_MikanVector3f(in.getScale());
-	xform.translation= glm_vec3_to_MikanVector3f(in.getPosition());
+	xform.position= glm_vec3_to_MikanVector3f(in.getPosition());
 
 	return xform;
 }

@@ -12,15 +12,15 @@
 
 // -- ModelStencilConfig -----
 const std::string SceneComponentDefinition::k_relativeScalePropertyId = "relative_scale";
-const std::string SceneComponentDefinition::k_relativeQuatPropertyId = "relative_quat";
-const std::string SceneComponentDefinition::k_relativeTranslationPropertyId = "relative_translation";
+const std::string SceneComponentDefinition::k_relativeRotationPropertyId = "relative_rotation";
+const std::string SceneComponentDefinition::k_relativePositionPropertyId = "relative_position";
 
 SceneComponentDefinition::SceneComponentDefinition()
 	: MikanComponentDefinition()
 {
 	m_relativeTransform.scale = {1.f, 1.f, 1.f};
 	m_relativeTransform.rotation= {1.f, 0.f, 0.f, 0.f};
-	m_relativeTransform.translation= {0.f, 0.f, 0.f};
+	m_relativeTransform.position= {0.f, 0.f, 0.f};
 }
 
 SceneComponentDefinition::SceneComponentDefinition(
@@ -36,8 +36,8 @@ configuru::Config SceneComponentDefinition::writeToJSON()
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	writeVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
-	writeQuatf(pt, k_relativeQuatPropertyId.c_str(), m_relativeTransform.rotation);
-	writeVector3f(pt, k_relativeTranslationPropertyId.c_str(), m_relativeTransform.translation);
+	writeQuatf(pt, k_relativeRotationPropertyId.c_str(), m_relativeTransform.rotation);
+	writeVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
 
 	return pt;
 }
@@ -48,11 +48,11 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 
 	m_relativeTransform.scale = {1.f, 1.f, 1.f};
 	m_relativeTransform.rotation = {1.f, 0.f, 0.f, 0.f};
-	m_relativeTransform.translation = {0.f, 0.f, 0.f};
+	m_relativeTransform.position = {0.f, 0.f, 0.f};
 
 	readVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
-	readQuatf(pt, k_relativeQuatPropertyId.c_str(), m_relativeTransform.rotation);
-	readVector3f(pt, k_relativeTranslationPropertyId.c_str(), m_relativeTransform.translation);
+	readQuatf(pt, k_relativeRotationPropertyId.c_str(), m_relativeTransform.rotation);
+	readVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
 }
 
 const glm::mat4 SceneComponentDefinition::getRelativeMat4() const
@@ -68,7 +68,7 @@ void SceneComponentDefinition::setRelativeMat4(const glm::mat4& mat4)
 const GlmTransform SceneComponentDefinition::getRelativeTransform() const
 {
 	return GlmTransform(
-		MikanVector3f_to_glm_vec3(m_relativeTransform.translation),
+		MikanVector3f_to_glm_vec3(m_relativeTransform.position),
 		MikanQuatf_to_glm_quat(m_relativeTransform.rotation),
 		MikanVector3f_to_glm_vec3(m_relativeTransform.scale));
 }
@@ -77,14 +77,14 @@ void SceneComponentDefinition::setRelativeTransform(const GlmTransform& transfor
 {
 	glm::mat4 xform = transform.getMat4();
 
-	m_relativeTransform.translation = glm_vec3_to_MikanVector3f(transform.getPosition());
-	m_relativeTransform.rotation = glm_quat_to_MikanQuatf(transform.getOrientation());
+	m_relativeTransform.position = glm_vec3_to_MikanVector3f(transform.getPosition());
+	m_relativeTransform.rotation = glm_quat_to_MikanQuatf(transform.getRotation());
 	m_relativeTransform.scale = glm_vec3_to_MikanVector3f(transform.getScale());
 
 	markDirty(ConfigPropertyChangeSet()
 			  .addPropertyName(k_relativeScalePropertyId)
-			  .addPropertyName(k_relativeQuatPropertyId)
-			  .addPropertyName(k_relativeTranslationPropertyId));
+			  .addPropertyName(k_relativeRotationPropertyId)
+			  .addPropertyName(k_relativePositionPropertyId));
 }
 
 void SceneComponentDefinition::setRelativeScale(const MikanVector3f& scale)
@@ -93,16 +93,16 @@ void SceneComponentDefinition::setRelativeScale(const MikanVector3f& scale)
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativeScalePropertyId));
 }
 
-void SceneComponentDefinition::setRelativeQuat(const MikanQuatf& quat)
+void SceneComponentDefinition::setRelativeRotation(const MikanQuatf& quat)
 {
 	m_relativeTransform.rotation = quat;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativeQuatPropertyId));
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativeRotationPropertyId));
 }
 
-void SceneComponentDefinition::setRelativeTransition(const MikanVector3f& translation)
+void SceneComponentDefinition::setRelativePosition(const MikanVector3f& translation)
 {
-	m_relativeTransform.translation = translation;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativeTranslationPropertyId));
+	m_relativeTransform.position = translation;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativePositionPropertyId));
 }
 
 // -- Scene Component -----
@@ -234,20 +234,20 @@ void SceneComponent::setRelativePosition(const glm::vec3& position)
 	{
 		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
 		if (definitionPtr)
-			definitionPtr->setRelativeTransition(glm_vec3_to_MikanVector3f(position));
+			definitionPtr->setRelativePosition(glm_vec3_to_MikanVector3f(position));
 	}
 }
 
-void SceneComponent::setRelativeOrientation(const glm::quat& quat)
+void SceneComponent::setRelativeRotation(const glm::quat& quat)
 {
-	m_relativeTransform.setOrientation(quat);
+	m_relativeTransform.setRotation(quat);
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	if (m_bIsInitialized)
 	{
 		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
 		if (definitionPtr)
-			definitionPtr->setRelativeQuat(glm_quat_to_MikanQuatf(quat));
+			definitionPtr->setRelativeRotation(glm_quat_to_MikanQuatf(quat));
 	}
 }
 
@@ -340,8 +340,8 @@ void SceneComponent::getPropertyNames(std::vector<std::string>& outPropertyNames
 	MikanComponent::getPropertyNames(outPropertyNames);
 
 	outPropertyNames.push_back(SceneComponentDefinition::k_relativeScalePropertyId);
-	outPropertyNames.push_back(SceneComponentDefinition::k_relativeQuatPropertyId);
-	outPropertyNames.push_back(SceneComponentDefinition::k_relativeTranslationPropertyId);
+	outPropertyNames.push_back(SceneComponentDefinition::k_relativeRotationPropertyId);
+	outPropertyNames.push_back(SceneComponentDefinition::k_relativePositionPropertyId);
 }
 
 bool SceneComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -354,14 +354,14 @@ bool SceneComponent::getPropertyDescriptor(const std::string& propertyName, Prop
 		outDescriptor = {SceneComponentDefinition::k_relativeScalePropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::scale};
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeQuatPropertyId)
+	else if (propertyName == SceneComponentDefinition::k_relativeRotationPropertyId)
 	{
-		outDescriptor = {SceneComponentDefinition::k_relativeQuatPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::rotation};
+		outDescriptor = {SceneComponentDefinition::k_relativeRotationPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::rotation};
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeTranslationPropertyId)
+	else if (propertyName == SceneComponentDefinition::k_relativePositionPropertyId)
 	{
-		outDescriptor = {SceneComponentDefinition::k_relativeTranslationPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
+		outDescriptor = {SceneComponentDefinition::k_relativePositionPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
 		return true;
 	}
 
@@ -379,9 +379,9 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 		outValue = Rml::Vector3f(scale.x, scale.y, scale.z);
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeQuatPropertyId)
+	else if (propertyName == SceneComponentDefinition::k_relativeRotationPropertyId)
 	{
-		const glm::quat& model_orientation = getRelativeOrientation();
+		const glm::quat& model_orientation = getRelativeRotation();
 
 		float angles[3]{};
 		glm_quat_to_euler_angles(model_orientation, angles[0], angles[1], angles[2]);
@@ -392,7 +392,7 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 		outValue = Rml::Vector3f(angles[0], angles[1], angles[2]);
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeTranslationPropertyId)
+	else if (propertyName == SceneComponentDefinition::k_relativePositionPropertyId)
 	{
 		const glm::vec3& pos = getRelativePosition();
 		outValue = Rml::Vector3f(pos.x, pos.y, pos.z);
@@ -414,7 +414,7 @@ bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml
 		setRelativeScale(glm::vec3(scale.x, scale.y, scale.z));
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeQuatPropertyId)
+	else if (propertyName == SceneComponentDefinition::k_relativeRotationPropertyId)
 	{
 		Rml::Vector3 angles = inValue.Get<Rml::Vector3f>();
 
@@ -424,14 +424,14 @@ bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml
 			angles.y * k_degrees_to_radians, 
 			angles.z * k_degrees_to_radians, 
 			quat);
-		setRelativeOrientation(quat);
+		setRelativeRotation(quat);
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeTranslationPropertyId)
+	else if (propertyName == SceneComponentDefinition::k_relativePositionPropertyId)
 	{
 		Rml::Vector3 pos = inValue.Get<Rml::Vector3f>();
 
-		setRelativeTransform(glm::vec3(pos.x, pos.y, pos.z));
+		setRelativePosition(glm::vec3(pos.x, pos.y, pos.z));
 		return true;
 	}
 

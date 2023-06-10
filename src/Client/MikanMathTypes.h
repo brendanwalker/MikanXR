@@ -154,7 +154,7 @@ typedef struct
 {
 	MikanVector3f scale;
 	MikanQuatf rotation;
-	MikanVector3f translation;
+	MikanVector3f position;
 } MikanTransform;
 
 /**

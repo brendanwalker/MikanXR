@@ -17,7 +17,7 @@ public:
 
 	void setEnabled(bool bEnabled);
 
-	SinglecastDelegate<void(const glm::vec3& translation)> OnTranslationRequested;
+	SinglecastDelegate<void(const glm::vec3& position)> OnTranslationRequested;
 
 protected:
 	glm::vec3 getColliderColor(

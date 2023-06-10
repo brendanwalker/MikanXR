@@ -5,7 +5,7 @@
 
 GlmTransform::GlmTransform()
 	: m_position(glm::vec3(0.f))
-	, m_orientation(glm::quat())
+	, m_rotation(glm::quat())
 	, m_scale(glm::vec3(1.f, 1.f, 1.f))
 	, m_mat(glm::mat4(1.f))
 {
@@ -14,7 +14,7 @@ GlmTransform::GlmTransform()
 GlmTransform::GlmTransform(
 	const glm::vec3& position)
 	: m_position(position)
-	, m_orientation(glm::quat())
+	, m_rotation(glm::quat())
 	, m_scale(glm::vec3(1.f, 1.f, 1.f))
 {
 	rebuildMat();
@@ -22,9 +22,9 @@ GlmTransform::GlmTransform(
 
 GlmTransform::GlmTransform(
 	const glm::vec3& position, 
-	const glm::quat& orientation)
+	const glm::quat& rotation)
 	: m_position(position)
-	, m_orientation(orientation)
+	, m_rotation(rotation)
 	, m_scale(glm::vec3(1.f, 1.f, 1.f))
 {
 	rebuildMat();
@@ -32,10 +32,10 @@ GlmTransform::GlmTransform(
 
 GlmTransform::GlmTransform(
 	const glm::vec3& position, 
-	const glm::quat& orientation, 
+	const glm::quat& rotation, 
 	const glm::vec3& scale)
 	: m_position(position)
-	, m_orientation(orientation)
+	, m_rotation(rotation)
 	, m_scale(scale)
 {
 	rebuildMat();
@@ -43,7 +43,7 @@ GlmTransform::GlmTransform(
 
 GlmTransform::GlmTransform(const glm::mat4& mat4)
 	: m_position(glm::vec3(0.f))
-	, m_orientation(glm::quat())
+	, m_rotation(glm::quat())
 	, m_scale(glm::vec3(1.f, 1.f, 1.f))
 	, m_mat(glm::mat4(1.f))
 {
@@ -63,7 +63,7 @@ void GlmTransform::setMat4(const glm::mat4& mat4)
 		scale, orientation, translation, skew, perspective))
 	{
 		m_position= translation;
-		m_orientation= orientation;
+		m_rotation= orientation;
 		m_scale= scale;
 
 		// Since the matrix could have had skew or perspective transforms in it
@@ -80,7 +80,7 @@ void GlmTransform::appendScale(const glm::vec3& deltaScale)
 
 void GlmTransform::appendRotation(const glm::quat& deltaRotation)
 {
-	m_orientation= glm_composite_rotation(m_orientation, deltaRotation);
+	m_rotation= glm_composite_rotation(m_rotation, deltaRotation);
 	rebuildMat();
 }
 
@@ -93,7 +93,7 @@ void GlmTransform::appendTranslation(const glm::vec3& deltaPosition)
 void GlmTransform::rebuildMat()
 {
 	const glm::mat4 scale= glm::scale(glm::mat4(1.f), m_scale);
-	const glm::mat4 rotation= glm::mat4_cast(m_orientation);
+	const glm::mat4 rotation= glm::mat4_cast(m_rotation);
 	const glm::mat4 translation= glm::translate(glm::mat4(1.f), m_position);
 
 	m_mat= glm_composite_xform(glm_composite_xform(scale, rotation), translation);

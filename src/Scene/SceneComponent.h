@@ -35,13 +35,13 @@ public:
 	const MikanVector3f getRelativeScale() const { return m_relativeTransform.scale; }
 	void setRelativeScale(const MikanVector3f& scale);
 
-	static const std::string k_relativeQuatPropertyId;
-	const MikanQuatf getRelativeQuat() const { return m_relativeTransform.rotation; }
-	void setRelativeQuat(const MikanQuatf& quat);
+	static const std::string k_relativeRotationPropertyId;
+	const MikanQuatf getRelativeRotation() const { return m_relativeTransform.rotation; }
+	void setRelativeRotation(const MikanQuatf& quat);
 
-	static const std::string k_relativeTranslationPropertyId;
-	const MikanVector3f getRelativeTranslation() const { return m_relativeTransform.translation; }
-	void setRelativeTransition(const MikanVector3f& translation);
+	static const std::string k_relativePositionPropertyId;
+	const MikanVector3f getRelativePosition() const { return m_relativeTransform.position; }
+	void setRelativePosition(const MikanVector3f& translation);
 
 protected:
 	MikanTransform m_relativeTransform;
@@ -96,12 +96,12 @@ public:
 
 	void setRelativeTransform(const GlmTransform& newRelativeXform);
 	void setRelativePosition(const glm::vec3& position);
-	void setRelativeOrientation(const glm::quat& quat);
+	void setRelativeRotation(const glm::quat& quat);
 	void setRelativeScale(const glm::vec3& scale);
 
 	inline const GlmTransform& getRelativeTransform() const { return m_relativeTransform; }
 	inline const glm::vec3& getRelativePosition() const { return m_relativeTransform.getPosition(); }
-	inline const glm::quat& getRelativeOrientation() const { return m_relativeTransform.getOrientation(); }
+	inline const glm::quat& getRelativeRotation() const { return m_relativeTransform.getRotation(); }
 	inline const glm::vec3& getRelativeScale() const { return m_relativeTransform.getScale(); }
 
 	void setWorldTransform(const glm::mat4& newWorldXform);

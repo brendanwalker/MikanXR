@@ -428,8 +428,8 @@ void MikanServer::handleAnchorSystemConfigChange(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeTranslationPropertyId) ||
-		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeQuatPropertyId) ||
+	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeRotationPropertyId) ||
 		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
 	{
 		AnchorDefinitionPtr anchorConfig= std::static_pointer_cast<AnchorDefinition>(configPtr);
