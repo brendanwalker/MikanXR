@@ -226,7 +226,7 @@ void RmlModel_CompositorOutliner::addNewQuad(
 	memset(&quad, 0, sizeof(MikanStencilQuad));
 
 	quad.is_double_sided = true;
-	quad.parent_anchor_id = INVALID_MIKAN_ID;
+	quad.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
 	quad.relative_transform.position = {0.f, 0.f, 0.f};
 	quad.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
 	quad.relative_transform.scale = {1.f, 1.f, 1.f};
@@ -247,7 +247,7 @@ void RmlModel_CompositorOutliner::addNewBox(
 	MikanStencilBox box;
 	memset(&box, 0, sizeof(MikanStencilBox));
 
-	box.parent_anchor_id = INVALID_MIKAN_ID;
+	box.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
 	box.relative_transform.position = {0.f, 0.f, 0.f};
 	box.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
 	box.relative_transform.scale = {1.f, 1.f, 1.f};
@@ -270,7 +270,7 @@ void RmlModel_CompositorOutliner::addNewModel(
 	memset(&model, 0, sizeof(MikanStencilModel));
 
 	model.is_disabled = false;
-	model.parent_anchor_id = INVALID_MIKAN_ID;
+	model.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
 	model.relative_transform.position = {0.f, 0.f, 0.f};
 	model.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
 	model.relative_transform.scale = {1.f, 1.f, 1.f};
