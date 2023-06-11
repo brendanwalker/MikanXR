@@ -24,27 +24,27 @@ VRDeviceView::~VRDeviceView()
 
 eDeviceType VRDeviceView::getVRDeviceType() const
 {
-	return m_device->getDeviceType();
+	return m_device ? m_device->getDeviceType() : eDeviceType::INVALID;
 }
 
 IVRDeviceInterface::eDriverType VRDeviceView::getVRTrackerDriverType() const
 {
-	return m_device->getDriverType();
+	return m_device ? m_device->getDriverType() : IVRDeviceInterface::eDriverType::INVALID;
 }
 
 std::string VRDeviceView::getDevicePath() const
 {
-	return m_device->getDevicePath();
+	return m_device ? m_device->getDevicePath() : "";
 }
 
 std::string VRDeviceView::getSerialNumber() const
 {
-	return m_device->getSerialNumber();
+	return m_device ? m_device->getSerialNumber() : "";
 }
 
 std::string VRDeviceView::getTrackerRole() const
 {
-	return m_device->getTrackerRole();
+	return m_device ? m_device->getTrackerRole() : "";
 }
 
 bool VRDeviceView::open(const class DeviceEnumerator* enumerator)
