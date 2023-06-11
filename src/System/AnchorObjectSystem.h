@@ -44,10 +44,15 @@ public:
 	static const std::string k_anchorListPropertyId;
 	std::vector<AnchorDefinitionPtr> spatialAnchorList;
 
+	static const std::string k_renderAnchorsPropertyId;
+	inline bool getRenderAnchorsFlag() const { return m_bDebugRenderAnchors; }
+	void setRenderAnchorsFlag(bool flag);
+
 	MikanSpatialAnchorID nextAnchorId= 0;
 	MikanSpatialAnchorID originAnchorId= INVALID_MIKAN_ID;
-	bool debugRenderAnchors= false;
 
+protected:
+	bool m_bDebugRenderAnchors = true;
 };
 
 class AnchorObjectSystem : public MikanObjectSystem

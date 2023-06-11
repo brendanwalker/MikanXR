@@ -41,29 +41,14 @@ bool RmlModel_Compositor::init(
 		if (OnToggleScriptingEvent) OnToggleScriptingEvent();
 	});
 	constructor.BindEventCallback(
-		"toggle_anchors",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-		if (OnToggleAnchorsEvent) OnToggleAnchorsEvent();
-	});
-	constructor.BindEventCallback(
-		"toggle_quad_stencils",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-		if (OnToggleQuadStencilsEvent) OnToggleQuadStencilsEvent();
-	});
-	constructor.BindEventCallback(
-		"toggle_box_stencils",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-		if (OnToggleBoxStencilsEvent) OnToggleBoxStencilsEvent();
-	});
-	constructor.BindEventCallback(
-		"toggle_model_stencils",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			if (OnToggleModelStencilsEvent) OnToggleModelStencilsEvent();
-		});
-	constructor.BindEventCallback(
 		"toggle_sources",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 		if (OnToggleSourcesEvent) OnToggleSourcesEvent();
+	});
+	constructor.BindEventCallback(
+		"toggle_settings",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+		if (OnToggleSettingsEvent) OnToggleSettingsEvent();
 	});
 
 	// Set defaults
@@ -78,10 +63,7 @@ void RmlModel_Compositor::dispose()
 	OnToggleLayersEvent.Clear();
 	OnToggleRecordingEvent.Clear();
 	OnToggleScriptingEvent.Clear();
-	OnToggleAnchorsEvent.Clear();
-	OnToggleQuadStencilsEvent.Clear();
-	OnToggleBoxStencilsEvent.Clear();
-	OnToggleModelStencilsEvent.Clear();
 	OnToggleSourcesEvent.Clear();
+	OnToggleSettingsEvent.Clear();
 	RmlModel::dispose();
 }

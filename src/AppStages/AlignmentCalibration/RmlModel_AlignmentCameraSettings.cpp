@@ -78,7 +78,7 @@ bool RmlModel_AlignmentCameraSettings::init(
 	// Set defaults
 	setMenuState(eAlignmentCalibrationMenuState::inactive);
 	setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
-	setVRFrameDelay(profileConfig->vrFrameDelay);
+	setVRFrameDelay(profileConfig->getVRFrameDelay());
 	setBrightness(videoSourceView->getVideoProperty(VideoPropertyType::Brightness));
 	m_brightnessMin = videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
 	m_brightnessMax = videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);

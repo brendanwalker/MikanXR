@@ -9,6 +9,7 @@
 const std::string StencilObjectSystemConfig::k_quadStencilListPropertyId= "quad_stencils";
 const std::string StencilObjectSystemConfig::k_boxStencilListPropertyId= "box_stencils";
 const std::string StencilObjectSystemConfig::k_modelStencilListPropertyId= "model_stencils";
+const std::string StencilObjectSystemConfig::k_renderStencilsPropertyId= "render_stencils";
 
 configuru::Config StencilObjectSystemConfig::writeToJSON()
 {
@@ -16,7 +17,7 @@ configuru::Config StencilObjectSystemConfig::writeToJSON()
 
 	// Stencils
 	pt["nextStencilId"]= nextStencilId;
-	pt["debugRenderStencils"]= debugRenderStencils;
+	pt["debugRenderStencils"]= m_bDebugRenderStencils;
 
 	// Write out the quad stencils
 	std::vector<configuru::Config> stencilQuadConfigs;
@@ -50,7 +51,7 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	CommonConfig::readFromJSON(pt);
 
 	nextStencilId = pt.get_or<int>("nextStencilId", nextStencilId);
-	debugRenderStencils = pt.get_or<bool>("debugRenderStencils", debugRenderStencils);
+	m_bDebugRenderStencils = pt.get_or<bool>("debugRenderStencils", m_bDebugRenderStencils);
 
 	// Read in the quad stencils
 	quadStencilList.clear();
@@ -328,4 +329,13 @@ MikanStencilID StencilObjectSystemConfig::addNewModelStencil(const MikanStencilM
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilListPropertyId));
 
 	return configPtr->getStencilId();
+}
+
+void StencilObjectSystemConfig::setRenderStencilsFlag(bool flag)
+{
+	if (m_bDebugRenderStencils != flag)
+	{
+		m_bDebugRenderStencils = flag;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_renderStencilsPropertyId));
+	}
 }

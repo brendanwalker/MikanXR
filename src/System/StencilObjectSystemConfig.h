@@ -42,5 +42,11 @@ public:
 	std::vector<BoxStencilDefinitionPtr> boxStencilList;
 	std::vector<ModelStencilDefinitionPtr> modelStencilList;
 	MikanStencilID nextStencilId= 0;
-	bool debugRenderStencils= false;
+
+	static const std::string k_renderStencilsPropertyId;
+	inline bool getRenderStencilsFlag() const { return m_bDebugRenderStencils; }
+	void setRenderStencilsFlag(bool flag);
+
+protected:
+	bool m_bDebugRenderStencils= true;
 };

@@ -63,6 +63,7 @@ protected:
 	void onToggleRecordingWindowEvent();
 	void onToggleScriptingWindowEvent();
 	void onToggleSourcesWindowEvent();
+	void onToggleSettingsWindowEvent();
 	void hideAllSubWindows();
 
 	// Layers UI Events
@@ -125,6 +126,9 @@ protected:
 	class RmlModel_CompositorOutliner* m_compositorOutlinerModel = nullptr;
 	class RmlModel_CompositorSelection* m_compositorSelectionModel = nullptr;
 	Rml::ElementDocument* m_compositiorOutlinerView = nullptr;
+
+	class RmlModel_CompositorSettings* m_compositorSettingsModel = nullptr;
+	Rml::ElementDocument* m_compositiorSettingsView = nullptr;
 
 	CompositorScriptContextPtr m_scriptContext;
 	class GlFrameCompositor* m_frameCompositor= nullptr;

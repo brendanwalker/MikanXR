@@ -36,10 +36,10 @@ public:
 	std::string cameraVRDevicePath;
 
 	static const std::string k_cameraParentAnchorPropertyId;
-	MikanSpatialAnchorID cameraParentAnchorId;
+	MikanSpatialAnchorID cameraParentAnchorId= -1;
 
 	static const std::string k_cameraScalePropertyId;
-	float cameraScale;
+	float cameraScale= 1.f;
 
 	static const std::string k_matVRDevicePathPropertyId;
 	std::string matVRDevicePath;
@@ -48,10 +48,17 @@ public:
 	std::string originVRDevicePath;
 
 	static const std::string k_originVerticalAlignFlagPropertyId;
-	bool originVerticalAlignFlag;
+	bool originVerticalAlignFlag= false;
+
+	static const std::string k_renderOriginFlagPropertyId;
+	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }
+	void setRenderOriginFlag(bool flag);
+
+	static const std::string k_vrFrameDelayPropertyId;
+	inline int getVRFrameDelay() const { return m_vrFrameDelay; }
+	void setVRFrameDelay(int frameDelay);
 
 	std::string calibrationComponentName;
-	int vrFrameDelay;
 	int videoFrameQueueSize;
 
 	std::filesystem::path compositorScriptFilePath;
@@ -60,4 +67,8 @@ public:
 	AnchorObjectSystemConfigPtr anchorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
+
+protected:
+	bool m_bRenderOrigin= true;
+	int m_vrFrameDelay = 0;
 };

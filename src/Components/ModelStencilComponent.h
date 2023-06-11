@@ -45,6 +45,7 @@ public:
 		return std::static_pointer_cast<ModelStencilDefinition>(m_definition); 
 	}
 
+	void setRenderStencilsFlag(bool flag);
 	void setModelPath(const std::filesystem::path& path);
 	void rebuildMeshComponents();
 

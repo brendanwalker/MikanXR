@@ -12,6 +12,7 @@
 // -- AnchorObjectSystemConfig -----
 const std::string AnchorObjectSystemConfig::k_anchorVRDevicePathPropertyId= "anchorVRDevicePath";
 const std::string AnchorObjectSystemConfig::k_anchorListPropertyId= "spatialAnchors";
+const std::string AnchorObjectSystemConfig::k_renderAnchorsPropertyId= "render_anchors";
 
 configuru::Config AnchorObjectSystemConfig::writeToJSON()
 {
@@ -19,7 +20,7 @@ configuru::Config AnchorObjectSystemConfig::writeToJSON()
 
 	pt["anchorVRDevicePath"] = anchorVRDevicePath;
 	pt["nextAnchorId"] = nextAnchorId;
-	pt["debugRenderAnchors"] = debugRenderAnchors;
+	pt["debugRenderAnchors"] = m_bDebugRenderAnchors;
 
 	std::vector<configuru::Config> anchorConfigs;
 	for (AnchorDefinitionPtr AnchorDefinitionPtr : spatialAnchorList)
@@ -37,7 +38,7 @@ void AnchorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 
 	anchorVRDevicePath = pt.get_or<std::string>("anchorVRDevicePath", anchorVRDevicePath);
 	nextAnchorId = pt.get_or<int>("nextAnchorId", nextAnchorId);
-	debugRenderAnchors = pt.get_or<bool>("debugRenderAnchors", debugRenderAnchors);
+	m_bDebugRenderAnchors = pt.get_or<bool>("debugRenderAnchors", m_bDebugRenderAnchors);
 
 	// Read in the spatial anchors
 	spatialAnchorList.clear();
@@ -152,6 +153,15 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 	}
 
 	return false;
+}
+
+void AnchorObjectSystemConfig::setRenderAnchorsFlag(bool flag)
+{
+	if (m_bDebugRenderAnchors != flag)
+	{
+		m_bDebugRenderAnchors = flag;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_renderAnchorsPropertyId));
+	}
 }
 
 // -- AnchorObjectSystem -----

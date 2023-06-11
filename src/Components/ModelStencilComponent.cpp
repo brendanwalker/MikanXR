@@ -116,7 +116,8 @@ void ModelStencilComponent::customRender()
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
 
-	if (!modelStencilDefinition->getIsDisabled())
+	if (!modelStencilDefinition->getIsDisabled() &&
+		StencilObjectSystem::getSystem()->getStencilSystemConfig()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 
@@ -142,6 +143,14 @@ void ModelStencilComponent::dispose()
 	}
 
 	StencilComponent::dispose();
+}
+
+void ModelStencilComponent::setRenderStencilsFlag(bool flag)
+{
+	for (GlStaticMeshInstancePtr mesh : m_wireframeMeshes)
+	{
+		mesh->setVisible(flag);
+	}
 }
 
 void ModelStencilComponent::setModelPath(const std::filesystem::path& path)

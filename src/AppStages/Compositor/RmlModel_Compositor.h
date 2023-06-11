@@ -14,11 +14,8 @@ public:
 	SinglecastDelegate<void()> OnToggleLayersEvent;
 	SinglecastDelegate<void()> OnToggleRecordingEvent;
 	SinglecastDelegate<void()> OnToggleScriptingEvent;
-	SinglecastDelegate<void()> OnToggleAnchorsEvent;
-	SinglecastDelegate<void()> OnToggleQuadStencilsEvent;
-	SinglecastDelegate<void()> OnToggleBoxStencilsEvent;
-	SinglecastDelegate<void()> OnToggleModelStencilsEvent;
 	SinglecastDelegate<void()> OnToggleSourcesEvent;
+	SinglecastDelegate<void()> OnToggleSettingsEvent;
 
 private:
 };

@@ -127,7 +127,8 @@ void BoxStencilComponent::customRender()
 {
 	BoxStencilDefinitionPtr boxDefinition= getBoxStencilDefinition();
 
-	if (!boxDefinition->getIsDisabled())
+	if (!boxDefinition->getIsDisabled() &&
+		StencilObjectSystem::getSystem()->getStencilSystemConfig()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

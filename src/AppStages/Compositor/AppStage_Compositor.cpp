@@ -11,6 +11,7 @@
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSources.h"
 #include "Compositor/RmlModel_CompositorSelection.h"
+#include "Compositor/RmlModel_CompositorSettings.h"
 #include "EditorObjectSystem.h"
 #include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
@@ -70,6 +71,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_compositorOutlinerModel(new RmlModel_CompositorOutliner)
 	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
+	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 	, m_videoWriter(new VideoWriter)
 {
@@ -86,6 +88,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorSourcesModel;
 	delete m_compositorOutlinerModel;
 	delete m_compositorSelectionModel;
+	delete m_compositorSettingsModel;
 	m_scriptContext.reset();
 	delete m_videoWriter;
 }
@@ -157,6 +160,7 @@ void AppStage_Compositor::enter()
 		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingWindowEvent);
 		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingWindowEvent);
 		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesWindowEvent);
+		m_compositorModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSettingsWindowEvent);
 		m_compositiorView = addRmlDocument("compositor.rml");
 
 		// Init Outliner UI
@@ -211,6 +215,11 @@ void AppStage_Compositor::enter()
 		m_compositorSourcesModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
 		m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
 		m_compositiorSourcesView->Hide();
+
+		// Init Settings UI
+		m_compositorSettingsModel->init(context, m_profile);
+		m_compositiorSettingsView = addRmlDocument("compositor_settings.rml");
+		m_compositiorSettingsView->Hide();
 	}
 }
 
@@ -230,6 +239,7 @@ void AppStage_Compositor::exit()
 	m_compositorScriptingModel->dispose();
 	m_compositorModel->dispose();
 	m_compositorSourcesModel->dispose();
+	m_compositorSettingsModel->dispose();
 
 	m_frameCompositor->stop();
 
@@ -473,6 +483,12 @@ void AppStage_Compositor::onToggleSourcesWindowEvent()
 	if (m_compositiorSourcesView) m_compositiorSourcesView->Show();
 }
 
+void AppStage_Compositor::onToggleSettingsWindowEvent()
+{
+	hideAllSubWindows();
+	if (m_compositiorSettingsView) m_compositiorSettingsView->Show();
+}
+
 // Compositor Layers UI Events
 void AppStage_Compositor::onConfigAddEvent()
 {
@@ -689,6 +705,7 @@ void AppStage_Compositor::hideAllSubWindows()
 	if (m_compositiorRecordingView) m_compositiorRecordingView->Hide();
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Hide();
 	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
+	if (m_compositiorSettingsView) m_compositiorSettingsView->Hide();
 }
 
 // Recording UI Events
@@ -799,7 +816,10 @@ void AppStage_Compositor::render()
 
 			// Draw tracking space
 			drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
-			debugRenderOrigin();
+			if (m_profile->getRenderOriginFlag())
+			{
+				debugRenderOrigin();
+			}
 		}
 		break;
 	}

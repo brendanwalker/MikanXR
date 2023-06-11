@@ -85,6 +85,9 @@ void AnchorComponent::init()
 
 void AnchorComponent::customRender()
 {	
+	if (!AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->getRenderAnchorsFlag())
+		return;
+
 	TextStyle style = getDefaultTextStyle();
 
 	AnchorDefinitionPtr anchorDefinition= getAnchorDefinition();

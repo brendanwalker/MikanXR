@@ -473,6 +473,6 @@ void AppStage_AlignmentCalibration::onVRFrameDelayChanged(int newVRFrameDelay)
 {
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
-	profileConfig->vrFrameDelay = newVRFrameDelay;
+	profileConfig->setVRFrameDelay(newVRFrameDelay);
 	m_bHasModifiedCameraSettings = true;
 }

@@ -159,6 +159,23 @@ bool StencilObjectSystem::removeStencil(MikanStencilID stencilId)
 	return false;
 }
 
+void StencilObjectSystem::setRenderStencilsFlag(bool flag)
+{
+	// Update visibility on all model stencils
+	for (auto it = m_modelStencilComponents.begin(); it != m_modelStencilComponents.end(); it++)
+	{
+		ModelStencilComponentPtr componentPtr = it->second.lock();
+
+		if (componentPtr)
+		{
+			componentPtr->setRenderStencilsFlag(flag);
+		}
+	}
+
+	// Forward flag on to the config
+	getStencilSystemConfig()->setRenderStencilsFlag(flag);
+}
+
 QuadStencilComponentPtr StencilObjectSystem::getQuadStencilById(MikanStencilID stencilId) const
 {
 	auto iter = m_quadStencilComponents.find(stencilId);

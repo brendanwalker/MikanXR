@@ -34,6 +34,7 @@ public:
 	eStencilType getStencilType(MikanStencilID stencilId) const;
 	bool getStencilWorldTransform(MikanStencilID parentStencilId, glm::mat4& outXform) const;
 	bool removeStencil(MikanStencilID stencilId);
+	void setRenderStencilsFlag(bool flag);
 
 	const QuadStencilMap& getQuadStencilMap() const { return m_quadStencilComponents; }
 	QuadStencilComponentPtr getQuadStencilById(MikanStencilID stencilId) const;

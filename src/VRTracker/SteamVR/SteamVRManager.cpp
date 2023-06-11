@@ -475,7 +475,7 @@ void SteamVRManager::updateDevicePoses()
 	m_currentPoseSet= nullptr;
 	if (!m_devicePoseHistory->isEmpty())
 	{
-		m_currentPoseSet = m_devicePoseHistory->findSampleOfAge(config->vrFrameDelay);
+		m_currentPoseSet = m_devicePoseHistory->findSampleOfAge(config->getVRFrameDelay());
 		if (!m_currentPoseSet)
 		{
 			m_currentPoseSet = m_devicePoseHistory->getOldestSample();
