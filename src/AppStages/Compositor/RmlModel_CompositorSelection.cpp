@@ -620,11 +620,6 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 		getContext()->Update();
 		m_bIgnoreFieldsUpdate = false;
 	}
-
-	//if (OnComponentFieldsChanged)
-	//{
-	//	OnComponentFieldsChanged();
-	//}
 }
 
 void RmlModel_CompositorSelection::appendFieldListToFieldMap(

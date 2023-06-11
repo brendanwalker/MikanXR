@@ -31,7 +31,6 @@ public:
 	SceneComponentPtr getTransformTarget() const;
 	void setTransformTarget(SceneComponentPtr sceneComponentTarget);
 	void clearTransformTarget();
-	void applyTransformToTarget();
 
 protected:
 	eGizmoMode m_gizmoMode= eGizmoMode::none;
@@ -41,8 +40,13 @@ protected:
 	SceneComponentWeakPtr m_targetSceneComponent;
 
 	glm::vec3 m_targetScale;
+	bool m_bIsApplyingTransformToTarget= false;
+	void applyTransformToTarget();
+	void applyTransformToGizmo();
 
 	void onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation);
 	void onSelectionRotationRequested(const glm::quat& worldSpaceRotation);
 	void onSelectionScaleRequested(const glm::vec3& objectSpaceScale);
+
+	void onTransformTargetConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 };
