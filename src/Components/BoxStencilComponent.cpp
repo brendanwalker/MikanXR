@@ -222,7 +222,7 @@ bool BoxStencilComponent::getPropertyValue(const std::string& propertyName, Rml:
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
 	{
-		bool zSize = getBoxStencilDefinition()->getBoxZSize();
+		float zSize = getBoxStencilDefinition()->getBoxZSize();
 		outValue = zSize;
 		return true;
 	}
@@ -251,7 +251,7 @@ bool BoxStencilComponent::setPropertyValue(const std::string& propertyName, cons
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
 	{
-		bool zSize = inValue.Get<bool>();
+		float zSize = inValue.Get<float>();
 
 		getBoxStencilDefinition()->setBoxZSize(zSize);
 		return true;
