@@ -147,7 +147,7 @@
                         </tr>                                
                         <tr data-for="field : checkbox_fields" class="property_tr">
                             <td>                                
-                                <label><input type="checkbox" name="flag" data-event-change="modify_field(field.field_name)" data-value="field.boolean" />{{field.field_name}}</label>
+                                <label><input type="checkbox" name="flag" data-event-change="modify_field(field.field_name)" data-checked="field.boolean" />{{field.field_name}}</label>
                             </td>
                         </tr>                                
                         <tr data-for="field : filename_fields" class="property_tr">

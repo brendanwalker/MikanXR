@@ -278,7 +278,7 @@ bool RmlModel_CompositorSelection::init(
 							selectedComponent->setPropertyValue(fieldName, value);
 						}
 					}
-					if (rmlFieldModel->semantic_type == ePropertySemantic::name)
+					else if (rmlFieldModel->semantic_type == ePropertySemantic::name)
 					{
 						const bool isLineBreak = ev.GetParameter("linebreak", false);
 
@@ -289,6 +289,16 @@ bool RmlModel_CompositorSelection::init(
 
 							selectedComponent->setPropertyValue(fieldName, value);
 						}
+					}
+					else if (rmlFieldModel->semantic_type == ePropertySemantic::checkbox)
+					{
+						const std::string stringValue = ev.GetParameter<Rml::String>("value", "");
+						const bool bIsChecked = !stringValue.empty();
+
+						Rml::Variant value;
+						value = !stringValue.empty();
+
+						selectedComponent->setPropertyValue(fieldName, value);
 					}
 					else
 					{
