@@ -11,6 +11,7 @@
 
 struct RmlModel_ComponentField
 {
+	class RmlModel_CompositorSelection* parent_model;
 	int field_index;
 	ePropertyDataType field_type;
 	ePropertySemantic semantic_type;
@@ -69,6 +70,8 @@ public:
 		StencilObjectSystemPtr stencilSystemPtr);
 	virtual void dispose() override;
 
+	inline SceneComponentPtr getSelectedComponent() { return m_selectedComponentWeakPtr.lock(); }
+
 private:
 	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void stencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
@@ -87,6 +90,7 @@ private:
 	StencilObjectSystemPtr m_stencilSystemPtr;
 
 	Rml::Vector<int> m_spatialAnchorIds;
+	Rml::Vector<int> m_stencilCullModeValues;
 
 	SceneComponentWeakPtr m_selectedComponentWeakPtr;
 
@@ -100,6 +104,7 @@ private:
 	Rml::Vector<RmlModel_ComponentField> m_componentSize1dFieldModels;
 	Rml::Vector<RmlModel_ComponentField> m_componentCheckboxFieldModels;
 	Rml::Vector<RmlModel_ComponentField> m_componentFilenameFieldModels;
+	Rml::Vector<RmlModel_ComponentField> m_componentCullModeFieldModels;
 	std::map<std::string, RmlModel_ComponentField*> m_fieldNameToFieldMap;
 	int m_fieldCount= 0;
 	bool m_bIgnoreFieldsUpdate= false;

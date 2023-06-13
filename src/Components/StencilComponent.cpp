@@ -4,6 +4,7 @@
 #include "StencilObjectSystem.h"
 #include "SceneComponent.h"
 #include "MikanObject.h"
+#include "StringUtils.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -11,6 +12,7 @@
 // -- StencilComponentConfig -----
 const std::string StencilComponentDefinition::k_parentAnchorPropertyId = "parent_anchor_id";
 const std::string StencilComponentDefinition::k_stencilDisabledPropertyId = "is_disabled";
+const std::string StencilComponentDefinition::k_stencilCullModePropertyId = "cull_mode";
 
 StencilComponentDefinition::StencilComponentDefinition()
 	: m_stencilId(INVALID_MIKAN_ID)
@@ -36,8 +38,9 @@ configuru::Config StencilComponentDefinition::writeToJSON()
 	configuru::Config pt = SceneComponentDefinition::writeToJSON();
 
 	pt["stencil_id"] = m_stencilId;
-	pt["parent_anchor_id"] = m_parentAnchorId;
-	pt["is_disabled"] = m_bIsDisabled;
+	pt[k_parentAnchorPropertyId] = m_parentAnchorId;
+	pt[k_stencilDisabledPropertyId] = m_bIsDisabled;
+	pt[k_stencilCullModePropertyId]= k_stencilCullModeStrings[(int)m_cullMode];
 
 	return pt;
 }
@@ -47,20 +50,38 @@ void StencilComponentDefinition::readFromJSON(const configuru::Config& pt)
 	SceneComponentDefinition::readFromJSON(pt);
 
 	m_stencilId = pt.get<int>("stencil_id");
-	m_parentAnchorId = pt.get_or<int>("parent_anchor_id", INVALID_MIKAN_ID);
-	m_bIsDisabled = pt.get_or<bool>("is_disabled", false);
+	m_parentAnchorId = pt.get_or<int>(k_parentAnchorPropertyId, INVALID_MIKAN_ID);
+	m_bIsDisabled = pt.get_or<bool>(k_stencilDisabledPropertyId, false);
+
+	const std::string modeName= pt.get_or<std::string>(k_stencilCullModePropertyId, k_stencilCullModeStrings[0]);
+	m_cullMode= StringUtils::FindEnumValue<eStencilCullMode>(modeName, k_stencilCullModeStrings);
 }
 
 void StencilComponentDefinition::setParentAnchorId(MikanSpatialAnchorID anchorId)
 {
-	m_parentAnchorId = anchorId;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_parentAnchorPropertyId));
+	if (m_parentAnchorId != anchorId)
+	{
+		m_parentAnchorId = anchorId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_parentAnchorPropertyId));
+	}
 }
 
 void StencilComponentDefinition::setIsDisabled(bool flag)
 {
-	m_bIsDisabled = flag;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_stencilDisabledPropertyId));
+	if (m_bIsDisabled != flag)
+	{
+		m_bIsDisabled = flag;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_stencilDisabledPropertyId));
+	}
+}
+
+void StencilComponentDefinition::setCullMode(eStencilCullMode mode)
+{
+	if (m_cullMode != mode)
+	{
+		m_cullMode= mode;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_stencilCullModePropertyId));
+	}
 }
 
 // -- StencilComponent -----
@@ -112,6 +133,7 @@ void StencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNam
 
 	outPropertyNames.push_back(StencilComponentDefinition::k_stencilDisabledPropertyId);
 	outPropertyNames.push_back(StencilComponentDefinition::k_parentAnchorPropertyId);
+	outPropertyNames.push_back(StencilComponentDefinition::k_stencilCullModePropertyId);
 }
 
 bool StencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -127,6 +149,11 @@ bool StencilComponent::getPropertyDescriptor(const std::string& propertyName, Pr
 	else if (propertyName == StencilComponentDefinition::k_parentAnchorPropertyId)
 	{
 		outDescriptor = {StencilComponentDefinition::k_parentAnchorPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::anchor_id};
+		return true;
+	}
+	else if (propertyName == StencilComponentDefinition::k_stencilCullModePropertyId)
+	{
+		outDescriptor = {StencilComponentDefinition::k_stencilCullModePropertyId, ePropertyDataType::datatype_int, ePropertySemantic::stencilCullMode};
 		return true;
 	}
 
@@ -148,7 +175,11 @@ bool StencilComponent::getPropertyValue(const std::string& propertyName, Rml::Va
 		outValue = getStencilComponentDefinition()->getParentAnchorId();
 		return true;
 	}
-
+	else if (propertyName == StencilComponentDefinition::k_stencilCullModePropertyId)
+	{
+		outValue= (int)getStencilComponentDefinition()->getCullMode();
+		return true;
+	}
 
 	return false;
 }
@@ -170,6 +201,13 @@ bool StencilComponent::setPropertyValue(const std::string& propertyName, const R
 		MikanSpatialAnchorID anchorId = inValue.Get<int>();
 
 		attachSceneComponentToAnchor(anchorId);
+		return true;
+	}
+	else if (propertyName == StencilComponentDefinition::k_stencilCullModePropertyId)
+	{
+		eStencilCullMode cullMode= (eStencilCullMode)inValue.Get<int>();
+
+		getStencilComponentDefinition()->setCullMode(cullMode);
 		return true;
 	}
 

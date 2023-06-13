@@ -58,3 +58,16 @@ enum class eCompositorBlendMode
 	COUNT
 };
 extern const std::string* k_compositorBlendModeStrings;
+
+enum class eStencilCullMode
+{
+	INVALID = -1,
+
+	none,
+	zAxis,
+	yAxis,
+	xAxis,
+
+	COUNT
+};
+extern const std::string* k_stencilCullModeStrings;

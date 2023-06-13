@@ -157,6 +157,14 @@
                                 <button style="width: 40dp; padding-top: 0.0dp; vertical-align: -6dp;" data-event-click="select_filepath(field.field_index)">...</button>
                             </td>
                         </tr>
+                        <tr data-for="field : stencil_cull_mode_fields" class="property_tr">
+                            <td>                                
+                                Cull Mode&nbsp;
+                                <select id="select" name="cull_mode" data-value="field.int" data-event-change="modify_field(field.field_name)" style="width: 200dp; vertical-align: -12dp">
+                                    <option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
+                                </select>
+                            </td>
+                        </tr>                        
                     </tbody>
                 </table>
             </div>

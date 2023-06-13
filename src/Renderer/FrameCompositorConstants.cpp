@@ -42,3 +42,11 @@ const std::string g_compositorBlendModeStrings[(int)eCompositorBlendMode::COUNT]
 	"blendOn"
 };
 extern const std::string* k_compositorBlendModeStrings = g_compositorBlendModeStrings;
+
+const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT] = {
+	"none",
+	"zAxis",
+	"yAxis",
+	"xAxis",
+};
+extern const std::string* k_stencilCullModeStrings = g_stencilCullModeStrings;

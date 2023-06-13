@@ -11,6 +11,7 @@ const std::string g_PropertySemanticNames[(int)ePropertySemantic::COUNT] = {
 	"filename",
 	"name",
 	"anchor_id",
+	"stencil_cull_mode"
 };
 const std::string* k_PropertySemanticNames = g_PropertySemanticNames;
 

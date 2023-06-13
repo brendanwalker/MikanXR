@@ -1,7 +1,8 @@
-#pragma once
+	#pragma once
 
 #include "MikanComponent.h"
 #include "MikanClientTypes.h"
+#include "FrameCompositorConstants.h"
 #include "SceneComponent.h"
 
 #include <string>
@@ -32,10 +33,15 @@ public:
 	bool getIsDisabled() const { return m_bIsDisabled; }
 	void setIsDisabled(bool flag);
 
+	static const std::string k_stencilCullModePropertyId;
+	eStencilCullMode getCullMode() const { return m_cullMode; }
+	void setCullMode(eStencilCullMode mode);
+
 protected:
 	MikanStencilID m_stencilId= INVALID_MIKAN_ID;
 	MikanSpatialAnchorID m_parentAnchorId= INVALID_MIKAN_ID;
 	bool m_bIsDisabled= false;
+	eStencilCullMode m_cullMode= eStencilCullMode::none;
 };
 
 class StencilComponent : public SceneComponent

@@ -4,9 +4,11 @@
 #include "AnchorObjectSystem.h"
 #include "App.h"
 #include "AppStage.h"
+#include "FrameCompositorConstants.h"
 #include "Logger.h"
 #include "MikanClientTypes.h"
 #include "ProfileConfig.h"
+#include "PropertyInterface.h"
 #include "PathUtils.h"
 #include "Renderer.h"
 #include "StencilComponent.h"
@@ -133,6 +135,8 @@ public:
 };
 
 // -- RmlManager -----
+RmlManager* RmlManager::m_instance = nullptr;
+
 RmlManager::RmlManager(App* app)
 	: m_app(app)
 	, m_rmlEventInstancer(new RmlMikanEventInstancer(app))
@@ -147,6 +151,8 @@ RmlManager::~RmlManager()
 
 bool RmlManager::preRendererStartup()
 {
+	m_instance= this;
+
 	// Tell the UI libary this class implements the RML System Interface
 	Rml::SetSystemInterface(this);
 	Rml::SetFileInterface(new RmlMikanFileInterface());
@@ -196,9 +202,53 @@ bool RmlManager::postRendererStartup()
 	}
 }
 
+bool RmlManager::addEnumDefinition(Rml::Mikan::EnumDefinitionConstPtr enumDefinition)
+{
+	auto it = m_enumDefinitions.find(enumDefinition->enum_name);
+	if (it == m_enumDefinitions.end())
+	{
+		m_enumDefinitions.insert({enumDefinition->enum_name, enumDefinition});
+		return true;
+	}
+
+	return false;
+}
+
+Rml::Mikan::EnumDefinitionConstPtr RmlManager::getEnumDefinition(const std::string& enumName)
+{
+	auto it= m_enumDefinitions.find(enumName);
+	if (it != m_enumDefinitions.end())
+	{
+		return it->second;
+	}
+
+	return Rml::Mikan::EnumDefinitionConstPtr();
+}
+
+template <typename t_enum_class>
+static void registerEnumDefinition(const std::string& enumName, const std::string* enumStrings)
+{
+	Rml::Mikan::EnumDefinitionPtr enumDefinition = std::make_shared<Rml::Mikan::EnumDefinition>();
+	enumDefinition->enum_name = enumName;
+
+	for (int enumIntValue = 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
+	{
+		Rml::Mikan::EnumValuePtr enumValue = std::make_shared<Rml::Mikan::EnumValue>();
+		enumValue->enum_string_value = enumStrings[enumIntValue];
+		enumValue->enum_int_value = enumIntValue;
+
+		enumDefinition->enum_values.push_back(enumValue);
+	}
+
+	RmlManager::getInstance()->addEnumDefinition(enumDefinition);
+}
+
 void RmlManager::registerCommonDataModelTypes()
 {
 	Rml::DataModelConstructor constructor = m_rmlUIContext->CreateDataModel("data_model_globals");
+
+	// Enums
+	registerEnumDefinition<eStencilCullMode>("stencil_cull_mode", k_stencilCullModeStrings);
 
 	// String arrays
 	constructor.RegisterArray<Rml::Vector<Rml::String>>();
@@ -287,6 +337,25 @@ void RmlManager::registerCommonDataModelTypes()
 
 			return false;
 		});
+
+	constructor.RegisterTransformFunc(
+		"to_enum_string",
+		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+			const int enumIntValue = variant.Get<int>(-1);
+			if (enumIntValue != -1 && arguments.size() == 1)
+			{
+				const std::string enumName = arguments[0].Get<Rml::String>();
+				Rml::Mikan::EnumDefinitionConstPtr enumDefinition= getEnumDefinition(enumName);
+
+				if (enumDefinition && enumIntValue >= 0 && enumIntValue < enumDefinition->enum_values.size())
+				{
+					Rml::String enumStringValue= enumDefinition->enum_values[enumIntValue]->enum_string_value;
+					variant = enumStringValue;
+					return true;
+				}
+			}
+			return false;
+		});
 }
 
 void RmlManager::update()
@@ -301,6 +370,7 @@ void RmlManager::shutdown()
 {
 	Rml::Shutdown();
 	m_rmlUIContext = nullptr;
+	m_instance= nullptr;
 }
 
 // Rml::SystemInterface

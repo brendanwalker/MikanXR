@@ -7,6 +7,7 @@
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
 #include "SceneComponent.h"
+#include "StencilComponent.h"
 #include "RmlModel_CompositorSelection.h"
 #include "ProfileConfig.h"
 #include "StringUtils.h"
@@ -248,9 +249,16 @@ bool RmlModel_CompositorSelection::init(
 	constructor.Bind("side1d_fields", &m_componentSize1dFieldModels);
 	constructor.Bind("checkbox_fields", &m_componentCheckboxFieldModels);
 	constructor.Bind("filename_fields", &m_componentFilenameFieldModels);
+	constructor.Bind("stencil_cull_mode_fields", &m_componentCullModeFieldModels);
 	
 	constructor.Bind("component_functions", &m_componentFunctionModels);
-	constructor.Bind("spatial_anchor_ids", &m_spatialAnchorIds);	
+
+	constructor.Bind("spatial_anchor_ids", &m_spatialAnchorIds);
+	for (int enum_value = 0; enum_value < (int)eStencilCullMode::COUNT; ++enum_value)
+	{
+		m_stencilCullModeValues.push_back(enum_value);
+	}
+	constructor.Bind("stencil_cull_mode_values", &m_stencilCullModeValues);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
@@ -297,6 +305,16 @@ bool RmlModel_CompositorSelection::init(
 
 						Rml::Variant value;
 						value = !stringValue.empty();
+
+						selectedComponent->setPropertyValue(fieldName, value);
+					}
+					else if (rmlFieldModel->semantic_type == ePropertySemantic::stencilCullMode)
+					{
+						const std::string stringValue = ev.GetParameter<Rml::String>("value", "");
+						const int intValue= std::stoi(stringValue.c_str());
+
+						Rml::Variant value;
+						value = intValue;
 
 						selectedComponent->setPropertyValue(fieldName, value);
 					}
@@ -472,6 +490,9 @@ void RmlModel_CompositorSelection::applyConfigChangesToSelection(
 					case ePropertySemantic::filename:
 						m_modelHandle.DirtyVariable("filename_fields");
 						break;
+					case ePropertySemantic::stencilCullMode:
+						m_modelHandle.DirtyVariable("stencil_cull_mode_fields");
+						break;
 					}
 				}
 			}
@@ -530,6 +551,7 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 	m_componentSize1dFieldModels.clear();
 	m_componentCheckboxFieldModels.clear();
 	m_componentFilenameFieldModels.clear();
+	m_componentCullModeFieldModels.clear();
 
 	SceneComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
 	if (currentSelection)
@@ -545,6 +567,7 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 				currentSelection->getPropertyValue(propertyName, propertyValue))
 			{
 				RmlModel_ComponentField field;
+				field.parent_model= this;
 				field.field_index= -1;
 				field.field_type= propertyDesc.dataType;
 				field.semantic_type= propertyDesc.semantic;
@@ -594,6 +617,10 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 						field.field_index = (int)m_componentAnchorIdFieldModels.size();
 						m_componentAnchorIdFieldModels.push_back(field);
 						break;
+					case ePropertySemantic::stencilCullMode:
+						field.field_index = (int)m_componentCullModeFieldModels.size();
+						m_componentCullModeFieldModels.push_back(field);
+						break;
 					default:
 						break;
 				}
@@ -612,6 +639,7 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 	appendFieldListToFieldMap(m_componentSize1dFieldModels);
 	appendFieldListToFieldMap(m_componentCheckboxFieldModels);
 	appendFieldListToFieldMap(m_componentFilenameFieldModels);
+	appendFieldListToFieldMap(m_componentCullModeFieldModels);
 
 	m_modelHandle.DirtyVariable("field_count");
 	if (m_selectedComponentWeakPtr.lock())
@@ -627,6 +655,7 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 		m_modelHandle.DirtyVariable("side1d_fields");
 		m_modelHandle.DirtyVariable("checkbox_fields");
 		m_modelHandle.DirtyVariable("filename_fields");
+		m_modelHandle.DirtyVariable("stencil_cull_mode_fields");
 		getContext()->Update();
 		m_bIgnoreFieldsUpdate = false;
 	}
