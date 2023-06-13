@@ -1523,11 +1523,17 @@ void GlFrameCompositor::updateModelStencils(
 	if (!getVideoSourceCameraPose(cameraXform))
 		return;
 
+	// Collect stencil in view of the tracked camera
+	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
+	const glm::vec3 cameraPosition(cameraXform[3]);
+
 	std::unique_ptr<class GlModelResourceManager>& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
 
 	std::vector<ModelStencilComponentPtr> modelStencilList;
 	StencilObjectSystem::getSystem()->getRelevantModelStencilList(
 		&stencilConfig.modelStencilIds,
+		cameraPosition,
+		cameraForward,
 		modelStencilList);
 
 	if (modelStencilList.size() == 0)

@@ -249,6 +249,9 @@ void StencilObjectSystem::getRelevantQuadStencilList(
 			}
 		}
 
+		if (!isStencilFacingCamera(componentPtr, cameraPosition, cameraForward))
+			continue;
+
 		{
 			const glm::mat4 worldXform = componentPtr->getWorldTransform();
 			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
@@ -387,6 +390,9 @@ void StencilObjectSystem::getRelevantBoxStencilList(
 			}
 		}
 
+		if (!isStencilFacingCamera(componentPtr, cameraPosition, cameraForward))
+			continue;
+
 		{
 			const glm::mat4 worldXform = componentPtr->getWorldTransform();
 			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
@@ -514,6 +520,8 @@ bool StencilObjectSystem::removeModelStencil(MikanStencilID stencilId)
 
 void StencilObjectSystem::getRelevantModelStencilList(
 	const std::vector<MikanStencilID>* allowedStencilIds,
+	const glm::vec3& cameraPosition,
+	const glm::vec3& cameraForward,
 	std::vector<ModelStencilComponentPtr>& outStencilList) const
 {
 	outStencilList.clear();
@@ -536,6 +544,9 @@ void StencilObjectSystem::getRelevantModelStencilList(
 				continue;
 			}
 		}
+
+		if (!isStencilFacingCamera(componentPtr, cameraPosition, cameraForward))
+			continue;
 
 		outStencilList.push_back(componentPtr);
 	}
@@ -594,4 +605,38 @@ StencilObjectSystemConfigConstPtr StencilObjectSystem::getStencilSystemConfigCon
 StencilObjectSystemConfigPtr StencilObjectSystem::getStencilSystemConfig()
 {
 	return std::const_pointer_cast<StencilObjectSystemConfig>(getStencilSystemConfigConst());
+}
+
+bool StencilObjectSystem::isStencilFacingCamera(
+	StencilComponentConstPtr stencil,
+	const glm::vec3& cameraPosition, const glm::vec3& cameraForward)
+{
+	StencilComponentConfigConstPtr configPtr= stencil->getStencilComponentDefinition();
+	eStencilCullMode cullMode= configPtr->getCullMode();
+
+	if (cullMode == eStencilCullMode::none)
+		return true;
+
+	glm::mat4 stencilXform= stencil->getWorldTransform();
+	glm::vec3 stencilCenter= glm_mat4_get_position(stencilXform);
+	glm::vec3 stencilForward;
+	switch (cullMode)
+	{
+	case eStencilCullMode::zAxis:
+		stencilForward= glm_mat4_get_z_axis(stencilXform);
+		break;
+	case eStencilCullMode::yAxis:
+		stencilForward= glm_mat4_get_y_axis(stencilXform);
+		break;
+	case eStencilCullMode::xAxis:
+		stencilForward= glm_mat4_get_x_axis(stencilXform);
+		break;
+	}
+
+	const glm::vec3 cameraToStencil= stencilCenter - cameraPosition;
+	const glm::vec3 stencilToCamera= -cameraToStencil;
+
+	return 
+		glm::dot(cameraToStencil, cameraForward) > 0.f &&
+		glm::dot(stencilToCamera, stencilForward) > 0.f;
 }

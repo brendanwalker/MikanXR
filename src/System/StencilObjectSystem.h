@@ -65,9 +65,15 @@ public:
 	bool removeModelStencil(MikanStencilID stencilId);
 	void getRelevantModelStencilList(
 		const std::vector<MikanStencilID>* allowedStencilIds,
+		const glm::vec3& cameraPosition,
+		const glm::vec3& cameraForward,
 		std::vector<ModelStencilComponentPtr>& outStencilList) const;
 
 protected:
+	static bool isStencilFacingCamera(
+		StencilComponentConstPtr stencil, 
+		const glm::vec3& cameraPosition, const glm::vec3& cameraForward);
+
 	QuadStencilComponentPtr createQuadStencilObject(QuadStencilDefinitionPtr quadConfig);
 	bool disposeQuadStencilObject(MikanStencilID stencilId);
 
