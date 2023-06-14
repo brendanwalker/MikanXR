@@ -16,8 +16,10 @@ public:
 	bool writeRenderTargetTexture(void* ApiTexturePtr, uint64_t frameIndex);
 	MikanRenderTargetMemory& getLocalMemory() { return m_localMemory; }
 	uint64_t getLocalFrameIndex() const { return m_localFrameIndex; }
+	bool getIsInitialized() const { return m_bIsInitialized; }
 
 private:
+	bool m_bIsInitialized= false;
 	std::string m_clientName;
 	MikanRenderTargetMemory m_localMemory;
 	uint64_t m_localFrameIndex;

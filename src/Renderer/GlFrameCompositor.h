@@ -129,6 +129,7 @@ public:
 
 	inline const std::vector<Layer>& getLayers() const { return m_layers; }
 	inline const GlTexturePtr getCompositedFrameTexture() const { return m_compositedFrame; }
+	inline uint64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
 	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
 	inline GlTexturePtr getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
 	void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
@@ -234,4 +235,3 @@ private:
 	uint64_t m_lastCompositedFrameIndex = 0;
 	uint64_t m_pendingCompositeFrameIndex = 0;
 };
-

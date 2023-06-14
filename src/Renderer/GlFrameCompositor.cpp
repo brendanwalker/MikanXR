@@ -1879,8 +1879,8 @@ bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16
 	// create a color attachment texture
 	m_compositedFrame = std::make_shared<GlTexture>();
 	m_compositedFrame->setSize(width, height);
-	m_compositedFrame->setTextureFormat(GL_RGB);
-	m_compositedFrame->setBufferFormat(GL_RGB);
+	m_compositedFrame->setTextureFormat(GL_RGBA);
+	m_compositedFrame->setBufferFormat(GL_RGBA);
 	m_compositedFrame->setGenerateMipMap(false);
 	m_compositedFrame->createTexture();
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_compositedFrame->getGlTextureId(), 0);

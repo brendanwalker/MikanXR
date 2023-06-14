@@ -22,7 +22,11 @@ public:
 	bool getIsRecording() const;
 	void setIsRecording(bool bNewFlag);
 
+	bool getIsStreaming() const;
+	void setIsStreaming(bool bNewFlag);
+
 	SinglecastDelegate<void()> OnToggleRecordingEvent;
+	SinglecastDelegate<void()> OnToggleStreamingEvent;
 	SinglecastDelegate<void(eSupportedCodec)> OnVideoCodecChangedEvent;
 
 private:
@@ -33,4 +37,5 @@ private:
 	Rml::Vector<Rml::String> m_videoCodecs;
 	Rml::String m_selectedCodec;
 	bool m_bIsRecording= false;
+	bool m_bIsStreaming= false;
 };

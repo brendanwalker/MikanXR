@@ -24,12 +24,18 @@ bool RmlModel_CompositorRecording::init(
 	constructor.Bind("video_codecs", &m_videoCodecs);
 	constructor.Bind("selected_codec", &m_selectedCodec);
 	constructor.Bind("is_recording", &m_bIsRecording);
+	constructor.Bind("is_streaming", &m_bIsStreaming);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
 		"toggle_recording",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			if (OnToggleRecordingEvent) OnToggleRecordingEvent();
+		});
+	constructor.BindEventCallback(
+		"toggle_streaming",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			if (OnToggleStreamingEvent) OnToggleStreamingEvent();
 		});
 	constructor.BindEventCallback(
 		"changed_codec",
@@ -52,6 +58,7 @@ bool RmlModel_CompositorRecording::init(
 	}
 	m_selectedCodec= k_supportedCodecName[int(eSupportedCodec::MP4V)];
 	m_bIsRecording= false;
+	m_bIsStreaming= false;
 
 	VideoSourceViewPtr videoSource= compositor->getVideoSource();
 	if (videoSource)
@@ -138,5 +145,19 @@ void RmlModel_CompositorRecording::setIsRecording(bool bNewFlag)
 	{
 		m_bIsRecording= bNewFlag;
 		m_modelHandle.DirtyVariable("is_recording");
+	}
+}
+
+bool RmlModel_CompositorRecording::getIsStreaming() const
+{
+	return m_bIsStreaming;
+}
+
+void RmlModel_CompositorRecording::setIsStreaming(bool bNewFlag)
+{
+	if (bNewFlag != m_bIsStreaming)
+	{
+		m_bIsStreaming = bNewFlag;
+		m_modelHandle.DirtyVariable("is_streaming");
 	}
 }

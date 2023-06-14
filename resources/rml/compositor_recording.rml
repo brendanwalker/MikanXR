@@ -38,6 +38,13 @@
             <div data-if="is_recording">
                 <button data-event-click="toggle_recording()">Stop Recording</button>
             </div>
+            <br/>
+            <div data-if="!is_streaming">
+                <button data-event-click="toggle_streaming()">Start Streaming</button>
+            </div>
+            <div data-if="is_streaming">
+                <button data-event-click="toggle_streaming()">Stop Streaming</button>
+            </div>
         </panel>
     </body>
 </rml>

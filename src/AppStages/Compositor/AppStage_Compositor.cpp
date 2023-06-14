@@ -27,6 +27,7 @@
 #include "GlViewport.h"
 #include "GlWireframeMesh.h"
 #include "GlTexture.h"
+#include "InterprocessRenderTargetWriter.h"
 #include "InputManager.h"
 #include "MathGLM.h"
 #include "MikanObjectSystem.h"
@@ -74,6 +75,7 @@ AppStage_Compositor::AppStage_Compositor(App* app)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 	, m_videoWriter(new VideoWriter)
+	, m_renderTargetWriteAccessor(new InterprocessRenderTargetWriteAccessor("MikanXR"))
 {
 }
 
@@ -91,6 +93,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorSettingsModel;
 	m_scriptContext.reset();
 	delete m_videoWriter;
+	delete m_renderTargetWriteAccessor;
 }
 
 void AppStage_Compositor::enter()
@@ -198,6 +201,7 @@ void AppStage_Compositor::enter()
 		// Init Recording UI
 		m_compositorRecordingModel->init(context, m_frameCompositor);
 		m_compositorRecordingModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingEvent);
+		m_compositorRecordingModel->OnToggleStreamingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleStreamingEvent);
 		m_compositiorRecordingView = addRmlDocument("compositor_recording.rml");
 		m_compositiorRecordingView->Hide();
 
@@ -229,6 +233,9 @@ void AppStage_Compositor::exit()
 	App* app= App::getInstance();
 	EditorObjectSystemPtr editorSystem = app->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
 	editorSystem->clearViewports();
+
+	stopRecording();
+	stopStreaming();
 
 	m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
@@ -330,7 +337,7 @@ bool AppStage_Compositor::startRecording()
 	m_frameCompositor->setGenerateBGRVideoTexture(true);
 
 	// Listen for new frames to write out
-	m_frameCompositor->OnNewFrameComposited+= MakeDelegate(this, &AppStage_Compositor::onNewFrameComposited);
+	m_frameCompositor->OnNewFrameComposited+= MakeDelegate(this, &AppStage_Compositor::onNewRecordingFrameReady);
 	m_compositorRecordingModel->setIsRecording(true);
 
 	return true;
@@ -342,7 +349,7 @@ void AppStage_Compositor::stopRecording()
 	if (m_compositorRecordingModel->getIsRecording())
 	{
 		m_frameCompositor->setGenerateBGRVideoTexture(false);
-		m_frameCompositor->OnNewFrameComposited -= MakeDelegate(this, &AppStage_Compositor::onNewFrameComposited);
+		m_frameCompositor->OnNewFrameComposited -= MakeDelegate(this, &AppStage_Compositor::onNewRecordingFrameReady);
 	}
 
 	m_videoWriter->close();
@@ -354,7 +361,7 @@ void AppStage_Compositor::onCompositorShadersReloaded()
 	m_compositorLayersModel->rebuild(m_frameCompositor);
 }
 
-void AppStage_Compositor::onNewFrameComposited()
+void AppStage_Compositor::onNewRecordingFrameReady()
 {
 	EASY_FUNCTION();
 
@@ -365,6 +372,65 @@ void AppStage_Compositor::onNewFrameComposited()
 		if (bgrTexture != nullptr && m_videoWriter != nullptr && m_videoWriter->getIsOpened())
 		{
 			m_videoWriter->write(bgrTexture.get());
+		}
+	}
+}
+
+bool AppStage_Compositor::startStreaming()
+{
+	if (m_compositorRecordingModel->getIsStreaming())
+		return true;
+
+	GlTexturePtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
+	if (compositorTexture == nullptr)
+		return false;
+
+	if (compositorTexture->getBufferFormat() != GL_RGBA)
+		return false;
+
+	MikanRenderTargetDescriptor descriptor;
+	memset(&descriptor, 0, sizeof(MikanRenderTargetDescriptor));
+	descriptor.color_buffer_type= MikanColorBuffer_RGBA32;
+	descriptor.depth_buffer_type= MikanDepthBuffer_NODEPTH;
+	descriptor.width= compositorTexture->getTextureWidth();
+	descriptor.height= compositorTexture->getTextureHeight();
+	descriptor.graphicsAPI= MikanClientGraphicsApi_OpenGL;
+
+	m_renderTargetWriteAccessor->initialize(&descriptor, nullptr);
+
+	// Listen for new frames to write out
+	m_frameCompositor->OnNewFrameComposited += MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
+	m_compositorRecordingModel->setIsStreaming(true);
+
+	return true;
+}
+
+void AppStage_Compositor::stopStreaming()
+{
+	// Stop listening for new frames to write out
+	if (m_compositorRecordingModel->getIsStreaming())
+	{
+		m_frameCompositor->OnNewFrameComposited -= MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
+	}
+
+	m_renderTargetWriteAccessor->dispose();
+	m_compositorRecordingModel->setIsStreaming(false);
+}
+
+void AppStage_Compositor::onNewStreamingFrameReady()
+{
+	EASY_FUNCTION();
+
+	if (m_compositorRecordingModel->getIsStreaming())
+	{
+		GlTexturePtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
+
+		if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
+		{
+			GLuint textureId= frameTexture->getGlTextureId();
+			uint64_t frameIndex = m_frameCompositor->getLastCompositedFrameIndex();
+
+			m_renderTargetWriteAccessor->writeRenderTargetTexture(&textureId, frameIndex);
 		}
 	}
 }
@@ -715,6 +781,14 @@ void AppStage_Compositor::onToggleRecordingEvent()
 		stopRecording();
 	else
 		startRecording();
+}
+
+void AppStage_Compositor::onToggleStreamingEvent()
+{
+	if (m_compositorRecordingModel->getIsStreaming())
+		stopStreaming();
+	else
+		startStreaming();
 }
 
 // Scripting UI Events

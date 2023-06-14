@@ -189,6 +189,8 @@ file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp"    
 )
 source_group("Interprocess" FILES ${MIKAN_INTERPROCESS_SRC})
 
@@ -448,6 +450,7 @@ set_target_properties(Mikan_CAPI PROPERTIES PUBLIC_HEADER "Client/MikanClientTyp
 set_target_properties(Mikan_CAPI PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(Mikan_CAPI PROPERTIES C_VISIBILITY_PRESET hidden)
 target_compile_definitions(Mikan_CAPI PRIVATE MIKAN_CLIENT_CAPI_EXPORTS)
+target_compile_definitions(Mikan_CAPI PRIVATE ENABLE_SPOUT_DX)
 
 # Runtime dependencies
 set(FFMPEG_DLL_FOLDER ${ROOT_DIR}/deps/ffmpeg-4.4.1-full_build-shared/bin)

@@ -43,6 +43,9 @@ protected:
 	bool startRecording();
 	void stopRecording();
 
+	bool startStreaming();
+	void stopStreaming();
+
 	// Camera
 	void setupCameras();
 	void setCurrentCameraMode(eCompositorViewpointMode viewportMode);
@@ -54,7 +57,8 @@ protected:
 
 	// Compositor Events
 	void onCompositorShadersReloaded();
-	void onNewFrameComposited();
+	void onNewRecordingFrameReady();
+	void onNewStreamingFrameReady();
 
 	// Main Compositor UI Events
 	void onReturnEvent();
@@ -92,6 +96,7 @@ protected:
 
 	// Recording UI Events
 	void onToggleRecordingEvent();
+	void onToggleStreamingEvent();
 
 	// Scripting UI Events
 	void onScriptFileChangeEvent(const std::filesystem::path& scriptFileChangeEvent);
@@ -139,4 +144,5 @@ protected:
 	bool m_bAddingNewConfig= false;
 
 	class VideoWriter* m_videoWriter= nullptr;
+	class InterprocessRenderTargetWriteAccessor* m_renderTargetWriteAccessor= nullptr;
 };
