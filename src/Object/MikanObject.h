@@ -6,6 +6,7 @@
 #include "ObjectSystemFwd.h"
 #include "SceneFwd.h"
 
+#include <string>
 #include <vector>
 
 class MikanObject final : public std::enable_shared_from_this<MikanObject>
