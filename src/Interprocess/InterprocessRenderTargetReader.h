@@ -25,7 +25,6 @@ public:
 	MikanClientGraphicsApi getClientGraphicsAPI() const { return m_descriptor.graphicsAPI; }
 	MikanRenderTargetDescriptor& getRenderTargetDescriptor() { return m_descriptor; }
 	const MikanRenderTargetMemory& getLocalMemory() { return m_localMemory; }
-	uint64_t getLocalFrameIndex() const { return m_localFrameIndex; }
 
 private:
 	std::string m_clientName;
@@ -33,6 +32,5 @@ private:
 	MikanRenderTargetMemory m_localMemory;
 	GlTexturePtr m_colorTexture;
 	GlTexturePtr m_depthTexture;
-	uint64_t m_localFrameIndex;
 	struct RenderTargetReaderImpl* m_readerImpl;
 };

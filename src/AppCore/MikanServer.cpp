@@ -66,7 +66,7 @@ public:
 		return m_connectionInfo.clientInfo;
 	}
 
-	bool pollRenderTarget()
+	bool readRenderTarget()
 	{
 		EASY_FUNCTION();
 
@@ -86,11 +86,6 @@ public:
 	MikanClientGraphicsApi getClientGraphicsAPI() const
 	{
 		return m_connectionInfo.renderTargetReadAccessor->getClientGraphicsAPI();
-	}
-
-	uint64_t getLocalRenderTargetFrameIndex() const 
-	{
-		return m_connectionInfo.renderTargetReadAccessor->getLocalFrameIndex();
 	}
 
 	void subscribeToVRDevicePoseUpdates(MikanVRDeviceID deviceId)
@@ -315,6 +310,7 @@ bool MikanServer::startup()
 	m_messageServer->setRPCHandler("unsubscribeFromVRDevicePoseUpdates", std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
 	m_messageServer->setRPCHandler("allocateRenderTargetBuffers", std::bind(&MikanServer::allocateRenderTargetBuffers, this, _1, _2));
 	m_messageServer->setRPCHandler("freeRenderTargetBuffers", std::bind(&MikanServer::freeRenderTargetBuffers, this, _1, _2));
+	m_messageServer->setRPCHandler("frameRendered", std::bind(&MikanServer::frameRendered, this, _1, _2));	
 	m_messageServer->setRPCHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
 	m_messageServer->setRPCHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getBoxStencil", std::bind(&MikanServer::getBoxStencil, this, _1, _2));
@@ -341,26 +337,6 @@ void MikanServer::update()
 		EASY_BLOCK("processRemoteFunctionCalls");
 
 		m_messageServer->processRemoteFunctionCalls();
-	}
-
-	// Process incoming video frames, if we have a compositor active
-	if (OnClientRenderTargetUpdated)
-	{
-		EASY_BLOCK("pollAllRenderTargets");
-
-		for (auto& connection_it : m_clientConnections)
-		{
-			ClientConnectionState* connection= connection_it.second;
-
-			if (connection->pollRenderTarget())
-			{
-				const std::string clientId= connection->getClientId();
-				const uint64_t frameIndex= connection->getLocalRenderTargetFrameIndex();
-				const MikanClientGraphicsApi api= connection->getClientGraphicsAPI();
-
-				OnClientRenderTargetUpdated(clientId, frameIndex);
-			}
-		}
 	}
 }
 
@@ -437,7 +413,7 @@ void MikanServer::handleAnchorSystemConfigChange(
 		MikanAnchorPoseUpdateEvent poseUpdateEvent;
 		memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
 		poseUpdateEvent.anchor_id = anchorConfig->getAnchorId();
-		poseUpdateEvent.transform = glm_mat4_to_MikanMatrix4f(anchorConfig->getRelativeMat4());
+		poseUpdateEvent.transform = glm_transform_to_MikanTransform(anchorConfig->getRelativeTransform());
 
 		MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
 
@@ -821,6 +797,41 @@ void MikanServer::freeRenderTargetBuffers(
 		}
 
 		connection_it->second->freeRenderTargetBuffers();
+		outResult->setResultCode(MikanResult_Success);
+	}
+	else
+	{
+		outResult->setResultCode(MikanResult_UnknownClient);
+	}
+}
+
+void MikanServer::frameRendered(
+	const class MikanRemoteFunctionCall* inFunctionCall,
+	class MikanRemoteFunctionResult* outResult)
+{
+	const std::string clientId = inFunctionCall->getClientId();
+
+	uint64_t frameIndex= 0;
+	if (!inFunctionCall->extractParameters(frameIndex))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	auto connection_it = m_clientConnections.find(clientId);
+	if (connection_it != m_clientConnections.end())
+	{
+		// Process incoming video frames, if we have a compositor active
+		if (OnClientRenderTargetUpdated)
+		{
+			ClientConnectionState* clientState = connection_it->second;
+
+			if (clientState->readRenderTarget())
+			{
+				OnClientRenderTargetUpdated(clientId, frameIndex);
+			}
+		}
+
 		outResult->setResultCode(MikanResult_Success);
 	}
 	else

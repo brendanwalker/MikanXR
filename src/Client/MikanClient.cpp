@@ -51,6 +51,9 @@ MikanResult MikanClient::disconnect()
 {
 	MikanResult resultCode= MikanResult_NotConnected;
 
+	// Free any existing buffer if we called allocate already
+	freeRenderTargetBuffers();
+
 	if (m_messageClient->getIsConnected())
 	{
 		m_messageClient->disconnect();
@@ -75,8 +78,8 @@ MikanResult MikanClient::pollNextEvent(MikanEvent& message)
 MikanResult MikanClient::shutdown()
 {
 	log_dispose();
-	m_messageClient->disconnect();
 	freeRenderTargetBuffers();
+	m_messageClient->disconnect();
 
 	return MikanResult_Success;
 }
@@ -182,8 +185,9 @@ MikanResult MikanClient::allocateRenderTargetBuffers(
 
 	// Create the shared memory buffer
 	bool bSuccess= false;
-	const MikanClientInfo& clientInfo= m_messageClient->getClientInfo();	
-	if (m_renderTargetWriter->initialize(&descriptor, apiInterface))
+	const bool bEnableFrameCounter= false; // use frameRendered RPC to send frame index
+	const MikanClientInfo& clientInfo= m_messageClient->getClientInfo();
+	if (m_renderTargetWriter->initialize(&descriptor, bEnableFrameCounter, apiInterface))
 	{
 		// Copy the buffer pointers allocated by the render target write
 		assert(out_memory_ptr != nullptr);
@@ -203,13 +207,31 @@ MikanResult MikanClient::allocateRenderTargetBuffers(
 
 MikanResult MikanClient::publishRenderTargetTexture(void* apiTexturePtr, uint64_t frame_index)
 {
-	return m_renderTargetWriter->writeRenderTargetTexture(apiTexturePtr, frame_index) ? MikanResult_Success : MikanResult_SharedTextureError;
+	if (m_renderTargetWriter->writeRenderTargetTexture(apiTexturePtr))
+	{
+		return callRPC(
+			m_messageClient,
+			"frameRendered", (uint8_t*)&frame_index, sizeof(uint64_t));
+	}
+	else
+	{
+		return MikanResult_SharedTextureError;
+	}
 }
 
 MikanResult MikanClient::publishRenderTargetBuffers(uint64_t frame_index)
 {
 	// Copy the render target buffers in local memory to shared memory
-	return m_renderTargetWriter->writeRenderTargetMemory(frame_index) ? MikanResult_Success : MikanResult_SharedMemoryError;
+	if (m_renderTargetWriter->writeRenderTargetMemory())
+	{
+		return callRPC(
+			m_messageClient,
+			"frameRendered", (uint8_t*)&frame_index, sizeof(uint64_t));
+	}
+	else
+	{
+		return MikanResult_SharedMemoryError;
+	}
 }
 
 MikanResult MikanClient::freeRenderTargetBuffers()

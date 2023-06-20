@@ -396,7 +396,7 @@ bool AppStage_Compositor::startStreaming()
 	descriptor.height= compositorTexture->getTextureHeight();
 	descriptor.graphicsAPI= MikanClientGraphicsApi_OpenGL;
 
-	m_renderTargetWriteAccessor->initialize(&descriptor, nullptr);
+	m_renderTargetWriteAccessor->initialize(&descriptor, true, nullptr);
 
 	// Listen for new frames to write out
 	m_frameCompositor->OnNewFrameComposited += MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
@@ -428,9 +428,8 @@ void AppStage_Compositor::onNewStreamingFrameReady()
 		if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
 		{
 			GLuint textureId= frameTexture->getGlTextureId();
-			uint64_t frameIndex = m_frameCompositor->getLastCompositedFrameIndex();
 
-			m_renderTargetWriteAccessor->writeRenderTargetTexture(&textureId, frameIndex);
+			m_renderTargetWriteAccessor->writeRenderTargetTexture(&textureId);
 		}
 	}
 }

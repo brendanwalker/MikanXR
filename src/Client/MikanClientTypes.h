@@ -394,7 +394,7 @@ typedef struct
 
 typedef struct
 {
-	MikanMatrix4f transform;
+	MikanTransform transform;
 	MikanSpatialAnchorID anchor_id;
 } MikanAnchorPoseUpdateEvent;
 

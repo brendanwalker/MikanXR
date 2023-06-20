@@ -18,7 +18,6 @@ public:
 		, m_sharedMemoryObject(nullptr)
 		, m_region(nullptr)
 		, m_localMemory(localMemory)
-		, m_localFrameIndex(0)
 	{
 	}
 
@@ -93,7 +92,7 @@ public:
 		if (m_region == nullptr || m_sharedMemoryObject == nullptr)
 			return false;
 
-		bool bNewFrame = false;
+		bool bReadOk = false;
 
 		{
 			EASY_BLOCK("copy from shared memory");
@@ -106,8 +105,7 @@ public:
 
 			// Copy over the render target buffers if the frame index changed
 			InterprocessRenderTargetHeader& sharedMemoryHeader = sharedMemoryView->getHeader();
-			if (m_localFrameIndex != sharedMemoryView->getHeader().frameIndex &&
-				m_localMemory.width == sharedMemoryHeader.width &&
+			if (m_localMemory.width == sharedMemoryHeader.width &&
 				m_localMemory.height == sharedMemoryHeader.height &&
 				m_localMemory.color_buffer_size == sharedMemoryHeader.colorBufferSize &&
 				m_localMemory.depth_buffer_size == sharedMemoryHeader.depthBufferSize)
@@ -132,14 +130,11 @@ public:
 						m_localMemory.depth_buffer_size);
 				}
 
-				// Copy over the other render target properties from shared memory
-				m_localFrameIndex = sharedMemoryHeader.frameIndex;
-
-				bNewFrame = true;
+				bReadOk = true;
 			}
 		}
 
-		if (bNewFrame)
+		if (bReadOk)
 		{
 			GlTexturePtr colorTexture= m_parentAccessor->getColorTexture();
 			if (colorTexture != nullptr)
@@ -159,26 +154,19 @@ public:
 
 		}
 
-		return bNewFrame;
+		return bReadOk;
 	}
 
 	InterprocessRenderTargetView* getRenderTargetView()
 	{
 		return reinterpret_cast<InterprocessRenderTargetView*>(m_region->get_address());
 	}
-
-	uint64_t getLocalFrameIndex() const
-	{
-		return m_localFrameIndex;
-	}
-
 private:
 	InterprocessRenderTargetReadAccessor* m_parentAccessor;
 	std::string m_sharedMemoryName;
 	boost::interprocess::shared_memory_object* m_sharedMemoryObject;
 	boost::interprocess::mapped_region* m_region;
 	MikanRenderTargetMemory& m_localMemory;
-	uint64_t m_localFrameIndex;
 };
 
 class SpoutTextureReader
@@ -190,7 +178,6 @@ public:
 		: m_parentAccessor(parentAccessor)
 		, m_senderName(clientName)
 		, m_spout(nullptr)
-		, m_localFrameIndex(0)
 	{
 	}
 
@@ -228,7 +215,6 @@ public:
 
 	bool readRenderTargetTexture()
 	{
-		bool bIsNewFrame= false;
 
 		GlTexturePtr colorTexture = m_parentAccessor->getColorTexture();
 		if (colorTexture != nullptr)
@@ -244,30 +230,16 @@ public:
 				colorTexture->createTexture();
 			}
 
-			if (m_spout->ReceiveTexture(colorTexture->getGlTextureId(), GL_TEXTURE_2D))
-			{
-				m_localFrameIndex = m_spout->GetSenderFrame();
-
-				if (m_spout->IsFrameNew())
-				{
-					bIsNewFrame = true;
-				}
-			}
+			return (m_spout->ReceiveTexture(colorTexture->getGlTextureId(), GL_TEXTURE_2D));
 		}
 
-		return bIsNewFrame;
-	}
-
-	uint64_t getLocalFrameIndex() const
-	{
-		return m_localFrameIndex;
+		return false;
 	}
 
 private:
 	InterprocessRenderTargetReadAccessor* m_parentAccessor;
 	std::string m_senderName;
 	SPOUTLIBRARY* m_spout;
-	uint64_t m_localFrameIndex;
 };
 
 //-- InterprocessRenderTargetReadAccessor -----
@@ -285,7 +257,6 @@ InterprocessRenderTargetReadAccessor::InterprocessRenderTargetReadAccessor(const
 	: m_clientName(clientName)
 	, m_colorTexture(nullptr)
 	, m_depthTexture(nullptr)
-	, m_localFrameIndex(0)
 	, m_readerImpl(new RenderTargetReaderImpl)
 {
 	memset(&m_descriptor, 0, sizeof(MikanRenderTargetDescriptor));
@@ -307,7 +278,6 @@ bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDes
 	dispose();
 
 	m_descriptor= *descriptor;
-	m_localFrameIndex = 0;
 
 	if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
 		descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
@@ -369,7 +339,6 @@ bool InterprocessRenderTargetReadAccessor::readRenderTargetMemory()
 		if (m_readerImpl->readerApi.spoutTextureReader != nullptr &&
 			m_readerImpl->readerApi.spoutTextureReader->readRenderTargetTexture())
 		{
-			m_localFrameIndex = m_readerImpl->readerApi.spoutTextureReader->getLocalFrameIndex();
 			bSuccess = true;
 		}
 	}
@@ -378,7 +347,6 @@ bool InterprocessRenderTargetReadAccessor::readRenderTargetMemory()
 		if (m_readerImpl->readerApi.boostSharedMemoryReader != nullptr &&
 			m_readerImpl->readerApi.boostSharedMemoryReader->readRenderTargetMemory())
 		{
-			m_localFrameIndex = m_readerImpl->readerApi.boostSharedMemoryReader->getLocalFrameIndex();
 			bSuccess= true;
 		}
 	}

@@ -8,7 +8,6 @@ InterprocessRenderTargetView::InterprocessRenderTargetView(const MikanRenderTarg
 	header.height = descriptor->height;
 	header.colorBufferType = descriptor->color_buffer_type;
 	header.depthBufferType = descriptor->depth_buffer_type;
-	header.frameIndex = 0;
 
 	header.colorBufferSize = computeRenderTargetColorBufferSize(
 		descriptor->color_buffer_type, descriptor->width, descriptor->height);

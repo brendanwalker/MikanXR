@@ -140,7 +140,7 @@ public:
 		}
 	}
 
-	bool writeRenderTargetMemory(uint64_t frame_index)
+	bool writeRenderTargetMemory()
 	{
 		if (m_region == nullptr || m_sharedMemoryObject == nullptr)
 			return false;
@@ -164,9 +164,6 @@ public:
 				m_localMemory.depth_buffer,
 				m_localMemory.depth_buffer_size);
 		}
-
-		// Update the frame index in shared so that the read accessor can tell there is a new frame
-		sharedMemoryView->getHeader().frameIndex = frame_index;
 
 		return true;
 	}
@@ -198,7 +195,7 @@ public:
 		dispose();
 	}
 
-	bool init(const MikanRenderTargetDescriptor* descriptor)
+	bool init(const MikanRenderTargetDescriptor* descriptor, bool bEnableFrameCounter)
 	{
 		dispose();
 
@@ -214,7 +211,7 @@ public:
 		m_spout->SetSenderName(m_senderName.c_str());
 		assert(descriptor->color_buffer_type == MikanColorBuffer_RGBA32);
 		m_spout->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
-		m_spout->SetFrameCount(true);
+		m_spout->SetFrameCount(bEnableFrameCounter);
 
 		m_descriptor= *descriptor;
 
@@ -256,7 +253,7 @@ public:
 		dispose();
 	}
 
-	bool init(const MikanRenderTargetDescriptor* descriptor, void* apiDeviceInterface)
+	bool init(const MikanRenderTargetDescriptor* descriptor, bool bEnableFrameCounter, void* apiDeviceInterface)
 	{
 		ID3D11Device* d3d11Device= (ID3D11Device*)apiDeviceInterface;
 		bool bSuccess = true;
@@ -273,6 +270,8 @@ public:
 			m_spout.OpenDirectX11(d3d11Device);
 			m_spout.SetSenderName(m_senderName.c_str());
 			m_spout.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+			if (!bEnableFrameCounter)
+				m_spout.DisableFrameCount();
 		}
 
 		return bSuccess;
@@ -314,7 +313,6 @@ struct RenderTargetWriterImpl
 
 InterprocessRenderTargetWriteAccessor::InterprocessRenderTargetWriteAccessor(const std::string& clientName)
 	: m_clientName(clientName)
-	, m_localFrameIndex(0)	
 	, m_writerImpl(new RenderTargetWriterImpl)
 {
 	memset(&m_localMemory, 0, sizeof(MikanRenderTargetMemory));
@@ -329,18 +327,17 @@ InterprocessRenderTargetWriteAccessor::~InterprocessRenderTargetWriteAccessor()
 
 bool InterprocessRenderTargetWriteAccessor::initialize(
 	const MikanRenderTargetDescriptor* descriptor,
+	bool bEnableFrameCounter,
 	void* apiDeviceInterface)
 {
 	dispose();
-
-	m_localFrameIndex = 0;
 
 	if (descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		m_writerImpl->writerApi.spoutOpenGLTextureWriter = new SpoutOpenGLTextureWriter(m_clientName);
 		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
-		m_bIsInitialized = m_writerImpl->writerApi.spoutOpenGLTextureWriter->init(descriptor);
+		m_bIsInitialized = m_writerImpl->writerApi.spoutOpenGLTextureWriter->init(descriptor, bEnableFrameCounter);
 	}
 #ifdef ENABLE_SPOUT_DX
 	else if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
@@ -348,7 +345,7 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 		m_writerImpl->writerApi.spoutDX11TextureWriter = new SpoutDX11TextureWriter(m_clientName);
 		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
-		m_bIsInitialized = m_writerImpl->writerApi.spoutDX11TextureWriter->init(descriptor, apiDeviceInterface);
+		m_bIsInitialized = m_writerImpl->writerApi.spoutDX11TextureWriter->init(descriptor, bEnableFrameCounter, apiDeviceInterface);
 	}
 #endif // ENABLE_SPOUT_DX
 	else
@@ -398,29 +395,23 @@ void InterprocessRenderTargetWriteAccessor::dispose()
 	m_bIsInitialized = false;
 }
 
-bool InterprocessRenderTargetWriteAccessor::writeRenderTargetMemory(uint64_t frame_index)
+bool InterprocessRenderTargetWriteAccessor::writeRenderTargetMemory()
 {
 	bool bSuccess= false; 
 
 	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_UNKNOWN)
 	{
-		bSuccess = m_writerImpl->writerApi.boostSharedMemoryWriter->writeRenderTargetMemory(frame_index);
+		bSuccess = m_writerImpl->writerApi.boostSharedMemoryWriter->writeRenderTargetMemory();
 	}
 	else
 	{
 		bSuccess= false;
 	}
 
-	if (bSuccess)
-	{
-		// Also track the last frame posted locally for debugging
-		m_localFrameIndex = frame_index;
-	}
-
 	return true;
 }
 
-bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTexturePtr, uint64_t frameIndex)
+bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTexturePtr)
 {
 	bool bSuccess = false;
 
@@ -441,12 +432,6 @@ bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTe
 	else
 	{
 		bSuccess = false;
-	}
-
-	if (bSuccess)
-	{
-		// Also track the last frame posted locally for debugging
-		m_localFrameIndex = frameIndex;
 	}
 
 	return true;
