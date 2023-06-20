@@ -222,8 +222,6 @@ IF %ERRORLEVEL% NEQ 0 (
 :: Exit back out of the deps folder
 popd
 
-:: Generate the project files for the main application
-call GenerateProjectFiles_X64.bat || goto failure
 EXIT /B 0
 
 :failure
