@@ -11,6 +11,7 @@
 enum DXGI_FORMAT
 {
 	DXGI_FORMAT_R8G8B8A8_UNORM                          = 28,
+    DXGI_FORMAT_B8G8R8A8_UNORM                          = 87,
 };
 #endif // !ENABLE_SPOUT_DX
 
@@ -206,12 +207,25 @@ public:
 			return false;
 		}
 
-		m_spout->EnableSpoutLog();
-		m_spout->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
-		m_spout->SetSenderName(m_senderName.c_str());
-		assert(descriptor->color_buffer_type == MikanColorBuffer_RGBA32);
-		m_spout->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
-		m_spout->SetFrameCount(bEnableFrameCounter);
+		if (descriptor->color_buffer_type == MikanColorBuffer_RGBA32 ||
+			descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
+		{
+			m_spout->EnableSpoutLog();
+			m_spout->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+			m_spout->SetSenderName(m_senderName.c_str());
+
+			if (descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
+				m_spout->SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+			else
+				m_spout->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
+			m_spout->SetFrameCount(bEnableFrameCounter);
+		}
+		else
+		{
+			MIKAN_LOG_INFO("SpoutOpenGLTextureWriter::init()") << "color buffer type not supported: " << descriptor->color_buffer_type;
+			return false;
+		}
 
 		m_descriptor= *descriptor;
 
@@ -260,18 +274,28 @@ public:
 
 		dispose();
 
-		if (bSuccess)
+		if (descriptor->color_buffer_type == MikanColorBuffer_RGBA32 ||
+			descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
 		{
 			EnableSpoutLog();
 			EnableSpoutLogFile("sender.log");
 			SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
 
-			assert(descriptor->color_buffer_type == MikanColorBuffer_RGBA32);
 			m_spout.OpenDirectX11(d3d11Device);
 			m_spout.SetSenderName(m_senderName.c_str());
-			m_spout.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+			
+			if (descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
+				m_spout.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+			else
+				m_spout.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
 			if (!bEnableFrameCounter)
 				m_spout.DisableFrameCount();
+		}
+		else
+		{
+			MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "color buffer type not supported: " << descriptor->color_buffer_type;
+			bSuccess= false;
 		}
 
 		return bSuccess;

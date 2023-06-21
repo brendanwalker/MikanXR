@@ -84,6 +84,7 @@ size_t computeRenderTargetColorBufferSize(MikanColorBufferType colorBufferType, 
 	case MikanColorBuffer_RGB24:
 		return width * height * 3;
 	case MikanColorBuffer_RGBA32:
+	case MikanColorBuffer_BGRA32:
 		return width * height * 4;
 	case MikanColorBuffer_NOCOLOR:
 	default:

@@ -1783,6 +1783,11 @@ bool GlFrameCompositor::addClientSource(
 		clientSource->colorTexture->setTextureFormat(GL_RGBA);
 		clientSource->colorTexture->setBufferFormat(GL_RGBA);
 		break;
+	case MikanColorBuffer_BGRA32:
+		clientSource->colorTexture = std::make_shared<GlTexture>();
+		clientSource->colorTexture->setTextureFormat(GL_BGRA);
+		clientSource->colorTexture->setBufferFormat(GL_BGRA);
+		break;
 	}
 
 	if (clientSource->colorTexture != nullptr)

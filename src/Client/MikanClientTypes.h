@@ -118,7 +118,8 @@ typedef enum
 {
 	MikanColorBuffer_NOCOLOR,
 	MikanColorBuffer_RGB24,
-	MikanColorBuffer_RGBA32,
+	MikanColorBuffer_RGBA32, // DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
+	MikanColorBuffer_BGRA32, // DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 } MikanColorBufferType;
 
 typedef enum
@@ -135,8 +136,9 @@ typedef enum
 	// Render target options
 	MikanFeature_RenderTarget_RGB24 = 1 << 0,
 	MikanFeature_RenderTarget_RGBA32 = 1 << 1,
-	MikanFeature_RenderTarget_DEPTH16 = 1 << 2,
-	MikanFeature_RenderTarget_DEPTH32 = 1 << 3,
+	MikanFeature_RenderTarget_BGRA32 = 1 << 2,
+	MikanFeature_RenderTarget_DEPTH16 = 1 << 3,
+	MikanFeature_RenderTarget_DEPTH32 = 1 << 4,
 } MikanClientFeatures;
 
 typedef enum

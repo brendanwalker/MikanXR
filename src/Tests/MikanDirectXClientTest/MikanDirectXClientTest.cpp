@@ -175,7 +175,7 @@ void updateMikan()
 		{
 			MikanClientInfo ClientInfo;
 			memset(&ClientInfo, 0, sizeof(MikanClientInfo));
-			ClientInfo.supportedFeatures = MikanFeature_RenderTarget_RGB24;
+			ClientInfo.supportedFeatures = MikanFeature_RenderTarget_BGRA32;
 			strncpy(ClientInfo.engineName, "MikanXR Test", sizeof(ClientInfo.engineName) - 1);
 			strncpy(ClientInfo.engineVersion, "1.0", sizeof(ClientInfo.engineVersion) - 1);
 			strncpy(ClientInfo.applicationName, "MikanXR Test", sizeof(ClientInfo.applicationName) - 1);
@@ -245,7 +245,7 @@ void reallocateRenderBuffers()
 		desc.width = mode.resolution_x;
 		desc.height = mode.resolution_y;
 		desc.color_key = { 0, 0, 0 };
-		desc.color_buffer_type = MikanColorBuffer_RGBA32;
+		desc.color_buffer_type = MikanColorBuffer_BGRA32;
 		desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
 		desc.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
@@ -291,7 +291,7 @@ bool createFrameBuffer(
 	textureDesc.Height = textureHeight;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
-	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS; //  DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.Format = DXGI_FORMAT_B8G8R8A8_TYPELESS; //  DXGI_FORMAT_B8G8R8A8_UNORM;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
@@ -306,7 +306,7 @@ bool createFrameBuffer(
 	}
 
 	// Setup the description of the render target view.
-	renderTargetViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //textureDesc.Format;
+	renderTargetViewDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; //textureDesc.Format;
 	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
 
@@ -318,7 +318,7 @@ bool createFrameBuffer(
 	}
 
 	// Setup the description of the shader resource view.
-	shaderResourceViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //textureDesc.Format;
+	shaderResourceViewDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; //textureDesc.Format;
 	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
 	shaderResourceViewDesc.Texture2D.MipLevels = 1;
@@ -530,7 +530,7 @@ HRESULT initDevice()
         DXGI_SWAP_CHAIN_DESC1 sd = {};
         sd.Width = width;
         sd.Height = height;
-        sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        sd.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
         sd.SampleDesc.Count = 1;
         sd.SampleDesc.Quality = 0;
         sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -551,7 +551,7 @@ HRESULT initDevice()
         sd.BufferCount = 1;
         sd.BufferDesc.Width = width;
         sd.BufferDesc.Height = height;
-        sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
         sd.BufferDesc.RefreshRate.Numerator = 60;
         sd.BufferDesc.RefreshRate.Denominator = 1;
         sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
