@@ -93,6 +93,7 @@ protected:
 	void onSDLEvent(SDL_Event& e);
 
 	void update();
+	void processPendingAppStageOps();
 	void updateAutoSave(float deltaSeconds);
 	void render();
 

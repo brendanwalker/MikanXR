@@ -213,6 +213,7 @@ void App::shutdown()
 	{
 		popAppState();
 	}
+	processPendingAppStageOps();
 
 	// Tear down all app systems
 	if (m_rmlManager != nullptr)
@@ -301,16 +302,35 @@ void App::update()
 	// Garbage collect stale baked text
 	m_fontManager->garbageCollect();
 
+	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
+	processPendingAppStageOps();
+
+	// Update the current app stage last
+	AppStage* appStage = getCurrentAppStage();
+	if (appStage != nullptr && appStage->getIsUpdateActive())
+	{
+		EASY_BLOCK("appStage Update");
+		appStage->update(deltaSeconds);
+	}
+
+	// Update the UI layout and data models
+	m_rmlManager->update();
+
+	// Update profile auto-save
+	updateAutoSave(deltaSeconds);
+}
+
+void App::processPendingAppStageOps()
+{
 	// Disallow app stack operations during enter or exit
 	bAppStackOperationAllowed = false;
 
-	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
-	InputManager* inputManager= InputManager::getInstance();
+	InputManager* inputManager = InputManager::getInstance();
 	for (auto& pendingAppStageOp : m_pendingAppStageOps)
 	{
 		switch (pendingAppStageOp.op)
 		{
-		case AppStageOperation::enter:
+			case AppStageOperation::enter:
 			{
 				EASY_BLOCK("appStage Enter");
 
@@ -328,7 +348,7 @@ void App::update()
 				if (OnAppStageEntered)
 					OnAppStageEntered(pendingAppStageOp.appStage);
 			} break;
-		case AppStageOperation::exit:
+			case AppStageOperation::exit:
 			{
 				EASY_BLOCK("appStage Exit");
 
@@ -342,8 +362,9 @@ void App::update()
 				// Clean up the input event set for the deactivated app stage
 				inputManager->popEventBindingSet();
 
-				// Resume the parent app stage we are restoring
-				pendingAppStageOp.parentAppStage->resume();
+				// Resume the parent app stage we are restoring (if any)
+				if (pendingAppStageOp.parentAppStage != nullptr)
+					pendingAppStageOp.parentAppStage->resume();
 
 				// Free the app state
 				delete pendingAppStageOp.appStage;
@@ -354,20 +375,6 @@ void App::update()
 
 	// App stack operations allowed during update
 	bAppStackOperationAllowed = true;
-
-	// Update the current app stage last
-	AppStage* appStage = getCurrentAppStage();
-	if (appStage != nullptr && appStage->getIsUpdateActive())
-	{
-		EASY_BLOCK("appStage Update");
-		appStage->update(deltaSeconds);
-	}
-
-	// Update the UI layout and data models
-	m_rmlManager->update();
-
-	// Update profile auto-save
-	updateAutoSave(deltaSeconds);
 }
 
 void App::updateAutoSave(float deltaSeconds)
