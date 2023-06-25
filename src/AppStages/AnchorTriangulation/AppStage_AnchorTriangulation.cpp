@@ -46,8 +46,9 @@ AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(App* app)
 	, m_monoDistortionView(nullptr)
 	, m_camera(nullptr)
 {
-	memset(&m_targetAnchor, 0, sizeof(MikanSpatialAnchorInfo));
-	m_targetAnchor.anchor_id = INVALID_MIKAN_ID;
+	m_targetAnchor.anchorId = INVALID_MIKAN_ID;
+	m_targetAnchor.anchorName= "";
+	m_targetAnchor.relativeTransform= GlmTransform();
 }
 
 AppStage_AnchorTriangulation::~AppStage_AnchorTriangulation()
@@ -329,20 +330,19 @@ void AppStage_AnchorTriangulation::onOkEvent()
 			{
 				m_anchorTriangulator->computeAnchorTransform(m_targetAnchor);
 
-				if (m_targetAnchor.anchor_id == INVALID_MIKAN_ID)
+				if (m_targetAnchor.anchorId == INVALID_MIKAN_ID)
 				{
 					AnchorObjectSystem::getSystem()->addNewAnchor(
-						m_targetAnchor.anchor_name, 
-						MikanTransform_to_glm_transform(m_targetAnchor.relative_transform));
+						m_targetAnchor.anchorName, 
+						m_targetAnchor.relativeTransform);
 				}
 				else
 				{
 					AnchorComponentPtr anchorComponent=
 						AnchorObjectSystem::getSystem()->getSpatialAnchorById(
-							m_targetAnchor.anchor_id);
+							m_targetAnchor.anchorId);
 
-					anchorComponent->setRelativeTransform(
-						MikanTransform_to_glm_transform(m_targetAnchor.relative_transform));
+					anchorComponent->setRelativeTransform(m_targetAnchor.relativeTransform);
 				}
 
 				setMenuState(eAnchorTriangulationMenuState::testCalibration);

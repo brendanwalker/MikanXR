@@ -2,8 +2,8 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "AnchorTriangulator.h"
 #include "Constants_AnchorTriangulation.h"
-#include "MikanClientTypes.h"
 #include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
@@ -24,7 +24,7 @@ public:
 	virtual ~AppStage_AnchorTriangulation();
 
 	void setBypassCalibrationFlag(bool flag);
-	void setTargetAnchor(const MikanSpatialAnchorInfo& anchor) { m_targetAnchor= anchor; }
+	void setTargetAnchor(const AnchorTriangulatorInfo& anchor) { m_targetAnchor= anchor; }
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -52,10 +52,10 @@ private:
 	// Tracking puck used for calibration
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
-	class AnchorTriangulator* m_anchorTriangulator;
+	AnchorTriangulator* m_anchorTriangulator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
-	MikanSpatialAnchorInfo m_targetAnchor;
+	AnchorTriangulatorInfo m_targetAnchor;
 
 	GlCameraPtr m_camera;
 };

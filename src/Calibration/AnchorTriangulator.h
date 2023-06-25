@@ -1,18 +1,28 @@
 #pragma once
 
-#include "MikanClientTypes.h"
+#include "Transform.h"
 
 #include <memory>
+#include <string>
 
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
 #include "glm/ext/matrix_double4x4.hpp"
+
+typedef int32_t MikanSpatialAnchorID;
 
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
+struct AnchorTriangulatorInfo
+{
+	MikanSpatialAnchorID anchorId;
+	GlmTransform relativeTransform; // Relative to origin anchor
+	std::string anchorName;
+};
 
 class AnchorTriangulator
 {
@@ -29,7 +39,7 @@ public:
 	void sampleCameraPose();
 	void sampleMouseScreenPosition();
 	void computeCurrentTriangulation();
-	bool computeAnchorTransform(MikanSpatialAnchorInfo& anchorInfo);
+	bool computeAnchorTransform(AnchorTriangulatorInfo& anchorInfo);
 
 	void renderInitialPoint2dSegements();
 	void renderCurrentPointTriangulation();

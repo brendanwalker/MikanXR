@@ -44,7 +44,6 @@ void AppStage_VRDeviceSettings::enter()
 		// Init the vr device settings model
 		m_vrDeviceSettingsModel->init(context, profileConfig, vrDeviceManager);
 		m_vrDeviceSettingsModel->OnUpdateCameraVRDevicePath= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath);
-		m_vrDeviceSettingsModel->OnUpdateCameraParentAnchorId= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateCameraParentAnchorId);
 		m_vrDeviceSettingsModel->OnUpdateMatVRDevicePath= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateMatVRDevicePath);
 		m_vrDeviceSettingsModel->OnUpdateOriginVRDevicePath= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateOriginVRDevicePath);
 		m_vrDeviceSettingsModel->OnUpdateOriginVerticalAlignFlag= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateOriginVerticalAlignFlag);
@@ -75,18 +74,6 @@ void AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath(const std::string& de
 	profileConfig->markDirty(
 		ConfigPropertyChangeSet()
 		.addPropertyName(ProfileConfig::k_cameraVRDevicePathPropertyId));
-
-	// Let any connected clients know that the video source attachment settings changed
-	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
-}
-
-void AppStage_VRDeviceSettings::onUpdateCameraParentAnchorId(int anchorId)
-{
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	profileConfig->cameraParentAnchorId = anchorId;
-	profileConfig->markDirty(
-		ConfigPropertyChangeSet()
-		.addPropertyName(ProfileConfig::k_cameraParentAnchorPropertyId));	
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();

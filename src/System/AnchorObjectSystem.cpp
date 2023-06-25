@@ -83,8 +83,8 @@ AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfig(MikanSpatia
 	auto it = std::find_if(
 		spatialAnchorList.begin(), spatialAnchorList.end(),
 		[anchorId](AnchorDefinitionPtr configPtr) {
-		return configPtr->getAnchorId() == anchorId;
-	});
+			return configPtr->getAnchorId() == anchorId;
+		});
 
 	if (it != spatialAnchorList.end())
 	{
@@ -99,8 +99,8 @@ AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const
 	auto it = std::find_if(
 		spatialAnchorList.begin(), spatialAnchorList.end(),
 		[anchorName](AnchorDefinitionPtr configPtr) {
-		return strncmp(configPtr->getAnchorInfo().anchor_name, anchorName.c_str(), MAX_MIKAN_ANCHOR_NAME_LEN) == 0;
-	});
+			return configPtr->getComponentName() == anchorName;
+		});
 
 	if (it != spatialAnchorList.end())
 	{
@@ -108,13 +108,6 @@ AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const
 	}
 
 	return AnchorDefinitionPtr();
-}
-
-MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(MikanSpatialAnchorInfo& anchorInfo)
-{
-	anchorInfo.anchor_id= addNewAnchor(anchorInfo.anchor_name, anchorInfo.relative_transform);
-
-	return anchorInfo.anchor_id;
 }
 
 MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& anchorName, const MikanTransform& xform)
@@ -257,22 +250,6 @@ AnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorNam
 	if (anchorId != INVALID_MIKAN_ID)
 	{		
 		AnchorDefinitionPtr anchorConfig= anchorSystemConfig->getSpatialAnchorConfig(anchorId);
-		assert(anchorConfig != nullptr);
-
-		return createAnchorObject(anchorConfig);
-	}
-
-	return AnchorComponentPtr();
-}
-
-AnchorComponentPtr AnchorObjectSystem::addNewAnchor(MikanSpatialAnchorInfo& anchorInfo)
-{
-	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
-
-	MikanSpatialAnchorID anchorId = anchorSystemConfig->addNewAnchor(anchorInfo);
-	if (anchorId != INVALID_MIKAN_ID)
-	{
-		AnchorDefinitionPtr anchorConfig = anchorSystemConfig->getSpatialAnchorConfig(anchorId);
 		assert(anchorConfig != nullptr);
 
 		return createAnchorObject(anchorConfig);

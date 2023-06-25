@@ -73,7 +73,6 @@ public:
 	AnchorComponentPtr getOriginSpatialAnchor() const { return m_originAnchor; }
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
 	AnchorComponentPtr addNewAnchor(const std::string& anchorName, const GlmTransform& xform);
-	AnchorComponentPtr addNewAnchor(MikanSpatialAnchorInfo& anchorInfo);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 protected:

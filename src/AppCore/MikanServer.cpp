@@ -606,7 +606,6 @@ void MikanServer::getVideoSourceAttachment(
 			{
 				ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
 
-				info.parent_anchor_id = profile->cameraParentAnchorId;
 				info.camera_scale = profile->cameraScale;
 			}
 
@@ -977,15 +976,16 @@ void MikanServer::getSpatialAnchorInfo(
 		return;
 	}
 
-	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
-	auto anchorConfig= anchorSystemConfig->getSpatialAnchorConfig(anchorId);
-	if (anchorConfig == nullptr)
+	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
+	if (anchorPtr)
 	{
-		outResult->setResultCode(MikanResult_InvalidDeviceID);
+		outResult->setResultCode(MikanResult_InvalidAnchorID);
 		return;
 	}
 	
-	MikanSpatialAnchorInfo anchorInfo= anchorConfig->getAnchorInfo();
+	MikanSpatialAnchorInfo anchorInfo;
+	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
+
 	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
 	outResult->setResultCode(MikanResult_Success);
 }
@@ -1001,15 +1001,16 @@ void MikanServer::findSpatialAnchorInfoByName(
 		return;
 	}
 
-	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
-	auto anchorConfig = anchorSystemConfig->getSpatialAnchorConfigByName(nameBuffer);
-	if (anchorConfig == nullptr)
+	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorByName(nameBuffer);
+	if (anchorPtr)
 	{
-		outResult->setResultCode(MikanResult_InvalidDeviceID);
+		outResult->setResultCode(MikanResult_InvalidAnchorID);
 		return;
 	}
 
-	MikanSpatialAnchorInfo anchorInfo= anchorConfig->getAnchorInfo();
+	MikanSpatialAnchorInfo anchorInfo;
+	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
+
 	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
 	outResult->setResultCode(MikanResult_Success);
 }

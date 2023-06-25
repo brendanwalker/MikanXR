@@ -22,7 +22,7 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	static const std::string k_componentNamePropertyId;
-	const std::string getComponentName() const { return m_componentName; }
+	const std::string& getComponentName() const { return m_componentName; }
 	void setComponentName(const std::string& stencilName);
 
 protected:

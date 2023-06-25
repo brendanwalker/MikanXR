@@ -27,7 +27,6 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	MikanSpatialAnchorID getAnchorId() const { return m_anchorId; }
-	MikanSpatialAnchorInfo getAnchorInfo() const;
 
 private:
 	MikanSpatialAnchorID m_anchorId;
@@ -44,6 +43,8 @@ public:
 	{
 		return std::static_pointer_cast<AnchorDefinition>(m_definition);
 	}
+
+	void extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outAnchorInfo) const;
 
 	// -- IFunctionInterface ----
 	static const std::string k_updateOriginAnchorPoseFunctionId;

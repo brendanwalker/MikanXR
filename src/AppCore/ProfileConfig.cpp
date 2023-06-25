@@ -23,7 +23,6 @@
 
 // -- Profile Config
 const std::string ProfileConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
-const std::string ProfileConfig::k_cameraParentAnchorPropertyId= "cameraParentAnchorId";
 const std::string ProfileConfig::k_cameraScalePropertyId= "cameraScale";
 const std::string ProfileConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
 const std::string ProfileConfig::k_originVRDevicePathPropertyId= "originVRDevicePath";
@@ -50,7 +49,6 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, videoSourcePath("")
 	// Tracker
 	, cameraVRDevicePath("")
-	, cameraParentAnchorId(INVALID_MIKAN_ID)
 	, cameraScale(1.f)
 	, matVRDevicePath("")
 	, originVRDevicePath("")
@@ -92,7 +90,6 @@ configuru::Config ProfileConfig::writeToJSON()
 	pt["videoSourcePath"]= videoSourcePath;
 	// Tracker
 	pt["cameraVRDevicePath"]= cameraVRDevicePath;
-	pt["cameraParentAnchorId"]= cameraParentAnchorId;
 	pt["cameraScale"]= cameraScale;
 	pt["matVRDevicePath"]= matVRDevicePath;
 	pt["originVRDevicePath"]= originVRDevicePath;
@@ -148,7 +145,6 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 
 	// VR Devices
 	cameraVRDevicePath = pt.get_or<std::string>("cameraVRDevicePath", cameraVRDevicePath);
-	cameraParentAnchorId = pt.get_or<int>("cameraParentAnchorId", cameraParentAnchorId);
 	cameraScale = pt.get_or<float>("cameraScale", cameraScale);
 
 	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);

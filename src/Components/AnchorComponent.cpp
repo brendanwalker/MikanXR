@@ -51,20 +51,6 @@ void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-MikanSpatialAnchorInfo AnchorDefinition::getAnchorInfo() const
-{
-	const std::string& anchorName= getComponentName();
-	GlmTransform xform= getRelativeTransform();
-
-	MikanSpatialAnchorInfo anchorInfo;
-	memset(&anchorInfo, 0, sizeof(MikanSpatialAnchorInfo));
-	anchorInfo.anchor_id = m_anchorId;
-	strncpy(anchorInfo.anchor_name, anchorName.c_str(), sizeof(anchorInfo.anchor_name) - 1);
-	anchorInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
-
-	return anchorInfo;
-}
-
 // -- AnchorComponent -----
 AnchorComponent::AnchorComponent(MikanObjectWeakPtr owner)
 	: SceneComponent(owner)
@@ -185,6 +171,18 @@ bool AnchorComponent::invokeFunction(const std::string& functionName)
 	return false;
 }
 
+void AnchorComponent::extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outAnchorInfo) const
+{
+	const std::string anchorName = getName();
+	const GlmTransform anchorWorldTransform(getWorldTransform());
+	const MikanSpatialAnchorID anchorId = getAnchorDefinition()->getAnchorId();
+
+	memset(&outAnchorInfo, 0, sizeof(MikanSpatialAnchorInfo));
+	outAnchorInfo.anchor_id = getAnchorDefinition()->getAnchorId();
+	strncpy(outAnchorInfo.anchor_name, anchorName.c_str(), sizeof(outAnchorInfo.anchor_name) - 1);
+	outAnchorInfo.world_transform = glm_transform_to_MikanTransform(anchorWorldTransform);
+}
+
 void AnchorComponent::updateOriginAnchorPose()
 {
 	ProfileConfigPtr profile= App::getInstance()->getProfileConfig();
@@ -224,7 +222,13 @@ void AnchorComponent::editAnchor()
 	{
 		// Show Anchor Triangulation Tool
 		AppStage_AnchorTriangulation* anchorTriangulation = App::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
-		anchorTriangulation->setTargetAnchor(definition->getAnchorInfo());
+		
+		AnchorTriangulatorInfo anchorInfo = {
+			definition->getAnchorId(),
+			definition->getRelativeTransform(),
+			definition->getComponentName()
+		};
+		anchorTriangulation->setTargetAnchor(anchorInfo);
 	}
 }
 

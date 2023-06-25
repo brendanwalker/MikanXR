@@ -193,7 +193,7 @@ void AnchorTriangulator::computeCurrentTriangulation()
 	}
 }
 
-bool AnchorTriangulator::computeAnchorTransform(MikanSpatialAnchorInfo& anchorInfo)
+bool AnchorTriangulator::computeAnchorTransform(AnchorTriangulatorInfo& anchorInfo)
 {
 	if (m_calibrationState->triangulatedPointSampleCount < 3)
 		return false;
@@ -216,21 +216,18 @@ bool AnchorTriangulator::computeAnchorTransform(MikanSpatialAnchorInfo& anchorIn
 	AnchorComponentPtr originAnchorComponentPtr =
 		AnchorObjectSystem::getSystem()->getOriginSpatialAnchor();
 
-	GlmTransform relativeXform;
-	if (originAnchorComponentPtr->getAnchorDefinition()->getAnchorId() != anchorInfo.anchor_id)
+	if (originAnchorComponentPtr->getAnchorDefinition()->getAnchorId() != anchorInfo.anchorId)
 	{
 		// Compute transform relative to origin anchor
 		const glm::mat4 originWorldXform = originAnchorComponentPtr->getWorldTransform();
 		
-		relativeXform = glm_relative_xform(originWorldXform, m_calibrationState->anchorWorldXform);
+		anchorInfo.relativeTransform = glm_relative_xform(originWorldXform, m_calibrationState->anchorWorldXform);
 	}
 	else
 	{
 		// Target anchor is origin anchor, so relative transform == world transform
-		relativeXform= m_calibrationState->anchorWorldXform;
+		anchorInfo.relativeTransform= m_calibrationState->anchorWorldXform;
 	}
-
-	anchorInfo.relative_transform = glm_transform_to_MikanTransform(relativeXform);
 
 	return true;
 }

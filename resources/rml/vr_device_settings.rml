@@ -49,12 +49,6 @@
                         <option data-for="device_path : tracker_devices" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
                     </select>
                 </div>
-                <h2>Camera Parent Anchor</h2>
-                <div data-if="spatial_anchors.size > 0">
-                    <select id="select" name="camera_spatial_anchor" data-value="camera_parent_anchor_id" data-event-change="update_camera_parent_anchor_id()">
-                        <option data-for="anchor_id : spatial_anchors" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
-                    </select>
-                </div>
                 <h2>Camera Scale</h2>
                 <numeric type="float" name="camera_scale" min="-10.0" max="10.0" step="0.01" data-event-submit="update_camera_scale()" data-value="camera_scale"/>
             </div>
