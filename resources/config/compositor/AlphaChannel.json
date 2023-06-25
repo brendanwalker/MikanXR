@@ -22,7 +22,7 @@
 			}
 		},
 		{
-			"verticalFlip":       false,
+			"verticalFlip":       true,
 			"blendMode":          "blendOn",
 			"shaderConfig":       {
 				"materialName":     "rgbaFrame",

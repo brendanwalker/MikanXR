@@ -1,0 +1,9 @@
+{
+    "materialName": "rgbInvAlphaFrame",
+    "vertexShaderPath": "rgbInvAlphaFrame.vert",
+    "fragmentShaderPath": "rgbInvAlphaFrame.frag",
+    "uniforms":
+    {
+        "rgbaTexture": "texture0"
+    }
+}

@@ -25,12 +25,9 @@
 			"verticalFlip":       true,
 			"blendMode":          "blendOn",
 			"shaderConfig":       {
-				"materialName":     "rgbColorKeyFrame",
-				"float3SourceMap":  {
-					"colorKey": "clientColorKey_0"
-				},
+				"materialName":     "rgbInvAlphaFrame",
 				"textureSourceMap": {
-					"colorKeyTexture": "clientRenderTexture_0"
+					"rgbaTexture": "clientRenderTexture_0"
 				}
 			},
 			"quadStencilConfig":  {
@@ -45,6 +42,6 @@
 			}
 		}
 	],
-	"name":    "Color Key",
+	"name":    "Inv Alpha Channel",
 	"builtIn": true
 }

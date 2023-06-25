@@ -1,5 +1,5 @@
 {
-	"layers": [
+	"layers":  [
 		{
 			"verticalFlip":       true,
 			"blendMode":          "blendOff",
@@ -42,6 +42,6 @@
 			}
 		}
 	],
-	"name":   "No Alpha",
+	"name":    "No Alpha",
 	"builtIn": true
 }
