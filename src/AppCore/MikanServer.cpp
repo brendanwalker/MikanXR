@@ -977,7 +977,7 @@ void MikanServer::getSpatialAnchorInfo(
 	}
 
 	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
-	if (anchorPtr)
+	if (anchorPtr == nullptr)
 	{
 		outResult->setResultCode(MikanResult_InvalidAnchorID);
 		return;
@@ -1002,7 +1002,7 @@ void MikanServer::findSpatialAnchorInfoByName(
 	}
 
 	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorByName(nameBuffer);
-	if (anchorPtr)
+	if (anchorPtr == nullptr)
 	{
 		outResult->setResultCode(MikanResult_InvalidAnchorID);
 		return;
