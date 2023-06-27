@@ -490,6 +490,8 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					if (m_textureSources.tryGetValue(uniformName, texture) && 
 						GlProgram::getTextureUniformUnit(uniformSemantic, textureUnit))
 					{
+						bIsBound = true;
+
 						if (!m_program->setTextureUniform(uniformName) ||
 							!texture->bindTexture(textureUnit))
 						{
