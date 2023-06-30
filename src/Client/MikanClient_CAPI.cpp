@@ -225,6 +225,14 @@ MikanResult Mikan_GetStencilList(MikanStencilList* out_stencil_list)
 	return g_mikanClient->getStencilList(*out_stencil_list);
 }
 
+MikanResult Mikan_SendScriptMessage(const MikanScriptMessageInfo* message)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+
+	return g_mikanClient->sendScriptMessage(*message);
+}
+
 MikanResult Mikan_GetQuadStencil(MikanStencilID stencil_id, MikanStencilQuad* out_stencil)
 {
 	if (g_mikanClient == nullptr)

@@ -35,9 +35,6 @@ public:
 	static const std::string k_cameraVRDevicePathPropertyId;
 	std::string cameraVRDevicePath;
 
-	static const std::string k_cameraScalePropertyId;
-	float cameraScale= 1.f;
-
 	static const std::string k_matVRDevicePathPropertyId;
 	std::string matVRDevicePath;
 

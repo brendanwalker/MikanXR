@@ -139,6 +139,9 @@ void AppStage_Compositor::enter()
 		}
 	}
 
+	// Register the script context with the mikan server
+	MikanServer::getInstance()->bindScriptContect(m_scriptContext);
+
 	// Load the compositor script
 	m_profile = app->getProfileConfig();
 	if (!m_profile->compositorScriptFilePath.empty())
@@ -233,6 +236,9 @@ void AppStage_Compositor::exit()
 	App* app= App::getInstance();
 	EditorObjectSystemPtr editorSystem = app->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
 	editorSystem->clearViewports();
+
+	// Unregister the script context with the mikan server
+	MikanServer::getInstance()->unbindScriptContect(m_scriptContext);
 
 	stopRecording();
 	stopStreaming();

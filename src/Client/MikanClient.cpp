@@ -132,6 +132,23 @@ MikanResult callRPC(
 	return resultCode;
 }
 
+MikanResult MikanClient::sendScriptMessage(
+	const MikanScriptMessageInfo& message)
+{
+	MikanRemoteFunctionResult functionResponse;
+	MikanResult resultCode =
+		m_messageClient->callRemoteFunction(
+			"invokeScriptMessageHandler", 
+			(uint8_t*)&message, sizeof(MikanScriptMessageInfo), &functionResponse);
+
+	if (resultCode == MikanResult_Success)
+	{
+		resultCode = functionResponse.getResultCode();
+	}
+
+	return resultCode;
+}
+
 MikanResult MikanClient::getVideoSourceIntrinsics(MikanVideoSourceIntrinsics& out_intrinsics)
 {
 	return callRPC(m_messageClient, "getVideoSourceIntrinsics", nullptr, 0, out_intrinsics);

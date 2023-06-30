@@ -168,6 +168,36 @@ bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName)
 	return false;
 }
 
+bool CommonScriptContext::invokeScriptMessageHandler(const std::string& message)
+{
+	if (m_luaState != nullptr)
+	{
+		for (const std::string& function_name : m_messageHandlers)
+		{
+			// Fetch the message handler
+			lua_getglobal(m_luaState, function_name.c_str());
+
+			// Push the request onto the stack
+			lua_pushstring(m_luaState, message.c_str());
+
+			// Call the message handlers
+			int ret = lua_pcall(m_luaState, 1, 1, 0);
+			if (checkLuaResult(ret, __FILE__, __LINE__))
+			{
+				// See if the message was considered handled
+				bool bHandeled= lua_toboolean(m_luaState, -1);
+
+				if (bHandeled)
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 bool CommonScriptContext::addLuaCoroutineScheduler()
 {
 	// Adapted from: https://stackoverflow.com/a/24969185
@@ -245,6 +275,13 @@ void CommonScriptContext::bindCommonScriptFunctions()
 		.beginNamespace("ScriptContext")
 			.addFunction("registerTrigger", [this](const char* functionName) {
 				m_triggers.push_back(functionName);
+			})
+			.addFunction("registerMessageHandler", [this](const char* functionName) {
+				m_messageHandlers.push_back(functionName);
+			})
+			.addFunction("broadcastMessage", [this](const char* message) {
+				if (OnScriptMessage)
+					OnScriptMessage(message);
 			})
 		.endNamespace();
 }

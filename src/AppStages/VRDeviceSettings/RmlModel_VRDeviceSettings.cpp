@@ -22,7 +22,6 @@ bool RmlModel_VRDeviceSettings::init(
 	// Register Data Model Fields
 	constructor.Bind("tracker_devices", &m_vrDeviceList);
 	constructor.Bind("camera_vr_device_path", &m_cameraVRDevicePath);
-	constructor.Bind("camera_scale", &m_cameraScale);
 	constructor.Bind("mat_vr_device_path", &m_matVRDevicePath);
 	constructor.Bind("origin_vr_device_path", &m_originVRDevicePath);
 	constructor.Bind("origin_vertical_align_flag", &m_originVerticalAlignFlag);
@@ -33,12 +32,6 @@ bool RmlModel_VRDeviceSettings::init(
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const std::string vrDevicePath = ev.GetParameter<Rml::String>("value", "");
 			if (OnUpdateCameraVRDevicePath) OnUpdateCameraVRDevicePath(vrDevicePath);
-		});
-	constructor.BindEventCallback(
-		"update_camera_scale",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const float newScale = ev.GetParameter<float>("value", 1.f);
-			if (OnUpdateCameraScale) OnUpdateCameraScale(newScale);
 		});
 	constructor.BindEventCallback(
 		"update_mat_tracker_device",
@@ -67,7 +60,6 @@ bool RmlModel_VRDeviceSettings::init(
 	// Fill in the data model
 	rebuildVRDeviceList(vrDeviceManager);
 	m_cameraVRDevicePath = profile->cameraVRDevicePath;
-	m_cameraScale = profile->cameraScale;
 	m_matVRDevicePath = profile->matVRDevicePath;
 	m_originVRDevicePath = profile->originVRDevicePath;
 	m_originVerticalAlignFlag = profile->originVerticalAlignFlag;
@@ -80,7 +72,6 @@ void RmlModel_VRDeviceSettings::dispose()
 	OnUpdateCameraVRDevicePath.Clear();
 	OnUpdateMatVRDevicePath.Clear();
 	OnUpdateOriginVRDevicePath.Clear();
-	OnUpdateCameraScale.Clear();
 
 	RmlModel::dispose();
 }

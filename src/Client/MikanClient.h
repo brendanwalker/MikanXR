@@ -22,6 +22,8 @@ public:
 	MikanResult pollNextEvent(MikanEvent& message);
 	MikanResult shutdown();
 
+	MikanResult sendScriptMessage(const MikanScriptMessageInfo& message);
+
 	MikanResult getVideoSourceIntrinsics(MikanVideoSourceIntrinsics& out_intrinsics);
 	MikanResult getVideoSourceMode(MikanVideoSourceMode& out_info);
 	MikanResult getVideoSourceAttachment(MikanVideoSourceAttachmentInfo& out_info);

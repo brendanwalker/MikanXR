@@ -3,6 +3,7 @@
 
 //-- includes -----
 #include "CommonConfigFwd.h"
+#include "ScriptingFwd.h"
 #include "MikanClientTypes.h"
 #include "MulticastDelegate.h"
 #include "glm/ext/matrix_float4x4.hpp"
@@ -31,6 +32,11 @@ public:
 	void update();
 	void shutdown();
 
+	// Scripting
+	void bindScriptContect(CommonScriptContextPtr scriptContext);
+	void unbindScriptContect(CommonScriptContextPtr scriptContext);
+	void publishScriptMessageEvent(const std::string& message);
+
 	// Video Source Events
 	void publishVideoSourceOpenedEvent();
 	void publishVideoSourceClosedEvent();
@@ -56,6 +62,9 @@ protected:
 	// RPC Callbacks
 	void connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void disconnect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	
+	void invokeScriptMessageHandler(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	
 	void getVideoSourceIntrinsics(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getVideoSourceMode(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getVideoSourceAttachment(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
@@ -88,6 +97,7 @@ protected:
 private:
 	static MikanServer* m_instance;
 
+	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
 	std::map<std::string, class ClientConnectionState*> m_clientConnections;
 	class InterprocessMessageServer* m_messageServer;
 };

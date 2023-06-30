@@ -28,13 +28,14 @@ typedef int32_t MikanStencilID;
 /// The ID of a spatial anchor
 typedef int32_t MikanSpatialAnchorID;
 
-#define INVALID_MIKAN_ID			-1
-#define MAX_MIKAN_VR_DEVICES		64
-#define MAX_MIKAN_STENCILS			16
-#define MAX_MIKAN_STENCIL_NAME_LEN	128
-#define MAX_MIKAN_SPATIAL_ANCHORS	64
-#define MAX_MIKAN_ANCHOR_NAME_LEN	128
-#define ORIGIN_SPATIAL_ANCHOR_NAME	"Origin"
+#define INVALID_MIKAN_ID				-1
+#define MAX_MIKAN_VR_DEVICES			64
+#define MAX_MIKAN_STENCILS				16
+#define MAX_MIKAN_STENCIL_NAME_LEN		128
+#define MAX_MIKAN_SPATIAL_ANCHORS		64
+#define MAX_MIKAN_ANCHOR_NAME_LEN		128
+#define MAX_MIKAN_SCRIPT_MESSAGE_LEN	512
+#define ORIGIN_SPATIAL_ANCHOR_NAME		"Origin"
 
 
 // Shared Constants
@@ -313,7 +314,6 @@ typedef struct
 {
 	MikanVRDeviceID attached_vr_device_id;
 	MikanMatrix4f vr_device_offset_xform;
-	float camera_scale;
 } MikanVideoSourceAttachmentInfo;
 
 /// Static properties about a video source
@@ -354,6 +354,12 @@ typedef struct
 	char anchor_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanSpatialAnchorInfo;
 
+typedef struct
+{
+	char content[MAX_MIKAN_SCRIPT_MESSAGE_LEN];
+} MikanScriptMessageInfo;
+
+
 // Message Container
 //------------------
 typedef enum
@@ -376,7 +382,10 @@ typedef enum
 
 	// Spatial Anchor Events
 	MikanEvent_anchorPoseUpdated,
-	MikanEvent_anchorListUpdated
+	MikanEvent_anchorListUpdated,
+
+	// Script Events
+	MikanEvent_scriptMessagePosted
 } MikanEventType;
 
 typedef struct
@@ -407,6 +416,7 @@ typedef struct
 		MikanVideoSourceNewFrameEvent video_source_new_frame;
 		MikanVRDevicePoseUpdateEvent vr_device_pose_updated;
 		MikanAnchorPoseUpdateEvent anchor_pose_updated;
+		MikanScriptMessageInfo script_message_posted;
 	} event_payload;
 	MikanEventType event_type;
 } MikanEvent;

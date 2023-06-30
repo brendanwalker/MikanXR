@@ -81,6 +81,8 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_PublishRenderTargetBuffers(uint64_t fra
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeRenderTargetBuffers();
 
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SendScriptMessage(const MikanScriptMessageInfo* message);
+
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetStencilList(MikanStencilList* out_stencil_list);
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetQuadStencil(MikanStencilID stencil_id, MikanStencilQuad* out_stencil);

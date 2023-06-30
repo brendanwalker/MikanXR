@@ -3,6 +3,7 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
+#include "CommonScriptContext.h"
 #include "InterprocessRenderTargetReader.h"
 #include "InterprocessMessages.h"
 #include "MathTypeConversion.h"
@@ -146,6 +147,17 @@ public:
 		}
 
 		m_connectionInfo.renderTargetReadAccessor->dispose();
+	}
+
+	// Scripting Events
+	void publishScriptMessageEvent(const MikanScriptMessageInfo& messageEvent)
+	{
+		MikanEvent mikanEvent;
+		memset(&mikanEvent, 0, sizeof(MikanEvent));
+		mikanEvent.event_type = MikanEvent_scriptMessagePosted;
+		mikanEvent.event_payload.script_message_posted = messageEvent;
+
+		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
 	}
 
 	// Video Source Events
@@ -301,6 +313,7 @@ bool MikanServer::startup()
 
 	m_messageServer->setRPCHandler(CONNECT_FUNCTION_NAME, std::bind(&MikanServer::connect, this, _1, _2));
 	m_messageServer->setRPCHandler(DISCONNECT_FUNCTION_NAME, std::bind(&MikanServer::disconnect, this, _1, _2));
+	m_messageServer->setRPCHandler("invokeScriptMessageHandler", std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
 	m_messageServer->setRPCHandler("getVideoSourceIntrinsics", std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
 	m_messageServer->setRPCHandler("getVideoSourceMode", std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));	
 	m_messageServer->setRPCHandler("getVRDeviceList", std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
@@ -351,6 +364,40 @@ void MikanServer::shutdown()
 	m_clientConnections.clear();
 
 	m_messageServer->dispose();
+}
+
+// Scripting
+void MikanServer::bindScriptContect(CommonScriptContextPtr scriptContext)
+{
+	m_scriptContexts.push_back(scriptContext);
+	scriptContext->OnScriptMessage+= MakeDelegate(this, &MikanServer::publishScriptMessageEvent);
+}
+
+void MikanServer::unbindScriptContect(CommonScriptContextPtr scriptContext)
+{
+	for (auto it = m_scriptContexts.begin(); it < m_scriptContexts.end(); it++)
+	{
+		CommonScriptContextPtr scriptContext= it->lock();
+
+		if (scriptContext == scriptContext)
+		{
+			m_scriptContexts.erase(it);
+			scriptContext->OnScriptMessage-= MakeDelegate(this, &MikanServer::publishScriptMessageEvent);
+		}
+	}
+}
+
+void MikanServer::publishScriptMessageEvent(const std::string& message)
+{
+	MikanScriptMessageInfo messageInfo;
+	memset(&messageInfo, 0, sizeof(MikanScriptMessageInfo));
+	strncpy(messageInfo.content, message.c_str(), MAX_MIKAN_SCRIPT_MESSAGE_LEN - 1);
+	messageInfo.content[MAX_MIKAN_SCRIPT_MESSAGE_LEN - 1]= '\0';
+
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishScriptMessageEvent(messageInfo);
+	}
 }
 
 // Video Source Events
@@ -514,6 +561,32 @@ void MikanServer::disconnect(const class MikanRemoteFunctionCall* inFunctionCall
 	}
 }
 
+void MikanServer::invokeScriptMessageHandler(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult)
+{
+	MikanScriptMessageInfo messageInfo;
+	if (!inFunctionCall->extractParameters(messageInfo))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	// Find the first script context that cares about the message
+	for (auto it = m_scriptContexts.begin(); it < m_scriptContexts.end(); it++)
+	{
+		CommonScriptContextPtr scriptContext = it->lock();
+
+		if (scriptContext == scriptContext)
+		{
+			if (scriptContext->invokeScriptMessageHandler(messageInfo.content))
+			{
+				break;
+			}
+		}
+	}
+
+	outResult->setResultCode(MikanResult_Success);
+}
+
 void MikanServer::getVideoSourceIntrinsics(
 	const MikanRemoteFunctionCall* inFunctionCall, 
 	MikanRemoteFunctionResult* outResult)
@@ -601,13 +674,6 @@ void MikanServer::getVideoSourceAttachment(
 				glm::translate(glm::mat4(1.0), cameraOffsetPos) *
 				glm::mat4_cast(cameraOffsetQuat);
 			info.vr_device_offset_xform = glm_mat4_to_MikanMatrix4f(cameraOffsetXform);
-
-			// Get the camera parent anchor properties
-			{
-				ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
-
-				info.camera_scale = profile->cameraScale;
-			}
 
 			outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanVideoSourceAttachmentInfo));
 			outResult->setResultCode(MikanResult_Success);

@@ -32,6 +32,8 @@ public:
 	AppStage_Compositor(class App* app);
 	virtual ~AppStage_Compositor();
 
+	inline CompositorScriptContextPtr getCompositorScriptContext() { return m_scriptContext; }
+
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void pause() override;

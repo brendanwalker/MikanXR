@@ -23,7 +23,6 @@
 
 // -- Profile Config
 const std::string ProfileConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
-const std::string ProfileConfig::k_cameraScalePropertyId= "cameraScale";
 const std::string ProfileConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
 const std::string ProfileConfig::k_originVRDevicePathPropertyId= "originVRDevicePath";
 const std::string ProfileConfig::k_originVerticalAlignFlagPropertyId= "originVerticalAlignFlag";
@@ -49,7 +48,6 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, videoSourcePath("")
 	// Tracker
 	, cameraVRDevicePath("")
-	, cameraScale(1.f)
 	, matVRDevicePath("")
 	, originVRDevicePath("")
 	, originVerticalAlignFlag(false)
@@ -90,7 +88,6 @@ configuru::Config ProfileConfig::writeToJSON()
 	pt["videoSourcePath"]= videoSourcePath;
 	// Tracker
 	pt["cameraVRDevicePath"]= cameraVRDevicePath;
-	pt["cameraScale"]= cameraScale;
 	pt["matVRDevicePath"]= matVRDevicePath;
 	pt["originVRDevicePath"]= originVRDevicePath;
 	pt["originVerticalAlignFlag"]= originVerticalAlignFlag;
@@ -145,7 +142,6 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 
 	// VR Devices
 	cameraVRDevicePath = pt.get_or<std::string>("cameraVRDevicePath", cameraVRDevicePath);
-	cameraScale = pt.get_or<float>("cameraScale", cameraScale);
 
 	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);
 	originVRDevicePath = pt.get_or<std::string>("originVRDevicePath", originVRDevicePath);

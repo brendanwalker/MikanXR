@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ScriptingFwd.h"
+#include "MulticastDelegate.h"
 
 #include <filesystem>
 #include <memory>
@@ -25,6 +26,12 @@ public:
 	{ return m_triggers; }
 	bool invokeScriptTrigger(const std::string& triggerName);
 
+	const std::vector<std::string>& getScriptMessageHandler() const
+	{ return m_messageHandlers; }
+	bool invokeScriptMessageHandler(const std::string& message);
+
+	MulticastDelegate<void(const std::string& message)> OnScriptMessage;
+
 protected:
 	static int panicHandler(lua_State* state);
 	bool checkLuaResult(int ret, const char* filename, int line);
@@ -35,5 +42,6 @@ protected:
 
 	std::filesystem::path m_scriptFilename;
 	std::vector<std::string> m_triggers;
+	std::vector<std::string> m_messageHandlers;
 	lua_State* m_luaState;
 };
