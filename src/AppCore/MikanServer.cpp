@@ -383,6 +383,7 @@ void MikanServer::unbindScriptContect(CommonScriptContextPtr scriptContext)
 		{
 			m_scriptContexts.erase(it);
 			scriptContext->OnScriptMessage-= MakeDelegate(this, &MikanServer::publishScriptMessageEvent);
+			break;
 		}
 	}
 }
