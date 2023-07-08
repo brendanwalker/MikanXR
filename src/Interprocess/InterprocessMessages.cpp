@@ -291,7 +291,15 @@ bool InterprocessMessageClient::tryFetchNextServerEvent(MikanEvent* outEvent)
 
 	auto recvd_size= 0ULL;
 	unsigned int priority= 0;
-	return m_severEventQueue->try_receive(outEvent, sizeof(MikanEvent), recvd_size, priority) && recvd_size > 0;
+	bool bSuccess= m_severEventQueue->try_receive(outEvent, sizeof(MikanEvent), recvd_size, priority) && recvd_size > 0;
+
+	// Special case for MikanXR disconnecting on the client
+	if (bSuccess && outEvent && outEvent->event_type == MikanEvent_disconnected)
+	{
+		m_isConnected= false;
+	}
+
+	return bSuccess;
 }
 
 MikanResult InterprocessMessageClient::callRemoteFunction(
