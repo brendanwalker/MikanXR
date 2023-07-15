@@ -1,0 +1,46 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Scripting</title>
+        <style>
+            body
+            {
+                position:absolute; 
+                right:0px;
+                top: -45dp;
+                width: 350dp;
+                height: 100%;
+            }
+            .filename-box
+            {
+                margin-top: 5dp;
+                decorator: gradient( vertical #415857 #5990A3 );
+                border: 3dp #415857;
+                border-radius: 8dp;
+            }
+            filename
+            {
+                font-size: 14dp;
+                vertical-align: -5dp;
+            }
+        </style>
+	</head>
+	<body template="window">
+        <panel id="controls" data-model="compositor_scripting">
+            <div class="filename-box">
+                <filename>{{compositor_script_path | to_short_path(30)}}</filename>
+                <button style="width: 40dp" data-event-click="select_compositor_script_file()">...</button>
+            </div>
+            <br/>
+            <div>
+                <button data-event-click="reload_compositor_script_file()">Reload Script</button>
+            </div>
+            <br/>
+            <div data-for="script_trigger : script_triggers">
+                <button data-event-click="invoke_script_trigger(script_trigger)">{{script_trigger}}</button>
+            </div>
+        </panel>
+    </body>
+</rml>

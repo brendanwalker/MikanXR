@@ -2,17 +2,10 @@
 #include "DeviceInterface.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
+#include "VideoSourceView.h"
+#include "VRDeviceView.h"
 
 #include "opencv2/opencv.hpp"
-
-glm::mat4 computeGLMCameraTransformMatrix(const IVideoSourceInterface *videoSource)
-{
-    const glm::quat glm_quat= MikanQuatd_to_glm_dquat(videoSource->getCameraOffsetOrientation());
-    const glm::vec3 glm_pos= MikanVector3d_to_glm_dvec3(videoSource->getCameraOffsetPosition());
-    const glm::mat4 glm_camera_xform = glm_mat4_from_pose(glm_quat, glm_pos);
-
-    return glm_camera_xform;
-}
 
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
 {
@@ -40,11 +33,13 @@ glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
     return modelView;
 }
 
-void computeOpenCVCameraExtrinsicMatrix(const IVideoSourceInterface *videoSource,
-                                               cv::Matx34f &out)
+void computeOpenCVCameraExtrinsicMatrix(
+    VideoSourceViewPtr videoSource, 
+    VRDeviceViewPtr trackingPuck,
+    cv::Matx34f &out)
 {
     // Extrinsic matrix is the inverse of the camera pose matrix
-    const glm::mat4 glm_camera_xform = computeGLMCameraTransformMatrix(videoSource);
+    const glm::mat4 glm_camera_xform = videoSource->getCameraPose(trackingPuck);
     const glm::mat4 glm_mat = glm::inverse(glm_camera_xform);
 
     out(0, 0) = glm_mat[0][0]; out(0, 1) = glm_mat[1][0]; out(0, 2) = glm_mat[2][0]; out(0, 3) = glm_mat[3][0];
@@ -133,48 +128,57 @@ void convertOpenCVCameraRelativePoseToGLMMat(
 	outXform = RTMat * flipAboutX;
 }
 
-void computeOpenCVCameraIntrinsicMatrix(const IVideoSourceInterface *videoSource,
-                                        VideoFrameSection section,
-                                        cv::Matx33d &intrinsicOut,
-                                        cv::Matx81d &distortionOut)
+void computeOpenCVCameraIntrinsicMatrix(
+    VideoSourceViewPtr videoSource,
+    VideoFrameSection section,
+    cv::Matx33f& intrinsicOut)
 {
     MikanVideoSourceIntrinsics tracker_intrinsics;
     videoSource->getCameraIntrinsics(tracker_intrinsics);
 
     MikanMatrix3d* camera_matrix= nullptr;
-    MikanDistortionCoefficients* distortion_coefficients= nullptr;
 
     if (tracker_intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
     {
         if (section == VideoFrameSection::Left)
         {
             camera_matrix= &tracker_intrinsics.intrinsics.stereo.left_camera_matrix;
-            distortion_coefficients = &tracker_intrinsics.intrinsics.stereo.left_distortion_coefficients;
         }
         else if (section == VideoFrameSection::Right)
         {
             camera_matrix= &tracker_intrinsics.intrinsics.stereo.right_camera_matrix;
-            distortion_coefficients = &tracker_intrinsics.intrinsics.stereo.right_distortion_coefficients;
         }
     }
     else if (tracker_intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
     {
         camera_matrix = &tracker_intrinsics.intrinsics.mono.camera_matrix;
-        distortion_coefficients = &tracker_intrinsics.intrinsics.mono.distortion_coefficients;
     }
 
-    if (camera_matrix != nullptr && distortion_coefficients != nullptr)
+    if (camera_matrix != nullptr)
     {  
-        intrinsicOut= MikanMatrix3d_to_cv_mat33d(*camera_matrix);
-        distortionOut= Mikan_distortion_to_cv_vec8(*distortion_coefficients);
+        intrinsicOut= MikanMatrix3d_to_cv_mat33f(*camera_matrix);
     }
 }
 
-void extractCameraIntrinsicMatrixParameters(const cv::Matx33f &intrinsic_matrix,
-											float &out_focal_length_x,
-											float &out_focal_length_y,
-											float &out_principal_point_x,
-											float &out_principal_point_y)
+void extractCameraIntrinsicMatrixParameters(
+    const MikanMatrix3d& intrinsic_matrix,
+    float& out_focal_length_x,
+    float& out_focal_length_y,
+    float& out_principal_point_x,
+    float& out_principal_point_y)
+{
+	out_focal_length_x = intrinsic_matrix.x0;
+	out_focal_length_y = intrinsic_matrix.y1;
+	out_principal_point_x = intrinsic_matrix.z0;
+	out_principal_point_y = intrinsic_matrix.z1;
+}
+
+void extractCameraIntrinsicMatrixParameters(
+    const cv::Matx33f &intrinsic_matrix,
+    float &out_focal_length_x,
+    float &out_focal_length_y,
+    float &out_principal_point_x,
+    float &out_principal_point_y)
 {
 	out_focal_length_x= intrinsic_matrix(0, 0);
 	out_focal_length_y= intrinsic_matrix(1, 1);
@@ -182,10 +186,11 @@ void extractCameraIntrinsicMatrixParameters(const cv::Matx33f &intrinsic_matrix,
 	out_principal_point_y= intrinsic_matrix(1, 2);
 }
 
-bool computeOpenCVCameraRectification(const IVideoSourceInterface *videoSource,
-                                        VideoFrameSection section,
-                                        cv::Matx33d &rotationOut,
-                                        cv::Matx34d &projectionOut)
+bool computeOpenCVCameraRectification(
+    VideoSourceViewPtr videoSource,
+    VideoFrameSection section,
+    cv::Matx33d &rotationOut,
+    cv::Matx34d &projectionOut)
 {
     MikanVideoSourceIntrinsics tracker_intrinsics;
     videoSource->getCameraIntrinsics(tracker_intrinsics);

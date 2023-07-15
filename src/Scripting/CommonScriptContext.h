@@ -1,20 +1,21 @@
 #pragma once
 
-#include <vector>
-#include <string>
+#include "ScriptingFwd.h"
+#include "MulticastDelegate.h"
 
-//-- predeclarations -----
-struct lua_State;
-typedef struct lua_State lua_State;
+#include <filesystem>
+#include <memory>
+#include <string>
+#include <vector>
 
 //-- definitions -----
-class CommonScriptContext
+class CommonScriptContext : public std::enable_shared_from_this<CommonScriptContext> 
 {
 public:
 	CommonScriptContext();
 	virtual ~CommonScriptContext();
 
-	bool loadScript(const std::string& scriptPath);
+	bool loadScript(const std::filesystem::path& scriptPath);
 	bool reloadScript();
 	void disposeScriptState();
 	void updateScript();
@@ -25,16 +26,22 @@ public:
 	{ return m_triggers; }
 	bool invokeScriptTrigger(const std::string& triggerName);
 
+	const std::vector<std::string>& getScriptMessageHandler() const
+	{ return m_messageHandlers; }
+	bool invokeScriptMessageHandler(const std::string& message);
+
+	MulticastDelegate<void(const std::string& message)> OnScriptMessage;
+
 protected:
 	static int panicHandler(lua_State* state);
 	bool checkLuaResult(int ret, const char* filename, int line);
 
 	virtual bool bindContextFunctions();
 	void bindCommonScriptFunctions();
-	void bindGLMFunctions();
 	bool addLuaCoroutineScheduler();
 
-	std::string m_scriptFilename;
+	std::filesystem::path m_scriptFilename;
 	std::vector<std::string> m_triggers;
+	std::vector<std::string> m_messageHandlers;
 	lua_State* m_luaState;
 };

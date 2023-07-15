@@ -2,27 +2,11 @@
 #include "PathUtils.h"
 #include "StringUtils.h"
 
-#include <stdlib.h>
 #include <assert.h>
-
-#include <locale>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <iomanip>
-
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <filesystem>
 
 #if defined WIN32 || defined _WIN32 || defined WINCE
 #include <windows.h>
-#include <direct.h>
-#include <algorithm>
-
-#ifdef _MSC_VER
-#pragma warning (disable: 4996) // 'This function or variable may be unsafe': vsnprintf
-#define vsnprintf _vsnprintf
-#endif
 #else
 #include <sys/time.h>
 #include <sys/types.h>
@@ -36,28 +20,28 @@
 // -- public methods -----
 namespace PathUtils
 {
-	std::string getCurrentDirectory()
+	std::filesystem::path getResourceDirectory()
 	{
-		char buff[FILENAME_MAX];
+		std::filesystem::path resourceDir= std::filesystem::current_path();
+		resourceDir/= std::string("resources");
 
-#if defined WIN32 || defined _WIN32 || defined WINCE
-		_getcwd(buff, FILENAME_MAX);
-#else
-		getcwd(buff, FILENAME_MAX);
-#endif
-
-		std::string current_working_dir(buff);
-		return current_working_dir;
+		return resourceDir;
 	}
 
-	std::string getResourceDirectory()
+	std::filesystem::path makeAbsoluteResourceFilePath(const std::filesystem::path& relative_path)
 	{
-		return getCurrentDirectory() + std::string("/resources");
+		if (relative_path.is_absolute())
+			return relative_path;
+
+		std::filesystem::path full_path(getResourceDirectory());
+		full_path /= relative_path;
+
+		return full_path;
 	}
 
-	std::string getHomeDirectory()
+	std::filesystem::path getHomeDirectory()
 	{
-		std::string home_dir;
+		std::filesystem::path home_dir;
 
 #if defined WIN32 || defined _WIN32 || defined WINCE
 		size_t homedir_buffer_req_size;
@@ -79,102 +63,76 @@ namespace PathUtils
 		return home_dir;
 	}
 
-	bool createDirectory(const std::string& path)
+	std::vector<std::string> listFilenamesInDirectory(
+		const std::filesystem::path& path, 
+		const std::string& extension_filter)
 	{
-		bool bSuccess = false;
+		std::vector<std::string> filenames;
 
-#if defined WIN32 || defined _WIN32 || defined WINCE
-		if (_mkdir(path.c_str()) == 0)
+		for (auto const& dir_entry : std::filesystem::directory_iterator{path})
 		{
-			bSuccess = true;
-		}
-#else 
-		mode_t nMode = 0733; // UNIX style permissions
-		if (mkdir(path.c_str(), nMode) == 0)
-		{
-			bSuccess = true;
-		}
-#endif
-		else if (errno == EEXIST)
-		{
-			bSuccess = true;
-		}
-
-		return bSuccess;
-	}
-
-	bool fetchFilenamesInDirectory(std::string path, std::vector<std::string>& out_filenames)
-	{
-		bool bSuccess = false;
-
-#if defined WIN32 || defined _WIN32 || defined WINCE
-		WIN32_FIND_DATA FindFileData;
-		HANDLE hFind;
-
-		hFind = FindFirstFileA(path.c_str(), &FindFileData);
-		if (hFind != INVALID_HANDLE_VALUE)
-		{
-			out_filenames.push_back(std::string(FindFileData.cFileName));
-
-			while (FindNextFileA(hFind, &FindFileData))
+			if (dir_entry.is_regular_file())
 			{
-				out_filenames.push_back(std::string(FindFileData.cFileName));
+				const std::filesystem::path& filename= dir_entry.path().filename();
+
+				if (extension_filter.empty() || filename.extension() == extension_filter)
+				{
+					filenames.push_back(filename.string());
+				}
 			}
-
-			FindClose(hFind);
-
-			bSuccess = true;
 		}
-#else 
-		DIR* dir;
-		dirent* ent;
 
-		if ((dir = opendir(path.c_str())) != nullptr)
+		return filenames;
+	}
+
+	std::vector<std::string> listDirectoriesInDirectory(
+		const std::filesystem::path& path)
+	{
+		std::vector<std::string> dirnames;
+
+		for (auto const& dir_entry : std::filesystem::directory_iterator{path})
 		{
-			/* print all the files and directories within directory */
-			while ((ent = readdir(dir)) != nullptr)
+			if (dir_entry.is_directory())
 			{
-				out_filenames.push_back(std::string(ent->d_name));
+				const std::filesystem::path& filename = dir_entry.path().filename();
+
+				dirnames.push_back(filename.string());
 			}
-
-			closedir(dir);
-			bSuccess = true;
 		}
-#endif
-		return bSuccess;
+
+		return dirnames;
 	}
 
-	bool doesFileExist(const std::string& filename)
+	std::vector<std::string> listVolumes()
 	{
-		std::ifstream file(filename.c_str());
+		std::vector<std::string> result;
 
-		return (bool)file;
+		#if defined WIN32 || defined _WIN32 || defined WINCE
+		char szLogicalDrives[MAX_PATH] = {0};
+		DWORD dwResult = GetLogicalDriveStringsA(MAX_PATH, szLogicalDrives);
+		if (dwResult > 0 && dwResult <= MAX_PATH)
+		{
+			char* szSingleDrive = szLogicalDrives;
+			while (*szSingleDrive)
+			{
+				result.push_back(szSingleDrive);
+
+				// get the next drive
+				szSingleDrive += strlen(szSingleDrive) + 1;
+			}
+		}
+		#else
+		//TODO: Just list the root directory for now unix systems
+		result.push_back("/");
+		#endif
+
+		return result;
 	}
 
-	bool doesDirectoryExist(const std::string& dirPath)
-	{
-		struct stat info;
-
-		if (stat(dirPath.c_str(), &info) != 0)
-			return false;
-		else if (info.st_mode & S_IFDIR)  // S_ISDIR() doesn't exist on my windows 
-			return true;
-		else
-			return false;
-	}
-
-	std::string baseFileName(const std::string& path, std::string delims)
-	{
-		return path.substr(path.find_last_of(delims) + 1);
-	}
-
-	std::string removeFileExtension(std::string& filename)
-	{
-		std::string::size_type const p(filename.find_last_of('.'));
-		return p > 0 && p != std::string::npos ? filename.substr(0, p) : filename;
-	}
-
-	std::string makeTimestampedFilePath(const std::string& parentDir, const std::string& prefix, const std::string& suffix)
+	std::filesystem::path makeTimestampedFilePath(
+		const std::filesystem::path& parentDir, 
+		const std::string& prefix, 
+		const std::string& suffix)
 	{
 		time_t t = time(0);
 		struct tm* now = localtime(&t);
@@ -183,9 +141,27 @@ namespace PathUtils
 		strftime(buffer, 80, "%Y_%m_%d_%H_%M_%S", now);
 
 		char filename[256];
-		StringUtils::formatString(filename, 256, "/%s_%s%s", prefix.c_str(), buffer, suffix.c_str());
+		StringUtils::formatString(filename, 256, "%s_%s%s", prefix.c_str(), buffer, suffix.c_str());
 
-		std::string result= parentDir + filename;
+		std::filesystem::path result= parentDir;
+		result/= filename;
+
 		return result;
+	}
+
+	std::string createTrimmedPathString(
+		const std::filesystem::path& path,
+		const size_t maxLength)
+	{
+		const std::string pathString = path.string();
+
+		if (pathString.length() > maxLength)
+		{
+			return "..." + pathString.substr(pathString.length() - maxLength);
+		}
+		else
+		{
+			return pathString;
+		}
 	}
 };

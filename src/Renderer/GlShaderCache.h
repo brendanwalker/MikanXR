@@ -1,5 +1,8 @@
 #pragma once
 
+#include "RendererFwd.h"
+
+#include <memory>
 #include <string>
 #include <map>
 
@@ -14,10 +17,10 @@ public:
 	bool startup();
 	void shutdown();
 
-	class GlProgram* fetchCompiledGlProgram(const class GlProgramCode* code);
+	GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code);
 
 private:
 	static GlShaderCache* m_instance;
 
-	std::map<size_t, class GlProgram*> m_compileProgramCache;
+	std::map<std::string, GlProgramPtr> m_compileProgramCache;
 };

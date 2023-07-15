@@ -1,39 +1,53 @@
 #pragma once
 
+#include "IGLSceneRenderable.h"
+#include "IGlMesh.h"
+#include "RendererFwd.h"
+
+#include <memory>
 #include <string>
+
 #include "glm/ext/matrix_float4x4.hpp"
 
-class GlStaticMeshInstance
+
+class GlStaticMeshInstance : public IGlSceneRenderable, public std::enable_shared_from_this<GlStaticMeshInstance>
 {
 public:
 	GlStaticMeshInstance() = default;
 	GlStaticMeshInstance(
 		const std::string& name, 
-		const class GlTriangulatedMesh* mesh, 
-		const class GlMaterial* material);
+		IGlMeshConstPtr mesh, 
+		GlMaterialConstPtr material);
+	GlStaticMeshInstance(
+		const std::string& name,
+		IGlMeshConstPtr mesh,
+		GlMaterialInstancePtr materialInstance);
 	virtual ~GlStaticMeshInstance();
 
 	const std::string& getName() const { return m_name; }
 
-	void bindToScene(class GlScene* scene);
+	void bindToScene(GlScenePtr scene);
 	void removeFromBoundScene();
 
-	inline bool getVisible() const { return m_visible; }
-	inline void setVisible(bool bNewVisible) { m_visible = bNewVisible; }
+	inline IGlMeshConstPtr getMesh() const { return m_mesh; }
 
-	inline const glm::mat4& getModelMatrix() const { return m_modelMatrix; }
-	inline void setModelMatrix(const glm::mat4& mat) { m_modelMatrix = mat; }
-
-	inline class GlMaterialInstance* getMaterialInstance() const { return m_materialInstance; }
-	inline const class GlTriangulatedMesh* getMesh() const { return m_mesh; }
-
-	void render() const;
+	// -- IGlSceneRenderable
+	virtual IGlSceneRenderableConstPtr getConstSelfPointer() const override;
+	virtual bool getVisible() const override;
+	virtual void setVisible(bool bNewVisible) override;
+	virtual const glm::mat4& getModelMatrix() const override;
+	virtual const glm::mat4& getNormalMatrix() const override;
+	virtual void setModelMatrix(const glm::mat4& mat) override;
+	virtual const GlMaterialInstanceConstPtr getMaterialInstanceConst() const override;
+	virtual GlMaterialInstancePtr getMaterialInstance() const override;
+	virtual void render() const override;
 
 private:
 	std::string m_name;
 	bool m_visible= false;
 	glm::mat4 m_modelMatrix;
-	class GlMaterialInstance* m_materialInstance= nullptr;
-	const class GlTriangulatedMesh* m_mesh= nullptr;
-	class GlScene* m_boundScene= nullptr;
+	glm::mat4 m_normalMatrix;
+	GlMaterialInstancePtr m_materialInstance= nullptr;
+	IGlMeshConstPtr m_mesh= nullptr;
+	GlSceneWeakPtr m_boundScene;
 };

@@ -6,6 +6,7 @@
 #include "DeviceInterface.h"
 #include "MikanClientTypes.h"
 #include "WMFConfig.h"
+#include "VideoFwd.h"
 
 #include <string>
 #include <vector>
@@ -13,12 +14,12 @@
 #include <deque>
 
 // -- definitions -----
-class WMFStereoTrackerConfig : public WMFVideoConfig
+class WMFStereoVideoConfig : public WMFVideoConfig
 {
 public:
-    WMFStereoTrackerConfig(const std::string &fnamebase = "WMFStereoTrackerConfig");
+    WMFStereoVideoConfig(const std::string &fnamebase = "WMFStereoTrackerConfig");
     
-    virtual const configuru::Config writeToJSON() override;
+    virtual configuru::Config writeToJSON() override;
     virtual void readFromJSON(const configuru::Config &pt) override;
 
     MikanStereoIntrinsics tracker_intrinsics;
@@ -75,14 +76,14 @@ public:
 	void setVideoSourceListener(IVideoSourceListener *listener) override;
 
     // -- Getters
-    inline const WMFStereoTrackerConfig &getConfig() const
+    inline WMFStereoVideoConfigConstPtr getConfig() const
     { return m_cfg; }
 
 protected:
-	const class VideoCapabilitiesConfig *m_capabilities;
+	VideoCapabilitiesConfigConstPtr m_capabilities;
 	const struct VideoModeConfig *m_currentMode;
 
-    WMFStereoTrackerConfig m_cfg;
+    WMFStereoVideoConfigPtr m_cfg;
     std::string m_device_identifier;
 
 	class WMFVideoDevice *m_videoDevice;

@@ -1,0 +1,77 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Sources</title>
+        <style>
+            body
+            {
+                position:absolute; 
+                right:0px;
+                top: -45dp;
+                width: 350dp;
+                height: 100%;
+            }
+            label{
+                font-size: 14dp;
+                color: #17202A;
+                margin-left: 0dp;
+                vertical-align: 14dp;
+            }
+        </style>
+	</head>
+	<body template="window">
+        <panel id="controls" data-model="compositor_sources">
+            <h2>Clients</h2>
+			<div class="picker" data-if="client_sources.size > 0">
+				<div data-for="source : client_sources">
+                    <label>{{source.source_name}}: {{source.source_value}}</label>
+                    <br/>    
+                    <button data-event-click="screenshot(it_index)">Screenshot</button>
+				</div>        
+            </div>
+            <div data-if="client_sources.size == 0">
+                <label>No connected clients</label>
+            </div>
+            <div data-if="float_sources.size > 0">
+                <h2>Float Sources</h2>
+				<div data-for="source : float_sources">
+                    <label>{{source.source_name}}: {{source.source_value}}</label>
+				</div> 
+            </div>
+            <div data-if="float2_sources.size > 0">
+                <h2>Float2 Sources</h2>
+				<div data-for="source : float2_sources">
+                    <label>{{source.source_name}}: {{source.source_value}}</label>
+				</div> 
+            </div>
+            <div data-if="float3_sources.size > 0">
+                <h2>Float3 Sources</h2>
+				<div data-for="source : float3_sources">
+                    <label>{{source.source_name}}: {{source.source_value}}</label>
+				</div> 
+            </div>
+            <div data-if="float4_sources.size > 0">
+                <h2>Float4 Sources</h2>
+				<div data-for="source : float4_sources">
+                    <label>{{source.source_name}}: {{source.source_value}}</label>
+				</div> 
+            </div>
+            <div data-if="mat4_sources.size > 0">
+                <h2>Mat4 Sources</h2>
+				<div data-for="source : float4_sources">
+                    <label>{{source.source_name}}</label>
+                    <br/>
+                    <label>{{source.source_value}}</label>
+				</div> 
+            </div>
+            <div data-if="color_texture_sources.size > 0">
+                <h2>Color Texture Sources</h2>
+				<div data-for="color_texture_name : color_texture_sources">
+                    <label>{{color_texture_name}}</label>
+				</div> 
+            </div>
+        </panel>
+    </body>
+</rml>

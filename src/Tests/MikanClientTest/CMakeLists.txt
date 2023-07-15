@@ -10,6 +10,8 @@ file(GLOB MIKAN_TEST_SRC
     "${ROOT_DIR}/src/Renderer/GlCommon.cpp"
     "${ROOT_DIR}/src/Renderer/GlProgram.h"
     "${ROOT_DIR}/src/Renderer/GlProgram.cpp"
+    "${ROOT_DIR}/src/Renderer/GlProgramConstants.h"
+    "${ROOT_DIR}/src/Renderer/GlProgramConstants.cpp"
     "${ROOT_DIR}/src/Renderer/GlTexture.h"
     "${ROOT_DIR}/src/Renderer/GlTexture.cpp"
 )
@@ -34,6 +36,7 @@ list(APPEND MIKAN_TEST_REQ_LIBS
 add_executable(Mikan_Test ${MIKAN_TEST_SRC})
 target_include_directories(Mikan_Test PUBLIC ${MIKAN_TEST_INCL_DIRS})
 target_link_libraries(Mikan_Test ${MIKAN_TEST_REQ_LIBS})
+SET_TARGET_PROPERTIES(Mikan_Test PROPERTIES FOLDER Test)
 
 # Runtime dependencies
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)

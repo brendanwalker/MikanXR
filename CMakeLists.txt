@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.15)
 project(Mikan VERSION 1.0.0)
 
 set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
@@ -19,3 +19,4 @@ include(cmake/Installer.cmake)
 
 # Step into the subdirectories
 add_subdirectory(src)
+add_subdirectory(bindings)

@@ -21,7 +21,7 @@ class VideoSourceManagerConfig : public CommonConfig
 public:
 	VideoSourceManagerConfig(const std::string& fnamebase = "VideoSourceManagerConfig");
 
-	virtual const configuru::Config writeToJSON();
+	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	// See https://en.wikipedia.org/wiki/Real-Time_Messaging_Protocol#:~:text=The%20RTMP%20protocol%20has%20multiple,(TLS%2FSSL)%20connection.
@@ -74,6 +74,7 @@ public:
 	VideoSourceViewPtr getCurrent() const;
 	bool goPrevious();
 	bool goNext();
+	bool goToIndex(int new_index);
 
 private:
 	VideoSourceList m_videoSourceList;

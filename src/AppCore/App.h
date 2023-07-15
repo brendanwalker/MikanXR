@@ -2,13 +2,18 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "MulticastDelegate.h"
+#include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemFwd.h"
 #include "SDL_events.h"
+
+#include <memory>
 #include <vector>
 #include <assert.h>
 #include <stdint.h>
 
 //-- definitions -----
-class App
+class App 
 {
 public:
 	App();
@@ -16,13 +21,15 @@ public:
 
 	static App* getInstance() { return m_instance; }
 
-	inline class ProfileConfig* getProfileConfig() const { return m_profileConfig; }
+	inline ProfileConfigPtr getProfileConfig() const { return m_profileConfig; }
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
+	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemManager; }
 	inline class Renderer* getRenderer() const { return m_renderer; }
-	inline class GlShaderCache* getShaderCache() const { return m_shaderCache; }
-	inline class GlBakedTextCache* getBakedTextCache() const { return m_bakedTextCache; }
+	inline class FontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
+	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
+	inline class GlFrameCompositor* getFrameCompositor() const { return m_frameCompositor; }
 
 	inline float getFPS() const { return m_fps; }
 
@@ -76,6 +83,9 @@ public:
 		}
 	}
 
+	MulticastDelegate<void(AppStage* appStage)> OnAppStageEntered;
+	MulticastDelegate<void(AppStage* appStage)> OnAppStageExited;
+
 protected:
 	bool startup(int argc, char** argv);
 	void shutdown();
@@ -83,13 +93,16 @@ protected:
 	void onSDLEvent(SDL_Event& e);
 
 	void update();
+	void processPendingAppStageOps();
+	void updateAutoSave(float deltaSeconds);
 	void render();
 
 private:
 	static App* m_instance;
 
 	// Profile Config
-	class ProfileConfig* m_profileConfig= nullptr;
+	ProfileConfigPtr m_profileConfig;
+	float m_profileSaveCooldown= -1.f;
 
 	// Mikan API Server
 	class MikanServer* m_mikanServer= nullptr;
@@ -100,17 +113,20 @@ private:
 	// Input Manager
 	class InputManager* m_inputManager= nullptr;
 
+	// Rml UI Manager
+	class RmlManager* m_rmlManager= nullptr;
+
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;
+
+	// Object System manager
+	ObjectSystemManagerPtr m_objectSystemManager;
 
 	// OpenGL renderer
 	class Renderer* m_renderer= nullptr;
 
-	// OpenGL shader program chache
-	class GlShaderCache *m_shaderCache = nullptr;
-
 	// OpenGL/SDL font/baked text string texture cache
-	class GlBakedTextCache* m_bakedTextCache = nullptr;
+	class FontManager* m_fontManager = nullptr;
 
 	// Keeps track of currently connected camera
 	class VideoSourceManager* m_videoSourceManager = nullptr;

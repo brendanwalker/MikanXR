@@ -16,14 +16,6 @@ OpenCVCameraEnumerator::OpenCVCameraEnumerator()
 	next();
 }
 
-OpenCVCameraEnumerator::~OpenCVCameraEnumerator()
-{
-	if (m_currentDeviceCapabilities != nullptr)
-	{
-		delete m_currentDeviceCapabilities;
-	}
-}
-
 bool OpenCVCameraEnumerator::isValid() const
 {
 	return m_currentDeviceCapabilities != nullptr;
@@ -41,7 +33,7 @@ bool OpenCVCameraEnumerator::next()
 
 	while (!bFoundValid && m_deviceIndex < MAX_OPENCV_CAMERA_PORTS)
 	{
-		if (tryFetchDeviceCapabilities())			
+		if (tryFetchDeviceCapabilities())
 		{			
 			bFoundValid = true;
 		}
@@ -56,11 +48,7 @@ bool OpenCVCameraEnumerator::next()
 
 bool OpenCVCameraEnumerator::tryFetchDeviceCapabilities()
 {
-	if (m_currentDeviceCapabilities != nullptr)
-	{
-		delete m_currentDeviceCapabilities;
-		m_currentDeviceCapabilities= nullptr;
-	}
+	m_currentDeviceCapabilities.reset();
 
 	cv::VideoCapture videoSource;
 	if (videoSource.open(m_deviceIndex))
@@ -77,7 +65,7 @@ bool OpenCVCameraEnumerator::tryFetchDeviceCapabilities()
 
 			m_devicePath= szDeviceName;
 
-			m_currentDeviceCapabilities = new VideoCapabilitiesConfig(m_devicePath);
+			m_currentDeviceCapabilities = std::make_shared<VideoCapabilitiesConfig>(m_devicePath);
 			m_currentDeviceCapabilities->friendlyName = m_devicePath;
 			m_currentDeviceCapabilities->deviceType = eDeviceType::MonoVideoSource;
 

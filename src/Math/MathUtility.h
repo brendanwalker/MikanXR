@@ -18,17 +18,17 @@
 #define k_real64_epsilon DBL_EPSILON
 
 #define k_real_pi 3.14159265f
-#define k_real_two_pi 2.f*k_real_pi // 360 degrees
-#define k_real_half_pi 0.5f*k_real_pi // 90 degrees
-#define k_real_quarter_pi 0.25f*k_real_pi // 45 degrees
+#define k_real_two_pi (2.f*k_real_pi) // 360 degrees
+#define k_real_half_pi (0.5f*k_real_pi) // 90 degrees
+#define k_real_quarter_pi (0.25f*k_real_pi) // 45 degrees
 
 #define k_degrees_to_radians (k_real_pi / 180.f)
-#define k_radians_to_degreees (180.f / k_real_pi)
+#define k_radians_to_degrees (180.f / k_real_pi)
 
 #define k_real64_pi 3.14159265358979323846
-#define k_real64_two_pi 2.0*k_real64_pi // 360 degrees
-#define k_real64_half_pi 0.5*k_real64_pi // 90 degrees
-#define k_real64_quarter_pi 0.25*k_real64_pi // 45 degrees
+#define k_real64_two_pi (2.0*k_real64_pi) // 360 degrees
+#define k_real64_half_pi (0.5*k_real64_pi) // 90 degrees
+#define k_real64_quarter_pi (0.25*k_real64_pi) // 45 degrees
 
 #define k_real64_degrees_to_radians (k_real64_pi / 180.0)
 #define k_real64_radians_to_degreees (180.0 / k_real64_pi)
@@ -47,10 +47,10 @@
 #define is_double_nearly_zero(x) is_double_nearly_equal(x, 0.0, DBL_EPSILON)
 
 #ifndef sgn
-#define sgn(x) (((x) >= 0) ? 1 : -1)
+#define sgn(x) (((x) >= 0.f) ? 1.f : -1.f)
 #endif
 
-#ifdef NDEBUG
+#ifdef _DEBUG
 #define assert_valid_float(x) assert(is_valid_float(x))
 #else
 #define assert_valid_float(x)     ((void)0)

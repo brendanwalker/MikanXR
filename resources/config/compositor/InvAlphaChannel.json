@@ -1,0 +1,47 @@
+{
+	"layers":  [
+		{
+			"verticalFlip":       true,
+			"blendMode":          "blendOff",
+			"shaderConfig":       {
+				"materialName":     "rgbUndistortionFrame",
+				"textureSourceMap": {
+					"distortion": "distortionTexture",
+					"rgbTexture": "videoTexture"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "noStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "noStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "noStencil"
+			}
+		},
+		{
+			"verticalFlip":       true,
+			"blendMode":          "blendOn",
+			"shaderConfig":       {
+				"materialName":     "rgbInvAlphaFrame",
+				"textureSourceMap": {
+					"rgbaTexture": "clientRenderTexture_0"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "insideStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "noStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "noStencil"
+			}
+		}
+	],
+	"name":    "Inv Alpha Channel",
+	"builtIn": true
+}

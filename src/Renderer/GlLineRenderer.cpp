@@ -4,8 +4,10 @@
 #include "GlCommon.h"
 #include "GlLineRenderer.h"
 #include "GlProgram.h"
+#include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
+#include "GlViewport.h"
 #include "Logger.h"
 #include "MathGLM.h"
 #include "Renderer.h"
@@ -26,7 +28,7 @@ GlLineRenderer::GlLineRenderer()
 
 GlLineRenderer::~GlLineRenderer()
 {
-	delete m_program;
+	m_program= nullptr;
 }
 
 const GlProgramCode* GlLineRenderer::getShaderCode()
@@ -82,10 +84,16 @@ const GlVertexDefinition* GlLineRenderer::getVertexDefinition()
 
 bool GlLineRenderer::startup()
 {
-	m_program = App::getInstance()->getShaderCache()->fetchCompiledGlProgram(getShaderCode());
+	m_program = GlShaderCache::getInstance()->fetchCompiledGlProgram(getShaderCode());
 	if (m_program == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to build shader program";
+		return false;
+	}
+
+	if (!m_program->getFirstUniformNameOfSemantic(eUniformSemantic::modelViewProjectionMatrix, m_modelViewUniformName))
+	{
+		MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to find model view projection uniform";
 		return false;
 	}
 
@@ -99,24 +107,28 @@ bool GlLineRenderer::startup()
 }
 
 
-void GlLineRenderer::render()
+void GlLineRenderer::render(Renderer* renderer)
 {
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
 	{
-		Renderer* renderer = App::getInstance()->getRenderer();
-
 		m_program->bindProgram();
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
 		{
-			GlCamera* camera = renderer->getCurrentCamera();
+			GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
 
 			if (camera != nullptr)
 			{
 				const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-				m_program->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, cameraVPMatrix);
+				GlScopedState scopedState = renderer->getGlStateStack()->createScopedState();
+				if (m_bDisable3dDepth)
+				{
+					scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+				}
+
+				m_program->setMatrix4x4Uniform(m_modelViewUniformName, cameraVPMatrix);
 
 				m_points3d.drawGlBufferState(GL_POINTS);
 				m_lines3d.drawGlBufferState(GL_LINES);
@@ -129,13 +141,16 @@ void GlLineRenderer::render()
 			const float windowHeight = renderer->getSDLWindowHeight();
 			const glm::mat4 orthoMat = glm::ortho(0.f, windowWidth, windowHeight, 0.0f, 1.0f, -1.0f);
 
-			m_program->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, orthoMat);
+			m_program->setMatrix4x4Uniform(m_modelViewUniformName, orthoMat);
 
-			// disable the depth buffer to allow overdraw 
-			glDisable(GL_DEPTH_TEST);
-			m_points2d.drawGlBufferState(GL_POINTS);
-			m_lines2d.drawGlBufferState(GL_LINES);
-			glEnable(GL_DEPTH_TEST);
+			{
+				// disable the depth buffer to allow overdraw 
+				GlScopedState scopedState = renderer->getGlStateStack()->createScopedState();
+				scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+
+				m_points2d.drawGlBufferState(GL_POINTS);
+				m_lines2d.drawGlBufferState(GL_LINES);
+			}
 		}
 
 		m_program->unbindProgram();
@@ -207,13 +222,13 @@ void GlLineRenderer::PointBufferState::createGlBufferState()
 {
 	glGenVertexArrays(1, &m_pointVAO);
 	glGenBuffers(1, &m_pointVBO);
-	checkGLError(__FILE__, __LINE__);
+	checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
 	glBindVertexArray(m_pointVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_pointVBO);
 
 	glBufferData(GL_ARRAY_BUFFER, m_maxPoints * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
-	checkGLError(__FILE__, __LINE__);
+	checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
 	getVertexDefinition()->applyVertexDefintion();
 
@@ -236,7 +251,7 @@ void GlLineRenderer::PointBufferState::drawGlBufferState(unsigned int glEnumMode
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
-		checkGLError(__FILE__, __LINE__);
+		checkHasAnyGLError("GlLineRenderer::PointBufferState::drawGlBufferState", __FILE__, __LINE__);
 	}
 
 	m_pointCount= 0;
@@ -282,6 +297,43 @@ void GlLineRenderer::PointBufferState::addPoint2d(
 }
 
 //-- Drawing Methods -----
+void drawPoint(
+	const glm::mat4& transform, 
+	const glm::vec3& point, 
+	const glm::vec3& color,
+	const float size)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	lineRenderer->addPoint3d(transform, point, color, size);
+}
+
+void drawSegment(
+	const glm::mat4& transform,
+	const glm::vec3& start,
+	const glm::vec3& end,
+	const glm::vec3& color)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	lineRenderer->addSegment3d(transform, start, color, end, color);
+}
+
+void drawSegment(const glm::mat4& transform,
+				 const glm::vec3& start, const glm::vec3& end,
+				 const glm::vec3& colorStart, const glm::vec3& colorEnd)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	lineRenderer->addSegment3d(transform, start, colorStart, end, colorEnd);
+}
+
 void drawArrow(
 	const glm::mat4& transform,
 	const glm::vec3& start,
@@ -328,7 +380,20 @@ void drawTransformedAxes(const glm::mat4& transform, float scale)
 	drawTransformedAxes(transform, scale, scale, scale);
 }
 
-void drawTransformedAxes(const glm::mat4& transform, float xScale, float yScale, float zScale)
+void drawTransformedAxes(
+	const glm::mat4& transform,
+	float xScale, float yScale, float zScale)
+{
+	drawTransformedAxes(
+		transform,
+		xScale, yScale, zScale,
+		Colors::Red, Colors::Green, Colors::Blue);
+}
+
+void drawTransformedAxes(
+	const glm::mat4& transform,
+	float xScale, float yScale, float zScale,
+	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor)
 {
 	Renderer* renderer = Renderer::getInstance();
 	assert(renderer->getIsRenderingStage());
@@ -339,9 +404,69 @@ void drawTransformedAxes(const glm::mat4& transform, float xScale, float yScale,
 	glm::vec3 yAxis(0.f, yScale, 0.f);
 	glm::vec3 zAxis(0.f, 0.f, zScale);
 
-	lineRenderer->addSegment3d(transform, origin, Colors::Red, xAxis, Colors::Red);
-	lineRenderer->addSegment3d(transform, origin, Colors::Green, yAxis, Colors::Green);
-	lineRenderer->addSegment3d(transform, origin, Colors::Blue, zAxis, Colors::Blue);
+	lineRenderer->addSegment3d(transform, origin, Colors::Red, xAxis, xColor);
+	lineRenderer->addSegment3d(transform, origin, Colors::Green, yAxis, yColor);
+	lineRenderer->addSegment3d(transform, origin, Colors::Blue, zAxis, zColor);
+}
+
+void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::vec3& color)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	static const float k_segmentMaxLength= 0.01f;
+	static const float k_maxAngleStep= k_real_quarter_pi;
+	const float angleStep= fminf(k_segmentMaxLength / radius, k_maxAngleStep);
+	
+	glm::vec3 prevPoint= glm::vec3(radius, 0.f, 0.f);
+	for (float angle= angleStep; angle < k_real_two_pi; angle+= angleStep)
+	{
+		const glm::vec3 nextPoint= glm::vec3(cosf(angle), 0.f, sin(angle)) * radius;
+
+		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color);
+		prevPoint= nextPoint;
+	}
+}
+
+void drawTransformedSpiralArc(
+	const glm::mat4& transform, 
+	float radius, 
+	float radiusFractionPerCircle, 
+	float totalAngle, 
+	const glm::vec3& color)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	static const float k_segmentMaxLength = 0.01f;
+	static const float k_maxAngleStep = k_real_quarter_pi;
+	const float angleStep = fminf(k_segmentMaxLength / radius, k_maxAngleStep) * sgn(totalAngle);
+	const float radiusStep = -radius * radiusFractionPerCircle * fabsf(angleStep) / k_real_two_pi;
+	const int totalSteps= int(fabsf(totalAngle) / fabsf(angleStep));
+
+	float angle = angleStep; 
+	float spiralRadius = radius;
+	glm::vec3 prevPoint = glm::vec3(spiralRadius, 0.f, 0.f);
+
+	// Draw start radial line
+	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
+
+	// Draw the spiral arc
+	for (int step= 0; step < totalSteps; ++step)
+	{
+		const glm::vec3 nextPoint = glm::vec3(cosf(angle), 0.f, sin(angle)) * spiralRadius;
+
+		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color);
+		prevPoint = nextPoint;
+
+		angle += angleStep;
+		spiralRadius += radiusStep;
+	}
+
+	// Draw the end radial line
+	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
 }
 
 void drawGrid(const glm::mat4& transform, float xSize, float zSize, int xSubDiv, int zSubDiv, const glm::vec3& color)

@@ -4,55 +4,16 @@
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/vector_float4.hpp"
 
+#include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <stdint.h>
 
-enum class eUniformSemantic : int
-{
-	modelViewProjectionMatrix,
-	diffuseColorRGBA,
-	diffuseColorRGB,
-	screenDimensions,
-	floatConstant0,
-	floatConstant1,
-	floatConstant2,
-	floatConstant3,
-	texture0,
-	texture1,
-	texture2,
-	texture3,
-	texture4,
-	texture5,
-	texture6,
-	texture7,
-	texture8,
-	texture9,
-	texture10,
-	texture11,
-	texture12,
-	texture13,
-	texture14,
-	texture15,
-	texture16,
-	texture17,
-	texture18,
-	texture19,
-	texture20,
-	texture21,
-	texture22,
-	texture23,
-	texture24,
-	texture25,
-	texture26,
-	texture27,
-	texture28,
-	texture29,
-	texture30,
-	texture31
-};
+#include "GlProgramConstants.h"
+#include "RendererFwd.h"
 
 class GlProgramCode
 {
@@ -65,11 +26,17 @@ public:
 
 	GlProgramCode() = default;
 	GlProgramCode(
-		const std::string &filename, 
+		const std::string& programName, 
 		const std::string& vertexCode, 
 		const std::string& fragmentCode);
 
-	const std::string& getFilename() const { return m_filename; }
+	bool loadFromConfigData(
+		const std::filesystem::path& shaderConfigPath,
+		const std::filesystem::path& vertexShaderFileName,
+		const std::filesystem::path& fragmentShaderFileName,
+		const std::map<std::string, std::string>& uniforms);
+
+	const std::string& getProgramName() const { return m_programName; }
 	inline const char* getVertexShaderCode() const { return m_vertexShaderCode.c_str(); }
 	inline const char* getFragmentShaderCode() const { return m_framementShaderCode.c_str(); }
 	inline size_t getCodeHash() const { return m_shaderCodeHash; }
@@ -97,12 +64,20 @@ public:
 	}
 
 protected:
-	std::string m_filename;
+	std::string m_programName;
 	std::string m_vertexShaderCode;
 	std::string m_framementShaderCode;
 	std::vector<Uniform> m_uniformList;
 	size_t m_shaderCodeHash;
 };
+
+struct GlProgramUniform
+{
+	eUniformSemantic semantic;
+	int locationId;
+};
+typedef std::map<std::string, GlProgramUniform> GlProgramUniformMap;
+typedef std::map<std::string, GlProgramUniform>::const_iterator GlProgramUniformIter;
 
 class GlProgram
 {
@@ -112,12 +87,23 @@ public:
 	GlProgram(const GlProgramCode &shaderCode);
 	virtual ~GlProgram();
 
-	bool setMatrix4x4Uniform(const eUniformSemantic semantic, const glm::mat4& mat);
-	bool setFloatUniform(const eUniformSemantic semantic, const float value);
-	bool setVector2Uniform(const eUniformSemantic semantic, const glm::vec2& vec);
-	bool setVector3Uniform(const eUniformSemantic semantic, const glm::vec3& vec);
-	bool setVector4Uniform(const eUniformSemantic semantic, const glm::vec4& vec);
-	bool setTextureUniform(const eUniformSemantic semantic);
+	inline const GlProgramCode& getProgramCode() const { return m_code; }
+	static eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic);
+	bool getUniformSemantic(const std::string uniformName, eUniformSemantic& outSemantic) const;
+	bool getUniformDataType(const std::string uniformName, eUniformDataType& outDataType) const;
+	std::vector<std::string> getUniformNamesOfDataType(const eUniformDataType dataType) const;
+	static bool getTextureUniformUnit(eUniformSemantic semantic, int& outTextureUnit);
+	bool getUniformTextureUnit(const std::string uniformName, int& outTextureUnit) const;
+	GlProgramUniformIter getUniformBegin() const { return m_uniformLocationMap.begin(); }
+	GlProgramUniformIter getUniformEnd() const { return m_uniformLocationMap.end(); }
+	bool getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::string& outUniformName) const;
+
+	bool setMatrix4x4Uniform(const std::string uniformName, const glm::mat4& mat);
+	bool setFloatUniform(const std::string uniformName, const float value);
+	bool setVector2Uniform(const std::string uniformName, const glm::vec2& vec);
+	bool setVector3Uniform(const std::string uniformName, const glm::vec3& vec);
+	bool setVector4Uniform(const std::string uniformName, const glm::vec4& vec);
+	bool setTextureUniform(const std::string uniformName);
 
 	bool createProgram();
 	void deleteProgram();
@@ -126,16 +112,7 @@ public:
 	void unbindProgram() const;
 
 protected:
-	struct Uniform
-	{
-		std::string name;
-		eUniformSemantic semantic;
-		int locationId;
-	};
-
 	GlProgramCode m_code;
 	uint32_t m_programID = 0;
-	int m_modelViewProjectionMatrixId = -1;
-	int m_modelColorId = -1;
-	std::map<eUniformSemantic, Uniform> m_uniformLocationMap;
+	GlProgramUniformMap m_uniformLocationMap;
 };

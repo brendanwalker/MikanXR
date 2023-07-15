@@ -1,11 +1,18 @@
 //-- includes -----
 #include "App.h"
+#include "AnchorComponent.h"
+#include "AnchorObjectSystem.h"
+#include "BoxStencilComponent.h"
+#include "CommonScriptContext.h"
 #include "InterprocessRenderTargetReader.h"
 #include "InterprocessMessages.h"
 #include "MathTypeConversion.h"
 #include "Logger.h"
 #include "MikanServer.h"
+#include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
+#include "QuadStencilComponent.h"
+#include "StencilObjectSystemConfig.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -60,7 +67,7 @@ public:
 		return m_connectionInfo.clientInfo;
 	}
 
-	bool pollRenderTarget()
+	bool readRenderTarget()
 	{
 		EASY_FUNCTION();
 
@@ -77,14 +84,9 @@ public:
 		return m_connectionInfo.renderTargetReadAccessor->getLocalMemory();
 	}
 
-	MikanClientGraphicsAPI getClientGraphicsAPI() const
+	MikanClientGraphicsApi getClientGraphicsAPI() const
 	{
 		return m_connectionInfo.renderTargetReadAccessor->getClientGraphicsAPI();
-	}
-
-	uint64_t getLocalRenderTargetFrameIndex() const 
-	{
-		return m_connectionInfo.renderTargetReadAccessor->getLocalFrameIndex();
 	}
 
 	void subscribeToVRDevicePoseUpdates(MikanVRDeviceID deviceId)
@@ -147,6 +149,17 @@ public:
 		m_connectionInfo.renderTargetReadAccessor->dispose();
 	}
 
+	// Scripting Events
+	void publishScriptMessageEvent(const MikanScriptMessageInfo& messageEvent)
+	{
+		MikanEvent mikanEvent;
+		memset(&mikanEvent, 0, sizeof(MikanEvent));
+		mikanEvent.event_type = MikanEvent_scriptMessagePosted;
+		mikanEvent.event_payload.script_message_posted = messageEvent;
+
+		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
+	}
+
 	// Video Source Events
 	void publishVideoSourceOpenedEvent()
 	{
@@ -194,7 +207,7 @@ public:
 
 		for (auto deviceId : m_subscribedVRDevices)
 		{
-			VRDeviceViewPtr vrDeviceView= vrDeviceManager->getVRDeviceViewPtr(deviceId);
+			VRDeviceViewPtr vrDeviceView= vrDeviceManager->getVRDeviceViewById(deviceId);
 
 			if (vrDeviceView && vrDeviceView->getIsOpen() && vrDeviceView->getIsPoseValid())
 			{
@@ -265,8 +278,8 @@ bool MikanClientConnectionInfo::hasAllocatedRenderTarget() const
 		const MikanRenderTargetDescriptor& desc = renderTargetReadAccessor->getRenderTargetDescriptor();
 
 		return
-			desc.color_buffer_type != MikanColorBuffer_NONE ||
-			desc.depth_buffer_type != MikanDepthBuffer_NONE;
+			desc.color_buffer_type != MikanColorBuffer_NOCOLOR ||
+			desc.depth_buffer_type != MikanDepthBuffer_NODEPTH;
 	}
 
 	return false;
@@ -287,7 +300,7 @@ MikanServer::~MikanServer()
 	m_instance= nullptr;
 }
 
-// -- ClientPSMoveAPI System -----
+// -- ClientMikanAPI System -----
 bool MikanServer::startup()
 {
 	EASY_FUNCTION();
@@ -300,6 +313,7 @@ bool MikanServer::startup()
 
 	m_messageServer->setRPCHandler(CONNECT_FUNCTION_NAME, std::bind(&MikanServer::connect, this, _1, _2));
 	m_messageServer->setRPCHandler(DISCONNECT_FUNCTION_NAME, std::bind(&MikanServer::disconnect, this, _1, _2));
+	m_messageServer->setRPCHandler("invokeScriptMessageHandler", std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
 	m_messageServer->setRPCHandler("getVideoSourceIntrinsics", std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
 	m_messageServer->setRPCHandler("getVideoSourceMode", std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));	
 	m_messageServer->setRPCHandler("getVRDeviceList", std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
@@ -309,8 +323,10 @@ bool MikanServer::startup()
 	m_messageServer->setRPCHandler("unsubscribeFromVRDevicePoseUpdates", std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
 	m_messageServer->setRPCHandler("allocateRenderTargetBuffers", std::bind(&MikanServer::allocateRenderTargetBuffers, this, _1, _2));
 	m_messageServer->setRPCHandler("freeRenderTargetBuffers", std::bind(&MikanServer::freeRenderTargetBuffers, this, _1, _2));
+	m_messageServer->setRPCHandler("frameRendered", std::bind(&MikanServer::frameRendered, this, _1, _2));	
 	m_messageServer->setRPCHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
 	m_messageServer->setRPCHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
+	m_messageServer->setRPCHandler("getBoxStencil", std::bind(&MikanServer::getBoxStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
 	m_messageServer->setRPCHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
 	m_messageServer->setRPCHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
@@ -318,6 +334,9 @@ bool MikanServer::startup()
 
 	VRDeviceManager::getInstance()->OnDeviceListChanged += MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
 	VRDeviceManager::getInstance()->OnDevicePosesChanged += MakeDelegate(this, &MikanServer::publishVRDevicePoses);
+
+	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnMarkedDirty+= 
+		MakeDelegate(this, &MikanServer::handleAnchorSystemConfigChange);
 
 	return true;
 }
@@ -332,26 +351,6 @@ void MikanServer::update()
 
 		m_messageServer->processRemoteFunctionCalls();
 	}
-
-	// Process incoming video frames, if we have a compositor active
-	if (OnClientRenderTargetUpdated)
-	{
-		EASY_BLOCK("pollAllRenderTargets");
-
-		for (auto& connection_it : m_clientConnections)
-		{
-			ClientConnectionState* connection= connection_it.second;
-
-			if (connection->pollRenderTarget())
-			{
-				const std::string clientId= connection->getClientId();
-				const uint64_t frameIndex= connection->getLocalRenderTargetFrameIndex();
-				const MikanClientGraphicsAPI api= connection->getClientGraphicsAPI();
-
-				OnClientRenderTargetUpdated(clientId, frameIndex);
-			}
-		}
-	}
 }
 
 void MikanServer::shutdown()
@@ -365,6 +364,41 @@ void MikanServer::shutdown()
 	m_clientConnections.clear();
 
 	m_messageServer->dispose();
+}
+
+// Scripting
+void MikanServer::bindScriptContect(CommonScriptContextPtr scriptContext)
+{
+	m_scriptContexts.push_back(scriptContext);
+	scriptContext->OnScriptMessage+= MakeDelegate(this, &MikanServer::publishScriptMessageEvent);
+}
+
+void MikanServer::unbindScriptContect(CommonScriptContextPtr scriptContext)
+{
+	for (auto it = m_scriptContexts.begin(); it < m_scriptContexts.end(); it++)
+	{
+		CommonScriptContextPtr scriptContext= it->lock();
+
+		if (scriptContext == scriptContext)
+		{
+			m_scriptContexts.erase(it);
+			scriptContext->OnScriptMessage-= MakeDelegate(this, &MikanServer::publishScriptMessageEvent);
+			break;
+		}
+	}
+}
+
+void MikanServer::publishScriptMessageEvent(const std::string& message)
+{
+	MikanScriptMessageInfo messageInfo;
+	memset(&messageInfo, 0, sizeof(MikanScriptMessageInfo));
+	strncpy(messageInfo.content, message.c_str(), MAX_MIKAN_SCRIPT_MESSAGE_LEN - 1);
+	messageInfo.content[MAX_MIKAN_SCRIPT_MESSAGE_LEN - 1]= '\0';
+
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishScriptMessageEvent(messageInfo);
+	}
 }
 
 // Video Source Events
@@ -414,9 +448,28 @@ void MikanServer::publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent
 	}
 }
 
-void MikanServer::publishAnchorListChangedEvent()
+void MikanServer::handleAnchorSystemConfigChange(
+	CommonConfigPtr configPtr,
+	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	publishSimpleEvent(MikanEvent_anchorListUpdated);
+	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeRotationPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
+	{
+		AnchorDefinitionPtr anchorConfig= std::static_pointer_cast<AnchorDefinition>(configPtr);
+
+		MikanAnchorPoseUpdateEvent poseUpdateEvent;
+		memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
+		poseUpdateEvent.anchor_id = anchorConfig->getAnchorId();
+		poseUpdateEvent.transform = glm_transform_to_MikanTransform(anchorConfig->getRelativeTransform());
+
+		MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
+
+	}
+	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
+	{
+		publishSimpleEvent(MikanEvent_anchorListUpdated);
+	}
 }
 
 // VRManager Callbacks
@@ -453,93 +506,18 @@ void MikanServer::getConnectedClientInfoList(std::vector<MikanClientConnectionIn
 	}
 }
 
-void MikanServer::getRelevantQuadStencilList(
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraForward,
-	std::vector<const MikanStencilQuad*>& outStencilList) const
-{
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	outStencilList.clear();
-	for (const MikanStencilQuad& stencil : profile->quadStencilList)
-	{
-		if (!stencil.is_disabled)
-		{
-			const glm::mat4 worldXform= profile->getQuadStencilWorldTransform(&stencil);
-			const glm::vec3 stencilCenter= glm::vec3(worldXform[3]); // position is 3rd column
-			const glm::vec3 stencilForward= glm::vec3(worldXform[2]); // forward is 2nd column
-			const glm::vec3 cameraToStencil= stencilCenter - cameraPosition;
-
-			// Stencil is in front of the camera
-			// Stencil is facing the camera (or double sided)
-			if (glm::dot(cameraToStencil, cameraForward) > 0.f && 
-				(stencil.is_double_sided || glm::dot(stencilForward, cameraForward) < 0.f))
-			{
-				outStencilList.push_back(&stencil);
-			}
-		}
-	}
-}
-
-void MikanServer::getRelevantBoxStencilList(
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraForward,
-	std::vector<const MikanStencilBox*>& outStencilList) const
-{
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	outStencilList.clear();
-	for (const MikanStencilBox& stencil : profile->boxStencilList)
-	{
-		if (!stencil.is_disabled)
-		{
-			const glm::mat4 worldXform = profile->getBoxStencilWorldTransform(&stencil);
-			const glm::vec3 stencilCenter = glm::vec3(worldXform[3]); // position is 3rd column
-			const glm::vec3 stencilZAxis = glm::vec3(worldXform[2]); // Z is 2nd column
-			const glm::vec3 stencilYAxis = glm::vec3(worldXform[1]); // Y is 1st column
-			const glm::vec3 stencilXAxis = glm::vec3(worldXform[0]); // X is 0th column
-			const glm::vec3 cameraToStencil = stencilCenter - cameraPosition;
-
-			const bool bIsStencilInFrontOfCamera= glm::dot(cameraToStencil, cameraForward) > 0.f;
-			const bool bIsCameraInStecil=
-				fabsf(glm::dot(cameraToStencil, stencilXAxis)) <= stencil.box_x_size &&
-				fabsf(glm::dot(cameraToStencil, stencilYAxis)) <= stencil.box_y_size &&
-				fabsf(glm::dot(cameraToStencil, stencilZAxis)) <= stencil.box_z_size;
-
-			if (bIsStencilInFrontOfCamera || bIsCameraInStecil)
-			{
-				outStencilList.push_back(&stencil);
-			}
-		}
-	}
-}
-
-void MikanServer::getRelevantModelStencilList(std::vector<const MikanStencilModelConfig*>& outStencilList) const
-{
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-	outStencilList.clear();
-	for (const MikanStencilModelConfig& stencil : profile->modelStencilList)
-	{
-		if (!stencil.modelInfo.is_disabled && stencil.modelPath.c_str() > 0)
-		{
-			outStencilList.push_back(&stencil);
-		}
-	}
-}
-
 static VideoSourceViewPtr getCurrentVideoSource()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	return VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 }
 
 static VRDeviceViewPtr getCurrentCameraVRDevice()
 {
-	const ProfileConfig* profileConfig = App::getInstance()->getProfileConfig();
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
-	return VRDeviceListIterator(eDeviceType::VRTracker, profileConfig->cameraVRDevicePath).getCurrent();
+	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 }
 
 void MikanServer::connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult)
@@ -582,6 +560,32 @@ void MikanServer::disconnect(const class MikanRemoteFunctionCall* inFunctionCall
 		delete connection_it->second;
 		m_clientConnections.erase(connection_it);
 	}
+}
+
+void MikanServer::invokeScriptMessageHandler(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult)
+{
+	MikanScriptMessageInfo messageInfo;
+	if (!inFunctionCall->extractParameters(messageInfo))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	// Find the first script context that cares about the message
+	for (auto it = m_scriptContexts.begin(); it < m_scriptContexts.end(); it++)
+	{
+		CommonScriptContextPtr scriptContext = it->lock();
+
+		if (scriptContext == scriptContext)
+		{
+			if (scriptContext->invokeScriptMessageHandler(messageInfo.content))
+			{
+				break;
+			}
+		}
+	}
+
+	outResult->setResultCode(MikanResult_Success);
 }
 
 void MikanServer::getVideoSourceIntrinsics(
@@ -672,14 +676,6 @@ void MikanServer::getVideoSourceAttachment(
 				glm::mat4_cast(cameraOffsetQuat);
 			info.vr_device_offset_xform = glm_mat4_to_MikanMatrix4f(cameraOffsetXform);
 
-			// Get the camera parent anchor properties
-			{
-				ProfileConfig* profile = App::getInstance()->getProfileConfig();
-
-				info.parent_anchor_id = profile->cameraParentAnchorId;
-				info.camera_scale = profile->cameraScale;
-			}
-
 			outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanVideoSourceAttachmentInfo));
 			outResult->setResultCode(MikanResult_Success);
 		}
@@ -730,7 +726,7 @@ void MikanServer::getVRDeviceInfo(
 		return;
 	}
 
-	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewPtr(deviceId);
+	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewById(deviceId);
 	if (!vrDeviceView)
 	{
 		outResult->setResultCode(MikanResult_InvalidDeviceID);
@@ -875,6 +871,41 @@ void MikanServer::freeRenderTargetBuffers(
 	}
 }
 
+void MikanServer::frameRendered(
+	const class MikanRemoteFunctionCall* inFunctionCall,
+	class MikanRemoteFunctionResult* outResult)
+{
+	const std::string clientId = inFunctionCall->getClientId();
+
+	uint64_t frameIndex= 0;
+	if (!inFunctionCall->extractParameters(frameIndex))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	auto connection_it = m_clientConnections.find(clientId);
+	if (connection_it != m_clientConnections.end())
+	{
+		// Process incoming video frames, if we have a compositor active
+		if (OnClientRenderTargetUpdated)
+		{
+			ClientConnectionState* clientState = connection_it->second;
+
+			if (clientState->readRenderTarget())
+			{
+				OnClientRenderTargetUpdated(clientId, frameIndex);
+			}
+		}
+
+		outResult->setResultCode(MikanResult_Success);
+	}
+	else
+	{
+		outResult->setResultCode(MikanResult_UnknownClient);
+	}
+}
+
 void MikanServer::getStencilList(
 	const MikanRemoteFunctionCall* inFunctionCall,
 	MikanRemoteFunctionResult* outResult)
@@ -882,10 +913,10 @@ void MikanServer::getStencilList(
 	MikanStencilList stencilListResult;
 	memset(&stencilListResult, 0, sizeof(MikanStencilList));
 
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	for (const MikanStencilQuad& stencil : profile->quadStencilList)
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	for (QuadStencilDefinitionPtr quadConfig : stencilSystemConfig->quadStencilList)
 	{
-		stencilListResult.stencil_id_list[stencilListResult.stencil_count] = stencil.stencil_id;
+		stencilListResult.stencil_id_list[stencilListResult.stencil_count] = quadConfig->getStencilId();
 		++stencilListResult.stencil_count;
 
 		assert(stencilListResult.stencil_count < MAX_MIKAN_STENCILS);
@@ -903,17 +934,46 @@ void MikanServer::getQuadStencil(
 	const MikanRemoteFunctionCall* inFunctionCall,
 	MikanRemoteFunctionResult* outResult)
 {
-	MikanStencilQuad stencil;
-	if (!inFunctionCall->extractParameters(stencil))
+	MikanStencilID stencilId;
+	if (!inFunctionCall->extractParameters(stencilId))
 	{
 		outResult->setResultCode(MikanResult_MalformedParameters);
 		return;
 	}
 
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	if (profile->getQuadStencilInfo(stencil.stencil_id, stencil))
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto quadConfig= stencilSystemConfig->getQuadStencilConfigConst(stencilId);
+	if (quadConfig != nullptr)
 	{
+		MikanStencilQuad stencil= quadConfig->getQuadInfo();
+
 		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilQuad));
+		outResult->setResultCode(MikanResult_Success);
+	}
+	else
+	{
+		outResult->setResultCode(MikanResult_InvalidStencilID);
+	}
+}
+
+void MikanServer::getBoxStencil(
+	const MikanRemoteFunctionCall* inFunctionCall,
+	MikanRemoteFunctionResult* outResult)
+{
+	MikanStencilID stencilId;
+	if (!inFunctionCall->extractParameters(stencilId))
+	{
+		outResult->setResultCode(MikanResult_MalformedParameters);
+		return;
+	}
+
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto boxConfig = stencilSystemConfig->getBoxStencilConfigConst(stencilId);
+	if (boxConfig != nullptr)
+	{
+		MikanStencilBox stencil = boxConfig->getBoxInfo();
+
+		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilBox));
 		outResult->setResultCode(MikanResult_Success);
 	}
 	else
@@ -926,16 +986,19 @@ void MikanServer::getModelStencil(
 	const MikanRemoteFunctionCall* inFunctionCall,
 	MikanRemoteFunctionResult* outResult)
 {
-	MikanStencilModel stencil;
-	if (!inFunctionCall->extractParameters(stencil))
+	MikanStencilID stencilId;
+	if (!inFunctionCall->extractParameters(stencilId))
 	{
 		outResult->setResultCode(MikanResult_MalformedParameters);
 		return;
 	}
 
-	const ProfileConfig* profile = App::getInstance()->getProfileConfig();
-	if (profile->getModelStencilInfo(stencil.stencil_id, stencil))
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto modelConfig = stencilSystemConfig->getModelStencilConfigConst(stencilId);
+	if (modelConfig != nullptr)
 	{
+		MikanStencilModel stencil = modelConfig->getModelInfo();
+
 		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilModel));
 		outResult->setResultCode(MikanResult_Success);
 	}
@@ -952,10 +1015,10 @@ void MikanServer::getSpatialAnchorList(
 	MikanSpatialAnchorList anchorListResult;
 	memset(&anchorListResult, 0, sizeof(MikanSpatialAnchorList));
 
-	const ProfileConfig* profile= App::getInstance()->getProfileConfig();
-	for (const MikanSpatialAnchorInfo& spatialAnchor : profile->spatialAnchorList)
+	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
+	for (AnchorDefinitionPtr spatialAnchor : anchorSystemConfig->spatialAnchorList)
 	{
-		anchorListResult.spatial_anchor_id_list[anchorListResult.spatial_anchor_count] = spatialAnchor.anchor_id;
+		anchorListResult.spatial_anchor_id_list[anchorListResult.spatial_anchor_count] = spatialAnchor->getAnchorId();
 		++anchorListResult.spatial_anchor_count;
 
 		assert(anchorListResult.spatial_anchor_count < MAX_MIKAN_SPATIAL_ANCHORS);
@@ -980,14 +1043,17 @@ void MikanServer::getSpatialAnchorInfo(
 		return;
 	}
 
-	MikanSpatialAnchorInfo info;
-	if (!App::getInstance()->getProfileConfig()->getSpatialAnchorInfo(anchorId, info))
+	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
+	if (anchorPtr == nullptr)
 	{
-		outResult->setResultCode(MikanResult_InvalidDeviceID);
+		outResult->setResultCode(MikanResult_InvalidAnchorID);
 		return;
 	}
 	
-	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialAnchorInfo));
+	MikanSpatialAnchorInfo anchorInfo;
+	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
+
+	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
 	outResult->setResultCode(MikanResult_Success);
 }
 
@@ -1002,13 +1068,16 @@ void MikanServer::findSpatialAnchorInfoByName(
 		return;
 	}
 
-	MikanSpatialAnchorInfo info;
-	if (!App::getInstance()->getProfileConfig()->findSpatialAnchorInfoByName(nameBuffer, info))
+	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorByName(nameBuffer);
+	if (anchorPtr == nullptr)
 	{
-		outResult->setResultCode(MikanResult_InvalidDeviceID);
+		outResult->setResultCode(MikanResult_InvalidAnchorID);
 		return;
 	}
 
-	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanSpatialAnchorInfo));
+	MikanSpatialAnchorInfo anchorInfo;
+	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
+
+	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
 	outResult->setResultCode(MikanResult_Success);
 }

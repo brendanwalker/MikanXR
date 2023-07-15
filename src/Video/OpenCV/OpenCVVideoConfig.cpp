@@ -26,11 +26,11 @@ OpenCVVideoConfig::OpenCVVideoConfig(const std::string &fnamebase)
 	cameraIntrinsics.pixel_width= 640.f;
 	cameraIntrinsics.pixel_height= 480.f;
 
-	cameraIntrinsics.camera_matrix = {{
-	   {604.1783809256024, 0.0, 320.0},
-	   {0.0, 604.1783809256024, 240.0},
-	   {0.0, 0.0, 1.0}
-	}};
+	cameraIntrinsics.camera_matrix = {
+	   604.1783809256024, 0.0, 320.0,
+	   0.0, 604.1783809256024, 240.0,
+	   0.0, 0.0, 1.0
+	};
 
     cameraIntrinsics.hfov= 60.0; // degrees
     cameraIntrinsics.vfov= 45.0; // degrees
@@ -46,7 +46,7 @@ OpenCVVideoConfig::OpenCVVideoConfig(const std::string &fnamebase)
 	cameraIntrinsics.distortion_coefficients.p2= 0.0;
 };
 
-const configuru::Config OpenCVVideoConfig::writeToJSON()
+configuru::Config OpenCVVideoConfig::writeToJSON()
 {
     configuru::Config pt= CommonVideoConfig::writeToJSON();
 

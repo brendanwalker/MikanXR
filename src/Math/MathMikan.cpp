@@ -15,9 +15,9 @@ void MikanOrientationToEulerAngles(
 	float xRadians= 0, yRadians= 0, zRadians= 0;
 	glm::extractEulerAngleXYZ(glm::mat4(R), xRadians, yRadians, zRadians);
 
-	out_x_angle = xRadians * k_radians_to_degreees;
-	out_y_angle = yRadians * k_radians_to_degreees;
-	out_z_angle = zRadians * k_radians_to_degreees;
+	out_x_angle = xRadians * k_radians_to_degrees;
+	out_y_angle = yRadians * k_radians_to_degrees;
+	out_z_angle = zRadians * k_radians_to_degrees;
 }
 
 void EulerAnglesToMikanOrientation(

@@ -1,8 +1,19 @@
 #include "InterprocessRenderTargetWriter.h"
 #include "InterprocessRenderTargetShared.h"
 #include "Logger.h"
+#ifdef ENABLE_SPOUT_DX
 #include "SpoutDX.h"
+#endif // ENABLE_SPOUT_DX
 #include "SpoutLibrary.h"
+
+// Define DXGI_FORMAT enum values ourselves if we don't use SPOUTDX API
+#ifndef ENABLE_SPOUT_DX
+enum DXGI_FORMAT
+{
+	DXGI_FORMAT_R8G8B8A8_UNORM                          = 28,
+    DXGI_FORMAT_B8G8R8A8_UNORM                          = 87,
+};
+#endif // !ENABLE_SPOUT_DX
 
 class BoostSharedMemoryWriter
 {
@@ -130,7 +141,7 @@ public:
 		}
 	}
 
-	bool writeRenderTargetMemory(uint64_t frame_index)
+	bool writeRenderTargetMemory()
 	{
 		if (m_region == nullptr || m_sharedMemoryObject == nullptr)
 			return false;
@@ -154,9 +165,6 @@ public:
 				m_localMemory.depth_buffer,
 				m_localMemory.depth_buffer_size);
 		}
-
-		// Update the frame index in shared so that the read accessor can tell there is a new frame
-		sharedMemoryView->getHeader().frameIndex = frame_index;
 
 		return true;
 	}
@@ -188,7 +196,7 @@ public:
 		dispose();
 	}
 
-	bool init(const MikanRenderTargetDescriptor* descriptor)
+	bool init(const MikanRenderTargetDescriptor* descriptor, bool bEnableFrameCounter)
 	{
 		dispose();
 
@@ -199,12 +207,25 @@ public:
 			return false;
 		}
 
-		m_spout->EnableSpoutLog();
-		m_spout->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
-		m_spout->SetSenderName(m_senderName.c_str());
-		assert(descriptor->color_buffer_type == MikanColorBuffer_RGBA32);
-		m_spout->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
-		m_spout->SetFrameCount(true);
+		if (descriptor->color_buffer_type == MikanColorBuffer_RGBA32 ||
+			descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
+		{
+			m_spout->EnableSpoutLog();
+			m_spout->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+			m_spout->SetSenderName(m_senderName.c_str());
+
+			if (descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
+				m_spout->SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+			else
+				m_spout->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
+			m_spout->SetFrameCount(bEnableFrameCounter);
+		}
+		else
+		{
+			MIKAN_LOG_INFO("SpoutOpenGLTextureWriter::init()") << "color buffer type not supported: " << descriptor->color_buffer_type;
+			return false;
+		}
 
 		m_descriptor= *descriptor;
 
@@ -231,7 +252,7 @@ private:
 	SPOUTLIBRARY* m_spout;
 };
 
-
+#ifdef ENABLE_SPOUT_DX
 class SpoutDX11TextureWriter
 {
 public:
@@ -246,23 +267,35 @@ public:
 		dispose();
 	}
 
-	bool init(const MikanRenderTargetDescriptor* descriptor, void* apiDeviceInterface)
+	bool init(const MikanRenderTargetDescriptor* descriptor, bool bEnableFrameCounter, void* apiDeviceInterface)
 	{
 		ID3D11Device* d3d11Device= (ID3D11Device*)apiDeviceInterface;
 		bool bSuccess = true;
 
 		dispose();
 
-		if (bSuccess)
+		if (descriptor->color_buffer_type == MikanColorBuffer_RGBA32 ||
+			descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
 		{
 			EnableSpoutLog();
 			EnableSpoutLogFile("sender.log");
 			SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
 
-			assert(descriptor->color_buffer_type == MikanColorBuffer_RGBA32);
 			m_spout.OpenDirectX11(d3d11Device);
 			m_spout.SetSenderName(m_senderName.c_str());
-			m_spout.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+			
+			if (descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
+				m_spout.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+			else
+				m_spout.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
+			if (!bEnableFrameCounter)
+				m_spout.DisableFrameCount();
+		}
+		else
+		{
+			MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "color buffer type not supported: " << descriptor->color_buffer_type;
+			bSuccess= false;
 		}
 
 		return bSuccess;
@@ -285,22 +318,25 @@ private:
 	std::string m_senderName;
 	spoutDX m_spout;
 };
+#endif // ENABLE_SPOUT_DX
+
 
 //-- InterprocessRenderTargetWriteAccessor -----
 struct RenderTargetWriterImpl
 {
 	union
 	{	
+#ifdef ENABLE_SPOUT_DX
 		SpoutDX11TextureWriter* spoutDX11TextureWriter;
+#endif // ENABLE_SPOUT_DX
 		SpoutOpenGLTextureWriter* spoutOpenGLTextureWriter;
 		BoostSharedMemoryWriter* boostSharedMemoryWriter;
 	} writerApi;
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 };
 
 InterprocessRenderTargetWriteAccessor::InterprocessRenderTargetWriteAccessor(const std::string& clientName)
 	: m_clientName(clientName)
-	, m_localFrameIndex(0)	
 	, m_writerImpl(new RenderTargetWriterImpl)
 {
 	memset(&m_localMemory, 0, sizeof(MikanRenderTargetMemory));
@@ -315,51 +351,41 @@ InterprocessRenderTargetWriteAccessor::~InterprocessRenderTargetWriteAccessor()
 
 bool InterprocessRenderTargetWriteAccessor::initialize(
 	const MikanRenderTargetDescriptor* descriptor,
+	bool bEnableFrameCounter,
 	void* apiDeviceInterface)
 {
-	bool bSuccess = false;
-
 	dispose();
 
-	m_localFrameIndex = 0;
-
-	if (descriptor->graphicsAPI == MikanClientGraphicsAPI_Direct3D11)
-	{
-		m_writerImpl->writerApi.spoutDX11TextureWriter = new SpoutDX11TextureWriter(m_clientName);
-		m_writerImpl->graphicsAPI = MikanClientGraphicsAPI_Direct3D11;
-
-		bSuccess = m_writerImpl->writerApi.spoutDX11TextureWriter->init(descriptor, apiDeviceInterface);
-	}
-	else if (descriptor->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	if (descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		m_writerImpl->writerApi.spoutOpenGLTextureWriter = new SpoutOpenGLTextureWriter(m_clientName);
-		m_writerImpl->graphicsAPI = MikanClientGraphicsAPI_OpenGL;
+		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
-		bSuccess = m_writerImpl->writerApi.spoutOpenGLTextureWriter->init(descriptor);
+		m_bIsInitialized = m_writerImpl->writerApi.spoutOpenGLTextureWriter->init(descriptor, bEnableFrameCounter);
 	}
+#ifdef ENABLE_SPOUT_DX
+	else if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
+	{
+		m_writerImpl->writerApi.spoutDX11TextureWriter = new SpoutDX11TextureWriter(m_clientName);
+		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_Direct3D11;
+
+		m_bIsInitialized = m_writerImpl->writerApi.spoutDX11TextureWriter->init(descriptor, bEnableFrameCounter, apiDeviceInterface);
+	}
+#endif // ENABLE_SPOUT_DX
 	else
 	{
 		m_writerImpl->writerApi.boostSharedMemoryWriter = new BoostSharedMemoryWriter(m_clientName, m_localMemory);
-		m_writerImpl->graphicsAPI = MikanClientGraphicsAPI_UNKNOWN;
+		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 
-		bSuccess= m_writerImpl->writerApi.boostSharedMemoryWriter->init(descriptor);
+		m_bIsInitialized= m_writerImpl->writerApi.boostSharedMemoryWriter->init(descriptor);
 	}
 
-	return bSuccess;
+	return m_bIsInitialized;
 }
 
 void InterprocessRenderTargetWriteAccessor::dispose()
 {
-	if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D11)
-	{
-		if (m_writerImpl->writerApi.spoutDX11TextureWriter != nullptr)
-		{
-			m_writerImpl->writerApi.spoutDX11TextureWriter->dispose();
-			delete m_writerImpl->writerApi.spoutDX11TextureWriter;
-			m_writerImpl->writerApi.spoutDX11TextureWriter = nullptr;
-		}
-	}
-	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		if (m_writerImpl->writerApi.spoutOpenGLTextureWriter != nullptr)
 		{
@@ -368,6 +394,17 @@ void InterprocessRenderTargetWriteAccessor::dispose()
 			m_writerImpl->writerApi.spoutOpenGLTextureWriter = nullptr;
 		}
 	}
+#ifdef ENABLE_SPOUT_DX
+	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
+	{
+		if (m_writerImpl->writerApi.spoutDX11TextureWriter != nullptr)
+		{
+			m_writerImpl->writerApi.spoutDX11TextureWriter->dispose();
+			delete m_writerImpl->writerApi.spoutDX11TextureWriter;
+			m_writerImpl->writerApi.spoutDX11TextureWriter = nullptr;
+		}
+	}
+#endif // ENABLE_SPOUT_DX
 	else
 	{
 		if (m_writerImpl->writerApi.boostSharedMemoryWriter != nullptr)
@@ -378,56 +415,47 @@ void InterprocessRenderTargetWriteAccessor::dispose()
 		}
 	}
 
-	m_writerImpl->graphicsAPI= MikanClientGraphicsAPI_UNKNOWN;
+	m_writerImpl->graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
+	m_bIsInitialized = false;
 }
 
-bool InterprocessRenderTargetWriteAccessor::writeRenderTargetMemory(uint64_t frame_index)
+bool InterprocessRenderTargetWriteAccessor::writeRenderTargetMemory()
 {
 	bool bSuccess= false; 
 
-	if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_UNKNOWN)
+	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_UNKNOWN)
 	{
-		bSuccess = m_writerImpl->writerApi.boostSharedMemoryWriter->writeRenderTargetMemory(frame_index);
+		bSuccess = m_writerImpl->writerApi.boostSharedMemoryWriter->writeRenderTargetMemory();
 	}
 	else
 	{
 		bSuccess= false;
 	}
 
-	if (bSuccess)
-	{
-		// Also track the last frame posted locally for debugging
-		m_localFrameIndex = frame_index;
-	}
-
 	return true;
 }
 
-bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTexturePtr, uint64_t frameIndex)
+bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTexturePtr)
 {
 	bool bSuccess = false;
 
-	if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_Direct3D11)
-	{
-		ID3D11Texture2D* dx11Texture= (ID3D11Texture2D*)apiTexturePtr;
-
-		bSuccess= m_writerImpl->writerApi.spoutDX11TextureWriter->writeRenderTargetTexture(dx11Texture);
-	}
-	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsAPI_OpenGL)
+	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		GLuint* textureId= (GLuint*)apiTexturePtr;
 
 		bSuccess = m_writerImpl->writerApi.spoutOpenGLTextureWriter->writeRenderTargetTexture(*textureId);
 	}
+#ifdef ENABLE_SPOUT_DX
+	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
+	{
+		ID3D11Texture2D* dx11Texture = (ID3D11Texture2D*)apiTexturePtr;
+
+		bSuccess = m_writerImpl->writerApi.spoutDX11TextureWriter->writeRenderTargetTexture(dx11Texture);
+	}
+#endif // ENABLE_SPOUT_DX
 	else
 	{
 		bSuccess = false;
-	}
-
-	if (bSuccess)
-	{
-		// Also track the last frame posted locally for debugging
-		m_localFrameIndex = frameIndex;
 	}
 
 	return true;

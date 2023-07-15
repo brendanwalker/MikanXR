@@ -4,8 +4,12 @@
 #include "GlShaderCache.h"
 #include "GlProgram.h"
 #include "GlWireframeMesh.h"
+#include "GlViewport.h"
 #include "Renderer.h"
 #include "Logger.h"
+
+#define WIREFRAME_MVP_MATRIX_UNIFORM_NAME	"mvpMatrix"
+#define WIREFRAME_COLOR_UNIFORM_NAME		"wireframeColor"
 
 GlWireframeMesh::GlWireframeMesh(
 	std::string name,
@@ -15,7 +19,7 @@ GlWireframeMesh::GlWireframeMesh(
 	uint32_t lineCount,
 	bool bOwnsVertexData)
 {
-	m_program = App::getInstance()->getShaderCache()->fetchCompiledGlProgram(getShaderCode());
+	m_program = GlShaderCache::getInstance()->fetchCompiledGlProgram(getShaderCode());
 	if (m_program == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlWireframeMesh") << "Failed to build shader program";
@@ -73,7 +77,11 @@ bool GlWireframeMesh::createBuffers()
 		// Create and populate the index buffer
 		glGenBuffers(1, &m_glIndexBuffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_glIndexBuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * m_lineCount * 2, m_indexData, GL_STATIC_DRAW);
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER, 
+			getElementCount() * getIndexPerElementCount() * getIndexSize(), // index array size in bytes
+			m_indexData, 
+			GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
 
@@ -127,13 +135,13 @@ const GlProgramCode* GlWireframeMesh::getShaderCode()
 			out_FragColor = v_Color;
 		}
 		)"""")
-		.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
-		.addUniform("wireframeColor", eUniformSemantic::diffuseColorRGB);
+		.addUniform(WIREFRAME_MVP_MATRIX_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix)
+		.addUniform(WIREFRAME_COLOR_UNIFORM_NAME, eUniformSemantic::diffuseColorRGB);
 
 	return &x_shaderCode;
 }
 
-const GlVertexDefinition* GlWireframeMesh::getVertexDefinition()
+const GlVertexDefinition* GlWireframeMesh::getVertexDefinitionInternal()
 {
 	static GlVertexDefinition x_vertexDefinition;
 
@@ -158,18 +166,18 @@ void drawTransformedWireframeMesh(
 	Renderer* renderer = Renderer::getInstance();
 	assert(renderer->getIsRenderingStage());
 
-	GlProgram* shader= wireframeMesh->getDefaultWireframeShader();
+	GlProgramPtr shader= wireframeMesh->getDefaultWireframeShader();
 
 	shader->bindProgram();
 
-	GlCamera* camera = renderer->getCurrentCamera();
+	GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
 
 	if (camera != nullptr)
 	{
 		const glm::mat4 vpMatrix = camera->getViewProjectionMatrix();
 
-		shader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * transform);
-		shader->setVector3Uniform(eUniformSemantic::diffuseColorRGB, color);
+		shader->setMatrix4x4Uniform(WIREFRAME_MVP_MATRIX_UNIFORM_NAME, vpMatrix * transform);
+		shader->setVector3Uniform(WIREFRAME_COLOR_UNIFORM_NAME, color);
 
 		wireframeMesh->drawElements();
 	}

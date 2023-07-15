@@ -1,0 +1,50 @@
+{
+	"layers":  [
+		{
+			"verticalFlip":       true,
+			"blendMode":          "blendOff",
+			"shaderConfig":       {
+				"materialName":     "rgbUndistortionFrame",
+				"textureSourceMap": {
+					"distortion": "distortionTexture",
+					"rgbTexture": "videoTexture"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "noStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "noStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "noStencil"
+			}
+		},
+		{
+			"verticalFlip":       true,
+			"blendMode":          "blendOn",
+			"shaderConfig":       {
+				"materialName":     "rgbColorKeyFrame",
+				"float3SourceMap":  {
+					"colorKey": "clientColorKey_0"
+				},
+				"textureSourceMap": {
+					"colorKeyTexture": "clientRenderTexture_0"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "insideStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "insideStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "insideStencil"
+			}
+		}
+	],
+	"name":    "Color Key",
+	"builtIn": true
+}

@@ -1,6 +1,9 @@
 #include "MathTypeConversion.h"
 #include "MathGLM.h"
+#include "Transform.h"
 #include <assert.h>
+
+#include "glm/gtx/euler_angles.hpp"
 
 // GLM types to OpenCV types
 cv::Matx33f glm_mat3_to_cv_mat33f(const glm::mat3& in)
@@ -158,6 +161,11 @@ glm::dmat4x3 cv_mat34d_to_glm_dmat4x3(const cv::Matx34d& in)
 	return out;
 }
 
+glm::vec3 cv_vec3f_to_glm_vec3(const cv::Vec3f& in)
+{
+	return glm::vec3(in(0), in(1), in(2));
+}
+
 glm::dvec3 cv_vec3d_to_glm_dvec3(const cv::Vec3d& in)
 {
 	return glm::dvec3(in(0), in(1), in(2));
@@ -237,13 +245,33 @@ cv::Matx81d Mikan_distortion_to_cv_vec8(const MikanDistortionCoefficients& disto
 cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in)
 {
 	cv::Matx33d out;
+	auto m = reinterpret_cast<const double(*)[3][3]>(&in);
+
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 3; ++col)
 		{
 			// Mikan indexed by column first
 			// OpenCV indexed by row first
-			out(row, col) = in.m[col][row];
+			out(row, col) = (*m)[col][row];
+		}
+	}
+
+	return out;
+}
+
+cv::Matx33f MikanMatrix3d_to_cv_mat33f(const MikanMatrix3d& in)
+{
+	cv::Matx33f out;
+	auto m = reinterpret_cast<const double(*)[3][3]>(&in);
+
+	for (int row = 0; row < 3; ++row)
+	{
+		for (int col = 0; col < 3; ++col)
+		{
+			// Mikan indexed by column first
+			// OpenCV indexed by row first
+			out(row, col) = (float)(*m)[col][row];
 		}
 	}
 
@@ -253,13 +281,15 @@ cv::Matx33d MikanMatrix3d_to_cv_mat33d(const MikanMatrix3d& in)
 MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in)
 {
 	MikanMatrix3d out;
+	auto m = reinterpret_cast<double(*)[3][3]>(&out);
+
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 3; ++col)
 		{
 			// Mikan indexed by column first
 			// OpenCV indexed by row first
-			out.m[col][row] = in(row, col);
+			(*m)[col][row] = in(row, col);
 		}
 	}
 
@@ -269,13 +299,15 @@ MikanMatrix3d cv_mat33d_to_MikanMatrix3d(const cv::Matx33d& in)
 cv::Matx34d MikanMatrix4x3d_to_cv_mat34d(const MikanMatrix4x3d& in)
 {
 	cv::Matx34d out;
+	auto m = reinterpret_cast<const double(*)[4][3]>(&in);
+
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 4; ++col)
 		{
 			// GLM indexed by column first
 			// OpenCV indexed by row first
-			out(row, col) = in.m[col][row];
+			out(row, col) = (*m)[col][row];
 		}
 	}
 
@@ -285,13 +317,15 @@ cv::Matx34d MikanMatrix4x3d_to_cv_mat34d(const MikanMatrix4x3d& in)
 MikanMatrix4x3d MikanMatrix4x3d_to_cv_mat34d(const cv::Matx34d& in)
 {
 	MikanMatrix4x3d out;
+	auto m = reinterpret_cast<double(*)[4][3]>(&out);
+
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 4; ++col)
 		{
 			// GLM indexed by column first
 			// OpenCV indexed by row first
-			out.m[col][row] = in(row, col);
+			(*m)[col][row] = in(row, col);
 		}
 	}
 
@@ -319,15 +353,24 @@ glm::dquat MikanQuatd_to_glm_dquat(const MikanQuatd& in)
 	return glm::dquat(in.w, in.x, in.y, in.z);
 }
 
+GlmTransform MikanTransform_to_glm_transform(const MikanTransform& in)
+{
+	return GlmTransform(
+		MikanVector3f_to_glm_vec3(in.position),
+		MikanQuatf_to_glm_quat(in.rotation),
+		MikanVector3f_to_glm_vec3(in.scale));
+}
+
 MikanMatrix4f glm_mat4_to_MikanMatrix4f(const glm::mat4& in)
 {
 	MikanMatrix4f out;
+	auto m = reinterpret_cast<float(*)[4][4]>(&out);
 
 	for (int row = 0; row < 4; ++row)
 	{
 		for (int col = 0; col < 4; ++col)
 		{
-			out.m[col][row] = in[col][row];
+			(*m)[col][row] = in[col][row];
 		}
 	}
 
@@ -337,14 +380,56 @@ MikanMatrix4f glm_mat4_to_MikanMatrix4f(const glm::mat4& in)
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& in)
 {
 	glm::mat4 out;
+	auto m = reinterpret_cast<const float(*)[4][4]>(&in);
 
 	for (int row = 0; row < 4; ++row)
 	{
 		for (int col = 0; col < 4; ++col)
 		{
-			out[col][row] = in.m[col][row];
+			out[col][row] = (*m)[col][row];
 		}
 	}
 
 	return out;
+}
+
+glm::quat MikanRotator3f_to_glm_quat(const MikanRotator3f& in)
+{
+	const float xRadians = in.x_angle * k_degrees_to_radians;
+	const float yRadians = in.y_angle * k_degrees_to_radians;
+	const float zRadians = in.z_angle * k_degrees_to_radians;
+	
+	return glm::quat(glm::mat3(glm::eulerAngleXYZ(xRadians, yRadians, zRadians)));
+}
+
+glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in)
+{
+	return glm::quat(in.w, in.x, in.y, in.z);
+}
+
+MikanTransform glm_transform_to_MikanTransform(const GlmTransform& in)
+{
+	MikanTransform xform;
+	xform.rotation= glm_quat_to_MikanQuatf(in.getRotation());
+	xform.scale= glm_vec3_to_MikanVector3f(in.getScale());
+	xform.position= glm_vec3_to_MikanVector3f(in.getPosition());
+
+	return xform;
+}
+
+MikanRotator3f glm_quat_to_MikanRotator3f(const glm::quat& in)
+{
+	float xRadians, yRadians, zRadians;
+	glm_quat_to_euler_angles(in, xRadians, yRadians, zRadians);
+
+	return {
+		xRadians * k_radians_to_degrees,
+		yRadians * k_radians_to_degrees,
+		zRadians * k_radians_to_degrees
+	};
+}
+
+MikanQuatf glm_quat_to_MikanQuatf(const glm::quat& in)
+{
+	return { in.w, in.x, in.y, in.z };
 }

@@ -1,10 +1,12 @@
 #include "App.h"
+#include "CalibrationRenderHelpers.h"
+#include "FontManager.h"
 #include "GlCamera.h"
 #include "GlCommon.h"
+#include "GlStateStack.h"
 #include "GlTextRenderer.h"
-#include "GlBakedTextCache.h"
-#include "GlBakedTextCache.h"
 #include "GlTexture.h"
+#include "GlViewport.h"
 #include "Logger.h"
 #include "MathGLM.h"
 #include "Renderer.h"
@@ -15,12 +17,11 @@ GlTextRenderer::GlTextRenderer()
 {
 }
 
-void GlTextRenderer::render()
+void GlTextRenderer::render(Renderer* renderer)
 {
 	if (m_bakedTextQuads.size() > 0)
 	{
 		// Fetch the window resolution
-		Renderer* renderer = Renderer::getInstance();
 		const float screenWidth = renderer->getSDLWindowWidth();
 		const float screenHeight = renderer->getSDLWindowHeight();
 
@@ -39,14 +40,13 @@ void GlTextRenderer::render()
 		glPushMatrix();
 		glLoadIdentity();
 
+		GlScopedState stateScope= renderer->getGlStateStack()->createScopedState();
+		stateScope.getStackState()
+			.disableFlag(eGlStateFlagType::depthTest)
+			.enableFlag(eGlStateFlagType::blend);
+
 		// Turn on alpha blending for text rendering text
-		//glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		GLboolean wasDepthTestEnabled = glIsEnabled(GL_DEPTH_TEST);
-		if (wasDepthTestEnabled)
-		{
-			glDisable(GL_DEPTH_TEST);
-		}
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Render all of the baked quads
 		for (const BakedTextQuad& bakedQuad : m_bakedTextQuads)
@@ -96,14 +96,6 @@ void GlTextRenderer::render()
 			bakedQuad.texture->clearTexture();
 		}
 
-		// Turn back off alpha blending
-		//glDisable(GL_BLEND);
-
-		if (wasDepthTestEnabled)
-		{
-			glEnable(GL_DEPTH_TEST);
-		}
-
 		// Restore the projection matrix
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
@@ -121,7 +113,7 @@ void GlTextRenderer::addTextAtScreenPosition(
 	const glm::vec2& screenCoords, 
 	const std::wstring& text)
 {
-	GlTexture* texture= App::getInstance()->getBakedTextCache()->fetchBakedText(style, text);
+	GlTexture* texture= App::getInstance()->getFontManager()->fetchBakedText(style, text);
 
 	if (texture != nullptr)
 	{
@@ -142,7 +134,7 @@ void drawTextAtWorldPosition(
 {
 	Renderer* renderer= Renderer::getInstance();
 	GlTextRenderer* textRenderer= renderer->getTextRenderer();
-	GlCamera* camera = renderer->getCurrentCamera();
+	GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 
@@ -152,7 +144,7 @@ void drawTextAtWorldPosition(
 	glm::vec3 screenCoords =
 		glm::project(
 			position,
-			camera->getModelViewMatrix(),
+			camera->getViewMatrix(),
 			camera->getProjectionMatrix(),
 			glm::vec4(0, screenHeight, screenWidth, -screenHeight));
 
@@ -183,5 +175,39 @@ void drawTextAtScreenPosition(
 
 	Renderer* renderer = Renderer::getInstance();
 	GlTextRenderer* textRenderer = renderer->getTextRenderer();
+	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
+}
+
+void drawTextAtCameraPosition(
+	const TextStyle& style,
+	const float cameraWidth, const float cameraHeight,
+	const glm::vec2& cameraCoords,
+	const wchar_t* format,
+	...)
+{
+	// Bake out the text string
+	wchar_t text[1024];
+	va_list args;
+	va_start(args, format);
+	int w = vswprintf(text, sizeof(text), format, args);
+	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
+	va_end(args);
+
+	Renderer* renderer = Renderer::getInstance();
+	GlTextRenderer* textRenderer = renderer->getTextRenderer();
+
+	const float windowWidth = renderer->getSDLWindowWidth();
+	const float windowHeight = renderer->getSDLWindowHeight();
+	const float windowX0 = 0.0f, windowY0 = 0.f;
+	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
+
+	// Remaps the camera relative segment to window relative coordinates
+	const glm::vec2 screenCoords =
+		remapPointIntoSubWindow(
+			cameraWidth, cameraHeight,
+			windowX0, windowY0,
+			windowX1, windowY1,
+			cameraCoords);
+
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
 }

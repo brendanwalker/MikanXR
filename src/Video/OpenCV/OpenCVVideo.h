@@ -7,6 +7,7 @@
 #include "OpenCVVideoConfig.h"
 #include "VideoCapabilitiesConfig.h"
 #include "WorkerThread.h"
+#include "VideoFwd.h"
 
 namespace cv
 {
@@ -44,10 +45,10 @@ private:
 class OpenCVVideoDevice
 {
 public:
-	OpenCVVideoDevice(const int deviceIndex, const VideoCapabilitiesConfig &videoCaps);
+	OpenCVVideoDevice(const int deviceIndex, VideoCapabilitiesConfigConstPtr videoCaps);
 	~OpenCVVideoDevice();
 
-	bool open(int desiredModeIndex, OpenCVVideoConfig& cfg, class IVideoSourceListener* trackerListener);
+	bool open(int desiredModeIndex, OpenCVVideoConfigPtr cfg, class IVideoSourceListener* trackerListener);
 	bool getIsOpen() const;
 	void close();
 
@@ -66,7 +67,7 @@ public:
 
 public:
 	int m_deviceIndex;
-	VideoCapabilitiesConfig m_videoCapabilities;
+	VideoCapabilitiesConfigConstPtr m_videoCapabilities;
 	int m_deviceModeIndex;
 	VideoPropertyConstraint m_videoPropertyConstraints[(int)VideoPropertyType::COUNT];
 	OpenCVVideoFrameProcessor* m_videoFrameProcessor;

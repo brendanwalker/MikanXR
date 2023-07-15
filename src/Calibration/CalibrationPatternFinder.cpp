@@ -21,7 +21,7 @@ CalibrationPatternFinder::~CalibrationPatternFinder()
 }
 
 CalibrationPatternFinder* CalibrationPatternFinder::allocatePatternFinder(
-	const ProfileConfig* profileConfig,
+	ProfileConfigConstPtr profileConfig,
 	VideoFrameDistortionView* distortionView)
 {
 	switch (profileConfig->calibrationPatternType)

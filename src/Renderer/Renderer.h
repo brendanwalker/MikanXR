@@ -1,8 +1,12 @@
 #pragma once
 
 //-- includes -----
+#include "RendererFwd.h"
+
 #include <memory>
+#include <string>
 #include <vector>
+
 #include <glm/glm.hpp>
 
 //-- typedefs -----
@@ -18,10 +22,11 @@ public:
 	bool startup();
 	void shutdown();
 
+	void setSDLMouseCursor(const std::string& cursor_name);
 	bool onSDLEvent(const SDL_Event* event);
 
 	void renderBegin();
-	void renderStageBegin();
+	void renderStageBegin(GlViewportConstPtr targetViewport);
 	void renderStageEnd();
 	void renderUIBegin();
 	void renderUIEnd();
@@ -62,34 +67,44 @@ public:
 		return m_isRenderingUI;
 	}
 
+	GlViewportConstPtr getRenderingViewport() const { return m_renderingViewport; }
+	class GlStateStack* getGlStateStack() const { return m_glStateStack; }
+
 	class GlLineRenderer* getLineRenderer() const { return m_lineRenderer; }
 	class GlTextRenderer* getTextRenderer() const { return m_textRenderer; }
 	std::unique_ptr<class GlModelResourceManager>& getModelResourceManager() { return m_modelResourceManager; }
 
-	class GlCamera* getCurrentCamera() const;
-	class GlCamera* pushCamera();
-	void popCamera();
-
 private:
 	bool m_sdlInitialized;
+
+	struct SDL_Cursor* cursor_default = nullptr;
+	struct SDL_Cursor* cursor_move = nullptr;
+	struct SDL_Cursor* cursor_pointer = nullptr;
+	struct SDL_Cursor* cursor_resize = nullptr;
+	struct SDL_Cursor* cursor_cross = nullptr;
+	struct SDL_Cursor* cursor_text = nullptr;
+	struct SDL_Cursor* cursor_unavailable = nullptr;
 
 	struct SDL_Window* m_sdlWindow;
 	int m_sdlWindowWidth, m_sdlWindowHeight;
 
 	void* m_glContext;
-	std::vector<class GlCamera*> m_cameraStack;
+	GlViewportPtr m_uiViewport;
+	GlViewportConstPtr m_renderingViewport;
+	class GlStateStack* m_glStateStack;
 
 	class GlLineRenderer* m_lineRenderer;
 	class GlTextRenderer* m_textRenderer;
 
 	std::unique_ptr< class GlModelResourceManager > m_modelResourceManager;
 
-	struct ImGuiContext* m_imguiContext;
-	bool m_imguiOpenGLBackendInitialised;
-	bool m_imguiSDLBackendInitialised;
+	std::unique_ptr< class GlRmlUiRender > m_rmlUiRenderer;
 
 	bool m_isRenderingStage;
 	bool m_isRenderingUI;
+
+	// OpenGL shader program cache
+	std::unique_ptr< class GlShaderCache > m_shaderCache;
 
 	static Renderer* m_instance;
 };

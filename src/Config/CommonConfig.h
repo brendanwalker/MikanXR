@@ -1,10 +1,16 @@
 #pragma once
 
 //-- includes -----
+#include "CommonConfigFwd.h"
 #include "MikanClientTypes.h"
 #include "DeviceInterface.h"
+#include "MulticastDelegate.h"
 
+#include <memory>
+#include <filesystem>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
@@ -28,21 +34,104 @@
     pt.get_or<type>(), respectively, to convert between member variables and the
     property tree. 
 */
-class CommonConfig 
+class ConfigPropertyChangeSet
 {
 public:
-    CommonConfig(const std::string &fnamebase = std::string("CommonConfig"));
+	ConfigPropertyChangeSet& addPropertyName(const std::string& propertyName);
+	bool hasPropertyName(const std::string& propertyName) const;
+	const std::set<std::string>& getSet() const { return m_changedProperties; }
 
+private:
+	std::set<std::string> m_changedProperties;
+};
+
+class CommonConfig : public std::enable_shared_from_this<CommonConfig> 
+{
+public:
+    CommonConfig(const std::string &configName = std::string("CommonConfig"));
+
+	void addChildConfig(std::shared_ptr<CommonConfig> childConfig);
+	void removeChildConfig(std::shared_ptr<CommonConfig> childConfig);
+	bool isMarkedDirty() const;
+	void markDirty(const ConfigPropertyChangeSet& changedPropertySet);
+	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnMarkedDirty;
+
+	const std::string& getConfigName() const { return m_configName; }
+	const std::filesystem::path getDefaultConfigPath() const;
+    const std::filesystem::path& getLoadedConfigPath() const { return m_configFullFilePath; }
     void save();
-	void save(const std::string &path);
+	void save(const std::filesystem::path& path);
     bool load();
-	bool load(const std::string &path);
-    
-    std::string ConfigFileBase;
+	bool load(const std::filesystem::path& path);
 
-    virtual const configuru::Config writeToJSON() = 0;  // Implement by each device class' own Config
-    virtual void readFromJSON(const configuru::Config &pt) = 0;  // Implement by each device class' own Config
+    virtual configuru::Config writeToJSON();  // Implement by each device class' own Config
+    virtual void readFromJSON(const configuru::Config &pt);  // Implement by each device class' own Config
     
+	template<typename t_value_type>
+	static void writeStdVector(
+		configuru::Config& pt,
+		const std::string& arrayName,
+		const std::vector<t_value_type>& vector)
+	{
+		auto configArray = configuru::Config::array();
+
+		for (auto it = vector.begin(); it != vector.end(); it++)
+		{
+			configArray.push_back(*it);
+		}
+
+		pt[arrayName] = configArray;
+	}
+	template<typename t_value_type>
+	static void readStdVector(
+		const configuru::Config& pt,
+		const std::string& arrayName,
+		std::vector<t_value_type>& vector)
+	{
+		const auto& configArray = pt[arrayName].as_array();
+
+		vector.clear();
+		for (auto it = configArray.begin(); it != configArray.end(); it++)
+		{
+			vector.push_back(it->get<t_value_type>());
+		}
+	}
+
+    template<typename t_value_type>
+    static void writeStdMap(
+        configuru::Config& pt, 
+        const std::string& mapName,
+        const std::map<std::string, t_value_type>& nameValueMap)
+    {
+        pt[mapName]= configuru::Config::object();
+
+        for (auto it = nameValueMap.begin(); it != nameValueMap.end(); ++it)
+        {
+            const std::string& name= it->first;
+            const t_value_type& value = it->second;
+
+            pt[mapName][name] = value;
+        }
+    }
+	template<typename t_value_type>
+	static void readStdMap(
+		const configuru::Config& pt,
+		const std::string& mapName,
+		std::map<std::string, t_value_type>& nameValueMap)
+	{
+		const configuru::Config::ConfigObject& configObject= pt[mapName].as_object();
+
+        nameValueMap.clear();
+		for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+		{
+			const std::string& name = it.key();
+			const configuru::Config& config = it.value();
+            const t_value_type& value= config.get<t_value_type>();
+
+            nameValueMap.insert({name, value});
+		}
+	}
+
 	static void writeMonoTrackerIntrinsics(
 		configuru::Config& pt,
 		const MikanMonoIntrinsics& tracker_intrinsics);
@@ -139,6 +228,15 @@ public:
 		const char* vector_name,
 		MikanRotator3f& outVector);
 
+	static void writeQuatf(
+		configuru::Config& pt,
+		const char* quat_name,
+		const MikanQuatf& quat);
+	static void readQuatf(
+		const configuru::Config& pt,
+		const char* quat_name,
+		MikanQuatf& outQuat);
+
 	static void writeDeviceType(
 		configuru::Config& pt,
 		const char* fieldName,
@@ -148,6 +246,12 @@ public:
 		const char* fieldName,
         eDeviceType& outDeviceType);
 
-private:
-    const std::string getConfigPath();
+protected:
+	std::vector<CommonConfigPtr> m_childConfigs;
+	void onChildConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+	void clearDirty();
+
+	bool m_bIsDirty= false;
+	std::string m_configName;
+	std::filesystem::path m_configFullFilePath;
 };

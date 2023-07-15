@@ -10,7 +10,7 @@ class OpenCVVideoConfig : public CommonVideoConfig
 public:
     OpenCVVideoConfig(const std::string &fnamebase = "OpenCVCameraConfig");
     
-    virtual const configuru::Config writeToJSON() override;
+    virtual configuru::Config writeToJSON() override;
     virtual void readFromJSON(const configuru::Config &pt) override;
 
 	inline int getExposure() const { return video_properties[(int)VideoPropertyType::Exposure]; }

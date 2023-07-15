@@ -18,7 +18,7 @@
 
 // -- private data ---
 MikanClient *g_mikanClient= nullptr;
-void* g_graphicsDeviceInterfaces[MikanClientGraphicsAPI_COUNT] = {
+void* g_graphicsDeviceInterfaces[MikanClientGraphicsApi_COUNT] = {
 	nullptr, // Unknown
 	nullptr, // DirectX9
 	nullptr, // DirectX11
@@ -152,9 +152,9 @@ MikanResult Mikan_UnsubscribeFromVRDevicePoseUpdates(MikanVRDeviceID device_id)
 	return g_mikanClient->unsubscribeFromVRDevicePoseUpdates(device_id) ;
 }
 
-MikanResult Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI api, void* graphicsDeviceInterface)
+MikanResult Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface)
 {
-	if (api < 0 || api >= MikanClientGraphicsAPI_COUNT)
+	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
 		return MikanResult_InvalidAPI;
 
 	g_graphicsDeviceInterfaces[api]= graphicsDeviceInterface;
@@ -162,9 +162,9 @@ MikanResult Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI api, void* g
 	return MikanResult_Success;
 }
 
-MikanResult Mikan_GetGraphicsDeviceInterface(MikanClientGraphicsAPI api, void** outGraphicsDeviceInterface)
+MikanResult Mikan_GetGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface)
 {
-	if (api < 0 || api >= MikanClientGraphicsAPI_COUNT)
+	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
 		return MikanResult_InvalidAPI;
 	if (outGraphicsDeviceInterface == nullptr)
 		return MikanResult_NullParam;
@@ -225,6 +225,14 @@ MikanResult Mikan_GetStencilList(MikanStencilList* out_stencil_list)
 	return g_mikanClient->getStencilList(*out_stencil_list);
 }
 
+MikanResult Mikan_SendScriptMessage(const MikanScriptMessageInfo* message)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+
+	return g_mikanClient->sendScriptMessage(*message);
+}
+
 MikanResult Mikan_GetQuadStencil(MikanStencilID stencil_id, MikanStencilQuad* out_stencil)
 {
 	if (g_mikanClient == nullptr)
@@ -233,6 +241,16 @@ MikanResult Mikan_GetQuadStencil(MikanStencilID stencil_id, MikanStencilQuad* ou
 		return MikanResult_NullParam;
 
 	return g_mikanClient->getQuadStencil(stencil_id, *out_stencil);
+}
+
+MikanResult Mikan_GetBoxStencil(MikanStencilID stencil_id, MikanStencilBox* out_stencil)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+	if (out_stencil == nullptr)
+		return MikanResult_NullParam;
+
+	return g_mikanClient->getBoxStencil(stencil_id, *out_stencil);
 }
 
 MikanResult Mikan_GetModelStencil(MikanStencilID stencil_id, MikanStencilModel* out_stencil)

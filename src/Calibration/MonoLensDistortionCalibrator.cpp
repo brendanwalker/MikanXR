@@ -72,7 +72,7 @@ struct MonoLensDistortionCalibrationState
 
 //-- MonoDistortionCalibrator ----
 MonoLensDistortionCalibrator::MonoLensDistortionCalibrator(
-	const ProfileConfig* profileConfig,
+	ProfileConfigConstPtr profileConfig,
 	VideoFrameDistortionView* distortionView,
 	int desiredBoardCount)
 	: m_calibrationState(new MonoLensDistortionCalibrationState)

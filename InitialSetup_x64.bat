@@ -162,11 +162,66 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+:: Download pre-compiled FreeType libraries
+echo "Downloading FreeType Binaries..."
+curl -L https://github.com/ubawurinna/freetype-windows-binaries/archive/refs/tags/v2.10.4.zip  --output freetype-windows-binaries-2.10.4.zip
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error FreeType.zip"
+  goto failure
+)
+7z e freetype-windows-binaries-2.10.4.zip -y -r -spf
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping FreeType.zip"
+  goto failure
+)
+
+:: Download and make a build of RmlUi with some custom build settings
+echo "Downloading RML source..."
+curl -L https://github.com/mikke89/RmlUi/archive/refs/tags/4.4.zip --output RML.zip
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error RML.zip"
+  goto failure
+)
+7z e RML.zip -y -r -spf -oRML
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping RML.zip"
+  goto failure
+)
+set LUA_DIR=%~dp0\thirdparty\lua
+pushd RML\RmlUi-4.4
+pushd Dependencies
+mkdir lib
+copy ..\..\..\freetype-windows-binaries-2.10.4\win64\freetype.lib lib\freetype.lib
+robocopy ..\..\..\freetype-windows-binaries-2.10.4\include include /s /e
+popd
+echo "Configuring RML project..."
+cmake -B Build -S . -DBUILD_SAMPLES=OFF -DBUILD_LUA_BINDINGS=ON
+echo "Building RML Debug config..."
+cmake --build Build --config Debug
+echo "Building RML Release config..."
+cmake --build Build --config Release
+popd
+set "LUA_DIR="
+
+: Download prebuilt SWIG
+set(SWIG_VERSION "4.1.1")
+        # Download and install pre-compiled SWIG for Windows into deps folder
+        set(SWIG_DOWNLOAD_URL "http://sourceforge.net/projects/swig/files/swigwin/swigwin-${SWIG_VERSION}/swigwin-${SWIG_VERSION}.zip")
+echo "Downloading FreeType Binaries..."
+curl -L http://sourceforge.net/projects/swig/files/swigwin/swigwin-4.1.1/swigwin-4.1.1.zip --output swigwin-4.1.1.zip
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error swigwin-4.1.1.zip"
+  goto failure
+)
+7z e swigwin-4.1.1.zip -y -r -spf
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping swigwin-4.1.1.zip"
+  goto failure
+)
+
 :: Exit back out of the deps folder
 popd
 
-:: Generate the project files for the main application
-call GenerateProjectFiles_X64.bat || goto failure
 EXIT /B 0
 
 :failure

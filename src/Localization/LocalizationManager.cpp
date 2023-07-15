@@ -16,6 +16,8 @@
 #include <locale>
 #include <codecvt>
 
+#include <easy/profiler.h>
+
 #ifdef _WIN32
 #include "windows.h"
 #endif // _WIN32
@@ -103,14 +105,13 @@ void LocalizationManager::reloadLangages()
 {
 	unloadLanguages();
 
-	const std::string locPath = PathUtils::getResourceDirectory() + "\\localization\\*.csv";
-	std::vector<std::string> locFiles;
-	PathUtils::fetchFilenamesInDirectory(locPath, locFiles);
+	const std::filesystem::path locFolderPath = PathUtils::getResourceDirectory() / std::string("localization");
+	const std::vector<std::string> locFiles= PathUtils::listFilenamesInDirectory(locFolderPath, ".csv");
 
 	for (auto baseFileName : locFiles)
 	{
-		std::string filename = PathUtils::getResourceDirectory() + "\\localization\\" + baseFileName;
-		std::string baseFileNameNoExt = PathUtils::removeFileExtension(baseFileName);
+		const std::filesystem::path locFilePath = locFolderPath / baseFileName;
+		std::string baseFileNameNoExt = std::filesystem::path(baseFileName).stem().string();
 		std::vector<std::string> parts= StringUtils::splitString(baseFileNameNoExt, '_');
 
 		if (parts.size() == 2)
@@ -144,7 +145,7 @@ void LocalizationManager::reloadLangages()
 				language->stringTables.insert({ tableName, stringTable });
 			}
 
-			io::CSVReader<2> in(filename);
+			io::CSVReader<2> in(locFilePath.string());
 			in.read_header(io::ignore_extra_column, "key", "text");
 			
 			std::string key; char* utf8Text;
@@ -169,7 +170,7 @@ void LocalizationManager::reloadLangages()
 		}
 		else
 		{
-			MIKAN_LOG_WARNING("LocalizationManager::reloadLangages") << "Malformed loc filename: " << filename;
+			MIKAN_LOG_WARNING("LocalizationManager::reloadLangages") << "Malformed loc filename: " << locFilePath;
 		}
 	}
 }
@@ -242,13 +243,19 @@ bool LocalizationManager::setLanguage(const std::string& languageId)
 	return false;
 }
 
-const char* LocalizationManager::fetchUTF8Text(const char* tableName, const char* stringKey)
+const char* LocalizationManager::fetchUTF8Text(
+	const char* tableName, 
+	const char* stringKey,
+	bool* outHasString)
 {
 	const char* actualTableName = tableName;
 	if (tableName == nullptr || tableName[0] == '\0')
 	{
 		actualTableName = "default";
 	}
+
+	bool bHasString= false;
+	const char* result= nullptr;
 
 	if (m_currentLanguage != nullptr)
 	{
@@ -260,31 +267,45 @@ const char* LocalizationManager::fetchUTF8Text(const char* tableName, const char
 			auto textIt = stringTable->keyToTextMap.find(stringKey);
 			if (textIt != stringTable->keyToTextMap.end())
 			{
-				return textIt->second.utf8Text.c_str();
+				result = textIt->second.utf8Text.c_str();
+				bHasString= true;
 			}
 			else
 			{
-				return "<INVALID STRING KEY>";
+				result = "<INVALID STRING KEY>";
 			}
 		}
 		else
 		{
-			return "<INVALID TABLE>";
+			result = "<INVALID TABLE>";
 		}
 	}
 	else
 	{
-		return "<INVALID LANGUAGE>";
+		result= "<INVALID LANGUAGE>";
 	}
+
+	if (outHasString != nullptr)
+	{
+		*outHasString= bHasString;
+	}
+
+	return result;
 }
 
-const wchar_t* LocalizationManager::fetchUTF16Text(const char* tableName, const char* stringKey)
+const wchar_t* LocalizationManager::fetchUTF16Text(
+	const char* tableName, 
+	const char* stringKey, 
+	bool* outHasString)
 {
 	const char* actualTableName= tableName;
 	if (tableName == nullptr || tableName[0] == '\0')
 	{
 		actualTableName= "default";
 	}
+
+	bool bHasString = false;
+	const wchar_t* result = nullptr;
 
 	if (m_currentLanguage != nullptr)
 	{
@@ -296,30 +317,38 @@ const wchar_t* LocalizationManager::fetchUTF16Text(const char* tableName, const 
 			auto textIt= stringTable->keyToTextMap.find(stringKey);
 			if (textIt != stringTable->keyToTextMap.end())
 			{
-				return textIt->second.utf16Text.c_str();
+				result = textIt->second.utf16Text.c_str();
+				bHasString = true;
 			}
 			else
 			{
-				return L"<INVALID STRING KEY>";
+				result = L"<INVALID STRING KEY>";
 			}
 		}
 		else
 		{
-			return L"<INVALID TABLE>";
+			result = L"<INVALID TABLE>";
 		}
 	}
 	else
 	{
-		return L"<INVALID LANGUAGE>";
+		result = L"<INVALID LANGUAGE>";
 	}
+
+	if (outHasString != nullptr)
+	{
+		*outHasString = bHasString;
+	}
+
+	return result;
 }
 
-const char* locTextUTF8(const char* tableName, const char* stringKey)
+const char* locTextUTF8(const char* tableName, const char* stringKey, bool* outHasString)
 {
-	return LocalizationManager::getInstance()->fetchUTF8Text(tableName, stringKey);
+	return LocalizationManager::getInstance()->fetchUTF8Text(tableName, stringKey, outHasString);
 }
 
-const wchar_t* locTextUTF16(const char* tableName, const char* stringKey)
+const wchar_t* locTextUTF16(const char* tableName, const char* stringKey, bool* outHasString)
 {
-	return LocalizationManager::getInstance()->fetchUTF16Text(tableName, stringKey);
+	return LocalizationManager::getInstance()->fetchUTF16Text(tableName, stringKey, outHasString);
 }

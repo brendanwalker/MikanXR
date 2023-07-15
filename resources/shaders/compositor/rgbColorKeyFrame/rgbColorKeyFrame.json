@@ -1,0 +1,10 @@
+{
+    "materialName": "rgbColorKeyFrame",
+    "vertexShaderPath": "rgbColorKeyFrame.vert",
+    "fragmentShaderPath": "rgbColorKeyFrame.frag",
+    "uniforms":
+    {
+        "colorKey": "diffuseColorRGB",
+        "colorKeyTexture": "texture0"
+    }
+}

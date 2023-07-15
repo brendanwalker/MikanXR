@@ -38,9 +38,12 @@
 build*
 bin*
 dist*
-obj*
 !OBJ-loader
 !resources/models/*/*.obj
+
+# C# Binding directory
+!bindings
+bindings/csharp
 
 # Third Party
 !thirdparty/lua/*.lib
@@ -51,3 +54,8 @@ deps
 
 #vscode
 .vs
+
+#Mikan
+imgui.ini
+MikanXR.log
+!src/Object

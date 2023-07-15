@@ -1,0 +1,74 @@
+<rml>
+	<head>
+		<link type="text/rcss" href="rml.rcss"/>
+		<link type="text/rcss" href="mikan.rcss"/>
+		<link type="text/template" href="window.rml" />
+		<title>Demo Sample</title>
+		<style>
+			@keyframes slideout {
+				from {
+					opacity: 1;
+					transform: translateX(0dp);
+					visibility: visible;
+				}
+				to {
+					opacity: 0;
+					transform: translateX(300dp);
+					visibility: hidden;
+				}
+			}
+			@keyframes slidein {
+				from {
+					opacity: 0;
+					transform: translateX(300dp);
+					visibility: hidden;
+				}
+				to {
+					opacity: 1;
+					transform: translateX(0dp);
+					visibility: visible;
+				}
+			}
+			body
+			{
+				width: 400dp;
+				height: 300dp;
+
+				margin: auto;
+				animation: 0.25s cubic-out slidein;
+			}
+			button {
+				transition: transform 0.25s elastic-out;
+				transform: scale(1.0);
+			}
+			button:hover {
+				transform: scale(1.1);
+			}
+
+		</style>
+	</head>
+	<body template="window">
+		<div id="title_bar">
+			<handle move_target="#document">
+				<div id="icon"></div>
+				<span id="title">Main Menu</span>
+			</handle>
+		</div>
+		<div style="height: 40dp" />
+		<div>
+			<button onclick="goto_compositor">video_compositor</button>
+		</div>
+		<div>
+			<button style="width: 220dp" onclick="goto_pattern_settings">calibration_pattern_settings</button>
+		</div>
+		<div>
+			<button onclick="goto_camera_settings">camera_settings</button>
+		</div>
+		<div>
+			<button onclick="goto_vr_device_settings">vr_device_settings</button>
+		</div>
+		<div>
+			<button onclick="exit_mikan">exit</button>
+		</div>
+	</body>
+</rml>

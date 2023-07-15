@@ -1,0 +1,10 @@
+{
+    "materialName": "rgbUndistortionFrame",
+    "vertexShaderPath": "rgbUndistortionFrame.vert",
+    "fragmentShaderPath": "rgbUndistortionFrame.frag",
+    "uniforms":
+    {
+        "rgbTexture": "texture0",
+        "distortion": "texture1"
+    }
+}

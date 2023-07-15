@@ -1,0 +1,150 @@
+#pragma once
+
+//-- includes -----
+#include "AppStage.h"
+#include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemFwd.h"
+#include "RendererFwd.h"
+#include "RmlFwd.h"
+#include "SceneFwd.h"
+#include "ScriptingFwd.h"
+
+#include <filesystem>
+#include <memory>
+#include "FrameCompositorConstants.h"
+
+enum class eCompositorViewpointMode : int
+{
+	INVALID = -1,
+
+	mixedRealityViewpoint,
+	vrViewpoint,
+
+	COUNT
+};
+
+//-- definitions -----
+class AppStage_Compositor : public AppStage
+{
+public:
+	static const char* APP_STAGE_NAME;
+
+	AppStage_Compositor(class App* app);
+	virtual ~AppStage_Compositor();
+
+	inline CompositorScriptContextPtr getCompositorScriptContext() { return m_scriptContext; }
+
+	virtual void enter() override;
+	virtual void exit() override;
+	virtual void pause() override;
+	virtual void resume() override;
+	virtual void update(float deltaSeconds) override;
+	virtual void render() override;
+
+protected:
+	bool startRecording();
+	void stopRecording();
+
+	bool startStreaming();
+	void stopStreaming();
+
+	// Camera
+	void setupCameras();
+	void setCurrentCameraMode(eCompositorViewpointMode viewportMode);
+	eCompositorViewpointMode getCurrentCameraMode() const;
+	GlCameraPtr getViewpointCamera(eCompositorViewpointMode viewportMode) const;
+	void updateCamera();
+	void setXRCamera();
+	void setVRCamera();
+
+	// Compositor Events
+	void onCompositorShadersReloaded();
+	void onNewRecordingFrameReady();
+	void onNewStreamingFrameReady();
+
+	// Main Compositor UI Events
+	void onReturnEvent();
+	void onToggleOutlinerWindowEvent();
+	void onToggleLayersWindowEvent();
+	void onToggleRecordingWindowEvent();
+	void onToggleScriptingWindowEvent();
+	void onToggleSourcesWindowEvent();
+	void onToggleSettingsWindowEvent();
+	void hideAllSubWindows();
+
+	// Layers UI Events
+	void onConfigAddEvent();
+	void onConfigDeleteEvent();
+	void onConfigNameChangeEvent(const std::string& newConfigName);
+	void onConfigSelectEvent(const std::string& configName);
+	void onLayerAddEvent();
+	void onLayerDeleteEvent(const int layerIndex);
+	void onMaterialNameChangeEvent(const int layerIndex, const std::string& materialName);
+	void onVerticalFlipChangedEvent(const int layerIndex, bool bIsFlipped);
+	void onBlendModeChangedEvent(const int layerIndex, eCompositorBlendMode blendMode);
+	void onInvertQuadsFlagChangeEvent(const int layerIndex, bool bInvertFlag);
+	void onQuadStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
+	void onBoxStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
+	void onModelStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
+	void onStencilRefAddedEvent(const int layerIndex, int stencilId);
+	void onStencilRefRemovedEvent(const int layerIndex, int stencilId);
+	void onFloatMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onFloat2MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onFloat3MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onFloat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onMat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
+	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
+
+	// Recording UI Events
+	void onToggleRecordingEvent();
+	void onToggleStreamingEvent();
+
+	// Scripting UI Events
+	void onScriptFileChangeEvent(const std::filesystem::path& scriptFileChangeEvent);
+	void onSelectCompositorScriptFileEvent();
+	void onReloadCompositorScriptFileEvent();
+	void onInvokeScriptTriggerEvent(const std::string& triggerEvent);
+
+	// Debug Rendering
+	void debugRenderOrigin() const;
+
+	ProfileConfigPtr m_profile;
+
+	AnchorObjectSystemPtr m_anchorObjectSystem;
+	StencilObjectSystemPtr m_stencilObjectSystem;
+	EditorObjectSystemPtr m_editorSystem;
+
+	class RmlModel_Compositor* m_compositorModel = nullptr;
+	Rml::ElementDocument* m_compositiorView = nullptr;
+
+	class RmlModel_CompositorLayers* m_compositorLayersModel = nullptr;
+	Rml::ElementDocument* m_compositiorLayersView = nullptr;
+
+	class RmlModel_CompositorRecording* m_compositorRecordingModel = nullptr;
+	Rml::ElementDocument* m_compositiorRecordingView = nullptr;
+
+	class RmlModel_CompositorScripting* m_compositorScriptingModel = nullptr;
+	Rml::ElementDocument* m_compositiorScriptingView = nullptr;
+
+	class RmlModel_CompositorSources* m_compositorSourcesModel = nullptr;
+	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
+
+	class RmlModel_CompositorOutliner* m_compositorOutlinerModel = nullptr;
+	class RmlModel_CompositorSelection* m_compositorSelectionModel = nullptr;
+	Rml::ElementDocument* m_compositiorOutlinerView = nullptr;
+
+	class RmlModel_CompositorSettings* m_compositorSettingsModel = nullptr;
+	Rml::ElementDocument* m_compositiorSettingsView = nullptr;
+
+	CompositorScriptContextPtr m_scriptContext;
+	class GlFrameCompositor* m_frameCompositor= nullptr;
+
+	GlViewportPtr m_viewport;
+	eCompositorViewpointMode m_viewportMode= eCompositorViewpointMode::mixedRealityViewpoint;
+
+	bool m_bAddingNewConfig= false;
+
+	class VideoWriter* m_videoWriter= nullptr;
+	class InterprocessRenderTargetWriteAccessor* m_renderTargetWriteAccessor= nullptr;
+};

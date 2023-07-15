@@ -2,6 +2,7 @@
 
 // -- includes -----
 #include "DeviceInterface.h"
+#include "RendererFwd.h"
 
 #include <string>
 #include <vector>
@@ -63,7 +64,7 @@ public:
 	// Fetch device pose from the VR system
 	virtual void updatePose() = 0;
 	// bind to a scene for rendering
-	virtual void bindToScene(class GlScene* scene) = 0;
+	virtual void bindToScene(GlScenePtr scene) = 0;
 	// Remove from currently bound scene
 	virtual void removeFromBoundScene() = 0;
 

@@ -6,6 +6,7 @@
 #define __MIKAN_CLIENT_TYPES_H
 #include "MikanMathTypes.h"
 #include <stdint.h>
+#include <stdbool.h>
 //cut_before
 
 /**
@@ -27,11 +28,15 @@ typedef int32_t MikanStencilID;
 /// The ID of a spatial anchor
 typedef int32_t MikanSpatialAnchorID;
 
-#define INVALID_MIKAN_ID			-1
-#define MAX_MIKAN_VR_DEVICES		64
-#define MAX_MIKAN_STENCILS			16
-#define MAX_MIKAN_SPATIAL_ANCHORS	64
-#define MAX_MIKAN_ANCHOR_NAME_LEN	128
+#define INVALID_MIKAN_ID				-1
+#define MAX_MIKAN_VR_DEVICES			64
+#define MAX_MIKAN_STENCILS				16
+#define MAX_MIKAN_STENCIL_NAME_LEN		128
+#define MAX_MIKAN_SPATIAL_ANCHORS		64
+#define MAX_MIKAN_ANCHOR_NAME_LEN		128
+#define MAX_MIKAN_SCRIPT_MESSAGE_LEN	512
+#define ORIGIN_SPATIAL_ANCHOR_NAME		"Origin"
+
 
 // Shared Constants
 //-----------------
@@ -62,6 +67,7 @@ typedef enum
 	MikanResult_TooManyStencils = -19,
 	MikanResult_InvalidAPI = -20,
 	MikanResult_SharedTextureError = -21,
+	MikanResult_InvalidAnchorID = -22,
 } MikanResult;
 
 typedef enum
@@ -73,8 +79,6 @@ typedef enum
 	MikanLogLevel_Error,
 	MikanLogLevel_Fatal
 } MikanLogLevel;
-
-typedef void (*MikanLogCallback)(int /*log_level*/, const char* /*log_message*/);
 
 typedef enum
 {
@@ -114,40 +118,42 @@ typedef enum
 
 typedef enum
 {
-	MikanColorBuffer_NONE,
+	MikanColorBuffer_NOCOLOR,
 	MikanColorBuffer_RGB24,
-	MikanColorBuffer_RGBA32,
+	MikanColorBuffer_RGBA32, // DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
+	MikanColorBuffer_BGRA32, // DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 } MikanColorBufferType;
 
 typedef enum
 {
-	MikanDepthBuffer_NONE,
+	MikanDepthBuffer_NODEPTH,
 	MikanDepthBuffer_DEPTH16,
 	MikanDepthBuffer_DEPTH32,
 } MikanDepthBufferType;
 
 typedef enum
 {
-	MikanFeature_NONE = 0L,
+	MikanFeature_RenderTarget_NONE = 0,
 
 	// Render target options
-	MikanFeature_RenderTarget_RGB24 = 1L << 0,
-	MikanFeature_RenderTarget_RGBA32 = 1L << 1,
-	MikanFeature_RenderTarget_DEPTH16 = 1L << 2,
-	MikanFeature_RenderTarget_DEPTH32 = 1L << 3,
+	MikanFeature_RenderTarget_RGB24 = 1 << 0,
+	MikanFeature_RenderTarget_RGBA32 = 1 << 1,
+	MikanFeature_RenderTarget_BGRA32 = 1 << 2,
+	MikanFeature_RenderTarget_DEPTH16 = 1 << 3,
+	MikanFeature_RenderTarget_DEPTH32 = 1 << 4,
 } MikanClientFeatures;
 
 typedef enum
 {
-	MikanClientGraphicsAPI_UNKNOWN,
+	MikanClientGraphicsApi_UNKNOWN,
 
-	MikanClientGraphicsAPI_Direct3D9,
-	MikanClientGraphicsAPI_Direct3D11,
-	MikanClientGraphicsAPI_Direct3D12,
-	MikanClientGraphicsAPI_OpenGL,
+	MikanClientGraphicsApi_Direct3D9,
+	MikanClientGraphicsApi_Direct3D11,
+	MikanClientGraphicsApi_Direct3D12,
+	MikanClientGraphicsApi_OpenGL,
 
-	MikanClientGraphicsAPI_COUNT,
-} MikanClientGraphicsAPI;
+	MikanClientGraphicsApi_COUNT,
+} MikanClientGraphicsApi;
 
 typedef struct
 {
@@ -158,7 +164,7 @@ typedef struct
 	char applicationVersion[32];
 	char xrDeviceName[32];
 	char mikanSdkVersion[32];
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 } MikanClientInfo;
 
 /// A float RGB color with [0,1] components.
@@ -174,7 +180,7 @@ typedef struct
 	MikanDepthBufferType depth_buffer_type;
 	uint32_t width;
 	uint32_t height;
-	MikanClientGraphicsAPI graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI;
 } MikanRenderTargetDescriptor;
 
 typedef struct
@@ -191,46 +197,34 @@ typedef struct
 {
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
-	MikanVector3f quad_center;
-	MikanVector3f quad_x_axis;
-	MikanVector3f quad_y_axis;
-	MikanVector3f quad_normal;
+	MikanTransform relative_transform; // transform relative to parent anchor
 	float quad_width;
 	float quad_height;
 	bool is_double_sided;
 	bool is_disabled;
+	char stencil_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanStencilQuad;
 
 typedef struct
 {
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
-	MikanVector3f box_center;
-	MikanVector3f box_x_axis;
-	MikanVector3f box_y_axis;
-	MikanVector3f box_z_axis;
+	MikanTransform relative_transform; // transform relative to parent anchor
 	float box_x_size;
 	float box_y_size;
 	float box_z_size;
 	bool is_disabled;
+	char stencil_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanStencilBox;
 
 typedef struct
 {
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
-	MikanVector3f model_position;
-	MikanRotator3f model_rotator;
-	MikanVector3f model_scale;
+	MikanTransform relative_transform; // transform relative to parent anchor
 	bool is_disabled;
+	char stencil_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanStencilModel;
-
-typedef enum
-{
-	MikanStencilType_NONE,
-	MikanStencilType_QUAD,
-	MikanStencilType_MODEL,
-} MikanStencilType;
 
 typedef struct
 {
@@ -318,10 +312,8 @@ typedef struct
 /// Static properties 
 typedef struct
 {
-	MikanSpatialAnchorID parent_anchor_id;
 	MikanVRDeviceID attached_vr_device_id;
 	MikanMatrix4f vr_device_offset_xform;
-	float camera_scale;
 } MikanVideoSourceAttachmentInfo;
 
 /// Static properties about a video source
@@ -358,9 +350,15 @@ typedef struct
 typedef struct
 {
 	MikanSpatialAnchorID anchor_id;
-	MikanMatrix4f anchor_xform;
+	MikanTransform world_transform; // Transform in tracking system space
 	char anchor_name[MAX_MIKAN_ANCHOR_NAME_LEN];
 } MikanSpatialAnchorInfo;
+
+typedef struct
+{
+	char content[MAX_MIKAN_SCRIPT_MESSAGE_LEN];
+} MikanScriptMessageInfo;
+
 
 // Message Container
 //------------------
@@ -384,7 +382,10 @@ typedef enum
 
 	// Spatial Anchor Events
 	MikanEvent_anchorPoseUpdated,
-	MikanEvent_anchorListUpdated
+	MikanEvent_anchorListUpdated,
+
+	// Script Events
+	MikanEvent_scriptMessagePosted
 } MikanEventType;
 
 typedef struct
@@ -404,7 +405,7 @@ typedef struct
 
 typedef struct
 {
-	MikanMatrix4f transform;
+	MikanTransform transform;
 	MikanSpatialAnchorID anchor_id;
 } MikanAnchorPoseUpdateEvent;
 
@@ -415,6 +416,7 @@ typedef struct
 		MikanVideoSourceNewFrameEvent video_source_new_frame;
 		MikanVRDevicePoseUpdateEvent vr_device_pose_updated;
 		MikanAnchorPoseUpdateEvent anchor_pose_updated;
+		MikanScriptMessageInfo script_message_posted;
 	} event_payload;
 	MikanEventType event_type;
 } MikanEvent;

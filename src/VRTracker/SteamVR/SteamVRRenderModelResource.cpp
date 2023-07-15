@@ -51,25 +51,9 @@ bool SteamVRRenderModelResource::createRenderResources()
 
 void SteamVRRenderModelResource::disposeRenderResources()
 {
-	if (m_glMesh != nullptr)
-	{
-		m_glMesh->deleteBuffers();
-		delete m_glMesh;
-		m_glMesh= nullptr;
-	}
-
-	if (m_glMaterial != nullptr)
-	{
-		delete m_glMaterial;
-		m_glMaterial= nullptr;
-	}
-
-	if (m_glDiffuseTexture != nullptr)
-	{
-		m_glDiffuseTexture->disposeTexture();
-		delete m_glDiffuseTexture;
-		m_glDiffuseTexture= nullptr;
-	}
+	m_glMesh= nullptr;
+	m_glMaterial= nullptr;
+	m_glDiffuseTexture= nullptr;
 
 	disposeSteamVRResources();
 }
@@ -191,14 +175,14 @@ void SteamVRRenderModelResource::disposeSteamVRResources()
 	}
 }
 
-GlTexture* SteamVRRenderModelResource::createTextureResource(
+GlTexturePtr SteamVRRenderModelResource::createTextureResource(
 	const vr::RenderModel_TextureMap_t* steamvrTexture)
 {
-	GlTexture* glTexture = nullptr;
+	GlTexturePtr glTexture = nullptr;
 
 	if (steamvrTexture != nullptr)
 	{
-		glTexture = new GlTexture(
+		glTexture = std::make_shared<GlTexture>(
 			steamvrTexture->unWidth,
 			steamvrTexture->unHeight,
 			steamvrTexture->rubTextureMapData,
@@ -207,7 +191,6 @@ GlTexture* SteamVRRenderModelResource::createTextureResource(
 
 		if (!glTexture->createTexture())
 		{
-			delete glTexture;
 			glTexture = nullptr;
 		}
 	}
@@ -215,22 +198,24 @@ GlTexture* SteamVRRenderModelResource::createTextureResource(
 	return glTexture;
 }
 
-GlMaterial* SteamVRRenderModelResource::createMaterial(
+GlMaterialPtr SteamVRRenderModelResource::createMaterial(
 	const GlProgramCode* code,
-	const GlTexture* texture)
+	GlTexturePtr texture)
 {
-	GlShaderCache* resourceManager = App::getInstance()->getShaderCache();
-	GlProgram* program = resourceManager->fetchCompiledGlProgram(code);
+	GlShaderCache* resourceManager = GlShaderCache::getInstance();
+	GlProgramPtr program = resourceManager->fetchCompiledGlProgram(code);
 	
 	if (program != nullptr)
 	{
-		const std::string materialName = m_renderModelName + "_" + code->getFilename();
-		GlMaterial* material = new GlMaterial(materialName, program);
+		const std::string materialName = m_renderModelName + "_" + code->getProgramName();
+		GlMaterialPtr material = std::make_shared<GlMaterial>(materialName, program);
 
+		// Fill in material parameter defaults
 		if (texture)
 		{
-			material->setTexture(texture);
+			material->setTextureBySemantic(eUniformSemantic::texture0, texture);
 		}
+		material->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
 
 		return material;
 	}
@@ -240,16 +225,16 @@ GlMaterial* SteamVRRenderModelResource::createMaterial(
 	}
 }
 
-GlTriangulatedMesh* SteamVRRenderModelResource::createTriangulatedMeshResource(
+GlTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource(
 	const std::string& meshName,
 	const GlVertexDefinition* vertexDefinition,
 	const vr::RenderModel_t* steamVRRenderModel)
 {
-	GlTriangulatedMesh* glMesh= nullptr;
+	GlTriangulatedMeshPtr glMesh= nullptr;
 
 	if (steamVRRenderModel != nullptr)
 	{
-		glMesh = new GlTriangulatedMesh(
+		glMesh = std::make_shared<GlTriangulatedMesh>(
 			meshName,
 			*vertexDefinition,
 			(const uint8_t*)steamVRRenderModel->rVertexData,
@@ -260,7 +245,6 @@ GlTriangulatedMesh* SteamVRRenderModelResource::createTriangulatedMeshResource(
 
 		if (!glMesh->createBuffers())
 		{
-			delete glMesh;
 			glMesh= nullptr;
 		}
 	}

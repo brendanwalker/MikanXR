@@ -2,6 +2,8 @@
 
 // -- includes -----
 #include "DeviceEnumerator.h"
+#include "VideoFwd.h"
+
 #include <string>
 
 // -- definitions -----
@@ -11,7 +13,6 @@ class OpenCVCameraEnumerator : public DeviceEnumerator
 public:
 
 	OpenCVCameraEnumerator();
-	virtual ~OpenCVCameraEnumerator();
 
 	bool isValid() const override;
 	bool next() override;
@@ -22,13 +23,13 @@ public:
 	eDeviceType getDeviceType() const override;
 
 	inline int getDeviceIndex() const { return m_deviceIndex; }
-	const class VideoCapabilitiesConfig* getVideoCapabilities() const
+	VideoCapabilitiesConfigConstPtr getVideoCapabilities() const
 	{ return m_currentDeviceCapabilities; }
 
 private:
 	bool tryFetchDeviceCapabilities();
 
-	class VideoCapabilitiesConfig* m_currentDeviceCapabilities;
+	VideoCapabilitiesConfigPtr m_currentDeviceCapabilities;
 	std::string m_devicePath;
 	int m_deviceIndex;
 };

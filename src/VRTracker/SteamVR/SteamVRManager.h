@@ -55,7 +55,10 @@ protected:
 	void updateDevicePoses();
 
 	static const float k_reconnectTimeoutDuration;
+	static const int k_maxReconnectAttempts;
+
 	float m_reconnectTimeout;
+	int m_reconnectAttemptCount= 0;
 	std::unique_ptr< class DeviceSetPoseHistory > m_devicePoseHistory;
 	const struct DeviceSetPoseSample* m_currentPoseSet;
 	uint64_t m_vrFrameCounter;

@@ -70,7 +70,7 @@ const char *WMFCameraEnumerator::getDevicePath() const
 
 eDeviceType WMFCameraEnumerator::getDeviceType() const
 {
-	const VideoCapabilitiesConfig* config= getVideoCapabilities();
+	VideoCapabilitiesConfigConstPtr config= getVideoCapabilities();
 
 	return config != nullptr ? config->deviceType : eDeviceType::INVALID;
 }
@@ -95,7 +95,7 @@ const WMFDeviceInfo *WMFCameraEnumerator::getDeviceInfo() const
 	return isValid() ? &m_wmfDeviceList->deviceList[m_deviceEnumeratorIndex] : nullptr;
 }
 
-const VideoCapabilitiesConfig *WMFCameraEnumerator::getVideoCapabilities() const
+VideoCapabilitiesConfigConstPtr WMFCameraEnumerator::getVideoCapabilities() const
 {
 	return isValid() ? s_supportedTrackers->getVideoSourceCapabilities(getUsbVendorId(), getUsbProductId()) : nullptr;
 }

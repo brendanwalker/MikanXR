@@ -153,12 +153,12 @@ static void DoEventGraphicsDeviceD3D9(UnityGfxDeviceEventType eventType)
 		IDirect3DDevice9* d3d9Device= d3d9->GetDevice();
 
 		MIKAN_LOG_INFO("Unity") << "Binding D3D9 Device: 0x" << (void*)d3d9Device;
-		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_Direct3D9, d3d9Device);
+		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D9, d3d9Device);
 	}
 	else if (eventType == kUnityGfxDeviceEventShutdown)
 	{
 		MIKAN_LOG_INFO("Unity") << "Unbinding D3D9 Device";
-		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_Direct3D9, nullptr);
+		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D9, nullptr);
 	}
 }
 #endif // #if SUPPORT_D3D9
@@ -174,12 +174,12 @@ static void DoEventGraphicsDeviceD3D11(UnityGfxDeviceEventType eventType)
 		ID3D11Device* d3d11Device = d3d11->GetDevice();
 
 		MIKAN_LOG_INFO("Unity") << "Binding D3D11 Device: 0x" << (void*)d3d11Device;
-		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_Direct3D11, d3d11Device);
+		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, d3d11Device);
 	}
 	else if (eventType == kUnityGfxDeviceEventShutdown)
 	{
 		MIKAN_LOG_INFO("Unity") << "Unbinding D3D11 Device";
-		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_Direct3D11, nullptr);
+		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, nullptr);
 	}
 }
 #endif // #if SUPPORT_D3D11
@@ -195,12 +195,12 @@ static void DoEventGraphicsDeviceD3D12(UnityGfxDeviceEventType eventType)
 		ID3D12Device* d3d12Device = d3dD12->GetDevice();
 
 		MIKAN_LOG_INFO("Unity") << "Binding D3D12 Device: 0x" << (void*)d3d12Device;
-		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_Direct3D12, d3d12Device);
+		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D12, d3d12Device);
 	}
 	else if (eventType == kUnityGfxDeviceEventShutdown)
 	{
 		MIKAN_LOG_INFO("Unity") << "Unbinding D3D12 Device";
-		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_Direct3D12, nullptr);
+		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D12, nullptr);
 	}
 }
 #endif // #if SUPPORT_D3D12
@@ -213,12 +213,12 @@ static void DoEventGraphicsDeviceGLES(UnityGfxDeviceEventType eventType)
 	if (eventType == kUnityGfxDeviceEventInitialize)
 	{
 		MIKAN_LOG_INFO("Unity") << "Binding OpenGL Device";
-		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_OpenGL, nullptr);
+		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_OpenGL, nullptr);
 	}
 	else if (eventType == kUnityGfxDeviceEventShutdown)
 	{
 		MIKAN_LOG_INFO("Unity") << "Unbinding OpenGL Device";
-		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsAPI_OpenGL, nullptr);
+		Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_OpenGL, nullptr);
 	}
 }
 #endif

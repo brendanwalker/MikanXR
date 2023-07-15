@@ -76,11 +76,10 @@ bool SteamVRRenderComponent::initComponent()
 					m_renderModelName.c_str());
 			}
 
-			m_glMeshInstance =
-				new GlStaticMeshInstance(
-					szInstanceName,
-					modelResource->getTriangulatedMesh(),
-					modelResource->getMaterial());
+			m_glMeshInstance = std::make_shared<GlStaticMeshInstance>(
+				szInstanceName,
+				modelResource->getTriangulatedMesh(),
+				modelResource->getMaterial());
 
 			return true;
 		}
@@ -145,13 +144,11 @@ void SteamVRRenderComponent::disposeComponent()
 	if (m_glMeshInstance != nullptr)
 	{
 		m_glMeshInstance->removeFromBoundScene();
-
-		delete m_glMeshInstance;
 		m_glMeshInstance= nullptr;
 	}
 }
 
-void SteamVRRenderComponent::bindToScene(GlScene* scene)
+void SteamVRRenderComponent::bindToScene(GlScenePtr scene)
 {
 	if (m_glMeshInstance != nullptr)
 	{
@@ -171,6 +168,6 @@ void SteamVRRenderComponent::setDiffuseColor(const glm::vec4& diffuseColor)
 {
 	if (m_glMeshInstance != nullptr)
 	{
-		m_glMeshInstance->getMaterialInstance()->setDiffuseColor(diffuseColor);
+		m_glMeshInstance->getMaterialInstance()->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, diffuseColor);
 	}
 }

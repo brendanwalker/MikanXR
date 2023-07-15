@@ -1,0 +1,41 @@
+<rml>
+
+    <head>
+        <link type="text/rcss" href="rml.rcss" />
+        <link type="text/rcss" href="mikan.rcss" />
+        <link type="text/template" href="window.rml" />
+        <title>Video Controls</title>
+        <style>
+            body {
+                left: 10dp;
+                top: 25dp;
+                width: 275dp;
+                height: 100dp;
+
+                margin: auto;
+            }
+        </style>
+    </head>
+
+    <body template="window">
+        <div id="title_bar">
+            <handle move_target="#document">
+                <div id="icon"></div>
+                <span id="title">Video Controls</span>
+            </handle>
+        </div>
+        <panel id="controls" data-model="mono_camera_settings">
+            <h2>Filter</h2>
+            <div>
+                <select id="select" name="video_display_mode" data-value="video_display_mode">
+                    <option data-for="mode : video_display_modes" data-value="it_index">{{mode}}</option>
+                </select>
+            </div>
+            <h2>Brightness</h2>
+            <div>
+                <input type="range" name="brightness" min="0" max="255" step="1" value="128" data-value="brightness" />
+                {{brightness}}
+            </div>
+        </panel>
+    </body>
+</rml>

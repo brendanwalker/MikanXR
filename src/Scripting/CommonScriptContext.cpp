@@ -85,7 +85,7 @@ bool CommonScriptContext::checkLuaResult(int ret, const char* filename, int line
 	return true;
 }
 
-bool CommonScriptContext::loadScript(const std::string& scriptPath)
+bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 {
 	disposeScriptState();
 
@@ -106,7 +106,8 @@ bool CommonScriptContext::loadScript(const std::string& scriptPath)
 		return false;
 	}
 
-	int ret= luaL_dofile(m_luaState, scriptPath.c_str());
+	const std::string scriptPathString= scriptPath.string();
+	int ret= luaL_dofile(m_luaState, scriptPathString.c_str());
 	if (!checkLuaResult(ret, __FILE__, __LINE__))
 	{
 		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to load lua script " << scriptPath;
@@ -164,6 +165,36 @@ bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName)
 	}
 
 	MIKAN_LOG_ERROR("CommonScriptContext::invokeScriptTrigger") << "Failed to find triggerName " << triggerName;
+	return false;
+}
+
+bool CommonScriptContext::invokeScriptMessageHandler(const std::string& message)
+{
+	if (m_luaState != nullptr)
+	{
+		for (const std::string& function_name : m_messageHandlers)
+		{
+			// Fetch the message handler
+			lua_getglobal(m_luaState, function_name.c_str());
+
+			// Push the request onto the stack
+			lua_pushstring(m_luaState, message.c_str());
+
+			// Call the message handlers
+			int ret = lua_pcall(m_luaState, 1, 1, 0);
+			if (checkLuaResult(ret, __FILE__, __LINE__))
+			{
+				// See if the message was considered handled
+				bool bHandeled= lua_toboolean(m_luaState, -1);
+
+				if (bHandeled)
+				{
+					return true;
+				}
+			}
+		}
+	}
+
 	return false;
 }
 
@@ -244,6 +275,13 @@ void CommonScriptContext::bindCommonScriptFunctions()
 		.beginNamespace("ScriptContext")
 			.addFunction("registerTrigger", [this](const char* functionName) {
 				m_triggers.push_back(functionName);
+			})
+			.addFunction("registerMessageHandler", [this](const char* functionName) {
+				m_messageHandlers.push_back(functionName);
+			})
+			.addFunction("broadcastMessage", [this](const char* message) {
+				if (OnScriptMessage)
+					OnScriptMessage(message);
 			})
 		.endNamespace();
 }

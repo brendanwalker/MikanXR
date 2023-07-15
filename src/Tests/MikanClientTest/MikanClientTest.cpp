@@ -44,15 +44,18 @@ static const glm::vec4 k_background_color_key = glm::vec4(0.f, 0.f, 0.0f, 0.f);
 #define k_real_pi 3.14159265f
 #define degrees_to_radians(x) (((x) * k_real_pi) / 180.f)
 
+#define SCENE_SHADER_MVP_UNIFORM		"mvpMatrix"
+#define SCENE_SHADER_DIFFUSE_UNIFORM	"diffuse"
+
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& xform)
 {
-	const float(&m)[4][4] = xform.m;
+	auto m = reinterpret_cast<const float(*)[4][4]>(&xform);
 
 	glm::mat4 mat = {
-		{m[0][0], m[0][1], m[0][2], m[0][3]}, // columns 0
-		{m[1][0], m[1][1], m[1][2], m[1][3]}, // columns 1
-		{m[2][0], m[2][1], m[2][2], m[2][3]}, // columns 2
-		{m[3][0], m[3][1], m[3][2], m[3][3]}, // columns 3
+		{(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3]}, // columns 0
+		{(*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[1][3]}, // columns 1
+		{(*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3]}, // columns 2
+		{(*m)[3][0], (*m)[3][1], (*m)[3][2], (*m)[3][3]}, // columns 3
 	};
 
 	return mat;
@@ -409,7 +412,7 @@ protected:
 				strncpy(ClientInfo.applicationName, "MikanXR Test", sizeof(ClientInfo.applicationName) - 1);
 				strncpy(ClientInfo.applicationVersion, "1.0", sizeof(ClientInfo.applicationVersion) - 1);
 				ClientInfo.xrDeviceName[0] = '\0';
-				ClientInfo.graphicsAPI = MikanClientGraphicsAPI_OpenGL;
+				ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 				strncpy(ClientInfo.mikanSdkVersion, Mikan_GetVersionString(), sizeof(ClientInfo.mikanSdkVersion) - 1);
 
 				if (Mikan_Connect(&ClientInfo) != MikanResult_Success)
@@ -475,8 +478,8 @@ protected:
 			desc.height = mode.resolution_y;
 			desc.color_key = {k_background_color_key.r, k_background_color_key.g, k_background_color_key.b};
 			desc.color_buffer_type = MikanColorBuffer_RGBA32;
-			desc.depth_buffer_type = MikanDepthBuffer_NONE;
-			desc.graphicsAPI = MikanClientGraphicsAPI_OpenGL;
+			desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
+			desc.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
 			Mikan_AllocateRenderTargetBuffers(&desc, &m_renderTargetMemory);
 			createFrameBuffer(mode.resolution_x, mode.resolution_y);
@@ -531,7 +534,7 @@ protected:
 
 				const glm::mat4 boxXform = m_originSpatialAnchorXform;
 				const glm::mat4 scale = glm::scale(glm::mat4(1.f), glm::vec3(0.1f, 0.1f, 0.1f));
-				m_shader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * boxXform * scale);
+				m_shader->setMatrix4x4Uniform(SCENE_SHADER_MVP_UNIFORM, vpMatrix * boxXform * scale);
 
 				glBindVertexArray(m_cubeVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -546,7 +549,7 @@ protected:
 
 				const glm::mat4 boxXform = m_originSpatialAnchorXform;
 				const glm::mat4 scale = glm::scale(glm::mat4(1.f), glm::vec3(10.0f, 10.0f, 10.0f));
-				m_shader->setMatrix4x4Uniform(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * boxXform * scale);
+				m_shader->setMatrix4x4Uniform(SCENE_SHADER_MVP_UNIFORM, vpMatrix * boxXform * scale);
 
 				glBindVertexArray(m_cubeVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -628,8 +631,8 @@ protected:
 				FragColor = texture(diffuse, TexCoords);
 			}
 			)"""")
-			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
-			.addUniform("diffuse", eUniformSemantic::texture0);
+			.addUniform(SCENE_SHADER_MVP_UNIFORM, eUniformSemantic::modelViewProjectionMatrix)
+			.addUniform(SCENE_SHADER_DIFFUSE_UNIFORM, eUniformSemantic::texture0);
 
 		return x_shaderCode;
 	}

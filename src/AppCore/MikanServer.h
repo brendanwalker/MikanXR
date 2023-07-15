@@ -2,6 +2,8 @@
 #define MIKAN_SERVER_H
 
 //-- includes -----
+#include "CommonConfigFwd.h"
+#include "ScriptingFwd.h"
 #include "MikanClientTypes.h"
 #include "MulticastDelegate.h"
 #include "glm/ext/matrix_float4x4.hpp"
@@ -30,6 +32,11 @@ public:
 	void update();
 	void shutdown();
 
+	// Scripting
+	void bindScriptContect(CommonScriptContextPtr scriptContext);
+	void unbindScriptContect(CommonScriptContextPtr scriptContext);
+	void publishScriptMessageEvent(const std::string& message);
+
 	// Video Source Events
 	void publishVideoSourceOpenedEvent();
 	void publishVideoSourceClosedEvent();
@@ -40,21 +47,9 @@ public:
 
 	// Spatial Anchor Events
 	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent);
-	void publishAnchorListChangedEvent();
+	void handleAnchorSystemConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
 	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
-	void getRelevantQuadStencilList(
-		const glm::vec3& cameraPosition, 
-		const glm::vec3& cameraForward,
-		std::vector<const MikanStencilQuad*>& outStencilList) const;
-	void getRelevantBoxStencilList(
-		const glm::vec3& cameraPosition,
-		const glm::vec3& cameraForward,
-		std::vector<const MikanStencilBox*>& outStencilList) const;
-	void getRelevantModelStencilList(
-		std::vector<const struct MikanStencilModelConfig*>& outStencilList) const;
-
-
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientConnected;
 	MulticastDelegate<void(const std::string& clientId)> OnClientDisconnected;
@@ -67,6 +62,9 @@ protected:
 	// RPC Callbacks
 	void connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void disconnect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	
+	void invokeScriptMessageHandler(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	
 	void getVideoSourceIntrinsics(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getVideoSourceMode(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getVideoSourceAttachment(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
@@ -78,9 +76,11 @@ protected:
 
 	void allocateRenderTargetBuffers(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void freeRenderTargetBuffers(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void frameRendered(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
 	void getStencilList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void getBoxStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	void getModelStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 
 	void getSpatialAnchorList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
@@ -97,6 +97,7 @@ protected:
 private:
 	static MikanServer* m_instance;
 
+	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
 	std::map<std::string, class ClientConnectionState*> m_clientConnections;
 	class InterprocessMessageServer* m_messageServer;
 };

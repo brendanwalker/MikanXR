@@ -1,0 +1,33 @@
+<rml>
+
+    <head>
+        <link type="text/rcss" href="rml.rcss" />
+        <link type="text/rcss" href="mikan.rcss" />
+        <link type="text/template" href="window.rml" />
+        <title>Video Controls</title>
+        <style>
+			body.window {
+				left: 0dp;
+				right: 0dp;
+				top: -45dp;
+				bottom: 0dp;
+				max-width: 1280dp;
+				max-height: 45dp;
+			}     
+        </style>
+    </head>
+
+    <body template="window">
+        <panel id="controls" data-model="compositor">
+            <span>
+                <button style="width: 80dp" data-event-click="return">Back</button>
+                <button style="width: 120dp" data-event-click="toggle_outliner">Outliner</button>
+                <button style="width: 120dp" data-event-click="toggle_layers">Layers</button>
+                <button style="width: 120dp" data-event-click="toggle_recording">Recording</button>
+                <button style="width: 120dp" data-event-click="toggle_scripting">Scripting</button>
+                <button style="width: 120dp" data-event-click="toggle_sources">Sources</button>
+                <button style="width: 120dp" data-event-click="toggle_settings">Settings</button>
+            </span>
+        </panel>
+    </body>
+</rml>

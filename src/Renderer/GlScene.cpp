@@ -4,95 +4,121 @@
 #include "GlMaterialInstance.h"
 #include "GlProgram.h"
 #include "GlScene.h"
-#include "GlStaticMeshInstance.h"
 #include "GlShaderCache.h"
+#include "GlViewport.h"
 #include "Renderer.h"
 
 #include <algorithm>
 
 GlScene::GlScene()
+	: m_lightColor(glm::vec4(1.f))
+	, m_lightDirection(glm::vec3(0.f, 0.f, -1.f))
 {
 }
 
 GlScene::~GlScene()
 {
 	// Clean up all draw calls
-	for (auto it = m_drawCalls.begin(); it != m_drawCalls.end(); it++)
-	{
-		delete it->second;
-	}
+	m_drawCalls.clear();
 }
 
-void GlScene::addInstance(const GlStaticMeshInstance* instance)
+void GlScene::addInstance(IGlSceneRenderableConstPtr instance)
 {
-	const GlMaterial *material= instance->getMaterialInstance()->getMaterial();
+	GlMaterialConstPtr material= instance->getMaterialInstanceConst()->getMaterial();
 
 	if (m_drawCalls.find(material) == m_drawCalls.end())
 	{
-		m_drawCalls.insert({material, new GlDrawCall});
+		m_drawCalls.insert({material, std::make_shared<GlDrawCall>()});
 	}
 
 	m_drawCalls[material]->instances.push_back(instance);
 }
 
-void GlScene::removeInstance(const GlStaticMeshInstance* instance)
+void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 {
-	const GlMaterial* material = instance->getMaterialInstance()->getMaterial();
+	GlMaterialConstPtr material = instance->getMaterialInstanceConst()->getMaterial();
 
 	auto drawCallIter= m_drawCalls.find(material);
 	if (drawCallIter != m_drawCalls.end())
 	{
-		GlDrawCall* drawCall = drawCallIter->second;
-		auto& instances= drawCall->instances;
+		GlDrawCallPtr drawCall = drawCallIter->second;
 
-		instances.erase(
-			std::remove(instances.begin(), instances.end(), instance),
-			instances.end());
+		// Remove any existing instances from the draw call
+		for (auto it = drawCall->instances.begin(); it != drawCall->instances.end(); it++)
+		{
+			IGlSceneRenderableConstPtr existingInstance= it->lock();
 
-		if (instances.size() == 0)
+			if (existingInstance == instance)
+			{
+				drawCall->instances.erase(it);
+				break;
+			}
+		}
+
+		if (drawCall->instances.size() == 0)
 		{
 			m_drawCalls.erase(drawCallIter);
-			delete drawCall;
 		}
 	}
 }
 
 void GlScene::render() const
 {
-	GlCamera *camera= App::getInstance()->getRenderer()->getCurrentCamera();
+	GlCameraPtr camera= App::getInstance()->getRenderer()->getRenderingViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 
-	glm::mat4 VPMatrix = camera->getViewProjectionMatrix();
-
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
 	{
-		const GlMaterial* material = drawCallIter->first;
-		const GlDrawCall* drawCall = drawCallIter->second;
+		GlMaterialConstPtr material = drawCallIter->first;
+		GlDrawCallConstPtr drawCall = drawCallIter->second;
 
-		if (material->bindMaterial())
-		{			
-			for(auto instanceIter= drawCall->instances.begin(); 
-				instanceIter != drawCall->instances.end(); 
-				instanceIter++)
+		bool bAnyInstancesVisible= false;
+		for (auto instanceIter = drawCall->instances.begin();
+			 instanceIter != drawCall->instances.end();
+			 instanceIter++)
+		{
+			IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
+
+			if (renderableInstance->getVisible())
 			{
-				const GlStaticMeshInstance* instance= *instanceIter;
+				bAnyInstancesVisible= true;
+				break;
+			}
+		}
 
-				if (instance->getVisible())
+		if (bAnyInstancesVisible)
+		{
+			// Bind material program.
+			// Unbound when materialBinding goes out of scope.
+			auto materialBinding = material->bindMaterial(shared_from_this(), camera);
+			if (materialBinding)
+			{
+				for (auto instanceIter = drawCall->instances.begin();
+					 instanceIter != drawCall->instances.end();
+					 instanceIter++)
 				{
-					// Set the ModelViewProjection matrix transform on the shader program
-					const glm::mat4 mvpMatrix = VPMatrix * instance->getModelMatrix();
-					material->getProgram()->setMatrix4x4Uniform(
-						eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);
+					IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
-					// Apply other material instance parameters (color, etc)
-					instance->getMaterialInstance()->applyMaterialInstanceParameters();
+					if (renderableInstance != nullptr && renderableInstance->getVisible())
+					{
+						GlMaterialInstanceConstPtr materialInstance = renderableInstance->getMaterialInstanceConst();
 
-					instance->render();
+						// Bind material instance parameters 
+						// Unbound when materialInstanceBinding goes out of scope.
+						auto materialInstanceBinding =
+							materialInstance->bindMaterialInstance(
+								materialBinding,
+								renderableInstance);
+
+						if (materialInstanceBinding)
+						{
+							// Draw the renderable
+							renderableInstance->render();
+						}
+					}
 				}
 			}
-			
-			material->unbindMaterial();
 		}
 	}
 }

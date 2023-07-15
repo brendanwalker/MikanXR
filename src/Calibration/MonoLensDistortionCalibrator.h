@@ -1,6 +1,8 @@
 #pragma once
 
+#include "ObjectSystemConfigFwd.h"
 #include "MikanClientTypes.h"
+
 #include <memory>
 
 class VideoSourceView;
@@ -12,7 +14,7 @@ class MonoLensDistortionCalibrator
 {
 public:
 	MonoLensDistortionCalibrator(
-		const class ProfileConfig* profileConfig,
+		ProfileConfigConstPtr profileConfig,
 		class VideoFrameDistortionView* distortionView, 
 		int desiredBoardCount);
 	virtual ~MonoLensDistortionCalibrator();

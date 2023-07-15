@@ -32,18 +32,17 @@ WMFMonoVideoConfig::WMFMonoVideoConfig(const std::string &fnamebase)
     tracker_intrinsics.vfov= 45.0; // degrees
     tracker_intrinsics.znear= 0.01; // meters
     tracker_intrinsics.zfar= 200.0; // meters
-    tracker_intrinsics.camera_matrix= {{
-		{554.2563, 0, 320.0}, // f_x, 0, c_x
-		{0, 554.2563, 240.0}, // 0, f_y, c_y
-		{0.0, 0.0, 1.0 }
-	}};
+    tracker_intrinsics.camera_matrix= {
+		554.2563, 0, 320.0, // f_x, 0, c_x
+		0, 554.2563, 240.0, // 0, f_y, c_y
+		0.0, 0.0, 1.0 
+	};
     tracker_intrinsics.distortion_coefficients= {
         -0.10771770030260086, 0.1213262677192688, 0.04875476285815239, // K1, K2, K3
         0.00091733073350042105, 0.00010589254816295579};  // P1, P2
 };
 
-const configuru::Config 
-WMFMonoVideoConfig::writeToJSON()
+configuru::Config WMFMonoVideoConfig::writeToJSON()
 {
 	configuru::Config pt = WMFVideoConfig::writeToJSON();
 
@@ -57,8 +56,7 @@ WMFMonoVideoConfig::writeToJSON()
     return pt;
 }
 
-void 
-WMFMonoVideoConfig::readFromJSON(const configuru::Config &pt)
+void WMFMonoVideoConfig::readFromJSON(const configuru::Config &pt)
 {
     int config_version = pt.get_or<int>("version", 0);
     if (config_version == WMFMonoVideoConfig::CONFIG_VERSION)
@@ -156,8 +154,8 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
         StringUtils::formatString(config_name, sizeof(config_name), "WMFMonoCamera_%s", unique_id);
 
         // Load the config file for the tracker
-        m_cfg = WMFMonoVideoConfig(config_name);
-        m_cfg.load();
+        m_cfg = std::make_shared<WMFMonoVideoConfig>(config_name);
+        m_cfg->load();
 
 		// Fetch the camera capabilities
 		m_capabilities= wmf_enumerator->getVideoCapabilities();
@@ -165,22 +163,22 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
         {
 		    // If no mode is specified, then default to the first mode
 			bool bWasModeUnset= false;
-		    if (m_cfg.current_mode == "")
+		    if (m_cfg->current_mode == "")
 		    {
-			    m_cfg.current_mode= m_capabilities->supportedModes[0].modeName;
+			    m_cfg->current_mode= m_capabilities->supportedModes[0].modeName;
 				bWasModeUnset= true;
 		    }
 
 		    // Find the camera mode by name
-		    m_currentMode= m_capabilities->findVideoMode(m_cfg.current_mode);
+		    m_currentMode= m_capabilities->findVideoMode(m_cfg->current_mode);
 		    if (m_currentMode != nullptr)
 		    {
 			    // Copy the tracker intrinsics over from the capabilities
 				// if there is no user calibration set
-				if (bWasModeUnset || !m_cfg.areIntrinsicsUserCalibrated)
+				if (bWasModeUnset || !m_cfg->areIntrinsicsUserCalibrated)
 				{
-					m_cfg.areIntrinsicsUserCalibrated= false;
-					m_cfg.tracker_intrinsics = m_currentMode->intrinsics.intrinsics.mono;
+					m_cfg->areIntrinsicsUserCalibrated= false;
+					m_cfg->tracker_intrinsics = m_currentMode->intrinsics.intrinsics.mono;
 				}
 
 			    // Attempt to find a compatible WMF video format
@@ -204,7 +202,7 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
 		    }
 
 		    // Save the config back out again in case defaults changed
-            m_cfg.save();
+            m_cfg->save();
         }
         else
         {
@@ -323,7 +321,7 @@ void WMFMonoVideoSource::loadSettings()
 {
 	const VideoPropertyConstraint *constraints= m_videoDevice->getVideoPropertyConstraints();
 
-    m_cfg.load();
+    m_cfg->load();
 
 	for (int prop_index = 0; prop_index < (int)VideoPropertyType::COUNT; ++prop_index)
 	{
@@ -333,7 +331,7 @@ void WMFMonoVideoSource::loadSettings()
 		if (constraint.is_supported)
 		{
 			int currentValue= getVideoProperty(prop_type);
-			int desiredValue= m_cfg.video_properties[prop_index];
+			int desiredValue= m_cfg->video_properties[prop_index];
 
 			if (desiredValue != currentValue)
 			{
@@ -354,7 +352,7 @@ void WMFMonoVideoSource::loadSettings()
 
 void WMFMonoVideoSource::saveSettings()
 {
-    m_cfg.save();
+    m_cfg->save();
 }
 
 bool WMFMonoVideoSource::getAvailableTrackerModes(std::vector<std::string> &out_mode_names) const
@@ -387,8 +385,8 @@ bool WMFMonoVideoSource::setVideoMode(const std::string mode_name)
 			(unsigned int)new_mode->frameRate,
 			mfvideoformat.c_str());
 
-		m_cfg.areIntrinsicsUserCalibrated= false;
-		m_cfg.tracker_intrinsics= new_mode->intrinsics.intrinsics.mono;
+		m_cfg->areIntrinsicsUserCalibrated= false;
+		m_cfg->tracker_intrinsics= new_mode->intrinsics.intrinsics.mono;
 		m_currentMode= new_mode;
 
 		if (desiredFormatIndex != INVALID_DEVICE_FORMAT_INDEX)
@@ -396,7 +394,7 @@ bool WMFMonoVideoSource::setVideoMode(const std::string mode_name)
 			m_videoDevice->open(desiredFormatIndex, m_cfg, m_listener);
 		}
 
-		m_cfg.save();
+		m_cfg->save();
 
 		return true;
 	}
@@ -431,7 +429,7 @@ void WMFMonoVideoSource::setVideoProperty(const VideoPropertyType property_type,
 
 	if (bUpdateConfig)
 	{
-		m_cfg.video_properties[(int)property_type] = desired_value;
+		m_cfg->video_properties[(int)property_type] = desired_value;
 	}
 }
 
@@ -444,44 +442,44 @@ void WMFMonoVideoSource::getCameraIntrinsics(
 	MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= MONO_CAMERA_INTRINSICS;
-    out_tracker_intrinsics.intrinsics.mono= m_cfg.tracker_intrinsics;
+    out_tracker_intrinsics.intrinsics.mono= m_cfg->tracker_intrinsics;
 }
 
 void WMFMonoVideoSource::setCameraIntrinsics(
     const MikanVideoSourceIntrinsics& tracker_intrinsics)
 {
     assert(tracker_intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-    m_cfg.tracker_intrinsics= tracker_intrinsics.intrinsics.mono;
-	m_cfg.areIntrinsicsUserCalibrated = true;
+    m_cfg->tracker_intrinsics= tracker_intrinsics.intrinsics.mono;
+	m_cfg->areIntrinsicsUserCalibrated = true;
 }
 
 MikanQuatd WMFMonoVideoSource::getCameraOffsetOrientation() const
 {
-    return m_cfg.orientationOffset;
+    return m_cfg->orientationOffset;
 }
 
 MikanVector3d WMFMonoVideoSource::getCameraOffsetPosition() const
 {
-    return m_cfg.positionOffset;
+    return m_cfg->positionOffset;
 }
 
 void WMFMonoVideoSource::setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p)
 {
-    m_cfg.orientationOffset= q;
-    m_cfg.positionOffset= p;
-    m_cfg.save();
+    m_cfg->orientationOffset= q;
+    m_cfg->positionOffset= p;
+    m_cfg->save();
 }
 
 void WMFMonoVideoSource::getFOV(float &outHFOV, float &outVFOV) const
 {
-    outHFOV = static_cast<float>(m_cfg.tracker_intrinsics.hfov);
-    outVFOV = static_cast<float>(m_cfg.tracker_intrinsics.vfov);
+    outHFOV = static_cast<float>(m_cfg->tracker_intrinsics.hfov);
+    outVFOV = static_cast<float>(m_cfg->tracker_intrinsics.vfov);
 }
 
 void WMFMonoVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
-    outZNear = static_cast<float>(m_cfg.tracker_intrinsics.znear);
-    outZFar = static_cast<float>(m_cfg.tracker_intrinsics.zfar);
+    outZNear = static_cast<float>(m_cfg->tracker_intrinsics.znear);
+    outZFar = static_cast<float>(m_cfg->tracker_intrinsics.zfar);
 }
 
 void WMFMonoVideoSource::setVideoSourceListener(IVideoSourceListener *listener)

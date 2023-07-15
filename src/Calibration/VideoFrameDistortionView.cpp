@@ -94,7 +94,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	// Create a texture to render the video frame to
 	if (bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
 	{
-		m_videoTexture = new GlTexture(
+		m_videoTexture = std::make_shared<GlTexture>(
 			m_frameWidth,
 			m_frameHeight,
 			nullptr,
@@ -115,14 +115,8 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 VideoFrameDistortionView::~VideoFrameDistortionView()
 {
 	// Free the texture we were rendering to, if any
-	if (m_videoTexture != nullptr)
-	{
-		delete m_videoTexture;
-	}
-	if (m_distortionTextureMap != nullptr)
-	{
-		delete m_distortionTextureMap;
-	}
+	m_videoTexture= nullptr;
+	m_distortionTextureMap= nullptr;
 
 	// Video Frame data
 	if (m_bgrSourceBuffers != nullptr)
@@ -310,12 +304,7 @@ bool VideoFrameDistortionView::readAndProcessVideoFrame()
 void VideoFrameDistortionView::rebuildDistortionMap(
 	const MikanMonoIntrinsics* instrinsics)
 {
-	if (m_distortionTextureMap != nullptr)
-	{
-		m_distortionTextureMap->disposeTexture();
-		delete m_distortionTextureMap;
-		m_distortionTextureMap= nullptr;
-	}
+	m_distortionTextureMap= nullptr;
 
 	m_videoDisplayMode = mode_bgr;
 
@@ -359,7 +348,7 @@ void VideoFrameDistortionView::rebuildDistortionMap(
 				}
 			}
 
-			m_distortionTextureMap = new GlTexture(m_frameWidth, m_frameHeight, (uint8_t *)data, GL_RG32F, GL_RG);
+			m_distortionTextureMap = std::make_shared<GlTexture>(m_frameWidth, m_frameHeight, (uint8_t *)data, GL_RG32F, GL_RG);
 			m_distortionTextureMap->createTexture();
 
 			delete[] data;

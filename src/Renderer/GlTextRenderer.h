@@ -18,7 +18,7 @@ class GlTextRenderer
 public:
 	GlTextRenderer();
 
-	void render();
+	void render(class Renderer* renderer);
 	void addTextAtScreenPosition(const TextStyle& style, const glm::vec2& screenCoords, const std::wstring& text);
 
 protected:
@@ -41,4 +41,9 @@ void drawTextAtWorldPosition(
 void drawTextAtScreenPosition(
 	const TextStyle& style, 
 	const glm::vec2& screenCoords, 
+	const wchar_t* format, ...) GLYPH_PRINTFARGS(2);
+void drawTextAtCameraPosition(
+	const TextStyle& style,
+	const float cameraWidth, const float cameraHeight,
+	const glm::vec2& cameraCoords,
 	const wchar_t* format, ...) GLYPH_PRINTFARGS(2);

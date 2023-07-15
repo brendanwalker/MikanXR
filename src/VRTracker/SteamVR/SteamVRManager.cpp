@@ -12,6 +12,7 @@
 
 #define MAX_POSE_HISTORY_FRAMES 60
 const float SteamVRManager::k_reconnectTimeoutDuration = 1.f;
+const int SteamVRManager::k_maxReconnectAttempts = 5;
 
 struct DeviceSetPoseSample
 {
@@ -144,7 +145,7 @@ void SteamVRManager::update(float deltaTime)
 	EASY_FUNCTION();
 
 	vr::IVRSystem* vrSystem= vr::VRSystem();
-	if (vrSystem == nullptr)
+	if (vrSystem == nullptr && m_reconnectAttemptCount < k_maxReconnectAttempts)
 	{
 		m_reconnectTimeout -= deltaTime;
 
@@ -210,6 +211,9 @@ bool SteamVRManager::tryConnect()
 {
 	EASY_FUNCTION();
 
+	m_reconnectAttemptCount++;
+	MIKAN_LOG_INFO("SteamVRManager::startup") << "Connect attempt #" << m_reconnectAttemptCount;
+
 	vr::EVRInitError vrInitError = vr::VRInitError_None;
 	vr::IVRSystem* vrSystem = vr::VR_Init(&vrInitError, vr::EVRApplicationType::VRApplication_Overlay);
 	if (vrSystem == nullptr || vrInitError != vr::VRInitError_None)
@@ -219,8 +223,9 @@ bool SteamVRManager::tryConnect()
 		return false;
 	}
 
-	std::string actionManifestPath = PathUtils::getResourceDirectory() + std::string("\\input\\");
-	vr::EVRInputError eVRInputError = vr::VRInput()->SetActionManifestPath(actionManifestPath.c_str());
+	const std::filesystem::path actionManifestPath = PathUtils::getResourceDirectory() / "input";
+	const std::string actionManifestPathString= actionManifestPath.string();
+	vr::EVRInputError eVRInputError = vr::VRInput()->SetActionManifestPath(actionManifestPathString.c_str());
 	if (eVRInputError != vr::VRInitError_None)
 	{
 		MIKAN_LOG_WARNING("SteamVRManager::startup") << "Failed to set action manifest path: " << eVRInputError;
@@ -447,7 +452,7 @@ void SteamVRManager::updateDevicePoses()
 	EASY_FUNCTION();
 
 	vr::IVRSystem* vrSystem = vr::VRSystem();
-	ProfileConfig* config= App::getInstance()->getProfileConfig();
+	ProfileConfigPtr config= App::getInstance()->getProfileConfig();
 
 	// Fetch the latest tracking data for all devices at once
 	{
@@ -470,7 +475,7 @@ void SteamVRManager::updateDevicePoses()
 	m_currentPoseSet= nullptr;
 	if (!m_devicePoseHistory->isEmpty())
 	{
-		m_currentPoseSet = m_devicePoseHistory->findSampleOfAge(config->vrFrameDelay);
+		m_currentPoseSet = m_devicePoseHistory->findSampleOfAge(config->getVRFrameDelay());
 		if (!m_currentPoseSet)
 		{
 			m_currentPoseSet = m_devicePoseHistory->getOldestSample();

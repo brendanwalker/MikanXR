@@ -1,0 +1,53 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Spatial Anchor Setup</title>
+        <style>
+            body
+            {
+                left: 10dp;
+                top: -30dp;
+                width: 550dp;
+                height: 300dp;
+                margin: auto;
+            }
+        </style>
+	</head>
+	<body template="window">
+        <panel id="controls" data-model="spatial_anchor_settings">
+            <br/>
+            <h1>Anchor VR Device</h1>
+            <div data-if="vr_device_list.size > 0">
+                <select id="select" name="vr_device_list" data-value="anchor_vr_device_path" data-event-change="update_anchor_vr_device_path()" style="width: 200dp">
+                    <option data-for="device_path : vr_device_list" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
+                </select>
+            </div>
+            <div data-if="vr_device_list.size == 0" style="width: 500dp">
+                {{anchor_vr_device_path}}
+            </div>
+            <br/>
+            <h1>Anchors</h1>
+			<div class="picker">
+				<span data-for="anchor : spatial_anchors">
+					<button style="width: 100dp" data-event-click="update_anchor_pose(anchor.anchor_id)">Set Pose</button>
+                    <div data-if="anchor.anchor_id == origin_anchor_id">
+                        {{anchor.anchor_name}}
+                    </div>
+                    <div data-if="anchor.anchor_id != origin_anchor_id">
+                        <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="update_anchor_name(anchor.anchor_id)" data-value="anchor.anchor_name"/>
+                        <button style="width: 40dp" data-event-click="erase_anchor(anchor.anchor_id)">x</button>
+                    </div>
+                    <br/>
+				</span>
+			</div>
+            <div data-if="spatial_anchors.size < max_spatial_anchors">
+                <button data-event-click="add_new_anchor">New Anchor</button>
+            </div>            
+            <div>
+                <button data-event-click="goto_main_menu">Return to Main Menu</button>
+            </div>
+        </panel>
+    </body>
+</rml>

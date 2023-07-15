@@ -20,58 +20,135 @@
     #pragma warning (pop)
 #endif
 
+// -- ConfigPropertyChangeSet -----
+ConfigPropertyChangeSet& ConfigPropertyChangeSet::addPropertyName(const std::string& propertyName)
+{
+    m_changedProperties.insert(propertyName);
+    return *this;
+}
+
+bool ConfigPropertyChangeSet::hasPropertyName(const std::string& propertyName) const
+{
+    return m_changedProperties.find(propertyName) != m_changedProperties.end();
+}
+
+// -- CommonConfig -----
 CommonConfig::CommonConfig(const std::string &fnamebase)
-    : ConfigFileBase(fnamebase)
+    : m_configName(fnamebase)
 {
 }
 
-const std::string CommonConfig::getConfigPath()
+void CommonConfig::onChildConfigMarkedDirty(
+    CommonConfigPtr configPtr,
+    const ConfigPropertyChangeSet& changedPropertySet) 
+{ 
+	m_bIsDirty = true;
+	if (OnMarkedDirty)
+		OnMarkedDirty(configPtr, changedPropertySet);
+}
+
+void CommonConfig::addChildConfig(std::shared_ptr<CommonConfig> childConfig)
 {
-    std::string home_dir= PathUtils::getHomeDirectory();  
-    std::string config_path = home_dir + "/Mikan";
-    
-    if (!PathUtils::createDirectory(config_path))
+	childConfig->OnMarkedDirty += MakeDelegate(this, &CommonConfig::onChildConfigMarkedDirty);
+	m_childConfigs.push_back(childConfig);
+}
+
+void CommonConfig::removeChildConfig(std::shared_ptr<CommonConfig> childConfig)
+{
+    auto it= std::find(m_childConfigs.begin(), m_childConfigs.end(), childConfig);
+    if (it != m_childConfigs.end())
     {
-        MIKAN_LOG_ERROR("CommonConfig::getConfigPath") << "Failed to create config directory: " << config_path;
+        m_childConfigs.erase(it);
+    }
+}
+
+bool CommonConfig::isMarkedDirty() const 
+{ 
+    return m_bIsDirty; 
+}
+
+void CommonConfig::markDirty(const ConfigPropertyChangeSet& changedPropertySet) 
+{ 
+	m_bIsDirty = true;
+
+	if (OnMarkedDirty)
+		OnMarkedDirty(shared_from_this(), changedPropertySet);
+}
+
+void CommonConfig::clearDirty()
+{
+    m_bIsDirty= false;
+    for (CommonConfigPtr childConfigPtr : m_childConfigs)
+    {
+        childConfigPtr->clearDirty();
+    }
+}
+
+const std::filesystem::path CommonConfig::getDefaultConfigPath() const
+{
+    const std::filesystem::path home_dir= PathUtils::getHomeDirectory();  
+    const std::filesystem::path config_path = home_dir / "Mikan";
+    
+    if (!std::filesystem::exists(config_path))
+    {
+		if (!std::filesystem::create_directory(config_path))
+		{
+			MIKAN_LOG_ERROR("CommonConfig::getConfigPath") << "Failed to create config directory: " << config_path;
+		}
     }
 
-    std::string config_filepath = config_path + "/" + ConfigFileBase + ".json";
+    const std::string configFilename= m_configName + ".json";
+    const std::filesystem::path config_filepath = config_path / configFilename;
 
     return config_filepath;
 }
 
 void CommonConfig::save()
 {
-    save(getConfigPath());
+    save(getDefaultConfigPath());
 }
 
 void 
-CommonConfig::save(const std::string &path)
+CommonConfig::save(const std::filesystem::path& path)
 {
-	configuru::dump_file(path, writeToJSON(), configuru::JSON);
+    m_configFullFilePath= path;
+
+	configuru::dump_file(path.string(), writeToJSON(), configuru::JSON);
+    clearDirty();
 }
 
 bool
 CommonConfig::load()
 {
-    return load(getConfigPath());
+    return load(getDefaultConfigPath());
 }
 
 bool 
-CommonConfig::load(const std::string &path)
+CommonConfig::load(const std::filesystem::path& path)
 {
     bool bLoadedOk = false;
-
-    if (PathUtils::doesFileExist( path ) )
+    
+    if (std::filesystem::exists(path))
     {
-        configuru::Config cfg = configuru::parse_file(path, configuru::JSON);
+        m_configFullFilePath= path;
+
+        configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
         readFromJSON(cfg);
+        clearDirty();
         bLoadedOk = true;
     }
 
     return bLoadedOk;
 }
 
+configuru::Config CommonConfig::writeToJSON()
+{
+    return configuru::Config::object();
+}
+
+void CommonConfig::readFromJSON(const configuru::Config& pt)
+{
+}
 
 void CommonConfig::writeMonoTrackerIntrinsics(
     configuru::Config& pt,
@@ -230,13 +307,14 @@ void CommonConfig::readDistortionCoefficients(
 void CommonConfig::writeMatrix3d(
     configuru::Config &pt,
     const char *matrix_name,
-    const MikanMatrix3d& m)
+    const MikanMatrix3d& mat)
 {
     // Write out 3 columns (3 entries per column)
+    auto m = reinterpret_cast<const double(*)[3][3]>(&mat);
     pt[matrix_name]= configuru::Config::array({
-        m.m[0][0], m.m[0][1], m.m[0][2],
-        m.m[1][0], m.m[1][1], m.m[1][2],
-        m.m[2][0], m.m[2][1], m.m[2][2]});
+        (*m)[0][0], (*m)[0][1], (*m)[0][2],
+        (*m)[1][0], (*m)[1][1], (*m)[1][2],
+		(*m)[2][0], (*m)[2][1], (*m)[2][2]});
 }
 
 void CommonConfig::readMatrix3d(
@@ -248,9 +326,10 @@ void CommonConfig::readMatrix3d(
     {
         int row= 0;
         int col= 0;
+        auto m = reinterpret_cast<double(*)[3][3]>(&outMatrix);
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
-            outMatrix.m[col][row]= element.as_double();
+            (*m)[col][row]= element.as_double();
 
             ++row;
             if (row >= 3)
@@ -267,14 +346,16 @@ void CommonConfig::readMatrix3d(
 void CommonConfig::writeMatrix43d(
     configuru::Config &pt,
     const char *matrix_name,
-    const MikanMatrix4x3d& m)
+    const MikanMatrix4x3d& mat)
 {
+    auto m = reinterpret_cast<const double(*)[4][3]>(&mat);
+
     // Write out 4 columns (3 entries per column)
     pt[matrix_name]= configuru::Config::array({
-		m.m[0][0], m.m[0][1], m.m[0][2],
-		m.m[1][0], m.m[1][1], m.m[1][2],
-		m.m[2][0], m.m[2][1], m.m[2][2], 
-        m.m[3][0], m.m[3][1], m.m[3][2]});
+		(*m)[0][0], (*m)[0][1], (*m)[0][2],
+		(*m)[1][0], (*m)[1][1], (*m)[1][2],
+		(*m)[2][0], (*m)[2][1], (*m)[2][2],
+		(*m)[3][0], (*m)[3][1], (*m)[3][2]});
 }
 
 void CommonConfig::readMatrix43d(
@@ -286,9 +367,11 @@ void CommonConfig::readMatrix43d(
     {
         int row= 0;
         int col= 0;
+        auto m = reinterpret_cast<double(*)[4][3]>(&outMatrix);
+
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
-            outMatrix.m[col][row]= element.as_double();
+            (*m)[col][row] = element.as_double();
 
             ++row;
             if (row >= 3)
@@ -305,13 +388,15 @@ void CommonConfig::readMatrix43d(
 void CommonConfig::writeMatrix4d(
     configuru::Config &pt,
     const char *matrix_name,
-    const MikanMatrix4d& m)
+    const MikanMatrix4d& mat)
 {
+    auto m = reinterpret_cast<const double(*)[4][4]>(&mat);
+
     pt[matrix_name]= configuru::Config::array({
-		m.m[0][0], m.m[0][1], m.m[0][2], m.m[0][3],
-		m.m[1][0], m.m[1][1], m.m[1][2], m.m[1][3],
-		m.m[2][0], m.m[2][1], m.m[2][2], m.m[2][3],
-		m.m[3][0], m.m[3][1], m.m[3][2], m.m[3][3] });
+		(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3],
+		(*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[1][3],
+		(*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3],
+		(*m)[3][0], (*m)[3][1], (*m)[3][2], (*m)[3][3]});
 }
 
 void CommonConfig::readMatrix4d(
@@ -323,9 +408,10 @@ void CommonConfig::readMatrix4d(
     {
         int row= 0;
         int col= 0;
+        auto m = reinterpret_cast<double(*)[4][4]>(&outMatrix);
         for (const configuru::Config& element : pt[matrix_name].as_array()) 
         {
-            outMatrix.m[col][row]= element.as_double();
+            (*m)[col][row] = element.as_double();
 
             ++row;
             if (row >= 4)
@@ -342,13 +428,15 @@ void CommonConfig::readMatrix4d(
 void CommonConfig::writeMatrix4f(
 	configuru::Config& pt,
 	const char* matrix_name,
-	const MikanMatrix4f& m)
+	const MikanMatrix4f& mat)
 {
+    auto m = reinterpret_cast<const float(*)[4][4]>(&mat);
+
 	pt[matrix_name] = configuru::Config::array({
-		m.m[0][0], m.m[0][1], m.m[0][2], m.m[0][3],
-		m.m[1][0], m.m[1][1], m.m[1][2], m.m[1][3],
-		m.m[2][0], m.m[2][1], m.m[2][2], m.m[2][3],
-		m.m[3][0], m.m[3][1], m.m[3][2], m.m[3][3] });
+		(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3],
+		(*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[1][3],
+		(*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3],
+		(*m)[3][0], (*m)[3][1], (*m)[3][2], (*m)[3][3] });
 }
 
 void CommonConfig::readMatrix4f(
@@ -356,13 +444,15 @@ void CommonConfig::readMatrix4f(
 	const char* matrix_name,
 	MikanMatrix4f& outMatrix)
 {
+    auto m = reinterpret_cast<float(*)[4][4]>(&outMatrix);
+
 	if (pt[matrix_name].is_array())
 	{
 		int row = 0;
 		int col = 0;
 		for (const configuru::Config& element : pt[matrix_name].as_array())
 		{
-			outMatrix.m[col][row] = element.as_float();
+			(*m)[col][row] = element.as_float();
 
 			++row;
 			if (row >= 4)
@@ -483,6 +573,35 @@ void CommonConfig::readRotator3f(
 		outRotator.x_angle = 0.f;
 		outRotator.y_angle = 0.f;
 		outRotator.z_angle = 0.f;
+	}
+}
+
+void CommonConfig::writeQuatf(
+    configuru::Config& pt,
+    const char* quat_name,
+    const MikanQuatf& quat)
+{
+	pt[quat_name] = configuru::Config::array({ quat.w, quat.x, quat.y, quat.z });
+}
+
+void CommonConfig::readQuatf(
+    const configuru::Config& pt,
+    const char* quat_name,
+    MikanQuatf& outQuat)
+{
+	if (pt.has_key(quat_name) && pt[quat_name].is_array())
+	{
+        outQuat.w = pt[quat_name][0].as_float();
+		outQuat.x = pt[quat_name][1].as_float();
+		outQuat.y = pt[quat_name][2].as_float();
+		outQuat.z = pt[quat_name][3].as_float();
+	}
+	else
+	{
+        outQuat.w = 1.f;
+		outQuat.x = 0.f;
+		outQuat.y = 0.f;
+		outQuat.z = 0.f;
 	}
 }
 

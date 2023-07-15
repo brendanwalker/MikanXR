@@ -1,17 +1,20 @@
 //-- includes -----
 #include "App.h"
 #include "AppStage.h"
-#include "AppStage_MainMenu.h"
+#include "MainMenu/AppStage_MainMenu.h"
+#include "FontManager.h"
 #include "FrameTimer.h"
 #include "GlShaderCache.h"
-#include "GlBakedTextCache.h"
 #include "GlFrameCompositor.h"
 #include "GlTextRenderer.h"
 #include "InputManager.h"
 #include "LocalizationManager.h"
 #include "MikanServer.h"
+#include "ObjectSystemManager.h"
+#include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
+#include "RmlManager.h"
 #include "Logger.h"
 #include "VideoSourceManager.h"
 #include "VRDeviceManager.h"
@@ -24,19 +27,22 @@
 #include "Objbase.h"
 #endif //_WIN32
 
+#define PROFILE_SAVE_COOLDOWN	3.f
+
 //-- static members -----
 App* App::m_instance= nullptr;
 
 //-- public methods -----
 App::App()
-	: m_profileConfig(new ProfileConfig())
+	: m_profileConfig(std::make_shared<ProfileConfig>())
 	, m_mikanServer(new MikanServer())
 	, m_frameCompositor(new GlFrameCompositor())
 	, m_inputManager(new InputManager())
-	, m_localizationManager(new LocalizationManager())
+	, m_rmlManager(new RmlManager(this))
+	, m_localizationManager(new LocalizationManager())	
+	, m_objectSystemManager(std::make_shared<ObjectSystemManager>())
 	, m_renderer(new Renderer())
-	, m_shaderCache(new GlShaderCache())
-	, m_bakedTextCache(new GlBakedTextCache())
+	, m_fontManager(new FontManager())
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
 	, m_bShutdownRequested(false)
@@ -46,17 +52,17 @@ App::App()
 
 App::~App()
 {
-	shutdown();
+	m_objectSystemManager = nullptr;
 
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
-	delete m_shaderCache;
 	delete m_renderer;	
 	delete m_localizationManager;
 	delete m_inputManager;
+	delete m_rmlManager;
 	delete m_mikanServer;
 	delete m_frameCompositor;
-	delete m_profileConfig;
+	m_profileConfig.reset();
 
 	m_instance= nullptr;
 }
@@ -132,15 +138,15 @@ bool App::startup(int argc, char** argv)
 	// Load any saved config
 	m_profileConfig->load();
 
-	if (success && !m_localizationManager->startup())
+	if (success && !m_rmlManager->preRendererStartup())
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
 		success = false;
 	}
 
-	if (success && !m_shaderCache->startup())
+	if (success && !m_localizationManager->startup())
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize asset manager!";
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
 		success = false;
 	}
 
@@ -150,7 +156,7 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	if (success && !m_bakedTextCache->startup())
+	if (success && !m_fontManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";
 		success = false;
@@ -168,6 +174,12 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
+	if (success && !m_objectSystemManager->startup())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
+		success = false;
+	}
+
 	if (success && !m_frameCompositor->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the frame compositor";
@@ -177,6 +189,12 @@ bool App::startup(int argc, char** argv)
 	if (success && !m_mikanServer->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
+		success = false;
+	}
+
+	if (success && !m_rmlManager->postRendererStartup())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
 		success = false;
 	}
 
@@ -190,9 +208,17 @@ bool App::startup(int argc, char** argv)
 
 void App::shutdown()
 {
+	// Tear down all active app stages
 	while (getCurrentAppStage() != nullptr)
 	{
 		popAppState();
+	}
+	processPendingAppStageOps();
+
+	// Tear down all app systems
+	if (m_rmlManager != nullptr)
+	{
+		m_rmlManager->shutdown();
 	}
 
 	if (m_mikanServer != nullptr)
@@ -205,6 +231,12 @@ void App::shutdown()
 		m_frameCompositor->shutdown();
 	}
 
+	if (m_objectSystemManager != nullptr)
+	{
+		// Dispose all ObjectSystems
+		m_objectSystemManager->shutdown();
+	}
+
 	if (m_videoSourceManager != nullptr)
 	{
 		m_videoSourceManager->shutdown();
@@ -215,14 +247,9 @@ void App::shutdown()
 		m_vrDeviceManager->shutdown();
 	}
 
-	if (m_bakedTextCache != nullptr)
+	if (m_fontManager != nullptr)
 	{
-		m_bakedTextCache->shutdown();
-	}
-
-	if (m_shaderCache != nullptr)
-	{
-		m_shaderCache->shutdown();
+		m_fontManager->shutdown();
 	}
 
 	if (m_renderer != nullptr)
@@ -258,7 +285,7 @@ void App::update()
 
 	// Update the frame rate
 	const uint32_t now = SDL_GetTicks();
-	const float deltaSeconds= (float)(now - m_lastFrameTimestamp) / 1000.f;
+	const float deltaSeconds= fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
 	m_fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 	m_lastFrameTimestamp= now;
 
@@ -273,18 +300,37 @@ void App::update()
 	m_frameCompositor->update();
 
 	// Garbage collect stale baked text
-	m_bakedTextCache->garbageCollect();
+	m_fontManager->garbageCollect();
 
+	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
+	processPendingAppStageOps();
+
+	// Update the current app stage last
+	AppStage* appStage = getCurrentAppStage();
+	if (appStage != nullptr && appStage->getIsUpdateActive())
+	{
+		EASY_BLOCK("appStage Update");
+		appStage->update(deltaSeconds);
+	}
+
+	// Update the UI layout and data models
+	m_rmlManager->update();
+
+	// Update profile auto-save
+	updateAutoSave(deltaSeconds);
+}
+
+void App::processPendingAppStageOps()
+{
 	// Disallow app stack operations during enter or exit
 	bAppStackOperationAllowed = false;
 
-	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
-	InputManager* inputManager= InputManager::getInstance();
+	InputManager* inputManager = InputManager::getInstance();
 	for (auto& pendingAppStageOp : m_pendingAppStageOps)
 	{
 		switch (pendingAppStageOp.op)
 		{
-		case AppStageOperation::enter:
+			case AppStageOperation::enter:
 			{
 				EASY_BLOCK("appStage Enter");
 
@@ -297,10 +343,18 @@ void App::update()
 
 				// Enter the new app stage
 				pendingAppStageOp.appStage->enter();
+
+				// Notify any object systems that care about app stage transitions 
+				if (OnAppStageEntered)
+					OnAppStageEntered(pendingAppStageOp.appStage);
 			} break;
-		case AppStageOperation::exit:
+			case AppStageOperation::exit:
 			{
 				EASY_BLOCK("appStage Exit");
+
+				// Notify any object systems that care about app stage transitions 
+				if (OnAppStageExited)
+					OnAppStageEntered(pendingAppStageOp.appStage);
 
 				// Exit the app stage we are leaving
 				pendingAppStageOp.appStage->exit();
@@ -308,8 +362,9 @@ void App::update()
 				// Clean up the input event set for the deactivated app stage
 				inputManager->popEventBindingSet();
 
-				// Resume the parent app stage we are restoring
-				pendingAppStageOp.parentAppStage->resume();				
+				// Resume the parent app stage we are restoring (if any)
+				if (pendingAppStageOp.parentAppStage != nullptr)
+					pendingAppStageOp.parentAppStage->resume();
 
 				// Free the app state
 				delete pendingAppStageOp.appStage;
@@ -320,13 +375,31 @@ void App::update()
 
 	// App stack operations allowed during update
 	bAppStackOperationAllowed = true;
+}
 
-	// Update the current app stage last
-	AppStage* appStage = getCurrentAppStage();
-	if (appStage != nullptr)
+void App::updateAutoSave(float deltaSeconds)
+{
+	// We change the profile constantly as changes are made in the UI
+	// Put the save to disk on a cooldown so we aren't writing to disk constantly
+	if (m_profileSaveCooldown >= 0.f)
 	{
-		EASY_BLOCK("appStage Update");
-		appStage->update();
+		if (m_profileConfig->isMarkedDirty())
+		{
+			m_profileSaveCooldown -= deltaSeconds;
+			if (m_profileSaveCooldown < 0.f)
+			{
+				m_profileConfig->save();
+				m_profileSaveCooldown = -1.f;
+			}
+		}
+		else
+		{
+			m_profileSaveCooldown = -1.f;
+		}
+	}
+	else if (m_profileConfig->isMarkedDirty())
+	{
+		m_profileSaveCooldown = PROFILE_SAVE_COOLDOWN;
 	}
 }
 
@@ -335,35 +408,39 @@ void App::render()
 	EASY_FUNCTION();
 
 	AppStage* appStage = getCurrentAppStage();
+	if (appStage == nullptr)
+		return;
 
 	m_renderer->renderBegin();
 
-	m_renderer->renderStageBegin();
-	if (appStage != nullptr)
+	// Render all 3d viewports for the app state
+	for (GlViewportPtr viewpoint : appStage->getViewportList())
 	{
 		EASY_BLOCK("appStage render");
 
+		m_renderer->renderStageBegin(viewpoint);
 		appStage->render();
-
-		// Draw shared app rendering
-		TextStyle style= getDefaultTextStyle();
-		style.horizontalAlignment= eHorizontalTextAlignment::Right;
-		style.verticalAlignment= eVerticalTextAlignment::Bottom;
-		drawTextAtScreenPosition(
-			style, 
-			glm::vec2(m_renderer->getSDLWindowWidth() - 1, m_renderer->getSDLWindowHeight() - 1),
-			L"%.1ffps", m_fps);
+		m_renderer->renderStageEnd();
 	}
-	m_renderer->renderStageEnd();
 
-	m_renderer->renderUIBegin();
-	if (appStage != nullptr)
+	// Render the UI on top
 	{
 		EASY_BLOCK("appStage renderUI");
+		m_renderer->renderUIBegin();
 
 		appStage->renderUI();
+
+		// Always draw the FPS in the lower right
+		TextStyle style = getDefaultTextStyle();
+		style.horizontalAlignment = eHorizontalTextAlignment::Right;
+		style.verticalAlignment = eVerticalTextAlignment::Bottom;
+		drawTextAtScreenPosition(
+			style,
+			glm::vec2(m_renderer->getSDLWindowWidth() - 1, m_renderer->getSDLWindowHeight() - 1),
+			L"%.1ffps", m_fps);
+
+		m_renderer->renderUIEnd();
 	}
-	m_renderer->renderUIEnd();
 
 	m_renderer->renderEnd();
 }

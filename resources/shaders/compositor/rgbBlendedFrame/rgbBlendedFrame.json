@@ -1,0 +1,9 @@
+{
+    "materialName": "rgbBlendedFrame",
+    "vertexShaderPath": "rgbBlendedFrame.vert",
+    "fragmentShaderPath": "rgbBlendedFrame.frag",
+    "uniforms":
+    {
+        "rgbTexture": "texture0"
+    }
+}

@@ -18,6 +18,64 @@ glm::vec2 remapPointIntoSubWindow(
 		(1.f - v) * windowTop + v * windowBottom);
 }
 
+void drawSegment2d(
+	const float cameraWidth, const float cameraHeight,
+	const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd,
+	const glm::vec3& colorStart, const glm::vec3& colorEnd)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	const float windowWidth = renderer->getSDLWindowWidth();
+	const float windowHeight = renderer->getSDLWindowHeight();
+	const float windowX0 = 0.0f, windowY0 = 0.f;
+	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
+
+	// Remaps the camera relative segment to window relative coordinates
+	const glm::vec2 windowSegmentStart =
+		remapPointIntoSubWindow(
+			cameraWidth, cameraHeight,
+			windowX0, windowY0,
+			windowX1, windowY1,
+			cameraSegmentStart);
+	const glm::vec2 windowSegmentEnd =
+		remapPointIntoSubWindow(
+			cameraWidth, cameraHeight,
+			windowX0, windowY0,
+			windowX1, windowY1,
+			cameraSegmentEnd);
+
+	renderer->getLineRenderer()->addSegment2d(windowSegmentStart, colorStart, windowSegmentEnd, colorEnd);
+}
+
+void drawPointList2d(
+	const float trackerWidth, const float trackerHeight,
+	const glm::vec3* trackerPoints2D,
+	const int trackerPointCount,
+	const glm::vec3& color,
+	const float point_size)
+{
+	Renderer* renderer = Renderer::getInstance();
+	assert(renderer->getIsRenderingStage());
+	const float windowWidth = renderer->getSDLWindowWidth();
+	const float windowHeight = renderer->getSDLWindowHeight();
+	const float windowX0 = 0.0f, windowY0 = 0.f;
+	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
+
+	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+
+	for (int point_index = 0; point_index < trackerPointCount; ++point_index)
+	{
+		glm::vec2 windowPoint =
+			remapPointIntoSubWindow(
+				trackerWidth, trackerHeight,
+				windowX0, windowY0,
+				windowX1, windowY1,
+				trackerPoints2D[point_index]);
+
+		lineRenderer->addPoint2d(windowPoint, color, point_size);
+	}
+}
+
 void drawQuadList2d(
 	const float trackerWidth, const float trackerHeight,
 	const float* trackerPoints2D,

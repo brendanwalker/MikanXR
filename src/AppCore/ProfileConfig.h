@@ -2,24 +2,10 @@
 
 // -- includes -----
 #include "CommonConfig.h"
+#include "ObjectSystemConfigFwd.h"
+#include "ProfileConfigConstants.h"
 
-// -- Constants ----
-enum class eCalibrationPatternType : int
-{
-	INVALID= -1,
-
-	mode_chessboard,
-	mode_circlegrid,
-
-	COUNT
-};
-extern const std::string* k_patternTypeStrings;
-
-struct MikanStencilModelConfig
-{
-	MikanStencilModel modelInfo;
-	std::string modelPath;
-};
+#include <filesystem>
 
 // -- definitions -----
 class ProfileConfig : public CommonConfig
@@ -27,37 +13,10 @@ class ProfileConfig : public CommonConfig
 public:
 	ProfileConfig(const std::string& fnamebase = "ProfileConfig");
 
-	virtual const configuru::Config writeToJSON() override;
+	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
-	bool getSpatialAnchorInfo(MikanSpatialAnchorID anchorId, MikanSpatialAnchorInfo& outInfo) const;
-	MikanSpatialAnchorID getNextSpatialAnchorId(MikanSpatialAnchorID anchorId) const;
-	bool findSpatialAnchorInfoByName(const char* anchorName, MikanSpatialAnchorInfo& outInfo) const;
-	bool canAddAnchor() const;
-	bool addNewAnchor(const char* anchorName, const MikanMatrix4f& xform);
-	bool updateAnchor(const MikanSpatialAnchorInfo& info);
-	bool removeAnchor(MikanSpatialAnchorID anchorId);
-
-	bool canAddStencil() const;
-	bool removeStencil(MikanStencilID stencilId);
-
-	bool getQuadStencilInfo(MikanStencilID stencilId, MikanStencilQuad& outInfo) const;
-	glm::mat4 getQuadStencilWorldTransform(const MikanStencilQuad* stencil) const;
-	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
-	bool updateQuadStencil(const MikanStencilQuad& info);
-
-	bool getBoxStencilInfo(MikanStencilID stencilId, MikanStencilBox& outInfo) const;
-	glm::mat4 getBoxStencilWorldTransform(const MikanStencilBox* stencil) const;
-	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
-	bool updateBoxStencil(const MikanStencilBox& info);
-
-	bool getModelStencilInfo(MikanStencilID stencilId, MikanStencilModel& outInfo) const;
-	glm::mat4 getModelStencilWorldTransform(const MikanStencilModel* stencil) const;
-	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
-	bool updateModelStencil(const MikanStencilModel& info);
-	bool updateModelStencilFilename(MikanStencilID stencilID, const std::string& filename);
-
-	std::string generateTimestampedFilePath(const std::string& prefix, const std::string& suffix) const;
+	std::filesystem::path generateTimestampedFilePath(const std::string& prefix, const std::string& suffix) const;
 
 	eCalibrationPatternType calibrationPatternType;
 	int chessbordRows;
@@ -73,24 +32,37 @@ public:
 
 	std::string videoSourcePath;
 
+	static const std::string k_cameraVRDevicePathPropertyId;
 	std::string cameraVRDevicePath;
-	MikanSpatialAnchorID cameraParentAnchorId;
-	float cameraScale;
+
+	static const std::string k_matVRDevicePathPropertyId;
 	std::string matVRDevicePath;
+
+	static const std::string k_originVRDevicePathPropertyId;
+	std::string originVRDevicePath;
+
+	static const std::string k_originVerticalAlignFlagPropertyId;
+	bool originVerticalAlignFlag= false;
+
+	static const std::string k_renderOriginFlagPropertyId;
+	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }
+	void setRenderOriginFlag(bool flag);
+
+	static const std::string k_vrFrameDelayPropertyId;
+	inline int getVRFrameDelay() const { return m_vrFrameDelay; }
+	void setVRFrameDelay(int frameDelay);
+
 	std::string calibrationComponentName;
-	int vrFrameDelay;
 	int videoFrameQueueSize;
 
-	std::string anchorVRDevicePath;
-	std::vector<MikanSpatialAnchorInfo> spatialAnchorList;
-	MikanSpatialAnchorID nextAnchorId;
+	std::filesystem::path compositorScriptFilePath;
+	std::filesystem::path outputFilePath;
 
-	std::vector<MikanStencilQuad> quadStencilList;
-	std::vector<MikanStencilBox> boxStencilList;
-	std::vector<MikanStencilModelConfig> modelStencilList;
-	MikanStencilID nextStencilId;
+	AnchorObjectSystemConfigPtr anchorConfig;
+	EditorObjectSystemConfigPtr editorConfig;
+	StencilObjectSystemConfigPtr stencilConfig;
 
-	std::string compositorScript;
-
-	std::string outputPath;
+protected:
+	bool m_bRenderOrigin= true;
+	int m_vrFrameDelay = 0;
 };

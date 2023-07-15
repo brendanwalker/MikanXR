@@ -1,11 +1,14 @@
 #include "App.h"
 #include "CameraMath.h"
 #include "GlCamera.h"
+#include "GlViewport.h"
 #include "InputManager.h"
 #include "MathUtility.h"
+#include "MathGLM.h"
 #include "Renderer.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #if defined(_WIN32)
 	#include <SDL_events.h>
@@ -18,254 +21,402 @@ GlCamera::GlCamera()
 {
 	Renderer* renderer= App::getInstance()->getRenderer();
 
-	m_modelViewMatrix = glm::mat4(1.f);
+	m_viewMatrix = glm::mat4(1.f);
+
+	const float aspectRatio= renderer->getSDLWindowAspectRatio();
+	m_hFOVDegrees= k_default_camera_vfov*aspectRatio;
+	m_vFOVDegrees= k_default_camera_vfov;
+	m_zNear= k_default_camera_z_near;
+	m_zFar= k_default_camera_z_far;
+
 	m_projectionMatrix =
 		glm::perspective(
-			degrees_to_radians(k_default_camera_vfov),
+			degrees_to_radians(m_vFOVDegrees),
 			renderer->getSDLWindowAspectRatio(),
-			k_default_camera_z_near,
-			k_default_camera_z_far);
+			m_zNear,
+			m_zFar);
 
-	m_cameraOrbitYawDegrees = 0.0f;
-	m_cameraOrbitPitchDegrees = 0.0f;
-	m_cameraOrbitRadius = 1.0f;
-	m_cameraTarget= glm::vec3(0.0f);
-	m_cameraPosition = glm::vec3(0.0f, 0.0f, 100.0f);
-	m_isPanningOrbitCamera = false;
-	m_isLocked = false;
-	m_bIsInputBound= false;
-	setCameraOrbitLocation(m_cameraOrbitYawDegrees, m_cameraOrbitPitchDegrees, m_cameraOrbitRadius);
+	// Stationary camera parameters
+	m_stationaryTransform= glm::mat4(1.f);
+
+	// Fly camera parameters
+	m_flyTransform = glm::mat4(1.f);
+
+	// Orbit camera parameters
+	m_orbitYawDegrees = 0.0f;
+	m_orbitPitchDegrees = 0.0f;
+	m_orbitRadius = k_camera_min_zoom;
+	m_orbitTargetPosition= glm::vec3(0.0f);
+
+	// Default to fly movement
+	m_flyYawDegrees = 0.0f;
+	m_flyPitchDegrees = 0.0f;
+	m_movementMode = eCameraMovementMode::fly;
+	applyFlyParamsToViewMatrix();
 }
 
-GlCamera::~GlCamera()
+void GlCamera::setOrbitLocation(float yawDegrees, float pitchDegrees, float radius)
 {
-	unbindInput();
+	m_orbitYawDegrees = wrap_degrees(yawDegrees);
+	m_orbitPitchDegrees = clampf(pitchDegrees, 0.0f, 90.0f);
+	m_orbitRadius = fmaxf(radius, k_camera_min_zoom);
+	applyOrbitParamsToViewMatrix();
 }
 
-void GlCamera::bindInput()
+void GlCamera::setCameraMovementMode(eCameraMovementMode newMode)
 {
-	if (!m_bIsInputBound)
+	if (newMode != m_movementMode)
 	{
-		EventBindingSet* bindingSet = InputManager::getInstance()->getCurrentEventBindingSet();
+		switch (newMode)
+		{
+			case orbit:
+				applyOrbitParamsToViewMatrix();
+				break;
+			case fly:
+				applyFlyParamsToViewMatrix();
+				break;
+			case stationary:
+				applyStationaryParamsToViewMatrix();
+				break;
+		}
+		m_movementMode= newMode;
+	}
+}
+
+void GlCamera::setCameraTransform(const glm::mat4& xform)
+{
+	switch (m_movementMode)
+	{
+		case orbit:
+			// Ignored in this movement mode
+			break;
+		case fly:
+			m_flyTransform= xform;
+			applyFlyParamsToViewMatrix();
+			break;
+		case stationary:
+			m_stationaryTransform= xform;
+			applyStationaryParamsToViewMatrix();
+			break;
+	}
+}
+
+void GlCamera::setPosition(const glm::vec3& location)
+{
+	switch (m_movementMode)
+	{
+		case orbit:
+			// Ignored in this movement mode
+			break;
+		case fly:
+			m_flyTransform[3]= glm::vec4(location, 1.f);
+			applyFlyParamsToViewMatrix();
+			break;
+		case stationary:
+			m_stationaryTransform[3]= glm::vec4(location, 1.f);
+			applyStationaryParamsToViewMatrix();
+			break;
+	}
+}
+
+void GlCamera::lookAt(const glm::vec3& target)
+{
+	switch (m_movementMode)
+	{
+		case orbit:
+			// Ignored in this movement mode
+			break;
+		case fly:
+			{
+				m_viewMatrix =
+					glm::lookAt(
+						glm::vec3(m_flyTransform[3]),
+						target,
+						glm::vec3(0, 1, 0));    // +Y is up.
+				m_flyTransform= getCameraTransformFromViewMatrix();
+			}
+			break;
+		case stationary:
+			{
+				m_viewMatrix =
+					glm::lookAt(
+						glm::vec3(m_stationaryTransform[3]),
+						target,
+						glm::vec3(0, 1, 0));    // +Y is up.
+				m_flyTransform = getCameraTransformFromViewMatrix();
+			}
+			break;
+	}
+}
+
+void GlCamera::adjustFlyForward(float distance)
+{
+	if (m_movementMode == eCameraMovementMode::fly)
+	{
+		const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
+		const glm::vec3 delta= -glm_mat4_get_z_axis(m_flyTransform) * distance;
+		glm_mat4_set_position(m_flyTransform, position+delta);
+
+		applyFlyParamsToViewMatrix();
+	}
+}
+
+void GlCamera::adjustFlyRight(float distance)
+{
+	if (m_movementMode == eCameraMovementMode::fly)
+	{
+		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
+		const glm::vec3 delta = glm_mat4_get_x_axis(m_flyTransform) * distance;
+		glm_mat4_set_position(m_flyTransform, position + delta);
+
+		applyFlyParamsToViewMatrix();
+	}
+}
+
+void GlCamera::adjustFlyUp(float distance)
+{
+	if (m_movementMode == eCameraMovementMode::fly)
+	{
+		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
+		const glm::vec3 delta = glm_mat4_get_y_axis(m_flyTransform) * distance;
+		glm_mat4_set_position(m_flyTransform, position + delta);
+
+		applyFlyParamsToViewMatrix();
+	}
+}
+
+void GlCamera::adjustFlyYaw(float deltaDegrees)
+{
+	if (m_movementMode == eCameraMovementMode::fly)
+	{
+		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
+
+		m_flyYawDegrees = wrap_degrees(m_flyYawDegrees + deltaDegrees);
+		const float yawRadians = degrees_to_radians(m_flyYawDegrees);
+		const float pitchRadians = degrees_to_radians(m_flyPitchDegrees);
+		glm::mat3 yawRot= glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
+		glm::mat3 pitchRot= glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
+		const glm::mat4 orientation = glm_composite_xform(yawRot, pitchRot);
 		
-		bindingSet->OnMouseButtonPressedEvent += MakeDelegate(this, &GlCamera::onMouseButtonDown);
-		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &GlCamera::onMouseButtonUp);
-		bindingSet->OnMouseMotionEvent += MakeDelegate(this, &GlCamera::onMouseMotion);
-		bindingSet->OnMouseWheelScrolledEvent += MakeDelegate(this, &GlCamera::onMouseWheel);
+		glm_mat4_set_rotation(m_flyTransform, orientation);
+		glm_mat4_set_position(m_flyTransform, position);
 
-		m_bIsInputBound = true;
+		applyFlyParamsToViewMatrix();
 	}
 }
 
-void GlCamera::unbindInput()
+void GlCamera::adjustFlyPitch(float deltaDegrees)
 {
-	if (m_bIsInputBound)
+	if (m_movementMode == eCameraMovementMode::fly)
 	{
-		EventBindingSet* bindingSet = InputManager::getInstance()->getCurrentEventBindingSet();
+		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
 
-		bindingSet->OnMouseButtonPressedEvent -= MakeDelegate(this, &GlCamera::onMouseButtonDown);
-		bindingSet->OnMouseButtonReleasedEvent -= MakeDelegate(this, &GlCamera::onMouseButtonUp);
-		bindingSet->OnMouseMotionEvent -= MakeDelegate(this, &GlCamera::onMouseMotion);
-		bindingSet->OnMouseWheelScrolledEvent -= MakeDelegate(this, &GlCamera::onMouseWheel);
+		m_flyPitchDegrees = clampf(m_flyPitchDegrees - deltaDegrees, -90.f, 90.f);
+		const float yawRadians = degrees_to_radians(m_flyYawDegrees);
+		const float pitchRadians = degrees_to_radians(m_flyPitchDegrees);
+		glm::mat3 yawRot = glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
+		glm::mat3 pitchRot = glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
+		const glm::mat4 orientation = glm_composite_xform(yawRot, pitchRot);
 
-		m_bIsInputBound= false;
+		glm_mat4_set_rotation(m_flyTransform, orientation);
+		glm_mat4_set_position(m_flyTransform, position);
+
+		applyFlyParamsToViewMatrix();
 	}
 }
 
-void GlCamera::onMouseMotion(int deltaX, int deltaY)
+void GlCamera::setOrbitYaw(float yawDegrees)
 {
-	if (!m_isLocked && m_isPanningOrbitCamera) 
+	m_orbitYawDegrees= yawDegrees;
+	applyOrbitParamsToViewMatrix();
+}
+
+void GlCamera::setOrbitPitch(float pitchDegrees)
+{
+	m_orbitPitchDegrees= pitchDegrees;
+	applyOrbitParamsToViewMatrix();
+}
+
+void GlCamera::setOrbitRadius(float radius)
+{
+	m_orbitRadius= radius;
+	applyOrbitParamsToViewMatrix();
+}
+
+void GlCamera::setOrbitTargetPosition(const glm::vec3& cameraTarget)
+{
+	m_orbitTargetPosition = cameraTarget;
+	applyOrbitParamsToViewMatrix();
+}
+
+void GlCamera::adjustOrbitAngles(float deltaYaw, float deltaPitch)
+{
+	if (m_movementMode == eCameraMovementMode::orbit)
 	{
-		float deltaYaw = -(float)deltaX * k_camera_mouse_pan_scalar;
-		float deltaPitch = (float)deltaY * k_camera_mouse_pan_scalar;
-
-		setCameraOrbitLocation(
-			m_cameraOrbitYawDegrees + deltaYaw,
-			m_cameraOrbitPitchDegrees + deltaPitch,
-			m_cameraOrbitRadius);
+		setOrbitLocation(
+			m_orbitYawDegrees + deltaYaw,
+			m_orbitPitchDegrees + deltaPitch,
+			m_orbitRadius);
 	}
 }
 
-void GlCamera::onMouseButtonDown(int button)
+void GlCamera::adjustOrbitRadius(float deltaRadius)
 {
-	if (!m_isLocked && button == SDL_BUTTON_LEFT)
+	if (m_movementMode == eCameraMovementMode::orbit)
 	{
-		m_isPanningOrbitCamera = true;
+		setOrbitLocation(
+			m_orbitYawDegrees,
+			m_orbitPitchDegrees,
+			m_orbitRadius + deltaRadius);
 	}
 }
 
-void GlCamera::onMouseButtonUp(int button)
+void GlCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
 {
-	if (!m_isLocked && button == SDL_BUTTON_LEFT)
+	if (m_movementMode == eCameraMovementMode::orbit)
 	{
-		m_isPanningOrbitCamera = false;
+		m_orbitTargetPosition+= deltaTarget;
+		applyOrbitParamsToViewMatrix();
 	}
-}
-
-void GlCamera::onMouseWheel(int scrollAmount)
-{
-	if (!m_isLocked) 
-	{
-		float deltaRadius = (float)scrollAmount * k_camera_mouse_zoom_scalar;
-
-		setCameraOrbitLocation(
-			m_cameraOrbitYawDegrees,
-			m_cameraOrbitPitchDegrees,
-			m_cameraOrbitRadius + deltaRadius);
-	}
-}
-
-void GlCamera::setIsLocked(bool locked)
-{
-	if (locked) 
-	{
-		m_isLocked = true;
-		m_isPanningOrbitCamera = false;
-	}
-	else 
-	{
-		m_isLocked = false;
-	}
-}
-
-void GlCamera::setCameraOrbitLocation(float yawDegrees, float pitchDegrees, float radius)
-{
-	m_cameraOrbitYawDegrees = wrap_degrees(yawDegrees);
-	m_cameraOrbitPitchDegrees = clampf(pitchDegrees, 0.0f, 90.0f);
-	m_cameraOrbitRadius = fmaxf(radius, k_camera_min_zoom);
-	recomputeModelViewMatrix();
-}
-
-void GlCamera::setCameraPose(const glm::mat4& poseXform)
-{
-	m_modelViewMatrix = computeGLMCameraViewMatrix(poseXform);
-}
-
-void GlCamera::setCameraOrbitYaw(float yawDegrees)
-{
-	m_cameraOrbitYawDegrees= yawDegrees;
-	recomputeModelViewMatrix();
-}
-
-void GlCamera::setCameraOrbitPitch(float pitchDegrees)
-{
-	m_cameraOrbitPitchDegrees= pitchDegrees;
-	recomputeModelViewMatrix();
-}
-
-void GlCamera::setCameraOrbitRadius(float radius)
-{
-	m_cameraOrbitRadius= radius;
-	recomputeModelViewMatrix();
-}
-
-void GlCamera::setCameraViewTarget(const glm::vec3& cameraTarget)
-{
-	m_cameraTarget= cameraTarget;
-	recomputeModelViewMatrix();
 }
 
 void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
 {
+	float aspectRatio= 1.f;
+
 	switch (cameraIntrinsics->intrinsics_type)
 	{
 	case MONO_CAMERA_INTRINSICS:
 		{
 			const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->intrinsics.mono;
 
-			m_projectionMatrix =
-				glm::perspective(
-					degrees_to_radians((float)monoIntrinsics.vfov),
-					(float)(monoIntrinsics.pixel_width / monoIntrinsics.pixel_height),
-					(float)monoIntrinsics.znear,
-					(float)monoIntrinsics.zfar);
+			aspectRatio= (float)(monoIntrinsics.pixel_width / monoIntrinsics.pixel_height);
+			m_vFOVDegrees = (float)monoIntrinsics.vfov;
+			m_hFOVDegrees = m_vFOVDegrees * aspectRatio;
+			m_zNear = (float)monoIntrinsics.znear;
+			m_zFar = (float)monoIntrinsics.zfar;
 		} break;
 	case STEREO_CAMERA_INTRINSICS:
 		{
 			const MikanStereoIntrinsics& stereoIntrinsics = cameraIntrinsics->intrinsics.stereo;
 
-			m_projectionMatrix =
-				glm::perspective(
-					degrees_to_radians((float)stereoIntrinsics.vfov),
-					(float)(stereoIntrinsics.pixel_width / stereoIntrinsics.pixel_height),
-					(float)stereoIntrinsics.znear,
-					(float)stereoIntrinsics.zfar);
+			aspectRatio = (float)(stereoIntrinsics.pixel_width / stereoIntrinsics.pixel_height);
+			m_vFOVDegrees = (float)stereoIntrinsics.vfov;
+			m_hFOVDegrees = m_vFOVDegrees * aspectRatio;
+			m_zNear = (float)stereoIntrinsics.znear;
+			m_zFar = (float)stereoIntrinsics.zfar;
 		} break;
 	default:
 		break;
 	} 
+
+	m_projectionMatrix =
+		glm::perspective(
+			degrees_to_radians(m_vFOVDegrees),
+			aspectRatio,
+			m_zNear,
+			m_zFar);
 }
 
-void GlCamera::resetOrientation()
+void GlCamera::applyStationaryParamsToViewMatrix()
 {
-	setCameraOrbitLocation(0.0f, 0.0f, m_cameraOrbitRadius);
+	m_viewMatrix = computeGLMCameraViewMatrix(m_stationaryTransform);
 }
 
-void GlCamera::reset()
+void GlCamera::applyFlyParamsToViewMatrix()
 {
-	setCameraOrbitLocation(0.0f, 0.0f, k_camera_min_zoom);
+	m_viewMatrix = computeGLMCameraViewMatrix(m_flyTransform);
 }
 
-void GlCamera::recomputeModelViewMatrix()
+void GlCamera::applyOrbitParamsToViewMatrix()
 {
-	float yawRadians = degrees_to_radians(m_cameraOrbitYawDegrees);
-	float pitchRadians = degrees_to_radians(m_cameraOrbitPitchDegrees);
-	float xzRadiusAtPitch = m_cameraOrbitRadius * cosf(pitchRadians);
-	m_cameraPosition = glm::vec3(
-		m_cameraTarget.x + xzRadiusAtPitch * sinf(yawRadians),
-		m_cameraTarget.y + m_cameraOrbitRadius * sinf(pitchRadians),
-		m_cameraTarget.z + xzRadiusAtPitch * cosf(yawRadians));
+	const float yawRadians = degrees_to_radians(m_orbitYawDegrees);
+	const float pitchRadians = degrees_to_radians(m_orbitPitchDegrees);
+	const float xzRadiusAtPitch = m_orbitRadius * cosf(pitchRadians);
+	const glm::vec3 cameraPosition(
+		m_orbitTargetPosition.x + xzRadiusAtPitch * sinf(yawRadians),
+		m_orbitTargetPosition.y + m_orbitRadius * sinf(pitchRadians),
+		m_orbitTargetPosition.z + xzRadiusAtPitch * cosf(yawRadians));
 
-	if (fabsf(m_cameraOrbitPitchDegrees) < 85.0f)
+	if (fabsf(m_orbitPitchDegrees) < 85.0f)
 	{
-		m_modelViewMatrix =
+		m_viewMatrix =
 			glm::lookAt(
-				m_cameraPosition,
-				m_cameraTarget, // Look at tracking origin
+				cameraPosition,
+				m_orbitTargetPosition, // Look at tracking origin
 				glm::vec3(0, 1, 0));    // +Y is up.
 	}
 	else
 	{
-		m_modelViewMatrix =
+		m_viewMatrix =
 			glm::lookAt(
-				m_cameraPosition,
-				m_cameraTarget, // Look at tracking origin
+				cameraPosition,
+				m_orbitTargetPosition, // Look at tracking origin
 				glm::vec3(sinf(yawRadians), 0.0f, -cosf(yawRadians)));
 	}
 }
 
-const glm::vec3 GlCamera::getCameraPosition() const
+const glm::vec3 GlCamera::getCameraPositionFromViewMatrix() const
 {
 	// Assumes no scaling 
-	const glm::mat3 rotMat(m_modelViewMatrix);
-	const glm::vec3 d(m_modelViewMatrix[3]);
+	const glm::mat3 rotMat(m_viewMatrix);
+	const glm::vec3 d(m_viewMatrix[3]);
 	const glm::vec3 position = -d * rotMat;
 
 	return position;
 }
 
-const glm::vec3 GlCamera::getCameraRight() const
+const glm::vec3 GlCamera::getCameraRightFromViewMatrix() const
 {
-	return glm::vec3(m_modelViewMatrix[0][0], m_modelViewMatrix[1][0], m_modelViewMatrix[2][0]);
+	return glm::vec3(m_viewMatrix[0][0], m_viewMatrix[1][0], m_viewMatrix[2][0]);
 }
 
-const glm::vec3 GlCamera::getCameraUp() const
+const glm::vec3 GlCamera::getCameraUpFromViewMatrix() const
 {
-	return glm::vec3(m_modelViewMatrix[0][1], m_modelViewMatrix[1][1], m_modelViewMatrix[2][1]);
+	return glm::vec3(m_viewMatrix[0][1], m_viewMatrix[1][1], m_viewMatrix[2][1]);
 }
 
-const glm::vec3 GlCamera::getCameraForward() const
+const glm::vec3 GlCamera::getCameraForwardFromViewMatrix() const
 {
 	// Camera forward is along negative Z-axis
-	return glm::vec3(m_modelViewMatrix[0][2], m_modelViewMatrix[1][2], m_modelViewMatrix[2][2]) * -1.f;
+	return glm::vec3(m_viewMatrix[0][2], m_viewMatrix[1][2], m_viewMatrix[2][2]) * -1.f;
 }
 
-const glm::mat4 GlCamera::getCameraTransform() const
+const glm::mat4 GlCamera::getCameraTransformFromViewMatrix() const
 {
 	return
 		glm::mat4(
-			glm::vec4(getCameraRight(), 0.f),
-			glm::vec4(getCameraUp(), 0.f),
-			glm::vec4(getCameraForward()*-1.f, 0.f), // Camera forward is along negative Z-axis
-			glm::vec4(getCameraPosition(), 1.f));
+			glm::vec4(getCameraRightFromViewMatrix(), 0.f),
+			glm::vec4(getCameraUpFromViewMatrix(), 0.f),
+			glm::vec4(getCameraForwardFromViewMatrix()*-1.f, 0.f), // Camera forward is along negative Z-axis
+			glm::vec4(getCameraPositionFromViewMatrix(), 1.f));
+}
+
+void GlCamera::computeCameraRayThruPixel(
+	GlViewportConstPtr viewport,
+	const glm::vec2& viewportPixelPos,
+	glm::vec3& outRayOrigin,
+	glm::vec3& outRayDirection) const
+{
+	glm::i32vec2 viewportSize= viewport->getViewportSize();
+	const float viewportWidth= (float)viewportSize.x;
+	const float viewportHeight= (float)viewportSize.y;
+
+	// https://antongerdelan.net/opengl/raycasting.html
+	// Convert the pixel location into normalized device coordinates
+	const glm::vec3 ray_nds(
+		((2.f * viewportPixelPos.x) / viewportWidth) - 1.f,
+		1.f - ((2.f * viewportPixelPos.y) / viewportHeight),
+		1.f);
+	
+	// Convert the nds ray into a 4d-clip space ray
+	const glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.f, 1.0);
+	
+	// Convert the clip space ray back into an eye space ray
+	glm::vec4 ray_eye= glm::inverse(m_projectionMatrix) * ray_clip;
+	ray_eye= glm::vec4(ray_eye.x, ray_eye.y, -1.f, 0.f);
+
+	// Convert the eye space ray to world space
+	outRayDirection= glm::inverse(m_viewMatrix) * ray_eye;
+	outRayOrigin= getCameraPositionFromViewMatrix();
 }

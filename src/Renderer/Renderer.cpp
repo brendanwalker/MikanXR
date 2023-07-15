@@ -3,18 +3,20 @@
 #include "Logger.h"
 #include "Version.h"
 
-#include "imgui.h"
-#include "backends/imgui_impl_sdl.h"
-#include "backends/imgui_impl_opengl3.h"
+#include "GlRmlUiRenderer.h"
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Context.h>
 
 #if defined(_WIN32)
 	#include <SDL.h>
 	#include <SDL_events.h>
+	#include <SDL_mouse.h>
 	#include <SDL_syswm.h>
 	#include <SDL_image.h>
 #else
 	#include <SDL2/SDL.h>
 	#include <SDL2/SDL_events.h>
+	#include <SDL2/SDL_mouse.h>
 	#include <SDL2/SDL_image.h>
 	#include <SDL2/SDL_syswm.h>
 #endif
@@ -25,9 +27,12 @@
 
 #include "GlCommon.h"
 #include "GlCamera.h"
+#include "GlStateStack.h"
 #include "GlTexture.h"
+#include "GlShaderCache.h"
 #include "GlTextRenderer.h"
 #include "GlLineRenderer.h"
+#include "GlViewport.h"
 #include "GlModelResourceManager.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
@@ -43,8 +48,8 @@
 #endif
 
 //-- constants -----
-static const int k_window_pixel_width = 1280;
-static const int k_window_pixel_height = 720;
+static const int k_window_pixel_width = 1280 + 350;
+static const int k_window_pixel_height = 720 + 45;
 
 static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
 
@@ -85,14 +90,14 @@ Renderer::Renderer()
 	, m_sdlWindowWidth(0)
 	, m_sdlWindowHeight(0)
 	, m_glContext(nullptr)
+	, m_glStateStack(nullptr)
 	, m_lineRenderer(nullptr)
 	, m_textRenderer(nullptr)
 	, m_modelResourceManager(std::unique_ptr<GlModelResourceManager>(new GlModelResourceManager))
-	, m_imguiContext(nullptr)
-	, m_imguiOpenGLBackendInitialised(false)
-	, m_imguiSDLBackendInitialised(false)
+	, m_rmlUiRenderer(std::unique_ptr<GlRmlUiRender>(new GlRmlUiRender))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
+	, m_shaderCache(std::unique_ptr<GlShaderCache>(new GlShaderCache))
 {
 }
 
@@ -110,7 +115,8 @@ bool Renderer::startup()
 
 	bool success = true;
 
-	 MIKAN_LOG_INFO("Renderer::init()") << "Initializing Renderer Context";
+	MIKAN_LOG_INFO("Renderer::init()") << "Initializing Renderer Context";
+	m_instance = this;
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
 	{
@@ -186,64 +192,21 @@ bool Renderer::startup()
 		}
 	}
 
-	// Setup ImGui key-bindings context
-	if (success)
+	if (success && !m_shaderCache->startup())
 	{
-		// Setup ImGui context
-		IMGUI_CHECKVERSION();
-		m_imguiContext= ImGui::CreateContext();
-		if (m_imguiContext != NULL)
-		{
-			ImGuiIO& io = ImGui::GetIO();
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-			io.Fonts->AddFontFromFileTTF(getDefaultJapaneseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesJapanese());
-			//TODO: Find these fonts
-			//io.Fonts->AddFontFromFileTTF(getDefaultKoreanFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesKorean();
-			//io.Fonts->AddFontFromFileTTF(getDefaultChineseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesChineseFull();
-			//io.Fonts->AddFontFromFileTTF(getDefaultCyrillicFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic();
-			//io.Fonts->AddFontFromFileTTF(getDefaultThaiFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesThai();
-			//io.Fonts->AddFontFromFileTTF(getDefaultVietnameseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesVietnamese();
-
-			// Setup Dear ImGui style
-			ImGui::StyleColorsDark();
-			//ImGui::StyleColorsClassic();
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("Renderer::init") << "Unable to create imgui context";
-			success = false;
-		}
+		MIKAN_LOG_ERROR("Renderer::init") << "Failed to initialize shader cache!";
+		success = false;
 	}
 
-	// Setup ImGui SDL backend
 	if (success)
 	{
-		// Setup Platform/Renderer backends
-		if (ImGui_ImplSDL2_InitForOpenGL(m_sdlWindow, m_glContext))
-		{
-			m_imguiSDLBackendInitialised= true;
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize imgui SDL backend";
-			success = false;
-		}
-	}
-
-	// Setup ImGui OpenGL backend
-	if (success)
-	{
-		if (ImGui_ImplOpenGL3_Init(glsl_version))
-		{
-			m_imguiOpenGLBackendInitialised = true;
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize imgui openGL backend";
-			success = false;
-		}
+		cursor_default = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+		cursor_move = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+		cursor_pointer = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+		cursor_resize = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
+		cursor_cross = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+		cursor_text = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
+		cursor_unavailable = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
 	}
 
 	// Setup OpenCL
@@ -313,6 +276,15 @@ bool Renderer::startup()
 
 	if (success)
 	{
+		if (!m_modelResourceManager->startup())
+		{
+			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize model resource manager";
+			success = false;
+		}
+	}
+
+	if (success)
+	{
 		m_textRenderer = new GlTextRenderer();
 		m_lineRenderer= new GlLineRenderer();
 		if (!m_lineRenderer->startup())
@@ -324,26 +296,32 @@ bool Renderer::startup()
 
 	if (success)
 	{
+		if (!m_rmlUiRenderer->startup())
+		{
+			MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize RmlUi Renderer";
+			success = false;
+		}
+	}
+
+	if (success)
+	{
 		glClearColor(k_clear_color.r, k_clear_color.g, k_clear_color.b, k_clear_color.a);
 		glViewport(0, 0, m_sdlWindowWidth, m_sdlWindowHeight);
 
-		glEnable(GL_LIGHT0);
-		glEnable(GL_TEXTURE_2D);
-		//glClearDepth(1.0f);
-		glEnable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
+		// Create the OpenGL state flag stack
+		m_glStateStack = new GlStateStack();
+
+		// Set default state flags at the base of the stack
+		m_glStateStack->pushState()
+		.enableFlag(eGlStateFlagType::light0)
+		.enableFlag(eGlStateFlagType::texture2d)
+		.enableFlag(eGlStateFlagType::depthTest)
+		.disableFlag(eGlStateFlagType::cullFace)
 		// This has to be enabled since the point drawing shader will use gl_PointSize.
-		glEnable(GL_PROGRAM_POINT_SIZE);
-		//glDepthFunc(GL_LEQUAL);
-		//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBlendEquation(GL_FUNC_ADD);
+		.enableFlag(eGlStateFlagType::programPointSize);
 
-		// Create the base camera on the camera stack
-		pushCamera();
-
-		m_instance = this;
+		// Create a fullscreen viewport for the UI (which creates it's own camera)
+		m_uiViewport = std::make_shared<GlViewport>();
 	}
 
 	return success;
@@ -351,14 +329,22 @@ bool Renderer::startup()
 
 void Renderer::shutdown()
 {
-	while (m_cameraStack.size() > 0)
+	m_uiViewport= nullptr;
+
+	if (m_glStateStack != nullptr)
 	{
-		popCamera();
+		delete m_glStateStack;
+		m_glStateStack= nullptr;
+	}
+
+	if (m_rmlUiRenderer != nullptr)
+	{
+		m_rmlUiRenderer->shutdown();
 	}
 
 	if (m_modelResourceManager != nullptr)
 	{
-		m_modelResourceManager->cleanup();
+		m_modelResourceManager->shutdown();
 	}
 
 	if (m_textRenderer != nullptr)
@@ -374,22 +360,46 @@ void Renderer::shutdown()
 		m_lineRenderer = nullptr;
 	}
 
-	if (m_imguiOpenGLBackendInitialised)
+	// Free cursors
+	if (cursor_default != nullptr)
 	{
-		ImGui_ImplOpenGL3_Shutdown();
-		m_imguiOpenGLBackendInitialised= false;
+		SDL_FreeCursor(cursor_default);
+		cursor_default= nullptr;
+	}
+	if (cursor_move != nullptr)
+	{
+		SDL_FreeCursor(cursor_move);
+		cursor_move = nullptr;
+	}
+	if (cursor_pointer != nullptr)
+	{
+		SDL_FreeCursor(cursor_pointer);
+		cursor_pointer = nullptr;
+	}
+	if (cursor_resize != nullptr)
+	{
+		SDL_FreeCursor(cursor_resize);
+		cursor_resize = nullptr;
+	}
+	if (cursor_cross != nullptr)
+	{
+		SDL_FreeCursor(cursor_cross);
+		cursor_cross = nullptr;
+	}
+	if (cursor_text != nullptr)
+	{
+		SDL_FreeCursor(cursor_text);
+		cursor_text = nullptr;
+	}
+	if (cursor_unavailable != nullptr)
+	{
+		SDL_FreeCursor(cursor_unavailable);
+		cursor_unavailable = nullptr;
 	}
 
-	if (m_imguiSDLBackendInitialised)
+	if (m_shaderCache != nullptr)
 	{
-		ImGui_ImplSDL2_Shutdown();
-		m_imguiSDLBackendInitialised= false;
-	}
-
-	if (m_imguiContext != NULL)
-	{
-		ImGui::DestroyContext(m_imguiContext);
-		m_imguiContext= NULL;
+		m_shaderCache->shutdown();
 	}
 
 	if (m_glContext != NULL)
@@ -420,28 +430,53 @@ void Renderer::renderBegin()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-bool Renderer::onSDLEvent(const SDL_Event* event)
+void Renderer::setSDLMouseCursor(const std::string& cursor_name)
 {
-	return ImGui_ImplSDL2_ProcessEvent(event);
+	SDL_Cursor* cursor = nullptr;
+
+	if (cursor_name.empty() || cursor_name == "arrow")
+		cursor = cursor_default;
+	else if (cursor_name == "move")
+		cursor = cursor_move;
+	else if (cursor_name == "pointer")
+		cursor = cursor_pointer;
+	else if (cursor_name == "resize")
+		cursor = cursor_resize;
+	else if (cursor_name == "cross")
+		cursor = cursor_cross;
+	else if (cursor_name == "text")
+		cursor = cursor_text;
+	else if (cursor_name == "unavailable")
+		cursor = cursor_unavailable;
+
+	if (cursor)
+		SDL_SetCursor(cursor);
 }
 
-void Renderer::renderStageBegin()
+bool Renderer::onSDLEvent(const SDL_Event* event)
+{
+	if (event->type == SDL_WINDOWEVENT)
+	{
+		switch (event->window.event)
+		{
+		case SDL_WINDOWEVENT_SIZE_CHANGED:
+			{
+				m_sdlWindowWidth = event->window.data1;
+				m_sdlWindowHeight = event->window.data2;
+			}
+			break;
+		}
+	}
+
+	return m_rmlUiRenderer->onSDLEvent(event);
+}
+
+void Renderer::renderStageBegin(GlViewportConstPtr targetViewport)
 {
 	EASY_FUNCTION();
 
-	GlCamera *camera= getCurrentCamera();
-
-	if (camera != nullptr)
-	{
-		glm::mat4 projection = camera->getProjectionMatrix();
-		glm::mat4 modelView = camera->getModelViewMatrix();
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(glm::value_ptr(projection));
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(glm::value_ptr(modelView));
-	}
+	m_renderingViewport= targetViewport;
+	m_renderingViewport->applyViewport();
 
 	m_isRenderingStage = true;
 }
@@ -451,11 +486,12 @@ void Renderer::renderStageEnd()
 	EASY_FUNCTION();
 
 	// Render any line segments emitted by the AppStage
-	m_lineRenderer->render();
+	m_lineRenderer->render(this);
 
 	// Render any glyphs emitted by the AppStage
-	m_textRenderer->render();
+	m_textRenderer->render(this);
 
+	m_renderingViewport= nullptr;
 	m_isRenderingStage = false;
 }
 
@@ -463,21 +499,27 @@ void Renderer::renderUIBegin()
 {
 	EASY_FUNCTION();
 
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame();
-	ImGui::NewFrame();
+	m_renderingViewport= m_uiViewport;
+	m_renderingViewport->applyViewport();
+
+	m_rmlUiRenderer->beginFrame(this);
 
 	m_isRenderingUI = true;
 }
 
 void Renderer::renderUIEnd()
 {
-	EASY_FUNCTION();
+	EASY_FUNCTION();	
 
-	ImGui::Render();
-	glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	m_rmlUiRenderer->endFrame(this);
 
+	// Render any line segments emitted by the AppStage renderUI phase
+	m_lineRenderer->render(this);
+
+	// Render any glyphs emitted by the AppStage renderUI phase
+	m_textRenderer->render(this);
+
+	m_renderingViewport= nullptr;
 	m_isRenderingUI = false;
 }
 
@@ -486,28 +528,6 @@ void Renderer::renderEnd()
 	EASY_FUNCTION();
 
 	SDL_GL_SwapWindow(m_sdlWindow);
-}
-
-GlCamera* Renderer::getCurrentCamera() const
-{
-	return m_cameraStack.size() > 0 ? m_cameraStack[m_cameraStack.size() - 1] : nullptr;
-}
-
-GlCamera* Renderer::pushCamera()
-{
-	GlCamera* newCamera= new GlCamera();
-	m_cameraStack.push_back(newCamera);
-
-	return newCamera;
-}
-
-void Renderer::popCamera()
-{
-	if (m_cameraStack.size() > 0)
-	{
-		delete m_cameraStack[m_cameraStack.size() - 1];
-		m_cameraStack.pop_back();
-	}
 }
 
 bool saveTextureToPNG(GlTexture* texture, const char* filename)
@@ -568,3 +588,4 @@ bool saveTextureToPNG(GlTexture* texture, const char* filename)
 
 	return bSuccess;
 }
+

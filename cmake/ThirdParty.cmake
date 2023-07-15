@@ -45,23 +45,23 @@ else()
   find_package(GLEW REQUIRED)
 endif()
 
-# ImGUI
-set(IMGUI_DIR ${ROOT_DIR}/thirdparty/imgui)
-set(IMGUI_SOURCE "")
-list(APPEND IMGUI_SOURCE
-     ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp
-     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-     ${IMGUI_DIR}/imgui.cpp
-     ${IMGUI_DIR}/imgui_draw.cpp
-     ${IMGUI_DIR}/imgui_tables.cpp
-     ${IMGUI_DIR}/imgui_widgets.cpp
-     ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
-)
+# RMLUI
+if (WIN32) 
+  set (RMLUI_INCLUDE_DIR ${ROOT_DIR}/deps/RML/RmlUi-4.4/Include)
+  set (RMLUI_BINARIES_DIR ${ROOT_DIR}/deps/RML/RmlUi-4.4/Build/Debug)
+  set (FREETYPE_SHARED_LIBRARY ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/win64/freetype.dll)
+  list (APPEND RMLUI_LIBRARIES 
+    ${RMLUI_BINARIES_DIR}/RmlCore.lib
+    ${RMLUI_BINARIES_DIR}/RmlDebugger.lib
+    ${RMLUI_BINARIES_DIR}/RmlLua.lib)
+else()
+  #TODO
+endif()
 
 # Lua
 if (WIN32) 
   set (LUA_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/lua/include)
-  set (LUA_LIBRARIES ${ROOT_DIR}/thirdparty/lua/liblua54.lib)
+  set (LUA_LIBRARIES ${ROOT_DIR}/thirdparty/lua/lua54.lib)
   set (LUA_SHARED_LIBRARIES ${ROOT_DIR}/thirdparty/lua/lua54.dll)
 else()
   find_package(LUA REQUIRED)
@@ -79,7 +79,7 @@ set (BOOST_INTERPROCESS_INCLUDE_DIRS ${ROOT_DIR}/deps/boost_1_78_0)
 # stb
 set (STB_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/stb)
 
-# stb
+# obj loader
 set (OBJ_LOADER_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/OBJ-loader/Source)
 
 # ffmpeg
@@ -89,7 +89,7 @@ find_package(FFMPEG REQUIRED)
 find_package(easy_profiler REQUIRED)
 
 # Spout2
-if (WIN32) 
+if (WIN32)
   set (SPOUT2_SDK_DIR ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK/SpoutLibrary/Binaries/x64)
   list (APPEND SPOUT2_INCLUDE_DIRS 
     ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK
@@ -97,3 +97,10 @@ if (WIN32)
   set (SPOUT2_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.lib)
   set (SPOUT2_SHARED_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.dll)
 endif()
+
+# SWIG
+if (WIN32)
+    set (SWIG_DIR ${ROOT_DIR}/deps/swigwin-4.1.1)
+    set (SWIG_EXECUTABLE ${SWIG_DIR}/swig.exe)
+endif()
+find_package(SWIG 4.1.1 COMPONENTS csharp)

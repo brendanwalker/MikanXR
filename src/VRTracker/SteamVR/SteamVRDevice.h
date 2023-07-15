@@ -1,6 +1,7 @@
 #pragma once
 
 // -- includes -----
+#include "RendererFwd.h"
 #include "SteamVRDevice.h"
 #include "VRDeviceInterface.h"
 
@@ -43,7 +44,7 @@ public:
 	}
 	void updateProperties() override;
 	void updatePose() override;
-	void bindToScene(class GlScene* scene) override;
+	void bindToScene(GlScenePtr scene) override;
 	void removeFromBoundScene() override;
 	std::string getDevicePath() const override;
 	std::string getSerialNumber() const override;
@@ -64,7 +65,7 @@ private:
 	IVRDeviceInterface::eDriverType m_driverType;
 	eDeviceType m_deviceType;
 
-	class GlScene* m_boundScene;
+	GlSceneWeakPtr m_boundScene;
 	std::map<std::string, class SteamVRRenderComponent*> m_renderComponents;
 	glm::mat4 m_poseMatrix;
 	bool m_isPoseValid= false;
