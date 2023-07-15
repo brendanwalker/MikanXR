@@ -22,11 +22,12 @@
 			}
 		},
 		{
-			"verticalFlip":       true,
+			"verticalFlip":       false,
 			"blendMode":          "blendOn",
 			"shaderConfig":       {
 				"materialName":     "rgbaFrame",
 				"textureSourceMap": {
+					"rgbTexture":  "empty",
 					"rgbaTexture": "clientRenderTexture_0"
 				}
 			},

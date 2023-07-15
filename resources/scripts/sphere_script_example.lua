@@ -5,7 +5,7 @@ local function sphere_scale_bounce_coroutine()
   local sphere_stencil= ModelStencil(model_stencil_list:getStencilId(3))
   local final_scale= Vec3f(10.0, 10.0, 10.0)
   local elapsed_time = 0
-  local duration = 3
+  local duration = 1.5
   
   while (elapsed_time < duration)
   do
@@ -21,6 +21,7 @@ end
 
 function play_stencil_scale_bounce()
   start_coroutine(sphere_scale_bounce_coroutine)
+  ScriptContext.broadcastMessage("startCameraZoom")
 end
 
 function reset_stencil_scale()
@@ -28,6 +29,7 @@ function reset_stencil_scale()
     local sphere_stencil= ModelStencil(model_stencil_list:getStencilId(3))
     local reset_scale= Vec3f(0.0, 0.0, 0.0)
     sphere_stencil:setModelScale(reset_scale)
+    ScriptContext.broadcastMessage("resetCameraZoom")
 end
 
 ScriptContext.registerTrigger("play_stencil_scale_bounce")

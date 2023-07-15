@@ -35,10 +35,10 @@
 				"bInvertWhenCameraInside": false
 			},
 			"boxStencilConfig":   {
-				"stencilMode": "insideStencil"
+				"stencilMode": "noStencil"
 			},
 			"modelStencilConfig": {
-				"stencilMode": "insideStencil"
+				"stencilMode": "noStencil"
 			}
 		}
 	],

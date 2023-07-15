@@ -37,7 +37,7 @@
 			},
 			"boxStencilConfig":   {
 				"stencilMode":   "insideStencil",
-				"boxStencilIds": [ 57, 56, 37, 38 ]
+				"boxStencilIds": [ 37, 56, 57, 38 ]
 			},
 			"modelStencilConfig": {
 				"stencilMode": "noStencil"
@@ -48,34 +48,9 @@
 			"blendMode":          "blendOn",
 			"shaderConfig":       {
 				"materialName":     "rgbUndistortionFrame",
-				"float3SourceMap":  {
-					"colorKey": "clientColorKey_0"
-				},
 				"textureSourceMap": {
-					"colorKeyTexture": "clientRenderTexture_0",
-					"distortion":      "distortionTexture",
-					"rgbTexture":      "videoTexture"
-				}
-			},
-			"quadStencilConfig":  {
-				"stencilMode":             "noStencil",
-				"bInvertWhenCameraInside": false
-			},
-			"boxStencilConfig":   {
-				"stencilMode": "noStencil"
-			},
-			"modelStencilConfig": {
-				"stencilMode":     "insideStencil",
-				"modelStencilIds": [ 26, 45, 47, 48 ]
-			}
-		},
-		{
-			"verticalFlip":       false,
-			"blendMode":          "blendOn",
-			"shaderConfig":       {
-				"materialName":     "rgbFrame",
-				"textureSourceMap": {
-					"rgbTexture":  "clientRenderTexture_0",
+					"distortion":  "empty",
+					"rgbTexture":  "empty",
 					"rgbaTexture": "clientRenderTexture_0"
 				}
 			},
@@ -88,10 +63,30 @@
 			},
 			"modelStencilConfig": {
 				"stencilMode":     "insideStencil",
-				"modelStencilIds": [ 58 ]
+				"modelStencilIds": [ 45, 47, 48 ]
+			}
+		},
+		{
+			"verticalFlip":       true,
+			"blendMode":          "blendOn",
+			"shaderConfig":       {
+				"materialName":     "rgbInvAlphaFrame",
+				"textureSourceMap": {
+					"rgbaTexture": "clientRenderTexture_1"
+				}
+			},
+			"quadStencilConfig":  {
+				"stencilMode":             "noStencil",
+				"bInvertWhenCameraInside": false
+			},
+			"boxStencilConfig":   {
+				"stencilMode": "noStencil"
+			},
+			"modelStencilConfig": {
+				"stencilMode": "noStencil"
 			}
 		}
 	],
-	"name":    "Masked Container",
+	"name":    "TwoClient",
 	"builtIn": false
 }
