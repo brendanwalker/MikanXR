@@ -11,6 +11,7 @@
 #include "LocalizationManager.h"
 #include "MikanServer.h"
 #include "ObjectSystemManager.h"
+#include "OpenCVManager.h"
 #include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "Renderer.h"
@@ -42,6 +43,7 @@ App::App()
 	, m_localizationManager(new LocalizationManager())	
 	, m_objectSystemManager(std::make_shared<ObjectSystemManager>())
 	, m_renderer(new Renderer())
+	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new FontManager())
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
@@ -56,7 +58,8 @@ App::~App()
 
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
-	delete m_renderer;	
+	delete m_renderer;
+	delete m_openCVManager;
 	delete m_localizationManager;
 	delete m_inputManager;
 	delete m_rmlManager;
@@ -147,6 +150,12 @@ bool App::startup(int argc, char** argv)
 	if (success && !m_localizationManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
+		success = false;
+	}
+
+	if (success && !m_openCVManager->startup())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize OpenCV manager!";
 		success = false;
 	}
 
@@ -255,6 +264,11 @@ void App::shutdown()
 	if (m_renderer != nullptr)
 	{
 		m_renderer->shutdown();
+	}
+
+	if (m_openCVManager != nullptr)
+	{
+		m_openCVManager->shutdown();
 	}
 
 	if (m_localizationManager != nullptr)

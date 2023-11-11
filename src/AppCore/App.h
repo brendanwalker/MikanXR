@@ -125,6 +125,9 @@ private:
 	// OpenGL renderer
 	class Renderer* m_renderer= nullptr;
 
+	// OpenCV management
+	class OpenCVManager* m_openCVManager= nullptr;
+
 	// OpenGL/SDL font/baked text string texture cache
 	class FontManager* m_fontManager = nullptr;
 
