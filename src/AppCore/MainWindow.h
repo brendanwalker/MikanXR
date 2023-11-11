@@ -1,0 +1,67 @@
+#pragma once
+
+//-- includes -----
+#include "SdlFwd.h"
+#include "IGlWindow.h"
+
+#include <memory>
+#include <string>
+#include <vector>
+
+//-- definitions -----
+class MainWindow : public IGlWindow
+{
+public:
+	MainWindow();
+	~MainWindow();
+
+	static MainWindow* getInstance()
+	{
+		return m_instance;
+	}
+
+	bool startup();
+	void shutdown();
+
+	bool onSDLEvent(const SDL_Event* event);
+
+	void renderBegin();
+	void renderStageBegin(GlViewportConstPtr targetViewport);
+	void renderStageEnd();
+	void renderUIBegin();
+	void renderUIEnd();
+	void renderEnd();
+
+	GlModelResourceManager& getModelResourceManager();
+
+	// -- IGlWindow ----
+	virtual float getWidth() const override;
+	virtual float getHeight() const override;
+	virtual float getAspectRatio() const override;
+	virtual bool getIsRenderingStage() const override { return m_isRenderingStage; }
+	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
+
+	virtual GlViewportConstPtr getRenderingViewport() const override;
+	virtual GlStateStack& getGlStateStack() override;
+	virtual GlLineRenderer* getLineRenderer() override;
+	virtual GlTextRenderer* getTextRenderer() override;
+
+private:
+	SdlWindowUniquePtr m_sdlWindow;
+	GlViewportPtr m_uiViewport;
+	GlViewportConstPtr m_renderingViewport;
+
+	GlStateStackUniquePtr m_glStateStack;
+	GlLineRendererUniquePtr m_lineRenderer;
+	GlTextRendererUniquePtr m_textRenderer;
+	GlModelResourceManagerUniquePtr m_modelResourceManager;
+	GlRmlUiRenderUniquePtr m_rmlUiRenderer;
+
+	bool m_isRenderingStage;
+	bool m_isRenderingUI;
+
+	// OpenGL shader program cache
+	GlShaderCacheUniquePtr m_shaderCache;
+
+	static MainWindow* m_instance;
+};

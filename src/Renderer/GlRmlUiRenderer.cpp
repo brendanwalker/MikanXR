@@ -34,6 +34,7 @@
 #include "GlProgram.h"
 #include "GlStateStack.h"
 #include "GlVertexDefinition.h"
+#include "IGlWindow.h"
 #include "Logger.h"
 #include "PathUtils.h"
 #include "Renderer.h"
@@ -444,9 +445,9 @@ void GlRmlUiRender::setViewport(int width, int height)
 	viewport_height = height;
 }
 
-void GlRmlUiRender::beginFrame(Renderer* renderer)
+void GlRmlUiRender::beginFrame(IGlWindow* window)
 {
-	GlState& glState= renderer->getGlStateStack()->pushState();
+	GlState& glState= window->getGlStateStack().pushState();
 
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
 	glViewport(0, 0, viewport_width, viewport_height);
@@ -470,11 +471,11 @@ void GlRmlUiRender::beginFrame(Renderer* renderer)
 	SetTransform(nullptr);
 }
 
-void GlRmlUiRender::endFrame(Renderer* renderer) 
+void GlRmlUiRender::endFrame(IGlWindow* window) 
 {
 	glViewport(0, 0, (int)viewport_width, (int)viewport_height);
 	
-	renderer->getGlStateStack()->popState();
+	window->getGlStateStack().popState();
 }
 
 void GlRmlUiRender::clear()

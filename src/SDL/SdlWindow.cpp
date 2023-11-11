@@ -28,7 +28,7 @@ SdlWindow::SdlWindow()
 
 }
 
-SdlWindow& SdlWindow::setTitle(const std::string& title)
+SdlWindow* SdlWindow::setTitle(const std::string& title)
 {
 	if (m_sdlWindow != nullptr)
 	{
@@ -37,10 +37,10 @@ SdlWindow& SdlWindow::setTitle(const std::string& title)
 
 	m_title = title;
 
-	return *this;
+	return this;
 }
 
-SdlWindow& SdlWindow::setSize(int width, int height)
+SdlWindow* SdlWindow::setSize(int width, int height)
 {
 	if (m_sdlWindow != nullptr)
 	{
@@ -52,7 +52,7 @@ SdlWindow& SdlWindow::setSize(int width, int height)
 		m_height = height;
 	}
 
-	return *this;
+	return this;
 }
 
 bool SdlWindow::startup()

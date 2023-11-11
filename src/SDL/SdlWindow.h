@@ -2,10 +2,12 @@
 
 //-- includes -----
 #include "SdlFwd.h"
+
+#include <memory>
 #include <string>
 
 //-- definitions -----
-class SdlWindow
+class SdlWindow 
 {
 public:
 	SdlWindow();
@@ -21,10 +23,10 @@ public:
 
 	int getWindowId() const { return m_windowId; }
 
-	SdlWindow& setTitle(const std::string& title);
+	SdlWindow* setTitle(const std::string& title);
 	const std::string& getTitle() const { return m_title; }
 
-	SdlWindow& setSize(int width, int height);
+	SdlWindow* setSize(int width, int height);
 	int getWidth() const { return m_width; }
 	int getHeight() const { return m_height; }
 	float getAspectRatio() const { return (float)m_width / (float)m_height; }

@@ -425,6 +425,7 @@ void App::render()
 	if (appStage == nullptr)
 		return;
 
+	//m_renderingWindow = ...
 	m_renderer->renderBegin();
 
 	// Render all 3d viewports for the app state
@@ -457,4 +458,5 @@ void App::render()
 	}
 
 	m_renderer->renderEnd();
+	m_renderingWindow= nullptr;
 }

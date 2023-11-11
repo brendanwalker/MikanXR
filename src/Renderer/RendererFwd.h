@@ -6,6 +6,10 @@ class GlCamera;
 using GlCameraPtr = std::shared_ptr<GlCamera>;
 using GlCameraConstPtr = std::shared_ptr<const GlCamera>;
 
+class GlLineRenderer;
+using GlLineRendererSharedPtr = std::shared_ptr<GlLineRenderer>;
+using GlLineRendererUniquePtr = std::unique_ptr<GlLineRenderer>;
+
 class GlMaterial;
 using GlMaterialPtr = std::shared_ptr<GlMaterial>;
 using GlMaterialConstPtr = std::shared_ptr<const GlMaterial>;
@@ -13,6 +17,10 @@ using GlMaterialConstPtr = std::shared_ptr<const GlMaterial>;
 class GlMaterialInstance;
 using GlMaterialInstancePtr = std::shared_ptr<GlMaterialInstance>;
 using GlMaterialInstanceConstPtr = std::shared_ptr<const GlMaterialInstance>;
+
+class GlModelResourceManager;
+using GlModelResourceManagerSharedPtr = std::shared_ptr<GlModelResourceManager>;
+using GlModelResourceManagerUniquePtr = std::unique_ptr<GlModelResourceManager>;
 
 class GlProgram;
 using GlProgramPtr= std::shared_ptr<GlProgram>;
@@ -25,13 +33,27 @@ class GlRenderModelResource;
 using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
 using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;
 
+class GlRmlUiRender;
+using GlRmlUiRenderUniquePtr = std::unique_ptr<GlRmlUiRender>;
+
 class GlScene;
 using GlScenePtr = std::shared_ptr<GlScene>;
 using GlSceneWeakPtr = std::weak_ptr<GlScene>;
 using GlSceneConstPtr = std::shared_ptr<const GlScene>;
 
+class GlShaderCache;
+using GlShaderCacheUniquePtr = std::unique_ptr<GlShaderCache>;
+
+class GlStateStack;
+using GlStateStackSharedPtr = std::shared_ptr<GlStateStack>;
+using GlStateStackUniquePtr = std::unique_ptr<GlStateStack>;
+
 class GlStaticMeshInstance;
 using GlStaticMeshInstancePtr = std::shared_ptr<GlStaticMeshInstance>;
+
+class GlTextRenderer;
+using GlTextRendererSharedPtr = std::shared_ptr<GlTextRenderer>;
+using GlTextRendererUniquePtr = std::unique_ptr<GlTextRenderer>;
 
 class GlTexture;
 using GlTexturePtr = std::shared_ptr<GlTexture>;

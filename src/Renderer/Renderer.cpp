@@ -405,10 +405,10 @@ void Renderer::renderStageEnd()
 	EASY_FUNCTION();
 
 	// Render any line segments emitted by the AppStage
-	m_lineRenderer->render(this);
+	//m_lineRenderer->render(this);
 
 	// Render any glyphs emitted by the AppStage
-	m_textRenderer->render(this);
+	//m_textRenderer->render(this);
 
 	m_renderingViewport= nullptr;
 	m_isRenderingStage = false;
@@ -421,7 +421,7 @@ void Renderer::renderUIBegin()
 	m_renderingViewport= m_uiViewport;
 	m_renderingViewport->applyViewport();
 
-	m_rmlUiRenderer->beginFrame(this);
+	//m_rmlUiRenderer->beginFrame(this);
 
 	m_isRenderingUI = true;
 }
@@ -430,13 +430,13 @@ void Renderer::renderUIEnd()
 {
 	EASY_FUNCTION();	
 
-	m_rmlUiRenderer->endFrame(this);
+	//m_rmlUiRenderer->endFrame(this);
 
 	// Render any line segments emitted by the AppStage renderUI phase
-	m_lineRenderer->render(this);
+	//m_lineRenderer->render(this);
 
 	// Render any glyphs emitted by the AppStage renderUI phase
-	m_textRenderer->render(this);
+	//m_textRenderer->render(this);
 
 	m_renderingViewport= nullptr;
 	m_isRenderingUI = false;

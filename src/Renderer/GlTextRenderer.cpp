@@ -7,9 +7,9 @@
 #include "GlTextRenderer.h"
 #include "GlTexture.h"
 #include "GlViewport.h"
+#include "IGlWindow.h"
 #include "Logger.h"
 #include "MathGLM.h"
-#include "Renderer.h"
 
 #include "glm/ext/matrix_projection.hpp"
 
@@ -17,13 +17,13 @@ GlTextRenderer::GlTextRenderer()
 {
 }
 
-void GlTextRenderer::render(Renderer* renderer)
+void GlTextRenderer::render(IGlWindow* window)
 {
 	if (m_bakedTextQuads.size() > 0)
 	{
 		// Fetch the window resolution
-		const float screenWidth = renderer->getSDLWindowWidth();
-		const float screenHeight = renderer->getSDLWindowHeight();
+		const float screenWidth = window->getWidth();
+		const float screenHeight = window->getHeight();
 
 		// Save a back up of the projection matrix and replace with an orthographic projection,
 		// Where units = screen pixels, origin at top left
@@ -40,7 +40,7 @@ void GlTextRenderer::render(Renderer* renderer)
 		glPushMatrix();
 		glLoadIdentity();
 
-		GlScopedState stateScope= renderer->getGlStateStack()->createScopedState();
+		GlScopedState stateScope= window->getGlStateStack().createScopedState();
 		stateScope.getStackState()
 			.disableFlag(eGlStateFlagType::depthTest)
 			.enableFlag(eGlStateFlagType::blend);
@@ -132,15 +132,20 @@ void drawTextAtWorldPosition(
 	const wchar_t* format,
 	...)
 {
-	Renderer* renderer= Renderer::getInstance();
-	GlTextRenderer* textRenderer= renderer->getTextRenderer();
-	GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
+	IGlWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	assert(window != nullptr);
+
+	GlTextRenderer * textRenderer = window->getTextRenderer();
+	if (textRenderer == nullptr)
+		return;
+
+	GlCameraPtr camera = window->getRenderingViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 
 	// Convert the world space coordinates into screen space
-	const int screenWidth = (int)Renderer::getInstance()->getSDLWindowWidth();
-	const int screenHeight = (int)Renderer::getInstance()->getSDLWindowHeight();
+	const int screenWidth = (int)window->getWidth();
+	const int screenHeight = (int)window->getHeight();
 	glm::vec3 screenCoords =
 		glm::project(
 			position,
@@ -173,8 +178,13 @@ void drawTextAtScreenPosition(
 	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
 	va_end(args);
 
-	Renderer* renderer = Renderer::getInstance();
-	GlTextRenderer* textRenderer = renderer->getTextRenderer();
+	IGlWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	assert(window != nullptr);
+
+	GlTextRenderer* textRenderer = window->getTextRenderer();
+	if (textRenderer == nullptr)
+		return;
+
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
 }
 
@@ -193,11 +203,15 @@ void drawTextAtCameraPosition(
 	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
 	va_end(args);
 
-	Renderer* renderer = Renderer::getInstance();
-	GlTextRenderer* textRenderer = renderer->getTextRenderer();
+	IGlWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	assert(window != nullptr);
 
-	const float windowWidth = renderer->getSDLWindowWidth();
-	const float windowHeight = renderer->getSDLWindowHeight();
+	GlTextRenderer* textRenderer = window->getTextRenderer();
+	if (textRenderer == nullptr)
+		return;
+
+	const float windowWidth = window->getWidth();
+	const float windowHeight = window->getHeight();
 	const float windowX0 = 0.0f, windowY0 = 0.f;
 	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
 
