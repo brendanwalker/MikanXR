@@ -108,5 +108,3 @@ private:
 
 	static Renderer* m_instance;
 };
-
-bool saveTextureToPNG(class GlTexture* texture, const char* filename);

@@ -41,6 +41,7 @@
 #include "Renderer.h"
 #include "PathUtils.h"
 #include "RmlUtility.h"
+#include "SdlUtility.h"
 #include "SceneComponent.h"
 #include "StringUtils.h"
 #include "StencilObjectSystem.h"
@@ -764,7 +765,7 @@ void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clien
 	{		
 		if (clientSource->colorTexture != nullptr)
 		{
-			saveTextureToPNG(clientSource->colorTexture.get(), "layerScreenshot.png");
+			SdlUtility::saveTextureToPNG(clientSource->colorTexture.get(), "layerScreenshot.png");
 		}
 	}
 }
