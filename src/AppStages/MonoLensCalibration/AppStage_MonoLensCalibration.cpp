@@ -9,7 +9,6 @@
 #include "MonoLensDistortionCalibrator.h"
 #include "MikanClientTypes.h"
 #include "CalibrationPatternFinder.h"
-#include "Renderer.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"

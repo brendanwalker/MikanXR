@@ -11,10 +11,10 @@
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"
+#include "MainWindow.h"
 #include "ModelStencilComponent.h"
 #include "PathUtils.h"
 #include "ProfileConfig.h"
-#include "Renderer.h"
 #include "StringUtils.h"
 #include "GlShaderCache.h"
 #include "GlStateStack.h"
@@ -1021,8 +1021,8 @@ void GlFrameCompositor::updateCompositeFrame()
 	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
 
 	// Turn off depth testing for compositing
-	Renderer* renderer= Renderer::getInstance();
-	GlScopedState updateCompositeGlStateScope = renderer->getGlStateStack()->createScopedState();
+	MainWindow* mainWindow= MainWindow::getInstance();
+	GlScopedState updateCompositeGlStateScope = mainWindow->getGlStateStack().createScopedState();
 	updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 	// make sure we clear the framebuffer's content
@@ -1049,7 +1049,7 @@ void GlFrameCompositor::updateCompositeFrame()
 
 		EASY_BLOCK(layerConfig->shaderConfig.materialName);
 
-		GlScopedState layerGlStateScope = renderer->getGlStateStack()->createScopedState();
+		GlScopedState layerGlStateScope = mainWindow->getGlStateStack().createScopedState();
 
 		// Attempt to apply data sources to the layers material parameters
 		applyLayerMaterialFloatValues(*layerConfig, layer);
@@ -1082,7 +1082,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		}
 
 		{
-			GlScopedState glStateScope = Renderer::getInstance()->getGlStateStack()->createScopedState();
+			GlScopedState glStateScope = MainWindow::getInstance()->getGlStateStack().createScopedState();
 			GlState& glState= glStateScope.getStackState();
 
 			// Apply stencil shapes, if any, to the layer
@@ -1527,7 +1527,7 @@ void GlFrameCompositor::updateModelStencils(
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
-	std::unique_ptr<class GlModelResourceManager>& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
+	GlModelResourceManager& modelResourceManager = MainWindow::getInstance()->getModelResourceManager();
 
 	std::vector<ModelStencilComponentPtr> modelStencilList;
 	StencilObjectSystem::getSystem()->getRelevantModelStencilList(
@@ -1552,7 +1552,7 @@ void GlFrameCompositor::updateModelStencils(
 			// Go ahead an occupy a slot in the m_stencilMeshCache until
 			// the entry us explicitly cleared by flushStencilRenderModel.
 			GlRenderModelResourcePtr renderModelResource =
-				modelResourceManager->fetchRenderModel(
+				modelResourceManager.fetchRenderModel(
 					stencilConfig->getModelPath(),
 					getStencilModelVertexDefinition());
 
@@ -1628,7 +1628,7 @@ void GlFrameCompositor::render() const
 
 	if (m_compositedFrame != nullptr)
 	{
-		GlScopedState scopedState= Renderer::getInstance()->getGlStateStack()->createScopedState();
+		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState();
 		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 		// Draw the composited video frame

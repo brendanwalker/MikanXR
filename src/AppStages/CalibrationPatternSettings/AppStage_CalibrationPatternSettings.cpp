@@ -3,7 +3,6 @@
 #include "CalibrationPatternSettings/AppStage_CalibrationPatternSettings.h"
 #include "App.h"
 #include "ProfileConfig.h"
-#include "Renderer.h"
 #include "Logger.h"
 #include "MathUtility.h"
 

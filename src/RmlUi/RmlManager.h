@@ -40,7 +40,7 @@ public:
 	~RmlManager();
 
 	bool preRendererStartup();
-	bool postRendererStartup();
+	bool postRendererStartup(const class IGlWindow* window);
 	void update();
 	void shutdown();
 

@@ -4,7 +4,6 @@
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
 #include "ProfileConfig.h"
-#include "Renderer.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"

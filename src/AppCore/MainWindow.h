@@ -20,21 +20,13 @@ public:
 		return m_instance;
 	}
 
-	bool startup();
-	void shutdown();
-
-	bool onSDLEvent(const SDL_Event* event);
-
-	void renderBegin();
-	void renderStageBegin(GlViewportConstPtr targetViewport);
-	void renderStageEnd();
-	void renderUIBegin();
-	void renderUIEnd();
-	void renderEnd();
-
 	GlModelResourceManager& getModelResourceManager();
 
 	// -- IGlWindow ----
+	virtual bool startup() override;
+	virtual void render() override;
+	virtual void shutdown() override;
+
 	virtual float getWidth() const override;
 	virtual float getHeight() const override;
 	virtual float getAspectRatio() const override;
@@ -45,6 +37,16 @@ public:
 	virtual GlStateStack& getGlStateStack() override;
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual GlTextRenderer* getTextRenderer() override;
+
+	virtual bool onSDLEvent(const SDL_Event* event)  override;
+
+protected:
+	void renderBegin();
+	void renderStageBegin(GlViewportConstPtr targetViewport);
+	void renderStageEnd();
+	void renderUIBegin();
+	void renderUIEnd();
+	void renderEnd();
 
 private:
 	SdlWindowUniquePtr m_sdlWindow;

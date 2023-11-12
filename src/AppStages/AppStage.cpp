@@ -1,7 +1,7 @@
 #include "App.h"
 #include "AppStage.h"
 #include "GlViewport.h"
-#include "Renderer.h"
+#include "MainWindow.h"
 #include "RmlManager.h"
 #include "Shared/ModalDialog.h"
 
@@ -28,7 +28,10 @@ AppStage::~AppStage()
 
 GlViewportPtr AppStage::addViewport()
 {
-	GlViewportPtr viewport= std::make_shared<GlViewport>();
+	MainWindow* window= MainWindow::getInstance();
+	GlViewportPtr viewport= 
+		std::make_shared<GlViewport>(
+			glm::i32vec2(window->getWidth(), window->getHeight()));
 	m_viewports.push_back(viewport);
 
 	// Start listing to mouse input
@@ -39,7 +42,7 @@ GlViewportPtr AppStage::addViewport()
 
 GlViewportConstPtr AppStage::getRenderingViewport() const
 {
-	return Renderer::getInstance()->getRenderingViewport();
+	return MainWindow::getInstance()->getRenderingViewport();
 }
 
 Rml::Context* AppStage::getRmlContext() const 
@@ -51,10 +54,6 @@ void AppStage::enter()
 {
 	if (!m_bIsEntered)
 	{
-		Renderer* renderer = Renderer::getInstance();
-		int window_width = renderer->getSDLWindowWidth();
-		int window_height = renderer->getSDLWindowHeight();
-
 		// Add a default fullscreen viewport for each appstage
 		addViewport();
 

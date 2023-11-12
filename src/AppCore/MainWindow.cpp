@@ -7,6 +7,8 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
+#include "App.h"
+#include "AppStage.h"
 #include "GlCommon.h"
 #include "GlCamera.h"
 #include "GlStateStack.h"
@@ -49,7 +51,6 @@ MainWindow::MainWindow()
 	, m_lineRenderer(GlLineRendererUniquePtr(new GlLineRenderer))
 	, m_textRenderer(GlTextRendererUniquePtr(new GlTextRenderer))
 	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager))
-	, m_rmlUiRenderer(GlRmlUiRenderUniquePtr(new GlRmlUiRender))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
@@ -129,6 +130,7 @@ bool MainWindow::startup()
 
 	if (success)
 	{
+		m_rmlUiRenderer = GlRmlUiRenderUniquePtr(new GlRmlUiRender(*this));
 		if (!m_rmlUiRenderer->startup())
 		{
 			MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize RmlUi Renderer";
@@ -151,10 +153,54 @@ bool MainWindow::startup()
 			.enableFlag(eGlStateFlagType::programPointSize);
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
-		m_uiViewport = std::make_shared<GlViewport>();
+		m_uiViewport = 
+			std::make_shared<GlViewport>(
+				glm::i32vec2(k_window_pixel_width, k_window_pixel_height));
 	}
 
 	return success;
+}
+
+void MainWindow::render()
+{
+	App* app= App::getInstance();
+	AppStage* appStage= app->getCurrentAppStage();
+
+	if (appStage != nullptr)
+	{
+		renderBegin();
+
+		// Render all 3d viewports for the app state
+		for (GlViewportPtr viewpoint : appStage->getViewportList())
+		{
+			EASY_BLOCK("appStage render");
+
+			renderStageBegin(viewpoint);
+			appStage->render();
+			renderStageEnd();
+		}
+
+		// Render the UI on top
+		{
+			EASY_BLOCK("appStage renderUI");
+			renderUIBegin();
+
+			appStage->renderUI();
+
+			// Always draw the FPS in the lower right
+			TextStyle style = getDefaultTextStyle();
+			style.horizontalAlignment = eHorizontalTextAlignment::Right;
+			style.verticalAlignment = eVerticalTextAlignment::Bottom;
+			drawTextAtScreenPosition(
+				style,
+				glm::vec2(getWidth() - 1, getHeight() - 1),
+				L"%.1ffps", app->getFPS());
+
+			renderUIEnd();
+		}
+
+		renderEnd();
+	}
 }
 
 void MainWindow::shutdown()
@@ -251,7 +297,7 @@ void MainWindow::renderUIBegin()
 	m_renderingViewport = m_uiViewport;
 	m_renderingViewport->applyViewport();
 
-	m_rmlUiRenderer->beginFrame(this);
+	m_rmlUiRenderer->beginFrame();
 
 	m_isRenderingUI = true;
 }
@@ -260,7 +306,7 @@ void MainWindow::renderUIEnd()
 {
 	EASY_FUNCTION();
 
-	m_rmlUiRenderer->endFrame(this);
+	m_rmlUiRenderer->endFrame();
 
 	// Render any line segments emitted by the AppStage renderUI phase
 	m_lineRenderer->render(this);

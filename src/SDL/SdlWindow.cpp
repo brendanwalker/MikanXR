@@ -90,6 +90,19 @@ bool SdlWindow::startup()
 
 	if (success)
 	{
+		// Initialize GL Extension Wrangler (GLEW)
+		GLenum err;
+		glewExperimental = GL_TRUE; // Please expose OpenGL 3.x+ interfaces
+		err = glewInit();
+		if (err != GLEW_OK)
+		{
+			MIKAN_LOG_ERROR("SdlWindow::startup") << "Unable to initialize glew openGL backend: " << glewGetErrorString(err);
+			success = false;
+		}
+	}
+
+	if (success)
+	{
 		// Grab window identifier
 		m_windowId = SDL_GetWindowID(m_sdlWindow);
 

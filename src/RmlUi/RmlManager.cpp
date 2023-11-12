@@ -10,7 +10,7 @@
 #include "ProfileConfig.h"
 #include "PropertyInterface.h"
 #include "PathUtils.h"
-#include "Renderer.h"
+#include "SdlManager.h"
 #include "StencilComponent.h"
 #include "StencilObjectSystem.h"
 #include "VRDeviceManager.h"
@@ -162,7 +162,7 @@ bool RmlManager::preRendererStartup()
 	return true;
 }
 
-bool RmlManager::postRendererStartup()
+bool RmlManager::postRendererStartup(const IGlWindow* window)
 {
 	if (Rml::Initialise())
 	{
@@ -184,9 +184,8 @@ bool RmlManager::postRendererStartup()
 			Rml::LoadFontFace(face.filename, face.fallback_face);
 		}
 
-		Renderer* renderer= m_app->getRenderer();
-		int window_width = renderer->getSDLWindowWidth();
-		int window_height = renderer->getSDLWindowHeight();
+		int window_width = (int)window->getWidth();
+		int window_height = (int)window->getHeight();
 		m_rmlUIContext = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 		Rml::Debugger::Initialise(m_rmlUIContext);
 
@@ -427,7 +426,7 @@ bool RmlManager::LogMessage(Rml::Log::Type type, const Rml::String& message)
 
 void RmlManager::SetMouseCursor(const Rml::String& cursor_name)
 {
-	m_app->getRenderer()->setSDLMouseCursor(cursor_name);
+	m_app->getSdlManager()->setSDLMouseCursor(cursor_name);
 }
 
 void RmlManager::SetClipboardText(const Rml::String& text_utf8)

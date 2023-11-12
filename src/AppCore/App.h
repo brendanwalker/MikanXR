@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "IGlWindow.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
@@ -24,11 +25,12 @@ public:
 	inline ProfileConfigPtr getProfileConfig() const { return m_profileConfig; }
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
 	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemManager; }
-	inline class Renderer* getRenderer() const { return m_renderer; }
+	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
 	inline class FontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
+	inline class SdlManager* getSdlManager() const { return m_sdlManager.get(); }
 	inline class GlFrameCompositor* getFrameCompositor() const { return m_frameCompositor; }
 	inline class IGlWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
 
@@ -84,6 +86,41 @@ public:
 		}
 	}
 
+	template<typename t_app_window>
+	t_app_window* createAppWindow()
+	{
+		t_app_window* appWindow= new t_app_window();
+
+		if (appWindow->startup())
+		{
+			m_appWindows.push_back(appWindow);
+
+			return appWindow;
+		}
+		else
+		{
+			appWindow->shutdown();
+
+			delete appWindow;
+			appWindow= nullptr;
+		}
+
+		return appWindow;
+	}
+
+	template<typename t_app_window>
+	void destroyAppWindow(t_app_window* appWindow)
+	{
+		auto it= std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
+		if (it != m_appWindows.end())
+		{
+			m_appWindows.erase(it);
+		}
+
+		appWindow->shutdown();
+		delete appWindow;
+	}
+
 	MulticastDelegate<void(AppStage* appStage)> OnAppStageEntered;
 	MulticastDelegate<void(AppStage* appStage)> OnAppStageExited;
 
@@ -123,14 +160,11 @@ private:
 	// Object System manager
 	ObjectSystemManagerPtr m_objectSystemManager;
 
-	// OpenGL renderer
-	class Renderer* m_renderer= nullptr;
-
-	// The window being currently renderered
-	class IGlWindow* m_renderingWindow= nullptr;
-
 	// OpenCV management
-	class OpenCVManager* m_openCVManager= nullptr;
+	std::unique_ptr<class OpenCVManager> m_openCVManager;
+
+	// SDL Top Level Management
+	std::unique_ptr<class SdlManager> m_sdlManager;
 
 	// OpenGL/SDL font/baked text string texture cache
 	class FontManager* m_fontManager = nullptr;
@@ -140,6 +174,15 @@ private:
 
 	// Keeps track of currently connected VR trackers
 	class VRDeviceManager* m_vrDeviceManager = nullptr;
+
+	// Open windows (including the MainWindow)
+	std::vector<IGlWindow*> m_appWindows;
+
+	// The window being currently rendered
+	IGlWindow* m_renderingWindow = nullptr;
+
+	// The main window for the application
+	class MainWindow* m_mainWindow= nullptr;
 
 	// App Stages
 	int m_appStageStackIndex= -1;

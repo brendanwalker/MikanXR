@@ -9,7 +9,6 @@
 #include "GlStaticMeshInstance.h"
 #include "GlWireframeMesh.h"
 #include "AnchorComponent.h"
-#include "Renderer.h"
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
@@ -17,6 +16,7 @@
 #include "StencilObjectSystemConfig.h"
 #include "MathGLM.h"
 #include "MathMikan.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MeshColliderComponent.h"
 #include "MikanObject.h"
@@ -186,8 +186,10 @@ void ModelStencilComponent::rebuildMeshComponents()
 	GlRenderModelResourcePtr modelResourcePtr;
 	if (!modelStencilDefinition->getModelPath().empty())
 	{
-		auto& modelResourceManager = Renderer::getInstance()->getModelResourceManager();
-		modelResourcePtr = modelResourceManager->fetchRenderModel(
+		//TODO: Need to consider how model resources are managed across multiple windows.
+		// For now, we are assuming that models are only rendered in the Main Window.
+		auto& modelResourceManager = MainWindow::getInstance()->getModelResourceManager();
+		modelResourcePtr = modelResourceManager.fetchRenderModel(
 			modelStencilDefinition->getModelPath(),
 			GlRenderModelResource::getDefaultVertexDefinition());
 	}

@@ -9,12 +9,12 @@
 #include "InputManager.h"
 #include "AnchorTriangulator.h"
 #include "AnchorObjectSystem.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
 #include "MikanClientTypes.h"
-#include "Renderer.h"
 #include "SceneComponent.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
@@ -133,9 +133,9 @@ glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 	int mouseScreenX = 0, mouseScreenY;
 	InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
 
-	Renderer* renderer = Renderer::getInstance();
-	const float screenWidth = renderer->getSDLWindowWidth();
-	const float screenHeight = renderer->getSDLWindowHeight();
+	MainWindow* window = MainWindow::getInstance();
+	const float screenWidth = window->getWidth();
+	const float screenHeight = window->getHeight();
 
 	glm::vec2 pointSample(
 		((float)mouseScreenX * m_frameWidth) / screenWidth,

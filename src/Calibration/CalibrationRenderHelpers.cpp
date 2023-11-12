@@ -1,8 +1,8 @@
 #include "ColorUtils.h"
 #include "CalibrationRenderHelpers.h"
 #include "GlLineRenderer.h"
+#include "MainWindow.h"
 #include "MathUtility.h"
-#include "Renderer.h"
 
 glm::vec2 remapPointIntoSubWindow(
 	const float screenWidth, const float screenHeight,
@@ -23,10 +23,10 @@ void drawSegment2d(
 	const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd,
 	const glm::vec3& colorStart, const glm::vec3& colorEnd)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	const float windowWidth = renderer->getSDLWindowWidth();
-	const float windowHeight = renderer->getSDLWindowHeight();
+	MainWindow* mainWindow = MainWindow::getInstance();
+	assert(mainWindow->getIsRenderingStage());
+	const float windowWidth = mainWindow->getWidth();
+	const float windowHeight = mainWindow->getHeight();
 	const float windowX0 = 0.0f, windowY0 = 0.f;
 	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
 
@@ -44,7 +44,7 @@ void drawSegment2d(
 			windowX1, windowY1,
 			cameraSegmentEnd);
 
-	renderer->getLineRenderer()->addSegment2d(windowSegmentStart, colorStart, windowSegmentEnd, colorEnd);
+	mainWindow->getLineRenderer()->addSegment2d(windowSegmentStart, colorStart, windowSegmentEnd, colorEnd);
 }
 
 void drawPointList2d(
@@ -54,14 +54,14 @@ void drawPointList2d(
 	const glm::vec3& color,
 	const float point_size)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	const float windowWidth = renderer->getSDLWindowWidth();
-	const float windowHeight = renderer->getSDLWindowHeight();
+	MainWindow* mainWindow = MainWindow::getInstance();
+	assert(mainWindow->getIsRenderingStage());
+	const float windowWidth = mainWindow->getWidth();
+	const float windowHeight = mainWindow->getHeight();
 	const float windowX0 = 0.0f, windowY0 = 0.f;
 	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
 
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GlLineRenderer* lineRenderer = mainWindow->getLineRenderer();
 
 	for (int point_index = 0; point_index < trackerPointCount; ++point_index)
 	{
@@ -84,14 +84,14 @@ void drawQuadList2d(
 {
 	assert((trackerPointCount % 4) == 0);
 
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	const float windowWidth = renderer->getSDLWindowWidth();
-	const float windowHeight = renderer->getSDLWindowHeight();
+	MainWindow* mainWindow = MainWindow::getInstance();
+	assert(mainWindow->getIsRenderingStage());
+	const float windowWidth = mainWindow->getWidth();
+	const float windowHeight = mainWindow->getHeight();
 	const float windowX0 = 0.0f, windowY0 = 0.f;
 	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
 
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GlLineRenderer* lineRenderer = mainWindow->getLineRenderer();
 
 	// Draw line strip connecting all of the points on the line strip
 	for (int point_index = 0; point_index < trackerPointCount; point_index += 4) // 4 points per quad
@@ -133,14 +133,14 @@ void drawOpenCVChessBoard2D(
 	const float* trackerPoints2d, const int trackerPointCount,
 	bool validPoints)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	const float windowWidth = renderer->getSDLWindowWidth();
-	const float windowHeight = renderer->getSDLWindowHeight();
+	MainWindow* mainWindow = MainWindow::getInstance();
+	assert(mainWindow->getIsRenderingStage());
+	const float windowWidth = mainWindow->getWidth();
+	const float windowHeight = mainWindow->getHeight();
 	const float windowX0 = 0.0f, windowY0 = 0.f;
 	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
 
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GlLineRenderer* lineRenderer = mainWindow->getLineRenderer();
 
 	// Draw line strip connecting all of the corners on the chessboard
 	{
@@ -227,9 +227,9 @@ void drawOpenCVChessBoard3D(
 	const int pointCount,
 	bool validPoints)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	MainWindow* mainWindow = MainWindow::getInstance();
+	assert(mainWindow->getIsRenderingStage());
+	GlLineRenderer* lineRenderer = mainWindow->getLineRenderer();
 
 	// Draw line strip connecting all of the corners on the chessboard
 	{

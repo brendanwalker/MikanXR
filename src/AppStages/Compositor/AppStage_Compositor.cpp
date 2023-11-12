@@ -38,7 +38,6 @@
 #include "MikanScene.h"
 #include "ObjectSystemManager.h"
 #include "ProfileConfig.h"
-#include "Renderer.h"
 #include "PathUtils.h"
 #include "RmlUtility.h"
 #include "SdlUtility.h"
@@ -852,6 +851,8 @@ void AppStage_Compositor::onInvokeScriptTriggerEvent(const std::string& triggerE
 
 void AppStage_Compositor::render()
 {
+	GlCameraPtr currentCamera= m_viewport->getCurrentCamera();
+
 	switch (getCurrentCameraMode())
 	{
 	case eCompositorViewpointMode::mixedRealityViewpoint:
@@ -860,7 +861,7 @@ void AppStage_Compositor::render()
 			m_frameCompositor->render();
 
 			// Render the editor scene
-			EditorObjectSystem::getSystem()->getEditorScene()->render();
+			EditorObjectSystem::getSystem()->getEditorScene()->render(currentCamera);
 
 			// Perform component custom rendering
 			m_app->getObjectSystemManager()->customRender();
@@ -869,7 +870,7 @@ void AppStage_Compositor::render()
 	case eCompositorViewpointMode::vrViewpoint:
 		{
 			// Render the editor scene
-			EditorObjectSystem::getSystem()->getEditorScene()->render();
+			EditorObjectSystem::getSystem()->getEditorScene()->render(currentCamera);
 
 			// Perform component custom rendering
 			m_app->getObjectSystemManager()->customRender();

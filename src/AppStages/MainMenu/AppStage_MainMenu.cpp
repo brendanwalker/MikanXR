@@ -6,7 +6,6 @@
 #include "VRDeviceSettings/AppStage_VRDeviceSettings.h"
 #include "App.h"
 #include "PathUtils.h"
-#include "Renderer.h"
 #include "Logger.h"
 
 #include <RmlUi/Core/Core.h>

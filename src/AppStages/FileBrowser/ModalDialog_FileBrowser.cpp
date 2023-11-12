@@ -3,7 +3,6 @@
 #include "ModalDialog_FileBrowser.h"
 #include "RmlModel_FileBrowser.h"
 #include "PathUtils.h"
-#include "Renderer.h"
 #include "Logger.h"
 
 #include <RmlUi/Core/Core.h>

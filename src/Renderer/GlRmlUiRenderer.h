@@ -39,7 +39,7 @@ namespace RmlGfx {
 class GlRmlUiRender : public Rml::RenderInterface 
 {
 public:
-	GlRmlUiRender();
+	GlRmlUiRender(class IGlWindow& ownerWindow);
 	~GlRmlUiRender();
 
 	bool startup();
@@ -50,8 +50,8 @@ public:
 	void setViewport(int viewport_width, int viewport_height);
 
 	// Sets up OpenGL states for taking rendering commands from RmlUi.
-	void beginFrame(class IGlWindow* window);
-	void endFrame(class IGlWindow* window);
+	void beginFrame();
+	void endFrame();
 
 	// Optional, can be used to clear the framebuffer.
 	void clear();
@@ -92,6 +92,7 @@ private:
 	enum class ScissoringState { Disable, Scissor, Stencil };
 	ScissoringState scissoring_state = ScissoringState::Disable;
 
+	class IGlWindow& m_ownerWindow;
 	int viewport_width = 0;
 	int viewport_height = 0;
 

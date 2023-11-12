@@ -14,10 +14,10 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulator.h"
 #include "InputManager.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "ProfileConfig.h"
-#include "Renderer.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"
@@ -66,7 +66,7 @@ void AppStage_AnchorTriangulation::enter()
 	AppStage::enter();
 
 	// Disable depth testing on the line renderer while in this app stage
-	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(true);
+	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(true);
 
 	// Get the current video source based on the config
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
@@ -148,7 +148,7 @@ void AppStage_AnchorTriangulation::exit()
 	setMenuState(eAnchorTriangulationMenuState::inactive);
 
 	// Re-Enable depth testing on the line renderer while in this app stage
-	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(false);
+	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(false);
 
 	m_camera= nullptr;
 

@@ -11,7 +11,6 @@
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "MathGLM.h"
-#include "Renderer.h"
 
 #include "glm/ext/matrix_clip_space.hpp"
 

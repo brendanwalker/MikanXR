@@ -15,7 +15,6 @@
 #include "MathUtility.h"
 #include "MonoLensTrackerPoseCalibrator.h"
 #include "CalibrationPatternFinder.h"
-#include "Renderer.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -360,7 +359,7 @@ void AppStage_AlignmentCalibration::render()
 
 void AppStage_AlignmentCalibration::renderVRScene()
 {
-	m_scene->render();
+	m_scene->render(m_camera);
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 

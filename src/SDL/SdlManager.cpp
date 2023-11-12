@@ -94,19 +94,6 @@ bool SdlManager::startup()
 		cursor_unavailable = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
 	}
 
-	if (success)
-	{
-		// Initialize GL Extension Wrangler (GLEW)
-		GLenum err;
-		glewExperimental = GL_TRUE; // Please expose OpenGL 3.x+ interfaces
-		err = glewInit();
-		if (err != GLEW_OK)
-		{
-			MIKAN_LOG_ERROR("SdlManager::init") << "Unable to initialize glew openGL backend";
-			success = false;
-		}
-	}
-
 	return success;
 }
 

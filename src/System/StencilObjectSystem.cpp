@@ -17,7 +17,6 @@
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
-#include "Renderer.h"
 #include "StencilObjectSystem.h"
 
 StencilObjectSystemWeakPtr StencilObjectSystem::s_stencilObjectSystem;

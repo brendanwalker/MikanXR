@@ -14,7 +14,6 @@
 class GlViewport : public std::enable_shared_from_this<GlViewport>
 {
 public:
-	GlViewport();
 	GlViewport(const glm::i32vec2& windowSize);
 	virtual ~GlViewport();
 

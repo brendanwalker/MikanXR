@@ -37,7 +37,6 @@
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "PathUtils.h"
-#include "Renderer.h"
 
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
@@ -340,8 +339,9 @@ namespace RmlInput
 } // namespace RmlSDL
 
 
-GlRmlUiRender::GlRmlUiRender()
-	: shaders(Rml::MakeUnique<RmlGfx::ShadersData>())
+GlRmlUiRender::GlRmlUiRender(class IGlWindow& ownerWindow)
+	: m_ownerWindow(ownerWindow)
+	, shaders(Rml::MakeUnique<RmlGfx::ShadersData>())
 {
 }
 
@@ -354,9 +354,8 @@ bool GlRmlUiRender::startup()
 	if (!RmlGfx::CreateShaders(*shaders))
 		return false;
 
-	Renderer* renderer= Renderer::getInstance();
-	viewport_width = renderer->getSDLWindowWidth();
-	viewport_height = renderer->getSDLWindowHeight();
+	viewport_width = m_ownerWindow.getWidth();
+	viewport_height = m_ownerWindow.getHeight();
 
 	Rml::SetRenderInterface(this);
 
@@ -445,9 +444,9 @@ void GlRmlUiRender::setViewport(int width, int height)
 	viewport_height = height;
 }
 
-void GlRmlUiRender::beginFrame(IGlWindow* window)
+void GlRmlUiRender::beginFrame()
 {
-	GlState& glState= window->getGlStateStack().pushState();
+	GlState& glState= m_ownerWindow.getGlStateStack().pushState();
 
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
 	glViewport(0, 0, viewport_width, viewport_height);
@@ -471,11 +470,11 @@ void GlRmlUiRender::beginFrame(IGlWindow* window)
 	SetTransform(nullptr);
 }
 
-void GlRmlUiRender::endFrame(IGlWindow* window) 
+void GlRmlUiRender::endFrame() 
 {
 	glViewport(0, 0, (int)viewport_width, (int)viewport_height);
 	
-	window->getGlStateStack().popState();
+	m_ownerWindow.getGlStateStack().popState();
 }
 
 void GlRmlUiRender::clear()

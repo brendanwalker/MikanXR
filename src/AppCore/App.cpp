@@ -9,14 +9,15 @@
 #include "GlTextRenderer.h"
 #include "InputManager.h"
 #include "LocalizationManager.h"
+#include "Logger.h"
+#include "MainWindow.h"
 #include "MikanServer.h"
 #include "ObjectSystemManager.h"
 #include "OpenCVManager.h"
 #include "PathUtils.h"
 #include "ProfileConfig.h"
-#include "Renderer.h"
 #include "RmlManager.h"
-#include "Logger.h"
+#include "SdlManager.h"
 #include "VideoSourceManager.h"
 #include "VRDeviceManager.h"
 
@@ -42,8 +43,8 @@ App::App()
 	, m_rmlManager(new RmlManager(this))
 	, m_localizationManager(new LocalizationManager())	
 	, m_objectSystemManager(std::make_shared<ObjectSystemManager>())
-	, m_renderer(new Renderer())
 	, m_openCVManager(new OpenCVManager())
+	, m_sdlManager(std::unique_ptr<SdlManager>(new SdlManager))
 	, m_fontManager(new FontManager())
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
@@ -55,11 +56,11 @@ App::App()
 App::~App()
 {
 	m_objectSystemManager = nullptr;
+	m_mainWindow = nullptr;
+	m_openCVManager= nullptr;
 
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
-	delete m_renderer;
-	delete m_openCVManager;
 	delete m_localizationManager;
 	delete m_inputManager;
 	delete m_rmlManager;
@@ -153,15 +154,22 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
+	if (success && !m_sdlManager->startup())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize SDL manager!";
+		success = false;
+	}
+
 	if (success && !m_openCVManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize OpenCV manager!";
 		success = false;
 	}
 
-	if (success && !m_renderer->startup())
+	m_mainWindow= createAppWindow<MainWindow>();
+	if (success && m_mainWindow == nullptr)
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize renderer!";
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Main App Window!";
 		success = false;
 	}
 
@@ -201,7 +209,7 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	if (success && !m_rmlManager->postRendererStartup())
+	if (success && !m_rmlManager->postRendererStartup(m_mainWindow))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
 		success = false;
@@ -225,56 +233,43 @@ void App::shutdown()
 	processPendingAppStageOps();
 
 	// Tear down all app systems
-	if (m_rmlManager != nullptr)
-	{
-		m_rmlManager->shutdown();
-	}
+	assert(m_rmlManager != nullptr);
+	m_rmlManager->shutdown();
 
-	if (m_mikanServer != nullptr)
-	{
-		m_mikanServer->shutdown();
-	}
+	assert(m_mikanServer != nullptr);
+	m_mikanServer->shutdown();
 
-	if (m_frameCompositor != nullptr)
-	{
-		m_frameCompositor->shutdown();
-	}
+	assert(m_frameCompositor != nullptr);
+	m_frameCompositor->shutdown();
 
-	if (m_objectSystemManager != nullptr)
-	{
-		// Dispose all ObjectSystems
-		m_objectSystemManager->shutdown();
-	}
+	// Dispose all ObjectSystems
+	assert(m_objectSystemManager != nullptr);
+	m_objectSystemManager->shutdown();
 
-	if (m_videoSourceManager != nullptr)
-	{
-		m_videoSourceManager->shutdown();
-	}
+	assert(m_videoSourceManager != nullptr);
+	m_videoSourceManager->shutdown();
 
-	if (m_vrDeviceManager != nullptr)
-	{
-		m_vrDeviceManager->shutdown();
-	}
+	assert(m_vrDeviceManager != nullptr);
+	m_vrDeviceManager->shutdown();
 
-	if (m_fontManager != nullptr)
-	{
-		m_fontManager->shutdown();
-	}
+	assert(m_fontManager != nullptr);
+	m_fontManager->shutdown();
 
-	if (m_renderer != nullptr)
+	// Dispose all app windows
+	while (m_appWindows.size() > 0)
 	{
-		m_renderer->shutdown();
+		destroyAppWindow(m_appWindows[0]);
 	}
+	m_mainWindow= nullptr;
 
-	if (m_openCVManager != nullptr)
-	{
-		m_openCVManager->shutdown();
-	}
+	assert(m_sdlManager != nullptr);
+	m_sdlManager->shutdown();
 
-	if (m_localizationManager != nullptr)
-	{
-		m_localizationManager->shutdown();
-	}
+	assert(m_openCVManager != nullptr);
+	m_openCVManager->shutdown();
+
+	assert(m_localizationManager != nullptr);
+	m_localizationManager->shutdown();
 
 #ifdef _WIN32
 	CoUninitialize();
@@ -284,7 +279,11 @@ void App::shutdown()
 void App::onSDLEvent(SDL_Event& e)
 {
 	m_inputManager->onSDLEvent(e);
-	m_renderer->onSDLEvent(&e);
+
+	for (IGlWindow* window : m_appWindows)
+	{
+		window->onSDLEvent(&e);
+	}
 
 	AppStage *appStage= getCurrentAppStage();
 	if (appStage != nullptr)
@@ -421,42 +420,10 @@ void App::render()
 {
 	EASY_FUNCTION();
 
-	AppStage* appStage = getCurrentAppStage();
-	if (appStage == nullptr)
-		return;
-
-	//m_renderingWindow = ...
-	m_renderer->renderBegin();
-
-	// Render all 3d viewports for the app state
-	for (GlViewportPtr viewpoint : appStage->getViewportList())
+	for (IGlWindow* window : m_appWindows)
 	{
-		EASY_BLOCK("appStage render");
-
-		m_renderer->renderStageBegin(viewpoint);
-		appStage->render();
-		m_renderer->renderStageEnd();
+		m_renderingWindow = window;
+		window->render();
+		m_renderingWindow = nullptr;
 	}
-
-	// Render the UI on top
-	{
-		EASY_BLOCK("appStage renderUI");
-		m_renderer->renderUIBegin();
-
-		appStage->renderUI();
-
-		// Always draw the FPS in the lower right
-		TextStyle style = getDefaultTextStyle();
-		style.horizontalAlignment = eHorizontalTextAlignment::Right;
-		style.verticalAlignment = eVerticalTextAlignment::Bottom;
-		drawTextAtScreenPosition(
-			style,
-			glm::vec2(m_renderer->getSDLWindowWidth() - 1, m_renderer->getSDLWindowHeight() - 1),
-			L"%.1ffps", m_fps);
-
-		m_renderer->renderUIEnd();
-	}
-
-	m_renderer->renderEnd();
-	m_renderingWindow= nullptr;
 }

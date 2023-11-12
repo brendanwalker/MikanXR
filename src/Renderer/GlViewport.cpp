@@ -5,7 +5,6 @@
 #include "GlCamera.h"
 #include "GlScene.h"
 #include "MathUtility.h"
-#include "Renderer.h"
 #include "Colors.h"
 #include "InputManager.h"
 
@@ -14,18 +13,6 @@
 #else
 #include <SDL2/SDL_events.h>
 #endif
-
-GlViewport::GlViewport()
-	: m_backgroundColor(Colors::CornflowerBlue, 1.f)
-{
-	Renderer* renderer = App::getInstance()->getRenderer();
-
-	m_windowSize= glm::i32vec2(
-		(int)renderer->getSDLWindowWidth(),
-		(int)renderer->getSDLWindowHeight());
-	setViewport(glm::i32vec2(0, 0), m_windowSize);
-	addCamera();
-}
 
 GlViewport::GlViewport(const glm::i32vec2& windowSize)
 	: m_windowSize(windowSize)
