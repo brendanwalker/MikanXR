@@ -18,11 +18,13 @@ public:
 	void setSDLMouseCursor(const std::string& cursor_name);
 
 	bool getIsSdlInitialized() const { return m_sdlInitialized; }
+	const std::string& getGlslVersion() const { return m_glslVersion; }
 
 	static SdlManager* getInstance() { return m_instance; }
 
 private:
 	bool m_sdlInitialized= false;
+	std::string m_glslVersion;
 
 	SDL_Cursor* cursor_default = nullptr;
 	SDL_Cursor* cursor_move = nullptr;

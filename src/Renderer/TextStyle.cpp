@@ -23,6 +23,13 @@ const std::filesystem::path getDefaultJapaneseFontPath()
 	return japaneseFontPath;
 }
 
+const std::filesystem::path getForkAwesomeWebFontPath()
+{
+	const std::filesystem::path fontPath = getFontPath("forkawesome-webfont");
+
+	return fontPath;
+}
+
 const std::filesystem::path getFontPath(const std::string& fontName)
 {
 	const std::string fileFilename= fontName + ".ttf";

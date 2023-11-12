@@ -31,12 +31,26 @@ public:
 
 	virtual bool onSDLEvent(const SDL_Event* event)  override;
 
+protected:
+	virtual void configImGui();
+	virtual void configImNodes();
+	virtual void renderUI();
+	virtual void pushImGuiStyles();
+	virtual void popImGuiStyles();
+
 private:
 	SdlWindowUniquePtr m_sdlWindow;
 	GlStateStackUniquePtr m_glStateStack;
+	struct ImGuiContext* m_imguiContext= nullptr;
+	struct ImNodesContext* m_imnodesContext= nullptr;
+	struct ImFont* m_NormalIconFont= nullptr;
+	struct ImFont* m_BigIconFont= nullptr;
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;
 
+	bool m_imguiSDLBackendInitialised = false;
+	bool m_imguiOpenGLBackendInitialised= false;
 	bool m_isRenderingUI= false;
+	bool m_IsPlaying= false;
 };

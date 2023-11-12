@@ -11,6 +11,7 @@
 #include "LocalizationManager.h"
 #include "Logger.h"
 #include "MainWindow.h"
+#include "NodeEditorWindow.h"
 #include "MikanServer.h"
 #include "ObjectSystemManager.h"
 #include "OpenCVManager.h"
@@ -172,6 +173,9 @@ bool App::startup(int argc, char** argv)
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Main App Window!";
 		success = false;
 	}
+
+	// TODO: Test node editor
+	createAppWindow<NodeEditorWindow>();
 
 	if (success && !m_fontManager->startup())
 	{

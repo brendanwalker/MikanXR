@@ -37,5 +37,6 @@ struct TextStyle
 
 const TextStyle& getDefaultTextStyle();
 const std::filesystem::path getDefaultJapaneseFontPath();
+const std::filesystem::path getForkAwesomeWebFontPath();
 const std::filesystem::path getFontPath(const std::string& fontName);
 

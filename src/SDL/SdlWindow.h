@@ -36,6 +36,9 @@ public:
 	bool isMinimized() const { return m_isMinimized; }
 	bool isShown() const { return m_isShown; }
 
+	inline SDL_Window* getInternalSdlWindow() { return m_sdlWindow; }
+	inline void* getInternalGlContext() { return m_glContext; }
+
 private:
 	SDL_Window* m_sdlWindow= nullptr;
 	void* m_glContext = nullptr;

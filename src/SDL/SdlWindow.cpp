@@ -217,6 +217,7 @@ void SdlWindow::renderBegin()
 {
 	EASY_FUNCTION();
 
+	SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
