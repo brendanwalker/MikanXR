@@ -188,6 +188,9 @@ source_group("Device\\View" FILES ${MIKAN_DEVICE_VIEW_SRC})
 # ImGUI's source files are included in directly, rather than linking against a lib
 source_group("ImGui" FILES ${IMGUI_SOURCE})
 
+# ImNodes's source files are included in directly, rather than linking against a lib
+source_group("ImNodes" FILES ${IMNODES_SOURCE})
+
 # Interprocess
 file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
@@ -349,6 +352,7 @@ set(MIKAN_SRC
     ${MIKAN_VRTRACKER_SRC}
     ${MIKAN_VRTRACKER_STEAMVR_SRC}
     ${IMGUI_SOURCE}
+	${IMNODES_SOURCE}
 )
 
 list(APPEND MIKAN_INCL_DIRS
@@ -380,8 +384,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR
   ${IMGUI_DIR}
+  ${IMNODES_DIR}
   ${RMLUI_INCLUDE_DIR}
-  ${ROOT_DIR}/thirdparty/imgui-filebrowser
   ${ROOT_DIR}/thirdparty/glm/
   ${ROOT_DIR}/thirdparty/Configuru/
   ${OpenCV_INCLUDE_DIR} 
@@ -418,6 +422,7 @@ list(APPEND MIKAN_REQ_LIBS
   easy_profiler)
 
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
 set(APP_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/winapp_resources.rc")
