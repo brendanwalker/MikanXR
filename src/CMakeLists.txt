@@ -232,6 +232,13 @@ file(GLOB MIKAN_OPENCV_SRC
 )
 source_group("OpenCV" FILES ${MIKAN_OPENCV_SRC})
 
+# Node Editor
+file(GLOB MIKAN_NODE_EDITORS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/*.h"
+)
+source_group("NodeEditors" FILES ${MIKAN_NODE_EDITORS_SRC})
+
 # Renderer
 file(GLOB MIKAN_RENDERER_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Renderer/*.cpp"
@@ -337,6 +344,7 @@ set(MIKAN_SRC
     ${MIKAN_INTERPROCESS_SRC}
     ${MIKAN_LOCALIZATION_SRC}
     ${MIKAN_MATH_SRC}
+	${MIKAN_NODE_EDITORS_SRC}
     ${MIKAN_OBJECT_SRC}
 	${MIKAN_OPENCV_SRC}
     ${MIKAN_RENDERER_SRC}
@@ -369,6 +377,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
+  ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/Object
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV
   ${CMAKE_CURRENT_LIST_DIR}/Renderer
@@ -421,8 +430,11 @@ list(APPEND MIKAN_REQ_LIBS
   ${RMLUI_LIBRARIES}
   easy_profiler)
 
+# Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
 set(APP_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/winapp_resources.rc")
