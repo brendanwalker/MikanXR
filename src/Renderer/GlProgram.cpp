@@ -13,6 +13,12 @@
 #include <assert.h>
 
 // -- GlProgramCode -----
+GlProgramCode::GlProgramCode(const std::string& programName)
+	: m_programName(programName)
+	, m_shaderCodeHash(0)
+{
+}
+
 GlProgramCode::GlProgramCode(
 	const std::string& programName,
 	const std::string& vertexCode, 
@@ -113,10 +119,14 @@ bool GlProgramCode::loadFromConfigData(
 }
 
 // -- GlProgram -----
+GlProgram::GlProgram(const std::string& programName)
+	: m_code(programName)
+{
+}
+
 GlProgram::GlProgram(const GlProgramCode& code)
 	: m_code(code)
 {
-	m_code = code;
 }
 
 GlProgram::~GlProgram()
@@ -372,8 +382,11 @@ bool GlProgram::setTextureUniform(
 	return false;
 }
 
-bool GlProgram::createProgram()
+bool GlProgram::compileProgram()
 {
+	// Nuke any existing program
+	deleteProgram();
+
 	if (m_code.hasCode())
 	{
 		m_programID = glCreateProgram();

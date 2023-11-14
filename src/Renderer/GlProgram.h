@@ -25,6 +25,7 @@ public:
 	};
 
 	GlProgramCode() = default;
+	GlProgramCode(const std::string& programName);
 	GlProgramCode(
 		const std::string& programName, 
 		const std::string& vertexCode, 
@@ -84,6 +85,7 @@ class GlProgram
 public:
 
 	GlProgram() = default;
+	GlProgram(const std::string &programName);
 	GlProgram(const GlProgramCode &shaderCode);
 	virtual ~GlProgram();
 
@@ -105,7 +107,7 @@ public:
 	bool setVector4Uniform(const std::string uniformName, const glm::vec4& vec);
 	bool setTextureUniform(const std::string uniformName);
 
-	bool createProgram();
+	bool compileProgram();
 	void deleteProgram();
 
 	bool bindProgram() const;
