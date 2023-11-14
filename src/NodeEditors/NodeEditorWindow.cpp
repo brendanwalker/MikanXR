@@ -3,8 +3,14 @@
 #include "Logger.h"
 
 #include "GlCommon.h"
+#include "GlFrameBuffer.h"
+#include "GlProgram.h"
 #include "GlStateStack.h"
 #include "GlShaderCache.h"
+#include "GlTexture.h"
+#include "EditorNodeConstants.h"
+#include "EditorNode.h"
+#include "EditorPin.h"
 #include "MathGLM.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
@@ -191,79 +197,10 @@ void NodeEditorWindow::renderUI()
 	ImGui::Begin("Node Editor");
 
 	// Toolbar
-#if 0
-	{
-		ImGui::PushFont(m_BigIconFont);
+	renderToolbar();
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
-
-		ImGui::BeginChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
-
-		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
-		if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
-		{
-			// TODO Serializing the hole thing seems imposible...
-		}
-
-		// Editor Control
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-			ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-
-			ImGui::SameLine();
-			ImGui::BeginChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
-			ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
-
-			if (m_IsPlaying)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
-				if (ImGui::SmallButton(ICON_FK_STOP))
-					m_IsPlaying = false;
-			}
-			else
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 0.5f, 1.0f));
-				if (ImGui::SmallButton(ICON_FK_PLAY))
-				{
-					m_IsPlaying = true;
-				}
-			}
-			ImGui::PopStyleColor();
-
-			ImGui::SameLine();
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
-			if (ImGui::SmallButton(ICON_FK_UNDO))
-			{
-				//TODO
-			}
-			ImGui::PopStyleColor();
-
-			ImGui::EndChild();
-			ImGui::PopStyleColor(3);
-			ImGui::PopStyleVar(2);
-		}
-
-		ImGui::EndChild();
-
-		ImGui::PopStyleVar(3);
-		ImGui::PopStyleColor(4);
-
-		ImGui::PopFont();
-	}
-
-	ImGui::SameLine();
-#endif
-
-	//TODO: Left Panel
+	// Left Panel
+	renderLeftPanel();
 
 	// Main Frame
 	ImGui::BeginChild(
@@ -326,6 +263,782 @@ void NodeEditorWindow::renderUI()
 	ImGui::End();
 
 	popImGuiStyles();
+}
+
+void NodeEditorWindow::renderToolbar()
+{
+	ImGui::PushFont(m_BigIconFont);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 4));
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
+
+	ImGui::BeginChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
+
+	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
+	if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
+	{
+		// TODO Serializing the hole thing seems imposible...
+	}
+
+	// Editor Control
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+
+		ImGui::SameLine();
+		ImGui::BeginChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
+		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
+
+		if (m_IsPlaying)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
+			if (ImGui::SmallButton(ICON_FK_STOP))
+				m_IsPlaying = false;
+		}
+		else
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 0.5f, 1.0f));
+			if (ImGui::SmallButton(ICON_FK_PLAY))
+			{
+				m_OnInit = true;
+				m_IsPlaying = true;
+			}
+		}
+		ImGui::PopStyleColor();
+
+		ImGui::SameLine();
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+		if (ImGui::SmallButton(ICON_FK_UNDO))
+			m_OnInit = true;
+		ImGui::PopStyleColor();
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar(2);
+	}
+
+	ImGui::EndChild();
+
+	ImGui::PopStyleVar(3);
+	ImGui::PopStyleColor(4);
+
+	ImGui::PopFont();
+}
+
+void NodeEditorWindow::renderLeftPanel()
+{
+	ImGui::BeginChild("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
+
+	// Programs
+	{
+		// Add button
+		float xPos = ImGui::GetCursorPosX();
+		ImGui::SetCursorPosX(180);
+		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_program"))
+		{
+			ImNodes::ClearLinkSelection();
+			ImNodes::ClearNodeSelection();
+
+			std::string name = "Program " + std::to_string(m_Programs.size() + 1);
+			AddProgram(m_shaderCache->allocateEmptyGlProgram(name));
+
+			m_SelectedItemType = SelectedItemType::PROGRAM;
+			m_SelectedItemId = (int)m_Programs.size() - 1;
+		}
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(xPos);
+
+		// Title bar
+		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		bool isNodeOpened = ImGui::CollapsingHeader("PROGRAMS", ImGuiTreeNodeFlags_SpanAvailWidth);
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(180);
+		ImGui::Text(ICON_FK_PLUS_CIRCLE);
+		ImGui::PopStyleVar(3);
+		ImGui::PopStyleColor(3);
+
+		if (isNodeOpened)
+		{
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
+			for (int i = 0; i < m_Programs.size(); i++)
+			{
+				// Item
+				std::string name = "\t\t" + m_Programs[i]->getProgramCode().getProgramName();
+				name += "##program" + std::to_string(i);
+				bool isSelected = m_SelectedItemType == SelectedItemType::PROGRAM;
+				isSelected = isSelected && (m_SelectedItemId == i);
+				if (ImGui::Selectable(name.c_str(), &isSelected))
+				{
+					ImNodes::ClearLinkSelection();
+					ImNodes::ClearNodeSelection();
+					if (isSelected)
+					{
+						m_SelectedItemType = SelectedItemType::PROGRAM;
+						m_SelectedItemId = i;
+					}
+					else
+					{
+						m_SelectedItemType = SelectedItemType::NONE;
+						m_SelectedItemId = -1;
+					}
+				}
+				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+				{
+					ImGui::SetDragDropPayload("program", &i, sizeof(int));
+					ImGui::Text(m_Programs[i]->getProgramCode().getProgramName().c_str());
+					ImGui::EndDragDropSource();
+				}
+
+				// Context menu
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+				ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				if (ImGui::BeginPopupContextItem())
+				{
+					ImNodes::ClearLinkSelection();
+					ImNodes::ClearNodeSelection();
+					m_SelectedItemType = SelectedItemType::PROGRAM;
+					m_SelectedItemId = i;
+
+					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+						DeleteSelectedItem();
+
+					ImGui::EndPopup();
+				}
+				ImGui::PopStyleColor(2);
+				ImGui::PopStyleVar(3);
+			}
+			ImGui::PopStyleColor();
+		}
+	}
+
+	// Framebuffers
+	{
+		// Add button
+		float xPos = ImGui::GetCursorPosX();
+		ImGui::SetCursorPosX(180);
+		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_framebuffer"))
+		{
+			ImNodes::ClearLinkSelection();
+			ImNodes::ClearNodeSelection();
+
+			std::string name = "Framebuffer " + std::to_string(m_Framebuffers.size());
+			GlFrameBufferPtr framebuffer = std::make_shared<GlFrameBuffer>(name);
+			AddFramebuffer(framebuffer);
+
+			m_SelectedItemType = SelectedItemType::FRAMEBUFFER;
+			m_SelectedItemId = (int)m_Framebuffers.size() - 1;
+		}
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(xPos);
+
+		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		bool isNodeOpened = ImGui::CollapsingHeader("FRAMEBUFFERS", ImGuiTreeNodeFlags_SpanAvailWidth);
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(180);
+		ImGui::Text(ICON_FK_PLUS_CIRCLE);
+		ImGui::PopStyleVar(3);
+		ImGui::PopStyleColor(3);
+
+		if (isNodeOpened)
+		{
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
+			for (int i = 1; i < m_Framebuffers.size(); i++)
+			{
+				// Item
+				std::string name = "\t\t" + m_Framebuffers[i]->getName();
+				name += "##framebuffer" + std::to_string(i);
+				bool isSelected = m_SelectedItemType == SelectedItemType::FRAMEBUFFER;
+				isSelected = isSelected && (m_SelectedItemId == i);
+				if (ImGui::Selectable(name.c_str(), &isSelected))
+				{
+					ImNodes::ClearLinkSelection();
+					ImNodes::ClearNodeSelection();
+					if (isSelected)
+					{
+						m_SelectedItemType = SelectedItemType::FRAMEBUFFER;
+						m_SelectedItemId = i;
+					}
+					else
+					{
+						m_SelectedItemType = SelectedItemType::NONE;
+						m_SelectedItemId = -1;
+					}
+				}
+
+				if (i == 0)
+					continue;
+				// Context menu
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+				ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				if (ImGui::BeginPopupContextItem())
+				{
+					ImNodes::ClearLinkSelection();
+					ImNodes::ClearNodeSelection();
+					m_SelectedItemType = SelectedItemType::FRAMEBUFFER;
+					m_SelectedItemId = i;
+
+					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+						DeleteSelectedItem();
+
+					ImGui::EndPopup();
+				}
+				ImGui::PopStyleColor(2);
+				ImGui::PopStyleVar(3);
+			}
+			ImGui::PopStyleColor();
+		}
+	}
+
+	ImGui::EndChild();
+}
+
+void NodeEditorWindow::DeleteSelectedItem()
+{
+	if (m_SelectedItemType >= SelectedItemType::NODES)
+	{
+		int numNodes = ImNodes::NumSelectedNodes();
+		int* ids = new int[numNodes];
+		ImNodes::GetSelectedNodes(ids);
+		for (int i = 0; i < numNodes; i++)
+		{
+			if (m_Nodes[ids[i]]->type != EditorNodeType::EVENT)
+				DeleteNode(ids[i]);
+		}
+		delete[] ids;
+
+		int numLinks = ImNodes::NumSelectedLinks();
+		ids = new int[numLinks];
+		ImNodes::GetSelectedLinks(ids);
+		for (int i = 0; i < numLinks; i++)
+			DeleteLink(ids[i]);
+		delete[] ids;
+
+		if (numNodes > 0)
+		{
+			UpdateNodes();
+			UpdatePins();
+		}
+		UpdateLinks();
+	}
+
+	else if (m_SelectedItemType == SelectedItemType::PROGRAM)
+		DeleteProgram(m_SelectedItemId);
+
+	else if (m_SelectedItemType == SelectedItemType::FRAMEBUFFER)
+		DeleteFramebuffer(m_SelectedItemId);
+
+	else if (m_SelectedItemType == SelectedItemType::TEXTURE)
+		DeleteTexture(m_SelectedItemId);
+
+	m_SelectedItemType = SelectedItemType::NONE;
+	m_SelectedItemId = -1;
+}
+
+void NodeEditorWindow::AddProgram(GlProgramPtr pProgram)
+{
+	m_Programs.push_back(pProgram);
+}
+
+void NodeEditorWindow::DeleteProgram(int ix)
+{
+	bool needsUpdate = false;
+	for (auto& node : m_Nodes)
+	{
+		if (node->type == EditorNodeType::PROGRAM)
+		{
+			EditorProgramNode* progNode = (EditorProgramNode*)node.get();
+			if (progNode->target == m_Programs[ix])
+			{
+				DeleteNode(node->id);
+				needsUpdate = true;
+			}
+		}
+	}
+	if (needsUpdate)
+	{
+		UpdateNodes();
+		UpdatePins();
+		UpdateLinks();
+	}
+
+	{
+		GlProgramPtr program = m_Programs[ix];
+
+		m_shaderCache->removeGlProgramFromCache(program);
+		m_Programs.erase(m_Programs.begin() + ix);
+	}
+}
+
+void NodeEditorWindow::AddFramebuffer(GlFrameBufferPtr pFramebuffer)
+{
+	m_Framebuffers.push_back(pFramebuffer);
+}
+
+void NodeEditorWindow::DeleteFramebuffer(int ix)
+{
+	if (ix == 0)
+		return;
+
+	bool needsUpdate = false;
+	for (auto& node : m_Nodes)
+	{
+		if (node->type == EditorNodeType::PROGRAM)
+		{
+			EditorProgramNodePtr progNode = std::static_pointer_cast<EditorProgramNode>(node);
+			if (progNode->framebuffer == m_Framebuffers[ix])
+			{
+				progNode->framebuffer = m_Framebuffers[0];
+				SetProgramNodeFramebuffer(progNode, 0);
+				needsUpdate = true;
+			}
+		}
+	}
+	if (needsUpdate)
+	{
+		UpdatePins();
+		UpdateLinks();
+	}
+
+	{
+		GlFrameBufferPtr framebuffer= m_Framebuffers[ix];
+
+		framebuffer->disposeFrameBuffer();
+		m_Framebuffers.erase(m_Framebuffers.begin() + ix);
+	}
+}
+
+void NodeEditorWindow::AddTexture(GlTexturePtr pTex)
+{
+	m_Textures.push_back(pTex);
+}
+
+void NodeEditorWindow::DeleteTexture(int ix)
+{
+	bool needsUpdate = false;
+	for (auto& node : m_Nodes)
+	{
+		if (node->type == EditorNodeType::TEXTURE)
+		{
+			EditorTextureNode* texNode = (EditorTextureNode*)node.get();
+			if (texNode->target == m_Textures[ix])
+			{
+				DeleteNode(node->id);
+				needsUpdate = true;
+			}
+		}
+	}
+	if (needsUpdate)
+	{
+		UpdateNodes();
+		UpdatePins();
+		UpdateLinks();
+	}
+
+	{
+		GlTexturePtr texture= m_Textures[ix];
+
+		texture->disposeTexture();
+		m_Textures.erase(m_Textures.begin() + ix);
+	}
+}
+
+void NodeEditorWindow::UpdateNodes()
+{
+	for (int i = 0; i < m_Nodes.size(); i++)
+	{
+		if (!m_Nodes[i])
+		{
+			m_Nodes.erase(m_Nodes.begin() + i);
+			i--;
+		}
+		else
+		{
+			const ImVec2* nodePos= (ImVec2* )(&m_Nodes[i]->nodePos);
+
+			m_Nodes[i]->id = i;
+			ImNodes::SetNodeScreenSpacePos(m_Nodes[i]->id, *nodePos);
+		}
+	}
+}
+
+void NodeEditorWindow::UpdatePins()
+{
+	for (int i = 0; i < m_Pins.size(); i++)
+	{
+		if (!m_Pins[i])
+		{
+			m_Pins.erase(m_Pins.begin() + i);
+			i--;
+		}
+		else
+			m_Pins[i]->id = i;
+	}
+}
+
+void NodeEditorWindow::UpdateLinks()
+{
+	for (int i = 0; i < m_Links.size(); i++)
+	{
+		if (!m_Links[i])
+		{
+			m_Links.erase(m_Links.begin() + i);
+			i--;
+		}
+		else
+		{
+			m_Links[i]->id = i;
+		}
+	}
+}
+
+void NodeEditorWindow::DeletePin(EditorPinPtr pin)
+{
+	for (auto& link : pin->connectedLinks)
+	{
+		if (!link) continue;
+		EditorPinPtr connectedPin = link->pPin1 == pin ? link->pPin2 : link->pPin1;
+		auto& links = connectedPin->connectedLinks;
+		links.erase(std::remove(links.begin(), links.end(), link), links.end());
+		m_Links[link->id].reset();
+	}
+
+	m_Pins[pin->id].reset();
+}
+
+void NodeEditorWindow::DeleteNodePinsAndLinks(int id)
+{
+	for (auto& pin : m_Nodes[id]->pinsIn)
+	{
+		if (!pin) continue;
+		DeletePin(pin);
+	}
+	for (auto& pin : m_Nodes[id]->pinsOut)
+	{
+		if (!pin) continue;
+		DeletePin(pin);
+	}
+}
+
+void NodeEditorWindow::DeleteNode(int id)
+{
+	ImNodes::ClearNodeSelection();
+	m_SelectedItemType = SelectedItemType::NONE;
+	m_SelectedItemId = -1;
+	DeleteNodePinsAndLinks(id);
+	m_Nodes[id].reset();
+}
+
+void NodeEditorWindow::DeleteLink(int id, bool checkPingPongNodes)
+{
+	ImNodes::ClearLinkSelection();
+	m_SelectedItemType = SelectedItemType::NONE;
+	m_SelectedItemId = -1;
+
+	EditorLinkPtr link = m_Links[id];
+	if (!link) return;
+
+	auto& links1 = link->pPin1->connectedLinks;
+	links1.erase(std::remove(links1.begin(), links1.end(), link), links1.end());
+	if (link->pPin1->pNode->type == EditorNodeType::PINGPONG &&
+		link->pPin1->type == EditorPinType::BLOCK && checkPingPongNodes)
+	{
+		auto node = (EditorPingPongNode*)link->pPin1->pNode.get();
+		bool isEmpty = true;
+		for (auto& pin : node->pinsIn)
+		{
+			if (pin->connectedLinks.size() > 0)
+			{
+				isEmpty = false;
+				break;
+			}
+		}
+		for (auto& pin : node->pinsOut)
+		{
+			if (pin->connectedLinks.size() > 0)
+			{
+				isEmpty = false;
+				break;
+			}
+		}
+		if (isEmpty)
+		{
+			node->size = 0;
+			for (auto& pin : node->pinsIn)
+				pin->size = 0;
+			for (auto& pin : node->pinsOut)
+				pin->size = 0;
+		}
+	}
+
+	auto& links2 = link->pPin2->connectedLinks;
+	links2.erase(std::remove(links2.begin(), links2.end(), link), links2.end());
+	if (link->pPin2->pNode->type == EditorNodeType::PINGPONG &&
+		link->pPin2->type == EditorPinType::BLOCK && checkPingPongNodes)
+	{
+		auto node = (EditorPingPongNode*)link->pPin2->pNode.get();
+		bool isEmpty = true;
+		for (auto& pin : node->pinsIn)
+		{
+			if (pin->connectedLinks.size() > 0)
+			{
+				isEmpty = false;
+				break;
+			}
+		}
+		for (auto& pin : node->pinsOut)
+		{
+			if (pin->connectedLinks.size() > 0)
+			{
+				isEmpty = false;
+				break;
+			}
+		}
+		if (isEmpty)
+		{
+			node->size = 0;
+			for (auto& pin : node->pinsIn)
+				pin->size = 0;
+			for (auto& pin : node->pinsOut)
+				pin->size = 0;
+		}
+	}
+
+	m_Links[id].reset();
+}
+
+void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
+{
+	bool canCreateLink = false;
+	if (m_Pins[startPinId]->type == m_Pins[endPinId]->type)
+	{
+		if (m_Pins[startPinId]->type == EditorPinType::FLOW)
+		{
+			bool needsUpdate = false;
+			if (m_Pins[startPinId]->connectedLinks.size() > 0)
+			{
+				DeleteLink(m_Pins[startPinId]->connectedLinks[0]->id);
+				needsUpdate = true;
+			}
+			if (m_Pins[endPinId]->connectedLinks.size() > 0)
+			{
+				DeleteLink(m_Pins[endPinId]->connectedLinks[0]->id);
+				needsUpdate = true;
+			}
+			if (needsUpdate)
+				UpdateLinks();
+			canCreateLink = true;
+		}
+		else if (m_Pins[startPinId]->type == EditorPinType::BLOCK)
+		{
+			if (m_Pins[startPinId]->size == m_Pins[endPinId]->size)
+			{
+				if (!m_Pins[startPinId]->isOutput)
+				{
+					if (m_Pins[startPinId]->connectedLinks.size() > 0)
+					{
+						DeleteLink(m_Pins[startPinId]->connectedLinks[0]->id);
+						UpdateLinks();
+					}
+				}
+				if (!m_Pins[endPinId]->isOutput)
+				{
+					if (m_Pins[endPinId]->connectedLinks.size() > 0)
+					{
+						DeleteLink(m_Pins[endPinId]->connectedLinks[0]->id);
+						UpdateLinks();
+					}
+				}
+				canCreateLink = true;
+			}
+			else
+			{
+				bool needsUpdate = false;
+				if (!m_Pins[startPinId]->isOutput)
+				{
+					if (m_Pins[startPinId]->connectedLinks.size() > 0)
+					{
+						DeleteLink(m_Pins[startPinId]->connectedLinks[0]->id);
+						needsUpdate = true;
+					}
+				}
+				if (!m_Pins[endPinId]->isOutput)
+				{
+					if (m_Pins[endPinId]->connectedLinks.size() > 0)
+					{
+						DeleteLink(m_Pins[endPinId]->connectedLinks[0]->id);
+						needsUpdate = true;
+					}
+				}
+				if ((m_Pins[startPinId]->pNode->type == EditorNodeType::PINGPONG
+					 && m_Pins[startPinId]->size == 0))
+				{
+					auto pingpongNode = (EditorPingPongNode*)m_Pins[startPinId]->pNode.get();
+					pingpongNode->size = m_Pins[endPinId]->size;
+					auto pin = pingpongNode->pinsIn[0];
+					pin->size = m_Pins[endPinId]->size;
+					for (auto& link : pin->connectedLinks)
+					{
+						DeleteLink(link->id, false);
+						needsUpdate = true;
+					}
+					pin = pingpongNode->pinsIn[1];
+					pin->size = m_Pins[endPinId]->size;
+					for (auto& link : pin->connectedLinks)
+					{
+						DeleteLink(link->id, false);
+						needsUpdate = true;
+					}
+					pin = pingpongNode->pinsOut[0];
+					pin->size = m_Pins[endPinId]->size;
+					for (auto& link : pin->connectedLinks)
+					{
+						DeleteLink(link->id, false);
+						needsUpdate = true;
+					}
+					pin = pingpongNode->pinsOut[1];
+					pin->size = m_Pins[endPinId]->size;
+					for (auto& link : pin->connectedLinks)
+					{
+						DeleteLink(link->id, false);
+						needsUpdate = true;
+					}
+					canCreateLink = true;
+				}
+				else if (m_Pins[endPinId]->pNode->type == EditorNodeType::PINGPONG
+						 && m_Pins[endPinId]->size == 0)
+				{
+					auto pingpongNode = (EditorPingPongNode*)m_Pins[endPinId]->pNode.get();
+					pingpongNode->size = m_Pins[startPinId]->size;
+					auto pin = pingpongNode->pinsIn[0];
+					pin->size = m_Pins[startPinId]->size;
+					for (auto& link : pin->connectedLinks)
+					{
+						DeleteLink(link->id, false);
+						needsUpdate = true;
+					}
+					pin = pingpongNode->pinsIn[1];
+					pin->size = m_Pins[startPinId]->size;
+					for (auto& link : pin->connectedLinks)
+					{
+						DeleteLink(link->id, false);
+						needsUpdate = true;
+					}
+					pin = pingpongNode->pinsOut[0];
+					pin->size = m_Pins[startPinId]->size;
+					for (auto& link : pin->connectedLinks)
+					{
+						DeleteLink(link->id, false);
+						needsUpdate = true;
+					}
+					pin = pingpongNode->pinsOut[1];
+					pin->size = m_Pins[startPinId]->size;
+					for (auto& link : pin->connectedLinks)
+					{
+						DeleteLink(link->id, false);
+						needsUpdate = true;
+					}
+					canCreateLink = true;
+				}
+				if (needsUpdate)
+					UpdateLinks();
+			}
+		}
+		else
+		{
+			if (!m_Pins[startPinId]->isOutput)
+			{
+				if (m_Pins[startPinId]->connectedLinks.size() > 0)
+				{
+					DeleteLink(m_Pins[startPinId]->connectedLinks[0]->id);
+					UpdateLinks();
+				}
+			}
+			if (!m_Pins[endPinId]->isOutput)
+			{
+				if (m_Pins[endPinId]->connectedLinks.size() > 0)
+				{
+					DeleteLink(m_Pins[endPinId]->connectedLinks[0]->id);
+					UpdateLinks();
+				}
+			}
+			canCreateLink = true;
+		}
+	}
+
+	if (canCreateLink)
+	{
+		EditorLinkPtr link = std::make_shared<EditorLink>();
+
+		link->id = (int)m_Links.size();
+		link->pPin1 = m_Pins[startPinId];
+		link->pPin2 = m_Pins[endPinId];
+		m_Pins[startPinId]->connectedLinks.push_back(link);
+		m_Pins[endPinId]->connectedLinks.push_back(link);
+		m_Links.push_back(link);
+	}
+}
+
+void NodeEditorWindow::SetProgramNodeFramebuffer(EditorProgramNodePtr node, int framebufferId)
+{
+	int outPinId = 0;
+	auto& pinsOut = node->pinsOut;
+	bool needsUpdate = false;
+	for (auto& outPin : pinsOut)
+	{
+		if (outPin->type == EditorPinType::TEXTURE)
+		{
+			DeletePin(outPin);
+			node->pinsOut.erase(node->pinsOut.begin() + outPinId);
+			outPinId--;
+			needsUpdate = true;
+		}
+		outPinId++;
+	}
+	if (needsUpdate)
+	{
+		UpdatePins();
+		UpdateLinks();
+	}
+
+	GlFrameBufferPtr framebuffer = m_Framebuffers[framebufferId];
+	for (int i = 0; i < framebuffer->getNumAttachments(); i++)
+	{
+		EditorPinPtr pin = std::make_shared<EditorPin>();
+		pin->name = "Attachment " + std::to_string(i);
+		pin->id = (int)m_Pins.size();
+		pin->isOutput = true;
+		pin->type = EditorPinType::TEXTURE;
+		pin->pNode = node;
+		node->pinsOut.push_back(pin);
+		m_Pins.push_back(pin);
+	}
+	node->framebuffer = framebuffer;
 }
 
 void NodeEditorWindow::shutdown()
