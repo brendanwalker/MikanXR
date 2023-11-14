@@ -2,16 +2,9 @@
 
 #include <memory>
 
-class NodeEditorWindow;
-using NodeEditorWindowPtr = std::shared_ptr<NodeEditorWindow>;
-
 class EditorNode;
 using EditorNodePtr = std::shared_ptr<EditorNode>;
 using EditorNodeConstPtr = std::shared_ptr<const EditorNode>;
-
-class EditorProgramNode;
-using EditorProgramNodePtr = std::shared_ptr<EditorProgramNode>;
-using EditorProgramNodeConstPtr = std::shared_ptr<const EditorProgramNode>;
 
 class EditorPin;
 using EditorPinPtr = std::shared_ptr<EditorPin>;
