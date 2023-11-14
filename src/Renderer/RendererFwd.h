@@ -1,10 +1,15 @@
 #pragma once
 
+#include "GlTypesFwd.h"
 #include <memory>
 
 class GlCamera;
 using GlCameraPtr = std::shared_ptr<GlCamera>;
 using GlCameraConstPtr = std::shared_ptr<const GlCamera>;
+
+class GlFrameBuffer;
+using GlFrameBufferPtr = std::shared_ptr<GlFrameBuffer>;
+using GlFrameBufferConstPtr = std::shared_ptr<const GlFrameBuffer>;
 
 class GlLineRenderer;
 using GlLineRendererSharedPtr = std::shared_ptr<GlLineRenderer>;
