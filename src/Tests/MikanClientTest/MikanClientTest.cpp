@@ -679,7 +679,7 @@ protected:
 	{
 		GlProgram* shader = new GlProgram(shaderCode);
 
-		if (!shader->createProgram())
+		if (!shader->compileProgram())
 		{			
 			delete shader;
 			shader= nullptr;
