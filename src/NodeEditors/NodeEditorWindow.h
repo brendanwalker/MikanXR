@@ -7,6 +7,8 @@
 #include "NodeEditorFwd.h"
 #include "RendererFwd.h"
 
+#include "imgui.h"
+
 #include <memory>
 #include <vector>
 
@@ -17,6 +19,8 @@ class NodeEditorWindow : public IGlWindow
 public:
 	NodeEditorWindow();
 	~NodeEditorWindow();
+
+	void update();
 
 	// -- IGlWindow ----
 	virtual bool startup() override;
@@ -63,6 +67,9 @@ private:
 
 	void renderToolbar();
 	void renderLeftPanel();
+	void renderMainFrame();
+	void renderBottomPanel();
+	void renderRightPanel();
 
 	void DeleteSelectedItem();
 
@@ -84,7 +91,38 @@ private:
 	void DeleteLink(int id, bool checkPingPongNodes = true);
 	void CreateLink(int startPinId, int endPinId);
 
+	ImNodesPinShape BeginPin(EditorPin* pin, float alpha);
+	void EndPin();
+	void InputPin(EditorNodePtr node, EditorPin* pin);
+	void OutputPin(EditorNodePtr node, EditorPin* pin);
+
+	EditorPinPtr GetConnectedPin(EditorNodePtr node, EditorLinkPtr link);
+	// The target block/image node may go through multiple program/ping-pong nodes
+	// before it is linked to the input pin
+	void GetInputTargetNode(EditorNodePtr& connectedNode, EditorPinType type, int index);
+
+	void ExecuteProgramNode(EditorProgramNodePtr progNode);
+
+
+	// TODO: Move to Nodes
+	EditorPinPtr AllocPin(const class GlProgramUniform& uniform);
+	EditorPinPtr AllocPin(const class GlShaderVar& var);
+
+	EditorProgramNodePtr CreateProgramNodePtr(int progId, const ImVec2& pos);
+	void CreateProgramNode(int progId, const ImVec2& pos);
+	void UpdateProgramNode(int nodeId, int progId);
 	void SetProgramNodeFramebuffer(EditorProgramNodePtr node, int framebufferId);
+
+	void CreateBlockNode(const ImVec2& pos, int pinId = -1);
+	void CreateTextureNode(int textureId, const ImVec2& pos);
+	void CreateImageNode(const ImVec2& pos);
+
+	void CreatePingPongNode(const ImVec2& pos,
+							EditorPingPongNodeType type = EditorPingPongNodeType::BUFFER);
+	void UpdatePingPongNode(int nodeId, EditorPingPongNodeType type);
+
+	void CreateTimeNode(const ImVec2& pos);
+	void CreateMousePosNode(const ImVec2& pos);
 
 private:
 	SdlWindowUniquePtr m_sdlWindow;
@@ -115,4 +153,7 @@ private:
 	bool m_isRenderingUI= false;
 	bool m_IsPlaying= false;
 	bool m_OnInit= false;
+	bool m_PingPongSwap;
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTime;
 };

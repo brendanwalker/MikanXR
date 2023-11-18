@@ -22,7 +22,7 @@ void GlBufferBlock::SetName(const std::string& name)
 	m_Name = name;
 }
 
-std::string GlBufferBlock::GetName()
+std::string GlBufferBlock::GetName() const
 {
 	return m_Name;
 }
@@ -37,12 +37,12 @@ void GlBufferBlock::SetBinding(int binding)
 	m_Binding = binding;
 }
 
-int GlBufferBlock::GetBinding()
+int GlBufferBlock::GetBinding() const
 {
 	return m_Binding;
 }
 
-int GlBufferBlock::size()
+int GlBufferBlock::size() const
 {
 	return m_Size;
 }

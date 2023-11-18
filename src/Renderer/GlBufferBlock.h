@@ -13,11 +13,11 @@ public:
 	~GlBufferBlock();
 
 	void SetName(const std::string& name);
-	std::string GetName();
+	std::string GetName() const;
 	const std::vector<GlShaderVar>& GetVars() const;
 	void SetBinding(int binding);
-	int GetBinding();
-	int size();
+	int GetBinding() const;
+	int size() const;
 
 	void AddVar(GlShaderVar var);
 

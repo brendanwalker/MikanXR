@@ -13,6 +13,8 @@
 #include <stdint.h>
 
 #include "GlProgramConstants.h"
+#include "GlBufferBlock.h"
+#include "GlUniformBlock.h"
 #include "RendererFwd.h"
 
 class GlProgramCode
@@ -100,6 +102,10 @@ public:
 	GlProgramUniformIter getUniformEnd() const { return m_uniformLocationMap.end(); }
 	bool getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::string& outUniformName) const;
 
+	inline const std::vector<GlUniform>& GetUniforms() const { return m_Uniforms; }
+	inline const std::vector<GlUniformBlock>& GetUniformBlocks() const { return m_UniformBlocks; }
+	inline const std::vector<GlBufferBlock>& GetBufferBlocks() const{ return m_BufferBlocks; }
+
 	bool setMatrix4x4Uniform(const std::string uniformName, const glm::mat4& mat);
 	bool setIntUniform(const std::string uniformName, const int value);
 	bool setInt2Uniform(const std::string uniformName, const glm::ivec2& vec);
@@ -122,4 +128,8 @@ protected:
 	GlProgramCode m_code;
 	uint32_t m_programID = 0;
 	GlProgramUniformMap m_uniformLocationMap;
+
+	std::vector<GlUniform> m_Uniforms;
+	std::vector<GlUniformBlock> m_UniformBlocks;
+	std::vector<GlBufferBlock> m_BufferBlocks;
 };

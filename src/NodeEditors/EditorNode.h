@@ -42,8 +42,8 @@ public:
 	GlProgramPtr target;
 	GlFrameBufferPtr framebuffer;
 	int attachmentsPinsStartId;
-	EditorNodePtr flowIn;
-	EditorNodePtr flowOut;
+	EditorPinPtr flowIn;
+	EditorPinPtr flowOut;
 	EditorProgramDispatchType dispatchType;
 	GLenum drawMode;
 	int dispatchSize[3];
