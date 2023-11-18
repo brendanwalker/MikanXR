@@ -3,6 +3,8 @@
 #include "EditorNodeConstants.h"
 #include "NodeEditorFwd.h"
 
+#include "glm/ext/matrix_float4x4.hpp"
+
 #include <string>
 #include <vector>
 
@@ -102,6 +104,15 @@ public:
 
 public:
 	int value[4]{};
+};
+
+class EditorMat4Pin : public EditorPin
+{
+public:
+	EditorMat4Pin();
+
+public:
+	glm::mat4 value{};
 };
 
 class EditorBlockPin : public EditorPin

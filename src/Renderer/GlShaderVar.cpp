@@ -36,7 +36,7 @@ void GlShaderVar::SetName(const std::string& name)
 		m_Name = m_Name.substr(0, m_Name.find_last_of('['));
 }
 
-const std::string& GlShaderVar::GetName()
+const std::string& GlShaderVar::GetName() const
 {
 	return m_Name;
 }
@@ -46,7 +46,7 @@ void GlShaderVar::SetType(GLenum type)
 	m_Type = type;
 }
 
-GLenum GlShaderVar::GetType()
+GLenum GlShaderVar::GetType() const
 {
 	return m_Type;
 }
@@ -56,7 +56,7 @@ void GlShaderVar::SetArraySize(int size)
 	m_ArraySize = size;
 }
 
-int GlShaderVar::ArraySize()
+int GlShaderVar::ArraySize() const
 {
 	return m_ArraySize;
 }
