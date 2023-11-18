@@ -307,6 +307,62 @@ bool GlProgram::setMatrix4x4Uniform(
 	return false;
 }
 
+bool GlProgram::setIntUniform(
+	const std::string uniformName, 
+	const int value)
+{
+	auto iter = m_uniformLocationMap.find(uniformName);
+	if (iter != m_uniformLocationMap.end())
+	{
+		GLint uniformId = iter->second.locationId;
+		glUniform1i(uniformId, value);
+		return !checkHasAnyGLError("GlProgram::setIntUniform()", __FILE__, __LINE__);
+	}
+	return false;
+}
+
+bool GlProgram::setInt2Uniform(
+	const std::string uniformName, 
+	const glm::ivec2& vec)
+{
+	auto iter = m_uniformLocationMap.find(uniformName);
+	if (iter != m_uniformLocationMap.end())
+	{
+		GLint uniformId = iter->second.locationId;
+		glUniform2iv(uniformId, 1, glm::value_ptr(vec));
+		return !checkHasAnyGLError("GlProgram::setInt2Uniform()", __FILE__, __LINE__);
+	}
+	return false;
+}
+
+bool GlProgram::setInt3Uniform(
+	const std::string uniformName, 
+	const glm::ivec3& vec)
+{
+	auto iter = m_uniformLocationMap.find(uniformName);
+	if (iter != m_uniformLocationMap.end())
+	{
+		GLint uniformId = iter->second.locationId;
+		glUniform3iv(uniformId, 1, glm::value_ptr(vec));
+		return !checkHasAnyGLError("GlProgram::setInt3Uniform()", __FILE__, __LINE__);
+	}
+	return false;
+}
+
+bool GlProgram::setInt4Uniform(
+	const std::string uniformName, 
+	const glm::ivec4& vec)
+{
+	auto iter = m_uniformLocationMap.find(uniformName);
+	if (iter != m_uniformLocationMap.end())
+	{
+		GLint uniformId = iter->second.locationId;
+		glUniform4iv(uniformId, 1, glm::value_ptr(vec));
+		return !checkHasAnyGLError("GlProgram::setInt3Uniform()", __FILE__, __LINE__);
+	}
+	return false;
+}
+
 bool GlProgram::setFloatUniform(
 	const std::string uniformName,
 	const float value)

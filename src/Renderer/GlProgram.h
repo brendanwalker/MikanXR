@@ -101,6 +101,10 @@ public:
 	bool getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::string& outUniformName) const;
 
 	bool setMatrix4x4Uniform(const std::string uniformName, const glm::mat4& mat);
+	bool setIntUniform(const std::string uniformName, const int value);
+	bool setInt2Uniform(const std::string uniformName, const glm::ivec2& vec);
+	bool setInt3Uniform(const std::string uniformName, const glm::ivec3& vec);
+	bool setInt4Uniform(const std::string uniformName, const glm::ivec4& vec);
 	bool setFloatUniform(const std::string uniformName, const float value);
 	bool setVector2Uniform(const std::string uniformName, const glm::vec2& vec);
 	bool setVector3Uniform(const std::string uniformName, const glm::vec3& vec);
@@ -108,6 +112,7 @@ public:
 	bool setTextureUniform(const std::string uniformName);
 
 	bool compileProgram();
+	bool isProgramCompiled() const { return m_programID != 0; }
 	void deleteProgram();
 
 	bool bindProgram() const;
