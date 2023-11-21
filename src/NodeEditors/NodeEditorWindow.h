@@ -9,6 +9,7 @@
 
 #include "imgui.h"
 
+#include <chrono>
 #include <memory>
 #include <vector>
 
@@ -91,10 +92,10 @@ private:
 	void DeleteLink(int id, bool checkPingPongNodes = true);
 	void CreateLink(int startPinId, int endPinId);
 
-	ImNodesPinShape BeginPin(EditorPin* pin, float alpha);
+	ImNodesPinShape BeginPin(EditorPinPtr pin, float alpha);
 	void EndPin();
-	void InputPin(EditorNodePtr node, EditorPin* pin);
-	void OutputPin(EditorNodePtr node, EditorPin* pin);
+	void InputPin(EditorNodePtr node, EditorPinPtr pin);
+	void OutputPin(EditorNodePtr node, EditorPinPtr pin);
 
 	EditorPinPtr GetConnectedPin(EditorNodePtr node, EditorLinkPtr link);
 	// The target block/image node may go through multiple program/ping-pong nodes
@@ -141,9 +142,7 @@ private:
 	std::vector<EditorLinkPtr> m_Links;
 	int m_StartedLinkPinId;
 	bool m_bLinkHanged;
-	struct {
-		float x, y;
-	} m_HangPos;
+	ImVec2 m_HangPos;
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;

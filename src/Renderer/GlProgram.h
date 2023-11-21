@@ -119,6 +119,7 @@ public:
 
 	bool compileProgram();
 	bool isProgramCompiled() const { return m_programID != 0; }
+	uint32_t getGlProgramId() const { return m_programID; }
 	void deleteProgram();
 
 	bool bindProgram() const;
