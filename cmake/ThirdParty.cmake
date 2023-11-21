@@ -99,6 +99,10 @@ list(APPEND IMNODES_SOURCE
 # stb
 set (STB_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/stb)
 
+# tinyfiledialogs
+set(TINYFILEDIALOGS_DIR ${ROOT_DIR}/thirdparty/tinyfiledialogs)
+set(TINYFILEDIALOGS_SOURCE "${TINYFILEDIALOGS_DIR}/tinyfiledialogs.c")
+
 # obj loader
 set (OBJ_LOADER_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/OBJ-loader/Source)
 

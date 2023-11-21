@@ -281,6 +281,9 @@ file(GLOB MIKAN_SYSTEM_SRC
 )
 source_group("System" FILES ${MIKAN_SYSTEM_SRC})
 
+# TinyFileDialogs's source files are included in directly, rather than linking against a lib
+source_group("TinyFileDialogs" FILES ${TINYFILEDIALOGS_SOURCE})
+
 # Utilities
 file(GLOB MIKAN_UTILS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Utility/*.cpp"
@@ -361,6 +364,7 @@ set(MIKAN_SRC
     ${MIKAN_VRTRACKER_STEAMVR_SRC}
     ${IMGUI_SOURCE}
 	${IMNODES_SOURCE}
+	${TINYFILEDIALOGS_SOURCE}
 )
 
 list(APPEND MIKAN_INCL_DIRS
@@ -402,6 +406,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${SDL2_INCLUDE_DIR} 
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${SDL2TTF_INCLUDE_DIR}
+  ${STB_INCLUDE_DIRS}
+  ${TINYFILEDIALOGS_DIR}
   ${GLEW_INCLUDE_DIRS}
   ${FastCSV_INCLUDE_DIRS}
   ${FFMPEG_INCLUDE_DIRS}
