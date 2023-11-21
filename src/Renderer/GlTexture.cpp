@@ -1,21 +1,11 @@
 #include "GlTexture.h"
 #include "GlCommon.h"
+#include "Logger.h"
+
 #include <cstring>
 
-//#if defined WIN32 || defined _WIN32 || defined WINCE
-//#include <windows.h>
-//
-//#else
-//#include <sys/time.h>
-//#include <sys/types.h>
-//#include <sys/stat.h>
-//
-//#if defined __MACH__ && defined __APPLE__
-//#include <mach/mach.h>
-//#include <mach/mach_time.h>
-//#endif
-//#define MILLISECONDS_TO_NANOSECONDS 1000000
-//#endif
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 GlTexture::GlTexture()
 	: m_width(0)
@@ -174,6 +164,58 @@ bool GlTexture::createTexture()
 	}
 
 	return false;
+}
+
+bool GlTexture::reloadTextureFromImagePath()
+{
+	if (m_imagePath.empty())
+	{
+		MIKAN_LOG_ERROR("reloadTextureFromImagePath") << "Image filename is empty";
+		return false;
+	}
+
+	if (!std::filesystem::exists(m_imagePath))
+	{
+		MIKAN_LOG_ERROR("reloadTextureFromImagePath") << "Given filename does not exist at path: " << m_imagePath;
+		return false;
+	}
+
+	// Free any existing texture data
+	disposeTexture();
+
+	int width, height, nrComponents;
+	unsigned char* data = stbi_load(m_imagePath.string().c_str(), &width, &height, &nrComponents, 0);
+	if (data == nullptr)
+	{
+		MIKAN_LOG_ERROR("reloadTextureFromImagePath") << "Texture failed to load at path: " << m_imagePath;
+		stbi_image_free(data);
+	}
+
+	GLenum format = 0;
+
+	if (nrComponents == 1)
+		format = GL_RED;
+	else if (nrComponents == 3)
+		format = GL_RGB;
+	else if (nrComponents == 4)
+		format = GL_RGBA;
+
+	if (format != 0)
+	{
+		m_width= width;
+		m_height= height;
+		m_textureMapData= data;
+		m_textureFormat= format;
+		m_bufferFormat= format;
+		m_pixelType= GL_UNSIGNED_BYTE;
+
+		if (!createTexture())
+		{
+			MIKAN_LOG_ERROR("reloadTextureFromImagePath") << "Failed to create GL Texture from image at path: " << m_imagePath;
+		}
+	}
+
+	stbi_image_free(data);
 }
 
 uint32_t GlTexture::getBufferSize() const
