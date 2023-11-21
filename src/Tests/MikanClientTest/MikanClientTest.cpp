@@ -25,9 +25,6 @@
 
 #include "stdio.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #ifdef _MSC_VER
 #pragma warning(disable:4996)  // ignore strncpy warning
 #endif
@@ -690,37 +687,14 @@ protected:
 
 	GlTexture* loadTexture(char const* path)
 	{
-		GlTexture* texture= nullptr;
+		GlTexture* texture= new GlTexture();
 
-		int width, height, nrComponents;
-		unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
-		if (data)
-		{
-			GLenum format= 0;
-
-			if (nrComponents == 1)
-				format = GL_RED;
-			else if (nrComponents == 3)
-				format = GL_RGB;
-			else if (nrComponents == 4)
-				format = GL_RGBA;
-
-			if (format != 0)
-			{
-				texture = new GlTexture(width, height, data, format, format);
-				if (!texture->createTexture())
-				{
-					delete texture;
-					texture= nullptr;
-				}
-			}
-
-			stbi_image_free(data);
-		}
-		else
+		texture->setImagePath(path);
+		if (!texture->reloadTextureFromImagePath())
 		{
 			MIKAN_LOG_ERROR("loadTexture") << "Texture failed to load at path: " << path;
-			stbi_image_free(data);
+			delete texture;
+			texture= nullptr;
 		}
 
 		return texture;
