@@ -13,6 +13,9 @@ namespace PathUtils
 	/// Make a relative 
 	std::filesystem::path makeAbsoluteResourceFilePath(const std::filesystem::path& relative_path);
 
+	std::string makeNativePathString(const std::filesystem::path& path);
+	std::string makeUniversalPathString(const std::filesystem::path& path);
+
 	/// Get the "home" location where config files can be stored
 	std::filesystem::path getHomeDirectory();
 
