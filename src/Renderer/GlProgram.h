@@ -40,8 +40,12 @@ public:
 		const std::map<std::string, std::string>& uniforms);
 
 	const std::string& getProgramName() const { return m_programName; }
+	void setProgramName(const std::string& inName) { m_programName= inName; }
+
 	inline const char* getVertexShaderCode() const { return m_vertexShaderCode.c_str(); }
-	inline const char* getFragmentShaderCode() const { return m_framementShaderCode.c_str(); }
+	inline const std::filesystem::path& getVertexShaderFilePath() const { return m_vertexShaderFilePath; }
+	inline const char* getFragmentShaderCode() const { return m_fragmentShaderCode.c_str(); }
+	inline const std::filesystem::path& getFragmeShaderFilePath() const { return m_fragmentShaderFilePath; }
 	inline size_t getCodeHash() const { return m_shaderCodeHash; }
 
 	inline const std::vector<Uniform>& getUniformList() const { return m_uniformList; }
@@ -53,7 +57,7 @@ public:
 
 	inline bool hasCode() const 
 	{ 
-		return m_vertexShaderCode.size() > 0 && m_framementShaderCode.size() > 0;
+		return m_vertexShaderCode.size() > 0 && m_fragmentShaderCode.size() > 0;
 	}
 
 	inline bool operator == (const GlProgramCode& other) const
@@ -69,7 +73,9 @@ public:
 protected:
 	std::string m_programName;
 	std::string m_vertexShaderCode;
-	std::string m_framementShaderCode;
+	std::filesystem::path m_vertexShaderFilePath;
+	std::string m_fragmentShaderCode;
+	std::filesystem::path m_fragmentShaderFilePath;
 	std::vector<Uniform> m_uniformList;
 	size_t m_shaderCodeHash;
 };
@@ -92,6 +98,7 @@ public:
 	virtual ~GlProgram();
 
 	inline const GlProgramCode& getProgramCode() const { return m_code; }
+	inline GlProgramCode& getProgramCodeMutable() { return m_code; }
 	static eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic);
 	bool getUniformSemantic(const std::string uniformName, eUniformSemantic& outSemantic) const;
 	bool getUniformDataType(const std::string uniformName, eUniformDataType& outDataType) const;

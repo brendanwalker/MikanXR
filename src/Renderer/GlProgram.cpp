@@ -25,7 +25,7 @@ GlProgramCode::GlProgramCode(
 	const std::string& fragmentCode)
 	: m_programName(programName)
 	, m_vertexShaderCode(vertexCode)
-	, m_framementShaderCode(fragmentCode)
+	, m_fragmentShaderCode(fragmentCode)
 {
 	std::hash<std::string> hasher;
 
@@ -47,10 +47,10 @@ bool GlProgramCode::loadFromConfigData(
 
 	try
 	{
-		std::filesystem::path vertexShaderPath = shaderFolderPath;
-		vertexShaderPath/= vertexShaderFileName;
+		m_vertexShaderFilePath = shaderFolderPath;
+		m_vertexShaderFilePath/= vertexShaderFileName;
 
-		std::ifstream t(vertexShaderPath.string());
+		std::ifstream t(m_vertexShaderFilePath.string());
 		std::stringstream buffer;
 		buffer << t.rdbuf();
 		m_vertexShaderCode= buffer.str();
@@ -65,13 +65,13 @@ bool GlProgramCode::loadFromConfigData(
 
 	try
 	{
-		std::filesystem::path fragmentShaderPath = shaderFolderPath;
-		fragmentShaderPath /= fragmentShaderFileName;
+		m_fragmentShaderFilePath = shaderFolderPath;
+		m_fragmentShaderFilePath /= fragmentShaderFileName;
 
-		std::ifstream t(fragmentShaderPath.string());
+		std::ifstream t(m_fragmentShaderFilePath.string());
 		std::stringstream buffer;
 		buffer << t.rdbuf();
-		m_framementShaderCode= buffer.str();
+		m_fragmentShaderCode= buffer.str();
 	}
 	catch (const std::ifstream::failure& e)
 	{
@@ -112,7 +112,7 @@ bool GlProgramCode::loadFromConfigData(
 	{
 		std::hash<std::string> hasher;
 
-		m_shaderCodeHash = hasher(m_vertexShaderCode + m_framementShaderCode);
+		m_shaderCodeHash = hasher(m_vertexShaderCode + m_fragmentShaderCode);
 	}
 
 	return bSuccess;
