@@ -174,9 +174,6 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	// TODO: Test node editor
-	createAppWindow<NodeEditorWindow>();
-
 	if (success && !m_fontManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";
@@ -218,6 +215,9 @@ bool App::startup(int argc, char** argv)
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
 		success = false;
 	}
+
+	// TODO: Test node editor
+	createAppWindow<NodeEditorWindow>();
 
 	if (success)
 	{
