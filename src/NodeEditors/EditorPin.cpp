@@ -51,6 +51,11 @@ EditorInt4Pin::EditorInt4Pin()
 	, value{}
 {}
 
+EditorMat4Pin::EditorMat4Pin()
+	: EditorPin()
+	, value(glm::mat4(1.f))
+{}
+
 EditorBlockPin::EditorBlockPin()
 	: blockPinType(EditorBlockPinType::UNIFROM_BLOCK)
 	, index(-1)

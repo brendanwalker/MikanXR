@@ -106,7 +106,7 @@ void GlFrameBuffer::createFrameBuffer()
 	// Delete old framebuffer
 	if (m_glFrameBufferId != -1)
 		glDeleteFramebuffers(1, &m_glFrameBufferId);
-	glDeleteTextures(m_glTextureIds.size(), m_glTextureIds.data());
+	glDeleteTextures((GLsizei)m_glTextureIds.size(), m_glTextureIds.data());
 	std::vector<uint32_t>().swap(m_glTextureIds);
 	if (m_glRenderBufferID != -1)
 		glDeleteRenderbuffers(1, &m_glRenderBufferID);
@@ -157,7 +157,7 @@ void GlFrameBuffer::disposeFrameBuffer()
 	if (m_glFrameBufferId != -1)
 		glDeleteFramebuffers(1, &m_glFrameBufferId);
 	m_glFrameBufferId = -1;
-	glDeleteTextures(m_glTextureIds.size(), m_glTextureIds.data());
+	glDeleteTextures((GLsizei)m_glTextureIds.size(), m_glTextureIds.data());
 	std::vector<uint32_t>().swap(m_glTextureIds);
 	if (m_glRenderBufferID != -1)
 	{

@@ -2,12 +2,13 @@
 
 //-- includes -----
 #include "SdlFwd.h"
-#include "EditorNodeFwd.h"
 #include "IGlWindow.h"
+#include "EditorNodeConstants.h"
 #include "NodeEditorFwd.h"
 #include "RendererFwd.h"
 
 #include "imgui.h"
+#include "imnodes.h"
 
 #include <chrono>
 #include <memory>
@@ -106,7 +107,7 @@ private:
 
 
 	// TODO: Move to Nodes
-	EditorPinPtr AllocPin(const class GlProgramUniform& uniform);
+	EditorPinPtr AllocPin(const struct GlProgramUniform& uniform);
 	EditorPinPtr AllocPin(const class GlShaderVar& var);
 
 	EditorProgramNodePtr CreateProgramNodePtr(int progId, const ImVec2& pos);

@@ -21,6 +21,7 @@
 #include "TextStyle.h"
 
 #include "imgui.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include "backends/imgui_impl_sdl.h"
 #include "backends/imgui_impl_opengl3.h"
 
@@ -832,7 +833,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::EndNodeTitleBar();
 
 			ImGui::Dummy(ImVec2(1.0f, 0.5f));
-			ImGui::Image((void*)texNode->target->getGlTextureId(), ImVec2(100, 100));
+			ImGui::Image((void*)(intptr_t)texNode->target->getGlTextureId(), ImVec2(100, 100));
 
 			ImGui::SameLine();
 			ImGui::BeginGroup();
@@ -1438,7 +1439,7 @@ void NodeEditorWindow::renderBottomPanel()
 					{
 						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 						ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
-						ImGui::Image((void*)m_Textures[i]->getGlTextureId(), ImVec2(100, 100));
+						ImGui::Image((void*)(intptr_t)m_Textures[i]->getGlTextureId(), ImVec2(100, 100));
 						ImGui::Dummy(ImVec2(2, 1));
 						ImGui::SameLine();
 						ImGui::SetNextItemWidth(108);
@@ -1495,9 +1496,10 @@ void NodeEditorWindow::renderRightPanel()
 			ImGui::Text("\t\tName");
 			ImGui::SameLine(160);
 			ImGui::SetNextItemWidth(150);
-			std::string name = m_Programs[m_SelectedItemId]->GetName();
+			GlProgramCode& programCode= m_Programs[m_SelectedItemId]->getProgramCodeMutable();
+			std::string name = programCode.getProgramName();
 			if (ImGui::InputText("##progName", &name))
-				m_Programs[m_SelectedItemId]->SetName(name.c_str());
+				programCode.setProgramName(name);
 		}
 
 		// Section 2: Shaders
@@ -1506,15 +1508,18 @@ void NodeEditorWindow::renderRightPanel()
 		ImGui::SetCursorPosX(325);
 		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_shader"))
 		{
+		#if 0
 			auto paths_c = tinyfd_openFileDialog("Add Shader", "", 0, 0, 0, 1);
 			if (paths_c)
 			{
 				std::stringstream ssPaths(paths_c);
 				std::string path;
 				while (std::getline(ssPaths, path, '|'))
-					m_Programs[m_SelectedItemId]->AddShader(PathUtil::UniversalPath(path).c_str(),
-															GL_VERTEX_SHADER);
+					m_Programs[m_SelectedItemId]->AddShader(
+						PathUtils::makeUniversalPathString(path).c_str(),
+						GL_VERTEX_SHADER);
 			}
+		#endif
 		}
 		ImGui::SameLine();
 		ImGui::SetCursorPosX(xPos);
@@ -1537,15 +1542,37 @@ void NodeEditorWindow::renderRightPanel()
 		if (isNodeOpened)
 		{
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-			std::vector<std::string> shaders = m_Programs[m_SelectedItemId]->GetShaderFiles();
+			const GlProgramCode& shaderCode= m_Programs[m_SelectedItemId]->getProgramCode();
+
+			if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_shader"))
+			{
+			#if 0
+				auto paths_c = tinyfd_openFileDialog("Add Shader", "", 0, 0, 0, 1);
+				if (paths_c)
+				{
+					std::stringstream ssPaths(paths_c);
+					std::string path;
+					while (std::getline(ssPaths, path, '|'))
+						m_Programs[m_SelectedItemId]->AddShader(
+							PathUtils::makeUniversalPathString(path).c_str(),
+							GL_VERTEX_SHADER);
+				}
+			#endif
+			}
+			std::vector<std::filesystem::path> shaders = 
+				{
+						shaderCode.getVertexShaderFilePath(), 
+						shaderCode.getFragmeShaderFilePath()
+				};
 			for (int i = 0; i < shaders.size(); i++)
 			{
 				// Name
-				std::string name = shaders[i];
+				std::string name = shaders[i].string();
 				name = "\t" + name.substr(name.find_last_of('/') + 1);
 				ImGui::SetNextItemWidth(150);
-				ImGui::TextClipped(name.c_str());
+				ImGui::Text(name.c_str());
 
+				#if 0
 				// Type
 				int iVar = 0;
 				GLenum type = m_Programs[m_SelectedItemId]->GetShaderTypes()[i];
@@ -1588,6 +1615,7 @@ void NodeEditorWindow::renderRightPanel()
 				ImGui::PopStyleVar();
 				if (itemDeleted)
 					break;
+				#endif
 			}
 			ImGui::PopStyleColor();
 		}
@@ -1614,13 +1642,13 @@ void NodeEditorWindow::renderRightPanel()
 				ImGui::Text("\t\tName");
 				ImGui::SameLine(160);
 				ImGui::SetNextItemWidth(150);
-				std::string name = m_Framebuffers[m_SelectedItemId]->GetName();
+				std::string name = m_Framebuffers[m_SelectedItemId]->getName();
 				if (ImGui::InputText("##framebufferName", &name))
-					m_Framebuffers[m_SelectedItemId]->SetName(name.c_str());
+					m_Framebuffers[m_SelectedItemId]->setName(name);
 
 				// Size
 				int x, y;
-				m_Framebuffers[m_SelectedItemId]->GetSize(&x, &y);
+				m_Framebuffers[m_SelectedItemId]->getSize(&x, &y);
 				ImGui::Text("\t\tWidth");
 				ImGui::SameLine(160);
 				ImGui::SetNextItemWidth(150);
@@ -1628,7 +1656,7 @@ void NodeEditorWindow::renderRightPanel()
 				{
 					if (x < 0) x = 0;
 					if (x > 4096) x = 4096;
-					m_Framebuffers[m_SelectedItemId]->SetSize(x, y);
+					m_Framebuffers[m_SelectedItemId]->setSize(x, y);
 				}
 				ImGui::Text("\t\tHeight");
 				ImGui::SameLine(160);
@@ -1637,28 +1665,28 @@ void NodeEditorWindow::renderRightPanel()
 				{
 					if (y < 0) y = 0;
 					if (y > 4096) y = 4096;
-					m_Framebuffers[m_SelectedItemId]->SetSize(x, y);
+					m_Framebuffers[m_SelectedItemId]->setSize(x, y);
 				}
 
 				// Attachments
 				ImGui::Text("\t\tAttachments");
 				ImGui::SameLine(160);
 				ImGui::SetNextItemWidth(150);
-				int iVal = m_Framebuffers[m_SelectedItemId]->NumAttachments();
+				int iVal = m_Framebuffers[m_SelectedItemId]->getNumAttachments();
 				if (ImGui::SliderInt("##framebufferAttachments", &iVal, 0, 8))
 				{
 					if (iVal < 0) iVal = 0;
 					if (iVal > 8) iVal = 8;
-					m_Framebuffers[m_SelectedItemId]->SetNumAttachments(iVal);
+					m_Framebuffers[m_SelectedItemId]->setNumAttachments(iVal);
 				}
 
 				// Renderbuffer
 				ImGui::Text("\t\tRenderbuffer");
 				ImGui::SameLine(160);
 				ImGui::SetNextItemWidth(150);
-				bool hasRenderbuffer = m_Framebuffers[m_SelectedItemId]->HasRenderbuffer();
+				bool hasRenderbuffer = m_Framebuffers[m_SelectedItemId]->hasRenderbuffer();
 				if (ImGui::Checkbox("##framebufferRenderbuffer", &hasRenderbuffer))
-					m_Framebuffers[m_SelectedItemId]->SetRenderbuffer(hasRenderbuffer);
+					m_Framebuffers[m_SelectedItemId]->setRenderbuffer(hasRenderbuffer);
 			}
 		}
 	}
@@ -1679,7 +1707,7 @@ void NodeEditorWindow::renderRightPanel()
 
 		if (isNodeOpened)
 		{
-			EditorProgramNodePtr node = (EditorProgramNodePtr)m_Nodes[m_SelectedItemId];
+			EditorProgramNodePtr node = std::static_pointer_cast<EditorProgramNode>(m_Nodes[m_SelectedItemId]);
 
 			// Dispatch type
 			ImGui::Text("\t\tDispatch Type");
@@ -1716,13 +1744,15 @@ void NodeEditorWindow::renderRightPanel()
 				ImGui::SameLine(160);
 				ImGui::SetNextItemWidth(150);
 				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-				if (ImGui::BeginCombo("##progNodeFramebuffer", node->framebuffer->GetName().c_str()))
+
+				const std::string& frameBufferName= node->framebuffer ? node->framebuffer->getName() : "<INVALID>";
+				if (ImGui::BeginCombo("##progNodeFramebuffer", frameBufferName.c_str()))
 				{
 					int index = 0;
 					for (auto& framebuffer : m_Framebuffers)
 					{
 						const bool is_selected = (node->framebuffer == framebuffer);
-						if (ImGui::Selectable(framebuffer->GetName().c_str(), is_selected))
+						if (ImGui::Selectable(framebuffer->getName().c_str(), is_selected))
 							SetProgramNodeFramebuffer(node, index);
 						if (is_selected)
 							ImGui::SetItemDefaultFocus();
@@ -1806,7 +1836,7 @@ void NodeEditorWindow::renderRightPanel()
 		// Get Selection Id
 		int id;
 		ImNodes::GetSelectedNodes(&id);
-		EditorBlockNodePtr node = (EditorBlockNodePtr)m_Nodes[id];
+		EditorBlockNodePtr node = std::static_pointer_cast<EditorBlockNode>(m_Nodes[id]);
 
 		bool needsUpdate = false;
 
@@ -1815,18 +1845,20 @@ void NodeEditorWindow::renderRightPanel()
 		ImGui::SetCursorPosX(325);
 		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_var"))
 		{
-			EditorPinPtr newPin = new EditorFloatPin;
+			EditorPinPtr newPin = std::make_shared<EditorFloatPin>();
 			newPin->type = EditorPinType::FLOAT;
 			newPin->pNode = node;
 			newPin->name = "new_var" + std::to_string(node->pinsIn.size());
-			newPin->id = m_Pins.size();
+			newPin->id = (int)m_Pins.size();
 			m_Pins.push_back(newPin);
 			node->pinsIn.push_back(newPin);
 			node->size += EditorNodeUtil::PinTypeSize(newPin->type);
 			node->pinsOut[0]->size = node->size;
 			auto links = node->pinsOut[0]->connectedLinks;
 			for (auto& link : links)
+			{
 				DeleteLink(link->id);
+			}
 			UpdateLinks();
 			needsUpdate = true;
 		}
@@ -1871,42 +1903,42 @@ void NodeEditorWindow::renderRightPanel()
 					EditorPinPtr newPin = 0;
 					if (iVar == 0)
 					{
-						newPin = new EditorFloatPin;
+						newPin = std::make_shared<EditorFloatPin>();
 						newPin->type = EditorPinType::FLOAT;
 					}
 					else if (iVar == 1)
 					{
-						newPin = new EditorFloat2Pin;
+						newPin = std::make_shared<EditorFloat2Pin>();
 						newPin->type = EditorPinType::FLOAT2;
 					}
 					else if (iVar == 2)
 					{
-						newPin = new EditorFloat3Pin;
+						newPin = std::make_shared<EditorFloat3Pin>();
 						newPin->type = EditorPinType::FLOAT3;
 					}
 					else if (iVar == 3)
 					{
-						newPin = new EditorFloat4Pin;
+						newPin = std::make_shared<EditorFloat4Pin>();
 						newPin->type = EditorPinType::FLOAT4;
 					}
 					else if (iVar == 4)
 					{
-						newPin = new EditorIntPin;
+						newPin = std::make_shared<EditorIntPin>();
 						newPin->type = EditorPinType::INT;
 					}
 					else if (iVar == 5)
 					{
-						newPin = new EditorInt2Pin;
+						newPin = std::make_shared<EditorInt2Pin>();
 						newPin->type = EditorPinType::INT2;
 					}
 					else if (iVar == 6)
 					{
-						newPin = new EditorInt3Pin;
+						newPin = std::make_shared<EditorInt3Pin>();
 						newPin->type = EditorPinType::INT3;
 					}
 					else if (iVar == 7)
 					{
-						newPin = new EditorInt4Pin;
+						newPin = std::make_shared<EditorInt4Pin>();
 						newPin->type = EditorPinType::INT4;
 					}
 
@@ -1924,7 +1956,9 @@ void NodeEditorWindow::renderRightPanel()
 						node->pinsOut[0]->size = node->size;
 						auto links = node->pinsOut[0]->connectedLinks;
 						for (auto& link : links)
+						{
 							DeleteLink(link->id);
+						}
 						UpdatePins();
 						UpdateLinks();
 						needsUpdate = true;
@@ -2001,7 +2035,7 @@ void NodeEditorWindow::renderRightPanel()
 		// Get Selection Id
 		int id;
 		ImNodes::GetSelectedNodes(&id);
-		EditorImageNodePtr node = (EditorImageNodePtr)m_Nodes[id];
+		EditorImageNodePtr node = std::static_pointer_cast<EditorImageNode>(m_Nodes[id]);
 
 		bool needsUpdate = false;
 
@@ -2059,7 +2093,7 @@ void NodeEditorWindow::renderRightPanel()
 		// Get Selection Id
 		int id;
 		ImNodes::GetSelectedNodes(&id);
-		EditorPingPongNode* node = (EditorPingPongNode*)m_Nodes[id];
+		EditorPingPongNodePtr node = std::static_pointer_cast<EditorPingPongNode>(m_Nodes[id]);
 
 		// title bar
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -3551,12 +3585,12 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 	node->type = EditorNodeType::PROGRAM;
 	node->nodePos = {pos.x, pos.y};
 	node->target = pProgram;
-	node->framebuffer = m_Framebuffers[0];
+	node->framebuffer = m_Framebuffers.size() > 0 ? m_Framebuffers[0] : GlFrameBufferPtr();
 
 	// Flow in & out
 	{
 		EditorPinPtr pinIn = std::make_shared<EditorPin>();
-		pinIn->id = m_Pins.size();
+		pinIn->id = (int)m_Pins.size();
 		pinIn->pNode = node;
 		pinIn->type = EditorPinType::FLOW;
 		node->pinsIn.push_back(pinIn);
@@ -3564,7 +3598,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 		m_Pins.push_back(pinIn);
 
 		EditorPinPtr pinOut = std::make_shared<EditorPin>();
-		pinOut->id = m_Pins.size();
+		pinOut->id = (int)m_Pins.size();
 		pinOut->pNode = node;
 		pinOut->type = EditorPinType::FLOW;
 		pinOut->isOutput = true;
@@ -3577,7 +3611,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 	for (auto uniform : pProgram->GetUniforms())
 	{
 		EditorPinPtr pin = AllocPin(uniform.var);
-		pin->id = m_Pins.size();
+		pin->id = (int)m_Pins.size();
 		pin->pNode = node;
 		pin->name = uniform.var.GetName();
 		pin->type = EditorNodeUtil::GLTypeToPinType(uniform.var.GetType());
@@ -3586,7 +3620,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 		if (pin->type == EditorPinType::IMAGE)
 		{
 			EditorPinPtr pinOut = std::make_shared<EditorPin>();
-			pinOut->id = m_Pins.size();
+			pinOut->id = (int)m_Pins.size();
 			pinOut->pNode = node;
 			pinOut->name = uniform.var.GetName();
 			pinOut->type = EditorPinType::IMAGE;
@@ -3602,7 +3636,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 	for (const GlUniformBlock& uniformBlock : pProgram->GetUniformBlocks())
 	{
 		EditorBlockPinPtr pin = std::make_shared<EditorBlockPin>();
-		pin->id = m_Pins.size();
+		pin->id = (int)m_Pins.size();
 		pin->pNode = node;
 		pin->name = uniformBlock.GetName();
 		pin->type = EditorPinType::BLOCK;
@@ -3618,7 +3652,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 	for (const GlBufferBlock& bufferBlock : pProgram->GetBufferBlocks())
 	{
 		EditorBlockPinPtr pin = std::make_shared<EditorBlockPin>();
-		pin->id = m_Pins.size();
+		pin->id = (int)m_Pins.size();
 		pin->pNode = node;
 		pin->name = bufferBlock.GetName();
 		pin->type = EditorPinType::BLOCK;
@@ -3629,7 +3663,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 		m_Pins.push_back(pin);
 
 		EditorBlockPinPtr pinOut = std::make_shared<EditorBlockPin>();
-		pinOut->id = m_Pins.size();
+		pinOut->id = (int)m_Pins.size();
 		pinOut->pNode = node;
 		pinOut->name = bufferBlock.GetName();
 		pinOut->type = EditorPinType::BLOCK;
@@ -3648,7 +3682,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 void NodeEditorWindow::CreateProgramNode(int progId, const ImVec2& pos)
 {
 	auto node = CreateProgramNodePtr(progId, pos);
-	node->id = m_Nodes.size();
+	node->id = (int)m_Nodes.size();
 	m_Nodes.push_back(node);
 
 	ImNodes::SetNodeScreenSpacePos(node->id, pos);
@@ -3838,7 +3872,7 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 			for (auto& uniform : block.GetUniforms())
 			{
 				EditorPinPtr pin = AllocPin(uniform.var);
-				pin->id = m_Pins.size();
+				pin->id = (int)m_Pins.size();
 				pin->pNode = blockNode;
 				pin->name = uniform.var.GetName();
 				pin->type = EditorNodeUtil::GLTypeToPinType(uniform.var.GetType());
@@ -3853,7 +3887,7 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 			for (auto& var : block.GetVars())
 			{
 				EditorPinPtr pin = AllocPin(var);
-				pin->id = m_Pins.size();
+				pin->id = (int)m_Pins.size();
 				pin->pNode = blockNode;
 				pin->name = var.GetName();
 				pin->type = EditorNodeUtil::GLTypeToPinType(var.GetType());
@@ -3865,7 +3899,7 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 	}
 
 	EditorPinPtr pin = std::make_shared<EditorBlockPin>();
-	pin->id = m_Pins.size();
+	pin->id = (int)m_Pins.size();
 	pin->pNode = blockNode;
 	pin->name = "";
 	pin->type = EditorPinType::BLOCK;
@@ -3880,10 +3914,10 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 			DeleteLink(m_Pins[pinId]->connectedLinks[0]->id);
 			UpdateLinks();
 		}
-		CreateLink(m_Pins.size() - 1, pinId);
+		CreateLink((int)m_Pins.size() - 1, pinId);
 	}
 
-	blockNode->id = m_Nodes.size();
+	blockNode->id = (int)m_Nodes.size();
 	blockNode->size = size;
 
 	glGenBuffers(1, &blockNode->ubo);
@@ -3914,7 +3948,7 @@ void NodeEditorWindow::CreateTextureNode(int textureId, const ImVec2& pos)
 	node->target = m_Textures[textureId];
 
 	EditorPinPtr pin = std::make_shared<EditorPin>();
-	pin->id = m_Pins.size();
+	pin->id = (int)m_Pins.size();
 	pin->pNode = node;
 	pin->name = "";
 	pin->type = EditorPinType::TEXTURE;
@@ -3922,7 +3956,7 @@ void NodeEditorWindow::CreateTextureNode(int textureId, const ImVec2& pos)
 	node->pinsOut.push_back(pin);
 	m_Pins.push_back(pin);
 
-	node->id = m_Nodes.size();
+	node->id = (int)m_Nodes.size();
 	m_Nodes.push_back(node);
 
 	ImNodes::SetNodeScreenSpacePos(node->id, pos);
@@ -3944,7 +3978,7 @@ void NodeEditorWindow::CreateImageNode(const ImVec2& pos)
 	pinIn->name = "Texture";
 	pinIn->pNode = node;
 	pinIn->type = EditorPinType::TEXTURE;
-	pinIn->id = m_Pins.size();
+	pinIn->id = (int)m_Pins.size();
 	node->pinsIn.push_back(pinIn);
 	m_Pins.push_back(pinIn);
 
@@ -3953,7 +3987,7 @@ void NodeEditorWindow::CreateImageNode(const ImVec2& pos)
 	pinOut1->pNode = node;
 	pinOut1->type = EditorPinType::IMAGE;
 	pinOut1->isOutput = true;
-	pinOut1->id = m_Pins.size();
+	pinOut1->id = (int)m_Pins.size();
 	node->pinsOut.push_back(pinOut1);
 	m_Pins.push_back(pinOut1);
 
@@ -3962,7 +3996,7 @@ void NodeEditorWindow::CreateImageNode(const ImVec2& pos)
 	pinOut2->pNode = node;
 	pinOut2->type = EditorPinType::TEXTURE;
 	pinOut2->isOutput = true;
-	pinOut2->id = m_Pins.size();
+	pinOut2->id = (int)m_Pins.size();
 	node->pinsOut.push_back(pinOut2);
 	m_Pins.push_back(pinOut2);
 
@@ -3971,7 +4005,7 @@ void NodeEditorWindow::CreateImageNode(const ImVec2& pos)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	node->id = m_Nodes.size();
+	node->id = (int)m_Nodes.size();
 	m_Nodes.push_back(node);
 
 	ImNodes::SetNodeScreenSpacePos(node->id, pos);
@@ -3991,7 +4025,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 	node->pingpongType = type;
 
 	EditorPinPtr pinIn1 = std::make_shared<EditorPin>();
-	pinIn1->id = m_Pins.size();
+	pinIn1->id = (int)m_Pins.size();
 	pinIn1->pNode = node;
 	pinIn1->name = "Buffer A";
 	if (type == EditorPingPongNodeType::BUFFER)
@@ -4008,7 +4042,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 	m_Pins.push_back(pinIn1);
 
 	EditorPinPtr pinIn2 = std::make_shared<EditorPin>();
-	pinIn2->id = m_Pins.size();
+	pinIn2->id = (int)m_Pins.size();
 	pinIn2->pNode = node;
 	pinIn2->name = "Buffer B";
 	if (type == EditorPingPongNodeType::BUFFER)
@@ -4025,7 +4059,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 	m_Pins.push_back(pinIn2);
 
 	EditorPinPtr pinOut1 = std::make_shared<EditorPin>();
-	pinOut1->id = m_Pins.size();
+	pinOut1->id = (int)m_Pins.size();
 	pinOut1->pNode = node;
 	pinOut1->name = "Out 1";
 	if (type == EditorPingPongNodeType::BUFFER)
@@ -4043,7 +4077,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 	m_Pins.push_back(pinOut1);
 
 	EditorPinPtr pinOut2 = std::make_shared<EditorPin>();
-	pinOut2->id = m_Pins.size();
+	pinOut2->id = (int)m_Pins.size();
 	pinOut2->pNode = node;
 	pinOut2->name = "Out 2";
 	if (type == EditorPingPongNodeType::BUFFER)
@@ -4065,7 +4099,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 	else
 		node->size = 1;
 
-	node->id = m_Nodes.size();
+	node->id = (int)m_Nodes.size();
 	m_Nodes.push_back(node);
 
 	ImNodes::SetNodeScreenSpacePos(node->id, pos);
@@ -4130,11 +4164,11 @@ void NodeEditorWindow::CreateTimeNode(const ImVec2& pos)
 	pin->pNode = node;
 	pin->type = EditorPinType::FLOAT;
 	pin->isOutput = true;
-	pin->id = m_Pins.size();
+	pin->id = (int)m_Pins.size();
 	node->pinsOut.push_back(pin);
 	m_Pins.push_back(pin);
 
-	node->id = m_Nodes.size();
+	node->id = (int)m_Nodes.size();
 	m_Nodes.push_back(node);
 
 	ImNodes::SetNodeScreenSpacePos(node->id, pos);
@@ -4156,11 +4190,11 @@ void NodeEditorWindow::CreateMousePosNode(const ImVec2& pos)
 	pin->pNode = node;
 	pin->type = EditorPinType::FLOAT2;
 	pin->isOutput = true;
-	pin->id = m_Pins.size();
+	pin->id = (int)m_Pins.size();
 	node->pinsOut.push_back(pin);
 	m_Pins.push_back(pin);
 
-	node->id = m_Nodes.size();
+	node->id = (int)m_Nodes.size();
 	m_Nodes.push_back(node);
 
 	ImNodes::SetNodeScreenSpacePos(node->id, pos);
