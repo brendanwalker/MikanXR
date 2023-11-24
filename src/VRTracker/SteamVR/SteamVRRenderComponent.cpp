@@ -1,6 +1,7 @@
 #include "App.h"
 #include "GlMaterialInstance.h"
 #include "GlStaticMeshInstance.h"
+#include "GlTriangulatedMesh.h"
 #include "GlScene.h"
 #include "MathTypeConversion.h"
 #include "SteamVRDevice.h"
