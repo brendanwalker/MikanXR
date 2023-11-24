@@ -5,6 +5,7 @@
 #include "IGlWindow.h"
 #include "EditorNodeConstants.h"
 #include "NodeEditorFwd.h"
+#include "NodeEditorState.h"
 #include "RendererFwd.h"
 
 #include "imgui.h"
@@ -15,15 +16,6 @@
 #include <vector>
 
 //-- definitions -----
-class NodeEditorState
-{
-public: 
-
-	int m_StartedLinkPinId;
-	bool m_bLinkHanged;
-	ImVec2 m_HangPos;
-};
-
 class NodeEditorWindow : public IGlWindow
 {
 public:
@@ -146,6 +138,7 @@ private:
 	std::vector<GlFrameBufferPtr> m_Framebuffers;
 	std::vector<GlTexturePtr> m_Textures;
 
+	NodeGraphPtr m_nodeGraph;
 	std::vector<EditorNodePtr> m_Nodes;
 	std::vector<EditorPinPtr> m_Pins;
 	std::vector<EditorLinkPtr> m_Links;

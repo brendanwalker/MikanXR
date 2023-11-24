@@ -8,8 +8,8 @@ Node::Node()
 
 }
 
-Node::Node(NodeGraphPtr parentGraph)
-	: m_id(parentGraph->allocateId())
+Node::Node(NodeGraphPtr ownerGraph)
+	: m_id(ownerGraph->allocateId())
 	, m_nodePos(glm::vec2(0.f))
 {
 	

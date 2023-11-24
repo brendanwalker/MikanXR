@@ -16,6 +16,7 @@
 #include "EditorNodeUtil.h"
 #include "EditorPin.h"
 #include "MathGLM.h"
+#include "Graphs/NodeGraph.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
 #include "TextStyle.h"
@@ -164,6 +165,12 @@ bool NodeEditorWindow::startup()
 			.disableFlag(eGlStateFlagType::cullFace)
 			// This has to be enabled since the point drawing shader will use gl_PointSize.
 			.enableFlag(eGlStateFlagType::programPointSize);
+	}
+
+	if (success)
+	{
+		// TODO: Use node graph assigned to this window
+		m_nodeGraph = std::make_shared<NodeGraph>();
 	}
 
 	return success;
@@ -611,6 +618,13 @@ void NodeEditorWindow::renderMainFrame()
 									 ImGui::GetContentRegionAvail().y - 226));
 
 	ImNodes::BeginNodeEditor();
+
+	NodeEditorState editorState;
+	editorState.bLinkHanged= m_bLinkHanged;
+	editorState.hangPos= m_HangPos;
+	editorState.startedLinkPinId= m_StartedLinkPinId;
+
+	m_nodeGraph->editorRender(&editorState);
 
 	// Nodes rendering
 	for (auto& node : m_Nodes)
