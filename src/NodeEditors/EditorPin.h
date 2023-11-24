@@ -30,7 +30,7 @@ public:
 	int size;
 	bool isOutput;
 	std::string name;
-	EditorNodePtr pNode;
+	EditorNodePtr ownerNode;
 	std::vector<EditorLinkPtr> connectedLinks;
 };
 

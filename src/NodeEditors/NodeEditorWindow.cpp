@@ -244,7 +244,7 @@ void NodeEditorWindow::update()
 		{
 			progNode =
 				std::static_pointer_cast<EditorProgramNode>(
-					GetConnectedPin(onInitNode, onInitNode->pinsOut[0]->connectedLinks[0])->pNode);
+					GetConnectedPin(onInitNode, onInitNode->pinsOut[0]->connectedLinks[0])->ownerNode);
 		}
 		while (progNode)
 		{
@@ -254,7 +254,7 @@ void NodeEditorWindow::update()
 			{
 				progNode = 
 					std::static_pointer_cast<EditorProgramNode>(
-						GetConnectedPin(progNode, progNode->flowOut->connectedLinks[0])->pNode);
+						GetConnectedPin(progNode, progNode->flowOut->connectedLinks[0])->ownerNode);
 			}
 			else
 			{
@@ -272,7 +272,7 @@ void NodeEditorWindow::update()
 	{
 		progNode = 
 			std::static_pointer_cast<EditorProgramNode>(
-				GetConnectedPin(onFrameNode, onFrameNode->pinsOut[0]->connectedLinks[0])->pNode);
+				GetConnectedPin(onFrameNode, onFrameNode->pinsOut[0]->connectedLinks[0])->ownerNode);
 	}
 	while (progNode)
 	{
@@ -282,7 +282,7 @@ void NodeEditorWindow::update()
 		{
 			progNode = 
 				std::static_pointer_cast<EditorProgramNode>(
-					GetConnectedPin(progNode, progNode->flowOut->connectedLinks[0])->pNode);
+					GetConnectedPin(progNode, progNode->flowOut->connectedLinks[0])->ownerNode);
 		}
 		else
 		{
@@ -656,7 +656,7 @@ void NodeEditorWindow::renderMainFrame()
 						(m_Pins[m_StartedLinkPinId]->type == pin->type
 						 && m_Pins[m_StartedLinkPinId]->size == pin->size
 						 && !m_Pins[m_StartedLinkPinId]->isOutput
-						 && m_Pins[m_StartedLinkPinId]->pNode != node))
+						 && m_Pins[m_StartedLinkPinId]->ownerNode != node))
 						alpha = 1.0f;
 					else
 						alpha = 0.2f;
@@ -743,11 +743,11 @@ void NodeEditorWindow::renderMainFrame()
 					if (m_StartedLinkPinId == pin->id ||
 						(m_Pins[m_StartedLinkPinId]->type == pin->type
 						 && !m_Pins[m_StartedLinkPinId]->isOutput
-						 && m_Pins[m_StartedLinkPinId]->pNode != node))
+						 && m_Pins[m_StartedLinkPinId]->ownerNode != node))
 					{
 						if (m_Pins[m_StartedLinkPinId]->size == pin->size)
 							alpha = 1.0f;
-						else if ((m_Pins[m_StartedLinkPinId]->pNode->type == EditorNodeType::PINGPONG
+						else if ((m_Pins[m_StartedLinkPinId]->ownerNode->type == EditorNodeType::PINGPONG
 								  && m_Pins[m_StartedLinkPinId]->size == 0) ||
 								 (node->type == EditorNodeType::PINGPONG && pin->size == 0))
 							alpha = 1.0f;
@@ -1153,7 +1153,7 @@ void NodeEditorWindow::renderMainFrame()
 		{
 			EditorPinPtr pin = m_Pins[m_StartedLinkPinId];
 			if (pin->type == EditorPinType::BLOCK &&
-				pin->pNode->type == EditorNodeType::PROGRAM)
+				pin->ownerNode->type == EditorNodeType::PROGRAM)
 			{
 				if (!pin->isOutput)
 				{
@@ -1175,7 +1175,7 @@ void NodeEditorWindow::renderMainFrame()
 				}
 			}
 			else if (pin->type == EditorPinType::BLOCK &&
-					 pin->pNode->type == EditorNodeType::PINGPONG)
+					 pin->ownerNode->type == EditorNodeType::PINGPONG)
 			{
 				if (ImGui::MenuItem("Ping-Pong"))
 				{
@@ -1219,7 +1219,7 @@ void NodeEditorWindow::renderMainFrame()
 			}
 			else if (pin->type == EditorPinType::TEXTURE &&
 					 pin->isOutput &&
-					 pin->pNode->type == EditorNodeType::TEXTURE)
+					 pin->ownerNode->type == EditorNodeType::TEXTURE)
 			{
 				if (ImGui::MenuItem("Image"))
 				{
@@ -1228,7 +1228,7 @@ void NodeEditorWindow::renderMainFrame()
 				}
 			}
 			else if (pin->type == EditorPinType::IMAGE &&
-					 pin->pNode->type == EditorNodeType::PROGRAM &&
+					 pin->ownerNode->type == EditorNodeType::PROGRAM &&
 					 !pin->isOutput)
 			{
 				if (ImGui::MenuItem("Image"))
@@ -1243,7 +1243,7 @@ void NodeEditorWindow::renderMainFrame()
 				}
 			}
 			else if (pin->type == EditorPinType::IMAGE &&
-					 pin->pNode->type == EditorNodeType::PINGPONG)
+					 pin->ownerNode->type == EditorNodeType::PINGPONG)
 			{
 				if (!pin->isOutput)
 				{
@@ -1847,7 +1847,7 @@ void NodeEditorWindow::renderRightPanel()
 		{
 			EditorPinPtr newPin = std::make_shared<EditorFloatPin>();
 			newPin->type = EditorPinType::FLOAT;
-			newPin->pNode = node;
+			newPin->ownerNode = node;
 			newPin->name = "new_var" + std::to_string(node->pinsIn.size());
 			newPin->id = (int)m_Pins.size();
 			m_Pins.push_back(newPin);
@@ -1945,7 +1945,7 @@ void NodeEditorWindow::renderRightPanel()
 					if (newPin)
 					{
 						node->size -= EditorNodeUtil::PinTypeSize(pinIn->type);
-						newPin->pNode = node;
+						newPin->ownerNode = node;
 						newPin->name = pinIn->name;
 						newPin->id = pinIn->id;
 						int id = pinIn->id;
@@ -2376,10 +2376,10 @@ void NodeEditorWindow::DeleteLink(int id, bool checkPingPongNodes)
 
 	auto& links1 = link->pPin1->connectedLinks;
 	links1.erase(std::remove(links1.begin(), links1.end(), link), links1.end());
-	if (link->pPin1->pNode->type == EditorNodeType::PINGPONG &&
+	if (link->pPin1->ownerNode->type == EditorNodeType::PINGPONG &&
 		link->pPin1->type == EditorPinType::BLOCK && checkPingPongNodes)
 	{
-		auto node = (EditorPingPongNode*)link->pPin1->pNode.get();
+		auto node = (EditorPingPongNode*)link->pPin1->ownerNode.get();
 		bool isEmpty = true;
 		for (auto& pin : node->pinsIn)
 		{
@@ -2409,10 +2409,10 @@ void NodeEditorWindow::DeleteLink(int id, bool checkPingPongNodes)
 
 	auto& links2 = link->pPin2->connectedLinks;
 	links2.erase(std::remove(links2.begin(), links2.end(), link), links2.end());
-	if (link->pPin2->pNode->type == EditorNodeType::PINGPONG &&
+	if (link->pPin2->ownerNode->type == EditorNodeType::PINGPONG &&
 		link->pPin2->type == EditorPinType::BLOCK && checkPingPongNodes)
 	{
-		auto node = (EditorPingPongNode*)link->pPin2->pNode.get();
+		auto node = (EditorPingPongNode*)link->pPin2->ownerNode.get();
 		bool isEmpty = true;
 		for (auto& pin : node->pinsIn)
 		{
@@ -2506,10 +2506,10 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 						needsUpdate = true;
 					}
 				}
-				if ((m_Pins[startPinId]->pNode->type == EditorNodeType::PINGPONG
+				if ((m_Pins[startPinId]->ownerNode->type == EditorNodeType::PINGPONG
 					 && m_Pins[startPinId]->size == 0))
 				{
-					auto pingpongNode = (EditorPingPongNode*)m_Pins[startPinId]->pNode.get();
+					auto pingpongNode = (EditorPingPongNode*)m_Pins[startPinId]->ownerNode.get();
 					pingpongNode->size = m_Pins[endPinId]->size;
 					auto pin = pingpongNode->pinsIn[0];
 					pin->size = m_Pins[endPinId]->size;
@@ -2541,10 +2541,10 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 					}
 					canCreateLink = true;
 				}
-				else if (m_Pins[endPinId]->pNode->type == EditorNodeType::PINGPONG
+				else if (m_Pins[endPinId]->ownerNode->type == EditorNodeType::PINGPONG
 						 && m_Pins[endPinId]->size == 0)
 				{
-					auto pingpongNode = (EditorPingPongNode*)m_Pins[endPinId]->pNode.get();
+					auto pingpongNode = (EditorPingPongNode*)m_Pins[endPinId]->ownerNode.get();
 					pingpongNode->size = m_Pins[startPinId]->size;
 					auto pin = pingpongNode->pinsIn[0];
 					pin->size = m_Pins[startPinId]->size;
@@ -2699,11 +2699,11 @@ void NodeEditorWindow::InputPin(EditorNodePtr node, EditorPinPtr pin)
 		if (m_StartedLinkPinId == pin->id ||
 			(m_Pins[m_StartedLinkPinId]->type == pin->type
 			 && m_Pins[m_StartedLinkPinId]->isOutput
-			 && m_Pins[m_StartedLinkPinId]->pNode != node))
+			 && m_Pins[m_StartedLinkPinId]->ownerNode != node))
 		{
 			if (m_Pins[m_StartedLinkPinId]->size == pin->size)
 				alpha = 1.0f;
-			else if ((m_Pins[m_StartedLinkPinId]->pNode->type == EditorNodeType::PINGPONG
+			else if ((m_Pins[m_StartedLinkPinId]->ownerNode->type == EditorNodeType::PINGPONG
 					  && m_Pins[m_StartedLinkPinId]->size == 0) ||
 					 (node->type == EditorNodeType::PINGPONG && pin->size == 0))
 				alpha = 1.0f;
@@ -2820,11 +2820,11 @@ void NodeEditorWindow::OutputPin(EditorNodePtr node, EditorPinPtr pin)
 		if (m_StartedLinkPinId == pin->id ||
 			(m_Pins[m_StartedLinkPinId]->type == pin->type
 			 && !m_Pins[m_StartedLinkPinId]->isOutput
-			 && m_Pins[m_StartedLinkPinId]->pNode != node))
+			 && m_Pins[m_StartedLinkPinId]->ownerNode != node))
 		{
 			if (m_Pins[m_StartedLinkPinId]->size == pin->size)
 				alpha = 1.0f;
-			else if ((m_Pins[m_StartedLinkPinId]->pNode->type == EditorNodeType::PINGPONG
+			else if ((m_Pins[m_StartedLinkPinId]->ownerNode->type == EditorNodeType::PINGPONG
 					  && m_Pins[m_StartedLinkPinId]->size == 0) ||
 					 (node->type == EditorNodeType::PINGPONG && pin->size == 0))
 				alpha = 1.0f;
@@ -2848,7 +2848,7 @@ void NodeEditorWindow::OutputPin(EditorNodePtr node, EditorPinPtr pin)
 
 EditorPinPtr NodeEditorWindow::GetConnectedPin(EditorNodePtr node, EditorLinkPtr link)
 {
-	return (link->pPin1->pNode == node) ? link->pPin2 : link->pPin1;
+	return (link->pPin1->ownerNode == node) ? link->pPin2 : link->pPin1;
 }
 
 void NodeEditorWindow::GetInputTargetNode(EditorNodePtr& connectedNode, EditorPinType type, int index)
@@ -2868,7 +2868,7 @@ void NodeEditorWindow::GetInputTargetNode(EditorNodePtr& connectedNode, EditorPi
 					(
 						pingpongNode,
 						pingpongNode->pinsIn[1]->connectedLinks[0]
-					)->pNode;
+					)->ownerNode;
 				}
 				else
 				{
@@ -2884,7 +2884,7 @@ void NodeEditorWindow::GetInputTargetNode(EditorNodePtr& connectedNode, EditorPi
 					(
 						pingpongNode,
 						pingpongNode->pinsIn[0]->connectedLinks[0]
-					)->pNode;
+					)->ownerNode;
 				}
 				else
 				{
@@ -2911,7 +2911,7 @@ void NodeEditorWindow::GetInputTargetNode(EditorNodePtr& connectedNode, EditorPi
 								(
 									progNode,
 									pin->connectedLinks[0]
-								)->pNode;
+								)->ownerNode;
 							}
 							else
 							{
@@ -2941,7 +2941,7 @@ void NodeEditorWindow::GetInputTargetNode(EditorNodePtr& connectedNode, EditorPi
 									(
 										progNode,
 										pin->connectedLinks[0]
-									)->pNode;
+									)->ownerNode;
 								}
 								else
 								{
@@ -3005,7 +3005,7 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 		{
 			if (pin->connectedLinks.size() > 0)
 			{
-				EditorNodePtr connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->pNode;
+				EditorNodePtr connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->ownerNode;
 				if (connectedNode->type == EditorNodeType::TIME)
 				{
 					auto currentTime = std::chrono::high_resolution_clock::now();
@@ -3025,7 +3025,7 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 		{
 			if (pin->connectedLinks.size() > 0)
 			{
-				EditorNodePtr connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->pNode;
+				EditorNodePtr connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->ownerNode;
 				if (connectedNode->type == EditorNodeType::MOUSE_POS)
 				{
 					auto mousePos = ImGui::GetMousePos();
@@ -3083,7 +3083,7 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 			{
 				GLuint texture = -1;
 
-				auto connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->pNode;
+				auto connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->ownerNode;
 				if (connectedNode->type == EditorNodeType::PROGRAM)
 				{
 					auto connectedProgNode = std::static_pointer_cast<EditorProgramNode>(connectedNode);
@@ -3112,7 +3112,7 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 					{
 						auto texNode = 
 							std::static_pointer_cast<EditorTextureNode>(
-								GetConnectedPin(imgNode, imgNode->pinsIn[0]->connectedLinks[0])->pNode);
+								GetConnectedPin(imgNode, imgNode->pinsIn[0]->connectedLinks[0])->ownerNode);
 						texture = texNode->target->getGlTextureId();
 					}
 					else
@@ -3139,7 +3139,7 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 		{
 			if (pin->connectedLinks.size() > 0)
 			{
-				EditorNodePtr connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->pNode;
+				EditorNodePtr connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->ownerNode;
 				GetInputTargetNode(connectedNode, EditorPinType::IMAGE, imageCount);
 
 				if (connectedNode)
@@ -3153,7 +3153,7 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 						{
 							EditorTextureNodePtr texNode =
 								std::static_pointer_cast<EditorTextureNode>(
-									GetConnectedPin(imgNode, imgNode->pinsIn[0]->connectedLinks[0])->pNode);
+									GetConnectedPin(imgNode, imgNode->pinsIn[0]->connectedLinks[0])->ownerNode);
 							//glBindTexture(GL_TEXTURE_2D, texNode->target->GetTexture());
 							glBindImageTexture(textureUnit, texNode->target->getGlTextureId(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 						}
@@ -3175,14 +3175,14 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 			EditorBlockPinPtr p = std::static_pointer_cast<EditorBlockPin>(pin);
 			if (pin->connectedLinks.size() > 0)
 			{
-				EditorNodePtr connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->pNode;
+				EditorNodePtr connectedNode = GetConnectedPin(progNode, pin->connectedLinks[0])->ownerNode;
 				GetInputTargetNode(connectedNode, EditorPinType::BLOCK, storageBufferIndex);
 
 				if (connectedNode)
 				{
 					EditorBlockNodePtr blockNode = 
 						std::static_pointer_cast<EditorBlockNode>(
-							GetConnectedPin(progNode, pin->connectedLinks[0])->pNode);
+							GetConnectedPin(progNode, pin->connectedLinks[0])->ownerNode);
 					if (p->blockPinType == EditorBlockPinType::UNIFROM_BLOCK)
 					{
 						// TODO: Write uniform block bind wrapper on GlProgram class instead
@@ -3205,7 +3205,7 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 								if (blockNode->pinsIn[i]->connectedLinks.size() > 0)
 								{
 									EditorNodePtr connectedNode =
-										GetConnectedPin(progNode, pin->connectedLinks[0])->pNode;
+										GetConnectedPin(progNode, pin->connectedLinks[0])->ownerNode;
 									if (connectedNode->type == EditorNodeType::TIME)
 									{
 										auto currentTime = std::chrono::high_resolution_clock::now();
@@ -3227,7 +3227,7 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 								if (blockNode->pinsIn[i]->connectedLinks.size() > 0)
 								{
 									EditorNodePtr connectedNode =
-										GetConnectedPin(progNode, pin->connectedLinks[0])->pNode;
+										GetConnectedPin(progNode, pin->connectedLinks[0])->ownerNode;
 									if (connectedNode->type == EditorNodeType::MOUSE_POS)
 									{
 										auto mousePos = ImGui::GetMousePos();
@@ -3591,7 +3591,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 	{
 		EditorPinPtr pinIn = std::make_shared<EditorPin>();
 		pinIn->id = (int)m_Pins.size();
-		pinIn->pNode = node;
+		pinIn->ownerNode = node;
 		pinIn->type = EditorPinType::FLOW;
 		node->pinsIn.push_back(pinIn);
 		node->flowIn = pinIn;
@@ -3599,7 +3599,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 
 		EditorPinPtr pinOut = std::make_shared<EditorPin>();
 		pinOut->id = (int)m_Pins.size();
-		pinOut->pNode = node;
+		pinOut->ownerNode = node;
 		pinOut->type = EditorPinType::FLOW;
 		pinOut->isOutput = true;
 		node->pinsOut.push_back(pinOut);
@@ -3612,7 +3612,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 	{
 		EditorPinPtr pin = AllocPin(uniform.var);
 		pin->id = (int)m_Pins.size();
-		pin->pNode = node;
+		pin->ownerNode = node;
 		pin->name = uniform.var.GetName();
 		pin->type = EditorNodeUtil::GLTypeToPinType(uniform.var.GetType());
 		node->pinsIn.push_back(pin);
@@ -3621,7 +3621,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 		{
 			EditorPinPtr pinOut = std::make_shared<EditorPin>();
 			pinOut->id = (int)m_Pins.size();
-			pinOut->pNode = node;
+			pinOut->ownerNode = node;
 			pinOut->name = uniform.var.GetName();
 			pinOut->type = EditorPinType::IMAGE;
 			pinOut->isOutput = true;
@@ -3637,7 +3637,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 	{
 		EditorBlockPinPtr pin = std::make_shared<EditorBlockPin>();
 		pin->id = (int)m_Pins.size();
-		pin->pNode = node;
+		pin->ownerNode = node;
 		pin->name = uniformBlock.GetName();
 		pin->type = EditorPinType::BLOCK;
 		pin->blockPinType = EditorBlockPinType::UNIFROM_BLOCK;
@@ -3653,7 +3653,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 	{
 		EditorBlockPinPtr pin = std::make_shared<EditorBlockPin>();
 		pin->id = (int)m_Pins.size();
-		pin->pNode = node;
+		pin->ownerNode = node;
 		pin->name = bufferBlock.GetName();
 		pin->type = EditorPinType::BLOCK;
 		pin->blockPinType = EditorBlockPinType::BUFFER_BLOCK;
@@ -3664,7 +3664,7 @@ EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const Im
 
 		EditorBlockPinPtr pinOut = std::make_shared<EditorBlockPin>();
 		pinOut->id = (int)m_Pins.size();
-		pinOut->pNode = node;
+		pinOut->ownerNode = node;
 		pinOut->name = bufferBlock.GetName();
 		pinOut->type = EditorPinType::BLOCK;
 		pinOut->blockPinType = EditorBlockPinType::BUFFER_BLOCK;
@@ -3848,7 +3848,7 @@ void NodeEditorWindow::SetProgramNodeFramebuffer(EditorProgramNodePtr node, int 
 		pin->id = (int)m_Pins.size();
 		pin->isOutput = true;
 		pin->type = EditorPinType::TEXTURE;
-		pin->pNode = node;
+		pin->ownerNode = node;
 		node->pinsOut.push_back(pin);
 		m_Pins.push_back(pin);
 	}
@@ -3865,7 +3865,7 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 	if (pinId != -1)
 	{
 		EditorBlockPinPtr progPin = std::static_pointer_cast<EditorBlockPin>(m_Pins[pinId]);
-		EditorProgramNodePtr progNode = std::static_pointer_cast<EditorProgramNode>(progPin->pNode);
+		EditorProgramNodePtr progNode = std::static_pointer_cast<EditorProgramNode>(progPin->ownerNode);
 		if (progPin->blockPinType == EditorBlockPinType::UNIFROM_BLOCK)
 		{
 			const GlUniformBlock& block = progNode->target->GetUniformBlocks()[progPin->index];
@@ -3873,7 +3873,7 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 			{
 				EditorPinPtr pin = AllocPin(uniform.var);
 				pin->id = (int)m_Pins.size();
-				pin->pNode = blockNode;
+				pin->ownerNode = blockNode;
 				pin->name = uniform.var.GetName();
 				pin->type = EditorNodeUtil::GLTypeToPinType(uniform.var.GetType());
 				blockNode->pinsIn.push_back(pin);
@@ -3888,7 +3888,7 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 			{
 				EditorPinPtr pin = AllocPin(var);
 				pin->id = (int)m_Pins.size();
-				pin->pNode = blockNode;
+				pin->ownerNode = blockNode;
 				pin->name = var.GetName();
 				pin->type = EditorNodeUtil::GLTypeToPinType(var.GetType());
 				blockNode->pinsIn.push_back(pin);
@@ -3900,7 +3900,7 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 
 	EditorPinPtr pin = std::make_shared<EditorBlockPin>();
 	pin->id = (int)m_Pins.size();
-	pin->pNode = blockNode;
+	pin->ownerNode = blockNode;
 	pin->name = "";
 	pin->type = EditorPinType::BLOCK;
 	pin->isOutput = true;
@@ -3949,7 +3949,7 @@ void NodeEditorWindow::CreateTextureNode(int textureId, const ImVec2& pos)
 
 	EditorPinPtr pin = std::make_shared<EditorPin>();
 	pin->id = (int)m_Pins.size();
-	pin->pNode = node;
+	pin->ownerNode = node;
 	pin->name = "";
 	pin->type = EditorPinType::TEXTURE;
 	pin->isOutput = true;
@@ -3976,7 +3976,7 @@ void NodeEditorWindow::CreateImageNode(const ImVec2& pos)
 
 	EditorPinPtr pinIn = std::make_shared<EditorPin>();
 	pinIn->name = "Texture";
-	pinIn->pNode = node;
+	pinIn->ownerNode = node;
 	pinIn->type = EditorPinType::TEXTURE;
 	pinIn->id = (int)m_Pins.size();
 	node->pinsIn.push_back(pinIn);
@@ -3984,7 +3984,7 @@ void NodeEditorWindow::CreateImageNode(const ImVec2& pos)
 
 	EditorPinPtr pinOut1 = std::make_shared<EditorPin>();
 	pinOut1->name = "";
-	pinOut1->pNode = node;
+	pinOut1->ownerNode = node;
 	pinOut1->type = EditorPinType::IMAGE;
 	pinOut1->isOutput = true;
 	pinOut1->id = (int)m_Pins.size();
@@ -3993,7 +3993,7 @@ void NodeEditorWindow::CreateImageNode(const ImVec2& pos)
 
 	EditorPinPtr pinOut2 = std::make_shared<EditorPin>();
 	pinOut2->name = "";
-	pinOut2->pNode = node;
+	pinOut2->ownerNode = node;
 	pinOut2->type = EditorPinType::TEXTURE;
 	pinOut2->isOutput = true;
 	pinOut2->id = (int)m_Pins.size();
@@ -4026,7 +4026,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 
 	EditorPinPtr pinIn1 = std::make_shared<EditorPin>();
 	pinIn1->id = (int)m_Pins.size();
-	pinIn1->pNode = node;
+	pinIn1->ownerNode = node;
 	pinIn1->name = "Buffer A";
 	if (type == EditorPingPongNodeType::BUFFER)
 	{
@@ -4043,7 +4043,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 
 	EditorPinPtr pinIn2 = std::make_shared<EditorPin>();
 	pinIn2->id = (int)m_Pins.size();
-	pinIn2->pNode = node;
+	pinIn2->ownerNode = node;
 	pinIn2->name = "Buffer B";
 	if (type == EditorPingPongNodeType::BUFFER)
 	{
@@ -4060,7 +4060,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 
 	EditorPinPtr pinOut1 = std::make_shared<EditorPin>();
 	pinOut1->id = (int)m_Pins.size();
-	pinOut1->pNode = node;
+	pinOut1->ownerNode = node;
 	pinOut1->name = "Out 1";
 	if (type == EditorPingPongNodeType::BUFFER)
 	{
@@ -4078,7 +4078,7 @@ void NodeEditorWindow::CreatePingPongNode(const ImVec2& pos, EditorPingPongNodeT
 
 	EditorPinPtr pinOut2 = std::make_shared<EditorPin>();
 	pinOut2->id = (int)m_Pins.size();
-	pinOut2->pNode = node;
+	pinOut2->ownerNode = node;
 	pinOut2->name = "Out 2";
 	if (type == EditorPingPongNodeType::BUFFER)
 	{
@@ -4161,7 +4161,7 @@ void NodeEditorWindow::CreateTimeNode(const ImVec2& pos)
 	node->nodePos = {pos.x, pos.y};
 
 	EditorPinPtr pin = std::make_shared<EditorPin>();
-	pin->pNode = node;
+	pin->ownerNode = node;
 	pin->type = EditorPinType::FLOAT;
 	pin->isOutput = true;
 	pin->id = (int)m_Pins.size();
@@ -4187,7 +4187,7 @@ void NodeEditorWindow::CreateMousePosNode(const ImVec2& pos)
 	node->nodePos = {pos.x, pos.y};
 
 	EditorPinPtr pin = std::make_shared<EditorPin>();
-	pin->pNode = node;
+	pin->ownerNode = node;
 	pin->type = EditorPinType::FLOAT2;
 	pin->isOutput = true;
 	pin->id = (int)m_Pins.size();
