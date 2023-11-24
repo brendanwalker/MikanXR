@@ -11,7 +11,7 @@
 #include "LocalizationManager.h"
 #include "Logger.h"
 #include "MainWindow.h"
-#include "NodeEditorWindow.h"
+#include "Windows/TestNodeEditorWindow.h"
 #include "MikanServer.h"
 #include "ObjectSystemManager.h"
 #include "OpenCVManager.h"
@@ -217,7 +217,7 @@ bool App::startup(int argc, char** argv)
 	}
 
 	// TODO: Test node editor
-	createAppWindow<NodeEditorWindow>();
+	createAppWindow<TestNodeEditorWindow>();
 
 	if (success)
 	{

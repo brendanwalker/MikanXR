@@ -233,11 +233,44 @@ file(GLOB MIKAN_OPENCV_SRC
 source_group("OpenCV" FILES ${MIKAN_OPENCV_SRC})
 
 # Node Editor
-file(GLOB MIKAN_NODE_EDITORS_SRC
+## Root
+file(GLOB MIKAN_NODE_EDITORS_ROOT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/*.h"
 )
-source_group("NodeEditors" FILES ${MIKAN_NODE_EDITORS_SRC})
+source_group("NodeEditors" FILES ${MIKAN_NODE_EDITORS_ROOT_SRC})
+## Graphs
+file(GLOB MIKAN_NODE_EDITORS_GRAPHS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Graphs/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Graphs/*.h"
+)
+source_group("NodeEditors\\Graphs" FILES ${MIKAN_NODE_EDITORS_GRAPHS_SRC})
+## Nodes
+file(GLOB MIKAN_NODE_EDITORS_NODES_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Nodes/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Nodes/*.h"
+)
+source_group("NodeEditors\\Nodes" FILES ${MIKAN_NODE_EDITORS_NODES_SRC})
+## Pins
+file(GLOB MIKAN_NODE_EDITORS_PINS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Pins/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Pins/*.h"
+)
+source_group("NodeEditors\\Pins" FILES ${MIKAN_NODE_EDITORS_PINS_SRC})
+## Windows
+file(GLOB MIKAN_NODE_EDITORS_WINDOWS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Windows/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Windows/*.h"
+)
+source_group("NodeEditors\\Windows" FILES ${MIKAN_NODE_EDITORS_WINDOWS_SRC})
+## Node Editor Full Source
+set(MIKAN_NODE_EDITORS_SRC
+    ${MIKAN_NODE_EDITORS_ROOT_SRC}
+    ${MIKAN_NODE_EDITORS_GRAPHS_SRC}
+    ${MIKAN_NODE_EDITORS_NODES_SRC}
+    ${MIKAN_NODE_EDITORS_PINS_SRC}
+    ${MIKAN_NODE_EDITORS_WINDOWS_SRC}
+)
 
 # Renderer
 file(GLOB MIKAN_RENDERER_SRC

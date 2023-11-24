@@ -15,6 +15,14 @@
 #include <vector>
 
 //-- definitions -----
+class NodeEditorState
+{
+public: 
+
+	int m_StartedLinkPinId;
+	bool m_bLinkHanged;
+	ImVec2 m_HangPos;
+};
 
 class NodeEditorWindow : public IGlWindow
 {

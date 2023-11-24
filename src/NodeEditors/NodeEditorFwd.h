@@ -76,3 +76,7 @@ using EditorFloat4PinConstPtr = std::shared_ptr<const EditorFloat4Pin>;
 class EditorLink;
 using EditorLinkPtr = std::shared_ptr<EditorLink>;
 using EditorLinkConstPtr = std::shared_ptr<const EditorLink>;
+
+class NodeGraph;
+using NodeGraphPtr = std::shared_ptr<NodeGraph>;
+using NodeGraphConstPtr = std::shared_ptr<const NodeGraph>;
