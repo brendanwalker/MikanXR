@@ -872,6 +872,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 		}
 	#endif
+	#if 0
 		// Image nodes
 		if (node->type == EditorNodeType::IMAGE)
 		{
@@ -909,6 +910,8 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 			ImNodes::PopColorStyle();
 		}
+	#endif
+	#if 0
 		// Ping-pong nodes
 		if (node->type == EditorNodeType::PINGPONG)
 		{
@@ -946,8 +949,9 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 			ImNodes::PopColorStyle();
 		}
+	#endif
 		// Other nodes
-		else if (node->type == EditorNodeType::TIME || node->type == EditorNodeType::MOUSE_POS)
+		if (node->type == EditorNodeType::TIME || node->type == EditorNodeType::MOUSE_POS)
 		{
 			if (node->type == EditorNodeType::TIME)
 			{
