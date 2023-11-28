@@ -639,6 +639,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
 			ImNodes::PushColorStyle(ImNodesCol_NodeOutline, IM_COL32(24, 24, 24, 255));
 		}
+	#if 0
 		// Event nodes
 		if (node->type == EditorNodeType::EVENT)
 		{
@@ -697,6 +698,8 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 			ImNodes::PopColorStyle();
 		}
+	#endif
+	#if 0
 		// Program nodes
 		if (node->type == EditorNodeType::PROGRAM)
 		{
@@ -793,6 +796,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 			ImNodes::PopColorStyle();
 		}
+	#endif
 		// Block nodes
 		if (node->type == EditorNodeType::BLOCK)
 		{
@@ -979,11 +983,13 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 		}
 
+	#if 0
 		const ImVec2 nodePos = ImNodes::GetNodeScreenSpacePos(node->id);
 		node->nodePos = {nodePos.x, nodePos.y};
 
 		ImNodes::PopColorStyle();
 		ImNodes::PopStyleVar();
+	#endif
 	}
 
 	// Links Rendering

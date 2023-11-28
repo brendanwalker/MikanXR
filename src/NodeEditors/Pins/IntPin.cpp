@@ -1,6 +1,17 @@
 #include "IntPin.h"
 
-ImNodesPinShape IntPin::editorRenderBeginPin(float alpha)
+// -- IntPin -----
+float IntPinBase::editorComputeInputWidth() const
+{
+	if (m_connectedLinks.size() == 0)
+	{
+		return ImGui::CalcTextSize(m_name.c_str()).x + 50.f + 11.f;
+	}
+
+	return NodePin::editorComputeInputWidth();
+}
+
+ImNodesPinShape IntPinBase::editorRenderBeginPin(float alpha)
 {
 	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;
 
@@ -15,6 +26,53 @@ ImNodesPinShape IntPin::editorRenderBeginPin(float alpha)
 	return pinShape;	
 }
 
-void IntPin::editorRenderContextMenu(class NodeEditorState* editorState)
+void IntPinBase::editorRenderContextMenu(class NodeEditorState* editorState)
 {
+}
+
+// -- IntPin -----
+void IntPin::editorRenderInputTextEntry(class NodeEditorState* editorState)
+{
+	if (m_connectedLinks.size() == 0)
+	{
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(50.0f);
+		ImGui::InputInt("", &value, 0);
+	}
+}
+
+// -- Int2Pin -----
+void Int2Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
+{
+	if (m_connectedLinks.size() == 0)
+	{
+		ImGui::Dummy(ImVec2(11.0f, 1.0f));
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(100.0f);
+		ImGui::InputInt2("", value);
+	}
+}
+
+// -- Int3Pin -----
+void Int3Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
+{
+	if (m_connectedLinks.size() == 0)
+	{
+		ImGui::Dummy(ImVec2(11.0f, 1.0f));
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(150.0f);
+		ImGui::InputInt3("", value);
+	}
+}
+
+// -- Int4Pin -----
+void Int4Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
+{
+	if (m_connectedLinks.size() == 0)
+	{
+		ImGui::Dummy(ImVec2(11.0f, 1.0f));
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(200.0f);
+		ImGui::InputInt4("", value);
+	}
 }

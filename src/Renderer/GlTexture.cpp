@@ -216,6 +216,8 @@ bool GlTexture::reloadTextureFromImagePath()
 	}
 
 	stbi_image_free(data);
+
+	return true;
 }
 
 uint32_t GlTexture::getBufferSize() const

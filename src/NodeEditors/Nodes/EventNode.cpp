@@ -56,7 +56,7 @@ void EventNode::editorRender(NodeEditorState* editorState)
 
 		NodePinPtr pinPtr= m_ownerGraph->getNodePinById(editorState->startedLinkPinId);
 
-		if (!pinPtr)
+		if (pinPtr)
 		{
 			if (editorState->startedLinkPinId == pin->getId() ||
 				(typeid(pinPtr.get()) == typeid(pin.get())

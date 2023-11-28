@@ -26,6 +26,10 @@ public:
 	inline NodePtr getOwnerNode() const { return m_ownerNode; }
 	inline const std::vector<NodeLinkPtr>& getConnectedLinks() const { return m_connectedLinks; }
 
+	virtual float editorComputeInputWidth() const;
+	virtual void editorRenderInputPin(class NodeEditorState* editorState);
+	virtual void editorRenderInputTextEntry(class NodeEditorState* editorState) {}
+	virtual void editorRenderOutputPin(class NodeEditorState* editorState, float prefixWidth= 0.f);
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha);
 	virtual void editorRenderEndPin();
 	virtual void editorRenderContextMenu(class NodeEditorState* editorState) {}
