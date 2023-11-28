@@ -629,6 +629,7 @@ void NodeEditorWindow::renderMainFrame()
 	// Nodes rendering
 	for (auto& node : m_Nodes)
 	{
+	#if 0
 		if (ImNodes::IsNodeSelected(node->id))
 		{
 			ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.6f);
@@ -639,6 +640,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
 			ImNodes::PushColorStyle(ImNodesCol_NodeOutline, IM_COL32(24, 24, 24, 255));
 		}
+	#endif
 	#if 0
 		// Event nodes
 		if (node->type == EditorNodeType::EVENT)
@@ -797,6 +799,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 		}
 	#endif
+	#if 0
 		// Block nodes
 		if (node->type == EditorNodeType::BLOCK)
 		{
@@ -833,6 +836,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 			ImNodes::PopColorStyle();
 		}
+	#endif
 		// Texture nodes
 		if (node->type == EditorNodeType::TEXTURE)
 		{
