@@ -32,7 +32,10 @@ public:
 	virtual void editorRenderOutputPin(class NodeEditorState* editorState, float prefixWidth= 0.f);
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha);
 	virtual void editorRenderEndPin();
+	virtual void editorRenderBeginLink(float alpha);
+	virtual void editorRenderEndLink();
 	virtual void editorRenderContextMenu(class NodeEditorState* editorState) {}
+	virtual ImU32 editorGetLinkStyleColor() const;
 
 protected:
 	int m_id;

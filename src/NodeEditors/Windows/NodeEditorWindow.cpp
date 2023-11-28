@@ -21,6 +21,8 @@
 #include "SdlWindow.h"
 #include "TextStyle.h"
 
+#include "Pins/NodePin.h"
+
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "backends/imgui_impl_sdl.h"
@@ -626,103 +628,37 @@ void NodeEditorWindow::renderMainFrame()
 
 	m_nodeGraph->editorRender(&editorState);
 
-	// Links Rendering
-	for (auto& link : m_Links)
-	{
-		int alpha = m_StartedLinkPinId == -1 ? 255 : 50;
-		if (link->pPin1->type == EditorPinType::FLOW)
-		{
-			ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(225, 225, 225, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(255, 255, 255, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(255, 255, 255, 255));
-		}
-		else if (link->pPin1->type == EditorPinType::INT)
-		{
-			ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(33, 227, 175, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(135, 239, 195, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(135, 239, 195, 255));
-		}
-		else if (link->pPin1->type == EditorPinType::FLOAT)
-		{
-			ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(156, 253, 65, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(144, 225, 137, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(144, 225, 137, 255));
-		}
-		else if (link->pPin1->type == EditorPinType::BLOCK)
-		{
-			ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(6, 165, 239, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(137, 196, 247, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(137, 196, 247, 255));
-		}
-		else if (link->pPin1->type == EditorPinType::TEXTURE)
-		{
-			ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(148, 0, 0, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(183, 137, 137, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(183, 137, 137, 255));
-		}
-		else if (link->pPin1->type == EditorPinType::IMAGE)
-		{
-			ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(200, 130, 255, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(220, 170, 255, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(220, 170, 255, 255));
-		}
-		else
-		{
-			ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(252, 200, 35, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(255, 217, 140, alpha));
-			ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(255, 217, 140, 255));
-		}
-		ImNodes::Link(link->id, link->pPin1->id, link->pPin2->id);
-		ImNodes::PopColorStyle();
-		ImNodes::PopColorStyle();
-		ImNodes::PopColorStyle();
-	}
-
 	ImNodes::EndNodeEditor();
 	ImGui::EndChild();
 
 	// Node selection
 	if (ImNodes::NumSelectedNodes() == 1 && ImNodes::NumSelectedLinks() == 0)
 	{
-		int* ids = new int;
+		int ids[1]= {-1};
 		ImNodes::GetSelectedNodes(ids);
-		int id = *ids;
-		delete ids;
-		if (m_Nodes[id]->type == EditorNodeType::PROGRAM)
-			m_SelectedItemType = SelectedItemType::PROGRAM_NODE;
-		else if (m_Nodes[id]->type == EditorNodeType::BLOCK)
-			m_SelectedItemType = SelectedItemType::BUFFER_NODE;
-		else if (m_Nodes[id]->type == EditorNodeType::IMAGE)
-			m_SelectedItemType = SelectedItemType::IMAGE_NODE;
-		else if (m_Nodes[id]->type == EditorNodeType::PINGPONG)
-			m_SelectedItemType = SelectedItemType::PINGPONG_NODE;
-		else
-			m_SelectedItemType = SelectedItemType::NODE;
-		m_SelectedItemId = id;
+
+		m_SelectedItemType = SelectedItemType::NODE;
+		m_SelectedItemId = ids[0];
 	}
 	else if (ImNodes::NumSelectedNodes() > 1 || ImNodes::NumSelectedLinks() > 0)
+	{
 		m_SelectedItemType = SelectedItemType::NODES;
+	}
 	else if (m_SelectedItemType >= SelectedItemType::NODES)
+	{
 		m_SelectedItemType = SelectedItemType::NONE;
+	}
 
 	// Start link
 	if (ImNodes::IsLinkStarted(&m_StartedLinkPinId))
 	{
-		if (m_Pins[m_StartedLinkPinId]->type == EditorPinType::FLOW)
-			ImNodes::GetStyle().Colors[ImNodesCol_Link] = IM_COL32(225, 225, 225, 255);
-		else if (m_Pins[m_StartedLinkPinId]->type == EditorPinType::INT)
-			ImNodes::GetStyle().Colors[ImNodesCol_Link] = IM_COL32(33, 227, 175, 255);
-		else if (m_Pins[m_StartedLinkPinId]->type == EditorPinType::FLOAT)
-			ImNodes::GetStyle().Colors[ImNodesCol_Link] = IM_COL32(156, 253, 65, 255);
-		else if (m_Pins[m_StartedLinkPinId]->type == EditorPinType::BLOCK)
-			ImNodes::GetStyle().Colors[ImNodesCol_Link] = IM_COL32(6, 165, 239, 255);
-		else if (m_Pins[m_StartedLinkPinId]->type == EditorPinType::TEXTURE)
-			ImNodes::GetStyle().Colors[ImNodesCol_Link] = IM_COL32(148, 0, 0, 255);
-		else if (m_Pins[m_StartedLinkPinId]->type == EditorPinType::IMAGE)
-			ImNodes::GetStyle().Colors[ImNodesCol_Link] = IM_COL32(200, 130, 255, 255);
-		else
-			ImNodes::GetStyle().Colors[ImNodesCol_Link] = IM_COL32(252, 200, 35, 255);
+		NodePinPtr pinPtr= m_nodeGraph->getNodePinById(m_StartedLinkPinId);
+		if (pinPtr)
+		{
+			ImNodes::GetStyle().Colors[ImNodesCol_Link] = pinPtr->editorGetLinkStyleColor();
+		}
 	}
+
 	// Drop link
 	if (ImNodes::IsLinkDropped())
 	{

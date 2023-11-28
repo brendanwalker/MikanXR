@@ -145,3 +145,22 @@ void NodePin::editorRenderEndPin()
 	ImNodes::PopColorStyle();
 	ImNodes::PopColorStyle();
 }
+
+void NodePin::editorRenderBeginLink(float alpha)
+{
+	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(252, 200, 35, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(255, 217, 140, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(255, 217, 140, 255));
+}
+
+void NodePin::editorRenderEndLink()
+{
+	ImNodes::PopColorStyle();
+	ImNodes::PopColorStyle();
+	ImNodes::PopColorStyle();
+}
+
+ImU32 NodePin::editorGetLinkStyleColor() const
+{
+	return IM_COL32(252, 200, 35, 255);
+}

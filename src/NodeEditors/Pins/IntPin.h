@@ -14,6 +14,8 @@ class IntPin : public IntPinBase
 {
 public:
 	virtual void editorRenderInputTextEntry(class NodeEditorState* editorState) override;
+	virtual void editorRenderBeginLink(float alpha) override;
+	virtual ImU32 editorGetLinkStyleColor() const override;
 
 protected:
 	int value = 0;

@@ -13,7 +13,7 @@ public:
 	inline NodePinPtr getStartPin() const { return m_pPin1; }
 	inline NodePinPtr getEndPin() const { return m_pPin2; }
 
-	virtual void editorRender(class NodeEditorState* editorState) {}
+	virtual void editorRender(class NodeEditorState* editorState);
 
 protected:
 	int m_id;

@@ -15,6 +15,18 @@ ImNodesPinShape TexturePin::editorRenderBeginPin(float alpha)
 	return pinShape;	
 }
 
+void TexturePin::editorRenderBeginLink(float alpha)
+{
+	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(148, 0, 0, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(183, 137, 137, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(183, 137, 137, 255));
+}
+
 void TexturePin::editorRenderContextMenu(class NodeEditorState* editorState)
 {
+}
+
+ImU32 TexturePin::editorGetLinkStyleColor() const
+{
+	return IM_COL32(148, 0, 0, 255);
 }

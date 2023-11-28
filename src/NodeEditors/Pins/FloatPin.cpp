@@ -41,6 +41,18 @@ void FloatPin::editorRenderInputTextEntry(class NodeEditorState* editorState)
 	}
 }
 
+void FloatPin::editorRenderBeginLink(float alpha)
+{
+	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(156, 253, 65, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(144, 225, 137, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(144, 225, 137, 255));
+}
+
+ImU32 FloatPin::editorGetLinkStyleColor() const
+{
+	return IM_COL32(156, 253, 65, 255);
+}
+
 // -- Float2Pin -----
 void Float2Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
 {

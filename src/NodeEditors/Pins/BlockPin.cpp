@@ -15,6 +15,18 @@ ImNodesPinShape BlockPin::editorRenderBeginPin(float alpha)
 	return pinShape;	
 }
 
+void BlockPin::editorRenderBeginLink(float alpha)
+{
+	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(6, 165, 239, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(137, 196, 247, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(137, 196, 247, 255));
+}
+
 void BlockPin::editorRenderContextMenu(class NodeEditorState* editorState)
 {
+}
+
+ImU32 BlockPin::editorGetLinkStyleColor() const
+{
+	return IM_COL32(6, 165, 239, 255);
 }

@@ -15,6 +15,18 @@ ImNodesPinShape FlowPin::editorRenderBeginPin(float alpha)
 	return pinShape;	
 }
 
+void FlowPin::editorRenderBeginLink(float alpha)
+{
+	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(225, 225, 225, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(255, 255, 255, alpha));
+	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(255, 255, 255, 255));
+}
+
 void FlowPin::editorRenderContextMenu(class NodeEditorState* editorState)
 {
+}
+
+ImU32 FlowPin::editorGetLinkStyleColor() const
+{
+	return IM_COL32(225, 225, 225, 255);
 }

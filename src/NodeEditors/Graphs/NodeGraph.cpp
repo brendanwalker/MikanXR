@@ -51,7 +51,6 @@ NodeLinkPtr NodeGraph::getNodeLinkById(int id)
 void NodeGraph::editorRender(class NodeEditorState* editorState)
 {
 	// Nodes rendering
-	//for (NodePtr& node : m_Nodes)
 	for (auto it= m_Nodes.begin(); it != m_Nodes.end(); ++it)
 	{
 		NodePtr node= it->second;
@@ -82,11 +81,6 @@ void NodeGraph::editorRender(class NodeEditorState* editorState)
 		NodeLinkPtr link = it->second;
 
 		link->editorRender(editorState);
-
-		ImNodes::Link(link->getId(), link->getStartPin()->getId(), link->getEndPin()->getId());
-		ImNodes::PopColorStyle();
-		ImNodes::PopColorStyle();
-		ImNodes::PopColorStyle();
 	}
 }
 
