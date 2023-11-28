@@ -837,6 +837,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 		}
 	#endif
+	#if 0
 		// Texture nodes
 		if (node->type == EditorNodeType::TEXTURE)
 		{
@@ -870,6 +871,7 @@ void NodeEditorWindow::renderMainFrame()
 			ImNodes::PopColorStyle();
 			ImNodes::PopColorStyle();
 		}
+	#endif
 		// Image nodes
 		if (node->type == EditorNodeType::IMAGE)
 		{
