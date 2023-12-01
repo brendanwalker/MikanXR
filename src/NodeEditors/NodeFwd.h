@@ -2,6 +2,8 @@
 
 #include <memory>
 
+typedef unsigned int        ImU32;  // 32-bit unsigned integer (often used to store packed colors)
+
 class Node;
 using NodePtr = std::shared_ptr<Node>;
 using NodeConstPtr = std::shared_ptr<const Node>;

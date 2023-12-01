@@ -6,6 +6,9 @@
 #include "imgui.h"
 #include "imnodes.h"
 
+const float k_pin_alpha_default = 1.f;
+const float k_pin_alpha_invalid = 0.2f;
+
 NodePin::NodePin() 
 	: m_id(-1)
 	, m_direction(eNodePinDirection::INPUT)
@@ -14,7 +17,6 @@ NodePin::NodePin()
 
 NodePin::NodePin(NodePtr ownerNode)
 	: m_id(ownerNode->getOwnerGraph()->allocateId())
-	, m_size(1)
 	, m_direction(eNodePinDirection::INPUT)
 {
 }
@@ -25,37 +27,54 @@ float NodePin::editorComputeInputWidth() const
 	return 11.f;
 }
 
-void NodePin::editorRenderInputPin(NodeEditorState* editorState)
+bool NodePin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 {
-	float alpha = 0.2f;
+	if (!otherPinPtr)
+		return false;
+
+	// Are we trying to connect a pin back to itself?
+	if (otherPinPtr.get() != this)
+		return false;
+
+	// Are pins not of the same type?
+	if (typeid(*this) != typeid(otherPinPtr.get()))
+		return false;
+
+	// Pins sending/receiving the same size of data?
+	if (this->getDataSize() != otherPinPtr->getDataSize())
+		return false;
+
+	// Is one pin an input and the other an output?
+	if (this->getDirection() == otherPinPtr->getDirection())
+		return false;
+
+	return true;
+}
+
+float NodePin::editorComputeNodeAlpha(class NodeEditorState* editorState) const
+{
 	if (editorState->startedLinkPinId == -1)
 	{
-		alpha = 1.0f;
+		return k_pin_alpha_default;
 	}
 	else
 	{
 		NodePinPtr startPinPtr = m_ownerNode->getOwnerGraph()->getNodePinById(editorState->startedLinkPinId);
 
-		if (editorState->startedLinkPinId == m_id ||
-			(typeid(startPinPtr.get()) == typeid(*this)
-			 && startPinPtr->getDirection() == eNodePinDirection::OUTPUT
-			 && startPinPtr->getOwnerNode() != m_ownerNode))
+		if (editorState->startedLinkPinId == m_id || this->canPinsBeConnected(startPinPtr))
 		{
-			if (startPinPtr->getSize() == this->getSize())
-			{
-				alpha = 1.0f;
-			}
-			// TODO
-			/*
-			else if ((m_Pins[m_StartedLinkPinId]->ownerNode->type == EditorNodeType::PINGPONG
-					  && m_Pins[m_StartedLinkPinId]->size == 0) ||
-					 (node->type == EditorNodeType::PINGPONG && pin->size == 0))
-			{
-				alpha = 1.0f;
-			}
-			*/
+			return k_pin_alpha_default;
+		}
+		else
+		{
+			return k_pin_alpha_invalid;
 		}
 	}
+}
+
+void NodePin::editorRenderInputPin(NodeEditorState* editorState)
+{
+	const float alpha= editorComputeNodeAlpha(editorState);
 
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
 
@@ -75,41 +94,13 @@ void NodePin::editorRenderInputPin(NodeEditorState* editorState)
 
 void NodePin::editorRenderOutputPin(NodeEditorState* editorState, float prefixWidth)
 {
-	float alpha = 0.2f;
-	if (editorState->startedLinkPinId == -1)
-	{
-		alpha = 1.0f;
-	}
-	else
-	{
-		NodePinPtr startPinPtr = m_ownerNode->getOwnerGraph()->getNodePinById(editorState->startedLinkPinId);
-
-		if (editorState->startedLinkPinId == m_id ||
-			(typeid(startPinPtr.get()) == typeid(*this)
-			 && startPinPtr->getDirection() == eNodePinDirection::INPUT
-			 && startPinPtr->getOwnerNode() != m_ownerNode))
-		{
-			if (startPinPtr->getSize() == this->getSize())
-			{
-				alpha = 1.0f;
-			}
-			// TODO
-			/*
-			else if ((m_Pins[m_StartedLinkPinId]->ownerNode->type == EditorNodeType::PINGPONG
-					  && m_Pins[m_StartedLinkPinId]->size == 0) ||
-					 (node->type == EditorNodeType::PINGPONG && pin->size == 0))
-			{
-				alpha = 1.0f;
-			}
-			*/
-		}
-	}
+	const float alpha= editorComputeNodeAlpha(editorState);
 
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
 
 	ImNodesPinShape pinShape = editorRenderBeginPin(alpha);
 
-	ImNodes::BeginOutputAttribute(m_id, pinShape);	
+	ImNodes::BeginOutputAttribute(m_id, pinShape);
 	if (prefixWidth > 0.f)
 	{
 		ImGui::Dummy(ImVec2(prefixWidth, 1.0f));

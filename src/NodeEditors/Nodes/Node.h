@@ -7,6 +7,14 @@
 #include <vector>
 #include <stdint.h>
 
+struct NodeDimensions
+{
+	float titleWidth= 0.f;
+	float inputColomnWidth= 0.f;
+	float outputColomnWidth= 0.f;
+	float totalNodeWidth= 0.f;
+};
+
 class Node
 {
 public:
@@ -18,7 +26,18 @@ public:
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }
 	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
 
-	virtual void editorRender(class NodeEditorState* editorState) {}
+	virtual void editorRender(class NodeEditorState* editorState);
+
+protected:
+	virtual std::string editorGetTitle() const { return "Node"; }
+	virtual void editorRenderTitle(class NodeEditorState* editorState) const;
+	virtual ImU32 editorGetTitleBarColor() const;
+	virtual ImU32 editorGetTitleBarHoveredColor() const;
+	virtual ImU32 editorGetTitleBarSelectedColor() const;
+
+	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
+	virtual void editorRenderInputPins(NodeEditorState* editorState) const;
+	virtual void editorRenderOutputPins(NodeEditorState* editorState) const;
 
 protected:
 	int m_id;

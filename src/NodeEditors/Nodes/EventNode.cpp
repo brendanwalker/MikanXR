@@ -52,43 +52,7 @@ void EventNode::editorRender(NodeEditorState* editorState)
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 	for (auto& pin : m_pinsOut)
 	{
-		float alpha = 1.0f;
-
-		NodePinPtr pinPtr= m_ownerGraph->getNodePinById(editorState->startedLinkPinId);
-
-		if (pinPtr)
-		{
-			if (editorState->startedLinkPinId == pin->getId() ||
-				(typeid(pinPtr.get()) == typeid(pin.get())
-				 && pinPtr->getSize() == pin->getSize()
-				 && pinPtr->getDirection() == eNodePinDirection::INPUT
-				 && pinPtr->getOwnerNode().get() != this))
-			{
-				alpha = 1.0f;
-			}
-			else
-			{
-				alpha = 0.2f;
-			}
-		}
-		else
-		{
-			alpha = 1.0f;
-		}
-
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
-
-		ImNodesPinShape pinShape = pinPtr->editorRenderBeginPin(alpha);
-
-		ImNodes::BeginOutputAttribute(pin->getId(), pinShape);
-		ImGui::Text(" ");
-		ImGui::SameLine();
-		ImGui::Dummy(ImVec2(11.0f, 1.0f));
-		ImNodes::EndOutputAttribute();
-
-		pinPtr->editorRenderEndPin();
-
-		ImGui::PopStyleColor();
+		pin->editorRenderOutputPin(editorState);
 	}
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 

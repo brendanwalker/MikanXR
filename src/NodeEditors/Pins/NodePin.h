@@ -20,13 +20,16 @@ public:
 	NodePin(NodePtr ownerNode);
 
 	inline int getId() const { return m_id; }
-	inline int getSize() const { return m_size; }
 	inline eNodePinDirection getDirection() const { return m_direction; }
 	inline const std::string& getName() const { return m_name; }
 	inline NodePtr getOwnerNode() const { return m_ownerNode; }
 	inline const std::vector<NodeLinkPtr>& getConnectedLinks() const { return m_connectedLinks; }
 
+	virtual size_t getDataSize() const { return 0; }
+	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
+
 	virtual float editorComputeInputWidth() const;
+	virtual float editorComputeNodeAlpha(class NodeEditorState* editorState) const;
 	virtual void editorRenderInputPin(class NodeEditorState* editorState);
 	virtual void editorRenderInputTextEntry(class NodeEditorState* editorState) {}
 	virtual void editorRenderOutputPin(class NodeEditorState* editorState, float prefixWidth= 0.f);
@@ -39,7 +42,6 @@ public:
 
 protected:
 	int m_id;
-	int m_size;
 	eNodePinDirection m_direction;
 	std::string m_name;
 	NodePtr m_ownerNode;

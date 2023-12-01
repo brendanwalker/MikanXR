@@ -664,7 +664,6 @@ void NodeEditorWindow::renderMainFrame()
 	{
 		ImGui::OpenPopup("editor_context_menu_nodes");
 		m_bLinkHanged = true;
-
 		m_HangPos = ImGui::GetMousePos();
 	}
 
@@ -1955,6 +1954,7 @@ void NodeEditorWindow::DeleteNode(int id)
 	m_Nodes[id].reset();
 }
 
+//TODO
 void NodeEditorWindow::DeleteLink(int id, bool checkPingPongNodes)
 {
 	ImNodes::ClearLinkSelection();
@@ -2033,6 +2033,7 @@ void NodeEditorWindow::DeleteLink(int id, bool checkPingPongNodes)
 	m_Links[id].reset();
 }
 
+//TODO
 void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 {
 	bool canCreateLink = false;
