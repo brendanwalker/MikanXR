@@ -93,11 +93,6 @@ private:
 	void DeleteNode(int id);
 	void CreateLink(int startPinId, int endPinId);
 
-	ImNodesPinShape BeginPin(EditorPinPtr pin, float alpha);
-	void EndPin();
-	void InputPin(EditorNodePtr node, EditorPinPtr pin);
-	void OutputPin(EditorNodePtr node, EditorPinPtr pin);
-
 	EditorPinPtr GetConnectedPin(EditorNodePtr node, EditorLinkPtr link);
 	// The target block/image node may go through multiple program/ping-pong nodes
 	// before it is linked to the input pin
