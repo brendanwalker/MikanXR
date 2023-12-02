@@ -13,8 +13,10 @@ public:
 	EventNode();
 	EventNode(NodeGraphPtr parentGraph);
 
-	virtual void editorRender(class NodeEditorState* editorState) override;
+protected:
+	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
+	virtual std::string editorGetTitle() const override;
 
-public:
+protected:
 	eEventNodeType m_eventNodeType;
 };

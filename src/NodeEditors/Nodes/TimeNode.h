@@ -7,5 +7,7 @@ public:
 	TimeNode();
 	TimeNode(NodeGraphPtr parentGraph);
 
-	virtual void editorRender(class NodeEditorState* editorState) override;
+protected:
+	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
+	virtual std::string editorGetTitle() const override { return "Time"; }
 };

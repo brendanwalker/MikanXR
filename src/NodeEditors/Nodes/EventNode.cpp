@@ -22,43 +22,22 @@ EventNode::EventNode(NodeGraphPtr parentGraph)
 
 }
 
-void EventNode::editorRender(NodeEditorState* editorState)
+void EventNode::editorRenderPushNodeStyle(NodeEditorState* editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(150, 30, 30, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 30, 30, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 30, 30, 225));
+}
 
-	ImNodes::BeginNode(m_id);
-
-	// Title
-	ImNodes::BeginNodeTitleBar();
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-	
+std::string EventNode::editorGetTitle() const
+{
 	switch (m_eventNodeType)
 	{
 		case eEventNodeType::INIT:
-			ImGui::Text("On Init");
-			break;
+			return "On Init";
 		case eEventNodeType::FRAME:
-			ImGui::Text("On Frame");
-			break;
+			return "On Frame";
 		default:
-			break;
+			return "<INVALID EVENT>";
 	}
-
-	ImGui::PopStyleVar();
-	ImNodes::EndNodeTitleBar();
-
-	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	for (auto& pin : m_pinsOut)
-	{
-		pin->editorRenderOutputPin(editorState);
-	}
-	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-
-	ImNodes::EndNode();
-
-	ImNodes::PopColorStyle();
-	ImNodes::PopColorStyle();
-	ImNodes::PopColorStyle();
 }

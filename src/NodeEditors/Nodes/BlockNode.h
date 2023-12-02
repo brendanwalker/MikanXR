@@ -10,9 +10,11 @@ public:
 	BlockNode(NodeGraphPtr parentGraph);
 	virtual ~BlockNode();
 
-	virtual void editorRender(class NodeEditorState* editorState) override;
+protected:
+	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
+	virtual std::string editorGetTitle() const override { return "Block"; }
 
-public:
+protected:
 	int m_size= 0;
 	GLuint m_ubo= -1;
 	GLuint m_ssbo= -1;

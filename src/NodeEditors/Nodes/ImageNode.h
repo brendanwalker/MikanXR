@@ -10,9 +10,11 @@ public:
 	ImageNode(NodeGraphPtr parentGraph);
 	virtual ~ImageNode();
 
-	virtual void editorRender(class NodeEditorState* editorState) override;
+protected:
+	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
+	virtual std::string editorGetTitle() const override { return "Image"; }
 
-public:
+protected:
 	int m_sizeX= 0;
 	int m_sizeY= 0;
 	GLuint m_texture= -1;

@@ -11,6 +11,10 @@ public:
 
 	virtual void editorRender(class NodeEditorState* editorState) override;
 
-public:
+protected:
+	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
+	virtual std::string editorGetTitle() const override { return "Texture"; }
+
+protected:
 	GlTexturePtr m_target;
 };

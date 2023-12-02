@@ -19,26 +19,9 @@ Node::Node(NodeGraphPtr ownerGraph)
 	
 }
 
-ImU32 Node::editorGetTitleBarColor() const
-{ 
-	return IM_COL32(85, 85, 85, 255); 
-}
-
-ImU32 Node::editorGetTitleBarHoveredColor() const
-{
-	return IM_COL32(85, 85, 85, 255);
-}
-
-ImU32 Node::editorGetTitleBarSelectedColor() const
-{
-	return IM_COL32(85, 85, 85, 255);
-}
-
 void Node::editorRender(NodeEditorState* editorState)
 {
-	ImNodes::PushColorStyle(ImNodesCol_TitleBar, editorGetTitleBarColor());
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, editorGetTitleBarHoveredColor());
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, editorGetTitleBarSelectedColor());
+	editorRenderPushNodeStyle(editorState);
 
 	ImNodes::BeginNode(m_id);
 
@@ -57,6 +40,18 @@ void Node::editorRender(NodeEditorState* editorState)
 
 	ImNodes::EndNode();
 
+	editorRenderPopNodeStyle(editorState);
+}
+
+void Node::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+{
+	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(85, 85, 85, 255));
+	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(85, 85, 85, 255));
+	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(85, 85, 85, 255));
+}
+
+void Node::editorRenderPopNodeStyle(NodeEditorState* editorState) const
+{
 	ImNodes::PopColorStyle();
 	ImNodes::PopColorStyle();
 	ImNodes::PopColorStyle();

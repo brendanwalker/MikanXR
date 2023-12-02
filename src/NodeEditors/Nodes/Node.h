@@ -31,11 +31,10 @@ public:
 protected:
 	virtual std::string editorGetTitle() const { return "Node"; }
 	virtual void editorRenderTitle(class NodeEditorState* editorState) const;
-	virtual ImU32 editorGetTitleBarColor() const;
-	virtual ImU32 editorGetTitleBarHoveredColor() const;
-	virtual ImU32 editorGetTitleBarSelectedColor() const;
 
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
+	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const;
+	virtual void editorRenderPopNodeStyle(NodeEditorState* editorState) const;
 	virtual void editorRenderInputPins(NodeEditorState* editorState) const;
 	virtual void editorRenderOutputPins(NodeEditorState* editorState) const;
 

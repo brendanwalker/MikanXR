@@ -15,7 +15,8 @@ public:
 	ProgramNode();
 	ProgramNode(NodeGraphPtr parentGraph);
 
-	virtual void editorRender(class NodeEditorState* editorState) override;
+protected:
+	virtual std::string editorGetTitle() const override;
 
 protected:
 	GlProgramPtr m_target;
