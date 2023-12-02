@@ -15,7 +15,7 @@ NodeGraph::~NodeGraph()
 
 }
 
-NodePtr NodeGraph::getNodeById(int id)
+NodePtr NodeGraph::getNodeById(t_node_id id) const
 {
 	auto it = m_Nodes.find(id);
 	if (it != m_Nodes.end())
@@ -26,7 +26,7 @@ NodePtr NodeGraph::getNodeById(int id)
 	return NodePtr();
 }
 
-NodePinPtr NodeGraph::getNodePinById(int id)
+NodePinPtr NodeGraph::getNodePinById(t_node_pin_id id) const
 {
 	auto it = m_Pins.find(id);
 	if (it != m_Pins.end())
@@ -37,7 +37,7 @@ NodePinPtr NodeGraph::getNodePinById(int id)
 	return NodePinPtr();
 }
 
-NodeLinkPtr NodeGraph::getNodeLinkById(int id)
+NodeLinkPtr NodeGraph::getNodeLinkById(t_node_link_id id) const
 {
 	auto it = m_Links.find(id);
 	if (it != m_Links.end())
@@ -46,6 +46,35 @@ NodeLinkPtr NodeGraph::getNodeLinkById(int id)
 	}
 
 	return NodeLinkPtr();
+}
+
+bool NodeGraph::deleteLinkById(t_node_link_id id)
+{
+	auto it = m_Links.find(id);
+	if (it != m_Links.end())
+	{
+		NodeLinkPtr link= it->second;
+
+		// Let the editor know the link was deleted
+		if (OnLinkDeleted)
+			OnLinkDeleted(id);
+
+		// Remove link attachments from start and end pins
+		NodePinPtr startPin= link->getStartPin();
+		assert(startPin);
+		NodePinPtr endPin= link->getEndPin();
+		assert(endPin);
+
+		startPin->disconnectLink(link);
+		endPin->disconnectLink(link);
+
+		// Free the link
+		m_Links.erase(it);
+
+		return true;
+	}
+
+	return false;
 }
 
 void NodeGraph::editorRender(class NodeEditorState* editorState)

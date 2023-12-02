@@ -25,6 +25,8 @@ public:
 	inline NodePtr getOwnerNode() const { return m_ownerNode; }
 	inline const std::vector<NodeLinkPtr>& getConnectedLinks() const { return m_connectedLinks; }
 
+	bool disconnectLink(NodeLinkPtr linkPtr);
+
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
 

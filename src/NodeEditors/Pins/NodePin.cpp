@@ -51,6 +51,18 @@ bool NodePin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 	return true;
 }
 
+bool NodePin::disconnectLink(NodeLinkPtr linkPtr)
+{
+	auto it= std::find(m_connectedLinks.begin(), m_connectedLinks.end(), linkPtr);
+	if (it != m_connectedLinks.end())
+	{
+		m_connectedLinks.erase(it);
+		return true;
+	}
+
+	return false;
+}
+
 float NodePin::editorComputeNodeAlpha(class NodeEditorState* editorState) const
 {
 	if (editorState->startedLinkPinId == -1)

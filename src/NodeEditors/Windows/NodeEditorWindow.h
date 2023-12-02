@@ -5,6 +5,7 @@
 #include "IGlWindow.h"
 #include "EditorNodeConstants.h"
 #include "NodeEditorFwd.h"
+#include "NodeFwd.h"
 #include "NodeEditorState.h"
 #include "RendererFwd.h"
 
@@ -90,7 +91,6 @@ private:
 	void DeletePin(EditorPinPtr pin);
 	void DeleteNodePinsAndLinks(int id);
 	void DeleteNode(int id);
-	void DeleteLink(int id, bool checkPingPongNodes = true);
 	void CreateLink(int startPinId, int endPinId);
 
 	ImNodesPinShape BeginPin(EditorPinPtr pin, float alpha);
@@ -125,6 +125,9 @@ private:
 
 	void CreateTimeNode(const ImVec2& pos);
 	void CreateMousePosNode(const ImVec2& pos);
+
+protected:
+	void onLinkDeleted(t_node_link_id id);
 
 private:
 	SdlWindowUniquePtr m_sdlWindow;

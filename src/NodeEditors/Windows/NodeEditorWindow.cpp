@@ -173,6 +173,7 @@ bool NodeEditorWindow::startup()
 	{
 		// TODO: Use node graph assigned to this window
 		m_nodeGraph = std::make_shared<NodeGraph>();
+		m_nodeGraph->OnLinkDeleted+= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
 	}
 
 	return success;
@@ -731,7 +732,7 @@ void NodeEditorWindow::renderMainFrame()
 	{
 		if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 		{
-			DeleteLink(m_SelectedItemId);
+			m_nodeGraph->deleteLinkById(m_SelectedItemId);
 			UpdateLinks();
 		}
 		ImGui::EndPopup();
@@ -1446,7 +1447,7 @@ void NodeEditorWindow::renderRightPanel()
 			auto links = node->pinsOut[0]->connectedLinks;
 			for (auto& link : links)
 			{
-				DeleteLink(link->id);
+				m_nodeGraph->deleteLinkById(link->id);
 			}
 			UpdateLinks();
 			needsUpdate = true;
@@ -1546,7 +1547,7 @@ void NodeEditorWindow::renderRightPanel()
 						auto links = node->pinsOut[0]->connectedLinks;
 						for (auto& link : links)
 						{
-							DeleteLink(link->id);
+							m_nodeGraph->deleteLinkById(link->id);
 						}
 						UpdatePins();
 						UpdateLinks();
@@ -1568,7 +1569,7 @@ void NodeEditorWindow::renderRightPanel()
 					node->pinsOut[0]->size = node->size;
 					auto links = node->pinsOut[0]->connectedLinks;
 					for (auto& link : links)
-						DeleteLink(link->id);
+						m_nodeGraph->deleteLinkById(link->id);
 					m_Pins[pinIn->id] = 0;
 					DeletePin(pinIn);
 					node->pinsIn.erase(node->pinsIn.begin() + pinIndex);
@@ -1734,7 +1735,7 @@ void NodeEditorWindow::DeleteSelectedItem()
 		ids = new int[numLinks];
 		ImNodes::GetSelectedLinks(ids);
 		for (int i = 0; i < numLinks; i++)
-			DeleteLink(ids[i]);
+			m_nodeGraph->deleteLinkById(ids[i]);
 		delete[] ids;
 
 		if (numNodes > 0)
@@ -1954,83 +1955,14 @@ void NodeEditorWindow::DeleteNode(int id)
 	m_Nodes[id].reset();
 }
 
-//TODO
-void NodeEditorWindow::DeleteLink(int id, bool checkPingPongNodes)
+void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
 {
-	ImNodes::ClearLinkSelection();
-	m_SelectedItemType = SelectedItemType::NONE;
-	m_SelectedItemId = -1;
-
-	EditorLinkPtr link = m_Links[id];
-	if (!link) return;
-
-	auto& links1 = link->pPin1->connectedLinks;
-	links1.erase(std::remove(links1.begin(), links1.end(), link), links1.end());
-	if (link->pPin1->ownerNode->type == EditorNodeType::PINGPONG &&
-		link->pPin1->type == EditorPinType::BLOCK && checkPingPongNodes)
+	if (m_SelectedItemType == SelectedItemType::LINK && m_SelectedItemId == id)
 	{
-		auto node = (EditorPingPongNode*)link->pPin1->ownerNode.get();
-		bool isEmpty = true;
-		for (auto& pin : node->pinsIn)
-		{
-			if (pin->connectedLinks.size() > 0)
-			{
-				isEmpty = false;
-				break;
-			}
-		}
-		for (auto& pin : node->pinsOut)
-		{
-			if (pin->connectedLinks.size() > 0)
-			{
-				isEmpty = false;
-				break;
-			}
-		}
-		if (isEmpty)
-		{
-			node->size = 0;
-			for (auto& pin : node->pinsIn)
-				pin->size = 0;
-			for (auto& pin : node->pinsOut)
-				pin->size = 0;
-		}
+		ImNodes::ClearLinkSelection();
+		m_SelectedItemType = SelectedItemType::NONE;
+		m_SelectedItemId = -1;
 	}
-
-	auto& links2 = link->pPin2->connectedLinks;
-	links2.erase(std::remove(links2.begin(), links2.end(), link), links2.end());
-	if (link->pPin2->ownerNode->type == EditorNodeType::PINGPONG &&
-		link->pPin2->type == EditorPinType::BLOCK && checkPingPongNodes)
-	{
-		auto node = (EditorPingPongNode*)link->pPin2->ownerNode.get();
-		bool isEmpty = true;
-		for (auto& pin : node->pinsIn)
-		{
-			if (pin->connectedLinks.size() > 0)
-			{
-				isEmpty = false;
-				break;
-			}
-		}
-		for (auto& pin : node->pinsOut)
-		{
-			if (pin->connectedLinks.size() > 0)
-			{
-				isEmpty = false;
-				break;
-			}
-		}
-		if (isEmpty)
-		{
-			node->size = 0;
-			for (auto& pin : node->pinsIn)
-				pin->size = 0;
-			for (auto& pin : node->pinsOut)
-				pin->size = 0;
-		}
-	}
-
-	m_Links[id].reset();
 }
 
 //TODO
@@ -2044,12 +1976,12 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 			bool needsUpdate = false;
 			if (m_Pins[startPinId]->connectedLinks.size() > 0)
 			{
-				DeleteLink(m_Pins[startPinId]->connectedLinks[0]->id);
+				m_nodeGraph->deleteLinkById(m_Pins[startPinId]->connectedLinks[0]->id);
 				needsUpdate = true;
 			}
 			if (m_Pins[endPinId]->connectedLinks.size() > 0)
 			{
-				DeleteLink(m_Pins[endPinId]->connectedLinks[0]->id);
+				m_nodeGraph->deleteLinkById(m_Pins[endPinId]->connectedLinks[0]->id);
 				needsUpdate = true;
 			}
 			if (needsUpdate)
@@ -2064,7 +1996,7 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 				{
 					if (m_Pins[startPinId]->connectedLinks.size() > 0)
 					{
-						DeleteLink(m_Pins[startPinId]->connectedLinks[0]->id);
+						m_nodeGraph->deleteLinkById(m_Pins[startPinId]->connectedLinks[0]->id);
 						UpdateLinks();
 					}
 				}
@@ -2072,7 +2004,7 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 				{
 					if (m_Pins[endPinId]->connectedLinks.size() > 0)
 					{
-						DeleteLink(m_Pins[endPinId]->connectedLinks[0]->id);
+						m_nodeGraph->deleteLinkById(m_Pins[endPinId]->connectedLinks[0]->id);
 						UpdateLinks();
 					}
 				}
@@ -2085,7 +2017,7 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 				{
 					if (m_Pins[startPinId]->connectedLinks.size() > 0)
 					{
-						DeleteLink(m_Pins[startPinId]->connectedLinks[0]->id);
+						m_nodeGraph->deleteLinkById(m_Pins[startPinId]->connectedLinks[0]->id);
 						needsUpdate = true;
 					}
 				}
@@ -2093,7 +2025,7 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 				{
 					if (m_Pins[endPinId]->connectedLinks.size() > 0)
 					{
-						DeleteLink(m_Pins[endPinId]->connectedLinks[0]->id);
+						m_nodeGraph->deleteLinkById(m_Pins[endPinId]->connectedLinks[0]->id);
 						needsUpdate = true;
 					}
 				}
@@ -2106,28 +2038,28 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 					pin->size = m_Pins[endPinId]->size;
 					for (auto& link : pin->connectedLinks)
 					{
-						DeleteLink(link->id, false);
+						m_nodeGraph->deleteLinkById(link->id);
 						needsUpdate = true;
 					}
 					pin = pingpongNode->pinsIn[1];
 					pin->size = m_Pins[endPinId]->size;
 					for (auto& link : pin->connectedLinks)
 					{
-						DeleteLink(link->id, false);
+						m_nodeGraph->deleteLinkById(link->id);
 						needsUpdate = true;
 					}
 					pin = pingpongNode->pinsOut[0];
 					pin->size = m_Pins[endPinId]->size;
 					for (auto& link : pin->connectedLinks)
 					{
-						DeleteLink(link->id, false);
+						m_nodeGraph->deleteLinkById(link->id);
 						needsUpdate = true;
 					}
 					pin = pingpongNode->pinsOut[1];
 					pin->size = m_Pins[endPinId]->size;
 					for (auto& link : pin->connectedLinks)
 					{
-						DeleteLink(link->id, false);
+						m_nodeGraph->deleteLinkById(link->id);
 						needsUpdate = true;
 					}
 					canCreateLink = true;
@@ -2141,28 +2073,28 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 					pin->size = m_Pins[startPinId]->size;
 					for (auto& link : pin->connectedLinks)
 					{
-						DeleteLink(link->id, false);
+						m_nodeGraph->deleteLinkById(link->id);
 						needsUpdate = true;
 					}
 					pin = pingpongNode->pinsIn[1];
 					pin->size = m_Pins[startPinId]->size;
 					for (auto& link : pin->connectedLinks)
 					{
-						DeleteLink(link->id, false);
+						m_nodeGraph->deleteLinkById(link->id);
 						needsUpdate = true;
 					}
 					pin = pingpongNode->pinsOut[0];
 					pin->size = m_Pins[startPinId]->size;
 					for (auto& link : pin->connectedLinks)
 					{
-						DeleteLink(link->id, false);
+						m_nodeGraph->deleteLinkById(link->id);
 						needsUpdate = true;
 					}
 					pin = pingpongNode->pinsOut[1];
 					pin->size = m_Pins[startPinId]->size;
 					for (auto& link : pin->connectedLinks)
 					{
-						DeleteLink(link->id, false);
+						m_nodeGraph->deleteLinkById(link->id);
 						needsUpdate = true;
 					}
 					canCreateLink = true;
@@ -2177,7 +2109,7 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 			{
 				if (m_Pins[startPinId]->connectedLinks.size() > 0)
 				{
-					DeleteLink(m_Pins[startPinId]->connectedLinks[0]->id);
+					m_nodeGraph->deleteLinkById(m_Pins[startPinId]->connectedLinks[0]->id);
 					UpdateLinks();
 				}
 			}
@@ -2185,7 +2117,7 @@ void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
 			{
 				if (m_Pins[endPinId]->connectedLinks.size() > 0)
 				{
-					DeleteLink(m_Pins[endPinId]->connectedLinks[0]->id);
+					m_nodeGraph->deleteLinkById(m_Pins[endPinId]->connectedLinks[0]->id);
 					UpdateLinks();
 				}
 			}
@@ -2943,6 +2875,11 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 
 void NodeEditorWindow::shutdown()
 {
+	if (m_nodeGraph)
+	{
+		m_nodeGraph->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+	}
+
 	m_glStateStack = nullptr;
 
 	if (m_shaderCache != nullptr)
@@ -3502,7 +3439,7 @@ void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)
 	{
 		if (m_Pins[pinId]->connectedLinks.size() > 0)
 		{
-			DeleteLink(m_Pins[pinId]->connectedLinks[0]->id);
+			m_nodeGraph->deleteLinkById(m_Pins[pinId]->connectedLinks[0]->id);
 			UpdateLinks();
 		}
 		CreateLink((int)m_Pins.size() - 1, pinId);
@@ -3709,7 +3646,7 @@ void NodeEditorWindow::UpdatePingPongNode(int nodeId, EditorPingPongNodeType typ
 	for (auto& pin : node->pinsIn)
 	{
 		for (auto& link : pin->connectedLinks)
-			DeleteLink(link->id);
+			m_nodeGraph->deleteLinkById(link->id);
 		if (type == EditorPingPongNodeType::BUFFER)
 		{
 			pin->type = EditorPinType::BLOCK;
@@ -3724,7 +3661,7 @@ void NodeEditorWindow::UpdatePingPongNode(int nodeId, EditorPingPongNodeType typ
 	for (auto& pin : node->pinsOut)
 	{
 		for (auto& link : pin->connectedLinks)
-			DeleteLink(link->id);
+			m_nodeGraph->deleteLinkById(link->id);
 		if (type == EditorPingPongNodeType::BUFFER)
 		{
 			pin->type = EditorPinType::BLOCK;

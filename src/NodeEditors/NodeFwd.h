@@ -4,6 +4,10 @@
 
 typedef unsigned int        ImU32;  // 32-bit unsigned integer (often used to store packed colors)
 
+typedef int t_node_id;
+typedef int t_node_pin_id;
+typedef int t_node_link_id;
+
 class Node;
 using NodePtr = std::shared_ptr<Node>;
 using NodeConstPtr = std::shared_ptr<const Node>;
