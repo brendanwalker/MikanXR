@@ -24,11 +24,13 @@ public:
 	bool deleteLinkById(t_node_link_id id);
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDeleted;
 
+	virtual std::vector<NodeFactoryPtr> editorGetValidNodeFactories(const class NodeEditorState& editorState) const;
 	virtual void editorRender(class NodeEditorState* editorState);
 
 protected:
 	int allocateId();
 
+	std::vector<NodeFactoryPtr> m_nodeFactories;
 	std::map<t_node_id, NodePtr> m_Nodes;
 	std::map<t_node_pin_id, NodePinPtr> m_Pins;
 	std::map<t_node_link_id, NodeLinkPtr> m_Links;

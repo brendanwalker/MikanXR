@@ -678,6 +678,35 @@ void NodeEditorWindow::renderMainFrame()
 	}
 
 	// Context menu
+	renderContextMenu(editorState);
+
+	// Drag and drop creation
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (auto payload = ImGui::AcceptDragDropPayload("program"))
+		{
+			IM_ASSERT(payload->DataSize == sizeof(int));
+			int id = *(const int*)payload->Data;
+			auto mousePos = ImGui::GetMousePos();
+			CreateProgramNode(id, mousePos);
+		}
+		else if (auto payload = ImGui::AcceptDragDropPayload("texture"))
+		{
+			IM_ASSERT(payload->DataSize == sizeof(int));
+			int id = *(const int*)payload->Data;
+			auto mousePos = ImGui::GetMousePos();
+			CreateTextureNode(id, mousePos);
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	// Delete key event
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+		DeleteSelectedItem();
+}
+
+void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
+{
 	if (ImGui::GetMouseDragDelta(ImGuiMouseButton_Right).x == 0.0f
 		&& ImGui::GetMouseDragDelta(ImGuiMouseButton_Right).y == 0.0f
 		&& ImGui::IsMouseReleased(ImGuiMouseButton_Right)
@@ -708,6 +737,7 @@ void NodeEditorWindow::renderMainFrame()
 			m_HangPos = ImGui::GetMousePos();
 		}
 	}
+
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
@@ -715,31 +745,58 @@ void NodeEditorWindow::renderMainFrame()
 	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
 	if (ImGui::BeginPopup("editor_context_menu_node"))
 	{
-		if (m_Nodes[m_SelectedItemId]->type != EditorNodeType::EVENT)
+		NodePtr node;
+		if (m_SelectedItemType == SelectedItemType::NODE)
+		{
+			node= m_nodeGraph->getNodeById(m_SelectedItemId);
+		}
+
+		if (node && node->editorCanDelete())
 		{
 			if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 			{
 				m_nodeGraph->deleteNodeById(m_SelectedItemId);
-				UpdateNodes();
-				UpdatePins();
-				UpdateLinks();
 			}
 		}
 		else
+		{
 			ImGui::CloseCurrentPopup();
+		}
 		ImGui::EndPopup();
 	}
 	else if (ImGui::BeginPopup("editor_context_menu_link"))
 	{
-		if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+		if (m_SelectedItemType == SelectedItemType::LINK &&
+			ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 		{
 			m_nodeGraph->deleteLinkById(m_SelectedItemId);
-			UpdateLinks();
 		}
 		ImGui::EndPopup();
 	}
 	else if (ImGui::BeginPopup("editor_context_menu_nodes"))
 	{
+		std::vector<NodeFactoryPtr> nodeFactories= m_nodeGraph->editorGetValidNodeFactories(editorState);
+		for (NodeFactoryPtr nodeFactory : nodeFactories)
+		{
+			const std::string nodeTitle= nodeFactory->getNodeDefinition()->editorGetTitle();
+
+			if (ImGui::MenuItem(nodeTitle.c_str()))
+			{
+				NodePtr newNode= nodeFactory->createNode(editorState);
+
+				m_SelectedItemType = SelectedItemType::NODE;
+				m_SelectedItemId = newNode->getId();
+
+				ImNodes::ClearLinkSelection();
+				ImNodes::ClearNodeSelection();
+				ImNodes::SelectNode(m_SelectedItemId);
+
+				break;
+			}
+		}
+		ImGui::EndPopup();
+
+	#if 0
 		if (m_StartedLinkPinId != -1)
 		{
 			EditorPinPtr pin = m_Pins[m_StartedLinkPinId];
@@ -784,7 +841,7 @@ void NodeEditorWindow::renderMainFrame()
 					if (ImGui::MenuItem(m_Programs[i]->getProgramCode().getProgramName().c_str()))
 					{
 						CreateProgramNode(i, m_HangPos);
-						EditorProgramNodePtr newNode = 
+						EditorProgramNodePtr newNode =
 							std::static_pointer_cast<EditorProgramNode>(m_Nodes.back());
 
 						if (pin->isOutput)
@@ -906,6 +963,7 @@ void NodeEditorWindow::renderMainFrame()
 				CreateMousePosNode(m_HangPos);
 		}
 		ImGui::EndPopup();
+	#endif
 	}
 	else if (m_bLinkHanged)
 	{
@@ -914,30 +972,6 @@ void NodeEditorWindow::renderMainFrame()
 	}
 	ImGui::PopStyleColor(2);
 	ImGui::PopStyleVar(3);
-
-	// Drag and drop creation
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (auto payload = ImGui::AcceptDragDropPayload("program"))
-		{
-			IM_ASSERT(payload->DataSize == sizeof(int));
-			int id = *(const int*)payload->Data;
-			auto mousePos = ImGui::GetMousePos();
-			CreateProgramNode(id, mousePos);
-		}
-		else if (auto payload = ImGui::AcceptDragDropPayload("texture"))
-		{
-			IM_ASSERT(payload->DataSize == sizeof(int));
-			int id = *(const int*)payload->Data;
-			auto mousePos = ImGui::GetMousePos();
-			CreateTextureNode(id, mousePos);
-		}
-		ImGui::EndDragDropTarget();
-	}
-
-	// Delete key event
-	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
-		DeleteSelectedItem();
 }
 
 void NodeEditorWindow::renderBottomPanel()

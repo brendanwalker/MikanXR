@@ -2,6 +2,7 @@
 #include "Nodes/Node.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
+#include "NodeEditorState.h"
 
 #include "imnodes.h"
 
@@ -135,6 +136,57 @@ bool NodeGraph::deleteLinkById(t_node_link_id id)
 	}
 
 	return false;
+}
+
+std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEditorState& editorState) const
+{
+	std::vector<NodeFactoryPtr> validFactories;
+
+	if (editorState.startedLinkPinId != -1)
+	{
+		NodePinPtr sourcePin= getNodePinById(editorState.startedLinkPinId);
+
+		for (NodeFactoryPtr factory : m_nodeFactories)
+		{
+			NodeConstPtr nodeDefinition= factory->getNodeDefinition();
+			bool bIsValidFactory= false;
+
+			if (sourcePin->getDirection() == eNodePinDirection::INPUT)
+			{
+				for (NodePinPtr targetPin : nodeDefinition->getOutputPins())
+				{
+					if (targetPin->canPinsBeConnected(sourcePin))
+					{
+						bIsValidFactory = true;
+						break;
+					}
+				}
+			}
+			else if (sourcePin->getDirection() == eNodePinDirection::OUTPUT)
+			{
+				for (NodePinPtr targetPin : nodeDefinition->getInputPins())
+				{
+					if (targetPin->canPinsBeConnected(sourcePin))
+					{
+						bIsValidFactory = true;
+						break;
+					}
+				}
+			}
+
+			if (bIsValidFactory)
+			{
+				validFactories.push_back(factory);
+			}
+		}
+	}
+	else
+	{
+		// Return all available factories
+		validFactories= m_nodeFactories;
+	}
+
+	return validFactories;
 }
 
 void NodeGraph::editorRender(class NodeEditorState* editorState)

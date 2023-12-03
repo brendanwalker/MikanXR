@@ -13,6 +13,8 @@ public:
 	EventNode();
 	EventNode(NodeGraphPtr parentGraph);
 
+	virtual bool editorCanDelete() const override { return false; }
+
 protected:
 	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
 	virtual std::string editorGetTitle() const override;

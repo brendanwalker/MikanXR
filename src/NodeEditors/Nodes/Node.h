@@ -31,10 +31,11 @@ public:
 	bool disconnectPin(NodePinPtr pinPtr);
 	void disconnectAllPins();
 
+	virtual std::string editorGetTitle() const { return "Node"; }
+	virtual bool editorCanDelete() const { return true; }
 	virtual void editorRender(class NodeEditorState* editorState);
 
 protected:
-	virtual std::string editorGetTitle() const { return "Node"; }
 	virtual void editorRenderTitle(class NodeEditorState* editorState) const;
 
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
@@ -49,4 +50,17 @@ protected:
 	std::vector<NodePinPtr> m_pinsIn;
 	std::vector<NodePinPtr> m_pinsOut;
 	glm::vec2 m_nodePos;
+};
+
+class NodeFactory
+{
+public:
+	NodeFactory();
+	NodeFactory(NodeGraphPtr ownerGraph);
+
+	NodeConstPtr getNodeDefinition() const { return m_nodeDefinition; }
+	virtual NodePtr createNode(const class NodeEditorState& editorState) const;
+
+protected:
+	NodePtr m_nodeDefinition;
 };

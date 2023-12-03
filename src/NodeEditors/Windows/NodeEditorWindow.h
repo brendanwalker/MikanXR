@@ -71,6 +71,7 @@ private:
 	void renderToolbar();
 	void renderLeftPanel();
 	void renderMainFrame();
+	void renderContextMenu(const class NodeEditorState& editorState);
 	void renderBottomPanel();
 	void renderRightPanel();
 

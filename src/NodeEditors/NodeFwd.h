@@ -12,6 +12,10 @@ class Node;
 using NodePtr = std::shared_ptr<Node>;
 using NodeConstPtr = std::shared_ptr<const Node>;
 
+class NodeFactory;
+using NodeFactoryPtr = std::shared_ptr<NodeFactory>;
+using NodeFactoryConstPtr = std::shared_ptr<const NodeFactory>;
+
 class NodePin;
 using NodePinPtr = std::shared_ptr<NodePin>;
 using NodePinConstPtr = std::shared_ptr<const NodePin>;
