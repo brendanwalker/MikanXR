@@ -17,6 +17,7 @@
 #include "EditorPin.h"
 #include "MathGLM.h"
 #include "Graphs/NodeGraph.h"
+#include "Nodes/Node.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
 #include "TextStyle.h"
@@ -718,7 +719,7 @@ void NodeEditorWindow::renderMainFrame()
 		{
 			if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 			{
-				DeleteNode(m_SelectedItemId);
+				m_nodeGraph->deleteNodeById(m_SelectedItemId);
 				UpdateNodes();
 				UpdatePins();
 				UpdateLinks();
@@ -1539,7 +1540,7 @@ void NodeEditorWindow::renderRightPanel()
 						newPin->name = pinIn->name;
 						newPin->id = pinIn->id;
 						int id = pinIn->id;
-						DeletePin(pinIn);
+						m_nodeGraph->deletePinById(id);
 						m_Pins[id] = newPin;
 						pinIn = newPin;
 						node->size += EditorNodeUtil::PinTypeSize(newPin->type);
@@ -1571,7 +1572,7 @@ void NodeEditorWindow::renderRightPanel()
 					for (auto& link : links)
 						m_nodeGraph->deleteLinkById(link->id);
 					m_Pins[pinIn->id] = 0;
-					DeletePin(pinIn);
+					m_nodeGraph->deletePinById(pinIn->id);
 					node->pinsIn.erase(node->pinsIn.begin() + pinIndex);
 					pinIndex--;
 					UpdatePins();
@@ -1727,7 +1728,7 @@ void NodeEditorWindow::DeleteSelectedItem()
 		for (int i = 0; i < numNodes; i++)
 		{
 			if (m_Nodes[ids[i]]->type != EditorNodeType::EVENT)
-				DeleteNode(ids[i]);
+				m_nodeGraph->deleteNodeById(ids[i]);
 		}
 		delete[] ids;
 
@@ -1775,7 +1776,7 @@ void NodeEditorWindow::DeleteProgram(int ix)
 
 			if (progNode->target == m_Programs[ix])
 			{
-				DeleteNode(node->id);
+				m_nodeGraph->deleteNodeById(node->id);
 				needsUpdate = true;
 			}
 		}
@@ -1849,7 +1850,7 @@ void NodeEditorWindow::DeleteTexture(int ix)
 
 			if (texNode->target == m_Textures[ix])
 			{
-				DeleteNode(node->id);
+				m_nodeGraph->deleteNodeById(node->id);
 				needsUpdate = true;
 			}
 		}
@@ -1918,41 +1919,14 @@ void NodeEditorWindow::UpdateLinks()
 	}
 }
 
-void NodeEditorWindow::DeletePin(EditorPinPtr pin)
+void NodeEditorWindow::onNodeDeleted(t_node_id id)
 {
-	for (auto& link : pin->connectedLinks)
+	if (m_SelectedItemType == SelectedItemType::NODE && m_SelectedItemId == id)
 	{
-		if (!link) continue;
-		EditorPinPtr connectedPin = link->pPin1 == pin ? link->pPin2 : link->pPin1;
-		auto& links = connectedPin->connectedLinks;
-		links.erase(std::remove(links.begin(), links.end(), link), links.end());
-		m_Links[link->id].reset();
+		ImNodes::ClearNodeSelection();
+		m_SelectedItemType = SelectedItemType::NONE;
+		m_SelectedItemId = -1;
 	}
-
-	m_Pins[pin->id].reset();
-}
-
-void NodeEditorWindow::DeleteNodePinsAndLinks(int id)
-{
-	for (auto& pin : m_Nodes[id]->pinsIn)
-	{
-		if (!pin) continue;
-		DeletePin(pin);
-	}
-	for (auto& pin : m_Nodes[id]->pinsOut)
-	{
-		if (!pin) continue;
-		DeletePin(pin);
-	}
-}
-
-void NodeEditorWindow::DeleteNode(int id)
-{
-	ImNodes::ClearNodeSelection();
-	m_SelectedItemType = SelectedItemType::NONE;
-	m_SelectedItemId = -1;
-	DeleteNodePinsAndLinks(id);
-	m_Nodes[id].reset();
 }
 
 void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
@@ -2647,6 +2621,7 @@ void NodeEditorWindow::shutdown()
 {
 	if (m_nodeGraph)
 	{
+		m_nodeGraph->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
 		m_nodeGraph->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
 	}
 
@@ -3111,26 +3086,22 @@ void NodeEditorWindow::UpdateProgramNode(int nodeId, int progId)
 	}
 
 	// Replace the old with the new one
-	DeleteNodePinsAndLinks(nodeId);
+	m_nodeGraph->getNodeById(nodeId)->disconnectAllPins();
 	m_Nodes[nodeId].reset();
 	m_Nodes[nodeId] = node;
 }
 
 void NodeEditorWindow::SetProgramNodeFramebuffer(EditorProgramNodePtr node, int framebufferId)
 {
-	int outPinId = 0;
 	auto& pinsOut = node->pinsOut;
 	bool needsUpdate = false;
 	for (auto& outPin : pinsOut)
 	{
 		if (outPin->type == EditorPinType::TEXTURE)
 		{
-			DeletePin(outPin);
-			node->pinsOut.erase(node->pinsOut.begin() + outPinId);
-			outPinId--;
+			m_nodeGraph->deletePinById(outPin->id);
 			needsUpdate = true;
 		}
-		outPinId++;
 	}
 	if (needsUpdate)
 	{

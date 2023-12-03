@@ -19,6 +19,49 @@ Node::Node(NodeGraphPtr ownerGraph)
 	
 }
 
+bool Node::disconnectPin(NodePinPtr pinPtr)
+{
+	if (pinPtr->getDirection() == eNodePinDirection::INPUT)
+	{
+		auto it = std::find(m_pinsIn.begin(), m_pinsIn.end(), pinPtr);
+		if (it != m_pinsIn.end())
+		{
+			m_pinsIn.erase(it);
+			return true;
+		}
+	}
+	else if (pinPtr->getDirection() == eNodePinDirection::OUTPUT)
+	{
+		auto it = std::find(m_pinsOut.begin(), m_pinsOut.end(), pinPtr);
+		if (it != m_pinsOut.end())
+		{
+			m_pinsOut.erase(it);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void Node::disconnectAllPins()
+{	
+	// Delete all the output pins associated with the node
+	while (m_pinsOut.size() > 0)
+	{
+		const t_node_pin_id pinId = m_pinsOut[0]->getId();
+
+		m_ownerGraph->deletePinById(pinId);
+	}
+
+	// Delete all the input pins associated with the node
+	while (m_pinsIn.size() > 0)
+	{
+		const t_node_pin_id pinId = m_pinsIn[0]->getId();
+
+		m_ownerGraph->deletePinById(pinId);
+	}
+}
+
 void Node::editorRender(NodeEditorState* editorState)
 {
 	editorRenderPushNodeStyle(editorState);

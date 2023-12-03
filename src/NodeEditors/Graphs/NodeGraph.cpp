@@ -48,6 +48,66 @@ NodeLinkPtr NodeGraph::getNodeLinkById(t_node_link_id id) const
 	return NodeLinkPtr();
 }
 
+bool NodeGraph::deleteNodeById(t_node_id id)
+{
+	auto it = m_Nodes.find(id);
+	if (it != m_Nodes.end())
+	{
+		NodePtr node= it->second;
+
+		// Delete all pins and associated links from this node
+		node->disconnectAllPins();
+		
+		if (OnNodeDeleted)
+			OnNodeDeleted(id);
+
+		// Erase the Node
+		m_Nodes.erase(it);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool NodeGraph::deletePinById(t_node_pin_id id)
+{
+	auto it = m_Pins.find(id);
+	if (it != m_Pins.end())
+	{
+		NodePinPtr pin = it->second;
+
+		// Delete all link associated with this pin
+		// (notify editor dependent links are going away first)
+		auto& links= pin->getConnectedLinks();
+		while (links.size() > 0)
+		{
+			const t_node_link_id linkId= links[0]->getId();
+
+			deleteLinkById(linkId);
+		}
+
+		// Let the editor know the pin is about to be deleted
+		if (OnPinDeleted)
+			OnPinDeleted(id);
+
+		// Remove the Pin from the owning Node
+		NodePtr ownerNode= pin->getOwnerNode();
+		if (ownerNode)
+		{
+			ownerNode->disconnectPin(pin);
+		}
+
+		// Erase the Pin
+		m_Pins.erase(it);
+
+		return true;
+	}
+
+	return false;
+}
+
+
 bool NodeGraph::deleteLinkById(t_node_link_id id)
 {
 	auto it = m_Links.find(id);
@@ -55,7 +115,7 @@ bool NodeGraph::deleteLinkById(t_node_link_id id)
 	{
 		NodeLinkPtr link= it->second;
 
-		// Let the editor know the link was deleted
+		// Let the editor know the link is about to be deleted
 		if (OnLinkDeleted)
 			OnLinkDeleted(id);
 

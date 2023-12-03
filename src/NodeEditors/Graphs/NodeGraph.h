@@ -15,6 +15,12 @@ public:
 	NodePinPtr getNodePinById(t_node_pin_id id) const;
 	NodeLinkPtr getNodeLinkById(t_node_link_id id) const;
 
+	bool deleteNodeById(t_node_id id);
+	MulticastDelegate<void(t_node_id id)> OnNodeDeleted;
+
+	bool deletePinById(t_node_pin_id id);
+	MulticastDelegate<void(t_node_pin_id id)> OnPinDeleted;
+
 	bool deleteLinkById(t_node_link_id id);
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDeleted;
 

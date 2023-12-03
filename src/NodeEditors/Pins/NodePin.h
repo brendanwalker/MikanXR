@@ -19,7 +19,7 @@ public:
 	NodePin();
 	NodePin(NodePtr ownerNode);
 
-	inline int getId() const { return m_id; }
+	inline t_node_pin_id getId() const { return m_id; }
 	inline eNodePinDirection getDirection() const { return m_direction; }
 	inline const std::string& getName() const { return m_name; }
 	inline NodePtr getOwnerNode() const { return m_ownerNode; }
@@ -43,7 +43,7 @@ public:
 	virtual ImU32 editorGetLinkStyleColor() const;
 
 protected:
-	int m_id;
+	t_node_pin_id m_id;
 	eNodePinDirection m_direction;
 	std::string m_name;
 	NodePtr m_ownerNode;

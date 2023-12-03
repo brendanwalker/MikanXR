@@ -88,9 +88,6 @@ private:
 	void UpdateNodes();
 	void UpdatePins();
 	void UpdateLinks();
-	void DeletePin(EditorPinPtr pin);
-	void DeleteNodePinsAndLinks(int id);
-	void DeleteNode(int id);
 	void CreateLink(int startPinId, int endPinId);
 
 	EditorPinPtr GetConnectedPin(EditorNodePtr node, EditorLinkPtr link);
@@ -122,6 +119,7 @@ private:
 	void CreateMousePosNode(const ImVec2& pos);
 
 protected:
+	void onNodeDeleted(t_node_id id);
 	void onLinkDeleted(t_node_link_id id);
 
 private:

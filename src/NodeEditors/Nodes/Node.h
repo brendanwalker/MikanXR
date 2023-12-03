@@ -24,7 +24,12 @@ public:
 	inline int getId() const { return m_id; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }
+	inline const std::vector<NodePinPtr>& getInputPins() const { return m_pinsIn; }
+	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }
 	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
+
+	bool disconnectPin(NodePinPtr pinPtr);
+	void disconnectAllPins();
 
 	virtual void editorRender(class NodeEditorState* editorState);
 
