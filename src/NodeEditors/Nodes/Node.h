@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NodeFwd.h"
+#include "Pins/NodePinConstants.h"
 #include "glm/ext/vector_float2.hpp"
 
 #include <string>
@@ -15,11 +16,12 @@ struct NodeDimensions
 	float totalNodeWidth= 0.f;
 };
 
-class Node
+class Node : public std::enable_shared_from_this<Node>
 {
 public:
 	Node();
 	Node(NodeGraphPtr ownerGraph);
+	virtual ~Node() {}
 
 	inline int getId() const { return m_id; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
@@ -28,21 +30,34 @@ public:
 	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }
 	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
 
+	template <class t_pin_type>
+	std::shared_ptr<t_pin_type> addPin(const std::string& name, eNodePinDirection direction)
+	{
+		std::shared_ptr<t_pin_type> pin= std::make_shared<t_pin_type>(shared_from_this());
+		pin->setName(name);
+		pin->setDirection(direction);
+		if (direction == eNodePinDirection::OUTPUT) m_pinsOut.push_back(pin);
+		else if (direction == eNodePinDirection::INPUT) m_pinsOut.push_back(pin);
+
+		return pin;
+	}
+
 	bool disconnectPin(NodePinPtr pinPtr);
 	void disconnectAllPins();
 
 	virtual std::string editorGetTitle() const { return "Node"; }
 	virtual bool editorCanDelete() const { return true; }
-	virtual void editorRender(class NodeEditorState* editorState);
+	virtual void editorRenderNode(const NodeEditorState& editorState);
+	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}
 
 protected:
-	virtual void editorRenderTitle(class NodeEditorState* editorState) const;
+	virtual void editorRenderTitle(const NodeEditorState& editorState) const;
 
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
-	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const;
-	virtual void editorRenderPopNodeStyle(NodeEditorState* editorState) const;
-	virtual void editorRenderInputPins(NodeEditorState* editorState) const;
-	virtual void editorRenderOutputPins(NodeEditorState* editorState) const;
+	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const;
+	virtual void editorRenderPopNodeStyle(const NodeEditorState& editorState) const;
+	virtual void editorRenderInputPins(const NodeEditorState& editorState) const;
+	virtual void editorRenderOutputPins(const NodeEditorState& editorState) const;
 
 protected:
 	int m_id;

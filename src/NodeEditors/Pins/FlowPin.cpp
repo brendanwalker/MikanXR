@@ -22,7 +22,7 @@ void FlowPin::editorRenderBeginLink(float alpha)
 	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(255, 255, 255, 255));
 }
 
-void FlowPin::editorRenderContextMenu(class NodeEditorState* editorState)
+void FlowPin::editorRenderContextMenu(const NodeEditorState& editorState)
 {
 }
 

@@ -26,12 +26,12 @@ ImNodesPinShape IntPinBase::editorRenderBeginPin(float alpha)
 	return pinShape;	
 }
 
-void IntPinBase::editorRenderContextMenu(class NodeEditorState* editorState)
+void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState)
 {
 }
 
 // -- IntPin -----
-void IntPin::editorRenderInputTextEntry(class NodeEditorState* editorState)
+void IntPin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
 	{
@@ -54,7 +54,7 @@ ImU32 IntPin::editorGetLinkStyleColor() const
 }
 
 // -- Int2Pin -----
-void Int2Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
+void Int2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
 	{
@@ -66,7 +66,7 @@ void Int2Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
 }
 
 // -- Int3Pin -----
-void Int3Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
+void Int3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
 	{
@@ -78,7 +78,7 @@ void Int3Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
 }
 
 // -- Int4Pin -----
-void Int4Pin::editorRenderInputTextEntry(class NodeEditorState* editorState)
+void Int4Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
 	{

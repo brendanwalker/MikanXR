@@ -22,7 +22,7 @@ void BlockPin::editorRenderBeginLink(float alpha)
 	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(137, 196, 247, 255));
 }
 
-void BlockPin::editorRenderContextMenu(class NodeEditorState* editorState)
+void BlockPin::editorRenderContextMenu(const NodeEditorState& editorState)
 {
 }
 

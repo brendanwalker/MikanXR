@@ -22,7 +22,7 @@ void ImagePin::editorRenderBeginLink(float alpha)
 	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(220, 170, 255, 255));
 }
 
-void ImagePin::editorRenderContextMenu(class NodeEditorState* editorState)
+void ImagePin::editorRenderContextMenu(const NodeEditorState& editorState)
 {
 }
 

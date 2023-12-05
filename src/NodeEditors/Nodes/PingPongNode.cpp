@@ -16,7 +16,7 @@ PingPongNode::PingPongNode(NodeGraphPtr parentGraph)
 {
 }
 
-void PingPongNode::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+void PingPongNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(83, 124, 153, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(83, 124, 153, 225));

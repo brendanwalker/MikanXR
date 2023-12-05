@@ -5,7 +5,7 @@
 class NodeEditorState
 {
 public:
-	int startedLinkPinId;
-	bool bLinkHanged;
-	ImVec2 hangPos;
+	int startedLinkPinId= -1;
+	bool bLinkHanged= false;
+	ImVec2 hangPos= {};
 };

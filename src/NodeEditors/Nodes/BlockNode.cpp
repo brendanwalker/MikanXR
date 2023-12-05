@@ -25,7 +25,7 @@ BlockNode::~BlockNode()
 		glDeleteBuffers(1, &m_ssbo);
 }
 
-void BlockNode::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+void BlockNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(83, 124, 153, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(83, 124, 153, 225));

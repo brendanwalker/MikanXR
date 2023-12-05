@@ -12,7 +12,7 @@ TimeNode::TimeNode() : Node()
 TimeNode::TimeNode(NodeGraphPtr parentGraph) : Node(parentGraph)
 {}
 
-void TimeNode::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+void TimeNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(110, 146, 104, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(110, 146, 104, 225));

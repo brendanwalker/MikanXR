@@ -1,17 +1,12 @@
 #pragma once
 
 #include "NodeFwd.h"
+#include "NodePinConstants.h"
 
 #include "imnodes.h"
 
 #include <string>
 #include <vector>
-
-enum class eNodePinDirection : int
-{
-	INPUT,
-	OUTPUT
-};
 
 class NodePin
 {
@@ -25,21 +20,24 @@ public:
 	inline NodePtr getOwnerNode() const { return m_ownerNode; }
 	inline const std::vector<NodeLinkPtr>& getConnectedLinks() const { return m_connectedLinks; }
 
+	inline void setName(const std::string& name) { m_name= name; }
+	inline void setDirection(eNodePinDirection direction) { m_direction= direction; }
+
 	bool disconnectLink(NodeLinkPtr linkPtr);
 
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
 
 	virtual float editorComputeInputWidth() const;
-	virtual float editorComputeNodeAlpha(class NodeEditorState* editorState) const;
-	virtual void editorRenderInputPin(class NodeEditorState* editorState);
-	virtual void editorRenderInputTextEntry(class NodeEditorState* editorState) {}
-	virtual void editorRenderOutputPin(class NodeEditorState* editorState, float prefixWidth= 0.f);
+	virtual float editorComputeNodeAlpha(const NodeEditorState& editorState) const;
+	virtual void editorRenderInputPin(const NodeEditorState& editorState);
+	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) {}
+	virtual void editorRenderOutputPin(const NodeEditorState& editorState, float prefixWidth= 0.f);
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha);
 	virtual void editorRenderEndPin();
 	virtual void editorRenderBeginLink(float alpha);
 	virtual void editorRenderEndLink();
-	virtual void editorRenderContextMenu(class NodeEditorState* editorState) {}
+	virtual void editorRenderContextMenu(const NodeEditorState& editorState) {}
 	virtual ImU32 editorGetLinkStyleColor() const;
 
 protected:

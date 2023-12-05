@@ -21,7 +21,7 @@ ImageNode::~ImageNode()
 		glDeleteTextures(1, &m_texture);
 }
 
-void ImageNode::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+void ImageNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(118, 32, 140, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(118, 32, 140, 225));

@@ -11,7 +11,7 @@ public:
 	virtual ~BlockNode();
 
 protected:
-	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
+	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override { return "Block"; }
 
 protected:

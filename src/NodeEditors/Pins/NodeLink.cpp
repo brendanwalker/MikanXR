@@ -16,9 +16,9 @@ NodeLink::NodeLink(NodeGraphPtr ownerGraph)
 {
 }
 
-void NodeLink::editorRender(NodeEditorState* editorState)
+void NodeLink::editorRender(const NodeEditorState& editorState)
 {
-	const int alpha = editorState->startedLinkPinId == -1 ? 255 : 50;
+	const int alpha = editorState.startedLinkPinId == -1 ? 255 : 50;
 
 	m_pPin1->editorRenderBeginLink(alpha);
 	ImNodes::Link(m_id, m_pPin1->getId(), m_pPin2->getId());

@@ -62,7 +62,7 @@ void Node::disconnectAllPins()
 	}
 }
 
-void Node::editorRender(NodeEditorState* editorState)
+void Node::editorRenderNode(const NodeEditorState& editorState)
 {
 	editorRenderPushNodeStyle(editorState);
 
@@ -86,14 +86,14 @@ void Node::editorRender(NodeEditorState* editorState)
 	editorRenderPopNodeStyle(editorState);
 }
 
-void Node::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+void Node::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(85, 85, 85, 255));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(85, 85, 85, 255));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(85, 85, 85, 255));
 }
 
-void Node::editorRenderPopNodeStyle(NodeEditorState* editorState) const
+void Node::editorRenderPopNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PopColorStyle();
 	ImNodes::PopColorStyle();
@@ -133,7 +133,7 @@ void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
 			outDims.inputColomnWidth + outDims.outputColomnWidth);
 }
 
-void Node::editorRenderTitle(NodeEditorState* editorState) const
+void Node::editorRenderTitle(const NodeEditorState& editorState) const
 {
 	const std::string titleString= editorGetTitle();
 
@@ -144,7 +144,7 @@ void Node::editorRenderTitle(NodeEditorState* editorState) const
 	ImNodes::EndNodeTitleBar();
 }
 
-void Node::editorRenderInputPins(NodeEditorState* editorState) const
+void Node::editorRenderInputPins(const NodeEditorState& editorState) const
 {
 	if (m_pinsIn.size() > 0)
 	{
@@ -158,8 +158,7 @@ void Node::editorRenderInputPins(NodeEditorState* editorState) const
 	}
 }
 
-void Node::editorRenderOutputPins(
-	NodeEditorState* editorState) const
+void Node::editorRenderOutputPins(const NodeEditorState& editorState) const
 {
 	if (m_pinsOut.size() == 0)
 		return;

@@ -106,7 +106,7 @@ private:
 	EditorProgramNodePtr CreateProgramNodePtr(int progId, const ImVec2& pos);
 	void CreateProgramNode(int progId, const ImVec2& pos);
 	void UpdateProgramNode(int nodeId, int progId);
-	void SetProgramNodeFramebuffer(EditorProgramNodePtr node, int framebufferId);
+	//void SetProgramNodeFramebuffer(EditorProgramNodePtr node, int framebufferId);
 
 	void CreateBlockNode(const ImVec2& pos, int pinId = -1);
 	void CreateTextureNode(int textureId, const ImVec2& pos);
@@ -132,6 +132,7 @@ private:
 	struct ImFont* m_BigIconFont= nullptr;
 
 	std::vector<GlProgramPtr> m_Programs;
+	FrameBufferArrayPropertyPtr m_frameBufferArrayProperty;
 	std::vector<GlFrameBufferPtr> m_Framebuffers;
 	std::vector<GlTexturePtr> m_Textures;
 
@@ -139,9 +140,7 @@ private:
 	std::vector<EditorNodePtr> m_Nodes;
 	std::vector<EditorPinPtr> m_Pins;
 	std::vector<EditorLinkPtr> m_Links;
-	int m_StartedLinkPinId;
-	bool m_bLinkHanged;
-	ImVec2 m_HangPos;
+	NodeEditorState m_editorState;
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;

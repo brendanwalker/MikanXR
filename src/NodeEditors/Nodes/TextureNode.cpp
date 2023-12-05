@@ -15,14 +15,14 @@ TextureNode::TextureNode(NodeGraphPtr parentGraph)
 	: Node(parentGraph)
 {}
 
-void TextureNode::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+void TextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
 }
 
-void TextureNode::editorRender(NodeEditorState* editorState)
+void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 {
 	editorRenderPushNodeStyle(editorState);
 

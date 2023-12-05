@@ -23,6 +23,7 @@
 #include "TextStyle.h"
 
 #include "Pins/NodePin.h"
+#include "Properties/GraphArrayProperty.h"
 
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -175,6 +176,8 @@ bool NodeEditorWindow::startup()
 		// TODO: Use node graph assigned to this window
 		m_nodeGraph = std::make_shared<NodeGraph>();
 		m_nodeGraph->OnLinkDeleted+= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+
+		m_frameBufferArrayProperty = m_nodeGraph->getTypedPropertyByName<FrameBufferArrayProperty>("framebuffers");
 	}
 
 	return success;
@@ -185,6 +188,7 @@ void NodeEditorWindow::update()
 	EASY_FUNCTION();
 
 	// Update nodes
+#if 0
 	bool needsUpdate = false;
 	for (int i = 0; i < m_Programs.size(); i++)
 	{
@@ -229,6 +233,7 @@ void NodeEditorWindow::update()
 		UpdatePins();
 		UpdateLinks();
 	}
+#endif
 
 	if (m_OnInit)
 	{
@@ -623,12 +628,7 @@ void NodeEditorWindow::renderMainFrame()
 
 	ImNodes::BeginNodeEditor();
 
-	NodeEditorState editorState;
-	editorState.bLinkHanged= m_bLinkHanged;
-	editorState.hangPos= m_HangPos;
-	editorState.startedLinkPinId= m_StartedLinkPinId;
-
-	m_nodeGraph->editorRender(&editorState);
+	m_nodeGraph->editorRender(m_editorState);
 
 	ImNodes::EndNodeEditor();
 	ImGui::EndChild();
@@ -652,9 +652,9 @@ void NodeEditorWindow::renderMainFrame()
 	}
 
 	// Start link
-	if (ImNodes::IsLinkStarted(&m_StartedLinkPinId))
+	if (ImNodes::IsLinkStarted(&m_editorState.startedLinkPinId))
 	{
-		NodePinPtr pinPtr= m_nodeGraph->getNodePinById(m_StartedLinkPinId);
+		NodePinPtr pinPtr= m_nodeGraph->getNodePinById(m_editorState.startedLinkPinId);
 		if (pinPtr)
 		{
 			ImNodes::GetStyle().Colors[ImNodesCol_Link] = pinPtr->editorGetLinkStyleColor();
@@ -665,20 +665,20 @@ void NodeEditorWindow::renderMainFrame()
 	if (ImNodes::IsLinkDropped())
 	{
 		ImGui::OpenPopup("editor_context_menu_nodes");
-		m_bLinkHanged = true;
-		m_HangPos = ImGui::GetMousePos();
+		m_editorState.bLinkHanged = true;
+		m_editorState.hangPos = ImGui::GetMousePos();
 	}
 
 	// Link creation
 	int startPinId, endPinId;
 	if (ImNodes::IsLinkCreated(&startPinId, &endPinId))
 	{
-		m_StartedLinkPinId = -1;
+		m_editorState.startedLinkPinId = -1;
 		CreateLink(startPinId, endPinId);
 	}
 
 	// Context menu
-	renderContextMenu(editorState);
+	renderContextMenu(m_editorState);
 
 	// Drag and drop creation
 	if (ImGui::BeginDragDropTarget())
@@ -734,7 +734,7 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 		else
 		{
 			ImGui::OpenPopup("editor_context_menu_nodes");
-			m_HangPos = ImGui::GetMousePos();
+			m_editorState.hangPos = ImGui::GetMousePos();
 		}
 	}
 
@@ -965,10 +965,10 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 		ImGui::EndPopup();
 	#endif
 	}
-	else if (m_bLinkHanged)
+	else if (m_editorState.bLinkHanged)
 	{
-		m_bLinkHanged = false;
-		m_StartedLinkPinId = -1;
+		m_editorState.bLinkHanged = false;
+		m_editorState.startedLinkPinId = -1;
 	}
 	ImGui::PopStyleColor(2);
 	ImGui::PopStyleVar(3);
@@ -1101,7 +1101,16 @@ void NodeEditorWindow::renderRightPanel()
 	ImGui::SameLine();
 	ImGui::BeginChild("Right Panel", ImVec2(344, ImGui::GetContentRegionAvail().y));
 
-	if (m_SelectedItemType == SelectedItemType::PROGRAM)
+	if (m_SelectedItemType == SelectedItemType::NODE)
+	{
+		NodePtr node= m_nodeGraph->getNodeById(m_SelectedItemId);
+
+		if (node)
+		{
+			node->editorRenderPropertySheet(m_editorState);
+		}
+	}
+	else if (m_SelectedItemType == SelectedItemType::PROGRAM)
 	{
 		// Section 1: Basic info
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -1312,146 +1321,6 @@ void NodeEditorWindow::renderRightPanel()
 				bool hasRenderbuffer = m_Framebuffers[m_SelectedItemId]->hasRenderbuffer();
 				if (ImGui::Checkbox("##framebufferRenderbuffer", &hasRenderbuffer))
 					m_Framebuffers[m_SelectedItemId]->setRenderbuffer(hasRenderbuffer);
-			}
-		}
-	}
-
-	else if (m_SelectedItemType == SelectedItemType::PROGRAM_NODE)
-	{
-		// title bar
-		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		bool isNodeOpened = ImGui::CollapsingHeader("Program Node", ImGuiTreeNodeFlags_SpanAvailWidth);
-		ImGui::PopStyleVar(3);
-		ImGui::PopStyleColor(3);
-
-		if (isNodeOpened)
-		{
-			EditorProgramNodePtr node = std::static_pointer_cast<EditorProgramNode>(m_Nodes[m_SelectedItemId]);
-
-			// Dispatch type
-			ImGui::Text("\t\tDispatch Type");
-			ImGui::SameLine(160);
-			ImGui::SetNextItemWidth(150);
-			int iVal = (int)node->dispatchType;
-			const char* items = "Array\0Compute\0";
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-			if (ImGui::Combo("##progNodeDispatchType", &iVal, items))
-			{
-				node->drawMode = GL_POINTS;
-				if (iVal == 0)
-				{
-					node->dispatchType = EditorProgramDispatchType::ARRAY;
-					node->dispatchSize[0] = 0;
-					node->dispatchSize[1] = 0;
-					node->dispatchSize[2] = 0;
-				}
-				else if (iVal == 1)
-				{
-					node->dispatchType = EditorProgramDispatchType::COMPUTE;
-					node->dispatchSize[0] = 1;
-					node->dispatchSize[1] = 1;
-					node->dispatchSize[2] = 1;
-					SetProgramNodeFramebuffer(node, 0);
-				}
-			}
-			ImGui::PopStyleColor();
-
-			if (node->dispatchType == EditorProgramDispatchType::ARRAY)
-			{
-				// Framebuffer
-				ImGui::Text("\t\tFramebuffer");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-
-				const std::string& frameBufferName= node->framebuffer ? node->framebuffer->getName() : "<INVALID>";
-				if (ImGui::BeginCombo("##progNodeFramebuffer", frameBufferName.c_str()))
-				{
-					int index = 0;
-					for (auto& framebuffer : m_Framebuffers)
-					{
-						const bool is_selected = (node->framebuffer == framebuffer);
-						if (ImGui::Selectable(framebuffer->getName().c_str(), is_selected))
-							SetProgramNodeFramebuffer(node, index);
-						if (is_selected)
-							ImGui::SetItemDefaultFocus();
-						index++;
-					}
-					ImGui::EndCombo();
-				}
-				ImGui::PopStyleColor();
-
-				// Draw mode
-				ImGui::Text("\t\tDraw Mode");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				iVal = EditorNodeUtil::GLDrawModeToIndex(node->drawMode);
-				items =
-					"Points\0"
-					"Line Strip\0"
-					"Line Loop\0"
-					"Lines\0"
-					"Line Strip Adjacency\0"
-					"Lines Adjacency\0"
-					"Triangle Strip\0"
-					"Triangle Fan\0"
-					"Triangles\0"
-					"Triangle Strip Adjacency\0"
-					"Triangles Adjacency\0";
-				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-				if (ImGui::Combo("##progNodeDrawMode", &iVal, items))
-					node->drawMode = EditorNodeUtil::IndexToGLDrawMode(iVal);
-				ImGui::PopStyleColor();
-
-				// Size
-				ImGui::Text("\t\tSize");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				iVal = node->dispatchSize[0];
-				if (ImGui::DragInt("##progNodeDrawSize", &iVal, 1.0f))
-				{
-					if (iVal < 0) iVal = 0;
-					node->dispatchSize[0] = iVal;
-				}
-			}
-
-			else if (node->dispatchType == EditorProgramDispatchType::COMPUTE)
-			{
-				int size[3]{};
-				size[0] = node->dispatchSize[0];
-				size[1] = node->dispatchSize[1];
-				size[2] = node->dispatchSize[2];
-				// Dispatch size
-				ImGui::Text("\t\tWork Group Size X");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				if (ImGui::DragInt("##progNodeWorkGroupSizeX", &size[0], 1.0f))
-				{
-					if (size[0] < 0) size[0] = 0;
-					node->dispatchSize[0] = size[0];
-				}
-				ImGui::Text("\t\tWork Group Size Y");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				if (ImGui::DragInt("##progNodeWorkGroupSizeY", &size[1], 1.0f))
-				{
-					if (size[1] < 0) size[1] = 0;
-					node->dispatchSize[1] = size[1];
-				}
-				ImGui::Text("\t\tWork Group Size Z");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				if (ImGui::DragInt("##progNodeWorkGroupSizeZ", &size[2], 1.0f))
-				{
-					if (size[2] < 0) size[2] = 0;
-					node->dispatchSize[2] = size[2];
-				}
 			}
 		}
 	}
@@ -1832,39 +1701,24 @@ void NodeEditorWindow::DeleteProgram(int ix)
 
 void NodeEditorWindow::AddFramebuffer(GlFrameBufferPtr pFramebuffer)
 {
-	m_Framebuffers.push_back(pFramebuffer);
+	if (m_frameBufferArrayProperty)
+	{
+		m_frameBufferArrayProperty->getArrayMutable().push_back(pFramebuffer);
+		m_frameBufferArrayProperty->notifyPropertyModified();
+	}
 }
 
 void NodeEditorWindow::DeleteFramebuffer(int ix)
 {
-	if (ix == 0)
-		return;
-
-	bool needsUpdate = false;
-	for (auto& node : m_Nodes)
+	if (m_frameBufferArrayProperty)
 	{
-		if (node->type == EditorNodeType::PROGRAM)
+		auto frameBufferArray= m_frameBufferArrayProperty->getArrayMutable();
+
+		if (ix >= 0 && ix < (int)frameBufferArray.size())
 		{
-			EditorProgramNodePtr progNode = std::static_pointer_cast<EditorProgramNode>(node);
-			if (progNode->framebuffer == m_Framebuffers[ix])
-			{
-				progNode->framebuffer = m_Framebuffers[0];
-				SetProgramNodeFramebuffer(progNode, 0);
-				needsUpdate = true;
-			}
+			frameBufferArray.erase(frameBufferArray.begin() + ix);
+			m_frameBufferArrayProperty->notifyPropertyModified();
 		}
-	}
-	if (needsUpdate)
-	{
-		UpdatePins();
-		UpdateLinks();
-	}
-
-	{
-		GlFrameBufferPtr framebuffer= m_Framebuffers[ix];
-
-		framebuffer->disposeFrameBuffer();
-		m_Framebuffers.erase(m_Framebuffers.begin() + ix);
 	}
 }
 
@@ -2653,6 +2507,8 @@ void NodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 
 void NodeEditorWindow::shutdown()
 {
+	m_frameBufferArrayProperty= nullptr;
+
 	if (m_nodeGraph)
 	{
 		m_nodeGraph->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
@@ -3014,7 +2870,8 @@ void NodeEditorWindow::UpdateProgramNode(int nodeId, int progId)
 	if (iter != m_Framebuffers.end())
 	{
 		int index = iter - m_Framebuffers.begin();
-		SetProgramNodeFramebuffer(node, index);
+		//TODO
+		//SetProgramNodeFramebuffer(node, index);
 	}
 	node->dispatchType = nodeOld->dispatchType;
 	node->drawMode = nodeOld->drawMode;
@@ -3123,39 +2980,6 @@ void NodeEditorWindow::UpdateProgramNode(int nodeId, int progId)
 	m_nodeGraph->getNodeById(nodeId)->disconnectAllPins();
 	m_Nodes[nodeId].reset();
 	m_Nodes[nodeId] = node;
-}
-
-void NodeEditorWindow::SetProgramNodeFramebuffer(EditorProgramNodePtr node, int framebufferId)
-{
-	auto& pinsOut = node->pinsOut;
-	bool needsUpdate = false;
-	for (auto& outPin : pinsOut)
-	{
-		if (outPin->type == EditorPinType::TEXTURE)
-		{
-			m_nodeGraph->deletePinById(outPin->id);
-			needsUpdate = true;
-		}
-	}
-	if (needsUpdate)
-	{
-		UpdatePins();
-		UpdateLinks();
-	}
-
-	GlFrameBufferPtr framebuffer = m_Framebuffers[framebufferId];
-	for (int i = 0; i < framebuffer->getNumAttachments(); i++)
-	{
-		EditorPinPtr pin = std::make_shared<EditorPin>();
-		pin->name = "Attachment " + std::to_string(i);
-		pin->id = (int)m_Pins.size();
-		pin->isOutput = true;
-		pin->type = EditorPinType::TEXTURE;
-		pin->ownerNode = node;
-		node->pinsOut.push_back(pin);
-		m_Pins.push_back(pin);
-	}
-	node->framebuffer = framebuffer;
 }
 
 void NodeEditorWindow::CreateBlockNode(const ImVec2& pos, int pinId)

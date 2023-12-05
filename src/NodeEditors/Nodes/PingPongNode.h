@@ -14,7 +14,7 @@ public:
 	PingPongNode(NodeGraphPtr parentGraph);
 
 protected:
-	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
+	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override { return "Ping-Pong"; }
 
 protected:

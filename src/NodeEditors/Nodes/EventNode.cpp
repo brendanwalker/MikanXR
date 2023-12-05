@@ -22,7 +22,7 @@ EventNode::EventNode(NodeGraphPtr parentGraph)
 
 }
 
-void EventNode::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+void EventNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(150, 30, 30, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 30, 30, 225));

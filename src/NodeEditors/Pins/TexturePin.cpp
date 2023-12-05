@@ -22,7 +22,7 @@ void TexturePin::editorRenderBeginLink(float alpha)
 	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(183, 137, 137, 255));
 }
 
-void TexturePin::editorRenderContextMenu(class NodeEditorState* editorState)
+void TexturePin::editorRenderContextMenu(const NodeEditorState& editorState)
 {
 }
 

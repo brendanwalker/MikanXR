@@ -11,13 +11,14 @@ const float k_pin_alpha_invalid = 0.2f;
 
 NodePin::NodePin() 
 	: m_id(-1)
-	, m_direction(eNodePinDirection::INPUT)
+	, m_direction(eNodePinDirection::INVALID)
 {
 }
 
-NodePin::NodePin(NodePtr ownerNode)
+NodePin::NodePin(
+	NodePtr ownerNode)
 	: m_id(ownerNode->getOwnerGraph()->allocateId())
-	, m_direction(eNodePinDirection::INPUT)
+	, m_direction(eNodePinDirection::INVALID)
 {
 }
 
@@ -63,17 +64,17 @@ bool NodePin::disconnectLink(NodeLinkPtr linkPtr)
 	return false;
 }
 
-float NodePin::editorComputeNodeAlpha(class NodeEditorState* editorState) const
+float NodePin::editorComputeNodeAlpha(const NodeEditorState& editorState) const
 {
-	if (editorState->startedLinkPinId == -1)
+	if (editorState.startedLinkPinId == -1)
 	{
 		return k_pin_alpha_default;
 	}
 	else
 	{
-		NodePinPtr startPinPtr = m_ownerNode->getOwnerGraph()->getNodePinById(editorState->startedLinkPinId);
+		NodePinPtr startPinPtr = m_ownerNode->getOwnerGraph()->getNodePinById(editorState.startedLinkPinId);
 
-		if (editorState->startedLinkPinId == m_id || this->canPinsBeConnected(startPinPtr))
+		if (editorState.startedLinkPinId == m_id || this->canPinsBeConnected(startPinPtr))
 		{
 			return k_pin_alpha_default;
 		}
@@ -84,7 +85,7 @@ float NodePin::editorComputeNodeAlpha(class NodeEditorState* editorState) const
 	}
 }
 
-void NodePin::editorRenderInputPin(NodeEditorState* editorState)
+void NodePin::editorRenderInputPin(const NodeEditorState& editorState)
 {
 	const float alpha= editorComputeNodeAlpha(editorState);
 
@@ -104,7 +105,7 @@ void NodePin::editorRenderInputPin(NodeEditorState* editorState)
 	ImGui::PopStyleColor();
 }
 
-void NodePin::editorRenderOutputPin(NodeEditorState* editorState, float prefixWidth)
+void NodePin::editorRenderOutputPin(const NodeEditorState& editorState, float prefixWidth)
 {
 	const float alpha= editorComputeNodeAlpha(editorState);
 

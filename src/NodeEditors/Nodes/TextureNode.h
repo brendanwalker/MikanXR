@@ -9,10 +9,10 @@ public:
 	TextureNode();
 	TextureNode(NodeGraphPtr parentGraph);
 
-	virtual void editorRender(class NodeEditorState* editorState) override;
+	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 
 protected:
-	virtual void editorRenderPushNodeStyle(NodeEditorState* editorState) const override;
+	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override { return "Texture"; }
 
 protected:

@@ -2,6 +2,7 @@
 #include "Nodes/Node.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
+#include "Properties/GraphProperty.h"
 #include "NodeEditorState.h"
 
 #include "imnodes.h"
@@ -14,6 +15,31 @@ NodeGraph::NodeGraph()
 NodeGraph::~NodeGraph()
 {
 
+}
+
+GraphPropertyPtr NodeGraph::getPropertyById(t_graph_property_id id) const
+{
+	auto it = m_properties.find(id);
+	if (it != m_properties.end())
+	{
+		return it->second;
+	}
+
+	return GraphPropertyPtr();
+}
+
+GraphPropertyPtr NodeGraph::getPropertyByName(const std::string& name) const
+{
+	auto it= std::find_if(
+		m_properties.begin(), 
+		m_properties.end(), 
+		[name](const auto& elem){ return elem.second->getName() == name; });
+	if (it != m_properties.end())
+	{
+		return it->second;
+	}
+
+	return GraphPropertyPtr();
 }
 
 NodePtr NodeGraph::getNodeById(t_node_id id) const
@@ -189,7 +215,7 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 	return validFactories;
 }
 
-void NodeGraph::editorRender(class NodeEditorState* editorState)
+void NodeGraph::editorRender(const NodeEditorState& editorState)
 {
 	// Nodes rendering
 	for (auto it= m_Nodes.begin(); it != m_Nodes.end(); ++it)
@@ -207,7 +233,7 @@ void NodeGraph::editorRender(class NodeEditorState* editorState)
 			ImNodes::PushColorStyle(ImNodesCol_NodeOutline, IM_COL32(24, 24, 24, 255));
 		}
 
-		node->editorRender(editorState);
+		node->editorRenderNode(editorState);
 
 		const ImVec2 nodePos = ImNodes::GetNodeScreenSpacePos(node->getId());
 		node->setNodePos({nodePos.x, nodePos.y});

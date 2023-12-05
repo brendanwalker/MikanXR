@@ -7,6 +7,6 @@ class ImagePin : public NodePin
 public:
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
 	virtual void editorRenderBeginLink(float alpha) override;
-	virtual void editorRenderContextMenu(class NodeEditorState* editorState) override;
+	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
 	virtual ImU32 editorGetLinkStyleColor() const override;
 };

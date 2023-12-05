@@ -12,7 +12,7 @@ MousePosNode::MousePosNode() : Node()
 MousePosNode::MousePosNode(NodeGraphPtr parentGraph) : Node(parentGraph)
 {}
 
-void MousePosNode::editorRenderPushNodeStyle(NodeEditorState* editorState) const
+void MousePosNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(160, 160, 40, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(160, 160, 40, 225));
