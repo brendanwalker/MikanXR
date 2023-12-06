@@ -1,5 +1,6 @@
 #include "NodeGraph.h"
 #include "Nodes/Node.h"
+#include "Nodes/EventNode.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
 #include "Properties/GraphProperty.h"
@@ -51,6 +52,17 @@ NodePtr NodeGraph::getNodeById(t_node_id id) const
 	}
 
 	return NodePtr();
+}
+
+NodePtr NodeGraph::getEventNodeByName(const std::string& eventName) const
+{
+	return getNodeByPredicate(
+		[eventName](const auto& elem)
+		{ 
+			EventNodePtr eventNode= std::dynamic_pointer_cast<EventNode>(elem.second);
+
+			return eventNode && eventNode->getName() == eventName; 
+		});
 }
 
 NodePinPtr NodeGraph::getNodePinById(t_node_pin_id id) const

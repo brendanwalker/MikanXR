@@ -1,6 +1,8 @@
 #include "Node.h"
 #include "Graphs/NodeGraph.h"
+#include "Graphs/NodeEvaluator.h"
 #include "Pins/NodePin.h"
+#include "Pins/FlowPin.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -60,6 +62,17 @@ void Node::disconnectAllPins()
 
 		m_ownerGraph->deletePinById(pinId);
 	}
+}
+
+void Node::evaluateNode(NodeEvaluator& evaluator) 
+{
+	evaluator.setLastErrorCode(eNodeEvaluationErrorCode::invalidNode);
+	evaluator.setLastErrorMessage("Node missing evaluateNode implementation");
+}
+
+FlowPinPtr Node::getOutputFlowPin() const 
+{ 
+	return FlowPinPtr(); 
 }
 
 void Node::editorRenderNode(const NodeEditorState& editorState)

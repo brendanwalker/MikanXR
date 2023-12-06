@@ -10,14 +10,12 @@
 
 EventNode::EventNode()
 	: Node()
-	, m_eventNodeType(eEventNodeType::INIT)
 {
 
 }
 
 EventNode::EventNode(NodeGraphPtr parentGraph)
 	: Node(parentGraph)
-	, m_eventNodeType(eEventNodeType::INIT)
 {
 
 }
@@ -31,13 +29,5 @@ void EventNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) co
 
 std::string EventNode::editorGetTitle() const
 {
-	switch (m_eventNodeType)
-	{
-		case eEventNodeType::INIT:
-			return "On Init";
-		case eEventNodeType::FRAME:
-			return "On Frame";
-		default:
-			return "<INVALID EVENT>";
-	}
+	return m_eventName;
 }

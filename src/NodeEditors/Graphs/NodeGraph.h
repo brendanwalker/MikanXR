@@ -31,7 +31,20 @@ public:
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyModifed;
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyDeleted;
 
+	template <class _Pr>
+	NodePtr getNodeByPredicate(_Pr predicate) const
+	{
+		auto it = std::find_if(m_Nodes.begin(), m_Nodes.end(), predicate);
+		if (it != m_Nodes.end())
+		{
+			return it->second;
+		}
+
+		return NodePtr();
+	}
 	NodePtr getNodeById(t_node_id id) const;
+	NodePtr getEventNodeByName(const std::string& eventName) const;
+
 	NodePinPtr getNodePinById(t_node_pin_id id) const;
 	NodeLinkPtr getNodeLinkById(t_node_link_id id) const;
 

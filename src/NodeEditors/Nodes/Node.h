@@ -28,6 +28,7 @@ public:
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }
 	inline const std::vector<NodePinPtr>& getInputPins() const { return m_pinsIn; }
 	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }
+
 	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
 
 	template <class t_pin_type>
@@ -44,6 +45,9 @@ public:
 
 	bool disconnectPin(NodePinPtr pinPtr);
 	void disconnectAllPins();
+
+	virtual void evaluateNode(NodeEvaluator& evaluator);
+	virtual FlowPinPtr getOutputFlowPin() const;
 
 	virtual std::string editorGetTitle() const { return "Node"; }
 	virtual bool editorCanDelete() const { return true; }

@@ -10,6 +10,7 @@ typedef int t_node_link_id;
 typedef int t_graph_property_id;
 
 class NodeEditorState;
+class NodeEvaluator;
 
 class NodeFactory;
 using NodeFactoryPtr = std::shared_ptr<NodeFactory>;
@@ -28,7 +29,15 @@ class Node;
 using NodePtr = std::shared_ptr<Node>;
 using NodeConstPtr = std::shared_ptr<const Node>;
 
+class EventNode;
+using EventNodePtr = std::shared_ptr<EventNode>;
+using EventNodeConstPtr = std::shared_ptr<const EventNode>;
+
 // Pin Types
+class FlowPin;
+using FlowPinPtr = std::shared_ptr<FlowPin>;
+using FlowPinConstPtr = std::shared_ptr<const FlowPin>;
+
 class NodePin;
 using NodePinPtr = std::shared_ptr<NodePin>;
 using NodePinConstPtr = std::shared_ptr<const NodePin>;
