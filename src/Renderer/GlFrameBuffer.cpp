@@ -1,27 +1,8 @@
 #include "GlFrameBuffer.h"
 #include "GlCommon.h"
 
-GlFrameBuffer::GlFrameBuffer() 
-	: m_name("")
-	, m_glFrameBufferId(-1)
-	, m_numAttachments(0)
-	, m_hasRenderBuffer(false)
-	, m_needsInit(true)
-	, m_glRenderBufferID(-1)
-	, m_width(800)
-	, m_height(600)
-{
-}
-
 GlFrameBuffer::GlFrameBuffer(const std::string& name) 
 	: m_name(name)
-	, m_glFrameBufferId(-1)
-	, m_numAttachments(0)
-	, m_hasRenderBuffer(false)
-	, m_needsInit(true)
-	, m_glRenderBufferID(-1)
-	, m_width(800)
-	, m_height(600)
 {
 }
 
@@ -163,5 +144,56 @@ void GlFrameBuffer::disposeFrameBuffer()
 	{
 		glDeleteRenderbuffers(1, &m_glRenderBufferID);
 		m_glRenderBufferID = -1;
+	}
+}
+
+bool GlFrameBuffer::bindFrameBuffer()
+{
+	static const int k_maxAttachments = 16;
+
+	if (m_numAttachments > k_maxAttachments)
+		return false;
+
+	if (m_bIsBound)
+		return false;
+
+	// Cache the last viewport dimensions
+	GLint last_viewport[4];
+	glGetIntegerv(GL_VIEWPORT, last_viewport);
+
+	// Change the viewport to match the frame buffer texture
+	glViewport(0, 0, m_width, m_height);
+
+	// bind to framebuffer and draw scene as we normally would to color texture 
+	glBindFramebuffer(GL_FRAMEBUFFER, m_glRenderBufferID);
+
+	//TODO: Apply scoped rendering flags
+	//glStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
+
+	GLenum attachments[k_maxAttachments];
+	for (int i = 0; i < m_numAttachments; i++)
+	{
+		attachments[i] = GL_COLOR_ATTACHMENT0 + i;
+	}
+	glDrawBuffers(m_numAttachments, attachments);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	m_bIsBound= true;
+	return true;
+}
+
+void GlFrameBuffer::unbindFrameBuffer()
+{
+	if (m_bIsBound)
+	{
+		// Unbind the layer frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Restore the viewport
+		glViewport(m_lastiewport[0], m_lastiewport[1], (GLsizei)m_lastiewport[2], (GLsizei)m_lastiewport[3]);
+
+		m_bIsBound= false;
 	}
 }

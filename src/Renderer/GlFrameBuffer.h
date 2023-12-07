@@ -9,13 +9,16 @@
 class GlFrameBuffer
 {
 public:
-	GlFrameBuffer();
+	GlFrameBuffer()= default;
 	GlFrameBuffer(const std::string& name);
 	~GlFrameBuffer();
 
 	void createFrameBuffer();
 	bool needsInit() const;
 	void disposeFrameBuffer();
+
+	bool bindFrameBuffer();
+	void unbindFrameBuffer();
 
 	void setName(const std::string& name);
 	void setFramebuffer(GLuint framebuffer);
@@ -31,15 +34,18 @@ public:
 
 private:
 	std::string m_name;
-	GLuint m_glFrameBufferId;
-	int m_numAttachments;
-	bool m_hasRenderBuffer;
+	GLuint m_glFrameBufferId= -1;
+	int m_numAttachments= 0;
+	bool m_hasRenderBuffer= false;
 
-	int m_width;
-	int m_height;
+	int m_width= 800;
+	int m_height= 600;
 
-	bool m_needsInit;
+	bool m_needsInit= false;
+	bool m_bIsBound= false;
 
 	std::vector<GLuint> m_glTextureIds;
-	GLuint m_glRenderBufferID;
+	GLuint m_glRenderBufferID= -1;
+
+	GLint m_lastiewport[4];
 };

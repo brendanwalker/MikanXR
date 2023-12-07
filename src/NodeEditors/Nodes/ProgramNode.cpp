@@ -1,9 +1,14 @@
 #include "ProgramNode.h"
 #include "GlFrameBuffer.h"
 #include "GlProgram.h"
+#include "GlTexture.h"
 #include "EditorNodeUtil.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
+#include "Graphs/NodeEvaluator.h"
+#include "Pins/FloatPin.h"
+#include "Pins/FlowPin.h"
+#include "Pins/IntPin.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
 #include "Properties/GraphArrayProperty.h"
@@ -11,23 +16,23 @@
 #include "imgui.h"
 #include "imnodes.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <typeinfo>
 #include <GL/glew.h>
 
 ProgramNode::ProgramNode()
 	: Node()
 	, m_attachmentsPinsStartId(1)
-	, m_dispatchType(eProgramDispatchType::ARRAY)
-	, m_drawMode(GL_POINTS)
+	, m_drawMode(GL_TRIANGLES)
 {
-	m_dispatchSize[3] = {};
+	m_dispatchSize = 0;
 }
 
 ProgramNode::ProgramNode(NodeGraphPtr ownerGraph)
 	: Node(ownerGraph)
 	, m_attachmentsPinsStartId(1)
-	, m_dispatchType(eProgramDispatchType::ARRAY)
-	, m_drawMode(GL_POINTS)
+	, m_drawMode(GL_TRIANGLES)
 {
 	if (ownerGraph)
 	{
@@ -43,6 +48,97 @@ ProgramNode::~ProgramNode()
 	{
 		m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &ProgramNode::onGraphPropertyChanged);
 	}
+}
+
+void ProgramNode::evaluateNode(NodeEvaluator& evaluator)
+{
+	bool bSuccess= true;
+
+	if (!m_target->bindProgram())
+	{
+		evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
+		evaluator.setLastErrorMessage("Failed to bind gl program");
+		bSuccess= false;
+	}
+
+	if (bSuccess && !m_framebuffer->bindFrameBuffer())
+	{
+		evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
+		evaluator.setLastErrorMessage("Failed to bind framebuffer");
+		bSuccess= false;
+	}
+
+	if (bSuccess)
+	{
+		// Map input pins to the program
+		for (auto& pin : m_pinsIn)
+		{
+			// Copy value from connected pin
+			pin->copyValueFromSourcePin();
+
+			if (FloatPinPtr floatPin = std::dynamic_pointer_cast<FloatPin>(pin))
+			{
+				m_target->setFloatUniform(pin->getName(), floatPin->getValue());
+			}
+			else if (Float2PinPtr float2Pin = std::dynamic_pointer_cast<Float2Pin>(pin))
+			{
+				m_target->setVector2Uniform(pin->getName(), glm::make_vec2(float2Pin->getValue().data()));
+			}
+			else if (Float3PinPtr float3Pin = std::dynamic_pointer_cast<Float3Pin>(pin))
+			{
+				m_target->setVector3Uniform(pin->getName(), glm::make_vec3(float3Pin->getValue().data()));
+			}
+			else if (Float4PinPtr float4Pin = std::dynamic_pointer_cast<Float4Pin>(pin))
+			{
+				m_target->setVector4Uniform(pin->getName(), glm::make_vec4(float3Pin->getValue().data()));
+			}
+			else if (IntPinPtr floatPin = std::dynamic_pointer_cast<IntPin>(pin))
+			{
+				m_target->setIntUniform(pin->getName(), floatPin->getValue());
+			}
+			else if (Int2PinPtr float2Pin = std::dynamic_pointer_cast<Int2Pin>(pin))
+			{
+				m_target->setInt2Uniform(pin->getName(), glm::make_vec2(float2Pin->getValue().data()));
+			}
+			else if (Int3PinPtr float3Pin = std::dynamic_pointer_cast<Int3Pin>(pin))
+			{
+				m_target->setInt3Uniform(pin->getName(), glm::make_vec3(float3Pin->getValue().data()));
+			}
+			else if (Int4PinPtr float4Pin = std::dynamic_pointer_cast<Int4Pin>(pin))
+			{
+				m_target->setInt4Uniform(pin->getName(), glm::make_vec4(float3Pin->getValue().data()));
+			}
+			else if (TexturePinPtr texturePin = std::dynamic_pointer_cast<TexturePin>(pin))
+			{
+				GlTexturePtr texturePtr = texturePin->getValue();
+
+				if (texturePtr)
+				{
+					int textureUnit;
+					if (m_target->getUniformTextureUnit(pin->getName(), textureUnit))
+					{
+						texturePtr->bindTexture(textureUnit);
+						m_target->setTextureUniform(pin->getName());
+					}
+				}
+			}
+		}
+
+		// Dispatch Draw Call
+		//glBindVertexArray(VAO);
+		glDrawArrays(m_drawMode, 0, m_dispatchSize);
+		//glBindVertexArray(0);
+	}
+
+	// Clean up any active bindings
+	// TODO Texture Bindings
+	m_framebuffer->unbindFrameBuffer();
+	m_target->unbindProgram();
+}
+
+FlowPinPtr ProgramNode::getOutputFlowPin() const
+{
+	return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT);
 }
 
 std::string ProgramNode::editorGetTitle() const
@@ -66,134 +162,71 @@ void ProgramNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 
 	if (isNodeOpened)
 	{
-		// Dispatch type
-		ImGui::Text("\t\tDispatch Type");
+		// Framebuffer
+		ImGui::Text("\t\tFramebuffer");
 		ImGui::SameLine(160);
 		ImGui::SetNextItemWidth(150);
-		int iVal = (int)m_dispatchType;
-		const char* items = "Array\0Compute\0";
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-		if (ImGui::Combo("##progNodeDispatchType", &iVal, items))
+
+		const std::string& frameBufferName = m_framebuffer ? m_framebuffer->getName() : "<INVALID>";
+		if (ImGui::BeginCombo("##progNodeFramebuffer", frameBufferName.c_str()))
 		{
-			m_drawMode = GL_POINTS;
-			if (iVal == 0)
+			if (m_frameBufferArrayProperty)
 			{
-				m_dispatchType = eProgramDispatchType::ARRAY;
-				m_dispatchSize[0] = 0;
-				m_dispatchSize[1] = 0;
-				m_dispatchSize[2] = 0;
+				int index = 0;
+				for (auto& framebuffer : m_frameBufferArrayProperty->getArray())
+				{
+					const bool is_selected = (m_framebuffer == framebuffer);
+					if (ImGui::Selectable(framebuffer->getName().c_str(), is_selected))
+					{
+						setFramebuffer(framebuffer);
+					}
+
+					if (is_selected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+
+					index++;
+				}
 			}
-			else if (iVal == 1)
-			{
-				m_dispatchType = eProgramDispatchType::COMPUTE;
-				m_dispatchSize[0] = 1;
-				m_dispatchSize[1] = 1;
-				m_dispatchSize[2] = 1;
-				setFramebuffer(GlFrameBufferPtr());
-			}
+			ImGui::EndCombo();
 		}
 		ImGui::PopStyleColor();
 
-		if (m_dispatchType == eProgramDispatchType::ARRAY)
+		// Draw mode
+		ImGui::Text("\t\tDraw Mode");
+		ImGui::SameLine(160);
+		ImGui::SetNextItemWidth(150);
+		int iVal = EditorNodeUtil::GLDrawModeToIndex(m_drawMode);
+		const char* items =
+			"Points\0"
+			"Line Strip\0"
+			"Line Loop\0"
+			"Lines\0"
+			"Line Strip Adjacency\0"
+			"Lines Adjacency\0"
+			"Triangle Strip\0"
+			"Triangle Fan\0"
+			"Triangles\0"
+			"Triangle Strip Adjacency\0"
+			"Triangles Adjacency\0";
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+		if (ImGui::Combo("##progNodeDrawMode", &iVal, items))
 		{
-			// Framebuffer
-			ImGui::Text("\t\tFramebuffer");
-			ImGui::SameLine(160);
-			ImGui::SetNextItemWidth(150);
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-
-			const std::string& frameBufferName = m_framebuffer ? m_framebuffer->getName() : "<INVALID>";
-			if (ImGui::BeginCombo("##progNodeFramebuffer", frameBufferName.c_str()))
-			{
-				if (m_frameBufferArrayProperty)
-				{
-					int index = 0;
-					for (auto& framebuffer : m_frameBufferArrayProperty->getArray())
-					{
-						const bool is_selected = (m_framebuffer == framebuffer);
-						if (ImGui::Selectable(framebuffer->getName().c_str(), is_selected))
-						{
-							setFramebuffer(framebuffer);
-						}
-
-						if (is_selected)
-						{
-							ImGui::SetItemDefaultFocus();
-						}
-
-						index++;
-					}
-				}
-				ImGui::EndCombo();
-			}
-			ImGui::PopStyleColor();
-
-			// Draw mode
-			ImGui::Text("\t\tDraw Mode");
-			ImGui::SameLine(160);
-			ImGui::SetNextItemWidth(150);
-			iVal = EditorNodeUtil::GLDrawModeToIndex(m_drawMode);
-			items =
-				"Points\0"
-				"Line Strip\0"
-				"Line Loop\0"
-				"Lines\0"
-				"Line Strip Adjacency\0"
-				"Lines Adjacency\0"
-				"Triangle Strip\0"
-				"Triangle Fan\0"
-				"Triangles\0"
-				"Triangle Strip Adjacency\0"
-				"Triangles Adjacency\0";
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-			if (ImGui::Combo("##progNodeDrawMode", &iVal, items))
-			{
-				m_drawMode = EditorNodeUtil::IndexToGLDrawMode(iVal);
-			}
-			ImGui::PopStyleColor();
-
-			// Size
-			ImGui::Text("\t\tSize");
-			ImGui::SameLine(160);
-			ImGui::SetNextItemWidth(150);
-			iVal = m_dispatchSize[0];
-			if (ImGui::DragInt("##progNodeDrawSize", &iVal, 1.0f))
-			{
-				if (iVal < 0) iVal = 0;
-				m_dispatchSize[0] = iVal;
-			}
+			m_drawMode = EditorNodeUtil::IndexToGLDrawMode(iVal);
 		}
-		else if (m_dispatchType == eProgramDispatchType::COMPUTE)
+		ImGui::PopStyleColor();
+
+		// Size
+		ImGui::Text("\t\tSize");
+		ImGui::SameLine(160);
+		ImGui::SetNextItemWidth(150);
+		iVal = m_dispatchSize;
+		if (ImGui::DragInt("##progNodeDrawSize", &iVal, 1.0f))
 		{
-			int size[3]{};
-			size[0] = m_dispatchSize[0];
-			size[1] = m_dispatchSize[1];
-			size[2] = m_dispatchSize[2];
-			// Dispatch size
-			ImGui::Text("\t\tWork Group Size X");
-			ImGui::SameLine(160);
-			ImGui::SetNextItemWidth(150);
-			if (ImGui::DragInt("##progNodeWorkGroupSizeX", &size[0], 1.0f))
-			{
-				if (size[0] < 0) size[0] = 0;
-				m_dispatchSize[0] = size[0];
-			}
-			ImGui::Text("\t\tWork Group Size Y");
-			ImGui::SameLine(160);
-			ImGui::SetNextItemWidth(150);
-			if (ImGui::DragInt("##progNodeWorkGroupSizeY", &size[1], 1.0f))
-			{
-				if (size[1] < 0) size[1] = 0;
-				m_dispatchSize[1] = size[1];
-			}
-			ImGui::Text("\t\tWork Group Size Z");
-			ImGui::SameLine(160);
-			ImGui::SetNextItemWidth(150);
-			if (ImGui::DragInt("##progNodeWorkGroupSizeZ", &size[2], 1.0f))
-			{
-				if (size[2] < 0) size[2] = 0;
-				m_dispatchSize[2] = size[2];
-			}
+			if (iVal < 0) iVal = 0;
+			m_dispatchSize = iVal;
 		}
 	}
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NodePin.h"
+#include <array>
 
 class FloatPinBase : public NodePin
 {
@@ -13,6 +14,10 @@ public:
 class FloatPin : public FloatPinBase
 {
 public:
+	float getValue() const { return value; }
+	void setValue(float inValue) { value = inValue; }
+
+	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
 	virtual void editorRenderBeginLink(float alpha) override;
 	virtual ImU32 editorGetLinkStyleColor() const override;
@@ -24,26 +29,38 @@ protected:
 class Float2Pin : public FloatPinBase
 {
 public:
+	const std::array<float, 2>& getValue() const { return value; }
+	void setValue(const std::array<float, 2>& inValue) { value = inValue; }
+
+	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
 
 protected:
-	float value[2]{};
+	std::array<float, 2> value{};
 };
 
 class Float3Pin : public FloatPinBase
 {
 public:
+	const std::array<float, 3>& getValue() const { return value; }
+	void setValue(const std::array<float, 3>& inValue) { value = inValue; }
+
+	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
 
 protected:
-	float value[3]{};
+	std::array<float, 3> value{};
 };
 
 class Float4Pin : public FloatPinBase
 {
 public:
+	const std::array<float, 4>& getValue() const { return value; }
+	void setValue(const std::array<float, 4>& inValue) { value = inValue; }
+
+	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
 
 protected:
-	float value[4]{};
+	std::array<float, 4> value{};
 };

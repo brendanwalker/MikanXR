@@ -34,9 +34,41 @@ using EventNodePtr = std::shared_ptr<EventNode>;
 using EventNodeConstPtr = std::shared_ptr<const EventNode>;
 
 // Pin Types
+class FloatPin;
+using FloatPinPtr = std::shared_ptr<FloatPin>;
+using FloatPinConstPtr = std::shared_ptr<const FloatPin>;
+
+class Float2Pin;
+using Float2PinPtr = std::shared_ptr<Float2Pin>;
+using Float2PinConstPtr = std::shared_ptr<const Float2Pin>;
+
+class Float3Pin;
+using Float3PinPtr = std::shared_ptr<Float3Pin>;
+using Float3PinConstPtr = std::shared_ptr<const Float3Pin>;
+
+class Float4Pin;
+using Float4PinPtr = std::shared_ptr<Float4Pin>;
+using Float4PinConstPtr = std::shared_ptr<const Float4Pin>;
+
 class FlowPin;
 using FlowPinPtr = std::shared_ptr<FlowPin>;
 using FlowPinConstPtr = std::shared_ptr<const FlowPin>;
+
+class IntPin;
+using IntPinPtr = std::shared_ptr<IntPin>;
+using IntPinConstPtr = std::shared_ptr<const IntPin>;
+
+class Int2Pin;
+using Int2PinPtr = std::shared_ptr<Int2Pin>;
+using Int2PinConstPtr = std::shared_ptr<const Int2Pin>;
+
+class Int3Pin;
+using Int3PinPtr = std::shared_ptr<Int3Pin>;
+using Int3PinConstPtr = std::shared_ptr<const Int3Pin>;
+
+class Int4Pin;
+using Int4PinPtr = std::shared_ptr<Int4Pin>;
+using Int4PinConstPtr = std::shared_ptr<const Int4Pin>;
 
 class NodePin;
 using NodePinPtr = std::shared_ptr<NodePin>;

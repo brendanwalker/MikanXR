@@ -31,6 +31,16 @@ void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState)
 }
 
 // -- IntPin -----
+void IntPin::copyValueFromSourcePin()
+{
+	IntPinPtr sourcePin = std::dynamic_pointer_cast<IntPin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 void IntPin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
@@ -54,6 +64,16 @@ ImU32 IntPin::editorGetLinkStyleColor() const
 }
 
 // -- Int2Pin -----
+void Int2Pin::copyValueFromSourcePin()
+{
+	Int2PinPtr sourcePin = std::dynamic_pointer_cast<Int2Pin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 void Int2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
@@ -61,11 +81,21 @@ void Int2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 		ImGui::Dummy(ImVec2(11.0f, 1.0f));
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(100.0f);
-		ImGui::InputInt2("", value);
+		ImGui::InputInt2("", value.data());
 	}
 }
 
 // -- Int3Pin -----
+void Int3Pin::copyValueFromSourcePin()
+{
+	Int3PinPtr sourcePin = std::dynamic_pointer_cast<Int3Pin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 void Int3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
@@ -73,11 +103,21 @@ void Int3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 		ImGui::Dummy(ImVec2(11.0f, 1.0f));
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(150.0f);
-		ImGui::InputInt3("", value);
+		ImGui::InputInt3("", value.data());
 	}
 }
 
 // -- Int4Pin -----
+void Int4Pin::copyValueFromSourcePin()
+{
+	Int4PinPtr sourcePin = std::dynamic_pointer_cast<Int4Pin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 void Int4Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
@@ -85,6 +125,6 @@ void Int4Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 		ImGui::Dummy(ImVec2(11.0f, 1.0f));
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(200.0f);
-		ImGui::InputInt4("", value);
+		ImGui::InputInt4("", value.data());
 	}
 }

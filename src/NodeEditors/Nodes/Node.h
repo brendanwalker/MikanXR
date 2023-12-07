@@ -29,6 +29,21 @@ public:
 	inline const std::vector<NodePinPtr>& getInputPins() const { return m_pinsIn; }
 	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }
 
+	template <class t_pin_type>
+	std::shared_ptr<t_pin_type> getFirstPinOfType(eNodePinDirection direction) const
+	{
+		const std::vector<NodePinPtr>& pinArray= 
+			(direction == eNodePinDirection::INPUT) ? m_pinsIn : m_pinsOut;
+		for (NodePinPtr pin : pinArray)
+		{
+			std::shared_ptr<t_pin_type> derivedPin= std::dynamic_pointer_cast<t_pin_type>(pin);
+			if (derivedPin)
+				return derivedPin;
+		}
+
+		return std::shared_ptr<t_pin_type>();
+	}
+
 	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
 
 	template <class t_pin_type>

@@ -1,5 +1,15 @@
 #include "TexturePin.h"
 
+void TexturePin::copyValueFromSourcePin()
+{
+	TexturePinPtr sourcePin = std::dynamic_pointer_cast<TexturePin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 ImNodesPinShape TexturePin::editorRenderBeginPin(float alpha)
 {
 	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;

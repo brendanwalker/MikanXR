@@ -41,6 +41,16 @@ void FloatPin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 	}
 }
 
+void FloatPin::copyValueFromSourcePin()
+{
+	FloatPinPtr sourcePin= std::dynamic_pointer_cast<FloatPin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 void FloatPin::editorRenderBeginLink(float alpha)
 {
 	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(156, 253, 65, alpha));
@@ -54,6 +64,16 @@ ImU32 FloatPin::editorGetLinkStyleColor() const
 }
 
 // -- Float2Pin -----
+void Float2Pin::copyValueFromSourcePin()
+{
+	Float2PinPtr sourcePin = std::dynamic_pointer_cast<Float2Pin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 void Float2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
@@ -61,11 +81,21 @@ void Float2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 		ImGui::Dummy(ImVec2(11.0f, 1.0f));
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(100.0f);
-		ImGui::InputFloat2("", value);
+		ImGui::InputFloat2("", value.data());
 	}
 }
 
 // -- Float3Pin -----
+void Float3Pin::copyValueFromSourcePin()
+{
+	Float3PinPtr sourcePin = std::dynamic_pointer_cast<Float3Pin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 void Float3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
@@ -73,11 +103,21 @@ void Float3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 		ImGui::Dummy(ImVec2(11.0f, 1.0f));
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(150.0f);
-		ImGui::InputFloat3("", value);
+		ImGui::InputFloat3("", value.data());
 	}
 }
 
 // -- Float4Pin -----
+void Float4Pin::copyValueFromSourcePin()
+{
+	Float4PinPtr sourcePin = std::dynamic_pointer_cast<Float4Pin>(getConnectedSourcePin());
+
+	if (sourcePin)
+	{
+		setValue(sourcePin->getValue());
+	}
+}
+
 void Float4Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 {
 	if (m_connectedLinks.size() == 0)
@@ -85,6 +125,6 @@ void Float4Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 		ImGui::Dummy(ImVec2(11.0f, 1.0f));
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(200.0f);
-		ImGui::InputFloat4("", value);
+		ImGui::InputFloat4("", value.data());
 	}
 }

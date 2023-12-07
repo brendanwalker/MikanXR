@@ -28,6 +28,9 @@ public:
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
 
+	NodePinPtr getConnectedSourcePin() const;
+	virtual void copyValueFromSourcePin() {}
+
 	virtual float editorComputeInputWidth() const;
 	virtual float editorComputeNodeAlpha(const NodeEditorState& editorState) const;
 	virtual void editorRenderInputPin(const NodeEditorState& editorState);

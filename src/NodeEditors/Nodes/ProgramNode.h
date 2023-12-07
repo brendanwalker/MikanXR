@@ -3,12 +3,6 @@
 #include "Node.h"
 #include "RendererFwd.h"
 
-enum class eProgramDispatchType : int
-{
-	ARRAY,
-	COMPUTE
-};
-
 class ProgramNode : public Node
 {
 public:
@@ -17,6 +11,9 @@ public:
 	virtual ~ProgramNode();
 
 	void setFramebuffer(GlFrameBufferPtr inFrameBuffer);
+
+	virtual void evaluateNode(NodeEvaluator& evaluator);
+	virtual FlowPinPtr getOutputFlowPin() const;
 
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
@@ -27,11 +24,10 @@ protected:
 protected:
 	GlProgramPtr m_target;
 	FrameBufferArrayPropertyPtr m_frameBufferArrayProperty;
-	GlFrameBufferPtr m_framebuffer;
 	int m_attachmentsPinsStartId;
+	GlFrameBufferPtr m_framebuffer;
 	NodePinPtr m_flowIn;
 	NodePinPtr m_flowOut;
-	eProgramDispatchType m_dispatchType;
 	GLenum m_drawMode;
-	int m_dispatchSize[3];
+	int m_dispatchSize;
 };

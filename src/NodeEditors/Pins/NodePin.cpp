@@ -2,6 +2,7 @@
 #include "NodeEditorState.h"
 #include "Nodes/Node.h"
 #include "Graphs/NodeGraph.h"
+#include "Pins/NodeLink.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -50,6 +51,23 @@ bool NodePin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 		return false;
 
 	return true;
+}
+
+NodePinPtr NodePin::getConnectedSourcePin() const
+{
+	if (m_direction != eNodePinDirection::INPUT)
+		return NodePinPtr();
+
+	if (m_connectedLinks.size() == 0)
+		return NodePinPtr();
+	
+	NodeLinkPtr link= m_connectedLinks[0];
+	if (!link)
+		return NodePinPtr();
+
+	NodePinPtr startPin= link->getStartPin();
+	NodePinPtr endPin= link->getEndPin();
+	return this == startPin.get() ? endPin : startPin;
 }
 
 bool NodePin::disconnectLink(NodeLinkPtr linkPtr)
