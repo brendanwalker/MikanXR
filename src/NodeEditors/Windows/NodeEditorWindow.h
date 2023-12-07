@@ -91,14 +91,6 @@ private:
 	void UpdateLinks();
 	void CreateLink(int startPinId, int endPinId);
 
-	EditorPinPtr GetConnectedPin(EditorNodePtr node, EditorLinkPtr link);
-	// The target block/image node may go through multiple program/ping-pong nodes
-	// before it is linked to the input pin
-	void GetInputTargetNode(EditorNodePtr& connectedNode, EditorPinType type, int index);
-
-	void ExecuteProgramNode(EditorProgramNodePtr progNode);
-
-
 	// TODO: Move to Nodes
 	EditorPinPtr AllocPin(const struct GlProgramUniform& uniform);
 	EditorPinPtr AllocPin(const class GlShaderVar& var);
@@ -106,15 +98,8 @@ private:
 	EditorProgramNodePtr CreateProgramNodePtr(int progId, const ImVec2& pos);
 	void CreateProgramNode(int progId, const ImVec2& pos);
 	void UpdateProgramNode(int nodeId, int progId);
-	//void SetProgramNodeFramebuffer(EditorProgramNodePtr node, int framebufferId);
 
-	void CreateBlockNode(const ImVec2& pos, int pinId = -1);
 	void CreateTextureNode(int textureId, const ImVec2& pos);
-	void CreateImageNode(const ImVec2& pos);
-
-	void CreatePingPongNode(const ImVec2& pos,
-							EditorPingPongNodeType type = EditorPingPongNodeType::BUFFER);
-	void UpdatePingPongNode(int nodeId, EditorPingPongNodeType type);
 
 	void CreateTimeNode(const ImVec2& pos);
 	void CreateMousePosNode(const ImVec2& pos);
