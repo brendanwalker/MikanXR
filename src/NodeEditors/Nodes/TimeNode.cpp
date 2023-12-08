@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "imnodes.h"
 
+// -- TimeNode -----
 TimeNode::TimeNode() : Node()
 {}
 
@@ -29,4 +30,28 @@ void TimeNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) con
 	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(110, 146, 104, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(110, 146, 104, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(110, 146, 104, 225));
+}
+
+// -- TimeNode Factory -----
+NodePtr TimeNodeFactory::createNode(const NodeEditorState* editorState) const
+{
+	// Create the node and pins
+	TimeNodePtr node = std::make_shared<TimeNode>();
+	FloatPinPtr outputPin= node->addPin<FloatPin>("time", eNodePinDirection::OUTPUT);
+
+	// If spawned in an editor context from a dangling pin link
+	// auto-connect the output pin to a compatible input pin
+	if (editorState != nullptr && editorState->startedLinkPinId != -1)
+	{
+		NodePinPtr inputPin= m_ownerGraph->getNodePinById(editorState->startedLinkPinId);
+
+		if (outputPin->canPinsBeConnected(inputPin))
+		{
+			assert(inputPin->getDirection() == eNodePinDirection::INPUT);
+
+			m_ownerGraph->createLink(inputPin->getId(), outputPin->getId());
+		}
+	}
+
+	return node;
 }

@@ -665,11 +665,11 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 		std::vector<NodeFactoryPtr> nodeFactories= m_nodeGraph->editorGetValidNodeFactories(editorState);
 		for (NodeFactoryPtr nodeFactory : nodeFactories)
 		{
-			const std::string nodeTitle= nodeFactory->getNodeDefinition()->editorGetTitle();
+			const std::string nodeTitle= nodeFactory->getNodeDefaultObject()->editorGetTitle();
 
 			if (ImGui::MenuItem(nodeTitle.c_str()))
 			{
-				NodePtr newNode= nodeFactory->createNode(editorState);
+				NodePtr newNode= nodeFactory->createNode(&editorState);
 
 				m_SelectedItemType = SelectedItemType::NODE;
 				m_SelectedItemId = newNode->getId();

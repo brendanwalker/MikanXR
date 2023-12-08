@@ -70,6 +70,14 @@ NodePinPtr NodePin::getConnectedSourcePin() const
 	return this == startPin.get() ? endPin : startPin;
 }
 
+bool NodePin::connectLink(NodeLinkPtr linkPtr)
+{
+	// TODO: How should this pin handle multiple connections?
+	m_connectedLinks.push_back(linkPtr);
+
+	return true;
+}
+
 bool NodePin::disconnectLink(NodeLinkPtr linkPtr)
 {
 	auto it= std::find(m_connectedLinks.begin(), m_connectedLinks.end(), linkPtr);

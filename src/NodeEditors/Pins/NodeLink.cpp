@@ -20,7 +20,7 @@ void NodeLink::editorRender(const NodeEditorState& editorState)
 {
 	const int alpha = editorState.startedLinkPinId == -1 ? 255 : 50;
 
-	m_pPin1->editorRenderBeginLink(alpha);
-	ImNodes::Link(m_id, m_pPin1->getId(), m_pPin2->getId());
-	m_pPin1->editorRenderEndLink();
+	m_startPin->editorRenderBeginLink(alpha);
+	ImNodes::Link(m_id, m_startPin->getId(), m_endPin->getId());
+	m_startPin->editorRenderEndLink();
 }

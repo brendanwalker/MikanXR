@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "imnodes.h"
 
+// -- Node -----
 Node::Node()
 	: m_id(-1)
 	, m_nodePos(glm::vec2(0.f))
@@ -234,4 +235,15 @@ void Node::editorRenderOutputPins(const NodeEditorState& editorState) const
 		pin->editorRenderOutputPin(editorState, prefixWidth);
 	}
 	ImGui::EndGroup();
+}
+
+// -- NodeFactory -----
+NodeFactory::NodeFactory(NodeGraphPtr ownerGraph)
+	: m_ownerGraph(ownerGraph)
+{
+}
+
+NodePtr NodeFactory::createNode(const NodeEditorState* editorState) const
+{
+	return std::make_shared<Node>(m_ownerGraph);
 }

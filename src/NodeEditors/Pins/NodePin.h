@@ -23,7 +23,8 @@ public:
 	inline void setName(const std::string& name) { m_name= name; }
 	inline void setDirection(eNodePinDirection direction) { m_direction= direction; }
 
-	bool disconnectLink(NodeLinkPtr linkPtr);
+	virtual bool connectLink(NodeLinkPtr linkPtr);
+	virtual bool disconnectLink(NodeLinkPtr linkPtr);
 
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;

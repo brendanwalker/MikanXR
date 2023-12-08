@@ -10,16 +10,6 @@
 
 #include "imnodes.h"
 
-NodeGraph::NodeGraph()
-{
-
-}
-
-NodeGraph::~NodeGraph()
-{
-
-}
-
 void NodeGraph::update(NodeEvaluator& evaluator)
 {
 	m_timeInSeconds+= evaluator.getDeltaSeconds();
@@ -163,6 +153,31 @@ bool NodeGraph::deletePinById(t_node_pin_id id)
 	return false;
 }
 
+NodeLinkPtr NodeGraph::createLink(t_node_pin_id startPinId, t_node_pin_id endPinId)
+{
+	NodePinPtr startPin = getNodePinById(startPinId);
+	assert(startPin);
+	NodePinPtr endPin = getNodePinById(endPinId);
+	assert(endPin);
+
+	// Create a new link and assign the pins to each end
+	NodeGraphPtr ownerGraph = shared_from_this();
+	NodeLinkPtr link = std::make_shared<NodeLink>(ownerGraph);
+	link->setStartPin(startPin);
+	link->setEndPin(endPin);
+
+	// Connect the start and end pin to the link
+	// Let each pin decide how it wants to deal with the new link
+	// (i.e. if there are existing links, should they be disconnected?)
+	startPin->connectLink(link);
+	endPin->connectLink(link);
+
+	// Let the editor know the link was created
+	if (OnLinkCreated)
+		OnLinkCreated(link->getId());
+
+	return link;
+}
 
 bool NodeGraph::deleteLinkById(t_node_link_id id)
 {
@@ -203,12 +218,12 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 
 		for (NodeFactoryPtr factory : m_nodeFactories)
 		{
-			NodeConstPtr nodeDefinition= factory->getNodeDefinition();
+			NodeConstPtr nodeDefaultObject= factory->getNodeDefaultObject();
 			bool bIsValidFactory= false;
 
 			if (sourcePin->getDirection() == eNodePinDirection::INPUT)
 			{
-				for (NodePinPtr targetPin : nodeDefinition->getOutputPins())
+				for (NodePinPtr targetPin : nodeDefaultObject->getOutputPins())
 				{
 					if (targetPin->canPinsBeConnected(sourcePin))
 					{
@@ -219,7 +234,7 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 			}
 			else if (sourcePin->getDirection() == eNodePinDirection::OUTPUT)
 			{
-				for (NodePinPtr targetPin : nodeDefinition->getInputPins())
+				for (NodePinPtr targetPin : nodeDefaultObject->getInputPins())
 				{
 					if (targetPin->canPinsBeConnected(sourcePin))
 					{

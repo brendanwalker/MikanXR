@@ -6,11 +6,11 @@
 #include <map>
 #include <string>
 
-class NodeGraph
+class NodeGraph : public std::enable_shared_from_this<NodeGraph>
 {
 public:
-	NodeGraph();
-	virtual ~NodeGraph();
+	NodeGraph()= default;
+	virtual ~NodeGraph() {}
 
 	inline float getTimeInSeconds() const { return m_timeInSeconds; }
 
@@ -57,6 +57,9 @@ public:
 
 	bool deletePinById(t_node_pin_id id);
 	MulticastDelegate<void(t_node_pin_id id)> OnPinDeleted;
+
+	NodeLinkPtr createLink(t_node_pin_id startPinId, t_node_pin_id endPinId);
+	MulticastDelegate<void(t_node_link_id id)> OnLinkCreated;
 
 	bool deleteLinkById(t_node_link_id id);
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDeleted;

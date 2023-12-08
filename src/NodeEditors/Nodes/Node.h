@@ -49,7 +49,8 @@ public:
 	template <class t_pin_type>
 	std::shared_ptr<t_pin_type> addPin(const std::string& name, eNodePinDirection direction)
 	{
-		std::shared_ptr<t_pin_type> pin= std::make_shared<t_pin_type>(shared_from_this());
+		NodePtr ownerNode= shared_from_this();
+		std::shared_ptr<t_pin_type> pin= std::make_shared<t_pin_type>(ownerNode);
 		pin->setName(name);
 		pin->setDirection(direction);
 		if (direction == eNodePinDirection::OUTPUT) m_pinsOut.push_back(pin);
@@ -92,12 +93,28 @@ protected:
 class NodeFactory
 {
 public:
-	NodeFactory();
+	NodeFactory()= default;
 	NodeFactory(NodeGraphPtr ownerGraph);
 
-	NodeConstPtr getNodeDefinition() const { return m_nodeDefinition; }
-	virtual NodePtr createNode(const class NodeEditorState& editorState) const;
+	inline NodeConstPtr getNodeDefaultObject() const { return m_nodeDefaultObject; }
+	virtual NodePtr createNode(const class NodeEditorState* editorState) const;
+	
+	template <class t_node_factory_class>
+	static NodeFactoryPtr create(NodeGraphPtr ownerGraph)
+	{
+		// Create a node factory instance
+		auto nodeFactory= std::make_shared<t_node_factory_class>(ownerGraph);
+
+		// Create a single "node default object" for the factory.
+		// This is used to ask questions about node without having to create one first.
+		// We have to do this work outside of the NodeFactory constructor,
+		// because virtual functions aren't safe to call in constructor.
+		nodeFactory->m_nodeDefaultObject= nodeFactory->createNode(nullptr);
+
+		return nodeFactory;
+	}
 
 protected:
-	NodePtr m_nodeDefinition;
+	NodeGraphPtr m_ownerGraph;
+	NodePtr m_nodeDefaultObject;
 };

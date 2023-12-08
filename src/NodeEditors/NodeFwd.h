@@ -33,6 +33,10 @@ class EventNode;
 using EventNodePtr = std::shared_ptr<EventNode>;
 using EventNodeConstPtr = std::shared_ptr<const EventNode>;
 
+class TimeNode;
+using TimeNodePtr = std::shared_ptr<TimeNode>;
+using TimeNodeConstPtr = std::shared_ptr<const TimeNode>;
+
 // Pin Types
 class FloatPin;
 using FloatPinPtr = std::shared_ptr<FloatPin>;
