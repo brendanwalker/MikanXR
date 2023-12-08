@@ -10,7 +10,8 @@ public:
 	inline void setName(const std::string& inName) { m_eventName= inName; }
 	inline const std::string& getName() const { return m_eventName; }
 
-	virtual void evaluateNode(NodeEvaluator& evaluator) override;
+	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
+	virtual bool hasAnyFlowPins() const override { return true; }
 	virtual FlowPinPtr getOutputFlowPin() const override;
 
 	virtual bool editorCanDelete() const override { return false; }

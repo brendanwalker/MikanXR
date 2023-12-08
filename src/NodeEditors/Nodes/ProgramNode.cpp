@@ -50,7 +50,7 @@ ProgramNode::~ProgramNode()
 	}
 }
 
-void ProgramNode::evaluateNode(NodeEvaluator& evaluator)
+bool ProgramNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	bool bSuccess= true;
 
@@ -68,14 +68,16 @@ void ProgramNode::evaluateNode(NodeEvaluator& evaluator)
 		bSuccess= false;
 	}
 
+	if (bSuccess && !evaluateInputs(evaluator))
+	{
+		bSuccess= false;
+	}
+
 	if (bSuccess)
 	{
 		// Map input pins to the program
 		for (auto& pin : m_pinsIn)
 		{
-			// Copy value from connected pin
-			pin->copyValueFromSourcePin();
-
 			if (FloatPinPtr floatPin = std::dynamic_pointer_cast<FloatPin>(pin))
 			{
 				m_target->setFloatUniform(pin->getName(), floatPin->getValue());
@@ -134,6 +136,8 @@ void ProgramNode::evaluateNode(NodeEvaluator& evaluator)
 	// TODO Texture Bindings
 	m_framebuffer->unbindFrameBuffer();
 	m_target->unbindProgram();
+
+	return bSuccess;
 }
 
 FlowPinPtr ProgramNode::getOutputFlowPin() const

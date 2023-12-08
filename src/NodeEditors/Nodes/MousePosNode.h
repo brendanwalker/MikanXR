@@ -7,7 +7,7 @@ public:
 	MousePosNode();
 	MousePosNode(NodeGraphPtr parentGraph);
 
-	virtual void evaluateNode(NodeEvaluator& evaluator) override;
+	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;

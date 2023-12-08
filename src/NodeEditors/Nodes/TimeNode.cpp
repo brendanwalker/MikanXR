@@ -13,13 +13,15 @@ TimeNode::TimeNode() : Node()
 TimeNode::TimeNode(NodeGraphPtr parentGraph) : Node(parentGraph)
 {}
 
-void TimeNode::evaluateNode(NodeEvaluator& evaluator)
+bool TimeNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	FloatPinPtr outPin = getFirstPinOfType<FloatPin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
 		outPin->setValue(getOwnerGraph()->getTimeInSeconds());
 	}
+
+	return true;
 }
 
 void TimeNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const

@@ -16,7 +16,7 @@ MousePosNode::MousePosNode() : Node()
 MousePosNode::MousePosNode(NodeGraphPtr parentGraph) : Node(parentGraph)
 {}
 
-void MousePosNode::evaluateNode(NodeEvaluator& evaluator)
+bool MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	Float2PinPtr outPin= getFirstPinOfType<Float2Pin>(eNodePinDirection::OUTPUT);
 
@@ -28,6 +28,8 @@ void MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 
 		outPin->setValue({pixelPos.x / (float)viewportSize.x, pixelPos.y / (float)viewportSize.y});
 	}
+
+	return true;
 }
 
 void MousePosNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const

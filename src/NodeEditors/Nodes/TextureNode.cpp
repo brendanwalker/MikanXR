@@ -16,13 +16,15 @@ TextureNode::TextureNode(NodeGraphPtr parentGraph)
 	: Node(parentGraph)
 {}
 
-void TextureNode::evaluateNode(NodeEvaluator& evaluator)
+bool TextureNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	TexturePinPtr outPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
 		outPin->setValue(m_target);
 	}
+
+	return true;
 }
 
 

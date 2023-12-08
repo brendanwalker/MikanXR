@@ -21,9 +21,10 @@ EventNode::EventNode(NodeGraphPtr parentGraph)
 
 }
 
-void EventNode::evaluateNode(NodeEvaluator& evaluator)
+bool EventNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	// TODO: Push event parameters to output pins
+	return true;
 }
 
 FlowPinPtr EventNode::getOutputFlowPin() const

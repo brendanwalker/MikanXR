@@ -12,8 +12,9 @@ public:
 
 	void setFramebuffer(GlFrameBufferPtr inFrameBuffer);
 
-	virtual void evaluateNode(NodeEvaluator& evaluator);
+	virtual bool evaluateNode(NodeEvaluator& evaluator);
 	virtual FlowPinPtr getOutputFlowPin() const;
+	virtual bool hasAnyFlowPins() const override { return true; }
 
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 

@@ -64,10 +64,54 @@ void Node::disconnectAllPins()
 	}
 }
 
-void Node::evaluateNode(NodeEvaluator& evaluator) 
+bool Node::evaluateNode(NodeEvaluator& evaluator) 
 {
 	evaluator.setLastErrorCode(eNodeEvaluationErrorCode::invalidNode);
 	evaluator.setLastErrorMessage("Node missing evaluateNode implementation");
+
+	return false;
+}
+
+bool Node::evaluateInputs(NodeEvaluator& evaluator)
+{
+	for (auto inputPin : m_pinsIn)
+	{
+		assert(inputPin->getDirection() == eNodePinDirection::INPUT);
+
+		// Don't consider flow pins
+		// (the control evaluation order, not value propagation)
+		if (std::dynamic_pointer_cast<FlowPin>(inputPin))
+			continue;
+
+		// Get the output pin that this input pin feed by
+		NodePinPtr outputSourcePin = inputPin->getConnectedSourcePin();
+		if (!outputSourcePin)
+		{
+			evaluator.setLastErrorCode(eNodeEvaluationErrorCode::missingInput);
+			evaluator.setLastErrorMessage("pin missing input");
+			return false;
+		}
+
+		// Recurse into node that owns the output and evaluate it's inputs ...
+		// ... unless the source node has flow pins, 
+		// which means the source need should have already been evaluated
+		NodePtr sourceNode= outputSourcePin->getOwnerNode();
+		if (!sourceNode->hasAnyFlowPins())
+		{
+			// Recursively evaluate the inputs for the source node (if any)
+			if (!sourceNode->evaluateInputs(evaluator))
+				return false;
+
+			// Then evaluate the node to update its output pins
+			if (!sourceNode->evaluateNode(evaluator))
+				return false;
+		}
+
+		// Update the input pin now that output it's connected to is updated
+		inputPin->copyValueFromSourcePin();
+	}
+
+	return true;
 }
 
 FlowPinPtr Node::getOutputFlowPin() const 

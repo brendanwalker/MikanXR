@@ -27,7 +27,7 @@ public:
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }
 	inline const std::vector<NodePinPtr>& getInputPins() const { return m_pinsIn; }
-	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }
+	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }	
 
 	template <class t_pin_type>
 	std::shared_ptr<t_pin_type> getFirstPinOfType(eNodePinDirection direction) const
@@ -61,7 +61,8 @@ public:
 	bool disconnectPin(NodePinPtr pinPtr);
 	void disconnectAllPins();
 
-	virtual void evaluateNode(NodeEvaluator& evaluator);
+	virtual bool evaluateNode(NodeEvaluator& evaluator);
+	virtual bool hasAnyFlowPins() const { return false; }
 	virtual FlowPinPtr getOutputFlowPin() const;
 
 	virtual std::string editorGetTitle() const { return "Node"; }
@@ -70,6 +71,8 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}
 
 protected:
+	bool evaluateInputs(NodeEvaluator& evaluator);
+
 	virtual void editorRenderTitle(const NodeEditorState& editorState) const;
 
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;

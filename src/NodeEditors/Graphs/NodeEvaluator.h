@@ -9,6 +9,7 @@ enum eNodeEvaluationErrorCode
 	NONE= -1,
 
 	invalidNode,
+	missingInput,
 	evaluationError,
 	infiniteLoop
 };
