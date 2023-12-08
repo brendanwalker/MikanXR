@@ -12,6 +12,8 @@ public:
 	NodeGraph();
 	virtual ~NodeGraph();
 
+	inline float getTimeInSeconds() const { return m_timeInSeconds; }
+
 	GraphPropertyPtr getPropertyById(t_graph_property_id id) const;
 	GraphPropertyPtr getPropertyByName(const std::string& name) const;
 
@@ -48,6 +50,8 @@ public:
 	NodePinPtr getNodePinById(t_node_pin_id id) const;
 	NodeLinkPtr getNodeLinkById(t_node_link_id id) const;
 
+	virtual void update(class NodeEvaluator& evaluator);
+
 	bool deleteNodeById(t_node_id id);
 	MulticastDelegate<void(t_node_id id)> OnNodeDeleted;
 
@@ -62,6 +66,8 @@ public:
 
 protected:
 	int allocateId();
+
+	float m_timeInSeconds;
 
 	std::vector<NodeFactoryPtr> m_nodeFactories;
 	std::map<t_node_id, NodePtr> m_Nodes;

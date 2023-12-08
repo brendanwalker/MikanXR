@@ -23,7 +23,7 @@ public:
 	NodeEditorWindow();
 	~NodeEditorWindow();
 
-	void update();
+	void update(float deltaSeconds);
 
 	// -- IGlWindow ----
 	virtual bool startup() override;

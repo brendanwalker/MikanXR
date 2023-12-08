@@ -9,6 +9,8 @@ public:
 	TextureNode();
 	TextureNode(NodeGraphPtr parentGraph);
 
+	virtual void evaluateNode(NodeEvaluator& evaluator) override;
+
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 
 protected:

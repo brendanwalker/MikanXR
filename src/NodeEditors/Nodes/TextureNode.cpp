@@ -3,6 +3,7 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
+#include "Pins/TexturePin.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -14,6 +15,16 @@ TextureNode::TextureNode()
 TextureNode::TextureNode(NodeGraphPtr parentGraph)
 	: Node(parentGraph)
 {}
+
+void TextureNode::evaluateNode(NodeEvaluator& evaluator)
+{
+	TexturePinPtr outPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
+	if (outPin)
+	{
+		outPin->setValue(m_target);
+	}
+}
+
 
 void TextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {

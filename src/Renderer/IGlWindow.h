@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RendererFwd.h"
+#include "SdlFwd.h"
 
 class IGlWindow
 {

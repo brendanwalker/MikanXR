@@ -2,6 +2,7 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
+#include "Pins/FloatPin.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -11,6 +12,15 @@ TimeNode::TimeNode() : Node()
 
 TimeNode::TimeNode(NodeGraphPtr parentGraph) : Node(parentGraph)
 {}
+
+void TimeNode::evaluateNode(NodeEvaluator& evaluator)
+{
+	FloatPinPtr outPin = getFirstPinOfType<FloatPin>(eNodePinDirection::OUTPUT);
+	if (outPin)
+	{
+		outPin->setValue(getOwnerGraph()->getTimeInSeconds());
+	}
+}
 
 void TimeNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {

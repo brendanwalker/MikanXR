@@ -2,6 +2,7 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
+#include "Pins/FlowPin.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -18,6 +19,16 @@ EventNode::EventNode(NodeGraphPtr parentGraph)
 	: Node(parentGraph)
 {
 
+}
+
+void EventNode::evaluateNode(NodeEvaluator& evaluator)
+{
+	// TODO: Push event parameters to output pins
+}
+
+FlowPinPtr EventNode::getOutputFlowPin() const
+{
+	return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT);
 }
 
 void EventNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const

@@ -1,4 +1,6 @@
 #include "NodeGraph.h"
+#include "Graphs/NodeEvaluator.h"
+#include "Logger.h"
 #include "Nodes/Node.h"
 #include "Nodes/EventNode.h"
 #include "Pins/NodeLink.h"
@@ -16,6 +18,21 @@ NodeGraph::NodeGraph()
 NodeGraph::~NodeGraph()
 {
 
+}
+
+void NodeGraph::update(NodeEvaluator& evaluator)
+{
+	m_timeInSeconds+= evaluator.getDeltaSeconds();
+
+	NodePtr onTickNode = getEventNodeByName("OnTick");
+	if (onTickNode)
+	{
+		evaluator.evaluateFlowPinChain(onTickNode);
+		if (evaluator.getLastErrorCode() != eNodeEvaluationErrorCode::NONE)
+		{
+			MIKAN_LOG_ERROR("NodeGraph::update - Error: ") << evaluator.getLastErrorMessage();
+		}
+	}
 }
 
 GraphPropertyPtr NodeGraph::getPropertyById(t_graph_property_id id) const

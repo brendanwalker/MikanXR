@@ -184,21 +184,16 @@ bool NodeEditorWindow::startup()
 	return success;
 }
 
-void NodeEditorWindow::update()
+void NodeEditorWindow::update(float deltaSeconds)
 {
 	EASY_FUNCTION();
 
-	NodePtr onTickNode= m_nodeGraph->getEventNodeByName("OnTick");
-	if (onTickNode)
-	{
-		NodeEvaluator evaluator= {};
+	NodeEvaluator evaluator = {};
+	evaluator
+		.setCurrentWindow(this)
+		.setDeltaSeconds(deltaSeconds);
 
-		evaluator.evaluateFlowPinChain(onTickNode);
-		if (evaluator.getLastErrorCode() != eNodeEvaluationErrorCode::NONE)
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::update - Error: ") << evaluator.getLastErrorMessage();
-		}
-	}
+	m_nodeGraph->update(evaluator);
 }
 
 void NodeEditorWindow::render()
