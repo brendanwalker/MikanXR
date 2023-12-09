@@ -54,16 +54,13 @@ private:
 	enum class SelectedItemType
 	{
 		NONE,
-		PROGRAM,
-		FRAMEBUFFER,
-		TEXTURE,
+		// Graph Elements
 		NODES,
 		NODE,
 		LINK,
-		PROGRAM_NODE,
-		BUFFER_NODE,
-		IMAGE_NODE,
-		PINGPONG_NODE
+		// Assets
+		TRI_MESH,
+		TEXTURE,
 	};
 	SelectedItemType m_SelectedItemType= SelectedItemType::NONE;
 	int m_SelectedItemId= -1;
@@ -75,28 +72,13 @@ private:
 	void renderBottomPanel();
 	void renderRightPanel();
 
-	void DeleteSelectedItem();
+	void deleteSelectedItem();
 
-	void AddProgram(GlProgramPtr pProgram);
-	void DeleteProgram(int ix);
+	void addTriangulatedMesh(GlTriangulatedMeshPtr triMesh);
+	void deleteTriangulatedMesh(int ix);
 
-	void AddFramebuffer(GlFrameBufferPtr pFramebuffer);
-	void DeleteFramebuffer(int ix);
-
-	void AddTexture(GlTexturePtr pTex);
-	void DeleteTexture(int ix);
-
-	void UpdateNodes();
-	void UpdatePins();
-	void UpdateLinks();
-	void CreateLink(int startPinId, int endPinId);
-
-	// TODO: Move to Nodes
-	EditorPinPtr AllocPin(const struct GlProgramUniform& uniform);
-	EditorPinPtr AllocPin(const class GlShaderVar& var);
-
-	EditorProgramNodePtr CreateProgramNodePtr(int progId, const ImVec2& pos);
-	void CreateProgramNode(int progId, const ImVec2& pos);
+	void addTexture(GlTexturePtr texture);
+	void deleteTexture(int ix);
 
 protected:
 	void onNodeCreated(t_node_id id);
@@ -111,15 +93,9 @@ private:
 	struct ImFont* m_NormalIconFont= nullptr;
 	struct ImFont* m_BigIconFont= nullptr;
 
-	std::vector<GlProgramPtr> m_Programs;
-	FrameBufferArrayPropertyPtr m_frameBufferArrayProperty;
-	std::vector<GlFrameBufferPtr> m_Framebuffers;
-	std::vector<GlTexturePtr> m_Textures;
-
 	NodeGraphPtr m_nodeGraph;
-	std::vector<EditorNodePtr> m_Nodes;
-	std::vector<EditorPinPtr> m_Pins;
-	std::vector<EditorLinkPtr> m_Links;
+	TriMeshArrayPropertyPtr m_triMeshArrayProperty;
+	TextureArrayPropertyPtr m_textureArrayProperty;
 	NodeEditorState m_editorState;
 
 	// OpenGL shader program cache

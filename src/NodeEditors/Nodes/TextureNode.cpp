@@ -4,6 +4,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
+#include "Properties/GraphArrayProperty.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -12,9 +13,24 @@ TextureNode::TextureNode()
 	: Node()
 {}
 
-TextureNode::TextureNode(NodeGraphPtr parentGraph)
-	: Node(parentGraph)
-{}
+TextureNode::TextureNode(NodeGraphPtr ownerGraph)
+	: Node(ownerGraph)
+{
+	if (ownerGraph)
+	{
+		m_textureArrayProperty = ownerGraph->getTypedPropertyByName<TextureArrayProperty>("textures");
+		ownerGraph->OnPropertyModifed += MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
+	}
+}
+
+TextureNode::~TextureNode()
+{
+	m_textureArrayProperty = nullptr;
+	if (m_ownerGraph)
+	{
+		m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
+	}
+}
 
 bool TextureNode::evaluateNode(NodeEvaluator& evaluator)
 {
@@ -57,6 +73,18 @@ void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 	ImNodes::EndNode();
 
 	editorRenderPopNodeStyle(editorState);
+}
+
+void TextureNode::onGraphPropertyChanged(t_graph_property_id id)
+{
+	if (m_textureArrayProperty && m_textureArrayProperty->getId() == id)
+	{
+		auto textureArray = m_textureArrayProperty->getArray();
+		if (std::find(textureArray.begin(), textureArray.end(), m_target) == textureArray.end())
+		{
+			setTexture(GlTexturePtr());
+		}
+	}
 }
 
 // -- TextureNode Factory -----

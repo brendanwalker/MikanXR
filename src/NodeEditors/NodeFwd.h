@@ -37,9 +37,9 @@ class MousePosNode;
 using MousePosNodePtr = std::shared_ptr<MousePosNode>;
 using MousePosNodeConstPtr = std::shared_ptr<const MousePosNode>;
 
-class ProgramNode;
-using ProgramNodePtr = std::shared_ptr<ProgramNode>;
-using ProgramNodeConstPtr = std::shared_ptr<const ProgramNode>;
+class DrawTriMeshNode;
+using ProgramNodePtr = std::shared_ptr<DrawTriMeshNode>;
+using ProgramNodeConstPtr = std::shared_ptr<const DrawTriMeshNode>;
 
 class TextureNode;
 using TextureNodePtr = std::shared_ptr<TextureNode>;
@@ -110,4 +110,22 @@ class GlFrameBuffer;
 using GlFrameBufferPtr = std::shared_ptr<GlFrameBuffer>;
 using FrameBufferArrayProperty = GraphArrayProperty<GlFrameBufferPtr>;
 using FrameBufferArrayPropertyPtr = GraphPropertyArrayPtr<GlFrameBufferPtr>;
-using FrameBufferArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlFrameBufferPtr>;;
+using FrameBufferArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlFrameBufferPtr>;
+
+class GlMaterial;
+using GlMaterialPtr = std::shared_ptr<GlMaterial>;
+using MaterialArrayProperty = GraphArrayProperty<GlMaterialPtr>;
+using MaterialArrayPropertyPtr = GraphPropertyArrayPtr<GlMaterialPtr>;
+using MaterialArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlMaterialPtr>;
+
+class GlTexture;
+using GlTexturePtr = std::shared_ptr<GlTexture>;
+using TextureArrayProperty = GraphArrayProperty<GlTexturePtr>;
+using TextureArrayPropertyPtr = GraphPropertyArrayPtr<GlTexturePtr>;
+using TextureArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlTexturePtr>;
+
+class GlTriangulatedMesh;
+using GlTriangulatedMeshPtr = std::shared_ptr<GlTriangulatedMesh>;
+using TriMeshArrayProperty = GraphArrayProperty<GlTriangulatedMeshPtr>;
+using TriMeshArrayPropertyPtr = GraphPropertyArrayPtr<GlTriangulatedMeshPtr>;
+using TriMeshArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlTriangulatedMeshPtr>;

@@ -115,6 +115,7 @@ public:
 	}
 
 protected:
+	void autoConnectInputPin(const NodeEditorState* editorState, NodePinPtr outputPin) const;
 	void autoConnectOutputPin(const NodeEditorState* editorState, NodePinPtr outputPin) const;
 
 protected:

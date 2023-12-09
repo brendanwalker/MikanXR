@@ -11,6 +11,7 @@
 #include "GlShaderCache.h"
 #include "GlShaderVar.h"
 #include "GlTexture.h"
+#include "GlTriangulatedMesh.h"
 #include "EditorNode.h"
 #include "EditorNodeConstants.h"
 #include "EditorNodeUtil.h"
@@ -19,6 +20,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
+#include "Nodes/DrawTriMeshNode.h"
 #include "Nodes/TextureNode.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
@@ -181,7 +183,8 @@ bool NodeEditorWindow::startup()
 		m_nodeGraph->OnNodeDeleted+= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
 		m_nodeGraph->OnLinkDeleted+= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
 
-		m_frameBufferArrayProperty = m_nodeGraph->getTypedPropertyByName<FrameBufferArrayProperty>("framebuffers");
+		m_triMeshArrayProperty = m_nodeGraph->getTypedPropertyByName<TriMeshArrayProperty>("triangulatedMeshes");
+		m_textureArrayProperty = m_nodeGraph->getTypedPropertyByName<TextureArrayProperty>("textures");
 	}
 
 	return success;
@@ -330,21 +333,24 @@ void NodeEditorWindow::renderLeftPanel()
 {
 	ImGui::BeginChild("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
 
-	// Programs
+	// Triangulated Meshes
 	{
+		auto& triMeshArray= m_triMeshArrayProperty->getArray();
+
 		// Add button
 		float xPos = ImGui::GetCursorPosX();
 		ImGui::SetCursorPosX(180);
-		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_program"))
+		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_tri_mesh"))
 		{
 			ImNodes::ClearLinkSelection();
 			ImNodes::ClearNodeSelection();
 
-			std::string name = "Program " + std::to_string(m_Programs.size() + 1);
-			AddProgram(m_shaderCache->allocateEmptyGlProgram(name));
+			//TODO: Allocate empty triangulated mesh
+			std::string name = "Tri Mesh: " + std::to_string(triMeshArray.size() + 1);
+			//AddTriangulatedMesh(m_shaderCache->allocateEmptyGlProgram(name));
 
-			m_SelectedItemType = SelectedItemType::PROGRAM;
-			m_SelectedItemId = (int)m_Programs.size() - 1;
+			m_SelectedItemType = SelectedItemType::TRI_MESH;
+			m_SelectedItemId = (int)triMeshArray.size() - 1;
 		}
 		ImGui::SameLine();
 		ImGui::SetCursorPosX(xPos);
@@ -357,7 +363,7 @@ void NodeEditorWindow::renderLeftPanel()
 		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
 		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		bool isNodeOpened = ImGui::CollapsingHeader("PROGRAMS", ImGuiTreeNodeFlags_SpanAvailWidth);
+		bool isNodeOpened = ImGui::CollapsingHeader("TRIANGULATED MESHES", ImGuiTreeNodeFlags_SpanAvailWidth);
 		ImGui::SameLine();
 		ImGui::SetCursorPosX(180);
 		ImGui::Text(ICON_FK_PLUS_CIRCLE);
@@ -367,12 +373,12 @@ void NodeEditorWindow::renderLeftPanel()
 		if (isNodeOpened)
 		{
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-			for (int i = 0; i < m_Programs.size(); i++)
+			for (int i = 0; i < triMeshArray.size(); i++)
 			{
 				// Item
-				std::string name = "\t\t" + m_Programs[i]->getProgramCode().getProgramName();
-				name += "##program" + std::to_string(i);
-				bool isSelected = m_SelectedItemType == SelectedItemType::PROGRAM;
+				std::string name = "\t\t" + triMeshArray[i]->getName();
+				name += "##trimesh" + std::to_string(i);
+				bool isSelected = m_SelectedItemType == SelectedItemType::TRI_MESH;
 				isSelected = isSelected && (m_SelectedItemId == i);
 				if (ImGui::Selectable(name.c_str(), &isSelected))
 				{
@@ -380,7 +386,7 @@ void NodeEditorWindow::renderLeftPanel()
 					ImNodes::ClearNodeSelection();
 					if (isSelected)
 					{
-						m_SelectedItemType = SelectedItemType::PROGRAM;
+						m_SelectedItemType = SelectedItemType::TRI_MESH;
 						m_SelectedItemId = i;
 					}
 					else
@@ -391,8 +397,8 @@ void NodeEditorWindow::renderLeftPanel()
 				}
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 				{
-					ImGui::SetDragDropPayload("program", &i, sizeof(int));
-					ImGui::Text(m_Programs[i]->getProgramCode().getProgramName().c_str());
+					ImGui::SetDragDropPayload("tri_mesh", &i, sizeof(int));
+					ImGui::Text(triMeshArray[i]->getName().c_str());
 					ImGui::EndDragDropSource();
 				}
 
@@ -406,98 +412,11 @@ void NodeEditorWindow::renderLeftPanel()
 				{
 					ImNodes::ClearLinkSelection();
 					ImNodes::ClearNodeSelection();
-					m_SelectedItemType = SelectedItemType::PROGRAM;
+					m_SelectedItemType = SelectedItemType::TRI_MESH;
 					m_SelectedItemId = i;
 
 					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
-						DeleteSelectedItem();
-
-					ImGui::EndPopup();
-				}
-				ImGui::PopStyleColor(2);
-				ImGui::PopStyleVar(3);
-			}
-			ImGui::PopStyleColor();
-		}
-	}
-
-	// Framebuffers
-	{
-		// Add button
-		float xPos = ImGui::GetCursorPosX();
-		ImGui::SetCursorPosX(180);
-		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_framebuffer"))
-		{
-			ImNodes::ClearLinkSelection();
-			ImNodes::ClearNodeSelection();
-
-			std::string name = "Framebuffer " + std::to_string(m_Framebuffers.size());
-			GlFrameBufferPtr framebuffer = std::make_shared<GlFrameBuffer>(name);
-			AddFramebuffer(framebuffer);
-
-			m_SelectedItemType = SelectedItemType::FRAMEBUFFER;
-			m_SelectedItemId = (int)m_Framebuffers.size() - 1;
-		}
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(xPos);
-
-		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		bool isNodeOpened = ImGui::CollapsingHeader("FRAMEBUFFERS", ImGuiTreeNodeFlags_SpanAvailWidth);
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(180);
-		ImGui::Text(ICON_FK_PLUS_CIRCLE);
-		ImGui::PopStyleVar(3);
-		ImGui::PopStyleColor(3);
-
-		if (isNodeOpened)
-		{
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-			for (int i = 1; i < m_Framebuffers.size(); i++)
-			{
-				// Item
-				std::string name = "\t\t" + m_Framebuffers[i]->getName();
-				name += "##framebuffer" + std::to_string(i);
-				bool isSelected = m_SelectedItemType == SelectedItemType::FRAMEBUFFER;
-				isSelected = isSelected && (m_SelectedItemId == i);
-				if (ImGui::Selectable(name.c_str(), &isSelected))
-				{
-					ImNodes::ClearLinkSelection();
-					ImNodes::ClearNodeSelection();
-					if (isSelected)
-					{
-						m_SelectedItemType = SelectedItemType::FRAMEBUFFER;
-						m_SelectedItemId = i;
-					}
-					else
-					{
-						m_SelectedItemType = SelectedItemType::NONE;
-						m_SelectedItemId = -1;
-					}
-				}
-
-				if (i == 0)
-					continue;
-				// Context menu
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-				ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
-				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-				if (ImGui::BeginPopupContextItem())
-				{
-					ImNodes::ClearLinkSelection();
-					ImNodes::ClearNodeSelection();
-					m_SelectedItemType = SelectedItemType::FRAMEBUFFER;
-					m_SelectedItemId = i;
-
-					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
-						DeleteSelectedItem();
+						deleteSelectedItem();
 
 					ImGui::EndPopup();
 				}
@@ -564,7 +483,7 @@ void NodeEditorWindow::renderMainFrame()
 	if (ImNodes::IsLinkCreated(&startPinId, &endPinId))
 	{
 		m_editorState.startedLinkPinId = -1;
-		CreateLink(startPinId, endPinId);
+		m_nodeGraph->createLink(startPinId, endPinId);
 	}
 
 	// Context menu
@@ -573,20 +492,23 @@ void NodeEditorWindow::renderMainFrame()
 	// Drag and drop creation
 	if (ImGui::BeginDragDropTarget())
 	{
-		if (auto payload = ImGui::AcceptDragDropPayload("program"))
+		NodeEditorState editorStateCopy = m_editorState;
+		editorStateCopy.hangPos = ImGui::GetMousePos();
+
+		if (auto payload = ImGui::AcceptDragDropPayload("tri_mesh"))
 		{
-			IM_ASSERT(payload->DataSize == sizeof(int));
-			int id = *(const int*)payload->Data;
-			auto mousePos = ImGui::GetMousePos();
-			CreateProgramNode(id, mousePos);
+			IM_ASSERT(payload->DataSize == sizeof(GlTriangulatedMeshPtr*));
+			GlTriangulatedMeshPtr triangulatedMesh = *(GlTriangulatedMeshPtr*)payload->Data;
+
+			auto triMeshNode =
+				std::static_pointer_cast<DrawTriMeshNode>(
+					DrawTriMeshNodeFactory(m_nodeGraph).createNode(&editorStateCopy));
+			triMeshNode->setTriangulatedMesh(triangulatedMesh);
 		}
 		else if (auto payload = ImGui::AcceptDragDropPayload("texture"))
 		{
 			IM_ASSERT(payload->DataSize == sizeof(GlTexturePtr*));
 			GlTexturePtr texture = *(GlTexturePtr*)payload->Data;
-
-			NodeEditorState editorStateCopy= m_editorState;
-			editorStateCopy.hangPos= ImGui::GetMousePos();
 
 			auto textureNode= 
 				std::static_pointer_cast<TextureNode>(
@@ -598,7 +520,7 @@ void NodeEditorWindow::renderMainFrame()
 
 	// Delete key event
 	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
-		DeleteSelectedItem();
+		deleteSelectedItem();
 }
 
 void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
@@ -683,102 +605,6 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 			}
 		}
 		ImGui::EndPopup();
-
-	#if 0
-		if (m_StartedLinkPinId != -1)
-		{
-			EditorPinPtr pin = m_Pins[m_StartedLinkPinId];
-			if (pin->type == EditorPinType::FLOW && m_Programs.size() > 0)
-			{
-				for (int i = 0; i < m_Programs.size(); i++)
-				{
-					if (ImGui::MenuItem(m_Programs[i]->getProgramCode().getProgramName().c_str()))
-					{
-						CreateProgramNode(i, m_HangPos);
-						EditorProgramNodePtr newNode =
-							std::static_pointer_cast<EditorProgramNode>(m_Nodes.back());
-
-						if (pin->isOutput)
-							CreateLink(pin->id, newNode->flowIn->id);
-						else
-							CreateLink(newNode->flowOut->id, pin->id);
-					}
-				}
-			}
-			else if (pin->type == EditorPinType::TEXTURE &&
-					 !pin->isOutput &&
-					 m_Textures.size() > 0)
-			{
-				for (int i = 0; i < m_Textures.size(); i++)
-				{
-					std::string name = "Texture: " + m_Textures[i]->getName();
-					if (ImGui::MenuItem(name.c_str()))
-					{
-						CreateTextureNode(i, m_HangPos);
-						CreateLink(m_Nodes.back()->pinsOut[0]->id, pin->id);
-					}
-				}
-			}
-			else if (pin->type == EditorPinType::TEXTURE &&
-					 pin->isOutput &&
-					 pin->ownerNode->type == EditorNodeType::TEXTURE)
-			{
-				if (ImGui::MenuItem("Image"))
-				{
-					CreateImageNode(m_HangPos);
-					CreateLink(m_Nodes.back()->pinsIn[0]->id, pin->id);
-				}
-			}
-			else if (pin->type == EditorPinType::FLOAT && !pin->isOutput)
-			{
-				if (ImGui::MenuItem("Time"))
-				{
-					CreateTimeNode(m_HangPos);
-					CreateLink(m_Nodes.back()->pinsOut[0]->id, pin->id);
-				}
-			}
-			else if (pin->type == EditorPinType::FLOAT2 && !pin->isOutput)
-			{
-				if (ImGui::MenuItem("Mouse Position"))
-				{
-					CreateMousePosNode(m_HangPos);
-					CreateLink(m_Nodes.back()->pinsOut[0]->id, pin->id);
-				}
-			}
-			else
-				ImGui::CloseCurrentPopup();
-		}
-		else
-		{
-			if (m_Programs.size() > 0)
-			{
-				for (int i = 0; i < m_Programs.size(); i++)
-				{
-					if (ImGui::MenuItem(m_Programs[i]->getProgramCode().getProgramName().c_str()))
-						CreateProgramNode(i, m_HangPos);
-				}
-				ImGui::Separator();
-			}
-			if (m_Textures.size() > 0)
-			{
-				for (int i = 0; i < m_Textures.size(); i++)
-				{
-					std::string name = "Texture: " + m_Textures[i]->getName();
-					if (ImGui::MenuItem(name.c_str()))
-						CreateTextureNode(i, m_HangPos);
-				}
-				ImGui::Separator();
-			}
-			if (ImGui::MenuItem("Block"))
-				CreateBlockNode(m_HangPos);
-			ImGui::Separator();
-			if (ImGui::MenuItem("Time"))
-				CreateTimeNode(m_HangPos);
-			if (ImGui::MenuItem("Mouse Position"))
-				CreateMousePosNode(m_HangPos);
-		}
-		ImGui::EndPopup();
-	#endif
 	}
 	else if (m_editorState.bLinkHanged)
 	{
@@ -821,7 +647,7 @@ void NodeEditorWindow::renderBottomPanel()
 
 						if (tex->reloadTextureFromImagePath())
 						{
-							m_Textures.push_back(tex);
+							addTexture(tex);
 						}
 					}
 				}
@@ -832,10 +658,12 @@ void NodeEditorWindow::renderBottomPanel()
 
 			// Textures browser
 			{
+				auto& textureArray= m_textureArrayProperty->getArray();
+
 				ImGui::BeginChild("TextureBrowser");
 
 				ImGui::Dummy(ImVec2(1, 10));
-				for (int i = 0; i < m_Textures.size(); i++)
+				for (int i = 0; i < textureArray.size(); i++)
 				{
 					ImGui::Dummy(ImVec2(10, 140));
 					ImGui::SameLine();
@@ -846,7 +674,7 @@ void NodeEditorWindow::renderBottomPanel()
 					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 					{
 						ImGui::SetDragDropPayload("texture", &i, sizeof(int));
-						ImGui::Text(m_Textures[i]->getName().c_str());
+						ImGui::Text(textureArray[i]->getName().c_str());
 						ImGui::EndDragDropSource();
 					}
 
@@ -866,7 +694,7 @@ void NodeEditorWindow::renderBottomPanel()
 
 						if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 						{
-							DeleteSelectedItem();
+							deleteSelectedItem();
 							itemDeleted = true;
 						}
 
@@ -879,11 +707,11 @@ void NodeEditorWindow::renderBottomPanel()
 					{
 						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 						ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
-						ImGui::Image((void*)(intptr_t)m_Textures[i]->getGlTextureId(), ImVec2(100, 100));
+						ImGui::Image((void*)(intptr_t)textureArray[i]->getGlTextureId(), ImVec2(100, 100));
 						ImGui::Dummy(ImVec2(2, 1));
 						ImGui::SameLine();
 						ImGui::SetNextItemWidth(108);
-						ImGui::Text(m_Textures[i]->getName().c_str());
+						ImGui::Text(textureArray[i]->getName().c_str());
 					}
 					ImGui::EndGroup();
 
@@ -925,7 +753,11 @@ void NodeEditorWindow::renderRightPanel()
 			node->editorRenderPropertySheet(m_editorState);
 		}
 	}
-	else if (m_SelectedItemType == SelectedItemType::PROGRAM)
+	else if (m_SelectedItemType == SelectedItemType::TEXTURE)
+	{
+		//TODO
+	}
+	else if (m_SelectedItemType == SelectedItemType::TRI_MESH)
 	{
 		// Section 1: Basic info
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -935,7 +767,7 @@ void NodeEditorWindow::renderRightPanel()
 		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
 		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		bool isNodeOpened = ImGui::CollapsingHeader("Program", ImGuiTreeNodeFlags_SpanAvailWidth);
+		bool isNodeOpened = ImGui::CollapsingHeader("Tri Mesh", ImGuiTreeNodeFlags_SpanAvailWidth);
 		ImGui::PopStyleVar(3);
 		ImGui::PopStyleColor(3);
 
@@ -945,17 +777,16 @@ void NodeEditorWindow::renderRightPanel()
 			ImGui::Text("\t\tName");
 			ImGui::SameLine(160);
 			ImGui::SetNextItemWidth(150);
-			GlProgramCode& programCode= m_Programs[m_SelectedItemId]->getProgramCodeMutable();
-			std::string name = programCode.getProgramName();
-			if (ImGui::InputText("##progName", &name))
-				programCode.setProgramName(name);
+			GlTriangulatedMeshPtr triMesh= m_triMeshArrayProperty->getArray()[m_SelectedItemId];
+			std::string name = triMesh->getName();
+			ImGui::Text(name.c_str());
 		}
 
 		// Section 2: Shaders
 		// Add Button
 		float xPos = ImGui::GetCursorPosX();
 		ImGui::SetCursorPosX(325);
-		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_shader"))
+		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##set_mesh"))
 		{
 		#if 0
 			auto paths_c = tinyfd_openFileDialog("Add Shader", "", 0, 0, 0, 1);
@@ -970,176 +801,12 @@ void NodeEditorWindow::renderRightPanel()
 			}
 		#endif
 		}
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(xPos);
-
-		// Title bar
-		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		isNodeOpened = ImGui::CollapsingHeader("Shaders", ImGuiTreeNodeFlags_SpanAvailWidth);
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(325);
-		ImGui::Text(ICON_FK_PLUS_CIRCLE);
-		ImGui::PopStyleVar(3);
-		ImGui::PopStyleColor(3);
-
-		if (isNodeOpened)
-		{
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-			const GlProgramCode& shaderCode= m_Programs[m_SelectedItemId]->getProgramCode();
-
-			if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_shader"))
-			{
-			#if 0
-				auto paths_c = tinyfd_openFileDialog("Add Shader", "", 0, 0, 0, 1);
-				if (paths_c)
-				{
-					std::stringstream ssPaths(paths_c);
-					std::string path;
-					while (std::getline(ssPaths, path, '|'))
-						m_Programs[m_SelectedItemId]->AddShader(
-							PathUtils::makeUniversalPathString(path).c_str(),
-							GL_VERTEX_SHADER);
-				}
-			#endif
-			}
-			std::vector<std::filesystem::path> shaders = 
-				{
-						shaderCode.getVertexShaderFilePath(), 
-						shaderCode.getFragmeShaderFilePath()
-				};
-			for (int i = 0; i < shaders.size(); i++)
-			{
-				// Name
-				std::string name = shaders[i].string();
-				name = "\t" + name.substr(name.find_last_of('/') + 1);
-				ImGui::SetNextItemWidth(150);
-				ImGui::Text(name.c_str());
-
-				#if 0
-				// Type
-				int iVar = 0;
-				GLenum type = m_Programs[m_SelectedItemId]->GetShaderTypes()[i];
-				if (type == GL_VERTEX_SHADER)
-					iVar = 0;
-				else if (type == GL_FRAGMENT_SHADER)
-					iVar = 1;
-				const char* items = "Vertex\0Fragment\0";
-				std::string idStr = "##shadertype" + std::to_string(i);
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-				if (ImGui::Combo(idStr.c_str(), &iVar, items))
-				{
-					if (iVar == 0)
-						m_Programs[m_SelectedItemId]->SetShaderType(i, GL_VERTEX_SHADER);
-					else if (iVar == 1)
-						m_Programs[m_SelectedItemId]->SetShaderType(i, GL_FRAGMENT_SHADER);
-				}
-				ImGui::PopStyleColor();
-
-				// Delete button
-				ImGui::SameLine();
-				ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-				idStr = ICON_FK_TRASH "##shader" + std::to_string(i);
-				bool itemDeleted = false;
-				if (ImGui::SmallButton(idStr.c_str()))
-				{
-					m_Programs[m_SelectedItemId]->RemoveShader(i);
-					itemDeleted = true;
-				}
-				ImGui::PopStyleColor(3);
-				ImGui::PopStyleVar();
-				if (itemDeleted)
-					break;
-				#endif
-			}
-			ImGui::PopStyleColor();
-		}
-	}
-
-	else if (m_SelectedItemType == SelectedItemType::FRAMEBUFFER)
-	{
-		if (m_SelectedItemId != 0)
-		{
-			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-			ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-			ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-			bool isNodeOpened = ImGui::CollapsingHeader("Framebuffer", ImGuiTreeNodeFlags_SpanAvailWidth);
-			ImGui::PopStyleVar(3);
-			ImGui::PopStyleColor(3);
-
-			if (isNodeOpened)
-			{
-				// Name
-				ImGui::Text("\t\tName");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				std::string name = m_Framebuffers[m_SelectedItemId]->getName();
-				if (ImGui::InputText("##framebufferName", &name))
-					m_Framebuffers[m_SelectedItemId]->setName(name);
-
-				// Size
-				int x, y;
-				m_Framebuffers[m_SelectedItemId]->getSize(&x, &y);
-				ImGui::Text("\t\tWidth");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				if (ImGui::DragInt("##framebufferSizeX", &x, 1.0f, 0, 4096))
-				{
-					if (x < 0) x = 0;
-					if (x > 4096) x = 4096;
-					m_Framebuffers[m_SelectedItemId]->setSize(x, y);
-				}
-				ImGui::Text("\t\tHeight");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				if (ImGui::DragInt("##framebufferSizeY", &y, 1.0f, 0, 4096))
-				{
-					if (y < 0) y = 0;
-					if (y > 4096) y = 4096;
-					m_Framebuffers[m_SelectedItemId]->setSize(x, y);
-				}
-
-				// Attachments
-				ImGui::Text("\t\tAttachments");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				int iVal = m_Framebuffers[m_SelectedItemId]->getNumAttachments();
-				if (ImGui::SliderInt("##framebufferAttachments", &iVal, 0, 8))
-				{
-					if (iVal < 0) iVal = 0;
-					if (iVal > 8) iVal = 8;
-					m_Framebuffers[m_SelectedItemId]->setNumAttachments(iVal);
-				}
-
-				// Renderbuffer
-				ImGui::Text("\t\tRenderbuffer");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				bool hasRenderbuffer = m_Framebuffers[m_SelectedItemId]->hasRenderbuffer();
-				if (ImGui::Checkbox("##framebufferRenderbuffer", &hasRenderbuffer))
-					m_Framebuffers[m_SelectedItemId]->setRenderbuffer(hasRenderbuffer);
-			}
-		}
 	}
 
 	ImGui::EndChild();
 }
 
-void NodeEditorWindow::DeleteSelectedItem()
+void NodeEditorWindow::deleteSelectedItem()
 {
 	if (m_SelectedItemType >= SelectedItemType::NODES)
 	{
@@ -1148,179 +815,72 @@ void NodeEditorWindow::DeleteSelectedItem()
 		ImNodes::GetSelectedNodes(ids);
 		for (int i = 0; i < numNodes; i++)
 		{
-			if (m_Nodes[ids[i]]->type != EditorNodeType::EVENT)
+			const t_node_id nodeId= ids[i];
+			NodePtr node= m_nodeGraph->getNodeById(nodeId);
+
+			if (node && node->editorCanDelete())
+			{
 				m_nodeGraph->deleteNodeById(ids[i]);
+			}
 		}
 		delete[] ids;
-
-		int numLinks = ImNodes::NumSelectedLinks();
-		ids = new int[numLinks];
-		ImNodes::GetSelectedLinks(ids);
-		for (int i = 0; i < numLinks; i++)
-			m_nodeGraph->deleteLinkById(ids[i]);
-		delete[] ids;
-
-		if (numNodes > 0)
-		{
-			UpdateNodes();
-			UpdatePins();
-		}
-		UpdateLinks();
 	}
+	else if (m_SelectedItemType == SelectedItemType::TRI_MESH)
+	{
+		deleteTriangulatedMesh(m_SelectedItemId);
 
-	else if (m_SelectedItemType == SelectedItemType::PROGRAM)
-		DeleteProgram(m_SelectedItemId);
-
-	else if (m_SelectedItemType == SelectedItemType::FRAMEBUFFER)
-		DeleteFramebuffer(m_SelectedItemId);
-
+	}
 	else if (m_SelectedItemType == SelectedItemType::TEXTURE)
-		DeleteTexture(m_SelectedItemId);
+	{
+		deleteTexture(m_SelectedItemId);
+	}
 
 	m_SelectedItemType = SelectedItemType::NONE;
 	m_SelectedItemId = -1;
 }
 
-void NodeEditorWindow::AddProgram(GlProgramPtr pProgram)
+void NodeEditorWindow::addTriangulatedMesh(GlTriangulatedMeshPtr triMesh)
 {
-	m_Programs.push_back(pProgram);
+	if (m_triMeshArrayProperty)
+	{
+		m_triMeshArrayProperty->getArrayMutable().push_back(triMesh);
+		m_triMeshArrayProperty->notifyPropertyModified();
+	}
 }
 
-void NodeEditorWindow::DeleteProgram(int ix)
+void NodeEditorWindow::deleteTriangulatedMesh(int ix)
 {
-	bool needsUpdate = false;
-	for (auto& node : m_Nodes)
+	if (m_triMeshArrayProperty)
 	{
-		if (node->type == EditorNodeType::PROGRAM)
+		auto triMeshArray = m_triMeshArrayProperty->getArrayMutable();
+
+		if (ix >= 0 && ix < (int)triMeshArray.size())
 		{
-			EditorProgramNodePtr progNode = std::static_pointer_cast<EditorProgramNode>(node);
-
-			if (progNode->target == m_Programs[ix])
-			{
-				m_nodeGraph->deleteNodeById(node->id);
-				needsUpdate = true;
-			}
-		}
-	}
-	if (needsUpdate)
-	{
-		UpdateNodes();
-		UpdatePins();
-		UpdateLinks();
-	}
-
-	{
-		GlProgramPtr program = m_Programs[ix];
-
-		m_shaderCache->removeGlProgramFromCache(program);
-		m_Programs.erase(m_Programs.begin() + ix);
-	}
-}
-
-void NodeEditorWindow::AddFramebuffer(GlFrameBufferPtr pFramebuffer)
-{
-	if (m_frameBufferArrayProperty)
-	{
-		m_frameBufferArrayProperty->getArrayMutable().push_back(pFramebuffer);
-		m_frameBufferArrayProperty->notifyPropertyModified();
-	}
-}
-
-void NodeEditorWindow::DeleteFramebuffer(int ix)
-{
-	if (m_frameBufferArrayProperty)
-	{
-		auto frameBufferArray= m_frameBufferArrayProperty->getArrayMutable();
-
-		if (ix >= 0 && ix < (int)frameBufferArray.size())
-		{
-			frameBufferArray.erase(frameBufferArray.begin() + ix);
-			m_frameBufferArrayProperty->notifyPropertyModified();
+			triMeshArray.erase(triMeshArray.begin() + ix);
+			m_triMeshArrayProperty->notifyPropertyModified();
 		}
 	}
 }
 
-void NodeEditorWindow::AddTexture(GlTexturePtr pTex)
+void NodeEditorWindow::addTexture(GlTexturePtr pTex)
 {
-	m_Textures.push_back(pTex);
-}
-
-void NodeEditorWindow::DeleteTexture(int ix)
-{
-	bool needsUpdate = false;
-	for (auto& node : m_Nodes)
+	if (m_textureArrayProperty)
 	{
-		if (node->type == EditorNodeType::TEXTURE)
-		{
-			EditorTextureNodePtr texNode = std::static_pointer_cast<EditorTextureNode>(node);
-
-			if (texNode->target == m_Textures[ix])
-			{
-				m_nodeGraph->deleteNodeById(node->id);
-				needsUpdate = true;
-			}
-		}
-	}
-	if (needsUpdate)
-	{
-		UpdateNodes();
-		UpdatePins();
-		UpdateLinks();
-	}
-
-	{
-		GlTexturePtr texture= m_Textures[ix];
-
-		texture->disposeTexture();
-		m_Textures.erase(m_Textures.begin() + ix);
+		m_textureArrayProperty->getArrayMutable().push_back(pTex);
+		m_textureArrayProperty->notifyPropertyModified();
 	}
 }
 
-void NodeEditorWindow::UpdateNodes()
+void NodeEditorWindow::deleteTexture(int ix)
 {
-	for (int i = 0; i < m_Nodes.size(); i++)
+	if (m_textureArrayProperty)
 	{
-		if (!m_Nodes[i])
-		{
-			m_Nodes.erase(m_Nodes.begin() + i);
-			i--;
-		}
-		else
-		{
-			const ImVec2* nodePos= (ImVec2* )(&m_Nodes[i]->nodePos);
+		auto textureArray = m_textureArrayProperty->getArrayMutable();
 
-			m_Nodes[i]->id = i;
-			ImNodes::SetNodeScreenSpacePos(m_Nodes[i]->id, *nodePos);
-		}
-	}
-}
-
-void NodeEditorWindow::UpdatePins()
-{
-	for (int i = 0; i < m_Pins.size(); i++)
-	{
-		if (!m_Pins[i])
+		if (ix >= 0 && ix < (int)textureArray.size())
 		{
-			m_Pins.erase(m_Pins.begin() + i);
-			i--;
-		}
-		else
-			m_Pins[i]->id = i;
-	}
-}
-
-void NodeEditorWindow::UpdateLinks()
-{
-	for (int i = 0; i < m_Links.size(); i++)
-	{
-		if (!m_Links[i])
-		{
-			m_Links.erase(m_Links.begin() + i);
-			i--;
-		}
-		else
-		{
-			m_Links[i]->id = i;
+			textureArray.erase(textureArray.begin() + ix);
+			m_textureArrayProperty->notifyPropertyModified();
 		}
 	}
 }
@@ -1366,182 +926,10 @@ void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
 	}
 }
 
-//TODO
-void NodeEditorWindow::CreateLink(int startPinId, int endPinId)
-{
-	bool canCreateLink = false;
-	if (m_Pins[startPinId]->type == m_Pins[endPinId]->type)
-	{
-		if (m_Pins[startPinId]->type == EditorPinType::FLOW)
-		{
-			bool needsUpdate = false;
-			if (m_Pins[startPinId]->connectedLinks.size() > 0)
-			{
-				m_nodeGraph->deleteLinkById(m_Pins[startPinId]->connectedLinks[0]->id);
-				needsUpdate = true;
-			}
-			if (m_Pins[endPinId]->connectedLinks.size() > 0)
-			{
-				m_nodeGraph->deleteLinkById(m_Pins[endPinId]->connectedLinks[0]->id);
-				needsUpdate = true;
-			}
-			if (needsUpdate)
-				UpdateLinks();
-			canCreateLink = true;
-		}
-		else if (m_Pins[startPinId]->type == EditorPinType::BLOCK)
-		{
-			if (m_Pins[startPinId]->size == m_Pins[endPinId]->size)
-			{
-				if (!m_Pins[startPinId]->isOutput)
-				{
-					if (m_Pins[startPinId]->connectedLinks.size() > 0)
-					{
-						m_nodeGraph->deleteLinkById(m_Pins[startPinId]->connectedLinks[0]->id);
-						UpdateLinks();
-					}
-				}
-				if (!m_Pins[endPinId]->isOutput)
-				{
-					if (m_Pins[endPinId]->connectedLinks.size() > 0)
-					{
-						m_nodeGraph->deleteLinkById(m_Pins[endPinId]->connectedLinks[0]->id);
-						UpdateLinks();
-					}
-				}
-				canCreateLink = true;
-			}
-			else
-			{
-				bool needsUpdate = false;
-				if (!m_Pins[startPinId]->isOutput)
-				{
-					if (m_Pins[startPinId]->connectedLinks.size() > 0)
-					{
-						m_nodeGraph->deleteLinkById(m_Pins[startPinId]->connectedLinks[0]->id);
-						needsUpdate = true;
-					}
-				}
-				if (!m_Pins[endPinId]->isOutput)
-				{
-					if (m_Pins[endPinId]->connectedLinks.size() > 0)
-					{
-						m_nodeGraph->deleteLinkById(m_Pins[endPinId]->connectedLinks[0]->id);
-						needsUpdate = true;
-					}
-				}
-				if ((m_Pins[startPinId]->ownerNode->type == EditorNodeType::PINGPONG
-					 && m_Pins[startPinId]->size == 0))
-				{
-					auto pingpongNode = (EditorPingPongNode*)m_Pins[startPinId]->ownerNode.get();
-					pingpongNode->size = m_Pins[endPinId]->size;
-					auto pin = pingpongNode->pinsIn[0];
-					pin->size = m_Pins[endPinId]->size;
-					for (auto& link : pin->connectedLinks)
-					{
-						m_nodeGraph->deleteLinkById(link->id);
-						needsUpdate = true;
-					}
-					pin = pingpongNode->pinsIn[1];
-					pin->size = m_Pins[endPinId]->size;
-					for (auto& link : pin->connectedLinks)
-					{
-						m_nodeGraph->deleteLinkById(link->id);
-						needsUpdate = true;
-					}
-					pin = pingpongNode->pinsOut[0];
-					pin->size = m_Pins[endPinId]->size;
-					for (auto& link : pin->connectedLinks)
-					{
-						m_nodeGraph->deleteLinkById(link->id);
-						needsUpdate = true;
-					}
-					pin = pingpongNode->pinsOut[1];
-					pin->size = m_Pins[endPinId]->size;
-					for (auto& link : pin->connectedLinks)
-					{
-						m_nodeGraph->deleteLinkById(link->id);
-						needsUpdate = true;
-					}
-					canCreateLink = true;
-				}
-				else if (m_Pins[endPinId]->ownerNode->type == EditorNodeType::PINGPONG
-						 && m_Pins[endPinId]->size == 0)
-				{
-					auto pingpongNode = (EditorPingPongNode*)m_Pins[endPinId]->ownerNode.get();
-					pingpongNode->size = m_Pins[startPinId]->size;
-					auto pin = pingpongNode->pinsIn[0];
-					pin->size = m_Pins[startPinId]->size;
-					for (auto& link : pin->connectedLinks)
-					{
-						m_nodeGraph->deleteLinkById(link->id);
-						needsUpdate = true;
-					}
-					pin = pingpongNode->pinsIn[1];
-					pin->size = m_Pins[startPinId]->size;
-					for (auto& link : pin->connectedLinks)
-					{
-						m_nodeGraph->deleteLinkById(link->id);
-						needsUpdate = true;
-					}
-					pin = pingpongNode->pinsOut[0];
-					pin->size = m_Pins[startPinId]->size;
-					for (auto& link : pin->connectedLinks)
-					{
-						m_nodeGraph->deleteLinkById(link->id);
-						needsUpdate = true;
-					}
-					pin = pingpongNode->pinsOut[1];
-					pin->size = m_Pins[startPinId]->size;
-					for (auto& link : pin->connectedLinks)
-					{
-						m_nodeGraph->deleteLinkById(link->id);
-						needsUpdate = true;
-					}
-					canCreateLink = true;
-				}
-				if (needsUpdate)
-					UpdateLinks();
-			}
-		}
-		else
-		{
-			if (!m_Pins[startPinId]->isOutput)
-			{
-				if (m_Pins[startPinId]->connectedLinks.size() > 0)
-				{
-					m_nodeGraph->deleteLinkById(m_Pins[startPinId]->connectedLinks[0]->id);
-					UpdateLinks();
-				}
-			}
-			if (!m_Pins[endPinId]->isOutput)
-			{
-				if (m_Pins[endPinId]->connectedLinks.size() > 0)
-				{
-					m_nodeGraph->deleteLinkById(m_Pins[endPinId]->connectedLinks[0]->id);
-					UpdateLinks();
-				}
-			}
-			canCreateLink = true;
-		}
-	}
-
-	if (canCreateLink)
-	{
-		EditorLinkPtr link = std::make_shared<EditorLink>();
-
-		link->id = (int)m_Links.size();
-		link->pPin1 = m_Pins[startPinId];
-		link->pPin2 = m_Pins[endPinId];
-		m_Pins[startPinId]->connectedLinks.push_back(link);
-		m_Pins[endPinId]->connectedLinks.push_back(link);
-		m_Links.push_back(link);
-	}
-}
-
 void NodeEditorWindow::shutdown()
 {
-	m_frameBufferArrayProperty= nullptr;
+	m_triMeshArrayProperty= nullptr;
+	m_textureArrayProperty= nullptr;
 
 	if (m_nodeGraph)
 	{
@@ -1702,192 +1090,4 @@ void NodeEditorWindow::popImGuiStyles()
 	ImGui::PopFont();
 	ImGui::PopStyleVar(7);
 	ImGui::PopStyleColor(26);
-}
-
-// TODO: Move to Nodes
-EditorPinPtr NodeEditorWindow::AllocPin(const GlProgramUniform& uniform)
-{
-	EditorPinPtr pin;
-
-	eUniformDataType uniformDataType= GlProgram::getUniformSemanticDataType(uniform.semantic);
-	switch (uniformDataType)
-	{
-		case eUniformDataType::datatype_float:
-			pin = std::make_shared<EditorFloatPin>();
-			break;
-		case eUniformDataType::datatype_float2:
-			pin = std::make_shared<EditorFloat2Pin>();
-			break;
-		case eUniformDataType::datatype_float3:
-			pin = std::make_shared<EditorFloat3Pin>();
-			break;
-		case eUniformDataType::datatype_float4:
-			pin = std::make_shared<EditorFloat4Pin>();
-			break;
-		case eUniformDataType::datatype_int:
-			pin = std::make_shared<EditorIntPin>();
-			break;
-		case eUniformDataType::datatype_int2:
-			pin = std::make_shared<EditorInt2Pin>();
-			break;
-		case eUniformDataType::datatype_int3:
-			pin = std::make_shared<EditorInt3Pin>();
-			break;
-		case eUniformDataType::datatype_int4:
-			pin = std::make_shared<EditorInt4Pin>();
-			break;
-		case eUniformDataType::datatype_mat4:
-			pin = std::make_shared<EditorMat4Pin>();
-			break;
-		case eUniformDataType::datatype_texture:
-			//TODO
-			//pin = std::make_shared<EditorTexturePin>();
-			break;
-		default:
-			pin = std::make_shared<EditorPin>();
-	}
-
-	return pin;
-}
-
-EditorPinPtr NodeEditorWindow::AllocPin(const GlShaderVar& var)
-{
-	auto type = EditorNodeUtil::GLTypeToPinType(var.GetType());
-	EditorPinPtr pin;
-	if (type == EditorPinType::FLOAT)
-		pin = std::make_shared<EditorFloatPin>();
-	else if (type == EditorPinType::FLOAT2)
-		pin = std::make_shared<EditorFloat2Pin>();
-	else if (type == EditorPinType::FLOAT3)
-		pin = std::make_shared<EditorFloat3Pin>();
-	else if (type == EditorPinType::FLOAT4)
-		pin = std::make_shared<EditorFloat4Pin>();
-	else if (type == EditorPinType::INT)
-		pin = std::make_shared<EditorIntPin>();
-	else if (type == EditorPinType::INT2)
-		pin = std::make_shared<EditorInt2Pin>();
-	else if (type == EditorPinType::INT3)
-		pin = std::make_shared<EditorInt3Pin>();
-	else if (type == EditorPinType::INT4)
-		pin = std::make_shared<EditorInt4Pin>();
-	else
-		pin = std::make_shared<EditorPin>();
-	return pin;
-}
-
-EditorProgramNodePtr NodeEditorWindow::CreateProgramNodePtr(int progId, const ImVec2& pos)
-{
-	GlProgramPtr pProgram = m_Programs[progId];
-
-	EditorProgramNodePtr node = std::make_shared<EditorProgramNode>();
-	node->type = EditorNodeType::PROGRAM;
-	node->nodePos = {pos.x, pos.y};
-	node->target = pProgram;
-	node->framebuffer = m_Framebuffers.size() > 0 ? m_Framebuffers[0] : GlFrameBufferPtr();
-
-	// Flow in & out
-	{
-		EditorPinPtr pinIn = std::make_shared<EditorPin>();
-		pinIn->id = (int)m_Pins.size();
-		pinIn->ownerNode = node;
-		pinIn->type = EditorPinType::FLOW;
-		node->pinsIn.push_back(pinIn);
-		node->flowIn = pinIn;
-		m_Pins.push_back(pinIn);
-
-		EditorPinPtr pinOut = std::make_shared<EditorPin>();
-		pinOut->id = (int)m_Pins.size();
-		pinOut->ownerNode = node;
-		pinOut->type = EditorPinType::FLOW;
-		pinOut->isOutput = true;
-		node->pinsOut.push_back(pinOut);
-		node->flowOut = pinOut;
-		m_Pins.push_back(pinOut);
-	}
-
-	// Uniforms
-	for (auto uniform : pProgram->GetUniforms())
-	{
-		EditorPinPtr pin = AllocPin(uniform.var);
-		pin->id = (int)m_Pins.size();
-		pin->ownerNode = node;
-		pin->name = uniform.var.GetName();
-		pin->type = EditorNodeUtil::GLTypeToPinType(uniform.var.GetType());
-		node->pinsIn.push_back(pin);
-		m_Pins.push_back(pin);
-		if (pin->type == EditorPinType::IMAGE)
-		{
-			EditorPinPtr pinOut = std::make_shared<EditorPin>();
-			pinOut->id = (int)m_Pins.size();
-			pinOut->ownerNode = node;
-			pinOut->name = uniform.var.GetName();
-			pinOut->type = EditorPinType::IMAGE;
-			pinOut->isOutput = true;
-			node->pinsOut.push_back(pinOut);
-			node->attachmentsPinsStartId++;
-			m_Pins.push_back(pinOut);
-		}
-	}
-
-	// Uniform blocks
-	int index = 0;
-	for (const GlUniformBlock& uniformBlock : pProgram->GetUniformBlocks())
-	{
-		EditorBlockPinPtr pin = std::make_shared<EditorBlockPin>();
-		pin->id = (int)m_Pins.size();
-		pin->ownerNode = node;
-		pin->name = uniformBlock.GetName();
-		pin->type = EditorPinType::BLOCK;
-		pin->blockPinType = EditorBlockPinType::UNIFROM_BLOCK;
-		pin->index = index++;
-		pin->size = uniformBlock.size();
-		node->pinsIn.push_back(pin);
-		m_Pins.push_back(pin);
-	}
-
-	// Buffer blocks
-	index = 0;
-	for (const GlBufferBlock& bufferBlock : pProgram->GetBufferBlocks())
-	{
-		EditorBlockPinPtr pin = std::make_shared<EditorBlockPin>();
-		pin->id = (int)m_Pins.size();
-		pin->ownerNode = node;
-		pin->name = bufferBlock.GetName();
-		pin->type = EditorPinType::BLOCK;
-		pin->blockPinType = EditorBlockPinType::BUFFER_BLOCK;
-		pin->index = index;
-		pin->size = bufferBlock.size();
-		node->pinsIn.push_back(pin);
-		m_Pins.push_back(pin);
-
-		EditorBlockPinPtr pinOut = std::make_shared<EditorBlockPin>();
-		pinOut->id = (int)m_Pins.size();
-		pinOut->ownerNode = node;
-		pinOut->name = bufferBlock.GetName();
-		pinOut->type = EditorPinType::BLOCK;
-		pinOut->blockPinType = EditorBlockPinType::BUFFER_BLOCK;
-		pinOut->index = index++;
-		pinOut->size = bufferBlock.size();
-		pinOut->isOutput = true;
-		node->pinsOut.push_back(pinOut);
-		node->attachmentsPinsStartId++;
-		m_Pins.push_back(pinOut);
-	}
-
-	return node;
-}
-
-void NodeEditorWindow::CreateProgramNode(int progId, const ImVec2& pos)
-{
-	auto node = CreateProgramNodePtr(progId, pos);
-	node->id = (int)m_Nodes.size();
-	m_Nodes.push_back(node);
-
-	ImNodes::SetNodeScreenSpacePos(node->id, pos);
-
-	m_SelectedItemType = SelectedItemType::PROGRAM_NODE;
-	m_SelectedItemId = node->id;
-	ImNodes::ClearLinkSelection();
-	ImNodes::ClearNodeSelection();
-	ImNodes::SelectNode(node->id);
 }

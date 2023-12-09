@@ -3,14 +3,15 @@
 #include "Node.h"
 #include "RendererFwd.h"
 
-class ProgramNode : public Node
+class DrawTriMeshNode : public Node
 {
 public:
-	ProgramNode();
-	ProgramNode(NodeGraphPtr parentGraph);
-	virtual ~ProgramNode();
+	DrawTriMeshNode();
+	DrawTriMeshNode(NodeGraphPtr parentGraph);
+	virtual ~DrawTriMeshNode();
 
-	void setFramebuffer(GlFrameBufferPtr inFrameBuffer);
+	void setTriangulatedMesh(GlTriangulatedMeshPtr inTriMesh);
+	void setMaterial(GlMaterialPtr inMaterial);
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator);
 	virtual FlowPinPtr getOutputFlowPin() const;
@@ -21,23 +22,20 @@ public:
 protected:
 	virtual std::string editorGetTitle() const override;
 	void onGraphPropertyChanged(t_graph_property_id id);
+	void rebuildInputPins();
 
 protected:
-	GlProgramPtr m_target;
-	FrameBufferArrayPropertyPtr m_frameBufferArrayProperty;
-	int m_attachmentsPinsStartId;
-	GlFrameBufferPtr m_framebuffer;
-	NodePinPtr m_flowIn;
-	NodePinPtr m_flowOut;
-	GLenum m_drawMode;
-	int m_dispatchSize;
+	GlTriangulatedMeshPtr m_triMesh;
+	GlMaterialPtr m_material;
+
+	TriMeshArrayPropertyPtr m_triMeshArrayProperty;
 };
 
-class ProgramNodeFactory : public NodeFactory
+class DrawTriMeshNodeFactory : public NodeFactory
 {
 public:
-	ProgramNodeFactory() = default;
-	ProgramNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
+	DrawTriMeshNodeFactory() = default;
+	DrawTriMeshNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
 
 	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
 };

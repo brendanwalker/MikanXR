@@ -249,6 +249,25 @@ NodePtr NodeFactory::createNode(const NodeEditorState* editorState) const
 	return std::make_shared<Node>(m_ownerGraph);
 }
 
+void NodeFactory::autoConnectInputPin(const NodeEditorState* editorState, NodePinPtr inputPin) const
+{
+	assert(inputPin->getDirection() == eNodePinDirection::INPUT);
+
+	// If spawned in an editor context from a dangling pin link
+	// auto-connect the input pin to a compatible output pin
+	if (editorState != nullptr && editorState->startedLinkPinId != -1)
+	{
+		NodePinPtr outputPin = m_ownerGraph->getNodePinById(editorState->startedLinkPinId);
+
+		if (inputPin->canPinsBeConnected(outputPin))
+		{
+			assert(outputPin->getDirection() == eNodePinDirection::OUTPUT);
+
+			m_ownerGraph->createLink(inputPin->getId(), outputPin->getId());
+		}
+	}
+}
+
 void NodeFactory::autoConnectOutputPin(const NodeEditorState* editorState, NodePinPtr outputPin) const
 {
 	assert(outputPin->getDirection() == eNodePinDirection::OUTPUT);

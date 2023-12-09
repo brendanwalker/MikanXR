@@ -13,8 +13,11 @@
 #include <stdint.h>
 
 #include "GlProgramConstants.h"
+//--DELETE THIS--
 #include "GlBufferBlock.h"
 #include "GlUniformBlock.h"
+//--DELETE THIS--
+#include "GlVertexDefinition.h"
 #include "RendererFwd.h"
 
 class GlProgramCode
@@ -97,6 +100,7 @@ public:
 	GlProgram(const GlProgramCode &shaderCode);
 	virtual ~GlProgram();
 
+	inline const GlVertexDefinition& getVertexDefinition() const { return m_vertexDefinition; }
 	inline const GlProgramCode& getProgramCode() const { return m_code; }
 	inline GlProgramCode& getProgramCodeMutable() { return m_code; }
 	static eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic);
@@ -109,9 +113,11 @@ public:
 	GlProgramUniformIter getUniformEnd() const { return m_uniformLocationMap.end(); }
 	bool getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::string& outUniformName) const;
 
+	//--DELETE THIS--
 	inline const std::vector<GlUniform>& GetUniforms() const { return m_Uniforms; }
 	inline const std::vector<GlUniformBlock>& GetUniformBlocks() const { return m_UniformBlocks; }
-	inline const std::vector<GlBufferBlock>& GetBufferBlocks() const{ return m_BufferBlocks; }
+	inline const std::vector<GlBufferBlock>& GetBufferBlocks() const { return m_BufferBlocks; }
+	//--DELETE THIS--
 
 	bool setMatrix4x4Uniform(const std::string uniformName, const glm::mat4& mat);
 	bool setIntUniform(const std::string uniformName, const int value);
@@ -133,11 +139,17 @@ public:
 	void unbindProgram() const;
 
 protected:
+	void rebuildVertexDefinition();
+
+protected:
 	GlProgramCode m_code;
 	uint32_t m_programID = 0;
 	GlProgramUniformMap m_uniformLocationMap;
+	GlVertexDefinition m_vertexDefinition{};
 
+	//--DELETE THIS--
 	std::vector<GlUniform> m_Uniforms;
 	std::vector<GlUniformBlock> m_UniformBlocks;
 	std::vector<GlBufferBlock> m_BufferBlocks;
+	//--DELETE THIS--
 };
