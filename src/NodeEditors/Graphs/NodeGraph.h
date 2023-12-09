@@ -52,6 +52,9 @@ public:
 
 	virtual void update(class NodeEvaluator& evaluator);
 
+	NodePtr createNode(NodeFactoryPtr nodeFactory, const NodeEditorState* nodeEditorState);
+	MulticastDelegate<void(t_node_id id)> OnNodeCreated;
+
 	bool deleteNodeById(t_node_id id);
 	MulticastDelegate<void(t_node_id id)> OnNodeDeleted;
 

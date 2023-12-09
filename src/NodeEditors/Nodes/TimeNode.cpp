@@ -41,17 +41,7 @@ NodePtr TimeNodeFactory::createNode(const NodeEditorState* editorState) const
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin
-	if (editorState != nullptr && editorState->startedLinkPinId != -1)
-	{
-		NodePinPtr inputPin= m_ownerGraph->getNodePinById(editorState->startedLinkPinId);
-
-		if (outputPin->canPinsBeConnected(inputPin))
-		{
-			assert(inputPin->getDirection() == eNodePinDirection::INPUT);
-
-			m_ownerGraph->createLink(inputPin->getId(), outputPin->getId());
-		}
-	}
+	autoConnectOutputPin(editorState, outputPin);
 
 	return node;
 }

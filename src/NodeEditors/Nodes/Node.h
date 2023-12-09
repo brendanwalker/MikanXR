@@ -115,6 +115,9 @@ public:
 	}
 
 protected:
+	void autoConnectOutputPin(const NodeEditorState* editorState, NodePinPtr outputPin) const;
+
+protected:
 	NodeGraphPtr m_ownerGraph;
 	NodePtr m_nodeDefaultObject;
 };

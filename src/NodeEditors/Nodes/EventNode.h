@@ -23,3 +23,12 @@ protected:
 protected:
 	std::string m_eventName;
 };
+
+class EventNodeFactory : public NodeFactory
+{
+public:
+	EventNodeFactory() = default;
+	EventNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
+
+	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
+};

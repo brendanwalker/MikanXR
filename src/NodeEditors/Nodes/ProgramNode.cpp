@@ -272,3 +272,17 @@ void ProgramNode::onGraphPropertyChanged(t_graph_property_id id)
 		}
 	}
 }
+
+// -- ProgramNode Factory -----
+NodePtr ProgramNodeFactory::createNode(const NodeEditorState* editorState) const
+{
+	// Create the node and pins
+	ProgramNodePtr node = std::make_shared<ProgramNode>();
+	FloatPinPtr outputPin = node->addPin<FloatPin>("time", eNodePinDirection::OUTPUT);
+
+	// If spawned in an editor context from a dangling pin link
+	// auto-connect the output pin to a compatible input pin
+	autoConnectOutputPin(editorState, outputPin);
+
+	return node;
+}

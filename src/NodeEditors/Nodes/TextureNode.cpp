@@ -58,3 +58,17 @@ void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 	editorRenderPopNodeStyle(editorState);
 }
+
+// -- TextureNode Factory -----
+NodePtr TextureNodeFactory::createNode(const NodeEditorState* editorState) const
+{
+	// Create the node and pins
+	TextureNodePtr node = std::make_shared<TextureNode>();
+	TexturePinPtr outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
+
+	// If spawned in an editor context from a dangling pin link
+	// auto-connect the output pin to a compatible input pin
+	autoConnectOutputPin(editorState, outputPin);
+
+	return node;
+}

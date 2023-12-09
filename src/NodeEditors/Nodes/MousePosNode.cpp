@@ -38,3 +38,17 @@ void MousePosNode::editorRenderPushNodeStyle(const NodeEditorState& editorState)
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(160, 160, 40, 225));
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(160, 160, 40, 225));
 }
+
+// -- MousePosNode Factory -----
+NodePtr MousePosNodeFactory::createNode(const NodeEditorState* editorState) const
+{
+	// Create the node and pins
+	MousePosNodePtr node = std::make_shared<MousePosNode>();
+	FloatPinPtr outputPin = node->addPin<FloatPin>("mousePos", eNodePinDirection::OUTPUT);
+
+	// If spawned in an editor context from a dangling pin link
+	// auto-connect the output pin to a compatible input pin
+	autoConnectOutputPin(editorState, outputPin);
+
+	return node;
+}

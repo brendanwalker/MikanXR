@@ -33,6 +33,18 @@ class EventNode;
 using EventNodePtr = std::shared_ptr<EventNode>;
 using EventNodeConstPtr = std::shared_ptr<const EventNode>;
 
+class MousePosNode;
+using MousePosNodePtr = std::shared_ptr<MousePosNode>;
+using MousePosNodeConstPtr = std::shared_ptr<const MousePosNode>;
+
+class ProgramNode;
+using ProgramNodePtr = std::shared_ptr<ProgramNode>;
+using ProgramNodeConstPtr = std::shared_ptr<const ProgramNode>;
+
+class TextureNode;
+using TextureNodePtr = std::shared_ptr<TextureNode>;
+using TextureNodeConstPtr = std::shared_ptr<const TextureNode>;
+
 class TimeNode;
 using TimeNodePtr = std::shared_ptr<TimeNode>;
 using TimeNodeConstPtr = std::shared_ptr<const TimeNode>;

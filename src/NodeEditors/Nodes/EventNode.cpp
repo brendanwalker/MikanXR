@@ -9,6 +9,7 @@
 
 #include <typeinfo>
 
+// -- EventNode -----
 EventNode::EventNode()
 	: Node()
 {
@@ -42,4 +43,18 @@ void EventNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) co
 std::string EventNode::editorGetTitle() const
 {
 	return m_eventName;
+}
+
+// -- EventNode Factory -----
+NodePtr EventNodeFactory::createNode(const NodeEditorState* editorState) const
+{
+	// Create the node and pins
+	EventNodePtr node = std::make_shared<EventNode>();
+	FlowPinPtr outputPin = node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
+
+	// If spawned in an editor context from a dangling pin link
+	// auto-connect the output pin to a compatible input pin
+	autoConnectOutputPin(editorState, outputPin);
+
+	return node;
 }

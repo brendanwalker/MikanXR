@@ -97,14 +97,9 @@ private:
 
 	EditorProgramNodePtr CreateProgramNodePtr(int progId, const ImVec2& pos);
 	void CreateProgramNode(int progId, const ImVec2& pos);
-	void UpdateProgramNode(int nodeId, int progId);
-
-	void CreateTextureNode(int textureId, const ImVec2& pos);
-
-	void CreateTimeNode(const ImVec2& pos);
-	void CreateMousePosNode(const ImVec2& pos);
 
 protected:
+	void onNodeCreated(t_node_id id);
 	void onNodeDeleted(t_node_id id);
 	void onLinkDeleted(t_node_link_id id);
 
@@ -135,7 +130,4 @@ private:
 	bool m_isRenderingUI= false;
 	bool m_IsPlaying= false;
 	bool m_OnInit= false;
-	bool m_PingPongSwap;
-
-	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTime;
 };

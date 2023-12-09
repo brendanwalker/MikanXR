@@ -32,3 +32,12 @@ protected:
 	GLenum m_drawMode;
 	int m_dispatchSize;
 };
+
+class ProgramNodeFactory : public NodeFactory
+{
+public:
+	ProgramNodeFactory() = default;
+	ProgramNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
+
+	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
+};

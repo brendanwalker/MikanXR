@@ -1,4 +1,5 @@
 #include "Node.h"
+#include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Pins/NodePin.h"
@@ -246,4 +247,23 @@ NodeFactory::NodeFactory(NodeGraphPtr ownerGraph)
 NodePtr NodeFactory::createNode(const NodeEditorState* editorState) const
 {
 	return std::make_shared<Node>(m_ownerGraph);
+}
+
+void NodeFactory::autoConnectOutputPin(const NodeEditorState* editorState, NodePinPtr outputPin) const
+{
+	assert(outputPin->getDirection() == eNodePinDirection::OUTPUT);
+
+	// If spawned in an editor context from a dangling pin link
+	// auto-connect the output pin to a compatible input pin
+	if (editorState != nullptr && editorState->startedLinkPinId != -1)
+	{
+		NodePinPtr inputPin = m_ownerGraph->getNodePinById(editorState->startedLinkPinId);
+
+		if (outputPin->canPinsBeConnected(inputPin))
+		{
+			assert(inputPin->getDirection() == eNodePinDirection::INPUT);
+
+			m_ownerGraph->createLink(inputPin->getId(), outputPin->getId());
+		}
+	}
 }

@@ -9,8 +9,10 @@ public:
 	TextureNode();
 	TextureNode(NodeGraphPtr parentGraph);
 
-	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
+	inline GlTexturePtr getTexture() const { return m_target; }
+	inline void setTexture(GlTexturePtr inTexture) { m_target= inTexture; }
 
+	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 
 protected:
@@ -19,4 +21,13 @@ protected:
 
 protected:
 	GlTexturePtr m_target;
+};
+
+class TextureNodeFactory : public NodeFactory
+{
+public:
+	TextureNodeFactory() = default;
+	TextureNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
+
+	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
 };

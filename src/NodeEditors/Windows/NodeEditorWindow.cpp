@@ -19,6 +19,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
+#include "Nodes/TextureNode.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
 #include "TextStyle.h"
@@ -176,6 +177,8 @@ bool NodeEditorWindow::startup()
 	{
 		// TODO: Use node graph assigned to this window
 		m_nodeGraph = std::make_shared<NodeGraph>();
+		m_nodeGraph->OnNodeCreated+= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
+		m_nodeGraph->OnNodeDeleted+= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
 		m_nodeGraph->OnLinkDeleted+= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
 
 		m_frameBufferArrayProperty = m_nodeGraph->getTypedPropertyByName<FrameBufferArrayProperty>("framebuffers");
@@ -579,10 +582,16 @@ void NodeEditorWindow::renderMainFrame()
 		}
 		else if (auto payload = ImGui::AcceptDragDropPayload("texture"))
 		{
-			IM_ASSERT(payload->DataSize == sizeof(int));
-			int id = *(const int*)payload->Data;
-			auto mousePos = ImGui::GetMousePos();
-			CreateTextureNode(id, mousePos);
+			IM_ASSERT(payload->DataSize == sizeof(GlTexturePtr*));
+			GlTexturePtr texture = *(GlTexturePtr*)payload->Data;
+
+			NodeEditorState editorStateCopy= m_editorState;
+			editorStateCopy.hangPos= ImGui::GetMousePos();
+
+			auto textureNode= 
+				std::static_pointer_cast<TextureNode>(
+					TextureNodeFactory(m_nodeGraph).createNode(&editorStateCopy));
+			textureNode->setTexture(texture);
 		}
 		ImGui::EndDragDropTarget();
 	}
@@ -669,15 +678,7 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 
 			if (ImGui::MenuItem(nodeTitle.c_str()))
 			{
-				NodePtr newNode= nodeFactory->createNode(&editorState);
-
-				m_SelectedItemType = SelectedItemType::NODE;
-				m_SelectedItemId = newNode->getId();
-
-				ImNodes::ClearLinkSelection();
-				ImNodes::ClearNodeSelection();
-				ImNodes::SelectNode(m_SelectedItemId);
-
+				m_nodeGraph->createNode(nodeFactory, &editorState);
 				break;
 			}
 		}
@@ -1324,6 +1325,27 @@ void NodeEditorWindow::UpdateLinks()
 	}
 }
 
+void NodeEditorWindow::onNodeCreated(t_node_id id)
+{
+	// Set the initial position of the node using the current editor mouse position
+	const ImVec2& hangPos = m_editorState.hangPos;
+	ImNodes::SetNodeScreenSpacePos(id, hangPos);
+	NodePtr node= m_nodeGraph->getNodeById(id);
+	if (node)
+	{
+		node->setNodePos(glm::vec2(hangPos.x, hangPos.y));
+	}
+
+	// Make the newly created node selected
+	m_SelectedItemType = SelectedItemType::NODE;
+	m_SelectedItemId = id;
+
+	ImNodes::ClearLinkSelection();
+	ImNodes::ClearNodeSelection();
+	ImNodes::SelectNode(id);
+
+}
+
 void NodeEditorWindow::onNodeDeleted(t_node_id id)
 {
 	if (m_SelectedItemType == SelectedItemType::NODE && m_SelectedItemId == id)
@@ -1523,6 +1545,7 @@ void NodeEditorWindow::shutdown()
 
 	if (m_nodeGraph)
 	{
+		m_nodeGraph->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 		m_nodeGraph->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
 		m_nodeGraph->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
 	}
@@ -1863,211 +1886,6 @@ void NodeEditorWindow::CreateProgramNode(int progId, const ImVec2& pos)
 	ImNodes::SetNodeScreenSpacePos(node->id, pos);
 
 	m_SelectedItemType = SelectedItemType::PROGRAM_NODE;
-	m_SelectedItemId = node->id;
-	ImNodes::ClearLinkSelection();
-	ImNodes::ClearNodeSelection();
-	ImNodes::SelectNode(node->id);
-}
-
-void NodeEditorWindow::UpdateProgramNode(int nodeId, int progId)
-{
-	// Create new node
-	ImVec2 pos = {m_Nodes[nodeId]->nodePos.x, m_Nodes[nodeId]->nodePos.y};
-	auto node = CreateProgramNodePtr(progId, pos);
-	node->id = nodeId;
-
-	// Restore attributes
-	EditorProgramNodePtr nodeOld = std::static_pointer_cast<EditorProgramNode>(m_Nodes[nodeId]);
-	auto iter = std::find(m_Framebuffers.begin(), m_Framebuffers.end(), nodeOld->framebuffer);
-	if (iter != m_Framebuffers.end())
-	{
-		int index = iter - m_Framebuffers.begin();
-		//TODO
-		//SetProgramNodeFramebuffer(node, index);
-	}
-	node->dispatchType = nodeOld->dispatchType;
-	node->drawMode = nodeOld->drawMode;
-	node->dispatchSize[0] = nodeOld->dispatchSize[0];
-	node->dispatchSize[1] = nodeOld->dispatchSize[1];
-	node->dispatchSize[2] = nodeOld->dispatchSize[2];
-
-	// Restore pins and links
-	for (int i = 0; i < node->pinsIn.size(); i++)
-	{
-		if (i < nodeOld->pinsIn.size() &&
-			nodeOld->pinsIn[i]->type == node->pinsIn[i]->type &&
-			nodeOld->pinsIn[i]->size == node->pinsIn[i]->size)
-		{
-			if (node->pinsIn[i]->type == EditorPinType::FLOAT)
-			{
-				auto newPin = std::static_pointer_cast<EditorFloatPin>(node->pinsIn[i]);
-				auto oldPin = std::static_pointer_cast<EditorFloatPin>(nodeOld->pinsIn[i]);
-				newPin->value = oldPin->value;
-			}
-			else if (node->pinsIn[i]->type == EditorPinType::FLOAT2)
-			{
-				auto newPin = std::static_pointer_cast<EditorFloat2Pin>(node->pinsIn[i]);
-				auto oldPin = std::static_pointer_cast<EditorFloat2Pin>(nodeOld->pinsIn[i]);
-				newPin->value[0] = oldPin->value[0];
-				newPin->value[1] = oldPin->value[1];
-			}
-			else if (node->pinsIn[i]->type == EditorPinType::FLOAT3)
-			{
-				auto newPin = std::static_pointer_cast<EditorFloat3Pin>(node->pinsIn[i]);
-				auto oldPin = std::static_pointer_cast<EditorFloat3Pin>(nodeOld->pinsIn[i]);
-				newPin->value[0] = oldPin->value[0];
-				newPin->value[1] = oldPin->value[1];
-				newPin->value[2] = oldPin->value[2];
-			}
-			else if (node->pinsIn[i]->type == EditorPinType::FLOAT4)
-			{
-				auto newPin = std::static_pointer_cast<EditorFloat4Pin>(node->pinsIn[i]);
-				auto oldPin = std::static_pointer_cast<EditorFloat4Pin>(nodeOld->pinsIn[i]);
-				newPin->value[0] = oldPin->value[0];
-				newPin->value[1] = oldPin->value[1];
-				newPin->value[2] = oldPin->value[2];
-				newPin->value[3] = oldPin->value[3];
-			}
-			else if (node->pinsIn[i]->type == EditorPinType::INT)
-			{
-				auto newPin = std::static_pointer_cast<EditorIntPin>(node->pinsIn[i]);
-				auto oldPin = std::static_pointer_cast<EditorIntPin>(nodeOld->pinsIn[i]);
-				newPin->value = oldPin->value;
-			}
-			else if (node->pinsIn[i]->type == EditorPinType::INT2)
-			{
-				auto newPin = std::static_pointer_cast<EditorInt2Pin>(node->pinsIn[i]);
-				auto oldPin = std::static_pointer_cast<EditorInt2Pin>(nodeOld->pinsIn[i]);
-				newPin->value[0] = oldPin->value[0];
-				newPin->value[1] = oldPin->value[1];
-			}
-			else if (node->pinsIn[i]->type == EditorPinType::INT3)
-			{
-				auto newPin = std::static_pointer_cast<EditorInt3Pin>(node->pinsIn[i]);
-				auto oldPin = std::static_pointer_cast<EditorInt3Pin>(nodeOld->pinsIn[i]);
-				newPin->value[0] = oldPin->value[0];
-				newPin->value[1] = oldPin->value[1];
-				newPin->value[2] = oldPin->value[2];
-			}
-			else if (node->pinsIn[i]->type == EditorPinType::INT4)
-			{
-				auto newPin = std::static_pointer_cast<EditorInt4Pin>(node->pinsIn[i]);
-				auto oldPin = std::static_pointer_cast<EditorInt4Pin>(nodeOld->pinsIn[i]);
-				newPin->value[0] = oldPin->value[0];
-				newPin->value[1] = oldPin->value[1];
-				newPin->value[2] = oldPin->value[2];
-				newPin->value[3] = oldPin->value[3];
-			}
-
-			for (auto& link : nodeOld->pinsIn[i]->connectedLinks)
-			{
-				if (link->pPin1 == nodeOld->pinsIn[i])
-					link->pPin1 = node->pinsIn[i];
-				if (link->pPin2 == nodeOld->pinsIn[i])
-					link->pPin2 = node->pinsIn[i];
-				node->pinsIn[i]->connectedLinks.push_back(link);
-			}
-			std::vector<EditorLinkPtr>().swap(nodeOld->pinsIn[i]->connectedLinks);
-		}
-	}
-	for (int i = 0; i < node->pinsOut.size(); i++)
-	{
-		if (i < nodeOld->pinsOut.size() &&
-			nodeOld->pinsOut[i]->type == node->pinsOut[i]->type &&
-			nodeOld->pinsOut[i]->size == node->pinsOut[i]->size)
-		{
-			for (auto& link : nodeOld->pinsOut[i]->connectedLinks)
-			{
-				if (link->pPin1 == nodeOld->pinsOut[i])
-					link->pPin1 = node->pinsOut[i];
-				if (link->pPin2 == nodeOld->pinsOut[i])
-					link->pPin2 = node->pinsOut[i];
-				node->pinsOut[i]->connectedLinks.push_back(link);
-			}
-			std::vector<EditorLinkPtr>().swap(nodeOld->pinsOut[i]->connectedLinks);
-		}
-	}
-
-	// Replace the old with the new one
-	m_nodeGraph->getNodeById(nodeId)->disconnectAllPins();
-	m_Nodes[nodeId].reset();
-	m_Nodes[nodeId] = node;
-}
-
-void NodeEditorWindow::CreateTextureNode(int textureId, const ImVec2& pos)
-{
-	EditorTextureNodePtr node = std::make_shared<EditorTextureNode>();
-	node->type = EditorNodeType::TEXTURE;
-	node->nodePos = {pos.x, pos.y};
-	node->target = m_Textures[textureId];
-
-	EditorPinPtr pin = std::make_shared<EditorPin>();
-	pin->id = (int)m_Pins.size();
-	pin->ownerNode = node;
-	pin->name = "";
-	pin->type = EditorPinType::TEXTURE;
-	pin->isOutput = true;
-	node->pinsOut.push_back(pin);
-	m_Pins.push_back(pin);
-
-	node->id = (int)m_Nodes.size();
-	m_Nodes.push_back(node);
-
-	ImNodes::SetNodeScreenSpacePos(node->id, pos);
-
-	m_SelectedItemType = SelectedItemType::NODE;
-	m_SelectedItemId = node->id;
-	ImNodes::ClearLinkSelection();
-	ImNodes::ClearNodeSelection();
-	ImNodes::SelectNode(node->id);
-}
-
-void NodeEditorWindow::CreateTimeNode(const ImVec2& pos)
-{
-	EditorNodePtr node = std::make_shared<EditorNode>();
-	node->type = EditorNodeType::TIME;
-	node->nodePos = {pos.x, pos.y};
-
-	EditorPinPtr pin = std::make_shared<EditorPin>();
-	pin->ownerNode = node;
-	pin->type = EditorPinType::FLOAT;
-	pin->isOutput = true;
-	pin->id = (int)m_Pins.size();
-	node->pinsOut.push_back(pin);
-	m_Pins.push_back(pin);
-
-	node->id = (int)m_Nodes.size();
-	m_Nodes.push_back(node);
-
-	ImNodes::SetNodeScreenSpacePos(node->id, pos);
-
-	m_SelectedItemType = SelectedItemType::NODE;
-	m_SelectedItemId = node->id;
-	ImNodes::ClearLinkSelection();
-	ImNodes::ClearNodeSelection();
-	ImNodes::SelectNode(node->id);
-}
-
-void NodeEditorWindow::CreateMousePosNode(const ImVec2& pos)
-{
-	EditorNodePtr node = std::make_shared<EditorNode>();
-	node->type = EditorNodeType::MOUSE_POS;
-	node->nodePos = {pos.x, pos.y};
-
-	EditorPinPtr pin = std::make_shared<EditorPin>();
-	pin->ownerNode = node;
-	pin->type = EditorPinType::FLOAT2;
-	pin->isOutput = true;
-	pin->id = (int)m_Pins.size();
-	node->pinsOut.push_back(pin);
-	m_Pins.push_back(pin);
-
-	node->id = (int)m_Nodes.size();
-	m_Nodes.push_back(node);
-
-	ImNodes::SetNodeScreenSpacePos(node->id, pos);
-
-	m_SelectedItemType = SelectedItemType::NODE;
 	m_SelectedItemId = node->id;
 	ImNodes::ClearLinkSelection();
 	ImNodes::ClearNodeSelection();

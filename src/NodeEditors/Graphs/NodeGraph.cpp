@@ -94,6 +94,18 @@ NodeLinkPtr NodeGraph::getNodeLinkById(t_node_link_id id) const
 	return NodeLinkPtr();
 }
 
+NodePtr NodeGraph::createNode(NodeFactoryPtr nodeFactory, const NodeEditorState* nodeEditorState)
+{
+	NodePtr newNode = nodeFactory->createNode(nodeEditorState);
+
+	if (newNode && OnNodeCreated)
+	{
+		OnNodeCreated(newNode->getId());
+	}
+
+	return newNode;
+}
+
 bool NodeGraph::deleteNodeById(t_node_id id)
 {
 	auto it = m_Nodes.find(id);
