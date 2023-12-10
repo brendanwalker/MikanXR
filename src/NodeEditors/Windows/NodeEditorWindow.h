@@ -16,6 +16,18 @@
 #include <memory>
 #include <vector>
 
+typedef int t_selected_item_type;
+
+namespace SelectedItemType
+{
+	const t_selected_item_type NONE = -1;
+
+	// Graph Elements
+	const t_selected_item_type NODES= 0;
+	const t_selected_item_type NODE= 1;
+	const t_selected_item_type LINK= 2;
+};
+
 //-- definitions -----
 class NodeEditorWindow : public IGlWindow
 {
@@ -23,7 +35,7 @@ public:
 	NodeEditorWindow();
 	~NodeEditorWindow();
 
-	void update(float deltaSeconds);
+	virtual void update(float deltaSeconds);
 
 	// -- IGlWindow ----
 	virtual bool startup() override;
@@ -50,42 +62,27 @@ protected:
 	virtual void pushImGuiStyles();
 	virtual void popImGuiStyles();
 
-private:
-	enum class SelectedItemType
-	{
-		NONE,
-		// Graph Elements
-		NODES,
-		NODE,
-		LINK,
-		// Assets
-		TRI_MESH,
-		TEXTURE,
-	};
-	SelectedItemType m_SelectedItemType= SelectedItemType::NONE;
+	t_selected_item_type m_SelectedItemType= SelectedItemType::NONE;
 	int m_SelectedItemId= -1;
 
-	void renderToolbar();
-	void renderLeftPanel();
-	void renderMainFrame();
-	void renderContextMenu(const class NodeEditorState& editorState);
-	void renderBottomPanel();
-	void renderRightPanel();
+	virtual void renderMainFrame();
+	virtual void renderContextMenu(const class NodeEditorState& editorState);
+	virtual void renderDragDrop(const class NodeEditorState& editorState) {}
+	virtual void renderToolbar() {}
+	virtual void renderLeftPanel() {}
+	virtual void renderBottomPanel() {}
+	virtual void renderRightPanel() {}
 
-	void deleteSelectedItem();
+	virtual void deleteSelectedItem();
 
-	void addTriangulatedMesh(GlTriangulatedMeshPtr triMesh);
-	void deleteTriangulatedMesh(int ix);
-
-	void addTexture(GlTexturePtr texture);
-	void deleteTexture(int ix);
+	virtual NodeGraphPtr allocateNodeGraph();
+	virtual void onNodeGraphCreated();
+	virtual void onNodeGraphDeleted();
+	virtual void onNodeCreated(t_node_id id);
+	virtual void onNodeDeleted(t_node_id id);
+	virtual void onLinkDeleted(t_node_link_id id);
 
 protected:
-	void onNodeCreated(t_node_id id);
-	void onNodeDeleted(t_node_id id);
-	void onLinkDeleted(t_node_link_id id);
-
-private:
 	SdlWindowUniquePtr m_sdlWindow;
 	GlStateStackUniquePtr m_glStateStack;
 	struct ImGuiContext* m_imguiContext= nullptr;
@@ -94,8 +91,6 @@ private:
 	struct ImFont* m_BigIconFont= nullptr;
 
 	NodeGraphPtr m_nodeGraph;
-	TriMeshArrayPropertyPtr m_triMeshArrayProperty;
-	TextureArrayPropertyPtr m_textureArrayProperty;
 	NodeEditorState m_editorState;
 
 	// OpenGL shader program cache
@@ -104,6 +99,4 @@ private:
 	bool m_imguiSDLBackendInitialised = false;
 	bool m_imguiOpenGLBackendInitialised= false;
 	bool m_isRenderingUI= false;
-	bool m_IsPlaying= false;
-	bool m_OnInit= false;
 };
