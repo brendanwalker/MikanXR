@@ -4,8 +4,9 @@
 namespace SelectedItemType
 {
 	// Assets
-	const t_selected_item_type TRI_MESH= 3;
-	const t_selected_item_type TEXTURE= 4;
+	const t_selected_item_type MATERIAL= 4;
+	const t_selected_item_type MODEL= 5;
+	const t_selected_item_type TEXTURE= 6;
 };
 
 class CompositorNodeEditorWindow : public NodeEditorWindow
@@ -14,8 +15,11 @@ public:
 	CompositorNodeEditorWindow();
 	~CompositorNodeEditorWindow();
 
-	void addTriangulatedMesh(GlTriangulatedMeshPtr triMesh);
-	void deleteTriangulatedMesh(int ix);
+	void addMaterialResource(GlMaterialPtr material);
+	void deleteMaterialResource(int ix);
+
+	void addModelResource(GlRenderModelResourcePtr modelResource);
+	void deleteModelResource(int ix);
 
 	void addTexture(GlTexturePtr texture);
 	void deleteTexture(int ix);
@@ -26,14 +30,14 @@ public:
 	virtual void onNodeGraphDeleted();
 	virtual void update(float deltaSeconds) override;
 	virtual void renderToolbar() override;
-	virtual void renderRightPanel() override;
-	virtual void renderLeftPanel() override;
-	virtual void renderBottomPanel() override;
+	virtual void renderSelectedObjectPanel() override;
+	virtual void renderGraphVariablesPanel() override;
 	virtual void renderDragDrop(const class NodeEditorState& editorState) override;
 	virtual void deleteSelectedItem() override;
 
 private:
-	TriMeshArrayPropertyPtr m_triMeshArrayProperty;
+	MaterialArrayPropertyPtr m_materialArrayProperty;
+	ModelResourceArrayPropertyPtr m_modelResourceArrayProperty;
 	TextureArrayPropertyPtr m_textureArrayProperty;
 
 	bool m_IsPlaying = false;

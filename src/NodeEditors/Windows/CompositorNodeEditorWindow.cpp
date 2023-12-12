@@ -1,5 +1,7 @@
 //-- includes -----
 #include "CompositorNodeEditorWindow.h"
+#include "GlFrameCompositor.h"
+#include "GlRenderModelResource.h"
 #include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
 #include "Delegate.h"
@@ -39,13 +41,15 @@ void CompositorNodeEditorWindow::onNodeGraphCreated()
 {
 	NodeEditorWindow::onNodeGraphCreated();
 
-	m_triMeshArrayProperty = m_nodeGraph->getTypedPropertyByName<TriMeshArrayProperty>("triangulatedMeshes");
+
+	m_materialArrayProperty = m_nodeGraph->getTypedPropertyByName<MaterialArrayProperty>("materials");
+	m_modelResourceArrayProperty = m_nodeGraph->getTypedPropertyByName<ModelResourceArrayProperty>("models");
 	m_textureArrayProperty = m_nodeGraph->getTypedPropertyByName<TextureArrayProperty>("textures");
 }
 
 void CompositorNodeEditorWindow::onNodeGraphDeleted()
 {
-	m_triMeshArrayProperty= nullptr;
+	m_modelResourceArrayProperty= nullptr;
 	m_textureArrayProperty= nullptr;
 
 	NodeEditorWindow::onNodeGraphDeleted();
@@ -119,27 +123,29 @@ void CompositorNodeEditorWindow::renderToolbar()
 	ImGui::PopFont();
 }
 
-void CompositorNodeEditorWindow::renderLeftPanel()
+void CompositorNodeEditorWindow::renderGraphVariablesPanel()
 {
 	ImGui::BeginChild("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
 
-	// Triangulated Meshes
+	// Model Resources
 	{
-		auto& triMeshArray = m_triMeshArrayProperty->getArray();
+		auto& triMeshArray = m_modelResourceArrayProperty->getArray();
 
 		// Add button
 		float xPos = ImGui::GetCursorPosX();
 		ImGui::SetCursorPosX(180);
-		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_tri_mesh"))
+		if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##add_model_resource"))
 		{
 			ImNodes::ClearLinkSelection();
 			ImNodes::ClearNodeSelection();
 
 			//TODO: Allocate empty triangulated mesh
 			std::string name = "Tri Mesh: " + std::to_string(triMeshArray.size() + 1);
-			//AddTriangulatedMesh(m_shaderCache->allocateEmptyGlProgram(name));
+			const GlVertexDefinition* vertexDefinition= GlFrameCompositor::getStencilModelVertexDefinition();
+			GlRenderModelResourcePtr modelResource= std::make_shared<GlRenderModelResource>(vertexDefinition);
+			addModelResource(modelResource);
 
-			m_SelectedItemType = SelectedItemType::TRI_MESH;
+			m_SelectedItemType = SelectedItemType::MODEL;
 			m_SelectedItemId = (int)triMeshArray.size() - 1;
 		}
 		ImGui::SameLine();
@@ -168,7 +174,7 @@ void CompositorNodeEditorWindow::renderLeftPanel()
 				// Item
 				std::string name = "\t\t" + triMeshArray[i]->getName();
 				name += "##trimesh" + std::to_string(i);
-				bool isSelected = m_SelectedItemType == SelectedItemType::TRI_MESH;
+				bool isSelected = m_SelectedItemType == SelectedItemType::MODEL;
 				isSelected = isSelected && (m_SelectedItemId == i);
 				if (ImGui::Selectable(name.c_str(), &isSelected))
 				{
@@ -176,7 +182,7 @@ void CompositorNodeEditorWindow::renderLeftPanel()
 					ImNodes::ClearNodeSelection();
 					if (isSelected)
 					{
-						m_SelectedItemType = SelectedItemType::TRI_MESH;
+						m_SelectedItemType = SelectedItemType::MODEL;
 						m_SelectedItemId = i;
 					}
 					else
@@ -202,7 +208,7 @@ void CompositorNodeEditorWindow::renderLeftPanel()
 				{
 					ImNodes::ClearLinkSelection();
 					ImNodes::ClearNodeSelection();
-					m_SelectedItemType = SelectedItemType::TRI_MESH;
+					m_SelectedItemType = SelectedItemType::MODEL;
 					m_SelectedItemId = i;
 
 					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
@@ -220,7 +226,7 @@ void CompositorNodeEditorWindow::renderLeftPanel()
 	ImGui::EndChild();
 }
 
-void CompositorNodeEditorWindow::renderRightPanel()
+void CompositorNodeEditorWindow::renderSelectedObjectPanel()
 {
 	ImGui::SameLine();
 	ImGui::BeginChild("Right Panel", ImVec2(344, ImGui::GetContentRegionAvail().y));
@@ -238,7 +244,7 @@ void CompositorNodeEditorWindow::renderRightPanel()
 	{
 		//TODO
 	}
-	else if (m_SelectedItemType == SelectedItemType::TRI_MESH)
+	else if (m_SelectedItemType == SelectedItemType::MODEL)
 	{
 		// Section 1: Basic info
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -258,8 +264,8 @@ void CompositorNodeEditorWindow::renderRightPanel()
 			ImGui::Text("\t\tName");
 			ImGui::SameLine(160);
 			ImGui::SetNextItemWidth(150);
-			GlTriangulatedMeshPtr triMesh = m_triMeshArrayProperty->getArray()[m_SelectedItemId];
-			std::string name = triMesh->getName();
+			GlRenderModelResourcePtr modelResource = m_modelResourceArrayProperty->getArray()[m_SelectedItemId];
+			std::string name = modelResource->getName();
 			ImGui::Text(name.c_str());
 		}
 
@@ -287,143 +293,29 @@ void CompositorNodeEditorWindow::renderRightPanel()
 	ImGui::EndChild();
 }
 
-void CompositorNodeEditorWindow::renderBottomPanel()
-{
-	ImGui::BeginChild("Bottom Panel", ImVec2(ImGui::GetContentRegionAvail().x, 216));
-	if (ImGui::BeginTabBar("BottomTabBar"))
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-		if (ImGui::BeginTabItem("Textures"))
-		{
-			ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-			ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-			ImGui::BeginChild("TexturesSubFrame");
-
-			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 6));
-			if (ImGui::ImageButton("  Add##tex", ICON_FK_PLUS, ImVec2(70, 25), ImVec2(0.4f, 0.8f), ImVec2(0.4f, 1.0f)))
-			{
-				const char* filterItems[5] = {"*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tga"};
-				const char* filterDesc = "Image Files (*.jpg;*.jpeg;*.png;*.bmp;*.tga)";
-				auto paths_c = tinyfd_openFileDialog("Load Texture", "", 5, filterItems, filterDesc, 1);
-				if (paths_c)
-				{
-					std::stringstream ssPaths(paths_c);
-					std::string path;
-					while (std::getline(ssPaths, path, '|'))
-					{
-						std::string universalPath(path);
-						std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
-
-						GlTexturePtr tex = std::make_shared<GlTexture>();
-						tex->setImagePath(universalPath);
-
-						if (tex->reloadTextureFromImagePath())
-						{
-							addTexture(tex);
-						}
-					}
-				}
-			}
-
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6);
-			ImGui::Separator();
-
-			// Textures browser
-			{
-				auto& textureArray = m_textureArrayProperty->getArray();
-
-				ImGui::BeginChild("TextureBrowser");
-
-				ImGui::Dummy(ImVec2(1, 10));
-				for (int i = 0; i < textureArray.size(); i++)
-				{
-					ImGui::Dummy(ImVec2(10, 140));
-					ImGui::SameLine();
-					ImGui::BeginGroup();
-					std::string idStr = "##texture" + std::to_string(i);
-					ImGui::Button(idStr.c_str(), ImVec2(120, 140));
-
-					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-					{
-						ImGui::SetDragDropPayload("texture", &i, sizeof(int));
-						ImGui::Text(textureArray[i]->getName().c_str());
-						ImGui::EndDragDropSource();
-					}
-
-					// Context menu
-					bool itemDeleted = false;
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
-					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-					ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
-					ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-					if (ImGui::BeginPopupContextItem())
-					{
-						ImNodes::ClearLinkSelection();
-						ImNodes::ClearNodeSelection();
-						m_SelectedItemType = SelectedItemType::TEXTURE;
-						m_SelectedItemId = i;
-
-						if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
-						{
-							deleteSelectedItem();
-							itemDeleted = true;
-						}
-
-						ImGui::EndPopup();
-					}
-					ImGui::PopStyleColor(2);
-					ImGui::PopStyleVar(3);
-
-					if (!itemDeleted)
-					{
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-						ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
-						ImGui::Image((void*)(intptr_t)textureArray[i]->getGlTextureId(), ImVec2(100, 100));
-						ImGui::Dummy(ImVec2(2, 1));
-						ImGui::SameLine();
-						ImGui::SetNextItemWidth(108);
-						ImGui::Text(textureArray[i]->getName().c_str());
-					}
-					ImGui::EndGroup();
-
-					ImGui::SameLine();
-					if (ImGui::GetContentRegionAvail().x < 130)
-					{
-						ImGui::NewLine();
-						ImGui::NewLine();
-					}
-				}
-				ImGui::NewLine();
-				ImGui::Dummy(ImVec2(1, 10));
-
-				ImGui::EndChild();
-			}
-
-			ImGui::EndChild();
-			ImGui::PopStyleColor();
-			ImGui::PopStyleColor();
-			ImGui::EndTabItem();
-		}
-		ImGui::PopStyleVar();
-		ImGui::EndTabBar();
-	}
-	ImGui::EndChild();
-}
-
 void CompositorNodeEditorWindow::renderDragDrop(const class NodeEditorState& editorState)
 {
-	if (auto payload = ImGui::AcceptDragDropPayload("tri_mesh"))
+	if (auto payload = ImGui::AcceptDragDropPayload("Model"))
 	{
-		IM_ASSERT(payload->DataSize == sizeof(GlTriangulatedMeshPtr*));
-		GlTriangulatedMeshPtr triangulatedMesh = *(GlTriangulatedMeshPtr*)payload->Data;
+		IM_ASSERT(payload->DataSize == sizeof(GlRenderModelResourcePtr*));
+		GlRenderModelResourcePtr model = *(GlRenderModelResourcePtr*)payload->Data;
 
 		auto triMeshNode =
 			std::static_pointer_cast<DrawTriMeshNode>(
 				DrawTriMeshNodeFactory(m_nodeGraph).createNode(&editorState));
-		triMeshNode->setTriangulatedMesh(triangulatedMesh);
+		triMeshNode->setModel(model);
 	}
-	else if (auto payload = ImGui::AcceptDragDropPayload("texture"))
+	else if (auto payload = ImGui::AcceptDragDropPayload("Material"))
+	{
+		IM_ASSERT(payload->DataSize == sizeof(GlMaterialPtr*));
+		GlMaterialPtr material = *(GlMaterialPtr*)payload->Data;
+
+		auto triMeshNode =
+			std::static_pointer_cast<DrawTriMeshNode>(
+				DrawTriMeshNodeFactory(m_nodeGraph).createNode(&editorState));
+		triMeshNode->setMaterial(material);
+	}
+	else if (auto payload = ImGui::AcceptDragDropPayload("Texture"))
 	{
 		IM_ASSERT(payload->DataSize == sizeof(GlTexturePtr*));
 		GlTexturePtr texture = *(GlTexturePtr*)payload->Data;
@@ -439,9 +331,16 @@ void CompositorNodeEditorWindow::deleteSelectedItem()
 {
 	NodeEditorWindow::deleteSelectedItem();
 
-	if (m_SelectedItemType == SelectedItemType::TRI_MESH)
+	if (m_SelectedItemType == SelectedItemType::MODEL)
 	{
-		deleteTriangulatedMesh(m_SelectedItemId);
+		deleteModelResource(m_SelectedItemId);
+
+		m_SelectedItemType = SelectedItemType::NONE;
+		m_SelectedItemId = -1;
+	}
+	else if (m_SelectedItemType == SelectedItemType::MATERIAL)
+	{
+		deleteMaterialResource(m_SelectedItemId);
 
 		m_SelectedItemType = SelectedItemType::NONE;
 		m_SelectedItemId = -1;
@@ -455,25 +354,48 @@ void CompositorNodeEditorWindow::deleteSelectedItem()
 	}
 }
 
-void CompositorNodeEditorWindow::addTriangulatedMesh(GlTriangulatedMeshPtr triMesh)
+void CompositorNodeEditorWindow::addMaterialResource(GlMaterialPtr material)
 {
-	if (m_triMeshArrayProperty)
+	if (m_materialArrayProperty)
 	{
-		m_triMeshArrayProperty->getArrayMutable().push_back(triMesh);
-		m_triMeshArrayProperty->notifyPropertyModified();
+		m_materialArrayProperty->getArrayMutable().push_back(material);
+		m_materialArrayProperty->notifyPropertyModified();
 	}
 }
 
-void CompositorNodeEditorWindow::deleteTriangulatedMesh(int ix)
+void CompositorNodeEditorWindow::deleteMaterialResource(int ix)
 {
-	if (m_triMeshArrayProperty)
+	if (m_materialArrayProperty)
 	{
-		auto triMeshArray = m_triMeshArrayProperty->getArrayMutable();
+		auto materialArray = m_materialArrayProperty->getArrayMutable();
+
+		if (ix >= 0 && ix < (int)materialArray.size())
+		{
+			materialArray.erase(materialArray.begin() + ix);
+			m_materialArrayProperty->notifyPropertyModified();
+		}
+	}
+}
+
+void CompositorNodeEditorWindow::addModelResource(GlRenderModelResourcePtr modelResource)
+{
+	if (m_modelResourceArrayProperty)
+	{
+		m_modelResourceArrayProperty->getArrayMutable().push_back(modelResource);
+		m_modelResourceArrayProperty->notifyPropertyModified();
+	}
+}
+
+void CompositorNodeEditorWindow::deleteModelResource(int ix)
+{
+	if (m_modelResourceArrayProperty)
+	{
+		auto triMeshArray = m_modelResourceArrayProperty->getArrayMutable();
 
 		if (ix >= 0 && ix < (int)triMeshArray.size())
 		{
 			triMeshArray.erase(triMeshArray.begin() + ix);
-			m_triMeshArrayProperty->notifyPropertyModified();
+			m_modelResourceArrayProperty->notifyPropertyModified();
 		}
 	}
 }

@@ -1,5 +1,6 @@
 #include "DrawTriMeshNode.h"
 #include "GlMaterial.h"
+#include "GlRenderModelResource.h"
 #include "GlProgram.h"
 #include "GlStateStack.h"
 #include "GlTexture.h"
@@ -34,29 +35,29 @@ DrawTriMeshNode::DrawTriMeshNode(NodeGraphPtr ownerGraph)
 {
 	if (ownerGraph)
 	{
-		m_triMeshArrayProperty = ownerGraph->getTypedPropertyByName<TriMeshArrayProperty>("triangulatedMeshes");
+		m_modelArrayProperty = ownerGraph->getTypedPropertyByName<ModelResourceArrayProperty>("models");
 		ownerGraph->OnPropertyModifed+= MakeDelegate(this, &DrawTriMeshNode::onGraphPropertyChanged);
 	}
 }
 
 DrawTriMeshNode::~DrawTriMeshNode()
 {
-	m_triMeshArrayProperty= nullptr;
+	m_modelArrayProperty= nullptr;
 	if (m_ownerGraph)
 	{
 		m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &DrawTriMeshNode::onGraphPropertyChanged);
 	}
 }
 
-void DrawTriMeshNode::setTriangulatedMesh(GlTriangulatedMeshPtr inTriMesh)
+void DrawTriMeshNode::setModel(GlRenderModelResourcePtr inModel)
 {
-	if (inTriMesh != m_triMesh)
+	if (inModel != m_model)
 	{
-		m_triMesh= inTriMesh;
+		m_model= inModel;
 
-		if (m_triMesh && m_material)
+		if (m_model && m_material)
 		{
-			const auto& triMeshVertexDefinition= m_triMesh->getVertexDefinition();
+			const auto& triMeshVertexDefinition= m_model->getVertexDefinition();
 			const auto& materialVertexDefinition= m_material->getProgram()->getVertexDefinition();
 
 			if (!triMeshVertexDefinition->isCompatibleDefinition(materialVertexDefinition))
@@ -75,9 +76,9 @@ void DrawTriMeshNode::setMaterial(GlMaterialPtr inMaterial)
 	{
 		m_material = inMaterial;
 
-		if (m_triMesh && m_material)
+		if (m_model && m_material)
 		{
-			const auto& triMeshVertexDefinition = m_triMesh->getVertexDefinition();
+			const auto& triMeshVertexDefinition = m_model->getVertexDefinition();
 			const auto& materialVertexDefinition = m_material->getProgram()->getVertexDefinition();
 
 			if (!triMeshVertexDefinition->isCompatibleDefinition(materialVertexDefinition))
@@ -96,7 +97,7 @@ bool DrawTriMeshNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	bool bSuccess= true;
 
-	if (!m_triMesh)
+	if (!m_model)
 	{
 		evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
 		evaluator.setLastErrorMessage("Missing triangulated mesh");
@@ -180,7 +181,12 @@ bool DrawTriMeshNode::evaluateNode(NodeEvaluator& evaluator)
 
 			if (materialBinding)
 			{
-				m_triMesh->drawElements();
+				for (int i = 0; i < m_model->getTriangulatedMeshCount(); i++)
+				{
+					auto triMesh= m_model->getTriangulatedMesh(i);
+
+					triMesh->drawElements();
+				}
 			}
 			else
 			{
@@ -220,24 +226,24 @@ void DrawTriMeshNode::editorRenderPropertySheet(const NodeEditorState& editorSta
 
 	if (isNodeOpened)
 	{
-		// Triagulated Mesh
-		ImGui::Text("\t\tTri Mesh");
+		// Model
+		ImGui::Text("\t\tModel");
 		ImGui::SameLine(160);
 		ImGui::SetNextItemWidth(150);
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
 
-		const std::string& triMeshName = m_triMesh ? m_triMesh->getName() : "<INVALID>";
-		if (ImGui::BeginCombo("##triMeshSelection", triMeshName.c_str()))
+		const std::string& modelName = m_model ? m_model->getName() : "<INVALID>";
+		if (ImGui::BeginCombo("##modelSelection", modelName.c_str()))
 		{
-			if (m_triMeshArrayProperty)
+			if (m_modelArrayProperty)
 			{
 				int index = 0;
-				for (auto& triMesh : m_triMeshArrayProperty->getArray())
+				for (auto& model : m_modelArrayProperty->getArray())
 				{
-					const bool is_selected = (m_triMesh == triMesh);
-					if (ImGui::Selectable(triMesh->getName().c_str(), is_selected))
+					const bool is_selected = (m_model == model);
+					if (ImGui::Selectable(model->getName().c_str(), is_selected))
 					{
-						setTriangulatedMesh(triMesh);
+						setModel(model);
 					}
 
 					if (is_selected)
@@ -320,12 +326,12 @@ void DrawTriMeshNode::rebuildInputPins()
 
 void DrawTriMeshNode::onGraphPropertyChanged(t_graph_property_id id)
 {
-	if (m_triMeshArrayProperty && m_triMeshArrayProperty->getId() == id)
+	if (m_modelArrayProperty && m_modelArrayProperty->getId() == id)
 	{
-		auto triMeshArray= m_triMeshArrayProperty->getArray();
-		if (std::find(triMeshArray.begin(), triMeshArray.end(), m_triMesh) == triMeshArray.end())
+		auto modelResourceArray= m_modelArrayProperty->getArray();
+		if (std::find(modelResourceArray.begin(), modelResourceArray.end(), m_model) == modelResourceArray.end())
 		{
-			setTriangulatedMesh(GlTriangulatedMeshPtr());
+			setModel(GlRenderModelResourcePtr());
 		}
 	}
 }

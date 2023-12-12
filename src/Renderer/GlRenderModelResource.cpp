@@ -20,6 +20,12 @@
 
 #include <limits>
 
+GlRenderModelResource::GlRenderModelResource(const GlVertexDefinition* vertexDefinition)
+	: m_vertexDefinition(new GlVertexDefinition(*vertexDefinition))
+{
+
+}
+
 GlRenderModelResource::GlRenderModelResource(const std::filesystem::path& modelFilePath)
 	: m_renderModelFilepath(modelFilePath)
 	, m_vertexDefinition(new GlVertexDefinition(*getVertexDefinition()))

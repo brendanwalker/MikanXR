@@ -17,6 +17,7 @@ namespace objl
 class GlRenderModelResource
 {
 public:
+	GlRenderModelResource(const struct GlVertexDefinition* vertexDefinition);
 	GlRenderModelResource(const std::filesystem::path& modelFilePath);
 	GlRenderModelResource(
 		const std::filesystem::path& modelFilePath,
@@ -29,6 +30,9 @@ public:
 	const std::filesystem::path& getRenderModelFilepath() const { return m_renderModelFilepath; }
 	const GlVertexDefinition* getVertexDefinition() const { return m_vertexDefinition; }
 	static const GlVertexDefinition* getDefaultVertexDefinition();
+
+	inline const std::string& getName() const { return m_name; }
+	inline void setName(const std::string& inName) { m_name= inName; }
 
 	size_t getTriangulatedMeshCount() const 
 	{ return m_glTriMeshResources.size(); }
@@ -62,6 +66,7 @@ protected:
 
 	objl::Loader* m_objLoader= nullptr;
 
+	std::string m_name;
 	const std::filesystem::path m_renderModelFilepath;
 	struct GlVertexDefinition* m_vertexDefinition= nullptr;
 

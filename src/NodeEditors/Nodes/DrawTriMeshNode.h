@@ -10,7 +10,7 @@ public:
 	DrawTriMeshNode(NodeGraphPtr parentGraph);
 	virtual ~DrawTriMeshNode();
 
-	void setTriangulatedMesh(GlTriangulatedMeshPtr inTriMesh);
+	void setModel(GlRenderModelResourcePtr inModel);
 	void setMaterial(GlMaterialPtr inMaterial);
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator);
@@ -25,10 +25,10 @@ protected:
 	void rebuildInputPins();
 
 protected:
-	GlTriangulatedMeshPtr m_triMesh;
+	GlRenderModelResourcePtr m_model;
 	GlMaterialPtr m_material;
 
-	TriMeshArrayPropertyPtr m_triMeshArrayProperty;
+	ModelResourceArrayPropertyPtr m_modelArrayProperty;
 };
 
 class DrawTriMeshNodeFactory : public NodeFactory

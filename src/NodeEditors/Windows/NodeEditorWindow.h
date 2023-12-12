@@ -1,6 +1,7 @@
 #pragma once
 
 //-- includes -----
+#include "AssetFwd.h"
 #include "SdlFwd.h"
 #include "IGlWindow.h"
 #include "EditorNodeConstants.h"
@@ -26,6 +27,9 @@ namespace SelectedItemType
 	const t_selected_item_type NODES= 0;
 	const t_selected_item_type NODE= 1;
 	const t_selected_item_type LINK= 2;
+
+	// Assets
+	const t_selected_item_type ASSET= 3;
 };
 
 //-- definitions -----
@@ -69,9 +73,9 @@ protected:
 	virtual void renderContextMenu(const class NodeEditorState& editorState);
 	virtual void renderDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderToolbar() {}
-	virtual void renderLeftPanel() {}
-	virtual void renderBottomPanel() {}
-	virtual void renderRightPanel() {}
+	virtual void renderGraphVariablesPanel() {}
+	virtual void renderAssetsPanel();
+	virtual void renderSelectedObjectPanel() {}
 
 	virtual void deleteSelectedItem();
 
@@ -81,6 +85,9 @@ protected:
 	virtual void onNodeCreated(t_node_id id);
 	virtual void onNodeDeleted(t_node_id id);
 	virtual void onLinkDeleted(t_node_link_id id);
+
+	virtual void onAssetReferenceCreated(AssetReferencePtr assetRef) {}
+	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef) {}
 
 protected:
 	SdlWindowUniquePtr m_sdlWindow;
@@ -92,6 +99,8 @@ protected:
 
 	NodeGraphPtr m_nodeGraph;
 	NodeEditorState m_editorState;
+	AssetReferenceArrayPropertyPtr m_assetRefArrayProperty;
+	AssetReferenceFactoryList m_assetRefFactoryList;
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;

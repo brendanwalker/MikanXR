@@ -106,6 +106,12 @@ using GraphPropertyArrayPtr = std::shared_ptr<GraphArrayProperty<t_element_type>
 template <typename t_element_type>
 using GraphPropertyArrayConstPtr = std::shared_ptr<const GraphArrayProperty<t_element_type>>;
 
+class AssetReference;
+using AssetReferencePtr = std::shared_ptr<AssetReference>;
+using AssetReferenceArrayProperty = GraphArrayProperty<AssetReferencePtr>;
+using AssetReferenceArrayPropertyPtr = GraphPropertyArrayPtr<AssetReferencePtr>;
+using AssetReferenceArrayPropertyConstPtr = GraphPropertyArrayConstPtr<AssetReferencePtr>;
+
 class GlFrameBuffer;
 using GlFrameBufferPtr = std::shared_ptr<GlFrameBuffer>;
 using FrameBufferArrayProperty = GraphArrayProperty<GlFrameBufferPtr>;
@@ -118,14 +124,14 @@ using MaterialArrayProperty = GraphArrayProperty<GlMaterialPtr>;
 using MaterialArrayPropertyPtr = GraphPropertyArrayPtr<GlMaterialPtr>;
 using MaterialArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlMaterialPtr>;
 
+class GlRenderModelResource;
+using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
+using ModelResourceArrayProperty = GraphArrayProperty<GlRenderModelResourcePtr>;
+using ModelResourceArrayPropertyPtr = GraphPropertyArrayPtr<GlRenderModelResourcePtr>;
+using ModelResourceArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlRenderModelResourcePtr>;
+
 class GlTexture;
 using GlTexturePtr = std::shared_ptr<GlTexture>;
 using TextureArrayProperty = GraphArrayProperty<GlTexturePtr>;
 using TextureArrayPropertyPtr = GraphPropertyArrayPtr<GlTexturePtr>;
 using TextureArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlTexturePtr>;
-
-class GlTriangulatedMesh;
-using GlTriangulatedMeshPtr = std::shared_ptr<GlTriangulatedMesh>;
-using TriMeshArrayProperty = GraphArrayProperty<GlTriangulatedMeshPtr>;
-using TriMeshArrayPropertyPtr = GraphPropertyArrayPtr<GlTriangulatedMeshPtr>;
-using TriMeshArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlTriangulatedMeshPtr>;
