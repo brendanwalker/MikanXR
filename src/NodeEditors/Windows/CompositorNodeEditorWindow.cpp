@@ -7,6 +7,10 @@
 #include "Delegate.h"
 #include "Logger.h"
 
+#include "ModelAssetReference.h"
+#include "MaterialAssetReference.h"
+#include "TextureAssetReference.h"
+
 #include "Graphs/CompositorNodeGraph.h"
 #include "Nodes/Node.h"
 #include "Nodes/DrawTriMeshNode.h"
@@ -21,6 +25,9 @@
 
 CompositorNodeEditorWindow::CompositorNodeEditorWindow() : NodeEditorWindow()
 {
+	m_assetRefFactoryList.push_back(AssetReferenceFactory::create<ModelAssetReferenceFactory>());
+	m_assetRefFactoryList.push_back(AssetReferenceFactory::create<MaterialAssetReferenceFactory>());
+	m_assetRefFactoryList.push_back(AssetReferenceFactory::create<TextureAssetReferenceFactory>());
 }
 
 CompositorNodeEditorWindow::~CompositorNodeEditorWindow()
@@ -40,7 +47,6 @@ NodeGraphPtr CompositorNodeEditorWindow::allocateNodeGraph()
 void CompositorNodeEditorWindow::onNodeGraphCreated()
 {
 	NodeEditorWindow::onNodeGraphCreated();
-
 
 	m_materialArrayProperty = m_nodeGraph->getTypedPropertyByName<MaterialArrayProperty>("materials");
 	m_modelResourceArrayProperty = m_nodeGraph->getTypedPropertyByName<ModelResourceArrayProperty>("models");

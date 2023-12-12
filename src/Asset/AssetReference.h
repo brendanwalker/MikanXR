@@ -46,7 +46,7 @@ public:
 		const std::filesystem::path& inAssetPath) const;
 
 	template <class t_factory_class>
-	static std::shared_ptr<t_factory_class> create(const std::filesystem::path& inAssetPath)
+	static std::shared_ptr<t_factory_class> create()
 	{
 		return std::make_shared<t_factory_class>();
 	}

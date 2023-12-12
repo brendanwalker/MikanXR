@@ -9,7 +9,7 @@
 class NodeGraph : public std::enable_shared_from_this<NodeGraph>
 {
 public:
-	NodeGraph()= default;
+	NodeGraph();
 	virtual ~NodeGraph() {}
 
 	inline float getTimeInSeconds() const { return m_timeInSeconds; }
@@ -28,6 +28,21 @@ public:
 	{
 		return std::dynamic_pointer_cast<t_property_type>(getPropertyByName(name));
 	}
+
+	template <class t_property_type>
+	std::shared_ptr<t_property_type> addTypedProperty(const std::string& name)
+	{
+		auto property= std::make_shared<t_property_type>(shared_from_this());
+		property->setName(name);
+		m_properties.insert({property->getId(), property});
+
+		if (OnPropertyAdded)
+			OnPropertyAdded(property->getId());
+
+		return property;
+	}
+
+	bool deletePropertyById(t_graph_property_id id);
 
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyAdded;
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyModifed;

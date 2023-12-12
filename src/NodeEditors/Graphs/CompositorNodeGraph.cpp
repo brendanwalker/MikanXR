@@ -4,6 +4,7 @@
 #include "Nodes/MousePosNode.h"
 #include "Nodes/TextureNode.h"
 #include "Nodes/TimeNode.h"
+#include "Properties/GraphArrayProperty.h"
 
 CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 {
@@ -15,4 +16,9 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	m_nodeFactories.push_back(NodeFactory::create<MousePosNodeFactory>(ownerGraph));
 	m_nodeFactories.push_back(NodeFactory::create<TextureNodeFactory>(ownerGraph));
 	m_nodeFactories.push_back(NodeFactory::create<TimeNodeFactory>(ownerGraph));
+
+	// Add graph properties
+	addTypedProperty<MaterialArrayProperty>("materials");
+	addTypedProperty<ModelResourceArrayProperty>("models");
+	addTypedProperty<TextureArrayProperty>("textures");
 }

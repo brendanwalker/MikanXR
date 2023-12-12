@@ -5,10 +5,16 @@
 #include "Nodes/EventNode.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
-#include "Properties/GraphProperty.h"
+#include "Properties/GraphArrayProperty.h"
 #include "NodeEditorState.h"
 
 #include "imnodes.h"
+
+NodeGraph::NodeGraph()
+{
+	// Add graph properties
+	addTypedProperty<AssetReferenceArrayProperty>("assetReferences");
+}
 
 void NodeGraph::update(NodeEvaluator& evaluator)
 {
@@ -23,6 +29,24 @@ void NodeGraph::update(NodeEvaluator& evaluator)
 			MIKAN_LOG_ERROR("NodeGraph::update - Error: ") << evaluator.getLastErrorMessage();
 		}
 	}
+}
+
+bool NodeGraph::deletePropertyById(t_graph_property_id id)
+{
+	auto it = m_properties.find(id);
+	if (it != m_properties.end())
+	{
+		t_graph_property_id id = it->first;
+
+		if (OnPropertyDeleted)
+			OnPropertyDeleted(id);
+
+		m_properties.erase(it);
+
+		return true;
+	}
+
+	return false;
 }
 
 GraphPropertyPtr NodeGraph::getPropertyById(t_graph_property_id id) const
