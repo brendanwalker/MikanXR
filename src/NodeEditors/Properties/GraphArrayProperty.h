@@ -4,16 +4,16 @@
 
 #include <vector>
 
-template <typename t_element_type>
 class GraphArrayProperty : public GraphProperty
 {
 public:
-	GraphArrayProperty() : GraphProperty() {}
-	GraphArrayProperty(NodeGraphPtr ownerGraph) : GraphProperty(ownerGraph) {}
+	GraphArrayProperty();
+	GraphArrayProperty(NodeGraphPtr ownerGraph);
 
-	const std::vector<t_element_type>& getArray() { return m_array; }
-	std::vector<t_element_type>& getArrayMutable() { return m_array; }
+	inline const std::vector<GraphPropertyPtr>& getArray() { return m_array; }
+	inline std::vector<GraphPropertyPtr>& getArrayMutable() { return m_array; }
 
 protected:
-	std::vector<t_element_type> m_array;
+	std::vector<GraphPropertyPtr> m_array;
 };
+

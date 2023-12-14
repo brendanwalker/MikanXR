@@ -24,7 +24,7 @@ protected:
 
 protected:
 	GlTexturePtr m_target;
-	TextureArrayPropertyPtr m_textureArrayProperty;
+	GraphVariableListPtr m_textureArrayProperty;
 };
 
 class TextureNodeFactory : public NodeFactory

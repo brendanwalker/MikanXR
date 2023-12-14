@@ -5,7 +5,7 @@
 #include "Nodes/EventNode.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
-#include "Properties/GraphArrayProperty.h"
+#include "Properties/GraphAssetListProperty.h"
 #include "NodeEditorState.h"
 
 #include "imnodes.h"
@@ -13,7 +13,7 @@
 NodeGraph::NodeGraph()
 {
 	// Add graph properties
-	addTypedProperty<AssetReferenceArrayProperty>("assetReferences");
+	addTypedProperty<GraphAssetListProperty>("assetReferences");
 }
 
 void NodeGraph::update(NodeEvaluator& evaluator)

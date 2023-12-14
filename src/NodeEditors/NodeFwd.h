@@ -99,39 +99,30 @@ class GraphProperty;
 using GraphPropertyPtr = std::shared_ptr<GraphProperty>;
 using GraphPropertyConstPtr = std::shared_ptr<const GraphProperty>;
 
-template <typename t_element_type> 
+class GraphPropertyFactory;
+using GraphPropertyFactoryPtr = std::shared_ptr<GraphPropertyFactory>;
+using GraphPropertyFactoryConstPtr = std::shared_ptr<const GraphPropertyFactory>;
+
 class GraphArrayProperty;
-template <typename t_element_type>
-using GraphPropertyArrayPtr = std::shared_ptr<GraphArrayProperty<t_element_type>>;
-template <typename t_element_type>
-using GraphPropertyArrayConstPtr = std::shared_ptr<const GraphArrayProperty<t_element_type>>;
+using GraphArrayPropertyPtr = std::shared_ptr<GraphArrayProperty>;
+using GraphArrayPropertyConstPtr = std::shared_ptr<const GraphArrayProperty>;
 
-class AssetReference;
-using AssetReferencePtr = std::shared_ptr<AssetReference>;
-using AssetReferenceArrayProperty = GraphArrayProperty<AssetReferencePtr>;
-using AssetReferenceArrayPropertyPtr = GraphPropertyArrayPtr<AssetReferencePtr>;
-using AssetReferenceArrayPropertyConstPtr = GraphPropertyArrayConstPtr<AssetReferencePtr>;
+class GraphAssetListProperty;
+using GraphAssetListPropertyPtr = std::shared_ptr<GraphAssetListProperty>;
+using GraphAssetListPropertyConstPtr = std::shared_ptr<const GraphAssetListProperty>;
 
-class GlFrameBuffer;
-using GlFrameBufferPtr = std::shared_ptr<GlFrameBuffer>;
-using FrameBufferArrayProperty = GraphArrayProperty<GlFrameBufferPtr>;
-using FrameBufferArrayPropertyPtr = GraphPropertyArrayPtr<GlFrameBufferPtr>;
-using FrameBufferArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlFrameBufferPtr>;
+class GraphVariableList;
+using GraphVariableListPtr = std::shared_ptr<GraphVariableList>;
+using GraphVariableListConstPtr = std::shared_ptr<const GraphVariableList>;
 
-class GlMaterial;
-using GlMaterialPtr = std::shared_ptr<GlMaterial>;
-using MaterialArrayProperty = GraphArrayProperty<GlMaterialPtr>;
-using MaterialArrayPropertyPtr = GraphPropertyArrayPtr<GlMaterialPtr>;
-using MaterialArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlMaterialPtr>;
+class GraphMaterialProperty;
+using GraphMaterialPropertyPtr = std::shared_ptr<GraphMaterialProperty>;
+using GraphMaterialPropertyConstPtr = std::shared_ptr<const GraphMaterialProperty>;
 
-class GlRenderModelResource;
-using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
-using ModelResourceArrayProperty = GraphArrayProperty<GlRenderModelResourcePtr>;
-using ModelResourceArrayPropertyPtr = GraphPropertyArrayPtr<GlRenderModelResourcePtr>;
-using ModelResourceArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlRenderModelResourcePtr>;
+class GraphModelProperty;
+using GraphModelPropertyPtr = std::shared_ptr<GraphModelProperty>;
+using GraphModelPropertyConstPtr = std::shared_ptr<const GraphModelProperty>;
 
-class GlTexture;
-using GlTexturePtr = std::shared_ptr<GlTexture>;
-using TextureArrayProperty = GraphArrayProperty<GlTexturePtr>;
-using TextureArrayPropertyPtr = GraphPropertyArrayPtr<GlTexturePtr>;
-using TextureArrayPropertyConstPtr = GraphPropertyArrayConstPtr<GlTexturePtr>;
+class GraphTextureProperty;
+using GraphTexturePropertyPtr = std::shared_ptr<GraphTextureProperty>;
+using GraphTexturePropertyConstPtr = std::shared_ptr<const GraphTextureProperty>;

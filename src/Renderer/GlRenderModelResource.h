@@ -17,6 +17,7 @@ namespace objl
 class GlRenderModelResource
 {
 public:
+	GlRenderModelResource();
 	GlRenderModelResource(const struct GlVertexDefinition* vertexDefinition);
 	GlRenderModelResource(const std::filesystem::path& modelFilePath);
 	GlRenderModelResource(

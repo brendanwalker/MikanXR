@@ -15,7 +15,8 @@
 #include "Pins/IntPin.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
-#include "Properties/GraphArrayProperty.h"
+#include "Properties/GraphVariableList.h"
+#include "Properties/GraphModelProperty.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -35,7 +36,7 @@ DrawTriMeshNode::DrawTriMeshNode(NodeGraphPtr ownerGraph)
 {
 	if (ownerGraph)
 	{
-		m_modelArrayProperty = ownerGraph->getTypedPropertyByName<ModelResourceArrayProperty>("models");
+		m_modelArrayProperty = ownerGraph->getTypedPropertyByName<GraphVariableList>("models");
 		ownerGraph->OnPropertyModifed+= MakeDelegate(this, &DrawTriMeshNode::onGraphPropertyChanged);
 	}
 }
@@ -238,8 +239,11 @@ void DrawTriMeshNode::editorRenderPropertySheet(const NodeEditorState& editorSta
 			if (m_modelArrayProperty)
 			{
 				int index = 0;
-				for (auto& model : m_modelArrayProperty->getArray())
+				for (GraphPropertyPtr property : m_modelArrayProperty->getArray())
 				{
+					auto modelProperty= std::static_pointer_cast<GraphModelProperty>(property);
+					GlRenderModelResourcePtr model= modelProperty->getModelResource();
+
 					const bool is_selected = (m_model == model);
 					if (ImGui::Selectable(model->getName().c_str(), is_selected))
 					{
@@ -328,8 +332,17 @@ void DrawTriMeshNode::onGraphPropertyChanged(t_graph_property_id id)
 {
 	if (m_modelArrayProperty && m_modelArrayProperty->getId() == id)
 	{
+		GlRenderModelResourcePtr modelPtr= m_model;
 		auto modelResourceArray= m_modelArrayProperty->getArray();
-		if (std::find(modelResourceArray.begin(), modelResourceArray.end(), m_model) == modelResourceArray.end())
+
+		auto it= std::find_if(
+			modelResourceArray.begin(),
+			modelResourceArray.end(),
+			[modelPtr](const GraphPropertyPtr& prop) {
+				auto modelProp = std::static_pointer_cast<GraphModelProperty>(prop);
+				return modelProp->getModelResource() == modelPtr;
+			});
+		if (it == modelResourceArray.end())
 		{
 			setModel(GlRenderModelResourcePtr());
 		}

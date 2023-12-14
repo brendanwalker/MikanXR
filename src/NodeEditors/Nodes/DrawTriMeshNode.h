@@ -28,7 +28,7 @@ protected:
 	GlRenderModelResourcePtr m_model;
 	GlMaterialPtr m_material;
 
-	ModelResourceArrayPropertyPtr m_modelArrayProperty;
+	GraphVariableListPtr m_modelArrayProperty;
 };
 
 class DrawTriMeshNodeFactory : public NodeFactory

@@ -9,6 +9,7 @@
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
 #include "RendererFwd.h"
+#include "Properties/GraphArrayProperty.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -30,6 +31,7 @@ namespace SelectedItemType
 
 	// Assets
 	const t_selected_item_type ASSET= 3;
+	const t_selected_item_type VARIABLE= 4;
 };
 
 //-- definitions -----
@@ -73,9 +75,9 @@ protected:
 	virtual void renderContextMenu(const class NodeEditorState& editorState);
 	virtual void renderDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderToolbar() {}
-	virtual void renderGraphVariablesPanel() {}
+	virtual void renderGraphVariablesPanel();
 	virtual void renderAssetsPanel();
-	virtual void renderSelectedObjectPanel() {}
+	virtual void renderSelectedObjectPanel();
 
 	virtual void deleteSelectedItem();
 
@@ -85,6 +87,9 @@ protected:
 	virtual void onNodeCreated(t_node_id id);
 	virtual void onNodeDeleted(t_node_id id);
 	virtual void onLinkDeleted(t_node_link_id id);
+	virtual void onGraphPropertyCreated(t_graph_property_id id) {}
+	virtual void onGraphPropertyModified(t_graph_property_id id) {}
+	virtual void onGraphPropertyDeleted(t_graph_property_id id) {}
 
 	virtual void onAssetReferenceCreated(AssetReferencePtr assetRef) {}
 	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef) {}
@@ -99,8 +104,9 @@ protected:
 
 	NodeGraphPtr m_nodeGraph;
 	NodeEditorState m_editorState;
-	AssetReferenceArrayPropertyPtr m_assetRefArrayProperty;
+	GraphAssetListPropertyPtr m_assetReferencesList;
 	AssetReferenceFactoryList m_assetRefFactoryList;
+	std::vector<GraphVariableListPtr> m_variableLists;
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;

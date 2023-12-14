@@ -20,6 +20,12 @@
 
 #include <limits>
 
+GlRenderModelResource::GlRenderModelResource()
+	: m_vertexDefinition(nullptr)
+{
+
+}
+
 GlRenderModelResource::GlRenderModelResource(const GlVertexDefinition* vertexDefinition)
 	: m_vertexDefinition(new GlVertexDefinition(*vertexDefinition))
 {
@@ -43,7 +49,10 @@ GlRenderModelResource::GlRenderModelResource(
 GlRenderModelResource::~GlRenderModelResource()
 {
 	disposeRenderResources();
-	delete m_vertexDefinition;
+	if (m_vertexDefinition)
+	{
+		delete m_vertexDefinition;
+	}
 }
 
 const GlVertexDefinition* GlRenderModelResource::getDefaultVertexDefinition()

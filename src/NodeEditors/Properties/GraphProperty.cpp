@@ -1,6 +1,7 @@
 #include "GraphProperty.h"
 #include "Graphs/NodeGraph.h"
 
+// -- GraphProperty ------
 GraphProperty::GraphProperty() 
 	: m_id(-1)
 {
@@ -18,4 +19,18 @@ void GraphProperty::notifyPropertyModified() const
 	{
 		m_ownerGraph->OnPropertyModifed(m_id);
 	}
+}
+
+// -- GraphPropertyFactory ------
+GraphPropertyFactory::GraphPropertyFactory(NodeGraphPtr ownerGraph)
+	: m_ownerGraph(ownerGraph)
+{
+
+}
+
+GraphPropertyPtr GraphPropertyFactory::createProperty(
+	const NodeEditorState* editorState,
+	const std::string& name) const
+{
+	return m_ownerGraph->allocateTypedProperty<GraphProperty>(name);
 }

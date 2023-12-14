@@ -4,7 +4,8 @@
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
-#include "Properties/GraphArrayProperty.h"
+#include "Properties/GraphVariableList.h"
+#include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -18,7 +19,7 @@ TextureNode::TextureNode(NodeGraphPtr ownerGraph)
 {
 	if (ownerGraph)
 	{
-		m_textureArrayProperty = ownerGraph->getTypedPropertyByName<TextureArrayProperty>("textures");
+		m_textureArrayProperty = ownerGraph->getTypedPropertyByName<GraphVariableList>("textures");
 		ownerGraph->OnPropertyModifed += MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
 	}
 }
@@ -80,7 +81,17 @@ void TextureNode::onGraphPropertyChanged(t_graph_property_id id)
 	if (m_textureArrayProperty && m_textureArrayProperty->getId() == id)
 	{
 		auto textureArray = m_textureArrayProperty->getArray();
-		if (std::find(textureArray.begin(), textureArray.end(), m_target) == textureArray.end())
+
+		GlTexturePtr texturePtr= m_target;
+		auto it = std::find_if(
+			textureArray.begin(),
+			textureArray.end(),
+			[texturePtr](const GraphPropertyPtr& prop) {
+				auto textureProp = std::static_pointer_cast<GraphTextureProperty>(prop);
+				return textureProp->getTextureResource() == texturePtr;
+			});
+
+		if (it == textureArray.end())
 		{
 			setTexture(GlTexturePtr());
 		}

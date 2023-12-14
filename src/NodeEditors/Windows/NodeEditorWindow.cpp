@@ -16,7 +16,8 @@
 #include "TextStyle.h"
 
 #include "Pins/NodePin.h"
-#include "Properties/GraphArrayProperty.h"
+#include "Properties/GraphAssetListProperty.h"
+#include "Properties/GraphVariableList.h"
 
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -424,6 +425,115 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 	ImGui::PopStyleVar(3);
 }
 
+void NodeEditorWindow::renderGraphVariablesPanel()
+{
+	ImGui::BeginChild("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
+
+	for (auto variableList : m_variableLists)
+	{		
+		const auto& variableFactory= variableList->getFactory();
+		auto variableTypeName = variableFactory->getPropertyTypeName();
+		auto& variableArray = variableList->getArray();
+
+		// Add button
+		float xPos = ImGui::GetCursorPosX();
+		ImGui::SetCursorPosX(180);
+		const std::string buttonName= StringUtils::stringify(ICON_FK_PLUS_CIRCLE, "##add_", variableTypeName);
+		if (ImGui::SmallButton(buttonName.c_str()))
+		{
+			ImNodes::ClearLinkSelection();
+			ImNodes::ClearNodeSelection();
+
+			const std::string variableName = variableTypeName + std::to_string(variableArray.size() + 1);
+			GraphPropertyPtr newVariablePtr= variableList->addNewVariable(&m_editorState, variableName);
+
+			m_SelectedItemType = SelectedItemType::VARIABLE;
+			m_SelectedItemId = newVariablePtr->getId();
+		}
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(xPos);
+
+		// Title bar
+		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		bool isNodeOpened = ImGui::CollapsingHeader(variableTypeName.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(180);
+		ImGui::Text(ICON_FK_PLUS_CIRCLE);
+		ImGui::PopStyleVar(3);
+		ImGui::PopStyleColor(3);
+
+		if (isNodeOpened)
+		{
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
+			for (int i = 0; i < variableArray.size(); i++)
+			{
+				GraphPropertyPtr variable= variableArray[i];
+
+				// Variable
+				const std::string varEntryName= 
+					StringUtils::stringify(
+						"\t\t", variable->getName(), "##", variableTypeName, std::to_string(i));
+
+				bool isSelected = m_SelectedItemType == SelectedItemType::VARIABLE;
+				isSelected = isSelected && (m_SelectedItemId == variable->getId());
+				if (ImGui::Selectable(varEntryName.c_str(), &isSelected))
+				{
+					ImNodes::ClearLinkSelection();
+					ImNodes::ClearNodeSelection();
+					if (isSelected)
+					{
+						m_SelectedItemType = SelectedItemType::VARIABLE;
+						m_SelectedItemId = variable->getId();
+					}
+					else
+					{
+						m_SelectedItemType = SelectedItemType::NONE;
+						m_SelectedItemId = -1;
+					}
+				}
+				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+				{
+					ImGui::SetDragDropPayload("variable", &variable, sizeof(GraphPropertyPtr));
+					ImGui::Text(variable->getName().c_str());
+					ImGui::EndDragDropSource();
+				}
+
+				// Context menu
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+				ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				if (ImGui::BeginPopupContextItem())
+				{
+					ImNodes::ClearLinkSelection();
+					ImNodes::ClearNodeSelection();
+					m_SelectedItemType = SelectedItemType::VARIABLE;
+					m_SelectedItemId = variable->getId();
+
+					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+					{
+						variableList->deleteVariableByIndex(&m_editorState, i);
+					}
+
+					ImGui::EndPopup();
+				}
+				ImGui::PopStyleColor(2);
+				ImGui::PopStyleVar(3);
+			}
+			ImGui::PopStyleColor();
+		}
+	}
+
+	ImGui::EndChild();
+}
+
 void NodeEditorWindow::renderAssetsPanel()
 {
 	ImGui::BeginChild("Assets Panel", ImVec2(ImGui::GetContentRegionAvail().x, 216));
@@ -461,11 +571,12 @@ void NodeEditorWindow::renderAssetsPanel()
 						std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
 
 						// Create the asset reference
-						auto assetRef= assetRefFactory->createAssetReference(&m_editorState, universalPath);
+						AssetReferencePtr assetRef= 
+							assetRefFactory->createAssetReference(&m_editorState, universalPath);
 						if (assetRef)
 						{
 							// Add the asset reference
-							m_assetRefArrayProperty->getArrayMutable().push_back(assetRef);
+							m_assetReferencesList->getAssetListMutable().push_back(assetRef);
 							onAssetReferenceCreated(assetRef);
 						}
 					}
@@ -477,14 +588,14 @@ void NodeEditorWindow::renderAssetsPanel()
 
 			// Assets browser
 			{
-				auto& assetRefArray = m_assetRefArrayProperty->getArray();
+				auto& assetRefArray = m_assetReferencesList->getAssetList();
 
 				ImGui::BeginChild("AssetBrowser");
 
 				ImGui::Dummy(ImVec2(1, 10));
 				for (int i = 0; i < assetRefArray.size(); i++)
 				{
-					auto assetRefPtr= assetRefArray[i];
+					AssetReferencePtr assetRefPtr= assetRefArray[i];
 
 					ImGui::Dummy(ImVec2(10, 140));
 					ImGui::SameLine();
@@ -563,6 +674,34 @@ void NodeEditorWindow::renderAssetsPanel()
 	ImGui::EndChild();
 }
 
+void NodeEditorWindow::renderSelectedObjectPanel()
+{
+	ImGui::SameLine();
+	ImGui::BeginChild("Right Panel", ImVec2(344, ImGui::GetContentRegionAvail().y));
+
+	if (m_SelectedItemType == SelectedItemType::NODE)
+	{
+		NodePtr node = m_nodeGraph->getNodeById(m_SelectedItemId);
+
+		if (node)
+		{
+			node->editorRenderPropertySheet(m_editorState);
+		}
+	}
+	else if (m_SelectedItemType == SelectedItemType::VARIABLE)
+	{
+		//TODO: m_SelectedItemId needs to be an array to support variables in arrays
+		GraphPropertyPtr property = m_nodeGraph->getPropertyById(m_SelectedItemId);
+
+		if (property)
+		{
+			property->editorRenderPropertySheet(m_editorState);
+		}
+	}
+
+	ImGui::EndChild();
+}
+
 void NodeEditorWindow::deleteSelectedItem()
 {
 	if (m_SelectedItemType >= SelectedItemType::NODES)
@@ -597,17 +736,23 @@ void NodeEditorWindow::onNodeGraphCreated()
 	m_nodeGraph->OnNodeCreated += MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 	m_nodeGraph->OnNodeDeleted += MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
 	m_nodeGraph->OnLinkDeleted += MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+	m_nodeGraph->OnPropertyCreated += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
+	m_nodeGraph->OnPropertyModifed += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
+	m_nodeGraph->OnPropertyDeleted += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
 
-	m_assetRefArrayProperty = m_nodeGraph->getTypedPropertyByName<AssetReferenceArrayProperty>("assetReferences");
+	m_assetReferencesList = m_nodeGraph->getTypedPropertyByName<GraphAssetListProperty>("assetReferences");
 }
 
 void NodeEditorWindow::onNodeGraphDeleted()
 {
-	m_assetRefArrayProperty = nullptr;
+	m_assetReferencesList = nullptr;
 
 	m_nodeGraph->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 	m_nodeGraph->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
 	m_nodeGraph->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+	m_nodeGraph->OnPropertyCreated -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
+	m_nodeGraph->OnPropertyModifed -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
+	m_nodeGraph->OnPropertyDeleted -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
 }
 
 void NodeEditorWindow::onNodeCreated(t_node_id id)

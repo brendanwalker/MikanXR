@@ -30,21 +30,30 @@ public:
 	}
 
 	template <class t_property_type>
+	std::shared_ptr<t_property_type> allocateTypedProperty(const std::string& name)
+	{
+		auto property = std::make_shared<t_property_type>(shared_from_this());
+		property->setName(name);
+
+		if (OnPropertyCreated)
+			OnPropertyCreated(property->getId());
+
+		return property;
+	}
+
+	template <class t_property_type>
 	std::shared_ptr<t_property_type> addTypedProperty(const std::string& name)
 	{
-		auto property= std::make_shared<t_property_type>(shared_from_this());
-		property->setName(name);
-		m_properties.insert({property->getId(), property});
+		std::shared_ptr<t_property_type> property= allocateTypedProperty<t_property_type>(name);
 
-		if (OnPropertyAdded)
-			OnPropertyAdded(property->getId());
+		m_properties.insert({property->getId(), property});
 
 		return property;
 	}
 
 	bool deletePropertyById(t_graph_property_id id);
 
-	MulticastDelegate<void(t_graph_property_id id)> OnPropertyAdded;
+	MulticastDelegate<void(t_graph_property_id id)> OnPropertyCreated;
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyModifed;
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyDeleted;
 
