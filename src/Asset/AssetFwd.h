@@ -10,7 +10,6 @@ using AssetReferenceConstPtr = std::shared_ptr<const AssetReference>;
 class AssetReferenceFactory;
 using AssetReferenceFactoryPtr = std::shared_ptr<AssetReferenceFactory>;
 using AssetReferenceFactoryConstPtr = std::shared_ptr<const AssetReferenceFactory>;
-using AssetReferenceFactoryList = std::vector<AssetReferenceFactoryPtr>;
 
 class MaterialAssetReference;
 using MaterialAssetReferencePtr = std::shared_ptr<MaterialAssetReference>;

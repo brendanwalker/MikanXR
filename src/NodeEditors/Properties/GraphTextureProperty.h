@@ -16,6 +16,7 @@ public:
 	inline void setTextureResource(GlTexturePtr inTexture) { m_texture = inTexture; }
 	inline GlTexturePtr getTextureResource() const { return m_texture; }
 
+	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 
 protected:

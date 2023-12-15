@@ -21,6 +21,8 @@ public:
 
 	bool isValid() const;
 
+	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) {}
+
 protected:
 	virtual void rebuildPreview() {}
 

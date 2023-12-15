@@ -41,6 +41,9 @@ public:
 	NodeEditorWindow();
 	~NodeEditorWindow();
 
+	virtual void save();
+	virtual void undo();
+
 	virtual void update(float deltaSeconds);
 
 	// -- IGlWindow ----
@@ -68,13 +71,14 @@ protected:
 	virtual void pushImGuiStyles();
 	virtual void popImGuiStyles();
 
+	// TODO: convert to an array to support nested variables
 	t_selected_item_type m_SelectedItemType= SelectedItemType::NONE;
 	int m_SelectedItemId= -1;
 
 	virtual void renderMainFrame();
 	virtual void renderContextMenu(const class NodeEditorState& editorState);
-	virtual void renderDragDrop(const class NodeEditorState& editorState) {}
-	virtual void renderToolbar() {}
+	virtual void handleDragDrop(const class NodeEditorState& editorState);
+	virtual void renderToolbar();
 	virtual void renderGraphVariablesPanel();
 	virtual void renderAssetsPanel();
 	virtual void renderSelectedObjectPanel();
@@ -105,7 +109,6 @@ protected:
 	NodeGraphPtr m_nodeGraph;
 	NodeEditorState m_editorState;
 	GraphAssetListPropertyPtr m_assetReferencesList;
-	AssetReferenceFactoryList m_assetRefFactoryList;
 	std::vector<GraphVariableListPtr> m_variableLists;
 
 	// OpenGL shader program cache

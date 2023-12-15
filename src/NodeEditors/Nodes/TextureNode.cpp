@@ -33,12 +33,17 @@ TextureNode::~TextureNode()
 	}
 }
 
+GlTexturePtr TextureNode::getTextureResource() const
+{
+	return m_sourceProperty ? m_sourceProperty->getTextureResource() : GlTexturePtr();
+}
+
 bool TextureNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	TexturePinPtr outPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
-		outPin->setValue(m_target);
+		outPin->setValue(getTextureResource());
 	}
 
 	return true;
@@ -63,7 +68,9 @@ void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	ImGui::Image((void*)(intptr_t)m_target->getGlTextureId(), ImVec2(100, 100));
+	GlTexturePtr textureResource = getTextureResource();
+	uint32_t glTextureId= textureResource ? textureResource->getGlTextureId() : 0;
+	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
 
 	// Outputs
@@ -81,19 +88,11 @@ void TextureNode::onGraphPropertyChanged(t_graph_property_id id)
 	if (m_textureArrayProperty && m_textureArrayProperty->getId() == id)
 	{
 		auto textureArray = m_textureArrayProperty->getArray();
-
-		GlTexturePtr texturePtr= m_target;
-		auto it = std::find_if(
-			textureArray.begin(),
-			textureArray.end(),
-			[texturePtr](const GraphPropertyPtr& prop) {
-				auto textureProp = std::static_pointer_cast<GraphTextureProperty>(prop);
-				return textureProp->getTextureResource() == texturePtr;
-			});
+		auto it = std::find(textureArray.begin(), textureArray.end(), m_sourceProperty);
 
 		if (it == textureArray.end())
 		{
-			setTexture(GlTexturePtr());
+			setTextureSource(GraphTexturePropertyPtr());
 		}
 	}
 }

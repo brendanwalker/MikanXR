@@ -4,7 +4,7 @@
 
 #include <string>
 
-class GraphProperty
+class GraphProperty : public std::enable_shared_from_this<GraphProperty>
 {
 public:
 	GraphProperty();
@@ -17,6 +17,7 @@ public:
 	inline void setName(const std::string& name) { m_name= name; }
 	inline const std::string& getName() const { return m_name; }
 
+	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
 	void notifyPropertyModified() const;
 

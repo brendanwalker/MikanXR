@@ -18,6 +18,18 @@ GraphModelProperty::GraphModelProperty(NodeGraphPtr ownerGraph)
 {
 }
 
+void GraphModelProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
+{
+	//TODO
+	//auto modelNode =
+	//	std::static_pointer_cast<ModelNode>(
+	//		ModelNodeFactory(getOwnerGraph()).createNode(&editorState));
+
+	//// Set this as the source model property for the new node
+	//auto self = std::static_pointer_cast<GraphModelProperty>(shared_from_this());
+	//modelNode->setTextureSource(self);
+}
+
 void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
 	// Section 1: Basic info
@@ -40,27 +52,8 @@ void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& 
 		ImGui::SetNextItemWidth(150);
 		std::string name = m_modelResource->getName();
 		ImGui::Text(name.c_str());
-	}
 
-	// Section 2: Shaders
-	// Add Button
-	float xPos = ImGui::GetCursorPosX();
-	ImGui::SetCursorPosX(325);
-	if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##set_mesh"))
-	{
-	//TODO
-	#if 0
-		auto paths_c = tinyfd_openFileDialog("Add Shader", "", 0, 0, 0, 1);
-		if (paths_c)
-		{
-			std::stringstream ssPaths(paths_c);
-			std::string path;
-			while (std::getline(ssPaths, path, '|'))
-				m_Programs[m_SelectedItemId]->AddShader(
-					PathUtils::makeUniversalPathString(path).c_str(),
-					GL_VERTEX_SHADER);
-		}
-	#endif
+		// TODO: Show model properties
 	}
 }
 

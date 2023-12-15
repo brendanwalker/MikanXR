@@ -35,6 +35,10 @@
 
 #include "glm/ext/vector_float4.hpp"
 
+// Drag-Drop Payload Types
+#define DRAG_DROP_TYPE_VARIABLE		"Variable"
+#define DRAG_DROP_TYPE_ASSET_REF	"Asset"
+
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow()
 	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow))
@@ -185,6 +189,7 @@ bool NodeEditorWindow::startup()
 	return success;
 }
 
+// TODO: I don't think we actually want to evaluate the graph in the editor window
 void NodeEditorWindow::update(float deltaSeconds)
 {
 	EASY_FUNCTION();
@@ -321,7 +326,7 @@ void NodeEditorWindow::renderMainFrame()
 		NodeEditorState editorStateCopy = m_editorState;
 		editorStateCopy.hangPos = ImGui::GetMousePos();
 
-		renderDragDrop(editorStateCopy);
+		handleDragDrop(editorStateCopy);
 
 		ImGui::EndDragDropTarget();
 	}
@@ -425,6 +430,79 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 	ImGui::PopStyleVar(3);
 }
 
+void NodeEditorWindow::handleDragDrop(const class NodeEditorState& editorState)
+{
+	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(DRAG_DROP_TYPE_ASSET_REF))
+	{
+		IM_ASSERT(payload->DataSize == sizeof(AssetReferencePtr));
+		AssetReferencePtr assetRef = *(AssetReferencePtr*)payload->Data;
+
+		assetRef->editorHandleDragDrop(editorState);
+	}
+	else if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(DRAG_DROP_TYPE_VARIABLE))
+	{
+		IM_ASSERT(payload->DataSize == sizeof(GraphPropertyPtr));
+		GraphPropertyPtr model = *(GraphPropertyPtr*)payload->Data;
+
+		model->editorHandleDragDrop(editorState);
+	}
+}
+
+void NodeEditorWindow::renderToolbar()
+{
+	ImGui::PushFont(m_BigIconFont);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 4));
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
+
+	ImGui::BeginChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
+
+	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
+	if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
+	{
+		save();
+	}
+
+	// Editor Control
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+
+		ImGui::SameLine();
+		ImGui::BeginChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
+		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
+
+		ImGui::PopStyleColor();
+
+		ImGui::SameLine();
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+		if (ImGui::SmallButton(ICON_FK_UNDO))
+		{
+			undo();
+		}
+		ImGui::PopStyleColor();
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar(2);
+	}
+
+	ImGui::EndChild();
+
+	ImGui::PopStyleVar(3);
+	ImGui::PopStyleColor(4);
+
+	ImGui::PopFont();
+}
+
 void NodeEditorWindow::renderGraphVariablesPanel()
 {
 	ImGui::BeginChild("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
@@ -499,7 +577,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 				}
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 				{
-					ImGui::SetDragDropPayload("variable", &variable, sizeof(GraphPropertyPtr));
+					ImGui::SetDragDropPayload(DRAG_DROP_TYPE_VARIABLE, &variable, sizeof(GraphPropertyPtr));
 					ImGui::Text(variable->getName().c_str());
 					ImGui::EndDragDropSource();
 				}
@@ -548,7 +626,7 @@ void NodeEditorWindow::renderAssetsPanel()
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 6));
 
-			for (auto& assetRefFactory : m_assetRefFactoryList)
+			for (auto& assetRefFactory : m_nodeGraph->getAssetReferenceFactories())
 			{
 				const std::string& assetTypeName= assetRefFactory->getAssetTypeName();
 				const std::string buttonName= StringUtils::stringify("  Add ", assetTypeName, "##", assetTypeName);
@@ -605,7 +683,7 @@ void NodeEditorWindow::renderAssetsPanel()
 
 					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 					{
-						ImGui::SetDragDropPayload(assetRefPtr->getAssetTypeName().c_str(), &i, sizeof(int));
+						ImGui::SetDragDropPayload(DRAG_DROP_TYPE_ASSET_REF, &assetRefPtr, sizeof(AssetReferencePtr));
 						ImGui::Text(assetRefPtr->getShortName().c_str());
 						ImGui::EndDragDropSource();
 					}
@@ -728,7 +806,18 @@ void NodeEditorWindow::deleteSelectedItem()
 
 NodeGraphPtr NodeEditorWindow::allocateNodeGraph()
 {
+	// TODO: I think we want to be assigned a node graph rather than create one
 	return std::make_shared<NodeGraph>();
+}
+
+void NodeEditorWindow::save()
+{
+	//TODO
+}
+
+void NodeEditorWindow::undo()
+{
+	//TODO
 }
 
 void NodeEditorWindow::onNodeGraphCreated()
@@ -740,12 +829,26 @@ void NodeEditorWindow::onNodeGraphCreated()
 	m_nodeGraph->OnPropertyModifed += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 	m_nodeGraph->OnPropertyDeleted += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
 
+	// Fetch asset reference list from the graph
 	m_assetReferencesList = m_nodeGraph->getTypedPropertyByName<GraphAssetListProperty>("assetReferences");
+
+	// Fetch all variables lists from the graph
+	auto propertyMap= m_nodeGraph->getPropertyMap();
+	for (auto it = propertyMap.begin(); it != propertyMap.end(); it++)
+	{
+		GraphVariableListPtr variableList= std::dynamic_pointer_cast<GraphVariableList>(it->second);
+
+		if (variableList)
+		{
+			m_variableLists.push_back(variableList);
+		}
+	}
 }
 
 void NodeEditorWindow::onNodeGraphDeleted()
 {
 	m_assetReferencesList = nullptr;
+	m_variableLists.clear();
 
 	m_nodeGraph->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 	m_nodeGraph->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);

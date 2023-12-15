@@ -16,6 +16,7 @@ public:
 	inline void setMaterialResource(GlMaterialPtr inMaterialResource) { m_materialResource = inMaterialResource; }
 	inline GlMaterialPtr getMaterialResource() const { return m_materialResource; }
 
+	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 
 protected:

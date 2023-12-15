@@ -10,8 +10,10 @@ public:
 	TextureNode(NodeGraphPtr ownerGraph);
 	virtual ~TextureNode();
 
-	inline GlTexturePtr getTexture() const { return m_target; }
-	inline void setTexture(GlTexturePtr inTexture) { m_target= inTexture; }
+	inline GraphTexturePropertyPtr getTextureSource() const { return m_sourceProperty; }
+	inline void setTextureSource(GraphTexturePropertyPtr inTextureProperty) { m_sourceProperty= inTextureProperty; }
+
+	GlTexturePtr getTextureResource() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
@@ -23,7 +25,7 @@ protected:
 	void onGraphPropertyChanged(t_graph_property_id id);
 
 protected:
-	GlTexturePtr m_target;
+	GraphTexturePropertyPtr m_sourceProperty;
 	GraphVariableListPtr m_textureArrayProperty;
 };
 

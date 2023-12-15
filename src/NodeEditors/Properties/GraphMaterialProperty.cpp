@@ -16,6 +16,18 @@ GraphMaterialProperty::GraphMaterialProperty(NodeGraphPtr ownerGraph)
 	: GraphProperty(ownerGraph)
 {}
 
+void GraphMaterialProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
+{
+	//TODO
+	//auto materialNode =
+	//	std::static_pointer_cast<MaterialNode>(
+	//		MaterialNodeFactory(getOwnerGraph()).createNode(&editorState));
+
+	//// Set this as the source model property for the new node
+	//auto self = std::static_pointer_cast<GraphMaterialProperty>(shared_from_this());
+	//materialNode->setMaterialSource(self);
+}
+
 void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
 	// Section 1: Basic info
@@ -38,15 +50,8 @@ void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorStat
 		ImGui::SetNextItemWidth(150);
 		std::string name = m_materialResource->getName();
 		ImGui::Text(name.c_str());
-	}
 
-	// Section 2: Shaders
-	// Add Button
-	float xPos = ImGui::GetCursorPosX();
-	ImGui::SetCursorPosX(325);
-	if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##set_material"))
-	{
-		//TODO
+		// TODO show material properties
 	}
 }
 

@@ -1,6 +1,7 @@
 #include "GraphTextureProperty.h"
 #include "GlTexture.h"
 #include "Graphs/NodeGraph.h"
+#include "Nodes/TextureNode.h"
 #include "TextureAssetReference.h"
 
 #include "imgui.h"
@@ -14,6 +15,17 @@ GraphTextureProperty::GraphTextureProperty()
 GraphTextureProperty::GraphTextureProperty(NodeGraphPtr ownerGraph)
 	: GraphProperty(ownerGraph)
 {}
+
+void GraphTextureProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
+{
+	auto textureNode =
+		std::static_pointer_cast<TextureNode>(
+			TextureNodeFactory(getOwnerGraph()).createNode(&editorState));
+
+	// Set this as the source texture property for the new node
+	auto self= std::static_pointer_cast<GraphTextureProperty>(shared_from_this());
+	textureNode->setTextureSource(self);
+}
 
 void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
@@ -37,14 +49,8 @@ void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState
 		ImGui::SetNextItemWidth(150);
 		std::string name = m_texture->getName();
 		ImGui::Text(name.c_str());
-	}
 
-	// Section 2: Shaders
-	// Add Button
-	float xPos = ImGui::GetCursorPosX();
-	ImGui::SetCursorPosX(325);
-	if (ImGui::SmallButton(ICON_FK_PLUS_CIRCLE "##set_texture"))
-	{
+		// TODO: Show Texture properties
 	}
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AssetFwd.h"
 #include "NodeFwd.h"
 #include "MulticastDelegate.h"
 
@@ -16,6 +17,16 @@ public:
 
 	GraphPropertyPtr getPropertyById(t_graph_property_id id) const;
 	GraphPropertyPtr getPropertyByName(const std::string& name) const;
+
+	inline const std::vector<AssetReferenceFactoryPtr>& getAssetReferenceFactories() const
+	{
+		return m_assetRefFactories;
+	}
+
+	inline const std::map<t_graph_property_id, GraphPropertyPtr>& getPropertyMap() const
+	{
+		return m_properties;
+	}
 
 	template <class t_property_type>
 	std::shared_ptr<t_property_type> getTypedPropertyById(t_graph_property_id id) const
@@ -99,11 +110,22 @@ protected:
 
 	float m_timeInSeconds;
 
+	// Defines all of the asset references that this node graph can use
+	std::vector<AssetReferenceFactoryPtr> m_assetRefFactories;
+
+	// Defines all of the node types that this node graph can use
 	std::vector<NodeFactoryPtr> m_nodeFactories;
+
+	// Properties assigned to this node graph
+	// * GraphAssetListProperty - List of all asset references used by this graph
+	// * GraphVariableList - Lists of graph variables (models, textures, materials, ...)
+	std::map<t_graph_property_id, GraphPropertyPtr> m_properties;
+
+	// Nodes, pins and links that make up the graph
 	std::map<t_node_id, NodePtr> m_Nodes;
 	std::map<t_node_pin_id, NodePinPtr> m_Pins;
 	std::map<t_node_link_id, NodeLinkPtr> m_Links;
-	std::map<t_graph_property_id, GraphPropertyPtr> m_properties;
+
 	int	m_nextId= 0;
 
 	friend class Node;
