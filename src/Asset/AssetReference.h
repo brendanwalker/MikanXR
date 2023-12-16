@@ -21,6 +21,7 @@ public:
 
 	bool isValid() const;
 
+	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
 	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) {}
 
 protected:

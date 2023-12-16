@@ -64,7 +64,7 @@ GraphPropertyPtr GraphMaterialPropertyFactory::createProperty(
 	MaterialAssetReferencePtr MaterialAssetRef = std::make_shared<MaterialAssetReference>();
 	GlMaterialPtr MaterialResource = std::make_shared<GlMaterial>();
 
-	GraphMaterialPropertyPtr MaterialProperty = m_ownerGraph->allocateTypedProperty<GraphMaterialProperty>(name);
+	GraphMaterialPropertyPtr MaterialProperty = m_ownerGraph->addTypedProperty<GraphMaterialProperty>(name);
 	MaterialProperty->setMaterialAssetReference(MaterialAssetRef);
 	MaterialProperty->setMaterialResource(MaterialResource);
 

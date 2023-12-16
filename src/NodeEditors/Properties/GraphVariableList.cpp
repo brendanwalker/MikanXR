@@ -17,11 +17,9 @@ GraphPropertyPtr GraphVariableList::addNewVariable(
 	const std::string& name)
 {
 	GraphPropertyPtr variable= m_factory->createProperty(editorState, name);
-
 	if (variable)
 	{
-		m_array.push_back(variable);
-		notifyPropertyModified();
+		addProperty(variable);
 	}
 
 	return variable;
@@ -33,12 +31,9 @@ bool GraphVariableList::deleteVariableByIndex(const class NodeEditorState* edito
 	{
 		GraphPropertyPtr variable= m_array[elementIndex];
 
-		if (m_ownerGraph->OnPropertyDeleted)
-			m_ownerGraph->OnPropertyDeleted(variable->getId());
+		removeProperty(variable);
 
-		m_array.erase(m_array.begin() + elementIndex);
-
-		return true;
+		return m_ownerGraph->deletePropertyById(variable->getId());
 	}
 
 	return false;

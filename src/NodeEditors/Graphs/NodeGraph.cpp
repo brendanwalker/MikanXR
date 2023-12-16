@@ -5,6 +5,7 @@
 #include "Nodes/EventNode.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
+#include "Properties/GraphArrayProperty.h"
 #include "Properties/GraphAssetListProperty.h"
 #include "NodeEditorState.h"
 
@@ -37,10 +38,26 @@ bool NodeGraph::deletePropertyById(t_graph_property_id id)
 	if (it != m_properties.end())
 	{
 		t_graph_property_id id = it->first;
+		GraphPropertyPtr property = it->second;
 
+		// Signal any listeners that this property is getting deleted first
 		if (OnPropertyDeleted)
 			OnPropertyDeleted(id);
 
+		// If this property's parent is a container, remove this property from it
+		// This will signal the OnPropertyModified event on the parent
+		t_graph_property_id parentId= property->getParentId();
+		if (parentId != -1)
+		{
+			auto parentArrayProperty = getTypedPropertyById<GraphArrayProperty>(parentId);
+			if (parentArrayProperty)
+			{
+				parentArrayProperty->removeProperty(property);
+			}
+		}
+
+		// Remove this property from the graph property table
+		// (this should be the last reference to the property)
 		m_properties.erase(it);
 
 		return true;

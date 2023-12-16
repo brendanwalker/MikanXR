@@ -66,7 +66,7 @@ GraphPropertyPtr GraphModelPropertyFactory::createProperty(
 	ModelAssetReferencePtr modelAssetRef= std::make_shared<ModelAssetReference>();
 	GlRenderModelResourcePtr modelResource = std::make_shared<GlRenderModelResource>();
 
-	GraphModelPropertyPtr modelProperty= m_ownerGraph->allocateTypedProperty<GraphModelProperty>(name);
+	GraphModelPropertyPtr modelProperty= m_ownerGraph->addTypedProperty<GraphModelProperty>(name);
 	modelProperty->setModelAssetReference(modelAssetRef);
 	modelProperty->setModelResource(modelResource);
 

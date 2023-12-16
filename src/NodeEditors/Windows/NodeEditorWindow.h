@@ -9,6 +9,7 @@
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
 #include "RendererFwd.h"
+#include "Graphs/GraphObjectSelection.h"
 #include "Properties/GraphArrayProperty.h"
 
 #include "imgui.h"
@@ -17,22 +18,6 @@
 #include <chrono>
 #include <memory>
 #include <vector>
-
-typedef int t_selected_item_type;
-
-namespace SelectedItemType
-{
-	const t_selected_item_type NONE = -1;
-
-	// Graph Elements
-	const t_selected_item_type NODES= 0;
-	const t_selected_item_type NODE= 1;
-	const t_selected_item_type LINK= 2;
-
-	// Assets
-	const t_selected_item_type ASSET= 3;
-	const t_selected_item_type VARIABLE= 4;
-};
 
 //-- definitions -----
 class NodeEditorWindow : public IGlWindow
@@ -71,10 +56,6 @@ protected:
 	virtual void pushImGuiStyles();
 	virtual void popImGuiStyles();
 
-	// TODO: convert to an array to support nested variables
-	t_selected_item_type m_SelectedItemType= SelectedItemType::NONE;
-	int m_SelectedItemId= -1;
-
 	virtual void renderMainFrame();
 	virtual void renderContextMenu(const class NodeEditorState& editorState);
 	virtual void handleDragDrop(const class NodeEditorState& editorState);
@@ -110,6 +91,8 @@ protected:
 	NodeEditorState m_editorState;
 	GraphAssetListPropertyPtr m_assetReferencesList;
 	std::vector<GraphVariableListPtr> m_variableLists;
+
+	GraphObjectSelection m_objectSelection;
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;

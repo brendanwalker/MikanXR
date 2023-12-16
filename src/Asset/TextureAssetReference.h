@@ -9,6 +9,7 @@ public:
 
 	virtual std::string getAssetTypeName() const override { return "Texture"; }
 
+	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;
 
 protected:

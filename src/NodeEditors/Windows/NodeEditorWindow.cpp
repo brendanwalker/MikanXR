@@ -274,21 +274,16 @@ void NodeEditorWindow::renderMainFrame()
 	ImGui::EndChild();
 
 	// Node selection
-	if (ImNodes::NumSelectedNodes() == 1 && ImNodes::NumSelectedLinks() == 0)
+	if (ImNodes::NumSelectedNodes() > 0)
 	{
-		int ids[1]= {-1};
-		ImNodes::GetSelectedNodes(ids);
+		GraphObjectSelection selection(GraphObjectIdType::NODE, ImNodes::NumSelectedNodes());
 
-		m_SelectedItemType = SelectedItemType::NODE;
-		m_SelectedItemId = ids[0];
+		ImNodes::GetSelectedNodes(selection.getRawObjectArray());
+		m_objectSelection= selection;
 	}
-	else if (ImNodes::NumSelectedNodes() > 1 || ImNodes::NumSelectedLinks() > 0)
+	else
 	{
-		m_SelectedItemType = SelectedItemType::NODES;
-	}
-	else if (m_SelectedItemType >= SelectedItemType::NODES)
-	{
-		m_SelectedItemType = SelectedItemType::NONE;
+		m_objectSelection.clear();
 	}
 
 	// Start link
@@ -351,8 +346,8 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 			ImNodes::ClearNodeSelection();
 			ImNodes::ClearLinkSelection();
 			ImNodes::SelectNode(id);
-			m_SelectedItemType = SelectedItemType::NODE;
-			m_SelectedItemId = id;
+			m_objectSelection= GraphObjectSelection(GraphObjectIdType::NODE, 1);
+			m_objectSelection.setObjectId(0, id);
 			ImGui::OpenPopup("editor_context_menu_node");
 		}
 		else if (ImNodes::IsLinkHovered(&id))
@@ -360,8 +355,8 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 			ImNodes::ClearNodeSelection();
 			ImNodes::ClearLinkSelection();
 			ImNodes::SelectLink(id);
-			m_SelectedItemType = SelectedItemType::LINK;
-			m_SelectedItemId = id;
+			m_objectSelection = GraphObjectSelection(GraphObjectIdType::LINK, 1);
+			m_objectSelection.setObjectId(0, id);
 			ImGui::OpenPopup("editor_context_menu_link");
 		}
 		else
@@ -379,16 +374,16 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 	if (ImGui::BeginPopup("editor_context_menu_node"))
 	{
 		NodePtr node;
-		if (m_SelectedItemType == SelectedItemType::NODE)
+		if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
 		{
-			node= m_nodeGraph->getNodeById(m_SelectedItemId);
+			node= m_nodeGraph->getNodeById(m_objectSelection.getObjectId(0));
 		}
 
 		if (node && node->editorCanDelete())
 		{
 			if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 			{
-				m_nodeGraph->deleteNodeById(m_SelectedItemId);
+				m_nodeGraph->deleteNodeById(m_objectSelection.getObjectId(0));
 			}
 		}
 		else
@@ -399,10 +394,10 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 	}
 	else if (ImGui::BeginPopup("editor_context_menu_link"))
 	{
-		if (m_SelectedItemType == SelectedItemType::LINK &&
+		if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK &&
 			ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 		{
-			m_nodeGraph->deleteLinkById(m_SelectedItemId);
+			m_nodeGraph->deleteLinkById(m_objectSelection.getObjectId(0));
 		}
 		ImGui::EndPopup();
 	}
@@ -525,8 +520,8 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 			const std::string variableName = variableTypeName + std::to_string(variableArray.size() + 1);
 			GraphPropertyPtr newVariablePtr= variableList->addNewVariable(&m_editorState, variableName);
 
-			m_SelectedItemType = SelectedItemType::VARIABLE;
-			m_SelectedItemId = newVariablePtr->getId();
+			m_objectSelection= GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
+			m_objectSelection.setObjectId(0, newVariablePtr->getId());
 		}
 		ImGui::SameLine();
 		ImGui::SetCursorPosX(xPos);
@@ -558,21 +553,20 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 					StringUtils::stringify(
 						"\t\t", variable->getName(), "##", variableTypeName, std::to_string(i));
 
-				bool isSelected = m_SelectedItemType == SelectedItemType::VARIABLE;
-				isSelected = isSelected && (m_SelectedItemId == variable->getId());
+				bool isSelected = m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE;
+				isSelected = isSelected && (m_objectSelection.getObjectId(0) == variable->getId());
 				if (ImGui::Selectable(varEntryName.c_str(), &isSelected))
 				{
 					ImNodes::ClearLinkSelection();
 					ImNodes::ClearNodeSelection();
 					if (isSelected)
 					{
-						m_SelectedItemType = SelectedItemType::VARIABLE;
-						m_SelectedItemId = variable->getId();
+						m_objectSelection = GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
+						m_objectSelection.setObjectId(0, variable->getId());
 					}
 					else
 					{
-						m_SelectedItemType = SelectedItemType::NONE;
-						m_SelectedItemId = -1;
+						m_objectSelection.clear();
 					}
 				}
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
@@ -592,8 +586,8 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 				{
 					ImNodes::ClearLinkSelection();
 					ImNodes::ClearNodeSelection();
-					m_SelectedItemType = SelectedItemType::VARIABLE;
-					m_SelectedItemId = variable->getId();
+					m_objectSelection = GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
+					m_objectSelection.setObjectId(0, variable->getId());
 
 					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 					{
@@ -671,14 +665,14 @@ void NodeEditorWindow::renderAssetsPanel()
 				ImGui::BeginChild("AssetBrowser");
 
 				ImGui::Dummy(ImVec2(1, 10));
-				for (int i = 0; i < assetRefArray.size(); i++)
+				for (int assetIndex = 0; assetIndex < assetRefArray.size(); assetIndex++)
 				{
-					AssetReferencePtr assetRefPtr= assetRefArray[i];
+					AssetReferencePtr assetRefPtr= assetRefArray[assetIndex];
 
 					ImGui::Dummy(ImVec2(10, 140));
 					ImGui::SameLine();
 					ImGui::BeginGroup();
-					std::string idStr = "##asset" + std::to_string(i);
+					std::string idStr = "##asset" + std::to_string(assetIndex);
 					ImGui::Button(idStr.c_str(), ImVec2(120, 140));
 
 					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
@@ -699,8 +693,9 @@ void NodeEditorWindow::renderAssetsPanel()
 					{
 						ImNodes::ClearLinkSelection();
 						ImNodes::ClearNodeSelection();
-						m_SelectedItemType = SelectedItemType::ASSET;
-						m_SelectedItemId = i;
+
+						m_objectSelection = GraphObjectSelection(GraphObjectIdType::ASSET, assetIndex);
+						m_objectSelection.setObjectId(0, assetIndex);
 
 						if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 						{
@@ -757,19 +752,28 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 	ImGui::SameLine();
 	ImGui::BeginChild("Right Panel", ImVec2(344, ImGui::GetContentRegionAvail().y));
 
-	if (m_SelectedItemType == SelectedItemType::NODE)
+	if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
 	{
-		NodePtr node = m_nodeGraph->getNodeById(m_SelectedItemId);
+		NodePtr node = m_nodeGraph->getNodeById(m_objectSelection.getObjectId(0));
 
 		if (node)
 		{
 			node->editorRenderPropertySheet(m_editorState);
 		}
 	}
-	else if (m_SelectedItemType == SelectedItemType::VARIABLE)
+	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET)
 	{
-		//TODO: m_SelectedItemId needs to be an array to support variables in arrays
-		GraphPropertyPtr property = m_nodeGraph->getPropertyById(m_SelectedItemId);
+		const int assetIndex= m_objectSelection.getObjectId(0);
+		const std::vector<AssetReferencePtr>& assetArray= m_assetReferencesList->getAssetList();
+
+		if (assetIndex >= 0 && assetIndex < (int)assetArray.size())
+		{
+			assetArray[assetIndex]->editorRenderPropertySheet(m_editorState);
+		}
+	}
+	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE)
+	{
+		GraphPropertyPtr property = m_nodeGraph->getPropertyById(m_objectSelection.getObjectId(0));
 
 		if (property)
 		{
@@ -782,25 +786,51 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 
 void NodeEditorWindow::deleteSelectedItem()
 {
-	if (m_SelectedItemType >= SelectedItemType::NODES)
+	if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
 	{
-		int numNodes = ImNodes::NumSelectedNodes();
-		int* ids = new int[numNodes];
-		ImNodes::GetSelectedNodes(ids);
-		for (int i = 0; i < numNodes; i++)
+		for (int i = 0; i < m_objectSelection.getObjectCount(); i++)
 		{
-			const t_node_id nodeId= ids[i];
+			const t_node_id nodeId= m_objectSelection.getObjectId(i);
 			NodePtr node= m_nodeGraph->getNodeById(nodeId);
 
 			if (node && node->editorCanDelete())
 			{
-				m_nodeGraph->deleteNodeById(ids[i]);
+				m_nodeGraph->deleteNodeById(nodeId);
 			}
 		}
-		delete[] ids;
 
-		m_SelectedItemType = SelectedItemType::NONE;
-		m_SelectedItemId = -1;
+		m_objectSelection.clear();
+	}
+	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK)
+	{
+		for (int i = 0; i < m_objectSelection.getObjectCount(); i++)
+		{
+			const t_node_link_id linkId = m_objectSelection.getObjectId(i);
+
+			m_nodeGraph->deleteLinkById(linkId);
+		}
+
+		m_objectSelection.clear();
+	}
+	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE)
+	{
+		for (int i = 0; i < m_objectSelection.getObjectCount(); i++)
+		{
+			const t_graph_property_id propertyId = m_objectSelection.getObjectId(i);
+
+			m_nodeGraph->deletePropertyById(propertyId);
+		}
+
+		m_objectSelection.clear();
+	}
+	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET && 
+			 m_objectSelection.getObjectCount() > 0)
+	{
+		std::vector<AssetReferencePtr>& assetList= m_assetReferencesList->getAssetListMutable();
+		const int assetIndex = m_objectSelection.getObjectId(0);
+
+		assetList.erase(assetList.begin() + assetIndex);
+		m_objectSelection.clear();
 	}
 }
 
@@ -870,8 +900,8 @@ void NodeEditorWindow::onNodeCreated(t_node_id id)
 	}
 
 	// Make the newly created node selected
-	m_SelectedItemType = SelectedItemType::NODE;
-	m_SelectedItemId = id;
+	m_objectSelection = GraphObjectSelection(GraphObjectIdType::NODE, 1);
+	m_objectSelection.setObjectId(0, id);
 
 	ImNodes::ClearLinkSelection();
 	ImNodes::ClearNodeSelection();
@@ -881,21 +911,19 @@ void NodeEditorWindow::onNodeCreated(t_node_id id)
 
 void NodeEditorWindow::onNodeDeleted(t_node_id id)
 {
-	if (m_SelectedItemType == SelectedItemType::NODE && m_SelectedItemId == id)
+	if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE &&
+		m_objectSelection.removeObjectId(id))
 	{
 		ImNodes::ClearNodeSelection();
-		m_SelectedItemType = SelectedItemType::NONE;
-		m_SelectedItemId = -1;
 	}
 }
 
 void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
 {
-	if (m_SelectedItemType == SelectedItemType::LINK && m_SelectedItemId == id)
+	if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK &&
+		m_objectSelection.removeObjectId(id))
 	{
 		ImNodes::ClearLinkSelection();
-		m_SelectedItemType = SelectedItemType::NONE;
-		m_SelectedItemId = -1;
 	}
 }
 

@@ -32,5 +32,5 @@ GraphPropertyPtr GraphPropertyFactory::createProperty(
 	const NodeEditorState* editorState,
 	const std::string& name) const
 {
-	return m_ownerGraph->allocateTypedProperty<GraphProperty>(name);
+	return m_ownerGraph->addTypedProperty<GraphProperty>(name);
 }

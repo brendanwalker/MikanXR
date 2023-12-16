@@ -13,6 +13,9 @@ public:
 	inline const std::vector<GraphPropertyPtr>& getArray() { return m_array; }
 	inline std::vector<GraphPropertyPtr>& getArrayMutable() { return m_array; }
 
+	bool addProperty(GraphPropertyPtr property);
+	bool removeProperty(GraphPropertyPtr property);
+
 protected:
 	std::vector<GraphPropertyPtr> m_array;
 };

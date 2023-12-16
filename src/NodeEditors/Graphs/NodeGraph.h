@@ -41,23 +41,15 @@ public:
 	}
 
 	template <class t_property_type>
-	std::shared_ptr<t_property_type> allocateTypedProperty(const std::string& name)
+	std::shared_ptr<t_property_type> addTypedProperty(const std::string& name)
 	{
 		auto property = std::make_shared<t_property_type>(shared_from_this());
 		property->setName(name);
 
+		m_properties.insert({property->getId(), property});
+
 		if (OnPropertyCreated)
 			OnPropertyCreated(property->getId());
-
-		return property;
-	}
-
-	template <class t_property_type>
-	std::shared_ptr<t_property_type> addTypedProperty(const std::string& name)
-	{
-		std::shared_ptr<t_property_type> property= allocateTypedProperty<t_property_type>(name);
-
-		m_properties.insert({property->getId(), property});
 
 		return property;
 	}

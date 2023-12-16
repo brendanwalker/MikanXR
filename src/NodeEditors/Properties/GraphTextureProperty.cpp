@@ -63,7 +63,7 @@ GraphPropertyPtr GraphTexturePropertyFactory::createProperty(
 	TextureAssetReferencePtr textureAssetRef = std::make_shared<TextureAssetReference>();
 	GlTexturePtr textureResource = std::make_shared<GlTexture>();
 
-	auto textureProperty = m_ownerGraph->allocateTypedProperty<GraphTextureProperty>(name);
+	auto textureProperty = m_ownerGraph->addTypedProperty<GraphTextureProperty>(name);
 	textureProperty->setTextureAssetReference(textureAssetRef);
 	textureProperty->setTextureResource(textureResource);
 
