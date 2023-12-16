@@ -19,10 +19,8 @@ public:
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 
 protected:
-	void updateMaterialPinValue();
-
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
-	virtual std::string editorGetTitle() const override { return "Texture"; }
+	virtual std::string editorGetTitle() const override { return "Material"; }
 
 	void onGraphPropertyChanged(t_graph_property_id id);
 

@@ -20,6 +20,7 @@ protected:
 	virtual std::string editorGetTitle() const override;
 
 	void setMaterialPin(MaterialPinPtr inPin);
+	void setModelPin(ModelPinPtr inPin);
 	void onMaterialLinkConnected(t_node_link_id id);
 	void onMaterialLinkDisconnected(t_node_link_id id);
 	void onModelLinkConnected(t_node_link_id id);
@@ -33,6 +34,7 @@ protected:
 	GlRenderModelResourcePtr m_model;
 	GlMaterialPtr m_material;
 	MaterialPinPtr m_materialPin;
+	ModelPinPtr m_modelPin;
 
 	friend class DrawTriMeshNodeFactory;
 };

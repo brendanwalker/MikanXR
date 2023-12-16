@@ -3,6 +3,7 @@
 #include "GlVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
 #include "ModelAssetReference.h"
+#include "Nodes/ModelNode.h"
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
@@ -20,14 +21,13 @@ GraphModelProperty::GraphModelProperty(NodeGraphPtr ownerGraph)
 
 void GraphModelProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
 {
-	//TODO
-	//auto modelNode =
-	//	std::static_pointer_cast<ModelNode>(
-	//		ModelNodeFactory(getOwnerGraph()).createNode(&editorState));
+	auto modelNode =
+		std::static_pointer_cast<ModelNode>(
+			ModelNodeFactory(getOwnerGraph()).createNode(&editorState));
 
-	//// Set this as the source model property for the new node
-	//auto self = std::static_pointer_cast<GraphModelProperty>(shared_from_this());
-	//modelNode->setTextureSource(self);
+	// Set this as the source model property for the new node
+	auto self = std::static_pointer_cast<GraphModelProperty>(shared_from_this());
+	modelNode->setModelSource(self);
 }
 
 void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)

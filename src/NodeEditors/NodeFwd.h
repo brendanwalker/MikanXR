@@ -45,6 +45,10 @@ class MaterialNode;
 using MaterialNodePtr = std::shared_ptr<MaterialNode>;
 using MaterialNodeConstPtr = std::shared_ptr<const MaterialNode>;
 
+class ModelNode;
+using ModelNodePtr = std::shared_ptr<ModelNode>;
+using ModelNodeConstPtr = std::shared_ptr<const ModelNode>;
+
 class TextureNode;
 using TextureNodePtr = std::shared_ptr<TextureNode>;
 using TextureNodeConstPtr = std::shared_ptr<const TextureNode>;
@@ -93,6 +97,10 @@ using Int4PinConstPtr = std::shared_ptr<const Int4Pin>;
 class MaterialPin;
 using MaterialPinPtr = std::shared_ptr<MaterialPin>;
 using MaterialPinConstPtr = std::shared_ptr<const MaterialPin>;
+
+class ModelPin;
+using ModelPinPtr = std::shared_ptr<ModelPin>;
+using ModelPinConstPtr = std::shared_ptr<const ModelPin>;
 
 class NodePin;
 using NodePinPtr = std::shared_ptr<NodePin>;

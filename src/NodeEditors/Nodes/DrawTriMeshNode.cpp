@@ -14,6 +14,7 @@
 #include "Pins/FlowPin.h"
 #include "Pins/IntPin.h"
 #include "Pins/MaterialPin.h"
+#include "Pins/ModelPin.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
 #include "Properties/GraphVariableList.h"
@@ -44,6 +45,13 @@ DrawTriMeshNode::~DrawTriMeshNode()
 		m_materialPin->OnLinkConnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkConnected);
 		m_materialPin->OnLinkDisconnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkDisconnected);
 		m_materialPin = nullptr;
+	}
+
+	if (m_modelPin)
+	{
+		m_modelPin->OnLinkConnected -= MakeDelegate(this, &DrawTriMeshNode::onModelLinkConnected);
+		m_modelPin->OnLinkDisconnected -= MakeDelegate(this, &DrawTriMeshNode::onModelLinkDisconnected);
+		m_modelPin = nullptr;
 	}
 }
 
@@ -243,6 +251,13 @@ void DrawTriMeshNode::setMaterialPin(MaterialPinPtr inPin)
 	m_materialPin = inPin;
 }
 
+void DrawTriMeshNode::setModelPin(ModelPinPtr inPin)
+{
+	inPin->OnLinkConnected += MakeDelegate(this, &DrawTriMeshNode::onModelLinkConnected);
+	inPin->OnLinkDisconnected += MakeDelegate(this, &DrawTriMeshNode::onModelLinkDisconnected);
+	m_modelPin = inPin;
+}
+
 void DrawTriMeshNode::onMaterialLinkConnected(t_node_link_id id)
 {
 	if (m_materialPin)
@@ -259,7 +274,11 @@ void DrawTriMeshNode::onMaterialLinkDisconnected(t_node_link_id id)
 
 void DrawTriMeshNode::onModelLinkConnected(t_node_link_id id)
 {
-
+	if (m_modelPin)
+	{
+		m_modelPin->copyValueFromSourcePin();
+		setModel(m_modelPin->getValue());
+	}
 }
 
 void DrawTriMeshNode::onModelLinkDisconnected(t_node_link_id id)
@@ -275,7 +294,8 @@ void DrawTriMeshNode::rebuildInputPins()
 		NodePinPtr pin = *it;
 		
 		if (!std::dynamic_pointer_cast<FlowPin>(pin) &&
-			!std::dynamic_pointer_cast<MaterialPin>(pin))
+			!std::dynamic_pointer_cast<MaterialPin>(pin) &&
+			!std::dynamic_pointer_cast<ModelPin>(pin))
 		{
 			getOwnerGraph()->deletePinById(pin->getId());
 		}
@@ -338,18 +358,25 @@ NodePtr DrawTriMeshNodeFactory::createNode(const NodeEditorState* editorState) c
 	// Create the node and default pins
 	// The rest of the input pins can't be connected until we have a material assigned
 	ProgramNodePtr node = std::make_shared<DrawTriMeshNode>();
+
+	// Create default input pins
 	FlowPinPtr flowInPin = node->addPin<FlowPin>("flowIn", eNodePinDirection::INPUT);
-	FlowPinPtr flowOutPin = node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
 	MaterialPinPtr materialInPin = node->addPin<MaterialPin>("material", eNodePinDirection::INPUT);
+	ModelPinPtr modelInPin = node->addPin<ModelPin>("model", eNodePinDirection::INPUT);
+
+	// Create default output pins
+	FlowPinPtr flowOutPin = node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
 
 	// Listen for Material and Model input pin events
 	node->setMaterialPin(materialInPin);
+	node->setModelPin(modelInPin);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the default pins to a compatible target pin
 	autoConnectInputPin(editorState, flowInPin);
 	autoConnectOutputPin(editorState, flowOutPin);
 	autoConnectInputPin(editorState, materialInPin);
+	autoConnectInputPin(editorState, modelInPin);
 
 	return node;
 }
