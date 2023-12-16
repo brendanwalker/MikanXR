@@ -14,6 +14,7 @@
 // Nodes
 #include "Nodes/DrawTriMeshNode.h"
 #include "Nodes/EventNode.h"
+#include "Nodes/MaterialNode.h"
 #include "Nodes/MousePosNode.h"
 #include "Nodes/TextureNode.h"
 #include "Nodes/TimeNode.h"
@@ -30,6 +31,7 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	m_nodeFactories.push_back(NodeFactory::create<DrawTriMeshNodeFactory>(ownerGraph));
 	m_nodeFactories.push_back(NodeFactory::create<EventNodeFactory>(ownerGraph));
 	m_nodeFactories.push_back(NodeFactory::create<MousePosNodeFactory>(ownerGraph));
+	m_nodeFactories.push_back(NodeFactory::create<MaterialNodeFactory>(ownerGraph));
 	m_nodeFactories.push_back(NodeFactory::create<TextureNodeFactory>(ownerGraph));
 	m_nodeFactories.push_back(NodeFactory::create<TimeNodeFactory>(ownerGraph));
 

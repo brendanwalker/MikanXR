@@ -2,6 +2,7 @@
 
 #include "NodeFwd.h"
 #include "NodePinConstants.h"
+#include "MulticastDelegate.h"
 
 #include "imnodes.h"
 
@@ -24,7 +25,9 @@ public:
 	inline void setDirection(eNodePinDirection direction) { m_direction= direction; }
 
 	virtual bool connectLink(NodeLinkPtr linkPtr);
+	MulticastDelegate<void(t_node_link_id id)> OnLinkConnected;
 	virtual bool disconnectLink(NodeLinkPtr linkPtr);
+	MulticastDelegate<void(t_node_link_id id)> OnLinkDisconnected;
 
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;

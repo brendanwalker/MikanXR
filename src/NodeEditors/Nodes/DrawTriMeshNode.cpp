@@ -13,6 +13,7 @@
 #include "Pins/FloatPin.h"
 #include "Pins/FlowPin.h"
 #include "Pins/IntPin.h"
+#include "Pins/MaterialPin.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
 #include "Properties/GraphVariableList.h"
@@ -34,19 +35,15 @@ DrawTriMeshNode::DrawTriMeshNode()
 DrawTriMeshNode::DrawTriMeshNode(NodeGraphPtr ownerGraph)
 	: Node(ownerGraph)
 {
-	if (ownerGraph)
-	{
-		m_modelArrayProperty = ownerGraph->getTypedPropertyByName<GraphVariableList>("models");
-		ownerGraph->OnPropertyModifed+= MakeDelegate(this, &DrawTriMeshNode::onGraphPropertyChanged);
-	}
 }
 
 DrawTriMeshNode::~DrawTriMeshNode()
 {
-	m_modelArrayProperty= nullptr;
-	if (m_ownerGraph)
+	if (m_materialPin)
 	{
-		m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &DrawTriMeshNode::onGraphPropertyChanged);
+		m_materialPin->OnLinkConnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkConnected);
+		m_materialPin->OnLinkDisconnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkDisconnected);
+		m_materialPin = nullptr;
 	}
 }
 
@@ -234,34 +231,40 @@ void DrawTriMeshNode::editorRenderPropertySheet(const NodeEditorState& editorSta
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
 
 		const std::string& modelName = m_model ? m_model->getName() : "<INVALID>";
-		if (ImGui::BeginCombo("##modelSelection", modelName.c_str()))
-		{
-			if (m_modelArrayProperty)
-			{
-				int index = 0;
-				for (GraphPropertyPtr property : m_modelArrayProperty->getArray())
-				{
-					auto modelProperty= std::static_pointer_cast<GraphModelProperty>(property);
-					GlRenderModelResourcePtr model= modelProperty->getModelResource();
-
-					const bool is_selected = (m_model == model);
-					if (ImGui::Selectable(model->getName().c_str(), is_selected))
-					{
-						setModel(model);
-					}
-
-					if (is_selected)
-					{
-						ImGui::SetItemDefaultFocus();
-					}
-
-					index++;
-				}
-			}
-			ImGui::EndCombo();
-		}
+		ImGui::Text(modelName.c_str());
 		ImGui::PopStyleColor();
 	}
+}
+
+void DrawTriMeshNode::setMaterialPin(MaterialPinPtr inPin)
+{
+	inPin->OnLinkConnected += MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkConnected);
+	inPin->OnLinkDisconnected += MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkDisconnected);
+	m_materialPin = inPin;
+}
+
+void DrawTriMeshNode::onMaterialLinkConnected(t_node_link_id id)
+{
+	if (m_materialPin)
+	{
+		m_materialPin->copyValueFromSourcePin();
+		setMaterial(m_materialPin->getValue());
+	}
+}
+
+void DrawTriMeshNode::onMaterialLinkDisconnected(t_node_link_id id)
+{
+	setMaterial(GlMaterialPtr());
+}
+
+void DrawTriMeshNode::onModelLinkConnected(t_node_link_id id)
+{
+
+}
+
+void DrawTriMeshNode::onModelLinkDisconnected(t_node_link_id id)
+{
+	setModel(GlRenderModelResourcePtr());
 }
 
 void DrawTriMeshNode::rebuildInputPins()
@@ -271,7 +274,8 @@ void DrawTriMeshNode::rebuildInputPins()
 	{
 		NodePinPtr pin = *it;
 		
-		if (!std::dynamic_pointer_cast<FlowPin>(pin))
+		if (!std::dynamic_pointer_cast<FlowPin>(pin) &&
+			!std::dynamic_pointer_cast<MaterialPin>(pin))
 		{
 			getOwnerGraph()->deletePinById(pin->getId());
 		}
@@ -328,27 +332,6 @@ void DrawTriMeshNode::rebuildInputPins()
 	}
 }
 
-void DrawTriMeshNode::onGraphPropertyChanged(t_graph_property_id id)
-{
-	if (m_modelArrayProperty && m_modelArrayProperty->getId() == id)
-	{
-		GlRenderModelResourcePtr modelPtr= m_model;
-		auto modelResourceArray= m_modelArrayProperty->getArray();
-
-		auto it= std::find_if(
-			modelResourceArray.begin(),
-			modelResourceArray.end(),
-			[modelPtr](const GraphPropertyPtr& prop) {
-				auto modelProp = std::static_pointer_cast<GraphModelProperty>(prop);
-				return modelProp->getModelResource() == modelPtr;
-			});
-		if (it == modelResourceArray.end())
-		{
-			setModel(GlRenderModelResourcePtr());
-		}
-	}
-}
-
 // -- ProgramNode Factory -----
 NodePtr DrawTriMeshNodeFactory::createNode(const NodeEditorState* editorState) const
 {
@@ -357,11 +340,16 @@ NodePtr DrawTriMeshNodeFactory::createNode(const NodeEditorState* editorState) c
 	ProgramNodePtr node = std::make_shared<DrawTriMeshNode>();
 	FlowPinPtr flowInPin = node->addPin<FlowPin>("flowIn", eNodePinDirection::INPUT);
 	FlowPinPtr flowOutPin = node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
+	MaterialPinPtr materialInPin = node->addPin<MaterialPin>("material", eNodePinDirection::INPUT);
+
+	// Listen for Material and Model input pin events
+	node->setMaterialPin(materialInPin);
 
 	// If spawned in an editor context from a dangling pin link
-	// auto-connect the flow pins to a compatible target pin
+	// auto-connect the default pins to a compatible target pin
 	autoConnectInputPin(editorState, flowInPin);
 	autoConnectOutputPin(editorState, flowOutPin);
+	autoConnectInputPin(editorState, materialInPin);
 
 	return node;
 }

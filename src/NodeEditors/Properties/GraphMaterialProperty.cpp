@@ -3,6 +3,7 @@
 #include "GlVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
 #include "MaterialAssetReference.h"
+#include "Nodes/MaterialNode.h"
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
@@ -18,14 +19,13 @@ GraphMaterialProperty::GraphMaterialProperty(NodeGraphPtr ownerGraph)
 
 void GraphMaterialProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
 {
-	//TODO
-	//auto materialNode =
-	//	std::static_pointer_cast<MaterialNode>(
-	//		MaterialNodeFactory(getOwnerGraph()).createNode(&editorState));
+	auto materialNode =
+		std::static_pointer_cast<MaterialNode>(
+			MaterialNodeFactory(getOwnerGraph()).createNode(&editorState));
 
-	//// Set this as the source model property for the new node
-	//auto self = std::static_pointer_cast<GraphMaterialProperty>(shared_from_this());
-	//materialNode->setMaterialSource(self);
+	// Set this as the source model property for the new node
+	auto self = std::static_pointer_cast<GraphMaterialProperty>(shared_from_this());
+	materialNode->setMaterialSource(self);
 }
 
 void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)

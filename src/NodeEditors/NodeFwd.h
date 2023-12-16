@@ -41,6 +41,10 @@ class DrawTriMeshNode;
 using ProgramNodePtr = std::shared_ptr<DrawTriMeshNode>;
 using ProgramNodeConstPtr = std::shared_ptr<const DrawTriMeshNode>;
 
+class MaterialNode;
+using MaterialNodePtr = std::shared_ptr<MaterialNode>;
+using MaterialNodeConstPtr = std::shared_ptr<const MaterialNode>;
+
 class TextureNode;
 using TextureNodePtr = std::shared_ptr<TextureNode>;
 using TextureNodeConstPtr = std::shared_ptr<const TextureNode>;
@@ -85,6 +89,10 @@ using Int3PinConstPtr = std::shared_ptr<const Int3Pin>;
 class Int4Pin;
 using Int4PinPtr = std::shared_ptr<Int4Pin>;
 using Int4PinConstPtr = std::shared_ptr<const Int4Pin>;
+
+class MaterialPin;
+using MaterialPinPtr = std::shared_ptr<MaterialPin>;
+using MaterialPinConstPtr = std::shared_ptr<const MaterialPin>;
 
 class NodePin;
 using NodePinPtr = std::shared_ptr<NodePin>;

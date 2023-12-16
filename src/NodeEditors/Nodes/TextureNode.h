@@ -11,7 +11,7 @@ public:
 	virtual ~TextureNode();
 
 	inline GraphTexturePropertyPtr getTextureSource() const { return m_sourceProperty; }
-	inline void setTextureSource(GraphTexturePropertyPtr inTextureProperty) { m_sourceProperty= inTextureProperty; }
+	void setTextureSource(GraphTexturePropertyPtr inTextureProperty);
 
 	GlTexturePtr getTextureResource() const;
 

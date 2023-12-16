@@ -72,8 +72,24 @@ NodePinPtr NodePin::getConnectedSourcePin() const
 
 bool NodePin::connectLink(NodeLinkPtr linkPtr)
 {
-	// TODO: How should this pin handle multiple connections?
+	// If this is an input pin, only allow one connection
+	if (m_direction == eNodePinDirection::INPUT)
+	{
+		// Delete all existing links
+		while (m_connectedLinks.size() > 0)
+		{
+			t_node_link_id existingLinkId= m_connectedLinks[0]->getId();
+
+			getOwnerNode()->getOwnerGraph()->deleteLinkById(existingLinkId);
+		}
+	}
+
+	// Now we can add the new link
 	m_connectedLinks.push_back(linkPtr);
+
+	// Let the node know that a link was connected to this pin
+	if (OnLinkConnected)
+		OnLinkConnected(linkPtr->getId());
 
 	return true;
 }
@@ -83,6 +99,11 @@ bool NodePin::disconnectLink(NodeLinkPtr linkPtr)
 	auto it= std::find(m_connectedLinks.begin(), m_connectedLinks.end(), linkPtr);
 	if (it != m_connectedLinks.end())
 	{
+		// Let the node know that a link was disconnected from this pin
+		if (OnLinkDisconnected)
+			OnLinkDisconnected(linkPtr->getId());
+
+		// Now we can remove the new link
 		m_connectedLinks.erase(it);
 		return true;
 	}

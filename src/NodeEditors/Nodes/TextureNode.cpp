@@ -38,17 +38,23 @@ GlTexturePtr TextureNode::getTextureResource() const
 	return m_sourceProperty ? m_sourceProperty->getTextureResource() : GlTexturePtr();
 }
 
-bool TextureNode::evaluateNode(NodeEvaluator& evaluator)
-{
-	TexturePinPtr outPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
+void TextureNode::setTextureSource(GraphTexturePropertyPtr inTextureProperty) 
+{ 
+	m_sourceProperty= inTextureProperty; 
+
+	TexturePinPtr outPin = getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
 		outPin->setValue(getTextureResource());
 	}
+}
+
+bool TextureNode::evaluateNode(NodeEvaluator& evaluator)
+{
+	// Only update output in in setTextureSource
 
 	return true;
 }
-
 
 void TextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
 {

@@ -10,9 +10,6 @@ public:
 	DrawTriMeshNode(NodeGraphPtr parentGraph);
 	virtual ~DrawTriMeshNode();
 
-	void setModel(GlRenderModelResourcePtr inModel);
-	void setMaterial(GlMaterialPtr inMaterial);
-
 	virtual bool evaluateNode(NodeEvaluator& evaluator);
 	virtual FlowPinPtr getOutputFlowPin() const;
 	virtual bool hasAnyFlowPins() const override { return true; }
@@ -21,14 +18,23 @@ public:
 
 protected:
 	virtual std::string editorGetTitle() const override;
-	void onGraphPropertyChanged(t_graph_property_id id);
+
+	void setMaterialPin(MaterialPinPtr inPin);
+	void onMaterialLinkConnected(t_node_link_id id);
+	void onMaterialLinkDisconnected(t_node_link_id id);
+	void onModelLinkConnected(t_node_link_id id);
+	void onModelLinkDisconnected(t_node_link_id id);
 	void rebuildInputPins();
+
+	void setModel(GlRenderModelResourcePtr inModel);
+	void setMaterial(GlMaterialPtr inMaterial);
 
 protected:
 	GlRenderModelResourcePtr m_model;
 	GlMaterialPtr m_material;
+	MaterialPinPtr m_materialPin;
 
-	GraphVariableListPtr m_modelArrayProperty;
+	friend class DrawTriMeshNodeFactory;
 };
 
 class DrawTriMeshNodeFactory : public NodeFactory

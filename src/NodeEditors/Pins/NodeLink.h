@@ -8,7 +8,7 @@ public:
 	NodeLink();
 	NodeLink(NodeGraphPtr m_ownerGraph);
 
-	inline int getId() const { return m_id; }
+	inline t_node_link_id getId() const { return m_id; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
 	inline NodePinPtr getStartPin() const { return m_startPin; }
 	inline NodePinPtr getEndPin() const { return m_endPin; }
@@ -19,7 +19,7 @@ public:
 	virtual void editorRender(const NodeEditorState& editorState);
 
 protected:
-	int m_id;
+	t_node_link_id m_id;
 	NodeGraphPtr m_ownerGraph;
 	NodePinPtr m_startPin;
 	NodePinPtr m_endPin;
