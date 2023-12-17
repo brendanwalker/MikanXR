@@ -8,6 +8,31 @@
 #include "imgui.h"
 #include "imnodes.h"
 
+// -- NodeConfig -----
+configuru::Config NodeConfig::writeToJSON()
+{
+	configuru::Config pt= CommonConfig::writeToJSON();
+
+	pt["class_name"]= className;
+	pt["id"]= id;
+	writeStdVector<t_node_pin_id>(pt, "pins_in", pinIDsIn);
+	writeStdVector<t_node_pin_id>(pt, "pins_out", pinIDsOut);
+	writeStdArray<float, 2>(pt, "pos", pos);
+
+	return pt;
+}
+
+void NodeConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	className= pt.get_or<std::string>("class_name", "Node");
+	id= pt.get_or<t_node_id>("id", -1);
+	readStdVector<t_node_pin_id>(pt, "pins_in", pinIDsIn);
+	readStdVector<t_node_pin_id>(pt, "pins_out", pinIDsOut);
+	readStdArray<float, 2>(pt, "pos", pos);
+}
+
 // -- Node -----
 Node::Node()
 	: m_id(-1)
@@ -21,6 +46,57 @@ Node::Node(NodeGraphPtr ownerGraph)
 	, m_nodePos(glm::vec2(0.f))
 {
 	
+}
+
+bool Node::loadFromConfig(const NodeConfig& config)
+{
+	m_id= config.id;
+	m_nodePos= {config.pos[0], config.pos[1]};
+
+	for (t_node_pin_id pinId : config.pinIDsIn)
+	{
+		NodePinPtr pin = m_ownerGraph->getNodePinById(pinId);
+		if (pin)
+		{
+			m_pinsIn.push_back(pin);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	for (t_node_pin_id pinId : config.pinIDsIn)
+	{
+		NodePinPtr pin = m_ownerGraph->getNodePinById(pinId);
+		if (pin)
+		{
+			m_pinsIn.push_back(pin);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void Node::saveToConfig(NodeConfig& config) const
+{
+	config.className= typeid(*this).name();
+	config.id= m_id;
+	config.pos= {m_nodePos.x, m_nodePos.y};
+
+	for (NodePinPtr pin : m_pinsIn)
+	{
+		config.pinIDsIn.push_back(pin->getId());
+	}
+
+	for (NodePinPtr pin : m_pinsOut)
+	{
+		config.pinIDsOut.push_back(pin->getId());
+	}
 }
 
 bool Node::disconnectPin(NodePinPtr pinPtr)

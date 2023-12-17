@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NodeFwd.h"
+#include "CommonConfig.h"
 #include "Pins/NodePinConstants.h"
 #include "glm/ext/vector_float2.hpp"
 
@@ -16,12 +17,31 @@ struct NodeDimensions
 	float totalNodeWidth= 0.f;
 };
 
+class NodeConfig : public CommonConfig
+{
+public:
+	NodeConfig() : CommonConfig() {}
+	NodeConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	std::string className;
+	t_node_id id;
+	std::vector<t_node_pin_id> pinIDsIn;
+	std::vector<t_node_pin_id> pinIDsOut;
+	std::array<float, 2> pos;
+};
+
 class Node : public std::enable_shared_from_this<Node>
 {
 public:
 	Node();
 	Node(NodeGraphPtr ownerGraph);
 	virtual ~Node() {}
+
+	virtual bool loadFromConfig(const class NodeConfig& config);
+	virtual void saveToConfig(class NodeConfig& config) const;
 
 	inline int getId() const { return m_id; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
@@ -83,7 +103,7 @@ protected:
 	virtual void editorRenderOutputPins(const NodeEditorState& editorState) const;
 
 protected:
-	int m_id;
+	t_node_id m_id;
 	NodeGraphPtr m_ownerGraph;
 	std::vector<NodePinPtr> m_pinsIn;
 	std::vector<NodePinPtr> m_pinsOut;

@@ -97,6 +97,44 @@ public:
 		}
 	}
 
+	template<typename t_value_type, size_t length>
+	static void writeStdArray(
+		configuru::Config& pt,
+		const std::string& arrayName,
+		const std::array<t_value_type, length>& array)
+	{
+		auto configArray = configuru::Config::array();
+
+		for (size_t i= 0; i < length; i++)
+		{
+			configArray.push_back(array[i]);
+		}
+
+		pt[arrayName] = configArray;
+	}
+	template<typename t_value_type, size_t length>
+	static void readStdArray(
+		const configuru::Config& pt,
+		const std::string& arrayName,
+		std::array<t_value_type, length>& array)
+	{
+		const auto& configArray = pt[arrayName].as_array();
+
+		size_t index= 0;
+		for (auto it = configArray.begin(); it != configArray.end(); it++)
+		{
+			if (index < length)
+			{
+				array[index]= it->get<t_value_type>();
+				index++;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
     template<typename t_value_type>
     static void writeStdMap(
         configuru::Config& pt, 
