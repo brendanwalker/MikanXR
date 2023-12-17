@@ -549,6 +549,31 @@ void CommonConfig::readVector3f(
 	}
 }
 
+void CommonConfig::writeVector2f(
+	configuru::Config& pt,
+	const char* vector_name,
+	const MikanVector2f& v)
+{
+	pt[vector_name] = configuru::Config::array({v.x, v.y});
+}
+
+void CommonConfig::readVector2f(
+	const configuru::Config& pt,
+	const char* vector_name,
+	MikanVector2f& outVector)
+{
+	if (pt.has_key(vector_name) && pt[vector_name].is_array())
+	{
+		outVector.x = pt[vector_name][0].as_float();
+		outVector.y = pt[vector_name][1].as_float();
+	}
+	else
+	{
+		outVector.x = 0.f;
+		outVector.y = 0.f;
+	}
+}
+
 void CommonConfig::writeRotator3f(
     configuru::Config& pt,
     const char* rotator_name,

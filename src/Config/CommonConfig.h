@@ -212,12 +212,21 @@ public:
 
 	static void writeVector3f(
 		configuru::Config& pt,
-		const char* rotator_name,
+		const char* vector_name,
 		const MikanVector3f& rotator);
 	static void readVector3f(
 		const configuru::Config& pt,
-		const char* rotator_name,
+		const char* vector_name,
 		MikanVector3f& outVector);
+
+	static void writeVector2f(
+		configuru::Config& pt,
+		const char* vector_name,
+		const MikanVector2f& rotator);
+	static void readVector2f(
+		const configuru::Config& pt,
+		const char* vector_name,
+		MikanVector2f& outVector);
 
 	static void writeRotator3f(
 		configuru::Config& pt,
