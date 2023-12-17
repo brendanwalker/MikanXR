@@ -29,6 +29,10 @@ class Node;
 using NodePtr = std::shared_ptr<Node>;
 using NodeConstPtr = std::shared_ptr<const Node>;
 
+class NodeGraphFactory;
+using NodeGraphFactoryPtr = std::shared_ptr<NodeGraphFactory>;
+using NodeGraphFactoryConstPtr = std::shared_ptr<const NodeGraphFactory>;
+
 class EventNode;
 using EventNodePtr = std::shared_ptr<EventNode>;
 using EventNodeConstPtr = std::shared_ptr<const EventNode>;

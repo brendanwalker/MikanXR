@@ -1,17 +1,62 @@
 #pragma once
 
 #include "AssetFwd.h"
+#include "CommonConfig.h"
 #include "NodeFwd.h"
 #include "MulticastDelegate.h"
 
+#include <filesystem>
 #include <map>
 #include <string>
+
+class NodeGraphFactory
+{
+public:
+	NodeGraphFactory() = default;
+
+	static NodeGraphPtr loadNodeGraph(const std::filesystem::path& path);
+	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);
+
+	template <class t_node_factory_class>
+	static void registerFactory()
+	{
+		auto factory = std::make_shared<t_node_factory_class>();
+		const std::string typeName = typeid(t_node_factory_class).name();
+
+		s_factoryMap.insert({typeName, factory});
+	}
+
+protected:
+	virtual NodeGraphPtr allocateNodeGraph() const;
+
+private:
+	static std::map<std::string, NodeGraphFactoryPtr> s_factoryMap;
+};
+
+class NodeGraphConfig : public CommonConfig
+{
+public:
+	NodeGraphConfig();
+	NodeGraphConfig(const std::string& graphName);
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	inline void setNodeGraphClassName(const std::string& className) { m_className = className; }
+	inline const std::string& getNodeGraphClassName() const { return m_className; }
+
+protected:
+	std::string m_className;
+};
 
 class NodeGraph : public std::enable_shared_from_this<NodeGraph>
 {
 public:
 	NodeGraph();
 	virtual ~NodeGraph() {}
+
+	virtual bool loadFromConfig(const class NodeGraphConfig& config);
+	virtual void saveToConfig(class NodeGraphConfig& config) const;
 
 	inline float getTimeInSeconds() const { return m_timeInSeconds; }
 

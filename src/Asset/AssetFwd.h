@@ -11,6 +11,10 @@ class AssetReferenceFactory;
 using AssetReferenceFactoryPtr = std::shared_ptr<AssetReferenceFactory>;
 using AssetReferenceFactoryConstPtr = std::shared_ptr<const AssetReferenceFactory>;
 
+class NodeGraphAssetReference;
+using NodeGraphAssetReferencePtr = std::shared_ptr<NodeGraphAssetReference>;
+using NodeGraphAssetReferenceConstPtr = std::shared_ptr<const NodeGraphAssetReference>;
+
 class MaterialAssetReference;
 using MaterialAssetReferencePtr = std::shared_ptr<MaterialAssetReference>;
 using MaterialAssetReferenceConstPtr = std::shared_ptr<const MaterialAssetReference>;

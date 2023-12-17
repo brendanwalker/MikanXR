@@ -11,10 +11,97 @@
 
 #include "imnodes.h"
 
+#include <filesystem>
+
+// -- NodeGraphFactory -----
+std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
+
+NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
+{
+	// Load the node graph config from the file path
+	NodeGraphConfig config;
+	if (!config.load(path))
+	{
+		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to load NodeGraph Config: " << path;
+		return NodeGraphPtr();
+	}
+
+	// Find the appropriate factory based on the node class name
+	const std::string& nodeGraphClassName= config.getNodeGraphClassName();
+	auto it= s_factoryMap.find(nodeGraphClassName);
+	if (it == s_factoryMap.end())
+	{
+		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Unknown node graph class name: " << nodeGraphClassName;
+		return NodeGraphPtr();
+	}
+
+	// Allocate the node graph using the factory and config
+	NodeGraphPtr nodeGraph= it->second->allocateNodeGraph();
+	if (!nodeGraph)
+	{
+		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to allocate node graph class: " << nodeGraphClassName;
+		return NodeGraphPtr();
+	}
+
+	// Init node graph from the parse config
+	if (!nodeGraph->loadFromConfig(config))
+	{
+		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to init node graph class: " << nodeGraphClassName;
+		return NodeGraphPtr();
+	}
+
+	return nodeGraph;
+}
+
+void NodeGraphFactory::saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph)
+{
+	NodeGraphConfig config;
+	nodeGraph->saveToConfig(config);
+
+	config.save(path);
+}
+
+NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
+{
+	return std::make_shared<NodeGraph>();
+}
+
+// -- NodeGraphConfig -----
+NodeGraphConfig::NodeGraphConfig() : CommonConfig() {}
+
+NodeGraphConfig::NodeGraphConfig(const std::string& graphName) : CommonConfig(graphName) {}
+
+configuru::Config NodeGraphConfig::writeToJSON()
+{
+	configuru::Config pt = CommonConfig::writeToJSON();
+
+	pt["className"] = m_className;
+
+	return pt;
+}
+
+void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	m_className = pt.get_or<std::string>("className", "NodeGraph");
+}
+
+// -- NodeGraph -----
 NodeGraph::NodeGraph()
 {
 	// Add graph properties
 	addTypedProperty<GraphAssetListProperty>("assetReferences");
+}
+
+bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
+{
+	return true;
+}
+
+void NodeGraph::saveToConfig(NodeGraphConfig& config) const
+{
+	config.setNodeGraphClassName(typeid(*this).name());
 }
 
 void NodeGraph::update(NodeEvaluator& evaluator)

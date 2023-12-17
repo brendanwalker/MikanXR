@@ -19,6 +19,13 @@
 #include "Nodes/TextureNode.h"
 #include "Nodes/TimeNode.h"
 
+// -- CompositorNodeGraphFactory -----
+NodeGraphPtr CompositorNodeGraphFactory::allocateNodeGraph() const
+{
+	return std::make_shared<CompositorNodeGraph>();
+}
+
+// -- CompositorNodeGraph -----
 CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 {
 	NodeGraphPtr ownerGraph= shared_from_this();

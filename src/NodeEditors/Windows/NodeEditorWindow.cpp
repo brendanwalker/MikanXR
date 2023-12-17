@@ -157,20 +157,6 @@ bool NodeEditorWindow::startup()
 
 	if (success)
 	{
-		m_nodeGraph = allocateNodeGraph();
-		if (m_nodeGraph)
-		{
-			onNodeGraphCreated();
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to allocate node graph!";
-			success= false;
-		}
-	}
-
-	if (success)
-	{
 		static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
 
 		glClearColor(k_clear_color.r, k_clear_color.g, k_clear_color.b, k_clear_color.a);
@@ -834,15 +820,31 @@ void NodeEditorWindow::deleteSelectedItem()
 	}
 }
 
-NodeGraphPtr NodeEditorWindow::allocateNodeGraph()
+bool NodeEditorWindow::load(const std::filesystem::path& path)
 {
-	// TODO: I think we want to be assigned a node graph rather than create one
-	return std::make_shared<NodeGraph>();
+	m_nodeGraph= NodeGraphFactory::loadNodeGraph(path);
+	if (m_nodeGraph)
+	{
+		m_nodeGraphPath = path;
+		onNodeGraphCreated();
+		return true;
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("NodeEditorWindow::load") << "Failed to load node graph: " << path;
+	}
+
+	return false;
 }
 
-void NodeEditorWindow::save()
+bool NodeEditorWindow::save()
 {
-	//TODO
+	if (!m_nodeGraphPath.empty() && m_nodeGraph)
+	{
+		NodeGraphFactory::saveNodeGraph(m_nodeGraphPath, m_nodeGraph);
+	}
+
+	return false;
 }
 
 void NodeEditorWindow::undo()

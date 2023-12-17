@@ -16,6 +16,7 @@
 #include "imnodes.h"
 
 #include <chrono>
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -26,7 +27,8 @@ public:
 	NodeEditorWindow();
 	~NodeEditorWindow();
 
-	virtual void save();
+	virtual bool load(const std::filesystem::path& path);
+	virtual bool save();
 	virtual void undo();
 
 	virtual void update(float deltaSeconds);
@@ -66,7 +68,6 @@ protected:
 
 	virtual void deleteSelectedItem();
 
-	virtual NodeGraphPtr allocateNodeGraph();
 	virtual void onNodeGraphCreated();
 	virtual void onNodeGraphDeleted();
 	virtual void onNodeCreated(t_node_id id);
@@ -87,6 +88,7 @@ protected:
 	struct ImFont* m_NormalIconFont= nullptr;
 	struct ImFont* m_BigIconFont= nullptr;
 
+	std::filesystem::path m_nodeGraphPath;
 	NodeGraphPtr m_nodeGraph;
 	NodeEditorState m_editorState;
 	GraphAssetListPropertyPtr m_assetReferencesList;

@@ -4,6 +4,7 @@
 #include "MainMenu/AppStage_MainMenu.h"
 #include "FontManager.h"
 #include "FrameTimer.h"
+#include "Graphs/CompositorNodeGraph.h"
 #include "GlShaderCache.h"
 #include "GlFrameCompositor.h"
 #include "GlTextRenderer.h"
@@ -215,6 +216,9 @@ bool App::startup(int argc, char** argv)
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
 		success = false;
 	}
+
+	// Register node graph factories
+	NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
 
 	// TODO: Test node editor
 	createAppWindow<TestNodeEditorWindow>();
