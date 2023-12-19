@@ -20,6 +20,10 @@ class NodeLink;
 using NodeLinkPtr = std::shared_ptr<NodeLink>;
 using NodeLinkConstPtr = std::shared_ptr<const NodeLink>;
 
+class NodeLinkConfig;
+using NodeLinkConfigPtr = std::shared_ptr<NodeLinkConfig>;
+using NodeLinkConfigConstPtr = std::shared_ptr<const NodeLinkConfig>;
+
 class NodeGraph;
 using NodeGraphPtr = std::shared_ptr<NodeGraph>;
 using NodeGraphConstPtr = std::shared_ptr<const NodeGraph>;
@@ -28,6 +32,10 @@ using NodeGraphConstPtr = std::shared_ptr<const NodeGraph>;
 class Node;
 using NodePtr = std::shared_ptr<Node>;
 using NodeConstPtr = std::shared_ptr<const Node>;
+
+class NodeConfig;
+using NodeConfigPtr = std::shared_ptr<NodeConfig>;
+using NodeConfigConstPtr = std::shared_ptr<const NodeConfig>;
 
 class NodeGraphFactory;
 using NodeGraphFactoryPtr = std::shared_ptr<NodeGraphFactory>;
@@ -110,6 +118,14 @@ class NodePin;
 using NodePinPtr = std::shared_ptr<NodePin>;
 using NodePinConstPtr = std::shared_ptr<const NodePin>;
 
+class NodePinConfig;
+using NodePinConfigPtr = std::shared_ptr<NodePinConfig>;
+using NodePinConfigConstPtr = std::shared_ptr<const NodePinConfig>;
+
+class NodePinFactory;
+using NodePinFactoryPtr = std::shared_ptr<NodePinFactory>;
+using NodePinFactoryConstPtr = std::shared_ptr<const NodePinFactory>;
+
 class TexturePin;
 using TexturePinPtr = std::shared_ptr<TexturePin>;
 using TexturePinConstPtr = std::shared_ptr<const TexturePin>;
@@ -118,6 +134,10 @@ using TexturePinConstPtr = std::shared_ptr<const TexturePin>;
 class GraphProperty;
 using GraphPropertyPtr = std::shared_ptr<GraphProperty>;
 using GraphPropertyConstPtr = std::shared_ptr<const GraphProperty>;
+
+class GraphPropertyConfig;
+using GraphPropertyConfigPtr = std::shared_ptr<GraphPropertyConfig>;
+using GraphPropertyConfigConstPtr = std::shared_ptr<const GraphPropertyConfig>;
 
 class GraphPropertyFactory;
 using GraphPropertyFactoryPtr = std::shared_ptr<GraphPropertyFactory>;

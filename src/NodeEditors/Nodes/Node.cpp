@@ -15,8 +15,8 @@ configuru::Config NodeConfig::writeToJSON()
 
 	pt["class_name"]= className;
 	pt["id"]= id;
-	writeStdVector<t_node_pin_id>(pt, "pins_in", pinIDsIn);
-	writeStdVector<t_node_pin_id>(pt, "pins_out", pinIDsOut);
+	writeStdValueVector<t_node_pin_id>(pt, "pins_in", pinIDsIn);
+	writeStdValueVector<t_node_pin_id>(pt, "pins_out", pinIDsOut);
 	writeStdArray<float, 2>(pt, "pos", pos);
 
 	return pt;
@@ -28,8 +28,8 @@ void NodeConfig::readFromJSON(const configuru::Config& pt)
 
 	className= pt.get_or<std::string>("class_name", "Node");
 	id= pt.get_or<t_node_id>("id", -1);
-	readStdVector<t_node_pin_id>(pt, "pins_in", pinIDsIn);
-	readStdVector<t_node_pin_id>(pt, "pins_out", pinIDsOut);
+	readStdValueVector<t_node_pin_id>(pt, "pins_in", pinIDsIn);
+	readStdValueVector<t_node_pin_id>(pt, "pins_out", pinIDsOut);
 	readStdArray<float, 2>(pt, "pos", pos);
 }
 

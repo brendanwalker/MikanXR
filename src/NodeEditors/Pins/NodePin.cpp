@@ -3,6 +3,7 @@
 #include "Nodes/Node.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodeLink.h"
+#include "StringUtils.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -10,6 +11,41 @@
 const float k_pin_alpha_default = 1.f;
 const float k_pin_alpha_invalid = 0.2f;
 
+// -- NodePinConfig -----
+configuru::Config NodePinConfig::writeToJSON()
+{
+	configuru::Config pt = CommonConfig::writeToJSON();
+
+	pt["class_name"] = className;
+	pt["pin_name"] = pinName;
+	pt["id"] = id;
+	pt["direction"] = k_nodePinDirectionStrings[(int)direction];
+	pt["owner_node_id"] = ownerNodeId;
+	writeStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
+
+	return pt;
+}
+
+void NodePinConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	className = pt.get_or<std::string>("class_name", "Node");
+	pinName = pt.get_or<std::string>("pin_name", "");
+	id = pt.get_or<t_node_id>("id", -1);
+	const std::string directionString =
+		pt.get_or<std::string>(
+			"direction",
+			k_nodePinDirectionStrings[(int)eNodePinDirection::INPUT]);
+	direction =
+		StringUtils::FindEnumValue<eNodePinDirection>(
+			directionString,
+			k_nodePinDirectionStrings);
+	ownerNodeId = pt.get_or<t_node_id>("owner_node_id", -1);
+	readStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
+}
+
+// -- NodePin -----
 NodePin::NodePin() 
 	: m_id(-1)
 	, m_direction(eNodePinDirection::INVALID)
@@ -21,6 +57,43 @@ NodePin::NodePin(
 	: m_id(ownerNode->getOwnerGraph()->allocateId())
 	, m_direction(eNodePinDirection::INVALID)
 {
+}
+
+bool NodePin::loadFromConfig(const class NodePinConfig& config)
+{
+	m_id= config.id;
+	m_direction= config.direction;
+	m_name= config.pinName;
+
+	assert(m_ownerNode);
+	NodeGraphPtr ownerGraph= m_ownerNode->getOwnerGraph();
+	for (t_node_link_id linkId : config.connectedLinkIds)
+	{
+		NodeLinkPtr link= ownerGraph->getNodeLinkById(linkId);
+		if (link)
+		{
+			m_connectedLinks.push_back(link);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void NodePin::saveToConfig(class NodePinConfig& config) const
+{
+	config.className = typeid(*this).name();
+	config.id = m_id;
+	config.direction= m_direction;
+	config.pinName= m_name;
+
+	for (NodeLinkPtr linkPtr : m_connectedLinks)
+	{
+		config.connectedLinkIds.push_back(linkPtr->getId());
+	}
 }
 
 float NodePin::editorComputeInputWidth() const

@@ -61,7 +61,7 @@ const configuru::Config CompositorQuadStencilLayerConfig::writeToJSON() const
 	};
 
 	if (quadStencilIds.size() > 0)
-		CommonConfig::writeStdVector(pt, "quadStencilIds", quadStencilIds);
+		CommonConfig::writeStdValueVector(pt, "quadStencilIds", quadStencilIds);
 
 	return pt;
 }
@@ -72,7 +72,7 @@ void CompositorQuadStencilLayerConfig::readFromJSON(const configuru::Config& pt)
 	bInvertWhenCameraInside = pt.get_or<bool>("bInvertWhenCameraInside", bInvertWhenCameraInside);
 
 	if (pt.has_key("quadStencilIds"))
-		CommonConfig::readStdVector(pt, "quadStencilIds", quadStencilIds);
+		CommonConfig::readStdValueVector(pt, "quadStencilIds", quadStencilIds);
 }
 
 // -- CompositorBoxStencilLayerConfig ------
@@ -83,7 +83,7 @@ const configuru::Config CompositorBoxStencilLayerConfig::writeToJSON() const
 	};
 
 	if (boxStencilIds.size() > 0)
-		CommonConfig::writeStdVector(pt, "boxStencilIds", boxStencilIds);
+		CommonConfig::writeStdValueVector(pt, "boxStencilIds", boxStencilIds);
 
 	return pt;
 }
@@ -93,7 +93,7 @@ void CompositorBoxStencilLayerConfig::readFromJSON(const configuru::Config& pt)
 	stencilMode = parseCompositorStencilMode(pt);
 
 	if (pt.has_key("boxStencilIds"))
-		CommonConfig::readStdVector(pt, "boxStencilIds", boxStencilIds);
+		CommonConfig::readStdValueVector(pt, "boxStencilIds", boxStencilIds);
 }
 
 // -- CompositorModelStencilLayerConfig ------
@@ -104,7 +104,7 @@ const configuru::Config CompositorModelStencilLayerConfig::writeToJSON() const
 	};
 
 	if (modelStencilIds.size() > 0)
-		CommonConfig::writeStdVector(pt, "modelStencilIds", modelStencilIds);
+		CommonConfig::writeStdValueVector(pt, "modelStencilIds", modelStencilIds);
 
 	return pt;
 }
@@ -114,7 +114,7 @@ void CompositorModelStencilLayerConfig::readFromJSON(const configuru::Config& pt
 	stencilMode = parseCompositorStencilMode(pt);
 
 	if (pt.has_key("modelStencilIds"))
-		CommonConfig::readStdVector(pt, "modelStencilIds", modelStencilIds);
+		CommonConfig::readStdValueVector(pt, "modelStencilIds", modelStencilIds);
 }
 
 // -- CompositorLayerConfig -----

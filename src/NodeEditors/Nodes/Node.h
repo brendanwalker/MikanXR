@@ -76,6 +76,9 @@ public:
 		if (direction == eNodePinDirection::OUTPUT) m_pinsOut.push_back(pin);
 		else if (direction == eNodePinDirection::INPUT) m_pinsOut.push_back(pin);
 
+		// Tell the graph about the new pin
+		ownerNode->getOwnerGraph()->addPin(pin);
+
 		return pin;
 	}
 

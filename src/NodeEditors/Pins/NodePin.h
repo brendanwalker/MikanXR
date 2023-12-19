@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommonConfig.h"
 #include "NodeFwd.h"
 #include "NodePinConstants.h"
 #include "MulticastDelegate.h"
@@ -9,11 +10,31 @@
 #include <string>
 #include <vector>
 
+class NodePinConfig : public CommonConfig
+{
+public:
+	NodePinConfig() : CommonConfig() {}
+	NodePinConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	std::string className;
+	std::string pinName;
+	t_node_pin_id id;
+	eNodePinDirection direction;
+	t_node_id ownerNodeId;
+	std::vector<t_node_link_id> connectedLinkIds;
+};
+
 class NodePin
 {
 public:
 	NodePin();
 	NodePin(NodePtr ownerNode);
+
+	virtual bool loadFromConfig(const class NodePinConfig& config);
+	virtual void saveToConfig(class NodePinConfig& config) const;
 
 	inline t_node_pin_id getId() const { return m_id; }
 	inline eNodePinDirection getDirection() const { return m_direction; }
@@ -53,4 +74,41 @@ protected:
 	std::string m_name;
 	NodePtr m_ownerNode;
 	std::vector<NodeLinkPtr> m_connectedLinks;
+};
+
+class NodePinFactory
+{
+public:
+	NodePinFactory() = default;
+	NodePinFactory(NodeGraphPtr ownerGraph) : m_ownerGraph(ownerGraph) {}
+
+	inline NodeGraphPtr getOwner() const { return m_ownerGraph; }
+
+	virtual NodePinPtr createPin(NodePtr ownerNode, const std::string& name, eNodePinDirection direction) const= 0;
+
+	template <class t_factory_class>
+	static NodePinFactoryPtr create(NodeGraphPtr ownerGraph)
+	{
+		// Create a node factory instance
+		return std::make_shared<t_factory_class>(ownerGraph);
+	}
+
+protected:
+	NodeGraphPtr m_ownerGraph;
+};
+
+template <class t_pin_class>
+class TypedNodePinFactory : public NodePinFactory
+{
+public:
+	TypedNodePinFactory() = default;
+	TypedNodePinFactory(NodeGraphPtr ownerGraph) : NodePinFactory(ownerGraph) {}
+
+	virtual NodePinPtr createPin(
+		NodePtr ownerNode,
+		const std::string& name,
+		eNodePinDirection direction) const override
+	{
+		return ownerNode->addPin<t_pin_class>(name, direction);
+	}
 };

@@ -606,8 +606,10 @@ void NodeEditorWindow::renderAssetsPanel()
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 6));
 
-			for (auto& assetRefFactory : m_nodeGraph->getAssetReferenceFactories())
+			auto& factoryMap= m_nodeGraph->getAssetReferenceFactories();
+			for (auto it = factoryMap.begin(); it != factoryMap.end(); it++)
 			{
+				auto& assetRefFactory= it->second;
 				const std::string& assetTypeName= assetRefFactory->getAssetTypeName();
 				const std::string buttonName= StringUtils::stringify("  Add ", assetTypeName, "##", assetTypeName);
 				auto assetPath = 

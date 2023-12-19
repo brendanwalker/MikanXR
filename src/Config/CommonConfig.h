@@ -68,7 +68,7 @@ public:
     virtual void readFromJSON(const configuru::Config &pt);  // Implement by each device class' own Config
     
 	template<typename t_value_type>
-	static void writeStdVector(
+	static void writeStdValueVector(
 		configuru::Config& pt,
 		const std::string& arrayName,
 		const std::vector<t_value_type>& vector)
@@ -83,7 +83,7 @@ public:
 		pt[arrayName] = configArray;
 	}
 	template<typename t_value_type>
-	static void readStdVector(
+	static void readStdValueVector(
 		const configuru::Config& pt,
 		const std::string& arrayName,
 		std::vector<t_value_type>& vector)
@@ -94,6 +94,42 @@ public:
 		for (auto it = configArray.begin(); it != configArray.end(); it++)
 		{
 			vector.push_back(it->get<t_value_type>());
+		}
+	}
+
+	template<class t_object_type>
+	static void writeStdConfigVector(
+		configuru::Config& pt,
+		const std::string& arrayName,
+		const std::vector< std::shared_ptr<t_object_type> >& vector)
+	{
+		auto configArray = configuru::Config::array();
+
+		for (auto it = vector.begin(); it != vector.end(); it++)
+		{
+			std::shared_ptr<t_object_type> childConfig = *it;
+			configuru::Config pt= childConfig->writeToJSON();
+
+			configArray.push_back(pt);
+		}
+
+		pt[arrayName] = configArray;
+	}
+	template<class t_object_type>
+	static void readStdConfigVector(
+		const configuru::Config& pt,
+		const std::string& arrayName,
+		std::vector< std::shared_ptr<t_object_type> >& vector)
+	{
+		const auto& configArray = pt[arrayName].as_array();
+
+		vector.clear();
+		for (auto it = configArray.begin(); it != configArray.end(); it++)
+		{
+			std::shared_ptr<t_object_type> childConfig = std::make_shared<t_object_type>();
+			childConfig->readFromJSON(*it);
+
+			vector.push_back(childConfig);
 		}
 	}
 

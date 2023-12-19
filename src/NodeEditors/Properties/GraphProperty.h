@@ -1,8 +1,24 @@
 #pragma once
 
 #include "NodeFwd.h"
+#include "CommonConfig.h"
 
 #include <string>
+
+class GraphPropertyConfig : public CommonConfig
+{
+public:
+	GraphPropertyConfig() : CommonConfig() {}
+	GraphPropertyConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	std::string className;
+	t_graph_property_id id= -1;
+	t_graph_property_id parentId= -1;
+	std::string name;
+};
 
 class GraphProperty : public std::enable_shared_from_this<GraphProperty>
 {
@@ -10,6 +26,9 @@ public:
 	GraphProperty();
 	GraphProperty(NodeGraphPtr ownerGraph);
 	virtual ~GraphProperty() {}
+
+	virtual bool loadFromConfig(const class GraphPropertyConfig& config);
+	virtual void saveToConfig(class GraphPropertyConfig& config) const;
 
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
 	inline t_graph_property_id getId() const { return m_id; }
@@ -41,7 +60,7 @@ public:
 
 	virtual const std::string getPropertyTypeName() const { return "property"; }
 	virtual GraphPropertyPtr createProperty(
-		const class NodeEditorState* editorState,
+		const NodeEditorState* editorState,
 		const std::string& name) const;
 
 	template <class t_property_factory_class>
@@ -53,4 +72,24 @@ public:
 
 protected:
 	NodeGraphPtr m_ownerGraph;
+};
+
+template <class t_property_class>
+class TypedGraphPropertyFactory : public GraphPropertyFactory
+{
+public:
+	TypedGraphPropertyFactory() = default;
+	TypedGraphPropertyFactory(NodeGraphPtr ownerGraph) : GraphPropertyFactory(ownerGraph) {}
+
+	virtual const std::string getPropertyTypeName() const override
+	{ 
+		return typeid(t_property_class).name(); 
+	}
+
+	virtual GraphPropertyPtr createProperty(
+		const NodeEditorState* editorState,
+		const std::string& name) const override
+	{
+		return m_ownerGraph->addTypedProperty<t_property_class>(name);
+	}
 };

@@ -3,6 +3,9 @@
 #include "Logger.h"
 #include "Nodes/Node.h"
 #include "Nodes/EventNode.h"
+#include "Pins/FloatPin.h"
+#include "Pins/FlowPin.h"
+#include "Pins/IntPin.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
 #include "Properties/GraphArrayProperty.h"
@@ -27,7 +30,7 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
 	}
 
 	// Find the appropriate factory based on the node class name
-	const std::string& nodeGraphClassName= config.getNodeGraphClassName();
+	const std::string& nodeGraphClassName= config.className;
 	auto it= s_factoryMap.find(nodeGraphClassName);
 	if (it == s_factoryMap.end())
 	{
@@ -67,15 +70,25 @@ NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
 }
 
 // -- NodeGraphConfig -----
-NodeGraphConfig::NodeGraphConfig() : CommonConfig() {}
+NodeGraphConfig::NodeGraphConfig() : CommonConfig() 
+{
+}
 
-NodeGraphConfig::NodeGraphConfig(const std::string& graphName) : CommonConfig(graphName) {}
+NodeGraphConfig::NodeGraphConfig(const std::string& graphName) : CommonConfig(graphName) 
+{
+}
 
 configuru::Config NodeGraphConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
-	pt["className"] = m_className;
+	pt["class_name"] = className;
+	pt["next_id"] = nextId;
+
+	writeStdConfigVector(pt, "properties", propertyConfigs);
+	writeStdConfigVector(pt, "nodes", nodeConfigs);
+	writeStdConfigVector(pt, "pins", nodePinConfigs);
+	writeStdConfigVector(pt, "links", nodeLinkConfigs);
 
 	return pt;
 }
@@ -84,24 +97,54 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	m_className = pt.get_or<std::string>("className", "NodeGraph");
+	className = pt.get_or<std::string>("class_name", "NodeGraph");
+	nextId = pt.get_or<int>("next_id", -1);
+
+	readStdConfigVector(pt, "properties", propertyConfigs);
+	readStdConfigVector(pt, "nodes", nodeConfigs);
+	readStdConfigVector(pt, "pins", nodePinConfigs);
+	readStdConfigVector(pt, "links", nodeLinkConfigs);
 }
 
 // -- NodeGraph -----
 NodeGraph::NodeGraph()
 {
+	// Add pin types nodes in this graph can use
+	addPinFactory<NodePin>();
+	addPinFactory<FlowPin>();
+	addPinFactory<FloatPin>();
+	addPinFactory<Float2Pin>();
+	addPinFactory<Float3Pin>();
+	addPinFactory<Float4Pin>();
+	addPinFactory<IntPin>();
+	addPinFactory<Int2Pin>();
+	addPinFactory<Int3Pin>();
+	addPinFactory<Int4Pin>();
+
+	// Add property types this graph can use
+	addPropertyFactory< TypedGraphPropertyFactory<GraphArrayProperty> >();
+	addPropertyFactory< TypedGraphPropertyFactory<GraphAssetListProperty> >();
+	addPropertyFactory< TypedGraphPropertyFactory<GraphVariableList> >();
+
 	// Add graph properties
 	addTypedProperty<GraphAssetListProperty>("assetReferences");
 }
 
 bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 {
+	m_nextId= config.nextId;
+
+	for (auto propConfig : config.propertyConfigs)
+	{
+
+	}
+
 	return true;
 }
 
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const
 {
-	config.setNodeGraphClassName(typeid(*this).name());
+	config.className= typeid(*this).name();
 }
 
 void NodeGraph::update(NodeEvaluator& evaluator)
@@ -226,9 +269,15 @@ NodePtr NodeGraph::createNode(NodeFactoryPtr nodeFactory, const NodeEditorState*
 {
 	NodePtr newNode = nodeFactory->createNode(nodeEditorState);
 
-	if (newNode && OnNodeCreated)
+	if (newNode)
 	{
-		OnNodeCreated(newNode->getId());
+		// Add the node to the node map
+		m_Nodes.insert({newNode->getId(), newNode});
+
+		if (OnNodeCreated)
+		{
+			OnNodeCreated(newNode->getId());
+		}
 	}
 
 	return newNode;
@@ -254,6 +303,31 @@ bool NodeGraph::deleteNodeById(t_node_id id)
 	}
 
 	return false;
+}
+
+NodePinPtr NodeGraph::createPin(
+	NodePinFactoryPtr pinFactory,
+	NodePtr ownerNode,
+	const std::string& name, 
+	eNodePinDirection direction)
+{
+	NodePinPtr newPin = pinFactory->createPin(ownerNode, name, direction);
+	addPin(newPin);
+
+	return newPin;
+}
+
+void NodeGraph::addPin(NodePinPtr newPin)
+{
+	if (newPin)
+	{
+		m_Pins.insert({newPin->getId(), newPin});
+
+		if (OnPinCreated)
+		{
+			OnPinCreated(newPin->getId());
+		}
+	}
 }
 
 bool NodeGraph::deletePinById(t_node_pin_id id)
@@ -356,8 +430,9 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 	{
 		NodePinPtr sourcePin= getNodePinById(editorState.startedLinkPinId);
 
-		for (NodeFactoryPtr factory : m_nodeFactories)
+		for (auto it = m_nodeFactories.begin(); it != m_nodeFactories.end(); ++it)
 		{
+			NodeFactoryPtr factory = it->second;
 			NodeConstPtr nodeDefaultObject= factory->getNodeDefaultObject();
 			bool bIsValidFactory= false;
 
@@ -393,7 +468,11 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 	else
 	{
 		// Return all available factories
-		validFactories= m_nodeFactories;
+		for (auto it = m_nodeFactories.begin(); it != m_nodeFactories.end(); ++it)
+		{
+			NodeFactoryPtr factory = it->second;
+			validFactories.push_back(factory);
+		}
 	}
 
 	return validFactories;

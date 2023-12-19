@@ -11,6 +11,11 @@
 #include "Properties/GraphModelProperty.h"
 #include "Properties/GraphTextureProperty.h"
 
+// Pins
+#include "Pins/MaterialPin.h"
+#include "Pins/ModelPin.h"
+#include "Pins/TexturePin.h"
+
 // Nodes
 #include "Nodes/DrawTriMeshNode.h"
 #include "Nodes/EventNode.h"
@@ -30,17 +35,28 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 {
 	NodeGraphPtr ownerGraph= shared_from_this();
 
-	m_assetRefFactories.push_back(AssetReferenceFactory::create<ModelAssetReferenceFactory>());
-	m_assetRefFactories.push_back(AssetReferenceFactory::create<MaterialAssetReferenceFactory>());
-	m_assetRefFactories.push_back(AssetReferenceFactory::create<TextureAssetReferenceFactory>());
+	// Assets this graph can reference
+	addAssetReferenceFactory<ModelAssetReferenceFactory>();
+	addAssetReferenceFactory<MaterialAssetReferenceFactory>();
+	addAssetReferenceFactory<TextureAssetReferenceFactory>();
+
+	// Add pin types nodes in this graph can use
+	addPinFactory<MaterialPin>();
+	addPinFactory<ModelPin>();
+	addPinFactory<TexturePin>();
+
+	// Add property types this graph can use
+	addPropertyFactory<GraphMaterialPropertyFactory>();
+	addPropertyFactory<GraphModelPropertyFactory>();
+	addPropertyFactory<GraphTexturePropertyFactory>();
 
 	// Nodes this graph can spawn
-	m_nodeFactories.push_back(NodeFactory::create<DrawTriMeshNodeFactory>(ownerGraph));
-	m_nodeFactories.push_back(NodeFactory::create<EventNodeFactory>(ownerGraph));
-	m_nodeFactories.push_back(NodeFactory::create<MousePosNodeFactory>(ownerGraph));
-	m_nodeFactories.push_back(NodeFactory::create<MaterialNodeFactory>(ownerGraph));
-	m_nodeFactories.push_back(NodeFactory::create<TextureNodeFactory>(ownerGraph));
-	m_nodeFactories.push_back(NodeFactory::create<TimeNodeFactory>(ownerGraph));
+	addNodeFactory<DrawTriMeshNodeFactory>();
+	addNodeFactory<EventNodeFactory>();
+	addNodeFactory<MousePosNodeFactory>();
+	addNodeFactory<MaterialNodeFactory>();
+	addNodeFactory<TextureNodeFactory>();
+	addNodeFactory<TimeNodeFactory>();
 
 	// Add graph properties
 	addTypedProperty<GraphVariableList>("materials")->assignFactory<GraphMaterialPropertyFactory>();
