@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AssetFwd.h"
 #include "RendererFwd.h"
 
 #include <memory>
@@ -37,6 +38,8 @@ class AssetReferenceFactory
 public:
 	AssetReferenceFactory() = default;
 
+	inline std::string getAssetRefClassName() const { return typeid(m_defaultAssetRefObject.get()).name(); }
+
 	virtual std::string getAssetTypeName() const { return "Asset"; }
 	virtual char const* getFileDialogTitle() const { return "Load Asset"; }
 	virtual char const* getDefaultPath() const { return ""; }
@@ -49,8 +52,15 @@ public:
 		const std::filesystem::path& inAssetPath) const;
 
 	template <class t_factory_class>
-	static std::shared_ptr<t_factory_class> create()
+	static std::shared_ptr<t_factory_class> createFactory()
 	{
-		return std::make_shared<t_factory_class>();
+		auto factory= std::make_shared<t_factory_class>();
+
+		factory->m_defaultAssetRefObject= factory->createAssetReference(nullptr, std::filesystem::path());
+
+		return factory;
 	}
+
+protected:
+	AssetReferencePtr m_defaultAssetRefObject;
 };

@@ -83,18 +83,28 @@ public:
 	NodePinFactory(NodeGraphPtr ownerGraph) : m_ownerGraph(ownerGraph) {}
 
 	inline NodeGraphPtr getOwner() const { return m_ownerGraph; }
+	inline std::string getPinClassName() const { return typeid(m_defaultPinObject.get()).name(); }
 
 	virtual NodePinPtr createPin(NodePtr ownerNode, const std::string& name, eNodePinDirection direction) const= 0;
 
 	template <class t_factory_class>
-	static NodePinFactoryPtr create(NodeGraphPtr ownerGraph)
+	static NodePinFactoryPtr createFactory(NodeGraphPtr ownerGraph)
 	{
+		auto factory= std::make_shared<t_factory_class>(ownerGraph);
+
+		// Create a single "node pin object" for the factory.
+		// This is used to ask questions about a pin without having to create one first.
+		// We have to do this work outside of the NodePinFactory constructor,
+		// because virtual functions aren't safe to call in constructor.
+		factory->m_defaultPinObject = factory->createPin(nullptr, "", eNodePinDirection::INVALID);
+
 		// Create a node factory instance
-		return std::make_shared<t_factory_class>(ownerGraph);
+		return factory;
 	}
 
 protected:
 	NodeGraphPtr m_ownerGraph;
+	NodePinPtr m_defaultPinObject;
 };
 
 template <class t_pin_class>

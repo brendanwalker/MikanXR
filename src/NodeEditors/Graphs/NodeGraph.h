@@ -70,8 +70,8 @@ public:
 	template <class t_asset_factory>
 	void addAssetReferenceFactory()
 	{
-		std::string className = typeid(t_asset_factory).name();
-		auto factory = AssetReferenceFactory::create<t_asset_factory>();
+		auto factory = AssetReferenceFactory::createFactory<t_asset_factory>();
+		std::string className = factory->getAssetRefClassName();
 
 		m_assetRefFactories.insert({className, factory});
 	}
@@ -81,23 +81,28 @@ public:
 		return m_assetRefFactories;
 	}
 
+	AssetReferenceFactoryPtr AssetReferenceFactory(const std::string assetRefClassName)
+	{
+		auto it = m_assetRefFactories.find(assetRefClassName);
+
+		return (it != m_assetRefFactories.end()) ? it->second : AssetReferenceFactoryPtr();
+	}
+
 	// Properties
 	template <class t_property_factory>
 	void addPropertyFactory()
 	{
-		std::string className = typeid(t_property_factory).name();
-		auto factory = GraphPropertyFactory::create<t_property_factory>(shared_from_this());
+		auto factory = GraphPropertyFactory::createFactory<t_property_factory>(shared_from_this());
+		std::string className = factory->getGraphPropertyClassName();
 
 		m_propertyFactories.insert({className, factory});
 	}
 
-	template <class t_property_factory>
-	std::shared_ptr<t_property_factory> getPropertyFactory()
+	GraphPropertyFactoryPtr getPropertyFactory(const std::string propertyClassName)
 	{
-		std::string className = typeid(t_property_factory).name();
-		auto it= m_propertyFactories.find(className);
+		auto it= m_propertyFactories.find(propertyClassName);
 
-		return (it != m_propertyFactories.end()) ? it->second : std::shared_ptr<t_property_factory>();
+		return (it != m_propertyFactories.end()) ? it->second : GraphPropertyFactoryPtr();
 	}
 
 	GraphPropertyPtr getPropertyById(t_graph_property_id id) const;
@@ -146,10 +151,17 @@ public:
 	template <class t_node_factory>
 	void addNodeFactory()
 	{
-		std::string className = typeid(t_node_factory).name();
-		auto factory = NodeFactory::create<t_node_factory>(shared_from_this());
+		auto factory = NodeFactory::createFactory<t_node_factory>(shared_from_this());
+		std::string className = factory->getNodeClassName();
 
 		m_nodeFactories.insert({className, factory});
+	}
+
+	NodeFactoryPtr getNodeFactory(const std::string nodeClassName)
+	{
+		auto it = m_nodeFactories.find(nodeClassName);
+
+		return (it != m_nodeFactories.end()) ? it->second : NodeFactoryPtr();
 	}
 
 	template <class _Pr>
@@ -179,19 +191,17 @@ public:
 	template <class t_pin_class>
 	void addPinFactory()
 	{
-		std::string pinClassName = typeid(t_pin_class).name();
-		auto factory = NodePinFactory::create< TypedNodePinFactory<t_pin_class> >(shared_from_this());
+		auto factory = NodePinFactory::createFactory< TypedNodePinFactory<t_pin_class> >(shared_from_this());
+		std::string pinClassName = factory->getPinClassName();
 
 		m_pinFactories.insert({pinClassName, factory});
 	}
 
-	template <class t_pin_class>
-	NodePinFactoryPtr getPinFactoryByPinClass()
+	NodePinFactoryPtr getPinFactory(const std::string nodeClassName)
 	{
-		std::string pinClassName = typeid(t_pin_class).name();
-		auto it = m_pinFactories.find(pinClassName);
+		auto it = m_pinFactories.find(nodeClassName);
 
-		return (it != m_pinFactories.end()) ? it->second : NodePinFactoryPtr;
+		return (it != m_pinFactories.end()) ? it->second : NodePinFactoryPtr();
 	}
 
 	NodePinPtr createPin(

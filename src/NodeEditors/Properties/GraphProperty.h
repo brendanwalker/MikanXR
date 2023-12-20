@@ -57,6 +57,9 @@ public:
 	GraphPropertyFactory(NodeGraphPtr ownerGraph);
 
 	inline NodeGraphPtr getOwner() const { return m_ownerGraph; }
+	inline std::string getGraphPropertyClassName() const { 
+		return typeid(m_defaultGraphPropertyObject.get()).name(); 
+	}
 
 	virtual const std::string getPropertyTypeName() const { return "property"; }
 	virtual GraphPropertyPtr createProperty(
@@ -64,14 +67,19 @@ public:
 		const std::string& name) const;
 
 	template <class t_property_factory_class>
-	static GraphPropertyFactoryPtr create(NodeGraphPtr ownerGraph)
+	static GraphPropertyFactoryPtr createFactory(NodeGraphPtr ownerGraph)
 	{
 		// Create a node factory instance
-		return std::make_shared<t_property_factory_class>(ownerGraph);
+		auto factory= std::make_shared<t_property_factory_class>(ownerGraph);
+
+		factory->m_defaultGraphPropertyObject= factory->createProperty(nullptr, "");
+
+		return factory;
 	}
 
 protected:
 	NodeGraphPtr m_ownerGraph;
+	GraphPropertyPtr m_defaultGraphPropertyObject;
 };
 
 template <class t_property_class>

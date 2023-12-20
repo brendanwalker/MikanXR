@@ -10,6 +10,7 @@
 #include "Pins/NodePin.h"
 #include "Properties/GraphArrayProperty.h"
 #include "Properties/GraphAssetListProperty.h"
+#include "Properties/GraphVariableList.h"
 #include "NodeEditorState.h"
 
 #include "imnodes.h"

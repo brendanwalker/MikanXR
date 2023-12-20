@@ -54,7 +54,7 @@ NodePin::NodePin()
 
 NodePin::NodePin(
 	NodePtr ownerNode)
-	: m_id(ownerNode->getOwnerGraph()->allocateId())
+	: m_id(ownerNode ? ownerNode->getOwnerGraph()->allocateId() : -1)
 	, m_direction(eNodePinDirection::INVALID)
 {
 }

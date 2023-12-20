@@ -120,10 +120,12 @@ public:
 	NodeFactory(NodeGraphPtr ownerGraph);
 
 	inline NodeConstPtr getNodeDefaultObject() const { return m_nodeDefaultObject; }
+	inline std::string getNodeClassName() const { return typeid(m_nodeDefaultObject.get()).name(); }
+
 	virtual NodePtr createNode(const class NodeEditorState* editorState) const;
 	
 	template <class t_node_factory_class>
-	static NodeFactoryPtr create(NodeGraphPtr ownerGraph)
+	static NodeFactoryPtr createFactory(NodeGraphPtr ownerGraph)
 	{
 		// Create a node factory instance
 		auto nodeFactory= std::make_shared<t_node_factory_class>(ownerGraph);
