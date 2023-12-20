@@ -1,9 +1,41 @@
 #include "AssetReference.h"
 
+// -- Asset Reference Config -----
+configuru::Config AssetReferenceConfig::writeToJSON()
+{
+	configuru::Config pt = CommonConfig::writeToJSON();
+
+	pt["class_name"] = className;
+	pt["asset_path"] = assetPath;
+
+	return pt;
+}
+
+void AssetReferenceConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	className = pt.get_or<std::string>("class_name", "AssetReference");
+	assetPath = pt.get_or<std::string>("asset_path", "");
+}
+
 // -- Asset Reference -----
 AssetReference::~AssetReference()
 {
 	m_previewTexture= nullptr;
+}
+
+bool AssetReference::loadFromConfig(const class AssetReferenceConfig& config)
+{
+	setAssetPath(config.assetPath);
+
+	return true;
+}
+
+void AssetReference::saveToConfig(class AssetReferenceConfig& config) const
+{
+	config.className = typeid(*this).name();
+	config.assetPath = m_assetPath.string();
 }
 
 void AssetReference::setAssetPath(const std::filesystem::path& inPath)

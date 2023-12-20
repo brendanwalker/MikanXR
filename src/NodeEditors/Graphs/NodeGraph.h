@@ -81,7 +81,7 @@ public:
 		return m_assetRefFactories;
 	}
 
-	AssetReferenceFactoryPtr AssetReferenceFactory(const std::string assetRefClassName)
+	AssetReferenceFactoryPtr getAssetReferenceFactory(const std::string assetRefClassName)
 	{
 		auto it = m_assetRefFactories.find(assetRefClassName);
 

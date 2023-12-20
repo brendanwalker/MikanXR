@@ -5,15 +5,30 @@
 
 #include <vector>
 
+class GraphAssetListPropertyConfig : public GraphPropertyConfig
+{
+public:
+	GraphAssetListPropertyConfig() : GraphPropertyConfig() {}
+	GraphAssetListPropertyConfig(const std::string& graphName) : GraphPropertyConfig(graphName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	std::vector<AssetReferenceConfigPtr> assetRefConfigs;
+};
+
 class GraphAssetListProperty : public GraphProperty
 {
 public:
 	GraphAssetListProperty();
 	GraphAssetListProperty(NodeGraphPtr ownerGraph);
 
-	inline const std::vector<AssetReferencePtr>& getAssetList() { return m_assets; }
-	inline std::vector<AssetReferencePtr>& getAssetListMutable() { return m_assets; }
+	virtual bool loadFromConfig(const class GraphPropertyConfig& config) override;
+	virtual void saveToConfig(class GraphPropertyConfig& config) const override;
+
+	inline const std::vector<AssetReferencePtr>& getAssetList() { return m_assetReferences; }
+	inline std::vector<AssetReferencePtr>& getAssetListMutable() { return m_assetReferences; }
 
 protected:
-	std::vector<AssetReferencePtr> m_assets;
+	std::vector<AssetReferencePtr> m_assetReferences;
 };

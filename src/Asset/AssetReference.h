@@ -1,16 +1,33 @@
 #pragma once
 
 #include "AssetFwd.h"
+#include "CommonConfig.h"
 #include "RendererFwd.h"
 
 #include <memory>
 #include <filesystem>
+
+class AssetReferenceConfig : public CommonConfig
+{
+public:
+	AssetReferenceConfig() : CommonConfig() {}
+	AssetReferenceConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	std::string className;
+	std::string assetPath;
+};
 
 class AssetReference : public std::enable_shared_from_this<AssetReference>
 {
 public:
 	AssetReference()= default;
 	virtual ~AssetReference();
+
+	virtual bool loadFromConfig(const class AssetReferenceConfig& config);
+	virtual void saveToConfig(class AssetReferenceConfig& config) const;
 
 	virtual std::string getAssetTypeName() const { return "Asset"; }
 	inline GlTexturePtr getPreviewTexture() const { return m_previewTexture; }

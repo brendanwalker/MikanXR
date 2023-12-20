@@ -7,6 +7,10 @@ class AssetReference;
 using AssetReferencePtr = std::shared_ptr<AssetReference>;
 using AssetReferenceConstPtr = std::shared_ptr<const AssetReference>;
 
+class AssetReferenceConfig;
+using AssetReferenceConfigPtr = std::shared_ptr<AssetReferenceConfig>;
+using AssetReferenceConfigConstPtr = std::shared_ptr<const AssetReferenceConfig>;
+
 class AssetReferenceFactory;
 using AssetReferenceFactoryPtr = std::shared_ptr<AssetReferenceFactory>;
 using AssetReferenceFactoryConstPtr = std::shared_ptr<const AssetReferenceFactory>;

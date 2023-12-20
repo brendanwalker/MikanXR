@@ -1,6 +1,7 @@
 #include "NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Logger.h"
+#include "AssetReference.h"
 #include "Nodes/Node.h"
 #include "Nodes/EventNode.h"
 #include "Pins/FloatPin.h"
@@ -101,6 +102,7 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 	className = pt.get_or<std::string>("class_name", "NodeGraph");
 	nextId = pt.get_or<int>("next_id", -1);
 
+	// TODO Need to leverage factories to create the correct derived config objects by class name
 	readStdConfigVector(pt, "properties", propertyConfigs);
 	readStdConfigVector(pt, "nodes", nodeConfigs);
 	readStdConfigVector(pt, "pins", nodePinConfigs);
@@ -133,14 +135,49 @@ NodeGraph::NodeGraph()
 
 bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 {
+	bool bSuccess= true;
+
 	m_nextId= config.nextId;
 
+	// Load all properties
 	for (auto propConfig : config.propertyConfigs)
 	{
-
+		GraphPropertyFactoryPtr factory= getPropertyFactory(propConfig->className);
+		if (factory)
+		{
+			GraphPropertyPtr property= factory->createProperty(nullptr, propConfig->name);
+			if (property)
+			{
+				if (property->loadFromConfig(*propConfig.get()))
+				{
+					m_properties.insert({property->getId(), property});
+				}
+				else
+				{
+					MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to load property: " << propConfig->name;
+					bSuccess= false;
+				}
+			}
+			else
+			{
+				MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to create property: " << propConfig->name;
+				bSuccess= false;
+			}
+		}
+		else
+		{
+			MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Unknown graph property class: " << propConfig->className;
+			bSuccess= false;
+		}
 	}
 
-	return true;
+	//TODO: Load Nodes
+	
+	//TODO: Load Pins
+
+	//TODO: Load Links
+
+	return bSuccess;
 }
 
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const
