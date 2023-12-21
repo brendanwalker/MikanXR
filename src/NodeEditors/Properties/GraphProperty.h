@@ -61,7 +61,11 @@ public:
 		return typeid(m_defaultGraphPropertyObject.get()).name(); 
 	}
 
-	virtual const std::string getPropertyTypeName() const { return "property"; }
+	virtual GraphPropertyConfigPtr createPropertyConfig() const
+	{ 
+		return std::make_shared<GraphPropertyConfig>(); 
+	}
+
 	virtual GraphPropertyPtr createProperty(
 		const NodeEditorState* editorState,
 		const std::string& name) const;
@@ -82,16 +86,16 @@ protected:
 	GraphPropertyPtr m_defaultGraphPropertyObject;
 };
 
-template <class t_property_class>
+template <class t_property_class, class t_property_config_class>
 class TypedGraphPropertyFactory : public GraphPropertyFactory
 {
 public:
 	TypedGraphPropertyFactory() = default;
 	TypedGraphPropertyFactory(NodeGraphPtr ownerGraph) : GraphPropertyFactory(ownerGraph) {}
 
-	virtual const std::string getPropertyTypeName() const override
-	{ 
-		return typeid(t_property_class).name(); 
+	virtual GraphPropertyConfigPtr createPropertyConfig() const override
+	{
+		return std::make_shared<t_property_config_class>();
 	}
 
 	virtual GraphPropertyPtr createProperty(

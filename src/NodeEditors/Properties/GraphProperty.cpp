@@ -36,7 +36,7 @@ GraphProperty::GraphProperty(NodeGraphPtr ownerGraph)
 {
 }
 
-bool GraphProperty::loadFromConfig(const class GraphPropertyConfig& config)
+bool GraphProperty::loadFromConfig(const GraphPropertyConfig& config)
 {
 	m_id= config.id;
 	m_parentId= config.parentId;
@@ -45,7 +45,7 @@ bool GraphProperty::loadFromConfig(const class GraphPropertyConfig& config)
 	return true;
 }
 
-void GraphProperty::saveToConfig(class GraphPropertyConfig& config) const
+void GraphProperty::saveToConfig(GraphPropertyConfig& config) const
 {
 	config.className= typeid(*this).name();
 	config.id= m_id;

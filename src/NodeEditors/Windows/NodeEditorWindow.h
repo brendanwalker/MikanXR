@@ -91,7 +91,6 @@ protected:
 	std::filesystem::path m_nodeGraphPath;
 	NodeGraphPtr m_nodeGraph;
 	NodeEditorState m_editorState;
-	GraphAssetListPropertyPtr m_assetReferencesList;
 	std::vector<GraphVariableListPtr> m_variableLists;
 
 	GraphObjectSelection m_objectSelection;

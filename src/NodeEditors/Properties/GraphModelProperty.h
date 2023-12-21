@@ -4,11 +4,26 @@
 #include "RendererFwd.h"
 #include "GraphProperty.h"
 
+class GraphModelPropertyConfig : public GraphPropertyConfig
+{
+public:
+	GraphModelPropertyConfig() : GraphPropertyConfig() {}
+	GraphModelPropertyConfig(const std::string& nodeName) : GraphPropertyConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	int assetRefIndex;
+};
+
 class GraphModelProperty : public GraphProperty
 {
 public:
 	GraphModelProperty();
 	GraphModelProperty(NodeGraphPtr ownerGraph);
+
+	virtual bool loadFromConfig(const class GraphPropertyConfig& config) override;
+	virtual void saveToConfig(class GraphPropertyConfig& config) const override;
 
 	inline void setModelAssetReference(ModelAssetReferencePtr inAssetRef) { m_modelAssetRef= inAssetRef; }
 	inline ModelAssetReferencePtr getModelAssetReference() const { return m_modelAssetRef; }
@@ -30,7 +45,6 @@ public:
 	GraphModelPropertyFactory() : GraphPropertyFactory() {}
 	GraphModelPropertyFactory(NodeGraphPtr ownerGraph) : GraphPropertyFactory(ownerGraph) {}
 
-	virtual const std::string getPropertyTypeName() const override { return "model_property"; }
 	virtual GraphPropertyPtr createProperty(
 		const class NodeEditorState* editorState,
 		const std::string& name) const;

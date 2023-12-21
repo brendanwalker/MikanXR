@@ -87,6 +87,11 @@ public:
 
 	virtual NodePinPtr createPin(NodePtr ownerNode, const std::string& name, eNodePinDirection direction) const= 0;
 
+	virtual NodePinConfigPtr createPinConfig() const
+	{
+		return std::make_shared<NodePinConfig>();
+	}
+
 	template <class t_factory_class>
 	static NodePinFactoryPtr createFactory(NodeGraphPtr ownerGraph)
 	{

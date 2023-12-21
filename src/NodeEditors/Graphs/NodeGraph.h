@@ -42,14 +42,23 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	bool postReadFromJSON(NodeGraphPtr graph);
 
 	std::string className;
 	int nextId= -1;
 
+	std::vector<AssetReferenceConfigPtr> assetRefConfigs;
 	std::vector<GraphPropertyConfigPtr> propertyConfigs;
 	std::vector<NodeConfigPtr> nodeConfigs;
-	std::vector<NodePinConfigPtr> nodePinConfigs;
-	std::vector<NodeLinkConfigPtr> nodeLinkConfigs;
+	std::vector<NodePinConfigPtr> pinConfigs;
+	std::vector<NodeLinkConfigPtr> linkConfigs;
+
+protected:
+	configuru::Config _assetRefsConfigObject;
+	configuru::Config _propertiesConfigObject;
+	configuru::Config _nodesConfigObject;
+	configuru::Config _pinsConfigObject;
+	configuru::Config _linksConfigObject;
 };
 
 class NodeGraph : public std::enable_shared_from_this<NodeGraph>
@@ -87,6 +96,41 @@ public:
 
 		return (it != m_assetRefFactories.end()) ? it->second : AssetReferenceFactoryPtr();
 	}
+
+	int getAssetReferenceIndex(AssetReferencePtr assetRef) const;
+
+	inline AssetReferencePtr getAssetReferenceByIndex(int index) const
+	{
+		return (index >= 0 && index < (int)m_assetReferences.size()) ? m_assetReferences[index] : AssetReferencePtr();
+	}
+
+	inline const std::vector<AssetReferencePtr>& getAssetReferences() const
+	{
+		return m_assetReferences;
+	}
+
+	inline std::vector<AssetReferencePtr>& getAssetReferencesMutable()
+	{
+		return m_assetReferences;
+	}
+
+	template <class t_asset_ref_type>
+	std::shared_ptr<t_asset_ref_type> addTypedAssetReference()
+	{
+		auto assetRef = std::make_shared<t_asset_ref_type>(shared_from_this());
+
+		m_assetReferences.push_back(assetRef);
+
+		if (OnAssetReferenceCreated)
+			OnAssetReferenceCreated(property->getId());
+
+		return property;
+	}
+
+	bool deleteAssetReference(AssetReferencePtr assetRef);
+
+	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceCreated;
+	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceDeleted;
 
 	// Properties
 	template <class t_property_factory>
@@ -239,9 +283,10 @@ protected:
 	// Defines all of the pin types that this node graph can use
 	std::map<std::string, NodePinFactoryPtr> m_pinFactories;
 
+	//	List of asset references used by this graph
+	std::vector<AssetReferencePtr> m_assetReferences;
+
 	// Properties assigned to this node graph
-	// * GraphAssetListProperty - List of all asset references used by this graph
-	// * GraphVariableList - Lists of graph variables (models, textures, materials, ...)
 	std::map<t_graph_property_id, GraphPropertyPtr> m_properties;
 
 	// Nodes, pins and links that make up the graph

@@ -10,13 +10,13 @@
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
 #include "Properties/GraphArrayProperty.h"
-#include "Properties/GraphAssetListProperty.h"
 #include "Properties/GraphVariableList.h"
 #include "NodeEditorState.h"
 
 #include "imnodes.h"
 
 #include <filesystem>
+#include <functional>
 
 // -- NodeGraphFactory -----
 std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
@@ -48,7 +48,11 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
 		return NodeGraphPtr();
 	}
 
-	// Init node graph from the parse config
+	// Now that we have allocate a node graph using the class name
+	// we can actually create the graph object configs using the factories from the graph
+	config.postReadFromJSON(nodeGraph);
+
+	// Init node graph from the parsed config
 	if (!nodeGraph->loadFromConfig(config))
 	{
 		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to init node graph class: " << nodeGraphClassName;
@@ -87,10 +91,11 @@ configuru::Config NodeGraphConfig::writeToJSON()
 	pt["class_name"] = className;
 	pt["next_id"] = nextId;
 
+	writeStdConfigVector(pt, "assetReferences", assetRefConfigs);
 	writeStdConfigVector(pt, "properties", propertyConfigs);
 	writeStdConfigVector(pt, "nodes", nodeConfigs);
-	writeStdConfigVector(pt, "pins", nodePinConfigs);
-	writeStdConfigVector(pt, "links", nodeLinkConfigs);
+	writeStdConfigVector(pt, "pins", pinConfigs);
+	writeStdConfigVector(pt, "links", linkConfigs);
 
 	return pt;
 }
@@ -102,11 +107,87 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 	className = pt.get_or<std::string>("class_name", "NodeGraph");
 	nextId = pt.get_or<int>("next_id", -1);
 
-	// TODO Need to leverage factories to create the correct derived config objects by class name
-	readStdConfigVector(pt, "properties", propertyConfigs);
-	readStdConfigVector(pt, "nodes", nodeConfigs);
-	readStdConfigVector(pt, "pins", nodePinConfigs);
-	readStdConfigVector(pt, "links", nodeLinkConfigs);
+	// These get evaluated in postReadFromJSON after we use className above
+	// to allocate a node graph that has the factories to process these config objects
+	_assetRefsConfigObject= pt["assetReferences"];
+	_propertiesConfigObject= pt["properties"];
+	_nodesConfigObject= pt["nodes"];
+	_pinsConfigObject= pt["pins"];
+	_linksConfigObject= pt["links"];
+}
+
+template<class t_object_type>
+static bool readNodeGraphConfigArray(
+	const configuru::Config& arrayConfigObject,
+	const std::string& arrayName,
+	std::vector< std::shared_ptr<t_object_type> >& vector,
+	std::function<CommonConfigPtr(const std::string& className)> allocateConfig)
+{
+	const auto& configArray = arrayConfigObject.as_array();
+	bool success= true;
+
+	vector.clear();
+	for (auto it = configArray.begin(); it != configArray.end(); it++)
+	{
+		// Each config block should have a class name we can use to look up the factory
+		// that we can use to allocate the correct config object
+		const std::string className = it->get_or<std::string>("class_name", "");
+		if (className.empty())
+		{
+			MIKAN_LOG_ERROR("readNodeGraphConfigVector") << "Config entry missing class name in array: " << arrayName;
+			success= false;
+			continue;
+		}
+
+		CommonConfigPtr config = allocateConfig(className);
+		if (!config)
+		{
+			MIKAN_LOG_ERROR("readNodeGraphConfigVector") << "Failed to allocate config for class name: " << className << ", in array: " << arrayName;
+			success= false;
+			continue;
+		}
+
+		auto typedConfig = std::static_pointer_cast<t_object_type>(config);
+		typedConfig->readFromJSON(*it);
+
+		vector.push_back(typedConfig);
+	}
+
+	return success;
+}
+
+bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
+{
+	bool success= true;
+
+	// Use factories to create the config of the appropriate type
+	success&= readNodeGraphConfigArray(
+		_assetRefsConfigObject, "assetReferences", assetRefConfigs,
+		[graph](const std::string& className) {
+			return graph->getAssetReferenceFactory(className)->createAssetReferenceConfig();
+		});
+	success&= readNodeGraphConfigArray(
+		_propertiesConfigObject, "properties", propertyConfigs,
+		[graph](const std::string& className) {
+			return graph->getPropertyFactory(className)->createPropertyConfig();
+		});
+	success&= readNodeGraphConfigArray(
+		_nodesConfigObject, "nodes", nodeConfigs,
+		[graph](const std::string& className) {
+			return graph->getNodeFactory(className)->createNodeConfig();
+		});
+	success&= readNodeGraphConfigArray(
+		_pinsConfigObject, "pins", pinConfigs,
+		[graph](const std::string& className) {
+			return graph->getPinFactory(className)->createPinConfig();
+		});
+	success&= readNodeGraphConfigArray(
+		_linksConfigObject, "links", linkConfigs,
+		[graph](const std::string& className) {
+			return std::make_shared<NodeLinkConfig>();
+		});
+
+	return success;
 }
 
 // -- NodeGraph -----
@@ -125,12 +206,8 @@ NodeGraph::NodeGraph()
 	addPinFactory<Int4Pin>();
 
 	// Add property types this graph can use
-	addPropertyFactory< TypedGraphPropertyFactory<GraphArrayProperty> >();
-	addPropertyFactory< TypedGraphPropertyFactory<GraphAssetListProperty> >();
-	addPropertyFactory< TypedGraphPropertyFactory<GraphVariableList> >();
-
-	// Add graph properties
-	addTypedProperty<GraphAssetListProperty>("assetReferences");
+	addPropertyFactory< TypedGraphPropertyFactory<GraphArrayProperty, GraphArrayPropertyConfig> >();
+	addPropertyFactory< TypedGraphPropertyFactory<GraphVariableList, GraphArrayPropertyConfig> >();
 }
 
 bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
@@ -138,6 +215,38 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 	bool bSuccess= true;
 
 	m_nextId= config.nextId;
+
+	// Load all asset references
+	for (auto assetRefConfig : config.assetRefConfigs)
+	{
+		AssetReferenceFactoryPtr factory= getAssetReferenceFactory(assetRefConfig->className);
+		if (factory)
+		{
+			AssetReferencePtr assetRef= factory->createAssetReference(nullptr, "");
+			if (assetRef)
+			{
+				if (assetRef->loadFromConfig(*assetRefConfig.get()))
+				{
+					m_assetReferences.push_back(assetRef);
+				}
+				else
+				{
+					MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to load asset ref: " << assetRefConfig->className;
+					bSuccess = false;
+				}
+			}
+			else
+			{
+				MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to create asset ref: " << assetRefConfig->className;
+				bSuccess = false;
+			}
+		}
+		else
+		{
+			MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Unknown graph asset ref class: " << assetRefConfig->className;
+			bSuccess = false;
+		}
+	}
 
 	// Load all properties
 	for (auto propConfig : config.propertyConfigs)
@@ -198,6 +307,32 @@ void NodeGraph::update(NodeEvaluator& evaluator)
 			MIKAN_LOG_ERROR("NodeGraph::update - Error: ") << evaluator.getLastErrorMessage();
 		}
 	}
+}
+
+int NodeGraph::getAssetReferenceIndex(AssetReferencePtr assetRef) const
+{
+	auto it = std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);
+	if (it != m_assetReferences.end())
+	{
+		return it - m_assetReferences.begin();
+	}
+
+	return -1;
+}
+
+bool NodeGraph::deleteAssetReference(AssetReferencePtr assetRef)
+{
+	auto it = std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);
+	if (it != m_assetReferences.end())
+	{
+		if (OnAssetReferenceDeleted)
+			OnAssetReferenceDeleted(assetRef);
+
+		m_assetReferences.erase(it);
+		return true;
+	}
+
+	return false;
 }
 
 bool NodeGraph::deletePropertyById(t_graph_property_id id)

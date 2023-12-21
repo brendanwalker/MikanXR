@@ -123,6 +123,11 @@ public:
 	inline std::string getNodeClassName() const { return typeid(m_nodeDefaultObject.get()).name(); }
 
 	virtual NodePtr createNode(const class NodeEditorState* editorState) const;
+
+	virtual NodeConfigPtr createNodeConfig() const
+	{
+		return std::make_shared<NodeConfig>();
+	}
 	
 	template <class t_node_factory_class>
 	static NodeFactoryPtr createFactory(NodeGraphPtr ownerGraph)

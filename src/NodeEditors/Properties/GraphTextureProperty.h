@@ -4,11 +4,26 @@
 #include "RendererFwd.h"
 #include "GraphProperty.h"
 
+class GraphTexturePropertyConfig : public GraphPropertyConfig
+{
+public:
+	GraphTexturePropertyConfig() : GraphPropertyConfig() {}
+	GraphTexturePropertyConfig(const std::string& nodeName) : GraphPropertyConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	int assetRefIndex;
+};
+
 class GraphTextureProperty : public GraphProperty
 {
 public:
 	GraphTextureProperty();
 	GraphTextureProperty(NodeGraphPtr ownerGraph);
+
+	virtual bool loadFromConfig(const class GraphPropertyConfig& config) override;
+	virtual void saveToConfig(class GraphPropertyConfig& config) const override;
 
 	inline void setTextureAssetReference(TextureAssetReferencePtr inAssetRef) { m_textureAssetRef = inAssetRef; }
 	inline TextureAssetReferencePtr getTextureAssetReference() const { return m_textureAssetRef; }
@@ -30,7 +45,6 @@ public:
 	GraphTexturePropertyFactory() : GraphPropertyFactory() {}
 	GraphTexturePropertyFactory(NodeGraphPtr ownerGraph) : GraphPropertyFactory(ownerGraph) {}
 
-	virtual const std::string getPropertyTypeName() const override { return "texture_property"; }
 	virtual GraphPropertyPtr createProperty(
 		const class NodeEditorState* editorState,
 		const std::string& name) const;

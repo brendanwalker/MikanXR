@@ -68,6 +68,11 @@ public:
 		const class NodeEditorState* editorState,
 		const std::filesystem::path& inAssetPath) const;
 
+	virtual AssetReferenceConfigPtr createAssetReferenceConfig() const
+	{
+		return std::make_shared<AssetReferenceConfig>();
+	}
+
 	template <class t_factory_class>
 	static std::shared_ptr<t_factory_class> createFactory()
 	{

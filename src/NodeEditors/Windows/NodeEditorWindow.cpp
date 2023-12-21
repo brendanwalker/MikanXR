@@ -16,7 +16,6 @@
 #include "TextStyle.h"
 
 #include "Pins/NodePin.h"
-#include "Properties/GraphAssetListProperty.h"
 #include "Properties/GraphVariableList.h"
 
 #include "imgui.h"
@@ -491,7 +490,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	for (auto variableList : m_variableLists)
 	{		
 		const auto& variableFactory= variableList->getFactory();
-		auto variableTypeName = variableFactory->getPropertyTypeName();
+		auto variableTypeName = variableFactory->getGraphPropertyClassName();
 		auto& variableArray = variableList->getArray();
 
 		// Add button
@@ -636,7 +635,7 @@ void NodeEditorWindow::renderAssetsPanel()
 						if (assetRef)
 						{
 							// Add the asset reference
-							m_assetReferencesList->getAssetListMutable().push_back(assetRef);
+							m_nodeGraph->getAssetReferencesMutable().push_back(assetRef);
 							onAssetReferenceCreated(assetRef);
 						}
 					}
@@ -648,7 +647,7 @@ void NodeEditorWindow::renderAssetsPanel()
 
 			// Assets browser
 			{
-				auto& assetRefArray = m_assetReferencesList->getAssetList();
+				auto& assetRefArray = m_nodeGraph->getAssetReferences();
 
 				ImGui::BeginChild("AssetBrowser");
 
@@ -752,7 +751,7 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET)
 	{
 		const int assetIndex= m_objectSelection.getObjectId(0);
-		const std::vector<AssetReferencePtr>& assetArray= m_assetReferencesList->getAssetList();
+		const std::vector<AssetReferencePtr>& assetArray= m_nodeGraph->getAssetReferences();
 
 		if (assetIndex >= 0 && assetIndex < (int)assetArray.size())
 		{
@@ -814,7 +813,7 @@ void NodeEditorWindow::deleteSelectedItem()
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET && 
 			 m_objectSelection.getObjectCount() > 0)
 	{
-		std::vector<AssetReferencePtr>& assetList= m_assetReferencesList->getAssetListMutable();
+		std::vector<AssetReferencePtr>& assetList= m_nodeGraph->getAssetReferencesMutable();
 		const int assetIndex = m_objectSelection.getObjectId(0);
 
 		assetList.erase(assetList.begin() + assetIndex);
@@ -863,9 +862,6 @@ void NodeEditorWindow::onNodeGraphCreated()
 	m_nodeGraph->OnPropertyModifed += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 	m_nodeGraph->OnPropertyDeleted += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
 
-	// Fetch asset reference list from the graph
-	m_assetReferencesList = m_nodeGraph->getTypedPropertyByName<GraphAssetListProperty>("assetReferences");
-
 	// Fetch all variables lists from the graph
 	auto propertyMap= m_nodeGraph->getPropertyMap();
 	for (auto it = propertyMap.begin(); it != propertyMap.end(); it++)
@@ -881,7 +877,6 @@ void NodeEditorWindow::onNodeGraphCreated()
 
 void NodeEditorWindow::onNodeGraphDeleted()
 {
-	m_assetReferencesList = nullptr;
 	m_variableLists.clear();
 
 	m_nodeGraph->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);

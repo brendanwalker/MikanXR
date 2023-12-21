@@ -2,11 +2,29 @@
 #include "GlRenderModelResource.h"
 #include "GlVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
+#include "Logger.h"
 #include "ModelAssetReference.h"
 #include "Nodes/ModelNode.h"
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
+
+// -- GraphModelPropertyConfig -----
+configuru::Config GraphModelPropertyConfig::writeToJSON()
+{
+	configuru::Config pt = GraphPropertyConfig::writeToJSON();
+
+	pt["asset_ref_index"] = assetRefIndex;
+
+	return pt;
+}
+
+void GraphModelPropertyConfig::readFromJSON(const configuru::Config& pt)
+{
+	assetRefIndex = pt.get_or<int>("asset_ref_index", -1);
+
+	GraphPropertyConfig::readFromJSON(pt);
+}
 
 // -- GraphModelProperty -----
 GraphModelProperty::GraphModelProperty() 
@@ -17,6 +35,61 @@ GraphModelProperty::GraphModelProperty()
 GraphModelProperty::GraphModelProperty(NodeGraphPtr ownerGraph) 
 	: GraphProperty(ownerGraph)
 {
+}
+
+bool GraphModelProperty::loadFromConfig(const GraphPropertyConfig& config)
+{
+	if (GraphProperty::loadFromConfig(config))
+	{
+		const auto& propConfig = static_cast<const GraphModelPropertyConfig&>(config);
+		if (propConfig.assetRefIndex != -1)
+		{
+			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(propConfig.assetRefIndex);
+			auto materialAssetRef = std::dynamic_pointer_cast<ModelAssetReference>(assetRef);
+			if (materialAssetRef)
+			{
+				setModelAssetReference(materialAssetRef);
+				return true;
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("GraphModelProperty::loadFromConfig") 
+					<< "Invalid model asset reference: " << propConfig.assetRefIndex;
+				setModelAssetReference(ModelAssetReferencePtr());
+			}
+		}
+		else
+		{
+			// Config says the property had an empty asset reference
+			setModelAssetReference(ModelAssetReferencePtr());
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void GraphModelProperty::saveToConfig(GraphPropertyConfig& config) const
+{
+	auto& propConfig = static_cast<GraphModelPropertyConfig&>(config);
+
+	// Default asset ref to invalid
+	propConfig.assetRefIndex = -1;
+
+	// If we have a valid asset ref, look up the index in the graph
+	if (m_modelAssetRef)
+	{
+		propConfig.assetRefIndex = getOwnerGraph()->getAssetReferenceIndex(m_modelAssetRef);
+
+		if (propConfig.assetRefIndex == -1)
+		{
+			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig") 
+				<< "Model property has orphaned asset reference: " 
+				<< m_modelAssetRef->getAssetPath();
+		}
+	}
+
+	GraphProperty::saveToConfig(config);
 }
 
 void GraphModelProperty::editorHandleDragDrop(const class NodeEditorState& editorState)

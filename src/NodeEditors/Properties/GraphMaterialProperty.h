@@ -4,11 +4,26 @@
 #include "RendererFwd.h"
 #include "GraphProperty.h"
 
+class GraphMaterialPropertyConfig : public GraphPropertyConfig
+{
+public:
+	GraphMaterialPropertyConfig() : GraphPropertyConfig() {}
+	GraphMaterialPropertyConfig(const std::string& nodeName) : GraphPropertyConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	int assetRefIndex;
+};
+
 class GraphMaterialProperty : public GraphProperty
 {
 public:
 	GraphMaterialProperty();
 	GraphMaterialProperty(NodeGraphPtr ownerGraph);
+
+	virtual bool loadFromConfig(const class GraphPropertyConfig& config) override;
+	virtual void saveToConfig(class GraphPropertyConfig& config) const override;
 
 	inline void setMaterialAssetReference(MaterialAssetReferencePtr inAssetRef) { m_materialAssetRef = inAssetRef; }
 	inline MaterialAssetReferencePtr getMaterialAssetReference() const { return m_materialAssetRef; }
@@ -24,13 +39,14 @@ protected:
 	GlMaterialPtr m_materialResource;
 };
 
-class GraphMaterialPropertyFactory : public GraphPropertyFactory
+class GraphMaterialPropertyFactory : 
+	public TypedGraphPropertyFactory<GraphMaterialProperty, GraphMaterialPropertyConfig>
 {
 public:
-	GraphMaterialPropertyFactory() : GraphPropertyFactory() {}
-	GraphMaterialPropertyFactory(NodeGraphPtr ownerGraph) : GraphPropertyFactory(ownerGraph) {}
+	GraphMaterialPropertyFactory() = default;
+	GraphMaterialPropertyFactory(NodeGraphPtr ownerGraph) 
+		: TypedGraphPropertyFactory<GraphMaterialProperty, GraphMaterialPropertyConfig>(ownerGraph) {}
 
-	virtual const std::string getPropertyTypeName() const override { return "material_property"; }
 	virtual GraphPropertyPtr createProperty(
 		const class NodeEditorState* editorState,
 		const std::string& name) const;
