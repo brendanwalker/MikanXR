@@ -9,17 +9,52 @@
 
 #include <typeinfo>
 
-// -- EventNode -----
-EventNode::EventNode()
-	: Node()
-{
+// -- EventNodeConfig -----
 
+configuru::Config EventNodeConfig::writeToJSON()
+{
+	configuru::Config pt = NodeConfig::writeToJSON();
+
+	pt["event_name"] = eventName;
+
+	return pt;
 }
 
-EventNode::EventNode(NodeGraphPtr parentGraph)
-	: Node(parentGraph)
+void EventNodeConfig::readFromJSON(const configuru::Config& pt)
 {
+	NodeConfig::readFromJSON(pt);
 
+	eventName = pt.get_or<std::string>("event_name", "");
+}
+
+// -- EventNode -----
+EventNode::EventNode() : Node()
+{
+}
+
+EventNode::EventNode(NodeGraphPtr parentGraph) : Node(parentGraph)
+{
+}
+
+bool EventNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
+{
+	if (Node::loadFromConfig(nodeConfig))
+	{
+		auto eventNodeConfig= std::static_pointer_cast<const EventNodeConfig>(nodeConfig);
+
+		m_eventName= eventNodeConfig->eventName;
+	}
+
+	return false;
+}
+
+void EventNode::saveToConfig(NodeConfigPtr nodeConfig) const
+{
+	auto eventNodeConfig= std::static_pointer_cast<EventNodeConfig>(nodeConfig);
+
+	eventNodeConfig->eventName= m_eventName;
+
+	Node::saveToConfig(nodeConfig);
 }
 
 bool EventNode::evaluateNode(NodeEvaluator& evaluator)

@@ -21,6 +21,7 @@ protected:
 
 	void setMaterialPin(MaterialPinPtr inPin);
 	void setModelPin(ModelPinPtr inPin);
+	void onGraphLoaded(bool success);
 	void onMaterialLinkConnected(t_node_link_id id);
 	void onMaterialLinkDisconnected(t_node_link_id id);
 	void onModelLinkConnected(t_node_link_id id);

@@ -251,11 +251,23 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 		}
 	}
 
-	//TODO: Load Nodes
+	//Load all nodes
+	for (auto nodeConfig : config.nodeConfigs)
+	{
+		if (!loadNodeFromConfig(nodeConfig))
+		{
+			bSuccess = false;
+		}
+	}
 	
 	//TODO: Load Pins
 
 	//TODO: Load Links
+
+	if (OnGraphLoaded)
+	{
+		OnGraphLoaded(bSuccess);
+	}
 
 	return bSuccess;
 }
@@ -263,7 +275,6 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 AssetReferencePtr NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig)
 {
 	AssetReferenceFactoryPtr factory = getAssetReferenceFactory(assetRefConfig->className);
-	AssetReferencePtr assetRef;
 
 	if (factory)
 	{
@@ -277,19 +288,19 @@ AssetReferencePtr NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr asse
 			}
 			else
 			{
-				MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") 
+				MIKAN_LOG_INFO("NodeGraph::loadAssetRefFromConfig") 
 					<< "Failed to load asset ref: " << assetRefConfig->className;
 			}
 		}
 		else
 		{
-			MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") 
+			MIKAN_LOG_INFO("NodeGraph::loadAssetRefFromConfig") 
 				<< "Failed to create asset ref: " << assetRefConfig->className;
 		}
 	}
 	else
 	{
-		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") 
+		MIKAN_LOG_INFO("NodeGraph::loadAssetRefFromConfig") 
 			<< "Unknown graph asset ref class: " << assetRefConfig->className;
 	}
 
@@ -338,6 +349,41 @@ GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(GraphPropertyConfigPtr p
 	}
 
 	return GraphPropertyPtr();
+}
+
+NodePtr NodeGraph::loadNodeFromConfig(NodeConfigPtr nodeConfig)
+{
+	NodeFactoryPtr factory = getNodeFactory(nodeConfig->className);
+
+	if (factory)
+	{
+		NodePtr node = factory->createNode(nullptr);
+		if (node)
+		{
+			if (node->loadFromConfig(nodeConfig))
+			{
+				m_Nodes.insert({node->getId(), node});
+				return node;
+			}
+			else
+			{
+				MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig")
+					<< "Failed to load node: " << nodeConfig->className;
+			}
+		}
+		else
+		{
+			MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig")
+				<< "Failed to create node: " << nodeConfig->className;
+		}
+	}
+	else
+	{
+		MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig")
+			<< "Unknown graph node class: " << nodeConfig->className;
+	}
+
+	return NodePtr();
 }
 
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const

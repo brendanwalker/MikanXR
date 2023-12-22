@@ -36,10 +36,19 @@ DrawTriMeshNode::DrawTriMeshNode()
 DrawTriMeshNode::DrawTriMeshNode(NodeGraphPtr ownerGraph)
 	: Node(ownerGraph)
 {
+	if (m_ownerGraph)
+	{
+		m_ownerGraph->OnGraphLoaded += MakeDelegate(this, &DrawTriMeshNode::onGraphLoaded);
+	}
 }
 
 DrawTriMeshNode::~DrawTriMeshNode()
 {
+	if (m_ownerGraph)
+	{
+		m_ownerGraph->OnGraphLoaded -= MakeDelegate(this, &DrawTriMeshNode::onGraphLoaded);
+	}
+
 	if (m_materialPin)
 	{
 		m_materialPin->OnLinkConnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkConnected);
@@ -256,6 +265,24 @@ void DrawTriMeshNode::setModelPin(ModelPinPtr inPin)
 	inPin->OnLinkConnected += MakeDelegate(this, &DrawTriMeshNode::onModelLinkConnected);
 	inPin->OnLinkDisconnected += MakeDelegate(this, &DrawTriMeshNode::onModelLinkDisconnected);
 	m_modelPin = inPin;
+}
+
+void DrawTriMeshNode::onGraphLoaded(bool success)
+{
+	if (success)
+	{
+		if (m_materialPin)
+		{
+			m_materialPin->copyValueFromSourcePin();
+			setMaterial(m_materialPin->getValue());
+		}
+
+		if (m_modelPin)
+		{
+			m_modelPin->copyValueFromSourcePin();
+			setModel(m_modelPin->getValue());
+		}
+	}
 }
 
 void DrawTriMeshNode::onMaterialLinkConnected(t_node_link_id id)

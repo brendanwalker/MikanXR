@@ -48,12 +48,12 @@ Node::Node(NodeGraphPtr ownerGraph)
 	
 }
 
-bool Node::loadFromConfig(const NodeConfig& config)
+bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
-	m_id= config.id;
-	m_nodePos= {config.pos[0], config.pos[1]};
+	m_id= nodeConfig->id;
+	m_nodePos= {nodeConfig->pos[0], nodeConfig->pos[1]};
 
-	for (t_node_pin_id pinId : config.pinIDsIn)
+	for (t_node_pin_id pinId : nodeConfig->pinIDsIn)
 	{
 		NodePinPtr pin = m_ownerGraph->getNodePinById(pinId);
 		if (pin)
@@ -66,7 +66,7 @@ bool Node::loadFromConfig(const NodeConfig& config)
 		}
 	}
 
-	for (t_node_pin_id pinId : config.pinIDsIn)
+	for (t_node_pin_id pinId : nodeConfig->pinIDsIn)
 	{
 		NodePinPtr pin = m_ownerGraph->getNodePinById(pinId);
 		if (pin)
@@ -82,20 +82,20 @@ bool Node::loadFromConfig(const NodeConfig& config)
 	return true;
 }
 
-void Node::saveToConfig(NodeConfig& config) const
+void Node::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	config.className= typeid(*this).name();
-	config.id= m_id;
-	config.pos= {m_nodePos.x, m_nodePos.y};
+	nodeConfig->className = typeid(*this).name();
+	nodeConfig->id = m_id;
+	nodeConfig->pos = {m_nodePos.x, m_nodePos.y};
 
 	for (NodePinPtr pin : m_pinsIn)
 	{
-		config.pinIDsIn.push_back(pin->getId());
+		nodeConfig->pinIDsIn.push_back(pin->getId());
 	}
 
 	for (NodePinPtr pin : m_pinsOut)
 	{
-		config.pinIDsOut.push_back(pin->getId());
+		nodeConfig->pinIDsOut.push_back(pin->getId());
 	}
 }
 

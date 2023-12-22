@@ -40,8 +40,8 @@ public:
 	Node(NodeGraphPtr ownerGraph);
 	virtual ~Node() {}
 
-	virtual bool loadFromConfig(const class NodeConfig& config);
-	virtual void saveToConfig(class NodeConfig& config) const;
+	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
+	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
 
 	inline int getId() const { return m_id; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }

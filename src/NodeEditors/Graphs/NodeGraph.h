@@ -73,7 +73,10 @@ public:
 	virtual AssetReferencePtr loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
 	virtual GraphPropertyPtr loadGraphPropertyFromConfig(
 		GraphPropertyConfigPtr propConfig, const NodeGraphConfig& graphConfig);
+	virtual NodePtr loadNodeFromConfig(NodeConfigPtr nodeConfig);
 	virtual void saveToConfig(NodeGraphConfig& config) const;
+
+	MulticastDelegate<void(bool success)> OnGraphLoaded;
 
 	virtual void update(class NodeEvaluator& evaluator);
 	virtual void editorRender(const class NodeEditorState& editorState);
