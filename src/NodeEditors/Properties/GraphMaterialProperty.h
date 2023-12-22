@@ -22,8 +22,9 @@ public:
 	GraphMaterialProperty();
 	GraphMaterialProperty(NodeGraphPtr ownerGraph);
 
-	virtual bool loadFromConfig(const class GraphPropertyConfig& config) override;
-	virtual void saveToConfig(class GraphPropertyConfig& config) const override;
+	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
+								const NodeGraphConfig& graphConfig) override;
+	virtual void saveToConfig(GraphPropertyConfig& config) const override;
 
 	inline void setMaterialAssetReference(MaterialAssetReferencePtr inAssetRef) { m_materialAssetRef = inAssetRef; }
 	inline MaterialAssetReferencePtr getMaterialAssetReference() const { return m_materialAssetRef; }

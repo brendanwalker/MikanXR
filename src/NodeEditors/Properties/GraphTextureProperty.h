@@ -22,8 +22,9 @@ public:
 	GraphTextureProperty();
 	GraphTextureProperty(NodeGraphPtr ownerGraph);
 
-	virtual bool loadFromConfig(const class GraphPropertyConfig& config) override;
-	virtual void saveToConfig(class GraphPropertyConfig& config) const override;
+	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
+								const NodeGraphConfig& graphConfig) override;
+	virtual void saveToConfig(GraphPropertyConfig& config) const override;
 
 	inline void setTextureAssetReference(TextureAssetReferencePtr inAssetRef) { m_textureAssetRef = inAssetRef; }
 	inline TextureAssetReferencePtr getTextureAssetReference() const { return m_textureAssetRef; }

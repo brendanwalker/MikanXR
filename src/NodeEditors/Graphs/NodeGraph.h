@@ -48,7 +48,7 @@ public:
 	int nextId= -1;
 
 	std::vector<AssetReferenceConfigPtr> assetRefConfigs;
-	std::vector<GraphPropertyConfigPtr> propertyConfigs;
+	std::map<t_graph_property_id, GraphPropertyConfigPtr> propertyConfigMap;
 	std::vector<NodeConfigPtr> nodeConfigs;
 	std::vector<NodePinConfigPtr> pinConfigs;
 	std::vector<NodeLinkConfigPtr> linkConfigs;
@@ -69,8 +69,11 @@ public:
 
 	inline float getTimeInSeconds() const { return m_timeInSeconds; }
 
-	virtual bool loadFromConfig(const class NodeGraphConfig& config);
-	virtual void saveToConfig(class NodeGraphConfig& config) const;
+	virtual bool loadFromConfig(const NodeGraphConfig& config);
+	virtual AssetReferencePtr loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
+	virtual GraphPropertyPtr loadGraphPropertyFromConfig(
+		GraphPropertyConfigPtr propConfig, const NodeGraphConfig& graphConfig);
+	virtual void saveToConfig(NodeGraphConfig& config) const;
 
 	virtual void update(class NodeEvaluator& evaluator);
 	virtual void editorRender(const class NodeEditorState& editorState);

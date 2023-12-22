@@ -37,14 +37,16 @@ GraphModelProperty::GraphModelProperty(NodeGraphPtr ownerGraph)
 {
 }
 
-bool GraphModelProperty::loadFromConfig(const GraphPropertyConfig& config)
+bool GraphModelProperty::loadFromConfig(
+	GraphPropertyConfigConstPtr propConfig,
+	const NodeGraphConfig& graphConfig)
 {
-	if (GraphProperty::loadFromConfig(config))
+	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto& propConfig = static_cast<const GraphModelPropertyConfig&>(config);
-		if (propConfig.assetRefIndex != -1)
+		const auto& modelPropConfig = std::static_pointer_cast<const GraphModelPropertyConfig>(propConfig);
+		if (modelPropConfig->assetRefIndex != -1)
 		{
-			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(propConfig.assetRefIndex);
+			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(modelPropConfig->assetRefIndex);
 			auto materialAssetRef = std::dynamic_pointer_cast<ModelAssetReference>(assetRef);
 			if (materialAssetRef)
 			{
@@ -54,7 +56,7 @@ bool GraphModelProperty::loadFromConfig(const GraphPropertyConfig& config)
 			else
 			{
 				MIKAN_LOG_ERROR("GraphModelProperty::loadFromConfig") 
-					<< "Invalid model asset reference: " << propConfig.assetRefIndex;
+					<< "Invalid model asset reference: " << modelPropConfig->assetRefIndex;
 				setModelAssetReference(ModelAssetReferencePtr());
 			}
 		}

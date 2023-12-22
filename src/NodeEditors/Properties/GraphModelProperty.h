@@ -22,8 +22,9 @@ public:
 	GraphModelProperty();
 	GraphModelProperty(NodeGraphPtr ownerGraph);
 
-	virtual bool loadFromConfig(const class GraphPropertyConfig& config) override;
-	virtual void saveToConfig(class GraphPropertyConfig& config) const override;
+	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
+								const NodeGraphConfig& graphConfig) override;
+	virtual void saveToConfig(GraphPropertyConfig& config) const override;
 
 	inline void setModelAssetReference(ModelAssetReferencePtr inAssetRef) { m_modelAssetRef= inAssetRef; }
 	inline ModelAssetReferencePtr getModelAssetReference() const { return m_modelAssetRef; }

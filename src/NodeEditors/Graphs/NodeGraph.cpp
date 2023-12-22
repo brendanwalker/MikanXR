@@ -91,8 +91,17 @@ configuru::Config NodeGraphConfig::writeToJSON()
 	pt["class_name"] = className;
 	pt["next_id"] = nextId;
 
+	// Write out propertyConfigMap as an array
+	{
+		auto configArray = configuru::Config::array();
+		for (auto it = propertyConfigMap.begin(); it != propertyConfigMap.end(); it++)
+		{
+			configArray.push_back(it->second->writeToJSON());
+		}
+		pt["properties"] = configArray;
+	}
+
 	writeStdConfigVector(pt, "assetReferences", assetRefConfigs);
-	writeStdConfigVector(pt, "properties", propertyConfigs);
 	writeStdConfigVector(pt, "nodes", nodeConfigs);
 	writeStdConfigVector(pt, "pins", pinConfigs);
 	writeStdConfigVector(pt, "links", linkConfigs);
@@ -158,6 +167,7 @@ static bool readNodeGraphConfigArray(
 
 bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 {
+	std::vector<GraphPropertyConfigPtr> propertyConfigs;
 	bool success= true;
 
 	// Use factories to create the config of the appropriate type
@@ -186,6 +196,13 @@ bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 		[graph](const std::string& className) {
 			return std::make_shared<NodeLinkConfig>();
 		});
+
+	// For graph properties, we actually need to use a map
+	// so that we can look up property config by id
+	for (GraphPropertyConfigPtr propertyConfig : propertyConfigs)
+	{
+		propertyConfigMap.insert({propertyConfig->id, propertyConfig});
+	}
 
 	return success;
 }
@@ -219,63 +236,17 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 	// Load all asset references
 	for (auto assetRefConfig : config.assetRefConfigs)
 	{
-		AssetReferenceFactoryPtr factory= getAssetReferenceFactory(assetRefConfig->className);
-		if (factory)
+		if (!loadAssetRefFromConfig(assetRefConfig))
 		{
-			AssetReferencePtr assetRef= factory->createAssetReference(nullptr, "");
-			if (assetRef)
-			{
-				if (assetRef->loadFromConfig(*assetRefConfig.get()))
-				{
-					m_assetReferences.push_back(assetRef);
-				}
-				else
-				{
-					MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to load asset ref: " << assetRefConfig->className;
-					bSuccess = false;
-				}
-			}
-			else
-			{
-				MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to create asset ref: " << assetRefConfig->className;
-				bSuccess = false;
-			}
-		}
-		else
-		{
-			MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Unknown graph asset ref class: " << assetRefConfig->className;
-			bSuccess = false;
+			bSuccess= false;
 		}
 	}
 
 	// Load all properties
-	for (auto propConfig : config.propertyConfigs)
+	for (auto it = config.propertyConfigMap.begin(); it != config.propertyConfigMap.end(); it++)
 	{
-		GraphPropertyFactoryPtr factory= getPropertyFactory(propConfig->className);
-		if (factory)
+		if (!loadGraphPropertyFromConfig(it->second, config))
 		{
-			GraphPropertyPtr property= factory->createProperty(nullptr, propConfig->name);
-			if (property)
-			{
-				if (property->loadFromConfig(*propConfig.get()))
-				{
-					m_properties.insert({property->getId(), property});
-				}
-				else
-				{
-					MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to load property: " << propConfig->name;
-					bSuccess= false;
-				}
-			}
-			else
-			{
-				MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to create property: " << propConfig->name;
-				bSuccess= false;
-			}
-		}
-		else
-		{
-			MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Unknown graph property class: " << propConfig->className;
 			bSuccess= false;
 		}
 	}
@@ -287,6 +258,86 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 	//TODO: Load Links
 
 	return bSuccess;
+}
+
+AssetReferencePtr NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig)
+{
+	AssetReferenceFactoryPtr factory = getAssetReferenceFactory(assetRefConfig->className);
+	AssetReferencePtr assetRef;
+
+	if (factory)
+	{
+		AssetReferencePtr assetRef = factory->createAssetReference(nullptr, "");
+		if (assetRef)
+		{
+			if (assetRef->loadFromConfig(*assetRefConfig.get()))
+			{
+				m_assetReferences.push_back(assetRef);
+				return assetRef;
+			}
+			else
+			{
+				MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") 
+					<< "Failed to load asset ref: " << assetRefConfig->className;
+			}
+		}
+		else
+		{
+			MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") 
+				<< "Failed to create asset ref: " << assetRefConfig->className;
+		}
+	}
+	else
+	{
+		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") 
+			<< "Unknown graph asset ref class: " << assetRefConfig->className;
+	}
+
+	return AssetReferencePtr();
+}
+
+GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig, const NodeGraphConfig& graphConfig)
+{
+	GraphPropertyPtr property= getPropertyById(propConfig->id);
+
+	// Skip properties that were already created by a parent property (i.e. ArrayProperty)
+	if (property)
+	{
+		assert(propConfig->parentId != -1);
+		assert(getPropertyById(propConfig->parentId));
+		return property;
+	}
+
+	GraphPropertyFactoryPtr factory = getPropertyFactory(propConfig->className);
+	if (factory)
+	{
+		property = factory->createProperty(nullptr, propConfig->name);
+		if (property)
+		{
+			if (property->loadFromConfig(propConfig, graphConfig))
+			{
+				m_properties.insert({property->getId(), property});
+				return property;
+			}
+			else
+			{
+				MIKAN_LOG_INFO("NodeGraph::loadGraphPropertyFromConfig") 
+					<< "Failed to load property: " << propConfig->name;
+			}
+		}
+		else
+		{
+			MIKAN_LOG_INFO("NodeGraph::loadGraphPropertyFromConfig") 
+				<< "Failed to create property: " << propConfig->name;
+		}
+	}
+	else
+	{
+		MIKAN_LOG_INFO("NodeGraph::loadGraphPropertyFromConfig") 
+			<< "Unknown graph property class: " << propConfig->className;
+	}
+
+	return GraphPropertyPtr();
 }
 
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const

@@ -28,6 +28,10 @@ class NodeGraph;
 using NodeGraphPtr = std::shared_ptr<NodeGraph>;
 using NodeGraphConstPtr = std::shared_ptr<const NodeGraph>;
 
+class NodeGraphConfig;
+using NodeGraphConfigPtr = std::shared_ptr<NodeGraphConfig>;
+using NodeGraphConfigConstPtr = std::shared_ptr<const NodeGraphConfig>;
+
 // Node Types
 class Node;
 using NodePtr = std::shared_ptr<Node>;

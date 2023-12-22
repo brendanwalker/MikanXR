@@ -27,7 +27,9 @@ public:
 	GraphProperty(NodeGraphPtr ownerGraph);
 	virtual ~GraphProperty() {}
 
-	virtual bool loadFromConfig(const class GraphPropertyConfig& config);
+	virtual bool loadFromConfig(
+		GraphPropertyConfigConstPtr propConfig,
+		const NodeGraphConfig& graphConfig);
 	virtual void saveToConfig(class GraphPropertyConfig& config) const;
 
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }

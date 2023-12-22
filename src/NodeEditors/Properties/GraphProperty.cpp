@@ -36,11 +36,13 @@ GraphProperty::GraphProperty(NodeGraphPtr ownerGraph)
 {
 }
 
-bool GraphProperty::loadFromConfig(const GraphPropertyConfig& config)
+bool GraphProperty::loadFromConfig(
+	GraphPropertyConfigConstPtr propConfig,
+	const NodeGraphConfig& graphConfig)
 {
-	m_id= config.id;
-	m_parentId= config.parentId;
-	m_name= config.name;
+	m_id= propConfig->id;
+	m_parentId= propConfig->parentId;
+	m_name= propConfig->name;
 
 	return true;
 }

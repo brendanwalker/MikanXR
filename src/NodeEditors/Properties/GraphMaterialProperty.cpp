@@ -35,14 +35,16 @@ GraphMaterialProperty::GraphMaterialProperty(NodeGraphPtr ownerGraph)
 	: GraphProperty(ownerGraph)
 {}
 
-bool GraphMaterialProperty::loadFromConfig(const GraphPropertyConfig& config)
+bool GraphMaterialProperty::loadFromConfig(
+	GraphPropertyConfigConstPtr propConfig,
+	const NodeGraphConfig& graphConfig)
 {
-	if (GraphProperty::loadFromConfig(config))
+	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto& propConfig = static_cast<const GraphMaterialPropertyConfig&>(config);
-		if (propConfig.assetRefIndex != -1)
+		const auto& matPropConfig = std::static_pointer_cast<const GraphMaterialPropertyConfig>(propConfig);
+		if (matPropConfig->assetRefIndex != -1)
 		{
-			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(propConfig.assetRefIndex);
+			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(matPropConfig->assetRefIndex);
 			auto materialAssetRef= std::dynamic_pointer_cast<MaterialAssetReference>(assetRef);
 			if (materialAssetRef)
 			{
@@ -51,7 +53,8 @@ bool GraphMaterialProperty::loadFromConfig(const GraphPropertyConfig& config)
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GraphMaterialProperty::loadFromConfig") << "Invalid material asset reference: " << propConfig.assetRefIndex;
+				MIKAN_LOG_ERROR("GraphMaterialProperty::loadFromConfig") 
+					<< "Invalid material asset reference: " << matPropConfig->assetRefIndex;
 				setMaterialAssetReference(MaterialAssetReferencePtr());
 			}
 		}

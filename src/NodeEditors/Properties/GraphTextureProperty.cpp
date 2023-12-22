@@ -34,14 +34,16 @@ GraphTextureProperty::GraphTextureProperty(NodeGraphPtr ownerGraph)
 	: GraphProperty(ownerGraph)
 {}
 
-bool GraphTextureProperty::loadFromConfig(const GraphPropertyConfig& config)
+bool GraphTextureProperty::loadFromConfig(
+	GraphPropertyConfigConstPtr propConfig,
+	const NodeGraphConfig& graphConfig)
 {
-	if (GraphProperty::loadFromConfig(config))
+	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto& propConfig = static_cast<const GraphTexturePropertyConfig&>(config);
-		if (propConfig.assetRefIndex != -1)
+		const auto& texturePropConfig = std::static_pointer_cast<const GraphTexturePropertyConfig>(propConfig);
+		if (texturePropConfig->assetRefIndex != -1)
 		{
-			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(propConfig.assetRefIndex);
+			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(texturePropConfig->assetRefIndex);
 			auto textureAssetRef = std::dynamic_pointer_cast<TextureAssetReference>(assetRef);
 			if (textureAssetRef)
 			{
@@ -51,7 +53,7 @@ bool GraphTextureProperty::loadFromConfig(const GraphPropertyConfig& config)
 			else
 			{
 				MIKAN_LOG_ERROR("GraphTextureProperty::loadFromConfig") 
-					<< "Invalid texture asset reference: " << propConfig.assetRefIndex;
+					<< "Invalid texture asset reference: " << texturePropConfig->assetRefIndex;
 				setTextureAssetReference(TextureAssetReferencePtr());
 			}
 		}
