@@ -36,12 +36,12 @@ bool GraphProperty::loadFromConfig(
 	return true;
 }
 
-void GraphProperty::saveToConfig(GraphPropertyConfig& config) const
+void GraphProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	config.className= typeid(*this).name();
-	config.id= m_id;
-	config.parentId= m_parentId;
-	config.name= m_name;
+	config->className= getClassName();
+	config->id= m_id;
+	config->parentId= m_parentId;
+	config->name= m_name;
 }
 
 void GraphProperty::notifyPropertyModified() const

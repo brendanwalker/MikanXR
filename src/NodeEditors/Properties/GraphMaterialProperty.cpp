@@ -61,19 +61,19 @@ bool GraphMaterialProperty::loadFromConfig(
 	return false;
 }
 
-void GraphMaterialProperty::saveToConfig(GraphPropertyConfig& config) const
+void GraphMaterialProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto& propConfig = static_cast<GraphMaterialPropertyConfig&>(config);
+	auto& propConfig = std::static_pointer_cast<GraphMaterialPropertyConfig>(config);
 
 	// Default asset ref to invalid
-	propConfig.assetRefIndex = -1;
+	propConfig->assetRefIndex = -1;
 
 	// If we have a valid asset ref, look up the index in the graph
 	if (m_materialAssetRef)
 	{
-		propConfig.assetRefIndex = getOwnerGraph()->getAssetReferenceIndex(m_materialAssetRef);
+		propConfig->assetRefIndex = getOwnerGraph()->getAssetReferenceIndex(m_materialAssetRef);
 
-		if (propConfig.assetRefIndex == -1)
+		if (propConfig->assetRefIndex == -1)
 		{
 			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig") << "Material property has orphaned asset reference: " << m_materialAssetRef->getAssetPath();
 		}

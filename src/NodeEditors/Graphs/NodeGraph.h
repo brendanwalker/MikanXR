@@ -85,7 +85,11 @@ public:
 
 	// Saving
 	virtual void saveToConfig(NodeGraphConfig& config) const;
-
+	virtual void saveGraphPropertyToConfig(GraphPropertyConstPtr prop, NodeGraphConfig& graphConfig) const;
+	virtual void saveAssetRefToConfig(AssetReferenceConstPtr assetRef, NodeGraphConfig& graphConfig) const;
+	virtual void saveNodeToConfig(NodeConstPtr node, NodeGraphConfig& graphConfig) const;
+	virtual void savePinToConfig(NodePinConstPtr pin, NodeGraphConfig& graphConfig) const;
+	virtual void saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphConfig) const;
 
 	virtual void update(class NodeEvaluator& evaluator);
 	virtual void editorRender(const class NodeEditorState& editorState);
@@ -105,7 +109,7 @@ public:
 		return m_assetRefFactories;
 	}
 
-	AssetReferenceFactoryPtr getAssetReferenceFactory(const std::string assetRefClassName)
+	AssetReferenceFactoryPtr getAssetReferenceFactory(const std::string assetRefClassName) const
 	{
 		auto it = m_assetRefFactories.find(assetRefClassName);
 
@@ -157,7 +161,7 @@ public:
 		m_propertyFactories.insert({className, factory});
 	}
 
-	GraphPropertyFactoryPtr getPropertyFactory(const std::string propertyClassName)
+	GraphPropertyFactoryPtr getPropertyFactory(const std::string propertyClassName) const
 	{
 		auto it= m_propertyFactories.find(propertyClassName);
 
@@ -216,7 +220,7 @@ public:
 		m_nodeFactories.insert({className, factory});
 	}
 
-	NodeFactoryPtr getNodeFactory(const std::string nodeClassName)
+	NodeFactoryPtr getNodeFactory(const std::string nodeClassName) const
 	{
 		auto it = m_nodeFactories.find(nodeClassName);
 
@@ -256,7 +260,7 @@ public:
 		m_pinFactories.insert({pinClassName, factory});
 	}
 
-	NodePinFactoryPtr getPinFactory(const std::string nodeClassName)
+	NodePinFactoryPtr getPinFactory(const std::string nodeClassName) const
 	{
 		auto it = m_pinFactories.find(nodeClassName);
 

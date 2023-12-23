@@ -26,8 +26,10 @@ public:
 	AssetReference()= default;
 	virtual ~AssetReference();
 
-	virtual bool loadFromConfig(const class AssetReferenceConfig& config);
-	virtual void saveToConfig(class AssetReferenceConfig& config) const;
+	inline std::string getClassName() const { return typeid(*this).name(); }
+
+	virtual bool loadFromConfig(AssetReferenceConfigConstPtr config);
+	virtual void saveToConfig(AssetReferenceConfigPtr config) const;
 
 	virtual std::string getAssetTypeName() const { return "Asset"; }
 	inline GlTexturePtr getPreviewTexture() const { return m_previewTexture; }
@@ -55,7 +57,7 @@ class AssetReferenceFactory
 public:
 	AssetReferenceFactory() = default;
 
-	inline std::string getAssetRefClassName() const { return typeid(m_defaultAssetRefObject.get()).name(); }
+	inline std::string getAssetRefClassName() const { return m_defaultAssetRefObject->getClassName(); }
 
 	virtual std::string getAssetTypeName() const { return "Asset"; }
 	virtual char const* getFileDialogTitle() const { return "Load Asset"; }

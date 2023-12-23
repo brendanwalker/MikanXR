@@ -32,6 +32,8 @@ class NodePin
 public:
 	NodePin();
 
+	inline std::string getClassName() const { return typeid(*this).name(); }
+
 	virtual bool loadFromConfig(NodePinConfigConstPtr config);
 	virtual void saveToConfig(NodePinConfigPtr config) const;
 
@@ -84,7 +86,7 @@ class NodePinFactory
 public:
 	NodePinFactory() = default;
 
-	inline std::string getPinClassName() const { return typeid(m_defaultPinObject.get()).name(); }
+	inline std::string getPinClassName() const { return m_defaultPinObject->getClassName(); }
 
 	virtual NodePinPtr allocatePin() const= 0;
 

@@ -68,13 +68,13 @@ bool GraphArrayProperty::loadFromConfig(
 	return false;
 }
 
-void GraphArrayProperty::saveToConfig(GraphPropertyConfig& config) const
+void GraphArrayProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto& propConfig = static_cast<GraphArrayPropertyConfig&>(config);
+	auto& propConfig = std::static_pointer_cast<GraphArrayPropertyConfig>(config);
 
 	for (auto property : m_array)
 	{
-		propConfig.childPropertyIds.push_back(property->getId());
+		propConfig->childPropertyIds.push_back(property->getId());
 	}
 
 	GraphProperty::saveToConfig(config);

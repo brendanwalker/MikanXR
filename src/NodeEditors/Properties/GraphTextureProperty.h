@@ -22,7 +22,7 @@ public:
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;
-	virtual void saveToConfig(GraphPropertyConfig& config) const override;
+	virtual void saveToConfig(GraphPropertyConfigPtr config) const override;
 
 	inline void setTextureAssetReference(TextureAssetReferencePtr inAssetRef) { m_textureAssetRef = inAssetRef; }
 	inline TextureAssetReferencePtr getTextureAssetReference() const { return m_textureAssetRef; }

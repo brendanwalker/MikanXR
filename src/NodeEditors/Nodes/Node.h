@@ -39,6 +39,8 @@ public:
 	Node();
 	virtual ~Node() {}
 
+	inline std::string getClassName() const { return typeid(*this).name(); }
+
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
 
@@ -124,7 +126,7 @@ public:
 	NodeFactory()= default;
 
 	inline NodeConstPtr getNodeDefaultObject() const { return m_nodeDefaultObject; }
-	inline std::string getNodeClassName() const { return typeid(m_nodeDefaultObject.get()).name(); }
+	inline std::string getNodeClassName() const { return m_nodeDefaultObject->getClassName(); }
 
 	virtual NodeConfigPtr allocateNodeConfig() const;
 	virtual NodePtr allocateNode() const;

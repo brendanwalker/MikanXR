@@ -22,7 +22,7 @@ public:
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;
-	virtual void saveToConfig(GraphPropertyConfig& config) const override;
+	virtual void saveToConfig(GraphPropertyConfigPtr config) const override;
 
 	inline void setModelAssetReference(ModelAssetReferencePtr inAssetRef) { m_modelAssetRef= inAssetRef; }
 	inline ModelAssetReferencePtr getModelAssetReference() const { return m_modelAssetRef; }

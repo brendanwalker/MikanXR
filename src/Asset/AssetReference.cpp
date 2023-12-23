@@ -25,17 +25,17 @@ AssetReference::~AssetReference()
 	m_previewTexture= nullptr;
 }
 
-bool AssetReference::loadFromConfig(const class AssetReferenceConfig& config)
+bool AssetReference::loadFromConfig(AssetReferenceConfigConstPtr config)
 {
-	setAssetPath(config.assetPath);
+	setAssetPath(config->assetPath);
 
 	return true;
 }
 
-void AssetReference::saveToConfig(class AssetReferenceConfig& config) const
+void AssetReference::saveToConfig(AssetReferenceConfigPtr config) const
 {
-	config.className = typeid(*this).name();
-	config.assetPath = m_assetPath.string();
+	config->className = getClassName();
+	config->assetPath = m_assetPath.string();
 }
 
 void AssetReference::setAssetPath(const std::filesystem::path& inPath)

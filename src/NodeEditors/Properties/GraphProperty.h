@@ -26,10 +26,12 @@ public:
 	GraphProperty()= default;
 	virtual ~GraphProperty() {}
 
+	inline std::string getClassName() const { return typeid(*this).name(); }
+
 	virtual bool loadFromConfig(
 		GraphPropertyConfigConstPtr propConfig,
 		const NodeGraphConfig& graphConfig);
-	virtual void saveToConfig(class GraphPropertyConfig& config) const;
+	virtual void saveToConfig(GraphPropertyConfigPtr config) const;
 
 	inline void setOwnerGraph(NodeGraphPtr ownerGraph) { m_ownerGraph= ownerGraph; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
@@ -60,7 +62,7 @@ public:
 	GraphPropertyFactory() = default;
 
 	inline std::string getGraphPropertyClassName() const { 
-		return typeid(m_defaultGraphPropertyObject.get()).name(); 
+		return m_defaultGraphPropertyObject->getClassName(); 
 	}
 
 	virtual GraphPropertyConfigPtr allocatePropertyConfig() const;

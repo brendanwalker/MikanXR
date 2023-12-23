@@ -295,7 +295,7 @@ AssetReferencePtr NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr asse
 		AssetReferencePtr assetRef = factory->allocateAssetReference();
 		if (assetRef)
 		{
-			if (assetRef->loadFromConfig(*assetRefConfig.get()))
+			if (assetRef->loadFromConfig(assetRefConfig))
 			{
 				m_assetReferences.push_back(assetRef);
 				return assetRef;
@@ -490,6 +490,101 @@ NodeLinkPtr NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const
 {
 	config.className= typeid(*this).name();
+	config.nextId= m_nextId;
+
+	// Save all asset references 
+	for (auto assetRef : m_assetReferences)
+	{
+		saveAssetRefToConfig(assetRef, config);
+	}
+
+	// Load all properties (depends on asset references)
+	for (auto it = m_properties.begin(); it != m_properties.end(); it++)
+	{
+		saveGraphPropertyToConfig(it->second, config);
+	}
+
+	// Load all nodes (depends on properties)
+	for (auto it = m_Nodes.begin(); it != m_Nodes.end(); it++)
+	{
+		saveNodeToConfig(it->second, config);
+	}
+
+	// Load all pins (depends on nodes)
+	for (auto it = m_Pins.begin(); it != m_Pins.end(); it++)
+	{
+		savePinToConfig(it->second, config);
+	}
+
+	// Load all links (depends on pins)
+	for (auto it = m_Links.begin(); it != m_Links.end(); it++)
+	{
+		saveLinkToConfig(it->second, config);
+	}
+}
+
+void NodeGraph::saveGraphPropertyToConfig(GraphPropertyConstPtr prop, NodeGraphConfig& graphConfig) const
+{
+	auto factory= getPropertyFactory(prop->getClassName());
+	if (factory)
+	{
+		auto config= factory->allocatePropertyConfig();
+		if (config)
+		{
+			prop->saveToConfig(config);
+			graphConfig.propertyConfigMap.insert({config->id, config});
+		}
+	}
+}
+
+void NodeGraph::saveAssetRefToConfig(AssetReferenceConstPtr assetRef, NodeGraphConfig& graphConfig) const
+{
+	auto factory = getAssetReferenceFactory(assetRef->getClassName());
+	if (factory)
+	{
+		auto config = factory->allocateAssetReferenceConfig();
+		if (config)
+		{
+			assetRef->saveToConfig(config);
+			graphConfig.assetRefConfigs.push_back(config);
+		}
+	}
+}
+
+void NodeGraph::saveNodeToConfig(NodeConstPtr node, NodeGraphConfig& graphConfig) const
+{
+	auto factory = getNodeFactory(node->getClassName());
+	if (factory)
+	{
+		auto config = factory->allocateNodeConfig();
+		if (config)
+		{
+			node->saveToConfig(config);
+			graphConfig.nodeConfigs.push_back(config);
+		}
+	}
+}
+
+void NodeGraph::savePinToConfig(NodePinConstPtr pin, NodeGraphConfig& graphConfig) const
+{
+	auto factory = getPinFactory(pin->getClassName());
+	if (factory)
+	{
+		auto config = factory->allocatePinConfig();
+		if (config)
+		{
+			pin->saveToConfig(config);
+			graphConfig.pinConfigs.push_back(config);
+		}
+	}
+}
+
+void NodeGraph::saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphConfig) const
+{
+	auto config = std::make_shared<NodeLinkConfig>();
+	
+	link->saveToConfig(config);
+	graphConfig.linkConfigs.push_back(config);
 }
 
 void NodeGraph::update(NodeEvaluator& evaluator)

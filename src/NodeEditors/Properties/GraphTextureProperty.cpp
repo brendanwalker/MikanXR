@@ -60,19 +60,19 @@ bool GraphTextureProperty::loadFromConfig(
 	return false;
 }
 
-void GraphTextureProperty::saveToConfig(GraphPropertyConfig& config) const
+void GraphTextureProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto& propConfig = static_cast<GraphTexturePropertyConfig&>(config);
+	auto& propConfig = std::static_pointer_cast<GraphTexturePropertyConfig>(config);
 
 	// Default asset ref to invalid
-	propConfig.assetRefIndex = -1;
+	propConfig->assetRefIndex = -1;
 
 	// If we have a valid asset ref, look up the index in the graph
 	if (m_textureAssetRef)
 	{
-		propConfig.assetRefIndex = getOwnerGraph()->getAssetReferenceIndex(m_textureAssetRef);
+		propConfig->assetRefIndex = getOwnerGraph()->getAssetReferenceIndex(m_textureAssetRef);
 
-		if (propConfig.assetRefIndex == -1)
+		if (propConfig->assetRefIndex == -1)
 		{
 			MIKAN_LOG_ERROR("GraphTextureProperty::saveToConfig") 
 				<< "Texture property has orphaned asset reference: " 
