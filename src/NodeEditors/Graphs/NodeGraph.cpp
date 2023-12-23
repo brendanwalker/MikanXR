@@ -27,7 +27,7 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
 	NodeGraphConfig config;
 	if (!config.load(path))
 	{
-		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to load NodeGraph Config: " << path;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to load NodeGraph Config: " << path;
 		return NodeGraphPtr();
 	}
 
@@ -36,7 +36,7 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
 	auto it= s_factoryMap.find(nodeGraphClassName);
 	if (it == s_factoryMap.end())
 	{
-		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Unknown node graph class name: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Unknown node graph class name: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
@@ -44,18 +44,22 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
 	NodeGraphPtr nodeGraph= it->second->allocateNodeGraph();
 	if (!nodeGraph)
 	{
-		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to allocate node graph class: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to allocate node graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
 	// Now that we have allocate a node graph using the class name
 	// we can actually create the graph object configs using the factories from the graph
-	config.postReadFromJSON(nodeGraph);
+	if (!config.postReadFromJSON(nodeGraph))
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
+		return NodeGraphPtr();
+	}
 
 	// Init node graph from the parsed config
 	if (!nodeGraph->loadFromConfig(config))
 	{
-		MIKAN_LOG_INFO("NodeGraphFactory::loadNodeGraph") << "Failed to init node graph class: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to init all graph objects in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
