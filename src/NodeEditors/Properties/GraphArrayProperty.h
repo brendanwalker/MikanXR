@@ -7,8 +7,7 @@
 class GraphArrayPropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphArrayPropertyConfig() : GraphPropertyConfig() {}
-	GraphArrayPropertyConfig(const std::string& nodeName) : GraphPropertyConfig(nodeName) {}
+	GraphArrayPropertyConfig() = default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -19,8 +18,7 @@ public:
 class GraphArrayProperty : public GraphProperty
 {
 public:
-	GraphArrayProperty();
-	GraphArrayProperty(NodeGraphPtr ownerGraph);
+	GraphArrayProperty() = default;
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;
@@ -36,3 +34,4 @@ protected:
 	std::vector<GraphPropertyPtr> m_array;
 };
 
+using GraphArrayPropertyFactory= TypedGraphPropertyFactory<GraphArrayProperty, GraphArrayPropertyConfig>;

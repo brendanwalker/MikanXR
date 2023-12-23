@@ -23,8 +23,7 @@ public:
 class GraphProperty : public std::enable_shared_from_this<GraphProperty>
 {
 public:
-	GraphProperty();
-	GraphProperty(NodeGraphPtr ownerGraph);
+	GraphProperty()= default;
 	virtual ~GraphProperty() {}
 
 	virtual bool loadFromConfig(
@@ -32,7 +31,10 @@ public:
 		const NodeGraphConfig& graphConfig);
 	virtual void saveToConfig(class GraphPropertyConfig& config) const;
 
+	inline void setOwnerGraph(NodeGraphPtr ownerGraph) { m_ownerGraph= ownerGraph; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
+	
+	inline void setId(t_graph_property_id id) { m_id= id; }
 	inline t_graph_property_id getId() const { return m_id; }
 
 	inline void setParentId(t_graph_property_id inParentId ) { m_parentId= inParentId; }
@@ -56,35 +58,26 @@ class GraphPropertyFactory
 {
 public:
 	GraphPropertyFactory() = default;
-	GraphPropertyFactory(NodeGraphPtr ownerGraph);
 
-	inline NodeGraphPtr getOwner() const { return m_ownerGraph; }
 	inline std::string getGraphPropertyClassName() const { 
 		return typeid(m_defaultGraphPropertyObject.get()).name(); 
 	}
 
-	virtual GraphPropertyConfigPtr createPropertyConfig() const
-	{ 
-		return std::make_shared<GraphPropertyConfig>(); 
-	}
-
-	virtual GraphPropertyPtr createProperty(
-		const NodeEditorState* editorState,
-		const std::string& name) const;
+	virtual GraphPropertyConfigPtr allocatePropertyConfig() const;
+	virtual GraphPropertyPtr allocateProperty() const;
 
 	template <class t_property_factory_class>
-	static GraphPropertyFactoryPtr createFactory(NodeGraphPtr ownerGraph)
+	static GraphPropertyFactoryPtr createFactory()
 	{
 		// Create a node factory instance
-		auto factory= std::make_shared<t_property_factory_class>(ownerGraph);
+		auto factory= std::make_shared<t_property_factory_class>();
 
-		factory->m_defaultGraphPropertyObject= factory->createProperty(nullptr, "");
+		factory->m_defaultGraphPropertyObject= factory->allocateProperty();
 
 		return factory;
 	}
 
 protected:
-	NodeGraphPtr m_ownerGraph;
 	GraphPropertyPtr m_defaultGraphPropertyObject;
 };
 
@@ -93,17 +86,14 @@ class TypedGraphPropertyFactory : public GraphPropertyFactory
 {
 public:
 	TypedGraphPropertyFactory() = default;
-	TypedGraphPropertyFactory(NodeGraphPtr ownerGraph) : GraphPropertyFactory(ownerGraph) {}
 
-	virtual GraphPropertyConfigPtr createPropertyConfig() const override
+	virtual GraphPropertyConfigPtr allocatePropertyConfig() const override
 	{
 		return std::make_shared<t_property_config_class>();
 	}
 
-	virtual GraphPropertyPtr createProperty(
-		const NodeEditorState* editorState,
-		const std::string& name) const override
+	virtual GraphPropertyPtr allocateProperty() const override
 	{
-		return m_ownerGraph->addTypedProperty<t_property_class>(name);
+		return std::make_shared<t_property_class>();
 	}
 };

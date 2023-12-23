@@ -7,8 +7,7 @@
 class GraphTexturePropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphTexturePropertyConfig() : GraphPropertyConfig() {}
-	GraphTexturePropertyConfig(const std::string& nodeName) : GraphPropertyConfig(nodeName) {}
+	GraphTexturePropertyConfig() = default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -19,8 +18,7 @@ public:
 class GraphTextureProperty : public GraphProperty
 {
 public:
-	GraphTextureProperty();
-	GraphTextureProperty(NodeGraphPtr ownerGraph);
+	GraphTextureProperty() = default;
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;
@@ -40,13 +38,4 @@ protected:
 	GlTexturePtr m_texture;
 };
 
-class GraphTexturePropertyFactory : public GraphPropertyFactory
-{
-public:
-	GraphTexturePropertyFactory() : GraphPropertyFactory() {}
-	GraphTexturePropertyFactory(NodeGraphPtr ownerGraph) : GraphPropertyFactory(ownerGraph) {}
-
-	virtual GraphPropertyPtr createProperty(
-		const class NodeEditorState* editorState,
-		const std::string& name) const;
-};
+using GraphTexturePropertyFactory = TypedGraphPropertyFactory<GraphTextureProperty, GraphTexturePropertyConfig>;

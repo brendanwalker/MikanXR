@@ -27,14 +27,6 @@ void GraphMaterialPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphMaterialProperty -----
-GraphMaterialProperty::GraphMaterialProperty()
-	: GraphProperty()
-{}
-
-GraphMaterialProperty::GraphMaterialProperty(NodeGraphPtr ownerGraph)
-	: GraphProperty(ownerGraph)
-{}
-
 bool GraphMaterialProperty::loadFromConfig(
 	GraphPropertyConfigConstPtr propConfig,
 	const NodeGraphConfig& graphConfig)
@@ -94,7 +86,7 @@ void GraphMaterialProperty::editorHandleDragDrop(const class NodeEditorState& ed
 {
 	auto materialNode =
 		std::static_pointer_cast<MaterialNode>(
-			MaterialNodeFactory(getOwnerGraph()).createNode(&editorState));
+			MaterialNodeFactory().createNode(editorState));
 
 	// Set this as the source model property for the new node
 	auto self = std::static_pointer_cast<GraphMaterialProperty>(shared_from_this());
@@ -126,20 +118,4 @@ void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorStat
 
 		// TODO show material properties
 	}
-}
-
-// -- GraphMaterialPropertyFactory -----
-GraphPropertyPtr GraphMaterialPropertyFactory::createProperty(
-	const NodeEditorState* editorState,
-	const std::string& name) const
-{
-	// TODO: See if we have a Material asset reference given from a drag and drop interaction
-	MaterialAssetReferencePtr MaterialAssetRef = std::make_shared<MaterialAssetReference>();
-	GlMaterialPtr MaterialResource = std::make_shared<GlMaterial>();
-
-	GraphMaterialPropertyPtr MaterialProperty = m_ownerGraph->addTypedProperty<GraphMaterialProperty>(name);
-	MaterialProperty->setMaterialAssetReference(MaterialAssetRef);
-	MaterialProperty->setMaterialResource(MaterialResource);
-
-	return MaterialProperty;
 }

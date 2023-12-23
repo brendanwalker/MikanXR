@@ -59,7 +59,7 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addNodeFactory<TimeNodeFactory>();
 
 	// Add graph properties
-	addTypedProperty<GraphVariableList>("materials")->assignFactory<GraphMaterialPropertyFactory>();
-	addTypedProperty<GraphVariableList>("models")->assignFactory<GraphModelPropertyFactory>();
-	addTypedProperty<GraphVariableList>("textures")->assignFactory<GraphTexturePropertyFactory>();
+	createTypedProperty<GraphVariableList>("materials")->assignFactory<GraphMaterialPropertyFactory>();
+	createTypedProperty<GraphVariableList>("models")->assignFactory<GraphModelPropertyFactory>();
+	createTypedProperty<GraphVariableList>("textures")->assignFactory<GraphTexturePropertyFactory>();
 }

@@ -4,8 +4,7 @@
 class EventNodeConfig : public NodeConfig
 {
 public:
-	EventNodeConfig() : NodeConfig() {}
-	EventNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	EventNodeConfig() = default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -16,8 +15,7 @@ public:
 class EventNode : public Node
 {
 public:
-	EventNode();
-	EventNode(NodeGraphPtr parentGraph);
+	EventNode() = default;
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
@@ -39,16 +37,10 @@ protected:
 	std::string m_eventName;
 };
 
-class EventNodeFactory : public NodeFactory
+class EventNodeFactory : public TypedNodeFactory<EventNode, EventNodeConfig>
 {
 public:
 	EventNodeFactory() = default;
-	EventNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
 
-	virtual NodeConfigPtr createNodeConfig() const
-	{
-		return std::make_shared<EventNodeConfig>();
-	}
-
-	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
+	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };

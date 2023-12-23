@@ -2,23 +2,24 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 
-GraphVariableList::GraphVariableList()
-	: GraphArrayProperty()
-{
-}
-
-GraphVariableList::GraphVariableList(NodeGraphPtr ownerGraph)
-	: GraphArrayProperty(ownerGraph)
-{
-}
-
 GraphPropertyPtr GraphVariableList::addNewVariable(
 	const NodeEditorState* editorState,
 	const std::string& name)
 {
-	GraphPropertyPtr variable= m_factory->createProperty(editorState, name);
+	NodeGraphPtr ownerGraph= getOwnerGraph();
+
+	GraphPropertyPtr variable= m_factory->allocateProperty();
 	if (variable)
 	{
+		// Init variable
+		variable->setOwnerGraph(ownerGraph);
+		variable->setId(ownerGraph->allocateId());
+		variable->setName(name);
+
+		// Register with the graph
+		ownerGraph->addProperty(variable);
+
+		// Register with the array
 		addProperty(variable);
 	}
 
@@ -31,8 +32,10 @@ bool GraphVariableList::deleteVariableByIndex(const class NodeEditorState* edito
 	{
 		GraphPropertyPtr variable= m_array[elementIndex];
 
+		// Unregister with the array
 		removeProperty(variable);
 
+		// Remove from the graph
 		return m_ownerGraph->deletePropertyById(variable->getId());
 	}
 

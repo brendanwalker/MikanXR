@@ -5,13 +5,12 @@
 class GraphVariableList : public GraphArrayProperty
 {
 public:
-	GraphVariableList();
-	GraphVariableList(NodeGraphPtr ownerGraph);
+	GraphVariableList() = default;
 
 	template <class t_factory_type>
 	void assignFactory()
 	{
-		m_factory = std::make_shared<t_factory_type>(m_ownerGraph);
+		m_factory = std::make_shared<t_factory_type>();
 	}
 	inline GraphPropertyFactoryPtr getFactory() const { return m_factory; }
 
@@ -21,3 +20,5 @@ public:
 protected:
 	GraphPropertyFactoryPtr m_factory;
 };
+
+using GraphVariableListFactory= TypedGraphPropertyFactory<GraphVariableList, GraphArrayPropertyConfig>;

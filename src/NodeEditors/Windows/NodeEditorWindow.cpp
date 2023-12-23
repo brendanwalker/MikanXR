@@ -184,7 +184,7 @@ void NodeEditorWindow::update(float deltaSeconds)
 		.setCurrentWindow(this)
 		.setDeltaSeconds(deltaSeconds);
 
-	m_nodeGraph->update(evaluator);
+	getNodeGraph()->update(evaluator);
 }
 
 void NodeEditorWindow::render()
@@ -253,7 +253,7 @@ void NodeEditorWindow::renderMainFrame()
 
 	ImNodes::BeginNodeEditor();
 
-	m_nodeGraph->editorRender(m_editorState);
+	getNodeGraph()->editorRender(m_editorState);
 
 	ImNodes::EndNodeEditor();
 	ImGui::EndChild();
@@ -274,7 +274,7 @@ void NodeEditorWindow::renderMainFrame()
 	// Start link
 	if (ImNodes::IsLinkStarted(&m_editorState.startedLinkPinId))
 	{
-		NodePinPtr pinPtr= m_nodeGraph->getNodePinById(m_editorState.startedLinkPinId);
+		NodePinPtr pinPtr= getNodeGraph()->getNodePinById(m_editorState.startedLinkPinId);
 		if (pinPtr)
 		{
 			ImNodes::GetStyle().Colors[ImNodesCol_Link] = pinPtr->editorGetLinkStyleColor();
@@ -294,7 +294,7 @@ void NodeEditorWindow::renderMainFrame()
 	if (ImNodes::IsLinkCreated(&startPinId, &endPinId))
 	{
 		m_editorState.startedLinkPinId = -1;
-		m_nodeGraph->createLink(startPinId, endPinId);
+		getNodeGraph()->createLink(startPinId, endPinId);
 	}
 
 	// Context menu
@@ -361,14 +361,14 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 		NodePtr node;
 		if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
 		{
-			node= m_nodeGraph->getNodeById(m_objectSelection.getObjectId(0));
+			node= getNodeGraph()->getNodeById(m_objectSelection.getObjectId(0));
 		}
 
 		if (node && node->editorCanDelete())
 		{
 			if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 			{
-				m_nodeGraph->deleteNodeById(m_objectSelection.getObjectId(0));
+				getNodeGraph()->deleteNodeById(m_objectSelection.getObjectId(0));
 			}
 		}
 		else
@@ -382,20 +382,20 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 		if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK &&
 			ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 		{
-			m_nodeGraph->deleteLinkById(m_objectSelection.getObjectId(0));
+			getNodeGraph()->deleteLinkById(m_objectSelection.getObjectId(0));
 		}
 		ImGui::EndPopup();
 	}
 	else if (ImGui::BeginPopup("editor_context_menu_nodes"))
 	{
-		std::vector<NodeFactoryPtr> nodeFactories= m_nodeGraph->editorGetValidNodeFactories(editorState);
+		std::vector<NodeFactoryPtr> nodeFactories= getNodeGraph()->editorGetValidNodeFactories(editorState);
 		for (NodeFactoryPtr nodeFactory : nodeFactories)
 		{
 			const std::string nodeTitle= nodeFactory->getNodeDefaultObject()->editorGetTitle();
 
 			if (ImGui::MenuItem(nodeTitle.c_str()))
 			{
-				m_nodeGraph->createNode(nodeFactory, &editorState);
+				getNodeGraph()->createNode(nodeFactory, editorState);
 				break;
 			}
 		}
@@ -422,9 +422,9 @@ void NodeEditorWindow::handleDragDrop(const class NodeEditorState& editorState)
 	else if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(DRAG_DROP_TYPE_VARIABLE))
 	{
 		IM_ASSERT(payload->DataSize == sizeof(GraphPropertyPtr));
-		GraphPropertyPtr model = *(GraphPropertyPtr*)payload->Data;
+		GraphPropertyPtr property = *(GraphPropertyPtr*)payload->Data;
 
-		model->editorHandleDragDrop(editorState);
+		property->editorHandleDragDrop(editorState);
 	}
 }
 
@@ -605,7 +605,7 @@ void NodeEditorWindow::renderAssetsPanel()
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 6));
 
-			auto& factoryMap= m_nodeGraph->getAssetReferenceFactories();
+			auto& factoryMap= getNodeGraph()->getAssetReferenceFactories();
 			for (auto it = factoryMap.begin(); it != factoryMap.end(); it++)
 			{
 				auto& assetRefFactory= it->second;
@@ -630,12 +630,14 @@ void NodeEditorWindow::renderAssetsPanel()
 						std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
 
 						// Create the asset reference
-						AssetReferencePtr assetRef= 
-							assetRefFactory->createAssetReference(&m_editorState, universalPath);
+						AssetReferencePtr assetRef= assetRefFactory->allocateAssetReference();
 						if (assetRef)
 						{
-							// Add the asset reference
-							m_nodeGraph->getAssetReferencesMutable().push_back(assetRef);
+							// Assign path to the asset
+							assetRef->setAssetPath(universalPath);
+
+							// Register the asset reference with the graph
+							getNodeGraph()->getAssetReferencesMutable().push_back(assetRef);
 							onAssetReferenceCreated(assetRef);
 						}
 					}
@@ -647,7 +649,7 @@ void NodeEditorWindow::renderAssetsPanel()
 
 			// Assets browser
 			{
-				auto& assetRefArray = m_nodeGraph->getAssetReferences();
+				auto& assetRefArray = getNodeGraph()->getAssetReferences();
 
 				ImGui::BeginChild("AssetBrowser");
 
@@ -741,7 +743,7 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 
 	if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
 	{
-		NodePtr node = m_nodeGraph->getNodeById(m_objectSelection.getObjectId(0));
+		NodePtr node = getNodeGraph()->getNodeById(m_objectSelection.getObjectId(0));
 
 		if (node)
 		{
@@ -751,7 +753,7 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET)
 	{
 		const int assetIndex= m_objectSelection.getObjectId(0);
-		const std::vector<AssetReferencePtr>& assetArray= m_nodeGraph->getAssetReferences();
+		const std::vector<AssetReferencePtr>& assetArray= getNodeGraph()->getAssetReferences();
 
 		if (assetIndex >= 0 && assetIndex < (int)assetArray.size())
 		{
@@ -760,7 +762,7 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 	}
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE)
 	{
-		GraphPropertyPtr property = m_nodeGraph->getPropertyById(m_objectSelection.getObjectId(0));
+		GraphPropertyPtr property = getNodeGraph()->getPropertyById(m_objectSelection.getObjectId(0));
 
 		if (property)
 		{
@@ -778,11 +780,11 @@ void NodeEditorWindow::deleteSelectedItem()
 		for (int i = 0; i < m_objectSelection.getObjectCount(); i++)
 		{
 			const t_node_id nodeId= m_objectSelection.getObjectId(i);
-			NodePtr node= m_nodeGraph->getNodeById(nodeId);
+			NodePtr node= getNodeGraph()->getNodeById(nodeId);
 
 			if (node && node->editorCanDelete())
 			{
-				m_nodeGraph->deleteNodeById(nodeId);
+				getNodeGraph()->deleteNodeById(nodeId);
 			}
 		}
 
@@ -794,7 +796,7 @@ void NodeEditorWindow::deleteSelectedItem()
 		{
 			const t_node_link_id linkId = m_objectSelection.getObjectId(i);
 
-			m_nodeGraph->deleteLinkById(linkId);
+			getNodeGraph()->deleteLinkById(linkId);
 		}
 
 		m_objectSelection.clear();
@@ -805,7 +807,7 @@ void NodeEditorWindow::deleteSelectedItem()
 		{
 			const t_graph_property_id propertyId = m_objectSelection.getObjectId(i);
 
-			m_nodeGraph->deletePropertyById(propertyId);
+			getNodeGraph()->deletePropertyById(propertyId);
 		}
 
 		m_objectSelection.clear();
@@ -813,7 +815,7 @@ void NodeEditorWindow::deleteSelectedItem()
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET && 
 			 m_objectSelection.getObjectCount() > 0)
 	{
-		std::vector<AssetReferencePtr>& assetList= m_nodeGraph->getAssetReferencesMutable();
+		std::vector<AssetReferencePtr>& assetList= getNodeGraph()->getAssetReferencesMutable();
 		const int assetIndex = m_objectSelection.getObjectId(0);
 
 		assetList.erase(assetList.begin() + assetIndex);
@@ -823,10 +825,10 @@ void NodeEditorWindow::deleteSelectedItem()
 
 bool NodeEditorWindow::load(const std::filesystem::path& path)
 {
-	m_nodeGraph= NodeGraphFactory::loadNodeGraph(path);
-	if (m_nodeGraph)
+	m_editorState.nodeGraph= NodeGraphFactory::loadNodeGraph(path);
+	if (m_editorState.nodeGraph)
 	{
-		m_nodeGraphPath = path;
+		m_editorState.nodeGraphPath= path;
 		onNodeGraphCreated();
 		return true;
 	}
@@ -840,9 +842,9 @@ bool NodeEditorWindow::load(const std::filesystem::path& path)
 
 bool NodeEditorWindow::save()
 {
-	if (!m_nodeGraphPath.empty() && m_nodeGraph)
+	if (!m_editorState.nodeGraphPath.empty() && m_editorState.nodeGraph)
 	{
-		NodeGraphFactory::saveNodeGraph(m_nodeGraphPath, m_nodeGraph);
+		NodeGraphFactory::saveNodeGraph(m_editorState.nodeGraphPath, m_editorState.nodeGraph);
 	}
 
 	return false;
@@ -855,15 +857,15 @@ void NodeEditorWindow::undo()
 
 void NodeEditorWindow::onNodeGraphCreated()
 {
-	m_nodeGraph->OnNodeCreated += MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
-	m_nodeGraph->OnNodeDeleted += MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
-	m_nodeGraph->OnLinkDeleted += MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
-	m_nodeGraph->OnPropertyCreated += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
-	m_nodeGraph->OnPropertyModifed += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
-	m_nodeGraph->OnPropertyDeleted += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	getNodeGraph()->OnNodeCreated += MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
+	getNodeGraph()->OnNodeDeleted += MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+	getNodeGraph()->OnLinkDeleted += MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+	getNodeGraph()->OnPropertyCreated += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
+	getNodeGraph()->OnPropertyModifed += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
+	getNodeGraph()->OnPropertyDeleted += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
 
 	// Fetch all variables lists from the graph
-	auto propertyMap= m_nodeGraph->getPropertyMap();
+	auto propertyMap= getNodeGraph()->getPropertyMap();
 	for (auto it = propertyMap.begin(); it != propertyMap.end(); it++)
 	{
 		GraphVariableListPtr variableList= std::dynamic_pointer_cast<GraphVariableList>(it->second);
@@ -879,12 +881,12 @@ void NodeEditorWindow::onNodeGraphDeleted()
 {
 	m_variableLists.clear();
 
-	m_nodeGraph->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
-	m_nodeGraph->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
-	m_nodeGraph->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
-	m_nodeGraph->OnPropertyCreated -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
-	m_nodeGraph->OnPropertyModifed -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
-	m_nodeGraph->OnPropertyDeleted -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	getNodeGraph()->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
+	getNodeGraph()->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+	getNodeGraph()->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+	getNodeGraph()->OnPropertyCreated -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
+	getNodeGraph()->OnPropertyModifed -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
+	getNodeGraph()->OnPropertyDeleted -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
 }
 
 void NodeEditorWindow::onNodeCreated(t_node_id id)
@@ -892,7 +894,7 @@ void NodeEditorWindow::onNodeCreated(t_node_id id)
 	// Set the initial position of the node using the current editor mouse position
 	const ImVec2& hangPos = m_editorState.hangPos;
 	ImNodes::SetNodeScreenSpacePos(id, hangPos);
-	NodePtr node= m_nodeGraph->getNodeById(id);
+	NodePtr node= getNodeGraph()->getNodeById(id);
 	if (node)
 	{
 		node->setNodePos(glm::vec2(hangPos.x, hangPos.y));
@@ -929,7 +931,8 @@ void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
 void NodeEditorWindow::shutdown()
 {
 	onNodeGraphDeleted();
-	m_nodeGraph= nullptr;
+	m_editorState.nodeGraph= nullptr;
+	m_editorState.nodeGraphPath.clear();
 
 	m_glStateStack = nullptr;
 

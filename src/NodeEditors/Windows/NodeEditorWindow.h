@@ -27,6 +27,9 @@ public:
 	NodeEditorWindow();
 	~NodeEditorWindow();
 
+	inline NodeGraphPtr getNodeGraph() const { return m_editorState.nodeGraph; }
+	inline const std::filesystem::path& getNodeGraphPath() const { return m_editorState.nodeGraphPath; }
+
 	virtual bool load(const std::filesystem::path& path);
 	virtual bool save();
 	virtual void undo();
@@ -88,8 +91,6 @@ protected:
 	struct ImFont* m_NormalIconFont= nullptr;
 	struct ImFont* m_BigIconFont= nullptr;
 
-	std::filesystem::path m_nodeGraphPath;
-	NodeGraphPtr m_nodeGraph;
 	NodeEditorState m_editorState;
 	std::vector<GraphVariableListPtr> m_variableLists;
 

@@ -16,7 +16,8 @@ protected:
 	virtual void rebuildPreview() override;
 };
 
-class TextureAssetReferenceFactory : public AssetReferenceFactory
+class TextureAssetReferenceFactory : 
+	public TypedAssetReferenceFactory<TextureAssetReference, AssetReferenceConfig>
 {
 public:
 	TextureAssetReferenceFactory() = default;
@@ -30,14 +31,4 @@ public:
 	}
 	virtual int getFilterPatternCount() const { return 5; }
 	virtual char const* getFilterDescription() const { return "Image Files (*.jpg;*.jpeg;*.png;*.bmp;*.tga)"; }
-
-	virtual std::shared_ptr<AssetReference> createAssetReference(
-		const class NodeEditorState* editorState,
-		const std::filesystem::path& inAssetPath) const
-	{
-		auto assetRef = std::make_shared<TextureAssetReference>();
-		assetRef->setAssetPath(inAssetPath);
-
-		return assetRef;
-	}
 };

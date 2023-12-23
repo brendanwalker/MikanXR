@@ -6,8 +6,7 @@
 class TexturePin : public NodePin
 {
 public:
-	TexturePin() : NodePin() {}
-	TexturePin(NodePtr ownerNode) : NodePin(ownerNode) {}
+	TexturePin() = default;
 
 	GlTexturePtr getValue() const { return m_value; }
 	void setValue(GlTexturePtr inValue) { m_value = inValue; }

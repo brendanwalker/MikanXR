@@ -7,8 +7,7 @@
 class GraphModelPropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphModelPropertyConfig() : GraphPropertyConfig() {}
-	GraphModelPropertyConfig(const std::string& nodeName) : GraphPropertyConfig(nodeName) {}
+	GraphModelPropertyConfig() = default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -19,8 +18,7 @@ public:
 class GraphModelProperty : public GraphProperty
 {
 public:
-	GraphModelProperty();
-	GraphModelProperty(NodeGraphPtr ownerGraph);
+	GraphModelProperty() = default;
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;
@@ -40,13 +38,4 @@ protected:
 	GlRenderModelResourcePtr m_modelResource;
 };
 
-class GraphModelPropertyFactory : public GraphPropertyFactory
-{
-public:
-	GraphModelPropertyFactory() : GraphPropertyFactory() {}
-	GraphModelPropertyFactory(NodeGraphPtr ownerGraph) : GraphPropertyFactory(ownerGraph) {}
-
-	virtual GraphPropertyPtr createProperty(
-		const class NodeEditorState* editorState,
-		const std::string& name) const;
-};
+using GraphModelPropertyFactory = TypedGraphPropertyFactory<GraphModelProperty, GraphModelPropertyConfig>;

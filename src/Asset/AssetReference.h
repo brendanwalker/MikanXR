@@ -64,25 +64,36 @@ public:
 	virtual int getFilterPatternCount() const { return 0; }
 	virtual char const* getFilterDescription() const { return ""; }
 
-	virtual std::shared_ptr<AssetReference> createAssetReference(
-		const class NodeEditorState* editorState,
-		const std::filesystem::path& inAssetPath) const;
-
-	virtual AssetReferenceConfigPtr createAssetReferenceConfig() const
-	{
-		return std::make_shared<AssetReferenceConfig>();
-	}
+	virtual AssetReferenceConfigPtr allocateAssetReferenceConfig() const;
+	virtual AssetReferencePtr allocateAssetReference() const;
 
 	template <class t_factory_class>
 	static std::shared_ptr<t_factory_class> createFactory()
 	{
 		auto factory= std::make_shared<t_factory_class>();
 
-		factory->m_defaultAssetRefObject= factory->createAssetReference(nullptr, std::filesystem::path());
+		factory->m_defaultAssetRefObject= factory->allocateAssetReference();
 
 		return factory;
 	}
 
 protected:
 	AssetReferencePtr m_defaultAssetRefObject;
+};
+
+template <class t_assetref_class, class t_assetref_config_class>
+class TypedAssetReferenceFactory : public AssetReferenceFactory
+{
+public:
+	TypedAssetReferenceFactory() = default;
+
+	virtual AssetReferenceConfigPtr allocateAssetReferenceConfig() const override
+	{
+		return std::make_shared<t_assetref_config_class>();
+	}
+
+	virtual AssetReferencePtr allocateAssetReference() const override
+	{
+		return std::make_shared<t_assetref_class>();
+	}
 };

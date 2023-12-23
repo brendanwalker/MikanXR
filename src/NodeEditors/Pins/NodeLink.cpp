@@ -2,6 +2,7 @@
 #include "NodePin.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
+#include "Logger.h"
 
 #include "imnodes.h"
 
@@ -27,49 +28,33 @@ void NodeLinkConfig::readFromJSON(const configuru::Config& pt)
 }
 
 //-- NodeLink -----
-NodeLink::NodeLink()
-	: m_id(-1)
+bool NodeLink::loadFromConfig(NodeLinkConfigConstPtr config)
 {
-}
-
-NodeLink::NodeLink(NodeGraphPtr ownerGraph)
-	: m_id(ownerGraph->allocateId())
-	, m_ownerGraph(ownerGraph)
-{
-}
-
-bool NodeLink::loadFromConfig(const NodeLinkConfig& config)
-{
-	m_id = config.id;
+	bool success= false;
+	m_id = config->id;
 	
-	m_startPin= getOwnerGraph()->getNodePinById(config.start_pin_id);
-	if (m_startPin)
+	m_startPin= getOwnerGraph()->getNodePinById(config->start_pin_id);
+	if (!m_startPin)
 	{
-		return false;
+		MIKAN_LOG_ERROR("NodeLink::loadFromConfig") << "Invalid start pin id: " << config->start_pin_id;
+		success= false;
 	}
 
-	m_endPin= getOwnerGraph()->getNodePinById(config.end_pin_id);
-	if (m_endPin)
+	m_endPin= getOwnerGraph()->getNodePinById(config->end_pin_id);
+	if (!m_endPin)
 	{
-		return false;
+		MIKAN_LOG_ERROR("NodeLink::loadFromConfig") << "Invalid end pin id: " << config->end_pin_id;
+		success= false;
 	}
 
-	return true;
+	return success;
 }
 
-void NodeLink::saveToConfig(NodeLinkConfig& config) const
+void NodeLink::saveToConfig(NodeLinkConfigPtr config) const
 {
-	config.id = m_id;
-
-	if (m_startPin)
-	{
-		config.start_pin_id= m_startPin->getId();
-	}
-
-	if (m_endPin)
-	{
-		config.end_pin_id = m_endPin->getId();
-	}
+	config->id = m_id;
+	config->start_pin_id= m_startPin ? m_startPin->getId() : -1;
+	config->end_pin_id= m_endPin ? m_endPin->getId() : -1;
 }
 
 void NodeLink::editorRender(const NodeEditorState& editorState)

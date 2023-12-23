@@ -27,16 +27,6 @@ void GraphModelPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphModelProperty -----
-GraphModelProperty::GraphModelProperty() 
-	: GraphProperty() 
-{
-}
-
-GraphModelProperty::GraphModelProperty(NodeGraphPtr ownerGraph) 
-	: GraphProperty(ownerGraph)
-{
-}
-
 bool GraphModelProperty::loadFromConfig(
 	GraphPropertyConfigConstPtr propConfig,
 	const NodeGraphConfig& graphConfig)
@@ -98,7 +88,7 @@ void GraphModelProperty::editorHandleDragDrop(const class NodeEditorState& edito
 {
 	auto modelNode =
 		std::static_pointer_cast<ModelNode>(
-			ModelNodeFactory(getOwnerGraph()).createNode(&editorState));
+			ModelNodeFactory().createNode(editorState));
 
 	// Set this as the source model property for the new node
 	auto self = std::static_pointer_cast<GraphModelProperty>(shared_from_this());
@@ -130,20 +120,4 @@ void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& 
 
 		// TODO: Show model properties
 	}
-}
-
-// -- GraphModelPropertyFactory -----
-GraphPropertyPtr GraphModelPropertyFactory::createProperty(
-	const NodeEditorState* editorState,
-	const std::string& name) const
-{
-	// TODO: See if we have a model asset reference given from a drag and drop interaction
-	ModelAssetReferencePtr modelAssetRef= std::make_shared<ModelAssetReference>();
-	GlRenderModelResourcePtr modelResource = std::make_shared<GlRenderModelResource>();
-
-	GraphModelPropertyPtr modelProperty= m_ownerGraph->addTypedProperty<GraphModelProperty>(name);
-	modelProperty->setModelAssetReference(modelAssetRef);
-	modelProperty->setModelResource(modelResource);
-
-	return modelProperty;
 }

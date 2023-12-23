@@ -54,8 +54,8 @@ using MousePosNodePtr = std::shared_ptr<MousePosNode>;
 using MousePosNodeConstPtr = std::shared_ptr<const MousePosNode>;
 
 class DrawTriMeshNode;
-using ProgramNodePtr = std::shared_ptr<DrawTriMeshNode>;
-using ProgramNodeConstPtr = std::shared_ptr<const DrawTriMeshNode>;
+using DrawTriMeshNodePtr = std::shared_ptr<DrawTriMeshNode>;
+using DrawTriMeshNodeConstPtr = std::shared_ptr<const DrawTriMeshNode>;
 
 class MaterialNode;
 using MaterialNodePtr = std::shared_ptr<MaterialNode>;

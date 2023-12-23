@@ -3,12 +3,27 @@
 #include "Node.h"
 #include "RendererFwd.h"
 
+class TextureNodeConfig : public NodeConfig
+{
+public:
+	TextureNodeConfig() = default;
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	t_graph_property_id texturePropertyId;
+};
+
 class TextureNode : public Node
 {
 public:
-	TextureNode();
-	TextureNode(NodeGraphPtr ownerGraph);
+	TextureNode() = default;
 	virtual ~TextureNode();
+
+	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
+	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
+
+	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
 	inline GraphTexturePropertyPtr getTextureSource() const { return m_sourceProperty; }
 	void setTextureSource(GraphTexturePropertyPtr inTextureProperty);
@@ -29,11 +44,10 @@ protected:
 	GraphVariableListPtr m_textureArrayProperty;
 };
 
-class TextureNodeFactory : public NodeFactory
+class TextureNodeFactory : public TypedNodeFactory<TextureNode, TextureNodeConfig>
 {
 public:
 	TextureNodeFactory() = default;
-	TextureNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
 
-	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
+	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

@@ -3,12 +3,28 @@
 #include "Node.h"
 #include "RendererFwd.h"
 
+class MaterialNodeConfig : public NodeConfig
+{
+public:
+	MaterialNodeConfig() : NodeConfig() {}
+	MaterialNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	t_graph_property_id materialPropertyId;
+};
+
 class MaterialNode : public Node
 {
 public:
-	MaterialNode();
-	MaterialNode(NodeGraphPtr ownerGraph);
+	MaterialNode() = default;
 	virtual ~MaterialNode();
+
+	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
+	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
+
+	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
 	inline GraphMaterialPropertyPtr getMaterialSource() const { return m_sourceProperty; }
 	void setMaterialSource(GraphMaterialPropertyPtr inMaterialProperty);
@@ -33,7 +49,6 @@ class MaterialNodeFactory : public NodeFactory
 {
 public:
 	MaterialNodeFactory() = default;
-	MaterialNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
 
-	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
+	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

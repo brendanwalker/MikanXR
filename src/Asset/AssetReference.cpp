@@ -63,12 +63,12 @@ std::string AssetReference::getShortName() const
 }
 
 // -- AssetReferenceFactory ----
-std::shared_ptr<AssetReference> AssetReferenceFactory::createAssetReference(
-	const NodeEditorState* editorState,
-	const std::filesystem::path& inAssetPath) const
+AssetReferenceConfigPtr AssetReferenceFactory::allocateAssetReferenceConfig() const
 {
-	auto assetRef= std::make_shared<AssetReference>();
-	assetRef->setAssetPath(inAssetPath);
+	return std::make_shared<AssetReferenceConfig>();
+}
 
-	return assetRef;
+AssetReferencePtr AssetReferenceFactory::allocateAssetReference() const
+{
+	return std::make_shared<AssetReference>();
 }

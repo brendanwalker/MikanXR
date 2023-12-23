@@ -52,22 +52,16 @@ NodePin::NodePin()
 {
 }
 
-NodePin::NodePin(
-	NodePtr ownerNode)
-	: m_id(ownerNode ? ownerNode->getOwnerGraph()->allocateId() : -1)
-	, m_direction(eNodePinDirection::INVALID)
+bool NodePin::loadFromConfig(NodePinConfigConstPtr config)
 {
-}
-
-bool NodePin::loadFromConfig(const class NodePinConfig& config)
-{
-	m_id= config.id;
-	m_direction= config.direction;
-	m_name= config.pinName;
-
 	assert(m_ownerNode);
+
+	m_id= config->id;
+	m_direction= config->direction;
+	m_name= config->pinName;
+
 	NodeGraphPtr ownerGraph= m_ownerNode->getOwnerGraph();
-	for (t_node_link_id linkId : config.connectedLinkIds)
+	for (t_node_link_id linkId : config->connectedLinkIds)
 	{
 		NodeLinkPtr link= ownerGraph->getNodeLinkById(linkId);
 		if (link)
@@ -83,16 +77,16 @@ bool NodePin::loadFromConfig(const class NodePinConfig& config)
 	return true;
 }
 
-void NodePin::saveToConfig(class NodePinConfig& config) const
+void NodePin::saveToConfig(NodePinConfigPtr config) const
 {
-	config.className = typeid(*this).name();
-	config.id = m_id;
-	config.direction= m_direction;
-	config.pinName= m_name;
+	config->className = typeid(*this).name();
+	config->id = m_id;
+	config->direction = m_direction;
+	config->pinName = m_name;
 
 	for (NodeLinkPtr linkPtr : m_connectedLinks)
 	{
-		config.connectedLinkIds.push_back(linkPtr->getId());
+		config->connectedLinkIds.push_back(linkPtr->getId());
 	}
 }
 

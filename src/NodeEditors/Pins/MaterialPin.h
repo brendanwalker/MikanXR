@@ -6,8 +6,7 @@
 class MaterialPin : public NodePin
 {
 public:
-	MaterialPin() : NodePin() {}
-	MaterialPin(NodePtr ownerNode) : NodePin(ownerNode) {}
+	MaterialPin() = default;
 
 	GlMaterialPtr getValue() const { return m_value; }
 	void setValue(GlMaterialPtr inValue) { m_value = inValue; }

@@ -6,8 +6,7 @@
 class ModelPin : public NodePin
 {
 public:
-	ModelPin() : NodePin() {}
-	ModelPin(NodePtr ownerNode) : NodePin(ownerNode) {}
+	ModelPin() = default;
 
 	GlRenderModelResourcePtr getValue() const { return m_value; }
 	void setValue(GlRenderModelResourcePtr inValue) { m_value = inValue; }

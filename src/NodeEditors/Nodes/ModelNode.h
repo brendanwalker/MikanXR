@@ -3,12 +3,27 @@
 #include "Node.h"
 #include "RendererFwd.h"
 
+class ModelNodeConfig : public NodeConfig
+{
+public:
+	ModelNodeConfig() = default;
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	t_graph_property_id modelPropertyId;
+};
+
 class ModelNode : public Node
 {
 public:
-	ModelNode();
-	ModelNode(NodeGraphPtr ownerGraph);
+	ModelNode() = default;
 	virtual ~ModelNode();
+
+	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
+	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
+
+	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
 	inline GraphModelPropertyPtr getModelSource() const { return m_sourceProperty; }
 	void setModelSource(GraphModelPropertyPtr inModelProperty);
@@ -29,11 +44,10 @@ protected:
 	GraphVariableListPtr m_modelArrayProperty;
 };
 
-class ModelNodeFactory : public NodeFactory
+class ModelNodeFactory : public TypedNodeFactory<ModelNode, ModelNodeConfig>
 {
 public:
 	ModelNodeFactory() = default;
-	ModelNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
 
-	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
+	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };

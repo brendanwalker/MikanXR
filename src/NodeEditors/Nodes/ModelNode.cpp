@@ -1,6 +1,7 @@
 #include "ModelNode.h"
 #include "GlMaterial.h"
 #include "GlTexture.h"
+#include "Logger.h"
 #include "ModelAssetReference.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
@@ -12,27 +13,78 @@
 #include "imgui.h"
 #include "imnodes.h"
 
-ModelNode::ModelNode()
-	: Node()
-{}
-
-ModelNode::ModelNode(NodeGraphPtr ownerGraph)
-	: Node(ownerGraph)
+// -- ModelNodeConfig -----
+configuru::Config ModelNodeConfig::writeToJSON()
 {
-	if (ownerGraph)
+	configuru::Config pt = NodeConfig::writeToJSON();
+
+	pt["model_property_id"] = modelPropertyId;
+
+	return pt;
+}
+
+void ModelNodeConfig::readFromJSON(const configuru::Config& pt)
+{
+	NodeConfig::readFromJSON(pt);
+
+	modelPropertyId = pt.get_or<t_graph_property_id>("model_property_id", -1);
+}
+
+// -- ModelNode -----
+ModelNode::~ModelNode()
+{
+	setOwnerGraph(NodeGraphPtr());
+}
+
+void ModelNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
+{
+	if (newOwnerGraph != m_ownerGraph)
 	{
-		m_modelArrayProperty = ownerGraph->getTypedPropertyByName<GraphVariableList>("models");
-		ownerGraph->OnPropertyModifed += MakeDelegate(this, &ModelNode::onGraphPropertyChanged);
+		if (m_ownerGraph)
+		{
+			m_modelArrayProperty = nullptr;
+			m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &ModelNode::onGraphPropertyChanged);
+			m_ownerGraph = nullptr;
+		}
+
+		if (newOwnerGraph)
+		{
+			m_modelArrayProperty = newOwnerGraph->getTypedPropertyByName<GraphVariableList>("models");
+			newOwnerGraph->OnPropertyModifed += MakeDelegate(this, &ModelNode::onGraphPropertyChanged);
+			m_ownerGraph = newOwnerGraph;
+		}
 	}
 }
 
-ModelNode::~ModelNode()
+bool ModelNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
-	m_modelArrayProperty = nullptr;
-	if (m_ownerGraph)
+	if (Node::loadFromConfig(nodeConfig))
 	{
-		m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &ModelNode::onGraphPropertyChanged);
+		auto modelNodeConfig = std::static_pointer_cast<const ModelNodeConfig>(nodeConfig);
+		t_graph_property_id propId = modelNodeConfig->id;
+
+		auto materialProperty = getOwnerGraph()->getTypedPropertyById<GraphModelProperty>(propId);
+		if (materialProperty)
+		{
+			setModelSource(materialProperty);
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("ModelNode::loadFromConfig")
+				<< "Failed to find model property: " << propId
+				<< ", on model node";
+		}
 	}
+
+	return false;
+}
+
+void ModelNode::saveToConfig(NodeConfigPtr nodeConfig) const
+{
+	auto materialNodeConfig = std::static_pointer_cast<ModelNodeConfig>(nodeConfig);
+	materialNodeConfig->modelPropertyId = m_sourceProperty ? m_sourceProperty->getId() : -1;
+
+	Node::saveToConfig(nodeConfig);
 }
 
 GlRenderModelResourcePtr ModelNode::getModelResource() const
@@ -106,10 +158,10 @@ void ModelNode::onGraphPropertyChanged(t_graph_property_id id)
 }
 
 // -- ModelNode Factory -----
-NodePtr ModelNodeFactory::createNode(const NodeEditorState* editorState) const
+NodePtr ModelNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	ModelNodePtr node = std::make_shared<ModelNode>();
+	NodePtr node = NodeFactory::createNode(editorState);
 	ModelPinPtr outputPin = node->addPin<ModelPin>("model", eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link

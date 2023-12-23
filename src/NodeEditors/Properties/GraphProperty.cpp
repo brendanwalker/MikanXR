@@ -25,17 +25,6 @@ void GraphPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphProperty ------
-GraphProperty::GraphProperty() 
-	: m_id(-1)
-{
-}
-
-GraphProperty::GraphProperty(NodeGraphPtr ownerGraph)
-	: m_id(ownerGraph->allocateId())
-	, m_ownerGraph(ownerGraph)
-{
-}
-
 bool GraphProperty::loadFromConfig(
 	GraphPropertyConfigConstPtr propConfig,
 	const NodeGraphConfig& graphConfig)
@@ -64,15 +53,12 @@ void GraphProperty::notifyPropertyModified() const
 }
 
 // -- GraphPropertyFactory ------
-GraphPropertyFactory::GraphPropertyFactory(NodeGraphPtr ownerGraph)
-	: m_ownerGraph(ownerGraph)
+GraphPropertyConfigPtr GraphPropertyFactory::allocatePropertyConfig() const
 {
-
+	return std::make_shared<GraphPropertyConfig>();
 }
 
-GraphPropertyPtr GraphPropertyFactory::createProperty(
-	const NodeEditorState* editorState,
-	const std::string& name) const
+GraphPropertyPtr GraphPropertyFactory::allocateProperty() const
 {
-	return m_ownerGraph->addTypedProperty<GraphProperty>(name);
+	return std::make_shared<GraphProperty>();
 }

@@ -31,7 +31,7 @@ public:
 	virtual int getFilterPatternCount() const { return 5; }
 	virtual char const* getFilterDescription() const { return "Node Graph Files (*.graph)"; }
 
-	virtual std::shared_ptr<AssetReference> createAssetReference(
+	virtual std::shared_ptr<AssetReference> allocateAssetReference(
 		const class NodeEditorState* editorState,
 		const std::filesystem::path& inAssetPath) const
 	{

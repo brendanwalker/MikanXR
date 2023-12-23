@@ -4,8 +4,7 @@
 class MousePosNode : public Node
 {
 public:
-	MousePosNode();
-	MousePosNode(NodeGraphPtr parentGraph);
+	MousePosNode()= default;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 
@@ -14,11 +13,10 @@ protected:
 	virtual std::string editorGetTitle() const override { return "MousePosition"; }
 };
 
-class MousePosNodeFactory : public NodeFactory
+class MousePosNodeFactory : public TypedNodeFactory<MousePosNode, NodeConfig>
 {
 public:
 	MousePosNodeFactory() = default;
-	MousePosNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
 
-	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
+	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };

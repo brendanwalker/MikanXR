@@ -10,12 +10,6 @@
 #include "imgui.h"
 #include "imnodes.h"
 
-MousePosNode::MousePosNode() : Node()
-{}
-
-MousePosNode::MousePosNode(NodeGraphPtr parentGraph) : Node(parentGraph)
-{}
-
 bool MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	Float2PinPtr outPin= getFirstPinOfType<Float2Pin>(eNodePinDirection::OUTPUT);
@@ -40,10 +34,10 @@ void MousePosNode::editorRenderPushNodeStyle(const NodeEditorState& editorState)
 }
 
 // -- MousePosNode Factory -----
-NodePtr MousePosNodeFactory::createNode(const NodeEditorState* editorState) const
+NodePtr MousePosNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	MousePosNodePtr node = std::make_shared<MousePosNode>();
+	NodePtr node = NodeFactory::createNode(editorState);
 	FloatPinPtr outputPin = node->addPin<FloatPin>("mousePos", eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link

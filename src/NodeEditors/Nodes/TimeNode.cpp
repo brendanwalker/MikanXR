@@ -8,12 +8,6 @@
 #include "imnodes.h"
 
 // -- TimeNode -----
-TimeNode::TimeNode() : Node()
-{}
-
-TimeNode::TimeNode(NodeGraphPtr parentGraph) : Node(parentGraph)
-{}
-
 bool TimeNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	FloatPinPtr outPin = getFirstPinOfType<FloatPin>(eNodePinDirection::OUTPUT);
@@ -33,10 +27,10 @@ void TimeNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) con
 }
 
 // -- TimeNode Factory -----
-NodePtr TimeNodeFactory::createNode(const NodeEditorState* editorState) const
+NodePtr TimeNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	TimeNodePtr node = std::make_shared<TimeNode>();
+	NodePtr node = NodeFactory::createNode(editorState);
 	FloatPinPtr outputPin= node->addPin<FloatPin>("time", eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link

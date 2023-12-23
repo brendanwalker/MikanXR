@@ -7,8 +7,7 @@
 class GraphMaterialPropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphMaterialPropertyConfig() : GraphPropertyConfig() {}
-	GraphMaterialPropertyConfig(const std::string& nodeName) : GraphPropertyConfig(nodeName) {}
+	GraphMaterialPropertyConfig() = default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -19,8 +18,7 @@ public:
 class GraphMaterialProperty : public GraphProperty
 {
 public:
-	GraphMaterialProperty();
-	GraphMaterialProperty(NodeGraphPtr ownerGraph);
+	GraphMaterialProperty()= default;
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;
@@ -40,15 +38,4 @@ protected:
 	GlMaterialPtr m_materialResource;
 };
 
-class GraphMaterialPropertyFactory : 
-	public TypedGraphPropertyFactory<GraphMaterialProperty, GraphMaterialPropertyConfig>
-{
-public:
-	GraphMaterialPropertyFactory() = default;
-	GraphMaterialPropertyFactory(NodeGraphPtr ownerGraph) 
-		: TypedGraphPropertyFactory<GraphMaterialProperty, GraphMaterialPropertyConfig>(ownerGraph) {}
-
-	virtual GraphPropertyPtr createProperty(
-		const class NodeEditorState* editorState,
-		const std::string& name) const;
-};
+using GraphMaterialPropertyFactory = TypedGraphPropertyFactory<GraphMaterialProperty, GraphMaterialPropertyConfig>;

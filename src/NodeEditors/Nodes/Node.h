@@ -37,15 +37,20 @@ class Node : public std::enable_shared_from_this<Node>
 {
 public:
 	Node();
-	Node(NodeGraphPtr ownerGraph);
 	virtual ~Node() {}
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
 
+	inline void setId(t_node_id id) { m_id = id; }
 	inline int getId() const { return m_id; }
+
+	virtual void setOwnerGraph(NodeGraphPtr ownerGraph);
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
+
+	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos = nodePos; }
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }
+
 	inline const std::vector<NodePinPtr>& getInputPins() const { return m_pinsIn; }
 	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }	
 
@@ -64,13 +69,13 @@ public:
 		return std::shared_ptr<t_pin_type>();
 	}
 
-	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
-
 	template <class t_pin_type>
 	std::shared_ptr<t_pin_type> addPin(const std::string& name, eNodePinDirection direction)
 	{
 		NodePtr ownerNode= shared_from_this();
-		std::shared_ptr<t_pin_type> pin= std::make_shared<t_pin_type>(ownerNode);
+		std::shared_ptr<t_pin_type> pin= std::make_shared<t_pin_type>();
+		pin->setId(ownerNode->getOwnerGraph()->allocateId());
+		pin->setOwnerNode(ownerNode);
 		pin->setName(name);
 		pin->setDirection(direction);
 		if (direction == eNodePinDirection::OUTPUT) m_pinsOut.push_back(pin);
@@ -117,38 +122,50 @@ class NodeFactory
 {
 public:
 	NodeFactory()= default;
-	NodeFactory(NodeGraphPtr ownerGraph);
 
 	inline NodeConstPtr getNodeDefaultObject() const { return m_nodeDefaultObject; }
 	inline std::string getNodeClassName() const { return typeid(m_nodeDefaultObject.get()).name(); }
 
-	virtual NodePtr createNode(const class NodeEditorState* editorState) const;
+	virtual NodeConfigPtr allocateNodeConfig() const;
+	virtual NodePtr allocateNode() const;
+	virtual NodePtr createNode(const NodeEditorState& editorState) const;
 
-	virtual NodeConfigPtr createNodeConfig() const
-	{
-		return std::make_shared<NodeConfig>();
-	}
-	
 	template <class t_node_factory_class>
-	static NodeFactoryPtr createFactory(NodeGraphPtr ownerGraph)
+	static NodeFactoryPtr createFactory()
 	{
 		// Create a node factory instance
-		auto nodeFactory= std::make_shared<t_node_factory_class>(ownerGraph);
+		auto nodeFactory= std::make_shared<t_node_factory_class>();
 
 		// Create a single "node default object" for the factory.
 		// This is used to ask questions about node without having to create one first.
 		// We have to do this work outside of the NodeFactory constructor,
 		// because virtual functions aren't safe to call in constructor.
-		nodeFactory->m_nodeDefaultObject= nodeFactory->createNode(nullptr);
+		nodeFactory->m_nodeDefaultObject= nodeFactory->allocateNode();
 
 		return nodeFactory;
 	}
 
 protected:
-	void autoConnectInputPin(const NodeEditorState* editorState, NodePinPtr outputPin) const;
-	void autoConnectOutputPin(const NodeEditorState* editorState, NodePinPtr outputPin) const;
+	void autoConnectInputPin(const NodeEditorState& editorState, NodePinPtr outputPin) const;
+	void autoConnectOutputPin(const NodeEditorState& editorState, NodePinPtr outputPin) const;
 
 protected:
-	NodeGraphPtr m_ownerGraph;
 	NodePtr m_nodeDefaultObject;
+};
+
+template <class t_node_class, class t_node_config_class>
+class TypedNodeFactory : public NodeFactory
+{
+public:
+	TypedNodeFactory() = default;
+
+	virtual NodeConfigPtr allocateNodeConfig() const override
+	{
+		return std::make_shared<t_node_config_class>();
+	}
+
+	virtual NodePtr allocateNode() const override
+	{
+		return std::make_shared<t_node_class>();
+	}
 };

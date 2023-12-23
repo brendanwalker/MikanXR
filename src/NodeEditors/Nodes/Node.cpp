@@ -4,6 +4,7 @@
 #include "Graphs/NodeEvaluator.h"
 #include "Pins/NodePin.h"
 #include "Pins/FlowPin.h"
+#include "Logger.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -41,15 +42,10 @@ Node::Node()
 
 }
 
-Node::Node(NodeGraphPtr ownerGraph)
-	: m_id(ownerGraph->allocateId())
-	, m_nodePos(glm::vec2(0.f))
-{
-	
-}
-
 bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
+	bool success= true;
+
 	m_id= nodeConfig->id;
 	m_nodePos= {nodeConfig->pos[0], nodeConfig->pos[1]};
 
@@ -62,7 +58,10 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		}
 		else
 		{
-			return false;
+			MIKAN_LOG_WARNING("Node::loadFromConfig") 
+				<< "Failed to find create input pin: " << pinId 
+				<< ", on node: " << typeid(*this).name();
+			success= false;
 		}
 	}
 
@@ -75,11 +74,14 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		}
 		else
 		{
-			return false;
+			MIKAN_LOG_WARNING("Node::loadFromConfig")
+				<< "Failed to find create output pin: " << pinId
+				<< ", on node: " << typeid(*this).name();
+			success= false;
 		}
 	}
 
-	return true;
+	return success;
 }
 
 void Node::saveToConfig(NodeConfigPtr nodeConfig) const
@@ -97,6 +99,11 @@ void Node::saveToConfig(NodeConfigPtr nodeConfig) const
 	{
 		nodeConfig->pinIDsOut.push_back(pin->getId());
 	}
+}
+
+void Node::setOwnerGraph(NodeGraphPtr ownerGraph) 
+{ 
+	m_ownerGraph = ownerGraph; 
 }
 
 bool Node::disconnectPin(NodePinPtr pinPtr)
@@ -315,50 +322,61 @@ void Node::editorRenderOutputPins(const NodeEditorState& editorState) const
 }
 
 // -- NodeFactory -----
-NodeFactory::NodeFactory(NodeGraphPtr ownerGraph)
-	: m_ownerGraph(ownerGraph)
+NodeConfigPtr NodeFactory::allocateNodeConfig() const
 {
+	return std::make_shared<NodeConfig>();
 }
 
-NodePtr NodeFactory::createNode(const NodeEditorState* editorState) const
+NodePtr NodeFactory::allocateNode() const
 {
-	return std::make_shared<Node>(m_ownerGraph);
+	return std::make_shared<Node>();
 }
 
-void NodeFactory::autoConnectInputPin(const NodeEditorState* editorState, NodePinPtr inputPin) const
+NodePtr NodeFactory::createNode(const NodeEditorState& editorState) const
+{
+	NodePtr newNode= allocateNode();
+	newNode->setId(editorState.nodeGraph->allocateId());
+
+	// Assign graph to the node, which may in turn setup listener delegates to graph events
+	newNode->setOwnerGraph(editorState.nodeGraph);
+
+	return newNode;
+}
+
+void NodeFactory::autoConnectInputPin(const NodeEditorState& editorState, NodePinPtr inputPin) const
 {
 	assert(inputPin->getDirection() == eNodePinDirection::INPUT);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the input pin to a compatible output pin
-	if (editorState != nullptr && editorState->startedLinkPinId != -1)
+	if (editorState.startedLinkPinId != -1)
 	{
-		NodePinPtr outputPin = m_ownerGraph->getNodePinById(editorState->startedLinkPinId);
+		NodePinPtr outputPin = editorState.nodeGraph->getNodePinById(editorState.startedLinkPinId);
 
 		if (inputPin->canPinsBeConnected(outputPin))
 		{
 			assert(outputPin->getDirection() == eNodePinDirection::OUTPUT);
 
-			m_ownerGraph->createLink(inputPin->getId(), outputPin->getId());
+			editorState.nodeGraph->createLink(inputPin->getId(), outputPin->getId());
 		}
 	}
 }
 
-void NodeFactory::autoConnectOutputPin(const NodeEditorState* editorState, NodePinPtr outputPin) const
+void NodeFactory::autoConnectOutputPin(const NodeEditorState& editorState, NodePinPtr outputPin) const
 {
 	assert(outputPin->getDirection() == eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin
-	if (editorState != nullptr && editorState->startedLinkPinId != -1)
+	if (editorState.startedLinkPinId != -1)
 	{
-		NodePinPtr inputPin = m_ownerGraph->getNodePinById(editorState->startedLinkPinId);
+		NodePinPtr inputPin = editorState.nodeGraph->getNodePinById(editorState.startedLinkPinId);
 
 		if (outputPin->canPinsBeConnected(inputPin))
 		{
 			assert(inputPin->getDirection() == eNodePinDirection::INPUT);
 
-			m_ownerGraph->createLink(inputPin->getId(), outputPin->getId());
+			editorState.nodeGraph->createLink(inputPin->getId(), outputPin->getId());
 		}
 	}
 }

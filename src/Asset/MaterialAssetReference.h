@@ -15,7 +15,8 @@ protected:
 	virtual void rebuildPreview() override;
 };
 
-class MaterialAssetReferenceFactory : public AssetReferenceFactory
+class MaterialAssetReferenceFactory :
+	public TypedAssetReferenceFactory<MaterialAssetReference, AssetReferenceConfig>
 {
 public:
 	MaterialAssetReferenceFactory() = default;
@@ -28,14 +29,4 @@ public:
 	}
 	virtual int getFilterPatternCount() const { return 1; }
 	virtual char const* getFilterDescription() const { return "Material Files (*.mat)"; }
-
-	virtual std::shared_ptr<AssetReference> createAssetReference(
-		const class NodeEditorState* editorState,
-		const std::filesystem::path& inAssetPath) const
-	{
-		auto assetRef= std::make_shared<MaterialAssetReference>();
-		assetRef->setAssetPath(inAssetPath);
-
-		return assetRef;
-	}
 };

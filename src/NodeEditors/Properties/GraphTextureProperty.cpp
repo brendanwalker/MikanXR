@@ -26,14 +26,6 @@ void GraphTexturePropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphModelProperty -----
-GraphTextureProperty::GraphTextureProperty()
-	: GraphProperty()
-{}
-
-GraphTextureProperty::GraphTextureProperty(NodeGraphPtr ownerGraph)
-	: GraphProperty(ownerGraph)
-{}
-
 bool GraphTextureProperty::loadFromConfig(
 	GraphPropertyConfigConstPtr propConfig,
 	const NodeGraphConfig& graphConfig)
@@ -95,7 +87,7 @@ void GraphTextureProperty::editorHandleDragDrop(const class NodeEditorState& edi
 {
 	auto textureNode =
 		std::static_pointer_cast<TextureNode>(
-			TextureNodeFactory(getOwnerGraph()).createNode(&editorState));
+			TextureNodeFactory().createNode(editorState));
 
 	// Set this as the source texture property for the new node
 	auto self= std::static_pointer_cast<GraphTextureProperty>(shared_from_this());
@@ -127,20 +119,4 @@ void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState
 
 		// TODO: Show Texture properties
 	}
-}
-
-// -- GraphModelPropertyFactory -----
-GraphPropertyPtr GraphTexturePropertyFactory::createProperty(
-	const NodeEditorState* editorState,
-	const std::string& name) const
-{
-	// TODO: See if we have a texture asset reference given from a drag and drop interaction
-	TextureAssetReferencePtr textureAssetRef = std::make_shared<TextureAssetReference>();
-	GlTexturePtr textureResource = std::make_shared<GlTexture>();
-
-	auto textureProperty = m_ownerGraph->addTypedProperty<GraphTextureProperty>(name);
-	textureProperty->setTextureAssetReference(textureAssetRef);
-	textureProperty->setTextureResource(textureResource);
-
-	return textureProperty;
 }

@@ -1,6 +1,7 @@
 #include "MaterialNode.h"
 #include "GlMaterial.h"
 #include "GlTexture.h"
+#include "Logger.h"
 #include "MaterialAssetReference.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
@@ -12,27 +13,78 @@
 #include "imgui.h"
 #include "imnodes.h"
 
-MaterialNode::MaterialNode()
-	: Node()
-{}
-
-MaterialNode::MaterialNode(NodeGraphPtr ownerGraph)
-	: Node(ownerGraph)
+// -- MaterialNodeConfig -----
+configuru::Config MaterialNodeConfig::writeToJSON()
 {
-	if (ownerGraph)
+	configuru::Config pt = NodeConfig::writeToJSON();
+
+	pt["material_property_id"] = materialPropertyId;
+
+	return pt;
+}
+
+void MaterialNodeConfig::readFromJSON(const configuru::Config& pt)
+{
+	NodeConfig::readFromJSON(pt);
+
+	materialPropertyId = pt.get_or<t_graph_property_id>("material_property_id", -1);
+}
+
+// -- MaterialNode -----
+MaterialNode::~MaterialNode()
+{
+	setOwnerGraph(NodeGraphPtr());
+}
+
+void MaterialNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
+{
+	if (newOwnerGraph != m_ownerGraph)
 	{
-		m_materialArrayProperty = ownerGraph->getTypedPropertyByName<GraphVariableList>("materials");
-		ownerGraph->OnPropertyModifed += MakeDelegate(this, &MaterialNode::onGraphPropertyChanged);
+		if (m_ownerGraph)
+		{
+			m_materialArrayProperty = nullptr;
+			m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &MaterialNode::onGraphPropertyChanged);
+			m_ownerGraph = nullptr;
+		}
+
+		if (newOwnerGraph)
+		{
+			m_materialArrayProperty = newOwnerGraph->getTypedPropertyByName<GraphVariableList>("materials");
+			newOwnerGraph->OnPropertyModifed += MakeDelegate(this, &MaterialNode::onGraphPropertyChanged);
+			m_ownerGraph = newOwnerGraph;
+		}
 	}
 }
 
-MaterialNode::~MaterialNode()
+bool MaterialNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
-	m_materialArrayProperty = nullptr;
-	if (m_ownerGraph)
+	if (Node::loadFromConfig(nodeConfig))
 	{
-		m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &MaterialNode::onGraphPropertyChanged);
+		auto materialNodeConfig = std::static_pointer_cast<const MaterialNodeConfig>(nodeConfig);
+		t_graph_property_id propId= materialNodeConfig->id;
+
+		auto materialProperty= getOwnerGraph()->getTypedPropertyById<GraphMaterialProperty>(propId);
+		if (materialProperty)
+		{
+			setMaterialSource(materialProperty);
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("MaterialNode::loadFromConfig")
+				<< "Failed to find material property: " << propId
+				<< ", on material node";
+		}
 	}
+
+	return false;
+}
+
+void MaterialNode::saveToConfig(NodeConfigPtr nodeConfig) const
+{
+	auto materialNodeConfig = std::static_pointer_cast<MaterialNodeConfig>(nodeConfig);
+	materialNodeConfig->materialPropertyId= m_sourceProperty ? m_sourceProperty->getId() : -1;
+
+	Node::saveToConfig(nodeConfig);
 }
 
 GlMaterialPtr MaterialNode::getMaterialResource() const
@@ -106,10 +158,10 @@ void MaterialNode::onGraphPropertyChanged(t_graph_property_id id)
 }
 
 // -- MaterialNode Factory -----
-NodePtr MaterialNodeFactory::createNode(const NodeEditorState* editorState) const
+NodePtr MaterialNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	MaterialNodePtr node = std::make_shared<MaterialNode>();
+	NodePtr node = NodeFactory::createNode(editorState);
 	MaterialPinPtr outputPin = node->addPin<MaterialPin>("material", eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link

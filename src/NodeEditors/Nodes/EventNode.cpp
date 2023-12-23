@@ -28,14 +28,6 @@ void EventNodeConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- EventNode -----
-EventNode::EventNode() : Node()
-{
-}
-
-EventNode::EventNode(NodeGraphPtr parentGraph) : Node(parentGraph)
-{
-}
-
 bool EventNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
@@ -81,10 +73,10 @@ std::string EventNode::editorGetTitle() const
 }
 
 // -- EventNode Factory -----
-NodePtr EventNodeFactory::createNode(const NodeEditorState* editorState) const
+NodePtr EventNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	EventNodePtr node = std::make_shared<EventNode>();
+	NodePtr node = NodeFactory::createNode(editorState);
 	FlowPinPtr outputPin = node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link

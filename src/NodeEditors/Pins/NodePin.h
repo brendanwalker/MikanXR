@@ -31,24 +31,27 @@ class NodePin
 {
 public:
 	NodePin();
-	NodePin(NodePtr ownerNode);
 
-	virtual bool loadFromConfig(const class NodePinConfig& config);
-	virtual void saveToConfig(class NodePinConfig& config) const;
+	virtual bool loadFromConfig(NodePinConfigConstPtr config);
+	virtual void saveToConfig(NodePinConfigPtr config) const;
 
+	inline void setId(t_node_pin_id id) { m_id= id; }
 	inline t_node_pin_id getId() const { return m_id; }
-	inline eNodePinDirection getDirection() const { return m_direction; }
-	inline const std::string& getName() const { return m_name; }
-	inline NodePtr getOwnerNode() const { return m_ownerNode; }
-	inline const std::vector<NodeLinkPtr>& getConnectedLinks() const { return m_connectedLinks; }
 
-	inline void setName(const std::string& name) { m_name= name; }
 	inline void setDirection(eNodePinDirection direction) { m_direction= direction; }
+	inline eNodePinDirection getDirection() const { return m_direction; }
+
+	inline void setName(const std::string& name) { m_name = name; }
+	inline const std::string& getName() const { return m_name; }
+
+	inline void setOwnerNode(NodePtr ownerNode) { m_ownerNode= ownerNode; }
+	inline NodePtr getOwnerNode() const { return m_ownerNode; }
 
 	virtual bool connectLink(NodeLinkPtr linkPtr);
 	MulticastDelegate<void(t_node_link_id id)> OnLinkConnected;
 	virtual bool disconnectLink(NodeLinkPtr linkPtr);
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDisconnected;
+	inline const std::vector<NodeLinkPtr>& getConnectedLinks() const { return m_connectedLinks; }
 
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
@@ -80,35 +83,32 @@ class NodePinFactory
 {
 public:
 	NodePinFactory() = default;
-	NodePinFactory(NodeGraphPtr ownerGraph) : m_ownerGraph(ownerGraph) {}
 
-	inline NodeGraphPtr getOwner() const { return m_ownerGraph; }
 	inline std::string getPinClassName() const { return typeid(m_defaultPinObject.get()).name(); }
 
-	virtual NodePinPtr createPin(NodePtr ownerNode, const std::string& name, eNodePinDirection direction) const= 0;
+	virtual NodePinPtr allocatePin() const= 0;
 
-	virtual NodePinConfigPtr createPinConfig() const
+	virtual NodePinConfigPtr allocatePinConfig() const
 	{
 		return std::make_shared<NodePinConfig>();
 	}
 
 	template <class t_factory_class>
-	static NodePinFactoryPtr createFactory(NodeGraphPtr ownerGraph)
+	static NodePinFactoryPtr createFactory()
 	{
-		auto factory= std::make_shared<t_factory_class>(ownerGraph);
+		auto factory= std::make_shared<t_factory_class>();
 
 		// Create a single "node pin object" for the factory.
 		// This is used to ask questions about a pin without having to create one first.
 		// We have to do this work outside of the NodePinFactory constructor,
 		// because virtual functions aren't safe to call in constructor.
-		factory->m_defaultPinObject = factory->createPin(nullptr, "", eNodePinDirection::INVALID);
+		factory->m_defaultPinObject = factory->allocatePin();
 
 		// Create a node factory instance
 		return factory;
 	}
 
 protected:
-	NodeGraphPtr m_ownerGraph;
 	NodePinPtr m_defaultPinObject;
 };
 
@@ -117,13 +117,9 @@ class TypedNodePinFactory : public NodePinFactory
 {
 public:
 	TypedNodePinFactory() = default;
-	TypedNodePinFactory(NodeGraphPtr ownerGraph) : NodePinFactory(ownerGraph) {}
 
-	virtual NodePinPtr createPin(
-		NodePtr ownerNode,
-		const std::string& name,
-		eNodePinDirection direction) const override
+	virtual NodePinPtr allocatePin() const override
 	{
-		return ownerNode->addPin<t_pin_class>(name, direction);
+		return std::make_shared<t_pin_class>();
 	}
 };

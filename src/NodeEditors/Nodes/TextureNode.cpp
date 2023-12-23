@@ -2,6 +2,7 @@
 #include "GlTexture.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
+#include "Logger.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
 #include "Properties/GraphVariableList.h"
@@ -10,27 +11,79 @@
 #include "imgui.h"
 #include "imnodes.h"
 
-TextureNode::TextureNode()
-	: Node()
-{}
-
-TextureNode::TextureNode(NodeGraphPtr ownerGraph)
-	: Node(ownerGraph)
+// -- TextureNodeConfig -----
+configuru::Config TextureNodeConfig::writeToJSON()
 {
-	if (ownerGraph)
+	configuru::Config pt = NodeConfig::writeToJSON();
+
+	pt["texture_property_id"] = texturePropertyId;
+
+	return pt;
+}
+
+void TextureNodeConfig::readFromJSON(const configuru::Config& pt)
+{
+	NodeConfig::readFromJSON(pt);
+
+	texturePropertyId = pt.get_or<t_graph_property_id>("texture_property_id", -1);
+}
+
+// -- TextureNode -----
+TextureNode::~TextureNode()
+{
+	// Force de-registration of graph property change delegates
+	setOwnerGraph(NodeGraphPtr());
+}
+
+void TextureNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
+{
+	if (newOwnerGraph != m_ownerGraph)
 	{
-		m_textureArrayProperty = ownerGraph->getTypedPropertyByName<GraphVariableList>("textures");
-		ownerGraph->OnPropertyModifed += MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
+		if (m_ownerGraph)
+		{
+			m_textureArrayProperty = nullptr;
+			m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
+			m_ownerGraph= nullptr;
+		}
+
+		if (newOwnerGraph)
+		{
+			m_textureArrayProperty = newOwnerGraph->getTypedPropertyByName<GraphVariableList>("textures");
+			newOwnerGraph->OnPropertyModifed += MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
+			m_ownerGraph= newOwnerGraph;
+		}
 	}
 }
 
-TextureNode::~TextureNode()
+bool TextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
-	m_textureArrayProperty = nullptr;
-	if (m_ownerGraph)
+	if (Node::loadFromConfig(nodeConfig))
 	{
-		m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
+		auto textureNodeConfig = std::static_pointer_cast<const TextureNodeConfig>(nodeConfig);
+		t_graph_property_id propId = textureNodeConfig->id;
+
+		auto textureProperty = getOwnerGraph()->getTypedPropertyById<GraphTextureProperty>(propId);
+		if (textureProperty)
+		{
+			setTextureSource(textureProperty);
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("TextureNode::loadFromConfig")
+				<< "Failed to find texture property: " << propId
+				<< ", on texture node";
+		}
 	}
+
+	return false;
+}
+
+void TextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
+{
+	auto textureNodeConfig = std::static_pointer_cast<TextureNodeConfig>(nodeConfig);
+	textureNodeConfig->texturePropertyId = m_sourceProperty ? m_sourceProperty->getId() : -1;
+
+	Node::saveToConfig(nodeConfig);
 }
 
 GlTexturePtr TextureNode::getTextureResource() const
@@ -104,10 +157,10 @@ void TextureNode::onGraphPropertyChanged(t_graph_property_id id)
 }
 
 // -- TextureNode Factory -----
-NodePtr TextureNodeFactory::createNode(const NodeEditorState* editorState) const
+NodePtr TextureNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	TextureNodePtr node = std::make_shared<TextureNode>();
+	NodePtr node = NodeFactory::createNode(editorState);
 	TexturePinPtr outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link

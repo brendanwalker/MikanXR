@@ -28,39 +28,68 @@
 #include <typeinfo>
 #include <GL/glew.h>
 
-DrawTriMeshNode::DrawTriMeshNode()
-	: Node()
-{
-}
-
-DrawTriMeshNode::DrawTriMeshNode(NodeGraphPtr ownerGraph)
-	: Node(ownerGraph)
-{
-	if (m_ownerGraph)
-	{
-		m_ownerGraph->OnGraphLoaded += MakeDelegate(this, &DrawTriMeshNode::onGraphLoaded);
-	}
-}
-
 DrawTriMeshNode::~DrawTriMeshNode()
 {
-	if (m_ownerGraph)
-	{
-		m_ownerGraph->OnGraphLoaded -= MakeDelegate(this, &DrawTriMeshNode::onGraphLoaded);
-	}
+	setOwnerGraph(NodeGraphPtr());
+	setModelPin(ModelPinPtr());
+	setMaterialPin(MaterialPinPtr());
+}
 
-	if (m_materialPin)
+void DrawTriMeshNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
+{
+	if (newOwnerGraph != m_ownerGraph)
 	{
-		m_materialPin->OnLinkConnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkConnected);
-		m_materialPin->OnLinkDisconnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkDisconnected);
-		m_materialPin = nullptr;
-	}
+		if (m_ownerGraph)
+		{
+			m_ownerGraph->OnGraphLoaded -= MakeDelegate(this, &DrawTriMeshNode::onGraphLoaded);
+			m_ownerGraph= nullptr;
+		}
 
-	if (m_modelPin)
+		if (newOwnerGraph)
+		{
+			m_ownerGraph->OnGraphLoaded += MakeDelegate(this, &DrawTriMeshNode::onGraphLoaded);
+			m_ownerGraph = newOwnerGraph;
+		}
+	}
+}
+
+void DrawTriMeshNode::setMaterialPin(MaterialPinPtr inPin)
+{
+	if (inPin != m_materialPin)
 	{
-		m_modelPin->OnLinkConnected -= MakeDelegate(this, &DrawTriMeshNode::onModelLinkConnected);
-		m_modelPin->OnLinkDisconnected -= MakeDelegate(this, &DrawTriMeshNode::onModelLinkDisconnected);
-		m_modelPin = nullptr;
+		if (m_materialPin)
+		{
+			m_materialPin->OnLinkConnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkConnected);
+			m_materialPin->OnLinkDisconnected -= MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkDisconnected);
+			m_materialPin = nullptr;
+		}
+
+		if (inPin)
+		{
+			inPin->OnLinkConnected += MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkConnected);
+			inPin->OnLinkDisconnected += MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkDisconnected);
+			m_materialPin = inPin;
+		}
+	}
+}
+
+void DrawTriMeshNode::setModelPin(ModelPinPtr inPin)
+{
+	if (inPin != m_modelPin)
+	{
+		if (m_modelPin)
+		{
+			m_modelPin->OnLinkConnected -= MakeDelegate(this, &DrawTriMeshNode::onModelLinkConnected);
+			m_modelPin->OnLinkDisconnected -= MakeDelegate(this, &DrawTriMeshNode::onModelLinkDisconnected);
+			m_modelPin = nullptr;
+		}
+
+		if (inPin)
+		{
+			inPin->OnLinkConnected += MakeDelegate(this, &DrawTriMeshNode::onModelLinkConnected);
+			inPin->OnLinkDisconnected += MakeDelegate(this, &DrawTriMeshNode::onModelLinkDisconnected);
+			m_modelPin = inPin;
+		}
 	}
 }
 
@@ -253,20 +282,6 @@ void DrawTriMeshNode::editorRenderPropertySheet(const NodeEditorState& editorSta
 	}
 }
 
-void DrawTriMeshNode::setMaterialPin(MaterialPinPtr inPin)
-{
-	inPin->OnLinkConnected += MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkConnected);
-	inPin->OnLinkDisconnected += MakeDelegate(this, &DrawTriMeshNode::onMaterialLinkDisconnected);
-	m_materialPin = inPin;
-}
-
-void DrawTriMeshNode::setModelPin(ModelPinPtr inPin)
-{
-	inPin->OnLinkConnected += MakeDelegate(this, &DrawTriMeshNode::onModelLinkConnected);
-	inPin->OnLinkDisconnected += MakeDelegate(this, &DrawTriMeshNode::onModelLinkDisconnected);
-	m_modelPin = inPin;
-}
-
 void DrawTriMeshNode::onGraphLoaded(bool success)
 {
 	if (success)
@@ -380,11 +395,11 @@ void DrawTriMeshNode::rebuildInputPins()
 }
 
 // -- ProgramNode Factory -----
-NodePtr DrawTriMeshNodeFactory::createNode(const NodeEditorState* editorState) const
+NodePtr DrawTriMeshNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and default pins
 	// The rest of the input pins can't be connected until we have a material assigned
-	ProgramNodePtr node = std::make_shared<DrawTriMeshNode>();
+	auto node = std::static_pointer_cast<DrawTriMeshNode>(NodeFactory::createNode(editorState));
 
 	// Create default input pins
 	FlowPinPtr flowInPin = node->addPin<FlowPin>("flowIn", eNodePinDirection::INPUT);

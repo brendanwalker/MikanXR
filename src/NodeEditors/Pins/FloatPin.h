@@ -7,7 +7,6 @@ class FloatPinBase : public NodePin
 {
 public:
 	FloatPinBase() = default;
-	FloatPinBase(NodePtr ownerNode) : NodePin(ownerNode) {}
 
 	virtual float editorComputeInputWidth() const;
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
@@ -18,7 +17,6 @@ class FloatPin : public FloatPinBase
 {
 public:
 	FloatPin() = default;
-	FloatPin(NodePtr ownerNode) : FloatPinBase(ownerNode) {}
 
 	float getValue() const { return value; }
 	void setValue(float inValue) { value = inValue; }
@@ -37,7 +35,6 @@ class Float2Pin : public FloatPinBase
 {
 public:
 	Float2Pin() = default;
-	Float2Pin(NodePtr ownerNode) : FloatPinBase(ownerNode) {}
 
 	const std::array<float, 2>& getValue() const { return value; }
 	void setValue(const std::array<float, 2>& inValue) { value = inValue; }
@@ -54,7 +51,6 @@ class Float3Pin : public FloatPinBase
 {
 public:
 	Float3Pin() = default;
-	Float3Pin(NodePtr ownerNode) : FloatPinBase(ownerNode) {}
 
 	const std::array<float, 3>& getValue() const { return value; }
 	void setValue(const std::array<float, 3>& inValue) { value = inValue; }
@@ -71,7 +67,6 @@ class Float4Pin : public FloatPinBase
 {
 public:
 	Float4Pin() = default;
-	Float4Pin(NodePtr ownerNode) : FloatPinBase(ownerNode) {}
 
 	const std::array<float, 4>& getValue() const { return value; }
 	void setValue(const std::array<float, 4>& inValue) { value = inValue; }

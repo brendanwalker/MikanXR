@@ -20,16 +20,6 @@ void GraphArrayPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphArrayProperty -----
-GraphArrayProperty::GraphArrayProperty() 
-	: GraphProperty() 
-{
-}
-
-GraphArrayProperty::GraphArrayProperty(NodeGraphPtr ownerGraph) 
-	: GraphProperty(ownerGraph) 
-{
-}
-
 bool GraphArrayProperty::loadFromConfig(
 	GraphPropertyConfigConstPtr propConfig,
 	const NodeGraphConfig& graphConfig)

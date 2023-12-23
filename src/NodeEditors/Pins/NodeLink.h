@@ -20,24 +20,27 @@ public:
 class NodeLink
 {
 public:
-	NodeLink();
-	NodeLink(NodeGraphPtr m_ownerGraph);
+	NodeLink()= default;
 
-	virtual bool loadFromConfig(const class NodeLinkConfig& config);
-	virtual void saveToConfig(class NodeLinkConfig& config) const;
+	virtual bool loadFromConfig(NodeLinkConfigConstPtr config);
+	virtual void saveToConfig(NodeLinkConfigPtr config) const;
 
+	inline void setId(t_node_link_id id) { m_id = id; }
 	inline t_node_link_id getId() const { return m_id; }
-	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
-	inline NodePinPtr getStartPin() const { return m_startPin; }
-	inline NodePinPtr getEndPin() const { return m_endPin; }
 
-	inline void setStartPin(NodePinPtr pin) { m_startPin= pin; }
-	inline void setEndPin(NodePinPtr pin) { m_endPin= pin; }
+	inline void setOwnerGraph(NodeGraphPtr ownerGraph) { m_ownerGraph= ownerGraph; }
+	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
+
+	inline void setStartPin(NodePinPtr pin) { m_startPin = pin; }
+	inline NodePinPtr getStartPin() const { return m_startPin; }
+
+	inline void setEndPin(NodePinPtr pin) { m_endPin = pin; }
+	inline NodePinPtr getEndPin() const { return m_endPin; }
 
 	virtual void editorRender(const NodeEditorState& editorState);
 
 protected:
-	t_node_link_id m_id;
+	t_node_link_id m_id= -1;
 	NodeGraphPtr m_ownerGraph;
 	NodePinPtr m_startPin;
 	NodePinPtr m_endPin;

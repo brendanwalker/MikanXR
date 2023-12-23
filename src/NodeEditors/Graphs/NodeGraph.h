@@ -69,14 +69,23 @@ public:
 
 	inline float getTimeInSeconds() const { return m_timeInSeconds; }
 
+	// Generates a unique ID for each node object newly created in the editor
+	int allocateId();
+
+	// Loading
 	virtual bool loadFromConfig(const NodeGraphConfig& config);
-	virtual AssetReferencePtr loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
 	virtual GraphPropertyPtr loadGraphPropertyFromConfig(
 		GraphPropertyConfigPtr propConfig, const NodeGraphConfig& graphConfig);
+	virtual AssetReferencePtr loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
 	virtual NodePtr loadNodeFromConfig(NodeConfigPtr nodeConfig);
-	virtual void saveToConfig(NodeGraphConfig& config) const;
+	virtual NodePinPtr loadPinFromConfig(NodePinConfigPtr pinConfig);
+	virtual NodeLinkPtr loadLinkFromConfig(NodeLinkConfigPtr linkConfig);
 
 	MulticastDelegate<void(bool success)> OnGraphLoaded;
+
+	// Saving
+	virtual void saveToConfig(NodeGraphConfig& config) const;
+
 
 	virtual void update(class NodeEvaluator& evaluator);
 	virtual void editorRender(const class NodeEditorState& editorState);
@@ -142,7 +151,7 @@ public:
 	template <class t_property_factory>
 	void addPropertyFactory()
 	{
-		auto factory = GraphPropertyFactory::createFactory<t_property_factory>(shared_from_this());
+		auto factory = GraphPropertyFactory::createFactory<t_property_factory>();
 		std::string className = factory->getGraphPropertyClassName();
 
 		m_propertyFactories.insert({className, factory});
@@ -176,19 +185,19 @@ public:
 	}
 
 	template <class t_property_type>
-	std::shared_ptr<t_property_type> addTypedProperty(const std::string& name)
+	std::shared_ptr<t_property_type> createTypedProperty(const std::string& name)
 	{
-		auto property = std::make_shared<t_property_type>(shared_from_this());
+		auto property = std::make_shared<t_property_type>();
+		property->setOwnerGraph(shared_from_this());
+		property->setId(allocateId());
 		property->setName(name);
 
-		m_properties.insert({property->getId(), property});
-
-		if (OnPropertyCreated)
-			OnPropertyCreated(property->getId());
+		addProperty(property);
 
 		return property;
 	}
 
+	void addProperty(GraphPropertyPtr property);
 	bool deletePropertyById(t_graph_property_id id);
 
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyCreated;
@@ -201,7 +210,7 @@ public:
 	template <class t_node_factory>
 	void addNodeFactory()
 	{
-		auto factory = NodeFactory::createFactory<t_node_factory>(shared_from_this());
+		auto factory = NodeFactory::createFactory<t_node_factory>();
 		std::string className = factory->getNodeClassName();
 
 		m_nodeFactories.insert({className, factory});
@@ -231,7 +240,7 @@ public:
 	NodePinPtr getNodePinById(t_node_pin_id id) const;
 	NodeLinkPtr getNodeLinkById(t_node_link_id id) const;
 
-	NodePtr createNode(NodeFactoryPtr nodeFactory, const NodeEditorState* nodeEditorState);
+	NodePtr createNode(NodeFactoryPtr nodeFactory, const NodeEditorState& nodeEditorState);
 	MulticastDelegate<void(t_node_id id)> OnNodeCreated;
 
 	bool deleteNodeById(t_node_id id);
@@ -241,7 +250,7 @@ public:
 	template <class t_pin_class>
 	void addPinFactory()
 	{
-		auto factory = NodePinFactory::createFactory< TypedNodePinFactory<t_pin_class> >(shared_from_this());
+		auto factory = NodePinFactory::createFactory< TypedNodePinFactory<t_pin_class> >();
 		std::string pinClassName = factory->getPinClassName();
 
 		m_pinFactories.insert({pinClassName, factory});
@@ -254,11 +263,7 @@ public:
 		return (it != m_pinFactories.end()) ? it->second : NodePinFactoryPtr();
 	}
 
-	NodePinPtr createPin(
-		NodePinFactoryPtr pinFactory,
-		NodePtr ownerNode,
-		const std::string& name,
-		eNodePinDirection direction);
+	void addPin(NodePinPtr newPin);
 	MulticastDelegate<void(t_node_pin_id id)> OnPinCreated;
 
 	bool deletePinById(t_node_pin_id id);
@@ -272,9 +277,6 @@ public:
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDeleted;
 
 protected:
-	int allocateId();
-	void addPin(NodePinPtr newPin);
-
 	float m_timeInSeconds;
 
 	// Defines all of the asset references that nodes in this graph can use
@@ -301,9 +303,4 @@ protected:
 	std::map<t_node_link_id, NodeLinkPtr> m_Links;
 
 	int	m_nextId= 0;
-
-	friend class Node;
-	friend class NodeLink;
-	friend class NodePin;
-	friend class GraphProperty;
 };

@@ -5,8 +5,7 @@
 class FlowPin : public NodePin
 {
 public:
-	FlowPin() : NodePin() {}
-	FlowPin(NodePtr ownerNode) : NodePin(ownerNode) {}
+	FlowPin() = default;
 
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
 	virtual void editorRenderBeginLink(float alpha) override;

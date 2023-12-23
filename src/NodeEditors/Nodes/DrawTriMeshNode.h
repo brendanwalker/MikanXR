@@ -6,9 +6,10 @@
 class DrawTriMeshNode : public Node
 {
 public:
-	DrawTriMeshNode();
-	DrawTriMeshNode(NodeGraphPtr parentGraph);
+	DrawTriMeshNode() = default;
 	virtual ~DrawTriMeshNode();
+
+	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator);
 	virtual FlowPinPtr getOutputFlowPin() const;
@@ -40,11 +41,10 @@ protected:
 	friend class DrawTriMeshNodeFactory;
 };
 
-class DrawTriMeshNodeFactory : public NodeFactory
+class DrawTriMeshNodeFactory : public TypedNodeFactory<DrawTriMeshNode, NodeConfig>
 {
 public:
 	DrawTriMeshNodeFactory() = default;
-	DrawTriMeshNodeFactory(NodeGraphPtr ownerGraph) : NodeFactory(ownerGraph) {}
 
-	virtual NodePtr createNode(const class NodeEditorState* editorState) const override;
+	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };
