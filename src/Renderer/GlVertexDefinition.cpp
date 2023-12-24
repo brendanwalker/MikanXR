@@ -1,6 +1,5 @@
 #include "GlCommon.h"
 #include "GlVertexDefinition.h"
-#include "StringUtils.h"
 
 GlVertexAttribute::GlVertexAttribute(uint32_t _index, int32_t _size, uint32_t _type, bool _normalized, int32_t _stride, size_t _offset)
 {
@@ -224,7 +223,7 @@ void GlVertexAttribute::init(uint32_t _index, int32_t _size, uint32_t _type, boo
 	offset = _offset;
 
 	char szDesc[256];
-	StringUtils::formatString(
+	sprintf_s(
 		szDesc, sizeof(szDesc),
 		"[%d_%d_%d_%c_%d_%d]",
 		index, size, type, normalized ? 'n' : 'u', stride, offset);

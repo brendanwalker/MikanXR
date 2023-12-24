@@ -20,6 +20,8 @@ file(GLOB MIKAN_TEST_SRC
     "${ROOT_DIR}/src/Renderer/GlTexture.cpp"
     "${ROOT_DIR}/src/Renderer/GlUniformBlock.h"
     "${ROOT_DIR}/src/Renderer/GlUniformBlock.cpp"
+    "${ROOT_DIR}/src/Renderer/GlVertexDefinition.h"
+    "${ROOT_DIR}/src/Renderer/GlVertexDefinition.cpp"
 )
 
 list(APPEND MIKAN_TEST_INCL_DIRS
