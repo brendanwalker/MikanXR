@@ -26,7 +26,7 @@ public:
 	GraphProperty()= default;
 	virtual ~GraphProperty() {}
 
-	inline std::string getClassName() const { return typeid(*this).name(); }
+	virtual const std::string& getClassName() const { return "GraphProperty"; }
 
 	virtual bool loadFromConfig(
 		GraphPropertyConfigConstPtr propConfig,

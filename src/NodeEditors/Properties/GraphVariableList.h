@@ -2,10 +2,29 @@
 
 #include "GraphArrayProperty.h"
 
+class GraphVariableListConfig : public GraphArrayPropertyConfig
+{
+public:
+	GraphVariableListConfig() = default;
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	std::string variableClassName;
+};
+using GraphVariableListConfigPtr = std::shared_ptr<GraphVariableListConfig>;
+using GraphVariableListConfigConstPtr = std::shared_ptr<const GraphVariableListConfig>;
+
 class GraphVariableList : public GraphArrayProperty
 {
 public:
 	GraphVariableList() = default;
+
+	virtual const std::string& getClassName() const override { return "GraphVariableList"; }
+
+	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
+								const NodeGraphConfig& graphConfig) override;
+	virtual void saveToConfig(GraphPropertyConfigPtr config) const override;
 
 	template <class t_factory_type>
 	void assignFactory()
@@ -21,4 +40,4 @@ protected:
 	GraphPropertyFactoryPtr m_factory;
 };
 
-using GraphVariableListFactory= TypedGraphPropertyFactory<GraphVariableList, GraphArrayPropertyConfig>;
+using GraphVariableListFactory= TypedGraphPropertyFactory<GraphVariableList, GraphVariableListConfig>;
