@@ -6,6 +6,7 @@ class MousePosNode : public Node
 public:
 	MousePosNode()= default;
 
+	virtual const std::string& getClassName() const override { return "MousePosNode"; }
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 
 protected:

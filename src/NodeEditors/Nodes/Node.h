@@ -39,7 +39,7 @@ public:
 	Node();
 	virtual ~Node() {}
 
-	inline std::string getClassName() const { return typeid(*this).name(); }
+	virtual const std::string& getClassName() const { return "Node"; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
