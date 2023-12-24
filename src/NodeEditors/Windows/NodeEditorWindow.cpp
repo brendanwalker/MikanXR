@@ -447,8 +447,6 @@ void NodeEditorWindow::renderToolbar()
 		ImGui::BeginChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
 		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
 
-		ImGui::PopStyleColor();
-
 		ImGui::SameLine();
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
 		if (ImGui::SmallButton(ICON_FK_UNDO))
@@ -597,35 +595,39 @@ void NodeEditorWindow::renderAssetsPanel()
 			{
 				auto& assetRefFactory= it->second;
 				const std::string& assetTypeName= assetRefFactory->getAssetTypeName();
-				const std::string buttonName= StringUtils::stringify("  Add ", assetTypeName, "##", assetTypeName);
-				auto assetPath = 
-					tinyfd_openFileDialog(
-						assetRefFactory->getFileDialogTitle(), 
-						assetRefFactory->getDefaultPath(),
-						assetRefFactory->getFilterPatternCount(), 
-						assetRefFactory->getFilterPatterns(), 
-						assetRefFactory->getFilterDescription(), 
-						1);
+				const std::string buttonName= StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  Add ", assetTypeName, "##", assetTypeName);
 
-				if (assetPath)
+				if (ImGui::SmallButton(buttonName.c_str()))
 				{
-					std::stringstream ssPaths(assetPath);
-					std::string path;
-					while (std::getline(ssPaths, path, '|'))
+					auto assetPath =
+						tinyfd_openFileDialog(
+							assetRefFactory->getFileDialogTitle(),
+							assetRefFactory->getDefaultPath(),
+							assetRefFactory->getFilterPatternCount(),
+							assetRefFactory->getFilterPatterns(),
+							assetRefFactory->getFilterDescription(),
+							1);
+
+					if (assetPath)
 					{
-						std::string universalPath(path);
-						std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
-
-						// Create the asset reference
-						AssetReferencePtr assetRef= assetRefFactory->allocateAssetReference();
-						if (assetRef)
+						std::stringstream ssPaths(assetPath);
+						std::string path;
+						while (std::getline(ssPaths, path, '|'))
 						{
-							// Assign path to the asset
-							assetRef->setAssetPath(universalPath);
+							std::string universalPath(path);
+							std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
 
-							// Register the asset reference with the graph
-							getNodeGraph()->getAssetReferencesMutable().push_back(assetRef);
-							onAssetReferenceCreated(assetRef);
+							// Create the asset reference
+							AssetReferencePtr assetRef = assetRefFactory->allocateAssetReference();
+							if (assetRef)
+							{
+								// Assign path to the asset
+								assetRef->setAssetPath(universalPath);
+
+								// Register the asset reference with the graph
+								getNodeGraph()->getAssetReferencesMutable().push_back(assetRef);
+								onAssetReferenceCreated(assetRef);
+							}
 						}
 					}
 				}
