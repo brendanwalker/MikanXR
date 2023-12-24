@@ -7,6 +7,7 @@ class TextureAssetReference : public AssetReference
 public:
 	TextureAssetReference() = default;
 
+	virtual std::string getClassName() const override { return "TextureAssetReference"; }
 	virtual std::string getAssetTypeName() const override { return "Texture"; }
 
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;

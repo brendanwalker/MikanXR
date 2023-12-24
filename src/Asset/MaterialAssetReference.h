@@ -7,6 +7,7 @@ class MaterialAssetReference : public AssetReference
 public:
 	MaterialAssetReference() = default;
 
+	virtual std::string getClassName() const override { return "MaterialAssetReference"; }
 	virtual std::string getAssetTypeName() const override { return "Material"; }
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;

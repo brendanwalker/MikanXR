@@ -26,7 +26,7 @@ public:
 	AssetReference()= default;
 	virtual ~AssetReference();
 
-	inline std::string getClassName() const { return typeid(*this).name(); }
+	virtual std::string getClassName() const { return "AssetReference"; }
 
 	virtual bool loadFromConfig(AssetReferenceConfigConstPtr config);
 	virtual void saveToConfig(AssetReferenceConfigPtr config) const;

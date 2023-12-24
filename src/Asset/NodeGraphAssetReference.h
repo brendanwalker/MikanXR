@@ -7,6 +7,7 @@ class NodeGraphAssetReference : public AssetReference
 public:
 	NodeGraphAssetReference() = default;
 
+	virtual std::string getClassName() const override { return "NodeGraphAssetReference"; }
 	virtual std::string getAssetTypeName() const override { return "NodeGraph"; }
 
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
