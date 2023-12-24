@@ -10,7 +10,7 @@ public:
 	template <class t_factory_type>
 	void assignFactory()
 	{
-		m_factory = std::make_shared<t_factory_type>();
+		m_factory = GraphPropertyFactory::createFactory<t_factory_type>();
 	}
 	inline GraphPropertyFactoryPtr getFactory() const { return m_factory; }
 

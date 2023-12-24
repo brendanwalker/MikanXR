@@ -36,8 +36,6 @@ const std::string CompositorNodeGraph::k_compositeFrameEventName= "OnCompositeFr
 
 CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 {
-	NodeGraphPtr ownerGraph= shared_from_this();
-
 	// Assets this graph can reference
 	addAssetReferenceFactory<ModelAssetReferenceFactory>();
 	addAssetReferenceFactory<MaterialAssetReferenceFactory>();
