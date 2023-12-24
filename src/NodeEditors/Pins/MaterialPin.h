@@ -11,6 +11,7 @@ public:
 	GlMaterialPtr getValue() const { return m_value; }
 	void setValue(GlMaterialPtr inValue) { m_value = inValue; }
 
+	virtual std::string getClassName() const override { return "MaterialPin"; }
 	virtual size_t getDataSize() const { return sizeof(GlMaterialPtr); }
 	virtual void copyValueFromSourcePin() override;
 

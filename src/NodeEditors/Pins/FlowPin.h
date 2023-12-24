@@ -7,6 +7,7 @@ class FlowPin : public NodePin
 public:
 	FlowPin() = default;
 
+	virtual std::string getClassName() const override { return "FlowPin"; }
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
 	virtual void editorRenderBeginLink(float alpha) override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;

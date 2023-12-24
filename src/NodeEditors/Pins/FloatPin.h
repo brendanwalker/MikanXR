@@ -8,6 +8,7 @@ class FloatPinBase : public NodePin
 public:
 	FloatPinBase() = default;
 
+	virtual std::string getClassName() const override { return "FloatPinBase"; }
 	virtual float editorComputeInputWidth() const;
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
@@ -21,6 +22,7 @@ public:
 	float getValue() const { return value; }
 	void setValue(float inValue) { value = inValue; }
 
+	virtual std::string getClassName() const override { return "FloatPin"; }
 	virtual size_t getDataSize() const { return sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
@@ -39,6 +41,7 @@ public:
 	const std::array<float, 2>& getValue() const { return value; }
 	void setValue(const std::array<float, 2>& inValue) { value = inValue; }
 
+	virtual std::string getClassName() const override { return "Float2Pin"; }
 	virtual size_t getDataSize() const { return 2*sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
@@ -55,6 +58,7 @@ public:
 	const std::array<float, 3>& getValue() const { return value; }
 	void setValue(const std::array<float, 3>& inValue) { value = inValue; }
 
+	virtual std::string getClassName() const override { return "Float3Pin"; }
 	virtual size_t getDataSize() const { return 3*sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
@@ -71,6 +75,7 @@ public:
 	const std::array<float, 4>& getValue() const { return value; }
 	void setValue(const std::array<float, 4>& inValue) { value = inValue; }
 
+	virtual std::string getClassName() const override { return "Float4Pin"; }
 	virtual size_t getDataSize() const { return 4*sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;

@@ -32,7 +32,7 @@ class NodePin
 public:
 	NodePin();
 
-	inline std::string getClassName() const { return typeid(*this).name(); }
+	virtual std::string getClassName() const { return "NodePin"; }
 
 	virtual bool loadFromConfig(NodePinConfigConstPtr config);
 	virtual void saveToConfig(NodePinConfigPtr config) const;

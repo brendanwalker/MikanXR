@@ -11,6 +11,7 @@ public:
 	GlRenderModelResourcePtr getValue() const { return m_value; }
 	void setValue(GlRenderModelResourcePtr inValue) { m_value = inValue; }
 
+	virtual std::string getClassName() const override { return "ModelPin"; }
 	virtual size_t getDataSize() const { return sizeof(GlRenderModelResourcePtr); }
 	virtual void copyValueFromSourcePin() override;
 

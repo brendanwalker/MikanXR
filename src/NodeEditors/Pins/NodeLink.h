@@ -22,6 +22,8 @@ class NodeLink
 public:
 	NodeLink()= default;
 
+	inline std::string getClassName() const { return "NodeLink"; }
+
 	virtual bool loadFromConfig(NodeLinkConfigConstPtr config);
 	virtual void saveToConfig(NodeLinkConfigPtr config) const;
 
