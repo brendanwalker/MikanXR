@@ -9,13 +9,11 @@ typedef int t_node_pin_id;
 typedef int t_node_link_id;
 typedef int t_graph_property_id;
 
+// Node Editor
 class NodeEditorState;
 class NodeEvaluator;
 
-class NodeFactory;
-using NodeFactoryPtr = std::shared_ptr<NodeFactory>;
-using NodeFactoryConstPtr = std::shared_ptr<const NodeFactory>;
-
+// Node Link
 class NodeLink;
 using NodeLinkPtr = std::shared_ptr<NodeLink>;
 using NodeLinkConstPtr = std::shared_ptr<const NodeLink>;
@@ -24,6 +22,7 @@ class NodeLinkConfig;
 using NodeLinkConfigPtr = std::shared_ptr<NodeLinkConfig>;
 using NodeLinkConfigConstPtr = std::shared_ptr<const NodeLinkConfig>;
 
+// Node Graph
 class NodeGraph;
 using NodeGraphPtr = std::shared_ptr<NodeGraph>;
 using NodeGraphConstPtr = std::shared_ptr<const NodeGraph>;
@@ -32,7 +31,16 @@ class NodeGraphConfig;
 using NodeGraphConfigPtr = std::shared_ptr<NodeGraphConfig>;
 using NodeGraphConfigConstPtr = std::shared_ptr<const NodeGraphConfig>;
 
+// Compositor Node Graph
+class CompositorNodeGraph;
+using CompositorNodeGraphPtr = std::shared_ptr<CompositorNodeGraph>;
+using CompositorNodeGraphConstPtr = std::shared_ptr<const CompositorNodeGraph>;
+
 // Node Types
+class NodeFactory;
+using NodeFactoryPtr = std::shared_ptr<NodeFactory>;
+using NodeFactoryConstPtr = std::shared_ptr<const NodeFactory>;
+
 class Node;
 using NodePtr = std::shared_ptr<Node>;
 using NodeConstPtr = std::shared_ptr<const Node>;

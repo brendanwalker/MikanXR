@@ -1,3 +1,4 @@
+#include "AssetReference.h"
 #include "BoxStencilComponent.h"
 #include "RmlModel_CompositorLayers.h"
 #include "GlFrameCompositor.h"
@@ -81,6 +82,7 @@ bool RmlModel_CompositorLayers::init(
 	// Register Data Model Fields
 	constructor.Bind("current_configuration", &m_currentConfigurationName);
 	constructor.Bind("is_builtin_configuration", &m_bIsBuiltInConfiguration);
+	constructor.Bind("compositor_graph_path", &m_compositorGraphPath);
 	constructor.Bind("configuration_names", &m_configurationNames);
 	constructor.Bind("material_names", &m_materialNames);
 	constructor.Bind("blend_modes", &m_blendModes);
@@ -107,16 +109,28 @@ bool RmlModel_CompositorLayers::init(
 	constructor.BindEventCallback(
 		"modify_config_name",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-		if (OnConfigNameChangeEvent && ev.GetId() == Rml::EventId::Change)
-		{
-			const bool isLineBreak = ev.GetParameter("linebreak", false);
-			const std::string newConfigName = ev.GetParameter<Rml::String>("value", "");
-			if (isLineBreak && !newConfigName.empty())
+			if (OnConfigNameChangeEvent && ev.GetId() == Rml::EventId::Change)
 			{
-					OnConfigNameChangeEvent(newConfigName);
+				const bool isLineBreak = ev.GetParameter("linebreak", false);
+				const std::string newConfigName = ev.GetParameter<Rml::String>("value", "");
+				if (isLineBreak && !newConfigName.empty())
+				{
+						OnConfigNameChangeEvent(newConfigName);
+				}
 			}
-		}
-	});
+		});
+
+	constructor.BindEventCallback(
+		"edit_compositor_graph",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (OnGraphEditEvent) OnGraphEditEvent();
+		});
+	constructor.BindEventCallback(
+		"select_compositor_graph_file",
+		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
+			if (OnGraphFileSelectEvent) OnGraphFileSelectEvent();
+		});
+
 	constructor.BindEventCallback(
 		"select_configuration",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
@@ -320,6 +334,17 @@ void RmlModel_CompositorLayers::dispose()
 	RmlModel::dispose();
 }
 
+const std::filesystem::path RmlModel_CompositorLayers::getCompositorGraphPath() const
+{
+	return m_compositorGraphPath;
+}
+
+void RmlModel_CompositorLayers::setCompositorGraphPath(const std::filesystem::path& path)
+{
+	m_compositorGraphPath= path.string();
+	m_modelHandle.DirtyVariable("compositor_graph_path");
+}
+
 void RmlModel_CompositorLayers::rebuild(
 	const GlFrameCompositor* compositor)
 {
@@ -329,6 +354,9 @@ void RmlModel_CompositorLayers::rebuild(
 	m_currentConfigurationName= currentPreset->name;
 	m_bIsBuiltInConfiguration= currentPreset->builtIn;
 	m_materialNames= compositor->getAllCompositorShaderNames();
+
+	// Apply the selected compositor graph path
+	setCompositorGraphPath(currentPreset->compositorGraphAssetRefConfig->assetPath);
 
 	// Fill in blend mode strings
 	size_t blendModeCount = (size_t)eCompositorBlendMode::COUNT;

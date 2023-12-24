@@ -18,67 +18,6 @@
 #include <filesystem>
 #include <functional>
 
-// -- NodeGraphFactory -----
-std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
-
-NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
-{
-	// Load the node graph config from the file path
-	NodeGraphConfig config;
-	if (!config.load(path))
-	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to load NodeGraph Config: " << path;
-		return NodeGraphPtr();
-	}
-
-	// Find the appropriate factory based on the node class name
-	const std::string& nodeGraphClassName= config.className;
-	auto it= s_factoryMap.find(nodeGraphClassName);
-	if (it == s_factoryMap.end())
-	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Unknown node graph class name: " << nodeGraphClassName;
-		return NodeGraphPtr();
-	}
-
-	// Allocate the node graph using the factory and config
-	NodeGraphPtr nodeGraph= it->second->allocateNodeGraph();
-	if (!nodeGraph)
-	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to allocate node graph class: " << nodeGraphClassName;
-		return NodeGraphPtr();
-	}
-
-	// Now that we have allocate a node graph using the class name
-	// we can actually create the graph object configs using the factories from the graph
-	if (!config.postReadFromJSON(nodeGraph))
-	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
-		return NodeGraphPtr();
-	}
-
-	// Init node graph from the parsed config
-	if (!nodeGraph->loadFromConfig(config))
-	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to init all graph objects in graph class: " << nodeGraphClassName;
-		return NodeGraphPtr();
-	}
-
-	return nodeGraph;
-}
-
-void NodeGraphFactory::saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph)
-{
-	NodeGraphConfig config;
-	nodeGraph->saveToConfig(config);
-
-	config.save(path);
-}
-
-NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
-{
-	return std::make_shared<NodeGraph>();
-}
-
 // -- NodeGraphConfig -----
 NodeGraphConfig::NodeGraphConfig() : CommonConfig() 
 {
@@ -591,21 +530,6 @@ void NodeGraph::saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphCo
 	graphConfig.linkConfigs.push_back(config);
 }
 
-void NodeGraph::update(NodeEvaluator& evaluator)
-{
-	m_timeInSeconds+= evaluator.getDeltaSeconds();
-
-	NodePtr onTickNode = getEventNodeByName("OnTick");
-	if (onTickNode)
-	{
-		evaluator.evaluateFlowPinChain(onTickNode);
-		if (evaluator.getLastErrorCode() != eNodeEvaluationErrorCode::NONE)
-		{
-			MIKAN_LOG_ERROR("NodeGraph::update - Error: ") << evaluator.getLastErrorMessage();
-		}
-	}
-}
-
 int NodeGraph::getAssetReferenceIndex(AssetReferencePtr assetRef) const
 {
 	auto it = std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);
@@ -746,19 +670,23 @@ NodeLinkPtr NodeGraph::getNodeLinkById(t_node_link_id id) const
 NodePtr NodeGraph::createNode(NodeFactoryPtr nodeFactory, const NodeEditorState& nodeEditorState)
 {
 	NodePtr newNode = nodeFactory->createNode(nodeEditorState);
-
 	if (newNode)
 	{
-		// Add the node to the node map
-		m_Nodes.insert({newNode->getId(), newNode});
-
-		if (OnNodeCreated)
-		{
-			OnNodeCreated(newNode->getId());
-		}
+		addNode(newNode);
 	}
 
 	return newNode;
+}
+
+void NodeGraph::addNode(NodePtr node)
+{
+	// Add the node to the node map
+	m_Nodes.insert({node->getId(), node});
+
+	if (OnNodeCreated)
+	{
+		OnNodeCreated(node->getId());
+	}
 }
 
 bool NodeGraph::deleteNodeById(t_node_id id)
@@ -987,4 +915,72 @@ int NodeGraph::allocateId()
 	int newId = m_nextId;
 	m_nextId++;
 	return newId;
+}
+
+// -- NodeGraphFactory -----
+std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
+
+NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
+{
+	// Load the node graph config from the file path
+	NodeGraphConfig config;
+	if (!config.load(path))
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to load NodeGraph Config: " << path;
+		return NodeGraphPtr();
+	}
+
+	// Find the appropriate factory based on the node class name
+	const std::string& nodeGraphClassName = config.className;
+	auto it = s_factoryMap.find(nodeGraphClassName);
+	if (it == s_factoryMap.end())
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Unknown node graph class name: " << nodeGraphClassName;
+		return NodeGraphPtr();
+	}
+
+	// Allocate the node graph using the factory and config
+	NodeGraphPtr nodeGraph = it->second->allocateNodeGraph();
+	if (!nodeGraph)
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to allocate node graph class: " << nodeGraphClassName;
+		return NodeGraphPtr();
+	}
+
+	// Now that we have allocate a node graph using the class name
+	// we can actually create the graph object configs using the factories from the graph
+	if (!config.postReadFromJSON(nodeGraph))
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
+		return NodeGraphPtr();
+	}
+
+	// Init node graph from the parsed config
+	if (!nodeGraph->loadFromConfig(config))
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to init all graph objects in graph class: " << nodeGraphClassName;
+		return NodeGraphPtr();
+	}
+
+	return nodeGraph;
+}
+
+void NodeGraphFactory::saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph)
+{
+	NodeGraphConfig config;
+	nodeGraph->saveToConfig(config);
+
+	config.save(path);
+}
+
+NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
+{
+	return std::make_shared<NodeGraph>();
+}
+
+NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph() const
+{
+	// Derived node graph types override this method to create properties and nodes
+	// on initial creation of the graph.
+	return allocateNodeGraph();	
 }

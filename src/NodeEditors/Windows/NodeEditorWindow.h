@@ -29,12 +29,12 @@ public:
 
 	inline NodeGraphPtr getNodeGraph() const { return m_editorState.nodeGraph; }
 	inline const std::filesystem::path& getNodeGraphPath() const { return m_editorState.nodeGraphPath; }
+	virtual NodeGraphFactoryPtr getNodeGraphFactory() const;
 
-	virtual bool load(const std::filesystem::path& path);
-	virtual bool save();
+	virtual void newGraph();
+	virtual bool loadGraph(const std::filesystem::path& path);
+	virtual bool saveGraph(bool bShowFileDialog);
 	virtual void undo();
-
-	virtual void update(float deltaSeconds);
 
 	// -- IGlWindow ----
 	virtual bool startup() override;

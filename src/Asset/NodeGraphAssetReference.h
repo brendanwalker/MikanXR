@@ -16,7 +16,8 @@ protected:
 	virtual void rebuildPreview() override;
 };
 
-class NodeGraphAssetReferenceFactory : public AssetReferenceFactory
+class NodeGraphAssetReferenceFactory : 
+	public TypedAssetReferenceFactory<NodeGraphAssetReference, AssetReferenceConfig>
 {
 public:
 	NodeGraphAssetReferenceFactory() = default;
@@ -30,14 +31,4 @@ public:
 	}
 	virtual int getFilterPatternCount() const { return 5; }
 	virtual char const* getFilterDescription() const { return "Node Graph Files (*.graph)"; }
-
-	virtual std::shared_ptr<AssetReference> allocateAssetReference(
-		const class NodeEditorState* editorState,
-		const std::filesystem::path& inAssetPath) const
-	{
-		auto assetRef = std::make_shared<NodeGraphAssetReference>();
-		assetRef->setAssetPath(inAssetPath);
-
-		return assetRef;
-	}
 };

@@ -45,6 +45,11 @@ public:
 		const class GlFrameCompositor* compositor);
 	virtual void dispose() override;
 
+	const std::filesystem::path getCompositorGraphPath() const;
+	void setCompositorGraphPath(const std::filesystem::path& path);
+	SinglecastDelegate<void()> OnGraphEditEvent;
+	SinglecastDelegate<void()> OnGraphFileSelectEvent;
+
 	SinglecastDelegate<void()> OnConfigAddEvent;
 	SinglecastDelegate<void()> OnConfigDeleteEvent;
 	SinglecastDelegate<void(const Rml::String& newConfigName)> OnConfigNameChangeEvent;
@@ -90,6 +95,7 @@ public:
 private:
 	Rml::String m_currentConfigurationName;
 	bool m_bIsBuiltInConfiguration;
+	Rml::String m_compositorGraphPath;
 	Rml::Vector<Rml::String> m_configurationNames;
 	Rml::Vector<Rml::String> m_materialNames;
 	Rml::Vector<Rml::String> m_blendModes;

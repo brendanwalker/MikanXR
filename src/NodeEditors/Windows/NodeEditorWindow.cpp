@@ -174,19 +174,6 @@ bool NodeEditorWindow::startup()
 	return success;
 }
 
-// TODO: I don't think we actually want to evaluate the graph in the editor window
-void NodeEditorWindow::update(float deltaSeconds)
-{
-	EASY_FUNCTION();
-
-	NodeEvaluator evaluator = {};
-	evaluator
-		.setCurrentWindow(this)
-		.setDeltaSeconds(deltaSeconds);
-
-	getNodeGraph()->update(evaluator);
-}
-
 void NodeEditorWindow::render()
 {
 	EASY_FUNCTION();
@@ -445,7 +432,7 @@ void NodeEditorWindow::renderToolbar()
 	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
 	if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
 	{
-		save();
+		saveGraph(false);
 	}
 
 	// Editor Control
@@ -823,7 +810,18 @@ void NodeEditorWindow::deleteSelectedItem()
 	}
 }
 
-bool NodeEditorWindow::load(const std::filesystem::path& path)
+NodeGraphFactoryPtr NodeEditorWindow::getNodeGraphFactory() const 
+{ 
+	return std::make_shared<NodeGraphFactory>(); 
+}
+
+void NodeEditorWindow::newGraph()
+{
+	m_editorState.nodeGraph= getNodeGraphFactory()->initialCreateNodeGraph();
+	onNodeGraphCreated();
+}
+
+bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 {
 	m_editorState.nodeGraph= NodeGraphFactory::loadNodeGraph(path);
 	if (m_editorState.nodeGraph)
@@ -840,11 +838,25 @@ bool NodeEditorWindow::load(const std::filesystem::path& path)
 	return false;
 }
 
-bool NodeEditorWindow::save()
+bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
+	// If no path was set or we explicitly want to show the file dialog,
+	// bring up the save path dialog
+	if (m_editorState.nodeGraphPath.empty() || bShowFileDialog)
+	{
+		const char* filterItems[1] = {"*.graph"};
+		const char* filterDesc = "Graph Files (*.graph)";
+		auto path = tinyfd_openFileDialog("Save Compositor Graph", "", 1, filterItems, filterDesc, 1);
+		if (path)
+		{
+			m_editorState.nodeGraphPath= path;
+		}
+	}
+
 	if (!m_editorState.nodeGraphPath.empty() && m_editorState.nodeGraph)
 	{
 		NodeGraphFactory::saveNodeGraph(m_editorState.nodeGraphPath, m_editorState.nodeGraph);
+		return true;
 	}
 
 	return false;

@@ -43,7 +43,19 @@
                     window-l, window-c, window-r,
                     window-bl, window-b, window-br
                 );
-            }            
+            }
+            .filename-box
+            {
+                margin-top: 5dp;
+                decorator: gradient( vertical #415857 #5990A3 );
+                border: 3dp #415857;
+                border-radius: 8dp;
+            }
+            filename
+            {
+                font-size: 14dp;
+                vertical-align: -5dp;
+            }                        
         </style>
 	</head>
 	<body template="window">
@@ -61,6 +73,13 @@
                 <button data-event-click="add_config()">Add Config</button>
                 <button data-if="!is_builtin_configuration" data-event-click="delete_config()">Delete Config</button>
             </div>
+            <div>
+                <button data-event-click="edit_compositor_graph()">Edit Compositor Graph</button>
+            </div>
+            <div class="filename-box">
+                <filename>{{compositor_graph_path | to_short_path(30)}}</filename>
+                <button style="width: 40dp" data-event-click="select_compositor_graph_file()">...</button>
+            </div>            
 			<div class="picker" data-if="layers.size > 0">
 				<div data-for="layer : layers">
                     <layerblock>

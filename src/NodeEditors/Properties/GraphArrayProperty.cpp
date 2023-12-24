@@ -70,7 +70,7 @@ bool GraphArrayProperty::loadFromConfig(
 
 void GraphArrayProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto& propConfig = std::static_pointer_cast<GraphArrayPropertyConfig>(config);
+	auto propConfig = std::static_pointer_cast<GraphArrayPropertyConfig>(config);
 
 	for (auto property : m_array)
 	{

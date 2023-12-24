@@ -33,7 +33,7 @@ bool GraphModelProperty::loadFromConfig(
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto& modelPropConfig = std::static_pointer_cast<const GraphModelPropertyConfig>(propConfig);
+		const auto modelPropConfig = std::static_pointer_cast<const GraphModelPropertyConfig>(propConfig);
 		if (modelPropConfig->assetRefIndex != -1)
 		{
 			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(modelPropConfig->assetRefIndex);

@@ -8,6 +8,8 @@
 class NodeEditorState
 {
 public:
+	NodeEditorState() = default;
+
 	NodeGraphPtr nodeGraph;
 	std::filesystem::path nodeGraphPath;
 	int startedLinkPinId= -1;

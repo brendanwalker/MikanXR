@@ -6,6 +6,6 @@ class CompositorNodeEditorWindow : public NodeEditorWindow
 public:
 	CompositorNodeEditorWindow();
 
-	// -- NodeEditorWindow -----
-	virtual NodeGraphPtr allocateNodeGraph();
+	virtual NodeGraphFactoryPtr getNodeGraphFactory() const override;
+	virtual bool saveGraph(bool bShowFileDialog) override;
 };

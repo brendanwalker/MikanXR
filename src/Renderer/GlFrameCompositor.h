@@ -1,5 +1,8 @@
 #pragma once
 
+#include "AssetFwd.h"
+#include "NodeFwd.h"
+
 #include "MikanClientTypes.h"
 #include "MulticastDelegate.h"
 #include "NamedValueTable.h"
@@ -84,6 +87,8 @@ public:
 	bool addLayerToCurrentPreset();
 	bool removeLayerFromCurrentPreset(const int layerIndex);
 	void saveCurrentPresetConfig();
+	const std::filesystem::path& getCompositorGraphAssetPath() const;
+	void setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath, bool bUpdatePreset);
 
 	void reloadAllCompositorShaders();
 	std::vector<std::string> getAllCompositorShaderNames() const;
@@ -93,7 +98,7 @@ public:
 	bool getIsRunning() const { return m_bIsRunning; }
 	void stop();
 
-	void update();
+	void update(float deltaSeconds);
 	void render() const;
 
 	GlRenderModelResourcePtr getStencilRenderModel(MikanStencilID stencilId) const;
@@ -216,6 +221,10 @@ private:
 	GlTexturePtr m_compositedFrame = nullptr;
 	GlTexturePtr m_bgrVideoFrame = nullptr; // BGR, flipped video frame
 
+	// Compositor Node Graph
+	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
+	CompositorNodeGraphPtr m_nodeGraph;
+
 	// List of compositor presets from resources/config/compositor
 	NamedValueTable<CompositorPreset*> m_compositorPresets;
 
@@ -234,4 +243,5 @@ private:
 	uint64_t m_droppedFrameCounter = 0;
 	uint64_t m_lastCompositedFrameIndex = 0;
 	uint64_t m_pendingCompositeFrameIndex = 0;
+	float m_timeSinceLastFrameComposited= 0.f;
 };

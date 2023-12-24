@@ -63,7 +63,7 @@ bool GraphMaterialProperty::loadFromConfig(
 
 void GraphMaterialProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto& propConfig = std::static_pointer_cast<GraphMaterialPropertyConfig>(config);
+	auto propConfig = std::static_pointer_cast<GraphMaterialPropertyConfig>(config);
 
 	// Default asset ref to invalid
 	propConfig->assetRefIndex = -1;

@@ -32,7 +32,7 @@ bool GraphTextureProperty::loadFromConfig(
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto& texturePropConfig = std::static_pointer_cast<const GraphTexturePropertyConfig>(propConfig);
+		const auto texturePropConfig = std::static_pointer_cast<const GraphTexturePropertyConfig>(propConfig);
 		if (texturePropConfig->assetRefIndex != -1)
 		{
 			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(texturePropConfig->assetRefIndex);
@@ -62,7 +62,7 @@ bool GraphTextureProperty::loadFromConfig(
 
 void GraphTextureProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto& propConfig = std::static_pointer_cast<GraphTexturePropertyConfig>(config);
+	auto propConfig = std::static_pointer_cast<GraphTexturePropertyConfig>(config);
 
 	// Default asset ref to invalid
 	propConfig->assetRefIndex = -1;

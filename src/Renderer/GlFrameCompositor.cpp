@@ -30,6 +30,10 @@
 #include "VideoFrameDistortionView.h"
 #include "VRDeviceManager.h"
 
+#include "NodeGraphAssetReference.h"
+#include "Graphs/CompositorNodeGraph.h"
+#include "Graphs/NodeEvaluator.h"
+
 #include <algorithm>
 
 #include <easy/profiler.h>
@@ -40,6 +44,7 @@ GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
 GlFrameCompositor::GlFrameCompositor()
 {
 	m_instance= this;
+	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 }
 
 GlFrameCompositor::~GlFrameCompositor()
@@ -391,6 +396,9 @@ void GlFrameCompositor::rebuildAllLayerSettings(bool bForceConfigSave)
 	CompositorPreset* preset = nullptr;
 	if (m_compositorPresets.tryGetValue(m_config.presetName, preset))
 	{
+		// Update compositor graph
+		setCompositorGraphAssetPath(preset->compositorGraphAssetRefConfig->assetPath, false);
+
 		m_layers.clear();
 		for (int layerIndex = 0; layerIndex < (int)preset->layers.size(); ++layerIndex)
 		{
@@ -444,6 +452,51 @@ void GlFrameCompositor::rebuildAllLayerSettings(bool bForceConfigSave)
 	if (bIsConfigDirty)
 	{
 		saveCurrentPresetConfig();
+	}
+}
+
+const std::filesystem::path& GlFrameCompositor::getCompositorGraphAssetPath() const
+{
+	return m_nodeGraphAssetRef->getAssetPath();
+}
+
+void GlFrameCompositor::setCompositorGraphAssetPath(
+	const std::filesystem::path& assetRefPath,
+	bool bUpdatePreset)
+{
+	if (m_nodeGraphAssetRef->getAssetPath() != assetRefPath)
+	{
+		m_nodeGraphAssetRef->setAssetPath(assetRefPath);
+
+		if (m_nodeGraphAssetRef->isValid())
+		{
+			m_nodeGraph =
+				std::dynamic_pointer_cast<CompositorNodeGraph>(
+					NodeGraphFactory::loadNodeGraph(assetRefPath));
+			if (!m_nodeGraph)
+			{
+				MIKAN_LOG_ERROR("GlFrameCompositor::setCompositorGraphAssetPath") 
+					<< "Failed to load compositor graph: " << assetRefPath.string();
+			}
+		}
+		else
+		{
+			m_nodeGraph= nullptr;
+		}
+
+		if (bUpdatePreset)
+		{
+			CompositorPreset* preset = getCurrentPresetConfigMutable();
+			if (preset)
+			{
+				preset->compositorGraphAssetRefConfig->assetPath = assetRefPath.string();
+
+				// Signal to any listeners that the asset path changed
+				preset->markDirty(
+					ConfigPropertyChangeSet().addPropertyName(
+						CompositorPreset::k_compositorGraphAssetRefPropertyId));
+			}
+		}
 	}
 }
 
@@ -583,6 +636,7 @@ bool GlFrameCompositor::start()
 		mikanServer->OnClientRenderTargetUpdated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
 
 		m_bIsRunning= true;
+		m_timeSinceLastFrameComposited= 0.f;
 	}
 
 	return true;
@@ -613,7 +667,7 @@ bool GlFrameCompositor::getVideoSourceCameraPose(glm::mat4& outCameraMat) const
 	return false;
 }
 
-void GlFrameCompositor::update()
+void GlFrameCompositor::update(float deltaSeconds)
 {
 	EASY_FUNCTION();
 
@@ -630,6 +684,10 @@ void GlFrameCompositor::update()
 	{
 		cameraXform= glm::mat4(1.f);
 	}
+
+	// Keep track of how long it's been since the last frame has been composited
+	// This is used to update the timer in compositorNodeGraph
+	m_timeSinceLastFrameComposited+= deltaSeconds;
 
 	// Composite the next frame if we got all the renders back from the clients
 	if (m_pendingCompositeFrameIndex != 0)
@@ -1041,69 +1099,87 @@ void GlFrameCompositor::updateCompositeFrame()
 		m_colorTextureSources.setValue("distortionTexture", nullptr);
 	}
 
-	for (GlFrameCompositor::Layer& layer : m_layers)
+	// If we have a valid compositor node graph, use that to composite the frame
+	if (m_nodeGraph)
 	{
-		const CompositorLayerConfig* layerConfig= getCurrentPresetLayerConfig(layer.layerIndex);
-		if (layerConfig == nullptr)
-			continue;
+		NodeEvaluator evaluator = {};
+		evaluator
+			.setCurrentWindow(mainWindow)
+			.setDeltaSeconds(m_timeSinceLastFrameComposited);
 
-		EASY_BLOCK(layerConfig->shaderConfig.materialName);
-
-		GlScopedState layerGlStateScope = mainWindow->getGlStateStack().createScopedState();
-
-		// Attempt to apply data sources to the layers material parameters
-		applyLayerMaterialFloatValues(*layerConfig, layer);
-		applyLayerMaterialFloat2Values(*layerConfig, layer);
-		applyLayerMaterialFloat3Values(*layerConfig, layer);
-		applyLayerMaterialFloat4Values(*layerConfig, layer);
-		applyLayerMaterialMat4Values(*layerConfig, layer);
-		applyLayerMaterialTextures(*layerConfig, layer);
-
-		// Set the blend mode
-		switch (layerConfig->blendMode)
+		if (!m_nodeGraph->compositeFrame(evaluator))
 		{
-			case eCompositorBlendMode::blendOff:
-				{
-					layerGlStateScope.getStackState().disableFlag(eGlStateFlagType::blend);
-				}
-				break;
-			case eCompositorBlendMode::blendOn:
-				{
-					// https://www.andersriggelsen.dk/glblendfunc.php
-					// (sR*sA) + (dR*(1-sA)) = rR
-					// (sG*sA) + (dG*(1-sA)) = rG
-					// (sB*sA) + (dB*(1-sA)) = rB
-					// (sA*sA) + (dA*(1-sA)) = rA
-					layerGlStateScope.getStackState().enableFlag(eGlStateFlagType::blend);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glBlendEquation(GL_FUNC_ADD);
-				}
-				break;
+			MIKAN_LOG_ERROR("GlFrameCompositor::updateCompositeFrame") 
+				<< "Compositor graph eval error: " << evaluator.getLastErrorMessage();
 		}
-
+	}
+	// Otherwise fall back to old style layer evaluation
+	else
+	{
+		for (GlFrameCompositor::Layer& layer : m_layers)
 		{
-			GlScopedState glStateScope = MainWindow::getInstance()->getGlStateStack().createScopedState();
-			GlState& glState= glStateScope.getStackState();
+			const CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfig(layer.layerIndex);
+			if (layerConfig == nullptr)
+				continue;
 
-			// Apply stencil shapes, if any, to the layer
-			updateQuadStencils(layerConfig->quadStencilConfig, &glState);
-			updateBoxStencils(layerConfig->boxStencilConfig, &glState);
-			updateModelStencils(layerConfig->modelStencilConfig, &glState);
+			EASY_BLOCK(layerConfig->shaderConfig.materialName);
 
-			// Bind the layer shader program and uniform parameters.
-			// This will fail unless all of the shader uniform parameters are bound.
-			if (layer.layerMaterial != nullptr)
+			GlScopedState layerGlStateScope = mainWindow->getGlStateStack().createScopedState();
+
+			// Attempt to apply data sources to the layers material parameters
+			applyLayerMaterialFloatValues(*layerConfig, layer);
+			applyLayerMaterialFloat2Values(*layerConfig, layer);
+			applyLayerMaterialFloat3Values(*layerConfig, layer);
+			applyLayerMaterialFloat4Values(*layerConfig, layer);
+			applyLayerMaterialMat4Values(*layerConfig, layer);
+			applyLayerMaterialTextures(*layerConfig, layer);
+
+			// Set the blend mode
+			switch (layerConfig->blendMode)
 			{
-				GlScopedMaterialBinding materialBinding = 
-					layer.layerMaterial->bindMaterial(
-						GlSceneConstPtr(),
-						GlCameraConstPtr());
+				case eCompositorBlendMode::blendOff:
+					{
+						layerGlStateScope.getStackState().disableFlag(eGlStateFlagType::blend);
+					}
+					break;
+				case eCompositorBlendMode::blendOn:
+					{
+						// https://www.andersriggelsen.dk/glblendfunc.php
+						// (sR*sA) + (dR*(1-sA)) = rR
+						// (sG*sA) + (dG*(1-sA)) = rG
+						// (sB*sA) + (dB*(1-sA)) = rB
+						// (sA*sA) + (dA*(1-sA)) = rA
+						layerGlStateScope.getStackState().enableFlag(eGlStateFlagType::blend);
+						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+						glBlendEquation(GL_FUNC_ADD);
+					}
+					break;
+			}
 
-				if (materialBinding)
+			{
+				GlScopedState glStateScope = MainWindow::getInstance()->getGlStateStack().createScopedState();
+				GlState& glState = glStateScope.getStackState();
+
+				// Apply stencil shapes, if any, to the layer
+				updateQuadStencils(layerConfig->quadStencilConfig, &glState);
+				updateBoxStencils(layerConfig->boxStencilConfig, &glState);
+				updateModelStencils(layerConfig->modelStencilConfig, &glState);
+
+				// Bind the layer shader program and uniform parameters.
+				// This will fail unless all of the shader uniform parameters are bound.
+				if (layer.layerMaterial != nullptr)
 				{
-					glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
-					glDrawArrays(GL_TRIANGLES, 0, 6);
-					glBindVertexArray(0);
+					GlScopedMaterialBinding materialBinding =
+						layer.layerMaterial->bindMaterial(
+							GlSceneConstPtr(),
+							GlCameraConstPtr());
+
+					if (materialBinding)
+					{
+						glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
+						glDrawArrays(GL_TRIANGLES, 0, 6);
+						glBindVertexArray(0);
+					}
 				}
 			}
 		}
@@ -1148,6 +1224,9 @@ void GlFrameCompositor::updateCompositeFrame()
 
 	// Clear the pending composite frame index
 	m_pendingCompositeFrameIndex = 0;
+
+	// Reset the time since the last frame was composited
+	m_timeSinceLastFrameComposited= 0.f;
 
 	// Tell any listeners that a new frame was composited
 	if (OnNewFrameComposited)

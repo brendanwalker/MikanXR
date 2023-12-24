@@ -221,7 +221,7 @@ bool App::startup(int argc, char** argv)
 	NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
 
 	// TODO: Test node editor
-	createAppWindow<TestNodeEditorWindow>();
+	//createAppWindow<TestNodeEditorWindow>();
 
 	if (success)
 	{
@@ -318,7 +318,7 @@ void App::update()
 	m_mikanServer->update();
 
 	// Update any frame compositing state based on new video frames or client render target updates
-	m_frameCompositor->update();
+	m_frameCompositor->update(deltaSeconds);
 
 	// Garbage collect stale baked text
 	m_fontManager->garbageCollect();

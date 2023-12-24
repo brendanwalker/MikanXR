@@ -50,10 +50,13 @@
 #include "VideoWriter.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
+#include "Windows/CompositorNodeEditorWindow.h"
 
 #include <RmlUi/Core/Context.h>
 #include "RmlUI/Core/ElementDocument.h"
 #include "RmlUI/Core/Elements/ElementFormControlSelect.h"
+
+#include "tinyfiledialogs.h"
 
 #include <easy/profiler.h>
 
@@ -177,6 +180,8 @@ void AppStage_Compositor::enter()
 
 		// Init Layers UI
 		m_compositorLayersModel->init(context, m_frameCompositor);
+		m_compositorLayersModel->OnGraphEditEvent = MakeDelegate(this, &AppStage_Compositor::onGraphEditEvent);
+		m_compositorLayersModel->OnGraphFileSelectEvent = MakeDelegate(this, &AppStage_Compositor::onGraphFileSelectEvent);
 		m_compositorLayersModel->OnConfigAddEvent = MakeDelegate(this, &AppStage_Compositor::onConfigAddEvent);
 		m_compositorLayersModel->OnConfigDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onConfigDeleteEvent);
 		m_compositorLayersModel->OnConfigNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onConfigNameChangeEvent);
@@ -561,6 +566,32 @@ void AppStage_Compositor::onToggleSettingsWindowEvent()
 }
 
 // Compositor Layers UI Events
+void AppStage_Compositor::onGraphEditEvent()
+{
+	CompositorNodeEditorWindow* appWindow= m_app->createAppWindow<CompositorNodeEditorWindow>();
+
+	auto graphAssetPath= m_frameCompositor->getCompositorGraphAssetPath();
+	if (graphAssetPath.empty())
+	{
+		appWindow->newGraph();
+	}
+	else
+	{
+		appWindow->loadGraph(graphAssetPath);
+	}
+}
+
+void AppStage_Compositor::onGraphFileSelectEvent()
+{
+	const char* filterItems[1] = {"*.graph"};
+	const char* filterDesc = "Graph Files (*.graph)";
+	auto path = tinyfd_openFileDialog("Load Compositor Graph", "", 1, filterItems, filterDesc, 1);
+	if (path)
+	{
+		m_frameCompositor->setCompositorGraphAssetPath(path, true);
+	}
+}
+
 void AppStage_Compositor::onConfigAddEvent()
 {
 	m_bAddingNewConfig= true;

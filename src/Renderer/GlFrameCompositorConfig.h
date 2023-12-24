@@ -2,6 +2,7 @@
 
 #include "FrameCompositorConstants.h"
 #include "CommonConfig.h"
+#include "AssetFwd.h"
 
 #include <filesystem>
 #include <string>
@@ -80,6 +81,9 @@ public:
 	std::string name;
 	bool builtIn= false;
 	std::vector<CompositorLayerConfig> layers;
+
+	static const std::string k_compositorGraphAssetRefPropertyId;
+	AssetReferenceConfigPtr compositorGraphAssetRefConfig;
 };
 
 class GlFrameCompositorConfig : public CommonConfig

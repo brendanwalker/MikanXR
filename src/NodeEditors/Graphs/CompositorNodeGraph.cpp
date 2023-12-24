@@ -1,4 +1,5 @@
 #include "CompositorNodeGraph.h"
+#include "Logger.h"
 
 // Assets References
 #include "ModelAssetReference.h"
@@ -24,13 +25,15 @@
 #include "Nodes/TextureNode.h"
 #include "Nodes/TimeNode.h"
 
-// -- CompositorNodeGraphFactory -----
-NodeGraphPtr CompositorNodeGraphFactory::allocateNodeGraph() const
-{
-	return std::make_shared<CompositorNodeGraph>();
-}
+// Graph
+#include "NodeEditorState.h"
+#include "Graphs/NodeEvaluator.h"
+
+#include <easy/profiler.h>
 
 // -- CompositorNodeGraph -----
+const std::string CompositorNodeGraph::k_compositeFrameEventName= "OnCompositeFrame";
+
 CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 {
 	NodeGraphPtr ownerGraph= shared_from_this();
@@ -57,9 +60,72 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addNodeFactory<MaterialNodeFactory>();
 	addNodeFactory<TextureNodeFactory>();
 	addNodeFactory<TimeNodeFactory>();
+}
 
-	// Add graph properties
-	createTypedProperty<GraphVariableList>("materials")->assignFactory<GraphMaterialPropertyFactory>();
-	createTypedProperty<GraphVariableList>("models")->assignFactory<GraphModelPropertyFactory>();
-	createTypedProperty<GraphVariableList>("textures")->assignFactory<GraphTexturePropertyFactory>();
+bool CompositorNodeGraph::loadFromConfig(const NodeGraphConfig& config)
+{
+	bool bSuccess= true;
+
+	if (NodeGraph::loadFromConfig(config))
+	{
+		m_compositeFrameEventNode= getEventNodeByName(k_compositeFrameEventName);
+		if (!m_compositeFrameEventNode)
+		{
+			MIKAN_LOG_ERROR("CompositorNodeGraph::loadFromConfig") 
+				<< "Failed to find event node: " << k_compositeFrameEventName;
+			bSuccess= false;
+		}
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("CompositorNodeGraph::loadFromConfig") << "Failed to parse node graph config";
+		bSuccess= false;
+	}
+
+	return bSuccess;
+}
+
+bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
+{
+	EASY_FUNCTION();
+
+	if (m_compositeFrameEventNode)
+	{
+		evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
+		if (evaluator.getLastErrorCode() != eNodeEvaluationErrorCode::NONE)
+		{
+			MIKAN_LOG_ERROR("CompositorNodeGraph::compositeFrame - Error: ") << evaluator.getLastErrorMessage();
+		}
+	}
+	else
+	{
+		evaluator.setLastErrorCode(eNodeEvaluationErrorCode::invalidNode);
+		evaluator.setLastErrorMessage("Missing compositeFrame event node");
+	}
+
+	return evaluator.getLastErrorCode() == eNodeEvaluationErrorCode::NONE;
+}
+
+// -- CompositorNodeGraphFactory ----
+NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph() const
+{
+	auto nodeGraph= NodeGraphFactory::initialCreateNodeGraph();
+	auto compositorNodeGraph= std::static_pointer_cast<CompositorNodeGraph>(nodeGraph);
+
+	// Add default nodes
+	NodeEditorState editorState;
+	editorState.nodeGraph= compositorNodeGraph;
+
+	auto compositeFrameNode= compositorNodeGraph->createTypedNode<EventNode>(editorState);
+	compositeFrameNode->setName(CompositorNodeGraph::k_compositeFrameEventName);
+
+	// Add default properties
+	compositorNodeGraph->createTypedProperty<GraphVariableList>("materials")
+						->assignFactory<GraphMaterialPropertyFactory>();
+	compositorNodeGraph->createTypedProperty<GraphVariableList>("models")
+						->assignFactory<GraphModelPropertyFactory>();
+	compositorNodeGraph->createTypedProperty<GraphVariableList>("textures")
+						->assignFactory<GraphTexturePropertyFactory>();
+
+	return compositorNodeGraph;
 }

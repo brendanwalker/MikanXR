@@ -10,30 +10,6 @@
 #include <map>
 #include <string>
 
-class NodeGraphFactory
-{
-public:
-	NodeGraphFactory() = default;
-
-	static NodeGraphPtr loadNodeGraph(const std::filesystem::path& path);
-	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);
-
-	template <class t_node_factory_class>
-	static void registerFactory()
-	{
-		auto factory = std::make_shared<t_node_factory_class>();
-		const std::string typeName = typeid(t_node_factory_class).name();
-
-		s_factoryMap.insert({typeName, factory});
-	}
-
-protected:
-	virtual NodeGraphPtr allocateNodeGraph() const;
-
-private:
-	static std::map<std::string, NodeGraphFactoryPtr> s_factoryMap;
-};
-
 class NodeGraphConfig : public CommonConfig
 {
 public:
@@ -67,7 +43,7 @@ public:
 	NodeGraph();
 	virtual ~NodeGraph() {}
 
-	inline float getTimeInSeconds() const { return m_timeInSeconds; }
+	inline std::string getClassName() const { return typeid(*this).name(); }
 
 	// Generates a unique ID for each node object newly created in the editor
 	int allocateId();
@@ -91,7 +67,6 @@ public:
 	virtual void savePinToConfig(NodePinConstPtr pin, NodeGraphConfig& graphConfig) const;
 	virtual void saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphConfig) const;
 
-	virtual void update(class NodeEvaluator& evaluator);
 	virtual void editorRender(const class NodeEditorState& editorState);
 
 	// Assets References
@@ -244,9 +219,23 @@ public:
 	NodePinPtr getNodePinById(t_node_pin_id id) const;
 	NodeLinkPtr getNodeLinkById(t_node_link_id id) const;
 
+	template <class t_node_class>
+	std::shared_ptr<t_node_class> createTypedNode(const NodeEditorState& nodeEditorState)
+	{
+		const std::string nodeClassName= typeid(t_node_class).name();
+		auto nodeFactory= getNodeFactory(nodeClassName);
+		if (nodeFactory)
+		{
+			return std::static_pointer_cast<t_node_class>(createNode(nodeFactory, nodeEditorState));
+		}
+
+		return std::shared_ptr<t_node_class>();
+	}
+
 	NodePtr createNode(NodeFactoryPtr nodeFactory, const NodeEditorState& nodeEditorState);
 	MulticastDelegate<void(t_node_id id)> OnNodeCreated;
 
+	void addNode(NodePtr node);
 	bool deleteNodeById(t_node_id id);
 	MulticastDelegate<void(t_node_id id)> OnNodeDeleted;
 
@@ -281,8 +270,6 @@ public:
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDeleted;
 
 protected:
-	float m_timeInSeconds;
-
 	// Defines all of the asset references that nodes in this graph can use
 	std::map<std::string, AssetReferenceFactoryPtr> m_assetRefFactories;
 
@@ -307,4 +294,51 @@ protected:
 	std::map<t_node_link_id, NodeLinkPtr> m_Links;
 
 	int	m_nextId= 0;
+};
+
+class NodeGraphFactory
+{
+public:
+	NodeGraphFactory() = default;
+
+	inline NodeGraphConstPtr getNodeDefaultObject() const { return m_nodeGraphDefaultObject; }
+	inline std::string getNodeClassName() const { return m_nodeGraphDefaultObject->getClassName(); }
+
+	virtual NodeGraphPtr allocateNodeGraph() const;
+	virtual NodeGraphPtr initialCreateNodeGraph() const;
+
+	static NodeGraphPtr loadNodeGraph(const std::filesystem::path& path);
+	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);
+
+	template <class t_node_factory_class>
+	static void registerFactory()
+	{
+		auto factory = std::make_shared<t_node_factory_class>();
+
+		// Create a single "NodeGraph default object" for the factory.
+		// This is used to ask questions about NodeGraph without having to create one first.
+		// We have to do this work outside of the NodeGraphFactory constructor,
+		// because virtual functions aren't safe to call in constructor.
+		factory->m_nodeGraphDefaultObject = factory->allocateNodeGraph();
+
+		s_factoryMap.insert({factory->m_nodeGraphDefaultObject->getClassName(), factory});
+	}
+
+private:
+	NodeGraphPtr m_nodeGraphDefaultObject;
+
+	static std::map<std::string, NodeGraphFactoryPtr> s_factoryMap;
+};
+
+
+template <class t_node_graph_class>
+class TypedNodeGraphFactory : public NodeGraphFactory
+{
+public:
+	TypedNodeGraphFactory() = default;
+
+	virtual NodeGraphPtr allocateNodeGraph() const override
+	{
+		return std::make_shared<t_node_graph_class>();
+	}
 };

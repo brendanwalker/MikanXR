@@ -1,6 +1,7 @@
 #include "TimeNode.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
+#include "Graphs/NodeEvaluator.h"
 #include "Pins/NodePin.h"
 #include "Pins/FloatPin.h"
 
@@ -10,10 +11,12 @@
 // -- TimeNode -----
 bool TimeNode::evaluateNode(NodeEvaluator& evaluator)
 {
+	m_currentTime+= evaluator.getDeltaSeconds();
+
 	FloatPinPtr outPin = getFirstPinOfType<FloatPin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
-		outPin->setValue(getOwnerGraph()->getTimeInSeconds());
+		outPin->setValue(m_currentTime);
 	}
 
 	return true;

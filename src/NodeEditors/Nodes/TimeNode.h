@@ -11,6 +11,8 @@ public:
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override { return "Time"; }
+
+	float m_currentTime= 0.f;
 };
 
 class TimeNodeFactory : public TypedNodeFactory<TimeNode, NodeConfig>

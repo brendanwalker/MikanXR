@@ -1,5 +1,6 @@
 #include "GlFrameCompositorConfig.h"
 #include "StringUtils.h"
+#include "NodeGraphAssetReference.h"
 
 static eCompositorStencilMode parseCompositorStencilMode(const configuru::Config& pt)
 {
@@ -177,6 +178,8 @@ void CompositorLayerConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- CompositorPreset ------
+const std::string CompositorPreset::k_compositorGraphAssetRefPropertyId= "compositorGraphAssetRef";
+
 configuru::Config CompositorPreset::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
@@ -190,6 +193,11 @@ configuru::Config CompositorPreset::writeToJSON()
 	pt.insert_or_assign(std::string("layers"), layerConfigs);
 	pt["name"] = name;
 	pt["builtIn"]= builtIn;
+
+	if (compositorGraphAssetRefConfig)
+	{
+		pt["compositor_graph"] = compositorGraphAssetRefConfig->writeToJSON();
+	}
 
 	return pt;
 }
@@ -212,6 +220,12 @@ void CompositorPreset::readFromJSON(
 			layer.readFromJSON(layerConfig);
 			layers.push_back(layer);
 		}
+	}
+
+	compositorGraphAssetRefConfig= NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
+	if (pt.has_key("compositor_graph"))
+	{
+		compositorGraphAssetRefConfig->readFromJSON(pt["compositor_graph"]);
 	}
 }
 

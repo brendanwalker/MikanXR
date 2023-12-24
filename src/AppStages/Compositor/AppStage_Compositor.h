@@ -73,6 +73,8 @@ protected:
 	void hideAllSubWindows();
 
 	// Layers UI Events
+	void onGraphEditEvent();
+	void onGraphFileSelectEvent();
 	void onConfigAddEvent();
 	void onConfigDeleteEvent();
 	void onConfigNameChangeEvent(const std::string& newConfigName);
