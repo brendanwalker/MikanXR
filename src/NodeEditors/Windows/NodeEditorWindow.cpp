@@ -631,6 +631,7 @@ void NodeEditorWindow::renderAssetsPanel()
 						}
 					}
 				}
+				ImGui::SameLine();
 			}
 
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6);
