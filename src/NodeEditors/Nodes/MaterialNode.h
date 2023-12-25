@@ -21,7 +21,7 @@ public:
 	MaterialNode() = default;
 	virtual ~MaterialNode();
 
-	virtual const std::string& getClassName() const override { return "MaterialNode"; }
+	virtual std::string getClassName() const override { return "MaterialNode"; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;

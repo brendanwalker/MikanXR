@@ -20,7 +20,7 @@ public:
 	TextureNode() = default;
 	virtual ~TextureNode();
 
-	virtual const std::string& getClassName() const override { return "TextureNode"; }
+	virtual std::string getClassName() const override { return "TextureNode"; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;

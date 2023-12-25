@@ -20,7 +20,7 @@ class GraphMaterialProperty : public GraphProperty
 public:
 	GraphMaterialProperty()= default;
 
-	virtual const std::string& getClassName() const override { return "GraphMaterialProperty"; }
+	virtual std::string getClassName() const override { return "GraphMaterialProperty"; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;

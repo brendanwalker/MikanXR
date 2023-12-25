@@ -17,7 +17,7 @@ class EventNode : public Node
 public:
 	EventNode() = default;
 
-	virtual const std::string& getClassName() const override { return "EventNode"; }
+	virtual std::string getClassName() const override { return "EventNode"; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;

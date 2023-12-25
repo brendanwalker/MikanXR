@@ -63,7 +63,7 @@ bool GraphModelProperty::loadFromConfig(
 
 void GraphModelProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto& propConfig = std::static_pointer_cast<GraphModelPropertyConfig>(config);
+	auto propConfig = std::static_pointer_cast<GraphModelPropertyConfig>(config);
 
 	// Default asset ref to invalid
 	propConfig->assetRefIndex = -1;

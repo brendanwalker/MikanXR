@@ -20,7 +20,7 @@ class GraphTextureProperty : public GraphProperty
 public:
 	GraphTextureProperty() = default;
 
-	virtual const std::string& getClassName() const override { return "GraphTextureProperty"; }
+	virtual std::string getClassName() const override { return "GraphTextureProperty"; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;

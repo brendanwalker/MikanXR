@@ -9,7 +9,7 @@ public:
 	DrawTriMeshNode() = default;
 	virtual ~DrawTriMeshNode();
 
-	virtual const std::string& getClassName() const override { return "DrawTriMeshNode"; }
+	virtual std::string getClassName() const override { return "DrawTriMeshNode"; }
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator);

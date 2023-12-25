@@ -20,7 +20,7 @@ class GraphModelProperty : public GraphProperty
 public:
 	GraphModelProperty() = default;
 
-	virtual const std::string& getClassName() const override { return "GraphModelProperty"; }
+	virtual std::string getClassName() const override { return "GraphModelProperty"; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;

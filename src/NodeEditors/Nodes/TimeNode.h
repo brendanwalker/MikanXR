@@ -6,7 +6,7 @@ class TimeNode : public Node
 public:
 	TimeNode() = default;
 
-	virtual const std::string& getClassName() const override { return "TimeNode"; }
+	virtual std::string getClassName() const override { return "TimeNode"; }
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 
 protected:
