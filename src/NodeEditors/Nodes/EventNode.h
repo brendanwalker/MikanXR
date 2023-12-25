@@ -46,4 +46,5 @@ public:
 	EventNodeFactory() = default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
+	virtual bool editorCanCreate() const { return false; }
 };

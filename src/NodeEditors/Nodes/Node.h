@@ -133,6 +133,8 @@ public:
 	virtual NodePtr allocateNode() const;
 	virtual NodePtr createNode(const NodeEditorState& editorState) const;
 
+	virtual bool editorCanCreate() const { return getNodeClassName() != Node::k_nodeClassName; }
+
 	template <class t_node_factory_class>
 	static NodeFactoryPtr createFactory()
 	{

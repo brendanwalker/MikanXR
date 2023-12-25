@@ -822,15 +822,20 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 {
 	std::vector<NodeFactoryPtr> validFactories;
 
+	NodePinPtr sourcePin;
 	if (editorState.startedLinkPinId != -1)
 	{
-		NodePinPtr sourcePin= getNodePinById(editorState.startedLinkPinId);
+		sourcePin= getNodePinById(editorState.startedLinkPinId);
+	}
 
-		for (auto it = m_nodeFactories.begin(); it != m_nodeFactories.end(); ++it)
+	for (auto it = m_nodeFactories.begin(); it != m_nodeFactories.end(); ++it)
+	{
+		NodeFactoryPtr factory = it->second;
+		bool bIsValidFactory= factory->editorCanCreate();
+
+		if (bIsValidFactory && sourcePin)
 		{
-			NodeFactoryPtr factory = it->second;
-			NodeConstPtr nodeDefaultObject= factory->getNodeDefaultObject();
-			bool bIsValidFactory= false;
+			NodeConstPtr nodeDefaultObject = factory->getNodeDefaultObject();
 
 			if (sourcePin->getDirection() == eNodePinDirection::INPUT)
 			{
@@ -854,19 +859,10 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 					}
 				}
 			}
-
-			if (bIsValidFactory)
-			{
-				validFactories.push_back(factory);
-			}
 		}
-	}
-	else
-	{
-		// Return all available factories
-		for (auto it = m_nodeFactories.begin(); it != m_nodeFactories.end(); ++it)
+
+		if (bIsValidFactory)
 		{
-			NodeFactoryPtr factory = it->second;
 			validFactories.push_back(factory);
 		}
 	}
