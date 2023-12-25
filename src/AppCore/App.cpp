@@ -12,7 +12,6 @@
 #include "LocalizationManager.h"
 #include "Logger.h"
 #include "MainWindow.h"
-#include "Windows/TestNodeEditorWindow.h"
 #include "MikanServer.h"
 #include "ObjectSystemManager.h"
 #include "OpenCVManager.h"
@@ -20,8 +19,12 @@
 #include "ProfileConfig.h"
 #include "RmlManager.h"
 #include "SdlManager.h"
+#include "SdlWindow.h"
 #include "VideoSourceManager.h"
 #include "VRDeviceManager.h"
+
+#include "Windows/TestNodeEditorWindow.h"
+#include "Windows/CompositorNodeEditorWindow.h"
 
 #include "SDL_timer.h"
 
@@ -303,6 +306,19 @@ void App::onSDLEvent(SDL_Event& e)
 void App::update()
 {
 	EASY_FUNCTION();
+
+	//TODO/HACK Compositor in the main window assume the main windows GL context is active.
+	// We currently call SDL_GL_MakeCurrent as part of IGlWindow::render call.
+	// We really should instead move all gl context dependent work inside IGlWindow::render.
+	// (i.e. GlFrameCompositor should be doing compositing render work in render() call rather than update())
+	// As an easy fix for now, just make the main window's GL context current before app update
+	SdlWindow& sdlWindow= m_mainWindow->getSdlWindow();
+	int result = SDL_GL_MakeCurrent(sdlWindow.getInternalSdlWindow(), sdlWindow.getInternalGlContext());
+	if (result != 0)
+	{
+		const char* errorMessage = SDL_GetError();
+		MIKAN_LOG_ERROR("App::update") << "Error with SDL_GL_MakeCurrent: " << errorMessage;
+	}
 
 	// Update the frame rate
 	const uint32_t now = SDL_GetTicks();
