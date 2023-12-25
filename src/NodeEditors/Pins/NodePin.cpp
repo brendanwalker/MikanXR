@@ -4,6 +4,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodeLink.h"
 #include "StringUtils.h"
+#include "Logger.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -102,11 +103,11 @@ bool NodePin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 		return false;
 
 	// Are we trying to connect a pin back to itself?
-	if (otherPinPtr.get() != this)
+	if (otherPinPtr.get() == this)
 		return false;
 
 	// Are pins not of the same type?
-	if (typeid(*this) != typeid(otherPinPtr.get()))
+	if (this->getClassName() != otherPinPtr->getClassName())
 		return false;
 
 	// Pins sending/receiving the same size of data?
@@ -147,7 +148,14 @@ bool NodePin::connectLink(NodeLinkPtr linkPtr)
 		{
 			t_node_link_id existingLinkId= m_connectedLinks[0]->getId();
 
-			getOwnerNode()->getOwnerGraph()->deleteLinkById(existingLinkId);
+			if (!getOwnerNode()->getOwnerGraph()->deleteLinkById(existingLinkId))
+			{
+				MIKAN_LOG_ERROR("NodePin::connectLink") 
+					<< "Failed to delete pre-existing link id: " << existingLinkId
+					<< ", from node pin id: " << getId()
+					<< ", of pin class: " << getClassName();
+				break;
+			}
 		}
 	}
 
@@ -210,7 +218,10 @@ void NodePin::editorRenderInputPin(const NodeEditorState& editorState)
 	ImNodes::BeginInputAttribute(m_id, pinShape);
 	ImGui::Dummy(ImVec2(11.0f, 1.0f));
 	ImGui::SameLine();
-	ImGui::Text(m_name.c_str());
+	if (editorShowPinName())
+	{
+		ImGui::Text(m_name.c_str());
+	}
 	editorRenderInputTextEntry(editorState);
 	ImNodes::EndInputAttribute();
 
@@ -233,7 +244,10 @@ void NodePin::editorRenderOutputPin(const NodeEditorState& editorState, float pr
 		ImGui::Dummy(ImVec2(prefixWidth, 1.0f));
 		ImGui::SameLine();
 	}
-	ImGui::Text(m_name.c_str());
+	if (editorShowPinName())
+	{
+		ImGui::Text(m_name.c_str());
+	}
 	ImGui::SameLine();
 	ImGui::Dummy(ImVec2(11.0f, 1.0f));
 	ImNodes::EndOutputAttribute();

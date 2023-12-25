@@ -72,6 +72,7 @@ public:
 	virtual void editorRenderEndLink();
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) {}
 	virtual ImU32 editorGetLinkStyleColor() const;
+	virtual bool editorShowPinName() const { return true; }
 
 protected:
 	t_node_pin_id m_id;

@@ -82,7 +82,7 @@ public:
 		pin->setName(name);
 		pin->setDirection(direction);
 		if (direction == eNodePinDirection::OUTPUT) m_pinsOut.push_back(pin);
-		else if (direction == eNodePinDirection::INPUT) m_pinsOut.push_back(pin);
+		else if (direction == eNodePinDirection::INPUT) m_pinsIn.push_back(pin);
 
 		// Tell the graph about the new pin
 		ownerNode->getOwnerGraph()->addPin(pin);

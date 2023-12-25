@@ -782,6 +782,9 @@ NodeLinkPtr NodeGraph::createLink(t_node_pin_id startPinId, t_node_pin_id endPin
 	startPin->connectLink(link);
 	endPin->connectLink(link);
 
+	// Register the link to the graph
+	m_Links.insert({link->getId(), link});
+
 	// Let the editor know the link was created
 	if (OnLinkCreated)
 		OnLinkCreated(link->getId());
