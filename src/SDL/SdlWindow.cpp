@@ -217,7 +217,13 @@ void SdlWindow::renderBegin()
 {
 	EASY_FUNCTION();
 
-	SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
+	int result= SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
+	if (result != 0)
+	{
+		const char* errorMessage= SDL_GetError();
+		MIKAN_LOG_ERROR("SdlWindow::renderBegin") << "Error with SDL_GL_MakeCurrent: " << errorMessage;
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
