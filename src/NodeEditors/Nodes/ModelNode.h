@@ -20,7 +20,8 @@ public:
 	ModelNode() = default;
 	virtual ~ModelNode();
 
-	virtual std::string getClassName() const override { return "ModelNode"; }
+	inline static const std::string k_nodeClassName = "ModelNode";
+	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;

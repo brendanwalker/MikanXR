@@ -6,7 +6,8 @@ class MousePosNode : public Node
 public:
 	MousePosNode()= default;
 
-	virtual std::string getClassName() const override { return "MousePosNode"; }
+	inline static const std::string k_nodeClassName = "MousePosNode";
+	virtual std::string getClassName() const override { return k_nodeClassName; }
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 
 protected:

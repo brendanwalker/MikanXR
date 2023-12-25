@@ -222,8 +222,7 @@ public:
 	template <class t_node_class>
 	std::shared_ptr<t_node_class> createTypedNode(const NodeEditorState& nodeEditorState)
 	{
-		const std::string nodeClassName= typeid(t_node_class).name();
-		auto nodeFactory= getNodeFactory(nodeClassName);
+		auto nodeFactory = getNodeFactory(t_node_class::k_nodeClassName);
 		if (nodeFactory)
 		{
 			return std::static_pointer_cast<t_node_class>(createNode(nodeFactory, nodeEditorState));
