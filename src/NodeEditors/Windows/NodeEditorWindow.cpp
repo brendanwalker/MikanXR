@@ -235,12 +235,17 @@ void NodeEditorWindow::renderUI()
 
 void NodeEditorWindow::renderMainFrame()
 {
+	NodeGraphPtr nodeGraph= getNodeGraph();
+
 	ImGui::BeginChild("Main", ImVec2(ImGui::GetContentRegionAvail().x,
 									 ImGui::GetContentRegionAvail().y - 226));
 
 	ImNodes::BeginNodeEditor();
 
-	getNodeGraph()->editorRender(m_editorState);
+	if (nodeGraph)
+	{
+		nodeGraph->editorRender(m_editorState);
+	}
 
 	ImNodes::EndNodeEditor();
 	ImGui::EndChild();
@@ -375,15 +380,19 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 	}
 	else if (ImGui::BeginPopup("editor_context_menu_nodes"))
 	{
-		std::vector<NodeFactoryPtr> nodeFactories= getNodeGraph()->editorGetValidNodeFactories(editorState);
-		for (NodeFactoryPtr nodeFactory : nodeFactories)
+		NodeGraphPtr nodeGraph= getNodeGraph();
+		if (nodeGraph)
 		{
-			const std::string nodeTitle= nodeFactory->getNodeDefaultObject()->editorGetTitle();
-
-			if (ImGui::MenuItem(nodeTitle.c_str()))
+			std::vector<NodeFactoryPtr> nodeFactories = getNodeGraph()->editorGetValidNodeFactories(editorState);
+			for (NodeFactoryPtr nodeFactory : nodeFactories)
 			{
-				getNodeGraph()->createNode(nodeFactory, editorState);
-				break;
+				const std::string nodeTitle = nodeFactory->getNodeDefaultObject()->editorGetTitle();
+
+				if (ImGui::MenuItem(nodeTitle.c_str()))
+				{
+					getNodeGraph()->createNode(nodeFactory, editorState);
+					break;
+				}
 			}
 		}
 		ImGui::EndPopup();
@@ -578,6 +587,8 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 
 void NodeEditorWindow::renderAssetsPanel()
 {
+	NodeGraphPtr nodeGraph= getNodeGraph();
+
 	ImGui::BeginChild("Assets Panel", ImVec2(ImGui::GetContentRegionAvail().x, 216));
 	if (ImGui::BeginTabBar("AssetsTabBar"))
 	{
@@ -590,56 +601,60 @@ void NodeEditorWindow::renderAssetsPanel()
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 6));
 
-			auto& factoryMap= getNodeGraph()->getAssetReferenceFactories();
-			for (auto it = factoryMap.begin(); it != factoryMap.end(); it++)
+			if (nodeGraph)
 			{
-				auto& assetRefFactory= it->second;
-				const std::string& assetTypeName= assetRefFactory->getAssetTypeName();
-				const std::string buttonName= StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  Add ", assetTypeName, "##", assetTypeName);
-
-				if (ImGui::SmallButton(buttonName.c_str()))
+				auto& factoryMap = nodeGraph->getAssetReferenceFactories();
+				for (auto it = factoryMap.begin(); it != factoryMap.end(); it++)
 				{
-					auto assetPath =
-						tinyfd_openFileDialog(
-							assetRefFactory->getFileDialogTitle(),
-							assetRefFactory->getDefaultPath(),
-							assetRefFactory->getFilterPatternCount(),
-							assetRefFactory->getFilterPatterns(),
-							assetRefFactory->getFilterDescription(),
-							1);
+					auto& assetRefFactory = it->second;
+					const std::string& assetTypeName = assetRefFactory->getAssetTypeName();
+					const std::string buttonName = StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  Add ", assetTypeName, "##", assetTypeName);
 
-					if (assetPath)
+					if (ImGui::SmallButton(buttonName.c_str()))
 					{
-						std::stringstream ssPaths(assetPath);
-						std::string path;
-						while (std::getline(ssPaths, path, '|'))
+						auto assetPath =
+							tinyfd_openFileDialog(
+								assetRefFactory->getFileDialogTitle(),
+								assetRefFactory->getDefaultPath(),
+								assetRefFactory->getFilterPatternCount(),
+								assetRefFactory->getFilterPatterns(),
+								assetRefFactory->getFilterDescription(),
+								1);
+
+						if (assetPath)
 						{
-							std::string universalPath(path);
-							std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
-
-							// Create the asset reference
-							AssetReferencePtr assetRef = assetRefFactory->allocateAssetReference();
-							if (assetRef)
+							std::stringstream ssPaths(assetPath);
+							std::string path;
+							while (std::getline(ssPaths, path, '|'))
 							{
-								// Assign path to the asset
-								assetRef->setAssetPath(universalPath);
+								std::string universalPath(path);
+								std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
 
-								// Register the asset reference with the graph
-								getNodeGraph()->getAssetReferencesMutable().push_back(assetRef);
-								onAssetReferenceCreated(assetRef);
+								// Create the asset reference
+								AssetReferencePtr assetRef = assetRefFactory->allocateAssetReference();
+								if (assetRef)
+								{
+									// Assign path to the asset
+									assetRef->setAssetPath(universalPath);
+
+									// Register the asset reference with the graph
+									nodeGraph->getAssetReferencesMutable().push_back(assetRef);
+									onAssetReferenceCreated(assetRef);
+								}
 							}
 						}
 					}
+					ImGui::SameLine();
 				}
-				ImGui::SameLine();
 			}
 
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6);
 			ImGui::Separator();
 
 			// Assets browser
+			if (nodeGraph)
 			{
-				auto& assetRefArray = getNodeGraph()->getAssetReferences();
+				auto& assetRefArray = nodeGraph->getAssetReferences();
 
 				ImGui::BeginChild("AssetBrowser");
 
