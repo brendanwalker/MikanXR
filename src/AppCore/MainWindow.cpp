@@ -76,6 +76,11 @@ GlModelResourceManager& MainWindow::getModelResourceManager()
 	return *m_modelResourceManager.get();
 }
 
+SdlWindow& MainWindow::getSdlWindow()
+{
+	return *m_sdlWindow.get();
+}
+
 GlViewportConstPtr MainWindow::getRenderingViewport() const
 {
 	return m_renderingViewport;

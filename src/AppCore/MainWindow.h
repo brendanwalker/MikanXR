@@ -21,6 +21,7 @@ public:
 	}
 
 	GlModelResourceManager& getModelResourceManager();
+	SdlWindow& getSdlWindow();
 
 	// -- IGlWindow ----
 	virtual bool startup() override;
