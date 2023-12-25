@@ -43,7 +43,7 @@ public:
 	NodeGraph();
 	virtual ~NodeGraph() {}
 
-	inline std::string getClassName() const { return typeid(*this).name(); }
+	virtual std::string getClassName() const { return "NodeGraph"; }
 
 	// Generates a unique ID for each node object newly created in the editor
 	int allocateId();

@@ -79,7 +79,7 @@ bool NodePin::loadFromConfig(NodePinConfigConstPtr config)
 
 void NodePin::saveToConfig(NodePinConfigPtr config) const
 {
-	config->className = typeid(*this).name();
+	config->className = getClassName();
 	config->id = m_id;
 	config->direction = m_direction;
 	config->pinName = m_name;

@@ -60,7 +60,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		{
 			MIKAN_LOG_WARNING("Node::loadFromConfig") 
 				<< "Failed to find create input pin: " << pinId 
-				<< ", on node: " << typeid(*this).name();
+				<< ", on node: " << getClassName();
 			success= false;
 		}
 	}
@@ -76,7 +76,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		{
 			MIKAN_LOG_WARNING("Node::loadFromConfig")
 				<< "Failed to find create output pin: " << pinId
-				<< ", on node: " << typeid(*this).name();
+				<< ", on node: " << getClassName();
 			success= false;
 		}
 	}
@@ -86,7 +86,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void Node::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	nodeConfig->className = typeid(*this).name();
+	nodeConfig->className = getClassName();
 	nodeConfig->id = m_id;
 	nodeConfig->pos = {m_nodePos.x, m_nodePos.y};
 

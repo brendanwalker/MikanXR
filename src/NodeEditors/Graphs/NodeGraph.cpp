@@ -432,7 +432,7 @@ NodeLinkPtr NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
 
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const
 {
-	config.className= typeid(*this).name();
+	config.className= getClassName();
 	config.nextId= m_nextId;
 
 	// Save all asset references 
