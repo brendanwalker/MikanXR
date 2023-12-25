@@ -215,7 +215,7 @@ void NodeEditorWindow::renderUI()
 		renderGraphVariablesPanel();
 
 		ImGui::SameLine();
-		ImGui::BeginChild("Main Panel", ImVec2(ImGui::GetContentRegionAvail().x - 350,
+		ImGui::BeginChild("Main Panel", ImVec2(ImGui::GetContentRegionAvail().x - 150,
 											   ImGui::GetContentRegionAvail().y));
 			// Main Frame
 			renderMainFrame();
