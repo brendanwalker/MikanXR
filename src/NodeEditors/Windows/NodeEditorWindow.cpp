@@ -709,7 +709,10 @@ void NodeEditorWindow::renderAssetsPanel()
 						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 						ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
 
-						ImGui::Image((void*)(intptr_t)texture->getGlTextureId(), ImVec2(100, 100));
+						if (texture && texture->getGlTextureId() != 0)
+						{
+							ImGui::Image((void*)(intptr_t)texture->getGlTextureId(), ImVec2(100, 100));
+						}
 						ImGui::Dummy(ImVec2(2, 1));
 						ImGui::SameLine();
 						ImGui::SetNextItemWidth(108);
