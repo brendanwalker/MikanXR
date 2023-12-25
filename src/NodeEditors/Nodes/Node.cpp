@@ -137,7 +137,13 @@ void Node::disconnectAllPins()
 	{
 		const t_node_pin_id pinId = m_pinsOut[0]->getId();
 
-		m_ownerGraph->deletePinById(pinId);
+		if (!m_ownerGraph->deletePinById(pinId))
+		{
+			MIKAN_LOG_ERROR("Node::disconnectAllPins") 
+				<< "Failed to delete output pin id: " << pinId
+				<< ", on node class: " << getClassName();
+			break;
+		}
 	}
 
 	// Delete all the input pins associated with the node
@@ -145,7 +151,13 @@ void Node::disconnectAllPins()
 	{
 		const t_node_pin_id pinId = m_pinsIn[0]->getId();
 
-		m_ownerGraph->deletePinById(pinId);
+		if (!m_ownerGraph->deletePinById(pinId))
+		{
+			MIKAN_LOG_ERROR("Node::disconnectAllPins")
+				<< "Failed to delete input pin id: " << pinId
+				<< ", on node class: " << getClassName();
+			break;
+		}
 	}
 }
 
