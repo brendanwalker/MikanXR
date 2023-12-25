@@ -47,7 +47,7 @@ void DrawTriMeshNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 
 		if (newOwnerGraph)
 		{
-			m_ownerGraph->OnGraphLoaded += MakeDelegate(this, &DrawTriMeshNode::onGraphLoaded);
+			newOwnerGraph->OnGraphLoaded += MakeDelegate(this, &DrawTriMeshNode::onGraphLoaded);
 			m_ownerGraph = newOwnerGraph;
 		}
 	}
