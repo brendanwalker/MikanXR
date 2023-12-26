@@ -9,6 +9,7 @@
 #include "Pins/IntPin.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
+#include "Pins/VariableListPin.h"
 #include "Properties/GraphArrayProperty.h"
 #include "Properties/GraphVariableList.h"
 #include "NodeEditorState.h"
@@ -154,16 +155,17 @@ bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 NodeGraph::NodeGraph()
 {
 	// Add pin types nodes in this graph can use
-	addPinFactory<NodePin>();
-	addPinFactory<FlowPin>();
-	addPinFactory<FloatPin>();
-	addPinFactory<Float2Pin>();
-	addPinFactory<Float3Pin>();
-	addPinFactory<Float4Pin>();
-	addPinFactory<IntPin>();
-	addPinFactory<Int2Pin>();
-	addPinFactory<Int3Pin>();
-	addPinFactory<Int4Pin>();
+	addPinFactory<NodePin, NodePinConfig>();
+	addPinFactory<FlowPin, NodePinConfig>();
+	addPinFactory<FloatPin, NodePinConfig>();
+	addPinFactory<Float2Pin, NodePinConfig>();
+	addPinFactory<Float3Pin, NodePinConfig>();
+	addPinFactory<Float4Pin, NodePinConfig>();
+	addPinFactory<IntPin, NodePinConfig>();
+	addPinFactory<Int2Pin, NodePinConfig>();
+	addPinFactory<Int3Pin, NodePinConfig>();
+	addPinFactory<Int4Pin, NodePinConfig>();
+	addPinFactory<VariableListPin, VariableListPinConfig>();
 
 	// Add property types this graph can use
 	addPropertyFactory<GraphArrayPropertyFactory>();

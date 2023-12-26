@@ -42,9 +42,9 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addAssetReferenceFactory<TextureAssetReferenceFactory>();
 
 	// Add pin types nodes in this graph can use
-	addPinFactory<MaterialPin>();
-	addPinFactory<ModelPin>();
-	addPinFactory<TexturePin>();
+	addPinFactory<MaterialPin, NodePinConfig>();
+	addPinFactory<ModelPin, NodePinConfig>();
+	addPinFactory<TexturePin, NodePinConfig>();
 
 	// Add property types this graph can use
 	addPropertyFactory<GraphMaterialPropertyFactory>();

@@ -115,11 +115,16 @@ protected:
 	NodePinPtr m_defaultPinObject;
 };
 
-template <class t_pin_class>
+template <class t_pin_class, class t_pin_config_class>
 class TypedNodePinFactory : public NodePinFactory
 {
 public:
 	TypedNodePinFactory() = default;
+
+	virtual NodePinConfigPtr allocatePinConfig() const
+	{
+		return std::make_shared<t_pin_config_class>();
+	}
 
 	virtual NodePinPtr allocatePin() const override
 	{

@@ -239,10 +239,10 @@ public:
 	MulticastDelegate<void(t_node_id id)> OnNodeDeleted;
 
 	// Pins
-	template <class t_pin_class>
+	template <class t_pin_class, class t_pin_config_class>
 	void addPinFactory()
 	{
-		auto factory = NodePinFactory::createFactory< TypedNodePinFactory<t_pin_class> >();
+		auto factory = NodePinFactory::createFactory< TypedNodePinFactory<t_pin_class, t_pin_config_class> >();
 		std::string pinClassName = factory->getPinClassName();
 
 		m_pinFactories.insert({pinClassName, factory});
