@@ -73,6 +73,10 @@ class ModelNode;
 using ModelNodePtr = std::shared_ptr<ModelNode>;
 using ModelNodeConstPtr = std::shared_ptr<const ModelNode>;
 
+class StencilNode;
+using StencilNodePtr = std::shared_ptr<StencilNode>;
+using StencilNodeConstPtr = std::shared_ptr<const StencilNode>;
+
 class TextureNode;
 using TextureNodePtr = std::shared_ptr<TextureNode>;
 using TextureNodeConstPtr = std::shared_ptr<const TextureNode>;
@@ -138,9 +142,17 @@ class NodePinFactory;
 using NodePinFactoryPtr = std::shared_ptr<NodePinFactory>;
 using NodePinFactoryConstPtr = std::shared_ptr<const NodePinFactory>;
 
+class StencilPin;
+using StencilPinPtr = std::shared_ptr<StencilPin>;
+using StencilPinConstPtr = std::shared_ptr<const StencilPin>;
+
 class TexturePin;
 using TexturePinPtr = std::shared_ptr<TexturePin>;
 using TexturePinConstPtr = std::shared_ptr<const TexturePin>;
+
+class VariableListPin;
+using VariableListPinPtr = std::shared_ptr<VariableListPin>;
+using VariableListPinConstPtr = std::shared_ptr<const VariableListPin>;
 
 // Graph Properties
 class GraphProperty;
@@ -170,6 +182,10 @@ using GraphMaterialPropertyConstPtr = std::shared_ptr<const GraphMaterialPropert
 class GraphModelProperty;
 using GraphModelPropertyPtr = std::shared_ptr<GraphModelProperty>;
 using GraphModelPropertyConstPtr = std::shared_ptr<const GraphModelProperty>;
+
+class GraphStencilProperty;
+using GraphStencilPropertyPtr = std::shared_ptr<GraphStencilProperty>;
+using GraphStencilPropertyConstPtr = std::shared_ptr<const GraphStencilProperty>;
 
 class GraphTextureProperty;
 using GraphTexturePropertyPtr = std::shared_ptr<GraphTextureProperty>;

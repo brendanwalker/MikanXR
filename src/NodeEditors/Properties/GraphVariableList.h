@@ -20,7 +20,8 @@ class GraphVariableList : public GraphArrayProperty
 public:
 	GraphVariableList() = default;
 
-	virtual std::string getClassName() const override { return "GraphVariableList"; }
+	inline static const std::string k_nodeClassName = "GraphVariableList";
+	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;

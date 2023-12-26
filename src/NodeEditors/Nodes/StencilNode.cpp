@@ -1,0 +1,169 @@
+#include "StencilNode.h"
+#include "Logger.h"
+#include "NodeEditorState.h"
+#include "Graphs/NodeGraph.h"
+#include "Pins/NodePin.h"
+#include "Pins/StencilPin.h"
+#include "Properties/GraphVariableList.h"
+#include "Properties/GraphStencilProperty.h"
+
+#include "imgui.h"
+#include "imnodes.h"
+
+// -- StencilNodeConfig -----
+configuru::Config StencilNodeConfig::writeToJSON()
+{
+	configuru::Config pt = NodeConfig::writeToJSON();
+
+	pt["stencil_property_id"] = stencilPropertyId;
+
+	return pt;
+}
+
+void StencilNodeConfig::readFromJSON(const configuru::Config& pt)
+{
+	NodeConfig::readFromJSON(pt);
+
+	stencilPropertyId = pt.get_or<t_graph_property_id>("stencil_property_id", -1);
+}
+
+// -- StencilNode -----
+StencilNode::~StencilNode()
+{
+	setOwnerGraph(NodeGraphPtr());
+}
+
+void StencilNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
+{
+	if (newOwnerGraph != m_ownerGraph)
+	{
+		if (m_ownerGraph)
+		{
+			m_StencilArrayProperty = nullptr;
+			m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &StencilNode::onGraphPropertyChanged);
+			m_ownerGraph = nullptr;
+		}
+
+		if (newOwnerGraph)
+		{
+			m_StencilArrayProperty = newOwnerGraph->getTypedPropertyByName<GraphVariableList>("Stencils");
+			newOwnerGraph->OnPropertyModifed += MakeDelegate(this, &StencilNode::onGraphPropertyChanged);
+			m_ownerGraph = newOwnerGraph;
+		}
+	}
+}
+
+bool StencilNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
+{
+	if (Node::loadFromConfig(nodeConfig))
+	{
+		auto stencilNodeConfig = std::static_pointer_cast<const StencilNodeConfig>(nodeConfig);
+		t_graph_property_id propId= stencilNodeConfig->id;
+
+		auto StencilProperty= getOwnerGraph()->getTypedPropertyById<GraphStencilProperty>(propId);
+		if (StencilProperty)
+		{
+			setStencilSource(StencilProperty);
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("StencilNode::loadFromConfig")
+				<< "Failed to find Stencil property: " << propId
+				<< ", on Stencil node";
+		}
+	}
+
+	return false;
+}
+
+void StencilNode::saveToConfig(NodeConfigPtr nodeConfig) const
+{
+	StencilNodeConfigPtr stencilNodeConfig = std::static_pointer_cast<StencilNodeConfig>(nodeConfig);
+	stencilNodeConfig->stencilPropertyId= m_sourceProperty ? m_sourceProperty->getId() : -1;
+
+	Node::saveToConfig(nodeConfig);
+}
+
+StencilComponentPtr StencilNode::getStencilComponent() const
+{
+	return m_sourceProperty ? m_sourceProperty->getStencilComponent() : StencilComponentPtr();
+}
+
+void StencilNode::setStencilSource(GraphStencilPropertyPtr inStencilProperty) 
+{ 
+	m_sourceProperty = inStencilProperty; 
+
+	StencilPinPtr outPin = getFirstPinOfType<StencilPin>(eNodePinDirection::OUTPUT);
+	if (outPin)
+	{
+		outPin->setValue(StencilComponentPtr());
+	}
+}
+
+bool StencilNode::evaluateNode(NodeEvaluator& evaluator)
+{
+	// Only update output pin in setStencilSource
+
+	return true;
+}
+
+void StencilNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
+{
+	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225));
+	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225));
+	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
+}
+
+void StencilNode::editorRenderNode(const NodeEditorState& editorState)
+{
+	editorRenderPushNodeStyle(editorState);
+
+	ImNodes::BeginNode(m_id);
+
+	// Title
+	editorRenderTitle(editorState);
+
+	//TODO - Preview Texture from stencil model
+	//ImGui::Dummy(ImVec2(1.0f, 0.5f));
+	//GlTexturePtr textureResource = m_sourceProperty->getStencilAssetReference()->getPreviewTexture();
+	//uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
+	//ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
+	//ImGui::SameLine();
+
+	// Outputs
+	editorRenderOutputPins(editorState);
+
+	ImGui::Dummy(ImVec2(1.0f, 0.5f));
+
+	ImNodes::EndNode();
+
+	editorRenderPopNodeStyle(editorState);
+}
+
+void StencilNode::onGraphPropertyChanged(t_graph_property_id id)
+{
+	if (m_StencilArrayProperty && m_StencilArrayProperty->getId() == id)
+	{
+		auto stencilArray = m_StencilArrayProperty->getArray();
+		auto it = std::find(stencilArray.begin(), stencilArray.end(), m_sourceProperty);
+
+		if (it == stencilArray.end())
+		{
+			setStencilSource(GraphStencilPropertyPtr());
+		}
+	}
+}
+
+// -- StencilNode Factory -----
+NodePtr StencilNodeFactory::createNode(const NodeEditorState& editorState) const
+{
+	// Create the node and pins
+	NodePtr node = NodeFactory::createNode(editorState);
+	StencilPinPtr outputPin = node->addPin<StencilPin>("Stencil", eNodePinDirection::OUTPUT);
+
+	// If spawned in an editor context from a dangling pin link
+	// auto-connect the output pin to a compatible input pin
+	autoConnectOutputPin(editorState, outputPin);
+
+	return node;
+}
