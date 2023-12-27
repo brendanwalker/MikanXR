@@ -61,9 +61,9 @@ class MousePosNode;
 using MousePosNodePtr = std::shared_ptr<MousePosNode>;
 using MousePosNodeConstPtr = std::shared_ptr<const MousePosNode>;
 
-class DrawTriMeshNode;
-using DrawTriMeshNodePtr = std::shared_ptr<DrawTriMeshNode>;
-using DrawTriMeshNodeConstPtr = std::shared_ptr<const DrawTriMeshNode>;
+class DrawLayerNode;
+using DrawLayerNodePtr = std::shared_ptr<DrawLayerNode>;
+using DrawLayerNodeConstPtr = std::shared_ptr<const DrawLayerNode>;
 
 class MaterialNode;
 using MaterialNodePtr = std::shared_ptr<MaterialNode>;
@@ -86,6 +86,10 @@ using TimeNodePtr = std::shared_ptr<TimeNode>;
 using TimeNodeConstPtr = std::shared_ptr<const TimeNode>;
 
 // Pin Types
+class ArrayPin;
+using ArrayPinPtr = std::shared_ptr<ArrayPin>;
+using ArrayPinConstPtr = std::shared_ptr<const ArrayPin>;
+
 class FloatPin;
 using FloatPinPtr = std::shared_ptr<FloatPin>;
 using FloatPinConstPtr = std::shared_ptr<const FloatPin>;
@@ -122,14 +126,6 @@ class Int4Pin;
 using Int4PinPtr = std::shared_ptr<Int4Pin>;
 using Int4PinConstPtr = std::shared_ptr<const Int4Pin>;
 
-class MaterialPin;
-using MaterialPinPtr = std::shared_ptr<MaterialPin>;
-using MaterialPinConstPtr = std::shared_ptr<const MaterialPin>;
-
-class ModelPin;
-using ModelPinPtr = std::shared_ptr<ModelPin>;
-using ModelPinConstPtr = std::shared_ptr<const ModelPin>;
-
 class NodePin;
 using NodePinPtr = std::shared_ptr<NodePin>;
 using NodePinConstPtr = std::shared_ptr<const NodePin>;
@@ -142,17 +138,13 @@ class NodePinFactory;
 using NodePinFactoryPtr = std::shared_ptr<NodePinFactory>;
 using NodePinFactoryConstPtr = std::shared_ptr<const NodePinFactory>;
 
+class PropertyPin;
+using PropertyPinPtr = std::shared_ptr<PropertyPin>;
+using PropertyPinConstPtr = std::shared_ptr<const PropertyPin>;
+
 class StencilPin;
 using StencilPinPtr = std::shared_ptr<StencilPin>;
 using StencilPinConstPtr = std::shared_ptr<const StencilPin>;
-
-class TexturePin;
-using TexturePinPtr = std::shared_ptr<TexturePin>;
-using TexturePinConstPtr = std::shared_ptr<const TexturePin>;
-
-class VariableListPin;
-using VariableListPinPtr = std::shared_ptr<VariableListPin>;
-using VariableListPinConstPtr = std::shared_ptr<const VariableListPin>;
 
 // Graph Properties
 class GraphProperty;

@@ -27,7 +27,7 @@ public:
 	std::vector<t_node_link_id> connectedLinkIds;
 };
 
-class NodePin
+class NodePin  : public std::enable_shared_from_this<NodePin>
 {
 public:
 	NodePin();
@@ -50,10 +50,9 @@ public:
 	inline NodePtr getOwnerNode() const { return m_ownerNode; }
 
 	virtual bool connectLink(NodeLinkPtr linkPtr);
-	MulticastDelegate<void(t_node_link_id id)> OnLinkConnected;
 	virtual bool disconnectLink(NodeLinkPtr linkPtr);
-	MulticastDelegate<void(t_node_link_id id)> OnLinkDisconnected;
 	inline const std::vector<NodeLinkPtr>& getConnectedLinks() const { return m_connectedLinks; }
+	inline bool hasAnyConnectedLinks() const { return m_connectedLinks.size() > 0; }
 
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;

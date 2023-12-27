@@ -22,20 +22,19 @@ public:
 protected:
 	virtual std::string editorGetTitle() const override { return "Draw Layer"; }
 
-	void setMaterialPin(MaterialPinPtr inPin);
+	void setMaterialPin(PropertyPinPtr inPin);
 	void onGraphLoaded(bool success);
-	void onMaterialLinkConnected(t_node_link_id id);
-	void onMaterialLinkDisconnected(t_node_link_id id);
+	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;
+	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
 	void rebuildInputPins();
 
-	void setModel(GlRenderModelResourcePtr inModel);
 	void setMaterial(GlMaterialPtr inMaterial);
 
 protected:
 	std::vector<NodePinPtr> m_dynamicMaterialPins;
 	GlRenderModelResourcePtr m_model;
 	GlMaterialPtr m_material;
-	MaterialPinPtr m_materialPin;
+	PropertyPinPtr m_materialPin;
 
 	friend class DrawLayerNodeFactory;
 };

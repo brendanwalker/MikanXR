@@ -211,6 +211,23 @@ bool Node::evaluateInputs(NodeEvaluator& evaluator)
 	return true;
 }
 
+bool Node::hasAnyConnectedPins() const
+{
+	for (const NodePinPtr& pin : m_pinsIn)
+	{
+		if (pin->hasAnyConnectedLinks())
+			return true;
+	}
+
+	for (const NodePinPtr& pin : m_pinsOut)
+	{
+		if (pin->hasAnyConnectedLinks())
+			return true;
+	}
+
+	return false;
+}
+
 FlowPinPtr Node::getOutputFlowPin() const 
 { 
 	return FlowPinPtr(); 
@@ -298,7 +315,7 @@ void Node::editorRenderTitle(const NodeEditorState& editorState) const
 	ImNodes::EndNodeTitleBar();
 }
 
-void Node::editorRenderInputPins(const NodeEditorState& editorState) const
+void Node::editorRenderInputPins(const NodeEditorState& editorState)
 {
 	if (m_pinsIn.size() > 0)
 	{

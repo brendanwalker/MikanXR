@@ -6,7 +6,7 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
-#include "Pins/MaterialPin.h"
+#include "Pins/PropertyPin.h"
 #include "Properties/GraphVariableList.h"
 #include "Properties/GraphMaterialProperty.h"
 
@@ -96,10 +96,10 @@ void MaterialNode::setMaterialSource(GraphMaterialPropertyPtr inMaterialProperty
 { 
 	m_sourceProperty = inMaterialProperty; 
 
-	MaterialPinPtr outPin = getFirstPinOfType<MaterialPin>(eNodePinDirection::OUTPUT);
+	auto outPin = getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
-		outPin->setValue(getMaterialResource());
+		outPin->setValue(m_sourceProperty);
 	}
 }
 
@@ -162,7 +162,9 @@ NodePtr MaterialNodeFactory::createNode(const NodeEditorState& editorState) cons
 {
 	// Create the node and pins
 	NodePtr node = NodeFactory::createNode(editorState);
-	MaterialPinPtr outputPin = node->addPin<MaterialPin>("material", eNodePinDirection::OUTPUT);
+	PropertyPinPtr outputPin = node->addPin<PropertyPin>("material", eNodePinDirection::OUTPUT);
+	outputPin->setPropertyClassName(GraphMaterialProperty::k_propertyClassName);
+	//TODO: Add vertex definition attribute to the pin
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

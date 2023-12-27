@@ -57,6 +57,16 @@ void NodeLink::saveToConfig(NodeLinkConfigPtr config) const
 	config->end_pin_id= m_endPin ? m_endPin->getId() : -1;
 }
 
+NodePinPtr NodeLink::getConnectedPin(NodePinPtr pin) const
+{
+	if (pin == m_startPin)
+		return m_endPin;
+	else if (pin == m_endPin)
+		return m_startPin;
+	else
+		NodePinPtr();
+}
+
 void NodeLink::editorRender(const NodeEditorState& editorState)
 {
 	const int alpha = editorState.startedLinkPinId == -1 ? 255 : 50;

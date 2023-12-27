@@ -95,6 +95,7 @@ public:
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator);
 	virtual bool hasAnyFlowPins() const { return false; }
+	virtual bool hasAnyConnectedPins() const;
 	virtual FlowPinPtr getOutputFlowPin() const;
 
 	virtual std::string editorGetTitle() const { return "Node"; }
@@ -103,14 +104,16 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}
 
 protected:
+	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) {}
+	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) {}
+
 	bool evaluateInputs(NodeEvaluator& evaluator);
 
 	virtual void editorRenderTitle(const NodeEditorState& editorState) const;
-
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const;
 	virtual void editorRenderPopNodeStyle(const NodeEditorState& editorState) const;
-	virtual void editorRenderInputPins(const NodeEditorState& editorState) const;
+	virtual void editorRenderInputPins(const NodeEditorState& editorState);
 	virtual void editorRenderOutputPins(const NodeEditorState& editorState) const;
 
 protected:
@@ -119,6 +122,9 @@ protected:
 	std::vector<NodePinPtr> m_pinsIn;
 	std::vector<NodePinPtr> m_pinsOut;
 	glm::vec2 m_nodePos;
+
+	// NodePin calls onLinkConnected/ onLinkDisconnected
+	friend class NodePin;
 };
 
 class NodeFactory

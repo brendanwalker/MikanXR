@@ -39,6 +39,8 @@ public:
 	inline void setEndPin(NodePinPtr pin) { m_endPin = pin; }
 	inline NodePinPtr getEndPin() const { return m_endPin; }
 
+	NodePinPtr getConnectedPin(NodePinPtr pin) const;
+
 	virtual void editorRender(const NodeEditorState& editorState);
 
 protected:

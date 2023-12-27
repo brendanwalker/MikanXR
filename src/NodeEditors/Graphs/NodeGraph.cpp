@@ -9,7 +9,8 @@
 #include "Pins/IntPin.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
-#include "Pins/VariableListPin.h"
+#include "Pins/PropertyPin.h"
+#include "Pins/ArrayPin.h"
 #include "Properties/GraphArrayProperty.h"
 #include "Properties/GraphVariableList.h"
 #include "NodeEditorState.h"
@@ -165,7 +166,8 @@ NodeGraph::NodeGraph()
 	addPinFactory<Int2Pin, NodePinConfig>();
 	addPinFactory<Int3Pin, NodePinConfig>();
 	addPinFactory<Int4Pin, NodePinConfig>();
-	addPinFactory<VariableListPin, VariableListPinConfig>();
+	addPinFactory<PropertyPin, PropertyPinConfig>();
+	addPinFactory<ArrayPin, ArrayPinConfig>();
 
 	// Add property types this graph can use
 	addPropertyFactory<GraphArrayPropertyFactory>();

@@ -10,17 +10,16 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
+#include "Pins/ArrayPin.h"
 #include "Pins/FloatPin.h"
 #include "Pins/FlowPin.h"
 #include "Pins/IntPin.h"
-#include "Pins/MaterialPin.h"
-#include "Pins/ModelPin.h"
+#include "Pins/PropertyPin.h"
 #include "Pins/NodePin.h"
-#include "Pins/TexturePin.h"
-#include "Pins/VariableListPin.h"
 #include "Properties/GraphVariableList.h"
-#include "Properties/GraphModelProperty.h"
+#include "Properties/GraphMaterialProperty.h"
 #include "Properties/GraphStencilProperty.h"
+#include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -33,8 +32,7 @@
 DrawLayerNode::~DrawLayerNode()
 {
 	setOwnerGraph(NodeGraphPtr());
-	//setModelPin(ModelPinPtr());
-	setMaterialPin(MaterialPinPtr());
+	setMaterialPin(PropertyPinPtr());
 }
 
 void DrawLayerNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
@@ -55,63 +53,18 @@ void DrawLayerNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	}
 }
 
-void DrawLayerNode::setMaterialPin(MaterialPinPtr inPin)
+void DrawLayerNode::setMaterialPin(PropertyPinPtr inPin)
 {
 	if (inPin != m_materialPin)
 	{
 		if (m_materialPin)
 		{
-			m_materialPin->OnLinkConnected -= MakeDelegate(this, &DrawLayerNode::onMaterialLinkConnected);
-			m_materialPin->OnLinkDisconnected -= MakeDelegate(this, &DrawLayerNode::onMaterialLinkDisconnected);
 			m_materialPin = nullptr;
 		}
 
 		if (inPin)
 		{
-			inPin->OnLinkConnected += MakeDelegate(this, &DrawLayerNode::onMaterialLinkConnected);
-			inPin->OnLinkDisconnected += MakeDelegate(this, &DrawLayerNode::onMaterialLinkDisconnected);
 			m_materialPin = inPin;
-		}
-	}
-}
-
-//void DrawLayerNode::setModelPin(ModelPinPtr inPin)
-//{
-//	if (inPin != m_modelPin)
-//	{
-//		if (m_modelPin)
-//		{
-//			m_modelPin->OnLinkConnected -= MakeDelegate(this, &DrawLayerNode::onModelLinkConnected);
-//			m_modelPin->OnLinkDisconnected -= MakeDelegate(this, &DrawLayerNode::onModelLinkDisconnected);
-//			m_modelPin = nullptr;
-//		}
-//
-//		if (inPin)
-//		{
-//			inPin->OnLinkConnected += MakeDelegate(this, &DrawLayerNode::onModelLinkConnected);
-//			inPin->OnLinkDisconnected += MakeDelegate(this, &DrawLayerNode::onModelLinkDisconnected);
-//			m_modelPin = inPin;
-//		}
-//	}
-//}
-
-void DrawLayerNode::setModel(GlRenderModelResourcePtr inModel)
-{
-	if (inModel != m_model)
-	{
-		m_model= inModel;
-
-		if (m_model && m_material)
-		{
-			const auto& triMeshVertexDefinition= m_model->getVertexDefinition();
-			const auto& materialVertexDefinition= m_material->getProgram()->getVertexDefinition();
-
-			if (!triMeshVertexDefinition->isCompatibleDefinition(materialVertexDefinition))
-			{
-				// Clear out the incompatible material
-				m_material= GlMaterialPtr();
-				rebuildInputPins();
-			}
 		}
 	}
 }
@@ -204,12 +157,19 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			//{
 			//	m_material->setMat4ByUniformName(pin->getName(), mat4Pin->getValue()));
 			//}
-			else if (TexturePinPtr texturePin = std::dynamic_pointer_cast<TexturePin>(pin))
+			else if (PropertyPinPtr propertyPin = std::dynamic_pointer_cast<PropertyPin>(pin))
 			{
-				GlTexturePtr texturePtr = texturePin->getValue();
-				if (texturePtr)
+				if (propertyPin->getClassName() == GraphTextureProperty::k_propertyClassName)
 				{
-					m_material->setTextureByUniformName(pin->getName(), texturePtr);
+					auto textureProperty = std::static_pointer_cast<GraphTextureProperty>(propertyPin->getValue());
+					if (textureProperty)
+					{
+						GlTexturePtr texturePtr = textureProperty->getTextureResource();
+						if (texturePtr)
+						{
+							m_material->setTextureByUniformName(pin->getName(), texturePtr);
+						}
+					}
 				}
 			}
 		}
@@ -268,7 +228,7 @@ void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState
 	if (isNodeOpened)
 	{
 		// Material
-		ImGui::Text("\t\Material");
+		ImGui::Text("\t\tMaterial");
 		ImGui::SameLine(160);
 		ImGui::SetNextItemWidth(150);
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
@@ -286,44 +246,38 @@ void DrawLayerNode::onGraphLoaded(bool success)
 		if (m_materialPin)
 		{
 			m_materialPin->copyValueFromSourcePin();
-			setMaterial(m_materialPin->getValue());
-		}
 
-		//if (m_modelPin)
-		//{
-		//	m_modelPin->copyValueFromSourcePin();
-		//	setModel(m_modelPin->getValue());
-		//}
+			auto materialProperty= std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue());
+			if (materialProperty)
+			{
+				setMaterial(materialProperty->getMaterialResource());
+			}
+		}
 	}
 }
 
-void DrawLayerNode::onMaterialLinkConnected(t_node_link_id id)
+void DrawLayerNode::onLinkConnected(NodeLinkPtr link, NodePinPtr pin)
 {
-	if (m_materialPin)
+	if (pin == m_materialPin)
 	{
 		m_materialPin->copyValueFromSourcePin();
-		setMaterial(m_materialPin->getValue());
+
+		auto materialProperty = std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue());
+		if (materialProperty)
+		{
+			setMaterial(materialProperty->getMaterialResource());
+		}
+
 	}
 }
 
-void DrawLayerNode::onMaterialLinkDisconnected(t_node_link_id id)
+void DrawLayerNode::onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin)
 {
-	setMaterial(GlMaterialPtr());
+	if (pin == m_materialPin)
+	{
+		setMaterial(GlMaterialPtr());
+	}
 }
-
-//void DrawLayerNode::onModelLinkConnected(t_node_link_id id)
-//{
-//	if (m_modelPin)
-//	{
-//		m_modelPin->copyValueFromSourcePin();
-//		setModel(m_modelPin->getValue());
-//	}
-//}
-
-//void DrawLayerNode::onModelLinkDisconnected(t_node_link_id id)
-//{
-//	setModel(GlRenderModelResourcePtr());
-//}
 
 void DrawLayerNode::rebuildInputPins()
 {
@@ -378,7 +332,10 @@ void DrawLayerNode::rebuildInputPins()
 				//	break;
 				case eUniformDataType::datatype_texture:
 					{
-						newPin= addPin<TexturePin>(uniformName, eNodePinDirection::INPUT);
+						auto propertyPin= addPin<PropertyPin>(uniformName, eNodePinDirection::INPUT);
+						propertyPin->setPropertyClassName(GraphTextureProperty::k_propertyClassName);
+
+						newPin= propertyPin;
 					}
 					break;
 				default:
@@ -403,9 +360,11 @@ NodePtr DrawLayerNodeFactory::createNode(const NodeEditorState& editorState) con
 
 	// Create default input pins
 	FlowPinPtr flowInPin = node->addPin<FlowPin>("flowIn", eNodePinDirection::INPUT);
-	MaterialPinPtr materialInPin = node->addPin<MaterialPin>("material", eNodePinDirection::INPUT);
-	VariableListPinPtr stencilListInPin = node->addPin<VariableListPin>("stencils", eNodePinDirection::INPUT);
-	stencilListInPin->setVariableClassName(GraphStencilProperty::k_nodeClassName);
+	PropertyPinPtr materialInPin = node->addPin<PropertyPin>("material", eNodePinDirection::INPUT);
+	materialInPin->setPropertyClassName(GraphMaterialProperty::k_propertyClassName);
+	//TODO: Add vertex definition attribute to the pin
+	ArrayPinPtr stencilListInPin = node->addPin<ArrayPin>("stencils", eNodePinDirection::INPUT);
+	stencilListInPin->setElementClassName(GraphStencilProperty::k_propertyClassName);
 
 	// Create default output pins
 	FlowPinPtr flowOutPin = node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);

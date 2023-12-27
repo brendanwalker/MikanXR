@@ -23,8 +23,8 @@ class GraphStencilProperty : public GraphProperty
 public:
 	GraphStencilProperty() = default;
 
-	inline static const std::string k_nodeClassName = "GraphStencilProperty";
-	virtual std::string getClassName() const override { return k_nodeClassName; }
+	inline static const std::string k_propertyClassName = "GraphStencilProperty";
+	virtual std::string getClassName() const override { return k_propertyClassName; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;

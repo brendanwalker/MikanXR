@@ -12,13 +12,8 @@
 #include "Properties/GraphModelProperty.h"
 #include "Properties/GraphTextureProperty.h"
 
-// Pins
-#include "Pins/MaterialPin.h"
-#include "Pins/ModelPin.h"
-#include "Pins/TexturePin.h"
-
 // Nodes
-#include "Nodes/DrawTriMeshNode.h"
+#include "Nodes/DrawLayerNode.h"
 #include "Nodes/EventNode.h"
 #include "Nodes/MaterialNode.h"
 #include "Nodes/MousePosNode.h"
@@ -41,18 +36,13 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addAssetReferenceFactory<MaterialAssetReferenceFactory>();
 	addAssetReferenceFactory<TextureAssetReferenceFactory>();
 
-	// Add pin types nodes in this graph can use
-	addPinFactory<MaterialPin, NodePinConfig>();
-	addPinFactory<ModelPin, NodePinConfig>();
-	addPinFactory<TexturePin, NodePinConfig>();
-
 	// Add property types this graph can use
 	addPropertyFactory<GraphMaterialPropertyFactory>();
 	addPropertyFactory<GraphModelPropertyFactory>();
 	addPropertyFactory<GraphTexturePropertyFactory>();
 
 	// Nodes this graph can spawn
-	addNodeFactory<DrawTriMeshNodeFactory>();
+	addNodeFactory<DrawLayerNodeFactory>();
 	addNodeFactory<EventNodeFactory>();
 	addNodeFactory<MousePosNodeFactory>();
 	addNodeFactory<MaterialNodeFactory>();

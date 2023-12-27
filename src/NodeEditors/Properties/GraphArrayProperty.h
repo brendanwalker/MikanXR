@@ -20,7 +20,8 @@ class GraphArrayProperty : public GraphProperty
 public:
 	GraphArrayProperty() = default;
 
-	virtual std::string getClassName() const override { return "GraphArrayProperty"; }
+	inline static const std::string k_propertyClassName = "GraphArrayProperty";
+	virtual std::string getClassName() const override { return k_propertyClassName; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;

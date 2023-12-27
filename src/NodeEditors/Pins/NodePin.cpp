@@ -163,8 +163,10 @@ bool NodePin::connectLink(NodeLinkPtr linkPtr)
 	m_connectedLinks.push_back(linkPtr);
 
 	// Let the node know that a link was connected to this pin
-	if (OnLinkConnected)
-		OnLinkConnected(linkPtr->getId());
+	if (m_ownerNode)
+	{
+		m_ownerNode->onLinkConnected(linkPtr, shared_from_this());
+	}
 
 	return true;
 }
@@ -174,12 +176,15 @@ bool NodePin::disconnectLink(NodeLinkPtr linkPtr)
 	auto it= std::find(m_connectedLinks.begin(), m_connectedLinks.end(), linkPtr);
 	if (it != m_connectedLinks.end())
 	{
-		// Let the node know that a link was disconnected from this pin
-		if (OnLinkDisconnected)
-			OnLinkDisconnected(linkPtr->getId());
-
 		// Now we can remove the new link
 		m_connectedLinks.erase(it);
+
+		// Let the node know that a link was disconnected from this pin
+		if (m_ownerNode)
+		{
+			m_ownerNode->onLinkDisconnected(linkPtr, shared_from_this());
+		}
+
 		return true;
 	}
 

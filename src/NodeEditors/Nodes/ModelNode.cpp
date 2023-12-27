@@ -6,7 +6,7 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
-#include "Pins/ModelPin.h"
+#include "Pins/PropertyPin.h"
 #include "Properties/GraphVariableList.h"
 #include "Properties/GraphModelProperty.h"
 
@@ -96,10 +96,10 @@ void ModelNode::setModelSource(GraphModelPropertyPtr inModelProperty)
 {
 	m_sourceProperty = inModelProperty;
 
-	ModelPinPtr outPin = getFirstPinOfType<ModelPin>(eNodePinDirection::OUTPUT);
+	PropertyPinPtr outPin = getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
-		outPin->setValue(getModelResource());
+		outPin->setValue(m_sourceProperty);
 	}
 }
 
@@ -162,7 +162,8 @@ NodePtr ModelNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
 	NodePtr node = NodeFactory::createNode(editorState);
-	ModelPinPtr outputPin = node->addPin<ModelPin>("model", eNodePinDirection::OUTPUT);
+	auto outputPin = node->addPin<PropertyPin>("model", eNodePinDirection::OUTPUT);
+	outputPin->setPropertyClassName(GraphModelProperty::k_propertyClassName);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin
