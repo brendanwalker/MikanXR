@@ -13,7 +13,7 @@ configuru::Config PropertyPinConfig::writeToJSON()
 
 void PropertyPinConfig::readFromJSON(const configuru::Config& pt)
 {
-	propertyClassName = pt.get_or<std::string>("property_class_name");
+	propertyClassName = pt.get_or<std::string>("property_class_name", "");
 
 	NodePinConfig::readFromJSON(pt);
 }

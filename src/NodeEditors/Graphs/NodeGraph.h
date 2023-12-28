@@ -34,7 +34,6 @@ protected:
 	configuru::Config _propertiesConfigObject;
 	configuru::Config _nodesConfigObject;
 	configuru::Config _pinsConfigObject;
-	configuru::Config _linksConfigObject;
 };
 
 class NodeGraph : public std::enable_shared_from_this<NodeGraph>
@@ -44,6 +43,9 @@ public:
 	virtual ~NodeGraph() {}
 
 	virtual std::string getClassName() const { return "NodeGraph"; }
+
+	inline void setOwnerWindow(class IGlWindow* window) { m_ownerWindow= window; }
+	inline class IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
 
 	// Generates a unique ID for each node object newly created in the editor
 	int allocateId();
@@ -269,6 +271,9 @@ public:
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDeleted;
 
 protected:
+	// The window that created this node graph
+	class IGlWindow* m_ownerWindow= nullptr;
+
 	// Defines all of the asset references that nodes in this graph can use
 	std::map<std::string, AssetReferenceFactoryPtr> m_assetRefFactories;
 
@@ -304,9 +309,9 @@ public:
 	inline std::string getNodeClassName() const { return m_nodeGraphDefaultObject->getClassName(); }
 
 	virtual NodeGraphPtr allocateNodeGraph() const;
-	virtual NodeGraphPtr initialCreateNodeGraph() const;
+	virtual NodeGraphPtr initialCreateNodeGraph(class IGlWindow* ownerWindow) const;
 
-	static NodeGraphPtr loadNodeGraph(const std::filesystem::path& path);
+	static NodeGraphPtr loadNodeGraph(class IGlWindow* ownerWindow, const std::filesystem::path& path);
 	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);
 
 	template <class t_node_factory_class>

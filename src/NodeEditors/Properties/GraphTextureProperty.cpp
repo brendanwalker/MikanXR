@@ -112,7 +112,7 @@ void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState
 		ImGui::Text("\t\tName");
 		ImGui::SameLine(160);
 		ImGui::SetNextItemWidth(150);
-		std::string name = m_texture->getName();
+		std::string name = m_texture ? m_texture->getName() : "<No Texture>";
 		ImGui::Text(name.c_str());
 
 		// TODO: Show Texture properties

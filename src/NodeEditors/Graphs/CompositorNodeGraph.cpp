@@ -99,9 +99,9 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 }
 
 // -- CompositorNodeGraphFactory ----
-NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph() const
+NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph(IGlWindow* ownerWindow) const
 {
-	auto nodeGraph= NodeGraphFactory::initialCreateNodeGraph();
+	auto nodeGraph= NodeGraphFactory::initialCreateNodeGraph(ownerWindow);
 	auto compositorNodeGraph= std::static_pointer_cast<CompositorNodeGraph>(nodeGraph);
 
 	// Add default nodes

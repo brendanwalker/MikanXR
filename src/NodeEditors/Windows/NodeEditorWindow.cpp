@@ -839,13 +839,13 @@ NodeGraphFactoryPtr NodeEditorWindow::getNodeGraphFactory() const
 
 void NodeEditorWindow::newGraph()
 {
-	m_editorState.nodeGraph= getNodeGraphFactory()->initialCreateNodeGraph();
+	m_editorState.nodeGraph= getNodeGraphFactory()->initialCreateNodeGraph(this);
 	onNodeGraphCreated();
 }
 
 bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 {
-	m_editorState.nodeGraph= NodeGraphFactory::loadNodeGraph(path);
+	m_editorState.nodeGraph= NodeGraphFactory::loadNodeGraph(this, path);
 	if (m_editorState.nodeGraph)
 	{
 		m_editorState.nodeGraphPath= path;
@@ -868,7 +868,7 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 	{
 		const char* filterItems[1] = {"*.graph"};
 		const char* filterDesc = "Graph Files (*.graph)";
-		auto path = tinyfd_openFileDialog("Save Compositor Graph", "", 1, filterItems, filterDesc, 1);
+		auto path = tinyfd_saveFileDialog("Save Compositor Graph", "", 1, filterItems, filterDesc);
 		if (path)
 		{
 			m_editorState.nodeGraphPath= path;

@@ -12,7 +12,7 @@ configuru::Config ArrayPinConfig::writeToJSON()
 
 void ArrayPinConfig::readFromJSON(const configuru::Config& pt)
 {
-	elementClassName= pt.get_or<std::string>("element_class_name");
+	elementClassName= pt.get_or<std::string>("element_class_name", "");
 
 	NodePinConfig::readFromJSON(pt);
 }

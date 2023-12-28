@@ -65,12 +65,12 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		}
 	}
 
-	for (t_node_pin_id pinId : nodeConfig->pinIDsIn)
+	for (t_node_pin_id pinId : nodeConfig->pinIDsOut)
 	{
 		NodePinPtr pin = m_ownerGraph->getNodePinById(pinId);
 		if (pin)
 		{
-			m_pinsIn.push_back(pin);
+			m_pinsOut.push_back(pin);
 		}
 		else
 		{

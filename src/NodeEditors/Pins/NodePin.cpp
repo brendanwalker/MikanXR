@@ -84,6 +84,7 @@ void NodePin::saveToConfig(NodePinConfigPtr config) const
 	config->id = m_id;
 	config->direction = m_direction;
 	config->pinName = m_name;
+	config->ownerNodeId = m_ownerNode ? m_ownerNode->getId() : -1;
 
 	for (NodeLinkPtr linkPtr : m_connectedLinks)
 	{

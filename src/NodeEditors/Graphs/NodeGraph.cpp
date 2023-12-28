@@ -67,7 +67,10 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 	_propertiesConfigObject= pt["properties"];
 	_nodesConfigObject= pt["nodes"];
 	_pinsConfigObject= pt["pins"];
-	_linksConfigObject= pt["links"];
+
+	// Links don't need need any special class_name based construction
+	// so we can just load the link configs the simple way
+	readStdConfigVector(pt, "links", linkConfigs);
 }
 
 template<class t_object_type>
@@ -135,11 +138,6 @@ bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 		_pinsConfigObject, "pins", pinConfigs,
 		[graph](const std::string& className) {
 			return graph->getPinFactory(className)->allocatePinConfig();
-		});
-	success&= readNodeGraphConfigArray(
-		_linksConfigObject, "links", linkConfigs,
-		[graph](const std::string& className) {
-			return std::make_shared<NodeLinkConfig>();
 		});
 
 	// For graph properties, we actually need to use a map
@@ -330,6 +328,8 @@ NodePtr NodeGraph::loadNodeFromConfig(NodeConfigPtr nodeConfig)
 		NodePtr node = factory->allocateNode();
 		if (node)
 		{
+			node->setOwnerGraph(shared_from_this());
+
 			if (node->loadFromConfig(nodeConfig))
 			{
 				m_Nodes.insert({node->getId(), node});
@@ -923,7 +923,9 @@ int NodeGraph::allocateId()
 // -- NodeGraphFactory -----
 std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
 
-NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
+NodeGraphPtr NodeGraphFactory::loadNodeGraph(
+	IGlWindow* ownerWindow,
+	const std::filesystem::path& path)
 {
 	// Load the node graph config from the file path
 	NodeGraphConfig config;
@@ -949,6 +951,10 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(const std::filesystem::path& path)
 		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to allocate node graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
+
+	// Assign owner window before any graph loading operations allocate GL resources (shaders, textures, etc)
+	// which are dependent on the owning window being assigned
+	nodeGraph->setOwnerWindow(ownerWindow);
 
 	// Now that we have allocate a node graph using the class name
 	// we can actually create the graph object configs using the factories from the graph
@@ -981,9 +987,15 @@ NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
 	return std::make_shared<NodeGraph>();
 }
 
-NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph() const
+NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IGlWindow* ownerWindow) const
 {
 	// Derived node graph types override this method to create properties and nodes
 	// on initial creation of the graph.
-	return allocateNodeGraph();	
+	NodeGraphPtr nodeGraph= allocateNodeGraph();	
+
+	// Assign owner window before any graph loading operations allocate GL resources (shaders, textures, etc)
+	// which are dependent on the owning window being assigned
+	nodeGraph->setOwnerWindow(ownerWindow);
+
+	return nodeGraph;
 }

@@ -202,7 +202,7 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	if (success && !m_frameCompositor->startup())
+	if (success && !m_frameCompositor->startup(m_mainWindow))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the frame compositor";
 		success = false;
