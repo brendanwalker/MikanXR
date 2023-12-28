@@ -69,7 +69,7 @@ public:
 	GlFrameCompositor();
 	virtual ~GlFrameCompositor();
 
-	bool startup();
+	bool startup(class IGlWindow* ownerWindow);
 	void shutdown();
 
 	std::filesystem::path getCompositorPresetPath() const;
@@ -205,6 +205,8 @@ private:
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
 	std::map<MikanStencilID, GlRenderModelResourcePtr> m_stencilMeshCache;
+
+	class IGlWindow* m_ownerWindow= nullptr;
 
 	unsigned int m_layerFramebuffer = 0;	
 	unsigned int m_layerRBO = 0;

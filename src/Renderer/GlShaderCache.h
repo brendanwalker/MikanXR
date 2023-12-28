@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AssetFwd.h"
 #include "RendererFwd.h"
 
 #include <memory>
@@ -20,6 +21,7 @@ public:
 	GlProgramPtr allocateEmptyGlProgram(const std::string& programName);
 	void removeGlProgramFromCache(GlProgramPtr program);
 	GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code);
+	GlMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef);
 
 private:
 	static GlShaderCache* m_instance;

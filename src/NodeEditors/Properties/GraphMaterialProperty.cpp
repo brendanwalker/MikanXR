@@ -6,6 +6,8 @@
 #include "MaterialAssetReference.h"
 #include "Nodes/MaterialNode.h"
 #include "Properties/GraphVariableList.h"
+#include "IGlWindow.h"
+#include "GlShaderCache.h"
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
@@ -89,7 +91,18 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 	{
 		m_materialAssetRef= inAssetRef;
 
-		// TODO Create a material from the asset reference
+		// re-create a material from the asset reference
+		if (m_materialAssetRef->isValid())
+		{
+			GlShaderCache* shaderCache = getOwnerGraph()->getOwnerWindow()->getShaderCache();
+			assert(shaderCache);
+
+			m_materialResource = shaderCache->loadMaterialAssetReference(m_materialAssetRef);
+		}
+		else
+		{
+			m_materialResource= GlMaterialPtr();
+		}
 	}
 }
 

@@ -8,6 +8,7 @@
 #include "GlTextRenderer.h"
 #include "GlProgramConfig.h"
 #include "InterprocessRenderTargetReader.h"
+#include "IGlWindow.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"
@@ -52,9 +53,11 @@ GlFrameCompositor::~GlFrameCompositor()
 	m_instance = nullptr;
 }
 
-bool GlFrameCompositor::startup()
+bool GlFrameCompositor::startup(IGlWindow* ownerWindow)
 {
 	EASY_FUNCTION();
+
+	m_ownerWindow= ownerWindow;
 
 	reloadAllCompositorShaders();
 	reloadAllCompositorPresets();
@@ -472,7 +475,7 @@ void GlFrameCompositor::setCompositorGraphAssetPath(
 		{
 			m_nodeGraph =
 				std::dynamic_pointer_cast<CompositorNodeGraph>(
-					NodeGraphFactory::loadNodeGraph(assetRefPath));
+					NodeGraphFactory::loadNodeGraph(m_ownerWindow, assetRefPath));
 			if (!m_nodeGraph)
 			{
 				MIKAN_LOG_ERROR("GlFrameCompositor::setCompositorGraphAssetPath") 

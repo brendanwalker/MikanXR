@@ -1,5 +1,9 @@
+#include "GlMaterial.h"
 #include "GlShaderCache.h"
 #include "GlProgram.h"
+#include "GlProgramConfig.h"
+#include "MaterialAssetReference.h"
+#include "Logger.h"
 
 GlShaderCache* GlShaderCache::m_instance= nullptr;
 
@@ -80,4 +84,49 @@ void GlShaderCache::removeGlProgramFromCache(GlProgramPtr program)
 	{
 		m_programCache.erase(it);
 	}
+}
+
+GlMaterialPtr GlShaderCache::loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef)
+{
+	GlMaterialPtr material;
+
+	if (materialAssetRef && materialAssetRef->isValid())
+	{
+		auto shaderFilePath= materialAssetRef->getAssetPath();
+
+		GlProgramConfig programConfig;
+		if (programConfig.load(shaderFilePath))
+		{
+			GlProgramCode programCode;
+			if (programConfig.loadGlProgramCode(&programCode))
+			{
+				GlProgramPtr program = fetchCompiledGlProgram(&programCode);
+				if (program)
+				{
+					material = std::make_shared<GlMaterial>(programConfig.materialName, program);
+				}
+				else
+				{
+					MIKAN_LOG_ERROR("GlShaderCache::loadMaterialAssetReference")
+						<< "Failed to compile shader: " << shaderFilePath;
+				}
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("GlShaderCache::loadMaterialAssetReference")
+					<< "Failed material program code: " << shaderFilePath;
+			}
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("GlShaderCache::loadMaterialAssetReference") 
+				<< "Failed material config load: " << shaderFilePath;
+		}
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("GlShaderCache::loadMaterialAssetReference") << "Invalid material asset ref";
+	}
+
+	return material;
 }
