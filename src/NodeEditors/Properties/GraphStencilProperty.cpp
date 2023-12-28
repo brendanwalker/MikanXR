@@ -100,13 +100,10 @@ void GraphStencilProperty::saveToConfig(GraphPropertyConfigPtr config) const
 
 void GraphStencilProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
 {
-	auto stencilNode =
-		std::static_pointer_cast<StencilNode>(
-			StencilNodeFactory().createNode(editorState));
+	auto stencilNode = m_ownerGraph->createTypedNode<StencilNode>(editorState);
 
 	// Set this as the source model property for the new node
 	auto self = std::static_pointer_cast<GraphStencilProperty>(shared_from_this());
-
 	stencilNode->setStencilSource(self);
 }
 
@@ -130,7 +127,7 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 		ImGui::Text("\t\tName");
 		ImGui::SameLine(160);
 		ImGui::SetNextItemWidth(150);
-		std::string name = m_stencilComponent->getName();
+		std::string name = m_stencilComponent ? m_stencilComponent->getName() : "<No Stencil>";
 		ImGui::Text(name.c_str());
 
 		// Stencil Type
@@ -171,7 +168,7 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 								 it++)
 							{
 								auto stencilPtr = it->second.lock();
-								if (stencilPtr == stencilPtr)
+								if (stencilPtr == stencilComponent)
 								{
 									stencilSourceIndex = listIndex;
 								}
@@ -185,7 +182,7 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 								 it++)
 							{
 								auto stencilPtr = it->second.lock();
-								if (stencilPtr == stencilPtr)
+								if (stencilPtr == stencilComponent)
 								{
 									stencilSourceIndex = listIndex;
 								}
@@ -199,7 +196,7 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 								 it++)
 							{
 								auto stencilPtr = it->second.lock();
-								if (stencilPtr == stencilPtr)
+								if (stencilPtr == stencilComponent)
 								{
 									stencilSourceIndex = listIndex;
 								}

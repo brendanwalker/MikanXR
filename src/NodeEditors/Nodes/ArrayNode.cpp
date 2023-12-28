@@ -112,6 +112,9 @@ void ArrayNode::onLinkConnected(NodeLinkPtr link, NodePinPtr pin)
 			
 			elementClassName = sourcePropertyPin->getPropertyClassName();
 
+			// Update input pin value value from newly connected pin
+			pin->copyValueFromSourcePin();
+
 			// Also on input pin changes, rebuild the output array value
 			rebuildOutputArrayValue();
 		}
@@ -189,7 +192,7 @@ NodePtr ArrayNodeFactory::createNode(const NodeEditorState& editorState) const
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect compatible pins
 	autoConnectOutputPin(editorState, outputPin);
-	autoConnectOutputPin(editorState, firstInputPin);
+	autoConnectInputPin(editorState, firstInputPin);
 
 	return node;
 }

@@ -3,7 +3,7 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
-#include "Pins/StencilPin.h"
+#include "Pins/PropertyPin.h"
 #include "Properties/GraphVariableList.h"
 #include "Properties/GraphStencilProperty.h"
 
@@ -93,10 +93,10 @@ void StencilNode::setStencilSource(GraphStencilPropertyPtr inStencilProperty)
 { 
 	m_sourceProperty = inStencilProperty; 
 
-	StencilPinPtr outPin = getFirstPinOfType<StencilPin>(eNodePinDirection::OUTPUT);
+	PropertyPinPtr outPin = getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
-		outPin->setValue(StencilComponentPtr());
+		outPin->setValue(inStencilProperty);
 	}
 }
 
@@ -159,7 +159,8 @@ NodePtr StencilNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
 	NodePtr node = NodeFactory::createNode(editorState);
-	StencilPinPtr outputPin = node->addPin<StencilPin>("Stencil", eNodePinDirection::OUTPUT);
+	PropertyPinPtr outputPin = node->addPin<PropertyPin>("Stencil", eNodePinDirection::OUTPUT);
+	outputPin->setPropertyClassName(GraphStencilProperty::k_propertyClassName);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

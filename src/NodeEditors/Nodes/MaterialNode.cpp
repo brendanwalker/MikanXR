@@ -79,6 +79,11 @@ bool MaterialNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	return false;
 }
 
+void MaterialNode::editorRenderPropertySheet(const NodeEditorState& editorState)
+{
+
+}
+
 void MaterialNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
 	auto materialNodeConfig = std::static_pointer_cast<MaterialNodeConfig>(nodeConfig);
@@ -128,10 +133,21 @@ void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	GlTexturePtr textureResource = m_sourceProperty->getMaterialAssetReference()->getPreviewTexture();
-	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
-	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
-	ImGui::SameLine();
+	auto materialAssetRef = m_sourceProperty->getMaterialAssetReference();
+	if (materialAssetRef)
+	{
+		auto previewTexture= materialAssetRef->getPreviewTexture();
+
+		if (previewTexture)
+		{
+			uint32_t glTextureId = previewTexture->getGlTextureId();
+			if (glTextureId != 0)
+			{
+				ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
+				ImGui::SameLine();
+			}
+		}
+	}
 
 	// Outputs
 	editorRenderOutputPins(editorState);

@@ -59,6 +59,11 @@ GlTextRenderer* NodeEditorWindow::getTextRenderer()
 	return nullptr;
 }
 
+GlShaderCache* NodeEditorWindow::getShaderCache()
+{
+	return m_shaderCache.get();
+}
+
 GlStateStack& NodeEditorWindow::getGlStateStack()
 {
 	return *m_glStateStack.get();
@@ -215,7 +220,7 @@ void NodeEditorWindow::renderUI()
 		renderGraphVariablesPanel();
 
 		ImGui::SameLine();
-		ImGui::BeginChild("Main Panel", ImVec2(ImGui::GetContentRegionAvail().x - 150,
+		ImGui::BeginChild("Main Panel", ImVec2(ImGui::GetContentRegionAvail().x - 250,
 											   ImGui::GetContentRegionAvail().y));
 			// Main Frame
 			renderMainFrame();
@@ -257,10 +262,6 @@ void NodeEditorWindow::renderMainFrame()
 
 		ImNodes::GetSelectedNodes(selection.getRawObjectArray());
 		m_objectSelection= selection;
-	}
-	else
-	{
-		m_objectSelection.clear();
 	}
 
 	// Start link

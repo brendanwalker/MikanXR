@@ -36,6 +36,7 @@ public:
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
+	virtual void editorRenderPropertySheet(const NodeEditorState& editorState);
 
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
@@ -48,7 +49,7 @@ protected:
 	GraphVariableListPtr m_materialArrayProperty;
 };
 
-class MaterialNodeFactory : public NodeFactory
+class MaterialNodeFactory : public TypedNodeFactory<MaterialNode, MaterialNodeConfig>
 {
 public:
 	MaterialNodeFactory() = default;

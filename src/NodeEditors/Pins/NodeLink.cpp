@@ -64,7 +64,7 @@ NodePinPtr NodeLink::getConnectedPin(NodePinPtr pin) const
 	else if (pin == m_endPin)
 		return m_startPin;
 	else
-		NodePinPtr();
+		return NodePinPtr();
 }
 
 void NodeLink::editorRender(const NodeEditorState& editorState)

@@ -142,10 +142,6 @@ class PropertyPin;
 using PropertyPinPtr = std::shared_ptr<PropertyPin>;
 using PropertyPinConstPtr = std::shared_ptr<const PropertyPin>;
 
-class StencilPin;
-using StencilPinPtr = std::shared_ptr<StencilPin>;
-using StencilPinConstPtr = std::shared_ptr<const StencilPin>;
-
 // Graph Properties
 class GraphProperty;
 using GraphPropertyPtr = std::shared_ptr<GraphProperty>;

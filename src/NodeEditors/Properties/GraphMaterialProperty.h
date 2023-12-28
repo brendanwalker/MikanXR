@@ -27,10 +27,9 @@ public:
 								const NodeGraphConfig& graphConfig) override;
 	virtual void saveToConfig(GraphPropertyConfigPtr config) const override;
 
-	inline void setMaterialAssetReference(MaterialAssetReferencePtr inAssetRef) { m_materialAssetRef = inAssetRef; }
+	void setMaterialAssetReference(MaterialAssetReferencePtr inAssetRef);
 	inline MaterialAssetReferencePtr getMaterialAssetReference() const { return m_materialAssetRef; }
 
-	inline void setMaterialResource(GlMaterialPtr inMaterialResource) { m_materialResource = inMaterialResource; }
 	inline GlMaterialPtr getMaterialResource() const { return m_materialResource; }
 
 	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;

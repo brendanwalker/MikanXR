@@ -225,7 +225,7 @@ void GlVertexAttribute::init(uint32_t _index, int32_t _size, uint32_t _type, boo
 	char szDesc[256];
 	sprintf_s(
 		szDesc, sizeof(szDesc),
-		"[%d_%d_%d_%c_%d_%d]",
+		"[%d_%d_%d_%c_%d_%zd]",
 		index, size, type, normalized ? 'n' : 'u', stride, offset);
 	desc = szDesc;
 }

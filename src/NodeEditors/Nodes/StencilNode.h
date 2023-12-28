@@ -50,7 +50,7 @@ protected:
 	GraphVariableListPtr m_StencilArrayProperty;
 };
 
-class StencilNodeFactory : public NodeFactory
+class StencilNodeFactory : public TypedNodeFactory<StencilNode, StencilNodeConfig>
 {
 public:
 	StencilNodeFactory() = default;

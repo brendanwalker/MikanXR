@@ -86,9 +86,7 @@ void GraphModelProperty::saveToConfig(GraphPropertyConfigPtr config) const
 
 void GraphModelProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
 {
-	auto modelNode =
-		std::static_pointer_cast<ModelNode>(
-			ModelNodeFactory().createNode(editorState));
+	auto modelNode = m_ownerGraph->createTypedNode<ModelNode>(editorState);
 
 	// Set this as the source model property for the new node
 	auto self = std::static_pointer_cast<GraphModelProperty>(shared_from_this());

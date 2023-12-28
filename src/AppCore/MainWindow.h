@@ -38,6 +38,7 @@ public:
 	virtual GlStateStack& getGlStateStack() override;
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual GlTextRenderer* getTextRenderer() override;
+	virtual GlShaderCache* getShaderCache() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event)  override;
 

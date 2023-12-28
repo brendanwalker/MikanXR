@@ -41,10 +41,10 @@ protected:
 	std::string m_elementClassName;
 };
 
-class ArrayNodeFactory : public NodeFactory
+class ArrayNodeFactory : public TypedNodeFactory<ArrayNode, ArrayNodeConfig>
 {
 public:
 	ArrayNodeFactory() = default;
 
-	virtual NodePtr createNode(const NodeEditorState& editorState) const;
+	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

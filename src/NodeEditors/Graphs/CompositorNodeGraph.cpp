@@ -10,13 +10,16 @@
 #include "Properties/GraphVariableList.h"
 #include "Properties/GraphMaterialProperty.h"
 #include "Properties/GraphModelProperty.h"
+#include "Properties/GraphStencilProperty.h"
 #include "Properties/GraphTextureProperty.h"
 
 // Nodes
+#include "Nodes/ArrayNode.h"
 #include "Nodes/DrawLayerNode.h"
 #include "Nodes/EventNode.h"
 #include "Nodes/MaterialNode.h"
 #include "Nodes/MousePosNode.h"
+#include "Nodes/StencilNode.h"
 #include "Nodes/TextureNode.h"
 #include "Nodes/TimeNode.h"
 
@@ -32,20 +35,21 @@ const std::string CompositorNodeGraph::k_compositeFrameEventName= "OnCompositeFr
 CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 {
 	// Assets this graph can reference
-	addAssetReferenceFactory<ModelAssetReferenceFactory>();
 	addAssetReferenceFactory<MaterialAssetReferenceFactory>();
 	addAssetReferenceFactory<TextureAssetReferenceFactory>();
 
 	// Add property types this graph can use
 	addPropertyFactory<GraphMaterialPropertyFactory>();
-	addPropertyFactory<GraphModelPropertyFactory>();
 	addPropertyFactory<GraphTexturePropertyFactory>();
+	addPropertyFactory<GraphStencilPropertyFactory>();
 
 	// Nodes this graph can spawn
+	addNodeFactory<ArrayNodeFactory>();
 	addNodeFactory<DrawLayerNodeFactory>();
 	addNodeFactory<EventNodeFactory>();
 	addNodeFactory<MousePosNodeFactory>();
 	addNodeFactory<MaterialNodeFactory>();
+	addNodeFactory<StencilNodeFactory>();
 	addNodeFactory<TextureNodeFactory>();
 	addNodeFactory<TimeNodeFactory>();
 }
@@ -110,8 +114,8 @@ NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph() const
 	// Add default properties
 	compositorNodeGraph->createTypedProperty<GraphVariableList>("materials")
 						->assignFactory<GraphMaterialPropertyFactory>();
-	compositorNodeGraph->createTypedProperty<GraphVariableList>("models")
-						->assignFactory<GraphModelPropertyFactory>();
+	compositorNodeGraph->createTypedProperty<GraphVariableList>("stencils")
+						->assignFactory<GraphStencilPropertyFactory>();
 	compositorNodeGraph->createTypedProperty<GraphVariableList>("textures")
 						->assignFactory<GraphTexturePropertyFactory>();
 

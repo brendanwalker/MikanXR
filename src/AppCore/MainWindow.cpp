@@ -67,10 +67,17 @@ GlLineRenderer* MainWindow::getLineRenderer()
 {
 	return m_lineRenderer.get();
 }
+
 GlTextRenderer* MainWindow::getTextRenderer()
 {
 	return m_textRenderer.get();
 }
+
+GlShaderCache* MainWindow::getShaderCache()
+{
+	return m_shaderCache.get();
+}
+
 GlModelResourceManager& MainWindow::getModelResourceManager()
 {
 	return *m_modelResourceManager.get();

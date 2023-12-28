@@ -22,6 +22,7 @@ public:
 	virtual GlStateStack& getGlStateStack() = 0;
 	virtual GlLineRenderer* getLineRenderer() = 0;
 	virtual GlTextRenderer* getTextRenderer() = 0;
+	virtual GlShaderCache* getShaderCache() = 0;
 
 	virtual bool onSDLEvent(const SDL_Event* event)= 0;
 };

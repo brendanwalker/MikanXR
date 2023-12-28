@@ -85,9 +85,7 @@ void GraphTextureProperty::saveToConfig(GraphPropertyConfigPtr config) const
 
 void GraphTextureProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
 {
-	auto textureNode =
-		std::static_pointer_cast<TextureNode>(
-			TextureNodeFactory().createNode(editorState));
+	auto textureNode = m_ownerGraph->createTypedNode<TextureNode>(editorState);
 
 	// Set this as the source texture property for the new node
 	auto self= std::static_pointer_cast<GraphTextureProperty>(shared_from_this());
