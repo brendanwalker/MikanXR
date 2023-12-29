@@ -4,13 +4,14 @@
 #include "AssetReference.h"
 #include "Nodes/Node.h"
 #include "Nodes/EventNode.h"
+#include "Pins/ArrayPin.h"
 #include "Pins/FloatPin.h"
 #include "Pins/FlowPin.h"
 #include "Pins/IntPin.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
 #include "Pins/PropertyPin.h"
-#include "Pins/ArrayPin.h"
+#include "Pins/TexturePin.h"
 #include "Properties/GraphArrayProperty.h"
 #include "Properties/GraphVariableList.h"
 #include "NodeEditorState.h"
@@ -154,7 +155,7 @@ bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 NodeGraph::NodeGraph()
 {
 	// Add pin types nodes in this graph can use
-	addPinFactory<NodePin, NodePinConfig>();
+	addPinFactory<ArrayPin, ArrayPinConfig>();
 	addPinFactory<FlowPin, NodePinConfig>();
 	addPinFactory<FloatPin, NodePinConfig>();
 	addPinFactory<Float2Pin, NodePinConfig>();
@@ -164,8 +165,9 @@ NodeGraph::NodeGraph()
 	addPinFactory<Int2Pin, NodePinConfig>();
 	addPinFactory<Int3Pin, NodePinConfig>();
 	addPinFactory<Int4Pin, NodePinConfig>();
+	addPinFactory<NodePin, NodePinConfig>();
 	addPinFactory<PropertyPin, PropertyPinConfig>();
-	addPinFactory<ArrayPin, ArrayPinConfig>();
+	addPinFactory<TexturePin, NodePinConfig>();
 
 	// Add property types this graph can use
 	addPropertyFactory<GraphArrayPropertyFactory>();

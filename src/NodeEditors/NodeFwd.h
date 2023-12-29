@@ -142,6 +142,10 @@ class PropertyPin;
 using PropertyPinPtr = std::shared_ptr<PropertyPin>;
 using PropertyPinConstPtr = std::shared_ptr<const PropertyPin>;
 
+class TexturePin;
+using TexturePinPtr = std::shared_ptr<TexturePin>;
+using TexturePinConstPtr = std::shared_ptr<const TexturePin>;
+
 // Graph Properties
 class GraphProperty;
 using GraphPropertyPtr = std::shared_ptr<GraphProperty>;

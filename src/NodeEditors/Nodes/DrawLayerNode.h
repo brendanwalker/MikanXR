@@ -3,11 +3,26 @@
 #include "Node.h"
 #include "RendererFwd.h"
 
+class DrawLayerNodeConfig : public NodeConfig
+{
+public:
+	DrawLayerNodeConfig() : NodeConfig() {}
+	DrawLayerNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	bool bVerticalFlip= false;
+};
+
 class DrawLayerNode : public Node
 {
 public:
 	DrawLayerNode() = default;
 	virtual ~DrawLayerNode();
+
+	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
+	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
 
 	inline static const std::string k_nodeClassName = "DrawLayerNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
@@ -30,16 +45,25 @@ protected:
 
 	void setMaterial(GlMaterialPtr inMaterial);
 
+	struct QuadVertex
+	{
+		glm::vec2 aPos;
+		glm::vec2 aTexCoords;
+	};
+	static const struct GlVertexDefinition& getVertexDefinition();
+
 protected:
 	std::vector<NodePinPtr> m_dynamicMaterialPins;
-	GlRenderModelResourcePtr m_model;
+	GlTriangulatedMeshPtr m_layerVFlippedQuad;
+	GlTriangulatedMeshPtr m_layerMesh;
 	GlMaterialPtr m_material;
 	PropertyPinPtr m_materialPin;
+	bool m_bVerticalFlip= false;
 
 	friend class DrawLayerNodeFactory;
 };
 
-class DrawLayerNodeFactory : public TypedNodeFactory<DrawLayerNode, NodeConfig>
+class DrawLayerNodeFactory : public TypedNodeFactory<DrawLayerNode, DrawLayerNodeConfig>
 {
 public:
 	DrawLayerNodeFactory() = default;

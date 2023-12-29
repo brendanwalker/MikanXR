@@ -50,6 +50,7 @@ public:
 	// Generates a unique ID for each node object newly created in the editor
 	int allocateId();
 
+	virtual void editorRender(const class NodeEditorState& editorState);
 
 	// -- Loading -----
 
@@ -74,9 +75,6 @@ public:
 	virtual void saveNodeToConfig(NodeConstPtr node, NodeGraphConfig& graphConfig) const;
 	virtual void savePinToConfig(NodePinConstPtr pin, NodeGraphConfig& graphConfig) const;
 	virtual void saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphConfig) const;
-
-	virtual void editorRender(const class NodeEditorState& editorState);
-
 
 	// -- Assets References -----
 

@@ -14,8 +14,9 @@
 #include "Pins/FloatPin.h"
 #include "Pins/FlowPin.h"
 #include "Pins/IntPin.h"
-#include "Pins/PropertyPin.h"
 #include "Pins/NodePin.h"
+#include "Pins/PropertyPin.h"
+#include "Pins/TexturePin.h"
 #include "Properties/GraphVariableList.h"
 #include "Properties/GraphMaterialProperty.h"
 #include "Properties/GraphStencilProperty.h"
@@ -29,10 +30,55 @@
 #include <typeinfo>
 #include <GL/glew.h>
 
+// -- DrawLayerNodeConfig -----
+configuru::Config DrawLayerNodeConfig::writeToJSON()
+{
+	configuru::Config pt = NodeConfig::writeToJSON();
+
+	pt["vertical_flip"] = bVerticalFlip;
+
+	return pt;
+}
+
+void DrawLayerNodeConfig::readFromJSON(const configuru::Config& pt)
+{
+	NodeConfig::readFromJSON(pt);
+
+	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
+}
+
+// -- DrawLayerNode -----
 DrawLayerNode::~DrawLayerNode()
 {
+	// Clean up the triangulated mesh resources
+	m_layerVFlippedQuad= nullptr;
+	m_layerMesh= nullptr;
+
 	setOwnerGraph(NodeGraphPtr());
 	setMaterialPin(PropertyPinPtr());
+}
+
+bool DrawLayerNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
+{
+	if (Node::loadFromConfig(nodeConfig))
+	{
+		auto drawLayerNodeConfig = std::static_pointer_cast<const DrawLayerNodeConfig>(nodeConfig);
+
+		m_bVerticalFlip = drawLayerNodeConfig->bVerticalFlip;
+
+		return true;
+	}
+
+	return false;
+}
+
+void DrawLayerNode::saveToConfig(NodeConfigPtr nodeConfig) const
+{
+	auto drawLayerNodeConfig = std::static_pointer_cast<DrawLayerNodeConfig>(nodeConfig);
+
+	drawLayerNodeConfig->bVerticalFlip = m_bVerticalFlip;
+
+	Node::saveToConfig(nodeConfig);
 }
 
 void DrawLayerNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
@@ -75,18 +121,6 @@ void DrawLayerNode::setMaterial(GlMaterialPtr inMaterial)
 	{
 		m_material = inMaterial;
 
-		if (m_model && m_material)
-		{
-			const auto& triMeshVertexDefinition = m_model->getVertexDefinition();
-			const auto& materialVertexDefinition = m_material->getProgram()->getVertexDefinition();
-
-			if (!triMeshVertexDefinition->isCompatibleDefinition(materialVertexDefinition))
-			{
-				// Clear out the incompatible material
-				m_material = GlMaterialPtr();
-			}
-		}
-
 		// Rebuild the pins since the material changed
 		rebuildInputPins();
 	}
@@ -95,13 +129,6 @@ void DrawLayerNode::setMaterial(GlMaterialPtr inMaterial)
 bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	bool bSuccess= true;
-
-	if (!m_model)
-	{
-		evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
-		evaluator.setLastErrorMessage("Missing triangulated mesh");
-		bSuccess = false;
-	}
 
 	if (!m_material)
 	{
@@ -157,19 +184,12 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			//{
 			//	m_material->setMat4ByUniformName(pin->getName(), mat4Pin->getValue()));
 			//}
-			else if (PropertyPinPtr propertyPin = std::dynamic_pointer_cast<PropertyPin>(pin))
+			else if (TexturePinPtr texturePin = std::dynamic_pointer_cast<TexturePin>(pin))
 			{
-				if (propertyPin->getClassName() == GraphTextureProperty::k_propertyClassName)
+				GlTexturePtr texturePtr = texturePin->getValue();
+				if (texturePtr)
 				{
-					auto textureProperty = std::static_pointer_cast<GraphTextureProperty>(propertyPin->getValue());
-					if (textureProperty)
-					{
-						GlTexturePtr texturePtr = textureProperty->getTextureResource();
-						if (texturePtr)
-						{
-							m_material->setTextureByUniformName(pin->getName(), texturePtr);
-						}
-					}
+					m_material->setTextureByUniformName(pin->getName(), texturePtr);
 				}
 			}
 		}
@@ -187,12 +207,13 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 
 			if (materialBinding)
 			{
-				for (int i = 0; i < m_model->getTriangulatedMeshCount(); i++)
-				{
-					auto triMesh= m_model->getTriangulatedMesh(i);
-
-					triMesh->drawElements();
-				}
+				assert(m_layerVFlippedQuad);
+				assert(m_layerMesh);
+				
+				if (m_bVerticalFlip)
+					m_layerVFlippedQuad->drawElements();
+				else
+					m_layerMesh->drawElements();
 			}
 			else
 			{
@@ -236,6 +257,12 @@ void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState
 		const std::string material_name = m_material ? m_material->getName() : "<INVALID>";
 		ImGui::Text(material_name.c_str());
 		ImGui::PopStyleColor();
+
+		// Renderbuffer
+		ImGui::Text("\t\tVertical Flip");
+		ImGui::SameLine(160);
+		ImGui::SetNextItemWidth(150);
+		ImGui::Checkbox("##verticalflip", &m_bVerticalFlip);
 	}
 }
 
@@ -251,6 +278,49 @@ void DrawLayerNode::onGraphLoaded(bool success)
 			if (materialProperty)
 			{
 				setMaterial(materialProperty->getMaterialResource());
+			}
+
+			// Create triangulated quad mesh to draw the layer on
+			{
+				static QuadVertex x_vertices[] = {
+				//   positions                texCoords
+					{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
+					{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
+					{glm::vec2( 1.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+					{glm::vec2( 1.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
+				};
+				static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+
+				m_layerMesh = std::make_shared<GlTriangulatedMesh>("layer_quad_mesh",
+																   getVertexDefinition(),
+																   (const uint8_t *)x_vertices,
+																   4, // 4 verts
+																   (const uint8_t *)x_indices,
+																   2, // 2 tris
+																   false); // mesh doesn't own quad vert data
+				m_layerMesh->createBuffers();
+			}
+
+			// Create triangulated quad mesh to draw the layer on with flipped v texel coordinates
+			// (this is usually used for video sources where we need to flip the image vertically)
+			{
+				static QuadVertex x_vertices[] = {
+				//   positions                texCoords (flipped v coordinated)
+					{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+					{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+					{glm::vec2( 1.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+					{glm::vec2( 1.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
+				};
+				static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+
+				m_layerVFlippedQuad = std::make_shared<GlTriangulatedMesh>("layer_vflipped_quad_mesh",
+																	 getVertexDefinition(),
+																	 (const uint8_t*)x_vertices,
+																	 4, // 4 verts
+																	 (const uint8_t*)x_indices,
+																	 2, // 2 tris
+																	 false); // mesh doesn't own quad vert data
+				m_layerVFlippedQuad->createBuffers();
 			}
 		}
 	}
@@ -332,10 +402,7 @@ void DrawLayerNode::rebuildInputPins()
 				//	break;
 				case eUniformDataType::datatype_texture:
 					{
-						auto propertyPin= addPin<PropertyPin>(uniformName, eNodePinDirection::INPUT);
-						propertyPin->setPropertyClassName(GraphTextureProperty::k_propertyClassName);
-
-						newPin= propertyPin;
+						newPin= addPin<TexturePin>(uniformName, eNodePinDirection::INPUT);
 					}
 					break;
 				default:
@@ -349,6 +416,24 @@ void DrawLayerNode::rebuildInputPins()
 			}
 		}
 	}
+}
+
+const GlVertexDefinition& DrawLayerNode::getVertexDefinition()
+{
+	static GlVertexDefinition x_vertexDefinition;
+
+	if (x_vertexDefinition.attributes.size() == 0)
+	{
+		const int32_t vertexSize = (int32_t)sizeof(DrawLayerNode::QuadVertex);
+		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
+
+		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position2f, false, vertexSize, offsetof(DrawLayerNode::QuadVertex, aPos)));
+		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::texel2f, false, vertexSize, offsetof(DrawLayerNode::QuadVertex, aTexCoords)));
+
+		x_vertexDefinition.vertexSize = vertexSize;
+	}
+
+	return x_vertexDefinition;
 }
 
 // -- ProgramNode Factory -----

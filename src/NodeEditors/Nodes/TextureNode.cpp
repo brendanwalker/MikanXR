@@ -4,7 +4,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
 #include "Pins/NodePin.h"
-#include "Pins/PropertyPin.h"
+#include "Pins/TexturePin.h"
 #include "Properties/GraphVariableList.h"
 #include "Properties/GraphTextureProperty.h"
 
@@ -96,10 +96,10 @@ void TextureNode::setTextureSource(GraphTexturePropertyPtr inTextureProperty)
 { 
 	m_sourceProperty= inTextureProperty; 
 
-	auto outPin = getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
+	auto outPin = getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
-		outPin->setValue(m_sourceProperty);
+		outPin->setValue(m_sourceProperty->getTextureResource());
 	}
 }
 
@@ -162,8 +162,7 @@ NodePtr TextureNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
 	NodePtr node = NodeFactory::createNode(editorState);
-	auto outputPin = node->addPin<PropertyPin>("texture", eNodePinDirection::OUTPUT);
-	outputPin->setPropertyClassName(GraphTextureProperty::k_propertyClassName);
+	auto outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin
