@@ -105,6 +105,7 @@ public:
 	void flushStencilRenderModel(MikanStencilID stencilId);
 
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
+	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
 
 	inline const NamedValueTable<float>& getFloatSources() const { return m_floatSources; }

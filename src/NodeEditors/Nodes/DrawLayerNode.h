@@ -4,6 +4,9 @@
 #include "RendererFwd.h"
 #include "FrameCompositorConstants.h"
 
+/// The ID of a stencil
+typedef int32_t MikanStencilID;
+
 class DrawLayerNodeConfig : public NodeConfig
 {
 public:
@@ -14,7 +17,9 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	eCompositorBlendMode blendMode = eCompositorBlendMode::blendOn;
+	eCompositorStencilMode stencilMode = eCompositorStencilMode::insideStencil;
 	bool bVerticalFlip= false;
+	bool bInvertWhenCameraInside= false;
 };
 
 class DrawLayerNode : public Node
@@ -37,31 +42,58 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
+	void evaluateQuadStencils(GlState& glState);
+
 	virtual std::string editorGetTitle() const override { return "Draw Layer"; }
 
-	void setMaterialPin(PropertyPinPtr inPin);
 	void onGraphLoaded(bool success);
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;
 	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
 	void rebuildInputPins();
 
+	void createLayerQuadMeshes();
+	void createStencilMeshes();
+	void createStencilShader();
+
+	void setMaterialPin(PropertyPinPtr inPin);
 	void setMaterial(GlMaterialPtr inMaterial);
+
+	void setStencilsPin(ArrayPinPtr inPin);
+	void rebuildStencilLists();
 
 	struct QuadVertex
 	{
 		glm::vec2 aPos;
 		glm::vec2 aTexCoords;
 	};
-	static const struct GlVertexDefinition& getVertexDefinition();
+	static const GlVertexDefinition& getLayerQuadVertexDefinition();
+
+	struct StencilVertex
+	{
+		glm::vec3 aPos;
+	};
+	const GlVertexDefinition& getStencilModelVertexDefinition();
+	static const GlProgramCode* getStencilShaderCode();
 
 protected:
 	std::vector<NodePinPtr> m_dynamicMaterialPins;
-	GlTriangulatedMeshPtr m_layerVFlippedQuad;
-	GlTriangulatedMeshPtr m_layerMesh;
-	GlMaterialPtr m_material;
+	
+	ArrayPinPtr m_stencilsPin;
+	std::vector<MikanStencilID> m_quadStencilIds;
+	std::vector<MikanStencilID> m_boxStencilIds;
+	std::vector<MikanStencilID> m_modelStencilIds;
+	GlProgramPtr m_stencilShader;
+	GlTriangulatedMeshPtr m_stencilQuadMesh;
+
 	PropertyPinPtr m_materialPin;
+	GlMaterialPtr m_material;
+	GlTriangulatedMeshPtr m_layerVFlippedMesh;
+	GlTriangulatedMeshPtr m_layerMesh;
+
 	eCompositorBlendMode m_blendMode = eCompositorBlendMode::blendOn;
+	eCompositorStencilMode m_stencilMode = eCompositorStencilMode::insideStencil;
 	bool m_bVerticalFlip= false;
+	bool m_bInvertWhenCameraInside= false;
 
 	friend class DrawLayerNodeFactory;
 };

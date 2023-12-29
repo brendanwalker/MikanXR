@@ -49,6 +49,7 @@ using GlSceneConstPtr = std::shared_ptr<const GlScene>;
 class GlShaderCache;
 using GlShaderCacheUniquePtr = std::unique_ptr<GlShaderCache>;
 
+class GlState;
 class GlStateStack;
 using GlStateStackSharedPtr = std::shared_ptr<GlStateStack>;
 using GlStateStackUniquePtr = std::unique_ptr<GlStateStack>;
@@ -78,3 +79,5 @@ class IGlSceneRenderable;
 using IGlSceneRenderablePtr= std::shared_ptr<IGlSceneRenderable>;
 using IGlSceneRenderableConstPtr = std::shared_ptr<const IGlSceneRenderable>;
 using IGlSceneRenderableConstWeakPtr = std::weak_ptr<const IGlSceneRenderable>;
+
+struct GlVertexDefinition;

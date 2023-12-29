@@ -670,6 +670,17 @@ bool GlFrameCompositor::getVideoSourceCameraPose(glm::mat4& outCameraMat) const
 	return false;
 }
 
+bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) const
+{
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckView != nullptr)
+	{
+		outCameraVP = m_videoSourceView->getCameraViewProjectionMatrix(m_cameraTrackingPuckView);
+		return true;
+	}
+
+	return false;
+}
+
 void GlFrameCompositor::update(float deltaSeconds)
 {
 	EASY_FUNCTION();
