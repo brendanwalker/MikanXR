@@ -8,6 +8,7 @@
 #include "IGlWindow.h"
 #include "EditorNodeUtil.h"
 #include "NodeEditorState.h"
+#include "NodeEditorUI.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Pins/ArrayPin.h"
@@ -21,6 +22,7 @@
 #include "Properties/GraphMaterialProperty.h"
 #include "Properties/GraphStencilProperty.h"
 #include "Properties/GraphTextureProperty.h"
+#include "StringUtils.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -35,6 +37,7 @@ configuru::Config DrawLayerNodeConfig::writeToJSON()
 {
 	configuru::Config pt = NodeConfig::writeToJSON();
 
+	pt["blend_mode"] = k_compositorBlendModeStrings[(int)blendMode];
 	pt["vertical_flip"] = bVerticalFlip;
 
 	return pt;
@@ -43,6 +46,12 @@ configuru::Config DrawLayerNodeConfig::writeToJSON()
 void DrawLayerNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
+
+	const std::string blendModeString =
+		pt.get_or<std::string>(
+			"blend_mode",
+			k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOff]);
+	blendMode = StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
 	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
 }
@@ -64,6 +73,7 @@ bool DrawLayerNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	{
 		auto drawLayerNodeConfig = std::static_pointer_cast<const DrawLayerNodeConfig>(nodeConfig);
 
+		m_blendMode= drawLayerNodeConfig->blendMode;
 		m_bVerticalFlip = drawLayerNodeConfig->bVerticalFlip;
 
 		return true;
@@ -76,6 +86,7 @@ void DrawLayerNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
 	auto drawLayerNodeConfig = std::static_pointer_cast<DrawLayerNodeConfig>(nodeConfig);
 
+	drawLayerNodeConfig->blendMode = m_blendMode;
 	drawLayerNodeConfig->bVerticalFlip = m_bVerticalFlip;
 
 	Node::saveToConfig(nodeConfig);
@@ -144,7 +155,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 
 	if (bSuccess)
 	{
-		// Map input pins to the program
+		// Map input pins to the layer material
 		for (auto& pin : m_pinsIn)
 		{
 			if (FloatPinPtr floatPin = std::dynamic_pointer_cast<FloatPin>(pin))
@@ -198,6 +209,28 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			GlScopedState glStateScope = evaluator.getCurrentWindow()->getGlStateStack().createScopedState();
 			GlState& glState = glStateScope.getStackState();
 
+			// Set the blend mode
+			switch (m_blendMode)
+			{
+				case eCompositorBlendMode::blendOff:
+					{
+						glState.disableFlag(eGlStateFlagType::blend);
+					}
+					break;
+				case eCompositorBlendMode::blendOn:
+					{
+						// https://www.andersriggelsen.dk/glblendfunc.php
+						// (sR*sA) + (dR*(1-sA)) = rR
+						// (sG*sA) + (dG*(1-sA)) = rG
+						// (sB*sA) + (dB*(1-sA)) = rB
+						// (sA*sA) + (dA*(1-sA)) = rA
+						glState.enableFlag(eGlStateFlagType::blend);
+						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+						glBlendEquation(GL_FUNC_ADD);
+					}
+					break;
+			}
+
 			// Bind the layer shader program and uniform parameters.
 			// This will fail unless all of the shader uniform parameters are bound.
 			GlScopedMaterialBinding materialBinding =
@@ -235,34 +268,28 @@ FlowPinPtr DrawLayerNode::getOutputFlowPin() const
 void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	bool isNodeOpened = ImGui::CollapsingHeader("Draw Layer Node", ImGuiTreeNodeFlags_SpanAvailWidth);
-	ImGui::PopStyleVar(3);
-	ImGui::PopStyleColor(3);
-
-	if (isNodeOpened)
+	if (NodeEditorUI::DrawPropertySheetHeader("Draw Layer Node"))
 	{
 		// Material
-		ImGui::Text("\t\tMaterial");
-		ImGui::SameLine(160);
-		ImGui::SetNextItemWidth(150);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-
 		const std::string material_name = m_material ? m_material->getName() : "<INVALID>";
-		ImGui::Text(material_name.c_str());
-		ImGui::PopStyleColor();
+		NodeEditorUI::DrawStaticTextProperty("Material", material_name);
 
-		// Renderbuffer
-		ImGui::Text("\t\tVertical Flip");
-		ImGui::SameLine(160);
-		ImGui::SetNextItemWidth(150);
-		ImGui::Checkbox("##verticalflip", &m_bVerticalFlip);
+		// Blend Mode
+		int iBlendMode = (int)m_blendMode;
+		if (NodeEditorUI::DrawSimpleComboBoxProperty(
+			"drawLayerNodeBlendMode",
+			"Blend Mode",
+			"Blend Off\0Blend On\0",
+			iBlendMode))
+		{
+			m_blendMode= (eCompositorBlendMode)iBlendMode;
+		}
+
+		// Vertical Flip
+		NodeEditorUI::DrawCheckBoxProperty(
+			"drawLayerNodeNodeVerticalflip", 
+			"Vertical Flip", 
+			m_bVerticalFlip);
 	}
 }
 

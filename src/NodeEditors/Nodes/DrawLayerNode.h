@@ -2,6 +2,7 @@
 
 #include "Node.h"
 #include "RendererFwd.h"
+#include "FrameCompositorConstants.h"
 
 class DrawLayerNodeConfig : public NodeConfig
 {
@@ -12,6 +13,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	eCompositorBlendMode blendMode = eCompositorBlendMode::blendOn;
 	bool bVerticalFlip= false;
 };
 
@@ -58,6 +60,7 @@ protected:
 	GlTriangulatedMeshPtr m_layerMesh;
 	GlMaterialPtr m_material;
 	PropertyPinPtr m_materialPin;
+	eCompositorBlendMode m_blendMode = eCompositorBlendMode::blendOn;
 	bool m_bVerticalFlip= false;
 
 	friend class DrawLayerNodeFactory;
