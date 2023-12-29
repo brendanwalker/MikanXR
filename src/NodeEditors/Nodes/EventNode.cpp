@@ -35,6 +35,7 @@ bool EventNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		auto eventNodeConfig= std::static_pointer_cast<const EventNodeConfig>(nodeConfig);
 
 		m_eventName= eventNodeConfig->eventName;
+		return true;
 	}
 
 	return false;

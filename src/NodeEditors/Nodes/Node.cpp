@@ -51,7 +51,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 	for (t_node_pin_id pinId : nodeConfig->pinIDsIn)
 	{
-		NodePinPtr pin = m_ownerGraph->getNodePinById(pinId);
+		NodePinPtr pin = m_ownerGraph->getPinById(pinId);
 		if (pin)
 		{
 			m_pinsIn.push_back(pin);
@@ -67,7 +67,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 	for (t_node_pin_id pinId : nodeConfig->pinIDsOut)
 	{
-		NodePinPtr pin = m_ownerGraph->getNodePinById(pinId);
+		NodePinPtr pin = m_ownerGraph->getPinById(pinId);
 		if (pin)
 		{
 			m_pinsOut.push_back(pin);
@@ -380,7 +380,7 @@ void NodeFactory::autoConnectInputPin(const NodeEditorState& editorState, NodePi
 	// auto-connect the input pin to a compatible output pin
 	if (editorState.startedLinkPinId != -1)
 	{
-		NodePinPtr outputPin = editorState.nodeGraph->getNodePinById(editorState.startedLinkPinId);
+		NodePinPtr outputPin = editorState.nodeGraph->getPinById(editorState.startedLinkPinId);
 
 		if (inputPin->canPinsBeConnected(outputPin))
 		{
@@ -399,7 +399,7 @@ void NodeFactory::autoConnectOutputPin(const NodeEditorState& editorState, NodeP
 	// auto-connect the output pin to a compatible input pin
 	if (editorState.startedLinkPinId != -1)
 	{
-		NodePinPtr inputPin = editorState.nodeGraph->getNodePinById(editorState.startedLinkPinId);
+		NodePinPtr inputPin = editorState.nodeGraph->getPinById(editorState.startedLinkPinId);
 
 		if (outputPin->canPinsBeConnected(inputPin))
 		{

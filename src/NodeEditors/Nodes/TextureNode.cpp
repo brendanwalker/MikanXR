@@ -60,12 +60,13 @@ bool TextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	if (Node::loadFromConfig(nodeConfig))
 	{
 		auto textureNodeConfig = std::static_pointer_cast<const TextureNodeConfig>(nodeConfig);
-		t_graph_property_id propId = textureNodeConfig->id;
+		t_graph_property_id propId = textureNodeConfig->texturePropertyId;
 
 		auto textureProperty = getOwnerGraph()->getTypedPropertyById<GraphTextureProperty>(propId);
 		if (textureProperty)
 		{
 			setTextureSource(textureProperty);
+			return true;
 		}
 		else
 		{

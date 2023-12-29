@@ -30,17 +30,17 @@ void NodeLinkConfig::readFromJSON(const configuru::Config& pt)
 //-- NodeLink -----
 bool NodeLink::loadFromConfig(NodeLinkConfigConstPtr config)
 {
-	bool success= false;
+	bool success= true;
 	m_id = config->id;
 	
-	m_startPin= getOwnerGraph()->getNodePinById(config->start_pin_id);
+	m_startPin= getOwnerGraph()->getPinById(config->start_pin_id);
 	if (!m_startPin)
 	{
 		MIKAN_LOG_ERROR("NodeLink::loadFromConfig") << "Invalid start pin id: " << config->start_pin_id;
 		success= false;
 	}
 
-	m_endPin= getOwnerGraph()->getNodePinById(config->end_pin_id);
+	m_endPin= getOwnerGraph()->getPinById(config->end_pin_id);
 	if (!m_endPin)
 	{
 		MIKAN_LOG_ERROR("NodeLink::loadFromConfig") << "Invalid end pin id: " << config->end_pin_id;

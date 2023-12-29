@@ -18,9 +18,9 @@ void ArrayPinConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- ArrayPin -----
-bool ArrayPin::loadFromConfig(NodePinConfigConstPtr config)
+bool ArrayPin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config)
 {
-	if (!NodePin::loadFromConfig(config))
+	if (!NodePin::loadFromConfig(ownerGraph, config))
 		return false;
 
 	auto varListPinConfig= std::static_pointer_cast<const ArrayPinConfig>(config);

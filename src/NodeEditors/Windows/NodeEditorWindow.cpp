@@ -267,7 +267,7 @@ void NodeEditorWindow::renderMainFrame()
 	// Start link
 	if (ImNodes::IsLinkStarted(&m_editorState.startedLinkPinId))
 	{
-		NodePinPtr pinPtr= getNodeGraph()->getNodePinById(m_editorState.startedLinkPinId);
+		NodePinPtr pinPtr= getNodeGraph()->getPinById(m_editorState.startedLinkPinId);
 		if (pinPtr)
 		{
 			ImNodes::GetStyle().Colors[ImNodesCol_Link] = pinPtr->editorGetLinkStyleColor();
@@ -1006,7 +1006,7 @@ void NodeEditorWindow::shutdown()
 		m_sdlWindow = nullptr;
 	}
 }
-
+ 
 float NodeEditorWindow::getWidth() const
 {
 	return (float)m_sdlWindow->getWidth();

@@ -19,9 +19,9 @@ void PropertyPinConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- PropertyPin --
-bool PropertyPin::loadFromConfig(NodePinConfigConstPtr config)
+bool PropertyPin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config)
 {
-	if (!NodePin::loadFromConfig(config))
+	if (!NodePin::loadFromConfig(ownerGraph, config))
 		return false;
 
 	auto propertyPinConfig = std::static_pointer_cast<const PropertyPinConfig>(config);

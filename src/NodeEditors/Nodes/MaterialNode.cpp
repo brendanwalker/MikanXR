@@ -61,12 +61,13 @@ bool MaterialNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	if (Node::loadFromConfig(nodeConfig))
 	{
 		auto materialNodeConfig = std::static_pointer_cast<const MaterialNodeConfig>(nodeConfig);
-		t_graph_property_id propId= materialNodeConfig->id;
+		t_graph_property_id propId= materialNodeConfig->materialPropertyId;
 
 		auto materialProperty= getOwnerGraph()->getTypedPropertyById<GraphMaterialProperty>(propId);
 		if (materialProperty)
 		{
 			setMaterialSource(materialProperty);
+			return true;
 		}
 		else
 		{

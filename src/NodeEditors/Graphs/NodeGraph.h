@@ -50,18 +50,24 @@ public:
 	// Generates a unique ID for each node object newly created in the editor
 	int allocateId();
 
-	// Loading
+
+	// -- Loading -----
+
 	virtual bool loadFromConfig(const NodeGraphConfig& config);
-	virtual GraphPropertyPtr loadGraphPropertyFromConfig(
-		GraphPropertyConfigPtr propConfig, const NodeGraphConfig& graphConfig);
-	virtual AssetReferencePtr loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
-	virtual NodePtr loadNodeFromConfig(NodeConfigPtr nodeConfig);
-	virtual NodePinPtr loadPinFromConfig(NodePinConfigPtr pinConfig);
-	virtual NodeLinkPtr loadLinkFromConfig(NodeLinkConfigPtr linkConfig);
+	virtual GraphPropertyPtr loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig, const NodeGraphConfig& graphConfig);
+	virtual bool loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
+	virtual bool allocateNodeFromConfig(NodeConfigPtr nodeConfig);
+	virtual bool loadNodeFromConfig(NodeConfigPtr nodeConfig);
+	virtual bool allocatePinFromConfig(NodePinConfigPtr pinConfig);
+	virtual bool loadPinFromConfig(NodePinConfigPtr pinConfig);
+	virtual bool allocateLinkFromConfig(NodeLinkConfigPtr linkConfig);
+	virtual bool loadLinkFromConfig(NodeLinkConfigPtr linkConfig);
 
 	MulticastDelegate<void(bool success)> OnGraphLoaded;
 
-	// Saving
+
+	// -- Saving -----
+
 	virtual void saveToConfig(NodeGraphConfig& config) const;
 	virtual void saveGraphPropertyToConfig(GraphPropertyConstPtr prop, NodeGraphConfig& graphConfig) const;
 	virtual void saveAssetRefToConfig(AssetReferenceConstPtr assetRef, NodeGraphConfig& graphConfig) const;
@@ -71,7 +77,9 @@ public:
 
 	virtual void editorRender(const class NodeEditorState& editorState);
 
-	// Assets References
+
+	// -- Assets References -----
+
 	template <class t_asset_factory>
 	void addAssetReferenceFactory()
 	{
@@ -128,7 +136,9 @@ public:
 	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceCreated;
 	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceDeleted;
 
-	// Properties
+
+	// -- Properties -----
+
 	template <class t_property_factory>
 	void addPropertyFactory()
 	{
@@ -185,7 +195,9 @@ public:
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyModifed;
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyDeleted;
 
-	// Nodes
+
+	// -- Nodes -----
+
 	virtual std::vector<NodeFactoryPtr> editorGetValidNodeFactories(const class NodeEditorState& editorState) const;
 
 	template <class t_node_factory>
@@ -218,9 +230,6 @@ public:
 	NodePtr getNodeById(t_node_id id) const;
 	NodePtr getEventNodeByName(const std::string& eventName) const;
 
-	NodePinPtr getNodePinById(t_node_pin_id id) const;
-	NodeLinkPtr getNodeLinkById(t_node_link_id id) const;
-
 	template <class t_node_class>
 	std::shared_ptr<t_node_class> createTypedNode(const NodeEditorState& nodeEditorState)
 	{
@@ -240,7 +249,9 @@ public:
 	bool deleteNodeById(t_node_id id);
 	MulticastDelegate<void(t_node_id id)> OnNodeDeleted;
 
-	// Pins
+
+	// -- Pins -----
+
 	template <class t_pin_class, class t_pin_config_class>
 	void addPinFactory()
 	{
@@ -257,13 +268,19 @@ public:
 		return (it != m_pinFactories.end()) ? it->second : NodePinFactoryPtr();
 	}
 
+	NodePinPtr getPinById(t_node_pin_id id) const;
+
 	void addPin(NodePinPtr newPin);
 	MulticastDelegate<void(t_node_pin_id id)> OnPinCreated;
 
 	bool deletePinById(t_node_pin_id id);
 	MulticastDelegate<void(t_node_pin_id id)> OnPinDeleted;
 
-	// Links
+
+	// -- Links -----
+
+	NodeLinkPtr getLinkById(t_node_link_id id) const;
+
 	NodeLinkPtr createLink(t_node_pin_id startPinId, t_node_pin_id endPinId);
 	MulticastDelegate<void(t_node_link_id id)> OnLinkCreated;
 

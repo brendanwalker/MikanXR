@@ -19,7 +19,7 @@ class PropertyPin : public NodePin
 public:
 	PropertyPin() = default;
 
-	virtual bool loadFromConfig(NodePinConfigConstPtr config) override;
+	virtual bool loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config) override;
 	virtual void saveToConfig(NodePinConfigPtr config) const override;
 
 	inline void setPropertyClassName(const std::string& varClassName) { m_propertyClassName = varClassName; }

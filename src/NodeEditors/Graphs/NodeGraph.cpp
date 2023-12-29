@@ -181,46 +181,41 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 	// Load all asset references (no dependencies)
 	for (auto assetRefConfig : config.assetRefConfigs)
 	{
-		if (!loadAssetRefFromConfig(assetRefConfig))
-		{
-			bSuccess= false;
-		}
+		bSuccess&= loadAssetRefFromConfig(assetRefConfig);
 	}
 
 	// Load all properties (depends on asset references)
 	for (auto it = config.propertyConfigMap.begin(); it != config.propertyConfigMap.end(); it++)
 	{
-		if (!loadGraphPropertyFromConfig(it->second, config))
-		{
-			bSuccess= false;
-		}
+		bSuccess&= (loadGraphPropertyFromConfig(it->second, config) != nullptr);
 	}
 
-	// Load all nodes (depends on properties)
+	// Allocate all nodes, pins and links first (delay the setup)
 	for (auto nodeConfig : config.nodeConfigs)
 	{
-		if (!loadNodeFromConfig(nodeConfig))
-		{
-			bSuccess = false;
-		}
+		bSuccess&= allocateNodeFromConfig(nodeConfig);
 	}
-	
-	// Load all pins (depends on nodes)
 	for (auto pinConfig : config.pinConfigs)
 	{
-		if (!loadPinFromConfig(pinConfig))
-		{
-			bSuccess = false;
-		}
+		bSuccess&= allocatePinFromConfig(pinConfig);
 	}
-
-	// Load all links (depends on pins)
 	for (auto linkConfig : config.linkConfigs)
 	{
-		if (!loadLinkFromConfig(linkConfig))
-		{
-			bSuccess = false;
-		}
+		bSuccess&= allocateLinkFromConfig(linkConfig);
+	}
+
+	// Setup all nodes, pins and links new that they can safely resolve circular references to each other
+	for (auto nodeConfig : config.nodeConfigs)
+	{
+		bSuccess&= loadNodeFromConfig(nodeConfig);
+	}
+	for (auto pinConfig : config.pinConfigs)
+	{
+		bSuccess&= loadPinFromConfig(pinConfig);
+	}
+	for (auto linkConfig : config.linkConfigs)
+	{
+		bSuccess&= loadLinkFromConfig(linkConfig);
 	}
 
 	if (OnGraphLoaded)
@@ -231,7 +226,7 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 	return bSuccess;
 }
 
-AssetReferencePtr NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig)
+bool NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig)
 {
 	AssetReferenceFactoryPtr factory = getAssetReferenceFactory(assetRefConfig->className);
 
@@ -243,7 +238,7 @@ AssetReferencePtr NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr asse
 			if (assetRef->loadFromConfig(assetRefConfig))
 			{
 				m_assetReferences.push_back(assetRef);
-				return assetRef;
+				return true;
 			}
 			else
 			{
@@ -265,7 +260,7 @@ AssetReferencePtr NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr asse
 		<< ", class: " << assetRefConfig->className
 		<< ", path: " << assetRefConfig->assetPath;
 
-	return AssetReferencePtr();
+	return false;
 }
 
 GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(
@@ -319,7 +314,7 @@ GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(
 	return GraphPropertyPtr();
 }
 
-NodePtr NodeGraph::loadNodeFromConfig(NodeConfigPtr nodeConfig)
+bool NodeGraph::allocateNodeFromConfig(NodeConfigPtr nodeConfig)
 {
 	NodeFactoryPtr factory = getNodeFactory(nodeConfig->className);
 
@@ -329,69 +324,61 @@ NodePtr NodeGraph::loadNodeFromConfig(NodeConfigPtr nodeConfig)
 		if (node)
 		{
 			node->setOwnerGraph(shared_from_this());
+			m_Nodes.insert({nodeConfig->id, node});
 
-			if (node->loadFromConfig(nodeConfig))
-			{
-				m_Nodes.insert({node->getId(), node});
-
-				return node;
-			}
-			else
-			{
-				MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig") << "Config parse failure";
-			}
+			return true;
 		}
 		else
 		{
-			MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig") << "Node allocation failure";
+			MIKAN_LOG_INFO("NodeGraph::allocateNodeFromConfig") << "Node allocation failure";
 		}
 	}
 	else
 	{
-		MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig") << "Missing factory";
+		MIKAN_LOG_INFO("NodeGraph::allocateNodeFromConfig") << "Missing factory";
 	}
 
-	MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig")
+	MIKAN_LOG_INFO("NodeGraph::allocateNodeFromConfig")
 		<< "Failed to load node from config"
 		<< ", node id: " << nodeConfig->id
 		<< ", node class: " << nodeConfig->className;
 
-	return NodePtr();
+	return false;
 }
 
-NodePinPtr NodeGraph::loadPinFromConfig(NodePinConfigPtr pinConfig)
+bool NodeGraph::loadNodeFromConfig(NodeConfigPtr nodeConfig)
+{
+	NodePtr node = getNodeById(nodeConfig->id);
+	assert (node);
+
+	if (!node->loadFromConfig(nodeConfig))
+	{
+		MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig")
+			<< "Failed to load node from config"
+			<< ", node id: " << nodeConfig->id
+			<< ", node class: " << nodeConfig->className;
+		return false;
+	}
+
+	return true;
+}
+
+bool NodeGraph::allocatePinFromConfig(NodePinConfigPtr pinConfig)
 {
 	NodePinFactoryPtr factory = getPinFactory(pinConfig->className);
 
 	if (factory)
 	{
-		NodePtr ownerNode= getNodeById(pinConfig->ownerNodeId);
-		if (ownerNode)
+		NodePinPtr pin = factory->allocatePin();
+		if (pin)
 		{
-			NodePinPtr pin = factory->allocatePin();
-			if (pin)
-			{
-				pin->setOwnerNode(ownerNode);
+			m_Pins.insert({pinConfig->id, pin});
 
-				if (pin->loadFromConfig(pinConfig))
-				{
-					m_Pins.insert({pin->getId(), pin});
-
-					return pin;
-				}
-				else
-				{
-					MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig") << "Config parse failure";
-				}
-			}
-			else
-			{
-				MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig") << "Pin allocation failure";
-			}
+			return true;
 		}
 		else
 		{
-			MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig") << "Missing owner node";
+			MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig") << "Pin allocation failure";
 		}
 	}
 	else
@@ -405,33 +392,68 @@ NodePinPtr NodeGraph::loadPinFromConfig(NodePinConfigPtr pinConfig)
 		<< ", pin id: " << pinConfig->id
 		<< ", pin class: " << pinConfig->className;
 
-	return NodePinPtr();
+	return false;
 }
 
-NodeLinkPtr NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
+bool NodeGraph::loadPinFromConfig(NodePinConfigPtr pinConfig)
+{
+	NodePinPtr pin = getPinById(pinConfig->id);
+	assert(pin);
+
+	if (!pin->loadFromConfig(shared_from_this(), pinConfig))
+	{
+		MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig")
+			<< "Failed to load pin from config"
+			<< ", parent node id: " << pinConfig->ownerNodeId
+			<< ", pin id: " << pinConfig->id
+			<< ", pin class: " << pinConfig->className;
+		return false;
+	}
+
+	return true;
+}
+
+bool NodeGraph::allocateLinkFromConfig(NodeLinkConfigPtr linkConfig)
 {
 	NodeLinkPtr link = std::make_shared<NodeLink>();
-
 	link->setOwnerGraph(shared_from_this());
 	
-	if (link->loadFromConfig(linkConfig))
+	if (linkConfig->id >= 0)
 	{
-		m_Links.insert({link->getId(), link});
+		m_Links.insert({linkConfig->id, link});
 
-		return link;
+		return true;
 	}
 	else
 	{
-		MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig") << "Config parse failure";
+		MIKAN_LOG_INFO("NodeGraph::allocateLinkFromConfig") << "Config parse failure";
 	}
 
-	MIKAN_LOG_INFO("NodeGraph::loadLinkFromConfig")
+	MIKAN_LOG_INFO("NodeGraph::allocateLinkFromConfig")
 		<< "Failed to load link from config"
 		<< ", start pin id: " << linkConfig->start_pin_id
 		<< ", end pin id: " << linkConfig->end_pin_id
 		<< ", link id: " << linkConfig->id;
 
-	return NodeLinkPtr();
+	return false;
+}
+
+bool NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
+{
+	NodeLinkPtr link = getLinkById(linkConfig->id);
+	assert(link);
+
+	if (!link->loadFromConfig(linkConfig))
+	{
+		MIKAN_LOG_INFO("NodeGraph::loadLinkFromConfig")
+			<< "Failed to load link from config"
+			<< ", start pin id: " << linkConfig->start_pin_id
+			<< ", end pin id: " << linkConfig->end_pin_id
+			<< ", link id: " << linkConfig->id;
+		return false;
+	}
+
+	return true;
 }
 
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const
@@ -649,7 +671,7 @@ NodePtr NodeGraph::getEventNodeByName(const std::string& eventName) const
 		});
 }
 
-NodePinPtr NodeGraph::getNodePinById(t_node_pin_id id) const
+NodePinPtr NodeGraph::getPinById(t_node_pin_id id) const
 {
 	auto it = m_Pins.find(id);
 	if (it != m_Pins.end())
@@ -660,7 +682,7 @@ NodePinPtr NodeGraph::getNodePinById(t_node_pin_id id) const
 	return NodePinPtr();
 }
 
-NodeLinkPtr NodeGraph::getNodeLinkById(t_node_link_id id) const
+NodeLinkPtr NodeGraph::getLinkById(t_node_link_id id) const
 {
 	auto it = m_Links.find(id);
 	if (it != m_Links.end())
@@ -767,9 +789,9 @@ bool NodeGraph::deletePinById(t_node_pin_id id)
 
 NodeLinkPtr NodeGraph::createLink(t_node_pin_id startPinId, t_node_pin_id endPinId)
 {
-	NodePinPtr startPin = getNodePinById(startPinId);
+	NodePinPtr startPin = getPinById(startPinId);
 	assert(startPin);
-	NodePinPtr endPin = getNodePinById(endPinId);
+	NodePinPtr endPin = getPinById(endPinId);
 	assert(endPin);
 
 	// Create a new link and assign the pins to each end
@@ -832,7 +854,7 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 	NodePinPtr sourcePin;
 	if (editorState.startedLinkPinId != -1)
 	{
-		sourcePin= getNodePinById(editorState.startedLinkPinId);
+		sourcePin= getPinById(editorState.startedLinkPinId);
 	}
 
 	for (auto it = m_nodeFactories.begin(); it != m_nodeFactories.end(); ++it)

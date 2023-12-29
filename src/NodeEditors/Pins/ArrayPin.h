@@ -19,7 +19,7 @@ class ArrayPin : public NodePin
 public:
 	ArrayPin() = default;
 
-	virtual bool loadFromConfig(NodePinConfigConstPtr config) override;
+	virtual bool loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config) override;
 	virtual void saveToConfig(NodePinConfigPtr config) const override;
 
 	inline void setElementClassName(const std::string& varClassName) { m_elementClassName= varClassName; }

@@ -53,29 +53,44 @@ NodePin::NodePin()
 {
 }
 
-bool NodePin::loadFromConfig(NodePinConfigConstPtr config)
+bool NodePin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config)
 {
-	assert(m_ownerNode);
+	bool bSuccess= true;
 
 	m_id= config->id;
 	m_direction= config->direction;
 	m_name= config->pinName;
 
-	NodeGraphPtr ownerGraph= m_ownerNode->getOwnerGraph();
+	NodePtr ownerNode = ownerGraph->getNodeById(config->ownerNodeId);
+	if (ownerNode)
+	{
+		setOwnerNode(ownerNode);
+	}
+	else
+	{
+		MIKAN_LOG_INFO("NodePin::loadFromConfig")
+			<< "Missing owner node on pin id: " << m_id 
+			<< ", owner node id: " << config->ownerNodeId;
+		bSuccess= false;
+	}
+
 	for (t_node_link_id linkId : config->connectedLinkIds)
 	{
-		NodeLinkPtr link= ownerGraph->getNodeLinkById(linkId);
+		NodeLinkPtr link= ownerGraph->getLinkById(linkId);
 		if (link)
 		{
 			m_connectedLinks.push_back(link);
 		}
 		else
 		{
-			return false;
+			MIKAN_LOG_INFO("NodePin::loadFromConfig")
+				<< "Missing connected link id: " << linkId
+				<< ", on pin id: " << m_id;
+			bSuccess= false;
 		}
 	}
 
-	return true;
+	return bSuccess;
 }
 
 void NodePin::saveToConfig(NodePinConfigPtr config) const
@@ -200,7 +215,7 @@ float NodePin::editorComputeNodeAlpha(const NodeEditorState& editorState) const
 	}
 	else
 	{
-		NodePinPtr startPinPtr = m_ownerNode->getOwnerGraph()->getNodePinById(editorState.startedLinkPinId);
+		NodePinPtr startPinPtr = m_ownerNode->getOwnerGraph()->getPinById(editorState.startedLinkPinId);
 
 		if (editorState.startedLinkPinId == m_id || this->canPinsBeConnected(startPinPtr))
 		{

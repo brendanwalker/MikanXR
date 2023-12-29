@@ -58,12 +58,13 @@ bool StencilNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	if (Node::loadFromConfig(nodeConfig))
 	{
 		auto stencilNodeConfig = std::static_pointer_cast<const StencilNodeConfig>(nodeConfig);
-		t_graph_property_id propId= stencilNodeConfig->id;
+		t_graph_property_id propId= stencilNodeConfig->stencilPropertyId;
 
 		auto StencilProperty= getOwnerGraph()->getTypedPropertyById<GraphStencilProperty>(propId);
 		if (StencilProperty)
 		{
 			setStencilSource(StencilProperty);
+			return true;
 		}
 		else
 		{

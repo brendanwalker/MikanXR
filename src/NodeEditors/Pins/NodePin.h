@@ -34,7 +34,7 @@ public:
 
 	virtual std::string getClassName() const { return "NodePin"; }
 
-	virtual bool loadFromConfig(NodePinConfigConstPtr config);
+	virtual bool loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config);
 	virtual void saveToConfig(NodePinConfigPtr config) const;
 
 	inline void setId(t_node_pin_id id) { m_id= id; }
