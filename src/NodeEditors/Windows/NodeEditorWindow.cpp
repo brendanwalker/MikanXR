@@ -69,6 +69,11 @@ GlStateStack& NodeEditorWindow::getGlStateStack()
 	return *m_glStateStack.get();
 }
 
+SdlWindow& NodeEditorWindow::getSdlWindow()
+{
+	return *m_sdlWindow.get();
+}
+
 bool NodeEditorWindow::startup()
 {
 	EASY_FUNCTION();

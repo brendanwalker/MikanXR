@@ -119,6 +119,12 @@ public:
 
 		appWindow->shutdown();
 		delete appWindow;
+
+		// If this was the main window pointer, make sure to invalidate that pointer
+		if (appWindow == m_mainWindow)
+		{
+			m_mainWindow = nullptr;
+		}
 	}
 
 	MulticastDelegate<void(AppStage* appStage)> OnAppStageEntered;

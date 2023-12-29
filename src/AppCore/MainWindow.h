@@ -21,7 +21,6 @@ public:
 	}
 
 	GlModelResourceManager& getModelResourceManager();
-	SdlWindow& getSdlWindow();
 
 	// -- IGlWindow ----
 	virtual bool startup() override;
@@ -39,6 +38,7 @@ public:
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual GlTextRenderer* getTextRenderer() override;
 	virtual GlShaderCache* getShaderCache() override;
+	virtual SdlWindow& getSdlWindow() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event)  override;
 

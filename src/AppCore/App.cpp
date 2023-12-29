@@ -291,12 +291,26 @@ void App::onSDLEvent(SDL_Event& e)
 {
 	m_inputManager->onSDLEvent(e);
 
-	for (IGlWindow* window : m_appWindows)
+	// Have each window handle the event
+	for (int index= (int)m_appWindows.size() - 1; index >= 0; index--)
 	{
+		IGlWindow* window = m_appWindows[index];
+
+		// Have the window handle the SDL event
 		window->onSDLEvent(&e);
+
+		// If this was a window close event, destroy the window ...
+		if (e.type == SDL_WINDOWEVENT && 
+			e.window.event == SDL_WINDOWEVENT_CLOSE &&
+			window->getSdlWindow().getWindowId() == e.window.windowID && 
+			//... unless it's the main window (let SDL_QUIT handle that cleanup)
+			window != m_mainWindow)
+		{
+			destroyAppWindow(window);
+		}
 	}
 
-	AppStage *appStage= getCurrentAppStage();
+	AppStage* appStage = getCurrentAppStage();
 	if (appStage != nullptr)
 	{
 		appStage->onSDLEvent(&e);
