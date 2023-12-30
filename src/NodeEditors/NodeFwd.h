@@ -85,6 +85,10 @@ class TimeNode;
 using TimeNodePtr = std::shared_ptr<TimeNode>;
 using TimeNodeConstPtr = std::shared_ptr<const TimeNode>;
 
+class VideoTextureNode;
+using VideoTextureNodePtr = std::shared_ptr<VideoTextureNode>;
+using VideoTextureNodeConstPtr = std::shared_ptr<const VideoTextureNode>;
+
 // Pin Types
 class ArrayPin;
 using ArrayPinPtr = std::shared_ptr<ArrayPin>;

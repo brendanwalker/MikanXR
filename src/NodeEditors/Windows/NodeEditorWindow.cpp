@@ -87,6 +87,7 @@ bool NodeEditorWindow::startup()
 
 	auto windowTitle = "Node Editor";
 	m_sdlWindow
+		->enableGLDataSharing() // Want access to video textures owned by MainWindow's GL Context
 		->setTitle(windowTitle)
 		->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
 	if (!m_sdlWindow->startup())

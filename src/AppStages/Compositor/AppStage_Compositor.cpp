@@ -392,7 +392,7 @@ bool AppStage_Compositor::startStreaming()
 	if (m_compositorRecordingModel->getIsStreaming())
 		return true;
 
-	GlTexturePtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
+	GlTextureConstPtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
 	if (compositorTexture == nullptr)
 		return false;
 
@@ -434,7 +434,7 @@ void AppStage_Compositor::onNewStreamingFrameReady()
 
 	if (m_compositorRecordingModel->getIsStreaming())
 	{
-		GlTexturePtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
+		GlTextureConstPtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
 
 		if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
 		{

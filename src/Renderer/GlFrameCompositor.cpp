@@ -681,6 +681,22 @@ bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) con
 	return false;
 }
 
+GlTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textureSource) const
+{
+	if (m_videoDistortionView != nullptr)
+	{
+		switch (textureSource)
+		{
+			case eVideoTextureSource::video_texture:
+				return m_videoDistortionView->getVideoTexture();
+			case eVideoTextureSource::distortion_texture:
+				return m_videoDistortionView->getDistortionTexture();
+		}
+	}
+
+	return GlTexturePtr();
+}
+
 void GlFrameCompositor::update(float deltaSeconds)
 {
 	EASY_FUNCTION();

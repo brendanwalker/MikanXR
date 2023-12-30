@@ -10,6 +10,6 @@ namespace NodeEditorUI
 	bool DrawSimpleComboBoxProperty(
 		const std::string fieldName,
 		const std::string label,
-		const std::string items,
+		const char* items,
 		int& inout_selectedIdex);
 };

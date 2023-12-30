@@ -22,6 +22,7 @@
 #include "Nodes/StencilNode.h"
 #include "Nodes/TextureNode.h"
 #include "Nodes/TimeNode.h"
+#include "Nodes/VideoTextureNode.h"
 
 // Graph
 #include "NodeEditorState.h"
@@ -52,6 +53,7 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addNodeFactory<StencilNodeFactory>();
 	addNodeFactory<TextureNodeFactory>();
 	addNodeFactory<TimeNodeFactory>();
+	addNodeFactory<VideoTextureNodeFactory>();
 }
 
 bool CompositorNodeGraph::loadFromConfig(const NodeGraphConfig& config)

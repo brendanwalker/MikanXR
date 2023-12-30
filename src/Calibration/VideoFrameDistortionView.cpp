@@ -36,7 +36,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	VideoSourceViewPtr view,
 	unsigned int bufferBitmask,
 	unsigned int frameQueueSize)
-	: m_videoDisplayMode(mode_bgr)
+	: m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceView(view)
 	, m_frameWidth((int)view->getFrameWidth())
 	, m_frameHeight((int)view->getFrameHeight())
@@ -260,16 +260,16 @@ bool VideoFrameDistortionView::processVideoFrame(uint64_t desiredFrameIndex)
 
 		switch (m_videoDisplayMode)
 		{
-		case mode_bgr:
+		case eVideoDisplayMode::mode_bgr:
 			m_videoTexture->copyBufferIntoTexture(bgrSourceBuffer->data);
 			break;
-		case mode_undistored:
+		case eVideoDisplayMode::mode_undistored:
 			if (m_bgrUndistortBuffer != nullptr)
 			{
 				m_videoTexture->copyBufferIntoTexture(m_bgrUndistortBuffer->data);
 			}
 			break;
-		case mode_grayscale:
+		case eVideoDisplayMode::mode_grayscale:
 			if (m_bgrGsUndistortBuffer != nullptr)
 			{
 				m_videoTexture->copyBufferIntoTexture(m_bgrGsUndistortBuffer->data);
@@ -306,7 +306,7 @@ void VideoFrameDistortionView::rebuildDistortionMap(
 {
 	m_distortionTextureMap= nullptr;
 
-	m_videoDisplayMode = mode_bgr;
+	m_videoDisplayMode = eVideoDisplayMode::mode_bgr;
 
 	m_intrinsics->init(*instrinsics);
 

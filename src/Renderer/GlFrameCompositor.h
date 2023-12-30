@@ -9,6 +9,7 @@
 #include "GlFrameCompositorConfig.h"
 #include "FrameCompositorConstants.h"
 #include "ProfileConfigConstants.h"
+#include "VideoDisplayConstants.h"
 
 #include <filesystem>
 #include <memory>
@@ -107,6 +108,7 @@ public:
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
 	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
+	GlTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
 
 	inline const NamedValueTable<float>& getFloatSources() const { return m_floatSources; }
 	inline const NamedValueTable<glm::vec2>& getFloat2Sources() const { return m_float2Sources; }
@@ -134,7 +136,8 @@ public:
 	void setColorTextureMapping(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 
 	inline const std::vector<Layer>& getLayers() const { return m_layers; }
-	inline const GlTexturePtr getCompositedFrameTexture() const { return m_compositedFrame; }
+	
+	inline GlTextureConstPtr getCompositedFrameTexture() const { return m_compositedFrame; }
 	inline uint64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
 	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
 	inline GlTexturePtr getBGRVideoFrameTexture() { return m_bgrVideoFrame; }

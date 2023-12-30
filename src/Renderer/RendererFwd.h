@@ -63,6 +63,7 @@ using GlTextRendererUniquePtr = std::unique_ptr<GlTextRenderer>;
 
 class GlTexture;
 using GlTexturePtr = std::shared_ptr<GlTexture>;
+using GlTextureConstPtr = std::shared_ptr<const GlTexture>;
 
 class GlTriangulatedMesh;
 using GlTriangulatedMeshPtr = std::shared_ptr<GlTriangulatedMesh>;

@@ -204,7 +204,7 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 						m_monoDistortionView->rebuildDistortionMap(&new_mono_intrinsics);
 
 						// Switch back to the color video feed
-						m_cameraSettingsModel->setVideoDisplayMode(mode_undistored);
+						m_cameraSettingsModel->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 						// Go to the test calibration state
 						setMenuState(eMonoLensCalibrationMenuState::testCalibration);

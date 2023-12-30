@@ -52,7 +52,7 @@ namespace NodeEditorUI
 	bool DrawSimpleComboBoxProperty(
 		const std::string fieldName,
 		const std::string label,
-		const std::string items,
+		const char* items,
 		int& inout_selectedIdex)
 	{
 
@@ -61,7 +61,7 @@ namespace NodeEditorUI
 		ImGui::SetNextItemWidth(k_valueWidth);
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, k_valueBGColor);
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
-		const bool bChanged = ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items.c_str());
+		const bool bChanged = ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items);
 		ImGui::PopStyleColor();
 
 		return bChanged;

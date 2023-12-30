@@ -28,6 +28,14 @@ SdlWindow::SdlWindow()
 
 }
 
+SdlWindow* SdlWindow::enableGLDataSharing()
+{
+	// This needs to be called before the SDL window is created to have any effect
+	assert(m_sdlWindow == nullptr);
+	m_bGLDataSharingEnabled= true;
+	return this;
+}
+
 SdlWindow* SdlWindow::setTitle(const std::string& title)
 {
 	if (m_sdlWindow != nullptr)
@@ -60,6 +68,13 @@ bool SdlWindow::startup()
 	assert(SdlManager::getInstance()->getIsSdlInitialized());
 
 	bool success= true;
+
+	// This flag allows new windows to share textures created in the main window.
+	// (ex: video textures owned by the frame compositor)
+	if (m_bGLDataSharingEnabled)
+	{
+		SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+	}
 
 	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 	m_sdlWindow = SDL_CreateWindow(m_title.c_str(),

@@ -23,6 +23,10 @@ public:
 
 	int getWindowId() const { return m_windowId; }
 
+	// NOTE: This needs to be called before startup for it to do anything
+	SdlWindow* enableGLDataSharing();
+	bool isGlDataSharingEnabled() const { return m_bGLDataSharingEnabled; }
+
 	SdlWindow* setTitle(const std::string& title);
 	const std::string& getTitle() const { return m_title; }
 
@@ -44,6 +48,9 @@ private:
 	void* m_glContext = nullptr;
 	int m_windowId= -1;
 
+	// Settings
+	bool m_bGLDataSharingEnabled= false;
+
 	// Titlebar
 	std::string m_title;
 
@@ -57,5 +64,4 @@ private:
 	bool m_isfullScreen= false;
 	bool m_isMinimized= false;
 	bool m_isShown= false;
-
 };
