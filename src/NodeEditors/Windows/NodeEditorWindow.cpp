@@ -4,6 +4,7 @@
 
 #include "AssetReference.h"
 #include "GlCommon.h"
+#include "GlModelResourceManager.h"
 #include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlTexture.h"
@@ -42,6 +43,7 @@
 NodeEditorWindow::NodeEditorWindow()
 	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow))
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
+	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
 {}
 
@@ -57,6 +59,11 @@ GlLineRenderer* NodeEditorWindow::getLineRenderer()
 GlTextRenderer* NodeEditorWindow::getTextRenderer()
 {
 	return nullptr;
+}
+
+GlModelResourceManager* NodeEditorWindow::getModelResourceManager()
+{
+	return m_modelResourceManager.get();
 }
 
 GlShaderCache* NodeEditorWindow::getShaderCache()
@@ -163,6 +170,15 @@ bool NodeEditorWindow::startup()
 	{
 		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize shader cache!";
 		success = false;
+	}
+
+	if (success)
+	{
+		if (!m_modelResourceManager->startup())
+		{
+			MIKAN_LOG_ERROR("NodeEditorWindow::init") << "Unable to initialize model resource manager";
+			success = false;
+		}
 	}
 
 	if (success)

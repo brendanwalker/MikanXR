@@ -3,6 +3,7 @@
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
 #include "GlRenderModelResource.h"
+#include "GlModelResourceManager.h"
 #include "GlProgram.h"
 #include "GlShaderCache.h"
 #include "GlStateStack.h"
@@ -19,7 +20,7 @@
 #include "ModelStencilComponent.h"
 #include "StencilObjectSystem.h"
 
-#include "Graphs/NodeGraph.h"
+#include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 
 #include "Pins/ArrayPin.h"
@@ -93,6 +94,7 @@ DrawLayerNode::~DrawLayerNode()
 	m_layerVFlippedMesh= nullptr;
 	m_layerMesh= nullptr;
 	m_stencilQuadMesh= nullptr;
+	m_stencilBoxMesh= nullptr;
 
 	// Stop listening to events from owner graph
 	setOwnerGraph(NodeGraphPtr());
@@ -113,6 +115,39 @@ bool DrawLayerNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	}
 
 	return false;
+}
+
+void DrawLayerNode::onGraphLoaded(bool success)
+{
+	if (success)
+	{
+		// Make sure we have a material input pin
+		PropertyPinPtr materialInPin = getFirstPinOfType<PropertyPin>(eNodePinDirection::INPUT);
+		if (materialInPin && materialInPin->getPropertyClassName() == GraphMaterialProperty::k_propertyClassName)
+		{
+			setMaterialPin(materialInPin);
+			m_materialPin->copyValueFromSourcePin();
+
+			auto materialProperty = std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue());
+			if (materialProperty)
+			{
+				setMaterial(materialProperty->getMaterialResource());
+			}
+		}
+
+		// Make sure we have a stencil input pin
+		ArrayPinPtr stencilInPin = getFirstPinOfType<ArrayPin>(eNodePinDirection::INPUT);
+		if (stencilInPin && stencilInPin->getElementClassName() == GraphStencilProperty::k_propertyClassName)
+		{
+			setStencilsPin(stencilInPin);
+		}
+
+		// Create triangulated mesh used to render the layer onto
+		createLayerQuadMeshes();
+
+		// Create meshes used to draw quad and box stencils
+		createStencilMeshes();
+	}
 }
 
 void DrawLayerNode::saveToConfig(NodeConfigPtr nodeConfig) const
@@ -157,13 +192,7 @@ void DrawLayerNode::setStencilsPin(ArrayPinPtr inPin)
 
 void DrawLayerNode::setMaterial(GlMaterialPtr inMaterial)
 {
-	if (inMaterial != m_material)
-	{
-		m_material = inMaterial;
-
-		// Rebuild the pins since the material changed
-		rebuildInputPins();
-	}
+	m_material = inMaterial;
 }
 
 bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
@@ -260,8 +289,13 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 					break;
 			}
 
-			// Apply any Quad Stencils assigned to the node
-			evaluateQuadStencils(glState);
+			// Apply any Stencils assigned to the node
+			if (m_stencilMode != eCompositorStencilMode::noStencil)
+			{
+				evaluateQuadStencils(glState);
+				evaluateBoxStencils(glState);
+				evaluateModelStencils(glState);
+			}
 
 			// Bind the layer shader program and uniform parameters.
 			// This will fail unless all of the shader uniform parameters are bound.
@@ -342,32 +376,6 @@ void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState
 	}
 }
 
-void DrawLayerNode::onGraphLoaded(bool success)
-{
-	if (success)
-	{
-		if (m_materialPin)
-		{
-			m_materialPin->copyValueFromSourcePin();
-
-			auto materialProperty= std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue());
-			if (materialProperty)
-			{
-				setMaterial(materialProperty->getMaterialResource());
-			}
-
-			// Create triangulated mesh used to render the layer onto
-			createLayerQuadMeshes();
-
-			// Create meshes used to draw quad and box stencils
-			createStencilMeshes();
-
-			// Create the shader used to render stencils
-			createStencilShader();
-		}
-	}
-}
-
 void DrawLayerNode::createLayerQuadMeshes()
 {
 	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
@@ -418,7 +426,7 @@ void DrawLayerNode::createStencilMeshes()
 {
 	// Create triangulated quad mesh to draw the quad stencils
 	{
-		static StencilVertex x_vertices[] = {
+		static CompositorNodeGraph::StencilVertex x_vertices[] = {
 			//   positions
 			{glm::vec3(-0.5f,  0.5f, 0.0f)},
 			{glm::vec3(-0.5f, -0.5f, 0.0f)},
@@ -428,24 +436,45 @@ void DrawLayerNode::createStencilMeshes()
 		static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 
 		m_stencilQuadMesh = std::make_shared<GlTriangulatedMesh>("quad_stencil_mesh",
-														   getStencilModelVertexDefinition(),
+														   CompositorNodeGraph::getStencilModelVertexDefinition(),
 														   (const uint8_t*)x_vertices,
-														   4, // 4 verts
+														   4, // 4 verts in a quad
 														   (const uint8_t*)x_indices,
-														   2, // 2 tris
-														   false); // mesh doesn't own quad vert data
+														   2, // 2 tris in a quad
+														   false); // mesh doesn't own quad vertex data
 		m_stencilQuadMesh->createBuffers();
 	}
-}
 
-void DrawLayerNode::createStencilShader()
-{
-	GlShaderCache* shaderCache= getOwnerGraph()->getOwnerWindow()->getShaderCache();
-
-	m_stencilShader = shaderCache->fetchCompiledGlProgram(getStencilShaderCode());
-	if (!m_stencilShader)
+	// Create triangulated box mesh to draw the box stencils
 	{
-		MIKAN_LOG_ERROR("DrawLayerNode::createStencilShader()") << "Failed to compile stencil shader";
+		static CompositorNodeGraph::StencilVertex x_vertices[] = {
+			//   positions
+			{glm::vec3(-0.5f,  0.5f, -0.5f)},
+			{glm::vec3(-0.5f,  0.5f,  0.5f)},
+			{glm::vec3( 0.5f,  0.5f,  0.5f)},
+			{glm::vec3( 0.5f,  0.5f, -0.5f)},
+			{glm::vec3(-0.5f, -0.5f, -0.5f)},
+			{glm::vec3(-0.5f, -0.5f,  0.5f)},
+			{glm::vec3( 0.5f, -0.5f,  0.5f)},
+			{glm::vec3( 0.5f, -0.5f, -0.5f)},
+		};
+		static uint16_t x_indices[] = {
+			0, 4, 1, 1, 4, 5, // -X Face
+			1, 5, 2, 2, 5, 6, // +Z Face
+			2, 6, 3, 3, 6, 7, // +X Face
+			0, 3, 7, 7, 4, 0, // -Z Face
+			5, 4, 6, 6, 4, 7, // -Y Face
+			3, 0, 1, 1, 2, 3  // +Y Face 
+		};
+
+		m_stencilBoxMesh = std::make_shared<GlTriangulatedMesh>("box_stencil_mesh",
+																 CompositorNodeGraph::getStencilModelVertexDefinition(),
+																 (const uint8_t*)x_vertices,
+																 8, // 8 verts in a cube
+																 (const uint8_t*)x_indices,
+																 12, // 12 tris in a cube (6 faces * 2 tris/face)
+																 false); // mesh doesn't own box vertex data
+		m_stencilBoxMesh->createBuffers();
 	}
 }
 
@@ -459,6 +488,9 @@ void DrawLayerNode::onLinkConnected(NodeLinkPtr link, NodePinPtr pin)
 		if (materialProperty)
 		{
 			setMaterial(materialProperty->getMaterialResource());
+
+			// Rebuild the pins since the material changed
+			rebuildInputPins();
 		}
 	}
 	else if (pin == m_stencilsPin)
@@ -474,6 +506,9 @@ void DrawLayerNode::onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin)
 	if (pin == m_materialPin)
 	{
 		setMaterial(GlMaterialPtr());
+
+		// Rebuild the pins since the material changed
+		rebuildInputPins();
 	}
 }
 
@@ -564,54 +599,6 @@ const GlVertexDefinition& DrawLayerNode::getLayerQuadVertexDefinition()
 	return x_vertexDefinition;
 }
 
-const GlVertexDefinition& DrawLayerNode::getStencilModelVertexDefinition()
-{
-	static GlVertexDefinition x_vertexDefinition;
-
-	if (x_vertexDefinition.attributes.size() == 0)
-	{
-		const int32_t vertexSize = (int32_t)sizeof(DrawLayerNode::StencilVertex);
-		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
-
-		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, offsetof(DrawLayerNode::StencilVertex, aPos)));
-
-		x_vertexDefinition.vertexSize = vertexSize;
-	}
-
-	return x_vertexDefinition;
-}
-
-const GlProgramCode* DrawLayerNode::getStencilShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		"Internal Stencil Shader Code",
-		// vertex shader
-		R""""(
-			#version 330 core
-			layout (location = 0) in vec3 aPos;
-
-			uniform mat4 mvpMatrix;
-
-			void main()
-			{
-				gl_Position = mvpMatrix * vec4(aPos, 1.0);
-			}
-			)"""",
-		//fragment shader
-		R""""(
-			#version 330 core
-			out vec4 FragColor;
-
-			void main()
-			{    
-				FragColor = vec4(1, 1, 1, 1);
-			}
-			)"""")
-		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix);
-
-	return &x_shaderCode;
-}
-
 void DrawLayerNode::rebuildStencilLists()
 {
 	m_quadStencilIds.clear();
@@ -652,6 +639,9 @@ void DrawLayerNode::rebuildStencilLists()
 void DrawLayerNode::evaluateQuadStencils(GlState& glState)
 {
 	EASY_FUNCTION();
+
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	GlProgramPtr stencilShader = compositorGraph->getStencilShader();
 
 	GlFrameCompositor* frameCompositor= App::getInstance()->getFrameCompositor();
 	if (!frameCompositor)
@@ -730,7 +720,7 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glState)
 	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 
 
-	m_stencilShader->bindProgram();
+	stencilShader->bindProgram();
 
 	// Draw stencil quads first
 	for (QuadStencilComponentPtr stencil : quadStencilList)
@@ -750,13 +740,13 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glState)
 				glm::vec4(position, 1.f));
 
 		// Set the model-view-projection matrix on the stencil shader
-		m_stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
+		stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
 
 		// Draw the quad
 		m_stencilQuadMesh->drawElements();
 	}
 
-	m_stencilShader->unbindProgram();
+	stencilShader->unbindProgram();
 
 	// Make sure you will no longer (over)write stencil values, even if any test succeeds
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -770,6 +760,187 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glState)
 		// Flip the stencil mode from whatever the default was
 		stencilMode = (stencilMode == GL_EQUAL) ? GL_NOTEQUAL : GL_EQUAL;
 	}
+	glStencilFunc(stencilMode, 1, 0xFF);
+}
+
+void DrawLayerNode::evaluateBoxStencils(GlState& glState)
+{
+	EASY_FUNCTION();
+
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	GlProgramPtr stencilShader= compositorGraph->getStencilShader();
+
+	GlFrameCompositor* frameCompositor= App::getInstance()->getFrameCompositor();
+	if (!frameCompositor)
+		return;
+
+	// Get the camera pose matrix for the current tracked video source
+	glm::mat4 cameraXform;
+	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))
+		return;
+
+	// Also get the the view-projection matrix for the tracked video source
+	// (camera view + projection xform used by stencil shader)
+	glm::mat4 vpMatrix;
+	if (!frameCompositor->getVideoSourceViewProjection(vpMatrix))
+		return;
+
+	// Collect stencil in view of the tracked camera
+	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
+	const glm::vec3 cameraPosition(cameraXform[3]);
+
+	std::vector<BoxStencilComponentPtr> boxStencilList;
+	StencilObjectSystem::getSystem()->getRelevantBoxStencilList(
+		&m_boxStencilIds,
+		cameraPosition,
+		cameraForward,
+		boxStencilList);
+
+	if (boxStencilList.size() == 0)
+		return;
+
+	glClearStencil(0);
+	glStencilMask(0xFF);
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	// Do not draw any pixels on the back buffer
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+	// Enables testing AND writing functionalities
+	glState.enableFlag(eGlStateFlagType::stencilTest);
+	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+	// Make every test succeed
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+
+	stencilShader->bindProgram();
+
+	// Then draw stencil boxes ...
+	for (BoxStencilComponentPtr stencil : boxStencilList)
+	{
+		// Set the model matrix of stencil quad
+		auto stencilConfig = stencil->getBoxStencilDefinition();
+		const glm::mat4 xform = stencil->getWorldTransform();
+		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
+		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
+		const glm::vec3 z_axis = glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
+		const glm::vec3 position = glm::vec3(xform[3]);
+		const glm::mat4 modelMatrix =
+			glm::mat4(
+				glm::vec4(x_axis, 0.f),
+				glm::vec4(y_axis, 0.f),
+				glm::vec4(z_axis, 0.f),
+				glm::vec4(position, 1.f));
+
+		// Set the model-view-projection matrix on the stencil shader
+		stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
+
+		// Draw the box
+		m_stencilBoxMesh->drawElements();
+	}
+
+	stencilShader->unbindProgram();
+
+	// Make sure you will no longer (over)write stencil values, even if any test succeeds
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	// Make sure we draw on the backbuffer again.
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
+	const GLenum stencilMode = (m_stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
+	glStencilFunc(stencilMode, 1, 0xFF);
+}
+
+void DrawLayerNode::evaluateModelStencils(GlState& glState)
+{
+	EASY_FUNCTION();
+
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	GlProgramPtr stencilShader= compositorGraph->getStencilShader();
+
+	GlFrameCompositor* frameCompositor = App::getInstance()->getFrameCompositor();
+	if (!frameCompositor)
+		return;
+
+	// Get the camera pose matrix for the current tracked video source
+	glm::mat4 cameraXform;
+	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))
+		return;
+
+	// Also get the the view-projection matrix for the tracked video source
+	// (camera view + projection xform used by stencil shader)
+	glm::mat4 vpMatrix;
+	if (!frameCompositor->getVideoSourceViewProjection(vpMatrix))
+		return;
+
+	// Collect stencil in view of the tracked camera
+	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
+	const glm::vec3 cameraPosition(cameraXform[3]);
+
+	std::vector<ModelStencilComponentPtr> modelStencilList;
+	StencilObjectSystem::getSystem()->getRelevantModelStencilList(
+		&m_modelStencilIds,
+		cameraPosition,
+		cameraForward,
+		modelStencilList);
+
+	if (modelStencilList.size() == 0)
+		return;
+
+	glClearStencil(0);
+	glStencilMask(0xFF);
+	glClear(GL_STENCIL_BUFFER_BIT);
+
+	// Do not draw any pixels on the back buffer
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+	// Enables testing AND writing functionalities
+	glState.enableFlag(eGlStateFlagType::stencilTest);
+	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+	// Make every test succeed
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+
+	// Bind stencil shader
+	stencilShader->bindProgram();
+
+	// Then draw stencil models
+	for (ModelStencilComponentPtr stencil : modelStencilList)
+	{
+		auto stencilConfig = stencil->getModelStencilDefinition();
+		const MikanStencilID stencilId = stencilConfig->getStencilId();
+		GlRenderModelResourcePtr renderModelResource = 
+			compositorGraph->getOrLoadStencilRenderModel(stencilConfig);
+
+		if (renderModelResource)
+		{
+			// Set the model matrix of stencil model
+			const glm::mat4 modelMatrix = stencil->getWorldTransform();
+
+			// Set the model-view-projection matrix on the stencil shader
+			stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
+
+			for (int meshIndex = 0; meshIndex < (int)renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
+			{
+				GlTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
+
+				mesh->drawElements();
+			}
+		}
+	}
+
+	// Unbind stencil shader
+	stencilShader->unbindProgram();
+
+	// Make sure you will no longer (over)write stencil values, even if any test succeeds
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	// Make sure we draw on the backbuffer again.
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
+	const GLenum stencilMode = (m_stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
 	glStencilFunc(stencilMode, 1, 0xFF);
 }
 

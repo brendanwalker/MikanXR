@@ -1636,7 +1636,7 @@ void GlFrameCompositor::updateModelStencils(
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
-	GlModelResourceManager& modelResourceManager = MainWindow::getInstance()->getModelResourceManager();
+	GlModelResourceManager* modelResourceManager = MainWindow::getInstance()->getModelResourceManager();
 
 	std::vector<ModelStencilComponentPtr> modelStencilList;
 	StencilObjectSystem::getSystem()->getRelevantModelStencilList(
@@ -1661,7 +1661,7 @@ void GlFrameCompositor::updateModelStencils(
 			// Go ahead an occupy a slot in the m_stencilMeshCache until
 			// the entry us explicitly cleared by flushStencilRenderModel.
 			GlRenderModelResourcePtr renderModelResource =
-				modelResourceManager.fetchRenderModel(
+				modelResourceManager->fetchRenderModel(
 					stencilConfig->getModelPath(),
 					getStencilModelVertexDefinition());
 

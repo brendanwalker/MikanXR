@@ -25,10 +25,8 @@
 class GlModelResourceManager
 {
 public:
-	GlModelResourceManager();
+	GlModelResourceManager() = default;
 	virtual ~GlModelResourceManager();
-
-	static GlModelResourceManager* getInstance() { return s_modelResourceManager; }
 
 	bool startup();
 	void shutdown();
@@ -53,6 +51,4 @@ private:
 	GlMaterialConstPtr m_wireframeMaterial = nullptr;
 
 	std::map<std::string, GlRenderModelResourcePtr> m_renderModelCache;
-
-	static GlModelResourceManager* s_modelResourceManager;
 };

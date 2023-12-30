@@ -188,8 +188,8 @@ void ModelStencilComponent::rebuildMeshComponents()
 	{
 		//TODO: Need to consider how model resources are managed across multiple windows.
 		// For now, we are assuming that models are only rendered in the Main Window.
-		auto& modelResourceManager = MainWindow::getInstance()->getModelResourceManager();
-		modelResourcePtr = modelResourceManager.fetchRenderModel(
+		auto* modelResourceManager = MainWindow::getInstance()->getModelResourceManager();
+		modelResourcePtr = modelResourceManager->fetchRenderModel(
 			modelStencilDefinition->getModelPath(),
 			GlRenderModelResource::getDefaultVertexDefinition());
 	}

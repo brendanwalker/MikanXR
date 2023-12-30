@@ -20,8 +20,6 @@ public:
 		return m_instance;
 	}
 
-	GlModelResourceManager& getModelResourceManager();
-
 	// -- IGlWindow ----
 	virtual bool startup() override;
 	virtual void render() override;
@@ -37,6 +35,7 @@ public:
 	virtual GlStateStack& getGlStateStack() override;
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual GlTextRenderer* getTextRenderer() override;
+	virtual GlModelResourceManager* getModelResourceManager() override;
 	virtual GlShaderCache* getShaderCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 

@@ -50,6 +50,7 @@ bool VideoTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		auto videoTextureNodeConfig = std::static_pointer_cast<const VideoTextureNodeConfig>(nodeConfig);
 
 		m_videoTextureSource= videoTextureNodeConfig->videoTextureSource;
+		return true;
 	}
 
 	return false;

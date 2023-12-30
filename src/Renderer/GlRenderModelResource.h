@@ -25,7 +25,7 @@ public:
 		const struct GlVertexDefinition* vertexDefinition);
 	virtual ~GlRenderModelResource();
 
-	bool createRenderResources();
+	bool createRenderResources(GlModelResourceManager* modelResourceManager);
 	void disposeRenderResources();
 
 	const std::filesystem::path& getRenderModelFilepath() const { return m_renderModelFilepath; }
@@ -56,14 +56,14 @@ protected:
 		const std::string& meshName,
 		const struct GlVertexDefinition* vertexDefinition,
 		const objl::Mesh* objMesh);
-	GlMaterialInstancePtr createTriMeshMaterialResource(
-		const std::string& materialName,
+	GlMaterialInstancePtr createTriMeshMaterialInstance(
+		GlMaterialConstPtr material,
 		const objl::Material* objMaterial);
 	GlWireframeMeshPtr createWireframeMeshResource(
 		const std::string& meshName,
 		const objl::Mesh* objMesh);
-	GlMaterialInstancePtr createWireframeMeshMaterialResource(
-		const std::string& materialName);
+	GlMaterialInstancePtr createWireframeMeshMaterialInstance(
+		GlMaterialConstPtr wireframeMaterial);
 
 	objl::Loader* m_objLoader= nullptr;
 

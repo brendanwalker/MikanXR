@@ -43,6 +43,8 @@ public:
 
 protected:
 	void evaluateQuadStencils(GlState& glState);
+	void evaluateBoxStencils(GlState& glState);
+	void evaluateModelStencils(GlState& glState);
 
 	virtual std::string editorGetTitle() const override { return "Draw Layer"; }
 
@@ -68,13 +70,6 @@ protected:
 	};
 	static const GlVertexDefinition& getLayerQuadVertexDefinition();
 
-	struct StencilVertex
-	{
-		glm::vec3 aPos;
-	};
-	const GlVertexDefinition& getStencilModelVertexDefinition();
-	static const GlProgramCode* getStencilShaderCode();
-
 protected:
 	std::vector<NodePinPtr> m_dynamicMaterialPins;
 	
@@ -82,8 +77,8 @@ protected:
 	std::vector<MikanStencilID> m_quadStencilIds;
 	std::vector<MikanStencilID> m_boxStencilIds;
 	std::vector<MikanStencilID> m_modelStencilIds;
-	GlProgramPtr m_stencilShader;
 	GlTriangulatedMeshPtr m_stencilQuadMesh;
+	GlTriangulatedMeshPtr m_stencilBoxMesh;
 
 	PropertyPinPtr m_materialPin;
 	GlMaterialPtr m_material;

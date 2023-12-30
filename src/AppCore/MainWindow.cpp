@@ -78,9 +78,9 @@ GlShaderCache* MainWindow::getShaderCache()
 	return m_shaderCache.get();
 }
 
-GlModelResourceManager& MainWindow::getModelResourceManager()
+GlModelResourceManager* MainWindow::getModelResourceManager()
 {
-	return *m_modelResourceManager.get();
+	return m_modelResourceManager.get();
 }
 
 SdlWindow& MainWindow::getSdlWindow()

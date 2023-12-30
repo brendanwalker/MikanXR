@@ -40,12 +40,15 @@ class NodeGraph : public std::enable_shared_from_this<NodeGraph>
 {
 public:
 	NodeGraph();
-	virtual ~NodeGraph() {}
+	virtual ~NodeGraph();
 
 	virtual std::string getClassName() const { return "NodeGraph"; }
 
 	inline void setOwnerWindow(class IGlWindow* window) { m_ownerWindow= window; }
 	inline class IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
+
+	virtual bool createResources() { return true; }
+	virtual void disposeResources() {}
 
 	// Generates a unique ID for each node object newly created in the editor
 	int allocateId();

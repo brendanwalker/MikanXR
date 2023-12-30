@@ -174,6 +174,11 @@ NodeGraph::NodeGraph()
 	addPropertyFactory<GraphVariableListFactory>();
 }
 
+NodeGraph::~NodeGraph()
+{
+	disposeResources();
+}
+
 bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 {
 	bool bSuccess= true;
@@ -218,6 +223,11 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 	for (auto linkConfig : config.linkConfigs)
 	{
 		bSuccess&= loadLinkFromConfig(linkConfig);
+	}
+
+	if (bSuccess)
+	{
+		bSuccess&= createResources();
 	}
 
 	if (OnGraphLoaded)
@@ -1020,6 +1030,14 @@ NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IGlWindow* ownerWindow) co
 	// Assign owner window before any graph loading operations allocate GL resources (shaders, textures, etc)
 	// which are dependent on the owning window being assigned
 	nodeGraph->setOwnerWindow(ownerWindow);
+
+	// Create any graph dependent resources (shaders, meshes, etc)
+	if (!nodeGraph->createResources())
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::initialCreateNodeGraph") 
+			<< "Failed to create graph resources objects in graph class: " << nodeGraph->getClassName();
+		return NodeGraphPtr();
+	}
 
 	return nodeGraph;
 }

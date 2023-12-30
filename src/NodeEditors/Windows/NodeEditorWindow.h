@@ -51,6 +51,7 @@ public:
 	virtual GlStateStack& getGlStateStack() override;
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual GlTextRenderer* getTextRenderer() override;
+	virtual GlModelResourceManager* getModelResourceManager() override;
 	virtual GlShaderCache* getShaderCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
@@ -97,6 +98,9 @@ protected:
 	std::vector<GraphVariableListPtr> m_variableLists;
 
 	GraphObjectSelection m_objectSelection;
+
+	// Models loaded by the shader graph
+	GlModelResourceManagerUniquePtr m_modelResourceManager;
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;
