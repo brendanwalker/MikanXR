@@ -23,6 +23,7 @@
 
 // Nodes
 #include "Nodes/ArrayNode.h"
+#include "Nodes/ClientTextureNode.h"
 #include "Nodes/DrawLayerNode.h"
 #include "Nodes/EventNode.h"
 #include "Nodes/MaterialNode.h"
@@ -54,6 +55,7 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 
 	// Nodes this graph can spawn
 	addNodeFactory<ArrayNodeFactory>();
+	addNodeFactory<ClientTextureNodeFactory>();
 	addNodeFactory<DrawLayerNodeFactory>();
 	addNodeFactory<EventNodeFactory>();
 	addNodeFactory<MousePosNodeFactory>();

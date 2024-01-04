@@ -117,6 +117,7 @@ public:
 	inline const NamedValueTable<glm::mat4>& getMat4Sources() const { return m_mat4Sources; }
 	inline const NamedValueTable<GlTexturePtr>& getColorTextureSources() const { return m_colorTextureSources; }
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
+	GlTexturePtr getClientSourceTexture(int clientIndex, eClientTextureType clientTextureType) const;
 
 	bool setLayerMaterialName(const int layerIndex, const std::string& materialName);
 	void setIsLayerVerticalFlipped(const int layerIndex, bool bIsFlipped);

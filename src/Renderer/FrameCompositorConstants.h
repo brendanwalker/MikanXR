@@ -71,3 +71,14 @@ enum class eStencilCullMode
 	COUNT
 };
 extern const std::string* k_stencilCullModeStrings;
+
+enum class eClientTextureType
+{
+	INVALID = -1,
+
+	color,
+	depth,
+
+	COUNT
+};
+extern const std::string* k_clientTextureTypeStrings;

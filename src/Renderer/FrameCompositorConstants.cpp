@@ -50,3 +50,9 @@ const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT] = {
 	"xAxis",
 };
 extern const std::string* k_stencilCullModeStrings = g_stencilCullModeStrings;
+
+const std::string g_clientTextureTypeStrings[(int)eClientTextureType::COUNT] = {
+	"color",
+	"depth"
+};
+extern const std::string* k_clientTextureTypeStrings = g_clientTextureTypeStrings;

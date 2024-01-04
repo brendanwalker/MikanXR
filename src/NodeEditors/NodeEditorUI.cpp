@@ -66,4 +66,39 @@ namespace NodeEditorUI
 
 		return bChanged;
 	}
+
+	bool ComboBoxDataSource::itemGetter(void* data, int idx, const char** out_str)
+	{
+		auto* dataSource = (ComboBoxDataSource*)data;
+
+		if (idx >= 0 && idx < dataSource->getEntryCount())
+		{
+			*out_str = dataSource->getEntryDisplayString(idx).c_str();
+			return true;
+		}
+
+		return false;
+	}
+
+	bool DrawComboBoxProperty(
+		const std::string fieldName,
+		const std::string label,
+		ComboBoxDataSource* dataSource,
+		int& inout_selectedIdex)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(k_labelWidth);
+		ImGui::SetNextItemWidth(k_valueWidth);
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, k_valueBGColor);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		const bool bChanged = 
+			ImGui::Combo(imguiElementName.c_str(),
+				&inout_selectedIdex,
+				&ComboBoxDataSource::itemGetter, 
+				dataSource, 
+				dataSource->getEntryCount());
+		ImGui::PopStyleColor();
+
+		return bChanged;
+	}
 };

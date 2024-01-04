@@ -697,6 +697,27 @@ GlTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textur
 	return GlTexturePtr();
 }
 
+GlTexturePtr GlFrameCompositor::getClientSourceTexture(int clientIndex, eClientTextureType clientTextureType) const
+{
+	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
+	{
+		ClientSource* clientSource= it->second;
+
+		if (clientSource->clientSourceIndex == clientIndex)
+		{
+			switch (clientTextureType)
+			{
+				case eClientTextureType::color:
+					return clientSource->colorTexture;
+				case eClientTextureType::depth:
+					return clientSource->depthTexture;
+			}
+		}
+	}
+
+	return GlTexturePtr();
+}
+
 void GlFrameCompositor::update(float deltaSeconds)
 {
 	EASY_FUNCTION();

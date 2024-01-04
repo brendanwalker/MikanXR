@@ -12,4 +12,18 @@ namespace NodeEditorUI
 		const std::string label,
 		const char* items,
 		int& inout_selectedIdex);
+
+	class ComboBoxDataSource
+	{
+	public:
+		virtual int getEntryCount()= 0;
+		virtual const std::string& getEntryDisplayString(int index)= 0;
+
+		static bool itemGetter(void* data, int idx, const char** out_str);
+	};
+	bool DrawComboBoxProperty(
+		const std::string fieldName,
+		const std::string label,
+		ComboBoxDataSource* dataSource,
+		int& inout_selectedIdex);
 };
