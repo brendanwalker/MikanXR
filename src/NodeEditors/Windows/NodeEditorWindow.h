@@ -65,8 +65,8 @@ protected:
 	virtual void popImGuiStyles();
 
 	virtual void renderMainFrame();
+	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderContextMenu(const class NodeEditorState& editorState);
-	virtual void handleDragDrop(const class NodeEditorState& editorState);
 	virtual void renderToolbar();
 	virtual void renderGraphVariablesPanel();
 	virtual void renderAssetsPanel();

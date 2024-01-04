@@ -4,6 +4,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
 #include "ModelAssetReference.h"
+#include "NodeEditorUI.h"
 #include "Nodes/ModelNode.h"
 
 #include "imgui.h"
@@ -84,7 +85,7 @@ void GraphModelProperty::saveToConfig(GraphPropertyConfigPtr config) const
 	GraphProperty::saveToConfig(config);
 }
 
-void GraphModelProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
+void GraphModelProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
 {
 	auto modelNode = m_ownerGraph->createTypedNode<ModelNode>(editorState);
 
@@ -95,27 +96,18 @@ void GraphModelProperty::editorHandleDragDrop(const class NodeEditorState& edito
 
 void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	// Section 1: Basic info
-	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	bool isNodeOpened = ImGui::CollapsingHeader("Model", ImGuiTreeNodeFlags_SpanAvailWidth);
-	ImGui::PopStyleVar(3);
-	ImGui::PopStyleColor(3);
-
-	if (isNodeOpened)
+	if (NodeEditorUI::DrawPropertySheetHeader("Model"))
 	{
 		// Name
-		ImGui::Text("\t\tName");
-		ImGui::SameLine(160);
-		ImGui::SetNextItemWidth(150);
-		std::string name = m_modelResource->getName();
-		ImGui::Text(name.c_str());
+		NodeEditorUI::DrawStaticTextProperty("Name", m_modelResource->getName());
 
-		// TODO: Show model properties
+		// Drag-Drop Handling
+		auto modelAssetRef= 
+			NodeEditorUI::receiveTypedDragDropPayload<ModelAssetReference>(
+				ModelAssetReference::k_assetClassName);
+		if (modelAssetRef)
+		{
+			setModelAssetReference(modelAssetRef);
+		}
 	}
 }

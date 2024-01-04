@@ -26,7 +26,8 @@ public:
 	AssetReference()= default;
 	virtual ~AssetReference();
 
-	virtual std::string getClassName() const { return "AssetReference"; }
+	inline static const std::string k_assetClassName = "AssetReference";
+	virtual std::string getClassName() const { return k_assetClassName; }
 
 	virtual bool loadFromConfig(AssetReferenceConfigConstPtr config);
 	virtual void saveToConfig(AssetReferenceConfigPtr config) const;
@@ -42,7 +43,6 @@ public:
 	bool isValid() const;
 
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
-	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) {}
 
 protected:
 	virtual void rebuildPreview() {}

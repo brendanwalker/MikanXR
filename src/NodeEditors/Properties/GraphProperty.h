@@ -46,7 +46,7 @@ public:
 	inline void setName(const std::string& name) { m_name= name; }
 	inline const std::string& getName() const { return m_name; }
 
-	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) {}
+	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
 	void notifyPropertyModified() const;
 

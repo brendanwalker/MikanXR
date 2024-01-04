@@ -33,7 +33,7 @@ public:
 	inline void setStencilComponent(StencilComponentPtr inComponent) { m_stencilComponent = inComponent; }
 	inline StencilComponentPtr getStencilComponent() const { return m_stencilComponent; }
 
-	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;
+	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 
 protected:

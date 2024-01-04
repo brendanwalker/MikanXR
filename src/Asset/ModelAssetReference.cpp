@@ -10,8 +10,3 @@ void ModelAssetReference::editorRenderPropertySheet(const NodeEditorState& edito
 {
 	// TODO: Render material asset properties 
 }
-
-void ModelAssetReference::editorHandleDragDrop(const NodeEditorState& editorState)
-{
-	// TODO: If the current hover target is a ModelProperty, assign this asset reference
-}

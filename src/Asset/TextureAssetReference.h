@@ -7,11 +7,11 @@ class TextureAssetReference : public AssetReference
 public:
 	TextureAssetReference() = default;
 
-	virtual std::string getClassName() const override { return "TextureAssetReference"; }
+	inline static const std::string k_assetClassName = "TextureAssetReference";
+	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "Texture"; }
 
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
-	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;
 
 protected:
 	virtual void rebuildPreview() override;

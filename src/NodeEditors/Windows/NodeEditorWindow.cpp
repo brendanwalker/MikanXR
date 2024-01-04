@@ -316,14 +316,11 @@ void NodeEditorWindow::renderMainFrame()
 	renderContextMenu(m_editorState);
 
 	// Drag and drop creation
-	if (ImGui::BeginDragDropTarget())
 	{
 		NodeEditorState editorStateCopy = m_editorState;
 		editorStateCopy.hangPos = ImGui::GetMousePos();
 
-		handleDragDrop(editorStateCopy);
-
-		ImGui::EndDragDropTarget();
+		handleMainFrameDragDrop(editorStateCopy);
 	}
 
 	// Delete key event
@@ -427,24 +424,6 @@ void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
 	}
 	ImGui::PopStyleColor(2);
 	ImGui::PopStyleVar(3);
-}
-
-void NodeEditorWindow::handleDragDrop(const class NodeEditorState& editorState)
-{
-	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(DRAG_DROP_TYPE_ASSET_REF))
-	{
-		IM_ASSERT(payload->DataSize == sizeof(AssetReferencePtr));
-		AssetReferencePtr assetRef = *(AssetReferencePtr*)payload->Data;
-
-		assetRef->editorHandleDragDrop(editorState);
-	}
-	else if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(DRAG_DROP_TYPE_VARIABLE))
-	{
-		IM_ASSERT(payload->DataSize == sizeof(GraphPropertyPtr));
-		GraphPropertyPtr property = *(GraphPropertyPtr*)payload->Data;
-
-		property->editorHandleDragDrop(editorState);
-	}
 }
 
 void NodeEditorWindow::renderToolbar()
@@ -573,7 +552,8 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 				}
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 				{
-					ImGui::SetDragDropPayload(DRAG_DROP_TYPE_VARIABLE, &variable, sizeof(GraphPropertyPtr));
+					ImGui::SetDragDropPayload(
+						variable->getClassName().c_str(), &variable, sizeof(GraphPropertyPtr));
 					ImGui::Text(variable->getName().c_str());
 					ImGui::EndDragDropSource();
 				}
@@ -694,7 +674,8 @@ void NodeEditorWindow::renderAssetsPanel()
 
 					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 					{
-						ImGui::SetDragDropPayload(DRAG_DROP_TYPE_ASSET_REF, &assetRefPtr, sizeof(AssetReferencePtr));
+						ImGui::SetDragDropPayload(
+							assetRefPtr->getClassName().c_str(), &assetRefPtr, sizeof(AssetReferencePtr));
 						ImGui::Text(assetRefPtr->getShortName().c_str());
 						ImGui::EndDragDropSource();
 					}

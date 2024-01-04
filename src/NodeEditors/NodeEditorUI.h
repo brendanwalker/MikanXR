@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
 namespace NodeEditorUI
@@ -26,4 +27,20 @@ namespace NodeEditorUI
 		const std::string label,
 		ComboBoxDataSource* dataSource,
 		int& inout_selectedIdex);
+
+	void* receiveDragDropPayload(const std::string& PayloadType);
+	template <class t_payload_type>
+	std::shared_ptr<t_payload_type> receiveTypedDragDropPayload(const std::string& PayloadType)
+	{
+		void* payload= receiveDragDropPayload(PayloadType);
+
+		if (payload)
+		{
+			return *reinterpret_cast<std::shared_ptr<t_payload_type>*>(payload);
+		}
+		else
+		{
+			return std::shared_ptr<t_payload_type>();
+		}
+	}
 };

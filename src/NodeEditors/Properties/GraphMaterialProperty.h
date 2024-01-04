@@ -32,7 +32,7 @@ public:
 
 	inline GlMaterialPtr getMaterialResource() const { return m_materialResource; }
 
-	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;
+	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 
 protected:

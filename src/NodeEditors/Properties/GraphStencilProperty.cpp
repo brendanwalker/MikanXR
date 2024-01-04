@@ -2,6 +2,7 @@
 #include "GlMaterial.h"
 #include "GlVertexDefinition.h"
 #include "Logger.h"
+#include "NodeEditorUI.h"
 #include "ProfileConfigConstants.h"
 #include "StringUtils.h"
 
@@ -16,6 +17,100 @@
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
+
+// -- MaterialAssetComboDataSource ---
+class StencilComboDataSource : public NodeEditorUI::ComboBoxDataSource
+{
+public:
+	StencilComboDataSource(
+		StencilComponentPtr stencilComponent,
+		eStencilType stencilType)
+	{
+		auto stencilSystem = StencilObjectSystem::getSystem();
+		int listIndex = 0;
+
+		// TODO: Need this overly complicated wrapper so that we can iterate over available
+		// stencil names based on currently selected stencil type.
+		// This should probably be a helper on the stencil object system instead.
+		switch (stencilType)
+		{
+			case eStencilType::box:
+				for (auto it = stencilSystem->getBoxStencilMap().begin();
+					 it != stencilSystem->getBoxStencilMap().end();
+					 it++)
+				{
+					auto stencilPtr = it->second.lock();
+					if (stencilPtr == stencilComponent)
+					{
+						stencilSourceIndex = listIndex;
+					}
+					comboEntries.push_back({stencilPtr, stencilPtr->getName()});
+					listIndex++;
+				}
+				break;
+			case eStencilType::quad:
+				for (auto it = stencilSystem->getQuadStencilMap().begin();
+					 it != stencilSystem->getQuadStencilMap().end();
+					 it++)
+				{
+					auto stencilPtr = it->second.lock();
+					if (stencilPtr == stencilComponent)
+					{
+						stencilSourceIndex = listIndex;
+					}
+					comboEntries.push_back({stencilPtr, stencilPtr->getName()});
+					listIndex++;
+				}
+				break;
+			case eStencilType::model:
+				for (auto it = stencilSystem->getModelStencilMap().begin();
+					 it != stencilSystem->getModelStencilMap().end();
+					 it++)
+				{
+					auto stencilPtr = it->second.lock();
+					if (stencilPtr == stencilComponent)
+					{
+						stencilSourceIndex = listIndex;
+					}
+					comboEntries.push_back({stencilPtr, stencilPtr->getName()});
+					listIndex++;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	inline int getCurrentStencilIndex() const
+	{
+		return stencilSourceIndex;
+	}
+
+	inline StencilComponentPtr getEntryStencil(int index)
+	{
+		return comboEntries[index].stencil;
+	}
+
+	virtual int getEntryCount() override
+	{
+		return (int)comboEntries.size();
+	}
+
+	virtual const std::string& getEntryDisplayString(int index) override
+	{
+		return comboEntries[index].entryString;
+	}
+
+private:
+	struct ComboEntry
+	{
+		StencilComponentPtr stencil;
+		std::string entryString;
+	};
+
+	std::vector<ComboEntry> comboEntries;
+	int stencilSourceIndex = -1;
+};
 
 // -- GraphStencilPropertyConfig -----
 configuru::Config GraphStencilPropertyConfig::writeToJSON()
@@ -98,7 +193,7 @@ void GraphStencilProperty::saveToConfig(GraphPropertyConfigPtr config) const
 	GraphProperty::saveToConfig(config);
 }
 
-void GraphStencilProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
+void GraphStencilProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
 {
 	auto stencilNode = m_ownerGraph->createTypedNode<StencilNode>(editorState);
 
@@ -109,125 +204,26 @@ void GraphStencilProperty::editorHandleDragDrop(const class NodeEditorState& edi
 
 void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	// Section 1: Basic info
-	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	bool isNodeOpened = ImGui::CollapsingHeader("Stencil", ImGuiTreeNodeFlags_SpanAvailWidth);
-	ImGui::PopStyleVar(3);
-	ImGui::PopStyleColor(3);
-
-	if (isNodeOpened)
+	if (NodeEditorUI::DrawPropertySheetHeader("Stencil"))
 	{
 		// Name
-		ImGui::Text("\t\tName");
-		ImGui::SameLine(160);
-		ImGui::SetNextItemWidth(150);
 		std::string name = m_stencilComponent ? m_stencilComponent->getName() : "<No Stencil>";
-		ImGui::Text(name.c_str());
+		NodeEditorUI::DrawStaticTextProperty("Name", name);
 
 		// Stencil Type
 		int stencilTypeIdex = (int)m_stencilType; 
-		if (ImGui::Combo("Source Stencil Type", &stencilTypeIdex, k_szStencilTypeStrings, (int)eStencilType::COUNT))
+		if (ImGui::Combo("Type", &stencilTypeIdex, k_szStencilTypeStrings, (int)eStencilType::COUNT))
 		{
 			setStencilComponent(StencilComponentPtr());
 			m_stencilType= (eStencilType)stencilTypeIdex;
 		}
 
 		// Stencil
+		StencilComboDataSource dataSource(m_stencilComponent, m_stencilType);
+		int selectedIndex= dataSource.getCurrentStencilIndex();
+		if (NodeEditorUI::DrawComboBoxProperty("stencilSelection", "Source", &dataSource, selectedIndex))
 		{
-			ImGui::Text("\t\tSource Stencil");
-			ImGui::SameLine(160);
-			ImGui::SetNextItemWidth(150);
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-
-			// TODO: Need this overly complicated wrapper so that we can iterate over available
-			// stencil names based on currently selected stencil type.
-			// This should probably be a helper on the stencil object system instead.
-			struct StencilComboDataSource
-			{
-				std::vector<StencilComponentPtr> stencils;
-				int stencilSourceIndex = -1;
-
-				StencilComboDataSource(
-					StencilComponentPtr stencilComponent,
-					eStencilType stencilType)
-				{
-					auto stencilSystem = StencilObjectSystem::getSystem();
-					int listIndex = 0;
-
-					switch (stencilType)
-					{
-						case eStencilType::box:
-							for (auto it = stencilSystem->getBoxStencilMap().begin();
-								 it != stencilSystem->getBoxStencilMap().end();
-								 it++)
-							{
-								auto stencilPtr = it->second.lock();
-								if (stencilPtr == stencilComponent)
-								{
-									stencilSourceIndex = listIndex;
-								}
-								stencils.push_back(stencilPtr);
-								listIndex++;
-							}
-							break;
-						case eStencilType::quad:
-							for (auto it = stencilSystem->getQuadStencilMap().begin();
-								 it != stencilSystem->getQuadStencilMap().end();
-								 it++)
-							{
-								auto stencilPtr = it->second.lock();
-								if (stencilPtr == stencilComponent)
-								{
-									stencilSourceIndex = listIndex;
-								}
-								stencils.push_back(stencilPtr);
-								listIndex++;
-							}
-							break;
-						case eStencilType::model:
-							for (auto it = stencilSystem->getModelStencilMap().begin();
-								 it != stencilSystem->getModelStencilMap().end();
-								 it++)
-							{
-								auto stencilPtr = it->second.lock();
-								if (stencilPtr == stencilComponent)
-								{
-									stencilSourceIndex = listIndex;
-								}
-								stencils.push_back(stencilPtr);
-								listIndex++;
-							}
-							break;
-						default:
-							break;
-					}
-				}
-
-				static bool ItemGetter(void* data, int idx, const char** out_str)
-				{
-					auto* dataSource = (StencilComboDataSource*)data;
-					StencilComponentPtr stencil = dataSource->stencils[idx];
-					const char* stencilName = stencil->getName().c_str();
-
-					*out_str = stencilName;
-					return true;
-				}
-			};
-			StencilComboDataSource dataSource(m_stencilComponent, m_stencilType);
-			if (ImGui::Combo("##stencilSelection",
-							 &dataSource.stencilSourceIndex,
-							 &StencilComboDataSource::ItemGetter, &dataSource, (int)dataSource.stencils.size()))
-			{
-				setStencilComponent(dataSource.stencils[dataSource.stencilSourceIndex]);
-			}
-
-			ImGui::PopStyleColor();
+			setStencilComponent(dataSource.getEntryStencil(selectedIndex));
 		}
 	}
 }

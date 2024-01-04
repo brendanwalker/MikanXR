@@ -33,7 +33,7 @@ public:
 	inline void setModelResource(GlRenderModelResourcePtr inModelResource) { m_modelResource= inModelResource; }
 	inline GlRenderModelResourcePtr getModelResource() const { return m_modelResource; }
 
-	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;
+	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 
 protected:

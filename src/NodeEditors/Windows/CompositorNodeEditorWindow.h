@@ -8,4 +8,6 @@ public:
 
 	virtual NodeGraphFactoryPtr getNodeGraphFactory() const override;
 	virtual bool saveGraph(bool bShowFileDialog) override;
+
+	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 };

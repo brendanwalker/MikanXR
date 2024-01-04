@@ -2,6 +2,7 @@
 #include "GlTexture.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
+#include "NodeEditorUI.h"
 #include "Nodes/TextureNode.h"
 #include "TextureAssetReference.h"
 
@@ -83,7 +84,7 @@ void GraphTextureProperty::saveToConfig(GraphPropertyConfigPtr config) const
 	GraphProperty::saveToConfig(config);
 }
 
-void GraphTextureProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
+void GraphTextureProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
 {
 	auto textureNode = m_ownerGraph->createTypedNode<TextureNode>(editorState);
 
@@ -94,27 +95,19 @@ void GraphTextureProperty::editorHandleDragDrop(const class NodeEditorState& edi
 
 void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	// Section 1: Basic info
-	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	bool isNodeOpened = ImGui::CollapsingHeader("Texture", ImGuiTreeNodeFlags_SpanAvailWidth);
-	ImGui::PopStyleVar(3);
-	ImGui::PopStyleColor(3);
-
-	if (isNodeOpened)
+	if (NodeEditorUI::DrawPropertySheetHeader("Texture"))
 	{
 		// Name
-		ImGui::Text("\t\tName");
-		ImGui::SameLine(160);
-		ImGui::SetNextItemWidth(150);
 		std::string name = m_texture ? m_texture->getName() : "<No Texture>";
-		ImGui::Text(name.c_str());
+		NodeEditorUI::DrawStaticTextProperty("Name", name);
 
-		// TODO: Show Texture properties
+		// Drag-Drop Handling
+		auto textureAssetRef =
+			NodeEditorUI::receiveTypedDragDropPayload<TextureAssetReference>(
+				TextureAssetReference::k_assetClassName);
+		if (textureAssetRef)
+		{
+			setTextureAssetReference(textureAssetRef);
+		}
 	}
 }

@@ -7,10 +7,10 @@ class ModelAssetReference : public AssetReference
 public:
 	ModelAssetReference() = default;
 
-	virtual std::string getClassName() const override { return "ModelAssetReference"; }
+	inline static const std::string k_assetClassName = "ModelAssetReference";
+	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "Model"; }
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
-	virtual void editorHandleDragDrop(const class NodeEditorState& editorState) override;
 
 protected:
 	virtual void rebuildPreview() override;

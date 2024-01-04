@@ -101,4 +101,21 @@ namespace NodeEditorUI
 
 		return bChanged;
 	}
+
+	void* receiveDragDropPayload(const std::string& PayloadType)
+	{
+		void* payload= nullptr;
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* imguiPayload = ImGui::AcceptDragDropPayload(PayloadType.c_str()))
+			{
+				payload = imguiPayload->Data;
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		return payload;
+	}
 };

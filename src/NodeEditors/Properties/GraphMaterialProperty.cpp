@@ -172,7 +172,7 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 	}
 }
 
-void GraphMaterialProperty::editorHandleDragDrop(const class NodeEditorState& editorState)
+void GraphMaterialProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
 {
 	auto materialNode = m_ownerGraph->createTypedNode<MaterialNode>(editorState);
 
@@ -195,6 +195,15 @@ void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorStat
 		if (NodeEditorUI::DrawComboBoxProperty("Material Asset", "materialSelection", &dataSource, selectedIndex))
 		{
 			setMaterialAssetReference(dataSource.getEntryAssetRef(selectedIndex));
+		}
+
+		// Drag-Drop Handling
+		auto materialAssetRef =
+			NodeEditorUI::receiveTypedDragDropPayload<MaterialAssetReference>(
+				MaterialAssetReference::k_assetClassName);
+		if (materialAssetRef)
+		{
+			setMaterialAssetReference(materialAssetRef);
 		}
 	}
 }
