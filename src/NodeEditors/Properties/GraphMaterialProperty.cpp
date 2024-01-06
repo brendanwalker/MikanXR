@@ -192,7 +192,7 @@ void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorStat
 		// Material Asset
 		MaterialAssetComboDataSource dataSource(std::static_pointer_cast<GraphMaterialProperty>(shared_from_this()));
 		int selectedIndex= dataSource.getCurrentAssetIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("Material Asset", "materialSelection", &dataSource, selectedIndex))
+		if (NodeEditorUI::DrawComboBoxProperty("materialSelection", "Material", &dataSource, selectedIndex))
 		{
 			setMaterialAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}
