@@ -602,7 +602,7 @@ void NodeEditorWindow::renderAssetsPanel()
 			ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
 			ImGui::BeginChild("AssetSubFrame");
 
-			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 6));
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 1));
 
 			if (nodeGraph)
 			{
@@ -651,7 +651,7 @@ void NodeEditorWindow::renderAssetsPanel()
 				}
 			}
 
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 18);
 			ImGui::Separator();
 
 			// Assets browser
