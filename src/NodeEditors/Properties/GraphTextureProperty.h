@@ -27,10 +27,9 @@ public:
 								const NodeGraphConfig& graphConfig) override;
 	virtual void saveToConfig(GraphPropertyConfigPtr config) const override;
 
-	inline void setTextureAssetReference(TextureAssetReferencePtr inAssetRef) { m_textureAssetRef = inAssetRef; }
+	void setTextureAssetReference(TextureAssetReferencePtr inAssetRef);
 	inline TextureAssetReferencePtr getTextureAssetReference() const { return m_textureAssetRef; }
 
-	inline void setTextureResource(GlTexturePtr inTexture) { m_texture = inTexture; }
 	inline GlTexturePtr getTextureResource() const { return m_texture; }
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
