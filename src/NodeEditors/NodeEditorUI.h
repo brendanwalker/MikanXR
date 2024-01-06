@@ -5,8 +5,24 @@
 #include <memory>
 #include <string>
 
+struct ImVec4;
+
 namespace NodeEditorUI
 {
+	const std::string& getVariableIcon();
+	const std::string& getArrayIcon();
+
+	const ImVec4& getBooleanColor();
+	const ImVec4& getEnumColor();
+	const ImVec4& getIntColor();
+	const ImVec4& getIntVectorColor();
+	const ImVec4& getFloatColor();
+	const ImVec4& getFloatVectorColor();
+	const ImVec4& getMatrixColor();
+	const ImVec4& getPropertyColor();
+	const ImVec4& getTextureColor();
+	const ImVec4& getComponentColor();
+
 	bool DrawPropertySheetHeader(const std::string headerText);
 	void DrawStaticTextProperty(const std::string label, const std::string text);
 	void DrawCheckBoxProperty(const std::string fieldName, const std::string label, bool& inout_value);

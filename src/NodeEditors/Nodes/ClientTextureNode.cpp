@@ -12,7 +12,6 @@
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
 
-#include "Properties/GraphVariableList.h"
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"

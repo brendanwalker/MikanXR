@@ -15,7 +15,6 @@
 #include "TextureAssetReference.h"
 
 // Properties
-#include "Properties/GraphVariableList.h"
 #include "Properties/GraphMaterialProperty.h"
 #include "Properties/GraphModelProperty.h"
 #include "Properties/GraphStencilProperty.h"
@@ -276,14 +275,6 @@ NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph(IGlWindow* owner
 
 	auto compositeFrameNode= compositorNodeGraph->createTypedNode<EventNode>(editorState);
 	compositeFrameNode->setName(CompositorNodeGraph::k_compositeFrameEventName);
-
-	// Add default properties
-	compositorNodeGraph->createTypedProperty<GraphVariableList>("materials")
-						->assignFactory<GraphMaterialPropertyFactory>();
-	compositorNodeGraph->createTypedProperty<GraphVariableList>("stencils")
-						->assignFactory<GraphStencilPropertyFactory>();
-	compositorNodeGraph->createTypedProperty<GraphVariableList>("textures")
-						->assignFactory<GraphTexturePropertyFactory>();
 
 	return compositorNodeGraph;
 }

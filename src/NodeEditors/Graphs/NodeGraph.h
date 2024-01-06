@@ -140,6 +140,8 @@ public:
 
 	// -- Properties -----
 
+	virtual std::vector<GraphPropertyFactoryPtr> editorGetValidPropertyFactories(const class NodeEditorState& editorState) const;
+
 	template <class t_property_factory>
 	void addPropertyFactory()
 	{
@@ -189,6 +191,7 @@ public:
 		return property;
 	}
 
+	GraphPropertyPtr createProperty(GraphPropertyFactoryPtr propertyFactory);
 	void addProperty(GraphPropertyPtr property);
 	bool deletePropertyById(t_graph_property_id id);
 

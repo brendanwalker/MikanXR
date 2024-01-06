@@ -13,8 +13,8 @@
 #include "Pins/PropertyPin.h"
 #include "Pins/TexturePin.h"
 #include "Properties/GraphArrayProperty.h"
-#include "Properties/GraphVariableList.h"
 #include "NodeEditorState.h"
+#include "StringUtils.h"
 
 #include "imnodes.h"
 
@@ -171,7 +171,6 @@ NodeGraph::NodeGraph()
 
 	// Add property types this graph can use
 	addPropertyFactory<GraphArrayPropertyFactory>();
-	addPropertyFactory<GraphVariableListFactory>();
 }
 
 NodeGraph::~NodeGraph()
@@ -594,6 +593,18 @@ bool NodeGraph::deleteAssetReference(AssetReferencePtr assetRef)
 	return false;
 }
 
+GraphPropertyPtr NodeGraph::createProperty(GraphPropertyFactoryPtr propertyFactory)
+{
+	GraphPropertyPtr property = propertyFactory->allocateProperty();
+	property->setOwnerGraph(shared_from_this());
+	property->setId(allocateId());
+	property->setName(StringUtils::stringify(property->editorGetTitle(), property->getId()));
+
+	addProperty(property);
+
+	return property;
+}
+
 void NodeGraph::addProperty(GraphPropertyPtr property)
 {
 	m_properties.insert({property->getId(), property});
@@ -857,6 +868,24 @@ bool NodeGraph::deleteLinkById(t_node_link_id id)
 	}
 
 	return false;
+}
+
+std::vector<GraphPropertyFactoryPtr> NodeGraph::editorGetValidPropertyFactories(
+	const NodeEditorState& editorState) const
+{
+	std::vector<GraphPropertyFactoryPtr> validFactories;
+
+	for (auto it = m_propertyFactories.begin(); it != m_propertyFactories.end(); ++it)
+	{
+		GraphPropertyFactoryPtr factory = it->second;
+		if (factory->editorCanCreate())
+		{
+			validFactories.push_back(factory);
+		}
+	}
+
+	return validFactories;
+
 }
 
 std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEditorState& editorState) const

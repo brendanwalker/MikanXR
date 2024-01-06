@@ -7,7 +7,6 @@
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
 #include "Pins/PropertyPin.h"
-#include "Properties/GraphVariableList.h"
 #include "Properties/GraphMaterialProperty.h"
 
 #include "imgui.h"
@@ -42,15 +41,13 @@ void MaterialNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_materialArrayProperty = nullptr;
-			m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &MaterialNode::onGraphPropertyChanged);
+			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &MaterialNode::onGraphPropertyDeleted);
 			m_ownerGraph = nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			m_materialArrayProperty = newOwnerGraph->getTypedPropertyByName<GraphVariableList>("materials");
-			newOwnerGraph->OnPropertyModifed += MakeDelegate(this, &MaterialNode::onGraphPropertyChanged);
+			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &MaterialNode::onGraphPropertyDeleted);
 			m_ownerGraph = newOwnerGraph;
 		}
 	}
@@ -168,17 +165,11 @@ void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderPopNodeStyle(editorState);
 }
 
-void MaterialNode::onGraphPropertyChanged(t_graph_property_id id)
+void MaterialNode::onGraphPropertyDeleted(t_graph_property_id id)
 {
-	if (m_materialArrayProperty && m_materialArrayProperty->getId() == id)
+	if (m_sourceProperty && m_sourceProperty->getId() == id)
 	{
-		auto textureArray = m_materialArrayProperty->getArray();
-		auto it = std::find(textureArray.begin(), textureArray.end(), m_sourceProperty);
-
-		if (it == textureArray.end())
-		{
-			setMaterialSource(GraphMaterialPropertyPtr());
-		}
+		setMaterialSource(GraphMaterialPropertyPtr());
 	}
 }
 

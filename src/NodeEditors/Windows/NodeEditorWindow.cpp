@@ -18,7 +18,6 @@
 #include "TextStyle.h"
 
 #include "Pins/NodePin.h"
-#include "Properties/GraphVariableList.h"
 
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -314,7 +313,7 @@ void NodeEditorWindow::renderMainFrame()
 	}
 
 	// Context menu
-	renderContextMenu(m_editorState);
+	renderMainFrameContextMenu(m_editorState);
 
 	// Drag and drop creation
 	{
@@ -331,7 +330,7 @@ void NodeEditorWindow::renderMainFrame()
 	}
 }
 
-void NodeEditorWindow::renderContextMenu(const NodeEditorState& editorState)
+void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorState)
 {
 	if (ImGui::GetMouseDragDelta(ImGuiMouseButton_Right).x == 0.0f
 		&& ImGui::GetMouseDragDelta(ImGuiMouseButton_Right).y == 0.0f
@@ -484,109 +483,142 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 {
 	ImGui::BeginChild("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
 
-	for (auto variableList : m_variableLists)
-	{		
-		const auto& variableFactory= variableList->getFactory();
-		auto variableTypeName = variableFactory->getGraphPropertyClassName();
-		auto& variableArray = variableList->getArray();
 
-		// Add button
-		float xPos = ImGui::GetCursorPosX();
-		ImGui::SetCursorPosX(180);
-		const std::string buttonName= StringUtils::stringify(ICON_FK_PLUS_CIRCLE, "##add_", variableTypeName);
-		if (ImGui::SmallButton(buttonName.c_str()))
+	// Title bar
+	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+	bool isNodeOpened = ImGui::CollapsingHeader("Variables", ImGuiTreeNodeFlags_SpanAvailWidth);
+	ImGui::PopStyleVar(3);
+	ImGui::PopStyleColor(3);
+
+	if (isNodeOpened)
+	{
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
+
+		auto propertyMap = getNodeGraph()->getPropertyMap();
+		for (auto it = propertyMap.begin(); it != propertyMap.end(); it++)
 		{
-			ImNodes::ClearLinkSelection();
-			ImNodes::ClearNodeSelection();
+			t_graph_property_id propertyId = it->first;
+			GraphPropertyPtr variable = it->second;
 
-			const std::string variableName = variableTypeName + std::to_string(variableArray.size() + 1);
-			GraphPropertyPtr newVariablePtr= variableList->addNewVariable(&m_editorState, variableName);
+			// Variable
+			const std::string varIcon = variable->editorGetIcon();
+			const ImVec4& variconColor = variable->editorGetIconColor();
+			ImGui::TextColored(variconColor, varIcon.c_str());
+			ImGui::SameLine();
 
-			m_objectSelection= GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
-			m_objectSelection.setObjectId(0, newVariablePtr->getId());
-		}
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(xPos);
-
-		// Title bar
-		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		bool isNodeOpened = ImGui::CollapsingHeader(variableTypeName.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(180);
-		ImGui::Text(ICON_FK_PLUS_CIRCLE);
-		ImGui::PopStyleVar(3);
-		ImGui::PopStyleColor(3);
-
-		if (isNodeOpened)
-		{
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-			for (int i = 0; i < variableArray.size(); i++)
+			const std::string varEntryName =
+				StringUtils::stringify(
+					variable->getName(), "##property", std::to_string(propertyId));
+			bool isSelected = m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE;
+			isSelected = isSelected && (m_objectSelection.getObjectId(0) == variable->getId());
+			if (ImGui::Selectable(varEntryName.c_str(), &isSelected))
 			{
-				GraphPropertyPtr variable= variableArray[i];
-
-				// Variable
-				const std::string varEntryName= 
-					StringUtils::stringify(
-						"\t\t", variable->getName(), "##", variableTypeName, std::to_string(i));
-
-				bool isSelected = m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE;
-				isSelected = isSelected && (m_objectSelection.getObjectId(0) == variable->getId());
-				if (ImGui::Selectable(varEntryName.c_str(), &isSelected))
+				ImNodes::ClearLinkSelection();
+				ImNodes::ClearNodeSelection();
+				if (isSelected)
 				{
-					ImNodes::ClearLinkSelection();
-					ImNodes::ClearNodeSelection();
-					if (isSelected)
-					{
-						m_objectSelection = GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
-						m_objectSelection.setObjectId(0, variable->getId());
-					}
-					else
-					{
-						m_objectSelection.clear();
-					}
-				}
-				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-				{
-					ImGui::SetDragDropPayload(
-						variable->getClassName().c_str(), &variable, sizeof(GraphPropertyPtr));
-					ImGui::Text(variable->getName().c_str());
-					ImGui::EndDragDropSource();
-				}
-
-				// Context menu
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-				ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
-				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-				if (ImGui::BeginPopupContextItem())
-				{
-					ImNodes::ClearLinkSelection();
-					ImNodes::ClearNodeSelection();
 					m_objectSelection = GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
 					m_objectSelection.setObjectId(0, variable->getId());
-
-					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
-					{
-						variableList->deleteVariableByIndex(&m_editorState, i);
-					}
-
-					ImGui::EndPopup();
 				}
-				ImGui::PopStyleColor(2);
-				ImGui::PopStyleVar(3);
+				else
+				{
+					m_objectSelection.clear();
+				}
 			}
-			ImGui::PopStyleColor();
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+			{
+				ImGui::SetDragDropPayload(
+					variable->getClassName().c_str(), &variable, sizeof(GraphPropertyPtr));
+				ImGui::Text(variable->getName().c_str());
+				ImGui::EndDragDropSource();
+			}
+
+			// Context menu
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+			if (ImGui::BeginPopupContextItem())
+			{
+				ImNodes::ClearLinkSelection();
+				ImNodes::ClearNodeSelection();
+				m_objectSelection = GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
+				m_objectSelection.setObjectId(0, variable->getId());
+
+				if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+				{
+					getNodeGraph()->deletePropertyById(propertyId);
+					m_objectSelection.clear();
+				}
+
+				ImGui::EndPopup();
+			}
+			ImGui::PopStyleColor(2);
+			ImGui::PopStyleVar(3);
 		}
+		ImGui::PopStyleColor();
 	}
 
+	renderNewGraphVariablesContextMenu(m_editorState);
+
 	ImGui::EndChild();
+}
+
+void NodeEditorWindow::renderNewGraphVariablesContextMenu(const NodeEditorState& editorState)
+{
+	// Don't show context menu if a variable is selected
+	if (m_objectSelection.hasSelectionOfType(GraphObjectIdType::VARIABLE))
+		return;
+
+	if (ImGui::GetMouseDragDelta(ImGuiMouseButton_Right).x == 0.0f
+		&& ImGui::GetMouseDragDelta(ImGuiMouseButton_Right).y == 0.0f
+		&& ImGui::IsMouseReleased(ImGuiMouseButton_Right)
+		&& ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
+	{
+		ImGui::OpenPopup("editor_context_menu_nodes");
+	}
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+	if (ImGui::BeginPopup("editor_context_menu_nodes"))
+	{
+		NodeGraphPtr nodeGraph = getNodeGraph();
+		if (nodeGraph)
+		{
+			std::vector<GraphPropertyFactoryPtr> propertyFactories = 
+				getNodeGraph()->editorGetValidPropertyFactories(editorState);
+
+			for (GraphPropertyFactoryPtr propertyFactory : propertyFactories)
+			{
+				const std::string propertyTitle = propertyFactory->getDefaultGraphPropertyObject()->editorGetTitle();
+
+				if (ImGui::MenuItem(propertyTitle.c_str()))
+				{
+					GraphPropertyPtr newVariable= getNodeGraph()->createProperty(propertyFactory);
+
+					ImNodes::ClearLinkSelection();
+					ImNodes::ClearNodeSelection();
+
+					m_objectSelection = GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
+					m_objectSelection.setObjectId(0, newVariable->getId());
+					break;
+				}
+			}
+		}
+		ImGui::EndPopup();
+	}
+	ImGui::PopStyleColor(2);
+	ImGui::PopStyleVar(3);
 }
 
 void NodeEditorWindow::renderAssetsPanel()
@@ -902,24 +934,10 @@ void NodeEditorWindow::onNodeGraphCreated()
 	getNodeGraph()->OnPropertyCreated += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
 	getNodeGraph()->OnPropertyModifed += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 	getNodeGraph()->OnPropertyDeleted += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
-
-	// Fetch all variables lists from the graph
-	auto propertyMap= getNodeGraph()->getPropertyMap();
-	for (auto it = propertyMap.begin(); it != propertyMap.end(); it++)
-	{
-		GraphVariableListPtr variableList= std::dynamic_pointer_cast<GraphVariableList>(it->second);
-
-		if (variableList)
-		{
-			m_variableLists.push_back(variableList);
-		}
-	}
 }
 
 void NodeEditorWindow::onNodeGraphDeleted()
 {
-	m_variableLists.clear();
-
 	getNodeGraph()->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 	getNodeGraph()->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
 	getNodeGraph()->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);

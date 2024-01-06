@@ -35,6 +35,7 @@ public:
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
+	virtual std::string editorGetTitle() const override { return "Model"; }
 
 protected:
 	ModelAssetReferencePtr m_modelAssetRef;

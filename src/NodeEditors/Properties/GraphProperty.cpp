@@ -1,5 +1,6 @@
 #include "GraphProperty.h"
 #include "Graphs/NodeGraph.h"
+#include "NodeEditorUI.h"
 
 // -- GraphPropertyConfig ------
 configuru::Config GraphPropertyConfig::writeToJSON()
@@ -25,6 +26,16 @@ void GraphPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphProperty ------
+std::string GraphProperty::editorGetIcon() const 
+{ 
+	return NodeEditorUI::getVariableIcon(); 
+}
+
+const ImVec4& GraphProperty::editorGetIconColor() const
+{
+	return NodeEditorUI::getPropertyColor();
+}
+
 bool GraphProperty::loadFromConfig(
 	GraphPropertyConfigConstPtr propConfig,
 	const NodeGraphConfig& graphConfig)

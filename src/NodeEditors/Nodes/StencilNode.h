@@ -44,11 +44,10 @@ protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
-	void onGraphPropertyChanged(t_graph_property_id id);
+	void onGraphPropertyDeleted(t_graph_property_id id);
 
 protected:
 	GraphStencilPropertyPtr m_sourceProperty;
-	GraphVariableListPtr m_StencilArrayProperty;
 };
 
 class StencilNodeFactory : public TypedNodeFactory<StencilNode, StencilNodeConfig>

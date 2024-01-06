@@ -6,7 +6,6 @@
 #include "TextureAssetReference.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
-#include "Properties/GraphVariableList.h"
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
@@ -42,15 +41,13 @@ void TextureNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_textureArrayProperty = nullptr;
-			m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
+			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &TextureNode::onGraphPropertyDeleted);
 			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			m_textureArrayProperty = newOwnerGraph->getTypedPropertyByName<GraphVariableList>("textures");
-			newOwnerGraph->OnPropertyModifed += MakeDelegate(this, &TextureNode::onGraphPropertyChanged);
+			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &TextureNode::onGraphPropertyDeleted);
 			m_ownerGraph= newOwnerGraph;
 		}
 	}
@@ -157,17 +154,11 @@ void TextureNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 	}
 }
 
-void TextureNode::onGraphPropertyChanged(t_graph_property_id id)
+void TextureNode::onGraphPropertyDeleted(t_graph_property_id id)
 {
-	if (m_textureArrayProperty && m_textureArrayProperty->getId() == id)
+	if (m_sourceProperty && m_sourceProperty->getId() == id)
 	{
-		auto textureArray = m_textureArrayProperty->getArray();
-		auto it = std::find(textureArray.begin(), textureArray.end(), m_sourceProperty);
-
-		if (it == textureArray.end())
-		{
-			setTextureSource(GraphTexturePropertyPtr());
-		}
+		setTextureSource(GraphTexturePropertyPtr());
 	}
 }
 

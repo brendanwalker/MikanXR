@@ -31,7 +31,6 @@
 #include "Pins/PropertyPin.h"
 #include "Pins/TexturePin.h"
 
-#include "Properties/GraphVariableList.h"
 #include "Properties/GraphMaterialProperty.h"
 #include "Properties/GraphStencilProperty.h"
 #include "Properties/GraphTextureProperty.h"

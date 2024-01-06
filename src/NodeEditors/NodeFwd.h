@@ -167,10 +167,6 @@ class GraphArrayProperty;
 using GraphArrayPropertyPtr = std::shared_ptr<GraphArrayProperty>;
 using GraphArrayPropertyConstPtr = std::shared_ptr<const GraphArrayProperty>;
 
-class GraphVariableList;
-using GraphVariableListPtr = std::shared_ptr<GraphVariableList>;
-using GraphVariableListConstPtr = std::shared_ptr<const GraphVariableList>;
-
 class GraphMaterialProperty;
 using GraphMaterialPropertyPtr = std::shared_ptr<GraphMaterialProperty>;
 using GraphMaterialPropertyConstPtr = std::shared_ptr<const GraphMaterialProperty>;

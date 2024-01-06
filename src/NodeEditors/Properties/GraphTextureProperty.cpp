@@ -208,3 +208,8 @@ void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState
 		NodeEditorUI::DrawImageProperty("Preview", texture);
 	}
 }
+
+const ImVec4& GraphTextureProperty::editorGetIconColor() const
+{
+	return NodeEditorUI::getTextureColor();
+}

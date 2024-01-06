@@ -7,7 +7,6 @@
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
 #include "Pins/PropertyPin.h"
-#include "Properties/GraphVariableList.h"
 #include "Properties/GraphModelProperty.h"
 
 #include "imgui.h"
@@ -42,15 +41,13 @@ void ModelNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_modelArrayProperty = nullptr;
-			m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &ModelNode::onGraphPropertyChanged);
+			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &ModelNode::onGraphPropertyDeleted);
 			m_ownerGraph = nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			m_modelArrayProperty = newOwnerGraph->getTypedPropertyByName<GraphVariableList>("models");
-			newOwnerGraph->OnPropertyModifed += MakeDelegate(this, &ModelNode::onGraphPropertyChanged);
+			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &ModelNode::onGraphPropertyDeleted);
 			m_ownerGraph = newOwnerGraph;
 		}
 	}
@@ -149,17 +146,11 @@ void ModelNode::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderPopNodeStyle(editorState);
 }
 
-void ModelNode::onGraphPropertyChanged(t_graph_property_id id)
+void ModelNode::onGraphPropertyDeleted(t_graph_property_id id)
 {
-	if (m_modelArrayProperty && m_modelArrayProperty->getId() == id)
+	if (m_sourceProperty && m_sourceProperty->getId() == id)
 	{
-		auto modelArray = m_modelArrayProperty->getArray();
-		auto it = std::find(modelArray.begin(), modelArray.end(), m_sourceProperty);
-
-		if (it == modelArray.end())
-		{
-			setModelSource(GraphModelPropertyPtr());
-		}
+		setModelSource(GraphModelPropertyPtr());
 	}
 }
 

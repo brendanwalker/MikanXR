@@ -35,6 +35,8 @@ public:
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
+	virtual std::string editorGetTitle() const override { return "Stencil"; }
+	virtual const ImVec4& editorGetIconColor() const override;
 
 protected:
 	StencilComponentPtr m_stencilComponent;

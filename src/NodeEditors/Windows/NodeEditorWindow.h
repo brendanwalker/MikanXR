@@ -66,9 +66,10 @@ protected:
 
 	virtual void renderMainFrame();
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) {}
-	virtual void renderContextMenu(const class NodeEditorState& editorState);
+	virtual void renderMainFrameContextMenu(const class NodeEditorState& editorState);
 	virtual void renderToolbar();
 	virtual void renderGraphVariablesPanel();
+	virtual void renderNewGraphVariablesContextMenu(const NodeEditorState& editorState);
 	virtual void renderAssetsPanel();
 	virtual void renderSelectedObjectPanel();
 
@@ -95,7 +96,6 @@ protected:
 	struct ImFont* m_BigIconFont= nullptr;
 
 	NodeEditorState m_editorState;
-	std::vector<GraphVariableListPtr> m_variableLists;
 
 	GraphObjectSelection m_objectSelection;
 

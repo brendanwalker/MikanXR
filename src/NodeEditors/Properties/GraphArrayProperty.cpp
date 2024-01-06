@@ -1,6 +1,7 @@
 #include "GraphArrayProperty.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
+#include "NodeEditorUI.h"
 
 // -- GraphArrayPropertyConfig -----
 configuru::Config GraphArrayPropertyConfig::writeToJSON()
@@ -20,6 +21,11 @@ void GraphArrayPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphArrayProperty -----
+std::string GraphArrayProperty::editorGetIcon() const
+{
+	return NodeEditorUI::getArrayIcon();
+}
+
 bool GraphArrayProperty::loadFromConfig(
 	GraphPropertyConfigConstPtr propConfig,
 	const NodeGraphConfig& graphConfig)

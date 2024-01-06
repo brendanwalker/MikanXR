@@ -2,14 +2,87 @@
 #include "StringUtils.h"
 #include "GlTexture.h"
 
-
 #include "imgui.h"
+
+#include "IconsForkAwesome.h"
 
 namespace NodeEditorUI
 {
 	const int k_labelWidth= 100;
 	const int k_valueWidth= 150;
 	const ImVec4 k_valueBGColor(0.13f, 0.13f, 0.13f, 1.0f);
+
+	const std::string& getVariableIcon()
+	{
+		static std::string icon= ICON_FK_SQUARE;
+		return icon;		
+	}
+
+	const std::string& getArrayIcon()
+	{
+		static std::string icon= ICON_FK_TH;
+		return icon;
+	}
+
+	const ImVec4& getBooleanColor()
+	{
+		static ImVec4 color(0.5f, 0.0f, 0.0f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getEnumColor()
+	{
+		static ImVec4 color(0.f, 0.278f, 0.302f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getIntColor()
+	{
+		static ImVec4 color(0.176f, 0.529f, 0.329f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getIntVectorColor()
+	{
+		static ImVec4 color(0.557f, 0.886f, 0.722f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getFloatColor()
+	{
+		static ImVec4 color(0.624f, 0.973f, 0.267f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getFloatVectorColor()
+	{
+		static ImVec4 color(1.f, 0.78f, 0.173f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getMatrixColor()
+	{
+		static ImVec4 color(0.965f, 0.396f, 0.024f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getPropertyColor()
+	{
+		static ImVec4 color(0.f, 0.631f, 0.929f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getTextureColor()
+	{
+		static ImVec4 color(0.6f, 0.263f, 0.969f, 1.0f);
+		return color;
+	}
+
+	const ImVec4& getComponentColor()
+	{
+		static ImVec4 color(0.008f, 0.643f, 0.949f, 1.0f);
+		return color;
+	}
 
 	static std::string makeImGuiElementName(const std::string& name)
 	{

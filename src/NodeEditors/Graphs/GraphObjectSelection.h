@@ -25,6 +25,7 @@ public:
 
 	void clear();
 
+	inline bool hasSelectionOfType(t_graph_object_id_type type) const { return m_objectIdType == type; }
 	inline t_graph_object_id_type getObjectIdType() const { return m_objectIdType; }
 	inline int getObjectCount() const { return (int)m_objectIdList.size(); }
 	inline int* getRawObjectArray() { return m_objectIdList.data(); }

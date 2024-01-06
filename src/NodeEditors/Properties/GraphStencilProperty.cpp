@@ -227,3 +227,8 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 		}
 	}
 }
+
+const ImVec4& GraphStencilProperty::editorGetIconColor() const
+{
+	return NodeEditorUI::getComponentColor();
+}

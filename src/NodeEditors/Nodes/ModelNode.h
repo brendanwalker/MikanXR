@@ -40,11 +40,10 @@ protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
-	void onGraphPropertyChanged(t_graph_property_id id);
+	void onGraphPropertyDeleted(t_graph_property_id id);
 
 protected:
 	GraphModelPropertyPtr m_sourceProperty;
-	GraphVariableListPtr m_modelArrayProperty;
 };
 
 class ModelNodeFactory : public TypedNodeFactory<ModelNode, ModelNodeConfig>

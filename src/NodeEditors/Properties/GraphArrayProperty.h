@@ -33,6 +33,9 @@ public:
 	bool addProperty(GraphPropertyPtr property);
 	bool removeProperty(GraphPropertyPtr property);
 
+	virtual std::string editorGetTitle() const override { return "Array"; }
+	virtual std::string editorGetIcon() const override;
+
 protected:
 	std::vector<GraphPropertyPtr> m_array;
 };

@@ -5,7 +5,6 @@
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
 #include "Pins/PropertyPin.h"
-#include "Properties/GraphVariableList.h"
 #include "Properties/GraphStencilProperty.h"
 
 #include "imgui.h"
@@ -40,15 +39,13 @@ void StencilNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_StencilArrayProperty = nullptr;
-			m_ownerGraph->OnPropertyModifed -= MakeDelegate(this, &StencilNode::onGraphPropertyChanged);
+			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &StencilNode::onGraphPropertyDeleted);
 			m_ownerGraph = nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			m_StencilArrayProperty = newOwnerGraph->getTypedPropertyByName<GraphVariableList>("Stencils");
-			newOwnerGraph->OnPropertyModifed += MakeDelegate(this, &StencilNode::onGraphPropertyChanged);
+			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &StencilNode::onGraphPropertyDeleted);
 			m_ownerGraph = newOwnerGraph;
 		}
 	}
@@ -164,17 +161,11 @@ void StencilNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 	}
 }
 
-void StencilNode::onGraphPropertyChanged(t_graph_property_id id)
+void StencilNode::onGraphPropertyDeleted(t_graph_property_id id)
 {
-	if (m_StencilArrayProperty && m_StencilArrayProperty->getId() == id)
+	if (m_sourceProperty && m_sourceProperty->getId() == id)
 	{
-		auto stencilArray = m_StencilArrayProperty->getArray();
-		auto it = std::find(stencilArray.begin(), stencilArray.end(), m_sourceProperty);
-
-		if (it == stencilArray.end())
-		{
-			setStencilSource(GraphStencilPropertyPtr());
-		}
+		setStencilSource(GraphStencilPropertyPtr());
 	}
 }
 

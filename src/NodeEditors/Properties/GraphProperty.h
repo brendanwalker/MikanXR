@@ -5,6 +5,8 @@
 
 #include <string>
 
+struct ImVec4;
+
 class GraphPropertyConfig : public CommonConfig
 {
 public:
@@ -48,6 +50,9 @@ public:
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
+	virtual std::string editorGetIcon() const;
+	virtual const ImVec4& editorGetIconColor() const;
+	virtual std::string editorGetTitle() const { return "Property"; }
 	void notifyPropertyModified() const;
 
 protected:
@@ -62,12 +67,17 @@ class GraphPropertyFactory
 public:
 	GraphPropertyFactory() = default;
 
+	inline GraphPropertyPtr getDefaultGraphPropertyObject() const { 
+		return m_defaultGraphPropertyObject; 
+	}
 	inline std::string getGraphPropertyClassName() const { 
 		return m_defaultGraphPropertyObject->getClassName(); 
 	}
 
 	virtual GraphPropertyConfigPtr allocatePropertyConfig() const;
 	virtual GraphPropertyPtr allocateProperty() const;
+
+	virtual bool editorCanCreate() const { return getGraphPropertyClassName() != GraphProperty::k_propertyClassName; }
 
 	template <class t_property_factory_class>
 	static GraphPropertyFactoryPtr createFactory()
