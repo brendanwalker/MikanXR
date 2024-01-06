@@ -1,5 +1,7 @@
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
+#include "GlTexture.h"
+
 
 #include "imgui.h"
 
@@ -65,6 +67,16 @@ namespace NodeEditorUI
 		ImGui::PopStyleColor();
 
 		return bChanged;
+	}
+
+	void DrawImageProperty(const std::string label, GlTexturePtr image)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(k_labelWidth);
+		ImGui::SetNextItemWidth(k_valueWidth);
+		ImGui::Dummy(ImVec2(1.0f, 0.5f));
+		uint32_t glTextureId = image ? image->getGlTextureId() : 0;
+		ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	}
 
 	bool ComboBoxDataSource::itemGetter(void* data, int idx, const char** out_str)
