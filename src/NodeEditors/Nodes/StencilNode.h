@@ -38,6 +38,7 @@ public:
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
+	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;

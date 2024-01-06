@@ -143,6 +143,14 @@ void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderPopNodeStyle(editorState);
 }
 
+void TextureNode::editorRenderPropertySheet(const NodeEditorState& editorState)
+{
+	if (m_sourceProperty)
+	{
+		m_sourceProperty->editorRenderPropertySheet(editorState);
+	}
+}
+
 void TextureNode::onGraphPropertyChanged(t_graph_property_id id)
 {
 	if (m_textureArrayProperty && m_textureArrayProperty->getId() == id)

@@ -141,6 +141,14 @@ void StencilNode::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderPopNodeStyle(editorState);
 }
 
+void StencilNode::editorRenderPropertySheet(const NodeEditorState& editorState)
+{
+	if (m_sourceProperty)
+	{
+		m_sourceProperty->editorRenderPropertySheet(editorState);
+	}
+}
+
 void StencilNode::onGraphPropertyChanged(t_graph_property_id id)
 {
 	if (m_StencilArrayProperty && m_StencilArrayProperty->getId() == id)

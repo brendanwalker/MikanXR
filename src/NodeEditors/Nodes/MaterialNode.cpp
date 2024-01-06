@@ -82,7 +82,10 @@ bool MaterialNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void MaterialNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-
+	if (m_sourceProperty)
+	{
+		m_sourceProperty->editorRenderPropertySheet(editorState);
+	}
 }
 
 void MaterialNode::saveToConfig(NodeConfigPtr nodeConfig) const
