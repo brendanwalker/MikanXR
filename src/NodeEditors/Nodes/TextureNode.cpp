@@ -3,6 +3,7 @@
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
+#include "TextureAssetReference.h"
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
 #include "Properties/GraphVariableList.h"
@@ -117,6 +118,11 @@ void TextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) 
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
 }
 
+std::string TextureNode::editorGetTitle() const
+{
+	return m_sourceProperty ? m_sourceProperty->getTextureAssetReference()->getShortName() : "Texture"; 
+}
+
 void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 {
 	editorRenderPushNodeStyle(editorState);
@@ -171,6 +177,7 @@ NodePtr TextureNodeFactory::createNode(const NodeEditorState& editorState) const
 	// Create the node and pins
 	NodePtr node = NodeFactory::createNode(editorState);
 	auto outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
+	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

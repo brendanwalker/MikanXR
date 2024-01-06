@@ -70,7 +70,7 @@ void EventNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) co
 
 std::string EventNode::editorGetTitle() const
 {
-	return m_eventName.empty() ? m_eventName : k_nodeClassName;
+	return !m_eventName.empty() ? m_eventName : k_nodeClassName;
 }
 
 // -- EventNode Factory -----

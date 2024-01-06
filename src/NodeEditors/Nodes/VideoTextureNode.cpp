@@ -81,6 +81,7 @@ bool VideoTextureNode::evaluateNode(NodeEvaluator& evaluator)
 	// it's safest to just refresh the output texture pin every frame
 	auto outputPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
 	outputPin->setValue(getTextureResource());
+	outputPin->editorSetShowPinName(false);
 
 	return true;
 }
@@ -141,6 +142,7 @@ NodePtr VideoTextureNodeFactory::createNode(const NodeEditorState& editorState) 
 	// Create the node and pins
 	NodePtr node = NodeFactory::createNode(editorState);
 	auto outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
+	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

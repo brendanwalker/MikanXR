@@ -42,7 +42,7 @@ public:
 
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
-	virtual std::string editorGetTitle() const override { return "Stencil"; }
+	virtual std::string editorGetTitle() const override;
 
 	void onGraphPropertyChanged(t_graph_property_id id);
 
@@ -57,4 +57,5 @@ public:
 	StencilNodeFactory() = default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
+	virtual bool editorCanCreate() const override { return false; }
 };

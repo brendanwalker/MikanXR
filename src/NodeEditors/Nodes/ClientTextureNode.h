@@ -35,7 +35,7 @@ public:
 
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
-	virtual std::string editorGetTitle() const override { return "Client Texture"; }
+	virtual std::string editorGetTitle() const override;
 
 protected:
 	eClientTextureType m_clientTextureType= eClientTextureType::color;

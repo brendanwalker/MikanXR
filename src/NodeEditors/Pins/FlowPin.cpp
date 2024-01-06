@@ -1,5 +1,10 @@
 #include "FlowPin.h"
 
+FlowPin::FlowPin() : NodePin()
+{
+	m_bEditorShowPinName= false;
+}
+
 ImNodesPinShape FlowPin::editorRenderBeginPin(float alpha)
 {
 	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;

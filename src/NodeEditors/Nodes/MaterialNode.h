@@ -40,7 +40,7 @@ public:
 
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
-	virtual std::string editorGetTitle() const override { return "Material"; }
+	virtual std::string editorGetTitle() const override;
 
 	void onGraphPropertyChanged(t_graph_property_id id);
 
@@ -54,5 +54,6 @@ class MaterialNodeFactory : public TypedNodeFactory<MaterialNode, MaterialNodeCo
 public:
 	MaterialNodeFactory() = default;
 
+	virtual bool editorCanCreate() const override { return false; }
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

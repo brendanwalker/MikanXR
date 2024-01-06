@@ -71,7 +71,9 @@ public:
 	virtual void editorRenderEndLink();
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) {}
 	virtual ImU32 editorGetLinkStyleColor() const;
-	virtual bool editorShowPinName() const { return true; }
+
+	void editorSetShowPinName(bool bFlag) { m_bEditorShowPinName= bFlag; }
+	bool editorShowPinName() const { return m_bEditorShowPinName; }
 
 protected:
 	t_node_pin_id m_id;
@@ -79,6 +81,9 @@ protected:
 	std::string m_name;
 	NodePtr m_ownerNode;
 	std::vector<NodeLinkPtr> m_connectedLinks;
+
+	// Editor Flags
+	bool m_bEditorShowPinName= true;
 };
 
 class NodePinFactory

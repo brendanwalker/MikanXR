@@ -126,6 +126,11 @@ void MaterialNode::editorRenderPushNodeStyle(const NodeEditorState& editorState)
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
 }
 
+std::string MaterialNode::editorGetTitle() const 
+{ 
+	return m_sourceProperty ? m_sourceProperty->getMaterialAssetReference()->getShortName() : "Material"; 
+}
+
 void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 {
 	editorRenderPushNodeStyle(editorState);
@@ -184,6 +189,7 @@ NodePtr MaterialNodeFactory::createNode(const NodeEditorState& editorState) cons
 	NodePtr node = NodeFactory::createNode(editorState);
 	PropertyPinPtr outputPin = node->addPin<PropertyPin>("material", eNodePinDirection::OUTPUT);
 	outputPin->setPropertyClassName(GraphMaterialProperty::k_propertyClassName);
+	outputPin->editorSetShowPinName(false);
 	//TODO: Add vertex definition attribute to the pin
 
 	// If spawned in an editor context from a dangling pin link

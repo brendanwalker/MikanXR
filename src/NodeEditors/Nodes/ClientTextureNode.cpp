@@ -66,7 +66,6 @@ private:
 	};
 
 	std::vector<ComboEntry> comboEntries;
-	int selectedListIndex = -1;
 };
 
 // -- ClientTextureNodeConfig -----
@@ -147,6 +146,11 @@ void ClientTextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorS
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
 }
 
+std::string ClientTextureNode::editorGetTitle() const
+{
+	return !isDefaultNode() ? StringUtils::stringify("Client Source ", m_clientIndex) : "Client Source";
+}
+
 void ClientTextureNode::editorRenderNode(const NodeEditorState& editorState)
 {
 	editorRenderPushNodeStyle(editorState);
@@ -204,6 +208,7 @@ NodePtr ClientTextureNodeFactory::createNode(const NodeEditorState& editorState)
 	// Create the node and pins
 	NodePtr node = NodeFactory::createNode(editorState);
 	auto outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
+	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

@@ -118,6 +118,11 @@ void ModelNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) co
 	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
 }
 
+std::string ModelNode::editorGetTitle() const
+{
+	return m_sourceProperty ? m_sourceProperty->getModelAssetReference()->getShortName() : "Model";
+}
+
 void ModelNode::editorRenderNode(const NodeEditorState& editorState)
 {
 	editorRenderPushNodeStyle(editorState);
@@ -165,6 +170,7 @@ NodePtr ModelNodeFactory::createNode(const NodeEditorState& editorState) const
 	NodePtr node = NodeFactory::createNode(editorState);
 	auto outputPin = node->addPin<PropertyPin>("model", eNodePinDirection::OUTPUT);
 	outputPin->setPropertyClassName(GraphModelProperty::k_propertyClassName);
+	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

@@ -38,7 +38,7 @@ public:
 
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
-	virtual std::string editorGetTitle() const override { return "Model"; }
+	virtual std::string editorGetTitle() const override;
 
 	void onGraphPropertyChanged(t_graph_property_id id);
 
@@ -53,4 +53,5 @@ public:
 	ModelNodeFactory() = default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
+	virtual bool editorCanCreate() const override { return false; }
 };

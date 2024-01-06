@@ -1,6 +1,7 @@
 #include "StencilNode.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
+#include "StencilComponent.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
 #include "Pins/PropertyPin.h"
@@ -141,6 +142,20 @@ void StencilNode::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderPopNodeStyle(editorState);
 }
 
+std::string StencilNode::editorGetTitle() const
+{
+	if (m_sourceProperty)
+	{
+		StencilComponentPtr stencilComponent= m_sourceProperty->getStencilComponent();
+		if (stencilComponent)
+		{
+			return stencilComponent->getName();
+		}
+	}
+
+	return "Stencil";
+}
+
 void StencilNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	if (m_sourceProperty)
@@ -170,6 +185,7 @@ NodePtr StencilNodeFactory::createNode(const NodeEditorState& editorState) const
 	NodePtr node = NodeFactory::createNode(editorState);
 	PropertyPinPtr outputPin = node->addPin<PropertyPin>("Stencil", eNodePinDirection::OUTPUT);
 	outputPin->setPropertyClassName(GraphStencilProperty::k_propertyClassName);
+	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

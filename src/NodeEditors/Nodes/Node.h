@@ -39,6 +39,8 @@ public:
 	Node();
 	virtual ~Node() {}
 
+	inline bool isDefaultNode() const { return m_id == -1; }
+
 	inline static const std::string k_nodeClassName = "Node";
 	virtual std::string getClassName() const { return k_nodeClassName; }
 
