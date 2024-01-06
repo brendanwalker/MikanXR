@@ -110,6 +110,7 @@ GlTexture* FontManager::fetchBakedText(
 
 		// Reset the cache lifetime if we just requested the texture again
 		bakedText.lifetime= defaultLifetime;
+
 		return bakedText.texture;
 	}
 	else
@@ -136,7 +137,7 @@ GlTexture* FontManager::fetchBakedText(
 
 				if (texture->createTexture())
 				{
-					GlBakedText bakedText = { texture, defaultLifetime };
+					GlBakedText bakedText = { texture, text, defaultLifetime };
 					m_bakedTextCache.insert({ hash, bakedText });
 				}
 				else

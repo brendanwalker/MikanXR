@@ -28,6 +28,7 @@ private:
 	struct GlBakedText
 	{
 		class GlTexture* texture;
+		std::wstring text;
 		int lifetime;
 	};
 
