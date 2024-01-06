@@ -20,7 +20,7 @@ class MaterialAssetReferenceFactory :
 	public TypedAssetReferenceFactory<MaterialAssetReference, AssetReferenceConfig>
 {
 public:
-	MaterialAssetReferenceFactory() = default;
+	MaterialAssetReferenceFactory();
 
 	virtual std::string getAssetTypeName() const { return "Material"; }
 	virtual char const* getFileDialogTitle() const { return "Load Material"; }

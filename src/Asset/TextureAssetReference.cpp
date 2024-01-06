@@ -1,5 +1,6 @@
 #include "TextureAssetReference.h"
 #include "GlTexture.h"
+#include "PathUtils.h"
 
 // -- MaterialAssetReference -----
 void TextureAssetReference::rebuildPreview()
@@ -16,4 +17,11 @@ void TextureAssetReference::rebuildPreview()
 void TextureAssetReference::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// TODO: Render material asset properties 
+}
+
+// -- TextureAssetReferenceFactory -----
+TextureAssetReferenceFactory::TextureAssetReferenceFactory()
+	: TypedAssetReferenceFactory<TextureAssetReference, AssetReferenceConfig>()
+{
+	m_defaultPath = (PathUtils::getResourceDirectory() / "textures" / "").string();
 }

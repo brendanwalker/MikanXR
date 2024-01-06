@@ -21,7 +21,7 @@ class TextureAssetReferenceFactory :
 	public TypedAssetReferenceFactory<TextureAssetReference, AssetReferenceConfig>
 {
 public:
-	TextureAssetReferenceFactory() = default;
+	TextureAssetReferenceFactory();
 
 	virtual std::string getAssetTypeName() const { return "Texture"; }
 	virtual char const* getFileDialogTitle() const { return "Load Texture"; }

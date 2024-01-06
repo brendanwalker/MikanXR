@@ -20,7 +20,7 @@ class ModelAssetReferenceFactory :
 	public TypedAssetReferenceFactory<ModelAssetReference, AssetReferenceConfig>
 {
 public:
-	ModelAssetReferenceFactory() = default;
+	ModelAssetReferenceFactory();
 
 	virtual std::string getAssetTypeName() const { return "Model"; }
 	virtual char const* getFileDialogTitle() const { return "Load Model"; }

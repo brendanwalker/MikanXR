@@ -21,7 +21,7 @@ class NodeGraphAssetReferenceFactory :
 	public TypedAssetReferenceFactory<NodeGraphAssetReference, AssetReferenceConfig>
 {
 public:
-	NodeGraphAssetReferenceFactory() = default;
+	NodeGraphAssetReferenceFactory();
 
 	virtual std::string getAssetTypeName() const { return "NodeGraph"; }
 	virtual char const* getFileDialogTitle() const { return "Load NodeGraph"; }

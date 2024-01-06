@@ -11,6 +11,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
+#include "PathUtils.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
 #include "StringUtils.h"
@@ -869,9 +870,10 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 	// bring up the save path dialog
 	if (m_editorState.nodeGraphPath.empty() || bShowFileDialog)
 	{
+		std::string defautPath= (PathUtils::getResourceDirectory() / "graphs" / "new_graph.graph").string();
 		const char* filterItems[1] = {"*.graph"};
 		const char* filterDesc = "Graph Files (*.graph)";
-		auto path = tinyfd_saveFileDialog("Save Compositor Graph", "", 1, filterItems, filterDesc);
+		auto path = tinyfd_saveFileDialog("Save Compositor Graph", defautPath.c_str(), 1, filterItems, filterDesc);
 		if (path)
 		{
 			m_editorState.nodeGraphPath= path;

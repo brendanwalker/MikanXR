@@ -61,7 +61,7 @@ public:
 
 	virtual std::string getAssetTypeName() const { return "Asset"; }
 	virtual char const* getFileDialogTitle() const { return "Load Asset"; }
-	virtual char const* getDefaultPath() const { return ""; }
+	virtual char const* getDefaultPath() const { return m_defaultPath.c_str(); }
 	virtual char const* const* getFilterPatterns() const { return nullptr; }
 	virtual int getFilterPatternCount() const { return 0; }
 	virtual char const* getFilterDescription() const { return ""; }
@@ -81,6 +81,7 @@ public:
 
 protected:
 	AssetReferencePtr m_defaultAssetRefObject;
+	std::string m_defaultPath;
 };
 
 template <class t_assetref_class, class t_assetref_config_class>
