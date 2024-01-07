@@ -106,6 +106,29 @@ void Node::setOwnerGraph(NodeGraphPtr ownerGraph)
 	m_ownerGraph = ownerGraph; 
 }
 
+NodePinPtr Node::addPinByClassName(const std::string& className, const std::string& name, eNodePinDirection direction)
+{
+	NodePtr ownerNode = shared_from_this();
+	NodeGraphPtr ownerGraph= ownerNode->getOwnerGraph();
+	assert(ownerGraph);
+	NodePinFactoryPtr pinFactory= ownerGraph->getPinFactory(className);
+	assert(pinFactory);
+	NodePinPtr pin= pinFactory->allocatePin();
+	assert(pin);
+
+	pin->setId(ownerNode->getOwnerGraph()->allocateId());
+	pin->setOwnerNode(ownerNode);
+	pin->setName(name);
+	pin->setDirection(direction);
+	if (direction == eNodePinDirection::OUTPUT) m_pinsOut.push_back(pin);
+	else if (direction == eNodePinDirection::INPUT) m_pinsIn.push_back(pin);
+
+	// Tell the graph about the new pin
+	ownerGraph->addPin(pin);
+
+	return pin;
+}
+
 bool Node::disconnectPin(NodePinPtr pinPtr)
 {
 	if (pinPtr->getDirection() == eNodePinDirection::INPUT)

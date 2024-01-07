@@ -32,7 +32,8 @@ class NodePin  : public std::enable_shared_from_this<NodePin>
 public:
 	NodePin();
 
-	virtual std::string getClassName() const { return "NodePin"; }
+	inline static const std::string k_pinClassName = "NodePin";
+	virtual std::string getClassName() const { return k_pinClassName; }
 
 	virtual bool loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config);
 	virtual void saveToConfig(NodePinConfigPtr config) const;

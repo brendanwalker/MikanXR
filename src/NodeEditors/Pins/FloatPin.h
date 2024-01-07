@@ -8,7 +8,8 @@ class FloatPinBase : public NodePin
 public:
 	FloatPinBase() = default;
 
-	virtual std::string getClassName() const override { return "FloatPinBase"; }
+	inline static const std::string k_pinClassName = "FloatPinBase";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual float editorComputeInputWidth() const;
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
@@ -22,7 +23,8 @@ public:
 	float getValue() const { return value; }
 	void setValue(float inValue) { value = inValue; }
 
-	virtual std::string getClassName() const override { return "FloatPin"; }
+	inline static const std::string k_pinClassName = "FloatPin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
@@ -41,7 +43,8 @@ public:
 	const std::array<float, 2>& getValue() const { return value; }
 	void setValue(const std::array<float, 2>& inValue) { value = inValue; }
 
-	virtual std::string getClassName() const override { return "Float2Pin"; }
+	inline static const std::string k_pinClassName = "Float2Pin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return 2*sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
@@ -58,7 +61,8 @@ public:
 	const std::array<float, 3>& getValue() const { return value; }
 	void setValue(const std::array<float, 3>& inValue) { value = inValue; }
 
-	virtual std::string getClassName() const override { return "Float3Pin"; }
+	inline static const std::string k_pinClassName = "Float3Pin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return 3*sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
@@ -75,7 +79,8 @@ public:
 	const std::array<float, 4>& getValue() const { return value; }
 	void setValue(const std::array<float, 4>& inValue) { value = inValue; }
 
-	virtual std::string getClassName() const override { return "Float4Pin"; }
+	inline static const std::string k_pinClassName = "Float4Pin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return 4*sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;

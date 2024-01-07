@@ -265,9 +265,9 @@ public:
 		m_pinFactories.insert({pinClassName, factory});
 	}
 
-	NodePinFactoryPtr getPinFactory(const std::string nodeClassName) const
+	NodePinFactoryPtr getPinFactory(const std::string pinClassName) const
 	{
-		auto it = m_pinFactories.find(nodeClassName);
+		auto it = m_pinFactories.find(pinClassName);
 
 		return (it != m_pinFactories.end()) ? it->second : NodePinFactoryPtr();
 	}

@@ -15,6 +15,7 @@
 #include "TextureAssetReference.h"
 
 // Properties
+#include "Properties/GraphBoolProperty.h"
 #include "Properties/GraphMaterialProperty.h"
 #include "Properties/GraphModelProperty.h"
 #include "Properties/GraphStencilProperty.h"
@@ -48,6 +49,7 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addAssetReferenceFactory<TextureAssetReferenceFactory>();
 
 	// Add property types this graph can use
+	addPropertyFactory<GraphBoolPropertyFactory>();
 	addPropertyFactory<GraphMaterialPropertyFactory>();
 	addPropertyFactory<GraphTexturePropertyFactory>();
 	addPropertyFactory<GraphStencilPropertyFactory>();

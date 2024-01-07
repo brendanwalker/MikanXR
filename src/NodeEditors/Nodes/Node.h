@@ -77,20 +77,10 @@ public:
 	template <class t_pin_type>
 	std::shared_ptr<t_pin_type> addPin(const std::string& name, eNodePinDirection direction)
 	{
-		NodePtr ownerNode= shared_from_this();
-		std::shared_ptr<t_pin_type> pin= std::make_shared<t_pin_type>();
-		pin->setId(ownerNode->getOwnerGraph()->allocateId());
-		pin->setOwnerNode(ownerNode);
-		pin->setName(name);
-		pin->setDirection(direction);
-		if (direction == eNodePinDirection::OUTPUT) m_pinsOut.push_back(pin);
-		else if (direction == eNodePinDirection::INPUT) m_pinsIn.push_back(pin);
-
-		// Tell the graph about the new pin
-		ownerNode->getOwnerGraph()->addPin(pin);
-
-		return pin;
+		NodePinPtr newPin= addPinByClassName(t_pin_type::k_pinClassName, name, direction);
+		return std::static_pointer_cast<t_pin_type>(newPin);
 	}
+	NodePinPtr addPinByClassName(const std::string& className, const std::string& name, eNodePinDirection direction);
 
 	bool disconnectPin(NodePinPtr pinPtr);
 	void disconnectAllPins();

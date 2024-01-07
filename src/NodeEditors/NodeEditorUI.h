@@ -12,16 +12,17 @@ namespace NodeEditorUI
 	const std::string& getVariableIcon();
 	const std::string& getArrayIcon();
 
-	const ImVec4& getBooleanColor();
-	const ImVec4& getEnumColor();
-	const ImVec4& getIntColor();
-	const ImVec4& getIntVectorColor();
-	const ImVec4& getFloatColor();
-	const ImVec4& getFloatVectorColor();
-	const ImVec4& getMatrixColor();
-	const ImVec4& getPropertyColor();
-	const ImVec4& getTextureColor();
-	const ImVec4& getComponentColor();
+	const ImVec4 getPinHoveredColor(float alpha = 1.f);
+	const ImVec4 getBooleanColor(float alpha = 1.f);
+	const ImVec4 getEnumColor(float alpha = 1.f);
+	const ImVec4 getIntColor(float alpha = 1.f);
+	const ImVec4 getIntVectorColor(float alpha = 1.f);
+	const ImVec4 getFloatColor(float alpha = 1.f);
+	const ImVec4 getFloatVectorColor(float alpha = 1.f);
+	const ImVec4 getMatrixColor(float alpha = 1.f);
+	const ImVec4 getPropertyColor(float alpha = 1.f);
+	const ImVec4 getTextureColor(float alpha = 1.f);
+	const ImVec4 getComponentColor(float alpha = 1.f);
 
 	bool DrawPropertySheetHeader(const std::string headerText);
 	void DrawStaticTextProperty(const std::string label, const std::string text);

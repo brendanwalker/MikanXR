@@ -6,10 +6,6 @@
 
 #include "Graphs/CompositorNodeGraph.h"
 
-#include "Properties/GraphMaterialProperty.h"
-#include "Properties/GraphStencilProperty.h"
-#include "Properties/GraphTextureProperty.h"
-
 CompositorNodeEditorWindow::CompositorNodeEditorWindow() 
 	: NodeEditorWindow()
 {
@@ -34,22 +30,17 @@ bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 
 void CompositorNodeEditorWindow::handleMainFrameDragDrop(const class NodeEditorState& editorState)
 {
-	if (auto materialProperty = 
-		NodeEditorUI::receiveTypedDragDropPayload<GraphMaterialProperty>(
-			GraphMaterialProperty::k_propertyClassName))
+	std::vector<GraphPropertyFactoryPtr> validFactories= 
+		getNodeGraph()->editorGetValidPropertyFactories(editorState);
+
+	for (auto factory : validFactories)
 	{
-		materialProperty->editorHandleMainFrameDragDrop(editorState);
-	}
-	else if (auto stencilProperty =
-			NodeEditorUI::receiveTypedDragDropPayload<GraphStencilProperty>(
-				GraphStencilProperty::k_propertyClassName))
-	{
-		stencilProperty->editorHandleMainFrameDragDrop(editorState);
-	}
-	else if (auto textureProperty =
-			 NodeEditorUI::receiveTypedDragDropPayload<GraphTextureProperty>(
-				 GraphTextureProperty::k_propertyClassName))
-	{
-		textureProperty->editorHandleMainFrameDragDrop(editorState);
+		if (auto property =
+			NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(
+				factory->getGraphPropertyClassName()))
+		{
+			property->editorHandleMainFrameDragDrop(editorState);
+			break;
+		}
 	}
 }

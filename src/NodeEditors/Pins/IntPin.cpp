@@ -51,17 +51,17 @@ void IntPin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 	}
 }
 
-void IntPin::editorRenderBeginLink(float alpha)
-{
-	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(33, 227, 175, alpha));
-	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(135, 239, 195, alpha));
-	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(135, 239, 195, 255));
-}
+//void IntPin::editorRenderBeginLink(float alpha)
+//{
+//	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(33, 227, 175, alpha));
+//	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(135, 239, 195, alpha));
+//	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(135, 239, 195, 255));
+//}
 
-ImU32 IntPin::editorGetLinkStyleColor() const
-{
-	return IM_COL32(33, 227, 175, 255);
-}
+//ImU32 IntPin::editorGetLinkStyleColor() const
+//{
+//	return IM_COL32(33, 227, 175, 255);
+//}
 
 // -- Int2Pin -----
 void Int2Pin::copyValueFromSourcePin()

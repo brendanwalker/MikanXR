@@ -9,7 +9,8 @@ class IntPinBase : public NodePin
 public:
 	IntPinBase() = default;
 
-	virtual std::string getClassName() const override { return "IntPinBase"; }
+	inline static const std::string k_pinClassName = "IntPinBase";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual float editorComputeInputWidth() const;
 	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
@@ -23,12 +24,13 @@ public:
 	int getValue() const { return value; }
 	void setValue(int inValue) { value = inValue; }
 
-	virtual std::string getClassName() const override { return "IntPin"; }
+	inline static const std::string k_pinClassName = "IntPin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return sizeof(int); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
-	virtual void editorRenderBeginLink(float alpha) override;
-	virtual ImU32 editorGetLinkStyleColor() const override;
+	//virtual void editorRenderBeginLink(float alpha) override;
+	//virtual ImU32 editorGetLinkStyleColor() const override;
 
 protected:
 	int value = 0;
@@ -42,7 +44,8 @@ public:
 	const std::array<int, 2>& getValue() const { return value; }
 	void setValue(const std::array<int, 2>& inValue) { value = inValue; }
 
-	virtual std::string getClassName() const override { return "Int2Pin"; }
+	inline static const std::string k_pinClassName = "Int2Pin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return 2*sizeof(int); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
@@ -59,7 +62,8 @@ public:
 	const std::array<int, 3>& getValue() const { return value; }
 	void setValue(const std::array<int, 3>& inValue) { value = inValue; }
 
-	virtual std::string getClassName() const override { return "Int3Pin"; }
+	inline static const std::string k_pinClassName = "Int3Pin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return 3*sizeof(int); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
@@ -76,7 +80,8 @@ public:
 	const std::array<int, 4>& getValue() const { return value; }
 	void setValue(const std::array<int, 4>& inValue) { value = inValue; }
 
-	virtual std::string getClassName() const override { return "Int4Pin"; }
+	inline static const std::string k_pinClassName = "Int4Pin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return 4*sizeof(int); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;

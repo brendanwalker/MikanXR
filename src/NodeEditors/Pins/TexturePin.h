@@ -11,7 +11,8 @@ public:
 	GlTexturePtr getValue() const { return m_value; }
 	void setValue(GlTexturePtr inValue) { m_value = inValue; }
 
-	virtual std::string getClassName() const override { return "TexturePin"; }
+	inline static const std::string k_pinClassName = "TexturePin";
+	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return sizeof(GlTexturePtr); }
 	virtual void copyValueFromSourcePin() override;
 

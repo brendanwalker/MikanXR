@@ -89,10 +89,18 @@ class VideoTextureNode;
 using VideoTextureNodePtr = std::shared_ptr<VideoTextureNode>;
 using VideoTextureNodeConstPtr = std::shared_ptr<const VideoTextureNode>;
 
+class VariableNode;
+using VariableNodePtr = std::shared_ptr<VariableNode>;
+using VariableNodeConstPtr = std::shared_ptr<const VariableNode>;
+
 // Pin Types
 class ArrayPin;
 using ArrayPinPtr = std::shared_ptr<ArrayPin>;
 using ArrayPinConstPtr = std::shared_ptr<const ArrayPin>;
+
+class BoolPin;
+using BoolPinPtr = std::shared_ptr<BoolPin>;
+using BoolPinConstPtr = std::shared_ptr<const BoolPin>;
 
 class FloatPin;
 using FloatPinPtr = std::shared_ptr<FloatPin>;
@@ -150,6 +158,10 @@ class TexturePin;
 using TexturePinPtr = std::shared_ptr<TexturePin>;
 using TexturePinConstPtr = std::shared_ptr<const TexturePin>;
 
+class ValuePin;
+using ValuePinPtr = std::shared_ptr<ValuePin>;
+using ValuePinConstPtr = std::shared_ptr<const ValuePin>;
+
 // Graph Properties
 class GraphProperty;
 using GraphPropertyPtr = std::shared_ptr<GraphProperty>;
@@ -182,3 +194,7 @@ using GraphStencilPropertyConstPtr = std::shared_ptr<const GraphStencilProperty>
 class GraphTextureProperty;
 using GraphTexturePropertyPtr = std::shared_ptr<GraphTextureProperty>;
 using GraphTexturePropertyConstPtr = std::shared_ptr<const GraphTextureProperty>;
+
+class GraphValueProperty;
+using GraphValuePropertyPtr = std::shared_ptr<GraphValueProperty>;
+using GraphValuePropertyConstPtr = std::shared_ptr<const GraphValueProperty>;
