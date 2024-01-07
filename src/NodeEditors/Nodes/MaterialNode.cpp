@@ -125,7 +125,22 @@ void MaterialNode::editorRenderPushNodeStyle(const NodeEditorState& editorState)
 
 std::string MaterialNode::editorGetTitle() const 
 { 
-	return m_sourceProperty ? m_sourceProperty->getMaterialAssetReference()->getShortName() : "Material"; 
+	if (m_sourceProperty)
+	{
+		auto assetRef= m_sourceProperty->getMaterialAssetReference();
+		if (assetRef)
+		{
+			return assetRef->getShortName();		
+		}
+		else
+		{
+			return m_sourceProperty->getName();
+		}
+	}
+	else
+	{
+		return "Empty Material";
+	}
 }
 
 void MaterialNode::editorRenderNode(const NodeEditorState& editorState)

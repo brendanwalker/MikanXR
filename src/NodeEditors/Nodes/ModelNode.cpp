@@ -117,7 +117,23 @@ void ModelNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) co
 
 std::string ModelNode::editorGetTitle() const
 {
-	return m_sourceProperty ? m_sourceProperty->getModelAssetReference()->getShortName() : "Model";
+	if (m_sourceProperty)
+	{
+		auto assetRef = m_sourceProperty->getModelAssetReference();
+		if (assetRef)
+		{
+			return assetRef->getShortName();
+		}
+		else
+		{
+			return m_sourceProperty->getName();
+		}
+	}
+	else
+	{
+		return "Empty Model";
+	}
+
 }
 
 void ModelNode::editorRenderNode(const NodeEditorState& editorState)

@@ -117,7 +117,22 @@ void TextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) 
 
 std::string TextureNode::editorGetTitle() const
 {
-	return m_sourceProperty ? m_sourceProperty->getTextureAssetReference()->getShortName() : "Texture"; 
+	if (m_sourceProperty)
+	{
+		auto assetRef = m_sourceProperty->getTextureAssetReference();
+		if (assetRef)
+		{
+			return assetRef->getShortName();
+		}
+		else
+		{
+			return m_sourceProperty->getName();
+		}
+	}
+	else
+	{
+		return "Empty Texture";
+	}
 }
 
 void TextureNode::editorRenderNode(const NodeEditorState& editorState)
