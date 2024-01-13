@@ -69,6 +69,8 @@ public:
 		return appStage;
 	}
 
+	void processPendingAppStageOps();
+
 	void popAppState()
 	{
 		assert(bAppStackOperationAllowed);
@@ -137,7 +139,6 @@ protected:
 	void onSDLEvent(SDL_Event& e);
 
 	void update();
-	void processPendingAppStageOps();
 	void updateAutoSave(float deltaSeconds);
 	void render();
 
@@ -147,6 +148,8 @@ private:
 	// Profile Config
 	ProfileConfigPtr m_profileConfig;
 	float m_profileSaveCooldown= -1.f;
+
+	//TOOD: Move this to the main window
 
 	// Mikan API Server
 	class MikanServer* m_mikanServer= nullptr;

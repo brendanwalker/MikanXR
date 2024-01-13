@@ -21,6 +21,8 @@ public:
 	void renderBegin();
 	void renderEnd();
 
+	void makeCurrent();
+
 	int getWindowId() const { return m_windowId; }
 
 	// NOTE: This needs to be called before startup for it to do anything

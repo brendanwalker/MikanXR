@@ -1,13 +1,17 @@
 #include "CompositorNodeGraph.h"
+#include "GlCommon.h"
+#include "GlFrameBuffer.h"
 #include "GlProgram.h"
 #include "GlRenderModelResource.h"
 #include "GlModelResourceManager.h"
+#include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "ModelStencilComponent.h"
 #include "StencilObjectSystem.h"
+#include "VideoSourceView.h"
 
 // Assets References
 #include "ModelAssetReference.h"
@@ -71,6 +75,9 @@ bool CompositorNodeGraph::createResources()
 {
 	assert(getOwnerWindow());
 
+	// Create the frame buffer, but don't init it's resources yet
+	m_compositingFrameBuffer = std::make_shared<GlFrameBuffer>("Compositing Node Graph Frame Buffer");
+
 	// Start listening for Model stencil changes
 	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty +=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
@@ -83,6 +90,9 @@ bool CompositorNodeGraph::createResources()
 
 void CompositorNodeGraph::disposeResources()
 {
+	// Clean up the frame buffer
+	m_compositingFrameBuffer = nullptr;
+
 	// Stop listening for Model stencil changes
 	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty -=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
@@ -120,11 +130,25 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 	if (m_compositeFrameEventNode)
 	{
+		// Make sure the frame buffer is the correct size
+		updateCompositingFrameBufferSize(evaluator);
+		
+		// Bind the frame buffer that we render the composited frame to
+		m_compositingFrameBuffer->bindFrameBuffer();
+
+		// Turn off depth testing for compositing
+		GlScopedState updateCompositeGlStateScope = evaluator.getCurrentWindow()->getGlStateStack().createScopedState();
+		updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
+
+		// Evaluate the composite frame nodes
 		evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
 		if (evaluator.getLastErrorCode() != eNodeEvaluationErrorCode::NONE)
 		{
 			MIKAN_LOG_ERROR("CompositorNodeGraph::compositeFrame - Error: ") << evaluator.getLastErrorMessage();
 		}
+
+		// Unbind the layer frame buffer
+		m_compositingFrameBuffer->unbindFrameBuffer();
 	}
 	else
 	{
@@ -133,6 +157,16 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 	}
 
 	return evaluator.getLastErrorCode() == eNodeEvaluationErrorCode::NONE;
+}
+
+GlTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
+{
+	return m_compositingFrameBuffer->getTexture();
+}
+
+void CompositorNodeGraph::setExternalCompositedFrameTexture(GlTexturePtr externalTexture)
+{
+	m_compositingFrameBuffer->setExternalTexture(externalTexture);
 }
 
 GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
@@ -226,6 +260,23 @@ bool CompositorNodeGraph::createStencilShader()
 	}
 
 	return true;
+}
+
+void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evaluator)
+{
+	// Use the current video source's frame size
+	VideoSourceViewPtr videoSource = evaluator.getCurrentVideoSourceView();
+	if (videoSource)
+	{
+		int frameWidth = (int)videoSource->getFrameWidth();
+		int frameHeight = (int)videoSource->getFrameHeight();
+
+		// Does nothing if the frame buffer is already the correct size
+		m_compositingFrameBuffer->setSize(frameWidth, frameHeight);
+	}
+
+	// (Re)Initialize the frame buffer if it's in an invalid state
+	m_compositingFrameBuffer->createResources();
 }
 
 const GlProgramCode* CompositorNodeGraph::getStencilShaderCode()

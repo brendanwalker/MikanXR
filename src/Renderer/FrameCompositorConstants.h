@@ -82,3 +82,14 @@ enum class eClientTextureType
 	COUNT
 };
 extern const std::string* k_clientTextureTypeStrings;
+
+enum class eCompositorEvaluatorWindow
+{
+	INVALID = -1,
+
+	mainWindow,
+	editorWindow,
+
+	COUNT
+};
+extern const std::string* k_compositorEvaluatorWindow;

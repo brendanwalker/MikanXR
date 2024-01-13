@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GlTypesFwd.h"
+#include "RendererFwd.h"
 
 #include <string>
 #include <vector>
@@ -13,39 +14,36 @@ public:
 	GlFrameBuffer(const std::string& name);
 	~GlFrameBuffer();
 
-	void createFrameBuffer();
-	bool needsInit() const;
-	void disposeFrameBuffer();
+	bool isValid() const { return m_bIsValid; }
+
+	bool createResources();
+	void disposeResources();
 
 	bool bindFrameBuffer();
 	void unbindFrameBuffer();
 
-	void setName(const std::string& name);
-	void setFramebuffer(GLuint framebuffer);
-	std::string getName() const;
-	GLuint getFramebuffer()  const;
-	GLuint getTexture(int index)  const;
-	void setNumAttachments(int n);
-	int getNumAttachments()  const;
-	void setRenderbuffer(bool b);
-	bool hasRenderbuffer()  const;
+	void setName(const std::string& name) { m_name = name; }
 	void setSize(int width, int height);
-	void getSize(int* width, int* height)  const;
+	void setExternalTexture(GlTexturePtr texture);
+
+	std::string getName() const { return m_name; }
+	GLuint getGlFrameBufferId() const { return m_glFrameBufferId; }
+	int getWidth() const { return m_width; }
+	int getHeight() const { return m_height; }
+	GlTexturePtr getTexture() const;
 
 private:
 	std::string m_name;
 	GLuint m_glFrameBufferId= -1;
-	int m_numAttachments= 0;
-	bool m_hasRenderBuffer= false;
 
 	int m_width= 800;
 	int m_height= 600;
 
-	bool m_needsInit= false;
-	bool m_bIsBound= false;
-
-	std::vector<GLuint> m_glTextureIds;
+	GlTexturePtr m_texture;
+	bool m_bIsExternalTexture= false;
 	GLuint m_glRenderBufferID= -1;
 
 	GLint m_lastiewport[4];
+	bool m_bIsBound= false;
+	bool m_bIsValid= false;
 };

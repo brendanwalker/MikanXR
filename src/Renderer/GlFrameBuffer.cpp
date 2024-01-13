@@ -1,5 +1,10 @@
 #include "GlFrameBuffer.h"
 #include "GlCommon.h"
+#include "GLStateStack.h"
+#include "GlTexture.h"
+#include "Logger.h"
+
+#include <assert.h>
 
 GlFrameBuffer::GlFrameBuffer(const std::string& name) 
 	: m_name(name)
@@ -8,180 +13,134 @@ GlFrameBuffer::GlFrameBuffer(const std::string& name)
 
 GlFrameBuffer::~GlFrameBuffer()
 {
-	disposeFrameBuffer();
+	disposeResources();
 }
 
-void GlFrameBuffer::setName(const std::string& name)
+bool GlFrameBuffer::createResources()
 {
-	m_name = name;
-}
-
-void GlFrameBuffer::setFramebuffer(GLuint framebuffer)
-{
-	disposeFrameBuffer();
-	m_glFrameBufferId = framebuffer;
-	m_needsInit = true;
-}
-
-std::string GlFrameBuffer::getName() const
-{
-	return m_name;
-}
-
-GLuint GlFrameBuffer::getFramebuffer() const
-{
-	return m_glFrameBufferId;
-}
-
-GLuint GlFrameBuffer::getTexture(int index) const
-{
-	if (index < m_glTextureIds.size())
-		return m_glTextureIds[index];
-	return -1;
-}
-
-void GlFrameBuffer::setNumAttachments(int n)
-{
-	m_numAttachments = n;
-	m_needsInit = true;
-}
-
-int GlFrameBuffer::getNumAttachments() const
-{
-	return m_numAttachments;
-}
-
-void GlFrameBuffer::setRenderbuffer(bool b)
-{
-	m_hasRenderBuffer = b;
-	m_needsInit = true;
-}
-
-bool GlFrameBuffer::hasRenderbuffer() const
-{
-	return m_hasRenderBuffer;
-}
-
-void GlFrameBuffer::setSize(int width, int height)
-{
-	m_width = width;
-	m_height = height;
-
-	m_needsInit = true;
-}
-
-void GlFrameBuffer::getSize(int* width, int* height) const
-{
-	*width = m_width;
-	*height = m_height;
-}
-
-void GlFrameBuffer::createFrameBuffer()
-{
-	if (m_glFrameBufferId == 0)
+	if (!m_bIsValid)
 	{
-		m_needsInit = false;
-		return;
-	}
+		disposeResources();
 
-	// Delete old framebuffer
-	if (m_glFrameBufferId != -1)
-		glDeleteFramebuffers(1, &m_glFrameBufferId);
-	glDeleteTextures((GLsizei)m_glTextureIds.size(), m_glTextureIds.data());
-	std::vector<uint32_t>().swap(m_glTextureIds);
-	if (m_glRenderBufferID != -1)
-		glDeleteRenderbuffers(1, &m_glRenderBufferID);
+		// Create new frame buffer
+		glGenFramebuffers(1, &m_glFrameBufferId);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
 
-	// Create new framebuffer
-	glGenFramebuffers(1, &m_glFrameBufferId);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+		// Create a color attachment texture with a double buffered pixel-buffer-object for reading
+		if (!m_texture)
+		{
+			assert(!m_bIsExternalTexture);
+			m_texture = std::make_shared<GlTexture>();
+			m_texture->setSize(m_width, m_height);
+			m_texture->setTextureFormat(GL_RGB);
+			m_texture->setBufferFormat(GL_RGB);
+			m_texture->setGenerateMipMap(false);
+			m_texture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
+			m_texture->createTexture();
 
-	// Create attachments
-	for (int i = 0; i < m_numAttachments; i++)
-	{
-		uint32_t texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texture, 0);
-		m_glTextureIds.push_back(texture);
-	}
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->getGlTextureId(), 0);
+		}
 
-	// Create renderbuffer
-	if (m_hasRenderBuffer)
-	{
+		// Create render buffer
 		glGenRenderbuffers(1, &m_glRenderBufferID);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_glRenderBufferID);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_glRenderBufferID);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		m_bIsValid = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+		if (!m_bIsValid)
+		{
+			MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	m_needsInit = false;
+	return m_bIsValid;
 }
 
-bool GlFrameBuffer::needsInit() const
+void GlFrameBuffer::setSize(int width, int height)
 {
-	return m_needsInit;
+	if (m_width != width || m_height != height)
+	{
+		m_width = width;
+		m_height = height;
+		m_bIsValid = false;
+	}
 }
 
-void GlFrameBuffer::disposeFrameBuffer()
+void GlFrameBuffer::setExternalTexture(GlTexturePtr texture)
 {
-	if (m_glFrameBufferId == 0)
-		return;
+	if (m_texture != texture)
+	{
+		if (texture)
+		{
+			m_texture = texture;
+			m_bIsExternalTexture = true;
+		}
+		else
+		{
+			m_texture = nullptr;
+			m_bIsExternalTexture = false;
+		}
+		m_bIsValid = false;
+	}
+}
 
-	if (m_glFrameBufferId != -1)
-		glDeleteFramebuffers(1, &m_glFrameBufferId);
-	m_glFrameBufferId = -1;
-	glDeleteTextures((GLsizei)m_glTextureIds.size(), m_glTextureIds.data());
-	std::vector<uint32_t>().swap(m_glTextureIds);
+GlTexturePtr GlFrameBuffer::getTexture() const
+{
+	return m_texture;
+}
+
+void GlFrameBuffer::disposeResources()
+{
 	if (m_glRenderBufferID != -1)
 	{
 		glDeleteRenderbuffers(1, &m_glRenderBufferID);
 		m_glRenderBufferID = -1;
 	}
+
+	if (!m_bIsExternalTexture)
+	{
+		m_texture = nullptr;
+	}
+
+	if (m_glFrameBufferId != -1)
+	{
+		glDeleteFramebuffers(1, &m_glFrameBufferId);
+		m_glFrameBufferId = -1;
+	}
+
+	m_bIsValid= false;
 }
 
 bool GlFrameBuffer::bindFrameBuffer()
 {
-	static const int k_maxAttachments = 16;
-
-	if (m_numAttachments > k_maxAttachments)
-		return false;
-
-	if (m_bIsBound)
-		return false;
-
-	// Cache the last viewport dimensions
-	GLint last_viewport[4];
-	glGetIntegerv(GL_VIEWPORT, last_viewport);
-
-	// Change the viewport to match the frame buffer texture
-	glViewport(0, 0, m_width, m_height);
-
-	// bind to framebuffer and draw scene as we normally would to color texture 
-	glBindFramebuffer(GL_FRAMEBUFFER, m_glRenderBufferID);
-
-	//TODO: Apply scoped rendering flags
-	//glStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
-
-	GLenum attachments[k_maxAttachments];
-	for (int i = 0; i < m_numAttachments; i++)
+	if (m_glRenderBufferID != -1 && m_bIsBound)
 	{
-		attachments[i] = GL_COLOR_ATTACHMENT0 + i;
+		// Cache the last viewport dimensions
+		GLint last_viewport[4];
+		glGetIntegerv(GL_VIEWPORT, last_viewport);
+
+		// Change the viewport to match the frame buffer texture
+		glViewport(0, 0, m_width, m_height);
+
+		// Bind to framebuffer and draw scene as we normally would to color texture 
+		glBindFramebuffer(GL_FRAMEBUFFER, m_glRenderBufferID);
+
+		GLenum attachments[1]= {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, attachments);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		m_bIsBound = true;
+
+		return true;
 	}
-	glDrawBuffers(m_numAttachments, attachments);
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	m_bIsBound= true;
-	return true;
+	return false;
 }
 
 void GlFrameBuffer::unbindFrameBuffer()

@@ -22,6 +22,8 @@ public:
 	virtual std::string getClassName() const override { return "CompositorNodeGraph"; }
 	virtual bool loadFromConfig(const NodeGraphConfig& config) override;
 	bool compositeFrame(NodeEvaluator& evaluator);
+	GlTextureConstPtr getCompositedFrameTexture() const;
+	void setExternalCompositedFrameTexture(GlTexturePtr externalTexture);
 
 	// Stencil Models
 	struct StencilVertex
@@ -36,11 +38,13 @@ public:
 protected:
 	static const GlProgramCode* getStencilShaderCode();
 	bool createStencilShader();
+	void updateCompositingFrameBufferSize(NodeEvaluator& evaluator);
 
 	// Stencil System Events
 	void onStencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
+	GlFrameBufferPtr m_compositingFrameBuffer;
 	GlProgramPtr m_stencilShader;
 	std::map<MikanStencilID, GlRenderModelResourcePtr> m_stencilMeshCache;
 	NodePtr m_compositeFrameEventNode;

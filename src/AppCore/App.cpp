@@ -105,7 +105,6 @@ int App::exec(int argc, char** argv)
 			}
 
 			update();
-			render();
 
 			frameTimer.waitForNextFrame();
 		}
@@ -321,51 +320,24 @@ void App::update()
 {
 	EASY_FUNCTION();
 
-	//TODO/HACK Compositor in the main window assume the main windows GL context is active.
-	// We currently call SDL_GL_MakeCurrent as part of IGlWindow::render call.
-	// We really should instead move all gl context dependent work inside IGlWindow::render.
-	// (i.e. GlFrameCompositor should be doing compositing render work in render() call rather than update())
-	// As an easy fix for now, just make the main window's GL context current before app update
-	SdlWindow& sdlWindow= m_mainWindow->getSdlWindow();
-	int result = SDL_GL_MakeCurrent(sdlWindow.getInternalSdlWindow(), sdlWindow.getInternalGlContext());
-	if (result != 0)
-	{
-		const char* errorMessage = SDL_GetError();
-		MIKAN_LOG_ERROR("App::update") << "Error with SDL_GL_MakeCurrent: " << errorMessage;
-	}
-
 	// Update the frame rate
 	const uint32_t now = SDL_GetTicks();
-	const float deltaSeconds= fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
-	m_fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
-	m_lastFrameTimestamp= now;
+	const float deltaSeconds = fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
+	m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
+	m_lastFrameTimestamp = now;
 
-	// Update all connected devices
-	m_videoSourceManager->update(deltaSeconds);
-	m_vrDeviceManager->update(deltaSeconds);
-
-	// Poll rendered frames from client connections
-	m_mikanServer->update();
-
-	// Update any frame compositing state based on new video frames or client render target updates
-	m_frameCompositor->update(deltaSeconds);
-
-	// Garbage collect stale baked text
-	m_fontManager->garbageCollect();
-
-	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
-	processPendingAppStageOps();
-
-	// Update the current app stage last
-	AppStage* appStage = getCurrentAppStage();
-	if (appStage != nullptr && appStage->getIsUpdateActive())
+	for (IGlWindow* window : m_appWindows)
 	{
-		EASY_BLOCK("appStage Update");
-		appStage->update(deltaSeconds);
-	}
+		// Make the window's GL context current first since both update and render access the GL context
+		SdlWindow& sdlWindow = window->getSdlWindow();
+		sdlWindow.makeCurrent();
 
-	// Update the UI layout and data models
-	m_rmlManager->update();
+		// Process window simulation based on time
+		window->update(deltaSeconds);
+
+		// Render the window
+		window->render();
+	}
 
 	// Update profile auto-save
 	updateAutoSave(deltaSeconds);
@@ -406,7 +378,7 @@ void App::processPendingAppStageOps()
 				// Notify any object systems that care about app stage transitions 
 				if (OnAppStageExited)
 					OnAppStageEntered(pendingAppStageOp.appStage);
-
+				
 				// Exit the app stage we are leaving
 				pendingAppStageOp.appStage->exit();
 

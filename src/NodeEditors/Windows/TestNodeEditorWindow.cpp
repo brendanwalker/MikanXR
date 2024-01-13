@@ -196,9 +196,9 @@ void TestNodeEditorWindow::update()
 	}
 	for (int i = 0; i < m_Framebuffers.size(); i++)
 	{
-		if (m_Framebuffers[i]->needsInit())
+		if (!m_Framebuffers[i]->isValid())
 		{
-			m_Framebuffers[i]->createFrameBuffer();
+			m_Framebuffers[i]->createResources();
 			for (auto& node : m_Nodes)
 			{
 				if (node->type == EditorNodeType::PROGRAM)
@@ -1647,8 +1647,8 @@ void TestNodeEditorWindow::renderRightPanel()
 					m_Framebuffers[m_SelectedItemId]->setName(name);
 
 				// Size
-				int x, y;
-				m_Framebuffers[m_SelectedItemId]->getSize(&x, &y);
+				int x= m_Framebuffers[m_SelectedItemId]->getWidth();
+				int y= m_Framebuffers[m_SelectedItemId]->getHeight();
 				ImGui::Text("\t\tWidth");
 				ImGui::SameLine(160);
 				ImGui::SetNextItemWidth(150);
@@ -1667,26 +1667,6 @@ void TestNodeEditorWindow::renderRightPanel()
 					if (y > 4096) y = 4096;
 					m_Framebuffers[m_SelectedItemId]->setSize(x, y);
 				}
-
-				// Attachments
-				ImGui::Text("\t\tAttachments");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				int iVal = m_Framebuffers[m_SelectedItemId]->getNumAttachments();
-				if (ImGui::SliderInt("##framebufferAttachments", &iVal, 0, 8))
-				{
-					if (iVal < 0) iVal = 0;
-					if (iVal > 8) iVal = 8;
-					m_Framebuffers[m_SelectedItemId]->setNumAttachments(iVal);
-				}
-
-				// Renderbuffer
-				ImGui::Text("\t\tRenderbuffer");
-				ImGui::SameLine(160);
-				ImGui::SetNextItemWidth(150);
-				bool hasRenderbuffer = m_Framebuffers[m_SelectedItemId]->hasRenderbuffer();
-				if (ImGui::Checkbox("##framebufferRenderbuffer", &hasRenderbuffer))
-					m_Framebuffers[m_SelectedItemId]->setRenderbuffer(hasRenderbuffer);
 			}
 		}
 	}
@@ -2238,7 +2218,7 @@ void TestNodeEditorWindow::DeleteFramebuffer(int ix)
 	{
 		GlFrameBufferPtr framebuffer= m_Framebuffers[ix];
 
-		framebuffer->disposeFrameBuffer();
+		framebuffer->disposeResources();
 		m_Framebuffers.erase(m_Framebuffers.begin() + ix);
 	}
 }
@@ -2971,7 +2951,7 @@ void TestNodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 
 	if (progNode->dispatchType == EditorProgramDispatchType::ARRAY)
 	{
-		auto framebuffer = progNode->framebuffer->getFramebuffer();
+		auto framebuffer = progNode->framebuffer->getGlFrameBufferId();
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		if (framebuffer == 0)
 		{
@@ -2979,16 +2959,16 @@ void TestNodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 		}
 		else
 		{
-			int width, height;
-			progNode->framebuffer->getSize(&width, &height);
+			int width= progNode->framebuffer->getWidth();
+			int height= progNode->framebuffer->getHeight();;
 			glViewport(0, 0, width, height);
 
-			int numAttachments = progNode->framebuffer->getNumAttachments();
-			GLenum* attachments = new GLenum[numAttachments];
-			for (int i = 0; i < numAttachments; i++)
-				attachments[i] = GL_COLOR_ATTACHMENT0 + i;
-			glDrawBuffers(numAttachments, attachments);
-			delete[] attachments;
+			//int numAttachments = progNode->framebuffer->getNumAttachments();
+			//GLenum* attachments = new GLenum[numAttachments];
+			//for (int i = 0; i < numAttachments; i++)
+			//	attachments[i] = GL_COLOR_ATTACHMENT0 + i;
+			//glDrawBuffers(numAttachments, attachments);
+			//delete[] attachments;
 		}
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -3096,7 +3076,7 @@ void TestNodeEditorWindow::ExecuteProgramNode(EditorProgramNodePtr progNode)
 						attachmentIndex++;
 					}
 
-					texture = connectedProgNode->framebuffer->getTexture(attachmentIndex);
+					texture = connectedProgNode->framebuffer->getTexture()->getGlTextureId();
 				}
 				else if (connectedNode->type == EditorNodeType::TEXTURE)
 				{
@@ -3841,10 +3821,9 @@ void TestNodeEditorWindow::SetProgramNodeFramebuffer(EditorProgramNodePtr node, 
 	}
 
 	GlFrameBufferPtr framebuffer = m_Framebuffers[framebufferId];
-	for (int i = 0; i < framebuffer->getNumAttachments(); i++)
 	{
 		EditorPinPtr pin = std::make_shared<EditorPin>();
-		pin->name = "Attachment " + std::to_string(i);
+		pin->name = "Attachment ";
 		pin->id = (int)m_Pins.size();
 		pin->isOutput = true;
 		pin->type = EditorPinType::TEXTURE;

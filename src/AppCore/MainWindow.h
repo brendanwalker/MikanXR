@@ -22,6 +22,7 @@ public:
 
 	// -- IGlWindow ----
 	virtual bool startup() override;
+	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
 	virtual void shutdown() override;
 

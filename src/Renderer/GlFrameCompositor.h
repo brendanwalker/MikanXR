@@ -138,7 +138,9 @@ public:
 
 	inline const std::vector<Layer>& getLayers() const { return m_layers; }
 	
-	inline GlTextureConstPtr getCompositedFrameTexture() const { return m_compositedFrame; }
+	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
+	GlTexturePtr getEditorWritableFrameTexture() const;
+	GlTextureConstPtr getCompositedFrameTexture() const;
 	inline uint64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
 	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
 	inline GlTexturePtr getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
@@ -167,6 +169,8 @@ protected:
 	bool removeClientSource(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
 \
 	void updateCompositeFrame();
+	void updateCompositeFrameNodeGraph();
+	void updateCompositeFrameLayers();
 	void updateQuadStencils(const CompositorQuadStencilLayerConfig& stencilConfig, GlState* glState);
 	void updateBoxStencils(const CompositorBoxStencilLayerConfig& stencilConfig, GlState* glState);
 	void updateModelStencils(const CompositorModelStencilLayerConfig& stencilConfig, GlState* glState);
@@ -225,7 +229,10 @@ private:
 	GlProgramPtr m_rgbFrameShader = nullptr;
 	GlProgramPtr m_rgbToBgrFrameShader = nullptr; // Keep
 	GlProgramPtr m_stencilShader = nullptr; // Keep
-	GlTexturePtr m_compositedFrame = nullptr;
+
+	eCompositorEvaluatorWindow m_evaluatorWindow = eCompositorEvaluatorWindow::mainWindow;
+	GlTexturePtr m_editorFrameBufferTexture = nullptr;
+	GlTexturePtr m_mainWindowFrameBufferTexture = nullptr;
 	GlTexturePtr m_bgrVideoFrame = nullptr; // BGR, flipped video frame
 
 	// Compositor Node Graph

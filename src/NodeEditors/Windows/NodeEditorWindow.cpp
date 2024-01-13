@@ -201,6 +201,11 @@ bool NodeEditorWindow::startup()
 	return success;
 }
 
+void NodeEditorWindow::update(float deltaSeconds)
+{
+	// Nothing to do
+}
+
 void NodeEditorWindow::render()
 {
 	EASY_FUNCTION();
@@ -441,6 +446,7 @@ void NodeEditorWindow::renderToolbar()
 	ImGui::BeginChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
 
 	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
+	
 	if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
 	{
 		saveGraph(false);

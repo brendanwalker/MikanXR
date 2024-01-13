@@ -1119,125 +1119,40 @@ void GlFrameCompositor::updateCompositeFrame()
 
 	assert(m_pendingCompositeFrameIndex != 0);
 
-	// Cache the last viewport dimensions
-	GLint last_viewport[4];
-	glGetIntegerv(GL_VIEWPORT, last_viewport);
+	// Compute the next undistorted video frame
+	m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex);
 
-	// Change the viewport to match the frame buffer texture
-	glViewport(0, 0, m_compositedFrame->getTextureWidth(), m_compositedFrame->getTextureHeight());
-
-	// bind to framebuffer and draw scene as we normally would to color texture 
-	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
-
-	// Turn off depth testing for compositing
-	MainWindow* mainWindow= MainWindow::getInstance();
-	GlScopedState updateCompositeGlStateScope = mainWindow->getGlStateStack().createScopedState();
-	updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
-
-	// make sure we clear the framebuffer's content
-	glClearColor(0.f, 0.f, 0.f, 0.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Read the next queued frame into a texture to composite
-	if (m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex))
+	// Perform the compositor evaluation
+	GlTextureConstPtr compositedFrameTexture;
+	switch (m_evaluatorWindow)
 	{
-		m_colorTextureSources.setValue("videoTexture", m_videoDistortionView->getVideoTexture());
-		m_colorTextureSources.setValue("distortionTexture", m_videoDistortionView->getDistortionTexture());
-	}
-	else
-	{
-		m_colorTextureSources.setValue("videoTexture", nullptr);
-		m_colorTextureSources.setValue("distortionTexture", nullptr);
-	}
-
-	// If we have a valid compositor node graph, use that to composite the frame
-	if (m_nodeGraph)
-	{
-		NodeEvaluator evaluator = {};
-		evaluator
-			.setCurrentWindow(mainWindow)
-			.setDeltaSeconds(m_timeSinceLastFrameComposited);
-
-		if (!m_nodeGraph->compositeFrame(evaluator))
+	case eCompositorEvaluatorWindow::mainWindow:
 		{
-			MIKAN_LOG_ERROR("GlFrameCompositor::updateCompositeFrame") 
-				<< "Compositor graph eval error: " << evaluator.getLastErrorMessage();
-		}
-	}
-	// Otherwise fall back to old style layer evaluation
-	else
-	{
-		for (GlFrameCompositor::Layer& layer : m_layers)
-		{
-			const CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfig(layer.layerIndex);
-			if (layerConfig == nullptr)
-				continue;
-
-			EASY_BLOCK(layerConfig->shaderConfig.materialName);
-
-			GlScopedState layerGlStateScope = mainWindow->getGlStateStack().createScopedState();
-
-			// Attempt to apply data sources to the layers material parameters
-			applyLayerMaterialFloatValues(*layerConfig, layer);
-			applyLayerMaterialFloat2Values(*layerConfig, layer);
-			applyLayerMaterialFloat3Values(*layerConfig, layer);
-			applyLayerMaterialFloat4Values(*layerConfig, layer);
-			applyLayerMaterialMat4Values(*layerConfig, layer);
-			applyLayerMaterialTextures(*layerConfig, layer);
-
-			// Set the blend mode
-			switch (layerConfig->blendMode)
+			// If we have a valid compositor node graph, use that to composite the frame
+			if (m_nodeGraph)
 			{
-				case eCompositorBlendMode::blendOff:
-					{
-						layerGlStateScope.getStackState().disableFlag(eGlStateFlagType::blend);
-					}
-					break;
-				case eCompositorBlendMode::blendOn:
-					{
-						// https://www.andersriggelsen.dk/glblendfunc.php
-						// (sR*sA) + (dR*(1-sA)) = rR
-						// (sG*sA) + (dG*(1-sA)) = rG
-						// (sB*sA) + (dB*(1-sA)) = rB
-						// (sA*sA) + (dA*(1-sA)) = rA
-						layerGlStateScope.getStackState().enableFlag(eGlStateFlagType::blend);
-						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-						glBlendEquation(GL_FUNC_ADD);
-					}
-					break;
+				updateCompositeFrameNodeGraph();
+
+				// Use the composited frame from the node graph
+				compositedFrameTexture = m_nodeGraph->getCompositedFrameTexture();
 			}
-
+			// Otherwise fall back to old style layer evaluation
+			else
 			{
-				GlScopedState glStateScope = MainWindow::getInstance()->getGlStateStack().createScopedState();
-				GlState& glState = glStateScope.getStackState();
+				updateCompositeFrameLayers();
 
-				// Apply stencil shapes, if any, to the layer
-				updateQuadStencils(layerConfig->quadStencilConfig, &glState);
-				updateBoxStencils(layerConfig->boxStencilConfig, &glState);
-				updateModelStencils(layerConfig->modelStencilConfig, &glState);
-
-				// Bind the layer shader program and uniform parameters.
-				// This will fail unless all of the shader uniform parameters are bound.
-				if (layer.layerMaterial != nullptr)
-				{
-					GlScopedMaterialBinding materialBinding =
-						layer.layerMaterial->bindMaterial(
-							GlSceneConstPtr(),
-							GlCameraConstPtr());
-
-					if (materialBinding)
-					{
-						glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
-						glDrawArrays(GL_TRIANGLES, 0, 6);
-						glBindVertexArray(0);
-					}
-				}
+				// Use the old style layer composited frame
+				compositedFrameTexture = m_mainWindowFrameBufferTexture;
 			}
 		}
+		break;
+	case eCompositorEvaluatorWindow::editorWindow:
+		{
+			// Editor window runs graph evaluation in it's own update loop
+			compositedFrameTexture = m_editorFrameBufferTexture;
+		}
+		break;
 	}
-
-	// Unbind the layer frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// Optionally bake our a BGR video frame, if requested
 	if (m_bGenerateBGRVideoTexture)
@@ -1253,22 +1168,22 @@ void GlFrameCompositor::updateCompositeFrame()
 		m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::texture0, uniformName);
 		m_rgbToBgrFrameShader->setTextureUniform(uniformName);
 
-		m_compositedFrame->bindTexture(0);
+		if (compositedFrameTexture)
+		{
+			compositedFrameTexture->bindTexture(0);
 
-		glBindVertexArray(m_videoQuadVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		glBindVertexArray(0);
+			glBindVertexArray(m_videoQuadVAO);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
 
-		m_compositedFrame->clearTexture(0);
+			compositedFrameTexture->clearTexture(0);
+		}
 
 		m_rgbToBgrFrameShader->unbindProgram();
 
-		// unbind the bghr frame buffer
+		// unbind the bgr frame buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
-
-	// Restore the viewport
-	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
 
 	// Remember the index of the last frame we composited
 	m_lastCompositedFrameIndex = m_pendingCompositeFrameIndex;
@@ -1284,6 +1199,156 @@ void GlFrameCompositor::updateCompositeFrame()
 	{
 		OnNewFrameComposited();
 	}
+}
+
+void GlFrameCompositor::setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow)
+{
+	if (m_evaluatorWindow != evalWindow)
+	{
+		m_editorFrameBufferTexture->disposeTexture();
+
+		if (evalWindow == eCompositorEvaluatorWindow::editorWindow)
+		{
+			m_editorFrameBufferTexture->createTexture();
+		}
+
+		m_evaluatorWindow= evalWindow;
+	}
+}
+
+GlTexturePtr GlFrameCompositor::getEditorWritableFrameTexture() const
+{
+	return m_editorFrameBufferTexture;
+}
+
+GlTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
+{
+	switch (m_evaluatorWindow)
+	{
+		case eCompositorEvaluatorWindow::mainWindow:
+			return m_mainWindowFrameBufferTexture;
+		case eCompositorEvaluatorWindow::editorWindow:
+			return m_editorFrameBufferTexture;
+	}
+
+	return GlTextureConstPtr();
+}
+
+void GlFrameCompositor::updateCompositeFrameNodeGraph()
+{
+	MainWindow* mainWindow = MainWindow::getInstance();
+	NodeEvaluator evaluator = {};
+	evaluator
+		.setCurrentVideoSourceView(m_videoSourceView)
+		.setCurrentWindow(mainWindow)
+		.setDeltaSeconds(m_timeSinceLastFrameComposited);
+
+	if (!m_nodeGraph->compositeFrame(evaluator))
+	{
+		MIKAN_LOG_ERROR("GlFrameCompositor::updateCompositeFrame")
+			<< "Compositor graph eval error: " << evaluator.getLastErrorMessage();
+	}
+}
+
+void GlFrameCompositor::updateCompositeFrameLayers()
+{
+	MainWindow* mainWindow = MainWindow::getInstance();
+
+	// Cache the last viewport dimensions
+	GLint last_viewport[4];
+	glGetIntegerv(GL_VIEWPORT, last_viewport);
+
+	// Change the viewport to match the frame buffer texture
+	glViewport(0, 0, m_mainWindowFrameBufferTexture->getTextureWidth(), m_mainWindowFrameBufferTexture->getTextureHeight());
+
+	// bind to framebuffer and draw scene as we normally would to color texture 
+	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
+
+	// Turn off depth testing for compositing
+	GlScopedState updateCompositeGlStateScope = mainWindow->getGlStateStack().createScopedState();
+	updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
+
+	// make sure we clear the framebuffer's content
+	glClearColor(0.f, 0.f, 0.f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Read the next queued frame into a texture to composite
+	m_colorTextureSources.setValue("videoTexture", getVideoSourceTexture(eVideoTextureSource::video_texture));
+	m_colorTextureSources.setValue("distortionTexture", getVideoSourceTexture(eVideoTextureSource::distortion_texture));
+
+	for (GlFrameCompositor::Layer& layer : m_layers)
+	{
+		const CompositorLayerConfig* layerConfig = getCurrentPresetLayerConfig(layer.layerIndex);
+		if (layerConfig == nullptr)
+			continue;
+
+		EASY_BLOCK(layerConfig->shaderConfig.materialName);
+
+		GlScopedState layerGlStateScope = mainWindow->getGlStateStack().createScopedState();
+
+		// Attempt to apply data sources to the layers material parameters
+		applyLayerMaterialFloatValues(*layerConfig, layer);
+		applyLayerMaterialFloat2Values(*layerConfig, layer);
+		applyLayerMaterialFloat3Values(*layerConfig, layer);
+		applyLayerMaterialFloat4Values(*layerConfig, layer);
+		applyLayerMaterialMat4Values(*layerConfig, layer);
+		applyLayerMaterialTextures(*layerConfig, layer);
+
+		// Set the blend mode
+		switch (layerConfig->blendMode)
+		{
+			case eCompositorBlendMode::blendOff:
+				{
+					layerGlStateScope.getStackState().disableFlag(eGlStateFlagType::blend);
+				}
+				break;
+			case eCompositorBlendMode::blendOn:
+				{
+					// https://www.andersriggelsen.dk/glblendfunc.php
+					// (sR*sA) + (dR*(1-sA)) = rR
+					// (sG*sA) + (dG*(1-sA)) = rG
+					// (sB*sA) + (dB*(1-sA)) = rB
+					// (sA*sA) + (dA*(1-sA)) = rA
+					layerGlStateScope.getStackState().enableFlag(eGlStateFlagType::blend);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glBlendEquation(GL_FUNC_ADD);
+				}
+				break;
+		}
+
+		{
+			GlScopedState glStateScope = MainWindow::getInstance()->getGlStateStack().createScopedState();
+			GlState& glState = glStateScope.getStackState();
+
+			// Apply stencil shapes, if any, to the layer
+			updateQuadStencils(layerConfig->quadStencilConfig, &glState);
+			updateBoxStencils(layerConfig->boxStencilConfig, &glState);
+			updateModelStencils(layerConfig->modelStencilConfig, &glState);
+
+			// Bind the layer shader program and uniform parameters.
+			// This will fail unless all of the shader uniform parameters are bound.
+			if (layer.layerMaterial != nullptr)
+			{
+				GlScopedMaterialBinding materialBinding =
+					layer.layerMaterial->bindMaterial(
+						GlSceneConstPtr(),
+						GlCameraConstPtr());
+
+				if (materialBinding)
+				{
+					glBindVertexArray(layerConfig->verticalFlip ? m_videoQuadVAO : m_layerQuadVAO);
+					glDrawArrays(GL_TRIANGLES, 0, 6);
+					glBindVertexArray(0);
+				}
+			}
+		}
+	}
+
+	// Unbind the layer frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Restore the viewport
+	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
 }
 
 void GlFrameCompositor::applyLayerMaterialFloatValues(
@@ -1756,18 +1821,18 @@ void GlFrameCompositor::render() const
 	if (!getIsRunning())
 		return;
 
-	if (m_compositedFrame != nullptr)
+	if (m_mainWindowFrameBufferTexture != nullptr)
 	{
 		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState();
 		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 		// Draw the composited video frame
 		m_rgbFrameShader->bindProgram();
-		m_compositedFrame->bindTexture();
+		m_mainWindowFrameBufferTexture->bindTexture();
 		glBindVertexArray(m_layerQuadVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
-		m_compositedFrame->clearTexture();
+		m_mainWindowFrameBufferTexture->clearTexture();
 		m_rgbFrameShader->unbindProgram();
 	}
 }
@@ -2012,13 +2077,21 @@ bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16
 	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
 
 	// create a color attachment texture
-	m_compositedFrame = std::make_shared<GlTexture>();
-	m_compositedFrame->setSize(width, height);
-	m_compositedFrame->setTextureFormat(GL_RGBA);
-	m_compositedFrame->setBufferFormat(GL_RGBA);
-	m_compositedFrame->setGenerateMipMap(false);
-	m_compositedFrame->createTexture();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_compositedFrame->getGlTextureId(), 0);
+	m_mainWindowFrameBufferTexture = std::make_shared<GlTexture>();
+	m_mainWindowFrameBufferTexture->setSize(width, height);
+	m_mainWindowFrameBufferTexture->setTextureFormat(GL_RGBA);
+	m_mainWindowFrameBufferTexture->setBufferFormat(GL_RGBA);
+	m_mainWindowFrameBufferTexture->setGenerateMipMap(false);
+	m_mainWindowFrameBufferTexture->createTexture();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_mainWindowFrameBufferTexture->getGlTextureId(), 0);
+
+	// Also create a for the editor to render to when the editor is active
+	m_editorFrameBufferTexture = std::make_shared<GlTexture>();
+	m_editorFrameBufferTexture->setSize(width, height);
+	m_editorFrameBufferTexture->setTextureFormat(GL_RGBA);
+	m_editorFrameBufferTexture->setBufferFormat(GL_RGBA);
+	m_editorFrameBufferTexture->setGenerateMipMap(false);
+	// Don't create texture until we need it
 
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
 	glGenRenderbuffers(1, &m_layerRBO);
@@ -2046,7 +2119,7 @@ void GlFrameCompositor::freeLayerFrameBuffer()
 		m_layerRBO = 0;
 	}
 
-	m_compositedFrame = nullptr;
+	m_mainWindowFrameBufferTexture = nullptr;
 
 	if (m_layerFramebuffer != 0)
 	{

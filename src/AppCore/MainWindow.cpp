@@ -9,6 +9,8 @@
 
 #include "App.h"
 #include "AppStage.h"
+#include "FontManager.h"
+#include "GlFrameCompositor.h"
 #include "GlCommon.h"
 #include "GlCamera.h"
 #include "GlStateStack.h"
@@ -20,8 +22,12 @@
 #include "GlModelResourceManager.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
+#include "MikanServer.h"
 #include "SdlWindow.h"
 #include "StringUtils.h"
+#include "VideoSourceManager.h"
+#include "VRDeviceManager.h"
+#include "RmlManager.h"
 
 #include <algorithm>
 
@@ -171,6 +177,38 @@ bool MainWindow::startup()
 	}
 
 	return success;
+}
+
+void MainWindow::update(float deltaSeconds)
+{
+	App* app= App::getInstance();
+
+	// Update all connected devices	
+	app->getVideoSourceManager()->update(deltaSeconds);
+	app->getVRDeviceManager()->update(deltaSeconds);
+
+	// Poll rendered frames from client connections
+	app->getMikanServer()->update();
+
+	// Update any frame compositing state based on new video frames or client render target updates
+	app->getFrameCompositor()->update(deltaSeconds);
+
+	// Garbage collect stale baked text
+	app->getFontManager()->garbageCollect();
+
+	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
+	app->processPendingAppStageOps();
+
+	// Update the current app stage last
+	AppStage* appStage = app->getCurrentAppStage();
+	if (appStage != nullptr && appStage->getIsUpdateActive())
+	{
+		EASY_BLOCK("appStage Update");
+		appStage->update(deltaSeconds);
+	}
+
+	// Update the UI layout and data models
+	app->getRmlManager()->update();
 }
 
 void MainWindow::render()

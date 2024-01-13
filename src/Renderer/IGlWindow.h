@@ -9,6 +9,7 @@ public:
 	virtual ~IGlWindow() {}
 
 	virtual bool startup()= 0;
+	virtual void update(float deltaSeconds) = 0;
 	virtual void render() = 0;
 	virtual void shutdown()= 0;
 

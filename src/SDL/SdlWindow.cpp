@@ -228,17 +228,18 @@ void SdlWindow::focus()
 	SDL_RaiseWindow(m_sdlWindow);
 }
 
-void SdlWindow::renderBegin()
+void SdlWindow::makeCurrent()
 {
-	EASY_FUNCTION();
-
-	int result= SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
+	int result = SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
 	if (result != 0)
 	{
-		const char* errorMessage= SDL_GetError();
-		MIKAN_LOG_ERROR("SdlWindow::renderBegin") << "Error with SDL_GL_MakeCurrent: " << errorMessage;
+		const char* errorMessage = SDL_GetError();
+		MIKAN_LOG_ERROR("App::update") << "Error with SDL_GL_MakeCurrent: " << errorMessage;
 	}
+}
 
+void SdlWindow::renderBegin()
+{
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
