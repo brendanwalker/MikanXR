@@ -116,7 +116,7 @@ bool MainWindow::startup()
 	m_sdlWindow
 		->setTitle(windowTitle)
 		->setSize(k_window_pixel_width, k_window_pixel_height);
-	if (!m_sdlWindow->startup())
+	if (!m_sdlWindow->startup(this))
 	{
 		MIKAN_LOG_ERROR("MainWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;

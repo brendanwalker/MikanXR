@@ -104,7 +104,7 @@ int App::exec(int argc, char** argv)
 				}
 			}
 
-			update();
+			tick();
 
 			frameTimer.waitForNextFrame();
 		}
@@ -316,7 +316,7 @@ void App::onSDLEvent(SDL_Event& e)
 	}
 }
 
-void App::update()
+void App::tick()
 {
 	EASY_FUNCTION();
 
@@ -326,11 +326,22 @@ void App::update()
 	m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 	m_lastFrameTimestamp = now;
 
+	// Tick the sim and then render each window
+	tickWindows(deltaSeconds);
+
+	// Update profile auto-save
+	updateAutoSave(deltaSeconds);
+
+}
+
+void App::tickWindows(const float deltaSeconds)
+{
+	EASY_FUNCTION();
+
 	for (IGlWindow* window : m_appWindows)
 	{
-		// Make the window's GL context current first since both update and render access the GL context
-		SdlWindow& sdlWindow = window->getSdlWindow();
-		sdlWindow.makeCurrent();
+		// Mark this window as the current window getting updated
+		pushCurrentWindow(window);
 
 		// Process window simulation based on time
 		{
@@ -345,10 +356,46 @@ void App::update()
 			window->render();
 			m_renderingWindow = nullptr;
 		}
-	}
 
-	// Update profile auto-save
-	updateAutoSave(deltaSeconds);
+		// Restore back to the main window
+		popCurrentWindow(window);
+	}
+}
+
+void App::pushCurrentWindow(IGlWindow* window)
+{
+	// Add the window to the window stack
+	m_currentWindowStack.push_back(window);
+
+	// Make the window's GL context current
+	window->getSdlWindow().makeCurrent();
+}
+
+IGlWindow* App::getCurrentWindow() const
+{
+	return m_currentWindowStack.size() > 0 ? m_currentWindowStack.back() : nullptr;
+}
+
+void App::popCurrentWindow(IGlWindow* window)
+{
+	if (m_currentWindowStack.size() > 0 && m_currentWindowStack.back() == window)
+	{
+		// Remove the window from the window stack
+		m_currentWindowStack.pop_back();
+
+		// Make the previous window's GL context current
+		if (m_currentWindowStack.size() > 0)
+		{
+			m_currentWindowStack.back()->getSdlWindow().makeCurrent();
+		}
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("App::getCurrentWindow") 
+			<< "Unable to pop window " 
+			<< window->getSdlWindow().getTitle()
+			<< " (not current)";
+	}
 }
 
 void App::processPendingAppStageOps()

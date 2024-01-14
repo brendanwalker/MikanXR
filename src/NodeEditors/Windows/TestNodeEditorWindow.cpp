@@ -74,7 +74,7 @@ bool TestNodeEditorWindow::startup()
 	m_sdlWindow
 		->setTitle(windowTitle)
 		->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
-	if (!m_sdlWindow->startup())
+	if (!m_sdlWindow->startup(this))
 	{
 		MIKAN_LOG_ERROR("TestNodeEditorWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;

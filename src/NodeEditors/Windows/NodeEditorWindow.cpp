@@ -97,7 +97,7 @@ bool NodeEditorWindow::startup()
 		->enableGLDataSharing() // Want access to video textures owned by MainWindow's GL Context
 		->setTitle(windowTitle)
 		->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
-	if (!m_sdlWindow->startup())
+	if (!m_sdlWindow->startup(this))
 	{
 		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;

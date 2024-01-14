@@ -101,10 +101,7 @@ public:
 		}
 		else
 		{
-			appWindow->shutdown();
-
-			delete appWindow;
-			appWindow= nullptr;
+			destroyAppWindow(appWindow);
 		}
 
 		return appWindow;
@@ -120,14 +117,22 @@ public:
 		}
 
 		appWindow->shutdown();
-		delete appWindow;
+
+		// If this window was the current window, pop it from the current window stack
+		popCurrentWindow(appWindow);
 
 		// If this was the main window pointer, make sure to invalidate that pointer
-		if (appWindow == m_mainWindow)
+		if ((void *)appWindow == (void *)m_mainWindow)
 		{
 			m_mainWindow = nullptr;
 		}
+
+		delete appWindow;
 	}
+
+	void pushCurrentWindow(class IGlWindow* window);
+	class IGlWindow* getCurrentWindow() const;
+	void popCurrentWindow(class IGlWindow* window);
 
 	MulticastDelegate<void(AppStage* appStage)> OnAppStageEntered;
 	MulticastDelegate<void(AppStage* appStage)> OnAppStageExited;
@@ -138,9 +143,9 @@ protected:
 
 	void onSDLEvent(SDL_Event& e);
 
-	void update();
+	void tick();
+	void tickWindows(const float deltaSeconds);
 	void updateAutoSave(float deltaSeconds);
-	void render();
 
 private:
 	static App* m_instance;
@@ -186,6 +191,9 @@ private:
 
 	// Open windows (including the MainWindow)
 	std::vector<IGlWindow*> m_appWindows;
+
+	// The stack of current windows being updated
+	std::vector<IGlWindow*> m_currentWindowStack;
 
 	// The window being currently rendered
 	IGlWindow* m_renderingWindow = nullptr;

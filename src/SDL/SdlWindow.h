@@ -12,7 +12,7 @@ class SdlWindow
 public:
 	SdlWindow();
 
-	bool startup();
+	bool startup(class IGlWindow *ownerWindowInterface);
 	void shutdown();
 
 	void focus();

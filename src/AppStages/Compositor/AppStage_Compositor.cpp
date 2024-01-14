@@ -579,6 +579,9 @@ void AppStage_Compositor::onGraphEditEvent()
 	{
 		appWindow->loadGraph(graphAssetPath);
 	}
+
+	// Pop back to the main window GL context
+	m_app->popCurrentWindow(appWindow);
 }
 
 void AppStage_Compositor::onGraphFileSelectEvent()

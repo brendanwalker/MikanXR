@@ -1,3 +1,4 @@
+#include "App.h"
 #include "SdlWindow.h"
 #include "SdlManager.h"
 #include "Logger.h"
@@ -63,7 +64,7 @@ SdlWindow* SdlWindow::setSize(int width, int height)
 	return this;
 }
 
-bool SdlWindow::startup()
+bool SdlWindow::startup(IGlWindow *ownerWindowInterface)
 {
 	assert(SdlManager::getInstance()->getIsSdlInitialized());
 
@@ -93,7 +94,10 @@ bool SdlWindow::startup()
 		m_glContext = SDL_GL_CreateContext(m_sdlWindow);
 		if (m_glContext != NULL)
 		{
-			SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
+			// Make this window the current GL context
+			// While in this GL context scope, all GL calls will be made to this window
+			App::getInstance()->pushCurrentWindow(ownerWindowInterface);
+
 			SDL_GL_SetSwapInterval(1); // Enable vsync
 		}
 		else
