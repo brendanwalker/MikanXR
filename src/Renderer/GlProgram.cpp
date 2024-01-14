@@ -449,19 +449,38 @@ bool GlProgram::compileProgram()
 	if (m_code.hasCode())
 	{
 		m_programID = glCreateProgram();
-		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+		if (m_programID == 0)
+		{
+			MIKAN_LOG_ERROR("GlProgram::createProgram") << "glCreateProgram failed";
+			return false;
+		}		
 
 		uint32_t nSceneVertexShader = glCreateShader(GL_VERTEX_SHADER);
-		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+		if (nSceneVertexShader == 0)
+		{
+			checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+			return false;
+		}
+
 		const GLchar* vertexShaderSource = (const GLchar*)m_code.getVertexShaderCode();
 		glShaderSource(nSceneVertexShader, 1, &vertexShaderSource, nullptr);
-		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+		if (checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__))
+		{
+			return false;
+		}
+
 		glCompileShader(nSceneVertexShader);
-		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+		if (checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__))
+		{
+			return false;
+		}
 
 		int vShaderCompiled = 0;
 		glGetShaderiv(nSceneVertexShader, GL_COMPILE_STATUS, &vShaderCompiled);
-		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+		if (checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__))
+		{
+			return false;
+		}
 
 		if (vShaderCompiled != 1)
 		{
