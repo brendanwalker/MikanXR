@@ -6,8 +6,6 @@
 bool NodeEvaluator::evaluateFlowPinChain(NodePtr startNode)
 {
 	m_currentNode= startNode;
-	m_errorCode= eNodeEvaluationErrorCode::NONE;
-	m_errorMessage= "";
 	m_evaluatedNodeCount= 0;
 
 	// Execute node along the FlowPin links until:
@@ -15,21 +13,20 @@ bool NodeEvaluator::evaluateFlowPinChain(NodePtr startNode)
 	// * Node evaluation returns an error
 	// * Node evaluation count hits infinite loop detection threshold
 	while (m_currentNode && 
-		   m_errorCode == eNodeEvaluationErrorCode::NONE &&
+		   !hasErrors() &&
 		   m_evaluatedNodeCount < kInifiniteLoopThreshold)
 	{
 		m_currentNode->evaluateNode(*this);
 		m_evaluatedNodeCount++;
 
 		// See if we exceeded the infinite loop threshold
-		if (m_errorCode == eNodeEvaluationErrorCode::NONE &&
-			m_evaluatedNodeCount >= kInifiniteLoopThreshold)
+		if (!hasErrors() && m_evaluatedNodeCount >= kInifiniteLoopThreshold)
 		{
-			m_errorCode = eNodeEvaluationErrorCode::infiniteLoop;
+			addError(NodeEvaluationError(eNodeEvaluationErrorCode::infiniteLoop, "Infinite loop detected"));
 		}
 
 		// Try moving on to the next node if there are no errors
-		if (m_errorCode == eNodeEvaluationErrorCode::NONE)
+		if (!hasErrors())
 		{
 			FlowPinPtr outputFlowPin= m_currentNode->getOutputFlowPin();
 
@@ -44,5 +41,5 @@ bool NodeEvaluator::evaluateFlowPinChain(NodePtr startNode)
 		}
 	}
 
-	return m_errorCode == eNodeEvaluationErrorCode::NONE;
+	return !hasErrors();
 }

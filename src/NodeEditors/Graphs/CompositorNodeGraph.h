@@ -36,6 +36,8 @@ public:
 	inline GlProgramPtr getStencilShader() const { return m_stencilShader; }
 
 protected:
+	bool bindEventNodes();
+
 	static const GlProgramCode* getStencilShaderCode();
 	bool createStencilShader();
 	void updateCompositingFrameBufferSize(NodeEvaluator& evaluator);
@@ -48,6 +50,8 @@ protected:
 	GlProgramPtr m_stencilShader;
 	std::map<MikanStencilID, GlRenderModelResourcePtr> m_stencilMeshCache;
 	NodePtr m_compositeFrameEventNode;
+
+	friend class CompositorNodeGraphFactory;
 };
 
 class CompositorNodeGraphFactory : public TypedNodeGraphFactory<CompositorNodeGraph>

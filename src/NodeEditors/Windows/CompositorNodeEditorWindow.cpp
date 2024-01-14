@@ -42,8 +42,7 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 		auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
 		if (!node_graph->compositeFrame(evaluator))
 		{
-			MIKAN_LOG_ERROR("GlFrameCompositor::updateCompositeFrame")
-				<< "Compositor graph eval error: " << evaluator.getLastErrorMessage();
+			m_lastNodeEvalErrors= evaluator.getErrors();
 		}
 	}
 }

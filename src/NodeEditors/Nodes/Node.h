@@ -51,7 +51,7 @@ public:
 	inline int getId() const { return m_id; }
 
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph);
-	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
+	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }	
 
 	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos = nodePos; }
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }

@@ -9,7 +9,10 @@
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
 #include "RendererFwd.h"
+
 #include "Graphs/GraphObjectSelection.h"
+#include "Graphs/NodeError.h"
+
 #include "Properties/GraphArrayProperty.h"
 
 #include "imgui.h"
@@ -66,6 +69,7 @@ protected:
 	virtual void popImGuiStyles();
 
 	virtual void renderMainFrame();
+	virtual void renderNodeEvalErrors();
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderMainFrameContextMenu(const class NodeEditorState& editorState);
 	virtual void renderToolbar();
@@ -105,6 +109,9 @@ protected:
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;
+
+	// Errors that occurred during the last graph evaluation
+	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
 
 	bool m_imguiSDLBackendInitialised = false;
 	bool m_imguiOpenGLBackendInitialised= false;

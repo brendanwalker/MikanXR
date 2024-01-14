@@ -203,7 +203,8 @@ bool NodeEditorWindow::startup()
 
 void NodeEditorWindow::update(float deltaSeconds)
 {
-	// Nothing to do
+	// Clear out any previous node evaluation errors
+	m_lastNodeEvalErrors.clear();
 }
 
 void NodeEditorWindow::render()
@@ -238,7 +239,10 @@ void NodeEditorWindow::renderUI()
 	pushImGuiStyles();
 
 	ImGui::SetNextWindowSize(ImVec2(getWidth(), getHeight()), ImGuiCond_Once);
-	ImGui::Begin("Node Editor");
+	ImGui::Begin("Node Editor", nullptr, 
+				 ImGuiWindowFlags_NoResize | 
+				 ImGuiWindowFlags_NoBringToFrontOnFocus |
+				 ImGuiWindowFlags_NoMove);
 
 		// Toolbar
 		renderToolbar();
@@ -281,6 +285,9 @@ void NodeEditorWindow::renderMainFrame()
 
 	ImNodes::EndNodeEditor();
 	ImGui::EndChild();
+
+	// Draw error messages on top of related nodes
+	renderNodeEvalErrors();
 
 	// Node selection
 	if (ImNodes::NumSelectedNodes() > 0)
@@ -332,6 +339,54 @@ void NodeEditorWindow::renderMainFrame()
 	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
 	{
 		deleteSelectedItem();
+	}
+}
+
+void NodeEditorWindow::renderNodeEvalErrors()
+{
+	if (m_editorState.nodeGraph && m_lastNodeEvalErrors.size() > 0)
+	{
+		size_t errorIter= 0;
+		while (errorIter < m_lastNodeEvalErrors.size())
+		{
+			const NodeEvaluationError& currentError= m_lastNodeEvalErrors[errorIter];
+			const std::string evalWindowId= StringUtils::stringify("Eval Error##Node", currentError.errorNodeId);
+
+			static const float k_errorWindowOffset = 50.f;
+			ImVec2 errorPos = ImNodes::GetNodeScreenSpacePos(currentError.errorNodeId);
+			errorPos.y -= k_errorWindowOffset;
+
+			ImGui::SetNextWindowPos(errorPos);
+			ImGui::Begin(
+				evalWindowId.c_str(),
+				nullptr,
+				ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
+			ImGui::BeginGroup();
+
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.75f, 0.15f, 0.01f, 1.f));
+			while (errorIter < m_lastNodeEvalErrors.size())
+			{
+				// Add a bullet point for each error on the same node
+				ImGui::BulletText(currentError.errorMessage.c_str());
+
+				// Advance to the next error message on this node
+				errorIter++;
+
+				// If the next error is on a different node, move on to the next error window
+				if (errorIter < m_lastNodeEvalErrors.size())
+				{
+					const NodeEvaluationError& nextError= m_lastNodeEvalErrors[errorIter];
+					if (nextError.errorNodeId != currentError.errorNodeId)
+					{
+						break;
+					}
+				}
+			}
+			ImGui::PopStyleColor();
+
+			ImGui::EndGroup();
+			ImGui::End();
+		}
 	}
 }
 

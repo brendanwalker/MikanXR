@@ -25,6 +25,7 @@ public:
 	eNodePinDirection direction;
 	t_node_id ownerNodeId;
 	std::vector<t_node_link_id> connectedLinkIds;
+	bool hasDefaultValue = false;
 };
 
 class NodePin  : public std::enable_shared_from_this<NodePin>
@@ -55,6 +56,11 @@ public:
 	inline const std::vector<NodeLinkPtr>& getConnectedLinks() const { return m_connectedLinks; }
 	inline bool hasAnyConnectedLinks() const { return m_connectedLinks.size() > 0; }
 
+	// This is used that the pin provides a default value if no value feed into it
+	// (Primarily used for input pins to decide if the node can still be evaluated if an input is disconnected)
+	inline void setHasDefaultValue(bool bOptional) { m_bHasDefaultValue = bOptional; }
+	inline bool getHasDefaultValue() const { return m_bHasDefaultValue; }
+
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
 
@@ -82,6 +88,7 @@ protected:
 	std::string m_name;
 	NodePtr m_ownerNode;
 	std::vector<NodeLinkPtr> m_connectedLinks;
+	bool m_bHasDefaultValue = false;
 
 	// Editor Flags
 	bool m_bEditorShowPinName= true;

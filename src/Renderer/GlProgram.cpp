@@ -431,6 +431,7 @@ bool GlProgram::setTextureUniform(
 		if (getTextureUniformUnit(iter->second.semantic, textureUnit))
 		{
 			const GLint uniformId = iter->second.locationId;
+			//int debugUniformId = glGetUniformLocation(m_programID,uniformName.c_str());
 
 			glUniform1i(uniformId, textureUnit);
 			return !checkHasAnyGLError("GlProgram::setTextureUniform()", __FILE__, __LINE__);
@@ -448,10 +449,13 @@ bool GlProgram::compileProgram()
 	if (m_code.hasCode())
 	{
 		m_programID = glCreateProgram();
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
 		uint32_t nSceneVertexShader = glCreateShader(GL_VERTEX_SHADER);
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 		const GLchar* vertexShaderSource = (const GLchar*)m_code.getVertexShaderCode();
 		glShaderSource(nSceneVertexShader, 1, &vertexShaderSource, nullptr);
+		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 		glCompileShader(nSceneVertexShader);
 		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
@@ -580,7 +584,7 @@ bool GlProgram::bindProgram() const
 	{
 		glUseProgram(m_programID);
 
-		return true;
+		return !checkHasAnyGLError("GlProgram::bindProgram()", __FILE__, __LINE__);;
 	}
 
 	return false;

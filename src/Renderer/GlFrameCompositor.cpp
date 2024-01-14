@@ -1245,8 +1245,11 @@ void GlFrameCompositor::updateCompositeFrameNodeGraph()
 
 	if (!m_nodeGraph->compositeFrame(evaluator))
 	{
-		MIKAN_LOG_ERROR("GlFrameCompositor::updateCompositeFrame")
-			<< "Compositor graph eval error: " << evaluator.getLastErrorMessage();
+		for (const NodeEvaluationError& error : evaluator.getErrors())
+		{
+			MIKAN_LOG_ERROR("GlFrameCompositor::updateCompositeFrame")
+				<< "Compositor graph eval error: " << error.errorMessage;
+		}
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "Pins/NodePin.h"
 #include "Pins/FlowPin.h"
 #include "Logger.h"
+#include "StringUtils.h"
 
 #include "imgui.h"
 #include "imnodes.h"
@@ -186,8 +187,11 @@ void Node::disconnectAllPins()
 
 bool Node::evaluateNode(NodeEvaluator& evaluator) 
 {
-	evaluator.setLastErrorCode(eNodeEvaluationErrorCode::invalidNode);
-	evaluator.setLastErrorMessage("Node missing evaluateNode implementation");
+	evaluator.addError(
+		NodeEvaluationError(
+			eNodeEvaluationErrorCode::invalidNode,
+			"Node missing evaluateNode implementation",
+			this));
 
 	return false;
 }
@@ -207,9 +211,21 @@ bool Node::evaluateInputs(NodeEvaluator& evaluator)
 		NodePinPtr outputSourcePin = inputPin->getConnectedSourcePin();
 		if (!outputSourcePin)
 		{
-			evaluator.setLastErrorCode(eNodeEvaluationErrorCode::missingInput);
-			evaluator.setLastErrorMessage("pin missing input");
-			return false;
+			if (inputPin->getHasDefaultValue())
+			{
+				// Use the default value the pin itself has
+				continue;
+			}
+			else
+			{
+				evaluator.addError(
+					NodeEvaluationError(
+						eNodeEvaluationErrorCode::missingInput,
+						StringUtils::stringify(inputPin->getName(), " missing input connection"),
+						this,
+						inputPin.get()));
+				return false;
+			}
 		}
 
 		// Recurse into node that owns the output and evaluate it's inputs ...

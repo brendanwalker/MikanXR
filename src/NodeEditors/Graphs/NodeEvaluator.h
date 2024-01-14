@@ -1,22 +1,14 @@
 #pragma once
 
 #include "NodeFwd.h"
+#include "NodeError.h"
 
 #include <memory>
 #include <string>
+#include <vector>
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
-enum eNodeEvaluationErrorCode
-{
-	NONE= -1,
-
-	invalidNode,
-	missingInput,
-	evaluationError,
-	infiniteLoop
-};
 
 class NodeEvaluator
 {
@@ -34,11 +26,9 @@ public:
 	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds) { m_deltaSeconds= inDeltaSeconds; return *this; }
 	inline float getDeltaSeconds() const { return m_deltaSeconds; }
 
-	inline void setLastErrorCode(eNodeEvaluationErrorCode errorCode) { m_errorCode= errorCode; }
-	inline eNodeEvaluationErrorCode getLastErrorCode() const { return m_errorCode; }
-
-	inline void setLastErrorMessage(const std::string& message) { m_errorMessage= message;  }
-	inline const std::string& getLastErrorMessage() const { return m_errorMessage; }
+	inline void addError(const NodeEvaluationError& error) { m_errors.push_back(error); }
+	inline bool hasErrors() const { return !m_errors.empty(); }
+	inline const std::vector<NodeEvaluationError>& getErrors() const { return m_errors; }
 
 	bool evaluateFlowPinChain(NodePtr startNode);
 
@@ -48,9 +38,8 @@ protected:
 	VideoSourceViewPtr m_currentVideoSourceView;
 
 	NodePtr m_currentNode;
-	eNodeEvaluationErrorCode m_errorCode;
-	std::string m_errorMessage;
 	int m_evaluatedNodeCount;
+	std::vector<NodeEvaluationError> m_errors;
 
 	static const int kInifiniteLoopThreshold= 1000;
 };

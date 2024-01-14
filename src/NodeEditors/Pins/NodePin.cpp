@@ -23,6 +23,7 @@ configuru::Config NodePinConfig::writeToJSON()
 	pt["direction"] = k_nodePinDirectionStrings[(int)direction];
 	pt["owner_node_id"] = ownerNodeId;
 	writeStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
+	pt["has_default_value"] = hasDefaultValue;
 
 	return pt;
 }
@@ -44,6 +45,7 @@ void NodePinConfig::readFromJSON(const configuru::Config& pt)
 			k_nodePinDirectionStrings);
 	ownerNodeId = pt.get_or<t_node_id>("owner_node_id", -1);
 	readStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
+	hasDefaultValue = pt.get_or<bool>("has_default_value", false);
 }
 
 // -- NodePin -----
@@ -60,6 +62,7 @@ bool NodePin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr conf
 	m_id= config->id;
 	m_direction= config->direction;
 	m_name= config->pinName;
+	m_bHasDefaultValue= config->hasDefaultValue;
 
 	NodePtr ownerNode = ownerGraph->getNodeById(config->ownerNodeId);
 	if (ownerNode)
@@ -100,6 +103,7 @@ void NodePin::saveToConfig(NodePinConfigPtr config) const
 	config->direction = m_direction;
 	config->pinName = m_name;
 	config->ownerNodeId = m_ownerNode ? m_ownerNode->getId() : -1;
+	config->hasDefaultValue = m_bHasDefaultValue;
 
 	for (NodeLinkPtr linkPtr : m_connectedLinks)
 	{

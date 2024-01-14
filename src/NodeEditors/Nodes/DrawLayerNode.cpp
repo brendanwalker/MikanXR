@@ -200,8 +200,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 
 	if (!m_material)
 	{
-		evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
-		evaluator.setLastErrorMessage("Missing material");
+		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::missingInput,"Missing material", this));
 		bSuccess= false;
 	}
 
@@ -315,8 +314,19 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			}
 			else
 			{
-				evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
-				evaluator.setLastErrorMessage("Failed to bind material");
+				evaluator.addError(
+					NodeEvaluationError(
+						eNodeEvaluationErrorCode::materialError,
+						StringUtils::stringify("Unable to bind ", m_material->getName()),
+						this));
+				for (const auto& iter : materialBinding.getUnboundUniforms())
+				{
+					evaluator.addError(
+						NodeEvaluationError(
+							eNodeEvaluationErrorCode::materialError, 
+							StringUtils::stringify("Missing uniform: ", iter), 
+							this));
+				}
 				bSuccess = false;
 			}
 		}
@@ -960,6 +970,7 @@ NodePtr DrawLayerNodeFactory::createNode(const NodeEditorState& editorState) con
 	//TODO: Add vertex definition attribute to the pin
 	ArrayPinPtr stencilListInPin = node->addPin<ArrayPin>("stencils", eNodePinDirection::INPUT);
 	stencilListInPin->setElementClassName(GraphStencilProperty::k_propertyClassName);
+	stencilListInPin->setHasDefaultValue(true); // Unconnected array pin == no stencils
 	node->setStencilsPin(stencilListInPin);
 
 	// Create default output pins

@@ -333,10 +333,18 @@ void App::update()
 		sdlWindow.makeCurrent();
 
 		// Process window simulation based on time
-		window->update(deltaSeconds);
+		{
+			EASY_BLOCK("UpdateWindow");
+			window->update(deltaSeconds);
+		}
 
 		// Render the window
-		window->render();
+		{
+			EASY_BLOCK("RenderWindow");
+			m_renderingWindow = window;
+			window->render();
+			m_renderingWindow = nullptr;
+		}
 	}
 
 	// Update profile auto-save
@@ -423,17 +431,5 @@ void App::updateAutoSave(float deltaSeconds)
 	else if (m_profileConfig->isMarkedDirty())
 	{
 		m_profileSaveCooldown = PROFILE_SAVE_COOLDOWN;
-	}
-}
-
-void App::render()
-{
-	EASY_FUNCTION();
-
-	for (IGlWindow* window : m_appWindows)
-	{
-		m_renderingWindow = window;
-		window->render();
-		m_renderingWindow = nullptr;
 	}
 }

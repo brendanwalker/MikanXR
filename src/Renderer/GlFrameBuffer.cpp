@@ -117,7 +117,7 @@ void GlFrameBuffer::disposeResources()
 
 bool GlFrameBuffer::bindFrameBuffer()
 {
-	if (m_glRenderBufferID != -1 && m_bIsBound)
+	if (m_glRenderBufferID != -1 && !m_bIsBound)
 	{
 		// Cache the last viewport dimensions
 		GLint last_viewport[4];

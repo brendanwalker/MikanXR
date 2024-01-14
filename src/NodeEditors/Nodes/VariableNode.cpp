@@ -228,8 +228,11 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 
 	if (!m_sourceProperty)
 	{
-		evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
-		evaluator.setLastErrorMessage("Missing source property");
+		evaluator.addError(
+			NodeEvaluationError(
+				eNodeEvaluationErrorCode::missingInput,
+				"Missing source property",
+				this));
 		bSuccess = false;
 	}
 
@@ -250,8 +253,12 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 			}
 			else
 			{
-				evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
-				evaluator.setLastErrorMessage("Missing input pin");
+				evaluator.addError(
+					NodeEvaluationError(
+						eNodeEvaluationErrorCode::missingInput,
+						StringUtils::stringify(m_inputValuePin->getName(), " missing input connection"),
+						this,
+						m_inputValuePin.get()));
 				bSuccess= false;
 			}
 		}
@@ -266,8 +273,12 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 		}
 		else
 		{
-			evaluator.setLastErrorCode(eNodeEvaluationErrorCode::evaluationError);
-			evaluator.setLastErrorMessage("Missing output pin");
+			evaluator.addError(
+				NodeEvaluationError(
+					eNodeEvaluationErrorCode::missingOutput,
+					StringUtils::stringify(m_outputValuePin->getName(), " missing output connection"),
+					this,
+					m_outputValuePin.get()));
 			bSuccess = false;
 		}
 	}

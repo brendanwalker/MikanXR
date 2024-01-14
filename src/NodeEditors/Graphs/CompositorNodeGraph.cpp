@@ -107,18 +107,27 @@ bool CompositorNodeGraph::loadFromConfig(const NodeGraphConfig& config)
 
 	if (NodeGraph::loadFromConfig(config))
 	{
-		m_compositeFrameEventNode= getEventNodeByName(k_compositeFrameEventName);
-		if (!m_compositeFrameEventNode)
-		{
-			MIKAN_LOG_ERROR("CompositorNodeGraph::loadFromConfig") 
-				<< "Failed to find event node: " << k_compositeFrameEventName;
-			bSuccess= false;
-		}
+		bSuccess= bindEventNodes();
 	}
 	else
 	{
 		MIKAN_LOG_ERROR("CompositorNodeGraph::loadFromConfig") << "Failed to parse node graph config";
 		bSuccess= false;
+	}
+
+	return bSuccess;
+}
+
+bool CompositorNodeGraph::bindEventNodes()
+{
+	bool bSuccess = false;
+
+	m_compositeFrameEventNode = getEventNodeByName(k_compositeFrameEventName);
+	if (!m_compositeFrameEventNode)
+	{
+		MIKAN_LOG_ERROR("CompositorNodeGraph::bindEventNodes")
+			<< "Failed to find event node: " << k_compositeFrameEventName;
+		bSuccess = false;
 	}
 
 	return bSuccess;
@@ -142,21 +151,19 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 		// Evaluate the composite frame nodes
 		evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
-		if (evaluator.getLastErrorCode() != eNodeEvaluationErrorCode::NONE)
-		{
-			MIKAN_LOG_ERROR("CompositorNodeGraph::compositeFrame - Error: ") << evaluator.getLastErrorMessage();
-		}
 
 		// Unbind the layer frame buffer
 		m_compositingFrameBuffer->unbindFrameBuffer();
 	}
 	else
 	{
-		evaluator.setLastErrorCode(eNodeEvaluationErrorCode::invalidNode);
-		evaluator.setLastErrorMessage("Missing compositeFrame event node");
+		evaluator.addError(
+			NodeEvaluationError(
+				eNodeEvaluationErrorCode::invalidNode, 
+				"Missing compositeFrame event node"));
 	}
 
-	return evaluator.getLastErrorCode() == eNodeEvaluationErrorCode::NONE;
+	return !evaluator.hasErrors();
 }
 
 GlTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
@@ -328,6 +335,9 @@ NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph(IGlWindow* owner
 
 	auto compositeFrameNode= compositorNodeGraph->createTypedNode<EventNode>(editorState);
 	compositeFrameNode->setName(CompositorNodeGraph::k_compositeFrameEventName);
+
+	// Store off pointers to the event nodes we manually created
+	compositorNodeGraph->bindEventNodes();
 
 	return compositorNodeGraph;
 }
