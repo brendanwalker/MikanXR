@@ -29,7 +29,7 @@ class AppStage_Compositor : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_Compositor(class App* app);
+	AppStage_Compositor(class MainWindow* ownerWindow);
 	virtual ~AppStage_Compositor();
 
 	inline CompositorScriptContextPtr getCompositorScriptContext() { return m_scriptContext; }

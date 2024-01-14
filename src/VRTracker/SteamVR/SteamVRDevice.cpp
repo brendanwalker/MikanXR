@@ -1,5 +1,5 @@
-#include "App.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "SteamVRDevice.h"
 #include "SteamVRDeviceEnumerator.h"
@@ -71,7 +71,7 @@ void SteamVRDevice::updatePose()
 		return;
 
 	const SteamVRManager* steamVRMgr = 
-		App::getInstance()->getVRDeviceManager()->getSteamVRManager();
+		MainWindow::getInstance()->getVRDeviceManager()->getSteamVRManager();
 	const vr::TrackedDevicePose_t* newPose = 
 		steamVRMgr->getDevicePose(m_deviceProperties->getSteamVRDeviceIndex());
 

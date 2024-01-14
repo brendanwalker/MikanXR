@@ -38,8 +38,8 @@
 const char* AppStage_AnchorTriangulation::APP_STAGE_NAME = "AnchorTriangulation";
 
 //-- public methods -----
-AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(App* app)
-	: AppStage(app, AppStage_AnchorTriangulation::APP_STAGE_NAME)
+AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_AnchorTriangulation::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_AnchorTriangulation)
 	, m_videoSourceView()
 	, m_anchorTriangulator(nullptr)
@@ -350,7 +350,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 		case eAnchorTriangulationMenuState::testCalibration:
 		case eAnchorTriangulationMenuState::failedVideoStartStreamRequest:
 			{
-				m_app->popAppState();
+				m_ownerWindow->popAppState();
 			} break;
 	}
 }
@@ -384,5 +384,5 @@ void AppStage_AnchorTriangulation::onRedoEvent()
 
 void AppStage_AnchorTriangulation::onCancelEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }

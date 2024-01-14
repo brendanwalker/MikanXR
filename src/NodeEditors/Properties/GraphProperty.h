@@ -51,7 +51,7 @@ public:
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
 	virtual std::string editorGetIcon() const;
-	virtual const ImVec4& editorGetIconColor() const;
+	virtual const ImVec4 editorGetIconColor() const;
 	virtual std::string editorGetTitle() const { return "Property"; }
 	void notifyPropertyModified() const;
 

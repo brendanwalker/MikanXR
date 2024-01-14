@@ -41,7 +41,7 @@
 
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow()
-	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow))
+	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
 	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
@@ -97,7 +97,7 @@ bool NodeEditorWindow::startup()
 		->enableGLDataSharing() // Want access to video textures owned by MainWindow's GL Context
 		->setTitle(windowTitle)
 		->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
-	if (!m_sdlWindow->startup(this))
+	if (!m_sdlWindow->startup())
 	{
 		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
@@ -205,6 +205,9 @@ void NodeEditorWindow::update(float deltaSeconds)
 {
 	// Clear out any previous node evaluation errors
 	m_lastNodeEvalErrors.clear();
+
+	// Process most recent SDL events (keyboard, mouse, etc)
+	m_sdlWindow->handleSDLEvents();
 }
 
 void NodeEditorWindow::render()
@@ -1108,9 +1111,10 @@ float NodeEditorWindow::getAspectRatio() const
 
 bool NodeEditorWindow::onSDLEvent(const SDL_Event* event)
 {
-	m_sdlWindow->onSDLEvent(event);
 
-	return ImGui_ImplSDL2_ProcessEvent(event);
+	bool bHandled= ImGui_ImplSDL2_ProcessEvent(event);
+
+	return bHandled;
 }
 
 void NodeEditorWindow::configImGui()

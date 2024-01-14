@@ -36,7 +36,9 @@
 #include "GlVertexDefinition.h"
 #include "IGlWindow.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "PathUtils.h"
+#include "SdlWindow.h"
 
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
@@ -339,7 +341,7 @@ namespace RmlInput
 } // namespace RmlSDL
 
 
-GlRmlUiRender::GlRmlUiRender(class IGlWindow& ownerWindow)
+GlRmlUiRender::GlRmlUiRender(class MainWindow& ownerWindow)
 	: m_ownerWindow(ownerWindow)
 	, shaders(Rml::MakeUnique<RmlGfx::ShadersData>())
 {
@@ -369,47 +371,73 @@ void GlRmlUiRender::shutdown()
 
 bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 {
-	bool result = false;
+	bool bHandled = false;
 
-	Rml::Context* context = App::getInstance()->getCurrentAppStage()->getRmlContext();
+	SdlWindow& sdlWindow= m_ownerWindow.getSdlWindow();
+	const bool bHasKeyboardFocus= sdlWindow.hasKeyboardFocus();
+	const bool bHasMouseFocus= sdlWindow.hasKeyboardFocus();
+
+	Rml::Context* context = m_ownerWindow.getCurrentAppStage()->getRmlContext();
 	if (context != nullptr)
 	{
 		switch (event->type)
 		{
 		case SDL_MOUSEMOTION:
-			result = context->ProcessMouseMove(event->motion.x, event->motion.y, RmlInput::GetKeyModifierState());
+			if (bHasMouseFocus)
+			{
+				bHandled = context->ProcessMouseMove(event->motion.x, event->motion.y, RmlInput::GetKeyModifierState());
+			}
 			break;
 		case SDL_MOUSEBUTTONDOWN:
-			result = context->ProcessMouseButtonDown(
-				RmlInput::ConvertMouseButton(event->button.button),
-				RmlInput::GetKeyModifierState());
-			SDL_CaptureMouse(SDL_TRUE);
+			if (bHasMouseFocus)
+			{
+				bHandled = context->ProcessMouseButtonDown(
+					RmlInput::ConvertMouseButton(event->button.button),
+					RmlInput::GetKeyModifierState());
+				SDL_CaptureMouse(SDL_TRUE);
+			}
 			break;
 		case SDL_MOUSEBUTTONUP:
-			SDL_CaptureMouse(SDL_FALSE);
-			result = context->ProcessMouseButtonUp(
-				RmlInput::ConvertMouseButton(event->button.button),
-				RmlInput::GetKeyModifierState());
+			if (bHasMouseFocus)
+			{
+				SDL_CaptureMouse(SDL_FALSE);
+				bHandled = context->ProcessMouseButtonUp(
+					RmlInput::ConvertMouseButton(event->button.button),
+					RmlInput::GetKeyModifierState());
+			}
 			break;
 		case SDL_MOUSEWHEEL:
-			result = context->ProcessMouseWheel(
-				float(-event->wheel.y),
-				RmlInput::GetKeyModifierState());
+			if (bHasMouseFocus)
+			{
+				bHandled = context->ProcessMouseWheel(
+					float(-event->wheel.y),
+					RmlInput::GetKeyModifierState());
+			}
 			break;
 		case SDL_KEYDOWN:
-			result = context->ProcessKeyDown(
-				RmlInput::ConvertKey(event->key.keysym.sym),
-				RmlInput::GetKeyModifierState());
-			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER)
-				result &= context->ProcessTextInput('\n');
+			if (bHasKeyboardFocus)
+			{
+				bHandled = context->ProcessKeyDown(
+					RmlInput::ConvertKey(event->key.keysym.sym),
+					RmlInput::GetKeyModifierState());
+
+				if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER)
+					bHandled &= context->ProcessTextInput('\n');
+			}
 			break;
 		case SDL_KEYUP:
-			result = context->ProcessKeyUp(
-				RmlInput::ConvertKey(event->key.keysym.sym),
-				RmlInput::GetKeyModifierState());
+			if (bHasKeyboardFocus)
+			{
+				bHandled = context->ProcessKeyUp(
+					RmlInput::ConvertKey(event->key.keysym.sym),
+					RmlInput::GetKeyModifierState());
+			}
 			break;
 		case SDL_TEXTINPUT:
-			result = context->ProcessTextInput(Rml::String(&event->text.text[0]));
+			if (bHasKeyboardFocus)
+			{
+				bHandled = context->ProcessTextInput(Rml::String(&event->text.text[0]));
+			}
 			break;
 		case SDL_WINDOWEVENT:
 			{
@@ -429,12 +457,12 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		}
 	}
 
-	return result;
+	return bHandled;
 }
 
 void GlRmlUiRender::setViewport(int width, int height)
 {
-	Rml::Context* context = App::getInstance()->getCurrentAppStage()->getRmlContext();
+	Rml::Context* context = m_ownerWindow.getCurrentAppStage()->getRmlContext();
 	if (context != nullptr)
 	{
 		context->SetDimensions(Rml::Vector2i(width, height));

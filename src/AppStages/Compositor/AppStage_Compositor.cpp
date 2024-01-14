@@ -29,6 +29,7 @@
 #include "GlTexture.h"
 #include "InterprocessRenderTargetWriter.h"
 #include "InputManager.h"
+#include "MainWindow.h"
 #include "MathGLM.h"
 #include "MikanObjectSystem.h"
 #include "MathTypeConversion.h"
@@ -66,8 +67,8 @@
 const char* AppStage_Compositor::APP_STAGE_NAME = "Compositor";
 
 //-- public methods -----
-AppStage_Compositor::AppStage_Compositor(App* app)
-	: AppStage(app, AppStage_Compositor::APP_STAGE_NAME)
+AppStage_Compositor::AppStage_Compositor(MainWindow* window)
+	: AppStage(window, AppStage_Compositor::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
 	, m_compositorLayersModel(new RmlModel_CompositorLayers)
 	, m_compositorRecordingModel(new RmlModel_CompositorRecording)
@@ -102,10 +103,9 @@ AppStage_Compositor::~AppStage_Compositor()
 void AppStage_Compositor::enter()
 {
 	AppStage::enter();
-	App* app= App::getInstance();
 
 	// Cache object systems we'll be accessing
-	ObjectSystemManagerPtr objectSystemManager = app->getObjectSystemManager();
+	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
 	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
 	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
 	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
@@ -146,7 +146,7 @@ void AppStage_Compositor::enter()
 	MikanServer::getInstance()->bindScriptContect(m_scriptContext);
 
 	// Load the compositor script
-	m_profile = app->getProfileConfig();
+	m_profile = App::getInstance()->getProfileConfig();
 	if (!m_profile->compositorScriptFilePath.empty())
 	{
 		if (!m_scriptContext->loadScript(m_profile->compositorScriptFilePath))
@@ -239,7 +239,7 @@ void AppStage_Compositor::exit()
 {
 	// Unregister all viewports from the editor
 	App* app= App::getInstance();
-	EditorObjectSystemPtr editorSystem = app->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
+	EditorObjectSystemPtr editorSystem = m_ownerWindow->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
 	editorSystem->clearViewports();
 
 	// Unregister the script context with the mikan server
@@ -289,7 +289,7 @@ void AppStage_Compositor::update(float deltaSeconds)
 	updateCamera();
 
 	// Update objects in the object system
-	m_app->getObjectSystemManager()->update();
+	m_ownerWindow->getObjectSystemManager()->update();
 
 	// tick the compositor lua script (if any is active)
 	m_scriptContext->updateScript();
@@ -526,7 +526,7 @@ void AppStage_Compositor::updateCamera()
 // Compositor Model UI Events
 void AppStage_Compositor::onReturnEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }
 
 void AppStage_Compositor::onToggleOutlinerWindowEvent()
@@ -568,7 +568,8 @@ void AppStage_Compositor::onToggleSettingsWindowEvent()
 // Compositor Layers UI Events
 void AppStage_Compositor::onGraphEditEvent()
 {
-	CompositorNodeEditorWindow* appWindow= m_app->createAppWindow<CompositorNodeEditorWindow>();
+	App* app= App::getInstance();
+	CompositorNodeEditorWindow* appWindow= App::getInstance()->createAppWindow<CompositorNodeEditorWindow>();
 
 	auto graphAssetPath= m_frameCompositor->getCompositorGraphAssetPath();
 	if (graphAssetPath.empty())
@@ -581,7 +582,7 @@ void AppStage_Compositor::onGraphEditEvent()
 	}
 
 	// Pop back to the main window GL context
-	m_app->popCurrentWindow(appWindow);
+	app->popCurrentWindow(appWindow);
 }
 
 void AppStage_Compositor::onGraphFileSelectEvent()
@@ -898,7 +899,7 @@ void AppStage_Compositor::render()
 			EditorObjectSystem::getSystem()->getEditorScene()->render(currentCamera);
 
 			// Perform component custom rendering
-			m_app->getObjectSystemManager()->customRender();
+			m_ownerWindow->getObjectSystemManager()->customRender();
 		}
 		break;
 	case eCompositorViewpointMode::vrViewpoint:
@@ -907,7 +908,7 @@ void AppStage_Compositor::render()
 			EditorObjectSystem::getSystem()->getEditorScene()->render(currentCamera);
 
 			// Perform component custom rendering
-			m_app->getObjectSystemManager()->customRender();
+			m_ownerWindow->getObjectSystemManager()->customRender();
 
 			// Draw the mouse cursor ray from the pov of the xr camera
 			GlCameraPtr xrCamera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);

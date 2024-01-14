@@ -3,6 +3,7 @@
 #include "GlFrameCompositor.h"
 #include "CompositorNodeEditorWindow.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "NodeEditorUI.h"
 
 #include "Graphs/CompositorNodeGraph.h"
@@ -18,7 +19,7 @@ CompositorNodeEditorWindow::CompositorNodeEditorWindow() : NodeEditorWindow()
 bool CompositorNodeEditorWindow::startup()
 {
 	// Tell the frame compositor to create a texture for the editor compositor to write to
-	GlFrameCompositor* frameCompositor= App::getInstance()->getFrameCompositor();
+	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
 	frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::editorWindow);
 
 	return NodeEditorWindow::startup();
@@ -30,8 +31,8 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 
 	if (m_isRunningCompositor)
 	{
-		App* app = App::getInstance();
-		VideoSourceViewPtr videoSourceView= app->getFrameCompositor()->getVideoSource();
+		MainWindow* mainWindow = MainWindow::getInstance();
+		VideoSourceViewPtr videoSourceView= mainWindow->getFrameCompositor()->getVideoSource();
 
 		NodeEvaluator evaluator = {};
 		evaluator
@@ -50,7 +51,7 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 void CompositorNodeEditorWindow::shutdown()
 {
 	// Tell the frame compositor to free the editor compositor texture
-	GlFrameCompositor* frameCompositor = App::getInstance()->getFrameCompositor();
+	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
 	frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::mainWindow);
 
 	NodeEditorWindow::shutdown();
@@ -64,8 +65,8 @@ NodeGraphFactoryPtr CompositorNodeEditorWindow::getNodeGraphFactory() const
 
 void CompositorNodeEditorWindow::onNodeGraphCreated()
 {
-	App* app = App::getInstance();
-	GlFrameCompositor* frameCompositor = app->getFrameCompositor();
+	MainWindow* mainWindow = MainWindow::getInstance();
+	GlFrameCompositor* frameCompositor = mainWindow->getFrameCompositor();
 
 	// Point the compositor to the editor window writable compositor texture shared from the main window
 	// This will allow the main window to editor compositor graph changes in real time
@@ -77,7 +78,7 @@ bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
-		GlFrameCompositor* frameCompositor= App::getInstance()->getFrameCompositor();
+		GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
 
 		frameCompositor->setCompositorGraphAssetPath(m_editorState.nodeGraphPath, true);
 	}

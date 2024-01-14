@@ -36,11 +36,11 @@ namespace Rml
 class RmlManager : public Rml::SystemInterface
 {
 public:
-	RmlManager(class App* app);
+	RmlManager(class MainWindow* ownerWindow);
 	~RmlManager();
 
 	bool preRendererStartup();
-	bool postRendererStartup(const class IGlWindow* window);
+	bool postRendererStartup();
 	void update();
 	void shutdown();
 
@@ -66,8 +66,7 @@ public:
 private:
 	void registerCommonDataModelTypes();
 	
-
-	class App* m_app= nullptr;
+	class MainWindow* m_ownerWindow= nullptr;
 
 	// Rml UI Event processor
 	class RmlMikanEventInstancer* m_rmlEventInstancer = nullptr;

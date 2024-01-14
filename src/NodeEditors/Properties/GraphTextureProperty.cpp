@@ -209,7 +209,7 @@ void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState
 	}
 }
 
-const ImVec4& GraphTextureProperty::editorGetIconColor() const
+const ImVec4 GraphTextureProperty::editorGetIconColor() const
 {
 	return NodeEditorUI::getTextureColor();
 }

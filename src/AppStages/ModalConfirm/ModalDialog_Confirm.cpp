@@ -1,5 +1,5 @@
 //-- inludes -----
-#include "App.h"
+#include "MainWindow.h"
 #include "ModalDialog_Confirm.h"
 #include "RmlModel_Confirm.h"
 
@@ -33,7 +33,7 @@ bool ModalDialog_Confirm::confirmQuestion(
 	ConfirmCallback rejectCallback)
 {
 	// Allocate a new file browser modal dialog
-	AppStage* ownerAppStage = App::getInstance()->getCurrentAppStage();
+	AppStage* ownerAppStage = MainWindow::getInstance()->getCurrentAppStage();
 	ModalDialog_Confirm* confirmModal = ownerAppStage->pushModalDialog<ModalDialog_Confirm>();
 
 	// Attempt to initialize the confirm modal

@@ -3,6 +3,7 @@
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
+#include "MainWindow.h"
 #include "ProfileConfig.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -31,8 +32,8 @@ struct CameraSettingsDataModel
 const char* AppStage_CameraSettings::APP_STAGE_NAME = "CameraSettings";
 
 //-- public methods -----
-AppStage_CameraSettings::AppStage_CameraSettings(App* app)
-	: AppStage(app, AppStage_CameraSettings::APP_STAGE_NAME)
+AppStage_CameraSettings::AppStage_CameraSettings(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_CameraSettings::APP_STAGE_NAME)
 	, m_dataModel(new CameraSettingsDataModel)
 	, m_videoSourceIterator(nullptr)
 	, m_videoBufferView(nullptr)
@@ -209,14 +210,14 @@ void AppStage_CameraSettings::onRmlClickEvent(const std::string& value)
 {
 	if (value == "goto_mono_tracker_calibration")
 	{
-		m_app->pushAppStage<AppStage_MonoLensCalibration>();
+		m_ownerWindow->pushAppStage<AppStage_MonoLensCalibration>();
 	}
 	else if (value == "goto_mono_tracker_test")
 	{
-		m_app->pushAppStage<AppStage_MonoLensCalibration>()->setBypassCalibrationFlag(true);
+		m_ownerWindow->pushAppStage<AppStage_MonoLensCalibration>()->setBypassCalibrationFlag(true);
 	}
 	else if (value == "goto_main_menu")
 	{
-		m_app->popAppState();
+		m_ownerWindow->popAppState();
 	}
 }

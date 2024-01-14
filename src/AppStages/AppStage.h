@@ -18,7 +18,7 @@ class AppStage
 {
 public:
 	AppStage(
-		class App* app,
+		class MainWindow* ownerWindow,
 		const std::string& stageName);
 	virtual ~AppStage();
 
@@ -35,7 +35,7 @@ public:
 	virtual void render();
 	virtual void renderUI();
 
-	virtual void onSDLEvent(SDL_Event* event);
+	virtual void onSDLEvent(const SDL_Event* event);
 
 	GlViewportPtr getFirstViewport() const { return m_viewports[0]; }
 	const GlViewportList& getViewportList() const { return m_viewports; }
@@ -64,7 +64,7 @@ public:
 	void popModalDialog();
 
 protected:
-	class App* m_app;
+	class MainWindow* m_ownerWindow;
 	bool m_bIsEntered= false;
 	bool m_bIsPaused= false;
 	std::string m_appStageName;

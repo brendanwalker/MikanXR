@@ -35,7 +35,7 @@
 
 //-- public methods -----
 TestNodeEditorWindow::TestNodeEditorWindow()
-	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow))
+	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
 {}
@@ -74,7 +74,7 @@ bool TestNodeEditorWindow::startup()
 	m_sdlWindow
 		->setTitle(windowTitle)
 		->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
-	if (!m_sdlWindow->startup(this))
+	if (!m_sdlWindow->startup())
 	{
 		MIKAN_LOG_ERROR("TestNodeEditorWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
@@ -3388,9 +3388,9 @@ float TestNodeEditorWindow::getAspectRatio() const
 
 bool TestNodeEditorWindow::onSDLEvent(const SDL_Event* event)
 {
-	m_sdlWindow->onSDLEvent(event);
+	bool bHandled = ImGui_ImplSDL2_ProcessEvent(event);
 
-	return ImGui_ImplSDL2_ProcessEvent(event);
+	return bHandled;
 }
 
 void TestNodeEditorWindow::configImGui()

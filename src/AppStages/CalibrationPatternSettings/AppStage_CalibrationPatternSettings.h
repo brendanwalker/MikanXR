@@ -7,7 +7,7 @@
 class AppStage_CalibrationPatternSettings : public AppStage
 {
 public:
-	AppStage_CalibrationPatternSettings(class App* app);
+	AppStage_CalibrationPatternSettings(class MainWindow* ownerWindow);
 
 	virtual void enter() override;
 	virtual void exit() override;

@@ -23,10 +23,10 @@
 
 #include <easy/profiler.h>
 
-SdlWindow::SdlWindow()
-	: m_title("Mikan Window")
+SdlWindow::SdlWindow(class IGlWindow *ownerWindowInterface)
+	: m_owner(ownerWindowInterface)
+	, m_title("Mikan Window")
 {
-
 }
 
 SdlWindow* SdlWindow::enableGLDataSharing()
@@ -64,7 +64,7 @@ SdlWindow* SdlWindow::setSize(int width, int height)
 	return this;
 }
 
-bool SdlWindow::startup(IGlWindow *ownerWindowInterface)
+bool SdlWindow::startup()
 {
 	assert(SdlManager::getInstance()->getIsSdlInitialized());
 
@@ -96,7 +96,7 @@ bool SdlWindow::startup(IGlWindow *ownerWindowInterface)
 		{
 			// Make this window the current GL context
 			// While in this GL context scope, all GL calls will be made to this window
-			App::getInstance()->pushCurrentWindow(ownerWindowInterface);
+			App::getInstance()->pushCurrentWindow(m_owner);
 
 			SDL_GL_SetSwapInterval(1); // Enable vsync
 		}
@@ -154,8 +154,42 @@ void SdlWindow::shutdown()
 	m_height = 0;
 }
 
-void SdlWindow::onSDLEvent(const SDL_Event* event)
+void SdlWindow::handleSDLEvents()
 {
+	SDL_Event event;
+
+	std::vector<SDL_Event>& events= SdlManager::getInstance()->getEvents();
+	auto it = events.begin();
+	while (it != events.end())
+	{
+		SDL_Event& event= *it;
+
+		// First see if this is an SDL window event
+		bool bHandled = handleSDLWindowEvent(&event);
+
+		// Then see if the owner wants to handle it
+		if (!bHandled)
+		{
+			bHandled= m_owner->onSDLEvent(&event);
+		}
+
+		// Remove any SDL events that were handled
+		if (bHandled)
+		{
+			it= events.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+}
+
+bool SdlWindow::handleSDLWindowEvent(const SDL_Event* event)
+{
+	// Assume the event was handled
+	bool bHandled = true;
+
 	//If an event was detected for this window
 	if (event->type == SDL_WINDOWEVENT && event->window.windowID == m_windowId)
 	{
@@ -216,8 +250,19 @@ void SdlWindow::onSDLEvent(const SDL_Event* event)
 			case SDL_WINDOWEVENT_CLOSE:
 				SDL_HideWindow(m_sdlWindow);
 				break;
+			
+			default:
+				// Not a window event we care about, pass it along
+				bHandled= false;
 		}
 	}
+	else
+	{
+		// Not a window event, pass it along
+		bHandled= false;
+	}
+
+	return bHandled;
 }
 
 void SdlWindow::focus()
@@ -232,7 +277,7 @@ void SdlWindow::focus()
 	SDL_RaiseWindow(m_sdlWindow);
 }
 
-void SdlWindow::makeCurrent()
+void SdlWindow::makeGlContextCurrent()
 {
 	int result = SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
 	if (result != 0)

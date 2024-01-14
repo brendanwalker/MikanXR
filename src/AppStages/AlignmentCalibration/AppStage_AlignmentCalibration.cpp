@@ -11,6 +11,7 @@
 #include "GlScene.h"
 #include "GlTextRenderer.h"
 #include "GlViewport.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MonoLensTrackerPoseCalibrator.h"
@@ -41,8 +42,8 @@ static const char* k_calibration_pattern_names[] = {
 
 
 //-- public methods -----
-AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(App* app)
-	: AppStage(app, AppStage_AlignmentCalibration::APP_STAGE_NAME)
+AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_AlignmentCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_AlignmentCalibration)
 	, m_cameraSettingsModel(new RmlModel_AlignmentCameraSettings)
 	, m_videoSourceView()
@@ -432,12 +433,12 @@ void AppStage_AlignmentCalibration::onRestartEvent()
 
 void AppStage_AlignmentCalibration::onCancelEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }
 
 void AppStage_AlignmentCalibration::onReturnEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }
 
 // Camera Settings Model UI Events

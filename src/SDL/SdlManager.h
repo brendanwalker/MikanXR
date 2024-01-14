@@ -4,6 +4,7 @@
 #include "SdlFwd.h"
 
 #include <string>
+#include <vector>
 
 //-- definitions -----
 class SdlManager
@@ -14,6 +15,9 @@ public:
 
 	bool startup();
 	void shutdown();
+
+	void pollEvents();
+	std::vector<SDL_Event>& getEvents() { return m_events; }
 
 	void setSDLMouseCursor(const std::string& cursor_name);
 
@@ -33,6 +37,8 @@ private:
 	SDL_Cursor* cursor_cross = nullptr;
 	SDL_Cursor* cursor_text = nullptr;
 	SDL_Cursor* cursor_unavailable = nullptr;
+
+	std::vector<SDL_Event> m_events;
 
 	static SdlManager* m_instance;
 };

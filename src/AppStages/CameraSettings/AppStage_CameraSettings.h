@@ -13,7 +13,7 @@ typedef std::vector<VideoSourceViewPtr> VideoSourceList;
 class AppStage_CameraSettings : public AppStage
 {
 public:
-	AppStage_CameraSettings(class App* app);
+	AppStage_CameraSettings(class MainWindow* ownerWindow);
 	virtual ~AppStage_CameraSettings();
 
 	virtual void enter() override;

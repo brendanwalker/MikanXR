@@ -1,8 +1,8 @@
-#include "App.h"
 #include "ClientTextureNode.h"
 #include "GlFrameCompositor.h"
 #include "GlTexture.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
@@ -23,7 +23,7 @@ class ClientListDataSource : public NodeEditorUI::ComboBoxDataSource
 public:
 	ClientListDataSource()
 	{
-		GlFrameCompositor* compositor = App::getInstance()->getFrameCompositor();
+		GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
 		if (compositor != nullptr)
 		{
 			auto& clientSources= compositor->getClientSources();
@@ -119,7 +119,7 @@ void ClientTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 
 GlTexturePtr ClientTextureNode::getTextureResource() const
 {
-	GlFrameCompositor* compositor= App::getInstance()->getFrameCompositor();
+	GlFrameCompositor* compositor= MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
 	{
 		return compositor->getClientSourceTexture(m_clientIndex, m_clientTextureType);

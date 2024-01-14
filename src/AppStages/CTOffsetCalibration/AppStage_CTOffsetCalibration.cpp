@@ -13,6 +13,7 @@
 #include "GlScene.h"
 #include "GlTextRenderer.h"
 #include "GlViewport.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "CameraTrackerOffsetCalibrator.h"
@@ -42,8 +43,8 @@ static const char* k_calibration_pattern_names[] = {
 };
 
 //-- public methods -----
-AppStage_CTOffsetCalibration::AppStage_CTOffsetCalibration(App* app)
-	: AppStage(app, AppStage_CTOffsetCalibration::APP_STAGE_NAME)
+AppStage_CTOffsetCalibration::AppStage_CTOffsetCalibration(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_CTOffsetCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_CTOffsetCalibration)
 	, m_cameraSettingsModel(new RmlModel_CTOffsetCameraSettings)
 	, m_videoSourceView()
@@ -447,12 +448,12 @@ void AppStage_CTOffsetCalibration::onRestartEvent()
 
 void AppStage_CTOffsetCalibration::onCancelEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }
 
 void AppStage_CTOffsetCalibration::onCaptureEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }
 
 // Camera Settings Model UI Events

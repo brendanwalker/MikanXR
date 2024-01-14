@@ -5,6 +5,7 @@
 #include "SpatialAnchors/AppStage_SpatialAnchors.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
+#include "MainWindow.h"
 #include "MikanServer.h"
 #include "ProfileConfig.h"
 #include "VRDeviceManager.h"
@@ -18,8 +19,8 @@
 const char* AppStage_VRDeviceSettings::APP_STAGE_NAME = "VRDeviceSettings";
 
 //-- public methods -----
-AppStage_VRDeviceSettings::AppStage_VRDeviceSettings(App* app)
-	: AppStage(app, AppStage_VRDeviceSettings::APP_STAGE_NAME)
+AppStage_VRDeviceSettings::AppStage_VRDeviceSettings(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_VRDeviceSettings::APP_STAGE_NAME)
 	, m_vrDeviceSettingsModel(new RmlModel_VRDeviceSettings)
 { }
 
@@ -112,19 +113,19 @@ void AppStage_VRDeviceSettings::onRmlClickEvent(const std::string& value)
 {
 	if (value == "calibrate_vr_camera_alignment")
 	{
-		m_app->pushAppStage<AppStage_AlignmentCalibration>();
+		m_ownerWindow->pushAppStage<AppStage_AlignmentCalibration>();
 	}
 	else if (value == "test_vr_camera_alignment")
 	{
-		m_app->pushAppStage<AppStage_AlignmentCalibration>()->setBypassCalibrationFlag(true);
+		m_ownerWindow->pushAppStage<AppStage_AlignmentCalibration>()->setBypassCalibrationFlag(true);
 	}
 	else if (value == "goto_spatial_anchor_setup")
 	{
-		m_app->pushAppStage<AppStage_SpatialAnchors>();
+		m_ownerWindow->pushAppStage<AppStage_SpatialAnchors>();
 	}
 	else if (value == "goto_main_menu")
 	{
-		m_app->popAppState();
+		m_ownerWindow->popAppState();
 	}
 }
 

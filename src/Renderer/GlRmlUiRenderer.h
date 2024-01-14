@@ -39,7 +39,7 @@ namespace RmlGfx {
 class GlRmlUiRender : public Rml::RenderInterface 
 {
 public:
-	GlRmlUiRender(class IGlWindow& ownerWindow);
+	GlRmlUiRender(class MainWindow& ownerWindow);
 	~GlRmlUiRender();
 
 	bool startup();
@@ -92,7 +92,7 @@ private:
 	enum class ScissoringState { Disable, Scissor, Stencil };
 	ScissoringState scissoring_state = ScissoringState::Disable;
 
-	class IGlWindow& m_ownerWindow;
+	class MainWindow& m_ownerWindow;
 	int viewport_width = 0;
 	int viewport_height = 0;
 

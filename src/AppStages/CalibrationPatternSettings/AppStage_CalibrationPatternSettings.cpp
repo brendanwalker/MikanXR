@@ -5,6 +5,7 @@
 #include "ProfileConfig.h"
 #include "Logger.h"
 #include "MathUtility.h"
+#include "MainWindow.h"
 
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
@@ -54,8 +55,8 @@ struct CalibrationPatternSettingsDataModel
 const char* AppStage_CalibrationPatternSettings::APP_STAGE_NAME = "CalibrationPatternSettings";
 
 //-- public methods -----
-AppStage_CalibrationPatternSettings::AppStage_CalibrationPatternSettings(App* app)
-	: AppStage(app, AppStage_CalibrationPatternSettings::APP_STAGE_NAME)
+AppStage_CalibrationPatternSettings::AppStage_CalibrationPatternSettings(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_CalibrationPatternSettings::APP_STAGE_NAME)
 	, m_dataModel(new CalibrationPatternSettingsDataModel)
 {
 }
@@ -172,6 +173,6 @@ void AppStage_CalibrationPatternSettings::onRmlClickEvent(const std::string& val
 {
 	if (value == "goto_main_menu")
 	{
-		m_app->popAppState();
+		m_ownerWindow->popAppState();
 	}
 }

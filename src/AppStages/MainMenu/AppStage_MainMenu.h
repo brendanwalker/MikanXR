@@ -12,7 +12,7 @@ namespace sdlgui {
 class AppStage_MainMenu : public AppStage
 {
 public:
-	AppStage_MainMenu(class App* app);
+	AppStage_MainMenu(class MainWindow* app);
 
 	virtual void enter() override;
 

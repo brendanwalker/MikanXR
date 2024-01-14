@@ -2,6 +2,7 @@
 #include "GlFrameCompositor.h"
 #include "GlTexture.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
@@ -64,7 +65,7 @@ void VideoTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 
 GlTexturePtr VideoTextureNode::getTextureResource() const
 {
-	GlFrameCompositor* compositor= App::getInstance()->getFrameCompositor();
+	GlFrameCompositor* compositor= MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
 	{
 		return compositor->getVideoSourceTexture(m_videoTextureSource);

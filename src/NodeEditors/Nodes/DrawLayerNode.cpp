@@ -1,4 +1,3 @@
-#include "App.h"
 #include "DrawLayerNode.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
@@ -12,6 +11,7 @@
 #include "IGlWindow.h"
 #include "EditorNodeUtil.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 
@@ -652,7 +652,7 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glState)
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	GlProgramPtr stencilShader = compositorGraph->getStencilShader();
 
-	GlFrameCompositor* frameCompositor= App::getInstance()->getFrameCompositor();
+	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
 	if (!frameCompositor)
 		return;
 
@@ -779,7 +779,7 @@ void DrawLayerNode::evaluateBoxStencils(GlState& glState)
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	GlProgramPtr stencilShader= compositorGraph->getStencilShader();
 
-	GlFrameCompositor* frameCompositor= App::getInstance()->getFrameCompositor();
+	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
 	if (!frameCompositor)
 		return;
 
@@ -868,7 +868,7 @@ void DrawLayerNode::evaluateModelStencils(GlState& glState)
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	GlProgramPtr stencilShader= compositorGraph->getStencilShader();
 
-	GlFrameCompositor* frameCompositor = App::getInstance()->getFrameCompositor();
+	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
 	if (!frameCompositor)
 		return;
 

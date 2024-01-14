@@ -59,7 +59,7 @@ public:
 	virtual GlShaderCache* getShaderCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
-	virtual bool onSDLEvent(const SDL_Event* event)  override;
+	virtual bool onSDLEvent(const SDL_Event* event) override;
 
 protected:
 	virtual void configImGui();

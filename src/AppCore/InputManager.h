@@ -47,7 +47,7 @@ public:
 
 	static InputManager* getInstance() { return m_inputManager; }
 
-	void onSDLEvent(SDL_Event& e);
+	bool onSDLEvent(const SDL_Event* event);
 
 	void getMouseScreenPosition(int &outScreenX, int &outScreenY) const;
 

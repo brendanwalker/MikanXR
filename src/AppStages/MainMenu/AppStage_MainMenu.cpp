@@ -5,6 +5,7 @@
 #include "CameraSettings/AppStage_CameraSettings.h"
 #include "VRDeviceSettings/AppStage_VRDeviceSettings.h"
 #include "App.h"
+#include "MainWindow.h"
 #include "PathUtils.h"
 #include "Logger.h"
 
@@ -17,8 +18,8 @@
 const char* AppStage_MainMenu::APP_STAGE_NAME = "MainMenu";
 
 //-- public methods -----
-AppStage_MainMenu::AppStage_MainMenu(App* app)
-	: AppStage(app, AppStage_MainMenu::APP_STAGE_NAME)
+AppStage_MainMenu::AppStage_MainMenu(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_MainMenu::APP_STAGE_NAME)
 { 
 }
 
@@ -33,22 +34,22 @@ void AppStage_MainMenu::onRmlClickEvent(const std::string& value)
 {
 	if (value == "goto_compositor")
 	{
-		m_app->pushAppStage<AppStage_Compositor>();
+		m_ownerWindow->pushAppStage<AppStage_Compositor>();
 	}
 	else if (value == "goto_pattern_settings")
 	{
-		m_app->pushAppStage<AppStage_CalibrationPatternSettings>();
+		m_ownerWindow->pushAppStage<AppStage_CalibrationPatternSettings>();
 	}
 	else if (value == "goto_camera_settings")
 	{
-		m_app->pushAppStage<AppStage_CameraSettings>();
+		m_ownerWindow->pushAppStage<AppStage_CameraSettings>();
 	}
 	else if (value == "goto_vr_device_settings")
 	{
-		m_app->pushAppStage<AppStage_VRDeviceSettings>();
+		m_ownerWindow->pushAppStage<AppStage_VRDeviceSettings>();
 	}
 	else if (value == "exit_mikan")
 	{
-		m_app->requestShutdown();
+		App::getInstance()->requestShutdown();
 	}
 }

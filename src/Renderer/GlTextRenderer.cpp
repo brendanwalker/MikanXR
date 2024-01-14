@@ -9,6 +9,7 @@
 #include "GlViewport.h"
 #include "IGlWindow.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "MathGLM.h"
 
 #include "glm/ext/matrix_projection.hpp"
@@ -113,7 +114,7 @@ void GlTextRenderer::addTextAtScreenPosition(
 	const glm::vec2& screenCoords, 
 	const std::wstring& text)
 {
-	GlTexture* texture= App::getInstance()->getFontManager()->fetchBakedText(style, text);
+	GlTexture* texture= MainWindow::getInstance()->getFontManager()->fetchBakedText(style, text);
 
 	if (texture != nullptr)
 	{

@@ -10,18 +10,19 @@
 class SdlWindow 
 {
 public:
-	SdlWindow();
+	SdlWindow()= default;
+	SdlWindow(class IGlWindow *ownerWindowInterface);
 
-	bool startup(class IGlWindow *ownerWindowInterface);
+	bool startup();
 	void shutdown();
 
 	void focus();
-	void onSDLEvent(const SDL_Event* event);
+	void handleSDLEvents();
 
 	void renderBegin();
 	void renderEnd();
 
-	void makeCurrent();
+	void makeGlContextCurrent();
 
 	int getWindowId() const { return m_windowId; }
 
@@ -45,7 +46,11 @@ public:
 	inline SDL_Window* getInternalSdlWindow() { return m_sdlWindow; }
 	inline void* getInternalGlContext() { return m_glContext; }
 
+protected:
+	bool handleSDLWindowEvent(const SDL_Event* event);
+
 private:
+	class IGlWindow *m_owner= nullptr;
 	SDL_Window* m_sdlWindow= nullptr;
 	void* m_glContext = nullptr;
 	int m_windowId= -1;

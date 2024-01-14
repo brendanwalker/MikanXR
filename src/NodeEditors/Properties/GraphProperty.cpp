@@ -31,7 +31,7 @@ std::string GraphProperty::editorGetIcon() const
 	return NodeEditorUI::getVariableIcon(); 
 }
 
-const ImVec4& GraphProperty::editorGetIconColor() const
+const ImVec4 GraphProperty::editorGetIconColor() const
 {
 	return NodeEditorUI::getPropertyColor();
 }

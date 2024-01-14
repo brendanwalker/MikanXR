@@ -144,6 +144,17 @@ void SdlManager::shutdown()
 	m_instance = NULL;
 }
 
+void SdlManager::pollEvents()
+{
+	m_events.clear();
+
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		m_events.push_back(event);
+	}
+}
+
 void SdlManager::setSDLMouseCursor(const std::string& cursor_name)
 {
 	SDL_Cursor* cursor = nullptr;
