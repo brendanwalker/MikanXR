@@ -37,9 +37,8 @@ bool GlFrameBuffer::createResources()
 			m_texture->setGenerateMipMap(false);
 			m_texture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
 			m_texture->createTexture();
-
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->getGlTextureId(), 0);
 		}
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->getGlTextureId(), 0);
 
 		// Create render buffer
 		glGenRenderbuffers(1, &m_glRenderBufferID);
