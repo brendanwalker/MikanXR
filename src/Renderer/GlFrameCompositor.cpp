@@ -1826,16 +1826,18 @@ void GlFrameCompositor::render() const
 
 	if (m_mainWindowFrameBufferTexture != nullptr)
 	{
+		GlTextureConstPtr compositedFrameTexture= getCompositedFrameTexture();
+
 		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState();
 		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 		// Draw the composited video frame
 		m_rgbFrameShader->bindProgram();
-		m_mainWindowFrameBufferTexture->bindTexture();
+		compositedFrameTexture->bindTexture();
 		glBindVertexArray(m_layerQuadVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
-		m_mainWindowFrameBufferTexture->clearTexture();
+		compositedFrameTexture->clearTexture();
 		m_rgbFrameShader->unbindProgram();
 	}
 }
