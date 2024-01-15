@@ -53,22 +53,11 @@ protected:
 	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
 	void rebuildInputPins();
 
-	void createLayerQuadMeshes();
-	void createStencilMeshes();
-	void createStencilShader();
-
 	void setMaterialPin(PropertyPinPtr inPin);
 	void setMaterial(GlMaterialPtr inMaterial);
 
 	void setStencilsPin(ArrayPinPtr inPin);
 	void rebuildStencilLists();
-
-	struct QuadVertex
-	{
-		glm::vec2 aPos;
-		glm::vec2 aTexCoords;
-	};
-	static const GlVertexDefinition& getLayerQuadVertexDefinition();
 
 protected:
 	std::vector<NodePinPtr> m_dynamicMaterialPins;
@@ -77,13 +66,9 @@ protected:
 	std::vector<MikanStencilID> m_quadStencilIds;
 	std::vector<MikanStencilID> m_boxStencilIds;
 	std::vector<MikanStencilID> m_modelStencilIds;
-	GlTriangulatedMeshPtr m_stencilQuadMesh;
-	GlTriangulatedMeshPtr m_stencilBoxMesh;
 
 	PropertyPinPtr m_materialPin;
 	GlMaterialPtr m_material;
-	GlTriangulatedMeshPtr m_layerVFlippedMesh;
-	GlTriangulatedMeshPtr m_layerMesh;
 
 	eCompositorBlendMode m_blendMode = eCompositorBlendMode::blendOn;
 	eCompositorStencilMode m_stencilMode = eCompositorStencilMode::insideStencil;

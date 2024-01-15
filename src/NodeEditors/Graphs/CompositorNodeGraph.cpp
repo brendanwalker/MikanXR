@@ -5,6 +5,7 @@
 #include "GlRenderModelResource.h"
 #include "GlModelResourceManager.h"
 #include "GlStateStack.h"
+#include "GlTriangulatedMesh.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
 #include "IGlWindow.h"
@@ -85,6 +86,12 @@ bool CompositorNodeGraph::createResources()
 	// Create rendering resources
 	bool bSuccess = createStencilShader();
 
+	// Create triangulated mesh used to render the layer onto
+	bSuccess &= createLayerQuadMeshes();
+
+	// Create meshes used to draw quad and box stencils
+	bSuccess &= createStencilMeshes();
+
 	return bSuccess;
 }
 
@@ -99,6 +106,10 @@ void CompositorNodeGraph::disposeResources()
 
 	// Free rendering resources
 	m_stencilShader = nullptr;
+	m_stencilBoxMesh = nullptr;
+	m_stencilQuadMesh = nullptr;
+	m_layerVFlippedMesh = nullptr;
+	m_layerMesh = nullptr;
 }
 
 bool CompositorNodeGraph::loadFromConfig(const NodeGraphConfig& config)
@@ -264,6 +275,146 @@ bool CompositorNodeGraph::createStencilShader()
 	{
 		MIKAN_LOG_ERROR("DrawLayerNode::createStencilShader()") << "Failed to compile stencil shader";
 		return false;
+	}
+
+	return true;
+}
+
+const GlVertexDefinition& CompositorNodeGraph::getLayerQuadVertexDefinition()
+{
+	static GlVertexDefinition x_vertexDefinition;
+
+	if (x_vertexDefinition.attributes.size() == 0)
+	{
+		const int32_t vertexSize = (int32_t)sizeof(CompositorNodeGraph::QuadVertex);
+		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
+
+		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position2f, false, vertexSize, offsetof(CompositorNodeGraph::QuadVertex, aPos)));
+		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::texel2f, false, vertexSize, offsetof(CompositorNodeGraph::QuadVertex, aTexCoords)));
+
+		x_vertexDefinition.vertexSize = vertexSize;
+	}
+
+	return x_vertexDefinition;
+}
+
+bool CompositorNodeGraph::createLayerQuadMeshes()
+{
+	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+
+	// Create triangulated quad mesh to draw the layer on
+	{
+		static QuadVertex x_vertices[] = {
+			//   positions                texCoords
+				{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
+				{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
+				{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+				{glm::vec2(1.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
+		};
+
+		m_layerMesh = std::make_shared<GlTriangulatedMesh>("layer_quad_mesh",
+														   getLayerQuadVertexDefinition(),
+														   (const uint8_t*)x_vertices,
+														   4, // 4 verts
+														   (const uint8_t*)x_indices,
+														   2, // 2 tris
+														   false); // mesh doesn't own quad vert data
+		if (!m_layerMesh->createBuffers())
+		{
+			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create layer mesh";
+			return false;
+		}
+	}
+
+	// Create triangulated quad mesh to draw the layer on with flipped v texel coordinates
+	// (this is usually used for video sources where we need to flip the image vertically)
+	{
+		static QuadVertex x_vertices[] = {
+			//   positions                texCoords (flipped v coordinated)
+				{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+				{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+				{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+				{glm::vec2(1.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
+		};
+
+		m_layerVFlippedMesh = std::make_shared<GlTriangulatedMesh>("layer_vflipped_quad_mesh",
+																   getLayerQuadVertexDefinition(),
+																   (const uint8_t*)x_vertices,
+																   4, // 4 verts
+																   (const uint8_t*)x_indices,
+																   2, // 2 tris
+																   false); // mesh doesn't own quad vert data
+		if (!m_layerVFlippedMesh->createBuffers())
+		{
+			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create vflipped layer mesh";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool CompositorNodeGraph::createStencilMeshes()
+{
+	// Create triangulated quad mesh to draw the quad stencils
+	{
+		static CompositorNodeGraph::StencilVertex x_vertices[] = {
+			//   positions
+			{glm::vec3(-0.5f,  0.5f, 0.0f)},
+			{glm::vec3(-0.5f, -0.5f, 0.0f)},
+			{glm::vec3(0.5f, -0.5f, 0.0f)},
+			{glm::vec3(0.5f,  0.5f, 0.0f)},
+		};
+		static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+
+		m_stencilQuadMesh = std::make_shared<GlTriangulatedMesh>("quad_stencil_mesh",
+																 CompositorNodeGraph::getStencilModelVertexDefinition(),
+																 (const uint8_t*)x_vertices,
+																 4, // 4 verts in a quad
+																 (const uint8_t*)x_indices,
+																 2, // 2 tris in a quad
+																 false); // mesh doesn't own quad vertex data
+		if (!m_stencilQuadMesh->createBuffers())
+		{
+			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create quad stencil mesh";
+			return false;
+		}
+	}
+
+	// Create triangulated box mesh to draw the box stencils
+	{
+		static CompositorNodeGraph::StencilVertex x_vertices[] = {
+			//   positions
+			{glm::vec3(-0.5f,  0.5f, -0.5f)},
+			{glm::vec3(-0.5f,  0.5f,  0.5f)},
+			{glm::vec3(0.5f,  0.5f,  0.5f)},
+			{glm::vec3(0.5f,  0.5f, -0.5f)},
+			{glm::vec3(-0.5f, -0.5f, -0.5f)},
+			{glm::vec3(-0.5f, -0.5f,  0.5f)},
+			{glm::vec3(0.5f, -0.5f,  0.5f)},
+			{glm::vec3(0.5f, -0.5f, -0.5f)},
+		};
+		static uint16_t x_indices[] = {
+			0, 4, 1, 1, 4, 5, // -X Face
+			1, 5, 2, 2, 5, 6, // +Z Face
+			2, 6, 3, 3, 6, 7, // +X Face
+			0, 3, 7, 7, 4, 0, // -Z Face
+			5, 4, 6, 6, 4, 7, // -Y Face
+			3, 0, 1, 1, 2, 3  // +Y Face 
+		};
+
+		m_stencilBoxMesh = std::make_shared<GlTriangulatedMesh>("box_stencil_mesh",
+																CompositorNodeGraph::getStencilModelVertexDefinition(),
+																(const uint8_t*)x_vertices,
+																8, // 8 verts in a cube
+																(const uint8_t*)x_indices,
+																12, // 12 tris in a cube (6 faces * 2 tris/face)
+																false); // mesh doesn't own box vertex data
+		if (!m_stencilBoxMesh->createBuffers())
+		{
+			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create box stencil mesh";
+			return false;
+		}
 	}
 
 	return true;
