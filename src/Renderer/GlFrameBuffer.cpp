@@ -120,8 +120,7 @@ bool GlFrameBuffer::bindFrameBuffer()
 	if (m_glRenderBufferID != -1 && !m_bIsBound)
 	{
 		// Cache the last viewport dimensions
-		GLint last_viewport[4];
-		glGetIntegerv(GL_VIEWPORT, last_viewport);
+		glGetIntegerv(GL_VIEWPORT, m_lastiewport);
 
 		// Change the viewport to match the frame buffer texture
 		glViewport(0, 0, m_width, m_height);
