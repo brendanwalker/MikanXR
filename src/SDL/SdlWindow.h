@@ -42,6 +42,7 @@ public:
 	bool hasKeyboardFocus() const { return m_hasKeyboardFocus; }
 	bool isMinimized() const { return m_isMinimized; }
 	bool isShown() const { return m_isShown; }
+	bool wantsDestroy() const { return m_wantsDestroy; }
 
 	inline SDL_Window* getInternalSdlWindow() { return m_sdlWindow; }
 	inline void* getInternalGlContext() { return m_glContext; }
@@ -71,4 +72,5 @@ private:
 	bool m_isfullScreen= false;
 	bool m_isMinimized= false;
 	bool m_isShown= false;
+	bool m_wantsDestroy= false;
 };

@@ -55,16 +55,18 @@ public:
 	template<typename t_app_window>
 	void destroyAppWindow(t_app_window* appWindow)
 	{
+		// If this window was the current window, pop it from the current window stack
+		popCurrentWindow(appWindow);
+
+		// Tear down the SDL window and OpenGL context
+		appWindow->shutdown();
+
+		// Remove the window from the list of windows (should deallocate it)
 		auto it= std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
 		if (it != m_appWindows.end())
 		{
 			m_appWindows.erase(it);
 		}
-
-		appWindow->shutdown();
-
-		// If this window was the current window, pop it from the current window stack
-		popCurrentWindow(appWindow);
 
 		// If this was the main window pointer, make sure to invalidate that pointer
 		if ((void *)appWindow == (void *)m_mainWindow)

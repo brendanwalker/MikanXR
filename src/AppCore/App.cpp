@@ -2,6 +2,7 @@
 #include "App.h"
 #include "FrameTimer.h"
 #include "Graphs/CompositorNodeGraph.h"
+#include "GlCommon.h"
 #include "GlShaderCache.h"
 #include "GlFrameCompositor.h"
 #include "GlTextRenderer.h"
@@ -184,6 +185,7 @@ void App::tickWindows(const float deltaSeconds)
 {
 	EASY_FUNCTION();
 
+	// Update each window
 	for (IGlWindow* window : m_appWindows)
 	{
 		// Mark this window as the current window getting updated
@@ -206,6 +208,18 @@ void App::tickWindows(const float deltaSeconds)
 		// Restore back to the main window
 		popCurrentWindow(window);
 	}
+
+	// Destroy any windows that have been marked for destruction
+	for (int windowIndex= (int)m_appWindows.size() - 1; windowIndex >= 0; windowIndex--)
+	{
+		IGlWindow* window = m_appWindows[windowIndex];
+
+		if (window->getSdlWindow().wantsDestroy())
+		{
+			// remove the window from the window list
+			destroyAppWindow(window);
+		}
+	}
 }
 
 void App::pushCurrentWindow(IGlWindow* window)
@@ -224,6 +238,11 @@ IGlWindow* App::getCurrentWindow() const
 
 void App::popCurrentWindow(IGlWindow* window)
 {
+	if (checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__))
+	{
+		MIKAN_LOG_ERROR("App::popCurrentWindow") << "Unhandled GL error found before popping window";
+	}
+
 	if (m_currentWindowStack.size() > 0 && m_currentWindowStack.back() == window)
 	{
 		// Remove the window from the window stack

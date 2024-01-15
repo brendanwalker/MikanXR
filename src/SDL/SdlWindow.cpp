@@ -23,6 +23,15 @@
 
 #include <easy/profiler.h>
 
+static void APIENTRY GLDebugMessageCallback(
+	GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar* message,
+	const void* userParam);
+
 SdlWindow::SdlWindow(class IGlWindow *ownerWindowInterface)
 	: m_owner(ownerWindowInterface)
 	, m_title("Mikan Window")
@@ -113,7 +122,13 @@ bool SdlWindow::startup()
 		GLenum err;
 		glewExperimental = GL_TRUE; // Please expose OpenGL 3.x+ interfaces
 		err = glewInit();
-		if (err != GLEW_OK)
+		if (err == GLEW_OK)
+		{
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(GLDebugMessageCallback, m_glContext);
+		}
+		else
 		{
 			MIKAN_LOG_ERROR("SdlWindow::startup") << "Unable to initialize glew openGL backend: " << glewGetErrorString(err);
 			success = false;
@@ -249,6 +264,7 @@ bool SdlWindow::handleSDLWindowEvent(const SDL_Event* event)
 				//Hide on close
 			case SDL_WINDOWEVENT_CLOSE:
 				SDL_HideWindow(m_sdlWindow);
+				m_wantsDestroy= true;
 				break;
 			
 			default:
@@ -297,4 +313,146 @@ void SdlWindow::renderEnd()
 	EASY_FUNCTION();
 
 	SDL_GL_SwapWindow(m_sdlWindow);
+}
+
+enum class eGLErrorSeverity : int
+{
+	unknown,
+	notification,
+	low,
+	medium,
+	high,
+};
+static const char* g_szGLErrorSeverityNames[] = {
+	"UNKNOWN",
+	"NOTIFICATION",
+	"LOW",
+	"MEDIUM",
+	"HIGH",
+};
+
+static void APIENTRY GLDebugMessageCallback(
+	GLenum glMesgSource,
+	GLenum glMesgType,
+	GLuint glMesgId,
+	GLenum glMesgSeverity,
+	GLsizei length,
+	const GLchar* szGlMessage,
+	const void* userParam)
+{
+	std::string glErrorSourceStr;
+	std::string glErrorTypeStr;
+
+	switch (glMesgSource)
+	{
+		case GL_DEBUG_SOURCE_API:
+			glErrorSourceStr = "API";
+			break;
+
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+			glErrorSourceStr = "WINDOW SYSTEM";
+			break;
+
+		case GL_DEBUG_SOURCE_SHADER_COMPILER:
+			glErrorSourceStr = "SHADER COMPILER";
+			break;
+
+		case GL_DEBUG_SOURCE_THIRD_PARTY:
+			glErrorSourceStr = "THIRD PARTY";
+			break;
+
+		case GL_DEBUG_SOURCE_APPLICATION:
+			glErrorSourceStr = "APPLICATION";
+			break;
+
+		case GL_DEBUG_SOURCE_OTHER:
+			glErrorSourceStr = "UNKNOWN";
+			break;
+
+		default:
+			glErrorSourceStr = "UNKNOWN";
+			break;
+	}
+
+	eGLErrorSeverity minSeverity= eGLErrorSeverity::notification;
+	switch (glMesgType)
+	{
+		case GL_DEBUG_TYPE_ERROR:
+			glErrorTypeStr = "ERROR";
+			break;
+
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+			glErrorTypeStr = "DEPRECATED BEHAVIOR";
+			minSeverity= eGLErrorSeverity::high;
+			break;
+
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+			glErrorTypeStr = "UDEFINED BEHAVIOR";
+			break;
+
+		case GL_DEBUG_TYPE_PORTABILITY:
+			glErrorTypeStr = "PORTABILITY";
+			minSeverity= eGLErrorSeverity::high;
+			break;
+
+		case GL_DEBUG_TYPE_PERFORMANCE:
+			glErrorTypeStr = "PERFORMANCE";
+			minSeverity= eGLErrorSeverity::high;
+			break;
+
+		case GL_DEBUG_TYPE_OTHER:
+			glErrorTypeStr = "OTHER";
+			minSeverity= eGLErrorSeverity::low;
+			break;
+
+		case GL_DEBUG_TYPE_MARKER:
+			glErrorTypeStr = "MARKER";
+			break;
+
+		default:
+			glErrorTypeStr = "UNKNOWN";
+			break;
+	}
+
+	eGLErrorSeverity eventSeverity= eGLErrorSeverity::unknown;
+	switch (glMesgSeverity)
+	{
+		case GL_DEBUG_SEVERITY_HIGH:
+			eventSeverity= eGLErrorSeverity::high;
+			break;
+
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			eventSeverity= eGLErrorSeverity::medium;
+			break;
+
+		case GL_DEBUG_SEVERITY_LOW:
+			eventSeverity= eGLErrorSeverity::low;
+			break;
+
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			eventSeverity= eGLErrorSeverity::notification;
+			break;
+
+		default:
+			eventSeverity= eGLErrorSeverity::unknown;
+			break;
+	}
+
+	// ignore notification severity (you can add your own ignores)
+	if ((int)eventSeverity >= (int)minSeverity)
+	{
+		MIKAN_LOG_ERROR("GlDebugCallback") <<
+			"OpenGL debug event [" << glMesgId << "]: "
+			<< glErrorTypeStr << " of "
+			<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
+			<< glErrorSourceStr << ": "
+			<< szGlMessage;
+
+	#ifdef _DEBUG
+		if ((int)eventSeverity >= (int)eGLErrorSeverity::high)
+		{ 
+			__debugbreak();
+		}
+	#endif
+	}
 }
