@@ -630,6 +630,14 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 		ImGui::PopStyleColor();
 	}
 
+	// Drag and drop creation
+	{
+		NodeEditorState editorStateCopy = m_editorState;
+		editorStateCopy.hangPos = ImGui::GetMousePos();
+
+		handleGraphVariablesDragDrop(editorStateCopy);
+	}
+
 	renderNewGraphVariablesContextMenu(m_editorState);
 
 	ImGui::EndChild();

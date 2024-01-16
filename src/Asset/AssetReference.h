@@ -42,6 +42,8 @@ public:
 
 	bool isValid() const;
 
+	virtual void editorHandleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
+	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
 
 protected:
@@ -78,6 +80,8 @@ public:
 
 		return factory;
 	}
+
+	virtual bool editorCanCreate() const { return false; }
 
 protected:
 	AssetReferencePtr m_defaultAssetRefObject;

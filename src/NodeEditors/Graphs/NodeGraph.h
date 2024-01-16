@@ -5,6 +5,7 @@
 #include "NodeFwd.h"
 #include "Pins/NodePinConstants.h"
 #include "MulticastDelegate.h"
+#include "StringUtils.h"
 
 #include <filesystem>
 #include <map>
@@ -80,6 +81,8 @@ public:
 	virtual void saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphConfig) const;
 
 	// -- Assets References -----
+
+	virtual std::vector<AssetReferenceFactoryPtr> editorGetValidAssetRefFactories(const class NodeEditorState& editorState) const;
 
 	template <class t_asset_factory>
 	void addAssetReferenceFactory()
@@ -179,12 +182,15 @@ public:
 	}
 
 	template <class t_property_type>
-	std::shared_ptr<t_property_type> createTypedProperty(const std::string& name)
+	std::shared_ptr<t_property_type> createTypedProperty()
 	{
+		t_graph_property_id newPropertyId= allocateId();
+		std::string newPropertyName= StringUtils::stringify(t_property_type::k_propertyClassName, newPropertyId);
+
 		auto property = std::make_shared<t_property_type>();
 		property->setOwnerGraph(shared_from_this());
-		property->setId(allocateId());
-		property->setName(name);
+		property->setId(newPropertyId);
+		property->setName(newPropertyName);
 
 		addProperty(property);
 

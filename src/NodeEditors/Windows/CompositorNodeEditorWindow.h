@@ -16,6 +16,7 @@ public:
 	virtual bool saveGraph(bool bShowFileDialog) override;
 	virtual void onNodeGraphCreated() override;
 
+	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) override;
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 
 	virtual void renderToolbar() override;

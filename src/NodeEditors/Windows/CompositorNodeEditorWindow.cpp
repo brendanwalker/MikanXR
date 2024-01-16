@@ -1,5 +1,6 @@
 //-- includes -----
 #include "App.h"
+#include "AssetReference.h"
 #include "GlFrameCompositor.h"
 #include "CompositorNodeEditorWindow.h"
 #include "Logger.h"
@@ -86,19 +87,47 @@ bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 	return false;
 }
 
-void CompositorNodeEditorWindow::handleMainFrameDragDrop(const class NodeEditorState& editorState)
+void CompositorNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& editorState)
 {
-	std::vector<GraphPropertyFactoryPtr> validFactories= 
-		getNodeGraph()->editorGetValidPropertyFactories(editorState);
+	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories =
+		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
+	for (auto factory : validAssetRefFactories)
+	{
+		if (auto assetRef =
+			NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
+				factory->getAssetRefClassName()))
+		{
+			assetRef->editorHandleGraphVariablesDragDrop(editorState);
+			return;
+		}
+	}
+}
 
-	for (auto factory : validFactories)
+void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& editorState)
+{
+	std::vector<GraphPropertyFactoryPtr> validPropertyFactories= 
+		getNodeGraph()->editorGetValidPropertyFactories(editorState);
+	for (auto factory : validPropertyFactories)
 	{
 		if (auto property =
 			NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(
 				factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
-			break;
+			return;
+		}
+	}
+
+	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories =
+		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
+	for (auto factory : validAssetRefFactories)
+	{
+		if (auto assetRef =
+			NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
+				factory->getAssetRefClassName()))
+		{
+			assetRef->editorHandleMainFrameDragDrop(editorState);
+			return;
 		}
 	}
 }

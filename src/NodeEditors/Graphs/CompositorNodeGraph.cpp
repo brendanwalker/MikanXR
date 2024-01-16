@@ -131,7 +131,7 @@ bool CompositorNodeGraph::loadFromConfig(const NodeGraphConfig& config)
 
 bool CompositorNodeGraph::bindEventNodes()
 {
-	bool bSuccess = false;
+	bool bSuccess = true;
 
 	m_compositeFrameEventNode = getEventNodeByName(k_compositeFrameEventName);
 	if (!m_compositeFrameEventNode)

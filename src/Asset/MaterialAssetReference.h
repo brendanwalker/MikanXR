@@ -10,6 +10,9 @@ public:
 	inline static const std::string k_assetClassName = "MaterialAssetReference";
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "Material"; }
+
+	virtual void editorHandleGraphVariablesDragDrop(const class NodeEditorState& editorState) override;
+	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 
 protected:
@@ -30,4 +33,8 @@ public:
 	}
 	virtual int getFilterPatternCount() const { return 1; }
 	virtual char const* getFilterDescription() const { return "Material Files (*.mat)"; }
+
+	virtual bool editorCanCreate() const { return true; }
+
+	static std::string getDefaultMaterialPath();
 };

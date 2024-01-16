@@ -578,6 +578,23 @@ void NodeGraph::saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphCo
 	graphConfig.linkConfigs.push_back(config);
 }
 
+std::vector<AssetReferenceFactoryPtr> NodeGraph::editorGetValidAssetRefFactories(
+	const NodeEditorState& editorState) const
+{
+	std::vector<AssetReferenceFactoryPtr> validFactories;
+
+	for (auto it = m_assetRefFactories.begin(); it != m_assetRefFactories.end(); ++it)
+	{
+		AssetReferenceFactoryPtr factory = it->second;
+		if (factory->editorCanCreate())
+		{
+			validFactories.push_back(factory);
+		}
+	}
+
+	return validFactories;
+}
+
 int NodeGraph::getAssetReferenceIndex(AssetReferencePtr assetRef) const
 {
 	auto it = std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);

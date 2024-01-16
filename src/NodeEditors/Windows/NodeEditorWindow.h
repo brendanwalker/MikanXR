@@ -70,6 +70,7 @@ protected:
 
 	virtual void renderMainFrame();
 	virtual void renderNodeEvalErrors();
+	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderMainFrameContextMenu(const class NodeEditorState& editorState);
 	virtual void renderToolbar();
