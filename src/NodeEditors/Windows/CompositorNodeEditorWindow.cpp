@@ -81,7 +81,7 @@ bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 	{
 		GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
 
-		frameCompositor->setCompositorGraphAssetPath(m_editorState.nodeGraphPath, true);
+		frameCompositor->setCompositorGraphAssetPath(m_editorState.nodeGraphPath);
 	}
 
 	return false;

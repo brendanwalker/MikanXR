@@ -44,12 +44,14 @@ GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
 
 GlFrameCompositor::GlFrameCompositor()
 {
+	m_config= std::make_shared<GlFrameCompositorConfig>();
 	m_instance= this;
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 }
 
 GlFrameCompositor::~GlFrameCompositor()
 {
+	m_config= nullptr;
 	m_instance = nullptr;
 }
 
@@ -104,18 +106,24 @@ bool GlFrameCompositor::startup(IGlWindow* ownerWindow)
 	}
 
 	// Load the last use compositor configuration
-	m_config.load();
+	m_config->load();
 
-	if (m_config.presetName.empty())
+	if (m_config->presetName.empty())
 	{
 		// If no preset name is set, try the default one
 		selectPreset(DEFAULT_COMPOSITOR_CONFIG_NAME);
 	}
 	else
 	{
-		// Recreate the compositor layers for the current config
+		// Force recreate the compositor layers for the current config
 		// Save config back out if we had to add any missing mappings
-		rebuildAllLayerSettings(false);
+		selectPreset(m_config->presetName, true);
+	}
+
+	if (!m_currentPresetConfig)
+	{
+		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to select initial compositor preset";
+		return false;
 	}
 
 	// Start listening for Model stencil changes
@@ -197,7 +205,7 @@ void GlFrameCompositor::reloadAllCompositorPresets()
 	{
 		const std::filesystem::path configFilePath = compositorPresetDir / configFileName;
 
-		CompositorPreset* compositorPreset = new CompositorPreset;
+		CompositorPresetPtr compositorPreset = std::make_shared<CompositorPreset>();
 		if (compositorPreset->load(configFilePath))
 		{
 			m_compositorPresets.setValue(compositorPreset->name, compositorPreset);
@@ -211,33 +219,13 @@ void GlFrameCompositor::reloadAllCompositorPresets()
 
 void GlFrameCompositor::clearAllCompositorConfigurations()
 {
-	for (auto it = m_compositorPresets.getMap().begin(); it != m_compositorPresets.getMap().end(); it++)
-	{
-		delete it->second;
-	}
 	m_compositorPresets.clear();
-}
-
-const CompositorPreset* GlFrameCompositor::getCurrentPresetConfig() const
-{
-	CompositorPreset* preset = nullptr;
-	if (m_compositorPresets.tryGetValue(m_config.presetName, preset))
-	{
-		return preset;
-	}
-
-	return nullptr;
-}
-
-CompositorPreset* GlFrameCompositor::getCurrentPresetConfigMutable() const
-{
-	return const_cast<CompositorPreset*>(getCurrentPresetConfig());
 }
 
 const CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfig(int layerIndex) const
 {
-	const CompositorPreset* preset = getCurrentPresetConfig();
-	if (preset != nullptr)
+	CompositorPresetConstPtr preset = getCurrentPresetConfig();
+	if (preset)
 	{
 		if (layerIndex >= 0 && layerIndex < (int)preset->layers.size())
 		{
@@ -255,8 +243,8 @@ CompositorLayerConfig* GlFrameCompositor::getCurrentPresetLayerConfigMutable(int
 
 bool GlFrameCompositor::addNewPreset()
 {
-	int nextId= m_config.nextPresetId;
-	m_config.nextPresetId++;
+	int nextId= m_config->nextPresetId;
+	m_config->nextPresetId++;
 
 	char szPresetName[64];
 	StringUtils::formatString(szPresetName, sizeof(szPresetName), "CompositorPreset%d", nextId);
@@ -266,7 +254,7 @@ bool GlFrameCompositor::addNewPreset()
 	compositorPresetPath /= szPresetName;
 	compositorPresetPath.replace_extension("json");
 
-	CompositorPreset* newPreset = new CompositorPreset(szPresetName);
+	CompositorPresetPtr newPreset = std::make_shared<CompositorPreset>(szPresetName);
 	newPreset->name= szPresetName;
 
 	// Add a single default layer to render the video
@@ -291,7 +279,7 @@ bool GlFrameCompositor::addNewPreset()
 
 bool GlFrameCompositor::deleteCurrentPreset()
 {
-	CompositorPreset* preset = getCurrentPresetConfigMutable();
+	CompositorPresetPtr preset = getCurrentPresetConfigMutable();
 	if (preset == nullptr)
 		return false;
 
@@ -306,7 +294,6 @@ bool GlFrameCompositor::deleteCurrentPreset()
 
 	// Clear out the preset from memory
 	m_compositorPresets.removeValue(preset->name);
-	delete preset;
 
 	// Drop back to the default built-in preset
 	return selectPreset(DEFAULT_COMPOSITOR_CONFIG_NAME);
@@ -314,7 +301,7 @@ bool GlFrameCompositor::deleteCurrentPreset()
 
 bool GlFrameCompositor::setCurrentPresetName(const std::string& newPresetName)
 {
-	CompositorPreset* preset = getCurrentPresetConfigMutable();
+	CompositorPresetPtr preset = getCurrentPresetConfigMutable();
 	if (preset == nullptr)
 		return false;
 
@@ -329,8 +316,10 @@ bool GlFrameCompositor::setCurrentPresetName(const std::string& newPresetName)
 	// Update the current preset name
 	m_compositorPresets.removeValue(preset->name);
 	preset->name= newPresetName;
-	m_config.presetName= newPresetName;
+	m_config->presetName= newPresetName;
 	m_compositorPresets.setValue(preset->name, preset);
+
+	m_config->markDirty(ConfigPropertyChangeSet().addPropertyName(GlFrameCompositorConfig::k_presetNamePropertyId));
 	saveCurrentPresetConfig();
 
 	return true;
@@ -338,7 +327,7 @@ bool GlFrameCompositor::setCurrentPresetName(const std::string& newPresetName)
 
 bool GlFrameCompositor::addLayerToCurrentPreset()
 {
-	CompositorPreset* preset = getCurrentPresetConfigMutable();
+	CompositorPresetPtr preset = getCurrentPresetConfigMutable();
 	if (preset == nullptr)
 		return false;
 
@@ -366,7 +355,7 @@ bool GlFrameCompositor::addLayerToCurrentPreset()
 
 bool GlFrameCompositor::removeLayerFromCurrentPreset(const int layerIndex)
 {
-	CompositorPreset* preset = getCurrentPresetConfigMutable();
+	CompositorPresetPtr preset = getCurrentPresetConfigMutable();
 	if (preset == nullptr)
 		return false;
 
@@ -385,7 +374,7 @@ bool GlFrameCompositor::removeLayerFromCurrentPreset(const int layerIndex)
 
 void GlFrameCompositor::saveCurrentPresetConfig()
 {
-	CompositorPreset* preset= getCurrentPresetConfigMutable();
+	CompositorPresetPtr preset= getCurrentPresetConfigMutable();
 	if (preset != nullptr)
 	{
 		preset->save(preset->getLoadedConfigPath());
@@ -396,11 +385,11 @@ void GlFrameCompositor::rebuildAllLayerSettings(bool bForceConfigSave)
 {
 	bool bIsConfigDirty= bForceConfigSave;
 
-	CompositorPreset* preset = nullptr;
-	if (m_compositorPresets.tryGetValue(m_config.presetName, preset))
+	CompositorPresetPtr preset;
+	if (m_compositorPresets.tryGetValue(m_config->presetName, preset))
 	{
 		// Update compositor graph
-		setCompositorGraphAssetPath(preset->compositorGraphAssetRefConfig->assetPath, false);
+		setCompositorGraphAssetPath(preset->compositorGraphAssetRefConfig->assetPath);
 
 		m_layers.clear();
 		for (int layerIndex = 0; layerIndex < (int)preset->layers.size(); ++layerIndex)
@@ -464,42 +453,20 @@ const std::filesystem::path& GlFrameCompositor::getCompositorGraphAssetPath() co
 }
 
 void GlFrameCompositor::setCompositorGraphAssetPath(
-	const std::filesystem::path& assetRefPath,
-	bool bUpdatePreset)
+	const std::filesystem::path& assetRefPath)
 {
-	if (m_nodeGraphAssetRef->getAssetPath() != assetRefPath)
+	CompositorPresetPtr preset = getCurrentPresetConfigMutable();
+	if (preset && preset->compositorGraphAssetRefConfig->assetPath != assetRefPath.string())
 	{
-		m_nodeGraphAssetRef->setAssetPath(assetRefPath);
+		preset->compositorGraphAssetRefConfig->assetPath = assetRefPath.string();
 
-		if (m_nodeGraphAssetRef->isValid())
-		{
-			m_nodeGraph =
-				std::dynamic_pointer_cast<CompositorNodeGraph>(
-					NodeGraphFactory::loadNodeGraph(m_ownerWindow, assetRefPath));
-			if (!m_nodeGraph)
-			{
-				MIKAN_LOG_ERROR("GlFrameCompositor::setCompositorGraphAssetPath") 
-					<< "Failed to load compositor graph: " << assetRefPath.string();
-			}
-		}
-		else
-		{
-			m_nodeGraph= nullptr;
-		}
+		// Signal to any listeners that the asset path changed
+		preset->markDirty(
+			ConfigPropertyChangeSet().addPropertyName(
+				CompositorPreset::k_compositorGraphAssetRefPropertyId));
 
-		if (bUpdatePreset)
-		{
-			CompositorPreset* preset = getCurrentPresetConfigMutable();
-			if (preset)
-			{
-				preset->compositorGraphAssetRefConfig->assetPath = assetRefPath.string();
-
-				// Signal to any listeners that the asset path changed
-				preset->markDirty(
-					ConfigPropertyChangeSet().addPropertyName(
-						CompositorPreset::k_compositorGraphAssetRefPropertyId));
-			}
-		}
+		// Save the preset immediately to disk
+		preset->save(preset->getLoadedConfigPath());
 	}
 }
 
@@ -517,26 +484,76 @@ std::vector<std::string> GlFrameCompositor::getPresetNames() const
 
 const std::string& GlFrameCompositor::getCurrentPresetName() const
 {
-	return m_config.presetName;
+	return m_config->presetName;
 }
 
-bool GlFrameCompositor::selectPreset(const std::string& presetName)
+bool GlFrameCompositor::selectPreset(const std::string& presetName, bool bForce)
 {
-	if (presetName == m_config.presetName)
-		return false;
-
-	if (m_compositorPresets.hasValue(presetName))
+	CompositorPresetPtr newPresetConfig;
+	if ((presetName != m_config->presetName || bForce) && 
+		m_compositorPresets.tryGetValue(presetName, newPresetConfig))
 	{
-		m_config.presetName= presetName;
+		// Stop listening to config changes from the old preset
+		if (m_currentPresetConfig)
+		{
+			m_currentPresetConfig->OnMarkedDirty -=
+				MakeDelegate(this, &GlFrameCompositor::onPresetConfigMarkedDirty);
+		}
+
+		m_config->presetName= presetName;
+		m_currentPresetConfig= newPresetConfig;
+
+		// Start listening to config changes from the new preset
+		m_currentPresetConfig->OnMarkedDirty +=
+			MakeDelegate(this, &GlFrameCompositor::onPresetConfigMarkedDirty);
 
 		// Recreate the compositor layer for the currently assigned preset
 		rebuildAllLayerSettings(true);
 
+		// Load the compositor graph if the config has a valid asset path
+		onCompositorGraphAssetRefChanged(m_currentPresetConfig->compositorGraphAssetRefConfig->assetPath);
+
 		// Write the compositor configuration back out
-		m_config.save();
+		m_config->save();
+
+		return true;
 	}
 
-	return true;
+	return false;
+}
+
+void GlFrameCompositor::onPresetConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(CompositorPreset::k_compositorGraphAssetRefPropertyId))
+	{
+		onCompositorGraphAssetRefChanged(m_currentPresetConfig->compositorGraphAssetRefConfig->assetPath);
+	}
+}
+
+void GlFrameCompositor::onCompositorGraphAssetRefChanged(const std::string& assetRefPath)
+{
+	if (m_nodeGraphAssetRef->getAssetPath() != assetRefPath)
+	{
+		m_nodeGraphAssetRef->setAssetPath(assetRefPath);
+
+		if (m_nodeGraphAssetRef->isValid())
+		{
+			m_nodeGraph =
+				std::dynamic_pointer_cast<CompositorNodeGraph>(
+					NodeGraphFactory::loadNodeGraph(m_ownerWindow, assetRefPath));
+			if (!m_nodeGraph)
+			{
+				MIKAN_LOG_ERROR("GlFrameCompositor::setCompositorGraphAssetPath")
+					<< "Failed to load compositor graph: " << assetRefPath;
+			}
+		}
+		else
+		{
+			m_nodeGraph = nullptr;
+		}
+	}
 }
 
 void GlFrameCompositor::reloadAllCompositorShaders()

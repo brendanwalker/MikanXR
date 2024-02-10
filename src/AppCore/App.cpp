@@ -119,18 +119,16 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
+	// Register node graph factories spawned by windows
+	NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
+
+	// Creat the main window
 	m_mainWindow= createAppWindow<MainWindow>();
 	if (success && m_mainWindow == nullptr)
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Main App Window!";
 		success = false;
 	}
-
-	// Register node graph factories
-	NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
-
-	// TODO: Test node editor
-	//createAppWindow<TestNodeEditorWindow>();
 
 	if (success)
 	{

@@ -73,13 +73,16 @@ public:
 	bool startup(class IGlWindow* ownerWindow);
 	void shutdown();
 
+	GlFrameCompositorConfigConstPtr getConfig() const { return m_config; }
+	GlFrameCompositorConfigPtr getConfigMutable() { return m_config; }
+
 	std::filesystem::path getCompositorPresetPath() const;
 	void reloadAllCompositorPresets();
 	std::vector<std::string> getPresetNames() const;
 	const std::string& getCurrentPresetName() const;
-	bool selectPreset(const std::string& configurationName);
-	const CompositorPreset* getCurrentPresetConfig() const;
-	CompositorPreset* getCurrentPresetConfigMutable() const;
+	bool selectPreset(const std::string& configurationName, bool bForce= false);
+	CompositorPresetConstPtr getCurrentPresetConfig() const { return m_currentPresetConfig; }
+	CompositorPresetPtr getCurrentPresetConfigMutable() const { return m_currentPresetConfig; }
 	const CompositorLayerConfig* getCurrentPresetLayerConfig(int layerIndex) const;
 	CompositorLayerConfig* getCurrentPresetLayerConfigMutable(int layerIndex);
 	bool addNewPreset();
@@ -89,7 +92,7 @@ public:
 	bool removeLayerFromCurrentPreset(const int layerIndex);
 	void saveCurrentPresetConfig();
 	const std::filesystem::path& getCompositorGraphAssetPath() const;
-	void setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath, bool bUpdatePreset);
+	void setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath);
 
 	void reloadAllCompositorShaders();
 	std::vector<std::string> getAllCompositorShaderNames() const;
@@ -187,6 +190,10 @@ protected:
 	// Stencil System Events
 	void onStencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
+	// Preset Config Events
+	void onPresetConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+	void onCompositorGraphAssetRefChanged(const std::string& assetRefPath);
+
 private:
 	void rebuildAllLayerSettings(bool bForceConfigSave=false);
 	void clearAllCompositorConfigurations();
@@ -203,7 +210,8 @@ private:
 
 	static GlFrameCompositor* m_instance;
 
-	GlFrameCompositorConfig m_config;
+	GlFrameCompositorConfigPtr m_config;
+	CompositorPresetPtr m_currentPresetConfig;
 
 	std::queue<MikanVideoSourceNewFrameEvent> m_frameEventQueue;
 	std::vector<Layer> m_layers;
@@ -240,7 +248,7 @@ private:
 	CompositorNodeGraphPtr m_nodeGraph;
 
 	// List of compositor presets from resources/config/compositor
-	NamedValueTable<CompositorPreset*> m_compositorPresets;
+	NamedValueTable<CompositorPresetPtr> m_compositorPresets;
 
 	// Data sources used by the compositor layers
 	NamedValueTable<float> m_floatSources;

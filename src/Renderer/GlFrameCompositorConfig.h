@@ -2,11 +2,13 @@
 
 #include "FrameCompositorConstants.h"
 #include "CommonConfig.h"
+#include "CompositorFwd.h"
 #include "AssetFwd.h"
 
 #include <filesystem>
 #include <string>
 #include <map>
+#include <memory>
 #include <vector>
 
 typedef int32_t MikanStencilID;
@@ -96,6 +98,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	static const std::string k_presetNamePropertyId;
 	std::string presetName;
 	int nextPresetId= 0;
 };

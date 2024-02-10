@@ -230,6 +230,8 @@ void CompositorPreset::readFromJSON(
 }
 
 // -- GlFrameCompositorConfig ------
+const std::string GlFrameCompositorConfig::k_presetNamePropertyId= "presetName";
+
 configuru::Config GlFrameCompositorConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();

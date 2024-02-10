@@ -21,8 +21,11 @@ bool RmlModel_CompositorLayers::s_bHasRegisteredTypes= false;
 
 bool RmlModel_CompositorLayers::init(
 	Rml::Context* rmlContext,
-	const GlFrameCompositor* compositor)
+	GlFrameCompositor* compositor)
 {
+	m_compositor= compositor;
+	m_compositorConfig= compositor->getConfigMutable();
+
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_layers");
 	if (!constructor)
@@ -283,8 +286,11 @@ bool RmlModel_CompositorLayers::init(
 			invokeMappingChangeDelegate(model, ev, arguments, OnColorTextureMappingChangedEvent);
 		});
 
+	// Listen for profile config changes
+	m_compositorConfig->OnMarkedDirty += MakeDelegate(this, &RmlModel_CompositorLayers::onCompositorConfigMarkedDirty);
+
 	// Set initial values for data model
-	rebuild(compositor);
+	onCurrentPresetChanged();
 
 	return true;
 }
@@ -330,6 +336,15 @@ void RmlModel_CompositorLayers::invokeMappingChangeDelegate(
 
 void RmlModel_CompositorLayers::dispose()
 {
+	if (m_presetConfig)
+	{
+		m_presetConfig->OnMarkedDirty -= MakeDelegate(this, &RmlModel_CompositorLayers::onPresetConfigMarkedDirty);
+		m_presetConfig = nullptr;
+	}
+
+	m_compositorConfig->OnMarkedDirty -= MakeDelegate(this, &RmlModel_CompositorLayers::onCompositorConfigMarkedDirty);
+	m_compositorConfig = nullptr;
+
 	OnConfigSelectEvent.Clear();
 	RmlModel::dispose();
 }
@@ -345,18 +360,58 @@ void RmlModel_CompositorLayers::setCompositorGraphPath(const std::filesystem::pa
 	m_modelHandle.DirtyVariable("compositor_graph_path");
 }
 
+void RmlModel_CompositorLayers::onCompositorConfigMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(GlFrameCompositorConfig::k_presetNamePropertyId))
+	{
+		onCurrentPresetChanged();
+	}
+}
+
+void RmlModel_CompositorLayers::onCurrentPresetChanged()
+{
+	CompositorPresetPtr newPreset= m_compositor->getCurrentPresetConfigMutable();
+
+	if (m_presetConfig)
+	{
+		m_presetConfig->OnMarkedDirty -= MakeDelegate(this, &RmlModel_CompositorLayers::onPresetConfigMarkedDirty);
+		m_presetConfig = nullptr;
+	}
+
+	if (newPreset)
+	{
+		newPreset->OnMarkedDirty += MakeDelegate(this, &RmlModel_CompositorLayers::onPresetConfigMarkedDirty);
+		m_presetConfig= newPreset;
+	}
+
+	// Rebuild the data model
+	rebuild(m_compositor);
+}
+
+void RmlModel_CompositorLayers::onPresetConfigMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(CompositorPreset::k_compositorGraphAssetRefPropertyId))
+	{
+		setCompositorGraphPath(m_presetConfig->compositorGraphAssetRefConfig->assetPath);
+	}
+}
+
 void RmlModel_CompositorLayers::rebuild(
 	const GlFrameCompositor* compositor)
 {
-	const CompositorPreset* currentPreset= compositor->getCurrentPresetConfig();
+	assert(m_presetConfig);
 
 	m_configurationNames = compositor->getPresetNames();
-	m_currentConfigurationName= currentPreset->name;
-	m_bIsBuiltInConfiguration= currentPreset->builtIn;
+	m_currentConfigurationName= m_presetConfig->name;
+	m_bIsBuiltInConfiguration= m_presetConfig->builtIn;
 	m_materialNames= compositor->getAllCompositorShaderNames();
 
 	// Apply the selected compositor graph path
-	setCompositorGraphPath(currentPreset->compositorGraphAssetRefConfig->assetPath);
+	setCompositorGraphPath(m_presetConfig->compositorGraphAssetRefConfig->assetPath);
 
 	// Fill in blend mode strings
 	size_t blendModeCount = (size_t)eCompositorBlendMode::COUNT;

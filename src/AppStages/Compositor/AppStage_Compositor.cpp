@@ -592,7 +592,7 @@ void AppStage_Compositor::onGraphFileSelectEvent()
 	auto path = tinyfd_openFileDialog("Load Compositor Graph", "", 1, filterItems, filterDesc, 1);
 	if (path)
 	{
-		m_frameCompositor->setCompositorGraphAssetPath(path, true);
+		m_frameCompositor->setCompositorGraphAssetPath(path);
 	}
 }
 
@@ -624,7 +624,7 @@ void AppStage_Compositor::onConfigAddEvent()
 
 void AppStage_Compositor::onConfigDeleteEvent()
 {
-	const CompositorPreset* preset= m_frameCompositor->getCurrentPresetConfig();
+	CompositorPresetConstPtr preset= m_frameCompositor->getCurrentPresetConfig();
 	if (preset == nullptr)
 		return;
 
