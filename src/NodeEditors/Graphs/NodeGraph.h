@@ -239,6 +239,7 @@ public:
 	}
 	NodePtr getNodeById(t_node_id id) const;
 	NodePtr getEventNodeByName(const std::string& eventName) const;
+	const std::map<t_node_id, NodePtr>& getNodesMap() const { return m_Nodes; }
 
 	template <class t_node_class>
 	std::shared_ptr<t_node_class> createTypedNode(const NodeEditorState& nodeEditorState)

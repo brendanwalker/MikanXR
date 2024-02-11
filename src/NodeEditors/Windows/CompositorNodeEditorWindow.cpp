@@ -66,6 +66,8 @@ NodeGraphFactoryPtr CompositorNodeEditorWindow::getNodeGraphFactory() const
 
 void CompositorNodeEditorWindow::onNodeGraphCreated()
 {
+	NodeEditorWindow::onNodeGraphCreated();
+
 	MainWindow* mainWindow = MainWindow::getInstance();
 	GlFrameCompositor* frameCompositor = mainWindow->getFrameCompositor();
 

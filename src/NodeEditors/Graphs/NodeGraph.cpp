@@ -988,7 +988,7 @@ void NodeGraph::editorRender(const NodeEditorState& editorState)
 
 		node->editorRenderNode(editorState);
 
-		const ImVec2 nodePos = ImNodes::GetNodeScreenSpacePos(node->getId());
+		const ImVec2 nodePos = ImNodes::GetNodeGridSpacePos(node->getId());
 		node->setNodePos({nodePos.x, nodePos.y});
 
 		ImNodes::PopColorStyle();

@@ -1000,12 +1000,24 @@ void NodeEditorWindow::undo()
 
 void NodeEditorWindow::onNodeGraphCreated()
 {
-	getNodeGraph()->OnNodeCreated += MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
-	getNodeGraph()->OnNodeDeleted += MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
-	getNodeGraph()->OnLinkDeleted += MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
-	getNodeGraph()->OnPropertyCreated += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
-	getNodeGraph()->OnPropertyModifed += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
-	getNodeGraph()->OnPropertyDeleted += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	NodeGraphPtr graph= getNodeGraph();
+
+	graph->OnNodeCreated += MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
+	graph->OnNodeDeleted += MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+	graph->OnLinkDeleted += MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+	graph->OnPropertyCreated += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
+	graph->OnPropertyModifed += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
+	graph->OnPropertyDeleted += MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+
+	// Register the node positions with ImNode
+	for (auto iter = graph->getNodesMap().begin(); iter != graph->getNodesMap().end(); iter++)
+	{
+		const t_node_id nodeId = iter->first;
+		NodePtr node= iter->second;
+
+		const glm::vec2& nodePos= node->getNodePos();
+		ImNodes::SetNodeGridSpacePos(nodeId, {nodePos.x, nodePos.y});
+	}
 }
 
 void NodeEditorWindow::onNodeGraphDeleted()
@@ -1026,7 +1038,8 @@ void NodeEditorWindow::onNodeCreated(t_node_id id)
 	NodePtr node= getNodeGraph()->getNodeById(id);
 	if (node)
 	{
-		node->setNodePos(glm::vec2(hangPos.x, hangPos.y));
+		const ImVec2 gridPos= ImNodes::GetNodeGridSpacePos(id);
+		node->setNodePos(glm::vec2(gridPos.x, gridPos.y));
 	}
 
 	// Make the newly created node selected

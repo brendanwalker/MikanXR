@@ -14,5 +14,5 @@ public:
 	std::filesystem::path nodeGraphPath;
 	int startedLinkPinId= -1;
 	bool bLinkHanged= false;
-	ImVec2 hangPos= {};
+	ImVec2 hangPos= {}; // Screen space
 };
