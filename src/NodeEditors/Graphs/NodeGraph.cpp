@@ -22,7 +22,6 @@
 
 #include "Properties/GraphArrayProperty.h"
 
-
 #include "imnodes.h"
 
 #include <filesystem>

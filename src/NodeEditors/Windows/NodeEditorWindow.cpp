@@ -11,6 +11,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
+#include "EditorNodeUtil.h"
 #include "PathUtils.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
@@ -316,7 +317,7 @@ void NodeEditorWindow::renderMainFrame()
 	{
 		ImGui::OpenPopup("editor_context_menu_nodes");
 		m_editorState.bLinkHanged = true;
-		m_editorState.hangPos = ImGui::GetMousePos();
+		m_editorState.hangPosGridSpace = EditorNodeUtil::MousePosToGridSpace();
 	}
 
 	// Link creation
@@ -333,7 +334,7 @@ void NodeEditorWindow::renderMainFrame()
 	// Drag and drop creation
 	{
 		NodeEditorState editorStateCopy = m_editorState;
-		editorStateCopy.hangPos = ImGui::GetMousePos();
+		editorStateCopy.hangPosGridSpace = EditorNodeUtil::MousePosToGridSpace();
 
 		handleMainFrameDragDrop(editorStateCopy);
 	}
@@ -422,7 +423,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 		else
 		{
 			ImGui::OpenPopup("editor_context_menu_nodes");
-			m_editorState.hangPos = ImGui::GetMousePos();
+			m_editorState.hangPosGridSpace = EditorNodeUtil::MousePosToGridSpace();
 		}
 	}
 
@@ -633,7 +634,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	// Drag and drop creation
 	{
 		NodeEditorState editorStateCopy = m_editorState;
-		editorStateCopy.hangPos = ImGui::GetMousePos();
+		editorStateCopy.hangPosGridSpace = EditorNodeUtil::MousePosToGridSpace();
 
 		handleGraphVariablesDragDrop(editorStateCopy);
 	}
@@ -1033,13 +1034,12 @@ void NodeEditorWindow::onNodeGraphDeleted()
 void NodeEditorWindow::onNodeCreated(t_node_id id)
 {
 	// Set the initial position of the node using the current editor mouse position
-	const ImVec2& hangPos = m_editorState.hangPos;
-	ImNodes::SetNodeScreenSpacePos(id, hangPos);
+	const ImVec2& hangPosGridSpace = m_editorState.hangPosGridSpace;
+	ImNodes::SetNodeGridSpacePos(id, hangPosGridSpace);
 	NodePtr node= getNodeGraph()->getNodeById(id);
 	if (node)
 	{
-		const ImVec2 gridPos= ImNodes::GetNodeGridSpacePos(id);
-		node->setNodePos(glm::vec2(gridPos.x, gridPos.y));
+		node->setNodePos(glm::vec2(hangPosGridSpace.x, hangPosGridSpace.y));
 	}
 
 	// Make the newly created node selected

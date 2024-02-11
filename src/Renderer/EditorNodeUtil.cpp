@@ -1,6 +1,9 @@
 #include "EditorNodeUtil.h"
 #include "GlCommon.h"
 
+#include "imnodes.h"
+#include "imnodes_internal.h"
+
 namespace EditorNodeUtil
 {
 	EditorPinType GLTypeToPinType(GLenum type)
@@ -124,5 +127,14 @@ namespace EditorNodeUtil
 			default:
 				return GL_POINTS;
 		}
+	}
+
+	ImVec2 MousePosToGridSpace()
+	{
+		ImVec2 canvasOrigin= ImNodes::GetCurrentContext()->CanvasOriginScreenSpace;
+		ImVec2 canvasPan= ImNodes::EditorContextGetPanning();
+		ImVec2 mousePos = ImGui::GetMousePos();
+
+		return mousePos - canvasOrigin - canvasPan;
 	}
 };
