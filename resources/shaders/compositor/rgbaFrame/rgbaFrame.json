@@ -1,9 +1,0 @@
-{
-    "materialName": "rgbaFrame",
-    "vertexShaderPath": "rgbaFrame.vert",
-    "fragmentShaderPath": "rgbaFrame.frag",
-    "uniforms":
-    {
-        "rgbaTexture": "texture0"
-    }
-}

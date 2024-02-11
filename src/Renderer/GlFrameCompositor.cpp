@@ -567,7 +567,7 @@ void GlFrameCompositor::reloadAllCompositorShaders()
 	{
 		const std::filesystem::path shaderFolderPath = compositorShaderDir / shaderFolderName;
 		const std::vector<std::string> shaderFileNames= 
-			PathUtils::listFilenamesInDirectory(shaderFolderPath, ".json");
+			PathUtils::listFilenamesInDirectory(shaderFolderPath, ".mat");
 
 		for (const auto& shaderFileName : shaderFileNames)
 		{
