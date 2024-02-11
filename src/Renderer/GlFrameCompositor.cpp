@@ -1139,36 +1139,21 @@ void GlFrameCompositor::updateCompositeFrame()
 	// Compute the next undistorted video frame
 	m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex);
 
-	// Perform the compositor evaluation
-	GlTextureConstPtr compositedFrameTexture;
-	switch (m_evaluatorWindow)
+	// Perform the compositor evaluation if in MainWindow mode
+	// (Editor window runs graph evaluation in its own update loop)
+	if (m_evaluatorWindow == eCompositorEvaluatorWindow::mainWindow)
 	{
-	case eCompositorEvaluatorWindow::mainWindow:
+		// TODO: Simplify this once the switch to only using the node graph
+		// If we have a valid compositor node graph, use that to composite the frame
+		if (m_nodeGraph)
 		{
-			// If we have a valid compositor node graph, use that to composite the frame
-			if (m_nodeGraph)
-			{
-				updateCompositeFrameNodeGraph();
-
-				// Use the composited frame from the node graph
-				compositedFrameTexture = m_nodeGraph->getCompositedFrameTexture();
-			}
-			// Otherwise fall back to old style layer evaluation
-			else
-			{
-				updateCompositeFrameLayers();
-
-				// Use the old style layer composited frame
-				compositedFrameTexture = m_mainWindowFrameBufferTexture;
-			}
+			updateCompositeFrameNodeGraph();
 		}
-		break;
-	case eCompositorEvaluatorWindow::editorWindow:
+		// Otherwise fall back to old style layer evaluation
+		else
 		{
-			// Editor window runs graph evaluation in it's own update loop
-			compositedFrameTexture = m_editorFrameBufferTexture;
+			updateCompositeFrameLayers();
 		}
-		break;
 	}
 
 	// Optionally bake our a BGR video frame, if requested
@@ -1185,6 +1170,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::texture0, uniformName);
 		m_rgbToBgrFrameShader->setTextureUniform(uniformName);
 
+		GlTextureConstPtr compositedFrameTexture= getCompositedFrameTexture();
 		if (compositedFrameTexture)
 		{
 			compositedFrameTexture->bindTexture(0);
@@ -1243,7 +1229,14 @@ GlTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
 	switch (m_evaluatorWindow)
 	{
 		case eCompositorEvaluatorWindow::mainWindow:
-			return m_mainWindowFrameBufferTexture;
+			{
+				// TODO: Simplify this once the switch to only using the node graph
+				if (m_nodeGraph)
+					return m_nodeGraph->getCompositedFrameTexture();
+				else
+					return m_mainWindowFrameBufferTexture;
+			}
+			break;
 		case eCompositorEvaluatorWindow::editorWindow:
 			return m_editorFrameBufferTexture;
 	}
@@ -1270,6 +1263,7 @@ void GlFrameCompositor::updateCompositeFrameNodeGraph()
 	}
 }
 
+// TODO: Remove this once the switch to only using the node graph
 void GlFrameCompositor::updateCompositeFrameLayers()
 {
 	MainWindow* mainWindow = MainWindow::getInstance();
@@ -1841,10 +1835,9 @@ void GlFrameCompositor::render() const
 	if (!getIsRunning())
 		return;
 
-	if (m_mainWindowFrameBufferTexture != nullptr)
+	GlTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
+	if (compositedFrameTexture)
 	{
-		GlTextureConstPtr compositedFrameTexture= getCompositedFrameTexture();
-
 		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState();
 		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
