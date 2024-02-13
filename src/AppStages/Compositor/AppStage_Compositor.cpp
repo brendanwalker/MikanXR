@@ -674,10 +674,7 @@ void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
 	if (m_bAddingNewConfig)
 		return;
 
-	if (m_frameCompositor->selectPreset(configName))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
+	m_frameCompositor->selectPreset(configName);
 }
 
 void AppStage_Compositor::onMaterialNameChangeEvent(

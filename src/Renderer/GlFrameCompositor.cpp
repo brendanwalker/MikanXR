@@ -513,7 +513,10 @@ bool GlFrameCompositor::selectPreset(const std::string& presetName, bool bForce)
 		// Load the compositor graph if the config has a valid asset path
 		onCompositorGraphAssetRefChanged(m_currentPresetConfig->compositorGraphAssetRefConfig->assetPath);
 
-		// Write the compositor configuration back out
+		// Notify listeners that the preset has changed and mark the config as dirty
+		m_config->markDirty(ConfigPropertyChangeSet().addPropertyName(GlFrameCompositorConfig::k_presetNamePropertyId));
+
+		// Write the compositor configuration back out (and reset the dirty flag)
 		m_config->save();
 
 		return true;
