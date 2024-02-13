@@ -7,7 +7,7 @@
 class IntPinBase : public NodePin
 {
 public:
-	IntPinBase() = default;
+	IntPinBase();
 
 	inline static const std::string k_pinClassName = "IntPinBase";
 	virtual std::string getClassName() const override { return k_pinClassName; }

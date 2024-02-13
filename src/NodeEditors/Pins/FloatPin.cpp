@@ -1,6 +1,11 @@
 #include "FloatPin.h"
 
 // -- FloatPinBase -----
+FloatPinBase::FloatPinBase() : NodePin()
+{
+	setHasDefaultValue(true);
+}
+
 float FloatPinBase::editorComputeInputWidth() const
 {
 	if (m_connectedLinks.size() == 0)
