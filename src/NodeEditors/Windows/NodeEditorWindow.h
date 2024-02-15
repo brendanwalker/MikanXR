@@ -4,7 +4,6 @@
 #include "AssetFwd.h"
 #include "SdlFwd.h"
 #include "IGlWindow.h"
-#include "EditorNodeConstants.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"

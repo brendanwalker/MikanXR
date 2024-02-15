@@ -5,10 +5,13 @@
 #include <memory>
 #include <string>
 
+struct ImVec2;
 struct ImVec4;
 
 namespace NodeEditorUI
 {
+	ImVec2 MousePosToGridSpace();
+
 	const std::string& getVariableIcon();
 	const std::string& getArrayIcon();
 

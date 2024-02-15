@@ -2,7 +2,8 @@
 #include "StringUtils.h"
 #include "GlTexture.h"
 
-#include "imgui.h"
+#include "imnodes.h"
+#include "imnodes_internal.h"
 
 #include "IconsForkAwesome.h"
 
@@ -11,6 +12,15 @@ namespace NodeEditorUI
 	const int k_labelWidth= 100;
 	const int k_valueWidth= 150;
 	const ImVec4 k_valueBGColor(0.13f, 0.13f, 0.13f, 1.0f);
+
+	ImVec2 MousePosToGridSpace()
+	{
+		ImVec2 canvasOrigin = ImNodes::GetCurrentContext()->CanvasOriginScreenSpace;
+		ImVec2 canvasPan = ImNodes::EditorContextGetPanning();
+		ImVec2 mousePos = ImGui::GetMousePos();
+
+		return mousePos - canvasOrigin - canvasPan;
+	}
 
 	const std::string& getVariableIcon()
 	{

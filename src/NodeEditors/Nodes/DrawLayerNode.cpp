@@ -9,7 +9,6 @@
 #include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
 #include "IGlWindow.h"
-#include "EditorNodeUtil.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"

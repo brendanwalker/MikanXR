@@ -11,7 +11,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
-#include "EditorNodeUtil.h"
+#include "NodeEditorUI.h"
 #include "PathUtils.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
@@ -317,7 +317,7 @@ void NodeEditorWindow::renderMainFrame()
 	{
 		ImGui::OpenPopup("editor_context_menu_nodes");
 		m_editorState.bLinkHanged = true;
-		m_editorState.hangPosGridSpace = EditorNodeUtil::MousePosToGridSpace();
+		m_editorState.hangPosGridSpace = NodeEditorUI::MousePosToGridSpace();
 	}
 
 	// Link creation
@@ -334,7 +334,7 @@ void NodeEditorWindow::renderMainFrame()
 	// Drag and drop creation
 	{
 		NodeEditorState editorStateCopy = m_editorState;
-		editorStateCopy.hangPosGridSpace = EditorNodeUtil::MousePosToGridSpace();
+		editorStateCopy.hangPosGridSpace = NodeEditorUI::MousePosToGridSpace();
 
 		handleMainFrameDragDrop(editorStateCopy);
 	}
@@ -423,7 +423,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 		else
 		{
 			ImGui::OpenPopup("editor_context_menu_nodes");
-			m_editorState.hangPosGridSpace = EditorNodeUtil::MousePosToGridSpace();
+			m_editorState.hangPosGridSpace = NodeEditorUI::MousePosToGridSpace();
 		}
 	}
 
@@ -634,7 +634,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	// Drag and drop creation
 	{
 		NodeEditorState editorStateCopy = m_editorState;
-		editorStateCopy.hangPosGridSpace = EditorNodeUtil::MousePosToGridSpace();
+		editorStateCopy.hangPosGridSpace = NodeEditorUI::MousePosToGridSpace();
 
 		handleGraphVariablesDragDrop(editorStateCopy);
 	}

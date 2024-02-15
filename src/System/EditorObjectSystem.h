@@ -6,6 +6,7 @@
 #include "ComponentFwd.h"
 #include "GizmoFwd.h"
 #include "MulticastDelegate.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "RendererFwd.h"
 #include "SceneFwd.h"
