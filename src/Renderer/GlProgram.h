@@ -13,10 +13,6 @@
 #include <stdint.h>
 
 #include "GlProgramConstants.h"
-//--DELETE THIS--
-#include "GlBufferBlock.h"
-#include "GlUniformBlock.h"
-//--DELETE THIS--
 #include "GlVertexDefinition.h"
 #include "RendererFwd.h"
 
@@ -113,12 +109,6 @@ public:
 	GlProgramUniformIter getUniformEnd() const { return m_uniformLocationMap.end(); }
 	bool getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::string& outUniformName) const;
 
-	//--DELETE THIS--
-	inline const std::vector<GlUniform>& GetUniforms() const { return m_Uniforms; }
-	inline const std::vector<GlUniformBlock>& GetUniformBlocks() const { return m_UniformBlocks; }
-	inline const std::vector<GlBufferBlock>& GetBufferBlocks() const { return m_BufferBlocks; }
-	//--DELETE THIS--
-
 	bool setMatrix4x4Uniform(const std::string uniformName, const glm::mat4& mat);
 	bool setIntUniform(const std::string uniformName, const int value);
 	bool setInt2Uniform(const std::string uniformName, const glm::ivec2& vec);
@@ -146,10 +136,4 @@ protected:
 	uint32_t m_programID = 0;
 	GlProgramUniformMap m_uniformLocationMap;
 	GlVertexDefinition m_vertexDefinition{};
-
-	//--DELETE THIS--
-	std::vector<GlUniform> m_Uniforms;
-	std::vector<GlUniformBlock> m_UniformBlocks;
-	std::vector<GlBufferBlock> m_BufferBlocks;
-	//--DELETE THIS--
 };
