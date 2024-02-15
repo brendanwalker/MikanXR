@@ -26,32 +26,41 @@ InputManager::~InputManager()
 	m_inputManager= nullptr;
 }
 
-void InputManager::onSDLEvent(SDL_Event& e)
+bool InputManager::onSDLEvent(const SDL_Event* event)
 {	
-	switch (e.type)
+	bool bHandled= false;
+
+	switch (event->type)
 	{
 	case SDL_KEYDOWN:
 		{
-			KeyEventBindings* keybinds= getKeyBindings(e.key.keysym.sym);
+			KeyEventBindings* keybinds= getKeyBindings(event->key.keysym.sym);
 			if (keybinds != nullptr && keybinds->OnKeyPressed)
 			{
 				keybinds->OnKeyPressed();
+				bHandled = true;
 			}
 		} break;
 	case SDL_KEYUP:
 		{
-			KeyEventBindings* keybinds = getKeyBindings(e.key.keysym.sym);
+			KeyEventBindings* keybinds = getKeyBindings(event->key.keysym.sym);
 			if (keybinds != nullptr)
 			{
-				if (e.key.repeat > 0)
+				if (event->key.repeat > 0)
 				{
 					if (keybinds->OnKeyRepeated)
+					{
 						keybinds->OnKeyRepeated();
+						bHandled= true;
+					}
 				}
 				else
 				{
 					if (keybinds->OnKeyReleased)
+					{
 						keybinds->OnKeyReleased();
+						bHandled = true;
+					}
 				}
 			}
 		} break;
@@ -60,7 +69,8 @@ void InputManager::onSDLEvent(SDL_Event& e)
 			EventBindingSet* bindingSet = getCurrentEventBindingSet();
 			if (bindingSet != nullptr && bindingSet->OnMouseWheelScrolledEvent)
 			{
-				bindingSet->OnMouseWheelScrolledEvent(e.wheel.y);
+				bindingSet->OnMouseWheelScrolledEvent(event->wheel.y);
+				bHandled = true;
 			}
 		} break;
 	case SDL_MOUSEBUTTONDOWN:
@@ -68,7 +78,8 @@ void InputManager::onSDLEvent(SDL_Event& e)
 			EventBindingSet* bindingSet = getCurrentEventBindingSet();
 			if (bindingSet != nullptr && bindingSet->OnMouseButtonPressedEvent)
 			{
-				bindingSet->OnMouseButtonPressedEvent(e.button.button);
+				bindingSet->OnMouseButtonPressedEvent(event->button.button);
+				bHandled = true;
 			}
 		} break;
 	case SDL_MOUSEBUTTONUP:
@@ -76,7 +87,8 @@ void InputManager::onSDLEvent(SDL_Event& e)
 			EventBindingSet* bindingSet = getCurrentEventBindingSet();
 			if (bindingSet != nullptr && bindingSet->OnMouseButtonReleasedEvent)
 			{
-				bindingSet->OnMouseButtonReleasedEvent(e.button.button);
+				bindingSet->OnMouseButtonReleasedEvent(event->button.button);
+				bHandled = true;
 			}
 		} break;
 	case SDL_MOUSEMOTION:
@@ -84,12 +96,15 @@ void InputManager::onSDLEvent(SDL_Event& e)
 			EventBindingSet* bindingSet = getCurrentEventBindingSet();
 			if (bindingSet != nullptr && bindingSet->OnMouseMotionEvent)
 			{
-				bindingSet->OnMouseMotionEvent(e.motion.xrel, e.motion.yrel);
+				bindingSet->OnMouseMotionEvent(event->motion.xrel, event->motion.yrel);
+				bHandled = true;
 			}
 		} break;
 	default:
 		break;
 	}
+
+	return bHandled;
 }
 
 void InputManager::getMouseScreenPosition(int& outScreenX, int& outScreenY) const

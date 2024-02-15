@@ -15,10 +15,10 @@ class GlLineRenderer
 {
 public:
 	GlLineRenderer();
-	~GlLineRenderer();
+	virtual ~GlLineRenderer();
 
 	bool startup();
-	void render(class Renderer* renderer);
+	void render(class IGlWindow* window);
 	void shutdown();
 
 	void setDisable3dDepth(bool bFlag) { m_bDisable3dDepth= bFlag; }

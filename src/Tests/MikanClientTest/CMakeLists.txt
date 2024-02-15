@@ -6,14 +6,22 @@ file(GLOB MIKAN_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
     "${ROOT_DIR}/src/AppCore/Logger.h"
     "${ROOT_DIR}/src/AppCore/Logger.cpp"
+    "${ROOT_DIR}/src/Renderer/GlBufferBlock.h"
+    "${ROOT_DIR}/src/Renderer/GlBufferBlock.cpp"
     "${ROOT_DIR}/src/Renderer/GlCommon.h"
     "${ROOT_DIR}/src/Renderer/GlCommon.cpp"
     "${ROOT_DIR}/src/Renderer/GlProgram.h"
     "${ROOT_DIR}/src/Renderer/GlProgram.cpp"
     "${ROOT_DIR}/src/Renderer/GlProgramConstants.h"
     "${ROOT_DIR}/src/Renderer/GlProgramConstants.cpp"
+    "${ROOT_DIR}/src/Renderer/GlShaderVar.h"
+    "${ROOT_DIR}/src/Renderer/GlShaderVar.cpp"
     "${ROOT_DIR}/src/Renderer/GlTexture.h"
     "${ROOT_DIR}/src/Renderer/GlTexture.cpp"
+    "${ROOT_DIR}/src/Renderer/GlUniformBlock.h"
+    "${ROOT_DIR}/src/Renderer/GlUniformBlock.cpp"
+    "${ROOT_DIR}/src/Renderer/GlVertexDefinition.h"
+    "${ROOT_DIR}/src/Renderer/GlVertexDefinition.cpp"
 )
 
 list(APPEND MIKAN_TEST_INCL_DIRS

@@ -69,6 +69,7 @@ protected:
 	void applyFlyParamsToViewMatrix();
 	void applyOrbitParamsToViewMatrix();
 
+	const float k_default_aspect_ratio = 16.f / 9.f;
 	const float k_default_camera_vfov = 35.f;
 	const float k_default_camera_z_near = 0.1f;
 	const float k_default_camera_z_far = 5000.f;

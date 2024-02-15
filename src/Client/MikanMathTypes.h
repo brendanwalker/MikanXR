@@ -26,6 +26,12 @@ typedef struct
     double x, y, z;
 } MikanVector3d;
 
+/// A 2D vector with float components.
+typedef struct
+{
+	float x, y;
+} MikanVector2f;
+
 /// A 3D vector with float components.
 typedef struct
 {

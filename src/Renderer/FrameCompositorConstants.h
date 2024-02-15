@@ -3,8 +3,6 @@
 #include <string>
 
 #define DEFAULT_COMPOSITOR_CONFIG_NAME			"Alpha Channel"
-#define DEFAULT_COMPOSITOR_VIDEO_MATERIAL_NAME	"rgbUndistortionFrame"
-#define DEFAULT_COMPOSITOR_CLIENT_MATERIAL_NAME	"rgbaFrame"
 #define STENCIL_MVP_UNIFORM_NAME				"mvpMatrix"
 #define MAX_CLIENT_SOURCES						8
 #define EMPTY_SOURCE_NAME						"empty"
@@ -71,3 +69,25 @@ enum class eStencilCullMode
 	COUNT
 };
 extern const std::string* k_stencilCullModeStrings;
+
+enum class eClientTextureType
+{
+	INVALID = -1,
+
+	color,
+	depth,
+
+	COUNT
+};
+extern const std::string* k_clientTextureTypeStrings;
+
+enum class eCompositorEvaluatorWindow
+{
+	INVALID = -1,
+
+	mainWindow,
+	editorWindow,
+
+	COUNT
+};
+extern const std::string* k_compositorEvaluatorWindow;

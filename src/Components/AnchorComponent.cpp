@@ -5,6 +5,7 @@
 #include "Colors.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
+#include "MainWindow.h"
 #include "MathGLM.h"
 #include "ProfileConfig.h"
 #include "SceneComponent.h"
@@ -221,7 +222,7 @@ void AnchorComponent::editAnchor()
 	if (anchorComponent != nullptr)
 	{
 		// Show Anchor Triangulation Tool
-		AppStage_AnchorTriangulation* anchorTriangulation = App::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
+		AppStage_AnchorTriangulation* anchorTriangulation = MainWindow::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
 		
 		AnchorTriangulatorInfo anchorInfo = {
 			definition->getAnchorId(),

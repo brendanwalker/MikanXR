@@ -1,7 +1,8 @@
-#include "App.h"
 #include "GlMaterialInstance.h"
 #include "GlStaticMeshInstance.h"
+#include "GlTriangulatedMesh.h"
 #include "GlScene.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "SteamVRDevice.h"
 #include "SteamVRManager.h"
@@ -46,7 +47,7 @@ bool SteamVRRenderComponent::initComponent()
 	if (m_bIsRenderable)
 	{
 		std::unique_ptr<SteamVRResourceManager>& resourceManager=
-			App::getInstance()->getVRDeviceManager()->getSteamVRManager()->getResourceManager();
+			MainWindow::getInstance()->getVRDeviceManager()->getSteamVRManager()->getResourceManager();
 		SteamVRRenderModelResource* modelResource =
 			resourceManager->fetchRenderModel(m_renderModelName);
 

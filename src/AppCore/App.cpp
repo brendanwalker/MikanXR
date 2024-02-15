@@ -1,23 +1,23 @@
 //-- includes -----
 #include "App.h"
-#include "AppStage.h"
-#include "MainMenu/AppStage_MainMenu.h"
-#include "FontManager.h"
 #include "FrameTimer.h"
+#include "Graphs/CompositorNodeGraph.h"
+#include "GlCommon.h"
 #include "GlShaderCache.h"
 #include "GlFrameCompositor.h"
 #include "GlTextRenderer.h"
-#include "InputManager.h"
 #include "LocalizationManager.h"
-#include "MikanServer.h"
-#include "ObjectSystemManager.h"
+#include "Logger.h"
+#include "MainWindow.h"
 #include "PathUtils.h"
 #include "ProfileConfig.h"
-#include "Renderer.h"
-#include "RmlManager.h"
-#include "Logger.h"
+#include "SdlManager.h"
+#include "SdlWindow.h"
 #include "VideoSourceManager.h"
 #include "VRDeviceManager.h"
+
+//#include "Windows/TestNodeEditorWindow.h"
+#include "Windows/CompositorNodeEditorWindow.h"
 
 #include "SDL_timer.h"
 
@@ -35,16 +35,8 @@ App* App::m_instance= nullptr;
 //-- public methods -----
 App::App()
 	: m_profileConfig(std::make_shared<ProfileConfig>())
-	, m_mikanServer(new MikanServer())
-	, m_frameCompositor(new GlFrameCompositor())
-	, m_inputManager(new InputManager())
-	, m_rmlManager(new RmlManager(this))
 	, m_localizationManager(new LocalizationManager())	
-	, m_objectSystemManager(std::make_shared<ObjectSystemManager>())
-	, m_renderer(new Renderer())
-	, m_fontManager(new FontManager())
-	, m_videoSourceManager(new VideoSourceManager())
-	, m_vrDeviceManager(new VRDeviceManager())
+	, m_sdlManager(std::unique_ptr<SdlManager>(new SdlManager))
 	, m_bShutdownRequested(false)
 {
 	m_instance= this;
@@ -52,16 +44,10 @@ App::App()
 
 App::~App()
 {
-	m_objectSystemManager = nullptr;
+	m_mainWindow = nullptr;
 
-	delete m_vrDeviceManager;
-	delete m_videoSourceManager;
-	delete m_renderer;	
 	delete m_localizationManager;
-	delete m_inputManager;
-	delete m_rmlManager;
-	delete m_mikanServer;
-	delete m_frameCompositor;
+
 	m_profileConfig.reset();
 
 	m_instance= nullptr;
@@ -75,28 +61,11 @@ int App::exec(int argc, char** argv)
 	{
 		SDL_Event e;
 
-		pushAppStage<AppStage_MainMenu>();
-
 		while (!m_bShutdownRequested)
 		{
 			FrameTimer frameTimer(11); // 11ms = 90fps
 
-			if (SDL_PollEvent(&e))
-			{
-				if (e.type == SDL_QUIT ||
-					(e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE))
-				{
-					MIKAN_LOG_INFO("App::exec") << "QUIT message received";
-					break;
-				}
-				else
-				{
-					onSDLEvent(e);
-				}
-			}
-
-			update();
-			render();
+			tick();
 
 			frameTimer.waitForNextFrame();
 		}
@@ -138,63 +107,26 @@ bool App::startup(int argc, char** argv)
 	// Load any saved config
 	m_profileConfig->load();
 
-	if (success && !m_rmlManager->preRendererStartup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
-		success = false;
-	}
-
 	if (success && !m_localizationManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
 		success = false;
 	}
 
-	if (success && !m_renderer->startup())
+	if (success && !m_sdlManager->startup())
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize renderer!";
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize SDL manager!";
 		success = false;
 	}
 
-	if (success && !m_fontManager->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";
-		success = false;
-	}
+	// Register node graph factories spawned by windows
+	NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
 
-	if (success && !m_videoSourceManager->startup())
+	// Creat the main window
+	m_mainWindow= createAppWindow<MainWindow>();
+	if (success && m_mainWindow == nullptr)
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the video source manager";
-		success = false;
-	}
-
-	if (success && !m_vrDeviceManager->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the vr tracker manager";
-		success = false;
-	}
-
-	if (success && !m_objectSystemManager->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
-		success = false;
-	}
-
-	if (success && !m_frameCompositor->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the frame compositor";
-		success = false;
-	}
-
-	if (success && !m_mikanServer->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
-		success = false;
-	}
-
-	if (success && !m_rmlManager->postRendererStartup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Main App Window!";
 		success = false;
 	}
 
@@ -208,173 +140,125 @@ bool App::startup(int argc, char** argv)
 
 void App::shutdown()
 {
-	// Tear down all active app stages
-	while (getCurrentAppStage() != nullptr)
+	// Dispose all app windows
+	while (m_appWindows.size() > 0)
 	{
-		popAppState();
+		destroyAppWindow(m_appWindows[0]);
 	}
-	processPendingAppStageOps();
+	m_mainWindow= nullptr;
 
-	// Tear down all app systems
-	if (m_rmlManager != nullptr)
-	{
-		m_rmlManager->shutdown();
-	}
+	assert(m_sdlManager != nullptr);
+	m_sdlManager->shutdown();
 
-	if (m_mikanServer != nullptr)
-	{
-		m_mikanServer->shutdown();
-	}
-
-	if (m_frameCompositor != nullptr)
-	{
-		m_frameCompositor->shutdown();
-	}
-
-	if (m_objectSystemManager != nullptr)
-	{
-		// Dispose all ObjectSystems
-		m_objectSystemManager->shutdown();
-	}
-
-	if (m_videoSourceManager != nullptr)
-	{
-		m_videoSourceManager->shutdown();
-	}
-
-	if (m_vrDeviceManager != nullptr)
-	{
-		m_vrDeviceManager->shutdown();
-	}
-
-	if (m_fontManager != nullptr)
-	{
-		m_fontManager->shutdown();
-	}
-
-	if (m_renderer != nullptr)
-	{
-		m_renderer->shutdown();
-	}
-
-	if (m_localizationManager != nullptr)
-	{
-		m_localizationManager->shutdown();
-	}
+	assert(m_localizationManager != nullptr);
+	m_localizationManager->shutdown();
 
 #ifdef _WIN32
 	CoUninitialize();
 #endif // _WIN32
 }
 
-void App::onSDLEvent(SDL_Event& e)
-{
-	m_inputManager->onSDLEvent(e);
-	m_renderer->onSDLEvent(&e);
-
-	AppStage *appStage= getCurrentAppStage();
-	if (appStage != nullptr)
-	{
-		appStage->onSDLEvent(&e);
-	}
-}
-
-void App::update()
+void App::tick()
 {
 	EASY_FUNCTION();
 
 	// Update the frame rate
 	const uint32_t now = SDL_GetTicks();
-	const float deltaSeconds= fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
-	m_fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
-	m_lastFrameTimestamp= now;
+	const float deltaSeconds = fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
+	m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
+	m_lastFrameTimestamp = now;
 
-	// Update all connected devices
-	m_videoSourceManager->update(deltaSeconds);
-	m_vrDeviceManager->update(deltaSeconds);
+	// Refresh the latest events from SDL
+	// Each window will process the events it cares about
+	m_sdlManager->pollEvents();
 
-	// Poll rendered frames from client connections
-	m_mikanServer->update();
-
-	// Update any frame compositing state based on new video frames or client render target updates
-	m_frameCompositor->update();
-
-	// Garbage collect stale baked text
-	m_fontManager->garbageCollect();
-
-	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
-	processPendingAppStageOps();
-
-	// Update the current app stage last
-	AppStage* appStage = getCurrentAppStage();
-	if (appStage != nullptr && appStage->getIsUpdateActive())
-	{
-		EASY_BLOCK("appStage Update");
-		appStage->update(deltaSeconds);
-	}
-
-	// Update the UI layout and data models
-	m_rmlManager->update();
+	// Tick the sim and then render each window
+	tickWindows(deltaSeconds);
 
 	// Update profile auto-save
 	updateAutoSave(deltaSeconds);
 }
 
-void App::processPendingAppStageOps()
+void App::tickWindows(const float deltaSeconds)
 {
-	// Disallow app stack operations during enter or exit
-	bAppStackOperationAllowed = false;
+	EASY_FUNCTION();
 
-	InputManager* inputManager = InputManager::getInstance();
-	for (auto& pendingAppStageOp : m_pendingAppStageOps)
+	// Update each window
+	for (IGlWindow* window : m_appWindows)
 	{
-		switch (pendingAppStageOp.op)
+		// Mark this window as the current window getting updated
+		pushCurrentWindow(window);
+
+		// Process window simulation based on time
 		{
-			case AppStageOperation::enter:
-			{
-				EASY_BLOCK("appStage Enter");
+			EASY_BLOCK("UpdateWindow");
+			window->update(deltaSeconds);
+		}
 
-				// Pause the parent app stage
-				if (pendingAppStageOp.parentAppStage != nullptr)
-					pendingAppStageOp.parentAppStage->pause();
+		// Render the window
+		{
+			EASY_BLOCK("RenderWindow");
+			m_renderingWindow = window;
+			window->render();
+			m_renderingWindow = nullptr;
+		}
 
-				// Create a new input event set for the app state
-				inputManager->pushEventBindingSet();
+		// Restore back to the main window
+		popCurrentWindow(window);
+	}
 
-				// Enter the new app stage
-				pendingAppStageOp.appStage->enter();
+	// Destroy any windows that have been marked for destruction
+	for (int windowIndex= (int)m_appWindows.size() - 1; windowIndex >= 0; windowIndex--)
+	{
+		IGlWindow* window = m_appWindows[windowIndex];
 
-				// Notify any object systems that care about app stage transitions 
-				if (OnAppStageEntered)
-					OnAppStageEntered(pendingAppStageOp.appStage);
-			} break;
-			case AppStageOperation::exit:
-			{
-				EASY_BLOCK("appStage Exit");
-
-				// Notify any object systems that care about app stage transitions 
-				if (OnAppStageExited)
-					OnAppStageEntered(pendingAppStageOp.appStage);
-
-				// Exit the app stage we are leaving
-				pendingAppStageOp.appStage->exit();
-
-				// Clean up the input event set for the deactivated app stage
-				inputManager->popEventBindingSet();
-
-				// Resume the parent app stage we are restoring (if any)
-				if (pendingAppStageOp.parentAppStage != nullptr)
-					pendingAppStageOp.parentAppStage->resume();
-
-				// Free the app state
-				delete pendingAppStageOp.appStage;
-			} break;
+		if (window->getSdlWindow().wantsDestroy())
+		{
+			// remove the window from the window list
+			destroyAppWindow(window);
 		}
 	}
-	m_pendingAppStageOps.clear();
+}
 
-	// App stack operations allowed during update
-	bAppStackOperationAllowed = true;
+void App::pushCurrentWindow(IGlWindow* window)
+{
+	// Add the window to the window stack
+	m_currentWindowStack.push_back(window);
+
+	// Make the window's GL context current
+	window->getSdlWindow().makeGlContextCurrent();
+}
+
+IGlWindow* App::getCurrentWindow() const
+{
+	return m_currentWindowStack.size() > 0 ? m_currentWindowStack.back() : nullptr;
+}
+
+void App::popCurrentWindow(IGlWindow* window)
+{
+	if (checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__))
+	{
+		MIKAN_LOG_ERROR("App::popCurrentWindow") << "Unhandled GL error found before popping window";
+	}
+
+	if (m_currentWindowStack.size() > 0 && m_currentWindowStack.back() == window)
+	{
+		// Remove the window from the window stack
+		m_currentWindowStack.pop_back();
+
+		// Make the previous window's GL context current
+		if (m_currentWindowStack.size() > 0)
+		{
+			m_currentWindowStack.back()->getSdlWindow().makeGlContextCurrent();
+		}
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("App::getCurrentWindow") 
+			<< "Unable to pop window " 
+			<< window->getSdlWindow().getTitle()
+			<< " (not current)";
+	}
 }
 
 void App::updateAutoSave(float deltaSeconds)
@@ -401,46 +285,4 @@ void App::updateAutoSave(float deltaSeconds)
 	{
 		m_profileSaveCooldown = PROFILE_SAVE_COOLDOWN;
 	}
-}
-
-void App::render()
-{
-	EASY_FUNCTION();
-
-	AppStage* appStage = getCurrentAppStage();
-	if (appStage == nullptr)
-		return;
-
-	m_renderer->renderBegin();
-
-	// Render all 3d viewports for the app state
-	for (GlViewportPtr viewpoint : appStage->getViewportList())
-	{
-		EASY_BLOCK("appStage render");
-
-		m_renderer->renderStageBegin(viewpoint);
-		appStage->render();
-		m_renderer->renderStageEnd();
-	}
-
-	// Render the UI on top
-	{
-		EASY_BLOCK("appStage renderUI");
-		m_renderer->renderUIBegin();
-
-		appStage->renderUI();
-
-		// Always draw the FPS in the lower right
-		TextStyle style = getDefaultTextStyle();
-		style.horizontalAlignment = eHorizontalTextAlignment::Right;
-		style.verticalAlignment = eVerticalTextAlignment::Bottom;
-		drawTextAtScreenPosition(
-			style,
-			glm::vec2(m_renderer->getSDLWindowWidth() - 1, m_renderer->getSDLWindowHeight() - 1),
-			L"%.1ffps", m_fps);
-
-		m_renderer->renderUIEnd();
-	}
-
-	m_renderer->renderEnd();
 }

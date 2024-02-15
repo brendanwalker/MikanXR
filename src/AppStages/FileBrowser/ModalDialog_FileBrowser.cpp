@@ -1,9 +1,8 @@
 //-- inludes -----
-#include "App.h"
 #include "ModalDialog_FileBrowser.h"
+#include "MainWindow.h"
 #include "RmlModel_FileBrowser.h"
 #include "PathUtils.h"
-#include "Renderer.h"
 #include "Logger.h"
 
 #include <RmlUi/Core/Core.h>
@@ -38,7 +37,7 @@ bool ModalDialog_FileBrowser::browseFile(
 	RejectFilePathCallback rejectCallback)
 {
 	// Allocate a new file browser modal dialog
-	AppStage* ownerAppStage = App::getInstance()->getCurrentAppStage();
+	AppStage* ownerAppStage = MainWindow::getInstance()->getCurrentAppStage();
 	ModalDialog_FileBrowser* fileBrowser = ownerAppStage->pushModalDialog<ModalDialog_FileBrowser>();
 
 	// Attempt to initialize the filebrowser

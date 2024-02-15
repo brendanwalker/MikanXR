@@ -6,17 +6,10 @@
 #include "GlVertexDefinition.h"
 #include "Logger.h"
 
-GlModelResourceManager* GlModelResourceManager::s_modelResourceManager= nullptr;
-
-GlModelResourceManager::GlModelResourceManager()
-{
-	s_modelResourceManager= this;
-}
 
 GlModelResourceManager::~GlModelResourceManager()
 {
 	shutdown();
-	s_modelResourceManager= nullptr;
 }
 
 bool GlModelResourceManager::startup()
@@ -74,7 +67,7 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 		{
 			GlRenderModelResourcePtr resource = std::make_shared<GlRenderModelResource>(modelFilePath, vertexDefinition);
 
-			if (resource->createRenderResources())
+			if (resource->createRenderResources(this))
 			{
 				m_renderModelCache[hashName] = resource;
 

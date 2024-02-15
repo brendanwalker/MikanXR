@@ -1,5 +1,5 @@
 {
-	"layers":  [
+	"layers":           [
 		{
 			"verticalFlip":       true,
 			"blendMode":          "blendOff",
@@ -45,6 +45,10 @@
 			}
 		}
 	],
-	"name":    "Color Key",
-	"builtIn": true
+	"name":             "Color Key",
+	"builtIn":          true,
+	"compositor_graph": {
+		"class_name": "",
+		"asset_path": "D:\\Github\\git-BrendanWalker\\MikanXR\\resources\\graphs\\color_key_graph.graph"
+	}
 }

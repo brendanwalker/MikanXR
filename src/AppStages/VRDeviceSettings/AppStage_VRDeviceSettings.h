@@ -13,7 +13,7 @@ typedef std::vector<VRDeviceViewPtr> VRDeviceList;
 class AppStage_VRDeviceSettings : public AppStage
 {
 public:
-	AppStage_VRDeviceSettings(class App* app);
+	AppStage_VRDeviceSettings(class MainWindow* ownerWindow);
 	virtual ~AppStage_VRDeviceSettings();
 
 	virtual void enter() override;

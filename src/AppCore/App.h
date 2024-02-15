@@ -2,10 +2,8 @@
 
 //-- includes -----
 #include "AppStage.h"
-#include "MulticastDelegate.h"
+#include "IGlWindow.h"
 #include "ObjectSystemConfigFwd.h"
-#include "ObjectSystemFwd.h"
-#include "SDL_events.h"
 
 #include <memory>
 #include <vector>
@@ -22,14 +20,9 @@ public:
 	static App* getInstance() { return m_instance; }
 
 	inline ProfileConfigPtr getProfileConfig() const { return m_profileConfig; }
-	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
-	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemManager; }
-	inline class Renderer* getRenderer() const { return m_renderer; }
-	inline class FontManager* getFontManager() const { return m_fontManager; }
-	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
-	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
-	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
-	inline class GlFrameCompositor* getFrameCompositor() const { return m_frameCompositor; }
+	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
+	inline class SdlManager* getSdlManager() const { return m_sdlManager.get(); }
+	inline class IGlWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
 
 	inline float getFPS() const { return m_fps; }
 
@@ -40,62 +33,61 @@ public:
 		m_bShutdownRequested = true;
 	}
 
-	inline AppStage* getCurrentAppStage() const
+	template<typename t_app_window>
+	t_app_window* createAppWindow()
 	{
-		return (m_appStageStack.size() > 0) ? m_appStageStack[m_appStageStack.size() - 1] : nullptr;
-	}
+		t_app_window* appWindow= new t_app_window();
 
-	inline AppStage* getParentAppStage() const
-	{
-		return (m_appStageStack.size() > 1) ? m_appStageStack[m_appStageStack.size() - 2] : nullptr;
-	}
-
-	template<typename t_app_stage>
-	t_app_stage* pushAppStage()
-	{
-		assert(bAppStackOperationAllowed);
-		t_app_stage* appStage = new t_app_stage(this);
-		AppStage* parentAppStage=
-			m_appStageStack.size() > 0
-			? m_appStageStack[m_appStageStack.size() - 1]
-			: nullptr;
-
-		m_appStageStack.push_back(appStage);
-		m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::enter});
-
-		return appStage;
-	}
-
-	void popAppState()
-	{
-		assert(bAppStackOperationAllowed);
-		AppStage* appStage = getCurrentAppStage();
-		if (appStage != nullptr)
+		if (appWindow->startup())
 		{
-			m_appStageStack.pop_back();
+			m_appWindows.push_back(appWindow);
 
-			AppStage* parentAppStage =
-				m_appStageStack.size() > 0
-				? m_appStageStack[m_appStageStack.size() - 1]
-				: nullptr;
-
-			m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::exit });
+			return appWindow;
 		}
+		else
+		{
+			destroyAppWindow(appWindow);
+		}
+
+		return appWindow;
 	}
 
-	MulticastDelegate<void(AppStage* appStage)> OnAppStageEntered;
-	MulticastDelegate<void(AppStage* appStage)> OnAppStageExited;
+	template<typename t_app_window>
+	void destroyAppWindow(t_app_window* appWindow)
+	{
+		// If this window was the current window, pop it from the current window stack
+		popCurrentWindow(appWindow);
+
+		// Tear down the SDL window and OpenGL context
+		appWindow->shutdown();
+
+		// Remove the window from the list of windows (should deallocate it)
+		auto it= std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
+		if (it != m_appWindows.end())
+		{
+			m_appWindows.erase(it);
+		}
+
+		// If this was the main window pointer, make sure to invalidate that pointer
+		if ((void *)appWindow == (void *)m_mainWindow)
+		{
+			m_mainWindow = nullptr;
+		}
+
+		delete appWindow;
+	}
+
+	void pushCurrentWindow(class IGlWindow* window);
+	class IGlWindow* getCurrentWindow() const;
+	void popCurrentWindow(class IGlWindow* window);
 
 protected:
 	bool startup(int argc, char** argv);
 	void shutdown();
 
-	void onSDLEvent(SDL_Event& e);
-
-	void update();
-	void processPendingAppStageOps();
+	void tick();
+	void tickWindows(const float deltaSeconds);
 	void updateAutoSave(float deltaSeconds);
-	void render();
 
 private:
 	static App* m_instance;
@@ -104,54 +96,23 @@ private:
 	ProfileConfigPtr m_profileConfig;
 	float m_profileSaveCooldown= -1.f;
 
-	// Mikan API Server
-	class MikanServer* m_mikanServer= nullptr;
-
-	// Used to blend video with client render targets
-	class GlFrameCompositor* m_frameCompositor= nullptr;
-
-	// Input Manager
-	class InputManager* m_inputManager= nullptr;
-
-	// Rml UI Manager
-	class RmlManager* m_rmlManager= nullptr;
-
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;
 
-	// Object System manager
-	ObjectSystemManagerPtr m_objectSystemManager;
+	// SDL Top Level Management
+	std::unique_ptr<class SdlManager> m_sdlManager;
 
-	// OpenGL renderer
-	class Renderer* m_renderer= nullptr;
+	// Open windows (including the MainWindow)
+	std::vector<IGlWindow*> m_appWindows;
 
-	// OpenGL/SDL font/baked text string texture cache
-	class FontManager* m_fontManager = nullptr;
+	// The stack of current windows being updated
+	std::vector<IGlWindow*> m_currentWindowStack;
 
-	// Keeps track of currently connected camera
-	class VideoSourceManager* m_videoSourceManager = nullptr;
+	// The window being currently rendered
+	IGlWindow* m_renderingWindow = nullptr;
 
-	// Keeps track of currently connected VR trackers
-	class VRDeviceManager* m_vrDeviceManager = nullptr;
-
-	// App Stages
-	int m_appStageStackIndex= -1;
-	std::vector<AppStage*> m_appStageStack;
-
-	enum class AppStageOperation : int
-	{
-		enter,
-		exit
-	};
-
-	struct PendingAppStageOperation
-	{
-		AppStage* parentAppStage;
-		AppStage* appStage;
-		AppStageOperation op;
-	};
-	std::vector<PendingAppStageOperation> m_pendingAppStageOps;
-	bool bAppStackOperationAllowed = true;
+	// The main window for the application
+	class MainWindow* m_mainWindow= nullptr;
 
 	// Flag requesting that we exit the update loop
 	bool m_bShutdownRequested= false;

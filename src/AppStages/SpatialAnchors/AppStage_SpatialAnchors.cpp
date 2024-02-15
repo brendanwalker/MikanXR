@@ -7,10 +7,10 @@
 #include "Colors.h"
 #include "GlCamera.h"
 #include "GlScene.h"
-#include "Renderer.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "GlViewport.h"
+#include "MainWindow.h"
 #include "MathUtility.h"
 #include "ObjectSystemManager.h"
 #include "RmlModel_SpatialAnchors.h"
@@ -27,8 +27,8 @@
 const char* AppStage_SpatialAnchors::APP_STAGE_NAME = "Spatial Anchor Setup";
 
 //-- public methods -----
-AppStage_SpatialAnchors::AppStage_SpatialAnchors(App* app)
-	: AppStage(app, AppStage_SpatialAnchors::APP_STAGE_NAME)
+AppStage_SpatialAnchors::AppStage_SpatialAnchors(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_SpatialAnchors::APP_STAGE_NAME)
 	, m_dataModel(new RmlModel_SpatialAnchors)
 	, m_scene(std::make_shared<GlScene>())
 	, m_camera(nullptr)
@@ -47,11 +47,11 @@ void AppStage_SpatialAnchors::enter()
 
 	App* app= App::getInstance();
 	m_profile = app->getProfileConfig();
-	m_anchorSystem= app->getObjectSystemManager()->getSystemOfType<AnchorObjectSystem>();
+	m_anchorSystem= m_ownerWindow->getObjectSystemManager()->getSystemOfType<AnchorObjectSystem>();
 	m_anchorSystemConfig = m_anchorSystem->getAnchorSystemConfig();
 
 	// Build the list of VR trackers
-	m_vrTrackers = m_app->getVRDeviceManager()->getFilteredVRDeviceList(eDeviceType::VRTracker);
+	m_vrTrackers = m_ownerWindow->getVRDeviceManager()->getFilteredVRDeviceList(eDeviceType::VRTracker);
 
 	// Bind tracker to 3D scene
 	for (auto it : m_vrTrackers)
@@ -140,7 +140,7 @@ void AppStage_SpatialAnchors::onDeleteAnchor(int deleteAnchorId)
 
 void AppStage_SpatialAnchors::onGotoMainMenu()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }
 
 void AppStage_SpatialAnchors::exit()
@@ -167,7 +167,7 @@ void AppStage_SpatialAnchors::render()
 {
 	TextStyle style = getDefaultTextStyle();
 
-	m_scene->render();
+	m_scene->render(m_camera);
 
 	drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
 	drawTransformedAxes(glm::translate(glm::mat4(1.0), glm::vec3(0.f, 0.001f, 0.f)), 0.5f);

@@ -38,7 +38,7 @@ public:
 	void setLightDirection(const glm::vec3& lightDirection) { m_lightDirection = lightDirection; }
 	const glm::vec3& getLightDirection() const { return m_lightDirection; }
 
-	void render() const;
+	void render(GlCameraConstPtr camera) const;
 
 private:
 	glm::vec4 m_lightColor;

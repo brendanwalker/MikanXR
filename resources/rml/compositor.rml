@@ -25,7 +25,6 @@
                 <button style="width: 120dp" data-event-click="toggle_layers">Layers</button>
                 <button style="width: 120dp" data-event-click="toggle_recording">Recording</button>
                 <button style="width: 120dp" data-event-click="toggle_scripting">Scripting</button>
-                <button style="width: 120dp" data-event-click="toggle_sources">Sources</button>
                 <button style="width: 120dp" data-event-click="toggle_settings">Settings</button>
             </span>
         </panel>

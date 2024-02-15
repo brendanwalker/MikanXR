@@ -1,5 +1,5 @@
 {
-	"layers":  [
+	"layers":           [
 		{
 			"verticalFlip":       true,
 			"blendMode":          "blendOff",
@@ -42,6 +42,10 @@
 			}
 		}
 	],
-	"name":    "Inv Alpha Channel",
-	"builtIn": true
+	"name":             "Inv Alpha Channel",
+	"builtIn":          true,
+	"compositor_graph": {
+		"class_name": "",
+		"asset_path": "D:\\Github\\git-BrendanWalker\\MikanXR\\resources\\graphs\\inv_alpha_channel_graph.graph"
+	}
 }

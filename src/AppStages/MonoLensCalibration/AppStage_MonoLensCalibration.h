@@ -16,7 +16,7 @@ class AppStage_MonoLensCalibration : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_MonoLensCalibration(class App* app);
+	AppStage_MonoLensCalibration(class MainWindow* ownerWindow);
 	virtual ~AppStage_MonoLensCalibration();
 
 	void setBypassCalibrationFlag(bool flag);

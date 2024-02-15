@@ -1,5 +1,5 @@
 #include "SteamVRDeviceEnumerator.h"
-#include "App.h"
+#include "MainWindow.h"
 #include "VRDeviceManager.h"
 #include "SteamVRManager.h"
 
@@ -13,7 +13,7 @@ SteamVRDeviceEnumerator::SteamVRDeviceEnumerator()
 	, m_productId(0)
 	, m_enumeratorIndex(-1)
 {
-	const SteamVRManager* steamVRMgr= App::getInstance()->getVRDeviceManager()->getSteamVRManager();
+	const SteamVRManager* steamVRMgr= MainWindow::getInstance()->getVRDeviceManager()->getSteamVRManager();
 	
 	// Get all of the generic tracker ids
 	m_steamVRDeviceIds = steamVRMgr->getActiveDevices();
@@ -42,7 +42,7 @@ bool SteamVRDeviceEnumerator::tryFetchVRTrackerProperties()
 {
 	if (isValid())
 	{
-		const SteamVRManager* steamVRMgr = App::getInstance()->getVRDeviceManager()->getSteamVRManager();
+		const SteamVRManager* steamVRMgr = MainWindow::getInstance()->getVRDeviceManager()->getSteamVRManager();
 		const int deviceId= m_steamVRDeviceIds[m_enumeratorIndex];
 
 		m_vendorId= steamVRMgr->getDeviceVendorId(deviceId);

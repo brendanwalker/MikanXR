@@ -6,10 +6,10 @@
 #include "MonoLensCalibration/RmlModel_MonoCameraSettings.h"
 #include "App.h"
 #include "InputManager.h"
+#include "MainWindow.h"
 #include "MonoLensDistortionCalibrator.h"
 #include "MikanClientTypes.h"
 #include "CalibrationPatternFinder.h"
-#include "Renderer.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
@@ -25,8 +25,8 @@
 const char* AppStage_MonoLensCalibration::APP_STAGE_NAME = "MonoCalibration";
 
 //-- public methods -----
-AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(App* app)
-	: AppStage(app, AppStage_MonoLensCalibration::APP_STAGE_NAME)
+AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_MonoLensCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_MonoLensCalibration)
 	, m_cameraSettingsModel(new RmlModel_MonoCameraSettings)
 	, m_videoSourceView()
@@ -205,7 +205,7 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 						m_monoDistortionView->rebuildDistortionMap(&new_mono_intrinsics);
 
 						// Switch back to the color video feed
-						m_cameraSettingsModel->setVideoDisplayMode(mode_undistored);
+						m_cameraSettingsModel->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 						// Go to the test calibration state
 						setMenuState(eMonoLensCalibrationMenuState::testCalibration);
@@ -314,12 +314,12 @@ void AppStage_MonoLensCalibration::onRestartEvent()
 
 void AppStage_MonoLensCalibration::onReturnEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }
 
 void AppStage_MonoLensCalibration::onCancelEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }
 
 // Camera Settings Model UI Events

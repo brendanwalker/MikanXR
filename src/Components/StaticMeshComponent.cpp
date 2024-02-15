@@ -2,7 +2,6 @@
 #include "GlStaticMeshInstance.h"
 #include "StaticMeshComponent.h"
 #include "MikanObject.h"
-#include "Renderer.h"
 
 StaticMeshComponent::StaticMeshComponent(MikanObjectWeakPtr owner)
 	: SceneComponent(owner)

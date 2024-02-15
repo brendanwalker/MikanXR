@@ -20,6 +20,18 @@
 
 #include <limits>
 
+GlRenderModelResource::GlRenderModelResource()
+	: m_vertexDefinition(nullptr)
+{
+
+}
+
+GlRenderModelResource::GlRenderModelResource(const GlVertexDefinition* vertexDefinition)
+	: m_vertexDefinition(new GlVertexDefinition(*vertexDefinition))
+{
+
+}
+
 GlRenderModelResource::GlRenderModelResource(const std::filesystem::path& modelFilePath)
 	: m_renderModelFilepath(modelFilePath)
 	, m_vertexDefinition(new GlVertexDefinition(*getVertexDefinition()))
@@ -37,7 +49,10 @@ GlRenderModelResource::GlRenderModelResource(
 GlRenderModelResource::~GlRenderModelResource()
 {
 	disposeRenderResources();
-	delete m_vertexDefinition;
+	if (m_vertexDefinition)
+	{
+		delete m_vertexDefinition;
+	}
 }
 
 const GlVertexDefinition* GlRenderModelResource::getDefaultVertexDefinition()
@@ -69,7 +84,7 @@ const GlVertexDefinition* GlRenderModelResource::getDefaultVertexDefinition()
 	return &x_vertexDefinition;
 }
 
-bool GlRenderModelResource::createRenderResources()
+bool GlRenderModelResource::createRenderResources(GlModelResourceManager* modelResourceManager)
 {
 	bool bSuccess = false;
 
@@ -81,14 +96,15 @@ bool GlRenderModelResource::createRenderResources()
 				createTriangulatedMeshResource(
 					mesh.MeshName, getVertexDefinition(), &mesh);
 			GlMaterialInstancePtr glTriMeshMaterial =
-				createTriMeshMaterialResource(
-					mesh.MeshMaterial.name, &mesh.MeshMaterial);
+				createTriMeshMaterialInstance(
+					modelResourceManager->getPhongMaterial(), 
+					&mesh.MeshMaterial);
 			GlWireframeMeshPtr glWireframeMesh =
 				createWireframeMeshResource(
 					mesh.MeshName, &mesh);
 			GlMaterialInstancePtr glWireframeMeshMaterial =
-				createWireframeMeshMaterialResource(
-					mesh.MeshMaterial.name);
+				createWireframeMeshMaterialInstance(
+					modelResourceManager->getWireframeMaterial());
 
 			if (glTriMesh != nullptr)
 			{
@@ -245,12 +261,12 @@ GlTriangulatedMeshPtr GlRenderModelResource::createTriangulatedMeshResource(
 	return glMesh;
 }
 
-GlMaterialInstancePtr GlRenderModelResource::createTriMeshMaterialResource(
-	const std::string& materialName,
+GlMaterialInstancePtr GlRenderModelResource::createTriMeshMaterialInstance(
+	GlMaterialConstPtr material,
 	const objl::Material* objMaterial)
 {
-	GlMaterialConstPtr phongMaterial= GlModelResourceManager::getInstance()->getPhongMaterial();
-	GlMaterialInstancePtr glMaterialInstance = std::make_shared<GlMaterialInstance>(phongMaterial);
+	//GlMaterialConstPtr phongMaterial= GlModelResourceManager::getInstance()->getPhongMaterial();
+	GlMaterialInstancePtr glMaterialInstance = std::make_shared<GlMaterialInstance>(material);
 
 	glMaterialInstance->setVec4BySemantic(
 		eUniformSemantic::ambientColorRGBA, 
@@ -335,10 +351,9 @@ GlWireframeMeshPtr GlRenderModelResource::createWireframeMeshResource(
 	return glWireframeMesh;
 }
 
-GlMaterialInstancePtr GlRenderModelResource::createWireframeMeshMaterialResource(
-	const std::string& materialName)
+GlMaterialInstancePtr GlRenderModelResource::createWireframeMeshMaterialInstance(
+	GlMaterialConstPtr wireframeMaterial)
 {
-	GlMaterialConstPtr wireframeMaterial = GlModelResourceManager::getInstance()->getWireframeMaterial();
 	GlMaterialInstancePtr glMaterialInstance = std::make_shared<GlMaterialInstance>(wireframeMaterial);
 
 	glMaterialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(Colors::Yellow, 1.f));

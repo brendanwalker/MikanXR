@@ -6,6 +6,10 @@ enum class eUniformDataType : int
 {
 	INVALID = -1,
 
+	datatype_int,
+	datatype_int2,
+	datatype_int3,
+	datatype_int4,
 	datatype_float,
 	datatype_float2,
 	datatype_float3,

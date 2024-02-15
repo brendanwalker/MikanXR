@@ -5,7 +5,6 @@
 #include "InputManager.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
-#include "Renderer.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -19,12 +18,9 @@
 
 GlCamera::GlCamera()
 {
-	Renderer* renderer= App::getInstance()->getRenderer();
-
 	m_viewMatrix = glm::mat4(1.f);
 
-	const float aspectRatio= renderer->getSDLWindowAspectRatio();
-	m_hFOVDegrees= k_default_camera_vfov*aspectRatio;
+	m_hFOVDegrees= k_default_camera_vfov*k_default_aspect_ratio;
 	m_vFOVDegrees= k_default_camera_vfov;
 	m_zNear= k_default_camera_z_near;
 	m_zFar= k_default_camera_z_far;
@@ -32,7 +28,7 @@ GlCamera::GlCamera()
 	m_projectionMatrix =
 		glm::perspective(
 			degrees_to_radians(m_vFOVDegrees),
-			renderer->getSDLWindowAspectRatio(),
+			k_default_aspect_ratio,
 			m_zNear,
 			m_zFar);
 

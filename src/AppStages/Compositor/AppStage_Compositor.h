@@ -29,7 +29,7 @@ class AppStage_Compositor : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_Compositor(class App* app);
+	AppStage_Compositor(class MainWindow* ownerWindow);
 	virtual ~AppStage_Compositor();
 
 	inline CompositorScriptContextPtr getCompositorScriptContext() { return m_scriptContext; }
@@ -58,7 +58,6 @@ protected:
 	void setVRCamera();
 
 	// Compositor Events
-	void onCompositorShadersReloaded();
 	void onNewRecordingFrameReady();
 	void onNewStreamingFrameReady();
 
@@ -68,32 +67,16 @@ protected:
 	void onToggleLayersWindowEvent();
 	void onToggleRecordingWindowEvent();
 	void onToggleScriptingWindowEvent();
-	void onToggleSourcesWindowEvent();
 	void onToggleSettingsWindowEvent();
 	void hideAllSubWindows();
 
 	// Layers UI Events
+	void onGraphEditEvent();
+	void onGraphFileSelectEvent();
 	void onConfigAddEvent();
 	void onConfigDeleteEvent();
 	void onConfigNameChangeEvent(const std::string& newConfigName);
 	void onConfigSelectEvent(const std::string& configName);
-	void onLayerAddEvent();
-	void onLayerDeleteEvent(const int layerIndex);
-	void onMaterialNameChangeEvent(const int layerIndex, const std::string& materialName);
-	void onVerticalFlipChangedEvent(const int layerIndex, bool bIsFlipped);
-	void onBlendModeChangedEvent(const int layerIndex, eCompositorBlendMode blendMode);
-	void onInvertQuadsFlagChangeEvent(const int layerIndex, bool bInvertFlag);
-	void onQuadStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
-	void onBoxStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
-	void onModelStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode);
-	void onStencilRefAddedEvent(const int layerIndex, int stencilId);
-	void onStencilRefRemovedEvent(const int layerIndex, int stencilId);
-	void onFloatMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
-	void onFloat2MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
-	void onFloat3MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
-	void onFloat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
-	void onMat4MappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
-	void onColorTextureMappingChangedEvent(const int layerIndex, const std::string& uniformName, const std::string& dataSourceName);
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
 	// Recording UI Events
@@ -126,9 +109,6 @@ protected:
 
 	class RmlModel_CompositorScripting* m_compositorScriptingModel = nullptr;
 	Rml::ElementDocument* m_compositiorScriptingView = nullptr;
-
-	class RmlModel_CompositorSources* m_compositorSourcesModel = nullptr;
-	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
 
 	class RmlModel_CompositorOutliner* m_compositorOutlinerModel = nullptr;
 	class RmlModel_CompositorSelection* m_compositorSelectionModel = nullptr;

@@ -24,7 +24,7 @@ public:
 	void addMikanComponent(MikanComponentPtr componentPtr);
 	void removeMikanComponent(MikanComponentConstPtr componentPtr);
 
-	void render() const;
+	void render(GlCameraConstPtr camera) const;
 
 private:
 	GlScenePtr m_glScene;

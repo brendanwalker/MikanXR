@@ -60,6 +60,7 @@ protected:
 };
 
 void drawTransformedWireframeMesh(
+	GlCameraConstPtr camera,
 	const glm::mat4& transform,
 	const class GlWireframeMesh* wireframeMesh,
 	const glm::vec3& color);

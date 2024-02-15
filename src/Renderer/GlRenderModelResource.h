@@ -17,18 +17,23 @@ namespace objl
 class GlRenderModelResource
 {
 public:
+	GlRenderModelResource();
+	GlRenderModelResource(const struct GlVertexDefinition* vertexDefinition);
 	GlRenderModelResource(const std::filesystem::path& modelFilePath);
 	GlRenderModelResource(
 		const std::filesystem::path& modelFilePath,
 		const struct GlVertexDefinition* vertexDefinition);
 	virtual ~GlRenderModelResource();
 
-	bool createRenderResources();
+	bool createRenderResources(GlModelResourceManager* modelResourceManager);
 	void disposeRenderResources();
 
 	const std::filesystem::path& getRenderModelFilepath() const { return m_renderModelFilepath; }
 	const GlVertexDefinition* getVertexDefinition() const { return m_vertexDefinition; }
 	static const GlVertexDefinition* getDefaultVertexDefinition();
+
+	inline const std::string& getName() const { return m_name; }
+	inline void setName(const std::string& inName) { m_name= inName; }
 
 	size_t getTriangulatedMeshCount() const 
 	{ return m_glTriMeshResources.size(); }
@@ -51,17 +56,18 @@ protected:
 		const std::string& meshName,
 		const struct GlVertexDefinition* vertexDefinition,
 		const objl::Mesh* objMesh);
-	GlMaterialInstancePtr createTriMeshMaterialResource(
-		const std::string& materialName,
+	GlMaterialInstancePtr createTriMeshMaterialInstance(
+		GlMaterialConstPtr material,
 		const objl::Material* objMaterial);
 	GlWireframeMeshPtr createWireframeMeshResource(
 		const std::string& meshName,
 		const objl::Mesh* objMesh);
-	GlMaterialInstancePtr createWireframeMeshMaterialResource(
-		const std::string& materialName);
+	GlMaterialInstancePtr createWireframeMeshMaterialInstance(
+		GlMaterialConstPtr wireframeMaterial);
 
 	objl::Loader* m_objLoader= nullptr;
 
+	std::string m_name;
 	const std::filesystem::path m_renderModelFilepath;
 	struct GlVertexDefinition* m_vertexDefinition= nullptr;
 

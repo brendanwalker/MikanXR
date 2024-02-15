@@ -76,8 +76,32 @@ set (FastCSV_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/fast-cpp-csv-parser)
 # Boost interprocess
 set (BOOST_INTERPROCESS_INCLUDE_DIRS ${ROOT_DIR}/deps/boost_1_78_0)
 
+# ImGUI
+set(IMGUI_DIR ${ROOT_DIR}/thirdparty/imgui)
+set(IMGUI_SOURCE "")
+list(APPEND IMGUI_SOURCE
+     ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp
+     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+     ${IMGUI_DIR}/imgui.cpp
+     ${IMGUI_DIR}/imgui_draw.cpp
+     ${IMGUI_DIR}/imgui_tables.cpp
+     ${IMGUI_DIR}/imgui_widgets.cpp
+     ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
+)
+
+# ImNodes
+set(IMNODES_DIR ${ROOT_DIR}/thirdparty/imnodes)
+set(IMNODES_SOURCE "")
+list(APPEND IMNODES_SOURCE
+     ${IMNODES_DIR}/imnodes.cpp
+)
+
 # stb
 set (STB_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/stb)
+
+# tinyfiledialogs
+set(TINYFILEDIALOGS_DIR ${ROOT_DIR}/thirdparty/tinyfiledialogs)
+set(TINYFILEDIALOGS_SOURCE "${TINYFILEDIALOGS_DIR}/tinyfiledialogs.c")
 
 # obj loader
 set (OBJ_LOADER_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/OBJ-loader/Source)

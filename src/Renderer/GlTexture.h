@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <stdint.h>
 
 class GlTexture
@@ -23,6 +24,8 @@ public:
 		uint32_t bufferFormat);
 	virtual ~GlTexture();
 
+	GlTexture* setName(const std::string& name)
+	{ m_name= name; return this; }
 	GlTexture* setSize(uint16_t width, uint16_t height)
 	{ m_width= width; m_height= height; return this; }
 	GlTexture* setTextureMapData(const uint8_t* textureMapData)
@@ -37,7 +40,11 @@ public:
 	{ m_bGenerateMipMap= bFlag; return this; }
 	GlTexture* setPixelBufferObjectMode(PixelBufferObjectMode mode)
 	{ m_pboMode = mode; return this; }
-	
+
+	void setImagePath(const std::filesystem::path& path) { m_imagePath = path; }
+	const std::filesystem::path getImagePath() const { return m_imagePath; }
+	bool reloadTextureFromImagePath();
+
 	bool createTexture();
 	void copyFloatBufferIntoTexture(const float* buffer);
 	void copyBufferIntoTexture(const uint8_t* pixels);
@@ -48,6 +55,7 @@ public:
 	void renderFullscreen() const;
 	void clearTexture(int textureUnit = 0) const;
 
+	const std::string getName() const { return m_name; }
 	uint32_t getGlTextureId() const { return m_glTextureId; }
 	uint16_t getTextureWidth() const { return m_width; }
 	uint16_t getTextureHeight() const { return m_height; }
@@ -56,6 +64,7 @@ public:
 	uint32_t getBufferSize() const;
 
 private:
+	std::string m_name;
 	uint32_t m_glTextureId = 0;
 	uint16_t m_width = 0;
 	uint16_t m_height = 0;
@@ -67,5 +76,6 @@ private:
 	PixelBufferObjectMode m_pboMode= PixelBufferObjectMode::NoPBO;	
 	bool m_bGenerateMipMap= true;
 	const uint8_t* m_textureMapData;
+	std::filesystem::path m_imagePath;
 };
 

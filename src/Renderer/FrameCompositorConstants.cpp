@@ -35,13 +35,13 @@ const std::string g_compositorStencilModeStrings[(int)eCompositorStencilMode::CO
 	"insideStencil",
 	"outsideStencil"
 };
-extern const std::string* k_compositorStencilModeStrings= g_compositorStencilModeStrings;
+const std::string* k_compositorStencilModeStrings= g_compositorStencilModeStrings;
 
 const std::string g_compositorBlendModeStrings[(int)eCompositorBlendMode::COUNT] = {
 	"blendOff",
 	"blendOn"
 };
-extern const std::string* k_compositorBlendModeStrings = g_compositorBlendModeStrings;
+const std::string* k_compositorBlendModeStrings = g_compositorBlendModeStrings;
 
 const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT] = {
 	"none",
@@ -49,4 +49,16 @@ const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT] = {
 	"yAxis",
 	"xAxis",
 };
-extern const std::string* k_stencilCullModeStrings = g_stencilCullModeStrings;
+const std::string* k_stencilCullModeStrings = g_stencilCullModeStrings;
+
+const std::string g_clientTextureTypeStrings[(int)eClientTextureType::COUNT] = {
+	"color",
+	"depth"
+};
+const std::string* k_clientTextureTypeStrings = g_clientTextureTypeStrings;
+
+const std::string g_compositorEvaluatorWindow[(int)eCompositorEvaluatorWindow::COUNT] = {
+	"mainWindow",
+	"editorWindow"
+};
+const std::string* k_compositorEvaluatorWindow = g_compositorEvaluatorWindow;

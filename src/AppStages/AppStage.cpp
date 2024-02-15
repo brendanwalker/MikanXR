@@ -1,8 +1,9 @@
 #include "App.h"
 #include "AppStage.h"
 #include "GlViewport.h"
-#include "Renderer.h"
+#include "MainWindow.h"
 #include "RmlManager.h"
+#include "SdlWindow.h"
 #include "Shared/ModalDialog.h"
 
 #include <RmlUi/Core/Core.h>
@@ -13,9 +14,9 @@
 #include <filesystem>
 
 AppStage::AppStage(
-	App* app,
+	MainWindow* mainWindow,
 	const std::string& stageName)
-	: m_app(app)
+	: m_ownerWindow(mainWindow)
 	, m_bIsEntered(false)
 	, m_bIsPaused(false)
 	, m_appStageName(stageName)
@@ -28,7 +29,9 @@ AppStage::~AppStage()
 
 GlViewportPtr AppStage::addViewport()
 {
-	GlViewportPtr viewport= std::make_shared<GlViewport>();
+	GlViewportPtr viewport= 
+		std::make_shared<GlViewport>(
+			glm::i32vec2(m_ownerWindow->getWidth(), m_ownerWindow->getHeight()));
 	m_viewports.push_back(viewport);
 
 	// Start listing to mouse input
@@ -39,22 +42,18 @@ GlViewportPtr AppStage::addViewport()
 
 GlViewportConstPtr AppStage::getRenderingViewport() const
 {
-	return Renderer::getInstance()->getRenderingViewport();
+	return MainWindow::getInstance()->getRenderingViewport();
 }
 
 Rml::Context* AppStage::getRmlContext() const 
 {
-	return m_app->getRmlManager()->getRmlUIContext(); 
+	return m_ownerWindow->getRmlManager()->getRmlUIContext(); 
 }
 
 void AppStage::enter() 
 {
 	if (!m_bIsEntered)
 	{
-		Renderer* renderer = Renderer::getInstance();
-		int window_width = renderer->getSDLWindowWidth();
-		int window_height = renderer->getSDLWindowHeight();
-
 		// Add a default fullscreen viewport for each appstage
 		addViewport();
 
@@ -98,12 +97,15 @@ void AppStage::exit()
 	}
 }
 
-void AppStage::onSDLEvent(SDL_Event* event)
+void AppStage::onSDLEvent(const SDL_Event* event)
 {
+	SdlWindow& sdlWindow = m_ownerWindow->getSdlWindow();
+	const bool bHasKeyboardFocus = sdlWindow.hasKeyboardFocus();
+
 	switch (event->type)
 	{
 	case SDL_KEYDOWN:
-		if (event->key.keysym.sym == SDLK_F5)
+		if (bHasKeyboardFocus && event->key.keysym.sym == SDLK_F5)
 		{
 			for (auto it = m_rmlDocuments.begin(); it != m_rmlDocuments.end(); it++)
 			{

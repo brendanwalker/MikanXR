@@ -115,6 +115,13 @@ set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC}
 )
 
+# Asset
+file(GLOB MIKAN_ASSET_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/*.h"
+)
+source_group("Asset" FILES ${MIKAN_ASSET_SRC})
+
 # Calibration
 file(GLOB MIKAN_CALIBRATION_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Calibration/*.cpp"
@@ -188,6 +195,9 @@ source_group("Device\\View" FILES ${MIKAN_DEVICE_VIEW_SRC})
 # ImGUI's source files are included in directly, rather than linking against a lib
 source_group("ImGui" FILES ${IMGUI_SOURCE})
 
+# ImNodes's source files are included in directly, rather than linking against a lib
+source_group("ImNodes" FILES ${IMNODES_SOURCE})
+
 # Interprocess
 file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
@@ -222,6 +232,61 @@ file(GLOB MIKAN_OBJECT_SRC
 )
 source_group("Object" FILES ${MIKAN_OBJECT_SRC})
 
+# OpenCV
+file(GLOB MIKAN_OPENCV_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/OpenCV/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/OpenCV/*.h"
+)
+source_group("OpenCV" FILES ${MIKAN_OPENCV_SRC})
+
+# Node Editor
+## Root
+file(GLOB MIKAN_NODE_EDITORS_ROOT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/*.h"
+)
+source_group("NodeEditors" FILES ${MIKAN_NODE_EDITORS_ROOT_SRC})
+## Graphs
+file(GLOB MIKAN_NODE_EDITORS_GRAPHS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Graphs/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Graphs/*.h"
+)
+source_group("NodeEditors\\Graphs" FILES ${MIKAN_NODE_EDITORS_GRAPHS_SRC})
+## Nodes
+file(GLOB MIKAN_NODE_EDITORS_NODES_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Nodes/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Nodes/*.h"
+)
+source_group("NodeEditors\\Nodes" FILES ${MIKAN_NODE_EDITORS_NODES_SRC})
+## Pins
+file(GLOB MIKAN_NODE_EDITORS_PINS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Pins/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Pins/*.h"
+)
+source_group("NodeEditors\\Pins" FILES ${MIKAN_NODE_EDITORS_PINS_SRC})
+## Properties
+file(GLOB MIKAN_NODE_EDITORS_PROPERTIES_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Properties/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Properties/*.h"
+)
+source_group("NodeEditors\\Properties" FILES ${MIKAN_NODE_EDITORS_PROPERTIES_SRC})
+
+## Windows
+file(GLOB MIKAN_NODE_EDITORS_WINDOWS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Windows/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Windows/*.h"
+)
+source_group("NodeEditors\\Windows" FILES ${MIKAN_NODE_EDITORS_WINDOWS_SRC})
+## Node Editor Full Source
+set(MIKAN_NODE_EDITORS_SRC
+    ${MIKAN_NODE_EDITORS_ROOT_SRC}
+    ${MIKAN_NODE_EDITORS_GRAPHS_SRC}
+    ${MIKAN_NODE_EDITORS_NODES_SRC}
+    ${MIKAN_NODE_EDITORS_PINS_SRC}
+    ${MIKAN_NODE_EDITORS_PROPERTIES_SRC}
+    ${MIKAN_NODE_EDITORS_WINDOWS_SRC}
+)
+
 # Renderer
 file(GLOB MIKAN_RENDERER_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Renderer/*.cpp"
@@ -251,11 +316,21 @@ file(GLOB MIKAN_SCRIPTING_SRC
 source_group("Scripting" FILES ${MIKAN_SCRIPTING_SRC})
 
 # Scripting
+file(GLOB MIKAN_SDL_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/SDL/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/SDL/*.h"
+)
+source_group("SDL" FILES ${MIKAN_SDL_SRC})
+
+# Scripting
 file(GLOB MIKAN_SYSTEM_SRC
     "${CMAKE_CURRENT_LIST_DIR}/System/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/System/*.h"
 )
 source_group("System" FILES ${MIKAN_SYSTEM_SRC})
+
+# TinyFileDialogs's source files are included in directly, rather than linking against a lib
+source_group("TinyFileDialogs" FILES ${TINYFILEDIALOGS_SOURCE})
 
 # Utilities
 file(GLOB MIKAN_UTILS_SRC
@@ -308,6 +383,7 @@ source_group("VRTracker\\SteamVR" FILES ${MIKAN_VRTRACKER_STEAMVR_SRC})
 set(MIKAN_SRC
     ${MIKAN_APP_CORE_SRC}
     ${MIKAN_APP_STAGES_SRC}
+    ${MIKAN_ASSET_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_CLIENT_SRC}
     ${MIKAN_CLIENT_TYPES_SRC}
@@ -320,11 +396,14 @@ set(MIKAN_SRC
     ${MIKAN_INTERPROCESS_SRC}
     ${MIKAN_LOCALIZATION_SRC}
     ${MIKAN_MATH_SRC}
+	${MIKAN_NODE_EDITORS_SRC}
     ${MIKAN_OBJECT_SRC}
+	${MIKAN_OPENCV_SRC}
     ${MIKAN_RENDERER_SRC}
     ${MIKAN_RMLUI_SRC}
     ${MIKAN_SCENE_SRC}
     ${MIKAN_SCRIPTING_SRC}
+    ${MIKAN_SDL_SRC}
     ${MIKAN_SYSTEM_SRC}
     ${MIKAN_UTILS_SRC}
     ${MIKAN_VIDEO_SRC}
@@ -333,11 +412,14 @@ set(MIKAN_SRC
     ${MIKAN_VRTRACKER_SRC}
     ${MIKAN_VRTRACKER_STEAMVR_SRC}
     ${IMGUI_SOURCE}
+	${IMNODES_SOURCE}
+	${TINYFILEDIALOGS_SOURCE}
 )
 
 list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/AppCore
   ${CMAKE_CURRENT_LIST_DIR}/AppStages
+  ${CMAKE_CURRENT_LIST_DIR}/Asset
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Components
   ${CMAKE_CURRENT_LIST_DIR}/Config
@@ -349,11 +431,14 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
+  ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/Object
+  ${CMAKE_CURRENT_LIST_DIR}/OpenCV
   ${CMAKE_CURRENT_LIST_DIR}/Renderer
   ${CMAKE_CURRENT_LIST_DIR}/RmlUi
   ${CMAKE_CURRENT_LIST_DIR}/Scene
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
+  ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/System
   ${CMAKE_CURRENT_LIST_DIR}/Utility
   ${CMAKE_CURRENT_LIST_DIR}/Video
@@ -362,8 +447,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR
   ${IMGUI_DIR}
+  ${IMNODES_DIR}
   ${RMLUI_INCLUDE_DIR}
-  ${ROOT_DIR}/thirdparty/imgui-filebrowser
   ${ROOT_DIR}/thirdparty/glm/
   ${ROOT_DIR}/thirdparty/Configuru/
   ${OpenCV_INCLUDE_DIR} 
@@ -371,6 +456,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${SDL2_INCLUDE_DIR} 
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${SDL2TTF_INCLUDE_DIR}
+  ${STB_INCLUDE_DIRS}
+  ${TINYFILEDIALOGS_DIR}
   ${GLEW_INCLUDE_DIRS}
   ${FastCSV_INCLUDE_DIRS}
   ${FFMPEG_INCLUDE_DIRS}
@@ -399,7 +486,11 @@ list(APPEND MIKAN_REQ_LIBS
   ${RMLUI_LIBRARIES}
   easy_profiler)
 
+# Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
 set(APP_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/winapp_resources.rc")

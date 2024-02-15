@@ -43,7 +43,19 @@
                     window-l, window-c, window-r,
                     window-bl, window-b, window-br
                 );
-            }            
+            }
+            .filename-box
+            {
+                margin-top: 5dp;
+                decorator: gradient( vertical #415857 #5990A3 );
+                border: 3dp #415857;
+                border-radius: 8dp;
+            }
+            filename
+            {
+                font-size: 14dp;
+                vertical-align: -5dp;
+            }                        
         </style>
 	</head>
 	<body template="window">
@@ -61,127 +73,13 @@
                 <button data-event-click="add_config()">Add Config</button>
                 <button data-if="!is_builtin_configuration" data-event-click="delete_config()">Delete Config</button>
             </div>
-			<div class="picker" data-if="layers.size > 0">
-				<div data-for="layer : layers">
-                    <layerblock>
-                        <h1>Layer #{{layer.layer_index}}: {{layer.material_name}}</h1>
-                        <div class="tiled-box">
-                            <div>
-                                &nbsp;&nbsp;
-                                <mapping_label>Blend Mode:</mapping_label>
-                                <select id="select" name="blend_mode_select" data-value="layer.blend_mode" data-event-change="update_blend_mode(layer.layer_index)">
-                                    <option data-for="blend_mode : blend_modes" data-value="blend_mode">{{blend_mode}}</option>
-                                </select>                                                    
-                            </div>
-                            <div>
-                                &nbsp;&nbsp;
-                                <mapping_label>Material:</mapping_label>
-                                <select id="select" name="material_select" data-value="layer.material_name" data-event-change="update_material_name(layer.layer_index)">
-                                    <option data-for="material_name : material_names" data-value="material_name">{{material_name}}</option>
-                                </select>                            
-                            </div>
-                            <div data-for="mapping : layer.float_mappings">
-                                &nbsp;&nbsp;
-                                <mapping_label>{{mapping.uniform_name}}:</mapping_label>
-                                <select id="select" name="float_select" data-value="mapping.data_source_name" data-event-change="update_float_mapping(layer.layer_index, mapping.uniform_name)">
-                                    <option data-for="source_name : float_sources" data-value="source_name">{{source_name}}</option>
-                                </select>                            
-                            </div>
-                            <div data-for="mapping : layer.float2_mappings">
-                                &nbsp;&nbsp;
-                                <mapping_label>{{mapping.uniform_name}}:</mapping_label>
-                                <select id="select" name="float2_select" data-value="mapping.data_source_name" data-event-change="update_float2_mapping(layer.layer_index, mapping.uniform_name)">
-                                    <option data-for="source_name : float2_sources" data-value="source_name">{{source_name}}</option>
-                                </select>                            
-                            </div>
-                            <div data-for="mapping : layer.float3_mappings">
-                                &nbsp;&nbsp;
-                                <mapping_label>{{mapping.uniform_name}}:</mapping_label>
-                                <select id="select" name="float3_select" data-value="mapping.data_source_name" data-event-change="update_float3_mapping(layer.layer_index, mapping.uniform_name)">
-                                    <option data-for="source_name : float3_sources" data-value="source_name">{{source_name}}</option>
-                                </select>
-                            </div>
-                            <div data-for="mapping : layer.float4_mappings">
-                                &nbsp;&nbsp;
-                                <mapping_label>{{mapping.uniform_name}}:</mapping_label>
-                                <select id="select" name="float4_select" data-value="mapping.data_source_name" data-event-change="update_float4_mapping(layer.layer_index, mapping.uniform_name)">
-                                    <option data-for="source_name : float4_sources" data-value="source_name">{{source_name}}</option>
-                                </select>
-                            </div>
-                            <div data-for="mapping : layer.mat4_mappings">
-                                &nbsp;&nbsp;
-                                <mapping_label>{{mapping.uniform_name}}:</mapping_label>
-                                <select id="select" name="mat4_select" data-value="mapping.data_source_name" data-event-change="update_mat4_mapping(layer.layer_index, mapping.uniform_name)">
-                                    <option data-for="source_name : mat4_sources" data-value="source_name">{{source_name}}</option>
-                                </select>                            
-                            </div>
-                            <div data-for="mapping : layer.color_texture_mappings">
-                                &nbsp;&nbsp;
-                                <mapping_label>{{mapping.uniform_name}}:</mapping_label>
-                                <select id="select" name="color_texture_select" data-value="mapping.data_source_name" data-event-change="update_color_texture_mapping(layer.layer_index, mapping.uniform_name)">
-                                    <option data-for="source_name : color_texture_sources" data-value="source_name">{{source_name}}</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label>
-                                    <input type="checkbox" name="vertical_flip" data-event-change="update_vertical_flip(layer.layer_index)" data-checked="layer.vertical_flip" />
-                                    Vertical Flip 
-                                </label>
-                            </div>
-                            <div data-if="layer.quad_stencil_flags.size > 0">
-                                <div>
-                                    <label>Quad Stencil:</label>
-                                    <select id="select" name="quad_stencil_mode_select" data-value="layer.quad_stencil_mode" data-event-change="update_quad_stencil_mode(layer.layer_index)">
-                                        <option data-for="stencil_mode : stencil_modes" data-value="stencil_mode">{{stencil_mode}}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label><input type="checkbox" name="quad_invert_toggle" data-event-change="toggle_invert_quads(layer.layer_index)" data-checked="layer.invert_quads_when_camera_inside" />Invert Quads When Camera Inside </label>
-                                </div>
-                                <div data-for="quad_stencil_flag : layer.quad_stencil_flags" data-if="layer.quad_stencil_mode!='noStencil'">
-                                    <label>
-                                        <input type="checkbox" name="layer_stencil_check" data-event-change="toggle_stencil_enabled(layer.layer_index, quad_stencil_flag.stencil_id)" data-checked="quad_stencil_flag.stencil_enabled" />
-                                        {{quad_stencil_flag.stencil_id | to_stencil_name}}
-                                    </label>                            
-                                </div>
-                            </div>
-                            <div data-if="layer.box_stencil_flags.size > 0">
-                                <div>
-                                    <label>Box Stencil:</label>
-                                    <select id="select" name="box_stencil_mode_select" data-value="layer.box_stencil_mode" data-event-change="update_box_stencil_mode(layer.layer_index)">
-                                        <option data-for="stencil_mode : stencil_modes" data-value="stencil_mode">{{stencil_mode}}</option>
-                                    </select>
-                                </div>
-                                <div data-for="box_stencil_flag : layer.box_stencil_flags" data-if="layer.box_stencil_mode!='noStencil'">
-                                    <label>
-                                        <input type="checkbox" name="layer_stencil_check" data-event-change="toggle_stencil_enabled(layer.layer_index, box_stencil_flag.stencil_id)" data-checked="box_stencil_flag.stencil_enabled" />
-                                        {{box_stencil_flag.stencil_id | to_stencil_name}}
-                                    </label>                            
-                                </div>
-                            </div>
-                            <div data-if="layer.model_stencil_flags.size > 0">
-                                <div>
-                                    <label>Model Stencil:</label>
-                                    <select id="select" name="model_stencil_mode_select" data-value="layer.model_stencil_mode" data-event-change="update_model_stencil_mode(layer.layer_index)">
-                                        <option data-for="stencil_mode : stencil_modes" data-value="stencil_mode">{{stencil_mode}}</option>
-                                    </select>
-                                </div>
-                                <div data-for="model_stencil_flag : layer.model_stencil_flags" data-if="layer.model_stencil_mode!='noStencil'">
-                                    <label>
-                                        <input type="checkbox" name="layer_stencil_check" data-event-change="toggle_stencil_enabled(layer.layer_index, model_stencil_flag.stencil_id)" data-checked="model_stencil_flag.stencil_enabled" />
-                                        {{model_stencil_flag.stencil_id | to_stencil_name}}
-                                    </label>                            
-                                </div>
-                            </div>
-                            <button data-if="!is_builtin_configuration" data-event-click="delete_layer(layer.layer_index)">Delete Layer</button>                    
-                        </div>
-                    </layerblock>
-				</div>
-			</div>
-            <div data-if="layers.size == 0">
-                <label>No layers</label>
+            <div>
+                <button data-event-click="edit_compositor_graph()">Edit Compositor Graph</button>
             </div>
-            <button data-if="!is_builtin_configuration" data-event-click="add_layer()">Add Layer</button>
+            <div class="filename-box">
+                <filename>{{compositor_graph_path | to_short_path(30)}}</filename>
+                <button style="width: 40dp" data-event-click="select_compositor_graph_file()">...</button>
+            </div>            
         </panel>
     </body>
 </rml>

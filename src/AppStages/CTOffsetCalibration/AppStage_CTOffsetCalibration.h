@@ -19,7 +19,7 @@ class AppStage_CTOffsetCalibration : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_CTOffsetCalibration(class App* app);
+	AppStage_CTOffsetCalibration(class MainWindow* ownerWindow);
 	virtual ~AppStage_CTOffsetCalibration();
 
 	void setBypassCalibrationFlag(bool flag);

@@ -11,6 +11,7 @@
 #include "GlViewport.h"
 #include "InputManager.h"
 #include "ObjectSystemManager.h"
+#include "MainWindow.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
 #include "MikanScene.h"
@@ -42,7 +43,7 @@ bool EditorObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
-	App::getInstance()->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
+	MainWindow::getInstance()->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
 
 	m_lastestRaycastResult= ColliderRaycastHitResult();
 	m_hoverComponentWeakPtr.reset();
@@ -51,7 +52,7 @@ bool EditorObjectSystem::init()
 	m_scene = std::make_shared<MikanScene>();
 	m_scene->init();
 
-	ObjectSystemManagerPtr objSystemMgr= App::getInstance()->getObjectSystemManager();
+	ObjectSystemManagerPtr objSystemMgr= MainWindow::getInstance()->getObjectSystemManager();
 
 	AnchorObjectSystemPtr anchorObjectSystem= objSystemMgr->getSystemOfType<AnchorObjectSystem>();
 	anchorObjectSystem->OnComponentInitialized+= MakeDelegate(this, &EditorObjectSystem::onComponentInitialized);

@@ -5,7 +5,6 @@
 #include "GlProgram.h"
 #include "GlWireframeMesh.h"
 #include "GlViewport.h"
-#include "Renderer.h"
 #include "Logger.h"
 
 #define WIREFRAME_MVP_MATRIX_UNIFORM_NAME	"mvpMatrix"
@@ -159,18 +158,14 @@ const GlVertexDefinition* GlWireframeMesh::getVertexDefinitionInternal()
 }
 
 void drawTransformedWireframeMesh(
+	GlCameraConstPtr camera,
 	const glm::mat4& transform,
 	const GlWireframeMesh* wireframeMesh,
 	const glm::vec3& color)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-
 	GlProgramPtr shader= wireframeMesh->getDefaultWireframeShader();
 
 	shader->bindProgram();
-
-	GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
 
 	if (camera != nullptr)
 	{

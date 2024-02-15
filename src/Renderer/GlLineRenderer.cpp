@@ -8,9 +8,9 @@
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
 #include "GlViewport.h"
+#include "IGlWindow.h"
 #include "Logger.h"
 #include "MathGLM.h"
-#include "Renderer.h"
 
 #include "glm/ext/matrix_clip_space.hpp"
 
@@ -107,7 +107,7 @@ bool GlLineRenderer::startup()
 }
 
 
-void GlLineRenderer::render(Renderer* renderer)
+void GlLineRenderer::render(IGlWindow* window)
 {
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
@@ -116,13 +116,13 @@ void GlLineRenderer::render(Renderer* renderer)
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
 		{
-			GlCameraPtr camera = renderer->getRenderingViewport()->getCurrentCamera();
+			GlCameraPtr camera = window->getRenderingViewport()->getCurrentCamera();
 
 			if (camera != nullptr)
 			{
 				const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-				GlScopedState scopedState = renderer->getGlStateStack()->createScopedState();
+				GlScopedState scopedState = window->getGlStateStack().createScopedState();
 				if (m_bDisable3dDepth)
 				{
 					scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
@@ -137,15 +137,15 @@ void GlLineRenderer::render(Renderer* renderer)
 
 		if (m_points2d.hasPoints() || m_lines2d.hasPoints())
 		{
-			const float windowWidth = renderer->getSDLWindowWidth();
-			const float windowHeight = renderer->getSDLWindowHeight();
+			const float windowWidth = window->getWidth();
+			const float windowHeight = window->getHeight();
 			const glm::mat4 orthoMat = glm::ortho(0.f, windowWidth, windowHeight, 0.0f, 1.0f, -1.0f);
 
 			m_program->setMatrix4x4Uniform(m_modelViewUniformName, orthoMat);
 
 			{
 				// disable the depth buffer to allow overdraw 
-				GlScopedState scopedState = renderer->getGlStateStack()->createScopedState();
+				GlScopedState scopedState = window->getGlStateStack().createScopedState();
 				scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 				m_points2d.drawGlBufferState(GL_POINTS);
@@ -297,15 +297,20 @@ void GlLineRenderer::PointBufferState::addPoint2d(
 }
 
 //-- Drawing Methods -----
+#define GET_LINE_RENDERER_OR_RETURN()										\
+	IGlWindow* window= App::getInstance()->getCurrentlyRenderingWindow();	\
+	assert(window->getIsRenderingStage());									\
+	GlLineRenderer* lineRenderer = window->getLineRenderer();				\
+	if (lineRenderer == nullptr)											\
+		return;																\
+
 void drawPoint(
 	const glm::mat4& transform, 
 	const glm::vec3& point, 
 	const glm::vec3& color,
 	const float size)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	lineRenderer->addPoint3d(transform, point, color, size);
 }
@@ -316,9 +321,7 @@ void drawSegment(
 	const glm::vec3& end,
 	const glm::vec3& color)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	lineRenderer->addSegment3d(transform, start, color, end, color);
 }
@@ -327,9 +330,7 @@ void drawSegment(const glm::mat4& transform,
 				 const glm::vec3& start, const glm::vec3& end,
 				 const glm::vec3& colorStart, const glm::vec3& colorEnd)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	lineRenderer->addSegment3d(transform, start, colorStart, end, colorEnd);
 }
@@ -341,9 +342,7 @@ void drawArrow(
 	const float headFraction,
 	const glm::vec3& color)
 {
-	Renderer* renderer= Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	const glm::vec3 headAxis = end - start;
 	const float headSize = headAxis.length() * headFraction * 0.1f;
@@ -395,9 +394,7 @@ void drawTransformedAxes(
 	float xScale, float yScale, float zScale,
 	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	glm::vec3 origin(0.f, 0.f, 0.f);
 	glm::vec3 xAxis(xScale, 0.f, 0.f);
@@ -411,9 +408,7 @@ void drawTransformedAxes(
 
 void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::vec3& color)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	static const float k_segmentMaxLength= 0.01f;
 	static const float k_maxAngleStep= k_real_quarter_pi;
@@ -436,9 +431,7 @@ void drawTransformedSpiralArc(
 	float totalAngle, 
 	const glm::vec3& color)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	static const float k_segmentMaxLength = 0.01f;
 	static const float k_maxAngleStep = k_real_quarter_pi;
@@ -471,9 +464,7 @@ void drawTransformedSpiralArc(
 
 void drawGrid(const glm::mat4& transform, float xSize, float zSize, int xSubDiv, int zSubDiv, const glm::vec3& color)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	int x0 = -xSize / 2.f;
 	int x1 = xSize / 2.f;
@@ -492,9 +483,7 @@ void drawGrid(const glm::mat4& transform, float xSize, float zSize, int xSubDiv,
 
 void drawTransformedQuad(const glm::mat4& transform, float xSize, float ySize, const glm::vec3& color)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	const glm::vec3 p0(xSize / 2.f, ySize / 2.f, 0.f);
 	const glm::vec3 p1(xSize / 2.f, -ySize / 2.f, 0.f);
@@ -514,9 +503,7 @@ void drawTransformedBox(const glm::mat4& transform, const glm::vec3& half_extent
 
 void drawTransformedBox(const glm::mat4& transform, const glm::vec3& box_min, const glm::vec3& box_max, const glm::vec3& color)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	const glm::vec3 v0(box_max.x, box_max.y, box_max.z);
 	const glm::vec3 v1(box_min.x, box_max.y, box_max.z);
@@ -551,9 +538,7 @@ void drawTransformedFrustum(
 	const float zFar,
 	const glm::vec3& color)
 {
-	Renderer* renderer = Renderer::getInstance();
-	assert(renderer->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = renderer->getLineRenderer();
+	GET_LINE_RENDERER_OR_RETURN()
 
 	const float HRatio = tanf(hfov_radians / 2.f);
 	const float VRatio = tanf(vfov_radians / 2.f);

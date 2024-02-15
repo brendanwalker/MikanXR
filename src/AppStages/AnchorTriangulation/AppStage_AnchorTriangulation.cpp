@@ -14,10 +14,10 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulator.h"
 #include "InputManager.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "ProfileConfig.h"
-#include "Renderer.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"
@@ -38,8 +38,8 @@
 const char* AppStage_AnchorTriangulation::APP_STAGE_NAME = "AnchorTriangulation";
 
 //-- public methods -----
-AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(App* app)
-	: AppStage(app, AppStage_AnchorTriangulation::APP_STAGE_NAME)
+AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(MainWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_AnchorTriangulation::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_AnchorTriangulation)
 	, m_videoSourceView()
 	, m_anchorTriangulator(nullptr)
@@ -66,7 +66,7 @@ void AppStage_AnchorTriangulation::enter()
 	AppStage::enter();
 
 	// Disable depth testing on the line renderer while in this app stage
-	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(true);
+	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(true);
 
 	// Get the current video source based on the config
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
@@ -148,7 +148,7 @@ void AppStage_AnchorTriangulation::exit()
 	setMenuState(eAnchorTriangulationMenuState::inactive);
 
 	// Re-Enable depth testing on the line renderer while in this app stage
-	Renderer::getInstance()->getLineRenderer()->setDisable3dDepth(false);
+	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(false);
 
 	m_camera= nullptr;
 
@@ -350,7 +350,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 		case eAnchorTriangulationMenuState::testCalibration:
 		case eAnchorTriangulationMenuState::failedVideoStartStreamRequest:
 			{
-				m_app->popAppState();
+				m_ownerWindow->popAppState();
 			} break;
 	}
 }
@@ -384,5 +384,5 @@ void AppStage_AnchorTriangulation::onRedoEvent()
 
 void AppStage_AnchorTriangulation::onCancelEvent()
 {
-	m_app->popAppState();
+	m_ownerWindow->popAppState();
 }

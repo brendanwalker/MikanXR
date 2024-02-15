@@ -1,6 +1,9 @@
 #pragma once
+
 #include "MulticastDelegate.h"
+
 #include <memory>
+#include <string>
 #include <type_traits>
 
 class MikanComponent;

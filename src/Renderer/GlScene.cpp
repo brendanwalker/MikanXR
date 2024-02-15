@@ -6,7 +6,6 @@
 #include "GlScene.h"
 #include "GlShaderCache.h"
 #include "GlViewport.h"
-#include "Renderer.h"
 
 #include <algorithm>
 
@@ -62,12 +61,8 @@ void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 	}
 }
 
-void GlScene::render() const
+void GlScene::render(GlCameraConstPtr camera) const
 {
-	GlCameraPtr camera= App::getInstance()->getRenderer()->getRenderingViewport()->getCurrentCamera();
-	if (camera == nullptr)
-		return;
-
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
 	{
 		GlMaterialConstPtr material = drawCallIter->first;

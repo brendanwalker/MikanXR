@@ -18,7 +18,7 @@ typedef std::vector<VRDeviceViewPtr> VRDeviceList;
 class AppStage_SpatialAnchors : public AppStage
 {
 public:
-	AppStage_SpatialAnchors(class App* app);
+	AppStage_SpatialAnchors(class MainWindow* ownerWindow);
 	virtual ~AppStage_SpatialAnchors();
 
 	virtual void enter() override;

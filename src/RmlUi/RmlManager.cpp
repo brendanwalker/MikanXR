@@ -6,11 +6,12 @@
 #include "AppStage.h"
 #include "FrameCompositorConstants.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "MikanClientTypes.h"
 #include "ProfileConfig.h"
 #include "PropertyInterface.h"
 #include "PathUtils.h"
-#include "Renderer.h"
+#include "SdlManager.h"
 #include "StencilComponent.h"
 #include "StencilObjectSystem.h"
 #include "VRDeviceManager.h"
@@ -32,10 +33,10 @@ class RmlMikanEventListener : public Rml::EventListener
 {
 public:
 	RmlMikanEventListener(
-		App* app,
+		MainWindow* ownerWindow,
 		const Rml::String& value,
 		Rml::Element* element)
-		: m_app(app)
+		: m_ownerWindow(ownerWindow)
 		, m_value(value)
 		, m_element(element)
 	{
@@ -44,7 +45,7 @@ public:
 
 	virtual void ProcessEvent(Rml::Event& event) override
 	{
-		AppStage* appStage = m_app->getCurrentAppStage();
+		AppStage* appStage = m_ownerWindow->getCurrentAppStage();
 		if (appStage == nullptr)
 			return;
 
@@ -59,7 +60,7 @@ public:
 	}
 
 private:
-	App* m_app = nullptr;
+	MainWindow* m_ownerWindow = nullptr;
 	Rml::String m_value;
 	Rml::Element* m_element;
 };
@@ -67,18 +68,18 @@ private:
 class RmlMikanEventInstancer : public Rml::EventListenerInstancer
 {
 public:
-	RmlMikanEventInstancer(App* app)
-		: m_app(app)
+	RmlMikanEventInstancer(class MainWindow* ownerWindow)
+		: m_ownerWindow(ownerWindow)
 	{
 
 	}
 	Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override
 	{
-		return new RmlMikanEventListener(m_app, value, element);
+		return new RmlMikanEventListener(m_ownerWindow, value, element);
 	}
 
 private:
-	App* m_app = nullptr;
+	class MainWindow* m_ownerWindow = nullptr;
 };
 
 class RmlMikanFileInterface : public Rml::FileInterface
@@ -137,9 +138,9 @@ public:
 // -- RmlManager -----
 RmlManager* RmlManager::m_instance = nullptr;
 
-RmlManager::RmlManager(App* app)
-	: m_app(app)
-	, m_rmlEventInstancer(new RmlMikanEventInstancer(app))
+RmlManager::RmlManager(MainWindow* ownerWindow)
+	: m_ownerWindow(ownerWindow)
+	, m_rmlEventInstancer(new RmlMikanEventInstancer(ownerWindow))
 {
 
 }
@@ -184,9 +185,8 @@ bool RmlManager::postRendererStartup()
 			Rml::LoadFontFace(face.filename, face.fallback_face);
 		}
 
-		Renderer* renderer= m_app->getRenderer();
-		int window_width = renderer->getSDLWindowWidth();
-		int window_height = renderer->getSDLWindowHeight();
+		int window_width = (int)m_ownerWindow->getWidth();
+		int window_height = (int)m_ownerWindow->getHeight();
 		m_rmlUIContext = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 		Rml::Debugger::Initialise(m_rmlUIContext);
 
@@ -383,7 +383,7 @@ int RmlManager::TranslateString(Rml::String& translated, const Rml::String& inpu
 {
 	translated = input;
 
-	AppStage* appStage = m_app->getCurrentAppStage();
+	AppStage* appStage = m_ownerWindow->getCurrentAppStage();
 	if (appStage != nullptr)
 	{
 		bool bHasString = false;
@@ -427,7 +427,7 @@ bool RmlManager::LogMessage(Rml::Log::Type type, const Rml::String& message)
 
 void RmlManager::SetMouseCursor(const Rml::String& cursor_name)
 {
-	m_app->getRenderer()->setSDLMouseCursor(cursor_name);
+	App::getInstance()->getSdlManager()->setSDLMouseCursor(cursor_name);
 }
 
 void RmlManager::SetClipboardText(const Rml::String& text_utf8)

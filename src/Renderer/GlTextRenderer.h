@@ -18,7 +18,7 @@ class GlTextRenderer
 public:
 	GlTextRenderer();
 
-	void render(class Renderer* renderer);
+	void render(class IGlWindow* window);
 	void addTextAtScreenPosition(const TextStyle& style, const glm::vec2& screenCoords, const std::wstring& text);
 
 protected:
