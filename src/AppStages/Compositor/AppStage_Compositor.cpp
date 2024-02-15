@@ -9,7 +9,6 @@
 #include "Compositor/RmlModel_CompositorOutliner.h"
 #include "Compositor/RmlModel_CompositorRecording.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
-#include "Compositor/RmlModel_CompositorSources.h"
 #include "Compositor/RmlModel_CompositorSelection.h"
 #include "Compositor/RmlModel_CompositorSettings.h"
 #include "EditorObjectSystem.h"
@@ -73,7 +72,6 @@ AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	, m_compositorLayersModel(new RmlModel_CompositorLayers)
 	, m_compositorRecordingModel(new RmlModel_CompositorRecording)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
-	, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_compositorOutlinerModel(new RmlModel_CompositorOutliner)
 	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
@@ -91,7 +89,6 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorLayersModel;
 	delete m_compositorRecordingModel;
 	delete m_compositorScriptingModel;
-	delete m_compositorSourcesModel;
 	delete m_compositorOutlinerModel;
 	delete m_compositorSelectionModel;
 	delete m_compositorSettingsModel;
@@ -113,7 +110,6 @@ void AppStage_Compositor::enter()
 	// Start the frame compositor
 	m_frameCompositor= GlFrameCompositor::getInstance();
 	m_frameCompositor->start();
-	m_frameCompositor->OnCompositorShadersReloaded += MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
 
 	// Setup viewport
 	m_viewport = getFirstViewport();
@@ -168,7 +164,6 @@ void AppStage_Compositor::enter()
 		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersWindowEvent);
 		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingWindowEvent);
 		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingWindowEvent);
-		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesWindowEvent);
 		m_compositorModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSettingsWindowEvent);
 		m_compositiorView = addRmlDocument("compositor.rml");
 
@@ -186,23 +181,6 @@ void AppStage_Compositor::enter()
 		m_compositorLayersModel->OnConfigDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onConfigDeleteEvent);
 		m_compositorLayersModel->OnConfigNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onConfigNameChangeEvent);
 		m_compositorLayersModel->OnConfigSelectEvent = MakeDelegate(this, &AppStage_Compositor::onConfigSelectEvent);
-		m_compositorLayersModel->OnLayerAddEvent = MakeDelegate(this, &AppStage_Compositor::onLayerAddEvent);
-		m_compositorLayersModel->OnLayerDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onLayerDeleteEvent);
-		m_compositorLayersModel->OnMaterialNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onMaterialNameChangeEvent);
-		m_compositorLayersModel->OnVerticalFlipChangeEvent = MakeDelegate(this, &AppStage_Compositor::onVerticalFlipChangedEvent);
-		m_compositorLayersModel->OnBlendModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onBlendModeChangedEvent);
-		m_compositorLayersModel->OnInvertQuadsFlagChangeEvent = MakeDelegate(this, &AppStage_Compositor::onInvertQuadsFlagChangeEvent);
-		m_compositorLayersModel->OnQuadStencilModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onQuadStencilModeChangeEvent);
-		m_compositorLayersModel->OnBoxStencilModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onBoxStencilModeChangeEvent);
-		m_compositorLayersModel->OnModelStencilModeChangeEvent = MakeDelegate(this, &AppStage_Compositor::onModelStencilModeChangeEvent);
-		m_compositorLayersModel->OnStencilRefAddedEvent = MakeDelegate(this, &AppStage_Compositor::onStencilRefAddedEvent);
-		m_compositorLayersModel->OnStencilRefRemovedEvent = MakeDelegate(this, &AppStage_Compositor::onStencilRefRemovedEvent);
-		m_compositorLayersModel->OnFloatMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloatMappingChangedEvent);
-		m_compositorLayersModel->OnFloat2MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat2MappingChangedEvent);
-		m_compositorLayersModel->OnFloat3MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat3MappingChangedEvent);
-		m_compositorLayersModel->OnFloat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onFloat4MappingChangedEvent);
-		m_compositorLayersModel->OnMat4MappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onMat4MappingChangedEvent);
-		m_compositorLayersModel->OnColorTextureMappingChangedEvent = MakeDelegate(this, &AppStage_Compositor::onColorTextureMappingChangedEvent);
 		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
 		m_compositiorLayersView->Hide();
 
@@ -221,12 +199,6 @@ void AppStage_Compositor::enter()
 		m_compositorScriptingModel->OnInvokeScriptTriggerEvent = MakeDelegate(this, &AppStage_Compositor::onInvokeScriptTriggerEvent);
 		m_compositiorScriptingView = addRmlDocument("compositor_scripting.rml");
 		m_compositiorScriptingView->Hide();
-
-		// Init Sources UI
-		m_compositorSourcesModel->init(context, m_frameCompositor);
-		m_compositorSourcesModel->OnScreenshotClientSourceEvent = MakeDelegate(this, &AppStage_Compositor::onScreenshotClientSourceEvent);
-		m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
-		m_compositiorSourcesView->Hide();
 
 		// Init Settings UI
 		m_compositorSettingsModel->init(context, m_profile);
@@ -248,15 +220,12 @@ void AppStage_Compositor::exit()
 	stopRecording();
 	stopStreaming();
 
-	m_frameCompositor->OnCompositorShadersReloaded -= MakeDelegate(this, &AppStage_Compositor::onCompositorShadersReloaded);
-
 	m_compositorSelectionModel->dispose();
 	m_compositorOutlinerModel->dispose();
 	m_compositorLayersModel->dispose();
 	m_compositorRecordingModel->dispose();
 	m_compositorScriptingModel->dispose();
 	m_compositorModel->dispose();
-	m_compositorSourcesModel->dispose();
 	m_compositorSettingsModel->dispose();
 
 	m_frameCompositor->stop();
@@ -293,12 +262,6 @@ void AppStage_Compositor::update(float deltaSeconds)
 
 	// tick the compositor lua script (if any is active)
 	m_scriptContext->updateScript();
-
-	// Update the sources model now that the app stage has updated
-	if (Rml::Utilities::IsElementDocumentVisible(m_compositiorSourcesView))
-	{
-		m_compositorSourcesModel->update();
-	}
 }
 
 bool AppStage_Compositor::startRecording()
@@ -365,11 +328,6 @@ void AppStage_Compositor::stopRecording()
 
 	m_videoWriter->close();
 	m_compositorRecordingModel->setIsRecording(false);
-}
-
-void AppStage_Compositor::onCompositorShadersReloaded()
-{
-	m_compositorLayersModel->rebuild(m_frameCompositor);
 }
 
 void AppStage_Compositor::onNewRecordingFrameReady()
@@ -553,12 +511,6 @@ void AppStage_Compositor::onToggleScriptingWindowEvent()
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Show();
 }
 
-void AppStage_Compositor::onToggleSourcesWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorSourcesView) m_compositiorSourcesView->Show();
-}
-
 void AppStage_Compositor::onToggleSettingsWindowEvent()
 {
 	hideAllSubWindows();
@@ -652,22 +604,6 @@ void AppStage_Compositor::onConfigNameChangeEvent(const std::string& newConfigNa
 	}
 }
 
-void AppStage_Compositor::onLayerAddEvent()
-{
-	if (m_frameCompositor->addLayerToCurrentPreset())
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-void AppStage_Compositor::onLayerDeleteEvent(const int layerIndex)
-{
-	if (m_frameCompositor->removeLayerFromCurrentPreset(layerIndex))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
 void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
 {
 	// Ignore this UI event if we are in the middle of adding a new config
@@ -675,116 +611,6 @@ void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
 		return;
 
 	m_frameCompositor->selectPreset(configName);
-}
-
-void AppStage_Compositor::onMaterialNameChangeEvent(
-	const int layerIndex, 
-	const std::string& materialName)
-{
-	if (m_frameCompositor->setLayerMaterialName(layerIndex, materialName))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-void AppStage_Compositor::onVerticalFlipChangedEvent(
-	const int layerIndex,
-	bool bIsFlipped)
-{
-	m_frameCompositor->setIsLayerVerticalFlipped(layerIndex, bIsFlipped);
-}
-
-void AppStage_Compositor::onBlendModeChangedEvent(
-	const int layerIndex, 
-	eCompositorBlendMode blendMode)
-{
-	m_frameCompositor->setLayerBlendMode(layerIndex, blendMode);
-}
-
-void AppStage_Compositor::onInvertQuadsFlagChangeEvent(const int layerIndex, bool bInvertFlag)
-{
-	m_frameCompositor->setInvertQuadsWhenCameraInside(layerIndex, bInvertFlag);
-}
-
-void AppStage_Compositor::onQuadStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode)
-{
-	m_frameCompositor->setQuadStencilMode(layerIndex, stencilMode);
-}
-
-void AppStage_Compositor::onBoxStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode)
-{
-	m_frameCompositor->setBoxStencilMode(layerIndex, stencilMode);
-}
-
-void AppStage_Compositor::onModelStencilModeChangeEvent(const int layerIndex, eCompositorStencilMode stencilMode)
-{
-	m_frameCompositor->setModelStencilMode(layerIndex, stencilMode);
-}
-
-void AppStage_Compositor::onStencilRefAddedEvent(const int layerIndex, int stencilId)
-{
-	eStencilType stencilType= m_stencilObjectSystem->getStencilType(stencilId);
-	if (m_frameCompositor->addLayerStencilRef(layerIndex, stencilType, stencilId))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-void AppStage_Compositor::onStencilRefRemovedEvent(const int layerIndex, int stencilId)
-{
-	eStencilType stencilType = m_stencilObjectSystem->getStencilType(stencilId);
-	if (m_frameCompositor->removeLayerStencilRef(layerIndex, stencilType, stencilId))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
-}
-
-void AppStage_Compositor::onFloatMappingChangedEvent(
-	const int layerIndex, 
-	const std::string& uniformName, 
-	const std::string& dataSourceName)
-{
-	m_frameCompositor->setFloatMapping(layerIndex, uniformName, dataSourceName);
-}
-
-void AppStage_Compositor::onFloat2MappingChangedEvent(
-	const int layerIndex, 
-	const std::string& uniformName, 
-	const std::string& dataSourceName)
-{
-	m_frameCompositor->setFloat2Mapping(layerIndex, uniformName, dataSourceName);
-}
-
-void AppStage_Compositor::onFloat3MappingChangedEvent(
-	const int layerIndex, 
-	const std::string& uniformName, 
-	const std::string& dataSourceName)
-{
-	m_frameCompositor->setFloat3Mapping(layerIndex, uniformName, dataSourceName);
-}
-
-void AppStage_Compositor::onFloat4MappingChangedEvent(
-	const int layerIndex, 
-	const std::string& uniformName, 
-	const std::string& dataSourceName)
-{
-	m_frameCompositor->setFloat4Mapping(layerIndex, uniformName, dataSourceName);
-}
-
-void AppStage_Compositor::onMat4MappingChangedEvent(
-	const int layerIndex, 
-	const std::string& uniformName, 
-	const std::string& dataSourceName)
-{
-	m_frameCompositor->setMat4Mapping(layerIndex, uniformName, dataSourceName);
-}
-
-void AppStage_Compositor::onColorTextureMappingChangedEvent(
-	const int layerIndex,
-	const std::string& uniformName, 
-	const std::string& dataSourceName)
-{
-	m_frameCompositor->setColorTextureMapping(layerIndex, uniformName, dataSourceName);
 }
 
 void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
@@ -807,7 +633,6 @@ void AppStage_Compositor::hideAllSubWindows()
 	if (m_compositiorLayersView) m_compositiorLayersView->Hide();
 	if (m_compositiorRecordingView) m_compositiorRecordingView->Hide();
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Hide();
-	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
 	if (m_compositiorSettingsView) m_compositiorSettingsView->Hide();
 }
 

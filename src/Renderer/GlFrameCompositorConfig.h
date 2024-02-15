@@ -7,68 +7,9 @@
 
 #include <filesystem>
 #include <string>
-#include <map>
 #include <memory>
-#include <vector>
 
 typedef int32_t MikanStencilID;
-
-struct CompositorLayerShaderConfig
-{
-	const configuru::Config writeToJSON() const;
-	void readFromJSON(const configuru::Config& pt);
-
-	std::string materialName;
-
-	// uniform name -> frame compositor data source name
-	std::map<std::string, std::string> floatSourceMap;
-	std::map<std::string, std::string> float2SourceMap;
-	std::map<std::string, std::string> float3SourceMap;
-	std::map<std::string, std::string> float4SourceMap;
-	std::map<std::string, std::string> mat4SourceMap;
-	std::map<std::string, std::string> colorTextureSourceMap;
-};
-
-struct CompositorQuadStencilLayerConfig
-{
-	const configuru::Config writeToJSON() const;
-	void readFromJSON(const configuru::Config& pt);
-
-	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
-	bool bInvertWhenCameraInside = false;
-	std::vector<int> quadStencilIds;
-};
-
-struct CompositorBoxStencilLayerConfig
-{
-	const configuru::Config writeToJSON() const;
-	void readFromJSON(const configuru::Config& pt);
-
-	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
-	std::vector<int> boxStencilIds;
-};
-
-struct CompositorModelStencilLayerConfig
-{
-	const configuru::Config writeToJSON() const;
-	void readFromJSON(const configuru::Config& pt);
-
-	eCompositorStencilMode stencilMode = eCompositorStencilMode::noStencil;
-	std::vector<int> modelStencilIds;
-};
-
-struct CompositorLayerConfig
-{
-	const configuru::Config writeToJSON() const;
-	void readFromJSON(const configuru::Config& pt);
-
-	bool verticalFlip = false;
-	eCompositorBlendMode blendMode= eCompositorBlendMode::blendOff;
-	CompositorLayerShaderConfig shaderConfig;
-	CompositorQuadStencilLayerConfig quadStencilConfig;
-	CompositorBoxStencilLayerConfig boxStencilConfig;
-	CompositorModelStencilLayerConfig modelStencilConfig;
-};
 
 class CompositorPreset : public CommonConfig
 {
@@ -82,7 +23,6 @@ public:
 
 	std::string name;
 	bool builtIn= false;
-	std::vector<CompositorLayerConfig> layers;
 
 	static const std::string k_compositorGraphAssetRefPropertyId;
 	AssetReferenceConfigPtr compositorGraphAssetRefConfig;
