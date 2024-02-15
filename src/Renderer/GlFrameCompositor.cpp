@@ -297,7 +297,12 @@ bool GlFrameCompositor::selectPreset(const std::string& presetName, bool bForce)
 			MakeDelegate(this, &GlFrameCompositor::onPresetConfigMarkedDirty);
 
 		// Load the compositor graph if the config has a valid asset path
-		onCompositorGraphAssetRefChanged(m_currentPresetConfig->compositorGraphAssetRefConfig->assetPath);
+		{
+			AssetReferenceConfigPtr assetRefConfigPtr = m_currentPresetConfig->compositorGraphAssetRefConfig;
+			const std::string assetRefPath = assetRefConfigPtr ? assetRefConfigPtr->assetPath : "";
+
+			onCompositorGraphAssetRefChanged(assetRefPath);
+		}
 
 		// Notify listeners that the preset has changed and mark the config as dirty
 		m_config->markDirty(ConfigPropertyChangeSet().addPropertyName(GlFrameCompositorConfig::k_presetNamePropertyId));

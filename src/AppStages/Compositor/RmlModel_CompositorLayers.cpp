@@ -160,7 +160,12 @@ void RmlModel_CompositorLayers::rebuild(
 	m_bIsBuiltInConfiguration= m_presetConfig->builtIn;
 
 	// Apply the selected compositor graph path
-	setCompositorGraphPath(m_presetConfig->compositorGraphAssetRefConfig->assetPath);
+	{
+		AssetReferenceConfigPtr assetRefConfigPtr = m_presetConfig->compositorGraphAssetRefConfig;
+		const std::string assetRefPath = assetRefConfigPtr ? assetRefConfigPtr->assetPath : "";
+
+		setCompositorGraphPath(assetRefPath);
+	}
 
 	m_modelHandle.DirtyVariable("is_builtin_configuration");
 	m_modelHandle.DirtyVariable("configuration_names");
