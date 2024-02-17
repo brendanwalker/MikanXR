@@ -26,6 +26,10 @@
 *.a
 *.lib
 
+# Deep Neural Network Models
+*.pt
+*.onnx
+
 # Executables
 *.exe
 *.out
