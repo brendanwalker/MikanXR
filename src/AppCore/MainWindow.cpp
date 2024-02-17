@@ -79,8 +79,7 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow()
 {
 	m_objectSystemManager = nullptr;
-	m_openCVManager = nullptr;
-
+	delete m_openCVManager;
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
 	delete m_inputManager;

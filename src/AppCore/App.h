@@ -21,7 +21,7 @@ public:
 
 	inline ProfileConfigPtr getProfileConfig() const { return m_profileConfig; }
 	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
-	inline class SdlManager* getSdlManager() const { return m_sdlManager.get(); }
+	inline class SdlManager* getSdlManager() const { return m_sdlManager; }
 	inline class IGlWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
 
 	inline float getFPS() const { return m_fps; }
@@ -100,7 +100,7 @@ private:
 	class LocalizationManager* m_localizationManager= nullptr;
 
 	// SDL Top Level Management
-	std::unique_ptr<class SdlManager> m_sdlManager;
+	class SdlManager* m_sdlManager;
 
 	// Open windows (including the MainWindow)
 	std::vector<IGlWindow*> m_appWindows;

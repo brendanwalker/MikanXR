@@ -1,9 +1,12 @@
 #include "OpenCVManager.h"
+#include "DeepNeuralNetwork.h"
 #include "Logger.h"
 
 #include "opencv2/core.hpp"
 #include "opencv2/core/ocl.hpp"
 #include "opencv2/core/utils/logger.hpp"
+
+#include <filesystem>
 
 static void setOpencvLoggingLevel(LogSeverityLevel logLevel)
 {
@@ -78,7 +81,7 @@ bool OpenCVManager::startup()
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize OpenCL";
+		MIKAN_LOG_ERROR("OpenCVManager::init") << "Unable to initialize OpenCL";
 		success = false;
 	}
 
@@ -87,5 +90,29 @@ bool OpenCVManager::startup()
 
 void OpenCVManager::shutdown()
 {
+	m_dnnMap.clear();
+}
 
+DeepNeuralNetworkPtr OpenCVManager::fetchDeepNeuralNetwork(const std::string& dnnFileName)
+{
+	auto it = m_dnnMap.find(dnnFileName);
+	if (it != m_dnnMap.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		auto dnn = std::make_shared<DeepNeuralNetwork>();
+
+		std::filesystem::path dnnPath = DeepNeuralNetwork::getOnnxFilePath(dnnFileName);
+		if (dnn->loadOnnxFile(dnnPath))
+		{
+			dnn->setName(dnnFileName);
+			m_dnnMap.insert({dnnFileName, dnn});
+
+			return dnn;
+		}
+	}
+
+	return DeepNeuralNetworkPtr();
 }

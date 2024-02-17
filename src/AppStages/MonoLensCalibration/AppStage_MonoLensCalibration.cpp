@@ -64,7 +64,10 @@ void AppStage_MonoLensCalibration::enter()
 	if (m_videoSourceView->startVideoStream())
 	{
 		// Allocate all distortion and video buffers
-		m_monoDistortionView = new VideoFrameDistortionView(m_videoSourceView, VIDEO_FRAME_HAS_ALL);
+		m_monoDistortionView = new VideoFrameDistortionView(
+			App::getInstance()->getMainWindow()->getOpenCVManager(),
+			m_videoSourceView, 
+			VIDEO_FRAME_HAS_ALL);
 
 		// Create a calibrator to do the actual pattern recording and calibration
 		m_monoLensCalibrator =

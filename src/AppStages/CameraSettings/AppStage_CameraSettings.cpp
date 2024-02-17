@@ -128,7 +128,10 @@ void AppStage_CameraSettings::startVideoSource(VideoSourceViewPtr videoSource)
 	if (videoSource && videoSource->startVideoStream())
 	{
 		// Create a texture to hold the video frame
-		m_videoBufferView = new VideoFrameDistortionView(videoSource, VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
+		m_videoBufferView = new VideoFrameDistortionView(
+			App::getInstance()->getMainWindow()->getOpenCVManager(),
+			videoSource, 
+			VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 
 		// Fetch video properties we wamt to update in the UI
 		m_dataModel->brightness = videoSource->getVideoProperty(VideoPropertyType::Brightness);

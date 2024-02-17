@@ -14,7 +14,11 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class VideoFrameDistortionView
 {
 public:
-	VideoFrameDistortionView(VideoSourceViewPtr view, unsigned int bufferBitmask, unsigned int frameQueueSize=1);
+	VideoFrameDistortionView(
+		class OpenCVManager* opencvManager,
+		VideoSourceViewPtr view, 
+		unsigned int bufferBitmask, 
+		unsigned int frameQueueSize=1);
 	virtual ~VideoFrameDistortionView();
 
 	inline VideoSourceViewPtr getVideoSourceView() const { return m_videoSourceView; }
@@ -27,6 +31,7 @@ public:
 	inline void setVideoDisplayMode(eVideoDisplayMode newMode) { m_videoDisplayMode= newMode; }
 	inline void setColorUndistortDisabled(bool bDisabled) { m_bColorUndistortDisabled= bDisabled; }
 	inline void setGrayscaleUndistortDisabled(bool bDisabled) { m_bGrayscaleUndistortDisabled = bDisabled; }
+	inline void setDepthDisabled(bool bDisabled) { m_bDepthDisabled = bDisabled; }
 
 	inline unsigned int getMaxFrameQueueSize() const { return m_bgrSourceBufferCount; }
 	inline uint64_t getLastVideoFrameReadIndex() const { return m_lastVideoFrameReadIndex; }
@@ -37,6 +42,7 @@ public:
 	inline cv::Mat* getGrayscaleSmallBuffer() const { return m_gsSmallBuffer; }
 	inline GlTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
 	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
+	inline GlTexturePtr getDepthTexture() const { return m_depthTextureMap; }
 
 	bool hasNewVideoFrame() const;
 	uint64_t readNextVideoFrame();
@@ -74,6 +80,12 @@ protected:
 	cv::Mat* m_gsUndistortBuffer; // 8-BPP undistorted buffer
 	cv::Mat* m_bgrGsUndistortBuffer; // 24-BPP(BGR color format) undistorted buffer
 
+	// Synthetic depth buffer generated using MiDaS DNN
+	DeepNeuralNetworkPtr m_depthDnn; // MiDaS DNN for depth estimation
+	cv::Mat* m_rgbFloatDepthDnnInput= nullptr; // Small RGB float blob input for DNN
+	cv::Mat* m_floatDepthDnnOutput= nullptr; // Small float blob output for DNN
+	GlTexturePtr m_depthTextureMap= nullptr;
+
 	// Camera Intrinsics / Distortion parameters
 	struct OpenCVMonoCameraIntrinsics* m_intrinsics;
 
@@ -88,4 +100,5 @@ protected:
 	// Runtime flags
 	bool m_bColorUndistortDisabled= false;
 	bool m_bGrayscaleUndistortDisabled = false;
+	bool m_bDepthDisabled = false;
 };

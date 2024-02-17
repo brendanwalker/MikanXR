@@ -2,6 +2,8 @@
 #include "GlTexture.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
+#include "OpenCVManager.h"
+#include "DeepNeuralNetwork.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
 
@@ -12,7 +14,8 @@
 
 #include <easy/profiler.h>
 
-#define SMALL_GS_FRAME_HEIGHT 480.f
+#define MIDAS_DNN_MODEL_NAME	"midas_v21_384x384"
+#define SMALL_GS_FRAME_HEIGHT	480.f
 
 struct OpenCVMonoCameraIntrinsics
 {
@@ -33,6 +36,7 @@ struct OpenCVMonoCameraIntrinsics
 };
 
 VideoFrameDistortionView::VideoFrameDistortionView(
+	OpenCVManager* opencvManager,
 	VideoSourceViewPtr view,
 	unsigned int bufferBitmask,
 	unsigned int frameQueueSize)
@@ -52,6 +56,11 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_gsSmallBuffer(nullptr)
 	, m_gsUndistortBuffer(nullptr)
 	, m_bgrGsUndistortBuffer(nullptr)
+	// Synthetic Depth Buffer
+	, m_depthDnn() 
+	, m_rgbFloatDepthDnnInput(nullptr)
+	, m_floatDepthDnnOutput(nullptr)
+	, m_depthTextureMap()
 	// Camera Intrinsics / Distortion parameters
 	, m_intrinsics(new OpenCVMonoCameraIntrinsics)
 	// Distortion preview
@@ -105,6 +114,34 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 		m_videoTexture->createTexture();
 	}
 
+	// Synthetic depth buffers
+	if (bufferBitmask & VIDEO_FRAME_HAS_DEPTH_FLAG)
+	{
+		m_depthDnn = opencvManager->fetchDeepNeuralNetwork(MIDAS_DNN_MODEL_NAME);
+		if (m_depthDnn && m_depthDnn->getInputChannels() == 3 && m_depthDnn->getOutputChannels() == 1)
+		{
+			// Input to the DNN is a 3-channel RGB float image
+			// Output from the DNN is a 1-channel float depth image
+			int inputSize[] = {1, 3, m_depthDnn->getInputHeight(), m_depthDnn->getInputWidth()};
+			int outputSize[] = {1, 1, m_depthDnn->getOutputHeight(), m_depthDnn->getOutputWidth()};
+			m_rgbFloatDepthDnnInput = new cv::Mat(4, inputSize, CV_32FC1);
+			m_floatDepthDnnOutput = new cv::Mat(4, inputSize, CV_32FC1);
+
+			if (bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
+			{
+				m_depthTextureMap = std::make_shared<GlTexture>(
+					m_depthDnn->getOutputWidth(),
+					m_depthDnn->getOutputHeight(),
+					nullptr,
+					GL_R32F, // texture format
+					GL_R32F); // buffer format
+				m_depthTextureMap->setGenerateMipMap(false);
+				m_depthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
+				m_depthTextureMap->createTexture();
+			}
+		}
+	}
+
 	// Generate the distortion map from the current camera intrinsics
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
@@ -117,6 +154,20 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 	// Free the texture we were rendering to, if any
 	m_videoTexture= nullptr;
 	m_distortionTextureMap= nullptr;
+	m_depthTextureMap= nullptr;
+
+	// Free the depth DNN
+	m_depthDnn= nullptr;
+
+	if (m_rgbFloatDepthDnnInput != nullptr)
+	{
+		delete m_rgbFloatDepthDnnInput;
+	}
+
+	if (m_floatDepthDnnOutput != nullptr)
+	{
+		delete m_floatDepthDnnOutput;
+	}
 
 	// Video Frame data
 	if (m_bgrSourceBuffers != nullptr)

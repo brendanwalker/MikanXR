@@ -36,7 +36,7 @@ App* App::m_instance= nullptr;
 App::App()
 	: m_profileConfig(std::make_shared<ProfileConfig>())
 	, m_localizationManager(new LocalizationManager())	
-	, m_sdlManager(std::unique_ptr<SdlManager>(new SdlManager))
+	, m_sdlManager(new SdlManager)
 	, m_bShutdownRequested(false)
 {
 	m_instance= this;
@@ -46,6 +46,7 @@ App::~App()
 {
 	m_mainWindow = nullptr;
 
+	delete m_sdlManager;
 	delete m_localizationManager;
 
 	m_profileConfig.reset();

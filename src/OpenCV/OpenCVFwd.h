@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 // -- pre-declarations -----
 namespace cv {
@@ -65,3 +66,6 @@ namespace cv {
 
 typedef std::vector<cv::Point2f> t_opencv_point2d_list;
 typedef std::vector<cv::Point3f> t_opencv_point3d_list;
+
+class DeepNeuralNetwork;
+using DeepNeuralNetworkPtr = std::shared_ptr<DeepNeuralNetwork>;

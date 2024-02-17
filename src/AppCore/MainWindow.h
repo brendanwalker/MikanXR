@@ -36,6 +36,7 @@ public:
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
 	inline class InputManager* getInputManager() const { return m_inputManager; }
 	inline class GlFrameCompositor* getFrameCompositor() const { return m_frameCompositor; }
+	inline class OpenCVManager* getOpenCVManager() const { return m_openCVManager; }
 
 	inline AppStage* getCurrentAppStage() const
 	{
@@ -132,7 +133,7 @@ private:
 	ObjectSystemManagerPtr m_objectSystemManager;
 
 	// OpenCV management
-	std::unique_ptr<class OpenCVManager> m_openCVManager;
+	class OpenCVManager* m_openCVManager;
 
 	// OpenGL/SDL font/baked text string texture cache
 	class FontManager* m_fontManager = nullptr;
