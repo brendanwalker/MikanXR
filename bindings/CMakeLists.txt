@@ -1,5 +1,9 @@
 set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
 
+if (POLICY CMP0122)
+	cmake_policy(SET CMP0122 NEW)
+endif()
+
 include(${ROOT_DIR}/cmake/Environment.cmake)
 include(${ROOT_DIR}/cmake/ThirdParty.cmake)
 

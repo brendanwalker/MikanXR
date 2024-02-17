@@ -4,6 +4,14 @@ if (POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+if (POLICY CMP0122)
+	cmake_policy(SET CMP0122 NEW)
+endif()
+
+if (POLICY CMP0146)
+	cmake_policy(SET CMP0146 OLD)
+endif()
+
 # When not using MSVC, we recommend using system-wide libraries
 # (installed via homebrew on Mac or apt-get in Linux/Ubuntu)
 # In MSVC, the InitialSetup batch script downloads pre-build binary packages for OpenCV and SDL
@@ -123,8 +131,4 @@ if (WIN32)
 endif()
 
 # SWIG
-if (WIN32)
-    set (SWIG_DIR ${ROOT_DIR}/deps/swigwin-4.1.1)
-    set (SWIG_EXECUTABLE ${SWIG_DIR}/swig.exe)
-endif()
 find_package(SWIG 4.1.1 COMPONENTS csharp)

@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 # Dependencies
 set(MIKAN_INCL_DIRS)
 set(MIKAN_REQ_LIBS)
@@ -552,7 +550,7 @@ target_compile_definitions(Mikan_CAPI PRIVATE ENABLE_SPOUT_DX)
 
 # Runtime dependencies
 set(FFMPEG_DLL_FOLDER ${ROOT_DIR}/deps/ffmpeg-4.4.1-full_build-shared/bin)
-set(OPENCV_VIDEOIO_DLL ${OpenCV_DIR}/bin/opencv_videoio_ffmpeg455_64.dll)
+set(OPENCV_VIDEOIO_DLL ${OpenCV_DIR}/x64/vc17/bin/opencv_videoio_ffmpeg490_64.dll)
 set(OPENVR_DLL ${OPENVR_ROOT_DIR}/bin/${OPENVR_PLATFORM}/openvr_api.dll)
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
 set(SDL2_IMAGE_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_image-2.0.5/lib/x64)
@@ -568,10 +566,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy ${OPENCV_VIDEOIO_DLL} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc15/bin/opencv_world455d.dll $<TARGET_FILE_DIR:Mikan>)
+    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc17/bin/opencv_world490d.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc15/bin/opencv_world455.dll $<TARGET_FILE_DIR:Mikan>)
+    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc17/bin/opencv_world490.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
@@ -678,11 +676,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
 
   install(FILES 
-      "${OpenCV_DIR}/x64/vc15/bin/opencv_world455d.dll"
-      "${OpenCV_DIR}/x64/vc15/bin/opencv_world455d.pdb"
+      "${OpenCV_DIR}/x64/vc17/bin/opencv_world490d.dll"
       CONFIGURATIONS Debug
       DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES "${OpenCV_DIR}/x64/vc15/bin/opencv_world455.dll"
+  install(FILES "${OpenCV_DIR}/x64/vc17/bin/opencv_world490.dll"
       CONFIGURATIONS Release
       DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
       

@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 # Mikan Client Test App
 file(GLOB UNIT_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
