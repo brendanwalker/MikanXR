@@ -289,7 +289,7 @@ void GlTexture::copyBufferIntoTexture(const uint8_t* pixels)
 				m_width, 
 				m_height, 
 				m_bufferFormat,
-				GL_UNSIGNED_BYTE, 
+				m_pixelType, 
 				0); // Treated as offset instead of pointer to pixel data
 
 			// Bind PBO to fill in from main memory
@@ -327,7 +327,7 @@ void GlTexture::copyBufferIntoTexture(const uint8_t* pixels)
 				m_width,
 				m_height,
 				m_bufferFormat,
-				GL_UNSIGNED_BYTE,
+				m_pixelType,
 				pixels);
 		}
 
@@ -366,7 +366,7 @@ void GlTexture::copyTextureIntoBuffer(uint8_t* outBuffer)
 		glGetTexImage(GL_TEXTURE_2D,
 			0,
 			m_bufferFormat,
-			GL_UNSIGNED_BYTE,
+			m_pixelType,
 			0); // Treated as offset instead of pointer to pixel data
 
 		// Bind PBO to fill in from main memory
@@ -433,7 +433,7 @@ void GlTexture::copyTextureIntoBuffer(uint8_t* outBuffer)
 		glGetTexImage(GL_TEXTURE_2D,
 			0,
 			m_bufferFormat,
-			GL_UNSIGNED_BYTE,
+			m_pixelType,
 			outBuffer);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}

@@ -25,7 +25,7 @@ bool RmlModel_MonoCameraSettings::init(
 	constructor.Bind("brightness_step", &m_brightnessStep);
 
 	// Set defaults
-	m_videoDisplayModes = {"BGR", "Undistorted", "Grayscale"};
+	m_videoDisplayModes = {"BGR", "Undistorted", "Grayscale", "Depth"};
 	m_videoDisplayMode = (int)eVideoDisplayMode::mode_bgr;
 	m_brightness = videoSourceView->getVideoProperty(VideoPropertyType::Brightness);
 	m_brightnessMin = videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);

@@ -42,7 +42,7 @@ public:
 	inline cv::Mat* getGrayscaleSmallBuffer() const { return m_gsSmallBuffer; }
 	inline GlTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
 	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
-	inline GlTexturePtr getDepthTexture() const { return m_depthTextureMap; }
+	inline GlTexturePtr getFloatDepthTexture() const { return m_floatDepthTextureMap; }
 
 	bool hasNewVideoFrame() const;
 	uint64_t readNextVideoFrame();
@@ -51,6 +51,10 @@ public:
 	void rebuildDistortionMap(const MikanMonoIntrinsics* instrinsics);
 
 	void renderSelectedVideoBuffers();
+
+protected:
+	void computeUndistortion(cv::Mat* bgrSourceBuffer);
+	void computeSyntheticDepth(cv::Mat* bgrSourceBuffer);
 
 protected:	
 	eVideoDisplayMode m_videoDisplayMode;
@@ -84,7 +88,11 @@ protected:
 	DeepNeuralNetworkPtr m_depthDnn; // MiDaS DNN for depth estimation
 	cv::Mat* m_rgbFloatDepthDnnInput= nullptr; // Small RGB float blob input for DNN
 	cv::Mat* m_floatDepthDnnOutput= nullptr; // Small float blob output for DNN
-	GlTexturePtr m_depthTextureMap= nullptr;
+	cv::Mat* m_floatNormalizedDepth= nullptr; // Normalized float depth debug buffer
+	cv::Mat* m_gsDepth= nullptr; // 8-BPP Grayscale depth debug buffer
+	cv::Mat* m_bgrGsDepth= nullptr; // 24-BPP(BGR color format) depth debug buffer
+	cv::Mat* m_bgrGsUpscaledDepth= nullptr; // Upscaled 24-BPP(BGR color format) depth debug buffer
+	GlTexturePtr m_floatDepthTextureMap= nullptr;
 
 	// Camera Intrinsics / Distortion parameters
 	struct OpenCVMonoCameraIntrinsics* m_intrinsics;

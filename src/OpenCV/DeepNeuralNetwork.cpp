@@ -8,6 +8,8 @@
 #include <filesystem>
 #include <vector>
 
+#include <easy/profiler.h>
+
 struct DNNData
 {
 	cv::dnn::Net net;
@@ -17,6 +19,8 @@ struct DNNData
 	int outputWidth;
 	int outputHeight;
 	int outputChannels;
+	int outputLayerId;
+	std::string outputLayerName;
 };
 
 DeepNeuralNetwork::DeepNeuralNetwork()
@@ -44,59 +48,88 @@ bool DeepNeuralNetwork::loadOnnxFile(const std::filesystem::path& onnxPath)
 	{
 		MIKAN_LOG_ERROR("OpenCVManager::fetchDeepNeuralNetwork") <<
 			"Unable to read neural network from file: " << onnxPath.string();
+		return false;
 	}
-	else 
+
+	// Find the first unconnected output layer
+	std::vector<std::string> layerNames = net.getLayerNames();
+	std::vector<int> unconnectedOutLayerIds= net.getUnconnectedOutLayers();
+	if (unconnectedOutLayerIds.size() > 0)
 	{
-		// Fetch the input and output layer shapes
-		// we can use this to determine image buffer input and output sizes
-		std::vector<cv::dnn::MatShape> inLayerShapes;
-		std::vector<cv::dnn::MatShape> outLayerShapes;
-		net.getLayerShapes(cv::dnn::MatShape(), 0, inLayerShapes, outLayerShapes);
-
-		if (inLayerShapes.size() == 0 || inLayerShapes[0].size() != 4)
-		{
-			MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") << 
-				"Unable to read input layer shapes from neural network: " << onnxPath.string();
-		}
-		else if (outLayerShapes.size() == 0 || outLayerShapes[0].size() != 4)
-		{
-			MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") << 
-				"Unable to read output layer shapes from neural network: " << onnxPath.string();
-		}
-		else if (inLayerShapes[0][1] != 1 && inLayerShapes[0][1] != 3)
-		{
-			MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") <<
-				"Input layer channel count unsupported size(" << inLayerShapes[0][1] <<
-				"): " << onnxPath.string();
-		}
-		else if (outLayerShapes[0][1] != 1 && outLayerShapes[0][1] != 3)
-		{
-			MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") <<
-				"Output layer channel count unexpected size(" << outLayerShapes[0][1] <<
-				"): " << onnxPath.string();
-		}
-		else
-		{
-			// Example RGB input layer shape: [1, 3, 256, 256]
-			m_dnnData->inputChannels = inLayerShapes[0][1];
-			m_dnnData->inputWidth = inLayerShapes[0][2];
-			m_dnnData->inputHeight = inLayerShapes[0][3];
-
-			// Example Grayscale layer shape: [1, 1, 256, 256]
-			m_dnnData->outputChannels = outLayerShapes[0][1];
-			m_dnnData->outputWidth = outLayerShapes[0][2];
-			m_dnnData->outputHeight = outLayerShapes[0][3];
-
-			// Tell OpenCV to use the GPU (otherwise evaluation will be super slow)
-			net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-			net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-
-			m_dnnData->net = net;
-			return true;
-		}
+		m_dnnData->outputLayerId = unconnectedOutLayerIds[0];
+		m_dnnData->outputLayerName = layerNames[m_dnnData->outputLayerId - 1];
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") 
+			<< "Unable to read output layer names from neural network: " << onnxPath.string();
+		return false;
 	}
 
-	return false;
+
+	// Determine the shape of inputs required for the top layer
+	std::vector<cv::dnn::MatShape> topLayerInputShapes;
+	std::vector<cv::dnn::MatShape> topLayerOutputShapes;
+	net.getLayerShapes(cv::dnn::MatShape(), 0, topLayerInputShapes, topLayerOutputShapes);
+
+	if (topLayerInputShapes.size() == 0 || topLayerInputShapes[0].size() != 4)
+	{
+		MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") << 
+			"Unable to read input layer shapes from neural network: " << onnxPath.string();
+		return false;
+	}
+	else if (topLayerInputShapes[0][1] != 1 && topLayerInputShapes[0][1] != 3)
+	{
+		MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") <<
+			"Input layer channel count unsupported size(" << topLayerInputShapes[0][1] <<
+			"): " << onnxPath.string();
+		return false;
+	}
+
+	//TODO: For some reason getLayerShapes isn't working for the output layer
+	// Determine the shape of outputs returns from the bottom layer
+	//std::vector<cv::dnn::MatShape> buttomLayerInputShapes;
+	//std::vector<cv::dnn::MatShape> buttomLayerOutputShapes;
+	//net.getLayerShapes(
+	//	cv::dnn::MatShape(), 
+	//	m_dnnData->outputLayerId, 
+	//	buttomLayerInputShapes, buttomLayerOutputShapes);
+
+	//if (buttomLayerOutputShapes.size() == 0 || buttomLayerOutputShapes[0].size() != 4)
+	//{
+	//	MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") << 
+	//		"Unable to read output layer shapes from neural network: " << onnxPath.string();
+	//	return false;
+	//}		
+	//else if (buttomLayerOutputShapes[0][1] != 1 && buttomLayerOutputShapes[0][1] != 3)
+	//{
+	//	MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") <<
+	//		"Output layer channel count unexpected size(" << topLayerOutputShapes[0][1] <<
+	//		"): " << onnxPath.string();
+	//	return false;
+	//}
+
+	// Example RGB input layer shape: [1, 3, 256, 256]
+	m_dnnData->inputChannels = topLayerInputShapes[0][1];
+	m_dnnData->inputWidth = topLayerInputShapes[0][2];
+	m_dnnData->inputHeight = topLayerInputShapes[0][3];
+
+	// Example Grayscale layer shape: [1, 1, 256, 256]
+	//m_dnnData->outputChannels = buttomLayerOutputShapes[0][1];
+	//m_dnnData->outputWidth = buttomLayerOutputShapes[0][2];
+	//m_dnnData->outputHeight = buttomLayerOutputShapes[0][3];
+	//TODO: For now, assume 1 channel output and same width and height as input
+	m_dnnData->outputChannels = 1;
+	m_dnnData->outputWidth = m_dnnData->inputWidth;
+	m_dnnData->outputHeight = m_dnnData->inputHeight;
+
+	// Tell OpenCV to use the GPU (otherwise evaluation will be super slow)
+	net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+	net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+
+	m_dnnData->net = net;
+
+	return true;
 }
 
 void DeepNeuralNetwork::dispose()
@@ -138,4 +171,39 @@ int DeepNeuralNetwork::getOutputHeight() const
 int DeepNeuralNetwork::getOutputChannels() const
 {
 	return m_dnnData->outputChannels;
+}
+
+bool DeepNeuralNetwork::evaluateForwardPass(cv::Mat* inputBlob, cv::Mat* outputBlob) const
+{
+	EASY_FUNCTION();
+
+	if (m_dnnData->net.empty())
+		return false;
+
+	if (inputBlob->dims != 4 || 
+		inputBlob->size[3] != m_dnnData->inputWidth ||
+		inputBlob->size[2] != m_dnnData->inputHeight ||
+		inputBlob->size[1] != m_dnnData->inputChannels)
+	{
+		return false;
+	}
+
+	if (outputBlob->dims != 3 || 
+		outputBlob->size[2] != m_dnnData->outputWidth ||
+		outputBlob->size[1] != m_dnnData->outputHeight ||
+		outputBlob->size[0] != m_dnnData->outputChannels)
+	{
+		return false;
+	}
+
+	if (m_dnnData->outputLayerName.empty())
+	{
+		return false;
+	}
+
+	// Forward pass of the blob through the neural network to get the predictions
+	m_dnnData->net.setInput(*inputBlob);
+	m_dnnData->net.forward(*outputBlob, m_dnnData->outputLayerName);
+
+	return true;
 }

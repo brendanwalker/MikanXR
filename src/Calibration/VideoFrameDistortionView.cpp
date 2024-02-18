@@ -60,7 +60,11 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_depthDnn() 
 	, m_rgbFloatDepthDnnInput(nullptr)
 	, m_floatDepthDnnOutput(nullptr)
-	, m_depthTextureMap()
+	, m_floatNormalizedDepth(nullptr)
+	, m_gsDepth(nullptr)
+	, m_bgrGsDepth(nullptr)
+	, m_bgrGsUpscaledDepth(nullptr)
+	, m_floatDepthTextureMap()
 	// Camera Intrinsics / Distortion parameters
 	, m_intrinsics(new OpenCVMonoCameraIntrinsics)
 	// Distortion preview
@@ -120,24 +124,44 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 		m_depthDnn = opencvManager->fetchDeepNeuralNetwork(MIDAS_DNN_MODEL_NAME);
 		if (m_depthDnn && m_depthDnn->getInputChannels() == 3 && m_depthDnn->getOutputChannels() == 1)
 		{
-			// Input to the DNN is a 3-channel RGB float image
+			int dnnInputWidth = m_depthDnn->getInputWidth();
+			int dnnInputHeight = m_depthDnn->getInputHeight();
+			int dnnOutputWidth= m_depthDnn->getOutputWidth();
+			int dnnOutputHeight = m_depthDnn->getOutputHeight();
+
+			// Input to the DNN is 1, 3-channel RGB float image
 			// Output from the DNN is a 1-channel float depth image
-			int inputSize[] = {1, 3, m_depthDnn->getInputHeight(), m_depthDnn->getInputWidth()};
-			int outputSize[] = {1, 1, m_depthDnn->getOutputHeight(), m_depthDnn->getOutputWidth()};
-			m_rgbFloatDepthDnnInput = new cv::Mat(4, inputSize, CV_32FC1);
-			m_floatDepthDnnOutput = new cv::Mat(4, inputSize, CV_32FC1);
+			int inputSize[] = {1, 3, dnnInputHeight, dnnInputWidth};
+			int outputSize[] = {1, dnnOutputHeight, dnnOutputWidth};
+			m_rgbFloatDepthDnnInput = new cv::Mat(4, inputSize, CV_32F);
+			m_floatDepthDnnOutput = new cv::Mat(3, outputSize, CV_32F);
+
+			// Optional buffers for debugging the depth DNN
+			if (bufferBitmask & VIDEO_FRAME_HAS_DEPTH_DEBUG_FLAG)
+			{
+				// Normalized float depth output for 
+				m_floatNormalizedDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_32F);
+				// Grayscale depth output for (8-BPP)
+				m_gsDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_8UC1);
+				// Grayscale depth output for (24-BPP, BGR color format)
+				m_bgrGsDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_8UC3);
+				// Scaled up to video frame size depth output for (24-BPP, BGR color format)
+				m_bgrGsUpscaledDepth = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
+			}
 
 			if (bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
 			{
-				m_depthTextureMap = std::make_shared<GlTexture>(
+				// Used by shaders for frame masking/compositing
+				m_floatDepthTextureMap = std::make_shared<GlTexture>(
 					m_depthDnn->getOutputWidth(),
 					m_depthDnn->getOutputHeight(),
 					nullptr,
 					GL_R32F, // texture format
-					GL_R32F); // buffer format
-				m_depthTextureMap->setGenerateMipMap(false);
-				m_depthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
-				m_depthTextureMap->createTexture();
+					GL_RED); // buffer format
+				m_floatDepthTextureMap->setGenerateMipMap(false);
+				//m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
+				m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
+				m_floatDepthTextureMap->createTexture();
 			}
 		}
 	}
@@ -154,20 +178,24 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 	// Free the texture we were rendering to, if any
 	m_videoTexture= nullptr;
 	m_distortionTextureMap= nullptr;
-	m_depthTextureMap= nullptr;
+	m_floatDepthTextureMap= nullptr;
 
 	// Free the depth DNN
 	m_depthDnn= nullptr;
 
+	// Free depth cv::mats
 	if (m_rgbFloatDepthDnnInput != nullptr)
-	{
 		delete m_rgbFloatDepthDnnInput;
-	}
-
+	if (m_floatNormalizedDepth != nullptr)
+		delete m_floatNormalizedDepth;
+	if (m_gsDepth != nullptr)
+		delete m_gsDepth;
+	if (m_bgrGsDepth != nullptr)
+		delete m_bgrGsDepth;
+	if (m_bgrGsUpscaledDepth != nullptr)
+		delete m_bgrGsUpscaledDepth;
 	if (m_floatDepthDnnOutput != nullptr)
-	{
 		delete m_floatDepthDnnOutput;
-	}
 
 	// Video Frame data
 	if (m_bgrSourceBuffers != nullptr)
@@ -264,45 +292,11 @@ bool VideoFrameDistortionView::processVideoFrame(uint64_t desiredFrameIndex)
 
 	cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[desiredQueueIndex].bgrSourceBuffer;
 
-	if (m_bgrUndistortBuffer != nullptr && m_distortionMapX != nullptr && m_distortionMapY != nullptr)
-	{
-		EASY_BLOCK("Undistort");
+	// Apply undistortion maps to the video frame (if valid and desired)
+	computeUndistortion(bgrSourceBuffer);
 
-		// Apply the X and Y undistortion maps to create an undistorted 24-BPP image (for display)
-		if (!m_bColorUndistortDisabled &&
-			m_bgrUndistortBuffer != nullptr)
-		{
-			EASY_BLOCK("Color Remap");
-
-			cv::remap(
-				*bgrSourceBuffer, *m_bgrUndistortBuffer,
-				*m_distortionMapX, *m_distortionMapY,
-				cv::INTER_LINEAR, cv::BORDER_CONSTANT);
-		}
-
-		// Also, optionally do grayscale undistortion
-		if (!m_bGrayscaleUndistortDisabled &&
-			m_gsUndistortBuffer != nullptr && 
-			m_gsUndistortBuffer != nullptr && 
-			m_bgrGsUndistortBuffer != nullptr)
-		{
-			EASY_BLOCK("Grayscale Convert and Remap");
-
-			cv::cvtColor(*bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
-			cv::remap(
-				*m_gsSourceBuffer, *m_gsUndistortBuffer,
-				*m_distortionMapX, *m_distortionMapY,
-				cv::INTER_LINEAR, cv::BORDER_CONSTANT);
-			cv::cvtColor(*m_gsUndistortBuffer, *m_bgrGsUndistortBuffer, cv::COLOR_GRAY2BGR);
-
-			if (m_gsSmallBuffer != nullptr)
-			{
-				EASY_BLOCK("Grayscale Resize");
-
-				cv::resize(*m_gsSourceBuffer, *m_gsSmallBuffer, m_gsSmallBuffer->size());
-			}
-		}
-	}
+	// Compute synthetic depth from the video frame (if valid and desired)
+	computeSyntheticDepth(bgrSourceBuffer);
 
 	// Update the video frame display texture
 	if (m_videoTexture != nullptr)
@@ -326,6 +320,12 @@ bool VideoFrameDistortionView::processVideoFrame(uint64_t desiredFrameIndex)
 				m_videoTexture->copyBufferIntoTexture(m_bgrGsUndistortBuffer->data);
 			}
 			break;
+		case eVideoDisplayMode::mode_depth:
+			if (m_bgrGsUpscaledDepth != nullptr)
+			{
+				m_videoTexture->copyBufferIntoTexture(m_bgrGsUpscaledDepth->data);
+			}
+			break;
 		default:
 			assert(0 && "unreachable");
 			break;
@@ -333,6 +333,123 @@ bool VideoFrameDistortionView::processVideoFrame(uint64_t desiredFrameIndex)
 	}
 
 	return true;
+}
+void VideoFrameDistortionView::computeUndistortion(cv::Mat* bgrSourceBuffer)
+{
+	if (m_bgrUndistortBuffer == nullptr || m_distortionMapX == nullptr || m_distortionMapY == nullptr)
+	{
+		return;
+	}
+
+	EASY_BLOCK("Undistort");
+
+	// Apply the X and Y undistortion maps to create an undistorted 24-BPP image (for display)
+	if (!m_bColorUndistortDisabled &&
+		m_bgrUndistortBuffer != nullptr)
+	{
+		EASY_BLOCK("Color Remap");
+
+		cv::remap(
+			*bgrSourceBuffer, *m_bgrUndistortBuffer,
+			*m_distortionMapX, *m_distortionMapY,
+			cv::INTER_LINEAR, cv::BORDER_CONSTANT);
+	}
+
+	// Also, optionally do grayscale undistortion
+	if (!m_bGrayscaleUndistortDisabled &&
+		m_gsUndistortBuffer != nullptr &&
+		m_gsUndistortBuffer != nullptr &&
+		m_bgrGsUndistortBuffer != nullptr)
+	{
+		EASY_BLOCK("Grayscale Convert and Remap");
+
+		cv::cvtColor(*bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
+		cv::remap(
+			*m_gsSourceBuffer, *m_gsUndistortBuffer,
+			*m_distortionMapX, *m_distortionMapY,
+			cv::INTER_LINEAR, cv::BORDER_CONSTANT);
+		cv::cvtColor(*m_gsUndistortBuffer, *m_bgrGsUndistortBuffer, cv::COLOR_GRAY2BGR);
+
+		if (m_gsSmallBuffer != nullptr)
+		{
+			EASY_BLOCK("Grayscale Resize");
+
+			cv::resize(*m_gsSourceBuffer, *m_gsSmallBuffer, m_gsSmallBuffer->size());
+		}
+	}
+}
+
+void VideoFrameDistortionView::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
+{
+	cv::Mat* sourceBuffer= m_bgrUndistortBuffer != nullptr ? m_bgrUndistortBuffer : bgrSourceBuffer;
+
+	if (sourceBuffer == nullptr ||
+		m_rgbFloatDepthDnnInput == nullptr || 
+		m_floatDepthDnnOutput == nullptr ||
+		!m_depthDnn ||
+		m_bDepthDisabled)
+	{
+		return;
+	}
+
+	EASY_BLOCK("ComputeSyntheticDepth");
+
+	// https://pyimagesearch.com/2017/11/06/deep-learning-opencvs-blobfromimage-works/
+	// Convert the BGR video frame to a RGB float blob resized for the DNN input
+	{
+		EASY_BLOCK("blobFromImage");
+		cv::dnn::blobFromImage(
+			*sourceBuffer, // in: Source image
+			*m_rgbFloatDepthDnnInput, // out: DNN input blob (1x3xWxH image matrix)
+			1 / 255.f, // Normalize pixel values to [0,1] range
+			cv::Size(m_depthDnn->getInputWidth(), m_depthDnn->getInputHeight()), // DNN image input size
+			cv::Scalar(123.675, 116.28, 103.53), // ImageNet training set mean subtraction constant (see above link)
+			true,	// Swap the R and B channels since the DNN expects RGB order
+			false); // No need to crop the image after resize
+	}
+
+	// Evaluate the DNN to get the depth map
+	m_depthDnn->evaluateForwardPass(m_rgbFloatDepthDnnInput, m_floatDepthDnnOutput);
+
+	// Create an accessor Mat(WxH) to read from the DNN output(1xWxH)
+	// No actual copy occurs here, just a view into the DNN output buffer
+	const std::vector<int32_t> size = {m_floatDepthDnnOutput->size[1], m_floatDepthDnnOutput->size[2]};
+	auto outputAccessor = cv::Mat(2, &size[0], CV_32F, m_floatDepthDnnOutput->ptr<float>());
+
+	// Generate an unscaled BGR debug visualization of the depth map, if requested
+	if (m_floatNormalizedDepth != nullptr && 
+		m_gsDepth != nullptr && 
+		m_bgrGsDepth != nullptr && 
+		m_bgrGsUpscaledDepth != nullptr)
+	{
+		EASY_BLOCK("Debug Depth Output");
+
+		// Find the min and max depth values
+		double min, max;
+		cv::minMaxLoc(outputAccessor, &min, &max);
+
+		// Scale the float depth values from [min,max] to [0.f,1.f]
+		// f'(x,y) = (f(x,y) - min) / (max - min)
+		const double range = max - min;
+		outputAccessor.convertTo(*m_floatNormalizedDepth, CV_32F, 1.0 / range, -(min / range));
+
+		// Convert the [0.f,1.f] float value to [0,255] ubyte values
+		m_floatNormalizedDepth->convertTo(*m_gsDepth, CV_8U, 255.0);
+
+		// Convert the grayscale buffer from 1 to 3 channels (BGR) 
+		cv::cvtColor(*m_gsDepth, *m_bgrGsDepth, cv::COLOR_GRAY2BGR);
+
+		// Resize the depth map to the original video frame size
+		cv::resize(*m_bgrGsDepth, *m_bgrGsUpscaledDepth, m_bgrGsUpscaledDepth->size());
+	}
+
+	// Copy the depth map into a texture with normalized float values
+	if (m_floatDepthTextureMap)
+	{
+		EASY_BLOCK("Copy float depth to texture");
+
+		m_floatDepthTextureMap->copyBufferIntoTexture(outputAccessor.data);
+	}
 }
 
 bool VideoFrameDistortionView::readAndProcessVideoFrame()
@@ -377,7 +494,7 @@ void VideoFrameDistortionView::rebuildDistortionMap(
 		cv::initUndistortRectifyMap(
 			m_intrinsics->intrinsic_matrix,
 			m_intrinsics->distortion_coeffs,
-			cv::noArray(), // unneeded rectification transformation computed by stereoRectify()							  
+			cv::noArray(), // unneeded rectification transformation computed by stereoRectify()
 			optimalIntrinsicMatrix,
 			cv::Size(m_frameWidth, m_frameHeight),
 			CV_32FC1, // Distortion map type

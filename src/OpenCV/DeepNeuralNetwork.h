@@ -1,5 +1,7 @@
 #pragma once
 
+#include "OpenCVFwd.h"
+
 #include <filesystem>
 
 class DeepNeuralNetwork
@@ -22,6 +24,8 @@ public:
 	int getOutputWidth() const;
 	int getOutputHeight() const;
 	int getOutputChannels() const;
+
+	bool evaluateForwardPass(cv::Mat* inputBlob, cv::Mat* outputBlob) const;
 
 private:
 	std::string m_name;
