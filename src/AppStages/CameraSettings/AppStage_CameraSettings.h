@@ -31,6 +31,8 @@ protected:
 	void startVideoSource(VideoSourceViewPtr videoSource);
 	void stopVideoSource(VideoSourceViewPtr videoSource);
 
+	void onVideoDisplayModeChanged(const std::string& newModeName);
+
 	struct CameraSettingsDataModel* m_dataModel = nullptr;
 
 	class VideoSourceListIterator* m_videoSourceIterator= nullptr;

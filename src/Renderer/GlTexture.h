@@ -46,9 +46,8 @@ public:
 	bool reloadTextureFromImagePath();
 
 	bool createTexture();
-	void copyFloatBufferIntoTexture(const float* buffer);
-	void copyBufferIntoTexture(const uint8_t* pixels);
-	void copyTextureIntoBuffer(uint8_t* outPixels);
+	void copyBufferIntoTexture(const uint8_t* buffer, size_t bufferSize);
+	void copyTextureIntoBuffer(uint8_t* outBuffer, size_t bufferSize);
 	void disposeTexture();
 
 	bool bindTexture(int textureUnit = 0) const;
@@ -61,9 +60,10 @@ public:
 	uint16_t getTextureHeight() const { return m_height; }
 	uint32_t getTextureFormat() const { return m_textureFormat; }
 	uint32_t getBufferFormat() const { return m_textureFormat; }
-	uint32_t getBufferSize() const;
 
 private:
+	static size_t getBytesPerPixel(uint32_t format, uint32_t type);
+
 	std::string m_name;
 	uint32_t m_glTextureId = 0;
 	uint16_t m_width = 0;
@@ -74,6 +74,7 @@ private:
 	uint32_t m_glPixelBufferObjectIDs[2] = {0, 0};
 	uint16_t m_pboWriteIndex = 0;
 	PixelBufferObjectMode m_pboMode= PixelBufferObjectMode::NoPBO;	
+	size_t m_PBOByteSize = 0;
 	bool m_bGenerateMipMap= true;
 	const uint8_t* m_textureMapData;
 	std::filesystem::path m_imagePath;

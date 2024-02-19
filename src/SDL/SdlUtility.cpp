@@ -47,9 +47,10 @@ namespace SdlUtility
 
 		const int bytesPerPixel = depth / 8;
 		const int pitch = texture->getTextureWidth() * bytesPerPixel;
-		uint8_t* buffer = new uint8_t[pitch * texture->getTextureHeight()];
+		size_t bufferSize = pitch * texture->getTextureHeight();
+		uint8_t* buffer = new uint8_t[bufferSize];
 
-		texture->copyTextureIntoBuffer(buffer);
+		texture->copyTextureIntoBuffer(buffer, bufferSize);
 
 		SDL_Surface* surface =
 			SDL_CreateRGBSurfaceFrom(

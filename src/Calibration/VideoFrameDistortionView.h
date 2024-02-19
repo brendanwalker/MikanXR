@@ -56,6 +56,8 @@ protected:
 	void computeUndistortion(cv::Mat* bgrSourceBuffer);
 	void computeSyntheticDepth(cv::Mat* bgrSourceBuffer);
 
+	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture);
+
 protected:	
 	eVideoDisplayMode m_videoDisplayMode;
 	VideoSourceViewPtr m_videoSourceView;

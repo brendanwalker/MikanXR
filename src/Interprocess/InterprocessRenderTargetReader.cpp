@@ -141,7 +141,7 @@ public:
 			{
 				EASY_BLOCK("copy to color texture");
 
-				colorTexture->copyBufferIntoTexture(m_localMemory.color_buffer);
+				colorTexture->copyBufferIntoTexture(m_localMemory.color_buffer, m_localMemory.color_buffer_size);
 			}
 
 			GlTexturePtr depthTexture = m_parentAccessor->getDepthTexture();
@@ -149,7 +149,7 @@ public:
 			{
 				EASY_BLOCK("copy to depth texture");
 
-				depthTexture->copyBufferIntoTexture(m_localMemory.depth_buffer);
+				depthTexture->copyBufferIntoTexture(m_localMemory.depth_buffer, m_localMemory.depth_buffer_size);
 			}
 
 		}

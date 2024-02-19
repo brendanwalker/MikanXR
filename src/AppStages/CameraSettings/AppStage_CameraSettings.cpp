@@ -26,6 +26,8 @@ struct CameraSettingsDataModel
 	int brightness_step = 2;
 	Rml::Vector<Rml::String> video_sources;
 	int selected_video_source = 0;
+	Rml::Vector<Rml::String> display_modes;
+	int selected_display_mode = 0;
 };
 
 //-- statics ----__
@@ -57,6 +59,16 @@ void AppStage_CameraSettings::enter()
 	constructor.Bind("brightness", &m_dataModel->brightness);
 	constructor.Bind("video_sources", &m_dataModel->video_sources);
 	constructor.Bind("selected_video_source", &m_dataModel->selected_video_source);
+	constructor.Bind("video_display_mode", &m_dataModel->selected_display_mode);
+	constructor.Bind("video_display_modes", &m_dataModel->display_modes);
+
+	constructor.BindEventCallback(
+		"select_display_mode",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const std::string displayModeName = ev.GetParameter<Rml::String>("value", "");
+			onVideoDisplayModeChanged(displayModeName);
+		});
+	
 	m_dataModel->model_handle = constructor.GetModelHandle();
 	
 	m_dataModel->video_sources.push_back("Select Video Source");
@@ -85,6 +97,10 @@ void AppStage_CameraSettings::enter()
 	{
 		m_dataModel->selected_video_source= 0;
 	}
+
+	m_dataModel->selected_display_mode = 0;
+	m_dataModel->display_modes.push_back("Video");
+	m_dataModel->display_modes.push_back("Depth");
 
 	addRmlDocument("camera_settings.rml");
 }
@@ -133,11 +149,12 @@ void AppStage_CameraSettings::startVideoSource(VideoSourceViewPtr videoSource)
 			videoSource, 
 			VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_DEPTH_FLAG | VIDEO_FRAME_HAS_DEPTH_DEBUG_FLAG);
 
-		// Fetch video properties we wamt to update in the UI
+		// Fetch video properties we want to update in the UI
 		m_dataModel->brightness = videoSource->getVideoProperty(VideoPropertyType::Brightness);
 		m_dataModel->brightness_min = videoSource->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
 		m_dataModel->brightness_max = videoSource->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);
 		m_dataModel->brightness_step = videoSource->getVideoPropertyConstraintStep(VideoPropertyType::Brightness);
+		m_dataModel->selected_display_mode = 0;
 	}
 }
 
@@ -198,6 +215,18 @@ void AppStage_CameraSettings::update(float deltaSeconds)
 	if (m_videoBufferView != nullptr)
 	{
 		m_videoBufferView->readAndProcessVideoFrame();
+	}
+}
+
+void AppStage_CameraSettings::onVideoDisplayModeChanged(const std::string& newModeName)
+{
+	if (newModeName == "Depth")
+	{
+		m_videoBufferView->setVideoDisplayMode(eVideoDisplayMode::mode_depth);
+	}
+	else
+	{
+		m_videoBufferView->setVideoDisplayMode(eVideoDisplayMode::mode_bgr);
 	}
 }
 

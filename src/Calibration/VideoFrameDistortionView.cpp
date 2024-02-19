@@ -159,8 +159,8 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 					GL_R32F, // texture format
 					GL_RED); // buffer format
 				m_floatDepthTextureMap->setGenerateMipMap(false);
-				//m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
-				m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
+				m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
+				//m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
 				m_floatDepthTextureMap->createTexture();
 			}
 		}
@@ -306,24 +306,24 @@ bool VideoFrameDistortionView::processVideoFrame(uint64_t desiredFrameIndex)
 		switch (m_videoDisplayMode)
 		{
 		case eVideoDisplayMode::mode_bgr:
-			m_videoTexture->copyBufferIntoTexture(bgrSourceBuffer->data);
+			copyOpenCVMatIntoGLTexture(*bgrSourceBuffer, m_videoTexture);
 			break;
 		case eVideoDisplayMode::mode_undistored:
 			if (m_bgrUndistortBuffer != nullptr)
 			{
-				m_videoTexture->copyBufferIntoTexture(m_bgrUndistortBuffer->data);
+				copyOpenCVMatIntoGLTexture(*m_bgrUndistortBuffer, m_videoTexture);
 			}
 			break;
 		case eVideoDisplayMode::mode_grayscale:
 			if (m_bgrGsUndistortBuffer != nullptr)
 			{
-				m_videoTexture->copyBufferIntoTexture(m_bgrGsUndistortBuffer->data);
+				copyOpenCVMatIntoGLTexture(*m_bgrGsUndistortBuffer, m_videoTexture);
 			}
 			break;
 		case eVideoDisplayMode::mode_depth:
 			if (m_bgrGsUpscaledDepth != nullptr)
 			{
-				m_videoTexture->copyBufferIntoTexture(m_bgrGsUpscaledDepth->data);
+				copyOpenCVMatIntoGLTexture(*m_bgrGsUpscaledDepth, m_videoTexture);
 			}
 			break;
 		default:
@@ -437,7 +437,8 @@ void VideoFrameDistortionView::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
 		m_floatNormalizedDepth->convertTo(*m_gsDepth, CV_8U, 255.0);
 
 		// Convert the grayscale buffer from 1 to 3 channels (BGR) 
-		cv::cvtColor(*m_gsDepth, *m_bgrGsDepth, cv::COLOR_GRAY2BGR);
+		//cv::cvtColor(*m_gsDepth, *m_bgrGsDepth, cv::COLOR_GRAY2BGR);
+		cv::applyColorMap(*m_gsDepth, *m_bgrGsDepth, cv::COLORMAP_JET);
 
 		// Resize the depth map to the original video frame size
 		cv::resize(*m_bgrGsDepth, *m_bgrGsUpscaledDepth, m_bgrGsUpscaledDepth->size());
@@ -448,7 +449,7 @@ void VideoFrameDistortionView::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
 	{
 		EASY_BLOCK("Copy float depth to texture");
 
-		m_floatDepthTextureMap->copyBufferIntoTexture(outputAccessor.data);
+		copyOpenCVMatIntoGLTexture(outputAccessor, m_floatDepthTextureMap);
 	}
 }
 
@@ -530,4 +531,11 @@ void VideoFrameDistortionView::renderSelectedVideoBuffers()
 	{
 		m_videoTexture->renderFullscreen();
 	}
+}
+
+void VideoFrameDistortionView::copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture)
+{
+	size_t bufferSize = mat.step[0] * mat.rows;
+
+	texture->copyBufferIntoTexture(mat.data, bufferSize);
 }
