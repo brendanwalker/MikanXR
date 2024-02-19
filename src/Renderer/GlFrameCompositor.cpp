@@ -437,6 +437,29 @@ GlTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textur
 				return m_videoDistortionView->getVideoTexture();
 			case eVideoTextureSource::distortion_texture:
 				return m_videoDistortionView->getDistortionTexture();
+			case eVideoTextureSource::float_depth_texture:
+				return m_videoDistortionView->getFloatDepthTexture();
+			case eVideoTextureSource::color_mapped_depth_texture:
+				return m_videoDistortionView->getColorMappedDepthTexture();
+		}
+	}
+
+	return GlTexturePtr();
+}
+
+GlTexturePtr GlFrameCompositor::getVideoPreviewTexture(eVideoTextureSource textureSource) const
+{
+	if (m_videoDistortionView != nullptr)
+	{
+		if (textureSource == eVideoTextureSource::float_depth_texture)
+		{
+			// Special case for float_depth_texture, use the color mapped depth texture instead for preview
+			return m_videoDistortionView->getColorMappedDepthTexture();
+		}
+		else
+		{
+			// In all other cases, the preview texture is the same as the source texture
+			return getVideoSourceTexture(textureSource);
 		}
 	}
 

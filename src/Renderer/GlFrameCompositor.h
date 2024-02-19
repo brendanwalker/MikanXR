@@ -81,6 +81,7 @@ public:
 	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
 	GlTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
+	GlTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 	GlTexturePtr getClientSourceTexture(int clientIndex, eClientTextureType clientTextureType) const;

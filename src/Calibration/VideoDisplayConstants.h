@@ -6,7 +6,7 @@
 #define VIDEO_FRAME_HAS_GRAYSCALE_FLAG			0x0002
 #define VIDEO_FRAME_HAS_GL_TEXTURE_FLAG			0x0004
 #define VIDEO_FRAME_HAS_DEPTH_FLAG				0x0008
-#define VIDEO_FRAME_HAS_DEPTH_DEBUG_FLAG		0x0010
+#define VIDEO_FRAME_HAS_DEPTH_UPSCALE_FLAG		0x0010
 #define VIDEO_FRAME_HAS_ALL						0xffff
 
 enum class eVideoDisplayMode : int
@@ -28,7 +28,8 @@ enum class eVideoTextureSource : int
 
 	video_texture,
 	distortion_texture,
-	depth_texture,
+	float_depth_texture,
+	color_mapped_depth_texture,
 
 	COUNT
 };

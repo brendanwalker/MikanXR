@@ -65,10 +65,21 @@ void VideoTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 
 GlTexturePtr VideoTextureNode::getTextureResource() const
 {
-	GlFrameCompositor* compositor= MainWindow::getInstance()->getFrameCompositor();
+	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
 	{
 		return compositor->getVideoSourceTexture(m_videoTextureSource);
+	}
+
+	return GlTexturePtr();
+}
+
+GlTexturePtr VideoTextureNode::getPreviewTextureResource() const
+{
+	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
+	if (compositor != nullptr)
+	{
+		return compositor->getVideoPreviewTexture(m_videoTextureSource);
 	}
 
 	return GlTexturePtr();
@@ -103,7 +114,7 @@ void VideoTextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	GlTexturePtr textureResource = getTextureResource();
+	GlTexturePtr textureResource = getPreviewTextureResource();
 	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
@@ -127,7 +138,7 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 		if (NodeEditorUI::DrawSimpleComboBoxProperty(
 			"videoTextureNodeSource",
 			"Source",
-			"Video\0Distortion\0",
+			"Video\0Distortion\0Depth(Float)\0Color(RGB)\0",
 			iTextureSource))
 		{
 			m_videoTextureSource = (eVideoTextureSource)iTextureSource;

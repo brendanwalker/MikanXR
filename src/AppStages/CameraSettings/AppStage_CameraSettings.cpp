@@ -147,7 +147,7 @@ void AppStage_CameraSettings::startVideoSource(VideoSourceViewPtr videoSource)
 		m_videoBufferView = new VideoFrameDistortionView(
 			App::getInstance()->getMainWindow()->getOpenCVManager(),
 			videoSource, 
-			VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_DEPTH_FLAG | VIDEO_FRAME_HAS_DEPTH_DEBUG_FLAG);
+			VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_DEPTH_FLAG | VIDEO_FRAME_HAS_DEPTH_UPSCALE_FLAG);
 
 		// Fetch video properties we want to update in the UI
 		m_dataModel->brightness = videoSource->getVideoProperty(VideoPropertyType::Brightness);

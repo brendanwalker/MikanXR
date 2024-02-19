@@ -43,6 +43,7 @@ public:
 	inline GlTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
 	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
 	inline GlTexturePtr getFloatDepthTexture() const { return m_floatDepthTextureMap; }
+	inline GlTexturePtr getColorMappedDepthTexture() const { return m_colorMappedDepthTextureMap; }
 
 	bool hasNewVideoFrame() const;
 	uint64_t readNextVideoFrame();
@@ -91,10 +92,11 @@ protected:
 	cv::Mat* m_rgbFloatDepthDnnInput= nullptr; // Small RGB float blob input for DNN
 	cv::Mat* m_floatDepthDnnOutput= nullptr; // Small float blob output for DNN
 	cv::Mat* m_floatNormalizedDepth= nullptr; // Normalized float depth debug buffer
-	cv::Mat* m_gsDepth= nullptr; // 8-BPP Grayscale depth debug buffer
-	cv::Mat* m_bgrGsDepth= nullptr; // 24-BPP(BGR color format) depth debug buffer
-	cv::Mat* m_bgrGsUpscaledDepth= nullptr; // Upscaled 24-BPP(BGR color format) depth debug buffer
-	GlTexturePtr m_floatDepthTextureMap= nullptr;
+	cv::Mat* m_gsDepth= nullptr; // 8-BPP Grayscale depth buffer
+	cv::Mat* m_bgrDepth= nullptr; // 24-BPP(BGR color format) color-coded depth buffer
+	cv::Mat* m_bgrUpscaledDepth= nullptr; // m_bgrDepth upscaled to video resolution
+	GlTexturePtr m_floatDepthTextureMap= nullptr; // GL Texture filled in m_floatDepthDnnOutput
+	GlTexturePtr m_colorMappedDepthTextureMap = nullptr; // GL Texture filled in m_bgrGsDepth
 
 	// Camera Intrinsics / Distortion parameters
 	struct OpenCVMonoCameraIntrinsics* m_intrinsics;

@@ -62,9 +62,10 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_floatDepthDnnOutput(nullptr)
 	, m_floatNormalizedDepth(nullptr)
 	, m_gsDepth(nullptr)
-	, m_bgrGsDepth(nullptr)
-	, m_bgrGsUpscaledDepth(nullptr)
+	, m_bgrDepth(nullptr)
+	, m_bgrUpscaledDepth(nullptr)
 	, m_floatDepthTextureMap()
+	, m_colorMappedDepthTextureMap()
 	// Camera Intrinsics / Distortion parameters
 	, m_intrinsics(new OpenCVMonoCameraIntrinsics)
 	// Distortion preview
@@ -136,17 +137,18 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 			m_rgbFloatDepthDnnInput = new cv::Mat(4, inputSize, CV_32F);
 			m_floatDepthDnnOutput = new cv::Mat(3, outputSize, CV_32F);
 
+			// Normalized float depth output
+			m_floatNormalizedDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_32F);
+			// Grayscale depth output for (8-BPP)
+			m_gsDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_8UC1);
+			// Grayscale depth output for (24-BPP, BGR color format)
+			m_bgrDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_8UC3);
+
 			// Optional buffers for debugging the depth DNN
-			if (bufferBitmask & VIDEO_FRAME_HAS_DEPTH_DEBUG_FLAG)
+			if (bufferBitmask & VIDEO_FRAME_HAS_DEPTH_UPSCALE_FLAG)
 			{
-				// Normalized float depth output for 
-				m_floatNormalizedDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_32F);
-				// Grayscale depth output for (8-BPP)
-				m_gsDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_8UC1);
-				// Grayscale depth output for (24-BPP, BGR color format)
-				m_bgrGsDepth = new cv::Mat(dnnOutputHeight, dnnOutputWidth, CV_8UC3);
 				// Scaled up to video frame size depth output for (24-BPP, BGR color format)
-				m_bgrGsUpscaledDepth = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
+				m_bgrUpscaledDepth = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
 			}
 
 			if (bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
@@ -160,8 +162,18 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 					GL_RED); // buffer format
 				m_floatDepthTextureMap->setGenerateMipMap(false);
 				m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
-				//m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
 				m_floatDepthTextureMap->createTexture();
+
+				// Used by node editor preview of depth
+				m_colorMappedDepthTextureMap = std::make_shared<GlTexture>(
+					m_depthDnn->getOutputWidth(),
+					m_depthDnn->getOutputHeight(),
+					nullptr,
+					GL_RGB, // texture format
+					GL_BGR); // buffer format
+				m_colorMappedDepthTextureMap->setGenerateMipMap(false);
+				m_colorMappedDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
+				m_colorMappedDepthTextureMap->createTexture();
 			}
 		}
 	}
@@ -179,6 +191,7 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 	m_videoTexture= nullptr;
 	m_distortionTextureMap= nullptr;
 	m_floatDepthTextureMap= nullptr;
+	m_colorMappedDepthTextureMap= nullptr;
 
 	// Free the depth DNN
 	m_depthDnn= nullptr;
@@ -190,10 +203,10 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 		delete m_floatNormalizedDepth;
 	if (m_gsDepth != nullptr)
 		delete m_gsDepth;
-	if (m_bgrGsDepth != nullptr)
-		delete m_bgrGsDepth;
-	if (m_bgrGsUpscaledDepth != nullptr)
-		delete m_bgrGsUpscaledDepth;
+	if (m_bgrDepth != nullptr)
+		delete m_bgrDepth;
+	if (m_bgrUpscaledDepth != nullptr)
+		delete m_bgrUpscaledDepth;
 	if (m_floatDepthDnnOutput != nullptr)
 		delete m_floatDepthDnnOutput;
 
@@ -321,9 +334,9 @@ bool VideoFrameDistortionView::processVideoFrame(uint64_t desiredFrameIndex)
 			}
 			break;
 		case eVideoDisplayMode::mode_depth:
-			if (m_bgrGsUpscaledDepth != nullptr)
+			if (m_bgrUpscaledDepth != nullptr)
 			{
-				copyOpenCVMatIntoGLTexture(*m_bgrGsUpscaledDepth, m_videoTexture);
+				copyOpenCVMatIntoGLTexture(*m_bgrUpscaledDepth, m_videoTexture);
 			}
 			break;
 		default:
@@ -381,9 +394,7 @@ void VideoFrameDistortionView::computeUndistortion(cv::Mat* bgrSourceBuffer)
 
 void VideoFrameDistortionView::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
 {
-	cv::Mat* sourceBuffer= m_bgrUndistortBuffer != nullptr ? m_bgrUndistortBuffer : bgrSourceBuffer;
-
-	if (sourceBuffer == nullptr ||
+	if (bgrSourceBuffer == nullptr ||
 		m_rgbFloatDepthDnnInput == nullptr || 
 		m_floatDepthDnnOutput == nullptr ||
 		!m_depthDnn ||
@@ -399,7 +410,7 @@ void VideoFrameDistortionView::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
 	{
 		EASY_BLOCK("blobFromImage");
 		cv::dnn::blobFromImage(
-			*sourceBuffer, // in: Source image
+			*bgrSourceBuffer, // in: Source image
 			*m_rgbFloatDepthDnnInput, // out: DNN input blob (1x3xWxH image matrix)
 			1 / 255.f, // Normalize pixel values to [0,1] range
 			cv::Size(m_depthDnn->getInputWidth(), m_depthDnn->getInputHeight()), // DNN image input size
@@ -419,8 +430,7 @@ void VideoFrameDistortionView::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
 	// Generate an unscaled BGR debug visualization of the depth map, if requested
 	if (m_floatNormalizedDepth != nullptr && 
 		m_gsDepth != nullptr && 
-		m_bgrGsDepth != nullptr && 
-		m_bgrGsUpscaledDepth != nullptr)
+		m_bgrDepth != nullptr)
 	{
 		EASY_BLOCK("Debug Depth Output");
 
@@ -437,11 +447,23 @@ void VideoFrameDistortionView::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
 		m_floatNormalizedDepth->convertTo(*m_gsDepth, CV_8U, 255.0);
 
 		// Convert the grayscale buffer from 1 to 3 channels (BGR) 
-		//cv::cvtColor(*m_gsDepth, *m_bgrGsDepth, cv::COLOR_GRAY2BGR);
-		cv::applyColorMap(*m_gsDepth, *m_bgrGsDepth, cv::COLORMAP_JET);
+		cv::applyColorMap(*m_gsDepth, *m_bgrDepth, cv::COLORMAP_JET);
 
-		// Resize the depth map to the original video frame size
-		cv::resize(*m_bgrGsDepth, *m_bgrGsUpscaledDepth, m_bgrGsUpscaledDepth->size());
+		// If requested, copy the color-coded depth map into a texture
+		if (m_colorMappedDepthTextureMap)
+		{
+			EASY_BLOCK("Copy BGR depth to texture");
+
+			copyOpenCVMatIntoGLTexture(*m_bgrDepth, m_colorMappedDepthTextureMap);
+		}
+
+		// If requested, resize the depth map to the original video frame size
+		if (m_bgrUpscaledDepth != nullptr)
+		{
+			EASY_BLOCK("Upscale BGR depth");
+
+			cv::resize(*m_bgrDepth, *m_bgrUpscaledDepth, m_bgrUpscaledDepth->size());
+		}
 	}
 
 	// Copy the depth map into a texture with normalized float values
