@@ -1,0 +1,11 @@
+{
+    "materialName": "rgbaDepthKeyFrame",
+    "vertexShaderPath": "rgbaDepthKeyFrame.vert",
+    "fragmentShaderPath": "rgbaDepthKeyFrame.frag",
+    "uniforms":
+    {
+		"zThreshold": "floatConstant0",
+        "rgbaTexture": "texture0",
+		"depthTexture": "texture1"
+    }
+}
