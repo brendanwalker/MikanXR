@@ -16,8 +16,8 @@ public:
 	eDepthMeshCaptureMenuState getMenuState() const;
 	void setMenuState(eDepthMeshCaptureMenuState newState);
 
-	float getCalibrationFraction() const;
-	void setCalibrationFraction(const float newFraction);
+	bool getCurrentImagePointsValid() const;
+	void setCurrentImagePointsValid(const bool bNewImagePointsValid);
 
 	SinglecastDelegate<void()> OnBeginEvent;
 	SinglecastDelegate<void()> OnRestartEvent;
@@ -27,6 +27,6 @@ public:
 private:
 	Rml::String m_menuState;
 	Rml::String m_viewpointMode;
-	float m_calibrationPercent = 0.f;
+	bool m_areCurrentImagePointsValid = false;
 	bool m_bypassCalibrationFlag = false;
 };

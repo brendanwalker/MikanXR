@@ -70,8 +70,8 @@ void CalibrationPatternFinder::renderSolvePnPPattern3D(const glm::mat4& xform) c
 	{
 		drawOpenCVChessBoard3D(
 			xform,
-			m_openglGeometry.points.data(), // cv::point3f is just three floats 
-			(int)m_openglGeometry.points.size(),
+			m_openglSolvePnPGeometry.points.data(), // cv::point3f is just three floats 
+			(int)m_openglSolvePnPGeometry.points.size(),
 			true);
 	}
 }
@@ -89,7 +89,7 @@ CalibrationPatternFinder_Chessboard::CalibrationPatternFinder_Chessboard(
 {
 	m_opencvLensCalibrationGeometry.points.clear();
 	m_opencvSolvePnPGeometry.points.clear();
-	m_openglGeometry.points.clear();
+	m_openglSolvePnPGeometry.points.clear();
 
 	for (int row = 0; row < m_chessbordRows; ++row)
 	{
@@ -115,7 +115,7 @@ CalibrationPatternFinder_Chessboard::CalibrationPatternFinder_Chessboard(
 
 			m_opencvLensCalibrationGeometry.points.push_back(openCVLensCalibrationPoint);
 			m_opencvSolvePnPGeometry.points.push_back(openCVSolvePnPPoint);
-			m_openglGeometry.points.push_back(openGLPoint);
+			m_openglSolvePnPGeometry.points.push_back(openGLPoint);
 		}
 	}
 }
@@ -277,7 +277,7 @@ CalibrationPatternFinder_CircleGrid::CalibrationPatternFinder_CircleGrid(
 					-openCVPoint.z * k_millimeters_to_meters);
 
 				m_opencvSolvePnPGeometry.points.push_back(openCVPoint);
-				m_openglGeometry.points.push_back(openGLPoint);
+				m_openglSolvePnPGeometry.points.push_back(openGLPoint);
 			}
 		}
 	}

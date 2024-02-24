@@ -40,6 +40,7 @@ public:
 	inline cv::Mat* getBGRGrayscaleUndistortBuffer() const { return m_bgrGsUndistortBuffer; }
 	inline cv::Mat* getGrayscaleSourceBuffer() const { return m_gsSourceBuffer; }
 	inline cv::Mat* getGrayscaleSmallBuffer() const { return m_gsSmallBuffer; }
+	inline cv::Mat* getFloatDepthDnnBuffer() const { return m_floatDepthDnnOutput; }
 	inline GlTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
 	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
 	inline GlTexturePtr getFloatDepthTexture() const { return m_floatDepthTextureMap; }

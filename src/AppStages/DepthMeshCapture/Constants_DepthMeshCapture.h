@@ -9,7 +9,7 @@ enum class eDepthMeshCaptureMenuState : int
 	inactive = 0,
 	verifySetup = 1,
 	capture = 2,
-	testCalibration = 3,
+	testCapture = 3,
 	failedVideoStartStreamRequest = 4,
 
 	COUNT

@@ -55,7 +55,7 @@ private:
 	// Tracking pucks used for calibration
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
-	class MonoLensDepthMeshCapture* m_depthMeshBuilder;
+	class MonoLensDepthMeshCapture* m_depthMeshCapture;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
 	GlScenePtr m_scene;

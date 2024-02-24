@@ -84,7 +84,7 @@ bool CompositorNodeGraph::createResources()
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Create rendering resources
-	bool bSuccess = createStencilShader();
+	bool bSuccess = createStencilShaders();
 
 	// Create triangulated mesh used to render the layer onto
 	bSuccess &= createLayerQuadMeshes();
@@ -105,7 +105,7 @@ void CompositorNodeGraph::disposeResources()
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Free rendering resources
-	m_stencilShader = nullptr;
+	m_vertexOnlyStencilShader = nullptr;
 	m_stencilBoxMesh = nullptr;
 	m_stencilQuadMesh = nullptr;
 	m_layerVFlippedMesh = nullptr;
@@ -254,26 +254,46 @@ const GlVertexDefinition& CompositorNodeGraph::getStencilModelVertexDefinition()
 
 	if (x_vertexDefinition.attributes.size() == 0)
 	{
-		const int32_t vertexSize = (int32_t)sizeof(CompositorNodeGraph::StencilVertex);
+		const uint32_t positionSize = (uint32_t)sizeof(float) * 3;
+		const uint32_t normalSize = (uint32_t)sizeof(float) * 3;
+		const uint32_t texelSize = (uint32_t)sizeof(float) * 2;
+		const uint32_t vertexSize = positionSize + normalSize + texelSize;
 		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
 
-		attribs.push_back(
-			GlVertexAttribute(
-				0, eVertexSemantic::position3f, false, vertexSize, 
-				offsetof(CompositorNodeGraph::StencilVertex, aPos)));
+		size_t offset = 0;
+		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, offset));
+		offset += positionSize;
 
+		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::normal3f, false, vertexSize, offset));
+		offset += normalSize;
+
+		attribs.push_back(GlVertexAttribute(2, eVertexSemantic::texel2f, false, vertexSize, offset));
+		offset += texelSize;
+
+		assert(offset == vertexSize);
 		x_vertexDefinition.vertexSize = vertexSize;
 	}
 
 	return x_vertexDefinition;
 }
 
-bool CompositorNodeGraph::createStencilShader()
+bool CompositorNodeGraph::createStencilShaders()
 {
-	m_stencilShader = getOwnerWindow()->getShaderCache()->fetchCompiledGlProgram(getStencilShaderCode());
-	if (!m_stencilShader)
+	m_vertexOnlyStencilShader = 
+		getOwnerWindow()->getShaderCache()->fetchCompiledGlProgram(
+			getVertexOnlyStencilShaderCode());
+	if (!m_vertexOnlyStencilShader)
 	{
-		MIKAN_LOG_ERROR("DrawLayerNode::createStencilShader()") << "Failed to compile stencil shader";
+		MIKAN_LOG_ERROR("DrawLayerNode::createStencilShader()") << "Failed to compile vertex only stencil shader";
+		return false;
+	}
+
+	m_texturedStencilShader = 
+		getOwnerWindow()->getShaderCache()->fetchCompiledGlProgram(
+			getTexturedStencilShaderCode());
+	if (!m_texturedStencilShader)
+	{
+		MIKAN_LOG_ERROR("DrawLayerNode::createStencilShader()") << "Failed to compile textured stencil shader";
 		return false;
 	}
 
@@ -317,6 +337,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 														   (const uint8_t*)x_vertices,
 														   4, // 4 verts
 														   (const uint8_t*)x_indices,
+														   sizeof(uint16_t), // 2 bytes per index
 														   2, // 2 tris
 														   false); // mesh doesn't own quad vert data
 		if (!m_layerMesh->createBuffers())
@@ -342,6 +363,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 																   (const uint8_t*)x_vertices,
 																   4, // 4 verts
 																   (const uint8_t*)x_indices,
+																   sizeof(uint16_t), // 2 bytes per index
 																   2, // 2 tris
 																   false); // mesh doesn't own quad vert data
 		if (!m_layerVFlippedMesh->createBuffers())
@@ -372,6 +394,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 																 (const uint8_t*)x_vertices,
 																 4, // 4 verts in a quad
 																 (const uint8_t*)x_indices,
+																 sizeof(uint16_t), // 2 bytes per index
 																 2, // 2 tris in a quad
 																 false); // mesh doesn't own quad vertex data
 		if (!m_stencilQuadMesh->createBuffers())
@@ -408,6 +431,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 																(const uint8_t*)x_vertices,
 																8, // 8 verts in a cube
 																(const uint8_t*)x_indices,
+																sizeof(uint16_t), // 2 bytes per index
 																12, // 12 tris in a cube (6 faces * 2 tris/face)
 																false); // mesh doesn't own box vertex data
 		if (!m_stencilBoxMesh->createBuffers())
@@ -437,10 +461,10 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 	m_compositingFrameBuffer->createResources();
 }
 
-const GlProgramCode* CompositorNodeGraph::getStencilShaderCode()
+const GlProgramCode* CompositorNodeGraph::getVertexOnlyStencilShaderCode()
 {
 	static GlProgramCode x_shaderCode = GlProgramCode(
-		"Internal Stencil Shader Code",
+		"Internal Vertex Only Stencil Shader Code",
 		// vertex shader
 		R""""(
 			#version 330 core
@@ -464,6 +488,48 @@ const GlProgramCode* CompositorNodeGraph::getStencilShaderCode()
 			}
 			)"""")
 		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix);
+
+	return &x_shaderCode;
+}
+
+const GlProgramCode* CompositorNodeGraph::getTexturedStencilShaderCode()
+{
+	static GlProgramCode x_shaderCode = GlProgramCode(
+		"Internal Textured Stencil Shader Code",
+		// vertex shader
+		R""""(
+			#version 330 core
+			layout (location = 0) in vec2 aPos;
+			layout (location = 2) in vec3 aNormal;
+			layout (location = 2) in vec2 aTexCoords;
+
+			uniform mat4 mvpMatrix;
+
+			out vec2 TexCoords;
+
+			void main()
+			{
+				TexCoords = aTexCoords;
+				gl_Position = mvpMatrix * vec4(aPos, 1.0);
+			}  
+			)"""",
+		//fragment shader
+		R""""(
+			#version 330 core
+			out vec4 FragColor;
+
+			in vec2 TexCoords;
+
+			uniform sampler2D rgbTexture;
+
+			void main()
+			{
+				vec3 col = texture(rgbTexture, TexCoords).rgb;
+				FragColor = vec4(col, 1.0);
+			} 
+			)"""")
+		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix)
+		.addUniform("rgbTexture", eUniformSemantic::texture0);
 
 	return &x_shaderCode;
 }

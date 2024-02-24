@@ -203,7 +203,7 @@ cmake --build Build --config Release
 popd
 set "LUA_DIR="
 
-: Download prebuilt SWIG
+:: Download prebuilt SWIG
 set(SWIG_VERSION "4.1.1")
         # Download and install pre-compiled SWIG for Windows into deps folder
         set(SWIG_DOWNLOAD_URL "http://sourceforge.net/projects/swig/files/swigwin/swigwin-${SWIG_VERSION}/swigwin-${SWIG_VERSION}.zip")
@@ -220,6 +220,11 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Exit back out of the deps folder
+popd
+
+:: Download deep neural network models
+pushd resources\dnn
+curl -L https://github.com/isl-org/MiDaS/releases/download/v2_1/model-f6b98070.onnx --output midas_v21_384x384.onnx
 popd
 
 EXIT /B 0

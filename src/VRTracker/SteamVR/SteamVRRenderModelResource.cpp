@@ -240,6 +240,7 @@ GlTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource
 			(const uint8_t*)steamVRRenderModel->rVertexData,
 			steamVRRenderModel->unVertexCount,
 			(const uint8_t*)steamVRRenderModel->rIndexData,
+			sizeof(uint16_t),
 			steamVRRenderModel->unTriangleCount,
 			false); // <-- triangulated mesh does not own vertex data
 

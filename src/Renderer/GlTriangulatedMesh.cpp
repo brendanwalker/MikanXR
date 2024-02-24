@@ -7,16 +7,18 @@ GlTriangulatedMesh::GlTriangulatedMesh(
 	const uint8_t* vertexData,
 	uint32_t vertexCount,
 	const uint8_t* indexData,
+	const size_t indexSize,
 	uint32_t triangleCount,
-	bool bOwnsVertexData)
+	bool bOwnsVertexData) 
+	: m_name(name)
+	, m_vertexDefinition(vertexDefintion)
+	, m_vertexData(vertexData)
+	, m_vertexCount(vertexCount)
+	, m_indexData(indexData)
+	, m_indexSize(indexSize)
+	, m_triangleCount(triangleCount)
+	, m_bOwnsVertexData(bOwnsVertexData)
 {
-	m_name = name;
-	m_vertexDefinition = vertexDefintion;
-	m_vertexData = vertexData;
-	m_vertexCount = vertexCount;
-	m_indexData = indexData;
-	m_triangleCount = triangleCount;
-	m_bOwnsVertexData = bOwnsVertexData;
 }
 
 GlTriangulatedMesh::~GlTriangulatedMesh()
@@ -35,8 +37,26 @@ GlTriangulatedMesh::~GlTriangulatedMesh()
 
 void GlTriangulatedMesh::drawElements() const
 {
+	GLenum indexType = GL_UNSIGNED_SHORT;
+	switch (m_indexSize)
+	{
+	case 4:
+		indexType = GL_UNSIGNED_INT;
+		break;
+	case 2:
+		indexType = GL_UNSIGNED_SHORT;
+		break;
+	case 1:
+		indexType = GL_UNSIGNED_BYTE;
+		break;
+	}
+
 	glBindVertexArray(m_glVertArray);
-	glDrawElements(GL_TRIANGLES, (int)m_triangleCount * 3, GL_UNSIGNED_SHORT, nullptr);
+	glDrawElements(
+		GL_TRIANGLES, 
+		(int)m_triangleCount * 3, 
+		indexType, 
+		nullptr);
 	glBindVertexArray(0);
 }
 

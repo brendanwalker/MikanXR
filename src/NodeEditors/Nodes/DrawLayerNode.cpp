@@ -518,7 +518,7 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glState)
 	EASY_FUNCTION();
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	GlProgramPtr stencilShader = compositorGraph->getStencilShader();
+	GlProgramPtr stencilShader = compositorGraph->getVertexOnlyStencilShader();
 	GlTriangulatedMeshPtr stencilQuadMesh = compositorGraph->getStencilQuadMesh();
 
 	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
@@ -646,7 +646,7 @@ void DrawLayerNode::evaluateBoxStencils(GlState& glState)
 	EASY_FUNCTION();
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	GlProgramPtr stencilShader= compositorGraph->getStencilShader();
+	GlProgramPtr stencilShader= compositorGraph->getVertexOnlyStencilShader();
 	GlTriangulatedMeshPtr stencilBoxMesh= compositorGraph->getStencilBoxMesh();
 
 	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
@@ -736,7 +736,7 @@ void DrawLayerNode::evaluateModelStencils(GlState& glState)
 	EASY_FUNCTION();
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	GlProgramPtr stencilShader= compositorGraph->getStencilShader();
+	GlProgramPtr stencilShader= compositorGraph->getVertexOnlyStencilShader();
 
 	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
 	if (!frameCompositor)

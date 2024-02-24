@@ -40,7 +40,7 @@ AppStage_DepthMeshCapture::AppStage_DepthMeshCapture(MainWindow* ownerWindow)
 	, m_calibrationModel(new RmlModel_DepthMeshCapture)
 	, m_cameraSettingsModel(new RmlModel_DepthMeshCameraSettings)
 	, m_videoSourceView()
-	, m_depthMeshBuilder(nullptr)
+	, m_depthMeshCapture(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<GlScene>())
 	, m_camera(nullptr)
@@ -94,11 +94,13 @@ void AppStage_DepthMeshCapture::enter()
 			new VideoFrameDistortionView(
 				App::getInstance()->getMainWindow()->getOpenCVManager(),
 				m_videoSourceView, 
-				VIDEO_FRAME_HAS_ALL);
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);		
+				VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | 
+				VIDEO_FRAME_HAS_GL_TEXTURE_FLAG |
+				VIDEO_FRAME_HAS_DEPTH_FLAG);
+		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 		// Create a calibrator to do the actual pattern recording and calibration
-		m_depthMeshBuilder =
+		m_depthMeshCapture =
 			new MonoLensDepthMeshCapture(
 				profileConfig,
 				m_cameraTrackingPuckView,
@@ -108,13 +110,11 @@ void AppStage_DepthMeshCapture::enter()
 		// If bypassing the calibration, then jump straight to the test calibration state
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
-			newState = eDepthMeshCaptureMenuState::testCalibration;
-			m_monoDistortionView->setGrayscaleUndistortDisabled(true);
+			newState = eDepthMeshCaptureMenuState::testCapture;
 		}
 		else
 		{
 			newState = eDepthMeshCaptureMenuState::verifySetup;
-			m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 		}
 	}
 	else
@@ -147,10 +147,10 @@ void AppStage_DepthMeshCapture::enter()
 		}
 
 		// Init calibration view now that the dependent model has been created
-		m_calibrationView = addRmlDocument("alignment_calibration.rml");
+		m_calibrationView = addRmlDocument("depth_capture.rml");
 
 		// Init camera settings view now that the dependent model has been created
-		m_cameraSettingsView = addRmlDocument("alignment_camera_settings.rml");
+		m_cameraSettingsView = addRmlDocument("depth_capture_camera_settings.rml");
 	}
 
 	setMenuState(newState);
@@ -176,10 +176,10 @@ void AppStage_DepthMeshCapture::exit()
 	}
 
 	// Free the calibrator
-	if (m_depthMeshBuilder != nullptr)
+	if (m_depthMeshCapture != nullptr)
 	{
-		delete m_depthMeshBuilder;
-		m_depthMeshBuilder = nullptr;
+		delete m_depthMeshCapture;
+		m_depthMeshCapture = nullptr;
 	}
 
 	// Free the distortion view buffers
@@ -206,7 +206,7 @@ void AppStage_DepthMeshCapture::updateCamera()
 		{
 			// Update the transform of the camera so that vr models align over the tracking puck
 			glm::mat4 cameraPose;
-			if (m_calibrationModel->getMenuState() == eDepthMeshCaptureMenuState::testCalibration)
+			if (m_calibrationModel->getMenuState() == eDepthMeshCaptureMenuState::testCapture)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
 				cameraPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
@@ -214,7 +214,7 @@ void AppStage_DepthMeshCapture::updateCamera()
 			else
 			{
 				// Use the last computed preview camera alignment
-				cameraPose = m_depthMeshBuilder->getLastCameraPose(m_cameraTrackingPuckView);
+				//cameraPose = m_depthMeshCapture->getLastCameraPose(m_cameraTrackingPuckView);
 			}
 
 			m_camera->setCameraTransform(cameraPose);
@@ -235,7 +235,7 @@ void AppStage_DepthMeshCapture::update(float deltaSeconds)
 				m_monoDistortionView->readAndProcessVideoFrame();
 
 				// Look for a calibration pattern so that we can preview if it's in frame
-				m_depthMeshBuilder->computeCameraToPuckXform();
+				m_depthMeshCapture->captureMesh();
 			}
 			break;
 		case eDepthMeshCaptureMenuState::capture:
@@ -243,21 +243,22 @@ void AppStage_DepthMeshCapture::update(float deltaSeconds)
 				// Update the video frame buffers
 				m_monoDistortionView->readAndProcessVideoFrame();
 
+			#if 0
 				// Update the chess board capture state
-				if (m_depthMeshBuilder->computeCameraToPuckXform())
+				if (m_depthMeshCapture->captureMesh())
 				{
-					m_depthMeshBuilder->sampleLastCameraToPuckXform();
+					m_depthMeshCapture->sampleLastCameraToPuckXform();
 
 					// Update the calibration fraction on the UI Model
-					m_calibrationModel->setCalibrationFraction(m_depthMeshBuilder->getCalibrationProgress());
+					m_calibrationModel->setCalibrationFraction(m_depthMeshCapture->getCalibrationProgress());
 				}
 
 				// See if we have gotten all the samples we require
-				if (m_depthMeshBuilder->hasFinishedSampling())
+				if (m_depthMeshCapture->hasFinishedSampling())
 				{
 					MikanQuatd rotationOffset;
 					MikanVector3d translationOffset;
-					if (m_depthMeshBuilder->computeCalibratedCameraTrackerOffset(
+					if (m_depthMeshCapture->computeCalibratedCameraTrackerOffset(
 						rotationOffset,
 						translationOffset))
 					{
@@ -267,12 +268,13 @@ void AppStage_DepthMeshCapture::update(float deltaSeconds)
 						// Go to the test calibration state
 						m_monoDistortionView->setGrayscaleUndistortDisabled(true);
 						m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::mixedRealityViewpoint);
-						setMenuState(eDepthMeshCaptureMenuState::testCalibration);
+						setMenuState(eDepthMeshCaptureMenuState::testCapture);
 					}
 				}
+			#endif
 			}
 			break;
-		case eDepthMeshCaptureMenuState::testCalibration:
+		case eDepthMeshCaptureMenuState::testCapture:
 			{
 				// Update the video frame buffers using the existing distortion calibration
 				m_monoDistortionView->readAndProcessVideoFrame();
@@ -291,10 +293,10 @@ void AppStage_DepthMeshCapture::render()
 				{
 					case eDepthMeshCaptureViewpointMode::cameraViewpoint:
 						m_monoDistortionView->renderSelectedVideoBuffers();
-						m_depthMeshBuilder->renderCameraSpaceCalibrationState();
+						m_depthMeshCapture->renderCameraSpaceCalibrationState();
 						break;
 					case eDepthMeshCaptureViewpointMode::vrViewpoint:
-						m_depthMeshBuilder->renderVRSpaceCalibrationState();
+						m_depthMeshCapture->renderVRSpaceCalibrationState();
 						renderVRScene();
 						break;
 					case eDepthMeshCaptureViewpointMode::mixedRealityViewpoint:
@@ -307,10 +309,10 @@ void AppStage_DepthMeshCapture::render()
 		case eDepthMeshCaptureMenuState::capture:
 			{
 				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_depthMeshBuilder->renderCameraSpaceCalibrationState();
+				m_depthMeshCapture->renderCameraSpaceCalibrationState();
 			}
 			break;
-		case eDepthMeshCaptureMenuState::testCalibration:
+		case eDepthMeshCaptureMenuState::testCapture:
 			{
 				if (m_cameraSettingsModel->getViewpointMode() == eDepthMeshCaptureViewpointMode::mixedRealityViewpoint)
 				{
@@ -347,7 +349,7 @@ void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState
 		const bool bIsCameraSettingsVisible = m_cameraSettingsView->IsVisible();
 		const bool bWantCameraSettingsVisibility =
 			(newState == eDepthMeshCaptureMenuState::capture) ||
-			(newState == eDepthMeshCaptureMenuState::testCalibration);
+			(newState == eDepthMeshCaptureMenuState::testCapture);
 		if (bWantCameraSettingsVisibility != bIsCameraSettingsVisible)
 		{
 			if (bWantCameraSettingsVisibility)
@@ -366,10 +368,7 @@ void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState
 void AppStage_DepthMeshCapture::onBeginEvent()
 {
 	// Clear out all of the calibration data we recorded
-	m_depthMeshBuilder->resetCalibrationState();
-
-	// Reset all calibration state on the calibration UI model
-	m_calibrationModel->setCalibrationFraction(0.f);
+	m_depthMeshCapture->resetCalibrationState();
 
 	// Go back to the camera viewpoint (in case we are in VR view)
 	m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
@@ -381,16 +380,10 @@ void AppStage_DepthMeshCapture::onBeginEvent()
 void AppStage_DepthMeshCapture::onRestartEvent()
 {
 	// Clear out all of the calibration data we recorded
-	m_depthMeshBuilder->resetCalibrationState();
-
-	// Reset all calibration state on the calibration UI model
-	m_calibrationModel->setCalibrationFraction(0.f);
+	m_depthMeshCapture->resetCalibrationState();
 
 	// Go back to the camera viewpoint (in case we are in VR view)
 	m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
-
-	// Re-enable gray scale undistort mode
-	m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 
 	// Return to the capture state
 	setMenuState(eDepthMeshCaptureMenuState::verifySetup);

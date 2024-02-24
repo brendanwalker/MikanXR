@@ -10,12 +10,12 @@ bool RmlModel_DepthMeshCapture::init(
 	Rml::Context* rmlContext)
 {
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "alignment_calibration");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "depth_mesh_capture");
 	if (!constructor)
 		return false;
 
 	constructor.Bind("menu_state", &m_menuState);
-	constructor.Bind("calibration_percent", &m_calibrationPercent);
+	constructor.Bind("are_current_image_points_valid", &m_areCurrentImagePointsValid);
 	constructor.Bind("bypass_calibration_flag", &m_bypassCalibrationFlag);
 	constructor.BindEventCallback(
 		"begin",
@@ -40,7 +40,7 @@ bool RmlModel_DepthMeshCapture::init(
 			if (OnReturnEvent) OnReturnEvent();
 		});
 
-	setCalibrationFraction(0.f);
+	setCurrentImagePointsValid(false);
 	setMenuState(eDepthMeshCaptureMenuState::inactive);
 
 	return true;
@@ -92,17 +92,16 @@ void RmlModel_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState
 	}
 }
 
-float RmlModel_DepthMeshCapture::getCalibrationFraction() const
+bool RmlModel_DepthMeshCapture::getCurrentImagePointsValid() const
 {
-	return m_calibrationPercent / 100.f;
+	return m_areCurrentImagePointsValid;
 }
 
-void RmlModel_DepthMeshCapture::setCalibrationFraction(const float newFraction)
+void RmlModel_DepthMeshCapture::setCurrentImagePointsValid(const bool bNewImagePointsValid)
 {
-	const float newPercent= newFraction * 100.f;
-	if (m_calibrationPercent != newPercent)
+	if (m_areCurrentImagePointsValid != bNewImagePointsValid)
 	{
-		m_calibrationPercent = newPercent;
-		m_modelHandle.DirtyVariable("calibration_percent");
+		m_areCurrentImagePointsValid = bNewImagePointsValid;
+		m_modelHandle.DirtyVariable("are_current_image_points_valid");
 	}
 }

@@ -28,16 +28,15 @@ public:
 	inline class CalibrationPatternFinder* getPatternFinder() const { return m_patternFinder; }
 
 	bool hasFinishedSampling() const;
-	float getCalibrationProgress() const;
 	void resetCalibrationState();
 
-	bool computeCameraToPuckXform();
-	glm::mat4 getLastCameraPose(VRDeviceViewPtr attachedVRDevicePtr) const;
-	void sampleLastCameraToPuckXform();
-	bool computeCalibratedCameraTrackerOffset(MikanQuatd& outRotationOffset, MikanVector3d& outTranslationOffset);
+	bool captureMesh();
 
 	void renderCameraSpaceCalibrationState();
 	void renderVRSpaceCalibrationState();
+
+	void loadMeshFromObjFile(const std::filesystem::path& objPath);
+	bool saveMeshToObjFile(const std::filesystem::path& objPath);
 
 protected:
 

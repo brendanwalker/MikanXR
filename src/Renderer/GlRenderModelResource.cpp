@@ -249,6 +249,7 @@ GlTriangulatedMeshPtr GlRenderModelResource::createTriangulatedMeshResource(
 			(const uint8_t*)vertexData,
 			(uint32_t)vertexCount,
 			(const uint8_t*)indexBuffer,
+			indexSize,
 			(uint32_t)triangleCount,
 			true); // <-- triangulated mesh owns vertex data, cleans up on delete
 

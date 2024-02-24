@@ -4,7 +4,7 @@ const std::string g_DepthMeshCaptureMenuStateStrings[(int)eDepthMeshCaptureMenuS
 	"inactive",
 	"verifySetup",
 	"capture",
-	"testCalibration",
+	"testCapture",
 	"failedVideoStartStreamRequest"
 };
 const std::string* k_DepthMeshCaptureMenuStateStrings = g_DepthMeshCaptureMenuStateStrings;

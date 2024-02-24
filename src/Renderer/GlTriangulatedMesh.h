@@ -15,6 +15,7 @@ public:
 		const uint8_t* vertexData,
 		uint32_t vertexCount,
 		const uint8_t* indexData,
+		const size_t indexSize,
 		uint32_t triangleCount,
 		bool bOwnsVertexData);
 	virtual ~GlTriangulatedMesh();
@@ -31,7 +32,7 @@ public:
 	virtual const uint8_t* getIndexData() const override { return m_indexData; }
 	virtual const size_t getElementCount() const override { return m_triangleCount; }
 	virtual const size_t getIndexPerElementCount() const override { return 3; }
-	virtual const size_t getIndexSize() const override { return sizeof(uint16_t); }
+	virtual const size_t getIndexSize() const override { return m_indexSize; }
 
 protected:
 	std::string m_name;
@@ -41,6 +42,7 @@ protected:
 	const uint8_t* m_vertexData= nullptr;
 	uint32_t m_vertexCount= 0;
 	const uint8_t* m_indexData = nullptr;
+	const size_t m_indexSize = sizeof(uint16_t);
 	uint32_t m_triangleCount= 0;
 	bool m_bOwnsVertexData= false;
 

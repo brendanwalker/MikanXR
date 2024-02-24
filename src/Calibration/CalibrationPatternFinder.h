@@ -44,8 +44,12 @@ public:
 		t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) = 0;
 
 	bool areCurrentImagePointsValid() const;
+	inline float getFrameWidth() const { return m_frameWidth; }
+	inline float getFrameHeight() const { return m_frameHeight; }
+	inline VideoFrameDistortionView* getDistortionView() const { return m_distortionView; }
 	inline void getOpenCVLensCalibrationGeometry(OpenCVCalibrationGeometry* outGeometry) { *outGeometry = m_opencvLensCalibrationGeometry; };
 	inline void getOpenCVSolvePnPGeometry(OpenCVCalibrationGeometry* outGeometry) { *outGeometry= m_opencvSolvePnPGeometry; };
+	inline void getOpenGLSolvePnPGeometry(OpenGLCalibrationGeometry* outGeometry) { *outGeometry= m_openglSolvePnPGeometry; };
 	void renderCalibrationPattern2D() const;
 	void renderSolvePnPPattern3D(const glm::mat4& xform) const;
 
@@ -59,7 +63,7 @@ protected:
 	// Internal Calibration State
 	OpenCVCalibrationGeometry m_opencvLensCalibrationGeometry;
 	OpenCVCalibrationGeometry m_opencvSolvePnPGeometry;
-	OpenGLCalibrationGeometry m_openglGeometry;
+	OpenGLCalibrationGeometry m_openglSolvePnPGeometry;
 	t_opencv_point2d_list m_lastValidQuad;
 	t_opencv_point2d_list m_lastValidImagePoints;
 	t_opencv_point2d_list m_currentImagePoints;
