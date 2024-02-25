@@ -34,8 +34,11 @@ public:
 	void renderCameraSpaceCalibrationState();
 	void renderVRSpaceCalibrationState();
 
-	void loadMeshFromObjFile(const std::filesystem::path& objPath);
+	bool loadMeshFromObjFile(const std::filesystem::path& objPath);
 	bool saveMeshToObjFile(const std::filesystem::path& objPath);
+
+	bool loadTextureFromPNG(const std::filesystem::path& texturePath);
+	bool saveTextureToPNG(const std::filesystem::path& texturePath);
 
 protected:
 

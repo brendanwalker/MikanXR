@@ -1,5 +1,3 @@
-// Derived From example 11-1 of "Learning OpenCV: Computer Vision with the OpenCV Library" by Gary Bradski
-
 //-- includes -----
 #include "CameraSettings/AppStage_CameraSettings.h"
 #include "DepthMeshCapture/AppStage_DepthMeshCapture.h"
@@ -9,6 +7,7 @@
 #include "DepthMeshGenerator.h"
 #include "GlCamera.h"
 #include "GlLineRenderer.h"
+#include "GlFrameCompositor.h"
 #include "GlScene.h"
 #include "GlTextRenderer.h"
 #include "GlViewport.h"
@@ -55,9 +54,9 @@ AppStage_DepthMeshCapture::~AppStage_DepthMeshCapture()
 	delete m_cameraSettingsModel;
 }
 
-void AppStage_DepthMeshCapture::setBypassCalibrationFlag(bool flag)
+void AppStage_DepthMeshCapture::setBypassCaptureFlag(bool flag)
 {
-	m_calibrationModel->setBypassCalibrationFlag(flag);
+	m_calibrationModel->setBypassCaptureFlag(flag);
 }
 
 void AppStage_DepthMeshCapture::enter()
@@ -91,6 +90,9 @@ void AppStage_DepthMeshCapture::enter()
 	bool depthCaptureReady= false;
 	if (m_videoSourceView->startVideoStream())
 	{
+		auto mainWindow = App::getInstance()->getMainWindow();
+		auto glFrameCompositor = mainWindow->getFrameCompositor();
+
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			std::make_shared<VideoFrameDistortionView>(
@@ -99,12 +101,26 @@ void AppStage_DepthMeshCapture::enter()
 				VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
-		// Create a depth estimator with texture output
-		auto openCVManager = App::getInstance()->getMainWindow()->getOpenCVManager();
-		m_syntheticDepthEstimator =
-			std::make_shared<SyntheticDepthEstimator>(
-				openCVManager, DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
-		if (m_syntheticDepthEstimator->initialize())
+		// Get the depth estimator from the frame compositor
+		// (might have made one for depth visualization)
+		m_syntheticDepthEstimator = glFrameCompositor->getSyntheticDepthEstimator();
+
+		// If we don't have one, then make a new depth estimator ourselves
+		if (!m_syntheticDepthEstimator)
+		{
+			m_syntheticDepthEstimator =
+				std::make_shared<SyntheticDepthEstimator>(
+					mainWindow->getOpenCVManager(), 
+					DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
+
+			if (m_syntheticDepthEstimator->initialize())
+			{
+				MIKAN_LOG_ERROR("GlFrameCompositor::openVideoSource") << "Failed to create depth estimator";
+				m_syntheticDepthEstimator = nullptr;
+			}
+		}
+
+		if (m_syntheticDepthEstimator)
 		{
 			// Create a depth mesh generator
 			m_depthMeshCapture =
@@ -115,20 +131,24 @@ void AppStage_DepthMeshCapture::enter()
 
 			depthCaptureReady= true;
 		}
-		else
-		{
-			MIKAN_LOG_ERROR("GlFrameCompositor::openVideoSource") << "Failed to create depth estimator";
-			m_syntheticDepthEstimator = nullptr;
-		}
 	}
 
 	eDepthMeshCaptureMenuState newState;
 	if (depthCaptureReady)
 	{
-		// If bypassing the calibration, then jump straight to the test calibration state
-		if (m_calibrationModel->getBypassCalibrationFlag())
+		// If bypassing the capture, then jump straight to the test capture state
+		if (m_calibrationModel->getBypassCaptureFlag())
 		{
-			newState = eDepthMeshCaptureMenuState::testCapture;
+			// Load the mesh and texture from the given paths
+			if (m_depthMeshCapture->loadMeshFromObjFile(m_meshSavePath) &&
+				m_depthMeshCapture->loadTextureFromPNG(m_textureSavePath))
+			{
+				newState = eDepthMeshCaptureMenuState::testCapture;
+			}
+			else
+			{
+				newState = eDepthMeshCaptureMenuState::failedToStart;
+			}
 		}
 		else
 		{
@@ -137,7 +157,7 @@ void AppStage_DepthMeshCapture::enter()
 	}
 	else
 	{
-		newState = eDepthMeshCaptureMenuState::failedVideoStartStreamRequest;
+		newState = eDepthMeshCaptureMenuState::failedToStart;
 	}
 
 	// Create app stage UI models and views
@@ -147,15 +167,14 @@ void AppStage_DepthMeshCapture::enter()
 
 		// Init calibration model
 		m_calibrationModel->init(context);
-		m_calibrationModel->OnBeginEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onBeginEvent);
+		m_calibrationModel->OnContinueEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onContinueEvent);
 		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onRestartEvent);
 		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onCancelEvent);
-		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onReturnEvent);
 
 		// Init camera settings model
 		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
 		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_DepthMeshCapture::onViewportModeChanged);
-		if (m_calibrationModel->getBypassCalibrationFlag())
+		if (m_calibrationModel->getBypassCaptureFlag())
 		{
 			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::mixedRealityViewpoint);
 		}
@@ -235,61 +254,10 @@ void AppStage_DepthMeshCapture::updateCamera()
 
 void AppStage_DepthMeshCapture::update(float deltaSeconds)
 {
-	updateCamera();
-
-	switch(m_calibrationModel->getMenuState())
+	if (m_calibrationModel->getMenuState() != eDepthMeshCaptureMenuState::failedToStart)
 	{
-		case eDepthMeshCaptureMenuState::verifySetup:
-			{
-				// Update the video frame buffers to preview the calibration mat
-				m_monoDistortionView->readAndProcessVideoFrame();
-
-				// Look for a calibration pattern so that we can preview if it's in frame
-				m_depthMeshCapture->captureMesh();
-			}
-			break;
-		case eDepthMeshCaptureMenuState::capture:
-			{
-				// Update the video frame buffers
-				m_monoDistortionView->readAndProcessVideoFrame();
-
-			#if 0
-				// Update the chess board capture state
-				if (m_depthMeshCapture->captureMesh())
-				{
-					m_depthMeshCapture->sampleLastCameraToPuckXform();
-
-					// Update the calibration fraction on the UI Model
-					m_calibrationModel->setCalibrationFraction(m_depthMeshCapture->getCalibrationProgress());
-				}
-
-				// See if we have gotten all the samples we require
-				if (m_depthMeshCapture->hasFinishedSampling())
-				{
-					MikanQuatd rotationOffset;
-					MikanVector3d translationOffset;
-					if (m_depthMeshCapture->computeCalibratedCameraTrackerOffset(
-						rotationOffset,
-						translationOffset))
-					{
-						// Store the calibrated camera offset on the video source settings
-						m_videoSourceView->setCameraPoseOffset(rotationOffset, translationOffset);
-
-						// Go to the test calibration state
-						m_monoDistortionView->setGrayscaleUndistortDisabled(true);
-						m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::mixedRealityViewpoint);
-						setMenuState(eDepthMeshCaptureMenuState::testCapture);
-					}
-				}
-			#endif
-			}
-			break;
-		case eDepthMeshCaptureMenuState::testCapture:
-			{
-				// Update the video frame buffers using the existing distortion calibration
-				m_monoDistortionView->readAndProcessVideoFrame();
-			}
-			break;
+		updateCamera();
+		m_monoDistortionView->readAndProcessVideoFrame();
 	}
 }
 
@@ -371,20 +339,46 @@ void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState
 				m_cameraSettingsView->Hide();
 			}
 		}
+
+		if (newState == eDepthMeshCaptureMenuState::testCapture)
+		{
+			// Go to the mixed reality viewpoint by default when we are in the test capture state
+			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::mixedRealityViewpoint);
+		}
 	}
 }
 
 // Calibration Model UI Events
-void AppStage_DepthMeshCapture::onBeginEvent()
+void AppStage_DepthMeshCapture::onContinueEvent()
 {
-	// Clear out all of the calibration data we recorded
-	m_depthMeshCapture->resetCalibrationState();
+	switch (m_calibrationModel->getMenuState())
+	{
+	case eDepthMeshCaptureMenuState::verifySetup:
+	case eDepthMeshCaptureMenuState::captureFailed:
+		{
+			if (m_depthMeshCapture->captureMesh())
+			{
+				setMenuState(eDepthMeshCaptureMenuState::testCapture);
+			}
+			else
+			{
+				setMenuState(eDepthMeshCaptureMenuState::failedToStart);
+			}
+		}
+		break;
+	case eDepthMeshCaptureMenuState::testCapture:
+		{
+			// Write out the mesh to a file
+			if (!m_calibrationModel->getBypassCaptureFlag())
+			{
+				m_depthMeshCapture->saveMeshToObjFile(m_meshSavePath);
+				m_depthMeshCapture->saveTextureToPNG(m_textureSavePath);
+			}
 
-	// Go back to the camera viewpoint (in case we are in VR view)
-	m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
-
-	// Advance to the capture state
-	setMenuState(eDepthMeshCaptureMenuState::capture);
+			m_ownerWindow->popAppState();
+		}
+		break;
+	}
 }
 
 void AppStage_DepthMeshCapture::onRestartEvent()
@@ -400,11 +394,6 @@ void AppStage_DepthMeshCapture::onRestartEvent()
 }
 
 void AppStage_DepthMeshCapture::onCancelEvent()
-{
-	m_ownerWindow->popAppState();
-}
-
-void AppStage_DepthMeshCapture::onReturnEvent()
 {
 	m_ownerWindow->popAppState();
 }

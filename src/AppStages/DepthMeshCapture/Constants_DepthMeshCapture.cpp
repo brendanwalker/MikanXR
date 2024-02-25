@@ -4,8 +4,9 @@ const std::string g_DepthMeshCaptureMenuStateStrings[(int)eDepthMeshCaptureMenuS
 	"inactive",
 	"verifySetup",
 	"capture",
+	"captureFailed",
 	"testCapture",
-	"failedVideoStartStreamRequest"
+	"failedToStart"
 };
 const std::string* k_DepthMeshCaptureMenuStateStrings = g_DepthMeshCaptureMenuStateStrings;
 
@@ -15,3 +16,4 @@ const std::string g_DepthMeshCaptureViewpointModeStrings[(int)eDepthMeshCaptureV
 	"mixedRealityViewpoint"
 };
 extern const std::string* k_DepthMeshCaptureViewpointModeStrings= g_DepthMeshCaptureViewpointModeStrings;
+

@@ -5,6 +5,8 @@
 #include "Constants_DepthMeshCapture.h"
 #include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
+
+#include <filesystem>
 #include <memory>
 
 class VideoSourceView;
@@ -31,7 +33,9 @@ public:
 	AppStage_DepthMeshCapture(class MainWindow* ownerWindow);
 	virtual ~AppStage_DepthMeshCapture();
 
-	void setBypassCalibrationFlag(bool flag);
+	void setMeshSavePath(const std::filesystem::path& path) { m_meshSavePath = path; }
+	void setTextureSavePath(const std::filesystem::path& path) { m_textureSavePath = path; }
+	void setBypassCaptureFlag(bool flag);
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -44,15 +48,17 @@ protected:
 	void setMenuState(eDepthMeshCaptureMenuState newState);
 
 	// Calibration Model UI Events
-	void onBeginEvent();
+	void onContinueEvent();
 	void onRestartEvent();
 	void onCancelEvent();
-	void onReturnEvent();
 
 	// Camera Settings Model UI Events
 	void onViewportModeChanged(eDepthMeshCaptureViewpointMode newViewMode);
 	
 private:
+	std::filesystem::path m_meshSavePath;
+	std::filesystem::path m_textureSavePath;
+
 	class RmlModel_DepthMeshCapture* m_calibrationModel = nullptr;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 

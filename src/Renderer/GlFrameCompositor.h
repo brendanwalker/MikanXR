@@ -83,6 +83,7 @@ public:
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
 	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
+	inline SyntheticDepthEstimatorPtr getSyntheticDepthEstimator() const { return m_syntheticDepthEstimator; }
 	GlTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
 	GlTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 

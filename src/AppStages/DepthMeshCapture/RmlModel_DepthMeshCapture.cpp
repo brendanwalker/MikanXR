@@ -15,18 +15,15 @@ bool RmlModel_DepthMeshCapture::init(
 		return false;
 
 	constructor.Bind("menu_state", &m_menuState);
-	constructor.Bind("are_current_image_points_valid", &m_areCurrentImagePointsValid);
-	constructor.Bind("bypass_calibration_flag", &m_bypassCalibrationFlag);
+	constructor.Bind("bypass_capture_flag", &m_bypassCaptureFlag);
 	constructor.BindEventCallback(
-		"begin",
+		"continue",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			// Tell the parent app state that we started calibration
-			if (OnBeginEvent) OnBeginEvent();
+			if (OnContinueEvent) OnContinueEvent();
 		});
 	constructor.BindEventCallback(
 		"restart",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			// Tell the parent app state that we restarted
 			if (OnRestartEvent) OnRestartEvent();
 		});
 	constructor.BindEventCallback(
@@ -34,13 +31,7 @@ bool RmlModel_DepthMeshCapture::init(
 			[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
 			if (OnCancelEvent) OnCancelEvent();
 		});
-	constructor.BindEventCallback(
-		"return",
-		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			if (OnReturnEvent) OnReturnEvent();
-		});
 
-	setCurrentImagePointsValid(false);
 	setMenuState(eDepthMeshCaptureMenuState::inactive);
 
 	return true;
@@ -48,28 +39,27 @@ bool RmlModel_DepthMeshCapture::init(
 
 void RmlModel_DepthMeshCapture::dispose()
 {
-	OnBeginEvent.Clear();
+	OnContinueEvent.Clear();
 	OnRestartEvent.Clear();
 	OnCancelEvent.Clear();
-	OnReturnEvent.Clear();
 	RmlModel::dispose();
 }
 
-bool RmlModel_DepthMeshCapture::getBypassCalibrationFlag() const
+bool RmlModel_DepthMeshCapture::getBypassCaptureFlag() const
 {
-	return m_bypassCalibrationFlag;
+	return m_bypassCaptureFlag;
 }
 
-void RmlModel_DepthMeshCapture::setBypassCalibrationFlag(const bool bNewFlag)
+void RmlModel_DepthMeshCapture::setBypassCaptureFlag(const bool bNewFlag)
 {
-	if (bNewFlag != m_bypassCalibrationFlag)
+	if (bNewFlag != m_bypassCaptureFlag)
 	{
-		m_bypassCalibrationFlag = bNewFlag;
+		m_bypassCaptureFlag = bNewFlag;
 
 		// Can be called before RmlModel_DepthMeshCapture::init()
 		if (m_modelHandle)
 		{
-			m_modelHandle.DirtyVariable("bypass_calibration_flag");
+			m_modelHandle.DirtyVariable("bypass_capture_flag");
 		}
 	}
 }
@@ -89,19 +79,5 @@ void RmlModel_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState
 		// Update menu state on the data model
 		m_menuState = newStateString;
 		m_modelHandle.DirtyVariable("menu_state");
-	}
-}
-
-bool RmlModel_DepthMeshCapture::getCurrentImagePointsValid() const
-{
-	return m_areCurrentImagePointsValid;
-}
-
-void RmlModel_DepthMeshCapture::setCurrentImagePointsValid(const bool bNewImagePointsValid)
-{
-	if (m_areCurrentImagePointsValid != bNewImagePointsValid)
-	{
-		m_areCurrentImagePointsValid = bNewImagePointsValid;
-		m_modelHandle.DirtyVariable("are_current_image_points_valid");
 	}
 }

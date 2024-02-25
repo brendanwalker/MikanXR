@@ -348,12 +348,26 @@ void DepthMeshGenerator::renderVRSpaceCalibrationState()
 #endif
 }
 
-void DepthMeshGenerator::loadMeshFromObjFile(const std::filesystem::path& objPath)
+bool DepthMeshGenerator::loadMeshFromObjFile(const std::filesystem::path& objPath)
 {
-
+	return true;
 }
 
 bool DepthMeshGenerator::saveMeshToObjFile(const std::filesystem::path& objPath)
 {
+	return true;
+}
+
+bool DepthMeshGenerator::loadTextureFromPNG(const std::filesystem::path& texturePath)
+{
+	//TODO
+	return true;
+}
+
+bool DepthMeshGenerator::saveTextureToPNG(const std::filesystem::path& texturePath)
+{
+	//TODO
+	//SdlUtility::saveTextureToPNG(colorTexture.get(), texturePath.c_str());
+
 	return true;
 }
