@@ -2,11 +2,17 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
+#include "GlMaterial.h"
+#include "GlMaterialInstance.h"
 #include "GlModelResourceManager.h"
+#include "GlProgram.h"
 #include "GlRenderModelResource.h"
+#include "GlShaderCache.h"
 #include "GlStaticMeshInstance.h"
+#include "GlTextureCache.h"
 #include "GlTriangulatedMesh.h"
 #include "GlWireframeMesh.h"
+#include "IGlWindow.h"
 #include "MathTypeConversion.h"
 #include "BoxColliderComponent.h"
 #include "MeshColliderComponent.h"
@@ -638,4 +644,174 @@ bool StencilObjectSystem::isStencilFacingCamera(
 	return 
 		glm::dot(cameraToStencil, cameraForward) > 0.f &&
 		glm::dot(stencilToCamera, stencilForward) > 0.f;
+}
+
+GlRenderModelResourcePtr StencilObjectSystem::loadStencilRenderModel(
+	IGlWindow* ownerWindow,
+	ModelStencilDefinitionPtr stencilDefinition)
+{
+	const GlVertexDefinition& vertexDefinition = getStencilModelVertexDefinition();
+	GlModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
+	GlTextureCache* textureCache= ownerWindow->getTextureCache();
+
+	// Load the texture, if any, specified in the stencil definition
+	const std::filesystem::path& texturePath = stencilDefinition->getTexturePath();
+	GlTexturePtr texture = textureCache->loadTexturePath(texturePath);
+
+	// Create the appropriate material for the stencil based on if a texture is present
+	GlMaterialConstPtr stencilMaterial =
+		(texture != nullptr) ? 
+		createTexturedStencilMaterial(ownerWindow) :
+		createVertexOnlyStencilMaterial(ownerWindow);
+	
+	// Attempt to load the render model
+	GlRenderModelResourcePtr renderModelResource =
+		modelResourceManager->fetchRenderModel(
+			stencilDefinition->getModelPath(),
+			&vertexDefinition,
+			stencilMaterial);
+
+	if (renderModelResource != nullptr)
+	{
+		// If we have a texture, apply it to the material instances of the render model
+		if (texture)
+		{
+			for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); meshIndex++)
+			{
+				GlMaterialInstancePtr matInst = renderModelResource->getTriangulatedMeshMaterial(meshIndex);
+
+				if (matInst)
+				{
+					matInst->setTextureBySemantic(eUniformSemantic::texture0, texture);
+				}
+			}
+		}
+	}
+	else
+	{
+		// Free the texture if the model failed to load
+		textureCache->removeTexureFromCache(texture);
+	}
+
+	return renderModelResource;
+}
+
+GlMaterialPtr StencilObjectSystem::createVertexOnlyStencilMaterial(IGlWindow* ownerWindow)
+{
+	GlProgramPtr program= 
+		ownerWindow->getShaderCache()->fetchCompiledGlProgram(
+			getVertexOnlyStencilShaderCode());
+
+	return std::make_shared<GlMaterial>("Vertex Only Stencil Material", program);
+}
+
+GlMaterialPtr StencilObjectSystem::createTexturedStencilMaterial(IGlWindow* ownerWindow)
+{
+	GlProgramPtr program =
+		ownerWindow->getShaderCache()->fetchCompiledGlProgram(
+			getTexturedStencilShaderCode());
+
+	return std::make_shared<GlMaterial>("Textured Stencil Material", program);
+}
+
+const GlVertexDefinition& StencilObjectSystem::getStencilModelVertexDefinition()
+{
+	static GlVertexDefinition x_vertexDefinition;
+
+	if (x_vertexDefinition.attributes.size() == 0)
+	{
+		const uint32_t positionSize = (uint32_t)sizeof(float) * 3;
+		const uint32_t normalSize = (uint32_t)sizeof(float) * 3;
+		const uint32_t texelSize = (uint32_t)sizeof(float) * 2;
+		const uint32_t vertexSize = positionSize + normalSize + texelSize;
+		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
+
+		size_t offset = 0;
+		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, offset));
+		offset += positionSize;
+
+		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::normal3f, false, vertexSize, offset));
+		offset += normalSize;
+
+		attribs.push_back(GlVertexAttribute(2, eVertexSemantic::texel2f, false, vertexSize, offset));
+		offset += texelSize;
+
+		assert(offset == vertexSize);
+		x_vertexDefinition.vertexSize = vertexSize;
+	}
+
+	return x_vertexDefinition;
+}
+
+const GlProgramCode* StencilObjectSystem::getVertexOnlyStencilShaderCode()
+{
+	static GlProgramCode x_shaderCode = GlProgramCode(
+		"Internal Vertex Only Stencil Shader Code",
+		// vertex shader
+		R""""(
+			#version 330 core
+			layout (location = 0) in vec3 aPos;
+
+			uniform mat4 mvpMatrix;
+
+			void main()
+			{
+				gl_Position = mvpMatrix * vec4(aPos, 1.0);
+			}
+			)"""",
+		//fragment shader
+		R""""(
+			#version 330 core
+			out vec4 FragColor;
+
+			void main()
+			{    
+				FragColor = vec4(1, 1, 1, 1);
+			}
+			)"""")
+		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix);
+
+	return &x_shaderCode;
+}
+
+const GlProgramCode* StencilObjectSystem::getTexturedStencilShaderCode()
+{
+	static GlProgramCode x_shaderCode = GlProgramCode(
+		"Internal Textured Stencil Shader Code",
+		// vertex shader
+		R""""(
+			#version 330 core
+			layout (location = 0) in vec2 aPos;
+			layout (location = 2) in vec3 aNormal;
+			layout (location = 2) in vec2 aTexCoords;
+
+			uniform mat4 mvpMatrix;
+
+			out vec2 TexCoords;
+
+			void main()
+			{
+				TexCoords = aTexCoords;
+				gl_Position = mvpMatrix * vec4(aPos, 1.0);
+			}  
+			)"""",
+		//fragment shader
+		R""""(
+			#version 330 core
+			out vec4 FragColor;
+
+			in vec2 TexCoords;
+
+			uniform sampler2D rgbTexture;
+
+			void main()
+			{
+				vec3 col = texture(rgbTexture, TexCoords).rgb;
+				FragColor = vec4(col, 1.0);
+			} 
+			)"""")
+		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix)
+		.addUniform("rgbTexture", eUniformSemantic::texture0);
+
+	return &x_shaderCode;
 }

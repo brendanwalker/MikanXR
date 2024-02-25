@@ -12,6 +12,7 @@
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "MikanClientTypes.h"
+#include "StencilObjectSystem.h"
 #include "SyntheticDepthEstimator.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
@@ -21,7 +22,7 @@
 #include <atomic>
 #include <thread>
 
-struct MonoLensDepthMeshCaptureState
+struct DepthMeshCaptureState
 {
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
@@ -200,7 +201,7 @@ struct MonoLensDepthMeshCaptureState
 
 		depthMeshPtr = std::make_shared<GlTriangulatedMesh>(
 			"depth_mesh",
-			CompositorNodeGraph::getStencilModelVertexDefinition(),
+			StencilObjectSystem::getStencilModelVertexDefinition(),
 			(const uint8_t*)meshVertices,
 			4, // 4 verts
 			(const uint8_t*)meshIndices,
@@ -222,7 +223,7 @@ DepthMeshGenerator::DepthMeshGenerator(
 	ProfileConfigConstPtr profileConfig,
 	VideoFrameDistortionViewPtr distortionView,
 	SyntheticDepthEstimatorPtr depthEstimator)
-	: m_calibrationState(new MonoLensDepthMeshCaptureState)
+	: m_calibrationState(new DepthMeshCaptureState)
 	, m_distortionView(distortionView)
 	, m_patternFinder(CalibrationPatternFinder::allocatePatternFinderSharedPtr(profileConfig, distortionView.get()))
 	, m_depthEstimator(depthEstimator)
@@ -263,6 +264,7 @@ bool DepthMeshGenerator::captureMesh()
 		return false;
 	}
 
+	// Fetch the last found calibration pattern and its bounding quad
 	cv::Point2f boundingQuad[4];
 	t_opencv_point2d_list imagePoints;
 	m_patternFinder->fetchLastFoundCalibrationPattern(imagePoints, boundingQuad);
@@ -280,6 +282,8 @@ bool DepthMeshGenerator::captureMesh()
 	{
 		return false;
 	}
+
+	// Convert the OpenCV camera relative pose to a GLM matrix
 	convertOpenCVCameraRelativePoseToGLMMat(
 		cv_cameraToPatternRot, cv_cameraToPatternVecMM, 
 		m_calibrationState->cameraToPatternXform);

@@ -15,7 +15,7 @@
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
-#include "CalibrationPatternFinder.h"
+#include "ProfileConfig.h"
 #include "SyntheticDepthEstimator.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"
@@ -174,14 +174,6 @@ void AppStage_DepthMeshCapture::enter()
 		// Init camera settings model
 		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
 		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_DepthMeshCapture::onViewportModeChanged);
-		if (m_calibrationModel->getBypassCaptureFlag())
-		{
-			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::mixedRealityViewpoint);
-		}
-		else
-		{
-			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
-		}
 
 		// Init calibration view now that the dependent model has been created
 		m_calibrationView = addRmlDocument("depth_capture.rml");
@@ -214,6 +206,9 @@ void AppStage_DepthMeshCapture::exit()
 
 	// Free the calibrator
 	m_depthMeshCapture = nullptr;
+
+	// Free the depth estimator
+	m_syntheticDepthEstimator = nullptr;
 
 	// Free the distortion view buffers
 	m_monoDistortionView = nullptr;
@@ -345,6 +340,10 @@ void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState
 			// Go to the mixed reality viewpoint by default when we are in the test capture state
 			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::mixedRealityViewpoint);
 		}
+		else
+		{
+			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
+		}
 	}
 }
 
@@ -383,9 +382,6 @@ void AppStage_DepthMeshCapture::onContinueEvent()
 
 void AppStage_DepthMeshCapture::onRestartEvent()
 {
-	// Clear out all of the calibration data we recorded
-	m_depthMeshCapture->resetCalibrationState();
-
 	// Go back to the camera viewpoint (in case we are in VR view)
 	m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
 

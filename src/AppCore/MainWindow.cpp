@@ -16,6 +16,7 @@
 #include "GlStateStack.h"
 #include "GlTexture.h"
 #include "GlShaderCache.h"
+#include "GlTextureCache.h"
 #include "GlTextRenderer.h"
 #include "GlLineRenderer.h"
 #include "GlViewport.h"
@@ -74,6 +75,7 @@ MainWindow::MainWindow()
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
+	, m_textureCache(GlTextureCacheUniquePtr(new GlTextureCache))
 {}
 
 MainWindow::~MainWindow()
@@ -105,6 +107,11 @@ GlTextRenderer* MainWindow::getTextRenderer()
 GlShaderCache* MainWindow::getShaderCache()
 {
 	return m_shaderCache.get();
+}
+
+GlTextureCache* MainWindow::getTextureCache()
+{
+	return m_textureCache.get();
 }
 
 GlModelResourceManager* MainWindow::getModelResourceManager()
@@ -154,6 +161,12 @@ bool MainWindow::startup()
 	if (success && !m_openCVManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize OpenCV manager!";
+		success = false;
+	}
+
+	if (success && !m_textureCache->startup())
+	{
+		MIKAN_LOG_ERROR("MainWindow::startup") << "Failed to initialize texture cache!";
 		success = false;
 	}
 
@@ -383,6 +396,12 @@ void MainWindow::shutdown()
 	{
 		m_shaderCache->shutdown();
 		m_shaderCache= nullptr;
+	}
+
+	if (m_textureCache != nullptr)
+	{
+		m_textureCache->shutdown();
+		m_textureCache = nullptr;
 	}
 
 	if (m_sdlWindow != nullptr)

@@ -104,6 +104,7 @@ public:
 	virtual GlTextRenderer* getTextRenderer() override;
 	virtual GlModelResourceManager* getModelResourceManager() override;
 	virtual GlShaderCache* getShaderCache() override;
+	virtual GlTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;
@@ -178,6 +179,9 @@ private:
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;
+
+	// OpenGL texture program cache
+	GlTextureCacheUniquePtr m_textureCache;
 
 	static MainWindow* m_instance;
 };

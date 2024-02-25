@@ -33,7 +33,8 @@ public:
 
 	GlRenderModelResourcePtr fetchRenderModel(
 		const std::filesystem::path& modelFilePath,
-		const struct GlVertexDefinition* vertexDefinition);
+		const struct GlVertexDefinition* vertexDefinition,
+		const GlMaterialConstPtr material);
 
 	GlProgramPtr getPhongShader() const { return m_phongShader; }
 	GlMaterialConstPtr getPhongMaterial() const { return m_phongMaterial; }

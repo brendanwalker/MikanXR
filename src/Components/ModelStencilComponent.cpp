@@ -30,6 +30,7 @@
 
 // -- ModelStencilConfig -----
 const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId = "model_path";
+const std::string ModelStencilDefinition::k_modelStencilTexturePathPropertyId = "texture_path";
 
 ModelStencilDefinition::ModelStencilDefinition()
 	: StencilComponentDefinition()
@@ -50,6 +51,7 @@ configuru::Config ModelStencilDefinition::writeToJSON()
 	configuru::Config pt = StencilComponentDefinition::writeToJSON();
 
 	pt["model_path"] = m_modelPath.string();
+	pt["texture_path"] = m_texturePath.string();
 
 	return pt;
 }
@@ -58,13 +60,20 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 {
 	StencilComponentDefinition::readFromJSON(pt);
 
-	m_modelPath = pt.get<std::string>("model_path");
+	m_modelPath = pt.get_or<std::string>("model_path", "");
+	m_texturePath = pt.get_or<std::string>("texture_path", "");
 }
 
 void ModelStencilDefinition::setModelPath(const std::filesystem::path& path)
 {
 	m_modelPath= path;
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
+}
+
+void ModelStencilDefinition::setTexturePath(const std::filesystem::path& path)
+{
+	m_texturePath= path;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilTexturePathPropertyId));
 }
 
 MikanStencilModel ModelStencilDefinition::getModelInfo() const
@@ -182,27 +191,24 @@ void ModelStencilComponent::rebuildMeshComponents()
 	// Forget about any wireframe meshes
 	m_wireframeMeshes.clear();
 
-	// Fetch the model resource
-	GlRenderModelResourcePtr modelResourcePtr;
-	if (!modelStencilDefinition->getModelPath().empty())
-	{
-		//TODO: Need to consider how model resources are managed across multiple windows.
-		// For now, we are assuming that models are only rendered in the Main Window.
-		auto* modelResourceManager = MainWindow::getInstance()->getModelResourceManager();
-		modelResourcePtr = modelResourceManager->fetchRenderModel(
-			modelStencilDefinition->getModelPath(),
-			GlRenderModelResource::getDefaultVertexDefinition());
-	}
+	// Fetch the stencil model resource
+	// TODO: Need to consider how MikanObjects are rendered across multiple windows,
+	// since each window needs to own its own models and shader resources.
+	// For now, we are assuming that models are only rendered in the Main Window.
+	MainWindow* mainWindow= MainWindow::getInstance();
+	GlRenderModelResourcePtr modelResourcePtr= 
+		StencilObjectSystem::loadStencilRenderModel(
+			mainWindow, modelStencilDefinition);
 
 	// If a model loaded, create meshes and colliders for it
 	if (modelResourcePtr)
 	{
 		// Add static tri meshes
-		for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
+		for (int meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
 		{
 			// Fetch the mesh and material resources
-			GlTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh((int)meshIndex);
-			GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getTriangulatedMeshMaterial((int)meshIndex);
+			GlTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
+			GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getTriangulatedMeshMaterial(meshIndex);
 
 			// Create a new static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr triMeshInstancePtr =
@@ -228,11 +234,11 @@ void ModelStencilComponent::rebuildMeshComponents()
 		}
 
 		// Add static wireframe meshes
-		for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
+		for (int meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
 		{
 			// Fetch the mesh and material resources
-			GlWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh((int)meshIndex);
-			GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getWireframeMeshMaterial((int)meshIndex);
+			GlWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh(meshIndex);
+			GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getWireframeMeshMaterial(meshIndex);
 
 			// Create a new (hidden) static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr wireframeMeshInstancePtr =

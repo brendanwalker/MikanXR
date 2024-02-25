@@ -56,6 +56,7 @@ public:
 	virtual GlTextRenderer* getTextRenderer() override;
 	virtual GlModelResourceManager* getModelResourceManager() override;
 	virtual GlShaderCache* getShaderCache() override;
+	virtual GlTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;
@@ -109,6 +110,9 @@ protected:
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;
+
+	// OpenGL texture cache
+	GlTextureCacheUniquePtr m_textureCache;
 
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;

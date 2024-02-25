@@ -8,6 +8,7 @@
 #include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlTexture.h"
+#include "GlTextureCache.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
@@ -46,6 +47,7 @@ NodeEditorWindow::NodeEditorWindow()
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
 	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
+	, m_textureCache(GlTextureCacheUniquePtr(new GlTextureCache))
 {}
 
 NodeEditorWindow::~NodeEditorWindow()
@@ -70,6 +72,11 @@ GlModelResourceManager* NodeEditorWindow::getModelResourceManager()
 GlShaderCache* NodeEditorWindow::getShaderCache()
 {
 	return m_shaderCache.get();
+}
+
+GlTextureCache* NodeEditorWindow::getTextureCache()
+{
+	return m_textureCache.get();
 }
 
 GlStateStack& NodeEditorWindow::getGlStateStack()
@@ -165,6 +172,12 @@ bool NodeEditorWindow::startup()
 			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create imnodes context";
 			success = false;
 		}
+	}
+
+	if (success && !m_textureCache->startup())
+	{
+		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize texture cache!";
+		success = false;
 	}
 
 	if (success && !m_shaderCache->startup())
@@ -1082,6 +1095,12 @@ void NodeEditorWindow::shutdown()
 	{
 		m_shaderCache->shutdown();
 		m_shaderCache = nullptr;
+	}
+
+	if (m_textureCache != nullptr)
+	{
+		m_textureCache->shutdown();
+		m_textureCache = nullptr;
 	}
 
 	if (m_imnodesContext != nullptr)

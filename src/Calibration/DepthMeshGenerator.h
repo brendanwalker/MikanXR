@@ -46,7 +46,7 @@ protected:
 	float frameHeight;
 
 	// Internal Capture State
-	struct MonoLensDepthMeshCaptureState* m_calibrationState;
+	struct DepthMeshCaptureState* m_calibrationState;
 
 	// Undistorted Video Frame
 	VideoFrameDistortionViewPtr m_distortionView;

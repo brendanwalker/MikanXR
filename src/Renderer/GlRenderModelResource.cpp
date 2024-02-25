@@ -84,7 +84,9 @@ const GlVertexDefinition* GlRenderModelResource::getDefaultVertexDefinition()
 	return &x_vertexDefinition;
 }
 
-bool GlRenderModelResource::createRenderResources(GlModelResourceManager* modelResourceManager)
+bool GlRenderModelResource::createRenderResources(
+	GlModelResourceManager* modelResourceManager,
+	const GlMaterialConstPtr material)
 {
 	bool bSuccess = false;
 
@@ -97,7 +99,7 @@ bool GlRenderModelResource::createRenderResources(GlModelResourceManager* modelR
 					mesh.MeshName, getVertexDefinition(), &mesh);
 			GlMaterialInstancePtr glTriMeshMaterial =
 				createTriMeshMaterialInstance(
-					modelResourceManager->getPhongMaterial(), 
+					(material != nullptr) ? material : modelResourceManager->getPhongMaterial(), 
 					&mesh.MeshMaterial);
 			GlWireframeMeshPtr glWireframeMesh =
 				createWireframeMeshResource(

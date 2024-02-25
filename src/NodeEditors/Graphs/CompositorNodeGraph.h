@@ -26,17 +26,9 @@ public:
 	void setExternalCompositedFrameTexture(GlTexturePtr externalTexture);
 
 	// Stencil Models
-	struct StencilVertex
-	{
-		glm::vec3 aPos;
-		glm::vec3 aNormal;
-		glm::vec2 aTexCoords;
-	};
 	GlRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);
 	void flushStencilRenderModel(MikanStencilID stencilId);
-	static const GlVertexDefinition& getStencilModelVertexDefinition();
 	inline GlProgramPtr getVertexOnlyStencilShader() const { return m_vertexOnlyStencilShader; }
-	inline GlProgramPtr getTexturedStencilShader() const { return m_texturedStencilShader; }
 	inline GlTriangulatedMeshPtr getStencilQuadMesh() const { return m_stencilQuadMesh; }
 	inline GlTriangulatedMeshPtr getStencilBoxMesh() const { return m_stencilBoxMesh; }
 	inline GlTriangulatedMeshPtr getLayerVFlippedMesh() const { return m_layerVFlippedMesh; }
@@ -53,8 +45,6 @@ protected:
 
 	bool bindEventNodes();
 
-	static const GlProgramCode* getVertexOnlyStencilShaderCode();
-	static const GlProgramCode* getTexturedStencilShaderCode();
 	bool createStencilShaders();
 	bool createLayerQuadMeshes();
 	bool createStencilMeshes();
@@ -66,7 +56,6 @@ protected:
 protected:
 	GlFrameBufferPtr m_compositingFrameBuffer;
 	GlProgramPtr m_vertexOnlyStencilShader;
-	GlProgramPtr m_texturedStencilShader;
 	GlTriangulatedMeshPtr m_stencilQuadMesh;
 	GlTriangulatedMeshPtr m_stencilBoxMesh;
 	GlTriangulatedMeshPtr m_layerVFlippedMesh;

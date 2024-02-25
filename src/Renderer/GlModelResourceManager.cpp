@@ -53,7 +53,8 @@ void GlModelResourceManager::shutdown()
 
 GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 	const std::filesystem::path& modelFilePath,
-	const GlVertexDefinition* vertexDefinition)
+	const GlVertexDefinition* vertexDefinition,
+	const GlMaterialConstPtr material)
 {
 	if (!modelFilePath.empty())
 	{
@@ -65,9 +66,11 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 		}
 		else
 		{
-			GlRenderModelResourcePtr resource = std::make_shared<GlRenderModelResource>(modelFilePath, vertexDefinition);
+			GlRenderModelResourcePtr resource = 
+				std::make_shared<GlRenderModelResource>(
+					modelFilePath, vertexDefinition);
 
-			if (resource->createRenderResources(this))
+			if (resource->createRenderResources(this, material))
 			{
 				m_renderModelCache[hashName] = resource;
 

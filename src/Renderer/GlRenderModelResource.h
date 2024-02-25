@@ -25,7 +25,7 @@ public:
 		const struct GlVertexDefinition* vertexDefinition);
 	virtual ~GlRenderModelResource();
 
-	bool createRenderResources(GlModelResourceManager* modelResourceManager);
+	bool createRenderResources(GlModelResourceManager* modelResourceManager, const GlMaterialConstPtr material);
 	void disposeRenderResources();
 
 	const std::filesystem::path& getRenderModelFilepath() const { return m_renderModelFilepath; }
@@ -35,8 +35,8 @@ public:
 	inline const std::string& getName() const { return m_name; }
 	inline void setName(const std::string& inName) { m_name= inName; }
 
-	size_t getTriangulatedMeshCount() const 
-	{ return m_glTriMeshResources.size(); }
+	int getTriangulatedMeshCount() const 
+	{ return (int)m_glTriMeshResources.size(); }
 	GlTriangulatedMeshPtr getTriangulatedMesh(int meshIndex) const 
 	{ return m_glTriMeshResources[meshIndex].glMesh; }
 	GlMaterialInstancePtr getTriangulatedMeshMaterial(int meshIndex) const

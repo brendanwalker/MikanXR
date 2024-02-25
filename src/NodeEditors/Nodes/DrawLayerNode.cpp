@@ -8,6 +8,7 @@
 #include "GlStateStack.h"
 #include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
+#include "GlMaterialInstance.h"
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -736,7 +737,6 @@ void DrawLayerNode::evaluateModelStencils(GlState& glState)
 	EASY_FUNCTION();
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	GlProgramPtr stencilShader= compositorGraph->getVertexOnlyStencilShader();
 
 	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
 	if (!frameCompositor)
@@ -782,9 +782,6 @@ void DrawLayerNode::evaluateModelStencils(GlState& glState)
 	// Make every test succeed
 	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 
-	// Bind stencil shader
-	stencilShader->bindProgram();
-
 	// Then draw stencil models
 	for (ModelStencilComponentPtr stencil : modelStencilList)
 	{
@@ -797,21 +794,37 @@ void DrawLayerNode::evaluateModelStencils(GlState& glState)
 		{
 			// Set the model matrix of stencil model
 			const glm::mat4 modelMatrix = stencil->getWorldTransform();
+			const glm::mat4 mvpMatrix= vpMatrix * modelMatrix;
 
-			// Set the model-view-projection matrix on the stencil shader
-			stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
-
-			for (int meshIndex = 0; meshIndex < (int)renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
+			for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
 			{
 				GlTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
+				GlMaterialInstancePtr materialInst= renderModelResource->getTriangulatedMeshMaterial(meshIndex);
+				GlMaterialConstPtr material = materialInst->getMaterial();
 
-				mesh->drawElements();
+				// Set the model-view-projection matrix on the stencil material instance
+				materialInst->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);
+
+				// Bind the material and draw the mesh
+				// TODO: We could optimize this by sorting on the shader program
+				// to minimize the number of shader program switches
+				// Or switch to using a GlScene for rendering stencils,
+				// which handles the shader program sorting for us.
+				auto materialBinding = material->bindMaterial(GlSceneConstPtr(), GlCameraConstPtr());
+				if (materialBinding)
+				{
+					auto materialInstanceBinding =
+						materialInst->bindMaterialInstance(
+							materialBinding,
+							IGlSceneRenderablePtr());
+					if (materialInstanceBinding)
+					{
+						mesh->drawElements();
+					}
+				}
 			}
 		}
 	}
-
-	// Unbind stencil shader
-	stencilShader->unbindProgram();
 
 	// Make sure you will no longer (over)write stencil values, even if any test succeeds
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);

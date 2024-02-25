@@ -4,9 +4,11 @@
 #include "GlProgram.h"
 #include "GlRenderModelResource.h"
 #include "GlModelResourceManager.h"
+#include "GlMaterialInstance.h"
 #include "GlStateStack.h"
 #include "GlTriangulatedMesh.h"
 #include "GlShaderCache.h"
+#include "GlTextureCache.h"
 #include "GlVertexDefinition.h"
 #include "IGlWindow.h"
 #include "Logger.h"
@@ -105,7 +107,6 @@ void CompositorNodeGraph::disposeResources()
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Free rendering resources
-	m_vertexOnlyStencilShader = nullptr;
 	m_stencilBoxMesh = nullptr;
 	m_stencilQuadMesh = nullptr;
 	m_layerVFlippedMesh = nullptr;
@@ -199,25 +200,14 @@ GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 	}
 	else
 	{
-		if (m_stencilMeshCache.find(stencilId) == m_stencilMeshCache.end())
+		auto renderModelPtr= StencilObjectSystem::loadStencilRenderModel(getOwnerWindow(), stencilDefinition);
+		if (renderModelPtr)
 		{
-			const GlVertexDefinition& vertexDefinition = getStencilModelVertexDefinition();
-			GlModelResourceManager* modelResourceManager = getOwnerWindow()->getModelResourceManager();
-
-			// It's possible that the model path isn't valid, 
-			// in which case renderModelResource will be null.
-			// Go ahead an occupy a slot in the m_stencilMeshCache until
-			// the entry us explicitly cleared by flushStencilRenderModel.
-			GlRenderModelResourcePtr renderModelResource =
-				modelResourceManager->fetchRenderModel(
-					stencilDefinition->getModelPath(),
-					&vertexDefinition);
-
-			m_stencilMeshCache.insert({stencilId, renderModelResource});
+			m_stencilMeshCache.insert({stencilId, renderModelPtr});
 		}
 	}
 
-	return nullptr;
+	return GlRenderModelResourcePtr();
 }
 
 void CompositorNodeGraph::flushStencilRenderModel(MikanStencilID stencilId)
@@ -248,52 +238,14 @@ void CompositorNodeGraph::onStencilSystemConfigMarkedDirty(
 	}
 }
 
-const GlVertexDefinition& CompositorNodeGraph::getStencilModelVertexDefinition()
-{
-	static GlVertexDefinition x_vertexDefinition;
-
-	if (x_vertexDefinition.attributes.size() == 0)
-	{
-		const uint32_t positionSize = (uint32_t)sizeof(float) * 3;
-		const uint32_t normalSize = (uint32_t)sizeof(float) * 3;
-		const uint32_t texelSize = (uint32_t)sizeof(float) * 2;
-		const uint32_t vertexSize = positionSize + normalSize + texelSize;
-		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
-
-		size_t offset = 0;
-		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, offset));
-		offset += positionSize;
-
-		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::normal3f, false, vertexSize, offset));
-		offset += normalSize;
-
-		attribs.push_back(GlVertexAttribute(2, eVertexSemantic::texel2f, false, vertexSize, offset));
-		offset += texelSize;
-
-		assert(offset == vertexSize);
-		x_vertexDefinition.vertexSize = vertexSize;
-	}
-
-	return x_vertexDefinition;
-}
-
 bool CompositorNodeGraph::createStencilShaders()
 {
-	m_vertexOnlyStencilShader = 
+	m_vertexOnlyStencilShader =
 		getOwnerWindow()->getShaderCache()->fetchCompiledGlProgram(
-			getVertexOnlyStencilShaderCode());
+			StencilObjectSystem::getVertexOnlyStencilShaderCode());
 	if (!m_vertexOnlyStencilShader)
 	{
 		MIKAN_LOG_ERROR("DrawLayerNode::createStencilShader()") << "Failed to compile vertex only stencil shader";
-		return false;
-	}
-
-	m_texturedStencilShader = 
-		getOwnerWindow()->getShaderCache()->fetchCompiledGlProgram(
-			getTexturedStencilShaderCode());
-	if (!m_texturedStencilShader)
-	{
-		MIKAN_LOG_ERROR("DrawLayerNode::createStencilShader()") << "Failed to compile textured stencil shader";
 		return false;
 	}
 
@@ -332,14 +284,16 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 				{glm::vec2(1.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
 		};
 
-		m_layerMesh = std::make_shared<GlTriangulatedMesh>("layer_quad_mesh",
-														   getLayerQuadVertexDefinition(),
-														   (const uint8_t*)x_vertices,
-														   4, // 4 verts
-														   (const uint8_t*)x_indices,
-														   sizeof(uint16_t), // 2 bytes per index
-														   2, // 2 tris
-														   false); // mesh doesn't own quad vert data
+		m_layerMesh = 
+			std::make_shared<GlTriangulatedMesh>(
+				"layer_quad_mesh",
+				getLayerQuadVertexDefinition(),
+				(const uint8_t*)x_vertices,
+				4, // 4 verts
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				2, // 2 tris
+				false); // mesh doesn't own quad vert data
 		if (!m_layerMesh->createBuffers())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create layer mesh";
@@ -352,20 +306,22 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 	{
 		static QuadVertex x_vertices[] = {
 			//   positions                texCoords (flipped v coordinated)
-				{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
-				{glm::vec2(1.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
+			{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+			{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+			{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+			{glm::vec2(1.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
 		};
 
-		m_layerVFlippedMesh = std::make_shared<GlTriangulatedMesh>("layer_vflipped_quad_mesh",
-																   getLayerQuadVertexDefinition(),
-																   (const uint8_t*)x_vertices,
-																   4, // 4 verts
-																   (const uint8_t*)x_indices,
-																   sizeof(uint16_t), // 2 bytes per index
-																   2, // 2 tris
-																   false); // mesh doesn't own quad vert data
+		m_layerVFlippedMesh = 
+			std::make_shared<GlTriangulatedMesh>(
+				"layer_vflipped_quad_mesh",
+				getLayerQuadVertexDefinition(),
+				(const uint8_t*)x_vertices,
+				4, // 4 verts
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				2, // 2 tris
+				false); // mesh doesn't own quad vert data
 		if (!m_layerVFlippedMesh->createBuffers())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create vflipped layer mesh";
@@ -380,7 +336,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 {
 	// Create triangulated quad mesh to draw the quad stencils
 	{
-		static CompositorNodeGraph::StencilVertex x_vertices[] = {
+		static StencilObjectSystem::StencilVertex x_vertices[] = {
 			//   positions
 			{glm::vec3(-0.5f,  0.5f, 0.0f)},
 			{glm::vec3(-0.5f, -0.5f, 0.0f)},
@@ -389,14 +345,15 @@ bool CompositorNodeGraph::createStencilMeshes()
 		};
 		static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 
-		m_stencilQuadMesh = std::make_shared<GlTriangulatedMesh>("quad_stencil_mesh",
-																 CompositorNodeGraph::getStencilModelVertexDefinition(),
-																 (const uint8_t*)x_vertices,
-																 4, // 4 verts in a quad
-																 (const uint8_t*)x_indices,
-																 sizeof(uint16_t), // 2 bytes per index
-																 2, // 2 tris in a quad
-																 false); // mesh doesn't own quad vertex data
+		m_stencilQuadMesh = std::make_shared<GlTriangulatedMesh>(
+			"quad_stencil_mesh",
+			StencilObjectSystem::getStencilModelVertexDefinition(),
+			(const uint8_t*)x_vertices,
+			4, // 4 verts in a quad
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			2, // 2 tris in a quad
+			false); // mesh doesn't own quad vertex data
 		if (!m_stencilQuadMesh->createBuffers())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create quad stencil mesh";
@@ -406,7 +363,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 
 	// Create triangulated box mesh to draw the box stencils
 	{
-		static CompositorNodeGraph::StencilVertex x_vertices[] = {
+		static StencilObjectSystem::StencilVertex x_vertices[] = {
 			//   positions
 			{glm::vec3(-0.5f,  0.5f, -0.5f)},
 			{glm::vec3(-0.5f,  0.5f,  0.5f)},
@@ -426,14 +383,15 @@ bool CompositorNodeGraph::createStencilMeshes()
 			3, 0, 1, 1, 2, 3  // +Y Face 
 		};
 
-		m_stencilBoxMesh = std::make_shared<GlTriangulatedMesh>("box_stencil_mesh",
-																CompositorNodeGraph::getStencilModelVertexDefinition(),
-																(const uint8_t*)x_vertices,
-																8, // 8 verts in a cube
-																(const uint8_t*)x_indices,
-																sizeof(uint16_t), // 2 bytes per index
-																12, // 12 tris in a cube (6 faces * 2 tris/face)
-																false); // mesh doesn't own box vertex data
+		m_stencilBoxMesh = std::make_shared<GlTriangulatedMesh>(
+			"box_stencil_mesh",
+			StencilObjectSystem::getStencilModelVertexDefinition(),
+			(const uint8_t*)x_vertices,
+			8, // 8 verts in a cube
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			12, // 12 tris in a cube (6 faces * 2 tris/face)
+			false); // mesh doesn't own box vertex data
 		if (!m_stencilBoxMesh->createBuffers())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create box stencil mesh";
@@ -459,79 +417,6 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 
 	// (Re)Initialize the frame buffer if it's in an invalid state
 	m_compositingFrameBuffer->createResources();
-}
-
-const GlProgramCode* CompositorNodeGraph::getVertexOnlyStencilShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		"Internal Vertex Only Stencil Shader Code",
-		// vertex shader
-		R""""(
-			#version 330 core
-			layout (location = 0) in vec3 aPos;
-
-			uniform mat4 mvpMatrix;
-
-			void main()
-			{
-				gl_Position = mvpMatrix * vec4(aPos, 1.0);
-			}
-			)"""",
-		//fragment shader
-		R""""(
-			#version 330 core
-			out vec4 FragColor;
-
-			void main()
-			{    
-				FragColor = vec4(1, 1, 1, 1);
-			}
-			)"""")
-		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix);
-
-	return &x_shaderCode;
-}
-
-const GlProgramCode* CompositorNodeGraph::getTexturedStencilShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		"Internal Textured Stencil Shader Code",
-		// vertex shader
-		R""""(
-			#version 330 core
-			layout (location = 0) in vec2 aPos;
-			layout (location = 2) in vec3 aNormal;
-			layout (location = 2) in vec2 aTexCoords;
-
-			uniform mat4 mvpMatrix;
-
-			out vec2 TexCoords;
-
-			void main()
-			{
-				TexCoords = aTexCoords;
-				gl_Position = mvpMatrix * vec4(aPos, 1.0);
-			}  
-			)"""",
-		//fragment shader
-		R""""(
-			#version 330 core
-			out vec4 FragColor;
-
-			in vec2 TexCoords;
-
-			uniform sampler2D rgbTexture;
-
-			void main()
-			{
-				vec3 col = texture(rgbTexture, TexCoords).rgb;
-				FragColor = vec4(col, 1.0);
-			} 
-			)"""")
-		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix)
-		.addUniform("rgbTexture", eUniformSemantic::texture0);
-
-	return &x_shaderCode;
 }
 
 // -- CompositorNodeGraphFactory ----

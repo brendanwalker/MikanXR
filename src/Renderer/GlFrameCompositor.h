@@ -100,8 +100,6 @@ public:
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 
-	static const struct GlVertexDefinition* getStencilModelVertexDefinition();
-
 protected:
 	bool openVideoSource();
 	void closeVideoSource();
@@ -122,11 +120,9 @@ protected:
 \
 	void updateCompositeFrame();
 	void updateCompositeFrameNodeGraph();
-	void updateCompositeFrameLayers();
 
 	static const class GlProgramCode* getRGBFrameShaderCode();
 	static const class GlProgramCode* getRGBtoBGRVideoFrameShaderCode();
-	static const class GlProgramCode* getStencilShaderCode();
 
 	// MikanServer Events
 	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
