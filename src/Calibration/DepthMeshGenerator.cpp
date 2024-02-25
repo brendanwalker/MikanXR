@@ -7,11 +7,12 @@
 #include "GlLineRenderer.h"
 #include "GlTriangulatedMesh.h"
 #include "Logger.h"
-#include "MonoLensDepthMeshCapture.h"
+#include "DepthMeshGenerator.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "MikanClientTypes.h"
+#include "SyntheticDepthEstimator.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
 #include "VRDeviceView.h"
@@ -37,7 +38,7 @@ struct MonoLensDepthMeshCaptureState
 	double disparityScale;
 	GlTriangulatedMeshPtr depthMeshPtr;
 
-	void init(ProfileConfigConstPtr config, VideoSourceViewPtr videoSourceView, int patternCount)
+	void init(ProfileConfigConstPtr config, VideoSourceViewPtr videoSourceView)
 	{
 		profileConfig= config;
 
@@ -77,7 +78,7 @@ struct MonoLensDepthMeshCaptureState
 	}
 
 	void sampleSyntheticDisparityMap(
-		CalibrationPatternFinder* patternFinder,
+		CalibrationPatternFinderPtr patternFinder,
 		const t_opencv_point2d_list& patternPoints,
 		const cv::Mat* syntheticDisparityDnnBuffer,
 		std::vector<float> outSyntheticDepths)
@@ -101,11 +102,12 @@ struct MonoLensDepthMeshCaptureState
 	}
 
 	void computeDisparityBiasAndScale(
-		CalibrationPatternFinder* patternFinder,
+		SyntheticDepthEstimatorPtr depthEstimator,
+		CalibrationPatternFinderPtr patternFinder,
 		const t_opencv_point2d_list& imagePoints)
 	{
 		VideoFrameDistortionView* distortionView = patternFinder->getDistortionView();
-		const cv::Mat* floatDepthDnnBuffer = distortionView->getFloatDepthDnnBuffer();
+		const cv::Mat* floatDepthDnnBuffer = depthEstimator->getFloatDepthDnnBuffer();
 
 		// True depth is computed using the formula: Z = 1.0 / (A + (B * synthetic_disparity))
 		// where A and B are bias and scale constants needed to map disparity values from the MiDaS DNN model.
@@ -143,14 +145,16 @@ struct MonoLensDepthMeshCaptureState
 		disparityBias = y0 - (disparityScale*x0);
 	}
 
-	bool createDepthMesh(VideoFrameDistortionView* m_distortionView)
+	bool createDepthMesh(
+		VideoFrameDistortionViewPtr distortionView,
+		SyntheticDepthEstimatorPtr depthEstimator)
 	{
 		cv::Matx33d intrinsicMatrix = MikanMatrix3d_to_cv_mat33d(inputCameraIntrinsics.camera_matrix);
 		cv::Matx33d invIntrinsicMatrix = intrinsicMatrix.inv();
 
-		cv::Mat* syntheticDisparityDnnBuffer= m_distortionView->getFloatDepthDnnBuffer();
-		const float frameWidth = (float)m_distortionView->getFrameWidth();
-		const float frameHeight = (float)m_distortionView->getFrameHeight();
+		cv::Mat* syntheticDisparityDnnBuffer= depthEstimator->getFloatDepthDnnBuffer();
+		const float frameWidth = (float)distortionView->getFrameWidth();
+		const float frameHeight = (float)distortionView->getFrameHeight();
 		const int depthFrameWidth = syntheticDisparityDnnBuffer->cols;
 		const int depthFrameHeight = syntheticDisparityDnnBuffer->rows;
 		const float frameVStep = frameWidth / depthFrameWidth;
@@ -214,55 +218,45 @@ struct MonoLensDepthMeshCaptureState
 };
 
 //-- MonoDistortionCalibrator ----
-MonoLensDepthMeshCapture::MonoLensDepthMeshCapture(
+DepthMeshGenerator::DepthMeshGenerator(
 	ProfileConfigConstPtr profileConfig,
-	VRDeviceViewPtr cameraTrackingPuckView,
-	VideoFrameDistortionView* distortionView,
-	int desiredSampleCount)
+	VideoFrameDistortionViewPtr distortionView,
+	SyntheticDepthEstimatorPtr depthEstimator)
 	: m_calibrationState(new MonoLensDepthMeshCaptureState)
-	, m_cameraTrackingPuckView(cameraTrackingPuckView)
 	, m_distortionView(distortionView)
-	, m_patternFinder(CalibrationPatternFinder::allocatePatternFinder(profileConfig, distortionView))
+	, m_patternFinder(CalibrationPatternFinder::allocatePatternFinderSharedPtr(profileConfig, distortionView.get()))
+	, m_depthEstimator(depthEstimator)
 {
+
 	frameWidth = distortionView->getFrameWidth();
 	frameHeight = distortionView->getFrameHeight();
 
 	// Private calibration state
-	m_calibrationState->init(profileConfig, distortionView->getVideoSourceView(), desiredSampleCount);
+	m_calibrationState->init(profileConfig, distortionView->getVideoSourceView());
 
 	// Cache the 3d geometry of the calibration pattern in the calibration state
 	m_patternFinder->getOpenCVSolvePnPGeometry(&m_calibrationState->inputCVObjectGeometry);
 	m_patternFinder->getOpenGLSolvePnPGeometry(&m_calibrationState->inputGLObjectGeometry);
 }
 
-MonoLensDepthMeshCapture::~MonoLensDepthMeshCapture()
+DepthMeshGenerator::~DepthMeshGenerator()
 {
-	delete m_patternFinder;
+	m_patternFinder= nullptr;
 	delete m_calibrationState;
 }
 
-bool MonoLensDepthMeshCapture::hasFinishedSampling() const
+bool DepthMeshGenerator::hasFinishedSampling() const
 {
 	return m_calibrationState->depthMeshPtr != nullptr;
 }
 
-void MonoLensDepthMeshCapture::resetCalibrationState()
+void DepthMeshGenerator::resetCalibrationState()
 {
 	m_calibrationState->resetCalibration();
 }
 
-bool MonoLensDepthMeshCapture::captureMesh()
+bool DepthMeshGenerator::captureMesh()
 {
-	// Get tracking puck poses
-	if (!m_cameraTrackingPuckView->getIsPoseValid())
-	{
-		return false;
-	}
-
-	// Fetch the calibration poses from the devices
-	const glm::dmat4 cameraPuckXform= glm::dmat4(m_cameraTrackingPuckView->getCalibrationPose());
-	const glm::dmat4 matPuckXform = glm::dmat4(1.f);
-
 	// Look for the calibration pattern in the latest video frame
 	if (!m_patternFinder->findNewCalibrationPattern())
 	{
@@ -292,17 +286,18 @@ bool MonoLensDepthMeshCapture::captureMesh()
 
 	// Compute the disparity bias and scale using the calibration pattern
 	m_calibrationState->computeDisparityBiasAndScale(
+		m_depthEstimator,
 		m_patternFinder, 
 		imagePoints);
 
 	// Convert the true depth map to a textured mesh
 	// Store data in a GlStaticMeshInstancePtr for temp rendering
-	m_calibrationState->createDepthMesh(m_distortionView);
+	m_calibrationState->createDepthMesh(m_distortionView, m_depthEstimator);
 
 	return true;
 }
 
-void MonoLensDepthMeshCapture::renderCameraSpaceCalibrationState()
+void DepthMeshGenerator::renderCameraSpaceCalibrationState()
 {
 	// Draw the most recently capture chessboard in camera space
 	m_patternFinder->renderCalibrationPattern2D();
@@ -329,7 +324,7 @@ void MonoLensDepthMeshCapture::renderCameraSpaceCalibrationState()
 	}
 }
 
-void MonoLensDepthMeshCapture::renderVRSpaceCalibrationState()
+void DepthMeshGenerator::renderVRSpaceCalibrationState()
 {
 #if 0
 	// Draw the most recently captured chessboard projected into VR
@@ -353,12 +348,12 @@ void MonoLensDepthMeshCapture::renderVRSpaceCalibrationState()
 #endif
 }
 
-void MonoLensDepthMeshCapture::loadMeshFromObjFile(const std::filesystem::path& objPath)
+void DepthMeshGenerator::loadMeshFromObjFile(const std::filesystem::path& objPath)
 {
 
 }
 
-bool MonoLensDepthMeshCapture::saveMeshToObjFile(const std::filesystem::path& objPath)
+bool DepthMeshGenerator::saveMeshToObjFile(const std::filesystem::path& objPath)
 {
 	return true;
 }

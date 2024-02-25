@@ -5,8 +5,6 @@
 #define VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG		0x0001
 #define VIDEO_FRAME_HAS_GRAYSCALE_FLAG			0x0002
 #define VIDEO_FRAME_HAS_GL_TEXTURE_FLAG			0x0004
-#define VIDEO_FRAME_HAS_DEPTH_FLAG				0x0008
-#define VIDEO_FRAME_HAS_DEPTH_UPSCALE_FLAG		0x0010
 #define VIDEO_FRAME_HAS_ALL						0xffff
 
 enum class eVideoDisplayMode : int
@@ -16,7 +14,6 @@ enum class eVideoDisplayMode : int
 	mode_bgr,
 	mode_undistored,
 	mode_grayscale,
-	mode_depth,
 
 	COUNT
 };

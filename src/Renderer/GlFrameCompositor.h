@@ -29,6 +29,9 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
+class SyntheticDepthEstimator;
+typedef std::shared_ptr<SyntheticDepthEstimator> SyntheticDepthEstimatorPtr;
+
 class GlFrameCompositor
 {
 public:
@@ -147,6 +150,7 @@ private:
 
 	VideoSourceViewPtr m_videoSourceView;
 	VideoFrameDistortionView* m_videoDistortionView = nullptr;
+	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
 
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 

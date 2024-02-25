@@ -100,7 +100,6 @@ void AppStage_CTOffsetCalibration::enter()
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
-				App::getInstance()->getMainWindow()->getOpenCVManager(),
 				m_videoSourceView, 
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);		

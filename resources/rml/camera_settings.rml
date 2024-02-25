@@ -34,12 +34,6 @@
           <option data-for="s : video_sources" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
         </select>
       </div>
-      <h2>Display Mode</h2>
-      <div>
-          <select id="select" name="video_display_mode" data-value="video_display_mode"  data-event-change="select_display_mode()">
-              <option data-for="mode : video_display_modes" data-value="mode">{{mode}}</option>
-          </select>
-      </div>     
       <div>
         <button onclick="goto_mono_tracker_calibration">Calibrate Mono Tracker</button>
         <button onclick="goto_mono_tracker_test">Test Mono Calibration</button>

@@ -35,8 +35,19 @@ static void setOpencvLoggingLevel(LogSeverityLevel logLevel)
 
 bool OpenCVManager::startup()
 {
-	bool success= true;
+	if (!parseOpenCLBuildInfo())
+	{
+		MIKAN_LOG_ERROR("OpenCVManager::init") << "Unable to initialize OpenCL";
+		return false;
+	}
 
+	parseOpenCVBuildInfo();
+
+	return true;
+}
+
+bool OpenCVManager::parseOpenCLBuildInfo()
+{
 	if (cv::ocl::haveOpenCL())
 	{
 		// Test for OpenCL availability
@@ -78,14 +89,48 @@ bool OpenCVManager::startup()
 
 		// Set the log level in OpenCV
 		setOpencvLoggingLevel(LogSeverityLevel::warning);
-	}
-	else
-	{
-		MIKAN_LOG_ERROR("OpenCVManager::init") << "Unable to initialize OpenCL";
-		success = false;
+		return true;
 	}
 
-	return success;
+	return false;
+}
+
+// https://stackoverflow.com/questions/17347308/how-to-check-if-opencv-was-compiled-with-tbb-cuda-or-qt-support
+void OpenCVManager::parseOpenCVBuildInfo()
+{
+	// Fetch full OpenCV build information report
+	const cv::String str = cv::getBuildInformation();
+
+	MIKAN_LOG_INFO("OpenCV") << "OpenCV Build Info";
+	MIKAN_LOG_INFO("OpenCV") << "=================";
+
+	// Parse the report line by line
+	std::string line;
+	std::istringstream strStream(str);
+	while (std::getline(strStream, line))
+	{
+		// Enable this to see all the options. (Remember to remove the break)
+		MIKAN_LOG_INFO("OpenCV") << line;
+
+		if (line.find("Use Cuda") != std::string::npos)
+		{
+			//// Trim from elft.
+			//line.erase(line.begin(), std::find_if(line.begin(), line.end(),
+			//									  std::not1(std::ptr_fun<int, int>(std::isspace))));
+
+			//// Trim from right.
+			//line.erase(line.begin(), std::find_if(line.begin(), line.end(),
+			//									  std::not1(std::ptr_fun<int, int>(std::isspace))));
+
+			// Convert to lowercase may not be necessary.
+			std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+			if (line.find("yes") != std::string::npos)
+			{
+				m_bHasCUDA = true;
+				break;
+			}
+		}
+	}
 }
 
 void OpenCVManager::shutdown()

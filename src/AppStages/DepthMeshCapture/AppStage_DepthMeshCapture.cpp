@@ -6,16 +6,18 @@
 #include "DepthMeshCapture/RmlModel_DepthMeshCapture.h"
 #include "DepthMeshCapture/RmlModel_DepthMeshCameraSettings.h"
 #include "App.h"
+#include "DepthMeshGenerator.h"
 #include "GlCamera.h"
 #include "GlLineRenderer.h"
 #include "GlScene.h"
 #include "GlTextRenderer.h"
 #include "GlViewport.h"
+#include "Logger.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
-#include "MonoLensDepthMeshCapture.h"
 #include "CalibrationPatternFinder.h"
+#include "SyntheticDepthEstimator.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -85,28 +87,44 @@ void AppStage_DepthMeshCapture::enter()
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
-	// Fire up the video scene in the background + pose calibrator
-	eDepthMeshCaptureMenuState newState;
+	// Fire up the video scene in the background + depth estimator + mesh capture
+	bool depthCaptureReady= false;
 	if (m_videoSourceView->startVideoStream())
 	{
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
-			new VideoFrameDistortionView(
-				App::getInstance()->getMainWindow()->getOpenCVManager(),
+			std::make_shared<VideoFrameDistortionView>(
 				m_videoSourceView, 
 				VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | 
-				VIDEO_FRAME_HAS_GL_TEXTURE_FLAG |
-				VIDEO_FRAME_HAS_DEPTH_FLAG);
+				VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
-		// Create a calibrator to do the actual pattern recording and calibration
-		m_depthMeshCapture =
-			new MonoLensDepthMeshCapture(
-				profileConfig,
-				m_cameraTrackingPuckView,
-				m_monoDistortionView,
-				DESIRED_CAPTURE_BOARD_COUNT);
+		// Create a depth estimator with texture output
+		auto openCVManager = App::getInstance()->getMainWindow()->getOpenCVManager();
+		m_syntheticDepthEstimator =
+			std::make_shared<SyntheticDepthEstimator>(
+				openCVManager, DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
+		if (m_syntheticDepthEstimator->initialize())
+		{
+			// Create a depth mesh generator
+			m_depthMeshCapture =
+				std::make_shared<DepthMeshGenerator>(
+					profileConfig,
+					m_monoDistortionView,
+					m_syntheticDepthEstimator);
 
+			depthCaptureReady= true;
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("GlFrameCompositor::openVideoSource") << "Failed to create depth estimator";
+			m_syntheticDepthEstimator = nullptr;
+		}
+	}
+
+	eDepthMeshCaptureMenuState newState;
+	if (depthCaptureReady)
+	{
 		// If bypassing the calibration, then jump straight to the test calibration state
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
@@ -176,18 +194,10 @@ void AppStage_DepthMeshCapture::exit()
 	}
 
 	// Free the calibrator
-	if (m_depthMeshCapture != nullptr)
-	{
-		delete m_depthMeshCapture;
-		m_depthMeshCapture = nullptr;
-	}
+	m_depthMeshCapture = nullptr;
 
 	// Free the distortion view buffers
-	if (m_monoDistortionView != nullptr)
-	{
-		delete m_monoDistortionView;
-		m_monoDistortionView = nullptr;
-	}
+	m_monoDistortionView = nullptr;
 
 	AppStage::exit();
 }

@@ -15,7 +15,6 @@ class VideoFrameDistortionView
 {
 public:
 	VideoFrameDistortionView(
-		class OpenCVManager* opencvManager,
 		VideoSourceViewPtr view, 
 		unsigned int bufferBitmask, 
 		unsigned int frameQueueSize=1);
@@ -31,7 +30,6 @@ public:
 	inline void setVideoDisplayMode(eVideoDisplayMode newMode) { m_videoDisplayMode= newMode; }
 	inline void setColorUndistortDisabled(bool bDisabled) { m_bColorUndistortDisabled= bDisabled; }
 	inline void setGrayscaleUndistortDisabled(bool bDisabled) { m_bGrayscaleUndistortDisabled = bDisabled; }
-	inline void setDepthDisabled(bool bDisabled) { m_bDepthDisabled = bDisabled; }
 
 	inline unsigned int getMaxFrameQueueSize() const { return m_bgrSourceBufferCount; }
 	inline uint64_t getLastVideoFrameReadIndex() const { return m_lastVideoFrameReadIndex; }
@@ -40,11 +38,8 @@ public:
 	inline cv::Mat* getBGRGrayscaleUndistortBuffer() const { return m_bgrGsUndistortBuffer; }
 	inline cv::Mat* getGrayscaleSourceBuffer() const { return m_gsSourceBuffer; }
 	inline cv::Mat* getGrayscaleSmallBuffer() const { return m_gsSmallBuffer; }
-	inline cv::Mat* getFloatDepthDnnBuffer() const { return m_floatDepthDnnOutput; }
 	inline GlTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
 	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
-	inline GlTexturePtr getFloatDepthTexture() const { return m_floatDepthTextureMap; }
-	inline GlTexturePtr getColorMappedDepthTexture() const { return m_colorMappedDepthTextureMap; }
 
 	bool hasNewVideoFrame() const;
 	uint64_t readNextVideoFrame();
@@ -56,7 +51,6 @@ public:
 
 protected:
 	void computeUndistortion(cv::Mat* bgrSourceBuffer);
-	void computeSyntheticDepth(cv::Mat* bgrSourceBuffer);
 
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture);
 
@@ -88,17 +82,6 @@ protected:
 	cv::Mat* m_gsUndistortBuffer; // 8-BPP undistorted buffer
 	cv::Mat* m_bgrGsUndistortBuffer; // 24-BPP(BGR color format) undistorted buffer
 
-	// Synthetic depth buffer generated using MiDaS DNN
-	DeepNeuralNetworkPtr m_depthDnn; // MiDaS DNN for depth estimation
-	cv::Mat* m_rgbFloatDepthDnnInput= nullptr; // Small RGB float blob input for DNN
-	cv::Mat* m_floatDepthDnnOutput= nullptr; // Small float blob output for DNN
-	cv::Mat* m_floatNormalizedDepth= nullptr; // Normalized float depth debug buffer
-	cv::Mat* m_gsDepth= nullptr; // 8-BPP Grayscale depth buffer
-	cv::Mat* m_bgrDepth= nullptr; // 24-BPP(BGR color format) color-coded depth buffer
-	cv::Mat* m_bgrUpscaledDepth= nullptr; // m_bgrDepth upscaled to video resolution
-	GlTexturePtr m_floatDepthTextureMap= nullptr; // GL Texture filled in m_floatDepthDnnOutput
-	GlTexturePtr m_colorMappedDepthTextureMap = nullptr; // GL Texture filled in m_bgrGsDepth
-
 	// Camera Intrinsics / Distortion parameters
 	struct OpenCVMonoCameraIntrinsics* m_intrinsics;
 
@@ -113,5 +96,4 @@ protected:
 	// Runtime flags
 	bool m_bColorUndistortDisabled= false;
 	bool m_bGrayscaleUndistortDisabled = false;
-	bool m_bDepthDisabled = false;
 };

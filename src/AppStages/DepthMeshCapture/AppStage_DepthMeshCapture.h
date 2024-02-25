@@ -13,6 +13,15 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
+class SyntheticDepthEstimator;
+typedef std::shared_ptr<SyntheticDepthEstimator> SyntheticDepthEstimatorPtr;
+
+class DepthMeshGenerator;
+typedef std::shared_ptr<DepthMeshGenerator> DepthMeshGeneratorPtr;
+
+class VideoFrameDistortionView;
+typedef std::shared_ptr<VideoFrameDistortionView> VideoFrameDistortionViewPtr;
+
 //-- definitions -----
 class AppStage_DepthMeshCapture : public AppStage
 {
@@ -55,8 +64,9 @@ private:
 	// Tracking pucks used for calibration
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
-	class MonoLensDepthMeshCapture* m_depthMeshCapture;
-	class VideoFrameDistortionView* m_monoDistortionView;
+	DepthMeshGeneratorPtr m_depthMeshCapture;
+	VideoFrameDistortionViewPtr m_monoDistortionView;
+	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
 
 	GlScenePtr m_scene;
 	GlCameraPtr m_camera;

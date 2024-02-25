@@ -3,8 +3,7 @@
 const std::string g_videoDisplayModeStrings[(int)eVideoDisplayMode::COUNT] = {
 	"BGR",
 	"Undistorted",
-	"Grayscale",
-	"Depth",
+	"Grayscale"
 };
 const std::string* k_videoDisplayModeStrings = g_videoDisplayModeStrings;
 

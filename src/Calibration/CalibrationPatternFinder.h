@@ -26,6 +26,9 @@ struct OpenGLCalibrationGeometry
 	t_opengl_point3d_list points;
 };
 
+class CalibrationPatternFinder;
+typedef std::shared_ptr<CalibrationPatternFinder> CalibrationPatternFinderPtr;
+
 // Helper use to implement OpenCV camera lens intrinsic/distortion calibration method.
 // See https://docs.opencv.org/3.3.0/dc/dbb/tutorial_py_calibration.html for details.
 class CalibrationPatternFinder
@@ -36,6 +39,9 @@ public:
 
 	static CalibrationPatternFinder* allocatePatternFinder(
 		ProfileConfigConstPtr profileConfig, 
+		class VideoFrameDistortionView* distortionView);
+	static CalibrationPatternFinderPtr allocatePatternFinderSharedPtr(
+		ProfileConfigConstPtr profileConfig,
 		class VideoFrameDistortionView* distortionView);
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const = 0;

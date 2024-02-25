@@ -46,6 +46,32 @@ CalibrationPatternFinder* CalibrationPatternFinder::allocatePatternFinder(
 	return nullptr;
 }
 
+CalibrationPatternFinderPtr CalibrationPatternFinder::allocatePatternFinderSharedPtr(
+	ProfileConfigConstPtr profileConfig,
+	VideoFrameDistortionView* distortionView)
+{
+	switch (profileConfig->calibrationPatternType)
+	{
+		case eCalibrationPatternType::mode_chessboard:
+			return
+				std::make_shared<CalibrationPatternFinder_Chessboard>(
+					distortionView,
+					profileConfig->chessbordRows,
+					profileConfig->chessbordCols,
+					profileConfig->squareLengthMM);
+		case eCalibrationPatternType::mode_circlegrid:
+			return
+				std::make_shared<CalibrationPatternFinder_CircleGrid>(
+					distortionView,
+					profileConfig->circleGridRows,
+					profileConfig->circleGridCols,
+					profileConfig->circleSpacingMM,
+					profileConfig->circleDiameterMM);
+	}
+
+	return nullptr;
+}
+
 
 bool CalibrationPatternFinder::areCurrentImagePointsValid() const
 {
