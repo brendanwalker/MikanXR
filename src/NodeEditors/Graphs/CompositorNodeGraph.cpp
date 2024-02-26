@@ -153,13 +153,13 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 	{
 		// Make sure the frame buffer is the correct size
 		updateCompositingFrameBufferSize(evaluator);
-		
-		// Bind the frame buffer that we render the composited frame to
-		m_compositingFrameBuffer->bindFrameBuffer();
 
 		// Turn off depth testing for compositing
 		GlScopedState updateCompositeGlStateScope = evaluator.getCurrentWindow()->getGlStateStack().createScopedState();
 		updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
+
+		// Bind the frame buffer that we render the composited frame to
+		m_compositingFrameBuffer->bindFrameBuffer(updateCompositeGlStateScope.getStackState());
 
 		// Evaluate the composite frame nodes
 		evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);

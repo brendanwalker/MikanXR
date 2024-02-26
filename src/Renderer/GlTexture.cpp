@@ -26,22 +26,7 @@ GlTexture::GlTexture(
 	, m_textureFormat(textureFormat)
 	, m_bufferFormat(bufferFormat)
 {
-	GLenum pixelType;
-	switch (m_textureFormat)
-	{
-		case GL_R32F:
-		case GL_RG32F:
-		case GL_RGB32F:
-		case GL_RGBA32F:
-		case GL_DEPTH_COMPONENT32F:
-			m_pixelType = GL_FLOAT;
-			break;
-		case GL_DEPTH_COMPONENT16:
-			m_pixelType = GL_UNSIGNED_SHORT;
-			break;
-		default:
-			m_pixelType = GL_UNSIGNED_BYTE;
-	}
+	determinePixelType();
 }
 
 GlTexture::~GlTexture()
@@ -107,7 +92,9 @@ bool GlTexture::createTexture()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		if (m_textureFormat == GL_R16UI || 
-			m_textureFormat == GL_R32F || m_textureFormat == GL_RG32F ||  m_textureFormat == GL_RGB32F || m_textureFormat == GL_RGBA32F)
+			m_textureFormat == GL_R32F || m_textureFormat == GL_RG32F ||  
+			m_textureFormat == GL_RGB32F || m_textureFormat == GL_RGBA32F ||
+			m_textureFormat == GL_DEPTH_COMPONENT32F)
 		{
 			// Integer textures only support NEAREST filtering
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -169,6 +156,26 @@ bool GlTexture::createTexture()
 	}
 
 	return false;
+}
+
+void GlTexture::determinePixelType()
+{
+	GLenum pixelType;
+	switch (m_textureFormat)
+	{
+		case GL_R32F:
+		case GL_RG32F:
+		case GL_RGB32F:
+		case GL_RGBA32F:
+		case GL_DEPTH_COMPONENT32F:
+			m_pixelType = GL_FLOAT;
+			break;
+		case GL_DEPTH_COMPONENT16:
+			m_pixelType = GL_UNSIGNED_SHORT;
+			break;
+		default:
+			m_pixelType = GL_UNSIGNED_BYTE;
+	}
 }
 
 size_t GlTexture::getBytesPerPixel(uint32_t format, uint32_t pixelType)

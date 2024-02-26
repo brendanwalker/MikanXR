@@ -31,7 +31,7 @@ public:
 	GlTexture* setTextureMapData(const uint8_t* textureMapData)
 	{ m_textureMapData= textureMapData; return this; }
 	GlTexture* setTextureFormat(uint32_t textureFormat)
-	{ m_textureFormat= textureFormat; m_bufferFormat= textureFormat; return this; }
+	{ m_textureFormat= textureFormat; m_bufferFormat= textureFormat; determinePixelType(); return this; }
 	GlTexture* setBufferFormat(uint32_t bufferFormat)
 	{ m_bufferFormat = bufferFormat; return this; }
 	GlTexture* setPixelType(uint32_t pixelType)
@@ -62,6 +62,7 @@ public:
 	uint32_t getBufferFormat() const { return m_textureFormat; }
 
 private:
+	void determinePixelType();
 	static size_t getBytesPerPixel(uint32_t format, uint32_t type);
 
 	std::string m_name;

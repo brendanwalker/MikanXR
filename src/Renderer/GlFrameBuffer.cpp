@@ -18,43 +18,95 @@ GlFrameBuffer::~GlFrameBuffer()
 
 bool GlFrameBuffer::createResources()
 {
+	disposeResources();
+
+	switch (m_attachmentType)
+	{
+		case eAttachmentType::COLOR:
+			m_bIsValid= createColorAttachment();
+			break;
+		case eAttachmentType::DEPTH:
+			m_bIsValid= createDepthAttachment();
+			break;
+	}
+
+	return m_bIsValid;
+}
+
+bool GlFrameBuffer::createColorAttachment()
+{
+	// Cache the current frame buffer id
+	GLint prevFrameBufferID= 0;
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+
+	// Create new frame buffer
+	glGenFramebuffers(1, &m_glFrameBufferId);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+
+	// Create a color attachment texture with a double buffered pixel-buffer-object for reading
+	if (!m_texture)
+	{
+		assert(!m_bIsExternalTexture);
+		m_texture = std::make_shared<GlTexture>();
+		m_texture->setSize(m_width, m_height);
+		m_texture->setTextureFormat(GL_RGB);
+		m_texture->setBufferFormat(GL_RGB);
+		m_texture->setGenerateMipMap(false);
+		m_texture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
+		m_texture->createTexture();
+	}
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->getGlTextureId(), 0);
+
+	// Create render buffer
+	glGenRenderbuffers(1, &m_glRenderBufferID);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_glRenderBufferID);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_glRenderBufferID);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	bool bSuccess = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+	if (!bSuccess)
+	{
+		MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
+
+	return bSuccess;
+}
+
+bool GlFrameBuffer::createDepthAttachment()
+{
+	// Cache the current frame buffer id
+	GLint prevFrameBufferID = 0;
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+
+	// Create new frame buffer
+	glGenFramebuffers(1, &m_glFrameBufferId);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+
+	// Create a color attachment texture with a double buffered pixel-buffer-object for reading
+	if (!m_texture)
+	{
+		assert(!m_bIsExternalTexture);
+		m_texture = std::make_shared<GlTexture>();
+		m_texture->setSize(m_width, m_height);
+		m_texture->setTextureFormat(GL_DEPTH_COMPONENT32F);
+		m_texture->setBufferFormat(GL_DEPTH_COMPONENT);
+		m_texture->setGenerateMipMap(false);
+		// Assumption: Depth textures are not read back to the CPU, so no PBO is needed
+		m_texture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
+		m_texture->createTexture();
+	}
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_texture->getGlTextureId(), 0);
+
+	m_bIsValid = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 	if (!m_bIsValid)
 	{
-		disposeResources();
-
-		// Create new frame buffer
-		glGenFramebuffers(1, &m_glFrameBufferId);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
-
-		// Create a color attachment texture with a double buffered pixel-buffer-object for reading
-		if (!m_texture)
-		{
-			assert(!m_bIsExternalTexture);
-			m_texture = std::make_shared<GlTexture>();
-			m_texture->setSize(m_width, m_height);
-			m_texture->setTextureFormat(GL_RGB);
-			m_texture->setBufferFormat(GL_RGB);
-			m_texture->setGenerateMipMap(false);
-			m_texture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
-			m_texture->createTexture();
-		}
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->getGlTextureId(), 0);
-
-		// Create render buffer
-		glGenRenderbuffers(1, &m_glRenderBufferID);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_glRenderBufferID);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_glRenderBufferID);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-		m_bIsValid = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
-		if (!m_bIsValid)
-		{
-			MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
 	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
 
 	return m_bIsValid;
 }
@@ -114,11 +166,13 @@ void GlFrameBuffer::disposeResources()
 	m_bIsValid= false;
 }
 
-bool GlFrameBuffer::bindFrameBuffer()
+bool GlFrameBuffer::bindFrameBuffer(GlState& glState)
 {
 	if (m_glRenderBufferID != -1 && !m_bIsBound)
 	{
-		// Cache the last viewport dimensions
+		// Cache GL state for restoration
+		// TODO: Cache the this in the glState object
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_lastGlFrameBufferId);
 		glGetIntegerv(GL_VIEWPORT, m_lastiewport);
 
 		// Change the viewport to match the frame buffer texture
@@ -127,11 +181,30 @@ bool GlFrameBuffer::bindFrameBuffer()
 		// Bind to framebuffer and draw scene as we normally would to color texture 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_glRenderBufferID);
 
-		GLenum attachments[1]= {GL_COLOR_ATTACHMENT0};
-		glDrawBuffers(1, attachments);
+		switch (m_attachmentType)
+		{
+			case GlFrameBuffer::eAttachmentType::COLOR:
+				{
+					glDrawBuffer(GL_COLOR_ATTACHMENT0);
+					glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				}
+				break;
+			case GlFrameBuffer::eAttachmentType::DEPTH:
+				{
+					// Since we only care about depth, tell OpenGL we're not going to render any color data
+					glDrawBuffer(GL_NONE);
+					glReadBuffer(GL_NONE);
+
+					glClear(GL_DEPTH_BUFFER_BIT);
+					glState.enableFlag(eGlStateFlagType::depthTest);
+				}
+				break;
+			default:
+				break;
+		}
 
 		m_bIsBound = true;
 
@@ -146,7 +219,7 @@ void GlFrameBuffer::unbindFrameBuffer()
 	if (m_bIsBound)
 	{
 		// Unbind the layer frame buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_lastGlFrameBufferId);
 
 		// Restore the viewport
 		glViewport(m_lastiewport[0], m_lastiewport[1], (GLsizei)m_lastiewport[2], (GLsizei)m_lastiewport[3]);
