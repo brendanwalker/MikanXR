@@ -150,9 +150,11 @@ void ArrayNode::setElementClassName(const std::string inElementClassName)
 			propPin->setPropertyClassName(inElementClassName);
 		}
 
-		assert(m_pinsOut.size() == 1);
-		auto arrayPin= std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
-		arrayPin->setElementClassName(inElementClassName);
+		if (m_pinsOut.size() == 1)
+		{
+			auto arrayPin = std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
+			arrayPin->setElementClassName(inElementClassName);
+		}
 	}
 }
 

@@ -31,6 +31,7 @@
 // Nodes
 #include "Nodes/ArrayNode.h"
 #include "Nodes/ClientTextureNode.h"
+#include "Nodes/DepthMaskNode.h"
 #include "Nodes/DrawLayerNode.h"
 #include "Nodes/EventNode.h"
 #include "Nodes/MaterialNode.h"
@@ -65,6 +66,7 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addNodeFactory<ArrayNodeFactory>();
 	addNodeFactory<ClientTextureNodeFactory>();
 	addNodeFactory<DrawLayerNodeFactory>();
+	addNodeFactory<DepthMaskNodeFactory>();
 	addNodeFactory<EventNodeFactory>();
 	addNodeFactory<MousePosNodeFactory>();
 	addNodeFactory<MaterialNodeFactory>();

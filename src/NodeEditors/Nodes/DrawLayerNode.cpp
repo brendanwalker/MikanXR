@@ -406,6 +406,12 @@ void DrawLayerNode::onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin)
 		// Rebuild the pins since the material changed
 		rebuildInputPins();
 	}
+	else if (pin == m_stencilsPin)
+	{
+		m_stencilsPin->clearArray();
+
+		rebuildStencilLists();
+	}
 }
 
 void DrawLayerNode::rebuildInputPins()
