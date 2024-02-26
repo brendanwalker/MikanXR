@@ -14,7 +14,7 @@ public:
 	bool startup();
 	void shutdown();
 
-	inline bool supportsHardwareAcceleratedDNN() const { return m_bHasCUDA; }
+	inline bool supportsHardwareAcceleratedDNN() const { return m_bHasCudaDNN; }
 	DeepNeuralNetworkPtr fetchDeepNeuralNetwork(const std::string& dnnFileName);
 
 private:
@@ -22,6 +22,6 @@ private:
 	void parseOpenCVBuildInfo();
 
 private:
-	bool m_bHasCUDA = false;
+	bool m_bHasCudaDNN = false;
 	std::map<std::string, DeepNeuralNetworkPtr> m_dnnMap;
 };

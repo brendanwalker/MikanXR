@@ -112,21 +112,12 @@ void OpenCVManager::parseOpenCVBuildInfo()
 		// Enable this to see all the options. (Remember to remove the break)
 		MIKAN_LOG_INFO("OpenCV") << line;
 
-		if (line.find("Use Cuda") != std::string::npos)
+		if (line.find("cuDNN") != std::string::npos)
 		{
-			//// Trim from elft.
-			//line.erase(line.begin(), std::find_if(line.begin(), line.end(),
-			//									  std::not1(std::ptr_fun<int, int>(std::isspace))));
-
-			//// Trim from right.
-			//line.erase(line.begin(), std::find_if(line.begin(), line.end(),
-			//									  std::not1(std::ptr_fun<int, int>(std::isspace))));
-
-			// Convert to lowercase may not be necessary.
 			std::transform(line.begin(), line.end(), line.begin(), ::tolower);
 			if (line.find("yes") != std::string::npos)
 			{
-				m_bHasCUDA = true;
+				m_bHasCudaDNN = true;
 				break;
 			}
 		}
