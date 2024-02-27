@@ -10,9 +10,6 @@ public:
 	bool init(Rml::Context* rmlContext);
 	virtual void dispose() override;
 
-	bool getBypassCaptureFlag() const;
-	void setBypassCaptureFlag(const bool bNewFlag);
-
 	eDepthMeshCaptureMenuState getMenuState() const;
 	void setMenuState(eDepthMeshCaptureMenuState newState);
 
@@ -22,6 +19,4 @@ public:
 
 private:
 	Rml::String m_menuState;
-	Rml::String m_viewpointMode;
-	bool m_bypassCaptureFlag = false;
 };

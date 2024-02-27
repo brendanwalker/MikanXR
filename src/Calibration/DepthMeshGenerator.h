@@ -19,12 +19,17 @@ class DepthMeshGenerator
 {
 public:
 	DepthMeshGenerator(
+		IGlWindow* ownerWindow,
 		ProfileConfigConstPtr profileConfig,
 		VideoFrameDistortionViewPtr distortionView,
 		SyntheticDepthEstimatorPtr depthEstimator);
 	virtual ~DepthMeshGenerator();
 
 	inline CalibrationPatternFinderPtr getPatternFinder() const { return m_patternFinder; }
+
+	void setTargetModelStencilDefinition(ModelStencilDefinitionPtr targetModelStencilDefinition);
+	bool loadMeshFromStencilDefinition();
+	bool saveMeshToStencilDefinition();
 
 	bool hasFinishedSampling() const;
 	void resetCalibrationState();
@@ -34,12 +39,6 @@ public:
 	void renderCameraSpaceCalibrationState();
 	void renderVRSpaceCalibrationState();
 
-	bool loadMeshFromObjFile(const std::filesystem::path& objPath);
-	bool saveMeshToObjFile(const std::filesystem::path& objPath);
-
-	bool loadTextureFromPNG(const std::filesystem::path& texturePath);
-	bool saveTextureToPNG(const std::filesystem::path& texturePath);
-
 protected:
 
 	float frameWidth;
@@ -47,6 +46,9 @@ protected:
 
 	// Internal Capture State
 	struct DepthMeshCaptureState* m_calibrationState;
+
+	// The target model stencil definition to read/write the depth mesh from/to
+	ModelStencilDefinitionPtr m_targetModelStencilDefinition;
 
 	// Undistorted Video Frame
 	VideoFrameDistortionViewPtr m_distortionView;

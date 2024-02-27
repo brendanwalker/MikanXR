@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "ComponentFwd.h"
 #include "Constants_DepthMeshCapture.h"
 #include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
@@ -33,9 +34,7 @@ public:
 	AppStage_DepthMeshCapture(class MainWindow* ownerWindow);
 	virtual ~AppStage_DepthMeshCapture();
 
-	void setMeshSavePath(const std::filesystem::path& path) { m_meshSavePath = path; }
-	void setTextureSavePath(const std::filesystem::path& path) { m_textureSavePath = path; }
-	void setBypassCaptureFlag(bool flag);
+	void setTargetModelStencil(ModelStencilDefinitionPtr definition);
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -56,9 +55,6 @@ protected:
 	void onViewportModeChanged(eDepthMeshCaptureViewpointMode newViewMode);
 	
 private:
-	std::filesystem::path m_meshSavePath;
-	std::filesystem::path m_textureSavePath;
-
 	class RmlModel_DepthMeshCapture* m_calibrationModel = nullptr;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 

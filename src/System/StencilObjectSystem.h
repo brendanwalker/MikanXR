@@ -78,15 +78,13 @@ public:
 	static const GlVertexDefinition& getStencilModelVertexDefinition();
 	static const GlProgramCode* getVertexOnlyStencilShaderCode();
 	static const GlProgramCode* getTexturedStencilShaderCode();
-
+	static GlMaterialPtr createVertexOnlyStencilMaterial(class IGlWindow* ownerWindow);
+	static GlMaterialPtr createTexturedStencilMaterial(class IGlWindow* ownerWindow);
 	static GlRenderModelResourcePtr loadStencilRenderModel(
 		class IGlWindow* ownerWindow,
 		ModelStencilDefinitionPtr stencilDefinition);
 
 protected:
-	static GlMaterialPtr createVertexOnlyStencilMaterial(IGlWindow* ownerWindow);
-	static GlMaterialPtr createTexturedStencilMaterial(IGlWindow* ownerWindow);
-
 	static bool isStencilFacingCamera(
 		StencilComponentConstPtr stencil, 
 		const glm::vec3& cameraPosition, const glm::vec3& cameraForward);

@@ -108,15 +108,8 @@ bool GlRenderModelResource::createRenderResources(
 				createWireframeMeshMaterialInstance(
 					modelResourceManager->getWireframeMaterial());
 
-			if (glTriMesh != nullptr)
-			{
-				m_glTriMeshResources.push_back({glTriMesh, glTriMeshMaterial});
-			}
-
-			if (glWireframeMesh != nullptr)
-			{
-				m_glWireframeMeshResources.push_back({glWireframeMesh, glWireframeMeshMaterial});
-			}
+			addTriangulatedMesh(glTriMesh, glTriMeshMaterial);
+			addWireframeMesh(glWireframeMesh, glWireframeMeshMaterial);
 		}
 
 		bSuccess = m_glTriMeshResources.size() > 0;
@@ -128,6 +121,22 @@ bool GlRenderModelResource::createRenderResources(
 	}
 
 	return bSuccess;
+}
+
+void GlRenderModelResource::addTriangulatedMesh(GlTriangulatedMeshPtr mesh, GlMaterialInstancePtr materialInstance)
+{
+	if (mesh != nullptr && materialInstance != nullptr)
+	{
+		m_glTriMeshResources.push_back({mesh, materialInstance});
+	}
+}
+
+void GlRenderModelResource::addWireframeMesh(GlWireframeMeshPtr mesh, GlMaterialInstancePtr materialInstance)
+{
+	if (mesh != nullptr && materialInstance != nullptr)
+	{
+		m_glWireframeMeshResources.push_back({mesh, materialInstance});
+	}
 }
 
 void GlRenderModelResource::disposeRenderResources()

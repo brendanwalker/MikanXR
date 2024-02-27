@@ -5,14 +5,22 @@
 #include "Colors.h"
 #include "GlCommon.h"
 #include "GlLineRenderer.h"
+#include "GlMaterial.h"
+#include "GlMaterialInstance.h"
+#include "GlRenderModelResource.h"
+#include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
+#include "IGlWindow.h"
 #include "Logger.h"
 #include "DepthMeshGenerator.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
+#include "ModelStencilComponent.h"
 #include "MikanClientTypes.h"
+#include "PathUtils.h"
 #include "StencilObjectSystem.h"
+#include "StringUtils.h"
 #include "SyntheticDepthEstimator.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
@@ -24,6 +32,8 @@
 
 struct DepthMeshCaptureState
 {
+	IGlWindow* ownerWindow;
+
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
 	OpenCVCalibrationGeometry inputCVObjectGeometry;
@@ -37,10 +47,14 @@ struct DepthMeshCaptureState
 	// Generated mesh
 	double disparityBias;
 	double disparityScale;
-	GlTriangulatedMeshPtr depthMeshPtr;
+	GlRenderModelResourcePtr depthMeshResource;
 
-	void init(ProfileConfigConstPtr config, VideoSourceViewPtr videoSourceView)
+	void init(
+		IGlWindow* owner,
+		ProfileConfigConstPtr config, 
+		VideoSourceViewPtr videoSourceView)
 	{
+		ownerWindow= owner;
 		profileConfig= config;
 
 		// Get the current camera intrinsics being used by the video source
@@ -57,7 +71,7 @@ struct DepthMeshCaptureState
 	{
 		disparityBias= 0.0;
 		disparityScale= 1.0;
-		depthMeshPtr= nullptr;
+		depthMeshResource= nullptr;
 	}
 
 	void computeCameraRelativePatternPoints(std::vector<glm::dvec3>& outCameraRelativePoints)
@@ -146,14 +160,76 @@ struct DepthMeshCaptureState
 		disparityBias = y0 - (disparityScale*x0);
 	}
 
-	bool createDepthMesh(
+	bool createRenderModelResource(
+		VideoFrameDistortionViewPtr distortionView,
+		SyntheticDepthEstimatorPtr depthEstimator)
+	{
+		const GlVertexDefinition& vertexDefinition = StencilObjectSystem::getStencilModelVertexDefinition();
+		GlModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
+
+		// Create a texture from the undistorted video frame
+		GlTexturePtr texture = createDepthMeshTexture(distortionView);
+		if (!texture)
+		{
+			return false;
+		}
+
+		// Create a textured stencil material
+		GlMaterialConstPtr stencilMaterial = StencilObjectSystem::createTexturedStencilMaterial(ownerWindow);
+		GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(stencilMaterial);
+		materialInstance->setTextureBySemantic(eUniformSemantic::texture0, texture);
+
+		// Create a triangulated mesh from the synthetic depth map
+		GlTriangulatedMeshPtr triMesh = createTriangulatedDepthMesh(distortionView, depthEstimator);
+		if (!triMesh)
+		{
+			return false;
+		}
+
+		// Create a render model resource from the mesh and material
+		depthMeshResource = std::make_shared<GlRenderModelResource>(&vertexDefinition);
+		depthMeshResource->addTriangulatedMesh(triMesh, materialInstance);
+
+		return true;
+	}
+
+	bool loadDepthMesh(ModelStencilDefinitionPtr modelStencilDefinition)
+	{
+		depthMeshResource= StencilObjectSystem::loadStencilRenderModel(ownerWindow, modelStencilDefinition);
+
+		return depthMeshResource != nullptr;
+	}
+
+	bool saveDepthMesh(ModelStencilDefinitionPtr modelStencilDefinition)
+	{
+		if (depthMeshResource != nullptr)
+		{
+			MikanStencilID stencilId= modelStencilDefinition->getStencilId();
+			std::string depthMeshResourceName = StringUtils::stringify("depth_mesh_", stencilId);
+			auto depthMeshPath= PathUtils::getResourceDirectory() / "models" / (depthMeshResourceName + ".obj");
+
+			depthMeshResource->setName(depthMeshResourceName);
+			depthMeshResource->setModelFilePath(depthMeshPath);
+			//TODO
+			//depthMeshResource->saveToModelFilePath();
+
+			modelStencilDefinition->setModelPath(depthMeshPath);
+
+			return true;
+		}
+
+		return false;
+	}
+
+private:
+	GlTriangulatedMeshPtr createTriangulatedDepthMesh(
 		VideoFrameDistortionViewPtr distortionView,
 		SyntheticDepthEstimatorPtr depthEstimator)
 	{
 		cv::Matx33d intrinsicMatrix = MikanMatrix3d_to_cv_mat33d(inputCameraIntrinsics.camera_matrix);
 		cv::Matx33d invIntrinsicMatrix = intrinsicMatrix.inv();
 
-		cv::Mat* syntheticDisparityDnnBuffer= depthEstimator->getFloatDepthDnnBuffer();
+		cv::Mat* syntheticDisparityDnnBuffer = depthEstimator->getFloatDepthDnnBuffer();
 		const float frameWidth = (float)distortionView->getFrameWidth();
 		const float frameHeight = (float)distortionView->getFrameHeight();
 		const int depthFrameWidth = syntheticDisparityDnnBuffer->cols;
@@ -165,8 +241,8 @@ struct DepthMeshCaptureState
 		const uint32_t triangleCount = (depthFrameWidth - 1) * (depthFrameHeight - 1) * 2;
 		uint32_t* meshIndices = new uint32_t[triangleCount * 3];
 
-		float frameU= 0.0f;
-		float frameV= 0.0f;
+		float frameU = 0.0f;
+		float frameV = 0.0f;
 		for (int depthV = 0; depthV < depthFrameHeight; depthV++)
 		{
 			for (int depthU = 0; depthU < depthFrameWidth; depthU++)
@@ -192,34 +268,49 @@ struct DepthMeshCaptureState
 				*meshVertices = openGLPoint;
 				meshVertices++;
 
-				frameU+= frameUStep;
+				frameU += frameUStep;
 			}
 
-			frameU= 0;
-			frameV+= frameVStep;
+			frameU = 0;
+			frameV += frameVStep;
 		}
 
-		depthMeshPtr = std::make_shared<GlTriangulatedMesh>(
+		auto depthMeshPtr = std::make_shared<GlTriangulatedMesh>(
 			"depth_mesh",
 			StencilObjectSystem::getStencilModelVertexDefinition(),
 			(const uint8_t*)meshVertices,
 			4, // 4 verts
 			(const uint8_t*)meshIndices,
 			sizeof(uint32_t), // 4 bytes per index
-			triangleCount, 
+			triangleCount,
 			true); // mesh owns the vertex data
 		if (!depthMeshPtr->createBuffers())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create layer mesh";
-			return false;
+			return GlTriangulatedMeshPtr();
 		}
 
-		return true;
+		return depthMeshPtr;
+	}
+
+	GlTexturePtr createDepthMeshTexture(VideoFrameDistortionViewPtr distortionView)
+	{
+		// Create a texture for the mesh
+		cv::Mat* bgrUndistortBuffer = distortionView->getBGRUndistortBuffer();
+		auto depthMeshTexture = std::make_shared<GlTexture>(
+			bgrUndistortBuffer->cols,
+			bgrUndistortBuffer->rows,
+			bgrUndistortBuffer->data,
+			GL_RGB, // texture format
+			GL_BGR); // buffer format
+
+		return depthMeshTexture;
 	}
 };
 
 //-- MonoDistortionCalibrator ----
 DepthMeshGenerator::DepthMeshGenerator(
+	IGlWindow* ownerWindow,
 	ProfileConfigConstPtr profileConfig,
 	VideoFrameDistortionViewPtr distortionView,
 	SyntheticDepthEstimatorPtr depthEstimator)
@@ -228,12 +319,11 @@ DepthMeshGenerator::DepthMeshGenerator(
 	, m_patternFinder(CalibrationPatternFinder::allocatePatternFinderSharedPtr(profileConfig, distortionView.get()))
 	, m_depthEstimator(depthEstimator)
 {
-
 	frameWidth = distortionView->getFrameWidth();
 	frameHeight = distortionView->getFrameHeight();
 
 	// Private calibration state
-	m_calibrationState->init(profileConfig, distortionView->getVideoSourceView());
+	m_calibrationState->init(ownerWindow, profileConfig, distortionView->getVideoSourceView());
 
 	// Cache the 3d geometry of the calibration pattern in the calibration state
 	m_patternFinder->getOpenCVSolvePnPGeometry(&m_calibrationState->inputCVObjectGeometry);
@@ -246,9 +336,32 @@ DepthMeshGenerator::~DepthMeshGenerator()
 	delete m_calibrationState;
 }
 
+void DepthMeshGenerator::setTargetModelStencilDefinition(ModelStencilDefinitionPtr targetModelStencilDefinition)
+{
+	m_targetModelStencilDefinition = targetModelStencilDefinition;
+}
+
+bool DepthMeshGenerator::loadMeshFromStencilDefinition()
+{
+	assert(m_targetModelStencilDefinition);
+	if (m_targetModelStencilDefinition->hasValidDepthMesh())
+	{
+		return m_calibrationState->loadDepthMesh(m_targetModelStencilDefinition);
+	}
+
+	return false;
+}
+
+bool DepthMeshGenerator::saveMeshToStencilDefinition()
+{
+	assert(m_targetModelStencilDefinition);
+
+	return m_calibrationState->saveDepthMesh(m_targetModelStencilDefinition);
+}
+
 bool DepthMeshGenerator::hasFinishedSampling() const
 {
-	return m_calibrationState->depthMeshPtr != nullptr;
+	return m_calibrationState->depthMeshResource != nullptr;
 }
 
 void DepthMeshGenerator::resetCalibrationState()
@@ -288,7 +401,10 @@ bool DepthMeshGenerator::captureMesh()
 		cv_cameraToPatternRot, cv_cameraToPatternVecMM, 
 		m_calibrationState->cameraToPatternXform);
 
-	// Compute the disparity bias and scale using the calibration pattern
+	// Compute the synthetic disparity map using the current undistorted video frame
+	m_depthEstimator->computeSyntheticDepth(m_distortionView->getBGRUndistortBuffer());
+
+	// Compute the disparity map bias and scale using the calibration pattern
 	m_calibrationState->computeDisparityBiasAndScale(
 		m_depthEstimator,
 		m_patternFinder, 
@@ -296,7 +412,7 @@ bool DepthMeshGenerator::captureMesh()
 
 	// Convert the true depth map to a textured mesh
 	// Store data in a GlStaticMeshInstancePtr for temp rendering
-	m_calibrationState->createDepthMesh(m_distortionView, m_depthEstimator);
+	m_calibrationState->createRenderModelResource(m_distortionView, m_depthEstimator);
 
 	return true;
 }
@@ -308,7 +424,7 @@ void DepthMeshGenerator::renderCameraSpaceCalibrationState()
 
 	// Draw the camera relative transforms of the pattern (computed from solvePnP)
 	// and the mat puck location offset from the pattern origin
-	if (m_calibrationState->depthMeshPtr != nullptr)
+	if (m_calibrationState->depthMeshResource != nullptr)
 	{
 		const glm::mat4 patternXform = glm::mat4(m_calibrationState->cameraToPatternXform);
 
@@ -350,28 +466,4 @@ void DepthMeshGenerator::renderVRSpaceCalibrationState()
 		Colors::Yellow);
 	drawTransformedAxes(m_calibrationState->cameraXform, 0.1f);
 #endif
-}
-
-bool DepthMeshGenerator::loadMeshFromObjFile(const std::filesystem::path& objPath)
-{
-	return true;
-}
-
-bool DepthMeshGenerator::saveMeshToObjFile(const std::filesystem::path& objPath)
-{
-	return true;
-}
-
-bool DepthMeshGenerator::loadTextureFromPNG(const std::filesystem::path& texturePath)
-{
-	//TODO
-	return true;
-}
-
-bool DepthMeshGenerator::saveTextureToPNG(const std::filesystem::path& texturePath)
-{
-	//TODO
-	//SdlUtility::saveTextureToPNG(colorTexture.get(), texturePath.c_str());
-
-	return true;
 }

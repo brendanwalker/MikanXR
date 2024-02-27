@@ -33,9 +33,16 @@ public:
 	const std::filesystem::path& getTexturePath() const { return m_texturePath; }
 	void setTexturePath(const std::filesystem::path& path);
 
+	static const std::string k_modelStencilIsDepthMeshPropertyId;
+	bool getIsDepthMesh() const { return m_bIsDepthMesh; }
+	void setIsDepthMesh(bool isDepthMesh);
+
+	bool hasValidDepthMesh() const;
+
 private:
 	std::filesystem::path m_modelPath;
 	std::filesystem::path m_texturePath;
+	bool m_bIsDepthMesh= false;
 };
 
 class ModelStencilComponent : public StencilComponent
@@ -66,6 +73,14 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
 	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
+
+	// -- IFunctionInterface ----
+	static const std::string k_createDepthMeshFunctionId;
+	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
+	virtual bool invokeFunction(const std::string& functionName) override;
+
+	void createDepthMesh();
 
 protected:
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;

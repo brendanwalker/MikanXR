@@ -33,16 +33,13 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>            
-            <div data-if="menu_state == 'testCapture' && !bypass_capture_flag">
-                Capture complete!<br />
+            <div data-if="menu_state == 'testCapture'>
+                Preview Mesh<br />
                 <span>
                     <button data-event-click="restart">Redo Capture</button>
                     <button data-event-click="continue">Ok</button>
                 </span>
             </div>
-            <div data-if="menu_state == 'testCapture' && bypass_capture_flag">
-                <button data-event-click="continue">Ok</button>
-            </div>     
             <div data-if="menu_state == 'failedToStart'">
                 Failed to setup depth capturing<br />
                 <button data-event-click="continue">Ok</button>

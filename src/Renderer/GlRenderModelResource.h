@@ -35,6 +35,12 @@ public:
 	inline const std::string& getName() const { return m_name; }
 	inline void setName(const std::string& inName) { m_name= inName; }
 
+	inline const std::filesystem::path& getModelFilePath() const { return m_renderModelFilepath; }
+	inline void setModelFilePath(const std::filesystem::path& inModelFilePath) { m_renderModelFilepath= inModelFilePath; }
+
+	void addTriangulatedMesh(GlTriangulatedMeshPtr mesh, GlMaterialInstancePtr materialInstance);
+	void addWireframeMesh(GlWireframeMeshPtr mesh, GlMaterialInstancePtr materialInstance);
+
 	int getTriangulatedMeshCount() const 
 	{ return (int)m_glTriMeshResources.size(); }
 	GlTriangulatedMeshPtr getTriangulatedMesh(int meshIndex) const 
@@ -68,7 +74,7 @@ protected:
 	objl::Loader* m_objLoader= nullptr;
 
 	std::string m_name;
-	const std::filesystem::path m_renderModelFilepath;
+	std::filesystem::path m_renderModelFilepath;
 	struct GlVertexDefinition* m_vertexDefinition= nullptr;
 
 	struct TriMeshResourceEntry

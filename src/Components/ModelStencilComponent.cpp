@@ -1,5 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "Colors.h"
+#include "DepthMeshCapture/AppStage_DepthMeshCapture.h"
 #include "GlLineRenderer.h"
 #include "GlMaterialInstance.h"
 #include "GlModelResourceManager.h"
@@ -31,6 +32,7 @@
 // -- ModelStencilConfig -----
 const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId = "model_path";
 const std::string ModelStencilDefinition::k_modelStencilTexturePathPropertyId = "texture_path";
+const std::string ModelStencilDefinition::k_modelStencilIsDepthMeshPropertyId = "is_depth_mesh";
 
 ModelStencilDefinition::ModelStencilDefinition()
 	: StencilComponentDefinition()
@@ -52,6 +54,7 @@ configuru::Config ModelStencilDefinition::writeToJSON()
 
 	pt["model_path"] = m_modelPath.string();
 	pt["texture_path"] = m_texturePath.string();
+	pt["is_depth_mesh"] = m_bIsDepthMesh;
 
 	return pt;
 }
@@ -62,6 +65,7 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 
 	m_modelPath = pt.get_or<std::string>("model_path", "");
 	m_texturePath = pt.get_or<std::string>("texture_path", "");
+	m_bIsDepthMesh = pt.get_or<bool>("is_depth_mesh", false);
 }
 
 void ModelStencilDefinition::setModelPath(const std::filesystem::path& path)
@@ -74,6 +78,24 @@ void ModelStencilDefinition::setTexturePath(const std::filesystem::path& path)
 {
 	m_texturePath= path;
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilTexturePathPropertyId));
+}
+
+void ModelStencilDefinition::setIsDepthMesh(bool isDepthMesh)
+{
+	m_bIsDepthMesh = isDepthMesh;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilIsDepthMeshPropertyId));
+}
+
+bool ModelStencilDefinition::hasValidDepthMesh() const
+{
+	if (m_bIsDepthMesh && 
+		!m_modelPath.empty() && std::filesystem::exists(m_modelPath) &&
+		!m_texturePath.empty() && std::filesystem::exists(m_texturePath))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 MikanStencilModel ModelStencilDefinition::getModelInfo() const
@@ -420,4 +442,52 @@ bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, co
 	}
 
 	return false;
+}
+// -- IFunctionInterface ----
+const std::string ModelStencilComponent::k_createDepthMeshFunctionId = "create_depth_mesh";
+
+void ModelStencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	StencilComponent::getFunctionNames(outPropertyNames);
+
+	outPropertyNames.push_back(k_createDepthMeshFunctionId);
+}
+
+bool ModelStencilComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
+{
+	if (StencilComponent::getFunctionDescriptor(functionName, outDescriptor))
+		return true;
+
+	if (functionName == ModelStencilComponent::k_createDepthMeshFunctionId)
+	{
+		outDescriptor = {ModelStencilComponent::k_createDepthMeshFunctionId, "Make Depth Mesh"};
+		return true;
+	}
+
+	return false;
+}
+
+bool ModelStencilComponent::invokeFunction(const std::string& functionName)
+{
+	if (StencilComponent::invokeFunction(functionName))
+		return true;
+
+	if (functionName == ModelStencilComponent::k_createDepthMeshFunctionId)
+	{
+		createDepthMesh();
+	}
+
+	return false;
+}
+
+void ModelStencilComponent::createDepthMesh()
+{
+	// Show Anchor Triangulation Tool
+	auto* depthMeshCapture = MainWindow::getInstance()->pushAppStage<AppStage_DepthMeshCapture>();
+	if (depthMeshCapture)
+	{
+		ModelStencilDefinitionPtr definition = getModelStencilDefinition();
+
+		depthMeshCapture->setTargetModelStencil(definition);
+	}
 }

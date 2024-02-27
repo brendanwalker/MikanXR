@@ -15,7 +15,6 @@ bool RmlModel_DepthMeshCapture::init(
 		return false;
 
 	constructor.Bind("menu_state", &m_menuState);
-	constructor.Bind("bypass_capture_flag", &m_bypassCaptureFlag);
 	constructor.BindEventCallback(
 		"continue",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
@@ -43,25 +42,6 @@ void RmlModel_DepthMeshCapture::dispose()
 	OnRestartEvent.Clear();
 	OnCancelEvent.Clear();
 	RmlModel::dispose();
-}
-
-bool RmlModel_DepthMeshCapture::getBypassCaptureFlag() const
-{
-	return m_bypassCaptureFlag;
-}
-
-void RmlModel_DepthMeshCapture::setBypassCaptureFlag(const bool bNewFlag)
-{
-	if (bNewFlag != m_bypassCaptureFlag)
-	{
-		m_bypassCaptureFlag = bNewFlag;
-
-		// Can be called before RmlModel_DepthMeshCapture::init()
-		if (m_modelHandle)
-		{
-			m_modelHandle.DirtyVariable("bypass_capture_flag");
-		}
-	}
 }
 
 eDepthMeshCaptureMenuState RmlModel_DepthMeshCapture::getMenuState() const

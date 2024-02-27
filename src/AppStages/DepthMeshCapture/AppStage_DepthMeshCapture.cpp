@@ -15,6 +15,7 @@
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
+#include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "SyntheticDepthEstimator.h"
 #include "TextStyle.h"
@@ -54,9 +55,9 @@ AppStage_DepthMeshCapture::~AppStage_DepthMeshCapture()
 	delete m_cameraSettingsModel;
 }
 
-void AppStage_DepthMeshCapture::setBypassCaptureFlag(bool flag)
+void AppStage_DepthMeshCapture::setTargetModelStencil(ModelStencilDefinitionPtr definition)
 {
-	m_calibrationModel->setBypassCaptureFlag(flag);
+	m_depthMeshCapture->setTargetModelStencilDefinition(definition);
 }
 
 void AppStage_DepthMeshCapture::enter()
@@ -90,8 +91,7 @@ void AppStage_DepthMeshCapture::enter()
 	bool depthCaptureReady= false;
 	if (m_videoSourceView->startVideoStream())
 	{
-		auto mainWindow = App::getInstance()->getMainWindow();
-		auto glFrameCompositor = mainWindow->getFrameCompositor();
+		auto glFrameCompositor = m_ownerWindow->getFrameCompositor();
 
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
@@ -110,7 +110,7 @@ void AppStage_DepthMeshCapture::enter()
 		{
 			m_syntheticDepthEstimator =
 				std::make_shared<SyntheticDepthEstimator>(
-					mainWindow->getOpenCVManager(), 
+					m_ownerWindow->getOpenCVManager(), 
 					DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
 
 			if (m_syntheticDepthEstimator->initialize())
@@ -125,6 +125,7 @@ void AppStage_DepthMeshCapture::enter()
 			// Create a depth mesh generator
 			m_depthMeshCapture =
 				std::make_shared<DepthMeshGenerator>(
+					m_ownerWindow,
 					profileConfig,
 					m_monoDistortionView,
 					m_syntheticDepthEstimator);
@@ -137,18 +138,9 @@ void AppStage_DepthMeshCapture::enter()
 	if (depthCaptureReady)
 	{
 		// If bypassing the capture, then jump straight to the test capture state
-		if (m_calibrationModel->getBypassCaptureFlag())
+		if (m_depthMeshCapture->loadMeshFromStencilDefinition())
 		{
-			// Load the mesh and texture from the given paths
-			if (m_depthMeshCapture->loadMeshFromObjFile(m_meshSavePath) &&
-				m_depthMeshCapture->loadTextureFromPNG(m_textureSavePath))
-			{
-				newState = eDepthMeshCaptureMenuState::testCapture;
-			}
-			else
-			{
-				newState = eDepthMeshCaptureMenuState::failedToStart;
-			}
+			newState = eDepthMeshCaptureMenuState::testCapture;
 		}
 		else
 		{
@@ -368,11 +360,7 @@ void AppStage_DepthMeshCapture::onContinueEvent()
 	case eDepthMeshCaptureMenuState::testCapture:
 		{
 			// Write out the mesh to a file
-			if (!m_calibrationModel->getBypassCaptureFlag())
-			{
-				m_depthMeshCapture->saveMeshToObjFile(m_meshSavePath);
-				m_depthMeshCapture->saveTextureToPNG(m_textureSavePath);
-			}
+			m_depthMeshCapture->saveMeshToStencilDefinition();
 
 			m_ownerWindow->popAppState();
 		}
