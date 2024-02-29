@@ -668,7 +668,6 @@ GlRenderModelResourcePtr StencilObjectSystem::loadStencilRenderModel(
 	GlRenderModelResourcePtr renderModelResource =
 		modelResourceManager->fetchRenderModel(
 			stencilDefinition->getModelPath(),
-			&vertexDefinition,
 			stencilMaterial);
 
 	if (renderModelResource != nullptr)
@@ -678,7 +677,8 @@ GlRenderModelResourcePtr StencilObjectSystem::loadStencilRenderModel(
 		{
 			for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); meshIndex++)
 			{
-				GlMaterialInstancePtr matInst = renderModelResource->getTriangulatedMeshMaterial(meshIndex);
+				auto mesh= renderModelResource->getTriangulatedMesh(meshIndex);
+				GlMaterialInstancePtr matInst = mesh->getMaterialInstance();
 
 				if (matInst)
 				{

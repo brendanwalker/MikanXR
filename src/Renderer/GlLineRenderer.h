@@ -14,11 +14,11 @@ typedef std::shared_ptr<GlProgram> GlProgramPtr;
 class GlLineRenderer
 {
 public:
-	GlLineRenderer();
+	GlLineRenderer(class IGlWindow* m_ownerWindow);
 	virtual ~GlLineRenderer();
 
 	bool startup();
-	void render(class IGlWindow* window);
+	void render();
 	void shutdown();
 
 	void setDisable3dDepth(bool bFlag) { m_bDisable3dDepth= bFlag; }
@@ -44,6 +44,8 @@ public:
 		float size0 = 1.f, float size1 = 1.f);
 
 protected:
+	class IGlWindow* m_ownerWindow= nullptr;
+
 	static const class GlProgramCode* getShaderCode();
 	static const struct GlVertexDefinition* getVertexDefinition();
 	void drawPointList(const glm::mat4& VPMatrix);

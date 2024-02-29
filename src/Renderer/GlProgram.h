@@ -36,7 +36,7 @@ public:
 		const std::filesystem::path& shaderConfigPath,
 		const std::filesystem::path& vertexShaderFileName,
 		const std::filesystem::path& fragmentShaderFileName,
-		const std::map<std::string, std::string>& uniforms);
+		const std::map<std::string, std::string>& uniformSemanticMap);
 
 	const std::string& getProgramName() const { return m_programName; }
 	void setProgramName(const std::string& inName) { m_programName= inName; }

@@ -230,7 +230,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 		{
 			// Fetch the mesh and material resources
 			GlTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
-			GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getTriangulatedMeshMaterial(meshIndex);
+			GlMaterialInstancePtr materialInstancePtr = triMeshPtr->getMaterialInstance();
 
 			// Create a new static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr triMeshInstancePtr =
@@ -260,7 +260,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 		{
 			// Fetch the mesh and material resources
 			GlWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh(meshIndex);
-			GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getWireframeMeshMaterial(meshIndex);
+			GlMaterialInstancePtr materialInstancePtr = wireframeMeshPtr->getMaterialInstance();
 
 			// Create a new (hidden) static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr wireframeMeshInstancePtr =

@@ -1,18 +1,22 @@
 #pragma once
 
 #include "IGlMesh.h"
-#include "GlVertexDefinition.h"
+#include "RendererFwd.h"
+
 #include "stdint.h"
 #include <string>
+
+#include "glm/ext/matrix_float4x4.hpp"
 
 class GlTriangulatedMesh : public IGlMesh
 {
 public:
-	GlTriangulatedMesh() = default; 
+	GlTriangulatedMesh(class IGlWindow* ownerWindow); 
 	GlTriangulatedMesh(
+		class IGlWindow* ownerWindow,
 		std::string name,
-		const GlVertexDefinition& vertexDefintion,
 		const uint8_t* vertexData,
+		const size_t vertexSize,
 		uint32_t vertexCount,
 		const uint8_t* indexData,
 		const size_t indexSize,
@@ -20,12 +24,16 @@ public:
 		bool bOwnsVertexData);
 	virtual ~GlTriangulatedMesh();
 
+	bool setMaterial(GlMaterialConstPtr material);
+	bool setMaterialInstance(GlMaterialInstancePtr materialInstance);
+
 	virtual void drawElements() const override;
-	virtual bool createBuffers() override;
-	virtual void deleteBuffers() override;
+	virtual bool createResources() override;
+	virtual void deleteResources() override;
 
 	virtual std::string getName() const override { return m_name; }
-	virtual const GlVertexDefinition* getVertexDefinition() const override { return &m_vertexDefinition; }
+	virtual std::shared_ptr<class GlMaterialInstance> getMaterialInstance() const { return m_materialInstance; };
+	virtual class IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
 
@@ -35,11 +43,12 @@ public:
 	virtual const size_t getIndexSize() const override { return m_indexSize; }
 
 protected:
+	class IGlWindow* m_ownerWindow= nullptr;
+	GlMaterialInstancePtr m_materialInstance;
 	std::string m_name;
 
-	GlVertexDefinition m_vertexDefinition;
-
 	const uint8_t* m_vertexData= nullptr;
+	size_t m_vertexSize= 0;
 	uint32_t m_vertexCount= 0;
 	const uint8_t* m_indexData = nullptr;
 	const size_t m_indexSize = sizeof(uint16_t);
@@ -50,3 +59,8 @@ protected:
 	uint32_t m_glVertBuffer = 0;
 	uint32_t m_glIndexBuffer = 0;
 };
+
+void drawTransformedTriangulatedMesh(
+	GlCameraConstPtr camera,
+	const glm::mat4& transform,
+	GlTriangulatedMeshConstPtr wireframeMesh);

@@ -1,8 +1,8 @@
 {
     "materialName": "rgbFrame",
-    "vertexShaderPath": "rgbFrame.vert",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
     "fragmentShaderPath": "rgbFrame.frag",
-    "uniforms":
+    "uniformSemanticMap":
     {
         "rgbTexture": "texture0"
     }

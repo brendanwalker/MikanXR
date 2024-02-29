@@ -156,18 +156,18 @@ namespace RmlGfx {
 		return &x_vertexDefinition;
 	}
 
-	static bool CreateShaders(ShadersData& out_shaders)
+	static bool CreateShaders(IGlWindow* ownerWindow, ShadersData& out_shaders)
 	{
 		out_shaders = {};
 
-		out_shaders.program_color = GlShaderCache::getInstance()->fetchCompiledGlProgram(&color_program_code);
+		out_shaders.program_color = ownerWindow->getShaderCache()->fetchCompiledGlProgram(&color_program_code);
 		if (out_shaders.program_color == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
 			return false;
 		}
 
-		out_shaders.program_texture = GlShaderCache::getInstance()->fetchCompiledGlProgram(&texture_program_code);
+		out_shaders.program_texture = ownerWindow->getShaderCache()->fetchCompiledGlProgram(&texture_program_code);
 		if (out_shaders.program_texture == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
@@ -353,7 +353,7 @@ GlRmlUiRender::~GlRmlUiRender()
 
 bool GlRmlUiRender::startup()
 {
-	if (!RmlGfx::CreateShaders(*shaders))
+	if (!RmlGfx::CreateShaders(&m_ownerWindow, *shaders))
 		return false;
 
 	viewport_width = m_ownerWindow.getWidth();

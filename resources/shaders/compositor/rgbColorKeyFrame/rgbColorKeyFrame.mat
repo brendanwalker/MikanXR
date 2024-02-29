@@ -1,8 +1,8 @@
 {
     "materialName": "rgbColorKeyFrame",
-    "vertexShaderPath": "rgbColorKeyFrame.vert",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
     "fragmentShaderPath": "rgbColorKeyFrame.frag",
-    "uniforms":
+    "uniformSemanticMap":
     {
         "colorKey": "diffuseColorRGB",
         "colorKeyTexture": "texture0"

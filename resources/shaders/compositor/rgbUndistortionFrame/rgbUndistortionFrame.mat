@@ -1,8 +1,8 @@
 {
     "materialName": "rgbUndistortionFrame",
-    "vertexShaderPath": "rgbUndistortionFrame.vert",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
     "fragmentShaderPath": "rgbUndistortionFrame.frag",
-    "uniforms":
+    "uniformSemanticMap":
     {
         "rgbTexture": "texture0",
         "distortion": "texture1"

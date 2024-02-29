@@ -62,14 +62,14 @@ bool GlFrameCompositor::startup(IGlWindow* ownerWindow)
 
 	reloadAllCompositorPresets();
 
-	m_rgbFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBFrameShaderCode());
+	m_rgbFrameShader = ownerWindow->getShaderCache()->fetchCompiledGlProgram(getRGBFrameShaderCode());
 	if (m_rgbFrameShader == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb frame shader";
 		return false;
 	}
 
-	m_rgbToBgrFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBtoBGRVideoFrameShaderCode());
+	m_rgbToBgrFrameShader = ownerWindow->getShaderCache()->fetchCompiledGlProgram(getRGBtoBGRVideoFrameShaderCode());
 	if (m_rgbToBgrFrameShader == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb-to-gbr frame shader";

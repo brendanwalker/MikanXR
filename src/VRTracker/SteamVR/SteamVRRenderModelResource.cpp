@@ -6,6 +6,7 @@
 #include "GlProgram.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
+#include "MainWindow.h"
 #include "SteamVRRenderModelResource.h"
 #include "ThreadUtils.h"
 
@@ -13,7 +14,9 @@
 
 SteamVRRenderModelResource::SteamVRRenderModelResource(
 	const std::string& renderModelName)
-	: m_renderModelName(renderModelName)
+	// TODO: Owner window shoud be passed as a parameter
+	: m_ownerWindow(App::getInstance()->getMainWindow())
+	, m_renderModelName(renderModelName)
 	, m_steamVRRenderModel(nullptr)
 	, m_steamVRTextureMap(nullptr)
 	, m_glMesh(nullptr)
@@ -202,7 +205,8 @@ GlMaterialPtr SteamVRRenderModelResource::createMaterial(
 	const GlProgramCode* code,
 	GlTexturePtr texture)
 {
-	GlShaderCache* resourceManager = GlShaderCache::getInstance();
+	// TODO: SteamVRRenderModelResource should know owner window
+	GlShaderCache* resourceManager = m_ownerWindow->getShaderCache();
 	GlProgramPtr program = resourceManager->fetchCompiledGlProgram(code);
 	
 	if (program != nullptr)
@@ -235,16 +239,17 @@ GlTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource
 	if (steamVRRenderModel != nullptr)
 	{
 		glMesh = std::make_shared<GlTriangulatedMesh>(
+			m_ownerWindow,
 			meshName,
-			*vertexDefinition,
 			(const uint8_t*)steamVRRenderModel->rVertexData,
+			vertexDefinition->vertexSize,
 			steamVRRenderModel->unVertexCount,
 			(const uint8_t*)steamVRRenderModel->rIndexData,
 			sizeof(uint16_t),
 			steamVRRenderModel->unTriangleCount,
 			false); // <-- triangulated mesh does not own vertex data
 
-		if (!glMesh->createBuffers())
+		if (!glMesh->createResources())
 		{
 			glMesh= nullptr;
 		}

@@ -10,7 +10,7 @@ configuru::Config GlProgramConfig::writeToJSON()
 	pt["vertexShaderPath"]= vertexShaderPath.string();
 	pt["fragmentShaderPath"]= fragmentShaderPath.string();
 
-	CommonConfig::writeStdMap(pt, "uniforms", uniforms);
+	CommonConfig::writeStdMap(pt, "uniformSemanticMap", uniformSemanticMap);
 
 	return pt;
 }
@@ -22,7 +22,7 @@ void GlProgramConfig::readFromJSON(const configuru::Config& pt)
 	materialName = pt.get_or<std::string>("materialName", materialName);
 	vertexShaderPath = pt.get_or<std::string>("vertexShaderPath", vertexShaderPath.string());
 	fragmentShaderPath = pt.get_or<std::string>("fragmentShaderPath", fragmentShaderPath.string());
-	CommonConfig::readStdMap(pt, "uniforms", uniforms);
+	CommonConfig::readStdMap(pt, "uniformSemanticMap", uniformSemanticMap);
 }
 
 bool GlProgramConfig::loadGlProgramCode(GlProgramCode* outProgramCode)
@@ -31,5 +31,5 @@ bool GlProgramConfig::loadGlProgramCode(GlProgramCode* outProgramCode)
 		getLoadedConfigPath(),
 		vertexShaderPath,
 		fragmentShaderPath,
-		uniforms);
+		uniformSemanticMap);
 }

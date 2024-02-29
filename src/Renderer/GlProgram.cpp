@@ -36,7 +36,7 @@ bool GlProgramCode::loadFromConfigData(
 	const std::filesystem::path& shaderConfigPath,
 	const std::filesystem::path& vertexShaderFileName,
 	const std::filesystem::path& fragmentShaderFileName,
-	const std::map<std::string, std::string>& uniforms)
+	const std::map<std::string, std::string>& uniformSemanticMap)
 {
 	bool bSuccess= true;
 
@@ -83,12 +83,12 @@ bool GlProgramCode::loadFromConfigData(
 		bSuccess = false;
 	}
 
-	for (const auto& [name, semanticString] : uniforms)
+	for (const auto& [uniformName, semanticName] : uniformSemanticMap)
 	{
 		eUniformSemantic semantic= eUniformSemantic::INVALID;
 		for (int enumIntValue = 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
 		{
-			if (k_UniformSemanticName[enumIntValue] == semanticString)
+			if (k_UniformSemanticName[enumIntValue] == semanticName)
 			{
 				semantic= (eUniformSemantic)enumIntValue;
 				break;
@@ -97,15 +97,15 @@ bool GlProgramCode::loadFromConfigData(
 
 		if (semantic != eUniformSemantic::INVALID)
 		{
-			m_uniformList.push_back({name, semantic});
+			m_uniformList.push_back({uniformName, semantic});
 		}
 		else
 		{
 			MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
 				<< "Invalid semantic: "
-				<< name
+				<< uniformName
 				<< " -> "
-				<< semanticString;
+				<< semanticName;
 			bSuccess = false;
 		}
 	}

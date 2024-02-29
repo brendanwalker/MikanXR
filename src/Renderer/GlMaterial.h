@@ -5,6 +5,7 @@
 #include "GlScopedMaterialBinding.h"
 #include "RendererFwd.h"
 
+#include <functional>
 #include <string>
 #include <memory>
 #include <map>
@@ -62,7 +63,7 @@ public:
 	bool setTextureByUniformName(const std::string uniformName, GlTexturePtr texture);
 	bool getTextureByUniformName(const std::string uniformName, GlTexturePtr& outTexture) const;
 
-	GlScopedMaterialBinding bindMaterial(GlSceneConstPtr scene, GlCameraConstPtr camera) const;
+	GlScopedMaterialBinding bindMaterial(BindUniformCallback callback= BindUniformCallback()) const;
 
 protected:
 	friend class GlScopedMaterialBinding;

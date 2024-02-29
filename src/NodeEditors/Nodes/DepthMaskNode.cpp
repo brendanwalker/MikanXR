@@ -505,7 +505,7 @@ void DepthMaskNode::evaluateModelStencils(GlState& glState)
 			for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
 			{
 				GlTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
-				GlMaterialInstancePtr materialInst = renderModelResource->getTriangulatedMeshMaterial(meshIndex);
+				GlMaterialInstancePtr materialInst = mesh->getMaterialInstance();
 				GlMaterialConstPtr material = materialInst->getMaterial();
 
 				// Set the model-view-projection matrix on the stencil material instance
@@ -516,13 +516,10 @@ void DepthMaskNode::evaluateModelStencils(GlState& glState)
 				// to minimize the number of shader program switches
 				// Or switch to using a GlScene for rendering stencils,
 				// which handles the shader program sorting for us.
-				auto materialBinding = material->bindMaterial(GlSceneConstPtr(), GlCameraConstPtr());
+				auto materialBinding = material->bindMaterial();
 				if (materialBinding)
 				{
-					auto materialInstanceBinding =
-						materialInst->bindMaterialInstance(
-							materialBinding,
-							IGlSceneRenderablePtr());
+					auto materialInstanceBinding = materialInst->bindMaterialInstance(materialBinding);
 					if (materialInstanceBinding)
 					{
 						mesh->drawElements();

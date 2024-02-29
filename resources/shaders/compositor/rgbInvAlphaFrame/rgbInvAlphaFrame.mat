@@ -1,8 +1,8 @@
 {
     "materialName": "rgbInvAlphaFrame",
-    "vertexShaderPath": "rgbInvAlphaFrame.vert",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
     "fragmentShaderPath": "rgbInvAlphaFrame.frag",
-    "uniforms":
+    "uniformSemanticMap":
     {
         "rgbaTexture": "texture0"
     }

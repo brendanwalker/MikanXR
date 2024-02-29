@@ -296,7 +296,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 				sizeof(uint16_t), // 2 bytes per index
 				2, // 2 tris
 				false); // mesh doesn't own quad vert data
-		if (!m_layerMesh->createBuffers())
+		if (!m_layerMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create layer mesh";
 			return false;
@@ -324,7 +324,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 				sizeof(uint16_t), // 2 bytes per index
 				2, // 2 tris
 				false); // mesh doesn't own quad vert data
-		if (!m_layerVFlippedMesh->createBuffers())
+		if (!m_layerVFlippedMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create vflipped layer mesh";
 			return false;
@@ -356,7 +356,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 			sizeof(uint16_t), // 2 bytes per index
 			2, // 2 tris in a quad
 			false); // mesh doesn't own quad vertex data
-		if (!m_stencilQuadMesh->createBuffers())
+		if (!m_stencilQuadMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create quad stencil mesh";
 			return false;
@@ -394,7 +394,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 			sizeof(uint16_t), // 2 bytes per index
 			12, // 12 tris in a cube (6 faces * 2 tris/face)
 			false); // mesh doesn't own box vertex data
-		if (!m_stencilBoxMesh->createBuffers())
+		if (!m_stencilBoxMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create box stencil mesh";
 			return false;

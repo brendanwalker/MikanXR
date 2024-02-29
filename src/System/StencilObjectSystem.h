@@ -69,6 +69,7 @@ public:
 		const glm::vec3& cameraForward,
 		std::vector<ModelStencilComponentPtr>& outStencilList) const;
 
+	// TODO Move these to the shader cache
 	struct StencilVertex
 	{
 		glm::vec3 aPos;

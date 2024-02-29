@@ -69,9 +69,9 @@ MainWindow::MainWindow()
 	, m_vrDeviceManager(new VRDeviceManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
-	, m_lineRenderer(GlLineRendererUniquePtr(new GlLineRenderer))
+	, m_lineRenderer(GlLineRendererUniquePtr(new GlLineRenderer(this)))
 	, m_textRenderer(GlTextRendererUniquePtr(new GlTextRenderer))
-	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager))
+	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
@@ -546,7 +546,7 @@ void MainWindow::renderStageEnd()
 	EASY_FUNCTION();
 
 	// Render any line segments emitted by the AppStage
-	m_lineRenderer->render(this);
+	m_lineRenderer->render();
 
 	// Render any glyphs emitted by the AppStage
 	m_textRenderer->render(this);
@@ -574,7 +574,7 @@ void MainWindow::renderUIEnd()
 	m_rmlUiRenderer->endFrame();
 
 	// Render any line segments emitted by the AppStage renderUI phase
-	m_lineRenderer->render(this);
+	m_lineRenderer->render();
 
 	// Render any glyphs emitted by the AppStage renderUI phase
 	m_textRenderer->render(this);

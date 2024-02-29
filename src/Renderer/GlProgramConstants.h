@@ -1,6 +1,8 @@
 #pragma once
 
+#include <functional>
 #include <string>
+#include <memory>
 
 enum class eUniformDataType : int
 {
@@ -78,3 +80,16 @@ enum class eUniformSemantic : int
 };
 extern const std::string* k_UniformSemanticName;
 
+enum class eUniformBindResult : int
+{
+	bound,
+	unbound,
+	error
+};
+
+using BindUniformCallback =
+	std::function<eUniformBindResult(
+		std::shared_ptr<class GlProgram>, // Source program to bind the uniform for
+		eUniformDataType, // Data type of the uniform
+		eUniformSemantic, // Semantic of the uniform
+		const std::string&)>; // Name of the uniform

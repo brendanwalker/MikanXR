@@ -75,7 +75,7 @@ public:
 
 	GlScopedMaterialInstanceBinding bindMaterialInstance(
 		const GlScopedMaterialBinding& materialBinding,
-		IGlSceneRenderableConstPtr renderable) const;
+		BindUniformCallback callback= BindUniformCallback()) const;
 
 protected: 
 	friend class GlScopedMaterialInstanceBinding;

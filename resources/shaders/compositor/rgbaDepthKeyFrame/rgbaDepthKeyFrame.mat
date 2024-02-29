@@ -1,8 +1,8 @@
 {
     "materialName": "rgbaDepthKeyFrame",
-    "vertexShaderPath": "rgbaDepthKeyFrame.vert",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
     "fragmentShaderPath": "rgbaDepthKeyFrame.frag",
-    "uniforms":
+    "uniformSemanticMap":
     {
 		"zThreshold": "floatConstant0",
         "rgbaTexture": "texture0",

@@ -48,6 +48,7 @@ protected:
 		const struct GlVertexDefinition* vertexDefinition,
 		const struct vr::RenderModel_t* steamVRRenderModel);
 
+	IGlWindow* m_ownerWindow= nullptr;
 	std::string m_renderModelName;
 	
 	vr::RenderModel_t* m_steamVRRenderModel= nullptr;

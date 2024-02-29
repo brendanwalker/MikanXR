@@ -8,6 +8,7 @@
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
 #include "GlRenderModelResource.h"
+#include "GlProgram.h"
 #include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
 #include "IGlWindow.h"
@@ -174,21 +175,23 @@ struct DepthMeshCaptureState
 			return false;
 		}
 
-		// Create a textured stencil material
+		//TODO: Fetch the material from the shader cache
 		GlMaterialConstPtr stencilMaterial = StencilObjectSystem::createTexturedStencilMaterial(ownerWindow);
 		GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(stencilMaterial);
 		materialInstance->setTextureBySemantic(eUniformSemantic::texture0, texture);
 
 		// Create a triangulated mesh from the synthetic depth map
-		GlTriangulatedMeshPtr triMesh = createTriangulatedDepthMesh(distortionView, depthEstimator);
+		GlTriangulatedMeshPtr triMesh = 
+			createTriangulatedDepthMesh(
+				distortionView, depthEstimator, materialInstance);
 		if (!triMesh)
 		{
 			return false;
 		}
 
 		// Create a render model resource from the mesh and material
-		depthMeshResource = std::make_shared<GlRenderModelResource>(&vertexDefinition);
-		depthMeshResource->addTriangulatedMesh(triMesh, materialInstance);
+		depthMeshResource = std::make_shared<GlRenderModelResource>(ownerWindow);
+		depthMeshResource->addTriangulatedMesh(triMesh);
 
 		return true;
 	}
@@ -210,12 +213,11 @@ struct DepthMeshCaptureState
 
 			depthMeshResource->setName(depthMeshResourceName);
 			depthMeshResource->setModelFilePath(depthMeshPath);
-			//TODO
-			//depthMeshResource->saveToModelFilePath();
-
-			modelStencilDefinition->setModelPath(depthMeshPath);
-
-			return true;
+			if (depthMeshResource->saveToRenderModelFilePath())
+			{
+				modelStencilDefinition->setModelPath(depthMeshPath);
+				return true;
+			}
 		}
 
 		return false;
@@ -224,7 +226,8 @@ struct DepthMeshCaptureState
 private:
 	GlTriangulatedMeshPtr createTriangulatedDepthMesh(
 		VideoFrameDistortionViewPtr distortionView,
-		SyntheticDepthEstimatorPtr depthEstimator)
+		SyntheticDepthEstimatorPtr depthEstimator,
+		GlMaterialInstancePtr materialInstance)
 	{
 		cv::Matx33d intrinsicMatrix = MikanMatrix3d_to_cv_mat33d(inputCameraIntrinsics.camera_matrix);
 		cv::Matx33d invIntrinsicMatrix = intrinsicMatrix.inv();
@@ -237,9 +240,14 @@ private:
 		const float frameVStep = frameWidth / depthFrameWidth;
 		const float frameUStep = frameHeight / depthFrameHeight;
 
+		// TODO: Need to allocate the mesh vertices based on the material vertex definition
+		const uint32_t meshVertexCount = depthFrameWidth * depthFrameHeight;
 		glm::vec3* meshVertices = new glm::vec3[depthFrameWidth * depthFrameHeight];
 		const uint32_t triangleCount = (depthFrameWidth - 1) * (depthFrameHeight - 1) * 2;
 		uint32_t* meshIndices = new uint32_t[triangleCount * 3];
+
+		glm::vec3* vertexWritePtr = meshVertices;
+		uint32_t* indexWritePtr= meshIndices;
 
 		float frameU = 0.0f;
 		float frameV = 0.0f;
@@ -265,8 +273,10 @@ private:
 					-openCV_z * k_millimeters_to_meters);
 
 				// Store the 3D point in the vertex array
-				*meshVertices = openGLPoint;
-				meshVertices++;
+				*vertexWritePtr = openGLPoint;
+				vertexWritePtr++;
+
+				// TODO: Need to write out the indices for the mesh
 
 				frameU += frameUStep;
 			}
@@ -275,16 +285,24 @@ private:
 			frameV += frameVStep;
 		}
 
+		// Get the vertex definition associated with the material
+		auto& vertexDefinition= materialInstance->getMaterial()->getProgram()->getVertexDefinition();
+
 		auto depthMeshPtr = std::make_shared<GlTriangulatedMesh>(
+			ownerWindow,
 			"depth_mesh",
-			StencilObjectSystem::getStencilModelVertexDefinition(),
 			(const uint8_t*)meshVertices,
-			4, // 4 verts
+			vertexDefinition.vertexSize,
+			meshVertexCount,
 			(const uint8_t*)meshIndices,
 			sizeof(uint32_t), // 4 bytes per index
 			triangleCount,
 			true); // mesh owns the vertex data
-		if (!depthMeshPtr->createBuffers())
+
+		// Assign the materian instance
+		depthMeshPtr->setMaterialInstance(materialInstance);
+
+		if (!depthMeshPtr->createResources())
 		{
 			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create layer mesh";
 			return GlTriangulatedMeshPtr();

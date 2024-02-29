@@ -70,6 +70,7 @@ using GlTextureCacheUniquePtr = std::unique_ptr<GlTextureCache>;
 
 class GlTriangulatedMesh;
 using GlTriangulatedMeshPtr = std::shared_ptr<GlTriangulatedMesh>;
+using GlTriangulatedMeshConstPtr = std::shared_ptr<const GlTriangulatedMesh>;
 
 class GlViewport;
 using GlViewportPtr = std::shared_ptr<GlViewport>;

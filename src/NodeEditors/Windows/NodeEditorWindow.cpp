@@ -45,7 +45,7 @@
 NodeEditorWindow::NodeEditorWindow()
 	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
-	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager))
+	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
 	, m_textureCache(GlTextureCacheUniquePtr(new GlTextureCache))
 {}

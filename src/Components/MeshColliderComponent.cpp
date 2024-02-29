@@ -3,6 +3,9 @@
 #include "StaticMeshComponent.h"
 #include "MulticastDelegate.h"
 #include "GlStaticMeshInstance.h"
+#include "GlMaterialInstance.h"
+#include "GlMaterial.h"
+#include "GlProgram.h"
 
 #include <glm/gtx/intersect.hpp>
 
@@ -146,8 +149,9 @@ void MeshColliderComponent::rebuildCollionGeometry()
 	assert(glMeshDataPtr->getIndexPerElementCount() == 3);
 	assert(glMeshDataPtr->getIndexSize() == sizeof(uint16_t));
 
-	auto vertexDefinition= glMeshDataPtr->getVertexDefinition();
-	auto vertexAttrib= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position3f);
+	auto material= glMeshDataPtr->getMaterialInstance()->getMaterial();
+	auto vertexDefinition= material->getProgram()->getVertexDefinition();
+	auto vertexAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position3f);
 	if (!vertexAttrib)
 		return;
 

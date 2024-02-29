@@ -17,8 +17,9 @@
 const int k_max_segments = 0x8000;
 const int k_max_points = 0x8000;
 
-GlLineRenderer::GlLineRenderer()
-	: m_program(nullptr)
+GlLineRenderer::GlLineRenderer(IGlWindow* m_ownerWindow)
+	: m_ownerWindow(m_ownerWindow)
+	, m_program(nullptr)
 	, m_points3d(k_max_points)
 	, m_lines3d(k_max_segments*2)
 	, m_points2d(k_max_points)
@@ -84,7 +85,7 @@ const GlVertexDefinition* GlLineRenderer::getVertexDefinition()
 
 bool GlLineRenderer::startup()
 {
-	m_program = GlShaderCache::getInstance()->fetchCompiledGlProgram(getShaderCode());
+	m_program = m_ownerWindow->getShaderCache()->fetchCompiledGlProgram(getShaderCode());
 	if (m_program == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to build shader program";
@@ -107,7 +108,7 @@ bool GlLineRenderer::startup()
 }
 
 
-void GlLineRenderer::render(IGlWindow* window)
+void GlLineRenderer::render()
 {
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
@@ -116,13 +117,13 @@ void GlLineRenderer::render(IGlWindow* window)
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
 		{
-			GlCameraPtr camera = window->getRenderingViewport()->getCurrentCamera();
+			GlCameraPtr camera = m_ownerWindow->getRenderingViewport()->getCurrentCamera();
 
 			if (camera != nullptr)
 			{
 				const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-				GlScopedState scopedState = window->getGlStateStack().createScopedState();
+				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState();
 				if (m_bDisable3dDepth)
 				{
 					scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
@@ -137,15 +138,15 @@ void GlLineRenderer::render(IGlWindow* window)
 
 		if (m_points2d.hasPoints() || m_lines2d.hasPoints())
 		{
-			const float windowWidth = window->getWidth();
-			const float windowHeight = window->getHeight();
+			const float windowWidth = m_ownerWindow->getWidth();
+			const float windowHeight = m_ownerWindow->getHeight();
 			const glm::mat4 orthoMat = glm::ortho(0.f, windowWidth, windowHeight, 0.0f, 1.0f, -1.0f);
 
 			m_program->setMatrix4x4Uniform(m_modelViewUniformName, orthoMat);
 
 			{
 				// disable the depth buffer to allow overdraw 
-				GlScopedState scopedState = window->getGlStateStack().createScopedState();
+				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState();
 				scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 				m_points2d.drawGlBufferState(GL_POINTS);

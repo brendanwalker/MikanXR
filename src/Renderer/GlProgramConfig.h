@@ -16,5 +16,5 @@ public:
 	std::string materialName;
 	std::filesystem::path vertexShaderPath;
 	std::filesystem::path fragmentShaderPath;
-	std::map<std::string, std::string> uniforms;
+	std::map<std::string, std::string> uniformSemanticMap;
 };

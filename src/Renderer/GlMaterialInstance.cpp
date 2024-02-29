@@ -2,9 +2,7 @@
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
-#include "GlScene.h"
 #include "GlTexture.h"
-#include "IGlSceneRenderable.h"
 
 GlMaterialInstance::GlMaterialInstance()
 	: m_parentMaterial(nullptr)
@@ -352,7 +350,7 @@ static void mark_uniform_as_bound(const std::string& uniformName, UniformNameSet
 
 GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 	const GlScopedMaterialBinding& materialBinding,
-	IGlSceneRenderableConstPtr renderable) const
+	BindUniformCallback callback) const
 {
 	bool bMaterialInstanceFailure= false;
 
@@ -362,53 +360,25 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 		UniformNameSet unboundUniforms= materialBinding.getUnboundUniforms();
 		GlProgramPtr program= m_parentMaterial->getProgram();
 
-		// Auto-apply renderable specific uniforms
-		for (auto it = program->getUniformBegin(); it != program->getUniformEnd(); it++)
+
+		// Auto-apply callback specific uniform bindings first
+		if (callback)
 		{
-			const std::string& uniformName= it->first;
-			const GlProgramUniform& uniform = it->second;
-
-			switch (uniform.semantic)
+			for (auto it = program->getUniformBegin(); it != program->getUniformEnd(); it++)
 			{
-				case eUniformSemantic::modelMatrix:
-					{
-						const glm::mat4 modelMat = renderable->getModelMatrix();
+				const std::string& uniformName = it->first;
+				eUniformSemantic uniformSemantic = it->second.semantic;
+				eUniformDataType uniformDataType = GlProgram::getUniformSemanticDataType(uniformSemantic);
 
-						if (program->setMatrix4x4Uniform(uniformName, modelMat))
-							mark_uniform_as_bound(uniformName, unboundUniforms);
-						else
-							bMaterialInstanceFailure= true;
-					}
-					break;
-				case eUniformSemantic::normalMatrix:
-					{
-						const glm::mat4 normalMat = renderable->getNormalMatrix();
-
-						if (program->setMatrix4x4Uniform(uniformName, normalMat))
-							mark_uniform_as_bound(uniformName, unboundUniforms);
-						else
-							bMaterialInstanceFailure= true;
-					}
-					break;
-				case eUniformSemantic::modelViewProjectionMatrix:
-					{
-						GlCameraConstPtr cameraPtr= materialBinding.getBoundCamera();
-
-						if (cameraPtr != nullptr)
-						{
-							const glm::mat4 viewProjMat = cameraPtr->getViewProjectionMatrix();
-							const glm::mat4 modelMat = renderable->getModelMatrix();
-							const glm::mat4 modelViewProjMatrix = viewProjMat * modelMat;
-
-							if (program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix))
-								mark_uniform_as_bound(uniformName, unboundUniforms);
-							else
-								bMaterialInstanceFailure= true;
-						}
-					}
-					break;
-				default:
-					break;
+				eUniformBindResult bindResult = callback(program, uniformDataType, uniformSemantic, uniformName);
+				if (bindResult == eUniformBindResult::bound)
+				{
+					mark_uniform_as_bound(uniformName, unboundUniforms);
+				}
+				else if (bindResult == eUniformBindResult::error)
+				{
+					bMaterialInstanceFailure = true;
+				}
 			}
 		}
 

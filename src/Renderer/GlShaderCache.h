@@ -7,24 +7,28 @@
 #include <string>
 #include <map>
 
+#define INTERNAL_MATERIAL_BLINN_PHONG	"Internal_BlingPhong"
+#define INTERNAL_MATERIAL_WIREFRAME		"Internal_Wireframe"
+
 class GlShaderCache
 {
 public:
-	GlShaderCache();
-	virtual ~GlShaderCache();
-
-	static GlShaderCache* getInstance() { return m_instance; }
+	GlShaderCache()= default;
 
 	bool startup();
 	void shutdown();
 
-	GlProgramPtr allocateEmptyGlProgram(const std::string& programName);
-	void removeGlProgramFromCache(GlProgramPtr program);
-	GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code);
 	GlMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef);
 
+	GlMaterialPtr registerMaterial(const GlProgramCode& code);
+	GlMaterialConstPtr getMaterialByName(const std::string& name);
+
+	GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code);
+
 private:
-	static GlShaderCache* m_instance;
+	static const GlProgramCode& getPhongShaderCode();
+	static const GlProgramCode& getWireframeShaderCode();
 
 	std::map<std::string, GlProgramPtr> m_programCache;
+	std::map<std::string, GlMaterialPtr> m_materialCache;
 };

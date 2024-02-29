@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IGLSceneRenderable.h"
-#include "RendererFwd.h"
+#include "GlProgramConstants.h"
 
 #include <map>
 #include <memory>
@@ -39,6 +39,21 @@ public:
 	const glm::vec3& getLightDirection() const { return m_lightDirection; }
 
 	void render(GlCameraConstPtr camera) const;
+
+protected:
+	eUniformBindResult materialBindCallback(
+		GlCameraConstPtr camera,
+		GlProgramPtr program,
+		eUniformDataType uniformDataType,
+		eUniformSemantic uniformSemantic,
+		const std::string& uniformName) const;
+	eUniformBindResult materialInstanceBindCallback(
+		GlCameraConstPtr camera,
+		IGlSceneRenderableConstPtr renderableInstance,
+		GlProgramPtr program,
+		eUniformDataType uniformDataType,
+		eUniformSemantic uniformSemantic,
+		const std::string& uniformName) const;
 
 private:
 	glm::vec4 m_lightColor;
