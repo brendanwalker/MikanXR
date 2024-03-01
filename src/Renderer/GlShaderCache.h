@@ -7,8 +7,12 @@
 #include <string>
 #include <map>
 
-#define INTERNAL_MATERIAL_BLINN_PHONG	"Internal_BlingPhong"
-#define INTERNAL_MATERIAL_WIREFRAME		"Internal_Wireframe"
+#define INTERNAL_MATERIAL_PT_FULLSCREEN_TEXTURE		"Internal_PT_FullscreenTexture"
+#define INTERNAL_MATERIAL_PNT_BLINN_PHONG			"Internal_PNT_BlingPhong"
+#define INTERNAL_MATERIAL_P_WIREFRAME				"Internal_P_Wireframe"
+#define INTERNAL_MATERIAL_P_SOLID_COLOR				"Internal_P_SolidColor"
+#define INTERNAL_MATERIAL_PT_TEXTURED				"Internal_PT_Textured"
+#define INTERNAL_MATERIAL_PNT_TEXTURED_COLORED		"Internal_PNT_TexturedColored"
 
 class GlShaderCache
 {
@@ -26,9 +30,6 @@ public:
 	GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code);
 
 private:
-	static const GlProgramCode& getPhongShaderCode();
-	static const GlProgramCode& getWireframeShaderCode();
-
 	std::map<std::string, GlProgramPtr> m_programCache;
 	std::map<std::string, GlMaterialPtr> m_materialCache;
 };

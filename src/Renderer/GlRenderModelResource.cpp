@@ -63,7 +63,7 @@ bool GlRenderModelResource::loadFromRenderModelFilePath(GlMaterialConstPtr overr
 	GlMaterialConstPtr triMeshMaterial = overrideMaterial;
 	if (!triMeshMaterial)
 	{
-		triMeshMaterial = m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_BLINN_PHONG);
+		triMeshMaterial = m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_BLINN_PHONG);
 	}
 
 	if (!triMeshMaterial)
@@ -165,28 +165,46 @@ namespace ObjUtils
 		GlMaterialInstancePtr materialInstance,
 		const std::filesystem::path& modelFilePath,
 		const std::string& textureRelativePath,
-		const std::string& uniformName)
+		const eUniformSemantic semantic)
 	{
-		if (!textureRelativePath.empty())
-		{
-			GlProgramPtr program = materialInstance->getMaterial()->getProgram();
+		GlProgramPtr program = materialInstance->getMaterial()->getProgram();
 
-			eUniformSemantic semantic;
-			if (program->getUniformSemantic(uniformName, semantic) &&
-				program->getUniformSemanticDataType(semantic) == eUniformDataType::datatype_texture)
+		// See if the shader has a uniform that wants to bind to a texture with the given semantic
+		std::string uniformName;
+		if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
+			program->getUniformSemanticDataType(semantic) == eUniformDataType::datatype_texture)
+		{
+			// Try loading the texture using the relative path
+			GlTexturePtr texture;
+			if (!textureRelativePath.empty())
 			{
 				std::filesystem::path texturePath = modelFilePath.parent_path() / textureRelativePath;
-				GlTexturePtr texture = textureCache->loadTexturePath(texturePath);
+				
+				texture = textureCache->loadTexturePath(texturePath);
+			}
 
-				if (texture)
-				{
-					materialInstance->setTextureByUniformName(uniformName, texture);
-					return true;
-				}
+			// If that fails, fallback to the default white texture
+			if (texture == nullptr)
+			{
+				texture = textureCache->tryGetTextureByName(INTERNAL_TEXTURE_WHITE);
+			}
+
+			if (texture)
+			{
+				// Bind the texture to the material instance
+				return materialInstance->setTextureByUniformName(uniformName, texture);
+			}
+			else
+			{
+				// Failed to load any texture to bind to the uniform
+				return false;
 			}
 		}
-
-		return false;
+		else
+		{
+			// The shader doesn't have uniform that cares about this texture
+			return true;
+		}
 	}
 
 	GlMaterialInstancePtr createTriMeshMaterialInstance(
@@ -212,17 +230,23 @@ namespace ObjUtils
 			objMaterial.Ns);
 
 		// Ambient Texture Map
-		addTextureToMaterialInstance(textureCache, materialInstance, modelFilePath, objMaterial.map_Ka, "map_Ka");
+		addTextureToMaterialInstance(
+			textureCache, materialInstance, modelFilePath, objMaterial.map_Ka, eUniformSemantic::ambientTexture);
 		// Diffuse Texture Map
-		addTextureToMaterialInstance(textureCache, materialInstance, modelFilePath, objMaterial.map_Kd, "map_Kd");
+		addTextureToMaterialInstance(
+			textureCache, materialInstance, modelFilePath, objMaterial.map_Kd, eUniformSemantic::diffuseTexture);
 		// Specular Texture Map
-		addTextureToMaterialInstance(textureCache, materialInstance, modelFilePath, objMaterial.map_Ks, "map_Ks");
+		addTextureToMaterialInstance(
+			textureCache, materialInstance, modelFilePath, objMaterial.map_Ks, eUniformSemantic::specularTexture);
 		// Specular Hightlight Map
-		addTextureToMaterialInstance(textureCache, materialInstance, modelFilePath, objMaterial.map_Ns, "map_Ns");
+		addTextureToMaterialInstance(
+			textureCache, materialInstance, modelFilePath, objMaterial.map_Ns, eUniformSemantic::specularHightlightTexture);
 		// Alpha Texture Map
-		addTextureToMaterialInstance(textureCache, materialInstance, modelFilePath, objMaterial.map_d, "map_d");
+		addTextureToMaterialInstance(
+			textureCache, materialInstance, modelFilePath, objMaterial.map_d, eUniformSemantic::alphaTexture);
 		// Bump Map
-		addTextureToMaterialInstance(textureCache, materialInstance, modelFilePath, objMaterial.map_bump, "map_bump");
+		addTextureToMaterialInstance(
+			textureCache, materialInstance, modelFilePath, objMaterial.map_bump, eUniformSemantic::bumpTexture);
 
 		return materialInstance;
 	}

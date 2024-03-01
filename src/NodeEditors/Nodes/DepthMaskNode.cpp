@@ -320,7 +320,6 @@ void DepthMaskNode::evaluateQuadStencils(GlState& glState)
 		return;
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	GlProgramPtr stencilShader = compositorGraph->getVertexOnlyStencilShader();
 	GlTriangulatedMeshPtr stencilQuadMesh = compositorGraph->getStencilQuadMesh();
 
 	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
@@ -352,33 +351,40 @@ void DepthMaskNode::evaluateQuadStencils(GlState& glState)
 	if (quadStencilList.size() == 0)
 		return;
 
-	stencilShader->bindProgram();
+	GlMaterialInstancePtr materialInstance= stencilQuadMesh->getMaterialInstance();
+	GlMaterialConstPtr material= materialInstance->getMaterial();
 
-	// Draw stencil quads first
-	for (QuadStencilComponentPtr stencil : quadStencilList)
+	if (auto materialBinding = material->bindMaterial())
 	{
-		// Set the model matrix of stencil quad
-		auto stencilConfig = stencil->getQuadStencilDefinition();
-		const glm::mat4 xform = stencil->getWorldTransform();
-		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
-		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
-		const glm::vec3 z_axis = glm::vec3(xform[2]);
-		const glm::vec3 position = glm::vec3(xform[3]);
-		const glm::mat4 modelMatrix =
-			glm::mat4(
-				glm::vec4(x_axis, 0.f),
-				glm::vec4(y_axis, 0.f),
-				glm::vec4(z_axis, 0.f),
-				glm::vec4(position, 1.f));
+		// Draw stencil quads first
+		for (QuadStencilComponentPtr stencil : quadStencilList)
+		{
+			// Set the model matrix of stencil quad
+			auto stencilConfig = stencil->getQuadStencilDefinition();
+			const glm::mat4 xform = stencil->getWorldTransform();
+			const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
+			const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
+			const glm::vec3 z_axis = glm::vec3(xform[2]);
+			const glm::vec3 position = glm::vec3(xform[3]);
+			const glm::mat4 modelMatrix =
+				glm::mat4(
+					glm::vec4(x_axis, 0.f),
+					glm::vec4(y_axis, 0.f),
+					glm::vec4(z_axis, 0.f),
+					glm::vec4(position, 1.f));
 
-		// Set the model-view-projection matrix on the stencil shader
-		stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
+			// Set the model-view-projection matrix on the stencil shader
+			materialInstance->setMat4BySemantic(
+				eUniformSemantic::modelViewProjectionMatrix,
+				vpMatrix * modelMatrix);
 
-		// Draw the quad
-		stencilQuadMesh->drawElements();
+			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			{
+				// Draw the quad
+				stencilQuadMesh->drawElements();
+			}
+		}
 	}
-
-	stencilShader->unbindProgram();
 }
 
 void DepthMaskNode::evaluateBoxStencils(GlState& glState)
@@ -389,7 +395,6 @@ void DepthMaskNode::evaluateBoxStencils(GlState& glState)
 		return;
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	GlProgramPtr stencilShader = compositorGraph->getVertexOnlyStencilShader();
 	GlTriangulatedMeshPtr stencilBoxMesh = compositorGraph->getStencilBoxMesh();
 
 	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
@@ -421,33 +426,40 @@ void DepthMaskNode::evaluateBoxStencils(GlState& glState)
 	if (boxStencilList.size() == 0)
 		return;
 
-	stencilShader->bindProgram();
+	GlMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();
+	GlMaterialConstPtr material = materialInstance->getMaterial();
 
 	// Then draw stencil boxes ...
-	for (BoxStencilComponentPtr stencil : boxStencilList)
+	if (auto materialBinding = material->bindMaterial())
 	{
-		// Set the model matrix of stencil quad
-		auto stencilConfig = stencil->getBoxStencilDefinition();
-		const glm::mat4 xform = stencil->getWorldTransform();
-		const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
-		const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
-		const glm::vec3 z_axis = glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
-		const glm::vec3 position = glm::vec3(xform[3]);
-		const glm::mat4 modelMatrix =
-			glm::mat4(
-				glm::vec4(x_axis, 0.f),
-				glm::vec4(y_axis, 0.f),
-				glm::vec4(z_axis, 0.f),
-				glm::vec4(position, 1.f));
+		for (BoxStencilComponentPtr stencil : boxStencilList)
+		{
+			// Set the model matrix of stencil quad
+			auto stencilConfig = stencil->getBoxStencilDefinition();
+			const glm::mat4 xform = stencil->getWorldTransform();
+			const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
+			const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
+			const glm::vec3 z_axis = glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
+			const glm::vec3 position = glm::vec3(xform[3]);
+			const glm::mat4 modelMatrix =
+				glm::mat4(
+					glm::vec4(x_axis, 0.f),
+					glm::vec4(y_axis, 0.f),
+					glm::vec4(z_axis, 0.f),
+					glm::vec4(position, 1.f));
 
-		// Set the model-view-projection matrix on the stencil shader
-		stencilShader->setMatrix4x4Uniform(STENCIL_MVP_UNIFORM_NAME, vpMatrix * modelMatrix);
+			// Set the model-view-projection matrix on the stencil shader
+			materialInstance->setMat4BySemantic(
+				eUniformSemantic::modelViewProjectionMatrix,
+				vpMatrix * modelMatrix);
 
-		// Draw the box
-		stencilBoxMesh->drawElements();
+			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			{
+				// Draw the box
+				stencilBoxMesh->drawElements();
+			}
+		}
 	}
-
-	stencilShader->unbindProgram();
 }
 
 void DepthMaskNode::evaluateModelStencils(GlState& glState)

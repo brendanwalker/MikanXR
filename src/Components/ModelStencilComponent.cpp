@@ -7,6 +7,7 @@
 #include "GlRenderModelResource.h"
 #include "GlTriangulatedMesh.h"
 #include "GlTextRenderer.h"
+#include "GlShaderCache.h"
 #include "GlStaticMeshInstance.h"
 #include "GlWireframeMesh.h"
 #include "AnchorComponent.h"
@@ -218,9 +219,12 @@ void ModelStencilComponent::rebuildMeshComponents()
 	// since each window needs to own its own models and shader resources.
 	// For now, we are assuming that models are only rendered in the Main Window.
 	MainWindow* mainWindow= MainWindow::getInstance();
+	GlModelResourceManager* modelResourceManager= mainWindow->getModelResourceManager();
+	GlMaterialConstPtr stencilMaterial= 
+		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 	GlRenderModelResourcePtr modelResourcePtr= 
-		StencilObjectSystem::loadStencilRenderModel(
-			mainWindow, modelStencilDefinition);
+		modelResourceManager->fetchRenderModel(
+			modelStencilDefinition->getModelPath(), stencilMaterial);
 
 	// If a model loaded, create meshes and colliders for it
 	if (modelResourcePtr)

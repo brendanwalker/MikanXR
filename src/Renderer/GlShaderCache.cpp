@@ -5,21 +5,14 @@
 #include "MaterialAssetReference.h"
 #include "Logger.h"
 
+namespace InternalShaders
+{
+	bool registerInternalShaders(GlShaderCache& shaderCache);
+}
+
 bool GlShaderCache::startup()
 {
-	if (registerMaterial(getPhongShaderCode()))
-	{
-		MIKAN_LOG_ERROR("GlModelResourceManager::startup()") << "Failed to compile phong shader";
-		return false;
-	}
-
-	if (registerMaterial(getWireframeShaderCode()))
-	{
-		MIKAN_LOG_ERROR("GlModelResourceManager::startup()") << "Failed to compile wireframe shader";
-		return false;
-	}
-
-	return true;
+	return InternalShaders::registerInternalShaders(*this);
 }
 
 void GlShaderCache::shutdown()
@@ -134,13 +127,53 @@ GlProgramPtr GlShaderCache::fetchCompiledGlProgram(
 	}
 }
 
-const GlProgramCode& GlShaderCache::getPhongShaderCode()
+namespace InternalShaders
 {
-	// https://www.gsn-lib.org/docs/nodes/ShaderPluginNode.php
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		INTERNAL_MATERIAL_BLINN_PHONG,
-		// vertex shader
-		R""""(
+	const GlProgramCode* getPTTexturedFullScreenQuad()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_PT_FULLSCREEN_TEXTURE,
+			// vertex shader
+			R""""(
+			#version 330 core
+			layout (location = 0) in vec2 aPos;
+			layout (location = 1) in vec2 aTexCoords;
+
+			out vec2 TexCoords;
+
+			void main()
+			{
+				TexCoords = aTexCoords;
+				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
+			}
+			)"""",
+			//fragment shader
+			R""""(
+			#version 330 core
+			out vec4 FragColor;
+
+			in vec2 TexCoords;
+
+			uniform sampler2D rgbTexture;
+
+			void main()
+			{
+				vec3 col = texture(rgbTexture, TexCoords).rgb;
+				FragColor = vec4(col, 1.0);
+			} 
+			)"""")
+			.addUniform("rgbTexture", eUniformSemantic::texture0);
+
+		return &x_shaderCode;
+	}
+
+	const GlProgramCode* getPNTPhongShaderCode()
+	{
+		// https://www.gsn-lib.org/docs/nodes/ShaderPluginNode.php
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_PNT_BLINN_PHONG,
+			// vertex shader
+			R""""(
 			#version 330 core
 			layout (location = 0) in vec3 position;
 			layout (location = 1) in vec3 normal;
@@ -164,8 +197,8 @@ const GlProgramCode& GlShaderCache::getPhongShaderCode()
 				gl_Position = cameraProjection * cameraLookAt * vertPos4;
 			}
 			)"""",
-		//fragment shader
-		R""""(
+			//fragment shader
+			R""""(
 			#version 330 core
 			out vec4 outColor;
 
@@ -219,47 +252,185 @@ const GlProgramCode& GlShaderCache::getPhongShaderCode()
 			  outColor.a = 1.0;
 			}
 			)"""")
-		.addUniform("cameraLookAt", eUniformSemantic::viewMatrix)
-		.addUniform("cameraProjection", eUniformSemantic::projectionMatrix)
-		.addUniform("meshTransform", eUniformSemantic::modelMatrix)
-		.addUniform("meshTransformTransposedInverse", eUniformSemantic::normalMatrix)
-		.addUniform("ambientColor", eUniformSemantic::ambientColorRGBA)
-		.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA)
-		.addUniform("specularColor", eUniformSemantic::specularColorRGBA)
-		.addUniform("shininess", eUniformSemantic::shininess)
-		.addUniform("lightColor", eUniformSemantic::lightColor)
-		.addUniform("lightDirection", eUniformSemantic::lightDirection)
-		.addUniform("cameraPosition", eUniformSemantic::cameraPosition);
+			.addUniform("cameraLookAt", eUniformSemantic::viewMatrix)
+			.addUniform("cameraProjection", eUniformSemantic::projectionMatrix)
+			.addUniform("meshTransform", eUniformSemantic::modelMatrix)
+			.addUniform("meshTransformTransposedInverse", eUniformSemantic::normalMatrix)
+			.addUniform("ambientColor", eUniformSemantic::ambientColorRGBA)
+			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA)
+			.addUniform("specularColor", eUniformSemantic::specularColorRGBA)
+			.addUniform("shininess", eUniformSemantic::shininess)
+			.addUniform("lightColor", eUniformSemantic::lightColor)
+			.addUniform("lightDirection", eUniformSemantic::lightDirection)
+			.addUniform("cameraPosition", eUniformSemantic::cameraPosition);
 
-	return x_shaderCode;
-}
+		return &x_shaderCode;
+	}
 
-const GlProgramCode& GlShaderCache::getWireframeShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		INTERNAL_MATERIAL_WIREFRAME,
-		// vertex shader
-		R""""(
-		#version 410 
-		uniform mat4 mvpMatrix; 
-		layout(location = 0) in vec3 in_position; 
-		void main() 
-		{ 
-			gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
-		}
-		)"""",
-		//fragment shader
-		R""""(
-		#version 410 core
-		uniform vec4 diffuseColor; 
-		out vec4 out_FragColor;
-		void main()
+	const GlProgramCode* getPWireframeShaderCode()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_P_WIREFRAME,
+			// vertex shader
+			R""""(
+			#version 410 
+			uniform mat4 mvpMatrix; 
+			layout(location = 0) in vec3 in_position; 
+			void main() 
+			{ 
+				gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
+			}
+			)"""",
+			//fragment shader
+			R""""(
+			#version 410 core
+			uniform vec4 diffuseColor; 
+			out vec4 out_FragColor;
+			void main()
+			{
+				out_FragColor = diffuseColor;
+			}
+			)"""")
+			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
+			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
+
+		return &x_shaderCode;
+	}
+
+	const GlProgramCode* getPSolidColorShaderCode()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_P_SOLID_COLOR,
+			// vertex shader
+			R""""(
+			#version 330 core
+			layout (location = 0) in vec3 aPos;
+
+			uniform mat4 mvpMatrix;
+			uniform vec4 diffuseColor;
+
+			void main()
+			{
+				gl_Position = mvpMatrix * vec4(aPos, 1.0);
+			}
+			)"""",
+			//fragment shader
+			R""""(
+			#version 330 core
+			out vec4 FragColor;
+
+			void main()
+			{    
+				FragColor = vec4(1, 1, 1, 1);
+			}
+			)"""")
+			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
+			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
+
+		return &x_shaderCode;
+	}
+
+	const GlProgramCode* getPTTexturedShaderCode()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_PT_TEXTURED,
+			// vertex shader
+			R""""(
+			#version 330 core
+			layout (location = 0) in vec2 aPos;
+			layout (location = 1) in vec2 aTexCoords;
+
+			uniform mat4 mvpMatrix;
+
+			out vec2 TexCoords;
+
+			void main()
+			{
+				TexCoords = aTexCoords;
+				gl_Position = mvpMatrix * vec4(aPos, 1.0);
+			}  
+			)"""",
+			//fragment shader
+			R""""(
+			#version 330 core
+			out vec4 FragColor;
+
+			in vec2 TexCoords;
+
+			uniform sampler2D rgbTexture;
+
+			void main()
+			{
+				vec3 col = texture(rgbTexture, TexCoords).rgb;
+				FragColor = vec4(col, 1.0);
+			} 
+			)"""")
+			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
+			.addUniform("rgbTexture", eUniformSemantic::diffuseTexture);
+
+		return &x_shaderCode;
+	}
+
+	const GlProgramCode* getPNTTexturedColoredShaderCode()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_PNT_TEXTURED_COLORED,
+			// vertex shader
+			R""""(
+			#version 410 
+			uniform mat4 matrix; 
+			layout(location = 0) in vec4 position; 
+			layout(location = 1) in vec3 v3NormalIn; 
+			layout(location = 2) in vec2 v2TexCoordsIn; 
+			out vec2 v2TexCoord; 
+			void main() 
+			{ 
+				v2TexCoord = v2TexCoordsIn; 
+				gl_Position = matrix * vec4(position.xyz, 1); 
+			}
+			)"""",
+			//fragment shader
+			R""""(
+			#version 410 core
+			uniform sampler2D diffuse;
+			uniform vec4 modelColor;
+			in vec2 v2TexCoord;
+			out vec4 outputColor;
+			void main()
+			{
+				outputColor = texture(diffuse, v2TexCoord) * modelColor;
+			}
+			)"""")
+			.addUniform("matrix", eUniformSemantic::modelViewProjectionMatrix)
+			.addUniform("diffuse", eUniformSemantic::diffuseTexture)
+			.addUniform("modelColor", eUniformSemantic::diffuseColorRGBA);
+
+		return &x_shaderCode;
+	}
+
+	bool registerInternalShaders(GlShaderCache& shaderCache)
+	{
+		std::vector<const GlProgramCode*> internalShaders = {
+			getPTTexturedFullScreenQuad(),
+			getPNTPhongShaderCode(),
+			getPWireframeShaderCode(),
+			getPSolidColorShaderCode(),
+			getPTTexturedShaderCode(),
+			getPNTTexturedColoredShaderCode()
+		};
+
+		bool bSuccess = true;
+		for (const GlProgramCode* code : internalShaders)
 		{
-			out_FragColor = diffuseColor;
+			if (shaderCache.registerMaterial(*code))
+			{
+				MIKAN_LOG_ERROR("InternalShaders::registerInternalShaders()") <<
+					"Failed to compile " << code->getProgramName();
+				bSuccess = false;
+			}
 		}
-		)"""")
-		.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
-		.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 
-	return x_shaderCode;
-}
+		return bSuccess;
+	}
+};
+

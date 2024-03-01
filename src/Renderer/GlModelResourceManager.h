@@ -18,6 +18,7 @@ public:
 	GlRenderModelResourcePtr fetchRenderModel(
 		const std::filesystem::path& modelFilePath,
 		GlMaterialConstPtr overrideMaterial= GlMaterialConstPtr());
+	bool removeModelResourceFromCache(GlRenderModelResourcePtr modelResource);
 
 private:
 	class IGlWindow* m_ownerWindow= nullptr;

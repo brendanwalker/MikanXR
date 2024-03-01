@@ -28,24 +28,15 @@ public:
 	// Stencil Models
 	GlRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);
 	void flushStencilRenderModel(MikanStencilID stencilId);
-	inline GlProgramPtr getVertexOnlyStencilShader() const { return m_vertexOnlyStencilShader; }
 	inline GlTriangulatedMeshPtr getStencilQuadMesh() const { return m_stencilQuadMesh; }
 	inline GlTriangulatedMeshPtr getStencilBoxMesh() const { return m_stencilBoxMesh; }
 	inline GlTriangulatedMeshPtr getLayerVFlippedMesh() const { return m_layerVFlippedMesh; }
 	inline GlTriangulatedMeshPtr getLayerMesh() const { return m_layerMesh; }
 
 protected:
-	// Layer Quad 
-	struct QuadVertex
-	{
-		glm::vec2 aPos;
-		glm::vec2 aTexCoords;
-	};
-	static const GlVertexDefinition& getLayerQuadVertexDefinition();
 
 	bool bindEventNodes();
 
-	bool createStencilShaders();
 	bool createLayerQuadMeshes();
 	bool createStencilMeshes();
 	void updateCompositingFrameBufferSize(NodeEvaluator& evaluator);

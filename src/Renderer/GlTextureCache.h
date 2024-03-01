@@ -8,6 +8,9 @@
 #include <string>
 #include <map>
 
+#define INTERNAL_TEXTURE_WHITE		"Internal_White"
+#define INTERNAL_TEXTURE_BLACK		"Internal_Black"
+
 class GlTextureCache
 {
 public:
@@ -16,9 +19,10 @@ public:
 	bool startup();
 	void shutdown();
 
-	bool removeTexureFromCache(GlTexturePtr texture);
+	GlTexturePtr tryGetTextureByName(const std::string& textureName);
 	GlTexturePtr loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef);
-	GlTexturePtr loadTexturePath(const std::filesystem::path& texturePath);
+	GlTexturePtr loadTexturePath(const std::filesystem::path& texturePath, const std::string& overrideName= "");
+	bool removeTexureFromCache(GlTexturePtr texture);
 
 private:
 	std::map<std::string, GlTexturePtr> m_textureCache;

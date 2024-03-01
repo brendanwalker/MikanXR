@@ -66,7 +66,7 @@ bool GlWireframeMesh::createResources()
 	}
 
 	GlShaderCache* shaderCache = getOwnerWindow()->getShaderCache();
-	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_WIREFRAME);
+	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
 	if (!material)
 	{
 		return false;

@@ -7,8 +7,10 @@
 #include "GlLineRenderer.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
+#include "GlModelResourceManager.h"
 #include "GlRenderModelResource.h"
 #include "GlProgram.h"
+#include "GlShaderCache.h"
 #include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
 #include "IGlWindow.h"
@@ -165,8 +167,8 @@ struct DepthMeshCaptureState
 		VideoFrameDistortionViewPtr distortionView,
 		SyntheticDepthEstimatorPtr depthEstimator)
 	{
-		const GlVertexDefinition& vertexDefinition = StencilObjectSystem::getStencilModelVertexDefinition();
 		GlModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
+		GlShaderCache* shaderCache= ownerWindow->getShaderCache();
 
 		// Create a texture from the undistorted video frame
 		GlTexturePtr texture = createDepthMeshTexture(distortionView);
@@ -175,8 +177,8 @@ struct DepthMeshCaptureState
 			return false;
 		}
 
-		//TODO: Fetch the material from the shader cache
-		GlMaterialConstPtr stencilMaterial = StencilObjectSystem::createTexturedStencilMaterial(ownerWindow);
+		// Use the internal basic textured material to render the mesh
+		GlMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 		GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(stencilMaterial);
 		materialInstance->setTextureBySemantic(eUniformSemantic::texture0, texture);
 
@@ -198,7 +200,14 @@ struct DepthMeshCaptureState
 
 	bool loadDepthMesh(ModelStencilDefinitionPtr modelStencilDefinition)
 	{
-		depthMeshResource= StencilObjectSystem::loadStencilRenderModel(ownerWindow, modelStencilDefinition);
+		// Use the internal basic textured material to render the mesh
+		GlModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
+		GlShaderCache* shaderCache = ownerWindow->getShaderCache();
+		GlMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+
+		depthMeshResource= 
+			modelResourceManager->fetchRenderModel(
+				modelStencilDefinition->getModelPath(), stencilMaterial);
 
 		return depthMeshResource != nullptr;
 	}

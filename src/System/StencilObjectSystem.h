@@ -69,22 +69,6 @@ public:
 		const glm::vec3& cameraForward,
 		std::vector<ModelStencilComponentPtr>& outStencilList) const;
 
-	// TODO Move these to the shader cache
-	struct StencilVertex
-	{
-		glm::vec3 aPos;
-		glm::vec3 aNormal;
-		glm::vec2 aTexCoords;
-	};
-	static const GlVertexDefinition& getStencilModelVertexDefinition();
-	static const GlProgramCode* getVertexOnlyStencilShaderCode();
-	static const GlProgramCode* getTexturedStencilShaderCode();
-	static GlMaterialPtr createVertexOnlyStencilMaterial(class IGlWindow* ownerWindow);
-	static GlMaterialPtr createTexturedStencilMaterial(class IGlWindow* ownerWindow);
-	static GlRenderModelResourcePtr loadStencilRenderModel(
-		class IGlWindow* ownerWindow,
-		ModelStencilDefinitionPtr stencilDefinition);
-
 protected:
 	static bool isStencilFacingCamera(
 		StencilComponentConstPtr stencil, 

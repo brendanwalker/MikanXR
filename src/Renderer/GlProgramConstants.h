@@ -43,6 +43,12 @@ enum class eUniformSemantic : int
 	floatConstant1,
 	floatConstant2,
 	floatConstant3,
+	ambientTexture,
+	diffuseTexture,
+	specularTexture,
+	specularHightlightTexture,
+	alphaTexture,
+	bumpTexture,
 	texture0,
 	texture1,
 	texture2,
@@ -80,13 +86,13 @@ enum class eUniformSemantic : int
 };
 extern const std::string* k_UniformSemanticName;
 
+// Uniform binding callback
 enum class eUniformBindResult : int
 {
 	bound,
 	unbound,
 	error
 };
-
 using BindUniformCallback =
 	std::function<eUniformBindResult(
 		std::shared_ptr<class GlProgram>, // Source program to bind the uniform for

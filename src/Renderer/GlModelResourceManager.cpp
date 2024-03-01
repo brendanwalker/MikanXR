@@ -35,9 +35,10 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 	{
 		std::string modelPathString = modelFilePath.string();
 
-		if (m_renderModelCache.find(modelPathString) != m_renderModelCache.end())
+		auto it = m_renderModelCache.find(modelPathString);
+		if (it != m_renderModelCache.end())
 		{
-			return m_renderModelCache[modelPathString];
+			return it->second;
 		}
 		else
 		{
@@ -46,7 +47,7 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 
 			if (resource->loadFromRenderModelFilePath())
 			{
-				m_renderModelCache[modelPathString] = resource;
+				m_renderModelCache.insert({modelPathString, resource});
 
 				return resource;
 			}
@@ -54,5 +55,21 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 	}
 
 	return nullptr;
+}
+
+bool GlModelResourceManager::removeModelResourceFromCache(GlRenderModelResourcePtr resource)
+{
+	if (resource)
+	{
+		std::string modelPathString = resource->getModelFilePath().string();
+		auto it = m_renderModelCache.find(modelPathString);
+		if (it != m_renderModelCache.end())
+		{
+			m_renderModelCache.erase(it);
+			return true;
+		}
+	}
+
+	return false;
 }
 
