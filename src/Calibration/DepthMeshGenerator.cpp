@@ -225,6 +225,7 @@ struct DepthMeshCaptureState
 			if (depthMeshResource->saveToRenderModelFilePath())
 			{
 				modelStencilDefinition->setModelPath(depthMeshPath);
+				modelStencilDefinition->setIsDepthMesh(true);
 				return true;
 			}
 		}
@@ -238,65 +239,114 @@ private:
 		SyntheticDepthEstimatorPtr depthEstimator,
 		GlMaterialInstancePtr materialInstance)
 	{
+		// Make sure the material vertex definition has the needed attributes
+		GlMaterialConstPtr material = materialInstance->getMaterial();
+		const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
+		const GlVertexAttribute* posAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position3f);
+		const GlVertexAttribute* texelAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texel2f);
+		if (posAttrib == nullptr || texelAttrib == nullptr)
+		{
+			MIKAN_LOG_ERROR("DepthMeshCaptureState::createTriangulatedDepthMesh()") 
+				<< "Material vertex definition missing needed attributes";
+			return GlTriangulatedMeshPtr();
+		}
+
+		// Fetch the camera intrinsics to project pixel coordinates to 3D space
 		cv::Matx33d intrinsicMatrix = MikanMatrix3d_to_cv_mat33d(inputCameraIntrinsics.camera_matrix);
 		cv::Matx33d invIntrinsicMatrix = intrinsicMatrix.inv();
 
+		// Fetch the synthetic disparity map and the frame dimensions
 		cv::Mat* syntheticDisparityDnnBuffer = depthEstimator->getFloatDepthDnnBuffer();
 		const float frameWidth = (float)distortionView->getFrameWidth();
 		const float frameHeight = (float)distortionView->getFrameHeight();
 		const int depthFrameWidth = syntheticDisparityDnnBuffer->cols;
 		const int depthFrameHeight = syntheticDisparityDnnBuffer->rows;
-		const float frameVStep = frameWidth / depthFrameWidth;
-		const float frameUStep = frameHeight / depthFrameHeight;
 
-		// TODO: Need to allocate the mesh vertices based on the material vertex definition
+		// Allocate the mesh vertices based on the material vertex definition
 		const uint32_t meshVertexCount = depthFrameWidth * depthFrameHeight;
-		glm::vec3* meshVertices = new glm::vec3[depthFrameWidth * depthFrameHeight];
+		uint8_t* meshVertices = new uint8_t[vertexDefinition.vertexSize*meshVertexCount];
+
+		// Generate the mesh vertices
+		{
+			const float frameVStep = frameWidth / depthFrameWidth;
+			const float frameUStep = frameHeight / depthFrameHeight;
+
+			float frameU = 0.0f;
+			float frameV = 0.0f;
+
+			uint8_t* posWritePtr = meshVertices + posAttrib->offset;
+			uint8_t* texelWritePtr = meshVertices + texelAttrib->offset;
+
+			for (int depthV = 0; depthV < depthFrameHeight; depthV++)
+			{
+				for (int depthU = 0; depthU < depthFrameWidth; depthU++)
+				{
+					// Fetch depth from the synthetic disparity map
+					const float disparity = syntheticDisparityDnnBuffer->at<float>(depthV, depthU);
+					const float depth = 1.0f / (disparityBias + (disparityScale * disparity));
+
+					// Compute the 3D point in the camera space
+					const cv::Vec3d cameraPoint = invIntrinsicMatrix * cv::Vec3d(frameU, frameV, 1.0);
+					const float openCV_x = cameraPoint[0] * depth;
+					const float openCV_y = cameraPoint[1] * depth;
+					const float openCV_z = depth;
+
+					// Store the 3D point in the vertex array
+					// OpenCV -> OpenGL coordinate system transform
+					// Rendering world units in meters, not mm
+					*((glm::vec3*)posWritePtr) = glm::vec3(
+						openCV_x * k_millimeters_to_meters,
+						-openCV_y * k_millimeters_to_meters,
+						-openCV_z * k_millimeters_to_meters);
+					posWritePtr += posAttrib->stride;
+
+					// Store the texture coordinate in the vertex array
+					*((glm::vec2*)texelWritePtr) = glm::vec2(
+						depthU / depthFrameWidth, 
+						depthV / depthFrameHeight);
+					texelWritePtr+= texelAttrib->stride;
+
+					// Advance horizontally the proportional amount in video frame width
+					frameU += frameUStep;
+				}
+
+				// Advance vertically the proportional amount in the video frame height
+				frameU = 0;
+				frameV += frameVStep;
+			}
+		}
+
+		// Allocate the mesh indices
 		const uint32_t triangleCount = (depthFrameWidth - 1) * (depthFrameHeight - 1) * 2;
 		uint32_t* meshIndices = new uint32_t[triangleCount * 3];
 
-		glm::vec3* vertexWritePtr = meshVertices;
-		uint32_t* indexWritePtr= meshIndices;
-
-		float frameU = 0.0f;
-		float frameV = 0.0f;
-		for (int depthV = 0; depthV < depthFrameHeight; depthV++)
+		// Generate the mesh indices
 		{
-			for (int depthU = 0; depthU < depthFrameWidth; depthU++)
+			uint32_t* indexWritePtr = meshIndices;
+
+			for (int depthV = 0; depthV < depthFrameHeight - 1; depthV++)
 			{
-				// Fetch depth from the synthetic disparity map
-				const float disparity = syntheticDisparityDnnBuffer->at<float>(depthV, depthU);
-				const float depth = 1.0f / (disparityBias + (disparityScale * disparity));
+				for (int depthU = 0; depthU < depthFrameWidth - 1; depthU++)
+				{
+					// Compute the indices of the quad
+					const uint32_t index0 = depthV * depthFrameWidth + depthU;
+					const uint32_t index1 = index0 + 1;
+					const uint32_t index2 = index0 + depthFrameWidth;
+					const uint32_t index3 = index2 + 1;
 
-				// Compute the 3D point in the camera space
-				const cv::Vec3d cameraPoint = invIntrinsicMatrix * cv::Vec3d(frameU, frameV, 1.0);
-				const float openCV_x = cameraPoint[0] * depth;
-				const float openCV_y = cameraPoint[1] * depth;
-				const float openCV_z = depth;
-
-				// OpenCV -> OpenGL coordinate system transform
-				// Rendering world units in meters, not mm
-				glm::vec3 openGLPoint(
-					openCV_x * k_millimeters_to_meters,
-					-openCV_y * k_millimeters_to_meters,
-					-openCV_z * k_millimeters_to_meters);
-
-				// Store the 3D point in the vertex array
-				*vertexWritePtr = openGLPoint;
-				vertexWritePtr++;
-
-				// TODO: Need to write out the indices for the mesh
-
-				frameU += frameUStep;
+					// Create two triangles from the quad
+					indexWritePtr[0]= index0;
+					indexWritePtr[1]= index1;
+					indexWritePtr[2]= index2;
+					indexWritePtr[3]= index1;
+					indexWritePtr[4]= index3;
+					indexWritePtr[5]= index2;
+					indexWritePtr+= 6;
+				}
 			}
-
-			frameU = 0;
-			frameV += frameVStep;
 		}
 
 		// Get the vertex definition associated with the material
-		auto& vertexDefinition= materialInstance->getMaterial()->getProgram()->getVertexDefinition();
-
 		auto depthMeshPtr = std::make_shared<GlTriangulatedMesh>(
 			ownerWindow,
 			"depth_mesh",
@@ -308,7 +358,7 @@ private:
 			triangleCount,
 			true); // mesh owns the vertex data
 
-		// Assign the materian instance
+		// Assign the material instance
 		depthMeshPtr->setMaterialInstance(materialInstance);
 
 		if (!depthMeshPtr->createResources())

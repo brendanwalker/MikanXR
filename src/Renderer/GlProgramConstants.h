@@ -20,6 +20,7 @@ enum class eUniformDataType : int
 	datatype_texture,
 };
 
+// Don't forget to update GlProgram::getUniformSemanticDataType if chaning this enum
 enum class eUniformSemantic : int
 {
 	INVALID = -1,
@@ -38,7 +39,9 @@ enum class eUniformSemantic : int
 	lightColor,
 	lightDirection,
 	screenPosition,
-	shininess,
+	specularHighlights,
+	opticalDensity,
+	dissolve,
 	floatConstant0,
 	floatConstant1,
 	floatConstant2,

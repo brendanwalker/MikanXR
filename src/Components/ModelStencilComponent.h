@@ -29,10 +29,6 @@ public:
 	const std::filesystem::path& getModelPath() const { return m_modelPath; }
 	void setModelPath(const std::filesystem::path& path);
 
-	static const std::string k_modelStencilTexturePathPropertyId;
-	const std::filesystem::path& getTexturePath() const { return m_texturePath; }
-	void setTexturePath(const std::filesystem::path& path);
-
 	static const std::string k_modelStencilIsDepthMeshPropertyId;
 	bool getIsDepthMesh() const { return m_bIsDepthMesh; }
 	void setIsDepthMesh(bool isDepthMesh);

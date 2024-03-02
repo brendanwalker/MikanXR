@@ -259,7 +259,7 @@ namespace InternalShaders
 			.addUniform("ambientColor", eUniformSemantic::ambientColorRGBA)
 			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA)
 			.addUniform("specularColor", eUniformSemantic::specularColorRGBA)
-			.addUniform("shininess", eUniformSemantic::shininess)
+			.addUniform("shininess", eUniformSemantic::specularHighlights)
 			.addUniform("lightColor", eUniformSemantic::lightColor)
 			.addUniform("lightDirection", eUniformSemantic::lightDirection)
 			.addUniform("cameraPosition", eUniformSemantic::cameraPosition);

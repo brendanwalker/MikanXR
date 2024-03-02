@@ -12,6 +12,9 @@
 #include "GlVertexDefinition.h"
 #include "GlRenderModelResource.h"
 #include "GlTextureCache.h"
+#include "Logger.h"
+#include "SdlUtility.h"
+#include "Version.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -40,6 +43,11 @@ namespace ObjUtils
 		IGlWindow* ownerWindow,
 		const std::string& meshName,
 		const objl::Mesh& objMesh);
+	bool writeMaterialInstanceTextureToFile(
+		GlMaterialInstanceConstPtr materialInstance,
+		const std::filesystem::path& mtlPath,
+		const eUniformSemantic semantic,
+		std::string& outRelativeTexturePath);
 };
 
 GlRenderModelResource::GlRenderModelResource(IGlWindow* ownerWindow)
@@ -123,8 +131,240 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 		return false;
 	}
 
-	// TODO: Write out obj file
-	// TODO: Write out mtl file
+	const std::string dir= m_renderModelFilepath.parent_path().string();
+	const std::string stem= m_renderModelFilepath.stem().string();
+	const std::filesystem::path mtlPath= m_renderModelFilepath.parent_path() / (stem + ".mtl");
+
+	{
+		std::ofstream objFile(m_renderModelFilepath);
+		std::ofstream mtlFile(mtlPath);
+		if (!objFile.is_open() || !mtlFile.is_open())
+		{
+			return false;
+		}
+
+		// Write out the obj header
+		objFile << "# Mikan: " << MIKAN_RELEASE_VERSION_STRING << std::endl;
+		objFile << "mtllib " << stem << ".mtl" << std::endl;
+
+		// Write out the mtl header
+		mtlFile << "# Mikan: " << MIKAN_RELEASE_VERSION_STRING << " MTL file" << std::endl;
+
+		// Write out each mesh and corresponding material definition
+		for (const GlTriangulatedMeshPtr triMesh : m_triangulatedMeshes)
+		{
+			// Make sure the material vertex definition has the needed attributes
+			GlMaterialInstanceConstPtr materialInstance = triMesh->getMaterialInstance();
+			GlMaterialConstPtr material = materialInstance->getMaterial();
+			const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
+			const GlVertexAttribute* posAttrib = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position3f);
+			const GlVertexAttribute* normalAttrib = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::normal3f);
+			const GlVertexAttribute* texelAttrib = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texel2f);
+			if (posAttrib == nullptr)
+			{
+				MIKAN_LOG_ERROR("GlRenderModelResource::saveToRenderModelFilePath()")
+					<< "Material vertex definition missing needed attributes";
+				continue;
+			}
+
+			objFile << "o " << triMesh->getName() << std::endl;
+
+			const uint32_t vertexCount = triMesh->getVertexCount();
+			const uint8_t* vertexData = triMesh->getVertexData();
+
+			// Write out the vertices
+			{
+				const uint8_t* posData = vertexData + posAttrib->offset;
+				for (uint32_t i = 0; i < vertexCount; i++)
+				{
+					const glm::vec3& pos = *(const glm::vec3*)vertexData;
+
+					objFile << "v " << pos.x << " " << pos.y << " " << pos.z << std::endl;
+					posData+= posAttrib->stride;
+				}
+			}
+
+			// Write out the normals, if available
+			if (normalAttrib)
+			{
+				const uint8_t* normalData = vertexData + normalAttrib->offset;
+				for (uint32_t i = 0; i < vertexCount; i++)
+				{
+					const glm::vec3& normal = *(const glm::vec3*)normalData;
+
+					objFile << "vn " << normal.x << " " << normal.y << " " << normal.z << std::endl;
+					normalData+= normalAttrib->stride;
+				}
+			}
+
+			// Write out the texels, if available
+			if (texelAttrib)
+			{
+				const uint8_t* texelData = vertexData + texelAttrib->offset;
+				for (uint32_t i = 0; i < vertexCount; i++)
+				{
+					const glm::vec2& texel = *(const glm::vec2*)texelData;
+
+					objFile << "vt " << texel.x << " " << texel.y << std::endl;
+					texelData+= texelAttrib->stride;
+				}
+			}
+
+			// Write out the elements (usually triangles)
+			{
+				objFile << "usemtl " << material->getName() << std::endl;
+
+				const uint8_t* indexData= triMesh->getIndexData();
+				const size_t indexPerElements= triMesh->getIndexPerElementCount();
+				const size_t indexSize= triMesh->getIndexSize();
+
+				for (uint32_t i = 0; i < triMesh->getElementCount(); i++)
+				{
+					objFile << "f";
+					for (size_t j = 0; j < indexPerElements; j++)
+					{
+						uint32_t index = 0;
+						if (indexSize == sizeof(uint16_t))
+						{
+							index = (uint32_t)(*(const uint16_t*)indexData);
+						}
+						else
+						{
+							index = *(const uint32_t*)indexData;
+						}
+
+						uint32_t oneBasedIndex = index + 1;
+						if (texelAttrib && normalAttrib)
+						{
+							objFile << " " << oneBasedIndex << "/" << oneBasedIndex << "/" << oneBasedIndex;
+						}
+						else if (normalAttrib)
+						{
+							objFile << " " << oneBasedIndex << "//" << oneBasedIndex;
+						}
+						else if (texelAttrib)
+						{
+							objFile << " " << oneBasedIndex << "/" << oneBasedIndex;
+						}
+						else
+						{
+							objFile << " " << oneBasedIndex;
+						}
+
+						indexData += indexSize;
+					}
+					objFile << std::endl;
+				}
+			}
+
+			// Write out the material
+			{
+				mtlFile << std::endl;
+				mtlFile << "newmtl " << material->getName() << std::endl;
+
+				float Ns;
+				bool hasNs = materialInstance->getFloatBySemantic(eUniformSemantic::specularHighlights, Ns);
+				if (hasNs)
+				{
+					mtlFile << "Ns " << Ns << std::endl;
+				}
+
+				glm::vec4 Ka;
+				bool hasKa = materialInstance->getVec4BySemantic(eUniformSemantic::ambientColorRGBA, Ka);
+				if (hasKa)
+				{
+					mtlFile << "Ka " << Ka.r << " " << Ka.g << " " << Ka.b << std::endl;
+				}
+
+				glm::vec4 Kd;
+				bool hasKd = materialInstance->getVec4BySemantic(eUniformSemantic::diffuseColorRGBA, Kd);
+				if (hasKd)
+				{
+					mtlFile << "Kd " << Kd.r << " " << Kd.g << " " << Kd.b << std::endl;
+				}
+
+				glm::vec4 Ks;
+				bool hasKs= materialInstance->getVec4BySemantic(eUniformSemantic::specularColorRGBA, Ks);
+				if (hasKs)
+				{
+					mtlFile << "Ks " << Ks.r << " " << Ks.g << " " << Ks.b << std::endl;
+				}
+
+				float Ni;
+				bool hasNi= materialInstance->getFloatBySemantic(eUniformSemantic::opticalDensity, Ni);
+				if (hasNi)
+				{
+					mtlFile << "Ni " << Ni << std::endl;
+				}
+
+				float d;
+				float hasD= materialInstance->getFloatBySemantic(eUniformSemantic::dissolve, d);
+				if (hasD)
+				{
+					mtlFile << "d " << d << std::endl;
+				}
+
+				//illum 2: a diffuse and specular illumination model using Lambertian shading 
+				// and Blinn's interpretation of Phong's specular illumination model, 
+				// taking into account Ka, Kd, Ks, and the intensity and position of 
+				// each light source and the angle at which it strikes the surface.
+				if (hasKa && hasKd && hasKs)
+				{
+					mtlFile << "illum 2" << std::endl;
+				}
+				//illum 1: a diffuse illumination model using Lambertian shading, 
+				//taking into account Ka, Kd, the intensity and position of each light source 
+				//and the angle at which it strikes the surface.
+				else if (hasKa && hasKd)
+				{
+					mtlFile << "illum 1" << std::endl;
+				}
+				//illum 0: a constant color illumination model, using the Kd for the material
+				else
+				{
+					mtlFile << "illum 0" << std::endl;
+				}
+
+				// Write out the textures, if available
+				std::string relativeTexturePath;
+				if (ObjUtils::writeMaterialInstanceTextureToFile(
+					materialInstance, mtlPath, eUniformSemantic::ambientTexture, relativeTexturePath))
+				{
+					mtlFile << "map_Ka " << relativeTexturePath << std::endl;
+				}
+				if (ObjUtils::writeMaterialInstanceTextureToFile(
+					materialInstance, mtlPath, eUniformSemantic::diffuseTexture, relativeTexturePath))
+				{
+					mtlFile << "map_Kd " << relativeTexturePath << std::endl;
+				}
+				if (ObjUtils::writeMaterialInstanceTextureToFile(
+					materialInstance, mtlPath, eUniformSemantic::specularTexture, relativeTexturePath))
+				{
+					mtlFile << "map_Ks " << relativeTexturePath << std::endl;
+				}
+				if (ObjUtils::writeMaterialInstanceTextureToFile(
+					materialInstance, mtlPath, eUniformSemantic::specularHightlightTexture, relativeTexturePath))
+				{
+					mtlFile << "map_Ns " << relativeTexturePath << std::endl;
+				}
+				if (ObjUtils::writeMaterialInstanceTextureToFile(
+					materialInstance, mtlPath, eUniformSemantic::alphaTexture, relativeTexturePath))
+				{
+					mtlFile << "map_d " << relativeTexturePath << std::endl;
+				}
+				if (ObjUtils::writeMaterialInstanceTextureToFile(
+					materialInstance, mtlPath, eUniformSemantic::bumpTexture, relativeTexturePath))
+				{
+					mtlFile << "map_bump " << relativeTexturePath << std::endl;
+				}
+			}
+		}
+
+		objFile.close();
+		mtlFile.close();
+	}
+
+	return true;
 }
 
 void GlRenderModelResource::addTriangulatedMesh(GlTriangulatedMeshPtr mesh)
@@ -207,6 +447,40 @@ namespace ObjUtils
 		}
 	}
 
+	bool writeMaterialInstanceTextureToFile(
+		GlMaterialInstanceConstPtr materialInstance,
+		const std::filesystem::path& mtlPath,
+		const eUniformSemantic semantic,
+		std::string& outRelativeTexturePath)
+	{
+		GlProgramPtr program= materialInstance->getMaterial()->getProgram();
+
+		std::string uniformName;
+		GlTexturePtr texture;
+		if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
+			materialInstance->getTextureBySemantic(semantic, texture) &&
+			texture != nullptr)
+		{
+			const std::string modelFileStem= mtlPath.stem().string();
+			const std::string textureFileName= modelFileStem + std::string("_") + uniformName + std::string(".png");
+			const std::filesystem::path textureFullPath= mtlPath.parent_path() / textureFileName;
+			const std::string texturePathString= textureFullPath.string(); 
+
+			if (SdlUtility::saveTextureToPNG(texture.get(), texturePathString.c_str()))
+			{
+				outRelativeTexturePath= textureFileName;
+				return true;
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("ObjUtils::writeMaterialInstanceTextureToFile()")
+					<< "Error writing out texture: " << texturePathString;
+			}
+		}
+
+		return false;
+	}
+
 	GlMaterialInstancePtr createTriMeshMaterialInstance(
 		IGlWindow* ownerWindow,
 		GlMaterialConstPtr material,
@@ -226,8 +500,14 @@ namespace ObjUtils
 			eUniformSemantic::specularColorRGBA,
 			glm::vec4(objMaterial.Ks.X, objMaterial.Ks.Y, objMaterial.Ks.Z, 1.f));
 		materialInstance->setFloatBySemantic(
-			eUniformSemantic::shininess,
+			eUniformSemantic::specularHighlights,
 			objMaterial.Ns);
+		materialInstance->setFloatBySemantic(
+			eUniformSemantic::opticalDensity,
+			objMaterial.Ni);
+		materialInstance->setFloatBySemantic(
+			eUniformSemantic::dissolve,
+			objMaterial.d);
 
 		// Ambient Texture Map
 		addTextureToMaterialInstance(

@@ -32,7 +32,6 @@
 
 // -- ModelStencilConfig -----
 const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId = "model_path";
-const std::string ModelStencilDefinition::k_modelStencilTexturePathPropertyId = "texture_path";
 const std::string ModelStencilDefinition::k_modelStencilIsDepthMeshPropertyId = "is_depth_mesh";
 
 ModelStencilDefinition::ModelStencilDefinition()
@@ -54,7 +53,6 @@ configuru::Config ModelStencilDefinition::writeToJSON()
 	configuru::Config pt = StencilComponentDefinition::writeToJSON();
 
 	pt["model_path"] = m_modelPath.string();
-	pt["texture_path"] = m_texturePath.string();
 	pt["is_depth_mesh"] = m_bIsDepthMesh;
 
 	return pt;
@@ -65,7 +63,6 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 	StencilComponentDefinition::readFromJSON(pt);
 
 	m_modelPath = pt.get_or<std::string>("model_path", "");
-	m_texturePath = pt.get_or<std::string>("texture_path", "");
 	m_bIsDepthMesh = pt.get_or<bool>("is_depth_mesh", false);
 }
 
@@ -73,12 +70,6 @@ void ModelStencilDefinition::setModelPath(const std::filesystem::path& path)
 {
 	m_modelPath= path;
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
-}
-
-void ModelStencilDefinition::setTexturePath(const std::filesystem::path& path)
-{
-	m_texturePath= path;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilTexturePathPropertyId));
 }
 
 void ModelStencilDefinition::setIsDepthMesh(bool isDepthMesh)
@@ -89,9 +80,7 @@ void ModelStencilDefinition::setIsDepthMesh(bool isDepthMesh)
 
 bool ModelStencilDefinition::hasValidDepthMesh() const
 {
-	if (m_bIsDepthMesh && 
-		!m_modelPath.empty() && std::filesystem::exists(m_modelPath) &&
-		!m_texturePath.empty() && std::filesystem::exists(m_texturePath))
+	if (m_bIsDepthMesh && !m_modelPath.empty() && std::filesystem::exists(m_modelPath))
 	{
 		return true;
 	}
