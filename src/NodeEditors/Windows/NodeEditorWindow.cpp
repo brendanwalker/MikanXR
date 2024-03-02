@@ -1036,12 +1036,17 @@ void NodeEditorWindow::onNodeGraphCreated()
 
 void NodeEditorWindow::onNodeGraphDeleted()
 {
-	getNodeGraph()->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
-	getNodeGraph()->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
-	getNodeGraph()->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
-	getNodeGraph()->OnPropertyCreated -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
-	getNodeGraph()->OnPropertyModifed -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
-	getNodeGraph()->OnPropertyDeleted -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	NodeGraphPtr graph= getNodeGraph();
+
+	if (graph)
+	{
+		graph->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
+		graph->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+		graph->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+		graph->OnPropertyCreated -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
+		graph->OnPropertyModifed -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
+		graph->OnPropertyDeleted -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	}
 }
 
 void NodeEditorWindow::onNodeCreated(t_node_id id)

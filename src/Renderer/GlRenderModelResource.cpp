@@ -71,7 +71,7 @@ bool GlRenderModelResource::loadFromRenderModelFilePath(GlMaterialConstPtr overr
 	GlMaterialConstPtr triMeshMaterial = overrideMaterial;
 	if (!triMeshMaterial)
 	{
-		triMeshMaterial = m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_BLINN_PHONG);
+		triMeshMaterial = m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
 	}
 
 	if (!triMeshMaterial)
@@ -79,7 +79,7 @@ bool GlRenderModelResource::loadFromRenderModelFilePath(GlMaterialConstPtr overr
 
 	// Material vertex definition must have position3f at a minimum
 	const GlVertexDefinition& triMeshVertexDefinition= triMeshMaterial->getProgram()->getVertexDefinition();
-	if (triMeshVertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position3f) == nullptr)
+	if (triMeshVertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position) == nullptr)
 	{
 		return false;
 	}
@@ -157,9 +157,13 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 			GlMaterialInstanceConstPtr materialInstance = triMesh->getMaterialInstance();
 			GlMaterialConstPtr material = materialInstance->getMaterial();
 			const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
-			const GlVertexAttribute* posAttrib = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position3f);
-			const GlVertexAttribute* normalAttrib = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::normal3f);
-			const GlVertexAttribute* texelAttrib = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texel2f);
+			const size_t vertexSize = vertexDefinition.getVertexSize();
+			const GlVertexAttribute* posAttrib = 
+				vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
+			const GlVertexAttribute* normalAttrib = 
+				vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::normal);
+			const GlVertexAttribute* texelAttrib = 
+				vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texCoord);
 			if (posAttrib == nullptr)
 			{
 				MIKAN_LOG_ERROR("GlRenderModelResource::saveToRenderModelFilePath()")
@@ -174,39 +178,39 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 
 			// Write out the vertices
 			{
-				const uint8_t* posData = vertexData + posAttrib->offset;
+				const uint8_t* posData = vertexData + posAttrib->getOffset();
 				for (uint32_t i = 0; i < vertexCount; i++)
 				{
 					const glm::vec3& pos = *(const glm::vec3*)vertexData;
 
 					objFile << "v " << pos.x << " " << pos.y << " " << pos.z << std::endl;
-					posData+= posAttrib->stride;
+					posData+= vertexSize;
 				}
 			}
 
 			// Write out the normals, if available
 			if (normalAttrib)
 			{
-				const uint8_t* normalData = vertexData + normalAttrib->offset;
+				const uint8_t* normalData = vertexData + normalAttrib->getOffset();
 				for (uint32_t i = 0; i < vertexCount; i++)
 				{
 					const glm::vec3& normal = *(const glm::vec3*)normalData;
 
 					objFile << "vn " << normal.x << " " << normal.y << " " << normal.z << std::endl;
-					normalData+= normalAttrib->stride;
+					normalData+= vertexSize;
 				}
 			}
 
 			// Write out the texels, if available
 			if (texelAttrib)
 			{
-				const uint8_t* texelData = vertexData + texelAttrib->offset;
+				const uint8_t* texelData = vertexData + texelAttrib->getOffset();
 				for (uint32_t i = 0; i < vertexCount; i++)
 				{
 					const glm::vec2& texel = *(const glm::vec2*)texelData;
 
 					objFile << "vt " << texel.x << " " << texel.y << std::endl;
-					texelData+= texelAttrib->stride;
+					texelData+= vertexSize;
 				}
 			}
 
@@ -547,36 +551,39 @@ namespace ObjUtils
 		const GlVertexDefinition& vertexDefinition= material->getProgram()->getVertexDefinition();
 		
 		const size_t vertexCount = objMesh.Vertices.size();
-		const size_t vertexSize = vertexDefinition.vertexSize;
-		const size_t vertexBufferSize = vertexCount * vertexDefinition.vertexSize;
+		const size_t vertexSize = vertexDefinition.getVertexSize();
+		const size_t vertexBufferSize = vertexCount * vertexDefinition.getVertexSize();
 		uint8_t* vertexData = new uint8_t[vertexBufferSize];
 		memset(vertexData, 0, vertexBufferSize);
 
 		// Copy in vertex data requested by 
-		for (const GlVertexAttribute& attrib : vertexDefinition.attributes)
+		for (const GlVertexAttribute& attrib : vertexDefinition.getAttributes())
 		{
-			uint8_t* writePtr = &vertexData[attrib.offset];
+			uint8_t* writePtr = &vertexData[attrib.getOffset()];
 
-			switch (attrib.semantic)
+			switch (attrib.getSemantic())
 			{
-			case eVertexSemantic::position3f:
+			case eVertexSemantic::position:
 				{
+					assert(attrib.getDataType() == eVertexDataType::datatype_vec3f);
 					for (const objl::Vertex& vertex : objMesh.Vertices)
 					{
 						memcpy(writePtr, &vertex.Position, sizeof(float)*3);
 						writePtr+= vertexSize;
 					}
 				} break;
-			case eVertexSemantic::normal3f:
+			case eVertexSemantic::normal:
 				{
+					assert(attrib.getDataType() == eVertexDataType::datatype_vec3f);
 					for (const objl::Vertex& vertex : objMesh.Vertices)
 					{
 						memcpy(writePtr, &vertex.Normal, sizeof(float) * 3);
 						writePtr += vertexSize;
 					}
 				} break;
-			case eVertexSemantic::texel2f:
+			case eVertexSemantic::texCoord:
 				{
+					assert(attrib.getDataType() == eVertexDataType::datatype_vec2f);
 					for (const objl::Vertex& vertex : objMesh.Vertices)
 					{
 						memcpy(writePtr, &vertex.TextureCoordinate, sizeof(float) * 2);

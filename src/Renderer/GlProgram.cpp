@@ -586,7 +586,7 @@ bool GlProgram::compileProgram()
 		}
 
 		// Extract vertex attributes
-		rebuildVertexDefinition();
+		m_vertexDefinition= GlVertexDefinition::extractFromGlProgram(*this);
 
 		glUseProgram(m_programID);
 		glUseProgram(0);
@@ -626,94 +626,3 @@ void GlProgram::unbindProgram() const
 	}
 }
 
-void GlProgram::rebuildVertexDefinition()
-{
-	if (m_programID == 0)
-		return;
-
-	GLint numAttributes;
-	glGetProgramiv(m_programID, GL_ACTIVE_ATTRIBUTES, &numAttributes);
-
-	m_vertexDefinition.vertexSize = 0;
-
-	for (int attribIndex = 0; attribIndex < numAttributes; ++attribIndex)
-	{
-		GLchar attribName[256];
-		GLint unusedSize;
-		GLenum unusedType;
-
-		glGetActiveAttrib(
-			m_programID, 
-			GLuint(attribIndex), 
-			(GLsizei)sizeof(attribName), 
-			nullptr, 
-			&unusedSize, 
-			&unusedType, 
-			attribName);
-		GLint location = glGetAttribLocation(m_programID, attribName);
-
-		if (location != -1)
-		{
-			// Query the size of the attribute
-			GLint attributeSize;
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_SIZE, &attributeSize);
-
-			// Calculate the size in bytes
-			GLint componentStride;
-			GLenum componentType;
-			GLint componentNormalized = 0;
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_TYPE, (GLint*)&componentType);
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &componentStride);
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_NORMALIZED, &componentNormalized);
-
-			// Convert component type to size in bytes
-			GLsizei componentSizeInBytes = 0;
-			switch (componentType)
-			{
-				case GL_BYTE:
-					componentSizeInBytes = sizeof(GLbyte);
-					break;
-				case GL_UNSIGNED_BYTE:
-					componentSizeInBytes = sizeof(GLubyte);
-					break;
-				case GL_SHORT:
-					componentSizeInBytes = sizeof(GLshort);
-					break;
-				case GL_UNSIGNED_SHORT:
-					componentSizeInBytes = sizeof(GLushort);
-					break;
-				case GL_INT:
-					componentSizeInBytes = sizeof(GLint);
-					break;
-				case GL_UNSIGNED_INT:
-					componentSizeInBytes = sizeof(GLuint);
-					break;
-				case GL_FLOAT:
-					componentSizeInBytes = sizeof(GLfloat);
-					break;
-				case GL_DOUBLE:
-					componentSizeInBytes = sizeof(GLdouble);
-					break;
-
-				default:
-					MIKAN_LOG_WARNING("GlProgram::compileProgram")
-						<< m_code.getProgramName()
-						<< " - Unknown vertex component type " << componentType << " uniform!";
-					break;
-			}
-
-			if (componentSizeInBytes > 0)
-			{
-				m_vertexDefinition.vertexSize += attributeSize * componentSizeInBytes;
-				m_vertexDefinition.attributes.push_back(
-					GlVertexAttribute(
-						location,
-						componentSizeInBytes,
-						componentType,
-						componentNormalized != 0,
-						componentStride,
-						m_vertexDefinition.vertexSize));
-			}
-		}
-	}
-}

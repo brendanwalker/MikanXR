@@ -167,106 +167,6 @@ namespace InternalShaders
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getPNTPhongShaderCode()
-	{
-		// https://www.gsn-lib.org/docs/nodes/ShaderPluginNode.php
-		static GlProgramCode x_shaderCode = GlProgramCode(
-			INTERNAL_MATERIAL_PNT_BLINN_PHONG,
-			// vertex shader
-			R""""(
-			#version 330 core
-			layout (location = 0) in vec3 position;
-			layout (location = 1) in vec3 normal;
-			layout (location = 2) in vec2 texcoord;
-
-			uniform mat4 cameraLookAt; //camera look at matrix
-			uniform mat4 cameraProjection; //camera projection matrix
-			uniform mat4 meshTransform; // mesh transformation
-			uniform mat4 meshTransformTransposedInverse; // transposed inverse of meshTransform
-
-			out vec2 tc; // output texture coordinate of vertex
-			out vec3 wfn; // output fragment normal of vertex in world coordinate system
-			out vec3 vertPos; // output 3D position in world coordinate system
-
-			void main()
-			{
-				tc = texcoord;
-				wfn = vec3(meshTransformTransposedInverse * vec4(normal, 0.0));
-				vec4 vertPos4 = meshTransform * vec4(position, 1.0);
-				vertPos = vec3(vertPos4) / vertPos4.w;
-				gl_Position = cameraProjection * cameraLookAt * vertPos4;
-			}
-			)"""",
-			//fragment shader
-			R""""(
-			#version 330 core
-			out vec4 outColor;
-
-			in vec2 tc; // texture coordinate of pixel (interpolated)
-			in vec3 wfn; // fragment normal of pixel (interpolated)
-			in vec3 vertPos; // fragment vertex position (interpolated)
-
-			uniform vec4 ambientColor; // description="ambient color" defaultval="0.05, 0.0, 0.0, 1.0"
-			uniform vec4 diffuseColor; // description="diffuse color" defaultval="0.2, 0.0, 0.0, 1.0"
-			uniform vec4 specularColor; // description="specular color" defaultval="1.0, 1.0, 1.0, 1.0"
-			uniform float shininess; // description="specular shininess exponent" defaultval="20.0"
-			uniform vec4 lightColor; // description="color of light" defaultval="1.0, 1.0, 1.0, 1.0"
-			uniform vec3 lightDirection; // light direction in world space
-			uniform vec3 cameraPosition; // camera position in world space
-
-			const float irradiPerp = 1.0;
-
-			vec3 rgb2lin(vec3 rgb) { // sRGB to linear approximation
-			  return pow(rgb, vec3(2.2));
-			}
-
-			vec3 lin2rgb(vec3 lin) { // linear to sRGB approximation
-			  return pow(lin, vec3(1.0 / 2.2));
-			}
-
-			vec3 blinnPhongBRDF(vec3 lightDir, vec3 viewDir, vec3 normal, 
-						vec3 phongDiffuseCol, vec3 phongSpecularCol, float phongShininess) {
-			  vec3 color = phongDiffuseCol;
-			  vec3 halfDir = normalize(viewDir + lightDir);
-			  float specDot = max(dot(halfDir, normal), 0.0);
-			  color += pow(specDot, phongShininess) * phongSpecularCol;
-			  return color;
-			}
-
-			void main() {
-			  vec3 lightDir = normalize(-lightDirection); // towards light
-			  vec3 viewDir = normalize(cameraPosition - vertPos);
-			  vec3 n = normalize(wfn);
-
-			  vec3 radiance = rgb2lin(ambientColor.rgb);
-  
-			  // irradiance contribution from light
-			  float irradiance = max(dot(lightDir, n), 0.0) * irradiPerp; 
-			  if(irradiance > 0.0) { // if receives light
-				vec3 brdf = blinnPhongBRDF(lightDir, viewDir, n, rgb2lin(diffuseColor.rgb), 
-										   rgb2lin(specularColor.rgb), shininess);
-				radiance += brdf * irradiance * lightColor.rgb;
-			  }
-
-			  outColor.rgb = lin2rgb(radiance);
-			  outColor.a = 1.0;
-			}
-			)"""")
-			.addUniform("cameraLookAt", eUniformSemantic::viewMatrix)
-			.addUniform("cameraProjection", eUniformSemantic::projectionMatrix)
-			.addUniform("meshTransform", eUniformSemantic::modelMatrix)
-			.addUniform("meshTransformTransposedInverse", eUniformSemantic::normalMatrix)
-			.addUniform("ambientColor", eUniformSemantic::ambientColorRGBA)
-			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA)
-			.addUniform("specularColor", eUniformSemantic::specularColorRGBA)
-			.addUniform("shininess", eUniformSemantic::specularHighlights)
-			.addUniform("lightColor", eUniformSemantic::lightColor)
-			.addUniform("lightDirection", eUniformSemantic::lightDirection)
-			.addUniform("cameraPosition", eUniformSemantic::cameraPosition);
-
-		return &x_shaderCode;
-	}
-
 	const GlProgramCode* getPWireframeShaderCode()
 	{
 		static GlProgramCode x_shaderCode = GlProgramCode(
@@ -307,7 +207,6 @@ namespace InternalShaders
 			layout (location = 0) in vec3 aPos;
 
 			uniform mat4 mvpMatrix;
-			uniform vec4 diffuseColor;
 
 			void main()
 			{
@@ -319,9 +218,11 @@ namespace InternalShaders
 			#version 330 core
 			out vec4 FragColor;
 
+			uniform vec4 diffuseColor;
+
 			void main()
 			{    
-				FragColor = vec4(1, 1, 1, 1);
+				FragColor = diffuseColor;
 			}
 			)"""")
 			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
@@ -337,7 +238,7 @@ namespace InternalShaders
 			// vertex shader
 			R""""(
 			#version 330 core
-			layout (location = 0) in vec2 aPos;
+			layout (location = 0) in vec3 aPos;
 			layout (location = 1) in vec2 aTexCoords;
 
 			uniform mat4 mvpMatrix;
@@ -374,36 +275,73 @@ namespace InternalShaders
 	const GlProgramCode* getPNTTexturedColoredShaderCode()
 	{
 		static GlProgramCode x_shaderCode = GlProgramCode(
-			INTERNAL_MATERIAL_PNT_TEXTURED_COLORED,
+			INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED,
 			// vertex shader
 			R""""(
 			#version 410 
 			uniform mat4 matrix; 
-			layout(location = 0) in vec4 position; 
+			layout(location = 0) in vec3 aPos; 
 			layout(location = 1) in vec3 v3NormalIn; 
 			layout(location = 2) in vec2 v2TexCoordsIn; 
-			out vec2 v2TexCoord; 
+
+			out vec3 Normal; // Normal for the fragment shader
+			out vec2 TexCoords; // Texture coordinate for the fragment shader
+			out vec3 FragPos; // Fragment position in world space
+
+			uniform mat4 model; // Model matrix
+			uniform mat4 view; // View matrix
+			uniform mat4 projection; // Projection matrix
+
 			void main() 
 			{ 
-				v2TexCoord = v2TexCoordsIn; 
-				gl_Position = matrix * vec4(position.xyz, 1); 
+				FragPos = vec3(model * vec4(aPos, 1.0)); // Position in world space
+				Normal = mat3(transpose(inverse(model))) * v3NormalIn; // Transform normal to world space
+				TexCoords = v2TexCoordsIn;
+    
+				gl_Position = projection * view * vec4(FragPos, 1.0); // Calculate the final position
+
 			}
 			)"""",
 			//fragment shader
 			R""""(
 			#version 410 core
-			uniform sampler2D diffuse;
+
+			in vec3 Normal; // Normal from the vertex shader
+			in vec2 TexCoords; // Texture coordinate from the vertex shader
+			in vec3 FragPos; // Position in world space from the vertex shader
+
+			out vec4 FragColor;
+
+			uniform sampler2D diffuse_tex;
+			uniform vec3 lightDir; // The direction of the light
+			uniform vec3 lightColor; // The color of the light
 			uniform vec4 modelColor;
-			in vec2 v2TexCoord;
-			out vec4 outputColor;
+
 			void main()
 			{
-				outputColor = texture(diffuse, v2TexCoord) * modelColor;
+				// Ambient
+				float ambientStrength = 0.1;
+				vec3 ambient = ambientStrength * lightColor;
+    
+				// Diffuse
+				vec3 norm = normalize(Normal);
+				vec3 lightDirNormalized = normalize(-lightDir);
+				float diff = max(dot(norm, lightDirNormalized), 0.0);
+				vec3 diffuse = diff * lightColor;
+    
+				// Combine the two diffuse and ambient
+				vec4 lighting = vec4(ambient + diffuse, 1.0);
+
+				FragColor = texture(diffuse_tex, TexCoords) * lighting * modelColor;
 			}
 			)"""")
-			.addUniform("matrix", eUniformSemantic::modelViewProjectionMatrix)
-			.addUniform("diffuse", eUniformSemantic::diffuseTexture)
-			.addUniform("modelColor", eUniformSemantic::diffuseColorRGBA);
+			.addUniform("model", eUniformSemantic::modelMatrix)
+			.addUniform("view", eUniformSemantic::viewMatrix)
+			.addUniform("projection", eUniformSemantic::projectionMatrix)
+			.addUniform("diffuse_tex", eUniformSemantic::diffuseTexture)
+			.addUniform("modelColor", eUniformSemantic::diffuseColorRGBA)
+			.addUniform("lightDir", eUniformSemantic::lightDirection)
+			.addUniform("lightColor", eUniformSemantic::lightColor);
 
 		return &x_shaderCode;
 	}
@@ -412,7 +350,6 @@ namespace InternalShaders
 	{
 		std::vector<const GlProgramCode*> internalShaders = {
 			getPTTexturedFullScreenQuad(),
-			getPNTPhongShaderCode(),
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),
 			getPTTexturedShaderCode(),
@@ -422,7 +359,7 @@ namespace InternalShaders
 		bool bSuccess = true;
 		for (const GlProgramCode* code : internalShaders)
 		{
-			if (shaderCache.registerMaterial(*code))
+			if (!shaderCache.registerMaterial(*code))
 			{
 				MIKAN_LOG_ERROR("InternalShaders::registerInternalShaders()") <<
 					"Failed to compile " << code->getProgramName();

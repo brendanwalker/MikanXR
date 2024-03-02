@@ -50,7 +50,7 @@ GlTriangulatedMesh::~GlTriangulatedMesh()
 bool GlTriangulatedMesh::setMaterial(GlMaterialConstPtr material)
 {
 	if (material && 
-		material->getProgram()->getVertexDefinition().vertexSize == m_vertexSize)
+		material->getProgram()->getVertexDefinition().getVertexSize() == m_vertexSize)
 	{
 		m_materialInstance = std::make_shared<GlMaterialInstance>(material);
 		return true;
@@ -62,7 +62,7 @@ bool GlTriangulatedMesh::setMaterial(GlMaterialConstPtr material)
 bool GlTriangulatedMesh::setMaterialInstance(GlMaterialInstancePtr materialInstance)
 {
 	if (materialInstance &&
-		materialInstance->getMaterial()->getProgram()->getVertexDefinition().vertexSize == m_vertexSize)
+		materialInstance->getMaterial()->getProgram()->getVertexDefinition().getVertexSize() == m_vertexSize)
 	{
 		m_materialInstance= materialInstance;
 		return true;
@@ -111,8 +111,8 @@ bool GlTriangulatedMesh::createResources()
 
 	GlMaterialConstPtr material = m_materialInstance->getMaterial();
 	const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
-	const uint32_t vertexSize = vertexDefinition.vertexSize;
-	if (vertexSize != (uint32_t)m_vertexSize)
+	const size_t vertexSize = vertexDefinition.getVertexSize();
+	if (vertexSize != m_vertexSize)
 	{
 		return false;
 	}

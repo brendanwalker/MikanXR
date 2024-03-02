@@ -523,18 +523,29 @@ void AppStage_Compositor::onGraphEditEvent()
 	App* app= App::getInstance();
 	CompositorNodeEditorWindow* appWindow= App::getInstance()->createAppWindow<CompositorNodeEditorWindow>();
 
+	bool bSuccess= false;
 	auto graphAssetPath= m_frameCompositor->getCompositorGraphAssetPath();
 	if (graphAssetPath.empty())
 	{
 		appWindow->newGraph();
+		bSuccess= true;
 	}
 	else
 	{
-		appWindow->loadGraph(graphAssetPath);
+		bSuccess= appWindow->loadGraph(graphAssetPath);
 	}
 
-	// Pop back to the main window GL context
-	app->popCurrentWindow(appWindow);
+	if (bSuccess)
+	{
+		// Pop back to the main window GL context
+		app->popCurrentWindow(appWindow);
+	}
+	else
+	{
+		// Destroy the window if we failed to load the graph
+		// This will also pop back to the main window GL context
+		App::getInstance()->destroyAppWindow(appWindow);
+	}
 }
 
 void AppStage_Compositor::onGraphFileSelectEvent()

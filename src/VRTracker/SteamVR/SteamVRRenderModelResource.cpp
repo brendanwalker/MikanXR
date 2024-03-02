@@ -151,7 +151,7 @@ GlMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	GlTexturePtr texture)
 {
 	auto* shaderCache= m_ownerWindow->getShaderCache();
-	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_COLORED);
+	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
 	assert(material != nullptr);
 	GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
 

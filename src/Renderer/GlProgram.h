@@ -129,9 +129,6 @@ public:
 	void unbindProgram() const;
 
 protected:
-	void rebuildVertexDefinition();
-
-protected:
 	GlProgramCode m_code;
 	uint32_t m_programID = 0;
 	GlProgramUniformMap m_uniformLocationMap;

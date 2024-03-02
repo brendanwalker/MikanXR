@@ -69,15 +69,14 @@ const GlVertexDefinition* GlLineRenderer::getVertexDefinition()
 {
 	static GlVertexDefinition x_vertexDefinition;
 
-	if (x_vertexDefinition.attributes.size() == 0)
+	if (!x_vertexDefinition.getIsValid())
 	{
-		const int32_t vertexSize = (int32_t)sizeof(GlLineRenderer::Point);
-		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
+		std::vector<GlVertexAttribute> attribs;
 
-		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, offsetof(GlLineRenderer::Point, position)));
-		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::colorAndSize4f, false, vertexSize, offsetof(GlLineRenderer::Point, colorAndSize)));
+		attribs.push_back(GlVertexAttribute("in_position", eVertexDataType::datatype_vec3f));
+		attribs.push_back(GlVertexAttribute("in_colorPointSize", eVertexDataType::datatype_vec4f));
 
-		x_vertexDefinition.vertexSize = vertexSize;
+		new (&x_vertexDefinition) GlVertexDefinition(attribs);
 	}
 
 	return &x_vertexDefinition;

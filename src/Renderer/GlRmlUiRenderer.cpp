@@ -141,16 +141,15 @@ namespace RmlGfx {
 	{
 		static GlVertexDefinition x_vertexDefinition;
 
-		if (x_vertexDefinition.attributes.size() == 0)
+		if (!x_vertexDefinition.getIsValid())
 		{
-			const int32_t vertexSize = (int32_t)sizeof(Rml::Vertex);
-			std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
+			std::vector<GlVertexAttribute> attribs;
 
-			attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position2f, false, vertexSize, offsetof(Rml::Vertex, position)));
-			attribs.push_back(GlVertexAttribute(1, eVertexSemantic::color4b, true, vertexSize, offsetof(Rml::Vertex, colour)));
-			attribs.push_back(GlVertexAttribute(2, eVertexSemantic::texel2f, false, vertexSize, offsetof(Rml::Vertex, tex_coord)));
+			attribs.push_back(GlVertexAttribute("inPosition", eVertexDataType::datatype_vec2f));
+			attribs.push_back(GlVertexAttribute("inColor0", eVertexDataType::datatype_vec4f));
+			attribs.push_back(GlVertexAttribute("inTexCoord0", eVertexDataType::datatype_vec2f));
 
-			x_vertexDefinition.vertexSize = vertexSize;
+			new (&x_vertexDefinition) GlVertexDefinition(attribs);
 		}
 
 		return &x_vertexDefinition;

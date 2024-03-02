@@ -242,8 +242,9 @@ private:
 		// Make sure the material vertex definition has the needed attributes
 		GlMaterialConstPtr material = materialInstance->getMaterial();
 		const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
-		const GlVertexAttribute* posAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position3f);
-		const GlVertexAttribute* texelAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texel2f);
+		const size_t vertexSize = (size_t)vertexDefinition.getVertexSize();
+		const GlVertexAttribute* posAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
+		const GlVertexAttribute* texelAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texCoord);
 		if (posAttrib == nullptr || texelAttrib == nullptr)
 		{
 			MIKAN_LOG_ERROR("DepthMeshCaptureState::createTriangulatedDepthMesh()") 
@@ -264,7 +265,7 @@ private:
 
 		// Allocate the mesh vertices based on the material vertex definition
 		const uint32_t meshVertexCount = depthFrameWidth * depthFrameHeight;
-		uint8_t* meshVertices = new uint8_t[vertexDefinition.vertexSize*meshVertexCount];
+		uint8_t* meshVertices = new uint8_t[vertexSize * meshVertexCount];
 
 		// Generate the mesh vertices
 		{
@@ -274,8 +275,8 @@ private:
 			float frameU = 0.0f;
 			float frameV = 0.0f;
 
-			uint8_t* posWritePtr = meshVertices + posAttrib->offset;
-			uint8_t* texelWritePtr = meshVertices + texelAttrib->offset;
+			uint8_t* posWritePtr = meshVertices + posAttrib->getOffset();
+			uint8_t* texelWritePtr = meshVertices + texelAttrib->getOffset();
 
 			for (int depthV = 0; depthV < depthFrameHeight; depthV++)
 			{
@@ -298,13 +299,13 @@ private:
 						openCV_x * k_millimeters_to_meters,
 						-openCV_y * k_millimeters_to_meters,
 						-openCV_z * k_millimeters_to_meters);
-					posWritePtr += posAttrib->stride;
+					posWritePtr += vertexSize;
 
 					// Store the texture coordinate in the vertex array
 					*((glm::vec2*)texelWritePtr) = glm::vec2(
 						depthU / depthFrameWidth, 
 						depthV / depthFrameHeight);
-					texelWritePtr+= texelAttrib->stride;
+					texelWritePtr+= vertexSize;
 
 					// Advance horizontally the proportional amount in video frame width
 					frameU += frameUStep;
@@ -351,7 +352,7 @@ private:
 			ownerWindow,
 			"depth_mesh",
 			(const uint8_t*)meshVertices,
-			vertexDefinition.vertexSize,
+			vertexSize,
 			meshVertexCount,
 			(const uint8_t*)meshIndices,
 			sizeof(uint32_t), // 4 bytes per index
@@ -363,7 +364,7 @@ private:
 
 		if (!depthMeshPtr->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create layer mesh";
+			MIKAN_LOG_ERROR("DepthMeshCaptureState::createTriangulatedDepthMesh()") << "Failed to create depth mesh";
 			return GlTriangulatedMeshPtr();
 		}
 

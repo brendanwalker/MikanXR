@@ -286,7 +286,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 		if (!m_layerMesh->setMaterial(material) ||
 			!m_layerMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create layer mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createLayerQuadMeshes()") << "Failed to create layer mesh";
 			return false;
 		}
 	}
@@ -317,7 +317,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 		if (!m_layerVFlippedMesh->setMaterial(material) ||
 			!m_layerVFlippedMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create vflipped layer mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createLayerQuadMeshes()") << "Failed to create vflipped layer mesh";
 			return false;
 		}
 	}
@@ -361,7 +361,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 		if (!m_stencilQuadMesh->setMaterial(material) ||
 			!m_stencilQuadMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create quad stencil mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createStencilMeshes()") << "Failed to create quad stencil mesh";
 			return false;
 		}
 	}
@@ -401,7 +401,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 		if (!m_stencilQuadMesh->setMaterial(material) ||
 			!m_stencilBoxMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create box stencil mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createStencilMeshes()") << "Failed to create box stencil mesh";
 			return false;
 		}
 	}

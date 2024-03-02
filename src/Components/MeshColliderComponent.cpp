@@ -151,7 +151,7 @@ void MeshColliderComponent::rebuildCollionGeometry()
 
 	auto material= glMeshDataPtr->getMaterialInstance()->getMaterial();
 	auto vertexDefinition= material->getProgram()->getVertexDefinition();
-	auto vertexAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position3f);
+	auto vertexAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
 	if (!vertexAttrib)
 		return;
 
@@ -162,12 +162,12 @@ void MeshColliderComponent::rebuildCollionGeometry()
 	const uint8_t* vertexData= glMeshDataPtr->getVertexData();
 	const uint8_t* indexData= glMeshDataPtr->getIndexData();
 	const size_t triangleStride= glMeshDataPtr->getIndexSize() * 3;
-	const size_t vertexStride= vertexAttrib->stride;
-	const size_t positionOffset= vertexAttrib->offset;
+	const size_t vertexSize = vertexDefinition.getVertexSize();
+	const size_t positionOffset= vertexAttrib->getOffset();
 
 	// Extract the triangle and bounding points from the mesh data
-	auto extractPosition3f = [vertexData, vertexStride, positionOffset](uint16_t vertexIndex) -> glm::vec3 {
-		const size_t positionDataOffset= vertexStride*vertexIndex + positionOffset;
+	auto extractPosition3f = [vertexData, vertexSize, positionOffset](uint16_t vertexIndex) -> glm::vec3 {
+		const size_t positionDataOffset= vertexSize*vertexIndex + positionOffset;
 		const glm::vec3* positionAccess= (const glm::vec3*)(vertexData + positionDataOffset);
 
 		return *positionAccess;

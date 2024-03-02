@@ -73,8 +73,8 @@ bool GlWireframeMesh::createResources()
 	}
 
 	const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
-	const uint32_t vertexSize = vertexDefinition.vertexSize;
-	if (vertexSize != (uint32_t)m_vertexSize)
+	const size_t vertexSize = vertexDefinition.getVertexSize();
+	if (vertexSize != m_vertexSize)
 	{
 		return false;
 	}

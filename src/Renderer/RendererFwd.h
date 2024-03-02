@@ -85,4 +85,5 @@ using IGlSceneRenderablePtr= std::shared_ptr<IGlSceneRenderable>;
 using IGlSceneRenderableConstPtr = std::shared_ptr<const IGlSceneRenderable>;
 using IGlSceneRenderableConstWeakPtr = std::weak_ptr<const IGlSceneRenderable>;
 
-struct GlVertexDefinition;
+class GlVertexAttribute;
+class GlVertexDefinition;

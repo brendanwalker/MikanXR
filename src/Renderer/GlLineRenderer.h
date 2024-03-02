@@ -47,7 +47,7 @@ protected:
 	class IGlWindow* m_ownerWindow= nullptr;
 
 	static const class GlProgramCode* getShaderCode();
-	static const struct GlVertexDefinition* getVertexDefinition();
+	static const class GlVertexDefinition* getVertexDefinition();
 	void drawPointList(const glm::mat4& VPMatrix);
 	void drawSegmentList(const glm::mat4& VPMatrix);
 
