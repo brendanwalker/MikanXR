@@ -628,6 +628,8 @@ protected:
 				FragColor = texture(diffuse, TexCoords);
 			}
 			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3f, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2f, eVertexSemantic::texCoord)
 			.addUniform(SCENE_SHADER_MVP_UNIFORM, eUniformSemantic::modelViewProjectionMatrix)
 			.addUniform(SCENE_SHADER_DIFFUSE_UNIFORM, eUniformSemantic::texture0);
 
@@ -667,6 +669,8 @@ protected:
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2f, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2f, eVertexSemantic::texCoord)
 			.addUniform("screenTexture", eUniformSemantic::texture0);
 
 		return x_shaderCode;

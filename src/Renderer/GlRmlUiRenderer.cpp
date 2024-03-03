@@ -111,6 +111,9 @@ namespace RmlGfx {
 		shader_main_vertex,
 		//fragment shader
 		shader_main_fragment_color)
+		.addVertexAttributes("inPosition", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+		.addVertexAttributes("inColor0", eVertexDataType::datatype_ubvec4, eVertexSemantic::color, true)
+		.addVertexAttributes("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
 		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix);
 
@@ -120,6 +123,9 @@ namespace RmlGfx {
 		shader_main_vertex,
 		//fragment shader
 		shader_main_fragment_texture)
+		.addVertexAttributes("inPosition", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+		.addVertexAttributes("inColor0", eVertexDataType::datatype_ubvec4, eVertexSemantic::color, true)
+		.addVertexAttributes("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
 		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix)
 		.addUniform(TEXTURE_UNIFORM_NAME, eUniformSemantic::texture0);
@@ -136,24 +142,6 @@ namespace RmlGfx {
 		GlProgramPtr program_color;
 		GlProgramPtr program_texture;
 	};
-
-	const GlVertexDefinition* GetVertexDefinition()
-	{
-		static GlVertexDefinition x_vertexDefinition;
-
-		if (!x_vertexDefinition.getIsValid())
-		{
-			std::vector<GlVertexAttribute> attribs;
-
-			attribs.push_back(GlVertexAttribute("inPosition", eVertexDataType::datatype_vec2f));
-			attribs.push_back(GlVertexAttribute("inColor0", eVertexDataType::datatype_vec4f));
-			attribs.push_back(GlVertexAttribute("inTexCoord0", eVertexDataType::datatype_vec2f));
-
-			new (&x_vertexDefinition) GlVertexDefinition(attribs);
-		}
-
-		return &x_vertexDefinition;
-	}
 
 	static bool CreateShaders(IGlWindow* ownerWindow, ShadersData& out_shaders)
 	{
@@ -545,13 +533,13 @@ Rml::CompiledGeometryHandle GlRmlUiRender::CompileGeometry(
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Rml::Vertex) * num_vertices, (const void*)vertices, draw_usage);
 
-	RmlGfx::GetVertexDefinition()->applyVertexDefintion();
+	shaders->program_color->getVertexDefinition().applyVertexDefintion();
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, (const void*)indices, draw_usage);
 	glBindVertexArray(0);
 
-	checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+	checkHasAnyGLError("GlRmlUiRender::CompileGeometry", __FILE__, __LINE__);
 
 	RmlGfx::CompiledGeometryData* geometry = new RmlGfx::CompiledGeometryData;
 	geometry->texture = (GLuint)texture;

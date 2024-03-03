@@ -32,7 +32,7 @@ GlMaterialPtr GlShaderCache::loadMaterialAssetReference(MaterialAssetReferencePt
 		if (programConfig.load(shaderFilePath))
 		{
 			GlProgramCode programCode;
-			if (programConfig.loadGlProgramCode(&programCode))
+			if (programCode.loadFromConfigData(programConfig))
 			{
 				material = registerMaterial(programCode);
 			}
@@ -162,6 +162,8 @@ namespace InternalShaders
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("rgbTexture", eUniformSemantic::texture0);
 
 		return &x_shaderCode;
@@ -191,6 +193,7 @@ namespace InternalShaders
 				out_FragColor = diffuseColor;
 			}
 			)"""")
+			.addVertexAttributes("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position)
 			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
 			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 
@@ -225,6 +228,7 @@ namespace InternalShaders
 				FragColor = diffuseColor;
 			}
 			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
 			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
 			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 
@@ -266,6 +270,8 @@ namespace InternalShaders
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
 			.addUniform("rgbTexture", eUniformSemantic::diffuseTexture);
 
@@ -335,6 +341,9 @@ namespace InternalShaders
 				FragColor = texture(diffuse_tex, TexCoords) * lighting * modelColor;
 			}
 			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttributes("v3NormalIn", eVertexDataType::datatype_vec3, eVertexSemantic::normal)
+			.addVertexAttributes("v2TexCoordsIn", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("model", eUniformSemantic::modelMatrix)
 			.addUniform("view", eUniformSemantic::viewMatrix)
 			.addUniform("projection", eUniformSemantic::projectionMatrix)

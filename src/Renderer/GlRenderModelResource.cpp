@@ -565,7 +565,7 @@ namespace ObjUtils
 			{
 			case eVertexSemantic::position:
 				{
-					assert(attrib.getDataType() == eVertexDataType::datatype_vec3f);
+					assert(attrib.getDataType() == eVertexDataType::datatype_vec3);
 					for (const objl::Vertex& vertex : objMesh.Vertices)
 					{
 						memcpy(writePtr, &vertex.Position, sizeof(float)*3);
@@ -574,7 +574,7 @@ namespace ObjUtils
 				} break;
 			case eVertexSemantic::normal:
 				{
-					assert(attrib.getDataType() == eVertexDataType::datatype_vec3f);
+					assert(attrib.getDataType() == eVertexDataType::datatype_vec3);
 					for (const objl::Vertex& vertex : objMesh.Vertices)
 					{
 						memcpy(writePtr, &vertex.Normal, sizeof(float) * 3);
@@ -583,7 +583,7 @@ namespace ObjUtils
 				} break;
 			case eVertexSemantic::texCoord:
 				{
-					assert(attrib.getDataType() == eVertexDataType::datatype_vec2f);
+					assert(attrib.getDataType() == eVertexDataType::datatype_vec2);
 					for (const objl::Vertex& vertex : objMesh.Vertices)
 					{
 						memcpy(writePtr, &vertex.TextureCoordinate, sizeof(float) * 2);
@@ -601,16 +601,17 @@ namespace ObjUtils
 		// Use 32-bit indices
 		if (indexCount > 65536)
 		{
+			indexSize = sizeof(uint32_t);
 			const size_t indexBufferSize = indexCount * indexSize;
 			indexBuffer = new uint8_t[indexBufferSize];
 
 			// Straight copy of 32-bit indices
 			std::memcpy(indexBuffer, objMesh.Indices.data(), indexBufferSize);
-			indexSize = sizeof(uint32_t);
 		}
 		// Use 16-bit indices
 		else
 		{
+			indexSize = sizeof(uint16_t);
 			const size_t indexBufferSize = indexCount * indexSize;
 			indexBuffer = new uint8_t[indexBufferSize];
 
@@ -621,8 +622,6 @@ namespace ObjUtils
 				*writePtr = (uint16_t)index;
 				writePtr++;
 			}
-
-			indexSize = sizeof(uint16_t);
 		}
 
 		GlTriangulatedMeshPtr triMesh = std::make_shared<GlTriangulatedMesh>(

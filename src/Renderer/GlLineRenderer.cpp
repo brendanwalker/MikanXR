@@ -60,26 +60,11 @@ const GlProgramCode* GlLineRenderer::getShaderCode()
 			out_FragColor = v_Color;
 		}
 		)"""")
+		.addVertexAttributes("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+		.addVertexAttributes("in_colorPointSize", eVertexDataType::datatype_vec4, eVertexSemantic::colorAndSize)
 		.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
 
 	return &x_shaderCode;
-}
-
-const GlVertexDefinition* GlLineRenderer::getVertexDefinition()
-{
-	static GlVertexDefinition x_vertexDefinition;
-
-	if (!x_vertexDefinition.getIsValid())
-	{
-		std::vector<GlVertexAttribute> attribs;
-
-		attribs.push_back(GlVertexAttribute("in_position", eVertexDataType::datatype_vec3f));
-		attribs.push_back(GlVertexAttribute("in_colorPointSize", eVertexDataType::datatype_vec4f));
-
-		new (&x_vertexDefinition) GlVertexDefinition(attribs);
-	}
-
-	return &x_vertexDefinition;
 }
 
 bool GlLineRenderer::startup()
@@ -97,11 +82,11 @@ bool GlLineRenderer::startup()
 		return false;
 	}
 
-	m_points2d.createGlBufferState();
-	m_lines2d.createGlBufferState();
+	m_points2d.createGlBufferState(m_program);
+	m_lines2d.createGlBufferState(m_program);
 
-	m_points3d.createGlBufferState();
-	m_lines3d.createGlBufferState();
+	m_points3d.createGlBufferState(m_program);
+	m_lines3d.createGlBufferState(m_program);
 
 	return true;
 }
@@ -218,7 +203,7 @@ GlLineRenderer::PointBufferState::~PointBufferState()
 	delete[] m_points;
 }
 
-void GlLineRenderer::PointBufferState::createGlBufferState()
+void GlLineRenderer::PointBufferState::createGlBufferState(GlProgramPtr program)
 {
 	glGenVertexArrays(1, &m_pointVAO);
 	glGenBuffers(1, &m_pointVBO);
@@ -230,7 +215,7 @@ void GlLineRenderer::PointBufferState::createGlBufferState()
 	glBufferData(GL_ARRAY_BUFFER, m_maxPoints * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
 	checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
-	getVertexDefinition()->applyVertexDefintion();
+	program->getVertexDefinition().applyVertexDefintion();
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

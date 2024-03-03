@@ -1,5 +1,6 @@
 #include "GlCommon.h"
 #include "GlProgram.h"
+#include "GlProgramConfig.h"
 #include "GlProgramConstants.h"
 #include "GlTexture.h"
 #include "Logger.h"
@@ -32,14 +33,12 @@ GlProgramCode::GlProgramCode(
 	m_shaderCodeHash= hasher(vertexCode + fragmentCode);
 }
 
-bool GlProgramCode::loadFromConfigData(
-	const std::filesystem::path& shaderConfigPath,
-	const std::filesystem::path& vertexShaderFileName,
-	const std::filesystem::path& fragmentShaderFileName,
-	const std::map<std::string, std::string>& uniformSemanticMap)
+bool GlProgramCode::loadFromConfigData(const class GlProgramConfig& config)
 {
 	bool bSuccess= true;
 
+	const std::filesystem::path& shaderConfigPath= config.getLoadedConfigPath();
+	
 	m_programName = shaderConfigPath.string();
 	
 	std::filesystem::path shaderFolderPath = m_programName;
@@ -48,7 +47,7 @@ bool GlProgramCode::loadFromConfigData(
 	try
 	{
 		m_vertexShaderFilePath = shaderFolderPath;
-		m_vertexShaderFilePath/= vertexShaderFileName;
+		m_vertexShaderFilePath/= config.vertexShaderPath;
 
 		std::ifstream t(m_vertexShaderFilePath.string());
 		std::stringstream buffer;
@@ -68,7 +67,7 @@ bool GlProgramCode::loadFromConfigData(
 	try
 	{
 		m_fragmentShaderFilePath = shaderFolderPath;
-		m_fragmentShaderFilePath /= fragmentShaderFileName;
+		m_fragmentShaderFilePath /= config.fragmentShaderPath;
 
 		std::ifstream t(m_fragmentShaderFilePath.string());
 		std::stringstream buffer;
@@ -83,7 +82,31 @@ bool GlProgramCode::loadFromConfigData(
 		bSuccess = false;
 	}
 
-	for (const auto& [uniformName, semanticName] : uniformSemanticMap)
+	for (const GlVertexAttributeConfigPtr attribConfig : config.vertexAttributes)
+	{
+		if (attribConfig->dataType == eVertexDataType::INVALID ||
+			attribConfig->semantic == eVertexSemantic::INVALID)
+		{
+			MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
+				<< "Invalid vertex attribute("
+				<< attribConfig->name
+				<< ") dataType="
+				<< VertexConstantUtils::vertexDataTypeToString(attribConfig->dataType)
+				<< ", semantic="
+				<< VertexConstantUtils::vertexSemanticToString(attribConfig->semantic);
+			bSuccess = false;
+		}
+		else
+		{
+			m_vertexAttributes.push_back({
+				attribConfig->name,
+				attribConfig->dataType,
+				attribConfig->semantic
+			});
+		}
+	}
+
+	for (const auto& [uniformName, semanticName] : config.uniformSemanticMap)
 	{
 		eUniformSemantic semantic= eUniformSemantic::INVALID;
 		for (int enumIntValue = 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
@@ -585,13 +608,14 @@ bool GlProgram::compileProgram()
 			}
 		}
 
-		// Extract vertex attributes
-		m_vertexDefinition= GlVertexDefinition::extractFromGlProgram(*this);
-
 		glUseProgram(m_programID);
 		glUseProgram(0);
 
-		return true;
+		// Create the vertex definition from the vertex attributes set on the program code
+		m_vertexDefinition = GlVertexDefinition(m_code.getVertexAttributes());
+
+		// Last step: check that the vertex definition is compatible with the program
+		return m_vertexDefinition.isCompatibleProgram(*this);
 	}
 
 	return false;

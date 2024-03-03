@@ -45,7 +45,7 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 			GlRenderModelResourcePtr resource = std::make_shared<GlRenderModelResource>(m_ownerWindow);
 			resource->setModelFilePath(modelFilePath);
 
-			if (resource->loadFromRenderModelFilePath())
+			if (resource->loadFromRenderModelFilePath(overrideMaterial))
 			{
 				m_renderModelCache.insert({modelPathString, resource});
 

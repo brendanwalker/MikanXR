@@ -4,30 +4,6 @@
 #include "Logger.h"
 #include "StringUtils.h"
 
-const std::string g_VertexDataTypeNames[(int)eVertexDataType::COUNT] = {
-	"float",
-	"vec2f",
-	"vec3f",
-	"vec4f",
-	"ubyte",
-	"vec2ub",
-	"vec3ub",
-	"vec4ub",
-	"int",
-	"vec2i",
-	"vec3i",
-	"vec4i",
-	"uint",
-	"vec2ui",
-	"vec3ui",
-	"vec4ui",
-	"double",
-	"vec2d",
-	"vec3d",
-	"vec4d",
-};
-const std::string* k_VertexDataTypeNames = g_VertexDataTypeNames;
-
 namespace VertexDefinitionUtils
 {
 	GLenum determineComponentType(eVertexDataType dataType);
@@ -42,6 +18,7 @@ GlVertexAttribute::GlVertexAttribute()
 	: m_name("")
 	, m_numComponents()
 	, m_componentType(GL_INVALID_ENUM)
+	, m_bIsNormalized(GL_FALSE)
 	, m_location(0)
 	, m_attributeSize(0)
 	, m_offset(0)
@@ -50,14 +27,19 @@ GlVertexAttribute::GlVertexAttribute()
 {
 }
 
-GlVertexAttribute::GlVertexAttribute(const std::string& name, eVertexDataType dataType)
+GlVertexAttribute::GlVertexAttribute(
+	const std::string& name, 
+	eVertexDataType dataType, 
+	eVertexSemantic semantic,
+	bool isNormalized)
 	: m_name(name)
 	, m_numComponents(VertexDefinitionUtils::determineNumComponents(dataType))
 	, m_componentType(VertexDefinitionUtils::determineComponentType(dataType))
+	, m_bIsNormalized(isNormalized)
 	, m_location(0)
 	, m_attributeSize(VertexDefinitionUtils::getDataTypeSize(dataType))
 	, m_offset(0)
-	, m_semantic(VertexDefinitionUtils::determineSemanticFromName(name))
+	, m_semantic(semantic)
 	, m_dataType(dataType)
 {
 }
@@ -68,6 +50,7 @@ bool GlVertexAttribute::isCompatibleAttribute(const GlVertexAttribute& other) co
 		this->m_location == other.m_location &&
 		this->m_numComponents == other.m_numComponents &&
 		this->m_componentType == other.m_componentType &&
+		this->m_bIsNormalized == other.m_bIsNormalized &&
 		this->m_offset == other.m_offset;
 }
 
@@ -95,11 +78,12 @@ GlVertexDefinition::GlVertexDefinition(const std::vector<GlVertexAttribute>& att
 
 		std::string dataTypeName= 
 			attrib.m_dataType != eVertexDataType::INVALID
-			? g_VertexDataTypeNames[(int)attrib.m_dataType]
+			? k_VertexDataTypeNames[(int)attrib.m_dataType]
 			: "INVALID";
+		std::string normalizedStr= attrib.m_bIsNormalized ? "_norm" : "";
 		std::string attribDesc= 
 			StringUtils::stringify(
-				"[", attrib.m_location, "_", attrib.m_name, "_", dataTypeName, "]");
+				"[", attrib.m_location, "_", attrib.m_name, "_", dataTypeName, normalizedStr, "]");
 		m_description += attribDesc;
 
 		m_vertexSize += attrib.m_attributeSize;
@@ -117,14 +101,14 @@ void GlVertexDefinition::applyVertexDefintion() const
 		// Specifies the byte offset between consecutive generic vertex attributes. 
 		// If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. 
 		// The initial value is 0.
-		GLsizei stride= 0; 
+		GLsizei stride= m_vertexSize; 
 
 		glEnableVertexAttribArray(attribIndex);
 		glVertexAttribPointer(
 			attrib.m_location, 
 			attrib.m_numComponents, 
 			attrib.m_componentType, 
-			false, // not using fixed-point data
+			attrib.m_bIsNormalized ? GL_TRUE : GL_FALSE, 
 			stride,
 			(GLvoid*)attrib.m_offset);
 	}
@@ -178,20 +162,19 @@ bool GlVertexDefinition::isCompatibleDefinition(const GlVertexDefinition& other)
 	return true;
 }
 
-GlVertexDefinition GlVertexDefinition::extractFromGlProgram(const GlProgram& program)
+bool GlVertexDefinition::isCompatibleProgram(const GlProgram& program) const
 {
 	uint32_t programId = program.getGlProgramId();
 	const std::string programName = program.getProgramCode().getProgramName();
 
 	if (programId == 0)
-		return GlVertexDefinition();
+		return false;
 
 	GLint numAttributes;
 	glGetProgramiv(programId, GL_ACTIVE_ATTRIBUTES, &numAttributes);
 
 	// Extract the attributes from the program
 	bool bSuccess = true;
-	std::vector<GlVertexAttribute> attributes(numAttributes);
 	for (int attribIndex = 0; attribIndex < numAttributes; ++attribIndex)
 	{
 		GLchar attribName[256];
@@ -218,62 +201,97 @@ GlVertexDefinition GlVertexDefinition::extractFromGlProgram(const GlProgram& pro
 		GLint location = glGetAttribLocation(programId, attribName);
 		if (location != -1)
 		{
-			GLint componentStride;
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &componentStride);
-			if (componentStride != 0)
-			{
-				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
-					"Program " << programName <<
-					" has unsupported non-zero stride for attribute " << attribName;
-				bSuccess = false;
-				break;
-			}
-
-			GLint componentNormalized = 0;
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_NORMALIZED, &componentNormalized);
-			if (componentNormalized != 0)
-			{
-				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
-					"Program " << programName <<
-					" has attribute " << attribName <<
-					" using fixed point arithmetic";
-				bSuccess = false;
-				break;
-			}
-
-			eVertexDataType dataType = VertexDefinitionUtils::determineDataType(attribType);
-			if (dataType == eVertexDataType::INVALID)
-			{
-				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
-					"Program " << programName <<
-					" has attribute " << attribName <<
-					" using fixed point arithmetic";
-				bSuccess = false;
-				break;
-			}
-
 			// Slot the attribute into the specified location
-			if (location < attributes.size())
+			if (location < m_attributes.size())
 			{
-				attributes[location] = GlVertexAttribute(attribName, dataType);
+				const GlVertexAttribute& attrib = m_attributes[location];
+				eVertexDataType expectedDataType = attrib.getDataType();
+
+				GLint actualStride;
+				glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &actualStride);
+				if (actualStride != 0 && actualStride != m_vertexSize)
+				{
+					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+						"Program " << programName <<
+						" has unsupported stride(" << actualStride << 
+						") for attribute " << attribName;
+					bSuccess = false;
+					break;
+				}
+
+				eVertexDataType actualDataType = VertexDefinitionUtils::determineDataType(attribType);
+				if (actualDataType == eVertexDataType::INVALID)
+				{
+					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+						"Program " << programName <<
+						" has attribute " << attribName <<
+						" using unsupported GL datatype 0x" << std::hex << attribType;
+					bSuccess = false;
+					break;
+				}
+
+				// See if the data type matches
+				// or if using normalization on a fixed point type
+				// see if the actual data type is a compatible float type
+				bool bHasCompatibleTypes = expectedDataType == actualDataType;
+				if (!bHasCompatibleTypes && attrib.getIsNormalized())
+				{
+					switch (expectedDataType)
+					{
+						case eVertexDataType::datatype_ubyte:
+						case eVertexDataType::datatype_uint:
+						case eVertexDataType::datatype_int:
+							bHasCompatibleTypes = actualDataType == eVertexDataType::datatype_float;
+							break;
+						case eVertexDataType::datatype_ubvec2:
+						case eVertexDataType::datatype_uvec2:
+						case eVertexDataType::datatype_ivec2:
+							bHasCompatibleTypes = actualDataType == eVertexDataType::datatype_vec2;
+							break;
+						case eVertexDataType::datatype_ubvec3:
+						case eVertexDataType::datatype_uvec3:
+						case eVertexDataType::datatype_ivec3:
+							bHasCompatibleTypes = actualDataType == eVertexDataType::datatype_vec3;
+							break;
+						case eVertexDataType::datatype_ubvec4:
+						case eVertexDataType::datatype_uvec4:
+						case eVertexDataType::datatype_ivec4:
+							bHasCompatibleTypes = actualDataType == eVertexDataType::datatype_vec4;
+							break;
+					}
+				}
+
+				if (!bHasCompatibleTypes)
+				{
+					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+						"Program " << programName <<
+						" has attribute " << attribName <<
+						" with mismatched data type " <<
+						"(expected: "  << k_VertexDataTypeNames[(int)expectedDataType] <<
+						", actual: " << k_VertexDataTypeNames[(int)actualDataType] << ")";
+					bSuccess = false;
+					break;
+				}
 			}
 			else
 			{
 				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
 					"Program " << programName <<
-					" has out of range attribute " << attribName <<
-					". One or more attributes not being used?";
+					" has out of range attribute " << attribName;
 				bSuccess = false;
 				break;
 			}
 		}
 		else
 		{
+			MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+				"Program " << programName <<
+				" has missing location for attrib " << attribName;
 			bSuccess = false;
 		}
 	}
 
-	return GlVertexDefinition(attributes);
+	return bSuccess;
 }
 
 namespace VertexDefinitionUtils
@@ -283,33 +301,33 @@ namespace VertexDefinitionUtils
 		switch (dataType)
 		{
 			case eVertexDataType::datatype_ubyte:
-			case eVertexDataType::datatype_vec2ub:
-			case eVertexDataType::datatype_vec3ub:
-			case eVertexDataType::datatype_vec4ub:
+			case eVertexDataType::datatype_ubvec2:
+			case eVertexDataType::datatype_ubvec3:
+			case eVertexDataType::datatype_ubvec4:
 				return GL_UNSIGNED_BYTE;
 
 			case eVertexDataType::datatype_int:
-			case eVertexDataType::datatype_vec2i:
-			case eVertexDataType::datatype_vec3i:
-			case eVertexDataType::datatype_vec4i:
+			case eVertexDataType::datatype_ivec2:
+			case eVertexDataType::datatype_ivec3:
+			case eVertexDataType::datatype_ivec4:
 				return GL_INT;
 
 			case eVertexDataType::datatype_uint:
-			case eVertexDataType::datatype_vec2ui:
-			case eVertexDataType::datatype_vec3ui:
-			case eVertexDataType::datatype_vec4ui:
+			case eVertexDataType::datatype_uvec2:
+			case eVertexDataType::datatype_uvec3:
+			case eVertexDataType::datatype_uvec4:
 				return GL_UNSIGNED_INT;
 
 			case eVertexDataType::datatype_float:
-			case eVertexDataType::datatype_vec2f:
-			case eVertexDataType::datatype_vec3f:
-			case eVertexDataType::datatype_vec4f:
+			case eVertexDataType::datatype_vec2:
+			case eVertexDataType::datatype_vec3:
+			case eVertexDataType::datatype_vec4:
 				return GL_FLOAT;
 
 			case eVertexDataType::datatype_double:
-			case eVertexDataType::datatype_vec2d:
-			case eVertexDataType::datatype_vec3d:
-			case eVertexDataType::datatype_vec4d:
+			case eVertexDataType::datatype_dvec2:
+			case eVertexDataType::datatype_dvec3:
+			case eVertexDataType::datatype_dvec4:
 				return GL_DOUBLE;
 		}
 
@@ -327,25 +345,25 @@ namespace VertexDefinitionUtils
 			case eVertexDataType::datatype_double:
 				return 1;
 
-			case eVertexDataType::datatype_vec2ub:
-			case eVertexDataType::datatype_vec2i:
-			case eVertexDataType::datatype_vec2ui:
-			case eVertexDataType::datatype_vec2f:
-			case eVertexDataType::datatype_vec2d:
+			case eVertexDataType::datatype_ubvec2:
+			case eVertexDataType::datatype_ivec2:
+			case eVertexDataType::datatype_uvec2:
+			case eVertexDataType::datatype_vec2:
+			case eVertexDataType::datatype_dvec2:
 				return 2;
 
-			case eVertexDataType::datatype_vec3ub:
-			case eVertexDataType::datatype_vec3i:
-			case eVertexDataType::datatype_vec3ui:
-			case eVertexDataType::datatype_vec3f:
-			case eVertexDataType::datatype_vec3d:
+			case eVertexDataType::datatype_ubvec3:
+			case eVertexDataType::datatype_ivec3:
+			case eVertexDataType::datatype_uvec3:
+			case eVertexDataType::datatype_vec3:
+			case eVertexDataType::datatype_dvec3:
 				return 3;
 
-			case eVertexDataType::datatype_vec4ub:
-			case eVertexDataType::datatype_vec4i:
-			case eVertexDataType::datatype_vec4ui:
-			case eVertexDataType::datatype_vec4f:
-			case eVertexDataType::datatype_vec4d:
+			case eVertexDataType::datatype_ubvec4:
+			case eVertexDataType::datatype_ivec4:
+			case eVertexDataType::datatype_uvec4:
+			case eVertexDataType::datatype_vec4:
+			case eVertexDataType::datatype_dvec4:
 				return 4;
 		}
 
@@ -356,38 +374,44 @@ namespace VertexDefinitionUtils
 	{
 		switch (glAttribType)
 		{
-			case GL_FLOAT:
-				return eVertexDataType::datatype_float;
-			case GL_FLOAT_VEC2:
-				return eVertexDataType::datatype_vec2f;
-			case GL_FLOAT_VEC3:
-				return eVertexDataType::datatype_vec3f;
-			case GL_FLOAT_VEC4:
-				return eVertexDataType::datatype_vec4f;
+			case GL_UNSIGNED_BYTE:
+				return eVertexDataType::datatype_ubyte;
+
 			case GL_INT:
 				return eVertexDataType::datatype_int;
 			case GL_INT_VEC2:
-				return eVertexDataType::datatype_vec2i;
+				return eVertexDataType::datatype_ivec2;
 			case GL_INT_VEC3:
-				return eVertexDataType::datatype_vec3i;
+				return eVertexDataType::datatype_ivec3;
 			case GL_INT_VEC4:
-				return eVertexDataType::datatype_vec4i;
+				return eVertexDataType::datatype_ivec4;
+
 			case GL_UNSIGNED_INT:
 				return eVertexDataType::datatype_uint;
 			case GL_UNSIGNED_INT_VEC2:
-				return eVertexDataType::datatype_vec2ui;
+				return eVertexDataType::datatype_uvec2;
 			case GL_UNSIGNED_INT_VEC3:
-				return eVertexDataType::datatype_vec3ui;
+				return eVertexDataType::datatype_uvec3;
 			case GL_UNSIGNED_INT_VEC4:
-				return eVertexDataType::datatype_vec4ui;
+				return eVertexDataType::datatype_uvec4;
+
+			case GL_FLOAT:
+				return eVertexDataType::datatype_float;
+			case GL_FLOAT_VEC2:
+				return eVertexDataType::datatype_vec2;
+			case GL_FLOAT_VEC3:
+				return eVertexDataType::datatype_vec3;
+			case GL_FLOAT_VEC4:
+				return eVertexDataType::datatype_vec4;
+
 			case GL_DOUBLE:
 				return eVertexDataType::datatype_double;
 			case GL_DOUBLE_VEC2:
-				return eVertexDataType::datatype_vec2d;
+				return eVertexDataType::datatype_dvec2;
 			case GL_DOUBLE_VEC3:
-				return eVertexDataType::datatype_vec3d;
+				return eVertexDataType::datatype_dvec3;
 			case GL_DOUBLE_VEC4:
-				return eVertexDataType::datatype_vec4d;
+				return eVertexDataType::datatype_dvec4;
 		}
 
 		return eVertexDataType::INVALID;
@@ -397,65 +421,52 @@ namespace VertexDefinitionUtils
 	{
 		switch (dataType)
 		{
-			case eVertexDataType::datatype_float:
-				return sizeof(GLfloat);
-			case eVertexDataType::datatype_vec2f:
-				return sizeof(GLfloat)*2;
-			case eVertexDataType::datatype_vec3f:
-				return sizeof(GLfloat)*3;
-			case eVertexDataType::datatype_vec4f:
-				return sizeof(GLfloat)*4;
 			case eVertexDataType::datatype_ubyte:
-				return sizeof(GLubyte);
-			case eVertexDataType::datatype_vec2ub:
-				return sizeof(GLubyte)*2;
-			case eVertexDataType::datatype_vec3ub:
-				return sizeof(GLubyte)*3;
-			case eVertexDataType::datatype_vec4ub:
-				return sizeof(GLubyte)*4;
+				return sizeof(GLbyte);
+			case eVertexDataType::datatype_ubvec2:
+				return sizeof(GLbyte) * 2;
+			case eVertexDataType::datatype_ubvec3:
+				return sizeof(GLbyte) * 3;
+			case eVertexDataType::datatype_ubvec4:
+				return sizeof(GLbyte) * 4;
+
 			case eVertexDataType::datatype_int:
 				return sizeof(GLint);
-			case eVertexDataType::datatype_vec2i:
-				return sizeof(GLint)*2;
-			case eVertexDataType::datatype_vec3i:
-				return sizeof(GLint)*3;
-			case eVertexDataType::datatype_vec4i:
-				return sizeof(GLint)*4;
+			case eVertexDataType::datatype_ivec2:
+				return sizeof(GLint) * 2;
+			case eVertexDataType::datatype_ivec3:
+				return sizeof(GLint) * 3;
+			case eVertexDataType::datatype_ivec4:
+				return sizeof(GLint) * 4;
+
 			case eVertexDataType::datatype_uint:
 				return sizeof(GLuint);
-			case eVertexDataType::datatype_vec2ui:
-				return sizeof(GLuint)*2;
-			case eVertexDataType::datatype_vec3ui:
-				return sizeof(GLuint)*3;
-			case eVertexDataType::datatype_vec4ui:
-				return sizeof(GLuint)*4;
+			case eVertexDataType::datatype_uvec2:
+				return sizeof(GLuint) * 2;
+			case eVertexDataType::datatype_uvec3:
+				return sizeof(GLuint) * 3;
+			case eVertexDataType::datatype_uvec4:
+				return sizeof(GLuint) * 4;
+
+			case eVertexDataType::datatype_float:
+				return sizeof(GLfloat);
+			case eVertexDataType::datatype_vec2:
+				return sizeof(GLfloat)*2;
+			case eVertexDataType::datatype_vec3:
+				return sizeof(GLfloat)*3;
+			case eVertexDataType::datatype_vec4:
+				return sizeof(GLfloat)*4;
+
 			case eVertexDataType::datatype_double:
 				return sizeof(GLdouble);
-			case eVertexDataType::datatype_vec2d:
+			case eVertexDataType::datatype_dvec2:
 				return sizeof(GLdouble)*2;
-			case eVertexDataType::datatype_vec3d:
+			case eVertexDataType::datatype_dvec3:
 				return sizeof(GLdouble)*3;
-			case eVertexDataType::datatype_vec4d:
+			case eVertexDataType::datatype_dvec4:
 				return sizeof(GLdouble)*4;
 			default:
 				return 0;
 		}
-	}
-
-	eVertexSemantic determineSemanticFromName(const std::string& name)
-	{
-		// TODO: Standardize the names
-		if (name == "position" || name == "in_position" || name == "aPos" || name == "inPosition")
-			return eVertexSemantic::position;
-		else if (name == "normal" || name == "v3NormalIn")
-			return eVertexSemantic::normal;
-		else if (name == "texcoord" || name == "aTexCoords" || name == "v2TexCoordsIn" || name == "inTexCoord0")
-			return eVertexSemantic::texCoord;
-		else if (name == "color" || name == "inColor0")
-			return eVertexSemantic::color;
-		else if (name == "colorAndSize" || name == "in_colorPointSize")
-			return eVertexSemantic::colorAndSize;
-		else
-			return eVertexSemantic::INVALID;
 	}
 };

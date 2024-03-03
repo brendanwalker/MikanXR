@@ -398,7 +398,7 @@ bool CompositorNodeGraph::createStencilMeshes()
 			sizeof(uint16_t), // 2 bytes per index
 			12, // 12 tris in a cube (6 faces * 2 tris/face)
 			false); // mesh doesn't own box vertex data
-		if (!m_stencilQuadMesh->setMaterial(material) ||
+		if (!m_stencilBoxMesh->setMaterial(material) ||
 			!m_stencilBoxMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("CompositorNodeGraph::createStencilMeshes()") << "Failed to create box stencil mesh";

@@ -32,11 +32,7 @@ public:
 		const std::string& vertexCode, 
 		const std::string& fragmentCode);
 
-	bool loadFromConfigData(
-		const std::filesystem::path& shaderConfigPath,
-		const std::filesystem::path& vertexShaderFileName,
-		const std::filesystem::path& fragmentShaderFileName,
-		const std::map<std::string, std::string>& uniformSemanticMap);
+	bool loadFromConfigData(const class GlProgramConfig& config);
 
 	const std::string& getProgramName() const { return m_programName; }
 	void setProgramName(const std::string& inName) { m_programName= inName; }
@@ -46,6 +42,17 @@ public:
 	inline const char* getFragmentShaderCode() const { return m_fragmentShaderCode.c_str(); }
 	inline const std::filesystem::path& getFragmeShaderFilePath() const { return m_fragmentShaderFilePath; }
 	inline size_t getCodeHash() const { return m_shaderCodeHash; }
+
+	inline const std::vector<GlVertexAttribute>& getVertexAttributes() const { return m_vertexAttributes; }
+	inline GlProgramCode& addVertexAttributes(
+		const std::string& name, 
+		eVertexDataType dataType, 
+		eVertexSemantic semantic= eVertexSemantic::generic,
+		bool isNormalized= false)
+	{
+		m_vertexAttributes.push_back(GlVertexAttribute(name, dataType, semantic, isNormalized));
+		return *this;
+	}
 
 	inline const std::vector<Uniform>& getUniformList() const { return m_uniformList; }
 	inline GlProgramCode& addUniform(const std::string& name, eUniformSemantic semantic)
@@ -75,6 +82,7 @@ protected:
 	std::filesystem::path m_vertexShaderFilePath;
 	std::string m_fragmentShaderCode;
 	std::filesystem::path m_fragmentShaderFilePath;
+	std::vector<GlVertexAttribute> m_vertexAttributes;
 	std::vector<Uniform> m_uniformList;
 	size_t m_shaderCodeHash;
 };

@@ -2,6 +2,19 @@
     "materialName": "rgbInvAlphaFrame",
     "vertexShaderPath": "../shared/compositorFrame.vert",
     "fragmentShaderPath": "rgbInvAlphaFrame.frag",
+	"vertexAttributes":
+	[
+		{
+			"name": "aPos",
+			"dataType": "vec2",
+			"semantic": "position"
+		},
+		{
+			"name": "aTexCoords",
+			"dataType": "vec2",
+			"semantic": "texCoord"
+		}		
+	],	
     "uniformSemanticMap":
     {
         "rgbaTexture": "texture0"

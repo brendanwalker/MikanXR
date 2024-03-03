@@ -1209,6 +1209,8 @@ const GlProgramCode* GlFrameCompositor::getRGBFrameShaderCode()
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
+		.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+		.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 		.addUniform("rgbTexture", eUniformSemantic::texture0);
 
 	return &x_shaderCode;
@@ -1247,6 +1249,8 @@ const GlProgramCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
+		.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+		.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 		.addUniform("rgbTexture", eUniformSemantic::texture0);
 
 	return &x_shaderCode;

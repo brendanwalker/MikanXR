@@ -47,7 +47,6 @@ protected:
 	class IGlWindow* m_ownerWindow= nullptr;
 
 	static const class GlProgramCode* getShaderCode();
-	static const class GlVertexDefinition* getVertexDefinition();
 	void drawPointList(const glm::mat4& VPMatrix);
 	void drawSegmentList(const glm::mat4& VPMatrix);
 
@@ -63,7 +62,7 @@ protected:
 		PointBufferState(int maxPoints);
 		virtual ~PointBufferState();
 
-		void createGlBufferState();
+		void createGlBufferState(GlProgramPtr program);
 		void drawGlBufferState(unsigned int glEnumMode);
 		void destroyGlBufferState();
 
