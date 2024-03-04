@@ -26,7 +26,7 @@ public:
 
 	inline static VRDeviceManager* getInstance() { return m_instance; }
 
-	bool startup() override;
+	bool startup(class IGlWindow *ownerWindow) override;
 	void update(float deltaTime) override;
 	void shutdown() override;
 
@@ -57,6 +57,7 @@ public:
 
 protected:
 	static VRDeviceManager* m_instance;
+
 	class SteamVRManager *m_steamVRManager= nullptr;
 	uint64_t m_lastVRFrameIndex= 0;
 

@@ -16,11 +16,12 @@ enum class eVRTrackerDeviceApi : int
 class VRDeviceEnumerator : public DeviceEnumerator
 {
 public:
-	VRDeviceEnumerator();
+	VRDeviceEnumerator(class VRDeviceManager* ownerDeviceManager);
 	~VRDeviceEnumerator();
 
 	bool isValid() const override;
 	bool next() override;
+	class VRDeviceManager* getOwnerDeviceManager() const { return m_ownerDeviceManager; };
 	const char* getDevicePath() const override;
 	eDeviceType getDeviceType() const override;
 
@@ -38,6 +39,7 @@ private:
 
 	void allocateChildEnumerator();
 
+	class VRDeviceManager* m_ownerDeviceManager= nullptr;
 	std::vector<EnumeratorEntry> m_enumerators;
 	int m_enumeratorIndex;
 };

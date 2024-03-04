@@ -30,7 +30,7 @@ public:
 	SteamVRManager(IVRSystemEventListener* listener);
 	virtual ~SteamVRManager();
 
-	bool startup();
+	bool startup(class IGlWindow* ownerWindow);
 	void update(float deltaTime);
 	void shutdown();
 

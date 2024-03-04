@@ -194,13 +194,13 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_videoSourceManager->startup())
+	if (success && !m_videoSourceManager->startup(this))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the video source manager";
 		success = false;
 	}
 
-	if (success && !m_vrDeviceManager->startup())
+	if (success && !m_vrDeviceManager->startup(this))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the vr tracker manager";
 		success = false;

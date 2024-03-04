@@ -23,13 +23,13 @@ VRDeviceManager::~VRDeviceManager()
 	m_instance = nullptr;
 }
 
-bool VRDeviceManager::startup()
+bool VRDeviceManager::startup(class IGlWindow *ownerWindow)
 {
 	EASY_FUNCTION();
 
-	bool bSuccess = DeviceManager::startup();
+	bool bSuccess = DeviceManager::startup(ownerWindow);
 
-	if (bSuccess && !m_steamVRManager->startup())
+	if (bSuccess && !m_steamVRManager->startup(ownerWindow))
 	{
 		MIKAN_LOG_ERROR("VRTrackerManager::init") << "Failed to initialize the SteamVR manager";
 		bSuccess = false;
@@ -67,7 +67,7 @@ void VRDeviceManager::closeAllVRTrackers()
 
 DeviceEnumerator* VRDeviceManager::allocateDeviceEnumerator()
 {
-	return new VRDeviceEnumerator();
+	return new VRDeviceEnumerator(this);
 }
 
 void VRDeviceManager::freeDeviceEnumerator(DeviceEnumerator* enumerator)

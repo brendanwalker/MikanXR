@@ -14,10 +14,8 @@
 #include "openvr.h"
 
 SteamVRRenderModelResource::SteamVRRenderModelResource(
-	const std::string& renderModelName)
-	// TODO: Owner window should be passed as a parameter
-	: m_ownerWindow(App::getInstance()->getMainWindow())
-	, m_renderModelName(renderModelName)
+	class IGlWindow* ownerWindow)
+	: m_ownerWindow(ownerWindow)
 	, m_steamVRRenderModel(nullptr)
 	, m_steamVRTextureMap(nullptr)
 	, m_glMesh(nullptr)

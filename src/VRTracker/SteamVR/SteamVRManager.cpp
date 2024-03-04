@@ -128,9 +128,11 @@ SteamVRManager::~SteamVRManager()
 {
 }
 
-bool SteamVRManager::startup()
+bool SteamVRManager::startup(class IGlWindow* ownerWindow)
 {
 	EASY_FUNCTION();
+
+	m_resourceManager->init(ownerWindow);
 
 	if (!tryConnect())
 	{

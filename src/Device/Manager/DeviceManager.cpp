@@ -18,9 +18,11 @@ DeviceManager::~DeviceManager()
 }
 
 /// Override if the device type needs to initialize any services (e.g., hid_init)
-bool DeviceManager::startup()
+bool DeviceManager::startup(class IGlWindow* ownerWindow)
 {
 	assert(m_deviceViews == nullptr);
+
+	m_ownerWindow = ownerWindow;
 
 	const int maxDeviceCount = getMaxDevices();
 	m_deviceViews = new DeviceViewPtr[maxDeviceCount];

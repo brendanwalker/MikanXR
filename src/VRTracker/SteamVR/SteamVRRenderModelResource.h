@@ -14,12 +14,13 @@ namespace vr
 class SteamVRRenderModelResource
 {
 public:
-	SteamVRRenderModelResource(const std::string& renderModelName);
+	SteamVRRenderModelResource(class IGlWindow* ownerWindow);
 	virtual ~SteamVRRenderModelResource();
 
 	bool createRenderResources();
 	void disposeRenderResources();
 
+	void setRenderModelName(const std::string& inRenderModelName) { m_renderModelName= inRenderModelName; }
 	const std::string& getRenderModelName() const { return m_renderModelName; }
 	GlMaterialInstancePtr getMaterial() const { return m_glMaterialInstance; }
 	const GlTriangulatedMeshPtr getTriangulatedMesh() const { return m_glMesh; }

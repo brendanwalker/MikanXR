@@ -52,11 +52,11 @@ VideoSourceManager::~VideoSourceManager()
 {
 }
 
-bool VideoSourceManager::startup()
+bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 {
 	EASY_FUNCTION();
 
-	bool bSuccess = DeviceManager::startup();
+	bool bSuccess = DeviceManager::startup(ownerWindow);
 
 	if (bSuccess)
 	{
