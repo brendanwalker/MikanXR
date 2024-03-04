@@ -200,6 +200,9 @@ struct DepthMeshCaptureState
 
 	bool loadDepthMesh(ModelStencilDefinitionPtr modelStencilDefinition)
 	{
+		if (modelStencilDefinition == nullptr)
+			return false;
+
 		// Use the internal basic textured material to render the mesh
 		GlModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
 		GlShaderCache* shaderCache = ownerWindow->getShaderCache();
@@ -214,7 +217,7 @@ struct DepthMeshCaptureState
 
 	bool saveDepthMesh(ModelStencilDefinitionPtr modelStencilDefinition)
 	{
-		if (depthMeshResource != nullptr)
+		if (modelStencilDefinition != nullptr && depthMeshResource != nullptr)
 		{
 			MikanStencilID stencilId= modelStencilDefinition->getStencilId();
 			std::string depthMeshResourceName = StringUtils::stringify("depth_mesh_", stencilId);
@@ -414,27 +417,19 @@ DepthMeshGenerator::~DepthMeshGenerator()
 	delete m_calibrationState;
 }
 
-void DepthMeshGenerator::setTargetModelStencilDefinition(ModelStencilDefinitionPtr targetModelStencilDefinition)
+bool DepthMeshGenerator::loadMeshFromStencilDefinition(ModelStencilDefinitionPtr stencilDefinition)
 {
-	m_targetModelStencilDefinition = targetModelStencilDefinition;
-}
-
-bool DepthMeshGenerator::loadMeshFromStencilDefinition()
-{
-	assert(m_targetModelStencilDefinition);
-	if (m_targetModelStencilDefinition->hasValidDepthMesh())
+	if (stencilDefinition->hasValidDepthMesh())
 	{
-		return m_calibrationState->loadDepthMesh(m_targetModelStencilDefinition);
+		return m_calibrationState->loadDepthMesh(stencilDefinition);
 	}
 
 	return false;
 }
 
-bool DepthMeshGenerator::saveMeshToStencilDefinition()
+bool DepthMeshGenerator::saveMeshToStencilDefinition(ModelStencilDefinitionPtr stencilDefinition)
 {
-	assert(m_targetModelStencilDefinition);
-
-	return m_calibrationState->saveDepthMesh(m_targetModelStencilDefinition);
+	return m_calibrationState->saveDepthMesh(stencilDefinition);
 }
 
 bool DepthMeshGenerator::hasFinishedSampling() const

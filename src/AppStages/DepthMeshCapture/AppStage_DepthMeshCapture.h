@@ -61,6 +61,8 @@ private:
 	class RmlModel_DepthMeshCameraSettings* m_cameraSettingsModel = nullptr;
 	Rml::ElementDocument* m_cameraSettingsView = nullptr;
 
+	ModelStencilDefinitionPtr m_targetModelStencilDefinition;
+
 	VideoSourceViewPtr m_videoSourceView;
 
 	// Tracking pucks used for calibration

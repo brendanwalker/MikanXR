@@ -57,7 +57,7 @@ AppStage_DepthMeshCapture::~AppStage_DepthMeshCapture()
 
 void AppStage_DepthMeshCapture::setTargetModelStencil(ModelStencilDefinitionPtr definition)
 {
-	m_depthMeshCapture->setTargetModelStencilDefinition(definition);
+	m_targetModelStencilDefinition= definition;
 }
 
 void AppStage_DepthMeshCapture::enter()
@@ -138,7 +138,7 @@ void AppStage_DepthMeshCapture::enter()
 	if (depthCaptureReady)
 	{
 		// If bypassing the capture, then jump straight to the test capture state
-		if (m_depthMeshCapture->loadMeshFromStencilDefinition())
+		if (m_depthMeshCapture->loadMeshFromStencilDefinition(m_targetModelStencilDefinition))
 		{
 			newState = eDepthMeshCaptureMenuState::testCapture;
 		}
@@ -360,7 +360,7 @@ void AppStage_DepthMeshCapture::onContinueEvent()
 	case eDepthMeshCaptureMenuState::testCapture:
 		{
 			// Write out the mesh to a file
-			m_depthMeshCapture->saveMeshToStencilDefinition();
+			m_depthMeshCapture->saveMeshToStencilDefinition(m_targetModelStencilDefinition);
 
 			m_ownerWindow->popAppState();
 		}

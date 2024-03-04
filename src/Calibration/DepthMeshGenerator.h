@@ -27,9 +27,8 @@ public:
 
 	inline CalibrationPatternFinderPtr getPatternFinder() const { return m_patternFinder; }
 
-	void setTargetModelStencilDefinition(ModelStencilDefinitionPtr targetModelStencilDefinition);
-	bool loadMeshFromStencilDefinition();
-	bool saveMeshToStencilDefinition();
+	bool loadMeshFromStencilDefinition(ModelStencilDefinitionPtr stencilDefinition);
+	bool saveMeshToStencilDefinition(ModelStencilDefinitionPtr stencilDefinition);
 
 	bool hasFinishedSampling() const;
 	void resetCalibrationState();
@@ -46,9 +45,6 @@ protected:
 
 	// Internal Capture State
 	struct DepthMeshCaptureState* m_calibrationState;
-
-	// The target model stencil definition to read/write the depth mesh from/to
-	ModelStencilDefinitionPtr m_targetModelStencilDefinition;
 
 	// Undistorted Video Frame
 	VideoFrameDistortionViewPtr m_distortionView;
