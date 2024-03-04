@@ -101,7 +101,7 @@ void GlVertexDefinition::applyVertexDefintion() const
 		// Specifies the byte offset between consecutive generic vertex attributes. 
 		// If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. 
 		// The initial value is 0.
-		GLsizei stride= m_vertexSize; 
+		GLsizei stride= (GLsizei)m_vertexSize; 
 
 		glEnableVertexAttribArray(attribIndex);
 		glVertexAttribPointer(
