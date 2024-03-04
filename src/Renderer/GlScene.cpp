@@ -153,10 +153,10 @@ eUniformBindResult GlScene::materialBindCallback(
 
 	switch (uniformSemantic)
 	{
-	case eUniformSemantic::lightColor:
+	case eUniformSemantic::lightColorRGB:
 		{
 			bindResult =
-				program->setVector4Uniform(uniformName, getLightColor())
+				program->setVector3Uniform(uniformName, getLightColor())
 				? eUniformBindResult::bound
 				: eUniformBindResult::error;
 		} break;

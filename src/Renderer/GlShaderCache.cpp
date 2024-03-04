@@ -350,7 +350,7 @@ namespace InternalShaders
 			.addUniform("diffuse_tex", eUniformSemantic::diffuseTexture)
 			.addUniform("modelColor", eUniformSemantic::diffuseColorRGBA)
 			.addUniform("lightDir", eUniformSemantic::lightDirection)
-			.addUniform("lightColor", eUniformSemantic::lightColor);
+			.addUniform("lightColor", eUniformSemantic::lightColorRGB);
 
 		return &x_shaderCode;
 	}

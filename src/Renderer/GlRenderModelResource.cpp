@@ -273,22 +273,22 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 					mtlFile << "Ns " << Ns << std::endl;
 				}
 
-				glm::vec4 Ka;
-				bool hasKa = materialInstance->getVec4BySemantic(eUniformSemantic::ambientColorRGBA, Ka);
+				glm::vec3 Ka;
+				bool hasKa = materialInstance->getVec3BySemantic(eUniformSemantic::ambientColorRGB, Ka);
 				if (hasKa)
 				{
 					mtlFile << "Ka " << Ka.r << " " << Ka.g << " " << Ka.b << std::endl;
 				}
 
-				glm::vec4 Kd;
-				bool hasKd = materialInstance->getVec4BySemantic(eUniformSemantic::diffuseColorRGBA, Kd);
+				glm::vec3 Kd;
+				bool hasKd = materialInstance->getVec3BySemantic(eUniformSemantic::diffuseColorRGBA, Kd);
 				if (hasKd)
 				{
 					mtlFile << "Kd " << Kd.r << " " << Kd.g << " " << Kd.b << std::endl;
 				}
 
-				glm::vec4 Ks;
-				bool hasKs= materialInstance->getVec4BySemantic(eUniformSemantic::specularColorRGBA, Ks);
+				glm::vec3 Ks;
+				bool hasKs= materialInstance->getVec3BySemantic(eUniformSemantic::specularColorRGB, Ks);
 				if (hasKs)
 				{
 					mtlFile << "Ks " << Ks.r << " " << Ks.g << " " << Ks.b << std::endl;
@@ -494,14 +494,14 @@ namespace ObjUtils
 		GlTextureCache* textureCache = ownerWindow->getTextureCache();
 		GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
 
-		materialInstance->setVec4BySemantic(
-			eUniformSemantic::ambientColorRGBA,
+		materialInstance->setVec3BySemantic(
+			eUniformSemantic::ambientColorRGB,
 			glm::vec4(objMaterial.Ka.X, objMaterial.Ka.Y, objMaterial.Ka.Z, 1.f));
-		materialInstance->setVec4BySemantic(
+		materialInstance->setVec3BySemantic(
 			eUniformSemantic::diffuseColorRGBA,
 			glm::vec4(objMaterial.Kd.X, objMaterial.Kd.Y, objMaterial.Kd.Z, 1.f));
-		materialInstance->setVec4BySemantic(
-			eUniformSemantic::specularColorRGBA,
+		materialInstance->setVec3BySemantic(
+			eUniformSemantic::specularColorRGB,
 			glm::vec4(objMaterial.Ks.X, objMaterial.Ks.Y, objMaterial.Ks.Z, 1.f));
 		materialInstance->setFloatBySemantic(
 			eUniformSemantic::specularHighlights,
