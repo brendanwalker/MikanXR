@@ -16,6 +16,8 @@
 #include "StencilObjectSystem.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
+#include "VideoSourceManager.h"
+#include "VideoSourceView.h"
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
@@ -319,6 +321,24 @@ void RmlManager::registerCommonDataModelTypes()
 
 			return true;
 		});
+
+	// Transform function for converting full file path to a trimmed path
+	constructor.RegisterTransformFunc(
+		"to_video_source_friendly_name",
+		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+		const Rml::String devicePath = variant.Get<Rml::String>("");
+
+		VideoSourceViewPtr videoSourceView = VideoSourceManager::getInstance()->getVideoSourceViewByPath(devicePath);
+		if (videoSourceView)
+		{
+			const Rml::String friendlyName = videoSourceView->getFriendlyName();
+
+			variant = friendlyName;
+			return true;
+		}
+
+		return false;
+	});
 
 	// Transform function for converting full file path to a trimmed path
 	constructor.RegisterTransformFunc(

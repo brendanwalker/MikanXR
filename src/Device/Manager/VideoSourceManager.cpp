@@ -129,6 +129,21 @@ VideoSourceViewPtr VideoSourceManager::getVideoSourceViewPtr(int device_id) cons
 	return std::static_pointer_cast<VideoSourceView>(m_deviceViews[device_id]);
 }
 
+VideoSourceViewPtr VideoSourceManager::getVideoSourceViewByPath(const std::string& devicePath) const
+{
+	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
+	{
+		VideoSourceViewPtr videoSourcePtr = getVideoSourceViewPtr(videoSourceId);
+
+		if (videoSourcePtr->getIsOpen() && videoSourcePtr->getUSBDevicePath() == devicePath)
+		{
+			return videoSourcePtr;
+		}	
+	}
+
+	return VideoSourceViewPtr();
+}
+
 VideoSourceList VideoSourceManager::getVideoSourceList() const
 {
 	VideoSourceList result;

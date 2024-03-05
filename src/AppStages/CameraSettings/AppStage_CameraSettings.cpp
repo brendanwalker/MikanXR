@@ -1,5 +1,7 @@
 //-- inludes -----
 #include "CameraSettings/AppStage_CameraSettings.h"
+#include "CameraSettings/RmlDataBinding_CameraBrightness.h"
+#include "CameraSettings/RmlModel_CameraSettings.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
@@ -16,191 +18,141 @@
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/ElementDocument.h>
 
-struct CameraSettingsDataModel
-{
-	Rml::DataModelHandle model_handle;
-
-	int brightness= 128;
-	int brightness_min = 0;
-	int brightness_max = 255;
-	int brightness_step = 2;
-	Rml::Vector<Rml::String> video_sources;
-	int selected_video_source = 0;
-	Rml::Vector<Rml::String> display_modes;
-	int selected_display_mode = 0;
-};
-
 //-- statics ----__
 const char* AppStage_CameraSettings::APP_STAGE_NAME = "CameraSettings";
 
 //-- public methods -----
 AppStage_CameraSettings::AppStage_CameraSettings(MainWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_CameraSettings::APP_STAGE_NAME)
-	, m_dataModel(new CameraSettingsDataModel)
-	, m_videoSourceIterator(nullptr)
-	, m_videoBufferView(nullptr)
+	, m_cameraSettingsModel(std::make_shared<RmlModel_CameraSettings>())
 { }
 
 AppStage_CameraSettings::~AppStage_CameraSettings()
 {
-	delete m_dataModel;
-	assert(m_videoSourceIterator == nullptr);
+	m_cameraSettingsModel= nullptr;
+	assert(m_videoBufferView == nullptr);
+	assert(m_videoSourceView == nullptr);
 }
 
 void AppStage_CameraSettings::enter()
 {
 	AppStage::enter();
+
 	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	VideoSourceManager* videoSourceManager= m_ownerWindow->getVideoSourceManager();
 
-	Rml::DataModelConstructor constructor = getRmlContext()->CreateDataModel("camera_settings");
-	if (!constructor)
-		return;
-
-	constructor.Bind("brightness", &m_dataModel->brightness);
-	constructor.Bind("video_sources", &m_dataModel->video_sources);
-	constructor.Bind("selected_video_source", &m_dataModel->selected_video_source);
-
-	m_dataModel->model_handle = constructor.GetModelHandle();
-	
-	m_dataModel->video_sources.push_back("Select Video Source");
-	VideoSourceList videoSourceList= VideoSourceManager::getInstance()->getVideoSourceList();
-	for (VideoSourceViewPtr view : videoSourceList)
+	// Create app stage UI models and views
+	// (Auto cleaned up on app state exit)
 	{
-		m_dataModel->video_sources.push_back(view->getFriendlyName());
+		// Init the camera settings model
+		Rml::Context* context = getRmlContext();
+
+		m_cameraSettingsModel->init(context, profileConfig, videoSourceManager);
+		m_cameraSettingsModel->OnUpdateVideoSourcePath = 
+			MakeDelegate(this, &AppStage_CameraSettings::onVideoSourceChanged);
+
+		// Init the camera settings view now that the model is ready
+		m_cameraSettingsView = addRmlDocument("camera_settings.rml");
 	}
 
-	m_videoSourceIterator= new VideoSourceListIterator(profileConfig->videoSourcePath);
-	if (m_videoSourceIterator->hasVideoSources())
+	// Get the current video source based on the config
+	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	if (m_videoSourceView != nullptr && m_videoSourceView->startVideoStream())
 	{
-		VideoSourceViewPtr videoSource = m_videoSourceIterator->getCurrent();
-
-		// Set the currently selected video source 
-		m_dataModel->selected_video_source= m_videoSourceIterator->getCurrentIndex() + 1;
-
-		// Update the current video source in the profile
-		profileConfig->videoSourcePath = videoSource->getUSBDevicePath();
-		profileConfig->save();
-
 		// Fire up the video stream
-		startVideoSource(videoSource);
+		startVideoSource();
 	}
-	else
-	{
-		m_dataModel->selected_video_source= 0;
-	}
-
-	addRmlDocument("camera_settings.rml");
 }
 
 void AppStage_CameraSettings::exit()
 {
+	// Stop any running video source
+	stopVideoSource();
+
+	// Forget about the video source
+	m_videoSourceView = nullptr;
+
 	// Clean up the data model
 	getRmlContext()->RemoveDataModel("camera_settings");
-
-	if (m_videoSourceIterator != nullptr)
-	{
-		// Stop any running video source
-		stopVideoSource(m_videoSourceIterator->getCurrent());
-
-		// Clean up the video source iterator
-		delete m_videoSourceIterator;
-		m_videoSourceIterator= nullptr;
-	}
 
 	AppStage::exit();
 }
 
 void AppStage_CameraSettings::pause()
 {
-	stopVideoSource(m_videoSourceIterator->getCurrent());
+	stopVideoSource();
 
 	AppStage::pause();
 }
 
 void AppStage_CameraSettings::resume()
 {
-	startVideoSource(m_videoSourceIterator->getCurrent());
+	startVideoSource();
 
 	AppStage::resume();
 }
 
-void AppStage_CameraSettings::startVideoSource(VideoSourceViewPtr videoSource)
+void AppStage_CameraSettings::startVideoSource()
 {
 	assert(m_videoBufferView == nullptr);
 
-	if (videoSource && videoSource->startVideoStream())
+	if (m_videoSourceView && m_videoSourceView->startVideoStream())
 	{
 		// Create a texture to hold the video frame
-		m_videoBufferView = new VideoFrameDistortionView(
-			videoSource, 
+		m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
+			m_videoSourceView, 
 			VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 
-		// Fetch video properties we want to update in the UI
-		m_dataModel->brightness = videoSource->getVideoProperty(VideoPropertyType::Brightness);
-		m_dataModel->brightness_min = videoSource->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
-		m_dataModel->brightness_max = videoSource->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);
-		m_dataModel->brightness_step = videoSource->getVideoPropertyConstraintStep(VideoPropertyType::Brightness);
-		m_dataModel->selected_display_mode = 0;
+		// Update the brightness data binding
+		m_cameraSettingsModel->getBrightnessDataBinding()->setVideoSourceView(m_videoSourceView);
 	}
 }
 
-void AppStage_CameraSettings::stopVideoSource(VideoSourceViewPtr videoSource)
+void AppStage_CameraSettings::stopVideoSource()
 {
 	// Free the distortion view buffers
-	if (m_videoBufferView != nullptr)
-	{
-		delete m_videoBufferView;
-		m_videoBufferView = nullptr;
-	}
+	m_videoBufferView = nullptr;
 
 	// Turn back off the video feed
-	if (videoSource)
+	if (m_videoSourceView)
 	{
-		videoSource->saveSettings();
-		videoSource->stopVideoStream();
+		m_videoSourceView->saveSettings();
+		m_videoSourceView->stopVideoStream();
 	}
+
+	// Update the brightness data binding
+	m_cameraSettingsModel->getBrightnessDataBinding()->setVideoSourceView(nullptr);
 }
 
 void AppStage_CameraSettings::update(float deltaSeconds)
 {
 	AppStage::update(deltaSeconds);
 
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	VideoSourceViewPtr videoSource= m_videoSourceIterator->getCurrent();
-
-	if (m_dataModel->model_handle.IsVariableDirty("brightness"))
-	{
-		videoSource->setVideoProperty(VideoPropertyType::Brightness, m_dataModel->brightness, true);
-		m_dataModel->brightness = videoSource->getVideoProperty(VideoPropertyType::Brightness);
-	}
-
-	if (m_dataModel->model_handle.IsVariableDirty("selected_video_source"))
-	{
-		VideoSourceViewPtr oldVideoSource = m_videoSourceIterator->getCurrent();
-
-		if (m_videoSourceIterator->goToIndex(m_dataModel->selected_video_source - 1))
-		{
-			// Update the config and video stream if we changed video sources
-			VideoSourceViewPtr newVideoSource = m_videoSourceIterator->getCurrent();
-			const std::string friendlyName = newVideoSource->getFriendlyName();
-			const std::string usbPath = newVideoSource->getUSBDevicePath();
-
-			if (newVideoSource != oldVideoSource)
-			{
-				stopVideoSource(oldVideoSource);
-				startVideoSource(newVideoSource);
-
-				// Save out to the profile
-				profileConfig->videoSourcePath = newVideoSource->getUSBDevicePath();
-				profileConfig->save();
-			}
-		}
-	}
-
 	// Get the latest video frame
 	if (m_videoBufferView != nullptr)
 	{
 		m_videoBufferView->readAndProcessVideoFrame();
+	}
+}
+
+void AppStage_CameraSettings::onVideoSourceChanged(const std::string& newVideoSourcePath)
+{
+	VideoSourceManager* videoSourceManager= m_ownerWindow->getVideoSourceManager();
+	VideoSourceViewPtr newVideoSourceView= videoSourceManager->getVideoSourceViewByPath(newVideoSourcePath);
+	
+	if (newVideoSourceView != m_videoSourceView)
+	{
+		ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+
+		stopVideoSource();
+		m_videoSourceView= newVideoSourceView;
+		startVideoSource();
+
+		// Update the currently selected video source in the profile
+		profileConfig->videoSourcePath = newVideoSourcePath;
+		profileConfig->markDirty(
+			ConfigPropertyChangeSet()
+			.addPropertyName(ProfileConfig::k_cameraVRDevicePathPropertyId));
 	}
 }
 

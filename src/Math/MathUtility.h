@@ -64,6 +64,10 @@ int int_clamp(int x, int lo, int hi);
 //-- float methods -----
 float safe_divide_with_default(float numerator, float denomenator, float default_result);
 float safe_sqrt_with_default(float square, float default_result);
+float remap_float_to_float(float inA, float inB, float outA, float outB, float inValue);
+int remap_float_to_int(float inA, float inB, int outA, int outB, float inValue);
+float remap_int_to_float(int intA, int intB, float outA, float outB, int inValue);
+int remap_int_to_int(int inA, int inB, int outA, int outB, int inValue);
 float clampf(float x, float lo, float hi);
 double clampd(double x, double lo, double hi);
 float clampf01(float x);

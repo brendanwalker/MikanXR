@@ -28,6 +28,53 @@ float safe_sqrt_with_default(float square, float default_result)
 	return is_nearly_zero(square) ? default_result : sqrtf(square);
 }
 
+float remap_float_to_float(
+	float inA, float inB,
+	float outA, float outB,
+	float inValue)
+{
+	if (inB > inA)
+	{
+		float clampedValue = fmaxf(fminf(inValue, inB), inA);
+		float u = (clampedValue - inA) / (inB - inA);
+		float rempappedValue = ((1.f - u) * outA + u * outB);
+
+		return rempappedValue;
+	}
+	else
+	{
+		float clampedValue = fmaxf(fminf(inValue, inA), inB);
+		float u = (clampedValue - inB) / (inA - inB);
+		float rempappedValue = (u * outA + (1.f - u) * outB);
+
+		return rempappedValue;
+	}
+}
+
+int remap_float_to_int(
+	float inA, float inB,
+	int outA, int outB,
+	float inValue)
+{
+	return (int)remap_float_to_float(inA, inB, (float)outA, (float)outB, inValue);
+}
+
+float remap_int_to_float(
+	int intA, int intB,
+	float outA, float outB,
+	int inValue)
+{
+	return remap_float_to_float((float)intA, (float)intB, outA, outB, (float)inValue);
+}
+
+int remap_int_to_int(
+	int inA, int inB,
+	int outA, int outB,
+	int inValue)
+{
+	return (int)remap_float_to_float((float)inA, (float)inB, (float)outA, (float)outB, (float)inValue);
+}
+
 float clampf(float x, float lo, float hi)
 {
 	return fminf(fmaxf(x, lo), hi);

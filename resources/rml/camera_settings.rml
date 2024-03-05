@@ -25,13 +25,13 @@
 		</div>  
     <panel id="controls" data-model="camera_settings">
       <h2>Brightness</h2>
-      <div>
-        <input type="range" name="brightness" min="0" max="255" step="1" value="128" data-value="brightness"/> {{brightness}}
+      <div data-if="brightness_valid">
+        <input type="range" name="brightness" min="0" max="100" step="1" value="50" data-value="brightness_percent" data-event-change="brightness_changed()"/> {{brightness_percent}}
       </div>
       <h2>Video Source</h2>
       <div>
-        <select id="select" name="video_source" data-value="selected_video_source" style="width: 200dp">
-          <option data-for="s : video_sources" data-value="it_index" data-class-disabled="it_index == 0" data-attrif-disabled="it_index == 0">{{s}}</option>
+        <select id="select" name="video_source" data-value="selected_video_source" style="width: 200dp" data-event-change="update_video_source()">
+          <option data-for="video_source_path : video_sources" data-value="video_source_path">{{video_source_path | to_video_source_friendly_name}}</option>
         </select>
       </div>
       <div>

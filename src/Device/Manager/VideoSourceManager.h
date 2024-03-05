@@ -49,6 +49,7 @@ public:
 	}
 
 	VideoSourceViewPtr getVideoSourceViewPtr(int device_id) const;
+	VideoSourceViewPtr getVideoSourceViewByPath(const std::string& devicePath) const;
 	VideoSourceList getVideoSourceList() const;
 
 protected:

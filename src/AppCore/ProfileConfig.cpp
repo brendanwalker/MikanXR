@@ -22,6 +22,7 @@
 #define DEFAULT_PUCK_DEPTH_OFFSET_MM  0
 
 // -- Profile Config
+const std::string ProfileConfig::k_videoSourcePathPropertyId= "videoSourcePath";
 const std::string ProfileConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
 const std::string ProfileConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
 const std::string ProfileConfig::k_originVRDevicePathPropertyId= "originVRDevicePath";

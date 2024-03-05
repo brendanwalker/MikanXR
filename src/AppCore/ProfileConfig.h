@@ -30,6 +30,7 @@ public:
 	float puckVerticalOffsetMM;
 	float puckDepthOffsetMM;
 
+	static const std::string k_videoSourcePathPropertyId;
 	std::string videoSourcePath;
 
 	static const std::string k_cameraVRDevicePathPropertyId;
