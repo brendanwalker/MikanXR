@@ -181,7 +181,7 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 				const uint8_t* posData = vertexData + posAttrib->getOffset();
 				for (uint32_t i = 0; i < vertexCount; i++)
 				{
-					const glm::vec3& pos = *(const glm::vec3*)vertexData;
+					const glm::vec3& pos = *(const glm::vec3*)posData;
 
 					objFile << "v " << pos.x << " " << pos.y << " " << pos.z << std::endl;
 					posData+= vertexSize;
@@ -280,12 +280,9 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 					mtlFile << "Ka " << Ka.r << " " << Ka.g << " " << Ka.b << std::endl;
 				}
 
-				glm::vec3 Kd;
-				bool hasKd = materialInstance->getVec3BySemantic(eUniformSemantic::diffuseColorRGBA, Kd);
-				if (hasKd)
-				{
-					mtlFile << "Kd " << Kd.r << " " << Kd.g << " " << Kd.b << std::endl;
-				}
+				glm::vec3 Kd= glm::vec3(1.f);
+				bool hasKd = materialInstance->getVec3BySemantic(eUniformSemantic::diffuseColorRGB, Kd);
+				mtlFile << "Kd " << Kd.r << " " << Kd.g << " " << Kd.b << std::endl;
 
 				glm::vec3 Ks;
 				bool hasKs= materialInstance->getVec3BySemantic(eUniformSemantic::specularColorRGB, Ks);

@@ -45,7 +45,7 @@ struct DepthMeshCaptureState
 
 	// Rendering state
 	glm::dmat4 cameraToPatternXform;
-	std::vector<glm::dvec3> cameraRelativePatternPoints;
+	std::vector<glm::dvec3> openGLCameraRelativePatternPoints;
 
 	// Generated mesh
 	double disparityBias;
@@ -82,7 +82,7 @@ struct DepthMeshCaptureState
 		// Compute the camera relative points of the calibration pattern
 		// using the cameraToPatternXform computed by OpenCV
 		outCameraRelativePoints.clear();
-		for (int pointIndex= 0; pointIndex < 0; pointIndex++)
+		for (int pointIndex= 0; pointIndex < inputGLObjectGeometry.points.size(); pointIndex++)
 		{
 			// Compute the 3D point in the pattern's local space
 			const glm::dvec4 localPoint(inputGLObjectGeometry.points[pointIndex], 1.0);
@@ -98,13 +98,14 @@ struct DepthMeshCaptureState
 	void sampleSyntheticDisparityMap(
 		CalibrationPatternFinderPtr patternFinder,
 		const t_opencv_point2d_list& patternPoints,
-		const cv::Mat* syntheticDisparityDnnBuffer,
-		std::vector<float> outSyntheticDepths)
+		const cv::Mat& syntheticDisparityDnnBuffer,
+		std::vector<float>& outSyntheticDepths)
 	{
+
 		const float patternFrameWidth = patternFinder->getFrameWidth();
 		const float patternFrameHeight = patternFinder->getFrameHeight();
-		const float depthFrameWidth = (float)syntheticDisparityDnnBuffer->cols;
-		const float depthFrameHeight = (float)syntheticDisparityDnnBuffer->rows;
+		const float depthFrameWidth = (float)syntheticDisparityDnnBuffer.cols;
+		const float depthFrameHeight = (float)syntheticDisparityDnnBuffer.rows;
 
 		// Sample the synthetic disparity map from the camera at the 2d pattern locations
 		for (const cv::Point2f& patternPoint : patternPoints)
@@ -114,7 +115,7 @@ struct DepthMeshCaptureState
 			const int depthY = int((patternPoint.y / patternFrameHeight) * depthFrameHeight);
 
 			// Sample the synthetic disparity at the pattern point
-			const float syntheticDisparity = syntheticDisparityDnnBuffer->at<float>(depthY, depthX);
+			const float syntheticDisparity = syntheticDisparityDnnBuffer.at<float>(depthY, depthX);
 			outSyntheticDepths.push_back(syntheticDisparity);
 		}
 	}
@@ -125,7 +126,7 @@ struct DepthMeshCaptureState
 		const t_opencv_point2d_list& imagePoints)
 	{
 		VideoFrameDistortionView* distortionView = patternFinder->getDistortionView();
-		const cv::Mat* floatDepthDnnBuffer = depthEstimator->getFloatDepthDnnBuffer();
+		const cv::Mat floatDepthDnnBuffer = depthEstimator->getFloatDepthDnnBufferAccessor();
 
 		// True depth is computed using the formula: Z = 1.0 / (A + (B * synthetic_disparity))
 		// where A and B are bias and scale constants needed to map disparity values from the MiDaS DNN model.
@@ -133,22 +134,30 @@ struct DepthMeshCaptureState
 		// of the form y = slope*x + intercept, where y = 1.0 / Z, x = synthetic_disparity, slope = B, intercept = A.
 
 		// Compute camera relative chessboard points using the cameraToPatternXform computed by OpenCV
-		computeCameraRelativePatternPoints(cameraRelativePatternPoints);
+		computeCameraRelativePatternPoints(openGLCameraRelativePatternPoints);
 
 		// Sample the synthetic disparity map from the camera at the 2d pattern locations
-		std::vector<float> syntheticDepts;
-		sampleSyntheticDisparityMap(patternFinder, imagePoints, floatDepthDnnBuffer, syntheticDepts);
+		std::vector<float> dnnSamples;
+		sampleSyntheticDisparityMap(patternFinder, imagePoints, floatDepthDnnBuffer, dnnSamples);
 
 		// Merge the real depth and synthetic disparity pairs into a single array
-		std::vector<cv::Vec2d> depthDisparityPairs; // (1/true_z, disparity)
+		std::vector<cv::Vec2d> depthDisparityPairs; // (disparity, 1/true_z)
 		for (int i = 0; i < imagePoints.size(); i++)
 		{
-			const glm::dvec3 cameraRelativePoint = cameraRelativePatternPoints[i];
-			const double trueZ = cameraRelativePoint.z;
-			const double invTrueZ = 1.0f / trueZ;
-			const double syntheticDisparity = syntheticDepts[i];
+			const glm::dvec3 openGLCameraRelativePoint = openGLCameraRelativePatternPoints[i];
 
-			depthDisparityPairs.push_back(cv::Vec2f(invTrueZ, syntheticDisparity));
+			// Convert the camera relative point to OpenCV coordinate system
+			// World units in OpenCV are in mm, not meters
+			cv::Vec3d opencvCameraPoint(
+				openGLCameraRelativePoint.x * k_meters_to_millimeters,
+				-openGLCameraRelativePoint.y * k_meters_to_millimeters,
+				-openGLCameraRelativePoint.z * k_meters_to_millimeters);
+
+			const double trueZ = opencvCameraPoint[2];
+			const double invTrueZ = 1.0f / trueZ;
+			const double syntheticDisparity = dnnSamples[i];
+
+			depthDisparityPairs.push_back(cv::Vec2f(syntheticDisparity, invTrueZ));
 		}
 		
 		// Run a linear regression on the pairs to compute the disparity bias and scale
@@ -161,6 +170,21 @@ struct DepthMeshCaptureState
 
 		disparityScale = vy / vx;
 		disparityBias = y0 - (disparityScale*x0);
+
+		// Compute the RootMeanSquare Error of the linear regression
+		double rmsError = 0.0f;
+		for (const cv::Vec2d& pair : depthDisparityPairs)
+		{
+			const double disparity = pair[0];
+			const double invTrueZ = pair[1];
+			const double trueZ = 1.0f / invTrueZ;
+
+			const double estZ = 1.0f / (disparityBias + (disparityScale * disparity));
+			const double error = estZ - trueZ;
+
+			rmsError += error * error;
+		}
+		rmsError = sqrt(rmsError / (double)imagePoints.size());
 	}
 
 	bool createRenderModelResource(
@@ -180,7 +204,7 @@ struct DepthMeshCaptureState
 		// Use the internal basic textured material to render the mesh
 		GlMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 		GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(stencilMaterial);
-		materialInstance->setTextureBySemantic(eUniformSemantic::texture0, texture);
+		materialInstance->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
 
 		// Create a triangulated mesh from the synthetic depth map
 		GlTriangulatedMeshPtr triMesh = 
@@ -260,11 +284,11 @@ private:
 		cv::Matx33d invIntrinsicMatrix = intrinsicMatrix.inv();
 
 		// Fetch the synthetic disparity map and the frame dimensions
-		cv::Mat* syntheticDisparityDnnBuffer = depthEstimator->getFloatDepthDnnBuffer();
+		cv::Mat syntheticDisparityDnnBuffer = depthEstimator->getFloatDepthDnnBufferAccessor();
 		const float frameWidth = (float)distortionView->getFrameWidth();
 		const float frameHeight = (float)distortionView->getFrameHeight();
-		const int depthFrameWidth = syntheticDisparityDnnBuffer->cols;
-		const int depthFrameHeight = syntheticDisparityDnnBuffer->rows;
+		const int depthFrameWidth = syntheticDisparityDnnBuffer.cols;
+		const int depthFrameHeight = syntheticDisparityDnnBuffer.rows;
 
 		// Allocate the mesh vertices based on the material vertex definition
 		const uint32_t meshVertexCount = depthFrameWidth * depthFrameHeight;
@@ -272,8 +296,8 @@ private:
 
 		// Generate the mesh vertices
 		{
-			const float frameVStep = frameWidth / depthFrameWidth;
-			const float frameUStep = frameHeight / depthFrameHeight;
+			const float frameUStep = frameWidth / depthFrameWidth;
+			const float frameVStep = frameHeight / depthFrameHeight;
 
 			float frameU = 0.0f;
 			float frameV = 0.0f;
@@ -286,7 +310,7 @@ private:
 				for (int depthU = 0; depthU < depthFrameWidth; depthU++)
 				{
 					// Fetch depth from the synthetic disparity map
-					const float disparity = syntheticDisparityDnnBuffer->at<float>(depthV, depthU);
+					const float disparity = syntheticDisparityDnnBuffer.at<float>(depthV, depthU);
 					const float depth = 1.0f / (disparityBias + (disparityScale * disparity));
 
 					// Compute the 3D point in the camera space
@@ -306,8 +330,8 @@ private:
 
 					// Store the texture coordinate in the vertex array
 					*((glm::vec2*)texelWritePtr) = glm::vec2(
-						depthU / depthFrameWidth, 
-						depthV / depthFrameHeight);
+						depthU / (float)depthFrameWidth, 
+						1.f - (depthV / (float)depthFrameHeight));
 					texelWritePtr+= vertexSize;
 
 					// Advance horizontally the proportional amount in video frame width
@@ -384,8 +408,12 @@ private:
 			bgrUndistortBuffer->data,
 			GL_RGB, // texture format
 			GL_BGR); // buffer format
+		if (depthMeshTexture->createTexture())
+		{
+			return depthMeshTexture;
+		}
 
-		return depthMeshTexture;
+		return GlTexturePtr();
 	}
 };
 

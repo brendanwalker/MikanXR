@@ -281,10 +281,12 @@ bool AppStage_Compositor::startRecording()
 	switch (compositorTexture->getBufferFormat())
 	{
 	case GL_RGB:
+	case GL_BGR:
 		matType = CV_8UC3;
 		bpp = 24;
 		break;
 	case GL_RGBA:
+	case GL_BGRA:
 		matType = CV_8UC4;
 		bpp = 32;
 		break;

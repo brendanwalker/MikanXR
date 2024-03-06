@@ -33,7 +33,7 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>            
-            <div data-if="menu_state == 'testCapture'>
+            <div data-if="menu_state == 'testCapture'">
                 Preview Mesh<br />
                 <span>
                     <button data-event-click="restart">Redo Capture</button>

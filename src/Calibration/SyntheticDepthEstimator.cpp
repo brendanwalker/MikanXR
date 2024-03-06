@@ -154,8 +154,7 @@ bool SyntheticDepthEstimator::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
 
 	// Create an accessor Mat(WxH) to read from the DNN output(1xWxH)
 	// No actual copy occurs here, just a view into the DNN output buffer
-	const std::vector<int32_t> size = {m_floatDepthDnnOutput->size[1], m_floatDepthDnnOutput->size[2]};
-	auto outputAccessor = cv::Mat(2, &size[0], CV_32F, m_floatDepthDnnOutput->ptr<float>());
+	cv::Mat outputAccessor = getFloatDepthDnnBufferAccessor();
 
 	// Generate an unscaled BGR debug visualization of the depth map, if requested
 	if (m_floatNormalizedDepth != nullptr)
@@ -208,6 +207,13 @@ bool SyntheticDepthEstimator::computeSyntheticDepth(cv::Mat* bgrSourceBuffer)
 	}
 
 	return true;
+}
+
+cv::Mat SyntheticDepthEstimator::getFloatDepthDnnBufferAccessor() const
+{
+	const std::vector<int32_t> size = {m_floatDepthDnnOutput->size[1], m_floatDepthDnnOutput->size[2]};
+
+	return cv::Mat(2, &size[0], CV_32F, m_floatDepthDnnOutput->ptr<float>());
 }
 
 void SyntheticDepthEstimator::copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture)

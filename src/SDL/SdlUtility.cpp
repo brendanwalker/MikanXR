@@ -14,13 +14,22 @@ namespace SdlUtility
 	bool saveTextureToPNG(GlTexture* texture, const char* filename)
 	{
 		int depth = 0;
+		bool bIsBGR = false;
 		switch (texture->getBufferFormat())
 		{
 			case GL_RGB:
 				depth = 24;
 				break;
+			case GL_BGR:
+				depth = 24;
+				bIsBGR = true;
+				break;
 			case GL_RGBA:
 				depth = 32;
+				break;
+			case GL_BGRA:
+				depth = 32;
+				bIsBGR = true;
 				break;
 			default:
 				break;
@@ -34,14 +43,32 @@ namespace SdlUtility
 		Uint32 rmask, gmask, bmask, amask;
 	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
 		int shift = (depth == 24) ? 8 : 0;
-		rmask = 0xff000000 >> shift;
-		gmask = 0x00ff0000 >> shift;
-		bmask = 0x0000ff00 >> shift;
+		if (bIsBGR)
+		{
+			rmask = 0x0000ff00 >> shift;
+			gmask = 0x00ff0000 >> shift;
+			bmask = 0xff000000 >> shift;
+		}
+		else
+		{
+			rmask = 0xff000000 >> shift;
+			gmask = 0x00ff0000 >> shift;
+			bmask = 0x0000ff00 >> shift;
+		}
 		amask = 0x000000ff >> shift;
 	#else // little endian, like x86
-		rmask = 0x000000ff;
-		gmask = 0x0000ff00;
-		bmask = 0x00ff0000;
+		if (bIsBGR)
+		{
+			rmask = 0x00ff0000;
+			gmask = 0x0000ff00;
+			bmask = 0x000000ff;
+		}
+		else
+		{
+			rmask = 0x000000ff;
+			gmask = 0x0000ff00;
+			bmask = 0x00ff0000;
+		}
 		amask = (depth == 24) ? 0 : 0xff000000;
 	#endif
 
@@ -56,7 +83,7 @@ namespace SdlUtility
 			SDL_CreateRGBSurfaceFrom(
 				(void*)buffer,
 				texture->getTextureWidth(), texture->getTextureHeight(),
-				32, pitch,
+				depth, pitch,
 				rmask, gmask, bmask, amask);
 
 		bool bSuccess = false;

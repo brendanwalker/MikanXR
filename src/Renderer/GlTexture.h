@@ -59,7 +59,7 @@ public:
 	uint16_t getTextureWidth() const { return m_width; }
 	uint16_t getTextureHeight() const { return m_height; }
 	uint32_t getTextureFormat() const { return m_textureFormat; }
-	uint32_t getBufferFormat() const { return m_textureFormat; }
+	uint32_t getBufferFormat() const { return m_bufferFormat; }
 
 private:
 	void determinePixelType();

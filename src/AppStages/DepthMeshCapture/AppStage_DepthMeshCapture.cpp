@@ -97,8 +97,7 @@ void AppStage_DepthMeshCapture::enter()
 		m_monoDistortionView = 
 			std::make_shared<VideoFrameDistortionView>(
 				m_videoSourceView, 
-				VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | 
-				VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
+				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 		// Get the depth estimator from the frame compositor
@@ -204,6 +203,10 @@ void AppStage_DepthMeshCapture::exit()
 
 	// Free the distortion view buffers
 	m_monoDistortionView = nullptr;
+
+	// Clean up the data model
+	getRmlContext()->RemoveDataModel("depth_mesh_capture");
+	getRmlContext()->RemoveDataModel("depth_mesh_camera_settings");
 
 	AppStage::exit();
 }
@@ -353,7 +356,7 @@ void AppStage_DepthMeshCapture::onContinueEvent()
 			}
 			else
 			{
-				setMenuState(eDepthMeshCaptureMenuState::failedToStart);
+				setMenuState(eDepthMeshCaptureMenuState::captureFailed);
 			}
 		}
 		break;
@@ -385,22 +388,25 @@ void AppStage_DepthMeshCapture::onCancelEvent()
 // Camera Settings Model UI Events
 void AppStage_DepthMeshCapture::onViewportModeChanged(eDepthMeshCaptureViewpointMode newViewMode)
 {
-	switch (newViewMode)
+	if (m_camera)
 	{
-		case eDepthMeshCaptureViewpointMode::cameraViewpoint:
-			{
-				m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
-				m_camera->setCameraTransform(glm::mat4(1.f));
-			} break;
-		case eDepthMeshCaptureViewpointMode::vrViewpoint:
-			{
-				m_camera->setCameraMovementMode(eCameraMovementMode::fly);
-			} break;
-		case eDepthMeshCaptureViewpointMode::mixedRealityViewpoint:
-			{
-				m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
-			} break;
-		default:
-			break;
+		switch (newViewMode)
+		{
+			case eDepthMeshCaptureViewpointMode::cameraViewpoint:
+				{
+					m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+					m_camera->setCameraTransform(glm::mat4(1.f));
+				} break;
+			case eDepthMeshCaptureViewpointMode::vrViewpoint:
+				{
+					m_camera->setCameraMovementMode(eCameraMovementMode::fly);
+				} break;
+			case eDepthMeshCaptureViewpointMode::mixedRealityViewpoint:
+				{
+					m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+				} break;
+			default:
+				break;
+		}
 	}
 }

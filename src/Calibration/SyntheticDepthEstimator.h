@@ -23,7 +23,7 @@ public:
 	bool initialize();
 	void dispose();
 
-	inline cv::Mat* getFloatDepthDnnBuffer() const { return m_floatDepthDnnOutput; }
+	cv::Mat getFloatDepthDnnBufferAccessor() const;
 	inline GlTexturePtr getFloatDepthTexture() const { return m_floatDepthTextureMap; }
 	inline GlTexturePtr getColorMappedDepthTexture() const { return m_colorMappedDepthTextureMap; }
 
