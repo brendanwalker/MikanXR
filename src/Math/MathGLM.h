@@ -90,3 +90,9 @@ bool glm_intersect_obb_with_ray(
 	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
 	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
 	glm::vec3& outIntNormal);		// Output: intersection normal on the surface of the OBB
+bool glm_intersect_aabb_with_ray(
+	const glm::vec3 ray_start,		// Ray origin, in world space
+	const glm::vec3 ray_direction,	// Ray direction, in world space. 
+	const glm::vec3 aabb_min,		// Minimum X,Y,Z coords of the aabb
+	const glm::vec3 aabb_max,		// Maximum X,Y,Z coords of the aabb. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+	float& outIntDistance);			// Output: distance between ray_origin and the intersection with the AABB

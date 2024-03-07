@@ -14,6 +14,7 @@ bool run_math_glm_unit_tests()
 {
 	UNIT_TEST_MODULE_BEGIN("math_glm")
 		UNIT_TEST_MODULE_CALL_TEST(math_glm_test_intersect_obb_with_ray);
+		UNIT_TEST_MODULE_CALL_TEST(math_glm_test_intersect_aabb_with_ray);
 		UNIT_TEST_MODULE_CALL_TEST(math_glm_test_mat4_composite);
 	UNIT_TEST_MODULE_END()
 }
@@ -50,6 +51,30 @@ bool intersect_unit_obb_outside(const glm::mat4& xform, const glm::vec3& normal)
 	return success;
 }
 
+bool intersect_unit_aabb_outside(const glm::vec3& normal)
+{
+	bool success = false;
+
+	glm::vec3 rayStart =  glm::vec4(normal * 2.f, 1.f);
+	glm::vec3 rayDirection = normal * -1.f;
+
+	float intDistance;
+	glm::vec3 intPoint;
+	bool bIntersects =
+		glm_intersect_aabb_with_ray(
+			rayStart,
+			rayDirection,
+			glm::vec3(-1, -1, -1),	// Minimum X,Y,Z 
+			glm::vec3(1, 1, 1),		// Maximum X,Y,Z
+			intDistance);
+
+	success = bIntersects;
+	assert(success);
+	success = is_nearly_equal(intDistance, 1.f, k_normal_epsilon);
+
+	return success;
+}
+
 bool intersect_unit_obb_inside(const glm::mat4& xform, const glm::vec3& rayDirection)
 {
 	bool success = false;
@@ -81,6 +106,29 @@ bool intersect_unit_obb_inside(const glm::mat4& xform, const glm::vec3& rayDirec
 	return success;
 }
 
+bool intersect_unit_aabb_inside(const glm::vec3& rayDirection)
+{
+	bool success = false;
+
+	glm::vec3 rayStart = glm::vec4(glm::vec3(0.f), 1.f);
+
+	float intDistance;
+
+	bool bIntersects =
+		glm_intersect_aabb_with_ray(
+			rayStart,
+			rayDirection,
+			glm::vec3(-1, -1, -1),	// Minimum X,Y,Z 
+			glm::vec3(1, 1, 1),		// Maximum X,Y,Z
+			intDistance);
+
+	success = bIntersects;
+	assert(success);
+	success = is_nearly_equal(intDistance, 0.f, k_normal_epsilon);
+
+	return success;
+}
+
 bool no_intersect_unit_obb(const glm::mat4& xform, const glm::vec3& normal, const glm::vec3& rayDir)
 {
 	bool success = false;
@@ -99,6 +147,27 @@ bool no_intersect_unit_obb(const glm::mat4& xform, const glm::vec3& normal, cons
 			glm::vec3(1, 1, 1),		// Maximum X,Y,Z
 			xform,
 			intDistance, intPoint, intNormal);
+
+	success = !bIntersects;
+	assert(success);
+
+	return success;
+}
+
+bool no_intersect_unit_aabb(const glm::vec3& normal, const glm::vec3& rayDir)
+{
+	bool success = false;
+
+	glm::vec3 rayStart = glm::vec4(normal * 2.f, 1.f);
+
+	float intDistance;
+	bool bIntersects =
+		glm_intersect_aabb_with_ray(
+			rayStart,
+			rayDir,
+			glm::vec3(-1, -1, -1),	// Minimum X,Y,Z 
+			glm::vec3(1, 1, 1),		// Maximum X,Y,Z
+			intDistance);
 
 	success = !bIntersects;
 	assert(success);
@@ -194,6 +263,69 @@ bool math_glm_test_intersect_obb_with_ray()
 		assert(success);
 	}
 	
+	UNIT_TEST_COMPLETE()
+}
+
+bool math_glm_test_intersect_aabb_with_ray()
+{
+	UNIT_TEST_BEGIN("intersect aabb with ray")
+
+	// Test unit cube intersection from outside
+	success = intersect_unit_aabb_outside(glm::vec3(1.f, 0.f, 0.f));
+	assert(success);
+	success = intersect_unit_aabb_outside(glm::vec3(-1.f, 0.f, 0.f));
+	assert(success);
+	success = intersect_unit_aabb_outside(glm::vec3(0.f, 1.f, 0.f));
+	assert(success);
+	success = intersect_unit_aabb_outside(glm::vec3(0.f, -1.f, 0.f));
+	assert(success);
+	success = intersect_unit_aabb_outside(glm::vec3(0.f, 0.f, 1.f));
+	assert(success);
+	success = intersect_unit_aabb_outside(glm::vec3(0.f, 0.f, -1.f));
+	assert(success);
+
+	// Test unit cube from inside
+	success = intersect_unit_aabb_inside(glm::vec3(1.f, 0.f, 0.f));
+	assert(success);
+	success = intersect_unit_aabb_inside(glm::vec3(-1.f, 0.f, 0.f));
+	assert(success);
+	success = intersect_unit_aabb_inside(glm::vec3(0.f, 1.f, 0.f));
+	assert(success);
+	success = intersect_unit_aabb_inside(glm::vec3(0.f, -1.f, 0.f));
+	assert(success);
+	success = intersect_unit_aabb_inside(glm::vec3(0.f, 0.f, 1.f));
+	assert(success);
+	success = intersect_unit_aabb_inside(glm::vec3(0.f, 0.f, -1.f));
+	assert(success);
+
+	// Test unit cube no intersection with ray pointing away from cube
+	success = no_intersect_unit_aabb(glm::vec3(1.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(-1.f, 0.f, 0.f), glm::vec3(-1.f, 0.f, 0.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(0.f, -1.f, 0.f), glm::vec3(0.f, -1.f, 0.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 1.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 0.f, -1.f));
+	assert(success);
+
+	// Test unit cube no intersection with ray pointing parallel to cube
+	success = no_intersect_unit_aabb(glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(-1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 1.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(0.f, -1.f, 0.f), glm::vec3(0.f, 0.f, 1.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(0.f, 0.f, 1.f), glm::vec3(1.f, 0.f, 0.f));
+	assert(success);
+	success = no_intersect_unit_aabb(glm::vec3(0.f, 0.f, -1.f), glm::vec3(1.f, 0.f, 0.f));
+	assert(success);
+
 	UNIT_TEST_COMPLETE()
 }
 

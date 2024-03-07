@@ -438,3 +438,22 @@ bool glm_intersect_obb_with_ray(
 
 	return true;
 }
+
+bool glm_intersect_aabb_with_ray(
+	const glm::vec3 ray_start,
+	const glm::vec3 ray_direction,
+	const glm::vec3 aabb_min,
+	const glm::vec3 aabb_max,
+	float& outIntDistance)
+{
+	const glm::vec3 tMin = (aabb_min - ray_start) / ray_direction;
+	const glm::vec3 tMax = (aabb_max - ray_start) / ray_direction;
+	const glm::vec3 t1 = glm::min(tMin, tMax);
+	const glm::vec3 t2 = glm::max(tMin, tMax);
+	const float tNear = glm::max(glm::max(t1.x, t1.y), t1.z);
+	const float tFar = glm::min(glm::min(t2.x, t2.y), t2.z);
+
+	outIntDistance = glm::max(tNear, 0.f);
+
+	return tFar >= tNear && (tNear >= 0.f || tFar >= 0.f);
+}

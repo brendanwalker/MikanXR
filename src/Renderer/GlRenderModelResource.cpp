@@ -135,20 +135,22 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 	const std::string stem= m_renderModelFilepath.stem().string();
 	const std::filesystem::path mtlPath= m_renderModelFilepath.parent_path() / (stem + ".mtl");
 
+	const std::size_t writeBufferSize = 1024 * 1024;
+	char* writeBuffer = new char[writeBufferSize];
+
+	std::ofstream objFile(m_renderModelFilepath);
+	std::ofstream mtlFile(mtlPath);
+	if (objFile.is_open() || mtlFile.is_open())
 	{
-		std::ofstream objFile(m_renderModelFilepath);
-		std::ofstream mtlFile(mtlPath);
-		if (!objFile.is_open() || !mtlFile.is_open())
-		{
-			return false;
-		}
+		// Create a 1MB buffer 
+		objFile.rdbuf()->pubsetbuf(writeBuffer, writeBufferSize);
 
 		// Write out the obj header
-		objFile << "# Mikan: " << MIKAN_RELEASE_VERSION_STRING << std::endl;
-		objFile << "mtllib " << stem << ".mtl" << std::endl;
+		objFile << "# Mikan: " << MIKAN_RELEASE_VERSION_STRING << '\n';
+		objFile << "mtllib " << stem << ".mtl" << '\n';
 
 		// Write out the mtl header
-		mtlFile << "# Mikan: " << MIKAN_RELEASE_VERSION_STRING << " MTL file" << std::endl;
+		mtlFile << "# Mikan: " << MIKAN_RELEASE_VERSION_STRING << " MTL file" << '\n';
 
 		// Write out each mesh and corresponding material definition
 		for (const GlTriangulatedMeshPtr triMesh : m_triangulatedMeshes)
@@ -171,7 +173,7 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 				continue;
 			}
 
-			objFile << "o " << triMesh->getName() << std::endl;
+			objFile << "o " << triMesh->getName() << '\n';
 
 			const uint32_t vertexCount = triMesh->getVertexCount();
 			const uint8_t* vertexData = triMesh->getVertexData();
@@ -183,7 +185,7 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 				{
 					const glm::vec3& pos = *(const glm::vec3*)posData;
 
-					objFile << "v " << pos.x << " " << pos.y << " " << pos.z << std::endl;
+					objFile << "v " << pos.x << " " << pos.y << " " << pos.z << '\n';
 					posData+= vertexSize;
 				}
 			}
@@ -196,7 +198,7 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 				{
 					const glm::vec3& normal = *(const glm::vec3*)normalData;
 
-					objFile << "vn " << normal.x << " " << normal.y << " " << normal.z << std::endl;
+					objFile << "vn " << normal.x << " " << normal.y << " " << normal.z << '\n';
 					normalData+= vertexSize;
 				}
 			}
@@ -209,14 +211,14 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 				{
 					const glm::vec2& texel = *(const glm::vec2*)texelData;
 
-					objFile << "vt " << texel.x << " " << texel.y << std::endl;
+					objFile << "vt " << texel.x << " " << texel.y << '\n';
 					texelData+= vertexSize;
 				}
 			}
 
 			// Write out the elements (usually triangles)
 			{
-				objFile << "usemtl " << material->getName() << std::endl;
+				objFile << "usemtl " << material->getName() << '\n';
 
 				const uint8_t* indexData= triMesh->getIndexData();
 				const size_t indexPerElements= triMesh->getIndexPerElementCount();
@@ -257,52 +259,52 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 
 						indexData += indexSize;
 					}
-					objFile << std::endl;
+					objFile << '\n';
 				}
 			}
 
 			// Write out the material
 			{
-				mtlFile << std::endl;
-				mtlFile << "newmtl " << material->getName() << std::endl;
+				mtlFile << '\n';
+				mtlFile << "newmtl " << material->getName() << '\n';
 
 				float Ns;
 				bool hasNs = materialInstance->getFloatBySemantic(eUniformSemantic::specularHighlights, Ns);
 				if (hasNs)
 				{
-					mtlFile << "Ns " << Ns << std::endl;
+					mtlFile << "Ns " << Ns << '\n';
 				}
 
 				glm::vec3 Ka;
 				bool hasKa = materialInstance->getVec3BySemantic(eUniformSemantic::ambientColorRGB, Ka);
 				if (hasKa)
 				{
-					mtlFile << "Ka " << Ka.r << " " << Ka.g << " " << Ka.b << std::endl;
+					mtlFile << "Ka " << Ka.r << " " << Ka.g << " " << Ka.b << '\n';
 				}
 
 				glm::vec3 Kd= glm::vec3(1.f);
 				bool hasKd = materialInstance->getVec3BySemantic(eUniformSemantic::diffuseColorRGB, Kd);
-				mtlFile << "Kd " << Kd.r << " " << Kd.g << " " << Kd.b << std::endl;
+				mtlFile << "Kd " << Kd.r << " " << Kd.g << " " << Kd.b << '\n';
 
 				glm::vec3 Ks;
 				bool hasKs= materialInstance->getVec3BySemantic(eUniformSemantic::specularColorRGB, Ks);
 				if (hasKs)
 				{
-					mtlFile << "Ks " << Ks.r << " " << Ks.g << " " << Ks.b << std::endl;
+					mtlFile << "Ks " << Ks.r << " " << Ks.g << " " << Ks.b << '\n';
 				}
 
 				float Ni;
 				bool hasNi= materialInstance->getFloatBySemantic(eUniformSemantic::opticalDensity, Ni);
 				if (hasNi)
 				{
-					mtlFile << "Ni " << Ni << std::endl;
+					mtlFile << "Ni " << Ni << '\n';
 				}
 
 				float d;
 				float hasD= materialInstance->getFloatBySemantic(eUniformSemantic::dissolve, d);
 				if (hasD)
 				{
-					mtlFile << "d " << d << std::endl;
+					mtlFile << "d " << d << '\n';
 				}
 
 				//illum 2: a diffuse and specular illumination model using Lambertian shading 
@@ -311,19 +313,19 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 				// each light source and the angle at which it strikes the surface.
 				if (hasKa && hasKd && hasKs)
 				{
-					mtlFile << "illum 2" << std::endl;
+					mtlFile << "illum 2" << '\n';
 				}
 				//illum 1: a diffuse illumination model using Lambertian shading, 
 				//taking into account Ka, Kd, the intensity and position of each light source 
 				//and the angle at which it strikes the surface.
 				else if (hasKa && hasKd)
 				{
-					mtlFile << "illum 1" << std::endl;
+					mtlFile << "illum 1" << '\n';
 				}
 				//illum 0: a constant color illumination model, using the Kd for the material
 				else
 				{
-					mtlFile << "illum 0" << std::endl;
+					mtlFile << "illum 0" << '\n';
 				}
 
 				// Write out the textures, if available
@@ -331,32 +333,32 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::ambientTexture, relativeTexturePath))
 				{
-					mtlFile << "map_Ka " << relativeTexturePath << std::endl;
+					mtlFile << "map_Ka " << relativeTexturePath << '\n';
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::diffuseTexture, relativeTexturePath))
 				{
-					mtlFile << "map_Kd " << relativeTexturePath << std::endl;
+					mtlFile << "map_Kd " << relativeTexturePath << '\n';
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::specularTexture, relativeTexturePath))
 				{
-					mtlFile << "map_Ks " << relativeTexturePath << std::endl;
+					mtlFile << "map_Ks " << relativeTexturePath << '\n';
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::specularHightlightTexture, relativeTexturePath))
 				{
-					mtlFile << "map_Ns " << relativeTexturePath << std::endl;
+					mtlFile << "map_Ns " << relativeTexturePath << '\n';
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::alphaTexture, relativeTexturePath))
 				{
-					mtlFile << "map_d " << relativeTexturePath << std::endl;
+					mtlFile << "map_d " << relativeTexturePath << '\n';
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::bumpTexture, relativeTexturePath))
 				{
-					mtlFile << "map_bump " << relativeTexturePath << std::endl;
+					mtlFile << "map_bump " << relativeTexturePath << '\n';
 				}
 			}
 		}
@@ -364,6 +366,9 @@ bool GlRenderModelResource::saveToRenderModelFilePath() const
 		objFile.close();
 		mtlFile.close();
 	}
+
+	delete[] writeBuffer;
+	writeBuffer= nullptr;
 
 	return true;
 }
