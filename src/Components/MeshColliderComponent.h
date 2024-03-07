@@ -6,6 +6,9 @@
 #include "ObjectFwd.h"
 #include "RendererFwd.h"
 
+class StaticMeshKdTree;
+using StaticMeshKdTreePtr = std::shared_ptr<StaticMeshKdTree>;
+
 class MeshColliderComponent : public ColliderComponent
 {
 public:
@@ -25,7 +28,5 @@ private:
 	void rebuildCollisionGeometry();
 
 	StaticMeshComponentWeakPtr m_staticMeshWeakPtr;
-	std::vector<GlmTriangle> m_meshTriangles;
-	glm::vec3 m_meshCenterPoint;
-	glm::vec3 m_meshMaxCornerPoint;
+	StaticMeshKdTreePtr m_kdTree;
 };

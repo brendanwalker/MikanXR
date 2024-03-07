@@ -1,5 +1,6 @@
 //-- includes -----
 #include "MathGLM.h"
+#include <glm/common.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/euler_angles.hpp>

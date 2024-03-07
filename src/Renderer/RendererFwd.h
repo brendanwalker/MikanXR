@@ -80,6 +80,10 @@ using GlViewportConstPtr = std::shared_ptr<const GlViewport>;
 class GlWireframeMesh;
 using GlWireframeMeshPtr = std::shared_ptr<GlWireframeMesh>;
 
+class IGlMesh;
+using IGlMeshPtr = std::shared_ptr<IGlMesh>;
+using IGlMeshConstPtr = std::shared_ptr<const IGlMesh>;
+
 class IGlSceneRenderable;
 using IGlSceneRenderablePtr= std::shared_ptr<IGlSceneRenderable>;
 using IGlSceneRenderableConstPtr = std::shared_ptr<const IGlSceneRenderable>;
