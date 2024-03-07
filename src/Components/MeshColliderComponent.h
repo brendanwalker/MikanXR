@@ -22,7 +22,7 @@ public:
 
 private:
 	void onStaticMeshChanged(StaticMeshComponentWeakPtr meshComponent);
-	void rebuildCollionGeometry();
+	void rebuildCollisionGeometry();
 
 	StaticMeshComponentWeakPtr m_staticMeshWeakPtr;
 	std::vector<GlmTriangle> m_meshTriangles;

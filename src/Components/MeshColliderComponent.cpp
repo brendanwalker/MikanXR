@@ -117,17 +117,17 @@ void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr st
 			staticMeshPtr->OnMeshChanged += MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
 		}
 
-		rebuildCollionGeometry();
+		rebuildCollisionGeometry();
 	}
 }
 
 void MeshColliderComponent::onStaticMeshChanged(StaticMeshComponentWeakPtr meshComponentWeakPtr)
 {
 	assert(m_staticMeshWeakPtr.lock() != meshComponentWeakPtr.lock());
-	rebuildCollionGeometry();
+	rebuildCollisionGeometry();
 }
 
-void MeshColliderComponent::rebuildCollionGeometry()
+void MeshColliderComponent::rebuildCollisionGeometry()
 {
 	m_meshTriangles.clear();
 	m_meshCenterPoint= glm::vec3(0.f);
@@ -145,9 +145,8 @@ void MeshColliderComponent::rebuildCollionGeometry()
 	if (!glMeshDataPtr)
 		return;
 
-	// TODO: For the moment, we are only supporting triangulated meshes with 16-bit indices
+	// Only support triangle meshes
 	assert(glMeshDataPtr->getIndexPerElementCount() == 3);
-	assert(glMeshDataPtr->getIndexSize() == sizeof(uint16_t));
 
 	auto material= glMeshDataPtr->getMaterialInstance()->getMaterial();
 	auto vertexDefinition= material->getProgram()->getVertexDefinition();
@@ -176,12 +175,27 @@ void MeshColliderComponent::rebuildCollionGeometry()
 	glm::vec3 minPoint= glm::vec3(k_real_max, k_real_max, k_real_max);
 	glm::vec3 maxPoint= glm::vec3(k_real_min, k_real_min, k_real_min);
 	const uint8_t* indexPtr= indexData;
+	const size_t indexSize= glMeshDataPtr->getIndexSize();
 	for (size_t triIndex= 0; triIndex < triangleCount; ++triIndex)
 	{
-		const uint16_t* indexPtrUint16= (const uint16_t*)indexPtr;
-		const uint16_t i0= indexPtrUint16[0];
-		const uint16_t i1= indexPtrUint16[1];
-		const uint16_t i2= indexPtrUint16[2];
+		uint32_t i0 = 0;
+		uint32_t i1 = 0;
+		uint32_t i2 = 0;
+
+		if (indexSize == 2)
+		{
+			const uint16_t* indexPtrUint16 = (const uint16_t*)indexPtr;
+			i0 = (uint32_t)indexPtrUint16[0];
+			i1 = (uint32_t)indexPtrUint16[1];
+			i2 = (uint32_t)indexPtrUint16[2];
+		}
+		else
+		{
+			const uint32_t* indexPtrUint32 = (const uint32_t*)indexPtr;
+			i0 = indexPtrUint32[0];
+			i1 = indexPtrUint32[1];
+			i2 = indexPtrUint32[2];
+		}
 
 		GlmTriangle tri;
 		tri.v0= extractPosition3f(i0);
