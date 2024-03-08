@@ -266,7 +266,7 @@ namespace InternalShaders
 
 			void main()
 			{
-				vec3 col = texture(rgbTexture, TexCoords).rgb;
+				vec3 col = texture(rgbTexture, vec2(TexCoords.x, 1 - TexCoords.y)).rgb;
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
