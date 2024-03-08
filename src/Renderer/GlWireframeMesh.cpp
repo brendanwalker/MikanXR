@@ -52,8 +52,22 @@ GlWireframeMesh::~GlWireframeMesh()
 
 void GlWireframeMesh::drawElements() const
 {
+	GLenum indexType = GL_UNSIGNED_SHORT;
+	switch (m_indexSize)
+	{
+		case 4:
+			indexType = GL_UNSIGNED_INT;
+			break;
+		case 2:
+			indexType = GL_UNSIGNED_SHORT;
+			break;
+		case 1:
+			indexType = GL_UNSIGNED_BYTE;
+			break;
+	}
+
 	glBindVertexArray(m_glVertArray);
-	glDrawElements(GL_LINES, (int)m_lineCount * 2, GL_UNSIGNED_SHORT, nullptr);
+	glDrawElements(GL_LINES, (int)m_lineCount * 2, indexType, nullptr);
 	glBindVertexArray(0);
 }
 
