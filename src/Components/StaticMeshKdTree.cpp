@@ -81,19 +81,20 @@ public :
 
 	bool setMesh(IGlMeshConstPtr mesh)
 	{
-		if (m_mesh->getIndexPerElementCount() != 3)
+		if (mesh->getIndexPerElementCount() != 3)
 			return false;
 
-		auto material = m_mesh->getMaterialInstance()->getMaterial();
+		auto material = mesh->getMaterialInstance()->getMaterial();
 		auto vertexDefinition = material->getProgram()->getVertexDefinition();
 		auto vertexAttrib = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
 		if (!vertexAttrib)
 			return false;
 
-		const size_t triangleCount = m_mesh->getElementCount();
+		const size_t triangleCount = mesh->getElementCount();
 		if (triangleCount <= 0)
 			return false;
 
+		m_mesh= mesh;
 		m_vertexCount = m_mesh->getVertexCount();
 		m_vertexData = m_mesh->getVertexData();
 		m_indexData = m_mesh->getIndexData();
@@ -164,7 +165,7 @@ namespace KdTree
 		const KdTreeMeshAccessor* meshAccessor,
 		std::vector<KdTree::Triangle>& outTriangles)
 	{
-		if (meshAccessor->isValid())
+		if (!meshAccessor->isValid())
 			return false;
 
 		for (size_t triIndex = 0; triIndex < meshAccessor->getTriangleCount(); ++triIndex)
