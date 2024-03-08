@@ -628,10 +628,10 @@ protected:
 				FragColor = texture(diffuse, TexCoords);
 			}
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3f, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2f, eVertexSemantic::texCoord)
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform(SCENE_SHADER_MVP_UNIFORM, eUniformSemantic::modelViewProjectionMatrix)
-			.addUniform(SCENE_SHADER_DIFFUSE_UNIFORM, eUniformSemantic::texture0);
+			.addUniform(SCENE_SHADER_DIFFUSE_UNIFORM, eUniformSemantic::rgbTexture);
 
 		return x_shaderCode;
 	}
@@ -669,9 +669,9 @@ protected:
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2f, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2f, eVertexSemantic::texCoord)
-			.addUniform("screenTexture", eUniformSemantic::texture0);
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addUniform("screenTexture", eUniformSemantic::rgbTexture);
 
 		return x_shaderCode;
 	}

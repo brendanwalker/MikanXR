@@ -233,9 +233,10 @@ eUniformBindResult GlScene::materialInstanceBindCallback(
 					const glm::mat4 modelMat = renderableInstance->getModelMatrix();
 					const glm::mat4 modelViewProjMatrix = viewProjMat * modelMat;
 
-					program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix)
-						? eUniformBindResult::bound
-						: eUniformBindResult::error;
+					bindResult= 
+						program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix)
+							? eUniformBindResult::bound
+							: eUniformBindResult::error;
 				}
 				else
 				{

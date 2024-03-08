@@ -637,7 +637,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		m_rgbToBgrFrameShader->bindProgram();
 		
 		std::string uniformName;
-		m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::texture0, uniformName);
+		m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::rgbTexture, uniformName);
 		m_rgbToBgrFrameShader->setTextureUniform(uniformName);
 
 		GlTextureConstPtr compositedFrameTexture= getCompositedFrameTexture();
@@ -1211,7 +1211,7 @@ const GlProgramCode* GlFrameCompositor::getRGBFrameShaderCode()
 			)"""")
 		.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
 		.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-		.addUniform("rgbTexture", eUniformSemantic::texture0);
+		.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
 
 	return &x_shaderCode;
 }
@@ -1251,7 +1251,7 @@ const GlProgramCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 			)"""")
 		.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
 		.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-		.addUniform("rgbTexture", eUniformSemantic::texture0);
+		.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
 
 	return &x_shaderCode;
 }

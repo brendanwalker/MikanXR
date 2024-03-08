@@ -17,7 +17,7 @@
 	],
     "uniformSemanticMap":
     {
-        "rgbTexture": "texture0",
-        "distortion": "texture1"
+        "rgbTexture": "rgbaTexture",
+        "distortion": "distortionTexture"
     }
 }

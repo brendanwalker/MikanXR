@@ -17,6 +17,6 @@
 	],	
     "uniformSemanticMap":
     {
-        "rgbaTexture": "texture0"
+        "rgbaTexture": "rgbaTexture"
     }
 }

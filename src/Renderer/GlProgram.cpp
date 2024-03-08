@@ -175,7 +175,7 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 {
 	eUniformDataType dataType= eUniformDataType::INVALID;
 
-	static_assert((int)eUniformSemantic::COUNT == 59, "getUniformSemanticDataType out of date with eUniformSemantic");
+	static_assert((int)eUniformSemantic::COUNT == 31, "getUniformSemanticDataType out of date with eUniformSemantic");
 	switch (semantic)
 	{
 		case eUniformSemantic::transformMatrix:
@@ -215,38 +215,10 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 		case eUniformSemantic::specularHightlightTexture:
 		case eUniformSemantic::alphaTexture:
 		case eUniformSemantic::bumpTexture:
-		case eUniformSemantic::texture0:
-		case eUniformSemantic::texture1:
-		case eUniformSemantic::texture2:
-		case eUniformSemantic::texture3:
-		case eUniformSemantic::texture4:
-		case eUniformSemantic::texture5:
-		case eUniformSemantic::texture6:
-		case eUniformSemantic::texture7:
-		case eUniformSemantic::texture8:
-		case eUniformSemantic::texture9:
-		case eUniformSemantic::texture10:
-		case eUniformSemantic::texture11:
-		case eUniformSemantic::texture12:
-		case eUniformSemantic::texture13:
-		case eUniformSemantic::texture14:
-		case eUniformSemantic::texture15:
-		case eUniformSemantic::texture16:
-		case eUniformSemantic::texture17:
-		case eUniformSemantic::texture18:
-		case eUniformSemantic::texture19:
-		case eUniformSemantic::texture20:
-		case eUniformSemantic::texture21:
-		case eUniformSemantic::texture22:
-		case eUniformSemantic::texture23:
-		case eUniformSemantic::texture24:
-		case eUniformSemantic::texture25:
-		case eUniformSemantic::texture26:
-		case eUniformSemantic::texture27:
-		case eUniformSemantic::texture28:
-		case eUniformSemantic::texture29:
-		case eUniformSemantic::texture30:
-		case eUniformSemantic::texture31:
+		case eUniformSemantic::rgbTexture:
+		case eUniformSemantic::rgbaTexture:
+		case eUniformSemantic::distortionTexture:
+		case eUniformSemantic::depthTexture:
 			dataType= eUniformDataType::datatype_texture;
 			break;
 		default:
@@ -300,27 +272,20 @@ bool GlProgram::getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::st
 	return false;
 }
 
-bool GlProgram::getTextureUniformUnit(eUniformSemantic semantic, int& outTextureUnit)
+bool GlProgram::getFirstTextureUnitOfSemantic(eUniformSemantic semantic, int& outTextureUnit) const
 {
-	const int enumValue = (int)semantic;
-	const int startTextureIndex = (int)eUniformSemantic::texture0;
-	const int endTextureIndex = (int)eUniformSemantic::texture31;
+	std::string uniformName;
 
-	if (enumValue >= startTextureIndex && enumValue < endTextureIndex)
-	{
-		outTextureUnit= enumValue - startTextureIndex;
-		return true;
-	}
-
-	return false;
+	return getFirstUniformNameOfSemantic(semantic, uniformName) &&
+			getUniformTextureUnit(uniformName, outTextureUnit);
 }
 
 bool GlProgram::getUniformTextureUnit(const std::string uniformName, int& outTextureUnit) const
 {
-	eUniformSemantic semantic = eUniformSemantic::INVALID;
-	if (getUniformSemantic(uniformName, semantic) &&
-		getTextureUniformUnit(semantic, outTextureUnit))
+	auto it = m_textureUnitMap.find(uniformName);
+	if (it != m_textureUnitMap.end())
 	{
+		outTextureUnit = it->second;
 		return true;
 	}
 
@@ -456,18 +421,15 @@ bool GlProgram::setVector4Uniform(
 bool GlProgram::setTextureUniform(
 	const std::string uniformName)
 {
+	GLint textureUnit= 0;
 	auto iter = m_uniformLocationMap.find(uniformName);
-	if (iter != m_uniformLocationMap.end())
+	if (iter != m_uniformLocationMap.end() &&
+		getUniformTextureUnit(uniformName, textureUnit))
 	{
-		GLint textureUnit;
-		if (getTextureUniformUnit(iter->second.semantic, textureUnit))
-		{
-			const GLint uniformId = iter->second.locationId;
-			//int debugUniformId = glGetUniformLocation(m_programID,uniformName.c_str());
+		const GLint uniformId = iter->second.locationId;
 
-			glUniform1i(uniformId, textureUnit);
-			return !checkHasAnyGLError("GlProgram::setTextureUniform()", __FILE__, __LINE__);
-		}
+		glUniform1i(uniformId, textureUnit);
+		return !checkHasAnyGLError("GlProgram::setTextureUniform()", __FILE__, __LINE__);
 	}
 
 	return false;
@@ -588,6 +550,7 @@ bool GlProgram::compileProgram()
 			return false;
 		}
 
+		// Create the uniform and texture unit map
 		for (const GlProgramCode::Uniform& codeUniform : m_code.getUniformList())
 		{
 			GLint uniformId = glGetUniformLocation(m_programID, codeUniform.name.c_str());
@@ -595,10 +558,19 @@ bool GlProgram::compileProgram()
 
 			if (uniformId != -1)
 			{
+				eUniformDataType dataType= getUniformSemanticDataType(codeUniform.semantic);
+
 				m_uniformLocationMap.insert({
 					codeUniform.name, // key=Uniform name
 					{ codeUniform.semantic, uniformId } // value=GlProgramUniform
 				});
+
+				// Assign texture units in order the uniforms were specified
+				if (dataType == eUniformDataType::datatype_texture)
+				{
+					GLint textureUnit = (GLint)m_textureUnitMap.size();
+					m_textureUnitMap.insert({ codeUniform.name, textureUnit });
+				}
 			}
 			else
 			{

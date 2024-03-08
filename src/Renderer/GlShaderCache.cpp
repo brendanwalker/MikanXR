@@ -164,7 +164,7 @@ namespace InternalShaders
 			)"""")
 			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
 			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-			.addUniform("rgbTexture", eUniformSemantic::texture0);
+			.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
 
 		return &x_shaderCode;
 	}

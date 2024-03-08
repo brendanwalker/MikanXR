@@ -18,7 +18,7 @@
     "uniformSemanticMap":
     {
 		"zThreshold": "floatConstant0",
-        "rgbaTexture": "texture0",
-		"depthTexture": "texture1"
+        "rgbaTexture": "rgbaTexture",
+		"depthTexture": "depthTexture"
     }
 }

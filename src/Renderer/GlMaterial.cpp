@@ -414,7 +414,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 					GlTexturePtr texture;
 					int textureUnit;
 					if (m_textureSources.tryGetValue(uniformName, texture) && 
-						GlProgram::getTextureUniformUnit(uniformSemantic, textureUnit))
+						m_program->getUniformTextureUnit(uniformName, textureUnit))
 					{
 						bindResult =
 							m_program->setTextureUniform(uniformName) && texture->bindTexture(textureUnit)

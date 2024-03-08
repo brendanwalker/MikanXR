@@ -128,7 +128,7 @@ namespace RmlGfx {
 		.addVertexAttributes("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
 		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix)
-		.addUniform(TEXTURE_UNIFORM_NAME, eUniformSemantic::texture0);
+		.addUniform(TEXTURE_UNIFORM_NAME, eUniformSemantic::rgbaTexture);
 
 	struct CompiledGeometryData {
 		GLuint texture;
@@ -358,7 +358,7 @@ void GlRmlUiRender::shutdown()
 
 bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 {
-	bool bHandled = false;
+	bool bKeepPropagating = true;
 
 	SdlWindow& sdlWindow= m_ownerWindow.getSdlWindow();
 	const bool bHasKeyboardFocus= sdlWindow.hasKeyboardFocus();
@@ -372,13 +372,13 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		case SDL_MOUSEMOTION:
 			if (bHasMouseFocus)
 			{
-				bHandled = context->ProcessMouseMove(event->motion.x, event->motion.y, RmlInput::GetKeyModifierState());
+				bKeepPropagating = context->ProcessMouseMove(event->motion.x, event->motion.y, RmlInput::GetKeyModifierState());
 			}
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			if (bHasMouseFocus)
 			{
-				bHandled = context->ProcessMouseButtonDown(
+				bKeepPropagating = context->ProcessMouseButtonDown(
 					RmlInput::ConvertMouseButton(event->button.button),
 					RmlInput::GetKeyModifierState());
 				SDL_CaptureMouse(SDL_TRUE);
@@ -388,7 +388,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 			if (bHasMouseFocus)
 			{
 				SDL_CaptureMouse(SDL_FALSE);
-				bHandled = context->ProcessMouseButtonUp(
+				bKeepPropagating = context->ProcessMouseButtonUp(
 					RmlInput::ConvertMouseButton(event->button.button),
 					RmlInput::GetKeyModifierState());
 			}
@@ -396,7 +396,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		case SDL_MOUSEWHEEL:
 			if (bHasMouseFocus)
 			{
-				bHandled = context->ProcessMouseWheel(
+				bKeepPropagating = context->ProcessMouseWheel(
 					float(-event->wheel.y),
 					RmlInput::GetKeyModifierState());
 			}
@@ -404,18 +404,18 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		case SDL_KEYDOWN:
 			if (bHasKeyboardFocus)
 			{
-				bHandled = context->ProcessKeyDown(
+				bKeepPropagating = context->ProcessKeyDown(
 					RmlInput::ConvertKey(event->key.keysym.sym),
 					RmlInput::GetKeyModifierState());
 
 				if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER)
-					bHandled &= context->ProcessTextInput('\n');
+					bKeepPropagating &= context->ProcessTextInput('\n');
 			}
 			break;
 		case SDL_KEYUP:
 			if (bHasKeyboardFocus)
 			{
-				bHandled = context->ProcessKeyUp(
+				bKeepPropagating = context->ProcessKeyUp(
 					RmlInput::ConvertKey(event->key.keysym.sym),
 					RmlInput::GetKeyModifierState());
 			}
@@ -423,7 +423,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		case SDL_TEXTINPUT:
 			if (bHasKeyboardFocus)
 			{
-				bHandled = context->ProcessTextInput(Rml::String(&event->text.text[0]));
+				bKeepPropagating = context->ProcessTextInput(Rml::String(&event->text.text[0]));
 			}
 			break;
 		case SDL_WINDOWEVENT:
@@ -444,7 +444,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		}
 	}
 
-	return bHandled;
+	return !bKeepPropagating;
 }
 
 void GlRmlUiRender::setViewport(int width, int height)
