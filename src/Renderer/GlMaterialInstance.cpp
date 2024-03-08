@@ -450,7 +450,14 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 		// Apply texture overrides
 		for (auto it = m_textureSources.getMap().begin(); it != m_textureSources.getMap().end(); ++it)
 		{
-			if (program->setTextureUniform(it->first))
+			const std::string& uniformName= it->first;
+			GlTexturePtr texture= it->second;
+			int textureUnit;
+
+			if (texture &&
+				program->getUniformTextureUnit(uniformName, textureUnit) &&
+				program->setTextureUniform(uniformName) &&
+				texture->bindTexture(textureUnit))
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
 			}
