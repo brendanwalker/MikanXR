@@ -99,6 +99,7 @@ public:
 		const glm::vec3& minPoint, const glm::vec3& maxPoint,
 		int32_t& outNodeIndex)
 	{
+		assert(m_nodeCount < m_nodeCapacity);
 		if (m_nodeCount < m_nodeCapacity)
 		{
 			int32_t newIndex = m_nodeCount;
@@ -111,19 +112,6 @@ public:
 
 		outNodeIndex= -1;
 		return nullptr;
-	}
-
-	void trimExcessNodes()
-	{
-		if (m_nodeCount < m_nodeCapacity)
-		{
-			KdTreeNode* newNodes = new KdTreeNode[m_nodeCount];
-			memcpy(newNodes, m_nodes, m_nodeCount * sizeof(KdTreeNode));
-
-			delete[] m_nodes;
-			m_nodes = newNodes;
-			m_nodeCapacity = m_nodeCount;
-		}
 	}
 
 protected:
@@ -306,15 +294,19 @@ namespace KdTree
 		// Creating a node for this triangle
 		int32_t medianNodeIndex= -1;
 		KdTreeNode* median = treeData->allocateNode(triangleIndex, minPoint, maxPoint, medianNodeIndex);
-		median->setLeft(buildKdTree(meshAccessor, treeData, triangles, startIdx, half, depth + 1));
-		median->setRight(buildKdTree(meshAccessor, treeData, triangles, half + 1, endIdx, depth + 1));
-
-		// Update the bounding box of the median node to encompass its children
+		assert(median != nullptr);
+		if (median != nullptr)
 		{
-			const KdTreeNode* left = treeData->getNode(median->getLeftNodeIndex());
-			const KdTreeNode* right = treeData->getNode(median->getRightNodeIndex());
+			median->setLeft(buildKdTree(meshAccessor, treeData, triangles, startIdx, half, depth + 1));
+			median->setRight(buildKdTree(meshAccessor, treeData, triangles, half + 1, endIdx, depth + 1));
 
-			median->updateBoundingBox(left, right);
+			// Update the bounding box of the median node to encompass its children
+			{
+				const KdTreeNode* left = treeData->getNode(median->getLeftNodeIndex());
+				const KdTreeNode* right = treeData->getNode(median->getRightNodeIndex());
+
+				median->updateBoundingBox(left, right);
+			}
 		}
 
 		return medianNodeIndex;
@@ -429,7 +421,6 @@ bool StaticMeshKdTree::init()
 	{
 		m_treeData = new KdTreeData((int32_t)m_triangles.size());
 		buildKdTree(m_meshAccessor, m_treeData, m_triangles, 0, m_triangles.size(), 0);
-		m_treeData->trimExcessNodes();
 	}
 
 	return m_treeData != nullptr;
