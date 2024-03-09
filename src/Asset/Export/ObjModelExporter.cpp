@@ -12,11 +12,72 @@
 #include "GlWireframeMesh.h"
 #include "Logger.h"
 #include "SdlUtility.h"
+#include "StringUtils.h"
 #include "Version.h"
 
 #include <glm/ext/vector_float4.hpp>
 
-#include <fstream>
+#include <filesystem>
+
+#include "stdio.h"
+
+class BufferedFileWriter
+{
+public:
+	BufferedFileWriter(const std::filesystem::path& filePath, size_t bufferCapacity)
+		: m_bufferCapacity(bufferCapacity)
+		, m_buffer(new char[bufferCapacity])
+		, m_file(fopen(filePath.string().c_str(), "wb"))
+	{
+	}
+
+	~BufferedFileWriter()
+	{
+		if (m_file)
+		{
+			flushBuffer();
+			fclose(m_file);
+		}
+
+		delete[] m_buffer;
+	}
+
+	inline bool isOpen() const
+	{
+		return m_file != nullptr;
+	}
+
+	void writeString(const std::string& str)
+	{
+		writeChars(str.c_str(), str.size());
+	}
+
+	void writeChars(const char* szLine, size_t lineBytes)
+	{
+		if (m_bufferSize + lineBytes >= m_bufferCapacity)
+		{
+			flushBuffer();
+		}
+
+		memcpy(m_buffer + m_bufferSize, szLine, lineBytes);
+		m_bufferSize += lineBytes;
+	}
+
+private:
+	const size_t m_bufferCapacity = 1024;
+	char* m_buffer= nullptr;
+	size_t m_bufferSize = 0;
+	FILE* m_file= nullptr;
+
+	void flushBuffer()
+	{
+		if (m_file != nullptr && m_bufferSize > 0)
+		{
+			fwrite(m_buffer, m_bufferSize, 1, m_file);
+			m_bufferSize = 0;
+		}
+	}
+};
 
 namespace ObjUtils
 {
@@ -67,22 +128,19 @@ bool ObjModelExporter::exportModelToFile(
 	const std::string stem = modelPath.stem().string();
 	const std::filesystem::path mtlPath = modelPath.parent_path() / (stem + ".mtl");
 
-	const std::size_t writeBufferSize = 1024 * 1024;
-	char* writeBuffer = new char[writeBufferSize];
 
-	std::ofstream objFile(modelPath);
-	std::ofstream mtlFile(mtlPath);
-	if (objFile.is_open() || mtlFile.is_open())
+	BufferedFileWriter objFile(modelPath, 1024 * 1024); // 1MB buffer for obj file
+	BufferedFileWriter mtlFile(mtlPath, 1024); // 1KB buffer for mtl file
+	if (objFile.isOpen() || mtlFile.isOpen())
 	{
-		// Create a 1MB buffer 
-		objFile.rdbuf()->pubsetbuf(writeBuffer, writeBufferSize);
+		char szLine[256];
 
 		// Write out the obj header
-		objFile << "# Mikan: " << MIKAN_RELEASE_VERSION_STRING << '\n';
-		objFile << "mtllib " << stem << ".mtl" << '\n';
+		objFile.writeString(StringUtils::stringify("# Mikan: ", MIKAN_RELEASE_VERSION_STRING , "\n"));
+		objFile.writeString(StringUtils::stringify("mtllib ", stem, ".mtl\n"));
 
 		// Write out the mtl header
-		mtlFile << "# Mikan: " << MIKAN_RELEASE_VERSION_STRING << " MTL file" << '\n';
+		mtlFile.writeString(StringUtils::stringify("# Mikan: ", MIKAN_RELEASE_VERSION_STRING, " MTL file\n"));
 
 		// Write out each mesh and corresponding material definition
 		for (int triMeshIndex= 0; triMeshIndex < modelResource->getTriangulatedMeshCount(); triMeshIndex++)
@@ -107,7 +165,7 @@ bool ObjModelExporter::exportModelToFile(
 				continue;
 			}
 
-			objFile << "o " << triMesh->getName() << '\n';
+			objFile.writeString(StringUtils::stringify("o ", triMesh->getName(), "\n"));
 
 			const uint32_t vertexCount = triMesh->getVertexCount();
 			const uint8_t* vertexData = triMesh->getVertexData();
@@ -119,8 +177,14 @@ bool ObjModelExporter::exportModelToFile(
 				{
 					const glm::vec3& pos = *(const glm::vec3*)posData;
 
-					objFile << "v " << pos.x << " " << pos.y << " " << pos.z << '\n';
+					size_t numChars= 
+						StringUtils::formatString(
+							szLine, sizeof(szLine), 
+							"v %f %f %f\n", 
+							pos.x, pos.y, pos.z);
 					posData += vertexSize;
+
+					objFile.writeChars(szLine, numChars);
 				}
 			}
 
@@ -132,8 +196,14 @@ bool ObjModelExporter::exportModelToFile(
 				{
 					const glm::vec3& normal = *(const glm::vec3*)normalData;
 
-					objFile << "vn " << normal.x << " " << normal.y << " " << normal.z << '\n';
+					size_t numChars =
+						StringUtils::formatString(
+							szLine, sizeof(szLine),
+							"vn %f %f %f\n",
+							normal.x, normal.y, normal.z);
 					normalData += vertexSize;
+
+					objFile.writeChars(szLine, numChars);
 				}
 			}
 
@@ -145,14 +215,20 @@ bool ObjModelExporter::exportModelToFile(
 				{
 					const glm::vec2& texel = *(const glm::vec2*)texelData;
 
-					objFile << "vt " << texel.x << " " << texel.y << '\n';
+					size_t numChars =
+						StringUtils::formatString(
+							szLine, sizeof(szLine),
+							"vt %f %f\n",
+							texel.x, texel.y);
 					texelData += vertexSize;
+
+					objFile.writeChars(szLine, numChars);
 				}
 			}
 
 			// Write out the elements (usually triangles)
 			{
-				objFile << "usemtl " << material->getName() << '\n';
+				objFile.writeString(StringUtils::stringify("usemtl ", material->getName(), "\n"));
 
 				const uint8_t* indexData = triMesh->getIndexData();
 				const size_t indexPerElements = triMesh->getIndexPerElementCount();
@@ -160,7 +236,8 @@ bool ObjModelExporter::exportModelToFile(
 
 				for (uint32_t i = 0; i < triMesh->getElementCount(); i++)
 				{
-					objFile << "f";
+					objFile.writeChars("f", 1);
+
 					for (size_t j = 0; j < indexPerElements; j++)
 					{
 						uint32_t index = 0;
@@ -176,69 +253,86 @@ bool ObjModelExporter::exportModelToFile(
 						uint32_t oneBasedIndex = index + 1;
 						if (texelAttrib && normalAttrib)
 						{
-							objFile << " " << oneBasedIndex << "/" << oneBasedIndex << "/" << oneBasedIndex;
+							size_t numChars = StringUtils::formatString(
+								szLine, sizeof(szLine),
+								" %d/%d/%d",
+								oneBasedIndex, oneBasedIndex, oneBasedIndex);
+							objFile.writeChars(szLine, numChars);
 						}
 						else if (normalAttrib)
 						{
-							objFile << " " << oneBasedIndex << "//" << oneBasedIndex;
+							size_t numChars = StringUtils::formatString(
+								szLine, sizeof(szLine),
+								" %d//%d",
+								oneBasedIndex, oneBasedIndex);
+							objFile.writeChars(szLine, numChars);
 						}
 						else if (texelAttrib)
 						{
-							objFile << " " << oneBasedIndex << "/" << oneBasedIndex;
+							size_t numChars = StringUtils::formatString(
+								szLine, sizeof(szLine),
+								" %d/%d",
+								oneBasedIndex, oneBasedIndex);
+							objFile.writeChars(szLine, numChars);
 						}
 						else
 						{
-							objFile << " " << oneBasedIndex;
+							size_t numChars = StringUtils::formatString(
+								szLine, sizeof(szLine),
+								" %d",
+								oneBasedIndex);
+							objFile.writeChars(szLine, numChars);
 						}
 
 						indexData += indexSize;
 					}
-					objFile << '\n';
+
+					objFile.writeChars("\n", 1);
 				}
 			}
 
 			// Write out the material
 			{
-				mtlFile << '\n';
-				mtlFile << "newmtl " << material->getName() << '\n';
+				mtlFile.writeChars("\n", 1);
+				mtlFile.writeString(StringUtils::stringify("newmtl ", material->getName(), "\n"));
 
 				float Ns;
 				bool hasNs = materialInstance->getFloatBySemantic(eUniformSemantic::specularHighlights, Ns);
 				if (hasNs)
 				{
-					mtlFile << "Ns " << Ns << '\n';
+					mtlFile.writeString(StringUtils::stringify("Ns ", Ns, "\n"));
 				}
 
 				glm::vec3 Ka;
 				bool hasKa = materialInstance->getVec3BySemantic(eUniformSemantic::ambientColorRGB, Ka);
 				if (hasKa)
 				{
-					mtlFile << "Ka " << Ka.r << " " << Ka.g << " " << Ka.b << '\n';
+					mtlFile.writeString(StringUtils::stringify("Ka ", Ka.r, " ", Ka.g, " ", Ka.b, "\n"));
 				}
 
 				glm::vec3 Kd = glm::vec3(1.f);
 				bool hasKd = materialInstance->getVec3BySemantic(eUniformSemantic::diffuseColorRGB, Kd);
-				mtlFile << "Kd " << Kd.r << " " << Kd.g << " " << Kd.b << '\n';
+				mtlFile.writeString(StringUtils::stringify("Kd ", Kd.r, " ", Kd.g, " ", Kd.b, "\n"));
 
 				glm::vec3 Ks;
 				bool hasKs = materialInstance->getVec3BySemantic(eUniformSemantic::specularColorRGB, Ks);
 				if (hasKs)
 				{
-					mtlFile << "Ks " << Ks.r << " " << Ks.g << " " << Ks.b << '\n';
+					mtlFile.writeString(StringUtils::stringify("Ks ", Ks.r, " ", Ks.g, " ", Ks.b, "\n"));
 				}
 
 				float Ni;
 				bool hasNi = materialInstance->getFloatBySemantic(eUniformSemantic::opticalDensity, Ni);
 				if (hasNi)
 				{
-					mtlFile << "Ni " << Ni << '\n';
+					mtlFile.writeString(StringUtils::stringify("Ni ", Ni, "\n"));
 				}
 
 				float d;
 				float hasD = materialInstance->getFloatBySemantic(eUniformSemantic::dissolve, d);
 				if (hasD)
 				{
-					mtlFile << "d " << d << '\n';
+					mtlFile.writeString(StringUtils::stringify("d ", d, "\n"));
 				}
 
 				//illum 2: a diffuse and specular illumination model using Lambertian shading 
@@ -247,19 +341,19 @@ bool ObjModelExporter::exportModelToFile(
 				// each light source and the angle at which it strikes the surface.
 				if (hasKa && hasKd && hasKs)
 				{
-					mtlFile << "illum 2" << '\n';
+					mtlFile.writeString("illum 2\n");
 				}
 				//illum 1: a diffuse illumination model using Lambertian shading, 
 				//taking into account Ka, Kd, the intensity and position of each light source 
 				//and the angle at which it strikes the surface.
 				else if (hasKa && hasKd)
 				{
-					mtlFile << "illum 1" << '\n';
+					mtlFile.writeString("illum 1\n");
 				}
 				//illum 0: a constant color illumination model, using the Kd for the material
 				else
 				{
-					mtlFile << "illum 0" << '\n';
+					mtlFile.writeString("illum 0\n");
 				}
 
 				// Write out the textures, if available
@@ -267,42 +361,36 @@ bool ObjModelExporter::exportModelToFile(
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::ambientTexture, relativeTexturePath))
 				{
-					mtlFile << "map_Ka " << relativeTexturePath << '\n';
+					mtlFile.writeString(StringUtils::stringify("map_Ka ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::diffuseTexture, relativeTexturePath))
 				{
-					mtlFile << "map_Kd " << relativeTexturePath << '\n';
+					mtlFile.writeString(StringUtils::stringify("map_Kd ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::specularTexture, relativeTexturePath))
 				{
-					mtlFile << "map_Ks " << relativeTexturePath << '\n';
+					mtlFile.writeString(StringUtils::stringify("map_Ks ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::specularHightlightTexture, relativeTexturePath))
 				{
-					mtlFile << "map_Ns " << relativeTexturePath << '\n';
+					mtlFile.writeString(StringUtils::stringify("map_Ns ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::alphaTexture, relativeTexturePath))
 				{
-					mtlFile << "map_d " << relativeTexturePath << '\n';
+					mtlFile.writeString(StringUtils::stringify("map_d ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
 					materialInstance, mtlPath, eUniformSemantic::bumpTexture, relativeTexturePath))
 				{
-					mtlFile << "map_bump " << relativeTexturePath << '\n';
+					mtlFile.writeString(StringUtils::stringify("map_bump ", relativeTexturePath, "\n"));
 				}
 			}
 		}
-
-		objFile.close();
-		mtlFile.close();
 	}
-
-	delete[] writeBuffer;
-	writeBuffer = nullptr;
 
 	return true;
 }
