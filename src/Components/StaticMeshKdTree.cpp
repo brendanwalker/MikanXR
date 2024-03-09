@@ -1,6 +1,8 @@
 #include "StaticMeshKdTree.h"
 #include "ColliderQuery.h"
+#include "Colors.h"
 #include "IGlMesh.h"
+#include "GlLineRenderer.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
@@ -22,51 +24,112 @@ public:
 		, m_min(minPoint)
 		, m_max(maxPoint)
 	{}
-	virtual ~KdTreeNode() 
-	{
-		if (m_left != nullptr)
-			delete(m_left);
-		if (m_right != nullptr)
-			delete(m_right);
-	}
 
-	inline KdTreeNode* getLeft() const { return m_left; }
-	inline KdTreeNode* getRight() const { return m_right; }
+	inline int32_t getLeftNodeIndex() const { return m_leftNodeIndex; }
+	inline int32_t getRightNodeIndex() const { return m_rightNodeIndex; }
 	inline int getTriangleIndex() const { return m_triangleIndex; }
 	inline const glm::vec3& getMin() const { return m_min; }
 	inline const glm::vec3& getMax() const { return m_max; }
 
-	void setLeft(KdTreeNode* left) { m_left = left; }
-	void setRight(KdTreeNode* right) { m_right = right; }
+	void setLeft(int32_t nodeIndex) { m_leftNodeIndex = nodeIndex; }
+	void setRight(int32_t nodeIndex) { m_rightNodeIndex = nodeIndex; }
 	void setTriangleIndex(int triangleIndex) { m_triangleIndex = triangleIndex; }
 	void setMin(const glm::vec3& min) { m_min = min; }
 	void setMax(const glm::vec3& max) { m_max = max; }
 
-	void updateBoundingBox()
+	void updateBoundingBox(const KdTreeNode* left, const KdTreeNode* right)
 	{
-		if (m_left != nullptr && m_right != nullptr)
+		if (left != nullptr && right != nullptr)
 		{
-			m_min = glm::min(m_min, glm::min(m_left->m_min, m_right->m_min));
-			m_max = glm::max(m_max, glm::max(m_left->m_max, m_right->m_max));
+			m_min = glm::min(m_min, glm::min(left->m_min, right->m_min));
+			m_max = glm::max(m_max, glm::max(left->m_max, right->m_max));
 		}
-		else if (m_left != nullptr)
+		else if (m_leftNodeIndex != -1)
 		{
-			m_min = glm::min(m_min, m_left->m_min);
-			m_max = glm::max(m_max, m_left->m_max);
+			m_min = glm::min(m_min, left->m_min);
+			m_max = glm::max(m_max, left->m_max);
 		}
-		else if (m_right != nullptr)
+		else if (m_rightNodeIndex != -1)
 		{
-			m_min = glm::min(m_min, m_right->m_min);
-			m_max = glm::max(m_max, m_right->m_max);
+			m_min = glm::min(m_min, right->m_min);
+			m_max = glm::max(m_max, right->m_max);
 		}
 	}
 
 private:
-	KdTreeNode* m_left = nullptr;
-	KdTreeNode* m_right = nullptr;
-	int m_triangleIndex = -1;
 	glm::vec3 m_min = glm::vec3(0.f);
 	glm::vec3 m_max = glm::vec3(0.f);
+	int32_t m_leftNodeIndex = -1;
+	int32_t m_rightNodeIndex = -1;
+	int m_triangleIndex = -1;
+};
+
+class KdTreeData
+{
+public:
+	KdTreeData() = default;
+	KdTreeData(int32_t initialCapaity) 
+		: m_nodes(new KdTreeNode[initialCapaity])
+		, m_nodeCapacity(initialCapaity)
+		, m_nodeCount(0)
+	{ }
+
+	~KdTreeData()
+	{
+		if (m_nodes != nullptr)
+		{
+			delete[] m_nodes;
+			m_nodes = nullptr;
+		}
+	}
+
+	int32_t getNodeCount() const { return m_nodeCount; }
+	KdTreeNode* getNode(int32_t nodeIndex) const
+	{
+		if (nodeIndex >= 0 && nodeIndex < m_nodeCount)
+		{
+			return &m_nodes[nodeIndex];
+		}
+
+		return nullptr;
+	}
+
+	KdTreeNode* allocateNode(
+		const int32_t triangleIndex, 
+		const glm::vec3& minPoint, const glm::vec3& maxPoint,
+		int32_t& outNodeIndex)
+	{
+		if (m_nodeCount < m_nodeCapacity)
+		{
+			int32_t newIndex = m_nodeCount;
+		 	KdTreeNode* newNode = new(&m_nodes[newIndex]) KdTreeNode(triangleIndex, minPoint, maxPoint);
+			m_nodeCount++;
+
+			outNodeIndex= newIndex;
+			return newNode;
+		}
+
+		outNodeIndex= -1;
+		return nullptr;
+	}
+
+	void trimExcessNodes()
+	{
+		if (m_nodeCount < m_nodeCapacity)
+		{
+			KdTreeNode* newNodes = new KdTreeNode[m_nodeCount];
+			memcpy(newNodes, m_nodes, m_nodeCount * sizeof(KdTreeNode));
+
+			delete[] m_nodes;
+			m_nodes = newNodes;
+			m_nodeCapacity = m_nodeCount;
+		}
+	}
+
+protected:
+	KdTreeNode* m_nodes = nullptr;
+	int32_t m_nodeCapacity = 0;
+	int32_t m_nodeCount = 0;
 };
 
 class KdTreeMeshAccessor
@@ -186,13 +249,14 @@ namespace KdTree
 		return outTriangles.size() > 0;
 	}
 
-	KdTreeNode* buildKdTree(
+	int32_t buildKdTree(
 		const KdTreeMeshAccessor* meshAccessor,
+		KdTreeData* treeData,
 		std::vector<KdTree::Triangle>& triangles,
 		size_t startIdx, size_t endIdx, int depth)
 	{
 		if (endIdx - startIdx <= 0)
-			return nullptr;
+			return -1;
 
 		int axis = depth % 3;
 
@@ -240,17 +304,26 @@ namespace KdTree
 		const glm::vec3 maxPoint = glm::max(glm::max(v0, v1), v2);
 
 		// Creating a node for this triangle
-		KdTreeNode* median = new KdTreeNode(triangleIndex, minPoint, maxPoint);
-		median->setLeft(buildKdTree(meshAccessor, triangles, startIdx, half, depth + 1));
-		median->setRight(buildKdTree(meshAccessor, triangles, half + 1, endIdx, depth + 1));
-		median->updateBoundingBox();
+		int32_t medianNodeIndex= -1;
+		KdTreeNode* median = treeData->allocateNode(triangleIndex, minPoint, maxPoint, medianNodeIndex);
+		median->setLeft(buildKdTree(meshAccessor, treeData, triangles, startIdx, half, depth + 1));
+		median->setRight(buildKdTree(meshAccessor, treeData, triangles, half + 1, endIdx, depth + 1));
 
-		return median;
+		// Update the bounding box of the median node to encompass its children
+		{
+			const KdTreeNode* left = treeData->getNode(median->getLeftNodeIndex());
+			const KdTreeNode* right = treeData->getNode(median->getRightNodeIndex());
+
+			median->updateBoundingBox(left, right);
+		}
+
+		return medianNodeIndex;
 	}
 
 	void findClosestIntersection(
 		const KdTreeRaycastRequest& request,
 		const KdTreeMeshAccessor* meshAccessor,
+		KdTreeData* treeData,
 		KdTreeNode* currentNode,
 		KdTreeRaycastResult& result)
 	{
@@ -263,6 +336,14 @@ namespace KdTree
 				currentNode->getMin(), currentNode->getMax(),
 				aabbIntDistance))
 		{
+			if (request.debugDraw)
+			{
+				drawTransformedBox(
+					request.worldMatrix, 
+					currentNode->getMin(), currentNode->getMax(), 
+					Colors::Red);
+			}
+
 			uint32_t i0, i1, i2;
 			meshAccessor->extractTriangleVertexIndices(currentNode->getTriangleIndex(), i0, i1, i2);
 
@@ -279,6 +360,11 @@ namespace KdTree
 					request.origin, request.direction,
 					intDistance, intPoint, intNormal))
 			{
+				if (request.debugDraw)
+				{
+					drawTransformedTriangle(request.worldMatrix, tri, Colors::Yellow);
+				}
+
 				if (!result.hit || intDistance < result.distance)
 				{
 					result.hit = true;
@@ -288,9 +374,12 @@ namespace KdTree
 					result.triangleIndex = currentNode->getTriangleIndex();
 				}
 			}
+			
+			KdTreeNode* leftNode= treeData->getNode(currentNode->getLeftNodeIndex());
+			findClosestIntersection(request, meshAccessor, treeData, leftNode, result);
 
-			findClosestIntersection(request, meshAccessor, currentNode->getLeft(), result);
-			findClosestIntersection(request, meshAccessor, currentNode->getLeft(), result);
+			KdTreeNode* rightNode = treeData->getNode(currentNode->getRightNodeIndex());
+			findClosestIntersection(request, meshAccessor, treeData, rightNode, result);
 		}
 	}
 };
@@ -338,18 +427,20 @@ bool StaticMeshKdTree::init()
 	std::vector<KdTree::Triangle> m_triangles;
 	if (KdTree::buildTriangles(m_meshAccessor, m_triangles))
 	{
-		m_root = buildKdTree(m_meshAccessor, m_triangles, 0, m_triangles.size(), 0);
+		m_treeData = new KdTreeData((int32_t)m_triangles.size());
+		buildKdTree(m_meshAccessor, m_treeData, m_triangles, 0, m_triangles.size(), 0);
+		m_treeData->trimExcessNodes();
 	}
 
-	return m_root != nullptr;
+	return m_treeData != nullptr;
 }
 
 void StaticMeshKdTree::dispose()
 {
-	if (m_root != nullptr)
+	if (m_treeData != nullptr)
 	{
-		delete m_root;
-		m_root = nullptr;
+		delete m_treeData;
+		m_treeData= nullptr;
 	}
 }
 
@@ -357,7 +448,7 @@ bool StaticMeshKdTree::computeRayIntersection(
 	const KdTreeRaycastRequest& request,
 	KdTreeRaycastResult& result) const
 {
-	KdTree::findClosestIntersection(request, m_meshAccessor, m_root, result);
+	KdTree::findClosestIntersection(request, m_meshAccessor, m_treeData, m_treeData->getNode(0), result);
 
 	return result.hit;
 }

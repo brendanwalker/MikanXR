@@ -44,8 +44,10 @@ bool MeshColliderComponent::computeRayIntersection(
 	const glm::mat4& invWorldXform= glm::inverse(worldXform);
 
 	KdTreeRaycastRequest kdTreeRequest;
+	kdTreeRequest.worldMatrix= worldXform;
 	kdTreeRequest.origin= invWorldXform * glm::vec4(request.rayOrigin, 1.f);
 	kdTreeRequest.direction= invWorldXform * glm::vec4(request.rayDirection, 0.f);
+	kdTreeRequest.debugDraw= false;
 	KdTreeRaycastResult kdTreeResult;
 
 	if (m_kdTree->computeRayIntersection(kdTreeRequest, kdTreeResult))

@@ -118,6 +118,7 @@ void drawTransformedAxes(
 	const glm::mat4& transform,
 	float xScale, float yScale, float zScale,
 	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor);
+void drawTransformedTriangle(const glm::mat4& transform, const struct GlmTriangle& tri, const glm::vec3& color);
 void drawTransformedBox(const glm::mat4& transform, const glm::vec3& half_extents, const glm::vec3& color);
 void drawTransformedBox(const glm::mat4& transform, const glm::vec3& box_min, const glm::vec3& box_max, const glm::vec3& color);
 void drawTransformedFrustum(

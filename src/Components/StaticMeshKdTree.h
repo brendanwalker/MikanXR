@@ -3,12 +3,15 @@
 #include "RendererFwd.h"
 
 #include <vector>
+#include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float3.hpp>
 
 struct KdTreeRaycastRequest
 {
+	glm::mat4 worldMatrix= glm::mat4(1.f);
 	glm::vec3 origin= glm::vec3(0.f);
 	glm::vec3 direction= glm::vec3(0.f);
+	bool debugDraw= false;
 };
 
 struct KdTreeRaycastResult
@@ -40,5 +43,5 @@ public:
 
 private:
 	class KdTreeMeshAccessor* m_meshAccessor= nullptr;
-	class KdTreeNode* m_root= nullptr;
+	class KdTreeData* m_treeData= nullptr;
 };

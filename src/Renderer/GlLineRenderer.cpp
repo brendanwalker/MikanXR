@@ -283,8 +283,8 @@ void GlLineRenderer::PointBufferState::addPoint2d(
 
 //-- Drawing Methods -----
 #define GET_LINE_RENDERER_OR_RETURN()										\
-	IGlWindow* window= App::getInstance()->getCurrentlyRenderingWindow();	\
-	assert(window->getIsRenderingStage());									\
+	IGlWindow* window= App::getInstance()->getCurrentWindow();				\
+	assert(window != nullptr);												\
 	GlLineRenderer* lineRenderer = window->getLineRenderer();				\
 	if (lineRenderer == nullptr)											\
 		return;																\
@@ -479,6 +479,15 @@ void drawTransformedQuad(const glm::mat4& transform, float xSize, float ySize, c
 	lineRenderer->addSegment3d(transform, p1, color, p2, color);
 	lineRenderer->addSegment3d(transform, p2, color, p3, color);
 	lineRenderer->addSegment3d(transform, p3, color, p0, color);	
+}
+
+void drawTransformedTriangle(const glm::mat4& transform, const GlmTriangle& tri, const glm::vec3& color)
+{
+	GET_LINE_RENDERER_OR_RETURN()
+
+	lineRenderer->addSegment3d(transform, tri.v0, color, tri.v1, color);
+	lineRenderer->addSegment3d(transform, tri.v1, color, tri.v2, color);
+	lineRenderer->addSegment3d(transform, tri.v2, color, tri.v0, color);
 }
 
 void drawTransformedBox(const glm::mat4& transform, const glm::vec3& half_extents, const glm::vec3& color)
