@@ -36,7 +36,7 @@ bool MeshColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {
-	if (!m_bEnabled)
+	if (!m_bEnabled || !m_kdTree)
 		return false;
 
 	// Get the world transform of this component

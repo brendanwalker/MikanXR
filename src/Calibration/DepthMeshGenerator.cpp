@@ -243,16 +243,26 @@ struct DepthMeshCaptureState
 	{
 		if (modelStencilDefinition != nullptr && depthMeshResource != nullptr)
 		{
+			auto* modelResourceManager= ownerWindow->getModelResourceManager();
+
 			MikanStencilID stencilId= modelStencilDefinition->getStencilId();
 			std::string depthMeshResourceName = StringUtils::stringify("depth_mesh_", stencilId);
 			auto depthMeshPath= PathUtils::getResourceDirectory() / "models" / (depthMeshResourceName + ".obj");
 
 			depthMeshResource->setName(depthMeshResourceName);
 			depthMeshResource->setModelFilePath(depthMeshPath);
-			if (depthMeshResource->saveToRenderModelFilePath())
+			if (modelResourceManager->exportModelToFile(depthMeshResource, depthMeshPath))
 			{
-				modelStencilDefinition->setModelPath(depthMeshPath);
 				modelStencilDefinition->setIsDepthMesh(true);
+				
+				// Flush any existing model resource from the cache
+				// so that any requests to reload the model will get new data from disk
+				modelResourceManager->flushModelByFilePathFromCache(depthMeshPath);
+
+				// This will dirty the stencil definition
+				// and cause any associated stencil components to reload their mesh
+				modelStencilDefinition->setModelPath(depthMeshPath, true);
+
 				return true;
 			}
 		}

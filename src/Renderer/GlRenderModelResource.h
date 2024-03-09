@@ -20,11 +20,9 @@ public:
 	inline void setModelFilePath(const std::filesystem::path& inModelFilePath) 
 	{ m_renderModelFilepath= inModelFilePath; }
 
-	//bool loadFromRenderModelFilePath(GlMaterialConstPtr overrideMaterial= GlMaterialConstPtr());
-	bool saveToRenderModelFilePath() const;
-
 	void addTriangulatedMesh(GlTriangulatedMeshPtr mesh);
 	void addWireframeMesh(GlWireframeMeshPtr mesh);
+	void replaceMeshes(GlRenderModelResourcePtr otherModelResource);
 
 	int getTriangulatedMeshCount() const 
 	{ return (int)m_triangulatedMeshes.size(); }
@@ -36,9 +34,9 @@ public:
 	{ return m_wireframeMeshes[meshIndex]; }
 
 protected:
-	class IGlWindow* m_ownerWindow= nullptr;
-
 	void disposeMeshRenderResources();
+
+	class IGlWindow* m_ownerWindow= nullptr;
 
 	std::string m_name;
 	std::filesystem::path m_renderModelFilepath;

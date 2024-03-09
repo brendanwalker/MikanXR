@@ -23,6 +23,7 @@
 #include "MeshColliderComponent.h"
 #include "MikanObject.h"
 #include "ModelStencilComponent.h"
+#include "MulticastDelegate.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/Types.h>
@@ -66,16 +67,22 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_bIsDepthMesh = pt.get_or<bool>("is_depth_mesh", false);
 }
 
-void ModelStencilDefinition::setModelPath(const std::filesystem::path& path)
+void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, bool bForceDirty)
 {
-	m_modelPath= path;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
+	if (path != m_modelPath || bForceDirty)
+	{
+		m_modelPath = path;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
+	}
 }
 
 void ModelStencilDefinition::setIsDepthMesh(bool isDepthMesh)
 {
-	m_bIsDepthMesh = isDepthMesh;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilIsDepthMeshPropertyId));
+	if (m_bIsDepthMesh != isDepthMesh)
+	{
+		m_bIsDepthMesh = isDepthMesh;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilIsDepthMeshPropertyId));
+	}
 }
 
 bool ModelStencilDefinition::hasValidDepthMesh() const
@@ -115,6 +122,10 @@ void ModelStencilComponent::init()
 {
 	StencilComponent::init();
 
+	// Listen for stencil model path changes
+	getModelStencilDefinition()->OnMarkedDirty+=
+		MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
+
 	// Create a selection component so that we can selection the mesh collision geometry
 	SelectionComponentPtr selectionComponentPtr = getOwnerObject()->getComponentOfType<SelectionComponent>();
 	if (selectionComponentPtr)
@@ -152,6 +163,9 @@ void ModelStencilComponent::customRender()
 
 void ModelStencilComponent::dispose()
 {
+	getModelStencilDefinition()->OnMarkedDirty -=
+		MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
+
 	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
 	if (selectionComponentPtr)
 	{
@@ -174,6 +188,21 @@ void ModelStencilComponent::setRenderStencilsFlag(bool flag)
 	}
 }
 
+void ModelStencilComponent::onStencilDefinitionMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	ModelStencilDefinitionPtr modelStencilConfig = std::dynamic_pointer_cast<ModelStencilDefinition>(configPtr);
+
+	if (modelStencilConfig != nullptr)
+	{
+		if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilObjPathPropertyId))
+		{
+			rebuildMeshComponents();
+		}
+	}
+}
+
 void ModelStencilComponent::setModelPath(const std::filesystem::path& path)
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
@@ -181,8 +210,8 @@ void ModelStencilComponent::setModelPath(const std::filesystem::path& path)
 	if (path == modelStencilDefinition->getModelPath())
 		return;
 
+	// This fires off a config change event, which causes rebuildMeshComponents to be called
 	modelStencilDefinition->setModelPath(path);
-	rebuildMeshComponents();
 }
 
 void ModelStencilComponent::rebuildMeshComponents()

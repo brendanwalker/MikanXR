@@ -27,7 +27,7 @@ public:
 
 	static const std::string k_modelStencilObjPathPropertyId;
 	const std::filesystem::path& getModelPath() const { return m_modelPath; }
-	void setModelPath(const std::filesystem::path& path);
+	void setModelPath(const std::filesystem::path& path, bool bForceDirty= false);
 
 	static const std::string k_modelStencilIsDepthMeshPropertyId;
 	bool getIsDepthMesh() const { return m_bIsDepthMesh; }
@@ -77,6 +77,9 @@ public:
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void createDepthMesh();
+
+protected:
+	void onStencilDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;

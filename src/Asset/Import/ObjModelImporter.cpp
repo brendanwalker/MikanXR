@@ -189,6 +189,7 @@ GlRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 
 	// Load the raw obj data
 	std::string modelPathString = modelPath.string();
+	std::string modelNameString = modelPath.stem().string();
 	fastObjMesh* objData = fast_obj_read(modelPathString.c_str());
 
 	// Process the obj data into indexes triangles separated by material
@@ -196,6 +197,8 @@ GlRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	{
 		// Create a new model resource
 		modelResource = std::make_shared<GlRenderModelResource>(m_ownerManager->getOwnerWindow());
+		modelResource->setName(modelNameString);
+		modelResource->setModelFilePath(modelPath);
 
 		// Create a material instance for each material in the obj file
 		for (int materialIndex = 0; materialIndex < objData->material_count; materialIndex++)

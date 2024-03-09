@@ -126,12 +126,18 @@ file(GLOB MIKAN_ASSET_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Asset/*.h"
 )
 source_group("Asset" FILES ${MIKAN_ASSET_SRC})
-## Asset/I,port
+## Asset/Import
 file(GLOB MIKAN_ASSET_IMPORT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Asset/Import/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Asset/Import/*.h"
 )
 source_group("Asset\\Import" FILES ${MIKAN_ASSET_IMPORT_SRC})
+## Asset/Export
+file(GLOB MIKAN_ASSET_EXPORT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Export/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Export/*.h"
+)
+source_group("Asset\\Export" FILES ${MIKAN_ASSET_EXPORT_SRC})
 
 # Calibration
 file(GLOB MIKAN_CALIBRATION_SRC
@@ -396,6 +402,7 @@ set(MIKAN_SRC
     ${MIKAN_APP_STAGES_SRC}
     ${MIKAN_ASSET_SRC}
 	${MIKAN_ASSET_IMPORT_SRC}
+	${MIKAN_ASSET_EXPORT_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_CLIENT_SRC}
     ${MIKAN_CLIENT_TYPES_SRC}
@@ -433,6 +440,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/AppStages
   ${CMAKE_CURRENT_LIST_DIR}/Asset
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Import
+  ${CMAKE_CURRENT_LIST_DIR}/Asset/Export
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Components
   ${CMAKE_CURRENT_LIST_DIR}/Config

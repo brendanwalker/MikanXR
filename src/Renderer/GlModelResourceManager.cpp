@@ -7,12 +7,16 @@
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "ObjModelImporter.h"
+#include "ObjModelExporter.h"
 
 GlModelResourceManager::GlModelResourceManager(IGlWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
 	// Register model importers
 	m_modelImporters.insert({".obj", std::make_shared<ObjModelImporter>(this)});
+
+	// Register model exporters
+	m_modelExporters.insert({".obj", std::make_shared<ObjModelExporter>(this)});
 }
 
 GlModelResourceManager::~GlModelResourceManager()
@@ -52,9 +56,11 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 				IModelImporterPtr importer= importerIt->second;
 				if (importer)
 				{
-					GlRenderModelResourcePtr resource= importer->importModelFromFile(modelFilePath, overrideMaterial);
+					GlRenderModelResourcePtr resource= 
+						importer->importModelFromFile(modelFilePath, overrideMaterial);
 					if (resource)
 					{
+						std::string modelName = resource->getModelFilePath().string();
 						m_renderModelCache.insert({modelPathString, resource});
 						return resource;
 					}
@@ -72,19 +78,40 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 	return nullptr;
 }
 
-bool GlModelResourceManager::removeModelResourceFromCache(GlRenderModelResourcePtr resource)
+bool GlModelResourceManager::flushModelByFilePathFromCache(const std::filesystem::path& modelFilePath)
 {
-	if (resource)
+	std::string modelPathString = modelFilePath.string();
+	auto it = m_renderModelCache.find(modelPathString);
+	if (it != m_renderModelCache.end())
 	{
-		std::string modelPathString = resource->getModelFilePath().string();
-		auto it = m_renderModelCache.find(modelPathString);
-		if (it != m_renderModelCache.end())
-		{
-			m_renderModelCache.erase(it);
-			return true;
-		}
+		m_renderModelCache.erase(it);
+		return true;
 	}
 
 	return false;
 }
 
+bool GlModelResourceManager::exportModelToFile(
+	GlRenderModelResourcePtr modelResource,
+	const std::filesystem::path& modelPath)
+{
+	std::string modelPathString = modelPath.string();
+	std::string extension = modelPath.extension().string();
+	auto exporterIt = m_modelExporters.find(extension);
+	if (exporterIt != m_modelExporters.end())
+	{
+		IModelExporterPtr exporter = exporterIt->second;
+		if (exporter)
+		{
+			return exporter->exportModelToFile(modelResource, modelPath);
+		}
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("GlModelResourceManager::exportModelToFile") <<
+			"No model exporter found for extension: " << extension <<
+			", for file: " << modelPathString;
+	}
+
+	return false;
+}

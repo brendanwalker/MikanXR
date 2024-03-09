@@ -222,9 +222,6 @@ void CompositorNodeGraph::flushStencilRenderModel(MikanStencilID stencilId)
 
 	if (it != m_stencilMeshCache.end())
 	{
-		// Remove the model resource from the cache
-		getOwnerWindow()->getModelResourceManager()->removeModelResourceFromCache(it->second);
-
 		// Remove the entry from the stencil id -> render resource table
 		m_stencilMeshCache.erase(it);
 	}
