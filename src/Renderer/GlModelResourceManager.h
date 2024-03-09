@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RendererFwd.h"
+#include "IModelImporter.h"
 
 #include <filesystem>
 #include <map>
@@ -15,6 +16,8 @@ public:
 	bool startup();
 	void shutdown();
 
+	inline IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
+
 	GlRenderModelResourcePtr fetchRenderModel(
 		const std::filesystem::path& modelFilePath,
 		GlMaterialConstPtr overrideMaterial= GlMaterialConstPtr());
@@ -24,4 +27,5 @@ private:
 	class IGlWindow* m_ownerWindow= nullptr;
 
 	std::map<std::string, GlRenderModelResourcePtr> m_renderModelCache;
+	std::map<std::string, IModelImporterPtr> m_modelImporters;
 };

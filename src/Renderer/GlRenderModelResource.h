@@ -20,7 +20,7 @@ public:
 	inline void setModelFilePath(const std::filesystem::path& inModelFilePath) 
 	{ m_renderModelFilepath= inModelFilePath; }
 
-	bool loadFromRenderModelFilePath(GlMaterialConstPtr overrideMaterial= GlMaterialConstPtr());
+	//bool loadFromRenderModelFilePath(GlMaterialConstPtr overrideMaterial= GlMaterialConstPtr());
 	bool saveToRenderModelFilePath() const;
 
 	void addTriangulatedMesh(GlTriangulatedMeshPtr mesh);

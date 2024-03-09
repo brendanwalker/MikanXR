@@ -14,12 +14,12 @@
 
 #include <algorithm>
 
-
+// -- KdTreeNode -----
 class KdTreeNode
 {
 public:
 	KdTreeNode() = default;
-	KdTreeNode(int triangleIndex, const glm::vec3& minPoint, const glm::vec3& maxPoint)
+	KdTreeNode(int32_t triangleIndex, const glm::vec3& minPoint, const glm::vec3& maxPoint)
 		: m_triangleIndex(triangleIndex)
 		, m_min(minPoint)
 		, m_max(maxPoint)
@@ -27,15 +27,12 @@ public:
 
 	inline int32_t getLeftNodeIndex() const { return m_leftNodeIndex; }
 	inline int32_t getRightNodeIndex() const { return m_rightNodeIndex; }
-	inline int getTriangleIndex() const { return m_triangleIndex; }
+	inline int32_t getTriangleIndex() const { return m_triangleIndex; }
 	inline const glm::vec3& getMin() const { return m_min; }
 	inline const glm::vec3& getMax() const { return m_max; }
 
 	void setLeft(int32_t nodeIndex) { m_leftNodeIndex = nodeIndex; }
 	void setRight(int32_t nodeIndex) { m_rightNodeIndex = nodeIndex; }
-	void setTriangleIndex(int triangleIndex) { m_triangleIndex = triangleIndex; }
-	void setMin(const glm::vec3& min) { m_min = min; }
-	void setMax(const glm::vec3& max) { m_max = max; }
 
 	void updateBoundingBox(const KdTreeNode* left, const KdTreeNode* right)
 	{
@@ -61,9 +58,10 @@ private:
 	glm::vec3 m_max = glm::vec3(0.f);
 	int32_t m_leftNodeIndex = -1;
 	int32_t m_rightNodeIndex = -1;
-	int m_triangleIndex = -1;
+	int32_t m_triangleIndex = -1;
 };
 
+// -- KdTreeData -----
 class KdTreeData
 {
 public:
@@ -120,6 +118,7 @@ protected:
 	int32_t m_nodeCount = 0;
 };
 
+// -- KdTreeMeshAccessor -----
 class KdTreeMeshAccessor
 {
 public :
@@ -204,6 +203,7 @@ private:
 	size_t m_positionOffset = 0;
 };
 
+// -- KdTree Utilities -----
 namespace KdTree
 {
 	struct Triangle
@@ -376,6 +376,7 @@ namespace KdTree
 	}
 };
 
+// -- StaticMeshKdTree -----
 StaticMeshKdTree::StaticMeshKdTree()
 	: m_meshAccessor(new KdTreeMeshAccessor())
 {

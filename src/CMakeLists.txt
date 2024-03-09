@@ -126,6 +126,12 @@ file(GLOB MIKAN_ASSET_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Asset/*.h"
 )
 source_group("Asset" FILES ${MIKAN_ASSET_SRC})
+## Asset/I,port
+file(GLOB MIKAN_ASSET_IMPORT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Import/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Import/*.h"
+)
+source_group("Asset\\Import" FILES ${MIKAN_ASSET_IMPORT_SRC})
 
 # Calibration
 file(GLOB MIKAN_CALIBRATION_SRC
@@ -389,6 +395,7 @@ set(MIKAN_SRC
     ${MIKAN_APP_CORE_SRC}
     ${MIKAN_APP_STAGES_SRC}
     ${MIKAN_ASSET_SRC}
+	${MIKAN_ASSET_IMPORT_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_CLIENT_SRC}
     ${MIKAN_CLIENT_TYPES_SRC}
@@ -425,6 +432,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/AppCore
   ${CMAKE_CURRENT_LIST_DIR}/AppStages
   ${CMAKE_CURRENT_LIST_DIR}/Asset
+  ${CMAKE_CURRENT_LIST_DIR}/Asset/Import
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Components
   ${CMAKE_CURRENT_LIST_DIR}/Config
@@ -470,7 +478,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${BOOST_INTERPROCESS_INCLUDE_DIRS}
   ${OBJ_LOADER_INCLUDE_DIRS}
   ${LUA_INCLUDE_DIRS}
-  ${LUA_BRIDGE_INCLUDE_DIRS})
+  ${LUA_BRIDGE_INCLUDE_DIRS}
+  ${FAST_OBJ_LOADER_INCLUDE_DIRS})
 
 list(APPEND MIKAN_REQ_LIBS 
   ${OpenCV_LIBS}
@@ -489,7 +498,8 @@ list(APPEND MIKAN_REQ_LIBS
   ${FFMPEG_swscale_LIBRARY}
   ${LUA_LIBRARIES}
   ${RMLUI_LIBRARIES}
-  easy_profiler)
+  easy_profiler
+  fast_obj_lib)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)

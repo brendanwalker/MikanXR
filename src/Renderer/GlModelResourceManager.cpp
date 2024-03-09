@@ -6,10 +6,13 @@
 #include "GlVertexDefinition.h"
 #include "IGlWindow.h"
 #include "Logger.h"
+#include "ObjModelImporter.h"
 
 GlModelResourceManager::GlModelResourceManager(IGlWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
+	// Register model importers
+	m_modelImporters.insert({".obj", std::make_shared<ObjModelImporter>(this)});
 }
 
 GlModelResourceManager::~GlModelResourceManager()
@@ -42,14 +45,26 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 		}
 		else
 		{
-			GlRenderModelResourcePtr resource = std::make_shared<GlRenderModelResource>(m_ownerWindow);
-			resource->setModelFilePath(modelFilePath);
-
-			if (resource->loadFromRenderModelFilePath(overrideMaterial))
+			std::string extension= modelFilePath.extension().string();
+			auto importerIt = m_modelImporters.find(extension);
+			if (importerIt != m_modelImporters.end())
 			{
-				m_renderModelCache.insert({modelPathString, resource});
-
-				return resource;
+				IModelImporterPtr importer= importerIt->second;
+				if (importer)
+				{
+					GlRenderModelResourcePtr resource= importer->importModelFromFile(modelFilePath, overrideMaterial);
+					if (resource)
+					{
+						m_renderModelCache.insert({modelPathString, resource});
+						return resource;
+					}
+				}
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("GlModelResourceManager::fetchRenderModel") << 
+					"No model importer found for extension: " << extension <<
+					", for file: " << modelPathString;
 			}
 		}
 	}

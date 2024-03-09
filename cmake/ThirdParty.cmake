@@ -114,6 +114,9 @@ set(TINYFILEDIALOGS_SOURCE "${TINYFILEDIALOGS_DIR}/tinyfiledialogs.c")
 # obj loader
 set (OBJ_LOADER_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/OBJ-loader/Source)
 
+# fast_obj loader
+set (FAST_OBJ_LOADER_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/fast_obj)
+
 # ffmpeg
 find_package(FFMPEG REQUIRED)
 
