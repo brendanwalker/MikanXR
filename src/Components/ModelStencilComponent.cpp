@@ -252,14 +252,12 @@ void ModelStencilComponent::rebuildMeshComponents()
 		{
 			// Fetch the mesh and material resources
 			GlTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
-			GlMaterialInstancePtr materialInstancePtr = triMeshPtr->getMaterialInstance();
 
 			// Create a new static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr triMeshInstancePtr =
 				std::make_shared<GlStaticMeshInstance>(
 					triMeshPtr->getName(),
-					triMeshPtr,
-					materialInstancePtr);
+					triMeshPtr);
 			triMeshInstancePtr->setVisible(true);
 
 			// Create a static mesh component to hold the mesh instance
@@ -282,14 +280,12 @@ void ModelStencilComponent::rebuildMeshComponents()
 		{
 			// Fetch the mesh and material resources
 			GlWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh(meshIndex);
-			GlMaterialInstancePtr materialInstancePtr = wireframeMeshPtr->getMaterialInstance();
 
 			// Create a new (hidden) static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr wireframeMeshInstancePtr =
 				std::make_shared<GlStaticMeshInstance>(
 					"wireframe",
-					wireframeMeshPtr,
-					materialInstancePtr);
+					wireframeMeshPtr);
 			wireframeMeshInstancePtr->getMaterialInstance()->setVec4BySemantic(
 				eUniformSemantic::diffuseColorRGBA,
 				glm::vec4(Colors::DarkGray, 1.f));

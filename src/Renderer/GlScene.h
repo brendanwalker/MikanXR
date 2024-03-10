@@ -31,6 +31,8 @@ public:
 
 	void addInstance(IGlSceneRenderableConstPtr instance);
 	void removeInstance(IGlSceneRenderableConstPtr instance);
+	void removeAllInstancesByMesh(IGlMeshConstPtr mesh);
+	void removeAllInstances();
 
 	void setLightColor(const glm::vec4& lightColor) { m_lightColor= lightColor; }
 	const glm::vec4& getLightColor() const { return m_lightColor; }

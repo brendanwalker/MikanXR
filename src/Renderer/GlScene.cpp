@@ -5,7 +5,9 @@
 #include "GlProgram.h"
 #include "GlScene.h"
 #include "GlShaderCache.h"
+#include "GlStaticMeshInstance.h"
 #include "GlViewport.h"
+#include "IGlMesh.h"
 
 #include <algorithm>
 #include <functional>
@@ -20,8 +22,7 @@ GlScene::GlScene()
 
 GlScene::~GlScene()
 {
-	// Clean up all draw calls
-	m_drawCalls.clear();
+	removeAllInstances();
 }
 
 void GlScene::addInstance(IGlSceneRenderableConstPtr instance)
@@ -64,6 +65,46 @@ void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 	}
 }
 
+void GlScene::removeAllInstancesByMesh(IGlMeshConstPtr mesh)
+{
+	if (mesh != nullptr)
+	{
+		GlMaterialConstPtr material = mesh->getMaterialInstance()->getMaterial();
+
+		auto drawCallIter = m_drawCalls.find(material);
+		if (drawCallIter != m_drawCalls.end())
+		{
+			GlDrawCallPtr drawCall = drawCallIter->second;
+
+			// Remove any existing instances from the draw call
+			for (auto it = drawCall->instances.begin(); it != drawCall->instances.end(); it++)
+			{
+				IGlSceneRenderableConstPtr existingInstance = it->lock();
+				GlStaticMeshInstanceConstPtr existingStaticMeshInstance = 
+					std::dynamic_pointer_cast<const GlStaticMeshInstance>(existingInstance);
+
+				if (existingStaticMeshInstance != nullptr && 
+					existingStaticMeshInstance->getMesh() == mesh)
+				{
+					drawCall->instances.erase(it);
+					break;
+				}
+			}
+
+			if (drawCall->instances.size() == 0)
+			{
+				m_drawCalls.erase(drawCallIter);
+			}
+		}
+
+	}
+}
+
+void GlScene::removeAllInstances()
+{
+	m_drawCalls.clear();;
+}
+
 void GlScene::render(GlCameraConstPtr camera) const
 {
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
@@ -78,7 +119,7 @@ void GlScene::render(GlCameraConstPtr camera) const
 		{
 			IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
-			if (renderableInstance->getVisible())
+			if (renderableInstance != nullptr && renderableInstance->getVisible())
 			{
 				bAnyInstancesVisible= true;
 				break;

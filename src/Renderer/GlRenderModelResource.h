@@ -22,7 +22,6 @@ public:
 
 	void addTriangulatedMesh(GlTriangulatedMeshPtr mesh);
 	void addWireframeMesh(GlWireframeMeshPtr mesh);
-	void replaceMeshes(GlRenderModelResourcePtr otherModelResource);
 
 	int getTriangulatedMeshCount() const 
 	{ return (int)m_triangulatedMeshes.size(); }

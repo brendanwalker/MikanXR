@@ -46,7 +46,7 @@ bool RmlModel_DepthMeshCameraSettings::init(
 
 	// Set defaults
 	setMenuState(eDepthMeshCaptureMenuState::inactive);
-	setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
+	setViewpointMode(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
 
 	return true;
 }

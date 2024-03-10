@@ -4,8 +4,11 @@
 #include "AppStage.h"
 #include "ComponentFwd.h"
 #include "Constants_DepthMeshCapture.h"
+#include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemFwd.h"
 #include "RendererFwd.h"
-#include "VideoDisplayConstants.h"
+
+#include "glm/ext/matrix_float4x4.hpp"
 
 #include <filesystem>
 #include <memory>
@@ -42,7 +45,8 @@ public:
 	virtual void render() override;
 
 protected:
-	void updateCamera();
+	void setupCameras();
+	GlCameraPtr getViewpointCamera(eDepthMeshCaptureViewpointMode viewportMode) const;
 	void renderVRScene();
 	void setMenuState(eDepthMeshCaptureMenuState newState);
 
@@ -54,7 +58,15 @@ protected:
 	// Camera Settings Model UI Events
 	void onViewportModeChanged(eDepthMeshCaptureViewpointMode newViewMode);
 	
+	// GlScene Helpers
+	void addDepthMeshResourcesToScene();
+	void removeDepthMeshResourceFromScene();
+
 private:
+	ProfileConfigPtr m_profile;
+
+	EditorObjectSystemPtr m_editorSystem;
+
 	class RmlModel_DepthMeshCapture* m_calibrationModel = nullptr;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 
@@ -64,8 +76,8 @@ private:
 	ModelStencilDefinitionPtr m_targetModelStencilDefinition;
 
 	VideoSourceViewPtr m_videoSourceView;
+	glm::mat4 m_videoSourceXform;
 
-	// Tracking pucks used for calibration
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
 	DepthMeshGeneratorPtr m_depthMeshCapture;
@@ -73,5 +85,5 @@ private:
 	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
 
 	GlScenePtr m_scene;
-	GlCameraPtr m_camera;
+	GlViewportPtr m_viewport;
 };

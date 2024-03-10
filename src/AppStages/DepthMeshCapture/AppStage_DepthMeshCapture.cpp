@@ -4,18 +4,25 @@
 #include "DepthMeshCapture/RmlModel_DepthMeshCapture.h"
 #include "DepthMeshCapture/RmlModel_DepthMeshCameraSettings.h"
 #include "App.h"
+#include "Colors.h"
 #include "DepthMeshGenerator.h"
+#include "EditorObjectSystem.h"
 #include "GlCamera.h"
 #include "GlLineRenderer.h"
 #include "GlFrameCompositor.h"
+#include "GlRenderModelResource.h"
 #include "GlScene.h"
+#include "GlStaticMeshInstance.h"
 #include "GlTextRenderer.h"
+#include "GlTriangulatedMesh.h"
 #include "GlViewport.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
+#include "MikanScene.h"
 #include "ModelStencilComponent.h"
+#include "ObjectSystemManager.h"
 #include "ProfileConfig.h"
 #include "SyntheticDepthEstimator.h"
 #include "TextStyle.h"
@@ -45,7 +52,7 @@ AppStage_DepthMeshCapture::AppStage_DepthMeshCapture(MainWindow* ownerWindow)
 	, m_depthMeshCapture(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<GlScene>())
-	, m_camera(nullptr)
+	, m_viewport(nullptr)
 {
 }
 
@@ -64,12 +71,16 @@ void AppStage_DepthMeshCapture::enter()
 {
 	AppStage::enter();
 
+	// Cache object systems we'll be accessing
+	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
+	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
+
 	// Get the current video source based on the config
-	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	m_profile = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
-		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+		VideoSourceListIterator(m_profile->videoSourcePath).getCurrent();
 	m_cameraTrackingPuckView= 
-		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(m_profile->cameraVRDevicePath);
 
 	// Add all VR devices to the 3d scene
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
@@ -78,14 +89,14 @@ void AppStage_DepthMeshCapture::enter()
 		it->getVRDeviceInterface()->bindToScene(m_scene);
 	}
 
-	// Fetch the new camera associated with the viewport
-	m_camera= getFirstViewport()->getCurrentCamera();
+	// Setup viewport
+	m_viewport = getFirstViewport();
 
-	// Make sure the camera doing the 3d rendering has the same
-	// fov and aspect ration as the real camera
-	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
-	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+	// Create and bind cameras
+	setupCameras();
+
+	// Register the scene with the primary viewport
+	m_editorSystem->bindViewport(getFirstViewport());
 
 	// Fire up the video scene in the background + depth estimator + mesh capture
 	bool depthCaptureReady= false;
@@ -125,7 +136,7 @@ void AppStage_DepthMeshCapture::enter()
 			m_depthMeshCapture =
 				std::make_shared<DepthMeshGenerator>(
 					m_ownerWindow,
-					profileConfig,
+					m_profile,
 					m_monoDistortionView,
 					m_syntheticDepthEstimator);
 
@@ -163,7 +174,7 @@ void AppStage_DepthMeshCapture::enter()
 		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onCancelEvent);
 
 		// Init camera settings model
-		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
+		m_cameraSettingsModel->init(context, m_videoSourceView, m_profile);
 		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_DepthMeshCapture::onViewportModeChanged);
 
 		// Init calibration view now that the dependent model has been created
@@ -180,7 +191,9 @@ void AppStage_DepthMeshCapture::exit()
 {
 	setMenuState(eDepthMeshCaptureMenuState::inactive);
 
-	m_camera= nullptr;
+	// Unregister all viewports from the editor
+	m_editorSystem->clearViewports();
+	m_editorSystem= nullptr;
 
 	VRDeviceList vrDeviceList = VRDeviceManager::getInstance()->getVRDeviceList();
 	for (auto it : vrDeviceList)
@@ -211,98 +224,104 @@ void AppStage_DepthMeshCapture::exit()
 	AppStage::exit();
 }
 
-void AppStage_DepthMeshCapture::updateCamera()
+// Camera
+void AppStage_DepthMeshCapture::setupCameras()
 {
-	switch (m_cameraSettingsModel->getViewpointMode())
-	{
-	case eDepthMeshCaptureViewpointMode::cameraViewpoint:
-	case eDepthMeshCaptureViewpointMode::vrViewpoint:
-		{
-			// Nothing to do
-		}
-		break;
-	case eDepthMeshCaptureViewpointMode::mixedRealityViewpoint:
-		{
-			// Update the transform of the camera so that vr models align over the tracking puck
-			glm::mat4 cameraPose;
-			if (m_calibrationModel->getMenuState() == eDepthMeshCaptureMenuState::testCapture)
-			{
-				// Use the calibrated offset on the video source to get the camera pose
-				cameraPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
-			}
-			else
-			{
-				// Use the last computed preview camera alignment
-				//cameraPose = m_depthMeshCapture->getLastCameraPose(m_cameraTrackingPuckView);
-			}
+	MikanVideoSourceIntrinsics cameraIntrinsics;
+	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 
-			m_camera->setCameraTransform(cameraPose);
+	for (int cameraIndex = 0; cameraIndex < (int)eDepthMeshCaptureViewpointMode::COUNT; ++cameraIndex)
+	{
+		// Create a camera for the corresponding display mode if it doesn't exist
+		if (cameraIndex == m_viewport->getCameraCount())
+		{
+			m_viewport->addCamera();
 		}
-		break;
+
+		// Use fly-cam input control for every camera except for the first one
+		GlCameraPtr camera = m_viewport->getCameraByIndex(cameraIndex);
+		if (cameraIndex == 0)
+			camera->setCameraMovementMode(eCameraMovementMode::stationary);
+		else
+			camera->setCameraMovementMode(eCameraMovementMode::fly);
+
+		// Make sure all the cameras intrinsics are using the same fov as the video source
+		camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 	}
+
+	// Default to the XR Camera view
+	onViewportModeChanged(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
+}
+
+GlCameraPtr AppStage_DepthMeshCapture::getViewpointCamera(eDepthMeshCaptureViewpointMode viewportMode) const
+{
+	return m_viewport->getCameraByIndex((int)viewportMode);
 }
 
 void AppStage_DepthMeshCapture::update(float deltaSeconds)
 {
 	if (m_calibrationModel->getMenuState() != eDepthMeshCaptureMenuState::failedToStart)
 	{
-		updateCamera();
+		// Get the transform of the video source
+		m_videoSourceXform= 
+			m_cameraTrackingPuckView
+			? m_videoSourceView->getCameraPose(m_cameraTrackingPuckView)
+			: glm::mat4(1.f);
+
+		// Read the next video frame
 		m_monoDistortionView->readAndProcessVideoFrame();
 	}
 }
 
 void AppStage_DepthMeshCapture::render()
 {
-	switch (m_calibrationModel->getMenuState())
+	switch (m_cameraSettingsModel->getViewpointMode())
 	{
-		case eDepthMeshCaptureMenuState::verifySetup:
-			{
-				switch (m_cameraSettingsModel->getViewpointMode())
-				{
-					case eDepthMeshCaptureViewpointMode::cameraViewpoint:
-						m_monoDistortionView->renderSelectedVideoBuffers();
-						m_depthMeshCapture->renderCameraSpaceCalibrationState();
-						break;
-					case eDepthMeshCaptureViewpointMode::vrViewpoint:
-						m_depthMeshCapture->renderVRSpaceCalibrationState();
-						renderVRScene();
-						break;
-					case eDepthMeshCaptureViewpointMode::mixedRealityViewpoint:
-						m_monoDistortionView->renderSelectedVideoBuffers();
-						renderVRScene();
-						break;
-				}
-			}
+		case eDepthMeshCaptureViewpointMode::videoSourceViewpoint:
+			m_monoDistortionView->renderSelectedVideoBuffers();
+			m_depthMeshCapture->renderCameraSpaceCalibrationState();
 			break;
-		case eDepthMeshCaptureMenuState::capture:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_depthMeshCapture->renderCameraSpaceCalibrationState();
-			}
-			break;
-		case eDepthMeshCaptureMenuState::testCapture:
-			{
-				if (m_cameraSettingsModel->getViewpointMode() == eDepthMeshCaptureViewpointMode::mixedRealityViewpoint)
-				{
-					m_monoDistortionView->renderSelectedVideoBuffers();
-				}
-
-				renderVRScene();
-			}
+		case eDepthMeshCaptureViewpointMode::vrViewpoint:
+			renderVRScene();
 			break;
 	}
 }
 
 void AppStage_DepthMeshCapture::renderVRScene()
 {
-	m_scene->render(m_camera);
+	// Render the editor scene
+	GlCameraPtr vrCamera = getViewpointCamera(eDepthMeshCaptureViewpointMode::vrViewpoint);
 
-	drawTransformedAxes(glm::mat4(1.f), 1.0f);
+	// Draw where the tracked camera is
+	GlCameraPtr videoSourceCamera = getViewpointCamera(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
+	if (videoSourceCamera)
+	{
+		// Draw the frustum for the initial camera pose
+		const float hfov_radians = degrees_to_radians(videoSourceCamera->getHorizontalFOVDegrees());
+		const float vfov_radians = degrees_to_radians(videoSourceCamera->getVerticalFOVDegrees());
+		const float zNear = fmaxf(videoSourceCamera->getZNear(), 0.1f);
+		const float zFar = fminf(videoSourceCamera->getZFar(), 2.0f);
 
-	TextStyle style = getDefaultTextStyle();
-	drawTextAtWorldPosition(style, glm::vec3(1.f, 0.f, 0.f), L"X");
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 1.f, 0.f), L"Y");
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 1.f), L"Z");
+		drawTransformedFrustum(
+			m_videoSourceXform,
+			hfov_radians, vfov_radians,
+			zNear, zFar,
+			Colors::Yellow);
+		drawTransformedAxes(m_videoSourceXform, 0.1f);
+	}
+
+	// Draw tracking space
+	drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
+	if (m_profile->getRenderOriginFlag())
+	{
+		TextStyle style = getDefaultTextStyle();
+
+		drawTransformedAxes(glm::mat4(1.f), 1.f, 1.f, 1.f);
+		drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
+	}
+
+	// Draw any meshes added to the scene (inlcuding the depth capture mesh)
+	m_scene->render(vrCamera);
 }
 
 void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState)
@@ -330,14 +349,20 @@ void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState
 			}
 		}
 
+		// Remove any previously captured meshes from the scene
+		removeDepthMeshResourceFromScene();
+
 		if (newState == eDepthMeshCaptureMenuState::testCapture)
 		{
-			// Go to the mixed reality viewpoint by default when we are in the test capture state
-			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::mixedRealityViewpoint);
+			// Go to the VR viewpoint by default when we are in the test capture state
+			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::vrViewpoint);
+
+			// If entering the test capture state, then add the captured mesh to the scene
+			addDepthMeshResourcesToScene();
 		}
 		else
 		{
-			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
+			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
 		}
 	}
 }
@@ -363,7 +388,9 @@ void AppStage_DepthMeshCapture::onContinueEvent()
 	case eDepthMeshCaptureMenuState::testCapture:
 		{
 			// Write out the mesh to a file
-			m_depthMeshCapture->saveMeshToStencilDefinition(m_targetModelStencilDefinition);
+			m_depthMeshCapture->saveMeshToStencilDefinition(
+				m_targetModelStencilDefinition,
+				m_videoSourceXform);
 
 			m_ownerWindow->popAppState();
 		}
@@ -374,7 +401,7 @@ void AppStage_DepthMeshCapture::onContinueEvent()
 void AppStage_DepthMeshCapture::onRestartEvent()
 {
 	// Go back to the camera viewpoint (in case we are in VR view)
-	m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::cameraViewpoint);
+	m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
 
 	// Return to the capture state
 	setMenuState(eDepthMeshCaptureMenuState::verifySetup);
@@ -388,25 +415,41 @@ void AppStage_DepthMeshCapture::onCancelEvent()
 // Camera Settings Model UI Events
 void AppStage_DepthMeshCapture::onViewportModeChanged(eDepthMeshCaptureViewpointMode newViewMode)
 {
-	if (m_camera)
+	m_viewport->setCurrentCamera((int)m_cameraSettingsModel->getViewpointMode());
+}
+
+// GlScene Helpers
+void AppStage_DepthMeshCapture::addDepthMeshResourcesToScene()
+{
+	auto depthMeshResource= m_depthMeshCapture->getCapturedDepthMeshResource();
+	if (depthMeshResource != nullptr)
 	{
-		switch (newViewMode)
+		for (int meshIndex = 0; meshIndex < depthMeshResource->getTriangulatedMeshCount(); meshIndex++)
 		{
-			case eDepthMeshCaptureViewpointMode::cameraViewpoint:
-				{
-					m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
-					m_camera->setCameraTransform(glm::mat4(1.f));
-				} break;
-			case eDepthMeshCaptureViewpointMode::vrViewpoint:
-				{
-					m_camera->setCameraMovementMode(eCameraMovementMode::fly);
-				} break;
-			case eDepthMeshCaptureViewpointMode::mixedRealityViewpoint:
-				{
-					m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
-				} break;
-			default:
-				break;
+			auto mesh= depthMeshResource->getTriangulatedMesh(meshIndex);
+			GlStaticMeshInstancePtr meshInstance= 
+				std::make_shared<GlStaticMeshInstance>(mesh->getName(), mesh);
+
+			// Set the model matrix to the video source transform 
+			// since that is what the depth data is relative to
+			meshInstance->setModelMatrix(m_videoSourceXform);
+			meshInstance->setVisible(true);
+
+			m_scene->addInstance(meshInstance);
+		}
+	}
+}
+
+void AppStage_DepthMeshCapture::removeDepthMeshResourceFromScene()
+{
+	auto depthMeshResource = m_depthMeshCapture->getCapturedDepthMeshResource();
+	if (depthMeshResource != nullptr)
+	{
+		for (int meshIndex = 0; meshIndex < depthMeshResource->getTriangulatedMeshCount(); meshIndex++)
+		{
+			auto mesh = depthMeshResource->getTriangulatedMesh(meshIndex);
+
+			m_scene->removeAllInstancesByMesh(mesh);
 		}
 	}
 }

@@ -30,21 +30,6 @@ void GlRenderModelResource::addWireframeMesh(GlWireframeMeshPtr mesh)
 	}
 }
 
-void GlRenderModelResource::replaceMeshes(GlRenderModelResourcePtr otherModelResource)
-{
-	disposeMeshRenderResources();
-
-	for (GlTriangulatedMeshPtr triMesh : otherModelResource->m_triangulatedMeshes)
-	{
-		addTriangulatedMesh(triMesh);
-	}
-
-	for (GlWireframeMeshPtr wireframeMesh : otherModelResource->m_wireframeMeshes)
-	{
-		addWireframeMesh(wireframeMesh);
-	}
-}
-
 void GlRenderModelResource::disposeMeshRenderResources()
 {
 	for (GlTriangulatedMeshPtr triMesh : m_triangulatedMeshes)

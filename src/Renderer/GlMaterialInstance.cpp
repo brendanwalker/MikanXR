@@ -14,6 +14,17 @@ GlMaterialInstance::GlMaterialInstance(GlMaterialConstPtr material)
 {
 }
 
+GlMaterialInstance::GlMaterialInstance(GlMaterialInstanceConstPtr materialInstance)
+	: m_parentMaterial(materialInstance->getMaterial())
+	, m_floatSources(materialInstance->m_floatSources)
+	, m_float2Sources(materialInstance->m_float2Sources)
+	, m_float3Sources(materialInstance->m_float3Sources)
+	, m_float4Sources(materialInstance->m_float4Sources)
+	, m_mat4Sources(materialInstance->m_mat4Sources)
+	, m_textureSources(materialInstance->m_textureSources)
+{
+}
+
 bool GlMaterialInstance::setFloatBySemantic(eUniformSemantic semantic, float value)
 {
 	std::string uniformName;

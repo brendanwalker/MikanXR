@@ -40,6 +40,7 @@ class GlMaterialInstance : public std::enable_shared_from_this<GlMaterialInstanc
 public:
 	GlMaterialInstance();
 	GlMaterialInstance(GlMaterialConstPtr material);
+	GlMaterialInstance(GlMaterialInstanceConstPtr materialInstance);
 
 	GlMaterialConstPtr getMaterial() const { return m_parentMaterial; }
 

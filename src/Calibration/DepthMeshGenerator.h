@@ -2,6 +2,9 @@
 
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
+#include "RendererFwd.h"
+
+#include "glm/ext/matrix_float4x4.hpp"
 
 #include <filesystem>
 #include <memory>
@@ -28,15 +31,15 @@ public:
 	inline CalibrationPatternFinderPtr getPatternFinder() const { return m_patternFinder; }
 
 	bool loadMeshFromStencilDefinition(ModelStencilDefinitionPtr stencilDefinition);
-	bool saveMeshToStencilDefinition(ModelStencilDefinitionPtr stencilDefinition);
+	bool saveMeshToStencilDefinition(ModelStencilDefinitionPtr stencilDefinition, const glm::mat4& cameraXform);
 
 	bool hasFinishedSampling() const;
 	void resetCalibrationState();
 
 	bool captureMesh();
+	GlRenderModelResourcePtr getCapturedDepthMeshResource() const;
 
 	void renderCameraSpaceCalibrationState();
-	void renderVRSpaceCalibrationState();
 
 protected:
 

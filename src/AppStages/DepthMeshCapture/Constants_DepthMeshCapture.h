@@ -21,9 +21,8 @@ enum class eDepthMeshCaptureViewpointMode : int
 {
 	INVALID= -1, 
 
-	cameraViewpoint,
+	videoSourceViewpoint,
 	vrViewpoint,
-	mixedRealityViewpoint,
 
 	COUNT
 };

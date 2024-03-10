@@ -78,8 +78,7 @@ bool SteamVRRenderComponent::initComponent()
 
 			m_glMeshInstance = std::make_shared<GlStaticMeshInstance>(
 				szInstanceName,
-				modelResource->getTriangulatedMesh(),
-				modelResource->getMaterial());
+				modelResource->getTriangulatedMesh());
 
 			return true;
 		}

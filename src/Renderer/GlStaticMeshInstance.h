@@ -16,12 +16,7 @@ public:
 	GlStaticMeshInstance() = default;
 	GlStaticMeshInstance(
 		const std::string& name, 
-		IGlMeshConstPtr mesh, 
-		GlMaterialConstPtr material);
-	GlStaticMeshInstance(
-		const std::string& name,
-		IGlMeshConstPtr mesh,
-		GlMaterialInstancePtr materialInstance);
+		IGlMeshConstPtr mesh);
 	virtual ~GlStaticMeshInstance();
 
 	const std::string& getName() const { return m_name; }

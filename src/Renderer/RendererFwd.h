@@ -56,6 +56,7 @@ using GlStateStackUniquePtr = std::unique_ptr<GlStateStack>;
 
 class GlStaticMeshInstance;
 using GlStaticMeshInstancePtr = std::shared_ptr<GlStaticMeshInstance>;
+using GlStaticMeshInstanceConstPtr = std::shared_ptr<const GlStaticMeshInstance>;
 
 class GlTextRenderer;
 using GlTextRendererSharedPtr = std::shared_ptr<GlTextRenderer>;

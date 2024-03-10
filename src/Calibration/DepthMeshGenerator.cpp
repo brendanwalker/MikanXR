@@ -11,6 +11,7 @@
 #include "GlRenderModelResource.h"
 #include "GlProgram.h"
 #include "GlShaderCache.h"
+#include "GlScene.h"
 #include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
 #include "IGlWindow.h"
@@ -239,7 +240,7 @@ struct DepthMeshCaptureState
 		return depthMeshResource != nullptr;
 	}
 
-	bool saveDepthMesh(ModelStencilDefinitionPtr modelStencilDefinition)
+	bool saveDepthMesh(ModelStencilDefinitionPtr modelStencilDefinition, const glm::mat4& cameraXform)
 	{
 		if (modelStencilDefinition != nullptr && depthMeshResource != nullptr)
 		{
@@ -262,6 +263,14 @@ struct DepthMeshCaptureState
 				// This will dirty the stencil definition
 				// and cause any associated stencil components to reload their mesh
 				modelStencilDefinition->setModelPath(depthMeshPath, true);
+
+				// Snap the stencil component to the camera transform
+				auto stencilSystem= StencilObjectSystem::getSystem();
+				ModelStencilComponentPtr stencilComponent= stencilSystem->getModelStencilById(stencilId);
+				if (stencilComponent != nullptr)
+				{
+					stencilComponent->setWorldTransform(cameraXform);
+				}
 
 				return true;
 			}
@@ -465,9 +474,11 @@ bool DepthMeshGenerator::loadMeshFromStencilDefinition(ModelStencilDefinitionPtr
 	return false;
 }
 
-bool DepthMeshGenerator::saveMeshToStencilDefinition(ModelStencilDefinitionPtr stencilDefinition)
+bool DepthMeshGenerator::saveMeshToStencilDefinition(
+	ModelStencilDefinitionPtr stencilDefinition,
+	const glm::mat4& cameraXform)
 {
-	return m_calibrationState->saveDepthMesh(stencilDefinition);
+	return m_calibrationState->saveDepthMesh(stencilDefinition, cameraXform);
 }
 
 bool DepthMeshGenerator::hasFinishedSampling() const
@@ -528,6 +539,11 @@ bool DepthMeshGenerator::captureMesh()
 	return true;
 }
 
+GlRenderModelResourcePtr DepthMeshGenerator::getCapturedDepthMeshResource() const
+{
+	return m_calibrationState->depthMeshResource;
+}
+
 void DepthMeshGenerator::renderCameraSpaceCalibrationState()
 {
 	// Draw the most recently capture chessboard in camera space
@@ -553,28 +569,4 @@ void DepthMeshGenerator::renderCameraSpaceCalibrationState()
 		drawTransformedAxes(patternXform, 0.1f);
 		drawTransformedAxes(matPuckXForm, 0.1f);
 	}
-}
-
-void DepthMeshGenerator::renderVRSpaceCalibrationState()
-{
-#if 0
-	// Draw the most recently captured chessboard projected into VR
-	m_patternFinder->renderSolvePnPPattern3D(m_calibrationState->patternXform);
-
-	// Draw the camera puck transform
-	const glm::mat4 cameraPuckXform = glm::dmat4(m_cameraTrackingPuckView->getCalibrationPose());
-	drawTransformedAxes(cameraPuckXform, 0.1f);
-
-	// Draw the most recently derived camera transform derived from the mat puck
-	const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
-	const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
-	const float zNear= fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
-	const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
-	drawTransformedFrustum(
-		m_calibrationState->cameraXform,
-		hfov_radians, vfov_radians,
-		zNear, zFar,
-		Colors::Yellow);
-	drawTransformedAxes(m_calibrationState->cameraXform, 0.1f);
-#endif
 }
