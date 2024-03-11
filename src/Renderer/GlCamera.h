@@ -19,6 +19,9 @@ public:
 	GlCamera();
 	virtual ~GlCamera() = default;
 
+	void setName(const std::string& name) { m_cameraName = name; }
+	const std::string& getName() const { return m_cameraName; }
+
 	const glm::mat4& getProjectionMatrix() const { return m_projectionMatrix; }
 	const glm::mat4& getViewMatrix() const { return m_viewMatrix; }
 	const glm::mat4 getViewProjectionMatrix() const { return m_projectionMatrix*m_viewMatrix; }
@@ -74,6 +77,8 @@ protected:
 	const float k_default_camera_z_near = 0.1f;
 	const float k_default_camera_z_far = 5000.f;
 	const float k_camera_min_zoom = 0.01f;
+
+	std::string m_cameraName;
 
 	float m_hFOVDegrees;
 	float m_vFOVDegrees;

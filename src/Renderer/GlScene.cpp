@@ -119,7 +119,9 @@ void GlScene::render(GlCameraConstPtr camera) const
 		{
 			IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
-			if (renderableInstance != nullptr && renderableInstance->getVisible())
+			if (renderableInstance != nullptr && 
+				renderableInstance->getVisible() && 
+				renderableInstance->canCameraSee(camera))
 			{
 				bAnyInstancesVisible= true;
 				break;
@@ -151,7 +153,9 @@ void GlScene::render(GlCameraConstPtr camera) const
 				{
 					IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
-					if (renderableInstance != nullptr && renderableInstance->getVisible())
+					if (renderableInstance != nullptr && 
+						renderableInstance->getVisible() &&
+						renderableInstance->canCameraSee(camera))
 					{
 						GlMaterialInstanceConstPtr materialInstance = renderableInstance->getMaterialInstanceConst();
 
@@ -198,6 +202,13 @@ eUniformBindResult GlScene::materialBindCallback(
 		{
 			bindResult =
 				program->setVector3Uniform(uniformName, getLightColor())
+				? eUniformBindResult::bound
+				: eUniformBindResult::error;
+		} break;
+	case eUniformSemantic::lightDirection:
+		{
+			bindResult =
+				program->setVector3Uniform(uniformName, getLightDirection())
 				? eUniformBindResult::bound
 				: eUniformBindResult::error;
 		} break;

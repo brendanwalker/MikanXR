@@ -435,6 +435,10 @@ void AppStage_Compositor::setupCameras()
 		inputManager->fetchOrAddKeyBindings(SDLK_2)->OnKeyPressed +=
 			MakeDelegate(this, &AppStage_Compositor::setVRCamera);
 	}
+
+	// Set camera names
+	getViewpointCamera(eCompositorViewpointMode::vrViewpoint)->setName("vrViewpoint");
+	getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint)->setName("mixedRealityViewpoint");
 }
 
 void AppStage_Compositor::setXRCamera()

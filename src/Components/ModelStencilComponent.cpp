@@ -259,6 +259,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 					triMeshPtr->getName(),
 					triMeshPtr);
 			triMeshInstancePtr->setVisible(true);
+			triMeshInstancePtr->setIsVisibleToCamera("vrViewpoint", true);
 
 			// Create a static mesh component to hold the mesh instance
 			StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
