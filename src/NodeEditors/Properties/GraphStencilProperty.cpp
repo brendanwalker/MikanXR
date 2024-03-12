@@ -128,7 +128,7 @@ void GraphStencilPropertyConfig::readFromJSON(const configuru::Config& pt)
 	const std::string stencilTypeString =
 		pt.get_or<std::string>(
 			"stencil_type",
-			k_patternTypeStrings[(int)eStencilType::quad]);
+			k_stencilTypeStrings[(int)eStencilType::quad]);
 	stencilType =
 		StringUtils::FindEnumValue<eStencilType>(
 			stencilTypeString,
