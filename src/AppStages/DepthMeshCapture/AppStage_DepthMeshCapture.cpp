@@ -260,6 +260,8 @@ GlCameraPtr AppStage_DepthMeshCapture::getViewpointCamera(eDepthMeshCaptureViewp
 
 void AppStage_DepthMeshCapture::update(float deltaSeconds)
 {
+	AppStage::update(deltaSeconds);
+
 	if (m_calibrationModel->getMenuState() != eDepthMeshCaptureMenuState::failedToStart)
 	{
 		// Get the transform of the video source
@@ -275,6 +277,8 @@ void AppStage_DepthMeshCapture::update(float deltaSeconds)
 
 void AppStage_DepthMeshCapture::render()
 {
+	AppStage::render();
+
 	switch (m_cameraSettingsModel->getViewpointMode())
 	{
 		case eDepthMeshCaptureViewpointMode::videoSourceViewpoint:
@@ -435,21 +439,21 @@ void AppStage_DepthMeshCapture::addDepthMeshResourcesToScene()
 			meshInstance->setModelMatrix(m_videoSourceXform);
 			meshInstance->setVisible(true);
 
+			// Register the mesh instance with the scene
 			m_scene->addInstance(meshInstance);
+
+			// Need to keep track of mesh instances locally
+			// since the scene uses weak pointers
+			m_depthMeshInstances.push_back(meshInstance);
 		}
 	}
 }
 
 void AppStage_DepthMeshCapture::removeDepthMeshResourceFromScene()
 {
-	auto depthMeshResource = m_depthMeshCapture->getCapturedDepthMeshResource();
-	if (depthMeshResource != nullptr)
+	for (GlStaticMeshInstancePtr depthMeshInstance : m_depthMeshInstances)
 	{
-		for (int meshIndex = 0; meshIndex < depthMeshResource->getTriangulatedMeshCount(); meshIndex++)
-		{
-			auto mesh = depthMeshResource->getTriangulatedMesh(meshIndex);
-
-			m_scene->removeAllInstancesByMesh(mesh);
-		}
+		m_scene->removeInstance(depthMeshInstance);
 	}
+	m_depthMeshInstances.clear();
 }
