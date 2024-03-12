@@ -207,18 +207,6 @@ bool GlVertexDefinition::isCompatibleProgram(const GlProgram& program) const
 				const GlVertexAttribute& attrib = m_attributes[location];
 				eVertexDataType expectedDataType = attrib.getDataType();
 
-				GLint actualStride;
-				glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &actualStride);
-				if (actualStride != 0 && actualStride != m_vertexSize)
-				{
-					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
-						"Program " << programName <<
-						" has unsupported stride(" << actualStride << 
-						") for attribute " << attribName;
-					bSuccess = false;
-					break;
-				}
-
 				eVertexDataType actualDataType = VertexDefinitionUtils::determineDataType(attribType);
 				if (actualDataType == eVertexDataType::INVALID)
 				{
