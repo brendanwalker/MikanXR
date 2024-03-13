@@ -17,8 +17,8 @@
 	],	
     "uniformSemanticMap":
     {
-		"zMin": "floatConstant0",
-		"zMax": "floatConstant1",
+		"zNear": "floatConstant0",
+		"zFar": "floatConstant1",
 		"depthTexture": "depthTexture"
     }
 }
