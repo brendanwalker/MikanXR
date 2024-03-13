@@ -37,9 +37,16 @@ public:
 	t_app_window* createAppWindow()
 	{
 		t_app_window* appWindow= new t_app_window();
-
+		
 		if (appWindow->startup())
 		{
+			// pop this GL Context this window added if it created one 
+			// and return back to the previous GL Context
+			if (getCurrentGlContext() == appWindow)
+			{
+				popCurrentGlContext(appWindow);
+			}
+
 			m_appWindows.push_back(appWindow);
 
 			return appWindow;
@@ -56,7 +63,10 @@ public:
 	void destroyAppWindow(t_app_window* appWindow)
 	{
 		// If this window was the current window, pop it from the current window stack
-		popCurrentWindow(appWindow);
+		if (m_glContextStack.size() > 0 && m_glContextStack.back() == appWindow)
+		{
+			popCurrentGlContext(appWindow);
+		}
 
 		// Tear down the SDL window and OpenGL context
 		appWindow->shutdown();
@@ -77,9 +87,23 @@ public:
 		delete appWindow;
 	}
 
-	void pushCurrentWindow(class IGlWindow* window);
-	class IGlWindow* getCurrentWindow() const;
-	void popCurrentWindow(class IGlWindow* window);
+	template<typename t_app_window>
+	bool hasWindowOfType() const
+	{
+		for (IGlWindow* window : m_appWindows)
+		{
+			if (dynamic_cast<t_app_window*>(window) != nullptr)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void pushCurrentGLContext(class IGlWindow* window);
+	class IGlWindow* getCurrentGlContext() const;
+	void popCurrentGlContext(class IGlWindow* window);
 
 protected:
 	bool startup(int argc, char** argv);
@@ -106,7 +130,7 @@ private:
 	std::vector<IGlWindow*> m_appWindows;
 
 	// The stack of current windows being updated
-	std::vector<IGlWindow*> m_currentWindowStack;
+	std::vector<IGlWindow*> m_glContextStack;
 
 	// The window being currently rendered
 	IGlWindow* m_renderingWindow = nullptr;

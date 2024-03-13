@@ -283,7 +283,7 @@ void GlLineRenderer::PointBufferState::addPoint2d(
 
 //-- Drawing Methods -----
 #define GET_LINE_RENDERER_OR_RETURN()										\
-	IGlWindow* window= App::getInstance()->getCurrentWindow();				\
+	IGlWindow* window= App::getInstance()->getCurrentGlContext();			\
 	assert(window != nullptr);												\
 	GlLineRenderer* lineRenderer = window->getLineRenderer();				\
 	if (lineRenderer == nullptr)											\

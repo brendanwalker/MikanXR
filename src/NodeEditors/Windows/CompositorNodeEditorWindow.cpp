@@ -23,7 +23,26 @@ bool CompositorNodeEditorWindow::startup()
 	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
 	frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::editorWindow);
 
-	return NodeEditorWindow::startup();
+	// Start the node editor window
+	if (!NodeEditorWindow::startup())
+	{
+		return false;
+	}
+
+	// Load the graph from the asset path on the main window's frame compositor (if any)
+	auto graphAssetPath = frameCompositor->getCompositorGraphAssetPath();
+	if (!graphAssetPath.empty() && !loadGraph(graphAssetPath))
+	{
+		return false;
+	}
+
+	// Create a new graph if none was loaded
+	if (!m_editorState.nodeGraph)
+	{
+		newGraph();
+	}
+
+	return true;
 }
 
 void CompositorNodeEditorWindow::update(float deltaSeconds)

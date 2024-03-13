@@ -526,31 +526,11 @@ void AppStage_Compositor::onToggleSettingsWindowEvent()
 // Compositor Layers UI Events
 void AppStage_Compositor::onGraphEditEvent()
 {
-	App* app= App::getInstance();
-	CompositorNodeEditorWindow* appWindow= App::getInstance()->createAppWindow<CompositorNodeEditorWindow>();
+	App* app= App::getInstance();	
 
-	bool bSuccess= false;
-	auto graphAssetPath= m_frameCompositor->getCompositorGraphAssetPath();
-	if (graphAssetPath.empty())
+	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
 	{
-		appWindow->newGraph();
-		bSuccess= true;
-	}
-	else
-	{
-		bSuccess= appWindow->loadGraph(graphAssetPath);
-	}
-
-	if (bSuccess)
-	{
-		// Pop back to the main window GL context
-		app->popCurrentWindow(appWindow);
-	}
-	else
-	{
-		// Destroy the window if we failed to load the graph
-		// This will also pop back to the main window GL context
-		App::getInstance()->destroyAppWindow(appWindow);
+		app->createAppWindow<CompositorNodeEditorWindow>();
 	}
 }
 

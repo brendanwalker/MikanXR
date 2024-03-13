@@ -105,7 +105,7 @@ bool SdlWindow::startup()
 		{
 			// Make this window the current GL context
 			// While in this GL context scope, all GL calls will be made to this window
-			App::getInstance()->pushCurrentWindow(m_owner);
+			App::getInstance()->pushCurrentGLContext(m_owner);
 
 			SDL_GL_SetSwapInterval(1); // Enable vsync
 		}

@@ -864,6 +864,7 @@ protected:
 		glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo); // now actually attach it
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 		GLenum result= glCheckFramebufferStatus(GL_FRAMEBUFFER);

@@ -32,7 +32,7 @@
 //-- static members -----
 App* App::m_instance= nullptr;
 
-//-- public methods -----
+//-- App -----
 App::App()
 	: m_profileConfig(std::make_shared<ProfileConfig>())
 	, m_localizationManager(new LocalizationManager())	
@@ -123,7 +123,7 @@ bool App::startup(int argc, char** argv)
 	// Register node graph factories spawned by windows
 	NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
 
-	// Creat the main window
+	// Create the main window
 	m_mainWindow= createAppWindow<MainWindow>();
 	if (success && m_mainWindow == nullptr)
 	{
@@ -184,11 +184,13 @@ void App::tickWindows(const float deltaSeconds)
 {
 	EASY_FUNCTION();
 
+	assert(m_glContextStack.size() == 0);
+
 	// Update each window
 	for (IGlWindow* window : m_appWindows)
 	{
 		// Mark this window as the current window getting updated
-		pushCurrentWindow(window);
+		pushCurrentGLContext(window);
 
 		// Process window simulation based on time
 		{
@@ -205,7 +207,7 @@ void App::tickWindows(const float deltaSeconds)
 		}
 
 		// Restore back to the main window
-		popCurrentWindow(window);
+		popCurrentGlContext(window);
 	}
 
 	// Destroy any windows that have been marked for destruction
@@ -221,41 +223,51 @@ void App::tickWindows(const float deltaSeconds)
 	}
 }
 
-void App::pushCurrentWindow(IGlWindow* window)
+void App::pushCurrentGLContext(IGlWindow* window)
 {
-	// Add the window to the window stack
-	m_currentWindowStack.push_back(window);
+	if (m_glContextStack.size() == 0 || m_glContextStack.back() != window)
+	{
+		// Add the window to the window stack
+		m_glContextStack.push_back(window);
 
-	// Make the window's GL context current
-	window->getSdlWindow().makeGlContextCurrent();
+		// Make the window's GL context current
+		window->getSdlWindow().makeGlContextCurrent();
+	}
+	else
+	{
+		MIKAN_LOG_WARNING("App::popCurrentWindow")
+			<< "Unable to push window "
+			<< window->getSdlWindow().getTitle()
+			<< " (already current)";
+	}
 }
 
-IGlWindow* App::getCurrentWindow() const
+IGlWindow* App::getCurrentGlContext() const
 {
-	return m_currentWindowStack.size() > 0 ? m_currentWindowStack.back() : nullptr;
+	return m_glContextStack.size() > 0 ? m_glContextStack.back() : nullptr;
 }
 
-void App::popCurrentWindow(IGlWindow* window)
+void App::popCurrentGlContext(IGlWindow* window)
 {
 	if (checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__))
 	{
 		MIKAN_LOG_ERROR("App::popCurrentWindow") << "Unhandled GL error found before popping window";
 	}
 
-	if (m_currentWindowStack.size() > 0 && m_currentWindowStack.back() == window)
+	if (m_glContextStack.size() > 0 && m_glContextStack.back() == window)
 	{
 		// Remove the window from the window stack
-		m_currentWindowStack.pop_back();
+		m_glContextStack.pop_back();
 
 		// Make the previous window's GL context current
-		if (m_currentWindowStack.size() > 0)
+		if (m_glContextStack.size() > 0)
 		{
-			m_currentWindowStack.back()->getSdlWindow().makeGlContextCurrent();
+			m_glContextStack.back()->getSdlWindow().makeGlContextCurrent();
 		}
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("App::getCurrentWindow") 
+		MIKAN_LOG_ERROR("App::popCurrentWindow") 
 			<< "Unable to pop window " 
 			<< window->getSdlWindow().getTitle()
 			<< " (not current)";
