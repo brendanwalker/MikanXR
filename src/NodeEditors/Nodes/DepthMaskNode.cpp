@@ -69,7 +69,7 @@ DepthMaskNode::DepthMaskNode() : Node()
 	// Create the frame buffer, but don't init its internals yet.
 	// Wait until evaluation to get the right output texture size.
 	m_depthFrameBuffer = std::make_shared<GlFrameBuffer>("DepthMask Frame Buffer");
-	m_depthFrameBuffer->setAttachmentType(GlFrameBuffer::eAttachmentType::DEPTH);
+	m_depthFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::DEPTH);
 }
 
 DepthMaskNode::~DepthMaskNode()

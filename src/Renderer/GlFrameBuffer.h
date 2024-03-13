@@ -10,7 +10,7 @@
 class GlFrameBuffer
 {
 public:
-	enum class eAttachmentType
+	enum class eFrameBufferType
 	{
 		COLOR,
 		DEPTH
@@ -29,7 +29,7 @@ public:
 	void unbindFrameBuffer();
 
 	void setName(const std::string& name) { m_name = name; }
-	void setAttachmentType(eAttachmentType attachmentType) { m_attachmentType = attachmentType; }
+	void setFrameBufferType(eFrameBufferType frameBufferType) { m_frameBufferType = frameBufferType; }
 	void setSize(int width, int height);
 	void setExternalTexture(GlTexturePtr texture);
 
@@ -40,12 +40,12 @@ public:
 	GlTexturePtr getTexture() const;
 
 private:
-	bool createColorAttachment();
-	bool createDepthAttachment();
+	bool createColorFrameBuffer();
+	bool createDepthFrameBuffer();
 
 private:
 	std::string m_name;
-	eAttachmentType m_attachmentType= eAttachmentType::COLOR;
+	eFrameBufferType m_frameBufferType= eFrameBufferType::COLOR;
 
 	int m_width= 800;
 	int m_height= 600;
@@ -58,6 +58,8 @@ private:
 	GLuint m_glFrameBufferId = -1;
 	GLint m_lastGlFrameBufferId = 0;
 	GLint m_lastiewport[4];
+	GLint m_lastDrawMode;
+	GLint m_lastReadMode;
 
 	bool m_bIsBound= false;
 	bool m_bIsValid= false;

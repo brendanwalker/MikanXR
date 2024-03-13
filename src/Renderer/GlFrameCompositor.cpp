@@ -631,6 +631,10 @@ void GlFrameCompositor::updateCompositeFrame()
 	{
 		EASY_BLOCK("Render BGR Frame")
 
+		// Cache the current frame buffer id
+		GLint prevFrameBufferID = 0;
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+
 		// bind to bgr framebuffer and draw composited frame, but use shader to convert from RGB to BGR
 		glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
 
@@ -655,7 +659,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		m_rgbToBgrFrameShader->unbindProgram();
 
 		// unbind the bgr frame buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
 	}
 
 	// Remember the index of the last frame we composited
@@ -960,6 +964,10 @@ bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16
 {
 	bool bSuccess = true;
 
+	// Cache the current frame buffer id
+	GLint prevFrameBufferID = 0;
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+
 	glGenFramebuffers(1, &m_layerFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
 
@@ -985,6 +993,7 @@ bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16
 	glBindRenderbuffer(GL_RENDERBUFFER, m_layerRBO);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_layerRBO); // now actually attach it
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -993,7 +1002,7 @@ bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16
 		bSuccess = false;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
 
 	return bSuccess;
 }
@@ -1019,6 +1028,10 @@ bool GlFrameCompositor::createBGRVideoFrameBuffer(uint16_t width, uint16_t heigh
 {
 	bool bSuccess = true;
 
+	// Cache the current frame buffer id
+	GLint prevFrameBufferID = 0;
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+
 	glGenFramebuffers(1, &m_bgrFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
 
@@ -1037,6 +1050,7 @@ bool GlFrameCompositor::createBGRVideoFrameBuffer(uint16_t width, uint16_t heigh
 	glBindRenderbuffer(GL_RENDERBUFFER, m_bgrRBO);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_bgrRBO); // now actually attach it
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -1045,7 +1059,7 @@ bool GlFrameCompositor::createBGRVideoFrameBuffer(uint16_t width, uint16_t heigh
 		bSuccess = false;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
 
 	return bSuccess;
 }
