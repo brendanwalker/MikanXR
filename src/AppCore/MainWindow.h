@@ -111,9 +111,9 @@ public:
 
 protected:
 	void renderBegin();
-	void renderStageBegin(GlViewportConstPtr targetViewport);
+	void renderStageBegin(GlViewportConstPtr targetViewport, GlState& glState);
 	void renderStageEnd();
-	void renderUIBegin();
+	void renderUIBegin(GlState& glState);
 	void renderUIEnd();
 	void renderEnd();
 

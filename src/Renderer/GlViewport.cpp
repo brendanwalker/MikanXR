@@ -4,6 +4,8 @@
 #include "GlCommon.h"
 #include "GlCamera.h"
 #include "GlScene.h"
+#include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "MathUtility.h"
 #include "Colors.h"
 #include "InputManager.h"
@@ -14,6 +16,7 @@
 #include <SDL2/SDL_events.h>
 #endif
 
+// -- GlViewport --
 GlViewport::GlViewport(const glm::i32vec2& windowSize)
 	: m_windowSize(windowSize)
 	, m_backgroundColor(Colors::CornflowerBlue, 1.f)
@@ -38,10 +41,11 @@ GlViewport::~GlViewport()
 	unbindInput();
 }
 
-void GlViewport::applyViewport() const
+void GlViewport::applyViewport(GlState& glState) const
 {
-	glClearColor(m_backgroundColor.r, m_backgroundColor.g, m_backgroundColor.b, m_backgroundColor.a);
-	glViewport(
+	glStateSetClearColor(glState, m_backgroundColor);
+	glStateSetViewport(
+		glState, 
 		m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y), 
 		m_viewportSize.x, m_viewportSize.y);
 }

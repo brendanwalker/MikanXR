@@ -33,7 +33,9 @@
 #include "GlShaderCache.h"
 #include "GlProgram.h"
 #include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlVertexDefinition.h"
+#include "GlViewport.h"
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -459,17 +461,15 @@ void GlRmlUiRender::setViewport(int width, int height)
 	viewport_height = height;
 }
 
-void GlRmlUiRender::beginFrame()
+void GlRmlUiRender::beginFrame(GlState& glState)
 {
-	GlState& glState= m_ownerWindow.getGlStateStack().pushState();
-
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
-	glViewport(0, 0, viewport_width, viewport_height);
+	glStateSetViewport(glState, 0, 0, viewport_width, viewport_height);
 
 	glState.disableFlag(eGlStateFlagType::depthTest);
 
 	glClearStencil(0);
-	glClearColor(0, 0, 0, 1);
+	glStateSetClearColor(glState, glm::vec4(0.f, 0.f, 0.f, 1.f));
 	glState.disableFlag(eGlStateFlagType::cullFace);
 
 	glState.enableFlag(eGlStateFlagType::stencilTest);
@@ -487,17 +487,14 @@ void GlRmlUiRender::beginFrame()
 
 void GlRmlUiRender::endFrame() 
 {
-	glViewport(0, 0, (int)viewport_width, (int)viewport_height);
-	
-	m_ownerWindow.getGlStateStack().popState();
 }
 
-void GlRmlUiRender::clear()
-{
-	glClearStencil(0);
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-}
+//void GlRmlUiRender::clear()
+//{
+//	glClearStencil(0);
+//	glClearColor(0, 0, 0, 1);
+//	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+//}
 
 void GlRmlUiRender::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, 

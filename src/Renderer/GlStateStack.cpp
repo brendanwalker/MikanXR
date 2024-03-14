@@ -23,6 +23,9 @@ GlState::GlState(GlStateStack& ownerStack, const int stackDepth)
 	{
 		// init our stack state with a copy of our parent state
 		memcpy(m_flags, m_parentState->m_flags, sizeof(m_flags));
+
+		// Copy all the modifiers from the parent state
+		m_modifiers = m_parentState->m_modifiers;
 	}
 	else
 	{
@@ -55,6 +58,12 @@ GlState::~GlState()
 			}
 		}
 	}
+
+	// Revert the effect of the modifiers applied in this state
+	for (auto modifierIt = m_modifiers.begin(); modifierIt != m_modifiers.end(); ++modifierIt)
+	{
+		modifierIt->second->revert();
+	}
 }
 
 GlState& GlState::enableFlag(eGlStateFlagType flagType)
@@ -76,6 +85,27 @@ GlState& GlState::disableFlag(eGlStateFlagType flagType)
 	{
 		glDisable(g_glFlagTypeMapping[(int)flagType]);
 		m_flags[(int)flagType] = eGlStateFlagValue::disabled;
+	}
+
+	return *this;
+}
+
+GlState& GlState::addModifier(GlStateModifierPtr modifier)
+{
+	if (modifier)
+	{
+		auto existingModifierIt= m_modifiers.find(modifier->getModifierID());
+		if (existingModifierIt != m_modifiers.end())
+		{
+			GlStateModifierPtr parentModifier= existingModifierIt->second;
+			modifier->apply(parentModifier);
+		}
+		else
+		{
+			modifier->apply(GlStateModifierPtr());
+		}
+
+		m_modifiers[modifier->getModifierID()]= modifier;
 	}
 
 	return *this;

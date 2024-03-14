@@ -26,7 +26,7 @@ public:
 	void bindInput();
 	void unbindInput();
 
-	void applyViewport() const;
+	void applyViewport(GlState& glState) const;
 	void update(float deltaSeconds);
 
 	GlCameraPtr getCurrentCamera() const;

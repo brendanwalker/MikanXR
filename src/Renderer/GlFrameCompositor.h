@@ -94,9 +94,9 @@ public:
 	GlTexturePtr getEditorWritableFrameTexture() const;
 	GlTextureConstPtr getCompositedFrameTexture() const;
 	inline uint64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
-	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
-	inline GlTexturePtr getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
-	void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
+	inline void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
+	GlTexturePtr getBGRVideoFrameTexture();
+	inline void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 
@@ -106,11 +106,7 @@ protected:
 
 	bool bindCameraVRTracker();
 
-	bool createLayerCompositingFrameBuffer(uint16_t width, uint16_t height);
-	void freeLayerFrameBuffer();
-
-	bool createBGRVideoFrameBuffer(uint16_t width, uint16_t height);
-	void freeBGRVideoFrameBuffer();
+	bool createCompositingTextures(uint16_t width, uint16_t height);
 
 	void createVertexBuffers();
 	void freeVertexBuffers();
@@ -153,10 +149,7 @@ private:
 
 	class IGlWindow* m_ownerWindow= nullptr;
 
-	unsigned int m_layerFramebuffer = 0;	
-	unsigned int m_layerRBO = 0;
-	unsigned int m_bgrFramebuffer = 0;
-	unsigned int m_bgrRBO = 0;
+	GlFrameBufferPtr m_videoExportFramebuffer;
 	unsigned int m_videoQuadVAO = 0, m_videoQuadVBO = 0;
 	unsigned int m_layerQuadVAO = 0, m_layerQuadVBO = 0;
 	bool m_bGenerateBGRVideoTexture = false;
@@ -165,8 +158,6 @@ private:
 
 	eCompositorEvaluatorWindow m_evaluatorWindow = eCompositorEvaluatorWindow::mainWindow;
 	GlTexturePtr m_editorFrameBufferTexture = nullptr;
-	GlTexturePtr m_mainWindowFrameBufferTexture = nullptr;
-	GlTexturePtr m_bgrVideoFrame = nullptr; // BGR, flipped video frame
 
 	// Compositor Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;

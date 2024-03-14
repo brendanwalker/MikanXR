@@ -1,6 +1,7 @@
 #include "App.h"
 #include "Colors.h"
 #include "GlCommon.h"
+#include "GlFrameBuffer.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
 #include "GlTexture.h"
@@ -43,14 +44,21 @@ GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
 
 GlFrameCompositor::GlFrameCompositor()
 {
+	m_instance = this;
+
 	m_config= std::make_shared<GlFrameCompositorConfig>();
-	m_instance= this;
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
+	m_editorFrameBufferTexture = std::make_shared<GlTexture>();
+	m_videoExportFramebuffer = std::make_shared<GlFrameBuffer>();
 }
 
 GlFrameCompositor::~GlFrameCompositor()
 {
+	m_videoExportFramebuffer= nullptr;
+	m_editorFrameBufferTexture= nullptr;
+	m_nodeGraphAssetRef= nullptr;
 	m_config= nullptr;
+
 	m_instance = nullptr;
 }
 
@@ -627,17 +635,15 @@ void GlFrameCompositor::updateCompositeFrame()
 	}
 
 	// Optionally bake our a BGR video frame, if requested
-	if (m_bGenerateBGRVideoTexture)
+	if (m_bGenerateBGRVideoTexture && m_videoExportFramebuffer->isValid())
 	{
 		EASY_BLOCK("Render BGR Frame")
 
-		// Cache the current frame buffer id
-		GLint prevFrameBufferID = 0;
-		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+		// Turn off depth testing for compositing
+		GlScopedState bgrFrameGlStateScope = m_ownerWindow->getGlStateStack().createScopedState();
+		bgrFrameGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
-		// bind to bgr framebuffer and draw composited frame, but use shader to convert from RGB to BGR
-		glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
-
+		m_videoExportFramebuffer->bindFrameBuffer(bgrFrameGlStateScope.getStackState());
 		m_rgbToBgrFrameShader->bindProgram();
 		
 		std::string uniformName;
@@ -657,9 +663,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		}
 
 		m_rgbToBgrFrameShader->unbindProgram();
-
-		// unbind the bgr frame buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
+		m_videoExportFramebuffer->unbindFrameBuffer();
 	}
 
 	// Remember the index of the last frame we composited
@@ -703,19 +707,17 @@ GlTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
 	switch (m_evaluatorWindow)
 	{
 		case eCompositorEvaluatorWindow::mainWindow:
-			{
-				// TODO: Simplify this once the switch to only using the node graph
-				if (m_nodeGraph)
-					return m_nodeGraph->getCompositedFrameTexture();
-				else
-					return m_mainWindowFrameBufferTexture;
-			}
-			break;
+			return m_nodeGraph->getCompositedFrameTexture();
 		case eCompositorEvaluatorWindow::editorWindow:
 			return m_editorFrameBufferTexture;
 	}
 
 	return GlTextureConstPtr();
+}
+
+GlTexturePtr GlFrameCompositor::getBGRVideoFrameTexture() 
+{
+	return m_videoExportFramebuffer->isValid() ? m_videoExportFramebuffer->getTexture() : GlTexturePtr(); 
 }
 
 void GlFrameCompositor::updateCompositeFrameNodeGraph()
@@ -777,13 +779,7 @@ bool GlFrameCompositor::openVideoSource()
 	{
 		frameWidth = (uint16_t)m_videoSourceView->getFrameWidth();
 		frameHeight = (uint16_t)m_videoSourceView->getFrameHeight();
-		bSuccess= createLayerCompositingFrameBuffer(frameWidth, frameHeight);
-	}
-
-	// Create a frame buffer and texture to convert composited texture to BGR video frame
-	if (bSuccess)
-	{
-		bSuccess = createBGRVideoFrameBuffer(frameWidth, frameHeight);
+		bSuccess= createCompositingTextures(frameWidth, frameHeight);
 	}
 
 	if (bSuccess)
@@ -826,8 +822,8 @@ bool GlFrameCompositor::openVideoSource()
 
 void GlFrameCompositor::closeVideoSource()
 {
-	freeLayerFrameBuffer();
-	freeBGRVideoFrameBuffer();
+	m_editorFrameBufferTexture->disposeTexture();
+	m_videoExportFramebuffer->disposeResources();
 
 	if (m_videoDistortionView != nullptr)
 	{
@@ -960,125 +956,26 @@ bool GlFrameCompositor::removeClientSource(
 	return true;
 }
 
-bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16_t height)
+bool GlFrameCompositor::createCompositingTextures(uint16_t width, uint16_t height)
 {
 	bool bSuccess = true;
 
-	// Cache the current frame buffer id
-	GLint prevFrameBufferID = 0;
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
-
-	glGenFramebuffers(1, &m_layerFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
-
-	// create a color attachment texture
-	m_mainWindowFrameBufferTexture = std::make_shared<GlTexture>();
-	m_mainWindowFrameBufferTexture->setSize(width, height);
-	m_mainWindowFrameBufferTexture->setTextureFormat(GL_RGBA);
-	m_mainWindowFrameBufferTexture->setBufferFormat(GL_RGBA);
-	m_mainWindowFrameBufferTexture->setGenerateMipMap(false);
-	m_mainWindowFrameBufferTexture->createTexture();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_mainWindowFrameBufferTexture->getGlTextureId(), 0);
-
-	// Also create a for the editor to render to when the editor is active
-	m_editorFrameBufferTexture = std::make_shared<GlTexture>();
+	// Also create a texture a for the editor to render to when the editor is active
 	m_editorFrameBufferTexture->setSize(width, height);
 	m_editorFrameBufferTexture->setTextureFormat(GL_RGBA);
 	m_editorFrameBufferTexture->setBufferFormat(GL_RGBA);
 	m_editorFrameBufferTexture->setGenerateMipMap(false);
-	// Don't create texture until we need it
+	// ... but don't allocate it create texture until we need it
 
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glGenRenderbuffers(1, &m_layerRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_layerRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_layerRBO); // now actually attach it
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	m_videoExportFramebuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+	m_videoExportFramebuffer->setSize(width, height);
+	if (!m_videoExportFramebuffer->createResources())
 	{
 		MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
 		bSuccess = false;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
-
 	return bSuccess;
-}
-
-void GlFrameCompositor::freeLayerFrameBuffer()
-{
-	if (m_layerRBO != 0)
-	{
-		glDeleteRenderbuffers(1, &m_layerRBO);
-		m_layerRBO = 0;
-	}
-
-	m_mainWindowFrameBufferTexture = nullptr;
-
-	if (m_layerFramebuffer != 0)
-	{
-		glDeleteFramebuffers(1, &m_layerFramebuffer);
-		m_layerFramebuffer = 0;
-	}
-}
-
-bool GlFrameCompositor::createBGRVideoFrameBuffer(uint16_t width, uint16_t height)
-{
-	bool bSuccess = true;
-
-	// Cache the current frame buffer id
-	GLint prevFrameBufferID = 0;
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
-
-	glGenFramebuffers(1, &m_bgrFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
-
-	// create a color attachment texture with a double buffered pixel-buffer-object for reading
-	m_bgrVideoFrame = std::make_shared<GlTexture>();
-	m_bgrVideoFrame->setSize(width, height);
-	m_bgrVideoFrame->setTextureFormat(GL_RGB);
-	m_bgrVideoFrame->setBufferFormat(GL_RGB);
-	m_bgrVideoFrame->setGenerateMipMap(false);
-	m_bgrVideoFrame->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
-	m_bgrVideoFrame->createTexture();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_bgrVideoFrame->getGlTextureId(), 0);
-
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glGenRenderbuffers(1, &m_bgrRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_bgrRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_bgrRBO); // now actually attach it
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		MIKAN_LOG_ERROR("createBGRVideoFrameBuffer") << "Framebuffer is not complete!";
-		bSuccess = false;
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
-
-	return bSuccess;
-}
-
-void GlFrameCompositor::freeBGRVideoFrameBuffer()
-{
-	if (m_bgrRBO != 0)
-	{
-		glDeleteRenderbuffers(1, &m_bgrRBO);
-		m_bgrRBO = 0;
-	}
-
-	m_bgrVideoFrame = nullptr;
-
-	if (m_bgrFramebuffer != 0)
-	{
-		glDeleteFramebuffers(1, &m_bgrFramebuffer);
-		m_bgrFramebuffer = 0;
-	}
 }
 
 void GlFrameCompositor::createVertexBuffers()

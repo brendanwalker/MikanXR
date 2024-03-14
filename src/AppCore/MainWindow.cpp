@@ -14,6 +14,7 @@
 #include "GlCommon.h"
 #include "GlCamera.h"
 #include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlTexture.h"
 #include "GlShaderCache.h"
 #include "GlTextureCache.h"
@@ -314,7 +315,10 @@ void MainWindow::render()
 		{
 			EASY_BLOCK("appStage render");
 
-			renderStageBegin(viewpoint);
+			GlScopedState scopedState = m_glStateStack->createScopedState();
+			GlState& glState= scopedState.getStackState();
+
+			renderStageBegin(viewpoint, glState);
 			appStage->render();
 			renderStageEnd();
 		}
@@ -322,7 +326,11 @@ void MainWindow::render()
 		// Render the UI on top
 		{
 			EASY_BLOCK("appStage renderUI");
-			renderUIBegin();
+
+			GlScopedState scopedState = m_glStateStack->createScopedState();
+			GlState& glState = scopedState.getStackState();
+
+			renderUIBegin(glState);
 
 			appStage->renderUI();
 
@@ -531,12 +539,12 @@ void MainWindow::processPendingAppStageOps()
 	bAppStackOperationAllowed = true;
 }
 
-void MainWindow::renderStageBegin(GlViewportConstPtr targetViewport)
+void MainWindow::renderStageBegin(GlViewportConstPtr targetViewport, GlState& glState)
 {
 	EASY_FUNCTION();
 
 	m_renderingViewport = targetViewport;
-	m_renderingViewport->applyViewport();
+	m_renderingViewport->applyViewport(glState);
 
 	m_isRenderingStage = true;
 }
@@ -555,14 +563,14 @@ void MainWindow::renderStageEnd()
 	m_isRenderingStage = false;
 }
 
-void MainWindow::renderUIBegin()
+void MainWindow::renderUIBegin(GlState& glState)
 {
 	EASY_FUNCTION();
 
 	m_renderingViewport = m_uiViewport;
-	m_renderingViewport->applyViewport();
+	m_renderingViewport->applyViewport(glState);
 
-	m_rmlUiRenderer->beginFrame();
+	m_rmlUiRenderer->beginFrame(glState);
 
 	m_isRenderingUI = true;
 }

@@ -1,6 +1,10 @@
 #pragma once
 
+#include "IGLStateModifier.h"
+
+#include <memory>
 #include <vector>
+#include <map>
 
 enum class eGlStateFlagType : int
 {
@@ -36,6 +40,7 @@ public:
 
 	GlState& enableFlag(eGlStateFlagType flagType);
 	GlState& disableFlag(eGlStateFlagType flagType);
+	GlState& addModifier(GlStateModifierPtr modifier);
 
 private:
 	class GlStateStack& m_ownerStack;
@@ -43,6 +48,7 @@ private:
 	int m_stackDepth = -1;
 
 	eGlStateFlagValue m_flags[(int)eGlStateFlagType::COUNT];
+	std::map<std::string, GlStateModifierPtr> m_modifiers;
 };
 
 class GlScopedState
