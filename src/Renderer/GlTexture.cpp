@@ -300,15 +300,53 @@ void GlTexture::copyBufferIntoTexture(const uint8_t* buffer, size_t bufferSize)
 {
 	if (m_glTextureId != 0)
 	{
-		glPushAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+		// TODO: Move this to a GLStateModifier
+		class ScopedPixelStoreSetting
+		{
+		public:
+			ScopedPixelStoreSetting(GLenum pname, GLint param)
+				: m_pname(pname)
+				, m_param(param)
+			{
+				glGetIntegerv(m_pname, &m_prevParam);
+			}
+
+			void apply()
+			{
+				if (m_prevParam != m_param)
+				{
+					glPixelStorei(m_pname, m_param);
+				}
+			}
+
+			void revert()
+			{
+				if (m_prevParam != m_param)
+				{
+					glPixelStorei(m_pname, m_prevParam);
+				}
+			}
+
+		protected:
+			GLenum m_pname;
+			GLint m_param;
+			GLint m_prevParam;
+		};
+		std::vector<ScopedPixelStoreSetting> scopedPixelStoreSettings;
+
 		if (m_pixelType == GL_UNSIGNED_BYTE)
 		{
-			glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
-			glPixelStorei(GL_UNPACK_LSB_FIRST, GL_TRUE);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-			glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-			glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			scopedPixelStoreSettings.push_back(ScopedPixelStoreSetting(GL_UNPACK_SWAP_BYTES, GL_FALSE));
+			scopedPixelStoreSettings.push_back(ScopedPixelStoreSetting(GL_UNPACK_LSB_FIRST, GL_TRUE));
+			scopedPixelStoreSettings.push_back(ScopedPixelStoreSetting(GL_UNPACK_ROW_LENGTH, 0));
+			scopedPixelStoreSettings.push_back(ScopedPixelStoreSetting(GL_UNPACK_SKIP_PIXELS, 0));
+			scopedPixelStoreSettings.push_back(ScopedPixelStoreSetting(GL_UNPACK_SKIP_ROWS, 0));
+			scopedPixelStoreSettings.push_back(ScopedPixelStoreSetting(GL_UNPACK_ALIGNMENT, 1));
+
+			for (auto& setting : scopedPixelStoreSettings)
+			{
+				setting.apply();
+			}
 		}
 
 		glBindTexture(GL_TEXTURE_2D, m_glTextureId);
@@ -389,7 +427,12 @@ void GlTexture::copyBufferIntoTexture(const uint8_t* buffer, size_t bufferSize)
 		}
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glPopAttrib();
+
+		// Restore the previous pixel store settings
+		for (auto& setting : scopedPixelStoreSettings)
+		{
+			setting.revert();
+		}
 	}
 }
 
