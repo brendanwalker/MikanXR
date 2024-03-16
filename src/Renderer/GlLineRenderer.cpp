@@ -97,6 +97,12 @@ void GlLineRenderer::render()
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
 	{
+		GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState();
+		GlState& glState = stateScope.getStackState();
+
+		// This has to be enabled since the point drawing shader will use gl_PointSize.
+		glState.enableFlag(eGlStateFlagType::programPointSize);
+
 		m_program->bindProgram();
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
