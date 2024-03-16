@@ -4,6 +4,7 @@
 #include "GlMaterial.h"
 #include "GlProgram.h"
 #include "GlRenderModelResource.h"
+#include "GlScopedObjectBinding.h"
 #include "GlModelResourceManager.h"
 #include "GlMaterialInstance.h"
 #include "GlStateStack.h"
@@ -151,21 +152,28 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 	if (m_compositeFrameEventNode)
 	{
-		// Turn off depth testing for compositing
-		GlScopedState updateCompositeGlStateScope = evaluator.getCurrentWindow()->getGlStateStack().createScopedState();
-		updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
-
 		// Make sure the frame buffer is the correct size
 		updateCompositingFrameBufferSize(evaluator);
 
-		// Bind the frame buffer that we render the composited frame to
-		m_compositingFrameBuffer->bindFrameBuffer(updateCompositeGlStateScope.getStackState());
+		// Create a scoped binding for the video export framebuffer
+		GlScopedObjectBinding compositorFramebufferBinding(
+			*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
+			m_compositingFrameBuffer);
+		if (compositorFramebufferBinding)
+		{
+			// Turn off depth testing for compositing
+			compositorFramebufferBinding.getGlState().disableFlag(eGlStateFlagType::depthTest);
 
-		// Evaluate the composite frame nodes
-		evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
-
-		// Unbind the layer frame buffer
-		m_compositingFrameBuffer->unbindFrameBuffer();
+			// Evaluate the composite frame nodes
+			evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
+		}
+		else
+		{
+			evaluator.addError(
+				NodeEvaluationError(
+					eNodeEvaluationErrorCode::evaluationError,
+					"Broken frame buffer"));
+		}
 	}
 	else
 	{

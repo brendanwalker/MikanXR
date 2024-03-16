@@ -22,13 +22,6 @@ enum class eGlStateFlagType : int
 	COUNT
 };
 
-enum class eGlStateFlagValue : unsigned char
-{
-	unset,
-	enabled,
-	disabled
-};
-
 class GlState
 {
 public:
@@ -47,7 +40,7 @@ private:
 	const GlState* m_parentState;
 	int m_stackDepth = -1;
 
-	eGlStateFlagValue m_flags[(int)eGlStateFlagType::COUNT];
+	bool m_flags[(int)eGlStateFlagType::COUNT];
 	std::map<std::string, GlStateModifierPtr> m_modifiers;
 };
 
@@ -75,6 +68,7 @@ public:
 
 	int getCurrentStackDepth() const;
 	GlState* getState(const int depth) const;
+	inline GlState* getCurrentState() const { return getState(getCurrentStackDepth()); }
 
 	GlScopedState createScopedState();
 

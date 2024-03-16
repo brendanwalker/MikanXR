@@ -2,12 +2,13 @@
 
 #include "GlTypesFwd.h"
 #include "RendererFwd.h"
+#include "IGlBindableObject.h"
 
 #include <string>
 #include <vector>
 #include <stdint.h>
 
-class GlFrameBuffer
+class GlFrameBuffer : public IGlBindableObject
 {
 public:
 	enum class eFrameBufferType
@@ -25,9 +26,6 @@ public:
 	bool createResources();
 	void disposeResources();
 
-	bool bindFrameBuffer(class GlState& glState);
-	void unbindFrameBuffer();
-
 	void setName(const std::string& name) { m_name = name; }
 	void setFrameBufferType(eFrameBufferType frameBufferType) { m_frameBufferType = frameBufferType; }
 	void setSize(int width, int height);
@@ -38,12 +36,19 @@ public:
 	int getWidth() const { return m_width; }
 	int getHeight() const { return m_height; }
 	GlTexturePtr getTexture() const;
+	GlState* getGlState() const { return m_glState; }
 
 private:
+	virtual void bindObject(class GlState& glState) override;
+	virtual bool getIsBound() const override { return m_bIsBound; }
+	virtual void unbindObject() override;
+
 	bool createColorFrameBuffer();
 	bool createDepthFrameBuffer();
 
 private:
+	GlState* m_glState= nullptr;
+
 	std::string m_name;
 	eFrameBufferType m_frameBufferType= eFrameBufferType::COLOR;
 
@@ -57,9 +62,9 @@ private:
 	// Cached GLState
 	GLuint m_glFrameBufferId = -1;
 	GLint m_lastGlFrameBufferId = 0;
-	GLint m_lastiewport[4];
-	GLint m_lastDrawMode;
-	GLint m_lastReadMode;
+	//GLint m_lastiewport[4];
+	//GLint m_lastDrawMode;
+	//GLint m_lastReadMode;
 
 	bool m_bIsBound= false;
 	bool m_bIsValid= false;

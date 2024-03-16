@@ -5,6 +5,7 @@
 #include "GlRenderModelResource.h"
 #include "GlModelResourceManager.h"
 #include "GlProgram.h"
+#include "GlScopedObjectBinding.h"
 #include "GlShaderCache.h"
 #include "GlStateStack.h"
 #include "GlTexture.h"
@@ -206,19 +207,26 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 			!m_boxStencilIds.empty() ||
 			!m_modelStencilIds.empty())
 		{
-			GlScopedState glStateScope = evaluator.getCurrentWindow()->getGlStateStack().createScopedState();
-			GlState& glState = glStateScope.getStackState();
+			// Bind the depth frame buffer
+			GlScopedObjectBinding depthFramebufferBinding(
+				*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
+				m_depthFrameBuffer);
+			if (depthFramebufferBinding)
+			{
+				GlState& glState= depthFramebufferBinding.getGlState();
 
-			// Bind the frame buffer that we render the depth mask into
-			m_depthFrameBuffer->bindFrameBuffer(glState);
-			
-			// Apply any Stencils assigned to the node
-			evaluateQuadStencils(glState);
-			evaluateBoxStencils(glState);
-			evaluateModelStencils(glState);
-
-			// Unbind the depth frame buffer now that rendering is done
-			m_depthFrameBuffer->unbindFrameBuffer();
+				// Apply any Stencils assigned to the node
+				evaluateQuadStencils(glState);
+				evaluateBoxStencils(glState);
+				evaluateModelStencils(glState);
+			}
+			else
+			{
+				evaluator.addError(
+					NodeEvaluationError(
+						eNodeEvaluationErrorCode::evaluationError,
+						"Broken frame buffer"));
+			}
 		}
 		else
 		{

@@ -4,6 +4,7 @@
 #include "GlFrameBuffer.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
+#include "GlScopedObjectBinding.h"
 #include "GlTexture.h"
 #include "GlTextRenderer.h"
 #include "GlProgramConfig.h"
@@ -639,31 +640,35 @@ void GlFrameCompositor::updateCompositeFrame()
 	{
 		EASY_BLOCK("Render BGR Frame")
 
-		// Turn off depth testing for compositing
-		GlScopedState bgrFrameGlStateScope = m_ownerWindow->getGlStateStack().createScopedState();
-		bgrFrameGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
-
-		m_videoExportFramebuffer->bindFrameBuffer(bgrFrameGlStateScope.getStackState());
-		m_rgbToBgrFrameShader->bindProgram();
-		
-		std::string uniformName;
-		m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::rgbTexture, uniformName);
-		m_rgbToBgrFrameShader->setTextureUniform(uniformName);
-
-		GlTextureConstPtr compositedFrameTexture= getCompositedFrameTexture();
-		if (compositedFrameTexture)
+		// Create a scoped binding for the video export framebuffer
+		GlScopedObjectBinding videoExportFramebufferBinding(
+			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			m_videoExportFramebuffer);
+		if (videoExportFramebufferBinding)
 		{
-			compositedFrameTexture->bindTexture(0);
+			// Turn off depth testing for compositing
+			videoExportFramebufferBinding.getGlState().disableFlag(eGlStateFlagType::depthTest);
 
-			glBindVertexArray(m_videoQuadVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindVertexArray(0);
+			m_rgbToBgrFrameShader->bindProgram();
 
-			compositedFrameTexture->clearTexture(0);
+			std::string uniformName;
+			m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::rgbTexture, uniformName);
+			m_rgbToBgrFrameShader->setTextureUniform(uniformName);
+
+			GlTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
+			if (compositedFrameTexture)
+			{
+				compositedFrameTexture->bindTexture(0);
+
+				glBindVertexArray(m_videoQuadVAO);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+				glBindVertexArray(0);
+
+				compositedFrameTexture->clearTexture(0);
+			}
+
+			m_rgbToBgrFrameShader->unbindProgram();
 		}
-
-		m_rgbToBgrFrameShader->unbindProgram();
-		m_videoExportFramebuffer->unbindFrameBuffer();
 	}
 
 	// Remember the index of the last frame we composited

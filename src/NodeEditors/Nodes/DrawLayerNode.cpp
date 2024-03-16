@@ -6,6 +6,7 @@
 #include "GlProgram.h"
 #include "GlShaderCache.h"
 #include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
 #include "GlMaterialInstance.h"
@@ -517,7 +518,7 @@ void DrawLayerNode::rebuildStencilLists()
 	}
 }
 
-void DrawLayerNode::evaluateQuadStencils(GlState& glState)
+void DrawLayerNode::evaluateQuadStencils(GlState& glParentState)
 {
 	EASY_FUNCTION();
 
@@ -585,72 +586,62 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glState)
 			cameraBehindStencilCount == doubleSidedStencilCount;
 	}
 
-	glClearStencil(0);
-	glStencilMask(0xFF);
-	glClear(GL_STENCIL_BUFFER_BIT);
-
-	// Do not draw any pixels on the back buffer
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glDepthMask(GL_FALSE);
-	// Enables testing AND writing functionalities
-	glState.enableFlag(eGlStateFlagType::stencilTest);
-	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glStencilMask(0xFF);
-	// Make every test succeed
-	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-
-	GlMaterialInstancePtr materialInstance = stencilQuadMesh->getMaterialInstance();
-	GlMaterialConstPtr material = materialInstance->getMaterial();
-
-	if (auto materialBinding = material->bindMaterial())
 	{
-		// Draw stencil quads first
-		for (QuadStencilComponentPtr stencil : quadStencilList)
+		GlScopedState stateScope= glParentState.getOwnerStateStack().createScopedState();
+		GlState& glState= stateScope.getStackState();
+
+		glStateSetStencilBufferClearValue(glState, 0);
+		glClear(GL_STENCIL_BUFFER_BIT);
+
+		// Do not draw any pixels on the back buffer
+		glStateSetColorMask(glState, glm::bvec4(false));
+		glStateSetDepthMask(glState, false);
+		// Enables testing AND writing functionalities
+		glState.enableFlag(eGlStateFlagType::stencilTest);
+		// Do not test the current value in the stencil buffer, always accept any value on there for drawing
+		glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFF);
+		glStateSetStencilMask(glState, 0xFF);
+		// Make every test succeed
+		glStateSetStencilOp(glState, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE);
+
+		GlMaterialInstancePtr materialInstance = stencilQuadMesh->getMaterialInstance();
+		GlMaterialConstPtr material = materialInstance->getMaterial();
+
+		if (auto materialBinding = material->bindMaterial())
 		{
-			// Set the model matrix of stencil quad
-			auto stencilConfig = stencil->getQuadStencilDefinition();
-			const glm::mat4 xform = stencil->getWorldTransform();
-			const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
-			const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
-			const glm::vec3 z_axis = glm::vec3(xform[2]);
-			const glm::vec3 position = glm::vec3(xform[3]);
-			const glm::mat4 modelMatrix =
-				glm::mat4(
-					glm::vec4(x_axis, 0.f),
-					glm::vec4(y_axis, 0.f),
-					glm::vec4(z_axis, 0.f),
-					glm::vec4(position, 1.f));
-
-			// Set the model-view-projection matrix on the stencil shader
-			materialInstance->setMat4BySemantic(
-				eUniformSemantic::modelViewProjectionMatrix,
-				vpMatrix * modelMatrix);
-
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			// Draw stencil quads first
+			for (QuadStencilComponentPtr stencil : quadStencilList)
 			{
-				// Draw the quad
-				stencilQuadMesh->drawElements();
+				// Set the model matrix of stencil quad
+				auto stencilConfig = stencil->getQuadStencilDefinition();
+				const glm::mat4 xform = stencil->getWorldTransform();
+				const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
+				const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
+				const glm::vec3 z_axis = glm::vec3(xform[2]);
+				const glm::vec3 position = glm::vec3(xform[3]);
+				const glm::mat4 modelMatrix =
+					glm::mat4(
+						glm::vec4(x_axis, 0.f),
+						glm::vec4(y_axis, 0.f),
+						glm::vec4(z_axis, 0.f),
+						glm::vec4(position, 1.f));
+
+				// Set the model-view-projection matrix on the stencil shader
+				materialInstance->setMat4BySemantic(
+					eUniformSemantic::modelViewProjectionMatrix,
+					vpMatrix * modelMatrix);
+
+				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+				{
+					// Draw the quad
+					stencilQuadMesh->drawElements();
+				}
 			}
 		}
 	}
-
-	// Make sure you will no longer (over)write stencil values, even if any test succeeds
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-	// Make sure we draw on the backbuffer again.
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glDepthMask(GL_TRUE);
-	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
-	GLenum stencilMode = (m_stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
-	if (bInvertStencils)
-	{
-		// Flip the stencil mode from whatever the default was
-		stencilMode = (stencilMode == GL_EQUAL) ? GL_NOTEQUAL : GL_EQUAL;
-	}
-	glStencilFunc(stencilMode, 1, 0xFF);
 }
 
-void DrawLayerNode::evaluateBoxStencils(GlState& glState)
+void DrawLayerNode::evaluateBoxStencils(GlState& glParentState)
 {
 	EASY_FUNCTION();
 
@@ -686,67 +677,62 @@ void DrawLayerNode::evaluateBoxStencils(GlState& glState)
 	if (boxStencilList.size() == 0)
 		return;
 
-	glClearStencil(0);
-	glStencilMask(0xFF);
-	glClear(GL_STENCIL_BUFFER_BIT);
-
-	// Do not draw any pixels on the back buffer
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glDepthMask(GL_FALSE);
-	// Enables testing AND writing functionalities
-	glState.enableFlag(eGlStateFlagType::stencilTest);
-	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glStencilMask(0xFF);
-	// Make every test succeed
-	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-
-	GlMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();
-	GlMaterialConstPtr material = materialInstance->getMaterial();
-
-	// Then draw stencil boxes ...
-	if (auto materialBinding = material->bindMaterial())
 	{
-		for (BoxStencilComponentPtr stencil : boxStencilList)
+		GlScopedState stateScope = glParentState.getOwnerStateStack().createScopedState();
+		GlState& glState = stateScope.getStackState();
+
+		glStateSetStencilBufferClearValue(glState, 0);
+		glClear(GL_STENCIL_BUFFER_BIT);
+
+		// Do not draw any pixels on the back buffer
+		glStateSetColorMask(glState, glm::bvec4(false));
+		glStateSetDepthMask(glState, false);
+		// Enables testing AND writing functionalities
+		glState.enableFlag(eGlStateFlagType::stencilTest);
+		// Do not test the current value in the stencil buffer, always accept any value on there for drawing
+		glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFF);
+		glStateSetStencilMask(glState, 0xFF);
+		// Make every test succeed
+		glStateSetStencilOp(glState, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE);
+
+		GlMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();
+		GlMaterialConstPtr material = materialInstance->getMaterial();
+
+		// Then draw stencil boxes ...
+		if (auto materialBinding = material->bindMaterial())
 		{
-			// Set the model matrix of stencil quad
-			auto stencilConfig = stencil->getBoxStencilDefinition();
-			const glm::mat4 xform = stencil->getWorldTransform();
-			const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
-			const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
-			const glm::vec3 z_axis = glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
-			const glm::vec3 position = glm::vec3(xform[3]);
-			const glm::mat4 modelMatrix =
-				glm::mat4(
-					glm::vec4(x_axis, 0.f),
-					glm::vec4(y_axis, 0.f),
-					glm::vec4(z_axis, 0.f),
-					glm::vec4(position, 1.f));
-
-			// Set the model-view-projection matrix on the stencil shader
-			materialInstance->setMat4BySemantic(
-				eUniformSemantic::modelViewProjectionMatrix,
-				vpMatrix * modelMatrix);
-
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			for (BoxStencilComponentPtr stencil : boxStencilList)
 			{
-				// Draw the box
-				stencilBoxMesh->drawElements();
+				// Set the model matrix of stencil quad
+				auto stencilConfig = stencil->getBoxStencilDefinition();
+				const glm::mat4 xform = stencil->getWorldTransform();
+				const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
+				const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
+				const glm::vec3 z_axis = glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
+				const glm::vec3 position = glm::vec3(xform[3]);
+				const glm::mat4 modelMatrix =
+					glm::mat4(
+						glm::vec4(x_axis, 0.f),
+						glm::vec4(y_axis, 0.f),
+						glm::vec4(z_axis, 0.f),
+						glm::vec4(position, 1.f));
+
+				// Set the model-view-projection matrix on the stencil shader
+				materialInstance->setMat4BySemantic(
+					eUniformSemantic::modelViewProjectionMatrix,
+					vpMatrix * modelMatrix);
+
+				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+				{
+					// Draw the box
+					stencilBoxMesh->drawElements();
+				}
 			}
 		}
 	}
-
-	// Make sure you will no longer (over)write stencil values, even if any test succeeds
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-	// Make sure we draw on the backbuffer again.
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glDepthMask(GL_TRUE);
-	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
-	const GLenum stencilMode = (m_stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
-	glStencilFunc(stencilMode, 1, 0xFF);
 }
 
-void DrawLayerNode::evaluateModelStencils(GlState& glState)
+void DrawLayerNode::evaluateModelStencils(GlState& glParentState)
 {
 	EASY_FUNCTION();
 
@@ -781,70 +767,66 @@ void DrawLayerNode::evaluateModelStencils(GlState& glState)
 	if (modelStencilList.size() == 0)
 		return;
 
-	glClearStencil(0);
-	glStencilMask(0xFF);
-	glClear(GL_STENCIL_BUFFER_BIT);
-
-	// Do not draw any pixels on the back buffer
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glDepthMask(GL_FALSE);
-	// Enables testing AND writing functionalities
-	glState.enableFlag(eGlStateFlagType::stencilTest);
-	// Do not test the current value in the stencil buffer, always accept any value on there for drawing
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glStencilMask(0xFF);
-	// Make every test succeed
-	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-
-	// Then draw stencil models
-	for (ModelStencilComponentPtr stencil : modelStencilList)
 	{
-		auto stencilConfig = stencil->getModelStencilDefinition();
-		const MikanStencilID stencilId = stencilConfig->getStencilId();
-		GlRenderModelResourcePtr renderModelResource = 
-			compositorGraph->getOrLoadStencilRenderModel(stencilConfig);
+		GlScopedState stateScope = glParentState.getOwnerStateStack().createScopedState();
+		GlState& glState = stateScope.getStackState();
 
-		if (renderModelResource)
+		glStateSetStencilBufferClearValue(glState, 0);
+		glClear(GL_STENCIL_BUFFER_BIT);
+
+		// Do not draw any pixels on the back buffer
+		glStateSetColorMask(glState, glm::bvec4(false));
+		glStateSetDepthMask(glState, false);
+		// Enables testing AND writing functionalities
+		glState.enableFlag(eGlStateFlagType::stencilTest);
+		// Do not test the current value in the stencil buffer, always accept any value on there for drawing
+		glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFF);
+		glStateSetStencilMask(glState, 0xFF);
+		// Make every test succeed
+		glStateSetStencilOp(glState, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE);
+
+
+		// Then draw stencil models
+		for (ModelStencilComponentPtr stencil : modelStencilList)
 		{
-			// Set the model matrix of stencil model
-			const glm::mat4 modelMatrix = stencil->getWorldTransform();
-			const glm::mat4 mvpMatrix= vpMatrix * modelMatrix;
+			auto stencilConfig = stencil->getModelStencilDefinition();
+			const MikanStencilID stencilId = stencilConfig->getStencilId();
+			GlRenderModelResourcePtr renderModelResource =
+				compositorGraph->getOrLoadStencilRenderModel(stencilConfig);
 
-			for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
+			if (renderModelResource)
 			{
-				GlTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
-				GlMaterialInstancePtr materialInst= mesh->getMaterialInstance();
-				GlMaterialConstPtr material = materialInst->getMaterial();
+				// Set the model matrix of stencil model
+				const glm::mat4 modelMatrix = stencil->getWorldTransform();
+				const glm::mat4 mvpMatrix = vpMatrix * modelMatrix;
 
-				// Set the model-view-projection matrix on the stencil material instance
-				materialInst->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);
-
-				// Bind the material and draw the mesh
-				// TODO: We could optimize this by sorting on the shader program
-				// to minimize the number of shader program switches
-				// Or switch to using a GlScene for rendering stencils,
-				// which handles the shader program sorting for us.
-				auto materialBinding = material->bindMaterial();
-				if (materialBinding)
+				for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
 				{
-					auto materialInstanceBinding = materialInst->bindMaterialInstance(materialBinding);
-					if (materialInstanceBinding)
+					GlTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
+					GlMaterialInstancePtr materialInst = mesh->getMaterialInstance();
+					GlMaterialConstPtr material = materialInst->getMaterial();
+
+					// Set the model-view-projection matrix on the stencil material instance
+					materialInst->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);
+
+					// Bind the material and draw the mesh
+					// TODO: We could optimize this by sorting on the shader program
+					// to minimize the number of shader program switches
+					// Or switch to using a GlScene for rendering stencils,
+					// which handles the shader program sorting for us.
+					auto materialBinding = material->bindMaterial();
+					if (materialBinding)
 					{
-						mesh->drawElements();
+						auto materialInstanceBinding = materialInst->bindMaterialInstance(materialBinding);
+						if (materialInstanceBinding)
+						{
+							mesh->drawElements();
+						}
 					}
 				}
 			}
 		}
 	}
-
-	// Make sure you will no longer (over)write stencil values, even if any test succeeds
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-	// Make sure we draw on the backbuffer again.
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glDepthMask(GL_TRUE);
-	// Now we will only draw pixels where the corresponding stencil buffer value == (nor !=) 1
-	const GLenum stencilMode = (m_stencilMode == eCompositorStencilMode::outsideStencil) ? GL_NOTEQUAL : GL_EQUAL;
-	glStencilFunc(stencilMode, 1, 0xFF);
 }
 
 // -- ProgramNode Factory -----

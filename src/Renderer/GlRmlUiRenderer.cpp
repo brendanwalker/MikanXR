@@ -467,18 +467,20 @@ void GlRmlUiRender::beginFrame(GlState& glState)
 	glStateSetViewport(glState, 0, 0, viewport_width, viewport_height);
 
 	glState.disableFlag(eGlStateFlagType::depthTest);
-
-	glClearStencil(0);
-	glStateSetClearColor(glState, glm::vec4(0.f, 0.f, 0.f, 1.f));
 	glState.disableFlag(eGlStateFlagType::cullFace);
-
+	glState.disableFlag(eGlStateFlagType::scissorTest);
 	glState.enableFlag(eGlStateFlagType::stencilTest);
-	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
 	glState.enableFlag(eGlStateFlagType::blend);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glStateSetClearColor(glState, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	glStateSetColorMask(glState, glm::bvec4(true, true, true, true));
+
+	glStateSetStencilBufferClearValue(glState, 0);
+	glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFFFFFFFF);
+	glStateSetStencilOp(glState, eGlStencilOp::KEEP, eGlStencilOp::KEEP, eGlStencilOp::KEEP);
+
+	glStateSetBlendEquation(glState, eGlBlendEquation::ADD);
+	glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);
 
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 
@@ -576,6 +578,7 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 
 	glBindVertexArray(geometry->vao);
 	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+	glBindVertexArray(0);
 
 	checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
@@ -607,13 +610,13 @@ void GlRmlUiRender::EnableScissorRegion(bool enable)
 		if (scissoring_state == ScissoringState::Scissor)
 			glDisable(GL_SCISSOR_TEST);
 		else if (scissoring_state == ScissoringState::Stencil)
-			glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
+			glStencilFunc(GL_ALWAYS, 1, GLuint(0xFFFFFFFF));
 
 		// Enable new
 		if (new_state == ScissoringState::Scissor)
 			glEnable(GL_SCISSOR_TEST);
 		else if (new_state == ScissoringState::Stencil)
-			glStencilFunc(GL_EQUAL, 1, GLuint(-1));
+			glStencilFunc(GL_EQUAL, 1, GLuint(0xFFFFFFFF));
 
 		scissoring_state = new_state;
 	}

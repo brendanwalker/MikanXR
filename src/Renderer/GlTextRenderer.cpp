@@ -4,6 +4,7 @@
 #include "GlCamera.h"
 #include "GlCommon.h"
 #include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlTextRenderer.h"
 #include "GlTexture.h"
 #include "GlViewport.h"
@@ -41,60 +42,64 @@ void GlTextRenderer::render(IGlWindow* window)
 		glPushMatrix();
 		glLoadIdentity();
 
-		GlScopedState stateScope= window->getGlStateStack().createScopedState();
-		stateScope.getStackState()
-			.disableFlag(eGlStateFlagType::depthTest)
-			.enableFlag(eGlStateFlagType::blend);
-
-		// Turn on alpha blending for text rendering text
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		// Render all of the baked quads
-		for (const BakedTextQuad& bakedQuad : m_bakedTextQuads)
 		{
-			const float x = bakedQuad.screenCoords.x;
-			const float y = bakedQuad.screenCoords.y;
-			const float w = (float)bakedQuad.texture->getTextureWidth();
-			const float h = (float)bakedQuad.texture->getTextureHeight();
+			GlScopedState stateScope = window->getGlStateStack().createScopedState();
+			GlState& glState= stateScope.getStackState();
 
-			float xOffset= 0;
-			switch (bakedQuad.horizontalAlignment)
+			glState
+				.disableFlag(eGlStateFlagType::depthTest)
+				.enableFlag(eGlStateFlagType::blend);
+
+			// Turn on alpha blending for text rendering text
+			glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);
+
+			// Render all of the baked quads
+			for (const BakedTextQuad& bakedQuad : m_bakedTextQuads)
 			{
-			case eHorizontalTextAlignment::Left:
-				xOffset= 0;
-				break;
-			case eHorizontalTextAlignment::Middle:
-				xOffset = -w/2;
-				break;
-			case eHorizontalTextAlignment::Right:
-				xOffset = -w;
-				break;
+				const float x = bakedQuad.screenCoords.x;
+				const float y = bakedQuad.screenCoords.y;
+				const float w = (float)bakedQuad.texture->getTextureWidth();
+				const float h = (float)bakedQuad.texture->getTextureHeight();
+
+				float xOffset = 0;
+				switch (bakedQuad.horizontalAlignment)
+				{
+					case eHorizontalTextAlignment::Left:
+						xOffset = 0;
+						break;
+					case eHorizontalTextAlignment::Middle:
+						xOffset = -w / 2;
+						break;
+					case eHorizontalTextAlignment::Right:
+						xOffset = -w;
+						break;
+				}
+
+				float yOffset = 0;
+				switch (bakedQuad.verticalAlignment)
+				{
+					case eVerticalTextAlignment::Top:
+						yOffset = 0;
+						break;
+					case eVerticalTextAlignment::Middle:
+						yOffset = -h / 2;
+						break;
+					case eVerticalTextAlignment::Bottom:
+						yOffset = -h;
+						break;
+				}
+
+				bakedQuad.texture->bindTexture();
+
+				glBegin(GL_QUADS);
+				glTexCoord2d(0, 0); glVertex3d(x + xOffset, y + yOffset, 0);
+				glTexCoord2d(1, 0); glVertex3d(x + w + xOffset, y + yOffset, 0);
+				glTexCoord2d(1, 1); glVertex3d(x + w + xOffset, y + h + yOffset, 0);
+				glTexCoord2d(0, 1); glVertex3d(x + xOffset, y + h + yOffset, 0);
+				glEnd();
+
+				bakedQuad.texture->clearTexture();
 			}
-
-			float yOffset = 0;
-			switch (bakedQuad.verticalAlignment)
-			{
-			case eVerticalTextAlignment::Top:
-				yOffset = 0;
-				break;
-			case eVerticalTextAlignment::Middle:
-				yOffset = -h / 2;
-				break;
-			case eVerticalTextAlignment::Bottom:
-				yOffset = -h;
-				break;
-			}
-
-			bakedQuad.texture->bindTexture();
-
-			glBegin(GL_QUADS);
-			glTexCoord2d(0, 0); glVertex3d(x + xOffset, y + yOffset, 0);
-			glTexCoord2d(1, 0); glVertex3d(x + w + xOffset, y + yOffset, 0);
-			glTexCoord2d(1, 1); glVertex3d(x + w + xOffset, y + h + yOffset, 0);
-			glTexCoord2d(0, 1); glVertex3d(x + xOffset, y + h + yOffset, 0);
-			glEnd();
-
-			bakedQuad.texture->clearTexture();
 		}
 
 		// Restore the projection matrix

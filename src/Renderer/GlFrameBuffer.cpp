@@ -1,6 +1,7 @@
 #include "GlFrameBuffer.h"
 #include "GlCommon.h"
 #include "GLStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlTexture.h"
 #include "Logger.h"
 
@@ -173,71 +174,52 @@ void GlFrameBuffer::disposeResources()
 	m_bIsValid= false;
 }
 
-bool GlFrameBuffer::bindFrameBuffer(GlState& glState)
+void GlFrameBuffer::bindObject(GlState& glState)
 {
-	if (!m_bIsBound)
+	if (!m_bIsBound && m_glFrameBufferId != -1)
 	{
-		if (m_glFrameBufferId != -1)
+		// Change the viewport to match the frame buffer texture
+		glStateSetViewport(glState, 0, 0, m_width, m_height);
+
+		// Cache the last frame buffer binding
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_lastGlFrameBufferId);
+
+		// Bind to framebuffer and draw scene as we normally would to color texture 
+		glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+
+		switch (m_frameBufferType)
 		{
-			// Cache GL state for restoration
-			// TODO: Cache the this in the glState object
-			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_lastGlFrameBufferId);
-			glGetIntegerv(GL_VIEWPORT, m_lastiewport);
-			glGetIntegerv(GL_DRAW_BUFFER, &m_lastDrawMode);
-			glGetIntegerv(GL_READ_BUFFER, &m_lastReadMode);
-
-			// Change the viewport to match the frame buffer texture
-			glViewport(0, 0, m_width, m_height);
-
-			// Bind to framebuffer and draw scene as we normally would to color texture 
-			glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
-
-			switch (m_frameBufferType)
-			{
-				case GlFrameBuffer::eFrameBufferType::COLOR:
-					{
-						glDrawBuffer(GL_COLOR_ATTACHMENT0);
-						glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-						glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-					}
-					break;
-				case GlFrameBuffer::eFrameBufferType::DEPTH:
-					{
-						// Since we only care about depth, tell OpenGL we're not going to render any color data
-						glDrawBuffer(GL_NONE);
-						glReadBuffer(GL_NONE);
-
-						glClear(GL_DEPTH_BUFFER_BIT);
-						glState.enableFlag(eGlStateFlagType::depthTest);
-					}
-					break;
-				default:
-					break;
-			}
-
-			m_bIsBound = true;
-
-			return true;
+			case GlFrameBuffer::eFrameBufferType::COLOR:
+				{
+					glStateSetDrawBuffer(glState, eGlFrameBuffer::COLOR_ATTACHMENT0);
+					glStateSetReadBuffer(glState, eGlFrameBuffer::COLOR_ATTACHMENT0);
+					glStateSetClearColor(glState, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				}
+				break;
+			case GlFrameBuffer::eFrameBufferType::DEPTH:
+				{
+					// Since we only care about depth, tell OpenGL we're not going to render any color data
+					glStateSetDrawBuffer(glState, eGlFrameBuffer::NONE);
+					glStateSetReadBuffer(glState, eGlFrameBuffer::NONE);
+					glClear(GL_DEPTH_BUFFER_BIT);
+					glState.enableFlag(eGlStateFlagType::depthTest);
+				}
+				break;
+			default:
+				break;
 		}
-	}
 
-	return false;
+		m_bIsBound = true;
+	}
 }
 
-void GlFrameBuffer::unbindFrameBuffer()
+void GlFrameBuffer::unbindObject()
 {
 	if (m_bIsBound)
 	{
 		// Unbind the layer frame buffer
 		glBindFramebuffer(GL_FRAMEBUFFER, m_lastGlFrameBufferId);
-
-		// Restore the viewport
-		glViewport(m_lastiewport[0], m_lastiewport[1], (GLsizei)m_lastiewport[2], (GLsizei)m_lastiewport[3]);
-
-		glDrawBuffer(m_lastDrawMode);
-		glReadBuffer(m_lastReadMode);
 
 		m_bIsBound= false;
 	}

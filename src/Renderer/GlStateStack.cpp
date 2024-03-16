@@ -29,32 +29,33 @@ GlState::GlState(GlStateStack& ownerStack, const int stackDepth)
 	}
 	else
 	{
-		// Initialize all stack vars with defaults
-		memset(&m_flags, 0, sizeof(m_flags));
+		// Fetch the initial state of all the flags
+		for (int flagIndex = 0; flagIndex < (int)eGlStateFlagType::COUNT; ++flagIndex)
+		{
+			const GLenum glFlag = g_glFlagTypeMapping[flagIndex];
+
+			m_flags[flagIndex] = (glIsEnabled(glFlag) == GL_TRUE);
+		}
 	}
 }
 
 GlState::~GlState()
 {
-	for (int flagIndex = 0; flagIndex < (int)eGlStateFlagType::COUNT; ++flagIndex)
+	// Restore to the parent flags, if there is a parent state
+	if (m_parentState != nullptr)
 	{
-		const eGlStateFlagValue flagValue = m_flags[flagIndex];
-		const eGlStateFlagValue parentFlagValue= 
-			(m_parentState != nullptr) 
-			? m_parentState->m_flags[flagIndex] 
-			: eGlStateFlagValue::unset;
-
-		if (flagValue != parentFlagValue)
+		for (int flagIndex = 0; flagIndex < (int)eGlStateFlagType::COUNT; ++flagIndex)
 		{
-			GLenum glFlag= g_glFlagTypeMapping[flagIndex];
+			const GLenum glFlag = g_glFlagTypeMapping[flagIndex];
+			const bool parentFlagValue = m_parentState->m_flags[flagIndex];
 
-			if (flagValue == eGlStateFlagValue::enabled)
-			{
-				glDisable(glFlag);
-			}
-			else if (flagValue == eGlStateFlagValue::disabled)
+			if (parentFlagValue)
 			{
 				glEnable(glFlag);
+			}
+			else
+			{
+				glDisable(glFlag);
 			}
 		}
 	}
@@ -68,24 +69,16 @@ GlState::~GlState()
 
 GlState& GlState::enableFlag(eGlStateFlagType flagType)
 {
-	const eGlStateFlagValue flagValue= m_flags[(int)flagType];
-	if (flagValue != eGlStateFlagValue::enabled)
-	{
-		glEnable(g_glFlagTypeMapping[(int)flagType]);
-		m_flags[(int)flagType]= eGlStateFlagValue::enabled;
-	}
+	glEnable(g_glFlagTypeMapping[(int)flagType]);
+	m_flags[(int)flagType]= true;
 
 	return *this;
 }
 
 GlState& GlState::disableFlag(eGlStateFlagType flagType)
 {
-	const eGlStateFlagValue flagValue = m_flags[(int)flagType];
-	if (flagValue != eGlStateFlagValue::disabled)
-	{
-		glDisable(g_glFlagTypeMapping[(int)flagType]);
-		m_flags[(int)flagType] = eGlStateFlagValue::disabled;
-	}
+	glDisable(g_glFlagTypeMapping[(int)flagType]);
+	m_flags[(int)flagType] = false;
 
 	return *this;
 }
