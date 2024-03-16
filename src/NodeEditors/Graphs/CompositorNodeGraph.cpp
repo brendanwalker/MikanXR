@@ -428,7 +428,10 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 	}
 
 	// (Re)Initialize the frame buffer if it's in an invalid state
-	m_compositingFrameBuffer->createResources();
+	if (!m_compositingFrameBuffer->isValid())
+	{
+		m_compositingFrameBuffer->createResources();
+	}
 }
 
 // -- CompositorNodeGraphFactory ----
