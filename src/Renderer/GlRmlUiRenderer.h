@@ -53,9 +53,6 @@ public:
 	void beginFrame(GlState& glState);
 	void endFrame();
 
-	// Optional, can be used to clear the framebuffer.
-	//void clear();
-
 	// -- Inherited from Rml::RenderInterface --
 	void RenderGeometry(
 		Rml::Vertex* vertices, int num_vertices, 

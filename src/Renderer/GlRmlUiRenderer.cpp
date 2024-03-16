@@ -491,13 +491,6 @@ void GlRmlUiRender::endFrame()
 {
 }
 
-//void GlRmlUiRender::clear()
-//{
-//	glClearStencil(0);
-//	glClearColor(0, 0, 0, 1);
-//	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-//}
-
 void GlRmlUiRender::RenderGeometry(
 	Rml::Vertex* vertices, int num_vertices, 
 	int* indices, int num_indices, 
