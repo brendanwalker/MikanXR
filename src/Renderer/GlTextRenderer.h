@@ -16,12 +16,14 @@
 class GlTextRenderer
 {
 public:
-	GlTextRenderer();
+	GlTextRenderer(class IGlWindow* ownerWindow);
 
-	void render(class IGlWindow* window);
+	void render();
 	void addTextAtScreenPosition(const TextStyle& style, const glm::vec2& screenCoords, const std::wstring& text);
 
 protected:
+	class IGlWindow* m_ownerWindow= nullptr;
+
 	struct BakedTextQuad
 	{
 		glm::vec2 screenCoords;

@@ -15,17 +15,19 @@
 
 #include "glm/ext/matrix_projection.hpp"
 
-GlTextRenderer::GlTextRenderer()
+GlTextRenderer::GlTextRenderer(IGlWindow* ownerWindow)
+	: m_ownerWindow(ownerWindow)
 {
 }
 
-void GlTextRenderer::render(IGlWindow* window)
+void GlTextRenderer::render()
 {
+	// TODO: This should be rendered using a shader program
 	if (m_bakedTextQuads.size() > 0)
 	{
 		// Fetch the window resolution
-		const float screenWidth = window->getWidth();
-		const float screenHeight = window->getHeight();
+		const float screenWidth = m_ownerWindow->getWidth();
+		const float screenHeight = m_ownerWindow->getHeight();
 
 		// Save a back up of the projection matrix and replace with an orthographic projection,
 		// Where units = screen pixels, origin at top left
@@ -43,14 +45,16 @@ void GlTextRenderer::render(IGlWindow* window)
 		glLoadIdentity();
 
 		{
-			GlScopedState stateScope = window->getGlStateStack().createScopedState();
+			GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState();
 			GlState& glState= stateScope.getStackState();
 
-			glState
-				.disableFlag(eGlStateFlagType::depthTest)
-				.enableFlag(eGlStateFlagType::blend);
+			// Needed when drawing textured quads without a fragment shader
+			// TODO: Get rid of this when we have a shader program
+			glState.enableFlag(eGlStateFlagType::texture2d);
 
-			// Turn on alpha blending for text rendering text
+			// Render text ove rtop of everything with alpha blending
+			glState.disableFlag(eGlStateFlagType::depthTest);
+			glState.enableFlag(eGlStateFlagType::blend);
 			glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);
 
 			// Render all of the baked quads
