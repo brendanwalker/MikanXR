@@ -364,13 +364,12 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 	BindUniformCallback callback) const
 {
 	bool bMaterialInstanceFailure= false;
+	UniformNameSet unboundUniforms = materialBinding.getUnboundUniforms();
 
 	if (m_parentMaterial != nullptr && 
 		materialBinding.getBoundMaterial() == m_parentMaterial)
 	{
-		UniformNameSet unboundUniforms= materialBinding.getUnboundUniforms();
 		GlProgramPtr program= m_parentMaterial->getProgram();
-
 
 		// Auto-apply callback specific uniform bindings first
 		if (callback)
@@ -490,7 +489,7 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 		bMaterialInstanceFailure= true;
 	}
 
-	return GlScopedMaterialInstanceBinding(shared_from_this(), bMaterialInstanceFailure);
+	return GlScopedMaterialInstanceBinding(shared_from_this(), unboundUniforms, bMaterialInstanceFailure);
 }
 
 void GlMaterialInstance::unbindMaterialInstance() const

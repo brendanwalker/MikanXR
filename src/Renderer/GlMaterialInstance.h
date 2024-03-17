@@ -21,17 +21,21 @@ public:
 	GlScopedMaterialInstanceBinding() : m_boundMaterialInstance(nullptr) {}
 	GlScopedMaterialInstanceBinding(
 		GlMaterialInstanceConstPtr materialInstance,
+		UniformNameSet unboundUniformNames,
 		bool bMaterialInstanceFailure) 
 		: m_boundMaterialInstance(materialInstance) 
+		, m_unboundUniformNames(unboundUniformNames)
 		, m_bMaterialInstanceFailure(bMaterialInstanceFailure)
 	{}
 	virtual ~GlScopedMaterialInstanceBinding();
 
 	inline GlMaterialInstanceConstPtr getBoundMaterialInstance() const { return m_boundMaterialInstance; }
+	inline const UniformNameSet& getUnboundUniforms() const { return m_unboundUniformNames; }
 	inline operator bool() const { return !m_bMaterialInstanceFailure; }
 
 private:
 	GlMaterialInstanceConstPtr m_boundMaterialInstance = nullptr;
+	UniformNameSet m_unboundUniformNames;
 	bool m_bMaterialInstanceFailure= false;
 };
 
