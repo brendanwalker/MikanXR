@@ -712,7 +712,7 @@ GlTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
 	switch (m_evaluatorWindow)
 	{
 		case eCompositorEvaluatorWindow::mainWindow:
-			return m_nodeGraph->getCompositedFrameTexture();
+			return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : GlTextureConstPtr();
 		case eCompositorEvaluatorWindow::editorWindow:
 			return m_editorFrameBufferTexture;
 	}

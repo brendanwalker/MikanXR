@@ -188,7 +188,7 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 GlTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
 {
-	return m_compositingFrameBuffer->getTexture();
+	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getTexture() : GlTextureConstPtr();
 }
 
 void CompositorNodeGraph::setExternalCompositedFrameTexture(GlTexturePtr externalTexture)
