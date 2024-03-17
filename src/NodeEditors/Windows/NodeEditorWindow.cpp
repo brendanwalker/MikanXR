@@ -366,11 +366,11 @@ void NodeEditorWindow::renderNodeEvalErrors()
 		size_t errorIter= 0;
 		while (errorIter < m_lastNodeEvalErrors.size())
 		{
-			const NodeEvaluationError& currentError= m_lastNodeEvalErrors[errorIter];
-			const std::string evalWindowId= StringUtils::stringify("Eval Error##Node", currentError.errorNodeId);
+			const NodeEvaluationError* currentError= &m_lastNodeEvalErrors[errorIter];
+			const std::string evalWindowId= StringUtils::stringify("Eval Error##Node", currentError->errorNodeId);
 
 			static const float k_errorWindowOffset = 50.f;
-			ImVec2 errorPos = ImNodes::GetNodeScreenSpacePos(currentError.errorNodeId);
+			ImVec2 errorPos = ImNodes::GetNodeScreenSpacePos(currentError->errorNodeId);
 			errorPos.y -= k_errorWindowOffset;
 
 			ImGui::SetNextWindowPos(errorPos);
@@ -384,7 +384,7 @@ void NodeEditorWindow::renderNodeEvalErrors()
 			while (errorIter < m_lastNodeEvalErrors.size())
 			{
 				// Add a bullet point for each error on the same node
-				ImGui::BulletText(currentError.errorMessage.c_str());
+				ImGui::BulletText(currentError->errorMessage.c_str());
 
 				// Advance to the next error message on this node
 				errorIter++;
@@ -392,8 +392,13 @@ void NodeEditorWindow::renderNodeEvalErrors()
 				// If the next error is on a different node, move on to the next error window
 				if (errorIter < m_lastNodeEvalErrors.size())
 				{
-					const NodeEvaluationError& nextError= m_lastNodeEvalErrors[errorIter];
-					if (nextError.errorNodeId != currentError.errorNodeId)
+					const NodeEvaluationError* nextError= &m_lastNodeEvalErrors[errorIter];
+
+					if (nextError->errorNodeId == currentError->errorNodeId)
+					{
+						currentError= nextError;
+					}
+					else
 					{
 						break;
 					}
