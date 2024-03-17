@@ -97,7 +97,7 @@ void GlLineRenderer::render()
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
 	{
-		GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState();
+		GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer");
 		GlState& glState = stateScope.getStackState();
 
 		// This has to be enabled since the point drawing shader will use gl_PointSize.
@@ -113,7 +113,7 @@ void GlLineRenderer::render()
 			{
 				const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState();
+				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer_3dLines");
 				if (m_bDisable3dDepth)
 				{
 					scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
@@ -136,7 +136,7 @@ void GlLineRenderer::render()
 
 			{
 				// disable the depth buffer to allow overdraw 
-				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState();
+				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer_2dLines");
 				scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 				m_points2d.drawGlBufferState(GL_POINTS);
@@ -216,6 +216,7 @@ void GlLineRenderer::PointBufferState::createGlBufferState(GlProgramPtr program)
 	checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
 	glBindVertexArray(m_pointVAO);
+	glObjectLabel(GL_VERTEX_ARRAY, m_pointVAO, -1, "LineRendererPoints");
 	glBindBuffer(GL_ARRAY_BUFFER, m_pointVBO);
 
 	glBufferData(GL_ARRAY_BUFFER, m_maxPoints * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);

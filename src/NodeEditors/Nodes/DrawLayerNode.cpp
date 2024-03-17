@@ -253,7 +253,8 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 		}
 
 		{
-			GlScopedState glStateScope = evaluator.getCurrentWindow()->getGlStateStack().createScopedState();
+			GlScopedState glStateScope = 
+				evaluator.getCurrentWindow()->getGlStateStack().createScopedState("Draw Layer Node");
 			GlState& glState = glStateScope.getStackState();
 
 			// Set the blend mode
@@ -587,7 +588,7 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glParentState)
 	}
 
 	{
-		GlScopedState stateScope= glParentState.getOwnerStateStack().createScopedState();
+		GlScopedState stateScope= glParentState.getOwnerStateStack().createScopedState("evaluateQuadStencils");
 		GlState& glState= stateScope.getStackState();
 
 		glStateSetStencilBufferClearValue(glState, 0);
@@ -678,7 +679,7 @@ void DrawLayerNode::evaluateBoxStencils(GlState& glParentState)
 		return;
 
 	{
-		GlScopedState stateScope = glParentState.getOwnerStateStack().createScopedState();
+		GlScopedState stateScope = glParentState.getOwnerStateStack().createScopedState("evaluateBoxStencils");
 		GlState& glState = stateScope.getStackState();
 
 		glStateSetStencilBufferClearValue(glState, 0);
@@ -768,7 +769,7 @@ void DrawLayerNode::evaluateModelStencils(GlState& glParentState)
 		return;
 
 	{
-		GlScopedState stateScope = glParentState.getOwnerStateStack().createScopedState();
+		GlScopedState stateScope = glParentState.getOwnerStateStack().createScopedState("evaluateModelStencils");
 		GlState& glState = stateScope.getStackState();
 
 		glStateSetStencilBufferClearValue(glState, 0);

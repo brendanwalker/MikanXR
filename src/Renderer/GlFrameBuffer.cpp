@@ -43,6 +43,10 @@ bool GlFrameBuffer::createColorFrameBuffer()
 	// Create new frame buffer
 	glGenFramebuffers(1, &m_glFrameBufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+	if (!m_name.empty())
+	{
+		glObjectLabel(GL_FRAMEBUFFER, m_glFrameBufferId, -1, m_name.c_str());
+	}
 
 	// Create a color attachment texture with a double buffered pixel-buffer-object for reading
 	if (!m_texture)
@@ -61,6 +65,10 @@ bool GlFrameBuffer::createColorFrameBuffer()
 	// Create depth render buffer attachment for the depth (don't need to read back the depth buffer)
 	glGenRenderbuffers(1, &m_glRenderBufferID);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_glRenderBufferID);
+	if (!m_name.empty())
+	{
+		glObjectLabel(GL_RENDERBUFFER, m_glRenderBufferID, -1, m_name.c_str());
+	}
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_glRenderBufferID);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
@@ -85,10 +93,18 @@ bool GlFrameBuffer::createDepthFrameBuffer()
 	// Create new frame buffer
 	glGenFramebuffers(1, &m_glFrameBufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+	if (!m_name.empty())
+	{
+		glObjectLabel(GL_FRAMEBUFFER, m_glFrameBufferId, -1, m_name.c_str());
+	}
 
 	// Create a color render buffer attachment (don't need to read back the color buffer)
 	glGenRenderbuffers(1, &m_glRenderBufferID);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_glRenderBufferID);
+	if (!m_name.empty())
+	{
+		glObjectLabel(GL_RENDERBUFFER, m_glRenderBufferID, -1, m_name.c_str());
+	}
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, m_width, m_height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_glRenderBufferID);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);

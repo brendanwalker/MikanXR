@@ -63,7 +63,13 @@ GlState::~GlState()
 	// Revert the effect of the modifiers applied in this state
 	for (auto modifierIt = m_modifiers.begin(); modifierIt != m_modifiers.end(); ++modifierIt)
 	{
-		modifierIt->second->revert();
+		GlStateModifierPtr modifer= modifierIt->second;
+
+		// If this modifier was first created in this state, revert it
+		if (modifer->getOwnerStateStackDepth() == m_stackDepth)
+		{
+			modifierIt->second->revert();
+		}
 	}
 }
 
@@ -105,8 +111,14 @@ GlState& GlState::addModifier(GlStateModifierPtr modifier)
 }
 
 // -- GlScopedState -----
-GlScopedState::GlScopedState(GlState& state) : m_state(state)
+GlScopedState::GlScopedState(const std::string& scopeName, GlState& state) 
+	: m_scopeName(scopeName)
+	, m_state(state)
 {
+	if (!m_scopeName.empty())
+	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, m_scopeName.c_str());
+	}
 }
 
 GlScopedState::~GlScopedState()
@@ -114,6 +126,11 @@ GlScopedState::~GlScopedState()
 	// Make sure we are deleting the state on the top of the stack
 	assert(m_state.getOwnerStateStack().getCurrentStackDepth() == m_state.getStackDepth());
 	m_state.getOwnerStateStack().popState();
+
+	if (!m_scopeName.empty())
+	{
+		glPopDebugGroup();
+	}
 }
 
 // -- GlStateStack -----
@@ -160,8 +177,8 @@ void GlStateStack::popState()
 	}
 }
 
-GlScopedState GlStateStack::createScopedState()
+GlScopedState GlStateStack::createScopedState(const std::string& scopeName)
 {
 	// Create a state that will get auto cleaned up when GLScopedState goes out of scope
-	return GlScopedState(pushState());
+	return GlScopedState(scopeName, pushState());
 }

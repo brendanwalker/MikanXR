@@ -6,6 +6,7 @@
 #include "GlCommon.h"
 #include "GlModelResourceManager.h"
 #include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlShaderCache.h"
 #include "GlTexture.h"
 #include "GlTextureCache.h"
@@ -197,19 +198,18 @@ bool NodeEditorWindow::startup()
 
 	if (success)
 	{
-		static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
-
-		glClearColor(k_clear_color.r, k_clear_color.g, k_clear_color.b, k_clear_color.a);
-		glViewport(0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
-
 		// Set default state flags at the base of the stack
-		m_glStateStack->pushState()
-			.enableFlag(eGlStateFlagType::light0)
-			.enableFlag(eGlStateFlagType::texture2d)
-			.enableFlag(eGlStateFlagType::depthTest)
-			.disableFlag(eGlStateFlagType::cullFace)
-			// This has to be enabled since the point drawing shader will use gl_PointSize.
-			.enableFlag(eGlStateFlagType::programPointSize);
+		GlState& glBaseState= m_glStateStack->pushState();
+		assert(glBaseState.getStackDepth() == 0);
+
+		glBaseState
+		.enableFlag(eGlStateFlagType::texture2d)
+		.enableFlag(eGlStateFlagType::depthTest)
+		.disableFlag(eGlStateFlagType::cullFace);
+
+		static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
+		glStateSetClearColor(glBaseState, k_clear_color);
+		glStateSetViewport(glBaseState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
 	}
 
 	return success;

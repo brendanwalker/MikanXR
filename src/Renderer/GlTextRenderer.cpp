@@ -45,7 +45,7 @@ void GlTextRenderer::render()
 		glLoadIdentity();
 
 		{
-			GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState();
+			GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("GlTextRenderer");
 			GlState& glState= stateScope.getStackState();
 
 			// Needed when drawing textured quads without a fragment shader

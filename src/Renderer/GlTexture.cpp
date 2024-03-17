@@ -62,6 +62,11 @@ bool GlTexture::createTexture()
 		glGenTextures(1, &m_glTextureId);
 		glBindTexture(GL_TEXTURE_2D, m_glTextureId);
 
+		if (!m_name.empty())
+		{
+			glObjectLabel(GL_TEXTURE, m_glTextureId, -1, m_name.c_str());
+		}
+
 		if (m_textureFormat == GL_R8)
 		{
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);

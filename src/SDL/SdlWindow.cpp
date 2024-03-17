@@ -374,11 +374,12 @@ static void APIENTRY GLDebugMessageCallback(
 			break;
 	}
 
-	eGLErrorSeverity minSeverity= eGLErrorSeverity::notification;
+	eGLErrorSeverity minSeverity= eGLErrorSeverity::low;
 	switch (glMesgType)
 	{
 		case GL_DEBUG_TYPE_ERROR:
 			glErrorTypeStr = "ERROR";
+			minSeverity= eGLErrorSeverity::notification;
 			break;
 
 		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
@@ -388,6 +389,7 @@ static void APIENTRY GLDebugMessageCallback(
 
 		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
 			glErrorTypeStr = "UDEFINED BEHAVIOR";
+			minSeverity= eGLErrorSeverity::notification;
 			break;
 
 		case GL_DEBUG_TYPE_PORTABILITY:
@@ -407,10 +409,12 @@ static void APIENTRY GLDebugMessageCallback(
 
 		case GL_DEBUG_TYPE_MARKER:
 			glErrorTypeStr = "MARKER";
+			minSeverity= eGLErrorSeverity::low;
 			break;
 
 		default:
 			glErrorTypeStr = "UNKNOWN";
+			minSeverity= eGLErrorSeverity::low;
 			break;
 	}
 
@@ -441,12 +445,43 @@ static void APIENTRY GLDebugMessageCallback(
 	// ignore notification severity (you can add your own ignores)
 	if ((int)eventSeverity >= (int)minSeverity)
 	{
-		MIKAN_LOG_ERROR("GlDebugCallback") <<
-			"OpenGL debug event [" << glMesgId << "]: "
-			<< glErrorTypeStr << " of "
-			<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
-			<< glErrorSourceStr << ": "
-			<< szGlMessage;
+		switch (eventSeverity)
+		{
+			case eGLErrorSeverity::high:
+			case eGLErrorSeverity::unknown:
+				{
+					MIKAN_LOG_ERROR("GlDebugCallback") <<
+						"OpenGL debug event [" << glMesgId << "]: "
+						<< glErrorTypeStr << " of "
+						<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
+						<< glErrorSourceStr << ": "
+						<< szGlMessage;
+				}
+				break;
+			case eGLErrorSeverity::medium:
+				{
+					MIKAN_LOG_WARNING("GlDebugCallback") <<
+						"OpenGL debug event [" << glMesgId << "]: "
+						<< glErrorTypeStr << " of "
+						<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
+						<< glErrorSourceStr << ": "
+						<< szGlMessage;
+				}
+				break;
+			case eGLErrorSeverity::low:
+			case eGLErrorSeverity::notification:
+				{
+					MIKAN_LOG_INFO("GlDebugCallback") <<
+						"OpenGL debug event [" << glMesgId << "]: "
+						<< glErrorTypeStr << " of "
+						<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
+						<< glErrorSourceStr << ": "
+						<< szGlMessage;
+				}
+				break;
+			default:
+				assert(false);
+		}
 
 	#ifdef _DEBUG
 		if ((int)eventSeverity >= (int)eGLErrorSeverity::high)

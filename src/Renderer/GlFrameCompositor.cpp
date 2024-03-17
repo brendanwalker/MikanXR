@@ -752,7 +752,7 @@ void GlFrameCompositor::render() const
 	GlTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
 	if (compositedFrameTexture)
 	{
-		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState();
+		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState("GlFrameCompositorRender");
 		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 		// Draw the composited video frame
@@ -1012,6 +1012,7 @@ void GlFrameCompositor::createVertexBuffers()
 	glGenVertexArrays(1, &m_layerQuadVAO);
 	glGenBuffers(1, &m_layerQuadVBO);
 	glBindVertexArray(m_layerQuadVAO);
+	glObjectLabel(GL_VERTEX_ARRAY, m_layerQuadVAO, -1, "FrameCompositorLayerQuad");
 	glBindBuffer(GL_ARRAY_BUFFER, m_layerQuadVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(layerQuadVertices), &layerQuadVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
@@ -1023,6 +1024,7 @@ void GlFrameCompositor::createVertexBuffers()
 	glGenVertexArrays(1, &m_videoQuadVAO);
 	glGenBuffers(1, &m_videoQuadVBO);
 	glBindVertexArray(m_videoQuadVAO);
+	glObjectLabel(GL_VERTEX_ARRAY, m_videoQuadVAO, -1, "FrameCompositorVideoQuad");
 	glBindBuffer(GL_ARRAY_BUFFER, m_videoQuadVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(videoQuadVertices), &videoQuadVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);

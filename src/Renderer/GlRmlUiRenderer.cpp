@@ -521,6 +521,7 @@ Rml::CompiledGeometryHandle GlRmlUiRender::CompileGeometry(
 	glGenBuffers(1, &vbo);
 	glGenBuffers(1, &ibo);
 	glBindVertexArray(vao);
+	glObjectLabel(GL_VERTEX_ARRAY, vao, -1, "RmlUICompileGeometry");
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Rml::Vertex) * num_vertices, (const void*)vertices, draw_usage);
@@ -553,6 +554,7 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 		program= shaders->program_texture;
 		program->bindProgram();
 
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, geometry->texture);
 		SubmitTransformUniform(ProgramId::Texture);
 
@@ -572,6 +574,11 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 	glBindVertexArray(geometry->vao);
 	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
 	glBindVertexArray(0);
+
+	if (geometry->texture)
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 
 	checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 

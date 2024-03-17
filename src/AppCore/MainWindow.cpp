@@ -71,7 +71,7 @@ MainWindow::MainWindow()
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
 	, m_lineRenderer(GlLineRendererUniquePtr(new GlLineRenderer(this)))
-	, m_textRenderer(GlTextRendererUniquePtr(new GlTextRenderer))
+	, m_textRenderer(GlTextRendererUniquePtr(new GlTextRenderer(this)))
 	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
@@ -243,17 +243,18 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		glClearColor(k_clear_color.r, k_clear_color.g, k_clear_color.b, k_clear_color.a);
-		glViewport(0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
+		// Create the base GL state for the window
+		GlState& glState= m_glStateStack->pushState();
+		assert(glState.getStackDepth() == 0);
 
 		// Set default state flags at the base of the stack
-		m_glStateStack->pushState()
-			.enableFlag(eGlStateFlagType::light0)
-			.enableFlag(eGlStateFlagType::texture2d)
-			.enableFlag(eGlStateFlagType::depthTest)
-			.disableFlag(eGlStateFlagType::cullFace)
-			// This has to be enabled since the point drawing shader will use gl_PointSize.
-			.enableFlag(eGlStateFlagType::programPointSize);
+		glState.disableFlag(eGlStateFlagType::cullFace);
+
+		// Set the default clear color
+		glStateSetClearColor(glState, k_clear_color);
+
+		// Default to the full window viewport
+		glStateSetViewport(glState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
 		m_uiViewport = 
@@ -315,7 +316,7 @@ void MainWindow::render()
 		{
 			EASY_BLOCK("appStage render");
 
-			GlScopedState scopedState = m_glStateStack->createScopedState();
+			GlScopedState scopedState = m_glStateStack->createScopedState("appStage render");
 			GlState& glState= scopedState.getStackState();
 
 			renderStageBegin(viewpoint, glState);
@@ -327,7 +328,7 @@ void MainWindow::render()
 		{
 			EASY_BLOCK("appStage renderUI");
 
-			GlScopedState scopedState = m_glStateStack->createScopedState();
+			GlScopedState scopedState = m_glStateStack->createScopedState("appStage renderUI");
 			GlState& glState = scopedState.getStackState();
 
 			renderUIBegin(glState);
@@ -557,7 +558,7 @@ void MainWindow::renderStageEnd()
 	m_lineRenderer->render();
 
 	// Render any glyphs emitted by the AppStage
-	m_textRenderer->render(this);
+	m_textRenderer->render();
 
 	m_renderingViewport = nullptr;
 	m_isRenderingStage = false;
@@ -585,7 +586,7 @@ void MainWindow::renderUIEnd()
 	m_lineRenderer->render();
 
 	// Render any glyphs emitted by the AppStage renderUI phase
-	m_textRenderer->render(this);
+	m_textRenderer->render();
 
 	m_renderingViewport = nullptr;
 	m_isRenderingUI = false;

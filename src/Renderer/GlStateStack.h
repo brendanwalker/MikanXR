@@ -3,6 +3,7 @@
 #include "IGLStateModifier.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 #include <map>
 
@@ -47,13 +48,14 @@ private:
 class GlScopedState
 {
 public:
-	GlScopedState(class GlState& state);
+	GlScopedState(const std::string& scopeName, class GlState& state);
 	virtual ~GlScopedState();
 
 	inline GlState& getStackState() const { return m_state; }
 	inline int getStackDepth() const { return m_state.getStackDepth(); }
 
 private:
+	std::string m_scopeName;
 	GlState& m_state;
 };
 
@@ -70,7 +72,7 @@ public:
 	GlState* getState(const int depth) const;
 	inline GlState* getCurrentState() const { return getState(getCurrentStackDepth()); }
 
-	GlScopedState createScopedState();
+	GlScopedState createScopedState(const std::string& scopeName);
 
 private:
 	std::vector<class GlState*> m_stateStack;

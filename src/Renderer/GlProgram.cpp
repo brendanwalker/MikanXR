@@ -437,6 +437,8 @@ bool GlProgram::setTextureUniform(
 
 bool GlProgram::compileProgram()
 {
+	const std::string& programName= m_code.getProgramName();
+
 	// Nuke any existing program
 	deleteProgram();
 
@@ -447,13 +449,22 @@ bool GlProgram::compileProgram()
 		{
 			MIKAN_LOG_ERROR("GlProgram::createProgram") << "glCreateProgram failed";
 			return false;
-		}		
+		}
+
+		if (!programName.empty())
+		{
+			glObjectLabel(GL_PROGRAM, m_programID, -1, programName.c_str());
+		}
 
 		uint32_t nSceneVertexShader = glCreateShader(GL_VERTEX_SHADER);
 		if (nSceneVertexShader == 0)
 		{
 			checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 			return false;
+		}
+		if (!programName.empty())
+		{
+			glObjectLabel(GL_SHADER, nSceneVertexShader, -1, programName.c_str());
 		}
 
 		const GLchar* vertexShaderSource = (const GLchar*)m_code.getVertexShaderCode();
@@ -501,6 +512,11 @@ bool GlProgram::compileProgram()
 		glShaderSource(nSceneFragmentShader, 1, &fragmentShaderSource, nullptr);
 		glCompileShader(nSceneFragmentShader);
 		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+
+		if (!programName.empty())
+		{
+			glObjectLabel(GL_SHADER, nSceneFragmentShader, -1, programName.c_str());
+		}
 
 		int fShaderCompiled = 0;
 		glGetShaderiv(nSceneFragmentShader, GL_COMPILE_STATUS, &fShaderCompiled);

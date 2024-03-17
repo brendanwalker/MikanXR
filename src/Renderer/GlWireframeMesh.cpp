@@ -100,6 +100,10 @@ bool GlWireframeMesh::createResources()
 	// create and bind a Vertex Array Object(VAO) to hold state for this model
 	glGenVertexArrays(1, &m_glVertArray);
 	glBindVertexArray(m_glVertArray);
+	if (!m_name.empty())
+	{
+		glObjectLabel(GL_VERTEX_ARRAY, m_glVertArray, -1, m_name.c_str());
+	}
 
 	// Populate a vertex buffer
 	glGenBuffers(1, &m_glVertBuffer);

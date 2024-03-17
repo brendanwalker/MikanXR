@@ -6,13 +6,29 @@
 #include "memory"
 #include "vector"
 
+// -- GlStateModifierBase --
+class GLStateModifierBase : public IGlStateModifier
+{
+public:
+	GLStateModifierBase() = delete;
+	GLStateModifierBase(GlState& glState)
+	: m_ownerStateStackDepth(glState.getStackDepth())
+	{}
+
+	virtual int getOwnerStateStackDepth() const override { return m_ownerStateStackDepth; }
+
+protected:
+	int m_ownerStateStackDepth;
+};
+
 // -- GlStateSetViewport --
-class GLStateSetViewportImpl : public IGlStateModifier
+class GLStateSetViewportImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetViewportImpl() = delete;
-	GLStateSetViewportImpl(int x, int y, int width, int height)
-		: m_prevX(x), m_prevY(y), m_prevWidth(width), m_prevHeight(height)
+	GLStateSetViewportImpl(GlState& glState, int x, int y, int width, int height)
+		: GLStateModifierBase(glState)
+		, m_prevX(x), m_prevY(y), m_prevWidth(width), m_prevHeight(height)
 		, m_x(x), m_y(y), m_width(width), m_height(height)
 	{
 
@@ -55,16 +71,17 @@ private:
 
 void glStateSetViewport(GlState& glState, int x, int y, int width, int height)
 {
-	glState.addModifier(std::make_shared<GLStateSetViewportImpl>(x, y, width, height));
+	glState.addModifier(std::make_shared<GLStateSetViewportImpl>(glState, x, y, width, height));
 }
 
 // -- GLStateSetClearColor --
-class GLStateSetClearColorImpl : public IGlStateModifier
+class GLStateSetClearColorImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetClearColorImpl() = delete;
-	GLStateSetClearColorImpl(const glm::vec4& color)
-		: m_prevClearColor(color)
+	GLStateSetClearColorImpl(GlState& glState, const glm::vec4& color)
+		: GLStateModifierBase(glState)
+		, m_prevClearColor(color)
 		, m_clearColor(color)
 	{}
 
@@ -102,16 +119,17 @@ private:
 
 void glStateSetClearColor(GlState& glState, const glm::vec4& color)
 {
-	glState.addModifier(std::make_shared<GLStateSetClearColorImpl>(color));
+	glState.addModifier(std::make_shared<GLStateSetClearColorImpl>(glState, color));
 }
 
 // -- GLStateSetColorMask --
-class GLStateSetColorMaskImpl : public IGlStateModifier
+class GLStateSetColorMaskImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetColorMaskImpl() = delete;
-	GLStateSetColorMaskImpl(const glm::bvec4& colorMask)
-		: m_prevColorMask(colorMask)
+	GLStateSetColorMaskImpl(GlState& glState, const glm::bvec4& colorMask)
+		: GLStateModifierBase(glState)
+		, m_prevColorMask(colorMask)
 		, m_colorMask(colorMask)
 	{}
 
@@ -157,16 +175,17 @@ private:
 
 void glStateSetColorMask(GlState& glState, const glm::bvec4& color_mask)
 {
-	glState.addModifier(std::make_shared<GLStateSetColorMaskImpl>(color_mask));
+	glState.addModifier(std::make_shared<GLStateSetColorMaskImpl>(glState, color_mask));
 }
 
 // -- GLStateSetDepthMask --
-class GLStateSetDepthMaskImpl : public IGlStateModifier
+class GLStateSetDepthMaskImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetDepthMaskImpl() = delete;
-	GLStateSetDepthMaskImpl(bool depthMask)
-		: m_prevDepthMask(depthMask)
+	GLStateSetDepthMaskImpl(GlState& glState, bool depthMask)
+		: GLStateModifierBase(glState)
+		, m_prevDepthMask(depthMask)
 		, m_depthMask(depthMask)
 	{}
 
@@ -201,16 +220,17 @@ private:
 
 void glStateSetDepthMask(GlState& glState, bool depth_mask)
 {
-	glState.addModifier(std::make_shared<GLStateSetDepthMaskImpl>(depth_mask));
+	glState.addModifier(std::make_shared<GLStateSetDepthMaskImpl>(glState, depth_mask));
 }
 
 // -- GLStateSetStencilBufferClearValue --
-class GLStateSetStencilBufferClearValueImpl : public IGlStateModifier
+class GLStateSetStencilBufferClearValueImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetStencilBufferClearValueImpl() = delete;
-	GLStateSetStencilBufferClearValueImpl(const int value)
-		: m_prevValue(value)
+	GLStateSetStencilBufferClearValueImpl(GlState& glState, const int value)
+		: GLStateModifierBase(glState)
+		, m_prevValue(value)
 		, m_value(value)
 	{}
 
@@ -243,16 +263,17 @@ private:
 
 void glStateSetStencilBufferClearValue(GlState& glState, int value)
 {
-	glState.addModifier(std::make_shared<GLStateSetStencilBufferClearValueImpl>(value));
+	glState.addModifier(std::make_shared<GLStateSetStencilBufferClearValueImpl>(glState, value));
 }
 
 // -- GLStateSetStencilMaskImpl --
-class GLStateSetStencilMaskImpl : public IGlStateModifier
+class GLStateSetStencilMaskImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetStencilMaskImpl() = delete;
-	GLStateSetStencilMaskImpl(const uint32_t mask)
-		: m_prevMask(mask)
+	GLStateSetStencilMaskImpl(GlState& glState, const uint32_t mask)
+		: GLStateModifierBase(glState)
+		, m_prevMask(mask)
 		, m_mask(mask)
 	{}
 
@@ -285,16 +306,17 @@ private:
 
 void glStateSetStencilMask(GlState& glState, uint32_t mask)
 {
-	glState.addModifier(std::make_shared<GLStateSetStencilMaskImpl>(mask));
+	glState.addModifier(std::make_shared<GLStateSetStencilMaskImpl>(glState, mask));
 }
 
 // -- GLStateSetStencilFunc --
-class GLStateSetStencilFuncImpl : public IGlStateModifier
+class GLStateSetStencilFuncImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetStencilFuncImpl() = delete;
-	GLStateSetStencilFuncImpl(eGlStencilFunction func, int ref, uint32_t mask)
-		: m_prevFunc(convertToGLenum(func))
+	GLStateSetStencilFuncImpl(GlState& glState, eGlStencilFunction func, int ref, uint32_t mask)
+		: GLStateModifierBase(glState)
+		, m_prevFunc(convertToGLenum(func))
 		, m_func(m_prevFunc)
 		, m_prevRef(ref)
 		, m_ref(ref)
@@ -356,16 +378,21 @@ private:
 
 void glStateSetStencilFunc(GlState& glState, eGlStencilFunction func, int ref, uint32_t mask)
 {
-	glState.addModifier(std::make_shared<GLStateSetStencilFuncImpl>(func, ref, mask));
+	glState.addModifier(std::make_shared<GLStateSetStencilFuncImpl>(glState, func, ref, mask));
 }
 
 // -- GLStateSetStencilOp --
-class GLStateSetStencilOpImpl : public IGlStateModifier
+class GLStateSetStencilOpImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetStencilOpImpl() = delete;
-	GLStateSetStencilOpImpl(eGlStencilOp stencil_fail, eGlStencilOp depth_fail, eGlStencilOp depth_stencil_pass)
-		: m_prevStencilTestFail(convertToGLenum(stencil_fail))
+	GLStateSetStencilOpImpl(
+		GlState& glState, 
+		eGlStencilOp stencil_fail, 
+		eGlStencilOp depth_fail, 
+		eGlStencilOp depth_stencil_pass)
+		: GLStateModifierBase(glState)
+		, m_prevStencilTestFail(convertToGLenum(stencil_fail))
 		, m_prevDepthTestFail(convertToGLenum(depth_fail))
 		, m_prevDepthStencilPass(convertToGLenum(depth_stencil_pass))
 		, m_stencilTestFail(m_prevStencilTestFail)
@@ -426,15 +453,16 @@ void glStateSetStencilOp(GlState& glState,
 {
 	glState.addModifier(
 		std::make_shared<GLStateSetStencilOpImpl>(
-			stencil_fail, depth_fail, depth_stencil_pass));
+			glState, stencil_fail, depth_fail, depth_stencil_pass));
 }
 // -- GLStateSetBlendEquation --
-class GLStateSetBlendEquationImpl : public IGlStateModifier
+class GLStateSetBlendEquationImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetBlendEquationImpl() = delete;
-	GLStateSetBlendEquationImpl(const eGlBlendEquation mode)
-		: m_prevMode(convertToGLenum(mode))
+	GLStateSetBlendEquationImpl(GlState& glState, const eGlBlendEquation mode)
+		: GLStateModifierBase(glState)
+		, m_prevMode(convertToGLenum(mode))
 		, m_mode(m_prevMode)
 	{}
 
@@ -481,16 +509,17 @@ private:
 
 void glStateSetBlendEquation(GlState& glState, eGlBlendEquation mode)
 {
-	glState.addModifier(std::make_shared<GLStateSetBlendEquationImpl>(mode));
+	glState.addModifier(std::make_shared<GLStateSetBlendEquationImpl>(glState, mode));
 }
 
 // -- GLStateSetBlendFunc --
-class GLStateSetBlendFuncImpl : public IGlStateModifier
+class GLStateSetBlendFuncImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetBlendFuncImpl() = delete;
-	GLStateSetBlendFuncImpl(eGlBlendFunction source_factor, eGlBlendFunction dest_factor)
-		: m_prevSourceFactor(convertToGLenum(source_factor))
+	GLStateSetBlendFuncImpl(GlState& glState, eGlBlendFunction source_factor, eGlBlendFunction dest_factor)
+		: GLStateModifierBase(glState)
+		, m_prevSourceFactor(convertToGLenum(source_factor))
 		, m_prevDestFactor(convertToGLenum(dest_factor))
 		, m_sourceFactor(m_prevSourceFactor)
 		, m_destFactor(m_prevDestFactor)
@@ -551,7 +580,7 @@ private:
 
 void glStateSetBlendFunc(GlState& glState, eGlBlendFunction source_factor, eGlBlendFunction dest_factor)
 {
-	glState.addModifier(std::make_shared<GLStateSetBlendFuncImpl>(source_factor, dest_factor));
+	glState.addModifier(std::make_shared<GLStateSetBlendFuncImpl>(glState, source_factor, dest_factor));
 }
 
 // -- GLStateSetDrawBufferModeFunc --
@@ -590,12 +619,13 @@ static GLenum convertGlFrameBufferToGLenum(eGlFrameBuffer mode)
 	return GL_ONE;
 }
 
-class GLStateSetDrawBufferModeImpl : public IGlStateModifier
+class GLStateSetDrawBufferModeImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetDrawBufferModeImpl() = delete;
-	GLStateSetDrawBufferModeImpl(eGlFrameBuffer mode)
-		: m_prevMode(convertGlFrameBufferToGLenum(mode))
+	GLStateSetDrawBufferModeImpl(GlState& glState, eGlFrameBuffer mode)
+		: GLStateModifierBase(glState)
+		, m_prevMode(convertGlFrameBufferToGLenum(mode))
 		, m_mode(m_prevMode)
 	{}
 
@@ -628,16 +658,17 @@ private:
 
 void glStateSetDrawBuffer(GlState& glState, eGlFrameBuffer mode)
 {
-	glState.addModifier(std::make_shared<GLStateSetDrawBufferModeImpl>(mode));
+	glState.addModifier(std::make_shared<GLStateSetDrawBufferModeImpl>(glState, mode));
 }
 
 // -- GLStateSetReadBufferMode --
-class GLStateSetReadBufferModeImpl : public IGlStateModifier
+class GLStateSetReadBufferModeImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetReadBufferModeImpl() = delete;
-	GLStateSetReadBufferModeImpl(eGlFrameBuffer mode)
-		: m_prevMode(convertGlFrameBufferToGLenum(mode))
+	GLStateSetReadBufferModeImpl(GlState& glState, eGlFrameBuffer mode)
+		: GLStateModifierBase(glState)
+		, m_prevMode(convertGlFrameBufferToGLenum(mode))
 		, m_mode(m_prevMode)
 	{}
 
@@ -670,5 +701,5 @@ private:
 
 void glStateSetReadBuffer(GlState& glState, eGlFrameBuffer mode)
 {
-	glState.addModifier(std::make_shared<GLStateSetReadBufferModeImpl>(mode));
+	glState.addModifier(std::make_shared<GLStateSetReadBufferModeImpl>(glState, mode));
 }
