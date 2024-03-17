@@ -170,6 +170,8 @@ bool GraphStencilProperty::loadFromConfig(
 				setStencilComponent(StencilComponentPtr());
 				m_stencilType= eStencilType::INVALID;
 			}
+
+			return m_stencilType != eStencilType::INVALID;
 		}
 		else
 		{
