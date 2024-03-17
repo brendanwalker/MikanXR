@@ -24,6 +24,7 @@ configuru::Config NodePinConfig::writeToJSON()
 	pt["owner_node_id"] = ownerNodeId;
 	writeStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
 	pt["has_default_value"] = hasDefaultValue;
+	pt["is_dynamic"] = isDynamic;
 
 	return pt;
 }
@@ -46,6 +47,7 @@ void NodePinConfig::readFromJSON(const configuru::Config& pt)
 	ownerNodeId = pt.get_or<t_node_id>("owner_node_id", -1);
 	readStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
 	hasDefaultValue = pt.get_or<bool>("has_default_value", false);
+	isDynamic = pt.get_or<bool>("is_dynamic", false);
 }
 
 // -- NodePin -----
@@ -63,6 +65,7 @@ bool NodePin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr conf
 	m_direction= config->direction;
 	m_name= config->pinName;
 	m_bHasDefaultValue= config->hasDefaultValue;
+	m_bIsDynamic= config->isDynamic;
 
 	NodePtr ownerNode = ownerGraph->getNodeById(config->ownerNodeId);
 	if (ownerNode)
@@ -104,6 +107,7 @@ void NodePin::saveToConfig(NodePinConfigPtr config) const
 	config->pinName = m_name;
 	config->ownerNodeId = m_ownerNode ? m_ownerNode->getId() : -1;
 	config->hasDefaultValue = m_bHasDefaultValue;
+	config->isDynamic = m_bIsDynamic;
 
 	for (NodeLinkPtr linkPtr : m_connectedLinks)
 	{

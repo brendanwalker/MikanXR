@@ -39,6 +39,7 @@ void NodeConfig::readFromJSON(const configuru::Config& pt)
 Node::Node()
 	: m_id(-1)
 	, m_nodePos(glm::vec2(0.f))
+	, m_bIsPendingDeletion(false)
 {
 
 }
@@ -198,6 +199,12 @@ bool Node::evaluateNode(NodeEvaluator& evaluator)
 
 bool Node::evaluateInputs(NodeEvaluator& evaluator)
 {
+	// Early out if input evaluation is disabled (already evaluated)
+	if (evaluator.getIsInputEvaluationDisabled())
+	{
+		return true;
+	}
+
 	for (auto inputPin : m_pinsIn)
 	{
 		assert(inputPin->getDirection() == eNodePinDirection::INPUT);
@@ -239,7 +246,12 @@ bool Node::evaluateInputs(NodeEvaluator& evaluator)
 				return false;
 
 			// Then evaluate the node to update its output pins
-			if (!sourceNode->evaluateNode(evaluator))
+			// but disable input evaluation to avoid re-evaluating 
+			// the source inputs we just evaluated recursively
+			evaluator.setDisableInputEvaluation(true);
+			bool bEvaluationSuccess= sourceNode->evaluateNode(evaluator);
+			evaluator.setDisableInputEvaluation(false);
+			if (!bEvaluationSuccess)
 				return false;
 		}
 

@@ -49,6 +49,7 @@
 #include <easy/profiler.h>
 
 // -- DrawLayerNodeConfig -----
+
 configuru::Config DrawLayerNodeConfig::writeToJSON()
 {
 	configuru::Config pt = NodeConfig::writeToJSON();
@@ -57,6 +58,11 @@ configuru::Config DrawLayerNodeConfig::writeToJSON()
 	pt["stencil_mode"] = k_compositorStencilModeStrings[(int)stencilMode];
 	pt["vertical_flip"] = bVerticalFlip;
 	pt["invert_when_camera_inside"] = bInvertWhenCameraInside;
+
+	CommonConfig::writeStdMap(pt, "float_defaults", m_floatDefaults);
+	CommonConfig::writeStdArrayMap<float, 2>(pt, "float2_defaults", m_float2Defaults);
+	CommonConfig::writeStdArrayMap<float, 3>(pt, "float3_defaults", m_float3Defaults);
+	CommonConfig::writeStdArrayMap<float, 4>(pt, "float4_defaults", m_float4Defaults);
 
 	return pt;
 }
@@ -79,13 +85,17 @@ void DrawLayerNodeConfig::readFromJSON(const configuru::Config& pt)
 
 	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
 	bInvertWhenCameraInside = pt.get_or<bool>("invert_when_camera_inside", false);
+
+	CommonConfig::readStdMap(pt, "float_defaults", m_floatDefaults);
+	CommonConfig::readStdArrayMap(pt, "float2_defaults", m_float2Defaults);
+	CommonConfig::readStdArrayMap(pt, "float3_defaults", m_float3Defaults);
+	CommonConfig::readStdArrayMap(pt, "float4_defaults", m_float4Defaults);
 }
 
 // -- DrawLayerNode -----
 DrawLayerNode::~DrawLayerNode()
 {
 	// Free pin references
-	m_dynamicMaterialPins.clear();
 	m_materialPin= nullptr;
 	m_stencilsPin= nullptr;
 
@@ -106,6 +116,10 @@ bool DrawLayerNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		m_stencilMode= drawLayerNodeConfig->stencilMode;
 		m_bVerticalFlip = drawLayerNodeConfig->bVerticalFlip;
 		m_bInvertWhenCameraInside = drawLayerNodeConfig->bInvertWhenCameraInside;
+		m_floatDefaults = drawLayerNodeConfig->m_floatDefaults;
+		m_float2Defaults = drawLayerNodeConfig->m_float2Defaults;
+		m_float3Defaults = drawLayerNodeConfig->m_float3Defaults;
+		m_float4Defaults = drawLayerNodeConfig->m_float4Defaults;
 
 		return true;
 	}
@@ -138,11 +152,36 @@ void DrawLayerNode::onGraphLoaded(bool success)
 			setStencilsPin(stencilInPin);
 		}
 	}
+
+	applyDynamicPinDefaultValues();
 }
 
 void DrawLayerNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
 	auto drawLayerNodeConfig = std::static_pointer_cast<DrawLayerNodeConfig>(nodeConfig);
+
+	for (auto& pin : m_pinsIn)
+	{
+		if (pin->getIsDynamicPin())
+		{
+			if (FloatPinPtr floatPin = std::dynamic_pointer_cast<FloatPin>(pin))
+			{
+				drawLayerNodeConfig->m_floatDefaults[floatPin->getName()] = floatPin->getValue();
+			}
+			else if (Float2PinPtr float2Pin = std::dynamic_pointer_cast<Float2Pin>(pin))
+			{
+				drawLayerNodeConfig->m_float2Defaults[float2Pin->getName()] = float2Pin->getValue();
+			}
+			else if (Float3PinPtr float3Pin = std::dynamic_pointer_cast<Float3Pin>(pin))
+			{
+				drawLayerNodeConfig->m_float3Defaults[float3Pin->getName()] = float3Pin->getValue();
+			}
+			else if (Float4PinPtr float4Pin = std::dynamic_pointer_cast<Float4Pin>(pin))
+			{
+				drawLayerNodeConfig->m_float4Defaults[float4Pin->getName()] = float4Pin->getValue();
+			}
+		}
+	}
 
 	drawLayerNodeConfig->blendMode = m_blendMode;
 	drawLayerNodeConfig->stencilMode = m_stencilMode;
@@ -180,9 +219,13 @@ void DrawLayerNode::setStencilsPin(ArrayPinPtr inPin)
 	m_stencilsPin = inPin;
 }
 
-void DrawLayerNode::setMaterial(GlMaterialPtr inMaterial)
+void DrawLayerNode::setMaterial(GlMaterialConstPtr inMaterial)
 {
 	m_material = inMaterial;
+	m_materialInstance = 
+		m_material 
+		? std::make_shared<GlMaterialInstance>(inMaterial)
+		: GlMaterialInstancePtr();
 }
 
 bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
@@ -191,7 +234,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 
 	if (!m_material)
 	{
-		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::missingInput,"Missing material", this));
+		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::missingInput, "Missing material", this));
 		bSuccess= false;
 	}
 
@@ -205,49 +248,53 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 		// Map input pins to the layer material
 		for (auto& pin : m_pinsIn)
 		{
+			// Only consider dynamic pins
+			if (!pin->getIsDynamicPin())
+				continue;
+
 			if (FloatPinPtr floatPin = std::dynamic_pointer_cast<FloatPin>(pin))
 			{
-				m_material->setFloatByUniformName(pin->getName(), floatPin->getValue());
+				m_materialInstance->setFloatByUniformName(pin->getName(), floatPin->getValue());
 			}
 			else if (Float2PinPtr float2Pin = std::dynamic_pointer_cast<Float2Pin>(pin))
 			{
-				m_material->setVec2ByUniformName(pin->getName(), glm::make_vec2(float2Pin->getValue().data()));
+				m_materialInstance->setVec2ByUniformName(pin->getName(), glm::make_vec2(float2Pin->getValue().data()));
 			}
 			else if (Float3PinPtr float3Pin = std::dynamic_pointer_cast<Float3Pin>(pin))
 			{
-				m_material->setVec3ByUniformName(pin->getName(), glm::make_vec3(float3Pin->getValue().data()));
+				m_materialInstance->setVec3ByUniformName(pin->getName(), glm::make_vec3(float3Pin->getValue().data()));
 			}
 			else if (Float4PinPtr float4Pin = std::dynamic_pointer_cast<Float4Pin>(pin))
 			{
-				m_material->setVec4ByUniformName(pin->getName(), glm::make_vec4(float3Pin->getValue().data()));
+				m_materialInstance->setVec4ByUniformName(pin->getName(), glm::make_vec4(float4Pin->getValue().data()));
 			}
 			// TODO
 			//else if (IntPinPtr floatPin = std::dynamic_pointer_cast<IntPin>(pin))
 			//{
-			//	m_material->setIntByUniformName(pin->getName(), floatPin->getValue());
+			//	m_materialInstance->setIntByUniformName(pin->getName(), floatPin->getValue());
 			//}
 			//else if (Int2PinPtr float2Pin = std::dynamic_pointer_cast<Int2Pin>(pin))
 			//{
-			//	m_material->setInt2ByUniformName(pin->getName(), glm::make_vec2(float2Pin->getValue().data()));
+			//	m_materialInstance->setInt2ByUniformName(pin->getName(), glm::make_vec2(float2Pin->getValue().data()));
 			//}
 			//else if (Int3PinPtr float3Pin = std::dynamic_pointer_cast<Int3Pin>(pin))
 			//{
-			//	m_material->setInt3ByUniformName(pin->getName(), glm::make_vec3(float3Pin->getValue().data()));
+			//	m_materialInstance->setInt3ByUniformName(pin->getName(), glm::make_vec3(float3Pin->getValue().data()));
 			//}
 			//else if (Int4PinPtr float4Pin = std::dynamic_pointer_cast<Int4Pin>(pin))
 			//{
-			//	m_material->setInt4ByUniformName(pin->getName(), glm::make_vec4(float3Pin->getValue().data()));
+			//	m_materialInstance->setInt4ByUniformName(pin->getName(), glm::make_vec4(float3Pin->getValue().data()));
 			//}			
 			//else if (Mat4PinPtr mat4Pin = std::dynamic_pointer_cast<Mat4Pin>(pin))
 			//{
-			//	m_material->setMat4ByUniformName(pin->getName(), mat4Pin->getValue()));
+			//	m_materialInstance->setMat4ByUniformName(pin->getName(), mat4Pin->getValue()));
 			//}
 			else if (TexturePinPtr texturePin = std::dynamic_pointer_cast<TexturePin>(pin))
 			{
 				GlTexturePtr texturePtr = texturePin->getValue();
 				if (texturePtr)
 				{
-					m_material->setTextureByUniformName(pin->getName(), texturePtr);
+					m_materialInstance->setTextureByUniformName(pin->getName(), texturePtr);
 				}
 			}
 		}
@@ -290,15 +337,37 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			// Bind the layer shader program and uniform parameters.
 			// This will fail unless all of the shader uniform parameters are bound.
 			GlScopedMaterialBinding materialBinding = m_material->bindMaterial();
-
 			if (materialBinding)
 			{
-				auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+				GlScopedMaterialInstanceBinding materialInstanceBinding = 
+					m_materialInstance->bindMaterialInstance(materialBinding);
 
-				if (m_bVerticalFlip)
-					compositorGraph->getLayerVFlippedMesh()->drawElements();
+				if (materialInstanceBinding)
+				{
+					auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+
+					if (m_bVerticalFlip)
+						compositorGraph->getLayerVFlippedMesh()->drawElements();
+					else
+						compositorGraph->getLayerMesh()->drawElements();
+				}
 				else
-					compositorGraph->getLayerMesh()->drawElements();
+				{
+					evaluator.addError(
+						NodeEvaluationError(
+							eNodeEvaluationErrorCode::materialError,
+							StringUtils::stringify("Unable to bind ", m_material->getName()),
+							this));
+					for (const auto& iter : materialInstanceBinding.getUnboundUniforms())
+					{
+						evaluator.addError(
+							NodeEvaluationError(
+								eNodeEvaluationErrorCode::materialError,
+								StringUtils::stringify("Missing uniform: ", iter),
+								this));
+					}
+					bSuccess = false;
+				}
 			}
 			else
 			{
@@ -400,29 +469,39 @@ void DrawLayerNode::onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin)
 {
 	if (pin == m_materialPin)
 	{
-		setMaterial(GlMaterialPtr());
+		setMaterial(GlMaterialConstPtr());
 
 		// Rebuild the pins since the material changed
-		rebuildInputPins();
+		if (!isPendingDeletion())
+		{
+			rebuildInputPins();
+		}
 	}
 	else if (pin == m_stencilsPin)
 	{
 		m_stencilsPin->clearArray();
 
-		rebuildStencilLists();
+		if (!isPendingDeletion())
+		{
+			rebuildStencilLists();
+		}
 	}
 }
 
 void DrawLayerNode::rebuildInputPins()
 {
+	assert(!isPendingDeletion());
+
 	// Delete all dynamic material pins
-	for (auto it = m_dynamicMaterialPins.begin(); it != m_dynamicMaterialPins.end(); it++)
+	for (auto it = m_pinsIn.begin(); it != m_pinsIn.end(); it++)
 	{
 		NodePinPtr pin = *it;
 		
-		getOwnerGraph()->deletePinById(pin->getId());
+		if (pin->getIsDynamicPin())
+		{
+			getOwnerGraph()->deletePinById(pin->getId());
+		}
 	}
-	m_dynamicMaterialPins.clear();
 
 	// Create an input pin for each shader uniform
 	if (m_material)
@@ -473,10 +552,57 @@ void DrawLayerNode::rebuildInputPins()
 					assert(false);
 			}
 
-			// Keep track of all the dynamic material pins created
+			// Flag all new pins as dynamic
 			if (newPin)
 			{
-				m_dynamicMaterialPins.push_back(newPin);
+				newPin->setIsDynamicPin(true);
+			}
+		}
+
+		// Update dynamic pin default values
+		applyDynamicPinDefaultValues();
+	}
+}
+
+void DrawLayerNode::applyDynamicPinDefaultValues()
+{
+	for (auto& pin : m_pinsIn)
+	{
+		if (pin->getIsDynamicPin())
+		{
+			const std::string& pinName = pin->getName();
+
+			if (FloatPinPtr floatPin = std::dynamic_pointer_cast<FloatPin>(pin))
+			{
+				auto defaultIt = m_floatDefaults.find(pinName);
+				if (defaultIt != m_floatDefaults.end())
+				{
+					floatPin->setValue(defaultIt->second);
+				}
+			}
+			else if (Float2PinPtr float2Pin = std::dynamic_pointer_cast<Float2Pin>(pin))
+			{
+				auto defaultIt = m_float2Defaults.find(pinName);
+				if (defaultIt != m_float2Defaults.end())
+				{
+					float2Pin->setValue(defaultIt->second);
+				}
+			}
+			else if (Float3PinPtr float3Pin = std::dynamic_pointer_cast<Float3Pin>(pin))
+			{
+				auto defaultIt = m_float3Defaults.find(pinName);
+				if (defaultIt != m_float3Defaults.end())
+				{
+					float3Pin->setValue(defaultIt->second);
+				}
+			}
+			else if (Float4PinPtr float4Pin = std::dynamic_pointer_cast<Float4Pin>(pin))
+			{
+				auto defaultIt = m_float4Defaults.find(pinName);
+				if (defaultIt != m_float4Defaults.end())
+				{
+					float4Pin->setValue(defaultIt->second);
+				}
 			}
 		}
 	}
@@ -484,6 +610,8 @@ void DrawLayerNode::rebuildInputPins()
 
 void DrawLayerNode::rebuildStencilLists()
 {
+	assert(!isPendingDeletion());
+
 	m_quadStencilIds.clear();
 	m_boxStencilIds.clear();
 	m_modelStencilIds.clear();

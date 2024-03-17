@@ -203,6 +203,8 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 
 	if (bSuccess)
 	{
+		rebuildStencilLists();
+
 		if (!m_quadStencilIds.empty() || 
 			!m_boxStencilIds.empty() ||
 			!m_modelStencilIds.empty())

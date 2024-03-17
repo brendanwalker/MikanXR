@@ -117,7 +117,10 @@ configuru::Config GraphStencilPropertyConfig::writeToJSON()
 {
 	configuru::Config pt = GraphPropertyConfig::writeToJSON();
 
-	pt["stencil_type"]= k_stencilTypeStrings[(int)stencilType];
+	pt["stencil_type"]= 
+		(stencilType != eStencilType::INVALID) 
+		? k_stencilTypeStrings[(int)stencilType]
+		: k_stencilTypeStrings[(int)eStencilType::quad];
 	pt["stencil_name"]= stencilName;
 
 	return pt;
@@ -189,8 +192,20 @@ void GraphStencilProperty::saveToConfig(GraphPropertyConfigPtr config) const
 	auto stencilPropConfig = std::static_pointer_cast<GraphStencilPropertyConfig>(config);
 	auto stencilSystem= StencilObjectSystem::getSystem();
 
-	stencilPropConfig->stencilName= m_stencilComponent->getDefinition()->getComponentName();
-	stencilPropConfig->stencilType= stencilSystem->getStencilType(stencilPropConfig->id);
+	if (m_stencilComponent != nullptr)
+	{
+		StencilComponentConfigPtr definition= m_stencilComponent->getStencilComponentDefinition();
+
+		stencilPropConfig->stencilName = definition->getComponentName();
+		stencilPropConfig->id = definition->getStencilId();
+		stencilPropConfig->stencilType = stencilSystem->getStencilType(stencilPropConfig->id);
+	}
+	else
+	{
+		stencilPropConfig->stencilName = "";
+		stencilPropConfig->id = -1;
+		stencilPropConfig->stencilType = eStencilType::INVALID;
+	}
 
 	GraphProperty::saveToConfig(config);
 }

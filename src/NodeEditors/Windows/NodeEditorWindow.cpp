@@ -352,8 +352,8 @@ void NodeEditorWindow::renderMainFrame()
 		handleMainFrameDragDrop(editorStateCopy);
 	}
 
-	// Delete key event
-	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+	// Delete key event (and not focused on a text input)
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false) && !ImGui::IsAnyItemActive())
 	{
 		deleteSelectedItem();
 	}

@@ -39,6 +39,9 @@ public:
 	Node();
 	virtual ~Node() {}
 
+	inline void markPendingDeletion() { m_bIsPendingDeletion= true; }
+	inline bool isPendingDeletion() const { return m_bIsPendingDeletion; }
+
 	inline bool isDefaultNode() const { return m_id == -1; }
 
 	inline static const std::string k_nodeClassName = "Node";
@@ -114,6 +117,7 @@ protected:
 	std::vector<NodePinPtr> m_pinsIn;
 	std::vector<NodePinPtr> m_pinsOut;
 	glm::vec2 m_nodePos;
+	bool m_bIsPendingDeletion;
 
 	// NodePin calls onLinkConnected/ onLinkDisconnected
 	friend class NodePin;

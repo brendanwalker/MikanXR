@@ -193,16 +193,66 @@ public:
 		const std::string& mapName,
 		std::map<std::string, t_value_type>& nameValueMap)
 	{
-		const configuru::Config::ConfigObject& configObject= pt[mapName].as_object();
-
-        nameValueMap.clear();
-		for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+		if (pt.has_key(mapName))
 		{
-			const std::string& name = it.key();
-			const configuru::Config& config = it.value();
-            const t_value_type& value= config.get<t_value_type>();
+			const configuru::Config::ConfigObject& configObject = pt[mapName].as_object();
 
-            nameValueMap.insert({name, value});
+			nameValueMap.clear();
+			for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+			{
+				const std::string& name = it.key();
+				const configuru::Config& config = it.value();
+				const t_value_type& value = config.get<t_value_type>();
+
+				nameValueMap.insert({name, value});
+			}
+		}
+	}
+
+	template<typename t_value_type, int N>
+	static void writeStdArrayMap(
+		configuru::Config& pt,
+		const std::string& mapName,
+		const std::map<std::string, std::array<t_value_type, N>>& nameValueMap)
+	{
+		pt[mapName] = configuru::Config::object();
+
+		for (auto it = nameValueMap.begin(); it != nameValueMap.end(); ++it)
+		{
+			const std::string& name = it->first;
+			const std::array<t_value_type, N>& valueArray = it->second;
+
+			pt[mapName][name] = configuru::Config::array(valueArray);
+		}
+	}
+
+	template<typename t_value_type, int N>
+	static void readStdArrayMap(
+		const configuru::Config& pt,
+		const std::string& mapName,
+		std::map<std::string, std::array<t_value_type, N>>& nameValueMap)
+	{
+		if (pt.has_key(mapName))
+		{
+			const configuru::Config::ConfigObject& configObject = pt[mapName].as_object();
+
+			nameValueMap.clear();
+			for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+			{
+				const std::string& name = it.key();
+				const configuru::Config& configValue = it.value();
+				if (configValue.is_array() && configValue.array_size() == N)
+				{
+					std::array<t_value_type, N> valueArray;
+
+					for (int i = 0; i < N; i++)
+					{
+						valueArray[i] = configValue[i].get<t_value_type>();
+					}
+
+					nameValueMap.insert({name, valueArray});
+				}
+			}
 		}
 	}
 

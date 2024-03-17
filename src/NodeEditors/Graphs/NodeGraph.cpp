@@ -772,6 +772,10 @@ bool NodeGraph::deleteNodeById(t_node_id id)
 	{
 		NodePtr node= it->second;
 
+		// Flag that the node is going away
+		// so that the node suppresses any unneeded link disconnection behaviors
+		node->markPendingDeletion();
+
 		// Delete all pins and associated links from this node
 		node->disconnectAllPins();
 		

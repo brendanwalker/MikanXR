@@ -32,7 +32,7 @@ public:
 	inline GraphMaterialPropertyPtr getMaterialSource() const { return m_sourceProperty; }
 	void setMaterialSource(GraphMaterialPropertyPtr inMaterialProperty);
 
-	GlMaterialPtr getMaterialResource() const;
+	GlMaterialConstPtr getMaterialResource() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
