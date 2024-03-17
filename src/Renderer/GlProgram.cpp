@@ -39,10 +39,10 @@ bool GlProgramCode::loadFromConfigData(const class GlProgramConfig& config)
 
 	const std::filesystem::path& shaderConfigPath= config.getLoadedConfigPath();
 	
-	m_programName = shaderConfigPath.string();
-	
-	std::filesystem::path shaderFolderPath = m_programName;
+	std::filesystem::path shaderFolderPath = shaderConfigPath;
 	shaderFolderPath.remove_filename();
+
+	m_programName = shaderConfigPath.stem().string();
 
 	try
 	{
@@ -59,7 +59,7 @@ bool GlProgramCode::loadFromConfigData(const class GlProgramConfig& config)
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
-			<< m_programName
+			<< m_vertexShaderFilePath.string()
 			<< " - unable to load vertex shader file!";
 		bSuccess= false;
 	}
@@ -77,7 +77,7 @@ bool GlProgramCode::loadFromConfigData(const class GlProgramConfig& config)
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
-			<< m_programName
+			<< m_fragmentShaderFilePath.string()
 			<< " - unable to load fragment shader file!";
 		bSuccess = false;
 	}
