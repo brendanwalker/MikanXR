@@ -1,9 +1,12 @@
 #include "GlCommon.h"
 #include "GlProgram.h"
-#include "GlProgramConfig.h"
 #include "GlProgramConstants.h"
 #include "GlTexture.h"
 #include "Logger.h"
+
+#ifdef ENABLE_GL_PROGRAM_CONFIG
+#include "GlProgramConfig.h"
+#endif
 
 #include "glm/gtc/type_ptr.hpp"
 
@@ -33,6 +36,7 @@ GlProgramCode::GlProgramCode(
 	m_shaderCodeHash= hasher(vertexCode + fragmentCode);
 }
 
+#ifdef ENABLE_GL_PROGRAM_CONFIG
 bool GlProgramCode::loadFromConfigData(const class GlProgramConfig& config)
 {
 	bool bSuccess= true;
@@ -142,6 +146,7 @@ bool GlProgramCode::loadFromConfigData(const class GlProgramConfig& config)
 
 	return bSuccess;
 }
+#endif
 
 // -- GlProgram -----
 GlProgram::GlProgram(const std::string& programName)

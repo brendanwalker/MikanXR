@@ -524,6 +524,7 @@ ENDIF()
 
 target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
 target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
+target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
 
 # Mikan C-API shared library
 file(GLOB MIKAN_CLIENT_LIBRARY_SRC

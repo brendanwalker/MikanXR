@@ -18,8 +18,12 @@ file(GLOB MIKAN_TEST_SRC
     "${ROOT_DIR}/src/Renderer/GlTexture.cpp"
     "${ROOT_DIR}/src/Renderer/GlUniformBlock.h"
     "${ROOT_DIR}/src/Renderer/GlUniformBlock.cpp"
+    "${ROOT_DIR}/src/Renderer/GlVertexConstants.h"
+    "${ROOT_DIR}/src/Renderer/GlVertexConstants.cpp"
     "${ROOT_DIR}/src/Renderer/GlVertexDefinition.h"
     "${ROOT_DIR}/src/Renderer/GlVertexDefinition.cpp"
+    "${ROOT_DIR}/src/Utility/StringUtils.h"
+    "${ROOT_DIR}/src/Utility/StringUtils.cpp"
 )
 
 list(APPEND MIKAN_TEST_INCL_DIRS
@@ -27,6 +31,7 @@ list(APPEND MIKAN_TEST_INCL_DIRS
   ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/Client/
   ${ROOT_DIR}/src/Renderer/
+  ${ROOT_DIR}/src/Utility/
   ${ROOT_DIR}/thirdparty/glm/
   ${GLEW_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}

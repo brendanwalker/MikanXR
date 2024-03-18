@@ -32,7 +32,9 @@ public:
 		const std::string& vertexCode, 
 		const std::string& fragmentCode);
 
+#ifdef ENABLE_GL_PROGRAM_CONFIG
 	bool loadFromConfigData(const class GlProgramConfig& config);
+#endif
 
 	const std::string& getProgramName() const { return m_programName; }
 	void setProgramName(const std::string& inName) { m_programName= inName; }
