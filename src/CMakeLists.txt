@@ -215,6 +215,9 @@ source_group("ImGui" FILES ${IMGUI_SOURCE})
 # ImNodes's source files are included in directly, rather than linking against a lib
 source_group("ImNodes" FILES ${IMNODES_SOURCE})
 
+# IXWebsockets's source files are included in directly, rather than linking against a lib
+source_group("IxWebSocket" FILES ${IXWEBSOCKET_SOURCE})
+
 # Interprocess
 file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
@@ -432,7 +435,8 @@ set(MIKAN_SRC
     ${MIKAN_VRTRACKER_STEAMVR_SRC}
     ${IMGUI_SOURCE}
 	${IMNODES_SOURCE}
-	${TINYFILEDIALOGS_SOURCE}
+	${IXWEBSOCKET_SOURCE}
+	${TINYFILEDIALOGS_SOURCE}	
 )
 
 list(APPEND MIKAN_INCL_DIRS
@@ -469,6 +473,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR
   ${IMGUI_DIR}
   ${IMNODES_DIR}
+  ${IXWEBSOCKET_INCLUDE_DIR}
   ${RMLUI_INCLUDE_DIR}
   ${ROOT_DIR}/thirdparty/glm/
   ${ROOT_DIR}/thirdparty/Configuru/
@@ -509,6 +514,10 @@ list(APPEND MIKAN_REQ_LIBS
   fast_obj_lib)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
+foreach(FILE IN LISTS IXWEBSOCKET_SOURCE)
+    set_property(SOURCE ${FILE} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON)
+	set_source_files_properties(${FILE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+endforeach()
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)

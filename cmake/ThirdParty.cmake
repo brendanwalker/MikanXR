@@ -19,7 +19,7 @@ endif()
 # Required core libraries on various platforms
 set(MIKAN_EXTRA_LIBS "")
 if (WIN32) 
-  list(APPEND MIKAN_EXTRA_LIBS opengl32 mfplat mf mfuuid shlwapi winmm ws2_32)
+  list(APPEND MIKAN_EXTRA_LIBS opengl32 mfplat mf mfuuid shlwapi winmm wsock32 ws2_32)
 elseif (APPLE)
   find_library(cocoa_library Cocoa)
   find_library(opengl_library OpenGL)
@@ -102,6 +102,16 @@ set(IMNODES_DIR ${ROOT_DIR}/thirdparty/imnodes)
 set(IMNODES_SOURCE "")
 list(APPEND IMNODES_SOURCE
      ${IMNODES_DIR}/imnodes.cpp
+)
+
+# IXWebSocket
+option(USE_ZLIB "Add ZLib support" FALSE)
+set (IXWEBSOCKET_DIR ${ROOT_DIR}/thirdparty/IXWebSocket/)
+set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
+set (IXWEBSOCKET_SOURCE_DIR ${IXWEBSOCKET_DIR}/ixwebsocket)
+file(GLOB IXWEBSOCKET_SOURCE
+    "${IXWEBSOCKET_SOURCE_DIR}/*.cpp"
+	"${IXWEBSOCKET_SOURCE_DIR}/*.h"
 )
 
 # stb
