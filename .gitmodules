@@ -25,3 +25,6 @@
 [submodule "thirdparty/fast_obj"]
 	path = thirdparty/fast_obj
 	url = https://github.com/thisistherk/fast_obj.git
+[submodule "thirdparty/boost_asio"]
+	path = thirdparty/boost_asio
+	url = https://github.com/boostorg/asio.git
