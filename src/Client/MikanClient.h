@@ -35,7 +35,6 @@ public:
 
 	MikanResult allocateRenderTargetBuffers(const MikanRenderTargetDescriptor& descriptor, MikanRenderTargetMemory* out_memory_ptr);
 	MikanResult publishRenderTargetTexture(void* ApiTexturePtr, uint64_t frame_index);
-	MikanResult publishRenderTargetBuffers(uint64_t frame_index);
 	MikanResult freeRenderTargetBuffers();
 
 	MikanResult getStencilList(MikanStencilList& out_stencil_list);

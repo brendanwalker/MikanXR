@@ -3,15 +3,6 @@
 #include <stdint.h>
 #include "MikanClientTypes.h"
 
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/sync/scoped_lock.hpp>
-#include <boost/interprocess/sync/interprocess_mutex.hpp>
-
-#ifdef WIN32
-#define BOOST_INTERPROCESS_SHARED_DIR_PATH "shared_mem"
-#endif // WIN32
-
 struct InterprocessRenderTargetHeader
 {
 	uint16_t width;
@@ -28,7 +19,6 @@ public:
 	InterprocessRenderTargetView(const MikanRenderTargetDescriptor* descriptor);
 	virtual ~InterprocessRenderTargetView();
 
-	boost::interprocess::interprocess_mutex& getMutex();
 	InterprocessRenderTargetHeader& getHeader();
 	const uint8_t* getBuffer(MikanBufferType bufferType) const;
 	unsigned char* getBufferMutable(MikanBufferType bufferType);
@@ -37,9 +27,6 @@ public:
 	static size_t computeTotalSize(const MikanRenderTargetDescriptor* descriptor);
 
 private:
-	//Mutex to protect access to the shared memory
-	boost::interprocess::interprocess_mutex mutex;
-
 	InterprocessRenderTargetHeader header;
 
 	uint8_t buffers[1];

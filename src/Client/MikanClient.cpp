@@ -236,21 +236,6 @@ MikanResult MikanClient::publishRenderTargetTexture(void* apiTexturePtr, uint64_
 	}
 }
 
-MikanResult MikanClient::publishRenderTargetBuffers(uint64_t frame_index)
-{
-	// Copy the render target buffers in local memory to shared memory
-	if (m_renderTargetWriter->writeRenderTargetMemory())
-	{
-		return callRPC(
-			m_messageClient,
-			"frameRendered", (uint8_t*)&frame_index, sizeof(uint64_t));
-	}
-	else
-	{
-		return MikanResult_SharedMemoryError;
-	}
-}
-
 MikanResult MikanClient::freeRenderTargetBuffers()
 {
 	MikanResult resultCode= MikanResult_Success;

@@ -15,172 +15,6 @@ enum DXGI_FORMAT
 };
 #endif // !ENABLE_SPOUT_DX
 
-class BoostSharedMemoryWriter
-{
-public:
-	BoostSharedMemoryWriter(const std::string& clientName, MikanRenderTargetMemory& localMemory)
-		: m_sharedMemoryName(clientName + "_renderTarget")
-		, m_sharedMemoryObject(nullptr)
-		, m_region(nullptr)
-		, m_localMemory(localMemory)
-	{		
-	}
-
-	virtual ~BoostSharedMemoryWriter() 
-	{
-		dispose();
-	}
-
-	bool init(const MikanRenderTargetDescriptor* descriptor)
-	{
-		bool bSuccess= false;
-
-		dispose();
-
-		try
-		{
-			MIKAN_LOG_INFO("SharedMemory::initialize()") << "Allocating shared memory: " << m_sharedMemoryName;
-
-			// Make sure the shared memory block has been removed first
-			boost::interprocess::shared_memory_object::remove(m_sharedMemoryName.c_str());
-
-			// Allow non admin-level processed to access the shared memory
-			boost::interprocess::permissions permissions;
-			permissions.set_unrestricted();
-
-			// Create the shared memory object
-			m_sharedMemoryObject =
-				new boost::interprocess::shared_memory_object(
-					boost::interprocess::create_only,
-					m_sharedMemoryName.c_str(),
-					boost::interprocess::read_write,
-					permissions);
-
-			// Resize the shared memory
-			m_sharedMemoryObject->truncate(InterprocessRenderTargetView::computeTotalSize(descriptor));
-
-			// Map all of the shared memory for read/write access
-			m_region = new boost::interprocess::mapped_region(*m_sharedMemoryObject, boost::interprocess::read_write);
-
-			// Initialize the shared memory (call constructor using placement new)
-			// This make sure the mutex has the constructor called on it.
-			InterprocessRenderTargetView* sharedMemoryView =
-				new (getRenderTargetView()) InterprocessRenderTargetView(descriptor);
-			assert(m_region->get_size() >= sharedMemoryView->getTotalSize());
-
-			// Allocate local memory used to copy render target data into shared memory
-			m_localMemory.width = descriptor->width;
-			m_localMemory.height = descriptor->height;
-			m_localMemory.color_buffer_size =
-				computeRenderTargetColorBufferSize(
-					descriptor->color_buffer_type, descriptor->width, descriptor->height);
-			if (m_localMemory.color_buffer_size > 0)
-			{
-				m_localMemory.color_buffer = new uint8_t[m_localMemory.color_buffer_size];
-				memset(m_localMemory.color_buffer, 0, m_localMemory.color_buffer_size);
-			}
-			m_localMemory.depth_buffer_size =
-				computeRenderTargetDepthBufferSize(
-					descriptor->depth_buffer_type, descriptor->width, descriptor->height);
-			if (m_localMemory.depth_buffer_size > 0)
-			{
-				m_localMemory.depth_buffer = new uint8_t[m_localMemory.depth_buffer_size];
-				memset(m_localMemory.depth_buffer, 0, m_localMemory.depth_buffer_size);
-			}
-
-			bSuccess = true;
-		}
-		catch (boost::interprocess::interprocess_exception* e)
-		{
-			dispose();
-			MIKAN_LOG_ERROR("SharedMemory::initialize()")
-				<< "Failed to allocated shared memory: " << m_sharedMemoryName
-				<< ", reason: " << e->what();
-		}
-
-		return bSuccess;
-	}
-
-	void dispose()
-	{
-		// Clean up the local memory
-		if (m_localMemory.color_buffer != nullptr)
-		{
-			delete[] m_localMemory.color_buffer;
-			m_localMemory.color_buffer = nullptr;
-		}
-		if (m_localMemory.depth_buffer != nullptr)
-		{
-			delete[] m_localMemory.depth_buffer;
-			m_localMemory.depth_buffer = nullptr;
-		}
-		m_localMemory.color_buffer_size = 0;
-		m_localMemory.depth_buffer_size = 0;
-		m_localMemory.width = 0;
-		m_localMemory.height = 0;
-
-		if (m_region != nullptr)
-		{
-			// Call the destructor manually on the frame header since it was constructed via placement new
-			// This will make sure the mutex has the destructor called on it.
-			getRenderTargetView()->~InterprocessRenderTargetView();
-
-			delete m_region;
-			m_region = nullptr;
-		}
-
-		if (m_sharedMemoryObject != nullptr)
-		{
-			delete m_sharedMemoryObject;
-			m_sharedMemoryObject = nullptr;
-
-			if (!boost::interprocess::shared_memory_object::remove(m_sharedMemoryName.c_str()))
-			{
-				MIKAN_LOG_WARNING("SharedMemory::dispose") << "Failed to free render target shared memory file: " << m_sharedMemoryName;
-			}
-		}
-	}
-
-	bool writeRenderTargetMemory()
-	{
-		if (m_region == nullptr || m_sharedMemoryObject == nullptr)
-			return false;
-
-		InterprocessRenderTargetView* sharedMemoryView = getRenderTargetView();
-		boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(sharedMemoryView->getMutex());
-		assert(m_region->get_size() >= sharedMemoryView->getTotalSize());
-
-		if (m_localMemory.color_buffer != nullptr)
-		{
-			std::memcpy(
-				sharedMemoryView->getBufferMutable(MikanRenderTarget_COLOR),
-				m_localMemory.color_buffer,
-				m_localMemory.color_buffer_size);
-		}
-
-		if (m_localMemory.depth_buffer != nullptr)
-		{
-			std::memcpy(
-				sharedMemoryView->getBufferMutable(MikanRenderTarget_DEPTH),
-				m_localMemory.depth_buffer,
-				m_localMemory.depth_buffer_size);
-		}
-
-		return true;
-	}
-
-	InterprocessRenderTargetView* getRenderTargetView()
-	{
-		return reinterpret_cast<InterprocessRenderTargetView*>(m_region->get_address());
-	}
-
-private:
-	std::string m_sharedMemoryName;
-	boost::interprocess::shared_memory_object* m_sharedMemoryObject;
-	boost::interprocess::mapped_region* m_region;
-	MikanRenderTargetMemory& m_localMemory;
-};
-
 class SpoutOpenGLTextureWriter
 {
 public:
@@ -330,7 +164,6 @@ struct RenderTargetWriterImpl
 		SpoutDX11TextureWriter* spoutDX11TextureWriter;
 #endif // ENABLE_SPOUT_DX
 		SpoutOpenGLTextureWriter* spoutOpenGLTextureWriter;
-		BoostSharedMemoryWriter* boostSharedMemoryWriter;
 	} writerApi;
 	MikanClientGraphicsApi graphicsAPI;
 };
@@ -372,13 +205,6 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 		m_bIsInitialized = m_writerImpl->writerApi.spoutDX11TextureWriter->init(descriptor, bEnableFrameCounter, apiDeviceInterface);
 	}
 #endif // ENABLE_SPOUT_DX
-	else
-	{
-		m_writerImpl->writerApi.boostSharedMemoryWriter = new BoostSharedMemoryWriter(m_clientName, m_localMemory);
-		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
-
-		m_bIsInitialized= m_writerImpl->writerApi.boostSharedMemoryWriter->init(descriptor);
-	}
 
 	return m_bIsInitialized;
 }
@@ -405,34 +231,9 @@ void InterprocessRenderTargetWriteAccessor::dispose()
 		}
 	}
 #endif // ENABLE_SPOUT_DX
-	else
-	{
-		if (m_writerImpl->writerApi.boostSharedMemoryWriter != nullptr)
-		{
-			m_writerImpl->writerApi.boostSharedMemoryWriter->dispose();
-			delete m_writerImpl->writerApi.boostSharedMemoryWriter;
-			m_writerImpl->writerApi.boostSharedMemoryWriter = nullptr;
-		}
-	}
 
 	m_writerImpl->graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
 	m_bIsInitialized = false;
-}
-
-bool InterprocessRenderTargetWriteAccessor::writeRenderTargetMemory()
-{
-	bool bSuccess= false; 
-
-	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_UNKNOWN)
-	{
-		bSuccess = m_writerImpl->writerApi.boostSharedMemoryWriter->writeRenderTargetMemory();
-	}
-	else
-	{
-		bSuccess= false;
-	}
-
-	return true;
 }
 
 bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTexturePtr)

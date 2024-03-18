@@ -443,7 +443,6 @@ protected:
 		render();
 
 		// Publish the new video frame back to Mikan
-		//Mikan_PublishRenderTargetBuffers(newFrameEvent.frame);
 		GLuint textureId = m_textureColorbuffer->getGlTextureId();
 		Mikan_PublishRenderTargetTexture(&textureId, newFrameEvent.frame);
 

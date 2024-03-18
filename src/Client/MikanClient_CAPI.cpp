@@ -199,14 +199,6 @@ MikanResult Mikan_PublishRenderTargetTexture(void* ApiTexturePtr, uint64_t frame
 	return g_mikanClient->publishRenderTargetTexture(ApiTexturePtr, frame_index);
 }
 
-MikanResult Mikan_PublishRenderTargetBuffers(uint64_t frame_index)
-{
-	if (g_mikanClient == nullptr)
-		return MikanResult_Uninitialized;
-
-	return g_mikanClient->publishRenderTargetBuffers(frame_index);
-}
-
 MikanResult Mikan_FreeRenderTargetBuffers()
 {
 	if (g_mikanClient == nullptr)

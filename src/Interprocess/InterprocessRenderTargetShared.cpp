@@ -2,7 +2,6 @@
 #include "Logger.h"
 
 InterprocessRenderTargetView::InterprocessRenderTargetView(const MikanRenderTargetDescriptor* descriptor)
-	: mutex()
 {
 	header.width = descriptor->width;
 	header.height = descriptor->height;
@@ -26,11 +25,6 @@ InterprocessRenderTargetView::InterprocessRenderTargetView(const MikanRenderTarg
 
 InterprocessRenderTargetView::~InterprocessRenderTargetView()
 {
-}
-
-boost::interprocess::interprocess_mutex& InterprocessRenderTargetView::getMutex()
-{
-	return mutex;
 }
 
 InterprocessRenderTargetHeader& InterprocessRenderTargetView::getHeader()

@@ -216,7 +216,6 @@ void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEve
 
 	// Publish the new video frame back to Mikan
 	Mikan_PublishRenderTargetTexture(g_renderTargetTexture, newFrameEvent.frame);
-    //Mikan_PublishRenderTargetBuffers(newFrameEvent.frame);
 
 	// Remember the frame index of the last frame we published
     g_lastReceivedVideoSourceFrame = newFrameEvent.frame;

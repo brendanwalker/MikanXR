@@ -77,8 +77,6 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_AllocateRenderTargetBuffers(const Mikan
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_PublishRenderTargetTexture(void* ApiTexturePtr, uint64_t frame_index);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_PublishRenderTargetBuffers(uint64_t frame_index);
-
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeRenderTargetBuffers();
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SendScriptMessage(const MikanScriptMessageInfo* message);
