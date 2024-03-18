@@ -111,9 +111,11 @@ void AppStage_DepthMeshCapture::enter()
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
 		// Get the depth estimator from the frame compositor
 		// (might have made one for depth visualization)
 		m_syntheticDepthEstimator = glFrameCompositor->getSyntheticDepthEstimator();
+#endif
 
 		// If we don't have one, then make a new depth estimator ourselves
 		if (!m_syntheticDepthEstimator)

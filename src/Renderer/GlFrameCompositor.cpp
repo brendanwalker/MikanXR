@@ -446,10 +446,12 @@ GlTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textur
 			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getVideoTexture() : GlTexturePtr();
 		case eVideoTextureSource::distortion_texture:
 			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : GlTexturePtr();
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
 		case eVideoTextureSource::float_depth_texture:
 			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getFloatDepthTexture() : GlTexturePtr();
 		case eVideoTextureSource::color_mapped_depth_texture:
 			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : GlTexturePtr();
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 	}
 
 	return GlTexturePtr();
@@ -457,12 +459,14 @@ GlTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textur
 
 GlTexturePtr GlFrameCompositor::getVideoPreviewTexture(eVideoTextureSource textureSource) const
 {
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
 	if (textureSource == eVideoTextureSource::float_depth_texture)
 	{
 		// Special case for float_depth_texture, use the color mapped depth texture instead for preview
 		return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : GlTexturePtr();
 	}
 	else
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 	{
 		// In all other cases, the preview texture is the same as the source texture
 		return getVideoSourceTexture(textureSource);
@@ -614,6 +618,7 @@ void GlFrameCompositor::updateCompositeFrame()
 	// Compute the next undistorted video frame
 	m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex);
 
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
 	// If we have a synthetic depth estimator active, compute the synthetic depth
 	if (m_syntheticDepthEstimator)
 	{
@@ -623,6 +628,7 @@ void GlFrameCompositor::updateCompositeFrame()
 
 		m_syntheticDepthEstimator->computeSyntheticDepth(bgrUndistortBuffer);
 	}
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
 	// Perform the compositor evaluation if in MainWindow mode
 	// (Editor window runs graph evaluation in its own update loop)
@@ -798,6 +804,7 @@ bool GlFrameCompositor::openVideoSource()
 
 		// Create a synthetic depth estimator if the hardware supports it
 		// TODO: and requested from the profile config settings
+#if SUPPORT_REALTIME_DEPTH_ESTIMATION
 		auto openCVManager= App::getInstance()->getMainWindow()->getOpenCVManager();
 		if (openCVManager->supportsHardwareAcceleratedDNN())
 		{
@@ -810,6 +817,7 @@ bool GlFrameCompositor::openVideoSource()
 				m_syntheticDepthEstimator= nullptr;
 			}
 		}
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
 		// Just pass the raw video frame straight to the bgr texture
 		// The frame compositor will do the undistortion work in a shader

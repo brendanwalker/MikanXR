@@ -10,7 +10,11 @@
 
 class VideoFrameDistortionView;
 typedef std::shared_ptr<VideoFrameDistortionView> VideoFrameDistortionViewPtr;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+// The results from the AI generated depth are too unstable frame-to-frame to be useful
+// for real time depth filtering, but leaving flag here for future testing
+#define REALTIME_DEPTH_ESTIMATION_ENABLED			0
+
 #define DEPTH_OPTION_HAS_GL_TEXTURE_FLAG			0x0001
 #define DEPTH_OPTION_HAS_ALL						0xffff
 
