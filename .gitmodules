@@ -28,3 +28,6 @@
 [submodule "thirdparty/IXWebSocket"]
 	path = thirdparty/IXWebSocket
 	url = https://github.com/machinezone/IXWebSocket.git
+[submodule "thirdparty/readerwriterqueue"]
+	path = thirdparty/readerwriterqueue
+	url = https://github.com/cameron314/readerwriterqueue.git
