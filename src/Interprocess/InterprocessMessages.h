@@ -15,7 +15,7 @@
 #define CONNECT_FUNCTION_NAME				"connect"
 #define DISCONNECT_FUNCTION_NAME			"disconnect"
 
-#define USE_BOOST_INTERPROCESS_MESSAGES		1
+#define USE_BOOST_INTERPROCESS_MESSAGES		0
 
 class MikanRemoteFunctionCall
 {

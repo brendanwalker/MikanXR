@@ -114,6 +114,9 @@ file(GLOB IXWEBSOCKET_SOURCE
 	"${IXWEBSOCKET_SOURCE_DIR}/*.h"
 )
 
+# readerwriterqueue
+set (LOCKFREEQUEUE_INCLUDE_DIR ${ROOT_DIR}/thirdparty/readerwriterqueue)
+
 # stb
 set (STB_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/stb)
 

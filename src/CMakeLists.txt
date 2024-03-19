@@ -224,6 +224,8 @@ file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/BoostInterprocessMessageServer.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/BoostInterprocessMessageServer.cpp"	
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp"		
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.h"
@@ -476,6 +478,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${IMGUI_DIR}
   ${IMNODES_DIR}
   ${IXWEBSOCKET_INCLUDE_DIR}
+  ${LOCKFREEQUEUE_INCLUDE_DIR}
   ${RMLUI_INCLUDE_DIR}
   ${ROOT_DIR}/thirdparty/glm/
   ${ROOT_DIR}/thirdparty/Configuru/

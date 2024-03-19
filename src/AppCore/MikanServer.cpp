@@ -22,6 +22,7 @@
 #if USE_BOOST_INTERPROCESS_MESSAGES
 #include "BoostInterprocessMessageServer.h"
 #else
+#include "WebsocketInterprocessMessageServer.h"
 #endif
 
 #include <set>
@@ -294,10 +295,13 @@ bool MikanClientConnectionInfo::hasAllocatedRenderTarget() const
 MikanServer* MikanServer::m_instance= nullptr;
 
 MikanServer::MikanServer()
+	: m_messageServer(
 #if USE_BOOST_INTERPROCESS_MESSAGES
-	: m_messageServer(new BoostInterprocessMessageServer())
+	new BoostInterprocessMessageServer()
 #else
+	new WebsocketInterprocessMessageServer()
 #endif
+	)
 {
 	m_instance= this;
 }
