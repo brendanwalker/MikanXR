@@ -49,7 +49,7 @@ public:
 private:   
 	std::string m_clientName;
 	class InterprocessRenderTargetWriteAccessor* m_renderTargetWriter;
-	class InterprocessMessageClient* m_messageClient;
+	class IInterprocessMessageClient* m_messageClient;
 	bool m_bIsConnected;
 };
 

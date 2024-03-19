@@ -99,7 +99,7 @@ private:
 
 	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
 	std::map<std::string, class ClientConnectionState*> m_clientConnections;
-	class InterprocessMessageServer* m_messageServer;
+	class IInterprocessMessageServer* m_messageServer;
 };
 
 #endif // MIKAN_SERVER_H

@@ -1,6 +1,10 @@
 //-- includes -----
 #include "InterprocessRenderTargetWriter.h"
 #include "InterprocessMessages.h"
+#if USE_BOOST_INTERPROCESS_MESSAGES
+#include "BoostInterprocessMessageClient.h"
+#else
+#endif
 #include "MikanClient.h"
 #include "MikanClient_CAPI.h"
 #include "RandomUtils.h"
@@ -11,7 +15,10 @@
 MikanClient::MikanClient()
 	: m_clientName(RandomUtils::RandomHexString(16))
 	, m_renderTargetWriter(new InterprocessRenderTargetWriteAccessor(m_clientName))
-	, m_messageClient(new InterprocessMessageClient())
+#if USE_BOOST_INTERPROCESS_MESSAGES
+	, m_messageClient(new BoostInterprocessMessageClient())
+#else
+#endif
 {
 }
 
@@ -85,7 +92,7 @@ MikanResult MikanClient::shutdown()
 }
 
 MikanResult callRPC(
-	InterprocessMessageClient* mesgClient,
+	IInterprocessMessageClient* mesgClient,
 	const char* functionName,
 	uint8_t* parameter_buffer,
 	size_t parameter_size)
@@ -105,7 +112,7 @@ MikanResult callRPC(
 
 template <typename t_result_type>
 MikanResult callRPC(
-	InterprocessMessageClient* mesgClient,
+	IInterprocessMessageClient* mesgClient,
 	const char* functionName, 
 	uint8_t* parameter_buffer, 
 	size_t parameter_size,

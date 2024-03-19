@@ -8,14 +8,14 @@
 
 #include <stdint.h>
 
-#include <boost/interprocess/interprocess_fwd.hpp>
-
 #define FUNCTION_CALL_QUEUE_NAME			"MikanFunctionCallQueue"
 #define SERVER_EVENT_QUEUE_PREFIX			"MikanServerEventQueue_"
 #define FUNCTION_RESPONSE_QUEUE_PREFIX		"MikanFunctionResponseQueue_"
 
 #define CONNECT_FUNCTION_NAME				"connect"
 #define DISCONNECT_FUNCTION_NAME			"disconnect"
+
+#define USE_BOOST_INTERPROCESS_MESSAGES		1
 
 class MikanRemoteFunctionCall
 {
@@ -95,76 +95,36 @@ private:
 	uint8_t m_resultBuffer[2048];
 };
 
-class InterprocessMessageClient
+class IInterprocessMessageClient
 {
 public:
-	InterprocessMessageClient();
-	~InterprocessMessageClient();
+	virtual ~IInterprocessMessageClient() {}
 
-	MikanResult connect(const std::string& clientId, MikanClientInfo* client);
-	void disconnect();
+	virtual MikanResult connect(const std::string& clientId, MikanClientInfo* client) = 0;
+	virtual void disconnect() = 0;
 
-	bool tryFetchNextServerEvent(MikanEvent* outEvent);
-	MikanResult callRemoteFunction(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult);
-	MikanResult callRemoteFunction(const char* functionName, MikanRemoteFunctionResult* outResult);
-	MikanResult callRemoteFunction(const char* functionName, uint8_t* buffer, size_t bufferSize, MikanRemoteFunctionResult* outResult);
+	virtual bool tryFetchNextServerEvent(MikanEvent* outEvent) = 0;
+	virtual MikanResult callRemoteFunction(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult) = 0;
+	virtual MikanResult callRemoteFunction(const char* functionName, MikanRemoteFunctionResult* outResult) = 0;
+	virtual MikanResult callRemoteFunction(const char* functionName, uint8_t* buffer, size_t bufferSize, MikanRemoteFunctionResult* outResult) = 0;
 
-	const std::string& getClientId() const { return m_clientId; }
-	const MikanClientInfo& getClientInfo() const { return m_clientInfo; }
-	const bool getIsConnected() const { return m_isConnected; }
-
-private:
-	std::string m_clientId;
-	MikanClientInfo m_clientInfo;
-	std::string m_serverEventQueueName;
-	std::string m_functionResponseQueueName;
-	boost::interprocess::message_queue* m_severEventQueue;
-	boost::interprocess::message_queue* m_functionCallQueue;
-	boost::interprocess::message_queue* m_functionResponseQueue;
-	bool m_isConnected;
+	virtual const std::string& getClientId() const = 0;
+	virtual const MikanClientInfo& getClientInfo() const = 0;
+	virtual const bool getIsConnected() const = 0;
 };
 
-class InterprocessMessageConnection
-{
-public:
-	InterprocessMessageConnection();
-	~InterprocessMessageConnection();
-
-	bool initialize(const std::string& clientId);
-	void dispose();
-
-	const std::string getClientId() const { return m_clientId; }
-
-	bool sendEvent(MikanEvent* event);
-	bool sendFunctionResponse(MikanRemoteFunctionResult* result);
-
-private:
-	std::string m_clientId;
-	std::string m_serverEventQueueName;
-	std::string m_functionResponseQueueName;
-	boost::interprocess::message_queue* m_eventQueue;
-	boost::interprocess::message_queue* m_functionResponseQueue;
-};
-
-class InterprocessMessageServer
+class IInterprocessMessageServer
 {
 public:
 	using RPCHandler = std::function<void(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult)>;
 
-	InterprocessMessageServer();
-	~InterprocessMessageServer();
+	virtual ~IInterprocessMessageServer() {}
 
-	bool initialize();
-	void dispose();
-	void setRPCHandler(const std::string& functionName, RPCHandler handler);
+	virtual bool initialize() = 0;
+	virtual void dispose() = 0;
+	virtual void setRPCHandler(const std::string& functionName, RPCHandler handler) = 0;
 
-	void sendServerEventToClient(const std::string& clientId, MikanEvent* event);
-	void sendServerEventToAllClients(MikanEvent* event);
-	void processRemoteFunctionCalls();
-
-private:
-	boost::interprocess::message_queue* m_functionCallQueue;
-	std::map<std::string, InterprocessMessageConnection*> m_connections;
-	std::map<std::string, RPCHandler> m_functionHandlers;
+	virtual void sendServerEventToClient(const std::string& clientId, MikanEvent* event) = 0;
+	virtual void sendServerEventToAllClients(MikanEvent* event) = 0;
+	virtual void processRemoteFunctionCalls() = 0;
 };
-

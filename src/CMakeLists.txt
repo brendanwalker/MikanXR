@@ -222,6 +222,8 @@ source_group("IxWebSocket" FILES ${IXWEBSOCKET_SOURCE})
 file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/BoostInterprocessMessageServer.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/BoostInterprocessMessageServer.cpp"	
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.h"
@@ -543,6 +545,8 @@ file(GLOB MIKAN_CLIENT_LIBRARY_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Client/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/BoostInterprocessMessageClient.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/BoostInterprocessMessageClient.cpp"	
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.h"

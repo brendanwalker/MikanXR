@@ -19,6 +19,11 @@
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
 
+#if USE_BOOST_INTERPROCESS_MESSAGES
+#include "BoostInterprocessMessageServer.h"
+#else
+#endif
+
 #include <set>
 #include <assert.h>
 
@@ -37,7 +42,7 @@ public:
 	ClientConnectionState(	
 		const std::string& clientName, 
 		MikanClientInfo& clientInfo,
-		InterprocessMessageServer* messageServer)
+		IInterprocessMessageServer* messageServer)
 		: m_messageServer(messageServer)
 	{	
 		m_connectionInfo.clientId= clientName;
@@ -266,7 +271,7 @@ public:
 
 private:
 	MikanClientConnectionInfo m_connectionInfo;
-	InterprocessMessageServer* m_messageServer;
+	IInterprocessMessageServer* m_messageServer;
 	std::set<MikanVRDeviceID> m_subscribedVRDevices;
 };
 
@@ -289,7 +294,10 @@ bool MikanClientConnectionInfo::hasAllocatedRenderTarget() const
 MikanServer* MikanServer::m_instance= nullptr;
 
 MikanServer::MikanServer()
-	: m_messageServer(new InterprocessMessageServer())
+#if USE_BOOST_INTERPROCESS_MESSAGES
+	: m_messageServer(new BoostInterprocessMessageServer())
+#else
+#endif
 {
 	m_instance= this;
 }
