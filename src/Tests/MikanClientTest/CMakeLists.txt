@@ -29,11 +29,13 @@ file(GLOB MIKAN_TEST_SRC
 list(APPEND MIKAN_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${ROOT_DIR}/src/AppCore/
-  ${ROOT_DIR}/src/Client/
+  ${ROOT_DIR}/src/Client/Public
+  ${ROOT_DIR}/src/Client/Public/Core
   ${ROOT_DIR}/src/Renderer/
   ${ROOT_DIR}/src/Utility/
   ${ROOT_DIR}/thirdparty/glm/
   ${GLEW_INCLUDE_DIRS}
+  ${NLOHMANN_JSON_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
   ${STB_INCLUDE_DIRS})
 

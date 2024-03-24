@@ -31,6 +31,9 @@ elseif(CMAKE_SYSTEM MATCHES "Linux")
   list(APPEND MIKAN_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl rt)
 endif()
 
+# Configuru
+set (CONFIGURU_INCLUDE_DIR ${ROOT_DIR}/thirdparty/Configuru)
+
 # OpenCV
 # Override by adding "-DOpenCV_DIR=C:\path\to\opencv\build" to your cmake command
 find_package(OpenCV REQUIRED)
@@ -113,6 +116,9 @@ file(GLOB IXWEBSOCKET_SOURCE
     "${IXWEBSOCKET_SOURCE_DIR}/*.cpp"
 	"${IXWEBSOCKET_SOURCE_DIR}/*.h"
 )
+
+# Nlohmann JSON
+set (NLOHMANN_JSON_INCLUDE_DIR ${ROOT_DIR}/thirdparty/nlohmann_json/include)
 
 # readerwriterqueue
 set (LOCKFREEQUEUE_INCLUDE_DIR ${ROOT_DIR}/thirdparty/readerwriterqueue)

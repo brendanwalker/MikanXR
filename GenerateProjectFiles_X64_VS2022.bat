@@ -1,12 +1,12 @@
 @echo on
 
-pushd %~dp0\bindings
-call RebuildCSharpBindings.bat
-popd 
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error generating C# bindings"
-  goto failure
-)
+::pushd %~dp0\bindings
+::call RebuildCSharpBindings.bat
+::popd 
+::IF %ERRORLEVEL% NEQ 0 (
+::  echo "Error generating C# bindings"
+::  goto failure
+::)
 
 IF NOT EXIST build mkdir build
 pushd build

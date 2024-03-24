@@ -3,22 +3,22 @@
 #include "IUnityApplication.h"
 #include "IUnityGraphics.h"
 #include "Logger.h"
-#include "MikanClient_CAPI.h"
+#include "MikanCoreCAPI.h"
 
 // --------------------------------------------------------------------------
 // Include headers for the graphics APIs we support
 
 #if SUPPORT_D3D9
 #include <d3d9.h>
-#include "Unity/IUnityGraphicsD3D9.h"
+#include "IUnityGraphicsD3D9.h"
 #endif
 #if SUPPORT_D3D11
 #include <d3d11.h>
-#include "Unity/IUnityGraphicsD3D11.h"
+#include "IUnityGraphicsD3D11.h"
 #endif
 #if SUPPORT_D3D12
 #include <d3d12.h>
-#include "Unity/IUnityGraphicsD3D12.h"
+#include "IUnityGraphicsD3D12.h"
 #endif
 
 #if SUPPORT_OPENGLES

@@ -1,5 +1,5 @@
-#ifndef MIKAN_CLIENT_EXPORT_H
-#define MIKAN_CLIENT_EXPORT_H
+#ifndef MIKAN_EXPORT_H
+#define MIKAN_EXPORT_H
 
 
 /** \def MIKAN_CALL
@@ -75,4 +75,4 @@
     #endif //MIKAN_CLIENT_EXPORTS
 #endif //!defined(MIKAN_PUBLIC_FUNCTION)
 
-#endif // MIKAN_CLIENT_EXPORT_H
+#endif // MIKAN_EXPORT_H

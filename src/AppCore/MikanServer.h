@@ -5,6 +5,7 @@
 #include "CommonConfigFwd.h"
 #include "ScriptingFwd.h"
 #include "MikanClientTypes.h"
+#include "MikanEventTypes.h"
 #include "MulticastDelegate.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "stdint.h"
@@ -92,7 +93,7 @@ protected:
 	void publishVRDevicePoses(uint64_t newFrameIndex);
 
 	// Publish helpers
-	void publishSimpleEvent(MikanEventType eventType);
+	void publishSimpleEvent(const std::string& eventType);
 
 private:
 	static MikanServer* m_instance;

@@ -2,6 +2,7 @@
 
 #include "InterprocessMessages.h"
 
+#include <map>
 #include <memory>
 
 namespace ix
@@ -17,23 +18,24 @@ using ClientConnectionStateWeakPtr = std::weak_ptr<class ClientConnectionState>;
 class WebsocketInterprocessMessageServer : public IInterprocessMessageServer
 {
 public:
-	using RPCHandler = std::function<void(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult)>;
-
 	WebsocketInterprocessMessageServer();
 	virtual ~WebsocketInterprocessMessageServer();
 
 	bool initialize() override;
 	void dispose() override;
-	void setRPCHandler(const std::string& functionName, RPCHandler handler) override;
+	void setRequestHandler(const std::string& requestType, RequestHandler handler, int version= 0) override;
 
-	void sendServerEventToClient(const std::string& clientId, MikanEvent* event) override;
-	void sendServerEventToAllClients(MikanEvent* event) override;
-	void processRemoteFunctionCalls() override;
+	void sendMessageToClient(const std::string& clientId, const std::string& message) override;
+	void sendMessageToAllClients(const std::string& message) override;
+	void processRequests() override;
+
+protected:
+	static std::string makeRequestHandlerKey(const std::string& requestType, int version);
 
 private:
 	WebSocketServerPtr m_server;
 	std::vector<ClientConnectionStateWeakPtr> m_connections;
-	std::map<std::string, RPCHandler> m_functionHandlers;
+	std::map<std::string, RequestHandler> m_requestHandlers;
 };
 
 

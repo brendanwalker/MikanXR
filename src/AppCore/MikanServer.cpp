@@ -19,11 +19,7 @@
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
 
-#if USE_BOOST_INTERPROCESS_MESSAGES
-#include "BoostInterprocessMessageServer.h"
-#else
 #include "WebsocketInterprocessMessageServer.h"
-#endif
 
 #include <set>
 #include <assert.h>
@@ -83,11 +79,6 @@ public:
 	InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const
 	{
 		return m_connectionInfo.renderTargetReadAccessor;
-	}
-
-	const MikanRenderTargetMemory& getLocalRenderTargetMemory() const
-	{
-		return m_connectionInfo.renderTargetReadAccessor->getLocalMemory();
 	}
 
 	MikanClientGraphicsApi getClientGraphicsAPI() const
@@ -163,7 +154,7 @@ public:
 		mikanEvent.event_type = MikanEvent_scriptMessagePosted;
 		mikanEvent.event_payload.script_message_posted = messageEvent;
 
-		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
+		m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
 	}
 
 	// Video Source Events
@@ -186,7 +177,7 @@ public:
 		mikanEvent.event_type = MikanEvent_videoSourceNewFrame;
 		mikanEvent.event_payload.video_source_new_frame= newFrameEvent;
 
-		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
+		m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
 	}
 
 	void publishVideoSourceAttachmentChangedEvent()
@@ -231,7 +222,7 @@ public:
 					poseUpdate.device_id= deviceId;
 					poseUpdate.frame= newVRFrameIndex;
 				}				
-				m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
+				m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
 			}
 		}
 	}
@@ -251,7 +242,7 @@ public:
 		mikanEvent.event_type = MikanEvent_anchorPoseUpdated;
 		mikanEvent.event_payload.anchor_pose_updated = newPoseEvent;
 
-		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
+		m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
 	}
 
 	void publishAnchorListChangedEvent()
@@ -267,7 +258,7 @@ public:
 		memset(&mikanEvent, 0, sizeof(MikanEvent));
 		mikanEvent.event_type = eventType;
 
-		m_messageServer->sendServerEventToClient(getClientId(), &mikanEvent);
+		m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
 	}
 
 private:
@@ -295,13 +286,7 @@ bool MikanClientConnectionInfo::hasAllocatedRenderTarget() const
 MikanServer* MikanServer::m_instance= nullptr;
 
 MikanServer::MikanServer()
-	: m_messageServer(
-#if USE_BOOST_INTERPROCESS_MESSAGES
-	new BoostInterprocessMessageServer()
-#else
-	new WebsocketInterprocessMessageServer()
-#endif
-	)
+	: m_messageServer(new WebsocketInterprocessMessageServer())
 {
 	m_instance= this;
 }
@@ -323,26 +308,26 @@ bool MikanServer::startup()
 		return false;
 	}
 
-	m_messageServer->setRPCHandler(CONNECT_FUNCTION_NAME, std::bind(&MikanServer::connect, this, _1, _2));
-	m_messageServer->setRPCHandler(DISCONNECT_FUNCTION_NAME, std::bind(&MikanServer::disconnect, this, _1, _2));
-	m_messageServer->setRPCHandler("invokeScriptMessageHandler", std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
-	m_messageServer->setRPCHandler("getVideoSourceIntrinsics", std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
-	m_messageServer->setRPCHandler("getVideoSourceMode", std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));	
-	m_messageServer->setRPCHandler("getVRDeviceList", std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
-	m_messageServer->setRPCHandler("getVideoSourceAttachment", std::bind(&MikanServer::getVideoSourceAttachment, this, _1, _2));
-	m_messageServer->setRPCHandler("getVRDeviceInfo", std::bind(&MikanServer::getVRDeviceInfo, this, _1, _2));
-	m_messageServer->setRPCHandler("subscribeToVRDevicePoseUpdates", std::bind(&MikanServer::subscribeToVRDevicePoseUpdates, this, _1, _2));
-	m_messageServer->setRPCHandler("unsubscribeFromVRDevicePoseUpdates", std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
-	m_messageServer->setRPCHandler("allocateRenderTargetBuffers", std::bind(&MikanServer::allocateRenderTargetBuffers, this, _1, _2));
-	m_messageServer->setRPCHandler("freeRenderTargetBuffers", std::bind(&MikanServer::freeRenderTargetBuffers, this, _1, _2));
-	m_messageServer->setRPCHandler("frameRendered", std::bind(&MikanServer::frameRendered, this, _1, _2));	
-	m_messageServer->setRPCHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
-	m_messageServer->setRPCHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
-	m_messageServer->setRPCHandler("getBoxStencil", std::bind(&MikanServer::getBoxStencil, this, _1, _2));
-	m_messageServer->setRPCHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
-	m_messageServer->setRPCHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
-	m_messageServer->setRPCHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
-	m_messageServer->setRPCHandler("findSpatialAnchorInfoByName", std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));	
+	m_messageServer->setRequestHandler(CONNECT_FUNCTION_NAME, std::bind(&MikanServer::connect, this, _1, _2));
+	m_messageServer->setRequestHandler(DISCONNECT_FUNCTION_NAME, std::bind(&MikanServer::disconnect, this, _1, _2));
+	m_messageServer->setRequestHandler("invokeScriptMessageHandler", std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
+	m_messageServer->setRequestHandler("getVideoSourceIntrinsics", std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
+	m_messageServer->setRequestHandler("getVideoSourceMode", std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));	
+	m_messageServer->setRequestHandler("getVRDeviceList", std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
+	m_messageServer->setRequestHandler("getVideoSourceAttachment", std::bind(&MikanServer::getVideoSourceAttachment, this, _1, _2));
+	m_messageServer->setRequestHandler("getVRDeviceInfo", std::bind(&MikanServer::getVRDeviceInfo, this, _1, _2));
+	m_messageServer->setRequestHandler("subscribeToVRDevicePoseUpdates", std::bind(&MikanServer::subscribeToVRDevicePoseUpdates, this, _1, _2));
+	m_messageServer->setRequestHandler("unsubscribeFromVRDevicePoseUpdates", std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
+	m_messageServer->setRequestHandler("allocateRenderTargetBuffers", std::bind(&MikanServer::allocateRenderTargetBuffers, this, _1, _2));
+	m_messageServer->setRequestHandler("freeRenderTargetBuffers", std::bind(&MikanServer::freeRenderTargetBuffers, this, _1, _2));
+	m_messageServer->setRequestHandler("frameRendered", std::bind(&MikanServer::frameRendered, this, _1, _2));	
+	m_messageServer->setRequestHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
+	m_messageServer->setRequestHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
+	m_messageServer->setRequestHandler("getBoxStencil", std::bind(&MikanServer::getBoxStencil, this, _1, _2));
+	m_messageServer->setRequestHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
+	m_messageServer->setRequestHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
+	m_messageServer->setRequestHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
+	m_messageServer->setRequestHandler("findSpatialAnchorInfoByName", std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));	
 
 	VRDeviceManager::getInstance()->OnDeviceListChanged += MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
 	VRDeviceManager::getInstance()->OnDevicePosesChanged += MakeDelegate(this, &MikanServer::publishVRDevicePoses);
@@ -361,7 +346,7 @@ void MikanServer::update()
 	{
 		EASY_BLOCK("processRemoteFunctionCalls");
 
-		m_messageServer->processRemoteFunctionCalls();
+		m_messageServer->processRequests();
 	}
 }
 
@@ -498,7 +483,7 @@ void MikanServer::publishVRDevicePoses(uint64_t newFrameIndex)
 	}
 }
 
-void MikanServer::publishSimpleEvent(MikanEventType eventType)
+void MikanServer::publishSimpleEvent(const std::string& eventType)
 {
 	EASY_FUNCTION();
 

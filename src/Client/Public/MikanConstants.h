@@ -7,7 +7,7 @@
 @{ 
 */
 
-#define MIKAN_CLIENT_VERSION_STRING		"MikanXR_1.00"
+#define MIKAN_CORE_API_VERSION_STRING		"MikanXR_CoreAPI_1.00"
 
 /** 
 @} 

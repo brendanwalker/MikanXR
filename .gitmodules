@@ -31,3 +31,6 @@
 [submodule "thirdparty/readerwriterqueue"]
 	path = thirdparty/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git
+[submodule "thirdparty/nlohmann_json"]
+	path = thirdparty/nlohmann_json
+	url = https://github.com/nlohmann/json.git

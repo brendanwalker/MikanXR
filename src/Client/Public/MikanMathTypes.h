@@ -1,9 +1,8 @@
 /**
 \file
 */
+#pragma once
 
-#ifndef __MIKAN_MATH_TYPES_H
-#define __MIKAN_MATH_TYPES_H
 //cut_before
 
 /**
@@ -21,28 +20,28 @@
 #define MIKAN_CENTIMETERS_TO_METERS  0.01f
 
 /// A 3D vector with double components.
-typedef struct
+struct MikanVector3d
 {
-    double x, y, z;
-} MikanVector3d;
+	double x, y, z;
+};
 
 /// A 2D vector with float components.
-typedef struct
+struct MikanVector2f
 {
 	float x, y;
-} MikanVector2f;
+};
 
 /// A 3D vector with float components.
-typedef struct
+struct MikanVector3f
 {
     float x, y, z;
-} MikanVector3f;
+};
 
 /// A 3-tuple of Euler angles with float components.
-typedef struct
+struct MikanRotator3f
 {
 	float x_angle, y_angle, z_angle;
-} MikanRotator3f;
+};
 
 /** A 4x4 matrix with float components
     storage is column major order:
@@ -52,7 +51,7 @@ typedef struct
     | x2 y2 z2 w2 |
     | x3 y3 z3 w3 |
  */
-typedef struct
+struct MikanMatrix4f
 {
 	float x0;
 	float x1;
@@ -70,7 +69,7 @@ typedef struct
 	float w1;
 	float w2;
 	float w3;
-} MikanMatrix4f;
+};
 
 /** A 3x3 matrix with double components
     storage is column major order:
@@ -79,7 +78,7 @@ typedef struct
     | x1 y1 z1 |
     | x2 y2 z2 |
  */
-typedef struct
+struct MikanMatrix3d
 {
 	double x0;
 	double x1;
@@ -90,7 +89,7 @@ typedef struct
 	double z0;
 	double z1;
 	double z2;
-} MikanMatrix3d;
+};
 
 /** A 4x3 matrix with double components
     storage is column major order:
@@ -99,7 +98,7 @@ typedef struct
     | x1 y1 z1 w1|
     | x2 y2 z2 w2|
  */
-typedef struct
+struct MikanMatrix4x3d
 {
 	double x0;
 	double x1;
@@ -113,7 +112,7 @@ typedef struct
 	double z1;
 	double z2;
 	double z3;
-} MikanMatrix4x3d;
+};
 
 /** A 4x4 matrix with double components
     storage is column major order:
@@ -123,7 +122,7 @@ typedef struct
     | x2 y2 z2 w2 |
     | x3 y3 z3 w3 |
  */
-typedef struct
+struct MikanMatrix4d
 {
 	double x0;
 	double x1;
@@ -141,31 +140,30 @@ typedef struct
 	double w1;
 	double w2;
 	double w3;
-} MikanMatrix4d;
+};
 
 /// A double-precision quaternion rotation.
-typedef struct
+struct MikanQuatf
 {
 	float w, x, y, z;
-} MikanQuatf;
+};
 
 /// A double-precision quaternion rotation.
-typedef struct
+struct MikanQuatd
 {
     double w, x, y, z;
-} MikanQuatd;
+};
 
 /// A single-precision Scale-Rotation-Translation transform.
-typedef struct
+struct MikanTransform
 {
 	MikanVector3f scale;
 	MikanQuatf rotation;
 	MikanVector3f position;
-} MikanTransform;
+};
 
 /**
 @}
 */
 
 //cut_after
-#endif

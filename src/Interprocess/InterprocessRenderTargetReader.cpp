@@ -96,7 +96,6 @@ InterprocessRenderTargetReadAccessor::InterprocessRenderTargetReadAccessor(const
 	, m_readerImpl(new RenderTargetReaderImpl)
 {
 	memset(&m_descriptor, 0, sizeof(MikanRenderTargetDescriptor));
-	memset(&m_localMemory, 0, sizeof(MikanRenderTargetMemory));
 	m_readerImpl->readerApi.spoutTextureReader= nullptr;
 	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 }
