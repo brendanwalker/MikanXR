@@ -25,6 +25,12 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MikanResult, {
 	{MikanResult_MalformedParameters, "MalformedParameters"},
 	{MikanResult_MalformedResponse, "MalformedResponse"},
 	{MikanResult_InvalidAPI, "InvalidAPI"},
+	{MikanResult_SharedTextureError, "SharedTextureError"},
+	{MikanResult_NoVideoSource, "NoVideoSource"},
+	{MikanResult_NoVideoSourceAssignedTracker, "NoVideoSourceAssignedTracker"},
+	{MikanResult_InvalidDeviceId, "InvalidDeviceId"},
+	{MikanResult_InvalidStencilID, "InvalidStencilID"},
+	{MikanResult_InvalidAnchorID, "InvalidAnchorID"},
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MikanColorBufferType, {

@@ -60,40 +60,37 @@ public:
 	MulticastDelegate<void(const std::string& clientId, uint64_t frameIndex)> OnClientRenderTargetUpdated;
 
 protected:
-	// RPC Callbacks
-	void connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void disconnect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	// Request Callbacks
+	//void connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	//void disconnect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
 	
-	void invokeScriptMessageHandler(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void invokeScriptMessageHandler(const ClientRequest& request, std::string& utf8ResponseString);
 	
-	void getVideoSourceIntrinsics(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void getVideoSourceMode(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void getVideoSourceAttachment(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void getVideoSourceIntrinsics(const ClientRequest& request, std::string& utf8ResponseString);
+	void getVideoSourceMode(const ClientRequest& request, std::string& utf8ResponseString);
+	void getVideoSourceAttachment(const ClientRequest& request, std::string& utf8ResponseString);
 
-	void getVRDeviceList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void getVRDeviceInfo(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void subscribeToVRDevicePoseUpdates(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void unsubscribeFromVRDevicePoseUpdates(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void getVRDeviceList(const ClientRequest& request, std::string& utf8ResponseString);
+	void getVRDeviceInfo(const ClientRequest& request, std::string& utf8ResponseString);
+	void subscribeToVRDevicePoseUpdates(const ClientRequest& request, std::string& utf8ResponseString);
+	void unsubscribeFromVRDevicePoseUpdates(const ClientRequest& request, std::string& utf8ResponseString);
 
-	void allocateRenderTargetBuffers(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void freeRenderTargetBuffers(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void frameRendered(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void allocateRenderTargetBuffers(const ClientRequest& request, std::string& utf8ResponseString);
+	void freeRenderTargetBuffers(const ClientRequest& request, std::string& utf8ResponseString);
+	void frameRendered(const ClientRequest& request, std::string& utf8ResponseString);
 
-	void getStencilList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void getQuadStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void getBoxStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void getModelStencil(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void getStencilList(const ClientRequest& request, std::string& utf8ResponseString);
+	void getQuadStencil(const ClientRequest& request, std::string& utf8ResponseString);
+	void getBoxStencil(const ClientRequest& request, std::string& utf8ResponseString);
+	void getModelStencil(const ClientRequest& request, std::string& utf8ResponseString);
 
-	void getSpatialAnchorList(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void getSpatialAnchorInfo(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	void findSpatialAnchorInfoByName(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
+	void getSpatialAnchorList(const ClientRequest& request, std::string& utf8ResponseString);
+	void getSpatialAnchorInfo(const ClientRequest& request, std::string& utf8ResponseString);
+	void findSpatialAnchorInfoByName(const ClientRequest& request, std::string& utf8ResponseString);
 
 	// VRManager Callbacks
 	void publishVRDeviceListChanged();
 	void publishVRDevicePoses(uint64_t newFrameIndex);
-
-	// Publish helpers
-	void publishSimpleEvent(const std::string& eventType);
 
 private:
 	static MikanServer* m_instance;

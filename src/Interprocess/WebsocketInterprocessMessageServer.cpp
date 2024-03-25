@@ -353,7 +353,9 @@ void WebsocketInterprocessMessageServer::processRequests()
 			auto handler_it = m_requestHandlers.find(handlerKey);
 			if (handler_it != m_requestHandlers.end())
 			{
-				handler_it->second(inRequestString, outResponseString);
+				ClientRequest request= { clientId, requestId, inRequestString };
+
+				handler_it->second(request, outResponseString);
 			}
 			else
 			{

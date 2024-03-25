@@ -97,9 +97,9 @@ public:
 	}
 
 	inline static const std::string k_sendScriptMessage = "invokeScriptMessageHandler";
-	MikanResponseFuture sendScriptMessage(const MikanScriptMessageInfo& mesg) // returns MikanResult
+	MikanResponseFuture sendScriptMessage(const std::string& mesg) // returns MikanResult
 	{
-		return m_requestManager->sendRequestWithPayload<MikanScriptMessageInfo>(k_sendScriptMessage, mesg);
+		return m_requestManager->sendRequestWithPayload<std::string>(k_sendScriptMessage, mesg);
 	}
 
 private:

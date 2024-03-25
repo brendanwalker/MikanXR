@@ -76,6 +76,9 @@ struct MikanRequest
 	std::string requestType;
 	MikanRequestID requestId;
 	int version;
+
+	MikanRequest() = default;
+	MikanRequest(const std::string& inRequestType) : requestType(inRequestType) {}
 };
 
 struct MikanResponse
@@ -85,13 +88,17 @@ struct MikanResponse
 	std::string responseType;
 	MikanRequestID requestId;
 	MikanResult resultCode;
+
+	MikanResponse() = default;
+	MikanResponse(const std::string& inResponseType) : responseType(inResponseType) {}
 };
 
 struct MikanEvent
 {
-	inline static const std::string k_typeName = "MikanEvent";
-
 	std::string eventType;
+
+	MikanEvent()= default;
+	MikanEvent(const std::string& inEventType) : eventType(inEventType) {}
 };
 
 struct MikanClientInfo
@@ -131,6 +138,8 @@ struct MikanStencilQuad : public MikanResponse
 	bool is_double_sided;
 	bool is_disabled;
 	std::string stencil_name;
+
+	MikanStencilQuad() : MikanResponse(k_typeName) {}
 };
 
 struct MikanStencilBox : public MikanResponse
@@ -145,6 +154,8 @@ struct MikanStencilBox : public MikanResponse
 	float box_z_size;
 	bool is_disabled;
 	std::string stencil_name;
+
+	MikanStencilBox() : MikanResponse(k_typeName) {}
 };
 
 struct MikanStencilModel : public MikanResponse
@@ -156,6 +167,8 @@ struct MikanStencilModel : public MikanResponse
 	MikanTransform relative_transform; // transform relative to parent anchor
 	bool is_disabled;
 	std::string stencil_name;
+
+	MikanStencilModel() : MikanResponse(k_typeName) {}
 };
 
 struct MikanStencilList : public MikanResponse
@@ -163,6 +176,8 @@ struct MikanStencilList : public MikanResponse
 	inline static const std::string k_typeName = "MikanStencilList";
 
 	std::vector<MikanStencilID> stencil_id_list;
+
+	MikanStencilList() : MikanResponse(k_typeName) {}
 };
 
 // VR Device Response Types
@@ -171,6 +186,8 @@ struct MikanVRDeviceList : public MikanResponse
 	inline static const std::string k_typeName = "MikanVRDeviceList";
 
 	std::vector<MikanStencilID> vr_device_id_list;
+
+	MikanVRDeviceList() : MikanResponse(k_typeName) {}
 };
 
 struct MikanVRDeviceInfo : public MikanResponse
@@ -180,6 +197,8 @@ struct MikanVRDeviceInfo : public MikanResponse
 	MikanVRDeviceApi vr_device_api;
 	MikanVRDeviceType vr_device_type;
 	std::string device_path;
+
+	MikanVRDeviceInfo() : MikanResponse(k_typeName) {}
 };
 
 // Spatial Anchor Response Types
@@ -188,6 +207,8 @@ struct MikanSpatialAnchorList : public MikanResponse
 	inline static const std::string k_typeName = "MikanSpatialAnchorList";
 
 	std::vector<MikanSpatialAnchorID> spatial_anchor_id_list;
+
+	MikanSpatialAnchorList() : MikanResponse(k_typeName) {}
 };
 
 struct MikanSpatialAnchorInfo  : public MikanResponse
@@ -197,14 +218,18 @@ struct MikanSpatialAnchorInfo  : public MikanResponse
 	MikanSpatialAnchorID anchor_id;
 	MikanTransform world_transform; // Transform in tracking system space
 	std::string anchor_name;
+
+	MikanSpatialAnchorInfo() : MikanResponse(k_typeName) {}
 };
 
 // Script Event Types
-struct MikanScriptMessageInfo
+struct MikanScriptMessageInfo : public MikanEvent
 {
 	inline static const std::string k_typeName = "MikanScriptMessageInfo";
 
 	std::string content;
+
+	MikanScriptMessageInfo() : MikanEvent(k_typeName) {}
 };
 
 /**

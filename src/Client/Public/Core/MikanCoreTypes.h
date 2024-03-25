@@ -33,6 +33,11 @@ enum MikanResult
 	MikanResult_MalformedResponse,
 	MikanResult_InvalidAPI,
 	MikanResult_SharedTextureError,
+	MikanResult_NoVideoSource,
+	MikanResult_NoVideoSourceAssignedTracker,
+	MikanResult_InvalidDeviceId,
+	MikanResult_InvalidStencilID,
+	MikanResult_InvalidAnchorID,
 };
 
 enum MikanLogLevel

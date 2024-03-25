@@ -20,11 +20,21 @@
 #include "VRDeviceView.h"
 
 #include "WebsocketInterprocessMessageServer.h"
+#include "MikanClientTypes.h"
+#include "MikanClientTypes_json.h"
+#include "MikanEventTypes.h"
+#include "MikanEventTypes_json.h"
+#include "MikanVideoSourceTypes.h"
+#include "MikanVideoSourceTypes_json.h"
 
 #include <set>
 #include <assert.h>
 
 #include <easy/profiler.h>
+
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strncpy
@@ -146,60 +156,64 @@ public:
 		m_connectionInfo.renderTargetReadAccessor->dispose();
 	}
 
-	// Scripting Events
-	void publishScriptMessageEvent(const MikanScriptMessageInfo& messageEvent)
+	template <typename t_mikan_type>
+	std::string mikanTypeToJsonString(const t_mikan_type& mikanType)
 	{
-		MikanEvent mikanEvent;
-		memset(&mikanEvent, 0, sizeof(MikanEvent));
-		mikanEvent.event_type = MikanEvent_scriptMessagePosted;
-		mikanEvent.event_payload.script_message_posted = messageEvent;
+		json j = mikanType;
 
-		m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
+		return j.dump();
+	}
+
+	template <typename t_mikan_type>
+	void publishSimpleEvent()
+	{
+		t_mikan_type mikanEvent;
+		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(mikanEvent));
+	}
+
+	// Scripting Events
+	void publishScriptMessageEvent(const std::string& message)
+	{
+		MikanScriptMessageInfo messageInfo;
+		messageInfo.content = message;
+
+		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(messageInfo));
 	}
 
 	// Video Source Events
 	void publishVideoSourceOpenedEvent()
 	{
-		publishSimpleEvent(MikanEvent_videoSourceOpened);
+		publishSimpleEvent<MikanVideoSourceOpenedEvent>();
 	}
 
 	void publishVideoSourceClosedEvent()
 	{
-		publishSimpleEvent(MikanEvent_videoSourceClosed);
+		publishSimpleEvent<MikanVideoSourceClosedEvent>();
 	}
 
 	void publishNewVideoFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent)
 	{
-		EASY_FUNCTION();
-
-		MikanEvent mikanEvent;
-		memset(&mikanEvent, 0, sizeof(MikanEvent));
-		mikanEvent.event_type = MikanEvent_videoSourceNewFrame;
-		mikanEvent.event_payload.video_source_new_frame= newFrameEvent;
-
-		m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
+		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(newFrameEvent));
 	}
 
 	void publishVideoSourceAttachmentChangedEvent()
 	{
-		publishSimpleEvent(MikanEvent_videoSourceAttachmentChanged);
+		publishSimpleEvent<MikanVideoSourceAttachmentChangedEvent>();
 	}
 
 	void publishVideoSourceIntrinsicsChangedEvent()
 	{
-		publishSimpleEvent(MikanEvent_videoSourceIntrinsicsChanged);
+		publishSimpleEvent<MikanVideoSourceIntrinsicsChangedEvent>();
 	}
 
 	void publishVideoSourceModeChangedEvent()
 	{
-		publishSimpleEvent(MikanEvent_videoSourceModeChanged);
+		publishSimpleEvent<MikanVideoSourceModeChangedEvent>();
 	}
 
 	// VR Device Events
 	void publishVRDevicePoses(uint64_t newVRFrameIndex)
 	{
-		EASY_FUNCTION();
-
 		VRDeviceManager* vrDeviceManager= VRDeviceManager::getInstance();
 
 		for (auto deviceId : m_subscribedVRDevices)
@@ -212,53 +226,30 @@ public:
 				glm::mat4 xform= vrDeviceView->getCalibrationPose();
 
 				// Send a pose update to the client
-				MikanEvent mikanEvent;
-				memset(&mikanEvent, 0, sizeof(MikanEvent));
-				mikanEvent.event_type = MikanEvent_vrDevicePoseUpdated;
-				{
-					MikanVRDevicePoseUpdateEvent& poseUpdate= mikanEvent.event_payload.vr_device_pose_updated;
+				MikanVRDevicePoseUpdateEvent poseUpdate;
+				poseUpdate.transform= glm_mat4_to_MikanMatrix4f(xform);
+				poseUpdate.device_id= deviceId;
+				poseUpdate.frame= newVRFrameIndex;
 
-					poseUpdate.transform= glm_mat4_to_MikanMatrix4f(xform);
-					poseUpdate.device_id= deviceId;
-					poseUpdate.frame= newVRFrameIndex;
-				}				
-				m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
+				m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(poseUpdate));
 			}
 		}
 	}
 
 	void publishVRDeviceListChangedEvent()
 	{
-		publishSimpleEvent(MikanEvent_vrDeviceListUpdated);
+		publishSimpleEvent<MikanVRDeviceListUpdateEvent>();
 	}
 
 	// Spatial Anchor Events
 	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent)
 	{
-		EASY_FUNCTION();
-
-		MikanEvent mikanEvent;
-		memset(&mikanEvent, 0, sizeof(MikanEvent));
-		mikanEvent.event_type = MikanEvent_anchorPoseUpdated;
-		mikanEvent.event_payload.anchor_pose_updated = newPoseEvent;
-
-		m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
+		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(newPoseEvent));
 	}
 
 	void publishAnchorListChangedEvent()
 	{
-		publishSimpleEvent(MikanEvent_anchorListUpdated);
-	}
-
-	void publishSimpleEvent(MikanEventType eventType)
-	{
-		EASY_FUNCTION();
-
-		MikanEvent mikanEvent;
-		memset(&mikanEvent, 0, sizeof(MikanEvent));
-		mikanEvent.event_type = eventType;
-
-		m_messageServer->sendMessageToClient(getClientId(), &mikanEvent);
+		publishSimpleEvent<MikanAnchorListUpdateEvent>();
 	}
 
 private:
@@ -298,6 +289,17 @@ MikanServer::~MikanServer()
 }
 
 // -- ClientMikanAPI System -----
+template <typename t_mikan_type>
+void publishSimpleEvent(std::map<std::string, class ClientConnectionState*>& clientConnections)
+{
+	EASY_FUNCTION();
+
+	for (auto& connection_it : clientConnections)
+	{
+		connection_it.second->publishSimpleEvent<t_mikan_type>();
+	}
+}
+
 bool MikanServer::startup()
 {
 	EASY_FUNCTION();
@@ -308,8 +310,8 @@ bool MikanServer::startup()
 		return false;
 	}
 
-	m_messageServer->setRequestHandler(CONNECT_FUNCTION_NAME, std::bind(&MikanServer::connect, this, _1, _2));
-	m_messageServer->setRequestHandler(DISCONNECT_FUNCTION_NAME, std::bind(&MikanServer::disconnect, this, _1, _2));
+	//m_messageServer->setRequestHandler(CONNECT_FUNCTION_NAME, std::bind(&MikanServer::connect, this, _1, _2));
+	//m_messageServer->setRequestHandler(DISCONNECT_FUNCTION_NAME, std::bind(&MikanServer::disconnect, this, _1, _2));
 	m_messageServer->setRequestHandler("invokeScriptMessageHandler", std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
 	m_messageServer->setRequestHandler("getVideoSourceIntrinsics", std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
 	m_messageServer->setRequestHandler("getVideoSourceMode", std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));	
@@ -327,7 +329,7 @@ bool MikanServer::startup()
 	m_messageServer->setRequestHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
 	m_messageServer->setRequestHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
 	m_messageServer->setRequestHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
-	m_messageServer->setRequestHandler("findSpatialAnchorInfoByName", std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));	
+	m_messageServer->setRequestHandler("findSpatialAnchorInfoByName", std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));
 
 	VRDeviceManager::getInstance()->OnDeviceListChanged += MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
 	VRDeviceManager::getInstance()->OnDevicePosesChanged += MakeDelegate(this, &MikanServer::publishVRDevicePoses);
@@ -387,26 +389,21 @@ void MikanServer::unbindScriptContect(CommonScriptContextPtr scriptContext)
 
 void MikanServer::publishScriptMessageEvent(const std::string& message)
 {
-	MikanScriptMessageInfo messageInfo;
-	memset(&messageInfo, 0, sizeof(MikanScriptMessageInfo));
-	strncpy(messageInfo.content, message.c_str(), MAX_MIKAN_SCRIPT_MESSAGE_LEN - 1);
-	messageInfo.content[MAX_MIKAN_SCRIPT_MESSAGE_LEN - 1]= '\0';
-
 	for (auto& connection_it : m_clientConnections)
 	{
-		connection_it.second->publishScriptMessageEvent(messageInfo);
+		connection_it.second->publishScriptMessageEvent(message);
 	}
 }
 
 // Video Source Events
 void MikanServer::publishVideoSourceOpenedEvent()
 {
-	publishSimpleEvent(MikanEvent_videoSourceOpened);
+	publishSimpleEvent<MikanVideoSourceOpenedEvent>(m_clientConnections);
 }
 
 void MikanServer::publishVideoSourceClosedEvent()
 {
-	publishSimpleEvent(MikanEvent_videoSourceClosed);
+	publishSimpleEvent<MikanVideoSourceClosedEvent>(m_clientConnections);
 }
 
 void MikanServer::publishVideoSourceNewFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent)
@@ -421,17 +418,17 @@ void MikanServer::publishVideoSourceNewFrameEvent(const MikanVideoSourceNewFrame
 
 void MikanServer::publishVideoSourceAttachmentChangedEvent()
 {
-	publishSimpleEvent(MikanEvent_videoSourceAttachmentChanged);
+	publishSimpleEvent<MikanVideoSourceAttachmentChangedEvent>(m_clientConnections);
 }
 
 void MikanServer::publishVideoSourceIntrinsicsChangedEvent()
 {
-	publishSimpleEvent(MikanEvent_videoSourceIntrinsicsChanged);
+	publishSimpleEvent<MikanVideoSourceIntrinsicsChangedEvent>(m_clientConnections);
 }
 
 void MikanServer::publishVideoSourceModeChangedEvent()
 {
-	publishSimpleEvent(MikanEvent_videoSourceModeChanged);
+	publishSimpleEvent<MikanVideoSourceModeChangedEvent>(m_clientConnections);
 }
 
 // Spatial Anchor Events
@@ -460,19 +457,19 @@ void MikanServer::handleAnchorSystemConfigChange(
 		poseUpdateEvent.anchor_id = anchorConfig->getAnchorId();
 		poseUpdateEvent.transform = glm_transform_to_MikanTransform(anchorConfig->getRelativeTransform());
 
-		MikanServer::getInstance()->publishAnchorPoseUpdatedEvent(poseUpdateEvent);
+		publishAnchorPoseUpdatedEvent(poseUpdateEvent);
 
 	}
 	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
 	{
-		publishSimpleEvent(MikanEvent_anchorListUpdated);
+		publishSimpleEvent<MikanAnchorListUpdateEvent>(m_clientConnections);
 	}
 }
 
 // VRManager Callbacks
 void MikanServer::publishVRDeviceListChanged()
 {
-	publishSimpleEvent(MikanEvent_vrDeviceListUpdated);
+	publishSimpleEvent<MikanVRDeviceListUpdateEvent>(m_clientConnections);
 }
 
 void MikanServer::publishVRDevicePoses(uint64_t newFrameIndex)
@@ -480,16 +477,6 @@ void MikanServer::publishVRDevicePoses(uint64_t newFrameIndex)
 	for (auto& connection_it : m_clientConnections)
 	{
 		connection_it.second->publishVRDevicePoses(newFrameIndex);
-	}
-}
-
-void MikanServer::publishSimpleEvent(const std::string& eventType)
-{
-	EASY_FUNCTION();
-
-	for (auto& connection_it : m_clientConnections)
-	{
-		connection_it.second->publishSimpleEvent(eventType);
 	}
 }
 
@@ -517,54 +504,95 @@ static VRDeviceViewPtr getCurrentCameraVRDevice()
 	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 }
 
-void MikanServer::connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult)
+//void MikanServer::connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult)
+//{
+//	const std::string clientId= inFunctionCall->getClientId();
+//
+//	MikanClientInfo clientInfo;
+//	if (inFunctionCall->extractParameters(clientInfo))
+//	{
+//		auto connection_it = m_clientConnections.find(clientId);
+//
+//		if (connection_it == m_clientConnections.end())
+//		{
+//			ClientConnectionState* clientState= new ClientConnectionState(clientId, clientInfo, m_messageServer);
+//
+//			m_clientConnections.insert({ clientId, clientState });
+//
+//			if (OnClientConnected)
+//			{
+//				OnClientConnected(clientId, clientInfo);
+//			}
+//		}
+//	}
+//}
+
+//void MikanServer::disconnect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult)
+//{
+//	const std::string clientId = inFunctionCall->getClientId();
+//
+//	auto connection_it = m_clientConnections.find(clientId);
+//	if (connection_it != m_clientConnections.end())
+//	{
+//		const std::string& clientId= connection_it->first;
+//
+//		if (OnClientDisconnected)
+//		{
+//			OnClientDisconnected(clientId);
+//		}
+//
+//		delete connection_it->second;
+//		m_clientConnections.erase(connection_it);
+//	}
+//}
+
+template <typename t_mikan_type>
+bool readRequestPayload(const std::string& utf8RequestString, t_mikan_type& outParameters)
 {
-	const std::string clientId= inFunctionCall->getClientId();
-
-	MikanClientInfo clientInfo;
-	if (inFunctionCall->extractParameters(clientInfo))
+	try
 	{
-		auto connection_it = m_clientConnections.find(clientId);
+		json j = json::parse(utf8RequestString);
 
-		if (connection_it == m_clientConnections.end())
-		{
-			ClientConnectionState* clientState= new ClientConnectionState(clientId, clientInfo, m_messageServer);
-
-			m_clientConnections.insert({ clientId, clientState });
-
-			if (OnClientConnected)
-			{
-				OnClientConnected(clientId, clientInfo);
-			}
-		}
+		outParameters = j["payload"];
 	}
+	catch (json::exception& e)
+	{
+		MIKAN_LOG_ERROR("MikanServer::extractParameters") << "Failed to parse JSON: " << e.what();
+		return false;
+	}
+
+	return true;
 }
 
-void MikanServer::disconnect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult)
+template <typename t_mikan_type>
+void writeTypedResponse(MikanRequestID requestId, t_mikan_type& result, std::string& utf8ResponseString)
 {
-	const std::string clientId = inFunctionCall->getClientId();
+	result.requestId= requestId;
+	result.resultCode= MikanResult_Success;
 
-	auto connection_it = m_clientConnections.find(clientId);
-	if (connection_it != m_clientConnections.end())
-	{
-		const std::string& clientId= connection_it->first;
+	json j = result;
 
-		if (OnClientDisconnected)
-		{
-			OnClientDisconnected(clientId);
-		}
-
-		delete connection_it->second;
-		m_clientConnections.erase(connection_it);
-	}
+	utf8ResponseString= j.dump();
 }
 
-void MikanServer::invokeScriptMessageHandler(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult)
+void writeSimpleResponse(MikanRequestID requestId, MikanResult result, std::string& utf8ResponseString)
+{
+	MikanResponse response;
+	response.requestId= requestId;
+	response.resultCode= result;
+
+	json j= response;
+	utf8ResponseString = j.dump();
+}
+
+void MikanServer::invokeScriptMessageHandler(
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	MikanScriptMessageInfo messageInfo;
-	if (!inFunctionCall->extractParameters(messageInfo))
+	if (!readRequestPayload(request.utf8RequestString, messageInfo))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
@@ -582,12 +610,12 @@ void MikanServer::invokeScriptMessageHandler(const MikanRemoteFunctionCall* inFu
 		}
 	}
 
-	outResult->setResultCode(MikanResult_Success);
+	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 }
 
 void MikanServer::getVideoSourceIntrinsics(
-	const MikanRemoteFunctionCall* inFunctionCall, 
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	VideoSourceViewPtr videoSourceView= getCurrentVideoSource();
 
@@ -596,18 +624,17 @@ void MikanServer::getVideoSourceIntrinsics(
 		MikanVideoSourceIntrinsics intrinsics;
 		videoSourceView->getCameraIntrinsics(intrinsics);
 
-		outResult->setResultBuffer((uint8_t *)&intrinsics, sizeof(MikanVideoSourceIntrinsics));
-		outResult->setResultCode(MikanResult_Success);
+		writeTypedResponse(request.requestId, intrinsics, utf8ResponseString);
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_NoSelectedCamera);
+		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, utf8ResponseString);
 	}
 }
 
 void MikanServer::getVideoSourceMode(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	VideoSourceViewPtr videoSourceView = getCurrentVideoSource();
 
@@ -618,12 +645,11 @@ void MikanServer::getVideoSourceMode(
 		const VideoModeConfig* modeConfig= videoSourceView->getVideoMode();
 
 		MikanVideoSourceMode info;
-		memset(&info, 0, sizeof(MikanVideoSourceMode));
-		strncpy(info.device_path, devicePath.c_str(), sizeof(info.device_path)-1);
+		info.device_path = devicePath;
 		info.frame_rate = modeConfig->frameRate;
 		info.resolution_x = modeConfig->bufferPixelWidth;
 		info.resolution_y = modeConfig->bufferPixelHeight;
-		strncpy(info.video_mode_name, modeConfig->modeName.c_str(), sizeof(info.video_mode_name)-1);
+		info.video_mode_name = modeConfig->modeName;
 		switch (driverType)
 		{
 		case IVideoSourceInterface::OpenCV:
@@ -639,18 +665,17 @@ void MikanServer::getVideoSourceMode(
 		}
 		info.video_source_type= videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;
 
-		outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanVideoSourceMode));
-		outResult->setResultCode(MikanResult_Success);
+		writeTypedResponse(request.requestId, info, utf8ResponseString);
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_NoSelectedCamera);
+		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, utf8ResponseString);
 	}
 }
 
 void MikanServer::getVideoSourceAttachment(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	VideoSourceViewPtr videoSourceView = getCurrentVideoSource();
 
@@ -673,65 +698,55 @@ void MikanServer::getVideoSourceAttachment(
 				glm::mat4_cast(cameraOffsetQuat);
 			info.vr_device_offset_xform = glm_mat4_to_MikanMatrix4f(cameraOffsetXform);
 
-			outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanVideoSourceAttachmentInfo));
-			outResult->setResultCode(MikanResult_Success);
+			writeTypedResponse(request.requestId, info, utf8ResponseString);
 		}
 		else
 		{
-			outResult->setResultCode(MikanResult_NoCameraAssignedTracker);
+			writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, utf8ResponseString);
 		}
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_NoSelectedCamera);
+		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, utf8ResponseString);
 	}
 }
 
 void MikanServer::getVRDeviceList(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	class MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	VRDeviceList deviceList= VRDeviceManager::getInstance()->getVRDeviceList();
 
-	MikanVRDeviceList vrDeviceListResult;
-	memset(&vrDeviceListResult, 0, sizeof(MikanVRDeviceList));
+	MikanVRDeviceList vrDeviceListResult= {};
 
 	for (VRDeviceViewPtr deviceView : deviceList)
 	{
-		vrDeviceListResult.vr_device_id_list[vrDeviceListResult.vr_device_count]= deviceView->getDeviceID();
-		++vrDeviceListResult.vr_device_count;
-
-		assert(vrDeviceListResult.vr_device_count < MAX_MIKAN_VR_DEVICES);
-		if (vrDeviceListResult.vr_device_count >= MAX_MIKAN_VR_DEVICES)
-		{
-			break;
-		}
+		vrDeviceListResult.vr_device_id_list.push_back(deviceView->getDeviceID());
 	}
 
-	outResult->setResultBuffer((uint8_t*)&vrDeviceListResult, sizeof(MikanVRDeviceList));
-	outResult->setResultCode(MikanResult_Success);
+	writeTypedResponse(request.requestId, vrDeviceListResult, utf8ResponseString);
 }
 
 void MikanServer::getVRDeviceInfo(
-	const class MikanRemoteFunctionCall* inFunctionCall, 
-	class MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	MikanVRDeviceID deviceId;
-	if (!inFunctionCall->extractParameters(deviceId))
+	if (!readRequestPayload(request.utf8RequestString, deviceId))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
 	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewById(deviceId);
 	if (!vrDeviceView)
 	{
-		outResult->setResultCode(MikanResult_InvalidDeviceID);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidDeviceId, utf8ResponseString);
 		return;
 	}
 
-	MikanVRDeviceInfo info;
-	memset(&info, 0, sizeof(MikanVRDeviceInfo));
+	MikanVRDeviceInfo info= {};
+	info.device_path= vrDeviceView->getDevicePath();
 
 	switch (vrDeviceView->getVRTrackerDriverType())
 	{
@@ -757,131 +772,117 @@ void MikanServer::getVRDeviceInfo(
 		info.vr_device_type= MikanVRDeviceType_INVALID;
 	}
 
-	std::string devicePath= vrDeviceView->getDevicePath();
-	strncpy(info.device_path, devicePath.c_str(), sizeof(info.device_path) - 1);
-
-	outResult->setResultBuffer((uint8_t*)&info, sizeof(MikanVRDeviceInfo));
-	outResult->setResultCode(MikanResult_Success);
+	writeTypedResponse(request.requestId, info, utf8ResponseString);
 }
 
 void MikanServer::subscribeToVRDevicePoseUpdates(
-	const class MikanRemoteFunctionCall* inFunctionCall,
-	class MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
-	const std::string clientId = inFunctionCall->getClientId();
-
 	MikanVRDeviceID deviceId;
-	if (!inFunctionCall->extractParameters(deviceId))
+	if (!readRequestPayload(request.utf8RequestString, deviceId))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(clientId);
+	auto connection_it = m_clientConnections.find(request.clientId);
 	if (connection_it == m_clientConnections.end())
 	{
-		outResult->setResultCode(MikanResult_UnknownClient);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
 		return;
 	}
 
 	ClientConnectionState* clientState = connection_it->second;
 	clientState->subscribeToVRDevicePoseUpdates(deviceId);
-	outResult->setResultCode(MikanResult_Success);
+	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 }
 
 void MikanServer::unsubscribeFromVRDevicePoseUpdates(
-	const class MikanRemoteFunctionCall* inFunctionCall,
-	class MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
-	const std::string clientId = inFunctionCall->getClientId();
-
 	MikanVRDeviceID deviceId;
-	if (!inFunctionCall->extractParameters(deviceId))
+	if (!readRequestPayload(request.utf8RequestString, deviceId))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(clientId);
+	auto connection_it = m_clientConnections.find(request.clientId);
 	if (connection_it == m_clientConnections.end())
 	{
-		outResult->setResultCode(MikanResult_UnknownClient);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
 		return;
 	}
 
 	ClientConnectionState* clientState = connection_it->second;
 	clientState->unsubscribeFromVRDevicePoseUpdates(deviceId);
-	outResult->setResultCode(MikanResult_Success);
+	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 }
 
 void MikanServer::allocateRenderTargetBuffers(
-	const class MikanRemoteFunctionCall* inFunctionCall, 
-	class MikanRemoteFunctionResult* outResult)
-{
-	const std::string clientId = inFunctionCall->getClientId();
-
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
+{	
 	MikanRenderTargetDescriptor desc;
-	if (!inFunctionCall->extractParameters(desc))
+	if (!readRequestPayload(request.utf8RequestString, desc))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(clientId);
+	auto connection_it = m_clientConnections.find(request.clientId);
 	if (connection_it == m_clientConnections.end())
 	{
-		outResult->setResultCode(MikanResult_UnknownClient);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
 		return;
 	}
 
 	ClientConnectionState* clientState = connection_it->second;
 	if (clientState->allocateRenderTargetBuffers(desc))
 	{
-		outResult->setResultCode(MikanResult_Success);
+		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_GeneralError);
+		writeSimpleResponse(request.requestId, MikanResult_GeneralError, utf8ResponseString);
 	}
 }
 
 void MikanServer::freeRenderTargetBuffers(
-	const class MikanRemoteFunctionCall* inFunctionCall, 
-	class MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
-	const std::string clientId = inFunctionCall->getClientId();
-
-	auto connection_it = m_clientConnections.find(clientId);
+	auto connection_it = m_clientConnections.find(request.clientId);
 	if (connection_it != m_clientConnections.end())
 	{
 		if (OnClientRenderTargetReleased)
 		{
-			OnClientRenderTargetReleased(clientId, connection_it->second->getRenderTargetReadAccessor());
+			OnClientRenderTargetReleased(request.clientId, connection_it->second->getRenderTargetReadAccessor());
 		}
 
 		connection_it->second->freeRenderTargetBuffers();
-		outResult->setResultCode(MikanResult_Success);
+		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_UnknownClient);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
 	}
 }
 
 void MikanServer::frameRendered(
-	const class MikanRemoteFunctionCall* inFunctionCall,
-	class MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
-	const std::string clientId = inFunctionCall->getClientId();
-
 	uint64_t frameIndex= 0;
-	if (!inFunctionCall->extractParameters(frameIndex))
+	if (!readRequestPayload(request.utf8RequestString, frameIndex))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(clientId);
+	auto connection_it = m_clientConnections.find(request.clientId);
 	if (connection_it != m_clientConnections.end())
 	{
 		// Process incoming video frames, if we have a compositor active
@@ -891,50 +892,41 @@ void MikanServer::frameRendered(
 
 			if (clientState->readRenderTarget())
 			{
-				OnClientRenderTargetUpdated(clientId, frameIndex);
+				OnClientRenderTargetUpdated(request.clientId, frameIndex);
 			}
 		}
 
-		outResult->setResultCode(MikanResult_Success);
+		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_UnknownClient);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
 	}
 }
 
 void MikanServer::getStencilList(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
-	MikanStencilList stencilListResult;
-	memset(&stencilListResult, 0, sizeof(MikanStencilList));
+	MikanStencilList stencilListResult = {};
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
 	for (QuadStencilDefinitionPtr quadConfig : stencilSystemConfig->quadStencilList)
 	{
-		stencilListResult.stencil_id_list[stencilListResult.stencil_count] = quadConfig->getStencilId();
-		++stencilListResult.stencil_count;
-
-		assert(stencilListResult.stencil_count < MAX_MIKAN_STENCILS);
-		if (stencilListResult.stencil_count >= MAX_MIKAN_STENCILS)
-		{
-			break;
-		}
+		stencilListResult.stencil_id_list.push_back(quadConfig->getStencilId());
 	}
 
-	outResult->setResultBuffer((uint8_t*)&stencilListResult, sizeof(MikanStencilList));
-	outResult->setResultCode(MikanResult_Success);
+	writeTypedResponse(request.requestId, stencilListResult, utf8ResponseString);
 }
 
 void MikanServer::getQuadStencil(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	MikanStencilID stencilId;
-	if (!inFunctionCall->extractParameters(stencilId))
+	if (!readRequestPayload(request.utf8RequestString, stencilId))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
@@ -944,23 +936,22 @@ void MikanServer::getQuadStencil(
 	{
 		MikanStencilQuad stencil= quadConfig->getQuadInfo();
 
-		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilQuad));
-		outResult->setResultCode(MikanResult_Success);
+		writeTypedResponse(request.requestId, stencil, utf8ResponseString);
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_InvalidStencilID);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, utf8ResponseString);
 	}
 }
 
 void MikanServer::getBoxStencil(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	MikanStencilID stencilId;
-	if (!inFunctionCall->extractParameters(stencilId))
+	if (!readRequestPayload(request.utf8RequestString, stencilId))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
@@ -970,23 +961,22 @@ void MikanServer::getBoxStencil(
 	{
 		MikanStencilBox stencil = boxConfig->getBoxInfo();
 
-		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilBox));
-		outResult->setResultCode(MikanResult_Success);
+		writeTypedResponse(request.requestId, stencil, utf8ResponseString);
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_InvalidStencilID);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, utf8ResponseString);
 	}
 }
 
 void MikanServer::getModelStencil(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	MikanStencilID stencilId;
-	if (!inFunctionCall->extractParameters(stencilId))
+	if (!readRequestPayload(request.utf8RequestString, stencilId))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
@@ -996,85 +986,73 @@ void MikanServer::getModelStencil(
 	{
 		MikanStencilModel stencil = modelConfig->getModelInfo();
 
-		outResult->setResultBuffer((uint8_t*)&stencil, sizeof(MikanStencilModel));
-		outResult->setResultCode(MikanResult_Success);
+		writeTypedResponse(request.requestId, stencil, utf8ResponseString);
 	}
 	else
 	{
-		outResult->setResultCode(MikanResult_InvalidStencilID);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, utf8ResponseString);
 	}
 }
 
 void MikanServer::getSpatialAnchorList(
-	const MikanRemoteFunctionCall* inFunctionCall, 
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
-	MikanSpatialAnchorList anchorListResult;
-	memset(&anchorListResult, 0, sizeof(MikanSpatialAnchorList));
+	MikanSpatialAnchorList anchorListResult= {};
 
 	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
 	for (AnchorDefinitionPtr spatialAnchor : anchorSystemConfig->spatialAnchorList)
 	{
-		anchorListResult.spatial_anchor_id_list[anchorListResult.spatial_anchor_count] = spatialAnchor->getAnchorId();
-		++anchorListResult.spatial_anchor_count;
-
-		assert(anchorListResult.spatial_anchor_count < MAX_MIKAN_SPATIAL_ANCHORS);
-		if (anchorListResult.spatial_anchor_count >= MAX_MIKAN_SPATIAL_ANCHORS)
-		{
-			break;
-		}
+		anchorListResult.spatial_anchor_id_list.push_back(spatialAnchor->getAnchorId());
 	}
 
-	outResult->setResultBuffer((uint8_t*)&anchorListResult, sizeof(MikanSpatialAnchorList));
-	outResult->setResultCode(MikanResult_Success);
+	writeTypedResponse(request.requestId, anchorListResult, utf8ResponseString);
 }
 
 void MikanServer::getSpatialAnchorInfo(
-	const MikanRemoteFunctionCall* inFunctionCall, 
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
 	MikanSpatialAnchorID anchorId;
-	if (!inFunctionCall->extractParameters(anchorId))
+	if (!readRequestPayload(request.utf8RequestString, anchorId))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
 	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
 	if (anchorPtr == nullptr)
 	{
-		outResult->setResultCode(MikanResult_InvalidAnchorID);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidAnchorID, utf8ResponseString);
 		return;
 	}
 	
 	MikanSpatialAnchorInfo anchorInfo;
 	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
 
-	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
-	outResult->setResultCode(MikanResult_Success);
+	writeTypedResponse(request.requestId, anchorInfo, utf8ResponseString);
 }
 
 void MikanServer::findSpatialAnchorInfoByName(
-	const MikanRemoteFunctionCall* inFunctionCall,
-	MikanRemoteFunctionResult* outResult)
+	const ClientRequest& request,
+	std::string& utf8ResponseString)
 {
-	char nameBuffer[MAX_MIKAN_ANCHOR_NAME_LEN];
-	if (!inFunctionCall->extractParameters(nameBuffer))
+	std::string nameBuffer;
+	if (!readRequestPayload(request.utf8RequestString, nameBuffer))
 	{
-		outResult->setResultCode(MikanResult_MalformedParameters);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
 	}
 
 	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorByName(nameBuffer);
 	if (anchorPtr == nullptr)
 	{
-		outResult->setResultCode(MikanResult_InvalidAnchorID);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidAnchorID, utf8ResponseString);
 		return;
 	}
 
 	MikanSpatialAnchorInfo anchorInfo;
 	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
 
-	outResult->setResultBuffer((uint8_t*)&anchorInfo, sizeof(MikanSpatialAnchorInfo));
-	outResult->setResultCode(MikanResult_Success);
+	writeTypedResponse(request.requestId, anchorInfo, utf8ResponseString);
 }

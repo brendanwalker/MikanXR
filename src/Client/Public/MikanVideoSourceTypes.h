@@ -86,6 +86,8 @@ struct MikanVideoSourceIntrinsics : public MikanResponse
 	} intrinsics;
 
 	MikanIntrinsicsType intrinsics_type;
+
+	MikanVideoSourceIntrinsics() : MikanResponse(k_typeName) {}
 };
 
 /// Static properties 
@@ -95,6 +97,8 @@ struct MikanVideoSourceAttachmentInfo : public MikanResponse
 
 	MikanVRDeviceID attached_vr_device_id;
 	MikanMatrix4f vr_device_offset_xform;
+
+	MikanVideoSourceAttachmentInfo() : MikanResponse(k_typeName) {}
 };
 
 /// Static properties about a video source
@@ -109,4 +113,6 @@ struct MikanVideoSourceMode : public MikanResponse
 	int32_t resolution_x;
 	int32_t resolution_y;
 	float frame_rate;
+
+	MikanVideoSourceMode() : MikanResponse(k_typeName) {}
 };

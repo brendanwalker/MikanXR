@@ -15,6 +15,14 @@
 #define WEBSOCKET_SERVER_ADDRESS			"ws://127.0.0.1"
 #define WEBSOCKET_SERVER_PORT				"8080"
 
+struct ClientRequest
+{
+	std::string clientId;
+	MikanRequestID requestId;
+	std::string utf8RequestString;
+};
+using RequestHandler = std::function<void(const ClientRequest& request, std::string& utf8ResponseString)>;
+
 class IInterprocessMessageClient
 {
 public:
@@ -44,8 +52,6 @@ public:
 class IInterprocessMessageServer
 {
 public:
-	using RequestHandler = std::function<void(const std::string& utf8RequestString, std::string& utf8ResponseString)>;
-
 	virtual ~IInterprocessMessageServer() {}
 
 	virtual bool initialize() = 0;
