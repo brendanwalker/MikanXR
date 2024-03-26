@@ -40,12 +40,6 @@
 
 #include <easy/profiler.h>
 
-#ifdef _MSC_VER
-#pragma warning (disable: 4505) // unreferenced local function has been removed (stb stuff)
-#pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
-#define snprintf _snprintf
-#endif
-
 //-- constants -----
 static const int k_window_pixel_width = 1280 + 350;
 static const int k_window_pixel_height = 720 + 45;

@@ -115,7 +115,7 @@ public:
 		else
 		{
 			auto errorResponse = std::make_shared<MikanResponse>();
-			errorResponse->responstType = MikanResponse::k_typeName;
+			errorResponse->responseType = MikanResponse::k_typeName;
 			errorResponse->requestId = requestId;
 			errorResponse->resultCode = result;
 

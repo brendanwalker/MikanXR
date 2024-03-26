@@ -1,5 +1,4 @@
 #include "InterprocessRenderTargetReader.h"
-#include "InterprocessRenderTargetShared.h"
 #include "GlTexture.h"
 #include "Logger.h"
 #include "SpoutLibrary.h"

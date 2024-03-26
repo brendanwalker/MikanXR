@@ -251,45 +251,9 @@ public:
 	MikanResult setClientInfo(const MikanClientInfo& clientInfo)
 	{
 		json clientInfoJson = clientInfo;
+		const std::string clientInfoString= clientInfoJson.dump();
 
-		MikanResult result= MikanResult_Success;
-		for (json::iterator it = clientInfoJson.begin(); it != clientInfoJson.end(); ++it)
-		{
-			std::string key = it.key();
-			auto value = it.value();
-			std::string stringValue;
-
-			if (value.is_boolean())
-			{
-				stringValue= value.get<bool>() ? "true" : "false";
-			}
-			else if (value.is_number())
-			{
-				stringValue= std::to_string(value.get<double>());
-			}
-			else if (value.is_string())
-			{
-				stringValue= value.get<std::string>();
-			}
-
-			if (!stringValue.empty())
-			{
-				result= Mikan_SetClientProperty(key.c_str(), stringValue.c_str());
-			}
-			else
-			{
-				MIKAN_MT_LOG_WARNING("MikanInterface::setClientProperty") << 
-					"Unsupported value type for key: " << key;
-				result= MikanResult_MalformedParameters;
-			}
-
-			if (result != MikanResult_Success)
-			{
-				break;
-			}
-		}
-
-		return result;
+		return Mikan_SetClientProperty("clientInfo", clientInfoString.c_str());
 	}
 
 	MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface)

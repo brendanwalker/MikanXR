@@ -209,10 +209,9 @@ void RmlModel_CompositorOutliner::addNewAnchor(
 	const Rml::VariantList& parameters)
 {
 	const glm::mat4 anchorXform = glm::mat4(1.f);
-	char newAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
 
 	AnchorObjectSystemConfigPtr anchorSystemConfig= m_anchorSystemPtr->getAnchorSystemConfig();
-	StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", anchorSystemConfig->nextAnchorId);
+	const std::string newAnchorName= StringUtils::stringify("Anchor ", anchorSystemConfig->nextAnchorId);
 
 	m_anchorSystemPtr->addNewAnchor(newAnchorName, anchorXform);
 }
@@ -222,8 +221,7 @@ void RmlModel_CompositorOutliner::addNewQuad(
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
 {
-	MikanStencilQuad quad;
-	memset(&quad, 0, sizeof(MikanStencilQuad));
+	MikanStencilQuad quad = {};
 
 	quad.is_double_sided = true;
 	quad.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
@@ -234,7 +232,7 @@ void RmlModel_CompositorOutliner::addNewQuad(
 	quad.quad_height = 0.25f;
 
 	StencilObjectSystemConfigPtr stencilSystemConfig = m_stencilSystemPtr->getStencilSystemConfig();
-	StringUtils::formatString(quad.stencil_name, sizeof(quad.stencil_name), "Quad %d", stencilSystemConfig->nextStencilId);
+	quad.stencil_name= StringUtils::stringify("Quad ", stencilSystemConfig->nextStencilId);
 
 	m_stencilSystemPtr->addNewQuadStencil(quad);
 }
@@ -244,8 +242,7 @@ void RmlModel_CompositorOutliner::addNewBox(
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
 {
-	MikanStencilBox box;
-	memset(&box, 0, sizeof(MikanStencilBox));
+	MikanStencilBox box = {};
 
 	box.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
 	box.relative_transform.position = {0.f, 0.f, 0.f};
@@ -256,7 +253,7 @@ void RmlModel_CompositorOutliner::addNewBox(
 	box.box_z_size = 0.25f;
 
 	StencilObjectSystemConfigPtr stencilSystemConfig= m_stencilSystemPtr->getStencilSystemConfig();
-	StringUtils::formatString(box.stencil_name, sizeof(box.stencil_name), "Box %d", stencilSystemConfig->nextStencilId);
+	box.stencil_name= StringUtils::stringify("Box ", stencilSystemConfig->nextStencilId);
 
 	m_stencilSystemPtr->addNewBoxStencil(box);
 }
@@ -276,7 +273,7 @@ void RmlModel_CompositorOutliner::addNewModel(
 	model.relative_transform.scale = {1.f, 1.f, 1.f};
 
 	StencilObjectSystemConfigPtr stencilSystemConfig = m_stencilSystemPtr->getStencilSystemConfig();
-	StringUtils::formatString(model.stencil_name, sizeof(model.stencil_name), "Model %d", stencilSystemConfig->nextStencilId);
+	model.stencil_name= StringUtils::stringify("Model ", stencilSystemConfig->nextStencilId);
 
 	m_stencilSystemPtr->addNewModelStencil(model);
 }

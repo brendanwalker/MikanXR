@@ -100,13 +100,12 @@ MikanStencilModel ModelStencilDefinition::getModelInfo() const
 	const std::string& modelName = getComponentName();
 	GlmTransform xform = getRelativeTransform();
 
-	MikanStencilModel modelnfo;
-	memset(&modelnfo, 0, sizeof(MikanStencilModel));
+	MikanStencilModel modelnfo = {};
 	modelnfo.stencil_id = m_stencilId;
 	modelnfo.parent_anchor_id = m_parentAnchorId;
 	modelnfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
 	modelnfo.is_disabled = m_bIsDisabled;
-	strncpy(modelnfo.stencil_name, modelName.c_str(), sizeof(modelnfo.stencil_name) - 1);
+	modelnfo.stencil_name= modelName;
 
 	return modelnfo;
 }

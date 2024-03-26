@@ -71,8 +71,7 @@ MikanStencilQuad QuadStencilDefinition::getQuadInfo() const
 	const std::string& quadName = getComponentName();
 	GlmTransform xform = getRelativeTransform();
 
-	MikanStencilQuad quadInfo;
-	memset(&quadInfo, 0, sizeof(MikanStencilQuad));
+	MikanStencilQuad quadInfo= {};
 	quadInfo.stencil_id = m_stencilId;
 	quadInfo.parent_anchor_id = m_parentAnchorId;
 	quadInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
@@ -80,7 +79,7 @@ MikanStencilQuad QuadStencilDefinition::getQuadInfo() const
 	quadInfo.quad_height= m_quadHeight;
 	quadInfo.is_double_sided= m_bIsDoubleSided;
 	quadInfo.is_disabled= m_bIsDisabled;
-	strncpy(quadInfo.stencil_name, quadName.c_str(), sizeof(quadInfo.stencil_name) - 1);
+	quadInfo.stencil_name= quadName;
 
 	return quadInfo;
 }

@@ -41,17 +41,6 @@ public:
 		m_websocket = websocket;
 	}
 
-	bool bindClientId(const std::string& clientId)
-	{
-		if (m_clientId.empty())
-		{
-			m_clientId = clientId;
-			return true;
-		}
-
-		return false;	
-	}
-
 	bool disconnect()
 	{
 		WebSocketPtr websocket = m_websocket.lock();
@@ -64,7 +53,7 @@ public:
 		return false;
 	}
 
-	const std::string getClientId() const { return m_clientId; }
+	const std::string getClientId() const { return m_clientInfo.clientId; }
 	inline LockFreeRequestQueuePtr getFunctionCallQueue() { return m_functionCallQueue; }
 
 	void handleClientMessage(
@@ -91,6 +80,24 @@ public:
 					{
 						MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
 							<< it.first << ": " << it.second;
+
+						if (it.first == "clientInfo")
+						{
+							json clientInfoJson;
+							if (parseClientInfo(msg, clientInfoJson))
+							{
+								// Remember the client info for this connection
+								m_clientInfo= clientInfoJson;
+
+								// Construct a connect server message for the queue
+								json connectRequestJson;
+								connectRequestJson["requestType"]= "connect";
+								connectRequestJson["version"]= 0;
+								connectRequestJson["payload"]= clientInfoJson;
+
+								m_functionCallQueue->enqueue(connectRequestJson.dump());
+							}
+						}
 					}
 				}
 				break;
@@ -104,6 +111,14 @@ public:
 						<< "reason: " << msg->closeInfo.reason;
 					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
 						<< "code: " << msg->closeInfo.code;
+
+					// Construct a disconnect server message for the queue
+					json disconnectRequestJson;
+					disconnectRequestJson["requestType"] = "disconnect";
+					disconnectRequestJson["version"] = 0;
+					disconnectRequestJson["payload"] = m_clientInfo;
+
+					m_functionCallQueue->enqueue(disconnectRequestJson);
 				}
 				break;
 			case ix::WebSocketMessageType::Message:
@@ -143,6 +158,16 @@ public:
 		}
 	}
 
+	template <typename t_message_type>
+	bool sendSimpleMessage()
+	{
+		t_message_type event = {};
+		json eventJson = event;
+		std::string eventJsonString = eventJson.dump();
+
+		return sendMessage(eventJsonString);
+	}
+
 	bool sendMessage(const std::string& response)
 	{
 		WebSocketPtr websocket = m_websocket.lock();
@@ -157,10 +182,27 @@ public:
 		return false;
 	}
 
+protected: 
+	bool parseClientInfo(const ix::WebSocketMessagePtr& msg, json& outClientInfoPayload)
+	{
+		try
+		{
+			outClientInfoPayload = json::parse(msg->str);
+		}
+		catch (json::exception e)
+		{
+			MIKAN_MT_LOG_ERROR("ClientConnectionState::parseClientInfo") 
+				<< "Failed to parse client info: " << e.what();
+			return false;
+		}
+
+		return true;
+	}
+
 private:
 	LockFreeRequestQueuePtr m_functionCallQueue;
 	WebSocketWeakPtr m_websocket;
-	std::string m_clientId;
+	MikanClientInfo	m_clientInfo;
 };
 
 //-- WebsocketInterprocessMessageServer -----
@@ -370,100 +412,6 @@ void WebsocketInterprocessMessageServer::processRequests()
 
 			// Send the response back to the client
 			connection->sendMessage(outResponseString);
-
-			// Handle connect request
-		#if 0
-			if (strncmp(requestType, CONNECT_FUNCTION_NAME, strlen(CONNECT_FUNCTION_NAME)) == 0)
-			{
-				// Make sure the client isn't already connected
-				if (connection->bindClientId(clientId))
-				{
-					bool bSuccess = false;
-
-					MikanRemoteFunctionResult connectResponse(MikanResult_Success, inRequestString.getRequestId());
-
-					// Get the response from a registered function handler, if any
-					auto handler_it = m_requestHandlers.find(CONNECT_FUNCTION_NAME);
-					if (handler_it != m_requestHandlers.end())
-					{
-						handler_it->second(&inRequestString, &connectResponse);
-					}
-
-					// Send connection reply back to the client
-					if (connection->sendMessage(&connectResponse))
-					{
-						MIKAN_LOG_INFO("processRemoteFunctionCalls") 
-							<< "Connecting client: " << connection->getClientId();
-
-						// Tell the client that they are now connected
-						MikanEvent connectEvent;
-						memset(&connectEvent, 0, sizeof(MikanEvent));
-						connectEvent.event_type = MikanEvent_connected;
-						connection->sendMessage(&connectEvent);
-
-						bSuccess = true;
-					}
-
-					if (!bSuccess)
-					{
-						MIKAN_LOG_ERROR("processRemoteFunctionCalls") 
-							<< "Failed to initialize connection for client: " << clientId;
-						connection->disconnect();
-					}
-				}
-				// Tell the client they are already connected
-				else
-				{
-					MikanRemoteFunctionResult connectResponse(MikanResult_AlreadyConnected, inRequestString.getRequestId());
-
-					if (!connection->sendMessage(&connectResponse))
-					{
-						MIKAN_LOG_WARNING("processRemoteFunctionCalls") << "Failed to tell client they are already connected: " << clientId;
-					}
-				}
-			}
-			// Handle disconnect request
-			else if (strncmp(inRequestString.getFunctionName(), DISCONNECT_FUNCTION_NAME, strlen(DISCONNECT_FUNCTION_NAME)) == 0)
-			{
-				MikanRemoteFunctionResult connectResponse(MikanResult_Success, inRequestString.getRequestId());
-
-				// Get the response from a registered function handler, if any
-				auto handler_it = m_requestHandlers.find(DISCONNECT_FUNCTION_NAME);
-				if (handler_it != m_requestHandlers.end())
-				{
-					handler_it->second(&inRequestString, &connectResponse);
-				}
-
-				// Acknowledge the disconnection request
-				connection->sendMessage(&connectResponse);
-
-				// Clean up the connection state
-				connection->disconnect();
-			}
-			// Handle all other requests
-			else
-			{
-				const std::string functionName = inRequestString.getFunctionName();
-
-				MikanRemoteFunctionResult outResult;
-				outResult.setResultCode(MikanResult_Success);
-				outResult.setRequestId(inRequestString.getRequestId());
-
-				// Get the response from a registered function handler
-				auto handler_it = m_requestHandlers.find(functionName);
-				if (handler_it != m_requestHandlers.end())
-				{
-					handler_it->second(&inRequestString, &outResult);
-				}
-				else
-				{
-					outResult.setResultCode(MikanResult_UnknownFunction);
-				}
-
-				// Send the response back to the client
-				connection->sendMessage(&outResult);
-			}
-		#endif
 		}
 	}
 }

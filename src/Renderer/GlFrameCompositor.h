@@ -3,7 +3,7 @@
 #include "AssetFwd.h"
 #include "NodeFwd.h"
 
-#include "MikanClientTypes.h"
+#include "MikanEventTypes.h"
 #include "MulticastDelegate.h"
 #include "RendererFwd.h"
 #include "NamedValueTable.h"

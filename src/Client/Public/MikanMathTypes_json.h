@@ -15,11 +15,11 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanQuatf, w, x, y, z)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanQuatd, w, x, y, z)
 
 // MikanTransform
-void to_json(nlohmann::json& j, const MikanTransform& p)
+inline void to_json(nlohmann::json& j, const MikanTransform& p)
 {
 	j = nlohmann::json{{"scale", p.scale}, {"rotation", p.rotation}, {"position", p.position}};
 }
-void from_json(const nlohmann::json& j, MikanTransform& p)
+inline void from_json(const nlohmann::json& j, MikanTransform& p)
 {
 	j.at("scale").get_to(p.scale);
 	j.at("rotation").get_to(p.rotation);

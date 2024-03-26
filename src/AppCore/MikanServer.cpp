@@ -47,14 +47,12 @@ class ClientConnectionState
 {
 public:
 	ClientConnectionState(	
-		const std::string& clientName, 
 		MikanClientInfo& clientInfo,
 		IInterprocessMessageServer* messageServer)
 		: m_messageServer(messageServer)
 	{	
-		m_connectionInfo.clientId= clientName;
 		m_connectionInfo.clientInfo= clientInfo;
-		m_connectionInfo.renderTargetReadAccessor= new InterprocessRenderTargetReadAccessor(clientName);
+		m_connectionInfo.renderTargetReadAccessor= new InterprocessRenderTargetReadAccessor(clientInfo.clientId);
 	}
 
 	virtual ~ClientConnectionState()
@@ -310,8 +308,8 @@ bool MikanServer::startup()
 		return false;
 	}
 
-	//m_messageServer->setRequestHandler(CONNECT_FUNCTION_NAME, std::bind(&MikanServer::connect, this, _1, _2));
-	//m_messageServer->setRequestHandler(DISCONNECT_FUNCTION_NAME, std::bind(&MikanServer::disconnect, this, _1, _2));
+	m_messageServer->setRequestHandler("connect", std::bind(&MikanServer::connectHandler, this, _1, _2));
+	m_messageServer->setRequestHandler("disconnect", std::bind(&MikanServer::disconnectHandler, this, _1, _2));
 	m_messageServer->setRequestHandler("invokeScriptMessageHandler", std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
 	m_messageServer->setRequestHandler("getVideoSourceIntrinsics", std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
 	m_messageServer->setRequestHandler("getVideoSourceMode", std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));	
@@ -504,48 +502,6 @@ static VRDeviceViewPtr getCurrentCameraVRDevice()
 	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 }
 
-//void MikanServer::connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult)
-//{
-//	const std::string clientId= inFunctionCall->getClientId();
-//
-//	MikanClientInfo clientInfo;
-//	if (inFunctionCall->extractParameters(clientInfo))
-//	{
-//		auto connection_it = m_clientConnections.find(clientId);
-//
-//		if (connection_it == m_clientConnections.end())
-//		{
-//			ClientConnectionState* clientState= new ClientConnectionState(clientId, clientInfo, m_messageServer);
-//
-//			m_clientConnections.insert({ clientId, clientState });
-//
-//			if (OnClientConnected)
-//			{
-//				OnClientConnected(clientId, clientInfo);
-//			}
-//		}
-//	}
-//}
-
-//void MikanServer::disconnect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult)
-//{
-//	const std::string clientId = inFunctionCall->getClientId();
-//
-//	auto connection_it = m_clientConnections.find(clientId);
-//	if (connection_it != m_clientConnections.end())
-//	{
-//		const std::string& clientId= connection_it->first;
-//
-//		if (OnClientDisconnected)
-//		{
-//			OnClientDisconnected(clientId);
-//		}
-//
-//		delete connection_it->second;
-//		m_clientConnections.erase(connection_it);
-//	}
-//}
-
 template <typename t_mikan_type>
 bool readRequestPayload(const std::string& utf8RequestString, t_mikan_type& outParameters)
 {
@@ -583,6 +539,71 @@ void writeSimpleResponse(MikanRequestID requestId, MikanResult result, std::stri
 
 	json j= response;
 	utf8ResponseString = j.dump();
+}
+
+void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8ResponseString)
+{
+	MikanClientInfo clientInfo;
+	if (readRequestPayload(request.utf8RequestString, clientInfo))
+	{
+		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
+		// TODO send error event
+		return;
+	}
+
+	const std::string clientId = clientInfo.clientId;
+	auto connection_it = m_clientConnections.find(clientId);
+	if (connection_it == m_clientConnections.end())
+	{
+		ClientConnectionState* clientState = new ClientConnectionState(clientInfo, m_messageServer);
+
+		m_clientConnections.insert({clientId, clientState});
+
+		if (OnClientConnected)
+		{
+			OnClientConnected(clientId, clientInfo);
+		}
+
+		clientState->publishSimpleEvent<MikanConnectedEvent>();
+	}
+	else
+	{
+		//TODO: send error event
+		MIKAN_LOG_ERROR("connectHandler") << "Client already connected: " << clientId;
+	}
+}
+
+void MikanServer::disconnectHandler(const ClientRequest& request, std::string& utf8ResponseString)
+{
+	MikanClientInfo clientInfo;
+	if (readRequestPayload(request.utf8RequestString, clientInfo))
+	{
+		MIKAN_LOG_ERROR("disconnectHandler") << "Failed to parse client info";
+		// TODO send error event
+		return;
+	}
+
+	auto connection_it = m_clientConnections.find(clientInfo.clientId);
+	if (connection_it != m_clientConnections.end())
+	{
+		const std::string& clientId = connection_it->first;
+		ClientConnectionState* clientState = connection_it->second;
+
+		clientState->publishSimpleEvent<MikanDisconnectedEvent>();
+
+		if (OnClientDisconnected)
+		{
+			OnClientDisconnected(clientId);
+		}
+
+		delete connection_it->second;
+		m_clientConnections.erase(connection_it);
+	}
+	else
+	{
+		//TODO: send error event
+		MIKAN_LOG_ERROR("disconnectHandler") << "Client not connected: " << clientInfo.clientId;
+	}
 }
 
 void MikanServer::invokeScriptMessageHandler(

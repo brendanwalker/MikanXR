@@ -7,6 +7,7 @@
 #include "MikanClientTypes.h"
 #include "MikanEventTypes.h"
 #include "MulticastDelegate.h"
+#include "InterprocessMessages.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "stdint.h"
 #include <map>
@@ -61,9 +62,9 @@ public:
 
 protected:
 	// Request Callbacks
-	//void connect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	//void disconnect(const class MikanRemoteFunctionCall* inFunctionCall, class MikanRemoteFunctionResult* outResult);
-	
+	void connectHandler(const ClientRequest& request, std::string& utf8ResponseString);
+	void disconnectHandler(const ClientRequest& request, std::string& utf8ResponseString);
+
 	void invokeScriptMessageHandler(const ClientRequest& request, std::string& utf8ResponseString);
 	
 	void getVideoSourceIntrinsics(const ClientRequest& request, std::string& utf8ResponseString);

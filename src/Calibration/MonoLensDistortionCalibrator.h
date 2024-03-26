@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ObjectSystemConfigFwd.h"
-#include "MikanClientTypes.h"
+#include "MikanVideoSourceTypes.h"
 
 #include <memory>
 

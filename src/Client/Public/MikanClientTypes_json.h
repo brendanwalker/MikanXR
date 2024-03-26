@@ -29,17 +29,18 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MikanVRDeviceType, {
 })
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanClientInfo, 
-	supportsRBG24,
-	supportsRBGA32,
-	supportsBGRA32,
-	supportsDepth,
+	clientId,
 	engineName,
 	engineVersion,
 	applicationName,
 	applicationVersion,
 	xrDeviceName,
+	graphicsAPI,
 	mikanCoreSdkVersion,
-	graphicsAPI)
+	supportsRBG24,
+	supportsRBGA32,
+	supportsBGRA32,
+	supportsDepth)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanColorRGB, 
 	r,
@@ -75,7 +76,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanScriptMessageInfo,
 )
 
 // MikanStencilQuad
-void to_json(nlohmann::json& j, const MikanStencilQuad& p)
+inline void to_json(nlohmann::json& j, const MikanStencilQuad& p)
 {
 	nlohmann::json transformJson;
 	to_json(transformJson, p.relative_transform);
@@ -92,7 +93,7 @@ void to_json(nlohmann::json& j, const MikanStencilQuad& p)
 		{"relative_transform", transformJson}
 	};
 }
-void from_json(const nlohmann::json& j, MikanStencilQuad& p)
+inline void from_json(const nlohmann::json& j, MikanStencilQuad& p)
 {
 	from_json(j.at("relative_transform"), p.relative_transform);
 
@@ -106,7 +107,7 @@ void from_json(const nlohmann::json& j, MikanStencilQuad& p)
 }
 
 // MikanStencilBox
-void to_json(nlohmann::json& j, const MikanStencilBox& p)
+inline void to_json(nlohmann::json& j, const MikanStencilBox& p)
 {
 	nlohmann::json transformJson;
 	to_json(transformJson, p.relative_transform);
@@ -123,7 +124,7 @@ void to_json(nlohmann::json& j, const MikanStencilBox& p)
 		{"relative_transform", transformJson}
 	};
 }
-void from_json(const nlohmann::json& j, MikanStencilBox& p)
+inline void from_json(const nlohmann::json& j, MikanStencilBox& p)
 {
 	from_json(j.at("relative_transform"), p.relative_transform);
 
@@ -137,7 +138,7 @@ void from_json(const nlohmann::json& j, MikanStencilBox& p)
 }
 
 // MikanStencilModel
-void to_json(nlohmann::json& j, const MikanStencilModel& p)
+inline void to_json(nlohmann::json& j, const MikanStencilModel& p)
 {
 	nlohmann::json transformJson;
 	to_json(transformJson, p.relative_transform);
@@ -151,7 +152,7 @@ void to_json(nlohmann::json& j, const MikanStencilModel& p)
 		{"relative_transform", transformJson}
 	};
 }
-void from_json(const nlohmann::json& j, MikanStencilModel& p)
+inline void from_json(const nlohmann::json& j, MikanStencilModel& p)
 {
 	from_json(j.at("relative_transform"), p.relative_transform);
 
@@ -162,7 +163,7 @@ void from_json(const nlohmann::json& j, MikanStencilModel& p)
 }
 
 // MikanSpatialAnchorInfo
-void to_json(nlohmann::json& j, const MikanSpatialAnchorInfo& p)
+inline void to_json(nlohmann::json& j, const MikanSpatialAnchorInfo& p)
 {
 	nlohmann::json transformJson;
 	to_json(transformJson, p.world_transform);
@@ -173,7 +174,7 @@ void to_json(nlohmann::json& j, const MikanSpatialAnchorInfo& p)
 		{"anchor_name", p.anchor_name}
 	};
 }
-void from_json(const nlohmann::json& j, MikanSpatialAnchorInfo& p)
+inline void from_json(const nlohmann::json& j, MikanSpatialAnchorInfo& p)
 {
 	from_json(j.at("world_transform"), p.world_transform);
 

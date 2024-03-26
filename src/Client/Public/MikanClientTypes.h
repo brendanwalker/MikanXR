@@ -105,17 +105,18 @@ struct MikanClientInfo
 {
 	inline static const std::string k_typeName = "MikanClientInfo";
 
-	bool supportsRBG24;
-	bool supportsRBGA32;
-	bool supportsBGRA32;
-	bool supportsDepth;
+	std::string clientId;
 	std::string engineName;
 	std::string engineVersion;
 	std::string applicationName;
 	std::string applicationVersion;
 	std::string xrDeviceName;
-	int mikanCoreSdkVersion;
 	MikanClientGraphicsApi graphicsAPI;
+	int mikanCoreSdkVersion;
+	bool supportsRBG24;
+	bool supportsRBGA32;
+	bool supportsBGRA32;
+	bool supportsDepth;
 };
 
 /// A float RGB color with [0,1] components.

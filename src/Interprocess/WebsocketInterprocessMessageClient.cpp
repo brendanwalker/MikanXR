@@ -32,7 +32,7 @@ public:
 		disconnect();
 	}
 
-	const std::string& getClientId() const { return m_clientId; }
+	//const std::string& getClientId() const { return m_clientId; }
 	const bool getIsConnected() const { return m_websocket->getReadyState() == ix::ReadyState::Open; }
 	
 	inline WebSocketPtr getWebSocket() { return m_websocket; }
@@ -154,7 +154,7 @@ private:
 	ix::WebSocketHttpHeaders m_headers;
 	LockFreeEventQueuePtr m_eventQueue;
 	IInterprocessMessageClient::ResponseHandler m_responseHandler;
-	std::string m_clientId;
+	//std::string m_clientId;
 };
 
 //-- WebsocketInterprocessMessageClient -----
@@ -178,10 +178,10 @@ void WebsocketInterprocessMessageClient::dispose()
 	disconnect();
 }
 
-const std::string& WebsocketInterprocessMessageClient::getClientId() const
-{ 
-	return m_connectionState->getClientId(); 
-}
+//const std::string& WebsocketInterprocessMessageClient::getClientId() const
+//{ 
+//	return m_connectionState->getClientId(); 
+//}
 
 const bool WebsocketInterprocessMessageClient::getIsConnected() const
 { 

@@ -75,7 +75,7 @@ void AnchorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 
 bool AnchorObjectSystemConfig::canAddAnchor() const
 {
-	return (spatialAnchorList.size() < MAX_MIKAN_SPATIAL_ANCHORS);
+	return true;
 }
 
 AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const

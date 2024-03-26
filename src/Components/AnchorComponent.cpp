@@ -78,7 +78,7 @@ void AnchorComponent::customRender()
 	TextStyle style = getDefaultTextStyle();
 
 	AnchorDefinitionPtr anchorDefinition= getAnchorDefinition();
-	wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
+	wchar_t wszAnchorName[256];
 	StringUtils::convertMbsToWcs(anchorDefinition->getComponentName().c_str(), wszAnchorName, sizeof(wszAnchorName));
 	glm::mat4 anchorXform = getWorldTransform();
 	glm::vec3 anchorPos(anchorXform[3]);
@@ -180,7 +180,7 @@ void AnchorComponent::extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outA
 
 	memset(&outAnchorInfo, 0, sizeof(MikanSpatialAnchorInfo));
 	outAnchorInfo.anchor_id = getAnchorDefinition()->getAnchorId();
-	strncpy(outAnchorInfo.anchor_name, anchorName.c_str(), sizeof(outAnchorInfo.anchor_name) - 1);
+	outAnchorInfo.anchor_name= anchorName;
 	outAnchorInfo.world_transform = glm_transform_to_MikanTransform(anchorWorldTransform);
 }
 

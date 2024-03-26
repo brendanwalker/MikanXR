@@ -28,7 +28,6 @@ public:
 		size_t* outUtf8BufferSizeNeeded) override;
 	virtual MikanResult sendRequest(const std::string& utf8RequestString) override;
 
-	const std::string& getClientId() const override;
 	const bool getIsConnected() const override;
 
 private:
