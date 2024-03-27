@@ -202,9 +202,6 @@ source_group("ImGui" FILES ${IMGUI_SOURCE})
 # ImNodes's source files are included in directly, rather than linking against a lib
 source_group("ImNodes" FILES ${IMNODES_SOURCE})
 
-# IXWebsockets's source files are included in directly, rather than linking against a lib
-source_group("IxWebSocket" FILES ${IXWEBSOCKET_SOURCE})
-
 # Interprocess
 file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
@@ -423,7 +420,6 @@ set(MIKAN_SRC
     ${MIKAN_VRTRACKER_STEAMVR_SRC}
     ${IMGUI_SOURCE}
 	${IMNODES_SOURCE}
-	${IXWEBSOCKET_SOURCE}
 	${TINYFILEDIALOGS_SOURCE}	
 )
 
@@ -501,13 +497,10 @@ list(APPEND MIKAN_REQ_LIBS
   ${LUA_LIBRARIES}
   ${RMLUI_LIBRARIES}
   easy_profiler
-  fast_obj_lib)
+  fast_obj_lib
+  ixwebsocket)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
-foreach(FILE IN LISTS IXWEBSOCKET_SOURCE)
-    set_property(SOURCE ${FILE} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON)
-	set_source_files_properties(${FILE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
-endforeach()
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/MikanClient.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -582,14 +575,12 @@ file(GLOB MIKAN_CLIENT_LIBRARY_SRC
 	${MIKAN_CLIENT_UTILITY_SRC}
     ${MIKAN_CLIENT_UNITY_SRC}
     ${MIKAN_CLIENT_SPOUT2_DX_SRC}
-	${IXWEBSOCKET_SOURCE}	
 )
 
 source_group("Public" FILES ${MIKAN_CLIENT_PUBLIC_SRC})
 source_group("Public\\Core" FILES ${MIKAN_CLIENT_PUBLIC_CORE_SRC})
 source_group("Private\\Core" FILES ${MIKAN_CLIENT_PRIVATE_CORE_SRC})
 source_group("Private\\Interprocess" FILES ${MIKAN_CLIENT_INTERPROCESS_SRC})
-source_group("Private\\IxWebSocket" FILES ${IXWEBSOCKET_SOURCE})
 source_group("Private\\SpoutDX" FILES ${MIKAN_CLIENT_SPOUT2_DX_SRC})
 source_group("Private\\Unity" FILES ${MIKAN_CLIENT_UNITY_SRC})
 source_group("Private\\Utility" FILES ${MIKAN_CLIENT_UTILITY_SRC})
@@ -612,7 +603,8 @@ list(APPEND MIKAN_CLIENT_INCL_DIRS
 
 list(APPEND MIKAN_CLIENT_REQ_LIBS
   ${SPOUT2_LIBRARIES}
-  ${MIKAN_EXTRA_LIBS})
+  ${MIKAN_EXTRA_LIBS}
+  ixwebsocket)
   
 set_source_files_properties(${MIKAN_CLIENT_SPOUT2_DX_SRC} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 

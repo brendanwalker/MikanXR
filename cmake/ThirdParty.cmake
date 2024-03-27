@@ -111,11 +111,6 @@ list(APPEND IMNODES_SOURCE
 option(USE_ZLIB "Add ZLib support" FALSE)
 set (IXWEBSOCKET_DIR ${ROOT_DIR}/thirdparty/IXWebSocket/)
 set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
-set (IXWEBSOCKET_SOURCE_DIR ${IXWEBSOCKET_DIR}/ixwebsocket)
-file(GLOB IXWEBSOCKET_SOURCE
-    "${IXWEBSOCKET_SOURCE_DIR}/*.cpp"
-	"${IXWEBSOCKET_SOURCE_DIR}/*.h"
-)
 
 # Nlohmann JSON
 set (NLOHMANN_JSON_INCLUDE_DIR ${ROOT_DIR}/thirdparty/nlohmann_json/include)
