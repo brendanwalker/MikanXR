@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MikanClientTypes.h"
+#include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 
 struct MikanConnectedEvent : public MikanEvent

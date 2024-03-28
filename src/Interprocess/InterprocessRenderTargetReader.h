@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <memory>
 #include <string>
-#include "MikanClientTypes.h"
+#include "MikanCoreTypes.h"
 
 class GlTexture;
 typedef std::shared_ptr<GlTexture> GlTexturePtr;

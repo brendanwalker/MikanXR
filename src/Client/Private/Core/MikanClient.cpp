@@ -5,14 +5,12 @@
 #include "MikanClient.h"
 #include "MikanCoreCAPI.h"
 #include "MikanCoreTypes_json.h"
-#include "MikanJsonUtils.h"
+#include "JsonUtils.h"
 #include "RandomUtils.h"
 
 #include "ixwebsocket/IXNetSystem.h"
 
 #include <assert.h>
-
-using json = nlohmann::json;
 
 // -- methods -----
 MikanClient::MikanClient()

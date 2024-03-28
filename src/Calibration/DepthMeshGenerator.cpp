@@ -21,7 +21,6 @@
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "ModelStencilComponent.h"
-#include "MikanClientTypes.h"
 #include "PathUtils.h"
 #include "StencilObjectSystem.h"
 #include "StringUtils.h"

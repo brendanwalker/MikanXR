@@ -5,7 +5,7 @@
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "MikanObjectSystem.h"
-#include "MikanClientTypes.h"
+#include "MikanSpatialAnchorTypes.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"

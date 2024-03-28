@@ -1,7 +1,6 @@
 #pragma once
 
 #include "VideoDisplayConstants.h"
-#include "MikanClientTypes.h"
 #include "OpenCVFwd.h"
 #include <memory>
 

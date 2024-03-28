@@ -8,7 +8,6 @@
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
-#include "MikanClientTypes.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
 #include "VRDeviceView.h"

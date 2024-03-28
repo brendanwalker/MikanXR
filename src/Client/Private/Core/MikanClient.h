@@ -2,7 +2,7 @@
 #define MIKAN_CLIENT_H
 
 //-- includes -----
-#include "MikanClientTypes.h"
+#include "MikanCoreTypes.h"
 #include "Logger.h"
 
 #include <map>

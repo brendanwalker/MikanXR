@@ -1,7 +1,7 @@
 	#pragma once
 
 #include "MikanComponent.h"
-#include "MikanClientTypes.h"
+#include "MikanStencilTypes.h"
 #include "FrameCompositorConstants.h"
 #include "SceneComponent.h"
 

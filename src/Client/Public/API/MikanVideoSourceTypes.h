@@ -1,9 +1,23 @@
 #pragma once
 
-#include "MikanClientTypes.h"
 #include "MikanMathTypes.h"
+#include "MikanVRDeviceTypes.h"
 
 // Constants
+enum MikanVideoSourceType
+{
+	MikanVideoSourceType_MONO,
+	MikanVideoSourceType_STEREO
+};
+
+/// The list of possible camera APIs used by MikanXR
+enum MikanVideoSourceApi
+{
+	MikanVideoSourceApi_INVALID,
+	MikanVideoSourceApi_OPENCV_CV,
+	MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION
+};
+
 enum MikanIntrinsicsType
 {
 	INVALID_CAMERA_INTRINSICS,

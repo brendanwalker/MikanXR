@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <string>
-#include "MikanClientTypes.h"
 
 class InterprocessRenderTargetWriteAccessor
 {
@@ -11,7 +10,7 @@ public:
 	virtual ~InterprocessRenderTargetWriteAccessor();
 
 	bool initialize(
-		const MikanRenderTargetDescriptor* descriptor, 
+		const struct MikanRenderTargetDescriptor* descriptor, 
 		bool bEnableFrameCounter, 
 		void* apiDeviceInterface= nullptr);
 	void dispose();

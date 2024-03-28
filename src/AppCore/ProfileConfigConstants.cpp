@@ -1,5 +1,4 @@
 #include "ProfileConfigConstants.h"
-#include "MikanClientTypes.h"
 
 const std::string g_patternTypeStrings[(int)eCalibrationPatternType::COUNT] = {
 	"chessboard",

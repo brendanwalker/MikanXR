@@ -1,11 +1,9 @@
 #pragma once
 
-#include "nlohmann/json.hpp"
-
 #include "MikanEventTypes.h"
-
-#include "MikanMathTypes.h"
 #include "MikanMathTypes_json.h"
+
+#include "nlohmann/json.hpp"
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanConnectedEvent, eventType)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanDisconnectedEvent, eventType)

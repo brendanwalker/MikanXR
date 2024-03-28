@@ -2,7 +2,7 @@
 #include "BoxStencilComponent.h"
 #include "LuaStencil.h"
 #include "MathTypeConversion.h"
-#include "MikanClientTypes.h"
+#include "MikanStencilTypes.h"
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"

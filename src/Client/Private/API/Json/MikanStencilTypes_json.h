@@ -1,78 +1,13 @@
 #pragma once
 
-#include "MikanClientTypes.h"
-
-#include "MikanCoreTypes_json.h"
+#include "MikanStencilTypes.h"
 #include "MikanMathTypes_json.h"
 
-NLOHMANN_JSON_SERIALIZE_ENUM(MikanVideoSourceType, {
-	{MikanVideoSourceType_MONO, "MONO"},
-	{MikanVideoSourceType_STEREO, "STEREO"},
-})
+#include "nlohmann/json.hpp"
 
-NLOHMANN_JSON_SERIALIZE_ENUM(MikanVideoSourceApi, {
-	{MikanVideoSourceApi_INVALID, nullptr},
-	{MikanVideoSourceApi_OPENCV_CV, "OPEN_CV"},
-	{MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION, "WMF"},
-})
-
-NLOHMANN_JSON_SERIALIZE_ENUM(MikanVRDeviceApi, {
-	{MikanVRDeviceApi_INVALID, nullptr},
-	{MikanVRDeviceApi_STEAM_VR, "STEAM_VR"},
-})
-
-NLOHMANN_JSON_SERIALIZE_ENUM(MikanVRDeviceType, {
-	{MikanVRDeviceType_INVALID, nullptr},
-	{MikanVRDeviceType_HMD, "HMD"},
-	{MikanVRDeviceType_CONTROLLER, "CONTROLLER"},
-	{MikanVRDeviceType_TRACKER, "TRACKER"},
-})
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanClientInfo, 
-	clientId,
-	engineName,
-	engineVersion,
-	applicationName,
-	applicationVersion,
-	xrDeviceName,
-	graphicsAPI,
-	mikanCoreSdkVersion,
-	supportsRBG24,
-	supportsRBGA32,
-	supportsBGRA32,
-	supportsDepth)
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanColorRGB, 
-	r,
-	g,
-	b)
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanResponse,
-	responseType,
-	requestId,
-	resultCode
-)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanStencilList,
-	stencil_id_list
-)
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanVRDeviceList,
-	vr_device_id_list
-)
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanVRDeviceInfo,
-	vr_device_api,
-	vr_device_type,
-	device_path
-)
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanSpatialAnchorList,
-	spatial_anchor_id_list
-)
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanScriptMessageInfo, 
-	content
+								   stencil_id_list
 )
 
 // MikanStencilQuad
@@ -160,24 +95,4 @@ inline void from_json(const nlohmann::json& j, MikanStencilModel& p)
 	j.at("parent_anchor_id").get_to(p.parent_anchor_id);
 	j.at("is_disabled").get_to(p.is_disabled);
 	j.at("stencil_name").get_to(p.stencil_name);
-}
-
-// MikanSpatialAnchorInfo
-inline void to_json(nlohmann::json& j, const MikanSpatialAnchorInfo& p)
-{
-	nlohmann::json transformJson;
-	to_json(transformJson, p.world_transform);
-
-	j = nlohmann::json{
-		{"anchor_id", p.anchor_id},
-		{"world_transform", transformJson},
-		{"anchor_name", p.anchor_name}
-	};
-}
-inline void from_json(const nlohmann::json& j, MikanSpatialAnchorInfo& p)
-{
-	from_json(j.at("world_transform"), p.world_transform);
-
-	j.at("anchor_id").get_to(p.anchor_id);
-	j.at("anchor_name").get_to(p.anchor_name);
 }

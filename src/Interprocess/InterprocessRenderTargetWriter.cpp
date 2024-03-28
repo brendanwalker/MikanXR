@@ -1,5 +1,6 @@
 #include "InterprocessRenderTargetWriter.h"
 #include "Logger.h"
+#include "MikanCoreTypes.h"
 #ifdef ENABLE_SPOUT_DX
 #include "SpoutDX.h"
 #endif // ENABLE_SPOUT_DX

@@ -1,5 +1,9 @@
 //-- includes -----
 #include "MikanAPI.h"
+#include "MikanEventTypes.h"
+#include "MikanMathTypes.h"
+#include "MikanStencilTypes.h"
+#include "MikanVideoSourceTypes.h"
 
 #define SDL_MAIN_HANDLED
 
@@ -74,7 +78,7 @@ class MikanTestApp
 {
 public:
 	MikanTestApp()
-		: m_mikanApi(std::make_unique<MikanAPI>())
+		: m_mikanApi(IMikanAPI::createMikanAPI())
 	{
 		m_originSpatialAnchorXform = glm::mat4(1.f);
 
@@ -151,7 +155,7 @@ protected:
 			ClientInfo.applicationVersion, "1.0";
 			ClientInfo.xrDeviceName[0] = '\0';
 			ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
-			ClientInfo.mikanCoreSdkVersion = Mikan_GetCoreSDKVersion();
+			ClientInfo.mikanCoreSdkVersion = m_mikanApi->getCoreSDKVersion();
 
 			m_mikanApi->setClientInfo(ClientInfo);
 
@@ -398,7 +402,7 @@ protected:
 		m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 		m_lastFrameTimestamp = now;
 
-		if (Mikan_GetIsConnected())
+		if (m_mikanApi->getIsConnected())
 		{
 			MikanEventPtr event;
 			while (m_mikanApi->fetchNextEvent(event) == MikanResult_Success)
@@ -953,7 +957,7 @@ private:
 	unsigned int m_framebuffer= 0;
 	unsigned int m_rbo= 0;
 
-	std::unique_ptr<MikanAPI> m_mikanApi;
+	IMikanAPIPtr m_mikanApi;
 	uint64_t m_lastReceivedVideoSourceFrame= 0;
 	glm::mat4 m_originSpatialAnchorXform;
 	MikanStencilQuad m_stencilQuad;

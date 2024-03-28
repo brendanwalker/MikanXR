@@ -15,8 +15,6 @@
 \addtogroup MikanCore_CAPI 
 @{ 
 */
- 
-typedef void (MIKAN_CALLBACK* MikanLogCallback)(int /*log_level*/, const char* /*log_message*/);
 
 /** \brief Initializes the MikanXR Client API.
  This function must be called before calling any other client functions. 

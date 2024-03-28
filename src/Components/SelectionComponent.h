@@ -2,7 +2,6 @@
 
 #include "ColliderQuery.h"
 #include "MikanComponent.h"
-#include "MikanClientTypes.h"
 #include "MulticastDelegate.h"
 
 #include <vector>

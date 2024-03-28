@@ -1,5 +1,5 @@
-#ifndef __MIKAN_CLIENT_TYPES_H
-#define __MIKAN_CLIENT_TYPES_H
+#ifndef __MIKAN_CORE_TYPES_H
+#define __MIKAN_CORE_TYPES_H
 
 #include "MikanExport.h"
 #include <stdint.h>
@@ -100,6 +100,8 @@ typedef int MikanRequestID;
 typedef void(MIKAN_CALLBACK* MikanResponseCallback)(
 	MikanRequestID request_id, const char* utf8_response_string, void* userdata);
 
+typedef void (MIKAN_CALLBACK* MikanLogCallback)(
+	int /*log_level*/, const char* /*log_message*/);
 
 /**
 @}

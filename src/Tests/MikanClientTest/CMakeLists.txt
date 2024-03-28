@@ -29,7 +29,7 @@ file(GLOB MIKAN_TEST_SRC
 list(APPEND MIKAN_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${ROOT_DIR}/src/AppCore/
-  ${ROOT_DIR}/src/Client/Public
+  ${ROOT_DIR}/src/Client/Public/API
   ${ROOT_DIR}/src/Client/Public/Core
   ${ROOT_DIR}/src/Renderer/
   ${ROOT_DIR}/src/Utility/
@@ -44,7 +44,8 @@ list(APPEND MIKAN_TEST_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${FFMPEG_LIBRARIES}
-  Mikan_CAPI)
+  MikanCore
+  MikanAPI)
 
 add_executable(Mikan_Test ${MIKAN_TEST_SRC})
 target_include_directories(Mikan_Test PUBLIC ${MIKAN_TEST_INCL_DIRS})
@@ -73,8 +74,13 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:Mikan_CAPI>/Mikan_CAPI.dll
+          $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll
           $<TARGET_FILE_DIR:Mikan_Test>)
+  add_custom_command(
+    TARGET Mikan_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
+          $<TARGET_FILE_DIR:Mikan_Test>)		  
 ELSE() #Linux/Darwin
 ENDIF()
 

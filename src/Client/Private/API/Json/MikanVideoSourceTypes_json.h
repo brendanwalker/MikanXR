@@ -3,9 +3,18 @@
 #include "nlohmann/json.hpp"
 
 #include "MikanVideoSourceTypes.h"
-
-#include "MikanMathTypes.h"
 #include "MikanMathTypes_json.h"
+
+NLOHMANN_JSON_SERIALIZE_ENUM(MikanVideoSourceType, {
+	{MikanVideoSourceType_MONO, "MONO"},
+	{MikanVideoSourceType_STEREO, "STEREO"},
+})
+
+NLOHMANN_JSON_SERIALIZE_ENUM(MikanVideoSourceApi, {
+	{MikanVideoSourceApi_INVALID, nullptr},
+	{MikanVideoSourceApi_OPENCV_CV, "OPEN_CV"},
+	{MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION, "WMF"},
+})
 
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MikanIntrinsicsType, {

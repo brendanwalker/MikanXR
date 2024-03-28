@@ -4,7 +4,7 @@
 //-- includes -----
 #include "CommonConfigFwd.h"
 #include "ScriptingFwd.h"
-#include "MikanClientTypes.h"
+#include "MikanAPITypes.h"
 #include "MikanEventTypes.h"
 #include "MulticastDelegate.h"
 #include "InterprocessMessages.h"
