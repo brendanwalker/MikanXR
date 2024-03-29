@@ -83,8 +83,11 @@ public:
 	virtual IMikanSpatialAnchorAPI* getSpatialAnchorAPI() const override { return m_spatialAnchorAPI.get(); }
 
 	// Set client properties before calling connect
-	virtual MikanResult setClientInfo(const MikanClientInfo& clientInfo) override
+	virtual MikanResult setClientInfo(const MikanClientInfo& inClientInfo) override
 	{
+		MikanClientInfo clientInfo = inClientInfo;
+		clientInfo.mikanCoreSdkVersion = getCoreSDKVersion();
+
 		json clientInfoJson = clientInfo;
 		const std::string clientInfoString = clientInfoJson.dump();
 

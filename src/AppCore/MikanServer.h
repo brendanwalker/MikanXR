@@ -10,12 +10,16 @@
 #include "InterprocessMessages.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "stdint.h"
+
 #include <map>
+#include <memory>
+
+class MikanClientConnectionState;
+using MikanClientConnectionStatePtr= std::shared_ptr<MikanClientConnectionState>;
 
 //-- definitions -----
 struct MikanClientConnectionInfo
 {
-	std::string clientId;
 	MikanClientInfo clientInfo;
 	class InterprocessRenderTargetReadAccessor* renderTargetReadAccessor;
 
@@ -97,7 +101,7 @@ private:
 	static MikanServer* m_instance;
 
 	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
-	std::map<std::string, class ClientConnectionState*> m_clientConnections;
+	std::map<std::string, MikanClientConnectionStatePtr> m_clientConnections;
 	class IInterprocessMessageServer* m_messageServer;
 };
 

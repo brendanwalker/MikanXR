@@ -148,7 +148,7 @@ void MikanClient::responseHandler(const std::string& utf8ResponseString)
 	if (m_responseCallback != nullptr)
 	{
 		JsonSaxIntegerValueSearcher searcher;
-		json::number_integer_t requestId = -1;
+		int requestId = -1;
 
 		if (searcher.fetchKeyValuePair(utf8ResponseString, "requestId", requestId))
 		{

@@ -120,7 +120,7 @@ protected:
 };
 
 // Searcher for integer values
-class JsonSaxIntegerValueSearcher : public JsonSaxValueSearcherBase<json::number_integer_t>
+class JsonSaxIntegerValueSearcher : public JsonSaxValueSearcherBase<int>
 {
 public:
 	JsonSaxIntegerValueSearcher() = default;
@@ -129,7 +129,18 @@ public:
 	{
 		if (m_keyValueFound)
 		{
-			m_resultValue = val;
+			m_resultValue = (int)val;
+			return false; // stop parsing
+		}
+
+		return true; // keep parsing
+	}
+
+	bool number_unsigned(number_unsigned_t val) override
+	{
+		if (m_keyValueFound)
+		{
+			m_resultValue = (int)val;
 			return false; // stop parsing
 		}
 

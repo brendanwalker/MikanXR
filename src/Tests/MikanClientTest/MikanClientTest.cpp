@@ -150,12 +150,10 @@ protected:
 			MikanClientInfo ClientInfo = {};
 			ClientInfo.supportsRBG24 = true;
 			ClientInfo.engineName = "MikanXR Test";
-			ClientInfo.engineVersion, "1.0";
-			ClientInfo.applicationName, "MikanXR Test";
-			ClientInfo.applicationVersion, "1.0";
-			ClientInfo.xrDeviceName[0] = '\0';
+			ClientInfo.engineVersion = "1.0";
+			ClientInfo.applicationName = "MikanXR Test";
+			ClientInfo.applicationVersion = "1.0";
 			ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
-			ClientInfo.mikanCoreSdkVersion = m_mikanApi->getCoreSDKVersion();
 
 			m_mikanApi->setClientInfo(ClientInfo);
 

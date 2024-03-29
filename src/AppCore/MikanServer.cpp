@@ -41,11 +41,11 @@ using json = nlohmann::json;
 
 using namespace std::placeholders;
 
-// -- ClientConnectionState -----
-class ClientConnectionState
+// -- MikanClientConnectionState -----
+class MikanClientConnectionState
 {
 public:
-	ClientConnectionState(	
+	MikanClientConnectionState(	
 		MikanClientInfo& clientInfo,
 		IInterprocessMessageServer* messageServer)
 		: m_messageServer(messageServer)
@@ -54,7 +54,7 @@ public:
 		m_connectionInfo.renderTargetReadAccessor= new InterprocessRenderTargetReadAccessor(clientInfo.clientId);
 	}
 
-	virtual ~ClientConnectionState()
+	virtual ~MikanClientConnectionState()
 	{
 		freeRenderTargetBuffers();
 		delete m_connectionInfo.renderTargetReadAccessor;
@@ -67,7 +67,7 @@ public:
 	
 	const std::string& getClientId() const 
 	{
-		return m_connectionInfo.clientId;
+		return m_connectionInfo.clientInfo.clientId;
 	}
 
 	const MikanClientInfo& getMikanClientInfo() const 
@@ -120,7 +120,7 @@ public:
 			if (mikanServer->OnClientRenderTargetAllocated)
 			{
 				mikanServer->OnClientRenderTargetAllocated(
-					m_connectionInfo.clientId, 
+					m_connectionInfo.clientInfo.clientId, 
 					m_connectionInfo.clientInfo, 
 					m_connectionInfo.renderTargetReadAccessor);
 			}
@@ -145,7 +145,7 @@ public:
 			if (mikanServer->OnClientRenderTargetReleased)
 			{
 				mikanServer->OnClientRenderTargetReleased(
-					m_connectionInfo.clientId,
+					m_connectionInfo.clientInfo.clientId,
 					m_connectionInfo.renderTargetReadAccessor);
 			}
 		}
@@ -250,8 +250,8 @@ public:
 	}
 
 private:
-	MikanClientConnectionInfo m_connectionInfo;
 	IInterprocessMessageServer* m_messageServer;
+	MikanClientConnectionInfo m_connectionInfo;
 	std::set<MikanVRDeviceID> m_subscribedVRDevices;
 };
 
@@ -287,7 +287,7 @@ MikanServer::~MikanServer()
 
 // -- ClientMikanAPI System -----
 template <typename t_mikan_type>
-void publishSimpleEvent(std::map<std::string, class ClientConnectionState*>& clientConnections)
+void publishSimpleEvent(std::map<std::string, MikanClientConnectionStatePtr>& clientConnections)
 {
 	EASY_FUNCTION();
 
@@ -353,12 +353,7 @@ void MikanServer::shutdown()
 {
 	VRDeviceManager::getInstance()->OnDevicePosesChanged -= MakeDelegate(this, &MikanServer::publishVRDevicePoses);
 
-	for (auto& connection_it : m_clientConnections)
-	{
-		delete connection_it.second;
-	}
 	m_clientConnections.clear();
-
 	m_messageServer->dispose();
 }
 
@@ -543,7 +538,7 @@ void writeSimpleResponse(MikanRequestID requestId, MikanResult result, std::stri
 void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8ResponseString)
 {
 	MikanClientInfo clientInfo;
-	if (readRequestPayload(request.utf8RequestString, clientInfo))
+	if (!readRequestPayload(request.utf8RequestString, clientInfo))
 	{
 		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
 		// TODO send error event
@@ -554,7 +549,7 @@ void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8
 	auto connection_it = m_clientConnections.find(clientId);
 	if (connection_it == m_clientConnections.end())
 	{
-		ClientConnectionState* clientState = new ClientConnectionState(clientInfo, m_messageServer);
+		MikanClientConnectionStatePtr clientState = std::make_shared<MikanClientConnectionState>(clientInfo, m_messageServer);
 
 		m_clientConnections.insert({clientId, clientState});
 
@@ -575,7 +570,7 @@ void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8
 void MikanServer::disconnectHandler(const ClientRequest& request, std::string& utf8ResponseString)
 {
 	MikanClientInfo clientInfo;
-	if (readRequestPayload(request.utf8RequestString, clientInfo))
+	if (!readRequestPayload(request.utf8RequestString, clientInfo))
 	{
 		MIKAN_LOG_ERROR("disconnectHandler") << "Failed to parse client info";
 		// TODO send error event
@@ -586,7 +581,7 @@ void MikanServer::disconnectHandler(const ClientRequest& request, std::string& u
 	if (connection_it != m_clientConnections.end())
 	{
 		const std::string& clientId = connection_it->first;
-		ClientConnectionState* clientState = connection_it->second;
+		MikanClientConnectionStatePtr clientState = connection_it->second;
 
 		clientState->publishSimpleEvent<MikanDisconnectedEvent>();
 
@@ -595,7 +590,6 @@ void MikanServer::disconnectHandler(const ClientRequest& request, std::string& u
 			OnClientDisconnected(clientId);
 		}
 
-		delete connection_it->second;
 		m_clientConnections.erase(connection_it);
 	}
 	else
@@ -813,7 +807,7 @@ void MikanServer::subscribeToVRDevicePoseUpdates(
 		return;
 	}
 
-	ClientConnectionState* clientState = connection_it->second;
+	MikanClientConnectionStatePtr clientState = connection_it->second;
 	clientState->subscribeToVRDevicePoseUpdates(deviceId);
 	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 }
@@ -836,7 +830,7 @@ void MikanServer::unsubscribeFromVRDevicePoseUpdates(
 		return;
 	}
 
-	ClientConnectionState* clientState = connection_it->second;
+	MikanClientConnectionStatePtr clientState = connection_it->second;
 	clientState->unsubscribeFromVRDevicePoseUpdates(deviceId);
 	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 }
@@ -859,7 +853,7 @@ void MikanServer::allocateRenderTargetBuffers(
 		return;
 	}
 
-	ClientConnectionState* clientState = connection_it->second;
+	MikanClientConnectionStatePtr clientState = connection_it->second;
 	if (clientState->allocateRenderTargetBuffers(desc))
 	{
 		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
@@ -908,7 +902,7 @@ void MikanServer::frameRendered(
 		// Process incoming video frames, if we have a compositor active
 		if (OnClientRenderTargetUpdated)
 		{
-			ClientConnectionState* clientState = connection_it->second;
+			MikanClientConnectionStatePtr clientState = connection_it->second;
 
 			if (clientState->readRenderTarget())
 			{

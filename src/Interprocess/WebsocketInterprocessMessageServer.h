@@ -4,6 +4,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 
 namespace ix
 {
@@ -12,8 +13,7 @@ namespace ix
 }
 using WebSocketServerPtr = std::shared_ptr<ix::WebSocketServer>;
 using ConnectionStatePtr = std::shared_ptr<ix::ConnectionState>;
-using ClientConnectionStatePtr = std::shared_ptr<class ClientConnectionState>;
-using ClientConnectionStateWeakPtr = std::weak_ptr<class ClientConnectionState>;
+using WebSocketClientConnectionPtr = std::shared_ptr<class WebSocketClientConnection>;
 
 class WebsocketInterprocessMessageServer : public IInterprocessMessageServer
 {
@@ -30,11 +30,14 @@ public:
 	void processRequests() override;
 
 protected:
+	void getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections);
+	WebSocketClientConnectionPtr findConnection(const std::string& clientId);
 	static std::string makeRequestHandlerKey(const std::string& requestType, int version);
 
 private:
 	WebSocketServerPtr m_server;
-	std::vector<ClientConnectionStateWeakPtr> m_connections;
+	std::vector<WebSocketClientConnectionPtr> m_connections;
+	std::mutex m_connectionsMutex;
 	std::map<std::string, RequestHandler> m_requestHandlers;
 };
 
