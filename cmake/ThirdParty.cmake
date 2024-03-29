@@ -109,6 +109,7 @@ list(APPEND IMNODES_SOURCE
 
 # IXWebSocket
 option(USE_ZLIB "Add ZLib support" FALSE)
+option(IXWEBSOCKET_INSTALL "Install IXWebSocket" FALSE)
 set (IXWEBSOCKET_DIR ${ROOT_DIR}/thirdparty/IXWebSocket/)
 set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
 
