@@ -102,18 +102,6 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-echo "Downloading Boost..."
-curl -L https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip > boost_1_78_0.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading boost_1_78_0.zip"
-  goto failure
-)
-7z e boost_1_78_0.zip -y -r -spf        
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping boost_1_78_0.zip"
-  goto failure
-)
-
 echo "Downloading glew..."
 curl -L https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip --output glew-2.2.0-win32.zip
 IF %ERRORLEVEL% NEQ 0 (

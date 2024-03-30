@@ -84,9 +84,6 @@ set (LUA_BRIDGE_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/LuaBridge3/Source)
 # fast-cpp-csv-parser
 set (FastCSV_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/fast-cpp-csv-parser)
 
-# Boost interprocess
-set (BOOST_INTERPROCESS_INCLUDE_DIRS ${ROOT_DIR}/deps/boost_1_78_0)
-
 # ImGUI
 set(IMGUI_DIR ${ROOT_DIR}/thirdparty/imgui)
 set(IMGUI_SOURCE "")
