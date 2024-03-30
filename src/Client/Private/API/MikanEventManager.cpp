@@ -14,6 +14,12 @@ MikanResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
 	if (result == MikanResult_Success)
 	{
 		out_event = parseEventString(utf8Buffer);
+		if (!out_event)
+		{
+			MIKAN_MT_LOG_WARNING("MikanClient::fetchNextEvent()")
+				<< "Failed to parse event string: " << utf8Buffer;
+			result = MikanResult_MalformedResponse;
+		}
 	}
 
 	return result;
@@ -31,9 +37,9 @@ MikanEventPtr MikanEventManager::parseEventString(const char* utf8EventString)
 
 		if (it != m_eventFactories.end())
 		{
-			MikanEventFactory factory = it->second;
+			IMikanEventFactoryPtr factory = it->second;
 
-			eventPtr = factory(jsonResponse);
+			eventPtr = factory->createEvent(jsonResponse);
 		}
 		else
 		{

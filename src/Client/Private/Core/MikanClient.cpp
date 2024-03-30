@@ -18,6 +18,9 @@ MikanClient::MikanClient()
 	, m_renderTargetWriter(new InterprocessRenderTargetWriteAccessor(m_clientName))
 	, m_messageClient(new WebsocketInterprocessMessageClient())
 {
+	m_messageClient->setResponseHandler([this](const std::string& utf8ResponseString) {
+		responseHandler(utf8ResponseString);
+	});
 }
 
 MikanClient::~MikanClient()
@@ -116,14 +119,14 @@ MikanResult MikanClient::sendRequest(
 		ss << "{\n";
 		if (out_request_id != nullptr)
 		{
-			ss << "	requestId:" << m_next_request_id << ",\n";
+			ss << "	\"requestId\":" << m_next_request_id << ",\n";
 		}
-		ss << "	requestType:\"" << utf8_request_name << "\",\n";
-		ss << "	version:" << request_version << "";
+		ss << "	\"requestType\":\"" << utf8_request_name << "\",\n";
+		ss << "	\"version\":" << request_version << "";
 		if (utf8_payload != nullptr)
 		{
 			ss << ",\n";
-			ss << "	payload:" << utf8_payload << "\n";
+			ss << "	\"payload\":" << utf8_payload << "\n";
 		}
 		else
 		{

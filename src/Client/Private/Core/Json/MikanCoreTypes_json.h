@@ -47,11 +47,12 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MikanDepthBufferType, {
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MikanClientGraphicsApi, {
-	{MikanClientGraphicsApi_UNKNOWN, "UNKNOWN"},
+	{MikanClientGraphicsApi_UNKNOWN, nullptr},
 	{MikanClientGraphicsApi_Direct3D9, "Direct3D9"},
 	{MikanClientGraphicsApi_Direct3D11, "Direct3D11"},
 	{MikanClientGraphicsApi_Direct3D12, "Direct3D12"},
 	{MikanClientGraphicsApi_OpenGL, "OpenGL"},
+	{MikanClientGraphicsApi_COUNT, nullptr},
 })
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanRenderTargetDescriptor,

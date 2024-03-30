@@ -522,7 +522,7 @@ ENDIF()
 target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
 target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
 target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
-
+target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 ## Mikan Core DLL
 file(GLOB MIKAN_CLIENT_CORE_PRIVATE_SRC
@@ -614,6 +614,7 @@ set_target_properties(MikanCore PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(MikanCore PROPERTIES C_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanCore PRIVATE MIKAN_CLIENT_CAPI_EXPORTS)
 target_compile_definitions(MikanCore PRIVATE ENABLE_SPOUT_DX)
+target_compile_definitions(MikanCore PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 
 ## Mikan API DLL
@@ -670,6 +671,7 @@ target_link_libraries(MikanAPI PRIVATE ${MIKAN_CLIENT_API_REQ_LIBS})
 set_target_properties(MikanAPI PROPERTIES PUBLIC_HEADER "${MIKAN_CLIENT_API_HEADER}")
 set_target_properties(MikanAPI PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanAPI PRIVATE MIKAN_CLIENT_EXPORTS)
+target_compile_definitions(MikanAPI PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 # Runtime dependencies
 set(FFMPEG_DLL_FOLDER ${ROOT_DIR}/deps/ffmpeg-4.4.1-full_build-shared/bin)

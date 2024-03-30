@@ -41,8 +41,16 @@ struct MikanResponse
 	MikanRequestID requestId;
 	MikanResult resultCode;
 
-	MikanResponse() = default;
-	MikanResponse(const std::string& inResponseType) : responseType(inResponseType) {}
+	MikanResponse() 
+		: responseType(k_typeName) 
+		, requestId(INVALID_MIKAN_ID)
+		, resultCode(MikanResult_Success)
+	{}
+	MikanResponse(const std::string& inResponseType) 
+		: responseType(inResponseType) 
+		, requestId(INVALID_MIKAN_ID)
+		, resultCode(MikanResult_Success)
+	{}
 };
 
 struct MikanEvent

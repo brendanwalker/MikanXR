@@ -33,7 +33,10 @@ public:
 	}
 
 	//const std::string& getClientId() const { return m_clientId; }
-	const bool getIsConnected() const { return m_websocket->getReadyState() == ix::ReadyState::Open; }
+	const bool getIsConnected() const { 
+		auto readyState= m_websocket->getReadyState();
+		return readyState == ix::ReadyState::Open || readyState == ix::ReadyState::Connecting; 
+	}
 	
 	inline WebSocketPtr getWebSocket() { return m_websocket; }
 
@@ -49,8 +52,7 @@ public:
 
 	MikanResult connect(const std::string& host, const std::string& port)
 	{
-		if (m_websocket->getReadyState() == ix::ReadyState::Connecting ||
-			m_websocket->getReadyState() == ix::ReadyState::Open)
+		if (getIsConnected())
 		{
 			MIKAN_MT_LOG_ERROR("WebsocketConnectionState::connect()") << "Already connected";
 			return MikanResult_AlreadyConnected;
@@ -68,8 +70,7 @@ public:
 
 	bool disconnect()
 	{
-		if (m_websocket->getReadyState() == ix::ReadyState::Connecting ||
-			m_websocket->getReadyState() == ix::ReadyState::Open)
+		if (getIsConnected())
 		{
 			m_websocket->close();
 			return true;
@@ -221,15 +222,19 @@ MikanResult WebsocketInterprocessMessageClient::fetchNextEvent(
 	if (nextEvent == nullptr)
 		return MikanResult_NoData;
 
-	const size_t bytesNeeded= nextEvent->size();
+	const size_t eventSize= nextEvent->size();
+	const size_t bytesNeeded= eventSize + 1; // Include null terminator
 
 	if (outUtf8Buffer != nullptr)
 	{
-		if (bytesNeeded < utf8BufferSize)
+		if (bytesNeeded > utf8BufferSize)
 			return MikanResult_BufferTooSmall;
 
-		// Copy the string from the event queue into the output buffer
-		memcpy(outUtf8Buffer, nextEvent->c_str(), bytesNeeded);
+		// Copy the utf-8 buffer from the event queue into the output buffer
+		memcpy(outUtf8Buffer, nextEvent->c_str(), eventSize);
+
+		// Null terminate the end of the string
+		outUtf8Buffer[eventSize]= '\0';
 
 		// Remove the event string from the queue
 		eventQueue->pop();

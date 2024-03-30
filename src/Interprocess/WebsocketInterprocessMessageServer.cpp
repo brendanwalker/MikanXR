@@ -100,6 +100,7 @@ public:
 								// Construct a connect server message for the queue
 								json connectRequestJson;
 								connectRequestJson["requestType"]= "connect";
+								connectRequestJson["requestId"]= -1;
 								connectRequestJson["version"]= 0;
 								connectRequestJson["payload"]= m_clientInfo;
 
@@ -123,6 +124,7 @@ public:
 					// Construct a disconnect server message for the queue
 					json disconnectRequestJson;
 					disconnectRequestJson["requestType"] = "disconnect";
+					disconnectRequestJson["requestId"]= -1;
 					disconnectRequestJson["version"] = 0;
 					disconnectRequestJson["payload"] = m_clientInfo;
 
@@ -427,7 +429,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 			// Request ID is optional if the request doesn't expect a response
 			int requestId;
 			JsonSaxIntegerValueSearcher requestIdSearcher;
-			if (requestIdSearcher.fetchKeyValuePair(inRequestString, "requestId", requestId))
+			if (!requestIdSearcher.fetchKeyValuePair(inRequestString, "requestId", requestId))
 			{
 				requestId= INVALID_MIKAN_ID;
 			}
@@ -457,7 +459,16 @@ void WebsocketInterprocessMessageServer::processRequests()
 			}
 
 			// Send the response back to the client
-			connection->sendMessage(outResponseString);
+			if (!outResponseString.empty())
+			{
+				connection->sendMessage(outResponseString);
+			}
+			else if (requestId != INVALID_MIKAN_ID)
+			{
+				MIKAN_LOG_WARNING("processRequests") <<
+					"Request handler for " << handlerKey 
+					<< " returned empty response, but response expected!";
+			}
 		}
 	}
 }

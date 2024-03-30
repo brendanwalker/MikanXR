@@ -52,7 +52,7 @@ enum MikanLogLevel
 
 enum MikanClientGraphicsApi
 {
-	MikanClientGraphicsApi_UNKNOWN,
+	MikanClientGraphicsApi_UNKNOWN= -1,
 
 	MikanClientGraphicsApi_Direct3D9,
 	MikanClientGraphicsApi_Direct3D11,

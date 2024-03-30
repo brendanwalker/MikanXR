@@ -102,6 +102,31 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     return ( int )msg.wParam;
 }
 
+void onMikanLog(int log_level, const char* log_message)
+{
+	switch (log_level)
+	{
+		case MikanLogLevel_Debug:
+			MIKAN_LOG_DEBUG("onMikanLog") << log_message;
+			break;
+		case MikanLogLevel_Info:
+			MIKAN_LOG_INFO("onMikanLog") << log_message;
+			break;
+		case MikanLogLevel_Warning:
+			MIKAN_LOG_WARNING("onMikanLog") << log_message;
+			break;
+		case MikanLogLevel_Error:
+			MIKAN_LOG_ERROR("onMikanLog") << log_message;
+			break;
+		case MikanLogLevel_Fatal:
+			MIKAN_LOG_FATAL("onMikanLog") << log_message;
+			break;
+		default:
+			MIKAN_LOG_INFO("onMikanLog") << log_message;
+			break;
+	}
+}
+
 bool initMikan()
 {
     g_lastFrameTimestamp = GetTickCount();
@@ -114,7 +139,7 @@ bool initMikan()
 
     g_mikanAPI= IMikanAPI::createMikanAPI();
 
-	if (g_mikanAPI->init(MikanLogLevel_Info, nullptr) == MikanResult_Success)
+	if (g_mikanAPI->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
 	{
 		MikanClientInfo ClientInfo = {};
 		ClientInfo.supportsRBG24 = true;
@@ -141,7 +166,7 @@ void updateMikan()
 {
 	// Update the frame rate
 	const uint32_t now = GetTickCount();
-	const float deltaSeconds = (float)(now - g_lastFrameTimestamp) / 1000.f;
+	const float deltaSeconds = fminf((float)(now - g_lastFrameTimestamp) / 1000.f, 0.1f);
 	//m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
     g_lastFrameTimestamp = now;
 
@@ -177,7 +202,7 @@ void updateMikan()
 	{
 		if (g_mikanReconnectTimeout <= 0.f)
 		{
-			if (g_mikanAPI->connect() != MikanResult_Success)
+			if (g_mikanAPI->connect() != MikanResult_Success || !g_mikanAPI->getIsConnected())
 			{
 				// timeout between reconnect attempts
 				g_mikanReconnectTimeout = 1.0f;

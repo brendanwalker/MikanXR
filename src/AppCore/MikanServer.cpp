@@ -445,7 +445,6 @@ void MikanServer::handleAnchorSystemConfigChange(
 		AnchorDefinitionPtr anchorConfig= std::static_pointer_cast<AnchorDefinition>(configPtr);
 
 		MikanAnchorPoseUpdateEvent poseUpdateEvent;
-		memset(&poseUpdateEvent, 0, sizeof(MikanAnchorPoseUpdateEvent));
 		poseUpdateEvent.anchor_id = anchorConfig->getAnchorId();
 		poseUpdateEvent.transform = glm_transform_to_MikanTransform(anchorConfig->getRelativeTransform());
 
@@ -889,8 +888,8 @@ void MikanServer::frameRendered(
 	const ClientRequest& request,
 	std::string& utf8ResponseString)
 {
-	uint64_t frameIndex= 0;
-	if (!readRequestPayload(request.utf8RequestString, frameIndex))
+	MikanClientFrameRendered frameRendered = {};
+	if (!readRequestPayload(request.utf8RequestString, frameRendered))
 	{
 		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
@@ -906,7 +905,7 @@ void MikanServer::frameRendered(
 
 			if (clientState->readRenderTarget())
 			{
-				OnClientRenderTargetUpdated(request.clientId, frameIndex);
+				OnClientRenderTargetUpdated(request.clientId, frameRendered.frame_index);
 			}
 		}
 

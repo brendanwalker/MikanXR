@@ -14,6 +14,30 @@
 
 using json = nlohmann::json;
 
+class IMikanResponseFactory
+{
+public:
+	virtual MikanResponsePtr createResponse(json jsonResponse) = 0;
+};
+using IMikanResponseFactoryPtr = std::shared_ptr<IMikanResponseFactory>;
+
+template <typename t_response_type>
+class MikanResponseFactoryTyped : public IMikanResponseFactory
+{
+public:
+	virtual MikanResponsePtr createResponse(json jsonEvent) override
+	{
+		auto responsePtr = std::make_shared<t_response_type>();
+
+		t_response_type localResponse;
+		from_json(jsonEvent, localResponse);
+
+		*responsePtr = localResponse;
+
+		return responsePtr;
+	}
+};
+
 class MikanRequestManager
 {
 public:
@@ -40,14 +64,7 @@ public:
 	template <typename t_response_type>
 	void addResponseFactory()
 	{
-		MikanResponseFactory factory =
-			[](json jsonResponse) -> MikanResponsePtr {
-			auto responsePtr = std::make_shared<t_response_type>();
-
-			*responsePtr = jsonResponse.get<t_response_type>();
-
-			return responsePtr;
-		};
+		IMikanResponseFactoryPtr factory = std::make_shared<MikanResponseFactoryTyped<t_response_type>>();
 
 		m_responseFactories.insert(std::make_pair(t_response_type::k_typeName, factory));
 	}
@@ -65,7 +82,7 @@ protected:
 	MikanResponsePtr parseResponseString(const char* utf8ResponseString);
 
 private:
-	std::map<std::string, MikanResponseFactory> m_responseFactories;
+	std::map<std::string, IMikanResponseFactoryPtr> m_responseFactories;
 
 	struct PendingRequest
 	{

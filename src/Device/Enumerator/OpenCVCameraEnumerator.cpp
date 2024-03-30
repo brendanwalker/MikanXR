@@ -80,7 +80,7 @@ bool OpenCVCameraEnumerator::tryFetchDeviceCapabilities()
 			videoMode.bufferFormat= ((char*)(&formatValue));
 			videoMode.frameSections.push_back({0, 0});
 			// Invalid camera intrinsics
-			memset(&videoMode.intrinsics, sizeof(MikanVideoSourceIntrinsics), 0);
+			videoMode.intrinsics= MikanVideoSourceIntrinsics();
 
 			char szModeName[128];
 			StringUtils::formatString(

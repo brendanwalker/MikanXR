@@ -264,7 +264,6 @@ void RmlModel_CompositorOutliner::addNewModel(
 	const Rml::VariantList& parameters)
 {
 	MikanStencilModel model;
-	memset(&model, 0, sizeof(MikanStencilModel));
 
 	model.is_disabled = false;
 	model.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;

@@ -20,7 +20,6 @@
 // -- private data ---
 MikanClient *g_mikanClient= nullptr;
 void* g_graphicsDeviceInterfaces[MikanClientGraphicsApi_COUNT] = {
-	nullptr, // Unknown
 	nullptr, // DirectX9
 	nullptr, // DirectX11
 	nullptr, // DirectX12

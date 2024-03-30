@@ -1,22 +1,34 @@
 #pragma once
 
 #include "MikanStencilTypes.h"
+#include "MikanAPITypes_json.h"
 #include "MikanMathTypes_json.h"
 
 #include "nlohmann/json.hpp"
 
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanStencilList,
-								   stencil_id_list
-)
+// MikanStencilList
+inline void to_json(nlohmann::json& j, const MikanStencilList& p)
+{
+	nlohmann::to_json(j, static_cast<MikanResponse>(p));
+	j.update({
+		{"stencil_id_list", p.stencil_id_list}
+	});
+}
+inline void from_json(const nlohmann::json& j, MikanStencilList& p)
+{
+	from_json(j, static_cast<MikanResponse&>(p));
+	j.at("stencil_id_list").get_to(p.stencil_id_list);
+}
 
 // MikanStencilQuad
 inline void to_json(nlohmann::json& j, const MikanStencilQuad& p)
 {
+	nlohmann::to_json(j, static_cast<MikanResponse>(p));
+
 	nlohmann::json transformJson;
 	to_json(transformJson, p.relative_transform);
 
-	j = nlohmann::json{
+	j.update({
 		{"stencil_id", p.stencil_id},
 		{"parent_anchor_id", p.parent_anchor_id},
 		{"relative_transform", transformJson},
@@ -26,10 +38,11 @@ inline void to_json(nlohmann::json& j, const MikanStencilQuad& p)
 		{"is_disabled", p.is_disabled},
 		{"stencil_name", p.stencil_name},
 		{"relative_transform", transformJson}
-	};
+	});
 }
 inline void from_json(const nlohmann::json& j, MikanStencilQuad& p)
 {
+	from_json(j, static_cast<MikanResponse&>(p));
 	from_json(j.at("relative_transform"), p.relative_transform);
 
 	j.at("stencil_id").get_to(p.stencil_id);
@@ -44,10 +57,12 @@ inline void from_json(const nlohmann::json& j, MikanStencilQuad& p)
 // MikanStencilBox
 inline void to_json(nlohmann::json& j, const MikanStencilBox& p)
 {
+	nlohmann::to_json(j, static_cast<MikanResponse>(p));
+
 	nlohmann::json transformJson;
 	to_json(transformJson, p.relative_transform);
 
-	j = nlohmann::json{
+	j.update({
 		{"stencil_id", p.stencil_id},
 		{"parent_anchor_id", p.parent_anchor_id},
 		{"relative_transform", transformJson},
@@ -57,10 +72,11 @@ inline void to_json(nlohmann::json& j, const MikanStencilBox& p)
 		{"is_disabled", p.is_disabled},
 		{"stencil_name", p.stencil_name},
 		{"relative_transform", transformJson}
-	};
+	});
 }
 inline void from_json(const nlohmann::json& j, MikanStencilBox& p)
 {
+	from_json(j, static_cast<MikanResponse&>(p));
 	from_json(j.at("relative_transform"), p.relative_transform);
 
 	j.at("stencil_id").get_to(p.stencil_id);
@@ -75,20 +91,23 @@ inline void from_json(const nlohmann::json& j, MikanStencilBox& p)
 // MikanStencilModel
 inline void to_json(nlohmann::json& j, const MikanStencilModel& p)
 {
+	nlohmann::to_json(j, static_cast<MikanResponse>(p));
+
 	nlohmann::json transformJson;
 	to_json(transformJson, p.relative_transform);
 
-	j = nlohmann::json{
+	j.update({
 		{"stencil_id", p.stencil_id},
 		{"parent_anchor_id", p.parent_anchor_id},
 		{"relative_transform", transformJson},
 		{"is_disabled", p.is_disabled},
 		{"stencil_name", p.stencil_name},
 		{"relative_transform", transformJson}
-	};
+	});
 }
 inline void from_json(const nlohmann::json& j, MikanStencilModel& p)
 {
+	from_json(j, static_cast<MikanResponse&>(p));
 	from_json(j.at("relative_transform"), p.relative_transform);
 
 	j.at("stencil_id").get_to(p.stencil_id);

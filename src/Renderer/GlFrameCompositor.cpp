@@ -552,7 +552,6 @@ void GlFrameCompositor::update(float deltaSeconds)
 			m_lastReadVideoFrameIndex = m_videoDistortionView->readNextVideoFrame();
 
 			MikanVideoSourceNewFrameEvent newFrameEvent;
-			memset(&newFrameEvent, 0, sizeof(MikanVideoSourceNewFrameEvent));
 			newFrameEvent.frame = m_lastReadVideoFrameIndex;
 
 			const glm::vec3 cameraUp(cameraXform[1]); // Camera up is along the y-axis

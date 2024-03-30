@@ -82,7 +82,7 @@ public:
 	{
 		m_originSpatialAnchorXform = glm::mat4(1.f);
 
-		memset(&m_stencilQuad, 0, sizeof(MikanStencilQuad));
+		m_stencilQuad= MikanStencilQuad();
 		m_stencilQuad.stencil_id= INVALID_MIKAN_ID;
 	}
 

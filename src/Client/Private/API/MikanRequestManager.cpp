@@ -123,9 +123,9 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 
 		if (it != m_responseFactories.end())
 		{
-			MikanResponseFactory factory = it->second;
+			IMikanResponseFactoryPtr factory = it->second;
 
-			responsePtr = factory(jsonResponse);
+			responsePtr = factory->createResponse(jsonResponse);
 		}
 		else
 		{

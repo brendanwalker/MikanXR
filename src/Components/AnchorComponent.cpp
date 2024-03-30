@@ -178,7 +178,6 @@ void AnchorComponent::extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outA
 	const GlmTransform anchorWorldTransform(getWorldTransform());
 	const MikanSpatialAnchorID anchorId = getAnchorDefinition()->getAnchorId();
 
-	memset(&outAnchorInfo, 0, sizeof(MikanSpatialAnchorInfo));
 	outAnchorInfo.anchor_id = getAnchorDefinition()->getAnchorId();
 	outAnchorInfo.anchor_name= anchorName;
 	outAnchorInfo.world_transform = glm_transform_to_MikanTransform(anchorWorldTransform);
