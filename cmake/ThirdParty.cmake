@@ -141,6 +141,3 @@ if (WIN32)
   set (SPOUT2_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.lib)
   set (SPOUT2_SHARED_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.dll)
 endif()
-
-# SWIG
-find_package(SWIG 4.1.1 COMPONENTS csharp)
