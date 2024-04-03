@@ -45,10 +45,6 @@ dist*
 !OBJ-loader
 !resources/models/*/*.obj
 
-# C# Binding directory
-!bindings
-bindings/csharp
-
 # Third Party
 !thirdparty/lua/*.lib
 !thirdparty/lua/*.dll
