@@ -171,8 +171,8 @@ public:
 	// Scripting Events
 	void publishScriptMessageEvent(const std::string& message)
 	{
-		MikanScriptMessageInfo messageInfo;
-		messageInfo.content = message;
+		MikanScriptMessagePostedEvent messageInfo;
+		messageInfo.message = message;
 
 		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(messageInfo));
 	}
