@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Runtime.InteropServices;
-using System.Buffers;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MikanXR
@@ -11,29 +6,35 @@ namespace MikanXR
 	{
 		private MikanRequestManager _requestManager;
 
-		public MikanVRDeviceAPI(MikanRequestManager requestManager) : _requestManager(requestManager) {
-			_requestManager.addResponseFactory<MikanVRDeviceList>();
-			_requestManager.addResponseFactory<MikanVRDeviceInfo>();
+		public MikanVRDeviceAPI(MikanRequestManager requestManager)
+		{
+			_requestManager = requestManager;
+			_requestManager.AddResponseFactory<MikanVRDeviceList>();
+			_requestManager.AddResponseFactory<MikanVRDeviceInfo>();
 		}
 
+		private static readonly string k_getVRDeviceList = "getVRDeviceList";
 		public Task<MikanResponse> getVRDeviceList() // returns MikanVRDeviceList
 		{
-			return m_requestManager.sendRequest(nameof(getVRDeviceList));
+			return _requestManager.SendRequest(k_getVRDeviceList);
 		}
 		
+		private static readonly string k_getVRDeviceInfo = "getVRDeviceInfo";
 		public Task<MikanResponse> getVRDeviceInfo(int deviceId) // returns MikanVRDeviceInfo
 		{
-			return m_requestManager.sendRequestWithPayload<int>(nameof(getVRDeviceInfo), deviceId);
+			return _requestManager.SendRequestWithPayload<int>(k_getVRDeviceInfo, deviceId);
 		}
 		
+		private static readonly string k_subscribeToVRDevicePoseUpdates = "subscribeToVRDevicePoseUpdates";
 		public Task<MikanResponse> subscribeToVRDevicePoseUpdates(int deviceId) // returns MikanResponse
 		{
-			return m_requestManager.sendRequestWithPayload<int>(nameof(subscribeToVRDevicePoseUpdates), deviceId);
+			return _requestManager.SendRequestWithPayload<int>(k_subscribeToVRDevicePoseUpdates, deviceId);
 		}
 		
+		private static readonly string k_unsubscribeFromVRDevicePoseUpdates = "unsubscribeFromVRDevicePoseUpdates";
 		public Task<MikanResponse> unsubscribeFromVRDevicePoseUpdates(int deviceId) // returns MikanResponse
 		{
-			return m_requestManager.sendRequestWithPayload<int>(nameof(unsubscribeFromVRDevicePoseUpdates), deviceId);
+			return _requestManager.SendRequestWithPayload<int>(k_unsubscribeFromVRDevicePoseUpdates, deviceId);
 		}		
 	}
 }

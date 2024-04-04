@@ -1,13 +1,11 @@
-using System.Collections;
-using System.Runtime.InteropServices;
-using System.Buffers;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Collections.Generic;
+using System;
 
 namespace MikanXR
 {
-	public struct MikanResponse
+	public class MikanResponse
 	{
 		public string responseType { get; set; }
 		public int requestId { get; set; }
@@ -27,14 +25,14 @@ namespace MikanXR
 		}		
 	};
 
-	internal class IMikanResponseFactory
+	public interface IMikanResponseFactory
 	{
-		virtual MikanResponse CreateResponse(string utfJsonString) = 0;
+		MikanResponse CreateResponse(string utfJsonString);
 	}
 
-	internal class MikanResponseFactory<T> where T : MikanResponse, IMikanResponseFactory
+	public class MikanResponseFactory<T> : IMikanResponseFactory where T : MikanResponse
 	{
-		public override MikanResponse CreateResponse(string utfJsonString)
+		public MikanResponse CreateResponse(string utfJsonString)
 		{
 			T response= JsonSerializer.Deserialize<T>(utfJsonString);
 
@@ -42,30 +40,32 @@ namespace MikanXR
 		}
 	}
 	
-	internal class MikanRequestManager
+	public class MikanRequestManager
 	{
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
-		private MikanCoreNative.NativeResponseCallback _nativeResponseCallback;		
+		private MikanCoreNative.NativeResponseCallback _nativeResponseCallback;
 		private Dictionary<string, IMikanResponseFactory> _responseFactory;
 
-		private struct PendingRequest
+		private class PendingRequest
 		{
-			int requestId;
-			TaskCompletionSource<MikanResponse> promise;
+			public int requestId;
+			public TaskCompletionSource<MikanResponse> promise;
 		};
-		private Dictionary<int, PendingRequest> _pendingRequests;		
+		private Dictionary<int, PendingRequest> _pendingRequests;
 		
 		public MikanRequestManager(MikanCoreNative.NativeLogCallback logCallback)
 		{
 			_nativeLogCallback= logCallback;
 			_nativeResponseCallback = new MikanCoreNative.NativeResponseCallback(InternalResponseCallback);
 			_responseFactory = new Dictionary<string, IMikanResponseFactory>();
-			_pendingRequests = new Dictionary<int, PendingRequest>()
+			_pendingRequests = new Dictionary<int, PendingRequest>();
 		}
 
 		public MikanResult Initialize()
 		{
-			MikanResult result = (MikanResult)MikanCoreNative.Mikan_SetResponseCallback(_nativeResponseCallback, IntPtr.Zero);
+			MikanResult result = 
+				(MikanResult)MikanCoreNative.Mikan_SetResponseCallback(
+					_nativeResponseCallback, IntPtr.Zero);
 			if (result != MikanResult.Success)
 			{
 				return result;
@@ -74,9 +74,9 @@ namespace MikanXR
 			return MikanResult.Success;
 		}
 
-		public void AddResponseFactory<T>()
+		public void AddResponseFactory<T>() where T : MikanResponse
 		{
-			IMikanResponseFactory factory = new MikanResponseFactory<T>();
+			var factory = new MikanResponseFactory<T>();
 
 			_responseFactory.Add(typeof(T).Name, factory);
 		}
@@ -128,8 +128,8 @@ namespace MikanXR
 			string utf8Payload, 
 			int requestVersion)
 		{
-			int result = 
-				MikanCoreNative.Mikan_SendRequest(
+			MikanResult result = 
+				(MikanResult)MikanCoreNative.Mikan_SendRequest(
 					utf8RequestType, 
 					utf8Payload, 
 					requestVersion, 
@@ -140,7 +140,7 @@ namespace MikanXR
 
 		private void InternalResponseCallback(int requestId, string utf8ResponseString, IntPtr userData)
 		{
-			PendingRequest pendingRequest;
+			PendingRequest pendingRequest= null;
 
 			lock (_pendingRequests)
 			{
@@ -152,7 +152,7 @@ namespace MikanXR
 
 			if (pendingRequest != null)
 			{
-				MikanResponse response = parseResponseString(utf8ResponseString);
+				MikanResponse response = ParseResponseString(utf8ResponseString);
 
 				if (response == null)
 				{
@@ -167,7 +167,7 @@ namespace MikanXR
 			}
 		}
 
-		private MikanResponse parseResponseString(string utf8ResponseString)
+		private MikanResponse ParseResponseString(string utf8ResponseString)
 		{
 			MikanResponse response = null;
 

@@ -1,8 +1,8 @@
-using System.Collections;
+using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public struct MikanStencilQuad : MikanResponse
+	public class MikanStencilQuad : MikanResponse
 	{
 		public int stencil_id { get; set; }
 		public int parent_anchor_id { get; set; }
@@ -13,10 +13,10 @@ namespace MikanXR
 		public bool is_disabled { get; set; }
 		public string stencil_name { get; set; }
 
-		public MikanStencilQuad() : MikanResponse(typeof(MikanStencilQuad).Name) {}
+		public MikanStencilQuad() : base(typeof(MikanStencilQuad).Name) {}
 	};
 
-	public struct MikanStencilBox : MikanResponse
+	public class MikanStencilBox : MikanResponse
 	{
 		public int stencil_id { get; set; }
 		public int parent_anchor_id { get; set; }
@@ -27,10 +27,10 @@ namespace MikanXR
 		public bool is_disabled { get; set; }
 		public string stencil_name { get; set; }
 
-		public MikanStencilBox() : MikanResponse(typeof(MikanStencilBox).Name) {}
+		public MikanStencilBox() : base(typeof(MikanStencilBox).Name) {}
 	};
 
-	public struct MikanStencilModel : MikanResponse
+	public class MikanStencilModel : MikanResponse
 	{
 		public int stencil_id { get; set; }
 		public int parent_anchor_id { get; set; }
@@ -38,13 +38,13 @@ namespace MikanXR
 		public bool is_disabled { get; set; }
 		public string stencil_name { get; set; }
 
-		public MikanStencilModel() : MikanResponse(typeof(MikanStencilModel).Name) {}
+		public MikanStencilModel() : base(typeof(MikanStencilModel).Name) {}
 	};
 
-	public struct MikanStencilList : MikanResponse
+	public class MikanStencilList : MikanResponse
 	{
 		public List<int> stencil_id_list { get; set; }
 
-		public MikanStencilList() : MikanResponse(typeof(MikanStencilList).Name) {}
+		public MikanStencilList() : base(typeof(MikanStencilList).Name) {}
 	};
 }

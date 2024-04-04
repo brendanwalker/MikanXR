@@ -1,20 +1,18 @@
-using System.Collections;
-using System.Runtime.InteropServices;
-using System.Buffers;
+using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MikanXR
 {
-	internal class IMikanEventFactory
+	public interface IMikanEventFactory
 	{
-		virtual MikanEvent CreateEvent(string utfJsonString) = 0;
+		MikanEvent CreateEvent(string utfJsonString);
 	}
 
-	internal class MikanEventFactory<T> where T : MikanEvent, IMikanEventFactory
+	public class MikanEventFactory<T> : IMikanEventFactory where T : MikanEvent
 	{
-		public override MikanEvent CreateEvent(string utfJsonString)
+		public MikanEvent CreateEvent(string utfJsonString)
 		{
 			T response= JsonSerializer.Deserialize<T>(utfJsonString);
 
@@ -22,8 +20,9 @@ namespace MikanXR
 		}
 	}
 	
-	internal class MikanEventManager
+	public class MikanEventManager
 	{
+		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
 		private Dictionary<string, IMikanEventFactory> _eventFactories;
 	
 		public MikanEventManager(MikanCoreNative.NativeLogCallback logCallback)
@@ -32,26 +31,27 @@ namespace MikanXR
 			_eventFactories = new Dictionary<string, IMikanEventFactory>();
 		}
 
-		public void AddEventFactory<T>()
+		public void AddEventFactory<T>() where T : MikanEvent
 		{
-			IMikanResponseFactory factory = new MikanEventFactory<T>();
+			var factory = new MikanEventFactory<T>();
 
 			_eventFactories.Add(typeof(T).Name, factory);
 		}
 
-		private MikanResult FetchNextEvent(out MikanEvent outEvent)
+		public MikanResult FetchNextEvent(out MikanEvent outEvent)
 		{
 			StringBuilder utf8Buffer = new StringBuilder(1024);
 			UIntPtr utf8BufferSize = (UIntPtr)utf8Buffer.Capacity;
 
 			outEvent= null;
 
-			var result = (MikanResult)MikanCoreNative.Mikan_FetchNextEvent(utf8BufferSize, utf8Buffer, out UIntPtr utf8BytesWritten);
+			var result = (MikanResult)MikanCoreNative.Mikan_FetchNextEvent(
+				utf8BufferSize, utf8Buffer, out UIntPtr utf8BytesWritten);
 			if (result == MikanResult.Success)
 			{
 				string utf8BufferString = utf8Buffer.ToString();
 				
-				outEvent = parseEvent(utf8BufferString);
+				outEvent = parseEventString(utf8BufferString);
 				if (outEvent != null)
 				{
 					_nativeLogCallback((int)MikanLogLevel.Error, 

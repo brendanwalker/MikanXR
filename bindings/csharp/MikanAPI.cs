@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Runtime.InteropServices;
-using System.Buffers;
-using System.Text.Json;
-using System.Threading;
+using System;
 using System.Threading.Tasks;
 
 namespace MikanXR
@@ -68,19 +64,19 @@ namespace MikanXR
 			_requestManager.AddResponseFactory<MikanResponse>();
 			
 			// Register all event types
-			_eventManager.addEventFactory<MikanConnectedEvent>();
-			_eventManager.addEventFactory<MikanDisconnectedEvent>();
-			_eventManager.addEventFactory<MikanVideoSourceOpenedEvent>();
-			_eventManager.addEventFactory<MikanVideoSourceClosedEvent>();
-			_eventManager.addEventFactory<MikanVideoSourceNewFrameEvent>();
-			_eventManager.addEventFactory<MikanVideoSourceAttachmentChangedEvent>();
-			_eventManager.addEventFactory<MikanVideoSourceIntrinsicsChangedEvent>();
-			_eventManager.addEventFactory<MikanVideoSourceModeChangedEvent>();
-			_eventManager.addEventFactory<MikanVRDevicePoseUpdateEvent>();
-			_eventManager.addEventFactory<MikanVRDeviceListUpdateEvent>();
-			_eventManager.addEventFactory<MikanAnchorPoseUpdateEvent>();
-			_eventManager.addEventFactory<MikanAnchorListUpdateEvent>();
-			_eventManager.addEventFactory<MikanScriptMessagePostedEvent>();			
+			_eventManager.AddEventFactory<MikanConnectedEvent>();
+			_eventManager.AddEventFactory<MikanDisconnectedEvent>();
+			_eventManager.AddEventFactory<MikanVideoSourceOpenedEvent>();
+			_eventManager.AddEventFactory<MikanVideoSourceClosedEvent>();
+			_eventManager.AddEventFactory<MikanVideoSourceNewFrameEvent>();
+			_eventManager.AddEventFactory<MikanVideoSourceAttachmentChangedEvent>();
+			_eventManager.AddEventFactory<MikanVideoSourceIntrinsicsChangedEvent>();
+			_eventManager.AddEventFactory<MikanVideoSourceModeChangedEvent>();
+			_eventManager.AddEventFactory<MikanVRDevicePoseUpdateEvent>();
+			_eventManager.AddEventFactory<MikanVRDeviceListUpdateEvent>();
+			_eventManager.AddEventFactory<MikanAnchorPoseUpdateEvent>();
+			_eventManager.AddEventFactory<MikanAnchorListUpdateEvent>();
+			_eventManager.AddEventFactory<MikanScriptMessagePostedEvent>();			
 		}
 
 		public MikanResult Initialize(MikanLogLevel minLogLevel)
@@ -128,7 +124,8 @@ namespace MikanXR
 
 		public Task<MikanResponse> AllocateRenderTargetBuffers(ref MikanRenderTargetDescriptor descriptor)
 		{
-			int result = MikanCoreNative.Mikan_AllocateRenderTargetBuffers(ref descriptor, out int requestId);
+			MikanResult result = 
+				(MikanResult)MikanCoreNative.Mikan_AllocateRenderTargetBuffers(ref descriptor, out int requestId);
 
 			return _requestManager.AddResponseHandler(requestId, result);
 		}
@@ -137,13 +134,15 @@ namespace MikanXR
 			IntPtr apiTexturePtr, 
 			ref MikanClientFrameRendered frameInfo)
 		{
-			int result = MikanCoreNative.Mikan_PublishRenderTargetTexture(apiTexturePtr, ref frameInfo);
-			return (MikanResult)result;
+			MikanResult result = 
+				(MikanResult)MikanCoreNative.Mikan_PublishRenderTargetTexture(apiTexturePtr, ref frameInfo);
+
+			return result;
 		}
 
-		public Task<MikanResponse> FreeRenderTargetBuffers(out MikanRequestId outRequestId)
+		public Task<MikanResponse> FreeRenderTargetBuffers()
 		{
-			int result = MikanCoreNative.Mikan_FreeRenderTargetBuffers(out int requestId);
+			MikanResult result = (MikanResult)MikanCoreNative.Mikan_FreeRenderTargetBuffers(out int requestId);
 
 			return _requestManager.AddResponseHandler(requestId, result);
 		}
@@ -167,7 +166,7 @@ namespace MikanXR
 
 		public MikanResult FetchNextEvent(out MikanEvent outEvent)
 		{
-			return _eventManager.FetchNextEvent(out MikanEvent outEvent);
+			return _eventManager.FetchNextEvent(out outEvent);
 		}
 
 		public MikanResult Disconnect()

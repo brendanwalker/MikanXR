@@ -1,10 +1,10 @@
-using System.Collections;
+using System;
 using System.Runtime.InteropServices;
-using System.Buffers;
+using System.Text;
 
 namespace MikanXR
 {
-	protected class MikanCoreNative
+	public class MikanCoreNative
 	{
 		[global::System.Runtime.InteropServices.UnmanagedFunctionPointer(global::System.Runtime.InteropServices.CallingConvention.Cdecl)]
 		public delegate void NativeLogCallback(

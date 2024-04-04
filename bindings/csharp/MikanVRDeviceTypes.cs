@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Collections.Generic;
 
 namespace MikanXR
 {
@@ -16,20 +16,20 @@ namespace MikanXR
 		TRACKER
 	};
 
-	public struct MikanVRDeviceList : MikanResponse
+	public class MikanVRDeviceList : MikanResponse
 	{
 		public List<int> vr_device_id_list;
 
-		public MikanVRDeviceList() : MikanResponse(typeof(MikanVRDeviceList).Name) {}
+		public MikanVRDeviceList() : base(typeof(MikanVRDeviceList).Name) {}
 	};
 
-	public struct MikanVRDeviceInfo : MikanResponse
+	public class MikanVRDeviceInfo : MikanResponse
 	{
 		public MikanVRDeviceApi vr_device_api;
 		public MikanVRDeviceType vr_device_type;
 		public string device_path;
 
-		public MikanVRDeviceInfo() : MikanResponse(typeof(MikanVRDeviceInfo).Name) {}
+		public MikanVRDeviceInfo() : base(typeof(MikanVRDeviceInfo).Name) {}
 	};
 	
 }

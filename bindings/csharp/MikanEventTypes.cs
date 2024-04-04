@@ -1,6 +1,8 @@
+using System;
+
 namespace MikanXR
 {
-	public struct MikanEvent
+	public class MikanEvent
 	{
 		public string eventType { get; set; }
 		
@@ -15,83 +17,83 @@ namespace MikanXR
 		}
 	};
 	
-	public struct MikanConnectedEvent : MikanEvent
+	public class MikanConnectedEvent : MikanEvent
 	{
-		public MikanConnectedEvent() : MikanEvent(typeof(MikanConnectedEvent).Name) {}
+		public MikanConnectedEvent() : base(typeof(MikanConnectedEvent).Name) {}
 	};
 
-	public struct MikanDisconnectedEvent : MikanEvent
+	public class MikanDisconnectedEvent : MikanEvent
 	{
-		public MikanDisconnectedEvent() : MikanEvent(typeof(MikanDisconnectedEvent).Name) {}
+		public MikanDisconnectedEvent() : base(typeof(MikanDisconnectedEvent).Name) {}
 	};
 
-	public struct MikanVideoSourceOpenedEvent : MikanEvent
+	public class MikanVideoSourceOpenedEvent : MikanEvent
 	{
-		public MikanVideoSourceOpenedEvent() : MikanEvent(typeof(MikanVideoSourceOpenedEvent).Name) {}
+		public MikanVideoSourceOpenedEvent() : base(typeof(MikanVideoSourceOpenedEvent).Name) {}
 	};
 
-	public struct MikanVideoSourceClosedEvent : MikanEvent
+	public class MikanVideoSourceClosedEvent : MikanEvent
 	{
-		public MikanVideoSourceClosedEvent() : MikanEvent(typeof(MikanVideoSourceClosedEvent).Name) {}
+		public MikanVideoSourceClosedEvent() : base(typeof(MikanVideoSourceClosedEvent).Name) {}
 	};
 
-	public struct MikanVideoSourceNewFrameEvent : MikanEvent
+	public class MikanVideoSourceNewFrameEvent : MikanEvent
 	{
 		MikanVector3f cameraForward { get; set; }
 		MikanVector3f cameraUp { get; set; }
 		MikanVector3f cameraPosition { get; set; } 
-		uint64_t frame { get; set; }
+		UInt64 frame { get; set; }
 
-		public MikanVideoSourceNewFrameEvent() : MikanEvent(typeof(MikanVideoSourceNewFrameEvent).Name) {}
+		public MikanVideoSourceNewFrameEvent() : base(typeof(MikanVideoSourceNewFrameEvent).Name) {}
 	};
 
-	public struct MikanVideoSourceAttachmentChangedEvent : MikanEvent
+	public class MikanVideoSourceAttachmentChangedEvent : MikanEvent
 	{
-		public MikanVideoSourceAttachmentChangedEvent() : MikanEvent(typeof(MikanVideoSourceAttachmentChangedEvent).Name) {}
+		public MikanVideoSourceAttachmentChangedEvent() : base(typeof(MikanVideoSourceAttachmentChangedEvent).Name) {}
 	};
 
-	public struct MikanVideoSourceIntrinsicsChangedEvent : MikanEvent
+	public class MikanVideoSourceIntrinsicsChangedEvent : MikanEvent
 	{
-		public MikanVideoSourceIntrinsicsChangedEvent() : MikanEvent(typeof(MikanVideoSourceIntrinsicsChangedEvent).Name) {}
+		public MikanVideoSourceIntrinsicsChangedEvent() : base(typeof(MikanVideoSourceIntrinsicsChangedEvent).Name) {}
 	};
 
-	public struct MikanVideoSourceModeChangedEvent : MikanEvent
+	public class MikanVideoSourceModeChangedEvent : MikanEvent
 	{
-		public MikanVideoSourceModeChangedEvent() : MikanEvent(typeof(MikanVideoSourceModeChangedEvent).Name) {}
+		public MikanVideoSourceModeChangedEvent() : base(typeof(MikanVideoSourceModeChangedEvent).Name) {}
 	};
 
-	public struct MikanVRDevicePoseUpdateEvent : MikanEvent
+	public class MikanVRDevicePoseUpdateEvent : MikanEvent
 	{
 		MikanMatrix4f transform { get; set; }
-		MikanVRDeviceID device_id { get; set; }
-		uint64_t frame { get; set; }
+		int device_id { get; set; }
+		UInt64 frame { get; set; }
 
-		public MikanVRDevicePoseUpdateEvent() : MikanEvent(typeof(MikanVRDevicePoseUpdateEvent).Name) {}
+		public MikanVRDevicePoseUpdateEvent() : base(typeof(MikanVRDevicePoseUpdateEvent).Name) {}
 	};
 
-	public struct MikanVRDeviceListUpdateEvent : MikanEvent
+	public class MikanVRDeviceListUpdateEvent : MikanEvent
 	{
-		public MikanVRDeviceListUpdateEvent() : MikanEvent(typeof(MikanVRDeviceListUpdateEvent).Name) {}
+		public MikanVRDeviceListUpdateEvent() : base(typeof(MikanVRDeviceListUpdateEvent).Name) {}
 	};
 
-	public struct MikanAnchorPoseUpdateEvent : MikanEvent
+	public class MikanAnchorPoseUpdateEvent : MikanEvent
 	{
 		MikanTransform transform { get; set; }
-		MikanSpatialAnchorID anchor_id { get; set; }
+		int anchor_id { get; set; }
 
-		public MikanAnchorPoseUpdateEvent() : MikanEvent(typeof(MikanAnchorPoseUpdateEvent).Name) {}
+		public MikanAnchorPoseUpdateEvent() : base(typeof(MikanAnchorPoseUpdateEvent).Name) {}
 	};
 
-	public struct MikanAnchorListUpdateEvent : MikanEvent
+	public class MikanAnchorListUpdateEvent : MikanEvent
 	{
-		public MikanAnchorListUpdateEvent() : MikanEvent(typeof(MikanAnchorListUpdateEvent).Name) {}
+		public MikanAnchorListUpdateEvent() : base(typeof(MikanAnchorListUpdateEvent).Name) {}
 	};
 
-	public struct MikanScriptMessagePostedEvent : MikanEvent
+	public class MikanScriptMessagePostedEvent : MikanEvent
 	{
-		std::string message { get; set; }
+		string message { get; set; }
 
-		public MikanScriptMessagePostedEvent() : MikanEvent(typeof(MikanScriptMessagePostedEvent).Name) {}
+		public MikanScriptMessagePostedEvent() : base(typeof(MikanScriptMessagePostedEvent).Name) {}
 	};
 	
 	

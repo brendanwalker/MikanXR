@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace MikanXR
 {
 	// Constants
@@ -28,7 +26,7 @@ namespace MikanXR
 
 	/// Radial and tangential lens distortion coefficients computed during lens lens calibration
 	/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-	public struct MikanDistortionCoefficients
+	public class MikanDistortionCoefficients
 	{
 		public double k1 { get; set; } ///< Radial Distortion Parameter 1 (r^2 numerator constant)
 		public double k2 { get; set; } ///< Radial Distortion Parameter 2 (r^4 numerator constant)
@@ -42,7 +40,7 @@ namespace MikanXR
 
 	/// Camera intrinsic properties for a monoscopic camera
 	/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-	public struct MikanMonoIntrinsics
+	public class MikanMonoIntrinsics
 	{
 		public double pixel_width { get; set; }  ///< Width of the camera buffer in pixels
 		public double pixel_height { get; set; } ///< Height of the camera buffer in pixels
@@ -56,7 +54,7 @@ namespace MikanXR
 
 	/// Camera intrinsic properties for a stereoscopic camera
 	/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-	public struct MikanStereoIntrinsics
+	public class MikanStereoIntrinsics
 	{
 		// Keep these in sync with PSVRMonoTrackerIntrinsics
 		public double pixel_width { get; set; }  ///< Width of the camera buffer in pixels
@@ -82,26 +80,26 @@ namespace MikanXR
 	};
 
 	/// Bundle containing all intrinsic video source properties
-	public struct MikanVideoSourceIntrinsics : public MikanResponse
+	public class MikanVideoSourceIntrinsics : MikanResponse
 	{
 		public MikanMonoIntrinsics mono { get; set; }
 		public MikanStereoIntrinsics stereo { get; set; }
 		public MikanIntrinsicsType intrinsics_type { get; set; }
 
-		public MikanVideoSourceIntrinsics() : MikanResponse(typeof(MikanVideoSourceIntrinsics).Name) {}
+		public MikanVideoSourceIntrinsics() : base(typeof(MikanVideoSourceIntrinsics).Name) {}
 	};
 
 	/// Static properties 
-	public struct MikanVideoSourceAttachmentInfo : public MikanResponse
+	public class MikanVideoSourceAttachmentInfo : MikanResponse
 	{
-		public MikanVRDeviceID attached_vr_device_id { get; set; }
+		public int attached_vr_device_id { get; set; }
 		public MikanMatrix4f vr_device_offset_xform { get; set; }
 
-		MikanVideoSourceAttachmentInfo() : MikanResponse(typeof(MikanVideoSourceAttachmentInfo).Name) {}
+		MikanVideoSourceAttachmentInfo() : base(typeof(MikanVideoSourceAttachmentInfo).Name) {}
 	};
 
 	/// Static properties about a video source
-	public struct MikanVideoSourceMode : public MikanResponse
+	public class MikanVideoSourceMode : MikanResponse
 	{
 		public MikanVideoSourceType video_source_type { get; set; }
 		public MikanVideoSourceApi video_source_api { get; set; }
@@ -111,6 +109,6 @@ namespace MikanXR
 		public int resolution_y { get; set; }
 		public float frame_rate { get; set; }
 
-		MikanVideoSourceMode() : MikanResponse(typeof(MikanVideoSourceMode).Name) {}
+		MikanVideoSourceMode() : base(typeof(MikanVideoSourceMode).Name) {}
 	};	
 }

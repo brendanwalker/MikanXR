@@ -1,20 +1,20 @@
-using System.Collections;
+using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public struct MikanSpatialAnchorList : MikanResponse
+	public class MikanSpatialAnchorList : MikanResponse
 	{
 		public List<int> spatial_anchor_id_list { get; set; }
 
-		public MikanSpatialAnchorList() : MikanResponse(typeof(MikanSpatialAnchorList).Name) {}
+		public MikanSpatialAnchorList() : base(typeof(MikanSpatialAnchorList).Name) {}
 	};
 
-	public struct MikanSpatialAnchorInfo : MikanResponse
+	public class MikanSpatialAnchorInfo : MikanResponse
 	{
 		public int anchor_id { get; set ;}
 		public MikanTransform world_transform { get; set ;}
 		public string anchor_name { get; set ;}
 
-		public MikanSpatialAnchorList() : MikanResponse(typeof(MikanSpatialAnchorInfo).Name) {}
+		public MikanSpatialAnchorInfo() : base(typeof(MikanSpatialAnchorInfo).Name) {}
 	};	
 }

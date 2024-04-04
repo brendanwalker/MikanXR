@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Runtime.InteropServices;
-using System.Buffers;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MikanXR
@@ -11,26 +6,30 @@ namespace MikanXR
 	{
 		private MikanRequestManager _requestManager;
 
-		public MikanVideoSourceAPI(MikanRequestManager requestManager) : _requestManager(requestManager) 
+		public MikanVideoSourceAPI(MikanRequestManager requestManager)
 		{
-			_requestManager.addResponseFactory<MikanVideoSourceIntrinsics>();
-			_requestManager.addResponseFactory<MikanVideoSourceMode>();
-			_requestManager.addResponseFactory<MikanVideoSourceAttachmentInfo>();			
+			_requestManager= requestManager;
+			_requestManager.AddResponseFactory<MikanVideoSourceIntrinsics>();
+			_requestManager.AddResponseFactory<MikanVideoSourceMode>();
+			_requestManager.AddResponseFactory<MikanVideoSourceAttachmentInfo>();
 		}
 
-		public Task<MikanResponse> getVideoSourceIntrinsics() // returns MikanVideoSourceIntrinsics
+		private static readonly string k_getVideoSourceIntrinsics = "getVideoSourceIntrinsics";
+		public Task<MikanResponse> GetVideoSourceIntrinsics() // returns MikanVideoSourceIntrinsics
 		{
-			return m_requestManager.sendRequest(nameof(getVideoSourceIntrinsics));
+			return _requestManager.SendRequest(k_getVideoSourceIntrinsics);
 		}
 		
-		public Task<MikanResponse> getVideoSourceMode() // returns MikanVideoSourceMode
+		private static readonly string k_getVideoSourceMode = "getVideoSourceMode";
+		public Task<MikanResponse> GetVideoSourceMode() // returns MikanVideoSourceMode
 		{
-			return m_requestManager.sendRequest(nameof(getVideoSourceMode));
+			return _requestManager.SendRequest(k_getVideoSourceMode);
 		}
 		
-		public Task<MikanResponse> getVideoSourceAttachment() // returns MikanVideoSourceAttachmentInfo
+		private static readonly string k_getVideoSourceAttachment = "getVideoSourceAttachment";
+		public Task<MikanResponse> GetVideoSourceAttachment() // returns MikanVideoSourceAttachmentInfo
 		{
-			return m_requestManager.sendRequest(nameof(getVideoSourceAttachment));
+			return _requestManager.SendRequest(k_getVideoSourceAttachment);
 		}
 	}
 }

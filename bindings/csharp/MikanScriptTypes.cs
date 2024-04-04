@@ -1,7 +1,7 @@
 namespace MikanXR
 {
-	struct MikanScriptMessageInfo : public MikanEvent
+	public class MikanScriptMessageInfo : MikanEvent
 	{
-		std::string content { get; set; }
+		public string content { get; set; }
 	};
 }

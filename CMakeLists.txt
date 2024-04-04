@@ -19,5 +19,5 @@ include(cmake/Installer.cmake)
 
 # Step into the subdirectories
 add_subdirectory(src)
-#add_subdirectory(bindings)
+add_subdirectory(bindings)
 add_subdirectory(thirdparty)

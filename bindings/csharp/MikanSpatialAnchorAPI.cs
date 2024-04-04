@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Runtime.InteropServices;
-using System.Buffers;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MikanXR
@@ -11,25 +6,29 @@ namespace MikanXR
 	{
 		private MikanRequestManager _requestManager;
 
-		public MikanSpatialAnchorAPI(MikanRequestManager requestManager) : _requestManager(requestManager) 
+		public MikanSpatialAnchorAPI(MikanRequestManager requestManager)
 		{
-			_requestManager.addResponseFactory<MikanSpatialAnchorList>();
-			_requestManager.addResponseFactory<MikanSpatialAnchorInfo>();
+			_requestManager= requestManager;
+			_requestManager.AddResponseFactory<MikanSpatialAnchorList>();
+			_requestManager.AddResponseFactory<MikanSpatialAnchorInfo>();
 		}
 
-		public Task<MikanResponse> getSpatialAnchorList() // returns MikanSpatialAnchorList
+		private static readonly string k_getSpatialAnchorList = "getSpatialAnchorList";
+		public Task<MikanResponse> GetSpatialAnchorList() // returns MikanSpatialAnchorList
 		{
-			return _requestManager.sendRequest(nameof(getSpatialAnchorList));
+			return _requestManager.SendRequest(k_getSpatialAnchorList);
 		}
 		
+		private static readonly string k_getSpatialAnchorInfo = "getSpatialAnchorInfo";
 		public Task<MikanResponse> getSpatialAnchorInfo(int anchorId) // returns MikanSpatialAnchorInfo
 		{
-			return m_requestManager->sendRequestWithPayload<int>(nameof(getSpatialAnchorInfo), anchorId);
+			return _requestManager.SendRequestWithPayload<int>(k_getSpatialAnchorInfo, anchorId);
 		}
 		
+		private static readonly string k_findSpatialAnchorInfoByName = "invokeScriptMessageHandler";
 		public Task<MikanResponse> findSpatialAnchorInfoByName(string anchorName) // returns MikanSpatialAnchorInfo
 		{
-			return m_requestManager->sendRequestWithPayload<string>(nameof(findSpatialAnchorInfoByName), anchorName);
+			return _requestManager.SendRequestWithPayload<string>(k_findSpatialAnchorInfoByName, anchorName);
 		}
 	}
 }
