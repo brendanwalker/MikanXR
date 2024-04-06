@@ -191,6 +191,10 @@ cmake --build Build --config Release
 popd
 set "LUA_DIR="
 
+:: NuGet tool used to fetch c# packages
+echo "Downloading nuget..."
+curl -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe --output nuget.exe
+
 :: Exit back out of the deps folder
 popd
 
