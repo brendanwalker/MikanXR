@@ -148,7 +148,7 @@ protected:
 		if (m_mikanApi->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
 		{
 			MikanClientInfo ClientInfo = {};
-			ClientInfo.supportsRBG24 = true;
+			ClientInfo.supportsRGB24 = true;
 			ClientInfo.engineName = "MikanXR Test";
 			ClientInfo.engineVersion = "1.0";
 			ClientInfo.applicationName = "MikanXR Test";

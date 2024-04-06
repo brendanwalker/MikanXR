@@ -142,12 +142,12 @@ bool initMikan()
 	if (g_mikanAPI->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
 	{
 		MikanClientInfo ClientInfo = {};
-		ClientInfo.supportsRBG24 = true;
 		ClientInfo.engineName = "MikanXR Test";
 		ClientInfo.engineVersion= "1.0";
 		ClientInfo.applicationName= "MikanXR Test";
 		ClientInfo.applicationVersion= "1.0";
 		ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
+		ClientInfo.supportsRGB24 = true;
 		g_mikanAPI->setClientInfo(ClientInfo);
 
         g_mikanAPI->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);

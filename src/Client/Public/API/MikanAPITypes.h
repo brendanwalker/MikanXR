@@ -73,8 +73,8 @@ struct MikanClientInfo
 	std::string xrDeviceName;
 	MikanClientGraphicsApi graphicsAPI;
 	int mikanCoreSdkVersion;
-	bool supportsRBG24;
-	bool supportsRBGA32;
+	bool supportsRGB24;
+	bool supportsRGBA32;
 	bool supportsBGRA32;
 	bool supportsDepth;
 };
