@@ -39,10 +39,10 @@ namespace MikanXR
 
 	public class MikanVideoSourceNewFrameEvent : MikanEvent
 	{
-		MikanVector3f cameraForward { get; set; }
-		MikanVector3f cameraUp { get; set; }
-		MikanVector3f cameraPosition { get; set; } 
-		UInt64 frame { get; set; }
+		public MikanVector3f cameraForward { get; set; }
+		public MikanVector3f cameraUp { get; set; }
+		public MikanVector3f cameraPosition { get; set; } 
+		public UInt64 frame { get; set; }
 
 		public MikanVideoSourceNewFrameEvent() : base(typeof(MikanVideoSourceNewFrameEvent).Name) {}
 	};
@@ -64,9 +64,9 @@ namespace MikanXR
 
 	public class MikanVRDevicePoseUpdateEvent : MikanEvent
 	{
-		MikanMatrix4f transform { get; set; }
-		int device_id { get; set; }
-		UInt64 frame { get; set; }
+		public MikanMatrix4f transform { get; set; }
+		public int device_id { get; set; }
+		public UInt64 frame { get; set; }
 
 		public MikanVRDevicePoseUpdateEvent() : base(typeof(MikanVRDevicePoseUpdateEvent).Name) {}
 	};
@@ -78,8 +78,8 @@ namespace MikanXR
 
 	public class MikanAnchorPoseUpdateEvent : MikanEvent
 	{
-		MikanTransform transform { get; set; }
-		int anchor_id { get; set; }
+		public MikanTransform transform { get; set; }
+		public int anchor_id { get; set; }
 
 		public MikanAnchorPoseUpdateEvent() : base(typeof(MikanAnchorPoseUpdateEvent).Name) {}
 	};
@@ -91,7 +91,7 @@ namespace MikanXR
 
 	public class MikanScriptMessagePostedEvent : MikanEvent
 	{
-		string message { get; set; }
+		public string message { get; set; }
 
 		public MikanScriptMessagePostedEvent() : base(typeof(MikanScriptMessagePostedEvent).Name) {}
 	};

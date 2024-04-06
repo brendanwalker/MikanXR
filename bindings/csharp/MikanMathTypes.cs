@@ -3,32 +3,32 @@ namespace MikanXR
 	/// A 3D vector with double components.
 	public struct MikanVector3d
 	{
-		double x { get; set; }
-		double y { get; set; }
-		double z { get; set; }
+		public double x { get; set; }
+		public double y { get; set; }
+		public double z { get; set; }
 	};
 
 	/// A 2D vector with float components.
 	public struct MikanVector2f
 	{
-		float x { get; set; }
-		float y { get; set; }
+		public float x { get; set; }
+		public float y { get; set; }
 	};
 
 	/// A 3D vector with float components.
 	public struct MikanVector3f
 	{
-		float x { get; set; }
-		float y { get; set; }
-		float z { get; set; }
+		public float x { get; set; }
+		public float y { get; set; }
+		public float z { get; set; }
 	};
 
 	/// A 3-tuple of Euler angles with float components.
 	public struct MikanRotator3f
 	{
-		float x_angle { get; set; }
-		float y_angle { get; set; }
-		float z_angle { get; set; }
+		public float x_angle { get; set; }
+		public float y_angle { get; set; }
+		public float z_angle { get; set; }
 	};
 
 	/** A 4x4 matrix with float components
@@ -41,22 +41,22 @@ namespace MikanXR
 	 */
 	public struct MikanMatrix4f
 	{
-		float x0 { get; set; }
-		float x1 { get; set; }
-		float x2 { get; set; }
-		float x3 { get; set; }
-		float y0 { get; set; }
-		float y1 { get; set; }
-		float y2 { get; set; }
-		float y3 { get; set; }
-		float z0 { get; set; }
-		float z1 { get; set; }
-		float z2 { get; set; }
-		float z3 { get; set; }
-		float w0 { get; set; }
-		float w1 { get; set; }
-		float w2 { get; set; }
-		float w3 { get; set; }
+		public float x0 { get; set; }
+		public float x1 { get; set; }
+		public float x2 { get; set; }
+		public float x3 { get; set; }
+		public float y0 { get; set; }
+		public float y1 { get; set; }
+		public float y2 { get; set; }
+		public float y3 { get; set; }
+		public float z0 { get; set; }
+		public float z1 { get; set; }
+		public float z2 { get; set; }
+		public float z3 { get; set; }
+		public float w0 { get; set; }
+		public float w1 { get; set; }
+		public float w2 { get; set; }
+		public float w3 { get; set; }
 	};
 
 	/** A 3x3 matrix with double components
@@ -68,15 +68,15 @@ namespace MikanXR
 	 */
 	public struct MikanMatrix3d
 	{
-		double x0 { get; set; }
-		double x1 { get; set; }
-		double x2 { get; set; }
-		double y0 { get; set; }
-		double y1 { get; set; }
-		double y2 { get; set; }
-		double z0 { get; set; }
-		double z1 { get; set; }
-		double z2 { get; set; }
+		public double x0 { get; set; }
+		public double x1 { get; set; }
+		public double x2 { get; set; }
+		public double y0 { get; set; }
+		public double y1 { get; set; }
+		public double y2 { get; set; }
+		public double z0 { get; set; }
+		public double z1 { get; set; }
+		public double z2 { get; set; }
 	};
 
 	/** A 4x3 matrix with double components
@@ -88,18 +88,18 @@ namespace MikanXR
 	 */
 	public struct MikanMatrix4x3d
 	{
-		double x0 { get; set; }
-		double x1 { get; set; }
-		double x2 { get; set; }
-		double x3 { get; set; }
-		double y0 { get; set; }
-		double y1 { get; set; }
-		double y2 { get; set; }
-		double y3 { get; set; }
-		double z0 { get; set; }
-		double z1 { get; set; }
-		double z2 { get; set; }
-		double z3 { get; set; }
+		public double x0 { get; set; }
+		public double x1 { get; set; }
+		public double x2 { get; set; }
+		public double x3 { get; set; }
+		public double y0 { get; set; }
+		public double y1 { get; set; }
+		public double y2 { get; set; }
+		public double y3 { get; set; }
+		public double z0 { get; set; }
+		public double z1 { get; set; }
+		public double z2 { get; set; }
+		public double z3 { get; set; }
 	};
 
 	/** A 4x4 matrix with double components
@@ -112,47 +112,47 @@ namespace MikanXR
 	 */
 	public struct MikanMatrix4d
 	{
-		double x0 { get; set; }
-		double x1 { get; set; }
-		double x2 { get; set; }
-		double x3 { get; set; }
-		double y0 { get; set; }
-		double y1 { get; set; }
-		double y2 { get; set; }
-		double y3 { get; set; }
-		double z0 { get; set; }
-		double z1 { get; set; }
-		double z2 { get; set; }
-		double z3 { get; set; }
-		double w0 { get; set; }
-		double w1 { get; set; }
-		double w2 { get; set; }
-		double w3 { get; set; }
+		public double x0 { get; set; }
+		public double x1 { get; set; }
+		public double x2 { get; set; }
+		public double x3 { get; set; }
+		public double y0 { get; set; }
+		public double y1 { get; set; }
+		public double y2 { get; set; }
+		public double y3 { get; set; }
+		public double z0 { get; set; }
+		public double z1 { get; set; }
+		public double z2 { get; set; }
+		public double z3 { get; set; }
+		public double w0 { get; set; }
+		public double w1 { get; set; }
+		public double w2 { get; set; }
+		public double w3 { get; set; }
 	};
 
 	/// A double-precision quaternion rotation.
 	public struct MikanQuatf
 	{
-		float w { get; set; }
-		float x { get; set; }
-		float y { get; set; }
-		float z { get; set; }
+		public float w { get; set; }
+		public float x { get; set; }
+		public float y { get; set; }
+		public float z { get; set; }
 	};
 
 	/// A double-precision quaternion rotation.
 	public struct MikanQuatd
 	{
-		double w { get; set; }
-		double x { get; set; }
-		double y { get; set; }
-		double z { get; set; }
+		public double w { get; set; }
+		public double x { get; set; }
+		public double y { get; set; }
+		public double z { get; set; }
 	};
 
 	/// A single-precision Scale-Rotation-Translation transform.
 	public struct MikanTransform
 	{
-		MikanVector3f scale { get; set; }
-		MikanQuatf rotation { get; set; }
-		MikanVector3f position { get; set; }
+		public MikanVector3f scale { get; set; }
+		public MikanQuatf rotation { get; set; }
+		public MikanVector3f position { get; set; }
 	};	
 }
