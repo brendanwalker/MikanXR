@@ -1,9 +1,26 @@
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MikanXR
 {	
-	public class MikanAPI
+	public class MikanClientInfo
+	{
+		public string clientId { get; set; }
+		public string engineName { get; set; }
+		public string engineVersion { get; set; }
+		public string applicationName { get; set; }
+		public string applicationVersion { get; set; }
+		public string xrDeviceName { get; set; }
+		public MikanClientGraphicsApi graphicsAPI { get; set; }
+		public int mikanCoreVersion { get; set; }
+		public bool supportsRGB24 { get; set; }
+		public bool supportsRGBA32 { get; set; }
+		public bool supportsBGR32 { get; set; }
+		public bool supportsDepth { get; set; }
+	}
+
+	public class MikanAPI : IDisposable
 	{
 		public delegate void MikanLogCallback(
 			MikanLogLevel log_level,
@@ -34,18 +51,6 @@ namespace MikanXR
 		
 		private MikanSpatialAnchorAPI _spatialAnchorAPI;
 		public MikanSpatialAnchorAPI SpatialAnchorAPI => _spatialAnchorAPI;
-		
-		public static MikanAPI Instance
-		{
-			get
-			{
-				if (_instance == null)
-				{
-					_instance = new MikanAPI();
-				}
-				return _instance;
-			}
-		}
 
 		public MikanAPI()
 		{
@@ -76,7 +81,12 @@ namespace MikanXR
 			_eventManager.AddEventFactory<MikanVRDeviceListUpdateEvent>();
 			_eventManager.AddEventFactory<MikanAnchorPoseUpdateEvent>();
 			_eventManager.AddEventFactory<MikanAnchorListUpdateEvent>();
-			_eventManager.AddEventFactory<MikanScriptMessagePostedEvent>();			
+			_eventManager.AddEventFactory<MikanScriptMessagePostedEvent>();
+		}
+
+		public void Dispose()
+		{
+
 		}
 
 		public MikanResult Initialize(MikanLogLevel minLogLevel)
@@ -94,6 +104,12 @@ namespace MikanXR
 			}
 
 			return MikanResult.Success;
+		}
+
+		public MikanResult Shutdown()
+		{
+			int result = MikanCoreNative.Mikan_Shutdown();
+			return (MikanResult)result;
 		}
 
 		public int GetCoreSDKVersion()
@@ -147,13 +163,18 @@ namespace MikanXR
 			return _requestManager.AddResponseHandler(requestId, result);
 		}
 
-		public MikanResult SetClientProperty(string key, string value)
+		public MikanResult SetClientInfo(MikanClientInfo clientInfo)
 		{
-			int result = MikanCoreNative.Mikan_SetClientProperty(key, value);
+			// Stamp with the core sdk version
+			clientInfo.mikanCoreVersion = GetCoreSDKVersion();
+
+			string clientInfoString = JsonSerializer.Serialize(clientInfo);
+			int result = MikanCoreNative.Mikan_SetClientProperty("clientInfo", clientInfoString);
+
 			return (MikanResult)result;
 		}
 
-		public MikanResult Connect(string host, string port)
+		public MikanResult Connect(string host="", string port="")
 		{
 			int result = MikanCoreNative.Mikan_Connect(host, port);
 			return (MikanResult)result;
@@ -175,10 +196,9 @@ namespace MikanXR
 			return (MikanResult)result;
 		}
 
-		public MikanResult Shutdown()
+		public void	SetLogCallback(MikanLogCallback logCallback)
 		{
-			int result = MikanCoreNative.Mikan_Shutdown();
-			return (MikanResult)result;
+			_logCallback = logCallback;
 		}
 
 		private void InternalLogCallback(int logLevel, string logMessage)
