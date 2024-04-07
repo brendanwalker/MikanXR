@@ -82,12 +82,8 @@ public:
 
 						if (it.first == "clientInfo")
 						{
-							json clientInfoJson;
-							if (parseClientInfo(it.second, clientInfoJson))
+							if (parseClientInfo(it.second, m_clientInfo))
 							{
-								// Remember the client info for this connection
-								m_clientInfo= clientInfoJson;
-
 								// If the client didn't provide a client ID, generate one
 								if (m_clientInfo.clientId.empty())
 								{
@@ -193,11 +189,13 @@ public:
 	}
 
 protected: 
-	bool parseClientInfo(const std::string& configJsonString, json& outClientInfoPayload)
+	bool parseClientInfo(const std::string& configJsonString, MikanClientInfo& outClientInfo)
 	{
 		try
 		{
-			outClientInfoPayload = json::parse(configJsonString);
+			json outClientInfoPayload = json::parse(configJsonString);
+
+			outClientInfo= outClientInfoPayload;
 		}
 		catch (json::exception e)
 		{

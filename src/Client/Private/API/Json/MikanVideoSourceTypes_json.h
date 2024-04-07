@@ -14,7 +14,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MikanVideoSourceType, {
 NLOHMANN_JSON_SERIALIZE_ENUM(MikanVideoSourceApi, {
 	{MikanVideoSourceApi_INVALID, nullptr},
 	{MikanVideoSourceApi_OPENCV_CV, "OPEN_CV"},
-	{MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION, "WMF"},
+	{MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION, "WINDOWS_MEDIA_FOUNDATION"},
 })
 
 

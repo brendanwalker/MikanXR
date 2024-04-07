@@ -6,18 +6,18 @@ namespace MikanXR
 {	
 	public class MikanClientInfo
 	{
-		public string clientId { get; set; }
-		public string engineName { get; set; }
-		public string engineVersion { get; set; }
-		public string applicationName { get; set; }
-		public string applicationVersion { get; set; }
-		public string xrDeviceName { get; set; }
-		public MikanClientGraphicsApi graphicsAPI { get; set; }
-		public int mikanCoreVersion { get; set; }
-		public bool supportsRGB24 { get; set; }
-		public bool supportsRGBA32 { get; set; }
-		public bool supportsBGR32 { get; set; }
-		public bool supportsDepth { get; set; }
+		public string clientId { get; set; } = "";
+		public string engineName { get; set; } = "";
+		public string engineVersion { get; set; } = "";
+		public string applicationName { get; set; } = "";
+		public string applicationVersion { get; set; } = "";
+		public string xrDeviceName { get; set; } = "";
+		public MikanClientGraphicsApi graphicsAPI { get; set; } = MikanClientGraphicsApi.UNKNOWN;
+		public int mikanCoreSdkVersion { get; set; } = -1;
+		public bool supportsRGB24 { get; set; } = false;
+		public bool supportsRGBA32 { get; set; } = false;
+		public bool supportsBGRA32 { get; set; } = false;
+		public bool supportsDepth { get; set; } = false;
 	}
 
 	public class MikanAPI : IDisposable
@@ -25,8 +25,6 @@ namespace MikanXR
 		public delegate void MikanLogCallback(
 			MikanLogLevel log_level,
 			string log_message);
-
-		private static MikanAPI _instance;
 
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
 		private MikanLogCallback _logCallback;
@@ -166,9 +164,14 @@ namespace MikanXR
 		public MikanResult SetClientInfo(MikanClientInfo clientInfo)
 		{
 			// Stamp with the core sdk version
-			clientInfo.mikanCoreVersion = GetCoreSDKVersion();
+			clientInfo.mikanCoreSdkVersion = GetCoreSDKVersion();
 
-			string clientInfoString = JsonSerializer.Serialize(clientInfo);
+			// Serialize enumerations from strings rather than from integers
+			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
+			JsonSerializerOptions opts = new JsonSerializerOptions();
+			opts.Converters.Add(stringEnumConverter);
+
+			string clientInfoString = JsonSerializer.Serialize(clientInfo, opts);
 			int result = MikanCoreNative.Mikan_SetClientProperty("clientInfo", clientInfoString);
 
 			return (MikanResult)result;

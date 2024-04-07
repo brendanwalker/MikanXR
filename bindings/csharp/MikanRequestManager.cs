@@ -34,7 +34,12 @@ namespace MikanXR
 	{
 		public MikanResponse CreateResponse(string utfJsonString)
 		{
-			T response= JsonSerializer.Deserialize<T>(utfJsonString);
+			// Deserialize enumerations from strings rather than from integers
+			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
+			JsonSerializerOptions opts = new JsonSerializerOptions();
+			opts.Converters.Add(stringEnumConverter);
+
+			T response = JsonSerializer.Deserialize<T>(utfJsonString, opts);
 
 			return response;
 		}
@@ -118,7 +123,12 @@ namespace MikanXR
 		
 		public Task<MikanResponse> SendRequestWithPayload<T>(string utf8RequestType, T payload, int version = 0)
 		{
-			string payloadString = JsonSerializer.Serialize(payload);
+			// Serialize enumerations from strings rather than from integers
+			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
+			JsonSerializerOptions opts = new JsonSerializerOptions();
+			opts.Converters.Add(stringEnumConverter);
+
+			string payloadString = JsonSerializer.Serialize(payload, opts);
 			
 			return SendRequestIntenal(utf8RequestType, payloadString, version);
 		}		

@@ -4,7 +4,7 @@ namespace MikanXR
 {
 	public class MikanEvent
 	{
-		public string eventType { get; set; }
+		public string eventType { get; set; } = "";
 		
 		public MikanEvent()
 		{

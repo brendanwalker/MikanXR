@@ -61,8 +61,8 @@ inline void to_json(nlohmann::json& j, const MikanClientInfo& p)
 		{"xrDeviceName", p.xrDeviceName},
 		{"graphicsAPI", p.graphicsAPI},
 		{"mikanCoreSdkVersion", p.mikanCoreSdkVersion},
-		{"supportsRBG24", p.supportsRGB24},
-		{"supportsRBGA32", p.supportsRGBA32},
+		{"supportsRGB24", p.supportsRGB24},
+		{"supportsRGBA32", p.supportsRGBA32},
 		{"supportsBGRA32", p.supportsBGRA32},
 		{"supportsDepth", p.supportsDepth}
 	};
@@ -77,8 +77,8 @@ inline void from_json(const nlohmann::json& j, MikanClientInfo& p)
 	j.at("xrDeviceName").get_to(p.xrDeviceName);
 	j.at("graphicsAPI").get_to(p.graphicsAPI);
 	j.at("mikanCoreSdkVersion").get_to(p.mikanCoreSdkVersion);
-	j.at("supportsRBG24").get_to(p.supportsRGB24);
-	j.at("supportsRBGA32").get_to(p.supportsRGBA32);
+	j.at("supportsRGB24").get_to(p.supportsRGB24);
+	j.at("supportsRGBA32").get_to(p.supportsRGBA32);
 	j.at("supportsBGRA32").get_to(p.supportsBGRA32);
 	j.at("supportsDepth").get_to(p.supportsDepth);
 }

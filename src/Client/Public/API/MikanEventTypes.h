@@ -5,35 +5,35 @@
 
 struct MikanConnectedEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "connected";
+	inline static const std::string k_typeName = "MikanConnectedEvent";
 
 	MikanConnectedEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanDisconnectedEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "disconnected";
+	inline static const std::string k_typeName = "MikanDisconnectedEvent";
 
 	MikanDisconnectedEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanVideoSourceOpenedEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "videoSourceOpened";
+	inline static const std::string k_typeName = "MikanVideoSourceOpenedEvent";
 
 	MikanVideoSourceOpenedEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanVideoSourceClosedEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "videoSourceClosed";
+	inline static const std::string k_typeName = "MikanVideoSourceClosedEvent";
 
 	MikanVideoSourceClosedEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanVideoSourceNewFrameEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "videoSourceNewFrame";
+	inline static const std::string k_typeName = "MikanVideoSourceNewFrameEvent";
 
 	MikanVector3f cameraForward;
 	MikanVector3f cameraUp;
@@ -45,28 +45,28 @@ struct MikanVideoSourceNewFrameEvent : public MikanEvent
 
 struct MikanVideoSourceAttachmentChangedEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "videoSourceAttachmentChanged";
+	inline static const std::string k_typeName = "MikanVideoSourceAttachmentChangedEvent";
 
 	MikanVideoSourceAttachmentChangedEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanVideoSourceIntrinsicsChangedEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "videoSourceIntrinsicsChanged";
+	inline static const std::string k_typeName = "MikanVideoSourceIntrinsicsChangedEvent";
 
 	MikanVideoSourceIntrinsicsChangedEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanVideoSourceModeChangedEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "videoSourceModeChanged";
+	inline static const std::string k_typeName = "MikanVideoSourceModeChangedEvent";
 
 	MikanVideoSourceModeChangedEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanVRDevicePoseUpdateEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "vrDevicePoseUpdate";
+	inline static const std::string k_typeName = "MikanVRDevicePoseUpdateEvent";
 
 	MikanMatrix4f transform;
 	MikanVRDeviceID device_id;
@@ -77,14 +77,14 @@ struct MikanVRDevicePoseUpdateEvent : public MikanEvent
 
 struct MikanVRDeviceListUpdateEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "vrDeviceListUpdate";
+	inline static const std::string k_typeName = "MikanVRDeviceListUpdateEvent";
 
 	MikanVRDeviceListUpdateEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanAnchorPoseUpdateEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "anchorPoseUpdate";
+	inline static const std::string k_typeName = "MikanAnchorPoseUpdateEvent";
 
 	MikanTransform transform;
 	MikanSpatialAnchorID anchor_id;
@@ -94,14 +94,14 @@ struct MikanAnchorPoseUpdateEvent : public MikanEvent
 
 struct MikanAnchorListUpdateEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "anchorListUpdate";
+	inline static const std::string k_typeName = "MikanAnchorListUpdateEvent";
 
 	MikanAnchorListUpdateEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanScriptMessagePostedEvent : public MikanEvent
 {
-	inline static const std::string k_typeName = "scriptMessagePosted";
+	inline static const std::string k_typeName = "MikanScriptMessagePostedEvent";
 
 	std::string message;
 

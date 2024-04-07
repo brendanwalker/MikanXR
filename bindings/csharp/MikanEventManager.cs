@@ -14,7 +14,12 @@ namespace MikanXR
 	{
 		public MikanEvent CreateEvent(string utfJsonString)
 		{
-			T response= JsonSerializer.Deserialize<T>(utfJsonString);
+			// Deserialize enumerations from strings rather than from integers
+			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
+			JsonSerializerOptions opts = new JsonSerializerOptions();
+			opts.Converters.Add(stringEnumConverter);
+
+			T response= JsonSerializer.Deserialize<T>(utfJsonString, opts);
 
 			return response;
 		}
@@ -52,7 +57,7 @@ namespace MikanXR
 				string utf8BufferString = utf8Buffer.ToString();
 				
 				outEvent = parseEventString(utf8BufferString);
-				if (outEvent != null)
+				if (outEvent == null)
 				{
 					_nativeLogCallback((int)MikanLogLevel.Error, 
 						"fetchNextEvent() - failed to parse event string: " + utf8BufferString);
@@ -60,7 +65,7 @@ namespace MikanXR
 				}
 			}
 			
-			return (MikanResult)result;			
+			return (MikanResult)result;
 		}
 
 		private MikanEvent parseEventString(string utf8ResponseString)

@@ -95,7 +95,7 @@ namespace MikanXR
 		public int attached_vr_device_id { get; set; }
 		public MikanMatrix4f vr_device_offset_xform { get; set; }
 
-		MikanVideoSourceAttachmentInfo() : base(typeof(MikanVideoSourceAttachmentInfo).Name) {}
+		public MikanVideoSourceAttachmentInfo() : base(typeof(MikanVideoSourceAttachmentInfo).Name) {}
 	};
 
 	/// Static properties about a video source
@@ -109,6 +109,6 @@ namespace MikanXR
 		public int resolution_y { get; set; }
 		public float frame_rate { get; set; }
 
-		MikanVideoSourceMode() : base(typeof(MikanVideoSourceMode).Name) {}
+		public MikanVideoSourceMode() : base(typeof(MikanVideoSourceMode).Name) {}
 	};	
 }
