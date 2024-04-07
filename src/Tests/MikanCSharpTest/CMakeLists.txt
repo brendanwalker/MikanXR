@@ -77,71 +77,40 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DOTNET_REFERENCES
 	"System.Xml"
 )
 
-# Setup installer.
-INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
-)
-
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
   set_property(TARGET MikanCSharpTest PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:MikanCSharpTest>")
 
-  # add_custom_command(
-    # TARGET MikanCSharpTest POST_BUILD
-    # COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanCSharpTest>)
-  add_custom_command(TARGET MikanCSharpTest POST_BUILD
+  add_custom_command(
+    TARGET MikanCSharpTest POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanCSharpTest>)
+  add_custom_command(
+    TARGET MikanCSharpTest POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-      ${CMAKE_CURRENT_LIST_DIR}/pixelShader.hlsl
-      $<TARGET_FILE_DIR:MikanCSharpTest>)
-  add_custom_command(TARGET MikanCSharpTest POST_BUILD
+          $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll
+          $<TARGET_FILE_DIR:MikanCSharpTest>)
+  add_custom_command(
+    TARGET MikanCSharpTest POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-      ${CMAKE_CURRENT_LIST_DIR}/vertexShader.hlsl
-      $<TARGET_FILE_DIR:MikanCSharpTest>)	  
-  # add_custom_command(
-    # TARGET MikanCSharpTest POST_BUILD
-    # COMMAND ${CMAKE_COMMAND} -E copy
-          # $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll
-          # $<TARGET_FILE_DIR:MikanCSharpTest>)
-  # add_custom_command(
-    # TARGET MikanCSharpTest POST_BUILD
-    # COMMAND ${CMAKE_COMMAND} -E copy
-          # $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
-          # $<TARGET_FILE_DIR:MikanCSharpTest>)
+          $<TARGET_FILE_DIR:MikanCore>/MikanCore.pdb
+          $<TARGET_FILE_DIR:MikanCSharpTest>)		  
 		  
 ELSE() #Linux/Darwin
 ENDIF()
 
 # Install
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
-  install(TARGETS MikanCSharpTest
+  install(TARGETS ${PROJECT_NAME} 
+	  EXPORT ${PROJECT_NAME}Config
       CONFIGURATIONS Debug
       RUNTIME DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/lib
       ARCHIVE DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/lib)
-  install(TARGETS MikanCSharpTest
+  install(TARGETS ${PROJECT_NAME} 
+	  EXPORT ${PROJECT_NAME}Config
       CONFIGURATIONS Release
       RUNTIME DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/lib
       ARCHIVE DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/lib)
-      
-  install(FILES 
-      "${CMAKE_CURRENT_LIST_DIR}/pixelShader.hlsl"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${CMAKE_CURRENT_LIST_DIR}/vertexShader.hlsl"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})	  
-  install(FILES 
-      "${CMAKE_CURRENT_LIST_DIR}/shader.fxh"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
-  install(FILES 
-      "${CMAKE_CURRENT_LIST_DIR}/vertexShader.fxh"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})	  
 ELSE() #Linux/Darwin
 ENDIF()
