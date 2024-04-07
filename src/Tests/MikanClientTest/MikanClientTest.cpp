@@ -1,5 +1,9 @@
 //-- includes -----
-#include "MikanClient_CAPI.h"
+#include "MikanAPI.h"
+#include "MikanEventTypes.h"
+#include "MikanMathTypes.h"
+#include "MikanStencilTypes.h"
+#include "MikanVideoSourceTypes.h"
 
 #define SDL_MAIN_HANDLED
 
@@ -22,6 +26,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
+
+#include <memory>
 
 #include "stdio.h"
 
@@ -72,11 +78,11 @@ class MikanTestApp
 {
 public:
 	MikanTestApp()
+		: m_mikanApi(IMikanAPI::createMikanAPI())
 	{
 		m_originSpatialAnchorXform = glm::mat4(1.f);
 
-		memset(&m_renderTargetMemory, 0, sizeof(MikanRenderTargetMemory));
-		memset(&m_stencilQuad, 0, sizeof(MikanStencilQuad));
+		m_stencilQuad= MikanStencilQuad();
 		m_stencilQuad.stencil_id= INVALID_MIKAN_ID;
 	}
 
@@ -139,8 +145,18 @@ protected:
 
 		log_init(settings);
 
-		if (Mikan_Initialize(MikanLogLevel_Info, nullptr) == MikanResult_Success)
+		if (m_mikanApi->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
 		{
+			MikanClientInfo ClientInfo = {};
+			ClientInfo.supportsRGB24 = true;
+			ClientInfo.engineName = "MikanXR Test";
+			ClientInfo.engineVersion = "1.0";
+			ClientInfo.applicationName = "MikanXR Test";
+			ClientInfo.applicationVersion = "1.0";
+			ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
+
+			m_mikanApi->setClientInfo(ClientInfo);
+
 			m_mikanInitialized= true;
 		}
 		else
@@ -340,11 +356,36 @@ protected:
 
 		if (m_mikanInitialized)
 		{
-			Mikan_Shutdown();
+			m_mikanApi->shutdown();
 			m_mikanInitialized= false;
 		}
 
 		log_dispose();
+	}
+
+	static void onMikanLog(int log_level, const char* log_message)
+	{
+		switch (log_level)
+		{
+			case MikanLogLevel_Debug:
+				MIKAN_LOG_DEBUG("onMikanLog") << log_message;
+				break;
+			case MikanLogLevel_Info:
+				MIKAN_LOG_INFO("onMikanLog") << log_message;
+				break;
+			case MikanLogLevel_Warning:
+				MIKAN_LOG_WARNING("onMikanLog") << log_message;
+				break;
+			case MikanLogLevel_Error:
+				MIKAN_LOG_ERROR("onMikanLog") << log_message;
+				break;
+			case MikanLogLevel_Fatal:
+				MIKAN_LOG_FATAL("onMikanLog") << log_message;
+				break;
+			default:
+				MIKAN_LOG_INFO("onMikanLog") << log_message;
+				break;
+		}
 	}
 
 	void onSDLEvent(SDL_Event& e)
@@ -359,41 +400,31 @@ protected:
 		m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 		m_lastFrameTimestamp = now;
 
-		if (Mikan_GetIsConnected())
+		if (m_mikanApi->getIsConnected())
 		{
-			MikanEvent event;
-			while (Mikan_PollNextEvent(&event) == MikanResult_Success)
+			MikanEventPtr event;
+			while (m_mikanApi->fetchNextEvent(event) == MikanResult_Success)
 			{
-				switch (event.event_type)
+				if (event->eventType == MikanConnectedEvent::k_typeName)
 				{
-				case MikanEvent_connected:
 					reallocateRenderBuffers();
 					updateCameraProjectionMatrix();
-					break;
-				case MikanEvent_disconnected:
-					break;
-				case MikanEvent_videoSourceOpened:
+				}
+				else if (event->eventType == MikanVideoSourceOpenedEvent::k_typeName)
+				{
 					reallocateRenderBuffers();
 					updateCameraProjectionMatrix();
-					break;
-				case MikanEvent_videoSourceClosed:
-					break;
-				case MikanEvent_videoSourceNewFrame:
-					processNewVideoSourceFrame(event.event_payload.video_source_new_frame);
-					break;
-				case MikanEvent_videoSourceModeChanged:
-				case MikanEvent_videoSourceIntrinsicsChanged:
+				}
+				else if (event->eventType == MikanVideoSourceNewFrameEvent::k_typeName)
+				{
+					auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(event);
+					processNewVideoSourceFrame(*newFrameEvent.get());
+				}
+				else if (event->eventType == MikanVideoSourceModeChangedEvent::k_typeName ||
+						 event->eventType == MikanVideoSourceIntrinsicsChangedEvent::k_typeName)
+				{
 					reallocateRenderBuffers();
 					updateCameraProjectionMatrix();
-					break;
-				case MikanEvent_videoSourceAttachmentChanged:
-					break;
-				case MikanEvent_vrDevicePoseUpdated:
-					break;
-				case MikanEvent_anchorPoseUpdated:
-					break;
-				case MikanEvent_anchorListUpdated:
-					break;
 				}
 			}
 		}
@@ -401,18 +432,7 @@ protected:
 		{
 			if (m_mikanReconnectTimeout <= 0.f)
 			{
-				MikanClientInfo ClientInfo;
-				memset(&ClientInfo, 0, sizeof(MikanClientInfo));
-				ClientInfo.supportedFeatures = MikanFeature_RenderTarget_RGB24;
-				strncpy(ClientInfo.engineName, "MikanXR Test", sizeof(ClientInfo.engineName) - 1);
-				strncpy(ClientInfo.engineVersion, "1.0", sizeof(ClientInfo.engineVersion) - 1);
-				strncpy(ClientInfo.applicationName, "MikanXR Test", sizeof(ClientInfo.applicationName) - 1);
-				strncpy(ClientInfo.applicationVersion, "1.0", sizeof(ClientInfo.applicationVersion) - 1);
-				ClientInfo.xrDeviceName[0] = '\0';
-				ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
-				strncpy(ClientInfo.mikanSdkVersion, Mikan_GetVersionString(), sizeof(ClientInfo.mikanSdkVersion) - 1);
-
-				if (Mikan_Connect(&ClientInfo) != MikanResult_Success)
+				if (m_mikanApi->connect() != MikanResult_Success)
 				{
 					// timeout between reconnect attempts
 					m_mikanReconnectTimeout= 1.0f; 
@@ -444,7 +464,8 @@ protected:
 
 		// Publish the new video frame back to Mikan
 		GLuint textureId = m_textureColorbuffer->getGlTextureId();
-		Mikan_PublishRenderTargetTexture(&textureId, newFrameEvent.frame);
+		MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+		m_mikanApi->publishRenderTargetTexture(&textureId, frameRendered);
 
 		// Remember the frame index of the last frame we published
 		m_lastReceivedVideoSourceFrame= newFrameEvent.frame;
@@ -460,34 +481,45 @@ protected:
 
 	void reallocateRenderBuffers()
 	{
+		// Free the old frame buffer, if any
 		freeFrameBuffer();
 
-		Mikan_FreeRenderTargetBuffers();
-		memset(&m_renderTargetMemory, 0, sizeof(MikanRenderTargetMemory));
+		// Tell the server to free the old render target buffers
+		m_mikanApi->freeRenderTargetBuffers().wait();
 
-		MikanVideoSourceMode mode;
-		if (Mikan_GetVideoSourceMode(&mode) == MikanResult_Success)
+		// Fetch the current video source resolution
+		auto future= m_mikanApi->getVideoSourceAPI()->getVideoSourceMode();
+		auto response= future.get();
+		if (response->resultCode == MikanResult_Success)
 		{
+			auto mode = std::static_pointer_cast<MikanVideoSourceMode>(response);
+
 			MikanRenderTargetDescriptor desc;
 			memset(&desc, 0, sizeof(MikanRenderTargetDescriptor));
-			desc.width = mode.resolution_x;
-			desc.height = mode.resolution_y;
-			desc.color_key = {k_background_color_key.r, k_background_color_key.g, k_background_color_key.b};
+			desc.width = mode->resolution_x;
+			desc.height = mode->resolution_y;
 			desc.color_buffer_type = MikanColorBuffer_RGBA32;
 			desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
 			desc.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
-			Mikan_AllocateRenderTargetBuffers(&desc, &m_renderTargetMemory);
-			createFrameBuffer(mode.resolution_x, mode.resolution_y);
+			// Tell the server to allocate new render target buffers
+			m_mikanApi->allocateRenderTargetBuffers(desc).wait();
+
+			// Create a new frame buffer to render to
+			createFrameBuffer(mode->resolution_x, mode->resolution_y);
 		}
 	}
 
 	void updateCameraProjectionMatrix()
 	{
-		MikanVideoSourceIntrinsics videoSourceIntrinsics;
-		if (Mikan_GetVideoSourceIntrinsics(&videoSourceIntrinsics) == MikanResult_Success)
+		auto future= m_mikanApi->getVideoSourceAPI()->getVideoSourceIntrinsics();
+		auto response= future.get();
+
+		if (response->resultCode == MikanResult_Success)
 		{
-			const MikanMonoIntrinsics& monoIntrinsics= videoSourceIntrinsics.intrinsics.mono;
+			auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsics>(response);
+
+			const MikanMonoIntrinsics& monoIntrinsics= videoSourceIntrinsics->intrinsics.mono;
 			const float videoSourcePixelWidth = monoIntrinsics.pixel_width;
 			const float videoSourcePixelHeight = monoIntrinsics.pixel_height;
 
@@ -590,7 +622,7 @@ protected:
 			m_screenShader->unbindProgram();
 		}
 
-		SDL_GL_SwapWindow(m_sdlWindow);		
+		SDL_GL_SwapWindow(m_sdlWindow);
 	}
 
 	const GlProgramCode& getShaderCode()
@@ -923,7 +955,7 @@ private:
 	unsigned int m_framebuffer= 0;
 	unsigned int m_rbo= 0;
 
-	MikanRenderTargetMemory m_renderTargetMemory;
+	IMikanAPIPtr m_mikanApi;
 	uint64_t m_lastReceivedVideoSourceFrame= 0;
 	glm::mat4 m_originSpatialAnchorXform;
 	MikanStencilQuad m_stencilQuad;

@@ -1,5 +1,10 @@
 #include "WebsocketInterprocessMessageServer.h"
+#include "JsonUtils.h"
+#include "MikanEventTypes.h"
+#include "MikanEventTypes_json.h"
+#include "MikanAPITypes_json.h"
 #include "Logger.h"
+#include "StringUtils.h"
 #include "ThreadUtils.h"
 
 #include "IxWebSocket/IXConnectionState.h"
@@ -8,40 +13,31 @@
 #include "IxWebSocket/IXWebSocketServer.h"
 #include "IxWebSocket/IXWebSocketSendData.h"
 
+#include "nlohmann/json.hpp"
+
 #include "readerwriterqueue.h"
 
 #include <chrono>
 
-using LockFreeRPCQueue = moodycamel::ReaderWriterQueue<MikanRemoteFunctionCall>;
-using LockFreeRPCQueuePtr = std::shared_ptr<LockFreeRPCQueue>;
+using json = nlohmann::json;
+
+using LockFreeRequestQueue = moodycamel::ReaderWriterQueue<std::string>;
+using LockFreeRequestQueuePtr = std::shared_ptr<LockFreeRequestQueue>;
 using WebSocketWeakPtr = std::weak_ptr<ix::WebSocket>;
 using WebSocketPtr = std::shared_ptr<ix::WebSocket>;
 
-#define WEBSOCKET_SERVER_PORT 8080
-
-//-- ClientConnectionState -----
-class ClientConnectionState : public ix::ConnectionState
+//-- WebSocketClientConnection -----
+class WebSocketClientConnection : public ix::ConnectionState
 {
 public:
-	ClientConnectionState() 		
+	WebSocketClientConnection() 		
 		: ix::ConnectionState()
-		, m_functionCallQueue(std::make_shared<LockFreeRPCQueue>())
+		, m_functionCallQueue(std::make_shared<LockFreeRequestQueue>())
 	{}
 
 	void bindWebSocket(WebSocketWeakPtr websocket)
 	{
 		m_websocket = websocket;
-	}
-
-	bool bindClientId(const std::string& clientId)
-	{
-		if (m_clientId.empty())
-		{
-			m_clientId = clientId;
-			return true;
-		}
-
-		return false;	
 	}
 
 	bool disconnect()
@@ -56,8 +52,8 @@ public:
 		return false;
 	}
 
-	const std::string getClientId() const { return m_clientId; }
-	inline LockFreeRPCQueuePtr getFunctionCallQueue() { return m_functionCallQueue; }
+	const std::string getClientId() const { return m_clientInfo.clientId; }
+	inline LockFreeRequestQueuePtr getFunctionCallQueue() { return m_functionCallQueue; }
 
 	void handleClientMessage(
 		ConnectionStatePtr connectionState,
@@ -69,104 +65,122 @@ public:
 				{
 					auto remoteIp = connectionState->getRemoteIp();
 
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "New connection";
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "remote ip: " << remoteIp;
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "id: " << connectionState->getId();
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "Uri: " << msg->openInfo.uri;
 
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") << "Headers:";
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") << "Headers:";
 					for (auto it : msg->openInfo.headers)
 					{
-						MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+						MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 							<< it.first << ": " << it.second;
+
+						if (it.first == "clientInfo")
+						{
+							if (parseClientInfo(it.second, m_clientInfo))
+							{
+								// If the client didn't provide a client ID, generate one
+								if (m_clientInfo.clientId.empty())
+								{
+									m_clientInfo.clientId= 
+										StringUtils::stringify(
+											"Client",
+											connectionState->getId());
+								}
+
+								// Construct a connect server message for the queue
+								json connectRequestJson;
+								connectRequestJson["requestType"]= "connect";
+								connectRequestJson["requestId"]= -1;
+								connectRequestJson["version"]= 0;
+								connectRequestJson["payload"]= m_clientInfo;
+
+								m_functionCallQueue->enqueue(connectRequestJson.dump());
+							}
+						}
 					}
 				}
 				break;
 			case ix::WebSocketMessageType::Close:
 				{
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "Close connection";
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "id: " << connectionState->getId();
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "reason: " << msg->closeInfo.reason;
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "code: " << msg->closeInfo.code;
+
+					// Construct a disconnect server message for the queue
+					json disconnectRequestJson;
+					disconnectRequestJson["requestType"] = "disconnect";
+					disconnectRequestJson["requestId"]= -1;
+					disconnectRequestJson["version"] = 0;
+					disconnectRequestJson["payload"] = m_clientInfo;
+
+					m_functionCallQueue->enqueue(disconnectRequestJson.dump());
 				}
 				break;
 			case ix::WebSocketMessageType::Message:
 				{
-					if (msg->binary)
+					if (!msg->binary)
 					{
-						// Read the message as a binary RPC call
-						MikanRemoteFunctionCall functionCall;
-						if (msg->str.size() <= sizeof(MikanRemoteFunctionCall))
-						{
-							memcpy(&functionCall, msg->str.c_str(), msg->str.size());
-
-							// Enqueue the function call
-							m_functionCallQueue->enqueue(functionCall);
-						}
-						else
-						{
-							MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
-								<< "Received RPC call that was too large ( " << msg->str.size() << " bytes)";
-						}
+						// Enqueue the request json string
+						m_functionCallQueue->enqueue(msg->str);
+					}
+					else
+					{
+						MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage")
+							<< "Received unsupported binary message";
 					}
 				} break;
 			case ix::WebSocketMessageType::Error:
 				{
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") 
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "Error: " << msg->errorInfo.reason;
 				}
 				break;
 			case ix::WebSocketMessageType::Ping:
 				{
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") << "Ping";
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") << "Ping";
 				}
 				break;
 			case ix::WebSocketMessageType::Pong:
 				{
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") << "Pong";
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") << "Pong";
 				}
 				break;
 			case ix::WebSocketMessageType::Fragment:
 				{
-					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage") << "Fragment";
+					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") << "Fragment";
 				}
 				break;
 		}
 	}
 
-	bool sendEvent(MikanEvent* event)
+	template <typename t_message_type>
+	bool sendSimpleMessage()
 	{
-		WebSocketPtr websocket = m_websocket.lock();
+		t_message_type event = {};
+		json eventJson = event;
+		std::string eventJsonString = eventJson.dump();
 
-		if (websocket != nullptr)
-		{
-			auto sendInfo= 
-				websocket->sendBinary(
-					ix::IXWebSocketSendData((char*)event, sizeof(MikanEvent)));
-
-			return sendInfo.success;
-		}
-
-		return false;
+		return sendMessage(eventJsonString);
 	}
 
-	bool sendFunctionResponse(MikanRemoteFunctionResult* result)
+	bool sendMessage(const std::string& response)
 	{
 		WebSocketPtr websocket = m_websocket.lock();
 
 		if (websocket)
 		{
-			auto sendInfo = 
-				websocket->sendBinary(
-					ix::IXWebSocketSendData((char*)result, result->getTotalSize()));
+			auto sendInfo = websocket->sendText(response);
 
 			return sendInfo.success;
 		}
@@ -174,10 +188,29 @@ public:
 		return false;
 	}
 
+protected: 
+	bool parseClientInfo(const std::string& configJsonString, MikanClientInfo& outClientInfo)
+	{
+		try
+		{
+			json outClientInfoPayload = json::parse(configJsonString);
+
+			outClientInfo= outClientInfoPayload;
+		}
+		catch (json::exception e)
+		{
+			MIKAN_MT_LOG_ERROR("WebSocketClientConnection::parseClientInfo") 
+				<< "Failed to parse client info: " << e.what();
+			return false;
+		}
+
+		return true;
+	}
+
 private:
-	LockFreeRPCQueuePtr m_functionCallQueue;
+	LockFreeRequestQueuePtr m_functionCallQueue;
 	WebSocketWeakPtr m_websocket;
-	std::string m_clientId;
+	MikanClientInfo	m_clientInfo;
 };
 
 //-- WebsocketInterprocessMessageServer -----
@@ -203,41 +236,54 @@ bool WebsocketInterprocessMessageServer::initialize()
 
 	if (bSuccess)
 	{
-		m_server = std::make_shared<ix::WebSocketServer>(WEBSOCKET_SERVER_PORT);
+		m_server = std::make_shared<ix::WebSocketServer>();
 
-		auto connectionStateFactory = []() -> ClientConnectionStatePtr {
-			return std::make_shared<ClientConnectionState>();
+		auto connectionStateFactory = []() -> WebSocketClientConnectionPtr {
+			return std::make_shared<WebSocketClientConnection>();
 		};
 
 		auto clientConnectCallback = [this](
-			WebSocketWeakPtr webSocket, 
+			WebSocketWeakPtr webSocketWeakPtr, 
 			ConnectionStatePtr connectionState) 
 		{
-			ClientConnectionStatePtr clientConnectionState = 
-				std::static_pointer_cast<ClientConnectionState>(connectionState);
+			WebSocketPtr webSocket = webSocketWeakPtr.lock();
+			if (!webSocket)
+				return;
+
+			WebSocketClientConnectionPtr clientConnectionState = 
+				std::static_pointer_cast<WebSocketClientConnection>(connectionState);
 
 			// Bind the websocket to the connection state
-			clientConnectionState->bindWebSocket(webSocket);
+			clientConnectionState->bindWebSocket(webSocketWeakPtr);
+
+			// Bind the message handler to the connection
+			webSocket->setOnMessageCallback([clientConnectionState](const ix::WebSocketMessagePtr& msg) {
+				clientConnectionState->handleClientMessage(clientConnectionState, msg);
+			});
 
 			// Add the connection to the list of connections
-			// TODO: Is this thread safe?
-			m_connections.push_back(clientConnectionState);
-		};
+			{
+				std::lock_guard<std::mutex> lock(m_connectionsMutex);
 
-		auto clientMessageCallback = [this](
-			ConnectionStatePtr connectionState,
-			ix::WebSocket& webSocket,
-			const ix::WebSocketMessagePtr& msg) 
-		{
-			ClientConnectionStatePtr clientConnectionState =
-				std::static_pointer_cast<ClientConnectionState>(connectionState);
-
-			clientConnectionState->handleClientMessage(connectionState, msg);
+				m_connections.push_back(clientConnectionState);
+			}
 		};
 
 		m_server->setConnectionStateFactory(connectionStateFactory);
 		m_server->setOnConnectionCallback(clientConnectCallback);
-		m_server->setOnClientMessageCallback(clientMessageCallback);
+		
+		// Start listening for connections
+		std::pair<bool, std::string> result= m_server->listen();
+		if (result.first)
+		{
+			m_server->start();
+		}
+		else
+		{
+			MIKAN_LOG_INFO("WebsocketInterprocessMessageServer::initialize()") 
+				<< "Listen error: " << result.second;
+			bSuccess = false;
+		}
 	}
 
 	return bSuccess;
@@ -247,23 +293,32 @@ void WebsocketInterprocessMessageServer::dispose()
 {
 	if (m_server)
 	{
-		// Disconnect all clients
-		for (ClientConnectionStateWeakPtr weakPtr : m_connections)
-		{
-			ClientConnectionStatePtr connection = weakPtr.lock();
-			if (connection)
-			{
-				// Tell the client that they are getting disconnected
-				MikanEvent disconnectEvent;
-				memset(&disconnectEvent, 0, sizeof(MikanEvent));
-				disconnectEvent.event_type = MikanEvent_disconnected;
-				connection->sendEvent(&disconnectEvent);
+		// Close down all connections
+		std::vector<WebSocketClientConnectionPtr> connections;
+		getConnectionList(connections);
 
-				// Close the connection
-				connection->disconnect();
-			}
+		// Disconnect all clients
+		for (WebSocketClientConnectionPtr connection : m_connections)
+		{
+			// Tell the client that they are getting disconnected
+			MikanDisconnectedEvent disconnectEvent;
+			disconnectEvent.eventType = MikanDisconnectedEvent::k_typeName;
+
+			json eventJson = disconnectEvent;
+			std::string eventJsonString = eventJson.dump();
+
+			connection->sendMessage(eventJsonString);
+
+			// Close the connection
+			connection->disconnect();
 		}
-		m_connections.clear();
+
+		// Clear the connection list
+		{
+			std::lock_guard<std::mutex> lock(m_connectionsMutex);
+
+			m_connections.clear();
+		}
 
 		// Give us 500ms for the server to notice that clients went away
 		ThreadUtils::sleepMilliseconds(500);
@@ -273,145 +328,144 @@ void WebsocketInterprocessMessageServer::dispose()
 	ix::uninitNetSystem();
 }
 
-void WebsocketInterprocessMessageServer::setRPCHandler(const std::string& functionName, RPCHandler handler)
+std::string WebsocketInterprocessMessageServer::makeRequestHandlerKey(const std::string& requestType, int version)
 {
-	m_functionHandlers[functionName] = handler;
+	return StringUtils::stringify(requestType, version);
 }
 
-void WebsocketInterprocessMessageServer::sendServerEventToClient(const std::string& clientId, MikanEvent* event)
+void WebsocketInterprocessMessageServer::setRequestHandler(
+	const std::string& functionName, 
+	RequestHandler handler,
+	int version)
 {
-	for (ClientConnectionStateWeakPtr weakPtr : m_connections)
-	{
-		ClientConnectionStatePtr connection = weakPtr.lock();
-		if (connection && connection->getClientId() == clientId)
-		{
-			connection->sendEvent(event);
-		}
-	}
+	const std::string key = makeRequestHandlerKey(functionName, version);
+
+	m_requestHandlers[key] = handler;
 }
 
-void WebsocketInterprocessMessageServer::sendServerEventToAllClients(MikanEvent* event)
+void WebsocketInterprocessMessageServer::getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections)
 {
-	for (ClientConnectionStateWeakPtr weakPtr : m_connections)
+	std::lock_guard<std::mutex> lock(m_connectionsMutex);
+
+	for (WebSocketClientConnectionPtr connection : m_connections)
 	{
-		ClientConnectionStatePtr connection = weakPtr.lock();
 		if (connection)
 		{
-			connection->sendEvent(event);
+			outConnections.push_back(connection);
 		}
 	}
 }
 
-void WebsocketInterprocessMessageServer::processRemoteFunctionCalls()
+WebSocketClientConnectionPtr WebsocketInterprocessMessageServer::findConnection(const std::string& clientId)
 {
-	// Process all connections
-	for (auto connection_it = m_connections.begin(); connection_it != m_connections.end(); connection_it++)	
+	std::lock_guard<std::mutex> lock(m_connectionsMutex);
+
+	for (WebSocketClientConnectionPtr connection : m_connections)
 	{
-		ClientConnectionStatePtr connection = connection_it->lock();
-
-		// Remove any dead connections
-		if (!connection)
+		if (connection && connection->getClientId() == clientId)
 		{
-			connection_it= m_connections.erase(connection_it);
-			continue;
+			return connection;
 		}
+	}
 
+	return nullptr;
+}
+
+void WebsocketInterprocessMessageServer::sendMessageToClient(const std::string& clientId, const std::string& message)
+{
+	WebSocketClientConnectionPtr connection= findConnection(clientId);
+
+	if (connection)
+	{
+		connection->sendMessage(message);
+	}
+}
+
+void WebsocketInterprocessMessageServer::sendMessageToAllClients(const std::string& message)
+{
+	std::vector<WebSocketClientConnectionPtr> connections;
+	getConnectionList(connections);
+
+	for (WebSocketClientConnectionPtr connection : connections)
+	{
+		connection->sendMessage(message);
+	}
+}
+
+void WebsocketInterprocessMessageServer::processRequests()
+{
+	std::vector<WebSocketClientConnectionPtr> connections;
+	getConnectionList(connections);
+
+	// Process all connections	
+	for (WebSocketClientConnectionPtr connection : connections)
+	{
 		// Read all pending RPC in the queue
-		MikanRemoteFunctionCall inFunctionCall;
-		while (connection->getFunctionCallQueue()->try_dequeue(inFunctionCall))
+		std::string inRequestString;
+		while (connection->getFunctionCallQueue()->try_dequeue(inRequestString))
 		{
-			const std::string clientId = inFunctionCall.getClientId();
-			
-			// Handle connect request
-			if (strncmp(inFunctionCall.getFunctionName(), CONNECT_FUNCTION_NAME, strlen(CONNECT_FUNCTION_NAME)) == 0)
+			std::string requestType;
+			JsonSaxStringValueSearcher typeNameSearcher;
+			if (!typeNameSearcher.fetchKeyValuePair(inRequestString, "requestType", requestType) || 
+				requestType.empty())
 			{
-				// Make sure the client isn't already connected
-				if (connection->bindClientId(clientId))
-				{
-					bool bSuccess = false;
-
-					MikanRemoteFunctionResult connectResponse(MikanResult_Success, inFunctionCall.getRequestId());
-
-					// Get the response from a registered function handler, if any
-					auto handler_it = m_functionHandlers.find(CONNECT_FUNCTION_NAME);
-					if (handler_it != m_functionHandlers.end())
-					{
-						handler_it->second(&inFunctionCall, &connectResponse);
-					}
-
-					// Send connection reply back to the client
-					if (connection->sendFunctionResponse(&connectResponse))
-					{
-						MIKAN_LOG_INFO("processRemoteFunctionCalls") 
-							<< "Connecting client: " << connection->getClientId();
-
-						// Tell the client that they are now connected
-						MikanEvent connectEvent;
-						memset(&connectEvent, 0, sizeof(MikanEvent));
-						connectEvent.event_type = MikanEvent_connected;
-						connection->sendEvent(&connectEvent);
-
-						bSuccess = true;
-					}
-
-					if (!bSuccess)
-					{
-						MIKAN_LOG_ERROR("processRemoteFunctionCalls") 
-							<< "Failed to initialize connection for client: " << clientId;
-						connection->disconnect();
-					}
-				}
-				// Tell the client they are already connected
-				else
-				{
-					MikanRemoteFunctionResult connectResponse(MikanResult_AlreadyConnected, inFunctionCall.getRequestId());
-
-					if (!connection->sendFunctionResponse(&connectResponse))
-					{
-						MIKAN_LOG_WARNING("processRemoteFunctionCalls") << "Failed to tell client they are already connected: " << clientId;
-					}
-				}
+				MIKAN_LOG_WARNING("processRequests") << 
+					"Request missing/invalid requestType field: " << inRequestString;
+				continue;
 			}
-			// Handle disconnect request
-			else if (strncmp(inFunctionCall.getFunctionName(), DISCONNECT_FUNCTION_NAME, strlen(DISCONNECT_FUNCTION_NAME)) == 0)
+
+			int version;
+			JsonSaxIntegerValueSearcher versionSearcher;
+			if (!versionSearcher.fetchKeyValuePair(inRequestString, "version", version) || 
+				version < 0)
 			{
-				MikanRemoteFunctionResult connectResponse(MikanResult_Success, inFunctionCall.getRequestId());
-
-				// Get the response from a registered function handler, if any
-				auto handler_it = m_functionHandlers.find(DISCONNECT_FUNCTION_NAME);
-				if (handler_it != m_functionHandlers.end())
-				{
-					handler_it->second(&inFunctionCall, &connectResponse);
-				}
-
-				// Acknowledge the disconnection request
-				connection->sendFunctionResponse(&connectResponse);
-
-				// Clean up the connection state
-				connection->disconnect();
+				MIKAN_LOG_WARNING("processRequests") << 
+					"Request missing/invalid version field: " << inRequestString;
+				continue;
 			}
-			// Handle all other requests
+
+			// Request ID is optional if the request doesn't expect a response
+			int requestId;
+			JsonSaxIntegerValueSearcher requestIdSearcher;
+			if (!requestIdSearcher.fetchKeyValuePair(inRequestString, "requestId", requestId))
+			{
+				requestId= INVALID_MIKAN_ID;
+			}
+
+			// Find the handler for the request
+			const std::string handlerKey = makeRequestHandlerKey(requestType, version);
+
+			// Get the response from a registered function handler, if any
+			std::string outResponseString;
+			auto handler_it = m_requestHandlers.find(handlerKey);
+			if (handler_it != m_requestHandlers.end())
+			{
+				const std::string clientId = connection->getClientId();
+				ClientRequest request= { clientId, requestId, inRequestString };
+
+				handler_it->second(request, outResponseString);
+			}
 			else
 			{
-				const std::string functionName = inFunctionCall.getFunctionName();
+				MikanResponse outResult;
+				outResult.responseType = MikanResponse::k_typeName;
+				outResult.requestId= requestId;
+				outResult.resultCode= MikanResult_UnknownFunction;
 
-				MikanRemoteFunctionResult outResult;
-				outResult.setResultCode(MikanResult_Success);
-				outResult.setRequestId(inFunctionCall.getRequestId());
+				json responseJson = outResult;
+				outResponseString = responseJson.dump();
+			}
 
-				// Get the response from a registered function handler
-				auto handler_it = m_functionHandlers.find(functionName);
-				if (handler_it != m_functionHandlers.end())
-				{
-					handler_it->second(&inFunctionCall, &outResult);
-				}
-				else
-				{
-					outResult.setResultCode(MikanResult_UnknownFunction);
-				}
-
-				// Send the response back to the client
-				connection->sendFunctionResponse(&outResult);
+			// Send the response back to the client
+			if (!outResponseString.empty())
+			{
+				connection->sendMessage(outResponseString);
+			}
+			else if (requestId != INVALID_MIKAN_ID)
+			{
+				MIKAN_LOG_WARNING("processRequests") <<
+					"Request handler for " << handlerKey 
+					<< " returned empty response, but response expected!";
 			}
 		}
 	}

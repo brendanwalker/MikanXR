@@ -31,6 +31,9 @@ elseif(CMAKE_SYSTEM MATCHES "Linux")
   list(APPEND MIKAN_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl rt)
 endif()
 
+# Configuru
+set (CONFIGURU_INCLUDE_DIR ${ROOT_DIR}/thirdparty/Configuru)
+
 # OpenCV
 # Override by adding "-DOpenCV_DIR=C:\path\to\opencv\build" to your cmake command
 find_package(OpenCV REQUIRED)
@@ -81,9 +84,6 @@ set (LUA_BRIDGE_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/LuaBridge3/Source)
 # fast-cpp-csv-parser
 set (FastCSV_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/fast-cpp-csv-parser)
 
-# Boost interprocess
-set (BOOST_INTERPROCESS_INCLUDE_DIRS ${ROOT_DIR}/deps/boost_1_78_0)
-
 # ImGUI
 set(IMGUI_DIR ${ROOT_DIR}/thirdparty/imgui)
 set(IMGUI_SOURCE "")
@@ -106,13 +106,12 @@ list(APPEND IMNODES_SOURCE
 
 # IXWebSocket
 option(USE_ZLIB "Add ZLib support" FALSE)
+option(IXWEBSOCKET_INSTALL "Install IXWebSocket" FALSE)
 set (IXWEBSOCKET_DIR ${ROOT_DIR}/thirdparty/IXWebSocket/)
 set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
-set (IXWEBSOCKET_SOURCE_DIR ${IXWEBSOCKET_DIR}/ixwebsocket)
-file(GLOB IXWEBSOCKET_SOURCE
-    "${IXWEBSOCKET_SOURCE_DIR}/*.cpp"
-	"${IXWEBSOCKET_SOURCE_DIR}/*.h"
-)
+
+# Nlohmann JSON
+set (NLOHMANN_JSON_INCLUDE_DIR ${ROOT_DIR}/thirdparty/nlohmann_json/include)
 
 # readerwriterqueue
 set (LOCKFREEQUEUE_INCLUDE_DIR ${ROOT_DIR}/thirdparty/readerwriterqueue)
@@ -142,6 +141,3 @@ if (WIN32)
   set (SPOUT2_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.lib)
   set (SPOUT2_SHARED_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.dll)
 endif()
-
-# SWIG
-find_package(SWIG 4.1.1 COMPONENTS csharp)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CommonConfig.h"
-#include "MikanClientTypes.h"
+#include "MikanStencilTypes.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProfileConfigConstants.h"

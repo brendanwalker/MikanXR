@@ -1,7 +1,7 @@
 #pragma once
 
 // -- includes -----
-#include "MikanClientTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "DeviceInterface.h"
 
 #include "glm/ext/quaternion_double.hpp"
@@ -137,8 +137,8 @@ public:
     virtual void setVideoProperty(const VideoPropertyType property_type, int desired_value, bool save_setting) = 0;
     virtual int getVideoProperty(const VideoPropertyType property_type) const = 0;
 
-    virtual void getCameraIntrinsics(MikanVideoSourceIntrinsics&out_tracker_intrinsics) const = 0;
-    virtual void setCameraIntrinsics(const MikanVideoSourceIntrinsics&tracker_intrinsics) = 0;
+    virtual void getCameraIntrinsics(MikanVideoSourceIntrinsics& out_tracker_intrinsics) const = 0;
+    virtual void setCameraIntrinsics(const MikanVideoSourceIntrinsics& tracker_intrinsics) = 0;
 
     virtual MikanQuatd getCameraOffsetOrientation() const = 0;
     virtual MikanVector3d getCameraOffsetPosition() const = 0;

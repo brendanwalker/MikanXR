@@ -9,7 +9,9 @@ file(GLOB MIKAN_DX_TEST_SRC
 list(APPEND MIKAN_DX_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${ROOT_DIR}/src/AppCore/
-  ${ROOT_DIR}/src/Client/
+  ${ROOT_DIR}/src/Client/Public/API
+  ${ROOT_DIR}/src/Client/Public/Core
+  ${NLOHMANN_JSON_INCLUDE_DIR}
   ${STB_INCLUDE_DIRS})
 
 list(APPEND MIKAN_DX_TEST_REQ_LIBS
@@ -18,7 +20,8 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
   dxguid 
   comctl32
   ${MIKAN_EXTRA_LIBS}
-  Mikan_CAPI)
+  MikanCore
+  MikanAPI)
 
 add_executable(MikanDX_Test WIN32 ${MIKAN_DX_TEST_SRC})
 target_include_directories(MikanDX_Test PUBLIC ${MIKAN_DX_TEST_INCL_DIRS})
@@ -39,8 +42,14 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET MikanDX_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:Mikan_CAPI>/Mikan_CAPI.dll
+          $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll
           $<TARGET_FILE_DIR:MikanDX_Test>)
+  add_custom_command(
+    TARGET MikanDX_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
+          $<TARGET_FILE_DIR:MikanDX_Test>)
+		  
 ELSE() #Linux/Darwin
 ENDIF()
 

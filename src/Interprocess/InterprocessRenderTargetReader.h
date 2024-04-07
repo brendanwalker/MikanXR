@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <memory>
 #include <string>
-#include "MikanClientTypes.h"
+#include "MikanCoreTypes.h"
 
 class GlTexture;
 typedef std::shared_ptr<GlTexture> GlTexturePtr;
@@ -24,12 +24,10 @@ public:
 	
 	MikanClientGraphicsApi getClientGraphicsAPI() const { return m_descriptor.graphicsAPI; }
 	MikanRenderTargetDescriptor& getRenderTargetDescriptor() { return m_descriptor; }
-	const MikanRenderTargetMemory& getLocalMemory() { return m_localMemory; }
 
 private:
 	std::string m_clientName;
 	MikanRenderTargetDescriptor m_descriptor;
-	MikanRenderTargetMemory m_localMemory;
 	GlTexturePtr m_colorTexture;
 	GlTexturePtr m_depthTexture;
 	struct RenderTargetReaderImpl* m_readerImpl;

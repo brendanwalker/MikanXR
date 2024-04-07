@@ -102,18 +102,6 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-echo "Downloading Boost..."
-curl -L https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip > boost_1_78_0.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading boost_1_78_0.zip"
-  goto failure
-)
-7z e boost_1_78_0.zip -y -r -spf        
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping boost_1_78_0.zip"
-  goto failure
-)
-
 echo "Downloading glew..."
 curl -L https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip --output glew-2.2.0-win32.zip
 IF %ERRORLEVEL% NEQ 0 (
@@ -203,21 +191,9 @@ cmake --build Build --config Release
 popd
 set "LUA_DIR="
 
-:: Download prebuilt SWIG
-set(SWIG_VERSION "4.1.1")
-        # Download and install pre-compiled SWIG for Windows into deps folder
-        set(SWIG_DOWNLOAD_URL "http://sourceforge.net/projects/swig/files/swigwin/swigwin-${SWIG_VERSION}/swigwin-${SWIG_VERSION}.zip")
-echo "Downloading FreeType Binaries..."
-curl -L http://sourceforge.net/projects/swig/files/swigwin/swigwin-4.1.1/swigwin-4.1.1.zip --output swigwin-4.1.1.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error swigwin-4.1.1.zip"
-  goto failure
-)
-7z e swigwin-4.1.1.zip -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping swigwin-4.1.1.zip"
-  goto failure
-)
+:: NuGet tool used to fetch c# packages
+echo "Downloading nuget..."
+curl -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe --output nuget.exe
 
 :: Exit back out of the deps folder
 popd

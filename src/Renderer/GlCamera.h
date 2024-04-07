@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MikanClientTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "RendererFwd.h"
 
 #include "glm/ext/matrix_float4x4.hpp"

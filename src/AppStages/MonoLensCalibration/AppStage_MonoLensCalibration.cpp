@@ -8,7 +8,6 @@
 #include "InputManager.h"
 #include "MainWindow.h"
 #include "MonoLensDistortionCalibrator.h"
-#include "MikanClientTypes.h"
 #include "CalibrationPatternFinder.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"

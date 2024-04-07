@@ -4,7 +4,7 @@
 #include "CommonConfig.h"
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
-#include "MikanClientTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "WMFConfig.h"
 #include "VideoFwd.h"
 

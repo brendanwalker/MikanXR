@@ -27,7 +27,10 @@
 	url = https://github.com/thisistherk/fast_obj.git
 [submodule "thirdparty/IXWebSocket"]
 	path = thirdparty/IXWebSocket
-	url = https://github.com/machinezone/IXWebSocket.git
+	url = https://github.com/MikanXR/IXWebSocket.git
 [submodule "thirdparty/readerwriterqueue"]
 	path = thirdparty/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git
+[submodule "thirdparty/nlohmann_json"]
+	path = thirdparty/nlohmann_json
+	url = https://github.com/nlohmann/json.git

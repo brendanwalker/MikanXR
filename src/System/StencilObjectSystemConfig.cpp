@@ -98,7 +98,7 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 
 bool StencilObjectSystemConfig::canAddStencil() const
 {
-	return (boxStencilList.size() + quadStencilList.size() + modelStencilList.size() < MAX_MIKAN_STENCILS);
+	return true;
 }
 
 bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)

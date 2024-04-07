@@ -3,7 +3,7 @@
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "SceneComponent.h"
-#include "MikanClientTypes.h"
+#include "MikanSpatialAnchorTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
 #include "SceneFwd.h"

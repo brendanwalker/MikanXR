@@ -65,8 +65,7 @@ MikanStencilBox BoxStencilDefinition::getBoxInfo() const
 	const std::string& boxName = getComponentName();
 	GlmTransform xform = getRelativeTransform();
 
-	MikanStencilBox boxInfo;
-	memset(&boxInfo, 0, sizeof(MikanStencilBox));
+	MikanStencilBox boxInfo= {};
 	boxInfo.stencil_id = m_stencilId;
 	boxInfo.parent_anchor_id = m_parentAnchorId;
 	boxInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
@@ -74,7 +73,7 @@ MikanStencilBox BoxStencilDefinition::getBoxInfo() const
 	boxInfo.box_y_size = m_boxSize.y;
 	boxInfo.box_z_size = m_boxSize.z;
 	boxInfo.is_disabled = m_bIsDisabled;
-	strncpy(boxInfo.stencil_name, boxName.c_str(), sizeof(boxInfo.stencil_name) - 1);
+	boxInfo.stencil_name= boxName;
 
 	return boxInfo;
 }

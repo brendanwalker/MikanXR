@@ -1,23 +1,22 @@
 #include "CommonConfig.h"
 #include "Logger.h"
+#include "MikanVideoSourceTypes.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
 
 #include <iostream>
 #include <string>
 
-// Suppress unhelpful configuru warnings
 #ifdef _MSC_VER
-    #pragma warning (push)
-    #pragma warning (disable: 4996) // This function or variable may be unsafe
-    #pragma warning (disable: 4244) // 'return': conversion from 'const int64_t' to 'float', possible loss of data
-    #pragma warning (disable: 4701) // potentially uninitialized local variable
-    #pragma warning (disable: 4715) // configuru::Config::operator[]': not all control paths return a value
+#pragma warning (push)
+#pragma warning (disable: 4996) // This function or variable may be unsafe
+#pragma warning (disable: 4244) // 'return': conversion from 'const int64_t' to 'float', possible loss of data
+#pragma warning (disable: 4715) // configuru::Config::operator[]': not all control paths return a value
 #endif
 #define CONFIGURU_IMPLEMENTATION 1
-#include <configuru.hpp>
+#include "configuru.hpp"
 #ifdef _MSC_VER
-    #pragma warning (pop)
+#pragma warning (pop)
 #endif
 
 // -- ConfigPropertyChangeSet -----

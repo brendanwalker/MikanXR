@@ -1,6 +1,6 @@
 #include "InterprocessRenderTargetWriter.h"
-#include "InterprocessRenderTargetShared.h"
 #include "Logger.h"
+#include "MikanCoreTypes.h"
 #ifdef ENABLE_SPOUT_DX
 #include "SpoutDX.h"
 #endif // ENABLE_SPOUT_DX
@@ -172,7 +172,6 @@ InterprocessRenderTargetWriteAccessor::InterprocessRenderTargetWriteAccessor(con
 	: m_clientName(clientName)
 	, m_writerImpl(new RenderTargetWriterImpl)
 {
-	memset(&m_localMemory, 0, sizeof(MikanRenderTargetMemory));
 	memset(m_writerImpl, 0, sizeof(RenderTargetWriterImpl));
 }
 

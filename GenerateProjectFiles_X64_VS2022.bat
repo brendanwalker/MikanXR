@@ -1,13 +1,5 @@
 @echo on
 
-pushd %~dp0\bindings
-call RebuildCSharpBindings.bat
-popd 
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error generating C# bindings"
-  goto failure
-)
-
 IF NOT EXIST build mkdir build
 pushd build
 
@@ -27,7 +19,7 @@ cmake .. -G "Visual Studio 17 2022" -A x64 ^
 -DSDL2_IMAGE_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2_image-2.0.5\include" ^
 -DFFMPEG_ROOT="%DEPS_ROOT_PATH%\ffmpeg-4.4.1-full_build-shared" ^
 -DCMAKE_PREFIX_PATH="%DEPS_ROOT_PATH%\easy_profiler\lib\cmake\easy_profiler" ^
--DSWIG_EXECUTABLE=%DEPS_ROOT_PATH%/swigwin-4.1.1/swig.exe ^
+-DNUGET_PATH="%DEPS_ROOT_PATH%" ^
 -DCMAKE_UNITY_BUILD=ON
 
 IF %ERRORLEVEL% NEQ 0 (
@@ -36,8 +28,8 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 popd
-::EXIT \B 0
+EXIT \B 0
 
 :failure
 pause
-::EXIT \B 1
+EXIT \B 1

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CommonConfigFwd.h"
-#include "MikanClientTypes.h"
 #include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
@@ -39,7 +38,7 @@ private:
 	Rml::String m_anchorVRDevicePath;
 	Rml::Vector<Rml::String> m_vrDeviceList;
 	Rml::Vector<RmlModel_SpatialAnchor> m_spatialAnchors;
-	int m_maxSpatialAnchors = MAX_MIKAN_SPATIAL_ANCHORS;
+	int m_maxSpatialAnchors = 256;
 	int m_originAnchorId = INVALID_MIKAN_ID;
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;

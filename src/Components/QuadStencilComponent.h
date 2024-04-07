@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MikanClientTypes.h"
+#include "MikanStencilTypes.h"
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "StencilComponent.h"

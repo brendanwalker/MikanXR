@@ -3,7 +3,7 @@
 // -- includes -----
 #include "CommonConfig.h"
 #include "DeviceInterface.h"
-#include "MikanClientTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "VideoFwd.h"
 
 // -- constants -----

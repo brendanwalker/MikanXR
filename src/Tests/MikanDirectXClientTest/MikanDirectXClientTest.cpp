@@ -7,7 +7,11 @@
 #include <codecvt>
 
 #include "Logger.h"
-#include "MikanClient_CAPI.h"
+#include "MikanAPI.h"
+#include "MikanEventTypes.h"
+#include "MikanMathTypes.h"
+#include "MikanStencilTypes.h"
+#include "MikanVideoSourceTypes.h"
 
 using namespace DirectX;
 
@@ -36,13 +40,12 @@ ID3D11Texture2D*        g_renderTargetTexture = nullptr;
 ID3D11RenderTargetView* g_renderTargetView = nullptr;
 ID3D11ShaderResourceView* g_shaderResourceView = nullptr;
 
+IMikanAPIPtr g_mikanAPI;
 uint32_t g_lastFrameTimestamp= 0;
 uint64_t m_lastReceivedVideoSourceFrame= 0;
 bool g_mikanInitialized = true;
 uint64_t g_lastReceivedVideoSourceFrame= 0;
 float g_mikanReconnectTimeout = 0.f; // seconds
-MikanRenderTargetMemory g_renderTargetMemory;
-
 
 HRESULT initWindow( HINSTANCE hInstance, int nCmdShow );
 HRESULT initDevice();
@@ -99,6 +102,31 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     return ( int )msg.wParam;
 }
 
+void onMikanLog(int log_level, const char* log_message)
+{
+	switch (log_level)
+	{
+		case MikanLogLevel_Debug:
+			MIKAN_LOG_DEBUG("onMikanLog") << log_message;
+			break;
+		case MikanLogLevel_Info:
+			MIKAN_LOG_INFO("onMikanLog") << log_message;
+			break;
+		case MikanLogLevel_Warning:
+			MIKAN_LOG_WARNING("onMikanLog") << log_message;
+			break;
+		case MikanLogLevel_Error:
+			MIKAN_LOG_ERROR("onMikanLog") << log_message;
+			break;
+		case MikanLogLevel_Fatal:
+			MIKAN_LOG_FATAL("onMikanLog") << log_message;
+			break;
+		default:
+			MIKAN_LOG_INFO("onMikanLog") << log_message;
+			break;
+	}
+}
+
 bool initMikan()
 {
     g_lastFrameTimestamp = GetTickCount();
@@ -109,9 +137,20 @@ bool initMikan()
 
 	log_init(settings);
 
-	if (Mikan_Initialize(MikanLogLevel_Info, nullptr) == MikanResult_Success)
+    g_mikanAPI= IMikanAPI::createMikanAPI();
+
+	if (g_mikanAPI->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
 	{
-        Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
+		MikanClientInfo ClientInfo = {};
+		ClientInfo.engineName = "MikanXR Test";
+		ClientInfo.engineVersion= "1.0";
+		ClientInfo.applicationName= "MikanXR Test";
+		ClientInfo.applicationVersion= "1.0";
+		ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
+		ClientInfo.supportsRGB24 = true;
+		g_mikanAPI->setClientInfo(ClientInfo);
+
+        g_mikanAPI->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
 		g_mikanInitialized = true;
 	}
 	else
@@ -127,64 +166,43 @@ void updateMikan()
 {
 	// Update the frame rate
 	const uint32_t now = GetTickCount();
-	const float deltaSeconds = (float)(now - g_lastFrameTimestamp) / 1000.f;
+	const float deltaSeconds = fminf((float)(now - g_lastFrameTimestamp) / 1000.f, 0.1f);
 	//m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
     g_lastFrameTimestamp = now;
 
-	if (Mikan_GetIsConnected())
+	if (g_mikanAPI->getIsConnected())
 	{
-		MikanEvent event;
-		while (Mikan_PollNextEvent(&event) == MikanResult_Success)
+		MikanEventPtr event;
+		while (g_mikanAPI->fetchNextEvent(event) == MikanResult_Success)
 		{
-			switch (event.event_type)
-			{
-			case MikanEvent_connected:
+			if (event->eventType == MikanConnectedEvent::k_typeName)
+            {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
-				break;
-			case MikanEvent_disconnected:
-				break;
-			case MikanEvent_videoSourceOpened:
+            }
+			else if (event->eventType == MikanVideoSourceOpenedEvent::k_typeName)
+            {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
-				break;
-			case MikanEvent_videoSourceClosed:
-				break;
-			case MikanEvent_videoSourceNewFrame:
-				processNewVideoSourceFrame(event.event_payload.video_source_new_frame);
-				break;
-			case MikanEvent_videoSourceModeChanged:
-			case MikanEvent_videoSourceIntrinsicsChanged:
+            }
+            else if (event->eventType == MikanVideoSourceNewFrameEvent::k_typeName)
+            {
+				auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(event);
+				processNewVideoSourceFrame(*newFrameEvent.get());
+            }
+			else if (event->eventType == MikanVideoSourceModeChangedEvent::k_typeName ||
+					 event->eventType == MikanVideoSourceIntrinsicsChangedEvent::k_typeName)
+            {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
-				break;
-			case MikanEvent_videoSourceAttachmentChanged:
-				break;
-			case MikanEvent_vrDevicePoseUpdated:
-				break;
-			case MikanEvent_anchorPoseUpdated:
-				break;
-			case MikanEvent_anchorListUpdated:
-				break;
-			}
+            }
 		}
 	}
 	else
 	{
 		if (g_mikanReconnectTimeout <= 0.f)
 		{
-			MikanClientInfo ClientInfo;
-			memset(&ClientInfo, 0, sizeof(MikanClientInfo));
-			ClientInfo.supportedFeatures = MikanFeature_RenderTarget_BGRA32;
-			strncpy(ClientInfo.engineName, "MikanXR Test", sizeof(ClientInfo.engineName) - 1);
-			strncpy(ClientInfo.engineVersion, "1.0", sizeof(ClientInfo.engineVersion) - 1);
-			strncpy(ClientInfo.applicationName, "MikanXR Test", sizeof(ClientInfo.applicationName) - 1);
-			strncpy(ClientInfo.applicationVersion, "1.0", sizeof(ClientInfo.applicationVersion) - 1);
-			ClientInfo.xrDeviceName[0] = '\0';
-			ClientInfo.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
-			strncpy(ClientInfo.mikanSdkVersion, Mikan_GetVersionString(), sizeof(ClientInfo.mikanSdkVersion) - 1);
-
-			if (Mikan_Connect(&ClientInfo) != MikanResult_Success)
+			if (g_mikanAPI->connect() != MikanResult_Success || !g_mikanAPI->getIsConnected())
 			{
 				// timeout between reconnect attempts
 				g_mikanReconnectTimeout = 1.0f;
@@ -215,7 +233,8 @@ void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEve
 	render();
 
 	// Publish the new video frame back to Mikan
-	Mikan_PublishRenderTargetTexture(g_renderTargetTexture, newFrameEvent.frame);
+    MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+	g_mikanAPI->publishRenderTargetTexture(g_renderTargetTexture, frameRendered);
 
 	// Remember the frame index of the last frame we published
     g_lastReceivedVideoSourceFrame = newFrameEvent.frame;
@@ -233,32 +252,40 @@ void reallocateRenderBuffers()
 {
 	freeFrameBuffer();
 
-	Mikan_FreeRenderTargetBuffers();
-	memset(&g_renderTargetMemory, 0, sizeof(MikanRenderTargetMemory));
+	g_mikanAPI->freeRenderTargetBuffers().wait();
 
-	MikanVideoSourceMode mode;
-	if (Mikan_GetVideoSourceMode(&mode) == MikanResult_Success)
+	auto future = g_mikanAPI->getVideoSourceAPI()->getVideoSourceMode();
+	auto response = future.get();
+	if (response->resultCode == MikanResult_Success)
 	{
+        auto mode = std::static_pointer_cast<MikanVideoSourceMode>(response);
+
 		MikanRenderTargetDescriptor desc;
 		memset(&desc, 0, sizeof(MikanRenderTargetDescriptor));
-		desc.width = mode.resolution_x;
-		desc.height = mode.resolution_y;
-		desc.color_key = { 0, 0, 0 };
+		desc.width = mode->resolution_x;
+		desc.height = mode->resolution_y;
 		desc.color_buffer_type = MikanColorBuffer_BGRA32;
 		desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
 		desc.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
-		Mikan_AllocateRenderTargetBuffers(&desc, &g_renderTargetMemory);
-		createFrameBuffer(mode.resolution_x, mode.resolution_y);
+		// Tell the server to allocate new render target buffers
+		g_mikanAPI->allocateRenderTargetBuffers(desc).wait();
+
+        // Create a new frame buffer to render to
+		createFrameBuffer(mode->resolution_x, mode->resolution_y);
 	}
 }
 
 void updateCameraProjectionMatrix()
 {
-	MikanVideoSourceIntrinsics videoSourceIntrinsics;
-	if (Mikan_GetVideoSourceIntrinsics(&videoSourceIntrinsics) == MikanResult_Success)
+	auto future = g_mikanAPI->getVideoSourceAPI()->getVideoSourceIntrinsics();
+	auto response = future.get();
+
+	if (response->resultCode == MikanResult_Success)
 	{
-		const MikanMonoIntrinsics& monoIntrinsics = videoSourceIntrinsics.intrinsics.mono;
+        auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsics>(response);
+
+        const MikanMonoIntrinsics& monoIntrinsics= videoSourceIntrinsics->intrinsics.mono;
 		const float videoSourcePixelWidth = monoIntrinsics.pixel_width;
 		const float videoSourcePixelHeight = monoIntrinsics.pixel_height;
 
@@ -359,7 +386,7 @@ void cleanupMikan()
 {
 	if (g_mikanInitialized)
 	{
-		Mikan_Shutdown();
+		g_mikanAPI->shutdown();
         g_mikanInitialized = false;
 	}
 

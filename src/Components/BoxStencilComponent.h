@@ -2,7 +2,7 @@
 
 #include "CommonConfig.h"
 #include "StencilComponent.h"
-#include "MikanClientTypes.h"
+#include "MikanStencilTypes.h"
 #include "ComponentFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
