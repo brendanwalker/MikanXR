@@ -24,8 +24,8 @@ namespace Mikan
 		private D3D11.DeviceContext d3dDeviceContext;
 		private SwapChain swapChain;
 		private D3D11.RenderTargetView defaultRenderTargetView;
-		private D3D11.Texture2D backBuffer;
-		private D3D11.Texture2D depthBuffer;
+		private D3D11.Texture2D defaultBackBuffer;
+		private D3D11.Texture2D defaultDepthBuffer;
 		private D3D11.DepthStencilView defaultDepthView;
 
 		// Direct3D11 Render Target
@@ -33,15 +33,24 @@ namespace Mikan
 		private D3D11.RenderTargetView renderTargetView;
 		private D3D11.ShaderResourceView renderTargetSRV;
 
-		// Shader Data
-		private D3D11.VertexShader vertexShader;
-		private D3D11.PixelShader pixelShader;
+		// Direct3D11 Depth Target
+		private D3D11.Texture2D depthTargetTexture;
+		private D3D11.DepthStencilView depthTargetView;
+		private D3D11.ShaderResourceView depthTargetSRV;
+
+		// Cube Shader Data
+		private D3D11.VertexShader cubeVertexShader;
+		private D3D11.PixelShader cubePixelShader;
 		private ShaderSignature inputSignature;
 		private D3D11.Buffer vertices;
 		private int vertexCount;
-		private D3D11.Buffer contantBuffer;
+		private D3D11.Buffer cubeShaderContantBuffer;
 		private Matrix viewMatrix;
 		private Matrix projectionMatrix;
+
+		// Depth Pack Shader Data
+		private D3D11.VertexShader depthPackVertexShader;
+		private D3D11.PixelShader depthPackPixelShader;
 
 		// Mikan
 		private MikanAPI mikanAPI;
@@ -71,7 +80,7 @@ namespace Mikan
 			{
 				InitSwapChain(windowWidth, windowHeight);
 
-				bSuccess= InitializeShaders();
+				bSuccess= InitializeCubeShader() && InitializeDepthPackShader();
 				if (bSuccess)
 				{
 					InitializeGeometry();
@@ -92,11 +101,11 @@ namespace Mikan
 		{
 			Utilities.Dispose(ref mikanAPI);
 			Utilities.Dispose(ref inputSignature);
-			Utilities.Dispose(ref vertexShader);
-			Utilities.Dispose(ref pixelShader);
-			Utilities.Dispose(ref backBuffer);
+			Utilities.Dispose(ref cubeVertexShader);
+			Utilities.Dispose(ref cubePixelShader);
+			Utilities.Dispose(ref defaultBackBuffer);
 			Utilities.Dispose(ref defaultRenderTargetView);
-			Utilities.Dispose(ref depthBuffer);
+			Utilities.Dispose(ref defaultDepthBuffer);
 			Utilities.Dispose(ref defaultDepthView);
 			Utilities.Dispose(ref swapChain);
 			Utilities.Dispose(ref d3dDevice);
@@ -135,9 +144,9 @@ namespace Mikan
 
 		private void ResizeSwapChainRenderBuffers(int newWidth, int newHeight)
 		{
-			Utilities.Dispose(ref backBuffer);
+			Utilities.Dispose(ref defaultBackBuffer);
 			Utilities.Dispose(ref defaultRenderTargetView);
-			Utilities.Dispose(ref depthBuffer);
+			Utilities.Dispose(ref defaultDepthBuffer);
 			Utilities.Dispose(ref defaultDepthView);
 
 			if (swapChain != null)
@@ -146,13 +155,13 @@ namespace Mikan
 				swapChain.ResizeBuffers(1, newWidth, newHeight, Format.B8G8R8A8_UNorm, SwapChainFlags.None);
 
 				// Get the back buffer from the swap chain
-				backBuffer = swapChain.GetBackBuffer<D3D11.Texture2D>(0);
+				defaultBackBuffer = swapChain.GetBackBuffer<D3D11.Texture2D>(0);
 
 				// Create a render target view for the back buffer
-				defaultRenderTargetView = new D3D11.RenderTargetView(d3dDevice, backBuffer);
+				defaultRenderTargetView = new D3D11.RenderTargetView(d3dDevice, defaultBackBuffer);
 
 				// Create the depth buffer
-				depthBuffer = new D3D11.Texture2D(d3dDevice, new D3D11.Texture2DDescription()
+				defaultDepthBuffer = new D3D11.Texture2D(d3dDevice, new D3D11.Texture2DDescription()
 				{
 					Format = Format.D32_Float_S8X24_UInt,
 					ArraySize = 1,
@@ -167,7 +176,7 @@ namespace Mikan
 				});
 
 				// Create the depth buffer view
-				defaultDepthView = new D3D11.DepthStencilView(d3dDevice, depthBuffer);
+				defaultDepthView = new D3D11.DepthStencilView(d3dDevice, defaultDepthBuffer);
 
 				// Setup the targets and viewport for rendering
 				d3dDeviceContext.Rasterizer.SetViewport(
@@ -181,10 +190,62 @@ namespace Mikan
 			Utilities.Dispose(ref renderTargetSRV);
 			Utilities.Dispose(ref renderTargetView);
 			Utilities.Dispose(ref renderTargetTexture);
+			Utilities.Dispose(ref depthTargetSRV);
+			Utilities.Dispose(ref depthTargetView);
+			Utilities.Dispose(ref depthTargetTexture);
+		}
+
+		Format GetDepthResourceFormat(Format depthformat)
+		{
+			Format resformat = Format.Unknown;
+
+			switch (depthformat)
+			{
+			case Format.D16_UNorm:
+				resformat = Format.R16G16_Typeless;
+				break;
+			case Format.D24_UNorm_S8_UInt:
+				resformat = Format.R24G8_Typeless;
+				break;
+			case Format.D32_Float:
+				resformat = Format.R32_Typeless;
+				break;
+			case Format.D32_Float_S8X24_UInt:
+				resformat = Format.R32G8X24_Typeless;
+				break;
+			}
+
+			return resformat;
+		}
+
+		Format GetDepthSRVFormat(Format depthformat)
+		{
+			Format srvformat = Format.Unknown;
+
+			switch (depthformat)
+			{
+			case Format.D16_UNorm:
+				srvformat = Format.R16_Float;
+				break;
+			case Format.D24_UNorm_S8_UInt:
+				srvformat = Format.R24_UNorm_X8_Typeless;
+				break;
+			case Format.D32_Float:
+				srvformat = Format.R32_Float;
+				break;
+			case Format.D32_Float_S8X24_UInt:
+				srvformat = Format.R32_Float_X8X24_Typeless;
+				break;
+			}
+
+			return srvformat;
 		}
 
 		private void CreateFrameBuffer(int newWidth, int newHeight)
 		{
+			// Create the render target resources
+			// -------
+
 			// Create the render target texture.
 			renderTargetTexture = new D3D11.Texture2D(
 				d3dDevice, 
@@ -221,9 +282,54 @@ namespace Mikan
 					Dimension = ShaderResourceViewDimension.Texture2D,
 					Texture2D = new ShaderResourceViewDescription.Texture2DResource() { MipLevels = 1, MostDetailedMip = 0 }
 				});
+
+			// Create the depth resources
+			// -------
+			Format depthViewFormat = Format.D32_Float;
+			Format resformat = GetDepthResourceFormat(depthViewFormat);
+			Format srvformat = GetDepthSRVFormat(depthViewFormat);
+
+			// Create the render target texture.
+			depthTargetTexture = new D3D11.Texture2D(
+				d3dDevice,
+				new D3D11.Texture2DDescription()
+				{
+					Width = newWidth,
+					Height = newHeight,
+					ArraySize = 1,
+					BindFlags = D3D11.BindFlags.DepthStencil | D3D11.BindFlags.ShaderResource,
+					CpuAccessFlags = D3D11.CpuAccessFlags.None,
+					Format = resformat,
+					MipLevels = 1,
+					OptionFlags = D3D11.ResourceOptionFlags.None,
+					SampleDescription = new SampleDescription(1, 0),
+					Usage = D3D11.ResourceUsage.Default,
+				});
+
+			// Create the depth stencil view
+			depthTargetView = new D3D11.DepthStencilView(
+				d3dDevice,
+				depthTargetTexture,
+				new DepthStencilViewDescription()
+				{
+					Format = depthViewFormat,
+					Dimension = DepthStencilViewDimension.Texture2D,
+					Texture2D = new DepthStencilViewDescription.Texture2DResource() { MipSlice = 0 }
+				});
+
+			// Create the shader resource view
+			depthTargetSRV = new D3D11.ShaderResourceView(
+				d3dDevice,
+				depthTargetTexture,
+				new ShaderResourceViewDescription()
+				{
+					Format = srvformat,
+					Dimension = ShaderResourceViewDimension.Texture2D,
+					Texture2D = new ShaderResourceViewDescription.Texture2DResource() { MipLevels = 1, MostDetailedMip = 0 }
+				});
 		}
 
-		private bool InitializeShaders()
+		private bool InitializeCubeShader()
 		{
 			string shaderCodeString = @"
 				struct VS_INPUT
@@ -261,7 +367,7 @@ namespace Mikan
 				Log(MikanLogLevel.Fatal, vertexShaderByteCode.Message);
 				return false;
 			}
-			vertexShader = new D3D11.VertexShader(d3dDevice, vertexShaderByteCode);
+			cubeVertexShader = new D3D11.VertexShader(d3dDevice, vertexShaderByteCode);
 
 			// Compile the pixel shader code
 			var pixelShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "ps_main", "ps_4_0", ShaderFlags.Debug);
@@ -270,13 +376,13 @@ namespace Mikan
 				Log(MikanLogLevel.Fatal, pixelShaderByteCode.Message);
 				return false;
 			}
-			pixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
+			cubePixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
 
 			// Read input signature from shader code
 			inputSignature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
 
 			// Create Constant Buffer
-			contantBuffer = new D3D11.Buffer(
+			cubeShaderContantBuffer = new D3D11.Buffer(
 				d3dDevice, 
 				Utilities.SizeOf<Matrix>(), 
 				ResourceUsage.Default, 
@@ -285,14 +391,63 @@ namespace Mikan
 				ResourceOptionFlags.None, 
 				0);
 
-			// Prepare All the stages
-			d3dDeviceContext.VertexShader.SetConstantBuffer(0, contantBuffer);
-			d3dDeviceContext.VertexShader.Set(vertexShader);
-			d3dDeviceContext.PixelShader.Set(pixelShader);
-
 			// Setup default camera and projection matrices
 			projectionMatrix = Matrix.PerspectiveFovLH(MathUtil.PiOverFour, windowWidth / (float)windowHeight, 0.1f, 100.0f);
 			viewMatrix = Matrix.LookAtLH(new Vector3(0, 0, -10), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+			return true;
+		}
+
+		private bool InitializeDepthPackShader()
+		{
+			string shaderCodeString = @"
+				Texture2D<float> InputTexture : register(t0);
+				SamplerState samLinear : register(s0);
+
+				struct PS_INPUT
+				{
+					float4 pos : SV_POSITION;
+					float2 uv : TEXCOORD;
+				};
+
+				PS_INPUT vs_main(uint id : SV_VertexId)
+				{
+					PS_INPUT output = (PS_INPUT)0;
+
+					output.uv = float2(id % 2, (id % 4) >> 1);
+					output.pos = float4((output.uv.x - 0.5f) * 2, -(output.uv.y - 0.5f) * 2, 0, 1);
+
+					return output;
+				}
+
+				float4 ps_main(PS_INPUT input) : SV_TARGET
+				{
+					// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
+					float floatValue = InputTexture.Sample(samLinear, input.uv).r;
+					float4 encodedValue = float4(1.0, 255.0, 65025.0, 16581375.0) * floatValue;
+					encodedValue = frac(encodedValue);
+					encodedValue -= encodedValue.yzww * float4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
+
+					return encodedValue;
+				}";
+
+			// Compile the vertex shader code
+			var vertexShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "vs_main", "vs_4_0", ShaderFlags.Debug);
+			if (vertexShaderByteCode.HasErrors)
+			{
+				Log(MikanLogLevel.Fatal, vertexShaderByteCode.Message);
+				return false;
+			}
+			depthPackVertexShader = new D3D11.VertexShader(d3dDevice, vertexShaderByteCode);
+
+			// Compile the pixel shader code
+			var pixelShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "ps_main", "ps_4_0", ShaderFlags.Debug);
+			if (pixelShaderByteCode.HasErrors)
+			{
+				Log(MikanLogLevel.Fatal, pixelShaderByteCode.Message);
+				return false;
+			}
+			depthPackPixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
 
 			return true;
 		}
@@ -585,6 +740,11 @@ namespace Mikan
 
 		private void Draw()
 		{
+			// Assign the cube shader
+			d3dDeviceContext.VertexShader.SetConstantBuffer(0, cubeShaderContantBuffer);
+			d3dDeviceContext.VertexShader.Set(cubeVertexShader);
+			d3dDeviceContext.PixelShader.Set(cubePixelShader);
+
 			// Update the model view projection matrix used to render the geometry
 			var viewProj = Matrix.Multiply(viewMatrix, projectionMatrix);
 			var modelViewProj =
@@ -593,16 +753,16 @@ namespace Mikan
 				Matrix.RotationZ(time * .7f) *
 				viewProj;
 			modelViewProj.Transpose();
-			d3dDeviceContext.UpdateSubresource(ref modelViewProj, contantBuffer);
+			d3dDeviceContext.UpdateSubresource(ref modelViewProj, cubeShaderContantBuffer);
 
-			// Draw to the render target texture
-			if (renderTargetView != null)
+			// Draw to the render/depth target texture
+			if (renderTargetView != null && depthTargetView != null)
 			{
-				// Set the render target to the render target texture
-				DepthStencilView depthStencilView = null;
-				d3dDeviceContext.OutputMerger.SetTargets(depthStencilView, renderTargetView);
+				// Set the render/depth target to the render/depth target texture
+				d3dDeviceContext.OutputMerger.SetTargets(depthTargetView, renderTargetView);
 
-				// Clear the render texture
+				// Clear the depth/render textures
+				d3dDeviceContext.ClearDepthStencilView(depthTargetView, DepthStencilClearFlags.Depth, 1.0f, 0);
 				d3dDeviceContext.ClearRenderTargetView(renderTargetView, new SharpDX.Color(32, 103, 178, 0));
 
 				// Draw the triangle
