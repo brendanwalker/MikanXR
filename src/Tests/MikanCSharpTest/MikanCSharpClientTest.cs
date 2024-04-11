@@ -9,6 +9,7 @@ using System.Drawing;
 using MikanXR;
 using System.Diagnostics;
 using SharpDX.Direct3D11;
+using System.Runtime.InteropServices;
 
 namespace Mikan
 {
@@ -41,9 +42,10 @@ namespace Mikan
 		// Cube Shader Data
 		private D3D11.VertexShader cubeVertexShader;
 		private D3D11.PixelShader cubePixelShader;
-		private ShaderSignature inputSignature;
-		private D3D11.Buffer vertices;
-		private int vertexCount;
+		private ShaderSignature cubeInputSignature;
+		private D3D11.Buffer cubeVertices;
+		private D3D11.InputLayout cubeInputLayout;
+		private int cubeVertexCount;
 		private D3D11.Buffer cubeShaderContantBuffer;
 		private Matrix viewMatrix;
 		private Matrix projectionMatrix;
@@ -51,6 +53,14 @@ namespace Mikan
 		// Depth Pack Shader Data
 		private D3D11.VertexShader depthPackVertexShader;
 		private D3D11.PixelShader depthPackPixelShader;
+
+		// Full Screen Texture Shader Data
+		private D3D11.VertexShader quadVertexShader;
+		private D3D11.PixelShader quadPixelShader;
+		private D3D11.SamplerState quadTextureSamplerState;
+		private D3D11.Buffer quadVertices;
+		private ShaderSignature quadInputSignature;
+		private D3D11.InputLayout quadInputLayout;
 
 		// Mikan
 		private MikanAPI mikanAPI;
@@ -80,10 +90,14 @@ namespace Mikan
 			{
 				InitSwapChain(windowWidth, windowHeight);
 
-				bSuccess= InitializeCubeShader() && InitializeDepthPackShader();
+				bSuccess= 
+					InitializeCubeShader() && 
+					InitializeDepthPackShader() &&
+					InitializeQuadTextureShader();
 				if (bSuccess)
 				{
-					InitializeGeometry();
+					InitializeCubeGeometry();
+					InitializeQuadGeometry();
 
 					bSuccess= InitializeMikan();
 				}
@@ -100,13 +114,28 @@ namespace Mikan
 		public void Dispose()
 		{
 			Utilities.Dispose(ref mikanAPI);
-			Utilities.Dispose(ref inputSignature);
+
+			Utilities.Dispose(ref cubeInputSignature);
 			Utilities.Dispose(ref cubeVertexShader);
 			Utilities.Dispose(ref cubePixelShader);
+			Utilities.Dispose(ref cubeInputSignature);
+			Utilities.Dispose(ref cubeInputLayout);
+			Utilities.Dispose(ref cubeVertices);
+
+			Utilities.Dispose(ref depthPackVertexShader);
+			Utilities.Dispose(ref depthPackPixelShader);
+
+			Utilities.Dispose(ref quadPixelShader);
+			Utilities.Dispose(ref quadVertexShader);
+			Utilities.Dispose(ref quadInputSignature);
+			Utilities.Dispose(ref quadInputLayout);
+			Utilities.Dispose(ref quadVertices);
+
 			Utilities.Dispose(ref defaultBackBuffer);
 			Utilities.Dispose(ref defaultRenderTargetView);
 			Utilities.Dispose(ref defaultDepthBuffer);
 			Utilities.Dispose(ref defaultDepthView);
+
 			Utilities.Dispose(ref swapChain);
 			Utilities.Dispose(ref d3dDevice);
 			Utilities.Dispose(ref d3dDeviceContext);
@@ -379,7 +408,7 @@ namespace Mikan
 			cubePixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
 
 			// Read input signature from shader code
-			inputSignature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
+			cubeInputSignature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
 
 			// Create Constant Buffer
 			cubeShaderContantBuffer = new D3D11.Buffer(
@@ -452,17 +481,86 @@ namespace Mikan
 			return true;
 		}
 
-		private void InitializeGeometry()
+		private bool InitializeQuadTextureShader()
+		{
+			string shaderCodeString = @"
+				Texture2D<float4> InputTexture : register(t0);
+				SamplerState samLinear : register(s0);
+
+				struct VS_INPUT
+				{
+					float3 position : POSITION;
+					float2 texCoord : TEXCOORD;
+				};
+
+				struct PS_INPUT
+				{
+					float4 pos : SV_POSITION;
+					float2 uv : TEXCOORD;
+				};
+
+				PS_INPUT vs_main(VS_INPUT input)
+				{
+					PS_INPUT output;
+					output.pos = float4(input.position, 1.0f);
+					output.uv = input.texCoord;
+					return output;
+				}
+
+				float4 ps_main(PS_INPUT input) : SV_TARGET
+				{
+					return InputTexture.Sample(samLinear, input.uv);
+				}";
+
+			// Compile the vertex shader code
+			var vertexShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "vs_main", "vs_4_0", ShaderFlags.Debug);
+			if (vertexShaderByteCode.HasErrors)
+			{
+				Log(MikanLogLevel.Fatal, vertexShaderByteCode.Message);
+				return false;
+			}
+			quadVertexShader = new D3D11.VertexShader(d3dDevice, vertexShaderByteCode);
+
+			// Compile the pixel shader code
+			var pixelShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "ps_main", "ps_4_0", ShaderFlags.Debug);
+			if (pixelShaderByteCode.HasErrors)
+			{
+				Log(MikanLogLevel.Fatal, pixelShaderByteCode.Message);
+				return false;
+			}
+			quadPixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
+
+			// Read input signature from shader code
+			quadInputSignature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
+
+			quadTextureSamplerState = new D3D11.SamplerState(d3dDevice, new D3D11.SamplerStateDescription()
+			{
+				Filter = Filter.MinMagMipLinear,
+				AddressU = TextureAddressMode.Clamp,
+				AddressV = TextureAddressMode.Clamp,
+				AddressW = TextureAddressMode.Clamp,
+				BorderColor = SharpDX.Color.Black,
+				ComparisonFunction = Comparison.Never,
+				MaximumAnisotropy = 1,
+				MipLodBias = 0,
+				MinimumLod = 0,
+				MaximumLod = float.MaxValue
+			});
+
+			return true;
+		}
+
+		private void InitializeCubeGeometry()
 		{
 			// Create the input layout from the input signature and the input elements
-			var inputLayout = new InputLayout(d3dDevice, inputSignature, new[]
+			cubeInputLayout = new InputLayout(d3dDevice, cubeInputSignature, new[]
 				{
 					new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
 					new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0)
 				});
 
 			// Instantiate Vertex buiffer from vertex data
-			vertices = D3D11.Buffer.Create(d3dDevice, BindFlags.VertexBuffer, new[]
+			cubeVertices = D3D11.Buffer.Create(d3dDevice, BindFlags.VertexBuffer, new[]
 			{
 				new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), // Front
                 new Vector4(-1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
@@ -506,13 +604,37 @@ namespace Mikan
 				new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f),
 				new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f),
 			});
-			vertexCount= 36;
+			cubeVertexCount= 36;
+		}
 
-			d3dDeviceContext.InputAssembler.InputLayout = inputLayout;
-			d3dDeviceContext.InputAssembler.SetVertexBuffers(
-				0,
-				new VertexBufferBinding(vertices, Utilities.SizeOf<Vector4>() * 2, 0));
-			d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+		[StructLayout(LayoutKind.Sequential)]
+		internal struct QuadVertex
+		{
+			public Vector3 position;
+			public Vector2 texture;
+		}
+		static int kQuadVertexSize= Marshal.SizeOf(typeof(QuadVertex));
+
+		private void InitializeQuadGeometry()
+		{
+			// Create the input layout from the input signature and the input elements
+			quadInputLayout = new InputLayout(d3dDevice, quadInputSignature, new[]
+				{
+					new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0),
+					new InputElement("TEXCOORD", 0, Format.R32G32_Float, 12, 0)
+				});
+
+			// Instantiate Vertex buffer from vertex data
+			quadVertices = D3D11.Buffer.Create(d3dDevice, BindFlags.VertexBuffer, new[]
+			{
+				new QuadVertex() { position = new Vector3( 1.0f, -1.0f, 0.0f), texture = new Vector2(1.0f, 1.0f) },
+				new QuadVertex() { position = new Vector3(-1.0f, -1.0f, 0.0f), texture = new Vector2(0.0f, 1.0f) },
+				new QuadVertex() { position = new Vector3(-1.0f,  1.0f, 0.0f), texture = new Vector2(0.0f, 0.0f) },
+
+				new QuadVertex() { position = new Vector3( 1.0f,  1.0f, 0.0f), texture = new Vector2(1.0f, 0.0f) },
+				new QuadVertex() { position = new Vector3( 1.0f, -1.0f, 0.0f), texture = new Vector2(1.0f, 1.0f) },
+				new QuadVertex() { position = new Vector3(-1.0f,  1.0f, 0.0f), texture = new Vector2(0.0f, 0.0f) },
+			});
 		}
 
 		private	bool InitializeMikan()
@@ -697,10 +819,10 @@ namespace Mikan
 				return;
 
 			// Apply the camera pose received
-			SetCameraPose(
-				newFrameEvent.cameraForward,
-				newFrameEvent.cameraUp,
-				newFrameEvent.cameraPosition);
+			//SetCameraPose(
+			//	newFrameEvent.cameraForward,
+			//	newFrameEvent.cameraUp,
+			//	newFrameEvent.cameraPosition);
 
 			// Render out a new frame
 			Draw();
@@ -738,10 +860,24 @@ namespace Mikan
 				out viewMatrix);
 		}
 
-		private void Draw()
+		private void DrawCubeScene(
+			D3D11.DepthStencilView inDepthTargetView,
+			D3D11.RenderTargetView inRenderTargetView)
 		{
+			// Set the output render views
+			d3dDeviceContext.OutputMerger.SetTargets(inDepthTargetView, inRenderTargetView);
+
+			// Clear the screen
+			d3dDeviceContext.ClearRenderTargetView(inRenderTargetView, new SharpDX.Color(32, 103, 178, 0));
+			d3dDeviceContext.ClearDepthStencilView(inDepthTargetView, DepthStencilClearFlags.Depth, 1.0f, 0);
+
+			// Assign the cube vertices
+			d3dDeviceContext.InputAssembler.SetVertexBuffers(
+				0,
+				new VertexBufferBinding(cubeVertices, Utilities.SizeOf<Vector4>() * 2, 0));
+
 			// Assign the cube shader
-			d3dDeviceContext.VertexShader.SetConstantBuffer(0, cubeShaderContantBuffer);
+			d3dDeviceContext.InputAssembler.InputLayout = cubeInputLayout;
 			d3dDeviceContext.VertexShader.Set(cubeVertexShader);
 			d3dDeviceContext.PixelShader.Set(cubePixelShader);
 
@@ -755,29 +891,60 @@ namespace Mikan
 			modelViewProj.Transpose();
 			d3dDeviceContext.UpdateSubresource(ref modelViewProj, cubeShaderContantBuffer);
 
-			// Draw to the render/depth target texture
-			if (renderTargetView != null && depthTargetView != null)
-			{
-				// Set the render/depth target to the render/depth target texture
-				d3dDeviceContext.OutputMerger.SetTargets(depthTargetView, renderTargetView);
+			// Set the constants buffer
+			d3dDeviceContext.VertexShader.SetConstantBuffer(0, cubeShaderContantBuffer);
 
-				// Clear the depth/render textures
-				d3dDeviceContext.ClearDepthStencilView(depthTargetView, DepthStencilClearFlags.Depth, 1.0f, 0);
-				d3dDeviceContext.ClearRenderTargetView(renderTargetView, new SharpDX.Color(32, 103, 178, 0));
+			// Draw the cube
+			d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+			d3dDeviceContext.Draw(cubeVertexCount, 0);
+		}
 
-				// Draw the triangle
-				d3dDeviceContext.Draw(vertexCount, 0);
-
-				// Restore back to the default render target
-				d3dDeviceContext.OutputMerger.SetTargets(defaultDepthView, defaultRenderTargetView);
-			}
+		private void DrawQuadScene(
+			D3D11.DepthStencilView inDepthTargetView,
+			D3D11.RenderTargetView inRenderTargetView,
+			D3D11.ShaderResourceView inTextureSRV)
+		{
+			// Set the output render views
+			d3dDeviceContext.OutputMerger.SetTargets(inDepthTargetView, inRenderTargetView);
 
 			// Clear the screen
-			d3dDeviceContext.ClearDepthStencilView(defaultDepthView, DepthStencilClearFlags.Depth, 1.0f, 0);
-			d3dDeviceContext.ClearRenderTargetView(defaultRenderTargetView, new SharpDX.Color(32, 103, 178, 0));
+			d3dDeviceContext.ClearRenderTargetView(inRenderTargetView, new SharpDX.Color(0, 0, 0, 0));
+			d3dDeviceContext.ClearDepthStencilView(inDepthTargetView, DepthStencilClearFlags.Depth, 1.0f, 0);
 
-			// Draw the triangle
-			d3dDeviceContext.Draw(vertexCount, 0);
+			// Assign the quad vertices
+			d3dDeviceContext.InputAssembler.SetVertexBuffers(
+				0,
+				new VertexBufferBinding(quadVertices, kQuadVertexSize, 0));
+
+			// Assign the quad shader
+			d3dDeviceContext.InputAssembler.InputLayout = quadInputLayout;
+			d3dDeviceContext.VertexShader.Set(quadVertexShader);
+			d3dDeviceContext.PixelShader.Set(quadPixelShader);
+
+			// Set the texture
+			d3dDeviceContext.PixelShader.SetShaderResource(0, inTextureSRV);
+			d3dDeviceContext.PixelShader.SetSampler(0, quadTextureSamplerState);
+
+			// Draw the cube
+			d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+			d3dDeviceContext.Draw(6, 0);
+		}
+
+		private void Draw()
+		{
+			if (renderTargetView != null && depthTargetView != null)
+			{
+				// Draw the cube to the render/depth target texture
+				DrawCubeScene(depthTargetView, renderTargetView);
+
+				// Draw the render target texture to the default scene
+				DrawQuadScene(defaultDepthView, defaultRenderTargetView, renderTargetSRV);
+			}
+			else
+			{
+				// Draw the cube to the default render target
+				DrawCubeScene(defaultDepthView, defaultRenderTargetView);
+			}
 
 			// Swap front and back buffer
 			swapChain.Present(1, PresentFlags.None);
