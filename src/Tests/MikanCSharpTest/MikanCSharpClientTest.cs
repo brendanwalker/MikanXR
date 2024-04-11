@@ -50,6 +50,12 @@ namespace Mikan
 		private Matrix viewMatrix;
 		private Matrix projectionMatrix;
 
+		// Depth Normalize Shader Data
+		private D3D11.VertexShader depthNormalizeVertexShader;
+		private D3D11.PixelShader depthNormalizePixelShader;
+		private D3D11.Buffer depthNormalizeContantBuffer;
+		private DepthNormalizeConstantBuffer depthNormalConstants;
+
 		// Depth Pack Shader Data
 		private D3D11.VertexShader depthPackVertexShader;
 		private D3D11.PixelShader depthPackPixelShader;
@@ -92,6 +98,7 @@ namespace Mikan
 
 				bSuccess= 
 					InitializeCubeShader() && 
+					InitializeDepthNormalizeShader() &&
 					InitializeDepthPackShader() &&
 					InitializeQuadTextureShader();
 				if (bSuccess)
@@ -121,6 +128,9 @@ namespace Mikan
 			Utilities.Dispose(ref cubeInputSignature);
 			Utilities.Dispose(ref cubeInputLayout);
 			Utilities.Dispose(ref cubeVertices);
+
+			Utilities.Dispose(ref depthNormalizeVertexShader);
+			Utilities.Dispose(ref depthNormalizePixelShader);
 
 			Utilities.Dispose(ref depthPackVertexShader);
 			Utilities.Dispose(ref depthPackPixelShader);
@@ -208,6 +218,7 @@ namespace Mikan
 				defaultDepthView = new D3D11.DepthStencilView(d3dDevice, defaultDepthBuffer);
 
 				// Setup the targets and viewport for rendering
+				depthNormalConstants = new DepthNormalizeConstantBuffer() { zNear= 0f, zFar= 1f };
 				d3dDeviceContext.Rasterizer.SetViewport(
 					new Viewport(0, 0, windowWidth, windowHeight, 0.0f, 1.0f));
 				d3dDeviceContext.OutputMerger.SetTargets(defaultDepthView, defaultRenderTargetView);
@@ -421,8 +432,96 @@ namespace Mikan
 				0);
 
 			// Setup default camera and projection matrices
-			projectionMatrix = Matrix.PerspectiveFovLH(MathUtil.PiOverFour, windowWidth / (float)windowHeight, 0.1f, 100.0f);
+			depthNormalConstants.zNear= 0.1f;
+			depthNormalConstants.zFar= 100.0f;
+			projectionMatrix = 
+				Matrix.PerspectiveFovLH(
+					MathUtil.PiOverFour, windowWidth / (float)windowHeight, 
+					depthNormalConstants.zNear, 
+					depthNormalConstants.zFar);
 			viewMatrix = Matrix.LookAtLH(new Vector3(0, 0, -10), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+			return true;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		internal struct DepthNormalizeConstantBuffer
+		{
+			public float zNear;
+			public float zFar;
+			public float padding0;
+			public float padding1;
+		}
+
+		private bool InitializeDepthNormalizeShader()
+		{
+			string shaderCodeString = @"
+				Texture2D<float> InputTexture : register(t0);
+				SamplerState samLinear : register(s0);
+
+				//cbuffer ConstantBuffer : register(b0)
+				//{
+				//	float zNear;
+				//	float zFar;
+				//};
+
+				struct VS_INPUT
+				{
+					float3 position : POSITION;
+					float2 texCoord : TEXCOORD;
+				};
+
+				struct PS_INPUT
+				{
+					float4 pos : SV_POSITION;
+					float2 uv : TEXCOORD;
+				};
+
+				PS_INPUT vs_main(VS_INPUT input)
+				{
+					PS_INPUT output;
+					output.pos = float4(input.position, 1.0f);
+					output.uv = input.texCoord;
+					return output;
+				}
+
+				float4 ps_main(PS_INPUT input) : SV_TARGET
+				{
+					float zNear= 0.1;
+					float zFar= 200.0;
+					float depth = InputTexture.Sample(samLinear, input.uv).r;
+					float zNorm= (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+
+					return float4(zNorm, zNorm, zNorm, 1.0);
+				}";
+
+			// Compile the vertex shader code
+			var vertexShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "vs_main", "vs_4_0", ShaderFlags.Debug);
+			if (vertexShaderByteCode.HasErrors)
+			{
+				Log(MikanLogLevel.Fatal, vertexShaderByteCode.Message);
+				return false;
+			}
+			depthNormalizeVertexShader = new D3D11.VertexShader(d3dDevice, vertexShaderByteCode);
+
+			// Compile the pixel shader code
+			var pixelShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "ps_main", "ps_4_0", ShaderFlags.Debug);
+			if (pixelShaderByteCode.HasErrors)
+			{
+				Log(MikanLogLevel.Fatal, pixelShaderByteCode.Message);
+				return false;
+			}
+			depthNormalizePixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
+
+			// Create Constant Buffer
+			depthNormalizeContantBuffer = new D3D11.Buffer(
+				d3dDevice,
+				Utilities.SizeOf<DepthNormalizeConstantBuffer>(),
+				ResourceUsage.Dynamic,
+				BindFlags.ConstantBuffer,
+				CpuAccessFlags.Write,
+				ResourceOptionFlags.None,
+				0);
 
 			return true;
 		}
@@ -433,19 +532,23 @@ namespace Mikan
 				Texture2D<float> InputTexture : register(t0);
 				SamplerState samLinear : register(s0);
 
+				struct VS_INPUT
+				{
+					float3 position : POSITION;
+					float2 texCoord : TEXCOORD;
+				};
+
 				struct PS_INPUT
 				{
 					float4 pos : SV_POSITION;
 					float2 uv : TEXCOORD;
 				};
 
-				PS_INPUT vs_main(uint id : SV_VertexId)
+				PS_INPUT vs_main(VS_INPUT input)
 				{
-					PS_INPUT output = (PS_INPUT)0;
-
-					output.uv = float2(id % 2, (id % 4) >> 1);
-					output.pos = float4((output.uv.x - 0.5f) * 2, -(output.uv.y - 0.5f) * 2, 0, 1);
-
+					PS_INPUT output;
+					output.pos = float4(input.position, 1.0f);
+					output.uv = input.texCoord;
 					return output;
 				}
 
@@ -800,11 +903,13 @@ namespace Mikan
 				float videoSourcePixelWidth = (float)monoIntrinsics.pixel_width;
 				float videoSourcePixelHeight = (float)monoIntrinsics.pixel_height;
 
+				depthNormalConstants.zNear = (float)monoIntrinsics.znear;
+				depthNormalConstants.zFar = (float)monoIntrinsics.zfar;
 				projectionMatrix = Matrix.PerspectiveFovLH(
 					MathUtil.DegreesToRadians((float)monoIntrinsics.vfov),
 					videoSourcePixelWidth / videoSourcePixelHeight,
-					(float)monoIntrinsics.znear,
-					(float)monoIntrinsics.zfar);
+					depthNormalConstants.zNear,
+					depthNormalConstants.zFar);
 			}
 		}
 
@@ -860,7 +965,7 @@ namespace Mikan
 				out viewMatrix);
 		}
 
-		private void DrawCubeScene(
+		private void RenderCubeToTarget(
 			D3D11.DepthStencilView inDepthTargetView,
 			D3D11.RenderTargetView inRenderTargetView)
 		{
@@ -899,17 +1004,14 @@ namespace Mikan
 			d3dDeviceContext.Draw(cubeVertexCount, 0);
 		}
 
-		private void DrawQuadScene(
-			D3D11.DepthStencilView inDepthTargetView,
-			D3D11.RenderTargetView inRenderTargetView,
-			D3D11.ShaderResourceView inTextureSRV)
+		private void RenderColorTexture()
 		{
 			// Set the output render views
-			d3dDeviceContext.OutputMerger.SetTargets(inDepthTargetView, inRenderTargetView);
+			d3dDeviceContext.OutputMerger.SetTargets(defaultDepthView, defaultRenderTargetView);
 
 			// Clear the screen
-			d3dDeviceContext.ClearRenderTargetView(inRenderTargetView, new SharpDX.Color(0, 0, 0, 0));
-			d3dDeviceContext.ClearDepthStencilView(inDepthTargetView, DepthStencilClearFlags.Depth, 1.0f, 0);
+			d3dDeviceContext.ClearRenderTargetView(defaultRenderTargetView, new SharpDX.Color(0, 0, 0, 0));
+			d3dDeviceContext.ClearDepthStencilView(defaultDepthView, DepthStencilClearFlags.Depth, 1.0f, 0);
 
 			// Assign the quad vertices
 			d3dDeviceContext.InputAssembler.SetVertexBuffers(
@@ -922,7 +1024,7 @@ namespace Mikan
 			d3dDeviceContext.PixelShader.Set(quadPixelShader);
 
 			// Set the texture
-			d3dDeviceContext.PixelShader.SetShaderResource(0, inTextureSRV);
+			d3dDeviceContext.PixelShader.SetShaderResource(0, renderTargetSRV);
 			d3dDeviceContext.PixelShader.SetSampler(0, quadTextureSamplerState);
 
 			// Draw the cube
@@ -930,20 +1032,100 @@ namespace Mikan
 			d3dDeviceContext.Draw(6, 0);
 		}
 
+		private void RenderDepthPackTexture()
+		{
+			// Set the output render views
+			d3dDeviceContext.OutputMerger.SetTargets(defaultDepthView, defaultRenderTargetView);
+
+			// Clear the screen
+			d3dDeviceContext.ClearRenderTargetView(defaultRenderTargetView, new SharpDX.Color(0, 0, 0, 0));
+			d3dDeviceContext.ClearDepthStencilView(defaultDepthView, DepthStencilClearFlags.Depth, 1.0f, 0);
+
+			// Assign the quad vertices
+			d3dDeviceContext.InputAssembler.SetVertexBuffers(
+				0,
+				new VertexBufferBinding(quadVertices, kQuadVertexSize, 0));
+
+			// Assign the depth shader
+			d3dDeviceContext.InputAssembler.InputLayout = quadInputLayout;
+			d3dDeviceContext.VertexShader.Set(depthPackVertexShader);
+			d3dDeviceContext.PixelShader.Set(depthPackPixelShader);
+
+			// Set the texture
+			d3dDeviceContext.PixelShader.SetShaderResource(0, depthTargetSRV);
+			d3dDeviceContext.PixelShader.SetSampler(0, quadTextureSamplerState);
+
+			// Draw the cube
+			d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+			d3dDeviceContext.Draw(6, 0);
+		}
+
+		private void RenderNormalizedDepthTexture()
+		{
+			// Set the output render views
+			d3dDeviceContext.OutputMerger.SetTargets(defaultDepthView, defaultRenderTargetView);
+
+			// Clear the screen
+			d3dDeviceContext.ClearRenderTargetView(defaultRenderTargetView, new SharpDX.Color(0, 0, 0, 0));
+			d3dDeviceContext.ClearDepthStencilView(defaultDepthView, DepthStencilClearFlags.Depth, 1.0f, 0);
+
+			// Assign the quad vertices
+			d3dDeviceContext.InputAssembler.SetVertexBuffers(
+				0,
+				new VertexBufferBinding(quadVertices, kQuadVertexSize, 0));
+
+			// Assign the depth shader
+			d3dDeviceContext.InputAssembler.InputLayout = quadInputLayout;
+			d3dDeviceContext.VertexShader.Set(depthNormalizeVertexShader);
+			d3dDeviceContext.PixelShader.Set(depthNormalizePixelShader);
+
+			// Set the texture
+			d3dDeviceContext.PixelShader.SetShaderResource(0, depthTargetSRV);
+			d3dDeviceContext.PixelShader.SetSampler(0, quadTextureSamplerState);
+
+			// Update the depth normalization constants
+			d3dDeviceContext.MapSubresource(depthNormalizeContantBuffer, MapMode.WriteDiscard, D3D11.MapFlags.None, out DataStream mappedResource);
+			mappedResource.Write(depthNormalConstants);
+			d3dDeviceContext.UnmapSubresource(depthNormalizeContantBuffer, 0);
+			d3dDeviceContext.VertexShader.SetConstantBuffer(0, depthNormalizeContantBuffer);
+
+			// Draw the cube
+			d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+			d3dDeviceContext.Draw(6, 0);
+		}
+
+		enum RenderMode
+		{
+			Color,
+			DepthPack,
+			DepthNormalize
+		}
+		static RenderMode DrawDepthMode = RenderMode.Color;
+
 		private void Draw()
 		{
 			if (renderTargetView != null && depthTargetView != null)
 			{
 				// Draw the cube to the render/depth target texture
-				DrawCubeScene(depthTargetView, renderTargetView);
+				RenderCubeToTarget(depthTargetView, renderTargetView);
 
-				// Draw the render target texture to the default scene
-				DrawQuadScene(defaultDepthView, defaultRenderTargetView, renderTargetSRV);
+				switch (DrawDepthMode)
+				{
+				case RenderMode.Color:
+					RenderColorTexture();
+					break;
+				case RenderMode.DepthPack:
+					RenderDepthPackTexture();
+					break;
+				case RenderMode.DepthNormalize:
+					RenderNormalizedDepthTexture();
+					break;
+				}
 			}
 			else
 			{
 				// Draw the cube to the default render target
-				DrawCubeScene(defaultDepthView, defaultRenderTargetView);
+				RenderCubeToTarget(defaultDepthView, defaultRenderTargetView);
 			}
 
 			// Swap front and back buffer
