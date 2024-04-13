@@ -86,6 +86,23 @@ namespace Mikan
 			renderForm = new RenderForm("Mikan C# D3D11 Test");
 			renderForm.ClientSize = new Size(windowWidth, windowHeight);
 			renderForm.AllowUserResizing = false;
+			renderForm.KeyPress += (sender, e) => { 
+				if (e.KeyChar == 'd')
+				{
+					switch(DrawDepthMode)
+					{
+					case RenderMode.Color:
+						DrawDepthMode= RenderMode.DepthNormalize;
+						break;
+					case RenderMode.DepthNormalize:
+						DrawDepthMode= RenderMode.DepthPack;
+						break;
+					case RenderMode.DepthPack:
+						DrawDepthMode= RenderMode.Color;
+						break;
+					}
+				}
+			};
 		}
 
 		public bool Initialize()
@@ -459,11 +476,11 @@ namespace Mikan
 				Texture2D<float> InputTexture : register(t0);
 				SamplerState samLinear : register(s0);
 
-				//cbuffer ConstantBuffer : register(b0)
-				//{
-				//	float zNear;
-				//	float zFar;
-				//};
+				cbuffer ConstantBuffer : register(b0)
+				{
+					float zNear;
+					float zFar;
+				};
 
 				struct VS_INPUT
 				{
@@ -487,8 +504,8 @@ namespace Mikan
 
 				float4 ps_main(PS_INPUT input) : SV_TARGET
 				{
-					float zNear= 0.1;
-					float zFar= 200.0;
+					//float zNear= 0.1;
+					//float zFar= 200.0;
 					float depth = InputTexture.Sample(samLinear, input.uv).r;
 					float zNorm= (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
 
@@ -1087,7 +1104,7 @@ namespace Mikan
 			d3dDeviceContext.MapSubresource(depthNormalizeContantBuffer, MapMode.WriteDiscard, D3D11.MapFlags.None, out DataStream mappedResource);
 			mappedResource.Write(depthNormalConstants);
 			d3dDeviceContext.UnmapSubresource(depthNormalizeContantBuffer, 0);
-			d3dDeviceContext.VertexShader.SetConstantBuffer(0, depthNormalizeContantBuffer);
+			d3dDeviceContext.PixelShader.SetConstantBuffer(0, depthNormalizeContantBuffer);
 
 			// Draw the cube
 			d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
