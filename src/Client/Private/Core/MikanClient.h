@@ -28,9 +28,14 @@ public:
 	MikanResult sendRequest(const char* utf8_request_name, const char* utf8_payload, int request_version, MikanRequestID* out_request_id);
 	MikanResult shutdown();
 
-	MikanResult allocateRenderTargetBuffers(const MikanRenderTargetDescriptor& descriptor, MikanRequestID* out_request_id);
-	MikanResult publishRenderTargetTexture(void* ApiTexturePtr, const MikanClientFrameRendered& frameInfo);
-	MikanResult freeRenderTargetBuffers(MikanRequestID* out_request_id);
+	MikanResult allocateRenderTargetTextures(
+		const MikanRenderTargetDescriptor& descriptor, 
+		MikanRequestID* out_request_id);
+	MikanResult publishRenderTargetTextures(
+		void* ApiColorTexturePtr, 
+		void* ApiDepthTexturePtr, 
+		const MikanClientFrameRendered& frameInfo);
+	MikanResult freeRenderTargetTextures(MikanRequestID* out_request_id);
 
 protected:
 	void responseHandler(const std::string& utf8ResponseString);

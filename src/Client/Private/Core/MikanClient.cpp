@@ -25,7 +25,7 @@ MikanClient::MikanClient()
 
 MikanClient::~MikanClient()
 {
-    freeRenderTargetBuffers(nullptr);
+    freeRenderTargetTextures(nullptr);
     delete m_renderTargetWriter;
 	delete m_messageClient;
 }
@@ -74,7 +74,7 @@ MikanResult MikanClient::disconnect()
 	MikanResult resultCode= MikanResult_NotConnected;
 
 	// Free any existing buffer if we called allocate already
-	freeRenderTargetBuffers(nullptr);
+	freeRenderTargetTextures(nullptr);
 
 	if (m_messageClient->getIsConnected())
 	{
@@ -176,13 +176,13 @@ MikanResult MikanClient::shutdown()
 {
 	ix::uninitNetSystem();
 	log_dispose();
-	freeRenderTargetBuffers(nullptr);
+	freeRenderTargetTextures(nullptr);
 	m_messageClient->disconnect();
 
 	return MikanResult_Success;
 }
 
-MikanResult MikanClient::allocateRenderTargetBuffers(
+MikanResult MikanClient::allocateRenderTargetTextures(
 	const MikanRenderTargetDescriptor& descriptor,
 	MikanRequestID* out_request_id)
 {
@@ -203,7 +203,7 @@ MikanResult MikanClient::allocateRenderTargetBuffers(
 		json descriptorJson = descriptor;
 		std::string descriptorString = descriptorJson.dump();
 
-		resultCode= sendRequest("allocateRenderTargetBuffers", descriptorString.c_str(), 0, out_request_id);
+		resultCode= sendRequest("allocateRenderTargetTextures", descriptorString.c_str(), 0, out_request_id);
 	}
 	else
 	{
@@ -213,9 +213,19 @@ MikanResult MikanClient::allocateRenderTargetBuffers(
 	return resultCode;
 }
 
-MikanResult MikanClient::publishRenderTargetTexture(void* apiTexturePtr, const MikanClientFrameRendered& frameInfo)
+MikanResult MikanClient::publishRenderTargetTextures(
+	void* apiColorTexturePtr, 
+	void* apiDepthTexturePtr, 
+	const MikanClientFrameRendered& frameInfo)
 {
-	if (m_renderTargetWriter->writeRenderTargetTexture(apiTexturePtr))
+	bool bValidFrame= m_renderTargetWriter->writeColorFrameTexture(apiColorTexturePtr);
+
+	if (bValidFrame && m_renderTargetWriter->getWantsDepth())
+	{
+		bValidFrame= m_renderTargetWriter->writeDepthFrameTexture(apiDepthTexturePtr);
+	}
+
+	if (bValidFrame)
 	{
 		json descriptorJson = frameInfo;
 		std::string descriptorString = descriptorJson.dump();
@@ -228,14 +238,14 @@ MikanResult MikanClient::publishRenderTargetTexture(void* apiTexturePtr, const M
 	}
 }
 
-MikanResult MikanClient::freeRenderTargetBuffers(MikanRequestID* out_request_id)
+MikanResult MikanClient::freeRenderTargetTextures(MikanRequestID* out_request_id)
 {
 	MikanResult resultCode= MikanResult_Success;
 
 	// Tell the server to free it's existing render target (ignored if there isn't a render target allocated)
 	if (m_messageClient->getIsConnected())
 	{
-		resultCode= sendRequest("freeRenderTargetBuffers", nullptr, 0, out_request_id);
+		resultCode= sendRequest("freeRenderTargetTextures", nullptr, 0, out_request_id);
 	}
 
 	// Free shared and local memory buffers

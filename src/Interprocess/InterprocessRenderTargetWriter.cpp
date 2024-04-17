@@ -19,8 +19,10 @@ class SpoutOpenGLTextureWriter
 {
 public:
 	SpoutOpenGLTextureWriter(const std::string& clientName)
-		: m_senderName(clientName)
-		, m_spout(nullptr)
+		: m_colorFrameSenderName(clientName+"_color")
+		, m_depthFrameSenderName(clientName+"_depth")
+		, m_spoutColorFrame(nullptr)
+		, m_spoutDepthFrame(nullptr)
 	{
 		memset(&m_descriptor, 0, sizeof(MikanRenderTargetDescriptor));
 	}
@@ -32,10 +34,12 @@ public:
 
 	bool init(const MikanRenderTargetDescriptor* descriptor, bool bEnableFrameCounter)
 	{
+		bool bSuccess = true;
+
 		dispose();
 
-		m_spout = GetSpout();
-		if (m_spout == nullptr)
+		m_spoutColorFrame = GetSpout();
+		if (m_spoutColorFrame == nullptr)
 		{
 			MIKAN_LOG_ERROR("SpoutTextureWriter") << "Failed to open spout api";
 			return false;
@@ -44,46 +48,87 @@ public:
 		if (descriptor->color_buffer_type == MikanColorBuffer_RGBA32 ||
 			descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
 		{
-			m_spout->EnableSpoutLog();
-			m_spout->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
-			m_spout->SetSenderName(m_senderName.c_str());
+			m_spoutColorFrame->EnableSpoutLog();
+			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+			m_spoutColorFrame->SetSenderName(m_colorFrameSenderName.c_str());
 
 			if (descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
-				m_spout->SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+				m_spoutColorFrame->SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
 			else
-				m_spout->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+				m_spoutColorFrame->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
-			m_spout->SetFrameCount(bEnableFrameCounter);
+			m_spoutColorFrame->SetFrameCount(bEnableFrameCounter);
 		}
 		else
 		{
 			MIKAN_LOG_INFO("SpoutOpenGLTextureWriter::init()") << "color buffer type not supported: " << descriptor->color_buffer_type;
-			return false;
+			bSuccess= false;
+		}
+
+		if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_RGBA)
+		{
+			m_spoutDepthFrame->EnableSpoutLog();
+			m_spoutDepthFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+			m_spoutDepthFrame->SetSenderName(m_depthFrameSenderName.c_str());
+			m_spoutDepthFrame->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+			m_spoutDepthFrame->SetFrameCount(bEnableFrameCounter);
+		}
+		else if (descriptor->depth_buffer_type == MikanDepthBuffer_NODEPTH)
+		{
+			m_spoutDepthFrame= nullptr;
+		}
+		else
+		{
+			MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "depth buffer type not supported: " << descriptor->depth_buffer_type;
+			bSuccess = false;
 		}
 
 		m_descriptor= *descriptor;
 
-		return true;
+		return bSuccess;
 	}
 
 	void dispose()
 	{
-		if (m_spout != nullptr)
+		if (m_spoutColorFrame != nullptr)
 		{
-			m_spout->Release();
-			m_spout = nullptr;
+			m_spoutColorFrame->Release();
+			m_spoutColorFrame = nullptr;
+		}
+
+		if (m_spoutDepthFrame != nullptr)
+		{
+			m_spoutDepthFrame->Release();
+			m_spoutDepthFrame = nullptr;
 		}
 	}
 
-	bool writeRenderTargetTexture(GLuint textureID)
+	bool writeColorFrameTexture(GLuint textureID)
 	{
-		return m_spout->SendTexture(textureID, GL_TEXTURE_2D, m_descriptor.width, m_descriptor.height);
+		if (m_spoutColorFrame != nullptr && m_spoutColorFrame->IsInitialized())
+		{
+			return m_spoutColorFrame->SendTexture(textureID, GL_TEXTURE_2D, m_descriptor.width, m_descriptor.height);
+		}
+
+		return false;
+	}
+
+	bool writeDepthFrameTexture(GLuint textureID)
+	{
+		if (m_spoutDepthFrame != nullptr && m_spoutDepthFrame->IsInitialized())
+		{
+			return m_spoutDepthFrame->SendTexture(textureID, GL_TEXTURE_2D, m_descriptor.width, m_descriptor.height);
+		}
+
+		return false;
 	}
 
 private:
-	std::string m_senderName;
+	std::string m_colorFrameSenderName;
+	std::string m_depthFrameSenderName;
 	MikanRenderTargetDescriptor m_descriptor;
-	SPOUTLIBRARY* m_spout;
+	SPOUTLIBRARY* m_spoutColorFrame;
+	SPOUTLIBRARY* m_spoutDepthFrame;
 };
 
 #ifdef ENABLE_SPOUT_DX
@@ -92,7 +137,8 @@ class SpoutDX11TextureWriter
 public:
 	SpoutDX11TextureWriter::SpoutDX11TextureWriter(
 		const std::string& clientName)
-		: m_senderName(clientName)
+		: m_colorFrameSenderName(clientName+"_color")
+		, m_depthFrameSenderName(clientName+"_depth")
 	{
 	}
 
@@ -108,23 +154,23 @@ public:
 
 		dispose();
 
+		EnableSpoutLog();
+		EnableSpoutLogFile("sender.log");
+		SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
+
 		if (descriptor->color_buffer_type == MikanColorBuffer_RGBA32 ||
 			descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
 		{
-			EnableSpoutLog();
-			EnableSpoutLogFile("sender.log");
-			SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
-
-			m_spout.OpenDirectX11(d3d11Device);
-			m_spout.SetSenderName(m_senderName.c_str());
+			m_spoutColorFrame.OpenDirectX11(d3d11Device);
+			m_spoutColorFrame.SetSenderName(m_colorFrameSenderName.c_str());
 			
 			if (descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
-				m_spout.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+				m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
 			else
-				m_spout.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+				m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
 			if (!bEnableFrameCounter)
-				m_spout.DisableFrameCount();
+				m_spoutColorFrame.DisableFrameCount();
 		}
 		else
 		{
@@ -132,25 +178,51 @@ public:
 			bSuccess= false;
 		}
 
+		if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_RGBA)
+		{
+			m_spoutDepthFrame.OpenDirectX11(d3d11Device);
+			m_spoutDepthFrame.SetSenderName(m_depthFrameSenderName.c_str());
+
+			m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
+			if (!bEnableFrameCounter)
+				m_spoutDepthFrame.DisableFrameCount();
+		}
+		else
+		{
+			MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "depth buffer type not supported: " << descriptor->depth_buffer_type;
+			bSuccess = false;
+		}
+
 		return bSuccess;
 	}
 
 	void dispose()
 	{
-		m_spout.ReleaseSender();
-		m_spout.CloseDirectX11();
+		m_spoutColorFrame.ReleaseSender();
+		m_spoutColorFrame.CloseDirectX11();
+
+		m_spoutDepthFrame.ReleaseSender();
+		m_spoutDepthFrame.CloseDirectX11();
 
 		DisableSpoutLog();
 	}
 
-	bool writeRenderTargetTexture(ID3D11Texture2D* pTexture)
+	bool writeColorFrameTexture(ID3D11Texture2D* pTexture)
 	{
-		return m_spout.SendTexture(pTexture);
+		return m_spoutColorFrame.IsInitialized() ? m_spoutColorFrame.SendTexture(pTexture) : false;
+	}
+
+	bool writeDepthFrameTexture(ID3D11Texture2D* pTexture)
+	{
+		return m_spoutColorFrame.IsInitialized() ? m_spoutDepthFrame.SendTexture(pTexture) : false;
 	}
 
 private:
-	std::string m_senderName;
-	spoutDX m_spout;
+	std::string m_colorFrameSenderName;
+	std::string m_depthFrameSenderName;
+	spoutDX m_spoutColorFrame;
+	spoutDX m_spoutDepthFrame;
 };
 #endif // ENABLE_SPOUT_DX
 
@@ -187,6 +259,8 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 	void* apiDeviceInterface)
 {
 	dispose();
+
+	m_bWantsDepth= descriptor->depth_buffer_type != MikanDepthBuffer_NODEPTH;
 
 	if (descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
@@ -235,7 +309,7 @@ void InterprocessRenderTargetWriteAccessor::dispose()
 	m_bIsInitialized = false;
 }
 
-bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTexturePtr)
+bool InterprocessRenderTargetWriteAccessor::writeColorFrameTexture(void* apiTexturePtr)
 {
 	bool bSuccess = false;
 
@@ -243,14 +317,40 @@ bool InterprocessRenderTargetWriteAccessor::writeRenderTargetTexture(void* apiTe
 	{
 		GLuint* textureId= (GLuint*)apiTexturePtr;
 
-		bSuccess = m_writerImpl->writerApi.spoutOpenGLTextureWriter->writeRenderTargetTexture(*textureId);
+		bSuccess = m_writerImpl->writerApi.spoutOpenGLTextureWriter->writeColorFrameTexture(*textureId);
 	}
 #ifdef ENABLE_SPOUT_DX
 	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
 	{
 		ID3D11Texture2D* dx11Texture = (ID3D11Texture2D*)apiTexturePtr;
 
-		bSuccess = m_writerImpl->writerApi.spoutDX11TextureWriter->writeRenderTargetTexture(dx11Texture);
+		bSuccess = m_writerImpl->writerApi.spoutDX11TextureWriter->writeColorFrameTexture(dx11Texture);
+	}
+#endif // ENABLE_SPOUT_DX
+	else
+	{
+		bSuccess = false;
+	}
+
+	return true;
+}
+
+bool InterprocessRenderTargetWriteAccessor::writeDepthFrameTexture(void* apiTexturePtr)
+{
+	bool bSuccess = false;
+
+	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
+	{
+		GLuint* textureId = (GLuint*)apiTexturePtr;
+
+		bSuccess = m_writerImpl->writerApi.spoutOpenGLTextureWriter->writeDepthFrameTexture(*textureId);
+	}
+#ifdef ENABLE_SPOUT_DX
+	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
+	{
+		ID3D11Texture2D* dx11Texture = (ID3D11Texture2D*)apiTexturePtr;
+
+		bSuccess = m_writerImpl->writerApi.spoutDX11TextureWriter->writeDepthFrameTexture(dx11Texture);
 	}
 #endif // ENABLE_SPOUT_DX
 	else

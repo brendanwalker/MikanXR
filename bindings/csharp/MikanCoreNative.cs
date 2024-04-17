@@ -39,17 +39,18 @@ namespace MikanXR
 			out IntPtr outGraphicsDeviceInterface);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_AllocateRenderTargetBuffers(
+		public static extern int Mikan_AllocateRenderTargetTextures(
 			ref MikanRenderTargetDescriptor descriptor, 
 			out int out_request_id);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_PublishRenderTargetTexture(
-			IntPtr ApiTexturePtr, 
+		public static extern int Mikan_PublishRenderTargetTextures(
+			IntPtr ApiColorTexturePtr, 
+			IntPtr ApiDepthTexturePtr, 
 			ref MikanClientFrameRendered frame_info);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_FreeRenderTargetBuffers(out int out_request_id);
+		public static extern int Mikan_FreeRenderTargetTextures(out int out_request_id);
 
 		[DllImport("MikanCore.dll", CharSet = CharSet.Ansi)]
 		public static extern int Mikan_SetClientProperty(

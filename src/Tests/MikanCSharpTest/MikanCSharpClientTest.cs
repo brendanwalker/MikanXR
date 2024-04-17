@@ -934,7 +934,7 @@ namespace Mikan
 		{
 			FreeFrameBuffer();
 
-			await mikanAPI.FreeRenderTargetBuffers();
+			await mikanAPI.FreeRenderTargetTextures();
 
 			MikanResponse response = await mikanAPI.VideoSourceAPI.GetVideoSourceMode();
 			if (response.resultCode == MikanResult.Success)
@@ -951,7 +951,7 @@ namespace Mikan
 				};
 
 				// Tell the server to allocate new render target buffers
-				await mikanAPI.AllocateRenderTargetBuffers(ref desc);
+				await mikanAPI.AllocateRenderTargetTextures(ref desc);
 
 				// Create a new frame buffer to render to
 				CreateFrameBuffer(mode.resolution_x, mode.resolution_y);
@@ -1006,10 +1006,9 @@ namespace Mikan
 					frame_index = newFrameEvent.frame
 				};
 				
-				mikanAPI.PublishRenderTargetTexture(
-					DrawDepthMode == RenderMode.Color
-					? renderTarget.ColorTexture.NativePointer
-					: packedDepthRenderTarget.ColorTexture.NativePointer, 
+				mikanAPI.PublishRenderTargetTextures(
+					renderTarget.ColorTexture.NativePointer,
+					packedDepthRenderTarget.ColorTexture.NativePointer, 
 					ref frameRendered);
 			}
 

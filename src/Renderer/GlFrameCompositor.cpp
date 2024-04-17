@@ -912,15 +912,10 @@ bool GlFrameCompositor::addClientSource(
 
 	switch (desc.depth_buffer_type)
 	{
-	case MikanDepthBuffer_DEPTH16:
+	case MikanDepthBuffer_PACK_DEPTH_RGBA:
 		clientSource->depthTexture = std::make_shared<GlTexture>();
-		clientSource->depthTexture->setTextureFormat(GL_DEPTH_COMPONENT16);
-		clientSource->depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
-		break;
-	case MikanDepthBuffer_DEPTH32:
-		clientSource->depthTexture = std::make_shared<GlTexture>();
-		clientSource->depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
-		clientSource->depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
+		clientSource->depthTexture->setTextureFormat(GL_RGBA);
+		clientSource->depthTexture->setBufferFormat(GL_RGBA);
 		break;
 	}
 

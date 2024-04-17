@@ -234,7 +234,7 @@ void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEve
 
 	// Publish the new video frame back to Mikan
     MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
-	g_mikanAPI->publishRenderTargetTexture(g_renderTargetTexture, frameRendered);
+	g_mikanAPI->publishRenderTargetTextures(g_renderTargetTexture, nullptr, frameRendered);
 
 	// Remember the frame index of the last frame we published
     g_lastReceivedVideoSourceFrame = newFrameEvent.frame;
@@ -252,7 +252,7 @@ void reallocateRenderBuffers()
 {
 	freeFrameBuffer();
 
-	g_mikanAPI->freeRenderTargetBuffers().wait();
+	g_mikanAPI->freeRenderTargetTextures().wait();
 
 	auto future = g_mikanAPI->getVideoSourceAPI()->getVideoSourceMode();
 	auto response = future.get();
@@ -269,7 +269,7 @@ void reallocateRenderBuffers()
 		desc.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
 		// Tell the server to allocate new render target buffers
-		g_mikanAPI->allocateRenderTargetBuffers(desc).wait();
+		g_mikanAPI->allocateRenderTargetTextures(desc).wait();
 
         // Create a new frame buffer to render to
 		createFrameBuffer(mode->resolution_x, mode->resolution_y);

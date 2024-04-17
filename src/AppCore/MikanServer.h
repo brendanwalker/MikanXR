@@ -80,8 +80,8 @@ protected:
 	void subscribeToVRDevicePoseUpdates(const ClientRequest& request, std::string& utf8ResponseString);
 	void unsubscribeFromVRDevicePoseUpdates(const ClientRequest& request, std::string& utf8ResponseString);
 
-	void allocateRenderTargetBuffers(const ClientRequest& request, std::string& utf8ResponseString);
-	void freeRenderTargetBuffers(const ClientRequest& request, std::string& utf8ResponseString);
+	void allocateRenderTargetTextures(const ClientRequest& request, std::string& utf8ResponseString);
+	void freeRenderTargetTextures(const ClientRequest& request, std::string& utf8ResponseString);
 	void frameRendered(const ClientRequest& request, std::string& utf8ResponseString);
 
 	void getStencilList(const ClientRequest& request, std::string& utf8ResponseString);

@@ -108,26 +108,27 @@ public:
 		return Mikan_GetGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 	}
 
-	virtual MikanResponseFuture allocateRenderTargetBuffers(
+	virtual MikanResponseFuture allocateRenderTargetTextures(
 		const MikanRenderTargetDescriptor& descriptor) override
 	{
 		MikanRequestID requestId = INVALID_MIKAN_ID;
-		MikanResult result = Mikan_AllocateRenderTargetBuffers(&descriptor, &requestId);
+		MikanResult result = Mikan_AllocateRenderTargetTextures(&descriptor, &requestId);
 
 		return m_requestManager->addResponseHandler(requestId, result);
 	}
 
-	virtual MikanResult publishRenderTargetTexture(
-		void* apiTexturePtr, 
+	virtual MikanResult publishRenderTargetTextures(
+		void* apiColorTexturePtr, 
+		void* apiDepthTexturePtr, 
 		MikanClientFrameRendered& frameInfo) override
 	{
-		return Mikan_PublishRenderTargetTexture(apiTexturePtr, &frameInfo);
+		return Mikan_PublishRenderTargetTextures(apiColorTexturePtr, apiDepthTexturePtr, &frameInfo);
 	}
 
-	virtual MikanResponseFuture freeRenderTargetBuffers() override
+	virtual MikanResponseFuture freeRenderTargetTextures() override
 	{
 		MikanRequestID requestId = INVALID_MIKAN_ID;
-		MikanResult result = Mikan_FreeRenderTargetBuffers(&requestId);
+		MikanResult result = Mikan_FreeRenderTargetTextures(&requestId);
 
 		return m_requestManager->addResponseHandler(requestId, result);
 	}

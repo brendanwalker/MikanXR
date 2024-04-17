@@ -144,7 +144,7 @@ MikanResult Mikan_GetGraphicsDeviceInterface(MikanClientGraphicsApi api, void** 
 	return MikanResult_Success;
 }
 
-MikanResult Mikan_AllocateRenderTargetBuffers(
+MikanResult Mikan_AllocateRenderTargetTextures(
 	const MikanRenderTargetDescriptor* descriptor, 
 	MikanRequestID* out_request_id)
 {
@@ -157,10 +157,13 @@ MikanResult Mikan_AllocateRenderTargetBuffers(
 	if (out_request_id == nullptr)
 		return MikanResult_NullParam;
 
-	return g_mikanClient->allocateRenderTargetBuffers(*descriptor, out_request_id);
+	return g_mikanClient->allocateRenderTargetTextures(*descriptor, out_request_id);
 }
 
-MikanResult Mikan_PublishRenderTargetTexture(void* ApiTexturePtr, MikanClientFrameRendered* frame_info)
+MikanResult Mikan_PublishRenderTargetTextures(
+	void* ApiColorTexturePtr,
+	void* ApiDepthTexturePtr,
+	MikanClientFrameRendered* frame_info)
 {
 	if (g_mikanClient == nullptr)
 		return MikanResult_Uninitialized;
@@ -169,17 +172,17 @@ MikanResult Mikan_PublishRenderTargetTexture(void* ApiTexturePtr, MikanClientFra
 	if (frame_info == nullptr)
 		return MikanResult_NullParam;
 
-	return g_mikanClient->publishRenderTargetTexture(ApiTexturePtr, *frame_info);
+	return g_mikanClient->publishRenderTargetTextures(ApiColorTexturePtr, ApiDepthTexturePtr, *frame_info);
 }
 
-MikanResult Mikan_FreeRenderTargetBuffers(MikanRequestID* out_request_id)
+MikanResult Mikan_FreeRenderTargetTextures(MikanRequestID* out_request_id)
 {
 	if (g_mikanClient == nullptr)
 		return MikanResult_Uninitialized;
 	if (out_request_id == nullptr)
 		return MikanResult_NullParam;
 
-	return g_mikanClient->freeRenderTargetBuffers(out_request_id);
+	return g_mikanClient->freeRenderTargetTextures(out_request_id);
 }
 
 MikanResult Mikan_Disconnect()

@@ -56,7 +56,7 @@ public:
 
 	virtual ~MikanClientConnectionState()
 	{
-		freeRenderTargetBuffers();
+		freeRenderTargetTextures();
 		delete m_connectionInfo.renderTargetReadAccessor;
 	}
 
@@ -107,11 +107,11 @@ public:
 		}
 	}
 	
-	bool allocateRenderTargetBuffers(const MikanRenderTargetDescriptor& desc)
+	bool allocateRenderTargetTextures(const MikanRenderTargetDescriptor& desc)
 	{
 		EASY_FUNCTION();
 
-		freeRenderTargetBuffers();
+		freeRenderTargetTextures();
 
 		if (m_connectionInfo.renderTargetReadAccessor->initialize(&desc))
 		{
@@ -131,7 +131,7 @@ public:
 		return false;
 	}
 
-	void freeRenderTargetBuffers()
+	void freeRenderTargetTextures()
 	{
 		EASY_FUNCTION();
 
@@ -317,8 +317,8 @@ bool MikanServer::startup()
 	m_messageServer->setRequestHandler("getVRDeviceInfo", std::bind(&MikanServer::getVRDeviceInfo, this, _1, _2));
 	m_messageServer->setRequestHandler("subscribeToVRDevicePoseUpdates", std::bind(&MikanServer::subscribeToVRDevicePoseUpdates, this, _1, _2));
 	m_messageServer->setRequestHandler("unsubscribeFromVRDevicePoseUpdates", std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
-	m_messageServer->setRequestHandler("allocateRenderTargetBuffers", std::bind(&MikanServer::allocateRenderTargetBuffers, this, _1, _2));
-	m_messageServer->setRequestHandler("freeRenderTargetBuffers", std::bind(&MikanServer::freeRenderTargetBuffers, this, _1, _2));
+	m_messageServer->setRequestHandler("allocateRenderTargetTextures", std::bind(&MikanServer::allocateRenderTargetTextures, this, _1, _2));
+	m_messageServer->setRequestHandler("freeRenderTargetTextures", std::bind(&MikanServer::freeRenderTargetTextures, this, _1, _2));
 	m_messageServer->setRequestHandler("frameRendered", std::bind(&MikanServer::frameRendered, this, _1, _2));	
 	m_messageServer->setRequestHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
 	m_messageServer->setRequestHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
@@ -834,7 +834,7 @@ void MikanServer::unsubscribeFromVRDevicePoseUpdates(
 	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 }
 
-void MikanServer::allocateRenderTargetBuffers(
+void MikanServer::allocateRenderTargetTextures(
 	const ClientRequest& request,
 	std::string& utf8ResponseString)
 {	
@@ -853,7 +853,7 @@ void MikanServer::allocateRenderTargetBuffers(
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
-	if (clientState->allocateRenderTargetBuffers(desc))
+	if (clientState->allocateRenderTargetTextures(desc))
 	{
 		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 	}
@@ -863,7 +863,7 @@ void MikanServer::allocateRenderTargetBuffers(
 	}
 }
 
-void MikanServer::freeRenderTargetBuffers(
+void MikanServer::freeRenderTargetTextures(
 	const ClientRequest& request,
 	std::string& utf8ResponseString)
 {
@@ -875,7 +875,7 @@ void MikanServer::freeRenderTargetBuffers(
 			OnClientRenderTargetReleased(request.clientId, connection_it->second->getRenderTargetReadAccessor());
 		}
 
-		connection_it->second->freeRenderTargetBuffers();
+		connection_it->second->freeRenderTargetTextures();
 		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
 	}
 	else

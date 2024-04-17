@@ -91,9 +91,12 @@ public:
 	virtual MikanResult setClientInfo(const MikanClientInfo& clientInfo) = 0;
 	virtual MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
 	virtual MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;
-	virtual MikanResponseFuture allocateRenderTargetBuffers(const MikanRenderTargetDescriptor& descriptor) = 0;
-	virtual MikanResult publishRenderTargetTexture(void* apiTexturePtr, MikanClientFrameRendered& frameInfo) = 0;
-	virtual MikanResponseFuture freeRenderTargetBuffers() = 0;
+	virtual MikanResponseFuture allocateRenderTargetTextures(const MikanRenderTargetDescriptor& descriptor) = 0;
+	virtual MikanResult publishRenderTargetTextures(
+		void* apiColorTexturePtr,
+		void* apiDepthTexturePtr,
+		MikanClientFrameRendered& frameInfo) = 0;
+	virtual MikanResponseFuture freeRenderTargetTextures() = 0;
 	virtual MikanResult connect(const std::string& host="", const std::string& port="") = 0;
 	virtual bool getIsConnected() = 0;
 	virtual MikanResult fetchNextEvent(MikanEventPtr& out_event) = 0;

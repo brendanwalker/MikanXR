@@ -400,7 +400,7 @@ void AppStage_Compositor::onNewStreamingFrameReady()
 		{
 			GLuint textureId= frameTexture->getGlTextureId();
 
-			m_renderTargetWriteAccessor->writeRenderTargetTexture(&textureId);
+			m_renderTargetWriteAccessor->writeColorFrameTexture(&textureId);
 		}
 	}
 }

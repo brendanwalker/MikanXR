@@ -136,27 +136,32 @@ namespace MikanXR
 			return (MikanResult)result;
 		}
 
-		public Task<MikanResponse> AllocateRenderTargetBuffers(ref MikanRenderTargetDescriptor descriptor)
+		public Task<MikanResponse> AllocateRenderTargetTextures(ref MikanRenderTargetDescriptor descriptor)
 		{
 			MikanResult result = 
-				(MikanResult)MikanCoreNative.Mikan_AllocateRenderTargetBuffers(ref descriptor, out int requestId);
+				(MikanResult)MikanCoreNative.Mikan_AllocateRenderTargetTextures(
+					ref descriptor, out int requestId);
 
 			return _requestManager.AddResponseHandler(requestId, result);
 		}
 
-		public MikanResult PublishRenderTargetTexture(
-			IntPtr apiTexturePtr, 
+		public MikanResult PublishRenderTargetTextures(
+			IntPtr apiColorTexturePtr, 
+			IntPtr apiDepthTexturePtr,
 			ref MikanClientFrameRendered frameInfo)
 		{
 			MikanResult result = 
-				(MikanResult)MikanCoreNative.Mikan_PublishRenderTargetTexture(apiTexturePtr, ref frameInfo);
+				(MikanResult)MikanCoreNative.Mikan_PublishRenderTargetTextures(
+					apiColorTexturePtr, 
+					apiDepthTexturePtr,
+					ref frameInfo);
 
 			return result;
 		}
 
-		public Task<MikanResponse> FreeRenderTargetBuffers()
+		public Task<MikanResponse> FreeRenderTargetTextures()
 		{
-			MikanResult result = (MikanResult)MikanCoreNative.Mikan_FreeRenderTargetBuffers(out int requestId);
+			MikanResult result = (MikanResult)MikanCoreNative.Mikan_FreeRenderTargetTextures(out int requestId);
 
 			return _requestManager.AddResponseHandler(requestId, result);
 		}

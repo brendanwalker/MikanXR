@@ -36,14 +36,15 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetGraphicsDeviceInterface(
 	MikanClientGraphicsApi api, 
 	void** outGraphicsDeviceInterface);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_AllocateRenderTargetBuffers(
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_AllocateRenderTargetTextures(
 	const MikanRenderTargetDescriptor* descriptor, MikanRequestID* out_request_id);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_PublishRenderTargetTexture(
-	void* ApiTexturePtr, 
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_PublishRenderTargetTextures(
+	void* ApiColorTexturePtr,
+	void* ApiDepthTexturePtr,
 	MikanClientFrameRendered* frame_info);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeRenderTargetBuffers(MikanRequestID* out_request_id);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeRenderTargetTextures(MikanRequestID* out_request_id);
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetClientProperty(const char* key, const char* value);
 

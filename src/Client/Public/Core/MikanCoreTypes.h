@@ -73,8 +73,7 @@ enum MikanColorBufferType
 enum MikanDepthBufferType
 {
 	MikanDepthBuffer_NODEPTH,
-	MikanDepthBuffer_DEPTH16,
-	MikanDepthBuffer_DEPTH32,
+	MikanDepthBuffer_PACK_DEPTH_RGBA,
 };
 
 struct MikanRenderTargetDescriptor
