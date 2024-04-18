@@ -20,7 +20,7 @@ public:
 	void setDepthTexture(GlTexturePtr texture) { m_depthTexture = texture; }
 	GlTexturePtr getColorTexture() { return m_colorTexture; }
 	GlTexturePtr getDepthTexture() { return m_depthTexture; }
-	bool readRenderTargetMemory();
+	bool readRenderTargetTextures();
 	
 	MikanClientGraphicsApi getClientGraphicsAPI() const { return m_descriptor.graphicsAPI; }
 	MikanRenderTargetDescriptor& getRenderTargetDescriptor() { return m_descriptor; }

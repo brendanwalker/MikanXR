@@ -12,8 +12,10 @@ public:
 		InterprocessRenderTargetReadAccessor* parentAccessor,
 		const std::string& clientName)
 		: m_parentAccessor(parentAccessor)
-		, m_senderName(clientName)
-		, m_spout(nullptr)
+		, m_colorSenderName(clientName+"_color")
+		, m_depthSenderName(clientName+"_depth")
+		, m_spoutColorFrame(nullptr)
+		, m_spoutDepthFrame(nullptr)
 	{
 	}
 
@@ -26,56 +28,100 @@ public:
 	{
 		dispose();
 
-		m_spout = GetSpout();
-		if (m_spout == nullptr)
+		m_spoutColorFrame = GetSpout();
+		if (m_spoutColorFrame != nullptr)
 		{
-			MIKAN_LOG_ERROR("SpoutTextureReader") << "Failed to open spout api";
+			m_spoutColorFrame->EnableSpoutLog();
+			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+			m_spoutColorFrame->SetReceiverName(m_colorSenderName.c_str());
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("SpoutTextureReader") << "Failed to open spout for sender: " << m_colorSenderName;
 			return false;
 		}
 
-		m_spout->EnableSpoutLog();
-		m_spout->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
-		//m_spout->SetReceiverName(m_senderName.c_str());
+		if (descriptor->depth_buffer_type != MikanDepthBuffer_PACK_DEPTH_RGBA)
+		{
+			m_spoutDepthFrame = GetSpout();
+			if (m_spoutDepthFrame != nullptr)
+			{
+				m_spoutDepthFrame->EnableSpoutLog();
+				m_spoutDepthFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+				m_spoutDepthFrame->SetReceiverName(m_depthSenderName.c_str());
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("SpoutTextureReader") << "Failed to open spout for sender: " << m_depthSenderName;
+				return false;
+			}
+		}
 
 		return true;
 	}
 
 	void dispose()
 	{
-		if (m_spout != nullptr)
+		if (m_spoutDepthFrame != nullptr)
 		{
-			m_spout->Release();
-			m_spout= nullptr;
+			m_spoutDepthFrame->Release();
+			m_spoutDepthFrame = nullptr;
+		}
+
+		if (m_spoutDepthFrame != nullptr)
+		{
+			m_spoutDepthFrame->Release();
+			m_spoutDepthFrame= nullptr;
 		}
 	}
 
 	bool readRenderTargetTexture()
 	{
+		bool bSuccess = false;
 
 		GlTexturePtr colorTexture = m_parentAccessor->getColorTexture();
 		if (colorTexture != nullptr)
 		{
-			EASY_BLOCK("receive texture");
+			EASY_BLOCK("receive color texture");
 
-			if (m_spout->IsUpdated())
+			if (m_spoutColorFrame->IsUpdated())
 			{
 				colorTexture->disposeTexture();
-				colorTexture->setSize(m_spout->GetSenderWidth(), m_spout->GetSenderHeight());
+				colorTexture->setSize(m_spoutColorFrame->GetSenderWidth(), m_spoutColorFrame->GetSenderHeight());
 				colorTexture->setTextureFormat(GL_RGBA);
 				colorTexture->setBufferFormat(GL_RGBA);
 				colorTexture->createTexture();
 			}
 
-			return (m_spout->ReceiveTexture(colorTexture->getGlTextureId(), GL_TEXTURE_2D));
+			bSuccess= m_spoutColorFrame->ReceiveTexture(colorTexture->getGlTextureId(), GL_TEXTURE_2D);
 		}
 
-		return false;
+		GlTexturePtr depthTexture = m_parentAccessor->getDepthTexture();
+		if (depthTexture != nullptr)
+		{
+			EASY_BLOCK("receive depth texture");
+
+			if (m_spoutDepthFrame->IsUpdated())
+			{
+				depthTexture->disposeTexture();
+				depthTexture->setSize(m_spoutDepthFrame->GetSenderWidth(), m_spoutDepthFrame->GetSenderHeight());
+				depthTexture->setTextureFormat(GL_RGBA);
+				depthTexture->setBufferFormat(GL_RGBA);
+				depthTexture->createTexture();
+			}
+
+			bSuccess&= m_spoutDepthFrame->ReceiveTexture(depthTexture->getGlTextureId(), GL_TEXTURE_2D);
+		}
+
+		return bSuccess;
 	}
 
 private:
 	InterprocessRenderTargetReadAccessor* m_parentAccessor;
-	std::string m_senderName;
-	SPOUTLIBRARY* m_spout;
+	std::string m_colorSenderName;
+	std::string m_depthSenderName;
+	SPOUTLIBRARY* m_spoutColorFrame;
+	SPOUTLIBRARY* m_spoutDepthFrame;
 };
 
 //-- InterprocessRenderTargetReadAccessor -----
@@ -145,7 +191,7 @@ void InterprocessRenderTargetReadAccessor::dispose()
 	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 }
 
-bool InterprocessRenderTargetReadAccessor::readRenderTargetMemory()
+bool InterprocessRenderTargetReadAccessor::readRenderTargetTextures()
 {
 	bool bSuccess = false;
 

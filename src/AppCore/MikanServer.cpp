@@ -76,11 +76,11 @@ public:
 		return m_connectionInfo.clientInfo;
 	}
 
-	bool readRenderTarget()
+	bool readRenderTargetTextures()
 	{
 		EASY_FUNCTION();
 
-		return m_connectionInfo.renderTargetReadAccessor->readRenderTargetMemory();
+		return m_connectionInfo.renderTargetReadAccessor->readRenderTargetTextures();
 	}
 
 	InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const
@@ -903,7 +903,7 @@ void MikanServer::frameRendered(
 		{
 			MikanClientConnectionStatePtr clientState = connection_it->second;
 
-			if (clientState->readRenderTarget())
+			if (clientState->readRenderTargetTextures())
 			{
 				OnClientRenderTargetUpdated(request.clientId, frameRendered.frame_index);
 			}

@@ -438,6 +438,17 @@ bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) con
 	return false;
 }
 
+bool GlFrameCompositor::getVideoSourceZRange(float& outZNear, float& outZFar) const
+{
+	if (m_videoSourceView != nullptr)
+	{
+		m_videoSourceView->getZRange(outZNear, outZFar);
+		return true;
+	}
+
+	return false;
+}
+
 GlTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textureSource) const
 {
 	switch (textureSource)

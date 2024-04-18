@@ -39,6 +39,7 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
+	void evaluateDepthTexture(GlState& glState);
 	void evaluateQuadStencils(GlState& glState);
 	void evaluateBoxStencils(GlState& glState);
 	void evaluateModelStencils(GlState& glState);
@@ -50,15 +51,19 @@ protected:
 	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
 
 	void setStencilsPin(ArrayPinPtr inPin);
-	void setTexturePin(TexturePinPtr inPin);
+	void setDepthTextureInPin(TexturePinPtr outPin);
+	void setDepthTextureOutPin(TexturePinPtr outPin);
 	void rebuildStencilLists();
 
 protected:
+	TexturePinPtr m_inDepthTexturePin;
 	ArrayPinPtr m_stencilsPin;
 	std::vector<MikanStencilID> m_quadStencilIds;
 	std::vector<MikanStencilID> m_boxStencilIds;
 	std::vector<MikanStencilID> m_modelStencilIds;
-	TexturePinPtr m_texturePin;
+	TexturePinPtr m_outDepthTexturePin;
+
+	GlMaterialInstancePtr m_depthMaterialInstance;
 	GlFrameBufferPtr m_depthFrameBuffer;
 
 	bool m_bDisableQuadStencil = false;

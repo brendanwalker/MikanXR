@@ -42,6 +42,8 @@ enum class eUniformSemantic : int
 	specularHighlights,
 	opticalDensity,
 	dissolve,
+	zNear,
+	zFar,
 	floatConstant0,
 	floatConstant1,
 	floatConstant2,

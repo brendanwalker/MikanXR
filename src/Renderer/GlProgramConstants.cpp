@@ -18,6 +18,8 @@ const std::string g_UniformSemanticName[(int)eUniformSemantic::COUNT] = {
 	"specularHighlights",
 	"opticalDensity",
 	"dissolve",
+	"zNear",
+	"zFar",
 	"floatConstant0",
 	"floatConstant1",
 	"floatConstant2",

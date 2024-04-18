@@ -169,6 +169,55 @@ namespace InternalShaders
 		return &x_shaderCode;
 	}
 
+	const GlProgramCode* getUnpackRGBADepthTextureShaderCode()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE,
+			// vertex shader
+			R""""(
+			#version 330 core
+			layout (location = 0) in vec2 aPos;
+			layout (location = 1) in vec2 aTexCoords;
+
+			out vec2 TexCoords;
+
+			void main()
+			{
+				TexCoords = aTexCoords;
+				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
+			}
+			)"""",
+			//fragment shader
+			R""""(
+			#version 330 core
+			out vec4 FragColor;
+			out float gl_FragDepth;
+
+			in vec2 TexCoords;
+
+			uniform float zNear;
+			uniform float zFar;
+			uniform sampler2D rgbaPackedDepthTexture;
+
+			void main()
+			{
+				vec4 rgba = texture(rgbaPackedDepthTexture, TexCoords).rgba;
+				float depth= dot( rgba, float4(1.0, 1/255.0, 1/65025.0, 1/16581375.0) );
+				float zNorm= (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+
+				FragColor = vec4(zNorm, zNorm, zNorm, 1.0);
+				gl_FragDepth = depth;
+			} 
+			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addUniform("rgbaPackedDepthTexture", eUniformSemantic::rgbaTexture)
+			.addUniform("zNear", eUniformSemantic::zNear)
+			.addUniform("zFar", eUniformSemantic::zFar);
+
+		return &x_shaderCode;
+	}
+
 	const GlProgramCode* getPWireframeShaderCode()
 	{
 		static GlProgramCode x_shaderCode = GlProgramCode(
@@ -359,6 +408,7 @@ namespace InternalShaders
 	{
 		std::vector<const GlProgramCode*> internalShaders = {
 			getPTTexturedFullScreenQuad(),
+			getUnpackRGBADepthTextureShaderCode(),
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),
 			getPTTexturedShaderCode(),

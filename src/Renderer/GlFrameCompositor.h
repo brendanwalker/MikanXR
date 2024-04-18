@@ -82,6 +82,7 @@ public:
 
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
 	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
+	bool getVideoSourceZRange(float& outZNear, float& outZFar) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
 #if REALTIME_DEPTH_ESTIMATION_ENABLED
 	inline SyntheticDepthEstimatorPtr getSyntheticDepthEstimator() const { return m_syntheticDepthEstimator; }
