@@ -212,7 +212,7 @@ namespace Mikan
 
 		// Render Targets
 		private RenderTarget renderTarget;
-		private RenderTarget packedDepthRenderTarget;
+		private RenderTarget depthDebugRenderTarget;
 
 		// Cube Shader Data
 		private D3D11.VertexShader cubeVertexShader;
@@ -230,10 +230,6 @@ namespace Mikan
 		private D3D11.PixelShader depthNormalizePixelShader;
 		private D3D11.Buffer depthNormalizeContantBuffer;
 		private DepthNormalizeConstantBuffer depthNormalConstants;
-
-		// Depth Pack Shader Data
-		private D3D11.VertexShader depthPackVertexShader;
-		private D3D11.PixelShader depthPackPixelShader;
 
 		// Full Screen Texture Shader Data
 		private D3D11.VertexShader quadVertexShader;
@@ -258,7 +254,7 @@ namespace Mikan
 			mikanAPI = new MikanAPI();
 
 			renderTarget = new RenderTarget();
-			packedDepthRenderTarget = new RenderTarget();
+			depthDebugRenderTarget = new RenderTarget();
 
 			// Set window properties
 			renderForm = new RenderForm("Mikan C# D3D11 Test");
@@ -273,9 +269,6 @@ namespace Mikan
 						DrawDepthMode= RenderMode.DepthNormalize;
 						break;
 					case RenderMode.DepthNormalize:
-						DrawDepthMode= RenderMode.DepthPack;
-						break;
-					case RenderMode.DepthPack:
 						DrawDepthMode= RenderMode.Color;
 						break;
 					}
@@ -294,7 +287,6 @@ namespace Mikan
 				bSuccess= 
 					InitializeCubeShader() && 
 					InitializeDepthNormalizeShader() &&
-					InitializeDepthPackShader() &&
 					InitializeQuadTextureShader();
 				if (bSuccess)
 				{
@@ -327,9 +319,6 @@ namespace Mikan
 			Utilities.Dispose(ref depthNormalizeVertexShader);
 			Utilities.Dispose(ref depthNormalizePixelShader);
 
-			Utilities.Dispose(ref depthPackVertexShader);
-			Utilities.Dispose(ref depthPackPixelShader);
-
 			Utilities.Dispose(ref quadPixelShader);
 			Utilities.Dispose(ref quadVertexShader);
 			Utilities.Dispose(ref quadInputSignature);
@@ -342,7 +331,7 @@ namespace Mikan
 			Utilities.Dispose(ref defaultFloatDepthView);
 
 			Utilities.Dispose(ref renderTarget);
-			Utilities.Dispose(ref packedDepthRenderTarget);
+			Utilities.Dispose(ref depthDebugRenderTarget);
 
 			Utilities.Dispose(ref swapChain);
 			Utilities.Dispose(ref d3dDevice);
@@ -426,13 +415,13 @@ namespace Mikan
 		private void FreeFrameBuffer()
 		{
 			renderTarget.Dispose();
-			packedDepthRenderTarget.Dispose();
+			depthDebugRenderTarget.Dispose();
 		}
 
 		private void CreateFrameBuffer(int newWidth, int newHeight)
 		{
 			renderTarget.Initialize(d3dDevice, newWidth, newHeight);
-			packedDepthRenderTarget.Initialize(d3dDevice, newWidth, newHeight);
+			depthDebugRenderTarget.Initialize(d3dDevice, newWidth, newHeight);
 		}
 
 		private bool InitializeCubeShader()
@@ -553,8 +542,6 @@ namespace Mikan
 
 				float4 ps_main(PS_INPUT input) : SV_TARGET
 				{
-					//float zNear= 0.1;
-					//float zFar= 200.0;
 					float depth = InputTexture.Sample(samLinear, input.uv).r;
 					float zNorm= (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
 
@@ -588,64 +575,6 @@ namespace Mikan
 				CpuAccessFlags.Write,
 				ResourceOptionFlags.None,
 				0);
-
-			return true;
-		}
-
-		private bool InitializeDepthPackShader()
-		{
-			string shaderCodeString = @"
-				Texture2D<float> InputTexture : register(t0);
-				SamplerState samLinear : register(s0);
-
-				struct VS_INPUT
-				{
-					float3 position : POSITION;
-					float2 texCoord : TEXCOORD;
-				};
-
-				struct PS_INPUT
-				{
-					float4 pos : SV_POSITION;
-					float2 uv : TEXCOORD;
-				};
-
-				PS_INPUT vs_main(VS_INPUT input)
-				{
-					PS_INPUT output;
-					output.pos = float4(input.position, 1.0f);
-					output.uv = input.texCoord;
-					return output;
-				}
-
-				float4 ps_main(PS_INPUT input) : SV_TARGET
-				{
-					// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
-					float floatValue = InputTexture.Sample(samLinear, input.uv).r;
-					float4 encodedValue = float4(1.0, 255.0, 65025.0, 16581375.0) * floatValue;
-					encodedValue = frac(encodedValue);
-					encodedValue -= encodedValue.yzww * float4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
-
-					return encodedValue;
-				}";
-
-			// Compile the vertex shader code
-			var vertexShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "vs_main", "vs_4_0", ShaderFlags.Debug);
-			if (vertexShaderByteCode.HasErrors)
-			{
-				Log(MikanLogLevel.Fatal, vertexShaderByteCode.Message);
-				return false;
-			}
-			depthPackVertexShader = new D3D11.VertexShader(d3dDevice, vertexShaderByteCode);
-
-			// Compile the pixel shader code
-			var pixelShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "ps_main", "ps_4_0", ShaderFlags.Debug);
-			if (pixelShaderByteCode.HasErrors)
-			{
-				Log(MikanLogLevel.Fatal, pixelShaderByteCode.Message);
-				return false;
-			}
-			depthPackPixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
 
 			return true;
 		}
@@ -728,7 +657,7 @@ namespace Mikan
 					new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0)
 				});
 
-			// Instantiate Vertex buiffer from vertex data
+			// Instantiate Vertex buffer from vertex data
 			cubeVertices = D3D11.Buffer.Create(d3dDevice, BindFlags.VertexBuffer, new[]
 			{
 				new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), // Front
@@ -946,7 +875,7 @@ namespace Mikan
 					width = (uint)mode.resolution_x,
 					height = (uint)mode.resolution_y,
 					color_buffer_type = MikanColorBufferType.BGRA32,
-					depth_buffer_type = MikanDepthBufferType.NODEPTH,
+					depth_buffer_type = MikanDepthBufferType.FLOAT_DEPTH,
 					graphicsAPI = MikanClientGraphicsApi.Direct3D11
 				};
 
@@ -1008,7 +937,7 @@ namespace Mikan
 				
 				mikanAPI.PublishRenderTargetTextures(
 					renderTarget.ColorTexture.NativePointer,
-					packedDepthRenderTarget.ColorTexture.NativePointer, 
+					renderTarget.DepthTexture.NativePointer, 
 					ref frameRendered);
 			}
 
@@ -1073,34 +1002,10 @@ namespace Mikan
 			d3dDeviceContext.Draw(cubeVertexCount, 0);
 		}
 
-		private void RenderDepthPackTexture()
-		{
-			// Set the output render views
-			packedDepthRenderTarget.Bind(d3dDeviceContext);
-
-			// Assign the quad vertices
-			d3dDeviceContext.InputAssembler.SetVertexBuffers(
-				0,
-				new VertexBufferBinding(quadVertices, kQuadVertexSize, 0));
-
-			// Assign the depth shader
-			d3dDeviceContext.InputAssembler.InputLayout = quadInputLayout;
-			d3dDeviceContext.VertexShader.Set(depthPackVertexShader);
-			d3dDeviceContext.PixelShader.Set(depthPackPixelShader);
-
-			// Set the texture
-			d3dDeviceContext.PixelShader.SetShaderResource(0, renderTarget.FloatDepthTextureSRV);
-			d3dDeviceContext.PixelShader.SetSampler(0, quadTextureSamplerState);
-
-			// Draw the cube
-			d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-			d3dDeviceContext.Draw(6, 0);
-		}
-
 		private void RenderNormalizedDepthTexture()
 		{
 			// Set the output render views
-			packedDepthRenderTarget.Bind(d3dDeviceContext);
+			depthDebugRenderTarget.Bind(d3dDeviceContext);
 
 			// Assign the quad vertices
 			d3dDeviceContext.InputAssembler.SetVertexBuffers(
@@ -1158,27 +1063,19 @@ namespace Mikan
 		enum RenderMode
 		{
 			Color,
-			DepthPack,
 			DepthNormalize
 		}
 		static RenderMode DrawDepthMode = RenderMode.Color;
 
 		private void Draw()
 		{
-			if (renderTarget.IsInitialized && packedDepthRenderTarget.IsInitialized)
+			if (renderTarget.IsInitialized && depthDebugRenderTarget.IsInitialized)
 			{
 				// Draw the cube to the RGBA color and float depth textures
 				RenderCubeToTarget(renderTarget.ColorTargetView, renderTarget.DepthTargetView);
 
 				// Render the depth RGBA packed texture
-				if (DrawDepthMode == RenderMode.DepthNormalize)
-				{
-					RenderNormalizedDepthTexture();
-				}
-				else
-				{
-					RenderDepthPackTexture();
-				}
+				RenderNormalizedDepthTexture();
 
 				// Render a result texture to the screen
 				switch (DrawDepthMode)
@@ -1186,9 +1083,8 @@ namespace Mikan
 				case RenderMode.Color:
 					RenderColorTexture(renderTarget.ColorTextureSRV);
 					break;
-				case RenderMode.DepthPack:
 				case RenderMode.DepthNormalize:
-					RenderColorTexture(packedDepthRenderTarget.ColorTextureSRV);
+					RenderColorTexture(depthDebugRenderTarget.ColorTextureSRV);
 					break;
 				}
 			}

@@ -3,8 +3,11 @@
 #include "MikanCoreTypes.h"
 #ifdef ENABLE_SPOUT_DX
 #include "SpoutDX.h"
+#include "SpoutDXDepthTexturePacker.h"
 #endif // ENABLE_SPOUT_DX
 #include "SpoutLibrary.h"
+
+#include "assert.h"
 
 // Define DXGI_FORMAT enum values ourselves if we don't use SPOUTDX API
 #ifndef ENABLE_SPOUT_DX
@@ -139,6 +142,9 @@ public:
 		const std::string& clientName)
 		: m_colorFrameSenderName(clientName+"_color")
 		, m_depthFrameSenderName(clientName+"_depth")
+		, m_spoutColorFrame()
+		, m_spoutDepthFrame()
+		, m_depthTexturePacker(nullptr)
 	{
 	}
 
@@ -158,47 +164,78 @@ public:
 		EnableSpoutLogFile("sender.log");
 		SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
 
+		// Initialize the color spout frame
 		if (descriptor->color_buffer_type == MikanColorBuffer_RGBA32 ||
 			descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
 		{
-			m_spoutColorFrame.OpenDirectX11(d3d11Device);
-			m_spoutColorFrame.SetSenderName(m_colorFrameSenderName.c_str());
-			
-			if (descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
-				m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
-			else
-				m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+			if (m_spoutColorFrame.OpenDirectX11(d3d11Device) &&
+				m_spoutColorFrame.SetSenderName(m_colorFrameSenderName.c_str()))
+			{
+				if (descriptor->color_buffer_type == MikanColorBuffer_BGRA32)
+					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+				else
+					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
-			if (!bEnableFrameCounter)
-				m_spoutColorFrame.DisableFrameCount();
+				if (!bEnableFrameCounter)
+					m_spoutColorFrame.DisableFrameCount();
+			}
+			else
+			{
+				MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "Error initializing color spout frame";
+				return false;
+			}			
 		}
 		else
 		{
 			MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "color buffer type not supported: " << descriptor->color_buffer_type;
-			bSuccess= false;
+			return false;
 		}
 
-		if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_RGBA)
+		// Initialize the depth spout frame, if requested
+		if (descriptor->depth_buffer_type != MikanDepthBuffer_NODEPTH)
 		{
-			m_spoutDepthFrame.OpenDirectX11(d3d11Device);
-			m_spoutDepthFrame.SetSenderName(m_depthFrameSenderName.c_str());
+			if (m_spoutDepthFrame.OpenDirectX11(d3d11Device) &&
+				m_spoutDepthFrame.SetSenderName(m_depthFrameSenderName.c_str()))
+			{
+				// Initialize the depth texture packer if we are sending float depth textures
+				if (descriptor->depth_buffer_type == MikanDepthBuffer_FLOAT_DEPTH)
+				{
+					m_depthTexturePacker = new SpoutDXDepthTexturePacker(m_spoutDepthFrame);
+					if (!m_depthTexturePacker->init())
+					{
+						MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "Error initializing float depth packer";
+						return false;
+					}
+				}
 
-			m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+				m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
-			if (!bEnableFrameCounter)
-				m_spoutDepthFrame.DisableFrameCount();
+				if (!bEnableFrameCounter)
+					m_spoutDepthFrame.DisableFrameCount();
+			}
+			else
+			{
+				MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "Error initializing depth spout frame";
+				return false;
+			}
 		}
 		else
 		{
 			MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "depth buffer type not supported: " << descriptor->depth_buffer_type;
-			bSuccess = false;
+			return false;
 		}
 
-		return bSuccess;
+		return true;
 	}
 
 	void dispose()
 	{
+		if (m_depthTexturePacker != nullptr)
+		{
+			delete m_depthTexturePacker;
+			m_depthTexturePacker = nullptr;
+		}
+
 		m_spoutColorFrame.ReleaseSender();
 		m_spoutColorFrame.CloseDirectX11();
 
@@ -215,7 +252,26 @@ public:
 
 	bool writeDepthFrameTexture(ID3D11Texture2D* pTexture)
 	{
-		return m_spoutColorFrame.IsInitialized() ? m_spoutDepthFrame.SendTexture(pTexture) : false;
+		if (m_spoutDepthFrame.IsInitialized())
+		{
+			if (m_depthTexturePacker != nullptr)
+			{
+				// Convert the float depth texture to a RGBA8 texture using a shader
+				// (Spout can only send RGBA8 textures)
+				ID3D11Texture2D* packedDepthTexture = m_depthTexturePacker->packDepthTexture(pTexture);
+
+				if (packedDepthTexture != nullptr)
+				{
+					return m_spoutDepthFrame.SendTexture(packedDepthTexture);
+				}
+			}
+			else
+			{
+				m_spoutDepthFrame.SendTexture(pTexture);
+			}
+		}
+		
+		return false;
 	}
 
 private:
@@ -223,6 +279,7 @@ private:
 	std::string m_depthFrameSenderName;
 	spoutDX m_spoutColorFrame;
 	spoutDX m_spoutDepthFrame;
+	SpoutDXDepthTexturePacker* m_depthTexturePacker= nullptr;
 };
 #endif // ENABLE_SPOUT_DX
 
@@ -230,6 +287,8 @@ private:
 //-- InterprocessRenderTargetWriteAccessor -----
 struct RenderTargetWriterImpl
 {
+	MikanRenderTargetDescriptor renderTargetDescriptor;
+
 	union
 	{	
 #ifdef ENABLE_SPOUT_DX
@@ -245,6 +304,7 @@ InterprocessRenderTargetWriteAccessor::InterprocessRenderTargetWriteAccessor(con
 	, m_writerImpl(new RenderTargetWriterImpl)
 {
 	memset(m_writerImpl, 0, sizeof(RenderTargetWriterImpl));
+	memset(&m_writerImpl->renderTargetDescriptor, 0, sizeof(MikanRenderTargetDescriptor));
 }
 
 InterprocessRenderTargetWriteAccessor::~InterprocessRenderTargetWriteAccessor()
@@ -260,7 +320,7 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 {
 	dispose();
 
-	m_bWantsDepth= descriptor->depth_buffer_type != MikanDepthBuffer_NODEPTH;
+	m_writerImpl->renderTargetDescriptor= *descriptor;
 
 	if (descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
@@ -276,6 +336,12 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 		m_writerImpl->graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
 		m_bIsInitialized = m_writerImpl->writerApi.spoutDX11TextureWriter->init(descriptor, bEnableFrameCounter, apiDeviceInterface);
+		if (m_bIsInitialized && 
+			m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_DEPTH)
+		{
+			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8 textures
+			m_writerImpl->renderTargetDescriptor.depth_buffer_type = MikanDepthBuffer_PACK_DEPTH_RGBA;
+		}
 	}
 #endif // ENABLE_SPOUT_DX
 
@@ -307,6 +373,11 @@ void InterprocessRenderTargetWriteAccessor::dispose()
 
 	m_writerImpl->graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
 	m_bIsInitialized = false;
+}
+
+const MikanRenderTargetDescriptor* InterprocessRenderTargetWriteAccessor::getRenderTargetDescriptor() const
+{
+	return &m_writerImpl->renderTargetDescriptor;
 }
 
 bool InterprocessRenderTargetWriteAccessor::writeColorFrameTexture(void* apiTexturePtr)

@@ -73,6 +73,7 @@ enum MikanColorBufferType
 enum MikanDepthBufferType
 {
 	MikanDepthBuffer_NODEPTH,
+	MikanDepthBuffer_FLOAT_DEPTH,
 	MikanDepthBuffer_PACK_DEPTH_RGBA,
 };
 

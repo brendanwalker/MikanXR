@@ -17,11 +17,10 @@ public:
 	bool writeColorFrameTexture(void* ApiTexturePtr);
 	bool writeDepthFrameTexture(void* ApiTexturePtr);
 	bool getIsInitialized() const { return m_bIsInitialized; }
-	bool getWantsDepth() const { return m_bWantsDepth; }
+	const struct MikanRenderTargetDescriptor* getRenderTargetDescriptor() const;
 
 private:
 	bool m_bIsInitialized= false;
-	bool m_bWantsDepth= false;
 	std::string m_clientName;
 	struct RenderTargetWriterImpl* m_writerImpl;
 };

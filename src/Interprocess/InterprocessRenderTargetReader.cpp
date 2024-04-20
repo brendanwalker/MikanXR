@@ -41,7 +41,7 @@ public:
 			return false;
 		}
 
-		if (descriptor->depth_buffer_type != MikanDepthBuffer_PACK_DEPTH_RGBA)
+		if (descriptor->depth_buffer_type != MikanDepthBuffer_NODEPTH)
 		{
 			m_spoutDepthFrame = GetSpout();
 			if (m_spoutDepthFrame != nullptr)

@@ -67,7 +67,7 @@ namespace MikanXR
 	public enum MikanDepthBufferType
 	{
 		NODEPTH,
-		DEPTH16,
-		DEPTH32,
+		FLOAT_DEPTH,
+		PACK_DEPTH_RGBA,
 	};
 }

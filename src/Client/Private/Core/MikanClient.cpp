@@ -183,24 +183,27 @@ MikanResult MikanClient::shutdown()
 }
 
 MikanResult MikanClient::allocateRenderTargetTextures(
-	const MikanRenderTargetDescriptor& descriptor,
+	const MikanRenderTargetDescriptor& desiredDescriptor,
 	MikanRequestID* out_request_id)
 {
 	MikanResult resultCode;
 
 	// Fetch the cached graphics API interface, if any
 	void* apiInterface = nullptr;
-	if (descriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
+	if (desiredDescriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
 	{
-		Mikan_GetGraphicsDeviceInterface(descriptor.graphicsAPI, &apiInterface);
+		Mikan_GetGraphicsDeviceInterface(desiredDescriptor.graphicsAPI, &apiInterface);
 	}
 
 	// Create the shared memory buffer
 	bool bSuccess= false;
 	const bool bEnableFrameCounter= false; // use frameRendered RPC to send frame index
-	if (m_renderTargetWriter->initialize(&descriptor, bEnableFrameCounter, apiInterface))
+	if (m_renderTargetWriter->initialize(&desiredDescriptor, bEnableFrameCounter, apiInterface))
 	{
-		json descriptorJson = descriptor;
+		// Actual descriptor might differ from desired descriptor based on render target writer's capabilities
+		const auto* actualDescriptor= m_renderTargetWriter->getRenderTargetDescriptor();
+
+		json descriptorJson = *actualDescriptor;
 		std::string descriptorString = descriptorJson.dump();
 
 		resultCode= sendRequest("allocateRenderTargetTextures", descriptorString.c_str(), 0, out_request_id);
@@ -219,9 +222,10 @@ MikanResult MikanClient::publishRenderTargetTextures(
 	const MikanClientFrameRendered& frameInfo)
 {
 	bool bValidFrame= m_renderTargetWriter->writeColorFrameTexture(apiColorTexturePtr);
+	MikanDepthBufferType depthBufferType= m_renderTargetWriter->getRenderTargetDescriptor()->depth_buffer_type;
 
-	if (bValidFrame && m_renderTargetWriter->getWantsDepth())
-	{
+	if (bValidFrame && depthBufferType != MikanDepthBuffer_NODEPTH)
+	{		 
 		bValidFrame= m_renderTargetWriter->writeDepthFrameTexture(apiDepthTexturePtr);
 	}
 
