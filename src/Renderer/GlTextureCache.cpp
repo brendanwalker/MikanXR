@@ -8,8 +8,11 @@ bool GlTextureCache::startup()
 {
 	std::filesystem::path texturePath= PathUtils::getResourceDirectory() / "textures";
 
-	bool bSuccess= loadTexturePath(texturePath / "white.png", INTERNAL_TEXTURE_WHITE) != nullptr;
-	bSuccess&= loadTexturePath(texturePath / "black.png", INTERNAL_TEXTURE_BLACK) != nullptr;
+	bool bSuccess= true;
+	bSuccess&= loadTexturePath(texturePath / "whiteRGB.png", INTERNAL_TEXTURE_WHITE_RGB) != nullptr;
+	bSuccess&= loadTexturePath(texturePath / "blackRGB.png", INTERNAL_TEXTURE_BLACK_RGB) != nullptr;
+	bSuccess&= loadTexturePath(texturePath / "whiteRGBA.png", INTERNAL_TEXTURE_WHITE_RGBA) != nullptr;
+	bSuccess&= loadTexturePath(texturePath / "blackRGBA.png", INTERNAL_TEXTURE_BLACK_RGBA) != nullptr;
 
 	return bSuccess;
 }

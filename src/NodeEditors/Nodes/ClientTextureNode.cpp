@@ -1,6 +1,7 @@
 #include "ClientTextureNode.h"
 #include "GlFrameCompositor.h"
 #include "GlTexture.h"
+#include "GlTextureCache.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"
@@ -85,7 +86,7 @@ void ClientTextureNodeConfig::readFromJSON(const configuru::Config& pt)
 	const std::string clientTextureTypeString =
 		pt.get_or<std::string>(
 			"client_texture_type",
-			k_clientTextureTypeStrings[(int)eClientTextureType::color]);
+			k_clientTextureTypeStrings[(int)eClientTextureType::colorRGB]);
 	clientTextureType =
 		StringUtils::FindEnumValue<eClientTextureType>(
 			clientTextureTypeString, k_clientTextureTypeStrings);
@@ -122,7 +123,23 @@ GlTexturePtr ClientTextureNode::getTextureResource() const
 	GlFrameCompositor* compositor= MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
 	{
-		return compositor->getClientSourceTexture(m_clientIndex, m_clientTextureType);
+		GlTexturePtr clientTexture= compositor->getClientSourceTexture(m_clientIndex, m_clientTextureType);
+
+		// If the client texture is not available, return a black texture
+		if (!clientTexture)
+		{
+			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getTextureCache();
+
+			if (m_clientTextureType == eClientTextureType::colorRGB)
+			{
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGB);
+			}
+			else if (m_clientTextureType == eClientTextureType::colorRGBA ||
+					 m_clientTextureType == eClientTextureType::depthPackRGBA)
+			{
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA);
+			}
+		}
 	}
 
 	return GlTexturePtr();
@@ -147,7 +164,22 @@ void ClientTextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorS
 
 std::string ClientTextureNode::editorGetTitle() const
 {
-	return !isDefaultNode() ? StringUtils::stringify("Client Source ", m_clientIndex) : "Client Source";
+	if (!isDefaultNode())
+	{ 
+		if (m_clientTextureType != eClientTextureType::INVALID)
+		{
+			return
+				StringUtils::stringify(
+					"Client Source ", m_clientIndex,
+					" (", k_clientTextureTypeStrings[(int)m_clientTextureType], ")");
+		}
+		else
+		{
+			return StringUtils::stringify("Client Source ", m_clientIndex, " (INVALID)");
+		}
+	}
+
+	return "Client Source";
 }
 
 void ClientTextureNode::editorRenderNode(const NodeEditorState& editorState)
@@ -185,7 +217,7 @@ void ClientTextureNode::editorRenderPropertySheet(const NodeEditorState& editorS
 		if (NodeEditorUI::DrawSimpleComboBoxProperty(
 			"clientTextureType",
 			"Type",
-			"Color\0Depth\0",
+			"colorRGB\0colorRGBA\0depthPackRGBA\0",
 			iTextureType))
 		{
 			m_clientTextureType= (eClientTextureType)iTextureType;

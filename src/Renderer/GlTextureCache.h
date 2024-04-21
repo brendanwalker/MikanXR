@@ -8,8 +8,10 @@
 #include <string>
 #include <map>
 
-#define INTERNAL_TEXTURE_WHITE		"Internal_White"
-#define INTERNAL_TEXTURE_BLACK		"Internal_Black"
+#define INTERNAL_TEXTURE_WHITE_RGB		"Internal_White_RGB"
+#define INTERNAL_TEXTURE_BLACK_RGB		"Internal_Black_RGB"
+#define INTERNAL_TEXTURE_WHITE_RGBA		"Internal_White_RGBA"
+#define INTERNAL_TEXTURE_BLACK_RGBA		"Internal_Black_RGBA"
 
 class GlTextureCache
 {

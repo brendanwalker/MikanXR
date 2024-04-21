@@ -122,7 +122,7 @@ void DepthMaskNode::onGraphLoaded(bool success)
 	}
 
 	// Make sure we have a texture output pin
-	setDepthTextureOutPin(getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT));	
+	setDepthTextureOutPin(getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT));
 }
 
 void DepthMaskNode::saveToConfig(NodeConfigPtr nodeConfig) const
@@ -178,6 +178,21 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 		bSuccess = false;
 	}
 
+	rebuildStencilLists();
+	bool bAnyQuadStencils = !m_quadStencilIds.empty();
+	bool bAnyBoxStencils = !m_boxStencilIds.empty();
+	bool bAnyModelStencils = !m_modelStencilIds.empty();
+	bool bHasDepthTextureInput = m_inDepthTexturePin && m_inDepthTexturePin->getConnectedLinks().size() > 0;
+	if (!bAnyQuadStencils && !bAnyBoxStencils && !bAnyModelStencils && !bHasDepthTextureInput)
+	{
+		evaluator.addError(
+			NodeEvaluationError(
+				eNodeEvaluationErrorCode::missingInput,
+				"No stencils or depth texture",
+				this));
+		bSuccess = false;
+	}
+
 	if (bSuccess)
 	{
 		// Use the current video source's frame size as the depth texture size
@@ -214,12 +229,11 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 	}
 
 	// Render the depth texture (if any)
-	if (bSuccess)
+	if (bSuccess && bHasDepthTextureInput)
 	{
 		GlTexturePtr depthTexture= m_inDepthTexturePin->getValue();
 
-		// Render the depth texture to the render target
-		if (depthTexture != nullptr)
+		if (depthTexture)
 		{
 			GlScopedObjectBinding depthFramebufferBinding(
 				*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
@@ -233,7 +247,7 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 				{
 					GlMaterialConstPtr rgbaDepthUnpackMaterial =
 						evaluator.getCurrentWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
-					
+
 					if (rgbaDepthUnpackMaterial != nullptr)
 					{
 						m_depthMaterialInstance = std::make_shared<GlMaterialInstance>(rgbaDepthUnpackMaterial);
@@ -242,14 +256,15 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 
 				if (m_depthMaterialInstance)
 				{
-					evaluateDepthTexture(glState);
+					evaluateDepthTexture(glState, depthTexture);
 				}
 				else
 				{
 					evaluator.addError(
 						NodeEvaluationError(
 							eNodeEvaluationErrorCode::evaluationError,
-							"Broken depth material"));
+							"Broken depth material",
+							this));
 				}
 			}
 			else
@@ -257,50 +272,50 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 				evaluator.addError(
 					NodeEvaluationError(
 						eNodeEvaluationErrorCode::evaluationError,
-						"Broken frame buffer"));
+						"Broken frame buffer",
+						this));
 				bSuccess = false;
-			}
-		}
-	}
-
-	// Render the stencils (if any)
-	if (bSuccess)
-	{
-		rebuildStencilLists();
-
-		if (!m_quadStencilIds.empty() || 
-			!m_boxStencilIds.empty() ||
-			!m_modelStencilIds.empty())
-		{
-			// Bind the depth frame buffer
-			GlScopedObjectBinding depthFramebufferBinding(
-				*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
-				m_depthFrameBuffer);
-			if (depthFramebufferBinding)
-			{
-				GlState& glState= depthFramebufferBinding.getGlState();
-
-				// Apply any Stencils assigned to the node
-				evaluateQuadStencils(glState);
-				evaluateBoxStencils(glState);
-				evaluateModelStencils(glState);
-			}
-			else
-			{
-				evaluator.addError(
-					NodeEvaluationError(
-						eNodeEvaluationErrorCode::evaluationError,
-						"Broken frame buffer"));
 			}
 		}
 		else
 		{
 			evaluator.addError(
 				NodeEvaluationError(
-					eNodeEvaluationErrorCode::missingInput,
-					"No stencils",
+					eNodeEvaluationErrorCode::evaluationError,
+					"Invalid depth texture",
 					this));
 			bSuccess = false;
+		}
+	}
+
+	// Render the stencils (if any)
+	if (bSuccess && (bAnyQuadStencils || bAnyBoxStencils || bAnyModelStencils))
+	{
+		// Bind the depth frame buffer
+		GlScopedObjectBinding depthFramebufferBinding(
+			*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
+			m_depthFrameBuffer);
+		if (depthFramebufferBinding)
+		{
+			GlState& glState= depthFramebufferBinding.getGlState();
+
+			// Apply any Stencils assigned to the node
+			if (bAnyQuadStencils)
+				evaluateQuadStencils(glState);
+
+			if (bAnyBoxStencils)
+				evaluateBoxStencils(glState);
+
+			if (bAnyModelStencils)
+				evaluateModelStencils(glState);
+		}
+		else
+		{
+			evaluator.addError(
+				NodeEvaluationError(
+					eNodeEvaluationErrorCode::evaluationError,
+					"Broken frame buffer",
+					this));
 		}
 	}
 
@@ -385,9 +400,8 @@ void DepthMaskNode::rebuildStencilLists()
 	}
 }
 
-void DepthMaskNode::evaluateDepthTexture(GlState& glState)
+void DepthMaskNode::evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture)
 {
-	GlTexturePtr depthTexture= m_inDepthTexturePin->getValue();
 	assert(depthTexture);
 	assert(m_depthMaterialInstance);
 
@@ -407,7 +421,7 @@ void DepthMaskNode::evaluateDepthTexture(GlState& glState)
 		m_depthMaterialInstance->setFloatBySemantic(eUniformSemantic::zFar, zFar);
 
 		// Bind the depth texture
-		m_depthMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbaTexture, m_inDepthTexturePin->getValue());
+		m_depthMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbaTexture, depthTexture);
 
 		if (auto materialInstanceBinding = m_depthMaterialInstance->bindMaterialInstance(materialBinding))
 		{

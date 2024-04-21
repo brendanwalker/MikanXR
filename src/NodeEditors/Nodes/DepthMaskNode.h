@@ -39,7 +39,7 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateDepthTexture(GlState& glState);
+	void evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture);
 	void evaluateQuadStencils(GlState& glState);
 	void evaluateBoxStencils(GlState& glState);
 	void evaluateModelStencils(GlState& glState);

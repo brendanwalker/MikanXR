@@ -73,8 +73,9 @@ enum class eClientTextureType
 {
 	INVALID = -1,
 
-	color,
-	depth,
+	colorRGB,
+	colorRGBA,
+	depthPackRGBA,
 
 	COUNT
 };

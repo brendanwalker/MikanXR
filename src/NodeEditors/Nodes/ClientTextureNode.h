@@ -38,7 +38,7 @@ protected:
 	virtual std::string editorGetTitle() const override;
 
 protected:
-	eClientTextureType m_clientTextureType= eClientTextureType::color;
+	eClientTextureType m_clientTextureType= eClientTextureType::colorRGB;
 	int m_clientIndex= 0;
 };
 

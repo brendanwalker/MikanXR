@@ -107,8 +107,7 @@ void CommonConfig::save()
     save(getDefaultConfigPath());
 }
 
-void 
-CommonConfig::save(const std::filesystem::path& path)
+void CommonConfig::save(const std::filesystem::path& path)
 {
     m_configFullFilePath= path;
 
@@ -116,14 +115,12 @@ CommonConfig::save(const std::filesystem::path& path)
     clearDirty();
 }
 
-bool
-CommonConfig::load()
+bool CommonConfig::load()
 {
     return load(getDefaultConfigPath());
 }
 
-bool 
-CommonConfig::load(const std::filesystem::path& path)
+bool CommonConfig::load(const std::filesystem::path& path)
 {
     bool bLoadedOk = false;
     
@@ -131,10 +128,17 @@ CommonConfig::load(const std::filesystem::path& path)
     {
         m_configFullFilePath= path;
 
-        configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
-        readFromJSON(cfg);
-        clearDirty();
-        bLoadedOk = true;
+        try
+        {
+			configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
+			readFromJSON(cfg);
+			clearDirty();
+			bLoadedOk = true;
+        }
+        catch (std::exception& e)
+        {
+            MIKAN_LOG_ERROR("CommonConfig::load") << "Failed to load config file: " << path << " - " << e.what();
+        }
     }
 
     return bLoadedOk;

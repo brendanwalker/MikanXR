@@ -74,7 +74,7 @@
 			"pins_in":             [ ],
 			"pins_out":            [ 33 ],
 			"pos":                 [ 443.0, 245.0 ],
-			"client_texture_type": "color",
+			"client_texture_type": "colorRGBA",
 			"client_index":        0
 		},
 		{

@@ -202,7 +202,7 @@ namespace InternalShaders
 			void main()
 			{
 				vec4 rgba = texture(rgbaPackedDepthTexture, TexCoords).rgba;
-				float depth= dot( rgba, float4(1.0, 1/255.0, 1/65025.0, 1/16581375.0) );
+				float depth= dot( rgba, vec4(1.0, 1/255.0, 1/65025.0, 1/16581375.0) );
 				float zNorm= (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
 
 				FragColor = vec4(zNorm, zNorm, zNorm, 1.0);

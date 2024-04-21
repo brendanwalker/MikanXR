@@ -370,7 +370,10 @@ void NodeEditorWindow::renderNodeEvalErrors()
 			const std::string evalWindowId= StringUtils::stringify("Eval Error##Node", currentError->errorNodeId);
 
 			static const float k_errorWindowOffset = 50.f;
-			ImVec2 errorPos = ImNodes::GetNodeScreenSpacePos(currentError->errorNodeId);
+			ImVec2 errorPos = 
+				currentError->errorNodeId != -1 
+				? ImNodes::GetNodeScreenSpacePos(currentError->errorNodeId)
+				: ImVec2(0, 0);
 			errorPos.y -= k_errorWindowOffset;
 
 			ImGui::SetNextWindowPos(errorPos);

@@ -312,7 +312,7 @@ namespace ObjUtils
 			// If that fails, fallback to the default white texture
 			if (texture == nullptr)
 			{
-				texture = textureCache->tryGetTextureByName(INTERNAL_TEXTURE_WHITE);
+				texture = textureCache->tryGetTextureByName(INTERNAL_TEXTURE_WHITE_RGB);
 			}
 
 			if (texture)

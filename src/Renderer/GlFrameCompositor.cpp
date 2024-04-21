@@ -494,9 +494,9 @@ GlTexturePtr GlFrameCompositor::getClientSourceTexture(int clientIndex, eClientT
 		{
 			switch (clientTextureType)
 			{
-				case eClientTextureType::color:
+				case eClientTextureType::colorRGB:
 					return clientSource->colorTexture;
-				case eClientTextureType::depth:
+				case eClientTextureType::depthPackRGBA:
 					return clientSource->depthTexture;
 			}
 		}
