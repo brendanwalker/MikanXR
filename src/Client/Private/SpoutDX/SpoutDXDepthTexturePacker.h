@@ -26,7 +26,7 @@ protected:
 	bool initRenderTargetResources(ID3D11Device* d3dDevice, ID3D11Texture2D* inDepthTexture);
 	void disposeRenderTargetResouces();
 
-	static DXGI_FORMAT GetDepthResourceFormat(DXGI_FORMAT depthformat);
+	static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT depthformat);
 	static DXGI_FORMAT GetDepthSRVFormat(DXGI_FORMAT depthformat);
 
 private:

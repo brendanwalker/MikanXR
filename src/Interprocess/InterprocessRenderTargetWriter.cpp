@@ -108,7 +108,7 @@ public:
 
 	bool writeColorFrameTexture(GLuint textureID)
 	{
-		if (m_spoutColorFrame != nullptr && m_spoutColorFrame->IsInitialized())
+		if (m_spoutColorFrame != nullptr)
 		{
 			return m_spoutColorFrame->SendTexture(textureID, GL_TEXTURE_2D, m_descriptor.width, m_descriptor.height);
 		}
@@ -118,7 +118,7 @@ public:
 
 	bool writeDepthFrameTexture(GLuint textureID)
 	{
-		if (m_spoutDepthFrame != nullptr && m_spoutDepthFrame->IsInitialized())
+		if (m_spoutDepthFrame != nullptr)
 		{
 			return m_spoutDepthFrame->SendTexture(textureID, GL_TEXTURE_2D, m_descriptor.width, m_descriptor.height);
 		}
@@ -178,6 +178,8 @@ public:
 
 				if (!bEnableFrameCounter)
 					m_spoutColorFrame.DisableFrameCount();
+
+				m_bIsColorFrameInitialized= true;
 			}
 			else
 			{
@@ -212,17 +214,14 @@ public:
 
 				if (!bEnableFrameCounter)
 					m_spoutDepthFrame.DisableFrameCount();
+
+				m_bIsDepthFrameInitialized= true;
 			}
 			else
 			{
 				MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "Error initializing depth spout frame";
 				return false;
 			}
-		}
-		else
-		{
-			MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "depth buffer type not supported: " << descriptor->depth_buffer_type;
-			return false;
 		}
 
 		return true;
@@ -238,21 +237,23 @@ public:
 
 		m_spoutColorFrame.ReleaseSender();
 		m_spoutColorFrame.CloseDirectX11();
+		m_bIsColorFrameInitialized = false;
 
 		m_spoutDepthFrame.ReleaseSender();
 		m_spoutDepthFrame.CloseDirectX11();
+		m_bIsDepthFrameInitialized = false;
 
 		DisableSpoutLog();
 	}
 
 	bool writeColorFrameTexture(ID3D11Texture2D* pTexture)
 	{
-		return m_spoutColorFrame.IsInitialized() ? m_spoutColorFrame.SendTexture(pTexture) : false;
+		return m_bIsColorFrameInitialized ? m_spoutColorFrame.SendTexture(pTexture) : false;
 	}
 
 	bool writeDepthFrameTexture(ID3D11Texture2D* pTexture)
 	{
-		if (m_spoutDepthFrame.IsInitialized())
+		if (m_bIsDepthFrameInitialized)
 		{
 			if (m_depthTexturePacker != nullptr)
 			{
@@ -280,6 +281,8 @@ private:
 	spoutDX m_spoutColorFrame;
 	spoutDX m_spoutDepthFrame;
 	SpoutDXDepthTexturePacker* m_depthTexturePacker= nullptr;
+	bool m_bIsColorFrameInitialized= false;
+	bool m_bIsDepthFrameInitialized= false;
 };
 #endif // ENABLE_SPOUT_DX
 

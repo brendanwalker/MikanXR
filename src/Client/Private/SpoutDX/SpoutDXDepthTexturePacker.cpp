@@ -371,7 +371,7 @@ bool SpoutDXDepthTexturePacker::initInputDepthTextureSRV(ID3D11Device* d3dDevice
 	// Create a shader resource view for the input float depth texture
 	D3D11_SHADER_RESOURCE_VIEW_DESC inSrvDesc;
 	ZeroMemory(&inSrvDesc, sizeof(inSrvDesc));
-	inSrvDesc.Format = inTextureDesc.Format;
+	inSrvDesc.Format = GetDepthSRVFormat(inTextureDesc.Format);
 	inSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	inSrvDesc.Texture2D.MipLevels = inTextureDesc.MipLevels;
 	inSrvDesc.Texture2D.MostDetailedMip = 0;
@@ -406,7 +406,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 	inDepthTexture->GetDesc(&inTextureDesc);
 
 	// Create the color render target resources
-	D3D11_TEXTURE2D_DESC textureDesc;
+	D3D11_TEXTURE2D_DESC textureDesc= {};
 	textureDesc.Width = inTextureDesc.Width;
 	textureDesc.Height = inTextureDesc.Height;
 	textureDesc.Format = DXGI_FORMAT_B8G8R8A8_TYPELESS;
@@ -426,7 +426,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 		return false;
 	}
 
-	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc= {};
 	rtvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	rtvDesc.Texture2D.MipSlice = 0;
@@ -437,7 +437,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 		return false;
 	}
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC colorSrvDesc;
+	D3D11_SHADER_RESOURCE_VIEW_DESC colorSrvDesc= {};
 	colorSrvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	colorSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	colorSrvDesc.Texture2D.MostDetailedMip = 0;
@@ -450,7 +450,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 	}
 
 	// Create the depth render target resources
-	textureDesc.Format = GetDepthResourceFormat(inTextureDesc.Format);
+	textureDesc.Format = inTextureDesc.Format;
 	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
 	hr = d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_depthTargetTexture);
 	if (FAILED(hr))
@@ -459,8 +459,8 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 		return false;
 	}
 
-	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-	dsvDesc.Format = GetDepthResourceFormat(inTextureDesc.Format);
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc= {};
+	dsvDesc.Format = GetDepthStencilViewFormat(inTextureDesc.Format);
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Texture2D.MipSlice = 0;
 	hr = d3dDevice->CreateDepthStencilView(m_depthTargetTexture, &dsvDesc, &m_depthTargetView);
@@ -470,7 +470,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 		return false;
 	}
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC depthSrvDesc;
+	D3D11_SHADER_RESOURCE_VIEW_DESC depthSrvDesc= {};
 	depthSrvDesc.Format = GetDepthSRVFormat(inTextureDesc.Format);
 	depthSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	depthSrvDesc.Texture2D.MostDetailedMip = 0;
@@ -526,48 +526,48 @@ void SpoutDXDepthTexturePacker::disposeRenderTargetResouces()
 	}
 }
 
-DXGI_FORMAT SpoutDXDepthTexturePacker::GetDepthResourceFormat(DXGI_FORMAT depthformat)
+DXGI_FORMAT SpoutDXDepthTexturePacker::GetDepthStencilViewFormat(DXGI_FORMAT resFormat)
 {
-	DXGI_FORMAT resformat = DXGI_FORMAT_UNKNOWN;
+	DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN;
 
-	switch (depthformat)
+	switch (resFormat)
 	{
-		case DXGI_FORMAT_D16_UNORM:
-			resformat = DXGI_FORMAT_R16G16_TYPELESS;
+		case DXGI_FORMAT_R16G16_TYPELESS:
+			viewFormat = DXGI_FORMAT_D16_UNORM;
 			break;
-		case DXGI_FORMAT_D24_UNORM_S8_UINT:
-			resformat = DXGI_FORMAT_R24G8_TYPELESS;
+		case DXGI_FORMAT_R24G8_TYPELESS:
+			viewFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 			break;
-		case DXGI_FORMAT_D32_FLOAT:
-			resformat = DXGI_FORMAT_R32_TYPELESS;
+		case DXGI_FORMAT_R32_TYPELESS:
+			viewFormat = DXGI_FORMAT_D32_FLOAT;
 			break;
-		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-			resformat = DXGI_FORMAT_R32G8X24_TYPELESS;
+		case DXGI_FORMAT_R32G8X24_TYPELESS:
+			viewFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 			break;
 	}
 
-	return resformat;
+	return viewFormat;
 }
 
-DXGI_FORMAT SpoutDXDepthTexturePacker::GetDepthSRVFormat(DXGI_FORMAT depthformat)
+DXGI_FORMAT SpoutDXDepthTexturePacker::GetDepthSRVFormat(DXGI_FORMAT resFormat)
 {
-	DXGI_FORMAT srvformat = DXGI_FORMAT_UNKNOWN;
+	DXGI_FORMAT srvFormat = DXGI_FORMAT_UNKNOWN;
 
-	switch (depthformat)
+	switch (resFormat)
 	{
-		case DXGI_FORMAT_D16_UNORM:
-			srvformat = DXGI_FORMAT_R16_FLOAT;
+		case DXGI_FORMAT_R16G16_TYPELESS:
+			srvFormat = DXGI_FORMAT_R16_FLOAT;
 			break;
-		case DXGI_FORMAT_D24_UNORM_S8_UINT:
-			srvformat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		case DXGI_FORMAT_R24G8_TYPELESS:
+			srvFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 			break;
-		case DXGI_FORMAT_D32_FLOAT:
-			srvformat = DXGI_FORMAT_R32_FLOAT;
+		case DXGI_FORMAT_R32_TYPELESS:
+			srvFormat = DXGI_FORMAT_R32_FLOAT;
 			break;
-		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-			srvformat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+		case DXGI_FORMAT_R32G8X24_TYPELESS:
+			srvFormat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 			break;
 	}
 
-	return srvformat;
+	return srvFormat;
 }
