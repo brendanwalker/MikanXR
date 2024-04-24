@@ -14,8 +14,8 @@
 
 // -- methods -----
 MikanClient::MikanClient()
-	: m_clientName(RandomUtils::RandomHexString(16))
-	, m_renderTargetWriter(new InterprocessRenderTargetWriteAccessor(m_clientName))
+	: m_clientUniqueID(RandomUtils::RandomHexString(16))
+	, m_renderTargetWriter(new InterprocessRenderTargetWriteAccessor(m_clientUniqueID))
 	, m_messageClient(new WebsocketInterprocessMessageClient())
 {
 	m_messageClient->setResponseHandler([this](const std::string& utf8ResponseString) {
@@ -67,6 +67,11 @@ MikanResult MikanClient::connect(const std::string& host, const std::string& por
 bool MikanClient::getIsConnected() const
 {
 	return m_messageClient->getIsConnected();
+}
+
+const std::string& MikanClient::getClientUniqueID() const
+{
+	return m_clientUniqueID;
 }
 
 MikanResult MikanClient::disconnect()

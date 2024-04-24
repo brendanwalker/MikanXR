@@ -50,6 +50,11 @@ int Mikan_GetCoreSDKVersion()
 	return MIKAN_CORE_SDK_VERSION;
 }
 
+const char* Mikan_GetClientUniqueID()
+{
+	return (g_mikanClient != nullptr) ? g_mikanClient->getClientUniqueID().c_str() : nullptr;
+}
+
 bool Mikan_GetIsInitialized()
 {
 	return g_mikanClient != nullptr;

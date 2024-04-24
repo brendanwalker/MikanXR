@@ -114,6 +114,11 @@ namespace MikanXR
 		{
 			return MikanCoreNative.Mikan_GetCoreSDKVersion();
 		}
+
+		public string GetClientUniqueID()
+		{
+			return MikanCoreNative.GetClientUniqueID();
+		}
 		
 		public bool GetIsInitialized()
 		{
@@ -170,6 +175,7 @@ namespace MikanXR
 		{
 			// Stamp with the core sdk version
 			clientInfo.mikanCoreSdkVersion = GetCoreSDKVersion();
+			clientInfo.clientId = GetClientUniqueID();
 
 			// Serialize enumerations from strings rather than from integers
 			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();

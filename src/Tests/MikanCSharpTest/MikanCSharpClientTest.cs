@@ -750,7 +750,8 @@ namespace Mikan
 				applicationName = "MikanXR C# Test App",
 				applicationVersion = "1.0.0",
 				graphicsAPI = MikanClientGraphicsApi.Direct3D11,
-				supportsRGB24 = true}) != MikanResult.Success)
+				supportsRGBA32 = true,
+				supportsDepth = true}) != MikanResult.Success)
 			{
 				return false;
 			}

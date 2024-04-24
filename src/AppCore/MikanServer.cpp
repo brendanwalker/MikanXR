@@ -537,7 +537,8 @@ void writeSimpleResponse(MikanRequestID requestId, MikanResult result, std::stri
 void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8ResponseString)
 {
 	MikanClientInfo clientInfo;
-	if (!readRequestPayload(request.utf8RequestString, clientInfo))
+	if (!readRequestPayload(request.utf8RequestString, clientInfo) || 
+		clientInfo.clientId.empty())
 	{
 		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
 		// TODO send error event

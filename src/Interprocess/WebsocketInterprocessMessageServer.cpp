@@ -84,15 +84,6 @@ public:
 						{
 							if (parseClientInfo(it.second, m_clientInfo))
 							{
-								// If the client didn't provide a client ID, generate one
-								if (m_clientInfo.clientId.empty())
-								{
-									m_clientInfo.clientId= 
-										StringUtils::stringify(
-											"Client",
-											connectionState->getId());
-								}
-
 								// Construct a connect server message for the queue
 								json connectRequestJson;
 								connectRequestJson["requestType"]= "connect";

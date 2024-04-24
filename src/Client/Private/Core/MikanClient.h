@@ -17,6 +17,7 @@ public:
 
 	// -- State Queries ----
 	bool getIsConnected() const;
+	const std::string& getClientUniqueID() const;
 
     // -- ClientMikanAPI System -----
     MikanResult startup(LogSeverityLevel log_level, t_logCallback log_callback);
@@ -45,7 +46,7 @@ private:
 	void* m_responseCallbackUserData= nullptr;
 	MikanRequestID m_next_request_id = 0;
 
-	std::string m_clientName;
+	std::string m_clientUniqueID;
 	class InterprocessRenderTargetWriteAccessor* m_renderTargetWriter;
 	class IInterprocessMessageClient* m_messageClient;
 	bool m_bIsConnected;

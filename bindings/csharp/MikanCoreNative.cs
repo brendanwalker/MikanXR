@@ -26,6 +26,13 @@ namespace MikanXR
 		public static extern int Mikan_GetCoreSDKVersion();
 
 		[DllImport("MikanCore.dll")]
+		public static extern IntPtr Mikan_GetClientUniqueID();
+		public static string GetClientUniqueID()
+		{
+			return Marshal.PtrToStringAnsi(Mikan_GetClientUniqueID());
+		}
+
+		[DllImport("MikanCore.dll")]
 		public static extern bool Mikan_GetIsInitialized();
 
 		[DllImport("MikanCore.dll")]

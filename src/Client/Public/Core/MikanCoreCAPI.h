@@ -26,6 +26,8 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_Initialize(MikanLogLevel min_log_level,
 
 MIKAN_PUBLIC_FUNCTION(int) Mikan_GetCoreSDKVersion();
 
+MIKAN_PUBLIC_FUNCTION(const char *) Mikan_GetClientUniqueID();
+
 MIKAN_PUBLIC_FUNCTION(bool) Mikan_GetIsInitialized();
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetGraphicsDeviceInterface(

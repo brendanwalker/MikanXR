@@ -75,6 +75,11 @@ public:
 		return Mikan_GetCoreSDKVersion();
 	}
 
+	virtual std::string getClientUniqueID() const override
+	{
+		return Mikan_GetClientUniqueID();
+	}
+
 	// Sub API accessors
 	virtual IMikanVideoSourceAPI* getVideoSourceAPI() const override { return m_videoSourceAPI.get(); }
 	virtual IMikanVRDeviceAPI* getVRDeviceAPI() const override { return m_vrDeviceAPI.get(); }
@@ -87,6 +92,7 @@ public:
 	{
 		MikanClientInfo clientInfo = inClientInfo;
 		clientInfo.mikanCoreSdkVersion = getCoreSDKVersion();
+		clientInfo.clientId= getClientUniqueID();
 
 		json clientInfoJson = clientInfo;
 		const std::string clientInfoString = clientInfoJson.dump();

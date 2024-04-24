@@ -81,6 +81,7 @@ public:
 
 	// Sub API accessors
 	virtual int getCoreSDKVersion() const = 0;
+	virtual std::string getClientUniqueID() const = 0;
 	virtual IMikanVideoSourceAPI* getVideoSourceAPI() const = 0;
 	virtual IMikanVRDeviceAPI* getVRDeviceAPI() const = 0;
 	virtual IMikanScriptAPI* getScriptAPI() const = 0;
