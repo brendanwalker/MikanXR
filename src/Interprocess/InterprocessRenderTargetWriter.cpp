@@ -126,6 +126,12 @@ public:
 		return false;
 	}
 
+	void* getPackDepthTextureResourcePtr() const
+	{
+		// TODO: Implement this
+		return nullptr;
+	}
+
 private:
 	std::string m_colorFrameSenderName;
 	std::string m_depthFrameSenderName;
@@ -273,6 +279,11 @@ public:
 		}
 		
 		return false;
+	}
+
+	void* getPackDepthTextureResourcePtr() const
+	{
+		return m_depthTexturePacker != nullptr ? m_depthTexturePacker->getPackedDepthTextureResourcePtr() : nullptr;
 	}
 
 private:
@@ -433,4 +444,22 @@ bool InterprocessRenderTargetWriteAccessor::writeDepthFrameTexture(void* apiText
 	}
 
 	return true;
+}
+
+void* InterprocessRenderTargetWriteAccessor::getPackDepthTextureResourcePtr() const
+{
+	if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
+	{
+		return m_writerImpl->writerApi.spoutOpenGLTextureWriter->getPackDepthTextureResourcePtr();
+	}
+#ifdef ENABLE_SPOUT_DX
+	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
+	{
+		return m_writerImpl->writerApi.spoutDX11TextureWriter->getPackDepthTextureResourcePtr();
+	}
+#endif // ENABLE_SPOUT_DX
+	else
+	{
+		return nullptr;
+	}
 }

@@ -171,6 +171,11 @@ namespace MikanXR
 			return _requestManager.AddResponseHandler(requestId, result);
 		}
 
+		public IntPtr GetPackDepthTextureResourcePtr()
+		{
+			return MikanCoreNative.Mikan_GetPackDepthTextureResourcePtr();
+		}
+
 		public MikanResult SetClientInfo(MikanClientInfo clientInfo)
 		{
 			// Stamp with the core sdk version

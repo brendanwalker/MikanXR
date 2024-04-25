@@ -190,6 +190,11 @@ MikanResult Mikan_FreeRenderTargetTextures(MikanRequestID* out_request_id)
 	return g_mikanClient->freeRenderTargetTextures(out_request_id);
 }
 
+void* Mikan_GetPackDepthTextureResourcePtr()
+{
+	return g_mikanClient != nullptr ? g_mikanClient->getPackDepthTextureResourcePtr() : nullptr;
+}
+
 MikanResult Mikan_Disconnect()
 {
 	if (g_mikanClient == nullptr)

@@ -262,3 +262,8 @@ MikanResult MikanClient::freeRenderTargetTextures(MikanRequestID* out_request_id
 
 	return resultCode;
 }
+
+void* MikanClient::getPackDepthTextureResourcePtr() const
+{
+	return m_renderTargetWriter != nullptr ? m_renderTargetWriter->getPackDepthTextureResourcePtr() : nullptr;
+}

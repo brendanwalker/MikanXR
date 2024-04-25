@@ -231,6 +231,10 @@ namespace Mikan
 		private D3D11.Buffer depthNormalizeContantBuffer;
 		private DepthNormalizeConstantBuffer depthNormalConstants;
 
+		// Pack Depth Texture SRV
+		private IntPtr packDepthTextureResourcePtr;
+		private D3D11.ShaderResourceView packDepthTargetSRV;
+
 		// Full Screen Texture Shader Data
 		private D3D11.VertexShader quadVertexShader;
 		private D3D11.PixelShader quadPixelShader;
@@ -269,7 +273,10 @@ namespace Mikan
 						DrawDepthMode= RenderMode.DepthNormalize;
 						break;
 					case RenderMode.DepthNormalize:
-						DrawDepthMode= RenderMode.Color;
+						DrawDepthMode= RenderMode.PackDepth;
+						break;
+					case RenderMode.PackDepth:
+						DrawDepthMode = RenderMode.Color;
 						break;
 					}
 				}
@@ -940,6 +947,14 @@ namespace Mikan
 					renderTarget.ColorTexture.NativePointer,
 					renderTarget.DepthTexture.NativePointer, 
 					ref frameRendered);
+
+				// Update the pack depth texture resource pointer, if any
+				IntPtr packDepthPtr= mikanAPI.GetPackDepthTextureResourcePtr();
+				if (packDepthPtr != packDepthTextureResourcePtr)
+				{
+					packDepthTextureResourcePtr= packDepthPtr;
+					packDepthTargetSRV= new D3D11.ShaderResourceView(packDepthTextureResourcePtr);
+				}
 			}
 
 			// Remember the frame index of the last frame we published
@@ -1064,7 +1079,8 @@ namespace Mikan
 		enum RenderMode
 		{
 			Color,
-			DepthNormalize
+			DepthNormalize,
+			PackDepth
 		}
 		static RenderMode DrawDepthMode = RenderMode.Color;
 
@@ -1086,6 +1102,12 @@ namespace Mikan
 					break;
 				case RenderMode.DepthNormalize:
 					RenderColorTexture(depthDebugRenderTarget.ColorTextureSRV);
+					break;
+				case RenderMode.PackDepth:
+					if (packDepthTargetSRV != null)
+					{
+						RenderColorTexture(packDepthTargetSRV);
+					}
 					break;
 				}
 			}

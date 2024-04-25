@@ -59,6 +59,9 @@ namespace MikanXR
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_FreeRenderTargetTextures(out int out_request_id);
 
+		[DllImport("MikanCore.dll")]
+		public static extern IntPtr Mikan_GetPackDepthTextureResourcePtr();
+
 		[DllImport("MikanCore.dll", CharSet = CharSet.Ansi)]
 		public static extern int Mikan_SetClientProperty(
 			string key, 

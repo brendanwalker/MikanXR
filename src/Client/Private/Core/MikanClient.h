@@ -37,6 +37,7 @@ public:
 		void* ApiDepthTexturePtr, 
 		const MikanClientFrameRendered& frameInfo);
 	MikanResult freeRenderTargetTextures(MikanRequestID* out_request_id);
+	void* getPackDepthTextureResourcePtr() const;
 
 protected:
 	void responseHandler(const std::string& utf8ResponseString);

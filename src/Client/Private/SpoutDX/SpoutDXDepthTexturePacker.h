@@ -10,6 +10,7 @@ public:
 
 	bool init();
 	ID3D11Texture2D* packDepthTexture(ID3D11Texture2D* inDepthTexture);
+	inline ID3D11ShaderResourceView* getPackedDepthTextureResourcePtr() const { return m_colorTargetSRV; }
 
 	void dispose();
 

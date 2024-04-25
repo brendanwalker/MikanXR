@@ -16,6 +16,7 @@ public:
 	void dispose();
 	bool writeColorFrameTexture(void* ApiTexturePtr);
 	bool writeDepthFrameTexture(void* ApiTexturePtr);
+	void* getPackDepthTextureResourcePtr() const;
 	bool getIsInitialized() const { return m_bIsInitialized; }
 	const struct MikanRenderTargetDescriptor* getRenderTargetDescriptor() const;
 
