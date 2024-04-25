@@ -126,7 +126,11 @@ GlTexturePtr ClientTextureNode::getTextureResource() const
 		GlTexturePtr clientTexture= compositor->getClientSourceTexture(m_clientIndex, m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
-		if (!clientTexture)
+		if (clientTexture)
+		{
+			return clientTexture;
+		}
+		else
 		{
 			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getTextureCache();
 
