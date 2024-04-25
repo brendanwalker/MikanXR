@@ -409,7 +409,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 	D3D11_TEXTURE2D_DESC textureDesc= {};
 	textureDesc.Width = inTextureDesc.Width;
 	textureDesc.Height = inTextureDesc.Height;
-	textureDesc.Format = DXGI_FORMAT_B8G8R8A8_TYPELESS;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
 	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 	textureDesc.CPUAccessFlags = 0;
@@ -427,7 +427,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 	}
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc= {};
-	rtvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	rtvDesc.Texture2D.MipSlice = 0;
 	hr = d3dDevice->CreateRenderTargetView(m_colorTargetTexture, &rtvDesc, &m_colorTargetView);
@@ -438,7 +438,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC colorSrvDesc= {};
-	colorSrvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	colorSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	colorSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	colorSrvDesc.Texture2D.MostDetailedMip = 0;
 	colorSrvDesc.Texture2D.MipLevels = 1;
