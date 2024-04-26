@@ -188,6 +188,12 @@ namespace Mikan
 			// Set the output render views
 			d3dDeviceContext.OutputMerger.SetTargets(_floatDepthTargetView, _colorTargetView);
 
+			// Set the viewport dimensions
+			d3dDeviceContext.Rasterizer.SetViewport(
+				new Viewport(
+					0, 0, 
+					_colorTargetTexture.Description.Width, _colorTargetTexture.Description.Height)); // min z, max z
+
 			// Clear the screen
 			d3dDeviceContext.ClearRenderTargetView(_colorTargetView, new SharpDX.Color(0, 0, 0, 0));
 			d3dDeviceContext.ClearDepthStencilView(_floatDepthTargetView, DepthStencilClearFlags.Depth, 1.0f, 0);
@@ -1093,6 +1099,9 @@ namespace Mikan
 
 				// Render the depth RGBA packed texture
 				RenderNormalizedDepthTexture();
+
+				// Set the viewport dimensions
+				d3dDeviceContext.Rasterizer.SetViewport(new Viewport(0, 0, windowWidth, windowHeight));
 
 				// Render a result texture to the screen
 				switch (DrawDepthMode)

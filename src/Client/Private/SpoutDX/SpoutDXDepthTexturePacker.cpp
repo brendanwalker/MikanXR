@@ -102,6 +102,16 @@ ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(ID3D11Texture2D* in
 	d3dContext->PSSetShaderResources(0, 1, &m_inFloatDepthTextureSRV);
 	d3dContext->PSSetSamplers(0, 1, &m_samplerState);
 
+	// Set the viewport to the size of the input texture
+	D3D11_VIEWPORT viewport= {};
+	viewport.Width = (float)inTextureDesc.Width;
+	viewport.Height = (float)inTextureDesc.Height;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	d3dContext->RSSetViewports(1, &viewport);
+
 	// Bind the vertex buffer
 	UINT quadStride = sizeof(QuadVertex);
 	UINT quadffset = 0;
