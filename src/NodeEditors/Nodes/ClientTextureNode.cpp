@@ -1,14 +1,23 @@
 #include "ClientTextureNode.h"
+#include "GlScopedObjectBinding.h"
 #include "GlFrameCompositor.h"
+#include "GlFrameBuffer.h"
+#include "GlMaterial.h"
+#include "GlMaterialInstance.h"
+#include "GlShaderCache.h"
+#include "GlStateStack.h"
 #include "GlTexture.h"
 #include "GlTextureCache.h"
+#include "GlTriangulatedMesh.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
 
+#include "Graphs/NodeEvaluator.h"
 #include "Graphs/NodeGraph.h"
+#include "Graphs/CompositorNodeGraph.h"
 
 #include "Pins/NodePin.h"
 #include "Pins/TexturePin.h"
@@ -154,9 +163,78 @@ bool ClientTextureNode::evaluateNode(NodeEvaluator& evaluator)
 	// Since the frame compositor can change the client source texture can change out from under us
 	// it's safest to just refresh the output texture pin every frame
 	auto outputPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
-	outputPin->setValue(getTextureResource());
+
+	GlTexturePtr clientTexture= getTextureResource();
+	outputPin->setValue(clientTexture);
 
 	return true;
+}
+
+void ClientTextureNode::updateDepthPreviewTexture(const NodeEditorState& editorState, GlTexturePtr clientTexture)
+{
+	assert(m_clientTextureType == eClientTextureType::depthPackRGBA);
+
+	if (m_depthPreviewFrameBuffer == nullptr)
+	{
+		m_depthPreviewFrameBuffer = std::make_shared<GlFrameBuffer>("ClientTextureNode Preview Texture");
+		m_depthPreviewFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+		m_depthPreviewFrameBuffer->setSize(100, 100);
+		m_depthPreviewFrameBuffer->createResources();
+	}
+
+	IGlWindow* ownerWindow= editorState.nodeGraph->getOwnerWindow();
+	GlScopedObjectBinding depthFramebufferBinding(
+		*ownerWindow->getGlStateStack().getCurrentState(),
+		m_depthPreviewFrameBuffer);
+	if (depthFramebufferBinding)
+	{
+		GlState& glState = depthFramebufferBinding.getGlState();
+		GlMaterialConstPtr rgbaDepthUnpackMaterial =
+			ownerWindow->getShaderCache()->getMaterialByName(
+				INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
+
+		if (rgbaDepthUnpackMaterial != nullptr)
+		{
+			m_depthMaterialInstance = std::make_shared<GlMaterialInstance>(rgbaDepthUnpackMaterial);
+		}
+
+		if (m_depthMaterialInstance)
+		{
+			evaluateDepthTexture(glState, clientTexture);
+		}
+	}
+}
+
+void ClientTextureNode::evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture)
+{
+	assert(depthTexture);
+	assert(m_depthMaterialInstance);
+
+	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
+	if (!frameCompositor)
+		return;
+
+	float zNear, zFar;
+	if (!frameCompositor->getVideoSourceZRange(zNear, zFar))
+		return;
+
+	GlMaterialConstPtr material = m_depthMaterialInstance->getMaterial();
+	if (auto materialBinding = material->bindMaterial())
+	{
+		// Set the zNear and zFar values on the shader
+		m_depthMaterialInstance->setFloatBySemantic(eUniformSemantic::zNear, zNear);
+		m_depthMaterialInstance->setFloatBySemantic(eUniformSemantic::zFar, zFar);
+
+		// Bind the depth texture
+		m_depthMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbaTexture, depthTexture);
+
+		if (auto materialInstanceBinding = m_depthMaterialInstance->bindMaterialInstance(materialBinding))
+		{
+			auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+
+			compositorGraph->getLayerMesh()->drawElements();
+		}
+	}
 }
 
 void ClientTextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
@@ -195,11 +273,29 @@ void ClientTextureNode::editorRenderNode(const NodeEditorState& editorState)
 	// Title
 	editorRenderTitle(editorState);
 
-	// Texture
+	// Texture Preview
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 	GlTexturePtr textureResource = getTextureResource();
-	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
-	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
+	if (textureResource)
+	{
+		uint32_t glTextureId = 0;
+
+		if (m_clientTextureType == eClientTextureType::depthPackRGBA)
+		{
+			// Render the depth texture into an RGBA preview texture
+			updateDepthPreviewTexture(editorState, textureResource);
+
+			// Get the texture id that was rendered into
+			glTextureId = m_depthPreviewFrameBuffer->getTexture()->getGlTextureId();
+		}
+		else
+		{
+			// We can use the client texture directly
+			glTextureId = textureResource->getGlTextureId();
+		}
+
+		ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
+	}
 	ImGui::SameLine();
 
 	// Outputs

@@ -34,10 +34,15 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
+	void updateDepthPreviewTexture(const NodeEditorState& editorState, GlTexturePtr clientTexture);
+	void evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture);
+
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 protected:
+	GlFrameBufferPtr m_depthPreviewFrameBuffer;
+	GlMaterialInstancePtr m_depthMaterialInstance;
 	eClientTextureType m_clientTextureType= eClientTextureType::colorRGB;
 	int m_clientIndex= 0;
 };
