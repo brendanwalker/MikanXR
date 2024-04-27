@@ -13,6 +13,13 @@ struct QuadVertex
 	DirectX::XMFLOAT2 texCoord; // Texture coordinates of the vertex
 };
 
+struct DepthNormalizeConstantBuffer
+{
+	float zNear;
+	float zFar;
+	float padding[2];
+};
+
 SpoutDXDepthTexturePacker::SpoutDXDepthTexturePacker(spoutDX& spout)
 	: m_spout(spout)
 	, m_inFloatDepthTextureDesc(D3D11_TEXTURE2D_DESC())
@@ -42,7 +49,10 @@ bool SpoutDXDepthTexturePacker::init()
 	return true;
 }
 
-ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(ID3D11Texture2D* inDepthTexture)
+ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(
+	ID3D11Texture2D* inDepthTexture, 
+	float zNear, 
+	float zFar)
 {
 	assert(inDepthTexture != nullptr);
 
@@ -101,6 +111,16 @@ ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(ID3D11Texture2D* in
 	// Bind the input float depth texture's shader resource view to the shader
 	d3dContext->PSSetShaderResources(0, 1, &m_inFloatDepthTextureSRV);
 	d3dContext->PSSetSamplers(0, 1, &m_samplerState);
+
+	// Bind the constant buffer
+	DepthNormalizeConstantBuffer constants;
+	constants.zNear = zNear;
+	constants.zFar = zFar;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	d3dContext->Map(m_constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	memcpy(mappedResource.pData, &constants, sizeof(DepthNormalizeConstantBuffer));
+	d3dContext->Unmap(m_constantBuffer, 0);
+	d3dContext->PSSetConstantBuffers(0, 1, &m_constantBuffer);
 
 	// Set the viewport to the size of the input texture
 	D3D11_VIEWPORT viewport= {};
@@ -218,6 +238,12 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 		Texture2D<float> InputTexture : register(t0);
 		SamplerState samLinear : register(s0);
 
+		cbuffer ConstantBuffer : register(b0)
+		{
+			float zNear;
+			float zFar;
+		};
+
 		struct VS_INPUT
 		{
 			float3 position : POSITION;
@@ -240,9 +266,15 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 
 		float4 ps_main(PS_INPUT input) : SV_TARGET
 		{
+			// Read the raw depth value from the input float depth texture
+			float depth = InputTexture.Sample(samLinear, input.uv).r;
+
+			// Convert the depth value to a linear [0, 1] value (0 = near, 1 = far)
+			float zNorm= (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+
+			// Encode the linear depth value to a RGBA8 texture
 			// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
-			float floatValue = InputTexture.Sample(samLinear, input.uv).r;
-			float4 encodedValue = float4(1.0, 255.0, 65025.0, 16581375.0) * floatValue;
+			float4 encodedValue = float4(1.0, 255.0, 65025.0, 16581375.0) * zNorm;
 			encodedValue = frac(encodedValue);
 			encodedValue -= encodedValue.yzww * float4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
 
@@ -287,6 +319,21 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 	if (FAILED(hr))
 	{
 		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create vertex shader";
+		return false;
+	}
+
+	// Create Constant Buffer
+	D3D11_BUFFER_DESC bufferDesc;
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.ByteWidth = sizeof(DepthNormalizeConstantBuffer);
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	hr= d3dDevice->CreateBuffer(&bufferDesc, nullptr, &m_constantBuffer);
+	if (FAILED(hr))
+	{
+		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create constants buffer";
 		return false;
 	}
 

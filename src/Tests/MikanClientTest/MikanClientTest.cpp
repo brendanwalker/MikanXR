@@ -295,6 +295,8 @@ protected:
 					(float)m_sdlWindowWidth / (float)m_sdlWindowHeight,
 					k_default_camera_z_near,
 					k_default_camera_z_far);
+			m_zNear= k_default_camera_z_near;
+			m_zFar= k_default_camera_z_far;
 		}
 
 		if (success)
@@ -464,7 +466,7 @@ protected:
 
 		// Publish the new video frame back to Mikan
 		GLuint textureId = m_textureColorbuffer->getGlTextureId();
-		MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+		MikanClientFrameRendered frameRendered = {newFrameEvent.frame, m_zNear, m_zFar};
 		m_mikanApi->publishRenderTargetTextures(&textureId, nullptr, frameRendered);
 
 		// Remember the frame index of the last frame we published
@@ -523,12 +525,14 @@ protected:
 			const float videoSourcePixelWidth = monoIntrinsics.pixel_width;
 			const float videoSourcePixelHeight = monoIntrinsics.pixel_height;
 
+			m_zNear= (float)monoIntrinsics.znear;
+			m_zFar= (float)monoIntrinsics.zfar;
 			m_projectionMatrix =
 				glm::perspective(
 					(float)degrees_to_radians(monoIntrinsics.vfov),
 					videoSourcePixelWidth / videoSourcePixelHeight,
-					(float)monoIntrinsics.znear,
-					(float)monoIntrinsics.zfar);
+					m_zNear,
+					m_zFar);
 		}
 	}
 
@@ -940,6 +944,7 @@ private:
 	void* m_glContext= 0;
 	glm::mat4 m_projectionMatrix;
 	glm::mat4 m_viewMatrix;
+	float m_zNear, m_zFar;
 
 	GlProgram* m_shader= nullptr;
 	GlProgram* m_screenShader= nullptr;

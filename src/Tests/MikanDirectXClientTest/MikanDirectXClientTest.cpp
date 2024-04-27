@@ -46,6 +46,8 @@ uint64_t m_lastReceivedVideoSourceFrame= 0;
 bool g_mikanInitialized = true;
 uint64_t g_lastReceivedVideoSourceFrame= 0;
 float g_mikanReconnectTimeout = 0.f; // seconds
+float g_zNear = 0.1f;
+float g_zFar = 1000.f;
 
 HRESULT initWindow( HINSTANCE hInstance, int nCmdShow );
 HRESULT initDevice();
@@ -233,7 +235,7 @@ void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEve
 	render();
 
 	// Publish the new video frame back to Mikan
-    MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+    MikanClientFrameRendered frameRendered = {newFrameEvent.frame, g_zNear, g_zNear};
 	g_mikanAPI->publishRenderTargetTextures(g_renderTargetTexture, nullptr, frameRendered);
 
 	// Remember the frame index of the last frame we published
@@ -289,6 +291,8 @@ void updateCameraProjectionMatrix()
 		const float videoSourcePixelWidth = monoIntrinsics.pixel_width;
 		const float videoSourcePixelHeight = monoIntrinsics.pixel_height;
 
+        g_zNear = (float)monoIntrinsics.znear;
+        g_zFar = (float)monoIntrinsics.zfar;
 		//m_projectionMatrix =
 		//	glm::perspective(
 		//		(float)degrees_to_radians(monoIntrinsics.vfov),

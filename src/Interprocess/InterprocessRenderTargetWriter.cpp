@@ -116,11 +116,13 @@ public:
 		return false;
 	}
 
-	bool writeDepthFrameTexture(GLuint textureID)
+	bool writeDepthFrameTexture(GLuint textureID, float zNear, float zFar)
 	{
 		if (m_spoutDepthFrame != nullptr)
 		{
-			return m_spoutDepthFrame->SendTexture(textureID, GL_TEXTURE_2D, m_descriptor.width, m_descriptor.height);
+			return m_spoutDepthFrame->SendTexture(
+				textureID, GL_TEXTURE_2D, 
+				m_descriptor.width, m_descriptor.height);
 		}
 
 		return false;
@@ -257,7 +259,7 @@ public:
 		return m_bIsColorFrameInitialized ? m_spoutColorFrame.SendTexture(pTexture) : false;
 	}
 
-	bool writeDepthFrameTexture(ID3D11Texture2D* pTexture)
+	bool writeDepthFrameTexture(ID3D11Texture2D* pTexture, float zNear, float zFar)
 	{
 		if (m_bIsDepthFrameInitialized)
 		{
@@ -265,7 +267,8 @@ public:
 			{
 				// Convert the float depth texture to a RGBA8 texture using a shader
 				// (Spout can only send RGBA8 textures)
-				ID3D11Texture2D* packedDepthTexture = m_depthTexturePacker->packDepthTexture(pTexture);
+				ID3D11Texture2D* packedDepthTexture = 
+					m_depthTexturePacker->packDepthTexture(pTexture, zNear, zFar);
 
 				if (packedDepthTexture != nullptr)
 				{
@@ -420,7 +423,10 @@ bool InterprocessRenderTargetWriteAccessor::writeColorFrameTexture(void* apiText
 	return true;
 }
 
-bool InterprocessRenderTargetWriteAccessor::writeDepthFrameTexture(void* apiTexturePtr)
+bool InterprocessRenderTargetWriteAccessor::writeDepthFrameTexture(
+	void* apiTexturePtr,
+	float zNear, 
+	float zFar)
 {
 	bool bSuccess = false;
 
@@ -428,14 +434,14 @@ bool InterprocessRenderTargetWriteAccessor::writeDepthFrameTexture(void* apiText
 	{
 		GLuint* textureId = (GLuint*)apiTexturePtr;
 
-		bSuccess = m_writerImpl->writerApi.spoutOpenGLTextureWriter->writeDepthFrameTexture(*textureId);
+		bSuccess = m_writerImpl->writerApi.spoutOpenGLTextureWriter->writeDepthFrameTexture(*textureId, zNear, zFar);
 	}
 #ifdef ENABLE_SPOUT_DX
 	else if (m_writerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11)
 	{
 		ID3D11Texture2D* dx11Texture = (ID3D11Texture2D*)apiTexturePtr;
 
-		bSuccess = m_writerImpl->writerApi.spoutDX11TextureWriter->writeDepthFrameTexture(dx11Texture);
+		bSuccess = m_writerImpl->writerApi.spoutDX11TextureWriter->writeDepthFrameTexture(dx11Texture, zNear, zFar);
 	}
 #endif // ENABLE_SPOUT_DX
 	else

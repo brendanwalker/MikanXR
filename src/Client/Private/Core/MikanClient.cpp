@@ -231,7 +231,8 @@ MikanResult MikanClient::publishRenderTargetTextures(
 
 	if (bValidFrame && depthBufferType != MikanDepthBuffer_NODEPTH)
 	{		 
-		bValidFrame= m_renderTargetWriter->writeDepthFrameTexture(apiDepthTexturePtr);
+		bValidFrame= m_renderTargetWriter->writeDepthFrameTexture(
+			apiDepthTexturePtr, frameInfo.zNear, frameInfo.zFar);
 	}
 
 	if (bValidFrame)

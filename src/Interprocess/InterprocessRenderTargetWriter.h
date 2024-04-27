@@ -15,7 +15,7 @@ public:
 		void* apiDeviceInterface= nullptr);
 	void dispose();
 	bool writeColorFrameTexture(void* ApiTexturePtr);
-	bool writeDepthFrameTexture(void* ApiTexturePtr);
+	bool writeDepthFrameTexture(void* ApiTexturePtr, float zNear, float zFar);
 	void* getPackDepthTextureResourcePtr() const;
 	bool getIsInitialized() const { return m_bIsInitialized; }
 	const struct MikanRenderTargetDescriptor* getRenderTargetDescriptor() const;

@@ -16,5 +16,7 @@ namespace MikanXR
 	public struct MikanClientFrameRendered
 	{
 		public ulong frame_index;
+		public float zNear;
+		public float zFar;
 	};
 }

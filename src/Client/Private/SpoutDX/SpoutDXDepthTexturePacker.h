@@ -9,7 +9,7 @@ public:
 	virtual ~SpoutDXDepthTexturePacker();
 
 	bool init();
-	ID3D11Texture2D* packDepthTexture(ID3D11Texture2D* inDepthTexture);
+	ID3D11Texture2D* packDepthTexture(ID3D11Texture2D* inDepthTexture, float zNear, float zFar);
 	inline ID3D11ShaderResourceView* getPackedDepthTextureResourcePtr() const { return m_colorTargetSRV; }
 
 	void dispose();
@@ -42,6 +42,7 @@ private:
 	ID3DBlob* m_pixelShaderByteCode = nullptr;
 	ID3D11PixelShader* m_pixelShader = nullptr;
 	ID3D11SamplerState* m_samplerState = nullptr;
+	ID3D11Buffer* m_constantBuffer = nullptr;
 
 	ID3D11Buffer* m_quadVertexBuffer = nullptr;
 	ID3D11InputLayout* m_quadInputLayout = nullptr;

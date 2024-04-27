@@ -257,6 +257,7 @@ namespace Mikan
 		private float time = 0f;
 		private UInt64 lastReceivedVideoSourceFrame = 0;
 
+		public float zOffset = 0.0f;
 
 		public MikanCSharpDXTestApp()
 		{
@@ -285,6 +286,14 @@ namespace Mikan
 						DrawDepthMode = RenderMode.Color;
 						break;
 					}
+				}
+				else if (e.KeyChar == '+')
+				{
+					zOffset += 1.0f;
+				}
+				else if (e.KeyChar == '-')
+				{
+					zOffset -= 1.0f;
 				}
 			};
 		}
@@ -946,7 +955,9 @@ namespace Mikan
 			{
 				var frameRendered = new MikanClientFrameRendered()
 				{
-					frame_index = newFrameEvent.frame
+					frame_index = newFrameEvent.frame,
+					zNear = depthNormalConstants.zNear,
+					zFar = depthNormalConstants.zFar
 				};
 				
 				mikanAPI.PublishRenderTargetTextures(
@@ -1012,6 +1023,7 @@ namespace Mikan
 				Matrix.RotationX(time) *
 				Matrix.RotationY(time * 2) *
 				Matrix.RotationZ(time * .7f) *
+				Matrix.Translation(0, 0, zOffset) *
 				viewProj;
 			modelViewProj.Transpose();
 			d3dDeviceContext.UpdateSubresource(ref modelViewProj, cubeShaderContantBuffer);

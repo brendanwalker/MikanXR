@@ -76,11 +76,11 @@ public:
 		return m_connectionInfo.clientInfo;
 	}
 
-	bool readRenderTargetTextures()
+	bool readRenderTargetTextures(const MikanClientFrameRendered& frameInfo)
 	{
 		EASY_FUNCTION();
 
-		return m_connectionInfo.renderTargetReadAccessor->readRenderTargetTextures();
+		return m_connectionInfo.renderTargetReadAccessor->readRenderTargetTextures(frameInfo);
 	}
 
 	InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const
@@ -889,8 +889,8 @@ void MikanServer::frameRendered(
 	const ClientRequest& request,
 	std::string& utf8ResponseString)
 {
-	MikanClientFrameRendered frameRendered = {};
-	if (!readRequestPayload(request.utf8RequestString, frameRendered))
+	MikanClientFrameRendered frameInfo = {};
+	if (!readRequestPayload(request.utf8RequestString, frameInfo))
 	{
 		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
 		return;
@@ -904,9 +904,9 @@ void MikanServer::frameRendered(
 		{
 			MikanClientConnectionStatePtr clientState = connection_it->second;
 
-			if (clientState->readRenderTargetTextures())
+			if (clientState->readRenderTargetTextures(frameInfo))
 			{
-				OnClientRenderTargetUpdated(request.clientId, frameRendered.frame_index);
+				OnClientRenderTargetUpdated(request.clientId, frameInfo.frame_index);
 			}
 		}
 

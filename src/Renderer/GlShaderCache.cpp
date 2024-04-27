@@ -201,12 +201,17 @@ namespace InternalShaders
 
 			void main()
 			{
+				// Convert rgba8 packed linear depth to linear depth float
 				vec4 rgba = texture(rgbaPackedDepthTexture, TexCoords).rgba;
-				float depth= dot( rgba, vec4(1.0, 1/255.0, 1/65025.0, 1/16581375.0) );
-				float zNorm= (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+				float linearDepth= dot( rgba, vec4(1.0, 1/255.0, 1/65025.0, 1/16581375.0) );
 
-				FragColor = vec4(zNorm, zNorm, zNorm, 1.0);
-				gl_FragDepth = depth;
+				// https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
+				float nonLinearDepth = (zFar + zNear - 2.0 * zNear * zFar / linearDepth) / (zFar - zNear);
+				nonLinearDepth = (nonLinearDepth + 1.0) / 2.0;
+
+				// Output linear depth to color and non-linear depth to depth buffer
+				FragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
+				gl_FragDepth = nonLinearDepth;
 			} 
 			)"""")
 			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
