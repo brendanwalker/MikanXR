@@ -29,6 +29,9 @@ bool GlFrameBuffer::createResources()
 		case eFrameBufferType::DEPTH:
 			m_bIsValid= createDepthFrameBuffer();
 			break;
+		case eFrameBufferType::COLOR_AND_DEPTH:
+			m_bIsValid = createColorAndDepthFrameBuffer();
+			break;
 	}
 
 	return m_bIsValid;
@@ -49,18 +52,18 @@ bool GlFrameBuffer::createColorFrameBuffer()
 	}
 
 	// Create a color attachment texture with a double buffered pixel-buffer-object for reading
-	if (!m_texture)
+	if (!m_colorTexture)
 	{
 		assert(!m_bIsExternalTexture);
-		m_texture = std::make_shared<GlTexture>();
-		m_texture->setSize(m_width, m_height);
-		m_texture->setTextureFormat(GL_RGB);
-		m_texture->setBufferFormat(GL_RGB);
-		m_texture->setGenerateMipMap(false);
-		m_texture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
-		m_texture->createTexture();
+		m_colorTexture = std::make_shared<GlTexture>();
+		m_colorTexture->setSize(m_width, m_height);
+		m_colorTexture->setTextureFormat(GL_RGB);
+		m_colorTexture->setBufferFormat(GL_RGB);
+		m_colorTexture->setGenerateMipMap(false);
+		m_colorTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
+		m_colorTexture->createTexture();
 	}
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->getGlTextureId(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(), 0);
 
 	// Create depth render buffer attachment for the depth (don't need to read back the depth buffer)
 	glGenRenderbuffers(1, &m_glRenderBufferID);
@@ -110,19 +113,19 @@ bool GlFrameBuffer::createDepthFrameBuffer()
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Create a depth attachment texture with a double buffered pixel-buffer-object for reading
-	if (!m_texture)
+	if (!m_depthTexture)
 	{
 		assert(!m_bIsExternalTexture);
-		m_texture = std::make_shared<GlTexture>();
-		m_texture->setSize(m_width, m_height);
-		m_texture->setTextureFormat(GL_DEPTH_COMPONENT32F);
-		m_texture->setBufferFormat(GL_DEPTH_COMPONENT);
-		m_texture->setGenerateMipMap(false);
+		m_depthTexture = std::make_shared<GlTexture>();
+		m_depthTexture->setSize(m_width, m_height);
+		m_depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
+		m_depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
+		m_depthTexture->setGenerateMipMap(false);
 		// Assumption: Depth textures are not read back to the CPU, so no PBO is needed
-		m_texture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
-		m_texture->createTexture();
+		m_depthTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
+		m_depthTexture->createTexture();
 	}
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_texture->getGlTextureId(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->getGlTextureId(), 0);
 
 	m_bIsValid = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 	if (!m_bIsValid)
@@ -135,6 +138,59 @@ bool GlFrameBuffer::createDepthFrameBuffer()
 	return m_bIsValid;
 }
 
+bool GlFrameBuffer::createColorAndDepthFrameBuffer()
+{
+	// Cache the current frame buffer id
+	GLint prevFrameBufferID = 0;
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+
+	// Create new frame buffer
+	glGenFramebuffers(1, &m_glFrameBufferId);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+	if (!m_name.empty())
+	{
+		glObjectLabel(GL_FRAMEBUFFER, m_glFrameBufferId, -1, m_name.c_str());
+	}
+
+	// Create a color attachment texture with a double buffered pixel-buffer-object for reading
+	if (!m_colorTexture)
+	{
+		assert(!m_bIsExternalTexture);
+		m_colorTexture = std::make_shared<GlTexture>();
+		m_colorTexture->setSize(m_width, m_height);
+		m_colorTexture->setTextureFormat(GL_RGB);
+		m_colorTexture->setBufferFormat(GL_RGB);
+		m_colorTexture->setGenerateMipMap(false);
+		m_colorTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
+		m_colorTexture->createTexture();
+	}
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(), 0);
+
+	// Create a depth attachment texture with a double buffered pixel-buffer-object for reading
+	if (!m_depthTexture)
+	{
+		m_depthTexture = std::make_shared<GlTexture>();
+		m_depthTexture->setSize(m_width, m_height);
+		m_depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
+		m_depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
+		m_depthTexture->setGenerateMipMap(false);
+		// Assumption: Depth textures are not read back to the CPU, so no PBO is needed
+		m_depthTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
+		m_depthTexture->createTexture();
+	}
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->getGlTextureId(), 0);
+
+	bool bSuccess = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+	if (!bSuccess)
+	{
+		MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
+
+	return bSuccess;
+}
+
 void GlFrameBuffer::setSize(int width, int height)
 {
 	if (m_width != width || m_height != height)
@@ -145,27 +201,32 @@ void GlFrameBuffer::setSize(int width, int height)
 	}
 }
 
-void GlFrameBuffer::setExternalTexture(GlTexturePtr texture)
+void GlFrameBuffer::setExternalColorTexture(GlTexturePtr texture)
 {
-	if (m_texture != texture)
+	if (m_colorTexture != texture)
 	{
 		if (texture)
 		{
-			m_texture = texture;
+			m_colorTexture = texture;
 			m_bIsExternalTexture = true;
 		}
 		else
 		{
-			m_texture = nullptr;
+			m_colorTexture = nullptr;
 			m_bIsExternalTexture = false;
 		}
 		m_bIsValid = false;
 	}
 }
 
-GlTexturePtr GlFrameBuffer::getTexture() const
+GlTexturePtr GlFrameBuffer::getColorTexture() const
 {
-	return m_texture;
+	return m_colorTexture;
+}
+
+GlTexturePtr GlFrameBuffer::getDepthTexture() const
+{
+	return m_depthTexture;
 }
 
 void GlFrameBuffer::disposeResources()
@@ -178,8 +239,10 @@ void GlFrameBuffer::disposeResources()
 
 	if (!m_bIsExternalTexture)
 	{
-		m_texture = nullptr;
+		m_colorTexture = nullptr;
 	}
+
+	m_depthTexture = nullptr;
 
 	if (m_glFrameBufferId != -1)
 	{
@@ -218,6 +281,15 @@ void GlFrameBuffer::bindObject(GlState& glState)
 					// Since we only care about depth, tell OpenGL we're not going to render any color data
 					glStateSetDrawBuffer(glState, eGlFrameBuffer::NONE);
 					glStateSetReadBuffer(glState, eGlFrameBuffer::NONE);
+					glClear(GL_DEPTH_BUFFER_BIT);
+					glState.enableFlag(eGlStateFlagType::depthTest);
+				}
+				break;
+			case GlFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH:
+				{
+					glStateSetDrawBuffer(glState, eGlFrameBuffer::COLOR_ATTACHMENT0);
+					glStateSetReadBuffer(glState, eGlFrameBuffer::COLOR_ATTACHMENT0);
+					glStateSetClearColor(glState, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 					glClear(GL_DEPTH_BUFFER_BIT);
 					glState.enableFlag(eGlStateFlagType::depthTest);
 				}

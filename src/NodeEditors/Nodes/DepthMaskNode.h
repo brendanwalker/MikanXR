@@ -51,12 +51,10 @@ protected:
 	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
 
 	void setStencilsPin(ArrayPinPtr inPin);
-	void setDepthTextureInPin(TexturePinPtr outPin);
 	void setDepthTextureOutPin(TexturePinPtr outPin);
 	void rebuildStencilLists();
 
 protected:
-	TexturePinPtr m_inDepthTexturePin;
 	ArrayPinPtr m_stencilsPin;
 	std::vector<MikanStencilID> m_quadStencilIds;
 	std::vector<MikanStencilID> m_boxStencilIds;

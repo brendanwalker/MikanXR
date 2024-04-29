@@ -69,7 +69,7 @@
 			"video_texture_source": "Video Texture"
 		},
 		{
-			"class_name":          "ClientTextureNode",
+			"class_name":          "ClientColorTextureNode",
 			"id":                  34,
 			"pins_in":             [ ],
 			"pins_out":            [ 35 ],

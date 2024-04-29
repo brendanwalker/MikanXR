@@ -14,7 +14,8 @@ public:
 	enum class eFrameBufferType
 	{
 		COLOR,
-		DEPTH
+		DEPTH,
+		COLOR_AND_DEPTH,
 	};
 
 	GlFrameBuffer()= default;
@@ -29,13 +30,14 @@ public:
 	void setName(const std::string& name) { m_name = name; }
 	void setFrameBufferType(eFrameBufferType frameBufferType) { m_frameBufferType = frameBufferType; }
 	void setSize(int width, int height);
-	void setExternalTexture(GlTexturePtr texture);
+	void setExternalColorTexture(GlTexturePtr texture);
 
 	std::string getName() const { return m_name; }
 	GLuint getGlFrameBufferId() const { return m_glFrameBufferId; }
 	int getWidth() const { return m_width; }
 	int getHeight() const { return m_height; }
-	GlTexturePtr getTexture() const;
+	GlTexturePtr getColorTexture() const;
+	GlTexturePtr getDepthTexture() const;
 	GlState* getGlState() const { return m_glState; }
 
 private:
@@ -45,6 +47,7 @@ private:
 
 	bool createColorFrameBuffer();
 	bool createDepthFrameBuffer();
+	bool createColorAndDepthFrameBuffer();
 
 private:
 	GlState* m_glState= nullptr;
@@ -55,16 +58,14 @@ private:
 	int m_width= 800;
 	int m_height= 600;
 
-	GlTexturePtr m_texture;
+	GlTexturePtr m_colorTexture;
 	bool m_bIsExternalTexture= false;
+	GlTexturePtr m_depthTexture;
 	GLuint m_glRenderBufferID= -1;
 
 	// Cached GLState
 	GLuint m_glFrameBufferId = -1;
 	GLint m_lastGlFrameBufferId = 0;
-	//GLint m_lastiewport[4];
-	//GLint m_lastDrawMode;
-	//GLint m_lastReadMode;
 
 	bool m_bIsBound= false;
 	bool m_bIsValid= false;

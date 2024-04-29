@@ -169,7 +169,7 @@ namespace InternalShaders
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getUnpackRGBADepthTextureShaderCode()
+	const GlProgramCode* getUnpackRGBALinearDepthTextureShaderCode()
 	{
 		static GlProgramCode x_shaderCode = GlProgramCode(
 			INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE,
@@ -195,8 +195,6 @@ namespace InternalShaders
 
 			in vec2 TexCoords;
 
-			uniform float zNear;
-			uniform float zFar;
 			uniform sampler2D rgbaPackedDepthTexture;
 
 			void main()
@@ -205,20 +203,14 @@ namespace InternalShaders
 				vec4 rgba = texture(rgbaPackedDepthTexture, TexCoords).rgba;
 				float linearDepth= dot( rgba, vec4(1.0, 1/255.0, 1/65025.0, 1/16581375.0) );
 
-				// https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
-				float nonLinearDepth = (zFar + zNear - 2.0 * zNear * zFar / linearDepth) / (zFar - zNear);
-				nonLinearDepth = (nonLinearDepth + 1.0) / 2.0;
-
 				// Output linear depth to color and non-linear depth to depth buffer
 				FragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
-				gl_FragDepth = nonLinearDepth;
+				gl_FragDepth = linearDepth;
 			} 
 			)"""")
 			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
 			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-			.addUniform("rgbaPackedDepthTexture", eUniformSemantic::rgbaTexture)
-			.addUniform("zNear", eUniformSemantic::zNear)
-			.addUniform("zFar", eUniformSemantic::zFar);
+			.addUniform("rgbaPackedDepthTexture", eUniformSemantic::rgbaTexture);
 
 		return &x_shaderCode;
 	}
@@ -413,7 +405,7 @@ namespace InternalShaders
 	{
 		std::vector<const GlProgramCode*> internalShaders = {
 			getPTTexturedFullScreenQuad(),
-			getUnpackRGBADepthTextureShaderCode(),
+			getUnpackRGBALinearDepthTextureShaderCode(),
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),
 			getPTTexturedShaderCode(),

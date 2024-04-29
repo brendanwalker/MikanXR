@@ -69,17 +69,26 @@ enum class eStencilCullMode
 };
 extern const std::string* k_stencilCullModeStrings;
 
-enum class eClientTextureType
+enum class eClientColorTextureType
 {
 	INVALID = -1,
 
 	colorRGB,
 	colorRGBA,
+
+	COUNT
+};
+extern const std::string* k_clientColorTextureTypeStrings;
+
+enum class eClientDepthTextureType
+{
+	INVALID = -1,
+
 	depthPackRGBA,
 
 	COUNT
 };
-extern const std::string* k_clientTextureTypeStrings;
+extern const std::string* k_clientDepthTextureTypeStrings;
 
 enum class eCompositorEvaluatorWindow
 {

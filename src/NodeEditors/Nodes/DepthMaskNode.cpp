@@ -107,13 +107,6 @@ void DepthMaskNode::onGraphLoaded(bool success)
 	if (!success)
 		return;
 
-	// Optionally bind a depth texture input pin
-	TexturePinPtr textureInPin = getFirstPinOfType<TexturePin>(eNodePinDirection::INPUT);
-	if (textureInPin)
-	{
-		setDepthTextureInPin(textureInPin);
-	}
-
 	// Optionally bind a stencil input pin
 	ArrayPinPtr stencilInPin = getFirstPinOfType<ArrayPin>(eNodePinDirection::INPUT);
 	if (stencilInPin && stencilInPin->getElementClassName() == GraphStencilProperty::k_propertyClassName)
@@ -159,11 +152,6 @@ void DepthMaskNode::setStencilsPin(ArrayPinPtr inPin)
 	m_stencilsPin = inPin;
 }
 
-void DepthMaskNode::setDepthTextureInPin(TexturePinPtr inPin)
-{
-	m_inDepthTexturePin = inPin;
-}
-
 void DepthMaskNode::setDepthTextureOutPin(TexturePinPtr outPin)
 {
 	m_outDepthTexturePin = outPin;
@@ -182,13 +170,12 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 	bool bAnyQuadStencils = !m_quadStencilIds.empty();
 	bool bAnyBoxStencils = !m_boxStencilIds.empty();
 	bool bAnyModelStencils = !m_modelStencilIds.empty();
-	bool bHasDepthTextureInput = m_inDepthTexturePin && m_inDepthTexturePin->getConnectedLinks().size() > 0;
-	if (!bAnyQuadStencils && !bAnyBoxStencils && !bAnyModelStencils && !bHasDepthTextureInput)
+	if (!bAnyQuadStencils && !bAnyBoxStencils && !bAnyModelStencils)
 	{
 		evaluator.addError(
 			NodeEvaluationError(
 				eNodeEvaluationErrorCode::missingInput,
-				"No stencils or depth texture",
+				"No stencils",
 				this));
 		bSuccess = false;
 	}
@@ -213,7 +200,7 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 			if (m_depthFrameBuffer->createResources())
 			{
 				// Bind the frame buffer's texture to the output texture pin
-				m_outDepthTexturePin->setValue(m_depthFrameBuffer->getTexture());
+				m_outDepthTexturePin->setValue(m_depthFrameBuffer->getDepthTexture());
 			}
 			else
 			{
@@ -225,66 +212,6 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 						this));
 				bSuccess = false;
 			}
-		}
-	}
-
-	// Render the depth texture (if any)
-	if (bSuccess && bHasDepthTextureInput)
-	{
-		GlTexturePtr depthTexture= m_inDepthTexturePin->getValue();
-
-		if (depthTexture)
-		{
-			GlScopedObjectBinding depthFramebufferBinding(
-				*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
-				m_depthFrameBuffer);
-			if (depthFramebufferBinding)
-			{
-				GlState& glState = depthFramebufferBinding.getGlState();
-
-				// Fetch the rgba depth unpack material
-				if (!m_depthMaterialInstance && depthTexture->getTextureFormat() == GL_RGBA)
-				{
-					GlMaterialConstPtr rgbaDepthUnpackMaterial =
-						evaluator.getCurrentWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
-
-					if (rgbaDepthUnpackMaterial != nullptr)
-					{
-						m_depthMaterialInstance = std::make_shared<GlMaterialInstance>(rgbaDepthUnpackMaterial);
-					}
-				}
-
-				if (m_depthMaterialInstance)
-				{
-					evaluateDepthTexture(glState, depthTexture);
-				}
-				else
-				{
-					evaluator.addError(
-						NodeEvaluationError(
-							eNodeEvaluationErrorCode::evaluationError,
-							"Broken depth material",
-							this));
-				}
-			}
-			else
-			{
-				evaluator.addError(
-					NodeEvaluationError(
-						eNodeEvaluationErrorCode::evaluationError,
-						"Broken frame buffer",
-						this));
-				bSuccess = false;
-			}
-		}
-		else
-		{
-			evaluator.addError(
-				NodeEvaluationError(
-					eNodeEvaluationErrorCode::evaluationError,
-					"Invalid depth texture",
-					this));
-			bSuccess = false;
 		}
 	}
 
@@ -396,38 +323,6 @@ void DepthMaskNode::rebuildStencilLists()
 			{
 				m_modelStencilIds.push_back(modelStencil->getStencilComponentDefinition()->getStencilId());
 			}
-		}
-	}
-}
-
-void DepthMaskNode::evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture)
-{
-	assert(depthTexture);
-	assert(m_depthMaterialInstance);
-
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	if (!frameCompositor)
-		return;
-
-	float zNear, zFar;
-	if (!frameCompositor->getVideoSourceZRange(zNear, zFar))
-		return;
-
-	GlMaterialConstPtr material = m_depthMaterialInstance->getMaterial();
-	if (auto materialBinding = material->bindMaterial())
-	{
-		// Set the zNear and zFar values on the shader
-		m_depthMaterialInstance->setFloatBySemantic(eUniformSemantic::zNear, zNear);
-		m_depthMaterialInstance->setFloatBySemantic(eUniformSemantic::zFar, zFar);
-
-		// Bind the depth texture
-		m_depthMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbaTexture, depthTexture);
-
-		if (auto materialInstanceBinding = m_depthMaterialInstance->bindMaterialInstance(materialBinding))
-		{
-			auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-
-			compositorGraph->getLayerMesh()->drawElements();
 		}
 	}
 }
@@ -669,11 +564,6 @@ NodePtr DepthMaskNodeFactory::createNode(const NodeEditorState& editorState) con
 	// The rest of the input pins can't be connected until we have a material assigned
 	auto node = std::static_pointer_cast<DepthMaskNode>(NodeFactory::createNode(editorState));
 
-	// Create depth texture input pin
-	TexturePinPtr depthTextureInPin = node->addPin<TexturePin>("depthTexture", eNodePinDirection::INPUT);
-	depthTextureInPin->setHasDefaultValue(true); // Unconnected input pin == no depth texture
-	node->setDepthTextureInPin(depthTextureInPin);
-
 	// Create stencil input pins
 	ArrayPinPtr stencilListInPin = node->addPin<ArrayPin>("stencils", eNodePinDirection::INPUT);
 	stencilListInPin->setElementClassName(GraphStencilProperty::k_propertyClassName);
@@ -687,7 +577,6 @@ NodePtr DepthMaskNodeFactory::createNode(const NodeEditorState& editorState) con
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the default pins to a compatible target pin
-	autoConnectInputPin(editorState, depthTextureInPin);
 	autoConnectInputPin(editorState, stencilListInPin);
 	autoConnectOutputPin(editorState, outputPin);
 

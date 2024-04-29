@@ -53,7 +53,7 @@
 			"material_property_id": 5
 		},
 		{
-			"class_name":          "ClientTextureNode",
+			"class_name":          "ClientColorTextureNode",
 			"id":                  23,
 			"pins_in":             [ ],
 			"pins_out":            [ 24 ],

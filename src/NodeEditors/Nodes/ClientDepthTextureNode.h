@@ -4,24 +4,24 @@
 #include "RendererFwd.h"
 #include "FrameCompositorConstants.h"
 
-class ClientTextureNodeConfig : public NodeConfig
+class ClientDepthTextureNodeConfig : public NodeConfig
 {
 public:
-	ClientTextureNodeConfig() = default;
+	ClientDepthTextureNodeConfig() = default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eClientTextureType clientTextureType;
+	eClientDepthTextureType clientTextureType;
 	int clientIndex;
 };
 
-class ClientTextureNode : public Node
+class ClientDepthTextureNode : public Node
 {
 public:
-	ClientTextureNode() = default;
+	ClientDepthTextureNode() = default;
 
-	inline static const std::string k_nodeClassName = "ClientTextureNode";
+	inline static const std::string k_nodeClassName = "ClientDepthTextureNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -34,23 +34,24 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void updateDepthPreviewTexture(const NodeEditorState& editorState, GlTexturePtr clientTexture);
+	GlTexturePtr getClientDepthSourceTexture() const;
+	void updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, GlTexturePtr clientTexture);
 	void evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture);
 
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 protected:
-	GlFrameBufferPtr m_depthPreviewFrameBuffer;
+	GlFrameBufferPtr m_linearDepthFrameBuffer;
 	GlMaterialInstancePtr m_depthMaterialInstance;
-	eClientTextureType m_clientTextureType= eClientTextureType::colorRGB;
+	eClientDepthTextureType m_clientTextureType= eClientDepthTextureType::depthPackRGBA;
 	int m_clientIndex= 0;
 };
 
-class ClientTextureNodeFactory : public TypedNodeFactory<ClientTextureNode, ClientTextureNodeConfig>
+class ClientDepthTextureNodeFactory : public TypedNodeFactory<ClientDepthTextureNode, ClientDepthTextureNodeConfig>
 {
 public:
-	ClientTextureNodeFactory() = default;
+	ClientDepthTextureNodeFactory() = default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

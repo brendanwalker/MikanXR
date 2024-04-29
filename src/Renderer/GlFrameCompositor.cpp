@@ -484,7 +484,7 @@ GlTexturePtr GlFrameCompositor::getVideoPreviewTexture(eVideoTextureSource textu
 	}
 }
 
-GlTexturePtr GlFrameCompositor::getClientSourceTexture(int clientIndex, eClientTextureType clientTextureType) const
+GlTexturePtr GlFrameCompositor::getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const
 {
 	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
 	{
@@ -494,7 +494,7 @@ GlTexturePtr GlFrameCompositor::getClientSourceTexture(int clientIndex, eClientT
 		{
 			switch (clientTextureType)
 			{
-				case eClientTextureType::colorRGB:
+				case eClientColorTextureType::colorRGB:
 					if (clientSource->colorTexture && 
 						(clientSource->colorTexture->getTextureFormat() == GL_RGB ||
 						 clientSource->colorTexture->getTextureFormat() == GL_BGR))
@@ -502,14 +502,31 @@ GlTexturePtr GlFrameCompositor::getClientSourceTexture(int clientIndex, eClientT
 						return clientSource->colorTexture;
 					}
 					return clientSource->colorTexture;
-				case eClientTextureType::colorRGBA:
+				case eClientColorTextureType::colorRGBA:
 					if (clientSource->colorTexture &&
 						(clientSource->colorTexture->getTextureFormat() == GL_RGBA ||
 						 clientSource->colorTexture->getTextureFormat() == GL_BGRA))
 					{
 						return clientSource->colorTexture;
 					}
-				case eClientTextureType::depthPackRGBA:
+			}
+		}
+	}
+
+	return GlTexturePtr();
+}
+
+GlTexturePtr GlFrameCompositor::getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const
+{
+	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
+	{
+		ClientSource* clientSource = it->second;
+
+		if (clientSource->clientSourceIndex == clientIndex)
+		{
+			switch (clientTextureType)
+			{
+				case eClientDepthTextureType::depthPackRGBA:
 					return clientSource->depthTexture;
 			}
 		}
@@ -751,7 +768,7 @@ GlTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
 
 GlTexturePtr GlFrameCompositor::getBGRVideoFrameTexture() 
 {
-	return m_videoExportFramebuffer->isValid() ? m_videoExportFramebuffer->getTexture() : GlTexturePtr(); 
+	return m_videoExportFramebuffer->isValid() ? m_videoExportFramebuffer->getColorTexture() : GlTexturePtr(); 
 }
 
 void GlFrameCompositor::updateCompositeFrameNodeGraph()

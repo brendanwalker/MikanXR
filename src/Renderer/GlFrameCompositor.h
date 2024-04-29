@@ -91,7 +91,8 @@ public:
 	GlTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
-	GlTexturePtr getClientSourceTexture(int clientIndex, eClientTextureType clientTextureType) const;
+	GlTexturePtr getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const;
+	GlTexturePtr getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const;
 
 	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
 	GlTexturePtr getEditorWritableFrameTexture() const;

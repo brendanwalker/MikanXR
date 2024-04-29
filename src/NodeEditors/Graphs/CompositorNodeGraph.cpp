@@ -32,7 +32,8 @@
 
 // Nodes
 #include "Nodes/ArrayNode.h"
-#include "Nodes/ClientTextureNode.h"
+#include "Nodes/ClientColorTextureNode.h"
+#include "Nodes/ClientDepthTextureNode.h"
 #include "Nodes/DepthMaskNode.h"
 #include "Nodes/DrawLayerNode.h"
 #include "Nodes/EventNode.h"
@@ -66,7 +67,8 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 
 	// Nodes this graph can spawn
 	addNodeFactory<ArrayNodeFactory>();
-	addNodeFactory<ClientTextureNodeFactory>();
+	addNodeFactory<ClientColorTextureNodeFactory>();
+	addNodeFactory<ClientDepthTextureNodeFactory>();
 	addNodeFactory<DrawLayerNodeFactory>();
 	addNodeFactory<DepthMaskNodeFactory>();
 	addNodeFactory<EventNodeFactory>();
@@ -188,12 +190,12 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 GlTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
 {
-	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getTexture() : GlTextureConstPtr();
+	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getColorTexture() : GlTextureConstPtr();
 }
 
 void CompositorNodeGraph::setExternalCompositedFrameTexture(GlTexturePtr externalTexture)
 {
-	m_compositingFrameBuffer->setExternalTexture(externalTexture);
+	m_compositingFrameBuffer->setExternalColorTexture(externalTexture);
 }
 
 GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(

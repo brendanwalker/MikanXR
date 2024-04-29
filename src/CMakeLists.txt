@@ -253,6 +253,12 @@ file(GLOB MIKAN_NODE_EDITORS_ROOT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/*.h"
 )
 source_group("NodeEditors" FILES ${MIKAN_NODE_EDITORS_ROOT_SRC})
+## DataSources
+file(GLOB MIKAN_NODE_EDITORS_DATASOURCES_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/DataSources/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/DataSources/*.h"
+)
+source_group("NodeEditors\\DataSources" FILES ${MIKAN_NODE_EDITORS_DATASOURCES_SRC})
 ## Graphs
 file(GLOB MIKAN_NODE_EDITORS_GRAPHS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Graphs/*.cpp"
@@ -287,6 +293,7 @@ source_group("NodeEditors\\Windows" FILES ${MIKAN_NODE_EDITORS_WINDOWS_SRC})
 ## Node Editor Full Source
 set(MIKAN_NODE_EDITORS_SRC
     ${MIKAN_NODE_EDITORS_ROOT_SRC}
+	${MIKAN_NODE_EDITORS_DATASOURCES_SRC}
     ${MIKAN_NODE_EDITORS_GRAPHS_SRC}
     ${MIKAN_NODE_EDITORS_NODES_SRC}
     ${MIKAN_NODE_EDITORS_PINS_SRC}
