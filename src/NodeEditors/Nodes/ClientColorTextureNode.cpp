@@ -132,10 +132,10 @@ std::string ClientColorTextureNode::editorGetTitle() const
 {
 	if (!isDefaultNode())
 	{ 
-		return StringUtils::stringify("Client Source ", m_clientIndex);
+		return StringUtils::stringify("Client Color ", m_clientIndex);
 	}
 
-	return "Client Source";
+	return "Client Color";
 }
 
 void ClientColorTextureNode::editorRenderNode(const NodeEditorState& editorState)

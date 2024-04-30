@@ -81,6 +81,8 @@ public:
 	void render() const;
 
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
+	bool getVideoSourceView(glm::mat4& outCameraView) const;
+	bool getVideoSourceProjection(glm::mat4& outCameraProjection, bool verticalFlip= false) const;
 	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
 	bool getVideoSourceZRange(float& outZNear, float& outZFar) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }

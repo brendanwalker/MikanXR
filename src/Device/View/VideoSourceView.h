@@ -90,6 +90,7 @@ public:
 	void setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p);
 	glm::mat4 getCameraPose(VRDeviceViewPtr attachedVRDevicePtr) const;
 	glm::mat4 getCameraProjectionMatrix() const;
+	glm::mat4 getCameraViewMatrix(VRDeviceViewPtr attachedVRDevicePtr) const;
 	glm::mat4 getCameraViewProjectionMatrix(VRDeviceViewPtr attachedVRDevicePtr) const;
 
 	void getPixelDimensions(float& outWidth, float& outHeight) const;

@@ -94,8 +94,9 @@ bool CompositorNodeGraph::createResources()
 	// Create triangulated mesh used to render the layer onto
 	bool bSuccess = createLayerQuadMeshes();
 
-	// Create meshes used to draw quad and box stencils
-	bSuccess &= createStencilMeshes();
+	// Create meshes used to draw quad and box stencils and depth masks
+	bSuccess &= createQuadMeshes();
+	bSuccess &= createBoxMeshes();
 
 	return bSuccess;
 }
@@ -112,6 +113,8 @@ void CompositorNodeGraph::disposeResources()
 	// Free rendering resources
 	m_stencilBoxMesh = nullptr;
 	m_stencilQuadMesh = nullptr;
+	m_depthBoxMesh = nullptr;
+	m_depthQuadMesh = nullptr;
 	m_layerVFlippedMesh = nullptr;
 	m_layerMesh = nullptr;
 }
@@ -226,14 +229,51 @@ GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 	return GlRenderModelResourcePtr();
 }
 
+GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition)
+{
+	MikanStencilID stencilId = stencilDefinition->getStencilId();
+	auto it = m_depthMeshCache.find(stencilId);
+
+	if (it != m_depthMeshCache.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		// Load the depth model and render it using the simple depth material
+		auto depthMaterial =
+			getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+		auto renderModelPtr =
+			getOwnerWindow()->getModelResourceManager()->fetchRenderModel(
+				stencilDefinition->getModelPath(), depthMaterial);
+
+		if (renderModelPtr)
+		{
+			m_depthMeshCache.insert({stencilId, renderModelPtr});
+		}
+	}
+
+	return GlRenderModelResourcePtr();
+}
+
 void CompositorNodeGraph::flushStencilRenderModel(MikanStencilID stencilId)
 {
-	auto it = m_stencilMeshCache.find(stencilId);
-
-	if (it != m_stencilMeshCache.end())
 	{
-		// Remove the entry from the stencil id -> render resource table
-		m_stencilMeshCache.erase(it);
+		auto it = m_stencilMeshCache.find(stencilId);
+		if (it != m_stencilMeshCache.end())
+		{
+			// Remove the entry from the stencil id -> stencil render resource table
+			m_stencilMeshCache.erase(it);
+		}
+	}
+
+	{
+		auto it = m_depthMeshCache.find(stencilId);
+		if (it != m_depthMeshCache.end())
+		{
+			// Remove the entry from the stencil id -> depth render resource table
+			m_depthMeshCache.erase(it);
+		}
 	}
 }
 
@@ -247,7 +287,7 @@ void CompositorNodeGraph::onStencilSystemConfigMarkedDirty(
 	{
 		if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilObjPathPropertyId))
 		{
-			// Flush the model we have loaded for the given stencil.
+			// Flush the models we have loaded for the given stencil.
 			// We'll reload it next time the compositor renders the stencil.
 			flushStencilRenderModel(modelStencilConfig->getStencilId());
 		}
@@ -332,20 +372,22 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 	return true;
 }
 
-bool CompositorNodeGraph::createStencilMeshes()
+bool CompositorNodeGraph::createQuadMeshes()
 {
-	auto material = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
-	assert(material);
+	auto stencilMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+	assert(stencilMaterial);
+	auto depthMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+	assert(depthMaterial);
 
-	struct StencilVertex
+	struct QuadlVertex
 	{
 		glm::vec3 aPos;
 	};
-	size_t vertexSize = sizeof(StencilVertex);
+	size_t vertexSize = sizeof(QuadlVertex);
 
 	// Create triangulated quad mesh to draw the quad stencils
 	{
-		static StencilVertex x_vertices[] = {
+		static QuadlVertex x_vertices[] = {
 			//   positions
 			{glm::vec3(-0.5f,  0.5f, 0.0f)},
 			{glm::vec3(-0.5f, -0.5f, 0.0f)},
@@ -365,17 +407,51 @@ bool CompositorNodeGraph::createStencilMeshes()
 			2, // 2 tris in a quad
 			false); // mesh doesn't own quad vertex data
 
-		if (!m_stencilQuadMesh->setMaterial(material) ||
+		if (!m_stencilQuadMesh->setMaterial(stencilMaterial) ||
 			!m_stencilQuadMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("CompositorNodeGraph::createStencilMeshes()") << "Failed to create quad stencil mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createQuadMeshes()") << "Failed to create quad stencil mesh";
+			return false;
+		}
+
+		m_depthQuadMesh = std::make_shared<GlTriangulatedMesh>(
+			getOwnerWindow(),
+			"quad_depth_mesh",
+			(const uint8_t*)x_vertices,
+			vertexSize,
+			4, // 4 verts in a quad
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			2, // 2 tris in a quad
+			false); // mesh doesn't own quad vertex data
+
+		if (!m_depthQuadMesh->setMaterial(depthMaterial) ||
+			!m_depthQuadMesh->createResources())
+		{
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createQuadMeshes()") << "Failed to create quad depth mesh";
 			return false;
 		}
 	}
 
+	return true;
+}
+
+bool CompositorNodeGraph::createBoxMeshes()
+{
+	auto stencilMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+	assert(stencilMaterial);
+	auto depthMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+	assert(depthMaterial);
+
+	struct BoxVertex
+	{
+		glm::vec3 aPos;
+	};
+	size_t vertexSize = sizeof(BoxVertex);
+
 	// Create triangulated box mesh to draw the box stencils
 	{
-		static StencilVertex x_vertices[] = {
+		static BoxVertex x_vertices[] = {
 			//   positions
 			{glm::vec3(-0.5f,  0.5f, -0.5f)},
 			{glm::vec3(-0.5f,  0.5f,  0.5f)},
@@ -405,10 +481,27 @@ bool CompositorNodeGraph::createStencilMeshes()
 			sizeof(uint16_t), // 2 bytes per index
 			12, // 12 tris in a cube (6 faces * 2 tris/face)
 			false); // mesh doesn't own box vertex data
-		if (!m_stencilBoxMesh->setMaterial(material) ||
+		if (!m_stencilBoxMesh->setMaterial(stencilMaterial) ||
 			!m_stencilBoxMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("CompositorNodeGraph::createStencilMeshes()") << "Failed to create box stencil mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createBoxMeshes()") << "Failed to create box stencil mesh";
+			return false;
+		}
+
+		m_depthBoxMesh = std::make_shared<GlTriangulatedMesh>(
+			getOwnerWindow(),
+			"box_depth_mesh",
+			(const uint8_t*)x_vertices,
+			vertexSize,
+			8, // 8 verts in a cube
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			12, // 12 tris in a cube (6 faces * 2 tris/face)
+			false); // mesh doesn't own box vertex data
+		if (!m_depthBoxMesh->setMaterial(depthMaterial) ||
+			!m_depthBoxMesh->createResources())
+		{
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createBoxMeshes()") << "Failed to create box stencil mesh";
 			return false;
 		}
 	}

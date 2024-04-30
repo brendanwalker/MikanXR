@@ -624,10 +624,17 @@ void VideoSourceView::recomputeCameraProjectionMatrix()
 	}
 }
 
-glm::mat4 VideoSourceView::getCameraViewProjectionMatrix(VRDeviceViewPtr attachedVRDevicePtr) const
+glm::mat4 VideoSourceView::getCameraViewMatrix(VRDeviceViewPtr attachedVRDevicePtr) const
 {
 	const glm::mat4 cameraPose = VideoSourceView::getCameraPose(attachedVRDevicePtr);
 	const glm::mat4 viewMatrix = computeGLMCameraViewMatrix(cameraPose);
+
+	return viewMatrix;
+}
+
+glm::mat4 VideoSourceView::getCameraViewProjectionMatrix(VRDeviceViewPtr attachedVRDevicePtr) const
+{
+	const glm::mat4 viewMatrix = getCameraViewMatrix(attachedVRDevicePtr);
 	const glm::mat4 vpMatrix = m_projectionMatrix * viewMatrix;
 
 	return vpMatrix;

@@ -36,13 +36,13 @@ public:
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator);
 
+	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture);
-	void evaluateQuadStencils(GlState& glState);
-	void evaluateBoxStencils(GlState& glState);
-	void evaluateModelStencils(GlState& glState);
+	void evaluateQuadDepthMasks(GlState& glState);
+	void evaluateBoxDepthMasks(GlState& glState);
+	void evaluateModelDepthMasks(GlState& glState);
 
 	virtual std::string editorGetTitle() const override { return "Depth Mask"; }
 
@@ -52,7 +52,7 @@ protected:
 
 	void setStencilsPin(ArrayPinPtr inPin);
 	void setDepthTextureOutPin(TexturePinPtr outPin);
-	void rebuildStencilLists();
+	void rebuildDepthMaskLists();
 
 protected:
 	ArrayPinPtr m_stencilsPin;
@@ -62,7 +62,7 @@ protected:
 	TexturePinPtr m_outDepthTexturePin;
 
 	GlMaterialInstancePtr m_depthMaterialInstance;
-	GlFrameBufferPtr m_depthFrameBuffer;
+	GlFrameBufferPtr m_linearDepthFrameBuffer;
 
 	bool m_bDisableQuadStencil = false;
 	bool m_bDisableBoxStencil = false;

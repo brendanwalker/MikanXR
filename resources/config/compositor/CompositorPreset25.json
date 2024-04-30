@@ -1,0 +1,8 @@
+{
+	"name":             "DepthBlend",
+	"builtIn":          false,
+	"compositor_graph": {
+		"class_name": "",
+		"asset_path": "D:\\Github\\git-BrendanWalker\\MikanXR\\resources\\graphs\\depth_compare_graph.graph"
+	}
+}

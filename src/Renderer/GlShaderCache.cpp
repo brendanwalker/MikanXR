@@ -90,7 +90,7 @@ GlMaterialConstPtr GlShaderCache::getMaterialByName(const std::string& name)
 		return it->second;
 	}
 
-	return GlMaterialPtr();
+	return GlMaterialConstPtr();
 }
 
 GlProgramPtr GlShaderCache::fetchCompiledGlProgram(
@@ -401,6 +401,65 @@ namespace InternalShaders
 		return &x_shaderCode;
 	}
 
+	const GlProgramCode* getPLinearDepthShaderCode()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_P_LINEAR_DEPTH,
+			// vertex shader
+			R""""(
+			#version 330 core
+			layout (location = 0) in vec3 aPos;
+
+			uniform mat4 modelMatrix;
+			uniform mat4 viewMatrix;
+			uniform mat4 projMatrix;
+
+			out float depth;
+
+			void main()
+			{
+				mat4 mvMatrix= modelMatrix * viewMatrix;
+				mat4 mvpMatrix= mvMatrix * projMatrix;
+
+				gl_Position = mvpMatrix * vec4(aPos, 1.0);
+				depth = -(mvMatrix * vec4(aPos, 1.0)).z;
+			} 
+			)"""",
+			//fragment shader
+			R""""(
+			#version 330 core
+
+			uniform mat4 projMatrix;
+
+			in float depth;
+
+			out vec4 FragColor;
+			out float gl_FragDepth;
+
+			void main()
+			{
+				// Compute the zNear and zFar from projection matrix
+				float A = projMatrix[2].z; 
+				float B = projMatrix[3].z;
+				float zNear = - B / (1.0 - A);
+				float zFar  =   B / (1.0 + A);
+
+				// Compute linear depth [0, 1]
+				float linearDepth = clamp((depth - zNear)/(zFar - zNear), 0.0, 1.0);
+
+				// Output linear depth to color and depth buffers
+				FragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
+				gl_FragDepth = linearDepth;
+			} 
+			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addUniform("modelMatrix", eUniformSemantic::modelMatrix)
+			.addUniform("viewMatrix", eUniformSemantic::viewMatrix)
+			.addUniform("projMatrix", eUniformSemantic::projectionMatrix);
+
+		return &x_shaderCode;
+	}
+
 	bool registerInternalShaders(GlShaderCache& shaderCache)
 	{
 		std::vector<const GlProgramCode*> internalShaders = {
@@ -409,7 +468,8 @@ namespace InternalShaders
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),
 			getPTTexturedShaderCode(),
-			getPNTTexturedColoredShaderCode()
+			getPNTTexturedColoredShaderCode(),
+			getPLinearDepthShaderCode(),
 		};
 
 		bool bSuccess = true;

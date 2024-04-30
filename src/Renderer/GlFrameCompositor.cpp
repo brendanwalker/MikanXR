@@ -427,6 +427,39 @@ bool GlFrameCompositor::getVideoSourceCameraPose(glm::mat4& outCameraMat) const
 	return false;
 }
 
+bool GlFrameCompositor::getVideoSourceView(glm::mat4& outCameraView) const
+{
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckView != nullptr)
+	{
+		outCameraView = m_videoSourceView->getCameraViewMatrix(m_cameraTrackingPuckView);
+		return true;
+	}
+
+	return false;
+}
+
+bool GlFrameCompositor::getVideoSourceProjection(
+	glm::mat4& outCameraProjection,
+	bool verticalFlip) const
+{
+	if (m_videoSourceView != nullptr)
+	{
+		outCameraProjection = m_videoSourceView->getCameraProjectionMatrix();
+
+		if (verticalFlip)
+		{
+			// Flip the projection matrix to account for OpenGL's inverted Y-axis
+			outCameraProjection = 
+				glm::scale(glm::mat4(1.0), glm::vec3(1.f, -1.f, 1.f)) *
+				outCameraProjection;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) const
 {
 	if (m_videoSourceView != nullptr && m_cameraTrackingPuckView != nullptr)

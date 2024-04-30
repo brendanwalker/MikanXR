@@ -177,8 +177,8 @@ void CommonConfig::readMonoTrackerIntrinsics(
 	tracker_intrinsics.pixel_height = pt.get_or<double>("frame_height", 480.f);
     tracker_intrinsics.hfov = pt.get_or<double>("hfov", 60.f);
     tracker_intrinsics.vfov = pt.get_or<double>("vfov", 45.f);
-    tracker_intrinsics.znear = pt.get_or<double>("zNear", 0.01f);
-    tracker_intrinsics.zfar = pt.get_or<double>("zFar", 200.f);
+    tracker_intrinsics.znear = pt.get_or<double>("zNear", 0.1f);
+    tracker_intrinsics.zfar = pt.get_or<double>("zFar", 20.f);
 
 	MikanDistortionCoefficients default_distortion_coefficients;
 	memset(&default_distortion_coefficients, 0, sizeof(MikanDistortionCoefficients));

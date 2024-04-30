@@ -193,20 +193,10 @@ std::string ClientDepthTextureNode::editorGetTitle() const
 {
 	if (!isDefaultNode())
 	{ 
-		if (m_clientTextureType != eClientDepthTextureType::INVALID)
-		{
-			return
-				StringUtils::stringify(
-					"Client Source ", m_clientIndex,
-					" (", k_clientDepthTextureTypeStrings[(int)m_clientTextureType], ")");
-		}
-		else
-		{
-			return StringUtils::stringify("Client Source ", m_clientIndex, " (INVALID)");
-		}
+		return StringUtils::stringify("Client Depth ", m_clientIndex);
 	}
 
-	return "Client Source";
+	return "Client Depth";
 }
 
 void ClientDepthTextureNode::editorRenderNode(const NodeEditorState& editorState)
@@ -218,15 +208,13 @@ void ClientDepthTextureNode::editorRenderNode(const NodeEditorState& editorState
 	// Title
 	editorRenderTitle(editorState);
 
-	// Texture Preview
+	// Texture Preview (color texture of the frame buffer)
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	GlTexturePtr textureResource = getTextureResource();
-	if (textureResource)
-	{
-		uint32_t glTextureId = m_linearDepthFrameBuffer->getColorTexture()->getGlTextureId();
-
-		ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
-	}
+	GlTexturePtr colorTexture =
+		m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getColorTexture() : GlTexturePtr();
+	uint32_t glTextureId =
+		colorTexture ? colorTexture->getGlTextureId() : 0;
+	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
 
 	// Outputs
@@ -248,7 +236,7 @@ void ClientDepthTextureNode::editorRenderPropertySheet(const NodeEditorState& ed
 		if (NodeEditorUI::DrawSimpleComboBoxProperty(
 			"clientTextureType",
 			"Type",
-			"colorRGB\0colorRGBA\0depthPackRGBA\0",
+			"depthPackRGBA\0",
 			iTextureType))
 		{
 			m_clientTextureType= (eClientDepthTextureType)iTextureType;

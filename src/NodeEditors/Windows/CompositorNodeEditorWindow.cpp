@@ -52,18 +52,22 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 	if (m_isRunningCompositor)
 	{
 		MainWindow* mainWindow = MainWindow::getInstance();
-		VideoSourceViewPtr videoSourceView= mainWindow->getFrameCompositor()->getVideoSource();
 
-		NodeEvaluator evaluator = {};
-		evaluator
-			.setCurrentWindow(this)
-			.setDeltaSeconds(deltaSeconds)
-			.setCurrentVideoSourceView(videoSourceView);
-
-		auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
-		if (!node_graph->compositeFrame(evaluator))
+		if (mainWindow != nullptr)
 		{
-			m_lastNodeEvalErrors= evaluator.getErrors();
+			VideoSourceViewPtr videoSourceView = mainWindow->getFrameCompositor()->getVideoSource();
+
+			NodeEvaluator evaluator = {};
+			evaluator
+				.setCurrentWindow(this)
+				.setDeltaSeconds(deltaSeconds)
+				.setCurrentVideoSourceView(videoSourceView);
+
+			auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
+			if (!node_graph->compositeFrame(evaluator))
+			{
+				m_lastNodeEvalErrors = evaluator.getErrors();
+			}
 		}
 	}
 }

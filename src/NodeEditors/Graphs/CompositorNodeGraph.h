@@ -27,9 +27,12 @@ public:
 
 	// Stencil Models
 	GlRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);
+	GlRenderModelResourcePtr getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition);
 	void flushStencilRenderModel(MikanStencilID stencilId);
 	inline GlTriangulatedMeshPtr getStencilQuadMesh() const { return m_stencilQuadMesh; }
 	inline GlTriangulatedMeshPtr getStencilBoxMesh() const { return m_stencilBoxMesh; }
+	inline GlTriangulatedMeshPtr getDepthQuadMesh() const { return m_depthQuadMesh; }
+	inline GlTriangulatedMeshPtr getDepthBoxMesh() const { return m_depthBoxMesh; }
 	inline GlTriangulatedMeshPtr getLayerVFlippedMesh() const { return m_layerVFlippedMesh; }
 	inline GlTriangulatedMeshPtr getLayerMesh() const { return m_layerMesh; }
 
@@ -38,7 +41,8 @@ protected:
 	bool bindEventNodes();
 
 	bool createLayerQuadMeshes();
-	bool createStencilMeshes();
+	bool createQuadMeshes();
+	bool createBoxMeshes();
 	void updateCompositingFrameBufferSize(NodeEvaluator& evaluator);
 
 	// Stencil System Events
@@ -49,9 +53,12 @@ protected:
 	GlProgramPtr m_vertexOnlyStencilShader;
 	GlTriangulatedMeshPtr m_stencilQuadMesh;
 	GlTriangulatedMeshPtr m_stencilBoxMesh;
+	GlTriangulatedMeshPtr m_depthQuadMesh;
+	GlTriangulatedMeshPtr m_depthBoxMesh;
 	GlTriangulatedMeshPtr m_layerVFlippedMesh;
 	GlTriangulatedMeshPtr m_layerMesh;
 	std::map<MikanStencilID, GlRenderModelResourcePtr> m_stencilMeshCache;
+	std::map<MikanStencilID, GlRenderModelResourcePtr> m_depthMeshCache;
 	NodePtr m_compositeFrameEventNode;
 
 	friend class CompositorNodeGraphFactory;
