@@ -41,8 +41,10 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 	if (!modelFilePath.empty())
 	{
 		std::string modelPathString = modelFilePath.string();
+		std::string materialName= overrideMaterial ? overrideMaterial->getName() : "/default_material";
+		std::string cacheKey = modelPathString + materialName;
 
-		auto it = m_renderModelCache.find(modelPathString);
+		auto it = m_renderModelCache.find(cacheKey);
 		if (it != m_renderModelCache.end())
 		{
 			return it->second;
@@ -61,7 +63,7 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 					if (resource)
 					{
 						std::string modelName = resource->getModelFilePath().string();
-						m_renderModelCache.insert({modelPathString, resource});
+						m_renderModelCache.insert({cacheKey, resource});
 						return resource;
 					}
 				}
