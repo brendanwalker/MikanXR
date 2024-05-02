@@ -418,8 +418,8 @@ namespace InternalShaders
 
 			void main()
 			{
-				mat4 mvMatrix= modelMatrix * viewMatrix;
-				mat4 mvpMatrix= mvMatrix * projMatrix;
+				mat4 mvMatrix= viewMatrix * modelMatrix;
+				mat4 mvpMatrix= projMatrix * mvMatrix;
 
 				gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				depth = -(mvMatrix * vec4(aPos, 1.0)).z;
