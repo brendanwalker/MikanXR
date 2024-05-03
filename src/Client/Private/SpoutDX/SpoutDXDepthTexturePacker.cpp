@@ -271,7 +271,8 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 
 			// Convert the depth value to a linear [0, 1) value (0 = near, 1 = far)
 			// 1.0 is not encoded property, so we need to clamp it to 0.999999
-			float zNorm= min((2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear)), 0.999999);
+			float eyeDepth = zFar * zNear / ((zNear - zFar) * depth + zFar);
+			float zNorm = min((eyeDepth - zNear) / (zFar - zNear), 0.999999);
 
 			// Encode the linear depth value to a RGBA8 texture
 			// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/

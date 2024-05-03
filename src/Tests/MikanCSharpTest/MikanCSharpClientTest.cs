@@ -228,6 +228,10 @@ namespace Mikan
 		private D3D11.InputLayout cubeInputLayout;
 		private int cubeVertexCount;
 		private D3D11.Buffer cubeShaderContantBuffer;
+		private Vector3 cameraPosition;
+		private Vector3 cameraForward;
+		private Vector3 cameraUp;
+		private Vector3 cameraRight;
 		private Matrix viewMatrix;
 		private Matrix projectionMatrix;
 
@@ -257,7 +261,7 @@ namespace Mikan
 		private float time = 0f;
 		private UInt64 lastReceivedVideoSourceFrame = 0;
 
-		public float zOffset = 0.0f;
+		public Vector3 cubeOffset = new Vector3(0, 0, 10);
 
 		public MikanCSharpDXTestApp()
 		{
@@ -272,28 +276,36 @@ namespace Mikan
 			renderForm.ClientSize = new Size(windowWidth, windowHeight);
 			renderForm.AllowUserResizing = false;
 			renderForm.KeyPress += (sender, e) => { 
-				if (e.KeyChar == 'd')
+				switch (e.KeyChar)
 				{
-					switch(DrawDepthMode)
-					{
-					case RenderMode.Color:
-						DrawDepthMode= RenderMode.DepthNormalize;
-						break;
-					case RenderMode.DepthNormalize:
-						DrawDepthMode= RenderMode.PackDepth;
-						break;
-					case RenderMode.PackDepth:
-						DrawDepthMode = RenderMode.Color;
-						break;
-					}
-				}
-				else if (e.KeyChar == '+')
-				{
-					zOffset += 1.0f;
-				}
-				else if (e.KeyChar == '-')
-				{
-					zOffset -= 1.0f;
+				case '1':
+					DrawDepthMode = RenderMode.Color;
+
+					break;
+				case '2':
+					DrawDepthMode = RenderMode.DepthNormalize;
+					break;
+				case '3':
+					DrawDepthMode = RenderMode.PackDepth;
+					break;
+				case 'w':
+					cubeOffset.Z += 0.1f;
+					break;
+				case 's':
+					cubeOffset.Z -= 0.1f;
+					break;
+				case 'a':
+					cubeOffset.X -= 0.1f;
+					break;
+				case 'd':
+					cubeOffset.X += 0.1f;
+					break;
+				case 'q':
+					cubeOffset.Y += 0.1f;
+					break;
+				case 'e':
+					cubeOffset.Y -= 0.1f;
+					break;
 				}
 			};
 		}
@@ -516,7 +528,9 @@ namespace Mikan
 					MathUtil.PiOverFour, windowWidth / (float)windowHeight, 
 					depthNormalConstants.zNear, 
 					depthNormalConstants.zFar);
-			viewMatrix = Matrix.LookAtLH(new Vector3(0, 0, -10), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+			// Compute the initial view matrix
+			SetCameraPose(new Vector3(0, 0, 1), new Vector3(0, 1, 0), new Vector3(0, 0, -10));
 
 			return true;
 		}
@@ -565,7 +579,8 @@ namespace Mikan
 				float4 ps_main(PS_INPUT input) : SV_TARGET
 				{
 					float depth = InputTexture.Sample(samLinear, input.uv).r;
-					float zNorm= (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+					float eyeDepth = zFar * zNear / ((zNear - zFar) * depth + zFar);
+					float zNorm = (eyeDepth - zNear) / (zFar - zNear);
 
 					return float4(zNorm, zNorm, zNorm, 1.0);
 				}";
@@ -942,10 +957,10 @@ namespace Mikan
 				return;
 
 			// Apply the camera pose received
-			//SetCameraPose(
-			//	newFrameEvent.cameraForward,
-			//	newFrameEvent.cameraUp,
-			//	newFrameEvent.cameraPosition);
+			SetCameraPose(
+				newFrameEvent.cameraForward,
+				newFrameEvent.cameraUp,
+				newFrameEvent.cameraPosition);
 
 			// Render out a new frame
 			Draw();
@@ -983,9 +998,24 @@ namespace Mikan
 			MikanVector3f mikanUp,
 			MikanVector3f mikanPosition)
 		{
-			var cameraForward = MikanVector3fToSharpDXVector3(mikanForward);
-			var cameraUp = MikanVector3fToSharpDXVector3(mikanUp);
-			var cameraPosition = MikanVector3fToSharpDXVector3(mikanPosition);
+			var newCamForward = MikanVector3fToSharpDXVector3(mikanForward);
+			var newCamUp = MikanVector3fToSharpDXVector3(mikanUp);
+			var newCamPos = MikanVector3fToSharpDXVector3(mikanPosition);
+
+			SetCameraPose(newCamForward, newCamUp, newCamPos);
+		}
+
+		void SetCameraPose(
+			Vector3 inCameraForward,
+			Vector3 inCameraUp,
+			Vector3 inCameraPosition)
+		{
+			cameraForward = inCameraForward;
+			cameraUp = inCameraUp;
+			cameraRight = Vector3.Cross(inCameraUp, inCameraForward);
+			cameraRight.Normalize();
+
+			cameraPosition = inCameraPosition;
 			var targetPosition = cameraPosition + cameraForward;
 
 			// Apply the camera pose received
@@ -1017,16 +1047,22 @@ namespace Mikan
 			d3dDeviceContext.VertexShader.Set(cubeVertexShader);
 			d3dDeviceContext.PixelShader.Set(cubePixelShader);
 
-			// Update the model view projection matrix used to render the geometry
+			// Update the model view projection matrix used to render the cube geometry
 			var viewProj = Matrix.Multiply(viewMatrix, projectionMatrix);
-			var modelViewProj =
+			var cubePostion = 
+				cameraPosition + 
+				cameraForward*cubeOffset.Z +
+				cameraUp*cubeOffset.Y +
+				cameraRight*cubeOffset.X;
+			var cubeModelViewProj =
+				Matrix.Scaling(0.1f) *
 				Matrix.RotationX(time) *
 				Matrix.RotationY(time * 2) *
 				Matrix.RotationZ(time * .7f) *
-				Matrix.Translation(0, 0, zOffset) *
+				Matrix.Translation(cubePostion) *
 				viewProj;
-			modelViewProj.Transpose();
-			d3dDeviceContext.UpdateSubresource(ref modelViewProj, cubeShaderContantBuffer);
+			cubeModelViewProj.Transpose();
+			d3dDeviceContext.UpdateSubresource(ref cubeModelViewProj, cubeShaderContantBuffer);
 
 			// Set the constants buffer
 			d3dDeviceContext.VertexShader.SetConstantBuffer(0, cubeShaderContantBuffer);
