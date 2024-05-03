@@ -135,7 +135,12 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 	{
 		m_linearDepthFrameBuffer = std::make_shared<GlFrameBuffer>("ClientTextureNode Preview Texture");
 		m_linearDepthFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH);
-		m_linearDepthFrameBuffer->setSize(100, 100);
+	}
+
+	// Update render target size
+	m_linearDepthFrameBuffer->setSize(clientTexture->getTextureWidth(), clientTexture->getTextureHeight());
+	if (!m_linearDepthFrameBuffer->isValid())
+	{
 		m_linearDepthFrameBuffer->createResources();
 	}
 
