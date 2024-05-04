@@ -52,6 +52,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MikanClientGraphicsApi, {
 	{MikanClientGraphicsApi_Direct3D11, "Direct3D11"},
 	{MikanClientGraphicsApi_Direct3D12, "Direct3D12"},
 	{MikanClientGraphicsApi_OpenGL, "OpenGL"},
+	{MikanClientGraphicsApi_Metal, "Metal"},
+	{MikanClientGraphicsApi_Vulkan, "Vulkan"},
 	{MikanClientGraphicsApi_COUNT, nullptr},
 })
 

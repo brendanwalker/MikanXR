@@ -58,6 +58,8 @@ enum MikanClientGraphicsApi
 	MikanClientGraphicsApi_Direct3D11,
 	MikanClientGraphicsApi_Direct3D12,
 	MikanClientGraphicsApi_OpenGL,
+	MikanClientGraphicsApi_Metal,
+	MikanClientGraphicsApi_Vulkan,
 
 	MikanClientGraphicsApi_COUNT,
 };
