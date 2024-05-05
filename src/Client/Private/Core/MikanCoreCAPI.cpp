@@ -23,7 +23,9 @@ void* g_graphicsDeviceInterfaces[MikanClientGraphicsApi_COUNT] = {
 	nullptr, // DirectX9
 	nullptr, // DirectX11
 	nullptr, // DirectX12
-	nullptr  // OpenGL
+	nullptr, // OpenGL
+	nullptr, // Metal
+	nullptr  // Vulkan
 };
 
 
