@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MikanXR
 {
@@ -15,11 +16,11 @@ namespace MikanXR
 		public MikanEvent CreateEvent(string utfJsonString)
 		{
 			// Deserialize enumerations from strings rather than from integers
-			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
-			JsonSerializerOptions opts = new JsonSerializerOptions();
-			opts.Converters.Add(stringEnumConverter);
+			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
+			var settings = new JsonSerializerSettings();
+			settings.Converters.Add(stringEnumConverter);
 
-			T response= JsonSerializer.Deserialize<T>(utfJsonString, opts);
+			T response= JsonConvert.DeserializeObject<T>(utfJsonString, settings);
 
 			return response;
 		}
@@ -72,17 +73,16 @@ namespace MikanXR
 		{
 			MikanEvent mikanEvent = null;
 
-			JsonDocument document = JsonDocument.Parse(utf8ResponseString);
-			JsonElement root = document.RootElement;
+			var root= (JObject)JsonConvert.DeserializeObject(utf8ResponseString);
 
 			// Check if the key "eventType" exists
-			if (root.TryGetProperty("eventType", out JsonElement eventTypeElement))
+			if (root.TryGetValue("eventType", out JToken eventTypeElement))
 			{
 				// Check if the value of "eventType" is a string
-				if (eventTypeElement.ValueKind == JsonValueKind.String)
+				if (eventTypeElement.Type == JTokenType.String)
 				{
 					// Get the string value of "eventType"
-					string eventType = eventTypeElement.GetString();
+					string eventType = (string)eventTypeElement;
 					
 					if (_eventFactories.TryGetValue(eventType, out IMikanEventFactory factory))
 					{
@@ -102,9 +102,6 @@ namespace MikanXR
 			{
 				_nativeLogCallback((int)MikanLogLevel.Error, "eventType key not found.");
 			}
-
-			// Dispose of the JsonDocument to free resources
-			document.Dispose();
 
 			return mikanEvent;
 		}

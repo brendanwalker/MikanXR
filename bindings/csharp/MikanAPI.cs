@@ -1,5 +1,5 @@
+using Newtonsoft.Json;
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MikanXR
@@ -183,11 +183,8 @@ namespace MikanXR
 			clientInfo.clientId = GetClientUniqueID();
 
 			// Serialize enumerations from strings rather than from integers
-			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
-			JsonSerializerOptions opts = new JsonSerializerOptions();
-			opts.Converters.Add(stringEnumConverter);
-
-			string clientInfoString = JsonSerializer.Serialize(clientInfo, opts);
+			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
+			string clientInfoString = JsonConvert.SerializeObject(clientInfo, stringEnumConverter);
 			int result = MikanCoreNative.Mikan_SetClientProperty("clientInfo", clientInfoString);
 
 			return (MikanResult)result;

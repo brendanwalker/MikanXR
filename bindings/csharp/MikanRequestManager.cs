@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
-using System.Text.Json;
 using System.Collections.Generic;
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MikanXR
 {
@@ -35,11 +36,11 @@ namespace MikanXR
 		public MikanResponse CreateResponse(string utfJsonString)
 		{
 			// Deserialize enumerations from strings rather than from integers
-			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
-			JsonSerializerOptions opts = new JsonSerializerOptions();
-			opts.Converters.Add(stringEnumConverter);
+			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
+			var settings = new JsonSerializerSettings();
+			settings.Converters.Add(stringEnumConverter);
 
-			T response = JsonSerializer.Deserialize<T>(utfJsonString, opts);
+			T response = JsonConvert.DeserializeObject<T>(utfJsonString, settings);
 
 			return response;
 		}
@@ -124,12 +125,9 @@ namespace MikanXR
 		public Task<MikanResponse> SendRequestWithPayload<T>(string utf8RequestType, T payload, int version = 0)
 		{
 			// Serialize enumerations from strings rather than from integers
-			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
-			JsonSerializerOptions opts = new JsonSerializerOptions();
-			opts.Converters.Add(stringEnumConverter);
+			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
+			string payloadString = JsonConvert.SerializeObject(payload, stringEnumConverter);
 
-			string payloadString = JsonSerializer.Serialize(payload, opts);
-			
 			return SendRequestIntenal(utf8RequestType, payloadString, version);
 		}		
 		
@@ -181,17 +179,16 @@ namespace MikanXR
 		{
 			MikanResponse response = null;
 
-			JsonDocument document = JsonDocument.Parse(utf8ResponseString);
-			JsonElement root = document.RootElement;
+			var root = (JObject)JsonConvert.DeserializeObject(utf8ResponseString);
 
 			// Check if the key "responseType" exists
-			if (root.TryGetProperty("responseType", out JsonElement responseTypeElement))
+			if (root.TryGetValue("responseType", out JToken responseTypeElement))
 			{
 				// Check if the value of "responseType" is a string
-				if (responseTypeElement.ValueKind == JsonValueKind.String)
+				if (responseTypeElement.Type == JTokenType.String)
 				{
 					// Get the string value of "responseType"
-					string responseType = responseTypeElement.GetString();
+					string responseType = (string)responseTypeElement;
 					
 					if (_responseFactory.TryGetValue(responseType, out IMikanResponseFactory factory))
 					{
@@ -211,9 +208,6 @@ namespace MikanXR
 			{
 				_nativeLogCallback((int)MikanLogLevel.Error, "responseType key not found.");
 			}
-
-			// Dispose of the JsonDocument to free resources
-			document.Dispose();
 
 			return response;
 		}
