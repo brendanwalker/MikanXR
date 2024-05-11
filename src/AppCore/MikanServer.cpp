@@ -20,11 +20,14 @@
 #include "VRDeviceView.h"
 
 #include "WebsocketInterprocessMessageServer.h"
-#include "MikanCoreTypes_json.h"
 #include "MikanAPITypes_json.h"
+#include "MikanCoreTypes_json.h"
 #include "MikanEventTypes_json.h"
+#include "MikanMathTypes_json.h"
 #include "MikanScriptTypes_json.h"
+#include "MikanSpatialAnchorTypes_json.h"
 #include "MikanVideoSourceTypes_json.h"
+#include "MikanVRDeviceTypes_json.h"
 
 #include <set>
 #include <assert.h>
