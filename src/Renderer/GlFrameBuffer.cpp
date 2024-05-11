@@ -7,6 +7,22 @@
 
 #include <assert.h>
 
+namespace GlFrameBufferUtils
+{
+	GLenum getGlColorFormat(GlFrameBuffer::eColorFormat colorFormat)
+	{
+		switch (colorFormat)
+		{
+			case GlFrameBuffer::eColorFormat::RGB:
+				return GL_RGB;
+			case GlFrameBuffer::eColorFormat::RGBA:
+				return GL_RGBA;
+			default:
+				return GL_RGB;
+		}
+	}
+}
+
 GlFrameBuffer::GlFrameBuffer(const std::string& name) 
 	: m_name(name)
 {
@@ -54,11 +70,13 @@ bool GlFrameBuffer::createColorFrameBuffer()
 	// Create a color attachment texture with a double buffered pixel-buffer-object for reading
 	if (!m_colorTexture)
 	{
+		const GLenum glColorFormat = GlFrameBufferUtils::getGlColorFormat(m_colorFormat);
+
 		assert(!m_bIsExternalTexture);
 		m_colorTexture = std::make_shared<GlTexture>();
 		m_colorTexture->setSize(m_width, m_height);
-		m_colorTexture->setTextureFormat(GL_RGB);
-		m_colorTexture->setBufferFormat(GL_RGB);
+		m_colorTexture->setTextureFormat(glColorFormat);
+		m_colorTexture->setBufferFormat(glColorFormat);
 		m_colorTexture->setGenerateMipMap(false);
 		m_colorTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
 		m_colorTexture->createTexture();
@@ -155,11 +173,13 @@ bool GlFrameBuffer::createColorAndDepthFrameBuffer()
 	// Create a color attachment texture with a double buffered pixel-buffer-object for reading
 	if (!m_colorTexture)
 	{
+		const GLenum glColorFormat = GlFrameBufferUtils::getGlColorFormat(m_colorFormat);
+
 		assert(!m_bIsExternalTexture);
 		m_colorTexture = std::make_shared<GlTexture>();
 		m_colorTexture->setSize(m_width, m_height);
-		m_colorTexture->setTextureFormat(GL_RGB);
-		m_colorTexture->setBufferFormat(GL_RGB);
+		m_colorTexture->setTextureFormat(glColorFormat);
+		m_colorTexture->setBufferFormat(glColorFormat);
 		m_colorTexture->setGenerateMipMap(false);
 		m_colorTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
 		m_colorTexture->createTexture();
@@ -191,12 +211,30 @@ bool GlFrameBuffer::createColorAndDepthFrameBuffer()
 	return bSuccess;
 }
 
+void GlFrameBuffer::setFrameBufferType(eFrameBufferType frameBufferType) 
+{ 
+	if (m_frameBufferType != frameBufferType)
+	{
+		m_frameBufferType = frameBufferType;
+		m_bIsValid = false;
+	}
+}
+
 void GlFrameBuffer::setSize(int width, int height)
 {
 	if (m_width != width || m_height != height)
 	{
 		m_width = width;
 		m_height = height;
+		m_bIsValid = false;
+	}
+}
+
+void GlFrameBuffer::setColorFormat(eColorFormat colorFormat)
+{
+	if (m_colorFormat != colorFormat)
+	{
+		m_colorFormat = colorFormat;
 		m_bIsValid = false;
 	}
 }

@@ -14,6 +14,7 @@ public:
 
 	eClientColorTextureType clientTextureType;
 	int clientIndex;
+	bool bVerticalFlip;
 };
 
 class ClientColorTextureNode : public Node
@@ -34,16 +35,19 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture);
+	GlTexturePtr getClientColorSourceTexture() const;
+	void updateColorFrameBuffer(NodeEvaluator& evaluator, GlTexturePtr clientTexture);
+	void evaluateFlippedColorTexture(GlState& glState, GlTexturePtr depthTexture);
 
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 protected:
-	GlFrameBufferPtr m_depthPreviewFrameBuffer;
-	GlMaterialInstancePtr m_depthMaterialInstance;
+	GlFrameBufferPtr m_colorFrameBuffer;
+	GlMaterialInstancePtr m_colorMaterialInstance;
 	eClientColorTextureType m_clientTextureType= eClientColorTextureType::colorRGB;
 	int m_clientIndex= 0;
+	bool m_bVerticalFlip= false;
 };
 
 class ClientColorTextureNodeFactory : public TypedNodeFactory<ClientColorTextureNode, ClientColorTextureNodeConfig>

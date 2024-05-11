@@ -18,6 +18,12 @@ public:
 		COLOR_AND_DEPTH,
 	};
 
+	enum class eColorFormat
+	{
+		RGB,
+		RGBA,
+	};
+
 	GlFrameBuffer()= default;
 	GlFrameBuffer(const std::string& name);
 	~GlFrameBuffer();
@@ -28,14 +34,16 @@ public:
 	void disposeResources();
 
 	void setName(const std::string& name) { m_name = name; }
-	void setFrameBufferType(eFrameBufferType frameBufferType) { m_frameBufferType = frameBufferType; }
+	void setFrameBufferType(eFrameBufferType frameBufferType);
 	void setSize(int width, int height);
+	void setColorFormat(eColorFormat colorFormat);
 	void setExternalColorTexture(GlTexturePtr texture);
 
 	std::string getName() const { return m_name; }
 	GLuint getGlFrameBufferId() const { return m_glFrameBufferId; }
 	int getWidth() const { return m_width; }
 	int getHeight() const { return m_height; }
+	eColorFormat getColorFormat() const { return m_colorFormat; }
 	GlTexturePtr getColorTexture() const;
 	GlTexturePtr getDepthTexture() const;
 	GlState* getGlState() const { return m_glState; }
@@ -54,6 +62,7 @@ private:
 
 	std::string m_name;
 	eFrameBufferType m_frameBufferType= eFrameBufferType::COLOR;
+	eColorFormat m_colorFormat= eColorFormat::RGB;
 
 	int m_width= 800;
 	int m_height= 600;

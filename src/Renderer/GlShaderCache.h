@@ -7,7 +7,8 @@
 #include <string>
 #include <map>
 
-#define INTERNAL_MATERIAL_PT_FULLSCREEN_TEXTURE			"Internal_PT_FullscreenTexture"
+#define INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE		"Internal_PT_FullscreenRGBTexture"
+#define INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE	"Internal_PT_FullscreenRGBATexture"
 #define INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE		"Internal_UnpackRGBADepthTexture"
 #define INTERNAL_MATERIAL_P_WIREFRAME					"Internal_P_Wireframe"
 #define INTERNAL_MATERIAL_P_SOLID_COLOR					"Internal_P_SolidColor"

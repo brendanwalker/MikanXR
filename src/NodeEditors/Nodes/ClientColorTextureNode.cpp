@@ -36,6 +36,7 @@ configuru::Config ClientColorTextureNodeConfig::writeToJSON()
 
 	pt["client_texture_type"] = k_clientColorTextureTypeStrings[(int)clientTextureType];
 	pt["client_index"] = clientIndex;
+	pt["vertical_flip"] = bVerticalFlip;
 
 	return pt;
 }
@@ -51,6 +52,7 @@ void ClientColorTextureNodeConfig::readFromJSON(const configuru::Config& pt)
 	clientTextureType =
 		StringUtils::FindEnumValue<eClientColorTextureType>(
 			clientTextureTypeString, k_clientColorTextureTypeStrings);
+	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
 
 	clientIndex= pt.get_or<int>("client_index", 0);
 }
@@ -64,6 +66,8 @@ bool ClientColorTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 		m_clientTextureType= clientTextureNodeConfig->clientTextureType;
 		m_clientIndex= clientTextureNodeConfig->clientIndex;
+		m_bVerticalFlip= clientTextureNodeConfig->bVerticalFlip;
+
 		return true;
 	}
 
@@ -75,16 +79,43 @@ void ClientColorTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	auto clientTextureNodeConfig = std::static_pointer_cast<ClientColorTextureNodeConfig>(nodeConfig);
 	clientTextureNodeConfig->clientTextureType = m_clientTextureType;
 	clientTextureNodeConfig->clientIndex = m_clientIndex;
+	clientTextureNodeConfig->bVerticalFlip = m_bVerticalFlip;
 
 	Node::saveToConfig(nodeConfig);
 }
 
 GlTexturePtr ClientColorTextureNode::getTextureResource() const
 {
-	GlFrameCompositor* compositor= MainWindow::getInstance()->getFrameCompositor();
+	return 
+		m_bVerticalFlip && m_colorFrameBuffer 
+		? m_colorFrameBuffer->getColorTexture() 
+		: getClientColorSourceTexture();
+}
+
+bool ClientColorTextureNode::evaluateNode(NodeEvaluator& evaluator)
+{
+	// Since the frame compositor can change the client source texture can change out from under us
+	// it's safest to just refresh the output texture pin every frame
+	auto outputPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
+
+	// Render the color texture to the frame buffer if we want to flip the Y axis
+	if (m_bVerticalFlip)
+	{
+		updateColorFrameBuffer(evaluator, getClientColorSourceTexture());
+	}
+
+	// Render the output color texture to the output pin
+	outputPin->setValue(getTextureResource());
+
+	return true;
+}
+
+GlTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
+{
+	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
 	{
-		GlTexturePtr clientTexture= compositor->getClientColorSourceTexture(m_clientIndex, m_clientTextureType);
+		GlTexturePtr clientTexture = compositor->getClientColorSourceTexture(m_clientIndex, m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
@@ -95,13 +126,13 @@ GlTexturePtr ClientColorTextureNode::getTextureResource() const
 		{
 			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getTextureCache();
 
-			if (m_clientTextureType == eClientColorTextureType::colorRGB)
-			{
-				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGB);
-			}
-			else if (m_clientTextureType == eClientColorTextureType::colorRGBA)
+			if (m_clientTextureType == eClientColorTextureType::colorRGBA)
 			{
 				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA);
+			}
+			else
+			{
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGB);
 			}
 		}
 	}
@@ -109,16 +140,109 @@ GlTexturePtr ClientColorTextureNode::getTextureResource() const
 	return GlTexturePtr();
 }
 
-bool ClientColorTextureNode::evaluateNode(NodeEvaluator& evaluator)
+void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, GlTexturePtr clientTexture)
 {
-	// Since the frame compositor can change the client source texture can change out from under us
-	// it's safest to just refresh the output texture pin every frame
-	auto outputPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
+	IGlWindow* ownerWindow = evaluator.getCurrentWindow();
 
-	GlTexturePtr clientTexture= getTextureResource();
-	outputPin->setValue(clientTexture);
+	assert(m_clientTextureType == eClientColorTextureType::colorRGBA || 
+		   m_clientTextureType == eClientColorTextureType::colorRGB);
 
-	return true;
+	// Create the color frame buffer if it doesn't exist yet and we want to flip the Y axis
+	if (m_colorFrameBuffer == nullptr && m_bVerticalFlip)
+	{
+		m_colorFrameBuffer = std::make_shared<GlFrameBuffer>("ClientColorTextureNode");
+		m_colorFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+
+		switch (m_clientTextureType)
+		{
+		case eClientColorTextureType::colorRGB:
+			m_colorFrameBuffer->setColorFormat(GlFrameBuffer::eColorFormat::RGB);
+			break;
+		case eClientColorTextureType::colorRGBA:
+			m_colorFrameBuffer->setColorFormat(GlFrameBuffer::eColorFormat::RGBA);
+			break;
+		}
+	}
+	// Dispose the color frame buffer if it exists and we don't want to flip the Y axis
+	else if (m_colorFrameBuffer != nullptr && !m_bVerticalFlip)
+	{
+		m_colorFrameBuffer->disposeResources();
+		m_colorFrameBuffer = nullptr;
+		m_colorMaterialInstance = nullptr;
+	}
+
+	// Update the color frame buffer if it exists
+	if (m_colorFrameBuffer)
+	{
+		// Update render target size
+		m_colorFrameBuffer->setSize(clientTexture->getTextureWidth(), clientTexture->getTextureHeight());
+
+		// Update render resources if the frame buffer is not valid
+		if (!m_colorFrameBuffer->isValid())
+		{
+			// Re-create the frame buffer if it's not valid
+			m_colorFrameBuffer->createResources();
+
+			// Re-create the render material instance
+			const std::string colorMaterialName =
+				m_clientTextureType == eClientColorTextureType::colorRGBA
+				? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
+				: INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
+			GlMaterialConstPtr colorMaterial =
+				ownerWindow->getShaderCache()->getMaterialByName(colorMaterialName);
+			if (colorMaterial != nullptr)
+			{
+				m_colorMaterialInstance = std::make_shared<GlMaterialInstance>(colorMaterial);
+			}
+			else
+			{
+				m_colorMaterialInstance = nullptr;
+				MIKAN_LOG_ERROR("updateColorFrameBuffer") << "Failed to get color material";
+			}
+		}
+	}
+
+	// Render the color texture to the frame buffer
+	if (m_bVerticalFlip && m_colorMaterialInstance)
+	{
+		GlScopedObjectBinding colorFramebufferBinding(
+			*ownerWindow->getGlStateStack().getCurrentState(),
+			m_colorFrameBuffer);
+		if (colorFramebufferBinding)
+		{
+			GlState& glState = colorFramebufferBinding.getGlState();
+
+			evaluateFlippedColorTexture(glState, clientTexture);
+		}
+	}
+}
+
+void ClientColorTextureNode::evaluateFlippedColorTexture(GlState& glState, GlTexturePtr colorTexture)
+{
+	assert(colorTexture);
+	assert(m_colorMaterialInstance);
+
+	GlMaterialConstPtr material = m_colorMaterialInstance->getMaterial();
+	if (auto materialBinding = material->bindMaterial())
+	{
+		// Bind the color texture
+		if (m_clientTextureType == eClientColorTextureType::colorRGBA)
+		{
+			m_colorMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbaTexture, colorTexture);
+		}
+		else
+		{
+			m_colorMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
+		}
+
+		// Draw the color texture
+		if (auto materialInstanceBinding = m_colorMaterialInstance->bindMaterialInstance(materialBinding))
+		{
+			auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+
+			compositorGraph->getLayerVFlippedMesh()->drawElements();
+		}
+	}
 }
 
 void ClientColorTextureNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
@@ -186,6 +310,12 @@ void ClientColorTextureNode::editorRenderPropertySheet(const NodeEditorState& ed
 			"Source",
 			&dataSource,
 			m_clientIndex);
+
+		// Vertical Flip
+		NodeEditorUI::DrawCheckBoxProperty(
+			"drawColorTextureVerticalFlip",
+			"Vertical Flip",
+			m_bVerticalFlip);
 	}
 }
 

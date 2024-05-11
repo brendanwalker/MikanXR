@@ -36,6 +36,7 @@ configuru::Config ClientDepthTextureNodeConfig::writeToJSON()
 
 	pt["client_texture_type"] = k_clientDepthTextureTypeStrings[(int)clientTextureType];
 	pt["client_index"] = clientIndex;
+	pt["vertical_flip"] = bVerticalFlip;
 
 	return pt;
 }
@@ -51,6 +52,7 @@ void ClientDepthTextureNodeConfig::readFromJSON(const configuru::Config& pt)
 	clientTextureType =
 		StringUtils::FindEnumValue<eClientDepthTextureType>(
 			clientTextureTypeString, k_clientDepthTextureTypeStrings);
+	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
 
 	clientIndex= pt.get_or<int>("client_index", 0);
 }
@@ -64,6 +66,8 @@ bool ClientDepthTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 		m_clientTextureType= clientTextureNodeConfig->clientTextureType;
 		m_clientIndex= clientTextureNodeConfig->clientIndex;
+		m_bVerticalFlip= clientTextureNodeConfig->bVerticalFlip;
+
 		return true;
 	}
 
@@ -75,6 +79,7 @@ void ClientDepthTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	auto clientTextureNodeConfig = std::static_pointer_cast<ClientDepthTextureNodeConfig>(nodeConfig);
 	clientTextureNodeConfig->clientTextureType = m_clientTextureType;
 	clientTextureNodeConfig->clientIndex = m_clientIndex;
+	clientTextureNodeConfig->bVerticalFlip = m_bVerticalFlip;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -133,7 +138,7 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 
 	if (m_linearDepthFrameBuffer == nullptr)
 	{
-		m_linearDepthFrameBuffer = std::make_shared<GlFrameBuffer>("ClientTextureNode Preview Texture");
+		m_linearDepthFrameBuffer = std::make_shared<GlFrameBuffer>("ClientDepthTextureNode");
 		m_linearDepthFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH);
 	}
 
@@ -182,7 +187,14 @@ void ClientDepthTextureNode::evaluateDepthTexture(GlState& glState, GlTexturePtr
 		{
 			auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 
-			compositorGraph->getLayerMesh()->drawElements();
+			if (m_bVerticalFlip)
+			{
+				compositorGraph->getLayerVFlippedMesh()->drawElements();
+			}
+			else
+			{
+				compositorGraph->getLayerMesh()->drawElements();
+			}
 		}
 	}
 }
@@ -254,6 +266,12 @@ void ClientDepthTextureNode::editorRenderPropertySheet(const NodeEditorState& ed
 			"Source",
 			&dataSource,
 			m_clientIndex);
+
+		// Vertical Flip
+		NodeEditorUI::DrawCheckBoxProperty(
+			"drawDepthTextureVerticalFlip",
+			"Vertical Flip",
+			m_bVerticalFlip);
 	}
 }
 

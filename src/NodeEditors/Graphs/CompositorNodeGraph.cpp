@@ -298,7 +298,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 {
 	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 
-	auto material = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_TEXTURE);
+	auto material = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
 	assert(material);
 
 	struct QuadVertex

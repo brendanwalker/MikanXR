@@ -129,10 +129,10 @@ GlProgramPtr GlShaderCache::fetchCompiledGlProgram(
 
 namespace InternalShaders
 {
-	const GlProgramCode* getPTTexturedFullScreenQuad()
+	const GlProgramCode* getPTTexturedFullScreenRGBQuad()
 	{
 		static GlProgramCode x_shaderCode = GlProgramCode(
-			INTERNAL_MATERIAL_PT_FULLSCREEN_TEXTURE,
+			INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE,
 			// vertex shader
 			R""""(
 			#version 330 core
@@ -165,6 +165,45 @@ namespace InternalShaders
 			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
 			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+
+		return &x_shaderCode;
+	}
+
+	const GlProgramCode* getPTTexturedFullScreenRGBAQuad()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE,
+			// vertex shader
+			R""""(
+			#version 330 core
+			layout (location = 0) in vec2 aPos;
+			layout (location = 1) in vec2 aTexCoords;
+
+			out vec2 TexCoords;
+
+			void main()
+			{
+				TexCoords = aTexCoords;
+				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
+			}
+			)"""",
+			//fragment shader
+			R""""(
+			#version 330 core
+			out vec4 FragColor;
+
+			in vec2 TexCoords;
+
+			uniform sampler2D rgbaTexture;
+
+			void main()
+			{
+				FragColor = texture(rgbaTexture, TexCoords).rgba;
+			} 
+			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addUniform("rgbaTexture", eUniformSemantic::rgbaTexture);
 
 		return &x_shaderCode;
 	}
@@ -463,7 +502,8 @@ namespace InternalShaders
 	bool registerInternalShaders(GlShaderCache& shaderCache)
 	{
 		std::vector<const GlProgramCode*> internalShaders = {
-			getPTTexturedFullScreenQuad(),
+			getPTTexturedFullScreenRGBQuad(),
+			getPTTexturedFullScreenRGBAQuad(),
 			getUnpackRGBALinearDepthTextureShaderCode(),
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),

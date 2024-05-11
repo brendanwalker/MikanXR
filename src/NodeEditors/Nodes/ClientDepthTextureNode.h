@@ -14,6 +14,7 @@ public:
 
 	eClientDepthTextureType clientTextureType;
 	int clientIndex;
+	bool bVerticalFlip;
 };
 
 class ClientDepthTextureNode : public Node
@@ -46,6 +47,7 @@ protected:
 	GlMaterialInstancePtr m_depthMaterialInstance;
 	eClientDepthTextureType m_clientTextureType= eClientDepthTextureType::depthPackRGBA;
 	int m_clientIndex= 0;
+	bool m_bVerticalFlip= false;
 };
 
 class ClientDepthTextureNodeFactory : public TypedNodeFactory<ClientDepthTextureNode, ClientDepthTextureNodeConfig>
