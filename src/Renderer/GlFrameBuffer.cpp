@@ -26,6 +26,7 @@ namespace GlFrameBufferUtils
 GlFrameBuffer::GlFrameBuffer(const std::string& name) 
 	: m_name(name)
 {
+	m_clearColor= glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 GlFrameBuffer::~GlFrameBuffer()
@@ -310,8 +311,8 @@ void GlFrameBuffer::bindObject(GlState& glState)
 				{
 					glStateSetDrawBuffer(glState, eGlFrameBuffer::COLOR_ATTACHMENT0);
 					glStateSetReadBuffer(glState, eGlFrameBuffer::COLOR_ATTACHMENT0);
-					glStateSetClearColor(glState, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					glStateSetClearColor(glState, m_clearColor);
+					glClear(GL_COLOR_BUFFER_BIT);
 				}
 				break;
 			case GlFrameBuffer::eFrameBufferType::DEPTH:
@@ -327,8 +328,8 @@ void GlFrameBuffer::bindObject(GlState& glState)
 				{
 					glStateSetDrawBuffer(glState, eGlFrameBuffer::COLOR_ATTACHMENT0);
 					glStateSetReadBuffer(glState, eGlFrameBuffer::COLOR_ATTACHMENT0);
-					glStateSetClearColor(glState, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-					glClear(GL_DEPTH_BUFFER_BIT);
+					glStateSetClearColor(glState, m_clearColor);
+					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 					glState.enableFlag(eGlStateFlagType::depthTest);
 				}
 				break;

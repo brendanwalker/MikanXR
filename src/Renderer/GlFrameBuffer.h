@@ -4,6 +4,8 @@
 #include "RendererFwd.h"
 #include "IGlBindableObject.h"
 
+#include <glm/ext/vector_float4.hpp>
+
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -37,6 +39,7 @@ public:
 	void setFrameBufferType(eFrameBufferType frameBufferType);
 	void setSize(int width, int height);
 	void setColorFormat(eColorFormat colorFormat);
+	void setClearColor(const glm::vec4& clearColor) { m_clearColor = clearColor; }
 	void setExternalColorTexture(GlTexturePtr texture);
 
 	std::string getName() const { return m_name; }
@@ -63,6 +66,7 @@ private:
 	std::string m_name;
 	eFrameBufferType m_frameBufferType= eFrameBufferType::COLOR;
 	eColorFormat m_colorFormat= eColorFormat::RGB;
+	glm::vec4 m_clearColor;
 
 	int m_width= 800;
 	int m_height= 600;

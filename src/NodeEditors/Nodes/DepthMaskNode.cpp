@@ -71,6 +71,7 @@ DepthMaskNode::DepthMaskNode() : Node()
 	// Wait until evaluation to get the right output texture size.
 	m_linearDepthFrameBuffer = std::make_shared<GlFrameBuffer>("DepthMask Frame Buffer");
 	m_linearDepthFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH);
+	m_linearDepthFrameBuffer->setClearColor(glm::vec4(1.f, 1.f, 1.f, 1.f));
 }
 
 DepthMaskNode::~DepthMaskNode()
