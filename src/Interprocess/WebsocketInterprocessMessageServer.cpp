@@ -52,7 +52,7 @@ public:
 		return false;
 	}
 
-	const std::string getClientId() const { return m_clientInfo.clientId; }
+	//const std::string getClientId() const { return m_clientInfo.clientId; }
 	inline LockFreeRequestQueuePtr getFunctionCallQueue() { return m_functionCallQueue; }
 
 	void handleClientMessage(
@@ -73,28 +73,6 @@ public:
 						<< "id: " << connectionState->getId();
 					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "Uri: " << msg->openInfo.uri;
-
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") << "Headers:";
-					for (auto it : msg->openInfo.headers)
-					{
-						MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
-							<< it.first << ": " << it.second;
-
-						if (it.first == "clientInfo")
-						{
-							if (parseClientInfo(it.second, m_clientInfo))
-							{
-								// Construct a connect server message for the queue
-								json connectRequestJson;
-								connectRequestJson["requestType"]= "connect";
-								connectRequestJson["requestId"]= -1;
-								connectRequestJson["version"]= 0;
-								connectRequestJson["payload"]= m_clientInfo;
-
-								m_functionCallQueue->enqueue(connectRequestJson.dump());
-							}
-						}
-					}
 				}
 				break;
 			case ix::WebSocketMessageType::Close:
@@ -347,13 +325,13 @@ void WebsocketInterprocessMessageServer::getConnectionList(std::vector<WebSocket
 	}
 }
 
-WebSocketClientConnectionPtr WebsocketInterprocessMessageServer::findConnection(const std::string& clientId)
+WebSocketClientConnectionPtr WebsocketInterprocessMessageServer::findConnection(const std::string& connectionId)
 {
 	std::lock_guard<std::mutex> lock(m_connectionsMutex);
 
 	for (WebSocketClientConnectionPtr connection : m_connections)
 	{
-		if (connection && connection->getClientId() == clientId)
+		if (connection && connection->getId() == connectionId)
 		{
 			return connection;
 		}
@@ -362,9 +340,9 @@ WebSocketClientConnectionPtr WebsocketInterprocessMessageServer::findConnection(
 	return nullptr;
 }
 
-void WebsocketInterprocessMessageServer::sendMessageToClient(const std::string& clientId, const std::string& message)
+void WebsocketInterprocessMessageServer::sendMessageToClient(const std::string& connectionId, const std::string& message)
 {
-	WebSocketClientConnectionPtr connection= findConnection(clientId);
+	WebSocketClientConnectionPtr connection= findConnection(connectionId);
 
 	if (connection)
 	{
@@ -431,8 +409,10 @@ void WebsocketInterprocessMessageServer::processRequests()
 			auto handler_it = m_requestHandlers.find(handlerKey);
 			if (handler_it != m_requestHandlers.end())
 			{
-				const std::string clientId = connection->getClientId();
-				ClientRequest request= { clientId, requestId, inRequestString };
+				// NOTE: Connection ID here is a unique ID for the websocket connection on the server
+				// and is not the same as the client ID that the client sends to identify itself
+				const std::string connectionId = connection->getId();
+				ClientRequest request= { connectionId, requestId, inRequestString };
 
 				handler_it->second(request, outResponseString);
 			}

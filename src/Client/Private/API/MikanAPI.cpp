@@ -97,7 +97,7 @@ public:
 		json clientInfoJson = clientInfo;
 		const std::string clientInfoString = clientInfoJson.dump();
 
-		return Mikan_SetClientProperty("clientInfo", clientInfoString.c_str());
+		return Mikan_SetClientInfo(clientInfoString.c_str());
 	}
 
 	virtual MikanResult setGraphicsDeviceInterface(

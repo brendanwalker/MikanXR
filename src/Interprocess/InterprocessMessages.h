@@ -17,7 +17,7 @@
 
 struct ClientRequest
 {
-	std::string clientId;
+	std::string connectionId;
 	MikanRequestID requestId;
 	std::string utf8RequestString;
 };
@@ -33,7 +33,7 @@ public:
 	virtual MikanResult initialize() = 0;
 	virtual void dispose() = 0;
 
-	virtual MikanResult setClientProperty(const std::string& key, const std::string& value) = 0;
+	virtual MikanResult setClientInfo(const std::string& clientInfo) = 0;
 	virtual void setResponseHandler(ResponseHandler handler) = 0;
 
 	virtual MikanResult connect(const std::string& host, const std::string& port) = 0;
@@ -57,7 +57,7 @@ public:
 	virtual void dispose() = 0;
 	virtual void setRequestHandler(const std::string& requestType, RequestHandler handler, int version= 0) = 0;
 
-	virtual void sendMessageToClient(const std::string& clientId, const std::string& message) = 0;
+	virtual void sendMessageToClient(const std::string& connectionId, const std::string& message) = 0;
 	virtual void sendMessageToAllClients(const std::string& message) = 0;
 	virtual void processRequests() = 0;
 };

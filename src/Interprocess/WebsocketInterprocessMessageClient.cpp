@@ -45,9 +45,9 @@ public:
 		m_responseHandler= handler;  
 	}
 
-	void setClientProperty(const std::string& key, const std::string& value)
+	void setClientInfoString(const std::string& clientInfo)
 	{
-		m_headers[key]= value;
+		m_clientInfo= clientInfo;
 	}
 
 	MikanResult connect(const std::string& host, const std::string& port)
@@ -61,8 +61,6 @@ public:
 		std::string hostAddress= host.empty() ? WEBSOCKET_SERVER_ADDRESS : host;
 		std::string hostPort= port.empty() ? WEBSOCKET_SERVER_PORT : port;
 		m_websocket->setUrl(hostAddress+":"+hostPort);
-
-		m_websocket->setExtraHeaders(m_headers);
 		m_websocket->start();
 
 		return MikanResult_Success;
@@ -85,12 +83,24 @@ public:
 		{
 			case ix::WebSocketMessageType::Open:
 				{
-					MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "New connection";
+					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "New connection";
+
+					// Send clinetInfo payload in a connect request immediately upon connection
+					std::stringstream ss;
+					ss << "{\n";
+					ss << "	\"requestId\":-1,\n";
+					ss << "	\"requestType\":\"connect\",\n";
+					ss << "	\"version\":0,\n";
+					ss << "	\"payload\":" << m_clientInfo << "\n";
+					ss << "}";
+
+					std::string requestString= ss.str();
+					getWebSocket()->sendText(requestString);
 				}
 				break;
 			case ix::WebSocketMessageType::Close:
 				{
-					MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "Close connection";
+					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Close connection";
 				}
 				break;
 			case ix::WebSocketMessageType::Message:
@@ -134,17 +144,17 @@ public:
 				break;
 			case ix::WebSocketMessageType::Ping:
 				{
-					MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "Ping";
+					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Ping";
 				}
 				break;
 			case ix::WebSocketMessageType::Pong:
 				{
-					MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "Pong";
+					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Pong";
 				}
 				break;
 			case ix::WebSocketMessageType::Fragment:
 				{
-					MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "Fragment";
+					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Fragment";
 				}
 				break;
 		}
@@ -155,7 +165,7 @@ private:
 	ix::WebSocketHttpHeaders m_headers;
 	LockFreeEventQueuePtr m_eventQueue;
 	IInterprocessMessageClient::ResponseHandler m_responseHandler;
-	//std::string m_clientId;
+	std::string m_clientInfo;
 };
 
 //-- WebsocketInterprocessMessageClient -----
@@ -179,21 +189,20 @@ void WebsocketInterprocessMessageClient::dispose()
 	disconnect();
 }
 
-//const std::string& WebsocketInterprocessMessageClient::getClientId() const
-//{ 
-//	return m_connectionState->getClientId(); 
-//}
-
 const bool WebsocketInterprocessMessageClient::getIsConnected() const
 { 
 	return m_connectionState->getIsConnected(); 
 }
 
-MikanResult WebsocketInterprocessMessageClient::setClientProperty(const std::string& key, const std::string& value)
+MikanResult WebsocketInterprocessMessageClient::setClientInfo(const std::string& clientInfo)
 {
-	m_connectionState->setClientProperty(key, value);
+	if (!clientInfo.empty())
+	{
+		m_connectionState->setClientInfoString(clientInfo);
+		return MikanResult_Success;
+	}
 
-	return MikanResult_Success;
+	return MikanResult_GeneralError;
 }
 
 void WebsocketInterprocessMessageClient::setResponseHandler(IInterprocessMessageClient::ResponseHandler handler) 

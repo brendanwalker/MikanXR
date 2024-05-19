@@ -62,16 +62,14 @@ bool Mikan_GetIsInitialized()
 	return g_mikanClient != nullptr;
 }
 
-MikanResult Mikan_SetClientProperty(const char* key, const char* value)
+MikanResult Mikan_SetClientInfo(const char* clientInfo)
 {
 	if (g_mikanClient == nullptr)
 		return MikanResult_Uninitialized;
-	if (key == nullptr)
-		return MikanResult_NullParam;
-	if (value == nullptr)
+	if (clientInfo == nullptr)
 		return MikanResult_NullParam;
 
-	return g_mikanClient->setClientProperty(key, value);
+	return g_mikanClient->setClientInfo(clientInfo);
 }
 
 MikanResult Mikan_Connect(const char* host, const char* port)

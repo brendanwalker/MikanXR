@@ -48,10 +48,12 @@ using namespace std::placeholders;
 class MikanClientConnectionState
 {
 public:
-	MikanClientConnectionState(	
+	MikanClientConnectionState(
+		const std::string& connectionId,
 		MikanClientInfo& clientInfo,
 		IInterprocessMessageServer* messageServer)
-		: m_messageServer(messageServer)
+		: m_connectionId(connectionId)
+		, m_messageServer(messageServer)
 	{	
 		m_connectionInfo.clientInfo= clientInfo;
 		m_connectionInfo.renderTargetReadAccessor= new InterprocessRenderTargetReadAccessor(clientInfo.clientId);
@@ -61,6 +63,11 @@ public:
 	{
 		freeRenderTargetTextures();
 		delete m_connectionInfo.renderTargetReadAccessor;
+	}
+
+	const std::string& getConnectionId() const
+	{
+		return m_connectionId;
 	}
 
 	const MikanClientConnectionInfo& getClientConnectionInfo() const 
@@ -168,7 +175,7 @@ public:
 	void publishSimpleEvent()
 	{
 		t_mikan_type mikanEvent;
-		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(mikanEvent));
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(mikanEvent));
 	}
 
 	// Scripting Events
@@ -177,7 +184,7 @@ public:
 		MikanScriptMessagePostedEvent messageInfo;
 		messageInfo.message = message;
 
-		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(messageInfo));
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(messageInfo));
 	}
 
 	// Video Source Events
@@ -193,7 +200,7 @@ public:
 
 	void publishNewVideoFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent)
 	{
-		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(newFrameEvent));
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newFrameEvent));
 	}
 
 	void publishVideoSourceAttachmentChangedEvent()
@@ -231,7 +238,7 @@ public:
 				poseUpdate.device_id= deviceId;
 				poseUpdate.frame= newVRFrameIndex;
 
-				m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(poseUpdate));
+				m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(poseUpdate));
 			}
 		}
 	}
@@ -244,7 +251,7 @@ public:
 	// Spatial Anchor Events
 	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent)
 	{
-		m_messageServer->sendMessageToClient(getClientId(), mikanTypeToJsonString(newPoseEvent));
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newPoseEvent));
 	}
 
 	void publishAnchorListChangedEvent()
@@ -253,6 +260,7 @@ public:
 	}
 
 private:
+	std::string m_connectionId;
 	IInterprocessMessageServer* m_messageServer;
 	MikanClientConnectionInfo m_connectionInfo;
 	std::set<MikanVRDeviceID> m_subscribedVRDevices;
@@ -548,13 +556,19 @@ void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8
 		return;
 	}
 
-	const std::string clientId = clientInfo.clientId;
-	auto connection_it = m_clientConnections.find(clientId);
+	const std::string& connectionId = request.connectionId;
+	const std::string& clientId = clientInfo.clientId;
+
+	auto connection_it = m_clientConnections.find(connectionId);
 	if (connection_it == m_clientConnections.end())
 	{
-		MikanClientConnectionStatePtr clientState = std::make_shared<MikanClientConnectionState>(clientInfo, m_messageServer);
+		MikanClientConnectionStatePtr clientState = 
+			std::make_shared<MikanClientConnectionState>(
+				request.connectionId,
+				clientInfo, 
+				m_messageServer);
 
-		m_clientConnections.insert({clientId, clientState});
+		m_clientConnections.insert({connectionId, clientState});
 
 		if (OnClientConnected)
 		{
@@ -566,7 +580,9 @@ void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8
 	else
 	{
 		//TODO: send error event
-		MIKAN_LOG_ERROR("connectHandler") << "Client already connected: " << clientId;
+		MIKAN_LOG_ERROR("connectHandler") 
+			<< "Client (connectionId: " << connectionId << 
+			", clientId: " << clientId << ") already connected";
 	}
 }
 
@@ -580,7 +596,9 @@ void MikanServer::disconnectHandler(const ClientRequest& request, std::string& u
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(clientInfo.clientId);
+	const std::string& connectionId = request.connectionId;
+
+	auto connection_it = m_clientConnections.find(connectionId);
 	if (connection_it != m_clientConnections.end())
 	{
 		const std::string& clientId = connection_it->first;
@@ -598,7 +616,7 @@ void MikanServer::disconnectHandler(const ClientRequest& request, std::string& u
 	else
 	{
 		//TODO: send error event
-		MIKAN_LOG_ERROR("disconnectHandler") << "Client not connected: " << clientInfo.clientId;
+		MIKAN_LOG_ERROR("disconnectHandler") << "Client (connection id: " << connectionId <<") not connected";
 	}
 }
 
@@ -803,7 +821,7 @@ void MikanServer::subscribeToVRDevicePoseUpdates(
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(request.clientId);
+	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it == m_clientConnections.end())
 	{
 		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
@@ -826,7 +844,7 @@ void MikanServer::unsubscribeFromVRDevicePoseUpdates(
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(request.clientId);
+	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it == m_clientConnections.end())
 	{
 		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
@@ -849,7 +867,7 @@ void MikanServer::allocateRenderTargetTextures(
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(request.clientId);
+	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it == m_clientConnections.end())
 	{
 		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
@@ -871,12 +889,16 @@ void MikanServer::freeRenderTargetTextures(
 	const ClientRequest& request,
 	std::string& utf8ResponseString)
 {
-	auto connection_it = m_clientConnections.find(request.clientId);
+	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it != m_clientConnections.end())
 	{
 		if (OnClientRenderTargetReleased)
 		{
-			OnClientRenderTargetReleased(request.clientId, connection_it->second->getRenderTargetReadAccessor());
+			MikanClientConnectionStatePtr clientState = connection_it->second;
+
+			OnClientRenderTargetReleased(
+				clientState->getClientId(), 
+				connection_it->second->getRenderTargetReadAccessor());
 		}
 
 		connection_it->second->freeRenderTargetTextures();
@@ -899,7 +921,7 @@ void MikanServer::frameRendered(
 		return;
 	}
 
-	auto connection_it = m_clientConnections.find(request.clientId);
+	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it != m_clientConnections.end())
 	{
 		// Process incoming video frames, if we have a compositor active
@@ -909,7 +931,7 @@ void MikanServer::frameRendered(
 
 			if (clientState->readRenderTargetTextures(frameInfo))
 			{
-				OnClientRenderTargetUpdated(request.clientId, frameInfo.frame_index);
+				OnClientRenderTargetUpdated(clientState->getClientId(), frameInfo.frame_index);
 			}
 		}
 

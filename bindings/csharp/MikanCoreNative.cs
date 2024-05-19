@@ -63,10 +63,9 @@ namespace MikanXR
 		public static extern IntPtr Mikan_GetPackDepthTextureResourcePtr();
 
 		[DllImport("MikanCore.dll", CharSet = CharSet.Ansi)]
-		public static extern int Mikan_SetClientProperty(
-			string key, 
+		public static extern int Mikan_SetClientInfo(
 			[MarshalAs(UnmanagedType.LPUTF8Str)]
-			string value);
+			string clientInfo);
 
 		[DllImport("MikanCore.dll", CharSet = CharSet.Ansi)]
 		public static extern int Mikan_Connect(string host, string port);

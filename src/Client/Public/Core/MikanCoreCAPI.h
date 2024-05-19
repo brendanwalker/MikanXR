@@ -50,7 +50,7 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeRenderTargetTextures(MikanRequestID
 
 MIKAN_PUBLIC_FUNCTION(void*) Mikan_GetPackDepthTextureResourcePtr();
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetClientProperty(const char* key, const char* value);
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetClientInfo(const char* clientInfo);
 
 /** \brief Initializes a connection to MikanXR.
  Starts connection process to MikanXR at the given address and port. 

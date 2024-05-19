@@ -16,7 +16,7 @@ public:
 	virtual MikanResult initialize() override;
 	virtual void dispose() override;
 
-	virtual MikanResult setClientProperty(const std::string& key, const std::string& value) override;
+	virtual MikanResult setClientInfo(const std::string& clientInfo) override;
 	virtual void setResponseHandler(ResponseHandler handler) override;
 
 	MikanResult connect(const std::string& host, const std::string& port) override;

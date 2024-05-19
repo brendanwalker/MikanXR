@@ -25,7 +25,7 @@ public:
 	void dispose() override;
 	void setRequestHandler(const std::string& requestType, RequestHandler handler, int version= 0) override;
 
-	void sendMessageToClient(const std::string& clientId, const std::string& message) override;
+	void sendMessageToClient(const std::string& connectionId, const std::string& message) override;
 	void sendMessageToAllClients(const std::string& message) override;
 	void processRequests() override;
 

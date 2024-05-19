@@ -185,7 +185,7 @@ namespace MikanXR
 			// Serialize enumerations from strings rather than from integers
 			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
 			string clientInfoString = JsonConvert.SerializeObject(clientInfo, stringEnumConverter);
-			int result = MikanCoreNative.Mikan_SetClientProperty("clientInfo", clientInfoString);
+			int result = MikanCoreNative.Mikan_SetClientInfo(clientInfoString);
 
 			return (MikanResult)result;
 		}
