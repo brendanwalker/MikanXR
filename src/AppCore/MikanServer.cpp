@@ -537,12 +537,20 @@ void writeTypedResponse(MikanRequestID requestId, t_mikan_type& result, std::str
 
 void writeSimpleResponse(MikanRequestID requestId, MikanResult result, std::string& utf8ResponseString)
 {
-	MikanResponse response;
-	response.requestId= requestId;
-	response.resultCode= result;
+	// Only write a response if the request ID is valid (i.e. the clinet expects a response)
+	if (requestId != INVALID_MIKAN_ID)
+	{
+		MikanResponse response;
+		response.requestId = requestId;
+		response.resultCode = result;
 
-	json j= response;
-	utf8ResponseString = j.dump();
+		json j = response;
+		utf8ResponseString = j.dump();
+	}
+	else
+	{
+		utf8ResponseString= "";
+	}
 }
 
 void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8ResponseString)
@@ -914,6 +922,8 @@ void MikanServer::frameRendered(
 	const ClientRequest& request,
 	std::string& utf8ResponseString)
 {
+	utf8ResponseString.clear();
+
 	MikanClientFrameRendered frameInfo = {};
 	if (!readRequestPayload(request.utf8RequestString, frameInfo))
 	{
