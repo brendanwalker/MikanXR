@@ -51,8 +51,7 @@ void FontManager::garbageCollect()
 		// Kill any baked text whose lifetime has expired
 		if (bakedText.lifetime <= 0)
 		{
-			bakedText.texture->disposeTexture();
-			delete bakedText.texture;
+			bakedText.texture = nullptr;
 
 			it= m_bakedTextCache.erase(it);
 		}
@@ -66,13 +65,6 @@ void FontManager::garbageCollect()
 void FontManager::shutdown()
 {	
 	// Flush any remaining baked textures
-	for (auto it = m_bakedTextCache.begin(); it != m_bakedTextCache.end(); ++it)
-	{
-		const FontManager::GlBakedText& bakedText= it->second;
-
-		bakedText.texture->disposeTexture();
-		delete bakedText.texture;
-	}
 	m_bakedTextCache.clear();
 
 	// Flush any loaded fonts
@@ -97,7 +89,7 @@ size_t computeTextHash(const TextStyle& style, const std::wstring& text)
 	return hasher(text + szStyleString);
 }
 
-GlTexture* FontManager::fetchBakedText(
+GlTexturePtr FontManager::fetchBakedText(
 	const TextStyle& style, 
 	const std::wstring& text)
 {
@@ -129,8 +121,8 @@ GlTexture* FontManager::fetchBakedText(
 
 			if (sdlSurface != nullptr)
 			{
-				GlTexture* texture =
-					new GlTexture(
+				GlTexturePtr texture =
+					std::make_shared<GlTexture>(
 						(uint16_t)sdlSurface->w, (uint16_t)sdlSurface->h,
 						(const uint8_t *)sdlSurface->pixels,
 						GL_RGBA, GL_BGRA);
@@ -142,7 +134,6 @@ GlTexture* FontManager::fetchBakedText(
 				}
 				else
 				{
-					delete texture;
 					texture= nullptr;
 				}
 

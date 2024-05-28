@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TextStyle.h"
+#include "RendererFwd.h"
 
 #include <string>
 #include <map>
@@ -20,14 +21,14 @@ public:
 	void garbageCollect();
 	void shutdown();
 
-	class GlTexture* fetchBakedText(const TextStyle& style, const std::wstring& text);
+	GlTexturePtr fetchBakedText(const TextStyle& style, const std::wstring& text);
 
 private:
 	void* fetchFont(const std::string& fontName, int pointSize);
 
 	struct GlBakedText
 	{
-		class GlTexture* texture;
+		GlTexturePtr texture;
 		std::wstring text;
 		int lifetime;
 	};

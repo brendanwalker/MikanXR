@@ -39,6 +39,7 @@ enum class eUniformSemantic : int
 	lightColorRGB,
 	lightDirection,
 	screenPosition,
+	screenSize,
 	specularHighlights,
 	opticalDensity,
 	dissolve,

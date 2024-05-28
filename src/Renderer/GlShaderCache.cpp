@@ -208,6 +208,49 @@ namespace InternalShaders
 		return &x_shaderCode;
 	}
 
+	const GlProgramCode* getTextShaderCode()
+	{
+		static GlProgramCode x_shaderCode = GlProgramCode(
+			INTERNAL_MATERIAL_TEXT,
+			// vertex shader
+			R""""(
+			#version 330 core
+			layout (location = 0) in vec2 aPos;
+			layout (location = 1) in vec2 aTexCoords;
+
+			uniform vec2 screenSize;
+
+			out vec2 TexCoords;
+
+			void main()
+			{
+				TexCoords = aTexCoords;
+				gl_Position = vec4(2.0*(aPos.x / screenSize.x) - 1.0, 1.0 - 2.0*(aPos.y / screenSize.y), 0.0, 1.0); 
+			}
+			)"""",
+			//fragment shader
+			R""""(
+			#version 330 core
+			out vec4 FragColor;
+
+			in vec2 TexCoords;
+
+			uniform sampler2D glyphTexture;
+
+			void main()
+			{
+				vec4 col = texture(glyphTexture, TexCoords);
+				FragColor = col;
+			} 
+			)"""")
+			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addUniform("glyphTexture", eUniformSemantic::rgbaTexture)
+			.addUniform("screenSize", eUniformSemantic::screenSize);
+
+		return &x_shaderCode;
+	}
+
 	const GlProgramCode* getUnpackRGBALinearDepthTextureShaderCode()
 	{
 		static GlProgramCode x_shaderCode = GlProgramCode(
@@ -504,6 +547,7 @@ namespace InternalShaders
 		std::vector<const GlProgramCode*> internalShaders = {
 			getPTTexturedFullScreenRGBQuad(),
 			getPTTexturedFullScreenRGBAQuad(),
+			getTextShaderCode(),
 			getUnpackRGBALinearDepthTextureShaderCode(),
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),

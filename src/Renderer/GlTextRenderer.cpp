@@ -3,6 +3,10 @@
 #include "FontManager.h"
 #include "GlCamera.h"
 #include "GlCommon.h"
+#include "GlMaterial.h"
+#include "GlMaterialInstance.h"
+#include "GlProgram.h"
+#include "GlShaderCache.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
 #include "GlTextRenderer.h"
@@ -17,105 +21,143 @@
 
 GlTextRenderer::GlTextRenderer(IGlWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
+	, m_maxTextQuadVertexCount(kMaxTextQuads*6) // 6 vertices per quad
+	, m_textQuadVertices(new TextQuadVertex[m_maxTextQuadVertexCount])
 {
+}
+
+GlTextRenderer::~GlTextRenderer()
+{
+	delete[] m_textQuadVertices;
+}
+
+bool GlTextRenderer::startup()
+{
+	m_textMaterial = m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_TEXT);
+
+	if (m_textMaterial == nullptr)
+	{
+		MIKAN_LOG_ERROR("GlTextRenderer::startup") << "Failed to fetch text material";
+		return false;
+	}
+
+	m_textMaterialInstance= std::make_shared<GlMaterialInstance>(m_textMaterial);
+
+	glGenVertexArrays(1, &m_textQuadVAO);
+	glGenBuffers(1, &m_textQuadVBO);
+	checkHasAnyGLError("GlTextRenderer::startup()", __FILE__, __LINE__);
+
+	glBindVertexArray(m_textQuadVAO);
+	glObjectLabel(GL_VERTEX_ARRAY, m_textQuadVAO, -1, "TextRendererQuads");
+	glBindBuffer(GL_ARRAY_BUFFER, m_textQuadVBO);
+
+	glBufferData(GL_ARRAY_BUFFER, m_maxTextQuadVertexCount * sizeof(TextQuadVertex), nullptr, GL_DYNAMIC_DRAW);
+	checkHasAnyGLError("GlTextRenderer::startup()", __FILE__, __LINE__);
+
+	m_textMaterial->getProgram()->getVertexDefinition().applyVertexDefintion();
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	return true;
+}
+
+void GlTextRenderer::shutdown()
+{
+	if (m_textQuadVAO != 0)
+	{
+		glDeleteVertexArrays(1, &m_textQuadVAO);
+	}
+
+	if (m_textQuadVBO != 0)
+	{
+		glDeleteBuffers(1, &m_textQuadVBO);
+	}
+
+	m_textQuadVAO = 0;
+	m_textQuadVBO = 0;
+	m_textQuadVertexCount = 0;
 }
 
 void GlTextRenderer::render()
 {
-	// TODO: This should be rendered using a shader program
-	if (m_bakedTextQuads.size() > 0)
+	if (m_textMaterial == nullptr)
+		return;
+
+	if (m_textQuadVertexCount == 0)
+		return;
+
+	// Same material used for all text quads
+	if (auto materialBinding = m_textMaterial->bindMaterial())
 	{
-		// Fetch the window resolution
+		GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("GlTextRenderer");
+		GlState& glState= stateScope.getStackState();
+
+		// Render text ove rtop of everything with alpha blending
+		glState.disableFlag(eGlStateFlagType::depthTest);
+		glState.enableFlag(eGlStateFlagType::blend);
+		glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);
+
+		// Bind the vertex array and buffer
+		glBindVertexArray(m_textQuadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_textQuadVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_textQuadVertexCount * sizeof(TextQuadVertex), m_textQuadVertices);
+
+		// Get the screen dimensions
 		const float screenWidth = m_ownerWindow->getWidth();
 		const float screenHeight = m_ownerWindow->getHeight();
+		const glm::vec2 screenSize(screenWidth, screenHeight);
 
-		// Save a back up of the projection matrix and replace with an orthographic projection,
-		// Where units = screen pixels, origin at top left
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		const glm::mat4 ortho_projection = glm::ortho(
-			0.f, (float)screenWidth, // left, right
-			(float)screenHeight, 0.f, // bottom, top
-			-1.0f, 1.0f); // zNear, zFar
-		glLoadMatrixf(glm::value_ptr(ortho_projection));
-
-		// Save a backup of the modelview matrix and replace with the identity matrix
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-
+		// Draw all of the baked text quads (one unique texture per quad)
+		for (auto& bakedTextQuad : m_bakedTextQuads)
 		{
-			GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("GlTextRenderer");
-			GlState& glState= stateScope.getStackState();
+			// Bind the color texture
+			m_textMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbaTexture, bakedTextQuad.texture);
+			m_textMaterialInstance->setVec2BySemantic(eUniformSemantic::screenSize, screenSize);
 
-			// Needed when drawing textured quads without a fragment shader
-			// TODO: Get rid of this when we have a shader program
-			glState.enableFlag(eGlStateFlagType::texture2d);
-
-			// Render text ove rtop of everything with alpha blending
-			glState.disableFlag(eGlStateFlagType::depthTest);
-			glState.enableFlag(eGlStateFlagType::blend);
-			glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);
-
-			// Render all of the baked quads
-			for (const BakedTextQuad& bakedQuad : m_bakedTextQuads)
+			// Draw the color texture
+			if (auto materialInstanceBinding = m_textMaterialInstance->bindMaterialInstance(materialBinding))
 			{
-				const float x = bakedQuad.screenCoords.x;
-				const float y = bakedQuad.screenCoords.y;
-				const float w = (float)bakedQuad.texture->getTextureWidth();
-				const float h = (float)bakedQuad.texture->getTextureHeight();
-
-				float xOffset = 0;
-				switch (bakedQuad.horizontalAlignment)
-				{
-					case eHorizontalTextAlignment::Left:
-						xOffset = 0;
-						break;
-					case eHorizontalTextAlignment::Middle:
-						xOffset = -w / 2;
-						break;
-					case eHorizontalTextAlignment::Right:
-						xOffset = -w;
-						break;
-				}
-
-				float yOffset = 0;
-				switch (bakedQuad.verticalAlignment)
-				{
-					case eVerticalTextAlignment::Top:
-						yOffset = 0;
-						break;
-					case eVerticalTextAlignment::Middle:
-						yOffset = -h / 2;
-						break;
-					case eVerticalTextAlignment::Bottom:
-						yOffset = -h;
-						break;
-				}
-
-				bakedQuad.texture->bindTexture();
-
-				glBegin(GL_QUADS);
-				glTexCoord2d(0, 0); glVertex3d(x + xOffset, y + yOffset, 0);
-				glTexCoord2d(1, 0); glVertex3d(x + w + xOffset, y + yOffset, 0);
-				glTexCoord2d(1, 1); glVertex3d(x + w + xOffset, y + h + yOffset, 0);
-				glTexCoord2d(0, 1); glVertex3d(x + xOffset, y + h + yOffset, 0);
-				glEnd();
-
-				bakedQuad.texture->clearTexture();
+				// Draw the quad (two triangles)
+				glDrawArrays(GL_TRIANGLES, bakedTextQuad.startVertexIndex, 6);
 			}
 		}
 
-		// Restore the projection matrix
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-
-		// Restore the modelview matrix
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
+		// Unbind the vertex array and buffer
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		checkHasAnyGLError("GlLineRenderer::PointBufferState::drawGlBufferState", __FILE__, __LINE__);
 	}
 
 	m_bakedTextQuads.clear();
+	m_textQuadVertexCount= 0;
+}
+
+int GlTextRenderer::allocateTextQuadVertices(int vertexCount)
+{
+	if (m_textQuadVertexCount + vertexCount < m_maxTextQuadVertexCount)
+	{
+		int startVertexIndex = m_textQuadVertexCount;
+
+		m_textQuadVertexCount += vertexCount;
+
+		return startVertexIndex;
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("GlTextRenderer::allocateTextQuadVertices") << "Exceeded maximum text quad vertex count";
+
+		return -1;
+	}
+}
+
+void GlTextRenderer::setTextQuadVertex(int index, const glm::vec2& position, const glm::vec2& texCoords)
+{
+	if (index >= 0 && index < m_textQuadVertexCount)
+	{
+		m_textQuadVertices[index].position = position;
+		m_textQuadVertices[index].texCoords = texCoords;
+	}
 }
 
 void GlTextRenderer::addTextAtScreenPosition(
@@ -123,15 +165,57 @@ void GlTextRenderer::addTextAtScreenPosition(
 	const glm::vec2& screenCoords, 
 	const std::wstring& text)
 {
-	GlTexture* texture= MainWindow::getInstance()->getFontManager()->fetchBakedText(style, text);
+	BakedTextQuad bakedQuad;
+	bakedQuad.texture= MainWindow::getInstance()->getFontManager()->fetchBakedText(style, text);
+	bakedQuad.startVertexIndex= allocateTextQuadVertices(6);
 
-	if (texture != nullptr)
+	if (bakedQuad.texture != nullptr && bakedQuad.startVertexIndex != -1)
 	{
-		m_bakedTextQuads.push_back({ 
-			screenCoords, 
-			texture, 
-			style.horizontalAlignment, 
-			style.verticalAlignment });
+		const float x = screenCoords.x;
+		const float y = screenCoords.y;
+		const float w = (float)bakedQuad.texture->getTextureWidth();
+		const float h = (float)bakedQuad.texture->getTextureHeight();
+
+		float xOffset = 0;
+		switch (style.horizontalAlignment)
+		{
+			case eHorizontalTextAlignment::Left:
+				xOffset = 0;
+				break;
+			case eHorizontalTextAlignment::Middle:
+				xOffset = -w / 2;
+				break;
+			case eHorizontalTextAlignment::Right:
+				xOffset = -w;
+				break;
+		}
+
+		float yOffset = 0;
+		switch (style.verticalAlignment)
+		{
+			case eVerticalTextAlignment::Top:
+				yOffset = 0;
+				break;
+			case eVerticalTextAlignment::Middle:
+				yOffset = -h / 2;
+				break;
+			case eVerticalTextAlignment::Bottom:
+				yOffset = -h;
+				break;
+		}
+
+		// Top Triangle
+		setTextQuadVertex(bakedQuad.startVertexIndex + 0, glm::vec2(x + xOffset, y + yOffset), glm::vec2(0, 0));
+		setTextQuadVertex(bakedQuad.startVertexIndex + 1, glm::vec2(x + w + xOffset, y + yOffset), glm::vec2(1, 0));
+		setTextQuadVertex(bakedQuad.startVertexIndex + 2, glm::vec2(x + w + xOffset, y + h + yOffset), glm::vec2(1, 1));
+
+		// Bottom Triangle
+		setTextQuadVertex(bakedQuad.startVertexIndex + 3, glm::vec2(x + xOffset, y + yOffset), glm::vec2(0, 0));
+		setTextQuadVertex(bakedQuad.startVertexIndex + 4, glm::vec2(x + w + xOffset, y + h + yOffset), glm::vec2(1, 1));
+		setTextQuadVertex(bakedQuad.startVertexIndex + 5, glm::vec2(x + xOffset, y + h + yOffset), glm::vec2(0, 1));
+
+		// Record the baked quad
+		m_bakedTextQuads.push_back(bakedQuad);
 	}
 }
 

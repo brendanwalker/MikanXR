@@ -183,6 +183,12 @@ bool MainWindow::startup()
 		success = false;
 	}
 
+	if (success && !m_textRenderer->startup())
+	{
+		MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize line renderer";
+		success = false;
+	}
+
 	if (success && !m_fontManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";

@@ -180,7 +180,7 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 {
 	eUniformDataType dataType= eUniformDataType::INVALID;
 
-	static_assert((int)eUniformSemantic::COUNT == 33, "getUniformSemanticDataType out of date with eUniformSemantic");
+	static_assert((int)eUniformSemantic::COUNT == 34, "getUniformSemanticDataType out of date with eUniformSemantic");
 	switch (semantic)
 	{
 		case eUniformSemantic::transformMatrix:
@@ -203,6 +203,7 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 			dataType= eUniformDataType::datatype_float3;
 			break;
 		case eUniformSemantic::screenPosition:
+		case eUniformSemantic::screenSize:
 			dataType= eUniformDataType::datatype_float2;
 			break;
 		case eUniformSemantic::specularHighlights:
