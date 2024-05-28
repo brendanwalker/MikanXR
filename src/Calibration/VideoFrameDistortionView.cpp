@@ -1,5 +1,10 @@
+#include "IGlWindow.h"
 #include "GlCommon.h"
+#include "GlMaterial.h"
+#include "GlMaterialInstance.h"
 #include "GlTexture.h"
+#include "GlTriangulatedMesh.h"
+#include "GlShaderCache.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "OpenCVManager.h"
@@ -34,10 +39,12 @@ struct OpenCVMonoCameraIntrinsics
 };
 
 VideoFrameDistortionView::VideoFrameDistortionView(
+	IGlWindow* ownerWindow,
 	VideoSourceViewPtr view,
 	unsigned int bufferBitmask,
 	unsigned int frameQueueSize)
-	: m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
+	: m_ownerWindow(ownerWindow)
+	, m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceView(view)
 	, m_frameWidth((int)view->getFrameWidth())
 	, m_frameHeight((int)view->getFrameHeight())
@@ -111,6 +118,9 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 	assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
 	rebuildDistortionMap(&cameraIntrinsics.intrinsics.mono);
+
+	// Create a mesh used to render the video frame
+	createLayerQuadMesh();
 }
 
 VideoFrameDistortionView::~VideoFrameDistortionView()
@@ -162,6 +172,51 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 	if (m_distortionMapY != nullptr)
 	{
 		delete m_distortionMapY;
+	}
+}
+
+void VideoFrameDistortionView::createLayerQuadMesh()
+{
+	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+
+	auto material = m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
+	assert(material);
+
+	struct QuadVertex
+	{
+		glm::vec2 aPos;
+		glm::vec2 aTexCoords;
+	};
+	size_t vertexSize = sizeof(QuadVertex);
+
+	// Create triangulated quad mesh to draw the layer on
+	{
+		static QuadVertex x_vertices[] = {
+			//        positions                texCoords (flipped v coordinated)
+			{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+			{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+			{glm::vec2(1.0f, -1.0f),  glm::vec2(1.0f, 1.0f)},
+			{glm::vec2(1.0f,  1.0f),  glm::vec2(1.0f, 0.0f)},
+		};
+
+		m_fullscreenQuad =
+			std::make_shared<GlTriangulatedMesh>(
+				m_ownerWindow,
+				"layer_quad_mesh",
+				(const uint8_t*)x_vertices,
+				vertexSize,
+				4, // 4 verts
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				2, // 2 tris
+				false); // mesh doesn't own quad vert data
+
+		if (!m_fullscreenQuad->setMaterial(material) ||
+			!m_fullscreenQuad->createResources())
+		{
+			MIKAN_LOG_ERROR("VideoFrameDistortionView::createLayerQuadMesh()") 
+				<< "Failed to create video frame render mesh";
+		}
 	}
 }
 
@@ -366,9 +421,22 @@ void VideoFrameDistortionView::rebuildDistortionMap(
 
 void VideoFrameDistortionView::renderSelectedVideoBuffers()
 {
-	if (m_videoTexture != nullptr)
+	if (m_videoTexture != nullptr && m_fullscreenQuad != nullptr)
 	{
-		m_videoTexture->renderFullscreen();
+		GlMaterialInstancePtr materialInstance= m_fullscreenQuad->getMaterialInstance();
+		GlMaterialConstPtr material = materialInstance->getMaterial();
+
+		if (auto materialBinding = material->bindMaterial())
+		{
+			// Bind the color texture
+			materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_videoTexture);
+
+			// Draw the color texture
+			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			{
+				m_fullscreenQuad->drawElements();
+			}
+		}
 	}
 }
 

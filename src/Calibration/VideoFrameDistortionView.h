@@ -2,10 +2,8 @@
 
 #include "VideoDisplayConstants.h"
 #include "OpenCVFwd.h"
+#include "RendererFwd.h"
 #include <memory>
-
-class GlTexture;
-typedef std::shared_ptr<GlTexture> GlTexturePtr;
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
@@ -14,6 +12,7 @@ class VideoFrameDistortionView
 {
 public:
 	VideoFrameDistortionView(
+		class IGlWindow* ownerWindow,
 		VideoSourceViewPtr view, 
 		unsigned int bufferBitmask, 
 		unsigned int frameQueueSize=1);
@@ -49,11 +48,14 @@ public:
 	void renderSelectedVideoBuffers();
 
 protected:
+	void createLayerQuadMesh();
 	void computeUndistortion(cv::Mat* bgrSourceBuffer);
 
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture);
 
-protected:	
+protected:
+	IGlWindow* m_ownerWindow= nullptr;
+
 	eVideoDisplayMode m_videoDisplayMode;
 	VideoSourceViewPtr m_videoSourceView;
 	int m_frameWidth;
@@ -91,6 +93,9 @@ protected:
 
 	// Texture used for display
 	GlTexturePtr m_videoTexture = nullptr;
+
+	// Quad used for fullscreen rendering
+	GlTriangulatedMeshPtr m_fullscreenQuad;
 
 	// Runtime flags
 	bool m_bColorUndistortDisabled= false;

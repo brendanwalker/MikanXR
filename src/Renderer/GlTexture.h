@@ -51,7 +51,6 @@ public:
 	void disposeTexture();
 
 	bool bindTexture(int textureUnit = 0) const;
-	void renderFullscreen() const;
 	void clearTexture(int textureUnit = 0) const;
 
 	const std::string getName() const { return m_name; }

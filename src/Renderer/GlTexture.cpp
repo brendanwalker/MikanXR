@@ -547,51 +547,6 @@ void GlTexture::copyTextureIntoBuffer(uint8_t* outBuffer, size_t bufferSize)
 	}
 }
 
-void GlTexture::renderFullscreen() const
-{
-	if (m_glTextureId == 0)
-		return;
-
-	// Save a backup of the projection matrix and replace with the identity matrix
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-
-	// Save a backup of the modelview matrix and replace with the identity matrix
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
-	// Clear the screen and depth buffer
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Bind the texture to draw
-	glBindTexture(GL_TEXTURE_2D, m_glTextureId);
-
-	// Fill the screen with the texture
-	glColor3f(1.f, 1.f, 1.f);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.f, 1.f); glVertex2f(-1.f, -1.f);
-	glTexCoord2f(1.f, 1.f); glVertex2f(1.f, -1.f);
-	glTexCoord2f(1.f, 0.f); glVertex2f(1.f, 1.f);
-	glTexCoord2f(0.f, 0.f); glVertex2f(-1.f, 1.f);
-	glEnd();
-
-	// rebind the default texture
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// Clear the depth buffer to allow overdraw 
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	// Restore the projection matrix
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-
-	// Restore the modelview matrix
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-}
-
 void GlTexture::disposeTexture()
 {
 	if (m_glTextureId != 0)

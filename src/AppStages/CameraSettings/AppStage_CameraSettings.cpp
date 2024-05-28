@@ -100,6 +100,7 @@ void AppStage_CameraSettings::startVideoSource()
 	{
 		// Create a texture to hold the video frame
 		m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
+			m_ownerWindow,
 			m_videoSourceView, 
 			VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 

@@ -871,6 +871,7 @@ bool GlFrameCompositor::openVideoSource()
 		// Create a distortion view to read the incoming video frames into a texture
 		m_videoDistortionView =
 			new VideoFrameDistortionView(
+				m_ownerWindow,
 				m_videoSourceView,
 				VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG,
 				profileConfig->videoFrameQueueSize);

@@ -107,6 +107,7 @@ void AppStage_DepthMeshCapture::enter()
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			std::make_shared<VideoFrameDistortionView>(
+				m_ownerWindow,
 				m_videoSourceView, 
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
