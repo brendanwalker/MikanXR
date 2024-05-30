@@ -191,12 +191,6 @@ bool VideoCapabilitiesSet::reloadSupportedVideoCapabilities()
     return m_supportedTrackers.size() > 0;
 }
 
-bool VideoCapabilitiesSet::supportsVideoSource(
-	unsigned short vendor_id, unsigned short product_id) const
-{
-	return getVideoSourceCapabilities(vendor_id, product_id) != nullptr;
-}
-
 VideoCapabilitiesConfigConstPtr VideoCapabilitiesSet::getVideoSourceCapabilities(
 	unsigned short vendor_id, unsigned short product_id) const
 {

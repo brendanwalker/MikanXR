@@ -22,7 +22,7 @@
 //#include <opencv2/videoio/videoio.hpp>
 
 // -- Statics --
-VideoCapabilitiesSet *WMFCameraEnumerator::s_supportedTrackers = nullptr;
+VideoCapabilitiesSet *WMFCameraEnumerator::s_videoCapabilitiesSet = nullptr;
 
 // -- Structures --
 struct WMFDeviceList
@@ -97,7 +97,7 @@ const WMFDeviceInfo *WMFCameraEnumerator::getDeviceInfo() const
 
 VideoCapabilitiesConfigConstPtr WMFCameraEnumerator::getVideoCapabilities() const
 {
-	return isValid() ? s_supportedTrackers->getVideoSourceCapabilities(getUsbVendorId(), getUsbProductId()) : nullptr;
+	return isValid() ? m_videoCapabilities : nullptr;
 }
 
 bool WMFCameraEnumerator::isValid() const
@@ -112,17 +112,21 @@ bool WMFCameraEnumerator::next()
 
 	while (!bFoundValid && m_deviceEnumeratorIndex < (int)m_wmfDeviceList->deviceList.size())
 	{
-		const WMFDeviceInfo &device= m_wmfDeviceList->deviceList[m_deviceEnumeratorIndex];
+		const WMFDeviceInfo &deviceInfo= m_wmfDeviceList->deviceList[m_deviceEnumeratorIndex];
+		const int vendorId= deviceInfo.usbVendorId;
+		const int productId= deviceInfo.usbProductId;
 
-		if (s_supportedTrackers->supportsVideoSource(device.usbVendorId, device.usbProductId))
+		// First try to get video capability defaults from the supported_trackers config files
+		m_videoCapabilities= s_videoCapabilitiesSet->getVideoSourceCapabilities(vendorId, productId);
+
+		// If not found, convert the WMF device info to a VideoCapabilitiesConfig
+		if (!m_videoCapabilities)
 		{
-			m_currentDeviceIdentifier= device.deviceSymbolicLink;
-			bFoundValid= true;
+			m_videoCapabilities= deviceInfo.convertToVideoCapabilites();
 		}
-		else
-		{ 
-			++m_deviceEnumeratorIndex;
-		}
+
+		m_currentDeviceIdentifier= deviceInfo.deviceSymbolicLink;
+		bFoundValid= true;
 	}
 
 	return bFoundValid;
@@ -170,6 +174,45 @@ int WMFDeviceInfo::findBestDeviceFormatIndex(
 	}
 
 	return result_id;
+}
+
+VideoCapabilitiesConfigConstPtr WMFDeviceInfo::convertToVideoCapabilites() const
+{
+	VideoCapabilitiesConfigPtr videoCapabilities= std::make_shared<VideoCapabilitiesConfig>();
+	
+	videoCapabilities->friendlyName= deviceFriendlyName;
+	videoCapabilities->usbProductId= usbProductId;
+	videoCapabilities->usbVendorId= usbVendorId;
+	videoCapabilities->deviceType = eDeviceType::MonoVideoSource; // By default, assume mono video source
+
+	// Fill in the supported video modes
+	for (const WMFDeviceFormatInfo &info : deviceAvailableFormats)
+	{
+		const std::string subTypeName= StringUtils::convertWStringToUTF8String(info.sub_type_name);
+		const float frameRate= (float)info.frame_rate_numerator / (float)info.frame_rate_denominator;
+		char formatName[32];
+
+		// USB device symbolic link
+		if (sscanf_s(
+			subTypeName.c_str(), "MFVideoFormat_%s",
+			formatName, (unsigned)_countof(formatName)) == 1)
+		{
+			VideoModeConfig mode;
+			mode.modeName = StringUtils::stringify(info.width, "x", info.height, "(", frameRate, "FPS)");
+			mode.frameRate = frameRate;
+			mode.isFrameMirrored = false;
+			mode.isBufferMirrored = false;
+			mode.bufferPixelWidth = info.width;
+			mode.bufferPixelHeight = info.height;
+			mode.bufferFormat = formatName;
+			mode.frameSections.push_back({0, 0}); // Only one frame section for mono video sources
+			memset(&mode.intrinsics, 0, sizeof(MikanVideoSourceIntrinsics));
+
+			videoCapabilities->supportedModes.push_back(mode);
+		}
+	}
+
+	return videoCapabilities;
 }
 
 // -- WMF Device List -----
@@ -263,9 +306,44 @@ static bool FetchDeviceInfo(IMFActivate **wmfDeviceList, int wmfDeviceIndex, WMF
 			wcstombs(szDeviceSymbolicLink, wszDeviceSymbolicLink, (unsigned)_countof(szDeviceSymbolicLink));  
 			deviceInfo.deviceSymbolicLink= szDeviceSymbolicLink;
 
-			if (swscanf_s(
-					wszDeviceSymbolicLink, L"\\\\?\\usb#vid_%x&pid_%x#", 
-					&deviceInfo.usbVendorId, &deviceInfo.usbProductId) != 2)
+			int symLinkIndex = -1;
+			char symLinkGuid[36 + 1];
+
+			// USB device symbolic link
+			if (sscanf_s(
+				szDeviceSymbolicLink, "\\\\?\\usb#vid_%x&pid_%x#",
+				&deviceInfo.usbVendorId, &deviceInfo.usbProductId) == 2)
+			{
+				BYTE hash[8];
+
+				hr = HashData(
+					(BYTE*)deviceInfo.deviceSymbolicLink.c_str(),
+					(DWORD)deviceInfo.deviceSymbolicLink.length(),
+					hash, 8);
+
+				if (SUCCEEDED(hr))
+				{
+					char hash_string[32];
+
+					sprintf_s(hash_string, sizeof(hash_string), "%x%x%x%x%x%x%x%x",
+							  hash[0], hash[1], hash[2], hash[3],
+							  hash[4], hash[5], hash[6], hash[7]);
+
+					deviceInfo.uniqueIdentifier = hash_string;
+				}
+			}
+			// Streamed camera symbolic link
+			else if (sscanf_s(
+				szDeviceSymbolicLink, "\\\\?\\root#media#%x#{%36s}\\global",
+				&symLinkIndex, symLinkGuid, (unsigned)_countof(symLinkGuid)) == 2)
+			{
+				deviceInfo.usbProductId= -1;
+				deviceInfo.usbVendorId= -1;
+				deviceInfo.uniqueIdentifier= symLinkGuid;
+
+				hr= S_OK;
+			}
+			else
 			{
 				hr= E_FAIL;
 			}
@@ -278,23 +356,7 @@ static bool FetchDeviceInfo(IMFActivate **wmfDeviceList, int wmfDeviceIndex, WMF
 	// This hash encapsulates VID, PID, REV and driver GUID
 	if (SUCCEEDED(hr))
 	{
-		BYTE hash[8];
 
-		hr= HashData(
-				(BYTE *)deviceInfo.deviceSymbolicLink.c_str(),
-				(DWORD)deviceInfo.deviceSymbolicLink.length(),
-				hash, 8);
-
-		if (SUCCEEDED(hr))
-		{
-			char hash_string[32];
-
-			sprintf_s(hash_string, sizeof(hash_string), "%x%x%x%x%x%x%x%x", 
-				hash[0], hash[1], hash[2], hash[3], 
-				hash[4], hash[5], hash[6], hash[7]);
-
-			deviceInfo.uniqueIdentifier= hash_string;
-		}
 	}
 
 	IMFMediaSource *pSource = NULL;

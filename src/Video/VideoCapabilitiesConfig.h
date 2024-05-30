@@ -63,7 +63,6 @@ class VideoCapabilitiesSet
 {
 public:
 	bool reloadSupportedVideoCapabilities();
-	bool supportsVideoSource(unsigned short vendor_id, unsigned short product_id) const;
 	VideoCapabilitiesConfigConstPtr getVideoSourceCapabilities(unsigned short vendor_id, unsigned short product_id) const;
 
 private:

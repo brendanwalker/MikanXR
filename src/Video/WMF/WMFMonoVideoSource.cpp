@@ -144,7 +144,9 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
 		const WMFCameraEnumerator *wmf_enumerator= cameraEnumerator->getWMFCameraEnumerator();
 		const char *unique_id= wmf_enumerator->getUniqueIdentifier();
 
-        MIKAN_LOG_INFO("WMFMonoTracker::open") << "Opening WMFMonoTracker(" << curDevPath << ", camera_index=" << cameraIndex << ")";
+        MIKAN_LOG_INFO("WMFMonoTracker::open") << 
+			"Opening WMFMonoTracker(" << curDevPath << 
+			", camera_index=" << cameraIndex << ")";
 
 		// Remember the path to this camera
         m_device_identifier = curDevPath;
@@ -286,7 +288,7 @@ bool WMFMonoVideoSource::getVideoFrameDimensions(
 
     if (out_width != nullptr)
     {
-        int width = (int)m_currentMode->intrinsics.intrinsics.mono.pixel_width;
+        int width = (int)m_currentMode->bufferPixelWidth;
 
         if (out_stride != nullptr)
         {
@@ -299,7 +301,7 @@ bool WMFMonoVideoSource::getVideoFrameDimensions(
 
     if (out_height != nullptr)
     {
-        int height = (int)m_currentMode->intrinsics.intrinsics.mono.pixel_height;
+        int height = (int)m_currentMode->bufferPixelHeight;
 
         *out_height = height;
     }
@@ -404,12 +406,12 @@ bool WMFMonoVideoSource::setVideoMode(const std::string mode_name)
 
 double WMFMonoVideoSource::getFrameWidth() const
 {
-	return (double)m_currentMode->intrinsics.intrinsics.mono.pixel_width;
+	return (double)m_currentMode->bufferPixelWidth;
 }
 
 double WMFMonoVideoSource::getFrameHeight() const
 {
-	return (double)m_currentMode->intrinsics.intrinsics.mono.pixel_height;
+	return (double)m_currentMode->bufferPixelHeight;
 }
 
 double WMFMonoVideoSource::getFrameRate() const

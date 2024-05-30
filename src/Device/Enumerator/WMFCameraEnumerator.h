@@ -71,13 +71,14 @@ struct WMFDeviceInfo
 	int findBestDeviceFormatIndex(
 		unsigned int width, unsigned int height,
 		unsigned int frameRate, const char *buffer_format) const;
+	VideoCapabilitiesConfigConstPtr convertToVideoCapabilites() const;
 };
 
 // Enumerates over valid cameras accessible via the Windows Media Foundation API
 class WMFCameraEnumerator : public DeviceEnumerator
 {
 public:
-	static class VideoCapabilitiesSet *s_supportedTrackers;	
+	static class VideoCapabilitiesSet *s_videoCapabilitiesSet;
 	
 	WMFCameraEnumerator();
 	virtual ~WMFCameraEnumerator();
@@ -96,6 +97,7 @@ public:
 private:
 	struct WMFDeviceList *m_wmfDeviceList;
 
+	VideoCapabilitiesConfigConstPtr m_videoCapabilities;
 	std::string m_currentDeviceIdentifier;
     int m_deviceEnumeratorIndex; // Index into our m_wmfDeviceList which is not the same as the WMF API's device index
 };

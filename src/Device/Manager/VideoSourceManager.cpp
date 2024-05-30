@@ -45,7 +45,7 @@ VideoSourceManager::VideoSourceManager()
 	, m_supportedTrackers(new VideoCapabilitiesSet)
 {
 	// Share the supported tracker list with the tracker enumerators
-	WMFCameraEnumerator::s_supportedTrackers = m_supportedTrackers;
+	WMFCameraEnumerator::s_videoCapabilitiesSet = m_supportedTrackers;
 }
 
 VideoSourceManager::~VideoSourceManager()
