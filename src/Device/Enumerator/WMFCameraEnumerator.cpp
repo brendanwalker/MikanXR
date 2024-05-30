@@ -3,6 +3,7 @@
 // https://www.codeproject.com/Tips/559437/Capturing-Video-from-Web-camera-on-Windows-and-by
 
 // -- includes -----
+#include "CameraMath.h"
 #include "WMFCameraEnumerator.h"
 #include "VideoCapabilitiesConfig.h"
 #include "Logger.h"
@@ -206,7 +207,14 @@ VideoCapabilitiesConfigConstPtr WMFDeviceInfo::convertToVideoCapabilites() const
 			mode.bufferPixelHeight = info.height;
 			mode.bufferFormat = formatName;
 			mode.frameSections.push_back({0, 0}); // Only one frame section for mono video sources
+
+			// Set default camera intrinsic properties
 			memset(&mode.intrinsics, 0, sizeof(MikanVideoSourceIntrinsics));
+			mode.intrinsics.intrinsics_type = MONO_CAMERA_INTRINSICS;
+			createDefautMonoIntrinsics(
+				info.width,
+				info.height,
+				mode.intrinsics.intrinsics.mono);
 
 			videoCapabilities->supportedModes.push_back(mode);
 		}

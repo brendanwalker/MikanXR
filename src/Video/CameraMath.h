@@ -52,3 +52,8 @@ bool computeOpenCVCameraRectification(
 	VideoFrameSection section,
 	cv::Matx33d &rotationOut,
 	cv::Matx34d &projectionOut);
+
+void createDefautMonoIntrinsics(
+	int pixelWidth,
+	int pixelHeight,
+	MikanMonoIntrinsics& outIntrinsics);

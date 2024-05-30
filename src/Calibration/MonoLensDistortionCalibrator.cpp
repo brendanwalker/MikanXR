@@ -3,6 +3,7 @@
 #include "Colors.h"
 #include "GlCommon.h"
 #include "Logger.h"
+#include "MathUtility.h"
 #include "MonoLensDistortionCalibrator.h"
 #include "MathTypeConversion.h"
 #include "VideoFrameDistortionView.h"
@@ -191,6 +192,8 @@ void MonoLensDistortionCalibrator::computeCameraCalibration()
 					cv::CALIB_RATIONAL_MODEL + // Coefficients k4, k5, and k6 are enabled
 					cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5, // radial distortion coefficients k3, k4, & k5 are not changed during the optimization
 					cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, DBL_EPSILON));
+
+			bSuccess= is_valid_float(reprojectionError);
 		}
 		catch (cv::Exception* e)
 		{

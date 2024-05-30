@@ -30,8 +30,8 @@ WMFMonoVideoConfig::WMFMonoVideoConfig(const std::string &fnamebase)
 	tracker_intrinsics.pixel_height= 480;
     tracker_intrinsics.hfov= 60.0; // degrees
     tracker_intrinsics.vfov= 45.0; // degrees
-    tracker_intrinsics.znear= 0.01; // meters
-    tracker_intrinsics.zfar= 200.0; // meters
+    tracker_intrinsics.znear= 0.1; // meters
+    tracker_intrinsics.zfar= 20.0; // meters
     tracker_intrinsics.camera_matrix= {
 		554.2563, 0, 320.0, // f_x, 0, c_x
 		0, 554.2563, 240.0, // 0, f_y, c_y

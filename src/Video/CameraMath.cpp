@@ -7,6 +7,10 @@
 
 #include "opencv2/opencv.hpp"
 
+#define DEFAULT_MONO_HFOV   60.0   // 60 degrees
+#define DEFAULT_MONO_ZNEAR  0.1    // 10cm
+#define DEFAULT_MONO_ZFAR   20.0   // 20m
+
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
 {
 	// Convert the camera pose transform into a modelview matrix
@@ -223,4 +227,32 @@ bool computeOpenCVCameraRectification(
     {
         return false;
     }
+}
+
+void createDefautMonoIntrinsics(
+    int pixelWidth, 
+    int pixelHeight,
+    MikanMonoIntrinsics &outIntrinsics)
+{
+    memset(&outIntrinsics, 0, sizeof(MikanMonoIntrinsics));
+
+    double aspectRatio= (double)pixelHeight / (double)pixelWidth;
+    double c_x= (double)pixelWidth / 2.0;
+    double c_y= (double)pixelHeight / 2.0;
+    double hfov= DEFAULT_MONO_HFOV;
+    double vfov= hfov * aspectRatio;
+    double f_x= c_x / tan(glm::radians(hfov / 2.0));
+    double f_y= c_y / tan(glm::radians(vfov / 2.0));
+
+	outIntrinsics.pixel_width= (double)pixelWidth;
+	outIntrinsics.pixel_height= (double)pixelHeight;
+	outIntrinsics.hfov= hfov;
+	outIntrinsics.vfov= vfov;
+	outIntrinsics.znear= DEFAULT_MONO_ZNEAR;
+	outIntrinsics.zfar= DEFAULT_MONO_ZFAR;	
+	outIntrinsics.camera_matrix = {
+		f_x, 0.0, c_x,
+		0.0, f_y, c_y,
+		0.0, 0.0, 1.0
+	};
 }
