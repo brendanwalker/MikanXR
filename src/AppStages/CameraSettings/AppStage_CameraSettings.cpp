@@ -57,7 +57,7 @@ void AppStage_CameraSettings::enter()
 
 	// Get the current video source based on the config
 	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	if (m_videoSourceView != nullptr && m_videoSourceView->startVideoStream())
+	if (m_videoSourceView != nullptr)
 	{
 		// Fire up the video stream
 		startVideoSource();
@@ -138,6 +138,10 @@ void AppStage_CameraSettings::update(float deltaSeconds)
 
 void AppStage_CameraSettings::onVideoSourceChanged(const std::string& newVideoSourcePath)
 {
+	// Ignore event if this happens during RML view loading
+	if (m_cameraSettingsView == nullptr)
+		return;
+
 	VideoSourceManager* videoSourceManager= m_ownerWindow->getVideoSourceManager();
 	VideoSourceViewPtr newVideoSourceView= videoSourceManager->getVideoSourceViewByPath(newVideoSourcePath);
 	
