@@ -17,6 +17,12 @@
 #define DEFAULT_CIRCLE_DIAMETER_MM 15
 #define DEFAULT_CIRCLE_SPACING_MM  20
 
+#define CHARUCO_PATTERN_W 11
+#define CHARUCO_PATTERN_H 8
+#define DEFAULT_CHARUCO_SQUARE_LEN_MM 12
+#define DEFAULT_CHARUCO_MARKER_LEN_MM 9
+#define DEFAULT_CHARUCO_DICTIONARY_TYPE eCharucoDictionaryType::DICT_6X6
+
 #define DEFAULT_PUCK_HORIZONTAL_OFFSET_MM  75
 #define DEFAULT_PUCK_VERTICAL_OFFSET_MM  89
 #define DEFAULT_PUCK_DEPTH_OFFSET_MM  0
@@ -42,6 +48,11 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, circleGridCols(CIRCLEGRID_PATTERN_W)
 	, circleSpacingMM(DEFAULT_CIRCLE_SPACING_MM)
 	, circleDiameterMM(DEFAULT_CIRCLE_DIAMETER_MM)
+	, charucoRows(CHARUCO_PATTERN_H)
+	, charucoCols(CHARUCO_PATTERN_W)
+	, charucoSquareLengthMM(DEFAULT_CHARUCO_SQUARE_LEN_MM)
+	, charucoMarkerLengthMM(DEFAULT_CHARUCO_MARKER_LEN_MM)
+	, charucoDictionaryType(DEFAULT_CHARUCO_DICTIONARY_TYPE)
 	, puckHorizontalOffsetMM(DEFAULT_PUCK_HORIZONTAL_OFFSET_MM)
 	, puckVerticalOffsetMM(DEFAULT_PUCK_VERTICAL_OFFSET_MM)
 	, puckDepthOffsetMM(DEFAULT_PUCK_DEPTH_OFFSET_MM)
@@ -74,7 +85,7 @@ configuru::Config ProfileConfig::writeToJSON()
 	configuru::Config pt= CommonConfig::writeToJSON();
 
 	// Pattern Defaults
-	pt["calibrationPatternType"]= k_patternTypeStrings[(int)eCalibrationPatternType::mode_chessboard];
+	pt["calibrationPatternType"]= k_patternTypeStrings[(int)calibrationPatternType];
 	pt["chessbordRows"]= chessbordRows;
 	pt["chessbordCols"]= chessbordCols;
 	pt["squareLengthMM"]= squareLengthMM;
@@ -82,6 +93,11 @@ configuru::Config ProfileConfig::writeToJSON()
 	pt["circleGridCols"]= circleGridCols;
 	pt["circleSpacingMM"]= circleSpacingMM;
 	pt["circleDiameterMM"]= circleDiameterMM;
+	pt["charucoRows"] = charucoRows;
+	pt["charucoCols"] = charucoCols;
+	pt["charucoSquareLengthMM"] = charucoSquareLengthMM;
+	pt["charucoMarkerLengthMM"] = charucoMarkerLengthMM;
+	pt["charucoDictionaryType"] = k_charucoDictionaryStrings[(int)charucoDictionaryType];
 	pt["puckHorizontalOffsetMM"]= puckHorizontalOffsetMM;
 	pt["puckVerticalOffsetMM"]= puckVerticalOffsetMM;
 	pt["puckDepthOffsetMM"]= puckDepthOffsetMM;
@@ -130,10 +146,25 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	chessbordRows = pt.get_or<int>("chessbordRows", chessbordRows);
 	chessbordCols = pt.get_or<int>("chessbordCols", chessbordCols);
 	squareLengthMM = pt.get_or<float>("squareLengthMM", squareLengthMM);
+
 	circleGridRows = pt.get_or<int>("circleGridRows", circleGridRows);
 	circleGridCols = pt.get_or<int>("circleGridCols", circleGridCols);
 	circleSpacingMM = pt.get_or<float>("circleSpacingMM", circleSpacingMM);
 	circleDiameterMM = pt.get_or<float>("circleDiameterMM", circleDiameterMM);
+
+	const std::string charcuoDictionaryString =
+		pt.get_or<std::string>(
+			"charucoDictionaryType",
+			k_charucoDictionaryStrings[(int)eCharucoDictionaryType::DICT_6X6]);
+	charucoDictionaryType =
+		StringUtils::FindEnumValue<eCharucoDictionaryType>(
+			charcuoDictionaryString,
+			k_charucoDictionaryStrings);
+	charucoRows = pt.get_or<int>("charucoRows", charucoRows);
+	charucoCols = pt.get_or<int>("charucoCols", charucoCols);
+	charucoSquareLengthMM = pt.get_or<float>("charucoSquareLengthMM", charucoSquareLengthMM);
+	charucoMarkerLengthMM = pt.get_or<float>("charucoMarkerLengthMM", charucoMarkerLengthMM);
+
 	puckHorizontalOffsetMM = pt.get_or<float>("puckHorizontalOffsetMM", puckHorizontalOffsetMM);
 	puckVerticalOffsetMM = pt.get_or<float>("puckVerticalOffsetMM", puckVerticalOffsetMM);
 	puckDepthOffsetMM = pt.get_or<float>("puckDepthOffsetMM", puckDepthOffsetMM);

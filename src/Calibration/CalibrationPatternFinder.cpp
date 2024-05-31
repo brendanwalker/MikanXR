@@ -6,6 +6,7 @@
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
+#include <opencv2/aruco/charuco.hpp>
 
 //-- CalibrationPatternFinder_Chessboard -----
 CalibrationPatternFinder::CalibrationPatternFinder(
@@ -41,6 +42,15 @@ CalibrationPatternFinder* CalibrationPatternFinder::allocatePatternFinder(
 				profileConfig->circleGridCols,
 				profileConfig->circleSpacingMM,
 				profileConfig->circleDiameterMM);
+	case eCalibrationPatternType::mode_charuco:
+		return
+			new CalibrationPatternFinder_Charuco(
+				distortionView,
+				profileConfig->charucoRows,
+				profileConfig->charucoCols,
+				profileConfig->charucoSquareLengthMM,
+				profileConfig->charucoMarkerLengthMM,
+				profileConfig->charucoDictionaryType);
 	}
 
 	return nullptr;
@@ -67,6 +77,15 @@ CalibrationPatternFinderPtr CalibrationPatternFinder::allocatePatternFinderShare
 					profileConfig->circleGridCols,
 					profileConfig->circleSpacingMM,
 					profileConfig->circleDiameterMM);
+		case eCalibrationPatternType::mode_charuco:
+			return
+				std::make_shared<CalibrationPatternFinder_Charuco>(
+					distortionView,
+					profileConfig->charucoRows,
+					profileConfig->charucoCols,
+					profileConfig->charucoSquareLengthMM,
+					profileConfig->charucoMarkerLengthMM,
+					profileConfig->charucoDictionaryType);
 	}
 
 	return nullptr;
@@ -378,6 +397,223 @@ bool CalibrationPatternFinder_CircleGrid::fetchLastFoundCalibrationPattern(
 		outBoundingQuad[1] = m_currentImagePoints[m_circleGridCols - 1];
 		outBoundingQuad[2] = m_currentImagePoints[circleCount - 1];
 		outBoundingQuad[3] = m_currentImagePoints[circleCount - m_circleGridCols];
+
+		outImagePoints.clear();
+		for (const auto& imagePoint : m_currentImagePoints)
+		{
+			outImagePoints.push_back(imagePoint);
+		}
+
+		// Remember the last valid captured points
+		m_lastValidImagePoints = m_currentImagePoints;
+
+		return true;
+	}
+
+	return false;
+}
+
+//-- CalibrationPatternFinder_Charuco -----
+class CharucoBoardData
+{
+public:
+	CharucoBoardData() = default;
+	virtual ~CharucoBoardData()
+	{
+		if (board)
+		{
+			delete board;
+		}
+	}
+
+	int rows;
+	int cols;
+	float squareLengthMM;
+	float markerLengthMM;
+	cv::Ptr<cv::aruco::CharucoBoard> board;
+	cv::Ptr<cv::aruco::Dictionary> dictionary;
+	cv::Ptr<cv::aruco::DetectorParameters> params;
+};
+
+CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
+	VideoFrameDistortionView* distortionView,
+	int charucoRows,
+	int charucoCols,
+	float charucoSquareLengthMM,
+	float charucoMarkerLengthMM,
+	eCharucoDictionaryType charucoDictionaryType)
+	: CalibrationPatternFinder(distortionView)
+	, m_markerData(new CharucoBoardData())
+{
+	m_opencvLensCalibrationGeometry.points.clear();
+	m_opencvSolvePnPGeometry.points.clear();
+	m_openglSolvePnPGeometry.points.clear();
+
+	for (int row = 0; row < charucoRows; ++row)
+	{
+		for (int col = 0; col < charucoCols; ++col)
+		{
+			// Solve PnP points are on the XZ Plane
+			cv::Point3f openCVSolvePnPPoint(
+				float(col) * charucoSquareLengthMM,
+				0.f,
+				-float(row) * charucoSquareLengthMM);
+			// Lens calibration points are on the XY Plane
+			cv::Point3f openCVLensCalibrationPoint(
+				float(col) * charucoSquareLengthMM,
+				float(row) * charucoSquareLengthMM,
+				0.f);
+
+			// OpenCV -> OpenGL coordinate system transform
+			// Rendering world units in meters, not mm
+			glm::vec3 openGLPoint(
+				openCVSolvePnPPoint.x * k_millimeters_to_meters,
+				-openCVSolvePnPPoint.y * k_millimeters_to_meters,
+				-openCVSolvePnPPoint.z * k_millimeters_to_meters);
+
+			m_opencvLensCalibrationGeometry.points.push_back(openCVLensCalibrationPoint);
+			m_opencvSolvePnPGeometry.points.push_back(openCVSolvePnPPoint);
+			m_openglSolvePnPGeometry.points.push_back(openGLPoint);
+		}
+	}
+
+	cv::aruco::PredefinedDictionaryType cvCharucoDictionary= cv::aruco::DICT_6X6_250;
+	switch (charucoDictionaryType)
+	{
+		case eCharucoDictionaryType::DICT_4X4:
+			cvCharucoDictionary= cv::aruco::DICT_4X4_250;
+			break;
+		case eCharucoDictionaryType::DICT_5X5:
+			cvCharucoDictionary= cv::aruco::DICT_5X5_250;
+			break;
+		case eCharucoDictionaryType::DICT_6X6:
+			cvCharucoDictionary= cv::aruco::DICT_6X6_250;
+			break;
+		case eCharucoDictionaryType::DICT_7X7:
+			cvCharucoDictionary= cv::aruco::DICT_7X7_250;
+			break;
+		default:
+			break;
+	}
+
+	cv::aruco::Dictionary dictionary= cv::aruco::getPredefinedDictionary(cvCharucoDictionary);
+	m_markerData->board= new cv::aruco::CharucoBoard(
+		cv::Size(charucoCols, charucoRows),
+		charucoSquareLengthMM, charucoMarkerLengthMM,
+		dictionary);
+	m_markerData->dictionary = cv::makePtr<cv::aruco::Dictionary>(dictionary);
+	m_markerData->params = cv::makePtr<cv::aruco::DetectorParameters>();
+	m_markerData->rows = charucoRows;
+	m_markerData->cols = charucoCols;
+	m_markerData->squareLengthMM = charucoSquareLengthMM;
+	m_markerData->markerLengthMM = charucoMarkerLengthMM;
+}
+
+CalibrationPatternFinder_Charuco::~CalibrationPatternFinder_Charuco()
+{
+	delete m_markerData;
+}
+
+bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float minSeperationDist)
+{
+	const int cornerCount = m_markerData->cols * m_markerData->rows;
+	const float newLocationErrorSum = (float)cornerCount * minSeperationDist;
+
+	// Clear out the previous images points
+	bool bImagePointsValid = false;
+	m_currentImagePoints.clear();
+
+	cv::Mat* gsSmallBuffer = m_distortionView->getGrayscaleSmallBuffer();
+	cv::Mat* gsSourceBuffer = m_distortionView->getGrayscaleSourceBuffer();
+	if (gsSmallBuffer == nullptr || gsSourceBuffer == nullptr)
+		return false;
+
+	// Find Arcuo marker corners on the small image
+	t_opencv_point2d_list smallImagePoints;
+	std::vector<int> markerIds;
+	cv::aruco::detectMarkers(
+		*gsSmallBuffer,
+		m_markerData->dictionary,
+		smallImagePoints,
+		markerIds,
+		m_markerData->params);
+	const bool bFoundMarkers = markerIds.size() > 0;
+
+	if (bFoundMarkers)
+	{
+		// Scale the points found in the small image to corresponding location in the source image
+		t_opencv_point2d_list markerCorners;
+		const float smallToSourceScale = m_distortionView->getSmallToSourceScale();
+		for (const cv::Point2f& smallPoint : smallImagePoints)
+		{
+			cv::Point2f markerCorner = {
+				smallPoint.x * smallToSourceScale,
+				smallPoint.y * smallToSourceScale
+			};
+
+			markerCorners.push_back(markerCorner);
+		}
+
+		// Compute chessboard corners from the detected markers
+		t_opencv_point2d_list charucoCorners;
+		std::vector<int> charucoIds;
+		cv::aruco::interpolateCornersCharuco(
+			markerCorners, markerIds, 
+			*gsSourceBuffer, m_markerData->board, 
+			charucoCorners, charucoIds);
+
+		// Append the new chessboard corner pixels into the image_points matrix
+		if (m_currentImagePoints.size() == cornerCount)
+		{
+			// If there was a prior image point set, 
+			// see if this new set is far enough away to be considered unique
+			if (m_lastValidImagePoints.size() > 0 && minSeperationDist > 0.f)
+			{
+				float error_sum = 0.f;
+
+				for (int corner_index = 0; corner_index < cornerCount; ++corner_index)
+				{
+					float squared_error =
+						(float)(cv::norm(
+							m_currentImagePoints[corner_index]
+							- m_lastValidImagePoints[corner_index]));
+
+					error_sum += squared_error;
+				}
+
+				bImagePointsValid = error_sum >= newLocationErrorSum;
+			}
+			else
+			{
+				// We don't have previous capture.
+				bImagePointsValid = true;
+			}
+		}
+	}
+
+	// Re-clear out the image points if we decided the latest captured onces are invalid
+	if (!bImagePointsValid)
+	{
+		m_currentImagePoints.clear();
+	}
+
+	return bImagePointsValid;
+}
+
+bool CalibrationPatternFinder_Charuco::fetchLastFoundCalibrationPattern(
+	t_opencv_point2d_list& outImagePoints,
+	cv::Point2f outBoundingQuad[4])
+{
+	// If it's a valid new location, append it to the board list
+	if (areCurrentImagePointsValid())
+	{
+		const int cornerCount = m_markerData->cols * m_markerData->rows;
+
+		// Keep track of the corners of all of the chessboards we sample
+		outBoundingQuad[0] = m_currentImagePoints[0];
+		outBoundingQuad[1] = m_currentImagePoints[m_markerData->cols - 1];
+		outBoundingQuad[2] = m_currentImagePoints[cornerCount - 1];
+		outBoundingQuad[3] = m_currentImagePoints[cornerCount - m_markerData->cols];
 
 		outImagePoints.clear();
 		for (const auto& imagePoint : m_currentImagePoints)

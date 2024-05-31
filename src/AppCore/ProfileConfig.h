@@ -26,6 +26,11 @@ public:
 	int circleGridCols;
 	float circleSpacingMM;
 	float circleDiameterMM;
+	int charucoRows;
+	int charucoCols;
+	float charucoSquareLengthMM;
+	float charucoMarkerLengthMM;
+	eCharucoDictionaryType charucoDictionaryType;
 	float puckHorizontalOffsetMM;
 	float puckVerticalOffsetMM;
 	float puckDepthOffsetMM;

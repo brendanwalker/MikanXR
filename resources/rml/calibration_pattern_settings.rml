@@ -31,16 +31,10 @@
                 <select name="pattern_type" data-value="selected_pattern">
                     <option value="chessboard">Chessboard</option>
                     <option value="circlegrid">Circle Grid</option>        
+					<option value="charcuo">ChAruCo</option>
                 </select>
             </div>    
             <div>
-                <li>{{chessboard_rows}}<input type="range" name="chessboard_rows" min="5" max="15" step="1" value="5" data-value="chessboard_rows"/>Chessboard Rows</li><br/>
-                <li>{{chessboard_cols}}<input type="range" name="chessboard_cols" min="5" max="15" step="1" value="5" data-value="chessboard_cols"/>Chessboard Columns</li><br/>
-                <li>{{square_length}}<input type="range" name="square_length" min="1" max="100" step="0.5" value="30" data-value="square_length"/>Square Length (mm)</li><br/>
-                <li>{{circle_grid_rows}}<input type="range" name="circle_grid_rows" min="5" max="15" step="1" value="5" data-value="circle_grid_rows"/>Circle Grid Rows</li><br/>
-                <li>{{circle_grid_cols}}<input type="range" name="circle_grid_cols" min="5" max="15" step="1" value="5" data-value="circle_grid_cols"/>Circle Grid Columns</li><br/>
-                <li>{{circle_spacing}}<input type="range" name="circle_spacing" min="1" max="100" step="0.5" value="20" data-value="circle_spacing"/>Circle Spacing (mm)</li><br/>
-                <li>{{circle_diameter}}<input type="range" name="circle_diameter" min="1" max="100" step="0.5" value="15" data-value="circle_diameter"/>Circle Diameter (mm)</li><br/>
                 <li>{{puck_horiz_offset}}<input type="range" name="puck_horiz_offset" min="0" max="200" step="0.5" value="75" data-value="puck_horiz_offset"/>Puck Horizontal Offset (mm)</li><br/>
                 <li>{{puck_vert_offset}}<input type="range" name="puck_vert_offset" min="0" max="200" step="0.5" value="89" data-value="puck_vert_offset"/>Puck Vertical Offset (mm)</li><br/>
                 <li>{{puck_depth_offset}}<input type="range" name="puck_depth_offset" min="0" max="10" step="0.5" value="0" data-value="puck_depth_offset"/>Puck Depth Offset (mm)</li><br/>

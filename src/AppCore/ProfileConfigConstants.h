@@ -9,10 +9,24 @@ enum class eCalibrationPatternType : int
 
 	mode_chessboard,
 	mode_circlegrid,
+	mode_charuco,
 
 	COUNT
 };
 extern const std::string* k_patternTypeStrings;
+
+enum class eCharucoDictionaryType : int
+{
+	INVALID = -1,
+
+	DICT_4X4,
+	DICT_5X5,
+	DICT_6X6,
+	DICT_7X7,
+
+	COUNT
+};
+extern const std::string* k_charucoDictionaryStrings;
 
 enum class eStencilType : int
 {

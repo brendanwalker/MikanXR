@@ -2,10 +2,18 @@
 
 const std::string g_patternTypeStrings[(int)eCalibrationPatternType::COUNT] = {
 	"chessboard",
-	"circlegrid"
+	"circlegrid",
+	"charuco"
 };
 const std::string* k_patternTypeStrings = g_patternTypeStrings;
 
+const std::string g_charucoDictionaryStrings[(int)eCharucoDictionaryType::COUNT] = {
+	"DICT_4X4",
+	"DICT_5X5",
+	"DICT_6X6",
+	"DICT_7X7"
+};
+const std::string* k_charucoDictionaryStrings = g_charucoDictionaryStrings;
 
 const char* g_szStencilTypeStrings[(int)eStencilType::COUNT] = {
 	"quad",
