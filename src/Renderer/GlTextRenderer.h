@@ -70,3 +70,8 @@ void drawTextAtCameraPosition(
 	const float cameraWidth, const float cameraHeight,
 	const glm::vec2& cameraCoords,
 	const wchar_t* format, ...) GLYPH_PRINTFARGS(2);
+void drawTextAtTrackerPosition(
+	const TextStyle& style,
+	const float trackerWidth, const float trackerHeight,
+	const glm::vec2& trackerCoords,
+	const wchar_t* format, ...) GLYPH_PRINTFARGS(2);

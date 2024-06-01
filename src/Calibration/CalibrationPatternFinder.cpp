@@ -1,7 +1,11 @@
 #include "CalibrationPatternFinder.h"
 #include "CalibrationRenderHelpers.h"
+#include "Colors.h"
 #include "CameraMath.h"
+#include "GlTextRenderer.h"
+#include "MathOpenCV.h"
 #include "MathTypeConversion.h"
+#include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
 
 #include "opencv2/opencv.hpp"
@@ -433,6 +437,9 @@ public:
 	cv::Ptr<cv::aruco::CharucoBoard> board;
 	cv::Ptr<cv::aruco::Dictionary> dictionary;
 	cv::Ptr<cv::aruco::DetectorParameters> params;
+
+	std::vector<t_opencv_point2d_list> markerCorners;
+	std::vector<int> markerVisibleIds;
 };
 
 CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
@@ -516,7 +523,7 @@ CalibrationPatternFinder_Charuco::~CalibrationPatternFinder_Charuco()
 
 bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float minSeperationDist)
 {
-	const int cornerCount = m_markerData->cols * m_markerData->rows;
+	const int cornerCount = (m_markerData->cols - 1) * (m_markerData->rows - 1);
 	const float newLocationErrorSum = (float)cornerCount * minSeperationDist;
 
 	// Clear out the previous images points
@@ -529,38 +536,45 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 		return false;
 
 	// Find Arcuo marker corners on the small image
-	t_opencv_point2d_list smallImagePoints;
-	std::vector<int> markerIds;
+	std::vector<t_opencv_point2d_list> smallMarkerCorners;
+	m_markerData->markerCorners.clear();
+	//m_markerData->markerVisibleIds.clear();
 	cv::aruco::detectMarkers(
-		*gsSmallBuffer,
+		//*gsSmallBuffer,
+		*gsSourceBuffer,
 		m_markerData->dictionary,
-		smallImagePoints,
-		markerIds,
+		m_markerData->markerCorners,
+		//smallMarkerCorners,
+		m_markerData->markerVisibleIds,
 		m_markerData->params);
-	const bool bFoundMarkers = markerIds.size() > 0;
+	const bool bFoundMarkers = m_markerData->markerVisibleIds.size() > 0;
 
 	if (bFoundMarkers)
 	{
-		// Scale the points found in the small image to corresponding location in the source image
-		t_opencv_point2d_list markerCorners;
-		const float smallToSourceScale = m_distortionView->getSmallToSourceScale();
-		for (const cv::Point2f& smallPoint : smallImagePoints)
-		{
-			cv::Point2f markerCorner = {
-				smallPoint.x * smallToSourceScale,
-				smallPoint.y * smallToSourceScale
-			};
+		//// Scale the points found in the small image to corresponding location in the source image
+		//const float smallToSourceScale = m_distortionView->getSmallToSourceScale();
+		//m_markerData->markerCorners.clear();
+		//for (const t_opencv_point2d_list& smallCorners : smallMarkerCorners)
+		//{
+		//	t_opencv_point2d_list corners;
 
-			markerCorners.push_back(markerCorner);
-		}
+		//	for (const cv::Point2f& smallCorner : smallCorners)
+		//	{
+		//		corners.push_back({
+		//			smallCorner.x * smallToSourceScale,
+		//			smallCorner.y * smallToSourceScale
+		//		});
+		//	}
+
+		//	m_markerData->markerCorners.push_back(corners);
+		//}
 
 		// Compute chessboard corners from the detected markers
-		t_opencv_point2d_list charucoCorners;
 		std::vector<int> charucoIds;
 		cv::aruco::interpolateCornersCharuco(
-			markerCorners, markerIds, 
+			m_markerData->markerCorners, m_markerData->markerVisibleIds, 
 			*gsSourceBuffer, m_markerData->board, 
-			charucoCorners, charucoIds);
+			m_currentImagePoints, charucoIds);
 
 		// Append the new chessboard corner pixels into the image_points matrix
 		if (m_currentImagePoints.size() == cornerCount)
@@ -628,4 +642,45 @@ bool CalibrationPatternFinder_Charuco::fetchLastFoundCalibrationPattern(
 	}
 
 	return false;
+}
+
+void CalibrationPatternFinder_Charuco::renderCalibrationPattern2D() const
+{
+	CalibrationPatternFinder::renderCalibrationPattern2D();
+
+	// Draw the marker corners, if any
+	TextStyle style = getDefaultTextStyle();
+	style.horizontalAlignment = eHorizontalTextAlignment::Middle;
+	style.verticalAlignment = eVerticalTextAlignment::Middle;
+	style.color = Colors::Yellow;
+
+	static int debugDrawIndex = -1;
+	
+	for (int quadIndex = 0; quadIndex < m_markerData->markerCorners.size(); quadIndex++)
+	{
+		if (debugDrawIndex != -1 && debugDrawIndex != quadIndex)
+			continue;
+
+		const t_opencv_point2d_list& corners = m_markerData->markerCorners[quadIndex];
+
+		drawQuadList2d(
+			m_frameWidth, m_frameHeight,
+			(float*)corners.data(), // cv::point2f is just two floats 
+			(int)corners.size(),
+			Colors::Yellow);
+
+		if (quadIndex < m_markerData->markerVisibleIds.size())
+		{
+			int markerId = m_markerData->markerVisibleIds[quadIndex];
+
+			cv::Point2f quadCenter;
+			opencv_point2f_compute_average(corners, quadCenter);
+			
+			drawTextAtTrackerPosition(
+				style,
+				m_frameWidth, m_frameHeight,
+				glm::vec2(quadCenter.x, quadCenter.y),
+				L"%d", markerId);
+		}
+	}
 }

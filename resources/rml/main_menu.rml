@@ -59,9 +59,6 @@
 			<button onclick="goto_compositor">video_compositor</button>
 		</div>
 		<div>
-			<button style="width: 220dp" onclick="goto_pattern_settings">calibration_pattern_settings</button>
-		</div>
-		<div>
 			<button onclick="goto_camera_settings">camera_settings</button>
 		</div>
 		<div>

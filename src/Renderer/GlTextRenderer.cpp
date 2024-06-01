@@ -282,6 +282,42 @@ void drawTextAtScreenPosition(
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
 }
 
+void drawTextAtTrackerPosition(
+	const TextStyle& style,
+	const float trackerWidth, const float trackerHeight,
+	const glm::vec2& trackerCoords,
+	const wchar_t* format,
+	...)
+{
+	IGlWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	assert(window != nullptr);
+
+	GlTextRenderer* textRenderer = window->getTextRenderer();
+	if (textRenderer == nullptr)
+		return;
+
+	wchar_t text[1024];
+	va_list args;
+	va_start(args, format);
+	int w = vswprintf(text, sizeof(text), format, args);
+	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
+	va_end(args);
+
+	// Convert the tracker space coordinates into screen space
+	const float windowWidth = window->getWidth();
+	const float windowHeight = window->getHeight();
+	const float windowX0 = 0.0f, windowY0 = 0.f;
+	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
+	glm::vec2 screenCoords =
+		remapPointIntoSubWindow(
+			trackerWidth, trackerHeight,
+			windowX0, windowY0,
+			windowX1, windowY1,
+			trackerCoords);
+
+	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
+}
+
 void drawTextAtCameraPosition(
 	const TextStyle& style,
 	const float cameraWidth, const float cameraHeight,
