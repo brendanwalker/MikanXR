@@ -312,7 +312,7 @@ void VideoFrameDistortionView::computeUndistortion(cv::Mat* bgrSourceBuffer)
 			cv::INTER_LINEAR, cv::BORDER_CONSTANT);
 	}
 
-	// Also, optionally do grayscale convertion (and maybe undistortion)
+	// Also, optionally do grayscale conversion (and maybe undistortion)
 	if (bgrSourceBuffer != nullptr && 
 		m_gsSourceBuffer != nullptr &&
 		m_bgrGsDisplayBuffer != nullptr)
