@@ -48,7 +48,6 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_videoSourceView(view)
 	, m_frameWidth((int)view->getFrameWidth())
 	, m_frameHeight((int)view->getFrameHeight())
-	, m_gsSmallToSourceScale(1.f)
 	// Video frame buffers
 	, m_bgrSourceBuffers(nullptr)
 	, m_bgrSourceBufferCount(frameQueueSize)
@@ -57,9 +56,8 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_bgrUndistortBuffer(nullptr)
 	// Grayscale video frame buffers
 	, m_gsSourceBuffer(nullptr)
-	, m_gsSmallBuffer(nullptr)
 	, m_gsUndistortBuffer(nullptr)
-	, m_bgrGsUndistortBuffer(nullptr)
+	, m_bgrGsDisplayBuffer(nullptr)
 	// Camera Intrinsics / Distortion parameters
 	, m_intrinsics(new OpenCVMonoCameraIntrinsics)
 	// Distortion preview
@@ -89,14 +87,9 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	// Grayscale video frame buffers
 	if (bufferBitmask & VIDEO_FRAME_HAS_GRAYSCALE_FLAG)
 	{
-		float gsSourceToSmallScale= SMALL_GS_FRAME_HEIGHT / m_frameHeight;
-		m_gsSmallToSourceScale = 1.f / gsSourceToSmallScale;
-		int smallFrameWidth = ceilf(m_frameWidth * gsSourceToSmallScale);
-
 		m_gsSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC1);
-		m_gsSmallBuffer = new cv::Mat(SMALL_GS_FRAME_HEIGHT, smallFrameWidth, CV_8UC1);
 		m_gsUndistortBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC1);
-		m_bgrGsUndistortBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
+		m_bgrGsDisplayBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
 	}
 
 	// Create a texture to render the video frame to
@@ -144,10 +137,6 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 	}
 
 	// Grayscale video frame buffers
-	if (m_gsSmallBuffer != nullptr)
-	{
-		delete m_gsSmallBuffer;
-	}
 	if (m_gsSourceBuffer != nullptr)
 	{
 		delete m_gsSourceBuffer;
@@ -156,9 +145,9 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 	{
 		delete m_gsUndistortBuffer;
 	}
-	if (m_bgrGsUndistortBuffer != nullptr)
+	if (m_bgrGsDisplayBuffer != nullptr)
 	{
-		delete m_bgrGsUndistortBuffer;
+		delete m_bgrGsDisplayBuffer;
 	}
 
 	// Camera Intrinsics
@@ -289,9 +278,9 @@ bool VideoFrameDistortionView::processVideoFrame(uint64_t desiredFrameIndex)
 			}
 			break;
 		case eVideoDisplayMode::mode_grayscale:
-			if (m_bgrGsUndistortBuffer != nullptr)
+			if (m_bgrGsDisplayBuffer != nullptr)
 			{
-				copyOpenCVMatIntoGLTexture(*m_bgrGsUndistortBuffer, m_videoTexture);
+				copyOpenCVMatIntoGLTexture(*m_bgrGsDisplayBuffer, m_videoTexture);
 			}
 			break;
 		default:
@@ -323,26 +312,28 @@ void VideoFrameDistortionView::computeUndistortion(cv::Mat* bgrSourceBuffer)
 			cv::INTER_LINEAR, cv::BORDER_CONSTANT);
 	}
 
-	// Also, optionally do grayscale undistortion
-	if (!m_bGrayscaleUndistortDisabled &&
-		m_gsUndistortBuffer != nullptr &&
-		m_gsUndistortBuffer != nullptr &&
-		m_bgrGsUndistortBuffer != nullptr)
+	// Also, optionally do grayscale convertion (and maybe undistortion)
+	if (bgrSourceBuffer != nullptr && 
+		m_gsSourceBuffer != nullptr &&
+		m_bgrGsDisplayBuffer != nullptr)
 	{
-		EASY_BLOCK("Grayscale Convert and Remap");
-
-		cv::cvtColor(*bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
-		cv::remap(
-			*m_gsSourceBuffer, *m_gsUndistortBuffer,
-			*m_distortionMapX, *m_distortionMapY,
-			cv::INTER_LINEAR, cv::BORDER_CONSTANT);
-		cv::cvtColor(*m_gsUndistortBuffer, *m_bgrGsUndistortBuffer, cv::COLOR_GRAY2BGR);
-
-		if (m_gsSmallBuffer != nullptr)
+		if (!m_bGrayscaleUndistortDisabled && m_gsUndistortBuffer != nullptr)
 		{
-			EASY_BLOCK("Grayscale Resize");
+			EASY_BLOCK("Grayscale Convert and Remap");
 
-			cv::resize(*m_gsSourceBuffer, *m_gsSmallBuffer, m_gsSmallBuffer->size());
+			cv::cvtColor(*bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
+			cv::remap(
+				*m_gsSourceBuffer, *m_gsUndistortBuffer,
+				*m_distortionMapX, *m_distortionMapY,
+				cv::INTER_LINEAR, cv::BORDER_CONSTANT);
+			cv::cvtColor(*m_gsUndistortBuffer, *m_bgrGsDisplayBuffer, cv::COLOR_GRAY2BGR);
+		}
+		else if (m_bGrayscaleUndistortDisabled)
+		{
+			EASY_BLOCK("Grayscale Convert");
+
+			cv::cvtColor(*bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
+			cv::cvtColor(*m_gsSourceBuffer, *m_bgrGsDisplayBuffer, cv::COLOR_GRAY2BGR);
 		}
 	}
 }

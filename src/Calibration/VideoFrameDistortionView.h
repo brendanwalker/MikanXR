@@ -22,20 +22,23 @@ public:
 
 	inline int getFrameWidth() const { return m_frameWidth; }
 	inline int getFrameHeight() const { return m_frameHeight; }
-	inline float getSmallToSourceScale() const { return m_gsSmallToSourceScale; }
 
 	inline eVideoDisplayMode getVideoDisplayMode() const { return m_videoDisplayMode; }
 	inline void setVideoDisplayMode(eVideoDisplayMode newMode) { m_videoDisplayMode= newMode; }
+
+	inline bool isColorUndistortDisabled() const { return m_bColorUndistortDisabled; }
 	inline void setColorUndistortDisabled(bool bDisabled) { m_bColorUndistortDisabled= bDisabled; }
+
+	inline bool isGrayscaleUndistortDisabled() const { return m_bGrayscaleUndistortDisabled; }
 	inline void setGrayscaleUndistortDisabled(bool bDisabled) { m_bGrayscaleUndistortDisabled = bDisabled; }
 
 	inline unsigned int getMaxFrameQueueSize() const { return m_bgrSourceBufferCount; }
 	inline uint64_t getLastVideoFrameReadIndex() const { return m_lastVideoFrameReadIndex; }
 
-	inline cv::Mat* getBGRUndistortBuffer() const { return m_bgrUndistortBuffer; }
-	inline cv::Mat* getBGRGrayscaleUndistortBuffer() const { return m_bgrGsUndistortBuffer; }
 	inline cv::Mat* getGrayscaleSourceBuffer() const { return m_gsSourceBuffer; }
-	inline cv::Mat* getGrayscaleSmallBuffer() const { return m_gsSmallBuffer; }
+	inline cv::Mat* getGrayscaleUndistortBuffer() const { return m_gsUndistortBuffer; }
+	inline cv::Mat* getBGRUndistortBuffer() const { return m_bgrUndistortBuffer; }
+	inline cv::Mat* getBGRGsDisplayBuffer() const { return m_bgrGsDisplayBuffer; }
 	inline GlTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
 	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
 
@@ -60,8 +63,7 @@ protected:
 	VideoSourceViewPtr m_videoSourceView;
 	int m_frameWidth;
 	int m_frameHeight;
-	float m_gsSmallToSourceScale;
-
+	
 	// Circular BGR source buffer
 	struct SourceBufferEntry
 	{
@@ -79,9 +81,8 @@ protected:
 
 	// Grayscale video frame buffers
 	cv::Mat* m_gsSourceBuffer; // 8-BPP source buffer
-	cv::Mat* m_gsSmallBuffer; // Smaller version of the 8-BPP source buffer
 	cv::Mat* m_gsUndistortBuffer; // 8-BPP undistorted buffer
-	cv::Mat* m_bgrGsUndistortBuffer; // 24-BPP(BGR color format) undistorted buffer
+	cv::Mat* m_bgrGsDisplayBuffer; // 24-BPP(BGR color format) debug display buffer
 
 	// Camera Intrinsics / Distortion parameters
 	struct OpenCVMonoCameraIntrinsics* m_intrinsics;

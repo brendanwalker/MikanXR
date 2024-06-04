@@ -178,18 +178,19 @@ bool CalibrationPatternFinder_Chessboard::findNewCalibrationPattern(const float 
 	bool bImagePointsValid = false;
 	m_currentImagePoints.clear();
 
-	cv::Mat* gsSmallBuffer= m_distortionView->getGrayscaleSmallBuffer();
-	cv::Mat* gsSourceBuffer= m_distortionView->getGrayscaleSourceBuffer();
-	if (gsSmallBuffer == nullptr || gsSourceBuffer == nullptr)
+	cv::Mat* gsSourceBuffer =
+		m_distortionView->isGrayscaleUndistortDisabled()
+		? m_distortionView->getGrayscaleSourceBuffer()
+		: m_distortionView->getGrayscaleUndistortBuffer();
+	if (gsSourceBuffer == nullptr)
 		return false;
 
 	// Find chessboard corners:
-	t_opencv_point2d_list m_smallImagePoints;	 
 	const bool bFoundChessboard= 
 		cv::findChessboardCorners(
-			*gsSmallBuffer,
+			*gsSourceBuffer,
 			cv::Size(m_chessbordCols, m_chessbordRows),
-			m_smallImagePoints, // output corners
+			m_currentImagePoints, // output corners
 			cv::CALIB_CB_ADAPTIVE_THRESH
 			+ cv::CALIB_CB_FILTER_QUADS
 			// + cv::CALIB_CB_NORMALIZE_IMAGE is suuuper slow
@@ -197,18 +198,6 @@ bool CalibrationPatternFinder_Chessboard::findNewCalibrationPattern(const float 
 
 	if (bFoundChessboard)
 	{
-		// Scale the points found in the small image to corresponding location in the source image
-		const float smallToSourceScale= m_distortionView->getSmallToSourceScale();
-		for (const cv::Point2f& smallPoint : m_smallImagePoints)
-		{
-			cv::Point2f sourcePoint=  {
-				smallPoint.x * smallToSourceScale,
-				smallPoint.y * smallToSourceScale 
-			};
-
-			m_currentImagePoints.push_back(sourcePoint);
-		}
-
 		// Get subpixel accuracy on those corners
 		cv::cornerSubPix(
 			*gsSourceBuffer,
@@ -342,9 +331,16 @@ bool CalibrationPatternFinder_CircleGrid::findNewCalibrationPattern(const float 
 	bool bImagePointsValid = false;
 	m_currentImagePoints.clear();
 
+	cv::Mat* gsSourceBuffer =
+		m_distortionView->isGrayscaleUndistortDisabled()
+		? m_distortionView->getGrayscaleSourceBuffer()
+		: m_distortionView->getGrayscaleUndistortBuffer();
+	if (gsSourceBuffer == nullptr)
+		return false;
+
 	// Find circle grid centers:
 	if (cv::findCirclesGrid(
-		*m_distortionView->getGrayscaleSourceBuffer(),
+		*gsSourceBuffer,
 		cv::Size(m_circleGridCols, m_circleGridRows),
 		m_currentImagePoints, // output centers
 		cv::CALIB_CB_ASYMMETRIC_GRID))
@@ -526,9 +522,11 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	bool bImagePointsValid = false;
 	m_currentImagePoints.clear();
 
-	cv::Mat* gsSmallBuffer = m_distortionView->getGrayscaleSmallBuffer();
-	cv::Mat* gsSourceBuffer = m_distortionView->getGrayscaleSourceBuffer();
-	if (gsSmallBuffer == nullptr || gsSourceBuffer == nullptr)
+	cv::Mat* gsSourceBuffer = 
+		m_distortionView->isGrayscaleUndistortDisabled()
+		? m_distortionView->getGrayscaleSourceBuffer()
+		: m_distortionView->getGrayscaleUndistortBuffer();
+	if (gsSourceBuffer == nullptr)
 		return false;
 
 	// Find Arcuo marker corners on the small image

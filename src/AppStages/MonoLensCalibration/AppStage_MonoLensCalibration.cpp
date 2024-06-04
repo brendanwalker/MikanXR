@@ -79,10 +79,12 @@ void AppStage_MonoLensCalibration::enter()
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
 			newState= eMonoLensCalibrationMenuState::testCalibration;
+			m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 		}
 		else
 		{
 			newState= eMonoLensCalibrationMenuState::capture;
+			m_monoDistortionView->setGrayscaleUndistortDisabled(true);
 		}
 	}
 	else
@@ -204,6 +206,7 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 
 						// Rebuild the distortion map to reflect the updated calibration
 						m_monoDistortionView->rebuildDistortionMap(&new_mono_intrinsics);
+						m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 
 						// Switch back to the color video feed
 						m_cameraSettingsModel->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
@@ -308,6 +311,9 @@ void AppStage_MonoLensCalibration::onRestartEvent()
 
 	// Reset the distortion map back to the camera intrinsics we started with
 	m_monoLensCalibrator->resetDistortionView();
+
+	// Turn back off grayscale undistortion mode
+	m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 
 	// Go back to the capture state
 	setMenuState(eMonoLensCalibrationMenuState::capture);
