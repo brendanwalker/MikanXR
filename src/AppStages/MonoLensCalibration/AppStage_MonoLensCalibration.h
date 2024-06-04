@@ -37,7 +37,6 @@ protected:
 
 	// Camera Settings Model UI Events
 	void onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode);
-	void onBrightnessChanged(int newBrightness);
 
 private:
 	class RmlModel_MonoLensCalibration* m_calibrationModel = nullptr;

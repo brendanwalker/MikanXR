@@ -102,9 +102,8 @@ void AppStage_MonoLensCalibration::enter()
 		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onReturnEvent);
 
 		// Init camera settings model
-		m_cameraSettingsModel->init(context, m_videoSourceView);
+		m_cameraSettingsModel->init(context);
 		m_cameraSettingsModel->OnVideoDisplayModeChanged = MakeDelegate(this, &AppStage_MonoLensCalibration::onVideoDisplayModeChanged);
-		m_cameraSettingsModel->OnBrightnessChanged = MakeDelegate(this, &AppStage_MonoLensCalibration::onBrightnessChanged);
 
 		// Init calibration view now that the dependent model has been created
 		m_calibrationView = addRmlDocument("mono_lens_calibration.rml");
@@ -328,9 +327,4 @@ void AppStage_MonoLensCalibration::onCancelEvent()
 void AppStage_MonoLensCalibration::onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode)
 {
 	m_monoDistortionView->setVideoDisplayMode(newDisplayMode);
-}
-
-void AppStage_MonoLensCalibration::onBrightnessChanged(int newBrightness)
-{
-	m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, newBrightness, false);
 }
