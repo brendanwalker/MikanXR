@@ -422,13 +422,6 @@ class CharucoBoardData
 {
 public:
 	CharucoBoardData() = default;
-	virtual ~CharucoBoardData()
-	{
-		if (board)
-		{
-			delete board;
-		}
-	}
 
 	int rows;
 	int cols;
@@ -456,9 +449,12 @@ CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
 	m_opencvSolvePnPGeometry.points.clear();
 	m_openglSolvePnPGeometry.points.clear();
 
-	for (int row = 0; row < charucoRows; ++row)
+	const int cornerRows = charucoRows - 1;
+	const int cornerCols = charucoCols - 1;
+
+	for (int row = 0; row < cornerRows; ++row)
 	{
-		for (int col = 0; col < charucoCols; ++col)
+		for (int col = 0; col < cornerCols; ++col)
 		{
 			// Solve PnP points are on the XZ Plane
 			cv::Point3f openCVSolvePnPPoint(
@@ -538,37 +534,16 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	// Find Arcuo marker corners on the small image
 	std::vector<t_opencv_point2d_list> smallMarkerCorners;
 	m_markerData->markerCorners.clear();
-	//m_markerData->markerVisibleIds.clear();
 	cv::aruco::detectMarkers(
-		//*gsSmallBuffer,
 		*gsSourceBuffer,
 		m_markerData->dictionary,
 		m_markerData->markerCorners,
-		//smallMarkerCorners,
 		m_markerData->markerVisibleIds,
 		m_markerData->params);
 	const bool bFoundMarkers = m_markerData->markerVisibleIds.size() > 0;
 
 	if (bFoundMarkers)
 	{
-		//// Scale the points found in the small image to corresponding location in the source image
-		//const float smallToSourceScale = m_distortionView->getSmallToSourceScale();
-		//m_markerData->markerCorners.clear();
-		//for (const t_opencv_point2d_list& smallCorners : smallMarkerCorners)
-		//{
-		//	t_opencv_point2d_list corners;
-
-		//	for (const cv::Point2f& smallCorner : smallCorners)
-		//	{
-		//		corners.push_back({
-		//			smallCorner.x * smallToSourceScale,
-		//			smallCorner.y * smallToSourceScale
-		//		});
-		//	}
-
-		//	m_markerData->markerCorners.push_back(corners);
-		//}
-
 		// Compute chessboard corners from the detected markers
 		std::vector<int> charucoIds;
 		cv::aruco::interpolateCornersCharuco(
@@ -621,13 +596,15 @@ bool CalibrationPatternFinder_Charuco::fetchLastFoundCalibrationPattern(
 	// If it's a valid new location, append it to the board list
 	if (areCurrentImagePointsValid())
 	{
-		const int cornerCount = m_markerData->cols * m_markerData->rows;
+		// The number of corners in a row is one less than the number of squares
+		const int cornerCols = m_markerData->cols - 1;
+		const int cornerCount = (int)m_currentImagePoints.size();
 
 		// Keep track of the corners of all of the chessboards we sample
 		outBoundingQuad[0] = m_currentImagePoints[0];
-		outBoundingQuad[1] = m_currentImagePoints[m_markerData->cols - 1];
+		outBoundingQuad[1] = m_currentImagePoints[cornerCols - 1];
 		outBoundingQuad[2] = m_currentImagePoints[cornerCount - 1];
-		outBoundingQuad[3] = m_currentImagePoints[cornerCount - m_markerData->cols];
+		outBoundingQuad[3] = m_currentImagePoints[cornerCount - cornerCols];
 
 		outImagePoints.clear();
 		for (const auto& imagePoint : m_currentImagePoints)
