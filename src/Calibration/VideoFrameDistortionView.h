@@ -43,7 +43,7 @@ public:
 	uint64_t readNextVideoFrame();
 	bool processVideoFrame(uint64_t desiredFrameIndex);
 	bool readAndProcessVideoFrame();
-	void rebuildDistortionMap(const MikanMonoIntrinsics* instrinsics);
+	void rebuildDistortionMap(const struct MikanMonoIntrinsics* instrinsics);
 
 	void renderSelectedVideoBuffers();
 
