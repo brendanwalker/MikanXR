@@ -51,7 +51,6 @@ public:
 	void renderSelectedVideoBuffers();
 
 protected:
-	void createLayerQuadMesh();
 	void computeUndistortion(cv::Mat* bgrSourceBuffer);
 
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture);

@@ -60,6 +60,8 @@ protected:
 	uint32_t m_glIndexBuffer = 0;
 };
 
+// -- Drawing Helpers ---
+GlTriangulatedMeshPtr createFullscreenQuadMesh(IGlWindow* ownerWindow, bool vFlipped);
 void drawTransformedTriangulatedMesh(
 	GlCameraConstPtr camera,
 	const glm::mat4& transform,

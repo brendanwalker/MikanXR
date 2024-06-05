@@ -57,7 +57,7 @@ public:
 	inline void getOpenCVSolvePnPGeometry(OpenCVCalibrationGeometry* outGeometry) { *outGeometry= m_opencvSolvePnPGeometry; };
 	inline void getOpenGLSolvePnPGeometry(OpenGLCalibrationGeometry* outGeometry) { *outGeometry= m_openglSolvePnPGeometry; };
 	virtual void renderCalibrationPattern2D() const;
-	void renderSolvePnPPattern3D(const glm::mat4& xform) const;
+	virtual void renderSolvePnPPattern3D(const glm::mat4& xform) const;
 
 protected:
 	// Video buffer state
@@ -131,6 +131,7 @@ public:
 	virtual bool findNewCalibrationPattern(const float minSeperationDist) override;
 	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
 	virtual void renderCalibrationPattern2D() const override;
+	virtual void renderSolvePnPPattern3D(const glm::mat4& xform) const override;
 
 protected:
 	class CharucoBoardData* m_markerData;

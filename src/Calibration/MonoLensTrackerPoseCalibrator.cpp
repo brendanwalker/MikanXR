@@ -4,10 +4,13 @@
 #include "Colors.h"
 #include "GlCommon.h"
 #include "GlLineRenderer.h"
+#include "GlTextRenderer.h"
+#include "MathGLM.h"
 #include "MonoLensTrackerPoseCalibrator.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
+#include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
 #include "VRDeviceView.h"
@@ -257,7 +260,7 @@ bool MonoLensTrackerPoseCalibrator::computeCalibratedCameraTrackerOffset(
 void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 {
 	// Draw the most recently capture chessboard in camera space
-	m_patternFinder->renderCalibrationPattern2D();
+	//m_patternFinder->renderCalibrationPattern2D();
 
 	// Draw the camera relative transforms of the pattern (computed from solvePnP)
 	// and the mat puck location offset from the pattern origin
@@ -276,8 +279,14 @@ void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 				glm::vec3(xOffset, yOffset, zOffset));
 		const glm::mat4 matPuckXForm = patternXform * matPuckOffsetXform;
 
+		m_patternFinder->renderSolvePnPPattern3D(patternXform);
+
 		drawTransformedAxes(patternXform, 0.1f);
 		drawTransformedAxes(matPuckXForm, 0.1f);
+
+		TextStyle style = getDefaultTextStyle();
+		drawTextAtWorldPosition(style, glm_mat4_get_position(patternXform), L"Mat");
+		drawTextAtWorldPosition(style, glm_mat4_get_position(matPuckXForm), L"Puck");
 	}
 }
 

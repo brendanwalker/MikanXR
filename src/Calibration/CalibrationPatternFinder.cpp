@@ -659,3 +659,44 @@ void CalibrationPatternFinder_Charuco::renderCalibrationPattern2D() const
 		}
 	}
 }
+
+void CalibrationPatternFinder_Charuco::renderSolvePnPPattern3D(const glm::mat4& xform) const
+{
+	CalibrationPatternFinder::renderSolvePnPPattern3D(xform);
+
+	// Draw the marker corners, if any
+	//TextStyle style = getDefaultTextStyle();
+	//style.horizontalAlignment = eHorizontalTextAlignment::Middle;
+	//style.verticalAlignment = eVerticalTextAlignment::Middle;
+	//style.color = Colors::Yellow;
+
+	//static int debugDrawIndex = -1;
+
+	//for (int quadIndex = 0; quadIndex < m_markerData->markerCorners.size(); quadIndex++)
+	//{
+	//	if (debugDrawIndex != -1 && debugDrawIndex != quadIndex)
+	//		continue;
+
+	//	const t_opencv_point2d_list& corners = m_markerData->markerCorners[quadIndex];
+
+	//	drawQuadList2d(
+	//		m_frameWidth, m_frameHeight,
+	//		(float*)corners.data(), // cv::point2f is just two floats 
+	//		(int)corners.size(),
+	//		Colors::Yellow);
+
+	//	if (quadIndex < m_markerData->markerVisibleIds.size())
+	//	{
+	//		int markerId = m_markerData->markerVisibleIds[quadIndex];
+
+	//		cv::Point2f quadCenter;
+	//		opencv_point2f_compute_average(corners, quadCenter);
+
+	//		drawTextAtTrackerPosition(
+	//			style,
+	//			m_frameWidth, m_frameHeight,
+	//			glm::vec2(quadCenter.x, quadCenter.y),
+	//			L"%d", markerId);
+	//	}
+	//}
+}
