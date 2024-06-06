@@ -159,7 +159,7 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 	}
 	glm::dmat4 cameraToPatternXform; // Meters
 	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToPatternRot, cv_cameraToPatternVecMM, 
+		cv_cameraToPatternRot, cv_cameraToPatternVecMM, SOLVEPNP_XAXIS_FLIP_ANGLE,
 		cameraToPatternXform);
 
 	// Compute the VR tracking space location of the camera.

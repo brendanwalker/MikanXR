@@ -46,6 +46,7 @@ public:
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const = 0;
 	virtual bool findNewCalibrationPattern(const float minSeperationDist= 0.f) = 0;
+	virtual bool estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform);
 	virtual bool fetchLastFoundCalibrationPattern(
 		t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) = 0;
 
@@ -85,7 +86,7 @@ public:
 		float squareLengthMM);
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_chessboard; }
-	virtual bool findNewCalibrationPattern(const float minSeperationDist) override;
+	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
 	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
 
 protected:
@@ -105,7 +106,7 @@ public:
 		float circleDiameterMM);
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_circlegrid; }
-	virtual bool findNewCalibrationPattern(const float minSeperationDist) override;
+	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
 	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
 
 protected:
@@ -128,8 +129,9 @@ public:
 	virtual ~CalibrationPatternFinder_Charuco();
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_charuco; }
-	virtual bool findNewCalibrationPattern(const float minSeperationDist) override;
+	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
 	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
+	virtual bool estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform) override;
 	virtual void renderCalibrationPattern2D() const override;
 	virtual void renderSolvePnPPattern3D(const glm::mat4& xform) const override;
 

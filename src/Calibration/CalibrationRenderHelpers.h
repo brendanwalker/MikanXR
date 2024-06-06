@@ -4,7 +4,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-glm::vec2 remapPointIntoSubWindow(
+glm::vec2 remapPointIntoTarget(
 	const float screenWidth, const float screenHeight,
 	const float windowLeft, const float windowTop,
 	const float windowRight, const float windowBottom,

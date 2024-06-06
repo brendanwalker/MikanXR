@@ -519,7 +519,7 @@ bool DepthMeshGenerator::captureMesh()
 
 	// Convert the OpenCV camera relative pose to a GLM matrix
 	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToPatternRot, cv_cameraToPatternVecMM, 
+		cv_cameraToPatternRot, cv_cameraToPatternVecMM, SOLVEPNP_XAXIS_FLIP_ANGLE,
 		m_calibrationState->cameraToPatternXform);
 
 	// Compute the synthetic disparity map using the current undistorted video frame

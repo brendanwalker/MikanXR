@@ -23,7 +23,6 @@ struct MonoLensTrackerCalibrationState
 {
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
-	OpenCVCalibrationGeometry inputObjectGeometry;
 	ProfileConfigConstPtr profileConfig;
 	int desiredSampleCount;
 
@@ -32,6 +31,7 @@ struct MonoLensTrackerCalibrationState
 	glm::dmat4 cameraXform;
 	glm::dmat4 cameraToPatternXform;
 	glm::dmat4 cameraToCameraPuckXform;
+	glm::dmat4 patternToMatPuckXform;
 	bool hasValidCapture;
 
 	// Sample State
@@ -65,6 +65,7 @@ struct MonoLensTrackerCalibrationState
 		cameraXform = glm::dmat4(1.0);
 		cameraToPatternXform = glm::dmat4(1.0);
 		cameraToCameraPuckXform = glm::dmat4(1.0);
+		patternToMatPuckXform = glm::dmat4(1.0);
 		hasValidCapture= false;
 
 		capturedSampleCount = 0;
@@ -95,9 +96,6 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 
 	// Private calibration state
 	m_calibrationState->init(profileConfig, distortionView->getVideoSourceView(), desiredSampleCount);
-
-	// Cache the 3d geometry of the calibration pattern in the calibration state
-	m_patternFinder->getOpenCVSolvePnPGeometry(&m_calibrationState->inputObjectGeometry);
 }
 
 MonoLensTrackerPoseCalibrator::~MonoLensTrackerPoseCalibrator()
@@ -144,32 +142,11 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	const glm::dmat4 matPuckXform = glm::dmat4(m_matTrackingPuckView->getCalibrationPose());
 
 	// Look for the calibration pattern in the latest video frame
-	if (!m_patternFinder->findNewCalibrationPattern())
+	glm::dmat4 cameraToPatternXform;
+	if (!m_patternFinder->estimateNewCalibrationPatternPose(cameraToPatternXform))
 	{
 		return false;
 	}
-
-	cv::Point2f boundingQuad[4];
-	t_opencv_point2d_list imagePoints;
-	m_patternFinder->fetchLastFoundCalibrationPattern(imagePoints, boundingQuad);
-
-	// Given an object model and the image points samples we could be able to compute 
-	// a position and orientation of the calibration pattern relative to the camera
-	cv::Quatd cv_cameraToPatternRot;
-	cv::Vec3d cv_cameraToPatternVecMM; // Millimeters
-	if (!computeOpenCVCameraRelativePatternTransform(
-			m_calibrationState->inputCameraIntrinsics,
-			imagePoints,
-			m_calibrationState->inputObjectGeometry.points,
-			cv_cameraToPatternRot,
-			cv_cameraToPatternVecMM))
-	{
-		return false;
-	}
-	glm::dmat4 cameraToPatternXform; // Meters
-	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToPatternRot, cv_cameraToPatternVecMM, 
-		cameraToPatternXform);
 
 	// Compute the VR tracking space location of the camera.
 	// We start at the tracking puck on the mat and apply offsets to get to the camera.
@@ -181,10 +158,17 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	const double horizOffset = (double)config->puckHorizontalOffsetMM * k_millimeters_to_meters;
 	const double vertOffset = (double)config->puckVerticalOffsetMM * k_millimeters_to_meters;
 	const double depthOffset = (double)config->puckDepthOffsetMM * k_millimeters_to_meters;
-	const glm::dmat4 matPuckToPatternXform =
+	const glm::dmat4 puckYawRot90 = 
+		glm::rotate(
+			glm::dmat4(1.f), 
+			k_real64_half_pi, 
+			glm::dvec3(0.0, 1.f, 0.f));
+	const glm::dmat4 translateToPatternXform =
 		glm::translate(
 			glm::dmat4(1.0),
-			glm::dvec3(horizOffset, depthOffset, -vertOffset));
+			glm::dvec3(horizOffset, depthOffset, vertOffset));
+	const glm::dmat4 matPuckToPatternXform = 
+		translateToPatternXform * puckYawRot90;
 
 	// Compute the pattern transform in VR tracking space
 	const glm::dmat4 patternXform = matPuckXform * matPuckToPatternXform;
@@ -205,6 +189,7 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	m_calibrationState->cameraXform = cameraXform;
 	m_calibrationState->cameraToPatternXform= cameraToPatternXform;
 	m_calibrationState->cameraToCameraPuckXform = cameraToCameraPuckXform;
+	m_calibrationState->patternToMatPuckXform = glm::inverse(matPuckToPatternXform);
 	m_calibrationState->hasValidCapture= true;
 
 	return true;
@@ -267,26 +252,28 @@ void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 	if (m_calibrationState->hasValidCapture)
 	{
 		const glm::mat4 patternXform = glm::mat4(m_calibrationState->cameraToPatternXform);
+		//const glm::mat4 patternToMatPuckXform = glm::mat4(m_calibrationState->patternToMatPuckXform);
 
 		// Compute the mat puck location relative to the mat transform we computed
-		ProfileConfigConstPtr config = m_calibrationState->profileConfig;
-		const float xOffset = -config->puckHorizontalOffsetMM * k_millimeters_to_meters;
-		const float yOffset = config->puckDepthOffsetMM * k_millimeters_to_meters;
-		const float zOffset = config->puckVerticalOffsetMM * k_millimeters_to_meters;
-		const glm::mat4 matPuckOffsetXform =
-			glm::translate(
-				glm::mat4(1.0),
-				glm::vec3(xOffset, yOffset, zOffset));
-		const glm::mat4 matPuckXForm = patternXform * matPuckOffsetXform;
+		//ProfileConfigConstPtr config = m_calibrationState->profileConfig;
+		//const float xOffset = -config->puckHorizontalOffsetMM * k_millimeters_to_meters;
+		//const float yOffset = config->puckDepthOffsetMM * k_millimeters_to_meters;
+		//const float zOffset = config->puckVerticalOffsetMM * k_millimeters_to_meters;
+		//const glm::mat4 matPuckOffsetXform =
+		//	glm::translate(
+		//		glm::mat4(1.0),
+		//		glm::vec3(xOffset, yOffset, zOffset));
+		//const glm::mat4 matPuckXForm = patternXform * matPuckOffsetXform;
+		//const glm::mat4 matPuckXForm = glm_composite_xform(patternXform, patternToMatPuckXform);
 
 		m_patternFinder->renderSolvePnPPattern3D(patternXform);
 
 		drawTransformedAxes(patternXform, 0.1f);
-		drawTransformedAxes(matPuckXForm, 0.1f);
+		//drawTransformedAxes(matPuckXForm, 0.1f);
 
 		TextStyle style = getDefaultTextStyle();
 		drawTextAtWorldPosition(style, glm_mat4_get_position(patternXform), L"Mat");
-		drawTextAtWorldPosition(style, glm_mat4_get_position(matPuckXForm), L"Puck");
+		//drawTextAtWorldPosition(style, glm_mat4_get_position(matPuckXForm), L"Puck");
 	}
 }
 

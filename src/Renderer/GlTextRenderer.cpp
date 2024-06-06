@@ -309,7 +309,7 @@ void drawTextAtTrackerPosition(
 	const float windowX0 = 0.0f, windowY0 = 0.f;
 	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
 	glm::vec2 screenCoords =
-		remapPointIntoSubWindow(
+		remapPointIntoTarget(
 			trackerWidth, trackerHeight,
 			windowX0, windowY0,
 			windowX1, windowY1,
@@ -347,7 +347,7 @@ void drawTextAtCameraPosition(
 
 	// Remaps the camera relative segment to window relative coordinates
 	const glm::vec2 screenCoords =
-		remapPointIntoSubWindow(
+		remapPointIntoTarget(
 			cameraWidth, cameraHeight,
 			windowX0, windowY0,
 			windowX1, windowY1,

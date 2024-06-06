@@ -94,6 +94,9 @@ bool GlLineRenderer::startup()
 
 void GlLineRenderer::render()
 {
+	if (m_ownerWindow == nullptr)
+		return;
+
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
 	{
@@ -106,8 +109,9 @@ void GlLineRenderer::render()
 		m_program->bindProgram();
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
-		{
-			GlCameraPtr camera = m_ownerWindow->getRenderingViewport()->getCurrentCamera();
+		{		
+			GlViewportConstPtr viewport = m_ownerWindow->getRenderingViewport();
+			GlCameraPtr camera= (viewport != nullptr) ? viewport->getCurrentCamera() : nullptr;
 
 			if (camera != nullptr)
 			{
@@ -128,9 +132,31 @@ void GlLineRenderer::render()
 
 		if (m_points2d.hasPoints() || m_lines2d.hasPoints())
 		{
-			const float windowWidth = m_ownerWindow->getWidth();
-			const float windowHeight = m_ownerWindow->getHeight();
-			const glm::mat4 orthoMat = glm::ortho(0.f, windowWidth, windowHeight, 0.0f, 1.0f, -1.0f);
+			float left = 0;
+			float right = 0;
+			float top = 0;
+			float bottom = 0;
+
+			GlViewportConstPtr viewport = m_ownerWindow->getRenderingViewport();
+			if (viewport != nullptr)
+			{
+				const auto viewportOrigin = viewport->getViewportOrigin();
+				const auto viewportSize = viewport->getViewportSize();
+
+				left = viewportOrigin.x;
+				right = viewportOrigin.x + viewportSize.x;
+				top = viewportOrigin.y;
+				bottom = viewportOrigin.y + viewportSize.y;
+			}
+			else
+			{
+				left = 0;
+				right = m_ownerWindow->getWidth();
+				top = 0;
+				bottom = m_ownerWindow->getHeight();
+			}
+
+			const glm::mat4 orthoMat = glm::ortho(left, right, bottom, top, 1.0f, -1.0f);
 
 			m_program->setMatrix4x4Uniform(m_modelViewUniformName, orthoMat);
 
