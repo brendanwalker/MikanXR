@@ -288,7 +288,7 @@ void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntri
 
 			aspectRatio= (float)(monoIntrinsics.pixel_width / monoIntrinsics.pixel_height);
 			m_vFOVDegrees = (float)monoIntrinsics.vfov;
-			m_hFOVDegrees = m_vFOVDegrees * aspectRatio;
+			m_hFOVDegrees = (float)monoIntrinsics.hfov;
 			m_zNear = (float)monoIntrinsics.znear;
 			m_zFar = (float)monoIntrinsics.zfar;
 		} break;
@@ -298,7 +298,7 @@ void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntri
 
 			aspectRatio = (float)(stereoIntrinsics.pixel_width / stereoIntrinsics.pixel_height);
 			m_vFOVDegrees = (float)stereoIntrinsics.vfov;
-			m_hFOVDegrees = m_vFOVDegrees * aspectRatio;
+			m_hFOVDegrees = (float)stereoIntrinsics.hfov;
 			m_zNear = (float)stereoIntrinsics.znear;
 			m_zFar = (float)stereoIntrinsics.zfar;
 		} break;
