@@ -16,9 +16,6 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
-#define SOLVEPNP_XAXIS_FLIP_ANGLE 180.0f
-#define CHARUCO_XAXIS_FLIP_ANGLE -90.0f
-
 // -- interface -----
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform);
 void computeOpenCVCameraExtrinsicMatrix(VideoSourceViewPtr videoSource, VRDeviceViewPtr trackingPuck, cv::Matx34f &out);
@@ -32,7 +29,6 @@ bool computeOpenCVCameraRelativePatternTransform(
 void convertOpenCVCameraRelativePoseToGLMMat(
 	const cv::Quatd& orientation,
 	const cv::Vec3d& positionMM,
-	const float xFlipAngle,
 	glm::dmat4& outXform);
 
 void computeOpenCVCameraIntrinsicMatrix(

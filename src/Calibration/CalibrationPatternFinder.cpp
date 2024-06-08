@@ -3,8 +3,10 @@
 #include "Colors.h"
 #include "CameraMath.h"
 #include "GlTextRenderer.h"
+#include "Logger.h"
 #include "MathOpenCV.h"
 #include "MathTypeConversion.h"
+#include "MathUtility.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
@@ -96,6 +98,86 @@ CalibrationPatternFinderPtr CalibrationPatternFinder::allocatePatternFinderShare
 	return nullptr;
 }
 
+bool CalibrationPatternFinder::calibrateCamera(
+	const MikanMonoIntrinsics& inputCameraIntrinsics,
+	const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+	const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+	MikanMonoIntrinsics &outIntrinsics,
+	double& outReprojectionError) const
+{
+	bool bSuccess = true;
+
+	const int frameWidth = (int)inputCameraIntrinsics.pixel_width;
+	const int frameHeight = (int)inputCameraIntrinsics.pixel_height;
+
+	// We maintain some properties of the existing intrinsic matrix 
+	// so we need to use the current intrinsics as input (see options below)
+	const MikanMatrix3d& mikanIntrinsicMatrix = inputCameraIntrinsics.camera_matrix;
+	cv::Matx33d cvIntrinsicMatrix = MikanMatrix3d_to_cv_mat33d(mikanIntrinsicMatrix);
+
+	// Get the image point sets we captured during calibration
+	const size_t imagePointSetCount = cvImagePointsList.size();
+
+	// Each 2d image point set should have a corresponding 3d object point set
+	std::vector< t_opencv_point3d_list > cvObjectPointsList(imagePointSetCount);
+	std::fill(cvObjectPointsList.begin(), cvObjectPointsList.end(), m_opencvLensCalibrationGeometry.points);
+
+	// Compute the camera intrinsic matrix and distortion parameters
+	cv::Mat cvDistCoeffsRowVector;
+	try
+	{
+		outReprojectionError =
+			cv::calibrateCamera(
+				cvObjectPointsList,
+				cvImagePointsList,
+				cv::Size(frameWidth, frameHeight),
+				cvIntrinsicMatrix, // Input/Output camera intrinsic matrix 
+				cvDistCoeffsRowVector, // Output distortion coefficients
+				cv::noArray(), cv::noArray(), // best fit board poses as rvec/tvec pairs
+				cv::CALIB_FIX_ASPECT_RATIO + // The functions considers only fy as a free parameter
+				cv::CALIB_FIX_PRINCIPAL_POINT + // The principal point is not changed during the global optimization
+				cv::CALIB_ZERO_TANGENT_DIST + // Tangential distortion coefficients (p1,p2) are set to zeros and stay zero
+				cv::CALIB_RATIONAL_MODEL + // Coefficients k4, k5, and k6 are enabled
+				cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5, // radial distortion coefficients k3, k4, & k5 are not changed during the optimization
+				cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, DBL_EPSILON));
+
+		bSuccess = is_valid_float(outReprojectionError);
+	}
+	catch (cv::Exception* e)
+	{
+		MIKAN_MT_LOG_ERROR("computeCameraCalibration") << "Error computing lens calibration: " << e->msg;
+		bSuccess = false;
+	}
+
+	if (bSuccess)
+	{
+		// cv::calibrateCamera() will return all 14 distortion parameters, but we only want the first 8
+		cv::Mat cvDistCoeffsColVector;
+		cv::transpose(cvDistCoeffsRowVector.colRange(cv::Range(0, 8)), cvDistCoeffsColVector);
+
+		// Write the calibration output state
+		outIntrinsics = inputCameraIntrinsics;
+		outIntrinsics.camera_matrix = cv_mat33d_to_MikanMatrix3d(cvIntrinsicMatrix);
+		outIntrinsics.distortion_coefficients = cv_vec8_to_Mikan_distortion(cvDistCoeffsColVector);
+
+		// Derive the FoV angles from the image size and the newly computed intrinsic matrix
+		double unusedFocalLength;
+		cv::Point2d ununsedPrincipalPoint;
+		double unusedAspectRatio;
+		cv::calibrationMatrixValues(
+			cvIntrinsicMatrix,
+			cv::Size(frameWidth, frameHeight),
+			0.0, 0.0, // Don't know (and don't need) the physical aperture size of the lens
+			outIntrinsics.hfov,
+			outIntrinsics.vfov,
+			unusedFocalLength,
+			ununsedPrincipalPoint,
+			unusedAspectRatio);
+	}
+
+	return bSuccess;
+}
+
 bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform)
 {
 	// Make sure mono camera intrinsics are available
@@ -115,7 +197,8 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 	// Get the image points of the calibration pattern
 	cv::Point2f boundingQuad[4];
 	t_opencv_point2d_list imagePoints;
-	if (!fetchLastFoundCalibrationPattern(imagePoints, boundingQuad))
+	t_opencv_pointID_list imagePointIDs;
+	if (!fetchLastFoundCalibrationPattern(imagePoints, imagePointIDs, boundingQuad))
 	{
 		return false;
 	}
@@ -136,7 +219,7 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 
 	// Convert OpenCV pose (in mm) to OpenGL pose (in meters)
 	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToPatternRot, cv_cameraToPatternVecMM, SOLVEPNP_XAXIS_FLIP_ANGLE,
+		cv_cameraToPatternRot, cv_cameraToPatternVecMM, 
 		outCameraToPatternXform);
 
 	return true;
@@ -292,6 +375,7 @@ bool CalibrationPatternFinder_Chessboard::findNewCalibrationPattern(const float 
 
 bool CalibrationPatternFinder_Chessboard::fetchLastFoundCalibrationPattern(
 	t_opencv_point2d_list& outImagePoints, 
+	t_opencv_pointID_list& outImagePointIDs,
 	cv::Point2f outBoundingQuad[4])
 {
 	// If it's a valid new location, append it to the board list
@@ -309,6 +393,12 @@ bool CalibrationPatternFinder_Chessboard::fetchLastFoundCalibrationPattern(
 		for (const auto& imagePoint : m_currentImagePoints)
 		{
 			outImagePoints.push_back(imagePoint);
+		}
+
+		outImagePointIDs.clear();
+		for (int i = 0; i < (int)m_currentImagePoints.size(); ++i)
+		{
+			outImagePointIDs.push_back(i);
 		}
 
 		// Remember the last valid captured points
@@ -431,6 +521,7 @@ bool CalibrationPatternFinder_CircleGrid::findNewCalibrationPattern(const float 
 
 bool CalibrationPatternFinder_CircleGrid::fetchLastFoundCalibrationPattern(
 	t_opencv_point2d_list& outImagePoints,
+	t_opencv_pointID_list& outImagePointIDs,
 	cv::Point2f outBoundingQuad[4])
 {
 	// If it's a valid new location, append it to the board list
@@ -448,6 +539,12 @@ bool CalibrationPatternFinder_CircleGrid::fetchLastFoundCalibrationPattern(
 		for (const auto& imagePoint : m_currentImagePoints)
 		{
 			outImagePoints.push_back(imagePoint);
+		}
+
+		outImagePointIDs.clear();
+		for (int i = 0; i < (int)m_currentImagePoints.size(); ++i)
+		{
+			outImagePointIDs.push_back(i);
 		}
 
 		// Remember the last valid captured points
@@ -546,7 +643,8 @@ CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
 	cv::aruco::Dictionary dictionary= cv::aruco::getPredefinedDictionary(cvCharucoDictionary);
 	m_markerData->board= new cv::aruco::CharucoBoard(
 		cv::Size(charucoCols, charucoRows),
-		charucoSquareLengthMM, charucoMarkerLengthMM,
+		charucoSquareLengthMM * k_millimeters_to_meters, 
+		charucoMarkerLengthMM * k_millimeters_to_meters,
 		dictionary);
 	m_markerData->dictionary = cv::makePtr<cv::aruco::Dictionary>(dictionary);
 	m_markerData->params = cv::makePtr<cv::aruco::DetectorParameters>();
@@ -571,7 +669,10 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	m_currentImagePoints.clear();
 
 	// Use the original source buffer for the grayscale image (NOT the undistorted one)
-	cv::Mat* gsSourceBuffer = m_distortionView->getGrayscaleSourceBuffer();
+	cv::Mat* gsSourceBuffer =
+		m_distortionView->isGrayscaleUndistortDisabled()
+		? m_distortionView->getGrayscaleSourceBuffer()
+		: m_distortionView->getGrayscaleUndistortBuffer();
 	if (gsSourceBuffer == nullptr)
 		return false;
 
@@ -589,47 +690,11 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	{
 		cv::Matx33d cvIntrinsicMatrix;
 		cv::Mat cvDistCoeffsRowVector;
-		bool bUseCameraCalibration = false;
 
-		// If we have valid undistorted camera intrinsics, use them
-		if (!m_distortionView->isGrayscaleUndistortDisabled())
-		{
-			MikanVideoSourceIntrinsics cameraIntrinsics;
-			m_distortionView->getVideoSourceView()->getCameraIntrinsics(cameraIntrinsics);
-
-			if (cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
-			{
-				// Fetch the 3x3 GLM camera intrinsic matrix and store into a 3x3 openCV matrix
-				const MikanMonoIntrinsics& intrinsics = cameraIntrinsics.intrinsics.mono;
-				const MikanMatrix3d& glmIntrinsicMatrix = intrinsics.camera_matrix;
-				
-				// Store the distortion parameters in a row vector with 8 values: [k1, k2, p1, p2, k3, k4, k5, k6]
-				const MikanDistortionCoefficients& distortion_coeffs = intrinsics.distortion_coefficients;
-				cv::Matx81d cvDistCoeffsColVector = Mikan_distortion_to_cv_vec8(distortion_coeffs);
-
-				cvIntrinsicMatrix = MikanMatrix3d_to_cv_mat33d(glmIntrinsicMatrix);
-				cv::transpose(cvDistCoeffsColVector, cvDistCoeffsRowVector);
-
-				bUseCameraCalibration= true;
-			}
-		}
-
-		// Compute chessboard corners from the detected markers
-		if (bUseCameraCalibration)
-		{
-			cv::aruco::interpolateCornersCharuco(
-				m_markerData->markerCorners, m_markerData->markerVisibleIds,
-				*gsSourceBuffer, m_markerData->board,
-				m_markerData->charucoCorners, m_markerData->charucoIds,
-				cvIntrinsicMatrix, cvDistCoeffsRowVector);
-		}
-		else
-		{
-			cv::aruco::interpolateCornersCharuco(
-				m_markerData->markerCorners, m_markerData->markerVisibleIds,
-				*gsSourceBuffer, m_markerData->board,
-				m_markerData->charucoCorners, m_markerData->charucoIds);
-		}
+		cv::aruco::interpolateCornersCharuco(
+			m_markerData->markerCorners, m_markerData->markerVisibleIds,
+			*gsSourceBuffer, m_markerData->board,
+			m_markerData->charucoCorners, m_markerData->charucoIds);
 		m_currentImagePoints= m_markerData->charucoCorners;
 
 		// Append the new chessboard corner pixels into the image_points matrix
@@ -672,6 +737,7 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 
 bool CalibrationPatternFinder_Charuco::fetchLastFoundCalibrationPattern(
 	t_opencv_point2d_list& outImagePoints,
+	t_opencv_pointID_list& outImagePointIDs,
 	cv::Point2f outBoundingQuad[4])
 {
 	// If it's a valid new location, append it to the board list
@@ -693,6 +759,10 @@ bool CalibrationPatternFinder_Charuco::fetchLastFoundCalibrationPattern(
 			outImagePoints.push_back(imagePoint);
 		}
 
+		
+		outImagePointIDs= m_markerData->charucoIds;
+
+
 		// Remember the last valid captured points
 		m_lastValidImagePoints = m_currentImagePoints;
 
@@ -700,57 +770,6 @@ bool CalibrationPatternFinder_Charuco::fetchLastFoundCalibrationPattern(
 	}
 
 	return false;
-}
-
-bool CalibrationPatternFinder_Charuco::estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform)
-{
-	// Make sure mono camera intrinsics are available
-	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_distortionView->getVideoSourceView()->getCameraIntrinsics(cameraIntrinsics);
-	if (cameraIntrinsics.intrinsics_type != MONO_CAMERA_INTRINSICS)
-	{
-		return false;
-	}
-
-	// Look for the calibration pattern in the latest video frame
-	if (!findNewCalibrationPattern())
-	{
-		return false;
-	}
-
-	// Fetch the 3x3 GLM camera intrinsic matrix and store into a 3x3 openCV matrix
-	const MikanMonoIntrinsics& intrinsics= cameraIntrinsics.intrinsics.mono;
-	const MikanMatrix3d& glmIntrinsicMatrix = intrinsics.camera_matrix;
-	cv::Matx33d cvIntrinsicMatrix = MikanMatrix3d_to_cv_mat33d(glmIntrinsicMatrix);
-
-	// Store the distortion parameters in a row vector with 8 values: [k1, k2, p1, p2, k3, k4, k5, k6]
-	const MikanDistortionCoefficients& distortion_coeffs = intrinsics.distortion_coefficients;
-	cv::Matx81d cvDistCoeffsColVector = Mikan_distortion_to_cv_vec8(distortion_coeffs);
-	cv::Mat cvDistCoeffsRowVector;
-	cv::transpose(cvDistCoeffsColVector, cvDistCoeffsRowVector);
-
-	// Given an object model and the image points samples we could be able to compute 
-	// a position and orientation of the calibration pattern relative to the camera
-	cv::Mat rvec;
-	cv::Mat tvecMM; // Mat position in millimeters
-	if (!cv::aruco::estimatePoseCharucoBoard(
-		m_markerData->charucoCorners,
-		m_markerData->charucoIds,
-		m_markerData->board, 
-		cvIntrinsicMatrix, cvDistCoeffsRowVector,
-		rvec, tvecMM))
-	{
-		return false;
-	}
-	cv::Quatd cv_cameraToPatternRot= cv::Quatd::createFromRvec(rvec);
-	cv::Vec3d cv_cameraToPatternVecMM= tvecMM; 
-
-	// Convert OpenCV pose (in mm) to OpenGL pose (in meters)
-	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToPatternRot, cv_cameraToPatternVecMM, CHARUCO_XAXIS_FLIP_ANGLE,
-		outCameraToPatternXform);
-
-	return true;
 }
 
 void CalibrationPatternFinder_Charuco::renderCalibrationPattern2D() const
@@ -797,6 +816,14 @@ void CalibrationPatternFinder_Charuco::renderCalibrationPattern2D() const
 void CalibrationPatternFinder_Charuco::renderSolvePnPPattern3D(const glm::mat4& xform) const
 {
 	CalibrationPatternFinder::renderSolvePnPPattern3D(xform);
+	//if (areCurrentImagePointsValid())
+	//{
+	//	drawOpenCVChessBoard3D(
+	//		xform,
+	//		m_openglSolvePnPGeometry.points.data(), // cv::point3f is just three floats 
+	//		(int)m_openglSolvePnPGeometry.points.size(),
+	//		true);
+	//}
 
 	// Draw the marker corners, if any
 	//TextStyle style = getDefaultTextStyle();

@@ -142,7 +142,8 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 
 	cv::Point2f boundingQuad[4];
 	t_opencv_point2d_list imagePoints;
-	m_patternFinder->fetchLastFoundCalibrationPattern(imagePoints, boundingQuad);
+	t_opencv_pointID_list imagePointIDs;
+	m_patternFinder->fetchLastFoundCalibrationPattern(imagePoints, imagePointIDs, boundingQuad);
 
 	// Given an object model and the image points samples we could be able to compute 
 	// a position and orientation of the calibration pattern relative to the camera
@@ -159,7 +160,7 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 	}
 	glm::dmat4 cameraToPatternXform; // Meters
 	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToPatternRot, cv_cameraToPatternVecMM, SOLVEPNP_XAXIS_FLIP_ANGLE,
+		cv_cameraToPatternRot, cv_cameraToPatternVecMM, 
 		cameraToPatternXform);
 
 	// Compute the VR tracking space location of the camera.

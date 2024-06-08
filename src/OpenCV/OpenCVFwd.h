@@ -64,6 +64,7 @@ namespace cv {
 	typedef Point3_<double> Point3d;
 };
 
+typedef std::vector<int> t_opencv_pointID_list;
 typedef std::vector<cv::Point2f> t_opencv_point2d_list;
 typedef std::vector<cv::Point3f> t_opencv_point3d_list;
 

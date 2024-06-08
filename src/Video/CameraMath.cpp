@@ -95,7 +95,6 @@ bool computeOpenCVCameraRelativePatternTransform(
 void convertOpenCVCameraRelativePoseToGLMMat(
     const cv::Quatd& orientation,
     const cv::Vec3d& positionMM,
-    const float xAxisFlipAngle,
     glm::dmat4& outXform)
 {
     // OpenCV camera relative locations in millimeters (by convention from object points passed into solvePnP), 
@@ -128,11 +127,8 @@ void convertOpenCVCameraRelativePoseToGLMMat(
 	}
 
 	// Optionally, rotate result about the x-axis by specified amount.
-    if (xAxisFlipAngle != 0.f)
-    {
-		glm::mat4 flipAboutX = glm::rotate(glm::mat4(1.f), glm::radians(xAxisFlipAngle), glm::vec3(1.0f, 0.0f, 0.0f));
-		outXform = RTMat * flipAboutX;
-    }
+	glm::mat4 flipAboutX = glm::rotate(glm::mat4(1.f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	outXform = RTMat * flipAboutX;
 }
 
 void computeOpenCVCameraIntrinsicMatrix(

@@ -501,7 +501,8 @@ bool DepthMeshGenerator::captureMesh()
 	// Fetch the last found calibration pattern and its bounding quad
 	cv::Point2f boundingQuad[4];
 	t_opencv_point2d_list imagePoints;
-	m_patternFinder->fetchLastFoundCalibrationPattern(imagePoints, boundingQuad);
+	t_opencv_pointID_list imagePointIDs;
+	m_patternFinder->fetchLastFoundCalibrationPattern(imagePoints, imagePointIDs, boundingQuad);
 
 	// Given an object model and the image points samples we could be able to compute 
 	// a position and orientation of the calibration pattern relative to the camera
@@ -519,7 +520,7 @@ bool DepthMeshGenerator::captureMesh()
 
 	// Convert the OpenCV camera relative pose to a GLM matrix
 	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToPatternRot, cv_cameraToPatternVecMM, SOLVEPNP_XAXIS_FLIP_ANGLE,
+		cv_cameraToPatternRot, cv_cameraToPatternVecMM, 
 		m_calibrationState->cameraToPatternXform);
 
 	// Compute the synthetic disparity map using the current undistorted video frame

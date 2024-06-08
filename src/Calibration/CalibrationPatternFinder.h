@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ObjectSystemConfigFwd.h"
+#include "OpenCVFwd.h"
 #include "ProfileConfig.h"
 
 #include <memory>
@@ -10,9 +11,6 @@
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
-typedef std::vector<cv::Point2f> t_opencv_point2d_list;
-typedef std::vector<cv::Point3f> t_opencv_point3d_list;
 
 typedef std::vector<glm::vec3> t_opengl_point3d_list;
 
@@ -48,7 +46,15 @@ public:
 	virtual bool findNewCalibrationPattern(const float minSeperationDist= 0.f) = 0;
 	virtual bool estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform);
 	virtual bool fetchLastFoundCalibrationPattern(
-		t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) = 0;
+		t_opencv_point2d_list& outImagePoints, 
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) = 0;
+	virtual bool calibrateCamera(
+		const struct MikanMonoIntrinsics& inputCameraIntrinsics,
+		const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+		const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+		struct MikanMonoIntrinsics& outIntrinsics,
+		double& outReprojectionError) const;
 
 	bool areCurrentImagePointsValid() const;
 	inline float getFrameWidth() const { return m_frameWidth; }
@@ -87,7 +93,10 @@ public:
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_chessboard; }
 	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
-	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
+	virtual bool fetchLastFoundCalibrationPattern(
+		t_opencv_point2d_list& outImagePoints,
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) override;
 
 protected:
 	int m_chessbordRows;
@@ -107,7 +116,10 @@ public:
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_circlegrid; }
 	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
-	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
+	virtual bool fetchLastFoundCalibrationPattern(
+		t_opencv_point2d_list& outImagePoints, 
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) override;
 
 protected:
 	int m_circleGridRows;
@@ -130,8 +142,10 @@ public:
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_charuco; }
 	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
-	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
-	virtual bool estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform) override;
+	virtual bool fetchLastFoundCalibrationPattern(
+		t_opencv_point2d_list& outImagePoints, 
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) override;
 	virtual void renderCalibrationPattern2D() const override;
 	virtual void renderSolvePnPPattern3D(const glm::mat4& xform) const override;
 
