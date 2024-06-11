@@ -259,16 +259,6 @@ void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 		const glm::mat4 cameraToPatternXform = glm::mat4(m_calibrationState->cameraToPatternXform);
 		const glm::mat4 cameraToMatPuckXform = glm::mat4(m_calibrationState->cameraToMatPuckXform);
 
-		// Compute the mat puck location relative to the mat transform we computed
-		//ProfileConfigConstPtr config = m_calibrationState->profileConfig;
-		//const float xOffset = -config->puckHorizontalOffsetMM * k_millimeters_to_meters;
-		//const float yOffset = config->puckDepthOffsetMM * k_millimeters_to_meters;
-		//const float zOffset = config->puckVerticalOffsetMM * k_millimeters_to_meters;
-		//const glm::mat4 matPuckOffsetXform =
-		//	glm::translate(
-		//		glm::mat4(1.0),
-		//		glm::vec3(xOffset, yOffset, zOffset));
-		//const glm::mat4 matPuckXForm = patternXform * matPuckOffsetXform;
 		m_patternFinder->renderSolvePnPPattern3D(cameraToPatternXform);
 
 		drawTransformedAxes(cameraToPatternXform, 0.1f);

@@ -62,6 +62,8 @@ public:
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
 	void onInteractionSelected();
 	void onInteractionUnselected();
+	void onTransformGizmoBound();
+	void onTransformGizmoUnbound();
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
@@ -79,10 +81,14 @@ public:
 	void createDepthMesh();
 
 protected:
+	void updateWireframeMeshColor();
 	void onStencilDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<GlStaticMeshInstancePtr> m_wireframeMeshes;
 	std::vector<SceneComponentPtr> m_meshComponents;
+	bool m_bIsHovered= false;
+	bool m_bIsSelected= false;
+	bool m_bIsTransformGizmoBound= false;
 };

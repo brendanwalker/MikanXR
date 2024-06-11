@@ -134,6 +134,8 @@ void ModelStencilComponent::init()
 		selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
 		selectionComponentPtr->OnInteractionSelected += MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
 		selectionComponentPtr->OnInteractionUnselected += MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound += MakeDelegate(this, &ModelStencilComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound += MakeDelegate(this, &ModelStencilComponent::onTransformGizmoUnbound);
 
 		// Remember the selection component
 		m_selectionComponentWeakPtr = selectionComponentPtr;
@@ -172,6 +174,8 @@ void ModelStencilComponent::dispose()
 		selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
 		selectionComponentPtr->OnInteractionSelected -= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
 		selectionComponentPtr->OnInteractionUnselected -= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound -= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound -= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoUnbound);
 
 		m_selectionComponentWeakPtr = selectionComponentPtr;
 	}
@@ -184,6 +188,39 @@ void ModelStencilComponent::setRenderStencilsFlag(bool flag)
 	for (GlStaticMeshInstancePtr mesh : m_wireframeMeshes)
 	{
 		mesh->setVisible(flag);
+	}
+}
+
+void ModelStencilComponent::updateWireframeMeshColor()
+{
+	glm::vec3 newColor= Colors::White;
+
+	if (m_bIsTransformGizmoBound)
+	{
+		newColor= Colors::GreenYellow;
+	}
+	else if (m_bIsSelected)
+	{
+		newColor= Colors::Yellow;
+	}
+	else if (m_bIsHovered)
+	{
+		newColor= Colors::LightGray;
+	}
+	else
+	{
+		newColor= Colors::DarkGray;
+	}
+
+	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
+	if (selectionComponentPtr)
+	{
+		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+		{
+			meshPtr->getMaterialInstance()->setVec4BySemantic(
+				eUniformSemantic::diffuseColorRGBA,
+				glm::vec4(newColor, 1.f));
+		}
 	}
 }
 
@@ -286,9 +323,6 @@ void ModelStencilComponent::rebuildMeshComponents()
 				std::make_shared<GlStaticMeshInstance>(
 					"wireframe",
 					wireframeMeshPtr);
-			wireframeMeshInstancePtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA,
-				glm::vec4(Colors::DarkGray, 1.f));
 			m_wireframeMeshes.push_back(wireframeMeshInstancePtr);
 
 			// Create a static mesh component to hold the mesh instance
@@ -298,6 +332,9 @@ void ModelStencilComponent::rebuildMeshComponents()
 			meshComponentPtr->attachToComponent(stencilComponentPtr);
 			m_meshComponents.push_back(meshComponentPtr);
 		}
+
+		// Update colors of all attached wireframe meshes
+		updateWireframeMeshColor();
 
 		// Initialize all of the newly created components
 		for (SceneComponentPtr childComponentPtr : m_meshComponents)
@@ -316,75 +353,38 @@ void ModelStencilComponent::rebuildMeshComponents()
 
 void ModelStencilComponent::onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult)
 {
-	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr && !selectionComponentPtr->getIsSelected())
-	{
-		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-		{
-			meshPtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA, 
-				glm::vec4(Colors::LightGray, 1.f));
-			meshPtr->setVisible(true);
-		}
-	}
+	m_bIsHovered= true;
+	updateWireframeMeshColor();
 }
 
 void ModelStencilComponent::onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult)
 {
-	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr && !selectionComponentPtr->getIsSelected())
-	{
-		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-		{
-			meshPtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA,
-				glm::vec4(Colors::DarkGray, 1.f));
-			meshPtr->setVisible(false);
-		}
-	}
+	m_bIsHovered = false;
+	updateWireframeMeshColor();
 }
 
 void ModelStencilComponent::onInteractionSelected()
 {
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr)
-	{
-		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-		{
-			meshPtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA, 
-				glm::vec4(Colors::Yellow, 1.f));
-			meshPtr->setVisible(true);
-		}
-	}
+	m_bIsSelected = true;
+	updateWireframeMeshColor();
 }
 
 void ModelStencilComponent::onInteractionUnselected()
 {
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr)
-	{
-		if (selectionComponentPtr->getIsHovered())
-		{
-			for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-			{
-				meshPtr->getMaterialInstance()->setVec4BySemantic(
-					eUniformSemantic::diffuseColorRGBA, 
-					glm::vec4(Colors::LightGray, 1.f));
-				meshPtr->setVisible(true);
-			}
-		}
-		else
-		{
-			for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-			{
-				meshPtr->getMaterialInstance()->setVec4BySemantic(
-					eUniformSemantic::diffuseColorRGBA,
-					glm::vec4(Colors::DarkGray, 1.f));
-				meshPtr->setVisible(false);
-			}
-		}
-	}
+	m_bIsSelected = false;
+	updateWireframeMeshColor();
+}
+
+void ModelStencilComponent::onTransformGizmoBound()
+{
+	m_bIsTransformGizmoBound= true;
+	updateWireframeMeshColor();
+}
+
+void ModelStencilComponent::onTransformGizmoUnbound()
+{
+	m_bIsTransformGizmoBound = false;
+	updateWireframeMeshColor();
 }
 
 // -- IPropertyInterface ----
