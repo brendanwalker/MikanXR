@@ -52,9 +52,17 @@ public:
 	inline ModelStencilDefinitionPtr getModelStencilDefinition() const { 
 		return std::static_pointer_cast<ModelStencilDefinition>(m_definition); 
 	}
+	inline const std::vector<GlStaticMeshInstancePtr>& getWireframeMeshes() const { 
+		return m_wireframeMeshes; 
+	}
+	inline const std::vector<MeshColliderComponentPtr>& getColliderComponents() const
+	{
+		return m_colliderComponents;
+	}
 
 	void setRenderStencilsFlag(bool flag);
 	void setModelPath(const std::filesystem::path& path);
+	void disposeMeshComponents();
 	void rebuildMeshComponents();
 
 	// Selection Events
@@ -88,6 +96,7 @@ protected:
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<GlStaticMeshInstancePtr> m_wireframeMeshes;
 	std::vector<SceneComponentPtr> m_meshComponents;
+	std::vector<MeshColliderComponentPtr> m_colliderComponents;
 	bool m_bIsHovered= false;
 	bool m_bIsSelected= false;
 	bool m_bIsTransformGizmoBound= false;

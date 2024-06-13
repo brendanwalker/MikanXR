@@ -250,6 +250,24 @@ void ModelStencilComponent::setModelPath(const std::filesystem::path& path)
 	modelStencilDefinition->setModelPath(path);
 }
 
+void ModelStencilComponent::disposeMeshComponents()
+{
+	// Clean up any previously created mesh components
+	while (m_meshComponents.size() > 0)
+	{
+		SceneComponentPtr componentPtr = m_meshComponents[m_meshComponents.size() - 1];
+		componentPtr->dispose();
+
+		m_meshComponents.pop_back();
+	}
+
+	// Forget about any collider components
+	m_colliderComponents.clear();
+
+	// Forget about any wireframe meshes
+	m_wireframeMeshes.clear();
+}
+
 void ModelStencilComponent::rebuildMeshComponents()
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
@@ -257,16 +275,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 	StencilComponentPtr stencilComponentPtr= getSelfPtr<StencilComponent>();
 
 	// Clean up any previously created mesh components
-	while (m_meshComponents.size() > 0)
-	{
-		SceneComponentPtr componentPtr= m_meshComponents[m_meshComponents.size() - 1];
-		componentPtr->dispose();
-
-		m_meshComponents.pop_back();
-	}
-
-	// Forget about any wireframe meshes
-	m_wireframeMeshes.clear();
+	disposeMeshComponents();
 
 	// Fetch the stencil model resource
 	// TODO: Need to consider how MikanObjects are rendered across multiple windows,
@@ -309,6 +318,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 			colliderPtr->setName(triMeshPtr->getName());
 			colliderPtr->setStaticMeshComponent(meshComponentPtr);
 			colliderPtr->attachToComponent(stencilComponentPtr);
+			m_colliderComponents.push_back(colliderPtr);
 			m_meshComponents.push_back(colliderPtr);
 		}
 
