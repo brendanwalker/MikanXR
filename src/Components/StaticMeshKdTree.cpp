@@ -436,6 +436,23 @@ void StaticMeshKdTree::dispose()
 	}
 }
 
+bool StaticMeshKdTree::getLocalAABB(
+	glm::vec3& outMin,
+	glm::vec3& outMax) const
+{
+	if (m_treeData != nullptr && m_treeData->getNodeCount() > 0)
+	{
+		KdTreeNode* rootNode= m_treeData->getNode(0);
+
+		outMin= rootNode->getMin();
+		outMax= rootNode->getMax();
+
+		return true;
+	}
+
+	return false;
+}
+
 bool StaticMeshKdTree::computeRayIntersection(
 	const KdTreeRaycastRequest& request,
 	KdTreeRaycastResult& result) const
@@ -443,4 +460,39 @@ bool StaticMeshKdTree::computeRayIntersection(
 	KdTree::findClosestIntersection(request, m_meshAccessor, m_treeData, m_treeData->getNode(0), result);
 
 	return result.hit;
+}
+
+bool StaticMeshKdTree::computeClosestVertex(
+	const glm::vec3& localPoint,
+	const int triangleIndex,
+	glm::vec3& closestVertex) const
+{
+	if (m_meshAccessor != nullptr &&
+		triangleIndex > 0 && 
+		triangleIndex < m_meshAccessor->getTriangleCount())
+	{
+		uint32_t i0, i1, i2;
+		m_meshAccessor->extractTriangleVertexIndices(triangleIndex, i0, i1, i2);
+
+		glm::vec3 vertices[3] = {
+			m_meshAccessor->extractPosition3f(i0),
+			m_meshAccessor->extractPosition3f(i1),
+			m_meshAccessor->extractPosition3f(i2)
+		};
+
+		float closestDist = FLT_MAX;
+		for (int i = 0; i < 3; ++i)
+		{
+			float dist = glm::distance(localPoint, vertices[i]);
+			if (dist < closestDist)
+			{
+				closestDist = dist;
+				closestVertex = vertices[i];
+			}
+		}
+
+		return closestDist < FLT_MAX;
+	}
+
+	return false;
 }

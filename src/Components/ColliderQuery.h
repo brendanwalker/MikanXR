@@ -17,6 +17,9 @@ struct ColliderRaycastHitResult
 	glm::vec3 hitLocation;
 	glm::vec3 hitNormal;
 	ColliderComponentWeakPtr hitComponent;
+	glm::vec3 closestVertexLocal;
+	glm::vec3 closestVertexWorld;
+	bool closestVertexValid;
 
 	ColliderRaycastHitResult()
 	{
@@ -26,5 +29,8 @@ struct ColliderRaycastHitResult
 		hitLocation= glm::vec3(0.f);
 		hitNormal= glm::vec3(0.f);
 		hitComponent.reset();
+		closestVertexLocal= glm::vec3(0.f);
+		closestVertexWorld= glm::vec3(0.f);
+		closestVertexValid= false;
 	}
 };
