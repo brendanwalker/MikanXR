@@ -96,3 +96,8 @@ bool glm_intersect_aabb_with_ray(
 	const glm::vec3 aabb_min,		// Minimum X,Y,Z coords of the aabb
 	const glm::vec3 aabb_max,		// Maximum X,Y,Z coords of the aabb. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
 	float& outIntDistance);			// Output: distance between ray_origin and the intersection with the AABB
+
+void glm_sphere_union(
+	const glm::vec3& c1, const float r1,
+	const glm::vec3& c2, const float r2,
+	glm::vec3& outC, float& outR);

@@ -458,3 +458,34 @@ bool glm_intersect_aabb_with_ray(
 
 	return tFar >= tNear && (tNear >= 0.f || tFar >= 0.f);
 }
+
+// https://stackoverflow.com/questions/33532860/merge-two-spheres-to-get-a-new-one
+void glm_sphere_union(
+	const glm::vec3& c1, const float r1,
+	const glm::vec3& c2, const float r2,
+	glm::vec3& outC, float& outR)
+{
+	const glm::vec3 c1_to_c2 = c2 - c1;
+	const float dist = glm::length(c1_to_c2);
+
+	// Is sphere 1 completely inside sphere 2?
+	if (dist + r1 <= r2)
+	{
+		outC = c2;
+		outR = r2;
+	}
+	// Is sphere 2 completely inside sphere 1?
+	else if (dist + r2 <= r1)
+	{
+		outC = c1;
+		outR = r1;
+	}
+	// Otherwise compute the new bounding sphere that overlaps both
+	else
+	{
+		const float R = (r1 + r2 + dist) / 2.f;
+
+		outC = c1 + (c1_to_c2 * (R - r1) / dist);
+		outR = R;
+	}
+}
