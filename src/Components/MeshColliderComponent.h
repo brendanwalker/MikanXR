@@ -19,6 +19,7 @@ public:
 	void setStaticMeshComponent(StaticMeshComponentWeakPtr meshComponent);
 	inline StaticMeshComponentWeakPtr getStaticMeshComponent() const { return m_staticMeshWeakPtr; }
 
+	virtual bool getBoundingSphere(glm::vec3& outCenter, float& outRadius) const override;
 	virtual bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
 		ColliderRaycastHitResult& outResult) const override;

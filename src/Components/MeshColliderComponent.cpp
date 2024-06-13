@@ -32,6 +32,25 @@ void MeshColliderComponent::dispose()
 	ColliderComponent::dispose();
 }
 
+bool MeshColliderComponent::getBoundingSphere(glm::vec3& outCenter, float& outRadius) const
+{
+	if (!m_kdTree)
+		return false;
+
+	glm::vec3 localMin, localMax;
+	if (!m_kdTree->getLocalAABB(localMin, localMax))
+		return false;
+
+	const glm::mat4& worldXform= getWorldTransform();
+	const glm::vec3 minBounds= worldXform * glm::vec4(localMin, 1.f);
+	const glm::vec3 maxBounds= worldXform * glm::vec4(localMax, 1.f);
+
+	outCenter = (minBounds + maxBounds) * 0.5f;
+	outRadius = glm::distance(minBounds, outCenter);
+
+	return true;
+}
+
 bool MeshColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
@@ -60,6 +79,24 @@ bool MeshColliderComponent::computeRayIntersection(
 		outResult.hitComponent =
 			std::const_pointer_cast<ColliderComponent>(
 				getSelfPtr<const ColliderComponent>());
+
+		// Compute closest vertex to the collision point in the local space of the mesh
+		glm::vec3 localClosestVertex;
+		if (m_kdTree->computeClosestVertex(
+			kdTreeResult.position,
+			kdTreeResult.triangleIndex,
+			localClosestVertex))
+		{
+			outResult.closestVertexLocal = localClosestVertex;
+			outResult.closestVertexWorld = worldXform * glm::vec4(localClosestVertex, 1.f);
+			outResult.closestVertexValid = true;
+		}
+		else
+		{
+			outResult.closestVertexLocal = glm::vec3(0.f);
+			outResult.closestVertexWorld = outResult.hitLocation;
+			outResult.closestVertexValid = false;
+		}
 	}
 
 	return outResult.hitValid;
