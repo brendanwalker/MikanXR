@@ -81,7 +81,7 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 	// -- IFunctionInterface ----
-	static const std::string k_createDepthMeshFunctionId;
+	static const std::string k_alignStencilFunctionId;
 	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
 	virtual bool invokeFunction(const std::string& functionName) override;

@@ -1,6 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "Colors.h"
-#include "DepthMeshCapture/AppStage_DepthMeshCapture.h"
+#include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "GlLineRenderer.h"
 #include "GlMaterialInstance.h"
 #include "GlModelResourceManager.h"
@@ -472,13 +472,13 @@ bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, co
 	return false;
 }
 // -- IFunctionInterface ----
-const std::string ModelStencilComponent::k_createDepthMeshFunctionId = "create_depth_mesh";
+const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
 
 void ModelStencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
 {
 	StencilComponent::getFunctionNames(outPropertyNames);
 
-	outPropertyNames.push_back(k_createDepthMeshFunctionId);
+	outPropertyNames.push_back(k_alignStencilFunctionId);
 }
 
 bool ModelStencilComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
@@ -486,9 +486,9 @@ bool ModelStencilComponent::getFunctionDescriptor(const std::string& functionNam
 	if (StencilComponent::getFunctionDescriptor(functionName, outDescriptor))
 		return true;
 
-	if (functionName == ModelStencilComponent::k_createDepthMeshFunctionId)
+	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
 	{
-		outDescriptor = {ModelStencilComponent::k_createDepthMeshFunctionId, "Make Depth Mesh"};
+		outDescriptor = {ModelStencilComponent::k_alignStencilFunctionId, "Align Stencil"};
 		return true;
 	}
 
@@ -500,7 +500,7 @@ bool ModelStencilComponent::invokeFunction(const std::string& functionName)
 	if (StencilComponent::invokeFunction(functionName))
 		return true;
 
-	if (functionName == ModelStencilComponent::k_createDepthMeshFunctionId)
+	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
 	{
 		createDepthMesh();
 	}
@@ -511,11 +511,9 @@ bool ModelStencilComponent::invokeFunction(const std::string& functionName)
 void ModelStencilComponent::createDepthMesh()
 {
 	// Show Anchor Triangulation Tool
-	auto* depthMeshCapture = MainWindow::getInstance()->pushAppStage<AppStage_DepthMeshCapture>();
-	if (depthMeshCapture)
+	auto* stencilAligner = MainWindow::getInstance()->pushAppStage<AppStage_StencilAlignment>();
+	if (stencilAligner)
 	{
-		ModelStencilDefinitionPtr definition = getModelStencilDefinition();
-
-		depthMeshCapture->setTargetModelStencil(definition);
+		stencilAligner->setTargetStencil(getSelfPtr<ModelStencilComponent>());
 	}
 }
