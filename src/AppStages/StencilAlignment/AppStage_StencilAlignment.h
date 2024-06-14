@@ -25,7 +25,7 @@ public:
 	AppStage_StencilAlignment(class MainWindow* ownerWindow);
 	virtual ~AppStage_StencilAlignment();
 
-	inline void setTargetAnchor(const StencilAlignerInfo& stencil) { m_targetStencil= stencil; }
+	inline void setTargetStencil(ModelStencilComponentPtr stencil) { m_targetStencilComponent= stencil; }
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -59,7 +59,6 @@ private:
 	StencilAligner* m_stencilAligner;
 	class VideoFrameDistortionView* m_monoDistortionView;
 	
-	StencilAlignerInfo m_targetStencil;
 	ModelStencilComponentPtr m_targetStencilComponent;
 
 	ColliderRaycastHitResult m_hoverResult;

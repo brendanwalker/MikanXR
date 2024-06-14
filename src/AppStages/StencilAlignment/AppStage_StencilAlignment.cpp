@@ -59,9 +59,6 @@ AppStage_StencilAlignment::AppStage_StencilAlignment(MainWindow* ownerWindow)
 	, m_frameBuffer(std::make_shared<GlFrameBuffer>())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
-	m_targetStencil.stencilId = INVALID_MIKAN_ID;
-	m_targetStencil.stencilName= "";
-	m_targetStencil.relativeTransform= GlmTransform();
 }
 
 AppStage_StencilAlignment::~AppStage_StencilAlignment()
@@ -106,8 +103,6 @@ void AppStage_StencilAlignment::enter()
 	m_frameBuffer->createResources();
 
 	// Add the stencil's wireframe meshes to the scene
-	const MikanStencilID stencilId = m_targetStencil.stencilId;
-	m_targetStencilComponent= StencilObjectSystem::getSystem()->getModelStencilById(stencilId);
 	if (m_targetStencilComponent)
 	{
 		for (GlStaticMeshInstancePtr meshInstance : m_targetStencilComponent->getWireframeMeshes())
@@ -132,7 +127,8 @@ void AppStage_StencilAlignment::enter()
 		m_stencilAligner =
 			new StencilAligner(
 				m_cameraTrackingPuckView,
-				m_monoDistortionView);
+				m_monoDistortionView,
+				m_targetStencilComponent);
 
 		newState = eStencilAlignmentMenuState::verifyInitialCameraSetup;
 	}
@@ -301,8 +297,7 @@ void AppStage_StencilAlignment::render()
 				case eStencilAlignmentMenuState::captureZAxisPixel:
 					{
 						m_monoDistortionView->renderSelectedVideoBuffers();
-						//TODO
-						//m_stencilAligner->renderInitialPoint2dSegements();
+						m_stencilAligner->renderPixelSamples();
 					}
 					break;
 				case eStencilAlignmentMenuState::captureOriginVertex:
@@ -311,14 +306,12 @@ void AppStage_StencilAlignment::render()
 				case eStencilAlignmentMenuState::captureZAxisVertex:
 					{
 						renderStencilScene();
+						m_stencilAligner->renderVertexSamples();
 					}
 					break;
 				case eStencilAlignmentMenuState::testCalibration:
 					{
 						m_monoDistortionView->renderSelectedVideoBuffers();
-						//TODO
-						//m_stencilAligner->renderAllTriangulatedPoints(false);
-						//m_stencilAligner->renderAnchorTransform();
 					}
 					break;
 			}
@@ -427,7 +420,7 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 	if (menuState >= eStencilAlignmentMenuState::captureOriginPixel &&
 		menuState <= eStencilAlignmentMenuState::captureZAxisVertex)
 	{
-		eStencilAlignmentMenuState newMenuState= (eStencilAlignmentMenuState)((int)menuState + 1);
+		bool bValidSample = false;
 
 		switch (menuState)
 		{
@@ -435,17 +428,35 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 			case eStencilAlignmentMenuState::captureXAxisPixel:
 			case eStencilAlignmentMenuState::captureYAxisPixel:
 			case eStencilAlignmentMenuState::captureZAxisPixel:
-				m_stencilAligner->sampleMouseScreenPosition();
+				{
+					GlViewportPtr viewport= getFirstViewport();
+
+					glm::vec2 pixel;
+					if (viewport->getCursorViewportPixelPos(pixel))
+					{
+						m_stencilAligner->samplePixel(pixel);
+						bValidSample = true;
+					}
+				}
 				break;
 			case eStencilAlignmentMenuState::captureOriginVertex:
 			case eStencilAlignmentMenuState::captureXAxisVertex:
 			case eStencilAlignmentMenuState::captureYAxisVertex:
 			case eStencilAlignmentMenuState::captureZAxisVertex:
-				m_stencilAligner->sampleMouseScreenPosition();
+				if (m_hoverResult.closestVertexValid)
+				{
+					m_stencilAligner->sampleVertex(m_hoverResult.closestVertexLocal);
+					bValidSample = true;
+				}
 				break;
 		}
 
-		setMenuState(newMenuState);
+		if (bValidSample)
+		{
+			eStencilAlignmentMenuState newMenuState = (eStencilAlignmentMenuState)((int)menuState + 1);
+
+			setMenuState(newMenuState);
+		}
 	}
 }
 
@@ -463,15 +474,11 @@ void AppStage_StencilAlignment::onOkEvent()
 			} break;
 		case eStencilAlignmentMenuState::verifyPointsCapture:
 			{
-				m_stencilAligner->computeStencilTransform(m_targetStencil);
 
-				if (m_targetStencil.stencilId != INVALID_MIKAN_ID)
+				glm::mat4 newStencilTransform;
+				if (m_stencilAligner->computeStencilTransform(newStencilTransform))
 				{
-					StencilComponentPtr stencilComponent=
-						StencilObjectSystem::getSystem()->getStencilById(
-							m_targetStencil.stencilId);
-
-					stencilComponent->setRelativeTransform(m_targetStencil.relativeTransform);
+					m_targetStencilComponent->setWorldTransform(newStencilTransform);
 				}
 
 				setMenuState(eStencilAlignmentMenuState::testCalibration);

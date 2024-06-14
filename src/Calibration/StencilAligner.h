@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "RendererFwd.h"
 #include "Transform.h"
 
@@ -18,37 +19,27 @@ typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
-struct StencilAlignerInfo
-{
-	MikanStencilID stencilId;
-	GlmTransform relativeTransform; // Relative to origin anchor
-	std::string stencilName;
-};
-
 class StencilAligner
 {
 public:
 	StencilAligner(
 		VRDeviceViewPtr cameraTrackingPuckView,
-		class VideoFrameDistortionView* distortionView);
+		class VideoFrameDistortionView* distortionView,
+		ModelStencilComponentPtr modelStencil);
 	virtual ~StencilAligner();
 
 	bool hasFinishedPointSampling() const;
 	void resetCalibrationState();
 
-	//void sampleCameraPose();
-	void sampleMouseScreenPosition();
+	void samplePixel(const glm::vec2& pixel);
 	void sampleVertex(const glm::vec3& localVertex);
-	bool computeStencilTransform(StencilAlignerInfo& anchorInfo);
+	bool computeStencilTransform(glm::mat4& outStencilTransform);
 
-	//void renderInitialPoint2dSegements();
-	//void renderAllTriangulatedPoints(bool bShowCameraFrustum);
-	//void renderAnchorTransform();
+	void renderPixelSamples();
+	void renderVertexSamples();
 
 protected:
 	static const int DESIRED_SAMPLE_COUNT = 4;
-
-	glm::vec2 computeMouseScreenPosition() const;
 
 	float m_frameWidth;
 	float m_frameHeight;
@@ -61,4 +52,7 @@ protected:
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;
+
+	// Model stencil to align
+	ModelStencilComponentPtr m_modelStencil;
 };
