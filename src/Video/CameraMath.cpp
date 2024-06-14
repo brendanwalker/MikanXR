@@ -74,6 +74,10 @@ bool computeOpenCVCameraRelativePatternTransform(
 	cv::Mat cvDistCoeffsRowVector;
 	cv::transpose(cvDistCoeffsColVector, cvDistCoeffsRowVector);
 
+    // Use AP3P solver if we have exactly 4 points, otherwise use the iterative solver
+    // since the iterative solver needs at least 6 points
+	int solver = imagePoints.size() == 4 ? cv::SOLVEPNP_AP3P : cv::SOLVEPNP_ITERATIVE;
+
 	// Given an object model and the image points samples we could be able to compute 
 	// a position and orientation of the mat relative to the camera
 	cv::Mat rvec;
@@ -81,7 +85,9 @@ bool computeOpenCVCameraRelativePatternTransform(
 	if (!cv::solvePnP(
 		objectPointsMM, imagePoints,
 		cvIntrinsicMatrix, cvDistCoeffsRowVector,
-		rvec, tvecMM))
+		rvec, tvecMM, 
+        false, // useExtrinsicGuess
+        solver))
 	{
 		return false;
 	}
