@@ -62,7 +62,8 @@ private:
 class GlStateStack
 {
 public:
-	GlStateStack() = default;
+	GlStateStack() = delete;
+	GlStateStack(class IGlWindow* ownerWindow);
 	virtual ~GlStateStack();
 
 	GlState& pushState();
@@ -70,10 +71,13 @@ public:
 
 	int getCurrentStackDepth() const;
 	GlState* getState(const int depth) const;
+
 	inline GlState* getCurrentState() const { return getState(getCurrentStackDepth()); }
+	inline class IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
 
 	GlScopedState createScopedState(const std::string& scopeName);
 
 private:
+	class IGlWindow* m_ownerWindow= nullptr;
 	std::vector<class GlState*> m_stateStack;
 };

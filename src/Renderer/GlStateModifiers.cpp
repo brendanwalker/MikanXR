@@ -1,7 +1,9 @@
 #include "GlCommon.h"
 #include "GlStateStack.h"
-#include "IGlStateModifier.h"
 #include "GlStateModifiers.h"
+#include "GlViewport.h"
+#include "IGlStateModifier.h"
+#include "IGlWindow.h"
 
 #include "memory"
 #include "vector"
@@ -12,12 +14,16 @@ class GLStateModifierBase : public IGlStateModifier
 public:
 	GLStateModifierBase() = delete;
 	GLStateModifierBase(GlState& glState)
-	: m_ownerStateStackDepth(glState.getStackDepth())
+	: m_ownerGlState(glState)
+	, m_ownerStateStackDepth(glState.getStackDepth())
 	{}
 
+	inline GlState& getOwnerGlState() { return m_ownerGlState; }
+	inline IGlWindow* getOwnerWindow() { return m_ownerGlState.getOwnerStateStack().getOwnerWindow(); }
 	virtual int getOwnerStateStackDepth() const override { return m_ownerStateStackDepth; }
 
 protected:
+	GlState& m_ownerGlState;
 	int m_ownerStateStackDepth;
 };
 
@@ -58,10 +64,24 @@ public:
 		}
 
 		glViewport(m_x, m_y, m_width, m_height);
+
+		// Tell the owner window that we are applying new viewport bounds
+		GlViewportPtr viewport= getOwnerWindow()->getRenderingViewport();
+		if (viewport)
+		{
+			viewport->onRenderingViewportApply(m_x, m_y, m_width, m_height);
+		}
 	}
 	virtual void revert() override
 	{
 		glViewport(m_prevX, m_prevY, m_prevWidth, m_prevHeight);
+
+		// Tell the owner window that we are restoring previous viewport bounds
+		GlViewportPtr viewport = getOwnerWindow()->getRenderingViewport();
+		if (viewport)
+		{
+			viewport->onRenderingViewportRevert(m_x, m_y, m_width, m_height);
+		}
 	}
 
 private:

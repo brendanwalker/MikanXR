@@ -1,5 +1,6 @@
 #include "GlStateStack.h"
 #include "GlCommon.h"
+#include "IGlWindow.h"
 #include <assert.h>
 
 GLenum g_glFlagTypeMapping[(int)eGlStateFlagType::COUNT] = {
@@ -134,6 +135,11 @@ GlScopedState::~GlScopedState()
 }
 
 // -- GlStateStack -----
+GlStateStack::GlStateStack(IGlWindow* ownerWindow) 
+	: m_ownerWindow(ownerWindow)
+{
+}
+
 GlStateStack::~GlStateStack()
 {
 	while (!m_stateStack.empty())

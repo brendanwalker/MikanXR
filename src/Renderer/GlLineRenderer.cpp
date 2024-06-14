@@ -137,16 +137,16 @@ void GlLineRenderer::render()
 			float top = 0;
 			float bottom = 0;
 
+			glm::i32vec2 renderingOrigin;
+			glm::i32vec2 renderingSize;
 			GlViewportConstPtr viewport = m_ownerWindow->getRenderingViewport();
-			if (viewport != nullptr)
+			if (viewport != nullptr && 
+				viewport->getRenderingViewport(renderingOrigin, renderingSize))
 			{
-				const auto viewportOrigin = viewport->getViewportOrigin();
-				const auto viewportSize = viewport->getViewportSize();
-
-				left = viewportOrigin.x;
-				right = viewportOrigin.x + viewportSize.x;
-				top = viewportOrigin.y;
-				bottom = viewportOrigin.y + viewportSize.y;
+				left = renderingOrigin.x;
+				right = renderingOrigin.x + renderingSize.x;
+				top = renderingOrigin.y;
+				bottom = renderingOrigin.y + renderingSize.y;
 			}
 			else
 			{

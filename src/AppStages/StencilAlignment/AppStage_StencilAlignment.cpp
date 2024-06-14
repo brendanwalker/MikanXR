@@ -212,7 +212,7 @@ void AppStage_StencilAlignment::updateVRCamera()
 
 	bool bValidBoundingSphere = false;
 	glm::vec3 boundingSphereCenter;
-	float boundingSphereRadius;
+	float boundingSphereRadius= 1.f;
 
 	for (auto colliderComponent : m_targetStencilComponent->getColliderComponents())
 	{
@@ -240,7 +240,7 @@ void AppStage_StencilAlignment::updateVRCamera()
 	if (bValidBoundingSphere)
 	{
 		m_camera->setOrbitTargetPosition(boundingSphereCenter);
-		m_camera->setOrbitLocation(0.f, 0.f, boundingSphereRadius * 2.0f);
+		m_camera->setOrbitLocation(0.f, 0.f, boundingSphereRadius * 5.0f);
 	}
 }
 

@@ -29,6 +29,10 @@ void GlViewport::setViewport(const glm::i32vec2& viewportOrigin, const glm::i32v
 {
 	m_viewportOrigin = glm::max(glm::min(viewportOrigin, m_windowSize), glm::i32vec2(0, 0));
 	m_viewportSize = glm::min((m_viewportOrigin + viewportSize), m_windowSize) - m_viewportOrigin;
+
+	// Net valid until applyViewport
+	m_renderOrigin= glm::i32vec2();
+	m_renderSize= glm::i32vec2();
 }
 
 void GlViewport::setBackgroundColor(const glm::vec3& color)
@@ -41,13 +45,40 @@ GlViewport::~GlViewport()
 	unbindInput();
 }
 
-void GlViewport::applyViewport(GlState& glState) const
+void GlViewport::applyRenderingViewport(GlState& glState) const
 {
 	glStateSetClearColor(glState, m_backgroundColor);
+
+	// This calls onRenderingViewportApply from GLStateSetViewportImpl
+	// onRenderingViewportRevert is called when the state is popped
 	glStateSetViewport(
 		glState, 
 		m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y), 
 		m_viewportSize.x, m_viewportSize.y);
+}
+
+void GlViewport::onRenderingViewportApply(int x, int y, int width, int height)
+{
+	m_renderOrigin = glm::i32vec2(x, y);
+	m_renderSize = glm::i32vec2(width, height);
+}
+
+void GlViewport::onRenderingViewportRevert(int x, int y, int width, int height)
+{
+	m_renderOrigin = glm::i32vec2(x, y);
+	m_renderSize = glm::i32vec2(width, height);
+}
+
+bool GlViewport::getRenderingViewport(glm::i32vec2& outOrigin, glm::i32vec2& outSize) const
+{
+	if (m_renderSize.x > 0 && m_renderSize.y > 0)
+	{
+		outOrigin = m_renderOrigin;
+		outSize = m_renderSize;
+		return true;
+	}
+
+	return false;
 }
 
 void GlViewport::update(float deltaSeconds)

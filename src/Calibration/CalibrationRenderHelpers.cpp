@@ -24,16 +24,17 @@ GlLineRenderer* getLineRendererAndViewportBounds(
 		return nullptr;
 
 	assert(window->getIsRenderingStage());
+	glm::i32vec2 renderingOrigin;
+	glm::i32vec2 renderingSize;
 	GlViewportConstPtr viewport = window->getRenderingViewport();
-	auto viewportOrigin = viewport->getViewportOrigin();
-	auto viewportSize = viewport->getViewportSize();
-	const float viewportWidth = viewportSize.x;
-	const float viewportHeight = viewportSize.y;
+	if (viewport == nullptr ||
+		!viewport->getRenderingViewport(renderingOrigin, renderingSize))
+		return nullptr;
 
-	outViewportX0 = viewportOrigin.x;
-	outViewportY0 = viewportOrigin.y;
-	outViewportX1 = viewportOrigin.x + viewportWidth - 1.f;
-	outViewportY1 = viewportOrigin.y + viewportHeight - 1.f;
+	outViewportX0 = renderingOrigin.x;
+	outViewportY0 = renderingOrigin.y;
+	outViewportX1 = renderingOrigin.x + renderingSize.x - 1.f;
+	outViewportY1 = renderingOrigin.y + renderingSize.y - 1.f;
 
 	return lineRenderer;
 }

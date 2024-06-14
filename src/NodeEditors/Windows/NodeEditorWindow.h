@@ -50,7 +50,7 @@ public:
 	virtual bool getIsRenderingStage() const override { return false; }
 	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
-	virtual GlViewportConstPtr getRenderingViewport() const override { return nullptr; }
+	virtual GlViewportPtr getRenderingViewport() const override { return nullptr; }
 	virtual GlStateStack& getGlStateStack() override;
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual GlTextRenderer* getTextRenderer() override;

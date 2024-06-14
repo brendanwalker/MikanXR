@@ -63,7 +63,7 @@ MainWindow::MainWindow()
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
+	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
 	, m_lineRenderer(GlLineRendererUniquePtr(new GlLineRenderer(this)))
 	, m_textRenderer(GlTextRendererUniquePtr(new GlTextRenderer(this)))
 	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
@@ -119,7 +119,7 @@ SdlWindow& MainWindow::getSdlWindow()
 	return *m_sdlWindow.get();
 }
 
-GlViewportConstPtr MainWindow::getRenderingViewport() const
+GlViewportPtr MainWindow::getRenderingViewport() const
 {
 	return m_renderingViewport;
 }
@@ -540,12 +540,12 @@ void MainWindow::processPendingAppStageOps()
 	bAppStackOperationAllowed = true;
 }
 
-void MainWindow::renderStageBegin(GlViewportConstPtr targetViewport, GlState& glState)
+void MainWindow::renderStageBegin(GlViewportPtr targetViewport, GlState& glState)
 {
 	EASY_FUNCTION();
 
 	m_renderingViewport = targetViewport;
-	m_renderingViewport->applyViewport(glState);
+	m_renderingViewport->applyRenderingViewport(glState);
 
 	m_isRenderingStage = true;
 }
@@ -569,7 +569,7 @@ void MainWindow::renderUIBegin(GlState& glState)
 	EASY_FUNCTION();
 
 	m_renderingViewport = m_uiViewport;
-	m_renderingViewport->applyViewport(glState);
+	m_renderingViewport->applyRenderingViewport(glState);
 
 	m_rmlUiRenderer->beginFrame(glState);
 

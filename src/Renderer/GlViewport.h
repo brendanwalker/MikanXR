@@ -26,7 +26,11 @@ public:
 	void bindInput();
 	void unbindInput();
 
-	void applyViewport(GlState& glState) const;
+	void applyRenderingViewport(GlState& glState) const;
+	void onRenderingViewportApply(int x, int y, int width, int height);
+	void onRenderingViewportRevert(int x, int y, int width, int height);
+	bool getRenderingViewport(glm::i32vec2 &outOrigin, glm::i32vec2 &outSize) const;
+
 	void update(float deltaSeconds);
 
 	GlCameraPtr getCurrentCamera() const;
@@ -81,6 +85,8 @@ private:
 	glm::i32vec2 m_windowSize;
 	glm::i32vec2 m_viewportOrigin;
 	glm::i32vec2 m_viewportSize;
+	glm::i32vec2 m_renderOrigin;
+	glm::i32vec2 m_renderSize;
 	glm::vec4 m_backgroundColor;
 
 	std::vector<GlCameraPtr> m_cameraPool;

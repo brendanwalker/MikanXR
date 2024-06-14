@@ -98,7 +98,7 @@ public:
 	virtual bool getIsRenderingStage() const override { return m_isRenderingStage; }
 	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
-	virtual GlViewportConstPtr getRenderingViewport() const override;
+	virtual GlViewportPtr getRenderingViewport() const override;
 	virtual GlStateStack& getGlStateStack() override;
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual GlTextRenderer* getTextRenderer() override;
@@ -111,7 +111,7 @@ public:
 
 protected:
 	void renderBegin();
-	void renderStageBegin(GlViewportConstPtr targetViewport, GlState& glState);
+	void renderStageBegin(GlViewportPtr targetViewport, GlState& glState);
 	void renderStageEnd();
 	void renderUIBegin(GlState& glState);
 	void renderUIEnd();
@@ -151,7 +151,7 @@ private:
 
 	SdlWindowUniquePtr m_sdlWindow;
 	GlViewportPtr m_uiViewport;
-	GlViewportConstPtr m_renderingViewport;
+	GlViewportPtr m_renderingViewport;
 
 	GlStateStackUniquePtr m_glStateStack;
 	GlLineRendererUniquePtr m_lineRenderer;
