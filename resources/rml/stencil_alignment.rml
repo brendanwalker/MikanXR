@@ -104,7 +104,7 @@
                     <button data-event-click="cancel">Cancel</button>
                 </span>
             </div>
-            <div data-if="menu_state == 'testCalibration'>
+            <div data-if="menu_state == 'testCalibration'">
                 Move the camera to verify the stencil is aligned correctly<br />
                 <span>
                     <button data-event-click="redo">Redo</button>
