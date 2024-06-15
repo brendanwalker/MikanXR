@@ -218,7 +218,7 @@ void StencilAligner::renderVertexSamples()
 				case 2: color = Colors::Green; break;
 				case 3: color = Colors::Blue; break;
 			}
-			drawSegment(xform, m_calibrationState->glLocalVertexSamples[0], worldVertex, color, color);
+			drawSegment(xform, m_calibrationState->glLocalVertexSamples[0], localVertex, color, color);
 		}
 	}
 }

@@ -60,6 +60,8 @@ private:
 	class VideoFrameDistortionView* m_monoDistortionView;
 	
 	ModelStencilComponentPtr m_targetStencilComponent;
+	glm::vec3 m_boundingSphereCenter;
+	float m_boundingSphereRadius;
 
 	ColliderRaycastHitResult m_hoverResult;
 

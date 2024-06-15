@@ -4,6 +4,7 @@
 #include "StencilAlignment/RmlModel_StencilAlignment.h"
 #include "App.h"
 #include "Colors.h"
+#include "CalibrationRenderHelpers.h"
 #include "GlCamera.h"
 #include "GlFrameBuffer.h"
 #include "GlLineRenderer.h"
@@ -211,8 +212,9 @@ void AppStage_StencilAlignment::updateVRCamera()
 		return;
 
 	bool bValidBoundingSphere = false;
-	glm::vec3 boundingSphereCenter;
-	float boundingSphereRadius= 1.f;
+
+	m_boundingSphereCenter= glm::vec3();
+	m_boundingSphereRadius= 1.f;
 
 	for (auto colliderComponent : m_targetStencilComponent->getColliderComponents())
 	{
@@ -223,15 +225,15 @@ void AppStage_StencilAlignment::updateVRCamera()
 			if (bValidBoundingSphere)
 			{
 				glm_sphere_union(
-					boundingSphereCenter, boundingSphereRadius,
+					m_boundingSphereCenter, m_boundingSphereRadius,
 					colliderCenter, colliderRadius,
-					boundingSphereCenter, boundingSphereRadius);
+					m_boundingSphereCenter, m_boundingSphereRadius);
 
 			}
 			else
 			{
-				boundingSphereCenter = colliderCenter;
-				boundingSphereRadius = colliderRadius;
+				m_boundingSphereCenter = colliderCenter;
+				m_boundingSphereRadius = colliderRadius;
 				bValidBoundingSphere = true;
 			}
 		}
@@ -239,8 +241,8 @@ void AppStage_StencilAlignment::updateVRCamera()
 
 	if (bValidBoundingSphere)
 	{
-		m_camera->setOrbitTargetPosition(boundingSphereCenter);
-		m_camera->setOrbitLocation(0.f, 0.f, boundingSphereRadius * 5.0f);
+		m_camera->setOrbitTargetPosition(m_boundingSphereCenter);
+		m_camera->setOrbitLocation(0.f, 0.f, m_boundingSphereRadius * 5.0f);
 	}
 }
 
@@ -312,6 +314,8 @@ void AppStage_StencilAlignment::render()
 				case eStencilAlignmentMenuState::testCalibration:
 					{
 						m_monoDistortionView->renderSelectedVideoBuffers();
+						m_stencilAligner->renderVertexSamples();
+						renderStencilScene();
 					}
 					break;
 			}
@@ -348,12 +352,29 @@ void AppStage_StencilAlignment::renderStencilScene()
 {
 	m_scene->render(m_camera);
 
-	drawTransformedAxes(glm::mat4(1.f), 1.0f);
+	if (m_targetStencilComponent)
+	{
+		// Draw the stencil's local axes
+		glm::mat4 stencilXform= m_targetStencilComponent->getWorldTransform();
+		drawTransformedAxes(stencilXform, m_boundingSphereRadius * 1.1f, true);
 
-	TextStyle style = getDefaultTextStyle();
-	drawTextAtWorldPosition(style, glm::vec3(1.f, 0.f, 0.f), L"X");
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 1.f, 0.f), L"Y");
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 1.f), L"Z");
+		if (m_hoverResult.hitValid)
+		{
+			// Draw collision normal
+			drawSegment(
+				glm::mat4(1.f),
+				m_hoverResult.hitLocation,
+				m_hoverResult.hitLocation + m_hoverResult.hitNormal*0.01f,
+				Colors::Green);
+
+			// Draw the closest vertex to the collision point
+			drawSegment(
+				glm::mat4(1.f),
+				m_hoverResult.closestVertexWorld,
+				m_hoverResult.closestVertexWorld + m_hoverResult.hitNormal * 0.01f,
+				Colors::Yellow);
+		}
+	}
 }
 
 void AppStage_StencilAlignment::setMenuState(eStencilAlignmentMenuState newState)
@@ -407,6 +428,15 @@ void AppStage_StencilAlignment::onMouseRayChanged(const glm::vec3& rayOrigin, co
 					closestDistance = result.hitDistance;
 				}
 			}
+
+			// Update the color of the wireframe meshes based on the hover result
+			glm::vec3 newColor = m_hoverResult.hitValid ? Colors::LightGray : Colors::DarkGray;
+			for (GlStaticMeshInstancePtr meshInstance : m_targetStencilComponent->getWireframeMeshes())
+			{
+				meshInstance->getMaterialInstance()->setVec4BySemantic(
+					eUniformSemantic::diffuseColorRGBA,
+					glm::vec4(newColor, 1.f));
+			}
 		}
 	}
 }
@@ -431,10 +461,20 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 				{
 					GlViewportPtr viewport= getFirstViewport();
 
-					glm::vec2 pixel;
-					if (viewport->getCursorViewportPixelPos(pixel))
+					// Get the cursor position in the window viewport
+					glm::vec2 viewportPixel;
+					if (viewport->getCursorViewportPixelPos(viewportPixel))
 					{
-						m_stencilAligner->samplePixel(pixel);
+						// Remap from window viewport size to the frame buffer size
+						glm::i32vec2 windowViewportSize= viewport->getViewportSize();
+						glm::vec2 frameBufferPixel= remapPointIntoTarget(
+							(float)windowViewportSize.x, (float)windowViewportSize.y,
+							0.f, 0.f,
+							m_frameBuffer->getWidth(), m_frameBuffer->getHeight(),
+							viewportPixel);
+
+						// Record the pixel location sample
+						m_stencilAligner->samplePixel(frameBufferPixel);
 						bValidSample = true;
 					}
 				}
