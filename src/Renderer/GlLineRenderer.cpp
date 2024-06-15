@@ -6,11 +6,13 @@
 #include "GlProgram.h"
 #include "GlStateStack.h"
 #include "GlShaderCache.h"
+#include "GlTextRenderer.h"
 #include "GlVertexDefinition.h"
 #include "GlViewport.h"
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "MathGLM.h"
+#include "TextStyle.h"
 
 #include "glm/ext/matrix_clip_space.hpp"
 
@@ -392,25 +394,28 @@ void drawArrow(
 	lineRenderer->addSegment3d(transform, headYPos, color, headYNeg, color);
 }
 
-void drawTransformedAxes(const glm::mat4& transform, float scale)
+void drawTransformedAxes(const glm::mat4& transform, float scale, bool drawLabels)
 {
-	drawTransformedAxes(transform, scale, scale, scale);
+	drawTransformedAxes(transform, scale, scale, scale, drawLabels);
 }
 
 void drawTransformedAxes(
 	const glm::mat4& transform,
-	float xScale, float yScale, float zScale)
+	float xScale, float yScale, float zScale, 
+	bool drawLabels)
 {
 	drawTransformedAxes(
 		transform,
 		xScale, yScale, zScale,
-		Colors::Red, Colors::Green, Colors::Blue);
+		Colors::Red, Colors::Green, Colors::Blue,
+		drawLabels);
 }
 
 void drawTransformedAxes(
 	const glm::mat4& transform,
 	float xScale, float yScale, float zScale,
-	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor)
+	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor,
+	bool drawLabels)
 {
 	GET_LINE_RENDERER_OR_RETURN()
 
@@ -422,6 +427,14 @@ void drawTransformedAxes(
 	lineRenderer->addSegment3d(transform, origin, Colors::Red, xAxis, xColor);
 	lineRenderer->addSegment3d(transform, origin, Colors::Green, yAxis, yColor);
 	lineRenderer->addSegment3d(transform, origin, Colors::Blue, zAxis, zColor);
+
+	if (drawLabels)
+	{
+		TextStyle style = getDefaultTextStyle();
+		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(xAxis, 1.0f)), L"X");
+		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(yAxis, 1.0f)), L"Y");
+		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(zAxis, 1.0f)), L"Z");
+	}
 }
 
 void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::vec3& color)
