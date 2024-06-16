@@ -215,3 +215,20 @@ void write_be16int(uint8_t* outData, int16_t value)
 }
 
 }; // SerializationUtils
+
+// -- BinaryWriter -----
+void BinaryWriter::writeInt32(int32_t inValue)
+{
+	std::array<uint8_t, 4> outValue;
+	SerializationUtils::write_le32int(outValue.data(), outValue.size());
+
+	appendBytes(outValue);
+}
+
+void BinaryWriter::writeUtf8String(const std::string& inString)
+{
+	const size_t stringLength = inString.length();
+
+	writeInt32((int32_t)stringLength);
+	appendBytes((const uint8_t*)inString.c_str(), stringLength);
+}

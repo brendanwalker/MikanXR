@@ -58,3 +58,12 @@ struct MikanStencilList : public MikanResponse
 
 	MikanStencilList() : MikanResponse(k_typeName) {}
 };
+
+struct MikanStencilModelMesh : public MikanResponse
+{
+	inline static const std::string k_typeName = "MikanStencilModelMesh";
+
+	MikanStencilID stencil_id;
+
+	MikanStencilModelMesh() : MikanResponse(k_typeName) {}
+};
