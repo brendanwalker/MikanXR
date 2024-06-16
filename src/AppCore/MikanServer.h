@@ -88,7 +88,7 @@ protected:
 	void getQuadStencil(const ClientRequest& request, ClientResponse& response);
 	void getBoxStencil(const ClientRequest& request, ClientResponse& response);
 	void getModelStencil(const ClientRequest& request, ClientResponse& response);
-	void getModelStencilMesh(const ClientRequest& request, ClientResponse& response);
+	void getModelStencilRenderGeometry(const ClientRequest& request, ClientResponse& response);
 
 	void getSpatialAnchorList(const ClientRequest& request, ClientResponse& response);
 	void getSpatialAnchorInfo(const ClientRequest& request, ClientResponse& response);

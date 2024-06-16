@@ -151,6 +151,7 @@ file(GLOB MIKAN_CLIENT_SRC
 	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/API/*.h"
 	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core/*.h"
 	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json/*.h"
+	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary/*.h"
 )
 source_group("Client" FILES ${MIKAN_CLIENT_SRC})
 
@@ -442,6 +443,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Config
   ${CMAKE_CURRENT_LIST_DIR}/Client/Public/API
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json  
+  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary
   ${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json  
   ${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator
@@ -640,22 +642,30 @@ file(GLOB MIKAN_CLIENT_API_JSON_SRC
 	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json/*.h"
 )
 
+file(GLOB MIKAN_CLIENT_API_BINARY_SRC
+	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary/*.h"
+)
+
 file(GLOB MIKAN_CLIENT_API_UTILITY_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.h"
     "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/Utility/JsonUtils.h"
+	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.h"
+	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.cpp"
 )
 
 # Mikan API shared library
 file(GLOB MIKAN_CLIENT_API_SRC
 	${MIKAN_CLIENT_API_HEADER}
 	${MIKAN_CLIENT_API_JSON_SRC}
+	${MIKAN_CLIENT_API_BINARY_SRC}
 	${MIKAN_CLIENT_API_PRIVATE_SRC}
 	${MIKAN_CLIENT_API_UTILITY_SRC}
 )
 
 source_group("Public" FILES ${MIKAN_CLIENT_API_HEADER})
 source_group("Private\\API" FILES ${MIKAN_CLIENT_API_PRIVATE_SRC})
+source_group("Private\\Binary" FILES ${MIKAN_CLIENT_API_BINARY_SRC})
 source_group("Private\\Json" FILES ${MIKAN_CLIENT_API_JSON_SRC})
 source_group("Private\\Utility" FILES ${MIKAN_CLIENT_API_UTILITY_SRC})
 
@@ -665,6 +675,7 @@ list(APPEND MIKAN_CLIENT_API_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json
+  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json
   ${CMAKE_CURRENT_LIST_DIR}/Utility
   ${NLOHMANN_JSON_INCLUDE_DIR})

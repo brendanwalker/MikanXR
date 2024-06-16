@@ -22,6 +22,7 @@
 #include "VRDeviceView.h"
 
 #include "WebsocketInterprocessMessageServer.h"
+
 #include "MikanAPITypes_json.h"
 #include "MikanCoreTypes_json.h"
 #include "MikanEventTypes_json.h"
@@ -30,6 +31,8 @@
 #include "MikanSpatialAnchorTypes_json.h"
 #include "MikanVideoSourceTypes_json.h"
 #include "MikanVRDeviceTypes_json.h"
+
+#include "MikanStencilTypes_binary.h"
 
 #include <set>
 #include <assert.h>
@@ -539,7 +542,7 @@ void writeTypedJsonResponse(MikanRequestID requestId, t_mikan_type& result, Clie
 
 void writeSimpleJsonResponse(MikanRequestID requestId, MikanResult result, ClientResponse& response)
 {
-	// Only write a response if the request ID is valid (i.e. the clinet expects a response)
+	// Only write a response if the request ID is valid (i.e. the client expects a response)
 	if (requestId != INVALID_MIKAN_ID)
 	{
 		MikanResponse mikanResponse;
@@ -556,19 +559,34 @@ void writeSimpleJsonResponse(MikanRequestID requestId, MikanResult result, Clien
 }
 
 template <typename t_mikan_type>
-void writeTypedBinaryResponseHeader(
+void writeTypedBinaryResponse(
 	MikanRequestID requestId, 
-	MikanResult resultCode, 
-	BinaryWriter& writer)
+	t_mikan_type& result,
+	ClientResponse& response)
 {
-	writer.writeInt32(requestId);
-	writer.writeInt32(resultCode);
-	writer.writeUtf8String(t_mikan_type::k_typeName);
+	result.requestId= requestId;
+	result.resultCode= MikanResult_Success;
+
+	BinaryWriter writer(response.binaryData);
+	to_binary(writer, result);
 }
 
-void writeSimpleBinaryResponse(MikanRequestID requestId, MikanResult result, BinaryWriter& writer)
+void writeSimpleBinaryResponse(MikanRequestID requestId, MikanResult result, ClientResponse& response)
 {
-	writeTypedBinaryResponseHeader<MikanResponse>(requestId, result, writer);
+	// Only write a response if the request ID is valid (i.e. the client expects a response)
+	if (requestId != INVALID_MIKAN_ID)
+	{
+		MikanResponse mikanResponse;
+		mikanResponse.requestId = requestId;
+		mikanResponse.resultCode = result;
+
+		BinaryWriter writer(response.binaryData);
+		to_binary(writer, result);
+	}
+	else
+	{
+		response.binaryData.clear();
+	}
 }
 
 void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& response)
@@ -1059,27 +1077,26 @@ void MikanServer::getModelStencil(
 	}
 }
 
-void MikanServer::getModelStencilMesh(const ClientRequest& request, ClientResponse& response)
+void MikanServer::getModelStencilRenderGeometry(const ClientRequest& request, ClientResponse& response)
 {
-	BinaryWriter writer(response.binaryData);
-
 	MikanStencilID stencilId;
 	if (!readRequestPayload(request.utf8RequestString, stencilId))
 	{
-		writeSimpleBinaryResponse(request.requestId, MikanResult_MalformedParameters, writer);
+		writeSimpleBinaryResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	ModelStencilComponentPtr modelStencil= StencilObjectSystem::getSystem()->getModelStencilById(stencilId);
 	if (modelStencil)
 	{
-		const std::vector<GlStaticMeshInstancePtr>& wireframeMeshes= modelStencil->getWireframeMeshes();
+		MikanStencilModelRenderGeometry renderGeometry = {};
+		modelStencil->extractRenderGeometry(renderGeometry);
 
-		writeTypedBinaryResponseHeader<MikanStencilModelMesh>(request.requestId, MikanResult_Success, writer);
+		writeTypedBinaryResponse(request.requestId, renderGeometry, response);
 	}
 	else
 	{
-		writeSimpleBinaryResponse(request.requestId, MikanResult_InvalidStencilID, writer);
+		writeSimpleBinaryResponse(request.requestId, MikanResult_InvalidStencilID, response);
 	}
 }
 

@@ -59,11 +59,19 @@ struct MikanStencilList : public MikanResponse
 	MikanStencilList() : MikanResponse(k_typeName) {}
 };
 
-struct MikanStencilModelMesh : public MikanResponse
+struct MikanTriagulatedMesh
 {
-	inline static const std::string k_typeName = "MikanStencilModelMesh";
+	std::vector<MikanVector3f> vertices;
+	std::vector<MikanVector3f> normals;
+	std::vector<MikanVector2f> texels;
+	std::vector<int> indices;
+};
 
-	MikanStencilID stencil_id;
+struct MikanStencilModelRenderGeometry : public MikanResponse
+{
+	inline static const std::string k_typeName = "MikanStencilModelRenderGeometry";
 
-	MikanStencilModelMesh() : MikanResponse(k_typeName) {}
+	std::vector<MikanTriagulatedMesh> meshes;
+
+	MikanStencilModelRenderGeometry() : MikanResponse(k_typeName) {}
 };

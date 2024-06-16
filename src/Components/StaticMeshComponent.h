@@ -15,5 +15,7 @@ public:
 	GlStaticMeshInstancePtr getStaticMesh() const;
 	void setStaticMesh(GlStaticMeshInstancePtr meshInstance);
 
+	void extractRenderGeometry(struct MikanTriagulatedMesh& outRenderGeometry);
+
 	MulticastDelegate<void(StaticMeshComponentWeakPtr meshComponent)> OnMeshChanged;
 };

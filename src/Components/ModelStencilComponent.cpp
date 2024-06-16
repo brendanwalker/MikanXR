@@ -22,6 +22,7 @@
 #include "MathTypeConversion.h"
 #include "MeshColliderComponent.h"
 #include "MikanObject.h"
+#include "MikanStencilTypes.h"
 #include "ModelStencilComponent.h"
 #include "MulticastDelegate.h"
 #include "StringUtils.h"
@@ -264,6 +265,9 @@ void ModelStencilComponent::disposeMeshComponents()
 	// Forget about any collider components
 	m_colliderComponents.clear();
 
+	// Forget about the triangulated meshes
+	m_triMeshComponents.clear();
+
 	// Forget about any wireframe meshes
 	m_wireframeMeshes.clear();
 }
@@ -312,6 +316,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 			meshComponentPtr->setStaticMesh(triMeshInstancePtr);
 			meshComponentPtr->attachToComponent(stencilComponentPtr);
 			m_meshComponents.push_back(meshComponentPtr);
+			m_triMeshComponents.push_back(meshComponentPtr);
 
 			// Add a mesh collider component that generates collision from the mesh data
 			MeshColliderComponentPtr colliderPtr = stencilObject->addComponent<MeshColliderComponent>();
@@ -358,6 +363,17 @@ void ModelStencilComponent::rebuildMeshComponents()
 	if (selectionComponentPtr)
 	{
 		selectionComponentPtr->rebindColliders();
+	}
+}
+
+void ModelStencilComponent::extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry)
+{
+	for (StaticMeshComponentPtr mesh : m_triMeshComponents)
+	{
+		MikanTriagulatedMesh mikanMesh= {};
+		mesh->extractRenderGeometry(mikanMesh);
+
+		outRenderGeometry.meshes.push_back(mikanMesh);
 	}
 }
 

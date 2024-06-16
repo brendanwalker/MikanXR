@@ -52,6 +52,9 @@ public:
 	inline ModelStencilDefinitionPtr getModelStencilDefinition() const { 
 		return std::static_pointer_cast<ModelStencilDefinition>(m_definition); 
 	}
+	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const { 
+		return m_triMeshComponents; 
+	}
 	inline const std::vector<GlStaticMeshInstancePtr>& getWireframeMeshes() const { 
 		return m_wireframeMeshes; 
 	}
@@ -64,6 +67,7 @@ public:
 	void setModelPath(const std::filesystem::path& path);
 	void disposeMeshComponents();
 	void rebuildMeshComponents();
+	void extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry);
 
 	// Selection Events
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
@@ -96,6 +100,7 @@ protected:
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<GlStaticMeshInstancePtr> m_wireframeMeshes;
 	std::vector<SceneComponentPtr> m_meshComponents;
+	std::vector<StaticMeshComponentPtr> m_triMeshComponents;
 	std::vector<MeshColliderComponentPtr> m_colliderComponents;
 	bool m_bIsHovered= false;
 	bool m_bIsSelected= false;
