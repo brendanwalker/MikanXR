@@ -140,16 +140,31 @@ public:
 		json eventJson = event;
 		std::string eventJsonString = eventJson.dump();
 
-		return sendMessage(eventJsonString);
+		return sendText(eventJsonString);
 	}
 
-	bool sendMessage(const std::string& response)
+	bool sendText(const std::string& textData)
 	{
 		WebSocketPtr websocket = m_websocket.lock();
 
 		if (websocket)
 		{
-			auto sendInfo = websocket->sendText(response);
+			auto sendInfo = websocket->sendText(textData);
+
+			return sendInfo.success;
+		}
+
+		return false;
+	}
+
+	bool sendBinaryData(const std::vector<uint8_t>& binaryData)
+	{
+		WebSocketPtr websocket = m_websocket.lock();
+
+		if (websocket)
+		{
+			ix::IXWebSocketSendData sendData(binaryData);
+			auto sendInfo = websocket->sendBinary(sendData);
 
 			return sendInfo.success;
 		}
@@ -276,7 +291,7 @@ void WebsocketInterprocessMessageServer::dispose()
 			json eventJson = disconnectEvent;
 			std::string eventJsonString = eventJson.dump();
 
-			connection->sendMessage(eventJsonString);
+			connection->sendText(eventJsonString);
 
 			// Close the connection
 			connection->disconnect();
@@ -346,7 +361,7 @@ void WebsocketInterprocessMessageServer::sendMessageToClient(const std::string& 
 
 	if (connection)
 	{
-		connection->sendMessage(message);
+		connection->sendText(message);
 	}
 }
 
@@ -357,7 +372,7 @@ void WebsocketInterprocessMessageServer::sendMessageToAllClients(const std::stri
 
 	for (WebSocketClientConnectionPtr connection : connections)
 	{
-		connection->sendMessage(message);
+		connection->sendText(message);
 	}
 }
 
@@ -405,7 +420,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 			const std::string handlerKey = makeRequestHandlerKey(requestType, version);
 
 			// Get the response from a registered function handler, if any
-			std::string outResponseString;
+			ClientResponse outResponse;
 			auto handler_it = m_requestHandlers.find(handlerKey);
 			if (handler_it != m_requestHandlers.end())
 			{
@@ -414,7 +429,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 				const std::string connectionId = connection->getId();
 				ClientRequest request= { connectionId, requestId, inRequestString };
 
-				handler_it->second(request, outResponseString);
+				handler_it->second(request, outResponse);
 			}
 			else
 			{
@@ -424,15 +439,23 @@ void WebsocketInterprocessMessageServer::processRequests()
 				outResult.resultCode= MikanResult_UnknownFunction;
 
 				json responseJson = outResult;
-				outResponseString = responseJson.dump();
+				outResponse.utf8String = responseJson.dump();
 			}
 
 			// Send the response back to the client
-			if (!outResponseString.empty())
+			if (!outResponse.utf8String.empty())
 			{
-				connection->sendMessage(outResponseString);
+				connection->sendText(outResponse.utf8String);
 			}
-			else if (requestId != INVALID_MIKAN_ID)
+
+			if (!outResponse.binaryData.empty())
+			{
+				connection->sendBinaryData(outResponse.binaryData);
+			}
+
+			if (requestId != INVALID_MIKAN_ID &&
+				outResponse.utf8String.empty() &&
+				outResponse.binaryData.empty())
 			{
 				MIKAN_LOG_WARNING("processRequests") <<
 					"Request handler for " << handlerKey 

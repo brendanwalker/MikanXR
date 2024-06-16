@@ -66,32 +66,32 @@ public:
 
 protected:
 	// Request Callbacks
-	void connectHandler(const ClientRequest& request, std::string& utf8ResponseString);
-	void disconnectHandler(const ClientRequest& request, std::string& utf8ResponseString);
+	void connectHandler(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void disconnectHandler(const ClientRequest& request, ClientResponse& utf8ResponseString);
 
-	void invokeScriptMessageHandler(const ClientRequest& request, std::string& utf8ResponseString);
+	void invokeScriptMessageHandler(const ClientRequest& request, ClientResponse& utf8ResponseString);
 	
-	void getVideoSourceIntrinsics(const ClientRequest& request, std::string& utf8ResponseString);
-	void getVideoSourceMode(const ClientRequest& request, std::string& utf8ResponseString);
-	void getVideoSourceAttachment(const ClientRequest& request, std::string& utf8ResponseString);
+	void getVideoSourceIntrinsics(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void getVideoSourceMode(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void getVideoSourceAttachment(const ClientRequest& request, ClientResponse& utf8ResponseString);
 
-	void getVRDeviceList(const ClientRequest& request, std::string& utf8ResponseString);
-	void getVRDeviceInfo(const ClientRequest& request, std::string& utf8ResponseString);
-	void subscribeToVRDevicePoseUpdates(const ClientRequest& request, std::string& utf8ResponseString);
-	void unsubscribeFromVRDevicePoseUpdates(const ClientRequest& request, std::string& utf8ResponseString);
+	void getVRDeviceList(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void getVRDeviceInfo(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void subscribeToVRDevicePoseUpdates(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void unsubscribeFromVRDevicePoseUpdates(const ClientRequest& request, ClientResponse& utf8ResponseString);
 
-	void allocateRenderTargetTextures(const ClientRequest& request, std::string& utf8ResponseString);
-	void freeRenderTargetTextures(const ClientRequest& request, std::string& utf8ResponseString);
-	void frameRendered(const ClientRequest& request, std::string& utf8ResponseString);
+	void allocateRenderTargetTextures(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void freeRenderTargetTextures(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void frameRendered(const ClientRequest& request, ClientResponse& utf8ResponseString);
 
-	void getStencilList(const ClientRequest& request, std::string& utf8ResponseString);
-	void getQuadStencil(const ClientRequest& request, std::string& utf8ResponseString);
-	void getBoxStencil(const ClientRequest& request, std::string& utf8ResponseString);
-	void getModelStencil(const ClientRequest& request, std::string& utf8ResponseString);
+	void getStencilList(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void getQuadStencil(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void getBoxStencil(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void getModelStencil(const ClientRequest& request, ClientResponse& utf8ResponseString);
 
-	void getSpatialAnchorList(const ClientRequest& request, std::string& utf8ResponseString);
-	void getSpatialAnchorInfo(const ClientRequest& request, std::string& utf8ResponseString);
-	void findSpatialAnchorInfoByName(const ClientRequest& request, std::string& utf8ResponseString);
+	void getSpatialAnchorList(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void getSpatialAnchorInfo(const ClientRequest& request, ClientResponse& utf8ResponseString);
+	void findSpatialAnchorInfoByName(const ClientRequest& request, ClientResponse& utf8ResponseString);
 
 	// VRManager Callbacks
 	void publishVRDeviceListChanged();

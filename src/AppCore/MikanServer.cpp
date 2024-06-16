@@ -525,35 +525,35 @@ bool readRequestPayload(const std::string& utf8RequestString, t_mikan_type& outP
 }
 
 template <typename t_mikan_type>
-void writeTypedResponse(MikanRequestID requestId, t_mikan_type& result, std::string& utf8ResponseString)
+void writeTypedResponse(MikanRequestID requestId, t_mikan_type& result, ClientResponse& response)
 {
 	result.requestId= requestId;
 	result.resultCode= MikanResult_Success;
 
 	json j = result;
 
-	utf8ResponseString= j.dump();
+	response.utf8String= j.dump();
 }
 
-void writeSimpleResponse(MikanRequestID requestId, MikanResult result, std::string& utf8ResponseString)
+void writeSimpleResponse(MikanRequestID requestId, MikanResult result, ClientResponse& response)
 {
 	// Only write a response if the request ID is valid (i.e. the clinet expects a response)
 	if (requestId != INVALID_MIKAN_ID)
 	{
-		MikanResponse response;
-		response.requestId = requestId;
-		response.resultCode = result;
+		MikanResponse mikanResponse;
+		mikanResponse.requestId = requestId;
+		mikanResponse.resultCode = result;
 
-		json j = response;
-		utf8ResponseString = j.dump();
+		json j = mikanResponse;
+		response.utf8String = j.dump();
 	}
 	else
 	{
-		utf8ResponseString= "";
+		response.utf8String= "";
 	}
 }
 
-void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8ResponseString)
+void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& response)
 {
 	MikanClientInfo clientInfo;
 	if (!readRequestPayload(request.utf8RequestString, clientInfo) || 
@@ -594,7 +594,7 @@ void MikanServer::connectHandler(const ClientRequest& request, std::string& utf8
 	}
 }
 
-void MikanServer::disconnectHandler(const ClientRequest& request, std::string& utf8ResponseString)
+void MikanServer::disconnectHandler(const ClientRequest& request, ClientResponse& response)
 {
 	MikanClientInfo clientInfo;
 	if (!readRequestPayload(request.utf8RequestString, clientInfo))
@@ -630,12 +630,12 @@ void MikanServer::disconnectHandler(const ClientRequest& request, std::string& u
 
 void MikanServer::invokeScriptMessageHandler(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanScriptMessageInfo messageInfo;
 	if (!readRequestPayload(request.utf8RequestString, messageInfo))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
@@ -653,12 +653,12 @@ void MikanServer::invokeScriptMessageHandler(
 		}
 	}
 
-	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
+	writeSimpleResponse(request.requestId, MikanResult_Success, response);
 }
 
 void MikanServer::getVideoSourceIntrinsics(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	VideoSourceViewPtr videoSourceView= getCurrentVideoSource();
 
@@ -667,17 +667,17 @@ void MikanServer::getVideoSourceIntrinsics(
 		MikanVideoSourceIntrinsics intrinsics;
 		videoSourceView->getCameraIntrinsics(intrinsics);
 
-		writeTypedResponse(request.requestId, intrinsics, utf8ResponseString);
+		writeTypedResponse(request.requestId, intrinsics, response);
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, response);
 	}
 }
 
 void MikanServer::getVideoSourceMode(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	VideoSourceViewPtr videoSourceView = getCurrentVideoSource();
 
@@ -708,17 +708,17 @@ void MikanServer::getVideoSourceMode(
 		}
 		info.video_source_type= videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;
 
-		writeTypedResponse(request.requestId, info, utf8ResponseString);
+		writeTypedResponse(request.requestId, info, response);
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, response);
 	}
 }
 
 void MikanServer::getVideoSourceAttachment(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	VideoSourceViewPtr videoSourceView = getCurrentVideoSource();
 
@@ -741,22 +741,22 @@ void MikanServer::getVideoSourceAttachment(
 				glm::mat4_cast(cameraOffsetQuat);
 			info.vr_device_offset_xform = glm_mat4_to_MikanMatrix4f(cameraOffsetXform);
 
-			writeTypedResponse(request.requestId, info, utf8ResponseString);
+			writeTypedResponse(request.requestId, info, response);
 		}
 		else
 		{
-			writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, utf8ResponseString);
+			writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, response);
 		}
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_NoVideoSource, response);
 	}
 }
 
 void MikanServer::getVRDeviceList(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	VRDeviceList deviceList= VRDeviceManager::getInstance()->getVRDeviceList();
 
@@ -767,24 +767,24 @@ void MikanServer::getVRDeviceList(
 		vrDeviceListResult.vr_device_id_list.push_back(deviceView->getDeviceID());
 	}
 
-	writeTypedResponse(request.requestId, vrDeviceListResult, utf8ResponseString);
+	writeTypedResponse(request.requestId, vrDeviceListResult, response);
 }
 
 void MikanServer::getVRDeviceInfo(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanVRDeviceID deviceId;
 	if (!readRequestPayload(request.utf8RequestString, deviceId))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewById(deviceId);
 	if (!vrDeviceView)
 	{
-		writeSimpleResponse(request.requestId, MikanResult_InvalidDeviceId, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidDeviceId, response);
 		return;
 	}
 
@@ -815,87 +815,87 @@ void MikanServer::getVRDeviceInfo(
 		info.vr_device_type= MikanVRDeviceType_INVALID;
 	}
 
-	writeTypedResponse(request.requestId, info, utf8ResponseString);
+	writeTypedResponse(request.requestId, info, response);
 }
 
 void MikanServer::subscribeToVRDevicePoseUpdates(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanVRDeviceID deviceId;
 	if (!readRequestPayload(request.utf8RequestString, deviceId))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it == m_clientConnections.end())
 	{
-		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, response);
 		return;
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
 	clientState->subscribeToVRDevicePoseUpdates(deviceId);
-	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
+	writeSimpleResponse(request.requestId, MikanResult_Success, response);
 }
 
 void MikanServer::unsubscribeFromVRDevicePoseUpdates(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanVRDeviceID deviceId;
 	if (!readRequestPayload(request.utf8RequestString, deviceId))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it == m_clientConnections.end())
 	{
-		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, response);
 		return;
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
 	clientState->unsubscribeFromVRDevicePoseUpdates(deviceId);
-	writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
+	writeSimpleResponse(request.requestId, MikanResult_Success, response);
 }
 
 void MikanServer::allocateRenderTargetTextures(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {	
 	MikanRenderTargetDescriptor desc;
 	if (!readRequestPayload(request.utf8RequestString, desc))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it == m_clientConnections.end())
 	{
-		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, response);
 		return;
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
 	if (clientState->allocateRenderTargetTextures(desc))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_Success, response);
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_GeneralError, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_GeneralError, response);
 	}
 }
 
 void MikanServer::freeRenderTargetTextures(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	auto connection_it = m_clientConnections.find(request.connectionId);
 	if (connection_it != m_clientConnections.end())
@@ -910,24 +910,22 @@ void MikanServer::freeRenderTargetTextures(
 		}
 
 		connection_it->second->freeRenderTargetTextures();
-		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_Success, response);
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, response);
 	}
 }
 
 void MikanServer::frameRendered(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
-	utf8ResponseString.clear();
-
 	MikanClientFrameRendered frameInfo = {};
 	if (!readRequestPayload(request.utf8RequestString, frameInfo))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
@@ -945,17 +943,17 @@ void MikanServer::frameRendered(
 			}
 		}
 
-		writeSimpleResponse(request.requestId, MikanResult_Success, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_Success, response);
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_UnknownClient, response);
 	}
 }
 
 void MikanServer::getStencilList(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanStencilList stencilListResult = {};
 
@@ -965,17 +963,17 @@ void MikanServer::getStencilList(
 		stencilListResult.stencil_id_list.push_back(quadConfig->getStencilId());
 	}
 
-	writeTypedResponse(request.requestId, stencilListResult, utf8ResponseString);
+	writeTypedResponse(request.requestId, stencilListResult, response);
 }
 
 void MikanServer::getQuadStencil(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanStencilID stencilId;
 	if (!readRequestPayload(request.utf8RequestString, stencilId))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
@@ -985,22 +983,22 @@ void MikanServer::getQuadStencil(
 	{
 		MikanStencilQuad stencil= quadConfig->getQuadInfo();
 
-		writeTypedResponse(request.requestId, stencil, utf8ResponseString);
+		writeTypedResponse(request.requestId, stencil, response);
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, response);
 	}
 }
 
 void MikanServer::getBoxStencil(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanStencilID stencilId;
 	if (!readRequestPayload(request.utf8RequestString, stencilId))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
@@ -1010,22 +1008,22 @@ void MikanServer::getBoxStencil(
 	{
 		MikanStencilBox stencil = boxConfig->getBoxInfo();
 
-		writeTypedResponse(request.requestId, stencil, utf8ResponseString);
+		writeTypedResponse(request.requestId, stencil, response);
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, response);
 	}
 }
 
 void MikanServer::getModelStencil(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanStencilID stencilId;
 	if (!readRequestPayload(request.utf8RequestString, stencilId))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
@@ -1035,17 +1033,17 @@ void MikanServer::getModelStencil(
 	{
 		MikanStencilModel stencil = modelConfig->getModelInfo();
 
-		writeTypedResponse(request.requestId, stencil, utf8ResponseString);
+		writeTypedResponse(request.requestId, stencil, response);
 	}
 	else
 	{
-		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidStencilID, response);
 	}
 }
 
 void MikanServer::getSpatialAnchorList(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanSpatialAnchorList anchorListResult= {};
 
@@ -1055,53 +1053,53 @@ void MikanServer::getSpatialAnchorList(
 		anchorListResult.spatial_anchor_id_list.push_back(spatialAnchor->getAnchorId());
 	}
 
-	writeTypedResponse(request.requestId, anchorListResult, utf8ResponseString);
+	writeTypedResponse(request.requestId, anchorListResult, response);
 }
 
 void MikanServer::getSpatialAnchorInfo(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	MikanSpatialAnchorID anchorId;
 	if (!readRequestPayload(request.utf8RequestString, anchorId))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
 	if (anchorPtr == nullptr)
 	{
-		writeSimpleResponse(request.requestId, MikanResult_InvalidAnchorID, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidAnchorID, response);
 		return;
 	}
 	
 	MikanSpatialAnchorInfo anchorInfo;
 	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
 
-	writeTypedResponse(request.requestId, anchorInfo, utf8ResponseString);
+	writeTypedResponse(request.requestId, anchorInfo, response);
 }
 
 void MikanServer::findSpatialAnchorInfoByName(
 	const ClientRequest& request,
-	std::string& utf8ResponseString)
+	ClientResponse& response)
 {
 	std::string nameBuffer;
 	if (!readRequestPayload(request.utf8RequestString, nameBuffer))
 	{
-		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorByName(nameBuffer);
 	if (anchorPtr == nullptr)
 	{
-		writeSimpleResponse(request.requestId, MikanResult_InvalidAnchorID, utf8ResponseString);
+		writeSimpleResponse(request.requestId, MikanResult_InvalidAnchorID, response);
 		return;
 	}
 
 	MikanSpatialAnchorInfo anchorInfo;
 	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
 
-	writeTypedResponse(request.requestId, anchorInfo, utf8ResponseString);
+	writeTypedResponse(request.requestId, anchorInfo, response);
 }

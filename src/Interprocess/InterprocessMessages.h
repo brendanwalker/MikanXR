@@ -21,8 +21,12 @@ struct ClientRequest
 	MikanRequestID requestId;
 	std::string utf8RequestString;
 };
-using RequestHandler = std::function<void(const ClientRequest& request, std::string& utf8ResponseString)>;
-
+struct ClientResponse
+{
+	std::string utf8String;
+	std::vector<uint8_t> binaryData;
+};
+using RequestHandler = std::function<void(const ClientRequest& request, ClientResponse& response)>;
 class IInterprocessMessageClient
 {
 public:
