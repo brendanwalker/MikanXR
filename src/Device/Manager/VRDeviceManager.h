@@ -5,12 +5,15 @@
 #include <deque>
 #include <vector>
 
+#include "CommonConfig.h"
 #include "DeviceManager.h"
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
 #include "MulticastDelegate.h"
 #include "SteamVRManager.h"
 #include "stdint.h"
+
+#include <glm/ext/matrix_float4x4.hpp>
 
 //-- typedefs -----
 class VRDeviceView;
@@ -46,6 +49,7 @@ public:
 	VRDeviceViewPtr getVRDeviceViewByPath( const std::string& devicePath) const;
 	VRDeviceList getVRDeviceList() const;
 	VRDeviceList getFilteredVRDeviceList(eDeviceType deviceType) const;
+	const glm::mat4& getVRDevicePoseOffset() const { return m_vrDevicePoseOffset; }
 
 	//-- IVRSystemEventListener ----
 	void onActiveDeviceListChanged() override;
@@ -60,10 +64,17 @@ protected:
 
 	class SteamVRManager *m_steamVRManager= nullptr;
 	uint64_t m_lastVRFrameIndex= 0;
+	glm::mat4 m_vrDevicePoseOffset= glm::mat4(1.0f);
 
 	DeviceEnumerator* allocateDeviceEnumerator() override;
 	void freeDeviceEnumerator(DeviceEnumerator*) override;
 	DeviceView* allocateDeviceView(int device_id) override;
+
+	// -- ProfileConfig Events --
+	void onProfileConfigMarkedDirty(
+		CommonConfigPtr configPtr,
+		const ConfigPropertyChangeSet& changedPropertySet);
+	void onVRTrackingOffsetChanged(ProfileConfigPtr config);
 };
 
 class VRDeviceListIterator

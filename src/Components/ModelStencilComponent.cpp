@@ -518,13 +518,13 @@ bool ModelStencilComponent::invokeFunction(const std::string& functionName)
 
 	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
 	{
-		createDepthMesh();
+		alignStencil();
 	}
 
 	return false;
 }
 
-void ModelStencilComponent::createDepthMesh()
+void ModelStencilComponent::alignStencil()
 {
 	// Show Anchor Triangulation Tool
 	auto* stencilAligner = MainWindow::getInstance()->pushAppStage<AppStage_StencilAlignment>();

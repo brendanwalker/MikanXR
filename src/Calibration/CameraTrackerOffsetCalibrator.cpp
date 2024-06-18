@@ -132,7 +132,7 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 	}
 
 	// Fetch the calibration poses from the devices
-	const glm::dmat4 cameraPuckXform= glm::dmat4(m_cameraTrackingPuckView->getCalibrationPose());
+	const glm::dmat4 cameraPuckXform= glm::dmat4(m_cameraTrackingPuckView->getDefaultComponentPose());
 
 	// Look for the calibration pattern in the latest video frame
 	if (!m_patternFinder->findNewCalibrationPattern())
@@ -206,7 +206,7 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 glm::mat4 CameraTrackerOffsetCalibrator::getLastCameraPose(VRDeviceViewPtr attachedVRDevicePtr) const
 {
 	const glm::mat4 cameraOffsetXform = glm::mat4(m_calibrationState->cameraToCameraPuckXform);
-	const glm::mat4 vrDevicePose = attachedVRDevicePtr->getCalibrationPose();
+	const glm::mat4 vrDevicePose = attachedVRDevicePtr->getDefaultComponentPose();
 	const glm::mat4 cameraPose = vrDevicePose * cameraOffsetXform;
 
 	return cameraPose;
@@ -283,7 +283,7 @@ void CameraTrackerOffsetCalibrator::renderVRSpaceCalibrationState()
 	m_patternFinder->renderSolvePnPPattern3D(m_calibrationState->patternXform);
 
 	// Draw the camera puck transform
-	const glm::mat4 cameraPuckXform = glm::dmat4(m_cameraTrackingPuckView->getCalibrationPose());
+	const glm::mat4 cameraPuckXform = glm::dmat4(m_cameraTrackingPuckView->getDefaultComponentPose());
 	drawTransformedAxes(cameraPuckXform, 0.1f);
 
 	// Draw the most recently derived camera transform derived from the mat puck

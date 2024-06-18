@@ -235,7 +235,7 @@ public:
 			if (vrDeviceView && vrDeviceView->getIsOpen() && vrDeviceView->getIsPoseValid())
 			{
 				// TODO: We should provide option to select which component we want the pose updates for
-				glm::mat4 xform= vrDeviceView->getCalibrationPose();
+				glm::mat4 xform= vrDeviceView->getDefaultComponentPose();
 
 				// Send a pose update to the client
 				MikanVRDevicePoseUpdateEvent poseUpdate;

@@ -90,7 +90,7 @@ void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderG
 	}
 
 	// Write out the indices
-	const uint32_t indexCount = glMesh->getElementCount();
+	const uint32_t indexCount = (uint32_t)glMesh->getElementCount();
 	const uint8_t* indexData = glMesh->getIndexData();
 	const size_t indexSize = glMesh->getIndexSize();
 	if (indexSize == sizeof(uint16_t))

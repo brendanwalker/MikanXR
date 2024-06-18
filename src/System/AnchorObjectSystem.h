@@ -34,7 +34,6 @@ public:
 	bool canAddAnchor() const;
 	AnchorDefinitionPtr getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const;
 	AnchorDefinitionPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
-	MikanSpatialAnchorID addNewAnchor(MikanSpatialAnchorInfo& anchorInfo);
 	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const MikanTransform& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
@@ -49,7 +48,6 @@ public:
 	void setRenderAnchorsFlag(bool flag);
 
 	MikanSpatialAnchorID nextAnchorId= 0;
-	MikanSpatialAnchorID originAnchorId= INVALID_MIKAN_ID;
 
 protected:
 	bool m_bDebugRenderAnchors = true;
@@ -70,7 +68,6 @@ public:
 	const AnchorMap& getAnchorMap() const { return m_anchorComponents; }
 	AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const;
 	AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const;
-	AnchorComponentPtr getOriginSpatialAnchor() const { return m_originAnchor; }
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
 	AnchorComponentPtr addNewAnchor(const std::string& anchorName, const GlmTransform& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
@@ -80,7 +77,6 @@ protected:
 	void disposeAnchorObject(MikanSpatialAnchorID anchorId);
 
 	AnchorMap m_anchorComponents;
-	AnchorComponentPtr m_originAnchor;
 
 	static AnchorObjectSystemWeakPtr s_anchorObjectSystem;
 };

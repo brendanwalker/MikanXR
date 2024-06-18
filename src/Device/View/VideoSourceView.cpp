@@ -557,7 +557,7 @@ void VideoSourceView::setCameraPoseOffset(const MikanQuatd& q, const MikanVector
 glm::mat4 VideoSourceView::getCameraPose(VRDeviceViewPtr attachedVRDevicePtr) const
 {
 	// Get the pose of the VR device we want to compute the camera pose from
-	const glm::mat4 vrDevicePose = attachedVRDevicePtr->getCalibrationPose();
+	const glm::mat4 vrDevicePose = attachedVRDevicePtr->getDefaultComponentPose();
 
 	// Get the offset from the puck to the camera
 	const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(getCameraOffsetPosition());

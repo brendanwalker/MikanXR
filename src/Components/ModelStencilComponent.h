@@ -90,7 +90,7 @@ public:
 	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
 	virtual bool invokeFunction(const std::string& functionName) override;
 
-	void createDepthMesh();
+	void alignStencil();
 
 protected:
 	void updateWireframeMeshColor();

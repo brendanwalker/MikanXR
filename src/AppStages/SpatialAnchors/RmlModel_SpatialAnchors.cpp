@@ -44,7 +44,6 @@ bool RmlModel_SpatialAnchors::init(
 	constructor.Bind("anchor_vr_device_path", &m_anchorVRDevicePath);
 	constructor.Bind("spatial_anchors", &m_spatialAnchors);
 	constructor.Bind("max_spatial_anchors", &m_maxSpatialAnchors);
-	constructor.Bind("origin_anchor_id", &m_originAnchorId);
 
 	// Bind data model callbacks	
 	constructor.BindEventCallback(
@@ -134,9 +133,6 @@ void RmlModel_SpatialAnchors::rebuildAnchorList()
 {
 	m_anchorVRDevicePath = m_anchorSystemPtr->getAnchorSystemConfig()->anchorVRDevicePath;
 	m_modelHandle.DirtyVariable("anchor_vr_device_path");
-
-	m_originAnchorId = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
-	m_modelHandle.DirtyVariable("origin_anchor_id");
 
 	m_spatialAnchors.clear();
 	auto anchorMap = m_anchorSystemPtr->getAnchorMap();

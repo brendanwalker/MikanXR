@@ -54,23 +54,6 @@ void AnchorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 			addChildConfig(AnchorDefinitionPtr);
 		}
 	}
-
-	// Special case: Origin spatial anchor
-	AnchorDefinitionPtr originAnchorInfo = getSpatialAnchorConfigByName(ORIGIN_SPATIAL_ANCHOR_NAME);
-	if (originAnchorInfo)
-	{
-		originAnchorId = originAnchorInfo->getAnchorId();
-	}
-	else
-	{
-		MikanTransform originXform;
-		originXform.rotation= {1.f, 0.f, 0.f, 0.f};
-		originXform.scale= {1.f, 1.f, 1.f};
-		originXform.position= {0.f, 0.f, 0.f};
-
-		originAnchorId = nextAnchorId;
-		addNewAnchor(ORIGIN_SPATIAL_ANCHOR_NAME, originXform);
-	}
 }
 
 bool AnchorObjectSystemConfig::canAddAnchor() const
@@ -134,8 +117,7 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 		return configPtr->getAnchorId() == anchorId;
 	});
 
-	if (it != spatialAnchorList.end() &&
-		(*it)->getAnchorId() != originAnchorId)
+	if (it != spatialAnchorList.end())
 	{
 		removeChildConfig(*it);
 
@@ -166,21 +148,9 @@ bool AnchorObjectSystem::init()
 
 	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
 
-	// Create the origin anchor object first
-	AnchorDefinitionPtr originAnchorConfig= 
-		anchorSystemConfig->getSpatialAnchorConfig(anchorSystemConfig->originAnchorId);
-	if (originAnchorConfig != nullptr)
-	{
-		createAnchorObject(originAnchorConfig);
-	}
-
-	// Then create all the child anchors
 	for (AnchorDefinitionPtr anchorConfig : anchorSystemConfig->spatialAnchorList)
 	{
-		if (anchorConfig != originAnchorConfig)
-		{
-			createAnchorObject(anchorConfig);
-		}
+		createAnchorObject(anchorConfig);
 	}
 
 	s_anchorObjectSystem = std::static_pointer_cast<AnchorObjectSystem>(shared_from_this());
@@ -278,18 +248,6 @@ AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorDefinitionPtr an
 	anchorComponentPtr->setDefinition(anchorConfig);
 	m_anchorComponents.insert({anchorConfig->getAnchorId(), anchorComponentPtr});
 
-	// Setup anchor scene component attachment
-	if (anchorConfig->getAnchorId() != anchorSystemConfig->originAnchorId)
-	{
-		// Attach to the origin anchor
-		anchorComponentPtr->attachToComponent(m_originAnchor);
-	}
-	else
-	{
-		// Make this the origin anchor
-		m_originAnchor= anchorComponentPtr;
-	}
-
 	// Add a selection component
 	anchorObject->addComponent<SelectionComponent>();
 
@@ -308,11 +266,6 @@ AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorDefinitionPtr an
 
 void AnchorObjectSystem::disposeAnchorObject(MikanSpatialAnchorID anchorId)
 {
-	if (m_originAnchor && m_originAnchor->getAnchorDefinition()->getAnchorId() == anchorId)
-	{
-		m_originAnchor.reset();
-	}
-
 	auto it= m_anchorComponents.find(anchorId);
 	if (it != m_anchorComponents.end())
 	{

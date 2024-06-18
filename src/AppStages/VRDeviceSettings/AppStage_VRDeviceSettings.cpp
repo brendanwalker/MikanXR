@@ -46,8 +46,6 @@ void AppStage_VRDeviceSettings::enter()
 		m_vrDeviceSettingsModel->init(context, profileConfig, vrDeviceManager);
 		m_vrDeviceSettingsModel->OnUpdateCameraVRDevicePath= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath);
 		m_vrDeviceSettingsModel->OnUpdateMatVRDevicePath= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateMatVRDevicePath);
-		m_vrDeviceSettingsModel->OnUpdateOriginVRDevicePath= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateOriginVRDevicePath);
-		m_vrDeviceSettingsModel->OnUpdateOriginVerticalAlignFlag= MakeDelegate(this, &AppStage_VRDeviceSettings::onUpdateOriginVerticalAlignFlag);
 
 		// Init vr device settings view now that the dependent model has been created
 		m_vrDeviceSettingsView = addRmlDocument("vr_device_settings.rml");
@@ -89,24 +87,6 @@ void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devic
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
-}
-
-void AppStage_VRDeviceSettings::onUpdateOriginVRDevicePath(const std::string& devicePath)
-{
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	profileConfig->originVRDevicePath = devicePath;
-	profileConfig->markDirty(
-		ConfigPropertyChangeSet()
-		.addPropertyName(ProfileConfig::k_originVRDevicePathPropertyId));
-}
-
-void AppStage_VRDeviceSettings::onUpdateOriginVerticalAlignFlag(bool bFlag)
-{
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	profileConfig->originVerticalAlignFlag = bFlag;
-	profileConfig->markDirty(
-		ConfigPropertyChangeSet()
-		.addPropertyName(ProfileConfig::k_originVerticalAlignFlagPropertyId));
 }
 
 void AppStage_VRDeviceSettings::onRmlClickEvent(const std::string& value)

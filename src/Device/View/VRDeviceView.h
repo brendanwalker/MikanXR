@@ -33,17 +33,14 @@ public:
 	std::string getTrackerRole() const;
 
 	bool getIsPoseValid() const;
-	glm::quat getOrientation() const;
-	glm::vec3 getPosition() const;
-
-	bool getComponentPoseByName(const std::string& componentName, glm::mat4& outPose) const;
 	void getComponentNames(std::vector<std::string>& outComponentName) const;
-
-	glm::mat4 getCalibrationPose() const;
+	bool getComponentPoseByName(const std::string& componentName, bool bApplyVRDeviceOffset, glm::mat4& outPose) const;
+	glm::mat4 getDefaultComponentPose(bool bApplyVRDeviceOffset= true) const;
 
 protected:
 	bool allocateDeviceInterface(const class DeviceEnumerator* enumerator) override;
 	void freeDeviceInterface() override;
+	static glm::mat4 applyVRDeviceOffset(const glm::mat4& rawDevicePose);
 
 private:
 	IVRDeviceInterface* m_device= nullptr;

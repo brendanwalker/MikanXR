@@ -1,7 +1,10 @@
 //-- includes -----
+#include "App.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceEnumerator.h"
 #include "Logger.h"
+#include "MathTypeConversion.h"
+#include "ProfileConfig.h"
 #include "SteamVRManager.h"
 #include "VRDeviceView.h"
 
@@ -35,6 +38,10 @@ bool VRDeviceManager::startup(class IGlWindow *ownerWindow)
 		bSuccess = false;
 	}
 
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	profileConfig->OnMarkedDirty += MakeDelegate(this, &VRDeviceManager::onProfileConfigMarkedDirty);
+	onVRTrackingOffsetChanged(profileConfig);
+
 	return bSuccess;
 }
 
@@ -47,9 +54,27 @@ void VRDeviceManager::update(float deltaTime)
 
 void VRDeviceManager::shutdown()
 {
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	profileConfig->OnMarkedDirty -= MakeDelegate(this, &VRDeviceManager::onProfileConfigMarkedDirty);
+
 	m_steamVRManager->shutdown();
 
 	DeviceManager::shutdown();
+}
+
+void VRDeviceManager::onProfileConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(ProfileConfig::k_vrDevicePoseOffsetPropertyId))
+	{
+		onVRTrackingOffsetChanged(std::static_pointer_cast<ProfileConfig>(configPtr));
+	}
+}
+
+void VRDeviceManager::onVRTrackingOffsetChanged(ProfileConfigPtr config)
+{
+	m_vrDevicePoseOffset= MikanMatrix4f_to_glm_mat4(config->vrDevicePoseOffset);
 }
 
 void VRDeviceManager::closeAllVRTrackers()

@@ -31,8 +31,7 @@
 const std::string ProfileConfig::k_videoSourcePathPropertyId= "videoSourcePath";
 const std::string ProfileConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
 const std::string ProfileConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
-const std::string ProfileConfig::k_originVRDevicePathPropertyId= "originVRDevicePath";
-const std::string ProfileConfig::k_originVerticalAlignFlagPropertyId= "originVerticalAlignFlag";
+const std::string ProfileConfig::k_vrDevicePoseOffsetPropertyId= "vrDevicePoseOffset";
 const std::string ProfileConfig::k_renderOriginFlagPropertyId= "renderOrigin";
 const std::string ProfileConfig::k_vrFrameDelayPropertyId= "vrFrameDelay";
 
@@ -61,15 +60,20 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	// Tracker
 	, cameraVRDevicePath("")
 	, matVRDevicePath("")
-	, originVRDevicePath("")
-	, originVerticalAlignFlag(false)
-	, calibrationComponentName("front_rolled")
+	, vivePuckDefaultComponentName("front_rolled")
 	, videoFrameQueueSize(3)
 	// Compositor
 	, compositorScriptFilePath("")
 	// Output Settings
 	, outputFilePath("")
 {
+	vrDevicePoseOffset= {
+		1.f, 0.f, 0.f, 0.f,
+		0.f, 1.f, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f,
+	};
+
 	anchorConfig= std::make_shared<AnchorObjectSystemConfig>("anchors");
 	addChildConfig(anchorConfig);
 
@@ -106,9 +110,7 @@ configuru::Config ProfileConfig::writeToJSON()
 	// Tracker
 	pt["cameraVRDevicePath"]= cameraVRDevicePath;
 	pt["matVRDevicePath"]= matVRDevicePath;
-	pt["originVRDevicePath"]= originVRDevicePath;
-	pt["originVerticalAlignFlag"]= originVerticalAlignFlag;
-	pt["calibrationComponentName"]= calibrationComponentName;
+	pt["vivePuckDefaultComponentName"]= vivePuckDefaultComponentName;
 	pt[k_vrFrameDelayPropertyId]= m_vrFrameDelay;
 	pt["videoFrameQueueSize"]= videoFrameQueueSize;
 	// Compositor
@@ -117,6 +119,8 @@ configuru::Config ProfileConfig::writeToJSON()
 	pt["outputPath"]= outputFilePath.string();
 	// Renderer Flags
 	pt[k_renderOriginFlagPropertyId]= m_bRenderOrigin;
+
+	writeMatrix4f(pt, "vrDevicePoseOffset", vrDevicePoseOffset);
 
 	// Write the anchor system config
 	pt[anchorConfig->getConfigName()]= anchorConfig->writeToJSON();
@@ -176,12 +180,12 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	cameraVRDevicePath = pt.get_or<std::string>("cameraVRDevicePath", cameraVRDevicePath);
 
 	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);
-	originVRDevicePath = pt.get_or<std::string>("originVRDevicePath", originVRDevicePath);
-	originVerticalAlignFlag = pt.get_or<bool>("originVerticalAlignFlag", originVerticalAlignFlag);
-	calibrationComponentName = pt.get_or<std::string>("calibrationComponentName", calibrationComponentName);
+	vivePuckDefaultComponentName = pt.get_or<std::string>("vivePuckDefaultComponentName", vivePuckDefaultComponentName);
 	m_vrFrameDelay = pt.get_or<int>(k_vrFrameDelayPropertyId, m_vrFrameDelay);
 	videoFrameQueueSize = int_min(int_max(pt.get_or<int>("videoFrameQueueSize", videoFrameQueueSize), 1), 8);
 	m_bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_bRenderOrigin);
+
+	readMatrix4f(pt, "vrDevicePoseOffset", vrDevicePoseOffset);
 
 	// Read the anchor system config
 	if (pt.has_key(anchorConfig->getConfigName()))

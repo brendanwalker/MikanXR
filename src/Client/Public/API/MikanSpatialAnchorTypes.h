@@ -3,8 +3,6 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 
-#define ORIGIN_SPATIAL_ANCHOR_NAME		"Origin"
-
 // Spatial Anchor Response Types
 struct MikanSpatialAnchorList : public MikanResponse
 {

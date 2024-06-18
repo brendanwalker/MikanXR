@@ -47,14 +47,12 @@ public:
 	void extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outAnchorInfo) const;
 
 	// -- IFunctionInterface ----
-	static const std::string k_updateOriginAnchorPoseFunctionId;
 	static const std::string k_editAnchorFunctionId;
 	static const std::string k_deleteAnchorFunctionId;
 	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
 	virtual bool invokeFunction(const std::string& functionName) override;
 
-	void updateOriginAnchorPose();
 	void editAnchor();
 	void deleteAnchor();
 

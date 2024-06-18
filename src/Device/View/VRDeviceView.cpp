@@ -1,5 +1,7 @@
 //-- includes -----
 #include "App.h"
+#include "MathTypeConversion.h"
+#include "MathGLM.h"
 #include "ProfileConfig.h"
 #include "SteamVRDevice.h"
 #include "VRDeviceView.h"
@@ -101,21 +103,6 @@ bool VRDeviceView::getIsPoseValid() const
 	return m_device != nullptr ? m_device->getIsPoseValid() : false;
 }
 
-glm::quat VRDeviceView::getOrientation() const
-{
-	return m_device != nullptr ? m_device->getOrientation() : glm::quat();
-}
-
-glm::vec3 VRDeviceView::getPosition() const
-{
-	return m_device != nullptr ? m_device->getPosition() : glm::vec3(0.f, 0.f, 0.f);
-}
-
-bool VRDeviceView::getComponentPoseByName(const std::string& componentName, glm::mat4& outPose) const
-{
-	return m_device != nullptr ? m_device->getComponentPoseByName(componentName, outPose) : false;
-}
-
 void VRDeviceView::getComponentNames(std::vector<std::string>& outComponentName) const
 {
 	if (m_device != nullptr)
@@ -124,22 +111,56 @@ void VRDeviceView::getComponentNames(std::vector<std::string>& outComponentName)
 	}
 }
 
-glm::mat4 VRDeviceView::getCalibrationPose() const
+bool VRDeviceView::getComponentPoseByName(
+	const std::string& componentName, 
+	bool bApplyVRDeviceOffset,
+	glm::mat4& outPose) const
 {
-	ProfileConfigConstPtr config= App::getInstance()->getProfileConfig();
-	const std::string& componentName = config->calibrationComponentName;
+	glm::mat4 rawComponentPose = glm::mat4(1.f);
 
-	glm::mat4 componentPose= glm::mat4(1.f);
-	if (!getComponentPoseByName(componentName, componentPose))
+	if (m_device != nullptr &&
+		m_device->getComponentPoseByName(componentName, rawComponentPose))
 	{
-		if (getIsPoseValid())
-		{
-			const glm::vec3 devicePos = getPosition();
-			const glm::quat deviceQuat = getOrientation();
+		outPose = bApplyVRDeviceOffset ? applyVRDeviceOffset(rawComponentPose) : rawComponentPose;
 
-			componentPose = glm::translate(glm::mat4(1.0), devicePos) * glm::mat4_cast(deviceQuat);
+		return true;
+	}
+
+	return false;
+}
+
+glm::mat4 VRDeviceView::getDefaultComponentPose(bool bApplyVRDeviceOffset) const
+{
+	glm::mat4 resultPose = glm::mat4(1.f);
+	if (m_device != nullptr)
+	{
+		ProfileConfigConstPtr config = App::getInstance()->getProfileConfig();
+
+		std::string componentName= "";
+		if (m_device->getDeviceType() == eDeviceType::VRTracker)
+		{
+			componentName = config->vivePuckDefaultComponentName;
+		}
+
+		if (!getComponentPoseByName(componentName, bApplyVRDeviceOffset, resultPose))
+		{
+			const glm::vec3 devicePos = m_device->getPosition();
+			const glm::quat deviceQuat = m_device->getOrientation();
+			const glm::mat4 rawDevicePose= glm_composite_xform(
+				glm::mat4_cast(deviceQuat), 
+				glm::translate(glm::mat4(1.0), devicePos));
+
+			resultPose = bApplyVRDeviceOffset ? applyVRDeviceOffset(rawDevicePose) : rawDevicePose;
 		}
 	}
 
-	return componentPose;
+	return resultPose;
+}
+
+glm::mat4 VRDeviceView::applyVRDeviceOffset(const glm::mat4& rawDevicePose)
+{
+	ProfileConfigConstPtr config = App::getInstance()->getProfileConfig();
+	const glm::mat4 glmVRDevicePoseOffset = MikanMatrix4f_to_glm_mat4(config->vrDevicePoseOffset);
+
+	return glm_composite_xform(rawDevicePose, glmVRDevicePoseOffset);
 }

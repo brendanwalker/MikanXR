@@ -210,23 +210,7 @@ bool AnchorTriangulator::computeAnchorTransform(AnchorTriangulatorInfo& anchorIn
 			glm::vec4(yAxis, 0.f),
 			glm::vec4(zAxis, 0.f),
 			glm::vec4(origin, 1.f));
-
-	// Convert triangulated world space points into local space of origin anchor
-	AnchorComponentPtr originAnchorComponentPtr =
-		AnchorObjectSystem::getSystem()->getOriginSpatialAnchor();
-
-	if (originAnchorComponentPtr->getAnchorDefinition()->getAnchorId() != anchorInfo.anchorId)
-	{
-		// Compute transform relative to origin anchor
-		const glm::mat4 originWorldXform = originAnchorComponentPtr->getWorldTransform();
-		
-		anchorInfo.relativeTransform = glm_relative_xform(originWorldXform, m_calibrationState->anchorWorldXform);
-	}
-	else
-	{
-		// Target anchor is origin anchor, so relative transform == world transform
-		anchorInfo.relativeTransform= m_calibrationState->anchorWorldXform;
-	}
+	anchorInfo.worldTransform= m_calibrationState->anchorWorldXform;
 
 	return true;
 }

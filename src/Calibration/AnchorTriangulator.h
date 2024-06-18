@@ -20,7 +20,7 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 struct AnchorTriangulatorInfo
 {
 	MikanSpatialAnchorID anchorId;
-	GlmTransform relativeTransform; // Relative to origin anchor
+	GlmTransform worldTransform;
 	std::string anchorName;
 };
 

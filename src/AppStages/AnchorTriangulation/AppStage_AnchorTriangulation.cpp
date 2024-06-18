@@ -48,7 +48,7 @@ AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(MainWindow* ownerWind
 {
 	m_targetAnchor.anchorId = INVALID_MIKAN_ID;
 	m_targetAnchor.anchorName= "";
-	m_targetAnchor.relativeTransform= GlmTransform();
+	m_targetAnchor.worldTransform= GlmTransform();
 }
 
 AppStage_AnchorTriangulation::~AppStage_AnchorTriangulation()
@@ -335,7 +335,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 				{
 					AnchorObjectSystem::getSystem()->addNewAnchor(
 						m_targetAnchor.anchorName, 
-						m_targetAnchor.relativeTransform);
+						m_targetAnchor.worldTransform);
 				}
 				else
 				{
@@ -343,7 +343,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 						AnchorObjectSystem::getSystem()->getSpatialAnchorById(
 							m_targetAnchor.anchorId);
 
-					anchorComponent->setRelativeTransform(m_targetAnchor.relativeTransform);
+					anchorComponent->setWorldTransform(m_targetAnchor.worldTransform.getMat4());
 				}
 
 				setMenuState(eAnchorTriangulationMenuState::testCalibration);

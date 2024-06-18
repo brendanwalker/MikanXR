@@ -18,14 +18,10 @@ public:
 
 	SinglecastDelegate<void(const std::string& devicePath)> OnUpdateCameraVRDevicePath;
 	SinglecastDelegate<void(const std::string& devicePath)> OnUpdateMatVRDevicePath;
-	SinglecastDelegate<void(const std::string& devicePath)> OnUpdateOriginVRDevicePath;
-	SinglecastDelegate<void(const bool newFlag)> OnUpdateOriginVerticalAlignFlag;
 
 private:
 	Rml::Vector<Rml::String> m_vrDeviceList;
 
 	Rml::String m_cameraVRDevicePath;
 	Rml::String m_matVRDevicePath;
-	Rml::String m_originVRDevicePath;
-	bool m_originVerticalAlignFlag;
 };
