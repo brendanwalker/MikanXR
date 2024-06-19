@@ -3,6 +3,7 @@
 #include "VRDeviceSettings/RmlModel_VRDeviceSettings.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "SpatialAnchors/AppStage_SpatialAnchors.h"
+#include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
 #include "MainWindow.h"
@@ -91,13 +92,17 @@ void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devic
 
 void AppStage_VRDeviceSettings::onRmlClickEvent(const std::string& value)
 {
-	if (value == "calibrate_vr_camera_alignment")
+	if (value == "goto_vr_tracking_recenter")
 	{
-		m_ownerWindow->pushAppStage<AppStage_AlignmentCalibration>();
+		m_ownerWindow->pushAppStage<AppStage_VRTrackingRecenter>();
 	}
 	else if (value == "test_vr_camera_alignment")
 	{
 		m_ownerWindow->pushAppStage<AppStage_AlignmentCalibration>()->setBypassCalibrationFlag(true);
+	}
+	else if (value == "calibrate_vr_camera_alignment")
+	{
+		m_ownerWindow->pushAppStage<AppStage_AlignmentCalibration>();
 	}
 	else if (value == "goto_spatial_anchor_setup")
 	{

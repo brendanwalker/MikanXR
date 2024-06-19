@@ -8,8 +8,8 @@ enum class eCalibrationPatternType : int
 	INVALID = -1,
 
 	mode_chessboard,
-	mode_circlegrid,
 	mode_charuco,
+	mode_aruco,
 
 	COUNT
 };

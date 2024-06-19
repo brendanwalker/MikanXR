@@ -2,8 +2,8 @@
 
 const std::string g_patternTypeStrings[(int)eCalibrationPatternType::COUNT] = {
 	"chessboard",
-	"circlegrid",
-	"charuco"
+	"charuco",
+	"aruco"
 };
 const std::string* k_patternTypeStrings = g_patternTypeStrings;
 

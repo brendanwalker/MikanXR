@@ -104,30 +104,6 @@ protected:
 	float m_squareLengthMM;
 };
 
-class CalibrationPatternFinder_CircleGrid : public CalibrationPatternFinder
-{
-public:
-	CalibrationPatternFinder_CircleGrid(
-		VideoFrameDistortionView* distortionView,
-		int circleGridRows,
-		int circleGridCols,
-		float circleSpacingMM,
-		float circleDiameterMM);
-
-	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_circlegrid; }
-	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
-	virtual bool fetchLastFoundCalibrationPattern(
-		t_opencv_point2d_list& outImagePoints, 
-		t_opencv_pointID_list& outImagePointIDs,
-		cv::Point2f outBoundingQuad[4]) override;
-
-protected:
-	int m_circleGridRows;
-	int m_circleGridCols;
-	float m_circleSpacingMM;
-	float m_circleDiameterMM;
-};
-
 class CalibrationPatternFinder_Charuco : public CalibrationPatternFinder
 {
 public:
@@ -151,4 +127,34 @@ public:
 
 protected:
 	class CharucoBoardData* m_markerData;
+};
+
+class CalibrationPatternFinder_Aruco : public CalibrationPatternFinder
+{
+public:
+	CalibrationPatternFinder_Aruco(
+		VideoFrameDistortionView* distortionView,
+		int desiredArucoId,
+		float markerLengthMM,
+		eCharucoDictionaryType charucoDictionaryType);
+	virtual ~CalibrationPatternFinder_Aruco();
+
+	virtual eCalibrationPatternType getCalibrationPatternType() const override 
+	{ return eCalibrationPatternType::mode_aruco; }
+	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
+	virtual bool fetchLastFoundCalibrationPattern(
+		t_opencv_point2d_list& outImagePoints,
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) override;
+	virtual bool calibrateCamera(
+		const struct MikanMonoIntrinsics& inputCameraIntrinsics,
+		const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+		const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+		struct MikanMonoIntrinsics& outIntrinsics,
+		double& outReprojectionError) const 
+	{ return false; }
+	virtual void renderCalibrationPattern2D() const override;
+
+protected:
+	class ArucoBoardData* m_markerData;
 };

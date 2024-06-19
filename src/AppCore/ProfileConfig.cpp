@@ -12,11 +12,6 @@
 #define CHESSBOARD_PATTERN_H 5
 #define DEFAULT_SQUARE_LEN_MM 30
 
-#define CIRCLEGRID_PATTERN_W 4
-#define CIRCLEGRID_PATTERN_H 11
-#define DEFAULT_CIRCLE_DIAMETER_MM 15
-#define DEFAULT_CIRCLE_SPACING_MM  20
-
 #define CHARUCO_PATTERN_W 11
 #define CHARUCO_PATTERN_H 8
 #define DEFAULT_CHARUCO_SQUARE_LEN_MM 16
@@ -26,6 +21,9 @@
 #define DEFAULT_PUCK_HORIZONTAL_OFFSET_MM  -72
 #define DEFAULT_PUCK_VERTICAL_OFFSET_MM  -67
 #define DEFAULT_PUCK_DEPTH_OFFSET_MM  0
+
+#define DEFAULT_VR_CENTER_ARUCO_ID  0
+#define DEFAULT_VR_CENTER_MARKER_LEN_MM  100
 
 // -- Profile Config
 const std::string ProfileConfig::k_videoSourcePathPropertyId= "videoSourcePath";
@@ -43,10 +41,6 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, chessbordRows(CHESSBOARD_PATTERN_H)
 	, chessbordCols(CHESSBOARD_PATTERN_W)
 	, squareLengthMM(DEFAULT_SQUARE_LEN_MM)
-	, circleGridRows(CIRCLEGRID_PATTERN_H)
-	, circleGridCols(CIRCLEGRID_PATTERN_W)
-	, circleSpacingMM(DEFAULT_CIRCLE_SPACING_MM)
-	, circleDiameterMM(DEFAULT_CIRCLE_DIAMETER_MM)
 	, charucoRows(CHARUCO_PATTERN_H)
 	, charucoCols(CHARUCO_PATTERN_W)
 	, charucoSquareLengthMM(DEFAULT_CHARUCO_SQUARE_LEN_MM)
@@ -55,6 +49,8 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	, puckHorizontalOffsetMM(DEFAULT_PUCK_HORIZONTAL_OFFSET_MM)
 	, puckVerticalOffsetMM(DEFAULT_PUCK_VERTICAL_OFFSET_MM)
 	, puckDepthOffsetMM(DEFAULT_PUCK_DEPTH_OFFSET_MM)
+	, vrCenterArucoId(DEFAULT_VR_CENTER_ARUCO_ID)
+	, vrCenterMarkerLengthMM(DEFAULT_VR_CENTER_MARKER_LEN_MM)
 	// VideoSource Defaults
 	, videoSourcePath("")
 	// Tracker
@@ -93,10 +89,6 @@ configuru::Config ProfileConfig::writeToJSON()
 	pt["chessbordRows"]= chessbordRows;
 	pt["chessbordCols"]= chessbordCols;
 	pt["squareLengthMM"]= squareLengthMM;
-	pt["circleGridRows"]= circleGridRows;
-	pt["circleGridCols"]= circleGridCols;
-	pt["circleSpacingMM"]= circleSpacingMM;
-	pt["circleDiameterMM"]= circleDiameterMM;
 	pt["charucoRows"] = charucoRows;
 	pt["charucoCols"] = charucoCols;
 	pt["charucoSquareLengthMM"] = charucoSquareLengthMM;
@@ -105,6 +97,8 @@ configuru::Config ProfileConfig::writeToJSON()
 	pt["puckHorizontalOffsetMM"]= puckHorizontalOffsetMM;
 	pt["puckVerticalOffsetMM"]= puckVerticalOffsetMM;
 	pt["puckDepthOffsetMM"]= puckDepthOffsetMM;
+	pt["vrCenterArucoId"]= vrCenterArucoId;
+	pt["vrCenterMarkerLengthMM"]= vrCenterMarkerLengthMM;
 	// VideoSource Defaults
 	pt["videoSourcePath"]= videoSourcePath;
 	// Tracker
@@ -151,11 +145,6 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	chessbordCols = pt.get_or<int>("chessbordCols", chessbordCols);
 	squareLengthMM = pt.get_or<float>("squareLengthMM", squareLengthMM);
 
-	circleGridRows = pt.get_or<int>("circleGridRows", circleGridRows);
-	circleGridCols = pt.get_or<int>("circleGridCols", circleGridCols);
-	circleSpacingMM = pt.get_or<float>("circleSpacingMM", circleSpacingMM);
-	circleDiameterMM = pt.get_or<float>("circleDiameterMM", circleDiameterMM);
-
 	const std::string charcuoDictionaryString =
 		pt.get_or<std::string>(
 			"charucoDictionaryType",
@@ -172,6 +161,9 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	puckHorizontalOffsetMM = pt.get_or<float>("puckHorizontalOffsetMM", puckHorizontalOffsetMM);
 	puckVerticalOffsetMM = pt.get_or<float>("puckVerticalOffsetMM", puckVerticalOffsetMM);
 	puckDepthOffsetMM = pt.get_or<float>("puckDepthOffsetMM", puckDepthOffsetMM);
+
+	vrCenterArucoId = pt.get_or<int>("vrCenterArucoId", vrCenterArucoId);
+	vrCenterMarkerLengthMM = pt.get_or<float>("vrCenterMarkerLengthMM", vrCenterMarkerLengthMM);
 
 	// VideoSource Defaults
 	videoSourcePath = pt.get_or<std::string>("videoSourcePath", videoSourcePath);

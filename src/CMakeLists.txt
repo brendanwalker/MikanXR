@@ -101,6 +101,13 @@ file(GLOB MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRDeviceSettings/*.h"
 )
 source_group("AppStages\\VRDeviceSettings" FILES ${MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC})
+## VRTrackingRecenter
+file(GLOB MIKAN_APP_STAGES_VR_TRACKING_RECENTER_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRTrackingRecenter/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRTrackingRecenter/*.h"
+)
+source_group("AppStages\\VRTrackingRecenter" FILES ${MIKAN_APP_STAGES_VR_TRACKING_RECENTER_SRC})
+
 ## Mikan All AppStage Source
 set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_ROOT_SRC}
@@ -118,6 +125,7 @@ set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_SPATIAL_ANCHORS_SRC}
 	${MIKAN_APP_STAGES_STENCIL_ALIGNMENT_SRC}
     ${MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC}
+	${MIKAN_APP_STAGES_VR_TRACKING_RECENTER_SRC}
 )
 
 # Asset
@@ -515,6 +523,7 @@ list(APPEND MIKAN_REQ_LIBS
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/OpenCVCameraEnumerator.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/MikanClient.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)

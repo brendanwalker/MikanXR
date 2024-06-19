@@ -23,10 +23,6 @@ public:
 	int chessbordRows;
 	int chessbordCols;
 	float squareLengthMM;
-	int circleGridRows;
-	int circleGridCols;
-	float circleSpacingMM;
-	float circleDiameterMM;
 	int charucoRows;
 	int charucoCols;
 	float charucoSquareLengthMM;
@@ -35,6 +31,8 @@ public:
 	float puckHorizontalOffsetMM;
 	float puckVerticalOffsetMM;
 	float puckDepthOffsetMM;
+	int vrCenterArucoId;
+	float vrCenterMarkerLengthMM;
 
 	static const std::string k_videoSourcePathPropertyId;
 	std::string videoSourcePath;

@@ -88,7 +88,7 @@ public:
 	MikanQuatd getCameraOffsetOrientation() const;
 	MikanVector3d getCameraOffsetPosition() const;
 	void setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p);
-	glm::mat4 getCameraPose(VRDeviceViewPtr attachedVRDevicePtr) const;
+	glm::mat4 getCameraPose(VRDeviceViewPtr attachedVRDevicePtr, bool bApplyVRDeviceOffset= true) const;
 	glm::mat4 getCameraProjectionMatrix() const;
 	glm::mat4 getCameraViewMatrix(VRDeviceViewPtr attachedVRDevicePtr) const;
 	glm::mat4 getCameraViewProjectionMatrix(VRDeviceViewPtr attachedVRDevicePtr) const;
