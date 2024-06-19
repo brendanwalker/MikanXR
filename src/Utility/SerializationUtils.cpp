@@ -236,7 +236,7 @@ void to_binary(BinaryWriter& writer, bool inValue)
 void to_binary(BinaryWriter& writer, int16_t inValue)
 {
 	std::array<uint8_t, sizeof(int16_t)> outValue;
-	SerializationUtils::write_int16(outValue.data(), outValue.size(), SerializationUtils::Endian::Little);
+	SerializationUtils::write_int16(outValue.data(), inValue, SerializationUtils::Endian::Little);
 
 	writer.appendBytes(outValue);
 }
@@ -244,7 +244,7 @@ void to_binary(BinaryWriter& writer, int16_t inValue)
 void to_binary(BinaryWriter& writer, int32_t inValue)
 {
 	std::array<uint8_t, sizeof(int32_t)> outValue;
-	SerializationUtils::write_int32(outValue.data(), outValue.size(), SerializationUtils::Endian::Little);
+	SerializationUtils::write_int32(outValue.data(), inValue, SerializationUtils::Endian::Little);
 
 	writer.appendBytes(outValue);
 }
@@ -252,7 +252,7 @@ void to_binary(BinaryWriter& writer, int32_t inValue)
 void to_binary(BinaryWriter& writer, float inValue)
 {
 	std::array<uint8_t, sizeof(float)> outValue;
-	SerializationUtils::write_float(outValue.data(), outValue.size(), SerializationUtils::Endian::Little);
+	SerializationUtils::write_float(outValue.data(), inValue, SerializationUtils::Endian::Little);
 
 	writer.appendBytes(outValue);
 }
@@ -260,7 +260,7 @@ void to_binary(BinaryWriter& writer, float inValue)
 void to_binary(BinaryWriter& writer, double inValue)
 {
 	std::array<uint8_t, sizeof(double)> outValue;
-	SerializationUtils::write_double(outValue.data(), outValue.size(), SerializationUtils::Endian::Little);
+	SerializationUtils::write_double(outValue.data(), inValue, SerializationUtils::Endian::Little);
 
 	writer.appendBytes(outValue);
 }
