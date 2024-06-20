@@ -62,7 +62,7 @@ int App::exec(int argc, char** argv)
 	{
 		SDL_Event e;
 
-		while (!m_bShutdownRequested)
+		while (!m_bShutdownRequested && m_mainWindow != nullptr)
 		{
 			FrameTimer frameTimer(11); // 11ms = 90fps
 
@@ -141,12 +141,31 @@ bool App::startup(int argc, char** argv)
 
 void App::shutdown()
 {
-	// Dispose all app windows
+	// Dispose all app windows (but the main window)
 	while (m_appWindows.size() > 0)
 	{
-		destroyAppWindow(m_appWindows[0]);
+		IGlWindow* appWindow= m_appWindows[0];
+
+		if (m_mainWindow != appWindow)
+		{
+			destroyAppWindow(appWindow);
+		}
+		else
+		{
+			auto it = std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
+			if (it != m_appWindows.end())
+			{
+				m_appWindows.erase(it);
+			}
+		}
 	}
-	m_mainWindow= nullptr;
+
+	// Dispose the main window last
+	if (m_mainWindow != nullptr)
+	{
+		destroyAppWindow(m_mainWindow);
+		m_mainWindow = nullptr;
+	}
 
 	assert(m_sdlManager != nullptr);
 	m_sdlManager->shutdown();

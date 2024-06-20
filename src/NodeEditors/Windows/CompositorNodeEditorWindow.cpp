@@ -75,8 +75,12 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 void CompositorNodeEditorWindow::shutdown()
 {
 	// Tell the frame compositor to free the editor compositor texture
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::mainWindow);
+	MainWindow* mainWindow= MainWindow::getInstance();
+	if (mainWindow != nullptr)
+	{
+		GlFrameCompositor* frameCompositor = mainWindow->getFrameCompositor();
+		frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::mainWindow);
+	}
 
 	NodeEditorWindow::shutdown();
 }
