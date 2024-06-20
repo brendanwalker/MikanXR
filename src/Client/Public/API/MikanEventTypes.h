@@ -99,6 +99,37 @@ struct MikanAnchorListUpdateEvent : public MikanEvent
 	MikanAnchorListUpdateEvent() : MikanEvent(k_typeName) {}
 };
 
+struct MikanStencilPoseUpdateEvent : public MikanEvent
+{
+	inline static const std::string k_typeName = "MikanStencilPoseUpdateEvent";
+
+	MikanTransform transform;
+	MikanStencilID stencil_id;
+
+	MikanStencilPoseUpdateEvent() : MikanEvent(k_typeName) {}
+};
+
+struct MikanQuadStencilListUpdateEvent : public MikanEvent
+{
+	inline static const std::string k_typeName = "MikanQuadStencilListUpdateEvent";
+
+	MikanQuadStencilListUpdateEvent() : MikanEvent(k_typeName) {}
+};
+
+struct MikanBoxStencilListUpdateEvent : public MikanEvent
+{
+	inline static const std::string k_typeName = "MikanBoxStencilListUpdateEvent";
+
+	MikanBoxStencilListUpdateEvent() : MikanEvent(k_typeName) {}
+};
+
+struct MikanModelStencilListUpdateEvent : public MikanEvent
+{
+	inline static const std::string k_typeName = "MikanModelStencilListUpdateEvent";
+
+	MikanModelStencilListUpdateEvent() : MikanEvent(k_typeName) {}
+};
+
 struct MikanScriptMessagePostedEvent : public MikanEvent
 {
 	inline static const std::string k_typeName = "MikanScriptMessagePostedEvent";

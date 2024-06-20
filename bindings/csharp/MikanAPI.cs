@@ -79,6 +79,10 @@ namespace MikanXR
 			_eventManager.AddEventFactory<MikanVRDeviceListUpdateEvent>();
 			_eventManager.AddEventFactory<MikanAnchorPoseUpdateEvent>();
 			_eventManager.AddEventFactory<MikanAnchorListUpdateEvent>();
+			_eventManager.AddEventFactory<MikanStencilPoseUpdateEvent>();
+			_eventManager.AddEventFactory<MikanQuadStencilListUpdateEvent>();
+			_eventManager.AddEventFactory<MikanBoxStencilListUpdateEvent>();
+			_eventManager.AddEventFactory<MikanModelStencilListUpdateEvent>();
 			_eventManager.AddEventFactory<MikanScriptMessagePostedEvent>();
 		}
 

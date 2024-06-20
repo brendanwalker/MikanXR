@@ -259,9 +259,10 @@ public:
 		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newPoseEvent));
 	}
 
-	void publishAnchorListChangedEvent()
+	// Stencil Events
+	void publishStencilPoseUpdatedEvent(const MikanStencilPoseUpdateEvent& newPoseEvent)
 	{
-		publishSimpleEvent<MikanAnchorListUpdateEvent>();
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newPoseEvent));
 	}
 
 private:
@@ -349,6 +350,9 @@ bool MikanServer::startup()
 
 	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnMarkedDirty+= 
 		MakeDelegate(this, &MikanServer::handleAnchorSystemConfigChange);
+
+	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty+=
+		MakeDelegate(this, &MikanServer::handleStencilSystemConfigChange);
 
 	return true;
 }
@@ -470,6 +474,47 @@ void MikanServer::handleAnchorSystemConfigChange(
 	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
 	{
 		publishSimpleEvent<MikanAnchorListUpdateEvent>(m_clientConnections);
+	}
+}
+
+// Stencil Events
+void MikanServer::publishStencilPoseUpdatedEvent(const MikanStencilPoseUpdateEvent& newPoseEvent)
+{
+	EASY_FUNCTION();
+
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishStencilPoseUpdatedEvent(newPoseEvent);
+	}
+}
+
+void MikanServer::handleStencilSystemConfigChange(
+	CommonConfigPtr configPtr,
+	const class ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeRotationPropertyId) ||
+		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
+	{
+		auto anchorConfig = std::static_pointer_cast<StencilComponentDefinition>(configPtr);
+
+		MikanStencilPoseUpdateEvent poseUpdateEvent;
+		poseUpdateEvent.stencil_id = anchorConfig->getStencilId();
+		poseUpdateEvent.transform = glm_transform_to_MikanTransform(anchorConfig->getRelativeTransform());
+
+		publishStencilPoseUpdatedEvent(poseUpdateEvent);
+	}
+	else if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_quadStencilListPropertyId))
+	{
+		publishSimpleEvent<MikanQuadStencilListUpdateEvent>(m_clientConnections);
+	}
+	else if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_boxStencilListPropertyId))
+	{
+		publishSimpleEvent<MikanBoxStencilListUpdateEvent>(m_clientConnections);
+	}
+	else if (changedPropertySet.hasPropertyName(StencilObjectSystemConfig::k_modelStencilListPropertyId))
+	{
+		publishSimpleEvent<MikanModelStencilListUpdateEvent>(m_clientConnections);
 	}
 }
 

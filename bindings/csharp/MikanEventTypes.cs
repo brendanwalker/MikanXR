@@ -89,6 +89,29 @@ namespace MikanXR
 		public MikanAnchorListUpdateEvent() : base(typeof(MikanAnchorListUpdateEvent).Name) {}
 	};
 
+	public class MikanStencilPoseUpdateEvent : MikanEvent
+	{
+		public MikanTransform transform { get; set; }
+		public int stencil_id { get; set; }
+
+		public MikanStencilPoseUpdateEvent() : base(typeof(MikanStencilPoseUpdateEvent).Name) { }
+	};
+
+	public class MikanQuadStencilListUpdateEvent : MikanEvent
+	{
+		public MikanQuadStencilListUpdateEvent() : base(typeof(MikanQuadStencilListUpdateEvent).Name) { }
+	};
+
+	public class MikanBoxStencilListUpdateEvent : MikanEvent
+	{
+		public MikanBoxStencilListUpdateEvent() : base(typeof(MikanBoxStencilListUpdateEvent).Name) { }
+	};
+
+	public class MikanModelStencilListUpdateEvent : MikanEvent
+	{
+		public MikanModelStencilListUpdateEvent() : base(typeof(MikanModelStencilListUpdateEvent).Name) { }
+	};
+
 	public class MikanScriptMessagePostedEvent : MikanEvent
 	{
 		public string message { get; set; }
