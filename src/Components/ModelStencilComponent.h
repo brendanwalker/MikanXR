@@ -18,12 +18,12 @@ class ModelStencilDefinition : public StencilComponentDefinition
 {
 public:
 	ModelStencilDefinition();
-	ModelStencilDefinition(const MikanStencilModel& modelInfo);
+	ModelStencilDefinition(const MikanStencilModelInfo& modelInfo);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStencilModel getModelInfo() const;
+	MikanStencilModelInfo getModelInfo() const;
 
 	static const std::string k_modelStencilObjPathPropertyId;
 	const std::filesystem::path& getModelPath() const { return m_modelPath; }

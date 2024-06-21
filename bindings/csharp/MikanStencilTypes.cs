@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class MikanStencilQuad : MikanResponse
+	public class MikanStencilQuadInfo : MikanResponse
 	{
 		public int stencil_id { get; set; }
 		public int parent_anchor_id { get; set; }
@@ -13,10 +13,10 @@ namespace MikanXR
 		public bool is_disabled { get; set; }
 		public string stencil_name { get; set; }
 
-		public MikanStencilQuad() : base(typeof(MikanStencilQuad).Name) {}
+		public MikanStencilQuadInfo() : base(typeof(MikanStencilQuadInfo).Name) {}
 	};
 
-	public class MikanStencilBox : MikanResponse
+	public class MikanStencilBoxInfo : MikanResponse
 	{
 		public int stencil_id { get; set; }
 		public int parent_anchor_id { get; set; }
@@ -27,10 +27,10 @@ namespace MikanXR
 		public bool is_disabled { get; set; }
 		public string stencil_name { get; set; }
 
-		public MikanStencilBox() : base(typeof(MikanStencilBox).Name) {}
+		public MikanStencilBoxInfo() : base(typeof(MikanStencilBoxInfo).Name) {}
 	};
 
-	public class MikanStencilModel : MikanResponse
+	public class MikanStencilModelInfo : MikanResponse
 	{
 		public int stencil_id { get; set; }
 		public int parent_anchor_id { get; set; }
@@ -38,7 +38,7 @@ namespace MikanXR
 		public bool is_disabled { get; set; }
 		public string stencil_name { get; set; }
 
-		public MikanStencilModel() : base(typeof(MikanStencilModel).Name) {}
+		public MikanStencilModelInfo() : base(typeof(MikanStencilModelInfo).Name) {}
 	};
 
 	public class MikanStencilList : MikanResponse

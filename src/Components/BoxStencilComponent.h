@@ -17,12 +17,12 @@ class BoxStencilDefinition : public StencilComponentDefinition
 {
 public:
 	BoxStencilDefinition();
-	BoxStencilDefinition(const MikanStencilBox& box);
+	BoxStencilDefinition(const MikanStencilBoxInfo& box);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStencilBox getBoxInfo() const;
+	MikanStencilBoxInfo getBoxInfo() const;
 
 	static const std::string k_boxStencilXSizePropertyId;
 	float getBoxXSize() const { return m_boxSize.x; }

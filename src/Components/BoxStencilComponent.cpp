@@ -30,7 +30,7 @@ BoxStencilDefinition::BoxStencilDefinition()
 }
 
 BoxStencilDefinition::BoxStencilDefinition(
-	const MikanStencilBox& boxInfo)
+	const MikanStencilBoxInfo& boxInfo)
 	: StencilComponentDefinition(
 		boxInfo.stencil_id,
 		boxInfo.parent_anchor_id,
@@ -60,12 +60,12 @@ void BoxStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_boxSize.z = pt.get_or<float>("box_z_size", 0.25f);
 }
 
-MikanStencilBox BoxStencilDefinition::getBoxInfo() const
+MikanStencilBoxInfo BoxStencilDefinition::getBoxInfo() const
 {
 	const std::string& boxName = getComponentName();
 	GlmTransform xform = getRelativeTransform();
 
-	MikanStencilBox boxInfo= {};
+	MikanStencilBoxInfo boxInfo= {};
 	boxInfo.stencil_id = m_stencilId;
 	boxInfo.parent_anchor_id = m_parentAnchorId;
 	boxInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());

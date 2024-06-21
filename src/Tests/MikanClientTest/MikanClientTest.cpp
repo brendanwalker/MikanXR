@@ -82,7 +82,7 @@ public:
 	{
 		m_originSpatialAnchorXform = glm::mat4(1.f);
 
-		m_stencilQuad= MikanStencilQuad();
+		m_stencilQuad= MikanStencilQuadInfo();
 		m_stencilQuad.stencil_id= INVALID_MIKAN_ID;
 	}
 
@@ -963,7 +963,7 @@ private:
 	IMikanAPIPtr m_mikanApi;
 	uint64_t m_lastReceivedVideoSourceFrame= 0;
 	glm::mat4 m_originSpatialAnchorXform;
-	MikanStencilQuad m_stencilQuad;
+	MikanStencilQuadInfo m_stencilQuad;
 	glm::mat4 m_cameraOffsetXform= glm::mat4(1.f);	
 	float m_mikanReconnectTimeout= 0.f; // seconds
 

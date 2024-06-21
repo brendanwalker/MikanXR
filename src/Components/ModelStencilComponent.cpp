@@ -41,7 +41,7 @@ ModelStencilDefinition::ModelStencilDefinition()
 {
 }
 
-ModelStencilDefinition::ModelStencilDefinition(const MikanStencilModel& modelInfo)
+ModelStencilDefinition::ModelStencilDefinition(const MikanStencilModelInfo& modelInfo)
 	: StencilComponentDefinition(
 		modelInfo.stencil_id, 
 		modelInfo.parent_anchor_id, 
@@ -96,12 +96,12 @@ bool ModelStencilDefinition::hasValidDepthMesh() const
 	return false;
 }
 
-MikanStencilModel ModelStencilDefinition::getModelInfo() const
+MikanStencilModelInfo ModelStencilDefinition::getModelInfo() const
 {
 	const std::string& modelName = getComponentName();
 	GlmTransform xform = getRelativeTransform();
 
-	MikanStencilModel modelnfo = {};
+	MikanStencilModelInfo modelnfo = {};
 	modelnfo.stencil_id = m_stencilId;
 	modelnfo.parent_anchor_id = m_parentAnchorId;
 	modelnfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());

@@ -6,9 +6,9 @@ MikanStencilAPI::MikanStencilAPI(class MikanRequestManager* requestManager)
 	: m_requestManager(requestManager)
 {
 	m_requestManager->addResponseFactory<MikanStencilList>();
-	m_requestManager->addResponseFactory<MikanStencilQuad>();
-	m_requestManager->addResponseFactory<MikanStencilBox>();
-	m_requestManager->addResponseFactory<MikanStencilModel>();
+	m_requestManager->addResponseFactory<MikanStencilQuadInfo>();
+	m_requestManager->addResponseFactory<MikanStencilBoxInfo>();
+	m_requestManager->addResponseFactory<MikanStencilModelInfo>();
 }
 
 MikanResponseFuture MikanStencilAPI::getStencilList() // returns MikanStencilList

@@ -196,7 +196,7 @@ QuadStencilComponentPtr StencilObjectSystem::getQuadStencilByName(const std::str
 	return QuadStencilComponentPtr();
 }
 
-QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStencilQuad& stencilInfo)
+QuadStencilComponentPtr StencilObjectSystem::addNewQuadStencil(const MikanStencilQuadInfo& stencilInfo)
 {
 	StencilObjectSystemConfigPtr stencilSystemConfig = getStencilSystemConfig();
 
@@ -335,7 +335,7 @@ BoxStencilComponentPtr StencilObjectSystem::getBoxStencilByName(const std::strin
 	return BoxStencilComponentPtr();
 }
 
-BoxStencilComponentPtr StencilObjectSystem::addNewBoxStencil(const MikanStencilBox& stencilInfo)
+BoxStencilComponentPtr StencilObjectSystem::addNewBoxStencil(const MikanStencilBoxInfo& stencilInfo)
 {
 	StencilObjectSystemConfigPtr stencilSystemConfig = getStencilSystemConfig();
 
@@ -489,7 +489,7 @@ ModelStencilComponentPtr StencilObjectSystem::getModelStencilByName(const std::s
 	return ModelStencilComponentPtr();
 }
 
-ModelStencilComponentPtr StencilObjectSystem::addNewModelStencil(const MikanStencilModel& stencilInfo)
+ModelStencilComponentPtr StencilObjectSystem::addNewModelStencil(const MikanStencilModelInfo& stencilInfo)
 {
 	StencilObjectSystemConfigPtr stencilSystemConfig = getStencilSystemConfig();
 

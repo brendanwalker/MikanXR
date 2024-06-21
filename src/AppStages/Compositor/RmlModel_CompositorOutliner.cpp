@@ -278,7 +278,7 @@ void RmlModel_CompositorOutliner::addNewQuad(
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
 {
-	MikanStencilQuad quad = {};
+	MikanStencilQuadInfo quad = {};
 
 	quad.is_double_sided = true;
 	quad.parent_anchor_id = INVALID_MIKAN_ID;
@@ -299,7 +299,7 @@ void RmlModel_CompositorOutliner::addNewBox(
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
 {
-	MikanStencilBox box = {};
+	MikanStencilBoxInfo box = {};
 
 	box.parent_anchor_id = INVALID_MIKAN_ID;
 	box.relative_transform.position = {0.f, 0.f, 0.f};
@@ -320,7 +320,7 @@ void RmlModel_CompositorOutliner::addNewModel(
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
 {
-	MikanStencilModel model;
+	MikanStencilModelInfo model;
 
 	model.is_disabled = false;
 	model.parent_anchor_id = INVALID_MIKAN_ID;

@@ -14,12 +14,12 @@ class QuadStencilDefinition : public StencilComponentDefinition
 {
 public:
 	QuadStencilDefinition();
-	QuadStencilDefinition(const MikanStencilQuad& quadInfo);
+	QuadStencilDefinition(const MikanStencilQuadInfo& quadInfo);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStencilQuad getQuadInfo() const;
+	MikanStencilQuadInfo getQuadInfo() const;
 
 	static const std::string k_quadStencilWidthPropertyId;
 	float getQuadWidth() const { return m_quadWidth; }

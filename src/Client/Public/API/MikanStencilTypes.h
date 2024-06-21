@@ -5,9 +5,9 @@
 
 #include <vector>
 
-struct MikanStencilQuad : public MikanResponse
+struct MikanStencilQuadInfo : public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanStencilQuad";
+	inline static const std::string k_typeName = "MikanStencilQuadInfo";
 
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
@@ -18,12 +18,12 @@ struct MikanStencilQuad : public MikanResponse
 	bool is_disabled;
 	std::string stencil_name;
 
-	MikanStencilQuad() : MikanResponse(k_typeName) {}
+	MikanStencilQuadInfo() : MikanResponse(k_typeName) {}
 };
 
-struct MikanStencilBox : public MikanResponse
+struct MikanStencilBoxInfo : public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanStencilBox";
+	inline static const std::string k_typeName = "MikanStencilBoxInfo";
 
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
@@ -34,12 +34,12 @@ struct MikanStencilBox : public MikanResponse
 	bool is_disabled;
 	std::string stencil_name;
 
-	MikanStencilBox() : MikanResponse(k_typeName) {}
+	MikanStencilBoxInfo() : MikanResponse(k_typeName) {}
 };
 
-struct MikanStencilModel : public MikanResponse
+struct MikanStencilModelInfo : public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanStencilModel";
+	inline static const std::string k_typeName = "MikanStencilModelInfo";
 
 	MikanStencilID stencil_id; // filled in on allocation
 	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
@@ -47,7 +47,7 @@ struct MikanStencilModel : public MikanResponse
 	bool is_disabled;
 	std::string stencil_name;
 
-	MikanStencilModel() : MikanResponse(k_typeName) {}
+	MikanStencilModelInfo() : MikanResponse(k_typeName) {}
 };
 
 struct MikanStencilList : public MikanResponse

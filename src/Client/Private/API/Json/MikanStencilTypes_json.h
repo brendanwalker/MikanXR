@@ -21,7 +21,7 @@ inline void from_json(const nlohmann::json& j, MikanStencilList& p)
 }
 
 // MikanStencilQuad
-inline void to_json(nlohmann::json& j, const MikanStencilQuad& p)
+inline void to_json(nlohmann::json& j, const MikanStencilQuadInfo& p)
 {
 	nlohmann::to_json(j, static_cast<MikanResponse>(p));
 
@@ -40,7 +40,7 @@ inline void to_json(nlohmann::json& j, const MikanStencilQuad& p)
 		{"relative_transform", transformJson}
 	});
 }
-inline void from_json(const nlohmann::json& j, MikanStencilQuad& p)
+inline void from_json(const nlohmann::json& j, MikanStencilQuadInfo& p)
 {
 	from_json(j, static_cast<MikanResponse&>(p));
 	from_json(j.at("relative_transform"), p.relative_transform);
@@ -55,7 +55,7 @@ inline void from_json(const nlohmann::json& j, MikanStencilQuad& p)
 }
 
 // MikanStencilBox
-inline void to_json(nlohmann::json& j, const MikanStencilBox& p)
+inline void to_json(nlohmann::json& j, const MikanStencilBoxInfo& p)
 {
 	nlohmann::to_json(j, static_cast<MikanResponse>(p));
 
@@ -74,7 +74,7 @@ inline void to_json(nlohmann::json& j, const MikanStencilBox& p)
 		{"relative_transform", transformJson}
 	});
 }
-inline void from_json(const nlohmann::json& j, MikanStencilBox& p)
+inline void from_json(const nlohmann::json& j, MikanStencilBoxInfo& p)
 {
 	from_json(j, static_cast<MikanResponse&>(p));
 	from_json(j.at("relative_transform"), p.relative_transform);
@@ -89,7 +89,7 @@ inline void from_json(const nlohmann::json& j, MikanStencilBox& p)
 }
 
 // MikanStencilModel
-inline void to_json(nlohmann::json& j, const MikanStencilModel& p)
+inline void to_json(nlohmann::json& j, const MikanStencilModelInfo& p)
 {
 	nlohmann::to_json(j, static_cast<MikanResponse>(p));
 
@@ -105,7 +105,7 @@ inline void to_json(nlohmann::json& j, const MikanStencilModel& p)
 		{"relative_transform", transformJson}
 	});
 }
-inline void from_json(const nlohmann::json& j, MikanStencilModel& p)
+inline void from_json(const nlohmann::json& j, MikanStencilModelInfo& p)
 {
 	from_json(j, static_cast<MikanResponse&>(p));
 	from_json(j.at("relative_transform"), p.relative_transform);

@@ -26,17 +26,17 @@ public:
 	static const std::string k_quadStencilListPropertyId;
 	QuadStencilDefinitionConstPtr getQuadStencilConfigConst(MikanStencilID stencilId) const;
 	QuadStencilDefinitionPtr getQuadStencilConfig(MikanStencilID stencilId);
-	MikanStencilID addNewQuadStencil(const MikanStencilQuad& quad);
+	MikanStencilID addNewQuadStencil(const MikanStencilQuadInfo& quad);
 
 	static const std::string k_boxStencilListPropertyId;
 	BoxStencilDefinitionConstPtr getBoxStencilConfigConst(MikanStencilID stencilId) const;
 	BoxStencilDefinitionPtr getBoxStencilConfig(MikanStencilID stencilId);
-	MikanStencilID addNewBoxStencil(const MikanStencilBox& quad);
+	MikanStencilID addNewBoxStencil(const MikanStencilBoxInfo& quad);
 
 	static const std::string k_modelStencilListPropertyId;
 	ModelStencilDefinitionConstPtr getModelStencilConfigConst(MikanStencilID stencilId) const;
 	ModelStencilDefinitionPtr getModelStencilConfig(MikanStencilID stencilId);
-	MikanStencilID addNewModelStencil(const MikanStencilModel& model);
+	MikanStencilID addNewModelStencil(const MikanStencilModelInfo& model);
 
 	std::vector<QuadStencilDefinitionPtr> quadStencilList;
 	std::vector<BoxStencilDefinitionPtr> boxStencilList;
