@@ -29,6 +29,7 @@
 #include "MikanMathTypes_json.h"
 #include "MikanScriptTypes_json.h"
 #include "MikanSpatialAnchorTypes_json.h"
+#include "MikanStencilTypes_json.h"
 #include "MikanVideoSourceTypes_json.h"
 #include "MikanVRDeviceTypes_json.h"
 
@@ -337,10 +338,13 @@ bool MikanServer::startup()
 	m_messageServer->setRequestHandler("allocateRenderTargetTextures", std::bind(&MikanServer::allocateRenderTargetTextures, this, _1, _2));
 	m_messageServer->setRequestHandler("freeRenderTargetTextures", std::bind(&MikanServer::freeRenderTargetTextures, this, _1, _2));
 	m_messageServer->setRequestHandler("frameRendered", std::bind(&MikanServer::frameRendered, this, _1, _2));	
-	m_messageServer->setRequestHandler("getStencilList", std::bind(&MikanServer::getStencilList, this, _1, _2));
+	m_messageServer->setRequestHandler("getQuadStencilList", std::bind(&MikanServer::getQuadStencilList, this, _1, _2));
 	m_messageServer->setRequestHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
+	m_messageServer->setRequestHandler("getBoxStencilList", std::bind(&MikanServer::getBoxStencilList, this, _1, _2));
 	m_messageServer->setRequestHandler("getBoxStencil", std::bind(&MikanServer::getBoxStencil, this, _1, _2));
+	m_messageServer->setRequestHandler("getModelStencilList", std::bind(&MikanServer::getModelStencilList, this, _1, _2));
 	m_messageServer->setRequestHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
+	m_messageServer->setRequestHandler("getModelStencilRenderGeometry", std::bind(&MikanServer::getModelStencilRenderGeometry, this, _1, _2));	
 	m_messageServer->setRequestHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
 	m_messageServer->setRequestHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
 	m_messageServer->setRequestHandler("findSpatialAnchorInfoByName", std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));
@@ -1032,7 +1036,7 @@ void MikanServer::frameRendered(
 	}
 }
 
-void MikanServer::getStencilList(
+void MikanServer::getQuadStencilList(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1072,6 +1076,21 @@ void MikanServer::getQuadStencil(
 	}
 }
 
+void MikanServer::getBoxStencilList(
+	const ClientRequest& request,
+	ClientResponse& response)
+{
+	MikanStencilList stencilListResult = {};
+
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	for (BoxStencilDefinitionPtr boxConfig : stencilSystemConfig->boxStencilList)
+	{
+		stencilListResult.stencil_id_list.push_back(boxConfig->getStencilId());
+	}
+
+	writeTypedJsonResponse(request.requestId, stencilListResult, response);
+}
+
 void MikanServer::getBoxStencil(
 	const ClientRequest& request,
 	ClientResponse& response)
@@ -1095,6 +1114,21 @@ void MikanServer::getBoxStencil(
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_InvalidStencilID, response);
 	}
+}
+
+void MikanServer::getModelStencilList(
+	const ClientRequest& request,
+	ClientResponse& response)
+{
+	MikanStencilList stencilListResult = {};
+
+	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	for (ModelStencilDefinitionPtr modelConfig : stencilSystemConfig->modelStencilList)
+	{
+		stencilListResult.stencil_id_list.push_back(modelConfig->getStencilId());
+	}
+
+	writeTypedJsonResponse(request.requestId, stencilListResult, response);
 }
 
 void MikanServer::getModelStencil(

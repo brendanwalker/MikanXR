@@ -55,10 +55,10 @@ namespace MikanXR
 			return _requestManager.SendRequestWithPayload<int>(k_getModelStencil, stencilId);
 		}
 
-		private static readonly string k_getModelStencilMesh = "getModelStencilMesh";
-		public Task<MikanResponse> getModelStencilMesh(int stencilId) // returns MikanStencilModelMesh
+		private static readonly string k_getModelStencilRenderGeometry = "getModelStencilRenderGeometry";
+		public Task<MikanResponse> getModelStencilRenderGeometry(int stencilId) // returns MikanStencilModelMesh
 		{
-			return _requestManager.SendRequestWithPayload<int>(k_getModelStencilMesh, stencilId);
+			return _requestManager.SendRequestWithPayload<int>(k_getModelStencilRenderGeometry, stencilId);
 		}
 	}
 }

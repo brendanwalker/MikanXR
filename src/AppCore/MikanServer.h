@@ -88,9 +88,11 @@ protected:
 	void freeRenderTargetTextures(const ClientRequest& request, ClientResponse& response);
 	void frameRendered(const ClientRequest& request, ClientResponse& response);
 
-	void getStencilList(const ClientRequest& request, ClientResponse& response);
+	void getQuadStencilList(const ClientRequest& request, ClientResponse& response);
 	void getQuadStencil(const ClientRequest& request, ClientResponse& response);
+	void getBoxStencilList(const ClientRequest& request, ClientResponse& response);
 	void getBoxStencil(const ClientRequest& request, ClientResponse& response);
+	void getModelStencilList(const ClientRequest& request, ClientResponse& response);
 	void getModelStencil(const ClientRequest& request, ClientResponse& response);
 	void getModelStencilRenderGeometry(const ClientRequest& request, ClientResponse& response);
 

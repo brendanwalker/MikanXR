@@ -155,6 +155,56 @@ inline void from_json(const nlohmann::json& j, MikanAnchorListUpdateEvent& p)
 	from_json(j, static_cast<MikanEvent&>(p));
 }
 
+// MikanStencilPoseUpdateEvent
+inline void to_json(nlohmann::json& j, const MikanStencilPoseUpdateEvent& p)
+{
+	nlohmann::to_json(j, static_cast<MikanEvent>(p));
+
+	nlohmann::json transformJson;
+	to_json(transformJson, p.transform);
+
+	j.update({
+		{"transform", transformJson},
+		{"stencil_id", p.stencil_id}
+	});
+}
+inline void from_json(const nlohmann::json& j, MikanStencilPoseUpdateEvent& p)
+{
+	from_json(j, static_cast<MikanEvent&>(p));
+	from_json(j.at("transform"), p.transform);
+	j.at("stencil_id").get_to(p.stencil_id);
+}
+
+// MikanQuadStencilListUpdateEvent
+inline void to_json(nlohmann::json& j, const MikanQuadStencilListUpdateEvent& p)
+{
+	nlohmann::to_json(j, static_cast<MikanEvent>(p));
+}
+inline void from_json(const nlohmann::json& j, MikanQuadStencilListUpdateEvent& p)
+{
+	from_json(j, static_cast<MikanEvent&>(p));
+}
+
+// MikanBoxStencilListUpdateEvent
+inline void to_json(nlohmann::json& j, const MikanBoxStencilListUpdateEvent& p)
+{
+	nlohmann::to_json(j, static_cast<MikanEvent>(p));
+}
+inline void from_json(const nlohmann::json& j, MikanBoxStencilListUpdateEvent& p)
+{
+	from_json(j, static_cast<MikanEvent&>(p));
+}
+
+// MikanModelStencilListUpdateEvent
+inline void to_json(nlohmann::json& j, const MikanModelStencilListUpdateEvent& p)
+{
+	nlohmann::to_json(j, static_cast<MikanEvent>(p));
+}
+inline void from_json(const nlohmann::json& j, MikanModelStencilListUpdateEvent& p)
+{
+	from_json(j, static_cast<MikanEvent&>(p));
+}
+
 // MikanScriptMessagePostedEvent
 inline void to_json(nlohmann::json& j, const MikanScriptMessagePostedEvent& p)
 {
