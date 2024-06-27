@@ -107,7 +107,8 @@ bool SdlWindow::startup()
 			// While in this GL context scope, all GL calls will be made to this window
 			App::getInstance()->pushCurrentGLContext(m_owner);
 
-			SDL_GL_SetSwapInterval(1); // Enable vsync
+			// For now, disable vsync to since it causes SDL_GL_SwapWindow to subvert the frame delay
+			SDL_GL_SetSwapInterval(0);
 		}
 		else
 		{
