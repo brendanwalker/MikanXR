@@ -22,6 +22,7 @@ public:
 
 	inline int getFrameWidth() const { return m_frameWidth; }
 	inline int getFrameHeight() const { return m_frameHeight; }
+	inline float getFPS() const { return m_fps; }
 
 	inline eVideoDisplayMode getVideoDisplayMode() const { return m_videoDisplayMode; }
 	inline void setVideoDisplayMode(eVideoDisplayMode newMode) { m_videoDisplayMode= newMode; }
@@ -62,6 +63,7 @@ protected:
 	VideoSourceViewPtr m_videoSourceView;
 	int m_frameWidth;
 	int m_frameHeight;
+	float m_fps;
 	
 	// Circular BGR source buffer
 	struct SourceBufferEntry
@@ -73,6 +75,7 @@ protected:
 	unsigned int m_bgrSourceBufferCount;
 	unsigned int m_bgrSourceBufferWriteIndex;
 	uint64_t m_lastVideoFrameReadIndex;
+	uint32_t m_lastFrameTimestamp;
 
 	// Video frame buffers (24-BPP, BGR color format)
 	cv::Mat* m_bgrSourceBuffer_OGL; // 24-BPP(BGR color format) source buffer on GPU

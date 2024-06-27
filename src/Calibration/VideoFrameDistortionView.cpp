@@ -14,6 +14,8 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
+#include "SDL_timer.h"
+
 #include "assert.h"
 
 #include <easy/profiler.h>
@@ -48,11 +50,13 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_videoSourceView(view)
 	, m_frameWidth((int)view->getFrameWidth())
 	, m_frameHeight((int)view->getFrameHeight())
+	, m_fps(0.f)
 	// Video frame buffers
 	, m_bgrSourceBuffers(nullptr)
 	, m_bgrSourceBufferCount(frameQueueSize)
 	, m_bgrSourceBufferWriteIndex(0)
 	, m_lastVideoFrameReadIndex(0)
+	, m_lastFrameTimestamp(0)
 	, m_bgrUndistortBuffer(nullptr)
 	// Grayscale video frame buffers
 	, m_gsSourceBuffer(nullptr)
@@ -177,6 +181,11 @@ uint64_t VideoFrameDistortionView::readNextVideoFrame()
 	cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].bgrSourceBuffer;
 	if (m_videoSourceView->hasNewVideoFrameAvailable(VideoFrameSection::Primary))
 	{
+		const uint32_t now = SDL_GetTicks();
+		const float deltaSeconds = fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
+		m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
+		m_lastFrameTimestamp = now;
+
 		m_lastVideoFrameReadIndex= m_videoSourceView->readVideoFrameSectionBuffer(VideoFrameSection::Primary, bgrSourceBuffer);
 		m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].frameIndex= m_lastVideoFrameReadIndex;
 		m_bgrSourceBufferWriteIndex = (m_bgrSourceBufferWriteIndex + 1) % m_bgrSourceBufferCount;

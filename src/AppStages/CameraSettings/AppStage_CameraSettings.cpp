@@ -5,8 +5,10 @@
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
+#include "GlTextRenderer.h"
 #include "MainWindow.h"
 #include "ProfileConfig.h"
+#include "TextStyle.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
@@ -163,9 +165,21 @@ void AppStage_CameraSettings::onVideoSourceChanged(const std::string& newVideoSo
 
 void AppStage_CameraSettings::render()
 {
+
 	if (m_videoBufferView != nullptr)
 	{
+		const float windowHeight = m_ownerWindow->getHeight();
+
 		m_videoBufferView->renderSelectedVideoBuffers();
+
+		// Always draw the FPS in the lower right
+		TextStyle style = getDefaultTextStyle();
+		style.horizontalAlignment = eHorizontalTextAlignment::Left;
+		style.verticalAlignment = eVerticalTextAlignment::Bottom;
+		drawTextAtScreenPosition(
+			style,
+			glm::vec2(0.f, windowHeight - 1),
+			L"Camera %.1ffps", m_videoBufferView->getFPS());
 	}
 }
 
