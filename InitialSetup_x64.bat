@@ -163,34 +163,6 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-:: Download and make a build of RmlUi with some custom build settings
-echo "Downloading RML source..."
-curl -L https://github.com/mikke89/RmlUi/archive/refs/tags/4.4.zip --output RML.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error RML.zip"
-  goto failure
-)
-7z e RML.zip -y -r -spf -oRML
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping RML.zip"
-  goto failure
-)
-set LUA_DIR=%~dp0\thirdparty\lua
-pushd RML\RmlUi-4.4
-pushd Dependencies
-mkdir lib
-copy ..\..\..\freetype-windows-binaries-2.10.4\win64\freetype.lib lib\freetype.lib
-robocopy ..\..\..\freetype-windows-binaries-2.10.4\include include /s /e
-popd
-echo "Configuring RML project..."
-cmake -B Build -S . -DBUILD_SAMPLES=OFF -DBUILD_LUA_BINDINGS=ON
-echo "Building RML Debug config..."
-cmake --build Build --config Debug
-echo "Building RML Release config..."
-cmake --build Build --config Release
-popd
-set "LUA_DIR="
-
 :: NuGet tool used to fetch c# packages
 echo "Downloading nuget..."
 curl -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe --output nuget.exe

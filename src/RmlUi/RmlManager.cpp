@@ -25,8 +25,6 @@
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/EventListenerInstancer.h>
-// Mikan extensions for RmlUI
-#include "RmlMikanPlugin.h"
 
 #include "SDL_clipboard.h"
 #include "SDL_timer.h"
@@ -160,7 +158,6 @@ bool RmlManager::preRendererStartup()
 	// Tell the UI libary this class implements the RML System Interface
 	Rml::SetSystemInterface(this);
 	Rml::SetFileInterface(new RmlMikanFileInterface());
-	Rml::Mikan::Initialise();
 	Rml::Factory::RegisterEventListenerInstancer(m_rmlEventInstancer);
 
 	return true;

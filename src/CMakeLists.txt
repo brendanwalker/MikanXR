@@ -515,10 +515,11 @@ list(APPEND MIKAN_REQ_LIBS
   ${FFMPEG_avutil_LIBRARY}
   ${FFMPEG_swscale_LIBRARY}
   ${LUA_LIBRARIES}
-  ${RMLUI_LIBRARIES}
   easy_profiler
   fast_obj_lib
-  ixwebsocket)
+  ixwebsocket
+  RmlCore
+  RmlDebugger)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -773,14 +774,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy 
     "${LUA_SHARED_LIBRARIES}" 
     $<TARGET_FILE_DIR:Mikan>)
-  add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
-    "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-    "${RMLUI_BINARIES_DIR}/RmlLua.dll"
-    "${FREETYPE_SHARED_LIBRARY}"
-    $<TARGET_FILE_DIR:Mikan>)
 ELSE() #Linux/Darwin
 ENDIF()
 
@@ -860,21 +853,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       CONFIGURATIONS Debug
       DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
   install(FILES "${LUA_SHARED_LIBRARIES}"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
-      
-  install(FILES 
-      "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlLua.dll"
-      "${FREETYPE_SHARED_LIBRARY}"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlLua.dll"
-      "${FREETYPE_SHARED_LIBRARY}"
       CONFIGURATIONS Release
       DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
       

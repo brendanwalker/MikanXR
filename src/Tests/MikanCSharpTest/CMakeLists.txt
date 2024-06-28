@@ -89,12 +89,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll
           $<TARGET_FILE_DIR:MikanCSharpTest>)
-  add_custom_command(
-    TARGET MikanCSharpTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:MikanCore>/MikanCore.pdb
-          $<TARGET_FILE_DIR:MikanCSharpTest>)		  
-		  
+	  
 ELSE() #Linux/Darwin
 ENDIF()
 
