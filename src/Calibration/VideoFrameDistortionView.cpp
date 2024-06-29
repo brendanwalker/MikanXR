@@ -183,7 +183,8 @@ uint64_t VideoFrameDistortionView::readNextVideoFrame()
 	{
 		const uint32_t now = SDL_GetTicks();
 		const float deltaSeconds = fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
-		m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
+		const float fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
+		m_fps = (m_fps * 0.9f) + (fps * 0.1f);
 		m_lastFrameTimestamp = now;
 
 		m_lastVideoFrameReadIndex= m_videoSourceView->readVideoFrameSectionBuffer(VideoFrameSection::Primary, bgrSourceBuffer);

@@ -162,6 +162,45 @@ const VideoModeConfig *VideoCapabilitiesConfig::findVideoMode(const std::string 
 	return nullptr;
 }
 
+const VideoModeConfig* VideoCapabilitiesConfig::findMostCompatibleVideoMode(
+	int width, 
+	int height, 
+	float fps,
+	const std::string& bufferFormat) const
+{
+	const VideoModeConfig* best_mode= nullptr;
+	int best_score= 0;
+
+	for (const VideoModeConfig& mode_config : supportedModes)
+	{
+		int score= 0;
+
+		if (mode_config.bufferPixelWidth == width && mode_config.bufferPixelHeight == height)
+		{
+			score+= 1;
+		}
+
+		if (mode_config.frameRate == fps)
+		{
+			score+= 1;
+		}
+
+		if (mode_config.bufferFormat == bufferFormat)
+		{
+			score += 1;
+		}
+
+		if (score > best_score)
+		{
+			best_score= score;
+			best_mode= &mode_config;
+		}
+	}
+
+	return best_mode;
+
+}
+
 void VideoCapabilitiesConfig::getAvailableVideoModes(std::vector<std::string> &out_mode_names) const
 {
 	out_mode_names.clear();

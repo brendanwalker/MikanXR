@@ -173,6 +173,12 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
 
 		    // Find the camera mode by name
 		    m_currentMode= m_capabilities->findVideoMode(m_cfg->current_mode);
+			if (m_currentMode == nullptr)
+			{
+				m_currentMode= 
+					m_capabilities->findMostCompatibleVideoMode(
+						1280, 720, 30, CAMERA_BUFFER_FORMAT_MJPG);
+			}
 		    if (m_currentMode != nullptr)
 		    {
 			    // Copy the tracker intrinsics over from the capabilities

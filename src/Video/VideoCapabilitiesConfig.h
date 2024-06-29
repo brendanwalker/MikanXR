@@ -50,6 +50,8 @@ public:
 
 	int findVideoModeIndex(const std::string& mode_name) const;
 	const VideoModeConfig* findVideoMode(const std::string &mode_name) const;
+	const VideoModeConfig* findMostCompatibleVideoMode(
+		int width, int height, float fps, const std::string& bufferFormat) const;
 	void getAvailableVideoModes(std::vector<std::string> &out_mode_names) const;
 
 	std::string friendlyName;

@@ -351,6 +351,17 @@ static bool FetchDeviceInfo(IMFActivate **wmfDeviceList, int wmfDeviceIndex, WMF
 
 				hr= S_OK;
 			}
+			// Streamed camera symbolic link
+			else if (sscanf_s(
+				szDeviceSymbolicLink, "\\\\?\\root#image#%x#{%36s}\\global",
+				&symLinkIndex, symLinkGuid, (unsigned)_countof(symLinkGuid)) == 2)
+			{
+				deviceInfo.usbProductId = -1;
+				deviceInfo.usbVendorId = -1;
+				deviceInfo.uniqueIdentifier = symLinkGuid;
+
+				hr = S_OK;
+			}
 			else
 			{
 				hr= E_FAIL;
