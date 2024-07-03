@@ -462,7 +462,7 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 		{
 			const std::string& uniformName= it->first;
 			GlTexturePtr texture= it->second;
-			int textureUnit;
+			int textureUnit= 0;
 
 			if (texture &&
 				program->getUniformTextureUnit(uniformName, textureUnit) &&
@@ -503,7 +503,7 @@ void GlMaterialInstance::unbindMaterialInstance() const
 		const std::string& uniformName = it->first;
 		GlTexturePtr texture = it->second;
 
-		int textureUnit;
+		int textureUnit= 0;
 		if (m_parentMaterial->getProgram()->getUniformTextureUnit(uniformName, textureUnit))
 		{
 			it->second->clearTexture(textureUnit);

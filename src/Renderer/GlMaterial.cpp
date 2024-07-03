@@ -412,7 +412,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 			case eUniformDataType::datatype_texture:
 				{
 					GlTexturePtr texture;
-					int textureUnit;
+					int textureUnit= 0;
 					if (m_textureSources.tryGetValue(uniformName, texture) && 
 						m_program->getUniformTextureUnit(uniformName, textureUnit))
 					{
