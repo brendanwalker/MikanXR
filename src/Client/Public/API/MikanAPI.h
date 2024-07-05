@@ -36,10 +36,13 @@ public:
 	IMikanStencilAPI() {}
 	virtual ~IMikanStencilAPI() {}
 
-	virtual MikanResponseFuture getStencilList() = 0; // returns MikanStencilList
+	virtual MikanResponseFuture getQuadStencilList() = 0; // returns MikanStencilList
 	virtual MikanResponseFuture getQuadStencil(MikanStencilID stencilId) = 0; // returns MikanStencilQuad
+	virtual MikanResponseFuture getBoxStencilList() = 0; // returns MikanStencilList
 	virtual MikanResponseFuture getBoxStencil(MikanStencilID stencilId) = 0; // returns MikanStencilBox
+	virtual MikanResponseFuture getModelStencilList() = 0; // returns MikanStencilList
 	virtual MikanResponseFuture getModelStencil(MikanStencilID stencilId) = 0; // returns MikanStencilModel
+	virtual MikanResponseFuture getModelStencilRenderGeometry(MikanStencilID stencilId) = 0; // returns MikanStencilModel
 };
 
 // -- Video Source API -----

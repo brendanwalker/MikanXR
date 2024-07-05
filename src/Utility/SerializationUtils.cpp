@@ -1,5 +1,6 @@
 #include "SerializationUtils.h"
 #include <cstring>
+#include <stdexcept>
 
 namespace SerializationUtils
 {
@@ -271,4 +272,85 @@ void to_binary(BinaryWriter& writer, const std::string& inString)
 
 	to_binary(writer, (int32_t)stringLength);
 	writer.appendBytes((const uint8_t*)inString.c_str(), stringLength);
+}
+
+// -- BinaryReader -----
+BinaryReader::BinaryReader(const uint8_t* buffer, size_t bufferSize)
+	: m_buffer(buffer), m_bufferSize(bufferSize), m_bytesRead(0)
+{
+}
+
+uint8_t BinaryReader::readByte()
+{
+	if (m_bytesRead >= m_bufferSize)
+	{
+		throw std::out_of_range("BinaryReader::readByte() - No more bytes to read");
+	}
+
+	return m_buffer[m_bytesRead++];
+}
+
+void BinaryReader::readBytes(uint8_t* outBuffer, size_t byteCount)
+{
+	if (m_bytesRead + byteCount > m_bufferSize)
+	{
+		throw std::out_of_range("BinaryReader::readBytes() - Not enough bytes to read");
+	}
+
+	std::memmove(outBuffer, m_buffer + m_bytesRead, byteCount);
+	m_bytesRead += byteCount;
+}
+
+uint8_t* BinaryReader::readBytesNoCopy(size_t byteCount)
+{
+	if (m_bytesRead + byteCount > m_bufferSize)
+	{
+		throw std::out_of_range("BinaryReader::readBytesNoCopy() - Not enough bytes to read");
+	}
+
+	uint8_t* result = const_cast<uint8_t*>(m_buffer + m_bytesRead);
+	m_bytesRead += byteCount;
+
+	return result;
+}
+
+void from_binary(BinaryReader& reader, bool& outValue)
+{
+	outValue= reader.readByte() != 0;
+}
+
+void from_binary(BinaryReader& reader, int16_t& outValue)
+{
+	std::array<uint8_t, sizeof(int16_t)> value;
+	reader.readBytes(value.data(), sizeof(int16_t));
+	outValue= SerializationUtils::read_int16(value.data(), SerializationUtils::Endian::Little);
+}
+
+void from_binary(BinaryReader& reader, int32_t& outValue)
+{
+	std::array<uint8_t, sizeof(int32_t)> value;
+	reader.readBytes(value.data(), sizeof(int32_t));
+	outValue = SerializationUtils::read_int32(value.data(), SerializationUtils::Endian::Little);
+}
+
+void from_binary(BinaryReader& reader, float& outValue)
+{
+	std::array<uint8_t, sizeof(float)> value;
+	reader.readBytes(value.data(), sizeof(float));
+	outValue = SerializationUtils::read_float(value.data(), SerializationUtils::Endian::Little);
+}
+
+void from_binary(BinaryReader& reader, double& outValue)
+{
+	std::array<uint8_t, sizeof(double)> value;
+	reader.readBytes(value.data(), sizeof(double));
+	outValue = SerializationUtils::read_double(value.data(), SerializationUtils::Endian::Little);
+}
+
+void from_binary(BinaryReader& reader, std::string& outString)
+{
+	int32_t stringLength;
+	from_binary(reader, stringLength);
+
+	outString= std::string((const char*)reader.readBytesNoCopy(stringLength), stringLength);
 }

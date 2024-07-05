@@ -18,8 +18,11 @@ MikanClient::MikanClient()
 	, m_renderTargetWriter(new InterprocessRenderTargetWriteAccessor(m_clientUniqueID))
 	, m_messageClient(new WebsocketInterprocessMessageClient())
 {
-	m_messageClient->setResponseHandler([this](const std::string& utf8ResponseString) {
-		responseHandler(utf8ResponseString);
+	m_messageClient->setTextResponseHandler([this](const std::string& utf8ResponseString) {
+		textResponseHandler(utf8ResponseString);
+	});
+	m_messageClient->setBinaryResponseHandler([this](const uint8_t* buffer, size_t bufferSize) {
+		binaryResponseHandler(buffer, bufferSize);
 	});
 }
 
@@ -103,10 +106,18 @@ MikanResult MikanClient::fetchNextEvent(
 	return MikanResult_NotConnected;
 }
 
-MikanResult MikanClient::setResponseCallback(MikanResponseCallback callback, void* callback_userdata)
+MikanResult MikanClient::setTextResponseCallback(MikanTextResponseCallback callback, void* callback_userdata)
 {
-	m_responseCallback= callback;
-	m_responseCallbackUserData= callback_userdata;
+	m_textResponseCallback= callback;
+	m_textResponseCallbackUserData= callback_userdata;
+
+	return MikanResult_Success;
+}
+
+MikanResult MikanClient::setBinaryResponseCallback(MikanBinaryResponseCallback callback, void* callback_userdata)
+{
+	m_binaryResponseCallback = callback;
+	m_binaryResponseCallbackUserData = callback_userdata;
 
 	return MikanResult_Success;
 }
@@ -151,19 +162,19 @@ MikanResult MikanClient::sendRequest(
 	return MikanResult_NotConnected;
 }
 
-void MikanClient::responseHandler(const std::string& utf8ResponseString)
+void MikanClient::textResponseHandler(const std::string& utf8ResponseString)
 {
-	if (m_responseCallback != nullptr)
+	if (m_textResponseCallback != nullptr)
 	{
 		JsonSaxIntegerValueSearcher searcher;
 		int requestId = -1;
 
 		if (searcher.fetchKeyValuePair(utf8ResponseString, "requestId", requestId))
 		{
-			m_responseCallback(
+			m_textResponseCallback(
 				(MikanRequestID)requestId,
 				utf8ResponseString.c_str(),
-				m_responseCallbackUserData);
+				m_textResponseCallbackUserData);
 		}
 		else
 		{
@@ -174,6 +185,18 @@ void MikanClient::responseHandler(const std::string& utf8ResponseString)
 	else
 	{
 		MIKAN_MT_LOG_WARNING("MikanClient::responseHandler()") << "No response callback set";
+	}
+}
+
+void MikanClient::binaryResponseHandler(const uint8_t* buffer, size_t bufferSize)
+{
+	if (m_binaryResponseCallback != nullptr)
+	{
+		m_binaryResponseCallback(buffer, bufferSize, m_binaryResponseCallbackUserData);
+	}
+	else
+	{
+		MIKAN_MT_LOG_WARNING("MikanClient::binaryResponseHandler()") << "No binary response callback set";
 	}
 }
 

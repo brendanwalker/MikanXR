@@ -25,7 +25,8 @@ public:
 	MikanResult connect(const std::string& host, const std::string& port);
 	MikanResult disconnect();
 	MikanResult fetchNextEvent(size_t utf8_buffer_size, char* out_utf8_buffer, size_t* out_utf8_bytes_written);
-	MikanResult setResponseCallback(MikanResponseCallback callback, void* callback_userdata);
+	MikanResult setTextResponseCallback(MikanTextResponseCallback callback, void* callback_userdata);
+	MikanResult setBinaryResponseCallback(MikanBinaryResponseCallback callback, void* callback_userdata);
 	MikanResult sendRequest(const char* utf8_request_name, const char* utf8_payload, int request_version, MikanRequestID* out_request_id);
 	MikanResult shutdown();
 
@@ -40,11 +41,14 @@ public:
 	void* getPackDepthTextureResourcePtr() const;
 
 protected:
-	void responseHandler(const std::string& utf8ResponseString);
+	void textResponseHandler(const std::string& utf8ResponseString);
+	void binaryResponseHandler(const uint8_t* buffer, size_t bufferSize);
 
 private:
-	MikanResponseCallback m_responseCallback= nullptr;
-	void* m_responseCallbackUserData= nullptr;
+	MikanTextResponseCallback m_textResponseCallback= nullptr;
+	void* m_textResponseCallbackUserData= nullptr;
+	MikanBinaryResponseCallback m_binaryResponseCallback = nullptr;
+	void* m_binaryResponseCallbackUserData= nullptr;
 	MikanRequestID m_next_request_id = 0;
 
 	std::string m_clientUniqueID;

@@ -41,8 +41,12 @@ public:
 	inline WebSocketPtr getWebSocket() { return m_websocket; }
 
 	inline LockFreeEventQueuePtr getServerEventQueue() { return m_eventQueue; }
-	inline void setResponseHandler(IInterprocessMessageClient::ResponseHandler handler) { 
-		m_responseHandler= handler;  
+	inline void setTextResponseHandler(IInterprocessMessageClient::TextResponseHandler handler) { 
+		m_textResponseHandler= handler;  
+	}
+	inline void setBinaryResponseHandler(IInterprocessMessageClient::BinaryResponseHandler handler)
+	{
+		m_binaryResponseHandler = handler;
 	}
 
 	void setClientInfoString(const std::string& clientInfo)
@@ -115,9 +119,9 @@ public:
 						}
 						else if (searcher.hasKey(msg->str, "responseType"))
 						{
-							if (m_responseHandler != nullptr)
+							if (m_textResponseHandler != nullptr)
 							{
-								m_responseHandler(msg->str);
+								m_textResponseHandler(msg->str);
 							}
 							else
 							{
@@ -133,8 +137,19 @@ public:
 					}
 					else
 					{
-						MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage")
-							<< "Received unsupported binary message";
+						// Binary message always assumed to	be a response (and not an event)
+						if (m_binaryResponseHandler != nullptr)
+						{
+							const uint8_t* buffer= reinterpret_cast<const uint8_t*>(msg->str.c_str());
+							const size_t bufferSize= msg->wireSize;
+
+							m_binaryResponseHandler(buffer, bufferSize);
+						}
+						else
+						{
+							MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage")
+								<< "Received binary message but no handler set";
+						}
 					}
 				} break;
 			case ix::WebSocketMessageType::Error:
@@ -164,7 +179,8 @@ private:
 	WebSocketPtr m_websocket;
 	ix::WebSocketHttpHeaders m_headers;
 	LockFreeEventQueuePtr m_eventQueue;
-	IInterprocessMessageClient::ResponseHandler m_responseHandler;
+	IInterprocessMessageClient::TextResponseHandler m_textResponseHandler;
+	IInterprocessMessageClient::BinaryResponseHandler m_binaryResponseHandler;
 	std::string m_clientInfo;
 };
 
@@ -205,9 +221,16 @@ MikanResult WebsocketInterprocessMessageClient::setClientInfo(const std::string&
 	return MikanResult_GeneralError;
 }
 
-void WebsocketInterprocessMessageClient::setResponseHandler(IInterprocessMessageClient::ResponseHandler handler) 
+void WebsocketInterprocessMessageClient::setTextResponseHandler(
+	IInterprocessMessageClient::TextResponseHandler handler) 
 { 
-	m_connectionState->setResponseHandler(handler);
+	m_connectionState->setTextResponseHandler(handler);
+}
+
+void WebsocketInterprocessMessageClient::setBinaryResponseHandler(
+	IInterprocessMessageClient::BinaryResponseHandler handler)
+{
+	m_connectionState->setBinaryResponseHandler(handler);
 }
 
 MikanResult WebsocketInterprocessMessageClient::connect(const std::string& host, const std::string& port)

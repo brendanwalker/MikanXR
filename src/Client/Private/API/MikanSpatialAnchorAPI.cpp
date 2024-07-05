@@ -5,8 +5,8 @@
 MikanSpatialAnchorAPI::MikanSpatialAnchorAPI(class MikanRequestManager* requestManager)
 	: m_requestManager(requestManager)
 {
-	m_requestManager->addResponseFactory<MikanSpatialAnchorList>();
-	m_requestManager->addResponseFactory<MikanSpatialAnchorInfo>();
+	m_requestManager->addTextResponseFactory<MikanSpatialAnchorList>();
+	m_requestManager->addTextResponseFactory<MikanSpatialAnchorInfo>();
 }
 
 MikanResponseFuture MikanSpatialAnchorAPI::getSpatialAnchorList()

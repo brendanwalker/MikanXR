@@ -78,3 +78,56 @@ inline void to_binary(BinaryWriter& writer, const std::vector<T>& inVector)
 		to_binary(writer, value);
 	}
 }
+
+class BinaryReader
+{
+public:
+	BinaryReader() = delete;
+	BinaryReader(const uint8_t* buffer, size_t bufferSize);
+
+	uint8_t readByte();
+	void readBytes(uint8_t* outBuffer, size_t byteCount);
+	uint8_t* readBytesNoCopy(size_t byteCount);
+
+	template<int Count>
+	void readBytes(std::array<uint8_t, Count>& outBuffer)
+	{
+		readBytes(outBuffer.data(), Count);
+	}
+
+private:
+	const uint8_t* m_buffer;
+	size_t m_bufferSize;
+	size_t m_bytesRead;
+};
+
+void from_binary(BinaryReader& reader, bool& outValue);
+void from_binary(BinaryReader& reader, int16_t& outValue);
+void from_binary(BinaryReader& reader, int32_t& outValue);
+void from_binary(BinaryReader& reader, float& outValue);
+void from_binary(BinaryReader& reader, double& outValue);
+void from_binary(BinaryReader& reader, std::string& outString);
+
+template<typename T, int Count>
+inline void from_binary(BinaryReader& reader, std::array<T, Count>& outArray)
+{
+	from_binary(reader, Count);
+
+	for (const T& value : outArray)
+	{
+		from_binary(reader, value);
+	}
+}
+
+template<typename T>
+inline void from_binary(BinaryReader& reader, std::vector<T>& outVector)
+{
+	int32_t count;
+	from_binary(reader, count);
+
+	outVector.reserve(count);
+	for (T& value : outVector)
+	{
+		from_binary(reader, value);
+	}
+}

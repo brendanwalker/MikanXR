@@ -9,6 +9,7 @@
 #include "MikanSpatialAnchorAPI.h"
 
 #include "MikanAPITypes_json.h"
+#include "MikanAPITypes_binary.h"
 #include "MikanEventTypes_json.h"
 
 class MikanAPI : public IMikanAPI
@@ -24,7 +25,8 @@ public:
 		, m_spatialAnchorAPI(std::make_unique<MikanSpatialAnchorAPI>(m_requestManager.get()))
 	{
 		// Register base response types (child API classes will register their own types)
-		m_requestManager->addResponseFactory<MikanResponse>();
+		m_requestManager->addTextResponseFactory<MikanResponse>();
+		m_requestManager->addBinaryResponseFactory<MikanResponse>();
 
 		// Register all event types
 		m_eventManager->addEventFactory<MikanConnectedEvent>();

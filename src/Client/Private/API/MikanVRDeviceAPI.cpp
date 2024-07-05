@@ -5,8 +5,8 @@
 MikanVRDeviceAPI::MikanVRDeviceAPI(MikanRequestManager* requestManager)
 	: m_requestManager(requestManager)
 {
-	m_requestManager->addResponseFactory<MikanVRDeviceList>();
-	m_requestManager->addResponseFactory<MikanVRDeviceInfo>();
+	m_requestManager->addTextResponseFactory<MikanVRDeviceList>();
+	m_requestManager->addTextResponseFactory<MikanVRDeviceInfo>();
 }
 
 MikanResponseFuture MikanVRDeviceAPI::getVRDeviceList() // returns MikanVRDeviceList

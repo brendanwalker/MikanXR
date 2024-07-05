@@ -5,9 +5,9 @@
 MikanVideoSourceAPI::MikanVideoSourceAPI(MikanRequestManager* requestManager)
 	: m_requestManager(requestManager)
 {
-	m_requestManager->addResponseFactory<MikanVideoSourceIntrinsics>();
-	m_requestManager->addResponseFactory<MikanVideoSourceMode>();
-	m_requestManager->addResponseFactory<MikanVideoSourceAttachmentInfo>();
+	m_requestManager->addTextResponseFactory<MikanVideoSourceIntrinsics>();
+	m_requestManager->addTextResponseFactory<MikanVideoSourceMode>();
+	m_requestManager->addTextResponseFactory<MikanVideoSourceAttachmentInfo>();
 }
 
 MikanResponseFuture MikanVideoSourceAPI::getVideoSourceIntrinsics()

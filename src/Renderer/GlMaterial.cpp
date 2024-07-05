@@ -433,7 +433,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 				bindResult= callback(m_program, uniformDataType, uniformSemantic, uniformName);
 			}
 
-			// Flag if there was an error binding a material pameter of any kind
+			// Flag if there was an error binding a material parameter of any kind
 			if (bindResult == eUniformBindResult::error)
 			{
 				bMaterialFailure = true;

@@ -82,10 +82,13 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SendRequest(
 	int request_version,
 	MikanRequestID* out_request_id);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetResponseCallback(
-	MikanResponseCallback callback, 
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetTextResponseCallback(
+	MikanTextResponseCallback callback, 
 	void* callback_userdata);
 
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_SetBinaryResponseCallback(
+	MikanBinaryResponseCallback callback,
+	void* callback_userdata);
 
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_Disconnect();
 

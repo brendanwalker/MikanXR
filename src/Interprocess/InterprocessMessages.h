@@ -30,7 +30,8 @@ using RequestHandler = std::function<void(const ClientRequest& request, ClientRe
 class IInterprocessMessageClient
 {
 public:
-	using ResponseHandler = std::function<void(const std::string& utf8ResponseString)>;
+	using TextResponseHandler = std::function<void(const std::string& utf8ResponseString)>;
+	using BinaryResponseHandler = std::function<void(const uint8_t* buffer, size_t bufferSize)>;
 
 	virtual ~IInterprocessMessageClient() {}
 
@@ -38,7 +39,8 @@ public:
 	virtual void dispose() = 0;
 
 	virtual MikanResult setClientInfo(const std::string& clientInfo) = 0;
-	virtual void setResponseHandler(ResponseHandler handler) = 0;
+	virtual void setTextResponseHandler(TextResponseHandler handler) = 0;
+	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) = 0;
 
 	virtual MikanResult connect(const std::string& host, const std::string& port) = 0;
 	virtual void disconnect() = 0;

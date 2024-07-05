@@ -118,14 +118,24 @@ MikanResult Mikan_SendRequest(
 	return g_mikanClient->sendRequest(utf8_request_name, utf8_payload, request_version, out_request_id);
 }
 
-MikanResult Mikan_SetResponseCallback(
-	MikanResponseCallback callback,
+MikanResult Mikan_SetTextResponseCallback(
+	MikanTextResponseCallback callback,
 	void* callback_userdata)
 {
 	if (g_mikanClient == nullptr)
 		return MikanResult_Uninitialized;
 
-	return g_mikanClient->setResponseCallback(callback, callback_userdata);
+	return g_mikanClient->setTextResponseCallback(callback, callback_userdata);
+}
+
+MikanResult Mikan_SetBinaryResponseCallback(
+	MikanBinaryResponseCallback callback,
+	void* callback_userdata)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+
+	return g_mikanClient->setBinaryResponseCallback(callback, callback_userdata);
 }
 
 MikanResult Mikan_SetGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface)
