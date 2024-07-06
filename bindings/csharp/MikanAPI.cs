@@ -35,6 +35,9 @@ namespace MikanXR
 		private MikanEventManager _eventManager;
 		public MikanEventManager EventManager => _eventManager;
 		
+		private MikanRenderTargetAPI _renderTargetAPI;
+		public MikanRenderTargetAPI RenderTargetAPI => _renderTargetAPI;
+
 		private MikanVideoSourceAPI _videoSourceAPI;
 		public MikanVideoSourceAPI VideoSourceAPI => _videoSourceAPI;
 		
@@ -57,6 +60,7 @@ namespace MikanXR
 			_eventManager = new MikanEventManager(_nativeLogCallback);
 			
 			// Create the child APIs
+			_renderTargetAPI = new MikanRenderTargetAPI(_requestManager);
 			_videoSourceAPI = new MikanVideoSourceAPI(_requestManager);	
 			_vrDeviceAPI = new MikanVRDeviceAPI(_requestManager);	
 			_scriptAPI = new MikanScriptAPI(_requestManager);
@@ -64,7 +68,7 @@ namespace MikanXR
 			_spatialAnchorAPI = new MikanSpatialAnchorAPI(_requestManager);
 			
 			// Register base response types (child API classes will register their own types)
-			_requestManager.AddResponseFactory<MikanResponse>();
+			_requestManager.AddTextResponseFactory<MikanResponse>();
 			
 			// Register all event types
 			_eventManager.AddEventFactory<MikanConnectedEvent>();
@@ -127,57 +131,6 @@ namespace MikanXR
 		public bool GetIsInitialized()
 		{
 			return MikanCoreNative.Mikan_GetIsInitialized();
-		}
-
-		public MikanResult SetGraphicsDeviceInterface(
-			MikanClientGraphicsApi api, 
-			IntPtr graphicsDeviceInterface)
-		{
-			int result = MikanCoreNative.Mikan_SetGraphicsDeviceInterface(api, graphicsDeviceInterface);
-			return (MikanResult)result;
-		}
-
-		public MikanResult GetGraphicsDeviceInterface(
-			MikanClientGraphicsApi api, 
-			out IntPtr outGraphicsDeviceInterface)
-		{
-			int result = MikanCoreNative.Mikan_GetGraphicsDeviceInterface(api, out outGraphicsDeviceInterface);
-			return (MikanResult)result;
-		}
-
-		public Task<MikanResponse> AllocateRenderTargetTextures(ref MikanRenderTargetDescriptor descriptor)
-		{
-			MikanResult result = 
-				(MikanResult)MikanCoreNative.Mikan_AllocateRenderTargetTextures(
-					ref descriptor, out int requestId);
-
-			return _requestManager.AddResponseHandler(requestId, result);
-		}
-
-		public MikanResult PublishRenderTargetTextures(
-			IntPtr apiColorTexturePtr, 
-			IntPtr apiDepthTexturePtr,
-			ref MikanClientFrameRendered frameInfo)
-		{
-			MikanResult result = 
-				(MikanResult)MikanCoreNative.Mikan_PublishRenderTargetTextures(
-					apiColorTexturePtr, 
-					apiDepthTexturePtr,
-					ref frameInfo);
-
-			return result;
-		}
-
-		public Task<MikanResponse> FreeRenderTargetTextures()
-		{
-			MikanResult result = (MikanResult)MikanCoreNative.Mikan_FreeRenderTargetTextures(out int requestId);
-
-			return _requestManager.AddResponseHandler(requestId, result);
-		}
-
-		public IntPtr GetPackDepthTextureResourcePtr()
-		{
-			return MikanCoreNative.Mikan_GetPackDepthTextureResourcePtr();
 		}
 
 		public MikanResult SetClientInfo(MikanClientInfo clientInfo)

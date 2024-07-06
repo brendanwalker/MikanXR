@@ -244,47 +244,54 @@ MikanResult MikanClient::allocateRenderTargetTextures(
 	return resultCode;
 }
 
-MikanResult MikanClient::publishRenderTargetTextures(
-	void* apiColorTexturePtr, 
-	void* apiDepthTexturePtr, 
-	const MikanClientFrameRendered& frameInfo)
-{
-	bool bValidFrame= m_renderTargetWriter->writeColorFrameTexture(apiColorTexturePtr);
-	MikanDepthBufferType depthBufferType= m_renderTargetWriter->getRenderTargetDescriptor()->depth_buffer_type;
-
-	if (bValidFrame && depthBufferType != MikanDepthBuffer_NODEPTH)
-	{		 
-		bValidFrame= m_renderTargetWriter->writeDepthFrameTexture(
-			apiDepthTexturePtr, frameInfo.zNear, frameInfo.zFar);
-	}
-
-	if (bValidFrame)
-	{
-		json descriptorJson = frameInfo;
-		std::string descriptorString = descriptorJson.dump();
-
-		return sendRequest("frameRendered", descriptorString.c_str(), 0, nullptr);
-	}
-	else
-	{
-		return MikanResult_SharedTextureError;
-	}
-}
-
 MikanResult MikanClient::freeRenderTargetTextures(MikanRequestID* out_request_id)
 {
-	MikanResult resultCode= MikanResult_Success;
+	MikanResult resultCode = MikanResult_Success;
 
 	// Tell the server to free it's existing render target (ignored if there isn't a render target allocated)
 	if (m_messageClient->getIsConnected())
 	{
-		resultCode= sendRequest("freeRenderTargetTextures", nullptr, 0, out_request_id);
+		resultCode = sendRequest("freeRenderTargetTextures", nullptr, 0, out_request_id);
 	}
 
 	// Free shared and local memory buffers
 	m_renderTargetWriter->dispose();
 
 	return resultCode;
+}
+
+MikanResult MikanClient::writeColorRenderTargetTexture(void* apiColorTexturePtr)
+{
+	if (m_renderTargetWriter->writeColorFrameTexture(apiColorTexturePtr))
+	{
+		return MikanResult_Success;	
+	}
+
+	return MikanResult_SharedTextureError;
+}
+
+MikanResult MikanClient::writeDepthRenderTargetTexture(void* apiDepthTexturePtr, float zNear, float zFar)
+{
+	MikanDepthBufferType depthBufferType = m_renderTargetWriter->getRenderTargetDescriptor()->depth_buffer_type;
+
+	if (depthBufferType != MikanDepthBuffer_NODEPTH)
+	{
+		if (m_renderTargetWriter->writeDepthFrameTexture(apiDepthTexturePtr, zNear, zFar))
+		{
+			return MikanResult_Success;
+		}
+	}
+
+	return MikanResult_SharedTextureError;
+}
+
+MikanResult MikanClient::publishRenderTargetTextures(
+	const MikanClientFrameRendered& frameInfo)
+{
+	json descriptorJson = frameInfo;
+	std::string descriptorString = descriptorJson.dump();
+
+	return sendRequest("frameRendered", descriptorString.c_str(), 0, nullptr);
 }
 
 void* MikanClient::getPackDepthTextureResourcePtr() const

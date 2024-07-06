@@ -175,21 +175,6 @@ MikanResult Mikan_AllocateRenderTargetTextures(
 	return g_mikanClient->allocateRenderTargetTextures(*descriptor, out_request_id);
 }
 
-MikanResult Mikan_PublishRenderTargetTextures(
-	void* ApiColorTexturePtr,
-	void* ApiDepthTexturePtr,
-	MikanClientFrameRendered* frame_info)
-{
-	if (g_mikanClient == nullptr)
-		return MikanResult_Uninitialized;
-	if (!g_mikanClient->getIsConnected())
-		return MikanResult_NotConnected;
-	if (frame_info == nullptr)
-		return MikanResult_NullParam;
-
-	return g_mikanClient->publishRenderTargetTextures(ApiColorTexturePtr, ApiDepthTexturePtr, *frame_info);
-}
-
 MikanResult Mikan_FreeRenderTargetTextures(MikanRequestID* out_request_id)
 {
 	if (g_mikanClient == nullptr)
@@ -198,6 +183,45 @@ MikanResult Mikan_FreeRenderTargetTextures(MikanRequestID* out_request_id)
 		return MikanResult_NullParam;
 
 	return g_mikanClient->freeRenderTargetTextures(out_request_id);
+}
+
+MikanResult Mikan_WriteColorRenderTargetTexture(void* color_texture)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+	if (!g_mikanClient->getIsConnected())
+		return MikanResult_NotConnected;
+	if (color_texture == nullptr)
+		return MikanResult_NullParam;
+
+	return g_mikanClient->writeColorRenderTargetTexture(color_texture);
+}
+
+MikanResult Mikan_WriteDepthRenderTargetTexture(
+	void* depth_texture,
+	float z_near,
+	float z_far)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+	if (!g_mikanClient->getIsConnected())
+		return MikanResult_NotConnected;
+	if (depth_texture == nullptr)
+		return MikanResult_NullParam;
+
+	return g_mikanClient->writeDepthRenderTargetTexture(depth_texture, z_near, z_far);
+}
+
+MikanResult Mikan_PublishRenderTargetTextures(MikanClientFrameRendered* frame_info)
+{
+	if (g_mikanClient == nullptr)
+		return MikanResult_Uninitialized;
+	if (!g_mikanClient->getIsConnected())
+		return MikanResult_NotConnected;
+	if (frame_info == nullptr)
+		return MikanResult_NullParam;
+
+	return g_mikanClient->publishRenderTargetTextures(*frame_info);
 }
 
 void* Mikan_GetPackDepthTextureResourcePtr()

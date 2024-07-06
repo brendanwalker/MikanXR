@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 
 namespace MikanXR
 {
@@ -47,4 +48,93 @@ namespace MikanXR
 
 		public MikanStencilList() : base(typeof(MikanStencilList).Name) {}
 	};
+
+	public class MikanTriagulatedMesh
+	{
+		public MikanVector3f[] vertices
+		{
+			get; set;
+		}
+		public MikanVector3f[] normals
+		{
+			get; set;
+		}
+		public MikanVector2f[] texels
+		{
+			get; set;
+		}
+		public int[] indices
+		{
+			get; set;
+		}
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			int vertexCount = inReader.ReadInt32();
+			vertices = new MikanVector3f[vertexCount];
+			for (int i = 0; i < vertexCount; i++)
+			{
+				vertices[i].ReadFromBinaryReader(inReader);
+			}
+
+			int normalCount = inReader.ReadInt32();
+			normals = new MikanVector3f[normalCount];
+			for (int i = 0; i < normalCount; i++)
+			{
+				normals[i].ReadFromBinaryReader(inReader);
+			}
+
+			int texelCount = inReader.ReadInt32();
+			texels = new MikanVector2f[texelCount];
+			for (int i = 0; i < texelCount; i++)
+			{
+				texels[i].ReadFromBinaryReader(inReader);
+			}
+
+			int indexCount = inReader.ReadInt32();
+			indices = new int[indexCount];
+			for (int i = 0; i < indexCount; i++)
+			{
+				indices[i] = inReader.ReadInt32();
+			}
+		}
+	}
+
+	public class MikanStencilModelRenderGeometry : MikanResponse
+	{
+		public MikanTriagulatedMesh[] meshes
+		{
+			get; set;
+		}
+
+		public MikanStencilModelRenderGeometry() : base(typeof(MikanStencilModelRenderGeometry).Name) { }
+	}
+
+	public class MikanStencilModeRenderGeometryFactory :
+		MikanBinaryResponseFactory<MikanStencilModelRenderGeometry>
+	{
+		public override MikanResponse CreateResponse(
+			int inRequestId,
+			MikanResult inResultCode,
+			string inResponseType,
+			BinaryReader inReader)
+		{
+			var response =
+				base.CreateResponse(inRequestId, inResultCode, inResponseType, inReader)
+				as MikanStencilModelRenderGeometry;
+
+			int meshCount = inReader.ReadInt32();
+			response.meshes = new MikanTriagulatedMesh[meshCount];
+			for (int i = 0; i < meshCount; i++)
+			{
+				var mesh = new MikanTriagulatedMesh();
+				mesh.ReadFromBinaryReader(inReader);
+
+				response.meshes[i] = mesh;
+			}
+
+			return response;
+		}
+	}
+
 }

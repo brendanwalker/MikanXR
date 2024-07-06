@@ -152,7 +152,7 @@ bool initMikan()
 		ClientInfo.supportsRGB24 = true;
 		g_mikanAPI->setClientInfo(ClientInfo);
 
-        g_mikanAPI->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
+        g_mikanAPI->getRenderTargetAPI()->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
 		g_mikanInitialized = true;
 	}
 	else
@@ -235,8 +235,13 @@ void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEve
 	render();
 
 	// Publish the new video frame back to Mikan
-    MikanClientFrameRendered frameRendered = {newFrameEvent.frame, g_zNear, g_zNear};
-	g_mikanAPI->publishRenderTargetTextures(g_renderTargetTexture, nullptr, frameRendered);
+    {
+		MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+
+        auto renderTargetAPI = g_mikanAPI->getRenderTargetAPI();
+        renderTargetAPI->writeColorRenderTargetTexture(g_renderTargetTexture);
+        renderTargetAPI->publishRenderTargetTextures(frameRendered);
+    }
 
 	// Remember the frame index of the last frame we published
     g_lastReceivedVideoSourceFrame = newFrameEvent.frame;
@@ -254,7 +259,7 @@ void reallocateRenderBuffers()
 {
 	freeFrameBuffer();
 
-	g_mikanAPI->freeRenderTargetTextures().wait();
+	g_mikanAPI->getRenderTargetAPI()->freeRenderTargetTextures().wait();
 
 	auto future = g_mikanAPI->getVideoSourceAPI()->getVideoSourceMode();
 	auto response = future.get();
@@ -271,7 +276,7 @@ void reallocateRenderBuffers()
 		desc.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
 		// Tell the server to allocate new render target buffers
-		g_mikanAPI->allocateRenderTargetTextures(desc).wait();
+		g_mikanAPI->getRenderTargetAPI()->allocateRenderTargetTextures(desc).wait();
 
         // Create a new frame buffer to render to
 		createFrameBuffer(mode->resolution_x, mode->resolution_y);

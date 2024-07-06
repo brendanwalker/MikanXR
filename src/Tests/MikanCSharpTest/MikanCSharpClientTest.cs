@@ -793,7 +793,7 @@ namespace Mikan
 				return false;
 			}
 
-			if (mikanAPI.SetGraphicsDeviceInterface(
+			if (mikanAPI.RenderTargetAPI.SetGraphicsDeviceInterface(
 				MikanClientGraphicsApi.Direct3D11, 
 				d3dDevice.NativePointer) != MikanResult.Success)
 			{
@@ -901,7 +901,7 @@ namespace Mikan
 		{
 			FreeFrameBuffer();
 
-			await mikanAPI.FreeRenderTargetTextures();
+			await mikanAPI.RenderTargetAPI.FreeRenderTargetTextures();
 
 			MikanResponse response = await mikanAPI.VideoSourceAPI.GetVideoSourceMode();
 			if (response.resultCode == MikanResult.Success)
@@ -918,7 +918,7 @@ namespace Mikan
 				};
 
 				// Tell the server to allocate new render target buffers
-				await mikanAPI.AllocateRenderTargetTextures(ref desc);
+				await mikanAPI.RenderTargetAPI.AllocateRenderTargetTextures(ref desc);
 
 				// Create a new frame buffer to render to
 				CreateFrameBuffer(mode.resolution_x, mode.resolution_y);
@@ -971,17 +971,19 @@ namespace Mikan
 				var frameRendered = new MikanClientFrameRendered()
 				{
 					frame_index = newFrameEvent.frame,
-					zNear = depthNormalConstants.zNear,
-					zFar = depthNormalConstants.zFar
 				};
 				
-				mikanAPI.PublishRenderTargetTextures(
-					renderTarget.ColorTexture.NativePointer,
+				mikanAPI.RenderTargetAPI.WriteColorRenderTargetTexture(
+					renderTarget.ColorTexture.NativePointer);
+				mikanAPI.RenderTargetAPI.WriteDepthRenderTargetTexture(
 					renderTarget.DepthTexture.NativePointer, 
+					depthNormalConstants.zNear,
+					depthNormalConstants.zFar);
+				mikanAPI.RenderTargetAPI.PublishRenderTargetTextures(
 					ref frameRendered);
 
 				// Update the pack depth texture resource pointer, if any
-				IntPtr packDepthPtr= mikanAPI.GetPackDepthTextureResourcePtr();
+				IntPtr packDepthPtr= mikanAPI.RenderTargetAPI.GetPackDepthTextureResourcePtr();
 				if (packDepthPtr != packDepthTextureResourcePtr)
 				{
 					packDepthTextureResourcePtr= packDepthPtr;

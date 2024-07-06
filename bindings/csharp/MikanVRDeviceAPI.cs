@@ -9,8 +9,8 @@ namespace MikanXR
 		public MikanVRDeviceAPI(MikanRequestManager requestManager)
 		{
 			_requestManager = requestManager;
-			_requestManager.AddResponseFactory<MikanVRDeviceList>();
-			_requestManager.AddResponseFactory<MikanVRDeviceInfo>();
+			_requestManager.AddTextResponseFactory<MikanVRDeviceList>();
+			_requestManager.AddTextResponseFactory<MikanVRDeviceInfo>();
 		}
 
 		private static readonly string k_getVRDeviceList = "getVRDeviceList";

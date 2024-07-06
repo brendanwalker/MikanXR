@@ -66,7 +66,5 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanRenderTargetDescriptor,
 )
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanClientFrameRendered,
-	frame_index,
-	zNear,
-	zFar
+	frame_index
 )

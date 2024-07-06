@@ -91,8 +91,6 @@ struct MikanRenderTargetDescriptor
 struct MikanClientFrameRendered
 {
 	uint64_t frame_index;
-	float zNear;
-	float zFar;
 };
 
 // Wrapper Types

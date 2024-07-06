@@ -7,6 +7,22 @@
 
 using IMikanAPIPtr = std::shared_ptr<class IMikanAPI>;
 
+// -- Render Target API -----
+class MIKAN_PUBLIC_CLASS IMikanRenderTargetAPI
+{
+public:
+	IMikanRenderTargetAPI() {}
+	virtual ~IMikanRenderTargetAPI() {}
+
+	virtual MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
+	virtual MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;
+	virtual MikanResponseFuture allocateRenderTargetTextures(const MikanRenderTargetDescriptor& descriptor) = 0;
+	virtual MikanResult writeColorRenderTargetTexture(void* apiColorTexturePtr) = 0;
+	virtual MikanResult writeDepthRenderTargetTexture(void* apiDepthTexturePtr, float zNear, float zFar) = 0;
+	virtual MikanResult publishRenderTargetTextures(MikanClientFrameRendered& frameInfo) = 0;
+	virtual MikanResponseFuture freeRenderTargetTextures() = 0;
+};
+
 // -- Script API -----
 class MIKAN_PUBLIC_CLASS IMikanScriptAPI
 {
@@ -85,6 +101,7 @@ public:
 	// Sub API accessors
 	virtual int getCoreSDKVersion() const = 0;
 	virtual std::string getClientUniqueID() const = 0;
+	virtual IMikanRenderTargetAPI* getRenderTargetAPI() const = 0;
 	virtual IMikanVideoSourceAPI* getVideoSourceAPI() const = 0;
 	virtual IMikanVRDeviceAPI* getVRDeviceAPI() const = 0;
 	virtual IMikanScriptAPI* getScriptAPI() const = 0;
@@ -93,14 +110,6 @@ public:
 
 	// Set client properties before calling connect
 	virtual MikanResult setClientInfo(const MikanClientInfo& clientInfo) = 0;
-	virtual MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
-	virtual MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;
-	virtual MikanResponseFuture allocateRenderTargetTextures(const MikanRenderTargetDescriptor& descriptor) = 0;
-	virtual MikanResult publishRenderTargetTextures(
-		void* apiColorTexturePtr,
-		void* apiDepthTexturePtr,
-		MikanClientFrameRendered& frameInfo) = 0;
-	virtual MikanResponseFuture freeRenderTargetTextures() = 0;
 	virtual MikanResult connect(const std::string& host="", const std::string& port="") = 0;
 	virtual bool getIsConnected() = 0;
 	virtual MikanResult fetchNextEvent(MikanEventPtr& out_event) = 0;

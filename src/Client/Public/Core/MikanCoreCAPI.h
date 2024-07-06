@@ -41,12 +41,13 @@ MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_GetGraphicsDeviceInterface(
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_AllocateRenderTargetTextures(
 	const MikanRenderTargetDescriptor* descriptor, MikanRequestID* out_request_id);
 
-MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_PublishRenderTargetTextures(
-	void* ApiColorTexturePtr,
-	void* ApiDepthTexturePtr,
-	MikanClientFrameRendered* frame_info);
-
 MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_FreeRenderTargetTextures(MikanRequestID* out_request_id);
+
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_WriteColorRenderTargetTexture(void* color_texture);
+
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_WriteDepthRenderTargetTexture(void* depth_texture, float z_near, float z_far);
+
+MIKAN_PUBLIC_FUNCTION(MikanResult) Mikan_PublishRenderTargetTextures(MikanClientFrameRendered* frame_info);
 
 MIKAN_PUBLIC_FUNCTION(void*) Mikan_GetPackDepthTextureResourcePtr();
 

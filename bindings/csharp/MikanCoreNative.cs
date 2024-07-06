@@ -13,10 +13,16 @@ namespace MikanXR
 			string log_message);
 
 		[global::System.Runtime.InteropServices.UnmanagedFunctionPointer(global::System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		public delegate void NativeResponseCallback(
+		public delegate void NativeTextResponseCallback(
 			int request_id,
 			[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]
 			string utf8_response_string,
+			IntPtr userdata);
+
+		[global::System.Runtime.InteropServices.UnmanagedFunctionPointer(global::System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		public delegate void NativeBinaryResponseCallback(
+			IntPtr buffer,
+			UIntPtr buffer_size,
 			IntPtr userdata);
 
 		[DllImport("MikanCore.dll")]
@@ -51,10 +57,13 @@ namespace MikanXR
 			out int out_request_id);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_PublishRenderTargetTextures(
-			IntPtr ApiColorTexturePtr, 
-			IntPtr ApiDepthTexturePtr, 
-			ref MikanClientFrameRendered frame_info);
+		public static extern int Mikan_WriteColorRenderTargetTexture(IntPtr ApiColorTexturePtr);
+
+		[DllImport("MikanCore.dll")]
+		public static extern int Mikan_WriteDepthRenderTargetTexture(IntPtr ApiColorTexturePtr, float zNear, float zFar);
+
+		[DllImport("MikanCore.dll")]
+		public static extern int Mikan_PublishRenderTargetTextures(ref MikanClientFrameRendered frame_info);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_FreeRenderTargetTextures(out int out_request_id);
@@ -90,8 +99,13 @@ namespace MikanXR
 			out int out_request_id);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_SetResponseCallback(
-			NativeResponseCallback callback, 
+		public static extern int Mikan_SetTextResponseCallback(
+			NativeTextResponseCallback callback, 
+			IntPtr callback_userdata);
+
+		[DllImport("MikanCore.dll")]
+		public static extern int Mikan_SetBinaryResponseCallback(
+			NativeBinaryResponseCallback callback,
 			IntPtr callback_userdata);
 
 		[DllImport("MikanCore.dll")]

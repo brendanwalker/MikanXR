@@ -9,8 +9,8 @@ namespace MikanXR
 		public MikanSpatialAnchorAPI(MikanRequestManager requestManager)
 		{
 			_requestManager= requestManager;
-			_requestManager.AddResponseFactory<MikanSpatialAnchorList>();
-			_requestManager.AddResponseFactory<MikanSpatialAnchorInfo>();
+			_requestManager.AddTextResponseFactory<MikanSpatialAnchorList>();
+			_requestManager.AddTextResponseFactory<MikanSpatialAnchorInfo>();
 		}
 
 		private static readonly string k_getSpatialAnchorList = "getSpatialAnchorList";

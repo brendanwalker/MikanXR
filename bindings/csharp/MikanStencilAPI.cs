@@ -9,14 +9,13 @@ namespace MikanXR
 		public MikanStencilAPI(MikanRequestManager requestManager)
 		{
 			_requestManager= requestManager;
-			_requestManager.AddResponseFactory<MikanStencilList>();
-			_requestManager.AddResponseFactory<MikanStencilQuadInfo>();
-			_requestManager.AddResponseFactory<MikanStencilBoxInfo>();
-			_requestManager.AddResponseFactory<MikanStencilModelInfo>();
-			//TODO
-			//_requestManager.AddBinaryResponseFactory<
-			//	MikanStencilModeRenderGeometryFactory,
-			//	MikanStencilModelRenderGeometry>();
+			_requestManager.AddTextResponseFactory<MikanStencilList>();
+			_requestManager.AddTextResponseFactory<MikanStencilQuadInfo>();
+			_requestManager.AddTextResponseFactory<MikanStencilBoxInfo>();
+			_requestManager.AddTextResponseFactory<MikanStencilModelInfo>();
+			_requestManager.AddBinaryResponseFactory<
+				MikanStencilModeRenderGeometryFactory,
+				MikanStencilModelRenderGeometry>();
 		}
 
 		private static readonly string k_getQuadStencilList = "getQuadStencilList";

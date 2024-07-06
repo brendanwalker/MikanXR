@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace MikanXR
 {
@@ -26,12 +28,12 @@ namespace MikanXR
 		}		
 	};
 
-	public interface IMikanResponseFactory
+	public interface IMikanTextResponseFactory
 	{
 		MikanResponse CreateResponse(string utfJsonString);
 	}
 
-	public class MikanResponseFactory<T> : IMikanResponseFactory where T : MikanResponse
+	public class MikanTextResponseFactory<T> : IMikanTextResponseFactory where T : MikanResponse
 	{
 		public MikanResponse CreateResponse(string utfJsonString)
 		{
@@ -45,12 +47,40 @@ namespace MikanXR
 			return response;
 		}
 	}
-	
+
+	public interface IMikanBinaryResponseFactory
+	{
+		MikanResponse CreateResponse(
+			int requestId,
+			MikanResult resultCode,
+			string responseType,
+			BinaryReader reader);
+	}
+
+	public class MikanBinaryResponseFactory<T> : IMikanBinaryResponseFactory where T : MikanResponse, new()
+	{
+		public virtual MikanResponse CreateResponse(
+			int inRequestId,
+			MikanResult inResultCode,
+			string inResponseType,
+			BinaryReader inReader)
+		{
+			return new T()
+			{
+				requestId = inRequestId,
+				resultCode = inResultCode,
+				responseType = inResponseType
+			};
+		}
+	}
+
 	public class MikanRequestManager
 	{
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
-		private MikanCoreNative.NativeResponseCallback _nativeResponseCallback;
-		private Dictionary<string, IMikanResponseFactory> _responseFactory;
+		private MikanCoreNative.NativeTextResponseCallback _nativeTextResponseCallback;
+		private MikanCoreNative.NativeBinaryResponseCallback _nativeBinaryResponseCallback;
+		private Dictionary<string, IMikanTextResponseFactory> _textResponseFactory;
+		private Dictionary<string, IMikanBinaryResponseFactory> _binaryResponseFactory;
 
 		private class PendingRequest
 		{
@@ -62,16 +92,18 @@ namespace MikanXR
 		public MikanRequestManager(MikanCoreNative.NativeLogCallback logCallback)
 		{
 			_nativeLogCallback= logCallback;
-			_nativeResponseCallback = new MikanCoreNative.NativeResponseCallback(InternalResponseCallback);
-			_responseFactory = new Dictionary<string, IMikanResponseFactory>();
+			_nativeTextResponseCallback = new MikanCoreNative.NativeTextResponseCallback(InternalTextResponseCallback);
+			_nativeBinaryResponseCallback = new MikanCoreNative.NativeBinaryResponseCallback(InternalBinaryResponseCallback);
+			_textResponseFactory = new Dictionary<string, IMikanTextResponseFactory>();
+			_binaryResponseFactory = new Dictionary<string, IMikanBinaryResponseFactory>();
 			_pendingRequests = new Dictionary<int, PendingRequest>();
 		}
 
 		public MikanResult Initialize()
 		{
 			MikanResult result = 
-				(MikanResult)MikanCoreNative.Mikan_SetResponseCallback(
-					_nativeResponseCallback, IntPtr.Zero);
+				(MikanResult)MikanCoreNative.Mikan_SetTextResponseCallback(
+					_nativeTextResponseCallback, IntPtr.Zero);
 			if (result != MikanResult.Success)
 			{
 				return result;
@@ -80,11 +112,20 @@ namespace MikanXR
 			return MikanResult.Success;
 		}
 
-		public void AddResponseFactory<T>() where T : MikanResponse
+		public void AddTextResponseFactory<T>() where T : MikanResponse
 		{
-			var factory = new MikanResponseFactory<T>();
+			var factory = new MikanTextResponseFactory<T>();
 
-			_responseFactory.Add(typeof(T).Name, factory);
+			_textResponseFactory.Add(typeof(T).Name, factory);
+		}
+
+		public void AddBinaryResponseFactory<F, T>()
+			where F : IMikanBinaryResponseFactory, new()
+			where T : MikanResponse, new()
+		{
+			var factory = new F();
+
+			_binaryResponseFactory.Add(typeof(T).Name, factory);
 		}
 
 		public Task<MikanResponse> AddResponseHandler(int requestId, MikanResult result)
@@ -146,7 +187,7 @@ namespace MikanXR
 			return AddResponseHandler(requestId, result);
 		}		
 
-		private void InternalResponseCallback(int requestId, string utf8ResponseString, IntPtr userData)
+		private void InternalTextResponseCallback(int requestId, string utf8ResponseString, IntPtr userData)
 		{
 			PendingRequest pendingRequest= null;
 
@@ -190,7 +231,7 @@ namespace MikanXR
 					// Get the string value of "responseType"
 					string responseType = (string)responseTypeElement;
 					
-					if (_responseFactory.TryGetValue(responseType, out IMikanResponseFactory factory))
+					if (_textResponseFactory.TryGetValue(responseType, out IMikanTextResponseFactory factory))
 					{
 						response = factory.CreateResponse(utf8ResponseString);
 					}
@@ -211,5 +252,82 @@ namespace MikanXR
 
 			return response;
 		}
-	}	
+
+		private void InternalBinaryResponseCallback(IntPtr buffer, UIntPtr bufferSize, IntPtr userData)
+		{
+			int bufferSizeInt = (int)bufferSize.ToUInt32();
+			byte[] managedBuffer = new byte[bufferSizeInt];
+			Marshal.Copy(buffer, managedBuffer, 0, bufferSizeInt);
+
+			var binaryReader = new BinaryReader(new MemoryStream(managedBuffer));
+
+			try
+			{
+				// Read the response type
+				int requestTypeUTF8StringLength = binaryReader.ReadInt32();
+				string responseType =
+					requestTypeUTF8StringLength > 0
+					? System.Text.Encoding.UTF8.GetString(binaryReader.ReadBytes(requestTypeUTF8StringLength))
+					: "";
+
+				// Read the request ID
+				int requestId = binaryReader.ReadInt32();
+
+				// Read the result code
+				MikanResult resultCode = (MikanResult)binaryReader.ReadInt32();
+
+				// Look up the pending request
+				PendingRequest pendingRequest = null;
+				lock (_pendingRequests)
+				{
+					if (_pendingRequests.TryGetValue(requestId, out pendingRequest))
+					{
+						_pendingRequests.Remove(requestId);
+					}
+				}
+
+				// Bail if the corresponding pending request is not found
+				if (pendingRequest != null)
+				{
+					// Look up the response factory for the response type
+					MikanResponse response = null;
+					if (_binaryResponseFactory.TryGetValue(responseType, out IMikanBinaryResponseFactory factory))
+					{
+						// Parse the binary reader using the factory
+						response = factory.CreateResponse(requestId, resultCode, responseType, binaryReader);
+					}
+					else
+					{
+						_nativeLogCallback((int)MikanLogLevel.Error, $"Unknown response type: {responseType}");
+					}
+
+					if (response == null)
+					{
+						response = new MikanResponse()
+						{
+							requestId = requestId,
+							resultCode = MikanResult.MalformedResponse
+						};
+					}
+
+					pendingRequest.promise.SetResult(response);
+				}
+				else
+				{
+					_nativeLogCallback((int)MikanLogLevel.Error, $"Invalid pending request id({requestId}) for response type {responseType}");
+				}
+			}
+			catch (Exception e)
+			{
+				_nativeLogCallback((int)MikanLogLevel.Error, $"Malformed binary response: {e.Message}");
+			}
+			finally
+			{
+				if (binaryReader != null)
+				{
+					binaryReader.Dispose();
+				}
+			}
+		}
+	}
 }

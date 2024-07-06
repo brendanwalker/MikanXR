@@ -465,9 +465,14 @@ protected:
 		render();
 
 		// Publish the new video frame back to Mikan
-		GLuint textureId = m_textureColorbuffer->getGlTextureId();
-		MikanClientFrameRendered frameRendered = {newFrameEvent.frame, m_zNear, m_zFar};
-		m_mikanApi->publishRenderTargetTextures(&textureId, nullptr, frameRendered);
+		{
+			GLuint textureId = m_textureColorbuffer->getGlTextureId();
+			MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+
+			auto renderTargetAPI = m_mikanApi->getRenderTargetAPI();
+			renderTargetAPI->writeColorRenderTargetTexture(&textureId);
+			renderTargetAPI->publishRenderTargetTextures(frameRendered);
+		}
 
 		// Remember the frame index of the last frame we published
 		m_lastReceivedVideoSourceFrame= newFrameEvent.frame;
@@ -487,7 +492,7 @@ protected:
 		freeFrameBuffer();
 
 		// Tell the server to free the old render target buffers
-		m_mikanApi->freeRenderTargetTextures().wait();
+		m_mikanApi->getRenderTargetAPI()->freeRenderTargetTextures().wait();
 
 		// Fetch the current video source resolution
 		auto future= m_mikanApi->getVideoSourceAPI()->getVideoSourceMode();
@@ -505,7 +510,7 @@ protected:
 			desc.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
 			// Tell the server to allocate new render target buffers
-			m_mikanApi->allocateRenderTargetTextures(desc).wait();
+			m_mikanApi->getRenderTargetAPI()->allocateRenderTargetTextures(desc).wait();
 
 			// Create a new frame buffer to render to
 			createFrameBuffer(mode->resolution_x, mode->resolution_y);

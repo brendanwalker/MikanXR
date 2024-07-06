@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace MikanXR
 {
 	/// A 3D vector with double components.
@@ -6,6 +8,13 @@ namespace MikanXR
 		public double x { get; set; }
 		public double y { get; set; }
 		public double z { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			x = inReader.ReadDouble();
+			y = inReader.ReadDouble();
+			z = inReader.ReadDouble();
+		}
 	};
 
 	/// A 2D vector with float components.
@@ -13,6 +22,12 @@ namespace MikanXR
 	{
 		public float x { get; set; }
 		public float y { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			x = inReader.ReadSingle();
+			y = inReader.ReadSingle();
+		}
 	};
 
 	/// A 3D vector with float components.
@@ -21,6 +36,13 @@ namespace MikanXR
 		public float x { get; set; }
 		public float y { get; set; }
 		public float z { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			x = inReader.ReadSingle();
+			y = inReader.ReadSingle();
+			z = inReader.ReadSingle();
+		}
 	};
 
 	/// A 3-tuple of Euler angles with float components.
@@ -29,6 +51,13 @@ namespace MikanXR
 		public float x_angle { get; set; }
 		public float y_angle { get; set; }
 		public float z_angle { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			x_angle = inReader.ReadSingle();
+			y_angle = inReader.ReadSingle();
+			z_angle = inReader.ReadSingle();
+		}
 	};
 
 	/** A 4x4 matrix with float components
@@ -57,6 +86,26 @@ namespace MikanXR
 		public float w1 { get; set; }
 		public float w2 { get; set; }
 		public float w3 { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			x0 = inReader.ReadSingle();
+			x1 = inReader.ReadSingle();
+			x2 = inReader.ReadSingle();
+			x3 = inReader.ReadSingle();
+			y0 = inReader.ReadSingle();
+			y1 = inReader.ReadSingle();
+			y2 = inReader.ReadSingle();
+			y3 = inReader.ReadSingle();
+			z0 = inReader.ReadSingle();
+			z1 = inReader.ReadSingle();
+			z2 = inReader.ReadSingle();
+			z3 = inReader.ReadSingle();
+			w0 = inReader.ReadSingle();
+			w1 = inReader.ReadSingle();
+			w2 = inReader.ReadSingle();
+			w3 = inReader.ReadSingle();
+		}
 	};
 
 	/** A 3x3 matrix with double components
@@ -77,6 +126,19 @@ namespace MikanXR
 		public double z0 { get; set; }
 		public double z1 { get; set; }
 		public double z2 { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			x0 = inReader.ReadDouble();
+			x1 = inReader.ReadDouble();
+			x2 = inReader.ReadDouble();
+			y0 = inReader.ReadDouble();
+			y1 = inReader.ReadDouble();
+			y2 = inReader.ReadDouble();
+			z0 = inReader.ReadDouble();
+			z1 = inReader.ReadDouble();
+			z2 = inReader.ReadDouble();
+		}
 	};
 
 	/** A 4x3 matrix with double components
@@ -100,6 +162,22 @@ namespace MikanXR
 		public double z1 { get; set; }
 		public double z2 { get; set; }
 		public double z3 { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			x0 = inReader.ReadDouble();
+			x1 = inReader.ReadDouble();
+			x2 = inReader.ReadDouble();
+			x3 = inReader.ReadDouble();
+			y0 = inReader.ReadDouble();
+			y1 = inReader.ReadDouble();
+			y2 = inReader.ReadDouble();
+			y3 = inReader.ReadDouble();
+			z0 = inReader.ReadDouble();
+			z1 = inReader.ReadDouble();
+			z2 = inReader.ReadDouble();
+			z3 = inReader.ReadDouble();
+		}
 	};
 
 	/** A 4x4 matrix with double components
@@ -128,6 +206,26 @@ namespace MikanXR
 		public double w1 { get; set; }
 		public double w2 { get; set; }
 		public double w3 { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			x0 = inReader.ReadDouble();
+			x1 = inReader.ReadDouble();
+			x2 = inReader.ReadDouble();
+			x3 = inReader.ReadDouble();
+			y0 = inReader.ReadDouble();
+			y1 = inReader.ReadDouble();
+			y2 = inReader.ReadDouble();
+			y3 = inReader.ReadDouble();
+			z0 = inReader.ReadDouble();
+			z1 = inReader.ReadDouble();
+			z2 = inReader.ReadDouble();
+			z3 = inReader.ReadDouble();
+			w0 = inReader.ReadDouble();
+			w1 = inReader.ReadDouble();
+			w2 = inReader.ReadDouble();
+			w3 = inReader.ReadDouble();
+		}
 	};
 
 	/// A double-precision quaternion rotation.
@@ -137,6 +235,14 @@ namespace MikanXR
 		public float x { get; set; }
 		public float y { get; set; }
 		public float z { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			w = inReader.ReadSingle();
+			x = inReader.ReadSingle();
+			y = inReader.ReadSingle();
+			z = inReader.ReadSingle();
+		}
 	};
 
 	/// A double-precision quaternion rotation.
@@ -146,6 +252,14 @@ namespace MikanXR
 		public double x { get; set; }
 		public double y { get; set; }
 		public double z { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			w = inReader.ReadDouble();
+			x = inReader.ReadDouble();
+			y = inReader.ReadDouble();
+			z = inReader.ReadDouble();
+		}
 	};
 
 	/// A single-precision Scale-Rotation-Translation transform.
@@ -154,5 +268,12 @@ namespace MikanXR
 		public MikanVector3f scale { get; set; }
 		public MikanQuatf rotation { get; set; }
 		public MikanVector3f position { get; set; }
+
+		public void ReadFromBinaryReader(BinaryReader inReader)
+		{
+			scale.ReadFromBinaryReader(inReader);
+			rotation.ReadFromBinaryReader(inReader);
+			position.ReadFromBinaryReader(inReader);
+		}
 	};	
 }

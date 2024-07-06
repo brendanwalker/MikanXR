@@ -1,6 +1,7 @@
 #include "MikanAPI.h"
 #include "MikanCoreCAPI.h"
 #include "MikanRequestManager.h"
+#include "MikanRenderTargetAPI.h"
 #include "MikanEventManager.h"
 #include "MikanVideoSourceAPI.h"
 #include "MikanVRDeviceAPI.h"
@@ -18,6 +19,7 @@ public:
 	MikanAPI()
 		: m_requestManager(std::make_unique<MikanRequestManager>())
 		, m_eventManager(std::make_unique<MikanEventManager>())
+		, m_renderTargetAPI(std::make_unique<MikanRenderTargetAPI>(m_requestManager.get()))
 		, m_videoSourceAPI(std::make_unique<MikanVideoSourceAPI>(m_requestManager.get()))
 		, m_vrDeviceAPI(std::make_unique<MikanVRDeviceAPI>(m_requestManager.get()))
 		, m_scriptAPI(std::make_unique<MikanScriptAPI>(m_requestManager.get()))
@@ -83,6 +85,7 @@ public:
 	}
 
 	// Sub API accessors
+	virtual IMikanRenderTargetAPI* getRenderTargetAPI() const override { return m_renderTargetAPI.get(); }
 	virtual IMikanVideoSourceAPI* getVideoSourceAPI() const override { return m_videoSourceAPI.get(); }
 	virtual IMikanVRDeviceAPI* getVRDeviceAPI() const override { return m_vrDeviceAPI.get(); }
 	virtual IMikanScriptAPI* getScriptAPI() const override { return m_scriptAPI.get(); }
@@ -100,45 +103,6 @@ public:
 		const std::string clientInfoString = clientInfoJson.dump();
 
 		return Mikan_SetClientInfo(clientInfoString.c_str());
-	}
-
-	virtual MikanResult setGraphicsDeviceInterface(
-		MikanClientGraphicsApi api, 
-		void* graphicsDeviceInterface) override
-	{
-		return Mikan_SetGraphicsDeviceInterface(api, graphicsDeviceInterface);
-	}
-
-	virtual MikanResult getGraphicsDeviceInterface(
-		MikanClientGraphicsApi api, 
-		void** outGraphicsDeviceInterface) override
-	{
-		return Mikan_GetGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
-	}
-
-	virtual MikanResponseFuture allocateRenderTargetTextures(
-		const MikanRenderTargetDescriptor& descriptor) override
-	{
-		MikanRequestID requestId = INVALID_MIKAN_ID;
-		MikanResult result = Mikan_AllocateRenderTargetTextures(&descriptor, &requestId);
-
-		return m_requestManager->addResponseHandler(requestId, result);
-	}
-
-	virtual MikanResult publishRenderTargetTextures(
-		void* apiColorTexturePtr, 
-		void* apiDepthTexturePtr, 
-		MikanClientFrameRendered& frameInfo) override
-	{
-		return Mikan_PublishRenderTargetTextures(apiColorTexturePtr, apiDepthTexturePtr, &frameInfo);
-	}
-
-	virtual MikanResponseFuture freeRenderTargetTextures() override
-	{
-		MikanRequestID requestId = INVALID_MIKAN_ID;
-		MikanResult result = Mikan_FreeRenderTargetTextures(&requestId);
-
-		return m_requestManager->addResponseHandler(requestId, result);
 	}
 
 	virtual MikanResult connect(
@@ -172,6 +136,7 @@ private:
 	std::unique_ptr<MikanRequestManager> m_requestManager;
 	std::unique_ptr<MikanEventManager> m_eventManager;
 
+	std::unique_ptr<IMikanRenderTargetAPI> m_renderTargetAPI;
 	std::unique_ptr<IMikanVideoSourceAPI> m_videoSourceAPI;
 	std::unique_ptr<IMikanVRDeviceAPI> m_vrDeviceAPI;
 	std::unique_ptr<IMikanScriptAPI> m_scriptAPI;

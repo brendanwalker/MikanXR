@@ -9,9 +9,9 @@ namespace MikanXR
 		public MikanVideoSourceAPI(MikanRequestManager requestManager)
 		{
 			_requestManager= requestManager;
-			_requestManager.AddResponseFactory<MikanVideoSourceIntrinsics>();
-			_requestManager.AddResponseFactory<MikanVideoSourceMode>();
-			_requestManager.AddResponseFactory<MikanVideoSourceAttachmentInfo>();
+			_requestManager.AddTextResponseFactory<MikanVideoSourceIntrinsics>();
+			_requestManager.AddTextResponseFactory<MikanVideoSourceMode>();
+			_requestManager.AddTextResponseFactory<MikanVideoSourceAttachmentInfo>();
 		}
 
 		private static readonly string k_getVideoSourceIntrinsics = "getVideoSourceIntrinsics";

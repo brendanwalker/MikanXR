@@ -33,11 +33,10 @@ public:
 	MikanResult allocateRenderTargetTextures(
 		const MikanRenderTargetDescriptor& descriptor, 
 		MikanRequestID* out_request_id);
-	MikanResult publishRenderTargetTextures(
-		void* ApiColorTexturePtr, 
-		void* ApiDepthTexturePtr, 
-		const MikanClientFrameRendered& frameInfo);
 	MikanResult freeRenderTargetTextures(MikanRequestID* out_request_id);
+	MikanResult writeColorRenderTargetTexture(void* ApiColorTexturePtr);
+	MikanResult writeDepthRenderTargetTexture(void* ApiDepthTexturePtr, float zNear, float zFar);
+	MikanResult publishRenderTargetTextures(const MikanClientFrameRendered& frameInfo);
 	void* getPackDepthTextureResourcePtr() const;
 
 protected:
