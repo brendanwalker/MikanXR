@@ -559,6 +559,7 @@ GlTexturePtr GlFrameCompositor::getClientDepthSourceTexture(int clientIndex, eCl
 		{
 			switch (clientTextureType)
 			{
+				case eClientDepthTextureType::depthPackRGB:
 				case eClientDepthTextureType::depthPackRGBA:
 					return clientSource->depthTexture;
 			}
@@ -993,6 +994,11 @@ bool GlFrameCompositor::addClientSource(
 		clientSource->depthTexture->setBufferFormat(GL_RED);
 		break;
 	case MikanDepthBuffer_PACK_DEPTH_RGBA:
+		clientSource->depthTexture = std::make_shared<GlTexture>();
+		clientSource->depthTexture->setTextureFormat(GL_RGBA);
+		clientSource->depthTexture->setBufferFormat(GL_RGBA);
+		break;
+	case MikanDepthBuffer_PACK_DEPTH_BGRA:
 		clientSource->depthTexture = std::make_shared<GlTexture>();
 		clientSource->depthTexture->setTextureFormat(GL_RGBA);
 		clientSource->depthTexture->setBufferFormat(GL_RGBA);

@@ -76,7 +76,8 @@ enum MikanDepthBufferType
 {
 	MikanDepthBuffer_NODEPTH,
 	MikanDepthBuffer_FLOAT_DEPTH,
-	MikanDepthBuffer_PACK_DEPTH_RGBA,
+	MikanDepthBuffer_PACK_DEPTH_RGBA, // DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
+	MikanDepthBuffer_PACK_DEPTH_BGRA, // DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 };
 
 struct MikanRenderTargetDescriptor

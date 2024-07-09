@@ -69,12 +69,18 @@ public:
 			bSuccess= false;
 		}
 
-		if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_RGBA)
+		if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_RGBA || 
+			descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_BGRA)
 		{
 			m_spoutDepthFrame->EnableSpoutLog();
 			m_spoutDepthFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutDepthFrame->SetSenderName(m_depthFrameSenderName.c_str());
-			m_spoutDepthFrame->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
+			if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_BGRA)
+				m_spoutDepthFrame->SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+			else
+				m_spoutDepthFrame->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
 			m_spoutDepthFrame->SetFrameCount(bEnableFrameCounter);
 		}
 		else if (descriptor->depth_buffer_type == MikanDepthBuffer_NODEPTH)
@@ -219,7 +225,10 @@ public:
 					}
 				}
 
-				m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+				if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_BGRA)
+					m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+				else
+					m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
 				if (!bEnableFrameCounter)
 					m_spoutDepthFrame.DisableFrameCount();
@@ -374,7 +383,10 @@ public:
 					}
 				}
 
-				m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+				if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_BGRA)
+					m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+				else
+					m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
 				if (!bEnableFrameCounter)
 					m_spoutDepthFrame.DisableFrameCount();
@@ -410,18 +422,33 @@ public:
 		DisableSpoutLog();
 	}
 
-	bool writeColorFrameTexture(ID3D12Resource* pTextureResource12)
+	bool writeColorFrameTexture(ID3D12Resource* dx12TextureResource)
 	{
 		bool bSuccess= false;
 
 		if (m_bIsColorFrameInitialized)
-		{
-			ID3D11Resource* pTextureResource11 = nullptr;
-			if (m_spoutColorFrame.WrapDX12Resource(
-					pTextureResource12, &pTextureResource11, D3D12_RESOURCE_STATE_COPY_SOURCE))
+		{	
+			if (m_spoutDX12ColorTexture != dx12TextureResource)
 			{
-				bSuccess= m_spoutColorFrame.SendDX11Resource(pTextureResource11);
-				pTextureResource11->Release();
+				if (m_spoutDX11ColorTexture != nullptr)
+				{
+					m_spoutDX11ColorTexture->Release();
+					m_spoutDX11ColorTexture= nullptr;
+				}
+
+				if (dx12TextureResource != nullptr &&
+					m_spoutColorFrame.WrapDX12Resource(
+						dx12TextureResource, 
+						&m_spoutDX11ColorTexture, 
+						D3D12_RESOURCE_STATE_COPY_SOURCE))
+				{
+					m_spoutDX12ColorTexture= dx12TextureResource;
+				}
+			}
+
+			if (m_spoutDX11ColorTexture != nullptr)
+			{
+				bSuccess= m_spoutColorFrame.SendDX11Resource(m_spoutDX11ColorTexture);
 			}
 
 		}
@@ -429,21 +456,37 @@ public:
 		return bSuccess;
 	}
 
-	bool writeDepthFrameTexture(ID3D12Resource* pTextureResource12, float zNear, float zFar)
+	bool writeDepthFrameTexture(ID3D12Resource* dx12TextureResource, float zNear, float zFar)
 	{
 		bool bSuccess = false;
 
 		if (m_bIsDepthFrameInitialized)
 		{
-			ID3D11Resource* pTextureResource11 = nullptr;
-			if (m_spoutColorFrame.WrapDX12Resource(
-					pTextureResource12, &pTextureResource11, D3D12_RESOURCE_STATE_COPY_SOURCE))
+			if (m_spoutDX12DepthTexture != dx12TextureResource)
+			{
+				if (m_spoutDX11DepthTexture != nullptr)
+				{
+					m_spoutDX11DepthTexture->Release();
+					m_spoutDX11DepthTexture = nullptr;
+				}
+
+				if (dx12TextureResource != nullptr &&
+					m_spoutDepthFrame.WrapDX12Resource(
+						dx12TextureResource,
+						&m_spoutDX11DepthTexture,
+						D3D12_RESOURCE_STATE_COPY_SOURCE))
+				{
+					m_spoutDX12DepthTexture = dx12TextureResource;
+				}
+			}
+
+			if (m_spoutDX11DepthTexture != nullptr)
 			{
 				if (m_depthTexturePacker != nullptr)
 				{
 					// Convert the float depth texture to a RGBA8 texture using a shader
 					// (Spout can only send RGBA8 textures)
-					ID3D11Texture2D* pTexture11 = (ID3D11Texture2D*)pTextureResource11;
+					ID3D11Texture2D* pTexture11 = (ID3D11Texture2D*)m_spoutDX11DepthTexture;
 					ID3D11Texture2D* packedDepthTexture =
 						m_depthTexturePacker->packDepthTexture(pTexture11, zNear, zFar);
 
@@ -454,10 +497,8 @@ public:
 				}
 				else
 				{
-					bSuccess= m_spoutDepthFrame.SendDX11Resource(pTextureResource11);
+					bSuccess= m_spoutDepthFrame.SendDX11Resource(m_spoutDX11DepthTexture);
 				}
-
-				pTextureResource11->Release();
 			}
 		}
 
@@ -473,7 +514,11 @@ private:
 	std::string m_colorFrameSenderName;
 	std::string m_depthFrameSenderName;
 	spoutDX12 m_spoutColorFrame;
+	ID3D12Resource* m_spoutDX12ColorTexture = nullptr;
+	ID3D11Resource* m_spoutDX11ColorTexture = nullptr;
 	spoutDX12 m_spoutDepthFrame;
+	ID3D12Resource* m_spoutDX12DepthTexture = nullptr;
+	ID3D11Resource* m_spoutDX11DepthTexture = nullptr;
 	SpoutDXDepthTexturePacker* m_depthTexturePacker = nullptr;
 	bool m_bIsColorFrameInitialized = false;
 	bool m_bIsDepthFrameInitialized = false;
@@ -537,7 +582,7 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 		if (m_bIsInitialized && 
 			m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_DEPTH)
 		{
-			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8 textures
+			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
 			m_writerImpl->renderTargetDescriptor.depth_buffer_type = MikanDepthBuffer_PACK_DEPTH_RGBA;
 		}
 	}
@@ -550,7 +595,7 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 		if (m_bIsInitialized &&
 			m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_DEPTH)
 		{
-			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8 textures
+			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
 			m_writerImpl->renderTargetDescriptor.depth_buffer_type = MikanDepthBuffer_PACK_DEPTH_RGBA;
 		}
 	}

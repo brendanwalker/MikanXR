@@ -122,7 +122,8 @@ GlTexturePtr ClientDepthTextureNode::getClientDepthSourceTexture() const
 		{
 			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getTextureCache();
 
-			if (m_clientTextureType == eClientDepthTextureType::depthPackRGBA)
+			if (m_clientTextureType == eClientDepthTextureType::depthPackRGB ||
+				m_clientTextureType == eClientDepthTextureType::depthPackRGBA )
 			{
 				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA);
 			}
@@ -134,7 +135,8 @@ GlTexturePtr ClientDepthTextureNode::getClientDepthSourceTexture() const
 
 void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, GlTexturePtr clientTexture)
 {
-	assert(m_clientTextureType == eClientDepthTextureType::depthPackRGBA);
+	assert(m_clientTextureType == eClientDepthTextureType::depthPackRGB || 
+	       m_clientTextureType == eClientDepthTextureType::depthPackRGBA);
 
 	if (m_linearDepthFrameBuffer == nullptr)
 	{
@@ -156,13 +158,15 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 	if (depthFramebufferBinding)
 	{
 		GlState& glState = depthFramebufferBinding.getGlState();
-		GlMaterialConstPtr rgbaDepthUnpackMaterial =
+		GlMaterialConstPtr depthUnpackMaterial =
 			ownerWindow->getShaderCache()->getMaterialByName(
-				INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
+				m_clientTextureType == eClientDepthTextureType::depthPackRGB 
+				? INTERNAL_MATERIAL_UNPACK_RGB_DEPTH_TEXTURE
+				: INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
 
-		if (rgbaDepthUnpackMaterial != nullptr)
+		if (depthUnpackMaterial != nullptr)
 		{
-			m_depthMaterialInstance = std::make_shared<GlMaterialInstance>(rgbaDepthUnpackMaterial);
+			m_depthMaterialInstance = std::make_shared<GlMaterialInstance>(depthUnpackMaterial);
 		}
 
 		if (m_depthMaterialInstance)
@@ -253,7 +257,7 @@ void ClientDepthTextureNode::editorRenderPropertySheet(const NodeEditorState& ed
 		if (NodeEditorUI::DrawSimpleComboBoxProperty(
 			"clientTextureType",
 			"Type",
-			"depthPackRGBA\0",
+			"depthPackRGB\0depthPackRGBA\0",
 			iTextureType))
 		{
 			m_clientTextureType= (eClientDepthTextureType)iTextureType;

@@ -44,6 +44,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MikanDepthBufferType, {
 	{MikanDepthBuffer_NODEPTH, "NODEPTH"},
 	{MikanDepthBuffer_FLOAT_DEPTH, "FLOAT_DEPTH"},
 	{MikanDepthBuffer_PACK_DEPTH_RGBA, "PACK_DEPTH_RGBA"},
+	{MikanDepthBuffer_PACK_DEPTH_BGRA, "PACK_DEPTH_BGRA"},
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MikanClientGraphicsApi, {
