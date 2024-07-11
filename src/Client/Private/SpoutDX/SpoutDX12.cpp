@@ -351,10 +351,11 @@ bool spoutDX12::WrapDX12Resource(ID3D12Resource* pDX12Resource, ID3D11Resource**
 	D3D11_RESOURCE_FLAGS d3d11Flags = {};
 	if (InitialState == D3D12_RESOURCE_STATE_RENDER_TARGET) {
 		SpoutLogNotice("spoutDX12::WrapDX12Resource - pDX12Resource (0x%.7X) render target", PtrToUint(pDX12Resource));
-		d3d11Flags.BindFlags = D3D11_BIND_RENDER_TARGET; // TODO : check
+		d3d11Flags.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	}
 	else {
-		SpoutLogNotice("spoutDX12::WrapDX12Resource - pDX12Resource (0x%.7X)", PtrToUint(pDX12Resource));
+		SpoutLogNotice("spoutDX12::WrapDX12Resource - pDX12Resource (0x%.7X) shader resource", PtrToUint(pDX12Resource));
+		d3d11Flags.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	}
 
 	// Create a wrapped resource to access our d3d12 resource from the d3d11 device
