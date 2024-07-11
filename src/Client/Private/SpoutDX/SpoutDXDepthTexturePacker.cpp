@@ -20,8 +20,111 @@ struct DepthNormalizeConstantBuffer
 	float padding[2];
 };
 
-SpoutDXDepthTexturePacker::SpoutDXDepthTexturePacker(spoutDX& spout)
+namespace SpoutDXDepthPackerShaderCode
+{
+	const std::string pacDeviceDepthShaderCode = R""""(
+		Texture2D<float> InputTexture : register(t0);
+		SamplerState samLinear : register(s0);
+
+		cbuffer ConstantBuffer : register(b0)
+		{
+			float zNear;
+			float zFar;
+		};
+
+		struct VS_INPUT
+		{
+			float3 position : POSITION;
+			float2 texCoord : TEXCOORD;
+		};
+
+		struct PS_INPUT
+		{
+			float4 pos : SV_POSITION;
+			float2 uv : TEXCOORD;
+		};
+
+		PS_INPUT vs_main(VS_INPUT input)
+		{
+			PS_INPUT output;
+			output.pos = float4(input.position, 1.0f);
+			output.uv = input.texCoord;
+			return output;
+		}
+
+		float4 ps_main(PS_INPUT input) : SV_TARGET
+		{
+			// Read the raw depth value from the input float depth texture
+			float deviceDepth = InputTexture.Sample(samLinear, input.uv).r;
+
+			// Convert the depth value to a linear [0, 1) value (0 = near, 1 = far)
+			// 1.0 is not encoded property, so we need to clamp it to 0.999999
+			float eyeDepth = zFar * zNear / ((zNear - zFar) * deviceDepth + zFar);
+			float zNorm = min((eyeDepth - zNear) / (zFar - zNear), 0.999999);
+
+			// Encode the linear depth value to a RGBA8 texture
+			// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
+			float4 encodedValue = float4(1.0, 255.0, 65025.0, 16581375.0) * zNorm;
+			encodedValue = frac(encodedValue);
+			encodedValue -= encodedValue.yzww * float4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
+
+			return encodedValue;
+		}
+	)"""";
+
+	const std::string packSceneDepthShaderCode = R""""(
+		Texture2D<float> InputTexture : register(t0);
+		SamplerState samLinear : register(s0);
+
+		cbuffer ConstantBuffer : register(b0)
+		{
+			float zNear;
+			float zFar;
+		};
+
+		struct VS_INPUT
+		{
+			float3 position : POSITION;
+			float2 texCoord : TEXCOORD;
+		};
+
+		struct PS_INPUT
+		{
+			float4 pos : SV_POSITION;
+			float2 uv : TEXCOORD;
+		};
+
+		PS_INPUT vs_main(VS_INPUT input)
+		{
+			PS_INPUT output;
+			output.pos = float4(input.position, 1.0f);
+			output.uv = input.texCoord;
+			return output;
+		}
+
+		float4 ps_main(PS_INPUT input) : SV_TARGET
+		{
+			// Read the linear scene depth value from the input float depth texture
+			float eyeDepth = InputTexture.Sample(samLinear, input.uv).r;
+
+			// Convert the eyeDepth value to a normalized [0, 1) value (0 = near, 1 = far)
+			// 1.0 is not encoded property, so we need to clamp it to 0.999999
+			float zNorm = min((eyeDepth - zNear) / (zFar - zNear), 0.999999);
+
+			// Encode the linear depth value to a RGBA8 texture
+			// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
+			float4 encodedValue = float4(1.0, 255.0, 65025.0, 16581375.0) * zNorm;
+			encodedValue = frac(encodedValue);
+			encodedValue -= encodedValue.yzww * float4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
+
+			return encodedValue;
+		}
+	)"""";
+}
+
+SpoutDXDepthTexturePacker::SpoutDXDepthTexturePacker(spoutDX& spout, const MikanRenderTargetDescriptor* descriptor)
 	: m_spout(spout)
+	, m_mikanDescriptor(*descriptor)
 	, m_inFloatDepthTextureDesc(D3D11_TEXTURE2D_DESC())
 {}
 
@@ -81,7 +184,7 @@ ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(
 	// Make sure the render target resources are initialized
 	D3D11_TEXTURE2D_DESC inTextureDesc;
 	inDepthTexture->GetDesc(&inTextureDesc);
-	if (m_depthTargetTexture == nullptr ||
+	if (m_colorTargetTexture == nullptr ||
 		memcmp(&m_inFloatDepthTextureDesc, &inTextureDesc, sizeof(D3D11_TEXTURE2D_DESC)) != 0)
 	{
 		if (!initRenderTargetResources(d3dDevice, inDepthTexture))
@@ -98,11 +201,12 @@ ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(
 	// -------
 
 	// Set the output render views
-	d3dContext->OMSetRenderTargets(1, &m_colorTargetView, m_depthTargetView);
+	//d3dContext->OMSetRenderTargets(1, &m_colorTargetView, m_depthTargetView);
+	d3dContext->OMSetRenderTargets(1, &m_colorTargetView, nullptr);
 
 	// Clear the render targets
 	d3dContext->ClearRenderTargetView(m_colorTargetView, DirectX::Colors::Black);
-	d3dContext->ClearDepthStencilView(m_depthTargetView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	//d3dContext->ClearDepthStencilView(m_depthTargetView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Bind the pack depth shader
 	d3dContext->VSSetShader(m_vertexShader, nullptr, 0);
@@ -234,55 +338,10 @@ bool SpoutDXDepthTexturePacker::initQuadGeometry(ID3D11Device* d3dDevice)
 
 bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 {
-	const std::string shaderCodeString = R""""(
-		Texture2D<float> InputTexture : register(t0);
-		SamplerState samLinear : register(s0);
-
-		cbuffer ConstantBuffer : register(b0)
-		{
-			float zNear;
-			float zFar;
-		};
-
-		struct VS_INPUT
-		{
-			float3 position : POSITION;
-			float2 texCoord : TEXCOORD;
-		};
-
-		struct PS_INPUT
-		{
-			float4 pos : SV_POSITION;
-			float2 uv : TEXCOORD;
-		};
-
-		PS_INPUT vs_main(VS_INPUT input)
-		{
-			PS_INPUT output;
-			output.pos = float4(input.position, 1.0f);
-			output.uv = input.texCoord;
-			return output;
-		}
-
-		float4 ps_main(PS_INPUT input) : SV_TARGET
-		{
-			// Read the raw depth value from the input float depth texture
-			float depth = InputTexture.Sample(samLinear, input.uv).r;
-
-			// Convert the depth value to a linear [0, 1) value (0 = near, 1 = far)
-			// 1.0 is not encoded property, so we need to clamp it to 0.999999
-			float eyeDepth = zFar * zNear / ((zNear - zFar) * depth + zFar);
-			float zNorm = min((eyeDepth - zNear) / (zFar - zNear), 0.999999);
-
-			// Encode the linear depth value to a RGBA8 texture
-			// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
-			float4 encodedValue = float4(1.0, 255.0, 65025.0, 16581375.0) * zNorm;
-			encodedValue = frac(encodedValue);
-			encodedValue -= encodedValue.yzww * float4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
-
-			return encodedValue;
-		}
-	)"""";
+	const std::string shaderCodeString = 
+		m_mikanDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_SCENE_DEPTH 
+		? SpoutDXDepthPackerShaderCode::packSceneDepthShaderCode 
+		: SpoutDXDepthPackerShaderCode::pacDeviceDepthShaderCode;
 
 	// Compile vertex shader
 	HRESULT hr = compileShaderFromString(shaderCodeString, "vs_main", "vs_4_0", &m_vertexShaderByteCode);
@@ -508,39 +567,6 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 		return false;
 	}
 
-	// Create the depth render target resources
-	textureDesc.Format = inTextureDesc.Format;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
-	hr = d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_depthTargetTexture);
-	if (FAILED(hr))
-	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create depth target texture";
-		return false;
-	}
-
-	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc= {};
-	dsvDesc.Format = GetDepthStencilViewFormat(inTextureDesc.Format);
-	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	dsvDesc.Texture2D.MipSlice = 0;
-	hr = d3dDevice->CreateDepthStencilView(m_depthTargetTexture, &dsvDesc, &m_depthTargetView);
-	if (FAILED(hr))
-	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create depth target view";
-		return false;
-	}
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC depthSrvDesc= {};
-	depthSrvDesc.Format = GetDepthSRVFormat(inTextureDesc.Format);
-	depthSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	depthSrvDesc.Texture2D.MostDetailedMip = 0;
-	depthSrvDesc.Texture2D.MipLevels = 1;
-	hr = d3dDevice->CreateShaderResourceView(m_depthTargetTexture, &depthSrvDesc, &m_depthTargetSRV);
-	if (FAILED(hr))
-	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create depth target SRV";
-		return false;
-	}
-
 	return true;
 }
 
@@ -564,48 +590,6 @@ void SpoutDXDepthTexturePacker::disposeRenderTargetResouces()
 		m_colorTargetSRV->Release();
 		m_colorTargetSRV = nullptr;
 	}
-
-	// Free depth target resources
-	if (m_depthTargetTexture)
-	{
-		m_depthTargetTexture->Release();
-		m_depthTargetTexture = nullptr;
-	}
-
-	if (m_depthTargetView)
-	{
-		m_depthTargetView->Release();
-		m_depthTargetView = nullptr;
-	}
-
-	if (m_depthTargetSRV)
-	{
-		m_depthTargetSRV->Release();
-		m_depthTargetSRV = nullptr;
-	}
-}
-
-DXGI_FORMAT SpoutDXDepthTexturePacker::GetDepthStencilViewFormat(DXGI_FORMAT resFormat)
-{
-	DXGI_FORMAT viewFormat = DXGI_FORMAT_UNKNOWN;
-
-	switch (resFormat)
-	{
-		case DXGI_FORMAT_R16G16_TYPELESS:
-			viewFormat = DXGI_FORMAT_D16_UNORM;
-			break;
-		case DXGI_FORMAT_R24G8_TYPELESS:
-			viewFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-			break;
-		case DXGI_FORMAT_R32_TYPELESS:
-			viewFormat = DXGI_FORMAT_D32_FLOAT;
-			break;
-		case DXGI_FORMAT_R32G8X24_TYPELESS:
-			viewFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-			break;
-	}
-
-	return viewFormat;
 }
 
 DXGI_FORMAT SpoutDXDepthTexturePacker::GetDepthSRVFormat(DXGI_FORMAT resFormat)
@@ -621,6 +605,7 @@ DXGI_FORMAT SpoutDXDepthTexturePacker::GetDepthSRVFormat(DXGI_FORMAT resFormat)
 			srvFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 			break;
 		case DXGI_FORMAT_R32_TYPELESS:
+		case DXGI_FORMAT_R32_FLOAT:
 			srvFormat = DXGI_FORMAT_R32_FLOAT;
 			break;
 		case DXGI_FORMAT_R32G8X24_TYPELESS:

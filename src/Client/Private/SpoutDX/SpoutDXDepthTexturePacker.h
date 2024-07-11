@@ -1,11 +1,12 @@
 #pragma once
 
 #include "SpoutDX.h"
+#include "MikanCoreTypes.h"
 
 class SpoutDXDepthTexturePacker
 {
 public:
-	SpoutDXDepthTexturePacker(spoutDX& spout);
+	SpoutDXDepthTexturePacker(spoutDX& spout, const MikanRenderTargetDescriptor* descriptor);
 	virtual ~SpoutDXDepthTexturePacker();
 
 	bool init();
@@ -32,6 +33,7 @@ protected:
 
 private:
 	spoutDX& m_spout;
+	MikanRenderTargetDescriptor m_mikanDescriptor;
 
 	ID3D11Texture2D* m_inFloatDepthTexture = nullptr;
 	ID3D11ShaderResourceView* m_inFloatDepthTextureSRV = nullptr;
@@ -50,8 +52,4 @@ private:
 	ID3D11Texture2D* m_colorTargetTexture = nullptr;
 	ID3D11RenderTargetView* m_colorTargetView = nullptr;
 	ID3D11ShaderResourceView* m_colorTargetSRV = nullptr;
-
-	ID3D11Texture2D* m_depthTargetTexture = nullptr;
-	ID3D11DepthStencilView* m_depthTargetView = nullptr;
-	ID3D11ShaderResourceView* m_depthTargetSRV = nullptr;
 };
