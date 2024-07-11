@@ -251,52 +251,6 @@ namespace InternalShaders
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getUnpackRGBLinearDepthTextureShaderCode()
-	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
-			INTERNAL_MATERIAL_UNPACK_RGB_DEPTH_TEXTURE,
-			// vertex shader
-			R""""(
-			#version 330 core
-			layout (location = 0) in vec2 aPos;
-			layout (location = 1) in vec2 aTexCoords;
-
-			out vec2 TexCoords;
-
-			void main()
-			{
-				TexCoords = aTexCoords;
-				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
-			}
-			)"""",
-			//fragment shader
-			R""""(
-			#version 330 core
-			out vec4 FragColor;
-			out float gl_FragDepth;
-
-			in vec2 TexCoords;
-
-			uniform sampler2D rgbPackedDepthTexture;
-
-			void main()
-			{
-				// Convert rgb8 packed linear depth to linear depth float
-				vec3 rgb = texture(rgbPackedDepthTexture, TexCoords).rgb;
-				float linearDepth= dot( rgb, vec3(1.0, 1/255.0, 1/65025.0) );
-
-				// Output linear depth to color and non-linear depth to depth buffer
-				FragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
-				gl_FragDepth = linearDepth;
-			} 
-			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-			.addUniform("rgbPackedDepthTexture", eUniformSemantic::rgbaTexture); // ignore alpha channel
-
-		return &x_shaderCode;
-	}
-
 	const GlProgramCode* getUnpackRGBALinearDepthTextureShaderCode()
 	{
 		static GlProgramCode x_shaderCode = GlProgramCode(
@@ -594,7 +548,6 @@ namespace InternalShaders
 			getPTTexturedFullScreenRGBQuad(),
 			getPTTexturedFullScreenRGBAQuad(),
 			getTextShaderCode(),
-			getUnpackRGBLinearDepthTextureShaderCode(),
 			getUnpackRGBALinearDepthTextureShaderCode(),
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),

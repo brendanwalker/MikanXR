@@ -1,8 +1,0 @@
-{
-	"name":             "CompositorPreset22",
-	"builtIn":          false,
-	"compositor_graph": {
-		"class_name": "",
-		"asset_path": "D:\\Github\\git-BrendanWalker\\MikanXR\\resources\\graphs\\new_graph.graph"
-	}
-}

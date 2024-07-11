@@ -84,7 +84,6 @@ enum class eClientDepthTextureType
 {
 	INVALID = -1,
 
-	depthPackRGB,
 	depthPackRGBA,
 
 	COUNT

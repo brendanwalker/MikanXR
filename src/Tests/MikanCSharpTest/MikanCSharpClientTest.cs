@@ -913,7 +913,7 @@ namespace Mikan
 					width = (uint)mode.resolution_x,
 					height = (uint)mode.resolution_y,
 					color_buffer_type = MikanColorBufferType.BGRA32,
-					depth_buffer_type = MikanDepthBufferType.FLOAT_DEPTH,
+					depth_buffer_type = MikanDepthBufferType.FLOAT_DEVICE_DEPTH,
 					graphicsAPI = MikanClientGraphicsApi.Direct3D11
 				};
 

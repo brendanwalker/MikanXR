@@ -67,8 +67,8 @@ namespace MikanXR
 	public enum MikanDepthBufferType
 	{
 		NODEPTH,
-		FLOAT_DEPTH,
+		FLOAT_DEVICE_DEPTH, // Raw float non-linear depth values from the z-buffer (in source world units)
+		FLOAT_SCENE_DEPTH, // Linearized float distance-from-camera values (in source world units)
 		PACK_DEPTH_RGBA, // DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
-		PACK_DEPTH_BGRA, // DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 	};
 }
