@@ -69,17 +69,13 @@ public:
 			bSuccess= false;
 		}
 
-		if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_RGBA || 
-			descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_BGRA)
+		if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_RGBA)
 		{
 			m_spoutDepthFrame->EnableSpoutLog();
 			m_spoutDepthFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutDepthFrame->SetSenderName(m_depthFrameSenderName.c_str());
 
-			if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_BGRA)
-				m_spoutDepthFrame->SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
-			else
-				m_spoutDepthFrame->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+			m_spoutDepthFrame->SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
 			m_spoutDepthFrame->SetFrameCount(bEnableFrameCounter);
 		}
@@ -215,9 +211,10 @@ public:
 				m_spoutDepthFrame.SetSenderName(m_depthFrameSenderName.c_str()))
 			{
 				// Initialize the depth texture packer if we are sending float depth textures
-				if (descriptor->depth_buffer_type == MikanDepthBuffer_FLOAT_DEPTH)
+				if (descriptor->depth_buffer_type == MikanDepthBuffer_FLOAT_DEVICE_DEPTH ||
+					descriptor->depth_buffer_type == MikanDepthBuffer_FLOAT_SCENE_DEPTH)
 				{
-					m_depthTexturePacker = new SpoutDXDepthTexturePacker(m_spoutDepthFrame);
+					m_depthTexturePacker = new SpoutDXDepthTexturePacker(m_spoutDepthFrame, descriptor);
 					if (!m_depthTexturePacker->init())
 					{
 						MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "Error initializing float depth packer";
@@ -225,10 +222,7 @@ public:
 					}
 				}
 
-				if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_BGRA)
-					m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
-				else
-					m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+				m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
 				if (!bEnableFrameCounter)
 					m_spoutDepthFrame.DisableFrameCount();
@@ -373,9 +367,10 @@ public:
 				m_spoutDepthFrame.SetSenderName(m_depthFrameSenderName.c_str()))
 			{
 				// Initialize the depth texture packer if we are sending float depth textures
-				if (descriptor->depth_buffer_type == MikanDepthBuffer_FLOAT_DEPTH)
+				if (descriptor->depth_buffer_type == MikanDepthBuffer_FLOAT_DEVICE_DEPTH ||
+					descriptor->depth_buffer_type == MikanDepthBuffer_FLOAT_SCENE_DEPTH)
 				{
-					m_depthTexturePacker = new SpoutDXDepthTexturePacker(m_spoutDepthFrame);
+					m_depthTexturePacker = new SpoutDXDepthTexturePacker(m_spoutDepthFrame, descriptor);
 					if (!m_depthTexturePacker->init())
 					{
 						MIKAN_LOG_INFO("SpoutDX11TextureWriter::init()") << "Error initializing float depth packer";
@@ -383,10 +378,7 @@ public:
 					}
 				}
 
-				if (descriptor->depth_buffer_type == MikanDepthBuffer_PACK_DEPTH_BGRA)
-					m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
-				else
-					m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+				m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
 				if (!bEnableFrameCounter)
 					m_spoutDepthFrame.DisableFrameCount();
@@ -580,7 +572,8 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 
 		m_bIsInitialized = m_writerImpl->writerApi.spoutDX11TextureWriter->init(descriptor, bEnableFrameCounter, apiDeviceInterface);
 		if (m_bIsInitialized && 
-			m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_DEPTH)
+			(m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_DEVICE_DEPTH ||
+			 m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_SCENE_DEPTH))
 		{
 			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
 			m_writerImpl->renderTargetDescriptor.depth_buffer_type = MikanDepthBuffer_PACK_DEPTH_RGBA;
@@ -593,7 +586,8 @@ bool InterprocessRenderTargetWriteAccessor::initialize(
 
 		m_bIsInitialized = m_writerImpl->writerApi.spoutDX12TextureWriter->init(descriptor, bEnableFrameCounter, apiDeviceInterface);
 		if (m_bIsInitialized &&
-			m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_DEPTH)
+			(m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_DEVICE_DEPTH ||
+			 m_writerImpl->renderTargetDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_SCENE_DEPTH))
 		{
 			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
 			m_writerImpl->renderTargetDescriptor.depth_buffer_type = MikanDepthBuffer_PACK_DEPTH_RGBA;

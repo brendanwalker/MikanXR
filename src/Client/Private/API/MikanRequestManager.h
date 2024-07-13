@@ -42,11 +42,7 @@ public:
 class IBinaryMikanResponseFactory
 {
 public:
-	virtual MikanResponsePtr createResponse(
-		int requestId,
-		MikanResult resultCode,
-		const std::string& responseType,
-		class BinaryReader& reader) = 0;
+	virtual MikanResponsePtr createResponse(class BinaryReader& reader) = 0;
 };
 using IMikanBinaryResponseFactoryPtr = std::shared_ptr<IBinaryMikanResponseFactory>;
 
@@ -54,11 +50,7 @@ template <typename t_response_type>
 class MikanBinaryResponseFactoryTyped : public IBinaryMikanResponseFactory
 {
 public:
-	virtual MikanResponsePtr createResponse(
-		int requestId,
-		MikanResult resultCode,
-		const std::string& responseType,
-		class BinaryReader& reader) override
+	virtual MikanResponsePtr createResponse(class BinaryReader& reader) override
 	{
 		auto responsePtr = std::make_shared<t_response_type>();
 		t_response_type& responseRef= *responsePtr.get();
@@ -123,10 +115,8 @@ protected:
 	static void binaryResponseHanderStatic(const uint8_t* buffer, size_t bufferSize, void* userdata);
 	void binaryResponseHander(const uint8_t* buffer, size_t bufferSize);
 	MikanResponsePtr parseResponseBinaryReader(
-		int requestId,
-		MikanResult resultCode,
 		const std::string& responseType,
-		BinaryReader& reader);
+		const uint8_t* buffer, size_t bufferSize);
 
 private:
 	std::map<std::string, IMikanTextResponseFactoryPtr> m_textResponseFactories;

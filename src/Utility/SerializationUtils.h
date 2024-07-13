@@ -125,7 +125,7 @@ inline void from_binary(BinaryReader& reader, std::vector<T>& outVector)
 	int32_t count;
 	from_binary(reader, count);
 
-	outVector.reserve(count);
+	outVector.resize(count);
 	for (T& value : outVector)
 	{
 		from_binary(reader, value);

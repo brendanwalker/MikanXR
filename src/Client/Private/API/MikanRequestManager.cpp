@@ -190,7 +190,7 @@ void MikanRequestManager::binaryResponseHander(
 		// Fulfill the promise with the response
 		if (pendingRequest)
 		{
-			MikanResponsePtr response = parseResponseBinaryReader(requestId, resultCode, responseType, reader);
+			MikanResponsePtr response = parseResponseBinaryReader(responseType, buffer, bufferSize);
 
 			if (!response)
 			{
@@ -225,19 +225,20 @@ void MikanRequestManager::binaryResponseHanderStatic(
 }
 
 MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(
-	int requestId,
-	MikanResult resultCode,
 	const std::string& responseType,
-	BinaryReader& reader)
+	const uint8_t* buffer,
+	size_t bufferSize)
 {
 	MikanResponsePtr responsePtr;
 
 	auto it = m_binaryResponseFactories.find(responseType);
 	if (it != m_binaryResponseFactories.end())
 	{
+		BinaryReader reader(buffer, bufferSize);
 		IMikanBinaryResponseFactoryPtr factory = it->second;
 
-		responsePtr = factory->createResponse(requestId, resultCode, responseType, reader);
+		// Reset the read
+		responsePtr = factory->createResponse(reader);
 	}
 	else
 	{
