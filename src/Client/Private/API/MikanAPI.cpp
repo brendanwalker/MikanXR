@@ -43,6 +43,10 @@ public:
 		m_eventManager->addEventFactory<MikanVRDeviceListUpdateEvent>();
 		m_eventManager->addEventFactory<MikanAnchorPoseUpdateEvent>();
 		m_eventManager->addEventFactory<MikanAnchorListUpdateEvent>();
+		m_eventManager->addEventFactory<MikanStencilPoseUpdateEvent>();
+		m_eventManager->addEventFactory<MikanQuadStencilListUpdateEvent>();
+		m_eventManager->addEventFactory<MikanBoxStencilListUpdateEvent>();
+		m_eventManager->addEventFactory<MikanModelStencilListUpdateEvent>();
 		m_eventManager->addEventFactory<MikanScriptMessagePostedEvent>();
 	}
 
