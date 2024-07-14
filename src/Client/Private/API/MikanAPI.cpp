@@ -41,8 +41,10 @@ public:
 		m_eventManager->addEventFactory<MikanVideoSourceModeChangedEvent>();
 		m_eventManager->addEventFactory<MikanVRDevicePoseUpdateEvent>();
 		m_eventManager->addEventFactory<MikanVRDeviceListUpdateEvent>();
+		m_eventManager->addEventFactory<MikanAnchorNameUpdateEvent>();
 		m_eventManager->addEventFactory<MikanAnchorPoseUpdateEvent>();
 		m_eventManager->addEventFactory<MikanAnchorListUpdateEvent>();
+		m_eventManager->addEventFactory<MikanStencilNameUpdateEvent>();
 		m_eventManager->addEventFactory<MikanStencilPoseUpdateEvent>();
 		m_eventManager->addEventFactory<MikanQuadStencilListUpdateEvent>();
 		m_eventManager->addEventFactory<MikanBoxStencilListUpdateEvent>();

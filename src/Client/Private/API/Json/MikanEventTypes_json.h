@@ -125,6 +125,22 @@ inline void from_json(const nlohmann::json& j, MikanVRDeviceListUpdateEvent& p)
 	from_json(j, static_cast<MikanEvent&>(p));
 }
 
+// MikanAnchorNameUpdateEvent
+inline void to_json(nlohmann::json& j, const MikanAnchorNameUpdateEvent& p)
+{
+	nlohmann::to_json(j, static_cast<MikanEvent>(p));
+	j.update({
+		{"anchor_id", p.anchor_id},
+		{"anchor_name", p.anchor_name}
+	});
+}
+inline void from_json(const nlohmann::json& j, MikanAnchorNameUpdateEvent& p)
+{
+	from_json(j, static_cast<MikanEvent&>(p));
+	j.at("anchor_id").get_to(p.anchor_id);
+	j.at("anchor_name").get_to(p.anchor_name);
+}
+
 // MikanAnchorPoseUpdateEvent
 inline void to_json(nlohmann::json& j, const MikanAnchorPoseUpdateEvent& p)
 {
@@ -153,6 +169,22 @@ inline void to_json(nlohmann::json& j, const MikanAnchorListUpdateEvent& p)
 inline void from_json(const nlohmann::json& j, MikanAnchorListUpdateEvent& p)
 {
 	from_json(j, static_cast<MikanEvent&>(p));
+}
+
+// MikanStencilNameUpdateEvent
+inline void to_json(nlohmann::json& j, const MikanStencilNameUpdateEvent& p)
+{
+	nlohmann::to_json(j, static_cast<MikanEvent>(p));
+	j.update({
+		{"stencil_id", p.stencil_id},
+		{"stencil_name", p.stencil_name}
+	});
+}
+inline void from_json(const nlohmann::json& j, MikanStencilNameUpdateEvent& p)
+{
+	from_json(j, static_cast<MikanEvent&>(p));
+	j.at("stencil_id").get_to(p.stencil_id);
+	j.at("stencil_name").get_to(p.stencil_name);
 }
 
 // MikanStencilPoseUpdateEvent

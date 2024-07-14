@@ -82,6 +82,16 @@ struct MikanVRDeviceListUpdateEvent : public MikanEvent
 	MikanVRDeviceListUpdateEvent() : MikanEvent(k_typeName) {}
 };
 
+struct MikanAnchorNameUpdateEvent : public MikanEvent
+{
+	inline static const std::string k_typeName = "MikanAnchorNameChangeEvent";
+
+	MikanSpatialAnchorID anchor_id;
+	std::string anchor_name;
+
+	MikanAnchorNameUpdateEvent() : MikanEvent(k_typeName) {}
+};
+
 struct MikanAnchorPoseUpdateEvent : public MikanEvent
 {
 	inline static const std::string k_typeName = "MikanAnchorPoseUpdateEvent";
@@ -97,6 +107,16 @@ struct MikanAnchorListUpdateEvent : public MikanEvent
 	inline static const std::string k_typeName = "MikanAnchorListUpdateEvent";
 
 	MikanAnchorListUpdateEvent() : MikanEvent(k_typeName) {}
+};
+
+struct MikanStencilNameUpdateEvent : public MikanEvent
+{
+	inline static const std::string k_typeName = "MikanStencilNameChangeEvent";
+
+	MikanStencilID stencil_id;
+	std::string stencil_name;
+
+	MikanStencilNameUpdateEvent() : MikanEvent(k_typeName) {}
 };
 
 struct MikanStencilPoseUpdateEvent : public MikanEvent

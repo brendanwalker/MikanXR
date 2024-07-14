@@ -255,12 +255,22 @@ public:
 	}
 
 	// Spatial Anchor Events
+	void publishAnchorNameUpdatedEvent(const MikanAnchorNameUpdateEvent& newNameEvent)
+	{
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newNameEvent));
+	}
+
 	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent)
 	{
 		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newPoseEvent));
 	}
 
 	// Stencil Events
+	void publishStencilNameUpdatedEvent(const MikanStencilNameUpdateEvent& newNameEvent)
+	{
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newNameEvent));
+	}
+
 	void publishStencilPoseUpdatedEvent(const MikanStencilPoseUpdateEvent& newPoseEvent)
 	{
 		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newPoseEvent));
@@ -448,6 +458,16 @@ void MikanServer::publishVideoSourceModeChangedEvent()
 }
 
 // Spatial Anchor Events
+void MikanServer::publishAnchorNameUpdatedEvent(const MikanAnchorNameUpdateEvent& newNameEvent)
+{
+	EASY_FUNCTION();
+
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishAnchorNameUpdatedEvent(newNameEvent);
+	}
+}
+
 void MikanServer::publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent)
 {
 	EASY_FUNCTION();
@@ -462,7 +482,17 @@ void MikanServer::handleAnchorSystemConfigChange(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
+	if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
+	{
+		AnchorDefinitionPtr anchorConfig= std::static_pointer_cast<AnchorDefinition>(configPtr);
+
+		MikanAnchorNameUpdateEvent nameUpdateEvent;
+		nameUpdateEvent.anchor_id = anchorConfig->getAnchorId();
+		nameUpdateEvent.anchor_name = anchorConfig->getComponentName();
+
+		publishAnchorNameUpdatedEvent(nameUpdateEvent);
+	}
+	else if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
 		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeRotationPropertyId) ||
 		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
 	{
@@ -482,6 +512,16 @@ void MikanServer::handleAnchorSystemConfigChange(
 }
 
 // Stencil Events
+void MikanServer::publishStencilNameUpdatedEvent(const MikanStencilNameUpdateEvent& newNameEvent)
+{
+	EASY_FUNCTION();
+
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishStencilNameUpdatedEvent(newNameEvent);
+	}
+}
+
 void MikanServer::publishStencilPoseUpdatedEvent(const MikanStencilPoseUpdateEvent& newPoseEvent)
 {
 	EASY_FUNCTION();
@@ -496,7 +536,17 @@ void MikanServer::handleStencilSystemConfigChange(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
+	if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
+	{
+		auto anchorConfig = std::static_pointer_cast<StencilComponentDefinition>(configPtr);
+
+		MikanStencilNameUpdateEvent nameUpdateEvent;
+		nameUpdateEvent.stencil_id = anchorConfig->getStencilId();
+		nameUpdateEvent.stencil_name = anchorConfig->getComponentName();
+
+		publishStencilNameUpdatedEvent(nameUpdateEvent);
+	}
+	else if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
 		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeRotationPropertyId) ||
 		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
 	{

@@ -51,11 +51,14 @@ public:
 	void publishVideoSourceIntrinsicsChangedEvent();
 	void publishVideoSourceModeChangedEvent();
 
+
 	// Spatial Anchor Events
+	void publishAnchorNameUpdatedEvent(const MikanAnchorNameUpdateEvent& newPoseEvent);
 	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent);
 	void handleAnchorSystemConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
 	// Stencil Events
+	void publishStencilNameUpdatedEvent(const MikanStencilNameUpdateEvent& newPoseEvent);
 	void publishStencilPoseUpdatedEvent(const MikanStencilPoseUpdateEvent& newPoseEvent);
 	void handleStencilSystemConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 

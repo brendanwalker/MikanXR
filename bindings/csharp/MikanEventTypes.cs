@@ -76,6 +76,14 @@ namespace MikanXR
 		public MikanVRDeviceListUpdateEvent() : base(typeof(MikanVRDeviceListUpdateEvent).Name) {}
 	};
 
+	public class MikanAnchorNameUpdateEvent : MikanEvent
+	{
+		public string anchor_name { get; set; }
+		public int anchor_id { get; set; }
+
+		public MikanAnchorNameUpdateEvent() : base(typeof(MikanAnchorNameUpdateEvent).Name) { }
+	};
+
 	public class MikanAnchorPoseUpdateEvent : MikanEvent
 	{
 		public MikanTransform transform { get; set; }
@@ -87,6 +95,14 @@ namespace MikanXR
 	public class MikanAnchorListUpdateEvent : MikanEvent
 	{
 		public MikanAnchorListUpdateEvent() : base(typeof(MikanAnchorListUpdateEvent).Name) {}
+	};
+
+	public class MikanStencilNameUpdateEvent : MikanEvent
+	{
+		public string stencil_name { get; set; }
+		public int stencil_id { get; set; }
+
+		public MikanStencilNameUpdateEvent() : base(typeof(MikanStencilNameUpdateEvent).Name) { }
 	};
 
 	public class MikanStencilPoseUpdateEvent : MikanEvent
