@@ -8,6 +8,8 @@
 #include "MikanTypeFwd.h"
 #include "MikanCoreTypes.h"
 
+#include "Generated/MikanAPITypes.rfkh.h"
+
 #include <string>
 
 #define INVALID_MIKAN_ID				-1
@@ -21,7 +23,7 @@ using MikanStencilID = int32_t;
 /// The ID of a spatial anchor
 using MikanSpatialAnchorID = int32_t;
 
-struct MikanRequest
+struct STRUCT() MikanRequest
 {
 	inline static const std::string k_typeName = "MikanRequest";
 
@@ -31,9 +33,11 @@ struct MikanRequest
 
 	MikanRequest() = default;
 	MikanRequest(const std::string& inRequestType) : requestType(inRequestType) {}
+
+	MikanRequest_GENERATED
 };
 
-struct MikanResponse
+struct STRUCT() MikanResponse
 {
 	inline static const std::string k_typeName = "MikanResponse";
 
@@ -51,17 +55,21 @@ struct MikanResponse
 		, requestId(INVALID_MIKAN_ID)
 		, resultCode(MikanResult_Success)
 	{}
+
+	MikanResponse_GENERATED
 };
 
-struct MikanEvent
+struct STRUCT() MikanEvent
 {
 	std::string eventType;
 
 	MikanEvent() = default;
 	MikanEvent(const std::string& inEventType) : eventType(inEventType) {}
+
+	MikanEvent_GENERATED
 };
 
-struct MikanClientInfo
+struct STRUCT() MikanClientInfo
 {
 	inline static const std::string k_typeName = "MikanClientInfo";
 
@@ -77,16 +85,21 @@ struct MikanClientInfo
 	bool supportsRGBA32;
 	bool supportsBGRA32;
 	bool supportsDepth;
+
+	MikanClientInfo_GENERATED
 };
 
 /// A float RGB color with [0,1] components.
-struct MikanColorRGB
+struct STRUCT() MikanColorRGB
 {
 	inline static const std::string k_typeName = "MikanColorRGB";
 
 	float r, g, b;
+
+	MikanColorRGB_GENERATED
 };
 
+File_MikanAPITypes_GENERATED
 /**
 @}
 */

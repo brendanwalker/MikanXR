@@ -517,7 +517,6 @@ list(APPEND MIKAN_REQ_LIBS
   ${FFMPEG_swscale_LIBRARY}
   ${FREETYPE_LIBRARIES}
   ${LUA_LIBRARIES}
-  ${RFK_LIBRARIES}
   easy_profiler
   fast_obj_lib
   ixwebsocket
@@ -545,9 +544,6 @@ add_executable(Mikan WIN32 ${MIKAN_SRC} ${APP_RESOURCE_WINDOWS})
 ELSE() #Linux/Darwin
 add_executable(Mikan ${MIKAN_SRC})
 ENDIF()
-
-# Run the RefurekuGenerator BEFORE building the project to refresh generated files
-add_dependencies(Mikan RunRefurekuGenerator)
 
 target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
 target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
@@ -699,9 +695,11 @@ list(APPEND MIKAN_CLIENT_API_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json
   ${CMAKE_CURRENT_LIST_DIR}/Utility
-  ${NLOHMANN_JSON_INCLUDE_DIR})
+  ${NLOHMANN_JSON_INCLUDE_DIR}
+  ${RFK_INCLUDE_DIR})
 
 list(APPEND MIKAN_CLIENT_API_REQ_LIBS
+  ${RFK_LIBRARIES}
   MikanCore)
   
 add_library(MikanAPI SHARED ${MIKAN_CLIENT_API_SRC})
@@ -711,6 +709,9 @@ set_target_properties(MikanAPI PROPERTIES PUBLIC_HEADER "${MIKAN_CLIENT_API_HEAD
 set_target_properties(MikanAPI PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanAPI PRIVATE MIKAN_CLIENT_EXPORTS)
 target_compile_definitions(MikanAPI PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
+
+# Run the RefurekuGenerator BEFORE building the project to refresh generated files
+add_dependencies(MikanAPI RunRefurekuGenerator)
 
 # Runtime dependencies
 set(FFMPEG_DLL_FOLDER ${ROOT_DIR}/deps/ffmpeg-4.4.1-full_build-shared/bin)

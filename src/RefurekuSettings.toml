@@ -8,7 +8,9 @@ toProcessDirectories = [
 ]
 
 # Files to parse which are not included in any directory of toParseDirectories
-toProcessFiles = []
+toProcessFiles = [
+	'''./Client/Public/API/MikanAPITypes.h'''
+]
 
 # Files contained in the directories of this list will be ignored
 ignoredDirectories = [
@@ -40,7 +42,8 @@ cppVersion = 17
 # Include directories of the project
 projectIncludeDirectories = [
 	'''../deps/rfk/Include''',
-	'''./Client/Public/API'''
+	'''./Client/Public/API''',
+	'''./Client/Public/Core'''
 ]
 
 # Must be one of "msvc", "clang++", "g++"
@@ -60,7 +63,7 @@ shouldParseAllMethods = false
 shouldParseAllEnums = false
 shouldParseAllEnumValues = true
 
-shouldLogDiagnostic = false
+shouldLogDiagnostic = true
 
 propertySeparator = ","
 subPropertySeparator = ","
