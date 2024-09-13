@@ -59,4 +59,3 @@ deps
 imgui.ini
 MikanXR.log
 !src/Object
-/src/NodeEditors/Nodes/DrawLayerNode.cpp
