@@ -329,7 +329,9 @@ include(FileList)
 
 # FreeType
 if(NOT NO_FONT_INTERFACE_DEFAULT)
-	find_package(Freetype REQUIRED)
+	if (NOT WIN32) 
+	  	find_package(Freetype REQUIRED)
+	endif()
 	
 	if(MSVC AND FREETYPE_VERSION_STRING STREQUAL "2.11.0")
 		message(WARNING "You are using FreeType version 2.11.0 which introduced an issue that causes a crash on startup on some of the samples. Please avoid this version specifically.")

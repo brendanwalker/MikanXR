@@ -480,6 +480,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${IMNODES_DIR}
   ${IXWEBSOCKET_INCLUDE_DIR}
   ${LOCKFREEQUEUE_INCLUDE_DIR}
+  ${RFK_INCLUDE_DIR}
   ${RMLUI_INCLUDE_DIR}
   ${ROOT_DIR}/thirdparty/glm/
   ${CONFIGURU_INCLUDE_DIR}
@@ -514,12 +515,19 @@ list(APPEND MIKAN_REQ_LIBS
   ${FFMPEG_avformat_LIBRARY}
   ${FFMPEG_avutil_LIBRARY}
   ${FFMPEG_swscale_LIBRARY}
+  ${FREETYPE_LIBRARIES}
   ${LUA_LIBRARIES}
+  ${RFK_LIBRARIES}
   easy_profiler
   fast_obj_lib
   ixwebsocket
   RmlCore
   RmlDebugger)
+
+# Create the command to run RefurekuGenerator
+add_custom_target(RunRefurekuGenerator
+	WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+	COMMAND ${RFK_GENERATOR_EXE} ${CMAKE_CURRENT_LIST_DIR}/RefurekuSettings.toml)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -537,6 +545,9 @@ add_executable(Mikan WIN32 ${MIKAN_SRC} ${APP_RESOURCE_WINDOWS})
 ELSE() #Linux/Darwin
 add_executable(Mikan ${MIKAN_SRC})
 ENDIF()
+
+# Run the RefurekuGenerator BEFORE building the project to refresh generated files
+add_dependencies(Mikan RunRefurekuGenerator)
 
 target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
 target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
@@ -773,7 +784,13 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
     "${LUA_SHARED_LIBRARIES}" 
-    $<TARGET_FILE_DIR:Mikan>)
+    $<TARGET_FILE_DIR:Mikan>)	
+  add_custom_command(
+	TARGET Mikan POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy
+	"${RFK_SHARED_LIBRARIES}"
+	$<TARGET_FILE_DIR:Mikan>)	
+	
 ELSE() #Linux/Darwin
 ENDIF()
 
@@ -818,6 +835,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       
   install(FILES "${LUA_SHARED_LIBRARIES}"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
+	  
+  install(FILES "${RFK_SHARED_LIBRARIES}"
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})	  
       
   install(FILES 
       "${SDL2_IMAGE_DLL_FOLDER}/libjpeg-9.dll" 

@@ -58,6 +58,8 @@ endif()
 
 # Freetype
 if (WIN32) 
+  set (FREETYPE_INCLUDE_DIRS ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/include)
+  set (FREETYPE_LIBRARIES ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/win64/freetype.lib)
   set (FREETYPE_SHARED_LIBRARY ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/win64/freetype.dll)
 else()
   #TODO
@@ -67,6 +69,18 @@ endif()
 set (RMLUI_DIR ${ROOT_DIR}/thirdparty/RmlUI)
 set (RMLUI_INCLUDE_DIR ${RMLUI_DIR}/Include)
 
+# Refureku
+set (RFK_DIR ${ROOT_DIR}/deps/rfk)
+set (RFK_INCLUDE_DIR ${RFK_DIR}/Include)
+set (RFK_LIB_DIR ${RFK_DIR}/Lib)
+set (RFK_BIN_DIR ${RFK_DIR}/Bin)
+if (WIN32) 
+	set (RFK_LIBRARIES ${RFK_LIB_DIR}/Refureku.lib)
+	set (RFK_GENERATOR_EXE ${RFK_BIN_DIR}/RefurekuGenerator.exe)
+	list(APPEND RFK_SHARED_LIBRARIES
+		 ${RFK_BIN_DIR}/Refureku.dll
+	)	
+endif()
 
 # Lua
 if (WIN32) 
