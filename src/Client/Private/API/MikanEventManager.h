@@ -9,6 +9,7 @@
 #include <string>
 
 #include "nlohmann/json.hpp"
+#include <Refureku/Refureku.h>
 
 using json = nlohmann::json;
 
@@ -33,6 +34,30 @@ public:
 	}
 };
 
+class MikanRefurekuEventFactory : public IMikanEventFactory
+{
+protected:
+	static bool from_json(const json* j, std::shared_ptr<MikanEvent> event, rfk::Struct const& archetype);
+};
+
+
+template <typename t_response_type>
+class MikanRefurekuEventFactoryTyped : public MikanRefurekuEventFactory
+{
+public:
+	virtual MikanEventPtr createEvent(json jsonEvent) override
+	{
+		std::shared_ptr<MikanEvent> eventPtr = std::make_shared<t_response_type>();
+
+		if (MikanRefurekuEventFactory::from_json(&jsonEvent, eventPtr, t_response_type::staticGetArchetype()))
+		{
+			return eventPtr;
+		}
+
+		return nullptr;
+	}
+};
+
 class MikanEventManager
 {
 public:
@@ -40,6 +65,13 @@ public:
 
 	template <typename t_response_type>
 	void addEventFactory()
+	{
+		IMikanEventFactoryPtr factory = std::make_shared<MikanEventFactoryTyped<t_response_type>>();
+		m_eventFactories.insert(std::make_pair(t_response_type::k_typeName, factory));
+	}
+
+	template <typename t_response_type>
+	void addRefurekuEventFactory()
 	{
 		IMikanEventFactoryPtr factory = std::make_shared<MikanEventFactoryTyped<t_response_type>>();
 		m_eventFactories.insert(std::make_pair(t_response_type::k_typeName, factory));

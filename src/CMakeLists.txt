@@ -667,6 +667,7 @@ file(GLOB MIKAN_CLIENT_API_UTILITY_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.h"
     "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/Utility/JsonUtils.h"
+	"${CMAKE_CURRENT_LIST_DIR}/Utility/JsonUtils.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.h"
 	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.cpp"
 )
