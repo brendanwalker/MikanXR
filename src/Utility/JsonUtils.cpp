@@ -60,13 +60,8 @@ namespace JsonUtils
 			return false;
 		}
 
-
-		if (field.getKind() == rfk::EEntityKind::Enum)
-		{
-			// TODO
-		}
-		else if (field.getKind() == rfk::EEntityKind::Class || 
-				field.getKind() == rfk::EEntityKind::Struct)
+		if (field.getKind() == rfk::EEntityKind::Class ||
+			field.getKind() == rfk::EEntityKind::Struct)
 		{
 			rfk::Struct const* structType = rfk::structCast(&field);
 
@@ -80,6 +75,58 @@ namespace JsonUtils
 			{
 				MIKAN_MT_LOG_WARNING("JsonUtils::from_json()")
 					<< "Field " << field.getName() << " was not an object";
+				return false;
+			}
+		}
+		else if (field.getKind() == rfk::EEntityKind::Enum)
+		{
+			rfk::Enum const* enumType = rfk::enumCast(&field);
+
+			if (enumType != nullptr)
+			{
+				if (jobject->is_number_integer())
+				{
+					int value = jobject->get<int>();
+					rfk::EnumValue const* enumValue= enumType->getEnumValue(value);
+
+					if (enumValue != nullptr)
+					{
+						field.setUnsafe(instance, enumValue);
+					}
+					else
+					{
+						MIKAN_MT_LOG_WARNING("JsonUtils::from_json()")
+							<< "Field " << field.getName() << " has an invalid value";
+						return false;
+					}
+				}
+				else if (jobject->is_string())
+				{
+					std::string value = jobject->get<std::string>();
+					rfk::EnumValue const* enumValue = enumType->getEnumValueByName(value.c_str());
+
+					if (enumValue != nullptr)
+					{
+						field.setUnsafe(instance, enumValue);
+					}
+					else
+					{
+						MIKAN_MT_LOG_WARNING("JsonUtils::from_json()")
+							<< "Field " << field.getName() << " has an invalid value";
+						return false;
+					}
+				}
+				else
+				{
+					MIKAN_MT_LOG_WARNING("JsonUtils::from_json()")
+						<< "Field " << field.getName() << " was not an int or a string";
+					return false;
+				}
+			}
+			else
+			{
+				MIKAN_MT_LOG_WARNING("JsonUtils::from_json()") 
+					<< "Field " << field.getName() << " was not an enum";
 				return false;
 			}
 		}
