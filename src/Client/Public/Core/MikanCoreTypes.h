@@ -5,12 +5,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef ENABLE_REFLECTION
+#include "MikanCoreTypes.rfkh.h"
+#endif // ENABLE_REFLECTION
+
 //cut_before
 
 #define INVALID_MIKAN_ID				-1
 
 /// Result enum in response to a client API request
-enum MikanResult
+enum ENUM() MikanResult
 {
 	MikanResult_Success,	///< General Success Result	
 	MikanResult_GeneralError,	///< General Error Result
@@ -40,7 +44,7 @@ enum MikanResult
 	MikanResult_InvalidAnchorID,
 };
 
-enum MikanLogLevel
+enum ENUM() MikanLogLevel
 {
 	MikanLogLevel_Trace,
 	MikanLogLevel_Debug,
@@ -50,7 +54,7 @@ enum MikanLogLevel
 	MikanLogLevel_Fatal
 };
 
-enum MikanClientGraphicsApi
+enum ENUM() MikanClientGraphicsApi
 {
 	MikanClientGraphicsApi_UNKNOWN= -1,
 
@@ -64,7 +68,7 @@ enum MikanClientGraphicsApi
 	MikanClientGraphicsApi_COUNT,
 };
 
-enum MikanColorBufferType
+enum ENUM() MikanColorBufferType
 {
 	MikanColorBuffer_NOCOLOR,
 	MikanColorBuffer_RGB24,
@@ -72,7 +76,7 @@ enum MikanColorBufferType
 	MikanColorBuffer_BGRA32, // DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 };
 
-enum MikanDepthBufferType
+enum ENUM() MikanDepthBufferType
 {
 	MikanDepthBuffer_NODEPTH,
 	MikanDepthBuffer_FLOAT_DEVICE_DEPTH, // Raw float non-linear depth values from the z-buffer (in source world units)
@@ -80,18 +84,26 @@ enum MikanDepthBufferType
 	MikanDepthBuffer_PACK_DEPTH_RGBA, // DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
 };
 
-struct MikanRenderTargetDescriptor
+struct STRUCT() MikanRenderTargetDescriptor
 {
 	MikanColorBufferType color_buffer_type;
 	MikanDepthBufferType depth_buffer_type;
 	uint32_t width;
 	uint32_t height;
 	MikanClientGraphicsApi graphicsAPI;
+
+#ifdef ENABLE_REFLECTION
+	MikanRenderTargetDescriptor_GENERATED
+#endif // ENABLE_REFLECTION
 };
 
-struct MikanClientFrameRendered
+struct STRUCT() MikanClientFrameRendered
 {
 	uint64_t frame_index;
+
+#ifdef ENABLE_REFLECTION
+	MikanClientFrameRendered_GENERATED
+#endif // ENABLE_REFLECTION
 };
 
 // Wrapper Types
@@ -110,6 +122,11 @@ typedef void(MIKAN_CALLBACK* MikanBinaryResponseCallback)(
 
 typedef void (MIKAN_CALLBACK* MikanLogCallback)(
 	int /*log_level*/, const char* /*log_message*/);
+
+
+#ifdef ENABLE_REFLECTION
+File_MikanCoreTypes_GENERATED
+#endif // ENABLE_REFLECTION
 
 /**
 @}
