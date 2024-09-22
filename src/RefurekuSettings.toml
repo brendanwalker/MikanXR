@@ -4,17 +4,18 @@ supportedFileExtensions = [".h", ".hpp"]
 
 # Files contained in the directories of this list will be parsed
 toProcessDirectories = [
-#	'''./Client/Public/API'''
+	'''./Client/Public/Core''',
+	'''./Client/Public/API'''
 ]
 
 # Files to parse which are not included in any directory of toParseDirectories
 toProcessFiles = [
-	'''./Client/Public/API/MikanAPITypes.h'''
+#	'''./Client/Public/API/MikanCoreTypes.h''',
+#	'''./Client/Public/API/MikanAPITypes.h'''
 ]
 
 # Files contained in the directories of this list will be ignored
 ignoredDirectories = [
-#	'''./Client/Public/API/Generated'''
 ]
 
 # Files not to parse which are not included in any directory of ignoredDirectories
@@ -23,7 +24,7 @@ ignoredFiles = []
 
 [CodeGenUnitSettings]
 # Generated files will be located here
-outputDirectory = '''./Client/Public/API/Generated'''
+outputDirectory = '''./Generated'''
 
 generatedHeaderFileNamePattern = "##FILENAME##.rfkh.h"
 generatedSourceFileNamePattern = "##FILENAME##.rfks.h"
@@ -42,6 +43,7 @@ cppVersion = 17
 # Include directories of the project
 projectIncludeDirectories = [
 	'''../deps/rfk/Include''',
+	'''./Generated''',
 	'''./Client/Public/API''',
 	'''./Client/Public/Core'''
 ]

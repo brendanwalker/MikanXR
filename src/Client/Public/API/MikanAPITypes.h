@@ -8,7 +8,9 @@
 #include "MikanTypeFwd.h"
 #include "MikanCoreTypes.h"
 
-#include "Generated/MikanAPITypes.rfkh.h"
+#ifdef ENABLE_REFLECTION
+#include "MikanAPITypes.rfkh.h"
+#endif // ENABLE_REFLECTION
 
 #include <string>
 
@@ -34,7 +36,9 @@ struct STRUCT() MikanRequest
 	MikanRequest() = default;
 	MikanRequest(const std::string& inRequestType) : requestType(inRequestType) {}
 
+	#ifdef ENABLE_REFLECTION
 	MikanRequest_GENERATED
+	#endif
 };
 
 struct STRUCT() MikanResponse
@@ -56,7 +60,9 @@ struct STRUCT() MikanResponse
 		, resultCode(MikanResult_Success)
 	{}
 
+	#ifdef ENABLE_REFLECTION
 	MikanResponse_GENERATED
+	#endif
 };
 
 struct STRUCT() MikanEvent
@@ -66,7 +72,9 @@ struct STRUCT() MikanEvent
 	MikanEvent() = default;
 	MikanEvent(const std::string& inEventType) : eventType(inEventType) {}
 
+	#ifdef ENABLE_REFLECTION
 	MikanEvent_GENERATED
+	#endif
 };
 
 struct STRUCT() MikanClientInfo
@@ -86,7 +94,9 @@ struct STRUCT() MikanClientInfo
 	bool supportsBGRA32;
 	bool supportsDepth;
 
+	#ifdef ENABLE_REFLECTION
 	MikanClientInfo_GENERATED
+	#endif
 };
 
 /// A float RGB color with [0,1] components.
@@ -96,10 +106,15 @@ struct STRUCT() MikanColorRGB
 
 	float r, g, b;
 
+	#ifdef ENABLE_REFLECTION
 	MikanColorRGB_GENERATED
+	#endif
 };
 
+#ifdef ENABLE_REFLECTION
 File_MikanAPITypes_GENERATED
+#endif // ENABLE_REFLECTION
+
 /**
 @}
 */

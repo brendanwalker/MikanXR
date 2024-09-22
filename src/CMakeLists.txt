@@ -458,6 +458,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Device/Interface
   ${CMAKE_CURRENT_LIST_DIR}/Device/Manager
   ${CMAKE_CURRENT_LIST_DIR}/Device/View
+  ${CMAKE_CURRENT_LIST_DIR}/Generated
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
@@ -517,16 +518,12 @@ list(APPEND MIKAN_REQ_LIBS
   ${FFMPEG_swscale_LIBRARY}
   ${FREETYPE_LIBRARIES}
   ${LUA_LIBRARIES}
+  ${RFK_LIBRARIES}
   easy_profiler
   fast_obj_lib
   ixwebsocket
   RmlCore
   RmlDebugger)
-
-# Create the command to run RefurekuGenerator
-add_custom_target(RunRefurekuGenerator
-	WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-	COMMAND ${RFK_GENERATOR_EXE} ${CMAKE_CURRENT_LIST_DIR}/RefurekuSettings.toml)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -618,9 +615,11 @@ list(APPEND MIKAN_CLIENT_CORE_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/SpoutDX
+  ${CMAKE_CURRENT_LIST_DIR}/Generated
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Utility
   ${NLOHMANN_JSON_INCLUDE_DIR}
+  ${RFK_INCLUDE_DIR}
   ${SPOUT2_INCLUDE_DIRS}
   ${IXWEBSOCKET_INCLUDE_DIR}
   ${LOCKFREEQUEUE_INCLUDE_DIR})
@@ -640,8 +639,8 @@ set_target_properties(MikanCore PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(MikanCore PROPERTIES C_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanCore PRIVATE MIKAN_CLIENT_CAPI_EXPORTS)
 target_compile_definitions(MikanCore PRIVATE ENABLE_SPOUT_DX)
+target_compile_definitions(MikanCore PRIVATE ENABLE_REFLECTION)
 target_compile_definitions(MikanCore PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
-
 
 ## Mikan API DLL
 
@@ -695,6 +694,7 @@ list(APPEND MIKAN_CLIENT_API_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json
+  ${CMAKE_CURRENT_LIST_DIR}/Generated
   ${CMAKE_CURRENT_LIST_DIR}/Utility
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${RFK_INCLUDE_DIR})
@@ -702,17 +702,15 @@ list(APPEND MIKAN_CLIENT_API_INCL_DIRS
 list(APPEND MIKAN_CLIENT_API_REQ_LIBS
   ${RFK_LIBRARIES}
   MikanCore)
-  
+    
 add_library(MikanAPI SHARED ${MIKAN_CLIENT_API_SRC})
 target_include_directories(MikanAPI PRIVATE ${MIKAN_CLIENT_API_INCL_DIRS})
 target_link_libraries(MikanAPI PRIVATE ${MIKAN_CLIENT_API_REQ_LIBS})
 set_target_properties(MikanAPI PROPERTIES PUBLIC_HEADER "${MIKAN_CLIENT_API_HEADER}")
 set_target_properties(MikanAPI PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanAPI PRIVATE MIKAN_CLIENT_EXPORTS)
+target_compile_definitions(MikanAPI PRIVATE ENABLE_REFLECTION)
 target_compile_definitions(MikanAPI PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
-
-# Run the RefurekuGenerator BEFORE building the project to refresh generated files
-add_dependencies(MikanAPI RunRefurekuGenerator)
 
 # Runtime dependencies
 set(FFMPEG_DLL_FOLDER ${ROOT_DIR}/deps/ffmpeg-4.4.1-full_build-shared/bin)
