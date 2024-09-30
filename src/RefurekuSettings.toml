@@ -10,8 +10,7 @@ toProcessDirectories = [
 
 # Files to parse which are not included in any directory of toParseDirectories
 toProcessFiles = [
-#	'''./Client/Public/API/MikanCoreTypes.h''',
-#	'''./Client/Public/API/MikanAPITypes.h'''
+	'''./Tests/UnitTests/serialization_unit_tests.h'''
 ]
 
 # Files contained in the directories of this list will be ignored
@@ -45,7 +44,8 @@ projectIncludeDirectories = [
 	'''../deps/rfk/Include''',
 	'''./Generated''',
 	'''./Client/Public/API''',
-	'''./Client/Public/Core'''
+	'''./Client/Public/Core''',
+	'''./Tests/UnitTests'''
 ]
 
 # Must be one of "msvc", "clang++", "g++"
