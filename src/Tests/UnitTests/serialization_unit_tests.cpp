@@ -35,7 +35,11 @@ bool serialization_utility_test_reflection_from_json()
 			"float_field": 1.2345,
 			"double_field": 1.23456789,
 			"string_field": "hello",
-			"enum_field": "SerializationTestEnum_Value2"
+			"enum_field": "SerializationTestEnum_Value2",
+			"vector_field": {
+				"x_field": 1.2345,
+				"y_field": 5.4321
+			}
 		}
 		)"""";
 		json jsonObject = json::parse(jsonString);
@@ -57,6 +61,8 @@ bool serialization_utility_test_reflection_from_json()
 		assert(is_double_nearly_equal(instance.double_field, 1.23456789, 0.0000001));
 		assert(instance.string_field == "hello");
 		assert(instance.enum_field == SerializationTestEnum_Value2);
+		assert(is_nearly_equal(instance.vector_field.x_field, 1.2345f, 0.0001f));
+		assert(is_nearly_equal(instance.vector_field.y_field, 5.4321, 0.0001f));
 
 	UNIT_TEST_COMPLETE()
 }

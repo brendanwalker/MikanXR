@@ -67,10 +67,10 @@ namespace JsonUtils
 		rfk::EEntityKind fieldArchetypeKind = fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
 		const char* fieldArchetypeName = fieldArchetype ? fieldArchetype->getName() : "";
 
-		if (fieldKind == rfk::EEntityKind::Class ||
-			fieldKind == rfk::EEntityKind::Struct)
+		if (fieldArchetypeKind == rfk::EEntityKind::Class ||
+			fieldArchetypeKind == rfk::EEntityKind::Struct)
 		{
-			rfk::Struct const* structType = rfk::structCast(&field);
+			rfk::Struct const* structType = rfk::structCast(fieldArchetype);
 
 			if (jobject->is_object() && structType != nullptr)
 			{
@@ -88,6 +88,7 @@ namespace JsonUtils
 		else if (fieldArchetypeKind == rfk::EEntityKind::Enum)
 		{
 			rfk::Enum const* enumType = rfk::enumCast(fieldArchetype);
+			rfk::Archetype const& enumArchetype= enumType->getUnderlyingArchetype();
 
 			if (enumType != nullptr)
 			{
