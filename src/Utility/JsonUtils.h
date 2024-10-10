@@ -8,6 +8,7 @@ namespace rfk
 {
 	class Field;
 	class Struct;
+	using Class = Struct;
 };
 
 // Base class for JSON SAX Parser for searching for a key-value pair in a JSON string
@@ -174,6 +175,7 @@ public:
 
 namespace JsonUtils 
 {
+	bool from_json(const json* jobject, void* instance, rfk::Class const& archetype);
 	bool from_json(const json* jobject, void* instance, rfk::Struct const& archetype);
 	bool from_json(const json* jobject, void* instance, rfk::Field const& archetype);
 };

@@ -5,7 +5,8 @@ supportedFileExtensions = [".h", ".hpp"]
 # Files contained in the directories of this list will be parsed
 toProcessDirectories = [
 	'''./Client/Public/Core''',
-	'''./Client/Public/API'''
+	'''./Client/Public/API''',
+	'''./Serialization/Public'''
 ]
 
 # Files to parse which are not included in any directory of toParseDirectories
@@ -45,6 +46,7 @@ projectIncludeDirectories = [
 	'''./Generated''',
 	'''./Client/Public/API''',
 	'''./Client/Public/Core''',
+	'''./Serialization/Public''',
 	'''./Tests/UnitTests'''
 ]
 

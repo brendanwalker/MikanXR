@@ -9,7 +9,7 @@ enum ENUM() SerializationTestEnum
 	SerializationTestEnum_Value3,
 };
 
-struct STRUCT() SerializationVectorStruct
+struct STRUCT() SerializationPointStruct
 {
 	FIELD()
 	float x_field;
@@ -17,7 +17,7 @@ struct STRUCT() SerializationVectorStruct
 	FIELD()
 	float y_field;
 
-	SerializationVectorStruct_GENERATED
+	SerializationPointStruct_GENERATED
 };
 
 struct STRUCT() SerializationTestStruct
@@ -62,7 +62,7 @@ struct STRUCT() SerializationTestStruct
 	SerializationTestEnum enum_field;
 
 	FIELD()
-	SerializationVectorStruct vector_field;
+	SerializationPointStruct point_field;
 
 	SerializationTestStruct_GENERATED
 };

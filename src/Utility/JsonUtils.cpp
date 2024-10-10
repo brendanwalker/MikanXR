@@ -5,14 +5,14 @@
 
 namespace JsonUtils
 {
+	struct DeserializationArgs
+	{
+		const json* jobject;
+		void* instance;
+	};
+
 	bool from_json(const json* jobject, void* instance, rfk::Struct const& archetype)
 	{
-		struct DeserializationArgs
-		{
-			const json* jobject;
-			void* instance;
-		};
-
 		DeserializationArgs args = {jobject, instance};
 		bool success = archetype.foreachField(
 			[](rfk::Field const& field, void* userdata) -> bool {
@@ -67,8 +67,65 @@ namespace JsonUtils
 		rfk::EEntityKind fieldArchetypeKind = fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
 		const char* fieldArchetypeName = fieldArchetype ? fieldArchetype->getName() : "";
 
-		if (fieldArchetypeKind == rfk::EEntityKind::Class ||
-			fieldArchetypeKind == rfk::EEntityKind::Struct)
+		if (fieldArchetypeKind == rfk::EEntityKind::Class)
+		{
+			rfk::Class const* classType = rfk::classCast(fieldArchetype);
+			rfk::EClassKind classKind = classType->getClassKind();
+
+
+			if (classKind == rfk::EClassKind::Template)
+			{
+				rfk::ClassTemplate const* templateDefinitionType = rfk::classTemplateCast(fieldArchetype);
+				const char* templateTypeName = templateDefinitionType ? templateDefinitionType->getName() : "";
+
+				MIKAN_MT_LOG_WARNING("JsonUtils::from_json()")
+					<< "Field " << field.getName() << " was a pure template? Ignoring.";
+				return true;
+			}
+			if (classKind == rfk::EClassKind::TemplateInstantiation)
+			{
+				//rfk::ClassTemplateInstantiation const* templateInstanceType = rfk::classTemplateInstantiationCast(fieldArchetype);
+				//std::string templateTypeName = templateInstanceType ? templateInstanceType->getName() : "";
+
+				//if (templateTypeName == "SerializedList" && 
+				//	templateInstanceType->getTemplateArgumentsCount() == 1)
+				//{
+				//	templateInstanceType->getTemplateArgumentAt(0);
+
+				//	if (jobject->is_array() && structType != nullptr)
+				//	{
+				//		const void* rawList = field.getPtrUnsafe(instance);
+				//		size_t elementIndex = 0;
+
+				//		rfk::Method const* getRawElementMethod = templateInstanceType->getMethodByName("getRawElement");
+				//		const void* element= getRawElementMethod->invokeUnsafe<const void*, size_t>(rawList, elementIndex);
+
+
+				//		return from_json(jobject, fieldInstance, *structType);
+				//	}
+				//	else
+				//	{
+				//		MIKAN_MT_LOG_WARNING("JsonUtils::from_json()")
+				//			<< "Field " << field.getName() << " was not an object";
+				//		return false;
+				//	}
+				//}
+			}
+
+			if (jobject->is_object() && classType != nullptr)
+			{
+				void* fieldInstance = field.getPtrUnsafe(instance);
+
+				return from_json(jobject, fieldInstance, *classType);
+			}
+			else
+			{
+				MIKAN_MT_LOG_WARNING("JsonUtils::from_json()")
+					<< "Field " << field.getName() << " was not an object";
+				return false;
+			}
+		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::Struct)
 		{
 			rfk::Struct const* structType = rfk::structCast(fieldArchetype);
 

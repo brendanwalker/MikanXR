@@ -547,6 +547,39 @@ target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
 target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
 target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
+## Mikan Serialization LIB
+## =======================
+
+file(GLOB MIKAN_SERIALIZATION_PRIVATE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Serialization/Private/*.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Serialization/Private/*.cpp"		
+)
+
+file(GLOB MIKAN_SERIALIZATION_PUBLIC_SRC
+	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core/MikanExport.h"
+	"${CMAKE_CURRENT_LIST_DIR}/Serialization/Public/*.h"
+)
+
+list(APPEND MIKAN_SERIALIZATION_INCL_DIRS
+  ${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core/
+  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Private
+  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public
+  ${CMAKE_CURRENT_LIST_DIR}/Generated
+  ${NLOHMANN_JSON_INCLUDE_DIR}
+  ${RFK_INCLUDE_DIR})
+ 
+add_library(MikanSerialization STATIC ${MIKAN_SERIALIZATION_PRIVATE_SRC})
+target_include_directories(MikanSerialization PRIVATE ${MIKAN_SERIALIZATION_INCL_DIRS})
+set_target_properties(MikanSerialization PROPERTIES PUBLIC_HEADER "${MIKAN_SERIALIZATION_PUBLIC_SRC}")
+set_target_properties(MikanSerialization PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(MikanSerialization PROPERTIES C_VISIBILITY_PRESET hidden)
+target_compile_definitions(MikanSerialization PRIVATE ENABLE_REFLECTION)
+target_compile_definitions(MikanSerialization PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
+target_sources(MikanSerialization PRIVATE ${MIKAN_SERIALIZATION_PRIVATE_SRC})
+target_sources(MikanSerialization PUBLIC ${MIKAN_SERIALIZATION_PUBLIC_SRC})
+source_group("Private" FILES ${MIKAN_SERIALIZATION_PRIVATE_SRC})
+source_group("Public" FILES ${MIKAN_SERIALIZATION_PUBLIC_SRC})
+
 ## Mikan Core DLL
 file(GLOB MIKAN_CLIENT_CORE_PRIVATE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/*.h"
