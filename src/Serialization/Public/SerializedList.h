@@ -31,6 +31,12 @@ namespace Serialization NAMESPACE()
 			return &at(index);
 		}
 
+		METHOD()
+		void* getRawElementMutable(const std::size_t index) const
+		{
+			return &at(index);
+		}
+
 	#ifdef ENABLE_REFLECTION
 	Serialization_List_GENERATED
 	#endif

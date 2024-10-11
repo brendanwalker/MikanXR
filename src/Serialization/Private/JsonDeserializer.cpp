@@ -15,7 +15,7 @@ namespace Serialization
 	public:
 		JsonReadVisitor(const nlohmann::json& jsonObject) : m_jsonObject(jsonObject) {}
 
-		virtual void visitClass(void* instance, rfk::Field const& field, rfk::Struct const& fieldClassType) override
+		virtual void visitClass(void* classInstance, rfk::Field const& field, rfk::Struct const& fieldClassType) override
 		{
 			const json& fieldJsonObject = m_jsonObject[field.getName()];
 
@@ -25,19 +25,20 @@ namespace Serialization
 
 				if (classKind == rfk::EClassKind::TemplateInstantiation)
 				{
-					auto const* templateInstanceType = rfk::classTemplateInstantiationCast(&fieldClassType);
-					std::string templateTypeName = templateInstanceType ? templateInstanceType->getName() : "";
+					void* arrayInstance = field.getPtrUnsafe(classInstance);
+					const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(&fieldClassType);
+					std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
+					// See if the field is a Serialization::List<T>
 					if (templateTypeName == "List" &&
-						templateInstanceType->getTemplateArgumentsCount() == 1)
+						templateClassInstanceType->getTemplateArgumentsCount() == 1)
 					{
-						auto const& templateArg= 
-							static_cast<rfk::TypeTemplateArgument const& >(
-								templateInstanceType->getTemplateArgumentAt(0));
-						rfk::Type const& arrayElementType= templateArg.getType();
-						void* arrayInstance = field.getPtrUnsafe(instance);
-
-						visitList(arrayInstance, field, arrayElementType, fieldJsonObject);
+						visitList(arrayInstance, field, *templateClassInstanceType, fieldJsonObject);
+					}
+					else if (templateTypeName == "Dictionary" &&
+						templateClassInstanceType->getTemplateArgumentsCount() == 2)
+					{
+						visitDictionary(arrayInstance, field, *templateClassInstanceType, fieldJsonObject);
 					}
 				}
 				else
@@ -50,36 +51,63 @@ namespace Serialization
 			}
 			else
 			{
-				JsonReadVisitor::visitStruct(instance, field, fieldClassType);
+				JsonReadVisitor::visitStruct(classInstance, field, fieldClassType);
 			}
 		}
 
 		void visitList(
 			void* arrayInstance,
 			rfk::Field const& arrayField,
-			rfk::Type const& arrayElementType,
-			const json& fieldJsonObject)
+			rfk::ClassTemplateInstantiation const& templatedArrayType,
+			const json& arrayJsonObject)
 		{
+			// Get the type of the elements in the array from the template argument
+			auto const& templateArg =
+				static_cast<rfk::TypeTemplateArgument const&>(
+					templatedArrayType.getTemplateArgumentAt(0));
+			rfk::Type const& elementType = templateArg.getType();
+
+			// Use reflection to get the methods to resize the array and get a mutable reference to an element
+			rfk::Method const* getResizeMethod = templatedArrayType.getMethodByName("resize");
+			rfk::Method const* getRawElementMutableMethod = templatedArrayType.getMethodByName("getRawElementMutable");
+
+			// Make a fake "field" for an element in the array
+			rfk::Field elementField(arrayField.getName(),
+									arrayField.getId(),
+									elementType,
+									arrayField.getFlags(),
+									arrayField.getOwner(),
+									0, // no offset since elementInstance points directly to the element
+									arrayField.getOuterEntity());
+
+			// Resize the array to the desired target size
+			std::size_t arraySize = arrayJsonObject.size();
+			getResizeMethod->invokeUnsafe<void, std::size_t&>(arrayInstance, arraySize);
+
+			// Deserialize each element of the array
+			for (size_t elementIndex= 0; elementIndex < arraySize; ++elementIndex) 
 			{
-				//	if (jobject->is_array() && structType != nullptr)
-				//	{
-				//		const void* rawList = field.getPtrUnsafe(instance);
-				//		size_t elementIndex = 0;
+				// Get the source json array element
+				const json& elementJson = arrayJsonObject[elementIndex];
 
-				//		rfk::Method const* getRawElementMethod = templateInstanceType->getMethodByName("getRawElement");
-				//		const void* element= getRawElementMethod->invokeUnsafe<const void*, size_t>(rawList, elementIndex);
+				// Get the target element instance in the array
+				void* elementInstance= 
+					getRawElementMutableMethod->invokeUnsafe<void*, std::size_t&>(
+						arrayInstance, elementIndex);
 
-
-				//		return from_json(jobject, fieldInstance, *structType);
-				//	}
-				//	else
-				//	{
-				//		MIKAN_MT_LOG_WARNING("JsonUtils::from_json()")
-				//			<< "Field " << field.getName() << " was not an object";
-				//		return false;
-				//	}
-				//}
+				// Deserialize the element into the 
+				JsonReadVisitor elementVisitor(elementJson);
+				Serialization::visitField(elementInstance, elementField, &elementVisitor);
 			}
+		}
+
+		void visitDictionary(
+			void* arrayInstance,
+			rfk::Field const& arrayField,
+			rfk::ClassTemplateInstantiation const& templatedArrayType,
+			const json& arrayJsonObject)
+		{
+			// TODO
 		}
 
 		virtual void visitStruct(void* instance, rfk::Field const& field, rfk::Struct const& fieldStructType) override
