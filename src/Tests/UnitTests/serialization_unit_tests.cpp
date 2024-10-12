@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #include "MathUtility.h"
-#include "JsonUtils.h"
+#include "JsonDeserializer.h"
 #include "serialization_unit_tests.h"
 #include "serialization_unit_tests.rfks.h"
 #include "unit_test.h"
@@ -42,11 +42,10 @@ bool serialization_utility_test_reflection_from_json()
 			}
 		}
 		)"""";
-		json jsonObject = json::parse(jsonString);
 
 		SerializationTestStruct instance= {};
-		const rfk::Struct& archtype = SerializationTestStruct::staticGetArchetype();
-		bool bSuccess = JsonUtils::from_json(&jsonObject, &instance, archtype);
+		bool bSuccess = Serialization::deserializefromJsonString(jsonString, instance);
+
 		assert(bSuccess);
 		assert(instance.bool_field == true);
 		assert(instance.byte_field == -123);

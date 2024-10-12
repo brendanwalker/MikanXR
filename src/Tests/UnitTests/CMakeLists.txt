@@ -10,7 +10,6 @@ file(GLOB UNIT_TEST_SRC
     "${ROOT_DIR}/src/Math/MathUtility.cpp"
     "${ROOT_DIR}/src/Math/Transform.h"
     "${ROOT_DIR}/src/Math/Transform.cpp"
-    "${ROOT_DIR}/src/Utility/JsonUtils.cpp"
 )
 
 list(APPEND UNIT_TEST_INCL_DIRS
@@ -21,12 +20,14 @@ list(APPEND UNIT_TEST_INCL_DIRS
   ${ROOT_DIR}/src/Client/
   ${ROOT_DIR}/src/Generated/
   ${ROOT_DIR}/src/Math/
+  ${ROOT_DIR}/src/Serialization/Public/
   ${ROOT_DIR}/src/Utility/
   ${ROOT_DIR}/thirdparty/glm/
 )
 
 list(APPEND UNIT_TEST_LIBS 
   ${RFK_LIBRARIES}
+  MikanSerialization
 )
 
 add_executable(unit_test_suite ${UNIT_TEST_SRC})

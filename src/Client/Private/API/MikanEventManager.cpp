@@ -2,7 +2,7 @@
 #include "MikanAPITypes.h"
 #include "MikanCoreCAPI.h"
 #include "Logger.h"
-#include "JsonUtils.h"
+#include "JsonDeserializer.h"
 
 #include "MikanEventTypes_json.h"
 
@@ -11,7 +11,7 @@ bool MikanRefurekuEventFactory::from_json(
 	std::shared_ptr<MikanEvent> event, 
 	rfk::Struct const& archetype)
 {
-	return JsonUtils::from_json(j, event.get(), archetype);
+	return Serialization::deserializefromJson(*j, event.get(), archetype);
 }
 
 MikanResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)

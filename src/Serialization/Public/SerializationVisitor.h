@@ -1,33 +1,112 @@
 #pragma once
 
+#include <string>
+#include "assert.h"
+
 namespace rfk
 {
+	class Archetype;
 	class Enum;
 	class Field;
 	class Struct;
 	using Class = Struct;
+	class Type;
 };
 
 namespace Serialization
 {
+	class ValueAccessor
+	
+	{
+	public:
+		ValueAccessor(void* instance, rfk::Field const& field);
+		ValueAccessor(void* instance, rfk::Type const& type);
+
+		void* getInstance() const { return m_instance; }
+		rfk::Field const* getField() const { return m_field; }
+		rfk::Type const& getType() const { return m_type; }
+		std::string const& getName() const { return m_name; }
+
+		rfk::Class const* getClassType() const;
+		rfk::Struct const* getStructType() const;
+		rfk::Enum const* getEnumType() const;
+
+		void* getUntypedValuePtr() const;
+
+		template <typename t_value_type>
+		t_value_type* getTypedValuePtr() const
+		{
+			assert(m_type == rfk::getType<t_value_type>());
+
+			return reinterpret_cast<t_value_type*>(getUntypedValuePtr());
+		}
+
+		template <typename t_value_type>
+		t_value_type getValue() const
+		{
+			assert(m_type == rfk::getType<t_value_type>());
+			assert(m_type.isValue());
+			assert(m_instance != nullptr);
+
+			if (m_field)
+			{
+				return m_field->getUnsafe<t_value_type>(m_instance);
+			}
+			else
+			{
+				return *reinterpret_cast<t_value_type*>(m_instance);
+			}
+		}
+
+		template <typename t_value_type>
+		void setValueByType(const t_value_type& value) const
+		{
+#ifdef _DEBUG
+			auto const* templateArchetype= rfk::getType<t_value_type>().getArchetype();
+			char const*	templateTypeName= templateArchetype ? templateArchetype->getName() : "";
+			auto const* accessorArchetype= m_type.getArchetype();
+		 	char const* accessorTypeName= accessorArchetype ? accessorArchetype->getName() : "";
+#endif
+
+			assert(rfk::getType<t_value_type>().match(m_type));
+			assert(m_type.isValue());
+			assert(m_instance != nullptr);
+
+			if (m_field)
+			{
+				m_field->setUnsafe(m_instance, &value, sizeof(t_value_type));
+			}
+			else
+			{
+				*reinterpret_cast<t_value_type*>(m_instance) = value;
+			}
+		}
+
+	private:
+		void* m_instance;
+		rfk::Field const* m_field;
+		rfk::Type const& m_type;
+		std::string m_name;
+	};
+
 	class IVisitor
 	{
 	public:
-		virtual void visitClass(void* instance, rfk::Field const& field, rfk::Struct const& fieldClassType) { }
-		virtual void visitStruct(void* instance, rfk::Field const& field, rfk::Struct const& fieldStructType) { }
-		virtual void visitEnum(void* instance, rfk::Field const& field, rfk::Enum const& fieldEnumType) { }
-		virtual void visitBool(void* instance, rfk::Field const& field) { }
-		virtual void visitByte(void* instance, rfk::Field const& field) { }
-		virtual void VisitUByte(void* instance, rfk::Field const& field) { }
-		virtual void visitShort(void* instance, rfk::Field const& field) { }
-		virtual void visitUShort(void* instance, rfk::Field const& field) { }
-		virtual void visitInt(void* instance, rfk::Field const& field) { }
-		virtual void visitUInt(void* instance, rfk::Field const& field) { }
-		virtual void visitLong(void* instance, rfk::Field const& field) { }
-		virtual void visitULong(void* instance, rfk::Field const& field) { }
-		virtual void visitFloat(void* instance, rfk::Field const& field) { }
-		virtual void visitDouble(void* instance, rfk::Field const& field) { }
-		virtual void visitString(void* instance, rfk::Field const& field) { }
+		virtual void visitClass(ValueAccessor const& accessor) { }
+		virtual void visitStruct(ValueAccessor const& accessor) { }
+		virtual void visitEnum(ValueAccessor const& accessor) { }
+		virtual void visitBool(ValueAccessor const& accessor) { }
+		virtual void visitByte(ValueAccessor const& accessor) { }
+		virtual void VisitUByte(ValueAccessor const& accessor) { }
+		virtual void visitShort(ValueAccessor const& accessor) { }
+		virtual void visitUShort(ValueAccessor const& accessor) { }
+		virtual void visitInt(ValueAccessor const& accessor) { }
+		virtual void visitUInt(ValueAccessor const& accessor) { }
+		virtual void visitLong(ValueAccessor const& accessor) { }
+		virtual void visitULong(ValueAccessor const& accessor) { }
+		virtual void visitFloat(ValueAccessor const& accessor) { }
+		virtual void visitDouble(ValueAccessor const& accessor) { }
+		virtual void visitString(ValueAccessor const& accessor) { }
 	};
 
 	template <typename t_struct_type>
@@ -38,4 +117,5 @@ namespace Serialization
 
 	void visitStruct(void* instance, rfk::Struct const& structType, IVisitor *visitor);
 	void visitField(void* instance, rfk::Field const& fieldType, IVisitor *visitor);
+	void visitValue(ValueAccessor const& accessor, IVisitor *visitor);
 };

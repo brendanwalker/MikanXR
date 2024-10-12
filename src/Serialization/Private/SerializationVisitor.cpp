@@ -6,6 +6,50 @@
 
 namespace Serialization
 {
+	ValueAccessor::ValueAccessor(void* instance, rfk::Field const& field) :
+		m_instance(instance),
+		m_field(&field),
+		m_type(field.getType()),
+		m_name(field.getName())
+	{}
+
+	ValueAccessor::ValueAccessor(void* instance, rfk::Type const& type) :
+		m_instance(instance),
+		m_field(nullptr),
+		m_type(type),
+		m_name(type.getArchetype()->getName())
+	{}
+
+	rfk::Class const* ValueAccessor::getClassType() const
+	{
+		return rfk::classCast(m_type.getArchetype());
+	}
+
+	rfk::Struct const* ValueAccessor::getStructType() const
+	{
+		return rfk::structCast(m_type.getArchetype());
+	}
+
+	rfk::Enum const* ValueAccessor::getEnumType() const
+	{
+		return rfk::enumCast(m_type.getArchetype());
+	}
+
+	void* ValueAccessor::getUntypedValuePtr() const
+	{
+		assert(m_type.isValue());
+		assert(m_instance != nullptr);
+
+		if (m_field)
+		{
+			return m_field->getPtrUnsafe(m_instance);
+		}
+		else
+		{
+			return m_instance;
+		}
+	}
+
 	struct VisitorUserdata
 	{
 		void* instance;
@@ -44,9 +88,13 @@ namespace Serialization
 		{
 			throw std::runtime_error(stringify("Field ", field.getName(), " is static"));
 		}
+		
+		visitValue(ValueAccessor(instance, field), visitor);
+	}
 
-		const rfk::EEntityKind fieldKind = field.getKind();
-		rfk::Type const& fieldType = field.getType();
+	void visitValue(ValueAccessor const& accessor, IVisitor* visitor)
+	{
+		rfk::Type const& fieldType = accessor.getType();
 		rfk::Archetype const* fieldArchetype = fieldType.getArchetype();
 		rfk::EEntityKind fieldArchetypeKind = fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
 		const char* fieldArchetypeName = fieldArchetype ? fieldArchetype->getName() : "";
@@ -57,13 +105,11 @@ namespace Serialization
 
 			if (classType != nullptr)
 			{
-				void* classInstance = field.getPtrUnsafe(instance);
-
-				visitor->visitClass(classInstance, field, *classType);
+				visitor->visitClass(accessor);
 			}
 			else
 			{
-				throw std::runtime_error(stringify("Field ", field.getName(), " was not an class type"));
+				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " was not an class type"));
 			}
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Struct)
@@ -72,13 +118,11 @@ namespace Serialization
 
 			if (structType != nullptr)
 			{
-				void* structInstance = field.getPtrUnsafe(instance);
-
-				visitor->visitStruct(structInstance, field, *structType);
+				visitor->visitStruct(accessor);
 			}
 			else
 			{
-				throw std::runtime_error(stringify("Field ", field.getName(), " was not a struct type"));
+				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " was not a struct type"));
 			}
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Enum)
@@ -87,72 +131,71 @@ namespace Serialization
 
 			if (enumType != nullptr)
 			{
-				visitor->visitEnum(instance, field, *enumType);
+				visitor->visitEnum(accessor);
 			}
 			else
 			{
-				throw std::runtime_error(stringify("Field ", field.getName(), " was not an enum type"));
+				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " was not an enum type"));
 			}
 		}
-		else if (fieldKind == rfk::EEntityKind::Field)
+		else if (fieldArchetypeKind == rfk::EEntityKind::FundamentalArchetype)
 		{
 			if (fieldType == rfk::getType<bool>())
 			{
-				visitor->visitBool(instance, field);
+				visitor->visitBool(accessor);
 			}
 			else if (fieldType == rfk::getType<uint8_t>())
 			{
-				visitor->visitByte(instance, field);
+				visitor->VisitUByte(accessor);
 			}
 			else if (fieldType == rfk::getType<int8_t>())
 			{
-				visitor->VisitUByte(instance, field);
+				visitor->visitByte(accessor);
 			}
 			else if (fieldType == rfk::getType<uint16_t>())
 			{
-				visitor->visitUShort(instance, field);
+				visitor->visitUShort(accessor);
 			}
 			else if (fieldType == rfk::getType<int16_t>())
 			{
-				visitor->visitShort(instance, field);
+				visitor->visitShort(accessor);
 			}
 			else if (fieldType == rfk::getType<uint32_t>())
 			{
-				visitor->visitUInt(instance, field);
+				visitor->visitUInt(accessor);
 			}
 			else if (fieldType == rfk::getType<int32_t>())
 			{
-				visitor->visitInt(instance, field);
+				visitor->visitInt(accessor);
 			}
 			else if (fieldType == rfk::getType<uint64_t>())
 			{
-				visitor->visitULong(instance, field);
+				visitor->visitULong(accessor);
 			}
 			else if (fieldType == rfk::getType<int64_t>())
 			{
-				visitor->visitLong(instance, field);
+				visitor->visitLong(accessor);
 			}
 			else if (fieldType == rfk::getType<float>())
 			{
-				visitor->visitFloat(instance, field);
+				visitor->visitFloat(accessor);
 			}
 			else if (fieldType == rfk::getType<double>())
 			{
-				visitor->visitDouble(instance, field);
-			}
-			else if (fieldType == rfk::getType<std::string>())
-			{
-				visitor->visitString(instance, field);
+				visitor->visitDouble(accessor);
 			}
 			else
 			{
-				throw std::runtime_error(stringify("Field ", field.getName(), " has unsupported type"));
+				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " has unsupported type"));
 			}
+		}
+		else if (fieldType == rfk::getType<std::string>())
+		{
+			visitor->visitString(accessor);
 		}
 		else
 		{
-			throw std::runtime_error(
-				stringify("Field ", field.getName(), " has unsupported archetype kind ", (int)fieldKind));
+			throw std::runtime_error(stringify("Unsupported archetype kind ", (int)fieldArchetypeKind));
 		}
 	}
 }

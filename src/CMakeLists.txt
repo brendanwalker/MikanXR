@@ -469,6 +469,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/RmlUi
   ${CMAKE_CURRENT_LIST_DIR}/Scene
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
+  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public/
   ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/System
   ${CMAKE_CURRENT_LIST_DIR}/Utility
@@ -522,6 +523,7 @@ list(APPEND MIKAN_REQ_LIBS
   easy_profiler
   fast_obj_lib
   ixwebsocket
+  MikanSerialization
   RmlCore
   RmlDebugger)
 
@@ -699,9 +701,8 @@ file(GLOB MIKAN_CLIENT_API_UTILITY_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.h"
     "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/Utility/JsonUtils.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Utility/JsonUtils.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.cpp"	
 )
 
 # Mikan API shared library
@@ -727,6 +728,7 @@ list(APPEND MIKAN_CLIENT_API_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary
   ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json
+  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public/
   ${CMAKE_CURRENT_LIST_DIR}/Generated
   ${CMAKE_CURRENT_LIST_DIR}/Utility
   ${NLOHMANN_JSON_INCLUDE_DIR}
@@ -734,7 +736,8 @@ list(APPEND MIKAN_CLIENT_API_INCL_DIRS
 
 list(APPEND MIKAN_CLIENT_API_REQ_LIBS
   ${RFK_LIBRARIES}
-  MikanCore)
+  MikanCore
+  MikanSerialization)
     
 add_library(MikanAPI SHARED ${MIKAN_CLIENT_API_SRC})
 target_include_directories(MikanAPI PRIVATE ${MIKAN_CLIENT_API_INCL_DIRS})

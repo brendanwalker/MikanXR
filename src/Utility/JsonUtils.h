@@ -4,13 +4,6 @@
 
 using json = nlohmann::json;
 
-namespace rfk
-{
-	class Field;
-	class Struct;
-	using Class = Struct;
-};
-
 // Base class for JSON SAX Parser for searching for a key-value pair in a JSON string
 // Don't use this class directly, use one of the derived classes below instead
 template <typename t_value_type>
@@ -171,11 +164,4 @@ public:
 
 		return true; // keep parsing
 	}
-};
-
-namespace JsonUtils 
-{
-	bool from_json(const json* jobject, void* instance, rfk::Class const& archetype);
-	bool from_json(const json* jobject, void* instance, rfk::Struct const& archetype);
-	bool from_json(const json* jobject, void* instance, rfk::Field const& archetype);
 };
