@@ -15,7 +15,9 @@ file(GLOB UNIT_TEST_SRC
 list(APPEND UNIT_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${RFK_INCLUDE_DIR}
-  ${NLOHMANN_JSON_INCLUDE_DIR}  
+  ${NLOHMANN_JSON_INCLUDE_DIR}
+  ${RFK_GENERATED_ROOT_DIR}/UnitTests
+  ${RFK_GENERATED_ROOT_DIR}/Serialization
   ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/Client/
   ${ROOT_DIR}/src/Generated/
@@ -33,9 +35,17 @@ list(APPEND UNIT_TEST_LIBS
 add_executable(unit_test_suite ${UNIT_TEST_SRC})
 target_include_directories(unit_test_suite PUBLIC ${UNIT_TEST_INCL_DIRS})
 target_link_libraries(unit_test_suite ${UNIT_TEST_LIBS})
-target_compile_definitions(unit_test_suite PRIVATE ENABLE_REFLECTION)
 target_compile_definitions(unit_test_suite PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 SET_TARGET_PROPERTIES(unit_test_suite PROPERTIES FOLDER Test)
+
+# Create the command to run RefurekuGenerator
+add_custom_target(unit_test_suite_reflection
+					WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
+					COMMAND "${RFK_GENERATOR_EXE}" "${CMAKE_CURRENT_LIST_DIR}/RefurekuSettings.toml") 
+set_target_properties(unit_test_suite_reflection PROPERTIES FOLDER Test)
+
+# Run the RefurekuGenerator BEFORE building the project to refresh generated files
+add_dependencies(unit_test_suite unit_test_suite_reflection)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 

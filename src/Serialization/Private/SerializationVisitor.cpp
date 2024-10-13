@@ -98,6 +98,7 @@ namespace Serialization
 		rfk::Archetype const* fieldArchetype = fieldType.getArchetype();
 		rfk::EEntityKind fieldArchetypeKind = fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
 		const char* fieldArchetypeName = fieldArchetype ? fieldArchetype->getName() : "";
+		const std::string& fieldName = accessor.getName();
 
 		if (fieldArchetypeKind == rfk::EEntityKind::Class)
 		{

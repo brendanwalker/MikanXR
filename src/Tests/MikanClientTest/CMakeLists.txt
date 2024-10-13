@@ -31,19 +31,22 @@ list(APPEND MIKAN_TEST_INCL_DIRS
   ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/Client/Public/API
   ${ROOT_DIR}/src/Client/Public/Core
+  ${ROOT_DIR}/src/Generated/
   ${ROOT_DIR}/src/Renderer/
   ${ROOT_DIR}/src/Utility/
   ${ROOT_DIR}/thirdparty/glm/
   ${GLEW_INCLUDE_DIRS}
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
-  ${STB_INCLUDE_DIRS})
+  ${STB_INCLUDE_DIRS}
+  ${RFK_INCLUDE_DIR})
 
 list(APPEND MIKAN_TEST_REQ_LIBS
   ${SDL2_LIBRARY}
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${FFMPEG_LIBRARIES}
+  ${RFK_LIBRARIES}
   MikanCore
   MikanAPI)
 

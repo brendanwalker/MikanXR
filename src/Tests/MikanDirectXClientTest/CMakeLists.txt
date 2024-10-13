@@ -11,8 +11,10 @@ list(APPEND MIKAN_DX_TEST_INCL_DIRS
   ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/Client/Public/API
   ${ROOT_DIR}/src/Client/Public/Core
+  ${ROOT_DIR}/src/Generated/
   ${NLOHMANN_JSON_INCLUDE_DIR}
-  ${STB_INCLUDE_DIRS})
+  ${STB_INCLUDE_DIRS}
+  ${RFK_INCLUDE_DIR})
 
 list(APPEND MIKAN_DX_TEST_REQ_LIBS
   d3d11 
@@ -20,6 +22,7 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
   dxguid 
   comctl32
   ${MIKAN_EXTRA_LIBS}
+  ${RFK_LIBRARIES}
   MikanCore
   MikanAPI)
 

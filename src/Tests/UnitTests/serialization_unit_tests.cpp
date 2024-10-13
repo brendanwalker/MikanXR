@@ -39,7 +39,12 @@ bool serialization_utility_test_reflection_from_json()
 			"point_field": {
 				"x_field": 1.2345,
 				"y_field": 5.4321
-			}
+			},
+			"bool_array": [true, false, true],
+			"point_array": [
+				{"x_field": 1.2345, "y_field": 5.4321},
+				{"x_field": 5.4321, "y_field": 1.2345}
+			]
 		}
 		)"""";
 
@@ -62,6 +67,27 @@ bool serialization_utility_test_reflection_from_json()
 		assert(instance.enum_field == SerializationTestEnum_Value2);
 		assert(is_nearly_equal(instance.point_field.x_field, 1.2345f, 0.0001f));
 		assert(is_nearly_equal(instance.point_field.y_field, 5.4321, 0.0001f));
+
+		bool expextedBoolArray[3] = {true, false, true};
+		assert(instance.bool_array.size() == 3);
+		for (size_t i = 0; i < 3; ++i)
+		{
+			assert(instance.bool_array[i] == expextedBoolArray[i]);
+		}
+
+		SerializationPointStruct expectedPointArray[2] = {
+			{1.2345f, 5.4321f},
+			{5.4321f, 1.2345f}
+		};
+		assert(instance.point_array.size() == 2);
+		for (size_t i = 0; i < 2; ++i)
+		{
+			const auto& actualPoint= instance.point_array[i];
+			const auto& expectedPoint= expectedPointArray[i];
+
+			assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, 0.0001f));
+			assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, 0.0001f));
+		}
 
 	UNIT_TEST_COMPLETE()
 }

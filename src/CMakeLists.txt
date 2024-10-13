@@ -1,3 +1,12 @@
+## Mikan Libraries
+## =======================
+add_subdirectory(Serialization)
+add_subdirectory(Client)
+
+## Mikan App
+## =======================
+MESSAGE(STATUS "Generating Mikan App Project")
+
 # Dependencies
 set(MIKAN_INCL_DIRS)
 set(MIKAN_REQ_LIBS)
@@ -549,205 +558,6 @@ target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
 target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
 target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
-## Mikan Serialization LIB
-## =======================
-
-file(GLOB MIKAN_SERIALIZATION_PRIVATE_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Serialization/Private/*.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Serialization/Private/*.cpp"		
-)
-
-file(GLOB MIKAN_SERIALIZATION_PUBLIC_SRC
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core/MikanExport.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Serialization/Public/*.h"
-)
-
-list(APPEND MIKAN_SERIALIZATION_INCL_DIRS
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core/
-  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Private
-  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public
-  ${CMAKE_CURRENT_LIST_DIR}/Generated
-  ${NLOHMANN_JSON_INCLUDE_DIR}
-  ${RFK_INCLUDE_DIR})
- 
-add_library(MikanSerialization STATIC ${MIKAN_SERIALIZATION_PRIVATE_SRC})
-target_include_directories(MikanSerialization PRIVATE ${MIKAN_SERIALIZATION_INCL_DIRS})
-set_target_properties(MikanSerialization PROPERTIES PUBLIC_HEADER "${MIKAN_SERIALIZATION_PUBLIC_SRC}")
-set_target_properties(MikanSerialization PROPERTIES CXX_VISIBILITY_PRESET hidden)
-set_target_properties(MikanSerialization PROPERTIES C_VISIBILITY_PRESET hidden)
-target_compile_definitions(MikanSerialization PRIVATE ENABLE_REFLECTION)
-target_compile_definitions(MikanSerialization PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
-target_sources(MikanSerialization PRIVATE ${MIKAN_SERIALIZATION_PRIVATE_SRC})
-target_sources(MikanSerialization PUBLIC ${MIKAN_SERIALIZATION_PUBLIC_SRC})
-source_group("Private" FILES ${MIKAN_SERIALIZATION_PRIVATE_SRC})
-source_group("Public" FILES ${MIKAN_SERIALIZATION_PUBLIC_SRC})
-
-## Mikan Core DLL
-file(GLOB MIKAN_CLIENT_CORE_PRIVATE_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/*.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/*.cpp"		
-)
-
-file(GLOB MIKAN_CLIENT_CORE_JSON_SRC
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json/*.h"
-)
-
-file(GLOB MIKAN_CLIENT_CORE_INTERPROCESS_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageClient.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageClient.cpp"		
-)
-
-file(GLOB MIKAN_CLIENT_CORE_UTILITY_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.h"
-    "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/Utility/JsonUtils.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Utility/RandomUtils.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Utility/RandomUtils.cpp"
-)
-
-file(GLOB MIKAN_CLIENT_CORE_UNITY_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Private/Unity/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Private/Unity/*.h"
-)
-
-file(GLOB MIKAN_CLIENT_CORE_SPOUT2_DX_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Private/SpoutDX/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Private/SpoutDX/*.h"
-)
-
-file(GLOB MIKAN_CLIENT_CORE_PUBLIC
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core/*.h"
-)
-
-file(GLOB MIKAN_CLIENT_CORE_LIBRARY_SRC
-	${MIKAN_CLIENT_CORE_PUBLIC}
-	${MIKAN_CLIENT_CORE_PRIVATE_SRC}
-	${MIKAN_CLIENT_CORE_JSON_SRC}
-	${MIKAN_CLIENT_CORE_INTERPROCESS_SRC}
-	${MIKAN_CLIENT_CORE_UTILITY_SRC}
-    ${MIKAN_CLIENT_CORE_UNITY_SRC}
-    ${MIKAN_CLIENT_CORE_SPOUT2_DX_SRC}
-)
-
-source_group("Public" FILES ${MIKAN_CLIENT_CORE_PUBLIC})
-source_group("Private\\Core" FILES ${MIKAN_CLIENT_CORE_PRIVATE_SRC})
-source_group("Private\\Json" FILES ${MIKAN_CLIENT_CORE_JSON_SRC})
-source_group("Private\\Interprocess" FILES ${MIKAN_CLIENT_CORE_INTERPROCESS_SRC})
-source_group("Private\\SpoutDX" FILES ${MIKAN_CLIENT_CORE_SPOUT2_DX_SRC})
-source_group("Private\\Unity" FILES ${MIKAN_CLIENT_CORE_UNITY_SRC})
-source_group("Private\\Utility" FILES ${MIKAN_CLIENT_CORE_UTILITY_SRC})
-
-list(APPEND MIKAN_CLIENT_CORE_INCL_DIRS
-  ${CMAKE_CURRENT_LIST_DIR}/AppCore
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Public
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/SpoutDX
-  ${CMAKE_CURRENT_LIST_DIR}/Generated
-  ${CMAKE_CURRENT_LIST_DIR}/Interprocess
-  ${CMAKE_CURRENT_LIST_DIR}/Utility
-  ${NLOHMANN_JSON_INCLUDE_DIR}
-  ${RFK_INCLUDE_DIR}
-  ${SPOUT2_INCLUDE_DIRS}
-  ${IXWEBSOCKET_INCLUDE_DIR}
-  ${LOCKFREEQUEUE_INCLUDE_DIR})
-
-list(APPEND MIKAN_CLIENT_REQ_LIBS
-  ${SPOUT2_LIBRARIES}
-  ${MIKAN_EXTRA_LIBS}
-  ixwebsocket)
-  
-set_source_files_properties(${MIKAN_CLIENT_CORE_SPOUT2_DX_SRC} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
-
-add_library(MikanCore SHARED ${MIKAN_CLIENT_CORE_LIBRARY_SRC})
-target_include_directories(MikanCore PRIVATE ${MIKAN_CLIENT_CORE_INCL_DIRS})
-target_link_libraries(MikanCore PRIVATE ${MIKAN_CLIENT_REQ_LIBS})
-set_target_properties(MikanCore PROPERTIES PUBLIC_HEADER "${MIKAN_CLIENT_CORE_PUBLIC}")
-set_target_properties(MikanCore PROPERTIES CXX_VISIBILITY_PRESET hidden)
-set_target_properties(MikanCore PROPERTIES C_VISIBILITY_PRESET hidden)
-target_compile_definitions(MikanCore PRIVATE MIKAN_CLIENT_CAPI_EXPORTS)
-target_compile_definitions(MikanCore PRIVATE ENABLE_SPOUT_DX)
-target_compile_definitions(MikanCore PRIVATE ENABLE_REFLECTION)
-target_compile_definitions(MikanCore PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
-
-## Mikan API DLL
-
-file(GLOB MIKAN_CLIENT_API_HEADER
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/API/*.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core/MikanExport.h"
-)
-
-file(GLOB MIKAN_CLIENT_API_PRIVATE_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/*.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/*.cpp"		
-)
-
-file(GLOB MIKAN_CLIENT_API_JSON_SRC
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json/*.h"
-)
-
-file(GLOB MIKAN_CLIENT_API_BINARY_SRC
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary/*.h"
-)
-
-file(GLOB MIKAN_CLIENT_API_UTILITY_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.h"
-    "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/Utility/JsonUtils.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Utility/SerializationUtils.cpp"	
-)
-
-# Mikan API shared library
-file(GLOB MIKAN_CLIENT_API_SRC
-	${MIKAN_CLIENT_API_HEADER}
-	${MIKAN_CLIENT_API_JSON_SRC}
-	${MIKAN_CLIENT_API_BINARY_SRC}
-	${MIKAN_CLIENT_API_PRIVATE_SRC}
-	${MIKAN_CLIENT_API_UTILITY_SRC}
-)
-
-source_group("Public" FILES ${MIKAN_CLIENT_API_HEADER})
-source_group("Private\\API" FILES ${MIKAN_CLIENT_API_PRIVATE_SRC})
-source_group("Private\\Binary" FILES ${MIKAN_CLIENT_API_BINARY_SRC})
-source_group("Private\\Json" FILES ${MIKAN_CLIENT_API_JSON_SRC})
-source_group("Private\\Utility" FILES ${MIKAN_CLIENT_API_UTILITY_SRC})
-
-list(APPEND MIKAN_CLIENT_API_INCL_DIRS
-  ${CMAKE_CURRENT_LIST_DIR}/AppCore
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Public/API
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json
-  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public/
-  ${CMAKE_CURRENT_LIST_DIR}/Generated
-  ${CMAKE_CURRENT_LIST_DIR}/Utility
-  ${NLOHMANN_JSON_INCLUDE_DIR}
-  ${RFK_INCLUDE_DIR})
-
-list(APPEND MIKAN_CLIENT_API_REQ_LIBS
-  ${RFK_LIBRARIES}
-  MikanCore
-  MikanSerialization)
-    
-add_library(MikanAPI SHARED ${MIKAN_CLIENT_API_SRC})
-target_include_directories(MikanAPI PRIVATE ${MIKAN_CLIENT_API_INCL_DIRS})
-target_link_libraries(MikanAPI PRIVATE ${MIKAN_CLIENT_API_REQ_LIBS})
-set_target_properties(MikanAPI PROPERTIES PUBLIC_HEADER "${MIKAN_CLIENT_API_HEADER}")
-set_target_properties(MikanAPI PROPERTIES CXX_VISIBILITY_PRESET hidden)
-target_compile_definitions(MikanAPI PRIVATE MIKAN_CLIENT_EXPORTS)
-target_compile_definitions(MikanAPI PRIVATE ENABLE_REFLECTION)
-target_compile_definitions(MikanAPI PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
-
 # Runtime dependencies
 set(FFMPEG_DLL_FOLDER ${ROOT_DIR}/deps/ffmpeg-4.4.1-full_build-shared/bin)
 set(OPENCV_VIDEOIO_DLL ${OpenCV_DIR}/x64/vc17/bin/opencv_videoio_ffmpeg490_64.dll)
@@ -901,19 +711,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
     FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.rml" PATTERN "*.rcss" PATTERN "*.onnx")
     
-  install(TARGETS MikanCore
-      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)
-	  
-  install(TARGETS MikanAPI
-      CONFIGURATIONS Release
-      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)	  
-
 ELSE() #Linux/Darwin
 ENDIF()
 

@@ -13,6 +13,11 @@
 #include "MikanAPITypes_binary.h"
 #include "MikanEventTypes_json.h"
 
+#ifdef ENABLE_REFLECTION
+#include "MikanAPITypes.rfks.h"
+#include "MikanCoreTypes.rfks.h"
+#endif // ENABLE_REFLECTION
+
 class MikanAPI : public IMikanAPI
 {
 public:

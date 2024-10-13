@@ -1,6 +1,10 @@
 #pragma	once
 
+#include "SerializableList.h"
 #include "serialization_unit_tests.rfkh.h"
+
+#include <string>
+#include <stdint.h>
 
 enum ENUM() SerializationTestEnum
 {
@@ -63,6 +67,12 @@ struct STRUCT() SerializationTestStruct
 
 	FIELD()
 	SerializationPointStruct point_field;
+
+	FIELD()
+	Serialization::List<bool> bool_array;
+
+	FIELD()
+	Serialization::List<SerializationPointStruct> point_array;
 
 	SerializationTestStruct_GENERATED
 };

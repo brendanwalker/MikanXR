@@ -4,14 +4,11 @@ supportedFileExtensions = [".h", ".hpp"]
 
 # Files contained in the directories of this list will be parsed
 toProcessDirectories = [
-	'''./Client/Public/Core''',
-	'''./Client/Public/API''',
-	'''./Serialization/Public'''
 ]
 
 # Files to parse which are not included in any directory of toParseDirectories
 toProcessFiles = [
-	'''./Tests/UnitTests/serialization_unit_tests.h'''
+	'''./serialization_unit_tests.h'''
 ]
 
 # Files contained in the directories of this list will be ignored
@@ -24,17 +21,12 @@ ignoredFiles = []
 
 [CodeGenUnitSettings]
 # Generated files will be located here
-outputDirectory = '''./Generated'''
+outputDirectory = '''../../../build/RfkGenerated/UnitTests'''
 
 generatedHeaderFileNamePattern = "##FILENAME##.rfkh.h"
 generatedSourceFileNamePattern = "##FILENAME##.rfks.h"
 classFooterMacroPattern = "##CLASSFULLNAME##_GENERATED"
 headerFileFooterMacroPattern = "File_##FILENAME##_GENERATED"
-
-# Uncomment if you use Refureku on a dynamic library (.dll/.so/.dylib)
-# Define the export macro so that Refureku can export relevant generated code
-# exportSymbolMacroName = "EXAMPLE_IMPORT_EXPORT_MACRO"
-
 
 [ParsingSettings]
 # Used c++ version (supported values are: 17, 20)
@@ -42,12 +34,11 @@ cppVersion = 17
 
 # Include directories of the project
 projectIncludeDirectories = [
-	'''../deps/rfk/Include''',
-	'''./Generated''',
-	'''./Client/Public/API''',
-	'''./Client/Public/Core''',
-	'''./Serialization/Public''',
-	'''./Tests/UnitTests'''
+	'''../../../deps/rfk/Include''',
+	'''../../../build/RfkGenerated/Serialization''',
+	'''../../../build/RfkGenerated/UnitTests''',
+	'''../../Serialization/Public''',
+	'''./'''
 ]
 
 # Must be one of "msvc", "clang++", "g++"

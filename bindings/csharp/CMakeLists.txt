@@ -40,10 +40,13 @@ CSHARP_SET_DESIGNER_CS_PROPERTIES(
 )
 
 # Set CLR assembly properties.
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     VS_DOTNET_REFERENCES "System;System.Core;System.Memory"
     VS_GLOBAL_ROOTNAMESPACE ${PROJECT_NAME}
 )
+
+# Put in an "ClientAPI" folder in the project viewer
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ClientAPI)
 
 # Install
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 

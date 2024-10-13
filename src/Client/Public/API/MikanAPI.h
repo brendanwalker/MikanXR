@@ -8,7 +8,7 @@
 using IMikanAPIPtr = std::shared_ptr<class IMikanAPI>;
 
 // -- Render Target API -----
-class MIKAN_PUBLIC_CLASS IMikanRenderTargetAPI
+class MIKAN_CLIENT_CLASS IMikanRenderTargetAPI
 {
 public:
 	IMikanRenderTargetAPI() {}
@@ -24,7 +24,7 @@ public:
 };
 
 // -- Script API -----
-class MIKAN_PUBLIC_CLASS IMikanScriptAPI
+class MIKAN_CLIENT_CLASS IMikanScriptAPI
 {
 public:
 	IMikanScriptAPI() {}
@@ -34,7 +34,7 @@ public:
 };
 
 // -- Spatial Anchor API -----
-class MIKAN_PUBLIC_CLASS IMikanSpatialAnchorAPI
+class MIKAN_CLIENT_CLASS IMikanSpatialAnchorAPI
 {
 public:
 	IMikanSpatialAnchorAPI() {}
@@ -46,7 +46,7 @@ public:
 };
 
 // -- Stencil API -----
-class MIKAN_PUBLIC_CLASS IMikanStencilAPI
+class MIKAN_CLIENT_CLASS IMikanStencilAPI
 {
 public:
 	IMikanStencilAPI() {}
@@ -62,7 +62,7 @@ public:
 };
 
 // -- Video Source API -----
-class MIKAN_PUBLIC_CLASS IMikanVideoSourceAPI
+class MIKAN_CLIENT_CLASS IMikanVideoSourceAPI
 {
 public:
 	IMikanVideoSourceAPI() {}
@@ -74,7 +74,7 @@ public:
 };
 
 // -- VRDevice API -----
-class MIKAN_PUBLIC_CLASS IMikanVRDeviceAPI
+class MIKAN_CLIENT_CLASS IMikanVRDeviceAPI
 {
 public:
 	IMikanVRDeviceAPI() {}
@@ -87,7 +87,7 @@ public:
 };
 
 // -- Mikan API -----
-class MIKAN_PUBLIC_CLASS IMikanAPI
+class MIKAN_CLIENT_CLASS IMikanAPI
 {
 public:
 	IMikanAPI() = default;

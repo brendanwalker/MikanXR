@@ -39,41 +39,33 @@
     #endif
 #endif
 
-#ifndef MIKAN_PUBLIC_FUNCTION
-    #if defined(MIKAN_CLIENT_EXPORTS) || defined(MIKAN_CLIENT_CAPI_EXPORTS)  // CMake-defined when creating shared library
+#ifndef MIKAN_CLIENT_CLASS
+    #if defined(MIKAN_CLIENT_EXPORTS) || defined(MIKAN_CLIENT_CAPI_EXPORTS) // CMake-defined when creating shared library
         #if defined _WIN32 || defined __CYGWIN__
-            #define MIKAN_PUBLIC_FUNCTION(rval)       MIKAN_EXTERN_C    __declspec(dllexport)                   rval    MIKAN_CALL
-            #define MIKAN_PUBLIC_CLASS                                __declspec(dllexport)
-            #define MIKAN_PRIVATE_FUNCTION(rval)                                                              rval    MIKAN_CALL
-            #define MIKAN_PRIVATE_CLASS
+            #define MIKAN_CLIENT_FUNCTION(rval)       MIKAN_EXTERN_C    __declspec(dllexport)                   rval    MIKAN_CALL
+            #define MIKAN_CLIENT_CLASS                                __declspec(dllexport)
         #else  // Not Windows
             #if __GNUC__ >= 4
-                #define MIKAN_PUBLIC_FUNCTION(rval)   MIKAN_EXTERN_C    __attribute__((visibility("default")))  rval    MIKAN_CALL
-                #define MIKAN_PUBLIC_CLASS                            __attribute__((visibility("default")))
+                #define MIKAN_CLIENT_FUNCTION(rval)   MIKAN_EXTERN_C    __attribute__((visibility("default")))  rval    MIKAN_CALL
+                #define MIKAN_CLIENT_CLASS                            __attribute__((visibility("default")))
             #else
-                #define MIKAN_PUBLIC_FUNCTION(rval)   MIKAN_EXTERN_C rval MIKAN_CALL
-                #define MIKAN_PUBLIC_CLASS
+                #define MIKAN_CLIENT_FUNCTION(rval)   MIKAN_EXTERN_C rval MIKAN_CALL
+                #define MIKAN_CLIENT_CLASS
             #endif
-            #define MIKAN_PRIVATE_FUNCTION(rval)                      __attribute__((visibility("hidden")))   rval    MIKAN_CALL
-            #define MIKAN_PRIVATE_CLASS                               __attribute__((visibility("hidden")))
         #endif  //defined _WIN32 || defined __CYGWIN__
     #elif defined(MIKAN_CLIENT_NOEXPORT) || defined(MIKAN_CLIENT_CAPI_NOEXPORT)  // Building static lib
-        #define MIKAN_PUBLIC_FUNCTION(rval)           MIKAN_EXTERN_C                                            rval    MIKAN_CALL
-        #define MIKAN_PUBLIC_CLASS
-        #define MIKAN_PRIVATE_FUNCTION(rval)                                                                  rval    MIKAN_CALL
-        #define MIKAN_PRIVATE_CLASS
+        #define MIKAN_CLIENT_FUNCTION(rval)           MIKAN_EXTERN_C                                            rval    MIKAN_CALL
+        #define MIKAN_CLIENT_CLASS
     #else //This DLL/so/dylib is being imported
         #if defined _WIN32 || defined __CYGWIN__
-            #define MIKAN_PUBLIC_FUNCTION(rval)       MIKAN_EXTERN_C    __declspec(dllimport)                   rval    MIKAN_CALL
-            #define MIKAN_PUBLIC_CLASS                                __declspec(dllimport)
+            #define MIKAN_CLIENT_FUNCTION(rval)       MIKAN_EXTERN_C    __declspec(dllimport)                   rval    MIKAN_CALL
+            #define MIKAN_CLIENT_CLASS                                __declspec(dllimport)
         #else  // Not Windows
-            #define MIKAN_PUBLIC_FUNCTION(rval)       MIKAN_EXTERN_C                                            rval    MIKAN_CALL
-            #define MIKAN_PUBLIC_CLASS
+            #define MIKAN_CLIENT_FUNCTION(rval)       MIKAN_EXTERN_C                                            rval    MIKAN_CALL
+            #define MIKAN_CLIENT_CLASS
         #endif  //defined _WIN32 || defined __CYGWIN__
-        #define MIKAN_PRIVATE_FUNCTION(rval)                                                                  rval    MIKAN_CALL
-        #define MIKAN_PRIVATE_CLASS
     #endif //MIKAN_CLIENT_EXPORTS
-#endif //!defined(MIKAN_PUBLIC_FUNCTION)
+#endif //!defined(MIKAN_CLIENT_FUNCTION)
 
 #ifndef ENABLE_REFLECTION
     #ifndef NAMESPACE

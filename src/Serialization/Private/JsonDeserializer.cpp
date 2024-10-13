@@ -1,7 +1,6 @@
 #include "JsonDeserializer.h"
-#include "IEnumerator.h"
 #include "SerializationUtility.h"
-#include "SerializedList.h"
+#include "SerializableList.h"
 
 #include "nlohmann/json.hpp"
 #include "Refureku/Refureku.h"
@@ -75,7 +74,7 @@ namespace Serialization
 
 			// Resize the array to the desired target size
 			std::size_t arraySize = arrayJsonObject.size();
-			getResizeMethod->invokeUnsafe<void, std::size_t&>(arrayInstance, arraySize);
+			getResizeMethod->invokeUnsafe<void>(arrayInstance, arraySize);
 
 			// Deserialize each element of the array
 			for (size_t elementIndex= 0; elementIndex < arraySize; ++elementIndex) 
@@ -85,7 +84,7 @@ namespace Serialization
 
 				// Get the target element instance in the array
 				void* elementInstance= 
-					getRawElementMutableMethod->invokeUnsafe<void*, std::size_t&>(
+					getRawElementMutableMethod->invokeUnsafe<void*, const std::size_t&>(
 						arrayInstance, elementIndex);
 
 				// Make a fake "field" for an element in the array
