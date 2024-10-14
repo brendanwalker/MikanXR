@@ -8,16 +8,16 @@
 namespace Serialization
 {
 	template<typename t_object_type>
-	bool deserializefromJsonString(const std::string& jsonString, t_object_type& instance)
+	bool deserializeFromJsonString(const std::string& jsonString, t_object_type& instance)
 	{
-		return deserializefromJsonString(jsonString, &instance, t_object_type::staticGetArchetype());
+		return deserializeFromJsonString(jsonString, &instance, t_object_type::staticGetArchetype());
 	}
-	bool deserializefromJsonString(const std::string& jsonString, void* instance, rfk::Struct const& structType);
+	bool deserializeFromJsonString(const std::string& jsonString, void* instance, rfk::Struct const& structType);
 
 	template<typename t_object_type>
-	bool deserializefromJson(const nlohmann::json& jsonObject, t_object_type& instance)
+	bool deserializeFromJson(const nlohmann::json& jsonObject, t_object_type& instance)
 	{
-		return deserializefromJson(jsonObject, &instance, t_object_type::staticGetArchetype());
+		return deserializeFromJson(jsonObject, &instance, t_object_type::staticGetArchetype());
 	}
-	bool deserializefromJson(const nlohmann::json& jsonObject, void* instance, rfk::Struct const& structType);
+	bool deserializeFromJson(const nlohmann::json& jsonObject, void* instance, rfk::Struct const& structType);
 };

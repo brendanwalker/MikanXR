@@ -75,7 +75,7 @@ bool serialization_utility_test_reflection_from_json()
 		Serialization::Map<std::string, SerializationPointStruct> string_point_map;
 
 		SerializationTestStruct instance= {};
-		bool bSuccess = Serialization::deserializefromJsonString(jsonString, instance);
+		bool bSuccess = Serialization::deserializeFromJsonString(jsonString, instance);
 
 		assert(bSuccess);
 		assert(instance.bool_field == true);
