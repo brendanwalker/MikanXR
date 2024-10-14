@@ -1,6 +1,7 @@
 #pragma	once
 
 #include "SerializableList.h"
+#include "SerializableMap.h"
 #include "serialization_unit_tests.rfkh.h"
 
 #include <string>
@@ -73,6 +74,12 @@ struct STRUCT() SerializationTestStruct
 
 	FIELD()
 	Serialization::List<SerializationPointStruct> point_array;
+
+	FIELD()
+	Serialization::Map<int, SerializationPointStruct> int_point_map;
+
+	FIELD()
+	Serialization::Map<std::string, SerializationPointStruct> string_point_map;
 
 	SerializationTestStruct_GENERATED
 };

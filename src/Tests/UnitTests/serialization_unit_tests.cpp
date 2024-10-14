@@ -44,9 +44,35 @@ bool serialization_utility_test_reflection_from_json()
 			"point_array": [
 				{"x_field": 1.2345, "y_field": 5.4321},
 				{"x_field": 5.4321, "y_field": 1.2345}
+			],
+			"int_point_map": [
+				{
+					"key": 1,
+					"value": {"x_field": 1.2345, "y_field": 5.4321}
+				},
+				{
+					"key": 2,
+					"value": {"x_field": 5.4321, "y_field": 1.2345}
+				}
+			],
+			"string_point_map": [
+				{
+					"key": "key1",
+					"value": {"x_field": 1.2345, "y_field": 5.4321}
+				},
+				{
+					"key": "key2",
+					"value": {"x_field": 5.4321, "y_field": 1.2345}
+				}
 			]
 		}
 		)"""";
+
+	FIELD()
+		Serialization::Map<int, SerializationPointStruct> int_point_map;
+
+	FIELD()
+		Serialization::Map<std::string, SerializationPointStruct> string_point_map;
 
 		SerializationTestStruct instance= {};
 		bool bSuccess = Serialization::deserializefromJsonString(jsonString, instance);
@@ -88,6 +114,35 @@ bool serialization_utility_test_reflection_from_json()
 			assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, 0.0001f));
 			assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, 0.0001f));
 		}
+
+		std::map<int, SerializationPointStruct> expectedIntPointMap = {
+			{1, {1.2345f, 5.4321f}},
+			{2, {5.4321f, 1.2345f}}
+		};
+		assert(instance.int_point_map.size() == 2);
+		for (const auto& pair : instance.int_point_map)
+		{
+			const auto& actualPoint= pair.second;
+			const auto& expectedPoint= expectedIntPointMap[pair.first];
+
+			assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, 0.0001f));
+			assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, 0.0001f));
+		}
+
+		std::map<std::string, SerializationPointStruct> expectedStringPointMap = {
+			{"key1", {1.2345f, 5.4321f}},
+			{"key2", {5.4321f, 1.2345f}}
+		};
+		assert(instance.string_point_map.size() == 2);
+		for (const auto& pair : instance.string_point_map)
+		{
+			const auto& actualPoint= pair.second;
+			const auto& expectedPoint= expectedStringPointMap[pair.first];
+
+			assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, 0.0001f));
+			assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, 0.0001f));
+		}
+
 
 	UNIT_TEST_COMPLETE()
 }

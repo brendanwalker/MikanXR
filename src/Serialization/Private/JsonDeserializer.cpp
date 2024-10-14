@@ -35,10 +35,10 @@ namespace Serialization
 					{
 						visitList(accessor, *templateClassInstanceType, fieldJsonObject);
 					}
-					else if (templateTypeName == "Dictionary" &&
+					else if (templateTypeName == "Map" &&
 						templateClassInstanceType->getTemplateArgumentsCount() == 2)
 					{
-						visitDictionary(accessor, *templateClassInstanceType, fieldJsonObject);
+						visitMap(accessor, *templateClassInstanceType, fieldJsonObject);
 					}
 				}
 				else
@@ -96,12 +96,95 @@ namespace Serialization
 			}
 		}
 
-		void visitDictionary(
-			ValueAccessor const& dictionaryAccessor,
-			rfk::ClassTemplateInstantiation const& templatedArrayType,
-			const json& arrayJsonObject)
+		void visitMap(
+			ValueAccessor const& mapAccessor,
+			rfk::ClassTemplateInstantiation const& templatedMapType,
+			const json& mapArrayJsonObject)
 		{
-			// TODO: Implement dictionary deserialization
+			// Get the key type of the map from the template argument
+			auto const& templateKeyArg =
+				static_cast<rfk::TypeTemplateArgument const&>(
+					templatedMapType.getTemplateArgumentAt(0));
+			rfk::Type const& keyType = templateKeyArg.getType();
+
+			if (keyType == rfk::getType<int32_t>())
+			{
+				visitMapOfKey<int32_t>(mapAccessor, templatedMapType, mapArrayJsonObject);
+			}
+			else if (keyType == rfk::getType<std::string>())
+			{
+				visitMapOfKey<std::string>(mapAccessor, templatedMapType, mapArrayJsonObject);
+			}
+			else
+			{
+				rfk::Archetype const* keyArchetype= keyType.getArchetype();
+
+				throw std::runtime_error(
+					stringify("JsonUtils::from_json() ",
+						"Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
+						" is not supported"));
+			}
+		}
+
+		template<typename t_key>
+		void visitMapOfKey(
+			ValueAccessor const& mapAccessor,
+			rfk::ClassTemplateInstantiation const& templatedMapType,
+			const json& mapArrayJsonObject)
+		{
+			void* mapInstance = mapAccessor.getUntypedValuePtr();
+
+			// Get the type of the elements in the array from the template argument
+			auto const& templateValueArg =
+				static_cast<rfk::TypeTemplateArgument const&>(
+					templatedMapType.getTemplateArgumentAt(1));
+			rfk::Type const& valueType = templateValueArg.getType();
+
+			// Use reflection to get the method use to clear and add pairs to the map
+			rfk::Method const* clearMethod = templatedMapType.getMethodByName("clear");
+			rfk::Method const* addValueMethod = templatedMapType.getMethodByName("getOrAddRawValueMutable");
+
+			// Resize the array to the desired target size
+			clearMethod->invokeUnsafe<void>(mapInstance);
+
+			// Deserialize each element of the array
+			std::size_t pairCount = mapArrayJsonObject.size();
+			for (size_t pairIndex = 0; pairIndex < pairCount; ++pairIndex)
+			{
+				// Get the source json array element
+				const json& pairJson = mapArrayJsonObject[pairIndex];
+
+				if (!pairJson.contains("key"))
+				{
+					throw std::runtime_error(
+						stringify("JsonUtils::from_json() ",
+								  "Map Pair ", pairIndex,
+								  " does not contain key"));
+				}
+
+				if (!pairJson.contains("value"))
+				{
+					throw std::runtime_error(
+						stringify("JsonUtils::from_json() ",
+								  "Map Pair ", pairIndex,
+								  " does not contain value"));
+				}
+
+				// Parse the key from json
+				t_key key= pairJson["key"].get<t_key>();
+
+				// Get or Add the target value instance in the map
+				void* valueInstance =
+					addValueMethod->invokeUnsafe<void*, const t_key&>(
+						mapInstance, key);
+
+				// Make a fake "field" for an element in the array
+				ValueAccessor valueAccessor(valueInstance, valueType);
+
+				// Deserialize the value
+				JsonReadVisitor valueVisitor(pairJson["value"]);
+				Serialization::visitValue(valueAccessor, &valueVisitor);
+			}
 		}
 
 		virtual void visitStruct(ValueAccessor const& accessor) override
