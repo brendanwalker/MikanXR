@@ -130,64 +130,52 @@ namespace Serialization
 		void visitMapOfKey(
 			ValueAccessor const& mapAccessor,
 			rfk::ClassTemplateInstantiation const& templatedMapType,
-			const json& mapArrayJsonObject)
+			json& ownerJsonObject)
 		{
-		#if 0
-			void* mapInstance = mapAccessor.getUntypedValueMutablePtr();
-
 			// Get the type of the elements in the array from the template argument
 			auto const& templateValueArg =
 				static_cast<rfk::TypeTemplateArgument const&>(
 					templatedMapType.getTemplateArgumentAt(1));
 			rfk::Type const& valueType = templateValueArg.getType();
 
-			// Use reflection to get the method use to clear and add pairs to the map
-			rfk::Method const* addValueMethod = templatedMapType.getMethodByName("getRawValue");
+			// Use reflection to get the method used to enumerate key-value pairs in the map
+			rfk::Method const* getConstEnumeratorMethod = templatedMapType.getMethodByName("getConstEnumerator");
 
-			// Deserialize each element of the array
-			std::size_t pairCount = mapArrayJsonObject.size();
-			for (size_t pairIndex = 0; pairIndex < pairCount; ++pairIndex)
+			// Get a const enumerator to the map
+			void* mapInstance = mapAccessor.getUntypedValueMutablePtr();
+
+			// Serialize each element of the map
+			json arrayJson = json::array();
+			for (auto enumerator = 
+					getConstEnumeratorMethod->invokeUnsafe<std::shared_ptr<IMapConstEnumerator>>(mapInstance);
+				enumerator->isValid();
+				enumerator->next())
 			{
-				// Get the source json array element
-				const json& pairJson = mapArrayJsonObject[pairIndex];
+				json pairJson;
 
-				if (!pairJson.contains("key"))
-				{
-					throw std::runtime_error(
-						stringify("JsonUtils::from_json() ",
-								  "Map Pair ", pairIndex,
-								  " does not contain key"));
-				}
+				// Serialize the key
+				const void* rawKey = enumerator->getKeyRaw();
+				pairJson["key"] = *reinterpret_cast<const t_key *>(rawKey);
 
-				if (!pairJson.contains("value"))
-				{
-					throw std::runtime_error(
-						stringify("JsonUtils::from_json() ",
-								  "Map Pair ", pairIndex,
-								  " does not contain value"));
-				}
-
-				// Parse the key from json
-				t_key key = pairJson["key"].get<t_key>();
-
-				// Get or Add the target value instance in the map
-				void* valueInstance =
-					addValueMethod->invokeUnsafe<void*, const t_key&>(
-						mapInstance, key);
-
-				// Make a fake "field" for an element in the array
-				ValueAccessor valueAccessor(valueInstance, valueType);
-
-				// Deserialize the value
-				JsonWriteVisitor valueVisitor(pairJson["value"]);
+				// Serialize the value
+				json valueJson;
+				const void* rawValue = enumerator->getValueRaw();
+				ValueAccessor valueAccessor(rawValue, valueType);
+				JsonWriteVisitor valueVisitor(valueJson);
 				Serialization::visitValue(valueAccessor, &valueVisitor);
+				pairJson["value"]= valueJson;
+
+				// Add the key-value json object to the json array
+				arrayJson.push_back(pairJson);
 			}
-		#endif
+
+			// Add the json map-array to the owner json object
+			ownerJsonObject[mapAccessor.getName()] = arrayJson;
 		}
 
 		virtual void visitStruct(ValueAccessor const& accessor) override
 		{
-			void* childObjectInstance = accessor.getUntypedValueMutablePtr();
+			const void* childObjectInstance = accessor.getUntypedValuePtr();
 			rfk::Struct const* structType = accessor.getStructType();
 			rfk::Field const* field = accessor.getField();
 
@@ -211,23 +199,24 @@ namespace Serialization
 		{
 			rfk::Enum const& enumType = *accessor.getEnumType();
 			rfk::Archetype const& enumArchetype = enumType.getUnderlyingArchetype();
+			const void *untypedValue= accessor.getUntypedValuePtr();
 
 			int64_t enumIntValue = 0;
 			if (enumArchetype.getMemorySize() == sizeof(int64_t))
 			{
-				enumIntValue = *accessor.getTypedValuePtr<int64_t>();
+				enumIntValue = *reinterpret_cast<const int64_t*>(untypedValue);
 			}
 			else if (enumArchetype.getMemorySize() == sizeof(int32_t))
 			{
-				enumIntValue = (int64_t)*accessor.getTypedValuePtr<int32_t>();
+				enumIntValue = (int64_t)(*reinterpret_cast<const int32_t*>(untypedValue));
 			}
 			else if (enumArchetype.getMemorySize() == sizeof(int16_t))
 			{
-				enumIntValue = (int64_t)*accessor.getTypedValuePtr<int16_t>();
+				enumIntValue = (int64_t)(*reinterpret_cast<const int16_t*>(untypedValue));
 			}
 			else if (enumArchetype.getMemorySize() == sizeof(int8_t))
 			{
-				enumIntValue = (int64_t)*accessor.getTypedValuePtr<int8_t>();
+				enumIntValue = (int64_t)(*reinterpret_cast<const int8_t*>(untypedValue));
 			}
 			else
 			{

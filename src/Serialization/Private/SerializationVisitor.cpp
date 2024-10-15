@@ -85,31 +85,73 @@ namespace Serialization
 		return const_cast<void*>(getUntypedValuePtr());
 	}
 
-	struct VisitorUserdata
+	struct ConstVisitorUserdata
 	{
-		void* instance;
+		const void* instance;
 		IVisitor *visitor;
 	};
 
-	void visitStruct(void* instance, rfk::Struct const& structType, IVisitor *visitor)
+	void visitStruct(const void* instance, rfk::Struct const& structType, IVisitor *visitor)
 	{
-		VisitorUserdata userdata= {instance, visitor};
+		ConstVisitorUserdata userdata = {instance, visitor};
 
 		structType.foreachField(
 			[](rfk::Field const& field, void* userdata) -> bool {
-				auto* args = reinterpret_cast<VisitorUserdata*>(userdata);
+			auto* args = reinterpret_cast<ConstVisitorUserdata*>(userdata);
 
-				// Skip this field is it is non-public or is static
-				if (field.getAccess() != rfk::EAccessSpecifier::Public || field.isStatic())
-				{
-					return true;
-				}
-
-				Serialization::visitField(args->instance, field, args->visitor);
+			// Skip this field is it is non-public or is static
+			if (field.getAccess() != rfk::EAccessSpecifier::Public || field.isStatic())
+			{
 				return true;
-			},
-			&userdata,
-			true);
+			}
+
+			Serialization::visitField(args->instance, field, args->visitor);
+			return true;
+		},
+		&userdata,
+		true);
+	}
+
+	struct VisitorUserdata
+	{
+		void* instance;
+		IVisitor* visitor;
+	};
+
+	void visitStruct(void* instance, rfk::Struct const& structType, IVisitor* visitor)
+	{
+		VisitorUserdata userdata = {instance, visitor};
+
+		structType.foreachField(
+			[](rfk::Field const& field, void* userdata) -> bool {
+			auto* args = reinterpret_cast<VisitorUserdata*>(userdata);
+
+			// Skip this field is it is non-public or is static
+			if (field.getAccess() != rfk::EAccessSpecifier::Public || field.isStatic())
+			{
+				return true;
+			}
+
+			Serialization::visitField(args->instance, field, args->visitor);
+			return true;
+		},
+		& userdata,
+		true);
+	}
+
+	void visitField(const void* instance, rfk::Field const& field, IVisitor* visitor)
+	{
+		// Error if this field is non-public or is static
+		if (field.getAccess() != rfk::EAccessSpecifier::Public)
+		{
+			throw std::runtime_error(stringify("Field ", field.getName(), " was not public"));
+		}
+		if (field.isStatic())
+		{
+			throw std::runtime_error(stringify("Field ", field.getName(), " is static"));
+		}
+
+		visitValue(ValueAccessor(instance, field), visitor);
 	}
 
 	void visitField(void* instance, rfk::Field const& field, IVisitor *visitor)

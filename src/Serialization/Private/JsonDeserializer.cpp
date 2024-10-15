@@ -9,10 +9,10 @@ using json = nlohmann::json;
 
 namespace Serialization
 {
-	class JsonWriteVisitor : public IVisitor
+	class JsonReadVisitor : public IVisitor
 	{
 	public:
-		JsonWriteVisitor(const nlohmann::json& jsonObject) : m_jsonObject(jsonObject) {}
+		JsonReadVisitor(const nlohmann::json& jsonObject) : m_jsonObject(jsonObject) {}
 
 		virtual void visitClass(ValueAccessor const& accessor) override
 		{
@@ -51,7 +51,7 @@ namespace Serialization
 			}
 			else
 			{
-				JsonWriteVisitor::visitStruct(accessor);
+				JsonReadVisitor::visitStruct(accessor);
 			}
 		}
 
@@ -91,7 +91,7 @@ namespace Serialization
 				ValueAccessor elementAccessor(elementInstance, elementType);
 
 				// Deserialize the element into the 
-				JsonWriteVisitor elementVisitor(elementJson);
+				JsonReadVisitor elementVisitor(elementJson);
 				Serialization::visitValue(elementAccessor, &elementVisitor);
 			}
 		}
@@ -182,7 +182,7 @@ namespace Serialization
 				ValueAccessor valueAccessor(valueInstance, valueType);
 
 				// Deserialize the value
-				JsonWriteVisitor valueVisitor(pairJson["value"]);
+				JsonReadVisitor valueVisitor(pairJson["value"]);
 				Serialization::visitValue(valueAccessor, &valueVisitor);
 			}
 		}
@@ -195,7 +195,7 @@ namespace Serialization
 			{
 				void* childObjectInstance = accessor.getUntypedValueMutablePtr();
 				rfk::Struct const* structType= accessor.getStructType();
-				JsonWriteVisitor jsonVisitor(childJsonObject);
+				JsonReadVisitor jsonVisitor(childJsonObject);
 
 				Serialization::visitStruct(childObjectInstance, *structType, &jsonVisitor);
 			}
@@ -506,7 +506,7 @@ namespace Serialization
 			if (fieldJsonObject.is_string())
 			{
 				std::string value = fieldJsonObject.get<std::string>();
-				std::string *variablePtr= accessor.getTypedValuePtr<std::string>();
+				std::string *variablePtr= accessor.getTypedValueMutablePtr<std::string>();
 
 				*variablePtr= value;
 			}
@@ -564,7 +564,7 @@ namespace Serialization
 	{
 		try
 		{
-			JsonWriteVisitor visitor(jsonObject);
+			JsonReadVisitor visitor(jsonObject);
 			Serialization::visitStruct(instance, structType, &visitor);
 
 			return true;

@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "MathUtility.h"
+#include "JsonSerializer.h"
 #include "JsonDeserializer.h"
 #include "serialization_unit_tests.h"
 #include "serialization_unit_tests.rfks.h"
@@ -21,123 +22,99 @@ bool run_serialization_unit_tests()
 bool serialization_utility_test_reflection_from_json()
 {
 	UNIT_TEST_BEGIN("reflect from json")
-		const char* jsonString = R""""(
-		{
-			"bool_field": true,
-			"byte_field": -123,
-			"ubyte_field": 123,
-			"short_field": -1234,
-			"ushort_field": 1234,
-			"int_field": -123456,
-			"uint_field": 123456,
-			"long_field": -123456789,
-			"ulong_field": 123456789,
-			"float_field": 1.2345,
-			"double_field": 1.23456789,
-			"string_field": "hello",
-			"enum_field": "SerializationTestEnum_Value2",
-			"point_field": {
-				"x_field": 1.2345,
-				"y_field": 5.4321
-			},
-			"bool_array": [true, false, true],
-			"point_array": [
-				{"x_field": 1.2345, "y_field": 5.4321},
-				{"x_field": 5.4321, "y_field": 1.2345}
-			],
-			"int_point_map": [
-				{
-					"key": 1,
-					"value": {"x_field": 1.2345, "y_field": 5.4321}
-				},
-				{
-					"key": 2,
-					"value": {"x_field": 5.4321, "y_field": 1.2345}
-				}
-			],
-			"string_point_map": [
-				{
-					"key": "key1",
-					"value": {"x_field": 1.2345, "y_field": 5.4321}
-				},
-				{
-					"key": "key2",
-					"value": {"x_field": 5.4321, "y_field": 1.2345}
-				}
-			]
-		}
-		)"""";
+		Serialization::List<bool> expected_bool_array;
+		expected_bool_array.push_back(true);
+		expected_bool_array.push_back(false);
+		expected_bool_array.push_back(true);
 
-	FIELD()
-		Serialization::Map<int, SerializationPointStruct> int_point_map;
+		Serialization::List<SerializationPointStruct> expected_point_array; 
+		expected_point_array.push_back({1.2345f, 5.4321f});
+		expected_point_array.push_back({5.4321f, 1.2345f});
 
-	FIELD()
-		Serialization::Map<std::string, SerializationPointStruct> string_point_map;
+		Serialization::Map<int, SerializationPointStruct> expected_int_point_map; 
+		expected_int_point_map.insert({1, {1.2345f, 5.4321f}});
+		expected_int_point_map.insert({2, {5.4321f, 1.2345f}});
 
-		SerializationTestStruct instance= {};
-		bool bSuccess = Serialization::deserializeFromJsonString(jsonString, instance);
+		Serialization::Map<std::string, SerializationPointStruct> expected_string_point_map;
+		expected_string_point_map.insert({"key1", {1.2345f, 5.4321f}});
+		expected_string_point_map.insert({"key2", {5.4321f, 1.2345f}});
 
-		assert(bSuccess);
-		assert(instance.bool_field == true);
-		assert(instance.byte_field == -123);
-		assert(instance.ubyte_field == 123);
-		assert(instance.short_field == -1234);
-		assert(instance.ushort_field == 1234);
-		assert(instance.int_field == -123456);
-		assert(instance.uint_field == 123456);
-		assert(instance.long_field == -123456789);
-		assert(instance.ulong_field == 123456789);
-		assert(is_nearly_equal(instance.float_field, 1.2345f, 0.0001f));
-		assert(is_double_nearly_equal(instance.double_field, 1.23456789, 0.0000001));
-		assert(instance.string_field == "hello");
-		assert(instance.enum_field == SerializationTestEnum_Value2);
-		assert(is_nearly_equal(instance.point_field.x_field, 1.2345f, 0.0001f));
-		assert(is_nearly_equal(instance.point_field.y_field, 5.4321, 0.0001f));
-
-		bool expextedBoolArray[3] = {true, false, true};
-		assert(instance.bool_array.size() == 3);
-		for (size_t i = 0; i < 3; ++i)
-		{
-			assert(instance.bool_array[i] == expextedBoolArray[i]);
-		}
-
-		SerializationPointStruct expectedPointArray[2] = {
+		SerializationTestStruct expected= {
+			true,
+			-123,
+			123,
+			-1234,
+			1234,
+			-123456,
+			123456,
+			-123456789,
+			123456789,
+			1.2345f,
+			1.23456789,
+			"hello",
+			SerializationTestEnum_Value2,
 			{1.2345f, 5.4321f},
-			{5.4321f, 1.2345f}
+			expected_bool_array,
+			expected_point_array,
+			expected_int_point_map,
+			expected_string_point_map
 		};
-		assert(instance.point_array.size() == 2);
+
+		std::string jsonString;
+		bool bCanSerialize= Serialization::serializeToJsonString(expected, jsonString);
+		assert(bCanSerialize);
+
+		SerializationTestStruct actual= {};
+		bool bCanDeserialize = Serialization::deserializeFromJsonString(jsonString, actual);
+
+		assert(bCanDeserialize);
+		assert(actual.bool_field == expected.bool_field);
+		assert(actual.byte_field == expected.byte_field);
+		assert(actual.ubyte_field == expected.ubyte_field);
+		assert(actual.short_field == expected.short_field);
+		assert(actual.ushort_field == expected.ushort_field);
+		assert(actual.int_field == expected.int_field);
+		assert(actual.uint_field == expected.uint_field);
+		assert(actual.long_field == expected.long_field);
+		assert(actual.ulong_field == expected.ulong_field);
+		assert(is_nearly_equal(actual.float_field, expected.float_field, 0.0001f));
+		assert(is_double_nearly_equal(actual.double_field, expected.double_field, 0.0000001));
+		assert(actual.string_field == expected.string_field);
+		assert(actual.enum_field == expected.enum_field);
+		assert(is_nearly_equal(actual.point_field.x_field, expected.point_field.x_field, 0.0001f));
+		assert(is_nearly_equal(actual.point_field.y_field, expected.point_field.y_field, 0.0001f));
+
+		assert(actual.bool_array.size() == expected.bool_array.size());
+		for (size_t i = 0; i < actual.bool_array.size(); ++i)
+		{
+			assert(actual.bool_array[i] == expected.bool_array[i]);
+		}
+
+		assert(actual.point_array.size() == expected.point_array.size());
 		for (size_t i = 0; i < 2; ++i)
 		{
-			const auto& actualPoint= instance.point_array[i];
-			const auto& expectedPoint= expectedPointArray[i];
+			const auto& actualPoint= actual.point_array[i];
+			const auto& expectedPoint= expected.point_array[i];
 
 			assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, 0.0001f));
 			assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, 0.0001f));
 		}
 
-		std::map<int, SerializationPointStruct> expectedIntPointMap = {
-			{1, {1.2345f, 5.4321f}},
-			{2, {5.4321f, 1.2345f}}
-		};
-		assert(instance.int_point_map.size() == 2);
-		for (const auto& pair : instance.int_point_map)
+		assert(actual.int_point_map.size() == expected.int_point_map.size());
+		for (const auto& pair : actual.int_point_map)
 		{
 			const auto& actualPoint= pair.second;
-			const auto& expectedPoint= expectedIntPointMap[pair.first];
+			const auto& expectedPoint= expected.int_point_map[pair.first];
 
 			assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, 0.0001f));
 			assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, 0.0001f));
 		}
 
-		std::map<std::string, SerializationPointStruct> expectedStringPointMap = {
-			{"key1", {1.2345f, 5.4321f}},
-			{"key2", {5.4321f, 1.2345f}}
-		};
-		assert(instance.string_point_map.size() == 2);
-		for (const auto& pair : instance.string_point_map)
+		assert(actual.string_point_map.size() == expected.string_point_map.size());
+		for (const auto& pair : actual.string_point_map)
 		{
 			const auto& actualPoint= pair.second;
-			const auto& expectedPoint= expectedStringPointMap[pair.first];
+			const auto& expectedPoint= expected.string_point_map[pair.first];
 
 			assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, 0.0001f));
 			assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, 0.0001f));

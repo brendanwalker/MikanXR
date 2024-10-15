@@ -39,7 +39,15 @@ namespace Serialization
 		void* getUntypedValueMutablePtr() const;
 
 		template <typename t_value_type>
-		t_value_type* getTypedValuePtr() const
+		const t_value_type* getTypedValuePtr() const
+		{
+			assert(m_type == rfk::getType<t_value_type>());
+
+			return reinterpret_cast<const t_value_type*>(getUntypedValuePtr());
+		}
+
+		template <typename t_value_type>
+		t_value_type* getTypedValueMutablePtr() const
 		{
 			assert(m_type == rfk::getType<t_value_type>());
 
@@ -121,7 +129,17 @@ namespace Serialization
 		visitStruct(&instance, t_struct_type::staticGetArchetype(), visitor, userdata);
 	}
 
+	template <typename t_struct_type>
+	void visitStruct(const t_struct_type& instance, IVisitor* visitor)
+	{
+		visitStruct(&instance, t_struct_type::staticGetArchetype(), visitor, userdata);
+	}
+
+	void visitStruct(const void* instance, rfk::Struct const& structType, IVisitor *visitor);
 	void visitStruct(void* instance, rfk::Struct const& structType, IVisitor *visitor);
+
+	void visitField(const void* instance, rfk::Field const& fieldType, IVisitor *visitor);
 	void visitField(void* instance, rfk::Field const& fieldType, IVisitor *visitor);
+
 	void visitValue(ValueAccessor const& accessor, IVisitor *visitor);
 };

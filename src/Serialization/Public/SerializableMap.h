@@ -4,9 +4,152 @@
 #include "SerializableMap.rfkh.h"
 
 #include <map>
+#include <memory>
 
 namespace Serialization NAMESPACE()
 {
+	class CLASS() IMapConstEnumerator
+	{
+	public:
+		virtual ~IMapConstEnumerator() = default;
+
+		virtual void reset() = 0;
+		virtual bool isValid() const = 0;
+		virtual void next() = 0;
+		virtual const void* getKeyRaw() const = 0;
+		virtual const void* getValueRaw() const = 0;
+
+		Serialization_IMapConstEnumerator_GENERATED
+	};
+
+	class CLASS() IMapEnumerator
+	{
+	public:
+		virtual ~IMapEnumerator() = default;
+
+		virtual void reset() = 0;
+		virtual bool isValid() const = 0;
+		virtual void next() = 0;
+		virtual void* getKeyRaw() = 0;
+		virtual void* getValueRaw() = 0;
+
+		Serialization_IMapEnumerator_GENERATED
+	};
+
+	template <typename t_key, typename t_value>
+	class CLASS() MapConstEnumerator : public IMapConstEnumerator
+	{
+	public:
+		MapConstEnumerator(const std::map<t_key, t_value>& map)
+			: m_start(map.begin())
+			, m_end(map.end())
+			, m_it(m_start)
+		{
+		}
+
+		virtual void reset() override
+		{
+			m_it = m_start;
+		}
+
+		virtual bool isValid() const override
+		{
+			return m_it != m_end;
+		}
+
+		virtual void next() override
+		{
+			if (isValid())
+			{
+				m_it++;
+			}
+		}
+
+		virtual const void* getKeyRaw() const override
+		{
+			if (m_it != m_end)
+			{
+				return &m_it->first;
+			}
+
+			return nullptr;
+		}
+
+		virtual const void* getValueRaw() const override
+		{
+			if (m_it != m_end)
+			{
+				return &m_it->second;
+			}
+
+			return nullptr;
+		}
+	
+		Serialization_MapConstEnumerator_GENERATED
+
+	private:
+		typename std::map<t_key, t_value>::const_iterator m_start;
+		typename std::map<t_key, t_value>::const_iterator m_end;
+		typename std::map<t_key, t_value>::const_iterator m_it;
+	};
+
+	template <typename t_key, typename t_value>
+	class CLASS() MapEnumerator : public IMapEnumerator
+	{
+	public:
+		MapEnumerator(std::map<t_key, t_value>& map)
+			: m_start(map.begin())
+			, m_end(map.end())
+			, m_it(m_start)
+		{}
+
+		virtual void reset() override
+		{
+			m_it = m_start;
+		}
+
+		virtual bool isValid() const override
+		{
+			return m_it != m_end;
+		}
+
+		virtual void next() override
+		{
+			if (isValid())
+			{
+				m_it++;
+			}
+		}
+
+		virtual void* getKeyRaw() override
+		{
+			if (m_it != m_end)
+			{
+				return (void *)(&m_it->first);
+			}
+
+			return nullptr;
+		}
+
+		virtual void* getValueRaw() override
+		{
+			if (m_it != m_end)
+			{
+				return (void *)(&m_it->second);
+			}
+
+			return nullptr;
+		}
+
+
+		Serialization_MapEnumerator_GENERATED
+
+	private:
+		typename std::map<t_key, t_value>::iterator m_start;
+		typename std::map<t_key, t_value>::iterator m_end;
+		typename std::map<t_key, t_value>::iterator m_it;
+	};
+
 	template <typename t_key, typename t_value>
 	class CLASS() Map : public std::map<t_key, t_value>
 	{
@@ -21,6 +164,18 @@ namespace Serialization NAMESPACE()
 		std::size_t size() const noexcept
 		{
 			return std::map<t_key, t_value>::size();
+		}
+
+		METHOD()
+		std::shared_ptr<IMapEnumerator> getEnumerator()
+		{
+			return std::make_shared<MapEnumerator<t_key, t_value>>(*this);
+		}
+
+		METHOD()
+		std::shared_ptr<IMapConstEnumerator> getConstEnumerator()
+		{
+			return std::make_shared<MapConstEnumerator<t_key, t_value>>(*this);
 		}
 
 		METHOD()
@@ -59,6 +214,7 @@ namespace Serialization NAMESPACE()
 		{
 			return const_cast<void*>(getRawValue(key));
 		}
+
 		Serialization_Map_GENERATED
 	};
 };
