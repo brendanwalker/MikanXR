@@ -9,10 +9,10 @@ using json = nlohmann::json;
 
 namespace Serialization
 {
-	class JsonReadVisitor : public IVisitor
+	class JsonWriteVisitor : public IVisitor
 	{
 	public:
-		JsonReadVisitor(const nlohmann::json& jsonObject) : m_jsonObject(jsonObject) {}
+		JsonWriteVisitor(const nlohmann::json& jsonObject) : m_jsonObject(jsonObject) {}
 
 		virtual void visitClass(ValueAccessor const& accessor) override
 		{
@@ -25,7 +25,7 @@ namespace Serialization
 
 				if (classKind == rfk::EClassKind::TemplateInstantiation)
 				{
-					void* arrayInstance = accessor.getUntypedValuePtr();
+					void* arrayInstance = accessor.getUntypedValueMutablePtr();
 					const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 					std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
@@ -51,7 +51,7 @@ namespace Serialization
 			}
 			else
 			{
-				JsonReadVisitor::visitStruct(accessor);
+				JsonWriteVisitor::visitStruct(accessor);
 			}
 		}
 
@@ -60,7 +60,7 @@ namespace Serialization
 			rfk::ClassTemplateInstantiation const& templatedArrayType,
 			const json& arrayJsonObject)
 		{
-			void* arrayInstance= arrayAccessor.getUntypedValuePtr();
+			void* arrayInstance= arrayAccessor.getUntypedValueMutablePtr();
 
 			// Get the type of the elements in the array from the template argument
 			auto const& templateArg =
@@ -91,7 +91,7 @@ namespace Serialization
 				ValueAccessor elementAccessor(elementInstance, elementType);
 
 				// Deserialize the element into the 
-				JsonReadVisitor elementVisitor(elementJson);
+				JsonWriteVisitor elementVisitor(elementJson);
 				Serialization::visitValue(elementAccessor, &elementVisitor);
 			}
 		}
@@ -132,7 +132,7 @@ namespace Serialization
 			rfk::ClassTemplateInstantiation const& templatedMapType,
 			const json& mapArrayJsonObject)
 		{
-			void* mapInstance = mapAccessor.getUntypedValuePtr();
+			void* mapInstance = mapAccessor.getUntypedValueMutablePtr();
 
 			// Get the type of the elements in the array from the template argument
 			auto const& templateValueArg =
@@ -182,7 +182,7 @@ namespace Serialization
 				ValueAccessor valueAccessor(valueInstance, valueType);
 
 				// Deserialize the value
-				JsonReadVisitor valueVisitor(pairJson["value"]);
+				JsonWriteVisitor valueVisitor(pairJson["value"]);
 				Serialization::visitValue(valueAccessor, &valueVisitor);
 			}
 		}
@@ -193,9 +193,9 @@ namespace Serialization
 
 			if (childJsonObject.is_object())
 			{
-				void* childObjectInstance = accessor.getUntypedValuePtr();
+				void* childObjectInstance = accessor.getUntypedValueMutablePtr();
 				rfk::Struct const* structType= accessor.getStructType();
-				JsonReadVisitor jsonVisitor(childJsonObject);
+				JsonWriteVisitor jsonVisitor(childJsonObject);
 
 				Serialization::visitStruct(childObjectInstance, *structType, &jsonVisitor);
 			}
@@ -251,7 +251,7 @@ namespace Serialization
 
 			if (enumValue != nullptr)
 			{
-				void* enumInstance= accessor.getInstance();
+				void* enumInstance= accessor.getInstanceMutable();
 				rfk::Field const* enumField= accessor.getField();
 				const int64_t enumInt64Value= enumValue->getValue();
 
@@ -546,13 +546,13 @@ namespace Serialization
 	};
 
 	// Public API
-	bool deserializefromJsonString(const std::string& jsonString, void* instance, rfk::Struct const& structType)
+	bool deserializeFromJsonString(const std::string& jsonString, void* instance, rfk::Struct const& structType)
 	{
 		try
 		{
 			json jsonObject = json::parse(jsonString);
 
-			return deserializefromJson(jsonObject, instance, structType);
+			return deserializeFromJson(jsonObject, instance, structType);
 		}
 		catch (json::parse_error* e)
 		{
@@ -560,11 +560,11 @@ namespace Serialization
 		}
 	}
 
-	bool deserializefromJson(const nlohmann::json& jsonObject, void* instance, rfk::Struct const& structType)
+	bool deserializeFromJson(const nlohmann::json& jsonObject, void* instance, rfk::Struct const& structType)
 	{
 		try
 		{
-			JsonReadVisitor visitor(jsonObject);
+			JsonWriteVisitor visitor(jsonObject);
 			Serialization::visitStruct(instance, structType, &visitor);
 
 			return true;

@@ -19,10 +19,14 @@ namespace Serialization
 	
 	{
 	public:
+		ValueAccessor(const void* instance, rfk::Field const& field);
+		ValueAccessor(const void* instance, rfk::Type const& type);
 		ValueAccessor(void* instance, rfk::Field const& field);
 		ValueAccessor(void* instance, rfk::Type const& type);
 
-		void* getInstance() const { return m_instance; }
+		const void* getInstance() const;
+		void* getInstanceMutable() const;
+
 		rfk::Field const* getField() const { return m_field; }
 		rfk::Type const& getType() const { return m_type; }
 		std::string const& getName() const { return m_name; }
@@ -31,14 +35,15 @@ namespace Serialization
 		rfk::Struct const* getStructType() const;
 		rfk::Enum const* getEnumType() const;
 
-		void* getUntypedValuePtr() const;
+		const void* getUntypedValuePtr() const;
+		void* getUntypedValueMutablePtr() const;
 
 		template <typename t_value_type>
 		t_value_type* getTypedValuePtr() const
 		{
 			assert(m_type == rfk::getType<t_value_type>());
 
-			return reinterpret_cast<t_value_type*>(getUntypedValuePtr());
+			return reinterpret_cast<t_value_type*>(getUntypedValueMutablePtr());
 		}
 
 		template <typename t_value_type>
@@ -84,6 +89,7 @@ namespace Serialization
 
 	private:
 		void* m_instance;
+		bool m_isConst;
 		rfk::Field const* m_field;
 		rfk::Type const& m_type;
 		std::string m_name;

@@ -6,8 +6,25 @@
 
 namespace Serialization
 {
+	ValueAccessor::ValueAccessor(const void* instance, rfk::Field const& field) :
+		m_instance(const_cast<void *>(instance)),
+		m_isConst(true),
+		m_field(&field),
+		m_type(field.getType()),
+		m_name(field.getName())
+	{}
+
+	ValueAccessor::ValueAccessor(const void* instance, rfk::Type const& type) :
+		m_instance(const_cast<void *>(instance)),
+		m_isConst(true),
+		m_field(nullptr),
+		m_type(type),
+		m_name(type.getArchetype()->getName())
+	{}
+
 	ValueAccessor::ValueAccessor(void* instance, rfk::Field const& field) :
 		m_instance(instance),
+		m_isConst(false),
 		m_field(&field),
 		m_type(field.getType()),
 		m_name(field.getName())
@@ -15,10 +32,22 @@ namespace Serialization
 
 	ValueAccessor::ValueAccessor(void* instance, rfk::Type const& type) :
 		m_instance(instance),
+		m_isConst(false),
 		m_field(nullptr),
 		m_type(type),
 		m_name(type.getArchetype()->getName())
 	{}
+
+	const void* ValueAccessor::getInstance() const
+	{ 
+		return m_instance; 
+	}
+
+	void* ValueAccessor::getInstanceMutable() const 
+	{ 
+		assert(!m_isConst);
+		return m_instance; 
+	}
 
 	rfk::Class const* ValueAccessor::getClassType() const
 	{
@@ -35,7 +64,7 @@ namespace Serialization
 		return rfk::enumCast(m_type.getArchetype());
 	}
 
-	void* ValueAccessor::getUntypedValuePtr() const
+	const void* ValueAccessor::getUntypedValuePtr() const
 	{
 		assert(m_type.isValue());
 		assert(m_instance != nullptr);
@@ -48,6 +77,12 @@ namespace Serialization
 		{
 			return m_instance;
 		}
+	}
+
+	void* ValueAccessor::getUntypedValueMutablePtr() const
+	{
+		assert(!m_isConst);
+		return const_cast<void*>(getUntypedValuePtr());
 	}
 
 	struct VisitorUserdata

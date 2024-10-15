@@ -11,7 +11,7 @@ bool MikanRefurekuEventFactory::from_json(
 	std::shared_ptr<MikanEvent> event, 
 	rfk::Struct const& archetype)
 {
-	return Serialization::deserializefromJson(*j, event.get(), archetype);
+	return Serialization::deserializeFromJson(*j, event.get(), archetype);
 }
 
 MikanResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
