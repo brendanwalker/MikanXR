@@ -2,7 +2,7 @@
 
 #include "MikanCoreTypes.h"
 #include "MikanTypeFwd.h"
-#include "SerializationUtils.h"
+#include "BinaryUtility.h"
 
 #include <functional>
 #include <future>

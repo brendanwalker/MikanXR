@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SerializationExport.h"
 #include "stdint.h"
 
 #include <array>
@@ -7,7 +8,7 @@
 #include <vector>
 
 //-- utility methods -----
-namespace SerializationUtils
+namespace Serialization
 {
 	enum class Endian : int
 	{
@@ -19,19 +20,21 @@ namespace SerializationUtils
 	bool wants_byte_flip(Endian desired);
 
 	int16_t read_int16(const uint8_t* inData, Endian desired);
-	int32_t read_int32(const uint8_t* inData, Endian desired);
 	int32_t read_int24(const uint8_t* inData, Endian desired);
+	int32_t read_int32(const uint8_t* inData, Endian desired);
+	int32_t read_int64(const uint8_t* inData, Endian desired);
 	float read_float(const uint8_t* inData, Endian desired);
 	double read_double(const uint8_t* inData, Endian desired);
 
 	void write_int16(uint8_t* outData, int16_t inValue, Endian desired);
 	void write_int24(uint8_t* outData, int32_t inValue, Endian desired);
 	void write_int32(uint8_t* outData, int32_t inValue, Endian desired);
+	void write_int64(uint8_t* outData, int64_t inValue, Endian desired);
 	void write_float(uint8_t* outData, float inValue, Endian desired);
 	void write_double(uint8_t* outData, double inValue, Endian desired);
 };
 
-class BinaryWriter
+class MIKAN_SERIALIZATION_API BinaryWriter
 {
 public:
 	BinaryWriter() = delete;
@@ -51,8 +54,14 @@ private:
 };
 
 void to_binary(BinaryWriter& writer, bool inValue);
+void to_binary(BinaryWriter& writer, uint8_t inValue);
+void to_binary(BinaryWriter& writer, uint16_t inValue);
+void to_binary(BinaryWriter& writer, uint32_t inValue);
+void to_binary(BinaryWriter& writer, uint64_t inValue);
+void to_binary(BinaryWriter& writer, int8_t inValue);
 void to_binary(BinaryWriter& writer, int16_t inValue);
 void to_binary(BinaryWriter& writer, int32_t inValue);
+void to_binary(BinaryWriter& writer, int64_t inValue);
 void to_binary(BinaryWriter& writer, float inValue);
 void to_binary(BinaryWriter& writer, double inValue);
 void to_binary(BinaryWriter& writer, const std::string& inString);
@@ -79,7 +88,7 @@ inline void to_binary(BinaryWriter& writer, const std::vector<T>& inVector)
 	}
 }
 
-class BinaryReader
+class MIKAN_SERIALIZATION_API BinaryReader
 {
 public:
 	BinaryReader() = delete;

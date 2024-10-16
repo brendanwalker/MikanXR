@@ -1,8 +1,8 @@
-#include "SerializationUtils.h"
+#include "BinaryUtility.h"
 #include <cstring>
 #include <stdexcept>
 
-namespace SerializationUtils
+namespace Serialization
 {
 	Endian get_system_endianness()
 	{
@@ -73,6 +73,35 @@ namespace SerializationUtils
 			result += inData[1] << 8;
 			result += inData[2] << 16;
 			result += inData[3] << 24;
+		}
+		return result;
+	}
+
+	int32_t read_int64(const uint8_t* inData, Endian desired)
+	{
+		int32_t result;
+
+		if (wants_byte_flip(desired))
+		{
+			result = inData[0] << 56;
+			result += inData[1] << 48;
+			result += inData[2] << 40;
+			result += inData[3] << 32;
+			result += inData[4] << 24;
+			result += inData[5] << 16;
+			result += inData[6] << 8;
+			result += inData[7];
+		}
+		else
+		{
+			result = inData[0];
+			result += inData[1] << 8;
+			result += inData[2] << 16;
+			result += inData[3] << 24;
+			result += inData[4] << 32;
+			result += inData[5] << 40;
+			result += inData[6] << 48;
+			result += inData[7] << 56;
 		}
 		return result;
 	}
@@ -163,6 +192,32 @@ namespace SerializationUtils
 		}
 	}
 
+	void write_int64(uint8_t* outData, int64_t inValue, Endian desired)
+	{
+		if (wants_byte_flip(desired))
+		{
+			outData[0] = inValue >> 56;
+			outData[1] = (inValue >> 48) & 0xFF;
+			outData[2] = (inValue >> 40) & 0xFF;
+			outData[3] = (inValue >> 32) & 0xFF;
+			outData[4] = (inValue >> 24) & 0xFF;
+			outData[5] = (inValue >> 16) & 0xFF;
+			outData[6] = (inValue >> 8) & 0xFF;
+			outData[7] = inValue & 0xFF;
+		}
+		else
+		{
+			outData[0] = inValue & 0xFF;
+			outData[1] = (inValue >> 8) & 0xFF;
+			outData[2] = (inValue >> 16) & 0xFF;
+			outData[3] = (inValue >> 24) & 0xFF;
+			outData[2] = (inValue >> 32) & 0xFF;
+			outData[2] = (inValue >> 40) & 0xFF;
+			outData[2] = (inValue >> 48) & 0xFF;
+			outData[2] = inValue >> 56;
+		}
+	}
+
 	void write_int32(uint8_t* outData, int32_t inValue, Endian desired)
 	{
 		if (wants_byte_flip(desired)) 
@@ -234,10 +289,44 @@ void to_binary(BinaryWriter& writer, bool inValue)
 	writer.appendByte(inValue ? 1 : 0);
 }
 
+void to_binary(BinaryWriter& writer, uint8_t inValue)
+{
+	writer.appendBytes((const uint8_t*)&inValue, 1);
+}
+
+void to_binary(BinaryWriter& writer, uint16_t inValue)
+{
+	std::array<uint8_t, sizeof(uint16_t)> outValue;
+	Serialization::write_int16(outValue.data(), *(int16_t*)&inValue, Serialization::Endian::Little);
+
+	writer.appendBytes(outValue);
+}
+
+void to_binary(BinaryWriter& writer, uint32_t inValue)
+{
+	std::array<uint8_t, sizeof(int32_t)> outValue;
+	Serialization::write_int32(outValue.data(), *(int32_t*)&inValue, Serialization::Endian::Little);
+
+	writer.appendBytes(outValue);
+}
+
+void to_binary(BinaryWriter& writer, uint64_t inValue)
+{
+	std::array<uint8_t, sizeof(int64_t)> outValue;
+	Serialization::write_int64(outValue.data(), *(int64_t*)&inValue, Serialization::Endian::Little);
+
+	writer.appendBytes(outValue);
+}
+
+void to_binary(BinaryWriter& writer, int8_t inValue)
+{
+	writer.appendBytes((const uint8_t* )&inValue, 1);
+}
+
 void to_binary(BinaryWriter& writer, int16_t inValue)
 {
 	std::array<uint8_t, sizeof(int16_t)> outValue;
-	SerializationUtils::write_int16(outValue.data(), inValue, SerializationUtils::Endian::Little);
+	Serialization::write_int16(outValue.data(), inValue, Serialization::Endian::Little);
 
 	writer.appendBytes(outValue);
 }
@@ -245,7 +334,15 @@ void to_binary(BinaryWriter& writer, int16_t inValue)
 void to_binary(BinaryWriter& writer, int32_t inValue)
 {
 	std::array<uint8_t, sizeof(int32_t)> outValue;
-	SerializationUtils::write_int32(outValue.data(), inValue, SerializationUtils::Endian::Little);
+	Serialization::write_int32(outValue.data(), inValue, Serialization::Endian::Little);
+
+	writer.appendBytes(outValue);
+}
+
+void to_binary(BinaryWriter& writer, int64_t inValue)
+{
+	std::array<uint8_t, sizeof(int64_t)> outValue;
+	Serialization::write_int64(outValue.data(), inValue, Serialization::Endian::Little);
 
 	writer.appendBytes(outValue);
 }
@@ -253,7 +350,7 @@ void to_binary(BinaryWriter& writer, int32_t inValue)
 void to_binary(BinaryWriter& writer, float inValue)
 {
 	std::array<uint8_t, sizeof(float)> outValue;
-	SerializationUtils::write_float(outValue.data(), inValue, SerializationUtils::Endian::Little);
+	Serialization::write_float(outValue.data(), inValue, Serialization::Endian::Little);
 
 	writer.appendBytes(outValue);
 }
@@ -261,7 +358,7 @@ void to_binary(BinaryWriter& writer, float inValue)
 void to_binary(BinaryWriter& writer, double inValue)
 {
 	std::array<uint8_t, sizeof(double)> outValue;
-	SerializationUtils::write_double(outValue.data(), inValue, SerializationUtils::Endian::Little);
+	Serialization::write_double(outValue.data(), inValue, Serialization::Endian::Little);
 
 	writer.appendBytes(outValue);
 }
@@ -323,28 +420,28 @@ void from_binary(BinaryReader& reader, int16_t& outValue)
 {
 	std::array<uint8_t, sizeof(int16_t)> value;
 	reader.readBytes(value.data(), sizeof(int16_t));
-	outValue= SerializationUtils::read_int16(value.data(), SerializationUtils::Endian::Little);
+	outValue= Serialization::read_int16(value.data(), Serialization::Endian::Little);
 }
 
 void from_binary(BinaryReader& reader, int32_t& outValue)
 {
 	std::array<uint8_t, sizeof(int32_t)> value;
 	reader.readBytes(value.data(), sizeof(int32_t));
-	outValue = SerializationUtils::read_int32(value.data(), SerializationUtils::Endian::Little);
+	outValue = Serialization::read_int32(value.data(), Serialization::Endian::Little);
 }
 
 void from_binary(BinaryReader& reader, float& outValue)
 {
 	std::array<uint8_t, sizeof(float)> value;
 	reader.readBytes(value.data(), sizeof(float));
-	outValue = SerializationUtils::read_float(value.data(), SerializationUtils::Endian::Little);
+	outValue = Serialization::read_float(value.data(), Serialization::Endian::Little);
 }
 
 void from_binary(BinaryReader& reader, double& outValue)
 {
 	std::array<uint8_t, sizeof(double)> value;
 	reader.readBytes(value.data(), sizeof(double));
-	outValue = SerializationUtils::read_double(value.data(), SerializationUtils::Endian::Little);
+	outValue = Serialization::read_double(value.data(), Serialization::Endian::Little);
 }
 
 void from_binary(BinaryReader& reader, std::string& outString)

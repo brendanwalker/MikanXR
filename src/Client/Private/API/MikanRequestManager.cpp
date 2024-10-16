@@ -3,7 +3,6 @@
 #include "MikanCoreCAPI.h"
 #include "MikanCoreTypes.h"
 #include "Logger.h"
-#include "SerializationUtils.h"
 
 MikanResult MikanRequestManager::init()
 {
