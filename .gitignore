@@ -40,13 +40,9 @@
 
 # Build directories
 build*
-bin*
 dist*
 !OBJ-loader
 !resources/models/*/*.obj
-
-# Generated Reflection Code
-src/Generated
 
 # Third Party
 !thirdparty/lua/*.lib
