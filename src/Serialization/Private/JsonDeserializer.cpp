@@ -44,7 +44,7 @@ namespace Serialization
 				else
 				{
 					throw std::runtime_error(
-						stringify("JsonUtils::from_json() ",
+						stringify("JsonReadVisitor::visitClass() ",
 							"Class Field ", accessor.getName(),
 							" was not of expected type IEnumerable to deserialize json array value"));
 				}
@@ -69,12 +69,12 @@ namespace Serialization
 			rfk::Type const& elementType = templateArg.getType();
 
 			// Use reflection to get the methods to resize the array and get a mutable reference to an element
-			rfk::Method const* getResizeMethod = templatedArrayType.getMethodByName("resize");
+			rfk::Method const* resizeMethod = templatedArrayType.getMethodByName("resize");
 			rfk::Method const* getRawElementMutableMethod = templatedArrayType.getMethodByName("getRawElementMutable");
 
 			// Resize the array to the desired target size
 			std::size_t arraySize = arrayJsonObject.size();
-			getResizeMethod->invokeUnsafe<void>(arrayInstance, arraySize);
+			resizeMethod->invokeUnsafe<void>(arrayInstance, arraySize);
 
 			// Deserialize each element of the array
 			for (size_t elementIndex= 0; elementIndex < arraySize; ++elementIndex) 
@@ -90,7 +90,7 @@ namespace Serialization
 				// Make a fake "field" for an element in the array
 				ValueAccessor elementAccessor(elementInstance, elementType);
 
-				// Deserialize the element into the 
+				// Deserialize the element
 				JsonReadVisitor elementVisitor(elementJson);
 				Serialization::visitValue(elementAccessor, &elementVisitor);
 			}
@@ -120,7 +120,7 @@ namespace Serialization
 				rfk::Archetype const* keyArchetype= keyType.getArchetype();
 
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitMap() ",
 						"Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
 						" is not supported"));
 			}
@@ -142,7 +142,7 @@ namespace Serialization
 
 			// Use reflection to get the method use to clear and add pairs to the map
 			rfk::Method const* clearMethod = templatedMapType.getMethodByName("clear");
-			rfk::Method const* addValueMethod = templatedMapType.getMethodByName("getOrAddRawValueMutable");
+			rfk::Method const* getOrAddValueMethod = templatedMapType.getMethodByName("getOrAddRawValueMutable");
 
 			// Resize the array to the desired target size
 			clearMethod->invokeUnsafe<void>(mapInstance);
@@ -157,7 +157,7 @@ namespace Serialization
 				if (!pairJson.contains("key"))
 				{
 					throw std::runtime_error(
-						stringify("JsonUtils::from_json() ",
+						stringify("JsonReadVisitor::visitMapOfKey() ",
 								  "Map Pair ", pairIndex,
 								  " does not contain key"));
 				}
@@ -165,7 +165,7 @@ namespace Serialization
 				if (!pairJson.contains("value"))
 				{
 					throw std::runtime_error(
-						stringify("JsonUtils::from_json() ",
+						stringify("JsonReadVisitor::visitMapOfKey() ",
 								  "Map Pair ", pairIndex,
 								  " does not contain value"));
 				}
@@ -175,7 +175,7 @@ namespace Serialization
 
 				// Get or Add the target value instance in the map
 				void* valueInstance =
-					addValueMethod->invokeUnsafe<void*, const t_key&>(
+					getOrAddValueMethod->invokeUnsafe<void*, const t_key&>(
 						mapInstance, key);
 
 				// Make a fake "field" for an element in the array
@@ -202,7 +202,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitStruct() ",
 						"Struct Field ", accessor.getName(),
 						" was not of expected type object to deserialize json object value"));
 			}
@@ -223,7 +223,7 @@ namespace Serialization
 				if (enumValue == nullptr)
 				{
 					throw std::runtime_error(
-						stringify("JsonUtils::from_json() ",
+						stringify("JsonReadVisitor::visitEnum() ",
 								  "Enum Accessor ", accessor.getName(),
 								  " has an invalid value ", value));
 				}
@@ -236,7 +236,7 @@ namespace Serialization
 				if (enumValue == nullptr)
 				{
 					throw std::runtime_error(
-						stringify("JsonUtils::from_json() ",
+						stringify("JsonReadVisitor::visitEnum() ",
 									"Enum Accessor ", accessor.getName(),
 									" has an invalid value ", value));
 				}
@@ -244,7 +244,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitEnum() ",
 								"Enum Accessor ", accessor.getName(),
 								" was not an int or a string json value"));
 			}
@@ -279,7 +279,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitBool() ",
 							  "Bool Accessor ", accessor.getName(),
 							  " was not a bool json value"));
 			}
@@ -298,13 +298,13 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitByte() ",
 							  "Byte Accessor ", accessor.getName(),
 							  " was not a integer json value"));
 			}
 		}
 
-		virtual void VisitUByte(ValueAccessor const& accessor) override
+		virtual void visitUByte(ValueAccessor const& accessor) override
 		{
 			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
 
@@ -323,7 +323,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitUByte() ",
 							  "UByte Accessor ", accessor.getName(),
 							  " was not a integer json value"));
 			}
@@ -342,7 +342,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitShort() ",
 							  "Short Accessor ", accessor.getName(),
 							  " was not a integer json value"));
 			}
@@ -367,7 +367,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitUShort() ",
 							  "UShort Accessor ", accessor.getName(),
 							  " was not a integer json value"));
 			}
@@ -386,7 +386,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitInt() ",
 							  "Int32 Accessor ", accessor.getName(),
 							  " was not a integer json value"));
 			}
@@ -411,7 +411,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitUInt() ",
 							  "UInt32 Accessor ", accessor.getName(),
 							  " was not a integer json value"));
 			}
@@ -430,7 +430,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitLong() ",
 							  "Int64 Accessor ", accessor.getName(),
 							  " was not a integer json value"));
 			}
@@ -455,7 +455,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitULong() ",
 							  "UInt64 Accessor ", accessor.getName(),
 							  " was not a integer json value"));
 			}
@@ -474,7 +474,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitFloat() ",
 							  "Float Accessor ", accessor.getName(),
 							  " was not a float json value"));
 			}
@@ -493,7 +493,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitDouble() ",
 							  "Double Accessor ", accessor.getName(),
 							  " was not a float json value"));
 			}
@@ -513,7 +513,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("JsonReadVisitor::visitString() ",
 							  "String Accessor ", accessor.getName(),
 							  " was not a string json value"));
 			}

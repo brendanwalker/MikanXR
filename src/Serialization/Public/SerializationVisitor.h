@@ -111,7 +111,7 @@ namespace Serialization
 		virtual void visitEnum(ValueAccessor const& accessor) { }
 		virtual void visitBool(ValueAccessor const& accessor) { }
 		virtual void visitByte(ValueAccessor const& accessor) { }
-		virtual void VisitUByte(ValueAccessor const& accessor) { }
+		virtual void visitUByte(ValueAccessor const& accessor) { }
 		virtual void visitShort(ValueAccessor const& accessor) { }
 		virtual void visitUShort(ValueAccessor const& accessor) { }
 		virtual void visitInt(ValueAccessor const& accessor) { }

@@ -118,7 +118,7 @@ namespace Serialization
 				rfk::Archetype const* keyArchetype = keyType.getArchetype();
 
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("BinaryWriteVisitor::visitMap() ",
 							  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
 							  " is not supported"));
 			}
@@ -204,7 +204,7 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("BinaryWriteVisitor::visitEnum() ",
 							  "Enum Accessor ", accessor.getName(),
 							  " has an invalid memory size ", enumArchetype.getMemorySize()));
 			}
@@ -214,7 +214,7 @@ namespace Serialization
 			if (enumValue == nullptr)
 			{
 				throw std::runtime_error(
-					stringify("JsonUtils::from_json() ",
+					stringify("BinaryWriteVisitor::visitEnum() ",
 							  "Enum Accessor ", accessor.getName(),
 							  " has an invalid int value ", enumIntValue));
 			}
@@ -233,7 +233,7 @@ namespace Serialization
 			to_binary(m_binaryWriter, *accessor.getTypedValuePtr<int8_t>());
 		}
 
-		virtual void VisitUByte(ValueAccessor const& accessor) override
+		virtual void visitUByte(ValueAccessor const& accessor) override
 		{
 			to_binary(m_binaryWriter, *accessor.getTypedValuePtr<uint8_t>());
 		}

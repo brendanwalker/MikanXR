@@ -18,21 +18,33 @@ namespace Serialization
 		return desired != get_system_endianness();
 	}
 
+	template <typename T>
+	T read_bytes(const uint8_t* inData, Endian desired)
+	{
+		const size_t byteCount = sizeof(T);
+		T result= T();
+
+		if (wants_byte_flip(desired))
+		{
+			uint8_t* valueByte = (uint8_t*)&result;
+
+			for (int64_t i = (int64_t)byteCount - 1; i >= 0; i--)
+			{
+				*valueByte= inData[i];
+				valueByte++;
+			}
+		}
+		else
+		{
+			std::memmove(&result, inData, byteCount);
+		}
+
+		return result;
+	}
+
 	int16_t read_int16(const uint8_t* inData, Endian desired)
 	{
-		int16_t result;
-
-		if (wants_byte_flip(desired)) 
-		{
-			result = inData[0] << 8;
-			result += inData[1];
-		}
-		else 
-		{
-			result = inData[0];
-			result += inData[1] << 8;
-		}
-		return result;
+		return read_bytes<int16_t>(inData, desired);
 	}
 
 
@@ -58,182 +70,63 @@ namespace Serialization
 
 	int32_t read_int32(const uint8_t* inData, Endian desired)
 	{
-		int32_t result;
-
-		if (wants_byte_flip(desired)) 
-		{
-			result = inData[0] << 24;
-			result += inData[1] << 16;
-			result += inData[2] << 8;
-			result += inData[3];
-		}
-		else 
-		{
-			result = inData[0];
-			result += inData[1] << 8;
-			result += inData[2] << 16;
-			result += inData[3] << 24;
-		}
-		return result;
+		return read_bytes<int32_t>(inData, desired);
 	}
 
-	int32_t read_int64(const uint8_t* inData, Endian desired)
+	int64_t read_int64(const uint8_t* inData, Endian desired)
 	{
-		int32_t result;
-
-		if (wants_byte_flip(desired))
-		{
-			result = inData[0] << 56;
-			result += inData[1] << 48;
-			result += inData[2] << 40;
-			result += inData[3] << 32;
-			result += inData[4] << 24;
-			result += inData[5] << 16;
-			result += inData[6] << 8;
-			result += inData[7];
-		}
-		else
-		{
-			result = inData[0];
-			result += inData[1] << 8;
-			result += inData[2] << 16;
-			result += inData[3] << 24;
-			result += inData[4] << 32;
-			result += inData[5] << 40;
-			result += inData[6] << 48;
-			result += inData[7] << 56;
-		}
-		return result;
+		return read_bytes<int64_t>(inData, desired);
 	}
 
 	float read_float(const uint8_t* inData, Endian desired)
 	{
-		float result;
-		uint8_t number_data[4];
-
-		if (wants_byte_flip(desired))
-		{
-			number_data[0] = inData[3];
-			number_data[1] = inData[2];
-			number_data[2] = inData[1];
-			number_data[3] = inData[0];
-			std::memmove(&result, number_data, 4);
-		}
-		else
-		{
-			std::memmove(&result, inData, 4);
-		}
-
-		return result;
+		return read_bytes<float>(inData, desired);
 	}
 
 	double read_double(const uint8_t* inData, Endian desired)
 	{
-		double result;
-		uint8_t number_data[8];
+		return read_bytes<double>(inData, desired);
+	}
 
-		if (wants_byte_flip(desired)) 
-		{
-			number_data[0] = inData[7];
-			number_data[1] = inData[6];
-			number_data[2] = inData[5];
-			number_data[3] = inData[4];
-			number_data[4] = inData[3];
-			number_data[5] = inData[2];
-			number_data[6] = inData[1];
-			number_data[7] = inData[0];
-			std::memmove(&result, number_data, 8);
-		}
-		else 
-		{
-			std::memmove(&result, inData, 8);
-		}
+	template <typename T>
+	void write_bytes(uint8_t* outData, const T& value, Endian desired)
+	{
+		const size_t byteCount = sizeof(T);
 
-		return result;
+		if (wants_byte_flip(desired))
+		{
+			const uint8_t* valueByte = (const uint8_t*)&value;
+
+			for (int64_t i = (int64_t)byteCount - 1; i >= 0; i--)
+			{
+				outData[i] = *valueByte;
+				valueByte++;
+			}
+		}
+		else
+		{
+			std::memmove(outData, &value, byteCount);
+		}
 	}
 
 	void write_float(uint8_t* data, float inValue, Endian desired)
 	{
-		uint8_t number_data[4];
-
-		if (wants_byte_flip(desired))
-		{
-			std::memmove(number_data, &inValue, 4);
-			data[0] = number_data[3];
-			data[1] = number_data[2];
-			data[2] = number_data[1];
-			data[3] = number_data[0];
-		}
-		else
-		{
-			std::memmove(data, &inValue, 4);
-		}
+		write_bytes<float>(data, inValue, desired);
 	}
 
 	void write_double(uint8_t* data, double inValue, Endian desired)
 	{
-		uint8_t number_data[8];
-
-		if (wants_byte_flip(desired)) 
-		{
-			std::memmove(number_data, &inValue, 8);
-			data[0] = number_data[7];
-			data[1] = number_data[6];
-			data[2] = number_data[5];
-			data[3] = number_data[4];
-			data[4] = number_data[3];
-			data[5] = number_data[2];
-			data[6] = number_data[1];
-			data[7] = number_data[0];
-		}
-		else 
-		{
-			std::memmove(data, &inValue, 8);
-		}
+		write_bytes<double>(data, inValue, desired);
 	}
 
-	void write_int64(uint8_t* outData, int64_t inValue, Endian desired)
+	void write_int64(uint8_t* data, int64_t inValue, Endian desired)
 	{
-		if (wants_byte_flip(desired))
-		{
-			outData[0] = inValue >> 56;
-			outData[1] = (inValue >> 48) & 0xFF;
-			outData[2] = (inValue >> 40) & 0xFF;
-			outData[3] = (inValue >> 32) & 0xFF;
-			outData[4] = (inValue >> 24) & 0xFF;
-			outData[5] = (inValue >> 16) & 0xFF;
-			outData[6] = (inValue >> 8) & 0xFF;
-			outData[7] = inValue & 0xFF;
-		}
-		else
-		{
-			outData[0] = inValue & 0xFF;
-			outData[1] = (inValue >> 8) & 0xFF;
-			outData[2] = (inValue >> 16) & 0xFF;
-			outData[3] = (inValue >> 24) & 0xFF;
-			outData[2] = (inValue >> 32) & 0xFF;
-			outData[2] = (inValue >> 40) & 0xFF;
-			outData[2] = (inValue >> 48) & 0xFF;
-			outData[2] = inValue >> 56;
-		}
+		write_bytes<int64_t>(data, inValue, desired);
 	}
 
-	void write_int32(uint8_t* outData, int32_t inValue, Endian desired)
+	void write_int32(uint8_t* data, int32_t inValue, Endian desired)
 	{
-		if (wants_byte_flip(desired)) 
-		{
-			outData[0] = inValue >> 24;
-			outData[1] = (inValue >> 16) & 0xFF;
-			outData[2] = (inValue >> 8) & 0xFF;
-			outData[3] = inValue & 0xFF;
-		}
-		else 
-		{
-			outData[0] = inValue & 0xFF;
-			outData[1] = (inValue >> 8) & 0xFF;
-			outData[2] = (inValue >> 16) & 0xFF;
-			outData[3] = inValue >> 24;
-		}
+		write_bytes<int32_t>(data, inValue, desired);
 	}
 
 	void write_int24(uint8_t* outData, int32_t inValue, Endian desired)
@@ -250,20 +143,9 @@ namespace Serialization
 		}
 	}
 
-	void write_int16(uint8_t* outData, int16_t value, Endian desired)
+	void write_int16(uint8_t* data, int16_t inValue, Endian desired)
 	{
-		uint8_t int_data[2];
-
-		if (wants_byte_flip(desired)) 
-		{
-			std::memmove(int_data, &value, 2);
-			outData[0] = int_data[1];
-			outData[1] = int_data[0];
-		}
-		else 
-		{
-			std::memmove(outData, &value, 2);
-		}
+		write_bytes<int16_t>(data, inValue, desired);
 	}
 
 }; // SerializationUtils
@@ -304,7 +186,7 @@ void to_binary(BinaryWriter& writer, uint16_t inValue)
 
 void to_binary(BinaryWriter& writer, uint32_t inValue)
 {
-	std::array<uint8_t, sizeof(int32_t)> outValue;
+	std::array<uint8_t, sizeof(uint32_t)> outValue;
 	Serialization::write_int32(outValue.data(), *(int32_t*)&inValue, Serialization::Endian::Little);
 
 	writer.appendBytes(outValue);
@@ -312,7 +194,7 @@ void to_binary(BinaryWriter& writer, uint32_t inValue)
 
 void to_binary(BinaryWriter& writer, uint64_t inValue)
 {
-	std::array<uint8_t, sizeof(int64_t)> outValue;
+	std::array<uint8_t, sizeof(uint64_t)> outValue;
 	Serialization::write_int64(outValue.data(), *(int64_t*)&inValue, Serialization::Endian::Little);
 
 	writer.appendBytes(outValue);
@@ -416,6 +298,37 @@ void from_binary(BinaryReader& reader, bool& outValue)
 	outValue= reader.readByte() != 0;
 }
 
+void from_binary(BinaryReader& reader, uint8_t& outValue)
+{
+	outValue= reader.readByte();
+}
+
+void from_binary(BinaryReader& reader, uint16_t& outValue)
+{
+	std::array<uint8_t, sizeof(uint16_t)> value;
+	reader.readBytes(value.data(), sizeof(uint16_t));
+	outValue = Serialization::read_int16(value.data(), Serialization::Endian::Little);
+}
+
+void from_binary(BinaryReader& reader, uint32_t& outValue)
+{
+	std::array<uint8_t, sizeof(uint32_t)> value;
+	reader.readBytes(value.data(), sizeof(uint32_t));
+	outValue = Serialization::read_int32(value.data(), Serialization::Endian::Little);
+}
+
+void from_binary(BinaryReader& reader, uint64_t& outValue)
+{
+	std::array<uint8_t, sizeof(uint64_t)> value;
+	reader.readBytes(value.data(), sizeof(uint64_t));
+	outValue = Serialization::read_int64(value.data(), Serialization::Endian::Little);
+}
+
+void from_binary(BinaryReader& reader, int8_t& outValue)
+{
+	reader.readBytes((uint8_t*)&outValue, 1);
+}
+
 void from_binary(BinaryReader& reader, int16_t& outValue)
 {
 	std::array<uint8_t, sizeof(int16_t)> value;
@@ -428,6 +341,13 @@ void from_binary(BinaryReader& reader, int32_t& outValue)
 	std::array<uint8_t, sizeof(int32_t)> value;
 	reader.readBytes(value.data(), sizeof(int32_t));
 	outValue = Serialization::read_int32(value.data(), Serialization::Endian::Little);
+}
+
+void from_binary(BinaryReader& reader, int64_t& outValue)
+{
+	std::array<uint8_t, sizeof(int64_t)> value;
+	reader.readBytes(value.data(), sizeof(int64_t));
+	outValue = Serialization::read_int64(value.data(), Serialization::Endian::Little);
 }
 
 void from_binary(BinaryReader& reader, float& outValue)

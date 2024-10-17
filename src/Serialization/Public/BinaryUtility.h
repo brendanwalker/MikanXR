@@ -22,7 +22,7 @@ namespace Serialization
 	int16_t read_int16(const uint8_t* inData, Endian desired);
 	int32_t read_int24(const uint8_t* inData, Endian desired);
 	int32_t read_int32(const uint8_t* inData, Endian desired);
-	int32_t read_int64(const uint8_t* inData, Endian desired);
+	int64_t read_int64(const uint8_t* inData, Endian desired);
 	float read_float(const uint8_t* inData, Endian desired);
 	double read_double(const uint8_t* inData, Endian desired);
 
@@ -111,8 +111,14 @@ private:
 };
 
 void from_binary(BinaryReader& reader, bool& outValue);
+void from_binary(BinaryReader& reader, uint8_t& outValue);
+void from_binary(BinaryReader& reader, uint16_t& outValue);
+void from_binary(BinaryReader& reader, uint32_t& outValue);
+void from_binary(BinaryReader& reader, uint64_t& outValue);
+void from_binary(BinaryReader& reader, int8_t& outValue);
 void from_binary(BinaryReader& reader, int16_t& outValue);
 void from_binary(BinaryReader& reader, int32_t& outValue);
+void from_binary(BinaryReader& reader, int64_t& outValue);
 void from_binary(BinaryReader& reader, float& outValue);
 void from_binary(BinaryReader& reader, double& outValue);
 void from_binary(BinaryReader& reader, std::string& outString);

@@ -224,7 +224,7 @@ namespace Serialization
 			}
 			else if (fieldType == rfk::getType<uint8_t>())
 			{
-				visitor->VisitUByte(accessor);
+				visitor->visitUByte(accessor);
 			}
 			else if (fieldType == rfk::getType<int8_t>())
 			{
