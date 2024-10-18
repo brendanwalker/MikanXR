@@ -2,7 +2,10 @@
 
 #include "SerializableList.h"
 #include "SerializableMap.h"
+
+#ifndef KODGEN_PARSING
 #include "serialization_unit_tests.rfkh.h"
+#endif
 
 #include <string>
 #include <stdint.h>
@@ -22,7 +25,9 @@ struct STRUCT() SerializationPointStruct
 	FIELD()
 	float y_field;
 
+	#ifndef KODGEN_PARSING
 	SerializationPointStruct_GENERATED
+	#endif
 };
 
 struct STRUCT() SerializationTestStruct
@@ -81,7 +86,11 @@ struct STRUCT() SerializationTestStruct
 	FIELD()
 	Serialization::Map<std::string, SerializationPointStruct> string_point_map;
 
+	#ifndef KODGEN_PARSING
 	SerializationTestStruct_GENERATED
+	#endif
 };
 
+#ifndef KODGEN_PARSING
 File_serialization_unit_tests_GENERATED
+#endif

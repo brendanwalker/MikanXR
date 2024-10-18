@@ -1,7 +1,9 @@
 #pragma once
 
 #include "SerializationExport.h"
+#ifndef KODGEN_PARSING
 #include "SerializableMap.rfkh.h"
+#endif
 
 #include <map>
 #include <memory>
@@ -19,7 +21,9 @@ namespace Serialization NAMESPACE()
 		virtual const void* getKeyRaw() const = 0;
 		virtual const void* getValueRaw() const = 0;
 
+		#ifndef KODGEN_PARSING
 		Serialization_IMapConstEnumerator_GENERATED
+		#endif
 	};
 
 	class CLASS() IMapEnumerator
@@ -33,7 +37,9 @@ namespace Serialization NAMESPACE()
 		virtual void* getKeyRaw() = 0;
 		virtual void* getValueRaw() = 0;
 
+		#ifndef KODGEN_PARSING
 		Serialization_IMapEnumerator_GENERATED
+		#endif
 	};
 
 	template <typename t_key, typename t_value>
@@ -85,7 +91,9 @@ namespace Serialization NAMESPACE()
 			return nullptr;
 		}
 	
+		#ifndef KODGEN_PARSING
 		Serialization_MapConstEnumerator_GENERATED
+		#endif
 
 	private:
 		typename std::map<t_key, t_value>::const_iterator m_start;
@@ -141,8 +149,9 @@ namespace Serialization NAMESPACE()
 			return nullptr;
 		}
 
-
+		#ifndef KODGEN_PARSING
 		Serialization_MapEnumerator_GENERATED
+		#endif
 
 	private:
 		typename std::map<t_key, t_value>::iterator m_start;
@@ -215,8 +224,12 @@ namespace Serialization NAMESPACE()
 			return const_cast<void*>(getRawValue(key));
 		}
 
+		#ifndef KODGEN_PARSING
 		Serialization_Map_GENERATED
+		#endif
 	};
 };
 
+#ifndef KODGEN_PARSING
 File_SerializableMap_GENERATED
+#endif

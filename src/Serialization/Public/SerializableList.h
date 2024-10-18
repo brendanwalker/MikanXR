@@ -1,7 +1,9 @@
 #pragma once
 
 #include "SerializationExport.h"
+#ifndef KODGEN_PARSING
 #include "SerializableList.rfkh.h"
+#endif
 
 #include "Refureku/Containers/Vector.h"
 
@@ -41,8 +43,13 @@ namespace Serialization NAMESPACE()
 		{
 			return const_cast<void *>(getRawElement(index));
 		}
+
+	#ifndef KODGEN_PARSING
 	Serialization_List_GENERATED
+	#endif
 	};
 };
 
+#ifndef KODGEN_PARSING
 File_SerializableList_GENERATED
+#endif

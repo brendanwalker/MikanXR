@@ -12,7 +12,6 @@
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
-#include "SerializationUtils.h"
 #include "StencilObjectSystemConfig.h"
 #include "StencilObjectSystem.h"
 #include "VideoCapabilitiesConfig.h"

@@ -8,9 +8,10 @@
 #include "MikanTypeFwd.h"
 #include "MikanCoreTypes.h"
 
-#ifdef ENABLE_REFLECTION
+
+#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 #include "MikanAPITypes.rfkh.h"
-#endif // ENABLE_REFLECTION
+#endif
 
 #include <string>
 
@@ -36,7 +37,7 @@ struct STRUCT() MikanRequest
 	MikanRequest() = default;
 	MikanRequest(const std::string& inRequestType) : requestType(inRequestType) {}
 
-	#ifdef ENABLE_REFLECTION
+	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 	MikanRequest_GENERATED
 	#endif
 };
@@ -60,7 +61,7 @@ struct STRUCT() MikanResponse
 		, resultCode(MikanResult_Success)
 	{}
 
-	#ifdef ENABLE_REFLECTION
+	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 	MikanResponse_GENERATED
 	#endif
 };
@@ -72,7 +73,7 @@ struct STRUCT() MikanEvent
 	MikanEvent() = default;
 	MikanEvent(const std::string& inEventType) : eventType(inEventType) {}
 
-	#ifdef ENABLE_REFLECTION
+	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 	MikanEvent_GENERATED
 	#endif
 };
@@ -94,7 +95,7 @@ struct STRUCT() MikanClientInfo
 	bool supportsBGRA32;
 	bool supportsDepth;
 
-	#ifdef ENABLE_REFLECTION
+	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 	MikanClientInfo_GENERATED
 	#endif
 };
@@ -106,12 +107,12 @@ struct STRUCT() MikanColorRGB
 
 	float r, g, b;
 
-	#ifdef ENABLE_REFLECTION
+	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 	MikanColorRGB_GENERATED
 	#endif
 };
 
-#ifdef ENABLE_REFLECTION
+#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 File_MikanAPITypes_GENERATED
 #endif // ENABLE_REFLECTION
 

@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef ENABLE_REFLECTION
+#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 #include "MikanCoreTypes.rfkh.h"
-#endif // ENABLE_REFLECTION
+#endif
 
 //cut_before
 
@@ -92,7 +92,7 @@ struct STRUCT() MikanRenderTargetDescriptor
 	uint32_t height;
 	MikanClientGraphicsApi graphicsAPI;
 
-#ifdef ENABLE_REFLECTION
+#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 	MikanRenderTargetDescriptor_GENERATED
 #endif // ENABLE_REFLECTION
 };
@@ -101,7 +101,7 @@ struct STRUCT() MikanClientFrameRendered
 {
 	uint64_t frame_index;
 
-#ifdef ENABLE_REFLECTION
+#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 	MikanClientFrameRendered_GENERATED
 #endif // ENABLE_REFLECTION
 };
@@ -124,7 +124,7 @@ typedef void (MIKAN_CALLBACK* MikanLogCallback)(
 	int /*log_level*/, const char* /*log_message*/);
 
 
-#ifdef ENABLE_REFLECTION
+#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 File_MikanCoreTypes_GENERATED
 #endif // ENABLE_REFLECTION
 
