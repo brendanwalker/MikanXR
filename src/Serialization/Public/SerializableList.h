@@ -1,6 +1,5 @@
 #pragma once
 
-#include "SerializationExport.h"
 #ifndef KODGEN_PARSING
 #include "SerializableList.rfkh.h"
 #endif

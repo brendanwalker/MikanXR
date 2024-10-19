@@ -1,6 +1,5 @@
 #pragma once
 
-#include "SerializationExport.h"
 #include "stdint.h"
 
 #include <array>
@@ -34,7 +33,7 @@ namespace Serialization
 	void write_double(uint8_t* outData, double inValue, Endian desired);
 };
 
-class MIKAN_SERIALIZATION_API BinaryWriter
+class BinaryWriter
 {
 public:
 	BinaryWriter() = delete;
@@ -88,7 +87,7 @@ inline void to_binary(BinaryWriter& writer, const std::vector<T>& inVector)
 	}
 }
 
-class MIKAN_SERIALIZATION_API BinaryReader
+class BinaryReader
 {
 public:
 	BinaryReader() = delete;
