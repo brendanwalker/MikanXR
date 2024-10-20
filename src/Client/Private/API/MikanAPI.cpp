@@ -16,6 +16,13 @@
 #ifdef ENABLE_REFLECTION
 #include "MikanAPITypes.rfks.h"
 #include "MikanCoreTypes.rfks.h"
+#include "MikanEventTypes.rfks.h"
+#include "MikanMathTypes.rfks.h"
+#include "MikanScriptTypes.rfks.h"
+#include "MikanSpatialAnchorTypes.h"
+#include "MikanStencilTypes.rfks.h"
+#include "MikanVideoSourceTypes.rfks.h"
+#include "MikanVRDeviceTypes.rfks.h"
 #endif // ENABLE_REFLECTION
 
 class MikanAPI : public IMikanAPI

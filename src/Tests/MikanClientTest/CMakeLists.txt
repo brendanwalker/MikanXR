@@ -31,10 +31,11 @@ list(APPEND MIKAN_TEST_INCL_DIRS
   ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/Client/Public/API
   ${ROOT_DIR}/src/Client/Public/Core
-  ${ROOT_DIR}/src/Generated/
+  ${ROOT_DIR}/src/Serialization/Public
   ${ROOT_DIR}/src/Renderer/
   ${ROOT_DIR}/src/Utility/
   ${ROOT_DIR}/thirdparty/glm/
+  ${RFK_GENERATED_ROOT_DIR}/Serialization
   ${GLEW_INCLUDE_DIRS}
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}

@@ -9,7 +9,15 @@ toProcessDirectories = [
 # Files to parse which are not included in any directory of toParseDirectories
 toProcessFiles = [
 	'''./Public/Core/MikanCoreTypes.h''',
-	'''./Public/API/MikanAPITypes.h'''
+	'''./Public/API/MikanAPI.h''',
+	'''./Public/API/MikanAPITypes.h''',
+	'''./Public/API/MikanEventTypes.h''',
+	'''./Public/API/MikanMathTypes.h''',
+	'''./Public/API/MikanScriptTypes.h''',
+	'''./Public/API/MikanSpatialAnchorTypes.h''',
+	'''./Public/API/MikanStencilTypes.h''',
+	'''./Public/API/MikanVideoSourceTypes.h''',
+	'''./Public/API/MikanVRDeviceTypes.h'''
 ]
 
 # Files contained in the directories of this list will be ignored

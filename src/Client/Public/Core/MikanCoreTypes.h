@@ -1,10 +1,9 @@
-#ifndef __MIKAN_CORE_TYPES_H
-#define __MIKAN_CORE_TYPES_H
+#pragma once
 
-#include "MikanExport.h"
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "MikanExport.h"
 #if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 #include "MikanCoreTypes.rfkh.h"
 #endif
@@ -127,10 +126,3 @@ typedef void (MIKAN_CALLBACK* MikanLogCallback)(
 #if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
 File_MikanCoreTypes_GENERATED
 #endif // ENABLE_REFLECTION
-
-/**
-@}
-*/
-
-//cut_after
-#endif
