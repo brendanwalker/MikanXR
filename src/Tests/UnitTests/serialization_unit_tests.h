@@ -75,7 +75,10 @@ struct STRUCT() SerializationTestStruct
 	SerializationPointStruct point_field;
 
 	FIELD()
-	Serialization::List<bool> bool_array;
+	Serialization::BoolList bool_array;
+
+	FIELD()
+	Serialization::List<int> int_array;
 
 	FIELD()
 	Serialization::List<SerializationPointStruct> point_array;

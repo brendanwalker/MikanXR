@@ -17,38 +17,60 @@ namespace Serialization
 
 		virtual void visitClass(ValueAccessor const& accessor) override
 		{
-				rfk::Class const* fieldClassType = accessor.getClassType();
-				rfk::EClassKind classKind = fieldClassType->getClassKind();
+			rfk::Type const& fieldType= accessor.getType();
+			rfk::Class const* fieldClassType = accessor.getClassType();
+			rfk::EClassKind classKind = fieldClassType->getClassKind();
 
-				if (classKind == rfk::EClassKind::TemplateInstantiation)
+			if (fieldType == rfk::getType<Serialization::BoolList>())
+			{
+				visitBoolList(accessor, m_jsonObject);
+			}
+			else if (classKind == rfk::EClassKind::TemplateInstantiation)
+			{
+				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
+				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
+
+				// See if the field is a Serialization::List<T>
+				if (templateTypeName == "List" &&
+					templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
-					const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
-					std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
-
-					// See if the field is a Serialization::List<T>
-					if (templateTypeName == "List" &&
-						templateClassInstanceType->getTemplateArgumentsCount() == 1)
-					{
-						visitList(accessor, *templateClassInstanceType, m_jsonObject);
-					}
-					else if (templateTypeName == "Map" &&
-							 templateClassInstanceType->getTemplateArgumentsCount() == 2)
-					{
-						visitMap(accessor, *templateClassInstanceType, m_jsonObject);
-					}
-					else
-					{
-						throw std::runtime_error(
-							stringify("JsonWriteVisitor::visitClass() ",
-									  "Class Field ", accessor.getName(),
-									  " was of expected type"));
-
-					}
+					visitList(accessor, *templateClassInstanceType, m_jsonObject);
+				}
+				else if (templateTypeName == "Map" &&
+							templateClassInstanceType->getTemplateArgumentsCount() == 2)
+				{
+					visitMap(accessor, *templateClassInstanceType, m_jsonObject);
 				}
 				else
 				{
-					JsonWriteVisitor::visitStruct(accessor);
+					throw std::runtime_error(
+						stringify("JsonWriteVisitor::visitClass() ",
+									"Class Field ", accessor.getName(),
+									" was of expected type"));
+
 				}
+			}
+			else
+			{
+				JsonWriteVisitor::visitStruct(accessor);
+			}
+		}
+
+		void visitBoolList(
+			ValueAccessor const& arrayAccessor,
+			json& ownerJsonObject)
+		{
+			const auto& boolList = arrayAccessor.getTypedValueRef<Serialization::BoolList>();
+			std::size_t arraySize = boolList.size();
+			
+			json arrayJson = json::array();
+			for (size_t elementIndex = 0; elementIndex < arraySize; ++elementIndex)
+			{
+				arrayJson.push_back(boolList[elementIndex]);
+			}
+
+			// Add the json array to the owner json object
+			ownerJsonObject[arrayAccessor.getName()] = arrayJson;
 		}
 
 		void visitList(

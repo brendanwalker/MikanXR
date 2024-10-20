@@ -15,10 +15,15 @@ namespace Serialization
 
 		virtual void visitClass(ValueAccessor const& accessor) override
 		{
+			rfk::Type const& fieldType= accessor.getType();
 			rfk::Class const* fieldClassType = accessor.getClassType();
 			rfk::EClassKind classKind = fieldClassType->getClassKind();
 
-			if (classKind == rfk::EClassKind::TemplateInstantiation)
+			if (fieldType == rfk::getType<Serialization::BoolList>())
+			{
+				visitBoolList(accessor);
+			}
+			else if (classKind == rfk::EClassKind::TemplateInstantiation)
 			{
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
@@ -46,6 +51,24 @@ namespace Serialization
 			else
 			{
 				BinaryWriteVisitor::visitStruct(accessor);
+			}
+		}
+
+		void visitBoolList(ValueAccessor const& arrayAccessor)
+		{
+			auto& boolList = arrayAccessor.getTypedValueRef<Serialization::BoolList>();
+
+			// Resize the array to the desired target size
+			const size_t arraySize = boolList.size();
+			const int32_t int32ArraySize = static_cast<int32_t>(arraySize);
+			to_binary(m_binaryWriter, int32ArraySize);
+
+			// Deserialize each element of the array
+			for (size_t elementIndex = 0; elementIndex < arraySize; ++elementIndex)
+			{
+				const bool value = boolList[elementIndex];
+
+				to_binary(m_binaryWriter, value);
 			}
 		}
 

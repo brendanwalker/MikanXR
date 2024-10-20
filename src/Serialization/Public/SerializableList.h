@@ -1,27 +1,38 @@
 #pragma once
 
+
+#include <vector>
+
 #ifndef KODGEN_PARSING
 #include "SerializableList.rfkh.h"
 #endif
 
-#include "Refureku/Containers/Vector.h"
-
 namespace Serialization NAMESPACE()
 {
-	template <typename T>
-	class CLASS() List : public rfk::Vector<T>
+	// Turns out that std::vector<bool> is a special case and doesn't behave like a normal std::vector
+	// So we have to add this special case to handle it
+	// See https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0174r0.html#3.1
+	class CLASS() BoolList : public std::vector<bool>
+	{
+		#ifndef KODGEN_PARSING
+		Serialization_BoolList_GENERATED
+		#endif
+	};
+
+	template <class T>
+	class CLASS() List : public std::vector<T>
 	{
 	public:
 		METHOD()
 		std::size_t size() const noexcept
 		{
-			return rfk::Vector<T>::size();
+			return std::vector<T>::size();
 		}
 
 		METHOD()
 		void resize(const std::size_t& newSize) noexcept
 		{
-			return rfk::Vector<T>::resize(newSize);
+			std::vector<T>::resize(newSize);
 		}
 
 		METHOD()
@@ -29,9 +40,10 @@ namespace Serialization NAMESPACE()
 		{
 			if (index >= 0 && index < size())
 			{
-				const T* rawArray = rfk::Vector<T>::data();
+				const T* data = std::vector<T>::data();
+				const T* rawElement = data + index;
 
-				return rawArray + index;
+				return rawElement;
 			}
 
 			return nullptr;
@@ -43,9 +55,9 @@ namespace Serialization NAMESPACE()
 			return const_cast<void *>(getRawElement(index));
 		}
 
-	#ifndef KODGEN_PARSING
-	Serialization_List_GENERATED
-	#endif
+		#ifndef KODGEN_PARSING
+		Serialization_List_GENERATED
+		#endif
 	};
 };
 

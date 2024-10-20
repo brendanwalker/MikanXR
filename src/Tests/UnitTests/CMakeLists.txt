@@ -20,7 +20,6 @@ list(APPEND UNIT_TEST_INCL_DIRS
   ${RFK_GENERATED_ROOT_DIR}/Serialization
   ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/Client/
-  ${ROOT_DIR}/src/Generated/
   ${ROOT_DIR}/src/Math/
   ${ROOT_DIR}/src/Serialization/Public/
   ${ROOT_DIR}/src/Utility/

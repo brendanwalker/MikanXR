@@ -74,10 +74,13 @@ bool serialization_utility_test_endian_swap()
 
 void build_serialization_test_struct(SerializationTestStruct& outStruct)
 {
+
 	Serialization::List<bool> boolArray;
 	boolArray.push_back(true);
 	boolArray.push_back(false);
 	boolArray.push_back(true);
+
+	Serialization::List<int> intArray({{1, 2, 3}});
 
 	Serialization::List<SerializationPointStruct> pointArray;
 	pointArray.push_back({1.2345f, 5.4321f});
@@ -107,6 +110,7 @@ void build_serialization_test_struct(SerializationTestStruct& outStruct)
 		SerializationTestEnum_Value2,
 		{1.2345f, 5.4321f},
 		boolArray,
+		intArray,
 		pointArray,
 		intPointMap,
 		stringPointMap
@@ -135,6 +139,12 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 	for (size_t i = 0; i < actual.bool_array.size(); ++i)
 	{
 		assert(actual.bool_array[i] == expected.bool_array[i]);
+	}
+
+	assert(actual.int_array.size() == expected.int_array.size());
+	for (size_t i = 0; i < actual.int_array.size(); ++i)
+	{
+		assert(actual.int_array[i] == expected.int_array[i]);
 	}
 
 	assert(actual.point_array.size() == expected.point_array.size());

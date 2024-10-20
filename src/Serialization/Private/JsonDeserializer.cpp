@@ -20,10 +20,15 @@ namespace Serialization
 
 			if (fieldJsonObject.is_array())
 			{
+				rfk::Type const& fieldType= accessor.getType();
 				rfk::Class const* fieldClassType= accessor.getClassType();
 				rfk::EClassKind classKind = fieldClassType->getClassKind();
 
-				if (classKind == rfk::EClassKind::TemplateInstantiation)
+				if (fieldType == rfk::getType<Serialization::BoolList>())
+				{
+					visitBoolList(accessor, fieldJsonObject);
+				}
+				else if (classKind == rfk::EClassKind::TemplateInstantiation)
 				{
 					void* arrayInstance = accessor.getUntypedValueMutablePtr();
 					const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
@@ -52,6 +57,36 @@ namespace Serialization
 			else
 			{
 				JsonReadVisitor::visitStruct(accessor);
+			}
+		}
+
+		void visitBoolList(
+			ValueAccessor const& arrayAccessor,
+			const json& arrayJsonObject)
+		{
+			auto& boolList= arrayAccessor.getTypedValueMutableRef<Serialization::BoolList>();
+			std::size_t arraySize = arrayJsonObject.size();
+
+			boolList.resize(arraySize);
+			for (size_t elementIndex = 0; elementIndex < arraySize; ++elementIndex)
+			{
+				// Get the source json array element
+				const json& elementJson = arrayJsonObject[elementIndex];
+
+				if (elementJson.is_boolean())
+				{
+					bool value = elementJson.get<bool>();
+
+					boolList[elementIndex] = value;
+				}
+				else
+				{
+					throw std::runtime_error(
+						stringify("JsonReadVisitor::visitBool() ",
+								  "Bool Accessor ", arrayAccessor.getName(),
+								  "[", elementIndex, "] ",
+								  " was not a bool json value"));
+				}
 			}
 		}
 

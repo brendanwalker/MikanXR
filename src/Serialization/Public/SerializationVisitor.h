@@ -39,6 +39,18 @@ namespace Serialization
 		void* getUntypedValueMutablePtr() const;
 
 		template <typename t_value_type>
+		const t_value_type& getTypedValueRef() const
+		{
+			return *getTypedValuePtr<t_value_type>();
+		}
+
+		template <typename t_value_type>
+		t_value_type& getTypedValueMutableRef() const
+		{
+			return *getTypedValueMutablePtr<t_value_type>();
+		}
+
+		template <typename t_value_type>
 		const t_value_type* getTypedValuePtr() const
 		{
 			assert(m_type == rfk::getType<t_value_type>());
