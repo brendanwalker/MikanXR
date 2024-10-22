@@ -82,17 +82,22 @@ void build_serialization_test_struct(SerializationTestStruct& outStruct)
 
 	Serialization::List<int> intArray({{1, 2, 3}});
 
-	Serialization::List<SerializationPointStruct> pointArray;
+	Serialization::List<SerializationPoint2dStruct> pointArray;
 	pointArray.push_back({1.2345f, 5.4321f});
 	pointArray.push_back({5.4321f, 1.2345f});
 
-	Serialization::Map<int, SerializationPointStruct> intPointMap;
+	Serialization::Map<int, SerializationPoint2dStruct> intPointMap;
 	intPointMap.insert({1, {1.2345f, 5.4321f}});
 	intPointMap.insert({2, {5.4321f, 1.2345f}});
 
-	Serialization::Map<std::string, SerializationPointStruct> stringPointMap;
+	Serialization::Map<std::string, SerializationPoint2dStruct> stringPointMap;
 	stringPointMap.insert({"key1", {1.2345f, 5.4321f}});
 	stringPointMap.insert({"key2", {5.4321f, 1.2345f}});
+
+	auto point3d_ptr = std::make_shared<SerializationPoint3dStruct>();
+	point3d_ptr->x_field = 1.2345f;
+	point3d_ptr->y_field = 5.4321f;
+	point3d_ptr->z_field = 9.8765f;
 
 	outStruct = {
 		true,
@@ -109,6 +114,7 @@ void build_serialization_test_struct(SerializationTestStruct& outStruct)
 		"hello",
 		SerializationTestEnum_Value2,
 		{1.2345f, 5.4321f},
+		Serialization::ObjectPtr<SerializationPointStruct>(point3d_ptr),
 		boolArray,
 		intArray,
 		pointArray,
@@ -132,8 +138,20 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 	assert(is_double_nearly_equal(actual.double_field, expected.double_field, k_real64_epsilon));
 	assert(actual.string_field == expected.string_field);
 	assert(actual.enum_field == expected.enum_field);
-	assert(is_nearly_equal(actual.point_field.x_field, expected.point_field.x_field, k_real_epsilon));
-	assert(is_nearly_equal(actual.point_field.y_field, expected.point_field.y_field, k_real_epsilon));
+	assert(is_nearly_equal(actual.point2d_field.x_field, expected.point2d_field.x_field, k_real_epsilon));
+	assert(is_nearly_equal(actual.point2d_field.y_field, expected.point2d_field.y_field, k_real_epsilon));
+
+	auto expected_point3d= 
+		std::dynamic_pointer_cast<SerializationPoint3dStruct>(
+			expected.point_ptr_field.getSharedPointer());
+	auto actual_point3d= 
+		std::dynamic_pointer_cast<SerializationPoint3dStruct>(
+			actual.point_ptr_field.getSharedPointer());
+	assert(expected_point3d);
+	assert(actual_point3d);
+	assert(is_nearly_equal(expected_point3d->x_field, actual_point3d->x_field, k_real_epsilon));
+	assert(is_nearly_equal(expected_point3d->y_field, actual_point3d->y_field, k_real_epsilon));
+	assert(is_nearly_equal(expected_point3d->z_field, actual_point3d->z_field, k_real_epsilon));
 
 	assert(actual.bool_array.size() == expected.bool_array.size());
 	for (size_t i = 0; i < actual.bool_array.size(); ++i)
@@ -147,11 +165,11 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 		assert(actual.int_array[i] == expected.int_array[i]);
 	}
 
-	assert(actual.point_array.size() == expected.point_array.size());
+	assert(actual.point2d_array.size() == expected.point2d_array.size());
 	for (size_t i = 0; i < 2; ++i)
 	{
-		const auto& actualPoint = actual.point_array[i];
-		const auto& expectedPoint = expected.point_array[i];
+		const auto& actualPoint = actual.point2d_array[i];
+		const auto& expectedPoint = expected.point2d_array[i];
 
 		assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, k_real_epsilon));
 		assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, k_real_epsilon));

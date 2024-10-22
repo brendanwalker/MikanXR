@@ -9,7 +9,8 @@ toProcessDirectories = [
 # Files to parse which are not included in any directory of toParseDirectories
 toProcessFiles = [
 	'''./Public/SerializableList.h''',
-	'''./Public/SerializableMap.h'''
+	'''./Public/SerializableMap.h''',
+	'''./Public/SerializableObjectPtr.h'''
 ]
 
 # Files contained in the directories of this list will be ignored

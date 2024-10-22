@@ -2,6 +2,7 @@
 
 #include "SerializableList.h"
 #include "SerializableMap.h"
+#include "SerializableObjectPtr.h"
 
 #ifndef KODGEN_PARSING
 #include "serialization_unit_tests.rfkh.h"
@@ -19,6 +20,19 @@ enum ENUM() SerializationTestEnum
 
 struct STRUCT() SerializationPointStruct
 {
+	virtual ~SerializationPointStruct() = default;
+
+	#ifndef KODGEN_PARSING
+	SerializationPointStruct_GENERATED
+	#endif
+};
+
+struct STRUCT() SerializationPoint2dStruct : public SerializationPointStruct
+{
+	SerializationPoint2dStruct() : x_field{0.0f}, y_field{0.0f} {}
+	SerializationPoint2dStruct(float x, float y) : x_field{x}, y_field{y} {}
+	virtual ~SerializationPoint2dStruct() = default;
+	
 	FIELD()
 	float x_field;
 
@@ -26,7 +40,27 @@ struct STRUCT() SerializationPointStruct
 	float y_field;
 
 	#ifndef KODGEN_PARSING
-	SerializationPointStruct_GENERATED
+	SerializationPoint2dStruct_GENERATED
+	#endif
+};
+
+struct STRUCT() SerializationPoint3dStruct: public SerializationPointStruct
+{
+	SerializationPoint3dStruct() : x_field{0.0f}, y_field{0.0f}, z_field{0.0f} {}
+	SerializationPoint3dStruct(float x, float y, float z) : x_field{x}, y_field{y}, z_field{z} {}
+	virtual ~SerializationPoint3dStruct() = default;
+
+	FIELD()
+	float x_field;
+
+	FIELD()
+	float y_field;
+
+	FIELD()
+	float z_field;
+
+	#ifndef KODGEN_PARSING
+	SerializationPoint3dStruct_GENERATED
 	#endif
 };
 
@@ -72,7 +106,10 @@ struct STRUCT() SerializationTestStruct
 	SerializationTestEnum enum_field;
 
 	FIELD()
-	SerializationPointStruct point_field;
+	SerializationPoint2dStruct point2d_field;
+
+	FIELD()
+	Serialization::ObjectPtr<SerializationPointStruct> point_ptr_field;
 
 	FIELD()
 	Serialization::BoolList bool_array;
@@ -81,13 +118,13 @@ struct STRUCT() SerializationTestStruct
 	Serialization::List<int> int_array;
 
 	FIELD()
-	Serialization::List<SerializationPointStruct> point_array;
+	Serialization::List<SerializationPoint2dStruct> point2d_array;
 
 	FIELD()
-	Serialization::Map<int, SerializationPointStruct> int_point_map;
+	Serialization::Map<int, SerializationPoint2dStruct> int_point_map;
 
 	FIELD()
-	Serialization::Map<std::string, SerializationPointStruct> string_point_map;
+	Serialization::Map<std::string, SerializationPoint2dStruct> string_point_map;
 
 	#ifndef KODGEN_PARSING
 	SerializationTestStruct_GENERATED

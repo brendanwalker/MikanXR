@@ -17,7 +17,7 @@ namespace Serialization
 
 		virtual void visitClass(ValueAccessor const& accessor) override
 		{
-			rfk::Type const& fieldType= accessor.getType();
+			rfk::Type const& fieldType = accessor.getType();
 			rfk::Class const* fieldClassType = accessor.getClassType();
 			rfk::EClassKind classKind = fieldClassType->getClassKind();
 
@@ -30,14 +30,19 @@ namespace Serialization
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
-				// See if the field is a Serialization::List<T>
-				if (templateTypeName == "List" &&
+				if (templateTypeName == "ObjectPtr" &&
 					templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				{
+					visitObjectPtr(accessor, *templateClassInstanceType, m_jsonObject);
+				}
+				// See if the field is a Serialization::List<T>
+				else if (templateTypeName == "List" &&
+						 templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
 					visitList(accessor, *templateClassInstanceType, m_jsonObject);
 				}
 				else if (templateTypeName == "Map" &&
-							templateClassInstanceType->getTemplateArgumentsCount() == 2)
+						 templateClassInstanceType->getTemplateArgumentsCount() == 2)
 				{
 					visitMap(accessor, *templateClassInstanceType, m_jsonObject);
 				}
@@ -45,8 +50,8 @@ namespace Serialization
 				{
 					throw std::runtime_error(
 						stringify("JsonWriteVisitor::visitClass() ",
-									"Class Field ", accessor.getName(),
-									" was of expected type"));
+								  "Class Field ", accessor.getName(),
+								  " was of expected type"));
 
 				}
 			}
@@ -54,6 +59,58 @@ namespace Serialization
 			{
 				JsonWriteVisitor::visitStruct(accessor);
 			}
+		}
+
+		void visitObjectPtr(
+			ValueAccessor const& objectPtrAccessor,
+			rfk::ClassTemplateInstantiation const& templatedArrayType,
+			json& ownerJsonObject)
+		{
+			// Get the shared pointer instance
+			const void* sharedPtrInstance = objectPtrAccessor.getUntypedValuePtr();
+
+			// Use reflection to get the runtime class id of the object pointed at
+			rfk::Method const* getRuntimeClassIdMethod = templatedArrayType.getMethodByName("getRuntimeClassId");
+			const std::size_t classId= getRuntimeClassIdMethod->invokeUnsafe<std::size_t>(sharedPtrInstance);
+
+			// Get the runtime class for the object
+			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(classId);
+			if (objectStruct == nullptr)
+			{
+				throw std::runtime_error(
+					stringify("JsonWriteVisitor::visitObjectPtr() ",
+							  "ObjectPtr Accessor ", objectPtrAccessor.getName(),
+							  " has an invalid class id ", classId));
+			}
+
+			// Get the type of the elements in the array from the template argument
+			#ifndef NDEBUG
+			char const *objectStructName = objectStruct->getName();
+			#endif
+
+			// Resize the array to the desired target size
+			json objectPtrJson = json::object();
+
+			// Use the archetype name as the type of the object
+			objectPtrJson["class_id"] = classId;
+
+			// Get the raw pointer to the object pointed to by the shared pointer
+			rfk::Method const* getRawPtrMethod = templatedArrayType.getMethodByName("getRawPtr");
+			const void* objectInstance = getRawPtrMethod->invokeUnsafe<const void*>(sharedPtrInstance);
+
+			// Serialize the object into json
+			json objectJson = json::object();
+			if (objectInstance != nullptr)
+			{
+				JsonWriteVisitor elementVisitor(objectJson);
+				Serialization::visitStruct(objectInstance, *objectStruct, &elementVisitor);
+			}
+
+			// Add the child serialized object
+			objectPtrJson["value"] = objectJson;
+
+			// Add the json array to the owner json object
+			ownerJsonObject[objectPtrAccessor.getName()] = objectPtrJson;
 		}
 
 		void visitBoolList(

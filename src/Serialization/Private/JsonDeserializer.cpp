@@ -18,15 +18,16 @@ namespace Serialization
 		{
 			const json& fieldJsonObject = getJsonObjectFromAccessor(accessor);
 
+			rfk::Type const& fieldType = accessor.getType();
+			rfk::Class const* fieldClassType = accessor.getClassType();
+			rfk::EClassKind classKind = fieldClassType->getClassKind();
+
 			if (fieldJsonObject.is_array())
 			{
-				rfk::Type const& fieldType= accessor.getType();
-				rfk::Class const* fieldClassType= accessor.getClassType();
-				rfk::EClassKind classKind = fieldClassType->getClassKind();
-
 				if (fieldType == rfk::getType<Serialization::BoolList>())
 				{
 					visitBoolList(accessor, fieldJsonObject);
+					return;
 				}
 				else if (classKind == rfk::EClassKind::TemplateInstantiation)
 				{
@@ -39,11 +40,13 @@ namespace Serialization
 						templateClassInstanceType->getTemplateArgumentsCount() == 1)
 					{
 						visitList(accessor, *templateClassInstanceType, fieldJsonObject);
+						return;
 					}
 					else if (templateTypeName == "Map" &&
 						templateClassInstanceType->getTemplateArgumentsCount() == 2)
 					{
 						visitMap(accessor, *templateClassInstanceType, fieldJsonObject);
+						return;
 					}
 				}
 				else
@@ -51,13 +54,68 @@ namespace Serialization
 					throw std::runtime_error(
 						stringify("JsonReadVisitor::visitClass() ",
 							"Class Field ", accessor.getName(),
-							" was not of expected type IEnumerable to deserialize json array value"));
+							" was not of expected type Serializable::List to deserialize json array value"));
 				}
 			}
-			else
+			else if (fieldJsonObject.is_object())
 			{
-				JsonReadVisitor::visitStruct(accessor);
+				if (classKind == rfk::EClassKind::TemplateInstantiation)
+				{
+					void* objectInstance = accessor.getUntypedValueMutablePtr();
+					const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
+					std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
+
+					if (templateTypeName == "ObjectPtr" &&
+						templateClassInstanceType->getTemplateArgumentsCount() == 1)
+					{
+						visitObjectPtr(accessor, *templateClassInstanceType, fieldJsonObject);
+						return;
+					}
+				}
 			}
+
+			JsonReadVisitor::visitStruct(accessor);
+		}
+
+		void visitObjectPtr(
+			ValueAccessor const& sharedPtrAccessor,
+			rfk::ClassTemplateInstantiation const& templatedArrayType,
+			const json& ownerJsonObject)
+		{
+			// Get the shared pointer we are writing 
+			void* sharedPtrInstance = sharedPtrAccessor.getUntypedValueMutablePtr();
+
+			// Get the type of the elements in the array from the template argument
+			auto const& templateArg =
+				static_cast<rfk::TypeTemplateArgument const&>(
+					templatedArrayType.getTemplateArgumentAt(0));
+			rfk::Type const& elementType = templateArg.getType();
+			rfk::Archetype const* elementArchetype = elementType.getArchetype();
+
+			// Get the class for the object by type id
+			std::size_t objectClassId = ownerJsonObject["class_id"].get<std::size_t>();
+			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(objectClassId);
+			if (objectStruct == nullptr)
+			{
+				throw std::runtime_error(
+					stringify("JsonReadVisitor::visitObjectPtr() ",
+							  "ObjectPtr Accessor ", sharedPtrAccessor.getName(),
+							  " used an unknown class_id ", objectClassId,
+							  ", archetype name: ", elementArchetype->getName()));
+			}
+
+			// Use reflection to get the methods to create and initialize the object
+			rfk::Method const* allocateMethod = templatedArrayType.getMethodByName("allocate");
+
+			// Allocate a default instance of the object assigned to the shared pointer
+			void* objectInstance =
+				allocateMethod->invokeUnsafe<void*, const std::size_t&>(
+					sharedPtrInstance, objectClassId);
+
+			// Deserialize the object from the json
+			json objectJson= ownerJsonObject["value"];
+			JsonReadVisitor objectVisitor(objectJson);
+			Serialization::visitStruct(objectInstance, *objectStruct, &objectVisitor);
 		}
 
 		void visitBoolList(
