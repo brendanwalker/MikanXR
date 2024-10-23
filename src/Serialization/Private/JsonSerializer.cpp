@@ -30,6 +30,7 @@ namespace Serialization
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
+				// See if the field is a Serialization::ObjectPtr<T>
 				if (templateTypeName == "ObjectPtr" &&
 					templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
@@ -41,6 +42,7 @@ namespace Serialization
 				{
 					visitList(accessor, *templateClassInstanceType, m_jsonObject);
 				}
+				// See if the field is a Serialization::Map<K,V>
 				else if (templateTypeName == "Map" &&
 						 templateClassInstanceType->getTemplateArgumentsCount() == 2)
 				{
@@ -91,7 +93,7 @@ namespace Serialization
 			// Resize the array to the desired target size
 			json objectPtrJson = json::object();
 
-			// Use the archetype name as the type of the object
+			// Write the runtime class id of the object
 			objectPtrJson["class_id"] = classId;
 
 			// Get the raw pointer to the object pointed to by the shared pointer

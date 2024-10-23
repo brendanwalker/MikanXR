@@ -42,6 +42,7 @@ namespace Serialization
 						visitList(accessor, *templateClassInstanceType, fieldJsonObject);
 						return;
 					}
+					// See if the field is a Serialization::Map<K,V>
 					else if (templateTypeName == "Map" &&
 						templateClassInstanceType->getTemplateArgumentsCount() == 2)
 					{
@@ -65,6 +66,7 @@ namespace Serialization
 					const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 					std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
+					// See if the field is a Serialization::ObjectPtr<T>
 					if (templateTypeName == "ObjectPtr" &&
 						templateClassInstanceType->getTemplateArgumentsCount() == 1)
 					{

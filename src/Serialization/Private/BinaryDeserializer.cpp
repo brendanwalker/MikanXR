@@ -29,24 +29,80 @@ namespace Serialization
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
+				// See if the field is a Serialization::ObjectPtr<T>
+				if (templateTypeName == "ObjectPtr" &&
+					templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				{
+					visitObjectPtr(accessor, *templateClassInstanceType);
+				}
 				// See if the field is a Serialization::List<T>
 				if (templateTypeName == "List" &&
 					templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
 					visitList(accessor, *templateClassInstanceType);
 				}
+				// See if the field is a Serialization::Map<K,V>
 				else if (templateTypeName == "Map" &&
 							templateClassInstanceType->getTemplateArgumentsCount() == 2)
 				{
 					visitMap(accessor, *templateClassInstanceType);
 				}
 			}
+
 			else
 			{
 				throw std::runtime_error(
-					stringify("BinaryWriteVisitor::visitClass() ",
+					stringify("BinaryReadVisitor::visitClass() ",
 								"Class Field ", accessor.getName(),
 								" was not of expected type IEnumerable to deserialize json array value"));
+			}
+		}
+
+		void visitObjectPtr(
+			ValueAccessor const& sharedPtrAccessor,
+			rfk::ClassTemplateInstantiation const& templatedArrayType)
+		{
+			// Get the shared pointer we are writing 
+			void* sharedPtrInstance = sharedPtrAccessor.getUntypedValueMutablePtr();
+
+			// Get the type of the elements in the array from the template argument
+			auto const& templateArg =
+				static_cast<rfk::TypeTemplateArgument const&>(
+					templatedArrayType.getTemplateArgumentAt(0));
+			rfk::Type const& elementType = templateArg.getType();
+			rfk::Archetype const* elementArchetype = elementType.getArchetype();
+
+			// Get the class for the object by type id
+			uint64_t objectClassId;
+			from_binary(m_binaryReader, objectClassId);
+			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById((std::size_t)objectClassId);
+			if (objectStruct == nullptr)
+			{
+				throw std::runtime_error(
+					stringify("BinaryReadVisitor::visitObjectPtr() ",
+							  "ObjectPtr Accessor ", sharedPtrAccessor.getName(),
+							  " used an unknown class_id ", objectClassId,
+							  ", archetype name: ", elementArchetype->getName()));
+			}
+
+			// Use reflection to get the methods to create and initialize the object
+			rfk::Method const* allocateMethod = templatedArrayType.getMethodByName("allocate");
+
+			// Allocate a default instance of the object assigned to the shared pointer
+			void* objectInstance =
+				allocateMethod->invokeUnsafe<void*, const std::size_t&>(
+					sharedPtrInstance, objectClassId);
+
+			// See if the serialized object is not null
+			bool isValid = false;
+			from_binary(m_binaryReader, isValid);
+
+			// Deserialize the object if it is valid
+			if (isValid)
+			{
+				// Deserialize the object from the json
+				BinaryReadVisitor objectVisitor(m_binaryReader);
+				Serialization::visitStruct(objectInstance, *objectStruct, &objectVisitor);
 			}
 		}
 
@@ -131,7 +187,7 @@ namespace Serialization
 				rfk::Archetype const* keyArchetype = keyType.getArchetype();
 
 				throw std::runtime_error(
-					stringify("BinaryWriteVisitor::visitMap() ",
+					stringify("BinaryReadVisitor::visitMap() ",
 							  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
 							  " is not supported"));
 			}
@@ -202,7 +258,7 @@ namespace Serialization
 			if (enumValue == nullptr)
 			{
 				throw std::runtime_error(
-					stringify("BinaryWriteVisitor::visitEnum() ",
+					stringify("BinaryReadVisitor::visitEnum() ",
 								"Enum Accessor ", accessor.getName(),
 								" has an invalid value ", enumStringValue));
 			}
