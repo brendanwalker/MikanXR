@@ -2,6 +2,7 @@
 
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "SerializableString.h"
 
 #ifdef REFLECTION_CODE_BUILT
 #include "MikanEventTypes.rfkh.h"
@@ -140,7 +141,7 @@ struct STRUCT() MikanAnchorNameUpdateEvent : public MikanEvent
 	FIELD()
 	MikanSpatialAnchorID anchor_id;
 	FIELD()
-	std::string anchor_name;
+	Serialization::String anchor_name;
 
 	MikanAnchorNameUpdateEvent() : MikanEvent(k_typeName) {}
 
@@ -183,7 +184,7 @@ struct STRUCT() MikanStencilNameUpdateEvent : public MikanEvent
 	FIELD()
 	MikanStencilID stencil_id;
 	FIELD()
-	std::string stencil_name;
+	Serialization::String stencil_name;
 
 	MikanStencilNameUpdateEvent() : MikanEvent(k_typeName) {}
 
@@ -246,7 +247,7 @@ struct STRUCT() MikanScriptMessagePostedEvent : public MikanEvent
 	inline static const std::string k_typeName = "MikanScriptMessagePostedEvent";
 
 	FIELD()
-	std::string message;
+	Serialization::String message;
 
 	MikanScriptMessagePostedEvent() : MikanEvent(k_typeName) {}
 

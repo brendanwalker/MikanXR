@@ -28,7 +28,7 @@ struct STRUCT() MikanStencilQuadInfo : public MikanResponse
 	FIELD()
 	bool is_disabled;
 	FIELD()
-	std::string stencil_name;
+	Serialization::String stencil_name;
 
 	MikanStencilQuadInfo() : MikanResponse(k_typeName) {}
 
@@ -56,7 +56,7 @@ struct STRUCT() MikanStencilBoxInfo : public MikanResponse
 	FIELD()
 	bool is_disabled;
 	FIELD()
-	std::string stencil_name;
+	Serialization::String stencil_name;
 
 	MikanStencilBoxInfo() : MikanResponse(k_typeName) {}
 
@@ -78,7 +78,7 @@ struct STRUCT() MikanStencilModelInfo : public MikanResponse
 	FIELD()
 	bool is_disabled;
 	FIELD()
-	std::string stencil_name;
+	Serialization::String stencil_name;
 
 	MikanStencilModelInfo() : MikanResponse(k_typeName) {}
 

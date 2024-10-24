@@ -9,7 +9,7 @@
 // Script Event Types
 struct STRUCT() MikanScriptMessageInfo 
 {
-	std::string content;
+	Serialization::String content;
 
 	#ifdef REFLECTION_CODE_BUILT
 	MikanScriptMessageInfo_GENERATED

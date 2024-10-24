@@ -32,7 +32,7 @@ struct STRUCT() MikanSpatialAnchorInfo : public MikanResponse
 	FIELD()
 	MikanTransform world_transform; // Transform in tracking system space
 	FIELD()
-	std::string anchor_name;
+	Serialization::String anchor_name;
 
 	MikanSpatialAnchorInfo() : MikanResponse(k_typeName) {}
 

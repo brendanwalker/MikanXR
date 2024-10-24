@@ -2,6 +2,7 @@
 
 #include "MikanMathTypes.h"
 #include "MikanVRDeviceTypes.h"
+#include "SerializableObjectPtr.h"
 
 #ifdef REFLECTION_CODE_BUILT
 #include "MikanVideoSourceTypes.rfkh.h"
@@ -143,21 +144,49 @@ struct STRUCT() MikanVideoSourceIntrinsics : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanVideoSourceIntrinsics";
 
-	//TODO: DELETE THIS
-	union
-	{
-		MikanMonoIntrinsics mono;
-		MikanStereoIntrinsics stereo;
-	} intrinsics;
-	//TODO: DELETE THIS
-
 	FIELD()
-	std::shared_ptr<MikanCameraIntrinsics> intrinsics_ptr;
+	Serialization::ObjectPtr<MikanCameraIntrinsics> intrinsics_ptr;
 
 	FIELD()
 	MikanIntrinsicsType intrinsics_type;
 
 	MikanVideoSourceIntrinsics() : MikanResponse(k_typeName) {}
+
+	void setMonoIntrinsics(const MikanMonoIntrinsics& mono_intrinsics)
+	{
+		auto monoIntrinsics = std::make_shared<MikanMonoIntrinsics>(mono_intrinsics);
+
+		intrinsics_ptr.setSharedPointer(monoIntrinsics);
+		intrinsics_type = MONO_CAMERA_INTRINSICS;
+	}
+
+	const MikanMonoIntrinsics& getMonoIntrinsics() const
+	{
+		assert(intrinsics_type == MONO_CAMERA_INTRINSICS);
+		auto monoIntrinsicsPtr= 
+			std::static_pointer_cast<MikanMonoIntrinsics>(
+				intrinsics_ptr.getSharedPointer());
+			
+		return *monoIntrinsicsPtr.get();
+	}
+
+	void setStereoIntrinsics(const MikanStereoIntrinsics& stereo_intrinsics)
+	{
+		auto stereoIntrinsics = std::make_shared<MikanStereoIntrinsics>(stereo_intrinsics);
+
+		intrinsics_ptr.setSharedPointer(stereoIntrinsics);
+		intrinsics_type = STEREO_CAMERA_INTRINSICS;
+	}
+
+	const MikanStereoIntrinsics& getStereoIntrinsics() const
+	{
+		assert(intrinsics_type == STEREO_CAMERA_INTRINSICS);
+		auto stereoIntrinsicsPtr = 
+			std::static_pointer_cast<MikanStereoIntrinsics>(
+				intrinsics_ptr.getSharedPointer());
+
+		return *stereoIntrinsicsPtr.get();
+	}
 
 	#ifdef REFLECTION_CODE_BUILT
 	MikanVideoSourceIntrinsics_GENERATED
@@ -191,9 +220,9 @@ struct STRUCT() MikanVideoSourceMode : public MikanResponse
 	FIELD()
 	MikanVideoSourceApi video_source_api;
 	FIELD()
-	std::string device_path;
+	Serialization::String device_path;
 	FIELD()
-	std::string video_mode_name;
+	Serialization::String video_mode_name;
 	FIELD()
 	int32_t resolution_x;
 	FIELD()

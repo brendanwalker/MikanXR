@@ -2,6 +2,7 @@
 
 #include "MikanTypeFwd.h"
 #include "MikanCoreTypes.h"
+#include "SerializableString.h"
 
 #ifdef REFLECTION_CODE_BUILT
 #include "MikanAPITypes.rfkh.h"
@@ -25,7 +26,7 @@ struct STRUCT() MikanRequest
 	inline static const std::string k_typeName = "MikanRequest";
 
 	FIELD()
-	std::string requestType;
+	Serialization::String requestType;
 	FIELD()
 	MikanRequestID requestId;
 	FIELD()
@@ -44,7 +45,7 @@ struct STRUCT() MikanResponse
 	inline static const std::string k_typeName = "MikanResponse";
 
 	FIELD()
-	std::string responseType;
+	Serialization::String responseType;
 	FIELD()
 	MikanRequestID requestId;
 	FIELD()
@@ -69,7 +70,7 @@ struct STRUCT() MikanResponse
 struct STRUCT() MikanEvent
 {
 	FIELD()
-	std::string eventType;
+	Serialization::String eventType;
 
 	MikanEvent() = default;
 	MikanEvent(const std::string& inEventType) : eventType(inEventType) {}
@@ -84,17 +85,17 @@ struct STRUCT() MikanClientInfo
 	inline static const std::string k_typeName = "MikanClientInfo";
 
 	FIELD()
-	std::string clientId;
+	Serialization::String clientId;
 	FIELD()
-	std::string engineName;
+	Serialization::String engineName;
 	FIELD()
-	std::string engineVersion;
+	Serialization::String engineVersion;
 	FIELD()
-	std::string applicationName;
+	Serialization::String applicationName;
 	FIELD()
-	std::string applicationVersion;
+	Serialization::String applicationVersion;
 	FIELD()
-	std::string xrDeviceName;
+	Serialization::String xrDeviceName;
 	FIELD()
 	MikanClientGraphicsApi graphicsAPI;
 	FIELD()

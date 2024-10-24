@@ -51,7 +51,7 @@ struct STRUCT() MikanVRDeviceInfo : public MikanResponse
 	FIELD()
 	MikanVRDeviceType vr_device_type;
 	FIELD()
-	std::string device_path;
+	Serialization::String device_path;
 
 	MikanVRDeviceInfo() : MikanResponse(k_typeName) {}
 
