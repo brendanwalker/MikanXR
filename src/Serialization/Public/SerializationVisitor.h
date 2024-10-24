@@ -132,7 +132,6 @@ namespace Serialization
 		virtual void visitULong(ValueAccessor const& accessor) { }
 		virtual void visitFloat(ValueAccessor const& accessor) { }
 		virtual void visitDouble(ValueAccessor const& accessor) { }
-		virtual void visitString(ValueAccessor const& accessor) { }
 	};
 
 	template <typename t_struct_type>

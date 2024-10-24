@@ -3,6 +3,7 @@
 #include "SerializableList.h"
 #include "SerializableMap.h"
 #include "SerializableObjectPtr.h"
+#include "SerializableString.h"
 
 #ifndef KODGEN_PARSING
 #include "serialization_unit_tests.rfkh.h"
@@ -100,7 +101,7 @@ struct STRUCT() SerializationTestStruct
 	double double_field;
 
 	FIELD()
-	std::string string_field;
+	Serialization::String string_field;
 
 	FIELD()
 	SerializationTestEnum enum_field;

@@ -267,10 +267,6 @@ namespace Serialization
 				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " has unsupported type"));
 			}
 		}
-		else if (fieldType == rfk::getType<std::string>())
-		{
-			visitor->visitString(accessor);
-		}
 		else
 		{
 			throw std::runtime_error(stringify("Unsupported archetype kind ", (int)fieldArchetypeKind));

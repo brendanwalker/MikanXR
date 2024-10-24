@@ -2,6 +2,9 @@
 #include "BinaryUtility.h"
 #include "SerializationUtility.h"
 #include "SerializableList.h"
+#include "SerializableMap.h"
+#include "SerializableObjectPtr.h"
+#include "SerializableString.h"
 
 #include "Refureku/Refureku.h"
 
@@ -19,7 +22,11 @@ namespace Serialization
 			rfk::Class const* fieldClassType = accessor.getClassType();
 			rfk::EClassKind classKind = fieldClassType->getClassKind();
 
-			if (fieldType == rfk::getType<Serialization::BoolList>())
+			if (fieldType == rfk::getType<Serialization::String>())
+			{
+				visitString(accessor);
+			}
+			else if (fieldType == rfk::getType<Serialization::BoolList>())
 			{
 				visitBoolList(accessor);
 			}
@@ -48,7 +55,6 @@ namespace Serialization
 					visitMap(accessor, *templateClassInstanceType);
 				}
 			}
-
 			else
 			{
 				throw std::runtime_error(
@@ -56,6 +62,15 @@ namespace Serialization
 								"Class Field ", accessor.getName(),
 								" was not of expected type IEnumerable to deserialize json array value"));
 			}
+		}
+
+		void visitString(ValueAccessor const& accessor)
+		{
+			std::string value;
+			auto* variablePtr = accessor.getTypedValueMutablePtr<Serialization::String>();
+
+			from_binary(m_binaryReader, value);
+			variablePtr->setValue(value);
 		}
 
 		void visitObjectPtr(
@@ -330,15 +345,6 @@ namespace Serialization
 		virtual void visitDouble(ValueAccessor const& accessor) override
 		{
 			deserializeValue<double>(accessor);
-		}
-
-		virtual void visitString(ValueAccessor const& accessor) override
-		{
-			std::string value;
-			std::string* variablePtr = accessor.getTypedValueMutablePtr<std::string>();
-
-			from_binary(m_binaryReader, value);
-			*variablePtr= value;
 		}
 
 	private:

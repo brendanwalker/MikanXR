@@ -3,6 +3,9 @@
 #include "SerializationUtility.h"
 #include "SerializableList.h"
 #include "SerializableMap.h"
+#include "SerializableObjectPtr.h"
+#include "SerializableString.h"
+
 
 #include "Refureku/Refureku.h"
 
@@ -19,7 +22,11 @@ namespace Serialization
 			rfk::Class const* fieldClassType = accessor.getClassType();
 			rfk::EClassKind classKind = fieldClassType->getClassKind();
 
-			if (fieldType == rfk::getType<Serialization::BoolList>())
+			if (fieldType == rfk::getType<Serialization::String>())
+			{
+				visitString(accessor);
+			}
+			else if (fieldType == rfk::getType<Serialization::BoolList>())
 			{
 				visitBoolList(accessor);
 			}
@@ -59,6 +66,13 @@ namespace Serialization
 			{
 				BinaryWriteVisitor::visitStruct(accessor);
 			}
+		}
+
+		void visitString(ValueAccessor const& accessor)
+		{
+			const auto* stringPtr= accessor.getTypedValuePtr<Serialization::String>();
+
+			to_binary(m_binaryWriter, stringPtr->getValue());
 		}
 
 		void visitObjectPtr(
@@ -351,11 +365,6 @@ namespace Serialization
 		virtual void visitDouble(ValueAccessor const& accessor) override
 		{
 			to_binary(m_binaryWriter, *accessor.getTypedValuePtr<double>());
-		}
-
-		virtual void visitString(ValueAccessor const& accessor) override
-		{
-			to_binary(m_binaryWriter, *accessor.getTypedValuePtr<std::string>());
 		}
 
 	private:

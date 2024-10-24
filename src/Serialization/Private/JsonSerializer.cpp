@@ -2,6 +2,8 @@
 #include "SerializationUtility.h"
 #include "SerializableList.h"
 #include "SerializableMap.h"
+#include "SerializableObjectPtr.h"
+#include "SerializableString.h"
 
 #include "nlohmann/json.hpp"
 #include "Refureku/Refureku.h"
@@ -21,7 +23,11 @@ namespace Serialization
 			rfk::Class const* fieldClassType = accessor.getClassType();
 			rfk::EClassKind classKind = fieldClassType->getClassKind();
 
-			if (fieldType == rfk::getType<Serialization::BoolList>())
+			if (fieldType == rfk::getType<Serialization::String>())
+			{
+				visitString(accessor);
+			}
+			else if (fieldType == rfk::getType<Serialization::BoolList>())
 			{
 				visitBoolList(accessor, m_jsonObject);
 			}
@@ -386,12 +392,25 @@ namespace Serialization
 			setJsonValueFromAccessor<double>(accessor);
 		}
 
-		virtual void visitString(ValueAccessor const& accessor) override
+	private:
+		void visitString(ValueAccessor const& accessor) const
 		{
-			setJsonValueFromAccessor<std::string>(accessor);
+			rfk::Field const* field = accessor.getField();
+			const auto* stringPtr = accessor.getTypedValuePtr<Serialization::String>();
+
+			if (field != nullptr)
+			{
+				char const* fieldName = field->getName();
+
+				m_jsonObject[fieldName] = stringPtr->getValue();
+			}
+			else
+			{
+				// The json object should contain the value we want to deserialize
+				m_jsonObject = stringPtr->getValue();
+			}
 		}
 
-	private:
 		template<typename T>
 		void setJsonValueFromAccessor(ValueAccessor const& accessor) const
 		{

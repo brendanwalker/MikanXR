@@ -1,6 +1,9 @@
 #include "JsonDeserializer.h"
 #include "SerializationUtility.h"
 #include "SerializableList.h"
+#include "SerializableMap.h"
+#include "SerializableObjectPtr.h"
+#include "SerializableString.h"
 
 #include "nlohmann/json.hpp"
 #include "Refureku/Refureku.h"
@@ -73,6 +76,25 @@ namespace Serialization
 						visitObjectPtr(accessor, *templateClassInstanceType, fieldJsonObject);
 						return;
 					}
+				}
+			}
+			else if (fieldJsonObject.is_string())
+			{
+				if (fieldType == rfk::getType<Serialization::String>())
+				{
+					// A Serialization::String is a std::string
+					std::string value = fieldJsonObject.get<std::string>();
+					auto* variablePtr = accessor.getTypedValueMutablePtr<Serialization::String>();
+
+					variablePtr->setValue(value);
+					return;
+				}
+				else
+				{
+					throw std::runtime_error(
+						stringify("JsonReadVisitor::visitClass() ",
+								  "Class Field ", accessor.getName(),
+								  " was not of expected type Serializable::List to deserialize json array value"));
 				}
 			}
 
@@ -591,26 +613,6 @@ namespace Serialization
 					stringify("JsonReadVisitor::visitDouble() ",
 							  "Double Accessor ", accessor.getName(),
 							  " was not a float json value"));
-			}
-		}
-
-		virtual void visitString(ValueAccessor const& accessor) override
-		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
-
-			if (fieldJsonObject.is_string())
-			{
-				std::string value = fieldJsonObject.get<std::string>();
-				std::string *variablePtr= accessor.getTypedValueMutablePtr<std::string>();
-
-				*variablePtr= value;
-			}
-			else
-			{
-				throw std::runtime_error(
-					stringify("JsonReadVisitor::visitString() ",
-							  "String Accessor ", accessor.getName(),
-							  " was not a string json value"));
 			}
 		}
 

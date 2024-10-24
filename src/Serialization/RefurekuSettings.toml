@@ -10,7 +10,8 @@ toProcessDirectories = [
 toProcessFiles = [
 	'''./Public/SerializableList.h''',
 	'''./Public/SerializableMap.h''',
-	'''./Public/SerializableObjectPtr.h'''
+	'''./Public/SerializableObjectPtr.h''',
+	'''./Public/SerializableString.h'''
 ]
 
 # Files contained in the directories of this list will be ignored
