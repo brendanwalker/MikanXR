@@ -1,10 +1,11 @@
 #pragma once
 
+#include "MikanExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "SerializableList.h"
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanSpatialAnchorTypes.rfkh.h"
 #endif
 
@@ -18,7 +19,7 @@ struct STRUCT() MikanSpatialAnchorList : public MikanResponse
 
 	MikanSpatialAnchorList() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSpatialAnchorList_GENERATED
 	#endif
 };
@@ -36,11 +37,11 @@ struct STRUCT() MikanSpatialAnchorInfo : public MikanResponse
 
 	MikanSpatialAnchorInfo() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSpatialAnchorInfo_GENERATED
 	#endif
 };
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanSpatialAnchorTypes_GENERATED
 #endif

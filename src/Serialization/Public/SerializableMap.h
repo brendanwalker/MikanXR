@@ -1,6 +1,8 @@
 #pragma once
 
-#ifndef KODGEN_PARSING
+#include "SerializationExport.h"
+
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 #include "SerializableMap.rfkh.h"
 #endif
 
@@ -20,7 +22,7 @@ namespace Serialization NAMESPACE()
 		virtual const void* getKeyRaw() const = 0;
 		virtual const void* getValueRaw() const = 0;
 
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_IMapConstEnumerator_GENERATED
 		#endif
 	};
@@ -36,7 +38,7 @@ namespace Serialization NAMESPACE()
 		virtual void* getKeyRaw() = 0;
 		virtual void* getValueRaw() = 0;
 
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_IMapEnumerator_GENERATED
 		#endif
 	};
@@ -90,7 +92,7 @@ namespace Serialization NAMESPACE()
 			return nullptr;
 		}
 	
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_MapConstEnumerator_GENERATED
 		#endif
 
@@ -148,7 +150,7 @@ namespace Serialization NAMESPACE()
 			return nullptr;
 		}
 
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_MapEnumerator_GENERATED
 		#endif
 
@@ -223,12 +225,12 @@ namespace Serialization NAMESPACE()
 			return const_cast<void*>(getRawValue(key));
 		}
 
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_Map_GENERATED
 		#endif
 	};
 };
 
-#ifndef KODGEN_PARSING
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 File_SerializableMap_GENERATED
 #endif

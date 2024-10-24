@@ -1,11 +1,12 @@
 #pragma once
 
+#include "SerializationExport.h"
 
-#include <vector>
-
-#ifndef KODGEN_PARSING
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 #include "SerializableList.rfkh.h"
 #endif
+
+#include <vector>
 
 namespace Serialization NAMESPACE()
 {
@@ -14,7 +15,7 @@ namespace Serialization NAMESPACE()
 	// See https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0174r0.html#3.1
 	class CLASS() BoolList : public std::vector<bool>
 	{
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_BoolList_GENERATED
 		#endif
 	};
@@ -55,12 +56,12 @@ namespace Serialization NAMESPACE()
 			return const_cast<void *>(getRawElement(index));
 		}
 
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_List_GENERATED
 		#endif
 	};
 };
 
-#ifndef KODGEN_PARSING
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 File_SerializableList_GENERATED
 #endif

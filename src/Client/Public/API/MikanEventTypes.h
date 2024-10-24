@@ -1,10 +1,11 @@
 #pragma once
 
+#include "MikanExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "SerializableString.h"
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanEventTypes.rfkh.h"
 #endif
 
@@ -14,7 +15,7 @@ struct STRUCT() MikanConnectedEvent : public MikanEvent
 
 	MikanConnectedEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanConnectedEvent_GENERATED
 	#endif
 };
@@ -25,7 +26,7 @@ struct STRUCT() MikanDisconnectedEvent : public MikanEvent
 
 	MikanDisconnectedEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDisconnectedEvent_GENERATED
 	#endif
 };
@@ -36,7 +37,7 @@ struct STRUCT() MikanVideoSourceOpenedEvent : public MikanEvent
 
 	MikanVideoSourceOpenedEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceOpenedEvent_GENERATED
 	#endif
 };
@@ -47,7 +48,7 @@ struct STRUCT() MikanVideoSourceClosedEvent : public MikanEvent
 
 	MikanVideoSourceClosedEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceClosedEvent_GENERATED
 	#endif
 };
@@ -67,7 +68,7 @@ struct STRUCT() MikanVideoSourceNewFrameEvent : public MikanEvent
 
 	MikanVideoSourceNewFrameEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceNewFrameEvent_GENERATED
 	#endif
 };
@@ -78,7 +79,7 @@ struct STRUCT() MikanVideoSourceAttachmentChangedEvent : public MikanEvent
 
 	MikanVideoSourceAttachmentChangedEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceAttachmentChangedEvent_GENERATED
 	#endif
 };
@@ -89,7 +90,7 @@ struct STRUCT() MikanVideoSourceIntrinsicsChangedEvent : public MikanEvent
 
 	MikanVideoSourceIntrinsicsChangedEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceIntrinsicsChangedEvent_GENERATED
 	#endif
 };
@@ -100,7 +101,7 @@ struct STRUCT() MikanVideoSourceModeChangedEvent : public MikanEvent
 
 	MikanVideoSourceModeChangedEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceModeChangedEvent_GENERATED
 	#endif
 };
@@ -118,7 +119,7 @@ struct STRUCT() MikanVRDevicePoseUpdateEvent : public MikanEvent
 
 	MikanVRDevicePoseUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDevicePoseUpdateEvent_GENERATED
 	#endif
 };
@@ -129,7 +130,7 @@ struct STRUCT() MikanVRDeviceListUpdateEvent : public MikanEvent
 
 	MikanVRDeviceListUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceListUpdateEvent_GENERATED
 	#endif
 };
@@ -145,7 +146,7 @@ struct STRUCT() MikanAnchorNameUpdateEvent : public MikanEvent
 
 	MikanAnchorNameUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAnchorNameUpdateEvent_GENERATED
 	#endif
 };
@@ -161,7 +162,7 @@ struct STRUCT() MikanAnchorPoseUpdateEvent : public MikanEvent
 
 	MikanAnchorPoseUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAnchorPoseUpdateEvent_GENERATED
 	#endif
 };
@@ -172,7 +173,7 @@ struct STRUCT() MikanAnchorListUpdateEvent : public MikanEvent
 
 	MikanAnchorListUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAnchorListUpdateEvent_GENERATED
 	#endif
 };
@@ -188,7 +189,7 @@ struct STRUCT() MikanStencilNameUpdateEvent : public MikanEvent
 
 	MikanStencilNameUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilNameUpdateEvent_GENERATED
 	#endif
 };
@@ -204,7 +205,7 @@ struct STRUCT() MikanStencilPoseUpdateEvent : public MikanEvent
 
 	MikanStencilPoseUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilPoseUpdateEvent_GENERATED
 	#endif
 };
@@ -215,7 +216,7 @@ struct STRUCT() MikanQuadStencilListUpdateEvent : public MikanEvent
 
 	MikanQuadStencilListUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuadStencilListUpdateEvent_GENERATED
 	#endif
 };
@@ -226,7 +227,7 @@ struct STRUCT() MikanBoxStencilListUpdateEvent : public MikanEvent
 
 	MikanBoxStencilListUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoxStencilListUpdateEvent_GENERATED
 	#endif
 };
@@ -237,7 +238,7 @@ struct STRUCT() MikanModelStencilListUpdateEvent : public MikanEvent
 
 	MikanModelStencilListUpdateEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanModelStencilListUpdateEvent_GENERATED
 	#endif
 };
@@ -251,11 +252,11 @@ struct STRUCT() MikanScriptMessagePostedEvent : public MikanEvent
 
 	MikanScriptMessagePostedEvent() : MikanEvent(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanScriptMessagePostedEvent_GENERATED
 	#endif
 };
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanEventTypes_GENERATED
 #endif

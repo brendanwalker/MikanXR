@@ -1,7 +1,8 @@
 #pragma once
 
 #include "MikanExport.h"
-#ifdef REFLECTION_CODE_BUILT
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanMathTypes.rfkh.h"
 #endif
 
@@ -22,7 +23,7 @@ struct STRUCT() MikanVector3d
 	FIELD()
 	double z;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector3d_GENERATED
 	#endif
 };
@@ -35,7 +36,7 @@ struct STRUCT() MikanVector2f
 	FIELD()
 	float y;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector2f_GENERATED
 	#endif
 };
@@ -51,7 +52,7 @@ struct STRUCT() MikanVector3f
 	float z;
 
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector3f_GENERATED
 	#endif
 };
@@ -66,7 +67,7 @@ struct STRUCT() MikanRotator3f
 	FIELD()
 	float z_angle;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRotator3f_GENERATED
 	#endif
 };
@@ -114,7 +115,7 @@ struct STRUCT() MikanMatrix4f
 	FIELD()
 	float w3;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix4f_GENERATED
 	#endif
 };
@@ -147,7 +148,7 @@ struct STRUCT() MikanMatrix3d
 	FIELD()
 	double z2;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix3d_GENERATED
 	#endif
 };
@@ -186,7 +187,7 @@ struct STRUCT() MikanMatrix4x3d
 	FIELD()
 	double z3;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix4x3d_GENERATED
 	#endif
 };
@@ -234,7 +235,7 @@ struct STRUCT() MikanMatrix4d
 	FIELD()
 	double w3;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix4d_GENERATED
 	#endif
 };
@@ -251,7 +252,7 @@ struct STRUCT() MikanQuatf
 	FIELD()
 	float z;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuatf_GENERATED
 	#endif
 };
@@ -268,7 +269,7 @@ struct STRUCT() MikanQuatd
 	FIELD()
 	double z;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuatd_GENERATED
 	#endif
 };
@@ -283,11 +284,11 @@ struct STRUCT() MikanTransform
 	FIELD()
 	MikanVector3f position;
 
-	#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTransform_GENERATED
 	#endif
 };
 
-#if defined(ENABLE_REFLECTION) && !defined(KODGEN_PARSING)
+#ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanMathTypes_GENERATED
 #endif

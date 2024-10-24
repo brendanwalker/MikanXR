@@ -35,8 +35,6 @@ list(APPEND MIKAN_TEST_INCL_DIRS
   ${ROOT_DIR}/src/Renderer/
   ${ROOT_DIR}/src/Utility/
   ${ROOT_DIR}/thirdparty/glm/
-  ${RFK_GENERATED_ROOT_DIR}/Serialization
-  ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
   ${GLEW_INCLUDE_DIRS}
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
@@ -48,12 +46,10 @@ list(APPEND MIKAN_TEST_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${FFMPEG_LIBRARIES}
-  ${RFK_LIBRARIES}
   MikanCore
   MikanAPI)
 
 add_executable(Mikan_Test ${MIKAN_TEST_SRC})
-target_compile_definitions(Mikan_Test PRIVATE ENABLE_REFLECTION)
 target_include_directories(Mikan_Test PUBLIC ${MIKAN_TEST_INCL_DIRS})
 target_link_libraries(Mikan_Test ${MIKAN_TEST_REQ_LIBS})
 SET_TARGET_PROPERTIES(Mikan_Test PROPERTIES FOLDER Test)

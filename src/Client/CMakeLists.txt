@@ -182,7 +182,8 @@ set_target_properties(MikanAPI PROPERTIES FOLDER ClientAPI)
 set_target_properties(MikanAPI PROPERTIES PUBLIC_HEADER "${MIKAN_CLIENT_API_HEADER}")
 set_target_properties(MikanAPI PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanAPI PRIVATE MIKAN_CLIENT_EXPORTS)
-target_compile_definitions(MikanAPI PRIVATE ENABLE_REFLECTION)
+target_compile_definitions(MikanAPI PRIVATE ENABLE_MIKANAPI_REFLECTION)
+target_compile_definitions(MikanAPI PRIVATE ENABLE_SERIALIZATION_REFLECTION)
 target_compile_definitions(MikanAPI PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 # Create the command to run RefurekuGenerator

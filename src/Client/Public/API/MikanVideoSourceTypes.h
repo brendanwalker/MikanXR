@@ -1,12 +1,15 @@
 #pragma once
 
+#include "MikanExport.h"
 #include "MikanMathTypes.h"
 #include "MikanVRDeviceTypes.h"
 #include "SerializableObjectPtr.h"
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanVideoSourceTypes.rfkh.h"
 #endif
+
+#include <assert.h>
 
 // Constants
 enum ENUM() MikanVideoSourceType
@@ -55,7 +58,7 @@ struct STRUCT() MikanDistortionCoefficients
 	FIELD()
 	double p2; ///< Tangential Distortion Parameter 2
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDistortionCoefficients_GENERATED
 	#endif
 };
@@ -79,7 +82,7 @@ struct STRUCT() MikanCameraIntrinsics
 	FIELD()
 	double zfar;         ///< The distance of the far clipping plane in cm
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanCameraIntrinsics_GENERATED
 	#endif
 };
@@ -95,7 +98,7 @@ struct STRUCT() MikanMonoIntrinsics : public MikanCameraIntrinsics
 	FIELD()
 	MikanMatrix3d camera_matrix;   ///< Intrinsic camera matrix containing focal lengths and principal point
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMonoIntrinsics_GENERATED
 	#endif
 };
@@ -134,7 +137,7 @@ struct STRUCT() MikanStereoIntrinsics : public MikanCameraIntrinsics
 	FIELD()
 	MikanMatrix4d reprojection_matrix;  ///< Transform relating pixel x,y + disparity to distance from cameras
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStereoIntrinsics_GENERATED
 	#endif
 };
@@ -152,14 +155,6 @@ struct STRUCT() MikanVideoSourceIntrinsics : public MikanResponse
 
 	MikanVideoSourceIntrinsics() : MikanResponse(k_typeName) {}
 
-	void setMonoIntrinsics(const MikanMonoIntrinsics& mono_intrinsics)
-	{
-		auto monoIntrinsics = std::make_shared<MikanMonoIntrinsics>(mono_intrinsics);
-
-		intrinsics_ptr.setSharedPointer(monoIntrinsics);
-		intrinsics_type = MONO_CAMERA_INTRINSICS;
-	}
-
 	const MikanMonoIntrinsics& getMonoIntrinsics() const
 	{
 		assert(intrinsics_type == MONO_CAMERA_INTRINSICS);
@@ -170,6 +165,25 @@ struct STRUCT() MikanVideoSourceIntrinsics : public MikanResponse
 		return *monoIntrinsicsPtr.get();
 	}
 
+	const MikanStereoIntrinsics& getStereoIntrinsics() const
+	{
+		assert(intrinsics_type == STEREO_CAMERA_INTRINSICS);
+		auto stereoIntrinsicsPtr =
+			std::static_pointer_cast<MikanStereoIntrinsics>(
+				intrinsics_ptr.getSharedPointer());
+
+		return *stereoIntrinsicsPtr.get();
+	}
+
+	#if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
+	void setMonoIntrinsics(const MikanMonoIntrinsics& mono_intrinsics)
+	{
+		auto monoIntrinsics = std::make_shared<MikanMonoIntrinsics>(mono_intrinsics);
+
+		intrinsics_ptr.setSharedPointer(monoIntrinsics);
+		intrinsics_type = MONO_CAMERA_INTRINSICS;
+	}
+
 	void setStereoIntrinsics(const MikanStereoIntrinsics& stereo_intrinsics)
 	{
 		auto stereoIntrinsics = std::make_shared<MikanStereoIntrinsics>(stereo_intrinsics);
@@ -177,20 +191,11 @@ struct STRUCT() MikanVideoSourceIntrinsics : public MikanResponse
 		intrinsics_ptr.setSharedPointer(stereoIntrinsics);
 		intrinsics_type = STEREO_CAMERA_INTRINSICS;
 	}
+	#endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
 
-	const MikanStereoIntrinsics& getStereoIntrinsics() const
-	{
-		assert(intrinsics_type == STEREO_CAMERA_INTRINSICS);
-		auto stereoIntrinsicsPtr = 
-			std::static_pointer_cast<MikanStereoIntrinsics>(
-				intrinsics_ptr.getSharedPointer());
-
-		return *stereoIntrinsicsPtr.get();
-	}
-
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceIntrinsics_GENERATED
-	#endif
+	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
 /// Static properties 
@@ -205,7 +210,7 @@ struct STRUCT() MikanVideoSourceAttachmentInfo : public MikanResponse
 
 	MikanVideoSourceAttachmentInfo() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceAttachmentInfo_GENERATED
 	#endif
 };
@@ -232,11 +237,11 @@ struct STRUCT() MikanVideoSourceMode : public MikanResponse
 
 	MikanVideoSourceMode() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceMode_GENERATED
 	#endif
 };
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanVideoSourceTypes_GENERATED
 #endif

@@ -34,6 +34,7 @@ list(APPEND UNIT_TEST_LIBS
 add_executable(unit_test_suite ${UNIT_TEST_SRC})
 target_include_directories(unit_test_suite PUBLIC ${UNIT_TEST_INCL_DIRS})
 target_link_libraries(unit_test_suite ${UNIT_TEST_LIBS})
+target_compile_definitions(unit_test_suite PRIVATE ENABLE_SERIALIZATION_REFLECTION)
 target_compile_definitions(unit_test_suite PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 SET_TARGET_PROPERTIES(unit_test_suite PROPERTIES FOLDER Test)
 

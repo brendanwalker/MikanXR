@@ -13,7 +13,7 @@
 #include "MikanAPITypes_binary.h"
 #include "MikanEventTypes_json.h"
 
-#ifdef ENABLE_REFLECTION
+#ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanAPITypes.rfks.h"
 #include "MikanCoreTypes.rfks.h"
 #include "MikanEventTypes.rfks.h"
@@ -23,7 +23,7 @@
 #include "MikanStencilTypes.rfks.h"
 #include "MikanVideoSourceTypes.rfks.h"
 #include "MikanVRDeviceTypes.rfks.h"
-#endif // ENABLE_REFLECTION
+#endif // MIKANAPI_REFLECTION_ENABLED
 
 class MikanAPI : public IMikanAPI
 {

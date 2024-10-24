@@ -1,6 +1,8 @@
 #pragma once
 
-#ifndef KODGEN_PARSING
+#include "SerializationExport.h"
+
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 #include "SerializableObjectPtr.rfkh.h"
 #include "Refureku/Refureku.h"
 #endif
@@ -20,20 +22,16 @@ namespace Serialization NAMESPACE()
 	public:
 		ObjectPtr()= default;
 
-		#ifndef KODGEN_PARSING
+		// We can only assign a shared pointer to a ObjectPtr 
+		// if we have access to serialization reflection structures
+		// (needed for fetching the runtime class id)
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		template <class t_derived_class>
-		ObjectPtr(std::shared_ptr<t_derived_class>& objectPtr)
+		ObjectPtr(std::shared_ptr<t_derived_class>&objectPtr)
 		{
 			setSharedPointer(objectPtr);
 		}
-		#endif
 
-		std::shared_ptr<t_base_class> getSharedPointer() const
-		{
-			return m_objectPtr;
-		}
-
-		#ifndef KODGEN_PARSING
 		template <class t_derived_class>
 		void setSharedPointer(std::shared_ptr<t_derived_class>& objectPtr)
 		{
@@ -41,6 +39,11 @@ namespace Serialization NAMESPACE()
 			m_objectPtr = std::move(objectPtr);
 		}
 		#endif
+
+		std::shared_ptr<t_base_class> getSharedPointer() const
+		{
+			return m_objectPtr;
+		}
 
 		METHOD()
 		std::size_t getRuntimeClassId() const
@@ -54,10 +57,16 @@ namespace Serialization NAMESPACE()
 			return m_objectPtr.get();
 		}
 
+		// Only want this method defined when:
+		// * When we have access to serialization reflection structures
+		// * When we are generating the serialization reflection code
+		#if defined(ENABLE_SERIALIZATION_REFLECTION) || defined(KODGEN_PARSING)
 		METHOD()
 		void* allocate(const std::size_t&& classId)
 		{
-		#ifndef KODGEN_PARSING
+			// If we are generating the serialization reflection code, we don't want to include Refureku
+			// Just need the function signature to exist
+			#ifndef KODGEN_PARSING
 			rfk::Struct const* objectClass = rfk::getDatabase().getStructById(classId);
 
 			if (objectClass != nullptr)
@@ -67,12 +76,13 @@ namespace Serialization NAMESPACE()
 
 				return m_objectPtr.get();
 			}
-		#endif
+			#endif
 
 			return nullptr;
 		}
+		#endif
 
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_ObjectPtr_GENERATED
 		#endif
 
@@ -82,6 +92,6 @@ namespace Serialization NAMESPACE()
 	};
 };
 
-#ifndef KODGEN_PARSING
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 File_SerializableObjectPtr_GENERATED
 #endif

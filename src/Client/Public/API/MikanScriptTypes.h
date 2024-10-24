@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MikanExport.h"
 #include "MikanEventTypes.h"
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanScriptTypes.rfkh.h"
 #endif
 
@@ -11,11 +12,11 @@ struct STRUCT() MikanScriptMessageInfo
 {
 	Serialization::String content;
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanScriptMessageInfo_GENERATED
 	#endif
 };
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanScriptTypes_GENERATED
 #endif

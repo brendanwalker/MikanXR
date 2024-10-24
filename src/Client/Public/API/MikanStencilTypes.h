@@ -1,11 +1,12 @@
 #pragma once
 
+#include "MikanExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 
 #include "SerializableList.h"
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanStencilTypes.rfkh.h"
 #endif
 
@@ -32,7 +33,7 @@ struct STRUCT() MikanStencilQuadInfo : public MikanResponse
 
 	MikanStencilQuadInfo() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilQuadInfo_GENERATED
 	#endif
 };
@@ -60,7 +61,7 @@ struct STRUCT() MikanStencilBoxInfo : public MikanResponse
 
 	MikanStencilBoxInfo() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilBoxInfo_GENERATED
 	#endif
 };
@@ -82,7 +83,7 @@ struct STRUCT() MikanStencilModelInfo : public MikanResponse
 
 	MikanStencilModelInfo() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilModelInfo_GENERATED
 	#endif
 };
@@ -96,7 +97,7 @@ struct STRUCT() MikanStencilList : public MikanResponse
 
 	MikanStencilList() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilList_GENERATED
 	#endif
 };
@@ -112,7 +113,7 @@ struct STRUCT() MikanTriagulatedMesh
 	FIELD()
 	Serialization::List<int> indices;
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTriagulatedMesh_GENERATED
 	#endif
 };
@@ -126,11 +127,11 @@ struct STRUCT() MikanStencilModelRenderGeometry : public MikanResponse
 
 	MikanStencilModelRenderGeometry() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilModelRenderGeometry_GENERATED
 	#endif
 };
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanStencilTypes_GENERATED
 #endif

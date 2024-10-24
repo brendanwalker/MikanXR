@@ -1,11 +1,12 @@
 #pragma once
 
+#include "SerializationExport.h"
 
-#include <string>
-
-#ifndef KODGEN_PARSING
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 #include "SerializableString.rfkh.h"
 #endif
+
+#include <string>
 
 namespace Serialization NAMESPACE()
 {
@@ -52,7 +53,7 @@ namespace Serialization NAMESPACE()
 			return m_string != other.m_string;
 		}
 
-		#ifndef KODGEN_PARSING
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_String_GENERATED
 		#endif
 
@@ -61,6 +62,6 @@ namespace Serialization NAMESPACE()
 	};
 };
 
-#ifndef KODGEN_PARSING
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 File_SerializableString_GENERATED
 #endif

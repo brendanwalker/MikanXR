@@ -68,11 +68,11 @@
 #endif //!defined(MIKAN_CLIENT_FUNCTION)
 
 // The Enable Reflection macro is defined in the CMakeLists.txt file for modules that want to use reflection
-#ifdef ENABLE_REFLECTION 
+#ifdef ENABLE_MIKANAPI_REFLECTION 
     #ifndef KODGEN_PARSING
         // IF this macro is defined it means that we both want to use reflection for MikanAPI
         // and we are using it in a context where the generated reflection code is available.
-        #define REFLECTION_CODE_BUILT
+        #define MIKANAPI_REFLECTION_ENABLED
     #endif
 #else
     #ifndef NAMESPACE
@@ -110,6 +110,6 @@
     #ifndef FUNCTION
     #define FUNCTION(...)
     #endif
-#endif //!defined(ENABLE_REFLECTION)
+#endif //!defined(ENABLE_MIKANAPI_REFLECTION)
 
 #endif // MIKAN_EXPORT_H

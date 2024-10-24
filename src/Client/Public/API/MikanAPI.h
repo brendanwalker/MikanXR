@@ -1,13 +1,14 @@
 #pragma once
 
+#include "MikanExport.h"
 #include "MikanAPITypes.h"
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+#include "MikanAPI.rfkh.h"
+#endif
 
 #include <memory>
 #include <string>
-
-#ifdef REFLECTION_CODE_BUILT
-#include "MikanAPI.rfkh.h"
-#endif
 
 using IMikanAPIPtr = std::shared_ptr<class IMikanAPI>;
 
@@ -33,7 +34,7 @@ public:
 	METHOD()
 	virtual MikanResponseFuture freeRenderTargetTextures() = 0;
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	IMikanRenderTargetAPI_GENERATED
 	#endif
 };
@@ -48,7 +49,7 @@ public:
 	METHOD()
 	virtual MikanResponseFuture sendScriptMessage(const std::string& mesg) = 0; // returns MikanResult
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	IMikanScriptAPI_GENERATED
 	#endif
 };
@@ -67,7 +68,7 @@ public:
 	METHOD()
 	virtual MikanResponseFuture findSpatialAnchorInfoByName(const std::string& anchorName) = 0; // returns MikanSpatialAnchorInfo
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	IMikanSpatialAnchorAPI_GENERATED
 	#endif
 };
@@ -94,7 +95,7 @@ public:
 	METHOD()
 	virtual MikanResponseFuture getModelStencilRenderGeometry(MikanStencilID stencilId) = 0; // returns MikanStencilModel
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	IMikanStencilAPI_GENERATED
 	#endif
 };
@@ -113,7 +114,7 @@ public:
 	METHOD()
 	virtual MikanResponseFuture getVideoSourceAttachment() = 0; // returns MikanVideoSourceAttachmentInfo
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	IMikanVideoSourceAPI_GENERATED
 	#endif
 };
@@ -134,7 +135,7 @@ public:
 	METHOD()
 	virtual MikanResponseFuture unsubscribeFromVRDevicePoseUpdates(MikanVRDeviceID deviceId) = 0; // returns MikanResponse
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	IMikanVRDeviceAPI_GENERATED
 	#endif
 };
@@ -186,12 +187,12 @@ public:
 	METHOD()
 	virtual MikanResult shutdown() = 0;
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	IMikanAPI_GENERATED
 	#endif
 };
 
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanAPI_GENERATED
 #endif

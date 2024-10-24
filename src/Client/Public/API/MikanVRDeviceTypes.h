@@ -1,9 +1,10 @@
 #pragma once
 
+#include "MikanExport.h"
 #include "MikanAPITypes.h"
 #include "SerializableList.h"
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanVRDeviceTypes.rfkh.h"
 #endif
 
@@ -37,7 +38,7 @@ struct STRUCT() MikanVRDeviceList : public MikanResponse
 
 	MikanVRDeviceList() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceList_GENERATED
 	#endif
 };
@@ -55,11 +56,11 @@ struct STRUCT() MikanVRDeviceInfo : public MikanResponse
 
 	MikanVRDeviceInfo() : MikanResponse(k_typeName) {}
 
-	#ifdef REFLECTION_CODE_BUILT
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceInfo_GENERATED
 	#endif
 };
 
-#ifdef REFLECTION_CODE_BUILT
+#ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanVRDeviceTypes_GENERATED
 #endif
