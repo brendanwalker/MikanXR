@@ -12,6 +12,7 @@ list(APPEND MIKAN_DX_TEST_INCL_DIRS
   ${ROOT_DIR}/src/Client/Public/API
   ${ROOT_DIR}/src/Client/Public/Core
   ${ROOT_DIR}/src/Serialization/Public
+  ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
   ${RFK_GENERATED_ROOT_DIR}/Serialization
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${STB_INCLUDE_DIRS}
@@ -28,6 +29,7 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
   MikanAPI)
 
 add_executable(MikanDX_Test WIN32 ${MIKAN_DX_TEST_SRC})
+target_compile_definitions(MikanDX_Test PRIVATE ENABLE_REFLECTION)
 target_include_directories(MikanDX_Test PUBLIC ${MIKAN_DX_TEST_INCL_DIRS})
 target_link_libraries(MikanDX_Test ${MIKAN_DX_TEST_REQ_LIBS})
 SET_TARGET_PROPERTIES(MikanDX_Test PROPERTIES FOLDER Test)

@@ -3,6 +3,19 @@
 #include "MikanAPITypes.h"
 #include "BinaryUtility.h"
 
+
+inline void to_binary(BinaryWriter& writer, const Serialization::String& s)
+{
+	to_binary(writer, s.getValue());
+}
+
+inline void from_binary(BinaryReader& reader, Serialization::String& s)
+{
+	std::string value;
+	from_binary(reader, value);
+	s.setValue(value);
+}
+
 inline void to_binary(BinaryWriter& writer, const MikanResponse& r)
 {
 	to_binary(writer, r.responseType);

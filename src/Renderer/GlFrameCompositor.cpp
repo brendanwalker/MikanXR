@@ -384,7 +384,7 @@ bool GlFrameCompositor::start()
 			if (connectionInfo.hasAllocatedRenderTarget())
 			{
 				onClientRenderTargetAllocated(
-					connectionInfo.clientInfo.clientId, 
+					connectionInfo.clientInfo.clientId.getValue(), 
 					connectionInfo.clientInfo,
 					connectionInfo.renderTargetReadAccessor);
 			}

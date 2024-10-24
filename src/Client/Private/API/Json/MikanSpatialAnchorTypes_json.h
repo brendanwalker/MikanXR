@@ -31,7 +31,7 @@ inline void to_json(nlohmann::json& j, const MikanSpatialAnchorInfo& p)
 	j.update({
 		{"anchor_id", p.anchor_id},
 		{"world_transform", transformJson},
-		{"anchor_name", p.anchor_name}
+		{"anchor_name", p.anchor_name.getValue()}
 	 });
 }
 inline void from_json(const nlohmann::json& j, MikanSpatialAnchorInfo& p)
@@ -39,5 +39,5 @@ inline void from_json(const nlohmann::json& j, MikanSpatialAnchorInfo& p)
 	from_json(j, static_cast<MikanResponse&>(p));
 	from_json(j.at("world_transform"), p.world_transform);
 	j.at("anchor_id").get_to(p.anchor_id);
-	j.at("anchor_name").get_to(p.anchor_name);
+	from_json(j.at("anchor_name"), p.anchor_name);
 }

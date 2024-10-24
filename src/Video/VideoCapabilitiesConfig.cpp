@@ -34,11 +34,11 @@ const configuru::Config VideoModeConfig::writeToJSON() const
 	{
 	case MONO_CAMERA_INTRINSICS:
 		pt["intrinsics_type"]= std::string("mono");
-		CommonConfig::writeMonoTrackerIntrinsics(pt, intrinsics.intrinsics.mono);
+		CommonConfig::writeMonoTrackerIntrinsics(pt, intrinsics.getMonoIntrinsics());
 		break;
 	case STEREO_CAMERA_INTRINSICS:
 		pt["intrinsics_type"]= std::string("stereo");
-		CommonConfig::writeStereoTrackerIntrinsics(pt, intrinsics.intrinsics.stereo);
+		CommonConfig::writeStereoTrackerIntrinsics(pt, intrinsics.getStereoIntrinsics());
 		break;
 	}
 
@@ -63,19 +63,24 @@ void VideoModeConfig::readFromJSON(const configuru::Config &pt)
 	std::string intrinsics_type= pt.get_or<std::string>("intrinsics_type", "");
 	if (intrinsics_type == "mono")
 	{
-		CommonConfig::readMonoTrackerIntrinsics(pt, intrinsics.intrinsics.mono);
-		intrinsics.intrinsics_type= MONO_CAMERA_INTRINSICS;
+		auto monoIntrinsics= intrinsics.getMonoIntrinsics();
+		CommonConfig::readMonoTrackerIntrinsics(pt, monoIntrinsics);
 
-		bufferPixelWidth= pt.get_or<int>("buffer_pixel_width", (int)intrinsics.intrinsics.mono.pixel_width);
-		bufferPixelHeight= pt.get_or<int>("buffer_pixel_height", (int)intrinsics.intrinsics.mono.pixel_height);
+		bufferPixelWidth= pt.get_or<int>("buffer_pixel_width", (int)monoIntrinsics.pixel_width);
+		bufferPixelHeight= pt.get_or<int>("buffer_pixel_height", (int)monoIntrinsics.pixel_height);
+
+		intrinsics.setMonoIntrinsics(monoIntrinsics);
 	}
 	else if (intrinsics_type == "stereo")
 	{
-		CommonConfig::readStereoTrackerIntrinsics(pt, intrinsics.intrinsics.stereo);
+		auto stereoIntrinsics= intrinsics.getStereoIntrinsics();
+		CommonConfig::readStereoTrackerIntrinsics(pt, stereoIntrinsics);
 		intrinsics.intrinsics_type= STEREO_CAMERA_INTRINSICS;
 
-		bufferPixelWidth= pt.get_or<int>("buffer_pixel_width", (int)intrinsics.intrinsics.stereo.pixel_width);
-		bufferPixelHeight= pt.get_or<int>("buffer_pixel_height", (int)intrinsics.intrinsics.stereo.pixel_height);
+		bufferPixelWidth= pt.get_or<int>("buffer_pixel_width", (int)stereoIntrinsics.pixel_width);
+		bufferPixelHeight= pt.get_or<int>("buffer_pixel_height", (int)stereoIntrinsics.pixel_height);
+
+		intrinsics.setStereoIntrinsics(stereoIntrinsics);
 	}
 
 	if (pt.has_key("frame_sections"))

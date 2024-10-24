@@ -113,8 +113,8 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	// Generate the distortion map from the current camera intrinsics
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
-	assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-	rebuildDistortionMap(&cameraIntrinsics.intrinsics.mono);
+	const auto& monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
+	rebuildDistortionMap(&monoIntrinsics);
 
 	// Create a mesh used to render the video frame
 	m_fullscreenQuad= createFullscreenQuadMesh(m_ownerWindow, true);

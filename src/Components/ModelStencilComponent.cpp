@@ -45,7 +45,7 @@ ModelStencilDefinition::ModelStencilDefinition(const MikanStencilModelInfo& mode
 	: StencilComponentDefinition(
 		modelInfo.stencil_id, 
 		modelInfo.parent_anchor_id, 
-		modelInfo.stencil_name, 
+		modelInfo.stencil_name.getValue(), 
 		modelInfo.relative_transform)
 {
 }

@@ -38,7 +38,7 @@ QuadStencilDefinition::QuadStencilDefinition(const MikanStencilQuadInfo& quadInf
 	: StencilComponentDefinition(
 		quadInfo.stencil_id,
 		quadInfo.parent_anchor_id,
-		quadInfo.stencil_name,
+		quadInfo.stencil_name.getValue(),
 		quadInfo.relative_transform)
 {
 	m_quadWidth= quadInfo.quad_width;

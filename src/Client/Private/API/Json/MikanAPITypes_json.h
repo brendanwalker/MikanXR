@@ -5,18 +5,26 @@
 
 #include "nlohmann/json.hpp"
 
+// SerializableString
+inline void from_json(const nlohmann::json& j, Serialization::String& p)
+{
+	std::string value;
+	j.get_to(value);
+	p.setValue(value);
+}
+
 // MikanRequest
 inline void to_json(nlohmann::json& j, const MikanRequest& p)
 {
 	j = nlohmann::json{
-		{"requestType", p.requestType},
+		{"requestType", p.requestType.getValue()},
 		{"requestId", p.requestId},
 		{"version", p.version}
 	};
 }
 inline void from_json(const nlohmann::json& j, MikanRequest& p)
 {
-	j.at("requestType").get_to(p.requestType);
+	from_json(j.at("requestType"), p.requestType);
 	j.at("requestId").get_to(p.requestId);
 	j.at("version").get_to(p.version);
 }
@@ -25,14 +33,14 @@ inline void from_json(const nlohmann::json& j, MikanRequest& p)
 inline void to_json(nlohmann::json& j, const MikanResponse& p)
 {
 	j = nlohmann::json{
-		{"responseType", p.responseType},
+		{"responseType", p.responseType.getValue()},
 		{"requestId", p.requestId},
 		{"resultCode", p.resultCode}
 	};
 }
 inline void from_json(const nlohmann::json& j, MikanResponse& p)
 {
-	j.at("responseType").get_to(p.responseType);
+	from_json(j.at("responseType"), p.responseType);
 	j.at("requestId").get_to(p.requestId);
 	j.at("resultCode").get_to(p.resultCode);
 }
@@ -41,24 +49,24 @@ inline void from_json(const nlohmann::json& j, MikanResponse& p)
 inline void to_json(nlohmann::json& j, const MikanEvent& p)
 {	
 	j = nlohmann::json{
-		{"eventType", p.eventType}
+		{"eventType", p.eventType.getValue()}
 	};
 }
 inline void from_json(const nlohmann::json& j, MikanEvent& p)
-{
-	j.at("eventType").get_to(p.eventType);
+{	
+	from_json(j.at("eventType"), p.eventType);
 }
 
 // MikanClientInfo
 inline void to_json(nlohmann::json& j, const MikanClientInfo& p)
 {
 	j = nlohmann::json{
-		{"clientId", p.clientId},
-		{"engineName", p.engineName},
-		{"engineVersion", p.engineVersion},
-		{"applicationName", p.applicationName},
-		{"applicationVersion", p.applicationVersion},
-		{"xrDeviceName", p.xrDeviceName},
+		{"clientId", p.clientId.getValue()},
+		{"engineName", p.engineName.getValue()},
+		{"engineVersion", p.engineVersion.getValue()},
+		{"applicationName", p.applicationName.getValue()},
+		{"applicationVersion", p.applicationVersion.getValue()},
+		{"xrDeviceName", p.xrDeviceName.getValue()},
 		{"graphicsAPI", p.graphicsAPI},
 		{"mikanCoreSdkVersion", p.mikanCoreSdkVersion},
 		{"supportsRGB24", p.supportsRGB24},
@@ -69,12 +77,12 @@ inline void to_json(nlohmann::json& j, const MikanClientInfo& p)
 }
 inline void from_json(const nlohmann::json& j, MikanClientInfo& p)
 {
-	j.at("clientId").get_to(p.clientId);
-	j.at("engineName").get_to(p.engineName);
-	j.at("engineVersion").get_to(p.engineVersion);
-	j.at("applicationName").get_to(p.applicationName);
-	j.at("applicationVersion").get_to(p.applicationVersion);
-	j.at("xrDeviceName").get_to(p.xrDeviceName);
+	from_json(j.at("clientId"), p.clientId);
+	from_json(j.at("engineName"), p.engineName);
+	from_json(j.at("engineVersion"), p.engineVersion);
+	from_json(j.at("applicationName"), p.applicationName);
+	from_json(j.at("applicationVersion"), p.applicationVersion);
+	from_json(j.at("xrDeviceName"), p.xrDeviceName);
 	j.at("graphicsAPI").get_to(p.graphicsAPI);
 	j.at("mikanCoreSdkVersion").get_to(p.mikanCoreSdkVersion);
 	j.at("supportsRGB24").get_to(p.supportsRGB24);

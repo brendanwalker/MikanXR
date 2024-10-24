@@ -61,7 +61,8 @@ public:
 		, m_messageServer(messageServer)
 	{	
 		m_connectionInfo.clientInfo= clientInfo;
-		m_connectionInfo.renderTargetReadAccessor= new InterprocessRenderTargetReadAccessor(clientInfo.clientId);
+		m_connectionInfo.renderTargetReadAccessor= 
+			new InterprocessRenderTargetReadAccessor(clientInfo.clientId.getValue());
 	}
 
 	virtual ~MikanClientConnectionState()
@@ -82,7 +83,7 @@ public:
 	
 	const std::string& getClientId() const 
 	{
-		return m_connectionInfo.clientInfo.clientId;
+		return m_connectionInfo.clientInfo.clientId.getValue();
 	}
 
 	const MikanClientInfo& getMikanClientInfo() const 
@@ -135,7 +136,7 @@ public:
 			if (mikanServer->OnClientRenderTargetAllocated)
 			{
 				mikanServer->OnClientRenderTargetAllocated(
-					m_connectionInfo.clientInfo.clientId, 
+					m_connectionInfo.clientInfo.clientId.getValue(), 
 					m_connectionInfo.clientInfo, 
 					m_connectionInfo.renderTargetReadAccessor);
 			}
@@ -160,7 +161,7 @@ public:
 			if (mikanServer->OnClientRenderTargetReleased)
 			{
 				mikanServer->OnClientRenderTargetReleased(
-					m_connectionInfo.clientInfo.clientId,
+					m_connectionInfo.clientInfo.clientId.getValue(),
 					m_connectionInfo.renderTargetReadAccessor);
 			}
 		}
@@ -691,7 +692,7 @@ void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& r
 {
 	MikanClientInfo clientInfo;
 	if (!readRequestPayload(request.utf8RequestString, clientInfo) || 
-		clientInfo.clientId.empty())
+		clientInfo.clientId.getValue().empty())
 	{
 		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
 		// TODO send error event
@@ -699,7 +700,7 @@ void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& r
 	}
 
 	const std::string& connectionId = request.connectionId;
-	const std::string& clientId = clientInfo.clientId;
+	const std::string& clientId = clientInfo.clientId.getValue();
 
 	auto connection_it = m_clientConnections.find(connectionId);
 	if (connection_it == m_clientConnections.end())
@@ -780,7 +781,7 @@ void MikanServer::invokeScriptMessageHandler(
 
 		if (scriptContext == scriptContext)
 		{
-			if (scriptContext->invokeScriptMessageHandler(messageInfo.content))
+			if (scriptContext->invokeScriptMessageHandler(messageInfo.content.getValue()))
 			{
 				break;
 			}

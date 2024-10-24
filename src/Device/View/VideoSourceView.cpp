@@ -260,8 +260,9 @@ void VideoSourceView::notifyVideoFrameReceived(const unsigned char* raw_video_fr
 	if (m_device->getIsStereoCamera())
 	{
 		const VideoModeConfig* mode_config = m_device->getVideoMode();
-		const int section_width = (int)mode_config->intrinsics.intrinsics.stereo.pixel_width;
-		const int section_height = (int)mode_config->intrinsics.intrinsics.stereo.pixel_height;
+		const auto& stereoIntrinsics= mode_config->intrinsics.getStereoIntrinsics();
+		const int section_width = (int)stereoIntrinsics.pixel_width;
+		const int section_height = (int)stereoIntrinsics.pixel_height;
 
 		cv::Rect left_bounds;
 		cv::Rect right_bounds;
@@ -594,7 +595,7 @@ void VideoSourceView::recomputeCameraProjectionMatrix()
 	{
 	case MONO_CAMERA_INTRINSICS:
 		{
-			const MikanMonoIntrinsics& monoIntrinsics = camera_intrinsics.intrinsics.mono;
+			const MikanMonoIntrinsics& monoIntrinsics = camera_intrinsics.getMonoIntrinsics();
 
 			videoSourcePixelWidth = (float)monoIntrinsics.pixel_width;
 			videoSourcePixelHeight = (float)monoIntrinsics.pixel_height;
@@ -604,7 +605,7 @@ void VideoSourceView::recomputeCameraProjectionMatrix()
 		} break;
 	case STEREO_CAMERA_INTRINSICS:
 		{
-			const MikanStereoIntrinsics& stereoIntrinsics = camera_intrinsics.intrinsics.stereo;
+			const MikanStereoIntrinsics& stereoIntrinsics = camera_intrinsics.getStereoIntrinsics();
 
 			videoSourcePixelWidth = (float)stereoIntrinsics.pixel_width;
 			videoSourcePixelHeight = (float)stereoIntrinsics.pixel_height;

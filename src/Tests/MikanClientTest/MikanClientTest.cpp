@@ -525,16 +525,15 @@ protected:
 		if (response->resultCode == MikanResult_Success)
 		{
 			auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsics>(response);
+			auto cameraIntrinsics= videoSourceIntrinsics->intrinsics_ptr.getSharedPointer();
+			const float videoSourcePixelWidth = cameraIntrinsics->pixel_width;
+			const float videoSourcePixelHeight = cameraIntrinsics->pixel_height;
 
-			const MikanMonoIntrinsics& monoIntrinsics= videoSourceIntrinsics->intrinsics.mono;
-			const float videoSourcePixelWidth = monoIntrinsics.pixel_width;
-			const float videoSourcePixelHeight = monoIntrinsics.pixel_height;
-
-			m_zNear= (float)monoIntrinsics.znear;
-			m_zFar= (float)monoIntrinsics.zfar;
+			m_zNear= (float)cameraIntrinsics->znear;
+			m_zFar= (float)cameraIntrinsics->zfar;
 			m_projectionMatrix =
 				glm::perspective(
-					(float)degrees_to_radians(monoIntrinsics.vfov),
+					(float)degrees_to_radians(cameraIntrinsics->vfov),
 					videoSourcePixelWidth / videoSourcePixelHeight,
 					m_zNear,
 					m_zFar);

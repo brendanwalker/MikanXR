@@ -31,18 +31,24 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MikanStereoIntrinsics, pixel_width, pixel_hei
 // MikanVideoSourceIntrinsics
 inline void to_json(nlohmann::json& j, const MikanVideoSourceIntrinsics& p)
 {
+	auto cameraIntrinsics= p.intrinsics_ptr.getSharedPointer();
+
 	nlohmann::to_json(j, static_cast<MikanResponse>(p));
 	if (p.intrinsics_type == MONO_CAMERA_INTRINSICS)
 	{
+		auto mono= std::static_pointer_cast<MikanMonoIntrinsics>(cameraIntrinsics);
+
 		j.update({
-			{"mono", p.intrinsics.mono}, 
+			{"mono", *mono.get()},
 			{"intrinsics_type", p.intrinsics_type}
 		});
 	}
 	else if (p.intrinsics_type == STEREO_CAMERA_INTRINSICS)
 	{
+		auto stereo= std::static_pointer_cast<MikanMonoIntrinsics>(cameraIntrinsics);
+
 		j.update({
-			{"stereo", p.intrinsics.stereo}, 
+			{"stereo", *stereo.get()},
 			{"intrinsics_type", p.intrinsics_type}
 		});
 	}
@@ -52,9 +58,19 @@ inline void from_json(const nlohmann::json& j, MikanVideoSourceIntrinsics& p)
 	from_json(j, static_cast<MikanResponse&>(p));
 	j.at("intrinsics_type").get_to(p.intrinsics_type);
 	if (p.intrinsics_type == MONO_CAMERA_INTRINSICS)
-		j.at("mono").get_to(p.intrinsics.mono);
+	{
+		auto mono= std::make_shared<MikanMonoIntrinsics>();
+
+		j.at("mono").get_to(*mono.get());
+		p.intrinsics_ptr.setSharedPointer(mono);
+	}
 	else if (p.intrinsics_type == STEREO_CAMERA_INTRINSICS)
-		j.at("stereo").get_to(p.intrinsics.stereo);
+	{
+		auto stereo= std::make_shared<MikanStereoIntrinsics>();
+
+		j.at("stereo").get_to(*stereo.get());
+		p.intrinsics_ptr.setSharedPointer(stereo);
+	}
 }
 
 // MikanVideoSourceAttachmentInfo
@@ -80,8 +96,8 @@ inline void to_json(nlohmann::json& j, const MikanVideoSourceMode& p)
 	j.update({
 		{"video_source_type", p.video_source_type},
 		{"video_source_api", p.video_source_api},
-		{"device_path", p.device_path},
-		{"video_mode_name", p.video_mode_name},
+		{"device_path", p.device_path.getValue()},
+		{"video_mode_name", p.video_mode_name.getValue()},
 		{"resolution_x", p.resolution_x},
 		{"resolution_y", p.resolution_y},
 		{"frame_rate", p.frame_rate}
@@ -92,8 +108,8 @@ inline void from_json(const nlohmann::json& j, MikanVideoSourceMode& p)
 	from_json(j, static_cast<MikanResponse&>(p));
 	j.at("video_source_type").get_to(p.video_source_type);
 	j.at("video_source_api").get_to(p.video_source_api);
-	j.at("device_path").get_to(p.device_path);
-	j.at("video_mode_name").get_to(p.video_mode_name);
+	from_json(j.at("device_path"), p.device_path);
+	from_json(j.at("video_mode_name"), p.video_mode_name);
 	j.at("resolution_x").get_to(p.resolution_x);
 	j.at("resolution_y").get_to(p.resolution_y);
 	j.at("frame_rate").get_to(p.frame_rate);

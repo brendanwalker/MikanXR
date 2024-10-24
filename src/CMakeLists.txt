@@ -534,6 +534,7 @@ list(APPEND MIKAN_REQ_LIBS
   easy_profiler
   fast_obj_lib
   ixwebsocket
+  MikanAPI
   MikanSerialization
   RmlCore
   RmlDebugger)
@@ -557,6 +558,7 @@ ENDIF()
 
 target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
 target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
+target_compile_definitions(Mikan PRIVATE ENABLE_REFLECTION)
 target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
 target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 

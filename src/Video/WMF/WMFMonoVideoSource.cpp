@@ -186,7 +186,7 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
 				if (bWasModeUnset || !m_cfg->areIntrinsicsUserCalibrated)
 				{
 					m_cfg->areIntrinsicsUserCalibrated= false;
-					m_cfg->tracker_intrinsics = m_currentMode->intrinsics.intrinsics.mono;
+					m_cfg->tracker_intrinsics = m_currentMode->intrinsics.getMonoIntrinsics();
 				}
 
 			    // Attempt to find a compatible WMF video format
@@ -394,7 +394,7 @@ bool WMFMonoVideoSource::setVideoMode(const std::string mode_name)
 			mfvideoformat.c_str());
 
 		m_cfg->areIntrinsicsUserCalibrated= false;
-		m_cfg->tracker_intrinsics= new_mode->intrinsics.intrinsics.mono;
+		m_cfg->tracker_intrinsics= new_mode->intrinsics.getMonoIntrinsics();
 		m_currentMode= new_mode;
 
 		if (desiredFormatIndex != INVALID_DEVICE_FORMAT_INDEX)
@@ -450,14 +450,14 @@ void WMFMonoVideoSource::getCameraIntrinsics(
 	MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= MONO_CAMERA_INTRINSICS;
-    out_tracker_intrinsics.intrinsics.mono= m_cfg->tracker_intrinsics;
+    out_tracker_intrinsics.setMonoIntrinsics(m_cfg->tracker_intrinsics);
 }
 
 void WMFMonoVideoSource::setCameraIntrinsics(
     const MikanVideoSourceIntrinsics& tracker_intrinsics)
 {
     assert(tracker_intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-    m_cfg->tracker_intrinsics= tracker_intrinsics.intrinsics.mono;
+    m_cfg->tracker_intrinsics= tracker_intrinsics.getMonoIntrinsics();
 	m_cfg->areIntrinsicsUserCalibrated = true;
 }
 

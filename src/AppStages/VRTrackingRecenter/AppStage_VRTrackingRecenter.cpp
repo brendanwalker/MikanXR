@@ -77,7 +77,7 @@ void AppStage_VRTrackingRecenter::enter()
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
-	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.intrinsics.mono;
+	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	m_frameBuffer->setName("VRTrackingRecenter");
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
 	m_frameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);

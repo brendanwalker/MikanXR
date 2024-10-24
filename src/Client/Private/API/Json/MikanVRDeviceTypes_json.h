@@ -39,7 +39,7 @@ inline void to_json(nlohmann::json& j, const MikanVRDeviceInfo& p)
 	j.update({
 		{"vr_device_api", p.vr_device_api},
 		{"vr_device_type", p.vr_device_type},
-		{"device_path", p.device_path}
+		{"device_path", p.device_path.getValue()}
 	});
 }
 inline void from_json(const nlohmann::json& j, MikanVRDeviceInfo& p)
@@ -47,5 +47,5 @@ inline void from_json(const nlohmann::json& j, MikanVRDeviceInfo& p)
 	from_json(j, static_cast<MikanResponse&>(p));
 	j.at("vr_device_api").get_to(p.vr_device_api);
 	j.at("vr_device_type").get_to(p.vr_device_type);
-	j.at("device_path").get_to(p.device_path);
+	from_json(j.at("device_path"), p.device_path);
 }

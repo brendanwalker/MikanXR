@@ -194,8 +194,9 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 	// a position and orientation of the calibration pattern relative to the camera
 	cv::Quatd cv_cameraToPatternRot;
 	cv::Vec3d cv_cameraToPatternVecMM; // Millimeters
+	const auto& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	if (!computeOpenCVCameraRelativePatternTransform(
-		cameraIntrinsics.intrinsics.mono,
+		monoIntrinsics,
 		imagePoints,
 		m_opencvSolvePnPGeometry.points,
 		cv_cameraToPatternRot,

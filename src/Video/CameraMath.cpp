@@ -145,27 +145,31 @@ void computeOpenCVCameraIntrinsicMatrix(
     MikanVideoSourceIntrinsics tracker_intrinsics;
     videoSource->getCameraIntrinsics(tracker_intrinsics);
 
-    MikanMatrix3d* camera_matrix= nullptr;
+    MikanMatrix3d camera_matrix;
+    bool validCameraMatrix= false;
 
     if (tracker_intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
     {
         if (section == VideoFrameSection::Left)
         {
-            camera_matrix= &tracker_intrinsics.intrinsics.stereo.left_camera_matrix;
+            camera_matrix= tracker_intrinsics.getStereoIntrinsics().left_camera_matrix;
+            validCameraMatrix= true;
         }
         else if (section == VideoFrameSection::Right)
         {
-            camera_matrix= &tracker_intrinsics.intrinsics.stereo.right_camera_matrix;
+            camera_matrix= tracker_intrinsics.getStereoIntrinsics().right_camera_matrix;
+            validCameraMatrix= true;
         }
     }
     else if (tracker_intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
     {
-        camera_matrix = &tracker_intrinsics.intrinsics.mono.camera_matrix;
+        camera_matrix = tracker_intrinsics.getMonoIntrinsics().camera_matrix;
+        validCameraMatrix= true;
     }
 
-    if (camera_matrix != nullptr)
+    if (validCameraMatrix)
     {  
-        intrinsicOut= MikanMatrix3d_to_cv_mat33f(*camera_matrix);
+        intrinsicOut= MikanMatrix3d_to_cv_mat33f(camera_matrix);
     }
 }
 
@@ -204,27 +208,32 @@ bool computeOpenCVCameraRectification(
     MikanVideoSourceIntrinsics tracker_intrinsics;
     videoSource->getCameraIntrinsics(tracker_intrinsics);
 
-    MikanMatrix3d* rectification_rotation= nullptr;
-    MikanMatrix4x3d* rectification_projection= nullptr;
+    MikanMatrix3d rectification_rotation;
+    MikanMatrix4x3d rectification_projection;
+    bool validRectification= false;
 
     if (tracker_intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
     {
+		const auto& stereoIntrinsics = tracker_intrinsics.getStereoIntrinsics();
+
         if (section == VideoFrameSection::Left)
         {
-            rectification_rotation= &tracker_intrinsics.intrinsics.stereo.left_rectification_rotation;
-            rectification_projection= &tracker_intrinsics.intrinsics.stereo.left_rectification_projection;
+            rectification_rotation= stereoIntrinsics.left_rectification_rotation;
+            rectification_projection= stereoIntrinsics.left_rectification_projection;
+            validRectification= true;
         }
         else if (section == VideoFrameSection::Right)
         {
-            rectification_rotation= &tracker_intrinsics.intrinsics.stereo.right_rectification_rotation;
-            rectification_projection= &tracker_intrinsics.intrinsics.stereo.right_rectification_projection;
+            rectification_rotation= stereoIntrinsics.right_rectification_rotation;
+            rectification_projection= stereoIntrinsics.right_rectification_projection;
+            validRectification= true;
         }
     }
 
-    if (rectification_rotation != nullptr && rectification_projection != nullptr)
+    if (validRectification)
     {
-        rotationOut = MikanMatrix3d_to_cv_mat33d(*rectification_rotation);
-        projectionOut = MikanMatrix4x3d_to_cv_mat34d(*rectification_projection);
+        rotationOut = MikanMatrix3d_to_cv_mat33d(rectification_rotation);
+        projectionOut = MikanMatrix4x3d_to_cv_mat34d(rectification_projection);
 
         return true;
     }

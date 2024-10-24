@@ -284,7 +284,7 @@ void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntri
 	{
 	case MONO_CAMERA_INTRINSICS:
 		{
-			const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->intrinsics.mono;
+			const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->getMonoIntrinsics();
 
 			aspectRatio= (float)(monoIntrinsics.pixel_width / monoIntrinsics.pixel_height);
 			m_vFOVDegrees = (float)monoIntrinsics.vfov;
@@ -294,7 +294,7 @@ void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntri
 		} break;
 	case STEREO_CAMERA_INTRINSICS:
 		{
-			const MikanStereoIntrinsics& stereoIntrinsics = cameraIntrinsics->intrinsics.stereo;
+			const MikanStereoIntrinsics& stereoIntrinsics = cameraIntrinsics->getStereoIntrinsics();
 
 			aspectRatio = (float)(stereoIntrinsics.pixel_width / stereoIntrinsics.pixel_height);
 			m_vFOVDegrees = (float)stereoIntrinsics.vfov;
