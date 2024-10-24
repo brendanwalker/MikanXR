@@ -26,25 +26,30 @@ namespace Serialization NAMESPACE()
 			return m_string;
 		}
 
-		explicit operator const std::string&() const
-		{
-			return m_string;
-		}
-
 		String& operator=(std::string const& string)
 		{
 			m_string = string;
 			return *this;
 		}
 
-		bool operator==(String const& string) const
+		bool operator==(std::string const& other) const
 		{
-			return m_string == string.m_string;
+			return m_string == other;
 		}
 
-		bool operator!=(String const& string) const
+		bool operator!=(std::string const& other) const
 		{
-			return m_string != string.m_string;
+			return m_string != other;
+		}
+
+		bool operator==(String const& other) const
+		{
+			return m_string == other.m_string;
+		}
+
+		bool operator!=(String const& other) const
+		{
+			return m_string != other.m_string;
 		}
 
 		#ifndef KODGEN_PARSING
