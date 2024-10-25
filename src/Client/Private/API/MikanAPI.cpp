@@ -19,7 +19,7 @@
 #include "MikanEventTypes.rfks.h"
 #include "MikanMathTypes.rfks.h"
 #include "MikanScriptTypes.rfks.h"
-#include "MikanSpatialAnchorTypes.h"
+#include "MikanSpatialAnchorTypes.rfks.h"
 #include "MikanStencilTypes.rfks.h"
 #include "MikanVideoSourceTypes.rfks.h"
 #include "MikanVRDeviceTypes.rfks.h"
