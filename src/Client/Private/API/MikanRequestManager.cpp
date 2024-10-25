@@ -3,6 +3,11 @@
 #include "MikanCoreCAPI.h"
 #include "MikanCoreTypes.h"
 #include "Logger.h"
+#include "BinaryDeserializer.h"
+#include "JsonDeserializer.h"
+
+#include <Refureku/Refureku.h>
+#include <easy/profiler.h>
 
 MikanResult MikanRequestManager::init()
 {
@@ -124,11 +129,25 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 	try
 	{
 		json jsonResponse = json::parse(utf8ResponseString);
-		std::string requestType = jsonResponse["responseType"].get<std::string>();
-		auto it = m_textResponseFactories.find(requestType);
+		std::string responseType = jsonResponse["responseType"].get<std::string>();
 
+		{
+			EASY_BLOCK("Reflection Deserialization");
+
+			rfk::Struct const* responseStruct = rfk::getDatabase().getFileLevelStructByName(responseType.c_str());
+			if (responseStruct != nullptr)
+			{
+				responsePtr = responseStruct->makeSharedInstance<MikanResponse>();
+
+				Serialization::deserializeFromJson(jsonResponse, responsePtr.get(), *responseStruct);
+			}
+		}
+
+		auto it = m_textResponseFactories.find(responseType);
 		if (it != m_textResponseFactories.end())
 		{
+			EASY_BLOCK("Original Deserialization");
+
 			IMikanTextResponseFactoryPtr factory = it->second;
 
 			responsePtr = factory->createResponse(jsonResponse);
@@ -136,7 +155,7 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 		else
 		{
 			MIKAN_MT_LOG_WARNING("MikanClient::parseResponseString()")
-				<< "Received response of unknown responseType: " << requestType;
+				<< "Received response of unknown responseType: " << responseType;
 		}
 	}
 	catch (json::parse_error& e)
@@ -230,9 +249,23 @@ MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(
 {
 	MikanResponsePtr responsePtr;
 
+	{
+		EASY_BLOCK("Reflection Deserialization");
+
+		rfk::Struct const* responseStruct = rfk::getDatabase().getFileLevelStructByName(responseType.c_str());
+		if (responseStruct != nullptr)
+		{
+			responsePtr = responseStruct->makeSharedInstance<MikanResponse>();
+
+			Serialization::deserializeFromBytes(buffer, bufferSize, responsePtr.get(), *responseStruct);
+		}
+	}
+
 	auto it = m_binaryResponseFactories.find(responseType);
 	if (it != m_binaryResponseFactories.end())
 	{
+		EASY_BLOCK("Original Deserialization");
+
 		BinaryReader reader(buffer, bufferSize);
 		IMikanBinaryResponseFactoryPtr factory = it->second;
 

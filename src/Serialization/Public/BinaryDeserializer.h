@@ -9,10 +9,15 @@ namespace Serialization
 	template<typename t_object_type>
 	bool deserializeFromBytes(const std::vector<uint8_t>& inBytes, t_object_type& instance)
 	{
-		return deserializeFromJsonString(inBytes, &instance, t_object_type::staticGetArchetype());
+		return deserializeFromBytes(inBytes, &instance, t_object_type::staticGetArchetype());
 	}
-	bool deserializeFromJsonString(
+	bool deserializeFromBytes(
 		const std::vector<uint8_t>& inBytes,
+		void* instance,
+		rfk::Struct const& structType);
+	bool deserializeFromBytes(
+		const uint8_t* inBytes,
+		const size_t inSize,
 		void* instance,
 		rfk::Struct const& structType);
 };

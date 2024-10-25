@@ -12,6 +12,9 @@
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
+#include "JsonDeserializer.h"
+#include "JsonSerializer.h"
+#include "BinarySerializer.h"
 #include "StencilObjectSystemConfig.h"
 #include "StencilObjectSystem.h"
 #include "VideoCapabilitiesConfig.h"
@@ -37,6 +40,7 @@
 #include <set>
 #include <assert.h>
 
+#include <Refureku/Refureku.h>
 #include <easy/profiler.h>
 
 #include <nlohmann/json.hpp>
@@ -172,9 +176,22 @@ public:
 	template <typename t_mikan_type>
 	std::string mikanTypeToJsonString(const t_mikan_type& mikanType)
 	{
-		json j = mikanType;
+		std::string jsonStr;
 
-		return j.dump();
+		{
+			EASY_BLOCK("Reflection Serialization");
+
+			Serialization::serializeToJsonString(mikanType, jsonStr);
+		}
+
+		{
+			EASY_BLOCK("Original Serialization");
+			json j = mikanType;
+
+			jsonStr = j.dump();
+		}
+
+		return jsonStr;
 	}
 
 	template <typename t_mikan_type>
@@ -615,13 +632,58 @@ bool readRequestPayload(const std::string& utf8RequestString, t_mikan_type& outP
 {
 	try
 	{
-		json j = json::parse(utf8RequestString);
+		{
+			EASY_BLOCK("Reflection Deserialization");
 
-		outParameters = j["payload"];
+			Serialization::deserializeFromJsonString(utf8RequestString, outParameters);
+		}
+
+		{
+			EASY_BLOCK("Original Deserialization");
+			json j = json::parse(utf8RequestString);
+
+			outParameters = j["payload"];
+		}
 	}
 	catch (json::exception& e)
 	{
-		MIKAN_LOG_ERROR("MikanServer::extractParameters") << "Failed to parse JSON: " << e.what();
+		MIKAN_LOG_ERROR("MikanServer::readRequestPayload") << "Failed to parse JSON: " << e.what();
+		return false;
+	}
+
+	return true;
+}
+
+template<>
+bool readRequestPayload(const std::string& utf8RequestString, int32_t& outParameters)
+{
+	try
+	{
+		json j = json::parse(utf8RequestString);
+
+		outParameters = j["payload"].get<int32_t>();
+	}
+	catch (json::exception& e)
+	{
+		MIKAN_LOG_ERROR("MikanServer::readRequestPayload") << "Failed to parse JSON: " << e.what();
+		return false;
+	}
+
+	return true;
+}
+
+template<>
+bool readRequestPayload(const std::string& utf8RequestString, std::string& outParameters)
+{
+	try
+	{
+		json j = json::parse(utf8RequestString);
+
+		outParameters = j["payload"].get<std::string>();
+	}
+	catch (json::exception& e)
+	{
+		MIKAN_LOG_ERROR("MikanServer::readRequestPayload") << "Failed to parse JSON: " << e.what();
 		return false;
 	}
 
@@ -634,9 +696,18 @@ void writeTypedJsonResponse(MikanRequestID requestId, t_mikan_type& result, Clie
 	result.requestId= requestId;
 	result.resultCode= MikanResult_Success;
 
-	json j = result;
+	{
+		EASY_BLOCK("Reflection Serialization");
 
-	response.utf8String= j.dump();
+		Serialization::serializeToJsonString(result, response.utf8String);
+	}
+
+	{
+		EASY_BLOCK("Original Serialization");
+		json j = result;
+
+		response.utf8String= j.dump();
+	}
 }
 
 void writeSimpleJsonResponse(MikanRequestID requestId, MikanResult result, ClientResponse& response)
@@ -648,8 +719,18 @@ void writeSimpleJsonResponse(MikanRequestID requestId, MikanResult result, Clien
 		mikanResponse.requestId = requestId;
 		mikanResponse.resultCode = result;
 
-		json j = mikanResponse;
-		response.utf8String = j.dump();
+		{
+			EASY_BLOCK("Reflection Serialization");
+
+			Serialization::serializeToJsonString(mikanResponse, response.utf8String);
+		}
+
+		{
+			EASY_BLOCK("Original Serialization");
+
+			json j = mikanResponse;
+			response.utf8String = j.dump();
+		}
 	}
 	else
 	{
@@ -666,8 +747,18 @@ void writeTypedBinaryResponse(
 	result.requestId= requestId;
 	result.resultCode= MikanResult_Success;
 
-	BinaryWriter writer(response.binaryData);
-	to_binary(writer, result);
+	{
+		EASY_BLOCK("Reflection Serialization");
+
+		Serialization::serializeToBytes<t_mikan_type>(result, response.binaryData);
+	}
+
+	{
+		EASY_BLOCK("Original Serialization");
+
+		BinaryWriter writer(response.binaryData);
+		to_binary(writer, result);
+	}
 }
 
 void writeSimpleBinaryResponse(MikanRequestID requestId, MikanResult result, ClientResponse& response)

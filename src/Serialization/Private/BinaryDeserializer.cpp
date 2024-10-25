@@ -360,14 +360,23 @@ namespace Serialization
 	};
 
 	// Public API
-	bool deserializeFromJsonString(
+	bool deserializeFromBytes(
 		const std::vector<uint8_t>& inBytes,
+		void* instance,
+		rfk::Struct const& structType)
+	{
+		return deserializeFromBytes(inBytes.data(), inBytes.size(), instance, structType);
+	}
+
+	bool deserializeFromBytes(
+		const uint8_t* inBytes,
+		const size_t inSize,
 		void* instance,
 		rfk::Struct const& structType)
 	{
 		try
 		{
-			BinaryReader reader(inBytes.data(), inBytes.size());
+			BinaryReader reader(inBytes, inSize);
 			BinaryReadVisitor visitor(reader);
 			Serialization::visitStruct(instance, structType, &visitor);
 

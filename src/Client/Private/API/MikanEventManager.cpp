@@ -6,13 +6,8 @@
 
 #include "MikanEventTypes_json.h"
 
-bool MikanRefurekuEventFactory::from_json(
-	const json* j, 
-	std::shared_ptr<MikanEvent> event, 
-	rfk::Struct const& archetype)
-{
-	return Serialization::deserializeFromJson(*j, event.get(), archetype);
-}
+#include <Refureku/Refureku.h>
+#include <easy/profiler.h>
 
 MikanResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
 {
@@ -36,16 +31,33 @@ MikanResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
 
 MikanEventPtr MikanEventManager::parseEventString(const char* utf8EventString)
 {
+	EASY_FUNCTION();
+
 	MikanEventPtr eventPtr;
 
 	try
 	{
 		json jsonResponse = json::parse(utf8EventString);
 		std::string eventType = jsonResponse["eventType"].get<std::string>();
-		auto it = m_eventFactories.find(eventType);
 
+		std::shared_ptr<MikanEvent> eventPtr;
+		{
+			EASY_BLOCK("Reflection Deserialization");
+
+			rfk::Struct const* eventStruct = rfk::getDatabase().getFileLevelStructByName(eventType.c_str());
+			if (eventStruct != nullptr)
+			{
+				eventPtr = eventStruct->makeSharedInstance<MikanEvent>();
+
+				Serialization::deserializeFromJson(jsonResponse, eventPtr.get(), *eventStruct);
+			}
+		}
+
+		auto it = m_eventFactories.find(eventType);
 		if (it != m_eventFactories.end())
 		{
+			EASY_BLOCK("Original Deserialization");
+
 			IMikanEventFactoryPtr factory = it->second;
 
 			eventPtr = factory->createEvent(jsonResponse);

@@ -165,6 +165,7 @@ list(APPEND MIKAN_CLIENT_API_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Private/Core/Json
   ${CMAKE_CURRENT_LIST_DIR}/../Serialization/Public/
   ${CMAKE_CURRENT_LIST_DIR}/../Utility
+  ${ROOT_DIR}/deps/easy_profiler/include
   ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
   ${RFK_GENERATED_ROOT_DIR}/Serialization
   ${NLOHMANN_JSON_INCLUDE_DIR}
@@ -172,6 +173,7 @@ list(APPEND MIKAN_CLIENT_API_INCL_DIRS
 
 list(APPEND MIKAN_CLIENT_API_REQ_LIBS
   ${RFK_LIBRARIES}
+  easy_profiler
   MikanCore
   MikanSerialization)
     

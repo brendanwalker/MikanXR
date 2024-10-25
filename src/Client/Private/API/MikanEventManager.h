@@ -9,7 +9,6 @@
 #include <string>
 
 #include "nlohmann/json.hpp"
-#include <Refureku/Refureku.h>
 
 using json = nlohmann::json;
 
@@ -31,30 +30,6 @@ public:
 		from_json(jsonEvent, *eventPtr);
 
 		return eventPtr;
-	}
-};
-
-class MikanRefurekuEventFactory : public IMikanEventFactory
-{
-protected:
-	static bool from_json(const json* j, std::shared_ptr<MikanEvent> event, rfk::Struct const& archetype);
-};
-
-
-template <typename t_response_type>
-class MikanRefurekuEventFactoryTyped : public MikanRefurekuEventFactory
-{
-public:
-	virtual MikanEventPtr createEvent(json jsonEvent) override
-	{
-		std::shared_ptr<MikanEvent> eventPtr = std::make_shared<t_response_type>();
-
-		if (MikanRefurekuEventFactory::from_json(&jsonEvent, eventPtr, t_response_type::staticGetArchetype()))
-		{
-			return eventPtr;
-		}
-
-		return nullptr;
 	}
 };
 
