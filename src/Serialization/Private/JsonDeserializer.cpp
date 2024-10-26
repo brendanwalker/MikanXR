@@ -4,6 +4,7 @@
 #include "SerializableMap.h"
 #include "SerializableObjectPtr.h"
 #include "SerializableString.h"
+#include "SerializationProperty.h"
 
 #include "nlohmann/json.hpp"
 #include "Refureku/Refureku.h"
@@ -349,7 +350,7 @@ namespace Serialization
 			else if (fieldJsonObject.is_string())
 			{
 				std::string value = fieldJsonObject.get<std::string>();
-				enumValue = enumType.getEnumValueByName(value.c_str());
+				enumValue = Serialization::findEnumValueByString(enumType, value.c_str());
 
 				if (enumValue == nullptr)
 				{

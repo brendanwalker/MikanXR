@@ -589,6 +589,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
           $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.pdb
+          $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${OPENCV_VIDEOIO_DLL} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD

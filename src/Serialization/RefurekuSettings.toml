@@ -11,7 +11,8 @@ toProcessFiles = [
 	'''./Public/SerializableList.h''',
 	'''./Public/SerializableMap.h''',
 	'''./Public/SerializableObjectPtr.h''',
-	'''./Public/SerializableString.h'''
+	'''./Public/SerializableString.h''',
+	'''./Public/SerializationProperty.h'''
 ]
 
 # Files contained in the directories of this list will be ignored

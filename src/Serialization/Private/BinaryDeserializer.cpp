@@ -5,6 +5,7 @@
 #include "SerializableMap.h"
 #include "SerializableObjectPtr.h"
 #include "SerializableString.h"
+#include "SerializationProperty.h"
 
 #include "Refureku/Refureku.h"
 
@@ -271,7 +272,7 @@ namespace Serialization
 
 			std::string enumStringValue;
 			from_binary(m_binaryReader, enumStringValue);
-			enumValue = enumType.getEnumValueByName(enumStringValue.c_str());
+			enumValue = Serialization::findEnumValueByString(enumType, enumStringValue.c_str());
 			if (enumValue == nullptr)
 			{
 				throw std::runtime_error(

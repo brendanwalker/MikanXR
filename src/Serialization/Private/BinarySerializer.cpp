@@ -5,6 +5,7 @@
 #include "SerializableMap.h"
 #include "SerializableObjectPtr.h"
 #include "SerializableString.h"
+#include "SerializationProperty.h"
 
 #include "Refureku/Refureku.h"
 
@@ -308,7 +309,8 @@ namespace Serialization
 							  " has an invalid int value ", enumIntValue));
 			}
 
-			std::string enumValueString = enumValue->getName();
+
+			std::string enumValueString = Serialization::getEnumStringValue(*enumValue);
 			to_binary(m_binaryWriter, enumValueString);
 		}
 

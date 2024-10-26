@@ -4,6 +4,7 @@
 #include "SerializableMap.h"
 #include "SerializableObjectPtr.h"
 #include "SerializableString.h"
+#include "SerializationProperty.h"
 
 #include "nlohmann/json.hpp"
 #include "Refureku/Refureku.h"
@@ -324,7 +325,7 @@ namespace Serialization
 							  " has an invalid int value ", enumIntValue));
 			}
 
-			std::string enumValueString= enumValue->getName();
+			std::string enumValueString= Serialization::getEnumStringValue(*enumValue);
 			rfk::Field const* field = accessor.getField();
 			if (field != nullptr)
 			{

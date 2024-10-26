@@ -4,6 +4,7 @@
 #include "SerializableMap.h"
 #include "SerializableObjectPtr.h"
 #include "SerializableString.h"
+#include "SerializationProperty.h"
 
 #ifndef KODGEN_PARSING
 #include "serialization_unit_tests.rfkh.h"
@@ -14,9 +15,9 @@
 
 enum ENUM() SerializationTestEnum
 {
-	SerializationTestEnum_Value1,
-	SerializationTestEnum_Value2,
-	SerializationTestEnum_Value3,
+	SerializationTestEnum_Value1 ENUMVALUE(Serialization::EnumStringValue("Value1")),
+	SerializationTestEnum_Value2 ENUMVALUE(Serialization::EnumStringValue("Value2")),
+	SerializationTestEnum_Value3 ENUMVALUE(Serialization::EnumStringValue("Value3")),
 };
 
 struct STRUCT() SerializationPointStruct
