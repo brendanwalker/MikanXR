@@ -27,8 +27,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include <easy/profiler.h>
-
 #include <memory>
 
 #include "stdio.h"
@@ -984,7 +982,6 @@ private:
 //-- entry point -----
 extern "C" int main(int argc, char* argv[])
 {
-	profiler::startListen();
 	MikanTestApp app;
 
 	return app.exec(argc, argv);

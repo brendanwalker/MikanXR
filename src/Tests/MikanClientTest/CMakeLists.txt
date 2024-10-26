@@ -35,7 +35,6 @@ list(APPEND MIKAN_TEST_INCL_DIRS
   ${ROOT_DIR}/src/Renderer/
   ${ROOT_DIR}/src/Utility/
   ${ROOT_DIR}/thirdparty/glm/
-  ${ROOT_DIR}/deps/easy_profiler/include
   ${GLEW_INCLUDE_DIRS}
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
@@ -47,7 +46,6 @@ list(APPEND MIKAN_TEST_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${FFMPEG_LIBRARIES}
-  easy_profiler
   MikanCore
   MikanAPI
   MikanSerialization)
