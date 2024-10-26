@@ -63,7 +63,7 @@ void VideoModeConfig::readFromJSON(const configuru::Config &pt)
 	std::string intrinsics_type= pt.get_or<std::string>("intrinsics_type", "");
 	if (intrinsics_type == "mono")
 	{
-		auto monoIntrinsics= intrinsics.getMonoIntrinsics();
+		MikanMonoIntrinsics monoIntrinsics = {};
 		CommonConfig::readMonoTrackerIntrinsics(pt, monoIntrinsics);
 
 		bufferPixelWidth= pt.get_or<int>("buffer_pixel_width", (int)monoIntrinsics.pixel_width);
@@ -73,7 +73,7 @@ void VideoModeConfig::readFromJSON(const configuru::Config &pt)
 	}
 	else if (intrinsics_type == "stereo")
 	{
-		auto stereoIntrinsics= intrinsics.getStereoIntrinsics();
+		MikanStereoIntrinsics stereoIntrinsics = {};
 		CommonConfig::readStereoTrackerIntrinsics(pt, stereoIntrinsics);
 		intrinsics.intrinsics_type= STEREO_CAMERA_INTRINSICS;
 
