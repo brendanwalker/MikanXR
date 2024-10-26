@@ -11,7 +11,7 @@
 
 namespace Serialization NAMESPACE()
 {
-	class CLASS() IMapConstEnumerator
+	class SERIALIZATION_API CLASS() IMapConstEnumerator
 	{
 	public:
 		virtual ~IMapConstEnumerator() = default;
@@ -27,7 +27,7 @@ namespace Serialization NAMESPACE()
 		#endif
 	};
 
-	class CLASS() IMapEnumerator
+	class SERIALIZATION_API CLASS() IMapEnumerator
 	{
 	public:
 		virtual ~IMapEnumerator() = default;

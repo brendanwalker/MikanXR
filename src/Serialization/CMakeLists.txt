@@ -19,13 +19,18 @@ list(APPEND MIKAN_SERIALIZATION_INCL_DIRS
   ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${RFK_INCLUDE_DIR})
+
+list(APPEND MIKAN_SERIALIZATION_REQ_LIBS
+  ${RFK_LIBRARIES})
  
-add_library(MikanSerialization STATIC ${MIKAN_SERIALIZATION_PRIVATE_SRC})
+add_library(MikanSerialization SHARED ${MIKAN_SERIALIZATION_PRIVATE_SRC})
 target_include_directories(MikanSerialization PRIVATE ${MIKAN_SERIALIZATION_INCL_DIRS})
+target_link_libraries(MikanSerialization PRIVATE ${MIKAN_SERIALIZATION_REQ_LIBS})
 set_target_properties(MikanSerialization PROPERTIES FOLDER Serialization)
 set_target_properties(MikanSerialization PROPERTIES PUBLIC_HEADER "${MIKAN_SERIALIZATION_PUBLIC_SRC}")
 set_target_properties(MikanSerialization PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(MikanSerialization PROPERTIES C_VISIBILITY_PRESET hidden)
+target_compile_definitions(MikanSerialization PRIVATE SERIALIZATION_EXPORTS)
 target_compile_definitions(MikanSerialization PRIVATE ENABLE_SERIALIZATION_REFLECTION)
 target_compile_definitions(MikanSerialization PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 target_sources(MikanSerialization PRIVATE ${MIKAN_SERIALIZATION_PRIVATE_SRC})

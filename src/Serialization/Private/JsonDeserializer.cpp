@@ -146,7 +146,8 @@ namespace Serialization
 			ValueAccessor const& arrayAccessor,
 			const json& arrayJsonObject)
 		{
-			auto& boolList= arrayAccessor.getTypedValueMutableRef<Serialization::BoolList>();
+			auto& boolListWrapper= arrayAccessor.getTypedValueMutableRef<Serialization::BoolList>();
+			auto& boolList= boolListWrapper.getVectorMutable();
 			std::size_t arraySize = arrayJsonObject.size();
 
 			boolList.resize(arraySize);

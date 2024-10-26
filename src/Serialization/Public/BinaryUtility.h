@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SerializationExport.h"
+
 #include "stdint.h"
 
 #include <array>
@@ -15,25 +17,25 @@ namespace Serialization
 		Big
 	};
 
-	Endian get_system_endianness();
-	bool wants_byte_flip(Endian desired);
+	SERIALIZATION_API Endian get_system_endianness();
+	SERIALIZATION_API bool wants_byte_flip(Endian desired);
 
-	int16_t read_int16(const uint8_t* inData, Endian desired);
-	int32_t read_int24(const uint8_t* inData, Endian desired);
-	int32_t read_int32(const uint8_t* inData, Endian desired);
-	int64_t read_int64(const uint8_t* inData, Endian desired);
-	float read_float(const uint8_t* inData, Endian desired);
-	double read_double(const uint8_t* inData, Endian desired);
+	SERIALIZATION_API int16_t read_int16(const uint8_t* inData, Endian desired);
+	SERIALIZATION_API int32_t read_int24(const uint8_t* inData, Endian desired);
+	SERIALIZATION_API int32_t read_int32(const uint8_t* inData, Endian desired);
+	SERIALIZATION_API int64_t read_int64(const uint8_t* inData, Endian desired);
+	SERIALIZATION_API float read_float(const uint8_t* inData, Endian desired);
+	SERIALIZATION_API double read_double(const uint8_t* inData, Endian desired);
 
-	void write_int16(uint8_t* outData, int16_t inValue, Endian desired);
-	void write_int24(uint8_t* outData, int32_t inValue, Endian desired);
-	void write_int32(uint8_t* outData, int32_t inValue, Endian desired);
-	void write_int64(uint8_t* outData, int64_t inValue, Endian desired);
-	void write_float(uint8_t* outData, float inValue, Endian desired);
-	void write_double(uint8_t* outData, double inValue, Endian desired);
+	SERIALIZATION_API void write_int16(uint8_t* outData, int16_t inValue, Endian desired);
+	SERIALIZATION_API void write_int24(uint8_t* outData, int32_t inValue, Endian desired);
+	SERIALIZATION_API void write_int32(uint8_t* outData, int32_t inValue, Endian desired);
+	SERIALIZATION_API void write_int64(uint8_t* outData, int64_t inValue, Endian desired);
+	SERIALIZATION_API void write_float(uint8_t* outData, float inValue, Endian desired);
+	SERIALIZATION_API void write_double(uint8_t* outData, double inValue, Endian desired);
 };
 
-class BinaryWriter
+class SERIALIZATION_API BinaryWriter
 {
 public:
 	BinaryWriter() = delete;
@@ -52,18 +54,18 @@ private:
 	std::vector<uint8_t>& m_buffer;
 };
 
-void to_binary(BinaryWriter& writer, bool inValue);
-void to_binary(BinaryWriter& writer, uint8_t inValue);
-void to_binary(BinaryWriter& writer, uint16_t inValue);
-void to_binary(BinaryWriter& writer, uint32_t inValue);
-void to_binary(BinaryWriter& writer, uint64_t inValue);
-void to_binary(BinaryWriter& writer, int8_t inValue);
-void to_binary(BinaryWriter& writer, int16_t inValue);
-void to_binary(BinaryWriter& writer, int32_t inValue);
-void to_binary(BinaryWriter& writer, int64_t inValue);
-void to_binary(BinaryWriter& writer, float inValue);
-void to_binary(BinaryWriter& writer, double inValue);
-void to_binary(BinaryWriter& writer, const std::string& inString);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, bool inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, uint8_t inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, uint16_t inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, uint32_t inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, uint64_t inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, int8_t inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, int16_t inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, int32_t inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, int64_t inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, float inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, double inValue);
+SERIALIZATION_API void to_binary(BinaryWriter& writer, const std::string& inString);
 
 template<typename T, int Count>
 inline void to_binary(BinaryWriter& writer, const std::array<T, Count>& inArray)
@@ -87,7 +89,7 @@ inline void to_binary(BinaryWriter& writer, const std::vector<T>& inVector)
 	}
 }
 
-class BinaryReader
+class SERIALIZATION_API BinaryReader
 {
 public:
 	BinaryReader() = delete;
@@ -109,18 +111,18 @@ private:
 	size_t m_bytesRead;
 };
 
-void from_binary(BinaryReader& reader, bool& outValue);
-void from_binary(BinaryReader& reader, uint8_t& outValue);
-void from_binary(BinaryReader& reader, uint16_t& outValue);
-void from_binary(BinaryReader& reader, uint32_t& outValue);
-void from_binary(BinaryReader& reader, uint64_t& outValue);
-void from_binary(BinaryReader& reader, int8_t& outValue);
-void from_binary(BinaryReader& reader, int16_t& outValue);
-void from_binary(BinaryReader& reader, int32_t& outValue);
-void from_binary(BinaryReader& reader, int64_t& outValue);
-void from_binary(BinaryReader& reader, float& outValue);
-void from_binary(BinaryReader& reader, double& outValue);
-void from_binary(BinaryReader& reader, std::string& outString);
+SERIALIZATION_API void from_binary(BinaryReader& reader, bool& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, uint8_t& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, uint16_t& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, uint32_t& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, uint64_t& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, int8_t& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, int16_t& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, int32_t& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, int64_t& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, float& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, double& outValue);
+SERIALIZATION_API void from_binary(BinaryReader& reader, std::string& outString);
 
 template<typename T, int Count>
 inline void from_binary(BinaryReader& reader, std::array<T, Count>& outArray)

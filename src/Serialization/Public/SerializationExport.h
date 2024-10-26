@@ -1,5 +1,25 @@
 #pragma once
 
+#ifndef SERIALIZATION_API
+    #if defined(SERIALIZATION_EXPORTS) // CMake-defined when creating shared library
+        #if defined _WIN32 || defined __CYGWIN__
+            #define SERIALIZATION_API          __declspec(dllexport)
+        #else  // Not Windows
+            #if __GNUC__ >= 4
+                #define SERIALIZATION_API      __attribute__((visibility("default")))
+            #else
+            #define SERIALIZATION_API
+            #endif
+        #endif  //defined _WIN32 || defined __CYGWIN__
+    #else //This DLL/so/dylib is being imported
+        #if defined _WIN32 || defined __CYGWIN__
+            #define SERIALIZATION_API          __declspec(dllimport)
+        #else  // Not Windows
+            #define SERIALIZATION_API
+        #endif  //defined _WIN32 || defined __CYGWIN__
+    #endif //SERIALIZATION_EXPORTS
+#endif //!defined(SERIALIZATION_API)
+
 // The Enable Reflection macro is defined in the CMakeLists.txt file for modules that want to use reflection
 #ifdef ENABLE_SERIALIZATION_REFLECTION 
     #ifndef KODGEN_PARSING

@@ -75,7 +75,7 @@ bool serialization_utility_test_endian_swap()
 void build_serialization_test_struct(SerializationTestStruct& outStruct)
 {
 
-	Serialization::List<bool> boolArray;
+	Serialization::BoolList boolArray;
 	boolArray.push_back(true);
 	boolArray.push_back(false);
 	boolArray.push_back(true);
@@ -99,28 +99,26 @@ void build_serialization_test_struct(SerializationTestStruct& outStruct)
 	point3d_ptr->y_field = 5.4321f;
 	point3d_ptr->z_field = 9.8765f;
 
-	outStruct = {
-		true,
-		-123,
-		123,
-		-1234,
-		1234,
-		-123456,
-		123456,
-		-123456789,
-		123456789,
-		1.2345f,
-		1.23456789,
-		"hello",
-		SerializationTestEnum_Value2,
-		{1.2345f, 5.4321f},
-		Serialization::ObjectPtr<SerializationPointStruct>(point3d_ptr),
-		boolArray,
-		intArray,
-		pointArray,
-		intPointMap,
-		stringPointMap
-	};
+	outStruct.bool_field= true;
+	outStruct.byte_field= -123;
+	outStruct.ubyte_field= 123;
+	outStruct.short_field= -1234;
+	outStruct.ushort_field= 1234;
+	outStruct.int_field= -123456;
+	outStruct.uint_field= 123456;
+	outStruct.long_field= -123456789;
+	outStruct.ulong_field= 123456789;
+	outStruct.float_field= 1.2345f;
+	outStruct.double_field= 1.23456789;
+	outStruct.string_field= Serialization::String("hello");
+	outStruct.enum_field= SerializationTestEnum_Value2;
+	outStruct.point2d_field= {1.2345f, 5.4321f};
+	outStruct.point_ptr_field= Serialization::ObjectPtr<SerializationPointStruct>(point3d_ptr);
+	outStruct.bool_array= boolArray;
+	outStruct.int_array= intArray;
+	outStruct.point2d_array= pointArray;
+	outStruct.int_point_map= intPointMap;
+	outStruct.string_point_map= stringPointMap;
 }
 
 void verify_serialization_test_struct(const SerializationTestStruct& actual, const SerializationTestStruct& expected)

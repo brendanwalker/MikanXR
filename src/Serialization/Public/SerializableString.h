@@ -10,55 +10,35 @@
 
 namespace Serialization NAMESPACE()
 {
-	class CLASS() String
+	class SERIALIZATION_API CLASS() String
 	{
 	public:
-		String() = default;
-		String(const char* cstring) : m_string{cstring} {}
-		String(std::string const& string) : m_string{string} {}
-		String(std::string&& string) : m_string{std::move(string)} {}
+		String();
+		String(const char* cstring);
+		String(std::string const& string);
+		String(std::string&& string);
+		String(const String& other);
+		String(String&& other) noexcept;
+		virtual ~String();
 
-		void setValue(std::string const& string)
-		{
-			m_string = string;
-		}
-		const std::string& getValue() const
-		{
-			return m_string;
-		}
+		String& operator=(const char* other);
+		String& operator=(const std::string& other);
+		String& operator=(const String& other);
 
-		String& operator=(std::string const& string)
-		{
-			m_string = string;
-			return *this;
-		}
+		void setValue(std::string const& string);
+		const std::string& getValue() const;
 
-		bool operator==(std::string const& other) const
-		{
-			return m_string == other;
-		}
-
-		bool operator!=(std::string const& other) const
-		{
-			return m_string != other;
-		}
-
-		bool operator==(String const& other) const
-		{
-			return m_string == other.m_string;
-		}
-
-		bool operator!=(String const& other) const
-		{
-			return m_string != other.m_string;
-		}
+		bool operator==(std::string const& other) const;
+		bool operator!=(std::string const& other) const;
+		bool operator==(String const& other) const;
+		bool operator!=(String const& other) const;
 
 		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_String_GENERATED
 		#endif
 
 	private:
-		std::string m_string;
+		struct StringData* m_pimpl;
 	};
 };
 

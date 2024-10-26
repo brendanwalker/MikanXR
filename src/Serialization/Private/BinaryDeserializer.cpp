@@ -123,7 +123,8 @@ namespace Serialization
 
 		void visitBoolList(ValueAccessor const& arrayAccessor)
 		{
-			auto& boolList = arrayAccessor.getTypedValueMutableRef<Serialization::BoolList>();
+			auto& boolListWrapper = arrayAccessor.getTypedValueMutableRef<Serialization::BoolList>();
+			auto& boolList = boolListWrapper.getVectorMutable();
 
 			// Resize the array to the desired target size
 			int32_t int32ArraySize = 0;
@@ -131,6 +132,7 @@ namespace Serialization
 			size_t arraySize = static_cast<size_t>(int32ArraySize);
 
 			// Deserialize each element of the array
+
 			boolList.resize(arraySize);
 			for (size_t elementIndex = 0; elementIndex < arraySize; ++elementIndex)
 			{

@@ -125,7 +125,8 @@ namespace Serialization
 			ValueAccessor const& arrayAccessor,
 			json& ownerJsonObject)
 		{
-			const auto& boolList = arrayAccessor.getTypedValueRef<Serialization::BoolList>();
+			const auto& boolListWrapper = arrayAccessor.getTypedValueRef<Serialization::BoolList>();
+			const auto& boolList = boolListWrapper.getVector();
 			std::size_t arraySize = boolList.size();
 			
 			json arrayJson = json::array();

@@ -52,8 +52,13 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
 	TARGET unit_test_suite POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
+	$<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
+	$<TARGET_FILE_DIR:unit_test_suite>)
+  add_custom_command(
+	TARGET unit_test_suite POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy
 	"${RFK_SHARED_LIBRARIES}"
-	$<TARGET_FILE_DIR:unit_test_suite>)		
+	$<TARGET_FILE_DIR:unit_test_suite>)
 ELSE() #Linux/Darwin
 ENDIF()
 

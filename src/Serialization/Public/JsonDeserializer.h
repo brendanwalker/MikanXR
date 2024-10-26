@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SerializationExport.h"
 #include "SerializationVisitor.h"
 
 #include <nlohmann/json_fwd.hpp>
@@ -12,7 +13,8 @@ namespace Serialization
 	{
 		return deserializeFromJsonString(jsonString, &instance, t_object_type::staticGetArchetype());
 	}
-	bool deserializeFromJsonString(
+
+	SERIALIZATION_API bool deserializeFromJsonString(
 		const std::string& jsonString, 
 		void* instance, 
 		rfk::Struct const& structType);
@@ -22,7 +24,8 @@ namespace Serialization
 	{
 		return deserializeFromJson(jsonObject, &instance, t_object_type::staticGetArchetype());
 	}
-	bool deserializeFromJson(
+
+	SERIALIZATION_API bool deserializeFromJson(
 		const nlohmann::json& jsonObject, 
 		void* instance, 
 		rfk::Struct const& structType);

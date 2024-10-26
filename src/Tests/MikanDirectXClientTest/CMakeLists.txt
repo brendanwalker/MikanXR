@@ -23,7 +23,8 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
   comctl32
   ${MIKAN_EXTRA_LIBS}
   MikanCore
-  MikanAPI)
+  MikanAPI
+  MikanSerialization)
 
 add_executable(MikanDX_Test WIN32 ${MIKAN_DX_TEST_SRC})
 target_include_directories(MikanDX_Test PUBLIC ${MIKAN_DX_TEST_INCL_DIRS})
@@ -51,7 +52,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
           $<TARGET_FILE_DIR:MikanDX_Test>)
-		  
+  add_custom_command(
+    TARGET MikanDX_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
+          $<TARGET_FILE_DIR:MikanDX_Test>)
 ELSE() #Linux/Darwin
 ENDIF()
 

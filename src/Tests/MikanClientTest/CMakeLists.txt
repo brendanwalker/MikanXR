@@ -49,7 +49,8 @@ list(APPEND MIKAN_TEST_REQ_LIBS
   ${FFMPEG_LIBRARIES}
   easy_profiler
   MikanCore
-  MikanAPI)
+  MikanAPI
+  MikanSerialization)
 
 add_executable(Mikan_Test ${MIKAN_TEST_SRC})
 target_include_directories(Mikan_Test PUBLIC ${MIKAN_TEST_INCL_DIRS})
@@ -84,6 +85,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
+          $<TARGET_FILE_DIR:Mikan_Test>)
+  add_custom_command(
+    TARGET Mikan_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
           $<TARGET_FILE_DIR:Mikan_Test>)
   add_custom_command(
     TARGET Mikan_Test POST_BUILD

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SerializationExport.h"
+
 #include <string>
 #include "assert.h"
 
@@ -15,21 +17,25 @@ namespace rfk
 
 namespace Serialization
 {
-	class ValueAccessor
-	
+	class SERIALIZATION_API ValueAccessor	
 	{
 	public:
 		ValueAccessor(const void* instance, rfk::Field const& field);
 		ValueAccessor(const void* instance, rfk::Type const& type);
 		ValueAccessor(void* instance, rfk::Field const& field);
 		ValueAccessor(void* instance, rfk::Type const& type);
+		ValueAccessor(const ValueAccessor& other);
+		ValueAccessor(ValueAccessor&& other);
+		virtual ~ValueAccessor();
+
+		ValueAccessor& operator=(const ValueAccessor& other);
 
 		const void* getInstance() const;
 		void* getInstanceMutable() const;
 
-		rfk::Field const* getField() const { return m_field; }
-		rfk::Type const& getType() const { return m_type; }
-		std::string const& getName() const { return m_name; }
+		rfk::Field const* getField() const;
+		rfk::Type const& getType() const;
+		std::string const& getName() const;
 
 		rfk::Class const* getClassType() const;
 		rfk::Struct const* getStructType() const;
@@ -53,7 +59,7 @@ namespace Serialization
 		template <typename t_value_type>
 		const t_value_type* getTypedValuePtr() const
 		{
-			assert(m_type == rfk::getType<t_value_type>());
+			assert(getType() == rfk::getType<t_value_type>());
 
 			return reinterpret_cast<const t_value_type*>(getUntypedValuePtr());
 		}
@@ -61,7 +67,7 @@ namespace Serialization
 		template <typename t_value_type>
 		t_value_type* getTypedValueMutablePtr() const
 		{
-			assert(m_type == rfk::getType<t_value_type>());
+			assert(getType() == rfk::getType<t_value_type>());
 
 			return reinterpret_cast<t_value_type*>(getUntypedValueMutablePtr());
 		}
@@ -69,53 +75,44 @@ namespace Serialization
 		template <typename t_value_type>
 		t_value_type getValue() const
 		{
-			assert(m_type == rfk::getType<t_value_type>());
-			assert(m_type.isValue());
-			assert(m_instance != nullptr);
+			assert(getType() == rfk::getType<t_value_type>());
+			assert(getType().isValue());
+			assert(getInstance() != nullptr);
 
-			if (m_field)
+			rfk::Field const* field= getField();
+			if (field)
 			{
-				return m_field->getUnsafe<t_value_type>(m_instance);
+				return field->getUnsafe<t_value_type>(getInstance());
 			}
 			else
 			{
-				return *reinterpret_cast<t_value_type*>(m_instance);
+				return *reinterpret_cast<t_value_type*>(getInstance());
 			}
 		}
 
 		template <typename t_value_type>
 		void setValueByType(const t_value_type& value) const
 		{
-#ifdef _DEBUG
-			auto const* templateArchetype= rfk::getType<t_value_type>().getArchetype();
-			char const*	templateTypeName= templateArchetype ? templateArchetype->getName() : "";
-			auto const* accessorArchetype= m_type.getArchetype();
-		 	char const* accessorTypeName= accessorArchetype ? accessorArchetype->getName() : "";
-#endif
+			assert(rfk::getType<t_value_type>().match(getType()));
+			assert(getType().isValue());
+			assert(getInstance() != nullptr);
 
-			assert(rfk::getType<t_value_type>().match(m_type));
-			assert(m_type.isValue());
-			assert(m_instance != nullptr);
-
-			if (m_field)
+			rfk::Field const* field= getField();
+			if (field)
 			{
-				m_field->setUnsafe(m_instance, &value, sizeof(t_value_type));
+				field->setUnsafe(getInstanceMutable(), &value, sizeof(t_value_type));
 			}
 			else
 			{
-				*reinterpret_cast<t_value_type*>(m_instance) = value;
+				*reinterpret_cast<t_value_type*>(getInstanceMutable()) = value;
 			}
 		}
 
 	private:
-		void* m_instance;
-		bool m_isConst;
-		rfk::Field const* m_field;
-		rfk::Type const& m_type;
-		std::string m_name;
+		struct AccessorData* m_pimpl;
 	};
 
-	class IVisitor
+	class SERIALIZATION_API IVisitor
 	{
 	public:
 		virtual void visitClass(ValueAccessor const& accessor) { }
@@ -146,11 +143,11 @@ namespace Serialization
 		visitStruct(&instance, t_struct_type::staticGetArchetype(), visitor, userdata);
 	}
 
-	void visitStruct(const void* instance, rfk::Struct const& structType, IVisitor *visitor);
-	void visitStruct(void* instance, rfk::Struct const& structType, IVisitor *visitor);
+	SERIALIZATION_API void visitStruct(const void* instance, rfk::Struct const& structType, IVisitor *visitor);
+	SERIALIZATION_API void visitStruct(void* instance, rfk::Struct const& structType, IVisitor *visitor);
 
-	void visitField(const void* instance, rfk::Field const& fieldType, IVisitor *visitor);
-	void visitField(void* instance, rfk::Field const& fieldType, IVisitor *visitor);
+	SERIALIZATION_API void visitField(const void* instance, rfk::Field const& fieldType, IVisitor *visitor);
+	SERIALIZATION_API void visitField(void* instance, rfk::Field const& fieldType, IVisitor *visitor);
 
-	void visitValue(ValueAccessor const& accessor, IVisitor *visitor);
+	SERIALIZATION_API void visitValue(ValueAccessor const& accessor, IVisitor *visitor);
 };

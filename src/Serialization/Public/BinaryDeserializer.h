@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SerializationExport.h"
 #include "SerializationVisitor.h"
 
 #include <vector>
@@ -11,11 +12,12 @@ namespace Serialization
 	{
 		return deserializeFromBytes(inBytes, &instance, t_object_type::staticGetArchetype());
 	}
-	bool deserializeFromBytes(
+
+	SERIALIZATION_API bool deserializeFromBytes(
 		const std::vector<uint8_t>& inBytes,
 		void* instance,
 		rfk::Struct const& structType);
-	bool deserializeFromBytes(
+	SERIALIZATION_API bool deserializeFromBytes(
 		const uint8_t* inBytes,
 		const size_t inSize,
 		void* instance,

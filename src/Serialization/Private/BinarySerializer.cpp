@@ -1,11 +1,10 @@
-#include "JsonSerializer.h"
+#include "BinarySerializer.h"
 #include "BinaryUtility.h"
 #include "SerializationUtility.h"
 #include "SerializableList.h"
 #include "SerializableMap.h"
 #include "SerializableObjectPtr.h"
 #include "SerializableString.h"
-
 
 #include "Refureku/Refureku.h"
 
@@ -122,7 +121,8 @@ namespace Serialization
 
 		void visitBoolList(ValueAccessor const& arrayAccessor)
 		{
-			auto& boolList = arrayAccessor.getTypedValueRef<Serialization::BoolList>();
+			auto& boolListWrapper = arrayAccessor.getTypedValueRef<Serialization::BoolList>();
+			auto& boolList = boolListWrapper.getVector();
 
 			// Resize the array to the desired target size
 			const size_t arraySize = boolList.size();
