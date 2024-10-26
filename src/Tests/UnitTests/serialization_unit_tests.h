@@ -15,9 +15,9 @@
 
 enum ENUM() SerializationTestEnum
 {
-	SerializationTestEnum_Value1 ENUMVALUE(Serialization::EnumStringValue("Value1")),
-	SerializationTestEnum_Value2 ENUMVALUE(Serialization::EnumStringValue("Value2")),
-	SerializationTestEnum_Value3 ENUMVALUE(Serialization::EnumStringValue("Value3")),
+	SerializationTestEnum_Value1 ENUMVALUE_STRING("Value1"),
+	SerializationTestEnum_Value2 ENUMVALUE_STRING("Value2"),
+	SerializationTestEnum_Value3 ENUMVALUE_STRING("Value3"),
 };
 
 struct STRUCT() SerializationPointStruct

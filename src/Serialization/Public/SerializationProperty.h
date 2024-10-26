@@ -45,3 +45,11 @@ File_SerializationProperty_GENERATED
 #endif // !KODGEN_PARSING
 
 #endif // ENABLE_SERIALIZATION_REFLECTION || KODGEN_PARSING
+
+#ifdef SERIALIZATION_REFLECTION_ENABLED
+	#define ENUMVALUE_STRING(enumString) ENUMVALUE(Serialization::EnumStringValue(enumString))
+#else
+	#ifndef ENUMVALUE_STRING
+	#define ENUMVALUE_STRING(...)
+	#endif
+#endif
