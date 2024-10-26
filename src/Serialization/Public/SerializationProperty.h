@@ -3,53 +3,54 @@
 #include "SerializationExport.h"
 
 #if defined(ENABLE_SERIALIZATION_REFLECTION) || defined(KODGEN_PARSING)
-#include <Refureku/Properties/PropertySettings.h>
-#include <Refureku/TypeInfo/Archetypes/EnumValue.h>
+	#include <Refureku/Properties/PropertySettings.h>
+	#include <Refureku/TypeInfo/Archetypes/EnumValue.h>
 
-#ifndef KODGEN_PARSING
-#include "SerializationProperty.rfkh.h"
-#endif // !KODGEN_PARSING
+	#ifndef KODGEN_PARSING
+	#include "SerializationProperty.rfkh.h"
+	#endif // !KODGEN_PARSING
 
-namespace rfk
-{
-	class Enum;
-	class EnumValue;
-}
-
-namespace Serialization NAMESPACE()
-{
-	class SERIALIZATION_API CLASS(rfk::PropertySettings(rfk::EEntityKind::EnumValue, false, true)) 
-		EnumStringValue : public rfk::Property
+	namespace rfk
 	{
-	public:
-		EnumStringValue() noexcept = default;
-		EnumStringValue(char const* message) noexcept;
-		virtual ~EnumStringValue();
+		class Enum;
+		class EnumValue;
+	}
 
-		char const* getValue() const { return m_stringValue; }
+	namespace Serialization NAMESPACE()
+	{
+		class SERIALIZATION_API CLASS(rfk::PropertySettings(rfk::EEntityKind::EnumValue, false, true)) 
+			EnumStringValue : public rfk::Property
+		{
+		public:
+			EnumStringValue() noexcept = default;
+			EnumStringValue(char const* message) noexcept;
+			virtual ~EnumStringValue();
 
-		#ifndef KODGEN_PARSING
-		Serialization_EnumStringValue_GENERATED
-		#endif // !KODGEN_PARSING
+			char const* getValue() const { return m_stringValue; }
 
-	private:
-		char* m_stringValue= nullptr;
-	};
+			#ifndef KODGEN_PARSING
+			Serialization_EnumStringValue_GENERATED
+			#endif // !KODGEN_PARSING
 
-	SERIALIZATION_API rfk::EnumValue const* findEnumValueByString(rfk::Enum const& enumType, char const* stringValue);
-	SERIALIZATION_API char const* getEnumStringValue(rfk::EnumValue const& enumValue);
-}
+		private:
+			char* m_stringValue= nullptr;
+		};
 
-#ifndef KODGEN_PARSING
-File_SerializationProperty_GENERATED
-#endif // !KODGEN_PARSING
+		SERIALIZATION_API rfk::EnumValue const* findEnumValueByString(rfk::Enum const& enumType, char const* stringValue);
+		SERIALIZATION_API char const* getEnumStringValue(rfk::EnumValue const& enumValue);
+	}
 
-#endif // ENABLE_SERIALIZATION_REFLECTION || KODGEN_PARSING
-
-#ifdef SERIALIZATION_REFLECTION_ENABLED
+	// Helper macros to assign a reflection properties 
 	#define ENUMVALUE_STRING(enumString) ENUMVALUE(Serialization::EnumStringValue(enumString))
+
+	#ifndef KODGEN_PARSING
+	File_SerializationProperty_GENERATED
+	#endif // !KODGEN_PARSING
+
 #else
+
 	#ifndef ENUMVALUE_STRING
 	#define ENUMVALUE_STRING(...)
 	#endif
-#endif
+
+#endif // ENABLE_SERIALIZATION_REFLECTION || KODGEN_PARSING

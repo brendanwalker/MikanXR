@@ -5,8 +5,15 @@
 
 #include "MikanExport.h"
 
+#if defined(ENABLE_MIKANAPI_REFLECTION) || defined(KODGEN_PARSING)
+	#include "SerializationProperty.h"
+#else
+	#ifndef ENUMVALUE_STRING
+	#define ENUMVALUE_STRING(...)
+	#endif
+#endif 
+
 #ifdef MIKANAPI_REFLECTION_ENABLED
-#include "SerializationProperty.h"
 #include "MikanCoreTypes.rfkh.h"
 #endif // MIKANAPI_REFLECTION_ENABLED
 

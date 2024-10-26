@@ -107,10 +107,6 @@
     #define ENUMVALUE(...)
     #endif
 
-    #ifndef ENUMVALUE_STRING
-    #define ENUMVALUE_STRING(...)
-    #endif
-
     #ifndef FUNCTION
     #define FUNCTION(...)
     #endif
