@@ -74,7 +74,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:Mikan_Test>)
   add_custom_command(TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${ROOT_DIR}/resources/textures $<TARGET_FILE_DIR:Mikan_Test>/resources/textures)   
+    ${ROOT_DIR}/resources/textures $<TARGET_FILE_DIR:Mikan_Test>/resources/textures)
   add_custom_command(
     TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -84,7 +84,17 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
-          $<TARGET_FILE_DIR:Mikan_Test>)		  
+          $<TARGET_FILE_DIR:Mikan_Test>)
+  add_custom_command(
+    TARGET Mikan_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+    "${EASY_PROFILER_FOLDER}/easy_profiler.dll"
+    $<TARGET_FILE_DIR:Mikan_Test>)
+  add_custom_command(
+	TARGET Mikan_Test POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy
+	"${RFK_SHARED_LIBRARIES}"
+	$<TARGET_FILE_DIR:Mikan_Test>)
 ELSE() #Linux/Darwin
 ENDIF()
 
