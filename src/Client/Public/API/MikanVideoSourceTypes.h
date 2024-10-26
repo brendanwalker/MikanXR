@@ -153,7 +153,11 @@ struct STRUCT() MikanVideoSourceIntrinsics : public MikanResponse
 	FIELD()
 	MikanIntrinsicsType intrinsics_type;
 
-	MikanVideoSourceIntrinsics() : MikanResponse(k_typeName) {}
+	MikanVideoSourceIntrinsics() 
+		: MikanResponse(k_typeName) 
+		, intrinsics_ptr()
+		, intrinsics_type(INVALID_CAMERA_INTRINSICS)
+	{}
 
 	const MikanMonoIntrinsics& getMonoIntrinsics() const
 	{
