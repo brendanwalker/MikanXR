@@ -5,6 +5,7 @@
 #include "SerializableList.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
+#include "SerializationProperty.h"
 #include "MikanVRDeviceTypes.rfkh.h"
 #endif
 
@@ -14,17 +15,17 @@
 /// The list of possible vr device drivers used by MikanXR Client API
 enum ENUM() MikanVRDeviceApi
 {
-	MikanVRDeviceApi_INVALID,
-	MikanVRDeviceApi_STEAM_VR,
+	MikanVRDeviceApi_INVALID ENUMVALUE_STRING("INVALID"),
+	MikanVRDeviceApi_STEAM_VR ENUMVALUE_STRING("STEAM_VR"),
 };
 
 /// The list of possible vr device types used by MikanXR Client API
 enum ENUM() MikanVRDeviceType
 {
-	MikanVRDeviceType_INVALID,
-	MikanVRDeviceType_HMD,
-	MikanVRDeviceType_CONTROLLER,
-	MikanVRDeviceType_TRACKER
+	MikanVRDeviceType_INVALID ENUMVALUE_STRING("INVALID"),
+	MikanVRDeviceType_HMD ENUMVALUE_STRING("HMD"),
+	MikanVRDeviceType_CONTROLLER ENUMVALUE_STRING("CONTROLLER"),
+	MikanVRDeviceType_TRACKER ENUMVALUE_STRING("TRACKER")
 };
 
 

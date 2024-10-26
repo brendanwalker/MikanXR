@@ -6,6 +6,7 @@
 #include "SerializableObjectPtr.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
+#include "SerializationProperty.h"
 #include "MikanVideoSourceTypes.rfkh.h"
 #endif
 
@@ -14,23 +15,23 @@
 // Constants
 enum ENUM() MikanVideoSourceType
 {
-	MikanVideoSourceType_MONO,
-	MikanVideoSourceType_STEREO
+	MikanVideoSourceType_MONO ENUMVALUE_STRING("MONO"),
+	MikanVideoSourceType_STEREO ENUMVALUE_STRING("STEREO")
 };
 
 /// The list of possible camera APIs used by MikanXR
 enum ENUM() MikanVideoSourceApi
 {
-	MikanVideoSourceApi_INVALID,
-	MikanVideoSourceApi_OPENCV_CV,
-	MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION
+	MikanVideoSourceApi_INVALID ENUMVALUE_STRING("INVALID"),
+	MikanVideoSourceApi_OPENCV_CV ENUMVALUE_STRING("OPEN_CV"),
+	MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION ENUMVALUE_STRING("WINDOWS_MEDIA_FOUNDATION")
 };
 
 enum ENUM() MikanIntrinsicsType
 {
-	INVALID_CAMERA_INTRINSICS,
-	MONO_CAMERA_INTRINSICS,
-	STEREO_CAMERA_INTRINSICS,
+	INVALID_CAMERA_INTRINSICS ENUMVALUE_STRING("INVALID"),
+	MONO_CAMERA_INTRINSICS  ENUMVALUE_STRING("MONO_CAMERA_INTRINSICS"),
+	STEREO_CAMERA_INTRINSICS  ENUMVALUE_STRING("STEREO_CAMERA_INTRINSICS"),
 };
 
 // Structures
