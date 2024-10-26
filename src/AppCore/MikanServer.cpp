@@ -632,17 +632,19 @@ bool readRequestPayload(const std::string& utf8RequestString, t_mikan_type& outP
 {
 	try
 	{
+		json j = json::parse(utf8RequestString);
+		json payloadJson = j["payload"];
+
 		{
 			EASY_BLOCK("Reflection Deserialization");
 
-			Serialization::deserializeFromJsonString(utf8RequestString, outParameters);
+			Serialization::deserializeFromJson(payloadJson, outParameters);
 		}
 
 		{
 			EASY_BLOCK("Original Deserialization");
-			json j = json::parse(utf8RequestString);
 
-			outParameters = j["payload"];
+			outParameters = payloadJson;
 		}
 	}
 	catch (json::exception& e)
