@@ -46,3 +46,15 @@ set_target_properties(MikanSerializationReflection PROPERTIES FOLDER Serializati
 
 # Run the RefurekuGenerator BEFORE building the project to refresh generated files
 add_dependencies(MikanSerialization MikanSerializationReflection)
+
+# Install - copy runtime dependencies to dist folder (for release)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+    	  
+  install(TARGETS MikanSerialization
+      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
+      LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)	  
+
+ELSE() #Linux/Darwin
+ENDIF()
