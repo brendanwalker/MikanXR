@@ -1,7 +1,14 @@
 ## Mikan Libraries
 ## =======================
+
+# Reflection based serialization library
 add_subdirectory(Serialization)
-add_subdirectory(Client)
+
+# Mikan Client Core C API
+add_subdirectory(ClientCore)
+
+# Mikan Client C++ API
+add_subdirectory(ClientAPI)
 
 ## Mikan App
 ## =======================
@@ -163,15 +170,6 @@ file(GLOB MIKAN_CALIBRATION_SRC
 )
 source_group("Calibration" FILES ${MIKAN_CALIBRATION_SRC})
 
-# Client
-file(GLOB MIKAN_CLIENT_SRC
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/API/*.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core/*.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json/*.h"
-	"${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary/*.h"
-)
-source_group("Client" FILES ${MIKAN_CLIENT_SRC})
-
 # Components
 file(GLOB MIKAN_COMPONENTS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Components/*.cpp"
@@ -226,13 +224,13 @@ file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp"		
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp"    
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp"
 )
 source_group("Interprocess" FILES ${MIKAN_INTERPROCESS_SRC})
 
@@ -419,7 +417,6 @@ set(MIKAN_SRC
 	${MIKAN_ASSET_IMPORT_SRC}
 	${MIKAN_ASSET_EXPORT_SRC}
     ${MIKAN_CALIBRATION_SRC}
-    ${MIKAN_CLIENT_SRC}
     ${MIKAN_COMPONENTS_SRC}
     ${MIKAN_CONFIG_SRC}
     ${MIKAN_DEVICE_ENUM_SRC}
@@ -458,11 +455,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Components
   ${CMAKE_CURRENT_LIST_DIR}/Config
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Public/API
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Json  
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/API/Binary
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Public/Core
-  ${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/Json  
+  ${CMAKE_CURRENT_LIST_DIR}/ClientAPI/Public
+  ${CMAKE_CURRENT_LIST_DIR}/ClientCore/Public
   ${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator
   ${CMAKE_CURRENT_LIST_DIR}/Device/Interface
   ${CMAKE_CURRENT_LIST_DIR}/Device/Manager
@@ -487,7 +481,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Video/WMF
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR
-  ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
+  ${RFK_GENERATED_ROOT_DIR}/MikanCore
+  ${RFK_GENERATED_ROOT_DIR}/MikanAPI
   ${RFK_GENERATED_ROOT_DIR}/Serialization
   ${IMGUI_DIR}
   ${IMNODES_DIR}
@@ -534,6 +529,7 @@ list(APPEND MIKAN_REQ_LIBS
   easy_profiler
   fast_obj_lib
   ixwebsocket
+  MikanCore
   MikanAPI
   MikanSerialization
   RmlCore
@@ -543,7 +539,6 @@ list(APPEND MIKAN_REQ_LIBS
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/OpenCVCameraEnumerator.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
-set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Client/Private/Core/MikanClient.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageClient.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -558,8 +553,9 @@ ENDIF()
 
 target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
 target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
-target_compile_definitions(Mikan PRIVATE ENABLE_MIKANAPI_REFLECTION)
 target_compile_definitions(Mikan PRIVATE ENABLE_SERIALIZATION_REFLECTION)
+target_compile_definitions(Mikan PRIVATE ENABLE_MIKANCORE_REFLECTION)
+target_compile_definitions(Mikan PRIVATE ENABLE_MIKANAPI_REFLECTION)
 target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
 target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 

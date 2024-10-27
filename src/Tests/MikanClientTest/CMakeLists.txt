@@ -29,8 +29,8 @@ file(GLOB MIKAN_TEST_SRC
 list(APPEND MIKAN_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${ROOT_DIR}/src/AppCore/
-  ${ROOT_DIR}/src/Client/Public/API
-  ${ROOT_DIR}/src/Client/Public/Core
+  ${ROOT_DIR}/src/ClientAPI/Public
+  ${ROOT_DIR}/src/ClientCore/Public
   ${ROOT_DIR}/src/Serialization/Public
   ${ROOT_DIR}/src/Renderer/
   ${ROOT_DIR}/src/Utility/

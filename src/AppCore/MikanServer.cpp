@@ -2,12 +2,16 @@
 #include "App.h"
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
+#include "BinaryUtility.h"
 #include "BoxStencilComponent.h"
 #include "CommonScriptContext.h"
 #include "InterprocessRenderTargetReader.h"
 #include "InterprocessMessages.h"
 #include "MathTypeConversion.h"
 #include "Logger.h"
+#include "MikanAPITypes.h"
+#include "MikanCoreTypes.h"
+#include "MikanScriptTypes.h"
 #include "MikanServer.h"
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
@@ -24,18 +28,6 @@
 #include "VRDeviceView.h"
 
 #include "WebsocketInterprocessMessageServer.h"
-
-#include "MikanAPITypes_json.h"
-#include "MikanCoreTypes_json.h"
-#include "MikanEventTypes_json.h"
-#include "MikanMathTypes_json.h"
-#include "MikanScriptTypes_json.h"
-#include "MikanSpatialAnchorTypes_json.h"
-#include "MikanStencilTypes_json.h"
-#include "MikanVideoSourceTypes_json.h"
-#include "MikanVRDeviceTypes_json.h"
-
-#include "MikanStencilTypes_binary.h"
 
 #include <set>
 #include <assert.h>
@@ -176,20 +168,10 @@ public:
 	template <typename t_mikan_type>
 	std::string mikanTypeToJsonString(const t_mikan_type& mikanType)
 	{
+		EASY_FUNCTION();
+
 		std::string jsonStr;
-
-		{
-			EASY_BLOCK("Reflection Serialization");
-
-			Serialization::serializeToJsonString(mikanType, jsonStr);
-		}
-
-		{
-			EASY_BLOCK("Original Serialization");
-			json j = mikanType;
-
-			jsonStr = j.dump();
-		}
+		Serialization::serializeToJsonString(mikanType, jsonStr);
 
 		return jsonStr;
 	}
@@ -630,22 +612,15 @@ static VRDeviceViewPtr getCurrentCameraVRDevice()
 template <typename t_mikan_type>
 bool readRequestPayload(const std::string& utf8RequestString, t_mikan_type& outParameters)
 {
+	EASY_FUNCTION();
+
 	try
 	{
 		json j = json::parse(utf8RequestString);
 		json payloadJson = j["payload"];
 
-		{
-			EASY_BLOCK("Reflection Deserialization");
-
-			Serialization::deserializeFromJson(payloadJson, outParameters);
-		}
-
-		{
-			EASY_BLOCK("Original Deserialization");
-
-			outParameters = payloadJson;
-		}
+		Serialization::deserializeFromJson(payloadJson, outParameters);
+		//outParameters = payloadJson;
 	}
 	catch (json::exception& e)
 	{
@@ -695,25 +670,18 @@ bool readRequestPayload(const std::string& utf8RequestString, std::string& outPa
 template <typename t_mikan_type>
 void writeTypedJsonResponse(MikanRequestID requestId, t_mikan_type& result, ClientResponse& response)
 {
+	EASY_FUNCTION();
+
 	result.requestId= requestId;
 	result.resultCode= MikanResult_Success;
 
-	{
-		EASY_BLOCK("Reflection Serialization");
-
-		Serialization::serializeToJsonString(result, response.utf8String);
-	}
-
-	{
-		EASY_BLOCK("Original Serialization");
-		json j = result;
-
-		response.utf8String= j.dump();
-	}
+	Serialization::serializeToJsonString(result, response.utf8String);
 }
 
 void writeSimpleJsonResponse(MikanRequestID requestId, MikanResult result, ClientResponse& response)
 {
+	EASY_FUNCTION();
+
 	// Only write a response if the request ID is valid (i.e. the client expects a response)
 	if (requestId != INVALID_MIKAN_ID)
 	{
@@ -721,18 +689,7 @@ void writeSimpleJsonResponse(MikanRequestID requestId, MikanResult result, Clien
 		mikanResponse.requestId = requestId;
 		mikanResponse.resultCode = result;
 
-		{
-			EASY_BLOCK("Reflection Serialization");
-
-			Serialization::serializeToJsonString(mikanResponse, response.utf8String);
-		}
-
-		{
-			EASY_BLOCK("Original Serialization");
-
-			json j = mikanResponse;
-			response.utf8String = j.dump();
-		}
+		Serialization::serializeToJsonString(mikanResponse, response.utf8String);
 	}
 	else
 	{
@@ -746,21 +703,12 @@ void writeTypedBinaryResponse(
 	t_mikan_type& result,
 	ClientResponse& response)
 {
+	EASY_FUNCTION();
+
 	result.requestId= requestId;
 	result.resultCode= MikanResult_Success;
 
-	{
-		EASY_BLOCK("Reflection Serialization");
-
-		Serialization::serializeToBytes<t_mikan_type>(result, response.binaryData);
-	}
-
-	{
-		EASY_BLOCK("Original Serialization");
-
-		BinaryWriter writer(response.binaryData);
-		to_binary(writer, result);
-	}
+	Serialization::serializeToBytes<t_mikan_type>(result, response.binaryData);
 }
 
 void writeSimpleBinaryResponse(MikanRequestID requestId, MikanResult result, ClientResponse& response)

@@ -1,11 +1,11 @@
 #include "WebsocketInterprocessMessageServer.h"
 #include "JsonUtils.h"
 #include "MikanEventTypes.h"
-#include "MikanEventTypes_json.h"
-#include "MikanAPITypes_json.h"
 #include "Logger.h"
 #include "StringUtils.h"
 #include "ThreadUtils.h"
+#include "JsonSerializer.h"
+#include "JsonDeserializer.h"
 
 #include "IxWebSocket/IXConnectionState.h"
 #include "IxWebSocket/IxNetSystem.h"
@@ -86,12 +86,16 @@ public:
 					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "code: " << msg->closeInfo.code;
 
+					// Serialize the client info to json
+					json clientInfoPayload;
+					Serialization::serializeToJson(m_clientInfo, clientInfoPayload);
+
 					// Construct a disconnect server message for the queue
 					json disconnectRequestJson;
 					disconnectRequestJson["requestType"] = "disconnect";
 					disconnectRequestJson["requestId"]= -1;
 					disconnectRequestJson["version"] = 0;
-					disconnectRequestJson["payload"] = m_clientInfo;
+					disconnectRequestJson["payload"] = clientInfoPayload;
 
 					m_functionCallQueue->enqueue(disconnectRequestJson.dump());
 				}
@@ -177,9 +181,7 @@ protected:
 	{
 		try
 		{
-			json outClientInfoPayload = json::parse(configJsonString);
-
-			outClientInfo= outClientInfoPayload;
+			Serialization::deserializeFromJsonString(configJsonString, outClientInfo);
 		}
 		catch (json::exception e)
 		{
@@ -288,8 +290,8 @@ void WebsocketInterprocessMessageServer::dispose()
 			MikanDisconnectedEvent disconnectEvent;
 			disconnectEvent.eventType = MikanDisconnectedEvent::k_typeName;
 
-			json eventJson = disconnectEvent;
-			std::string eventJsonString = eventJson.dump();
+			std::string eventJsonString;
+			Serialization::serializeToJsonString(disconnectEvent, eventJsonString);
 
 			connection->sendText(eventJsonString);
 
@@ -438,8 +440,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 				outResult.requestId= requestId;
 				outResult.resultCode= MikanResult_UnknownFunction;
 
-				json responseJson = outResult;
-				outResponse.utf8String = responseJson.dump();
+				Serialization::serializeToJsonString(outResult, outResponse.utf8String);
 			}
 
 			// Send the response back to the client
