@@ -36,6 +36,24 @@
 			char* m_stringValue= nullptr;
 		};
 
+		class SERIALIZATION_API CLASS(rfk::PropertySettings(rfk::EEntityKind::Class | rfk::EEntityKind::Struct | rfk::EEntityKind::Enum, true, true)) 
+			CodeGenModule : public rfk::Property
+		{
+		public:
+			CodeGenModule() noexcept = default;
+			CodeGenModule(char const* moduleName) noexcept;
+			virtual ~CodeGenModule();
+
+			char const* getModuleName() const { return m_moduleName; }
+
+		#ifndef KODGEN_PARSING
+			Serialization_CodeGenModule_GENERATED
+			#endif // !KODGEN_PARSING
+
+		private:
+			char* m_moduleName = nullptr;
+		};
+
 		SERIALIZATION_API rfk::EnumValue const* findEnumValueByString(rfk::Enum const& enumType, char const* stringValue);
 		SERIALIZATION_API char const* getEnumStringValue(rfk::EnumValue const& enumValue);
 	}

@@ -10,6 +10,9 @@ add_subdirectory(ClientCore)
 # Mikan Client C++ API
 add_subdirectory(ClientAPI)
 
+# Mikan Client Code Gen
+add_subdirectory(ClientCodeGen)
+
 ## Mikan App
 ## =======================
 MESSAGE(STATUS "Generating Mikan App Project")

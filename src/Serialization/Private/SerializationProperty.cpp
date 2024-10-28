@@ -5,6 +5,7 @@
 
 namespace Serialization
 {
+	// -- EnumStringValue -----
 	EnumStringValue::EnumStringValue(char const* value) noexcept
 	{
 		if (value != nullptr)
@@ -61,5 +62,20 @@ namespace Serialization
 		}
 
 		return enumValue.getName();
+	}
+
+	// -- CodeGenTag -----
+	CodeGenModule::CodeGenModule(char const* moduleName) noexcept
+	{
+		assert(moduleName != nullptr && moduleName[0] != '\0');
+		size_t len = strlen(moduleName);
+		m_moduleName = new char[len + 1];
+		std::memmove(m_moduleName, moduleName, len);
+		m_moduleName[len] = '\0';
+	}
+
+	CodeGenModule::~CodeGenModule()
+	{
+		delete[] m_moduleName;
 	}
 }

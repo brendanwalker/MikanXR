@@ -2,6 +2,7 @@
 
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
+#include "SerializationProperty.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanAPI.rfkh.h"
@@ -13,7 +14,7 @@
 using IMikanAPIPtr = std::shared_ptr<class IMikanAPI>;
 
 // -- Render Target API -----
-class MIKAN_API CLASS() IMikanRenderTargetAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanRenderTargetAPI
 {
 public:
 	IMikanRenderTargetAPI() {}
@@ -40,7 +41,7 @@ public:
 };
 
 // -- Script API -----
-class MIKAN_API CLASS() IMikanScriptAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanScriptAPI
 {
 public:
 	IMikanScriptAPI() {}
@@ -55,7 +56,7 @@ public:
 };
 
 // -- Spatial Anchor API -----
-class MIKAN_API CLASS() IMikanSpatialAnchorAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanSpatialAnchorAPI
 {
 public:
 	IMikanSpatialAnchorAPI() {}
@@ -74,7 +75,7 @@ public:
 };
 
 // -- Stencil API -----
-class MIKAN_API CLASS() IMikanStencilAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanStencilAPI
 {
 public:
 	IMikanStencilAPI() {}
@@ -101,7 +102,7 @@ public:
 };
 
 // -- Video Source API -----
-class MIKAN_API CLASS() IMikanVideoSourceAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanVideoSourceAPI
 {
 public:
 	IMikanVideoSourceAPI() {}
@@ -120,7 +121,7 @@ public:
 };
 
 // -- VRDevice API -----
-class MIKAN_API CLASS() IMikanVRDeviceAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanVRDeviceAPI
 {
 public:
 	IMikanVRDeviceAPI() {}
@@ -141,7 +142,7 @@ public:
 };
 
 // -- Mikan API -----
-class MIKAN_API CLASS() IMikanAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanAPI
 {
 public:
 	IMikanAPI() = default;
