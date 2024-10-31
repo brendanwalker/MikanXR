@@ -81,7 +81,7 @@ struct STRUCT() MikanEvent
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct STRUCT() MikanClientInfo
+struct STRUCT(Serialization::CodeGenModule("MikanAPI")) MikanClientInfo
 {
 	inline static const std::string k_typeName = "MikanClientInfo";
 

@@ -14,7 +14,7 @@
 using IMikanAPIPtr = std::shared_ptr<class IMikanAPI>;
 
 // -- Render Target API -----
-class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanRenderTargetAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanRenderTargetAPI")) IMikanRenderTargetAPI
 {
 public:
 	IMikanRenderTargetAPI() {}
@@ -41,7 +41,7 @@ public:
 };
 
 // -- Script API -----
-class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanScriptAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanScriptAPI")) IMikanScriptAPI
 {
 public:
 	IMikanScriptAPI() {}
@@ -56,7 +56,7 @@ public:
 };
 
 // -- Spatial Anchor API -----
-class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanSpatialAnchorAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanSpatialAnchorAPI")) IMikanSpatialAnchorAPI
 {
 public:
 	IMikanSpatialAnchorAPI() {}
@@ -75,7 +75,7 @@ public:
 };
 
 // -- Stencil API -----
-class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanStencilAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanStencilAPI")) IMikanStencilAPI
 {
 public:
 	IMikanStencilAPI() {}
@@ -102,7 +102,7 @@ public:
 };
 
 // -- Video Source API -----
-class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanVideoSourceAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanVideoSourceAPI")) IMikanVideoSourceAPI
 {
 public:
 	IMikanVideoSourceAPI() {}
@@ -121,7 +121,7 @@ public:
 };
 
 // -- VRDevice API -----
-class MIKAN_API CLASS(Serialization::CodeGenModule("MikanAPI")) IMikanVRDeviceAPI
+class MIKAN_API CLASS(Serialization::CodeGenModule("MikanVRDeviceAPI")) IMikanVRDeviceAPI
 {
 public:
 	IMikanVRDeviceAPI() {}

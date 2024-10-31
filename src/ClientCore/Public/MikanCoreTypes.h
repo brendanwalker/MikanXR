@@ -13,7 +13,7 @@
 #define INVALID_MIKAN_ID				-1
 
 /// Result enum in response to a client API request
-enum ENUM() MikanResult
+enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanResult
 {
 	MikanResult_Success ENUMVALUE_STRING("Success"),	///< General Success Result	
 	MikanResult_GeneralError ENUMVALUE_STRING("GeneralError"),	///< General Error Result
@@ -43,7 +43,7 @@ enum ENUM() MikanResult
 	MikanResult_InvalidAnchorID ENUMVALUE_STRING("InvalidAnchorID"),
 };
 
-enum ENUM() MikanLogLevel
+enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanLogLevel
 {
 	MikanLogLevel_Trace ENUMVALUE_STRING("Trace"),
 	MikanLogLevel_Debug ENUMVALUE_STRING("Debug"),
@@ -53,7 +53,7 @@ enum ENUM() MikanLogLevel
 	MikanLogLevel_Fatal ENUMVALUE_STRING("Fatal")
 };
 
-enum ENUM() MikanClientGraphicsApi
+enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanClientGraphicsApi
 {
 	MikanClientGraphicsApi_UNKNOWN ENUMVALUE_STRING("UNKNOWN") = -1,
 
@@ -67,7 +67,7 @@ enum ENUM() MikanClientGraphicsApi
 	MikanClientGraphicsApi_COUNT,
 };
 
-enum ENUM() MikanColorBufferType
+enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanColorBufferType
 {
 	MikanColorBuffer_NOCOLOR ENUMVALUE_STRING("NOCOLOR"),
 	MikanColorBuffer_RGB24 ENUMVALUE_STRING("RGB24"),
@@ -77,7 +77,7 @@ enum ENUM() MikanColorBufferType
 	MikanColorBuffer_BGRA32 ENUMVALUE_STRING("BGRA32"), 
 };
 
-enum ENUM() MikanDepthBufferType
+enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanDepthBufferType
 {
 	MikanDepthBuffer_NODEPTH ENUMVALUE_STRING("NOCOLOR"),
 	// Raw float non-linear depth values from the z-buffer (in source world units)
@@ -88,7 +88,7 @@ enum ENUM() MikanDepthBufferType
 	MikanDepthBuffer_PACK_DEPTH_RGBA ENUMVALUE_STRING("PACK_DEPTH_RGBA"), 
 };
 
-struct STRUCT() MikanRenderTargetDescriptor
+struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetDescriptor
 {
 	MikanColorBufferType color_buffer_type;
 	MikanDepthBufferType depth_buffer_type;
@@ -101,7 +101,7 @@ struct STRUCT() MikanRenderTargetDescriptor
 #endif // MIKANCORE_REFLECTION_ENABLED
 };
 
-struct STRUCT() MikanClientFrameRendered
+struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientFrameRendered
 {
 	uint64_t frame_index;
 
