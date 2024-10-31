@@ -15,8 +15,9 @@ list(APPEND CLIENT_CODEGEN_INCL_DIRS
   ${ROOT_DIR}/src/ClientCore/Public
   ${ROOT_DIR}/src/Serialization/Public
   ${ROOT_DIR}/src/Utility/
+  ${RFK_GENERATED_ROOT_DIR}/MikanAPI
+  ${RFK_GENERATED_ROOT_DIR}/MikanCore
   ${RFK_GENERATED_ROOT_DIR}/Serialization
-  ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${RFK_INCLUDE_DIR})
 
@@ -52,6 +53,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
           $<TARGET_FILE_DIR:MikanClientCodeGen>)
+  add_custom_command(
+    TARGET MikanClientCodeGen POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanClientCodeGen>)
   add_custom_command(
 	TARGET MikanClientCodeGen POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
