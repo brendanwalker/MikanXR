@@ -32,6 +32,7 @@ target_include_directories(MikanClientCodeGen PUBLIC ${CLIENT_CODEGEN_INCL_DIRS}
 target_link_libraries(MikanClientCodeGen ${CLIENT_CODEGEN_REQ_LIBS})
 target_compile_definitions(MikanClientCodeGen PRIVATE ENABLE_SERIALIZATION_REFLECTION)
 target_compile_definitions(MikanClientCodeGen PRIVATE ENABLE_MIKANAPI_REFLECTION)
+target_compile_definitions(MikanClientCodeGen PRIVATE ENABLE_MIKANCORE_REFLECTION)
 set_target_properties(MikanClientCodeGen PROPERTIES FOLDER ClientAPI)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)

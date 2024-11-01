@@ -54,6 +54,7 @@ set_target_properties(MikanAPI PROPERTIES PUBLIC_HEADER "${MIKAN_CLIENT_API_HEAD
 set_target_properties(MikanAPI PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanAPI PRIVATE MIKAN_API_EXPORTS)
 target_compile_definitions(MikanAPI PRIVATE ENABLE_MIKANAPI_REFLECTION)
+target_compile_definitions(MikanAPI PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(MikanAPI PRIVATE ENABLE_SERIALIZATION_REFLECTION)
 target_compile_definitions(MikanAPI PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
