@@ -5,6 +5,10 @@
 #include "MikanCoreTypes.h"
 #include "SerializableString.h"
 
+#ifdef MIKANCORE_REFLECTION_ENABLED
+#include "MikanCoreTypes.rfkh.h"
+#endif // MIKANCORE_REFLECTION_ENABLED
+
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanAPITypes.rfkh.h"
 #endif // MIKANAPI_REFLECTION_ENABLED
