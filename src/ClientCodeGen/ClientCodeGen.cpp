@@ -98,7 +98,11 @@ struct CodeGenDatabase
 		if (getEntityModuleName(entity, moduleName))
 		{
 			auto it = modules.find(moduleName);
-			if (it == modules.end())
+			if (it != modules.end())
+			{
+				return it->second;
+			}
+			else
 			{
 				ClientModulePtr module = std::make_shared<ClientModule>();
 				module->name = moduleName;
@@ -140,29 +144,10 @@ public:
 				const std::string& moduleName = module.first;
 				ClientModulePtr modulePtr = module.second;
 
-				if (moduleName == "MikanAPI")
+				MIKAN_LOG_INFO("MikanClientCodeGen") << "Generate Code for Module: " << moduleName;
+				if (!generateCodeForModule(modulePtr))
 				{
-					MIKAN_LOG_INFO("MikanClientCodeGen") << "Generate Code for MikanAPI Module";
-					if (!generateCodeForMikanAPIModule(modulePtr))
-					{
-						result = -1;
-					}
-				}
-				else if (moduleName == "MikanCoreTypes")
-				{
-					MIKAN_LOG_INFO("MikanClientCodeGen") << "Generate Code for MikanCoreTypes Module";
-					if (!generateCodeForMikanCoreTypesModule(modulePtr))
-					{
-						result = -1;
-					}
-				}
-				else
-				{
-					MIKAN_LOG_INFO("MikanClientCodeGen") << "Generate Code for Module: " << moduleName;
-					if (!generateCodeForModule(modulePtr))
-					{
-						result = -1;
-					}
+					result = -1;
 				}
 			}
 		}
@@ -261,61 +246,6 @@ protected:
 		}, &codeGenDatabase);
 	}
 
-	bool generateCodeForMikanAPIModule(ClientModulePtr const& module)
-	{
-		std::filesystem::path modulePath = std::filesystem::absolute(m_outputPath / "MikanCoreTypes.cs");
-
-		try
-		{
-			std::ofstream moduleFile(modulePath);
-			moduleFile << "// This file is auto generated. DO NO EDIT." << std::endl;
-			moduleFile << "using System.Runtime.InteropServices;" << std::endl;
-			moduleFile << std::endl;
-			moduleFile << "namespace MikanXR" << std::endl;
-			moduleFile << "{" << std::endl;
-
-			emitModuleEntities(moduleFile, module);
-
-			moduleFile << "}" << std::endl;
-
-		}
-		catch (std::exception* e)
-		{
-			MIKAN_LOG_ERROR("MikanClientCodeGen") << "Failed to write module file: " << modulePath;
-			return false;
-		}
-
-		return true;
-	}
-
-	bool generateCodeForMikanCoreTypesModule(ClientModulePtr const& module)
-	{
-		std::filesystem::path modulePath = std::filesystem::absolute(m_outputPath / "MikanAPI.cs");
-
-		try
-		{
-			std::ofstream moduleFile(modulePath);
-			moduleFile << "// This file is auto generated. DO NO EDIT." << std::endl;
-			moduleFile << "using Newtonsoft.Json;" << std::endl;
-			moduleFile << "using System;" << std::endl;
-			moduleFile << std::endl;
-			moduleFile << "namespace MikanXR" << std::endl;
-			moduleFile << "{" << std::endl;
-
-			emitModuleEntities(moduleFile, module);
-
-			moduleFile << "}" << std::endl;
-
-		}
-		catch (std::exception* e)
-		{
-			MIKAN_LOG_ERROR("MikanClientCodeGen") << "Failed to write module file: " << modulePath;
-			return false;
-		}
-
-		return true;
-	}
-
 	bool generateCodeForModule(ClientModulePtr const& module)
 	{
 		std::string moduleFileName = module->name + ".cs";
@@ -327,6 +257,7 @@ protected:
 			moduleFile << "// This file is auto generated. DO NO EDIT." << std::endl;
 			moduleFile << "using Newtonsoft.Json;" << std::endl;
 			moduleFile << "using System;" << std::endl;
+			moduleFile << "using System.Runtime.InteropServices;" << std::endl;
 			moduleFile << std::endl;
 			moduleFile << "namespace MikanXR" << std::endl;
 			moduleFile << "{" << std::endl;
@@ -335,6 +266,7 @@ protected:
 
 			moduleFile << "}" << std::endl;
 
+			moduleFile.close();
 		}
 		catch (std::exception* e)
 		{
@@ -349,31 +281,31 @@ protected:
 	{
 		if (module->enums.size() > 0)
 		{
-			moduleFile << std::endl;
 			moduleFile << "\t// Enums" << std::endl;
 			for (rfk::Enum const* enumRef : module->enums)
 			{
 				emitEnum(moduleFile, *enumRef);
+				moduleFile << std::endl;
 			}
 		}
 
 		if (module->serializableStructs.size() > 0)
 		{
-			moduleFile << std::endl;
 			moduleFile << "\t// Structs" << std::endl;
 			for (rfk::Struct const* structRef : module->serializableStructs)
 			{
 				emitSerializableStruct(moduleFile, *structRef);
+				moduleFile << std::endl;
 			}
 		}
 
 		if (module->apiClasses.size() > 0)
 		{
-			moduleFile << std::endl;
 			moduleFile << "\t// Classes" << std::endl;
 			for (rfk::Class const* classRef : module->apiClasses)
 			{
 				emitApiClass(moduleFile, *classRef);
+				moduleFile << std::endl;
 			}
 		}
 	}
@@ -404,7 +336,7 @@ protected:
 
 		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
 			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			std::string csharpType= getCSharpType(field.getType());
+			std::string csharpType= getCSharpType(field);
 
 			(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << " { get; set; }" << std::endl;
 			return true;
@@ -424,7 +356,7 @@ protected:
 
 		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
 			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			std::string csharpType = getCSharpType(field.getType());
+			std::string csharpType = getCSharpType(field);
 
 			(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << " { get; set; }" << std::endl;
 			return true;
@@ -442,7 +374,7 @@ protected:
 
 		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
 			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			std::string csharpType= getCSharpType(field.getType());
+			std::string csharpType= getCSharpType(field);
 
 			(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << " { get; set; }" << std::endl;
 			return true;
@@ -459,7 +391,7 @@ protected:
 
 		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
 			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			std::string csharpType = getCSharpType(field.getType());
+			std::string csharpType = getCSharpType(field);
 
 			(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << ";" << std::endl;
 			return true;
@@ -475,29 +407,61 @@ protected:
 
 		enumRef.foreachEnumValue([](rfk::EnumValue const& enumValue, void* userData) -> bool {
 			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			(*moduleFilePtr) << "\t\t" << enumValue.getName() << "," << std::endl;
+
+			// Only emit enum values with a string property
+			auto const* property = enumValue.getProperty<Serialization::EnumStringValue>();
+			if (property != nullptr)
+			{
+				const std::string enumValueString= property->getValue();
+				const int64_t enumInt64Value = enumValue.getValue();
+
+				(*moduleFilePtr) << "\t\t" << enumValueString << "= " << enumInt64Value << "," << std::endl;
+			}
+
 			return true;
 		}, &moduleFile);
 
 		moduleFile << "\t};" << std::endl;
 	}
 
-	static std::string getCSharpType(rfk::Type const& type)
+	static std::string getCSharpType(rfk::Field const& field)
 	{
-		std::string csharpType;
+		rfk::Type const& fieldType = field.getType();
+		rfk::Archetype const* fieldArchetype = fieldType.getArchetype();
+		rfk::EEntityKind fieldArchetypeKind = fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
 
-		const rfk::Archetype* archetype = type.getArchetype();
-		if (archetype != nullptr)
+		if (fieldArchetypeKind == rfk::EEntityKind::Class)
 		{
-			std::string cppType = archetype->getName();
+			rfk::Class const* classType = rfk::classCast(fieldArchetype);
+			std::string cppType = classType->getName();
 
 			if (cppType == "String")
 			{
-				csharpType= "string";
+				return "string";
+			}
+			else
+			{
+				return cppType;
 			}
 		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::Struct)
+		{
+			rfk::Struct const* structType = rfk::structCast(fieldArchetype);
 
-		return csharpType;
+			return structType->getName();
+		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::Enum)
+		{
+			rfk::Enum const* enumType = rfk::enumCast(fieldArchetype);
+
+			return enumType->getName();
+		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::FundamentalArchetype)
+		{
+			return fieldArchetype->getName();
+		}
+
+		return "UNKNOWN_TYPE";
 	}
 
 private:
