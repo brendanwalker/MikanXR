@@ -90,10 +90,15 @@ enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanDepthBufferTy
 
 struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetDescriptor
 {
+	FIELD()
 	MikanColorBufferType color_buffer_type;
+	FIELD()
 	MikanDepthBufferType depth_buffer_type;
+	FIELD()
 	uint32_t width;
+	FIELD()
 	uint32_t height;
+	FIELD()
 	MikanClientGraphicsApi graphicsAPI;
 
 #ifdef MIKANCORE_REFLECTION_ENABLED
@@ -103,6 +108,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetD
 
 struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientFrameRendered
 {
+	FIELD()
 	uint64_t frame_index;
 
 #ifdef MIKANCORE_REFLECTION_ENABLED
