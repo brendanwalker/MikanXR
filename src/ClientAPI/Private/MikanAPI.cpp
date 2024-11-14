@@ -3,16 +3,16 @@
 #include "MikanRequestManager.h"
 #include "MikanRenderTargetAPI.h"
 #include "MikanEventManager.h"
-#include "MikanVideoSourceAPI.h"
-#include "MikanVRDeviceAPI.h"
-#include "MikanScriptAPI.h"
-#include "MikanStencilAPI.h"
-#include "MikanSpatialAnchorAPI.h"
 #include "JsonSerializer.h"
-
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanAPITypes.rfks.h"
+#include "MikanRenderTargetRequests.rfks.h"
+#include "MikanScriptRequests.rfks.h"
+#include "MikanSpatialAnchorRequests.rfks.h"
+#include "MikanVideoSourceRequests.rfks.h"
+#include "MikanStencilRequests.rfks.h"
+#include "MikanVRDeviceRequests.rfks.h"
 #include "MikanEventTypes.rfks.h"
 #include "MikanMathTypes.rfks.h"
 #include "MikanScriptTypes.rfks.h"
@@ -26,14 +26,10 @@ class MikanAPI : public IMikanAPI
 {
 public:
 	MikanAPI()
-		: m_requestManager(std::make_unique<MikanRequestManager>())
+		: m_context(nullptr)
+		, m_requestManager(std::make_unique<MikanRequestManager>())
 		, m_eventManager(std::make_unique<MikanEventManager>())
 		, m_renderTargetAPI(std::make_unique<MikanRenderTargetAPI>(m_requestManager.get()))
-		, m_videoSourceAPI(std::make_unique<MikanVideoSourceAPI>(m_requestManager.get()))
-		, m_vrDeviceAPI(std::make_unique<MikanVRDeviceAPI>(m_requestManager.get()))
-		, m_scriptAPI(std::make_unique<MikanScriptAPI>(m_requestManager.get()))
-		, m_stencilAPI(std::make_unique<MikanStencilAPI>(m_requestManager.get()))
-		, m_spatialAnchorAPI(std::make_unique<MikanSpatialAnchorAPI>(m_requestManager.get()))
 	{
 	}
 
@@ -45,13 +41,19 @@ public:
 	// Initialize the Mikan API
 	virtual MikanResult init(MikanLogLevel min_log_level, MikanLogCallback log_callback) override
 	{
-		MikanResult result = Mikan_Initialize(min_log_level, log_callback);
+		MikanResult result = Mikan_Initialize(min_log_level, log_callback, &m_context);
 		if (result != MikanResult_Success)
 		{
 			return result;
 		}
 
-		result = m_requestManager->init();
+		result = m_eventManager->init(m_context);
+		if (result != MikanResult_Success)
+		{
+			return result;
+		}
+
+		result = m_requestManager->init(m_context);
 		if (result != MikanResult_Success)
 		{
 			return result;
@@ -62,7 +64,7 @@ public:
 
 	virtual bool getIsInitialized() override
 	{
-		return Mikan_GetIsInitialized();
+		return Mikan_GetIsInitialized(m_context);
 	}
 
 	virtual int getCoreSDKVersion() const override
@@ -72,18 +74,31 @@ public:
 
 	virtual std::string getClientUniqueID() const override
 	{
-		return Mikan_GetClientUniqueID();
+		return Mikan_GetClientUniqueID(m_context);
 	}
 
-	// Sub API accessors
-	virtual IMikanRenderTargetAPI* getRenderTargetAPI() const override { return m_renderTargetAPI.get(); }
-	virtual IMikanVideoSourceAPI* getVideoSourceAPI() const override { return m_videoSourceAPI.get(); }
-	virtual IMikanVRDeviceAPI* getVRDeviceAPI() const override { return m_vrDeviceAPI.get(); }
-	virtual IMikanScriptAPI* getScriptAPI() const override { return m_scriptAPI.get(); }
-	virtual IMikanStencilAPI* getStencilAPI() const override { return m_stencilAPI.get(); }
-	virtual IMikanSpatialAnchorAPI* getSpatialAnchorAPI() const override { return m_spatialAnchorAPI.get(); }
+	// Send a request to the Mikan API
+	virtual MikanResponseFuture sendRequest(const MikanRequest& request) override
+	{
+		MikanResponseFuture responseFuture;
+		if (!m_renderTargetAPI->tryProcessRequest(request, responseFuture))
+		{
+			responseFuture= m_requestManager->sendRequest(request);
+		}
+
+		return responseFuture;
+	}
 
 	// Set client properties before calling connect
+	virtual MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) override
+	{
+		return m_renderTargetAPI->setGraphicsDeviceInterface(api, graphicsDeviceInterface);
+	}
+	virtual MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) override
+	{
+		return m_renderTargetAPI->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
+	}
+
 	virtual MikanResult setClientInfo(const MikanClientInfo& inClientInfo) override
 	{
 		MikanClientInfo clientInfo = inClientInfo;
@@ -92,22 +107,20 @@ public:
 
 		std::string clientInfoString;
 		Serialization::serializeToJsonString(clientInfo, clientInfoString);
-		//json clientInfoJson = clientInfo;
-		//const std::string clientInfoString = clientInfoJson.dump();
 
-		return Mikan_SetClientInfo(clientInfoString.c_str());
+		return Mikan_SetClientInfo(m_context, clientInfoString.c_str());
 	}
 
 	virtual MikanResult connect(
 		const std::string& host, 
 		const std::string& port) override
 	{
-		return Mikan_Connect(host.c_str(), port.c_str());
+		return Mikan_Connect(m_context, host.c_str(), port.c_str());
 	}
 
 	virtual bool getIsConnected() override
 	{
-		return Mikan_GetIsConnected();
+		return Mikan_GetIsConnected(m_context);
 	}
 
 	virtual MikanResult fetchNextEvent(MikanEventPtr& out_event) override
@@ -117,24 +130,19 @@ public:
 
 	virtual MikanResult disconnect() override
 	{
-		return Mikan_Disconnect();
+		return Mikan_Disconnect(m_context);
 	}
 
 	virtual MikanResult shutdown() override
 	{
-		return Mikan_Shutdown();
+		return Mikan_Shutdown(&m_context);
 	}
 
 private:
+	MikanContext m_context;
 	std::unique_ptr<MikanRequestManager> m_requestManager;
 	std::unique_ptr<MikanEventManager> m_eventManager;
-
-	std::unique_ptr<IMikanRenderTargetAPI> m_renderTargetAPI;
-	std::unique_ptr<IMikanVideoSourceAPI> m_videoSourceAPI;
-	std::unique_ptr<IMikanVRDeviceAPI> m_vrDeviceAPI;
-	std::unique_ptr<IMikanScriptAPI> m_scriptAPI;
-	std::unique_ptr<IMikanStencilAPI> m_stencilAPI;
-	std::unique_ptr<IMikanSpatialAnchorAPI> m_spatialAnchorAPI;
+	std::unique_ptr<MikanRenderTargetAPI> m_renderTargetAPI;
 };
 
 // -- Mikan API Factory -----

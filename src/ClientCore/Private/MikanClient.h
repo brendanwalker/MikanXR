@@ -1,5 +1,4 @@
-#ifndef MIKAN_CLIENT_H
-#define MIKAN_CLIENT_H
+#pragma once
 
 //-- includes -----
 #include "MikanCoreTypes.h"
@@ -28,22 +27,29 @@ public:
 	MikanResult setTextResponseCallback(MikanTextResponseCallback callback, void* callback_userdata);
 	MikanResult setBinaryResponseCallback(MikanBinaryResponseCallback callback, void* callback_userdata);
 	MikanResult sendRequest(const char* utf8_request_name, const char* utf8_payload, int request_version, MikanRequestID* out_request_id);
+	MikanResult sendRequestJSON(const char* utf8_request_json);
 	MikanResult shutdown();
 
-	MikanResult allocateRenderTargetTextures(
-		const MikanRenderTargetDescriptor& descriptor, 
-		MikanRequestID* out_request_id);
-	MikanResult freeRenderTargetTextures(MikanRequestID* out_request_id);
+	MikanResult allocateRenderTargetTextures(const MikanRenderTargetDescriptor& descriptor);
+	MikanResult getRenderTargetDescriptor(MikanRenderTargetDescriptor& outDescriptor);
+	MikanResult freeRenderTargetTextures();
 	MikanResult writeColorRenderTargetTexture(void* ApiColorTexturePtr);
 	MikanResult writeDepthRenderTargetTexture(void* ApiDepthTexturePtr, float zNear, float zFar);
-	MikanResult publishRenderTargetTextures(const MikanClientFrameRendered& frameInfo);
 	void* getPackDepthTextureResourcePtr() const;
+	MikanResult setGraphicsDeviceInterface(
+		MikanClientGraphicsApi api,
+		void* graphicsDeviceInterface);
+	MikanResult getGraphicsDeviceInterface(
+		MikanClientGraphicsApi api,
+		void** outGraphicsDeviceInterface);
 
 protected:
 	void textResponseHandler(const std::string& utf8ResponseString);
 	void binaryResponseHandler(const uint8_t* buffer, size_t bufferSize);
 
 private:
+	std::array<void*, MikanClientGraphicsApi_COUNT> m_graphicsDeviceInterfaces;
+
 	MikanTextResponseCallback m_textResponseCallback= nullptr;
 	void* m_textResponseCallbackUserData= nullptr;
 	MikanBinaryResponseCallback m_binaryResponseCallback = nullptr;
@@ -55,6 +61,3 @@ private:
 	class IInterprocessMessageClient* m_messageClient;
 	bool m_bIsConnected;
 };
-
-
-#endif // MIKAN_CLIENT_H

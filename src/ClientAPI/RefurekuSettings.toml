@@ -16,7 +16,13 @@ toProcessFiles = [
 	'''./Public/MikanSpatialAnchorTypes.h''',
 	'''./Public/MikanStencilTypes.h''',
 	'''./Public/MikanVideoSourceTypes.h''',
-	'''./Public/MikanVRDeviceTypes.h'''
+	'''./Public/MikanVRDeviceTypes.h''',
+	'''./Public/MikanRenderTargetRequests.h''',
+	'''./Public/MikanScriptRequests.h''',
+	'''./Public/MikanStencilRequests.h''',
+	'''./Public/MikanSpatialAnchorRequests.h''',
+	'''./Public/MikanVideoSourceRequests.h''',
+	'''./Public/MikanVRDeviceRequests.h'''
 ]
 
 # Files contained in the directories of this list will be ignored

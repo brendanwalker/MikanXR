@@ -1,6 +1,7 @@
 
 #include "MikanRenderTargetAPI.h"
 #include "MikanRequestManager.h"
+#include "MikanRenderTargetRequests.h"
 #include "MikanCoreCAPI.h"
 
 MikanRenderTargetAPI::MikanRenderTargetAPI(MikanRequestManager* requestManager)
@@ -11,48 +12,125 @@ MikanResult MikanRenderTargetAPI::setGraphicsDeviceInterface(
 	MikanClientGraphicsApi api,
 	void* graphicsDeviceInterface)
 {
-	return Mikan_SetGraphicsDeviceInterface(api, graphicsDeviceInterface);
+	MikanContext context = m_requestManager->getContext();
+
+	return Mikan_SetGraphicsDeviceInterface(context, api, graphicsDeviceInterface);
 }
 
 MikanResult MikanRenderTargetAPI::getGraphicsDeviceInterface(
 	MikanClientGraphicsApi api,
 	void** outGraphicsDeviceInterface)
 {
-	return Mikan_GetGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
+	MikanContext context = m_requestManager->getContext();
+
+	return Mikan_GetGraphicsDeviceInterface(context, api, outGraphicsDeviceInterface);
+}
+
+bool MikanRenderTargetAPI::tryProcessRequest(const MikanRequest& request, MikanResponseFuture& outFuture)
+{
+	if (request.requestType.getValue() == "allocateRenderTargetTextures")
+	{
+		outFuture = allocateRenderTargetTextures(request);
+		return true;
+	}
+	else if (request.requestType.getValue() == "writeColorRenderTargetTexture")
+	{
+		outFuture = writeColorRenderTargetTexture(request);
+		return true;
+	}
+	else if (request.requestType.getValue() == "writeDepthRenderTargetTexture")
+	{
+		outFuture = writeDepthRenderTargetTexture(request);
+		return true;
+	}
+	else if (request.requestType.getValue() == "publishRenderTargetTextures")
+	{
+		outFuture = publishRenderTargetTextures(request);
+		return true;
+	}
+	else if (request.requestType.getValue() == "freeRenderTargetTextures")
+	{
+		outFuture = freeRenderTargetTextures(request);
+		return true;
+	}
+
+	return false;
 }
 
 MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
-	const MikanRenderTargetDescriptor& descriptor)
+	const MikanRequest& request)
 {
-	MikanRequestID requestId = INVALID_MIKAN_ID;
-	MikanResult result = Mikan_AllocateRenderTargetTextures(&descriptor, &requestId);
+	auto& freeRequest = static_cast<const AllocateRenderTargetTextures&>(request);
+	const MikanRenderTargetDescriptor& descriptor= freeRequest.descriptor;
 
-	return m_requestManager->addResponseHandler(requestId, result);
+	MikanContext context = m_requestManager->getContext();
+
+	// Fetch the cached graphics API interface, if any
+	void* apiInterface = nullptr;
+	if (descriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
+	{
+		getGraphicsDeviceInterface(descriptor.graphicsAPI, &apiInterface);
+	}
+
+	// Create the shared texture
+	MikanResult result = Mikan_AllocateRenderTargetTextures(context, &descriptor);
+	if (result == MikanResult_Success)
+	{
+		// Actual descriptor might differ from desired descriptor based on render target writer's capabilities
+		MikanRenderTargetDescriptor actualDescriptor;
+		result = Mikan_GetRenderTargetDescriptor(context, &actualDescriptor);
+		if (result == MikanResult_Success)
+		{
+			return m_requestManager->sendRequest(freeRequest);
+		}
+	}
+
+	return m_requestManager->addResponseHandler(INVALID_MIKAN_ID, MikanResult_SharedTextureError);
 }
 
-MikanResult MikanRenderTargetAPI::writeColorRenderTargetTexture(void* apiColorTexturePtr)
+MikanResponseFuture MikanRenderTargetAPI::writeColorRenderTargetTexture(
+	const MikanRequest& request)
 {
-	return Mikan_WriteColorRenderTargetTexture(apiColorTexturePtr);
+	auto& writeRequest = static_cast<const WriteColorRenderTargetTexture&>(request);
+	void* apiColorTexturePtr= writeRequest.apiColorTexturePtr;
+
+	MikanContext context = m_requestManager->getContext();
+	MikanResult result= Mikan_WriteColorRenderTargetTexture(context, apiColorTexturePtr);
+
+	return m_requestManager->makeImmediateResponse(result);
 }
 
-MikanResult MikanRenderTargetAPI::writeDepthRenderTargetTexture(
-	void* apiDepthTexturePtr,
-	float zNear, 
-	float zFar)
+MikanResponseFuture MikanRenderTargetAPI::writeDepthRenderTargetTexture(
+	const MikanRequest& request)
 {
-	return Mikan_WriteDepthRenderTargetTexture(apiDepthTexturePtr, zNear, zFar);
+	auto& writeRequest = static_cast<const WriteDepthRenderTargetTexture&>(request);
+	void* apiDepthTexturePtr = writeRequest.apiDepthTexturePtr;
+	float zNear= writeRequest.zNear;
+	float zFar= writeRequest.zFar;
+
+	MikanContext context = m_requestManager->getContext();
+	MikanResult result = Mikan_WriteDepthRenderTargetTexture(context, apiDepthTexturePtr, zNear, zFar);
+
+	return m_requestManager->makeImmediateResponse(result);
 }
 
-MikanResult MikanRenderTargetAPI::publishRenderTargetTextures(
-	MikanClientFrameRendered& frameInfo)
+MikanResponseFuture MikanRenderTargetAPI::publishRenderTargetTextures(
+	const MikanRequest& request)
 {
-	return Mikan_PublishRenderTargetTextures(&frameInfo);
+	auto& publishRequest = static_cast<const PublishRenderTargetTextures&>(request);
+
+	return m_requestManager->sendRequest(publishRequest);
 }
 
-MikanResponseFuture MikanRenderTargetAPI::freeRenderTargetTextures()
+MikanResponseFuture MikanRenderTargetAPI::freeRenderTargetTextures(
+	const MikanRequest& request)
 {
-	MikanRequestID requestId = INVALID_MIKAN_ID;
-	MikanResult result = Mikan_FreeRenderTargetTextures(&requestId);
+	auto& freeRequest = static_cast<const FreeRenderTargetTextures&>(request);
 
-	return m_requestManager->addResponseHandler(requestId, result);
+	// Free any locally allocated resources
+	MikanContext context = m_requestManager->getContext();
+	Mikan_FreeRenderTargetTextures(context);
+
+	// Tell the server to free the render target resources too
+	return m_requestManager->sendRequest(freeRequest);
 }

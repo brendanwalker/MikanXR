@@ -1,5 +1,7 @@
 //-- includes -----
 #include "MikanAPI.h"
+#include "MikanRenderTargetRequests.h"
+#include "MikanVideoSourceRequests.h"
 #include "MikanEventTypes.h"
 #include "MikanMathTypes.h"
 #include "MikanStencilTypes.h"
@@ -406,24 +408,26 @@ protected:
 		{
 			MikanEventPtr event;
 			while (m_mikanApi->fetchNextEvent(event) == MikanResult_Success)
-			{
-				if (event->eventType == MikanConnectedEvent::k_typeName)
+			{														
+				const std::string& eventType= event->eventType.getValue();
+
+				if (eventType == MikanConnectedEvent::k_typeName)
 				{
 					reallocateRenderBuffers();
 					updateCameraProjectionMatrix();
 				}
-				else if (event->eventType == MikanVideoSourceOpenedEvent::k_typeName)
+				else if (eventType == MikanVideoSourceOpenedEvent::k_typeName)
 				{
 					reallocateRenderBuffers();
 					updateCameraProjectionMatrix();
 				}
-				else if (event->eventType == MikanVideoSourceNewFrameEvent::k_typeName)
+				else if (eventType == MikanVideoSourceNewFrameEvent::k_typeName)
 				{
 					auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(event);
 					processNewVideoSourceFrame(*newFrameEvent.get());
 				}
-				else if (event->eventType == MikanVideoSourceModeChangedEvent::k_typeName ||
-						 event->eventType == MikanVideoSourceIntrinsicsChangedEvent::k_typeName)
+				else if (eventType == MikanVideoSourceModeChangedEvent::k_typeName ||
+						 eventType == MikanVideoSourceIntrinsicsChangedEvent::k_typeName)
 				{
 					reallocateRenderBuffers();
 					updateCameraProjectionMatrix();
@@ -464,14 +468,21 @@ protected:
 		// Render out a new frame
 		render();
 
-		// Publish the new video frame back to Mikan
+		// Write the color texture to the shared texture
 		{
 			GLuint textureId = m_textureColorbuffer->getGlTextureId();
-			MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+			WriteColorRenderTargetTexture writeTextureRequest;
 
-			auto renderTargetAPI = m_mikanApi->getRenderTargetAPI();
-			renderTargetAPI->writeColorRenderTargetTexture(&textureId);
-			renderTargetAPI->publishRenderTargetTextures(frameRendered);
+			writeTextureRequest.apiColorTexturePtr = &textureId;
+			m_mikanApi->sendRequest(writeTextureRequest);
+		}
+
+		// Publish the new video frame back to Mikan
+		{
+			PublishRenderTargetTextures frameRendered;
+
+			frameRendered.frameIndex = newFrameEvent.frame;
+			m_mikanApi->sendRequest(frameRendered);
 		}
 
 		// Remember the frame index of the last frame we published
@@ -492,10 +503,12 @@ protected:
 		freeFrameBuffer();
 
 		// Tell the server to free the old render target buffers
-		m_mikanApi->getRenderTargetAPI()->freeRenderTargetTextures().wait();
+		FreeRenderTargetTextures freeRequest;
+		m_mikanApi->sendRequest(freeRequest).wait();
 
 		// Fetch the current video source resolution
-		auto future= m_mikanApi->getVideoSourceAPI()->getVideoSourceMode();
+		GetVideoSourceMode getModeRequest;
+		auto future= m_mikanApi->sendRequest(getModeRequest);
 		auto response= future.get();
 		if (response->resultCode == MikanResult_Success)
 		{
@@ -510,7 +523,9 @@ protected:
 			desc.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
 			// Tell the server to allocate new render target buffers
-			m_mikanApi->getRenderTargetAPI()->allocateRenderTargetTextures(desc).wait();
+			AllocateRenderTargetTextures allocateRequest;
+			allocateRequest.descriptor = desc;
+			m_mikanApi->sendRequest(allocateRequest).wait();
 
 			// Create a new frame buffer to render to
 			createFrameBuffer(mode->resolution_x, mode->resolution_y);
@@ -519,7 +534,8 @@ protected:
 
 	void updateCameraProjectionMatrix()
 	{
-		auto future= m_mikanApi->getVideoSourceAPI()->getVideoSourceIntrinsics();
+		GetVideoSourceIntrinsics intrinsicsRequest;
+		auto future= m_mikanApi->sendRequest(intrinsicsRequest);
 		auto response= future.get();
 
 		if (response->resultCode == MikanResult_Success)

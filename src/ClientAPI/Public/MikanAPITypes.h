@@ -26,9 +26,9 @@ using MikanStencilID = int32_t;
 /// The ID of a spatial anchor
 using MikanSpatialAnchorID = int32_t;
 
-struct STRUCT() MikanRequest
+struct MIKAN_API STRUCT() MikanRequest
 {
-	inline static const std::string k_typeName = "MikanRequest";
+	inline static const char* k_typeName = "MikanRequest";
 
 	FIELD()
 	Serialization::String requestType;
@@ -45,9 +45,9 @@ struct STRUCT() MikanRequest
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct STRUCT() MikanResponse
+struct MIKAN_API STRUCT() MikanResponse
 {
-	inline static const std::string k_typeName = "MikanResponse";
+	inline static const char* k_typeName = "MikanResponse";
 
 	FIELD()
 	Serialization::String responseType;
@@ -72,7 +72,7 @@ struct STRUCT() MikanResponse
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct STRUCT() MikanEvent
+struct MIKAN_API STRUCT() MikanEvent
 {
 	FIELD()
 	Serialization::String eventType;
@@ -85,9 +85,9 @@ struct STRUCT() MikanEvent
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanAPI")) MikanClientInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPI")) MikanClientInfo
 {
-	inline static const std::string k_typeName = "MikanClientInfo";
+	inline static const char* k_typeName = "MikanClientInfo";
 
 	FIELD()
 	Serialization::String clientId;
@@ -120,9 +120,9 @@ struct STRUCT(Serialization::CodeGenModule("MikanAPI")) MikanClientInfo
 };
 
 /// A float RGB color with [0,1] components.
-struct STRUCT() MikanColorRGB
+struct MIKAN_API STRUCT() MikanColorRGB
 {
-	inline static const std::string k_typeName = "MikanColorRGB";
+	inline static const char* k_typeName = "MikanColorRGB";
 
 	FIELD()
 	float r;

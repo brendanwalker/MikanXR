@@ -1,20 +1,24 @@
 #pragma once
 
 #include "MikanAPI.h"
+#include <string>
 
-class MikanRenderTargetAPI : public IMikanRenderTargetAPI
+class MikanRenderTargetAPI
 {
 public:
 	MikanRenderTargetAPI() = default;
 	MikanRenderTargetAPI(class MikanRequestManager* requestManager);
 
-	virtual MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) override;
-	virtual MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) override;
-	virtual MikanResponseFuture allocateRenderTargetTextures(const MikanRenderTargetDescriptor& descriptor) override;
-	virtual MikanResult writeColorRenderTargetTexture(void* apiColorTexturePtr) override;
-	virtual MikanResult writeDepthRenderTargetTexture(void* apiDepthTexturePtr, float zNear, float zFar) override;
-	virtual MikanResult publishRenderTargetTextures(MikanClientFrameRendered& frameInfo) override;
-	virtual MikanResponseFuture freeRenderTargetTextures() override;
+	MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
+	MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
+	bool tryProcessRequest(const MikanRequest& request, MikanResponseFuture& outFuture);
+
+protected:
+	MikanResponseFuture allocateRenderTargetTextures(const MikanRequest& request);
+	MikanResponseFuture writeColorRenderTargetTexture(const MikanRequest& request);
+	MikanResponseFuture writeDepthRenderTargetTexture(const MikanRequest& request);
+	MikanResponseFuture publishRenderTargetTextures(const MikanRequest& request);
+	MikanResponseFuture freeRenderTargetTextures(const MikanRequest& request);
 
 private:
 	class MikanRequestManager* m_requestManager = nullptr;

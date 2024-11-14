@@ -9,14 +9,23 @@
 #include <mutex>
 #include <string>
 
+struct MikanRequest;
+typedef void* MikanContext;
+
 class MikanRequestManager
 {
 public:
 	MikanRequestManager() = default;
 
-	MikanResult init();
+	MikanResult init(MikanContext context);
+	MikanContext getContext() const { return m_context; }
+
+	MikanResponseFuture sendRequest(const MikanRequest& request);
+
+	//TODO: deprecated
 	MikanResponseFuture sendRequest(const std::string& requestType, int version= 0);
 
+	//TODO: deprecated
 	template <typename t_payload_type>
 	MikanResponseFuture sendRequestWithPayload(
 		const std::string& requestType, 
@@ -30,12 +39,14 @@ public:
 		return sendRequestInternal(requestType, payloadString, version);
 	}
 
+	//TODO: deprecated
 	// Specialization for int
 	template<> MikanResponseFuture sendRequestWithPayload<int>(
 		const std::string& requestType,
 		const int& payload,
 		int version);
 
+	//TODO: deprecated
 	// Specialization for std::string
 	template<> MikanResponseFuture sendRequestWithPayload<std::string>(
 		const std::string& requestType,
@@ -43,6 +54,7 @@ public:
 		int version);
 
 	MikanResponseFuture addResponseHandler(MikanRequestID requestId, MikanResult result);
+	MikanResponseFuture makeImmediateResponse(MikanResult result);
 
 protected:
 	MikanResponseFuture sendRequestInternal(
@@ -68,6 +80,8 @@ private:
 	};
 	using PendingRequestPtr = std::shared_ptr<PendingRequest>;
 
+	MikanContext m_context= nullptr;
 	std::map<MikanRequestID, PendingRequestPtr> m_pendingRequests;
 	std::mutex m_pending_request_map_mutex;
+	MikanRequestID m_nextRequestID= 0;
 };

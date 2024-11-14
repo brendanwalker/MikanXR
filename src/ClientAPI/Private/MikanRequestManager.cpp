@@ -7,20 +7,23 @@
 #include "JsonDeserializer.h"
 
 #include <Refureku/Refureku.h>
-
 #include <nlohmann/json.hpp>
+
+#include "assert.h"
 
 using json = nlohmann::json;
 
-MikanResult MikanRequestManager::init()
+MikanResult MikanRequestManager::init(MikanContext context)
 {
-	MikanResult result = Mikan_SetTextResponseCallback(textResponseHanderStatic, this);
+	m_context= context;
+
+	MikanResult result = Mikan_SetTextResponseCallback(context, textResponseHanderStatic, this);
 	if (result != MikanResult_Success)
 	{
 		return result;
 	}
 
-	result = Mikan_SetBinaryResponseCallback(binaryResponseHanderStatic, this);
+	result = Mikan_SetBinaryResponseCallback(context, binaryResponseHanderStatic, this);
 	if (result != MikanResult_Success)
 	{
 		return result;
@@ -29,11 +32,33 @@ MikanResult MikanRequestManager::init()
 	return MikanResult_Success;
 }
 
+MikanResponseFuture MikanRequestManager::sendRequest(const MikanRequest& request)
+{
+	char const* requestType = request.requestType.getValue().c_str();
+	rfk::Struct const* requestStruct = rfk::getDatabase().getFileLevelStructByName(requestType);
+	assert(requestStruct != nullptr);
+
+	std::string	jsonString;
+	Serialization::serializeToJsonString(&request, *requestStruct, jsonString);
+
+	MikanRequestID requestId = m_nextRequestID;
+	m_nextRequestID++;
+
+	MikanResult result =
+		Mikan_SendRequestJSON(
+			m_context,
+			jsonString.c_str());
+
+	return addResponseHandler(requestId, result);
+}
+
+//TODO: deprecated
 MikanResponseFuture MikanRequestManager::sendRequest(const std::string& requestType, int version)
 {
 	return sendRequestInternal(requestType, "", version);
 }
 
+//TODO: deprecated
 // Specialization for int
 template<> MikanResponseFuture MikanRequestManager::sendRequestWithPayload<int>(
 	const std::string& requestType,
@@ -49,6 +74,7 @@ template<> MikanResponseFuture MikanRequestManager::sendRequestWithPayload<int>(
 	return sendRequestInternal(requestType, payloadString, version);
 }
 
+//TODO: deprecated
 // Specialization for std::string
 template<> MikanResponseFuture MikanRequestManager::sendRequestWithPayload<std::string>(
 	const std::string& requestType,
@@ -64,6 +90,7 @@ template<> MikanResponseFuture MikanRequestManager::sendRequestWithPayload<std::
 	return sendRequestInternal(requestType, payloadString, version);
 }
 
+//TODO: deprecated
 MikanResponseFuture MikanRequestManager::sendRequestInternal(
 	const std::string& requestType,
 	const std::string& payloadString,
@@ -72,6 +99,7 @@ MikanResponseFuture MikanRequestManager::sendRequestInternal(
 	MikanRequestID requestId = INVALID_MIKAN_ID;
 	MikanResult result =
 		Mikan_SendRequest(
+			m_context,
 			requestType.c_str(),
 			!payloadString.empty() ? payloadString.c_str() : nullptr,
 			version,
@@ -107,6 +135,21 @@ MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID reque
 
 		promise.set_value(errorResponse);
 	}
+
+	return future;
+}
+
+MikanResponseFuture MikanRequestManager::makeImmediateResponse(MikanResult result)
+{
+	MikanResponsePromise promise;
+	MikanResponseFuture future = promise.get_future();
+
+	auto errorResponse = std::make_shared<MikanResponse>();
+	errorResponse->responseType = MikanResponse::k_typeName;
+	errorResponse->requestId = INVALID_MIKAN_ID;
+	errorResponse->resultCode = result;
+
+	promise.set_value(errorResponse);
 
 	return future;
 }

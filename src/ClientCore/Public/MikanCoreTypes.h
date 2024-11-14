@@ -106,16 +106,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetD
 #endif // MIKANCORE_REFLECTION_ENABLED
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientFrameRendered
-{
-	FIELD()
-	uint64_t frame_index;
-
-#ifdef MIKANCORE_REFLECTION_ENABLED
-	MikanClientFrameRendered_GENERATED
-#endif // MIKANCORE_REFLECTION_ENABLED
-};
-
 // Wrapper Types
 //--------------
 /// The ID of a pending request send to Mikan

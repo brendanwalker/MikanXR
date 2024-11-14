@@ -19,6 +19,11 @@ MikanClient::MikanClient()
 	, m_renderTargetWriter(new InterprocessRenderTargetWriteAccessor(m_clientUniqueID))
 	, m_messageClient(new WebsocketInterprocessMessageClient())
 {
+	for (int i = 0; i < MikanClientGraphicsApi_COUNT; i++)
+	{
+		m_graphicsDeviceInterfaces[i] = nullptr;
+	};
+
 	m_messageClient->setTextResponseHandler([this](const std::string& utf8ResponseString) {
 		textResponseHandler(utf8ResponseString);
 	});
@@ -29,8 +34,8 @@ MikanClient::MikanClient()
 
 MikanClient::~MikanClient()
 {
-    freeRenderTargetTextures(nullptr);
-    delete m_renderTargetWriter;
+	freeRenderTargetTextures();
+	delete m_renderTargetWriter;
 	delete m_messageClient;
 }
 
@@ -83,7 +88,7 @@ MikanResult MikanClient::disconnect()
 	MikanResult resultCode= MikanResult_NotConnected;
 
 	// Free any existing buffer if we called allocate already
-	freeRenderTargetTextures(nullptr);
+	freeRenderTargetTextures();
 
 	if (m_messageClient->getIsConnected())
 	{
@@ -163,6 +168,16 @@ MikanResult MikanClient::sendRequest(
 	return MikanResult_NotConnected;
 }
 
+MikanResult MikanClient::sendRequestJSON(const char* utf8_request_json)
+{
+	if (m_messageClient->getIsConnected())
+	{
+		return m_messageClient->sendRequest(utf8_request_json);
+	}
+
+	return MikanResult_NotConnected;
+}
+
 void MikanClient::textResponseHandler(const std::string& utf8ResponseString)
 {
 	if (m_textResponseCallback != nullptr)
@@ -205,15 +220,13 @@ MikanResult MikanClient::shutdown()
 {
 	ix::uninitNetSystem();
 	log_dispose();
-	freeRenderTargetTextures(nullptr);
 	m_messageClient->disconnect();
 
 	return MikanResult_Success;
 }
 
 MikanResult MikanClient::allocateRenderTargetTextures(
-	const MikanRenderTargetDescriptor& desiredDescriptor,
-	MikanRequestID* out_request_id)
+	const MikanRenderTargetDescriptor& desiredDescriptor)
 {
 	MikanResult resultCode;
 
@@ -221,51 +234,50 @@ MikanResult MikanClient::allocateRenderTargetTextures(
 	void* apiInterface = nullptr;
 	if (desiredDescriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
 	{
-		Mikan_GetGraphicsDeviceInterface(desiredDescriptor.graphicsAPI, &apiInterface);
+		Mikan_GetGraphicsDeviceInterface(this, desiredDescriptor.graphicsAPI, &apiInterface);
 	}
 
-	// Create the shared memory buffer
-	bool bSuccess= false;
-	const bool bEnableFrameCounter= false; // use frameRendered RPC to send frame index
+	// Create the shared texture
+	bool bSuccess = false;
+	const bool bEnableFrameCounter = false; // use frameRendered RPC to send frame index
 	if (m_renderTargetWriter->initialize(&desiredDescriptor, bEnableFrameCounter, apiInterface))
 	{
-		// Actual descriptor might differ from desired descriptor based on render target writer's capabilities
-		const MikanRenderTargetDescriptor* actualDescriptor= m_renderTargetWriter->getRenderTargetDescriptor();
-
-		std::string descriptorString;
-		Serialization::serializeToJsonString(*actualDescriptor, descriptorString);
-
-		resultCode= sendRequest("allocateRenderTargetTextures", descriptorString.c_str(), 0, out_request_id);
+		resultCode = MikanResult_Success;
 	}
 	else
 	{
-		resultCode= MikanResult_SharedTextureError;
+		resultCode = MikanResult_SharedTextureError;
 	}
 
 	return resultCode;
 }
 
-MikanResult MikanClient::freeRenderTargetTextures(MikanRequestID* out_request_id)
+MikanResult MikanClient::getRenderTargetDescriptor(MikanRenderTargetDescriptor& outDescriptor)
 {
-	MikanResult resultCode = MikanResult_Success;
-
-	// Tell the server to free it's existing render target (ignored if there isn't a render target allocated)
-	if (m_messageClient->getIsConnected())
+	const MikanRenderTargetDescriptor* desc= m_renderTargetWriter->getRenderTargetDescriptor();
+	if (desc != nullptr)
 	{
-		resultCode = sendRequest("freeRenderTargetTextures", nullptr, 0, out_request_id);
+		outDescriptor= *desc;
+
+		return MikanResult_Success;
 	}
 
+	return MikanResult_Uninitialized;
+}
+
+MikanResult MikanClient::freeRenderTargetTextures()
+{
 	// Free shared and local memory buffers
 	m_renderTargetWriter->dispose();
 
-	return resultCode;
+	return MikanResult_Success;
 }
 
 MikanResult MikanClient::writeColorRenderTargetTexture(void* apiColorTexturePtr)
 {
 	if (m_renderTargetWriter->writeColorFrameTexture(apiColorTexturePtr))
 	{
-		return MikanResult_Success;	
+		return MikanResult_Success;
 	}
 
 	return MikanResult_SharedTextureError;
@@ -286,16 +298,28 @@ MikanResult MikanClient::writeDepthRenderTargetTexture(void* apiDepthTexturePtr,
 	return MikanResult_SharedTextureError;
 }
 
-MikanResult MikanClient::publishRenderTargetTextures(
-	const MikanClientFrameRendered& frameInfo)
-{
-	std::string frameInfoString;
-	Serialization::serializeToJsonString(frameInfo, frameInfoString);
-
-	return sendRequest("frameRendered", frameInfoString.c_str(), 0, nullptr);
-}
-
 void* MikanClient::getPackDepthTextureResourcePtr() const
 {
 	return m_renderTargetWriter != nullptr ? m_renderTargetWriter->getPackDepthTextureResourcePtr() : nullptr;
+}
+
+MikanResult MikanClient::setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface)
+{
+	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
+		return MikanResult_InvalidAPI;
+
+	m_graphicsDeviceInterfaces[api] = graphicsDeviceInterface;
+
+	return MikanResult_Success;
+}
+
+MikanResult MikanClient::getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface)
+{
+	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
+		return MikanResult_InvalidAPI;
+	if (outGraphicsDeviceInterface == nullptr)
+		return MikanResult_NullParam;
+
+	*outGraphicsDeviceInterface = m_graphicsDeviceInterfaces[api];
+	return MikanResult_Success;
 }

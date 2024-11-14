@@ -8,6 +8,8 @@
 
 #include "Logger.h"
 #include "MikanAPI.h"
+#include "MikanRenderTargetRequests.h"
+#include "MikanVideoSourceRequests.h"
 #include "MikanEventTypes.h"
 #include "MikanMathTypes.h"
 #include "MikanStencilTypes.h"
@@ -151,8 +153,7 @@ bool initMikan()
 		ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 		ClientInfo.supportsRGB24 = true;
 		g_mikanAPI->setClientInfo(ClientInfo);
-
-        g_mikanAPI->getRenderTargetAPI()->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
+        g_mikanAPI->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
 		g_mikanInitialized = true;
 	}
 	else
@@ -177,23 +178,25 @@ void updateMikan()
 		MikanEventPtr event;
 		while (g_mikanAPI->fetchNextEvent(event) == MikanResult_Success)
 		{
-			if (event->eventType == MikanConnectedEvent::k_typeName)
+            const std::string& eventType = event->eventType.getValue();
+
+			if (eventType == MikanConnectedEvent::k_typeName)
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
             }
-			else if (event->eventType == MikanVideoSourceOpenedEvent::k_typeName)
+			else if (eventType == MikanVideoSourceOpenedEvent::k_typeName)
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
             }
-            else if (event->eventType == MikanVideoSourceNewFrameEvent::k_typeName)
+            else if (eventType == MikanVideoSourceNewFrameEvent::k_typeName)
             {
 				auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(event);
 				processNewVideoSourceFrame(*newFrameEvent.get());
             }
-			else if (event->eventType == MikanVideoSourceModeChangedEvent::k_typeName ||
-					 event->eventType == MikanVideoSourceIntrinsicsChangedEvent::k_typeName)
+			else if (eventType == MikanVideoSourceModeChangedEvent::k_typeName ||
+					 eventType == MikanVideoSourceIntrinsicsChangedEvent::k_typeName)
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
@@ -234,14 +237,21 @@ void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEve
 	// Render out a new frame
 	render();
 
-	// Publish the new video frame back to Mikan
-    {
-		MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+	// Write the color texture to the shared texture
+	{
+		WriteColorRenderTargetTexture writeTextureRequest;
 
-        auto renderTargetAPI = g_mikanAPI->getRenderTargetAPI();
-        renderTargetAPI->writeColorRenderTargetTexture(g_renderTargetTexture);
-        renderTargetAPI->publishRenderTargetTextures(frameRendered);
-    }
+		writeTextureRequest.apiColorTexturePtr = g_renderTargetTexture;
+		g_mikanAPI->sendRequest(writeTextureRequest);
+	}
+
+	// Publish the new video frame back to Mikan
+	{
+		PublishRenderTargetTextures frameRendered;
+
+		frameRendered.frameIndex = newFrameEvent.frame;
+		g_mikanAPI->sendRequest(frameRendered);
+	}
 
 	// Remember the frame index of the last frame we published
     g_lastReceivedVideoSourceFrame = newFrameEvent.frame;
@@ -259,9 +269,11 @@ void reallocateRenderBuffers()
 {
 	freeFrameBuffer();
 
-	g_mikanAPI->getRenderTargetAPI()->freeRenderTargetTextures().wait();
+    FreeRenderTargetTextures freeRequest;
+	g_mikanAPI->sendRequest(freeRequest).wait();
 
-	auto future = g_mikanAPI->getVideoSourceAPI()->getVideoSourceMode();
+    GetVideoSourceMode getModeRequest;
+	auto future = g_mikanAPI->sendRequest(getModeRequest);
 	auto response = future.get();
 	if (response->resultCode == MikanResult_Success)
 	{
@@ -276,7 +288,9 @@ void reallocateRenderBuffers()
 		desc.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
 		// Tell the server to allocate new render target buffers
-		g_mikanAPI->getRenderTargetAPI()->allocateRenderTargetTextures(desc).wait();
+        AllocateRenderTargetTextures allocateRequest;
+        allocateRequest.descriptor = desc;
+		g_mikanAPI->sendRequest(allocateRequest).wait();
 
         // Create a new frame buffer to render to
 		createFrameBuffer(mode->resolution_x, mode->resolution_y);
@@ -285,7 +299,8 @@ void reallocateRenderBuffers()
 
 void updateCameraProjectionMatrix()
 {
-	auto future = g_mikanAPI->getVideoSourceAPI()->getVideoSourceIntrinsics();
+    GetVideoSourceIntrinsics getIntrinsicsRequest;
+	auto future = g_mikanAPI->sendRequest(getIntrinsicsRequest);
 	auto response = future.get();
 
 	if (response->resultCode == MikanResult_Success)

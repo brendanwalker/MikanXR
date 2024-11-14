@@ -11,13 +11,19 @@
 
 using json = nlohmann::json;
 
+MikanResult MikanEventManager::init(MikanContext context)
+{
+	m_context = context;
+
+	return MikanResult_Success;
+}
 
 MikanResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
 {
 	char utf8Buffer[1024];
 	size_t utf8BytesWritten = 0;
 
-	MikanResult result = Mikan_FetchNextEvent(sizeof(utf8Buffer), utf8Buffer, &utf8BytesWritten);
+	MikanResult result = Mikan_FetchNextEvent(m_context, sizeof(utf8Buffer), utf8Buffer, &utf8BytesWritten);
 	if (result == MikanResult_Success)
 	{
 		out_event = parseEventString(utf8Buffer);

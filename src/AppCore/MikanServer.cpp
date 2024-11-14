@@ -11,6 +11,12 @@
 #include "Logger.h"
 #include "MikanAPITypes.h"
 #include "MikanCoreTypes.h"
+#include "MikanRenderTargetRequests.h"
+#include "MikanScriptRequests.h"
+#include "MikanSpatialAnchorRequests.h"
+#include "MikanStencilRequests.h"
+#include "MikanVideoSourceRequests.h"
+#include "MikanVRDeviceRequests.h"
 #include "MikanScriptTypes.h"
 #include "MikanServer.h"
 #include "ModelStencilComponent.h"
@@ -88,11 +94,11 @@ public:
 		return m_connectionInfo.clientInfo;
 	}
 
-	bool readRenderTargetTextures(const MikanClientFrameRendered& frameInfo)
+	bool readRenderTargetTextures(const uint64_t newFrameIndex)
 	{
 		EASY_FUNCTION();
 
-		return m_connectionInfo.renderTargetReadAccessor->readRenderTargetTextures(frameInfo);
+		return m_connectionInfo.renderTargetReadAccessor->readRenderTargetTextures(newFrameIndex);
 	}
 
 	InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const
@@ -334,29 +340,42 @@ bool MikanServer::startup()
 		return false;
 	}
 
+	// Client Connection Requests
 	m_messageServer->setRequestHandler("connect", std::bind(&MikanServer::connectHandler, this, _1, _2));
 	m_messageServer->setRequestHandler("disconnect", std::bind(&MikanServer::disconnectHandler, this, _1, _2));
-	m_messageServer->setRequestHandler("invokeScriptMessageHandler", std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
-	m_messageServer->setRequestHandler("getVideoSourceIntrinsics", std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
-	m_messageServer->setRequestHandler("getVideoSourceMode", std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));	
-	m_messageServer->setRequestHandler("getVRDeviceList", std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
-	m_messageServer->setRequestHandler("getVideoSourceAttachment", std::bind(&MikanServer::getVideoSourceAttachment, this, _1, _2));
-	m_messageServer->setRequestHandler("getVRDeviceInfo", std::bind(&MikanServer::getVRDeviceInfo, this, _1, _2));
-	m_messageServer->setRequestHandler("subscribeToVRDevicePoseUpdates", std::bind(&MikanServer::subscribeToVRDevicePoseUpdates, this, _1, _2));
-	m_messageServer->setRequestHandler("unsubscribeFromVRDevicePoseUpdates", std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
-	m_messageServer->setRequestHandler("allocateRenderTargetTextures", std::bind(&MikanServer::allocateRenderTargetTextures, this, _1, _2));
-	m_messageServer->setRequestHandler("freeRenderTargetTextures", std::bind(&MikanServer::freeRenderTargetTextures, this, _1, _2));
-	m_messageServer->setRequestHandler("frameRendered", std::bind(&MikanServer::frameRendered, this, _1, _2));	
-	m_messageServer->setRequestHandler("getQuadStencilList", std::bind(&MikanServer::getQuadStencilList, this, _1, _2));
-	m_messageServer->setRequestHandler("getQuadStencil", std::bind(&MikanServer::getQuadStencil, this, _1, _2));
-	m_messageServer->setRequestHandler("getBoxStencilList", std::bind(&MikanServer::getBoxStencilList, this, _1, _2));
-	m_messageServer->setRequestHandler("getBoxStencil", std::bind(&MikanServer::getBoxStencil, this, _1, _2));
-	m_messageServer->setRequestHandler("getModelStencilList", std::bind(&MikanServer::getModelStencilList, this, _1, _2));
-	m_messageServer->setRequestHandler("getModelStencil", std::bind(&MikanServer::getModelStencil, this, _1, _2));
-	m_messageServer->setRequestHandler("getModelStencilRenderGeometry", std::bind(&MikanServer::getModelStencilRenderGeometry, this, _1, _2));	
-	m_messageServer->setRequestHandler("getSpatialAnchorList", std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
-	m_messageServer->setRequestHandler("getSpatialAnchorInfo", std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
-	m_messageServer->setRequestHandler("findSpatialAnchorInfoByName", std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));
+
+	// Render Target Requests
+	m_messageServer->setRequestHandler(AllocateRenderTargetTextures::k_typeName, std::bind(&MikanServer::allocateRenderTargetTextures, this, _1, _2));
+	m_messageServer->setRequestHandler(FreeRenderTargetTextures::k_typeName, std::bind(&MikanServer::freeRenderTargetTextures, this, _1, _2));
+	m_messageServer->setRequestHandler(PublishRenderTargetTextures::k_typeName, std::bind(&MikanServer::frameRendered, this, _1, _2));
+
+	// Script Requests	
+	m_messageServer->setRequestHandler(SendScriptMessage::k_typeName, std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
+
+	// Spatial Anchor Requests
+	m_messageServer->setRequestHandler(GetSpatialAnchorList::k_typeName, std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
+	m_messageServer->setRequestHandler(GetSpatialAnchorInfo::k_typeName, std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
+	m_messageServer->setRequestHandler(FindSpatialAnchorInfoByName::k_typeName, std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));
+
+	// Stencil Requests
+	m_messageServer->setRequestHandler(GetQuadStencilList::k_typeName, std::bind(&MikanServer::getQuadStencilList, this, _1, _2));
+	m_messageServer->setRequestHandler(GetQuadStencil::k_typeName, std::bind(&MikanServer::getQuadStencil, this, _1, _2));
+	m_messageServer->setRequestHandler(GetBoxStencilList::k_typeName, std::bind(&MikanServer::getBoxStencilList, this, _1, _2));
+	m_messageServer->setRequestHandler(GetBoxStencil::k_typeName, std::bind(&MikanServer::getBoxStencil, this, _1, _2));
+	m_messageServer->setRequestHandler(GetModelStencilList::k_typeName, std::bind(&MikanServer::getModelStencilList, this, _1, _2));
+	m_messageServer->setRequestHandler(GetModelStencil::k_typeName, std::bind(&MikanServer::getModelStencil, this, _1, _2));
+	m_messageServer->setRequestHandler(GetModelStencilRenderGeometry::k_typeName, std::bind(&MikanServer::getModelStencilRenderGeometry, this, _1, _2));
+
+	// Video Source Requests
+	m_messageServer->setRequestHandler(GetVideoSourceIntrinsics::k_typeName, std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
+	m_messageServer->setRequestHandler(GetVideoSourceMode::k_typeName, std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));
+	m_messageServer->setRequestHandler(GetVideoSourceAttachment::k_typeName, std::bind(&MikanServer::getVideoSourceAttachment, this, _1, _2));
+
+	// VR Device Requests
+	m_messageServer->setRequestHandler(GetVRDeviceList::k_typeName, std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
+	m_messageServer->setRequestHandler(GetVRDeviceInfo::k_typeName, std::bind(&MikanServer::getVRDeviceInfo, this, _1, _2));
+	m_messageServer->setRequestHandler(SubscribeToVRDevicePoseUpdates::k_typeName, std::bind(&MikanServer::subscribeToVRDevicePoseUpdates, this, _1, _2));
+	m_messageServer->setRequestHandler(UnsubscribeFromVRDevicePoseUpdates::k_typeName, std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
 
 	VRDeviceManager::getInstance()->OnDeviceListChanged += MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
 	VRDeviceManager::getInstance()->OnDevicePosesChanged += MakeDelegate(this, &MikanServer::publishVRDevicePoses);
@@ -631,42 +650,6 @@ bool readRequestPayload(const std::string& utf8RequestString, t_mikan_type& outP
 	return true;
 }
 
-template<>
-bool readRequestPayload(const std::string& utf8RequestString, int32_t& outParameters)
-{
-	try
-	{
-		json j = json::parse(utf8RequestString);
-
-		outParameters = j["payload"].get<int32_t>();
-	}
-	catch (json::exception& e)
-	{
-		MIKAN_LOG_ERROR("MikanServer::readRequestPayload") << "Failed to parse JSON: " << e.what();
-		return false;
-	}
-
-	return true;
-}
-
-template<>
-bool readRequestPayload(const std::string& utf8RequestString, std::string& outParameters)
-{
-	try
-	{
-		json j = json::parse(utf8RequestString);
-
-		outParameters = j["payload"].get<std::string>();
-	}
-	catch (json::exception& e)
-	{
-		MIKAN_LOG_ERROR("MikanServer::readRequestPayload") << "Failed to parse JSON: " << e.what();
-		return false;
-	}
-
-	return true;
-}
-
 template <typename t_mikan_type>
 void writeTypedJsonResponse(MikanRequestID requestId, t_mikan_type& result, ClientResponse& response)
 {
@@ -808,8 +791,8 @@ void MikanServer::invokeScriptMessageHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanScriptMessageInfo messageInfo;
-	if (!readRequestPayload(request.utf8RequestString, messageInfo))
+	SendScriptMessage scriptMessageRequest;
+	if (!readRequestPayload(request.utf8RequestString, scriptMessageRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -822,7 +805,7 @@ void MikanServer::invokeScriptMessageHandler(
 
 		if (scriptContext == scriptContext)
 		{
-			if (scriptContext->invokeScriptMessageHandler(messageInfo.content.getValue()))
+			if (scriptContext->invokeScriptMessageHandler(scriptMessageRequest.message.content.getValue()))
 			{
 				break;
 			}
@@ -937,7 +920,6 @@ void MikanServer::getVRDeviceList(
 	VRDeviceList deviceList= VRDeviceManager::getInstance()->getVRDeviceList();
 
 	MikanVRDeviceList vrDeviceListResult= {};
-
 	for (VRDeviceViewPtr deviceView : deviceList)
 	{
 		vrDeviceListResult.vr_device_id_list.push_back(deviceView->getDeviceID());
@@ -950,14 +932,14 @@ void MikanServer::getVRDeviceInfo(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanVRDeviceID deviceId;
-	if (!readRequestPayload(request.utf8RequestString, deviceId))
+	GetVRDeviceInfo deviceRequest;
+	if (!readRequestPayload(request.utf8RequestString, deviceRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
-	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewById(deviceId);
+	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewById(deviceRequest.deviceId);
 	if (!vrDeviceView)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_InvalidDeviceId, response);
@@ -998,8 +980,8 @@ void MikanServer::subscribeToVRDevicePoseUpdates(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanVRDeviceID deviceId;
-	if (!readRequestPayload(request.utf8RequestString, deviceId))
+	SubscribeToVRDevicePoseUpdates deviceRequest;
+	if (!readRequestPayload(request.utf8RequestString, deviceRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1013,7 +995,7 @@ void MikanServer::subscribeToVRDevicePoseUpdates(
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
-	clientState->subscribeToVRDevicePoseUpdates(deviceId);
+	clientState->subscribeToVRDevicePoseUpdates(deviceRequest.deviceId);
 	writeSimpleJsonResponse(request.requestId, MikanResult_Success, response);
 }
 
@@ -1021,8 +1003,8 @@ void MikanServer::unsubscribeFromVRDevicePoseUpdates(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanVRDeviceID deviceId;
-	if (!readRequestPayload(request.utf8RequestString, deviceId))
+	UnsubscribeFromVRDevicePoseUpdates deviceRequest;
+	if (!readRequestPayload(request.utf8RequestString, deviceRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1036,7 +1018,7 @@ void MikanServer::unsubscribeFromVRDevicePoseUpdates(
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
-	clientState->unsubscribeFromVRDevicePoseUpdates(deviceId);
+	clientState->unsubscribeFromVRDevicePoseUpdates(deviceRequest.deviceId);
 	writeSimpleJsonResponse(request.requestId, MikanResult_Success, response);
 }
 
@@ -1044,8 +1026,8 @@ void MikanServer::allocateRenderTargetTextures(
 	const ClientRequest& request,
 	ClientResponse& response)
 {	
-	MikanRenderTargetDescriptor desc;
-	if (!readRequestPayload(request.utf8RequestString, desc))
+	AllocateRenderTargetTextures allocateRequest;
+	if (!readRequestPayload(request.utf8RequestString, allocateRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1059,7 +1041,7 @@ void MikanServer::allocateRenderTargetTextures(
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
-	if (clientState->allocateRenderTargetTextures(desc))
+	if (clientState->allocateRenderTargetTextures(allocateRequest.descriptor))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_Success, response);
 	}
@@ -1098,8 +1080,8 @@ void MikanServer::frameRendered(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanClientFrameRendered frameInfo = {};
-	if (!readRequestPayload(request.utf8RequestString, frameInfo))
+	PublishRenderTargetTextures frameRenderedRequest = {};
+	if (!readRequestPayload(request.utf8RequestString, frameRenderedRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1113,9 +1095,9 @@ void MikanServer::frameRendered(
 		{
 			MikanClientConnectionStatePtr clientState = connection_it->second;
 
-			if (clientState->readRenderTargetTextures(frameInfo))
+			if (clientState->readRenderTargetTextures(frameRenderedRequest.frameIndex))
 			{
-				OnClientRenderTargetUpdated(clientState->getClientId(), frameInfo.frame_index);
+				OnClientRenderTargetUpdated(clientState->getClientId(), frameRenderedRequest.frameIndex);
 			}
 		}
 
@@ -1146,15 +1128,15 @@ void MikanServer::getQuadStencil(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanStencilID stencilId;
-	if (!readRequestPayload(request.utf8RequestString, stencilId))
+	GetQuadStencil stencilRequest;
+	if (!readRequestPayload(request.utf8RequestString, stencilRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
-	auto quadConfig= stencilSystemConfig->getQuadStencilConfigConst(stencilId);
+	auto quadConfig= stencilSystemConfig->getQuadStencilConfigConst(stencilRequest.stencilId);
 	if (quadConfig != nullptr)
 	{
 		MikanStencilQuadInfo stencil= quadConfig->getQuadInfo();
@@ -1186,15 +1168,15 @@ void MikanServer::getBoxStencil(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanStencilID stencilId;
-	if (!readRequestPayload(request.utf8RequestString, stencilId))
+	GetBoxStencil stencilRequest;
+	if (!readRequestPayload(request.utf8RequestString, stencilRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
-	auto boxConfig = stencilSystemConfig->getBoxStencilConfigConst(stencilId);
+	auto boxConfig = stencilSystemConfig->getBoxStencilConfigConst(stencilRequest.stencilId);
 	if (boxConfig != nullptr)
 	{
 		MikanStencilBoxInfo stencil = boxConfig->getBoxInfo();
@@ -1226,15 +1208,15 @@ void MikanServer::getModelStencil(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanStencilID stencilId;
-	if (!readRequestPayload(request.utf8RequestString, stencilId))
+	GetModelStencil stencilRequest;
+	if (!readRequestPayload(request.utf8RequestString, stencilRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
-	auto modelConfig = stencilSystemConfig->getModelStencilConfigConst(stencilId);
+	auto modelConfig = stencilSystemConfig->getModelStencilConfigConst(stencilRequest.stencilId);
 	if (modelConfig != nullptr)
 	{
 		MikanStencilModelInfo stencil = modelConfig->getModelInfo();
@@ -1249,14 +1231,15 @@ void MikanServer::getModelStencil(
 
 void MikanServer::getModelStencilRenderGeometry(const ClientRequest& request, ClientResponse& response)
 {
-	MikanStencilID stencilId;
-	if (!readRequestPayload(request.utf8RequestString, stencilId))
+	GetModelStencilRenderGeometry stencilRequest;
+	if (!readRequestPayload(request.utf8RequestString, stencilRequest))
 	{
 		writeSimpleBinaryResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
-	ModelStencilComponentPtr modelStencil= StencilObjectSystem::getSystem()->getModelStencilById(stencilId);
+	ModelStencilComponentPtr modelStencil= 
+		StencilObjectSystem::getSystem()->getModelStencilById(stencilRequest.stencilId);
 	if (modelStencil)
 	{
 		MikanStencilModelRenderGeometry renderGeometry = {};
@@ -1289,14 +1272,14 @@ void MikanServer::getSpatialAnchorInfo(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanSpatialAnchorID anchorId;
-	if (!readRequestPayload(request.utf8RequestString, anchorId))
+	GetSpatialAnchorInfo anchorRequest;
+	if (!readRequestPayload(request.utf8RequestString, anchorRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
-	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
+	AnchorComponentPtr anchorPtr= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorRequest.anchorId);
 	if (anchorPtr == nullptr)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_InvalidAnchorID, response);
@@ -1313,14 +1296,15 @@ void MikanServer::findSpatialAnchorInfoByName(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	std::string nameBuffer;
-	if (!readRequestPayload(request.utf8RequestString, nameBuffer))
+	FindSpatialAnchorInfoByName anchorRequest;
+	if (!readRequestPayload(request.utf8RequestString, anchorRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
 	}
 
-	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorByName(nameBuffer);
+	const std::string& anchorName= anchorRequest.anchorName.getValue();
+	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorByName(anchorName);
 	if (anchorPtr == nullptr)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_InvalidAnchorID, response);
