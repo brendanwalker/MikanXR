@@ -823,10 +823,10 @@ void MikanServer::getVideoSourceIntrinsics(
 
 	if (videoSourceView)
 	{
-		MikanVideoSourceIntrinsics intrinsics;
-		videoSourceView->getCameraIntrinsics(intrinsics);
+		MikanVideoSourceIntrinsicsResponse intrinsicsResponse;
+		videoSourceView->getCameraIntrinsics(intrinsicsResponse.intrinsics);
 
-		writeTypedJsonResponse(request.requestId, intrinsics, response);
+		writeTypedJsonResponse(request.requestId, intrinsicsResponse, response);
 	}
 	else
 	{
@@ -846,7 +846,7 @@ void MikanServer::getVideoSourceMode(
 		const IVideoSourceInterface::eDriverType driverType= videoSourceView->getVideoSourceDriverType();
 		const VideoModeConfig* modeConfig= videoSourceView->getVideoMode();
 
-		MikanVideoSourceMode info;
+		MikanVideoSourceModeResponse info;
 		info.device_path = devicePath;
 		info.frame_rate = modeConfig->frameRate;
 		info.resolution_x = modeConfig->bufferPixelWidth;
@@ -887,7 +887,7 @@ void MikanServer::getVideoSourceAttachment(
 
 		if (vrDeviceView)
 		{
-			MikanVideoSourceAttachmentInfo info;
+			MikanVideoSourceAttachmentInfoResponse info;
 
 			// Get the ID of the VR tracker device
 			info.attached_vr_device_id = (vrDeviceView) ? vrDeviceView->getDeviceID() : INVALID_MIKAN_ID;
@@ -919,7 +919,7 @@ void MikanServer::getVRDeviceList(
 {
 	VRDeviceList deviceList= VRDeviceManager::getInstance()->getVRDeviceList();
 
-	MikanVRDeviceList vrDeviceListResult= {};
+	MikanVRDeviceListResponse vrDeviceListResult= {};
 	for (VRDeviceViewPtr deviceView : deviceList)
 	{
 		vrDeviceListResult.vr_device_id_list.push_back(deviceView->getDeviceID());
@@ -946,7 +946,8 @@ void MikanServer::getVRDeviceInfo(
 		return;
 	}
 
-	MikanVRDeviceInfo info= {};
+	MikanVRDeviceInfoResponse infoResponse= {};
+	MikanVRDeviceInfo& info= infoResponse.vr_device_info;
 	info.device_path= vrDeviceView->getDevicePath();
 
 	switch (vrDeviceView->getVRTrackerDriverType())
@@ -973,7 +974,7 @@ void MikanServer::getVRDeviceInfo(
 		info.vr_device_type= MikanVRDeviceType_INVALID;
 	}
 
-	writeTypedJsonResponse(request.requestId, info, response);
+	writeTypedJsonResponse(request.requestId, infoResponse, response);
 }
 
 void MikanServer::subscribeToVRDevicePoseUpdates(
@@ -1113,7 +1114,7 @@ void MikanServer::getQuadStencilList(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanStencilList stencilListResult = {};
+	MikanStencilListResponse stencilListResult = {};
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
 	for (QuadStencilDefinitionPtr quadConfig : stencilSystemConfig->quadStencilList)
@@ -1139,9 +1140,10 @@ void MikanServer::getQuadStencil(
 	auto quadConfig= stencilSystemConfig->getQuadStencilConfigConst(stencilRequest.stencilId);
 	if (quadConfig != nullptr)
 	{
-		MikanStencilQuadInfo stencil= quadConfig->getQuadInfo();
+		MikanStencilQuadInfoResponse stencilResponse= {};
+		stencilResponse.quad_info= quadConfig->getQuadInfo();
 
-		writeTypedJsonResponse(request.requestId, stencil, response);
+		writeTypedJsonResponse(request.requestId, stencilResponse, response);
 	}
 	else
 	{
@@ -1153,7 +1155,7 @@ void MikanServer::getBoxStencilList(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanStencilList stencilListResult = {};
+	MikanStencilListResponse stencilListResult = {};
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
 	for (BoxStencilDefinitionPtr boxConfig : stencilSystemConfig->boxStencilList)
@@ -1179,9 +1181,10 @@ void MikanServer::getBoxStencil(
 	auto boxConfig = stencilSystemConfig->getBoxStencilConfigConst(stencilRequest.stencilId);
 	if (boxConfig != nullptr)
 	{
-		MikanStencilBoxInfo stencil = boxConfig->getBoxInfo();
+		MikanStencilBoxInfoResponse stencilResponse;
+		stencilResponse.box_info = boxConfig->getBoxInfo();
 
-		writeTypedJsonResponse(request.requestId, stencil, response);
+		writeTypedJsonResponse(request.requestId, stencilResponse, response);
 	}
 	else
 	{
@@ -1193,7 +1196,7 @@ void MikanServer::getModelStencilList(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanStencilList stencilListResult = {};
+	MikanStencilListResponse stencilListResult = {};
 
 	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
 	for (ModelStencilDefinitionPtr modelConfig : stencilSystemConfig->modelStencilList)
@@ -1219,9 +1222,10 @@ void MikanServer::getModelStencil(
 	auto modelConfig = stencilSystemConfig->getModelStencilConfigConst(stencilRequest.stencilId);
 	if (modelConfig != nullptr)
 	{
-		MikanStencilModelInfo stencil = modelConfig->getModelInfo();
+		MikanStencilModelInfoResponse stencilResponse = {};
+		stencilResponse.model_info = modelConfig->getModelInfo();
 
-		writeTypedJsonResponse(request.requestId, stencil, response);
+		writeTypedJsonResponse(request.requestId, stencilResponse, response);
 	}
 	else
 	{
@@ -1242,10 +1246,10 @@ void MikanServer::getModelStencilRenderGeometry(const ClientRequest& request, Cl
 		StencilObjectSystem::getSystem()->getModelStencilById(stencilRequest.stencilId);
 	if (modelStencil)
 	{
-		MikanStencilModelRenderGeometry renderGeometry = {};
-		modelStencil->extractRenderGeometry(renderGeometry);
+		MikanStencilModelRenderGeometryResponse renderGeometryResponse = {};
+		modelStencil->extractRenderGeometry(renderGeometryResponse.render_geometry);
 
-		writeTypedBinaryResponse(request.requestId, renderGeometry, response);
+		writeTypedBinaryResponse(request.requestId, renderGeometryResponse, response);
 	}
 	else
 	{
@@ -1257,7 +1261,7 @@ void MikanServer::getSpatialAnchorList(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	MikanSpatialAnchorList anchorListResult= {};
+	MikanSpatialAnchorListResponse anchorListResult= {};
 
 	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
 	for (AnchorDefinitionPtr spatialAnchor : anchorSystemConfig->spatialAnchorList)
@@ -1286,10 +1290,10 @@ void MikanServer::getSpatialAnchorInfo(
 		return;
 	}
 	
-	MikanSpatialAnchorInfo anchorInfo;
-	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
+	MikanSpatialAnchorInfoResponse anchorInfoResponse = {};
+	anchorPtr->extractAnchorInfoForClientAPI(anchorInfoResponse.anchor_info);
 
-	writeTypedJsonResponse(request.requestId, anchorInfo, response);
+	writeTypedJsonResponse(request.requestId, anchorInfoResponse, response);
 }
 
 void MikanServer::findSpatialAnchorInfoByName(
@@ -1311,8 +1315,8 @@ void MikanServer::findSpatialAnchorInfoByName(
 		return;
 	}
 
-	MikanSpatialAnchorInfo anchorInfo;
-	anchorPtr->extractAnchorInfoForClientAPI(anchorInfo);
+	MikanSpatialAnchorInfoResponse anchorInfoResponse = {};
+	anchorPtr->extractAnchorInfoForClientAPI(anchorInfoResponse.anchor_info);
 
-	writeTypedJsonResponse(request.requestId, anchorInfo, response);
+	writeTypedJsonResponse(request.requestId, anchorInfoResponse, response);
 }

@@ -10,33 +10,14 @@
 #include "MikanSpatialAnchorTypes.rfkh.h"
 #endif
 
-// Spatial Anchor Response Types
-struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorTypes")) MikanSpatialAnchorList : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorTypes")) MikanSpatialAnchorInfo
 {
-	inline static const std::string k_typeName = "MikanSpatialAnchorList";
-
-	FIELD()
-	Serialization::List<MikanSpatialAnchorID> spatial_anchor_id_list;
-
-	MikanSpatialAnchorList() : MikanResponse(k_typeName) {}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanSpatialAnchorList_GENERATED
-	#endif
-};
-
-struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorTypes")) MikanSpatialAnchorInfo : public MikanResponse
-{
-	inline static const std::string k_typeName = "MikanSpatialAnchorInfo";
-
 	FIELD()
 	MikanSpatialAnchorID anchor_id;
 	FIELD()
 	MikanTransform world_transform; // Transform in tracking system space
 	FIELD()
 	Serialization::String anchor_name;
-
-	MikanSpatialAnchorInfo() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSpatialAnchorInfo_GENERATED

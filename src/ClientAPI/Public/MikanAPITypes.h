@@ -15,17 +15,6 @@
 
 #include <string>
 
-#define INVALID_MIKAN_ID				-1
-
-/// The ID of a VR Device
-using MikanVRDeviceID = int32_t;
-
-/// The ID of a stencil
-using MikanStencilID = int32_t;
-
-/// The ID of a spatial anchor
-using MikanSpatialAnchorID = int32_t;
-
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequest
 {
 	inline static const char* k_typeName = "MikanRequest";
@@ -74,6 +63,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanResp
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanEvent
 {
+	inline static const char* k_typeName = "MikanEvent";
+
 	FIELD()
 	Serialization::String eventType;
 
@@ -87,8 +78,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanEven
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanClientInfo
 {
-	inline static const char* k_typeName = "MikanClientInfo";
-
 	FIELD()
 	Serialization::String clientId;
 	FIELD()
@@ -116,23 +105,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanClie
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanClientInfo_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
-};
-
-/// A float RGB color with [0,1] components.
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanColorRGB
-{
-	inline static const char* k_typeName = "MikanColorRGB";
-
-	FIELD()
-	float r;
-	FIELD()
-	float g;
-	FIELD()
-	float b;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanColorRGB_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 

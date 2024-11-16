@@ -144,10 +144,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanStereo
 };
 
 /// Bundle containing all intrinsic video source properties
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceIntrinsics : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceIntrinsics
 {
-	inline static const std::string k_typeName = "MikanVideoSourceIntrinsics";
-
 	FIELD()
 	Serialization::ObjectPtr<MikanCameraIntrinsics> intrinsics_ptr;
 
@@ -155,8 +153,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoS
 	MikanIntrinsicsType intrinsics_type;
 
 	MikanVideoSourceIntrinsics() 
-		: MikanResponse(k_typeName) 
-		, intrinsics_ptr()
+		: intrinsics_ptr()
 		, intrinsics_type(INVALID_CAMERA_INTRINSICS)
 	{}
 
@@ -201,50 +198,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoS
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceIntrinsics_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
-};
-
-/// Static properties 
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceAttachmentInfo : public MikanResponse
-{
-	inline static const std::string k_typeName = "MikanVideoSourceAttachmentInfo";
-
-	FIELD()
-	MikanVRDeviceID attached_vr_device_id;
-	FIELD()
-	MikanMatrix4f vr_device_offset_xform;
-
-	MikanVideoSourceAttachmentInfo() : MikanResponse(k_typeName) {}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVideoSourceAttachmentInfo_GENERATED
-	#endif
-};
-
-/// Static properties about a video source
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceMode : public MikanResponse
-{
-	inline static const std::string k_typeName = "MikanVideoSourceMode";
-
-	FIELD()
-	MikanVideoSourceType video_source_type;
-	FIELD()
-	MikanVideoSourceApi video_source_api;
-	FIELD()
-	Serialization::String device_path;
-	FIELD()
-	Serialization::String video_mode_name;
-	FIELD()
-	int32_t resolution_x;
-	FIELD()
-	int32_t resolution_y;
-	FIELD()
-	float frame_rate;
-
-	MikanVideoSourceMode() : MikanResponse(k_typeName) {}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVideoSourceMode_GENERATED
-	#endif
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

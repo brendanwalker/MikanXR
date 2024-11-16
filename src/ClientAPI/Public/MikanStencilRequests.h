@@ -9,6 +9,9 @@
 #include "MikanStencilRequests.rfkh.h"
 #endif
 
+// Stencil Request Types
+// ------
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) GetQuadStencilList :
 	public MikanRequest
 {
@@ -102,6 +105,84 @@ public:
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetModelStencilRenderGeometry_GENERATED
+	#endif
+};
+
+// Stencil Response Types
+// ------
+
+struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilQuadInfoResponse : 
+	public MikanResponse
+{
+	inline static const std::string k_typeName = "MikanStencilQuadInfoResponse";
+
+	FIELD()
+	MikanStencilQuadInfo quad_info; 
+
+	MikanStencilQuadInfoResponse() : MikanResponse(k_typeName) {}
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanStencilQuadInfoResponse_GENERATED
+	#endif
+};
+
+struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilBoxInfoResponse : 
+	public MikanResponse
+{
+	inline static const std::string k_typeName = "MikanStencilBoxInfoResponse";
+
+	FIELD()
+	MikanStencilBoxInfo box_info;
+
+	MikanStencilBoxInfoResponse() : MikanResponse(k_typeName) {}
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanStencilBoxInfoResponse_GENERATED
+	#endif
+};
+
+struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilModelInfoResponse : 
+	public MikanResponse
+{
+	inline static const std::string k_typeName = "MikanStencilModelInfoResponse";
+
+	FIELD()
+	MikanStencilModelInfo model_info;
+
+	MikanStencilModelInfoResponse() : MikanResponse(k_typeName) {}
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanStencilModelInfoResponse_GENERATED
+	#endif
+};
+
+struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilListResponse 
+	: public MikanResponse
+{
+	inline static const std::string k_typeName = "MikanStencilListResponse";
+
+	FIELD()
+	Serialization::List<MikanStencilID> stencil_id_list;
+
+	MikanStencilListResponse() : MikanResponse(k_typeName) {}
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanStencilListResponse_GENERATED
+	#endif
+};
+
+struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilModelRenderGeometryResponse : 
+	public MikanResponse
+{
+	inline static const std::string k_typeName = "MikanStencilModelRenderGeometryResponse";
+
+	FIELD()
+	MikanStencilModelRenderGeometry render_geometry;
+
+	MikanStencilModelRenderGeometryResponse() : MikanResponse(k_typeName) {}
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanStencilModelRenderGeometryResponse_GENERATED
 	#endif
 };
 

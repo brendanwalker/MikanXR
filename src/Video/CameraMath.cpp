@@ -1,5 +1,7 @@
 #include "CameraMath.h"
 #include "DeviceInterface.h"
+#include "MikanMathTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "VideoSourceView.h"

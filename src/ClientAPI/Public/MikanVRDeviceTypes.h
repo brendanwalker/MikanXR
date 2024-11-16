@@ -30,32 +30,14 @@ enum ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceType
 
 
 // VR Device Response Types
-struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceList : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceInfo
 {
-	inline static const std::string k_typeName = "MikanVRDeviceList";
-
-	FIELD()
-	Serialization::List<MikanVRDeviceID> vr_device_id_list;
-
-	MikanVRDeviceList() : MikanResponse(k_typeName) {}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVRDeviceList_GENERATED
-	#endif
-};
-
-struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceInfo : public MikanResponse
-{
-	inline static const std::string k_typeName = "MikanVRDeviceInfo";
-
 	FIELD()
 	MikanVRDeviceApi vr_device_api;
 	FIELD()
 	MikanVRDeviceType vr_device_type;
 	FIELD()
 	Serialization::String device_path;
-
-	MikanVRDeviceInfo() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceInfo_GENERATED

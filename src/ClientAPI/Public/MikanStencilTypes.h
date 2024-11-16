@@ -11,10 +11,8 @@
 #include "MikanStencilTypes.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilQuadInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilQuadInfo
 {
-	inline static const std::string k_typeName = "MikanStencilQuadInfo";
-
 	FIELD()
 	MikanStencilID stencil_id; // filled in on allocation
 	FIELD()
@@ -32,17 +30,13 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilQua
 	FIELD()
 	Serialization::String stencil_name;
 
-	MikanStencilQuadInfo() : MikanResponse(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilQuadInfo_GENERATED
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilBoxInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilBoxInfo
 {
-	inline static const std::string k_typeName = "MikanStencilBoxInfo";
-
 	FIELD()
 	MikanStencilID stencil_id; // filled in on allocation
 	FIELD()
@@ -60,17 +54,13 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilBox
 	FIELD()
 	Serialization::String stencil_name;
 
-	MikanStencilBoxInfo() : MikanResponse(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilBoxInfo_GENERATED
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelInfo
 {
-	inline static const std::string k_typeName = "MikanStencilModelInfo";
-
 	FIELD()
 	MikanStencilID stencil_id; // filled in on allocation
 	FIELD()
@@ -82,24 +72,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilMod
 	FIELD()
 	Serialization::String stencil_name;
 
-	MikanStencilModelInfo() : MikanResponse(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilModelInfo_GENERATED
-	#endif
-};
-
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilList : public MikanResponse
-{
-	inline static const std::string k_typeName = "MikanStencilList";
-
-	FIELD()
-	Serialization::List<MikanStencilID> stencil_id_list;
-
-	MikanStencilList() : MikanResponse(k_typeName) {}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanStencilList_GENERATED
 	#endif
 };
 
@@ -119,14 +93,10 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanTriagulate
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelRenderGeometry : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelRenderGeometry
 {
-	inline static const std::string k_typeName = "MikanStencilModelRenderGeometry";
-
 	FIELD()
 	Serialization::List<MikanTriagulatedMesh> meshes;
-
-	MikanStencilModelRenderGeometry() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilModelRenderGeometry_GENERATED

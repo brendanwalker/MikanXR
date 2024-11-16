@@ -1,11 +1,9 @@
 #pragma once
 
-
-
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "MikanTypeFwd.h"
 #include "MikanObjectSystem.h"
-#include "MikanSpatialAnchorTypes.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
@@ -34,7 +32,7 @@ public:
 	bool canAddAnchor() const;
 	AnchorDefinitionPtr getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const;
 	AnchorDefinitionPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
-	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const MikanTransform& xform);
+	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const struct MikanTransform& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 	static const std::string k_anchorVRDevicePathPropertyId;

@@ -279,7 +279,7 @@ void reallocateRenderBuffers()
 	auto response = future.get();
 	if (response->resultCode == MikanResult_Success)
 	{
-        auto mode = std::static_pointer_cast<MikanVideoSourceMode>(response);
+        auto mode = std::static_pointer_cast<MikanVideoSourceModeResponse>(response);
 
 		MikanRenderTargetDescriptor desc;
 		memset(&desc, 0, sizeof(MikanRenderTargetDescriptor));
@@ -307,8 +307,8 @@ void updateCameraProjectionMatrix()
 
 	if (response->resultCode == MikanResult_Success)
 	{
-        auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsics>(response);
-        auto cameraIntrinsics= videoSourceIntrinsics->intrinsics_ptr.getSharedPointer();
+        auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
+        auto cameraIntrinsics= videoSourceIntrinsics->intrinsics.intrinsics_ptr.getSharedPointer();
 
 		const float videoSourcePixelWidth = cameraIntrinsics->pixel_width;
 		const float videoSourcePixelHeight = cameraIntrinsics->pixel_height;

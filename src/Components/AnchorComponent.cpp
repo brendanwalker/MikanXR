@@ -11,6 +11,7 @@
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
 #include "MikanObject.h"
+#include "MikanSpatialAnchorTypes.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 #include "VRDeviceManager.h"

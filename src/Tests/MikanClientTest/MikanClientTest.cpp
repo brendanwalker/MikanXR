@@ -5,7 +5,7 @@
 #include "MikanClientEvents.h"
 #include "MikanVideoSourceEvents.h"
 #include "MikanMathTypes.h"
-#include "MikanStencilTypes.h"
+#include "MikanStencilRequests.h"
 #include "MikanVideoSourceTypes.h"
 
 #define SDL_MAIN_HANDLED
@@ -513,7 +513,7 @@ protected:
 		auto response= future.get();
 		if (response->resultCode == MikanResult_Success)
 		{
-			auto mode = std::static_pointer_cast<MikanVideoSourceMode>(response);
+			auto mode = std::static_pointer_cast<MikanVideoSourceModeResponse>(response);
 
 			MikanRenderTargetDescriptor desc;
 			memset(&desc, 0, sizeof(MikanRenderTargetDescriptor));
@@ -541,8 +541,8 @@ protected:
 
 		if (response->resultCode == MikanResult_Success)
 		{
-			auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsics>(response);
-			auto cameraIntrinsics= videoSourceIntrinsics->intrinsics_ptr.getSharedPointer();
+			auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
+			auto cameraIntrinsics= videoSourceIntrinsics->intrinsics.intrinsics_ptr.getSharedPointer();
 			const float videoSourcePixelWidth = cameraIntrinsics->pixel_width;
 			const float videoSourcePixelHeight = cameraIntrinsics->pixel_height;
 

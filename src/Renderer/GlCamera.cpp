@@ -5,6 +5,7 @@
 #include "InputManager.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
+#include "MikanVideoSourceTypes.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>

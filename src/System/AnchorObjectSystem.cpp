@@ -5,6 +5,8 @@
 #include "SceneComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
+#include "MikanAPITypes.h"
+#include "MikanMathTypes.h"
 #include "ProfileConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
