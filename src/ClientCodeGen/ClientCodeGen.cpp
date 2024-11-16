@@ -11,7 +11,6 @@
 #include "MikanVRDeviceEvents.h"
 #include "MikanMathTypes.h"
 #include "MikanScriptTypes.h"
-#include "MikanSpatialAnchorTypes.h"
 #include "MikanStencilTypes.h"
 #include "MikanVideoSourceTypes.h"
 #include "MikanVRDeviceTypes.h"
@@ -20,6 +19,7 @@
 
 #include "stdio.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -39,10 +39,7 @@ struct ClientModule
 {
 	std::string name;
 	std::vector<rfk::Class const*> apiClasses;
-	std::vector<rfk::Struct const*> capiStructs;
 	std::vector<rfk::Struct const*> serializableStructs;
-	std::vector<rfk::Struct const*> events;
-	std::vector<rfk::Struct const*> responses;
 	std::vector<rfk::Enum const*> enums;
 };
 using ClientModulePtr = std::shared_ptr<ClientModule>;
@@ -67,9 +64,6 @@ struct CodeGenDatabase
 
 		if (module != nullptr)
 		{
-			//events
-			//responses
-			//CAPIStructs
 			module->serializableStructs.push_back(&entity);
 		}
 	}
@@ -260,9 +254,8 @@ protected:
 		{
 			std::ofstream moduleFile(modulePath);
 			moduleFile << "// This file is auto generated. DO NO EDIT." << std::endl;
-			moduleFile << "using Newtonsoft.Json;" << std::endl;
 			moduleFile << "using System;" << std::endl;
-			moduleFile << "using System.Runtime.InteropServices;" << std::endl;
+			moduleFile << "using System.Collections.Generic;" << std::endl;
 			moduleFile << std::endl;
 			moduleFile << "namespace MikanXR" << std::endl;
 			moduleFile << "{" << std::endl;
@@ -332,76 +325,81 @@ protected:
 		moduleFile << "\t};" << std::endl;
 	}
 
-	void emitMikanEvent(std::ofstream& moduleFile, rfk::Struct const& structRef)
-	{
-		std::string eventName = structRef.getName();
+	//void emitMikanEvent(std::ofstream& moduleFile, rfk::Struct const& structRef)
+	//{
+	//	std::string eventName = structRef.getName();
 
-		moduleFile << "\tpublic class " << eventName << " : MikanEvent" << std::endl;
-		moduleFile << "\t{" << std::endl;
+	//	moduleFile << "\tpublic class " << eventName << " : MikanEvent" << std::endl;
+	//	moduleFile << "\t{" << std::endl;
 
-		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
-			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			std::string csharpType= getCSharpType(field);
+	//	structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
+	//		std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
+	//		std::string csharpType= getCSharpType(field);
 
-			(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << " { get; set; }" << std::endl;
-			return true;
-		}, &moduleFile);
+	//		(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << " { get; set; }" << std::endl;
+	//		return true;
+	//	}, &moduleFile);
 
-		moduleFile << "\t\tpublic " << eventName << "() : base(typeof(" << eventName << ").Name) {}" << std::endl;
+	//	moduleFile << "\t\tpublic " << eventName << "() : base(typeof(" << eventName << ").Name) {}" << std::endl;
 
-		moduleFile << "\t};" << std::endl;
-	}
-
-	void emitMikanResponse(std::ofstream& moduleFile, rfk::Struct const& structRef)
-	{
-		std::string eventName = structRef.getName();
-
-		moduleFile << "\tpublic class " << eventName << " : MikanEvent" << std::endl;
-		moduleFile << "\t{" << std::endl;
-
-		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
-			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			std::string csharpType = getCSharpType(field);
-
-			(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << " { get; set; }" << std::endl;
-			return true;
-		}, &moduleFile);
-
-		moduleFile << "\t\tpublic " << eventName << "() : base(typeof(" << eventName << ").Name) {}" << std::endl;
-
-		moduleFile << "\t};" << std::endl;
-	}
+	//	moduleFile << "\t};" << std::endl;
+	//}
 
 	void emitSerializableStruct(std::ofstream& moduleFile, rfk::Struct const& structRef)
 	{
-		moduleFile << "\tpublic struct " << structRef.getName() << std::endl;
+		// Get a list of parent struct this struct inherits from
+		using ParentList = std::vector<std::string>;
+		ParentList parentStructNames;
+		structRef.foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool {
+			ParentList* parentStructNamesPtr = reinterpret_cast<ParentList*>(userData);
+			std::string parentStructName = parentStruct.getArchetype().getName();
+
+			parentStructNamesPtr->push_back(parentStructName);
+			return true;
+		}, &parentStructNames);
+
+		// Generate struct inheritance string
+		std::string structInheritance;
+		if (parentStructNames.size() > 0)
+		{
+			structInheritance = " : ";
+			for (size_t i = 0; i < parentStructNames.size(); ++i)
+			{
+				if (i > 0)
+				{
+					structInheritance += ", ";
+				}
+				structInheritance += parentStructNames[i];
+			}
+		}
+
+		// Start of the struct definition
+		moduleFile << "\tpublic struct " << structRef.getName() << structInheritance << std::endl;
 		moduleFile << "\t{" << std::endl;
 
+		// For some reason Refureku doesn't return fields in the order they were declared
+		// So we extract fields into a vector and sort them by memory offset
+		using FieldList = std::vector<rfk::Field const*>;
+		FieldList sortedFields;
 		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
-			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			std::string csharpType= getCSharpType(field);
-
-			(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << " { get; set; }" << std::endl;
+			FieldList* sortedFieldsPtr= reinterpret_cast<FieldList*>(userData);
+			sortedFieldsPtr->push_back(&field);
 			return true;
-		}, &moduleFile);
+		}, &sortedFields);
 
-		moduleFile << "\t};" << std::endl;
-	}
+		std::sort(sortedFields.begin(), sortedFields.end(), 
+		[](rfk::Field const* a, rfk::Field const* b) {
+			return a->getMemoryOffset() < b->getMemoryOffset();
+		});
 
-	void emitCAPIStruct(std::ofstream& moduleFile, rfk::Struct const& structRef)
-	{
-		moduleFile << "\t[StructLayout(LayoutKind.Sequential)]" << std::endl;
-		moduleFile << "\tpublic struct " << structRef.getName() << std::endl;
-		moduleFile << "\t{" << std::endl;
+		// Emit the fields
+		for (rfk::Field const* field : sortedFields)
+		{
+			std::string csharpType = getCSharpType(*field);
+			moduleFile << "\t\tpublic " << csharpType << " " << field->getName() << " { get; set; }" << std::endl;
+		}
 
-		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
-			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-			std::string csharpType = getCSharpType(field);
-
-			(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << ";" << std::endl;
-			return true;
-		}, &moduleFile);
-
+		// End of the struct definition
 		moduleFile << "\t};" << std::endl;
 	}
 
@@ -432,38 +430,158 @@ protected:
 	static std::string getCSharpType(rfk::Field const& field)
 	{
 		rfk::Type const& fieldType = field.getType();
-		rfk::Archetype const* fieldArchetype = fieldType.getArchetype();
-		rfk::EEntityKind fieldArchetypeKind = fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
 
-		if (fieldArchetypeKind == rfk::EEntityKind::Class)
+		return getCSharpType(fieldType);
+	}
+
+	static std::string getCSharpType(rfk::Type const& type)
+	{
+		rfk::Archetype const* archetype = type.getArchetype();
+		rfk::EEntityKind fieldArchetypeKind = archetype ? archetype->getKind() : rfk::EEntityKind::Undefined;
+
+		if (type.isPointer())
 		{
-			rfk::Class const* classType = rfk::classCast(fieldArchetype);
+			// All pointer types are IntPtr in C#
+			return "IntPtr";
+		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::Class)
+		{
+			rfk::Class const* classType = rfk::classCast(archetype);
+			rfk::EClassKind classKind = classType->getClassKind();
+
 			std::string cppType = classType->getName();
 
 			if (cppType == "String")
 			{
-				return "string";
+				return type.isCArray() ? "string[]" : "string";
+			}
+			else if (cppType == "BoolList")
+			{
+				return "List<bool>";
+			}
+			else if (classKind == rfk::EClassKind::TemplateInstantiation)
+			{
+				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(classType);
+				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
+
+				if (templateTypeName == "ObjectPtr" && 
+					templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				{
+					auto const& templateArg =
+						static_cast<rfk::TypeTemplateArgument const&>(
+							templateClassInstanceType->getTemplateArgumentAt(0));
+					rfk::Type const& objectBaseType = templateArg.getType();
+					std::string objectBaseTypeString= getCSharpType(objectBaseType);
+
+					// Field type can be ObjectPtr template type since 
+					// it's the base class for the pointer type
+					return objectBaseTypeString;
+				}
+				else if (templateTypeName == "List" &&
+						 templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				{
+					auto const& templateArg =
+						static_cast<rfk::TypeTemplateArgument const&>(
+							templateClassInstanceType->getTemplateArgumentAt(0));
+					rfk::Type const& elementType = templateArg.getType();
+					std::string elementTypeString= getCSharpType(elementType);
+
+					return "List<" + elementTypeString + ">";
+				}
+				else if (templateTypeName == "Map" &&
+						 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+				{
+					auto const& templateKeyArg =
+						static_cast<rfk::TypeTemplateArgument const&>(
+							templateClassInstanceType->getTemplateArgumentAt(0));
+					rfk::Type const& keyType = templateKeyArg.getType();
+					std::string keyTypeString= getCSharpType(keyType);
+
+					auto const& templateValueArg =
+						static_cast<rfk::TypeTemplateArgument const&>(
+							templateClassInstanceType->getTemplateArgumentAt(1));
+					rfk::Type const& valueType = templateValueArg.getType();
+					std::string valueTypeString= getCSharpType(valueType);
+
+					return "Dictionary<" + keyTypeString + ", " + valueTypeString + ">";
+				}
 			}
 			else
 			{
-				return cppType;
+				return type.isCArray() ? cppType+"[]" : cppType;
 			}
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Struct)
 		{
-			rfk::Struct const* structType = rfk::structCast(fieldArchetype);
+			rfk::Struct const* structType = rfk::structCast(archetype);
+			std::string structTypeName= structType->getName();
 
-			return structType->getName();
+			return type.isCArray() ? structTypeName+"[]" : structTypeName;
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Enum)
 		{
-			rfk::Enum const* enumType = rfk::enumCast(fieldArchetype);
+			rfk::Enum const* enumType = rfk::enumCast(archetype);
+			std::string enumTypeName= enumType->getName();
 
-			return enumType->getName();
+			return type.isCArray() ? enumTypeName+"[]" : enumTypeName;
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::FundamentalArchetype)
 		{
-			return fieldArchetype->getName();
+			std::string csType;
+
+			if (type == rfk::getType<bool>())
+			{
+				csType= "bool";
+			}
+			else if (type == rfk::getType<uint8_t>())
+			{
+				csType= "byte";
+			}
+			else if (type == rfk::getType<int8_t>())
+			{
+				csType= "sbyte";
+			}
+			else if (type == rfk::getType<uint16_t>())
+			{
+				csType= "ushort";
+			}
+			else if (type == rfk::getType<int16_t>())
+			{
+				csType= "short";
+			}
+			else if (type == rfk::getType<uint32_t>())
+			{
+				csType= "uint";
+			}
+			else if (type == rfk::getType<int32_t>())
+			{
+				csType= "int";
+			}
+			else if (type == rfk::getType<uint64_t>())
+			{
+				csType= "ulong";
+			}
+			else if (type == rfk::getType<int64_t>())
+			{
+				csType= "long";
+			}
+			else if (type == rfk::getType<float>())
+			{
+				csType= "float";
+			}
+			else if (type == rfk::getType<double>())
+			{
+				csType= "double";
+			}
+
+			if (!csType.empty())
+			{
+				return type.isCArray() ? csType+"[]" : csType;
+			}
+			else
+			{
+				csType= "UNKNOWN_TYPE";
+			}
 		}
 
 		return "UNKNOWN_TYPE";
