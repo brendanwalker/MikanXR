@@ -76,7 +76,7 @@ namespace Serialization
 
 		void visitObjectPtr(
 			ValueAccessor const& sharedPtrAccessor,
-			rfk::ClassTemplateInstantiation const& templatedArrayType)
+			rfk::ClassTemplateInstantiation const& templatedObjectType)
 		{
 			// Get the shared pointer we are writing 
 			void* sharedPtrInstance = sharedPtrAccessor.getUntypedValueMutablePtr();
@@ -84,7 +84,7 @@ namespace Serialization
 			// Get the type of the elements in the array from the template argument
 			auto const& templateArg =
 				static_cast<rfk::TypeTemplateArgument const&>(
-					templatedArrayType.getTemplateArgumentAt(0));
+					templatedObjectType.getTemplateArgumentAt(0));
 			rfk::Type const& elementType = templateArg.getType();
 			rfk::Archetype const* elementArchetype = elementType.getArchetype();
 
@@ -102,7 +102,7 @@ namespace Serialization
 			}
 
 			// Use reflection to get the methods to create and initialize the object
-			rfk::Method const* allocateMethod = templatedArrayType.getMethodByName("allocate");
+			rfk::Method const* allocateMethod = templatedObjectType.getMethodByName("allocate");
 
 			// Allocate a default instance of the object assigned to the shared pointer
 			void* objectInstance =
