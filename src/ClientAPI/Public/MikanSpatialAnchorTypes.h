@@ -4,13 +4,14 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "SerializableList.h"
+#include "SerializationProperty.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanSpatialAnchorTypes.rfkh.h"
 #endif
 
 // Spatial Anchor Response Types
-struct STRUCT() MikanSpatialAnchorList : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorTypes")) MikanSpatialAnchorList : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanSpatialAnchorList";
 
@@ -24,7 +25,7 @@ struct STRUCT() MikanSpatialAnchorList : public MikanResponse
 	#endif
 };
 
-struct STRUCT() MikanSpatialAnchorInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorTypes")) MikanSpatialAnchorInfo : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanSpatialAnchorInfo";
 

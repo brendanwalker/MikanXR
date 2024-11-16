@@ -1,14 +1,15 @@
 #pragma once
 
 #include "MikanAPIExport.h"
-#include "MikanEventTypes.h"
+#include "SerializationProperty.h"
+#include "SerializableString.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanScriptTypes.rfkh.h"
 #endif
 
 // Script Event Types
-struct STRUCT() MikanScriptMessageInfo 
+struct STRUCT(Serialization::CodeGenModule("MikanScriptTypes")) MikanScriptMessageInfo 
 {
 	Serialization::String content;
 

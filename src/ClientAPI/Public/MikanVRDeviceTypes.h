@@ -13,14 +13,14 @@
 //-----------------
 
 /// The list of possible vr device drivers used by MikanXR Client API
-enum ENUM() MikanVRDeviceApi
+enum ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceApi
 {
 	MikanVRDeviceApi_INVALID ENUMVALUE_STRING("INVALID"),
 	MikanVRDeviceApi_STEAM_VR ENUMVALUE_STRING("STEAM_VR"),
 };
 
 /// The list of possible vr device types used by MikanXR Client API
-enum ENUM() MikanVRDeviceType
+enum ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceType
 {
 	MikanVRDeviceType_INVALID ENUMVALUE_STRING("INVALID"),
 	MikanVRDeviceType_HMD ENUMVALUE_STRING("HMD"),
@@ -30,7 +30,7 @@ enum ENUM() MikanVRDeviceType
 
 
 // VR Device Response Types
-struct STRUCT() MikanVRDeviceList : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceList : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanVRDeviceList";
 
@@ -44,7 +44,7 @@ struct STRUCT() MikanVRDeviceList : public MikanResponse
 	#endif
 };
 
-struct STRUCT() MikanVRDeviceInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceInfo : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanVRDeviceInfo";
 

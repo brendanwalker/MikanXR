@@ -13,21 +13,21 @@
 #include <assert.h>
 
 // Constants
-enum ENUM() MikanVideoSourceType
+enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceType
 {
 	MikanVideoSourceType_MONO ENUMVALUE_STRING("MONO"),
 	MikanVideoSourceType_STEREO ENUMVALUE_STRING("STEREO")
 };
 
 /// The list of possible camera APIs used by MikanXR
-enum ENUM() MikanVideoSourceApi
+enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceApi
 {
 	MikanVideoSourceApi_INVALID ENUMVALUE_STRING("INVALID"),
 	MikanVideoSourceApi_OPENCV_CV ENUMVALUE_STRING("OPEN_CV"),
 	MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION ENUMVALUE_STRING("WINDOWS_MEDIA_FOUNDATION")
 };
 
-enum ENUM() MikanIntrinsicsType
+enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanIntrinsicsType
 {
 	INVALID_CAMERA_INTRINSICS ENUMVALUE_STRING("INVALID"),
 	MONO_CAMERA_INTRINSICS  ENUMVALUE_STRING("MONO_CAMERA_INTRINSICS"),
@@ -38,7 +38,7 @@ enum ENUM() MikanIntrinsicsType
 
 /// Radial and tangential lens distortion coefficients computed during lens lens calibration
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-struct STRUCT() MikanDistortionCoefficients
+struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistortionCoefficients
 {
 	inline static const std::string k_typeName = "MikanMonoIntrinsics";
 
@@ -66,7 +66,7 @@ struct STRUCT() MikanDistortionCoefficients
 
 /// Camera intrinsic common properties
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-struct STRUCT() MikanCameraIntrinsics
+struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCameraIntrinsics
 {
 	inline static const std::string k_typeName = "MikanCameraIntrinsics";
 
@@ -90,7 +90,7 @@ struct STRUCT() MikanCameraIntrinsics
 
 /// Camera intrinsic properties for a monoscopic camera
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-struct STRUCT() MikanMonoIntrinsics : public MikanCameraIntrinsics
+struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanMonoIntrinsics : public MikanCameraIntrinsics
 {
 	inline static const std::string k_typeName = "MikanMonoIntrinsics";
 
@@ -106,7 +106,7 @@ struct STRUCT() MikanMonoIntrinsics : public MikanCameraIntrinsics
 
 /// Camera intrinsic properties for a stereoscopic camera
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-struct STRUCT() MikanStereoIntrinsics : public MikanCameraIntrinsics
+struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanStereoIntrinsics : public MikanCameraIntrinsics
 {
 	inline static const std::string k_typeName = "MikanStereoIntrinsics";
 
@@ -144,7 +144,7 @@ struct STRUCT() MikanStereoIntrinsics : public MikanCameraIntrinsics
 };
 
 /// Bundle containing all intrinsic video source properties
-struct STRUCT() MikanVideoSourceIntrinsics : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceIntrinsics : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanVideoSourceIntrinsics";
 
@@ -204,7 +204,7 @@ struct STRUCT() MikanVideoSourceIntrinsics : public MikanResponse
 };
 
 /// Static properties 
-struct STRUCT() MikanVideoSourceAttachmentInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceAttachmentInfo : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanVideoSourceAttachmentInfo";
 
@@ -221,7 +221,7 @@ struct STRUCT() MikanVideoSourceAttachmentInfo : public MikanResponse
 };
 
 /// Static properties about a video source
-struct STRUCT() MikanVideoSourceMode : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceMode : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanVideoSourceMode";
 

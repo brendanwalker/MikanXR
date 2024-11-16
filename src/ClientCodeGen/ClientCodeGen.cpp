@@ -3,7 +3,12 @@
 #include "Logger.h"
 
 #include "MikanAPI.h"
-#include "MikanEventTypes.h"
+#include "MikanClientEvents.h"
+#include "MikanScriptEvents.h"
+#include "MikanStencilEvents.h"
+#include "MikanSpatialAnchorEvents.h"
+#include "MikanVideoSourceEvents.h"
+#include "MikanVRDeviceEvents.h"
 #include "MikanMathTypes.h"
 #include "MikanScriptTypes.h"
 #include "MikanSpatialAnchorTypes.h"

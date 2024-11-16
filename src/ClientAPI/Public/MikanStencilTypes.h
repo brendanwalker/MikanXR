@@ -3,14 +3,15 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
-
 #include "SerializableList.h"
+#include "SerializableString.h"
+#include "SerializationProperty.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanStencilTypes.rfkh.h"
 #endif
 
-struct STRUCT() MikanStencilQuadInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilQuadInfo : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanStencilQuadInfo";
 
@@ -38,7 +39,7 @@ struct STRUCT() MikanStencilQuadInfo : public MikanResponse
 	#endif
 };
 
-struct STRUCT() MikanStencilBoxInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilBoxInfo : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanStencilBoxInfo";
 
@@ -66,7 +67,7 @@ struct STRUCT() MikanStencilBoxInfo : public MikanResponse
 	#endif
 };
 
-struct STRUCT() MikanStencilModelInfo : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelInfo : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanStencilModelInfo";
 
@@ -88,7 +89,7 @@ struct STRUCT() MikanStencilModelInfo : public MikanResponse
 	#endif
 };
 
-struct STRUCT() MikanStencilList : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilList : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanStencilList";
 
@@ -102,7 +103,7 @@ struct STRUCT() MikanStencilList : public MikanResponse
 	#endif
 };
 
-struct STRUCT() MikanTriagulatedMesh
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanTriagulatedMesh
 {
 	FIELD()
 	Serialization::List<MikanVector3f> vertices;
@@ -118,7 +119,7 @@ struct STRUCT() MikanTriagulatedMesh
 	#endif
 };
 
-struct STRUCT() MikanStencilModelRenderGeometry : public MikanResponse
+struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelRenderGeometry : public MikanResponse
 {
 	inline static const std::string k_typeName = "MikanStencilModelRenderGeometry";
 
