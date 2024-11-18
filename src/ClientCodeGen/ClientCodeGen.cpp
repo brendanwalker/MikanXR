@@ -138,15 +138,26 @@ public:
 			// Fetch all reflection data, sorted by module name
 			fetchModules(codeGenDatabase);
 
-			for (auto const& module : codeGenDatabase.modules)
+			if (codeGenDatabase.modules.size() > 0)
 			{
-				const std::string& moduleName = module.first;
-				ClientModulePtr modulePtr = module.second;
+				auto absOutputPath = std::filesystem::absolute(m_outputPath);
 
-				MIKAN_LOG_INFO("MikanClientCodeGen") << "Generate Code for Module: " << moduleName;
-				if (!generateCodeForModule(modulePtr))
+				// Nuke any previously generated code
+				std::filesystem::remove_all(absOutputPath);
+
+				// (Re)create the the output folder
+				std::filesystem::create_directories(absOutputPath);
+
+				for (auto const& module : codeGenDatabase.modules)
 				{
-					result = -1;
+					const std::string& moduleName = module.first;
+					ClientModulePtr modulePtr = module.second;
+
+					MIKAN_LOG_INFO("MikanClientCodeGen") << "Generate Code for Module: " << moduleName;
+					if (!generateCodeForModule(absOutputPath, modulePtr))
+					{
+						result = -1;
+					}
 				}
 			}
 		}
@@ -188,6 +199,12 @@ protected:
 		if (success)
 		{
 			success = parseConfig(configPath);
+		}
+
+		if (success)
+		{
+			MIKAN_LOG_INFO("MikanClientCodeGen") << "Working Directory: " << std::filesystem::current_path();
+			MIKAN_LOG_INFO("MikanClientCodeGen") << "Loaded config: " << configPath;
 		}
 
 		return success;
@@ -245,10 +262,12 @@ protected:
 		}, &codeGenDatabase);
 	}
 
-	bool generateCodeForModule(ClientModulePtr const& module)
+	bool generateCodeForModule(
+		const std::filesystem::path& absOutputPath,
+		ClientModulePtr const& module)
 	{
 		std::string moduleFileName = module->name + ".cs";
-		std::filesystem::path modulePath = std::filesystem::absolute(m_outputPath / moduleFileName);
+		std::filesystem::path modulePath = absOutputPath / moduleFileName;
 
 		try
 		{
@@ -324,26 +343,6 @@ protected:
 
 		moduleFile << "\t};" << std::endl;
 	}
-
-	//void emitMikanEvent(std::ofstream& moduleFile, rfk::Struct const& structRef)
-	//{
-	//	std::string eventName = structRef.getName();
-
-	//	moduleFile << "\tpublic class " << eventName << " : MikanEvent" << std::endl;
-	//	moduleFile << "\t{" << std::endl;
-
-	//	structRef.foreachField([](rfk::Field const& field, void* userData) -> bool {
-	//		std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-	//		std::string csharpType= getCSharpType(field);
-
-	//		(*moduleFilePtr) << "\t\tpublic " << csharpType << " " << field.getName() << " { get; set; }" << std::endl;
-	//		return true;
-	//	}, &moduleFile);
-
-	//	moduleFile << "\t\tpublic " << eventName << "() : base(typeof(" << eventName << ").Name) {}" << std::endl;
-
-	//	moduleFile << "\t};" << std::endl;
-	//}
 
 	void emitSerializableStruct(std::ofstream& moduleFile, rfk::Struct const& structRef)
 	{
