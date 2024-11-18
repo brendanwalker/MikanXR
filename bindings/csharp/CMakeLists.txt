@@ -4,8 +4,11 @@ INCLUDE(CSharpUtilities)
 # Create assembly info with current version.
 CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/bindings/csharp/AssemblyInfo.cs.template" "${CMAKE_BINARY_DIR}/Config/${PROJECT_NAME}/AssemblyInfo.cs")
 
+# TODO: Remove need to check in generated files
+# See https://crascit.com/2017/04/18/generated-sources-in-cmake-builds/
 file(GLOB MIKANCLIENT_CSHARP_SRC
 	"${CMAKE_CURRENT_LIST_DIR}/*.cs"
+	"${CMAKE_CURRENT_LIST_DIR}/Generated/*.cs"
 	"${CMAKE_CURRENT_LIST_DIR}/Properties/*.cs"
 )
 
