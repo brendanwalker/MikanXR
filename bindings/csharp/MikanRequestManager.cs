@@ -5,82 +5,15 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Runtime.InteropServices;
+using MikanClientCSharp.Serialization;
 
 namespace MikanXR
 {
-	public class MikanResponse
-	{
-		public string responseType { get; set; }
-		public int requestId { get; set; }
-		public MikanResult resultCode { get; set; }
-		
-		public MikanResponse()
-		{
-			responseType= typeof(MikanResponse).Name;
-			requestId= MikanXR.Constants.INVALID_MIKAN_ID;
-			resultCode= MikanXR.MikanResult.Success;
-		}
-		public MikanResponse(string inResponseType)
-		{
-			responseType= inResponseType;
-			requestId= MikanXR.Constants.INVALID_MIKAN_ID;
-			resultCode= MikanXR.MikanResult.Success;
-		}		
-	};
-
-	public interface IMikanTextResponseFactory
-	{
-		MikanResponse CreateResponse(string utfJsonString);
-	}
-
-	public class MikanTextResponseFactory<T> : IMikanTextResponseFactory where T : MikanResponse
-	{
-		public MikanResponse CreateResponse(string utfJsonString)
-		{
-			// Deserialize enumerations from strings rather than from integers
-			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
-			var settings = new JsonSerializerSettings();
-			settings.Converters.Add(stringEnumConverter);
-
-			T response = JsonConvert.DeserializeObject<T>(utfJsonString, settings);
-
-			return response;
-		}
-	}
-
-	public interface IMikanBinaryResponseFactory
-	{
-		MikanResponse CreateResponse(
-			int requestId,
-			MikanResult resultCode,
-			string responseType,
-			BinaryReader reader);
-	}
-
-	public class MikanBinaryResponseFactory<T> : IMikanBinaryResponseFactory where T : MikanResponse, new()
-	{
-		public virtual MikanResponse CreateResponse(
-			int inRequestId,
-			MikanResult inResultCode,
-			string inResponseType,
-			BinaryReader inReader)
-		{
-			return new T()
-			{
-				requestId = inRequestId,
-				resultCode = inResultCode,
-				responseType = inResponseType
-			};
-		}
-	}
-
 	public class MikanRequestManager
 	{
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
 		private MikanCoreNative.NativeTextResponseCallback _nativeTextResponseCallback;
 		private MikanCoreNative.NativeBinaryResponseCallback _nativeBinaryResponseCallback;
-		private Dictionary<string, IMikanTextResponseFactory> _textResponseFactory;
-		private Dictionary<string, IMikanBinaryResponseFactory> _binaryResponseFactory;
 
 		private class PendingRequest
 		{
@@ -94,8 +27,6 @@ namespace MikanXR
 			_nativeLogCallback= logCallback;
 			_nativeTextResponseCallback = new MikanCoreNative.NativeTextResponseCallback(InternalTextResponseCallback);
 			_nativeBinaryResponseCallback = new MikanCoreNative.NativeBinaryResponseCallback(InternalBinaryResponseCallback);
-			_textResponseFactory = new Dictionary<string, IMikanTextResponseFactory>();
-			_binaryResponseFactory = new Dictionary<string, IMikanBinaryResponseFactory>();
 			_pendingRequests = new Dictionary<int, PendingRequest>();
 		}
 
@@ -110,22 +41,6 @@ namespace MikanXR
 			}
 
 			return MikanResult.Success;
-		}
-
-		public void AddTextResponseFactory<T>() where T : MikanResponse
-		{
-			var factory = new MikanTextResponseFactory<T>();
-
-			_textResponseFactory.Add(typeof(T).Name, factory);
-		}
-
-		public void AddBinaryResponseFactory<F, T>()
-			where F : IMikanBinaryResponseFactory, new()
-			where T : MikanResponse, new()
-		{
-			var factory = new F();
-
-			_binaryResponseFactory.Add(typeof(T).Name, factory);
 		}
 
 		public Task<MikanResponse> AddResponseHandler(int requestId, MikanResult result)
@@ -220,7 +135,7 @@ namespace MikanXR
 		{
 			MikanResponse response = null;
 
-			var root = (JObject)JsonConvert.DeserializeObject(utf8ResponseString);
+			var root = JObject.Parse(utf8ResponseString);
 
 			// Check if the key "responseType" exists
 			if (root.TryGetValue("responseType", out JToken responseTypeElement))
@@ -229,15 +144,27 @@ namespace MikanXR
 				if (responseTypeElement.Type == JTokenType.String)
 				{
 					// Get the string value of "responseType"
-					string responseType = (string)responseTypeElement;
-					
-					if (_textResponseFactory.TryGetValue(responseType, out IMikanTextResponseFactory factory))
+					string responseTypeName = (string)responseTypeElement;
+
+					// Attempt to create the response object by class name
+					object responseObject= Utils.allocateMikanTypeByName(responseTypeName, out Type responseType);
+					if (responseObject != null)
 					{
-						response = factory.CreateResponse(utf8ResponseString);
+						// Deserialize the response object from the JSON string
+						if (JsonDeserializer.deserializeFromJsonString(utf8ResponseString, responseObject, responseType))
+						{
+							response = (MikanResponse)responseObject;
+						}
+						else
+						{
+							_nativeLogCallback(
+								(int)MikanLogLevel.Error,
+								"Failed to deserialize response object from JSON string: " + utf8ResponseString);
+						}
 					}
 					else
 					{
-						_nativeLogCallback((int)MikanLogLevel.Error, "Unknown response type: " + responseType);
+						_nativeLogCallback((int)MikanLogLevel.Error, "Unknown response type: " + responseTypeName);
 					}
 				}
 				else
@@ -265,7 +192,7 @@ namespace MikanXR
 			{
 				// Read the response type
 				int requestTypeUTF8StringLength = binaryReader.ReadInt32();
-				string responseType =
+				string responseTypeName =
 					requestTypeUTF8StringLength > 0
 					? System.Text.Encoding.UTF8.GetString(binaryReader.ReadBytes(requestTypeUTF8StringLength))
 					: "";
@@ -289,16 +216,24 @@ namespace MikanXR
 				// Bail if the corresponding pending request is not found
 				if (pendingRequest != null)
 				{
-					// Look up the response factory for the response type
+					// Attempt to create the response object by class name
 					MikanResponse response = null;
-					if (_binaryResponseFactory.TryGetValue(responseType, out IMikanBinaryResponseFactory factory))
+					object responseObject = Utils.allocateMikanTypeByName(responseTypeName, out Type responseType);
+					if (responseObject != null)
 					{
-						// Parse the binary reader using the factory
-						response = factory.CreateResponse(requestId, resultCode, responseType, binaryReader);
+						// Deserialize the event object from the byte array
+						if (BinaryDeserializer.DeserializeFromBytes(managedBuffer, responseObject, responseType))
+						{
+							response = (MikanResponse)responseObject;
+						}
+						else
+						{
+							_nativeLogCallback((int)MikanLogLevel.Error, "Failed to deserialize response object from byte array");
+						}
 					}
 					else
 					{
-						_nativeLogCallback((int)MikanLogLevel.Error, $"Unknown response type: {responseType}");
+						_nativeLogCallback((int)MikanLogLevel.Error, "Unknown response type: " + responseTypeName);
 					}
 
 					if (response == null)
@@ -314,7 +249,7 @@ namespace MikanXR
 				}
 				else
 				{
-					_nativeLogCallback((int)MikanLogLevel.Error, $"Invalid pending request id({requestId}) for response type {responseType}");
+					_nativeLogCallback((int)MikanLogLevel.Error, $"Invalid pending request id({requestId}) for response type {responseTypeName}");
 				}
 			}
 			catch (Exception e)

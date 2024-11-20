@@ -4,22 +4,6 @@ using System.Threading.Tasks;
 
 namespace MikanXR
 {	
-	public class MikanClientInfo
-	{
-		public string clientId { get; set; } = "";
-		public string engineName { get; set; } = "";
-		public string engineVersion { get; set; } = "";
-		public string applicationName { get; set; } = "";
-		public string applicationVersion { get; set; } = "";
-		public string xrDeviceName { get; set; } = "";
-		public MikanClientGraphicsApi graphicsAPI { get; set; } = MikanClientGraphicsApi.UNKNOWN;
-		public int mikanCoreSdkVersion { get; set; } = -1;
-		public bool supportsRGB24 { get; set; } = false;
-		public bool supportsRGBA32 { get; set; } = false;
-		public bool supportsBGRA32 { get; set; } = false;
-		public bool supportsDepth { get; set; } = false;
-	}
-
 	public class MikanAPI : IDisposable
 	{
 		public delegate void MikanLogCallback(
@@ -38,21 +22,6 @@ namespace MikanXR
 		private MikanRenderTargetAPI _renderTargetAPI;
 		public MikanRenderTargetAPI RenderTargetAPI => _renderTargetAPI;
 
-		private MikanVideoSourceAPI _videoSourceAPI;
-		public MikanVideoSourceAPI VideoSourceAPI => _videoSourceAPI;
-		
-		private MikanVRDeviceAPI _vrDeviceAPI;
-		public MikanVRDeviceAPI VRDeviceAPI => _vrDeviceAPI;
-		
-		private MikanScriptAPI _scriptAPI;
-		public MikanScriptAPI ScriptAPI => _scriptAPI;
-		
-		private MikanStencilAPI _stencilAPI;
-		public MikanStencilAPI StencilAPI => _stencilAPI;
-		
-		private MikanSpatialAnchorAPI _spatialAnchorAPI;
-		public MikanSpatialAnchorAPI SpatialAnchorAPI => _spatialAnchorAPI;
-
 		public MikanAPI()
 		{
 			_nativeLogCallback = new MikanCoreNative.NativeLogCallback(InternalLogCallback);
@@ -61,35 +30,6 @@ namespace MikanXR
 			
 			// Create the child APIs
 			_renderTargetAPI = new MikanRenderTargetAPI(_requestManager);
-			_videoSourceAPI = new MikanVideoSourceAPI(_requestManager);	
-			_vrDeviceAPI = new MikanVRDeviceAPI(_requestManager);	
-			_scriptAPI = new MikanScriptAPI(_requestManager);
-			_stencilAPI = new MikanStencilAPI(_requestManager);
-			_spatialAnchorAPI = new MikanSpatialAnchorAPI(_requestManager);
-			
-			// Register base response types (child API classes will register their own types)
-			_requestManager.AddTextResponseFactory<MikanResponse>();
-			
-			// Register all event types
-			_eventManager.AddEventFactory<MikanConnectedEvent>();
-			_eventManager.AddEventFactory<MikanDisconnectedEvent>();
-			_eventManager.AddEventFactory<MikanVideoSourceOpenedEvent>();
-			_eventManager.AddEventFactory<MikanVideoSourceClosedEvent>();
-			_eventManager.AddEventFactory<MikanVideoSourceNewFrameEvent>();
-			_eventManager.AddEventFactory<MikanVideoSourceAttachmentChangedEvent>();
-			_eventManager.AddEventFactory<MikanVideoSourceIntrinsicsChangedEvent>();
-			_eventManager.AddEventFactory<MikanVideoSourceModeChangedEvent>();
-			_eventManager.AddEventFactory<MikanVRDevicePoseUpdateEvent>();
-			_eventManager.AddEventFactory<MikanVRDeviceListUpdateEvent>();
-			_eventManager.AddEventFactory<MikanAnchorNameUpdateEvent>();
-			_eventManager.AddEventFactory<MikanAnchorPoseUpdateEvent>();
-			_eventManager.AddEventFactory<MikanAnchorListUpdateEvent>();
-			_eventManager.AddEventFactory<MikanStencilNameUpdateEvent>();
-			_eventManager.AddEventFactory<MikanStencilPoseUpdateEvent>();
-			_eventManager.AddEventFactory<MikanQuadStencilListUpdateEvent>();
-			_eventManager.AddEventFactory<MikanBoxStencilListUpdateEvent>();
-			_eventManager.AddEventFactory<MikanModelStencilListUpdateEvent>();
-			_eventManager.AddEventFactory<MikanScriptMessagePostedEvent>();
 		}
 
 		public void Dispose()

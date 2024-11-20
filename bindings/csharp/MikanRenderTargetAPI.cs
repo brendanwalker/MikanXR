@@ -59,16 +59,6 @@ namespace MikanXR
 			return result;
 		}
 
-		public MikanResult PublishRenderTargetTextures(
-			ref MikanClientFrameRendered frameInfo)
-		{
-			MikanResult result =
-				(MikanResult)MikanCoreNative.Mikan_PublishRenderTargetTextures(
-					ref frameInfo);
-
-			return result;
-		}
-
 		public Task<MikanResponse> FreeRenderTargetTextures()
 		{
 			MikanResult result = (MikanResult)MikanCoreNative.Mikan_FreeRenderTargetTextures(out int requestId);

@@ -63,9 +63,6 @@ namespace MikanXR
 		public static extern int Mikan_WriteDepthRenderTargetTexture(IntPtr ApiColorTexturePtr, float zNear, float zFar);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_PublishRenderTargetTextures(ref MikanClientFrameRendered frame_info);
-
-		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_FreeRenderTargetTextures(out int out_request_id);
 
 		[DllImport("MikanCore.dll")]

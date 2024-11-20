@@ -1,47 +1,18 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
+using MikanClientCSharp.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace MikanXR
 {
-	public interface IMikanEventFactory
-	{
-		MikanEvent CreateEvent(string utfJsonString);
-	}
-
-	public class MikanEventFactory<T> : IMikanEventFactory where T : MikanEvent
-	{
-		public MikanEvent CreateEvent(string utfJsonString)
-		{
-			// Deserialize enumerations from strings rather than from integers
-			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
-			var settings = new JsonSerializerSettings();
-			settings.Converters.Add(stringEnumConverter);
-
-			T response= JsonConvert.DeserializeObject<T>(utfJsonString, settings);
-
-			return response;
-		}
-	}
-	
 	public class MikanEventManager
 	{
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
-		private Dictionary<string, IMikanEventFactory> _eventFactories;
 	
 		public MikanEventManager(MikanCoreNative.NativeLogCallback logCallback)
 		{
 			_nativeLogCallback= logCallback;
-			_eventFactories = new Dictionary<string, IMikanEventFactory>();
-		}
-
-		public void AddEventFactory<T>() where T : MikanEvent
-		{
-			var factory = new MikanEventFactory<T>();
-
-			_eventFactories.Add(typeof(T).Name, factory);
 		}
 
 		public MikanResult FetchNextEvent(out MikanEvent outEvent)
@@ -71,9 +42,9 @@ namespace MikanXR
 
 		private MikanEvent parseEventString(string utf8ResponseString)
 		{
-			MikanEvent mikanEvent = null;
+			MikanEvent mikanEvent= null;
 
-			var root= (JObject)JsonConvert.DeserializeObject(utf8ResponseString);
+			var root = JObject.Parse(utf8ResponseString);
 
 			// Check if the key "eventType" exists
 			if (root.TryGetValue("eventType", out JToken eventTypeElement))
@@ -82,11 +53,23 @@ namespace MikanXR
 				if (eventTypeElement.Type == JTokenType.String)
 				{
 					// Get the string value of "eventType"
-					string eventType = (string)eventTypeElement;
-					
-					if (_eventFactories.TryGetValue(eventType, out IMikanEventFactory factory))
+					string eventTypeName = (string)eventTypeElement;
+
+					// Attempt to create the event object by class name
+					object eventObject= Utils.allocateMikanTypeByName(eventTypeName, out Type eventType);
+					if (eventObject != null)
 					{
-						mikanEvent = factory.CreateEvent(utf8ResponseString);
+						// Deserialize the event object from the JSON string
+						if (JsonDeserializer.deserializeFromJsonString(utf8ResponseString, eventObject, eventType))
+						{
+							mikanEvent= (MikanEvent)eventObject;
+						}
+						else
+						{
+							_nativeLogCallback(
+								(int)MikanLogLevel.Error, 
+								"Failed to deserialize event object from JSON string: " + utf8ResponseString);
+						}
 					}
 					else
 					{
