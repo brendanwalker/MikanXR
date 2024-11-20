@@ -4,16 +4,15 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanVRDeviceListUpdateEvent : MikanEvent
+	public class MikanVRDeviceListUpdateEvent : MikanEvent
 	{
 	};
 
-	public struct MikanVRDevicePoseUpdateEvent : MikanEvent
+	public class MikanVRDevicePoseUpdateEvent : MikanEvent
 	{
-		public MikanMatrix4f transform { get; set; }
-		public int device_id { get; set; }
-		public ulong frame { get; set; }
+		public MikanMatrix4f transform;
+		public int device_id;
+		public ulong frame;
 	};
 
 }

@@ -4,12 +4,11 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanSpatialAnchorInfo
+	public class MikanSpatialAnchorInfo
 	{
-		public int anchor_id { get; set; }
-		public MikanTransform world_transform { get; set; }
-		public string anchor_name { get; set; }
+		public int anchor_id;
+		public MikanTransform world_transform;
+		public string anchor_name;
 	};
 
 }

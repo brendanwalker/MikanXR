@@ -4,8 +4,7 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanScriptMessageInfo
+	public class MikanScriptMessageInfo
 	{
 	};
 

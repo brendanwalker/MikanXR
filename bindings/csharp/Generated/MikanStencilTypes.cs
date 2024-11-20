@@ -4,51 +4,50 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanStencilModelRenderGeometry
+	public class MikanStencilModelRenderGeometry
 	{
-		public List<MikanTriagulatedMesh> meshes { get; set; }
+		public List<MikanTriagulatedMesh> meshes;
 	};
 
-	public struct MikanStencilModelInfo
+	public class MikanStencilModelInfo
 	{
-		public int stencil_id { get; set; }
-		public int parent_anchor_id { get; set; }
-		public MikanTransform relative_transform { get; set; }
-		public bool is_disabled { get; set; }
-		public string stencil_name { get; set; }
+		public int stencil_id;
+		public int parent_anchor_id;
+		public MikanTransform relative_transform;
+		public bool is_disabled;
+		public string stencil_name;
 	};
 
-	public struct MikanTriagulatedMesh
+	public class MikanTriagulatedMesh
 	{
-		public List<MikanVector3f> vertices { get; set; }
-		public List<MikanVector3f> normals { get; set; }
-		public List<MikanVector2f> texels { get; set; }
-		public List<int> indices { get; set; }
+		public List<MikanVector3f> vertices;
+		public List<MikanVector3f> normals;
+		public List<MikanVector2f> texels;
+		public List<int> indices;
 	};
 
-	public struct MikanStencilQuadInfo
+	public class MikanStencilQuadInfo
 	{
-		public int stencil_id { get; set; }
-		public int parent_anchor_id { get; set; }
-		public MikanTransform relative_transform { get; set; }
-		public float quad_width { get; set; }
-		public float quad_height { get; set; }
-		public bool is_double_sided { get; set; }
-		public bool is_disabled { get; set; }
-		public string stencil_name { get; set; }
+		public int stencil_id;
+		public int parent_anchor_id;
+		public MikanTransform relative_transform;
+		public float quad_width;
+		public float quad_height;
+		public bool is_double_sided;
+		public bool is_disabled;
+		public string stencil_name;
 	};
 
-	public struct MikanStencilBoxInfo
+	public class MikanStencilBoxInfo
 	{
-		public int stencil_id { get; set; }
-		public int parent_anchor_id { get; set; }
-		public MikanTransform relative_transform { get; set; }
-		public float box_x_size { get; set; }
-		public float box_y_size { get; set; }
-		public float box_z_size { get; set; }
-		public bool is_disabled { get; set; }
-		public string stencil_name { get; set; }
+		public int stencil_id;
+		public int parent_anchor_id;
+		public MikanTransform relative_transform;
+		public float box_x_size;
+		public float box_y_size;
+		public float box_z_size;
+		public bool is_disabled;
+		public string stencil_name;
 	};
 
 }

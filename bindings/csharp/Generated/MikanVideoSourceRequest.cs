@@ -4,39 +4,38 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct GetVideoSourceAttachment : MikanRequest
+	public class GetVideoSourceAttachment : MikanRequest
 	{
 	};
 
-	public struct GetVideoSourceIntrinsics : MikanRequest
+	public class GetVideoSourceIntrinsics : MikanRequest
 	{
 	};
 
-	public struct GetVideoSourceMode : MikanRequest
+	public class GetVideoSourceMode : MikanRequest
 	{
 	};
 
-	public struct MikanVideoSourceIntrinsicsResponse : MikanResponse
+	public class MikanVideoSourceIntrinsicsResponse : MikanResponse
 	{
-		public MikanVideoSourceIntrinsics intrinsics { get; set; }
+		public MikanVideoSourceIntrinsics intrinsics;
 	};
 
-	public struct MikanVideoSourceAttachmentInfoResponse : MikanResponse
+	public class MikanVideoSourceAttachmentInfoResponse : MikanResponse
 	{
-		public int attached_vr_device_id { get; set; }
-		public MikanMatrix4f vr_device_offset_xform { get; set; }
+		public int attached_vr_device_id;
+		public MikanMatrix4f vr_device_offset_xform;
 	};
 
-	public struct MikanVideoSourceModeResponse : MikanResponse
+	public class MikanVideoSourceModeResponse : MikanResponse
 	{
-		public MikanVideoSourceType video_source_type { get; set; }
-		public MikanVideoSourceApi video_source_api { get; set; }
-		public string device_path { get; set; }
-		public string video_mode_name { get; set; }
-		public int resolution_x { get; set; }
-		public int resolution_y { get; set; }
-		public float frame_rate { get; set; }
+		public MikanVideoSourceType video_source_type;
+		public MikanVideoSourceApi video_source_api;
+		public string device_path;
+		public string video_mode_name;
+		public int resolution_x;
+		public int resolution_y;
+		public float frame_rate;
 	};
 
 }

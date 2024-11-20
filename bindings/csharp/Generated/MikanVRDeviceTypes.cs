@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Enums
 	public enum MikanVRDeviceApi
 	{
 		INVALID= 0,
@@ -19,12 +18,11 @@ namespace MikanXR
 		TRACKER= 3,
 	};
 
-	// Structs
-	public struct MikanVRDeviceInfo
+	public class MikanVRDeviceInfo
 	{
-		public MikanVRDeviceApi vr_device_api { get; set; }
-		public MikanVRDeviceType vr_device_type { get; set; }
-		public string device_path { get; set; }
+		public MikanVRDeviceApi vr_device_api;
+		public MikanVRDeviceType vr_device_type;
+		public string device_path;
 	};
 
 }

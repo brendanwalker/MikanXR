@@ -38,7 +38,6 @@ using json = nlohmann::json;
 struct ClientModule
 {
 	std::string name;
-	std::vector<rfk::Class const*> apiClasses;
 	std::vector<rfk::Struct const*> serializableStructs;
 	std::vector<rfk::Enum const*> enums;
 };
@@ -47,16 +46,6 @@ using ClientModulePtr = std::shared_ptr<ClientModule>;
 struct CodeGenDatabase
 {
 	std::map<std::string, ClientModulePtr> modules;
-
-	void visitClass(rfk::Class const& entity)
-	{
-		ClientModulePtr module= findOrAddModule(entity);
-
-		if (module != nullptr)
-		{
-			module->apiClasses.push_back(&entity);
-		}
-	}
 
 	void visitStruct(rfk::Struct const& entity)
 	{
@@ -243,12 +232,6 @@ protected:
 	{
 		rfk::Database const& database= rfk::getDatabase();
 
-		database.foreachFileLevelClass([](rfk::Class const& entity, void* userData) -> bool {
-			auto* codeGenDB = reinterpret_cast<CodeGenDatabase*>(userData);
-			codeGenDB->visitClass(entity);
-			return true;
-		}, &codeGenDatabase);
-
 		database.foreachFileLevelStruct([](rfk::Struct const& entity, void* userData) -> bool {
 			auto* codeGenDB = reinterpret_cast<CodeGenDatabase*>(userData);
 			codeGenDB->visitStruct(entity);
@@ -298,7 +281,6 @@ protected:
 	{
 		if (module->enums.size() > 0)
 		{
-			moduleFile << "\t// Enums" << std::endl;
 			for (rfk::Enum const* enumRef : module->enums)
 			{
 				emitEnum(moduleFile, *enumRef);
@@ -308,43 +290,15 @@ protected:
 
 		if (module->serializableStructs.size() > 0)
 		{
-			moduleFile << "\t// Structs" << std::endl;
 			for (rfk::Struct const* structRef : module->serializableStructs)
 			{
-				emitSerializableStruct(moduleFile, *structRef);
-				moduleFile << std::endl;
-			}
-		}
-
-		if (module->apiClasses.size() > 0)
-		{
-			moduleFile << "\t// Classes" << std::endl;
-			for (rfk::Class const* classRef : module->apiClasses)
-			{
-				emitApiClass(moduleFile, *classRef);
+				emitSerializableClass(moduleFile, *structRef);
 				moduleFile << std::endl;
 			}
 		}
 	}
 
-	void emitApiClass(std::ofstream& moduleFile, rfk::Class const& classRef)
-	{
-		std::string className = classRef.getName();
-
-		moduleFile << "\tpublic class " << className << std::endl;
-		moduleFile << "\t{" << std::endl;
-
-		moduleFile << "\t\tprivate MikanRequestManager _requestManager;" << std::endl;
-		moduleFile << std::endl;
-		moduleFile << "\t\tpublic " << className << "(MikanRequestManager requestManager)" << std::endl;
-		moduleFile << "\t\t{" << std::endl;
-		moduleFile << "\t\t\t_requestManager = requestManager;" << std::endl;
-		moduleFile << "\t\t}" << std::endl;
-
-		moduleFile << "\t};" << std::endl;
-	}
-
-	void emitSerializableStruct(std::ofstream& moduleFile, rfk::Struct const& structRef)
+	void emitSerializableClass(std::ofstream& moduleFile, rfk::Struct const& structRef)
 	{
 		// Get a list of parent struct this struct inherits from
 		using ParentList = std::vector<std::string>;
@@ -373,7 +327,7 @@ protected:
 		}
 
 		// Start of the struct definition
-		moduleFile << "\tpublic struct " << structRef.getName() << structInheritance << std::endl;
+		moduleFile << "\tpublic class " << structRef.getName() << structInheritance << std::endl;
 		moduleFile << "\t{" << std::endl;
 
 		// For some reason Refureku doesn't return fields in the order they were declared
@@ -395,7 +349,7 @@ protected:
 		for (rfk::Field const* field : sortedFields)
 		{
 			std::string csharpType = getCSharpType(*field);
-			moduleFile << "\t\tpublic " << csharpType << " " << field->getName() << " { get; set; }" << std::endl;
+			moduleFile << "\t\tpublic " << csharpType << " " << field->getName() << ";" << std::endl;
 		}
 
 		// End of the struct definition

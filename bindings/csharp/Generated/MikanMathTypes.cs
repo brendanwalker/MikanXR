@@ -4,124 +4,123 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanVector3d
+	public class MikanVector3d
 	{
-		public double x { get; set; }
-		public double y { get; set; }
-		public double z { get; set; }
+		public double x;
+		public double y;
+		public double z;
 	};
 
-	public struct MikanMatrix4f
+	public class MikanMatrix4f
 	{
-		public float x0 { get; set; }
-		public float x1 { get; set; }
-		public float x2 { get; set; }
-		public float x3 { get; set; }
-		public float y0 { get; set; }
-		public float y1 { get; set; }
-		public float y2 { get; set; }
-		public float y3 { get; set; }
-		public float z0 { get; set; }
-		public float z1 { get; set; }
-		public float z2 { get; set; }
-		public float z3 { get; set; }
-		public float w0 { get; set; }
-		public float w1 { get; set; }
-		public float w2 { get; set; }
-		public float w3 { get; set; }
+		public float x0;
+		public float x1;
+		public float x2;
+		public float x3;
+		public float y0;
+		public float y1;
+		public float y2;
+		public float y3;
+		public float z0;
+		public float z1;
+		public float z2;
+		public float z3;
+		public float w0;
+		public float w1;
+		public float w2;
+		public float w3;
 	};
 
-	public struct MikanVector2f
+	public class MikanVector2f
 	{
-		public float x { get; set; }
-		public float y { get; set; }
+		public float x;
+		public float y;
 	};
 
-	public struct MikanTransform
+	public class MikanTransform
 	{
-		public MikanVector3f scale { get; set; }
-		public MikanQuatf rotation { get; set; }
-		public MikanVector3f position { get; set; }
+		public MikanVector3f scale;
+		public MikanQuatf rotation;
+		public MikanVector3f position;
 	};
 
-	public struct MikanVector3f
+	public class MikanVector3f
 	{
-		public float x { get; set; }
-		public float y { get; set; }
-		public float z { get; set; }
+		public float x;
+		public float y;
+		public float z;
 	};
 
-	public struct MikanRotator3f
+	public class MikanRotator3f
 	{
-		public float x_angle { get; set; }
-		public float y_angle { get; set; }
-		public float z_angle { get; set; }
+		public float x_angle;
+		public float y_angle;
+		public float z_angle;
 	};
 
-	public struct MikanMatrix3d
+	public class MikanMatrix3d
 	{
-		public double x0 { get; set; }
-		public double x1 { get; set; }
-		public double x2 { get; set; }
-		public double y0 { get; set; }
-		public double y1 { get; set; }
-		public double y2 { get; set; }
-		public double z0 { get; set; }
-		public double z1 { get; set; }
-		public double z2 { get; set; }
+		public double x0;
+		public double x1;
+		public double x2;
+		public double y0;
+		public double y1;
+		public double y2;
+		public double z0;
+		public double z1;
+		public double z2;
 	};
 
-	public struct MikanMatrix4x3d
+	public class MikanMatrix4x3d
 	{
-		public double x0 { get; set; }
-		public double x1 { get; set; }
-		public double x2 { get; set; }
-		public double x3 { get; set; }
-		public double y0 { get; set; }
-		public double y1 { get; set; }
-		public double y2 { get; set; }
-		public double y3 { get; set; }
-		public double z0 { get; set; }
-		public double z1 { get; set; }
-		public double z2 { get; set; }
-		public double z3 { get; set; }
+		public double x0;
+		public double x1;
+		public double x2;
+		public double x3;
+		public double y0;
+		public double y1;
+		public double y2;
+		public double y3;
+		public double z0;
+		public double z1;
+		public double z2;
+		public double z3;
 	};
 
-	public struct MikanMatrix4d
+	public class MikanMatrix4d
 	{
-		public double x0 { get; set; }
-		public double x1 { get; set; }
-		public double x2 { get; set; }
-		public double x3 { get; set; }
-		public double y0 { get; set; }
-		public double y1 { get; set; }
-		public double y2 { get; set; }
-		public double y3 { get; set; }
-		public double z0 { get; set; }
-		public double z1 { get; set; }
-		public double z2 { get; set; }
-		public double z3 { get; set; }
-		public double w0 { get; set; }
-		public double w1 { get; set; }
-		public double w2 { get; set; }
-		public double w3 { get; set; }
+		public double x0;
+		public double x1;
+		public double x2;
+		public double x3;
+		public double y0;
+		public double y1;
+		public double y2;
+		public double y3;
+		public double z0;
+		public double z1;
+		public double z2;
+		public double z3;
+		public double w0;
+		public double w1;
+		public double w2;
+		public double w3;
 	};
 
-	public struct MikanQuatf
+	public class MikanQuatf
 	{
-		public float w { get; set; }
-		public float x { get; set; }
-		public float y { get; set; }
-		public float z { get; set; }
+		public float w;
+		public float x;
+		public float y;
+		public float z;
 	};
 
-	public struct MikanQuatd
+	public class MikanQuatd
 	{
-		public double w { get; set; }
-		public double x { get; set; }
-		public double y { get; set; }
-		public double z { get; set; }
+		public double w;
+		public double x;
+		public double y;
+		public double z;
 	};
 
 }

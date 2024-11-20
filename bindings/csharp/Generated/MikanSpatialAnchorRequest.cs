@@ -4,19 +4,18 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct GetSpatialAnchorList : MikanRequest
+	public class GetSpatialAnchorList : MikanRequest
 	{
 	};
 
-	public struct GetSpatialAnchorInfo : MikanRequest
+	public class GetSpatialAnchorInfo : MikanRequest
 	{
-		public int anchorId { get; set; }
+		public int anchorId;
 	};
 
-	public struct FindSpatialAnchorInfoByName : MikanRequest
+	public class FindSpatialAnchorInfoByName : MikanRequest
 	{
-		public string anchorName { get; set; }
+		public string anchorName;
 	};
 
 }

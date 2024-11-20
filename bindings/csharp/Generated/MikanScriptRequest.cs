@@ -4,39 +4,38 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct SendScriptMessage : MikanRequest
+	public class SendScriptMessage : MikanRequest
 	{
-		public MikanScriptMessageInfo message { get; set; }
+		public MikanScriptMessageInfo message;
 	};
 
-	public struct GetVRDeviceList : MikanRequest
+	public class GetVRDeviceList : MikanRequest
 	{
 	};
 
-	public struct GetVRDeviceInfo : MikanRequest
+	public class GetVRDeviceInfo : MikanRequest
 	{
-		public int deviceId { get; set; }
+		public int deviceId;
 	};
 
-	public struct SubscribeToVRDevicePoseUpdates : MikanRequest
+	public class SubscribeToVRDevicePoseUpdates : MikanRequest
 	{
-		public int deviceId { get; set; }
+		public int deviceId;
 	};
 
-	public struct UnsubscribeFromVRDevicePoseUpdates : MikanRequest
+	public class UnsubscribeFromVRDevicePoseUpdates : MikanRequest
 	{
-		public int deviceId { get; set; }
+		public int deviceId;
 	};
 
-	public struct MikanVRDeviceListResponse : MikanResponse
+	public class MikanVRDeviceListResponse : MikanResponse
 	{
-		public List<int> vr_device_id_list { get; set; }
+		public List<int> vr_device_id_list;
 	};
 
-	public struct MikanVRDeviceInfoResponse : MikanResponse
+	public class MikanVRDeviceInfoResponse : MikanResponse
 	{
-		public MikanVRDeviceInfo vr_device_info { get; set; }
+		public MikanVRDeviceInfo vr_device_info;
 	};
 
 }

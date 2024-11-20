@@ -4,12 +4,11 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanConnectedEvent : MikanEvent
+	public class MikanConnectedEvent : MikanEvent
 	{
 	};
 
-	public struct MikanDisconnectedEvent : MikanEvent
+	public class MikanDisconnectedEvent : MikanEvent
 	{
 	};
 

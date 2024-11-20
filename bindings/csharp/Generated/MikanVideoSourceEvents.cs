@@ -4,32 +4,31 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanVideoSourceOpenedEvent : MikanEvent
+	public class MikanVideoSourceOpenedEvent : MikanEvent
 	{
 	};
 
-	public struct MikanVideoSourceClosedEvent : MikanEvent
+	public class MikanVideoSourceClosedEvent : MikanEvent
 	{
 	};
 
-	public struct MikanVideoSourceNewFrameEvent : MikanEvent
+	public class MikanVideoSourceNewFrameEvent : MikanEvent
 	{
-		public MikanVector3f cameraForward { get; set; }
-		public MikanVector3f cameraUp { get; set; }
-		public MikanVector3f cameraPosition { get; set; }
-		public ulong frame { get; set; }
+		public MikanVector3f cameraForward;
+		public MikanVector3f cameraUp;
+		public MikanVector3f cameraPosition;
+		public ulong frame;
 	};
 
-	public struct MikanVideoSourceAttachmentChangedEvent : MikanEvent
-	{
-	};
-
-	public struct MikanVideoSourceIntrinsicsChangedEvent : MikanEvent
+	public class MikanVideoSourceAttachmentChangedEvent : MikanEvent
 	{
 	};
 
-	public struct MikanVideoSourceModeChangedEvent : MikanEvent
+	public class MikanVideoSourceIntrinsicsChangedEvent : MikanEvent
+	{
+	};
+
+	public class MikanVideoSourceModeChangedEvent : MikanEvent
 	{
 	};
 

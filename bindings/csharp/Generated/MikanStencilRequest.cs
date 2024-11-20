@@ -4,62 +4,61 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct GetModelStencilList : MikanRequest
+	public class GetModelStencilList : MikanRequest
 	{
 	};
 
-	public struct GetQuadStencilList : MikanRequest
+	public class GetQuadStencilList : MikanRequest
 	{
 	};
 
-	public struct MikanStencilBoxInfoResponse : MikanResponse
+	public class MikanStencilBoxInfoResponse : MikanResponse
 	{
-		public MikanStencilBoxInfo box_info { get; set; }
+		public MikanStencilBoxInfo box_info;
 	};
 
-	public struct GetQuadStencil : MikanRequest
+	public class GetQuadStencil : MikanRequest
 	{
-		public int stencilId { get; set; }
+		public int stencilId;
 	};
 
-	public struct MikanStencilQuadInfoResponse : MikanResponse
+	public class MikanStencilQuadInfoResponse : MikanResponse
 	{
-		public MikanStencilQuadInfo quad_info { get; set; }
+		public MikanStencilQuadInfo quad_info;
 	};
 
-	public struct MikanStencilModelRenderGeometryResponse : MikanResponse
+	public class MikanStencilModelRenderGeometryResponse : MikanResponse
 	{
-		public MikanStencilModelRenderGeometry render_geometry { get; set; }
+		public MikanStencilModelRenderGeometry render_geometry;
 	};
 
-	public struct MikanStencilModelInfoResponse : MikanResponse
+	public class MikanStencilModelInfoResponse : MikanResponse
 	{
-		public MikanStencilModelInfo model_info { get; set; }
+		public MikanStencilModelInfo model_info;
 	};
 
-	public struct MikanStencilListResponse : MikanResponse
+	public class MikanStencilListResponse : MikanResponse
 	{
-		public List<int> stencil_id_list { get; set; }
+		public List<int> stencil_id_list;
 	};
 
-	public struct GetBoxStencilList : MikanRequest
+	public class GetBoxStencilList : MikanRequest
 	{
 	};
 
-	public struct GetBoxStencil : MikanRequest
+	public class GetBoxStencil : MikanRequest
 	{
-		public int stencilId { get; set; }
+		public int stencilId;
 	};
 
-	public struct GetModelStencilRenderGeometry : MikanRequest
+	public class GetModelStencilRenderGeometry : MikanRequest
 	{
-		public int stencilId { get; set; }
+		public int stencilId;
 	};
 
-	public struct GetModelStencil : MikanRequest
+	public class GetModelStencil : MikanRequest
 	{
-		public int stencilId { get; set; }
+		public int stencilId;
 	};
 
 }

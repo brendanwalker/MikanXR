@@ -4,30 +4,29 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct WriteColorRenderTargetTexture : MikanRequest
+	public class WriteColorRenderTargetTexture : MikanRequest
 	{
-		public IntPtr apiColorTexturePtr { get; set; }
+		public IntPtr apiColorTexturePtr;
 	};
 
-	public struct WriteDepthRenderTargetTexture : MikanRequest
+	public class WriteDepthRenderTargetTexture : MikanRequest
 	{
-		public IntPtr apiDepthTexturePtr { get; set; }
-		public float zNear { get; set; }
-		public float zFar { get; set; }
+		public IntPtr apiDepthTexturePtr;
+		public float zNear;
+		public float zFar;
 	};
 
-	public struct AllocateRenderTargetTextures : MikanRequest
+	public class AllocateRenderTargetTextures : MikanRequest
 	{
-		public MikanRenderTargetDescriptor descriptor { get; set; }
+		public MikanRenderTargetDescriptor descriptor;
 	};
 
-	public struct PublishRenderTargetTextures : MikanRequest
+	public class PublishRenderTargetTextures : MikanRequest
 	{
-		public ulong frameIndex { get; set; }
+		public ulong frameIndex;
 	};
 
-	public struct FreeRenderTargetTextures : MikanRequest
+	public class FreeRenderTargetTextures : MikanRequest
 	{
 	};
 

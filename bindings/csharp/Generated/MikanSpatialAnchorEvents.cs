@@ -4,21 +4,20 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanAnchorNameUpdateEvent : MikanEvent
+	public class MikanAnchorNameUpdateEvent : MikanEvent
 	{
-		public int anchor_id { get; set; }
-		public string anchor_name { get; set; }
+		public int anchor_id;
+		public string anchor_name;
 	};
 
-	public struct MikanAnchorListUpdateEvent : MikanEvent
+	public class MikanAnchorListUpdateEvent : MikanEvent
 	{
 	};
 
-	public struct MikanAnchorPoseUpdateEvent : MikanEvent
+	public class MikanAnchorPoseUpdateEvent : MikanEvent
 	{
-		public MikanTransform transform { get; set; }
-		public int anchor_id { get; set; }
+		public MikanTransform transform;
+		public int anchor_id;
 	};
 
 }

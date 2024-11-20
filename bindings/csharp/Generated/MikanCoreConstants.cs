@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Enums
 	public enum MikanResult
 	{
 		Success= 0,

@@ -4,28 +4,27 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanQuadStencilListUpdateEvent : MikanEvent
+	public class MikanQuadStencilListUpdateEvent : MikanEvent
 	{
 	};
 
-	public struct MikanModelStencilListUpdateEvent : MikanEvent
+	public class MikanModelStencilListUpdateEvent : MikanEvent
 	{
 	};
 
-	public struct MikanStencilNameUpdateEvent : MikanEvent
+	public class MikanStencilNameUpdateEvent : MikanEvent
 	{
-		public int stencil_id { get; set; }
-		public string stencil_name { get; set; }
+		public int stencil_id;
+		public string stencil_name;
 	};
 
-	public struct MikanStencilPoseUpdateEvent : MikanEvent
+	public class MikanStencilPoseUpdateEvent : MikanEvent
 	{
-		public MikanTransform transform { get; set; }
-		public int stencil_id { get; set; }
+		public MikanTransform transform;
+		public int stencil_id;
 	};
 
-	public struct MikanBoxStencilListUpdateEvent : MikanEvent
+	public class MikanBoxStencilListUpdateEvent : MikanEvent
 	{
 	};
 

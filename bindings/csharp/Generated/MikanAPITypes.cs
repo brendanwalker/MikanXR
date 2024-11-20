@@ -4,40 +4,39 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	// Structs
-	public struct MikanRequest
+	public class MikanRequest
 	{
-		public string requestType { get; set; }
-		public int requestId { get; set; }
-		public int version { get; set; }
+		public string requestType;
+		public int requestId;
+		public int version;
 	};
 
-	public struct MikanClientInfo
+	public class MikanClientInfo
 	{
-		public string clientId { get; set; }
-		public string engineName { get; set; }
-		public string engineVersion { get; set; }
-		public string applicationName { get; set; }
-		public string applicationVersion { get; set; }
-		public string xrDeviceName { get; set; }
-		public MikanClientGraphicsApi graphicsAPI { get; set; }
-		public int mikanCoreSdkVersion { get; set; }
-		public bool supportsRGB24 { get; set; }
-		public bool supportsRGBA32 { get; set; }
-		public bool supportsBGRA32 { get; set; }
-		public bool supportsDepth { get; set; }
+		public string clientId;
+		public string engineName;
+		public string engineVersion;
+		public string applicationName;
+		public string applicationVersion;
+		public string xrDeviceName;
+		public MikanClientGraphicsApi graphicsAPI;
+		public int mikanCoreSdkVersion;
+		public bool supportsRGB24;
+		public bool supportsRGBA32;
+		public bool supportsBGRA32;
+		public bool supportsDepth;
 	};
 
-	public struct MikanResponse
+	public class MikanResponse
 	{
-		public string responseType { get; set; }
-		public int requestId { get; set; }
-		public MikanResult resultCode { get; set; }
+		public string responseType;
+		public int requestId;
+		public MikanResult resultCode;
 	};
 
-	public struct MikanEvent
+	public class MikanEvent
 	{
-		public string eventType { get; set; }
+		public string eventType;
 	};
 
 }
