@@ -1,7 +1,5 @@
 using System;
 using System.Text;
-using MikanClientCSharp.Serialization;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace MikanXR
