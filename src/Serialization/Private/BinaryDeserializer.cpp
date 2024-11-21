@@ -89,6 +89,8 @@ namespace Serialization
 			rfk::Archetype const* elementArchetype = elementType.getArchetype();
 
 			// Get the class for the object by type id
+			std::string objectClassName;
+			from_binary(m_binaryReader, objectClassName);
 			uint64_t objectClassId;
 			from_binary(m_binaryReader, objectClassId);
 			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById((std::size_t)objectClassId);

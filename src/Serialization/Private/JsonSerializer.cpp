@@ -93,14 +93,13 @@ namespace Serialization
 			}
 
 			// Get the type of the elements in the array from the template argument
-			#ifndef NDEBUG
-			char const *objectStructName = objectStruct->getName();
-			#endif
+			std::string className = objectStruct->getName();
 
 			// Resize the array to the desired target size
 			json objectPtrJson = json::object();
 
 			// Write the runtime class id of the object
+			objectPtrJson["class_name"] = className;
 			objectPtrJson["class_id"] = classId;
 
 			// Get the raw pointer to the object pointed to by the shared pointer

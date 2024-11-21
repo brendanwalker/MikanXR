@@ -118,6 +118,7 @@ namespace Serialization
 			rfk::Archetype const* elementArchetype = elementType.getArchetype();
 
 			// Get the class for the object by type id
+			std::string objectClassName = ownerJsonObject["class_name"].get<std::string>();
 			std::size_t objectClassId = ownerJsonObject["class_id"].get<std::size_t>();
 			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(objectClassId);
 			if (objectStruct == nullptr)
@@ -125,8 +126,9 @@ namespace Serialization
 				throw std::runtime_error(
 					stringify("JsonReadVisitor::visitObjectPtr() ",
 							  "ObjectPtr Accessor ", sharedPtrAccessor.getName(),
-							  " used an unknown class_id ", objectClassId,
-							  ", archetype name: ", elementArchetype->getName()));
+							  " used an unknown runtime class_name: ", objectClassName,
+							  " (runtime class_id: ", objectClassId,
+							  "), static class_name: ", elementArchetype->getName()));
 			}
 
 			// Use reflection to get the methods to create and initialize the object

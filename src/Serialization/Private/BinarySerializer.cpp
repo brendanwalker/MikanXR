@@ -97,11 +97,10 @@ namespace Serialization
 			}
 
 			// Get the type of the elements in the array from the template argument
-		#ifndef NDEBUG
-			char const* objectStructName = objectStruct->getName();
-		#endif
+			std::string className = objectStruct->getName();
 
 			// Write the runtime class id of the object
+			to_binary(m_binaryWriter, className);
 			to_binary(m_binaryWriter, (uint64_t)classId);
 
 			// Get the raw pointer to the object pointed to by the shared pointer
