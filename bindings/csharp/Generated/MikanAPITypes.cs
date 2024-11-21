@@ -6,6 +6,8 @@ namespace MikanXR
 {
 	public class MikanRequest
 	{
+		public static readonly ulong classId= 1095719431187359814;
+
 		public string requestType;
 		public int requestId;
 		public int version;
@@ -13,6 +15,8 @@ namespace MikanXR
 
 	public class MikanClientInfo
 	{
+		public static readonly ulong classId= 16144647093330338146;
+
 		public string clientId;
 		public string engineName;
 		public string engineVersion;
@@ -29,6 +33,8 @@ namespace MikanXR
 
 	public class MikanResponse
 	{
+		public static readonly ulong classId= 7094118849615581562;
+
 		public string responseType;
 		public int requestId;
 		public MikanResult resultCode;
@@ -36,6 +42,8 @@ namespace MikanXR
 
 	public class MikanEvent
 	{
+		public static readonly ulong classId= 8521159033538382795;
+
 		public string eventType;
 	};
 

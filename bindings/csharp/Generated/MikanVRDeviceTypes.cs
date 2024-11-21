@@ -20,6 +20,8 @@ namespace MikanXR
 
 	public class MikanVRDeviceInfo
 	{
+		public static readonly ulong classId= 2293209149503382551;
+
 		public MikanVRDeviceApi vr_device_api;
 		public MikanVRDeviceType vr_device_type;
 		public string device_path;

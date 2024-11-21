@@ -6,6 +6,8 @@ namespace MikanXR
 {
 	public class MikanRenderTargetDescriptor
 	{
+		public static readonly ulong classId= 8029686814184454925;
+
 		public MikanColorBufferType color_buffer_type;
 		public MikanDepthBufferType depth_buffer_type;
 		public uint width;

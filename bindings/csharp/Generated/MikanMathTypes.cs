@@ -6,6 +6,8 @@ namespace MikanXR
 {
 	public class MikanVector3d
 	{
+		public static readonly ulong classId= 4126307111145656249;
+
 		public double x;
 		public double y;
 		public double z;
@@ -13,6 +15,8 @@ namespace MikanXR
 
 	public class MikanMatrix4f
 	{
+		public static readonly ulong classId= 17368734072747899702;
+
 		public float x0;
 		public float x1;
 		public float x2;
@@ -33,12 +37,16 @@ namespace MikanXR
 
 	public class MikanVector2f
 	{
+		public static readonly ulong classId= 4125211997564147318;
+
 		public float x;
 		public float y;
 	};
 
 	public class MikanTransform
 	{
+		public static readonly ulong classId= 1003008018171028503;
+
 		public MikanVector3f scale;
 		public MikanQuatf rotation;
 		public MikanVector3f position;
@@ -46,6 +54,8 @@ namespace MikanXR
 
 	public class MikanVector3f
 	{
+		public static readonly ulong classId= 4126304912122399827;
+
 		public float x;
 		public float y;
 		public float z;
@@ -53,6 +63,8 @@ namespace MikanXR
 
 	public class MikanRotator3f
 	{
+		public static readonly ulong classId= 1923080865110129363;
+
 		public float x_angle;
 		public float y_angle;
 		public float z_angle;
@@ -60,6 +72,8 @@ namespace MikanXR
 
 	public class MikanMatrix3d
 	{
+		public static readonly ulong classId= 17367572988468698111;
+
 		public double x0;
 		public double x1;
 		public double x2;
@@ -73,6 +87,8 @@ namespace MikanXR
 
 	public class MikanMatrix4x3d
 	{
+		public static readonly ulong classId= 15014225579411602659;
+
 		public double x0;
 		public double x1;
 		public double x2;
@@ -89,6 +105,8 @@ namespace MikanXR
 
 	public class MikanMatrix4d
 	{
+		public static readonly ulong classId= 17368731873724643280;
+
 		public double x0;
 		public double x1;
 		public double x2;
@@ -109,6 +127,8 @@ namespace MikanXR
 
 	public class MikanQuatf
 	{
+		public static readonly ulong classId= 1243672117997138260;
+
 		public float w;
 		public float x;
 		public float y;
@@ -117,6 +137,8 @@ namespace MikanXR
 
 	public class MikanQuatd
 	{
+		public static readonly ulong classId= 1243674317020394682;
+
 		public double w;
 		public double x;
 		public double y;

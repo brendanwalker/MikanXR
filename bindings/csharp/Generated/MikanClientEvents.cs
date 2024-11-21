@@ -6,10 +6,14 @@ namespace MikanXR
 {
 	public class MikanConnectedEvent : MikanEvent
 	{
+		public static new readonly ulong classId= 9883164577031932740;
+
 	};
 
 	public class MikanDisconnectedEvent : MikanEvent
 	{
+		public static new readonly ulong classId= 13547026039865436498;
+
 	};
 
 }

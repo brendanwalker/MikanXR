@@ -330,6 +330,11 @@ protected:
 		moduleFile << "\tpublic class " << structRef.getName() << structInheritance << std::endl;
 		moduleFile << "\t{" << std::endl;
 
+		// Emit the refureku class id
+		std::string classIdOverride = parentStructNames.size() > 0 ? "new " : "";
+		moduleFile << "\t\tpublic static " << classIdOverride << "readonly ulong classId= " << structRef.getId() << ";" << std::endl;
+		moduleFile << std::endl;
+
 		// For some reason Refureku doesn't return fields in the order they were declared
 		// So we extract fields into a vector and sort them by memory offset
 		using FieldList = std::vector<rfk::Field const*>;

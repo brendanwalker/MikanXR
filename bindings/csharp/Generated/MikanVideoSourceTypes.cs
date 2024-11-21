@@ -26,6 +26,8 @@ namespace MikanXR
 
 	public class MikanDistortionCoefficients
 	{
+		public static readonly ulong classId= 15850189071335116992;
+
 		public double k1;
 		public double k2;
 		public double k3;
@@ -38,6 +40,8 @@ namespace MikanXR
 
 	public class MikanCameraIntrinsics
 	{
+		public static readonly ulong classId= 16466519655092600494;
+
 		public double pixel_width;
 		public double pixel_height;
 		public double hfov;
@@ -48,12 +52,16 @@ namespace MikanXR
 
 	public class MikanMonoIntrinsics : MikanCameraIntrinsics
 	{
+		public static new readonly ulong classId= 4896055255137140914;
+
 		public MikanDistortionCoefficients distortion_coefficients;
 		public MikanMatrix3d camera_matrix;
 	};
 
 	public class MikanStereoIntrinsics : MikanCameraIntrinsics
 	{
+		public static new readonly ulong classId= 18184810005847907541;
+
 		public MikanDistortionCoefficients left_distortion_coefficients;
 		public MikanMatrix3d left_camera_matrix;
 		public MikanDistortionCoefficients right_distortion_coefficients;
@@ -71,6 +79,8 @@ namespace MikanXR
 
 	public class MikanVideoSourceIntrinsics
 	{
+		public static readonly ulong classId= 13372830613729992889;
+
 		public SerializableObject<MikanCameraIntrinsics> intrinsics_ptr;
 		public MikanIntrinsicsType intrinsics_type;
 	};

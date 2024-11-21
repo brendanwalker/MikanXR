@@ -6,6 +6,8 @@ namespace MikanXR
 {
 	public class MikanSpatialAnchorInfoResponse : MikanResponse
 	{
+		public static new readonly ulong classId= 8761760000143053681;
+
 		public MikanSpatialAnchorInfo anchor_info;
 	};
 

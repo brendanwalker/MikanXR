@@ -6,29 +6,41 @@ namespace MikanXR
 {
 	public class GetVideoSourceAttachment : MikanRequest
 	{
+		public static new readonly ulong classId= 2729677767526720868;
+
 	};
 
 	public class GetVideoSourceIntrinsics : MikanRequest
 	{
+		public static new readonly ulong classId= 5111634741046016445;
+
 	};
 
 	public class GetVideoSourceMode : MikanRequest
 	{
+		public static new readonly ulong classId= 12976430897927236878;
+
 	};
 
 	public class MikanVideoSourceIntrinsicsResponse : MikanResponse
 	{
+		public static new readonly ulong classId= 5018187312099351234;
+
 		public MikanVideoSourceIntrinsics intrinsics;
 	};
 
 	public class MikanVideoSourceAttachmentInfoResponse : MikanResponse
 	{
+		public static new readonly ulong classId= 10603757544245690499;
+
 		public int attached_vr_device_id;
 		public MikanMatrix4f vr_device_offset_xform;
 	};
 
 	public class MikanVideoSourceModeResponse : MikanResponse
 	{
+		public static new readonly ulong classId= 17387256612955229845;
+
 		public MikanVideoSourceType video_source_type;
 		public MikanVideoSourceApi video_source_api;
 		public string device_path;
