@@ -71,7 +71,7 @@ namespace MikanXR
 
 	public class MikanVideoSourceIntrinsics
 	{
-		public MikanCameraIntrinsics intrinsics_ptr;
+		public SerializableObject<MikanCameraIntrinsics> intrinsics_ptr;
 		public MikanIntrinsicsType intrinsics_type;
 	};
 

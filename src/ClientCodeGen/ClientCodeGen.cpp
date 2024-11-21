@@ -428,7 +428,7 @@ protected:
 
 					// Field type can be ObjectPtr template type since 
 					// it's the base class for the pointer type
-					return objectBaseTypeString;
+					return "SerializableObject<" + objectBaseTypeString + ">";
 				}
 				else if (templateTypeName == "List" &&
 						 templateClassInstanceType->getTemplateArgumentsCount() == 1)
