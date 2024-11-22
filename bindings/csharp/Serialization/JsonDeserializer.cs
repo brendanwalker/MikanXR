@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Reflection;
 
 namespace MikanXR
@@ -20,107 +20,379 @@ namespace MikanXR
 			{
 				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 				Type fieldType = accessor.ValueType;
-				string fieldName= accessor.ValueName;
 				object instance = accessor.ValueInstance;
+
+				JsonReadVisitor jsonVisitor = new JsonReadVisitor(jsonToken as JObject);
+				Utils.visitObject(instance, fieldType, jsonVisitor);
+			}
+
+			public void visitList(ValueAccessor accessor)
+			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
+				Type fieldType = accessor.ValueType;
+				string fieldName = accessor.ValueName;
 
 				if (jsonToken.Type == JTokenType.Array)
 				{
+					var jsonArray = jsonToken as JArray;
+					var list= accessor.ValueInstance as IList;
+					Type elementType = fieldType.GenericTypeArguments[0];
 
-				}
-				else if (jsonToken.Type == JTokenType.Object)
-				{
-					if (fieldType.IsGenericType)
+					list.Clear();
+					foreach (var jsonElement in jsonArray)
 					{
-						if (fieldType.Name == "SerializableObject" &&
-							fieldType.GenericTypeArguments.Length == 1)
-						{
-							visitObjectPtr(accessor, jsonToken as JObject);
-						}
-					}
-					else
-					{
-						JsonReadVisitor jsonVisitor = new JsonReadVisitor(jsonToken as JObject);
+						// Make a fake "field" for an element in the array
+						var elementAccessor = new ValueAccessor(null, elementType);
 
-						Utils.visitObject(instance, fieldType, jsonVisitor);
-					}
-				}
-				else if (jsonToken.Type == JTokenType.String)
-				{
+						// Deserialize the element
+						JsonReadVisitor elementVisitor = new JsonReadVisitor(jsonElement as JObject);
+						Utils.visitValue(elementAccessor, elementVisitor);
 
+						// Add the element to the list
+						list.Add(elementAccessor.ValueInstance);
+					}
 				}
 				else
 				{
 					throw new Exception(
-						"JsonReadVisitor::visitStruct() Struct Field " + fieldName + 
-						" was not of expected type object to deserialize json object value");
+						"JsonReadVisitor::visitList() Field " + fieldName +
+						" missing corresponding json array");
 				}
+			}
+
+			public void visitDictionary(ValueAccessor accessor)
+			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
+				Type fieldType = accessor.ValueType;
+				string fieldName = accessor.ValueName;
+
+				if (jsonToken.Type == JTokenType.Array)
+				{
+					var jsonMapPairArray = jsonToken as JArray;
+					var map = accessor.ValueInstance as IDictionary;
+					Type keyType = fieldType.GenericTypeArguments[0];
+					Type valueType = fieldType.GenericTypeArguments[1];
+
+					map.Clear();
+					foreach (var jsonPair in jsonMapPairArray)
+					{
+						// Make a fake "field" for the key
+						var keyAccessor = new ValueAccessor(null, keyType);
+
+						// Deserialize the key
+						var jsonKey= jsonPair["key"];
+						JsonReadVisitor keyVisitor = new JsonReadVisitor(jsonKey as JObject);
+						Utils.visitValue(keyAccessor, keyVisitor);
+
+						// Make a fake "field" for the value
+						var valueAccessor = new ValueAccessor(null, valueType);
+
+						// Deserialize the value
+						var jsonValue = jsonPair["value"];
+						JsonReadVisitor valueVisitor = new JsonReadVisitor(jsonValue as JObject);
+						Utils.visitValue(keyAccessor, valueVisitor);
+
+						// Add the key-value pair to the map
+						map.Add(keyAccessor.ValueInstance, valueAccessor.ValueInstance);
+					}
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitList() Field " + fieldName +
+						" missing corresponding json array");
+				}
+			}
+
+			public void visitPolymorphicObject(ValueAccessor accessor)
+			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
+				Type fieldType = accessor.ValueType;
+				string fieldName = accessor.ValueName;
+				object fieldInstance = accessor.ValueInstance;
+
+				// Allocate the element instance using the runtime class name
+				Type elementStaticType = fieldType.GenericTypeArguments[0];
+				var elementRuntimeTypeName = (string)jsonToken["class_name"];
+				var elementInstance =
+					Utils.allocateMikanTypeByName(
+						elementRuntimeTypeName, out Type elementRuntimeType);
+				if (elementInstance == null)
+				{
+					throw new Exception(
+							"JsonReadVisitor::visitPolymorphicObject() " +
+							"ObjectPtr Accessor " + fieldName +
+							" used an unknown runtime class_name: " + elementRuntimeTypeName +
+							", static class_name: " + elementStaticType.Name);
+				}
+
+				// Deserialize the element into the newly allocated instance
+				JObject elementJson = jsonToken["value"] as JObject;
+				var elementVisitor = new JsonReadVisitor(elementJson);
+				Utils.visitObject(elementInstance, elementRuntimeType, elementVisitor);
+
+				// Assign the child object to the SerializableObject field
+				MethodInfo setInstanceMethod = fieldType.GetMethod("setInstance");
+				setInstanceMethod.Invoke(fieldInstance, new object[] { elementInstance });
 			}
 
 			public void visitEnum(ValueAccessor accessor)
 			{
-				//var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
-				//var settings = new JsonSerializerSettings();
-				//settings.Converters.Add(stringEnumConverter);
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
-				//T response = JsonConvert.DeserializeObject<T>(utfJsonString, settings);
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					int value = (int)jsonToken;
+					var enumValue= Enum.ToObject(accessor.ValueType, value);
 
+					accessor.setValue(enumValue);
+				}
+				else if (jsonToken.Type == JTokenType.String)
+				{
+					string value = (string)jsonToken;
+					var enumValue= Enum.Parse(accessor.ValueType, value);
+
+					accessor.setValue(enumValue);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitEnum() " +
+						"Enum Accessor " + accessor.ValueName +
+						" was not a Integer or String json value");
+				}
 			}
 
 			public void visitBool(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Boolean)
+				{
+					bool value = (bool)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitBool() " +
+						"Bool Accessor " + accessor.ValueName +
+						" was not a bool json value");
+				}
 			}
 
 			public void visitByte(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					sbyte value = (sbyte)(short)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitByte() " +
+						"Byte Accessor " + accessor.ValueName +
+						" was not a Integer json value");
+				}
 			}
 
 			public void visitUByte(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					byte value = (byte)(ushort)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitUByte() " +
+						"UByte Accessor " + accessor.ValueName +
+						" was not a Integer json value");
+				}
 			}
 
 			public void visitShort(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					short value = (short)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitShort() " +
+						"Short Accessor " + accessor.ValueName +
+						" was not a Integer json value");
+				}
 			}
 
 			public void visitUShort(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					ushort value = (ushort)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitUShort() " +
+						"UShort Accessor " + accessor.ValueName +
+						" was not a Integer json value");
+				}
 			}
 
 			public void visitInt(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					int value = (int)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitInt() " +
+						"Int Accessor " + accessor.ValueName +
+						" was not a Integer json value");
+				}
 			}
 
 			public void visitUInt(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					uint value = (uint)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitUInt() " +
+						"UInt Accessor " + accessor.ValueName +
+						" was not a Integer json value");
+				}
 			}
 
 			public void visitLong(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					long value = (long)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitLong() " +
+						"Long Accessor " + accessor.ValueName +
+						" was not a Integer json value");
+				}
 			}
 
 			public void visitULong(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer)
+				{
+					ulong value = (ulong)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitULong() " +
+						"ULong Accessor " + accessor.ValueName +
+						" was not a Integer json value");
+				}
 			}
 
 			public void visitFloat(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer ||
+					jsonToken.Type == JTokenType.Float)
+				{
+					float value = (float)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitFloat() " +
+						"Float Accessor " + accessor.ValueName +
+						" was not a Float json value");
+				}
 			}
 
 			public void visitDouble(ValueAccessor accessor)
 			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 
+				if (jsonToken.Type == JTokenType.Integer ||
+					jsonToken.Type == JTokenType.Float)
+				{
+					double value = (double)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitDouble() " +
+						"Double Accessor " + accessor.ValueName +
+						" was not a Double json value");
+				}
 			}
-			
+
+			public void visitString(ValueAccessor accessor)
+			{
+				JToken jsonToken = getJsonTokenFromAccessor(accessor);
+
+				if (jsonToken.Type == JTokenType.String)
+				{
+					string value = (string)jsonToken;
+
+					accessor.setValue(value);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitString() " +
+						"String Accessor " + accessor.ValueName +
+						" was not a String json value");
+				}
+			}
+
 			private JToken getJsonTokenFromAccessor(ValueAccessor accessor)
 			{
 				var field= accessor.ValueField;
@@ -140,37 +412,6 @@ namespace MikanXR
 					// The json object should contain the value we want to deserialize
 					return _jsonObject;
 				}
-			}
-
-			private void visitObjectPtr(ValueAccessor accessor, JObject serializableObjectJson)
-			{
-				Type fieldType = accessor.ValueType;
-				string fieldName = accessor.ValueName;
-				object fieldInstance = accessor.ValueInstance;
-
-				// Allocate the element instance using the runtime class name
-				Type elementStaticType= fieldType.GenericTypeArguments[0];
-				var elementRuntimeTypeName= (string)serializableObjectJson["class_name"];
-				var elementInstance= 
-					Utils.allocateMikanTypeByName(
-						elementRuntimeTypeName, out Type elementRuntimeType);
-				if (elementInstance == null)
-				{
-					throw new Exception(
-							"JsonReadVisitor::visitObjectPtr() " +
-							"ObjectPtr Accessor " + fieldName +
-							" used an unknown runtime class_name: " + elementRuntimeTypeName +
-							", static class_name: " + elementStaticType.Name);
-				}
-
-				// Deserialize the element into the newly allocated instance
-				JObject elementJson = serializableObjectJson["value"] as JObject;
-				var elementVisitor = new JsonReadVisitor(elementJson);
-				Utils.visitObject(elementInstance, elementRuntimeType, elementVisitor);
-
-				// Assign the child object to the SerializableObject field
-				MethodInfo setInstanceMethod= fieldType.GetMethod("setInstance");
-				setInstanceMethod.Invoke(fieldInstance, new object[] { elementInstance });
 			}
 		}
 

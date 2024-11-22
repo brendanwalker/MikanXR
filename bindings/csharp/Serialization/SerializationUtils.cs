@@ -1,10 +1,18 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace MikanXR
 {
 	internal class ValueAccessor
 	{
+		public ValueAccessor(object instance, Type type)
+		{
+			_instance = instance;
+			_type = type;
+			_name = type.Name;
+		}
+
 		public ValueAccessor(object instance, FieldInfo field)
 		{
 			_instance = instance;
@@ -13,29 +21,58 @@ namespace MikanXR
 			_name = field.Name;
 		}
 
-		public ValueAccessor(object instance, Type type)
+		public virtual T getValue<T>()
 		{
-			_instance = instance;
-			_type = type;
-			_name = type.Name;
+			Debug.Assert(_type == typeof(T));
+			Debug.Assert(_type.IsValueType);
+			Debug.Assert(_instance != null);
+			
+			if (_fieldInfo != null)
+			{
+				return (T)_fieldInfo.GetValue(_instance);
+			}
+			else
+			{
+				return (T)_instance;
+			}
 		}
 
-		private object _instance;
+		public virtual void setValue<T>(T value)
+		{
+			Debug.Assert(_type == typeof(T));
+			Debug.Assert(_type.IsValueType);
+			Debug.Assert(_fieldInfo != null);
+
+			if (_fieldInfo != null)
+			{
+				Debug.Assert(_instance != null);
+				_fieldInfo.SetValue(_instance, value);
+			}
+			else
+			{
+				_instance= value;
+			}
+		}
+
+		protected object _instance;
 		public object ValueInstance => _instance;
 
-		private FieldInfo _fieldInfo;
+		protected FieldInfo _fieldInfo;
 		public FieldInfo ValueField => _fieldInfo;
 
-		private Type _type;
+		protected Type _type;
 		public Type ValueType => _type;
 
-		private string _name;
+		protected string _name;
 		public string ValueName => _name;
 	}
 
 	internal interface IVisitor
 	{
 		void visitClass(ValueAccessor accessor);
+		void visitList(ValueAccessor accessor);
+		void visitDictionary(ValueAccessor accessor);
+		void visitPolymorphicObject(ValueAccessor accessor);
 		void visitEnum(ValueAccessor accessor);
 		void visitBool(ValueAccessor accessor);
 		void visitByte(ValueAccessor accessor);
@@ -48,6 +85,7 @@ namespace MikanXR
 		void visitULong(ValueAccessor accessor);
 		void visitFloat(ValueAccessor accessor);
 		void visitDouble(ValueAccessor accessor);
+		void visitString(ValueAccessor accessor);
 	}
 
 	internal static class Utils
@@ -91,7 +129,34 @@ namespace MikanXR
 
 			if (type.IsClass)
 			{
-				visitor.visitClass(accessor);
+				Type fieldType = accessor.ValueType;
+
+				if (fieldType.IsGenericType)
+				{
+					if (fieldType.Name == "List" &&
+						fieldType.GenericTypeArguments.Length == 1)
+					{
+						visitor.visitList(accessor);
+					}
+					else if (fieldType.Name == "Dictionary" &&
+							fieldType.GenericTypeArguments.Length == 2)
+					{
+						visitor.visitDictionary(accessor);
+					}
+					else if (fieldType.Name == "SerializableObject" &&
+							fieldType.GenericTypeArguments.Length == 1)
+					{
+						visitor.visitPolymorphicObject(accessor);
+					}
+					else
+					{
+						visitor.visitClass(accessor);
+					}
+				}
+				else
+				{
+					visitor.visitClass(accessor);
+				}
 			}
 			else if (type.IsEnum)
 			{
@@ -133,6 +198,9 @@ namespace MikanXR
 						break;
 					case TypeCode.Double:
 						visitor.visitDouble(accessor);
+						break;
+					case TypeCode.String:
+						visitor.visitString(accessor);
 						break;
 					default:
 						throw new NotImplementedException("Accessor " + name + " has unsupported type");

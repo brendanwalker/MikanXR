@@ -19,6 +19,21 @@ namespace MikanXR
 
 			}
 
+			public void visitList(ValueAccessor accessor)
+			{
+
+			}
+
+			public void visitDictionary(ValueAccessor accessor)
+			{
+
+			}
+
+			public void visitPolymorphicObject(ValueAccessor accessor)
+			{
+
+			}
+
 			public void visitEnum(ValueAccessor accessor)
 			{
 
@@ -75,6 +90,10 @@ namespace MikanXR
 			}
 
 			public void visitDouble(ValueAccessor accessor)
+			{
+
+			}
+			public void visitString(ValueAccessor accessor)
 			{
 
 			}
