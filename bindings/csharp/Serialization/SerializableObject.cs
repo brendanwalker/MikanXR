@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace MikanXR
 {
 	public class SerializableObject<T> where T : class
 	{
-		private Type _instanceRuntimeType;
-		public string InstanceRuntimeTypeName => _instanceRuntimeType != null ? _instanceRuntimeType.Name : "";
+		private ulong _runtimeClassId= 0;
+		public ulong RuntimeClassId => _runtimeClassId;
 
 		private object _instance;
 		public T Instance => _instance as T;
@@ -25,8 +22,16 @@ namespace MikanXR
 
 		public void setInstance(T instance)
 		{
+			Type instanceType = instance.GetType();
+			FieldInfo classIdField= 
+				instanceType.GetField(
+					"classId", 
+					BindingFlags.Public | BindingFlags.Static);
+
+			// All Mikan Client API types have a static "classId" field
+			// corresponding to the Refureku class ID in the C++ code
+			_runtimeClassId = (ulong)classIdField.GetValue(null);
 			_instance = instance;
-			_instanceRuntimeType = instance.GetType();
 		}
 	}
 }

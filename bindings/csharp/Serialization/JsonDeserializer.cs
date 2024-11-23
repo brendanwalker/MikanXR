@@ -20,7 +20,7 @@ namespace MikanXR
 			{
 				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 				Type fieldType = accessor.ValueType;
-				object instance = accessor.ValueInstance;
+				object instance = accessor.getValueObject();
 
 				JsonReadVisitor jsonVisitor = new JsonReadVisitor(jsonToken as JObject);
 				Utils.visitObject(instance, fieldType, jsonVisitor);
@@ -35,7 +35,7 @@ namespace MikanXR
 				if (jsonToken.Type == JTokenType.Array)
 				{
 					var jsonArray = jsonToken as JArray;
-					var list= accessor.ValueInstance as IList;
+					var list= accessor.getValueObject() as IList;
 					Type elementType = fieldType.GenericTypeArguments[0];
 
 					list.Clear();
@@ -69,7 +69,7 @@ namespace MikanXR
 				if (jsonToken.Type == JTokenType.Array)
 				{
 					var jsonMapPairArray = jsonToken as JArray;
-					var map = accessor.ValueInstance as IDictionary;
+					var map = accessor.getValueObject() as IDictionary;
 					Type keyType = fieldType.GenericTypeArguments[0];
 					Type valueType = fieldType.GenericTypeArguments[1];
 
@@ -109,7 +109,7 @@ namespace MikanXR
 				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 				Type fieldType = accessor.ValueType;
 				string fieldName = accessor.ValueName;
-				object fieldInstance = accessor.ValueInstance;
+				object fieldInstance = accessor.getValueObject();
 
 				// Allocate the element instance using the runtime class name
 				Type elementStaticType = fieldType.GenericTypeArguments[0];

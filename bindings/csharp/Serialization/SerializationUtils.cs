@@ -21,6 +21,20 @@ namespace MikanXR
 			_name = field.Name;
 		}
 
+		public object getValueObject()
+		{
+			Debug.Assert(_instance != null);
+
+			if (_fieldInfo != null)
+			{
+				return _fieldInfo.GetValue(_instance);
+			}
+			else
+			{
+				return _instance;
+			}
+		}
+
 		public virtual T getValue<T>()
 		{
 			Debug.Assert(_type == typeof(T));
