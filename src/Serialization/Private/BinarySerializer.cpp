@@ -253,18 +253,8 @@ namespace Serialization
 		{
 			const void* childObjectInstance = accessor.getUntypedValuePtr();
 			rfk::Struct const* structType = accessor.getStructType();
-			rfk::Field const* field = accessor.getField();
 
-			if (field != nullptr)
-			{
-				char const* fieldName = field->getName();
-				BinaryWriteVisitor jsonVisitor(m_binaryWriter);
-				Serialization::visitStruct(childObjectInstance, *structType, &jsonVisitor);
-			}
-			else
-			{
-				Serialization::visitStruct(childObjectInstance, *structType, this);
-			}
+			Serialization::visitStruct(childObjectInstance, *structType, this);
 		}
 
 		virtual void visitEnum(ValueAccessor const& accessor) override
