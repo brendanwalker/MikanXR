@@ -218,7 +218,7 @@ bool serialization_utility_test_reflection_from_json()
 
 bool serialization_utility_test_reflection_from_bytes()
 {
-	UNIT_TEST_BEGIN("reflect from json")
+	UNIT_TEST_BEGIN("reflect from bytes")
 		SerializationTestStruct expected;
 		build_serialization_test_struct(expected);
 
