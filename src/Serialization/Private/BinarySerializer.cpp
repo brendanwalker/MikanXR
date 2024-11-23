@@ -170,8 +170,7 @@ namespace Serialization
 				ValueAccessor elementAccessor(elementInstance, elementType);
 
 				// Serialize the element into the json object
-				BinaryWriteVisitor elementVisitor(m_binaryWriter);
-				Serialization::visitValue(elementAccessor, &elementVisitor);
+				Serialization::visitValue(elementAccessor, this);
 			}
 		}
 
@@ -244,8 +243,7 @@ namespace Serialization
 				// Serialize the value
 				const void* rawValue = enumerator->getValueRaw();
 				ValueAccessor valueAccessor(rawValue, valueType);
-				BinaryWriteVisitor valueVisitor(m_binaryWriter);
-				Serialization::visitValue(valueAccessor, &valueVisitor);
+				Serialization::visitValue(valueAccessor, this);
 			}
 		}
 
