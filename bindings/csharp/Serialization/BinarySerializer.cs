@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 
 namespace MikanXR
@@ -7,6 +8,7 @@ namespace MikanXR
 	{
 		private class BinaryWriteVisitor : IVisitor
 		{
+			//NOTE: BinaryWriter always encodes values in little endian 
 			private BinaryWriter _writer;
 
 			public BinaryWriteVisitor(BinaryWriter writer)
@@ -16,87 +18,170 @@ namespace MikanXR
 
 			public void visitClass(ValueAccessor accessor)
 			{
+				var objectValue = accessor.getValueObject();
+				var objectType = accessor.ValueType;
 
+				// Writing into the current container element
+				Utils.visitObject(objectValue, objectType, this);
 			}
 
 			public void visitList(ValueAccessor accessor)
 			{
+				// Get the list to be serialized
+				var list = accessor.getValueObject() as IList;
+				Type listType = accessor.ValueType;
+				Type elementType = listType.GenericTypeArguments[0];
 
+				// Write the size of the array
+				Int32 arraySize = list.Count;
+				_writer.Write(arraySize);
+
+				// Serialize each element of the array
+				foreach (var element in list)
+				{
+					// Make a fake "field" for an element in the array
+					var elementAccessor = new ValueAccessor(element, elementType);
+
+					// Serialize the element into a json object
+					Utils.visitValue(elementAccessor, this);
+				}
 			}
 
 			public void visitDictionary(ValueAccessor accessor)
 			{
+				// Get the map to be serialized
+				var map = accessor.getValueObject() as IDictionary;
+				Type mapType = accessor.ValueType;
+				Type keyType = mapType.GenericTypeArguments[0];
+				Type valueType = mapType.GenericTypeArguments[1];
 
+				// Write the the number of pairs in the map
+				Int32 arraySize = map.Count;
+				_writer.Write(arraySize);
+
+				// Serialize each key-value pair in the map
+				IDictionaryEnumerator mapEnumerator = map.GetEnumerator();
+				while (mapEnumerator.MoveNext())
+				{
+					// Serialize the key into a json object
+					var keyObject = mapEnumerator.Key;
+					var keyAccessor = new ValueAccessor(keyObject, keyType);
+					Utils.visitValue(keyAccessor, this);
+
+					// Serialize the value into a json object
+					var valueObject = mapEnumerator.Value;
+					var valueAccessor = new ValueAccessor(valueObject, valueType);
+					Utils.visitValue(valueAccessor, this);
+				}
 			}
 
 			public void visitPolymorphicObject(ValueAccessor accessor)
 			{
+				// Get the SerializableObject container
+				var serializableObject = accessor.getValueObject();
+				var serializableObjectType = accessor.ValueType;
 
+				// Get the instance and runtime class properties
+				var instanceClassIdProperty = serializableObjectType.GetProperty("RuntimeClassId");
+				var instanceProperty = serializableObjectType.GetProperty("Instance");
+
+				ulong instanceClassId = (ulong)instanceClassIdProperty.GetValue(serializableObject);
+				var instance = instanceProperty.GetValue(instanceProperty);
+				Type instanceType = instance.GetType();
+				var instanceClassName = instanceType.Name;
+
+				writeUTF8String(instanceClassName);
+				_writer.Write(instanceClassId);
+
+				bool isValidObject = instance != null;
+				_writer.Write(isValidObject);
+
+				// Only bother serializing the object if it's valid
+				if (isValidObject)
+				{
+					Utils.visitObject(instance, instanceType, this);
+				}
 			}
 
 			public void visitEnum(ValueAccessor accessor)
 			{
+				object enumObjectValue = accessor.getValueObject();
+				string enumStringValue = Enum.GetName(accessor.ValueType, enumObjectValue);
 
+				writeUTF8String(enumStringValue);
 			}
 
 			public void visitBool(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<bool>());
 			}
 
 			public void visitByte(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<sbyte>());
 			}
 
 			public void visitUByte(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<byte>());
 			}
 
 			public void visitShort(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<short>());
 			}
 
 			public void visitUShort(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<ushort>());
 			}
 
 			public void visitInt(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<int>());
 			}
 
 			public void visitUInt(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<uint>());
 			}
 
 			public void visitLong(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<long>());
 			}
 
 			public void visitULong(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<ulong>());
 			}
 
 			public void visitFloat(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<float>());
 			}
 
 			public void visitDouble(ValueAccessor accessor)
 			{
-
+				_writer.Write(accessor.getValue<double>());
 			}
 
 			public void visitString(ValueAccessor accessor)
 			{
+				writeUTF8String(accessor.getValue<string>());
+			}
 
+			protected void writeUTF8String(string unicodeString)
+			{
+				byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(unicodeString);
+				
+				Int32 stringLength= utf8Bytes.Length;
+				_writer.Write(stringLength);
+
+				if (stringLength > 0)
+				{
+					_writer.Write(utf8Bytes);
+				}
 			}
 		}
 
