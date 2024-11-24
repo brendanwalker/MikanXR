@@ -187,22 +187,6 @@ MikanResult Mikan_FetchNextEvent(
 	return mikanClient->fetchNextEvent(utf8_buffer_size, out_utf8_buffer, out_utf8_bytes_written);
 }
 
-// Sends a utf8 string to the server and registers a callback to be called when the response is received
-// Callback will be called on the web socket thread
-MikanResult Mikan_SendRequest(
-	MikanContext context,
-	const char* utf8_request_name, 
-	const char* utf8_payload,
-	int request_version,
-	MikanRequestID* out_request_id)
-{
-	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
-	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
-
-	return mikanClient->sendRequest(utf8_request_name, utf8_payload, request_version, out_request_id);
-}
-
 MikanResult Mikan_SendRequestJSON(
 	MikanContext context,
 	const char* utf8_request_json)

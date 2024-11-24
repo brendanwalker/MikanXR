@@ -86,13 +86,7 @@ MIKAN_CORE_CAPI(MikanResult) Mikan_FetchNextEvent(
 	char* out_utf8_buffer,
 	size_t* out_utf8_bytes_written);
 
-MIKAN_CORE_CAPI(MikanResult) Mikan_SendRequest(
-	MikanContext context,
-	const char* utf8_request_name, 
-	const char* utf8_payload,
-	int request_version,
-	MikanRequestID* out_request_id);
-
+// Sends a MikanRequest as a UTF8 encoded JSON string
 MIKAN_CORE_CAPI(MikanResult) Mikan_SendRequestJSON(
 	MikanContext context,
 	const char* utf8_request_json);

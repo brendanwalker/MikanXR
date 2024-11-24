@@ -61,7 +61,7 @@ public:
 
 	virtual bool initialize() = 0;
 	virtual void dispose() = 0;
-	virtual void setRequestHandler(const std::string& requestType, RequestHandler handler, int version= 0) = 0;
+	virtual void setRequestHandler(const std::string& requestType, RequestHandler handler) = 0;
 
 	virtual void sendMessageToClient(const std::string& connectionId, const std::string& message) = 0;
 	virtual void sendMessageToAllClients(const std::string& message) = 0;

@@ -14,6 +14,9 @@ namespace MikanXR
 		private MikanCoreNative.NativeTextResponseCallback _nativeTextResponseCallback;
 		private MikanCoreNative.NativeBinaryResponseCallback _nativeBinaryResponseCallback;
 
+		private IntPtr _mikanContext= IntPtr.Zero;
+		private int m_nextRequestID= 0;
+
 		private class PendingRequest
 		{
 			public int requestId;
@@ -29,15 +32,17 @@ namespace MikanXR
 			_pendingRequests = new Dictionary<int, PendingRequest>();
 		}
 
-		public MikanResult Initialize()
+		public MikanResult Initialize(IntPtr mikanContext)
 		{
 			MikanResult result =
 				(MikanResult)MikanCoreNative.Mikan_SetTextResponseCallback(
-					_nativeTextResponseCallback, IntPtr.Zero);
+					mikanContext, _nativeTextResponseCallback, IntPtr.Zero);
 			if (result != MikanResult.Success)
 			{
 				return result;
 			}
+
+			_mikanContext = mikanContext;
 
 			return MikanResult.Success;
 		}
@@ -63,6 +68,7 @@ namespace MikanXR
 			{
 				MikanResponse response = new MikanResponse()
 				{
+					responseType = typeof(MikanResponse).Name,
 					requestId = requestId,
 					resultCode = result
 				};
@@ -73,33 +79,40 @@ namespace MikanXR
 			return promise.Task;
 		}
 
-		public Task<MikanResponse> SendRequest(string utf8RequestType, int version = 0)
+		public Task<MikanResponse> MakeImmediateResponse(MikanResult result)
 		{
-			return SendRequestIntenal(utf8RequestType, string.Empty, version);
+			TaskCompletionSource<MikanResponse> promise = new TaskCompletionSource<MikanResponse>();
+
+			MikanResponse response = new MikanResponse()
+			{
+				responseType = typeof(MikanResponse).Name,
+				requestId = -1,
+				resultCode = result
+			};
+
+			promise.SetResult(response);
+
+			return promise.Task;
 		}
 
-		public Task<MikanResponse> SendRequestWithPayload<T>(string utf8RequestType, T payload, int version = 0)
+		public Task<MikanResponse> SendRequest(MikanRequest request)
 		{
-			// Serialize enumerations from strings rather than from integers
-			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
-			string payloadString = JsonConvert.SerializeObject(payload, stringEnumConverter);
+			// Stamp the request with the next request id
+			request.requestId= m_nextRequestID;
+			m_nextRequestID++;
 
-			return SendRequestIntenal(utf8RequestType, payloadString, version);
-		}
+			// Serialize the request to a Json string
+			string jsonRequestString= 
+				JsonSerializer.serializeToJsonString(
+					request, request.GetType());
 
-		private Task<MikanResponse> SendRequestIntenal(
-			string utf8RequestType,
-			string utf8Payload,
-			int requestVersion)
-		{
-			MikanResult result =
-				(MikanResult)MikanCoreNative.Mikan_SendRequest(
-					utf8RequestType,
-					utf8Payload,
-					requestVersion,
-					out int requestId);
+			// Send the request string to Mikan
+			MikanResult result = 
+				(MikanResult)MikanCoreNative.Mikan_SendRequestJSON(
+					_mikanContext, jsonRequestString);
 
-			return AddResponseHandler(requestId, result);
+			// Create a request handler
+			return AddResponseHandler(request.requestId, result);
 		}
 
 		private void InternalTextResponseCallback(int requestId, string utf8ResponseString, IntPtr userData)

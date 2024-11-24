@@ -793,9 +793,9 @@ namespace Mikan
 				return false;
 			}
 
-			if (mikanAPI.RenderTargetAPI.SetGraphicsDeviceInterface(
-				MikanClientGraphicsApi.Direct3D11, 
-				d3dDevice.NativePointer) != MikanResult.Success)
+			if (mikanAPI.SetGraphicsDeviceInterface(
+					MikanClientGraphicsApi.Direct3D11, 
+					d3dDevice.NativePointer) != MikanResult.Success)
 			{
 				return false;
 			}
@@ -901,12 +901,12 @@ namespace Mikan
 		{
 			FreeFrameBuffer();
 
-			await mikanAPI.RenderTargetAPI.FreeRenderTargetTextures();
+			await mikanAPI.SendRequest(new FreeRenderTargetTextures());
 
-			MikanResponse response = await mikanAPI.VideoSourceAPI.GetVideoSourceMode();
+			MikanResponse response = await mikanAPI.SendRequest(new GetVideoSourceMode());
 			if (response.resultCode == MikanResult.Success)
 			{
-				var mode = response as MikanVideoSourceMode;
+				var mode = response as MikanVideoSourceModeResponse;
 
 				var desc = new MikanRenderTargetDescriptor()
 				{
@@ -918,7 +918,7 @@ namespace Mikan
 				};
 
 				// Tell the server to allocate new render target buffers
-				await mikanAPI.RenderTargetAPI.AllocateRenderTargetTextures(ref desc);
+				await mikanAPI.SendRequest(new AllocateRenderTargetTextures() { descriptor = desc });
 
 				// Create a new frame buffer to render to
 				CreateFrameBuffer(mode.resolution_x, mode.resolution_y);
@@ -927,12 +927,13 @@ namespace Mikan
 
 		async void UpdateCameraProjectionMatrix()
 		{
-			var response = await mikanAPI.VideoSourceAPI.GetVideoSourceIntrinsics();
+			var response = await mikanAPI.SendRequest(new GetVideoSourceIntrinsics());
 			if (response.resultCode == MikanResult.Success)
 			{
-				var videoSourceIntrinsics = response as MikanVideoSourceIntrinsics;
+				var videoSourceIntrinsics = response as MikanVideoSourceIntrinsicsResponse;
+				var intrinsics = videoSourceIntrinsics.intrinsics.intrinsics_ptr;
 
-				var monoIntrinsics = videoSourceIntrinsics.mono;
+				var monoIntrinsics = intrinsics.Instance as MikanMonoIntrinsics;
 				float videoSourcePixelWidth = (float)monoIntrinsics.pixel_width;
 				float videoSourcePixelHeight = (float)monoIntrinsics.pixel_height;
 
@@ -967,23 +968,22 @@ namespace Mikan
 
 			// Publish the updated render target to Mikan
 			if (renderTarget.ColorTexture != null)
-			{
-				var frameRendered = new MikanClientFrameRendered()
+			{			
+				mikanAPI.SendRequest(new WriteColorRenderTargetTexture() {
+					apiColorTexturePtr = renderTarget.ColorTexture.NativePointer 
+				});
+				mikanAPI.SendRequest(new WriteDepthRenderTargetTexture() {
+					apiDepthTexturePtr= renderTarget.DepthTexture.NativePointer,
+					zNear= depthNormalConstants.zNear,
+					zFar = depthNormalConstants.zFar
+				});
+				mikanAPI.SendRequest(new PublishRenderTargetTextures()
 				{
-					frame_index = newFrameEvent.frame,
-				};
-				
-				mikanAPI.RenderTargetAPI.WriteColorRenderTargetTexture(
-					renderTarget.ColorTexture.NativePointer);
-				mikanAPI.RenderTargetAPI.WriteDepthRenderTargetTexture(
-					renderTarget.DepthTexture.NativePointer, 
-					depthNormalConstants.zNear,
-					depthNormalConstants.zFar);
-				mikanAPI.RenderTargetAPI.PublishRenderTargetTextures(
-					ref frameRendered);
+					frameIndex= newFrameEvent.frame,
+				});
 
 				// Update the pack depth texture resource pointer, if any
-				IntPtr packDepthPtr= mikanAPI.RenderTargetAPI.GetPackDepthTextureResourcePtr();
+				IntPtr packDepthPtr= mikanAPI.GetPackDepthTextureResourcePtr();
 				if (packDepthPtr != packDepthTextureResourcePtr)
 				{
 					packDepthTextureResourcePtr= packDepthPtr;

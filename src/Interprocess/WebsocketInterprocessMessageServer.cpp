@@ -319,19 +319,11 @@ void WebsocketInterprocessMessageServer::dispose()
 	ix::uninitNetSystem();
 }
 
-std::string WebsocketInterprocessMessageServer::makeRequestHandlerKey(const std::string& requestType, int version)
-{
-	return StringUtils::stringify(requestType, version);
-}
-
 void WebsocketInterprocessMessageServer::setRequestHandler(
 	const std::string& functionName, 
-	RequestHandler handler,
-	int version)
+	RequestHandler handler)
 {
-	const std::string key = makeRequestHandlerKey(functionName, version);
-
-	m_requestHandlers[key] = handler;
+	m_requestHandlers[functionName] = handler;
 }
 
 void WebsocketInterprocessMessageServer::getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections)
@@ -423,12 +415,9 @@ void WebsocketInterprocessMessageServer::processRequests()
 				requestId= INVALID_MIKAN_ID;
 			}
 
-			// Find the handler for the request
-			const std::string handlerKey = makeRequestHandlerKey(requestType, version);
-
 			// Get the response from a registered function handler, if any
 			ClientResponse outResponse;
-			auto handler_it = m_requestHandlers.find(handlerKey);
+			auto handler_it = m_requestHandlers.find(requestType);
 			if (handler_it != m_requestHandlers.end())
 			{
 				// NOTE: Connection ID here is a unique ID for the websocket connection on the server
@@ -464,7 +453,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 				outResponse.binaryData.empty())
 			{
 				MIKAN_LOG_WARNING("processRequests") <<
-					"Request handler for " << handlerKey 
+					"Request handler for " << requestType 
 					<< " returned empty response, but response expected!";
 			}
 		}

@@ -26,7 +26,6 @@ public:
 	MikanResult fetchNextEvent(size_t utf8_buffer_size, char* out_utf8_buffer, size_t* out_utf8_bytes_written);
 	MikanResult setTextResponseCallback(MikanTextResponseCallback callback, void* callback_userdata);
 	MikanResult setBinaryResponseCallback(MikanBinaryResponseCallback callback, void* callback_userdata);
-	MikanResult sendRequest(const char* utf8_request_name, const char* utf8_payload, int request_version, MikanRequestID* out_request_id);
 	MikanResult sendRequestJSON(const char* utf8_request_json);
 	MikanResult shutdown();
 
@@ -54,7 +53,6 @@ private:
 	void* m_textResponseCallbackUserData= nullptr;
 	MikanBinaryResponseCallback m_binaryResponseCallback = nullptr;
 	void* m_binaryResponseCallbackUserData= nullptr;
-	MikanRequestID m_next_request_id = 0;
 
 	std::string m_clientUniqueID;
 	class InterprocessRenderTargetWriteAccessor* m_renderTargetWriter;

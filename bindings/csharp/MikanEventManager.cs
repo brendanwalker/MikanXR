@@ -7,10 +7,16 @@ namespace MikanXR
 	public class MikanEventManager
 	{
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
+		private IntPtr _mikanContext = IntPtr.Zero;
 	
 		public MikanEventManager(MikanCoreNative.NativeLogCallback logCallback)
 		{
 			_nativeLogCallback= logCallback;
+		}
+
+		public void Initialize(IntPtr mikanContext)
+		{
+			_mikanContext = mikanContext;
 		}
 
 		public MikanResult FetchNextEvent(out MikanEvent outEvent)
@@ -21,7 +27,7 @@ namespace MikanXR
 			outEvent= null;
 
 			var result = (MikanResult)MikanCoreNative.Mikan_FetchNextEvent(
-				utf8BufferSize, utf8Buffer, out UIntPtr utf8BytesWritten);
+				_mikanContext, utf8BufferSize, utf8Buffer, out UIntPtr utf8BytesWritten);
 			if (result == MikanResult.Success)
 			{
 				string utf8BufferString = utf8Buffer.ToString();

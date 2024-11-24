@@ -23,8 +23,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequ
 	Serialization::String requestType;
 	FIELD()
 	MikanRequestID requestId;
-	FIELD()
-	int version;
 
 	MikanRequest() = default;
 	MikanRequest(const std::string& inRequestType) : requestType(inRequestType) {}

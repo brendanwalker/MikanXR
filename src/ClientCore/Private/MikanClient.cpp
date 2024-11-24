@@ -128,46 +128,6 @@ MikanResult MikanClient::setBinaryResponseCallback(MikanBinaryResponseCallback c
 	return MikanResult_Success;
 }
 
-MikanResult MikanClient::sendRequest(
-	const char* utf8_request_name,
-	const char* utf8_payload,
-	int request_version,
-	MikanRequestID* out_request_id)
-{
-	if (m_messageClient->getIsConnected())
-	{
-		// Wrap the request in a parent JSON object
-		std::stringstream ss;
-		ss << "{\n";
-		if (out_request_id != nullptr)
-		{
-			ss << "	\"requestId\":" << m_next_request_id << ",\n";
-		}
-		ss << "	\"requestType\":\"" << utf8_request_name << "\",\n";
-		ss << "	\"version\":" << request_version << "";
-		if (utf8_payload != nullptr)
-		{
-			ss << ",\n";
-			ss << "	\"payload\":" << utf8_payload << "\n";
-		}
-		else
-		{
-			ss << "\n";
-		}
-		ss << "}";
-
-		if (out_request_id != nullptr)
-		{
-			*out_request_id= m_next_request_id;
-		}
-		m_next_request_id++;
-
-		return m_messageClient->sendRequest(ss.str());
-	}
-
-	return MikanResult_NotConnected;
-}
-
 MikanResult MikanClient::sendRequestJSON(const char* utf8_request_json)
 {
 	if (m_messageClient->getIsConnected())

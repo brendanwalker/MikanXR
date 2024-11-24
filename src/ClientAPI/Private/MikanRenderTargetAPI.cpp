@@ -60,17 +60,10 @@ bool MikanRenderTargetAPI::tryProcessRequest(const MikanRequest& request, MikanR
 MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
 	const MikanRequest& request)
 {
-	auto& freeRequest = static_cast<const AllocateRenderTargetTextures&>(request);
-	const MikanRenderTargetDescriptor& descriptor= freeRequest.descriptor;
+	auto& allocateRequest = static_cast<const AllocateRenderTargetTextures&>(request);
+	const MikanRenderTargetDescriptor& descriptor= allocateRequest.descriptor;
 
 	MikanContext context = m_requestManager->getContext();
-
-	// Fetch the cached graphics API interface, if any
-	void* apiInterface = nullptr;
-	if (descriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
-	{
-		getGraphicsDeviceInterface(descriptor.graphicsAPI, &apiInterface);
-	}
 
 	// Create the shared texture
 	MikanResult result = Mikan_AllocateRenderTargetTextures(context, &descriptor);
@@ -81,7 +74,7 @@ MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
 		result = Mikan_GetRenderTargetDescriptor(context, &actualDescriptor);
 		if (result == MikanResult_Success)
 		{
-			return m_requestManager->sendRequest(freeRequest);
+			return m_requestManager->sendRequest(allocateRequest);
 		}
 	}
 

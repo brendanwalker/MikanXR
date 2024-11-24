@@ -23,7 +23,7 @@ public:
 
 	bool initialize() override;
 	void dispose() override;
-	void setRequestHandler(const std::string& requestType, RequestHandler handler, int version= 0) override;
+	void setRequestHandler(const std::string& requestType, RequestHandler handler) override;
 
 	void sendMessageToClient(const std::string& connectionId, const std::string& message) override;
 	void sendMessageToAllClients(const std::string& message) override;
@@ -32,7 +32,6 @@ public:
 protected:
 	void getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections);
 	WebSocketClientConnectionPtr findConnection(const std::string& clientId);
-	static std::string makeRequestHandlerKey(const std::string& requestType, int version);
 
 private:
 	WebSocketServerPtr m_server;

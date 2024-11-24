@@ -32,8 +32,12 @@ MikanResult MikanRequestManager::init(MikanContext context)
 	return MikanResult_Success;
 }
 
-MikanResponseFuture MikanRequestManager::sendRequest(const MikanRequest& request)
+MikanResponseFuture MikanRequestManager::sendRequest(const MikanRequest& inRequest)
 {
+	MikanRequest request= inRequest;
+	request.requestId= m_nextRequestID;
+	m_nextRequestID++;
+
 	char const* requestType = request.requestType.getValue().c_str();
 	rfk::Struct const* requestStruct = rfk::getDatabase().getFileLevelStructByName(requestType);
 	assert(requestStruct != nullptr);
@@ -41,71 +45,12 @@ MikanResponseFuture MikanRequestManager::sendRequest(const MikanRequest& request
 	std::string	jsonString;
 	Serialization::serializeToJsonString(&request, *requestStruct, jsonString);
 
-	MikanRequestID requestId = m_nextRequestID;
-	m_nextRequestID++;
-
 	MikanResult result =
 		Mikan_SendRequestJSON(
 			m_context,
 			jsonString.c_str());
 
-	return addResponseHandler(requestId, result);
-}
-
-//TODO: deprecated
-MikanResponseFuture MikanRequestManager::sendRequest(const std::string& requestType, int version)
-{
-	return sendRequestInternal(requestType, "", version);
-}
-
-//TODO: deprecated
-// Specialization for int
-template<> MikanResponseFuture MikanRequestManager::sendRequestWithPayload<int>(
-	const std::string& requestType,
-	const int& payload,
-	int version)
-{
-	// Use nlohmann/json to serialize the int payload
-	json payloadJson = payload;
-
-	// Convert the json object to a string
-	std::string payloadString = payloadJson.dump();
-
-	return sendRequestInternal(requestType, payloadString, version);
-}
-
-//TODO: deprecated
-// Specialization for std::string
-template<> MikanResponseFuture MikanRequestManager::sendRequestWithPayload<std::string>(
-	const std::string& requestType,
-	const std::string& payload,
-	int version)
-{
-	// Use nlohmann/json to serialize the std::string payload
-	json payloadJson = payload;
-
-	// Convert the json object to a string
-	std::string payloadString = payloadJson.dump();
-
-	return sendRequestInternal(requestType, payloadString, version);
-}
-
-//TODO: deprecated
-MikanResponseFuture MikanRequestManager::sendRequestInternal(
-	const std::string& requestType,
-	const std::string& payloadString,
-	int version)
-{
-	MikanRequestID requestId = INVALID_MIKAN_ID;
-	MikanResult result =
-		Mikan_SendRequest(
-			m_context,
-			requestType.c_str(),
-			!payloadString.empty() ? payloadString.c_str() : nullptr,
-			version,
-			&requestId);
-
-	return addResponseHandler(requestId, result);
+	return addResponseHandler(request.requestId, result);
 }
 
 MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID requestId, MikanResult result)

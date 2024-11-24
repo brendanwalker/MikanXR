@@ -10,7 +10,6 @@ namespace MikanXR
 
 		public string requestType;
 		public int requestId;
-		public int version;
 	};
 
 	public class MikanClientInfo
