@@ -630,25 +630,19 @@ static VRDeviceViewPtr getCurrentCameraVRDevice()
 }
 
 template <typename t_mikan_type>
-bool readRequestPayload(const std::string& utf8RequestString, t_mikan_type& outParameters)
+bool readTypedRequest(const std::string& utf8RequestString, t_mikan_type& outParameters)
 {
 	EASY_FUNCTION();
 
 	try
 	{
-		json j = json::parse(utf8RequestString);
-		json payloadJson = j["payload"];
-
-		Serialization::deserializeFromJson(payloadJson, outParameters);
-		//outParameters = payloadJson;
+		return Serialization::deserializeFromJsonString(utf8RequestString, outParameters);
 	}
 	catch (json::exception& e)
 	{
 		MIKAN_LOG_ERROR("MikanServer::readRequestPayload") << "Failed to parse JSON: " << e.what();
 		return false;
 	}
-
-	return true;
 }
 
 template <typename t_mikan_type>
@@ -716,7 +710,7 @@ void writeSimpleBinaryResponse(MikanRequestID requestId, MikanResult result, Cli
 void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& response)
 {
 	ConnectRequest connectRequest;
-	if (!readRequestPayload(request.utf8RequestString, connectRequest) || 
+	if (!readTypedRequest(request.utf8RequestString, connectRequest) || 
 		connectRequest.clientInfo.clientId.getValue().empty())
 	{
 		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
@@ -785,7 +779,7 @@ void MikanServer::invokeScriptMessageHandler(
 	ClientResponse& response)
 {
 	SendScriptMessage scriptMessageRequest;
-	if (!readRequestPayload(request.utf8RequestString, scriptMessageRequest))
+	if (!readTypedRequest(request.utf8RequestString, scriptMessageRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -926,7 +920,7 @@ void MikanServer::getVRDeviceInfo(
 	ClientResponse& response)
 {
 	GetVRDeviceInfo deviceRequest;
-	if (!readRequestPayload(request.utf8RequestString, deviceRequest))
+	if (!readTypedRequest(request.utf8RequestString, deviceRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -975,7 +969,7 @@ void MikanServer::subscribeToVRDevicePoseUpdates(
 	ClientResponse& response)
 {
 	SubscribeToVRDevicePoseUpdates deviceRequest;
-	if (!readRequestPayload(request.utf8RequestString, deviceRequest))
+	if (!readTypedRequest(request.utf8RequestString, deviceRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -998,7 +992,7 @@ void MikanServer::unsubscribeFromVRDevicePoseUpdates(
 	ClientResponse& response)
 {
 	UnsubscribeFromVRDevicePoseUpdates deviceRequest;
-	if (!readRequestPayload(request.utf8RequestString, deviceRequest))
+	if (!readTypedRequest(request.utf8RequestString, deviceRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1021,7 +1015,7 @@ void MikanServer::allocateRenderTargetTextures(
 	ClientResponse& response)
 {	
 	AllocateRenderTargetTextures allocateRequest;
-	if (!readRequestPayload(request.utf8RequestString, allocateRequest))
+	if (!readTypedRequest(request.utf8RequestString, allocateRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1075,7 +1069,7 @@ void MikanServer::frameRendered(
 	ClientResponse& response)
 {
 	PublishRenderTargetTextures frameRenderedRequest = {};
-	if (!readRequestPayload(request.utf8RequestString, frameRenderedRequest))
+	if (!readTypedRequest(request.utf8RequestString, frameRenderedRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1123,7 +1117,7 @@ void MikanServer::getQuadStencil(
 	ClientResponse& response)
 {
 	GetQuadStencil stencilRequest;
-	if (!readRequestPayload(request.utf8RequestString, stencilRequest))
+	if (!readTypedRequest(request.utf8RequestString, stencilRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1164,7 +1158,7 @@ void MikanServer::getBoxStencil(
 	ClientResponse& response)
 {
 	GetBoxStencil stencilRequest;
-	if (!readRequestPayload(request.utf8RequestString, stencilRequest))
+	if (!readTypedRequest(request.utf8RequestString, stencilRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1205,7 +1199,7 @@ void MikanServer::getModelStencil(
 	ClientResponse& response)
 {
 	GetModelStencil stencilRequest;
-	if (!readRequestPayload(request.utf8RequestString, stencilRequest))
+	if (!readTypedRequest(request.utf8RequestString, stencilRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1229,7 +1223,7 @@ void MikanServer::getModelStencil(
 void MikanServer::getModelStencilRenderGeometry(const ClientRequest& request, ClientResponse& response)
 {
 	GetModelStencilRenderGeometry stencilRequest;
-	if (!readRequestPayload(request.utf8RequestString, stencilRequest))
+	if (!readTypedRequest(request.utf8RequestString, stencilRequest))
 	{
 		writeSimpleBinaryResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1270,7 +1264,7 @@ void MikanServer::getSpatialAnchorInfo(
 	ClientResponse& response)
 {
 	GetSpatialAnchorInfo anchorRequest;
-	if (!readRequestPayload(request.utf8RequestString, anchorRequest))
+	if (!readTypedRequest(request.utf8RequestString, anchorRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
@@ -1294,7 +1288,7 @@ void MikanServer::findSpatialAnchorInfoByName(
 	ClientResponse& response)
 {
 	FindSpatialAnchorInfoByName anchorRequest;
-	if (!readRequestPayload(request.utf8RequestString, anchorRequest))
+	if (!readTypedRequest(request.utf8RequestString, anchorRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
 		return;
