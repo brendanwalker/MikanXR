@@ -94,7 +94,8 @@ namespace MikanXR
 		public static extern int Mikan_Connect(
 			IntPtr context,
 			string host, 
-			string port);
+			string port,
+			string connectionRequestJson);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_Disconnect(IntPtr context);

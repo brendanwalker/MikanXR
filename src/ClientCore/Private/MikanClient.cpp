@@ -63,14 +63,12 @@ MikanResult MikanClient::startup(LogSeverityLevel log_level, t_logCallback log_c
     return resultCode;
 }
 
-MikanResult MikanClient::setClientInfo(const std::string& clientInfo)
+MikanResult MikanClient::connect(
+	const std::string& connectionRequestJson,
+	const std::string& host, 
+	const std::string& port)
 {
-	return m_messageClient->setClientInfo(clientInfo);
-}
-
-MikanResult MikanClient::connect(const std::string& host, const std::string& port)
-{
-	return m_messageClient->connect(host, port);
+	return m_messageClient->connect(connectionRequestJson, host, port);
 }
 
 bool MikanClient::getIsConnected() const

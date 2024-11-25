@@ -38,11 +38,13 @@ public:
 	virtual MikanResult initialize() = 0;
 	virtual void dispose() = 0;
 
-	virtual MikanResult setClientInfo(const std::string& clientInfo) = 0;
 	virtual void setTextResponseHandler(TextResponseHandler handler) = 0;
 	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) = 0;
 
-	virtual MikanResult connect(const std::string& host, const std::string& port) = 0;
+	virtual MikanResult connect(
+		const std::string& connectionRequestJson,
+		const std::string& host,
+		const std::string& port) = 0;
 	virtual void disconnect() = 0;
 
 	virtual MikanResult fetchNextEvent(

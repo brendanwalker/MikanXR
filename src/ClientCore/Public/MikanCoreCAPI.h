@@ -16,10 +16,6 @@ MIKAN_CORE_CAPI(MikanResult) Mikan_Initialize(
 	MikanLogCallback log_callback, 
 	MikanContext* outContext);
 
-MIKAN_CORE_CAPI(MikanResult) Mikan_SetClientInfo(
-	MikanContext context, 
-	const char* clientInfo);
-
 MIKAN_CORE_CAPI(int) Mikan_GetCoreSDKVersion();
 
 MIKAN_CORE_CAPI(const char *) Mikan_GetClientUniqueID(MikanContext context);
@@ -62,12 +58,14 @@ MIKAN_CORE_CAPI(void*) Mikan_GetPackDepthTextureResourcePtr(MikanContext context
  Starts connection process to MikanXR at the given address and port. 
  Calling this function again after a connection has already been requested will return MikanResult_RequestSent.
 	.   
+ \param connectionRequestJson Json serialized ConnectRequest struct containing client descriptor
  \param host The address that MikanXR is running at, usually MIKANXR_DEFAULT_ADDRESS
  \param port The port that MikanXR is running at, usually MIKANXR_DEFAULT_PORT
  \returns MikanResult_RequestSent on success, MikanResult_Timeout, or PSMResult_Error on a general connection error.
  */
 MIKAN_CORE_CAPI(MikanResult) Mikan_Connect(
 	MikanContext context, 
+	const char* connectionRequestJson,
 	const char* host, 
 	const char* port);
 

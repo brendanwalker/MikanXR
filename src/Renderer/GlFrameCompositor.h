@@ -4,6 +4,7 @@
 #include "NodeFwd.h"
 
 #include "MikanAPITypes.h"
+#include "MikanClientTypes.h"
 #include "MikanVideoSourceEvents.h"
 #include "MulticastDelegate.h"
 #include "RendererFwd.h"

@@ -1,5 +1,6 @@
 #include "WebsocketInterprocessMessageServer.h"
 #include "JsonUtils.h"
+#include "MikanClientRequests.h"
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
 #include "MikanStencilEvents.h"
@@ -91,16 +92,10 @@ public:
 					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "code: " << msg->closeInfo.code;
 
-					// Serialize the client info to json
-					json clientInfoPayload;
-					Serialization::serializeToJson(m_clientInfo, clientInfoPayload);
-
-					// Construct a disconnect server message for the queue
+					// Serialize the disconnect request to json
+					DisconnectRequest disconectRequest = {};
 					json disconnectRequestJson;
-					disconnectRequestJson["requestType"] = "disconnect";
-					disconnectRequestJson["requestId"]= -1;
-					disconnectRequestJson["version"] = 0;
-					disconnectRequestJson["payload"] = clientInfoPayload;
+					Serialization::serializeToJson(disconectRequest, disconnectRequestJson);
 
 					m_functionCallQueue->enqueue(disconnectRequestJson.dump());
 				}
@@ -394,16 +389,6 @@ void WebsocketInterprocessMessageServer::processRequests()
 			{
 				MIKAN_LOG_WARNING("processRequests") << 
 					"Request missing/invalid requestType field: " << inRequestString;
-				continue;
-			}
-
-			int version;
-			JsonSaxIntegerValueSearcher versionSearcher;
-			if (!versionSearcher.fetchKeyValuePair(inRequestString, "version", version) || 
-				version < 0)
-			{
-				MIKAN_LOG_WARNING("processRequests") << 
-					"Request missing/invalid version field: " << inRequestString;
 				continue;
 			}
 

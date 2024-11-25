@@ -24,13 +24,14 @@ public:
 	// Client Info
 	virtual int getCoreSDKVersion() const = 0;
 	virtual std::string getClientUniqueID() const = 0;
-	virtual MikanResult setClientInfo(const MikanClientInfo& clientInfo) = 0;
 	virtual MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
 	virtual MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;
 
 	// Connection Management
-	// NOTE: Call setClientInfo() before calling connect
-	virtual MikanResult connect(const std::string& host = "", const std::string& port = "") = 0;
+	virtual MikanResult connect(
+		const struct ConnectRequest& connectRequest,
+		const std::string& host= "",
+		const std::string& port= "") = 0;
 	virtual bool getIsConnected() = 0;
 	virtual MikanResult disconnect() = 0;
 

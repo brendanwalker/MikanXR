@@ -49,12 +49,10 @@ public:
 		m_binaryResponseHandler = handler;
 	}
 
-	void setClientInfoString(const std::string& clientInfo)
-	{
-		m_clientInfo= clientInfo;
-	}
-
-	MikanResult connect(const std::string& host, const std::string& port)
+	MikanResult connect(
+		const std::string& connectionRequestJson,
+		const std::string& host,
+		const std::string& port)
 	{
 		if (getIsConnected())
 		{
@@ -66,6 +64,7 @@ public:
 		std::string hostPort= port.empty() ? WEBSOCKET_SERVER_PORT : port;
 		m_websocket->setUrl(hostAddress+":"+hostPort);
 		m_websocket->start();
+		m_connectionRequestJson = connectionRequestJson;
 
 		return MikanResult_Success;
 	}
@@ -89,17 +88,8 @@ public:
 				{
 					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "New connection";
 
-					// Send clinetInfo payload in a connect request immediately upon connection
-					std::stringstream ss;
-					ss << "{\n";
-					ss << "	\"requestId\":-1,\n";
-					ss << "	\"requestType\":\"connect\",\n";
-					ss << "	\"version\":0,\n";
-					ss << "	\"payload\":" << m_clientInfo << "\n";
-					ss << "}";
-
-					std::string requestString= ss.str();
-					getWebSocket()->sendText(requestString);
+					// Send connection request json immediately upon connection
+					getWebSocket()->sendText(m_connectionRequestJson);
 				}
 				break;
 			case ix::WebSocketMessageType::Close:
@@ -181,7 +171,7 @@ private:
 	LockFreeEventQueuePtr m_eventQueue;
 	IInterprocessMessageClient::TextResponseHandler m_textResponseHandler;
 	IInterprocessMessageClient::BinaryResponseHandler m_binaryResponseHandler;
-	std::string m_clientInfo;
+	std::string m_connectionRequestJson;
 };
 
 //-- WebsocketInterprocessMessageClient -----
@@ -210,17 +200,6 @@ const bool WebsocketInterprocessMessageClient::getIsConnected() const
 	return m_connectionState->getIsConnected(); 
 }
 
-MikanResult WebsocketInterprocessMessageClient::setClientInfo(const std::string& clientInfo)
-{
-	if (!clientInfo.empty())
-	{
-		m_connectionState->setClientInfoString(clientInfo);
-		return MikanResult_Success;
-	}
-
-	return MikanResult_GeneralError;
-}
-
 void WebsocketInterprocessMessageClient::setTextResponseHandler(
 	IInterprocessMessageClient::TextResponseHandler handler) 
 { 
@@ -233,9 +212,12 @@ void WebsocketInterprocessMessageClient::setBinaryResponseHandler(
 	m_connectionState->setBinaryResponseHandler(handler);
 }
 
-MikanResult WebsocketInterprocessMessageClient::connect(const std::string& host, const std::string& port)
+MikanResult WebsocketInterprocessMessageClient::connect(
+	const std::string& connectionRequestJson,
+	const std::string& host, 
+	const std::string& port)
 {
-	return m_connectionState->connect(host, port);
+	return m_connectionState->connect(connectionRequestJson, host, port);
 }
 
 void WebsocketInterprocessMessageClient::disconnect()

@@ -12,6 +12,7 @@
 #include "MikanAPITypes.h"
 #include "MikanCoreTypes.h"
 #include "MikanRenderTargetRequests.h"
+#include "MikanClientRequests.h"
 #include "MikanScriptRequests.h"
 #include "MikanSpatialAnchorRequests.h"
 #include "MikanStencilRequests.h"
@@ -341,8 +342,8 @@ bool MikanServer::startup()
 	}
 
 	// Client Connection Requests
-	m_messageServer->setRequestHandler("connect", std::bind(&MikanServer::connectHandler, this, _1, _2));
-	m_messageServer->setRequestHandler("disconnect", std::bind(&MikanServer::disconnectHandler, this, _1, _2));
+	m_messageServer->setRequestHandler(ConnectRequest::k_typeName, std::bind(&MikanServer::connectHandler, this, _1, _2));
+	m_messageServer->setRequestHandler(DisconnectRequest::k_typeName, std::bind(&MikanServer::disconnectHandler, this, _1, _2));
 
 	// Render Target Requests
 	m_messageServer->setRequestHandler(AllocateRenderTargetTextures::k_typeName, std::bind(&MikanServer::allocateRenderTargetTextures, this, _1, _2));
@@ -714,9 +715,9 @@ void writeSimpleBinaryResponse(MikanRequestID requestId, MikanResult result, Cli
 
 void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& response)
 {
-	MikanClientInfo clientInfo;
-	if (!readRequestPayload(request.utf8RequestString, clientInfo) || 
-		clientInfo.clientId.getValue().empty())
+	ConnectRequest connectRequest;
+	if (!readRequestPayload(request.utf8RequestString, connectRequest) || 
+		connectRequest.clientInfo.clientId.getValue().empty())
 	{
 		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
 		// TODO send error event
@@ -724,7 +725,7 @@ void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& r
 	}
 
 	const std::string& connectionId = request.connectionId;
-	const std::string& clientId = clientInfo.clientId.getValue();
+	const std::string& clientId = connectRequest.clientInfo.clientId.getValue();
 
 	auto connection_it = m_clientConnections.find(connectionId);
 	if (connection_it == m_clientConnections.end())
@@ -732,14 +733,14 @@ void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& r
 		MikanClientConnectionStatePtr clientState = 
 			std::make_shared<MikanClientConnectionState>(
 				request.connectionId,
-				clientInfo, 
+				connectRequest.clientInfo, 
 				m_messageServer);
 
 		m_clientConnections.insert({connectionId, clientState});
 
 		if (OnClientConnected)
 		{
-			OnClientConnected(clientId, clientInfo);
+			OnClientConnected(clientId, connectRequest.clientInfo);
 		}
 
 		clientState->publishSimpleEvent<MikanConnectedEvent>();
@@ -755,14 +756,6 @@ void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& r
 
 void MikanServer::disconnectHandler(const ClientRequest& request, ClientResponse& response)
 {
-	MikanClientInfo clientInfo;
-	if (!readRequestPayload(request.utf8RequestString, clientInfo))
-	{
-		MIKAN_LOG_ERROR("disconnectHandler") << "Failed to parse client info";
-		// TODO send error event
-		return;
-	}
-
 	const std::string& connectionId = request.connectionId;
 
 	auto connection_it = m_clientConnections.find(connectionId);

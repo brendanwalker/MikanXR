@@ -10,12 +10,6 @@ namespace MikanXR
 
 	};
 
-	public class GetQuadStencilList : MikanRequest
-	{
-		public static new readonly ulong classId= 1562088813869505254;
-
-	};
-
 	public class MikanStencilBoxInfoResponse : MikanResponse
 	{
 		public static new readonly ulong classId= 8416540735772150643;
@@ -28,6 +22,12 @@ namespace MikanXR
 		public static new readonly ulong classId= 1551069120606568234;
 
 		public int stencilId;
+	};
+
+	public class GetQuadStencilList : MikanRequest
+	{
+		public static new readonly ulong classId= 1562088813869505254;
+
 	};
 
 	public class MikanStencilQuadInfoResponse : MikanResponse

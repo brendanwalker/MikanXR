@@ -9,6 +9,8 @@
 #include "MikanAPITypes.rfks.h"
 #include "MikanRenderTargetRequests.rfks.h"
 #include "MikanClientEvents.rfks.h"
+#include "MikanClientTypes.rfks.h"
+#include "MikanClientRequests.rfks.h"
 #include "MikanMathTypes.rfks.h"
 #include "MikanScriptEvents.rfks.h"
 #include "MikanScriptTypes.rfks.h"
@@ -104,23 +106,18 @@ public:
 		return m_renderTargetAPI->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 	}
 
-	virtual MikanResult setClientInfo(const MikanClientInfo& inClientInfo) override
-	{
-		MikanClientInfo clientInfo = inClientInfo;
-		clientInfo.mikanCoreSdkVersion = getCoreSDKVersion();
-		clientInfo.clientId= getClientUniqueID();
-
-		std::string clientInfoString;
-		Serialization::serializeToJsonString(clientInfo, clientInfoString);
-
-		return Mikan_SetClientInfo(m_context, clientInfoString.c_str());
-	}
-
 	virtual MikanResult connect(
+		const struct ConnectRequest& connectRequest,
 		const std::string& host, 
 		const std::string& port) override
 	{
-		return Mikan_Connect(m_context, host.c_str(), port.c_str());
+		std::string connectionRequestJson;
+		if (!Serialization::serializeToJsonString(connectRequest, connectionRequestJson))
+		{
+			return MikanResult_MalformedParameters;
+		}
+
+		return Mikan_Connect(m_context, connectionRequestJson.c_str(), host.c_str(), port.c_str());
 	}
 
 	virtual bool getIsConnected() override

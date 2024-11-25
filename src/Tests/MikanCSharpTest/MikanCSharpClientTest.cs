@@ -781,18 +781,6 @@ namespace Mikan
 				return false;
 			}
 
-			if (mikanAPI.SetClientInfo(new MikanClientInfo() { 
-				engineName = "MikanXR Test", 
-				engineVersion = "1.0.0",
-				applicationName = "MikanXR C# Test App",
-				applicationVersion = "1.0.0",
-				graphicsAPI = MikanClientGraphicsApi.Direct3D11,
-				supportsRGBA32 = true,
-				supportsDepth = true}) != MikanResult.Success)
-			{
-				return false;
-			}
-
 			if (mikanAPI.SetGraphicsDeviceInterface(
 					MikanClientGraphicsApi.Direct3D11, 
 					d3dDevice.NativePointer) != MikanResult.Success)
@@ -856,7 +844,22 @@ namespace Mikan
 			{
 				if (mikanReconnectTimeout <= 0f)
 				{
-					if (mikanAPI.Connect() != MikanResult.Success || !mikanAPI.GetIsConnected())
+					var clientInfo= new MikanClientInfo()
+					{
+						engineName = "MikanXR Test",
+						engineVersion = "1.0.0",
+						applicationName = "MikanXR C# Test App",
+						applicationVersion = "1.0.0",
+						graphicsAPI = MikanClientGraphicsApi.Direct3D11,
+						supportsRGBA32 = true,
+						supportsDepth = true
+					};
+					var connectRequest= new ConnectRequest()
+					{
+						clientInfo = clientInfo
+					};
+
+					if (mikanAPI.Connect(connectRequest) != MikanResult.Success || !mikanAPI.GetIsConnected())
 					{
 						// Timeout before trying to reconnect
 						mikanReconnectTimeout = 1f;

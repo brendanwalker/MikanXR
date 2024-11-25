@@ -22,7 +22,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequ
 	FIELD()
 	Serialization::String requestType;
 	FIELD()
-	MikanRequestID requestId;
+	MikanRequestID requestId = -1;
 
 	MikanRequest() = default;
 	MikanRequest(const std::string& inRequestType) : requestType(inRequestType) {}
@@ -71,38 +71,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanEven
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanEvent_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanClientInfo
-{
-	FIELD()
-	Serialization::String clientId;
-	FIELD()
-	Serialization::String engineName;
-	FIELD()
-	Serialization::String engineVersion;
-	FIELD()
-	Serialization::String applicationName;
-	FIELD()
-	Serialization::String applicationVersion;
-	FIELD()
-	Serialization::String xrDeviceName;
-	FIELD()
-	MikanClientGraphicsApi graphicsAPI;
-	FIELD()
-	int mikanCoreSdkVersion;
-	FIELD()
-	bool supportsRGB24;
-	FIELD()
-	bool supportsRGBA32;
-	FIELD()
-	bool supportsBGRA32;
-	FIELD()
-	bool supportsDepth;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanClientInfo_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 

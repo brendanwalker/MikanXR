@@ -5,6 +5,7 @@
 #include "CommonConfigFwd.h"
 #include "ScriptingFwd.h"
 #include "MikanAPITypes.h"
+#include "MikanClientTypes.h"
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
 #include "MikanStencilEvents.h"

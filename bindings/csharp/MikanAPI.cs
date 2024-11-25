@@ -89,20 +89,6 @@ namespace MikanXR
 		{
 			return MikanCoreNative.GetClientUniqueID(_mikanContext);
 		}
-		
-		public MikanResult SetClientInfo(MikanClientInfo clientInfo)
-		{
-			// Stamp with the core sdk version
-			clientInfo.mikanCoreSdkVersion = GetCoreSDKVersion();
-			clientInfo.clientId = GetClientUniqueID();
-
-			// Serialize enumerations from strings rather than from integers
-			var stringEnumConverter = new Newtonsoft.Json.Converters.StringEnumConverter();
-			string clientInfoString = JsonConvert.SerializeObject(clientInfo, stringEnumConverter);
-			int result = MikanCoreNative.Mikan_SetClientInfo(_mikanContext, clientInfoString);
-
-			return (MikanResult)result;
-		}
 
 		public MikanResult SetGraphicsDeviceInterface(
 			MikanClientGraphicsApi api,
@@ -125,9 +111,14 @@ namespace MikanXR
 
 		// -- Client Info ----
 
-		public MikanResult Connect(string host="", string port="")
+		public MikanResult Connect(ConnectRequest request, string host="", string port="")
 		{
-			int result = MikanCoreNative.Mikan_Connect(_mikanContext, host, port);
+			// Stamp the request with the core sdk version and client id
+			request.clientInfo.mikanCoreSdkVersion = GetCoreSDKVersion();
+			request.clientInfo.clientId = GetClientUniqueID();
+
+			string connectionRequestJson = JsonSerializer.serializeToJsonString(request);
+			int result = MikanCoreNative.Mikan_Connect(_mikanContext, connectionRequestJson, host, port);
 			return (MikanResult)result;
 		}
 

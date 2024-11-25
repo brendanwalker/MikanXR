@@ -1,5 +1,6 @@
 //-- includes -----
 #include "MikanAPI.h"
+#include "MikanClientRequests.h"
 #include "MikanRenderTargetRequests.h"
 #include "MikanVideoSourceRequests.h"
 #include "MikanClientEvents.h"
@@ -150,16 +151,6 @@ protected:
 
 		if (m_mikanApi->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
 		{
-			MikanClientInfo ClientInfo = {};
-			ClientInfo.supportsRGB24 = true;
-			ClientInfo.engineName = "MikanXR Test";
-			ClientInfo.engineVersion = "1.0";
-			ClientInfo.applicationName = "MikanXR Test";
-			ClientInfo.applicationVersion = "1.0";
-			ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
-
-			m_mikanApi->setClientInfo(ClientInfo);
-
 			m_mikanInitialized= true;
 		}
 		else
@@ -439,7 +430,16 @@ protected:
 		{
 			if (m_mikanReconnectTimeout <= 0.f)
 			{
-				if (m_mikanApi->connect() != MikanResult_Success)
+				ConnectRequest connectRequest = {};
+				MikanClientInfo& clientInfo = connectRequest.clientInfo;
+				clientInfo.supportsRGB24 = true;
+				clientInfo.engineName = "MikanXR Test";
+				clientInfo.engineVersion = "1.0";
+				clientInfo.applicationName = "MikanXR Test";
+				clientInfo.applicationVersion = "1.0";
+				clientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
+
+				if (m_mikanApi->connect(connectRequest) != MikanResult_Success)
 				{
 					// timeout between reconnect attempts
 					m_mikanReconnectTimeout= 1.0f; 

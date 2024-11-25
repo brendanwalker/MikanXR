@@ -16,11 +16,13 @@ public:
 	virtual MikanResult initialize() override;
 	virtual void dispose() override;
 
-	virtual MikanResult setClientInfo(const std::string& clientInfo) override;
 	virtual void setTextResponseHandler(TextResponseHandler handler) override;
 	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) override;
 
-	MikanResult connect(const std::string& host, const std::string& port) override;
+	MikanResult connect(
+		const std::string& connectionRequestJson,
+		const std::string& host, 
+		const std::string& port) override;
 	void disconnect() override;
 
 	virtual MikanResult fetchNextEvent(

@@ -60,15 +60,6 @@ bool Mikan_GetIsInitialized(MikanContext context)
 	return context != nullptr;
 }
 
-MikanResult Mikan_SetClientInfo(MikanContext context, const char* clientInfo)
-{
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
-	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
-
-	return mikanClient->setClientInfo(clientInfo);
-}
-
 MikanResult Mikan_GetRenderTargetDescriptor(
 	MikanContext context,
 	MikanRenderTargetDescriptor* out_descriptor)
@@ -147,7 +138,11 @@ void* Mikan_GetPackDepthTextureResourcePtr(MikanContext context)
 	return mikanClient != nullptr ? mikanClient->getPackDepthTextureResourcePtr() : nullptr;
 }
 
-MikanResult Mikan_Connect(MikanContext context, const char* host, const char* port)
+MikanResult Mikan_Connect(
+	MikanContext context, 
+	const char* connectionRequestJson,
+	const char* host, 
+	const char* port)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
@@ -163,7 +158,7 @@ MikanResult Mikan_Connect(MikanContext context, const char* host, const char* po
 	if (mikanClient->getIsConnected())
 		return MikanResult_Success;
 
-	return mikanClient->connect(host, port);
+	return mikanClient->connect(connectionRequestJson, host, port);
 }
 
 bool Mikan_GetIsConnected(MikanContext context)
