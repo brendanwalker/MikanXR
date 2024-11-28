@@ -35,6 +35,28 @@ namespace MikanXR
 		public float w3;
 	};
 
+	public class MikanMatrix4d
+	{
+		public static readonly ulong classId= 17368731873724643280;
+
+		public double x0;
+		public double x1;
+		public double x2;
+		public double x3;
+		public double y0;
+		public double y1;
+		public double y2;
+		public double y3;
+		public double z0;
+		public double z1;
+		public double z2;
+		public double z3;
+		public double w0;
+		public double w1;
+		public double w2;
+		public double w3;
+	};
+
 	public class MikanVector2f
 	{
 		public static readonly ulong classId= 4125211997564147318;
@@ -101,28 +123,6 @@ namespace MikanXR
 		public double z1;
 		public double z2;
 		public double z3;
-	};
-
-	public class MikanMatrix4d
-	{
-		public static readonly ulong classId= 17368731873724643280;
-
-		public double x0;
-		public double x1;
-		public double x2;
-		public double x3;
-		public double y0;
-		public double y1;
-		public double y2;
-		public double y3;
-		public double z0;
-		public double z1;
-		public double z2;
-		public double z3;
-		public double w0;
-		public double w1;
-		public double w2;
-		public double w3;
 	};
 
 	public class MikanQuatf

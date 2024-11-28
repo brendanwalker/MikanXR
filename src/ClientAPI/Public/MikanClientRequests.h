@@ -9,7 +9,7 @@
 #include "MikanClientRequests.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientRequests")) ConnectRequest :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientRequests")) InitClientRequest :
 	public MikanRequest
 {
 public:
@@ -17,16 +17,19 @@ public:
 	MikanClientInfo clientInfo;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	ConnectRequest_GENERATED
+	InitClientRequest_GENERATED
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientRequests")) DisconnectRequest :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientRequests")) DisposeClientRequest :
 	public MikanRequest
 {
 public:
+	FIELD()
+	Serialization::String clientId;
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	DisconnectRequest_GENERATED
+	DisposeClientRequest_GENERATED
 	#endif
 };
 

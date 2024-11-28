@@ -64,11 +64,10 @@ MikanResult MikanClient::startup(LogSeverityLevel log_level, t_logCallback log_c
 }
 
 MikanResult MikanClient::connect(
-	const std::string& connectionRequestJson,
 	const std::string& host, 
 	const std::string& port)
 {
-	return m_messageClient->connect(connectionRequestJson, host, port);
+	return m_messageClient->connect(host, port);
 }
 
 bool MikanClient::getIsConnected() const
@@ -102,12 +101,9 @@ MikanResult MikanClient::fetchNextEvent(
 	char* out_utf8_buffer,
 	size_t* out_utf8_bytes_written)
 {
-	if (m_messageClient->getIsConnected())
-	{
-		return m_messageClient->fetchNextEvent(utf8_buffer_size, out_utf8_buffer, out_utf8_bytes_written);
-	}
-
-	return MikanResult_NotConnected;
+	// Events can arrive even when not connected (e.g. disconnect event)
+	// So we don't check for connection here
+	return m_messageClient->fetchNextEvent(utf8_buffer_size, out_utf8_buffer, out_utf8_bytes_written);
 }
 
 MikanResult MikanClient::setTextResponseCallback(MikanTextResponseCallback callback, void* callback_userdata)

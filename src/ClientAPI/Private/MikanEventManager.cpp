@@ -1,6 +1,7 @@
 #include "MikanEventManager.h"
 #include "MikanAPITypes.h"
 #include "MikanCoreCAPI.h"
+#include "MikanClientEvents.h"
 #include "Logger.h"
 #include "JsonDeserializer.h"
 
@@ -8,6 +9,12 @@
 #include <string>
 
 #include "nlohmann/json.hpp"
+
+#define WEBSOCKET_CONNECT_EVENT				"connect"
+#define WEBSOCKET_DISCONNECT_EVENT			"disconnect"
+#define WEBSOCKET_ERROR_EVENT				"error"
+#define WEBSOCKET_PING_EVENT				"ping"
+#define WEBSOCKET_PONG_EVENT				"pong"
 
 using json = nlohmann::json;
 
@@ -38,26 +45,51 @@ MikanResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
 	return result;
 }
 
-MikanEventPtr MikanEventManager::parseEventString(const char* utf8EventString)
+MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 {
 	MikanEventPtr eventPtr;
 
 	try
 	{
-		json jsonResponse = json::parse(utf8EventString);
-		std::string eventType = jsonResponse["eventType"].get<std::string>();
+		std::string eventString= szUtf8EventString;
 
-		rfk::Struct const* eventStruct = rfk::getDatabase().getFileLevelStructByName(eventType.c_str());
-		if (eventStruct != nullptr)
+		if (eventString == WEBSOCKET_CONNECT_EVENT)
 		{
-			eventPtr = eventStruct->makeSharedInstance<MikanEvent>();
-
-			Serialization::deserializeFromJson(jsonResponse, eventPtr.get(), *eventStruct);
+			eventPtr= std::make_shared<MikanConnectedEvent>();
+		}
+		else if (eventString == WEBSOCKET_DISCONNECT_EVENT)
+		{
+			eventPtr= std::make_shared<MikanDisconnectedEvent>();
+		}
+		else if (eventString == WEBSOCKET_ERROR_EVENT)
+		{
+			MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()") << "Received websocket " << eventString;
+		}
+		else if (eventString == WEBSOCKET_PING_EVENT)
+		{
+			MIKAN_MT_LOG_INFO("MikanClient::parseEventString()") << "Received websocket PING";
+		}
+		else if (eventString == WEBSOCKET_PONG_EVENT)
+		{
+			MIKAN_MT_LOG_INFO("MikanClient::parseEventString()") << "Received websocket PONG";
 		}
 		else
 		{
-			MIKAN_MT_LOG_WARNING("MikanClient::parseEventString()")
-				<< "Received response for unknown eventType: " << eventType;
+			json jsonResponse = json::parse(eventString);
+			std::string eventType = jsonResponse["eventType"].get<std::string>();
+
+			rfk::Struct const* eventStruct = rfk::getDatabase().getFileLevelStructByName(eventType.c_str());
+			if (eventStruct != nullptr)
+			{
+				eventPtr = eventStruct->makeSharedInstance<MikanEvent>();
+
+				Serialization::deserializeFromJson(jsonResponse, eventPtr.get(), *eventStruct);
+			}
+			else
+			{
+				MIKAN_MT_LOG_WARNING("MikanClient::parseEventString()")
+					<< "Received response for unknown eventType: " << eventType;
+			}
 		}
 	}
 	catch (json::parse_error& e)

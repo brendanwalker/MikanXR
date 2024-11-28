@@ -70,17 +70,24 @@ public:
 
 	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
 
-	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientConnected;
-	MulticastDelegate<void(const std::string& clientId)> OnClientDisconnected;
+	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientInitialized;
+	MulticastDelegate<void(const std::string& clientId)> OnClientDisposed;
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor) > OnClientRenderTargetAllocated;
 	MulticastDelegate<void(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor)> OnClientRenderTargetReleased;
 	MulticastDelegate<void(const std::string& clientId, uint64_t frameIndex)> OnClientRenderTargetUpdated;
 
 protected:
+	// Connection State Management
+	void allocateClientConnectionState(const std::string& connectionId, const MikanClientInfo& clientInfo);
+	void disposeClientConnectionState(const std::string& connectionId);
+
+	// Websocket Event Handlers
+	void onClientDisconnected(const std::string& connectionId);	
+
 	// Request Callbacks
-	void connectHandler(const ClientRequest& request, ClientResponse& response);
-	void disconnectHandler(const ClientRequest& request, ClientResponse& response);
+	void initClientHandler(const ClientRequest& request, ClientResponse& response);
+	void disposeClientHandler(const ClientRequest& request, ClientResponse& response);
 
 	void invokeScriptMessageHandler(const ClientRequest& request, ClientResponse& response);
 	

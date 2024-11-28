@@ -50,7 +50,6 @@ public:
 	}
 
 	MikanResult connect(
-		const std::string& connectionRequestJson,
 		const std::string& host,
 		const std::string& port)
 	{
@@ -64,7 +63,6 @@ public:
 		std::string hostPort= port.empty() ? WEBSOCKET_SERVER_PORT : port;
 		m_websocket->setUrl(hostAddress+":"+hostPort);
 		m_websocket->start();
-		m_connectionRequestJson = connectionRequestJson;
 
 		return MikanResult_Success;
 	}
@@ -88,13 +86,14 @@ public:
 				{
 					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "New connection";
 
-					// Send connection request json immediately upon connection
-					getWebSocket()->sendText(m_connectionRequestJson);
+					m_eventQueue->enqueue(WEBSOCKET_CONNECT_EVENT);
 				}
 				break;
 			case ix::WebSocketMessageType::Close:
 				{
 					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Close connection";
+
+					m_eventQueue->enqueue(WEBSOCKET_DISCONNECT_EVENT);
 				}
 				break;
 			case ix::WebSocketMessageType::Message:
@@ -145,16 +144,25 @@ public:
 			case ix::WebSocketMessageType::Error:
 				{
 					MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "Error: " << msg->errorInfo.reason;
+
+					std::stringstream ss;
+					ss << "Error: " << msg->errorInfo.reason;
+
+					m_eventQueue->enqueue(ss.str());
 				}
 				break;
 			case ix::WebSocketMessageType::Ping:
 				{
 					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Ping";
+
+					m_eventQueue->enqueue(WEBSOCKET_PING_EVENT);
 				}
 				break;
 			case ix::WebSocketMessageType::Pong:
 				{
 					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Pong";
+
+					m_eventQueue->enqueue(WEBSOCKET_PONG_EVENT);
 				}
 				break;
 			case ix::WebSocketMessageType::Fragment:
@@ -213,11 +221,10 @@ void WebsocketInterprocessMessageClient::setBinaryResponseHandler(
 }
 
 MikanResult WebsocketInterprocessMessageClient::connect(
-	const std::string& connectionRequestJson,
 	const std::string& host, 
 	const std::string& port)
 {
-	return m_connectionState->connect(connectionRequestJson, host, port);
+	return m_connectionState->connect(host, port);
 }
 
 void WebsocketInterprocessMessageClient::disconnect()

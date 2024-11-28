@@ -90,6 +90,17 @@ namespace MikanXR
 			return MikanCoreNative.GetClientUniqueID(_mikanContext);
 		}
 
+		public MikanClientInfo AllocateClientInfo()
+		{
+			MikanClientInfo clientInfo = new MikanClientInfo();
+
+			// Stamp the request with the core sdk version and client id
+			clientInfo.mikanCoreSdkVersion = GetCoreSDKVersion();
+			clientInfo.clientId = GetClientUniqueID();
+
+			return clientInfo;
+		}
+
 		public MikanResult SetGraphicsDeviceInterface(
 			MikanClientGraphicsApi api,
 			IntPtr graphicsDeviceInterface)
@@ -111,14 +122,9 @@ namespace MikanXR
 
 		// -- Client Info ----
 
-		public MikanResult Connect(ConnectRequest request, string host="", string port="")
+		public MikanResult Connect(string host="", string port="")
 		{
-			// Stamp the request with the core sdk version and client id
-			request.clientInfo.mikanCoreSdkVersion = GetCoreSDKVersion();
-			request.clientInfo.clientId = GetClientUniqueID();
-
-			string connectionRequestJson = JsonSerializer.serializeToJsonString(request);
-			int result = MikanCoreNative.Mikan_Connect(_mikanContext, connectionRequestJson, host, port);
+			int result = MikanCoreNative.Mikan_Connect(_mikanContext, host, port);
 			return (MikanResult)result;
 		}
 

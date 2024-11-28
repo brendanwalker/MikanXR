@@ -5,15 +5,14 @@
 #include <functional>
 #include <string>
 
-#define FUNCTION_CALL_QUEUE_NAME			"MikanFunctionCallQueue"
-#define SERVER_EVENT_QUEUE_PREFIX			"MikanServerEventQueue_"
-#define FUNCTION_RESPONSE_QUEUE_PREFIX		"MikanFunctionResponseQueue_"
-
-#define CONNECT_FUNCTION_NAME				"connect"
-#define DISCONNECT_FUNCTION_NAME			"disconnect"
-
 #define WEBSOCKET_SERVER_ADDRESS			"ws://127.0.0.1"
 #define WEBSOCKET_SERVER_PORT				"8080"
+
+#define WEBSOCKET_CONNECT_EVENT				"connect"
+#define WEBSOCKET_DISCONNECT_EVENT			"disconnect"
+#define WEBSOCKET_ERROR_EVENT				"error"
+#define WEBSOCKET_PING_EVENT				"ping"
+#define WEBSOCKET_PONG_EVENT				"pong"
 
 struct ClientRequest
 {
@@ -41,10 +40,7 @@ public:
 	virtual void setTextResponseHandler(TextResponseHandler handler) = 0;
 	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) = 0;
 
-	virtual MikanResult connect(
-		const std::string& connectionRequestJson,
-		const std::string& host,
-		const std::string& port) = 0;
+	virtual MikanResult connect(const std::string& host, const std::string& port) = 0;
 	virtual void disconnect() = 0;
 
 	virtual MikanResult fetchNextEvent(
@@ -59,13 +55,17 @@ public:
 class IInterprocessMessageServer
 {
 public:
+	using ClientDisconnectHandler = std::function<void(const std::string& connectionId)>;
+
 	virtual ~IInterprocessMessageServer() {}
 
 	virtual bool initialize() = 0;
 	virtual void dispose() = 0;
 	virtual void setRequestHandler(uint64_t requestTypeId, RequestHandler handler) = 0;
+	virtual void setClientDisconnectHandler(ClientDisconnectHandler handler) = 0;
 
 	virtual void sendMessageToClient(const std::string& connectionId, const std::string& message) = 0;
 	virtual void sendMessageToAllClients(const std::string& message) = 0;
 	virtual void processRequests() = 0;
+	virtual void processDisconnections() = 0;
 };

@@ -32,12 +32,33 @@ using LockFreeRequestQueuePtr = std::shared_ptr<LockFreeRequestQueue>;
 using WebSocketWeakPtr = std::weak_ptr<ix::WebSocket>;
 using WebSocketPtr = std::shared_ptr<ix::WebSocket>;
 
+// -- WebsocketClientEventQueue --
+class WebsocketClientEventQueue
+{
+public:
+	WebsocketClientEventQueue() = default;
+
+	void enqueueClientDisconnectEvent(const std::string& connectionId)
+	{
+		m_clientDisconnectEventQueue.enqueue(connectionId);
+	}
+
+	bool dequeueClientDisconnectEvent(std::string& outConnectionId)
+	{
+		return m_clientDisconnectEventQueue.try_dequeue(outConnectionId);
+	}
+
+private:
+	moodycamel::ReaderWriterQueue<std::string> m_clientDisconnectEventQueue;
+};
+
 //-- WebSocketClientConnection -----
 class WebSocketClientConnection : public ix::ConnectionState
 {
 public:
-	WebSocketClientConnection() 		
+	WebSocketClientConnection(WebsocketInterprocessMessageServer* ownerMessageServer)
 		: ix::ConnectionState()
+		, m_ownerMessageServer(ownerMessageServer)
 		, m_functionCallQueue(std::make_shared<LockFreeRequestQueue>())
 	{}
 
@@ -58,7 +79,6 @@ public:
 		return false;
 	}
 
-	//const std::string getClientId() const { return m_clientInfo.clientId; }
 	inline LockFreeRequestQueuePtr getFunctionCallQueue() { return m_functionCallQueue; }
 
 	void handleClientMessage(
@@ -92,12 +112,10 @@ public:
 					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
 						<< "code: " << msg->closeInfo.code;
 
-					// Serialize the disconnect request to json
-					DisconnectRequest disconectRequest = {};
-					json disconnectRequestJson;
-					Serialization::serializeToJson(disconectRequest, disconnectRequestJson);
-
-					m_functionCallQueue->enqueue(disconnectRequestJson.dump());
+					// Enqueue the client disconnect event
+					m_ownerMessageServer
+						->getClientDisconnectEventQueue()
+						->enqueueClientDisconnectEvent(connectionState->getId());
 				}
 				break;
 			case ix::WebSocketMessageType::Message:
@@ -176,32 +194,16 @@ public:
 		return false;
 	}
 
-protected: 
-	bool parseClientInfo(const std::string& configJsonString, MikanClientInfo& outClientInfo)
-	{
-		try
-		{
-			Serialization::deserializeFromJsonString(configJsonString, outClientInfo);
-		}
-		catch (json::exception e)
-		{
-			MIKAN_MT_LOG_ERROR("WebSocketClientConnection::parseClientInfo") 
-				<< "Failed to parse client info: " << e.what();
-			return false;
-		}
-
-		return true;
-	}
-
 private:
+	WebsocketInterprocessMessageServer* m_ownerMessageServer= nullptr;
 	LockFreeRequestQueuePtr m_functionCallQueue;
 	WebSocketWeakPtr m_websocket;
-	MikanClientInfo	m_clientInfo;
 };
 
 //-- WebsocketInterprocessMessageServer -----
 WebsocketInterprocessMessageServer::WebsocketInterprocessMessageServer()
 	: m_server(nullptr)
+	, m_clientDisconnectEventQueue(std::make_shared<WebsocketClientEventQueue>())
 {}
 
 WebsocketInterprocessMessageServer::~WebsocketInterprocessMessageServer()
@@ -222,13 +224,15 @@ bool WebsocketInterprocessMessageServer::initialize()
 
 	if (bSuccess)
 	{
+		WebsocketInterprocessMessageServer* ownerMessageServer= this;
+
 		m_server = std::make_shared<ix::WebSocketServer>();
 
-		auto connectionStateFactory = []() -> WebSocketClientConnectionPtr {
-			return std::make_shared<WebSocketClientConnection>();
+		auto connectionStateFactory = [ownerMessageServer]() -> WebSocketClientConnectionPtr {
+			return std::make_shared<WebSocketClientConnection>(ownerMessageServer);
 		};
 
-		auto clientConnectCallback = [this](
+		auto clientConnectCallback = [ownerMessageServer](
 			WebSocketWeakPtr webSocketWeakPtr, 
 			ConnectionStatePtr connectionState) 
 		{
@@ -249,9 +253,9 @@ bool WebsocketInterprocessMessageServer::initialize()
 
 			// Add the connection to the list of connections
 			{
-				std::lock_guard<std::mutex> lock(m_connectionsMutex);
+				std::lock_guard<std::mutex> lock(ownerMessageServer->m_connectionsMutex);
 
-				m_connections.push_back(clientConnectionState);
+				ownerMessageServer->m_connections.push_back(clientConnectionState);
 			}
 		};
 
@@ -286,18 +290,6 @@ void WebsocketInterprocessMessageServer::dispose()
 		// Disconnect all clients
 		for (WebSocketClientConnectionPtr connection : m_connections)
 		{
-			// Tell the client that they are getting disconnected
-			auto& type= MikanDisconnectedEvent::staticGetArchetype();
-			MikanDisconnectedEvent disconnectEvent;
-			disconnectEvent.eventTypeId = type.getId();
-			disconnectEvent.eventTypeName = type.getName();
-
-			std::string eventJsonString;
-			Serialization::serializeToJsonString(disconnectEvent, eventJsonString);
-
-			connection->sendText(eventJsonString);
-
-			// Close the connection
 			connection->disconnect();
 		}
 
@@ -321,6 +313,11 @@ void WebsocketInterprocessMessageServer::setRequestHandler(
 	RequestHandler handler)
 {
 	m_requestHandlers[requestTypeId] = handler;
+}
+
+void WebsocketInterprocessMessageServer::setClientDisconnectHandler(ClientDisconnectHandler handler)
+{
+	m_clientDisconnectHandler= handler;
 }
 
 void WebsocketInterprocessMessageServer::getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections)
@@ -445,6 +442,18 @@ void WebsocketInterprocessMessageServer::processRequests()
 					"Request handler for " << requestTypeId 
 					<< " returned empty response, but response expected!";
 			}
+		}
+	}
+}
+
+void WebsocketInterprocessMessageServer::processDisconnections()
+{
+	std::string connectionId;
+	while (m_clientDisconnectEventQueue->dequeueClientDisconnectEvent(connectionId))
+	{
+		if (m_clientDisconnectHandler)
+		{
+			m_clientDisconnectHandler(connectionId);
 		}
 	}
 }

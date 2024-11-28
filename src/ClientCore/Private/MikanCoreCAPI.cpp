@@ -140,7 +140,6 @@ void* Mikan_GetPackDepthTextureResourcePtr(MikanContext context)
 
 MikanResult Mikan_Connect(
 	MikanContext context, 
-	const char* connectionRequestJson,
 	const char* host, 
 	const char* port)
 {
@@ -158,7 +157,7 @@ MikanResult Mikan_Connect(
 	if (mikanClient->getIsConnected())
 		return MikanResult_Success;
 
-	return mikanClient->connect(connectionRequestJson, host, port);
+	return mikanClient->connect(host, port);
 }
 
 bool Mikan_GetIsConnected(MikanContext context)

@@ -802,7 +802,7 @@ namespace Mikan
 			clock.Stop();
 		}
 
-		private void UpdateLoop()
+		private async void UpdateLoop()
 		{
 			long now = clock.ElapsedMilliseconds;
 			float deltaMilliseconds = now - lastUpdateTimestamp;
@@ -818,6 +818,22 @@ namespace Mikan
 				{
 					if (nextEvent is MikanConnectedEvent)
 					{
+						var clientInfo = mikanAPI.AllocateClientInfo();
+						clientInfo.engineName = "MikanXR Test";
+						clientInfo.engineVersion = "1.0.0";
+						clientInfo.applicationName = "MikanXR C# Test App";
+						clientInfo.applicationVersion = "1.0.0";
+						clientInfo.graphicsAPI = MikanClientGraphicsApi.Direct3D11;
+						clientInfo.supportsRGBA32 = true;
+						clientInfo.supportsDepth = true;
+
+						var initClientRequest = new InitClientRequest()
+						{
+							clientInfo = clientInfo
+						};
+
+						await mikanAPI.SendRequest(initClientRequest);
+
 						ReallocateRenderBuffers();
 						UpdateCameraProjectionMatrix();
 					}
@@ -844,22 +860,7 @@ namespace Mikan
 			{
 				if (mikanReconnectTimeout <= 0f)
 				{
-					var clientInfo= new MikanClientInfo()
-					{
-						engineName = "MikanXR Test",
-						engineVersion = "1.0.0",
-						applicationName = "MikanXR C# Test App",
-						applicationVersion = "1.0.0",
-						graphicsAPI = MikanClientGraphicsApi.Direct3D11,
-						supportsRGBA32 = true,
-						supportsDepth = true
-					};
-					var connectRequest= new ConnectRequest()
-					{
-						clientInfo = clientInfo
-					};
-
-					if (mikanAPI.Connect(connectRequest) != MikanResult.Success || !mikanAPI.GetIsConnected())
+					if (mikanAPI.Connect() != MikanResult.Success || !mikanAPI.GetIsConnected())
 					{
 						// Timeout before trying to reconnect
 						mikanReconnectTimeout = 1f;

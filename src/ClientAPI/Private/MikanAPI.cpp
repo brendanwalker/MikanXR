@@ -84,6 +84,17 @@ public:
 		return Mikan_GetClientUniqueID(m_context);
 	}
 
+	virtual MikanClientInfo allocateClientInfo() const override
+	{
+		MikanClientInfo clientInfo = {};
+
+		// Stamp the request with the core sdk version and client id
+		clientInfo.mikanCoreSdkVersion = getCoreSDKVersion();
+		clientInfo.clientId = getClientUniqueID();
+
+		return clientInfo;
+	}
+
 	// Send a request to the Mikan API
 	virtual MikanResponseFuture sendRequest(const MikanRequest& request) override
 	{
@@ -107,17 +118,10 @@ public:
 	}
 
 	virtual MikanResult connect(
-		const struct ConnectRequest& connectRequest,
 		const std::string& host, 
 		const std::string& port) override
 	{
-		std::string connectionRequestJson;
-		if (!Serialization::serializeToJsonString(connectRequest, connectionRequestJson))
-		{
-			return MikanResult_MalformedParameters;
-		}
-
-		return Mikan_Connect(m_context, connectionRequestJson.c_str(), host.c_str(), port.c_str());
+		return Mikan_Connect(m_context, host.c_str(), port.c_str());
 	}
 
 	virtual bool getIsConnected() override
@@ -130,7 +134,7 @@ public:
 		return m_eventManager->fetchNextEvent(out_event);
 	}
 
-	virtual MikanResult disconnect() override
+	virtual MikanResult disconnect(const DisconnectRequest& disconectRequest) override
 	{
 		return Mikan_Disconnect(m_context);
 	}

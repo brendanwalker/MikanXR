@@ -20,7 +20,6 @@ public:
 	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) override;
 
 	MikanResult connect(
-		const std::string& connectionRequestJson,
 		const std::string& host, 
 		const std::string& port) override;
 	void disconnect() override;

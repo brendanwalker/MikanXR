@@ -4,17 +4,18 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class DisconnectRequest : MikanRequest
+	public class InitClientRequest : MikanRequest
 	{
-		public static new readonly ulong classId= 9563748777794071390;
-
-	};
-
-	public class ConnectRequest : MikanRequest
-	{
-		public static new readonly ulong classId= 5913017332749256376;
+		public static new readonly ulong classId= 7270577563897270843;
 
 		public MikanClientInfo clientInfo;
+	};
+
+	public class DisposeClientRequest : MikanRequest
+	{
+		public static new readonly ulong classId= 17775423348886505644;
+
+		public string clientId;
 	};
 
 }

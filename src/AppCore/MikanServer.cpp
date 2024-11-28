@@ -58,7 +58,7 @@ class MikanClientConnectionState
 public:
 	MikanClientConnectionState(
 		const std::string& connectionId,
-		MikanClientInfo& clientInfo,
+		const MikanClientInfo& clientInfo,
 		IInterprocessMessageServer* messageServer)
 		: m_connectionId(connectionId)
 		, m_messageServer(messageServer)
@@ -341,13 +341,17 @@ bool MikanServer::startup()
 		return false;
 	}
 
-	// Client Connection Requests
+	// Websocket Event Handlers
+	m_messageServer->setClientDisconnectHandler(
+		std::bind(&MikanServer::onClientDisconnected, this, _1));
+
+	// Client Init/Dispose Requests
 	m_messageServer->setRequestHandler(
-		ConnectRequest::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::connectHandler, this, _1, _2));
+		InitClientRequest::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::initClientHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
-		DisconnectRequest::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::disconnectHandler, this, _1, _2));
+		DisposeClientRequest::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::disposeClientHandler, this, _1, _2));
 
 	// Render Target Requests
 	m_messageServer->setRequestHandler(
@@ -755,70 +759,93 @@ void writeSimpleBinaryResponse(MikanRequestID requestId, MikanResult result, Cli
 	}
 }
 
-void MikanServer::connectHandler(const ClientRequest& request, ClientResponse& response)
+// Connection State Management
+void MikanServer::allocateClientConnectionState(
+	const std::string& connectionId,
+	const MikanClientInfo& clientInfo)
 {
-	ConnectRequest connectRequest;
-	if (!readTypedRequest(request.utf8RequestString, connectRequest) || 
-		connectRequest.clientInfo.clientId.getValue().empty())
+	const std::string& clientId = clientInfo.clientId.getValue();
+	MikanClientConnectionStatePtr clientState =
+		std::make_shared<MikanClientConnectionState>(
+			connectionId,
+			clientInfo,
+			m_messageServer);
+
+	m_clientConnections.insert({connectionId, clientState});
+
+	if (OnClientInitialized)
 	{
-		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
-		// TODO send error event
-		return;
-	}
-
-	const std::string& connectionId = request.connectionId;
-	const std::string& clientId = connectRequest.clientInfo.clientId.getValue();
-
-	auto connection_it = m_clientConnections.find(connectionId);
-	if (connection_it == m_clientConnections.end())
-	{
-		MikanClientConnectionStatePtr clientState = 
-			std::make_shared<MikanClientConnectionState>(
-				request.connectionId,
-				connectRequest.clientInfo, 
-				m_messageServer);
-
-		m_clientConnections.insert({connectionId, clientState});
-
-		if (OnClientConnected)
-		{
-			OnClientConnected(clientId, connectRequest.clientInfo);
-		}
-
-		clientState->publishSimpleEvent<MikanConnectedEvent>();
-	}
-	else
-	{
-		//TODO: send error event
-		MIKAN_LOG_ERROR("connectHandler") 
-			<< "Client (connectionId: " << connectionId << 
-			", clientId: " << clientId << ") already connected";
+		OnClientInitialized(clientId, clientInfo);
 	}
 }
 
-void MikanServer::disconnectHandler(const ClientRequest& request, ClientResponse& response)
+void MikanServer::disposeClientConnectionState(const std::string& connectionId)
 {
-	const std::string& connectionId = request.connectionId;
-
 	auto connection_it = m_clientConnections.find(connectionId);
 	if (connection_it != m_clientConnections.end())
 	{
 		const std::string& clientId = connection_it->first;
 		MikanClientConnectionStatePtr clientState = connection_it->second;
 
-		clientState->publishSimpleEvent<MikanDisconnectedEvent>();
-
-		if (OnClientDisconnected)
+		if (OnClientDisposed)
 		{
-			OnClientDisconnected(clientId);
+			OnClientDisposed(clientId);
 		}
 
 		m_clientConnections.erase(connection_it);
 	}
+}
+
+// Websocket Event Handlers
+void MikanServer::onClientDisconnected(const std::string& connectionId)
+{
+	disposeClientConnectionState(connectionId);
+}
+
+// Request Callbacks
+void MikanServer::initClientHandler(const ClientRequest& request, ClientResponse& response)
+{
+	InitClientRequest initClientRequest;
+	if (!readTypedRequest(request.utf8RequestString, initClientRequest) || 
+		initClientRequest.clientInfo.clientId.getValue().empty())
+	{
+		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
+		writeSimpleJsonResponse(request.requestId, MikanResult_MalformedParameters, response);
+		return;
+	}
+
+	const std::string& connectionId = request.connectionId;
+	const std::string& clientId = initClientRequest.clientInfo.clientId.getValue();
+
+	auto connection_it = m_clientConnections.find(connectionId);
+	if (connection_it == m_clientConnections.end())
+	{
+		allocateClientConnectionState(connectionId, initClientRequest.clientInfo);
+		writeSimpleJsonResponse(request.requestId, MikanResult_Success, response);
+	}
 	else
 	{
-		//TODO: send error event
+		MIKAN_LOG_ERROR("connectHandler") 
+			<< "Client (connectionId: " << connectionId << 
+			", clientId: " << clientId << ") already connected";
+		writeSimpleJsonResponse(request.requestId, MikanResult_AlreadyConnected, response);
+	}
+}
+
+void MikanServer::disposeClientHandler(const ClientRequest& request, ClientResponse& response)
+{
+	const std::string& connectionId = request.connectionId;
+
+	auto connection_it = m_clientConnections.find(connectionId);
+	if (connection_it != m_clientConnections.end())
+	{
+		disposeClientConnectionState(connectionId);
+		writeSimpleJsonResponse(request.requestId, MikanResult_Success, response);
+	}
+	else
+	{
 		MIKAN_LOG_ERROR("disconnectHandler") << "Client (connection id: " << connectionId <<") not connected";
+		writeSimpleJsonResponse(request.requestId, MikanResult_UnknownClient, response);
 	}
 }
 

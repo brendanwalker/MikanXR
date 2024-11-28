@@ -31,12 +31,6 @@ namespace MikanXR
 			NativeLogCallback log_callback, 
 			out IntPtr out_context);
 
-		[DllImport("MikanCore.dll", CharSet = CharSet.Ansi)]
-		public static extern int Mikan_SetClientInfo(
-			IntPtr context,
-			[MarshalAs(UnmanagedType.LPUTF8Str)]
-			string clientInfo);
-
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_GetCoreSDKVersion();
 
@@ -94,8 +88,7 @@ namespace MikanXR
 		public static extern int Mikan_Connect(
 			IntPtr context,
 			string host, 
-			string port,
-			string connectionRequestJson);
+			string port);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_Disconnect(IntPtr context);

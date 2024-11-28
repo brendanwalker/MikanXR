@@ -2,6 +2,7 @@
 
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
+#include "MikanClientTypes.h"
 
 #include <memory>
 #include <string>
@@ -24,16 +25,14 @@ public:
 	// Client Info
 	virtual int getCoreSDKVersion() const = 0;
 	virtual std::string getClientUniqueID() const = 0;
+	virtual MikanClientInfo allocateClientInfo() const = 0;
 	virtual MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
 	virtual MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;
 
 	// Connection Management
-	virtual MikanResult connect(
-		const struct ConnectRequest& connectRequest,
-		const std::string& host= "",
-		const std::string& port= "") = 0;
+	virtual MikanResult connect(const std::string& host= "", const std::string& port= "") = 0;
 	virtual bool getIsConnected() = 0;
-	virtual MikanResult disconnect() = 0;
+	virtual MikanResult disconnect(const struct DisconnectRequest& disconectRequest) = 0;
 
 	// Messaging
 	virtual MikanResponseFuture sendRequest(const MikanRequest& request) = 0;

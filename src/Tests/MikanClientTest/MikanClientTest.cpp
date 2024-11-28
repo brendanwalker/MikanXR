@@ -352,6 +352,15 @@ protected:
 
 		if (m_mikanInitialized)
 		{
+			// If we are currently connected, 
+			// gracefully cleanup the client info on the server first
+			if (m_mikanApi->getIsConnected())
+			{
+				DisposeClientRequest disposeRequest = {};
+				m_mikanApi->sendRequest(disposeRequest).wait();
+			}
+
+			// Disconnect from the server and shutdown the API
 			m_mikanApi->shutdown();
 			m_mikanInitialized= false;
 		}
@@ -403,6 +412,20 @@ protected:
 			{
 				if (typeid(*event) == typeid(MikanConnectedEvent))
 				{
+					// Initialize the client info on the server
+					MikanClientInfo clientInfo = m_mikanApi->allocateClientInfo();
+					clientInfo.supportsRGB24 = true;
+					clientInfo.engineName = "MikanXR Test";
+					clientInfo.engineVersion = "1.0";
+					clientInfo.applicationName = "MikanXR Test";
+					clientInfo.applicationVersion = "1.0";
+					clientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
+
+					InitClientRequest initClientRequest = {};
+					initClientRequest.clientInfo = clientInfo;
+
+					m_mikanApi->sendRequest(initClientRequest).wait();
+
 					reallocateRenderBuffers();
 					updateCameraProjectionMatrix();
 				}
@@ -428,16 +451,7 @@ protected:
 		{
 			if (m_mikanReconnectTimeout <= 0.f)
 			{
-				ConnectRequest connectRequest = {};
-				MikanClientInfo& clientInfo = connectRequest.clientInfo;
-				clientInfo.supportsRGB24 = true;
-				clientInfo.engineName = "MikanXR Test";
-				clientInfo.engineVersion = "1.0";
-				clientInfo.applicationName = "MikanXR Test";
-				clientInfo.applicationVersion = "1.0";
-				clientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
-
-				if (m_mikanApi->connect(connectRequest) != MikanResult_Success)
+				if (m_mikanApi->connect() != MikanResult_Success)
 				{
 					// timeout between reconnect attempts
 					m_mikanReconnectTimeout= 1.0f; 
