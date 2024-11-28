@@ -8,7 +8,8 @@ namespace MikanXR
 	{
 		public static readonly ulong classId= 1095719431187359814;
 
-		public string requestType;
+		public ulong requestTypeId;
+		public string requestTypeName;
 		public int requestId;
 	};
 
@@ -16,7 +17,8 @@ namespace MikanXR
 	{
 		public static readonly ulong classId= 7094118849615581562;
 
-		public string responseType;
+		public ulong responseTypeId;
+		public string responseTypeName;
 		public int requestId;
 		public MikanResult resultCode;
 	};
@@ -25,7 +27,8 @@ namespace MikanXR
 	{
 		public static readonly ulong classId= 8521159033538382795;
 
-		public string eventType;
+		public ulong eventTypeId;
+		public string eventTypeName;
 	};
 
 }

@@ -17,15 +17,12 @@
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequest
 {
-	inline static const char* k_typeName = "MikanRequest";
-
 	FIELD()
-	Serialization::String requestType;
+	uint64_t requestTypeId = 0;
+	FIELD()
+	Serialization::String requestTypeName;
 	FIELD()
 	MikanRequestID requestId = -1;
-
-	MikanRequest() = default;
-	MikanRequest(const std::string& inRequestType) : requestType(inRequestType) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRequest_GENERATED
@@ -34,25 +31,14 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequ
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanResponse
 {
-	inline static const char* k_typeName = "MikanResponse";
-
 	FIELD()
-	Serialization::String responseType;
+	uint64_t responseTypeId = 0;
 	FIELD()
-	MikanRequestID requestId;
+	Serialization::String responseTypeName;
 	FIELD()
-	MikanResult resultCode;
-
-	MikanResponse() 
-		: responseType(k_typeName) 
-		, requestId(INVALID_MIKAN_ID)
-		, resultCode(MikanResult_Success)
-	{}
-	MikanResponse(const std::string& inResponseType) 
-		: responseType(inResponseType) 
-		, requestId(INVALID_MIKAN_ID)
-		, resultCode(MikanResult_Success)
-	{}
+	MikanRequestID requestId= INVALID_MIKAN_ID;
+	FIELD()
+	MikanResult resultCode= MikanResult_Success;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanResponse_GENERATED
@@ -61,13 +47,10 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanResp
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanEvent
 {
-	inline static const char* k_typeName = "MikanEvent";
-
 	FIELD()
-	Serialization::String eventType;
-
-	MikanEvent() = default;
-	MikanEvent(const std::string& inEventType) : eventType(inEventType) {}
+	uint64_t eventTypeId = 0;
+	FIELD()
+	Serialization::String eventTypeName;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanEvent_GENERATED

@@ -12,9 +12,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "AllocateRenderTargetTextures";
-	AllocateRenderTargetTextures() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	MikanRenderTargetDescriptor descriptor;
 
@@ -27,9 +24,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "WriteColorRenderTargetTexture";
-	WriteColorRenderTargetTexture() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	void* apiColorTexturePtr;
 
@@ -42,9 +36,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "WriteDepthRenderTargetTexture";
-	WriteDepthRenderTargetTexture() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	void* apiDepthTexturePtr;
 
@@ -63,9 +54,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "WriteDepthRenderTargetTexture";
-	PublishRenderTargetTextures() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	uint64_t frameIndex;
 
@@ -78,9 +66,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "FreeRenderTargetTextures";
-	FreeRenderTargetTextures() : MikanRequest(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	FreeRenderTargetTextures_GENERATED
 	#endif

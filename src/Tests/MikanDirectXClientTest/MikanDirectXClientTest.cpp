@@ -173,25 +173,23 @@ void updateMikan()
 		MikanEventPtr event;
 		while (g_mikanAPI->fetchNextEvent(event) == MikanResult_Success)
 		{
-            const std::string& eventType = event->eventType.getValue();
-
-			if (eventType == MikanConnectedEvent::k_typeName)
+			if (typeid(*event) == typeid(MikanConnectedEvent))
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
             }
-			else if (eventType == MikanVideoSourceOpenedEvent::k_typeName)
+			else if (typeid(*event) == typeid(MikanVideoSourceOpenedEvent))
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
             }
-            else if (eventType == MikanVideoSourceNewFrameEvent::k_typeName)
+            else if (typeid(*event) == typeid(MikanVideoSourceNewFrameEvent))
             {
 				auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(event);
 				processNewVideoSourceFrame(*newFrameEvent.get());
             }
-			else if (eventType == MikanVideoSourceModeChangedEvent::k_typeName ||
-					 eventType == MikanVideoSourceIntrinsicsChangedEvent::k_typeName)
+			else if (typeid(*event) == typeid(MikanVideoSourceModeChangedEvent) ||
+					 typeid(*event) == typeid(MikanVideoSourceIntrinsicsChangedEvent))
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();

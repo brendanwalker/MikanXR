@@ -16,9 +16,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "GetVideoSourceIntrinsics";
-	GetVideoSourceIntrinsics() : MikanRequest(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVideoSourceIntrinsics_GENERATED
 	#endif
@@ -28,9 +25,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "GetVideoSourceIntrinsics";
-	GetVideoSourceMode() : MikanRequest(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVideoSourceMode_GENERATED
 	#endif
@@ -40,9 +34,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "GetVideoSourceIntrinsics";
-	GetVideoSourceAttachment() : MikanRequest(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVideoSourceAttachment_GENERATED
 	#endif
@@ -55,13 +46,11 @@ public:
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceIntrinsicsResponse : 
 	public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanVideoSourceIntrinsicsResponse";
-
 	FIELD()
 	MikanVideoSourceIntrinsics intrinsics;
 
 	MikanVideoSourceIntrinsicsResponse()
-		: MikanResponse(k_typeName)
+		: MikanResponse()
 		, intrinsics()
 	{}
 
@@ -74,14 +63,10 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVide
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceAttachmentInfoResponse : 
 	public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanVideoSourceAttachmentInfoResponse";
-
 	FIELD()
 	MikanVRDeviceID attached_vr_device_id;
 	FIELD()
 	MikanMatrix4f vr_device_offset_xform;
-
-	MikanVideoSourceAttachmentInfoResponse() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceAttachmentInfoResponse_GENERATED
@@ -92,8 +77,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVide
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceModeResponse : 
 	public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanVideoSourceModeResponse";
-
 	FIELD()
 	MikanVideoSourceType video_source_type;
 	FIELD()
@@ -108,8 +91,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVide
 	int32_t resolution_y;
 	FIELD()
 	float frame_rate;
-
-	MikanVideoSourceModeResponse() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceModeResponse_GENERATED

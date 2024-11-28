@@ -50,17 +50,21 @@ namespace MikanXR
 
 			var root = JObject.Parse(utf8ResponseString);
 
-			// Check if the key "eventType" exists
-			if (root.TryGetValue("eventType", out JToken eventTypeElement))
+			// Check if the "eventTypeName" and "eventTypeId" keys exist
+			if (root.TryGetValue("eventTypeName", out JToken eventTypeNameElement) &&
+				root.TryGetValue("eventTypeId", out JToken eventTypeIdElement))
 			{
-				// Check if the value of "eventType" is a string
-				if (eventTypeElement.Type == JTokenType.String)
+				// Check if the value of eventType keys
+				if (eventTypeNameElement.Type == JTokenType.String &&
+					eventTypeIdElement.Type == JTokenType.Integer)
 				{
-					// Get the string value of "eventType"
-					string eventTypeName = (string)eventTypeElement;
+					// Get the string value of "eventTypeName"
+					string eventTypeName = (string)eventTypeNameElement;
+					// Get the integer value of "eventTypeId"
+					ulong eventTypeId = (ulong)eventTypeIdElement;
 
 					// Attempt to create the event object by class name
-					object eventObject= Utils.allocateMikanTypeByName(eventTypeName, out Type eventType);
+					object eventObject= Utils.allocateMikanTypeByClassId(eventTypeId, out Type eventType);
 					if (eventObject != null)
 					{
 						// Deserialize the event object from the JSON string
@@ -77,17 +81,19 @@ namespace MikanXR
 					}
 					else
 					{
-						_nativeLogCallback((int)MikanLogLevel.Error, "Unknown event type: " + eventType);
+						_nativeLogCallback((int)MikanLogLevel.Error, 
+							"Unknown event type: " + eventTypeName + 
+							" (classId: " + eventTypeId + ")");
 					}
 				}
 				else
 				{
-					_nativeLogCallback((int)MikanLogLevel.Error, "eventType is not a string.");
+					_nativeLogCallback((int)MikanLogLevel.Error, "eventTypes not of expected types.");
 				}
 			}
 			else
 			{
-				_nativeLogCallback((int)MikanLogLevel.Error, "eventType key not found.");
+				_nativeLogCallback((int)MikanLogLevel.Error, "eventType keys not found.");
 			}
 
 			return mikanEvent;

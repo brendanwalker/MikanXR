@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 
 namespace MikanXR
@@ -104,17 +106,34 @@ namespace MikanXR
 
 	internal static class Utils
 	{
-		public static object allocateMikanTypeByName(string typeName, out Type type)
-		{
-			object instance = null;
-			type= Assembly.GetExecutingAssembly().GetType(typeName);
+		static Dictionary<ulong, Type> _typeCache= null;
 
-			if (type != null)
+		public static object allocateMikanTypeByClassId(ulong mikanClassId, out Type type)
+		{
+			if (_typeCache == null)
 			{
-				instance = Activator.CreateInstance(type);
+				var q = from t in Assembly.GetExecutingAssembly().GetTypes()
+						where t.IsClass && t.Namespace == "MikanXR"
+						select t;
+				q.ToList().ForEach(t => { 
+					var classIdProperty= t.GetProperty("classId", BindingFlags.Public | BindingFlags.Static);
+					if (classIdProperty != null)
+					{
+						ulong classId= (ulong)classIdProperty.GetValue(null);
+
+						_typeCache[classId] = t;
+					}
+				});
+
+				_typeCache = new Dictionary<ulong, Type>();
 			}
 
-			return instance;
+			if (_typeCache.TryGetValue(mikanClassId, out type))
+			{
+				return Activator.CreateInstance(type);
+			}
+
+			return null;
 		}
 
 		public static void visitObject<T>(T instance, IVisitor visitor) where T : struct

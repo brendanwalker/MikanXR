@@ -13,9 +13,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientRequests")) Con
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "ConnectRequest";
-	ConnectRequest() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	MikanClientInfo clientInfo;
 
@@ -28,9 +25,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientRequests")) Dis
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "DisconnectRequest";
-	DisconnectRequest() : MikanRequest(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	DisconnectRequest_GENERATED
 	#endif

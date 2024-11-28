@@ -28,27 +28,27 @@ MikanResult MikanRenderTargetAPI::getGraphicsDeviceInterface(
 
 bool MikanRenderTargetAPI::tryProcessRequest(const MikanRequest& request, MikanResponseFuture& outFuture)
 {
-	if (request.requestType.getValue() == "allocateRenderTargetTextures")
+	if (typeid(request) == typeid(AllocateRenderTargetTextures))
 	{
 		outFuture = allocateRenderTargetTextures(request);
 		return true;
 	}
-	else if (request.requestType.getValue() == "writeColorRenderTargetTexture")
+	else if (typeid(request) == typeid(WriteColorRenderTargetTexture))
 	{
 		outFuture = writeColorRenderTargetTexture(request);
 		return true;
 	}
-	else if (request.requestType.getValue() == "writeDepthRenderTargetTexture")
+	else if (typeid(request) == typeid(WriteDepthRenderTargetTexture))
 	{
 		outFuture = writeDepthRenderTargetTexture(request);
 		return true;
 	}
-	else if (request.requestType.getValue() == "publishRenderTargetTextures")
+	else if (typeid(request) == typeid(PublishRenderTargetTextures))
 	{
 		outFuture = publishRenderTargetTextures(request);
 		return true;
 	}
-	else if (request.requestType.getValue() == "freeRenderTargetTextures")
+	else if (typeid(request) == typeid(FreeRenderTargetTextures))
 	{
 		outFuture = freeRenderTargetTextures(request);
 		return true;

@@ -68,7 +68,8 @@ namespace MikanXR
 			{
 				MikanResponse response = new MikanResponse()
 				{
-					responseType = typeof(MikanResponse).Name,
+					responseTypeName = typeof(MikanResponse).Name,
+					responseTypeId = MikanResponse.classId,
 					requestId = requestId,
 					resultCode = result
 				};
@@ -85,7 +86,8 @@ namespace MikanXR
 
 			MikanResponse response = new MikanResponse()
 			{
-				responseType = typeof(MikanResponse).Name,
+				responseTypeName = typeof(MikanResponse).Name,
+				responseTypeId = MikanResponse.classId,
 				requestId = -1,
 				resultCode = result
 			};
@@ -151,16 +153,19 @@ namespace MikanXR
 			var root = JObject.Parse(utf8ResponseString);
 
 			// Check if the key "responseType" exists
-			if (root.TryGetValue("responseType", out JToken responseTypeElement))
+			if (root.TryGetValue("responseTypeName", out JToken responseTypeNameElement) &&
+				root.TryGetValue("responseTypeId", out JToken responseTypeIdElement))
 			{
 				// Check if the value of "responseType" is a string
-				if (responseTypeElement.Type == JTokenType.String)
+				if (responseTypeNameElement.Type == JTokenType.String && 
+					responseTypeIdElement.Type == JTokenType.Integer)
 				{
 					// Get the string value of "responseType"
-					string responseTypeName = (string)responseTypeElement;
+					string responseTypeName = (string)responseTypeNameElement;
+					ulong responseTypeId = (ulong)responseTypeIdElement;
 
 					// Attempt to create the response object by class name
-					object responseObject = Utils.allocateMikanTypeByName(responseTypeName, out Type responseType);
+					object responseObject = Utils.allocateMikanTypeByClassId(responseTypeId, out Type responseType);
 					if (responseObject != null)
 					{
 						// Deserialize the response object from the JSON string
@@ -177,17 +182,19 @@ namespace MikanXR
 					}
 					else
 					{
-						_nativeLogCallback((int)MikanLogLevel.Error, "Unknown response type: " + responseTypeName);
+						_nativeLogCallback((int)MikanLogLevel.Error,
+							"Unknown event type: " + responseTypeName +
+							" (classId: " + responseTypeId + ")");
 					}
 				}
 				else
 				{
-					_nativeLogCallback((int)MikanLogLevel.Error, "responseType is not a string.");
+					_nativeLogCallback((int)MikanLogLevel.Error, "responseTypes are not of expected types.");
 				}
 			}
 			else
 			{
-				_nativeLogCallback((int)MikanLogLevel.Error, "responseType key not found.");
+				_nativeLogCallback((int)MikanLogLevel.Error, "responseType keys not found.");
 			}
 
 			return response;
@@ -203,7 +210,10 @@ namespace MikanXR
 
 			try
 			{
-				// Read the response type
+				// Read the respose type id
+				ulong responseTypeId = binaryReader.ReadUInt64();
+
+				// Read the response type name
 				int requestTypeUTF8StringLength = binaryReader.ReadInt32();
 				string responseTypeName =
 					requestTypeUTF8StringLength > 0
@@ -231,7 +241,7 @@ namespace MikanXR
 				{
 					// Attempt to create the response object by class name
 					MikanResponse response = null;
-					object responseObject = Utils.allocateMikanTypeByName(responseTypeName, out Type responseType);
+					object responseObject = Utils.allocateMikanTypeByClassId(responseTypeId, out Type responseType);
 					if (responseObject != null)
 					{
 						// Deserialize the event object from the byte array

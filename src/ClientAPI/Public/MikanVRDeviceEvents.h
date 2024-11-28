@@ -12,16 +12,12 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceEvents")) MikanVRDevicePoseUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanVRDevicePoseUpdateEvent";
-
 	FIELD()
 	MikanMatrix4f transform;
 	FIELD()
 	MikanVRDeviceID device_id;
 	FIELD()
 	uint64_t frame;
-
-	MikanVRDevicePoseUpdateEvent() : MikanEvent(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDevicePoseUpdateEvent_GENERATED
@@ -30,10 +26,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceEvents")) MikanVRDevice
 
 struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceEvents")) MikanVRDeviceListUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanVRDeviceListUpdateEvent";
-
-	MikanVRDeviceListUpdateEvent() : MikanEvent(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceListUpdateEvent_GENERATED
 	#endif

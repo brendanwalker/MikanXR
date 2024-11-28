@@ -17,9 +17,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorRequest"
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "GetSpatialAnchorList";
-	GetSpatialAnchorList() : MikanRequest(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetSpatialAnchorList_GENERATED
 	#endif
@@ -29,9 +26,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorRequest"
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "GetSpatialAnchorList";
-	GetSpatialAnchorInfo() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	MikanSpatialAnchorID anchorId;
 
@@ -44,9 +38,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorRequest"
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "FindSpatialAnchorInfoByName";
-	FindSpatialAnchorInfoByName() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	Serialization::String anchorName;
 
@@ -59,12 +50,8 @@ public:
 struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorListResponse")) MikanSpatialAnchorListResponse : 
 	public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanSpatialAnchorListResponse";
-
 	FIELD()
 	Serialization::List<MikanSpatialAnchorID> spatial_anchor_id_list;
-
-	MikanSpatialAnchorListResponse() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSpatialAnchorListResponse_GENERATED
@@ -74,12 +61,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorListResponse")) Mi
 struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorInfoResponse")) MikanSpatialAnchorInfoResponse : 
 	public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanSpatialAnchorInfoResponse";
-
 	FIELD()
 	MikanSpatialAnchorInfo anchor_info;
-
-	MikanSpatialAnchorInfoResponse() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSpatialAnchorInfoResponse_GENERATED

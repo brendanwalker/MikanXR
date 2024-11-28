@@ -12,12 +12,8 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanScriptEvents")) MikanScriptMessagePostedEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanScriptMessagePostedEvent";
-
 	FIELD()
 	Serialization::String message;
-
-	MikanScriptMessagePostedEvent() : MikanEvent(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanScriptMessagePostedEvent_GENERATED

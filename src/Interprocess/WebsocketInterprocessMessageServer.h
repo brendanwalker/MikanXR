@@ -23,7 +23,7 @@ public:
 
 	bool initialize() override;
 	void dispose() override;
-	void setRequestHandler(const std::string& requestType, RequestHandler handler) override;
+	void setRequestHandler(uint64_t requestTypeId, RequestHandler handler) override;
 
 	void sendMessageToClient(const std::string& connectionId, const std::string& message) override;
 	void sendMessageToAllClients(const std::string& message) override;
@@ -37,7 +37,7 @@ private:
 	WebSocketServerPtr m_server;
 	std::vector<WebSocketClientConnectionPtr> m_connections;
 	std::mutex m_connectionsMutex;
-	std::map<std::string, RequestHandler> m_requestHandlers;
+	std::map<uint64_t, RequestHandler> m_requestHandlers;
 };
 
 

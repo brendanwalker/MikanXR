@@ -12,10 +12,6 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanConnectedEvent";
-
-	MikanConnectedEvent() : MikanEvent(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanConnectedEvent_GENERATED
 	#endif
@@ -23,10 +19,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedE
 
 struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanDisconnectedEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanDisconnectedEvent";
-
-	MikanDisconnectedEvent() : MikanEvent(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDisconnectedEvent_GENERATED
 	#endif

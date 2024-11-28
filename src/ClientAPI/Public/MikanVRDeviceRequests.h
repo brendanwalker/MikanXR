@@ -17,9 +17,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) GetV
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "GetVRDeviceList";
-	GetVRDeviceList() : MikanRequest(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVRDeviceList_GENERATED
 	#endif
@@ -29,9 +26,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) GetV
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "GetVRDeviceInfo";
-	GetVRDeviceInfo() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	MikanVRDeviceID deviceId;
 
@@ -44,9 +38,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) Subs
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "SubscribeToVRDevicePoseUpdates";
-	SubscribeToVRDevicePoseUpdates() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	MikanVRDeviceID deviceId;
 
@@ -59,9 +50,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) Unsu
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "UnsubscribeFromVRDevicePoseUpdates";
-	UnsubscribeFromVRDevicePoseUpdates() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	MikanVRDeviceID deviceId;
 
@@ -76,12 +64,8 @@ public:
 struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceListResponse : 
 	public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanVRDeviceListResponse";
-
 	FIELD()
 	Serialization::List<MikanVRDeviceID> vr_device_id_list;
-
-	MikanVRDeviceListResponse() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceListResponse_GENERATED
@@ -91,12 +75,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceL
 struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceInfoResponse : 
 	public MikanResponse
 {
-	inline static const std::string k_typeName = "MikanVRDeviceInfo";
-
 	FIELD()
 	MikanVRDeviceInfo vr_device_info;
-
-	MikanVRDeviceInfoResponse() : MikanResponse(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceInfoResponse_GENERATED

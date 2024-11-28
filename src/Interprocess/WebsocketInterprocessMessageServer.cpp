@@ -287,8 +287,10 @@ void WebsocketInterprocessMessageServer::dispose()
 		for (WebSocketClientConnectionPtr connection : m_connections)
 		{
 			// Tell the client that they are getting disconnected
+			auto& type= MikanDisconnectedEvent::staticGetArchetype();
 			MikanDisconnectedEvent disconnectEvent;
-			disconnectEvent.eventType = MikanDisconnectedEvent::k_typeName;
+			disconnectEvent.eventTypeId = type.getId();
+			disconnectEvent.eventTypeName = type.getName();
 
 			std::string eventJsonString;
 			Serialization::serializeToJsonString(disconnectEvent, eventJsonString);
@@ -315,10 +317,10 @@ void WebsocketInterprocessMessageServer::dispose()
 }
 
 void WebsocketInterprocessMessageServer::setRequestHandler(
-	const std::string& functionName, 
+	uint64_t requestTypeId, 
 	RequestHandler handler)
 {
-	m_requestHandlers[functionName] = handler;
+	m_requestHandlers[requestTypeId] = handler;
 }
 
 void WebsocketInterprocessMessageServer::getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections)
@@ -382,10 +384,9 @@ void WebsocketInterprocessMessageServer::processRequests()
 		std::string inRequestString;
 		while (connection->getFunctionCallQueue()->try_dequeue(inRequestString))
 		{
-			std::string requestType;
-			JsonSaxStringValueSearcher typeNameSearcher;
-			if (!typeNameSearcher.fetchKeyValuePair(inRequestString, "requestType", requestType) || 
-				requestType.empty())
+			uint64_t requestTypeId;
+			JsonSaxUInt64ValueSearcher typeNameSearcher;
+			if (!typeNameSearcher.fetchKeyValuePair(inRequestString, "requestTypeId", requestTypeId))
 			{
 				MIKAN_LOG_WARNING("processRequests") << 
 					"Request missing/invalid requestType field: " << inRequestString;
@@ -402,7 +403,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 
 			// Get the response from a registered function handler, if any
 			ClientResponse outResponse;
-			auto handler_it = m_requestHandlers.find(requestType);
+			auto handler_it = m_requestHandlers.find(requestTypeId);
 			if (handler_it != m_requestHandlers.end())
 			{
 				// NOTE: Connection ID here is a unique ID for the websocket connection on the server
@@ -414,8 +415,11 @@ void WebsocketInterprocessMessageServer::processRequests()
 			}
 			else
 			{
+				const rfk::Struct& requestTypeStruct = MikanResponse::staticGetArchetype();
+
 				MikanResponse outResult;
-				outResult.responseType = MikanResponse::k_typeName;
+				outResult.responseTypeName = requestTypeStruct.getName();
+				outResult.responseTypeId = requestTypeStruct.getId();
 				outResult.requestId= requestId;
 				outResult.resultCode= MikanResult_UnknownFunction;
 
@@ -438,7 +442,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 				outResponse.binaryData.empty())
 			{
 				MIKAN_LOG_WARNING("processRequests") <<
-					"Request handler for " << requestType 
+					"Request handler for " << requestTypeId 
 					<< " returned empty response, but response expected!";
 			}
 		}

@@ -86,16 +86,16 @@ namespace MikanXR
 				var serializableObjectType = accessor.ValueType;
 
 				// Read the runtime class info
-				string instanceClassName = readUTF8String();
-				_ = _reader.ReadInt64();
+				_ = readUTF8String();
+				ulong instanceClassId = _reader.ReadUInt64();
 
 				bool isValidObject = _reader.ReadBoolean();
 				if (isValidObject)
 				{
 					// Allocate instance by class name
 					var instance = 
-						Utils.allocateMikanTypeByName(
-							instanceClassName, out Type instanceType);
+						Utils.allocateMikanTypeByClassId(
+							instanceClassId, out Type instanceType);
 
 					// Deserialize the instance
 					Utils.visitObject(instance, instanceType, this);

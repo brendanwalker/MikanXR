@@ -114,15 +114,17 @@ namespace MikanXR
 				// Allocate the element instance using the runtime class name
 				Type elementStaticType = fieldType.GenericTypeArguments[0];
 				var elementRuntimeTypeName = (string)jsonToken["class_name"];
+				var elementRuntimeTypeId = (ulong)jsonToken["class_id"];
 				var elementInstance =
-					Utils.allocateMikanTypeByName(
-						elementRuntimeTypeName, out Type elementRuntimeType);
+					Utils.allocateMikanTypeByClassId(
+						elementRuntimeTypeId, out Type elementRuntimeType);
 				if (elementInstance == null)
 				{
 					throw new Exception(
 							"JsonReadVisitor::visitPolymorphicObject() " +
 							"ObjectPtr Accessor " + fieldName +
 							" used an unknown runtime class_name: " + elementRuntimeTypeName +
+							", runtime class_is: " + elementRuntimeTypeId +
 							", static class_name: " + elementStaticType.Name);
 				}
 

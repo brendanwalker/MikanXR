@@ -38,8 +38,8 @@ MikanResponseFuture MikanRequestManager::sendRequest(const MikanRequest& inReque
 	request.requestId= m_nextRequestID;
 	m_nextRequestID++;
 
-	char const* requestType = request.requestType.getValue().c_str();
-	rfk::Struct const* requestStruct = rfk::getDatabase().getFileLevelStructByName(requestType);
+	uint64_t requestTypeId = request.requestTypeId;
+	rfk::Struct const* requestStruct = rfk::getDatabase().getStructById(requestTypeId);
 	assert(requestStruct != nullptr);
 
 	std::string	jsonString;
@@ -74,7 +74,9 @@ MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID reque
 	else
 	{
 		auto errorResponse = std::make_shared<MikanResponse>();
-		errorResponse->responseType = MikanResponse::k_typeName;
+		rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
+		errorResponse->responseTypeId = responseStruct.getId();
+		errorResponse->responseTypeName = responseStruct.getName();
 		errorResponse->requestId = requestId;
 		errorResponse->resultCode = result;
 
@@ -90,7 +92,9 @@ MikanResponseFuture MikanRequestManager::makeImmediateResponse(MikanResult resul
 	MikanResponseFuture future = promise.get_future();
 
 	auto errorResponse = std::make_shared<MikanResponse>();
-	errorResponse->responseType = MikanResponse::k_typeName;
+	rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
+	errorResponse->responseTypeId = responseStruct.getId();
+	errorResponse->responseTypeName = responseStruct.getName();
 	errorResponse->requestId = INVALID_MIKAN_ID;
 	errorResponse->resultCode = result;
 
@@ -123,7 +127,9 @@ void MikanRequestManager::textResponseHander(MikanRequestID requestId, const cha
 		if (!response)
 		{
 			response = std::make_shared<MikanResponse>();
-			response->responseType = MikanResponse::k_typeName;
+			rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
+			response->responseTypeId = responseStruct.getId();
+			response->responseTypeName = responseStruct.getName();
 			response->requestId = requestId;
 			response->resultCode = MikanResult_MalformedResponse;
 		}
@@ -219,8 +225,10 @@ void MikanRequestManager::binaryResponseHander(
 
 			if (!response)
 			{
+				rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
 				response = std::make_shared<MikanResponse>();
-				response->responseType = MikanResponse::k_typeName;
+				response->responseTypeId = responseStruct.getId();
+				response->responseTypeName = responseStruct.getName();
 				response->requestId = requestId;
 				response->resultCode = MikanResult_MalformedResponse;
 			}

@@ -342,44 +342,92 @@ bool MikanServer::startup()
 	}
 
 	// Client Connection Requests
-	m_messageServer->setRequestHandler(ConnectRequest::k_typeName, std::bind(&MikanServer::connectHandler, this, _1, _2));
-	m_messageServer->setRequestHandler(DisconnectRequest::k_typeName, std::bind(&MikanServer::disconnectHandler, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		ConnectRequest::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::connectHandler, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		DisconnectRequest::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::disconnectHandler, this, _1, _2));
 
 	// Render Target Requests
-	m_messageServer->setRequestHandler(AllocateRenderTargetTextures::k_typeName, std::bind(&MikanServer::allocateRenderTargetTextures, this, _1, _2));
-	m_messageServer->setRequestHandler(FreeRenderTargetTextures::k_typeName, std::bind(&MikanServer::freeRenderTargetTextures, this, _1, _2));
-	m_messageServer->setRequestHandler(PublishRenderTargetTextures::k_typeName, std::bind(&MikanServer::frameRendered, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		AllocateRenderTargetTextures::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::allocateRenderTargetTextures, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		FreeRenderTargetTextures::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::freeRenderTargetTextures, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		PublishRenderTargetTextures::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::frameRendered, this, _1, _2));
 
 	// Script Requests	
-	m_messageServer->setRequestHandler(SendScriptMessage::k_typeName, std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		SendScriptMessage::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::invokeScriptMessageHandler, this, _1, _2));
 
 	// Spatial Anchor Requests
-	m_messageServer->setRequestHandler(GetSpatialAnchorList::k_typeName, std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
-	m_messageServer->setRequestHandler(GetSpatialAnchorInfo::k_typeName, std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
-	m_messageServer->setRequestHandler(FindSpatialAnchorInfoByName::k_typeName, std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetSpatialAnchorList::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetSpatialAnchorInfo::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		FindSpatialAnchorInfoByName::staticGetArchetype().getId(),
+		std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));
 
 	// Stencil Requests
-	m_messageServer->setRequestHandler(GetQuadStencilList::k_typeName, std::bind(&MikanServer::getQuadStencilList, this, _1, _2));
-	m_messageServer->setRequestHandler(GetQuadStencil::k_typeName, std::bind(&MikanServer::getQuadStencil, this, _1, _2));
-	m_messageServer->setRequestHandler(GetBoxStencilList::k_typeName, std::bind(&MikanServer::getBoxStencilList, this, _1, _2));
-	m_messageServer->setRequestHandler(GetBoxStencil::k_typeName, std::bind(&MikanServer::getBoxStencil, this, _1, _2));
-	m_messageServer->setRequestHandler(GetModelStencilList::k_typeName, std::bind(&MikanServer::getModelStencilList, this, _1, _2));
-	m_messageServer->setRequestHandler(GetModelStencil::k_typeName, std::bind(&MikanServer::getModelStencil, this, _1, _2));
-	m_messageServer->setRequestHandler(GetModelStencilRenderGeometry::k_typeName, std::bind(&MikanServer::getModelStencilRenderGeometry, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetQuadStencilList::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getQuadStencilList, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetQuadStencil::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getQuadStencil, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetBoxStencilList::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getBoxStencilList, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetBoxStencil::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getBoxStencil, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetModelStencilList::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getModelStencilList, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetModelStencil::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getModelStencil, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetModelStencilRenderGeometry::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getModelStencilRenderGeometry, this, _1, _2));
 
 	// Video Source Requests
-	m_messageServer->setRequestHandler(GetVideoSourceIntrinsics::k_typeName, std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
-	m_messageServer->setRequestHandler(GetVideoSourceMode::k_typeName, std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));
-	m_messageServer->setRequestHandler(GetVideoSourceAttachment::k_typeName, std::bind(&MikanServer::getVideoSourceAttachment, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetVideoSourceIntrinsics::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetVideoSourceMode::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetVideoSourceAttachment::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getVideoSourceAttachment, this, _1, _2));
 
 	// VR Device Requests
-	m_messageServer->setRequestHandler(GetVRDeviceList::k_typeName, std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
-	m_messageServer->setRequestHandler(GetVRDeviceInfo::k_typeName, std::bind(&MikanServer::getVRDeviceInfo, this, _1, _2));
-	m_messageServer->setRequestHandler(SubscribeToVRDevicePoseUpdates::k_typeName, std::bind(&MikanServer::subscribeToVRDevicePoseUpdates, this, _1, _2));
-	m_messageServer->setRequestHandler(UnsubscribeFromVRDevicePoseUpdates::k_typeName, std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetVRDeviceList::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetVRDeviceInfo::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::getVRDeviceInfo, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		SubscribeToVRDevicePoseUpdates::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::subscribeToVRDevicePoseUpdates, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		UnsubscribeFromVRDevicePoseUpdates::staticGetArchetype().getId(), 
+		std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
 
-	VRDeviceManager::getInstance()->OnDeviceListChanged += MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
-	VRDeviceManager::getInstance()->OnDevicePosesChanged += MakeDelegate(this, &MikanServer::publishVRDevicePoses);
+	VRDeviceManager::getInstance()->OnDeviceListChanged 
+		+= MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
+	VRDeviceManager::getInstance()->OnDevicePosesChanged 
+		+= MakeDelegate(this, &MikanServer::publishVRDevicePoses);
 
 	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnMarkedDirty+= 
 		MakeDelegate(this, &MikanServer::handleAnchorSystemConfigChange);

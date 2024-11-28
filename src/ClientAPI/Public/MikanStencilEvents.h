@@ -12,14 +12,10 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilNameUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanStencilNameChangeEvent";
-
 	FIELD()
 	MikanStencilID stencil_id;
 	FIELD()
 	Serialization::String stencil_name;
-
-	MikanStencilNameUpdateEvent() : MikanEvent(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilNameUpdateEvent_GENERATED
@@ -28,14 +24,10 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilNa
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilPoseUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanStencilPoseUpdateEvent";
-
 	FIELD()
 	MikanTransform transform;
 	FIELD()
 	MikanStencilID stencil_id;
-
-	MikanStencilPoseUpdateEvent() : MikanEvent(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilPoseUpdateEvent_GENERATED
@@ -44,10 +36,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilPo
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanQuadStencilListUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanQuadStencilListUpdateEvent";
-
-	MikanQuadStencilListUpdateEvent() : MikanEvent(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuadStencilListUpdateEvent_GENERATED
 	#endif
@@ -55,10 +43,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanQuadStenc
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanBoxStencilListUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanBoxStencilListUpdateEvent";
-
-	MikanBoxStencilListUpdateEvent() : MikanEvent(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoxStencilListUpdateEvent_GENERATED
 	#endif
@@ -66,10 +50,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanBoxStenci
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanModelStencilListUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanModelStencilListUpdateEvent";
-
-	MikanModelStencilListUpdateEvent() : MikanEvent(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanModelStencilListUpdateEvent_GENERATED
 	#endif

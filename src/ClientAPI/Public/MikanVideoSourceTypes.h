@@ -40,8 +40,6 @@ enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanIntrinsics
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistortionCoefficients
 {
-	inline static const std::string k_typeName = "MikanMonoIntrinsics";
-
 	FIELD()
 	double k1; ///< Radial Distortion Parameter 1 (r^2 numerator constant)
 	FIELD()
@@ -68,8 +66,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistor
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCameraIntrinsics
 {
-	inline static const std::string k_typeName = "MikanCameraIntrinsics";
-
 	FIELD()
 	double pixel_width;  ///< Width of the camera buffer in pixels
 	FIELD()
@@ -92,8 +88,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCamera
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanMonoIntrinsics : public MikanCameraIntrinsics
 {
-	inline static const std::string k_typeName = "MikanMonoIntrinsics";
-
 	FIELD()
 	MikanDistortionCoefficients distortion_coefficients;   ///< Lens distortion coefficients
 	FIELD()
@@ -108,8 +102,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanMonoIn
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanStereoIntrinsics : public MikanCameraIntrinsics
 {
-	inline static const std::string k_typeName = "MikanStereoIntrinsics";
-
 	FIELD()
 	MikanDistortionCoefficients left_distortion_coefficients; ///< Left lens distortion coefficients
 	FIELD()

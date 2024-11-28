@@ -12,14 +12,10 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorNameUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanAnchorNameChangeEvent";
-
 	FIELD()
 	MikanSpatialAnchorID anchor_id;
 	FIELD()
 	Serialization::String anchor_name;
-
-	MikanAnchorNameUpdateEvent() : MikanEvent(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAnchorNameUpdateEvent_GENERATED
@@ -28,14 +24,10 @@ struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnc
 
 struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorPoseUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanAnchorPoseUpdateEvent";
-
 	FIELD()
 	MikanTransform transform;
 	FIELD()
 	MikanSpatialAnchorID anchor_id;
-
-	MikanAnchorPoseUpdateEvent() : MikanEvent(k_typeName) {}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAnchorPoseUpdateEvent_GENERATED
@@ -44,10 +36,6 @@ struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnc
 
 struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorListUpdateEvent : public MikanEvent
 {
-	inline static const char* k_typeName = "MikanAnchorListUpdateEvent";
-
-	MikanAnchorListUpdateEvent() : MikanEvent(k_typeName) {}
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAnchorListUpdateEvent_GENERATED
 	#endif

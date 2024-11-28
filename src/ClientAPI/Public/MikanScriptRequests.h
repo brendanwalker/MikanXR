@@ -13,9 +13,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) Send
 	public MikanRequest
 {
 public:
-	inline static const char* k_typeName = "SendScriptMessage";
-	SendScriptMessage() : MikanRequest(k_typeName) {}
-
 	FIELD()
 	MikanScriptMessageInfo message;
 
