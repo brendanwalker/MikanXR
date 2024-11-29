@@ -18,27 +18,29 @@
 
 using json = nlohmann::json;
 
-MikanResult MikanEventManager::init(MikanContext context)
+MikanAPIResult MikanEventManager::init(MikanContext context)
 {
 	m_context = context;
 
-	return MikanResult_Success;
+	return MikanAPIResult::Success;
 }
 
-MikanResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
+MikanAPIResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
 {
 	char utf8Buffer[1024];
 	size_t utf8BytesWritten = 0;
 
-	MikanResult result = Mikan_FetchNextEvent(m_context, sizeof(utf8Buffer), utf8Buffer, &utf8BytesWritten);
-	if (result == MikanResult_Success)
+	MikanAPIResult result = 
+		(MikanAPIResult)Mikan_FetchNextEvent(
+			m_context, sizeof(utf8Buffer), utf8Buffer, &utf8BytesWritten);
+	if (result == MikanAPIResult::Success)
 	{
 		out_event = parseEventString(utf8Buffer);
 		if (!out_event)
 		{
 			MIKAN_MT_LOG_WARNING("MikanClient::fetchNextEvent()")
 				<< "Failed to parse event string: " << utf8Buffer;
-			result = MikanResult_MalformedResponse;
+			result = MikanAPIResult::MalformedResponse;
 		}
 	}
 

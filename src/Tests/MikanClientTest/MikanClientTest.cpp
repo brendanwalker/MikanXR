@@ -149,7 +149,7 @@ protected:
 
 		log_init(settings);
 
-		if (m_mikanApi->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
+		if (m_mikanApi->init(MikanLogLevel_Info, onMikanLog) == MikanAPIResult::Success)
 		{
 			m_mikanInitialized= true;
 		}
@@ -408,7 +408,7 @@ protected:
 		if (m_mikanApi->getIsConnected())
 		{
 			MikanEventPtr event;
-			while (m_mikanApi->fetchNextEvent(event) == MikanResult_Success)
+			while (m_mikanApi->fetchNextEvent(event) == MikanAPIResult::Success)
 			{
 				if (typeid(*event) == typeid(MikanConnectedEvent))
 				{
@@ -451,7 +451,7 @@ protected:
 		{
 			if (m_mikanReconnectTimeout <= 0.f)
 			{
-				if (m_mikanApi->connect() != MikanResult_Success)
+				if (m_mikanApi->connect() != MikanAPIResult::Success)
 				{
 					// timeout between reconnect attempts
 					m_mikanReconnectTimeout= 1.0f; 
@@ -523,7 +523,7 @@ protected:
 		GetVideoSourceMode getModeRequest;
 		auto future= m_mikanApi->sendRequest(getModeRequest);
 		auto response= future.get();
-		if (response->resultCode == MikanResult_Success)
+		if (response->resultCode == MikanAPIResult::Success)
 		{
 			auto mode = std::static_pointer_cast<MikanVideoSourceModeResponse>(response);
 
@@ -551,7 +551,7 @@ protected:
 		auto future= m_mikanApi->sendRequest(intrinsicsRequest);
 		auto response= future.get();
 
-		if (response->resultCode == MikanResult_Success)
+		if (response->resultCode == MikanAPIResult::Success)
 		{
 			auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
 			auto cameraIntrinsics= videoSourceIntrinsics->intrinsics.intrinsics_ptr.getSharedPointer();

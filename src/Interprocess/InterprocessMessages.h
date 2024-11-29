@@ -34,20 +34,20 @@ public:
 
 	virtual ~IInterprocessMessageClient() {}
 
-	virtual MikanResult initialize() = 0;
+	virtual MikanCoreResult initialize() = 0;
 	virtual void dispose() = 0;
 
 	virtual void setTextResponseHandler(TextResponseHandler handler) = 0;
 	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) = 0;
 
-	virtual MikanResult connect(const std::string& host, const std::string& port) = 0;
+	virtual MikanCoreResult connect(const std::string& host, const std::string& port) = 0;
 	virtual void disconnect() = 0;
 
-	virtual MikanResult fetchNextEvent(
+	virtual MikanCoreResult fetchNextEvent(
 		size_t utf8BufferSize,
 		char* outUtf8Buffer,
 		size_t* outUtf8BufferSizeNeeded) = 0;
-	virtual MikanResult sendRequest(const std::string& utf8RequestString) = 0;
+	virtual MikanCoreResult sendRequest(const std::string& utf8RequestString) = 0;
 
 	virtual const bool getIsConnected() const = 0;
 };

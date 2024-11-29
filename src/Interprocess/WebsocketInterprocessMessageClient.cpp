@@ -49,14 +49,14 @@ public:
 		m_binaryResponseHandler = handler;
 	}
 
-	MikanResult connect(
+	MikanCoreResult connect(
 		const std::string& host,
 		const std::string& port)
 	{
 		if (getIsConnected())
 		{
 			MIKAN_MT_LOG_ERROR("WebsocketConnectionState::connect()") << "Already connected";
-			return MikanResult_AlreadyConnected;
+			return MikanCoreResult_AlreadyConnected;
 		}
 
 		std::string hostAddress= host.empty() ? WEBSOCKET_SERVER_ADDRESS : host;
@@ -64,7 +64,7 @@ public:
 		m_websocket->setUrl(hostAddress+":"+hostPort);
 		m_websocket->start();
 
-		return MikanResult_Success;
+		return MikanCoreResult_Success;
 	}
 
 	bool disconnect()
@@ -193,9 +193,9 @@ WebsocketInterprocessMessageClient::~WebsocketInterprocessMessageClient()
 	dispose();
 }
 
-MikanResult WebsocketInterprocessMessageClient::initialize()
+MikanCoreResult WebsocketInterprocessMessageClient::initialize()
 {
-	return MikanResult_Success;
+	return MikanCoreResult_Success;
 }
 
 void WebsocketInterprocessMessageClient::dispose()
@@ -220,7 +220,7 @@ void WebsocketInterprocessMessageClient::setBinaryResponseHandler(
 	m_connectionState->setBinaryResponseHandler(handler);
 }
 
-MikanResult WebsocketInterprocessMessageClient::connect(
+MikanCoreResult WebsocketInterprocessMessageClient::connect(
 	const std::string& host, 
 	const std::string& port)
 {
@@ -232,7 +232,7 @@ void WebsocketInterprocessMessageClient::disconnect()
 	m_connectionState->disconnect();
 }
 
-MikanResult WebsocketInterprocessMessageClient::fetchNextEvent(
+MikanCoreResult WebsocketInterprocessMessageClient::fetchNextEvent(
 	size_t utf8BufferSize, 
 	char* outUtf8Buffer, 
 	size_t* outUtf8BufferSizeNeeded)
@@ -241,7 +241,7 @@ MikanResult WebsocketInterprocessMessageClient::fetchNextEvent(
 	const std::string* nextEvent = eventQueue->peek();
 
 	if (nextEvent == nullptr)
-		return MikanResult_NoData;
+		return MikanCoreResult_NoData;
 
 	const size_t eventSize= nextEvent->size();
 	const size_t bytesNeeded= eventSize + 1; // Include null terminator
@@ -249,7 +249,7 @@ MikanResult WebsocketInterprocessMessageClient::fetchNextEvent(
 	if (outUtf8Buffer != nullptr)
 	{
 		if (bytesNeeded > utf8BufferSize)
-			return MikanResult_BufferTooSmall;
+			return MikanCoreResult_BufferTooSmall;
 
 		// Copy the utf-8 buffer from the event queue into the output buffer
 		memcpy(outUtf8Buffer, nextEvent->c_str(), eventSize);
@@ -263,19 +263,19 @@ MikanResult WebsocketInterprocessMessageClient::fetchNextEvent(
 		if (outUtf8BufferSizeNeeded != nullptr)
 			*outUtf8BufferSizeNeeded= bytesNeeded;
 
-		return MikanResult_Success;
+		return MikanCoreResult_Success;
 	}
 	else 
 	{
 		if (outUtf8BufferSizeNeeded == nullptr)
-			return MikanResult_NullParam;
+			return MikanCoreResult_NullParam;
 
 		*outUtf8BufferSizeNeeded= bytesNeeded;
-		return MikanResult_Success;
+		return MikanCoreResult_Success;
 	}
 }
 
-MikanResult WebsocketInterprocessMessageClient::sendRequest(const std::string& utf8RequestString)
+MikanCoreResult WebsocketInterprocessMessageClient::sendRequest(const std::string& utf8RequestString)
 {
 	ix::WebSocketSendInfo sendInfo= m_connectionState->getWebSocket()->sendText(utf8RequestString);
 
@@ -283,8 +283,8 @@ MikanResult WebsocketInterprocessMessageClient::sendRequest(const std::string& u
 	{
 		MIKAN_LOG_ERROR("WebsocketInterprocessMessageClient::sendRequest()") 
 			<< "Failed to send request: " << utf8RequestString;
-		return MikanResult_SocketError;
+		return MikanCoreResult_SocketError;
 	}
 
-	return MikanResult_Success;
+	return MikanCoreResult_Success;
 }

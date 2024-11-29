@@ -14,6 +14,8 @@
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientTypes")) MikanClientInfo
 {
 	FIELD()
+	MikanClientAPIVersion apiVersion;
+	FIELD()
 	Serialization::String clientId;
 	FIELD()
 	Serialization::String engineName;
@@ -27,8 +29,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientTypes")) MikanC
 	Serialization::String xrDeviceName;
 	FIELD()
 	MikanClientGraphicsApi graphicsAPI;
-	FIELD()
-	int mikanCoreSdkVersion;
 	FIELD()
 	bool supportsRGB24;
 	FIELD()

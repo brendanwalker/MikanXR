@@ -4,6 +4,12 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
+	public class GetQuadStencilList : MikanRequest
+	{
+		public static new readonly ulong classId= 1562088813869505254;
+
+	};
+
 	public class GetModelStencilList : MikanRequest
 	{
 		public static new readonly ulong classId= 11450594457159259050;
@@ -22,12 +28,6 @@ namespace MikanXR
 		public static new readonly ulong classId= 1551069120606568234;
 
 		public int stencilId;
-	};
-
-	public class GetQuadStencilList : MikanRequest
-	{
-		public static new readonly ulong classId= 1562088813869505254;
-
 	};
 
 	public class MikanStencilQuadInfoResponse : MikanResponse

@@ -18,23 +18,23 @@ public:
 
 	// API Lifecycle
 	static IMikanAPIPtr createMikanAPI();
-	virtual MikanResult init(MikanLogLevel min_log_level, MikanLogCallback log_callback) = 0;
+	virtual MikanAPIResult init(MikanLogLevel min_log_level, MikanLogCallback log_callback) = 0;
 	virtual bool getIsInitialized() = 0;
-	virtual MikanResult shutdown() = 0;
+	virtual MikanAPIResult shutdown() = 0;
 
 	// Client Info
-	virtual int getCoreSDKVersion() const = 0;
+	virtual int getClientAPIVersion() const = 0;
 	virtual std::string getClientUniqueID() const = 0;
 	virtual MikanClientInfo allocateClientInfo() const = 0;
-	virtual MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
-	virtual MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;
+	virtual MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
+	virtual MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;
 
 	// Connection Management
-	virtual MikanResult connect(const std::string& host= "", const std::string& port= "") = 0;
+	virtual MikanAPIResult connect(const std::string& host= "", const std::string& port= "") = 0;
 	virtual bool getIsConnected() = 0;
-	virtual MikanResult disconnect(const struct DisconnectRequest& disconectRequest) = 0;
+	virtual MikanAPIResult disconnect(const struct DisconnectRequest& disconectRequest) = 0;
 
 	// Messaging
 	virtual MikanResponseFuture sendRequest(const MikanRequest& request) = 0;
-	virtual MikanResult fetchNextEvent(MikanEventPtr& out_event) = 0;
+	virtual MikanAPIResult fetchNextEvent(MikanEventPtr& out_event) = 0;
 };

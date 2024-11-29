@@ -37,18 +37,18 @@ namespace MikanXR
 			_renderTargetAPI= null;
 		}
 
-		public MikanResult Initialize(MikanLogLevel minLogLevel)
+		public MikanAPIResult Initialize(MikanLogLevel minLogLevel)
 		{
-			MikanResult result = 
-				(MikanResult)MikanCoreNative.Mikan_Initialize(
+			MikanAPIResult result = 
+				(MikanAPIResult)MikanCoreNative.Mikan_Initialize(
 					minLogLevel, _nativeLogCallback, out _mikanContext);
-			if (result != MikanResult.Success)
+			if (result != MikanAPIResult.Success)
 			{
 				return result;
 			}
 			
 			result= _requestManager.Initialize(_mikanContext);
-			if (result != MikanResult.Success)
+			if (result != MikanAPIResult.Success)
 			{
 				return result;
 			}
@@ -56,7 +56,7 @@ namespace MikanXR
 			_eventManager.Initialize(_mikanContext);
 			_renderTargetAPI.Initialize(_mikanContext);
 
-			return MikanResult.Success;
+			return MikanAPIResult.Success;
 		}
 
 		public bool GetIsInitialized()
@@ -64,15 +64,15 @@ namespace MikanXR
 			return MikanCoreNative.Mikan_GetIsInitialized(_mikanContext);
 		}
 
-		public MikanResult Shutdown()
+		public MikanAPIResult Shutdown()
 		{
-			MikanResult result = MikanResult.NotConnected;
+			MikanAPIResult result = MikanAPIResult.NotConnected;
 
 			if (_mikanContext != IntPtr.Zero)
 			{
 				int intResult = MikanCoreNative.Mikan_Shutdown(_mikanContext);
 				_mikanContext = IntPtr.Zero;
-				result= (MikanResult)intResult;
+				result= (MikanAPIResult)intResult;
 			}
 
 			return result;
@@ -80,9 +80,9 @@ namespace MikanXR
 
 		// -- Client Info ----
 
-		public int GetCoreSDKVersion()
+		public int GetClientAPIVersion()
 		{
-			return MikanCoreNative.Mikan_GetCoreSDKVersion();
+			return MikanCoreNative.Mikan_GetClientAPIVersion();
 		}
 
 		public string GetClientUniqueID()
@@ -94,21 +94,21 @@ namespace MikanXR
 		{
 			MikanClientInfo clientInfo = new MikanClientInfo();
 
-			// Stamp the request with the core sdk version and client id
-			clientInfo.mikanCoreSdkVersion = GetCoreSDKVersion();
+			// Stamp the request with the client API version and client id
+			clientInfo.apiVersion.version = GetClientAPIVersion();
 			clientInfo.clientId = GetClientUniqueID();
 
 			return clientInfo;
 		}
 
-		public MikanResult SetGraphicsDeviceInterface(
+		public MikanAPIResult SetGraphicsDeviceInterface(
 			MikanClientGraphicsApi api,
 			IntPtr graphicsDeviceInterface)
 		{
 			return _renderTargetAPI.SetGraphicsDeviceInterface(api, graphicsDeviceInterface);
 		}
 
-		public MikanResult GetGraphicsDeviceInterface(
+		public MikanAPIResult GetGraphicsDeviceInterface(
 			MikanClientGraphicsApi api,
 			out IntPtr outGraphicsDeviceInterface)
 		{
@@ -122,10 +122,10 @@ namespace MikanXR
 
 		// -- Client Info ----
 
-		public MikanResult Connect(string host="", string port="")
+		public MikanAPIResult Connect(string host="", string port="")
 		{
 			int result = MikanCoreNative.Mikan_Connect(_mikanContext, host, port);
-			return (MikanResult)result;
+			return (MikanAPIResult)result;
 		}
 
 		public bool GetIsConnected()
@@ -133,10 +133,10 @@ namespace MikanXR
 			return MikanCoreNative.Mikan_GetIsConnected(_mikanContext);
 		}
 
-		public MikanResult Disconnect()
+		public MikanAPIResult Disconnect()
 		{
 			int result = MikanCoreNative.Mikan_Disconnect(_mikanContext);
-			return (MikanResult)result;
+			return (MikanAPIResult)result;
 		}
 
 		// -- Messaging ----
@@ -152,7 +152,7 @@ namespace MikanXR
 			return response;
 		}
 
-		public MikanResult FetchNextEvent(out MikanEvent outEvent)
+		public MikanAPIResult FetchNextEvent(out MikanEvent outEvent)
 		{
 			return _eventManager.FetchNextEvent(out outEvent);
 		}

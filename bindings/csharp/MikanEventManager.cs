@@ -19,16 +19,16 @@ namespace MikanXR
 			_mikanContext = mikanContext;
 		}
 
-		public MikanResult FetchNextEvent(out MikanEvent outEvent)
+		public MikanAPIResult FetchNextEvent(out MikanEvent outEvent)
 		{
 			StringBuilder utf8Buffer = new StringBuilder(1024);
 			UIntPtr utf8BufferSize = (UIntPtr)utf8Buffer.Capacity;
 
 			outEvent= null;
 
-			var result = (MikanResult)MikanCoreNative.Mikan_FetchNextEvent(
+			var result = (MikanAPIResult)MikanCoreNative.Mikan_FetchNextEvent(
 				_mikanContext, utf8BufferSize, utf8Buffer, out UIntPtr utf8BytesWritten);
-			if (result == MikanResult.Success)
+			if (result == MikanAPIResult.Success)
 			{
 				string utf8BufferString = utf8Buffer.ToString();
 				
@@ -37,11 +37,11 @@ namespace MikanXR
 				{
 					_nativeLogCallback((int)MikanLogLevel.Error, 
 						"fetchNextEvent() - failed to parse event string: " + utf8BufferString);
-					result = MikanResult.MalformedResponse;
+					result = MikanAPIResult.MalformedResponse;
 				}
 			}
 			
-			return (MikanResult)result;
+			return (MikanAPIResult)result;
 		}
 
 		private MikanEvent parseEventString(string utf8ResponseString)

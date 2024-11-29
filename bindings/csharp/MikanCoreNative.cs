@@ -32,7 +32,7 @@ namespace MikanXR
 			out IntPtr out_context);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_GetCoreSDKVersion();
+		public static extern int Mikan_GetClientAPIVersion();
 
 		[DllImport("MikanCore.dll")]
 		public static extern IntPtr Mikan_GetClientUniqueID(IntPtr context);

@@ -776,14 +776,14 @@ namespace Mikan
 		{
 			mikanAPI.SetLogCallback(this.Log);
 
-			if (mikanAPI.Initialize(MikanLogLevel.Info) != MikanResult.Success)
+			if (mikanAPI.Initialize(MikanLogLevel.Info) != MikanAPIResult.Success)
 			{
 				return false;
 			}
 
 			if (mikanAPI.SetGraphicsDeviceInterface(
 					MikanClientGraphicsApi.Direct3D11, 
-					d3dDevice.NativePointer) != MikanResult.Success)
+					d3dDevice.NativePointer) != MikanAPIResult.Success)
 			{
 				return false;
 			}
@@ -814,7 +814,7 @@ namespace Mikan
 
 			if (mikanAPI.GetIsConnected())
 			{
-				while (mikanAPI.FetchNextEvent(out MikanEvent nextEvent) == MikanResult.Success)
+				while (mikanAPI.FetchNextEvent(out MikanEvent nextEvent) == MikanAPIResult.Success)
 				{
 					if (nextEvent is MikanConnectedEvent)
 					{
@@ -860,7 +860,7 @@ namespace Mikan
 			{
 				if (mikanReconnectTimeout <= 0f)
 				{
-					if (mikanAPI.Connect() != MikanResult.Success || !mikanAPI.GetIsConnected())
+					if (mikanAPI.Connect() != MikanAPIResult.Success || !mikanAPI.GetIsConnected())
 					{
 						// Timeout before trying to reconnect
 						mikanReconnectTimeout = 1f;
@@ -908,7 +908,7 @@ namespace Mikan
 			await mikanAPI.SendRequest(new FreeRenderTargetTextures());
 
 			MikanResponse response = await mikanAPI.SendRequest(new GetVideoSourceMode());
-			if (response.resultCode == MikanResult.Success)
+			if (response.resultCode == MikanAPIResult.Success)
 			{
 				var mode = response as MikanVideoSourceModeResponse;
 
@@ -932,7 +932,7 @@ namespace Mikan
 		async void UpdateCameraProjectionMatrix()
 		{
 			var response = await mikanAPI.SendRequest(new GetVideoSourceIntrinsics());
-			if (response.resultCode == MikanResult.Success)
+			if (response.resultCode == MikanAPIResult.Success)
 			{
 				var videoSourceIntrinsics = response as MikanVideoSourceIntrinsicsResponse;
 				var intrinsics = videoSourceIntrinsics.intrinsics.intrinsics_ptr;

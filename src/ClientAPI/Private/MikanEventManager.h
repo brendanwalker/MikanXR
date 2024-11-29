@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MikanCoreTypes.h"
+#include "MikanAPITypes.h"
 #include "MikanTypeFwd.h"
 
 typedef void* MikanContext;
@@ -10,8 +10,8 @@ class MikanEventManager
 public:
 	MikanEventManager() = default;
 
-	MikanResult init(MikanContext context);
-	MikanResult fetchNextEvent(MikanEventPtr& out_event);
+	MikanAPIResult init(MikanContext context);
+	MikanAPIResult fetchNextEvent(MikanEventPtr& out_event);
 
 protected:
 	MikanEventPtr parseEventString(const char* utf8EventString);

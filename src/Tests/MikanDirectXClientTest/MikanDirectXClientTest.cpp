@@ -146,7 +146,7 @@ bool initMikan()
 
     g_mikanAPI= IMikanAPI::createMikanAPI();
 
-	if (g_mikanAPI->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
+	if (g_mikanAPI->init(MikanLogLevel_Info, onMikanLog) == MikanAPIResult::Success)
 	{
         g_mikanAPI->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
 		g_mikanInitialized = true;
@@ -171,7 +171,7 @@ void updateMikan()
 	if (g_mikanAPI->getIsConnected())
 	{
 		MikanEventPtr event;
-		while (g_mikanAPI->fetchNextEvent(event) == MikanResult_Success)
+		while (g_mikanAPI->fetchNextEvent(event) == MikanAPIResult::Success)
 		{
 			if (typeid(*event) == typeid(MikanConnectedEvent))
             {
@@ -213,7 +213,7 @@ void updateMikan()
 	{
 		if (g_mikanReconnectTimeout <= 0.f)
 		{
-			if (g_mikanAPI->connect() != MikanResult_Success || !g_mikanAPI->getIsConnected())
+			if (g_mikanAPI->connect() != MikanAPIResult::Success || !g_mikanAPI->getIsConnected())
 			{
 				// timeout between reconnect attempts
 				g_mikanReconnectTimeout = 1.0f;
@@ -281,7 +281,7 @@ void reallocateRenderBuffers()
     GetVideoSourceMode getModeRequest;
 	auto future = g_mikanAPI->sendRequest(getModeRequest);
 	auto response = future.get();
-	if (response->resultCode == MikanResult_Success)
+	if (response->resultCode == MikanAPIResult::Success)
 	{
         auto mode = std::static_pointer_cast<MikanVideoSourceModeResponse>(response);
 
@@ -309,7 +309,7 @@ void updateCameraProjectionMatrix()
 	auto future = g_mikanAPI->sendRequest(getIntrinsicsRequest);
 	auto response = future.get();
 
-	if (response->resultCode == MikanResult_Success)
+	if (response->resultCode == MikanAPIResult::Success)
 	{
         auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
         auto cameraIntrinsics= videoSourceIntrinsics->intrinsics.intrinsics_ptr.getSharedPointer();

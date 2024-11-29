@@ -4,34 +4,25 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public enum MikanResult
+	public enum MikanCoreResult
 	{
 		Success= 0,
 		GeneralError= 1,
 		Uninitialized= 2,
 		NullParam= 3,
-		BufferTooSmall= 4,
-		InitFailed= 5,
-		ConnectionFailed= 6,
+		InvalidParam= 4,
+		RequestFailed= 5,
+		NotConnected= 6,
 		AlreadyConnected= 7,
-		NotConnected= 8,
-		SocketError= 9,
-		NoData= 10,
-		Timeout= 11,
-		Canceled= 12,
+		SocketError= 8,
+		Timeout= 9,
+		Canceled= 10,
+		NoData= 11,
+		BufferTooSmall= 12,
 		UnknownClient= 13,
 		UnknownFunction= 14,
-		FailedFunctionSend= 15,
-		FunctionResponseTimeout= 16,
-		MalformedParameters= 17,
-		MalformedResponse= 18,
-		InvalidAPI= 19,
-		SharedTextureError= 20,
-		NoVideoSource= 21,
-		NoVideoSourceAssignedTracker= 22,
-		InvalidDeviceId= 23,
-		InvalidStencilID= 24,
-		InvalidAnchorID= 25,
+		MalformedParameters= 15,
+		MalformedResponse= 16,
 	};
 
 	public enum MikanLogLevel

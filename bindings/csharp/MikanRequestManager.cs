@@ -32,26 +32,26 @@ namespace MikanXR
 			_pendingRequests = new Dictionary<int, PendingRequest>();
 		}
 
-		public MikanResult Initialize(IntPtr mikanContext)
+		public MikanAPIResult Initialize(IntPtr mikanContext)
 		{
-			MikanResult result =
-				(MikanResult)MikanCoreNative.Mikan_SetTextResponseCallback(
+			MikanAPIResult result =
+				(MikanAPIResult)MikanCoreNative.Mikan_SetTextResponseCallback(
 					mikanContext, _nativeTextResponseCallback, IntPtr.Zero);
-			if (result != MikanResult.Success)
+			if (result != MikanAPIResult.Success)
 			{
 				return result;
 			}
 
 			_mikanContext = mikanContext;
 
-			return MikanResult.Success;
+			return MikanAPIResult.Success;
 		}
 
-		public Task<MikanResponse> AddResponseHandler(int requestId, MikanResult result)
+		public Task<MikanResponse> AddResponseHandler(int requestId, MikanAPIResult result)
 		{
 			TaskCompletionSource<MikanResponse> promise = new TaskCompletionSource<MikanResponse>();
 
-			if (result == MikanResult.Success)
+			if (result == MikanAPIResult.Success)
 			{
 				PendingRequest pendingRequest = new PendingRequest()
 				{
@@ -80,7 +80,7 @@ namespace MikanXR
 			return promise.Task;
 		}
 
-		public Task<MikanResponse> MakeImmediateResponse(MikanResult result)
+		public Task<MikanResponse> MakeImmediateResponse(MikanAPIResult result)
 		{
 			TaskCompletionSource<MikanResponse> promise = new TaskCompletionSource<MikanResponse>();
 
@@ -109,8 +109,8 @@ namespace MikanXR
 					request, request.GetType());
 
 			// Send the request string to Mikan
-			MikanResult result = 
-				(MikanResult)MikanCoreNative.Mikan_SendRequestJSON(
+			MikanAPIResult result = 
+				(MikanAPIResult)MikanCoreNative.Mikan_SendRequestJSON(
 					_mikanContext, jsonRequestString);
 
 			// Create a request handler
@@ -138,7 +138,7 @@ namespace MikanXR
 					response = new MikanResponse()
 					{
 						requestId = requestId,
-						resultCode = MikanResult.MalformedResponse
+						resultCode = MikanAPIResult.MalformedResponse
 					};
 				}
 
@@ -224,7 +224,7 @@ namespace MikanXR
 				int requestId = binaryReader.ReadInt32();
 
 				// Read the result code
-				MikanResult resultCode = (MikanResult)binaryReader.ReadInt32();
+				MikanAPIResult resultCode = (MikanAPIResult)binaryReader.ReadInt32();
 
 				// Look up the pending request
 				PendingRequest pendingRequest = null;
@@ -264,7 +264,7 @@ namespace MikanXR
 						response = new MikanResponse()
 						{
 							requestId = requestId,
-							resultCode = MikanResult.MalformedResponse
+							resultCode = MikanAPIResult.MalformedResponse
 						};
 					}
 

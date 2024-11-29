@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanCoreTypes.h"
+#include "MikanAPITypes.h"
 #include "MikanTypeFwd.h"
 #include "BinaryUtility.h"
 #include "JsonSerializer.h"
@@ -17,23 +18,24 @@ class MikanRequestManager
 public:
 	MikanRequestManager() = default;
 
-	MikanResult init(MikanContext context);
+	MikanAPIResult init(MikanContext context);
 	MikanContext getContext() const { return m_context; }
 
 	MikanResponseFuture sendRequest(const MikanRequest& request);
-	MikanResponseFuture addResponseHandler(MikanRequestID requestId, MikanResult result);
-	MikanResponseFuture makeImmediateResponse(MikanResult result);
+	MikanResponseFuture addResponseHandler(MikanRequestID requestId, MikanAPIResult result);
+	MikanResponseFuture makeImmediateResponse(MikanAPIResult result);
 
 protected:
-	static void textResponseHanderStatic(MikanRequestID requestId, const char* utf8ResponseString, void* userdata);
+	static void textResponseHandlerStatic(MikanRequestID requestId, const char* utf8ResponseString, void* userdata);
 	void textResponseHander(MikanRequestID requestId, const char* utf8ResponseString);
 	MikanResponsePtr parseResponseString(const char* utf8ResponseString);
 
-	static void binaryResponseHanderStatic(const uint8_t* buffer, size_t bufferSize, void* userdata);
+	static void binaryResponseHandlerStatic(const uint8_t* buffer, size_t bufferSize, void* userdata);
 	void binaryResponseHander(const uint8_t* buffer, size_t bufferSize);
 	MikanResponsePtr parseResponseBinaryReader(
-		const std::string& responseType,
-		const uint8_t* buffer, size_t bufferSize);
+		const MikanResponse& requestHeader,
+		const uint8_t* buffer, 
+		size_t bufferSize);
 
 private:
 	struct PendingRequest

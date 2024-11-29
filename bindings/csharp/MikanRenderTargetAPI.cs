@@ -18,24 +18,24 @@ namespace MikanXR
 			_mikanContext= mikanContext;
 		}
 
-		public MikanResult SetGraphicsDeviceInterface(
+		public MikanAPIResult SetGraphicsDeviceInterface(
 			MikanClientGraphicsApi api,
 			IntPtr graphicsDeviceInterface)
 		{
 			int result = 
 				MikanCoreNative.Mikan_SetGraphicsDeviceInterface(
 					_mikanContext, api, graphicsDeviceInterface);
-			return (MikanResult)result;
+			return (MikanAPIResult)result;
 		}
 
-		public MikanResult GetGraphicsDeviceInterface(
+		public MikanAPIResult GetGraphicsDeviceInterface(
 			MikanClientGraphicsApi api,
 			out IntPtr outGraphicsDeviceInterface)
 		{
 			int result = 
 				MikanCoreNative.Mikan_GetGraphicsDeviceInterface(
 					_mikanContext, api, out outGraphicsDeviceInterface);
-			return (MikanResult)result;
+			return (MikanAPIResult)result;
 		}
 
 		public IntPtr GetPackDepthTextureResourcePtr()
@@ -81,22 +81,22 @@ namespace MikanXR
 			var allocateRequest = request as AllocateRenderTargetTextures;
 			MikanRenderTargetDescriptor descriptor= allocateRequest.descriptor;
 
-			MikanResult result =
-				(MikanResult)MikanCoreNative.Mikan_AllocateRenderTargetTextures(
+			MikanAPIResult result =
+				(MikanAPIResult)MikanCoreNative.Mikan_AllocateRenderTargetTextures(
 					_mikanContext, ref descriptor);
-			if (result == MikanResult.Success)
+			if (result == MikanAPIResult.Success)
 			{
 				// Actual descriptor might differ from desired descriptor based on render target writer's capabilities
 				MikanRenderTargetDescriptor actualDescriptor;
-				result= (MikanResult)MikanCoreNative.Mikan_GetRenderTargetDescriptor(
+				result= (MikanAPIResult)MikanCoreNative.Mikan_GetRenderTargetDescriptor(
 					_mikanContext, out actualDescriptor);
-				if (result == MikanResult.Success)
+				if (result == MikanAPIResult.Success)
 				{
 					return _requestManager.SendRequest(allocateRequest);
 				}
 			}
 
-			return _requestManager.AddResponseHandler(-1, MikanResult.SharedTextureError);
+			return _requestManager.AddResponseHandler(-1, MikanAPIResult.RequestFailed);
 		}
 
 		private Task<MikanResponse> RequestWriteColorRenderTargetTexture(MikanRequest request)
@@ -104,8 +104,8 @@ namespace MikanXR
 			var writeRequest = request as WriteColorRenderTargetTexture;
 			IntPtr apiColorTexturePtr= writeRequest.apiColorTexturePtr;
 
-			MikanResult result =
-				(MikanResult)MikanCoreNative.Mikan_WriteColorRenderTargetTexture(
+			MikanAPIResult result =
+				(MikanAPIResult)MikanCoreNative.Mikan_WriteColorRenderTargetTexture(
 					_mikanContext, apiColorTexturePtr);
 
 			return _requestManager.MakeImmediateResponse(result);
@@ -118,8 +118,8 @@ namespace MikanXR
 			float zNear= writeRequest.zNear;
 			float zFar= writeRequest.zFar;
 
-			MikanResult result =
-				(MikanResult)MikanCoreNative.Mikan_WriteDepthRenderTargetTexture(
+			MikanAPIResult result =
+				(MikanAPIResult)MikanCoreNative.Mikan_WriteDepthRenderTargetTexture(
 					_mikanContext, apiDepthTexturePtr, zNear, zFar);
 
 			return _requestManager.MakeImmediateResponse(result);

@@ -13,27 +13,24 @@
 	#pragma warning(disable:4996)  // ignore strncpy warning
 #endif
 
-// -- macros -----
-#define IS_VALID_VR_DEVICE_INDEX(x) ((x) >= 0 && (x) < MAX_MIKAN_VR_DEVICES)
-
 // -- constants ----
-#define MIKAN_CORE_SDK_VERSION		0
+#define MIKAN_CLIENT_API_VERSION		0
 
 // -- public interface -----
 
-MikanResult Mikan_Initialize(
+MikanCoreResult Mikan_Initialize(
 	MikanLogLevel log_level, 
 	MikanLogCallback log_callback,
 	MikanContext* outContext)
 {
 	assert(outContext != nullptr);
     if (*outContext != nullptr)
-        return MikanResult_Success;
+        return MikanCoreResult_Success;
 
     MikanClient* context = new MikanClient();
 
-	MikanResult resultCode= context->startup((LogSeverityLevel)log_level, log_callback);
-    if (resultCode != MikanResult_Success)
+	MikanCoreResult resultCode= context->startup((LogSeverityLevel)log_level, log_callback);
+    if (resultCode != MikanCoreResult_Success)
     {
         delete context;
     }
@@ -43,9 +40,9 @@ MikanResult Mikan_Initialize(
     return resultCode;
 }
 
-int Mikan_GetCoreSDKVersion()
+int Mikan_GetClientAPIVersion()
 {
-	return MIKAN_CORE_SDK_VERSION;
+	return MIKAN_CLIENT_API_VERSION;
 }
 
 const char* Mikan_GetClientUniqueID(MikanContext context)
@@ -60,61 +57,61 @@ bool Mikan_GetIsInitialized(MikanContext context)
 	return context != nullptr;
 }
 
-MikanResult Mikan_GetRenderTargetDescriptor(
+MikanCoreResult Mikan_GetRenderTargetDescriptor(
 	MikanContext context,
 	MikanRenderTargetDescriptor* out_descriptor)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	if (!mikanClient->getIsConnected())
-		return MikanResult_NotConnected;
+		return MikanCoreResult_NotConnected;
 	if (out_descriptor == nullptr)
-		return MikanResult_NullParam;
+		return MikanCoreResult_NullParam;
 
 	return mikanClient->getRenderTargetDescriptor(*out_descriptor);
 }
 
-MikanResult Mikan_AllocateRenderTargetTextures(
+MikanCoreResult Mikan_AllocateRenderTargetTextures(
 	MikanContext context,
 	const MikanRenderTargetDescriptor* descriptor)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	if (!mikanClient->getIsConnected())
-		return MikanResult_NotConnected;
+		return MikanCoreResult_NotConnected;
 	if (descriptor == nullptr)
-		return MikanResult_NullParam;
+		return MikanCoreResult_NullParam;
 
 	return mikanClient->allocateRenderTargetTextures(*descriptor);
 }
 
-MikanResult Mikan_FreeRenderTargetTextures(MikanContext context)
+MikanCoreResult Mikan_FreeRenderTargetTextures(MikanContext context)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	return mikanClient->freeRenderTargetTextures();
 }
 
-MikanResult Mikan_WriteColorRenderTargetTexture(MikanContext context, void* color_texture)
+MikanCoreResult Mikan_WriteColorRenderTargetTexture(MikanContext context, void* color_texture)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 	if (!mikanClient->getIsConnected())
-		return MikanResult_NotConnected;
+		return MikanCoreResult_NotConnected;
 	if (color_texture == nullptr)
-		return MikanResult_NullParam;
+		return MikanCoreResult_NullParam;
 
 	return mikanClient->writeColorRenderTargetTexture(color_texture);
 }
 
-MikanResult Mikan_WriteDepthRenderTargetTexture(
+MikanCoreResult Mikan_WriteDepthRenderTargetTexture(
 	MikanContext context,
 	void* depth_texture,
 	float z_near,
@@ -122,11 +119,11 @@ MikanResult Mikan_WriteDepthRenderTargetTexture(
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 	if (!mikanClient->getIsConnected())
-		return MikanResult_NotConnected;
+		return MikanCoreResult_NotConnected;
 	if (depth_texture == nullptr)
-		return MikanResult_NullParam;
+		return MikanCoreResult_NullParam;
 
 	return mikanClient->writeDepthRenderTargetTexture(depth_texture, z_near, z_far);
 }
@@ -138,24 +135,24 @@ void* Mikan_GetPackDepthTextureResourcePtr(MikanContext context)
 	return mikanClient != nullptr ? mikanClient->getPackDepthTextureResourcePtr() : nullptr;
 }
 
-MikanResult Mikan_Connect(
+MikanCoreResult Mikan_Connect(
 	MikanContext context, 
 	const char* host, 
 	const char* port)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 	if (host == nullptr)
-		return MikanResult_NullParam;
+		return MikanCoreResult_NullParam;
 	if (port == nullptr)
-		return MikanResult_NullParam;
+		return MikanCoreResult_NullParam;
 
 	if (mikanClient->getIsConnected())
-		return MikanResult_Success;
+		return MikanCoreResult_Success;
 
 	return mikanClient->connect(host, port);
 }
@@ -167,7 +164,7 @@ bool Mikan_GetIsConnected(MikanContext context)
 	return mikanClient != nullptr && mikanClient->getIsConnected();
 }
 
-MikanResult Mikan_FetchNextEvent(
+MikanCoreResult Mikan_FetchNextEvent(
 	MikanContext context,
 	size_t utf8_buffer_size,
 	char* out_utf8_buffer,
@@ -175,25 +172,25 @@ MikanResult Mikan_FetchNextEvent(
 {
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	// Poll events queued up by the call to g_mikanClient->update()
 	return mikanClient->fetchNextEvent(utf8_buffer_size, out_utf8_buffer, out_utf8_bytes_written);
 }
 
-MikanResult Mikan_SendRequestJSON(
+MikanCoreResult Mikan_SendRequestJSON(
 	MikanContext context,
 	const char* utf8_request_json)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	return mikanClient->sendRequestJSON(utf8_request_json);
 }
 
 
-MikanResult Mikan_SetTextResponseCallback(
+MikanCoreResult Mikan_SetTextResponseCallback(
 	MikanContext context,
 	MikanTextResponseCallback callback,
 	void* callback_userdata)
@@ -201,12 +198,12 @@ MikanResult Mikan_SetTextResponseCallback(
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	return mikanClient->setTextResponseCallback(callback, callback_userdata);
 }
 
-MikanResult Mikan_SetBinaryResponseCallback(
+MikanCoreResult Mikan_SetBinaryResponseCallback(
 	MikanContext context,
 	MikanBinaryResponseCallback callback,
 	void* callback_userdata)
@@ -214,12 +211,12 @@ MikanResult Mikan_SetBinaryResponseCallback(
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	return mikanClient->setBinaryResponseCallback(callback, callback_userdata);
 }
 
-MikanResult Mikan_SetGraphicsDeviceInterface(
+MikanCoreResult Mikan_SetGraphicsDeviceInterface(
 	MikanContext context,
 	MikanClientGraphicsApi api, 
 	void* graphicsDeviceInterface)
@@ -227,12 +224,12 @@ MikanResult Mikan_SetGraphicsDeviceInterface(
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	return mikanClient->setGraphicsDeviceInterface(api, graphicsDeviceInterface);
 }
 
-MikanResult Mikan_GetGraphicsDeviceInterface(
+MikanCoreResult Mikan_GetGraphicsDeviceInterface(
 	MikanContext context,
 	MikanClientGraphicsApi api, 
 	void** outGraphicsDeviceInterface)
@@ -240,29 +237,29 @@ MikanResult Mikan_GetGraphicsDeviceInterface(
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	return mikanClient->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 }
 
-MikanResult Mikan_Disconnect(MikanContext context)
+MikanCoreResult Mikan_Disconnect(MikanContext context)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 
 	if (mikanClient == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	return mikanClient->disconnect();
 }
 
-MikanResult Mikan_Shutdown(MikanContext* context)
+MikanCoreResult Mikan_Shutdown(MikanContext* context)
 {
 	assert(context != nullptr);
 	if (*context == nullptr)
-		return MikanResult_Uninitialized;
+		return MikanCoreResult_Uninitialized;
 
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
-	MikanResult resultCode= mikanClient->shutdown();
+	MikanCoreResult resultCode= mikanClient->shutdown();
 
 	delete mikanClient;
 	*context= nullptr;

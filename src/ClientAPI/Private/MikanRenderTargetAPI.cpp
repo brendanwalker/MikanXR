@@ -8,22 +8,22 @@ MikanRenderTargetAPI::MikanRenderTargetAPI(MikanRequestManager* requestManager)
 	: m_requestManager(requestManager)
 {}
 
-MikanResult MikanRenderTargetAPI::setGraphicsDeviceInterface(
+MikanAPIResult MikanRenderTargetAPI::setGraphicsDeviceInterface(
 	MikanClientGraphicsApi api,
 	void* graphicsDeviceInterface)
 {
 	MikanContext context = m_requestManager->getContext();
 
-	return Mikan_SetGraphicsDeviceInterface(context, api, graphicsDeviceInterface);
+	return (MikanAPIResult)Mikan_SetGraphicsDeviceInterface(context, api, graphicsDeviceInterface);
 }
 
-MikanResult MikanRenderTargetAPI::getGraphicsDeviceInterface(
+MikanAPIResult MikanRenderTargetAPI::getGraphicsDeviceInterface(
 	MikanClientGraphicsApi api,
 	void** outGraphicsDeviceInterface)
 {
 	MikanContext context = m_requestManager->getContext();
 
-	return Mikan_GetGraphicsDeviceInterface(context, api, outGraphicsDeviceInterface);
+	return (MikanAPIResult)Mikan_GetGraphicsDeviceInterface(context, api, outGraphicsDeviceInterface);
 }
 
 bool MikanRenderTargetAPI::tryProcessRequest(const MikanRequest& request, MikanResponseFuture& outFuture)
@@ -66,19 +66,19 @@ MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
 	MikanContext context = m_requestManager->getContext();
 
 	// Create the shared texture
-	MikanResult result = Mikan_AllocateRenderTargetTextures(context, &descriptor);
-	if (result == MikanResult_Success)
+	MikanAPIResult result = (MikanAPIResult)Mikan_AllocateRenderTargetTextures(context, &descriptor);
+	if (result == MikanAPIResult::Success)
 	{
 		// Actual descriptor might differ from desired descriptor based on render target writer's capabilities
 		MikanRenderTargetDescriptor actualDescriptor;
-		result = Mikan_GetRenderTargetDescriptor(context, &actualDescriptor);
-		if (result == MikanResult_Success)
+		result = (MikanAPIResult)Mikan_GetRenderTargetDescriptor(context, &actualDescriptor);
+		if (result == MikanAPIResult::Success)
 		{
 			return m_requestManager->sendRequest(allocateRequest);
 		}
 	}
 
-	return m_requestManager->addResponseHandler(INVALID_MIKAN_ID, MikanResult_SharedTextureError);
+	return m_requestManager->addResponseHandler(INVALID_MIKAN_ID, MikanAPIResult::RequestFailed);
 }
 
 MikanResponseFuture MikanRenderTargetAPI::writeColorRenderTargetTexture(
@@ -88,7 +88,7 @@ MikanResponseFuture MikanRenderTargetAPI::writeColorRenderTargetTexture(
 	void* apiColorTexturePtr= writeRequest.apiColorTexturePtr;
 
 	MikanContext context = m_requestManager->getContext();
-	MikanResult result= Mikan_WriteColorRenderTargetTexture(context, apiColorTexturePtr);
+	MikanAPIResult result= (MikanAPIResult)Mikan_WriteColorRenderTargetTexture(context, apiColorTexturePtr);
 
 	return m_requestManager->makeImmediateResponse(result);
 }
@@ -102,7 +102,9 @@ MikanResponseFuture MikanRenderTargetAPI::writeDepthRenderTargetTexture(
 	float zFar= writeRequest.zFar;
 
 	MikanContext context = m_requestManager->getContext();
-	MikanResult result = Mikan_WriteDepthRenderTargetTexture(context, apiDepthTexturePtr, zNear, zFar);
+	MikanAPIResult result = 
+		(MikanAPIResult)Mikan_WriteDepthRenderTargetTexture(
+			context, apiDepthTexturePtr, zNear, zFar);
 
 	return m_requestManager->makeImmediateResponse(result);
 }

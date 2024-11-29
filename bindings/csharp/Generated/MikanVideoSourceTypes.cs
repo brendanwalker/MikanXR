@@ -4,17 +4,17 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public enum MikanVideoSourceType
-	{
-		MONO= 0,
-		STEREO= 1,
-	};
-
 	public enum MikanVideoSourceApi
 	{
 		INVALID= 0,
 		OPEN_CV= 1,
 		WINDOWS_MEDIA_FOUNDATION= 2,
+	};
+
+	public enum MikanVideoSourceType
+	{
+		MONO= 0,
+		STEREO= 1,
 	};
 
 	public enum MikanIntrinsicsType

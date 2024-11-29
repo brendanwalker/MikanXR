@@ -9,8 +9,8 @@ public:
 	MikanRenderTargetAPI() = default;
 	MikanRenderTargetAPI(class MikanRequestManager* requestManager);
 
-	MikanResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
-	MikanResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
+	MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
+	MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
 	bool tryProcessRequest(const MikanRequest& request, MikanResponseFuture& outFuture);
 
 protected:

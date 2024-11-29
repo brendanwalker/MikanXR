@@ -12,35 +12,27 @@
 
 #define INVALID_MIKAN_ID				-1
 
-/// Result enum in response to a client API request
-enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanResult
+/// Result enum for Client Core API
+/// These values must remain stable across all versions of the API
+enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanCoreResult
 {
-	MikanResult_Success ENUMVALUE_STRING("Success"),	///< General Success Result	
-	MikanResult_GeneralError ENUMVALUE_STRING("GeneralError"),	///< General Error Result
-	MikanResult_Uninitialized ENUMVALUE_STRING("Uninitialized"),
-	MikanResult_NullParam ENUMVALUE_STRING("NullParam"),
-	MikanResult_BufferTooSmall ENUMVALUE_STRING("BufferTooSmall"),
-	MikanResult_InitFailed ENUMVALUE_STRING("InitFailed"),
-	MikanResult_ConnectionFailed ENUMVALUE_STRING("ConnectionFailed"),
-	MikanResult_AlreadyConnected ENUMVALUE_STRING("AlreadyConnected"),
-	MikanResult_NotConnected ENUMVALUE_STRING("NotConnected"),
-	MikanResult_SocketError ENUMVALUE_STRING("SocketError"),
-	MikanResult_NoData ENUMVALUE_STRING("NoData"),
-	MikanResult_Timeout ENUMVALUE_STRING("Timeout"),
-	MikanResult_Canceled ENUMVALUE_STRING("Canceled"),
-	MikanResult_UnknownClient ENUMVALUE_STRING("UnknownClient"),
-	MikanResult_UnknownFunction ENUMVALUE_STRING("UnknownFunction"),
-	MikanResult_FailedFunctionSend ENUMVALUE_STRING("FailedFunctionSend"),
-	MikanResult_FunctionResponseTimeout ENUMVALUE_STRING("FunctionResponseTimeout"),
-	MikanResult_MalformedParameters ENUMVALUE_STRING("MalformedParameters"),
-	MikanResult_MalformedResponse ENUMVALUE_STRING("MalformedResponse"),
-	MikanResult_InvalidAPI ENUMVALUE_STRING("InvalidAPI"),
-	MikanResult_SharedTextureError ENUMVALUE_STRING("SharedTextureError"),
-	MikanResult_NoVideoSource ENUMVALUE_STRING("NoVideoSource"),
-	MikanResult_NoVideoSourceAssignedTracker ENUMVALUE_STRING("NoVideoSourceAssignedTracker"),
-	MikanResult_InvalidDeviceId ENUMVALUE_STRING("InvalidDeviceId"),
-	MikanResult_InvalidStencilID ENUMVALUE_STRING("InvalidStencilID"),
-	MikanResult_InvalidAnchorID ENUMVALUE_STRING("InvalidAnchorID"),
+	MikanCoreResult_Success ENUMVALUE_STRING("Success") = 0,			///< General Success Result	
+	MikanCoreResult_GeneralError ENUMVALUE_STRING("GeneralError") = 1,	///< General Error Result
+	MikanCoreResult_Uninitialized ENUMVALUE_STRING("Uninitialized") = 2,
+	MikanCoreResult_NullParam ENUMVALUE_STRING("NullParam") = 3,
+	MikanCoreResult_InvalidParam ENUMVALUE_STRING("InvalidParam") = 4,
+	MikanCoreResult_RequestFailed ENUMVALUE_STRING("RequestFailed") = 5,
+	MikanCoreResult_NotConnected ENUMVALUE_STRING("NotConnected") = 6,
+	MikanCoreResult_AlreadyConnected ENUMVALUE_STRING("AlreadyConnected") = 7,
+	MikanCoreResult_SocketError ENUMVALUE_STRING("SocketError") = 8,
+	MikanCoreResult_Timeout ENUMVALUE_STRING("Timeout") = 9,
+	MikanCoreResult_Canceled ENUMVALUE_STRING("Canceled") = 10,
+	MikanCoreResult_NoData ENUMVALUE_STRING("NoData") = 11,
+	MikanCoreResult_BufferTooSmall ENUMVALUE_STRING("BufferTooSmall") = 12,
+	MikanCoreResult_UnknownClient ENUMVALUE_STRING("UnknownClient") = 13,
+	MikanCoreResult_UnknownFunction ENUMVALUE_STRING("UnknownFunction") = 14,
+	MikanCoreResult_MalformedParameters ENUMVALUE_STRING("MalformedParameters") = 15,
+	MikanCoreResult_MalformedResponse ENUMVALUE_STRING("MalformedResponse") = 16,
 };
 
 enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanLogLevel
@@ -87,6 +79,17 @@ enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanDepthBufferTy
 	// DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
 	MikanDepthBuffer_PACK_DEPTH_RGBA ENUMVALUE_STRING("PACK_DEPTH_RGBA"), 
 };
+
+struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientAPIVersion
+{
+	FIELD()
+	int version;
+
+	#ifdef MIKANCORE_REFLECTION_ENABLED
+	MikanClientAPIVersion_GENERATED
+	#endif // MIKANCORE_REFLECTION_ENABLED
+};
+
 
 struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetDescriptor
 {

@@ -8,6 +8,7 @@ namespace MikanXR
 	{
 		public static readonly ulong classId= 16144647093330338146;
 
+		public MikanClientAPIVersion apiVersion;
 		public string clientId;
 		public string engineName;
 		public string engineVersion;
@@ -15,7 +16,6 @@ namespace MikanXR
 		public string applicationVersion;
 		public string xrDeviceName;
 		public MikanClientGraphicsApi graphicsAPI;
-		public int mikanCoreSdkVersion;
 		public bool supportsRGB24;
 		public bool supportsRGBA32;
 		public bool supportsBGRA32;

@@ -4,15 +4,6 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class MikanVector3d
-	{
-		public static readonly ulong classId= 4126307111145656249;
-
-		public double x;
-		public double y;
-		public double z;
-	};
-
 	public class MikanMatrix4f
 	{
 		public static readonly ulong classId= 17368734072747899702;
@@ -33,6 +24,15 @@ namespace MikanXR
 		public float w1;
 		public float w2;
 		public float w3;
+	};
+
+	public class MikanVector3d
+	{
+		public static readonly ulong classId= 4126307111145656249;
+
+		public double x;
+		public double y;
+		public double z;
 	};
 
 	public class MikanMatrix4d

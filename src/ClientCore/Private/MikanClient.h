@@ -19,25 +19,25 @@ public:
 	const std::string& getClientUniqueID() const;
 
     // -- ClientMikanAPI System -----
-    MikanResult startup(LogSeverityLevel log_level, t_logCallback log_callback);
-	MikanResult connect(const std::string& host, const std::string& port);
-	MikanResult disconnect();
-	MikanResult fetchNextEvent(size_t utf8_buffer_size, char* out_utf8_buffer, size_t* out_utf8_bytes_written);
-	MikanResult setTextResponseCallback(MikanTextResponseCallback callback, void* callback_userdata);
-	MikanResult setBinaryResponseCallback(MikanBinaryResponseCallback callback, void* callback_userdata);
-	MikanResult sendRequestJSON(const char* utf8_request_json);
-	MikanResult shutdown();
+    MikanCoreResult startup(LogSeverityLevel log_level, t_logCallback log_callback);
+	MikanCoreResult connect(const std::string& host, const std::string& port);
+	MikanCoreResult disconnect();
+	MikanCoreResult fetchNextEvent(size_t utf8_buffer_size, char* out_utf8_buffer, size_t* out_utf8_bytes_written);
+	MikanCoreResult setTextResponseCallback(MikanTextResponseCallback callback, void* callback_userdata);
+	MikanCoreResult setBinaryResponseCallback(MikanBinaryResponseCallback callback, void* callback_userdata);
+	MikanCoreResult sendRequestJSON(const char* utf8_request_json);
+	MikanCoreResult shutdown();
 
-	MikanResult allocateRenderTargetTextures(const MikanRenderTargetDescriptor& descriptor);
-	MikanResult getRenderTargetDescriptor(MikanRenderTargetDescriptor& outDescriptor);
-	MikanResult freeRenderTargetTextures();
-	MikanResult writeColorRenderTargetTexture(void* ApiColorTexturePtr);
-	MikanResult writeDepthRenderTargetTexture(void* ApiDepthTexturePtr, float zNear, float zFar);
+	MikanCoreResult allocateRenderTargetTextures(const MikanRenderTargetDescriptor& descriptor);
+	MikanCoreResult getRenderTargetDescriptor(MikanRenderTargetDescriptor& outDescriptor);
+	MikanCoreResult freeRenderTargetTextures();
+	MikanCoreResult writeColorRenderTargetTexture(void* ApiColorTexturePtr);
+	MikanCoreResult writeDepthRenderTargetTexture(void* ApiDepthTexturePtr, float zNear, float zFar);
 	void* getPackDepthTextureResourcePtr() const;
-	MikanResult setGraphicsDeviceInterface(
+	MikanCoreResult setGraphicsDeviceInterface(
 		MikanClientGraphicsApi api,
 		void* graphicsDeviceInterface);
-	MikanResult getGraphicsDeviceInterface(
+	MikanCoreResult getGraphicsDeviceInterface(
 		MikanClientGraphicsApi api,
 		void** outGraphicsDeviceInterface);
 

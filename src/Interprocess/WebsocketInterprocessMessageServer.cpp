@@ -418,7 +418,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 				outResult.responseTypeName = requestTypeStruct.getName();
 				outResult.responseTypeId = requestTypeStruct.getId();
 				outResult.requestId= requestId;
-				outResult.resultCode= MikanResult_UnknownFunction;
+				outResult.resultCode= MikanAPIResult::UnknownFunction;
 
 				Serialization::serializeToJsonString(outResult, outResponse.utf8String);
 			}

@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
+	public class MikanClientAPIVersion
+	{
+		public static readonly ulong classId= 7308303515553926050;
+
+		public int version;
+	};
+
 	public class MikanRenderTargetDescriptor
 	{
 		public static readonly ulong classId= 8029686814184454925;
