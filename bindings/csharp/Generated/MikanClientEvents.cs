@@ -8,6 +8,7 @@ namespace MikanXR
 	{
 		public static new readonly ulong classId= 9883164577031932740;
 
+		public MikanClientAPIVersion serverVersion;
 	};
 
 	public class MikanDisconnectedEvent : MikanEvent

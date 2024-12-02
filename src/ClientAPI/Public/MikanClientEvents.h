@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MikanCoreTypes.h"
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
@@ -12,6 +13,9 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedEvent : public MikanEvent
 {
+	FIELD()
+	MikanClientAPIVersion serverVersion;
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanConnectedEvent_GENERATED
 	#endif

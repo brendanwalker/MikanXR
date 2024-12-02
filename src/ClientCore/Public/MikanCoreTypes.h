@@ -83,7 +83,7 @@ enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanDepthBufferTy
 struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientAPIVersion
 {
 	FIELD()
-	int version;
+	int version = 0;
 
 	#ifdef MIKANCORE_REFLECTION_ENABLED
 	MikanClientAPIVersion_GENERATED

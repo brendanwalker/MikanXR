@@ -1,5 +1,6 @@
 #include "WebsocketInterprocessMessageServer.h"
 #include "JsonUtils.h"
+#include "MikanConstants.h"
 #include "MikanClientRequests.h"
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
@@ -239,6 +240,14 @@ bool WebsocketInterprocessMessageServer::initialize()
 			WebSocketPtr webSocket = webSocketWeakPtr.lock();
 			if (!webSocket)
 				return;
+
+			// Add server specific headers
+			{
+				ix::WebSocketHttpHeaders extraHeaders;
+
+				extraHeaders[MIKAN_CLIENT_API_VERSION_KEY] = std::to_string(MIKAN_CLIENT_API_VERSION_VALUE);
+				webSocket->setExtraHeaders(extraHeaders);
+			}
 
 			WebSocketClientConnectionPtr clientConnectionState = 
 				std::static_pointer_cast<WebSocketClientConnection>(connectionState);

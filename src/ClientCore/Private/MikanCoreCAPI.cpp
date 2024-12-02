@@ -13,9 +13,6 @@
 	#pragma warning(disable:4996)  // ignore strncpy warning
 #endif
 
-// -- constants ----
-#define MIKAN_CLIENT_API_VERSION		0
-
 // -- public interface -----
 
 MikanCoreResult Mikan_Initialize(

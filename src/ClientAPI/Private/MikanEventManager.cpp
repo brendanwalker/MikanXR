@@ -55,9 +55,15 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 	{
 		std::string eventString= szUtf8EventString;
 
-		if (eventString == WEBSOCKET_CONNECT_EVENT)
+		if (eventString.rfind(WEBSOCKET_CONNECT_EVENT, 0) == 0)
 		{
-			eventPtr= std::make_shared<MikanConnectedEvent>();
+			std::string versionToken = eventString.substr(0, eventString.find(":"));
+			int serverVersion = std::atoi(versionToken.c_str());
+
+			auto& connectEventPtr= std::make_shared<MikanConnectedEvent>();
+			connectEventPtr->serverVersion.version = serverVersion;
+
+			eventPtr= connectEventPtr;
 		}
 		else if (eventString == WEBSOCKET_DISCONNECT_EVENT)
 		{

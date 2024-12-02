@@ -1,6 +1,7 @@
 #include "WebsocketInterprocessMessageClient.h"
 #include "JsonUtils.h"
 #include "Logger.h"
+#include "MikanConstants.h"
 #include "StringUtils.h"
 
 #include "readerwriterqueue.h"
@@ -84,9 +85,27 @@ public:
 		{
 			case ix::WebSocketMessageType::Open:
 				{
+					std::stringstream ss;
+
+					ss << WEBSOCKET_CONNECT_EVENT;
 					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "New connection";
 
-					m_eventQueue->enqueue(WEBSOCKET_CONNECT_EVENT);
+					auto iter = msg->openInfo.headers.find(MIKAN_MIN_ALLOWED_CLIENT_API_VERSION_KEY);
+					if (iter != msg->openInfo.headers.end())
+					{
+						const std::string minAllowedVersion = iter->second;
+						MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Min Allowed Client API version: " << minAllowedVersion;
+
+						ss << ":" << minAllowedVersion;
+					}
+					else
+					{
+						MIKAN_MT_LOG_WARNING("handleWebSocketMessage") << "Min Allowed Client API version: UNKNOWN (assuming 0)";
+
+						ss << ":0";
+					}
+
+					m_eventQueue->enqueue(ss.str());
 				}
 				break;
 			case ix::WebSocketMessageType::Close:
