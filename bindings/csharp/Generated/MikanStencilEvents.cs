@@ -4,15 +4,21 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class MikanQuadStencilListUpdateEvent : MikanEvent
+	public class MikanBoxStencilListUpdateEvent : MikanEvent
 	{
-		public static new readonly ulong classId= 17403027254738745545;
+		public static new readonly ulong classId= 16227253234774949733;
 
 	};
 
 	public class MikanModelStencilListUpdateEvent : MikanEvent
 	{
 		public static new readonly ulong classId= 5443530884967588781;
+
+	};
+
+	public class MikanQuadStencilListUpdateEvent : MikanEvent
+	{
+		public static new readonly ulong classId= 17403027254738745545;
 
 	};
 
@@ -30,12 +36,6 @@ namespace MikanXR
 
 		public MikanTransform transform;
 		public int stencil_id;
-	};
-
-	public class MikanBoxStencilListUpdateEvent : MikanEvent
-	{
-		public static new readonly ulong classId= 16227253234774949733;
-
 	};
 
 }

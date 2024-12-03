@@ -135,7 +135,7 @@ namespace MikanXR
 
 		public MikanAPIResult Disconnect()
 		{
-			int result = MikanCoreNative.Mikan_Disconnect(_mikanContext);
+			int result = MikanCoreNative.Mikan_Disconnect(_mikanContext, 0, "");
 			return (MikanAPIResult)result;
 		}
 

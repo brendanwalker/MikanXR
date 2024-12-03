@@ -41,7 +41,7 @@ public:
 	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) = 0;
 
 	virtual MikanCoreResult connect(const std::string& host, const std::string& port) = 0;
-	virtual void disconnect() = 0;
+	virtual void disconnect(uint16_t code, const std::string& reason) = 0;
 
 	virtual MikanCoreResult fetchNextEvent(
 		size_t utf8BufferSize,

@@ -90,8 +90,11 @@ namespace MikanXR
 			string host, 
 			string port);
 
-		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_Disconnect(IntPtr context);
+		[DllImport("MikanCore.dll", CharSet = CharSet.Ansi)]
+		public static extern int Mikan_Disconnect(
+			IntPtr context,
+			UInt16 code,
+			string reason);
 
 		[DllImport("MikanCore.dll")]
 		public static extern bool Mikan_GetIsConnected(IntPtr context);

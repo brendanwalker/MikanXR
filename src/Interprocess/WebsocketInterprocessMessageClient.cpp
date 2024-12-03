@@ -68,11 +68,21 @@ public:
 		return MikanCoreResult_Success;
 	}
 
-	bool disconnect()
+	bool disconnect(uint16_t code = 0, const std::string& reason = "")
 	{
 		if (getIsConnected())
 		{
-			m_websocket->close();
+			if (code != 0)
+			{
+				m_websocket->close(code, reason);
+			}
+			else
+			{
+				m_websocket->close(
+					ix::WebSocketCloseConstants::kNormalClosureCode,
+					ix::WebSocketCloseConstants::kNormalClosureMessage);
+			}
+
 			return true;
 		}
 
@@ -90,19 +100,42 @@ public:
 					ss << WEBSOCKET_CONNECT_EVENT;
 					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "New connection";
 
-					auto iter = msg->openInfo.headers.find(MIKAN_MIN_ALLOWED_CLIENT_API_VERSION_KEY);
-					if (iter != msg->openInfo.headers.end())
+					// Append the server version, if available
 					{
-						const std::string minAllowedVersion = iter->second;
-						MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Min Allowed Client API version: " << minAllowedVersion;
+						auto iter = msg->openInfo.headers.find(MIKAN_SERVER_API_VERSION_KEY);
 
-						ss << ":" << minAllowedVersion;
+						if (iter != msg->openInfo.headers.end())
+						{
+							const std::string serverVersion = iter->second;
+							MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Server API version: " << serverVersion;
+
+							ss << ":" << serverVersion;
+						}
+						else
+						{
+							MIKAN_MT_LOG_WARNING("handleWebSocketMessage") << "Server API version: UNKNOWN (assuming 0)";
+
+							ss << ":0";
+						}
 					}
-					else
-					{
-						MIKAN_MT_LOG_WARNING("handleWebSocketMessage") << "Min Allowed Client API version: UNKNOWN (assuming 0)";
 
-						ss << ":0";
+					// Append the min allowed client version, if available
+					{
+						auto iter = msg->openInfo.headers.find(MIKAN_MIN_ALLOWED_CLIENT_API_VERSION_KEY);
+
+						if (iter != msg->openInfo.headers.end())
+						{
+							const std::string minAllowedVersion = iter->second;
+							MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Min Allowed Client API version: " << minAllowedVersion;
+
+							ss << ":" << minAllowedVersion;
+						}
+						else
+						{
+							MIKAN_MT_LOG_WARNING("handleWebSocketMessage") << "Min Allowed Client API version: UNKNOWN (assuming 0)";
+
+							ss << ":0";
+						}
 					}
 
 					m_eventQueue->enqueue(ss.str());
@@ -110,7 +143,12 @@ public:
 				break;
 			case ix::WebSocketMessageType::Close:
 				{
+					std::stringstream ss;
+
+					ss << WEBSOCKET_DISCONNECT_EVENT;
 					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Close connection";
+
+					ss << ":" << msg->closeInfo.code << ":" << msg->closeInfo.reason;
 
 					m_eventQueue->enqueue(WEBSOCKET_DISCONNECT_EVENT);
 				}
@@ -219,7 +257,7 @@ MikanCoreResult WebsocketInterprocessMessageClient::initialize()
 
 void WebsocketInterprocessMessageClient::dispose()
 {
-	disconnect();
+	disconnect(0, "");
 }
 
 const bool WebsocketInterprocessMessageClient::getIsConnected() const
@@ -246,9 +284,9 @@ MikanCoreResult WebsocketInterprocessMessageClient::connect(
 	return m_connectionState->connect(host, port);
 }
 
-void WebsocketInterprocessMessageClient::disconnect()
+void WebsocketInterprocessMessageClient::disconnect(uint16_t code, const std::string& reason)
 {
-	m_connectionState->disconnect();
+	m_connectionState->disconnect(code, reason);
 }
 
 MikanCoreResult WebsocketInterprocessMessageClient::fetchNextEvent(

@@ -63,7 +63,10 @@ MIKAN_CORE_CAPI(MikanCoreResult) Mikan_Connect(
 	const char* host, 
 	const char* port);
 
-MIKAN_CORE_CAPI(MikanCoreResult) Mikan_Disconnect(MikanContext context);
+MIKAN_CORE_CAPI(MikanCoreResult) Mikan_Disconnect(
+	MikanContext context,
+	uint16_t code,
+	const char* reason);
 
 /** \brief Get the client connection status
     \return true if the client is connected to MikanXR Client API

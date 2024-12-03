@@ -239,14 +239,17 @@ MikanCoreResult Mikan_GetGraphicsDeviceInterface(
 	return mikanClient->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 }
 
-MikanCoreResult Mikan_Disconnect(MikanContext context)
+MikanCoreResult Mikan_Disconnect(
+	MikanContext context,
+	uint16_t code, 
+	const char* reason)
 {
 	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
 
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 
-	return mikanClient->disconnect();
+	return mikanClient->disconnect(code, reason);
 }
 
 MikanCoreResult Mikan_Shutdown(MikanContext* context)

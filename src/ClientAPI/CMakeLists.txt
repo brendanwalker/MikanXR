@@ -15,7 +15,9 @@ file(GLOB MIKAN_CLIENT_API_PRIVATE_SRC
 file(GLOB MIKAN_CLIENT_API_UTILITY_SRC
     "${CMAKE_CURRENT_LIST_DIR}/../AppCore/Logger.h"
     "${CMAKE_CURRENT_LIST_DIR}/../AppCore/Logger.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/../Utility/JsonUtils.h"
+    "${CMAKE_CURRENT_LIST_DIR}/../Utility/JsonUtils.h"
+    "${CMAKE_CURRENT_LIST_DIR}/../Utility/StringUtils.h"
+    "${CMAKE_CURRENT_LIST_DIR}/../Utility/StringUtils.cpp"
 )
 
 file(GLOB MIKAN_CLIENT_API_SRC

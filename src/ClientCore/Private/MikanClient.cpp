@@ -80,7 +80,7 @@ const std::string& MikanClient::getClientUniqueID() const
 	return m_clientUniqueID;
 }
 
-MikanCoreResult MikanClient::disconnect()
+MikanCoreResult MikanClient::disconnect(uint16_t code, const std::string& reason)
 {
 	MikanCoreResult resultCode= MikanCoreResult_NotConnected;
 
@@ -89,7 +89,7 @@ MikanCoreResult MikanClient::disconnect()
 
 	if (m_messageClient->getIsConnected())
 	{
-		m_messageClient->disconnect();
+		m_messageClient->disconnect(code, reason);
 		resultCode= MikanCoreResult_Success;
 	}
 
@@ -174,7 +174,7 @@ MikanCoreResult MikanClient::shutdown()
 {
 	ix::uninitNetSystem();
 	log_dispose();
-	m_messageClient->disconnect();
+	m_messageClient->disconnect(0, "");
 
 	return MikanCoreResult_Success;
 }

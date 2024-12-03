@@ -134,9 +134,9 @@ public:
 		return m_eventManager->fetchNextEvent(out_event);
 	}
 
-	virtual MikanAPIResult disconnect(const DisconnectRequest& disconectRequest) override
+	virtual MikanAPIResult disconnect(uint16_t code, const std::string& reason) override
 	{
-		return (MikanAPIResult)Mikan_Disconnect(m_context);
+		return (MikanAPIResult)Mikan_Disconnect(m_context, code, reason.c_str());
 	}
 
 	virtual MikanAPIResult shutdown() override

@@ -21,7 +21,7 @@ public:
     // -- ClientMikanAPI System -----
     MikanCoreResult startup(LogSeverityLevel log_level, t_logCallback log_callback);
 	MikanCoreResult connect(const std::string& host, const std::string& port);
-	MikanCoreResult disconnect();
+	MikanCoreResult disconnect(uint16_t code, const std::string& reason);
 	MikanCoreResult fetchNextEvent(size_t utf8_buffer_size, char* out_utf8_buffer, size_t* out_utf8_bytes_written);
 	MikanCoreResult setTextResponseCallback(MikanTextResponseCallback callback, void* callback_userdata);
 	MikanCoreResult setBinaryResponseCallback(MikanBinaryResponseCallback callback, void* callback_userdata);

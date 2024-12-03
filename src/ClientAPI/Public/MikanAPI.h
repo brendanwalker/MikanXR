@@ -32,7 +32,7 @@ public:
 	// Connection Management
 	virtual MikanAPIResult connect(const std::string& host= "", const std::string& port= "") = 0;
 	virtual bool getIsConnected() = 0;
-	virtual MikanAPIResult disconnect(const struct DisconnectRequest& disconectRequest) = 0;
+	virtual MikanAPIResult disconnect(uint16_t code = 0, const std::string& reason= "") = 0;
 
 	// Messaging
 	virtual MikanResponseFuture sendRequest(const MikanRequest& request) = 0;

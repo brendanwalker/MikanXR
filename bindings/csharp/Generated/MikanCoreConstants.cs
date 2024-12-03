@@ -4,6 +4,25 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
+	public enum MikanClientGraphicsApi
+	{
+		UNKNOWN= -1,
+		Direct3D9= 0,
+		Direct3D11= 1,
+		Direct3D12= 2,
+		OpenGL= 3,
+		Metal= 4,
+		Vulkan= 5,
+	};
+
+	public enum MikanColorBufferType
+	{
+		NOCOLOR= 0,
+		RGB24= 1,
+		RGBA32= 2,
+		BGRA32= 3,
+	};
+
 	public enum MikanCoreResult
 	{
 		Success= 0,
@@ -25,6 +44,25 @@ namespace MikanXR
 		MalformedResponse= 16,
 	};
 
+	public enum MikanDepthBufferType
+	{
+		NOCOLOR= 0,
+		FLOAT_DEVICE_DEPTH= 1,
+		FLOAT_SCENE_DEPTH= 2,
+		PACK_DEPTH_RGBA= 3,
+	};
+
+	public enum MikanDisconnectCode
+	{
+		Normal= 1000,
+		ProtocolError= 1002,
+		NoStatus= 1005,
+		AbnormalClose= 1006,
+		InvalidFramePayload= 1007,
+		InternalError= 1011,
+		IncompatibleVersion= 2000,
+	};
+
 	public enum MikanLogLevel
 	{
 		Trace= 0,
@@ -33,33 +71,6 @@ namespace MikanXR
 		Warning= 3,
 		Error= 4,
 		Fatal= 5,
-	};
-
-	public enum MikanClientGraphicsApi
-	{
-		UNKNOWN= -1,
-		Direct3D9= 0,
-		Direct3D11= 1,
-		Direct3D12= 2,
-		OpenGL= 3,
-		Metal= 4,
-		Vulkan= 5,
-	};
-
-	public enum MikanColorBufferType
-	{
-		NOCOLOR= 0,
-		RGB24= 1,
-		RGBA32= 2,
-		BGRA32= 3,
-	};
-
-	public enum MikanDepthBufferType
-	{
-		NOCOLOR= 0,
-		FLOAT_DEVICE_DEPTH= 1,
-		FLOAT_SCENE_DEPTH= 2,
-		PACK_DEPTH_RGBA= 3,
 	};
 
 }

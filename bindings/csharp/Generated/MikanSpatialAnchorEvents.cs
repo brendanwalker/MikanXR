@@ -4,18 +4,18 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
+	public class MikanAnchorListUpdateEvent : MikanEvent
+	{
+		public static new readonly ulong classId= 4263170011815929379;
+
+	};
+
 	public class MikanAnchorNameUpdateEvent : MikanEvent
 	{
 		public static new readonly ulong classId= 9376416225021574110;
 
 		public int anchor_id;
 		public string anchor_name;
-	};
-
-	public class MikanAnchorListUpdateEvent : MikanEvent
-	{
-		public static new readonly ulong classId= 4263170011815929379;
-
 	};
 
 	public class MikanAnchorPoseUpdateEvent : MikanEvent

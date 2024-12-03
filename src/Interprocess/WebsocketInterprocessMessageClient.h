@@ -22,7 +22,7 @@ public:
 	MikanCoreResult connect(
 		const std::string& host, 
 		const std::string& port) override;
-	void disconnect() override;
+	void disconnect(uint16_t code, const std::string& reason) override;
 
 	virtual MikanCoreResult fetchNextEvent(
 		size_t utf8BufferSize,

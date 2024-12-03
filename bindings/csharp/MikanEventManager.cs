@@ -6,6 +6,12 @@ namespace MikanXR
 {
 	public class MikanEventManager
 	{
+		private static readonly string WEBSOCKET_CONNECT_EVENT = "connect";
+		private static readonly string WEBSOCKET_DISCONNECT_EVENT = "disconnect";
+		private static readonly string WEBSOCKET_ERROR_EVENT = "error";
+		private static readonly string WEBSOCKET_PING_EVENT = "ping";
+		private static readonly string WEBSOCKET_PONG_EVENT = "pong";
+
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
 		private IntPtr _mikanContext = IntPtr.Zero;
 	
@@ -48,52 +54,117 @@ namespace MikanXR
 		{
 			MikanEvent mikanEvent= null;
 
-			var root = JObject.Parse(utf8ResponseString);
-
-			// Check if the "eventTypeName" and "eventTypeId" keys exist
-			if (root.TryGetValue("eventTypeName", out JToken eventTypeNameElement) &&
-				root.TryGetValue("eventTypeId", out JToken eventTypeIdElement))
+			if (utf8ResponseString.StartsWith(WEBSOCKET_CONNECT_EVENT))
 			{
-				// Check if the value of eventType keys
-				if (eventTypeNameElement.Type == JTokenType.String &&
-					eventTypeIdElement.Type == JTokenType.Integer)
-				{
-					// Get the string value of "eventTypeName"
-					string eventTypeName = (string)eventTypeNameElement;
-					// Get the integer value of "eventTypeId"
-					ulong eventTypeId = (ulong)eventTypeIdElement;
+				int clientVersion = MikanCoreNative.Mikan_GetClientAPIVersion();
+				int serverVersion= 0;
+				int minClientVersion= 0;
 
-					// Attempt to create the event object by class name
-					object eventObject= Utils.allocateMikanTypeByClassId(eventTypeId, out Type eventType);
-					if (eventObject != null)
+				string[] tokens = utf8ResponseString.Split(new char[] {':'});
+				if (tokens.Length >= 3)
+				{
+					int.TryParse(tokens[1], out serverVersion);
+					int.TryParse(tokens[2], out minClientVersion);
+				}
+
+				// Make sure the client version isn't too old
+				if (clientVersion >= minClientVersion)
+				{
+					var connectEventPtr = new MikanConnectedEvent();
+					connectEventPtr.serverVersion.version = serverVersion;
+					connectEventPtr.minClientVersion.version = minClientVersion;
+
+					mikanEvent = connectEventPtr;
+				}
+				else
+				{
+					// Disconnect since we have incompatible client
+					// This will trigger an WEBSOCKET_DISCONNECT_EVENT
+					MikanCoreNative.Mikan_Disconnect(
+						_mikanContext,
+						(ushort)MikanDisconnectCode.IncompatibleVersion,
+						"Incompatible client version");
+				}
+			}
+			else if (utf8ResponseString.StartsWith(WEBSOCKET_DISCONNECT_EVENT))
+			{
+				int disconnectCode = 0;
+				string disconnectReason = "";
+
+				string[] tokens = utf8ResponseString.Split(new char[] {':'});
+				if (tokens.Length >= 3)
+				{
+					int.TryParse(tokens[1], out disconnectCode);
+					disconnectReason = tokens[2];
+				}
+
+				var disconnectEventPtr = new MikanDisconnectedEvent();
+				disconnectEventPtr.code = (MikanDisconnectCode)disconnectCode;
+				disconnectEventPtr.reason= disconnectReason;
+			}
+			else if (utf8ResponseString.StartsWith(WEBSOCKET_ERROR_EVENT))
+			{
+				_nativeLogCallback(
+					(int)MikanLogLevel.Error,
+					"Received websocket ERROR: " + utf8ResponseString);
+			}
+			else if (utf8ResponseString.StartsWith(WEBSOCKET_PING_EVENT))
+			{
+				_nativeLogCallback((int)MikanLogLevel.Info, "Received websocket PING");
+			}
+			else if (utf8ResponseString.StartsWith(WEBSOCKET_PONG_EVENT))
+			{
+				_nativeLogCallback((int)MikanLogLevel.Info, "Received websocket PONG");
+			}
+			else
+			{
+				var root = JObject.Parse(utf8ResponseString);
+
+				// Check if the "eventTypeName" and "eventTypeId" keys exist
+				if (root.TryGetValue("eventTypeName", out JToken eventTypeNameElement) &&
+					root.TryGetValue("eventTypeId", out JToken eventTypeIdElement))
+				{
+					// Check if the value of eventType keys
+					if (eventTypeNameElement.Type == JTokenType.String &&
+						eventTypeIdElement.Type == JTokenType.Integer)
 					{
-						// Deserialize the event object from the JSON string
-						if (JsonDeserializer.deserializeFromJsonString(utf8ResponseString, eventObject, eventType))
+						// Get the string value of "eventTypeName"
+						string eventTypeName = (string)eventTypeNameElement;
+						// Get the integer value of "eventTypeId"
+						ulong eventTypeId = (ulong)eventTypeIdElement;
+
+						// Attempt to create the event object by class name
+						object eventObject = Utils.allocateMikanTypeByClassId(eventTypeId, out Type eventType);
+						if (eventObject != null)
 						{
-							mikanEvent= (MikanEvent)eventObject;
+							// Deserialize the event object from the JSON string
+							if (JsonDeserializer.deserializeFromJsonString(utf8ResponseString, eventObject, eventType))
+							{
+								mikanEvent = (MikanEvent)eventObject;
+							}
+							else
+							{
+								_nativeLogCallback(
+									(int)MikanLogLevel.Error,
+									"Failed to deserialize event object from JSON string: " + utf8ResponseString);
+							}
 						}
 						else
 						{
-							_nativeLogCallback(
-								(int)MikanLogLevel.Error, 
-								"Failed to deserialize event object from JSON string: " + utf8ResponseString);
+							_nativeLogCallback((int)MikanLogLevel.Error,
+								"Unknown event type: " + eventTypeName +
+								" (classId: " + eventTypeId + ")");
 						}
 					}
 					else
 					{
-						_nativeLogCallback((int)MikanLogLevel.Error, 
-							"Unknown event type: " + eventTypeName + 
-							" (classId: " + eventTypeId + ")");
+						_nativeLogCallback((int)MikanLogLevel.Error, "eventTypes not of expected types.");
 					}
 				}
 				else
 				{
-					_nativeLogCallback((int)MikanLogLevel.Error, "eventTypes not of expected types.");
+					_nativeLogCallback((int)MikanLogLevel.Error, "eventType keys not found.");
 				}
-			}
-			else
-			{
-				_nativeLogCallback((int)MikanLogLevel.Error, "eventType keys not found.");
 			}
 
 			return mikanEvent;

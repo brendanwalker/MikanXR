@@ -244,8 +244,10 @@ bool WebsocketInterprocessMessageServer::initialize()
 			// Add server specific headers
 			{
 				ix::WebSocketHttpHeaders extraHeaders;
-
-				extraHeaders[MIKAN_CLIENT_API_VERSION_KEY] = std::to_string(MIKAN_CLIENT_API_VERSION_VALUE);
+				extraHeaders[MIKAN_SERVER_API_VERSION_KEY] =
+					std::to_string(MIKAN_SERVER_API_VERSION_VALUE);
+				extraHeaders[MIKAN_MIN_ALLOWED_CLIENT_API_VERSION_KEY] = 
+					std::to_string(MIKAN_MIN_ALLOWED_CLIENT_API_VERSION_VALUE);
 				webSocket->setExtraHeaders(extraHeaders);
 			}
 

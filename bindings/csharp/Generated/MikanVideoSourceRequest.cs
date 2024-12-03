@@ -22,19 +22,19 @@ namespace MikanXR
 
 	};
 
-	public class MikanVideoSourceIntrinsicsResponse : MikanResponse
-	{
-		public static new readonly ulong classId= 5018187312099351234;
-
-		public MikanVideoSourceIntrinsics intrinsics;
-	};
-
 	public class MikanVideoSourceAttachmentInfoResponse : MikanResponse
 	{
 		public static new readonly ulong classId= 10603757544245690499;
 
 		public int attached_vr_device_id;
 		public MikanMatrix4f vr_device_offset_xform;
+	};
+
+	public class MikanVideoSourceIntrinsicsResponse : MikanResponse
+	{
+		public static new readonly ulong classId= 5018187312099351234;
+
+		public MikanVideoSourceIntrinsics intrinsics;
 	};
 
 	public class MikanVideoSourceModeResponse : MikanResponse

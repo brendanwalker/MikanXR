@@ -30,14 +30,12 @@ namespace MikanXR
 		InvalidAnchorID= 104,
 	};
 
-	public class MikanResponse
+	public class MikanEvent
 	{
-		public static readonly ulong classId= 7094118849615581562;
+		public static readonly ulong classId= 8521159033538382795;
 
-		public ulong responseTypeId;
-		public string responseTypeName;
-		public int requestId;
-		public MikanAPIResult resultCode;
+		public ulong eventTypeId;
+		public string eventTypeName;
 	};
 
 	public class MikanRequest
@@ -49,12 +47,14 @@ namespace MikanXR
 		public int requestId;
 	};
 
-	public class MikanEvent
+	public class MikanResponse
 	{
-		public static readonly ulong classId= 8521159033538382795;
+		public static readonly ulong classId= 7094118849615581562;
 
-		public ulong eventTypeId;
-		public string eventTypeName;
+		public ulong responseTypeId;
+		public string responseTypeName;
+		public int requestId;
+		public MikanAPIResult resultCode;
 	};
 
 }

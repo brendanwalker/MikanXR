@@ -429,6 +429,19 @@ protected:
 					reallocateRenderBuffers();
 					updateCameraProjectionMatrix();
 				}
+				else if (typeid(*event) == typeid(MikanDisconnectedEvent))
+				{
+					auto disconnectEvent = std::static_pointer_cast<MikanDisconnectedEvent>(event);
+					MIKAN_LOG_INFO("MikanDisconnectedEvent") << disconnectEvent->reason.getValue();
+
+					if (disconnectEvent->code == MikanDisconnectCode_IncompatibleVersion)
+					{
+						// The server has disconnected us because we are using an incompatible version
+						// Shutdown since connection is never going to work
+						m_bShutdownRequested= true;
+						MIKAN_LOG_ERROR("MikanDisconnectedEvent") << "Shutting down due to incompatible client";
+					}
+				}
 				else if (typeid(*event) == typeid(MikanVideoSourceOpenedEvent))
 				{
 					reallocateRenderBuffers();

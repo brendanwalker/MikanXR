@@ -35,6 +35,19 @@ enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanCoreResult
 	MikanCoreResult_MalformedResponse ENUMVALUE_STRING("MalformedResponse") = 16,
 };
 
+/// Disconnection Result Codes
+/// These values must remain stable across all versions of the API
+enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanDisconnectCode
+{
+	MikanDisconnectCode_Normal ENUMVALUE_STRING("Normal") = 1000,
+	MikanDisconnectCode_ProtocolError ENUMVALUE_STRING("ProtocolError") = 1002,
+	MikanDisconnectCode_NoStatus ENUMVALUE_STRING("NoStatus") = 1005,
+	MikanDisconnectCode_AbnormalClose ENUMVALUE_STRING("AbnormalClose") = 1006,
+	MikanDisconnectCode_InvalidFramePayload ENUMVALUE_STRING("InvalidFramePayload") = 1007,
+	MikanDisconnectCode_InternalError ENUMVALUE_STRING("InternalError") = 1011,
+	MikanDisconnectCode_IncompatibleVersion ENUMVALUE_STRING("IncompatibleVersion") = 2000,
+};
+
 enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanLogLevel
 {
 	MikanLogLevel_Trace ENUMVALUE_STRING("Trace"),

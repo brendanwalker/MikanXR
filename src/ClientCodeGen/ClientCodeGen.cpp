@@ -281,6 +281,11 @@ protected:
 	{
 		if (module->enums.size() > 0)
 		{
+			std::sort(module->enums.begin(), module->enums.end(),
+					  [](rfk::Enum const* a, rfk::Enum const* b) {
+				return stricmp(a->getName(), b->getName()) < 0;
+			});
+
 			for (rfk::Enum const* enumRef : module->enums)
 			{
 				emitEnum(moduleFile, *enumRef);
@@ -290,6 +295,11 @@ protected:
 
 		if (module->serializableStructs.size() > 0)
 		{
+			std::sort(module->serializableStructs.begin(), module->serializableStructs.end(),
+					  [](rfk::Struct const* a, rfk::Struct const* b) {
+				return stricmp(a->getName(), b->getName()) < 0;
+			});
+
 			for (rfk::Struct const* structRef : module->serializableStructs)
 			{
 				emitSerializableClass(moduleFile, *structRef);

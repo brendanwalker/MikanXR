@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
+	public enum MikanIntrinsicsType
+	{
+		INVALID= 0,
+		MONO_CAMERA_INTRINSICS= 1,
+		STEREO_CAMERA_INTRINSICS= 2,
+	};
+
 	public enum MikanVideoSourceApi
 	{
 		INVALID= 0,
@@ -17,11 +24,16 @@ namespace MikanXR
 		STEREO= 1,
 	};
 
-	public enum MikanIntrinsicsType
+	public class MikanCameraIntrinsics
 	{
-		INVALID= 0,
-		MONO_CAMERA_INTRINSICS= 1,
-		STEREO_CAMERA_INTRINSICS= 2,
+		public static readonly ulong classId= 16466519655092600494;
+
+		public double pixel_width;
+		public double pixel_height;
+		public double hfov;
+		public double vfov;
+		public double znear;
+		public double zfar;
 	};
 
 	public class MikanDistortionCoefficients
@@ -36,18 +48,6 @@ namespace MikanXR
 		public double k6;
 		public double p1;
 		public double p2;
-	};
-
-	public class MikanCameraIntrinsics
-	{
-		public static readonly ulong classId= 16466519655092600494;
-
-		public double pixel_width;
-		public double pixel_height;
-		public double hfov;
-		public double vfov;
-		public double znear;
-		public double zfar;
 	};
 
 	public class MikanMonoIntrinsics : MikanCameraIntrinsics

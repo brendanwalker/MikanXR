@@ -4,6 +4,7 @@
 #include "MikanClientEvents.h"
 #include "Logger.h"
 #include "JsonDeserializer.h"
+#include "StringUtils.h"
 
 #include <Refureku/Refureku.h>
 #include <string>
@@ -57,21 +58,57 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 
 		if (eventString.rfind(WEBSOCKET_CONNECT_EVENT, 0) == 0)
 		{
-			std::string versionToken = eventString.substr(0, eventString.find(":"));
-			int serverVersion = std::atoi(versionToken.c_str());
+			int clientVersion = Mikan_GetClientAPIVersion();
+			int minClientVersion = 0;
+			int serverVersion = 0;
 
-			auto& connectEventPtr= std::make_shared<MikanConnectedEvent>();
-			connectEventPtr->serverVersion.version = serverVersion;
+			std::vector<std::string> tokens= StringUtils::splitString(eventString, ':');
+			if (tokens.size() >= 3)
+			{
+				serverVersion = std::atoi(tokens[1].c_str());
+				minClientVersion = std::atoi(tokens[2].c_str());
+			}
+			
+			// Make sure the client version isn't too old
+			if (clientVersion >= minClientVersion)
+			{
+				auto connectEventPtr = std::make_shared<MikanConnectedEvent>();
+				connectEventPtr->serverVersion.version = serverVersion;
+				connectEventPtr->minClientVersion.version = minClientVersion;
 
-			eventPtr= connectEventPtr;
+				eventPtr = connectEventPtr;
+			}
+			else
+			{
+				// Disconnect since we have incompatible client
+				// This will trigger an WEBSOCKET_DISCONNECT_EVENT
+				Mikan_Disconnect(
+					m_context,
+					(uint16_t)MikanDisconnectCode_IncompatibleVersion,
+					"Incompatible client version");
+			}
 		}
-		else if (eventString == WEBSOCKET_DISCONNECT_EVENT)
+		else if (eventString.rfind(WEBSOCKET_DISCONNECT_EVENT, 0) == 0)
 		{
-			eventPtr= std::make_shared<MikanDisconnectedEvent>();
+			int disconnectCode = 0;
+			std::string disconnectReason = "";
+
+			std::vector<std::string> tokens = StringUtils::splitString(eventString, ':');
+			if (tokens.size() >= 3)
+			{
+				disconnectCode = std::atoi(tokens[1].c_str());
+				disconnectReason = tokens[2].c_str();
+			}
+
+			auto disconnectEventPtr= std::make_shared<MikanDisconnectedEvent>();
+			disconnectEventPtr->code = (MikanDisconnectCode)disconnectCode;
+			disconnectEventPtr->reason.setValue(disconnectReason);
+
+			eventPtr= disconnectEventPtr;
 		}
 		else if (eventString == WEBSOCKET_ERROR_EVENT)
 		{
-			MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()") << "Received websocket " << eventString;
+			MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()") << "Received websocket ERROR " << eventString;
 		}
 		else if (eventString == WEBSOCKET_PING_EVENT)
 		{
