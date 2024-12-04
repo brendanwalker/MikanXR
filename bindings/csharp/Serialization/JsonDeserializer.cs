@@ -147,14 +147,14 @@ namespace MikanXR
 					int value = (int)jsonToken;
 					var enumValue= Enum.ToObject(accessor.ValueType, value);
 
-					accessor.setValue(enumValue);
+					accessor.setValueObject(enumValue);
 				}
 				else if (jsonToken.Type == JTokenType.String)
 				{
 					string value = (string)jsonToken;
 					var enumValue= Enum.Parse(accessor.ValueType, value);
 
-					accessor.setValue(enumValue);
+					accessor.setValueObject(enumValue);
 				}
 				else
 				{
@@ -417,7 +417,7 @@ namespace MikanXR
 			}
 		}
 
-		public static bool deserializeFromJsonString<T>(string jsonString, T instance) where T : struct
+		public static bool deserializeFromJsonString<T>(string jsonString, T instance) where T : class
 		{
 			return deserializeFromJsonString(jsonString, instance, typeof(T));
 		}
@@ -439,7 +439,7 @@ namespace MikanXR
 			}
 		}
 
-		public static bool deserializeFromJson<T>(JObject jsonObject, T instance) where T : struct
+		public static bool deserializeFromJson<T>(JObject jsonObject, T instance) where T : class
 		{
 			return deserializeFromJson(jsonObject, instance, typeof(T));
 		}

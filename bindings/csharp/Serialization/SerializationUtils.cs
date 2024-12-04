@@ -37,10 +37,25 @@ namespace MikanXR
 			}
 		}
 
+		public void setValueObject(object value)
+		{
+			Debug.Assert(_type == value.GetType());
+			Debug.Assert(_fieldInfo != null);
+
+			if (_fieldInfo != null)
+			{
+				Debug.Assert(_instance != null);
+				_fieldInfo.SetValue(_instance, value);
+			}
+			else
+			{
+				_instance = value;
+			}
+		}
+
 		public virtual T getValue<T>()
 		{
 			Debug.Assert(_type == typeof(T));
-			Debug.Assert(_type.IsValueType);
 			Debug.Assert(_instance != null);
 			
 			if (_fieldInfo != null)
@@ -56,7 +71,6 @@ namespace MikanXR
 		public virtual void setValue<T>(T value)
 		{
 			Debug.Assert(_type == typeof(T));
-			Debug.Assert(_type.IsValueType);
 			Debug.Assert(_fieldInfo != null);
 
 			if (_fieldInfo != null)
@@ -166,17 +180,17 @@ namespace MikanXR
 
 				if (fieldType.IsGenericType)
 				{
-					if (fieldType.Name == "List" &&
+					if (fieldType.Name.StartsWith("List") &&
 						fieldType.GenericTypeArguments.Length == 1)
 					{
 						visitor.visitList(accessor);
 					}
-					else if (fieldType.Name == "Dictionary" &&
+					else if (fieldType.Name.StartsWith("Dictionary") &&
 							fieldType.GenericTypeArguments.Length == 2)
 					{
 						visitor.visitDictionary(accessor);
 					}
-					else if (fieldType.Name == "SerializableObject" &&
+					else if (fieldType.Name.StartsWith("SerializableObject") &&
 							fieldType.GenericTypeArguments.Length == 1)
 					{
 						visitor.visitPolymorphicObject(accessor);
@@ -185,6 +199,10 @@ namespace MikanXR
 					{
 						visitor.visitClass(accessor);
 					}
+				}
+				else if (fieldType == typeof(string))
+				{
+					visitor.visitString(accessor);
 				}
 				else
 				{
@@ -231,9 +249,6 @@ namespace MikanXR
 						break;
 					case TypeCode.Double:
 						visitor.visitDouble(accessor);
-						break;
-					case TypeCode.String:
-						visitor.visitString(accessor);
 						break;
 					default:
 						throw new NotImplementedException("Accessor " + name + " has unsupported type");

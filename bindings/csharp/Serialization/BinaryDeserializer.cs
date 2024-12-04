@@ -207,7 +207,7 @@ namespace MikanXR
 			}
 		}
 
-		public static bool DeserializeFromBytes<T>(byte[] inBytes, T instance) where T : struct
+		public static bool DeserializeFromBytes<T>(byte[] inBytes, T instance) where T : class
 		{
 			return DeserializeFromBytes(inBytes, instance, typeof(T));
 		}

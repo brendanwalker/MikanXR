@@ -1,6 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
+using System.Reflection;
 
 namespace MikanXR
 {
@@ -8,11 +10,12 @@ namespace MikanXR
 	{
 		private class JsonWriteVisitor : IVisitor
 		{
-			private JObject _jsonObject;
+			private JToken _jsonToken;
+			public JToken jsonToken => _jsonToken;
 
-			public JsonWriteVisitor(JObject jsonObject)
+			public JsonWriteVisitor(JToken jsonToken)
 			{
-				_jsonObject = jsonObject;
+				_jsonToken = jsonToken;
 			}
 
 			public void visitClass(ValueAccessor accessor)
@@ -20,21 +23,11 @@ namespace MikanXR
 				var objectValue = accessor.getValueObject();
 				var objectType = accessor.ValueType;
 
-				var objectOwnerField = accessor.ValueField;
-				if (objectOwnerField != null)
-				{
-					// Writing into a named field
-					var jsonObject = new JObject();
-					var jsonVisitor = new JsonWriteVisitor(jsonObject);
-					Utils.visitObject(objectValue, objectType, jsonVisitor);
+				var jsonObject = new JObject();
+				var jsonVisitor = new JsonWriteVisitor(jsonObject);
+				Utils.visitObject(objectValue, objectType, jsonVisitor);
 
-					_jsonObject[objectOwnerField.Name] = jsonObject;
-				}
-				else
-				{
-					// Writing into the current container element
-					Utils.visitObject(objectValue, objectType, this);
-				}
+				setJsonValueFromJsonToken(accessor.ValueField, jsonObject);
 			}
 
 			public void visitList(ValueAccessor accessor)
@@ -52,25 +45,14 @@ namespace MikanXR
 					var elementAccessor = new ValueAccessor(element, elementType);
 
 					// Serialize the element into a json object
-					var jsonElement = new JObject();
-					var elementVisitor = new JsonWriteVisitor(jsonElement);
+					var elementVisitor = new JsonWriteVisitor(null);
 					Utils.visitValue(elementAccessor, elementVisitor);
 
 					// Add the element to the json array
-					jsonArray.Add(elementAccessor);
+					jsonArray.Add(elementVisitor.jsonToken);
 				}
 
-				var arrayOwnerField = accessor.ValueField;
-				if (arrayOwnerField != null)
-				{
-					// Writing into a named field
-					_jsonObject[accessor.ValueName] = jsonArray;
-				}
-				else
-				{
-					// Writing into the current container element
-					_jsonObject.Add(jsonArray);
-				}
+				setJsonValueFromJsonToken(accessor.ValueField, jsonArray);
 			}
 
 			public void visitDictionary(ValueAccessor accessor)
@@ -88,37 +70,25 @@ namespace MikanXR
 				{
 					// Serialize the key into a json object
 					var keyObject = mapEnumerator.Key;
-					var jsonKey = new JObject();
-					var keyVisitor = new JsonWriteVisitor(jsonKey);
+					var keyVisitor = new JsonWriteVisitor(null);
 					var keyAccessor = new ValueAccessor(keyObject, keyType);
 					Utils.visitValue(keyAccessor, keyVisitor);
 
 					// Serialize the value into a json object
 					var valueObject = mapEnumerator.Value;
-					var jsonValue = new JObject();
-					var valueVisitor = new JsonWriteVisitor(jsonValue);
+					var valueVisitor = new JsonWriteVisitor(null);
 					var valueAccessor = new ValueAccessor(valueObject, valueType);
 					Utils.visitValue(valueAccessor, valueVisitor);
 
 					var jsonPair = new JObject();
-					jsonPair["key"]= jsonKey;
-					jsonPair["value"]= jsonValue;
+					jsonPair["key"]= keyVisitor.jsonToken;
+					jsonPair["value"]= valueVisitor.jsonToken;
 
 					// Add the pairs to the json array
 					jsonPairArray.Add(jsonPair);
 				}
 
-				var mapOwnerField = accessor.ValueField;
-				if (mapOwnerField != null)
-				{
-					// Writing into a named field
-					_jsonObject[accessor.ValueName] = jsonPairArray;
-				}
-				else
-				{
-					// Writing into the current container element
-					_jsonObject.Add(jsonPairArray);
-				}
+				setJsonValueFromJsonToken(accessor.ValueField, jsonPairArray);
 			}
 
 			public void visitPolymorphicObject(ValueAccessor accessor)
@@ -132,7 +102,7 @@ namespace MikanXR
 				var instanceProperty = serializableObjectType.GetProperty("Instance");
 
 				var instanceClassId = (ulong)instanceClassIdProperty.GetValue(serializableObject);
-				var instance = instanceProperty.GetValue(instanceProperty);
+				var instance = instanceProperty.GetValue(serializableObject);
 				Type instanceType = instance.GetType();
 				var instanceClassName = instanceType.Name;
 
@@ -146,17 +116,7 @@ namespace MikanXR
 				jsonSerializableObject["class_id"] = instanceClassId;
 				jsonSerializableObject["value"] = jsonRuntimeObject;
 
-				var objectOwnerField = accessor.ValueField;
-				if (objectOwnerField != null)
-				{
-					// Writing into a named field
-					_jsonObject[objectOwnerField.Name] = jsonSerializableObject;
-				}
-				else
-				{
-					// Writing into the current container element
-					Utils.visitObject(jsonSerializableObject, serializableObjectType, this);
-				}
+				setJsonValueFromJsonToken(accessor.ValueField, jsonSerializableObject);
 			}
 
 			public void visitEnum(ValueAccessor accessor)
@@ -164,15 +124,7 @@ namespace MikanXR
 				object enumObjectValue = accessor.getValueObject();
 				string enumStringValue = Enum.GetName(accessor.ValueType, enumObjectValue);
 
-				var field = accessor.ValueField;
-				if (field != null)
-				{
-					_jsonObject.Add(field.Name, new JValue(enumStringValue));
-				}
-				else
-				{
-					_jsonObject.Add(enumStringValue);
-				}
+				setJsonValueFromJsonToken(accessor.ValueField, enumStringValue);
 			}
 
 			public void visitBool(ValueAccessor accessor)
@@ -202,7 +154,7 @@ namespace MikanXR
 
 			public void visitInt(ValueAccessor accessor)
 			{
-				setJsonValueFromAccessor<uint>(accessor);
+				setJsonValueFromAccessor<int>(accessor);
 			}
 
 			public void visitUInt(ValueAccessor accessor)
@@ -236,16 +188,22 @@ namespace MikanXR
 
 			private void setJsonValueFromAccessor<T>(ValueAccessor accessor)
 			{
-				var field= accessor.ValueField;
+				var sourceField= accessor.ValueField;
 				T value = accessor.getValue<T>();
 
-				if (field != null) 
+				setJsonValueFromJsonToken(sourceField, new JValue(value));
+			}
+
+			private void setJsonValueFromJsonToken(FieldInfo sourceField, JToken token)
+			{
+				if (sourceField != null)
 				{
-					_jsonObject.Add(field.Name, new JValue(value));
+					var ownerJsonObject = _jsonToken as JObject;
+					ownerJsonObject.Add(sourceField.Name, token);
 				}
 				else
 				{
-					_jsonObject.Add(value);
+					_jsonToken = token;
 				}
 			}
 		}
@@ -261,7 +219,7 @@ namespace MikanXR
 			return json.ToString();
 		}
 
-		public static JObject serializeToJson<T>(T instance) where T : struct
+		public static JObject serializeToJson<T>(T instance) where T : class
 		{
 			return serializeToJson(instance, typeof(T));
 		}

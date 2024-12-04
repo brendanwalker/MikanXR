@@ -9,8 +9,9 @@ CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/bindings/csharp/AssemblyInfo.cs.template" "$
 file(GLOB MIKANCLIENT_CSHARP_SRC
 	"${CMAKE_CURRENT_LIST_DIR}/*.cs"
 	"${CMAKE_CURRENT_LIST_DIR}/Generated/*.cs"
-	"${CMAKE_CURRENT_LIST_DIR}/Serialization/*.cs"
 	"${CMAKE_CURRENT_LIST_DIR}/Properties/*.cs"
+	"${CMAKE_CURRENT_LIST_DIR}/Serialization/*.cs"
+	"${CMAKE_CURRENT_LIST_DIR}/Tests/*.cs"
 )
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED
@@ -37,7 +38,10 @@ endif()
 set_property(TARGET ${PROJECT_NAME} PROPERTY 
     VS_DOTNET_REFERENCE_Newtonsoft.Json 
     ${CMAKE_BINARY_DIR}/packages/Newtonsoft.Json.4.0.3/lib/net40/Newtonsoft.Json.dll)
-
+set_property(TARGET ${PROJECT_NAME} PROPERTY 
+    VS_DOTNET_REFERENCE_NUnit 
+    ${CMAKE_BINARY_DIR}/packages/NUnit.4.2.2/lib/net462/nunit.framework.dll)
+	
 # Set designer and XAML properties.
 CSHARP_SET_DESIGNER_CS_PROPERTIES(
     "${CMAKE_BINARY_DIR}/Config/${PROJECT_NAME}/AssemblyInfo.cs"
