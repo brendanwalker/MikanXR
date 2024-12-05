@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
@@ -14,15 +17,32 @@ namespace MikanXR
 
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
 		private IntPtr _mikanContext = IntPtr.Zero;
-	
+		private Dictionary<ulong, Type> _eventTypeCache = null;
+
 		public MikanEventManager(MikanCoreNative.NativeLogCallback logCallback)
 		{
 			_nativeLogCallback= logCallback;
+			_eventTypeCache = new Dictionary<ulong, Type>();
 		}
 
 		public void Initialize(IntPtr mikanContext)
 		{
 			_mikanContext = mikanContext;
+
+			// Build a map from ClassId to MikanEvent Type
+			var eventTypes = from t in Assembly.GetExecutingAssembly().GetTypes()
+					where t.IsClass && t.Namespace == "MikanXR" && t.BaseType == typeof(MikanEvent)
+					select t;
+			eventTypes.ToList().ForEach(t =>
+			{
+				var classIdProperty = t.GetProperty("classId", BindingFlags.Public | BindingFlags.Static);
+				if (classIdProperty != null)
+				{
+					ulong classId = (ulong)classIdProperty.GetValue(null);
+
+					_eventTypeCache[classId] = t;
+				}
+			});
 		}
 
 		public MikanAPIResult FetchNextEvent(out MikanEvent outEvent)
@@ -134,9 +154,10 @@ namespace MikanXR
 						ulong eventTypeId = (ulong)eventTypeIdElement;
 
 						// Attempt to create the event object by class name
-						object eventObject = Utils.allocateMikanTypeByClassId(eventTypeId, out Type eventType);
-						if (eventObject != null)
+						if (_eventTypeCache.TryGetValue(eventTypeId, out Type eventType))
 						{
+							object eventObject = Activator.CreateInstance(eventType);
+
 							// Deserialize the event object from the JSON string
 							if (JsonDeserializer.deserializeFromJsonString(utf8ResponseString, eventObject, eventType))
 							{

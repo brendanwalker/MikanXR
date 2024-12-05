@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace MikanXR
@@ -19,6 +20,7 @@ namespace MikanXR
 
 			public void visitClass(ValueAccessor accessor)
 			{
+				accessor.ensureValueAllocated();
 				var objectValue = accessor.getValueObject();
 				var objectType = accessor.ValueType;
 
@@ -29,6 +31,7 @@ namespace MikanXR
 			public void visitList(ValueAccessor accessor)
 			{
 				// Get the list to be deserialized
+				accessor.ensureValueAllocated();
 				var list = accessor.getValueObject() as IList;
 				Type listType = accessor.ValueType;
 				Type elementType = listType.GenericTypeArguments[0];
@@ -54,6 +57,7 @@ namespace MikanXR
 			public void visitDictionary(ValueAccessor accessor)
 			{
 				// Get the map to be deserialized
+				accessor.ensureValueAllocated();
 				var map = accessor.getValueObject() as IDictionary;
 				Type mapType = accessor.ValueType;
 				Type keyType = mapType.GenericTypeArguments[0];
@@ -82,27 +86,44 @@ namespace MikanXR
 			public void visitPolymorphicObject(ValueAccessor accessor)
 			{
 				// Get the SerializableObject container
+				accessor.ensureValueAllocated();
 				var serializableObject = accessor.getValueObject();
 				var serializableObjectType = accessor.ValueType;
+				string fieldName = accessor.ValueName;
 
 				// Read the runtime class info
-				_ = readUTF8String();
-				ulong instanceClassId = _reader.ReadUInt64();
+				string elementRuntimeTypeName = readUTF8String();
+				_ = _reader.ReadUInt64();
 
 				bool isValidObject = _reader.ReadBoolean();
 				if (isValidObject)
 				{
 					// Allocate instance by class name
-					var instance = 
-						Utils.allocateMikanTypeByClassId(
-							instanceClassId, out Type instanceType);
+					Type elementStaticType = serializableObjectType.GenericTypeArguments[0];
+					var elementRuntimeTypes =
+							from t in elementStaticType.Assembly.GetTypes()
+							where
+								t.IsClass &&
+								t.Name == elementRuntimeTypeName &&
+								t.IsSubclassOf(elementStaticType)
+							select t;
+					var elementRuntimeType = elementRuntimeTypes.FirstOrDefault();
+					if (elementRuntimeType == null)
+					{
+						throw new Exception(
+								"BinaryDeserializer::visitPolymorphicObject() " +
+								"ObjectPtr Accessor " + fieldName +
+								" used an unknown runtime class_name: " + elementRuntimeTypeName +
+								", static class_name: " + elementStaticType.Name);
+					}
+					var elementInstance = Activator.CreateInstance(elementRuntimeType);
 
 					// Deserialize the instance
-					Utils.visitObject(instance, instanceType, this);
+					Utils.visitObject(elementInstance, elementRuntimeType, this);
 
 					// Assign the child object to the SerializableObject field
 					MethodInfo setInstanceMethod = serializableObjectType.GetMethod("setInstance");
-					setInstanceMethod.Invoke(serializableObject, new object[] { instance });
+					setInstanceMethod.Invoke(serializableObject, new object[] { elementInstance });
 				}
 			}
 

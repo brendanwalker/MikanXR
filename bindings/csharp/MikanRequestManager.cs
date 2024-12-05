@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Reflection;
+using System.Linq;
 
 namespace MikanXR
 {
@@ -16,6 +18,7 @@ namespace MikanXR
 
 		private IntPtr _mikanContext= IntPtr.Zero;
 		private int m_nextRequestID= 0;
+		private Dictionary<ulong, Type> _responseTypeCache = null;
 
 		private class PendingRequest
 		{
@@ -30,6 +33,7 @@ namespace MikanXR
 			_nativeTextResponseCallback = new MikanCoreNative.NativeTextResponseCallback(InternalTextResponseCallback);
 			_nativeBinaryResponseCallback = new MikanCoreNative.NativeBinaryResponseCallback(InternalBinaryResponseCallback);
 			_pendingRequests = new Dictionary<int, PendingRequest>();
+			_responseTypeCache = new Dictionary<ulong, Type>();
 		}
 
 		public MikanAPIResult Initialize(IntPtr mikanContext)
@@ -43,6 +47,21 @@ namespace MikanXR
 			}
 
 			_mikanContext = mikanContext;
+
+			// Build a map from ClassId to MikanResponse Type
+			var eventTypes = from t in Assembly.GetExecutingAssembly().GetTypes()
+							 where t.IsClass && t.Namespace == "MikanXR" && t.BaseType == typeof(MikanResponse)
+							 select t;
+			eventTypes.ToList().ForEach(t =>
+			{
+				var classIdProperty = t.GetProperty("classId", BindingFlags.Public | BindingFlags.Static);
+				if (classIdProperty != null)
+				{
+					ulong classId = (ulong)classIdProperty.GetValue(null);
+
+					_responseTypeCache[classId] = t;
+				}
+			});
 
 			return MikanAPIResult.Success;
 		}
@@ -165,9 +184,10 @@ namespace MikanXR
 					ulong responseTypeId = (ulong)responseTypeIdElement;
 
 					// Attempt to create the response object by class name
-					object responseObject = Utils.allocateMikanTypeByClassId(responseTypeId, out Type responseType);
-					if (responseObject != null)
+					if (_responseTypeCache.TryGetValue(responseTypeId, out Type responseType))
 					{
+						object responseObject = Activator.CreateInstance(responseType);
+
 						// Deserialize the response object from the JSON string
 						if (JsonDeserializer.deserializeFromJsonString(utf8ResponseString, responseObject, responseType))
 						{
@@ -241,9 +261,10 @@ namespace MikanXR
 				{
 					// Attempt to create the response object by class name
 					MikanResponse response = null;
-					object responseObject = Utils.allocateMikanTypeByClassId(responseTypeId, out Type responseType);
-					if (responseObject != null)
+					if (_responseTypeCache.TryGetValue(responseTypeId, out Type responseType))
 					{
+						object responseObject = Activator.CreateInstance(responseType);
+
 						// Deserialize the event object from the byte array
 						if (BinaryDeserializer.DeserializeFromBytes(managedBuffer, responseObject, responseType))
 						{

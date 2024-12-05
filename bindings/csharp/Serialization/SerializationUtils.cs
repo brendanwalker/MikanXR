@@ -23,6 +23,25 @@ namespace MikanXR
 			_name = field.Name;
 		}
 
+		public void ensureValueAllocated()
+		{
+			if (_fieldInfo != null)
+			{
+				// See if the field doesn't have an instance allocated to it
+				object fieldValue= _fieldInfo.GetValue(_instance);
+				if (fieldValue == null)
+				{
+					// Allocate an instance of the field type and assign it
+					fieldValue = Activator.CreateInstance(_type);
+					_fieldInfo.SetValue(_instance, fieldValue);
+				}
+			}
+			else if (_instance == null)
+			{
+				_instance = Activator.CreateInstance(_type);
+			}
+		}
+
 		public object getValueObject()
 		{
 			Debug.Assert(_instance != null);
@@ -40,7 +59,6 @@ namespace MikanXR
 		public void setValueObject(object value)
 		{
 			Debug.Assert(_type == value.GetType());
-			Debug.Assert(_fieldInfo != null);
 
 			if (_fieldInfo != null)
 			{
@@ -71,7 +89,6 @@ namespace MikanXR
 		public virtual void setValue<T>(T value)
 		{
 			Debug.Assert(_type == typeof(T));
-			Debug.Assert(_fieldInfo != null);
 
 			if (_fieldInfo != null)
 			{
@@ -120,44 +137,14 @@ namespace MikanXR
 
 	internal static class Utils
 	{
-		static Dictionary<ulong, Type> _typeCache= null;
-
-		public static object allocateMikanTypeByClassId(ulong mikanClassId, out Type type)
-		{
-			if (_typeCache == null)
-			{
-				var q = from t in Assembly.GetExecutingAssembly().GetTypes()
-						where t.IsClass && t.Namespace == "MikanXR"
-						select t;
-				q.ToList().ForEach(t => { 
-					var classIdProperty= t.GetProperty("classId", BindingFlags.Public | BindingFlags.Static);
-					if (classIdProperty != null)
-					{
-						ulong classId= (ulong)classIdProperty.GetValue(null);
-
-						_typeCache[classId] = t;
-					}
-				});
-
-				_typeCache = new Dictionary<ulong, Type>();
-			}
-
-			if (_typeCache.TryGetValue(mikanClassId, out type))
-			{
-				return Activator.CreateInstance(type);
-			}
-
-			return null;
-		}
-
 		public static void visitObject<T>(T instance, IVisitor visitor) where T : struct
 		{
 			visitObject(instance, typeof(T), visitor);
 		}
 
-		public static void visitObject(object instance, Type structType, IVisitor visitor)
+		public static void visitObject(object instance, Type classType, IVisitor visitor)
 		{
-			FieldInfo[] fields= structType.GetFields(BindingFlags.Instance | BindingFlags.Public);
+			FieldInfo[] fields= classType.GetFields(BindingFlags.Instance | BindingFlags.Public);
 			foreach (FieldInfo field in fields)
 			{
 				visitField(instance, field, visitor);

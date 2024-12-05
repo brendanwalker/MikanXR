@@ -28,7 +28,7 @@ namespace MikanXR
 					"classId", 
 					BindingFlags.Public | BindingFlags.Static);
 
-			// All Mikan Client API types have a static "classId" field
+			// All SerializableObject types have a static "classId" field
 			// corresponding to the Refureku class ID in the C++ code
 			_runtimeClassId = (ulong)classIdField.GetValue(null);
 			_instance = instance;

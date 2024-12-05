@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 
 namespace MikanXR
@@ -9,21 +10,34 @@ namespace MikanXR
 	{
 		private class JsonReadVisitor : IVisitor
 		{
-			private JObject _jsonObject;
+			private JToken _jsonToken;
+			public JToken jsonToken => _jsonToken;
 
-			public JsonReadVisitor(JObject jsonObject)
+			public JsonReadVisitor(JToken jsonToken)
 			{
-				_jsonObject = jsonObject;
+				_jsonToken = jsonToken;
 			}
 
 			public void visitClass(ValueAccessor accessor)
 			{
 				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 				Type fieldType = accessor.ValueType;
-				object instance = accessor.getValueObject();
+				string fieldName = accessor.ValueName;
 
-				JsonReadVisitor jsonVisitor = new JsonReadVisitor(jsonToken as JObject);
-				Utils.visitObject(instance, fieldType, jsonVisitor);
+				if (jsonToken.Type == JTokenType.Object)
+				{
+					accessor.ensureValueAllocated();
+					object fieldInstance = accessor.getValueObject();
+
+					JsonReadVisitor jsonVisitor = new JsonReadVisitor(jsonToken as JObject);
+					Utils.visitObject(fieldInstance, fieldType, jsonVisitor);
+				}
+				else
+				{
+					throw new Exception(
+						"JsonReadVisitor::visitClass() Field " + fieldName +
+						" missing corresponding json object");
+				}
 			}
 
 			public void visitList(ValueAccessor accessor)
@@ -35,6 +49,8 @@ namespace MikanXR
 				if (jsonToken.Type == JTokenType.Array)
 				{
 					var jsonArray = jsonToken as JArray;
+
+					accessor.ensureValueAllocated();
 					var list= accessor.getValueObject() as IList;
 					Type elementType = fieldType.GenericTypeArguments[0];
 
@@ -45,7 +61,7 @@ namespace MikanXR
 						var elementAccessor = new ValueAccessor(null, elementType);
 
 						// Deserialize the element
-						JsonReadVisitor elementVisitor = new JsonReadVisitor(jsonElement as JObject);
+						JsonReadVisitor elementVisitor = new JsonReadVisitor(jsonElement);
 						Utils.visitValue(elementAccessor, elementVisitor);
 
 						// Add the element to the list
@@ -69,6 +85,8 @@ namespace MikanXR
 				if (jsonToken.Type == JTokenType.Array)
 				{
 					var jsonMapPairArray = jsonToken as JArray;
+
+					accessor.ensureValueAllocated();
 					var map = accessor.getValueObject() as IDictionary;
 					Type keyType = fieldType.GenericTypeArguments[0];
 					Type valueType = fieldType.GenericTypeArguments[1];
@@ -81,7 +99,7 @@ namespace MikanXR
 
 						// Deserialize the key
 						var jsonKey= jsonPair["key"];
-						JsonReadVisitor keyVisitor = new JsonReadVisitor(jsonKey as JObject);
+						JsonReadVisitor keyVisitor = new JsonReadVisitor(jsonKey);
 						Utils.visitValue(keyAccessor, keyVisitor);
 
 						// Make a fake "field" for the value
@@ -89,8 +107,8 @@ namespace MikanXR
 
 						// Deserialize the value
 						var jsonValue = jsonPair["value"];
-						JsonReadVisitor valueVisitor = new JsonReadVisitor(jsonValue as JObject);
-						Utils.visitValue(keyAccessor, valueVisitor);
+						JsonReadVisitor valueVisitor = new JsonReadVisitor(jsonValue);
+						Utils.visitValue(valueAccessor, valueVisitor);
 
 						// Add the key-value pair to the map
 						map.Add(keyAccessor.ValueInstance, valueAccessor.ValueInstance);
@@ -109,24 +127,30 @@ namespace MikanXR
 				JToken jsonToken = getJsonTokenFromAccessor(accessor);
 				Type fieldType = accessor.ValueType;
 				string fieldName = accessor.ValueName;
+
+				accessor.ensureValueAllocated();
 				object fieldInstance = accessor.getValueObject();
 
 				// Allocate the element instance using the runtime class name
 				Type elementStaticType = fieldType.GenericTypeArguments[0];
 				var elementRuntimeTypeName = (string)jsonToken["class_name"];
-				var elementRuntimeTypeId = (ulong)jsonToken["class_id"];
-				var elementInstance =
-					Utils.allocateMikanTypeByClassId(
-						elementRuntimeTypeId, out Type elementRuntimeType);
-				if (elementInstance == null)
+				var elementRuntimeTypes = 
+						from t in elementStaticType.Assembly.GetTypes()
+						where 
+							t.IsClass && 
+							t.Name == elementRuntimeTypeName &&
+							t.IsSubclassOf(elementStaticType)
+						select t;
+				var elementRuntimeType = elementRuntimeTypes.FirstOrDefault();
+				if (elementRuntimeType == null)
 				{
 					throw new Exception(
 							"JsonReadVisitor::visitPolymorphicObject() " +
 							"ObjectPtr Accessor " + fieldName +
 							" used an unknown runtime class_name: " + elementRuntimeTypeName +
-							", runtime class_is: " + elementRuntimeTypeId +
 							", static class_name: " + elementStaticType.Name);
 				}
+				var elementInstance = Activator.CreateInstance(elementRuntimeType);
 
 				// Deserialize the element into the newly allocated instance
 				JObject elementJson = jsonToken["value"] as JObject;
@@ -401,8 +425,9 @@ namespace MikanXR
 				if (field != null)
 				{
 					var fieldName = field.Name;
+					var jsonObject = _jsonToken as JObject;
 
-					if (_jsonObject.TryGetValue(fieldName, out var childJsonObject))
+					if (jsonObject.TryGetValue(fieldName, out var childJsonObject))
 					{
 						return childJsonObject;
 					}
@@ -412,7 +437,7 @@ namespace MikanXR
 				else
 				{
 					// The json object should contain the value we want to deserialize
-					return _jsonObject;
+					return _jsonToken;
 				}
 			}
 		}
