@@ -132,7 +132,7 @@ namespace MikanXR
 				string enumStringValue = readUTF8String();
 				var enumValue= Enum.Parse(accessor.ValueType, enumStringValue);
 
-				accessor.setValue(enumValue);
+				accessor.setValueObject(enumValue);
 			}
 
 			public void visitBool(ValueAccessor accessor)
