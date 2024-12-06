@@ -1,5 +1,7 @@
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MikanXR
 {
@@ -227,6 +229,5 @@ namespace MikanXR
 			Assert.That(bCanDeserialize);
 			verifySerializationTestObject(actual, expected);
 		}
-		
 	}
 }
