@@ -73,6 +73,8 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 			if (clientVersion >= minClientVersion)
 			{
 				auto connectEventPtr = std::make_shared<MikanConnectedEvent>();
+				connectEventPtr->eventTypeId = MikanConnectedEvent::staticGetArchetype().getId();
+				connectEventPtr->eventTypeName = MikanConnectedEvent::staticGetArchetype().getName();
 				connectEventPtr->serverVersion.version = serverVersion;
 				connectEventPtr->minClientVersion.version = minClientVersion;
 
@@ -101,6 +103,8 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 			}
 
 			auto disconnectEventPtr= std::make_shared<MikanDisconnectedEvent>();
+			disconnectEventPtr->eventTypeId = MikanDisconnectedEvent::staticGetArchetype().getId();
+			disconnectEventPtr->eventTypeName = MikanDisconnectedEvent::staticGetArchetype().getName();
 			disconnectEventPtr->code = (MikanDisconnectCode)disconnectCode;
 			disconnectEventPtr->reason.setValue(disconnectReason);
 

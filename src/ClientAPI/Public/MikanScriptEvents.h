@@ -12,6 +12,11 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanScriptEvents")) MikanScriptMessagePostedEvent : public MikanEvent
 {
+	MikanScriptMessagePostedEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanScriptMessagePostedEvent)
+	}
+
 	FIELD()
 	Serialization::String message;
 

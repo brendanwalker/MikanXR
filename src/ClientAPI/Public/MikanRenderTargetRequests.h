@@ -12,6 +12,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
+	AllocateRenderTargetTextures()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(AllocateRenderTargetTextures)
+	}
+
 	FIELD()
 	MikanRenderTargetDescriptor descriptor;
 
@@ -24,8 +29,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
+	WriteColorRenderTargetTexture()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(WriteColorRenderTargetTexture)
+	}
+
 	FIELD()
-	void* apiColorTexturePtr;
+	void* apiColorTexturePtr= nullptr;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	WriteColorRenderTargetTexture_GENERATED
@@ -36,14 +46,19 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
-	FIELD()
-	void* apiDepthTexturePtr;
+	WriteDepthRenderTargetTexture()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(WriteDepthRenderTargetTexture)
+	}
 
 	FIELD()
-	float zNear;
+	void* apiDepthTexturePtr= nullptr;
 
 	FIELD()
-	float zFar;
+	float zNear= 0.f;
+
+	FIELD()
+	float zFar= 0.f;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	WriteDepthRenderTargetTexture_GENERATED
@@ -54,8 +69,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
+	PublishRenderTargetTextures()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(PublishRenderTargetTextures)
+	}
+
 	FIELD()
-	uint64_t frameIndex;
+	uint64_t frameIndex= 0;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	PublishRenderTargetTextures_GENERATED
@@ -66,6 +86,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRenderTargetRequest")
 	public MikanRequest
 {
 public:
+	FreeRenderTargetTextures()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(FreeRenderTargetTextures)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	FreeRenderTargetTextures_GENERATED
 	#endif

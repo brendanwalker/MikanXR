@@ -13,10 +13,15 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) Send
 	public MikanRequest
 {
 public:
+	SendScriptMessage()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(SendScriptMessage)
+	}
+
 	FIELD()
 	MikanScriptMessageInfo message;
 
-#ifdef MIKANAPI_REFLECTION_ENABLED
+	#ifdef MIKANAPI_REFLECTION_ENABLED
 	SendScriptMessage_GENERATED
 	#endif
 };

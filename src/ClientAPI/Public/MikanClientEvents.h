@@ -13,6 +13,11 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedEvent : public MikanEvent
 {
+	MikanConnectedEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanConnectedEvent)
+	}
+
 	FIELD()
 	MikanClientAPIVersion serverVersion;
 
@@ -26,6 +31,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedE
 
 struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanDisconnectedEvent : public MikanEvent
 {
+	MikanDisconnectedEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanDisconnectedEvent)
+	}
+
 	FIELD()
 	MikanDisconnectCode code;
 

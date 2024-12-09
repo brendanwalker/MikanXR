@@ -16,6 +16,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	public MikanRequest
 {
 public:
+	GetVideoSourceIntrinsics()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetVideoSourceIntrinsics)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVideoSourceIntrinsics_GENERATED
 	#endif
@@ -25,6 +30,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	public MikanRequest
 {
 public:
+	GetVideoSourceMode()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetVideoSourceMode)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVideoSourceMode_GENERATED
 	#endif
@@ -34,6 +44,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	public MikanRequest
 {
 public:
+	GetVideoSourceAttachment()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetVideoSourceAttachment)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVideoSourceAttachment_GENERATED
 	#endif
@@ -46,13 +61,14 @@ public:
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceIntrinsicsResponse : 
 	public MikanResponse
 {
+	MikanVideoSourceIntrinsicsResponse()
+		: intrinsics()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanVideoSourceIntrinsicsResponse)
+	}
+
 	FIELD()
 	MikanVideoSourceIntrinsics intrinsics;
-
-	MikanVideoSourceIntrinsicsResponse()
-		: MikanResponse()
-		, intrinsics()
-	{}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceIntrinsicsResponse_GENERATED
@@ -63,6 +79,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVide
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceAttachmentInfoResponse : 
 	public MikanResponse
 {
+	MikanVideoSourceAttachmentInfoResponse()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanVideoSourceAttachmentInfoResponse)
+	}
+
 	FIELD()
 	MikanVRDeviceID attached_vr_device_id;
 	FIELD()
@@ -77,6 +98,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVide
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceModeResponse : 
 	public MikanResponse
 {
+	MikanVideoSourceModeResponse()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanVideoSourceModeResponse)
+	}
+
 	FIELD()
 	MikanVideoSourceType video_source_type;
 	FIELD()

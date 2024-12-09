@@ -17,6 +17,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorRequest"
 	public MikanRequest
 {
 public:
+	GetSpatialAnchorList()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetSpatialAnchorList)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetSpatialAnchorList_GENERATED
 	#endif
@@ -26,6 +31,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorRequest"
 	public MikanRequest
 {
 public:
+	GetSpatialAnchorInfo()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetSpatialAnchorInfo)
+	}
+
 	FIELD()
 	MikanSpatialAnchorID anchorId;
 
@@ -38,6 +48,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorRequest"
 	public MikanRequest
 {
 public:
+	FindSpatialAnchorInfoByName()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(FindSpatialAnchorInfoByName)
+	}
+
 	FIELD()
 	Serialization::String anchorName;
 
@@ -50,6 +65,11 @@ public:
 struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorListResponse")) MikanSpatialAnchorListResponse : 
 	public MikanResponse
 {
+	MikanSpatialAnchorListResponse()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanSpatialAnchorListResponse)
+	}
+
 	FIELD()
 	Serialization::List<MikanSpatialAnchorID> spatial_anchor_id_list;
 
@@ -61,6 +81,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorListResponse")) Mi
 struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorInfoResponse")) MikanSpatialAnchorInfoResponse : 
 	public MikanResponse
 {
+	MikanSpatialAnchorInfoResponse()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanSpatialAnchorInfoResponse)
+	}
+
 	FIELD()
 	MikanSpatialAnchorInfo anchor_info;
 

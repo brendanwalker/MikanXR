@@ -17,6 +17,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) GetV
 	public MikanRequest
 {
 public:
+	GetVRDeviceList()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetVRDeviceList)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVRDeviceList_GENERATED
 	#endif
@@ -26,6 +31,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) GetV
 	public MikanRequest
 {
 public:
+	GetVRDeviceInfo()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetVRDeviceInfo)
+	}
+
 	FIELD()
 	MikanVRDeviceID deviceId;
 
@@ -38,6 +48,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) Subs
 	public MikanRequest
 {
 public:
+	SubscribeToVRDevicePoseUpdates()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(SubscribeToVRDevicePoseUpdates)
+	}
+
 	FIELD()
 	MikanVRDeviceID deviceId;
 
@@ -50,6 +65,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) Unsu
 	public MikanRequest
 {
 public:
+	UnsubscribeFromVRDevicePoseUpdates()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(UnsubscribeFromVRDevicePoseUpdates)
+	}
+
 	FIELD()
 	MikanVRDeviceID deviceId;
 
@@ -64,6 +84,11 @@ public:
 struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceListResponse : 
 	public MikanResponse
 {
+	MikanVRDeviceListResponse()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanVRDeviceListResponse)
+	}
+
 	FIELD()
 	Serialization::List<MikanVRDeviceID> vr_device_id_list;
 
@@ -75,6 +100,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceL
 struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceInfoResponse : 
 	public MikanResponse
 {
+	MikanVRDeviceInfoResponse()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanVRDeviceInfoResponse)
+	}
+
 	FIELD()
 	MikanVRDeviceInfo vr_device_info;
 

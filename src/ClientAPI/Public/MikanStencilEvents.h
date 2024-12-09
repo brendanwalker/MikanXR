@@ -12,6 +12,11 @@
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilNameUpdateEvent : public MikanEvent
 {
+	MikanStencilNameUpdateEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanStencilNameUpdateEvent)
+	}
+
 	FIELD()
 	MikanStencilID stencil_id;
 	FIELD()
@@ -24,6 +29,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilNa
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilPoseUpdateEvent : public MikanEvent
 {
+	MikanStencilPoseUpdateEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanStencilPoseUpdateEvent)
+	}
+
 	FIELD()
 	MikanTransform transform;
 	FIELD()
@@ -36,6 +46,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilPo
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanQuadStencilListUpdateEvent : public MikanEvent
 {
+	MikanQuadStencilListUpdateEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanQuadStencilListUpdateEvent)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuadStencilListUpdateEvent_GENERATED
 	#endif
@@ -43,6 +58,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanQuadStenc
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanBoxStencilListUpdateEvent : public MikanEvent
 {
+	MikanBoxStencilListUpdateEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanBoxStencilListUpdateEvent)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoxStencilListUpdateEvent_GENERATED
 	#endif
@@ -50,6 +70,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanBoxStenci
 
 struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanModelStencilListUpdateEvent : public MikanEvent
 {
+	MikanModelStencilListUpdateEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanModelStencilListUpdateEvent)
+	}
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanModelStencilListUpdateEvent_GENERATED
 	#endif
