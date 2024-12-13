@@ -96,7 +96,7 @@ public:
 	}
 
 	// Send a request to the Mikan API
-	virtual MikanResponseFuture sendRequest(const MikanRequest& request) override
+	virtual MikanResponseFuture sendRequest(MikanRequest& request) override
 	{
 		MikanResponseFuture responseFuture;
 		if (!m_renderTargetAPI->tryProcessRequest(request, responseFuture))

@@ -73,8 +73,6 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 			if (clientVersion >= minClientVersion)
 			{
 				auto connectEventPtr = std::make_shared<MikanConnectedEvent>();
-				connectEventPtr->eventTypeId = MikanConnectedEvent::staticGetArchetype().getId();
-				connectEventPtr->eventTypeName = MikanConnectedEvent::staticGetArchetype().getName();
 				connectEventPtr->serverVersion.version = serverVersion;
 				connectEventPtr->minClientVersion.version = minClientVersion;
 
@@ -103,8 +101,6 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 			}
 
 			auto disconnectEventPtr= std::make_shared<MikanDisconnectedEvent>();
-			disconnectEventPtr->eventTypeId = MikanDisconnectedEvent::staticGetArchetype().getId();
-			disconnectEventPtr->eventTypeName = MikanDisconnectedEvent::staticGetArchetype().getName();
 			disconnectEventPtr->code = (MikanDisconnectCode)disconnectCode;
 			disconnectEventPtr->reason.setValue(disconnectReason);
 
@@ -125,9 +121,9 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 		else
 		{
 			json jsonResponse = json::parse(eventString);
-			std::string eventType = jsonResponse["eventType"].get<std::string>();
+			uint64_t eventTypeId = jsonResponse["eventTypeId"].get<uint64_t>();
 
-			rfk::Struct const* eventStruct = rfk::getDatabase().getFileLevelStructByName(eventType.c_str());
+			rfk::Struct const* eventStruct = rfk::getDatabase().getStructById(eventTypeId);
 			if (eventStruct != nullptr)
 			{
 				eventPtr = eventStruct->makeSharedInstance<MikanEvent>();
@@ -137,7 +133,7 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 			else
 			{
 				MIKAN_MT_LOG_WARNING("MikanClient::parseEventString()")
-					<< "Received response for unknown eventType: " << eventType;
+					<< "Received response for unknown eventTypeId: " << eventTypeId;
 			}
 		}
 	}

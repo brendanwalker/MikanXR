@@ -35,6 +35,6 @@ public:
 	virtual MikanAPIResult disconnect(uint16_t code = 0, const std::string& reason= "") = 0;
 
 	// Messaging
-	virtual MikanResponseFuture sendRequest(const MikanRequest& request) = 0;
+	virtual MikanResponseFuture sendRequest(MikanRequest& request) = 0;
 	virtual MikanAPIResult fetchNextEvent(MikanEventPtr& out_event) = 0;
 };

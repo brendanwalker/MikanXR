@@ -36,25 +36,25 @@ MikanAPIResult MikanRequestManager::init(MikanContext context)
 	return MikanAPIResult::Success;
 }
 
-MikanResponseFuture MikanRequestManager::sendRequest(const MikanRequest& inRequest)
+MikanResponseFuture MikanRequestManager::sendRequest(MikanRequest& inRequest)
 {
-	MikanRequest request= inRequest;
-	request.requestId= m_nextRequestID;
-	m_nextRequestID++;
-
-	uint64_t requestTypeId = request.requestTypeId;
+	uint64_t requestTypeId = inRequest.requestTypeId;
 	rfk::Struct const* requestStruct = rfk::getDatabase().getStructById(requestTypeId);
 	assert(requestStruct != nullptr);
 
+	// Stamp the request with the next available request ID
+	inRequest.requestId = m_nextRequestID;
+	m_nextRequestID++;
+
 	std::string	jsonString;
-	Serialization::serializeToJsonString(&request, *requestStruct, jsonString);
+	Serialization::serializeToJsonString(&inRequest, *requestStruct, jsonString);
 
 	MikanAPIResult result =
 		(MikanAPIResult)Mikan_SendRequestJSON(
 			m_context,
 			jsonString.c_str());
 
-	return addResponseHandler(request.requestId, result);
+	return addResponseHandler(inRequest.requestId, result);
 }
 
 MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID requestId, MikanAPIResult result)
@@ -165,7 +165,7 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 		bool parseHeader = 
 			Serialization::deserializeFromJson(
 				jsonResponse, &responseHeader, MikanResponse::staticGetArchetype());
-		if (parseHeader)
+		if (!parseHeader)
 		{
 			throw std::runtime_error("Failed to parse response header");
 		}

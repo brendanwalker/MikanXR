@@ -21,7 +21,7 @@ public:
 	MikanAPIResult init(MikanContext context);
 	MikanContext getContext() const { return m_context; }
 
-	MikanResponseFuture sendRequest(const MikanRequest& request);
+	MikanResponseFuture sendRequest(MikanRequest& request);
 	MikanResponseFuture addResponseHandler(MikanRequestID requestId, MikanAPIResult result);
 	MikanResponseFuture makeImmediateResponse(MikanAPIResult result);
 

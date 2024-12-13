@@ -11,14 +11,14 @@ public:
 
 	MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
 	MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
-	bool tryProcessRequest(const MikanRequest& request, MikanResponseFuture& outFuture);
+	bool tryProcessRequest(MikanRequest& request, MikanResponseFuture& outFuture);
 
 protected:
-	MikanResponseFuture allocateRenderTargetTextures(const MikanRequest& request);
-	MikanResponseFuture writeColorRenderTargetTexture(const MikanRequest& request);
-	MikanResponseFuture writeDepthRenderTargetTexture(const MikanRequest& request);
-	MikanResponseFuture publishRenderTargetTextures(const MikanRequest& request);
-	MikanResponseFuture freeRenderTargetTextures(const MikanRequest& request);
+	MikanResponseFuture allocateRenderTargetTextures(MikanRequest& request);
+	MikanResponseFuture writeColorRenderTargetTexture(MikanRequest& request);
+	MikanResponseFuture writeDepthRenderTargetTexture(MikanRequest& request);
+	MikanResponseFuture publishRenderTargetTextures(MikanRequest& request);
+	MikanResponseFuture freeRenderTargetTextures(MikanRequest& request);
 
 private:
 	class MikanRequestManager* m_requestManager = nullptr;
