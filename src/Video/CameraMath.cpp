@@ -250,7 +250,7 @@ void createDefautMonoIntrinsics(
     int pixelHeight,
     MikanMonoIntrinsics &outIntrinsics)
 {
-    memset(&outIntrinsics, 0, sizeof(MikanMonoIntrinsics));
+    outIntrinsics = MikanMonoIntrinsics();
 
     double aspectRatio= (double)pixelHeight / (double)pixelWidth;
     double c_x= (double)pixelWidth / 2.0;

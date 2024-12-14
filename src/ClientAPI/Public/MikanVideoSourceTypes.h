@@ -41,21 +41,21 @@ enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanIntrinsics
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistortionCoefficients
 {
 	FIELD()
-	double k1; ///< Radial Distortion Parameter 1 (r^2 numerator constant)
+	double k1 = 0.0; ///< Radial Distortion Parameter 1 (r^2 numerator constant)
 	FIELD()
-	double k2; ///< Radial Distortion Parameter 2 (r^4 numerator constant)
+	double k2 = 0.0; ///< Radial Distortion Parameter 2 (r^4 numerator constant)
 	FIELD()
-	double k3; ///< Radial Distortion Parameter 3 (r^6 numerator constant)
+	double k3 = 0.0; ///< Radial Distortion Parameter 3 (r^6 numerator constant)
 	FIELD()
-	double k4; ///< Radial Distortion Parameter 4 (r^2 divisor constant)
+	double k4 = 0.0; ///< Radial Distortion Parameter 4 (r^2 divisor constant)
 	FIELD()
-	double k5; ///< Radial Distortion Parameter 5 (r^4 divisor constant)
+	double k5 = 0.0; ///< Radial Distortion Parameter 5 (r^4 divisor constant)
 	FIELD()
-	double k6; ///< Radial Distortion Parameter 6 (r^6 divisor constant)
+	double k6 = 0.0; ///< Radial Distortion Parameter 6 (r^6 divisor constant)
 	FIELD()
-	double p1; ///< Tangential Distortion Parameter 1
+	double p1 = 0.0; ///< Tangential Distortion Parameter 1
 	FIELD()
-	double p2; ///< Tangential Distortion Parameter 2
+	double p2 = 0.0; ///< Tangential Distortion Parameter 2
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDistortionCoefficients_GENERATED
@@ -67,17 +67,17 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistor
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCameraIntrinsics
 {
 	FIELD()
-	double pixel_width;  ///< Width of the camera buffer in pixels
+	double pixel_width = 0.0;  ///< Width of the camera buffer in pixels
 	FIELD()
-	double pixel_height; ///< Height of the camera buffer in pixels
+	double pixel_height = 0.0; ///< Height of the camera buffer in pixels
 	FIELD()
-	double hfov;         ///< The horizontal field of view camera in degrees
+	double hfov = 0.0;         ///< The horizontal field of view camera in degrees
 	FIELD()
-	double vfov;         ///< The vertical field of view camera in degrees
+	double vfov = 0.0;         ///< The vertical field of view camera in degrees
 	FIELD()
-	double znear;        ///< The distance of the near clipping plane in cm
+	double znear = 0.0;        ///< The distance of the near clipping plane in cm
 	FIELD()
-	double zfar;         ///< The distance of the far clipping plane in cm
+	double zfar = 0.0;         ///< The distance of the far clipping plane in cm
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanCameraIntrinsics_GENERATED

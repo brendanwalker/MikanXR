@@ -359,8 +359,7 @@ bool AppStage_Compositor::startStreaming()
 	if (compositorTexture->getBufferFormat() != GL_RGBA)
 		return false;
 
-	MikanRenderTargetDescriptor descriptor;
-	memset(&descriptor, 0, sizeof(MikanRenderTargetDescriptor));
+	MikanRenderTargetDescriptor descriptor = {};
 	descriptor.color_buffer_type= MikanColorBuffer_RGBA32;
 	descriptor.depth_buffer_type= MikanDepthBuffer_NODEPTH;
 	descriptor.width= compositorTexture->getTextureWidth();

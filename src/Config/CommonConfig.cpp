@@ -180,8 +180,7 @@ void CommonConfig::readMonoTrackerIntrinsics(
     tracker_intrinsics.znear = pt.get_or<double>("zNear", 0.1f);
     tracker_intrinsics.zfar = pt.get_or<double>("zFar", 20.f);
 
-	MikanDistortionCoefficients default_distortion_coefficients;
-	memset(&default_distortion_coefficients, 0, sizeof(MikanDistortionCoefficients));
+	MikanDistortionCoefficients default_distortion_coefficients = {};
 
     readMatrix3d(pt, "camera_matrix", tracker_intrinsics.camera_matrix);
     readDistortionCoefficients(pt, "distortion", 
@@ -230,8 +229,7 @@ void CommonConfig::readStereoTrackerIntrinsics(
     tracker_intrinsics.znear = pt.get_or<double>("zNear", 10.f);
     tracker_intrinsics.zfar = pt.get_or<double>("zFar", 200.f);
 
-    MikanDistortionCoefficients default_distortion_coefficients;
-	memset(&default_distortion_coefficients, 0, sizeof(MikanDistortionCoefficients));
+    MikanDistortionCoefficients default_distortion_coefficients = {};
 
     readMatrix3d(pt, "left_camera_matrix", tracker_intrinsics.left_camera_matrix);
     readMatrix3d(pt, "right_camera_matrix", tracker_intrinsics.right_camera_matrix);

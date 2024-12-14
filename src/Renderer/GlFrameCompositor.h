@@ -40,14 +40,14 @@ public:
 
 	struct ClientSource
 	{
-		int clientSourceIndex;
+		int clientSourceIndex= -1;
 		std::string clientId;
 		MikanClientInfo clientInfo;
 		MikanRenderTargetDescriptor desc;
 		GlTexturePtr colorTexture;
 		GlTexturePtr depthTexture;
-		uint64_t frameIndex;
-		bool bIsPendingRender;
+		uint64_t frameIndex= 0;
+		bool bIsPendingRender= false;
 	};
 
 	static GlFrameCompositor* getInstance() { return m_instance; }

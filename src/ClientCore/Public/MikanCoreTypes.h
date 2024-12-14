@@ -107,15 +107,15 @@ struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientAPIVers
 struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetDescriptor
 {
 	FIELD()
-	MikanColorBufferType color_buffer_type;
+	MikanColorBufferType color_buffer_type = MikanColorBufferType::MikanColorBuffer_NOCOLOR;
 	FIELD()
-	MikanDepthBufferType depth_buffer_type;
+	MikanDepthBufferType depth_buffer_type = MikanDepthBufferType::MikanDepthBuffer_NODEPTH;
 	FIELD()
-	uint32_t width;
+	uint32_t width = 0;
 	FIELD()
-	uint32_t height;
+	uint32_t height = 0;
 	FIELD()
-	MikanClientGraphicsApi graphicsAPI;
+	MikanClientGraphicsApi graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 
 #ifdef MIKANCORE_REFLECTION_ENABLED
 	MikanRenderTargetDescriptor_GENERATED

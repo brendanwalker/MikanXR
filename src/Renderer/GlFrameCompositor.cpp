@@ -943,8 +943,7 @@ bool GlFrameCompositor::addClientSource(
 	if (m_clientSources.hasValue(clientId))
 		return false;
 
-	GlFrameCompositor::ClientSource* clientSource = new GlFrameCompositor::ClientSource;
-	memset(clientSource, 0, sizeof(GlFrameCompositor::ClientSource));
+	GlFrameCompositor::ClientSource* clientSource = new GlFrameCompositor::ClientSource();
 
 	const MikanRenderTargetDescriptor& desc= readAccessor->getRenderTargetDescriptor();
 	clientSource->clientSourceIndex= m_clientSources.getNumEntries();

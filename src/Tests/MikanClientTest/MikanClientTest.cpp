@@ -540,8 +540,7 @@ protected:
 		{
 			auto mode = std::static_pointer_cast<MikanVideoSourceModeResponse>(response);
 
-			MikanRenderTargetDescriptor desc;
-			memset(&desc, 0, sizeof(MikanRenderTargetDescriptor));
+			MikanRenderTargetDescriptor desc = {};
 			desc.width = mode->resolution_x;
 			desc.height = mode->resolution_y;
 			desc.color_buffer_type = MikanColorBuffer_RGBA32;

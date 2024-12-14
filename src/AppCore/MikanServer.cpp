@@ -159,7 +159,7 @@ public:
 			MikanServer* mikanServer = MikanServer::getInstance();
 
 			MikanRenderTargetDescriptor& desc= m_connectionInfo.renderTargetReadAccessor->getRenderTargetDescriptor();
-			memset(&desc, 0, sizeof(MikanRenderTargetDescriptor));
+			desc= MikanRenderTargetDescriptor();
 
 			if (mikanServer->OnClientRenderTargetReleased)
 			{
