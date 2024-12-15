@@ -142,7 +142,7 @@ namespace Serialization
 			ValueAccessor const& arrayAccessor,
 			rfk::ClassTemplateInstantiation const& templatedArrayType)
 		{
-			void* arrayInstance = arrayAccessor.getUntypedValueMutablePtr();
+			const void* arrayInstance = arrayAccessor.getUntypedValuePtr();
 
 			// Get the type of the elements in the array from the template argument
 			auto const& templateArg =
@@ -150,7 +150,7 @@ namespace Serialization
 					templatedArrayType.getTemplateArgumentAt(0));
 			rfk::Type const& elementType = templateArg.getType();
 
-			// Use reflection to get the methods to resize the array and get a mutable reference to an element
+			// Use reflection to get the methods to resize the array and get a reference to an element
 			rfk::Method const* getSizeMethod = templatedArrayType.getMethodByName("size");
 			rfk::Method const* getRawElementMethod = templatedArrayType.getMethodByName("getRawElement");
 
@@ -227,7 +227,7 @@ namespace Serialization
 			rfk::Method const* getConstEnumeratorMethod = templatedMapType.getMethodByName("getConstEnumerator");
 
 			// Get a const enumerator to the map
-			void* mapInstance = mapAccessor.getUntypedValueMutablePtr();
+			const void* mapInstance = mapAccessor.getUntypedValuePtr();
 
 			// Serialize each element of the map
 			for (auto enumerator =
