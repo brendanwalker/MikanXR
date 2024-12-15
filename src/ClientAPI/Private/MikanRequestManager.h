@@ -3,6 +3,7 @@
 #include "MikanCoreTypes.h"
 #include "MikanAPITypes.h"
 #include "MikanTypeFwd.h"
+#include "MikanResponseFuture.h"
 #include "BinaryUtility.h"
 #include "JsonSerializer.h"
 
@@ -23,7 +24,7 @@ public:
 
 	MikanResponseFuture sendRequest(MikanRequest& request);
 	MikanResponseFuture addResponseHandler(MikanRequestID requestId, MikanAPIResult result);
-	MikanResponseFuture makeImmediateResponse(MikanAPIResult result);
+	MikanAPIResult cancelRequest(MikanRequestID requestId);
 
 protected:
 	static void textResponseHandlerStatic(MikanRequestID requestId, const char* utf8ResponseString, void* userdata);
@@ -44,6 +45,8 @@ private:
 		MikanResponsePromise promise;
 	};
 	using PendingRequestPtr = std::shared_ptr<PendingRequest>;
+	void insertPendingRequest(MikanRequestManager::PendingRequestPtr pendingRequest);
+	PendingRequestPtr removePendingRequest(MikanRequestID requestId);
 
 	MikanContext m_context= nullptr;
 	std::map<MikanRequestID, PendingRequestPtr> m_pendingRequests;

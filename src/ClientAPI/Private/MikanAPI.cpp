@@ -98,13 +98,18 @@ public:
 	// Send a request to the Mikan API
 	virtual MikanResponseFuture sendRequest(MikanRequest& request) override
 	{
-		MikanResponseFuture responseFuture;
-		if (!m_renderTargetAPI->tryProcessRequest(request, responseFuture))
+		MikanResponseFuture responseFuture= m_renderTargetAPI->tryProcessRequest(request);
+		if (responseFuture.isValid())
 		{
-			responseFuture= m_requestManager->sendRequest(request);
+			return responseFuture;
 		}
 
-		return responseFuture;
+		return m_requestManager->sendRequest(request);
+	}
+
+	virtual MikanAPIResult cancelRequest(const MikanRequestID& requestId) override
+	{
+		return m_requestManager->cancelRequest(requestId);
 	}
 
 	// Set client properties before calling connect

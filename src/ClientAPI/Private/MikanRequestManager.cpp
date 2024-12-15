@@ -60,7 +60,7 @@ MikanResponseFuture MikanRequestManager::sendRequest(MikanRequest& inRequest)
 MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID requestId, MikanAPIResult result)
 {
 	MikanResponsePromise promise;
-	MikanResponseFuture future = promise.get_future();
+	MikanResponseFuture future(this, requestId, promise);
 
 	if (result == MikanAPIResult::Success)
 	{
@@ -69,11 +69,7 @@ MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID reque
 		pendingRequest->promise = std::move(promise);
 
 		// Insert into the pending request map
-		{
-			std::lock_guard<std::mutex> lock(m_pending_request_map_mutex);
-
-			m_pendingRequests.insert({requestId, pendingRequest});
-		}
+		insertPendingRequest(pendingRequest);
 	}
 	else
 	{
@@ -90,38 +86,39 @@ MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID reque
 	return future;
 }
 
-MikanResponseFuture MikanRequestManager::makeImmediateResponse(MikanAPIResult result)
+void MikanRequestManager::insertPendingRequest(MikanRequestManager::PendingRequestPtr pendingRequest)
 {
-	MikanResponsePromise promise;
-	MikanResponseFuture future = promise.get_future();
+	std::lock_guard<std::mutex> lock(m_pending_request_map_mutex);
 
-	auto errorResponse = std::make_shared<MikanResponse>();
-	rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
-	errorResponse->responseTypeId = responseStruct.getId();
-	errorResponse->responseTypeName = responseStruct.getName();
-	errorResponse->requestId = INVALID_MIKAN_ID;
-	errorResponse->resultCode = result;
+	m_pendingRequests.insert({pendingRequest->id, pendingRequest});
+}
 
-	promise.set_value(errorResponse);
+MikanRequestManager::PendingRequestPtr MikanRequestManager::removePendingRequest(MikanRequestID requestId)
+{
+	std::lock_guard<std::mutex> lock(m_pending_request_map_mutex);
 
-	return future;
+	PendingRequestPtr pendingRequest;
+	auto it = m_pendingRequests.find(requestId);
+	if (it != m_pendingRequests.end())
+	{
+		pendingRequest = it->second;
+		m_pendingRequests.erase(it);
+	}
+
+	return pendingRequest;
+}
+
+MikanAPIResult MikanRequestManager::cancelRequest(MikanRequestID requestId)
+{
+	PendingRequestPtr existingRequest= removePendingRequest(requestId);
+
+	return existingRequest ? MikanAPIResult::Success : MikanAPIResult::InvalidParam;
 }
 
 void MikanRequestManager::textResponseHander(MikanRequestID requestId, const char* utf8ResponseString)
 {
-	PendingRequestPtr pendingRequest;
-
 	// Find the pending request and remove it from the pending request map
-	{
-		std::lock_guard<std::mutex> lock(m_pending_request_map_mutex);
-
-		auto it = m_pendingRequests.find(requestId);
-		if (it != m_pendingRequests.end())
-		{
-			pendingRequest = it->second;
-			m_pendingRequests.erase(it);
-		}
-	}
+	PendingRequestPtr pendingRequest= removePendingRequest(requestId);
 
 	// Fulfill the promise with the response
 	if (pendingRequest)
@@ -218,22 +215,13 @@ void MikanRequestManager::binaryResponseHander(
 		bool parseHeader = 
 			Serialization::deserializeFromBytes(
 				buffer, bufferSize, &responseHeader, MikanResponse::staticGetArchetype());
-		if (parseHeader)
+		if (!parseHeader)
 		{
 			throw std::runtime_error("Failed to parse response header");
 		}
 
 		// Find the pending request and remove it from the pending request map
-		{
-			std::lock_guard<std::mutex> lock(m_pending_request_map_mutex);
-
-			auto it = m_pendingRequests.find(responseHeader.requestId);
-			if (it != m_pendingRequests.end())
-			{
-				pendingRequest = it->second;
-				m_pendingRequests.erase(it);
-			}
-		}
+		pendingRequest= removePendingRequest(responseHeader.requestId);
 
 		// Fulfill the promise with the response
 		if (pendingRequest)
@@ -258,7 +246,7 @@ void MikanRequestManager::binaryResponseHander(
 				<< "Request ID not found: " << responseHeader.requestId;
 		}
 	}
-	catch (std::out_of_range& e)
+	catch (std::exception& e)
 	{
 		MIKAN_MT_LOG_ERROR("MikanClient::binaryResponseHander()")
 			<< "Failed to parse response: " << e.what();

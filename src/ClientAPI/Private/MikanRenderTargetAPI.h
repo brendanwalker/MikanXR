@@ -11,7 +11,7 @@ public:
 
 	MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
 	MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
-	bool tryProcessRequest(MikanRequest& request, MikanResponseFuture& outFuture);
+	MikanResponseFuture tryProcessRequest(MikanRequest& request);
 
 protected:
 	MikanResponseFuture allocateRenderTargetTextures(MikanRequest& request);

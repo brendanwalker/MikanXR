@@ -3,6 +3,7 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanClientTypes.h"
+#include "MikanResponseFuture.h"
 
 #include <memory>
 #include <string>
@@ -36,5 +37,6 @@ public:
 
 	// Messaging
 	virtual MikanResponseFuture sendRequest(MikanRequest& request) = 0;
+	virtual MikanAPIResult cancelRequest(const MikanRequestID& requestId) = 0;
 	virtual MikanAPIResult fetchNextEvent(MikanEventPtr& out_event) = 0;
 };

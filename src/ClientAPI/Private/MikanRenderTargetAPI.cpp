@@ -26,35 +26,30 @@ MikanAPIResult MikanRenderTargetAPI::getGraphicsDeviceInterface(
 	return (MikanAPIResult)Mikan_GetGraphicsDeviceInterface(context, api, outGraphicsDeviceInterface);
 }
 
-bool MikanRenderTargetAPI::tryProcessRequest(MikanRequest& request, MikanResponseFuture& outFuture)
+MikanResponseFuture MikanRenderTargetAPI::tryProcessRequest(MikanRequest& request)
 {
 	if (typeid(request) == typeid(AllocateRenderTargetTextures))
 	{
-		outFuture = allocateRenderTargetTextures(request);
-		return true;
+		return allocateRenderTargetTextures(request);
 	}
 	else if (typeid(request) == typeid(WriteColorRenderTargetTexture))
 	{
-		outFuture = writeColorRenderTargetTexture(request);
-		return true;
+		return writeColorRenderTargetTexture(request);
 	}
 	else if (typeid(request) == typeid(WriteDepthRenderTargetTexture))
 	{
-		outFuture = writeDepthRenderTargetTexture(request);
-		return true;
+		return writeDepthRenderTargetTexture(request);
 	}
 	else if (typeid(request) == typeid(PublishRenderTargetTextures))
 	{
-		outFuture = publishRenderTargetTextures(request);
-		return true;
+		return publishRenderTargetTextures(request);
 	}
 	else if (typeid(request) == typeid(FreeRenderTargetTextures))
 	{
-		outFuture = freeRenderTargetTextures(request);
-		return true;
+		return freeRenderTargetTextures(request);
 	}
 
-	return false;
+	return MikanResponseFuture();
 }
 
 MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
@@ -90,7 +85,7 @@ MikanResponseFuture MikanRenderTargetAPI::writeColorRenderTargetTexture(
 	MikanContext context = m_requestManager->getContext();
 	MikanAPIResult result= (MikanAPIResult)Mikan_WriteColorRenderTargetTexture(context, apiColorTexturePtr);
 
-	return m_requestManager->makeImmediateResponse(result);
+	return MikanResponseFuture(result);
 }
 
 MikanResponseFuture MikanRenderTargetAPI::writeDepthRenderTargetTexture(
@@ -106,7 +101,7 @@ MikanResponseFuture MikanRenderTargetAPI::writeDepthRenderTargetTexture(
 		(MikanAPIResult)Mikan_WriteDepthRenderTargetTexture(
 			context, apiDepthTexturePtr, zNear, zFar);
 
-	return m_requestManager->makeImmediateResponse(result);
+	return MikanResponseFuture(result);
 }
 
 MikanResponseFuture MikanRenderTargetAPI::publishRenderTargetTextures(

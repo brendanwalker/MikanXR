@@ -1,12 +1,24 @@
 //-- includes -----
 #include "MikanAPI.h"
 #include "MikanClientRequests.h"
-#include "MikanRenderTargetRequests.h"
-#include "MikanVideoSourceRequests.h"
 #include "MikanClientEvents.h"
-#include "MikanVideoSourceEvents.h"
-#include "MikanMathTypes.h"
+#include "MikanScriptEvents.h"
+
+#include "MikanRenderTargetRequests.h"
+
+#include "MikanSpatialAnchorEvents.h"
+#include "MikanSpatialAnchorRequests.h"
+
+#include "MikanStencilEvents.h"
 #include "MikanStencilRequests.h"
+
+#include "MikanVideoSourceEvents.h"
+#include "MikanVideoSourceRequests.h"
+
+#include "MikanVRDeviceEvents.h" 
+#include "MikanVRDeviceRequests.h"
+
+#include "MikanMathTypes.h"
 #include "MikanVideoSourceTypes.h"
 
 #define SDL_MAIN_HANDLED
@@ -357,7 +369,7 @@ protected:
 			if (m_mikanApi->getIsConnected())
 			{
 				DisposeClientRequest disposeRequest = {};
-				m_mikanApi->sendRequest(disposeRequest).wait();
+				m_mikanApi->sendRequest(disposeRequest).get();
 			}
 
 			// Disconnect from the server and shutdown the API
@@ -407,56 +419,110 @@ protected:
 
 		if (m_mikanApi->getIsConnected())
 		{
-			MikanEventPtr event;
-			while (m_mikanApi->fetchNextEvent(event) == MikanAPIResult::Success)
+			MikanEventPtr mikanEvent;
+			while (m_mikanApi->fetchNextEvent(mikanEvent) == MikanAPIResult::Success)
 			{
-				if (typeid(*event) == typeid(MikanConnectedEvent))
+				// App Connection Events
+				if (typeid(*mikanEvent) == typeid(MikanConnectedEvent))
 				{
-					// Initialize the client info on the server
-					MikanClientInfo clientInfo = m_mikanApi->allocateClientInfo();
-					clientInfo.supportsRGB24 = true;
-					clientInfo.engineName = "MikanXR Test";
-					clientInfo.engineVersion = "1.0";
-					clientInfo.applicationName = "MikanXR Test";
-					clientInfo.applicationVersion = "1.0";
-					clientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
-
-					InitClientRequest initClientRequest = {};
-					initClientRequest.clientInfo = clientInfo;
-
-					m_mikanApi->sendRequest(initClientRequest).wait();
-
-					reallocateRenderBuffers();
-					updateCameraProjectionMatrix();
+					handleMikanConnected();
 				}
-				else if (typeid(*event) == typeid(MikanDisconnectedEvent))
+				else if (typeid(*mikanEvent) == typeid(MikanDisconnectedEvent))
 				{
-					auto disconnectEvent = std::static_pointer_cast<MikanDisconnectedEvent>(event);
-					MIKAN_LOG_INFO("MikanDisconnectedEvent") << disconnectEvent->reason.getValue();
+					auto disconnectEvent = std::static_pointer_cast<MikanDisconnectedEvent>(mikanEvent);
 
-					if (disconnectEvent->code == MikanDisconnectCode_IncompatibleVersion)
-					{
-						// The server has disconnected us because we are using an incompatible version
-						// Shutdown since connection is never going to work
-						m_bShutdownRequested= true;
-						MIKAN_LOG_ERROR("MikanDisconnectedEvent") << "Shutting down due to incompatible client";
-					}
+					handleMikanDisconnected(*disconnectEvent);
 				}
-				else if (typeid(*event) == typeid(MikanVideoSourceOpenedEvent))
+				// Video Source Events
+				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceOpenedEvent))
 				{
-					reallocateRenderBuffers();
-					updateCameraProjectionMatrix();
+					handleVideoSourceOpened();
 				}
-				else if (typeid(*event) == typeid(MikanVideoSourceNewFrameEvent))
+				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceClosedEvent))
 				{
-					auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(event);
-					processNewVideoSourceFrame(*newFrameEvent.get());
+					HandleVideoSourceClosed();
 				}
-				else if (typeid(*event) == typeid(MikanVideoSourceModeChangedEvent) ||
-						 typeid(*event) == typeid(MikanVideoSourceIntrinsicsChangedEvent))
+				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceModeChangedEvent))
 				{
-					reallocateRenderBuffers();
-					updateCameraProjectionMatrix();
+					handleVideoSourceModeChanged();
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceIntrinsicsChangedEvent))
+				{
+					handleVideoSourceIntrinsicsChanged();
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceAttachmentChangedEvent))
+				{
+					handleVideoSourceAttachmentChanged();
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceNewFrameEvent))
+				{
+					auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(mikanEvent);
+
+					handleNewVideoSourceFrame(*newFrameEvent);
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceAttachmentChangedEvent))
+				{
+					handleVideoSourceAttachmentChanged();
+				}
+				// VR Device Events
+				else if (typeid(*mikanEvent) == typeid(MikanVRDeviceListUpdateEvent))
+				{
+					handleVRDeviceListChanged();
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanVRDevicePoseUpdateEvent))
+				{
+					auto devicePoseEvent = std::static_pointer_cast<MikanVRDevicePoseUpdateEvent>(mikanEvent);
+
+					handleVRDevicePoseChanged(*devicePoseEvent);
+				}
+				// Spatial Anchor Events
+				else if (typeid(*mikanEvent) == typeid(MikanAnchorNameUpdateEvent))
+				{
+					auto anchorNameEvent = std::static_pointer_cast<MikanAnchorNameUpdateEvent>(mikanEvent);
+
+					handleAnchorNameChanged(*anchorNameEvent);
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanAnchorPoseUpdateEvent))
+				{
+					auto anchorPoseEvent = std::static_pointer_cast<MikanAnchorPoseUpdateEvent>(mikanEvent);
+
+					handleAnchorPoseChanged(*anchorPoseEvent);
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanAnchorListUpdateEvent))
+				{
+					handleAnchorListChanged();
+				}
+				// Stencil Events
+				else if (typeid(*mikanEvent) == typeid(MikanStencilNameUpdateEvent))
+				{
+					auto stencilNameEvent = std::static_pointer_cast<MikanStencilNameUpdateEvent>(mikanEvent);
+
+					handleStencilNameChanged(*stencilNameEvent);
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanStencilPoseUpdateEvent))
+				{
+					auto stencilPoseEvent = std::static_pointer_cast<MikanStencilPoseUpdateEvent>(mikanEvent);
+
+					handleStencilPoseChanged(*stencilPoseEvent);
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanQuadStencilListUpdateEvent))
+				{
+					handleQuadStencilListChanged();
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanBoxStencilListUpdateEvent))
+				{
+					handleBoxStencilListChanged();
+				}
+				else if (typeid(*mikanEvent) == typeid(MikanModelStencilListUpdateEvent))
+				{
+					handleModelStencilListChanged();
+				}
+				// Script Message Events
+				else if (typeid(*mikanEvent) == typeid(MikanScriptMessagePostedEvent))
+				{
+					auto scriptMessageEvent = std::static_pointer_cast<MikanScriptMessagePostedEvent>(mikanEvent);
+
+					handleScriptMessage(*scriptMessageEvent.get());
 				}
 			}
 		}
@@ -480,6 +546,279 @@ protected:
 		}
 	}
 
+	// App Connection Events
+	void handleMikanConnected()
+	{
+		// Initialize the client info on the server
+		MikanClientInfo clientInfo = m_mikanApi->allocateClientInfo();
+		clientInfo.supportsRGB24 = true;
+		clientInfo.engineName = "MikanXR Test";
+		clientInfo.engineVersion = "1.0";
+		clientInfo.applicationName = "MikanXR Test";
+		clientInfo.applicationVersion = "1.0";
+		clientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
+
+		InitClientRequest initClientRequest = {};
+		initClientRequest.clientInfo = clientInfo;
+
+		m_mikanApi->sendRequest(initClientRequest).get();
+
+		reallocateRenderBuffers();
+		updateCameraProjectionMatrix();
+
+		// Fetch all mikan state
+		handleAnchorListChanged();
+		handleQuadStencilListChanged();
+		handleBoxStencilListChanged();
+		handleModelStencilListChanged();
+	}
+
+	void handleMikanDisconnected(const MikanDisconnectedEvent& disconnectEvent)
+	{
+		MIKAN_LOG_INFO("MikanDisconnectedEvent") << disconnectEvent.reason.getValue();
+
+		if (disconnectEvent.code == MikanDisconnectCode_IncompatibleVersion)
+		{
+			// The server has disconnected us because we are using an incompatible version
+			// Shutdown since connection is never going to work
+			m_bShutdownRequested = true;
+			MIKAN_LOG_ERROR("MikanDisconnectedEvent") << "Shutting down due to incompatible client";
+		}
+	}
+
+	// Video Source Events
+	void handleVideoSourceOpened()
+	{
+		reallocateRenderBuffers();
+		updateCameraProjectionMatrix();
+	}
+
+	void HandleVideoSourceClosed()
+	{
+
+	}
+
+	void handleVideoSourceModeChanged()
+	{
+		reallocateRenderBuffers();
+		updateCameraProjectionMatrix();
+	}
+
+	void handleVideoSourceIntrinsicsChanged()
+	{
+		reallocateRenderBuffers();
+		updateCameraProjectionMatrix();
+	}
+
+	void handleNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEvent)
+	{
+		processNewVideoSourceFrame(newFrameEvent);
+	}
+
+	void handleVideoSourceAttachmentChanged()
+	{
+	}
+
+	// VR Device Events
+	void handleVRDeviceListChanged()
+	{
+		GetVRDeviceList listRequest;
+		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		if (listResponse->resultCode == MikanAPIResult::Success)
+		{
+			auto vrDeviceList = std::static_pointer_cast<MikanVRDeviceListResponse>(listResponse);
+			size_t deviceCount = vrDeviceList->vr_device_id_list.size();
+
+			MIKAN_LOG_INFO("HandleVRDeviceListChanged") << "VR Device List Count: " << deviceCount;
+			for (size_t Index = 0; Index < deviceCount; ++Index)
+			{
+				const MikanVRDeviceID deviceId = vrDeviceList->vr_device_id_list[Index];
+
+				GetVRDeviceInfo vrDeviceInfoRequest;
+				vrDeviceInfoRequest.deviceId = deviceId;
+
+				auto response = m_mikanApi->sendRequest(vrDeviceInfoRequest).get();
+				if (response->resultCode == MikanAPIResult::Success)
+				{
+					auto vrDeviceInfoResponse =
+						std::static_pointer_cast<MikanVRDeviceInfoResponse>(response);
+
+					logVRDeviceInfo(vrDeviceInfoResponse->vr_device_info);
+				}
+			}
+		}
+	}
+
+	void handleVRDevicePoseChanged(const MikanVRDevicePoseUpdateEvent& DevicePoseEvent)
+	{
+	}
+
+	// Spatial Anchor Events
+	void handleAnchorListChanged()
+	{
+		// Fetch the list of spatial anchors from Mikan and apply them to the scene
+		GetSpatialAnchorList listRequest;
+		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		if (listResponse->resultCode == MikanAPIResult::Success)
+		{
+			auto SpatialAnchorList = std::static_pointer_cast<MikanSpatialAnchorListResponse>(listResponse);
+			size_t anchorCount= SpatialAnchorList->spatial_anchor_id_list.size();
+
+			MIKAN_LOG_INFO("HandleAnchorListChanged") << "Anchor Count: " << anchorCount;
+			for (size_t Index = 0; Index < anchorCount; ++Index)
+			{
+				const MikanSpatialAnchorID AnchorId = SpatialAnchorList->spatial_anchor_id_list[Index];
+
+				GetSpatialAnchorInfo anchorRequest;
+				anchorRequest.anchorId = AnchorId;
+
+				auto anchorResponse = m_mikanApi->sendRequest(anchorRequest).get();
+				if (anchorResponse->resultCode == MikanAPIResult::Success)
+				{
+					auto MikanAnchorResponse = 
+						std::static_pointer_cast<MikanSpatialAnchorInfoResponse>(anchorResponse);
+
+					logAnchorInfo(MikanAnchorResponse->anchor_info);
+				}
+			}
+		}
+	}
+
+	void handleAnchorNameChanged(const struct MikanAnchorNameUpdateEvent& anchorNameEvent)
+	{
+		const std::string& anchorName= anchorNameEvent.anchor_name.getValue();
+
+		MIKAN_LOG_INFO("HandleAnchorNameChanged") << "Anchor New Name: " << anchorName;
+	}
+
+	void handleAnchorPoseChanged(const MikanAnchorPoseUpdateEvent& anchorPoseEvent)
+	{
+		MIKAN_LOG_INFO("HandleAnchorNameChanged") << "Anchor ID: " << anchorPoseEvent.anchor_id;
+		MIKAN_LOG_INFO("HandleAnchorNameChanged") << "Anchor Pose: ";
+		logMikanTransform(anchorPoseEvent.transform);
+	}
+
+	// Stencil Events
+	void handleStencilNameChanged(const struct MikanStencilNameUpdateEvent& stencilNameEvent)
+	{
+		const std::string& stencilName = stencilNameEvent.stencil_name.getValue();
+
+		MIKAN_LOG_INFO("HandleStencilNameChanged") << "Stencil New Name: " << stencilName;
+	}
+
+	void handleQuadStencilListChanged()
+	{
+		GetQuadStencilList listRequest;
+		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		if (listResponse->resultCode == MikanAPIResult::Success)
+		{
+			auto stencilList = std::static_pointer_cast<MikanStencilListResponse>(listResponse);
+			size_t stencilCount = stencilList->stencil_id_list.size();
+
+			MIKAN_LOG_INFO("HandleQuadStencilListChanged") << "Stencil Count: " << stencilCount;
+			for (size_t Index = 0; Index < stencilCount; ++Index)
+			{
+				const MikanSpatialAnchorID stencilId = stencilList->stencil_id_list[Index];
+
+				GetQuadStencil stencilRequest;
+				stencilRequest.stencilId = stencilId;
+
+				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).get();
+				if (stencilResponse->resultCode == MikanAPIResult::Success)
+				{
+					auto quadStencilResponse =
+						std::static_pointer_cast<MikanStencilQuadInfoResponse>(stencilResponse);
+
+					logQuadStencilInfo(quadStencilResponse->quad_info);
+				}
+			}
+		}
+	}
+
+	void handleBoxStencilListChanged()
+	{
+		GetBoxStencilList listRequest;
+		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		if (listResponse->resultCode == MikanAPIResult::Success)
+		{
+			auto stencilList = std::static_pointer_cast<MikanStencilListResponse>(listResponse);
+			size_t stencilCount = stencilList->stencil_id_list.size();
+
+			MIKAN_LOG_INFO("HandleBoxStencilListChanged") << "Stencil Count: " << stencilCount;
+			for (size_t Index = 0; Index < stencilCount; ++Index)
+			{
+				const MikanSpatialAnchorID stencilId = stencilList->stencil_id_list[Index];
+
+				GetBoxStencil stencilRequest;
+				stencilRequest.stencilId = stencilId;
+
+				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).get();
+				if (stencilResponse->resultCode == MikanAPIResult::Success)
+				{
+					auto boxStencilResponse =
+						std::static_pointer_cast<MikanStencilBoxInfoResponse>(stencilResponse);
+
+					logBoxStencilInfo(boxStencilResponse->box_info);
+				}
+			}
+		}
+	}
+
+	void handleModelStencilListChanged()
+	{
+		GetModelStencilList listRequest;
+		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		if (listResponse->resultCode == MikanAPIResult::Success)
+		{
+			auto stencilList = std::static_pointer_cast<MikanStencilListResponse>(listResponse);
+			size_t stencilCount = stencilList->stencil_id_list.size();
+
+			MIKAN_LOG_INFO("HandleModelStencilListChanged") << "Stencil Count: " << stencilCount;
+			for (size_t Index = 0; Index < stencilCount; ++Index)
+			{
+				const MikanSpatialAnchorID stencilId = stencilList->stencil_id_list[Index];
+
+				GetModelStencil stencilRequest;
+				stencilRequest.stencilId = stencilId;
+
+				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).get();
+				if (stencilResponse->resultCode == MikanAPIResult::Success)
+				{
+					auto modelStencilResponse =
+						std::static_pointer_cast<MikanStencilModelInfoResponse>(stencilResponse);
+
+					logModelStencilInfo(modelStencilResponse->model_info);
+
+					GetModelStencilRenderGeometry geoRequest;
+					geoRequest.stencilId = stencilId;
+
+					auto geoResponse = m_mikanApi->sendRequest(geoRequest).get();
+					if (geoResponse->resultCode == MikanAPIResult::Success)
+					{
+						auto modelGeoResponse =
+							std::static_pointer_cast<MikanStencilModelRenderGeometryResponse>(geoResponse);
+
+						logModelStencilGeometry(modelGeoResponse->render_geometry);
+					}
+				}
+			}
+		}
+	}
+
+	void handleStencilPoseChanged(const MikanStencilPoseUpdateEvent& stencilPoseEvent)
+	{
+		MIKAN_LOG_INFO("HandleStencilPoseChanged") << "Stencil ID: " << stencilPoseEvent.stencil_id;
+		MIKAN_LOG_INFO("HandleStencilPoseChanged") << "Stencil Pose: ";
+		logMikanTransform(stencilPoseEvent.transform);
+	}
+
+	// Script Message Events
+	void handleScriptMessage(const MikanScriptMessagePostedEvent& scriptMessageEvent)
+	{
+		MIKAN_LOG_INFO("HandleScriptMessage") << "Message: " << scriptMessageEvent.message.getValue();
+	}
+
+	// Actions
 	void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEvent)
 	{
 		if (newFrameEvent.frame == m_lastReceivedVideoSourceFrame)
@@ -530,7 +869,7 @@ protected:
 
 		// Tell the server to free the old render target buffers
 		FreeRenderTargetTextures freeRequest;
-		m_mikanApi->sendRequest(freeRequest).wait();
+		m_mikanApi->sendRequest(freeRequest).get();
 
 		// Fetch the current video source resolution
 		GetVideoSourceMode getModeRequest;
@@ -550,7 +889,7 @@ protected:
 			// Tell the server to allocate new render target buffers
 			AllocateRenderTargetTextures allocateRequest;
 			allocateRequest.descriptor = desc;
-			m_mikanApi->sendRequest(allocateRequest).wait();
+			m_mikanApi->sendRequest(allocateRequest).get();
 
 			// Create a new frame buffer to render to
 			createFrameBuffer(mode->resolution_x, mode->resolution_y);
@@ -977,6 +1316,86 @@ protected:
 			glDeleteFramebuffers(1, &m_framebuffer);
 			m_framebuffer= 0;
 		}
+	}
+
+	// Log Helpers
+	void logAnchorInfo(const MikanSpatialAnchorInfo& anchorInfo)
+	{
+		MIKAN_LOG_INFO("logAnchorInfo") << "Anchor ID: " << anchorInfo.anchor_id;
+		MIKAN_LOG_INFO("logAnchorInfo") << "Anchor Name: " << anchorInfo.anchor_name.getValue();
+		MIKAN_LOG_INFO("logAnchorInfo") << "Anchor Pose: ";
+		logMikanTransform(anchorInfo.world_transform);
+	}
+
+	void logQuadStencilInfo(const MikanStencilQuadInfo& quad_info)
+	{
+		MIKAN_LOG_INFO("logQuadStencilInfo") << "Stencil Id: " << quad_info.stencil_id;
+		MIKAN_LOG_INFO("logQuadStencilInfo") << "Stencil Name: " << quad_info.stencil_name.getValue();
+		MIKAN_LOG_INFO("logQuadStencilInfo") << "Parent Anchor Id: " << quad_info.parent_anchor_id;
+		MIKAN_LOG_INFO("logQuadStencilInfo") << "Quad Width: " << quad_info.quad_width;
+		MIKAN_LOG_INFO("logQuadStencilInfo") << "Quad Height: " << quad_info.quad_height;
+		MIKAN_LOG_INFO("logQuadStencilInfo") << "Is Double Sided: " << (quad_info.is_double_sided ? "true" : "false");
+		MIKAN_LOG_INFO("logQuadStencilInfo") << "Is Disabled: " << (quad_info.is_disabled ? "true" : "false");
+		MIKAN_LOG_INFO("logQuadStencilInfo") << "Relative Transform: ";
+		logMikanTransform(quad_info.relative_transform);
+	}
+
+	void logBoxStencilInfo(const MikanStencilBoxInfo& box_info)
+	{
+		MIKAN_LOG_INFO("logBoxStencilInfo") << "Stencil Id: " << box_info.stencil_id;
+		MIKAN_LOG_INFO("logBoxStencilInfo") << "Stencil Name: " << box_info.stencil_name.getValue();
+		MIKAN_LOG_INFO("logBoxStencilInfo") << "Parent Anchor Id: " << box_info.parent_anchor_id;
+		MIKAN_LOG_INFO("logBoxStencilInfo") << "Box X Size: " << box_info.box_x_size;
+		MIKAN_LOG_INFO("logBoxStencilInfo") << "Box Y Size: " << box_info.box_y_size;
+		MIKAN_LOG_INFO("logBoxStencilInfo") << "Box Z Size: " << box_info.box_z_size;
+		MIKAN_LOG_INFO("logBoxStencilInfo") << "Is Disabled: " << (box_info.is_disabled ? "true" : "false");
+		MIKAN_LOG_INFO("logBoxStencilInfo") << "Relative Transform: ";
+		logMikanTransform(box_info.relative_transform);
+	}
+
+	void logModelStencilInfo(const MikanStencilModelInfo& model_info)
+	{
+		MIKAN_LOG_INFO("logModelStencilInfo") << "Stencil Id: " << model_info.stencil_id;
+		MIKAN_LOG_INFO("logModelStencilInfo") << "Stencil Name: " << model_info.stencil_name.getValue();
+		MIKAN_LOG_INFO("logModelStencilInfo") << "Parent Anchor Id: " << model_info.parent_anchor_id;
+		MIKAN_LOG_INFO("logModelStencilInfo") << "Is Disabled: " << (model_info.is_disabled ? "true" : "false");
+		MIKAN_LOG_INFO("logModelStencilInfo") << "Relative Transform: ";
+		logMikanTransform(model_info.relative_transform);
+	}
+
+	void logModelStencilGeometry(const MikanStencilModelRenderGeometry& geometry)
+	{
+		for (size_t index = 0; index < geometry.meshes.size(); ++index)
+		{
+			const MikanTriagulatedMesh& mesh = geometry.meshes[index];
+
+			MIKAN_LOG_INFO("logModelStencilGeometry") << "  Mesh Index: " << index;
+			logModelTriMesh(mesh);
+		}
+	}
+
+	void logModelTriMesh(const MikanTriagulatedMesh& triMesh)
+	{
+		MIKAN_LOG_INFO("logModelTriMesh") << "    Triangle Count: " << triMesh.indices.size() / 3;
+		MIKAN_LOG_INFO("logModelTriMesh") << "    Normal Count: " << triMesh.normals.size();
+		MIKAN_LOG_INFO("logModelTriMesh") << "    Vertex Count: " << triMesh.vertices.size();
+		MIKAN_LOG_INFO("logModelTriMesh") << "    Texel Count: " << triMesh.texels.size();
+	}
+
+	void logMikanTransform(const MikanTransform& xform)
+	{
+		const MikanVector3f& s = xform.scale;
+		const MikanVector3f& t = xform.position;
+		const MikanQuatf& q = xform.rotation;
+
+		MIKAN_LOG_INFO("logMikanTransform") << "  Scale: " << s.x << ", " << s.y << ", " << s.z;
+		MIKAN_LOG_INFO("logMikanTransform") << "  Rotation: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w;
+		MIKAN_LOG_INFO("logMikanTransform") << "  Position: " << t.x << ", " << t.y << ", " << t.z;
+	}
+	
+	void logVRDeviceInfo(const MikanVRDeviceInfo& vrDeviceInfo)
+	{
+		MIKAN_LOG_INFO("logVRDeviceInfo") << "Device Name: " << vrDeviceInfo.device_path.getValue();
 	}
 
 private:

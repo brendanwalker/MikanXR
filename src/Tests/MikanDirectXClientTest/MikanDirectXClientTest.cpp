@@ -186,7 +186,7 @@ void updateMikan()
 				InitClientRequest initClientRequest = {};
                 initClientRequest.clientInfo = clientInfo;
 
-                g_mikanAPI->sendRequest(initClientRequest).wait();
+                g_mikanAPI->sendRequest(initClientRequest).get();
 
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
@@ -276,7 +276,7 @@ void reallocateRenderBuffers()
 	freeFrameBuffer();
 
     FreeRenderTargetTextures freeRequest;
-	g_mikanAPI->sendRequest(freeRequest).wait();
+	g_mikanAPI->sendRequest(freeRequest).get();
 
     GetVideoSourceMode getModeRequest;
 	auto future = g_mikanAPI->sendRequest(getModeRequest);
@@ -295,7 +295,7 @@ void reallocateRenderBuffers()
 		// Tell the server to allocate new render target buffers
         AllocateRenderTargetTextures allocateRequest;
         allocateRequest.descriptor = desc;
-		g_mikanAPI->sendRequest(allocateRequest).wait();
+		g_mikanAPI->sendRequest(allocateRequest).get();
 
         // Create a new frame buffer to render to
 		createFrameBuffer(mode->resolution_x, mode->resolution_y);
@@ -420,7 +420,7 @@ void cleanupMikan()
 		if (g_mikanAPI->getIsConnected())
 		{
 			DisposeClientRequest disposeRequest = {};
-			g_mikanAPI->sendRequest(disposeRequest).wait();
+			g_mikanAPI->sendRequest(disposeRequest).get();
 		}
 
         // Disconnect and deallocate the API
