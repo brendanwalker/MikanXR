@@ -3,6 +3,7 @@
 
 #include <Refureku/Refureku.h>
 
+#include <algorithm>
 
 namespace Serialization
 {
@@ -165,58 +166,67 @@ namespace Serialization
 		return const_cast<void*>(getUntypedValuePtr());
 	}
 
-	struct ConstVisitorUserdata
+	
+	void memoryOffsetSortStructFields(rfk::Struct const& structType, FieldList& outFields)
 	{
-		const void* instance;
-		IVisitor *visitor;
-	};
+		// Recurse into parent structs first, since they will be laid out in memory first
+		structType.foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool {
+			FieldList* outSortedFieldsPtr = reinterpret_cast<FieldList*>(userData);
+			memoryOffsetSortStructFields(parentStruct.getArchetype(), *outSortedFieldsPtr);
+			return true;
+		},
+		&outFields);
+
+		// Gather all the public, non-static fields on this struct
+		FieldList fieldsOnThisStruct;
+		structType.foreachField([](rfk::Field const& field, void* userData) -> bool {
+			FieldList* sortedFieldsPtr = reinterpret_cast<FieldList*>(userData);
+
+			// Skip this field is it is non-public or is static
+			if (field.getAccess() != rfk::EAccessSpecifier::Public || field.isStatic())
+			{
+				return true;
+			}
+
+			sortedFieldsPtr->push_back(&field);
+			return true;
+		},
+		&fieldsOnThisStruct,
+		false);
+
+		// Sort the fields on this struct by memory offset
+		if (fieldsOnThisStruct.size() > 1)
+		{
+			std::sort(fieldsOnThisStruct.begin(), fieldsOnThisStruct.end(),
+					  [](rfk::Field const* a, rfk::Field const* b) {
+				return a->getMemoryOffset() < b->getMemoryOffset();
+			});
+		}
+
+		// Append the sorted fields to the output list
+		outFields.insert(outFields.end(), fieldsOnThisStruct.begin(), fieldsOnThisStruct.end());
+	}
 
 	void visitStruct(const void* instance, rfk::Struct const& structType, IVisitor *visitor)
 	{
-		ConstVisitorUserdata userdata = {instance, visitor};
+		FieldList fields;
+		memoryOffsetSortStructFields(structType, fields);
 
-		structType.foreachField(
-			[](rfk::Field const& field, void* userdata) -> bool {
-			auto* args = reinterpret_cast<ConstVisitorUserdata*>(userdata);
-
-			// Skip this field is it is non-public or is static
-			if (field.getAccess() != rfk::EAccessSpecifier::Public || field.isStatic())
-			{
-				return true;
-			}
-
-			Serialization::visitField(args->instance, field, args->visitor);
-			return true;
-		},
-		&userdata,
-		true);
+		for (rfk::Field const* field : fields)
+		{
+			Serialization::visitField(instance, *field, visitor);
+		};
 	}
-
-	struct VisitorUserdata
-	{
-		void* instance;
-		IVisitor* visitor;
-	};
 
 	void visitStruct(void* instance, rfk::Struct const& structType, IVisitor* visitor)
 	{
-		VisitorUserdata userdata = {instance, visitor};
+		FieldList fields;
+		memoryOffsetSortStructFields(structType, fields);
 
-		structType.foreachField(
-			[](rfk::Field const& field, void* userdata) -> bool {
-			auto* args = reinterpret_cast<VisitorUserdata*>(userdata);
-
-			// Skip this field is it is non-public or is static
-			if (field.getAccess() != rfk::EAccessSpecifier::Public || field.isStatic())
-			{
-				return true;
-			}
-
-			Serialization::visitField(args->instance, field, args->visitor);
-			return true;
-		},
-		& userdata,
-		true);
+		for (rfk::Field const* field : fields)
+		{
+			Serialization::visitField(instance, *field, visitor);
+		};
 	}
 
 	void visitField(const void* instance, rfk::Field const& field, IVisitor* visitor)
