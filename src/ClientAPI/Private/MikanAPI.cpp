@@ -122,6 +122,11 @@ public:
 		return m_renderTargetAPI->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 	}
 
+	virtual MikanAPIResult connect() override
+	{
+		return (MikanAPIResult)Mikan_Connect(m_context, "", "");
+	}
+
 	virtual MikanAPIResult connect(
 		const std::string& host, 
 		const std::string& port) override
@@ -137,6 +142,11 @@ public:
 	virtual MikanAPIResult fetchNextEvent(MikanEventPtr& out_event) override
 	{
 		return m_eventManager->fetchNextEvent(out_event);
+	}
+
+	virtual MikanAPIResult disconnect() override
+	{
+		return (MikanAPIResult)Mikan_Disconnect(m_context, 0, "");
 	}
 
 	virtual MikanAPIResult disconnect(uint16_t code, const std::string& reason) override
