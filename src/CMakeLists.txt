@@ -683,10 +683,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   install(FILES 
       "${OpenCV_DIR}/x64/vc17/bin/opencv_world490d.dll"
-      CONFIGURATIONS Debug
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
   install(FILES "${OpenCV_DIR}/x64/vc17/bin/opencv_world490.dll"
-      CONFIGURATIONS Release
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
       
   install(FILES "${OPENVR_DLL}"
