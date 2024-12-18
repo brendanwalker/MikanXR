@@ -18,10 +18,10 @@
 MikanCoreResult Mikan_Initialize(
 	MikanLogLevel log_level, 
 	MikanLogCallback log_callback,
-	MikanContext* outContext)
+	MikanContext* outContextPtr)
 {
-	assert(outContext != nullptr);
-    if (*outContext != nullptr)
+	assert(outContextPtr != nullptr);
+    if (*outContextPtr != nullptr)
         return MikanCoreResult_Success;
 
     MikanClient* context = new MikanClient();
@@ -32,7 +32,7 @@ MikanCoreResult Mikan_Initialize(
         delete context;
     }
 
-	*outContext= context;
+	*outContextPtr= context;
 
     return resultCode;
 }
@@ -252,17 +252,21 @@ MikanCoreResult Mikan_Disconnect(
 	return mikanClient->disconnect(code, reason);
 }
 
-MikanCoreResult Mikan_Shutdown(MikanContext* context)
+MikanCoreResult Mikan_Shutdown(MikanContext* contextPtr)
 {
-	assert(context != nullptr);
-	if (*context == nullptr)
+	assert(contextPtr != nullptr);
+	MikanContext context= *contextPtr;
+	if (context == nullptr)
 		return MikanCoreResult_Uninitialized;
 
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	MikanCoreResult resultCode= mikanClient->shutdown();
 
+	// Deallocate the context
 	delete mikanClient;
-	*context= nullptr;
+
+	// Null out the context pointer
+	*contextPtr= nullptr;
 
 	return resultCode;
 }
