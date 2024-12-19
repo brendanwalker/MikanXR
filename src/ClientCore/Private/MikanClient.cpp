@@ -172,9 +172,9 @@ void MikanClient::binaryResponseHandler(const uint8_t* buffer, size_t bufferSize
 
 MikanCoreResult MikanClient::shutdown()
 {
+	m_messageClient->disconnect(0, "");
 	ix::uninitNetSystem();
 	log_dispose();
-	m_messageClient->disconnect(0, "");
 
 	return MikanCoreResult_Success;
 }
