@@ -14,7 +14,7 @@ namespace MikanXR
 
 	class SerializationPoint
 	{
-		public static new readonly ulong classId= 0;
+		public static readonly ulong classId= 0;
 	};
 
 	class SerializationPoint2d : SerializationPoint
