@@ -337,12 +337,14 @@ protected:
 		}
 
 		// Start of the struct definition
-		moduleFile << "\tpublic class " << structRef.getName() << structInheritance << std::endl;
+		const std::string& className= structRef.getName();
+		moduleFile << "\tpublic class " << className << structInheritance << std::endl;
 		moduleFile << "\t{" << std::endl;
 
 		// Emit the refureku class id
 		std::string classIdOverride = parentStructNames.size() > 0 ? "new " : "";
-		moduleFile << "\t\tpublic static " << classIdOverride << "readonly ulong classId= " << structRef.getId() << ";" << std::endl;
+		size_t classId= structRef.getId();
+		moduleFile << "\t\tpublic static " << classIdOverride << "readonly ulong classId= " << classId << ";" << std::endl;
 		moduleFile << std::endl;
 
 		// For some reason Refureku doesn't return fields in the order they were declared

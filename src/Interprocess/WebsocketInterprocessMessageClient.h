@@ -10,7 +10,7 @@ using WebsocketConnectionStatePtr = std::shared_ptr<WebsocketConnectionState>;
 class WebsocketInterprocessMessageClient : public IInterprocessMessageClient
 {
 public:
-	WebsocketInterprocessMessageClient();
+	WebsocketInterprocessMessageClient(int protocolVersion);
 	virtual ~WebsocketInterprocessMessageClient();
 
 	virtual MikanCoreResult initialize() override;

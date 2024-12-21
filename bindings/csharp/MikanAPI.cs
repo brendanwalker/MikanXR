@@ -95,7 +95,6 @@ namespace MikanXR
 			MikanClientInfo clientInfo = new MikanClientInfo();
 
 			// Stamp the request with the client API version and client id
-			clientInfo.apiVersion.version = GetClientAPIVersion();
 			clientInfo.clientId = GetClientUniqueID();
 
 			return clientInfo;

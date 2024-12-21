@@ -28,11 +28,13 @@
 #include "BinarySerializer.h"
 #include "StencilObjectSystemConfig.h"
 #include "StencilObjectSystem.h"
+#include "StringUtils.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
+#include "Version.h"
 
 #include "WebsocketInterprocessMessageServer.h"
 
@@ -58,20 +60,17 @@ class MikanClientConnectionState
 public:
 	MikanClientConnectionState(
 		const std::string& connectionId,
-		const MikanClientInfo& clientInfo,
 		IInterprocessMessageServer* messageServer)
 		: m_connectionId(connectionId)
 		, m_messageServer(messageServer)
+		, m_connectionInfo(new MikanClientConnectionInfo())
+		, m_subscribedVRDevices()
 	{	
-		m_connectionInfo.clientInfo= clientInfo;
-		m_connectionInfo.renderTargetReadAccessor= 
-			new InterprocessRenderTargetReadAccessor(clientInfo.clientId.getValue());
 	}
 
 	virtual ~MikanClientConnectionState()
 	{
-		freeRenderTargetTextures();
-		delete m_connectionInfo.renderTargetReadAccessor;
+		delete m_connectionInfo;
 	}
 
 	const std::string& getConnectionId() const
@@ -79,37 +78,41 @@ public:
 		return m_connectionId;
 	}
 
-	const MikanClientConnectionInfo& getClientConnectionInfo() const 
+	const MikanClientConnectionInfo* getClientConnectionInfo() const 
 	{
 		return m_connectionInfo;
 	}
 	
 	const std::string& getClientId() const 
 	{
-		return m_connectionInfo.clientInfo.clientId.getValue();
+		return m_connectionInfo->getClientId();
+	}
+
+	void setMikanClientInfo(const MikanClientInfo& clientInfo)
+	{
+		m_connectionInfo->setClientInfo(clientInfo);
 	}
 
 	const MikanClientInfo& getMikanClientInfo() const 
-	{
-	
-		return m_connectionInfo.clientInfo;
+	{	
+		return m_connectionInfo->getClientInfo();
 	}
 
 	bool readRenderTargetTextures(const uint64_t newFrameIndex)
 	{
 		EASY_FUNCTION();
 
-		return m_connectionInfo.renderTargetReadAccessor->readRenderTargetTextures(newFrameIndex);
+		return getRenderTargetReadAccessor()->readRenderTargetTextures(newFrameIndex);
 	}
 
 	InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const
 	{
-		return m_connectionInfo.renderTargetReadAccessor;
+		return m_connectionInfo->getRenderTargetReadAccessor();
 	}
 
 	MikanClientGraphicsApi getClientGraphicsAPI() const
 	{
-		return m_connectionInfo.renderTargetReadAccessor->getClientGraphicsAPI();
+		return m_connectionInfo->getRenderTargetReadAccessor()->getClientGraphicsAPI();
 	}
 
 	void subscribeToVRDevicePoseUpdates(MikanVRDeviceID deviceId)
@@ -132,16 +135,15 @@ public:
 
 		freeRenderTargetTextures();
 
-		if (m_connectionInfo.renderTargetReadAccessor->initialize(&desc))
+		if (m_connectionInfo->allocateRenderTargetTextures(desc))
 		{
 			MikanServer* mikanServer= MikanServer::getInstance();
-
 			if (mikanServer->OnClientRenderTargetAllocated)
 			{
 				mikanServer->OnClientRenderTargetAllocated(
-					m_connectionInfo.clientInfo.clientId.getValue(), 
-					m_connectionInfo.clientInfo, 
-					m_connectionInfo.renderTargetReadAccessor);
+					m_connectionInfo->getClientId(),
+					m_connectionInfo->getClientInfo(),
+					m_connectionInfo->getRenderTargetReadAccessor());
 			}
 
 			return true;
@@ -154,22 +156,18 @@ public:
 	{
 		EASY_FUNCTION();
 
-		if (m_connectionInfo.hasAllocatedRenderTarget())
+		if (m_connectionInfo->hasAllocatedRenderTarget())
 		{
 			MikanServer* mikanServer = MikanServer::getInstance();
-
-			MikanRenderTargetDescriptor& desc= m_connectionInfo.renderTargetReadAccessor->getRenderTargetDescriptor();
-			desc= MikanRenderTargetDescriptor();
-
 			if (mikanServer->OnClientRenderTargetReleased)
 			{
 				mikanServer->OnClientRenderTargetReleased(
-					m_connectionInfo.clientInfo.clientId.getValue(),
-					m_connectionInfo.renderTargetReadAccessor);
+					m_connectionInfo->getClientId(),
+					m_connectionInfo->getRenderTargetReadAccessor());
 			}
-		}
 
-		m_connectionInfo.renderTargetReadAccessor->dispose();
+			m_connectionInfo->freeRenderTargetTextures();
+		}
 	}
 
 	template <typename t_mikan_type>
@@ -188,6 +186,17 @@ public:
 	{
 		t_mikan_type mikanEvent;
 		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(mikanEvent));
+	}
+
+	// Connection Events
+	void publishClientConnectedEvent(bool bIsClientCompatible)
+	{
+		MikanConnectedEvent connectedEvent = {};
+		connectedEvent.serverVersion.version= MIKAN_SERVER_API_VERSION;
+		connectedEvent.minClientVersion.version= MIKAN_MIN_ALLOWED_CLIENT_API_VERSION;
+		connectedEvent.isClientCompatible= bIsClientCompatible;
+
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(connectedEvent));
 	}
 
 	// Scripting Events
@@ -284,17 +293,72 @@ public:
 
 private:
 	std::string m_connectionId;
-	IInterprocessMessageServer* m_messageServer;
-	MikanClientConnectionInfo m_connectionInfo;
+	IInterprocessMessageServer* m_messageServer= nullptr;
+	MikanClientConnectionInfo* m_connectionInfo= nullptr;
 	std::set<MikanVRDeviceID> m_subscribedVRDevices;
 };
 
 // -- MikanClientConnectionInfo -----
+MikanClientConnectionInfo::MikanClientConnectionInfo()
+	: m_clientInfo()
+	, m_renderTargetReadAccessor(nullptr)
+{
+
+}
+
+MikanClientConnectionInfo::~MikanClientConnectionInfo()
+{
+	disposeRenderTargetAccessor();
+}
+
+void MikanClientConnectionInfo::allocateRenderTargetAccessor()
+{
+	assert(m_renderTargetReadAccessor == nullptr);
+	assert(isClientInfoValid());
+	m_renderTargetReadAccessor = new InterprocessRenderTargetReadAccessor(getClientId());
+}
+
+void MikanClientConnectionInfo::disposeRenderTargetAccessor()
+{
+	if (m_renderTargetReadAccessor != nullptr)
+	{
+		delete m_renderTargetReadAccessor;
+		m_renderTargetReadAccessor = nullptr;
+	}
+}
+
+void MikanClientConnectionInfo::setClientInfo(const MikanClientInfo& clientInfo)
+{
+	// Free any existing render target
+	disposeRenderTargetAccessor();
+
+	// Set the new client info describing the client render capabilities
+	m_clientInfo = clientInfo;
+
+	// Allocate a new render target accessor
+	allocateRenderTargetAccessor();
+}
+
+const MikanClientInfo& MikanClientConnectionInfo::getClientInfo() const
+{
+	return m_clientInfo;
+}
+
+const std::string& MikanClientConnectionInfo::getClientId() const
+{
+	return m_clientInfo.clientId.getValue();
+}
+
+bool MikanClientConnectionInfo::isClientInfoValid() const
+{
+	return !getClientId().empty();
+}
+
 bool MikanClientConnectionInfo::hasAllocatedRenderTarget() const
 {
-	if (renderTargetReadAccessor != nullptr)
+	if (m_renderTargetReadAccessor != nullptr)
 	{
-		const MikanRenderTargetDescriptor& desc = renderTargetReadAccessor->getRenderTargetDescriptor();
+		const MikanRenderTargetDescriptor& desc = m_renderTargetReadAccessor->getRenderTargetDescriptor();
 
 		return
 			desc.color_buffer_type != MikanColorBuffer_NOCOLOR ||
@@ -302,6 +366,29 @@ bool MikanClientConnectionInfo::hasAllocatedRenderTarget() const
 	}
 
 	return false;
+}
+
+bool MikanClientConnectionInfo::allocateRenderTargetTextures(const MikanRenderTargetDescriptor& desc)
+{
+	EASY_FUNCTION();
+
+	if (m_renderTargetReadAccessor != nullptr)
+	{
+		// This will free any existing render target
+		return m_renderTargetReadAccessor->initialize(&desc);
+	}
+
+	return false;
+}
+
+void MikanClientConnectionInfo::freeRenderTargetTextures()
+{
+	EASY_FUNCTION();
+
+	if (m_renderTargetReadAccessor != nullptr)
+	{
+		m_renderTargetReadAccessor->dispose();
+	}
 }
 
 // -- MikanServer -----
@@ -342,8 +429,15 @@ bool MikanServer::startup()
 	}
 
 	// Websocket Event Handlers
-	m_messageServer->setClientDisconnectHandler(
+	m_messageServer->setSocketEventHandler(
+		WEBSOCKET_CONNECT_EVENT,
+		std::bind(&MikanServer::onClientConnected, this, _1));
+	m_messageServer->setSocketEventHandler(
+		WEBSOCKET_DISCONNECT_EVENT,
 		std::bind(&MikanServer::onClientDisconnected, this, _1));
+	m_messageServer->setSocketEventHandler(
+		WEBSOCKET_ERROR_EVENT,
+		std::bind(&MikanServer::onClientError, this, _1));
 
 	// Client Init/Dispose Requests
 	m_messageServer->setRequestHandler(
@@ -450,6 +544,7 @@ void MikanServer::update()
 	{
 		EASY_BLOCK("processRemoteFunctionCalls");
 
+		m_messageServer->processSocketEvents();
 		m_messageServer->processRequests();
 	}
 }
@@ -658,7 +753,7 @@ void MikanServer::publishVRDevicePoses(uint64_t newFrameIndex)
 }
 
 // RPC Callbacks
-void MikanServer::getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const
+void MikanServer::getConnectedClientInfoList(std::vector<const MikanClientConnectionInfo*>& outClientList) const
 {
 	outClientList.clear();
 	for (auto& connection_it : m_clientConnections)
@@ -759,23 +854,29 @@ void writeSimpleBinaryResponse(MikanRequestID requestId, MikanAPIResult result, 
 }
 
 // Connection State Management
-void MikanServer::allocateClientConnectionState(
-	const std::string& connectionId,
-	const MikanClientInfo& clientInfo)
+MikanClientConnectionStatePtr MikanServer::allocateClientConnectionState(
+	const std::string& connectionId)
 {
-	const std::string& clientId = clientInfo.clientId.getValue();
-	MikanClientConnectionStatePtr clientState =
-		std::make_shared<MikanClientConnectionState>(
-			connectionId,
-			clientInfo,
-			m_messageServer);
+	MikanClientConnectionStatePtr clientState;
 
-	m_clientConnections.insert({connectionId, clientState});
-
-	if (OnClientInitialized)
+	auto connection_it = m_clientConnections.find(connectionId);
+	if (connection_it != m_clientConnections.end())
 	{
-		OnClientInitialized(clientId, clientInfo);
+		// Client already exists
+		clientState = connection_it->second;
 	}
+	else
+	{
+		// Create a new client state
+		clientState =
+			std::make_shared<MikanClientConnectionState>(
+				connectionId,
+				m_messageServer);
+
+		m_clientConnections.insert({connectionId, clientState});
+	}
+
+	return clientState;
 }
 
 void MikanServer::disposeClientConnectionState(const std::string& connectionId)
@@ -796,16 +897,62 @@ void MikanServer::disposeClientConnectionState(const std::string& connectionId)
 }
 
 // Websocket Event Handlers
-void MikanServer::onClientDisconnected(const std::string& connectionId)
+void MikanServer::onClientConnected(const ClientSocketEvent& event)
 {
-	disposeClientConnectionState(connectionId);
+	MIKAN_LOG_INFO("onClientConnected")
+		<< "connectionId: " << event.connectionId
+		<< ", protocol: " << event.eventArgs[0];
+
+	// Determine if the client is compatible with the server
+	// by checking the protocol version
+	bool bIsClientCompatible= false;
+	std::vector<std::string> protocols= StringUtils::splitString(event.eventArgs[0], ',');
+	int clientProtocol= -1;
+	for (const std::string& protocol : protocols)
+	{
+		std::string prefix = WEBSOCKET_PROTOCOL_PREFIX;
+		if (protocol.rfind(prefix.c_str(), 0) == 0)
+		{
+			std::string versionString = protocol.substr(prefix.length());
+
+			if (!versionString.empty())
+			{
+				int clientProtocol = std::atoi(versionString.c_str());
+
+				bIsClientCompatible= clientProtocol >= MIKAN_MIN_ALLOWED_CLIENT_API_VERSION;
+				break;
+			}
+		}
+	}
+
+	// Create a new client state for the connection
+	MikanClientConnectionStatePtr clientState= allocateClientConnectionState(event.connectionId);
+
+	// Tell the client if they are compatible with the server
+	// Up to the client to trigger disconnect in response
+	clientState->publishClientConnectedEvent(bIsClientCompatible);
+}
+
+void MikanServer::onClientDisconnected(const ClientSocketEvent& event)
+{
+	MIKAN_LOG_INFO("onClientDisconnected")
+		<< "connectionId: " << event.connectionId
+		<< ", code: " << event.eventArgs[0]
+		<< ", reason: " << event.eventArgs[1];
+
+	disposeClientConnectionState(event.connectionId);
+}
+
+void MikanServer::onClientError(const ClientSocketEvent& event)
+{
+	MIKAN_LOG_ERROR("onClientError")
+		<< "connectionId: " << event.connectionId 
+		<< ", error: " << event.eventArgs[0];
 }
 
 // Request Callbacks
 void MikanServer::initClientHandler(const ClientRequest& request, ClientResponse& response)
 {
-	// TODO: Add client API version check against the server min supported API version
-
 	InitClientRequest initClientRequest;
 	if (!readTypedRequest(request.utf8RequestString, initClientRequest) || 
 		initClientRequest.clientInfo.clientId.getValue().empty())
@@ -816,12 +963,24 @@ void MikanServer::initClientHandler(const ClientRequest& request, ClientResponse
 	}
 
 	const std::string& connectionId = request.connectionId;
-	const std::string& clientId = initClientRequest.clientInfo.clientId.getValue();
+	const MikanClientInfo& clientInfo = initClientRequest.clientInfo;
+	const std::string& clientId = clientInfo.clientId.getValue();
 
 	auto connection_it = m_clientConnections.find(connectionId);
-	if (connection_it == m_clientConnections.end())
+	if (connection_it != m_clientConnections.end())
 	{
-		allocateClientConnectionState(connectionId, initClientRequest.clientInfo);
+		MikanClientConnectionStatePtr clientState= connection_it->second;
+
+		// Fill in the client info and init render target accessors base on params
+		clientState->setMikanClientInfo(clientInfo);
+
+		// Tell any listeners that a new client has been initialized
+		if (OnClientInitialized)
+		{
+			OnClientInitialized(clientId, clientInfo);
+		}
+
+		//allocateClientConnectionState(connectionId, initClientRequest.clientInfo);
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 	}
 	else

@@ -1,6 +1,5 @@
 #include "WebsocketInterprocessMessageServer.h"
 #include "JsonUtils.h"
-#include "MikanConstants.h"
 #include "MikanClientRequests.h"
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
@@ -28,30 +27,10 @@
 
 using json = nlohmann::json;
 
-using LockFreeRequestQueue = moodycamel::ReaderWriterQueue<std::string>;
-using LockFreeRequestQueuePtr = std::shared_ptr<LockFreeRequestQueue>;
+using LockFreeMessageQueue = moodycamel::ReaderWriterQueue<std::string>;
+using LockFreeMessageQueuePtr = std::shared_ptr<LockFreeMessageQueue>;
 using WebSocketWeakPtr = std::weak_ptr<ix::WebSocket>;
 using WebSocketPtr = std::shared_ptr<ix::WebSocket>;
-
-// -- WebsocketClientEventQueue --
-class WebsocketClientEventQueue
-{
-public:
-	WebsocketClientEventQueue() = default;
-
-	void enqueueClientDisconnectEvent(const std::string& connectionId)
-	{
-		m_clientDisconnectEventQueue.enqueue(connectionId);
-	}
-
-	bool dequeueClientDisconnectEvent(std::string& outConnectionId)
-	{
-		return m_clientDisconnectEventQueue.try_dequeue(outConnectionId);
-	}
-
-private:
-	moodycamel::ReaderWriterQueue<std::string> m_clientDisconnectEventQueue;
-};
 
 //-- WebSocketClientConnection -----
 class WebSocketClientConnection : public ix::ConnectionState
@@ -60,7 +39,8 @@ public:
 	WebSocketClientConnection(WebsocketInterprocessMessageServer* ownerMessageServer)
 		: ix::ConnectionState()
 		, m_ownerMessageServer(ownerMessageServer)
-		, m_functionCallQueue(std::make_shared<LockFreeRequestQueue>())
+		, m_socketEventQueue(std::make_shared<LockFreeMessageQueue>())
+		, m_requestQueue(std::make_shared<LockFreeMessageQueue>())
 	{}
 
 	void bindWebSocket(WebSocketWeakPtr websocket)
@@ -80,7 +60,8 @@ public:
 		return false;
 	}
 
-	inline LockFreeRequestQueuePtr getFunctionCallQueue() { return m_functionCallQueue; }
+	inline LockFreeMessageQueuePtr getSocketEventQueue() { return m_socketEventQueue; }
+	inline LockFreeMessageQueuePtr getRequestQueue() { return m_requestQueue; }
 
 	void handleClientMessage(
 		ConnectionStatePtr connectionState,
@@ -92,31 +73,53 @@ public:
 				{
 					auto remoteIp = connectionState->getRemoteIp();
 
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
 						<< "New connection";
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
 						<< "remote ip: " << remoteIp;
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
 						<< "id: " << connectionState->getId();
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
 						<< "Uri: " << msg->openInfo.uri;
+
+					std::string protocol;
+					auto it= msg->openInfo.headers.find("Sec-WebSocket-Protocol");
+					if (it != msg->openInfo.headers.end())
+					{
+						protocol= it->second;
+						MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
+							<< "Protocol: " << protocol;
+					}
+					else
+					{
+						MIKAN_MT_LOG_WARNING("WebSocketClientConnection::handleClientMessage")
+							<< "No protocols specified";
+					}
+
+					// Enqueue the client connect event
+					std::stringstream ss;
+					ss << WEBSOCKET_CONNECT_EVENT;
+					ss << ":" << protocol;
+					m_socketEventQueue->enqueue(ss.str());
 				}
 				break;
 			case ix::WebSocketMessageType::Close:
 				{
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
 						<< "Close connection";
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
 						<< "id: " << connectionState->getId();
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
 						<< "reason: " << msg->closeInfo.reason;
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") 
 						<< "code: " << msg->closeInfo.code;
 
 					// Enqueue the client disconnect event
-					m_ownerMessageServer
-						->getClientDisconnectEventQueue()
-						->enqueueClientDisconnectEvent(connectionState->getId());
+					std::stringstream ss;
+					ss << WEBSOCKET_DISCONNECT_EVENT;
+					ss << ":" << msg->closeInfo.code;
+					ss << ":" << msg->closeInfo.reason;
+					m_socketEventQueue->enqueue(ss.str());
 				}
 				break;
 			case ix::WebSocketMessageType::Message:
@@ -124,7 +127,7 @@ public:
 					if (!msg->binary)
 					{
 						// Enqueue the request json string
-						m_functionCallQueue->enqueue(msg->str);
+						m_requestQueue->enqueue(msg->str);
 					}
 					else
 					{
@@ -134,23 +137,29 @@ public:
 				} break;
 			case ix::WebSocketMessageType::Error:
 				{
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") 
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
 						<< "Error: " << msg->errorInfo.reason;
+
+					// Enqueue the client error event
+					std::stringstream ss;
+					ss << WEBSOCKET_ERROR_EVENT;
+					ss << ":" << msg->errorInfo.reason;
+					m_socketEventQueue->enqueue(ss.str());
 				}
 				break;
 			case ix::WebSocketMessageType::Ping:
 				{
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") << "Ping";
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "Ping";
 				}
 				break;
 			case ix::WebSocketMessageType::Pong:
 				{
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") << "Pong";
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "Pong";
 				}
 				break;
 			case ix::WebSocketMessageType::Fragment:
 				{
-					MIKAN_MT_LOG_ERROR("WebSocketClientConnection::handleClientMessage") << "Fragment";
+					MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "Fragment";
 				}
 				break;
 		}
@@ -197,14 +206,14 @@ public:
 
 private:
 	WebsocketInterprocessMessageServer* m_ownerMessageServer= nullptr;
-	LockFreeRequestQueuePtr m_functionCallQueue;
+	LockFreeMessageQueuePtr m_socketEventQueue;
+	LockFreeMessageQueuePtr m_requestQueue;
 	WebSocketWeakPtr m_websocket;
 };
 
 //-- WebsocketInterprocessMessageServer -----
 WebsocketInterprocessMessageServer::WebsocketInterprocessMessageServer()
 	: m_server(nullptr)
-	, m_clientDisconnectEventQueue(std::make_shared<WebsocketClientEventQueue>())
 {}
 
 WebsocketInterprocessMessageServer::~WebsocketInterprocessMessageServer()
@@ -240,16 +249,6 @@ bool WebsocketInterprocessMessageServer::initialize()
 			WebSocketPtr webSocket = webSocketWeakPtr.lock();
 			if (!webSocket)
 				return;
-
-			// Add server specific headers
-			{
-				ix::WebSocketHttpHeaders extraHeaders;
-				extraHeaders[MIKAN_SERVER_API_VERSION_KEY] =
-					std::to_string(MIKAN_SERVER_API_VERSION_VALUE);
-				extraHeaders[MIKAN_MIN_ALLOWED_CLIENT_API_VERSION_KEY] = 
-					std::to_string(MIKAN_MIN_ALLOWED_CLIENT_API_VERSION_VALUE);
-				webSocket->setExtraHeaders(extraHeaders);
-			}
 
 			WebSocketClientConnectionPtr clientConnectionState = 
 				std::static_pointer_cast<WebSocketClientConnection>(connectionState);
@@ -319,16 +318,18 @@ void WebsocketInterprocessMessageServer::dispose()
 	ix::uninitNetSystem();
 }
 
+void WebsocketInterprocessMessageServer::setSocketEventHandler(
+	const std::string& eventType, 
+	SocketEventHandler handler)
+{
+	m_socketEventHandlers[eventType] = handler;
+}
+
 void WebsocketInterprocessMessageServer::setRequestHandler(
 	uint64_t requestTypeId, 
 	RequestHandler handler)
 {
 	m_requestHandlers[requestTypeId] = handler;
-}
-
-void WebsocketInterprocessMessageServer::setClientDisconnectHandler(ClientDisconnectHandler handler)
-{
-	m_clientDisconnectHandler= handler;
 }
 
 void WebsocketInterprocessMessageServer::getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections)
@@ -380,6 +381,44 @@ void WebsocketInterprocessMessageServer::sendMessageToAllClients(const std::stri
 	}
 }
 
+void WebsocketInterprocessMessageServer::processSocketEvents()
+{
+	std::vector<WebSocketClientConnectionPtr> connections;
+	getConnectionList(connections);
+
+	// Process all connections	
+	for (WebSocketClientConnectionPtr connection : connections)
+	{
+		// Read all pending socket events in the queue
+		std::string inRequestString;
+		while (connection->getSocketEventQueue()->try_dequeue(inRequestString))
+		{
+			// Split on the argument separator
+			std::vector<std::string> eventArgs= StringUtils::splitString(inRequestString, ':');
+			if (eventArgs.size() == 0)
+			{
+				continue;
+			}
+
+			// First argument is the event type
+			std::string eventType= eventArgs[0];
+			eventArgs.erase(eventArgs.begin());
+
+			// Fine the handler for this event type
+			auto handler_it = m_socketEventHandlers.find(eventType);
+			if (handler_it != m_socketEventHandlers.end())
+			{
+				// NOTE: Connection ID here is a unique ID for the websocket connection on the server
+				// and is not the same as the client ID that the client sends to identify itself
+				const std::string connectionId = connection->getId();
+
+				ClientSocketEvent socketEvent = {connectionId, eventType, eventArgs};
+				handler_it->second(socketEvent);
+			}
+		}
+	}
+}
+
 void WebsocketInterprocessMessageServer::processRequests()
 {
 	std::vector<WebSocketClientConnectionPtr> connections;
@@ -388,9 +427,9 @@ void WebsocketInterprocessMessageServer::processRequests()
 	// Process all connections	
 	for (WebSocketClientConnectionPtr connection : connections)
 	{
-		// Read all pending RPC in the queue
+		// Read all pending requests in the queue
 		std::string inRequestString;
-		while (connection->getFunctionCallQueue()->try_dequeue(inRequestString))
+		while (connection->getRequestQueue()->try_dequeue(inRequestString))
 		{
 			uint64_t requestTypeId;
 			JsonSaxUInt64ValueSearcher typeNameSearcher;
@@ -453,18 +492,6 @@ void WebsocketInterprocessMessageServer::processRequests()
 					"Request handler for " << requestTypeId 
 					<< " returned empty response, but response expected!";
 			}
-		}
-	}
-}
-
-void WebsocketInterprocessMessageServer::processDisconnections()
-{
-	std::string connectionId;
-	while (m_clientDisconnectEventQueue->dequeueClientDisconnectEvent(connectionId))
-	{
-		if (m_clientDisconnectHandler)
-		{
-			m_clientDisconnectHandler(connectionId);
 		}
 	}
 }

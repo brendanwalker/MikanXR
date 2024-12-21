@@ -24,7 +24,7 @@ public:
 	bool readRenderTargetTextures(const uint64_t newFrameIndex);
 	
 	MikanClientGraphicsApi getClientGraphicsAPI() const { return m_descriptor.graphicsAPI; }
-	MikanRenderTargetDescriptor& getRenderTargetDescriptor() { return m_descriptor; }
+	const MikanRenderTargetDescriptor& getRenderTargetDescriptor() { return m_descriptor; }
 
 private:
 	std::string m_clientName;

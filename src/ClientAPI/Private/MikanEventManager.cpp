@@ -56,39 +56,7 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 	{
 		std::string eventString= szUtf8EventString;
 
-		if (eventString.rfind(WEBSOCKET_CONNECT_EVENT, 0) == 0)
-		{
-			int clientVersion = Mikan_GetClientAPIVersion();
-			int minClientVersion = 0;
-			int serverVersion = 0;
-
-			std::vector<std::string> tokens= StringUtils::splitString(eventString, ':');
-			if (tokens.size() >= 3)
-			{
-				serverVersion = std::atoi(tokens[1].c_str());
-				minClientVersion = std::atoi(tokens[2].c_str());
-			}
-			
-			// Make sure the client version isn't too old
-			if (clientVersion >= minClientVersion)
-			{
-				auto connectEventPtr = std::make_shared<MikanConnectedEvent>();
-				connectEventPtr->serverVersion.version = serverVersion;
-				connectEventPtr->minClientVersion.version = minClientVersion;
-
-				eventPtr = connectEventPtr;
-			}
-			else
-			{
-				// Disconnect since we have incompatible client
-				// This will trigger an WEBSOCKET_DISCONNECT_EVENT
-				Mikan_Disconnect(
-					m_context,
-					(uint16_t)MikanDisconnectCode_IncompatibleVersion,
-					"Incompatible client version");
-			}
-		}
-		else if (eventString.rfind(WEBSOCKET_DISCONNECT_EVENT, 0) == 0)
+		if (eventString.rfind(WEBSOCKET_DISCONNECT_EVENT, 0) == 0)
 		{
 			int disconnectCode = 0;
 			std::string disconnectReason = "";
@@ -100,23 +68,16 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 				disconnectReason = tokens[2].c_str();
 			}
 
+			MIKAN_MT_LOG_INFO("MikanClient::parseEventString()")
+				<< "Received websocket DISCONNECT"
+				<< ", disconnectCode: " << disconnectCode
+				<< ", protocol: " << disconnectReason;
+
 			auto disconnectEventPtr= std::make_shared<MikanDisconnectedEvent>();
 			disconnectEventPtr->code = (MikanDisconnectCode)disconnectCode;
 			disconnectEventPtr->reason.setValue(disconnectReason);
 
 			eventPtr= disconnectEventPtr;
-		}
-		else if (eventString == WEBSOCKET_ERROR_EVENT)
-		{
-			MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()") << "Received websocket ERROR " << eventString;
-		}
-		else if (eventString == WEBSOCKET_PING_EVENT)
-		{
-			MIKAN_MT_LOG_INFO("MikanClient::parseEventString()") << "Received websocket PING";
-		}
-		else if (eventString == WEBSOCKET_PONG_EVENT)
-		{
-			MIKAN_MT_LOG_INFO("MikanClient::parseEventString()") << "Received websocket PONG";
 		}
 		else
 		{

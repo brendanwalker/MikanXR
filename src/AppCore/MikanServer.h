@@ -24,12 +24,31 @@ class MikanClientConnectionState;
 using MikanClientConnectionStatePtr= std::shared_ptr<MikanClientConnectionState>;
 
 //-- definitions -----
-struct MikanClientConnectionInfo
+class MikanClientConnectionInfo
 {
-	MikanClientInfo clientInfo;
-	class InterprocessRenderTargetReadAccessor* renderTargetReadAccessor;
+public:
+	MikanClientConnectionInfo();
+	virtual ~MikanClientConnectionInfo();
+
+	void setClientInfo(const MikanClientInfo& clientInfo);
+	const MikanClientInfo& getClientInfo() const;
+
+	const std::string& getClientId() const;
+	bool isClientInfoValid() const;
 
 	bool hasAllocatedRenderTarget() const;
+	inline class InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const 
+	{ return m_renderTargetReadAccessor; }
+	bool allocateRenderTargetTextures(const MikanRenderTargetDescriptor& desc);
+	void freeRenderTargetTextures();
+
+protected:
+	void allocateRenderTargetAccessor();
+	void disposeRenderTargetAccessor();
+
+private:
+	MikanClientInfo m_clientInfo;
+	class InterprocessRenderTargetReadAccessor* m_renderTargetReadAccessor= nullptr;
 };
 
 class MikanServer
@@ -68,7 +87,7 @@ public:
 	void publishStencilPoseUpdatedEvent(const MikanStencilPoseUpdateEvent& newPoseEvent);
 	void handleStencilSystemConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
-	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
+	void getConnectedClientInfoList(std::vector<const MikanClientConnectionInfo*>& outClientList) const;
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientInitialized;
 	MulticastDelegate<void(const std::string& clientId)> OnClientDisposed;
@@ -79,11 +98,13 @@ public:
 
 protected:
 	// Connection State Management
-	void allocateClientConnectionState(const std::string& connectionId, const MikanClientInfo& clientInfo);
+	MikanClientConnectionStatePtr allocateClientConnectionState(const std::string& connectionId);
 	void disposeClientConnectionState(const std::string& connectionId);
 
 	// Websocket Event Handlers
-	void onClientDisconnected(const std::string& connectionId);	
+	void onClientConnected(const ClientSocketEvent& event);
+	void onClientDisconnected(const ClientSocketEvent& event);
+	void onClientError(const ClientSocketEvent& event);
 
 	// Request Callbacks
 	void initClientHandler(const ClientRequest& request, ClientResponse& response);

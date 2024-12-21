@@ -1,7 +1,6 @@
 #include "WebsocketInterprocessMessageClient.h"
 #include "JsonUtils.h"
 #include "Logger.h"
-#include "MikanConstants.h"
 #include "StringUtils.h"
 
 #include "readerwriterqueue.h"
@@ -19,8 +18,9 @@ using WebSocketPtr = std::shared_ptr<ix::WebSocket>;
 class WebsocketConnectionState
 {
 public:
-	WebsocketConnectionState()
-		: m_websocket(std::make_shared<ix::WebSocket>())
+	WebsocketConnectionState(int protocolVersion)
+		: m_protocolVersion(protocolVersion)
+		, m_websocket(std::make_shared<ix::WebSocket>())
 		, m_eventQueue(std::make_shared<LockFreeEventQueue>())
 	{		
 		m_websocket->setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
@@ -33,7 +33,6 @@ public:
 		disconnect();
 	}
 
-	//const std::string& getClientId() const { return m_clientId; }
 	const bool getIsConnected() const { 
 		auto readyState= m_websocket->getReadyState();
 		return readyState == ix::ReadyState::Open || readyState == ix::ReadyState::Connecting; 
@@ -62,7 +61,10 @@ public:
 
 		std::string hostAddress= host.empty() ? WEBSOCKET_SERVER_ADDRESS : host;
 		std::string hostPort= port.empty() ? WEBSOCKET_SERVER_PORT : port;
-		m_websocket->setUrl(hostAddress+":"+hostPort);
+		std::stringstream ss;
+		ss << WEBSOCKET_PROTOCOL_PREFIX << m_protocolVersion;
+		m_websocket->addSubProtocol(ss.str());
+		m_websocket->setUrl(hostAddress + ":" + hostPort);
 		m_websocket->start();
 
 		return MikanCoreResult_Success;
@@ -74,11 +76,11 @@ public:
 		{
 			if (code != 0)
 			{
-				m_websocket->close(code, reason);
+				m_websocket->stop(code, reason);
 			}
 			else
 			{
-				m_websocket->close(
+				m_websocket->stop(
 					ix::WebSocketCloseConstants::kNormalClosureCode,
 					ix::WebSocketCloseConstants::kNormalClosureMessage);
 			}
@@ -95,50 +97,10 @@ public:
 		{
 			case ix::WebSocketMessageType::Open:
 				{
-					std::stringstream ss;
-
-					ss << WEBSOCKET_CONNECT_EVENT;
-					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "New connection";
-
-					// Append the server version, if available
-					{
-						auto iter = msg->openInfo.headers.find(MIKAN_SERVER_API_VERSION_KEY);
-
-						if (iter != msg->openInfo.headers.end())
-						{
-							const std::string serverVersion = iter->second;
-							MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Server API version: " << serverVersion;
-
-							ss << ":" << serverVersion;
-						}
-						else
-						{
-							MIKAN_MT_LOG_WARNING("handleWebSocketMessage") << "Server API version: UNKNOWN (assuming 0)";
-
-							ss << ":0";
-						}
-					}
-
-					// Append the min allowed client version, if available
-					{
-						auto iter = msg->openInfo.headers.find(MIKAN_MIN_ALLOWED_CLIENT_API_VERSION_KEY);
-
-						if (iter != msg->openInfo.headers.end())
-						{
-							const std::string minAllowedVersion = iter->second;
-							MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Min Allowed Client API version: " << minAllowedVersion;
-
-							ss << ":" << minAllowedVersion;
-						}
-						else
-						{
-							MIKAN_MT_LOG_WARNING("handleWebSocketMessage") << "Min Allowed Client API version: UNKNOWN (assuming 0)";
-
-							ss << ":0";
-						}
-					}
-
-					m_eventQueue->enqueue(ss.str());
+					MIKAN_MT_LOG_INFO("handleWebSocketMessage") 
+						<< "New connection"
+						<< ", uri: " << msg->openInfo.uri
+						<< ", protocol: " << msg->openInfo.protocol;
 				}
 				break;
 			case ix::WebSocketMessageType::Close:
@@ -146,11 +108,10 @@ public:
 					std::stringstream ss;
 
 					ss << WEBSOCKET_DISCONNECT_EVENT;
-					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Close connection";
+					ss << ":" << msg->closeInfo.code;
+					ss << ":" << msg->closeInfo.reason;
 
-					ss << ":" << msg->closeInfo.code << ":" << msg->closeInfo.reason;
-
-					m_eventQueue->enqueue(WEBSOCKET_DISCONNECT_EVENT);
+					m_eventQueue->enqueue(ss.str());
 				}
 				break;
 			case ix::WebSocketMessageType::Message:
@@ -201,36 +162,28 @@ public:
 			case ix::WebSocketMessageType::Error:
 				{
 					MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "Error: " << msg->errorInfo.reason;
-
-					std::stringstream ss;
-					ss << "Error: " << msg->errorInfo.reason;
-
-					m_eventQueue->enqueue(ss.str());
 				}
 				break;
 			case ix::WebSocketMessageType::Ping:
 				{
-					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Ping";
-
-					m_eventQueue->enqueue(WEBSOCKET_PING_EVENT);
+					MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Ping";
 				}
 				break;
 			case ix::WebSocketMessageType::Pong:
 				{
-					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Pong";
-
-					m_eventQueue->enqueue(WEBSOCKET_PONG_EVENT);
+					MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Pong";
 				}
 				break;
 			case ix::WebSocketMessageType::Fragment:
 				{
-					MIKAN_MT_LOG_INFO("handleWebSocketMessage") << "Fragment";
+					MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Fragment";
 				}
 				break;
 		}
 	}
 
 private:
+	int m_protocolVersion= 0;
 	WebSocketPtr m_websocket;
 	ix::WebSocketHttpHeaders m_headers;
 	LockFreeEventQueuePtr m_eventQueue;
@@ -240,8 +193,8 @@ private:
 };
 
 //-- WebsocketInterprocessMessageClient -----
-WebsocketInterprocessMessageClient::WebsocketInterprocessMessageClient()
-	: m_connectionState(std::make_shared<WebsocketConnectionState>())
+WebsocketInterprocessMessageClient::WebsocketInterprocessMessageClient(int protocolVersion)
+	: m_connectionState(std::make_shared<WebsocketConnectionState>(protocolVersion))
 {
 }
 

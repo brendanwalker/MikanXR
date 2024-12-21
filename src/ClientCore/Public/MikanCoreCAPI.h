@@ -14,8 +14,6 @@ MIKAN_CORE_CAPI(MikanCoreResult) Mikan_Initialize(
 	MikanLogCallback log_callback, 
 	MikanContext* outContext);
 
-MIKAN_CORE_CAPI(int) Mikan_GetClientAPIVersion();
-
 MIKAN_CORE_CAPI(const char *) Mikan_GetClientUniqueID(MikanContext context);
 
 MIKAN_CORE_CAPI(bool) Mikan_GetIsInitialized(MikanContext context);

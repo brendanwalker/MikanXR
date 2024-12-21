@@ -149,6 +149,7 @@ InterprocessRenderTargetReadAccessor::~InterprocessRenderTargetReadAccessor()
 {
 	dispose();
 	delete m_readerImpl;
+	m_readerImpl= nullptr;
 }
 
 bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDescriptor* descriptor)
@@ -176,6 +177,7 @@ bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDes
 
 void InterprocessRenderTargetReadAccessor::dispose()
 {
+	assert(m_readerImpl != nullptr);
 	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
@@ -190,6 +192,7 @@ void InterprocessRenderTargetReadAccessor::dispose()
 	}
 
 	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
+	m_descriptor = {};
 }
 
 bool InterprocessRenderTargetReadAccessor::readRenderTargetTextures(

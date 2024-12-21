@@ -76,7 +76,7 @@ public:
 
 	virtual int getClientAPIVersion() const override
 	{
-		return Mikan_GetClientAPIVersion();
+		return MikanConstants_ClientAPIVersion;
 	}
 
 	virtual std::string getClientUniqueID() const override
@@ -89,7 +89,6 @@ public:
 		MikanClientInfo clientInfo = {};
 
 		// Stamp the request with the core sdk version and client id
-		clientInfo.apiVersion.version = getClientAPIVersion();
 		clientInfo.clientId = getClientUniqueID();
 
 		return clientInfo;

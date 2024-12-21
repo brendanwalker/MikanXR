@@ -17,7 +17,7 @@
 MikanClient::MikanClient()
 	: m_clientUniqueID(RandomUtils::RandomHexString(16))
 	, m_renderTargetWriter(new InterprocessRenderTargetWriteAccessor(m_clientUniqueID))
-	, m_messageClient(new WebsocketInterprocessMessageClient())
+	, m_messageClient(new WebsocketInterprocessMessageClient(MikanConstants_ClientAPIVersion))
 {
 	for (int i = 0; i < MikanClientGraphicsApi_COUNT; i++)
 	{

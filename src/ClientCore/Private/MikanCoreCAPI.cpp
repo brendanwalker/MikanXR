@@ -1,7 +1,6 @@
 // -- includes -----
 #include "MikanCoreCAPI.h"
 #include "MikanClient.h"
-#include "MikanConstants.h"
 #include "Logger.h"
 
 #include <map>
@@ -35,11 +34,6 @@ MikanCoreResult Mikan_Initialize(
 	*outContextPtr= context;
 
     return resultCode;
-}
-
-int Mikan_GetClientAPIVersion()
-{
-	return MIKAN_CLIENT_API_VERSION;
 }
 
 const char* Mikan_GetClientUniqueID(MikanContext context)
