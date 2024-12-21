@@ -30,6 +30,11 @@ endif()
 
 # Provide the path to the Nuget-installed references, in case this is a fresh project build.
 set_property(TARGET ${PROJECT_NAME} PROPERTY 
+    VS_DOTNET_REFERENCE_Newtonsoft.Json 
+    ${CMAKE_BINARY_DIR}/packages/Newtonsoft.Json.4.0.3/lib/net40/Newtonsoft.Json.dll)
+
+# Provide the path to the Nuget-installed references, in case this is a fresh project build.
+set_property(TARGET ${PROJECT_NAME} PROPERTY 
     VS_DOTNET_REFERENCE_NUnit 
     ${CMAKE_BINARY_DIR}/packages/NUnit.4.2.2/lib/net462/nunit.framework.dll)
 	
