@@ -155,7 +155,9 @@ public:
 
 	virtual MikanAPIResult shutdown() override
 	{
-		return (MikanAPIResult)Mikan_Shutdown(&m_context);
+		auto result= (MikanAPIResult)Mikan_Shutdown(m_context);
+		m_context= nullptr;
+		return result;
 	}
 
 private:
