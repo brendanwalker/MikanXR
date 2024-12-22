@@ -46,7 +46,7 @@ public:
 		MikanRenderTargetDescriptor desc;
 		GlTexturePtr colorTexture;
 		GlTexturePtr depthTexture;
-		uint64_t frameIndex= 0;
+		int64_t frameIndex= 0;
 		bool bIsPendingRender= false;
 	};
 
@@ -101,7 +101,7 @@ public:
 	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
 	GlTexturePtr getEditorWritableFrameTexture() const;
 	GlTextureConstPtr getCompositedFrameTexture() const;
-	inline uint64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
+	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
 	inline void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
 	GlTexturePtr getBGRVideoFrameTexture();
 	inline void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
@@ -131,7 +131,7 @@ protected:
 	// MikanServer Events
 	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
 	void onClientRenderTargetReleased(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
-	void onClientRenderTargetUpdated(const std::string& clientId, uint64_t frameIndex);
+	void onClientRenderTargetUpdated(const std::string& clientId, int64_t frameIndex);
 
 	// Preset Config Events
 	void onPresetConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
@@ -180,9 +180,9 @@ private:
 	NamedValueTable<ClientSource*> m_clientSources;
 
 	bool m_bIsRunning= false;
-	uint64_t m_lastReadVideoFrameIndex = 0;
-	uint64_t m_droppedFrameCounter = 0;
-	uint64_t m_lastCompositedFrameIndex = 0;
-	uint64_t m_pendingCompositeFrameIndex = 0;
+	int64_t m_lastReadVideoFrameIndex = 0;
+	int64_t m_droppedFrameCounter = 0;
+	int64_t m_lastCompositedFrameIndex = 0;
+	int64_t m_pendingCompositeFrameIndex = 0;
 	float m_timeSinceLastFrameComposited= 0.f;
 };

@@ -118,7 +118,7 @@ public:
 				{
 					if (!msg->binary)
 					{
-						JsonSaxUInt64ValueSearcher searcher;
+						JsonSaxInt64ValueSearcher searcher;
 
 						if (searcher.hasKey(msg->str, "eventTypeId"))
 						{

@@ -98,7 +98,7 @@ public:
 		return m_connectionInfo->getClientInfo();
 	}
 
-	bool readRenderTargetTextures(const uint64_t newFrameIndex)
+	bool readRenderTargetTextures(const int64_t newFrameIndex)
 	{
 		EASY_FUNCTION();
 
@@ -240,7 +240,7 @@ public:
 	}
 
 	// VR Device Events
-	void publishVRDevicePoses(uint64_t newVRFrameIndex)
+	void publishVRDevicePoses(int64_t newVRFrameIndex)
 	{
 		VRDeviceManager* vrDeviceManager= VRDeviceManager::getInstance();
 
@@ -744,7 +744,7 @@ void MikanServer::publishVRDeviceListChanged()
 	publishSimpleEvent<MikanVRDeviceListUpdateEvent>(m_clientConnections);
 }
 
-void MikanServer::publishVRDevicePoses(uint64_t newFrameIndex)
+void MikanServer::publishVRDevicePoses(int64_t newFrameIndex)
 {
 	for (auto& connection_it : m_clientConnections)
 	{

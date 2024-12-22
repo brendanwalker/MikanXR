@@ -34,7 +34,7 @@ public:
 	inline void setGrayscaleUndistortDisabled(bool bDisabled) { m_bGrayscaleUndistortDisabled = bDisabled; }
 
 	inline unsigned int getMaxFrameQueueSize() const { return m_bgrSourceBufferCount; }
-	inline uint64_t getLastVideoFrameReadIndex() const { return m_lastVideoFrameReadIndex; }
+	inline int64_t getLastVideoFrameReadIndex() const { return m_lastVideoFrameReadIndex; }
 
 	inline cv::Mat* getGrayscaleSourceBuffer() const { return m_gsSourceBuffer; }
 	inline cv::Mat* getGrayscaleUndistortBuffer() const { return m_gsUndistortBuffer; }
@@ -44,8 +44,8 @@ public:
 	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
 
 	bool hasNewVideoFrame() const;
-	uint64_t readNextVideoFrame();
-	bool processVideoFrame(uint64_t desiredFrameIndex);
+	int64_t readNextVideoFrame();
+	bool processVideoFrame(int64_t desiredFrameIndex);
 	bool readAndProcessVideoFrame();
 	void rebuildDistortionMap(const struct MikanMonoIntrinsics* instrinsics);
 
@@ -69,12 +69,12 @@ protected:
 	struct SourceBufferEntry
 	{
 		cv::Mat* bgrSourceBuffer;
-		uint64_t frameIndex;
+		int64_t frameIndex;
 	};
 	SourceBufferEntry* m_bgrSourceBuffers;
 	unsigned int m_bgrSourceBufferCount;
 	unsigned int m_bgrSourceBufferWriteIndex;
-	uint64_t m_lastVideoFrameReadIndex;
+	int64_t m_lastVideoFrameReadIndex;
 	uint32_t m_lastFrameTimestamp;
 
 	// Video frame buffers (24-BPP, BGR color format)

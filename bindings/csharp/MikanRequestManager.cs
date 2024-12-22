@@ -18,7 +18,7 @@ namespace MikanXR
 
 		private IntPtr _mikanContext= IntPtr.Zero;
 		private int m_nextRequestID= 0;
-		private Dictionary<ulong, Type> _responseTypeCache = null;
+		private Dictionary<long, Type> _responseTypeCache = null;
 
 		private class PendingRequest
 		{
@@ -33,7 +33,7 @@ namespace MikanXR
 			_nativeTextResponseCallback = new MikanCoreNative.NativeTextResponseCallback(InternalTextResponseCallback);
 			_nativeBinaryResponseCallback = new MikanCoreNative.NativeBinaryResponseCallback(InternalBinaryResponseCallback);
 			_pendingRequests = new Dictionary<int, PendingRequest>();
-			_responseTypeCache = new Dictionary<ulong, Type>();
+			_responseTypeCache = new Dictionary<long, Type>();
 		}
 
 		public MikanAPIResult Initialize(IntPtr mikanContext)
@@ -50,17 +50,13 @@ namespace MikanXR
 
 			// Build a map from ClassId to MikanResponse Type
 			var eventTypes = from t in Assembly.GetExecutingAssembly().GetTypes()
-							 where t.IsClass && t.Namespace == "MikanXR" && t.BaseType == typeof(MikanResponse)
+							 where t.IsClass && t.Namespace == "MikanXR" && typeof(MikanResponse).IsAssignableFrom(t)
 							 select t;
 			eventTypes.ToList().ForEach(t =>
 			{
-				var classIdProperty = t.GetProperty("classId", BindingFlags.Public | BindingFlags.Static);
-				if (classIdProperty != null)
-				{
-					ulong classId = (ulong)classIdProperty.GetValue(null);
+				long classId = Utils.getMikanClassId(t);
 
-					_responseTypeCache[classId] = t;
-				}
+				_responseTypeCache[classId] = t;
 			});
 
 			return MikanAPIResult.Success;
@@ -118,6 +114,11 @@ namespace MikanXR
 
 		public Task<MikanResponse> SendRequest(MikanRequest request)
 		{
+			// Stamp the request wtih the request type name and id
+			Type requestType = request.GetType();
+			request.requestTypeName = requestType.Name;
+			request.requestTypeId = Utils.getMikanClassId(requestType);
+
 			// Stamp the request with the next request id
 			request.requestId= m_nextRequestID;
 			m_nextRequestID++;
@@ -181,7 +182,7 @@ namespace MikanXR
 				{
 					// Get the string value of "responseType"
 					string responseTypeName = (string)responseTypeNameElement;
-					ulong responseTypeId = (ulong)responseTypeIdElement;
+					long responseTypeId = (long)responseTypeIdElement;
 
 					// Attempt to create the response object by class name
 					if (_responseTypeCache.TryGetValue(responseTypeId, out Type responseType))
@@ -203,7 +204,7 @@ namespace MikanXR
 					else
 					{
 						_nativeLogCallback((int)MikanLogLevel.Error,
-							"Unknown event type: " + responseTypeName +
+							"Unknown response type: " + responseTypeName +
 							" (classId: " + responseTypeId + ")");
 					}
 				}
@@ -231,7 +232,7 @@ namespace MikanXR
 			try
 			{
 				// Read the respose type id
-				ulong responseTypeId = binaryReader.ReadUInt64();
+				long responseTypeId = binaryReader.ReadInt64();
 
 				// Read the response type name
 				int requestTypeUTF8StringLength = binaryReader.ReadInt32();

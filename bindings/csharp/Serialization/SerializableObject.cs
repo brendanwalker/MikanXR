@@ -5,8 +5,8 @@ namespace MikanXR
 {
 	public class SerializableObject<T> where T : class
 	{
-		private ulong _runtimeClassId= 0;
-		public ulong RuntimeClassId => _runtimeClassId;
+		private long _runtimeClassId= 0;
+		public long RuntimeClassId => _runtimeClassId;
 
 		private object _instance;
 		public T Instance => _instance as T;
@@ -30,7 +30,7 @@ namespace MikanXR
 
 			// All SerializableObject types have a static "classId" field
 			// corresponding to the Refureku class ID in the C++ code
-			_runtimeClassId = (ulong)classIdField.GetValue(null);
+			_runtimeClassId = (long)classIdField.GetValue(null);
 			_instance = instance;
 		}
 	}

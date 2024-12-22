@@ -343,21 +343,10 @@ namespace MikanXR
 
 			public void visitULong(ValueAccessor accessor)
 			{
-				JToken jsonToken = getJsonTokenFromAccessor(accessor);
-
-				if (jsonToken.Type == JTokenType.Integer)
-				{
-					ulong value = (ulong)jsonToken;
-
-					accessor.setValue(value);
-				}
-				else
-				{
-					throw new Exception(
-						"JsonReadVisitor::visitULong() " +
-						"ULong Accessor " + accessor.ValueName +
-						" was not a Integer json value");
-				}
+				throw new Exception(
+					"JsonReadVisitor::visitULong() " +
+					"ULong Accessor " + accessor.ValueName +
+					" type not supported by all JSON libraries");
 			}
 
 			public void visitFloat(ValueAccessor accessor)

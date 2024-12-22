@@ -85,7 +85,7 @@ namespace MikanXR
 				var instanceClassIdProperty = serializableObjectType.GetProperty("RuntimeClassId");
 				var instanceProperty = serializableObjectType.GetProperty("Instance");
 
-				ulong instanceClassId = (ulong)instanceClassIdProperty.GetValue(serializableObject);
+				long instanceClassId = (long)instanceClassIdProperty.GetValue(serializableObject);
 				var instance = instanceProperty.GetValue(serializableObject);
 				Type instanceType = instance.GetType();
 				var instanceClassName = instanceType.Name;

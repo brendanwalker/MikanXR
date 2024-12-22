@@ -6,7 +6,7 @@ namespace MikanXR
 {
 	public class MikanScriptMessageInfo
 	{
-		public static readonly ulong classId= 17022472916138315949;
+		public static readonly long classId= -1424271157571235667;
 
 	};
 

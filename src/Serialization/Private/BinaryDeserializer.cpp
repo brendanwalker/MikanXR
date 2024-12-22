@@ -91,15 +91,16 @@ namespace Serialization
 			// Get the class for the object by type id
 			std::string objectClassName;
 			from_binary(m_binaryReader, objectClassName);
-			uint64_t objectClassId;
-			from_binary(m_binaryReader, objectClassId);
-			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById((std::size_t)objectClassId);
+			Serialization::MikanClassId mikanObjectClassId;
+			from_binary(m_binaryReader, mikanObjectClassId);
+			Serialization::RfkClassId rfkClassId= Serialization::toRfkClassId(mikanObjectClassId);
+			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(rfkClassId);
 			if (objectStruct == nullptr)
 			{
 				throw std::runtime_error(
 					stringify("BinaryReadVisitor::visitObjectPtr() ",
 							  "ObjectPtr Accessor ", sharedPtrAccessor.getName(),
-							  " used an unknown class_id ", objectClassId,
+							  " used an unknown class_id ", mikanObjectClassId,
 							  ", archetype name: ", elementArchetype->getName()));
 			}
 
@@ -109,7 +110,7 @@ namespace Serialization
 			// Allocate a default instance of the object assigned to the shared pointer
 			void* objectInstance =
 				allocateMethod->invokeUnsafe<void*, const std::size_t&>(
-					sharedPtrInstance, objectClassId);
+					sharedPtrInstance, rfkClassId);
 
 			// See if the serialized object is not null
 			bool isValid = false;

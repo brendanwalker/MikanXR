@@ -47,9 +47,9 @@ ID3D11ShaderResourceView* g_shaderResourceView = nullptr;
 
 IMikanAPIPtr g_mikanAPI;
 uint32_t g_lastFrameTimestamp= 0;
-uint64_t m_lastReceivedVideoSourceFrame= 0;
+int64_t m_lastReceivedVideoSourceFrame= 0;
 bool g_mikanInitialized = true;
-uint64_t g_lastReceivedVideoSourceFrame= 0;
+int64_t g_lastReceivedVideoSourceFrame= 0;
 float g_mikanReconnectTimeout = 0.f; // seconds
 float g_zNear = 0.1f;
 float g_zFar = 1000.f;

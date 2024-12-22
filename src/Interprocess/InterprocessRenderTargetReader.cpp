@@ -196,7 +196,7 @@ void InterprocessRenderTargetReadAccessor::dispose()
 }
 
 bool InterprocessRenderTargetReadAccessor::readRenderTargetTextures(
-	const uint64_t newFrameIndex)
+	const int64_t newFrameIndex)
 {
 	bool bSuccess = false;
 

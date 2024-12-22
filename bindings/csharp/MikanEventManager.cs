@@ -17,12 +17,12 @@ namespace MikanXR
 
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
 		private IntPtr _mikanContext = IntPtr.Zero;
-		private Dictionary<ulong, Type> _eventTypeCache = null;
+		private Dictionary<long, Type> _eventTypeCache = null;
 
 		public MikanEventManager(MikanCoreNative.NativeLogCallback logCallback)
 		{
 			_nativeLogCallback= logCallback;
-			_eventTypeCache = new Dictionary<ulong, Type>();
+			_eventTypeCache = new Dictionary<long, Type>();
 		}
 
 		public void Initialize(IntPtr mikanContext)
@@ -31,17 +31,13 @@ namespace MikanXR
 
 			// Build a map from ClassId to MikanEvent Type
 			var eventTypes = from t in Assembly.GetExecutingAssembly().GetTypes()
-					where t.IsClass && t.Namespace == "MikanXR" && t.BaseType == typeof(MikanEvent)
+					where t.IsClass && t.Namespace == "MikanXR" && typeof(MikanEvent).IsAssignableFrom(t)
 					select t;
 			eventTypes.ToList().ForEach(t =>
 			{
-				var classIdProperty = t.GetProperty("classId", BindingFlags.Public | BindingFlags.Static);
-				if (classIdProperty != null)
-				{
-					ulong classId = (ulong)classIdProperty.GetValue(null);
+				long classId = Utils.getMikanClassId(t);
 
-					_eventTypeCache[classId] = t;
-				}
+				_eventTypeCache[classId] = t;
 			});
 		}
 
@@ -151,7 +147,7 @@ namespace MikanXR
 						// Get the string value of "eventTypeName"
 						string eventTypeName = (string)eventTypeNameElement;
 						// Get the integer value of "eventTypeId"
-						ulong eventTypeId = (ulong)eventTypeIdElement;
+						long eventTypeId = (long)eventTypeIdElement;
 
 						// Attempt to create the event object by class name
 						if (_eventTypeCache.TryGetValue(eventTypeId, out Type eventType))

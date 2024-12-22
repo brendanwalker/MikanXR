@@ -344,7 +344,8 @@ protected:
 		// Emit the refureku class id
 		std::string classIdOverride = parentStructNames.size() > 0 ? "new " : "";
 		size_t classId= structRef.getId();
-		moduleFile << "\t\tpublic static " << classIdOverride << "readonly ulong classId= " << classId << ";" << std::endl;
+		int64_t classIdInt64= *reinterpret_cast<int64_t*>(&classId);
+		moduleFile << "\t\tpublic static " << classIdOverride << "readonly long classId= " << classIdInt64 << ";" << std::endl;
 		moduleFile << std::endl;
 
 		// For some reason Refureku doesn't return fields in the order they were declared

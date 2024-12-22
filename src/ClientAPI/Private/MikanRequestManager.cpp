@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "BinaryDeserializer.h"
 #include "JsonDeserializer.h"
+#include "SerializableObjectPtr.h"
 
 #include <Refureku/Refureku.h>
 #include <nlohmann/json.hpp>
@@ -38,8 +39,10 @@ MikanAPIResult MikanRequestManager::init(MikanContext context)
 
 MikanResponseFuture MikanRequestManager::sendRequest(MikanRequest& inRequest)
 {
-	uint64_t requestTypeId = inRequest.requestTypeId;
-	rfk::Struct const* requestStruct = rfk::getDatabase().getStructById(requestTypeId);
+	Serialization::MikanClassId mikanRequestTypeId = inRequest.requestTypeId;
+	Serialization::RfkClassId rfkRequestTypeId = Serialization::toRfkClassId(mikanRequestTypeId);
+
+	rfk::Struct const* requestStruct = rfk::getDatabase().getStructById(rfkRequestTypeId);
 	assert(requestStruct != nullptr);
 
 	// Stamp the request with the next available request ID
@@ -167,7 +170,9 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 			throw std::runtime_error("Failed to parse response header");
 		}
 
-		rfk::Struct const* responseStruct = rfk::getDatabase().getStructById(responseHeader.responseTypeId);
+		Serialization::MikanClassId mikanResponseTypeId = responseHeader.responseTypeId;
+		Serialization::RfkClassId rfkResponseTypeId = Serialization::toRfkClassId(mikanResponseTypeId);
+		rfk::Struct const* responseStruct = rfk::getDatabase().getStructById(rfkResponseTypeId);
 		if (responseStruct != nullptr)
 		{
 			responsePtr = responseStruct->makeSharedInstance<MikanResponse>();
@@ -270,7 +275,9 @@ MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(
 {
 	MikanResponsePtr responsePtr;
 
-	rfk::Struct const* responseStruct = rfk::getDatabase().getStructById(responseHeader.responseTypeId);
+	Serialization::MikanClassId mikanResponseTypeId = responseHeader.responseTypeId;
+	Serialization::RfkClassId rfkResponseTypeId = Serialization::toRfkClassId(mikanResponseTypeId);
+	rfk::Struct const* responseStruct = rfk::getDatabase().getStructById(rfkResponseTypeId);
 	if (responseStruct != nullptr)
 	{
 		responsePtr = responseStruct->makeSharedInstance<MikanResponse>();

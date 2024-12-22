@@ -71,7 +71,7 @@ public:
 	virtual bool initialize() = 0;
 	virtual void dispose() = 0;
 	virtual void setSocketEventHandler(const std::string& eventType, SocketEventHandler handler) = 0;
-	virtual void setRequestHandler(uint64_t requestTypeId, RequestHandler handler) = 0;
+	virtual void setRequestHandler(std::size_t requestTypeId, RequestHandler handler) = 0;
 
 	virtual void sendMessageToClient(const std::string& connectionId, const std::string& message) = 0;
 	virtual void sendMessageToAllClients(const std::string& message) = 0;

@@ -93,9 +93,6 @@ struct STRUCT() SerializationTestStruct
 	int64_t long_field;
 
 	FIELD()
-	uint64_t ulong_field;
-
-	FIELD()
 	float float_field;
 
 	FIELD()

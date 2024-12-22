@@ -1425,7 +1425,7 @@ private:
 	unsigned int m_rbo= 0;
 
 	IMikanAPIPtr m_mikanApi;
-	uint64_t m_lastReceivedVideoSourceFrame= 0;
+	int64_t m_lastReceivedVideoSourceFrame= 0;
 	glm::mat4 m_originSpatialAnchorXform;
 	MikanStencilQuadInfo m_stencilQuad;
 	glm::mat4 m_cameraOffsetXform= glm::mat4(1.f);	

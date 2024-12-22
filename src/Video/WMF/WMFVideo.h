@@ -71,7 +71,7 @@ private:
 	IMFTopology *m_pTopology;
 	
 	bool m_bIsRunning;
-	uint64_t m_sampleIndex= 0;
+	int64_t m_sampleIndex= 0;
 
 	class IVideoSourceListener *m_videoSourceListener;
 };

@@ -6,7 +6,7 @@ namespace MikanXR
 {
 	public class MikanSpatialAnchorInfo
 	{
-		public static readonly ulong classId= 1913346733069161518;
+		public static readonly long classId= 1913346733069161518;
 
 		public int anchor_id;
 		public MikanTransform world_transform;

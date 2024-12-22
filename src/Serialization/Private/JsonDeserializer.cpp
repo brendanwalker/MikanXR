@@ -119,15 +119,17 @@ namespace Serialization
 
 			// Get the class for the object by type id
 			std::string objectClassName = ownerJsonObject["class_name"].get<std::string>();
-			std::size_t objectClassId = ownerJsonObject["class_id"].get<std::size_t>();
-			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(objectClassId);
+			Serialization::MikanClassId mikanClassId = 
+				ownerJsonObject["class_id"].get<Serialization::MikanClassId>();
+			Serialization::RfkClassId rfkClassId = Serialization::toRfkClassId(mikanClassId);
+			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(rfkClassId);
 			if (objectStruct == nullptr)
 			{
 				throw std::runtime_error(
 					stringify("JsonReadVisitor::visitObjectPtr() ",
 							  "ObjectPtr Accessor ", sharedPtrAccessor.getName(),
 							  " used an unknown runtime class_name: ", objectClassName,
-							  " (runtime class_id: ", objectClassId,
+							  " (runtime class_id: ", rfkClassId,
 							  "), static class_name: ", elementArchetype->getName()));
 			}
 
@@ -137,7 +139,7 @@ namespace Serialization
 			// Allocate a default instance of the object assigned to the shared pointer
 			void* objectInstance =
 				allocateMethod->invokeUnsafe<void*, const std::size_t&>(
-					sharedPtrInstance, objectClassId);
+					sharedPtrInstance, rfkClassId);
 
 			// Deserialize the object from the json
 			json objectJson= ownerJsonObject["value"];
@@ -559,27 +561,10 @@ namespace Serialization
 
 		virtual void visitULong(ValueAccessor const& accessor)
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
-
-			if (fieldJsonObject.is_number_unsigned())
-			{
-				uint64_t value = fieldJsonObject.get<uint64_t>();
-
-				accessor.setValueByType(value);
-			}
-			else if (fieldJsonObject.is_number_integer())
-			{
-				uint64_t value = (uint64_t)fieldJsonObject.get<int64_t>();
-
-				accessor.setValueByType(value);
-			}
-			else
-			{
-				throw std::runtime_error(
-					stringify("JsonReadVisitor::visitULong() ",
-							  "UInt64 Accessor ", accessor.getName(),
-							  " was not a integer json value"));
-			}
+			throw std::runtime_error(
+				stringify("JsonWriteVisitor::visitULong() ",
+						  "ULong Accessor ", accessor.getName(),
+						  " type not supported by all JSON libraries"));
 		}
 
 		virtual void visitFloat(ValueAccessor const& accessor) override

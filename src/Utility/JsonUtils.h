@@ -149,16 +149,16 @@ public:
 };
 
 // Searcher for classId values
-class JsonSaxUInt64ValueSearcher : public JsonSaxValueSearcherBase<uint64_t>
+class JsonSaxInt64ValueSearcher : public JsonSaxValueSearcherBase<int64_t>
 {
 public:
-	JsonSaxUInt64ValueSearcher() = default;
+	JsonSaxInt64ValueSearcher() = default;
 
 	bool number_integer(number_integer_t val) override
 	{
 		if (m_keyValueFound)
 		{
-			m_resultValue = (uint64_t)val;
+			m_resultValue = (int64_t)val;
 			return false; // stop parsing
 		}
 
@@ -169,7 +169,7 @@ public:
 	{
 		if (m_keyValueFound)
 		{
-			m_resultValue = (uint64_t)val;
+			m_resultValue = (int64_t)val;
 			return false; // stop parsing
 		}
 

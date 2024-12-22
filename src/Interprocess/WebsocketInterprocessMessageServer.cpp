@@ -326,7 +326,7 @@ void WebsocketInterprocessMessageServer::setSocketEventHandler(
 }
 
 void WebsocketInterprocessMessageServer::setRequestHandler(
-	uint64_t requestTypeId, 
+	std::size_t requestTypeId, 
 	RequestHandler handler)
 {
 	m_requestHandlers[requestTypeId] = handler;
@@ -431,8 +431,8 @@ void WebsocketInterprocessMessageServer::processRequests()
 		std::string inRequestString;
 		while (connection->getRequestQueue()->try_dequeue(inRequestString))
 		{
-			uint64_t requestTypeId;
-			JsonSaxUInt64ValueSearcher typeNameSearcher;
+			int64_t requestTypeId;
+			JsonSaxInt64ValueSearcher typeNameSearcher;
 			if (!typeNameSearcher.fetchKeyValuePair(inRequestString, "requestTypeId", requestTypeId))
 			{
 				MIKAN_LOG_WARNING("processRequests") << 

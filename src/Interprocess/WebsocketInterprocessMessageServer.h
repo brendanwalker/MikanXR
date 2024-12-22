@@ -26,7 +26,7 @@ public:
 	bool initialize() override;
 	void dispose() override;
 	void setSocketEventHandler(const std::string& eventType, SocketEventHandler handler) override;
-	void setRequestHandler(uint64_t requestTypeId, RequestHandler handler) override;
+	void setRequestHandler(std::size_t requestTypeId, RequestHandler handler) override;
 
 	void sendMessageToClient(const std::string& connectionId, const std::string& message) override;
 	void sendMessageToAllClients(const std::string& message) override;
@@ -42,7 +42,7 @@ private:
 	std::vector<WebSocketClientConnectionPtr> m_connections;
 	std::mutex m_connectionsMutex;
 	std::map<std::string, SocketEventHandler> m_socketEventHandlers;
-	std::map<uint64_t, RequestHandler> m_requestHandlers;
+	std::map<std::size_t, RequestHandler> m_requestHandlers;
 };
 
 

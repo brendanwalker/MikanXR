@@ -94,7 +94,7 @@ public:
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor) > OnClientRenderTargetAllocated;
 	MulticastDelegate<void(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor)> OnClientRenderTargetReleased;
-	MulticastDelegate<void(const std::string& clientId, uint64_t frameIndex)> OnClientRenderTargetUpdated;
+	MulticastDelegate<void(const std::string& clientId, int64_t frameIndex)> OnClientRenderTargetUpdated;
 
 protected:
 	// Connection State Management
@@ -139,7 +139,7 @@ protected:
 
 	// VRManager Callbacks
 	void publishVRDeviceListChanged();
-	void publishVRDevicePoses(uint64_t newFrameIndex);
+	void publishVRDevicePoses(int64_t newFrameIndex);
 
 private:
 	static MikanServer* m_instance;

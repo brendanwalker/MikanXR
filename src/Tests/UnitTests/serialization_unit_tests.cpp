@@ -107,7 +107,6 @@ void build_serialization_test_struct(SerializationTestStruct& outStruct)
 	outStruct.int_field= -123456;
 	outStruct.uint_field= 123456;
 	outStruct.long_field= -123456789;
-	outStruct.ulong_field= 123456789;
 	outStruct.float_field= 1.2345f;
 	outStruct.double_field= 1.23456789;
 	outStruct.string_field= Serialization::String("hello");
@@ -131,7 +130,6 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 	assert(actual.int_field == expected.int_field);
 	assert(actual.uint_field == expected.uint_field);
 	assert(actual.long_field == expected.long_field);
-	assert(actual.ulong_field == expected.ulong_field);
 	assert(is_nearly_equal(actual.float_field, expected.float_field, k_real_epsilon));
 	assert(is_double_nearly_equal(actual.double_field, expected.double_field, k_real64_epsilon));
 	assert(actual.string_field == expected.string_field);

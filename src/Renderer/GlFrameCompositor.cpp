@@ -1158,7 +1158,7 @@ void GlFrameCompositor::onClientRenderTargetReleased(
 
 void GlFrameCompositor::onClientRenderTargetUpdated(
 	const std::string& clientId, 
-	uint64_t frameIndex)
+	int64_t frameIndex)
 {
 	EASY_FUNCTION();
 

@@ -137,6 +137,13 @@ namespace MikanXR
 
 	internal static class Utils
 	{
+		public static long getMikanClassId(Type classType)
+		{
+			FieldInfo classIdField= classType.GetField("classId", BindingFlags.Public | BindingFlags.Static);
+
+			return (long)classIdField.GetValue(null);
+		}
+
 		public static void visitObject<T>(T instance, IVisitor visitor) where T : struct
 		{
 			visitObject(instance, typeof(T), visitor);

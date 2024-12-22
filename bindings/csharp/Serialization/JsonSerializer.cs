@@ -101,7 +101,7 @@ namespace MikanXR
 				var instanceClassIdProperty = serializableObjectType.GetProperty("RuntimeClassId");
 				var instanceProperty = serializableObjectType.GetProperty("Instance");
 
-				var instanceClassId = (ulong)instanceClassIdProperty.GetValue(serializableObject);
+				var instanceClassId = (long)instanceClassIdProperty.GetValue(serializableObject);
 				var instance = instanceProperty.GetValue(serializableObject);
 				Type instanceType = instance.GetType();
 				var instanceClassName = instanceType.Name;
@@ -169,7 +169,10 @@ namespace MikanXR
 
 			public void visitULong(ValueAccessor accessor)
 			{
-				setJsonValueFromAccessor<ulong>(accessor);
+				throw new Exception(
+					"JsonWriteVisitor::visitULong() " +
+					"ULong Accessor " + accessor.ValueName +
+					" type not supported by all JSON libraries");
 			}
 
 			public void visitFloat(ValueAccessor accessor)
@@ -183,7 +186,10 @@ namespace MikanXR
 			}
 			public void visitString(ValueAccessor accessor)
 			{
-				setJsonValueFromAccessor<string>(accessor);
+				var sourceField = accessor.ValueField;
+				string value = accessor.getValue<string>();
+
+				setJsonValueFromJsonToken(sourceField, new JValue(value ?? string.Empty));
 			}
 
 			private void setJsonValueFromAccessor<T>(ValueAccessor accessor)

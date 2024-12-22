@@ -6,9 +6,8 @@ namespace MikanXR
 {
 	public class MikanClientInfo
 	{
-		public static readonly ulong classId= 16144647093330338146;
+		public static readonly long classId= -2302096980379213470;
 
-		public MikanClientAPIVersion apiVersion;
 		public string clientId;
 		public string engineName;
 		public string engineVersion;

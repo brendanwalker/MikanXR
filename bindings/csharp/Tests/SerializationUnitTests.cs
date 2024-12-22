@@ -14,12 +14,12 @@ namespace MikanXR
 
 	class SerializationPoint
 	{
-		public static readonly ulong classId= 0;
+		public static readonly long classId= 0;
 	};
 
 	class SerializationPoint2d : SerializationPoint
 	{
-		public static new readonly ulong classId= 1;
+		public static new readonly long classId= 1;
 
 		public SerializationPoint2d()
 		{
@@ -37,7 +37,7 @@ namespace MikanXR
 
 	class SerializationPoint3d : SerializationPoint
 	{
-		public static new readonly ulong classId= 2;
+		public static new readonly long classId= 2;
 
 		public SerializationPoint3d()
 		{
@@ -66,7 +66,6 @@ namespace MikanXR
 		public int int_field;
 		public uint uint_field;
 		public long long_field;
-		public ulong ulong_field;
 		public float float_field;
 		public double double_field;
 		public string string_field;
@@ -109,7 +108,6 @@ namespace MikanXR
 			testObject.int_field= -123456;
 			testObject.uint_field= 123456;
 			testObject.long_field= -123456789;
-			testObject.ulong_field= 123456789;
 			testObject.float_field= 1.2345f;
 			testObject.double_field= 1.23456789;
 			testObject.string_field= "hello";
@@ -138,7 +136,6 @@ namespace MikanXR
 			Assert.That(actual.int_field, Is.EqualTo(expected.int_field));
 			Assert.That(actual.uint_field, Is.EqualTo(expected.uint_field));
 			Assert.That(actual.long_field, Is.EqualTo(expected.long_field));
-			Assert.That(actual.ulong_field, Is.EqualTo(expected.ulong_field));
 			Assert.That(actual.float_field, Is.EqualTo(expected.float_field).Within(float.Epsilon));
 			Assert.That(actual.double_field, Is.EqualTo(expected.double_field).Within(double.Epsilon));
 			Assert.That(actual.string_field, Is.EqualTo(expected.string_field));
