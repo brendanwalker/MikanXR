@@ -246,21 +246,18 @@ MikanCoreResult Mikan_Disconnect(
 	return mikanClient->disconnect(code, reason);
 }
 
-MikanCoreResult Mikan_Shutdown(MikanContext* contextPtr)
+MikanCoreResult Mikan_Shutdown(MikanContext context)
 {
-	assert(contextPtr != nullptr);
-	MikanContext context= *contextPtr;
-	if (context == nullptr)
+	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+
+	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 
-	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	MikanCoreResult resultCode= mikanClient->shutdown();
 
-	// Deallocate the context
+	// Deallocate the client
+	// Up to the caller to invalidate the context pointer
 	delete mikanClient;
-
-	// Null out the context pointer
-	*contextPtr= nullptr;
 
 	return resultCode;
 }
