@@ -23,6 +23,12 @@ namespace MikanXR
 		BGRA32= 3,
 	};
 
+	public enum MikanConstants
+	{
+		InvalidMikanID= -1,
+		ClientAPIVersion= 0,
+	};
+
 	public enum MikanCoreResult
 	{
 		Success= 0,
