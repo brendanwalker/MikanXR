@@ -79,19 +79,39 @@ namespace MikanXR
 		private Task<MikanResponse> RequestAllocateRenderTargetTextures(MikanRequest request)
 		{
 			var allocateRequest = request as AllocateRenderTargetTextures;
-			MikanRenderTargetDescriptor descriptor= allocateRequest.descriptor;
+			MikanRenderTargetDescriptor desiredDescriptor= allocateRequest.descriptor;
+			MikanRenderTargetDescriptor_Native desiredDescriptor_Native= 
+				new MikanRenderTargetDescriptor_Native() { 
+					color_buffer_type= desiredDescriptor.color_buffer_type,
+					depth_buffer_type= desiredDescriptor.depth_buffer_type,
+					width= desiredDescriptor.width,
+					height= desiredDescriptor.height,
+					graphicsAPI= desiredDescriptor.graphicsAPI
+				};
 
 			MikanAPIResult result =
 				(MikanAPIResult)MikanCoreNative.Mikan_AllocateRenderTargetTextures(
-					_mikanContext, ref descriptor);
+					_mikanContext, ref desiredDescriptor_Native);
 			if (result == MikanAPIResult.Success)
 			{
 				// Actual descriptor might differ from desired descriptor based on render target writer's capabilities
-				MikanRenderTargetDescriptor actualDescriptor;
+				MikanRenderTargetDescriptor_Native actualDescriptor_Native;
 				result= (MikanAPIResult)MikanCoreNative.Mikan_GetRenderTargetDescriptor(
-					_mikanContext, out actualDescriptor);
+					_mikanContext, out actualDescriptor_Native);
 				if (result == MikanAPIResult.Success)
 				{
+					// Replace the descriptor in the request with the actual descriptor params 
+					// that were used to allocate the render target textures
+					allocateRequest.descriptor =
+						new MikanRenderTargetDescriptor()
+						{
+							color_buffer_type = actualDescriptor_Native.color_buffer_type,
+							depth_buffer_type = actualDescriptor_Native.depth_buffer_type,
+							width = actualDescriptor_Native.width,
+							height = actualDescriptor_Native.height,
+							graphicsAPI = actualDescriptor_Native.graphicsAPI
+						};
+
 					return _requestManager.SendRequest(allocateRequest);
 				}
 			}

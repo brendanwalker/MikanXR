@@ -4,6 +4,16 @@ using System.Text;
 
 namespace MikanXR
 {
+	[StructLayout(LayoutKind.Sequential)]
+	public struct MikanRenderTargetDescriptor_Native
+	{
+		public MikanColorBufferType color_buffer_type;
+		public MikanDepthBufferType depth_buffer_type;
+		public uint width;
+		public uint height;
+		public MikanClientGraphicsApi graphicsAPI;
+	};
+
 	public class MikanCoreNative
 	{
 		[global::System.Runtime.InteropServices.UnmanagedFunctionPointer(global::System.Runtime.InteropServices.CallingConvention.Cdecl)]
@@ -59,12 +69,12 @@ namespace MikanXR
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_GetRenderTargetDescriptor(
 			IntPtr context,
-			out MikanRenderTargetDescriptor out_descriptor);
+			out MikanRenderTargetDescriptor_Native out_descriptor);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_AllocateRenderTargetTextures(
 			IntPtr context,
-			ref MikanRenderTargetDescriptor descriptor);
+			ref MikanRenderTargetDescriptor_Native descriptor);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_FreeRenderTargetTextures(IntPtr context);
