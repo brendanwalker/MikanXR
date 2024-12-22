@@ -259,7 +259,7 @@ namespace Mikan
 		private Stopwatch clock;
 		private long lastUpdateTimestamp= 0;
 		private float time = 0f;
-		private UInt64 lastReceivedVideoSourceFrame = 0;
+		private Int64 lastReceivedVideoSourceFrame = 0;
 
 		public Vector3 cubeOffset = new Vector3(0, 0, 10);
 
@@ -802,7 +802,7 @@ namespace Mikan
 			clock.Stop();
 		}
 
-		private async void UpdateLoop()
+		private void UpdateLoop()
 		{
 			long now = clock.ElapsedMilliseconds;
 			float deltaMilliseconds = now - lastUpdateTimestamp;
@@ -832,7 +832,7 @@ namespace Mikan
 							clientInfo = clientInfo
 						};
 
-						await mikanAPI.SendRequest(initClientRequest);
+						mikanAPI.SendRequest(initClientRequest).Wait();
 
 						ReallocateRenderBuffers();
 						UpdateCameraProjectionMatrix();
@@ -847,6 +847,7 @@ namespace Mikan
 						var newFrameEvent = nextEvent as MikanVideoSourceNewFrameEvent;
 
 						ProcessNewVideoSourceFrame(newFrameEvent);
+						break;
 					}
 					else if (nextEvent is MikanVideoSourceModeChangedEvent ||
 							nextEvent is MikanVideoSourceIntrinsicsChangedEvent)
@@ -901,13 +902,18 @@ namespace Mikan
 			}
 		}
 
-		async void ReallocateRenderBuffers()
+		void ReallocateRenderBuffers()
 		{
 			FreeFrameBuffer();
 
-			await mikanAPI.SendRequest(new FreeRenderTargetTextures());
+			mikanAPI.SendRequest(new FreeRenderTargetTextures()).Wait();
 
-			MikanResponse response = await mikanAPI.SendRequest(new GetVideoSourceMode());
+			MikanResponse response;
+			{
+				var task= mikanAPI.SendRequest(new GetVideoSourceMode());
+				task.Wait();
+				response= task.Result;
+			}
 			if (response.resultCode == MikanAPIResult.Success)
 			{
 				var mode = response as MikanVideoSourceModeResponse;
@@ -922,16 +928,22 @@ namespace Mikan
 				};
 
 				// Tell the server to allocate new render target buffers
-				await mikanAPI.SendRequest(new AllocateRenderTargetTextures() { descriptor = desc });
+				mikanAPI.SendRequest(new AllocateRenderTargetTextures() { descriptor = desc }).Wait();
 
 				// Create a new frame buffer to render to
 				CreateFrameBuffer(mode.resolution_x, mode.resolution_y);
 			}
 		}
 
-		async void UpdateCameraProjectionMatrix()
+		void UpdateCameraProjectionMatrix()
 		{
-			var response = await mikanAPI.SendRequest(new GetVideoSourceIntrinsics());
+			MikanResponse response = null;
+			{
+				var task = mikanAPI.SendRequest(new GetVideoSourceIntrinsics());
+				task.Wait();
+				response= task.Result;
+			}
+
 			if (response.resultCode == MikanAPIResult.Success)
 			{
 				var videoSourceIntrinsics = response as MikanVideoSourceIntrinsicsResponse;
