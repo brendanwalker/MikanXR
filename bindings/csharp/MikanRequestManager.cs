@@ -125,7 +125,7 @@ namespace MikanXR
 
 		public MikanResponseFuture SendRequest(MikanRequest request)
 		{
-			// Stamp the request wtih the request type name and id
+			// Stamp the request with the request type name and id
 			Type requestType = request.GetType();
 			request.requestTypeName = requestType.Name;
 			request.requestTypeId = Utils.getMikanClassId(requestType);
