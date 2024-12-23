@@ -48,32 +48,71 @@ MikanResponseFuture::~MikanResponseFuture()
 	}
 }
 
-MikanResponsePtr MikanResponseFuture::get(uint32_t timeoutMilliseconds)
+bool MikanResponseFuture::isCompleted() const
 {
-	if (timeoutMilliseconds > 0)
+	if (isValid())
 	{
-		// Wait for a fixed timeout
-		if (m_impl->future.wait_for(std::chrono::milliseconds(timeoutMilliseconds)) == std::future_status::ready)
+		// This is apparently the only way to check if a future is ready in a "non-blocking" way
+		// https://stackoverflow.com/questions/10890242/get-the-status-of-a-stdfuture
+		return m_impl->future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+bool MikanResponseFuture::tryFetchResponse(MikanResponsePtr& outResponse)
+{
+	if (isCompleted())
+	{
+		outResponse = m_impl->future.get();
+		return true;
+	}
+
+	return false;
+}
+
+MikanResponsePtr MikanResponseFuture::fetchResponse(uint32_t timeoutMilliseconds)
+{
+	if (isValid())
+	{
+		if (timeoutMilliseconds > 0)
 		{
-			return m_impl->future.get();
+			// Wait for a fixed timeout
+			if (m_impl->future.wait_for(std::chrono::milliseconds(timeoutMilliseconds)) == std::future_status::ready)
+			{
+				return m_impl->future.get();
+			}
+			else
+			{
+				// Timeout reached, cancel the request
+				if (m_impl->ownerRequestManager != nullptr &&
+					m_impl->requestId != INVALID_MIKAN_ID)
+				{
+					m_impl->ownerRequestManager->cancelRequest(m_impl->requestId);
+				}
+
+				// Return a timeout response instead
+				return makeSimpleMikanResponse(MikanAPIResult::Timeout);
+			}
 		}
 		else
 		{
-			// Timeout reached, cancel the request
-			if (m_impl->ownerRequestManager != nullptr && 
-				m_impl->requestId != INVALID_MIKAN_ID)
-			{
-				m_impl->ownerRequestManager->cancelRequest(m_impl->requestId);
-			}
-
-			// Return a timeout response instead
-			return makeSimpleMikanResponse(MikanAPIResult::Timeout);
+			return m_impl->future.get();
 		}
 	}
 	else
 	{
-		return m_impl->future.get();
+		return makeSimpleMikanResponse(MikanAPIResult::Uninitialized);
 	}
+}
+
+void MikanResponseFuture::awaitResponse(uint32_t timeoutMilliseconds)
+{
+	// Drop the response on the floor
+	fetchResponse(timeoutMilliseconds);
 }
 
 MikanResponsePtr MikanResponseFuture::makeSimpleMikanResponse(MikanAPIResult result)

@@ -62,9 +62,33 @@ namespace MikanXR
 			return MikanAPIResult.Success;
 		}
 
-		public Task<MikanResponse> AddResponseHandler(int requestId, MikanAPIResult result)
+		void InsertPendingRequest(PendingRequest pendingRequest)
+		{
+			lock (_pendingRequests)
+			{
+				_pendingRequests.Add(pendingRequest.requestId, pendingRequest);
+			}
+		}
+
+		PendingRequest RemovePendingRequest(int requestId)
+		{
+			PendingRequest pendingRequest= null;
+
+			lock(_pendingRequests)
+			{
+				if (_pendingRequests.TryGetValue(requestId, out pendingRequest))
+				{
+					_pendingRequests.Remove(requestId);
+				}
+			}
+
+			return pendingRequest;
+		}
+
+		public MikanResponseFuture AddResponseHandler(int requestId, MikanAPIResult result)
 		{
 			TaskCompletionSource<MikanResponse> promise = new TaskCompletionSource<MikanResponse>();
+			var future= new MikanResponseFuture(this, requestId, promise);
 
 			if (result == MikanAPIResult.Success)
 			{
@@ -74,10 +98,7 @@ namespace MikanXR
 					promise = promise
 				};
 
-				lock (_pendingRequests)
-				{
-					_pendingRequests.Add(requestId, pendingRequest);
-				}
+				InsertPendingRequest(pendingRequest);
 			}
 			else
 			{
@@ -92,27 +113,17 @@ namespace MikanXR
 				promise.SetResult(response);
 			}
 
-			return promise.Task;
+			return future;
 		}
 
-		public Task<MikanResponse> MakeImmediateResponse(MikanAPIResult result)
+		public MikanAPIResult CancelRequest(int requestId)
 		{
-			TaskCompletionSource<MikanResponse> promise = new TaskCompletionSource<MikanResponse>();
+			PendingRequest existingRequest = RemovePendingRequest(requestId);
 
-			MikanResponse response = new MikanResponse()
-			{
-				responseTypeName = typeof(MikanResponse).Name,
-				responseTypeId = MikanResponse.classId,
-				requestId = -1,
-				resultCode = result
-			};
-
-			promise.SetResult(response);
-
-			return promise.Task;
+			return existingRequest != null ? MikanAPIResult.Success : MikanAPIResult.InvalidParam;
 		}
 
-		public Task<MikanResponse> SendRequest(MikanRequest request)
+		public MikanResponseFuture SendRequest(MikanRequest request)
 		{
 			// Stamp the request wtih the request type name and id
 			Type requestType = request.GetType();
@@ -139,15 +150,7 @@ namespace MikanXR
 
 		private void InternalTextResponseCallback(int requestId, string utf8ResponseString, IntPtr userData)
 		{
-			PendingRequest pendingRequest = null;
-
-			lock (_pendingRequests)
-			{
-				if (_pendingRequests.TryGetValue(requestId, out pendingRequest))
-				{
-					_pendingRequests.Remove(requestId);
-				}
-			}
+			PendingRequest pendingRequest = RemovePendingRequest(requestId);
 
 			if (pendingRequest != null)
 			{
@@ -248,14 +251,7 @@ namespace MikanXR
 				MikanAPIResult resultCode = (MikanAPIResult)binaryReader.ReadInt32();
 
 				// Look up the pending request
-				PendingRequest pendingRequest = null;
-				lock (_pendingRequests)
-				{
-					if (_pendingRequests.TryGetValue(requestId, out pendingRequest))
-					{
-						_pendingRequests.Remove(requestId);
-					}
-				}
+				PendingRequest pendingRequest = RemovePendingRequest(requestId);
 
 				// Bail if the corresponding pending request is not found
 				if (pendingRequest != null)
@@ -285,6 +281,8 @@ namespace MikanXR
 					{
 						response = new MikanResponse()
 						{
+							responseTypeId = MikanResponse.classId,
+							responseTypeName = typeof(MikanResponse).Name,
 							requestId = requestId,
 							resultCode = MikanAPIResult.MalformedResponse
 						};

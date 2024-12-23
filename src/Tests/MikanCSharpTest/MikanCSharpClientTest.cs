@@ -832,7 +832,7 @@ namespace Mikan
 							clientInfo = clientInfo
 						};
 
-						mikanAPI.SendRequest(initClientRequest).Wait();
+						mikanAPI.SendRequest(initClientRequest).AwaitResponse();
 
 						ReallocateRenderBuffers();
 						UpdateCameraProjectionMatrix();
@@ -906,14 +906,9 @@ namespace Mikan
 		{
 			FreeFrameBuffer();
 
-			mikanAPI.SendRequest(new FreeRenderTargetTextures()).Wait();
+			mikanAPI.SendRequest(new FreeRenderTargetTextures()).AwaitResponse();
 
-			MikanResponse response;
-			{
-				var task= mikanAPI.SendRequest(new GetVideoSourceMode());
-				task.Wait();
-				response= task.Result;
-			}
+			MikanResponse response= mikanAPI.SendRequest(new GetVideoSourceMode()).FetchResponse();
 			if (response.resultCode == MikanAPIResult.Success)
 			{
 				var mode = response as MikanVideoSourceModeResponse;
@@ -928,7 +923,7 @@ namespace Mikan
 				};
 
 				// Tell the server to allocate new render target buffers
-				mikanAPI.SendRequest(new AllocateRenderTargetTextures() { descriptor = desc }).Wait();
+				mikanAPI.SendRequest(new AllocateRenderTargetTextures() { descriptor = desc }).AwaitResponse();
 
 				// Create a new frame buffer to render to
 				CreateFrameBuffer(mode.resolution_x, mode.resolution_y);
@@ -937,12 +932,7 @@ namespace Mikan
 
 		void UpdateCameraProjectionMatrix()
 		{
-			MikanResponse response = null;
-			{
-				var task = mikanAPI.SendRequest(new GetVideoSourceIntrinsics());
-				task.Wait();
-				response= task.Result;
-			}
+			MikanResponse response = mikanAPI.SendRequest(new GetVideoSourceIntrinsics()).FetchResponse();
 
 			if (response.resultCode == MikanAPIResult.Success)
 			{

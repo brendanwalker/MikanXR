@@ -140,10 +140,10 @@ namespace MikanXR
 
 		// -- Messaging ----
 		
-		public Task<MikanResponse> SendRequest(MikanRequest request)
+		public MikanResponseFuture SendRequest(MikanRequest request)
 		{
-			Task<MikanResponse> response;
-			if (!_renderTargetAPI.TryProcessRequest(request, out response))
+			MikanResponseFuture response = _renderTargetAPI.TryProcessRequest(request);
+			if (!response.IsValid())
 			{
 				response= _requestManager.SendRequest(request);
 			}

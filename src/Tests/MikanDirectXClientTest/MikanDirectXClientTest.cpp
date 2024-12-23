@@ -186,7 +186,7 @@ void updateMikan()
 				InitClientRequest initClientRequest = {};
                 initClientRequest.clientInfo = clientInfo;
 
-                g_mikanAPI->sendRequest(initClientRequest).get();
+                g_mikanAPI->sendRequest(initClientRequest).awaitResponse();
 
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
@@ -276,11 +276,10 @@ void reallocateRenderBuffers()
 	freeFrameBuffer();
 
     FreeRenderTargetTextures freeRequest;
-	g_mikanAPI->sendRequest(freeRequest).get();
+	g_mikanAPI->sendRequest(freeRequest).awaitResponse();
 
     GetVideoSourceMode getModeRequest;
-	auto future = g_mikanAPI->sendRequest(getModeRequest);
-	auto response = future.get();
+	auto response = g_mikanAPI->sendRequest(getModeRequest).fetchResponse();
 	if (response->resultCode == MikanAPIResult::Success)
 	{
         auto mode = std::static_pointer_cast<MikanVideoSourceModeResponse>(response);
@@ -295,7 +294,7 @@ void reallocateRenderBuffers()
 		// Tell the server to allocate new render target buffers
         AllocateRenderTargetTextures allocateRequest;
         allocateRequest.descriptor = desc;
-		g_mikanAPI->sendRequest(allocateRequest).get();
+		g_mikanAPI->sendRequest(allocateRequest).awaitResponse();
 
         // Create a new frame buffer to render to
 		createFrameBuffer(mode->resolution_x, mode->resolution_y);
@@ -305,8 +304,7 @@ void reallocateRenderBuffers()
 void updateCameraProjectionMatrix()
 {
     GetVideoSourceIntrinsics getIntrinsicsRequest;
-	auto future = g_mikanAPI->sendRequest(getIntrinsicsRequest);
-	auto response = future.get();
+	auto response = g_mikanAPI->sendRequest(getIntrinsicsRequest).fetchResponse();
 
 	if (response->resultCode == MikanAPIResult::Success)
 	{
@@ -420,7 +418,7 @@ void cleanupMikan()
 		if (g_mikanAPI->getIsConnected())
 		{
 			DisposeClientRequest disposeRequest = {};
-			g_mikanAPI->sendRequest(disposeRequest).get();
+			g_mikanAPI->sendRequest(disposeRequest).awaitResponse();
 		}
 
         // Disconnect and deallocate the API

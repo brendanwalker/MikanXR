@@ -43,40 +43,33 @@ namespace MikanXR
 			return MikanCoreNative.Mikan_GetPackDepthTextureResourcePtr(_mikanContext);
 		}
 
-		public bool TryProcessRequest(MikanRequest request, out Task<MikanResponse> outFuture)
+		public MikanResponseFuture TryProcessRequest(MikanRequest request)
 		{
-			outFuture= null;
-
 			if (request is AllocateRenderTargetTextures)
 			{
-				outFuture = RequestAllocateRenderTargetTextures(request);
-				return true;
+				return RequestAllocateRenderTargetTextures(request);
 			}
 			else if (request is WriteColorRenderTargetTexture)
 			{
-				outFuture = RequestWriteColorRenderTargetTexture(request);
-				return true;
+				return RequestWriteColorRenderTargetTexture(request);
 			}
 			else if (request is WriteDepthRenderTargetTexture)
 			{
-				outFuture = RequestWriteDepthRenderTargetTexture(request);
-				return true;
+				return RequestWriteDepthRenderTargetTexture(request);
 			}
 			else if (request is PublishRenderTargetTextures) 
 			{
-				outFuture = RequestPublishRenderTargetTextures(request);
-				return true;
+				return RequestPublishRenderTargetTextures(request);
 			}
 			else if (request is FreeRenderTargetTextures)
 			{
-				outFuture = RequestFreeRenderTargetTextures(request);
-				return true;
+				return RequestFreeRenderTargetTextures(request);
 			}
 
-			return false;
+			return new MikanResponseFuture();
 		}
 
-		private Task<MikanResponse> RequestAllocateRenderTargetTextures(MikanRequest request)
+		private MikanResponseFuture RequestAllocateRenderTargetTextures(MikanRequest request)
 		{
 			var allocateRequest = request as AllocateRenderTargetTextures;
 			MikanRenderTargetDescriptor desiredDescriptor= allocateRequest.descriptor;
@@ -119,7 +112,7 @@ namespace MikanXR
 			return _requestManager.AddResponseHandler(-1, MikanAPIResult.RequestFailed);
 		}
 
-		private Task<MikanResponse> RequestWriteColorRenderTargetTexture(MikanRequest request)
+		private MikanResponseFuture RequestWriteColorRenderTargetTexture(MikanRequest request)
 		{
 			var writeRequest = request as WriteColorRenderTargetTexture;
 			IntPtr apiColorTexturePtr= writeRequest.apiColorTexturePtr;
@@ -128,10 +121,10 @@ namespace MikanXR
 				(MikanAPIResult)MikanCoreNative.Mikan_WriteColorRenderTargetTexture(
 					_mikanContext, apiColorTexturePtr);
 
-			return _requestManager.MakeImmediateResponse(result);
+			return new MikanResponseFuture(result);
 		}
 
-		private Task<MikanResponse> RequestWriteDepthRenderTargetTexture(MikanRequest request)
+		private MikanResponseFuture RequestWriteDepthRenderTargetTexture(MikanRequest request)
 		{
 			var writeRequest = request as WriteDepthRenderTargetTexture;
 			IntPtr apiDepthTexturePtr= writeRequest.apiDepthTexturePtr;
@@ -142,15 +135,15 @@ namespace MikanXR
 				(MikanAPIResult)MikanCoreNative.Mikan_WriteDepthRenderTargetTexture(
 					_mikanContext, apiDepthTexturePtr, zNear, zFar);
 
-			return _requestManager.MakeImmediateResponse(result);
+			return new MikanResponseFuture(result);
 		}
 
-		private Task<MikanResponse> RequestPublishRenderTargetTextures(MikanRequest request)
+		private MikanResponseFuture RequestPublishRenderTargetTextures(MikanRequest request)
 		{
 			return _requestManager.SendRequest(request);
 		}
 
-		private Task<MikanResponse> RequestFreeRenderTargetTextures(MikanRequest request)
+		private MikanResponseFuture RequestFreeRenderTargetTextures(MikanRequest request)
 		{
 			// Free any locally allocated resources
 			MikanCoreNative.Mikan_FreeRenderTargetTextures(_mikanContext);

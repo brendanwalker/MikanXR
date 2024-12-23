@@ -369,7 +369,7 @@ protected:
 			if (m_mikanApi->getIsConnected())
 			{
 				DisposeClientRequest disposeRequest = {};
-				m_mikanApi->sendRequest(disposeRequest).get();
+				m_mikanApi->sendRequest(disposeRequest).awaitResponse();
 			}
 
 			// Disconnect from the server and shutdown the API
@@ -561,7 +561,7 @@ protected:
 		InitClientRequest initClientRequest = {};
 		initClientRequest.clientInfo = clientInfo;
 
-		m_mikanApi->sendRequest(initClientRequest).get();
+		m_mikanApi->sendRequest(initClientRequest).awaitResponse();
 
 		reallocateRenderBuffers();
 		updateCameraProjectionMatrix();
@@ -623,7 +623,7 @@ protected:
 	void handleVRDeviceListChanged()
 	{
 		GetVRDeviceList listRequest;
-		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
 		if (listResponse->resultCode == MikanAPIResult::Success)
 		{
 			auto vrDeviceList = std::static_pointer_cast<MikanVRDeviceListResponse>(listResponse);
@@ -637,7 +637,7 @@ protected:
 				GetVRDeviceInfo vrDeviceInfoRequest;
 				vrDeviceInfoRequest.deviceId = deviceId;
 
-				auto response = m_mikanApi->sendRequest(vrDeviceInfoRequest).get();
+				auto response = m_mikanApi->sendRequest(vrDeviceInfoRequest).fetchResponse();
 				if (response->resultCode == MikanAPIResult::Success)
 				{
 					auto vrDeviceInfoResponse =
@@ -658,7 +658,7 @@ protected:
 	{
 		// Fetch the list of spatial anchors from Mikan and apply them to the scene
 		GetSpatialAnchorList listRequest;
-		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
 		if (listResponse->resultCode == MikanAPIResult::Success)
 		{
 			auto SpatialAnchorList = std::static_pointer_cast<MikanSpatialAnchorListResponse>(listResponse);
@@ -672,7 +672,7 @@ protected:
 				GetSpatialAnchorInfo anchorRequest;
 				anchorRequest.anchorId = AnchorId;
 
-				auto anchorResponse = m_mikanApi->sendRequest(anchorRequest).get();
+				auto anchorResponse = m_mikanApi->sendRequest(anchorRequest).fetchResponse();
 				if (anchorResponse->resultCode == MikanAPIResult::Success)
 				{
 					auto MikanAnchorResponse = 
@@ -709,7 +709,7 @@ protected:
 	void handleQuadStencilListChanged()
 	{
 		GetQuadStencilList listRequest;
-		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
 		if (listResponse->resultCode == MikanAPIResult::Success)
 		{
 			auto stencilList = std::static_pointer_cast<MikanStencilListResponse>(listResponse);
@@ -723,7 +723,7 @@ protected:
 				GetQuadStencil stencilRequest;
 				stencilRequest.stencilId = stencilId;
 
-				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).get();
+				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).fetchResponse();
 				if (stencilResponse->resultCode == MikanAPIResult::Success)
 				{
 					auto quadStencilResponse =
@@ -738,7 +738,7 @@ protected:
 	void handleBoxStencilListChanged()
 	{
 		GetBoxStencilList listRequest;
-		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
 		if (listResponse->resultCode == MikanAPIResult::Success)
 		{
 			auto stencilList = std::static_pointer_cast<MikanStencilListResponse>(listResponse);
@@ -752,7 +752,7 @@ protected:
 				GetBoxStencil stencilRequest;
 				stencilRequest.stencilId = stencilId;
 
-				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).get();
+				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).fetchResponse();
 				if (stencilResponse->resultCode == MikanAPIResult::Success)
 				{
 					auto boxStencilResponse =
@@ -767,7 +767,7 @@ protected:
 	void handleModelStencilListChanged()
 	{
 		GetModelStencilList listRequest;
-		auto listResponse = m_mikanApi->sendRequest(listRequest).get();
+		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
 		if (listResponse->resultCode == MikanAPIResult::Success)
 		{
 			auto stencilList = std::static_pointer_cast<MikanStencilListResponse>(listResponse);
@@ -781,7 +781,7 @@ protected:
 				GetModelStencil stencilRequest;
 				stencilRequest.stencilId = stencilId;
 
-				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).get();
+				auto stencilResponse = m_mikanApi->sendRequest(stencilRequest).fetchResponse();
 				if (stencilResponse->resultCode == MikanAPIResult::Success)
 				{
 					auto modelStencilResponse =
@@ -792,7 +792,7 @@ protected:
 					GetModelStencilRenderGeometry geoRequest;
 					geoRequest.stencilId = stencilId;
 
-					auto geoResponse = m_mikanApi->sendRequest(geoRequest).get();
+					auto geoResponse = m_mikanApi->sendRequest(geoRequest).fetchResponse();
 					if (geoResponse->resultCode == MikanAPIResult::Success)
 					{
 						auto modelGeoResponse =
@@ -869,12 +869,12 @@ protected:
 
 		// Tell the server to free the old render target buffers
 		FreeRenderTargetTextures freeRequest;
-		m_mikanApi->sendRequest(freeRequest).get();
+		m_mikanApi->sendRequest(freeRequest).awaitResponse();
 
 		// Fetch the current video source resolution
 		GetVideoSourceMode getModeRequest;
 		auto future= m_mikanApi->sendRequest(getModeRequest);
-		auto response= future.get();
+		auto response= future.fetchResponse();
 		if (response->resultCode == MikanAPIResult::Success)
 		{
 			auto mode = std::static_pointer_cast<MikanVideoSourceModeResponse>(response);
@@ -889,7 +889,7 @@ protected:
 			// Tell the server to allocate new render target buffers
 			AllocateRenderTargetTextures allocateRequest;
 			allocateRequest.descriptor = desc;
-			m_mikanApi->sendRequest(allocateRequest).get();
+			m_mikanApi->sendRequest(allocateRequest).awaitResponse();
 
 			// Create a new frame buffer to render to
 			createFrameBuffer(mode->resolution_x, mode->resolution_y);
@@ -899,8 +899,7 @@ protected:
 	void updateCameraProjectionMatrix()
 	{
 		GetVideoSourceIntrinsics intrinsicsRequest;
-		auto future= m_mikanApi->sendRequest(intrinsicsRequest);
-		auto response= future.get();
+		auto response= m_mikanApi->sendRequest(intrinsicsRequest).fetchResponse();
 
 		if (response->resultCode == MikanAPIResult::Success)
 		{
