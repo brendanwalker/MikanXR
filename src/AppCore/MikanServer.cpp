@@ -78,9 +78,9 @@ public:
 		return m_connectionId;
 	}
 
-	const MikanClientConnectionInfo* getClientConnectionInfo() const 
+	const MikanClientConnectionInfo& getClientConnectionInfo() const 
 	{
-		return m_connectionInfo;
+		return *m_connectionInfo;
 	}
 	
 	const std::string& getClientId() const 
@@ -91,6 +91,11 @@ public:
 	void setMikanClientInfo(const MikanClientInfo& clientInfo)
 	{
 		m_connectionInfo->setClientInfo(clientInfo);
+	}
+
+	void clearMikanClientInfo()
+	{
+		m_connectionInfo->clearMikanClientInfo();
 	}
 
 	const MikanClientInfo& getMikanClientInfo() const 
@@ -115,12 +120,12 @@ public:
 		return m_connectionInfo->getRenderTargetReadAccessor()->getClientGraphicsAPI();
 	}
 
-	void subscribeToVRDevicePoseUpdates(MikanVRDeviceID deviceId)
+	void subscribeToVRDevicePoseUpdatesHandler(MikanVRDeviceID deviceId)
 	{
 		m_subscribedVRDevices.insert(deviceId);
 	}
 
-	void unsubscribeFromVRDevicePoseUpdates(MikanVRDeviceID deviceId)
+	void unsubscribeFromVRDevicePoseUpdatesHandler(MikanVRDeviceID deviceId)
 	{
 		auto it = m_subscribedVRDevices.find(deviceId);
 		if (it != m_subscribedVRDevices.end())
@@ -133,7 +138,7 @@ public:
 	{
 		EASY_FUNCTION();
 
-		freeRenderTargetTextures();
+		freeRenderTargetTexturesHandler();
 
 		if (m_connectionInfo->allocateRenderTargetTextures(desc))
 		{
@@ -152,7 +157,7 @@ public:
 		return false;
 	}
 
-	void freeRenderTargetTextures()
+	void freeRenderTargetTexturesHandler()
 	{
 		EASY_FUNCTION();
 
@@ -166,7 +171,7 @@ public:
 					m_connectionInfo->getRenderTargetReadAccessor());
 			}
 
-			m_connectionInfo->freeRenderTargetTextures();
+			m_connectionInfo->freeRenderTargetTexturesHandler();
 		}
 	}
 
@@ -327,6 +332,15 @@ void MikanClientConnectionInfo::disposeRenderTargetAccessor()
 	}
 }
 
+void MikanClientConnectionInfo::clearMikanClientInfo()
+{
+	// Free any existing render target
+	disposeRenderTargetAccessor();
+
+	// Reset the client info with defaults
+	m_clientInfo= MikanClientInfo();
+}
+
 void MikanClientConnectionInfo::setClientInfo(const MikanClientInfo& clientInfo)
 {
 	// Free any existing render target
@@ -381,7 +395,7 @@ bool MikanClientConnectionInfo::allocateRenderTargetTextures(const MikanRenderTa
 	return false;
 }
 
-void MikanClientConnectionInfo::freeRenderTargetTextures()
+void MikanClientConnectionInfo::freeRenderTargetTexturesHandler()
 {
 	EASY_FUNCTION();
 
@@ -431,13 +445,13 @@ bool MikanServer::startup()
 	// Websocket Event Handlers
 	m_messageServer->setSocketEventHandler(
 		WEBSOCKET_CONNECT_EVENT,
-		std::bind(&MikanServer::onClientConnected, this, _1));
+		std::bind(&MikanServer::onClientConnectedHandler, this, _1));
 	m_messageServer->setSocketEventHandler(
 		WEBSOCKET_DISCONNECT_EVENT,
-		std::bind(&MikanServer::onClientDisconnected, this, _1));
+		std::bind(&MikanServer::onClientDisconnectedHandler, this, _1));
 	m_messageServer->setSocketEventHandler(
 		WEBSOCKET_ERROR_EVENT,
-		std::bind(&MikanServer::onClientError, this, _1));
+		std::bind(&MikanServer::onClientErrorHandler, this, _1));
 
 	// Client Init/Dispose Requests
 	m_messageServer->setRequestHandler(
@@ -450,13 +464,13 @@ bool MikanServer::startup()
 	// Render Target Requests
 	m_messageServer->setRequestHandler(
 		AllocateRenderTargetTextures::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::allocateRenderTargetTextures, this, _1, _2));
+		std::bind(&MikanServer::allocateRenderTargetTexturesHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		FreeRenderTargetTextures::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::freeRenderTargetTextures, this, _1, _2));
+		std::bind(&MikanServer::freeRenderTargetTexturesHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		PublishRenderTargetTextures::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::frameRendered, this, _1, _2));
+		std::bind(&MikanServer::frameRenderedHandler, this, _1, _2));
 
 	// Script Requests	
 	m_messageServer->setRequestHandler(
@@ -466,61 +480,61 @@ bool MikanServer::startup()
 	// Spatial Anchor Requests
 	m_messageServer->setRequestHandler(
 		GetSpatialAnchorList::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getSpatialAnchorList, this, _1, _2));
+		std::bind(&MikanServer::getSpatialAnchorListHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetSpatialAnchorInfo::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getSpatialAnchorInfo, this, _1, _2));
+		std::bind(&MikanServer::getSpatialAnchorInfoHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		FindSpatialAnchorInfoByName::staticGetArchetype().getId(),
-		std::bind(&MikanServer::findSpatialAnchorInfoByName, this, _1, _2));
+		std::bind(&MikanServer::findSpatialAnchorInfoByNameHandler, this, _1, _2));
 
 	// Stencil Requests
 	m_messageServer->setRequestHandler(
 		GetQuadStencilList::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getQuadStencilList, this, _1, _2));
+		std::bind(&MikanServer::getQuadStencilListHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetQuadStencil::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getQuadStencil, this, _1, _2));
+		std::bind(&MikanServer::getQuadStencilHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetBoxStencilList::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getBoxStencilList, this, _1, _2));
+		std::bind(&MikanServer::getBoxStencilListHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetBoxStencil::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getBoxStencil, this, _1, _2));
+		std::bind(&MikanServer::getBoxStencilHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetModelStencilList::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getModelStencilList, this, _1, _2));
+		std::bind(&MikanServer::getModelStencilListHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetModelStencil::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getModelStencil, this, _1, _2));
+		std::bind(&MikanServer::getModelStencilHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetModelStencilRenderGeometry::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getModelStencilRenderGeometry, this, _1, _2));
+		std::bind(&MikanServer::getModelStencilRenderGeometryHandler, this, _1, _2));
 
 	// Video Source Requests
 	m_messageServer->setRequestHandler(
 		GetVideoSourceIntrinsics::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getVideoSourceIntrinsics, this, _1, _2));
+		std::bind(&MikanServer::getVideoSourceIntrinsicsHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetVideoSourceMode::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getVideoSourceMode, this, _1, _2));
+		std::bind(&MikanServer::getVideoSourceModeHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetVideoSourceAttachment::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getVideoSourceAttachment, this, _1, _2));
+		std::bind(&MikanServer::getVideoSourceAttachmentHandler, this, _1, _2));
 
 	// VR Device Requests
 	m_messageServer->setRequestHandler(
 		GetVRDeviceList::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getVRDeviceList, this, _1, _2));
+		std::bind(&MikanServer::getVRDeviceListHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		GetVRDeviceInfo::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getVRDeviceInfo, this, _1, _2));
+		std::bind(&MikanServer::getVRDeviceInfoHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		SubscribeToVRDevicePoseUpdates::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::subscribeToVRDevicePoseUpdates, this, _1, _2));
+		std::bind(&MikanServer::subscribeToVRDevicePoseUpdatesHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
 		UnsubscribeFromVRDevicePoseUpdates::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdates, this, _1, _2));
+		std::bind(&MikanServer::unsubscribeFromVRDevicePoseUpdatesHandler, this, _1, _2));
 
 	VRDeviceManager::getInstance()->OnDeviceListChanged 
 		+= MakeDelegate(this, &MikanServer::publishVRDeviceListChanged);
@@ -758,7 +772,9 @@ void MikanServer::getConnectedClientInfoList(std::vector<const MikanClientConnec
 	outClientList.clear();
 	for (auto& connection_it : m_clientConnections)
 	{
-		outClientList.push_back(connection_it.second->getClientConnectionInfo());
+		const auto& connectionInfo= connection_it.second->getClientConnectionInfo();
+
+		outClientList.push_back(&connectionInfo);
 	}
 }
 
@@ -885,19 +901,61 @@ void MikanServer::disposeClientConnectionState(const std::string& connectionId)
 	if (connection_it != m_clientConnections.end())
 	{
 		const std::string& clientId = connection_it->first;
-		MikanClientConnectionStatePtr clientState = connection_it->second;
+		MikanClientConnectionStatePtr connectionState = connection_it->second;
 
+		// Make sure the client info is disposed before removing the client connection
+		// (Client may have already done this)
+		disposeClientInfo(connectionState);
+
+		// Finally, remove the client connection from the connection list 
+		// (which will delete the client state)
+		m_clientConnections.erase(connection_it);
+	}
+}
+
+void MikanServer::initClientInfo(MikanClientConnectionStatePtr connectionState, const MikanClientInfo& clientInfo)
+{
+	const std::string& clientId = clientInfo.clientId.getValue();
+
+	// Fill in the client info and allocate render target read accessor
+	// After this point, the connection can allocate render target textures
+	connectionState->setMikanClientInfo(clientInfo);
+
+	// Tell any listeners that the given client ID has initialized new client info
+	if (OnClientInitialized)
+	{
+		OnClientInitialized(clientId, clientInfo);
+	}
+}
+
+bool MikanServer::disposeClientInfo(MikanClientConnectionStatePtr connectionState)
+{
+	const MikanClientConnectionInfo& connectionInfo = connectionState->getClientConnectionInfo();
+
+	if (connectionInfo.isClientInfoValid())
+	{
+		const std::string& clientId = connectionInfo.getClientId();
+
+		// Make sure all render target textures are freed before disposing the client info
+		// (Client may have already done this)
+		connectionState->freeRenderTargetTexturesHandler();
+
+		// Tell any listeners that the given client ID has initialized is clearing its client info
 		if (OnClientDisposed)
 		{
 			OnClientDisposed(clientId);
 		}
 
-		m_clientConnections.erase(connection_it);
+		// Dispose any render target textures and reset the client info to defaults
+		connectionState->clearMikanClientInfo();
+		return true;
 	}
+
+	return false;
 }
 
 // Websocket Event Handlers
-void MikanServer::onClientConnected(const ClientSocketEvent& event)
+void MikanServer::onClientConnectedHandler(const ClientSocketEvent& event)
 {
 	MIKAN_LOG_INFO("onClientConnected")
 		<< "connectionId: " << event.connectionId
@@ -933,7 +991,7 @@ void MikanServer::onClientConnected(const ClientSocketEvent& event)
 	clientState->publishClientConnectedEvent(bIsClientCompatible);
 }
 
-void MikanServer::onClientDisconnected(const ClientSocketEvent& event)
+void MikanServer::onClientDisconnectedHandler(const ClientSocketEvent& event)
 {
 	MIKAN_LOG_INFO("onClientDisconnected")
 		<< "connectionId: " << event.connectionId
@@ -943,7 +1001,7 @@ void MikanServer::onClientDisconnected(const ClientSocketEvent& event)
 	disposeClientConnectionState(event.connectionId);
 }
 
-void MikanServer::onClientError(const ClientSocketEvent& event)
+void MikanServer::onClientErrorHandler(const ClientSocketEvent& event)
 {
 	MIKAN_LOG_ERROR("onClientError")
 		<< "connectionId: " << event.connectionId 
@@ -969,25 +1027,21 @@ void MikanServer::initClientHandler(const ClientRequest& request, ClientResponse
 	auto connection_it = m_clientConnections.find(connectionId);
 	if (connection_it != m_clientConnections.end())
 	{
-		MikanClientConnectionStatePtr clientState= connection_it->second;
+		MikanClientConnectionStatePtr connectionState= connection_it->second;
 
-		// Fill in the client info and init render target accessors base on params
-		clientState->setMikanClientInfo(clientInfo);
+		MIKAN_LOG_INFO("e")
+			<< "Client (connectionId: " << connectionId
+			<< ", clientId: " << clientId << ") allocated client info";
 
-		// Tell any listeners that a new client has been initialized
-		if (OnClientInitialized)
-		{
-			OnClientInitialized(clientId, clientInfo);
-		}
+		initClientInfo(connectionState, clientInfo);
 
-		//allocateClientConnectionState(connectionId, initClientRequest.clientInfo);
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("connectHandler") 
-			<< "Client (connectionId: " << connectionId << 
-			", clientId: " << clientId << ") already connected";
+		MIKAN_LOG_ERROR("initClientHandler") 
+			<< "Client (connectionId: " << connectionId 
+			<< ", clientId: " << clientId << ") already connected";
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::AlreadyConnected, response);
 	}
 }
@@ -999,12 +1053,33 @@ void MikanServer::disposeClientHandler(const ClientRequest& request, ClientRespo
 	auto connection_it = m_clientConnections.find(connectionId);
 	if (connection_it != m_clientConnections.end())
 	{
-		disposeClientConnectionState(connectionId);
-		writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+		MikanClientConnectionStatePtr connectionState= connection_it->second;
+		const MikanClientConnectionInfo& connectionInfo= connectionState->getClientConnectionInfo();
+
+		// Tear down any active render target textures before destroying the client info
+		connectionState->freeRenderTargetTexturesHandler();
+
+		if (disposeClientInfo(connectionState))
+		{
+			const std::string& clientId= connectionInfo.getClientId();
+
+			MIKAN_LOG_INFO("disposeClientHandler")
+				<< "Client (connectionId: " << connectionId 
+				<< ", clientId: " << clientId << ") deallocated client info";
+
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("disposeClientHandler") 
+				<< "Client (connection id: " << connectionId << ") already deallocated client info";
+
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownClient, response);
+		}
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("disconnectHandler") << "Client (connection id: " << connectionId <<") not connected";
+		MIKAN_LOG_ERROR("disposeClientHandler") << "Client (connection id: " << connectionId <<") not connected";
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownClient, response);
 	}
 }
@@ -1037,7 +1112,7 @@ void MikanServer::invokeScriptMessageHandler(
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void MikanServer::getVideoSourceIntrinsics(
+void MikanServer::getVideoSourceIntrinsicsHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1056,7 +1131,7 @@ void MikanServer::getVideoSourceIntrinsics(
 	}
 }
 
-void MikanServer::getVideoSourceMode(
+void MikanServer::getVideoSourceModeHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1097,7 +1172,7 @@ void MikanServer::getVideoSourceMode(
 	}
 }
 
-void MikanServer::getVideoSourceAttachment(
+void MikanServer::getVideoSourceAttachmentHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1135,7 +1210,7 @@ void MikanServer::getVideoSourceAttachment(
 	}
 }
 
-void MikanServer::getVRDeviceList(
+void MikanServer::getVRDeviceListHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1150,7 +1225,7 @@ void MikanServer::getVRDeviceList(
 	writeTypedJsonResponse(request.requestId, vrDeviceListResult, response);
 }
 
-void MikanServer::getVRDeviceInfo(
+void MikanServer::getVRDeviceInfoHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1199,7 +1274,7 @@ void MikanServer::getVRDeviceInfo(
 	writeTypedJsonResponse(request.requestId, infoResponse, response);
 }
 
-void MikanServer::subscribeToVRDevicePoseUpdates(
+void MikanServer::subscribeToVRDevicePoseUpdatesHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1218,11 +1293,11 @@ void MikanServer::subscribeToVRDevicePoseUpdates(
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
-	clientState->subscribeToVRDevicePoseUpdates(deviceRequest.deviceId);
+	clientState->subscribeToVRDevicePoseUpdatesHandler(deviceRequest.deviceId);
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void MikanServer::unsubscribeFromVRDevicePoseUpdates(
+void MikanServer::unsubscribeFromVRDevicePoseUpdatesHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1241,11 +1316,11 @@ void MikanServer::unsubscribeFromVRDevicePoseUpdates(
 	}
 
 	MikanClientConnectionStatePtr clientState = connection_it->second;
-	clientState->unsubscribeFromVRDevicePoseUpdates(deviceRequest.deviceId);
+	clientState->unsubscribeFromVRDevicePoseUpdatesHandler(deviceRequest.deviceId);
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void MikanServer::allocateRenderTargetTextures(
+void MikanServer::allocateRenderTargetTexturesHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {	
@@ -1274,7 +1349,7 @@ void MikanServer::allocateRenderTargetTextures(
 	}
 }
 
-void MikanServer::freeRenderTargetTextures(
+void MikanServer::freeRenderTargetTexturesHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1290,7 +1365,7 @@ void MikanServer::freeRenderTargetTextures(
 				connection_it->second->getRenderTargetReadAccessor());
 		}
 
-		connection_it->second->freeRenderTargetTextures();
+		connection_it->second->freeRenderTargetTexturesHandler();
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 	}
 	else
@@ -1299,7 +1374,7 @@ void MikanServer::freeRenderTargetTextures(
 	}
 }
 
-void MikanServer::frameRendered(
+void MikanServer::frameRenderedHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1332,7 +1407,7 @@ void MikanServer::frameRendered(
 	}
 }
 
-void MikanServer::getQuadStencilList(
+void MikanServer::getQuadStencilListHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1347,7 +1422,7 @@ void MikanServer::getQuadStencilList(
 	writeTypedJsonResponse(request.requestId, stencilListResult, response);
 }
 
-void MikanServer::getQuadStencil(
+void MikanServer::getQuadStencilHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1373,7 +1448,7 @@ void MikanServer::getQuadStencil(
 	}
 }
 
-void MikanServer::getBoxStencilList(
+void MikanServer::getBoxStencilListHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1388,7 +1463,7 @@ void MikanServer::getBoxStencilList(
 	writeTypedJsonResponse(request.requestId, stencilListResult, response);
 }
 
-void MikanServer::getBoxStencil(
+void MikanServer::getBoxStencilHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1414,7 +1489,7 @@ void MikanServer::getBoxStencil(
 	}
 }
 
-void MikanServer::getModelStencilList(
+void MikanServer::getModelStencilListHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1429,7 +1504,7 @@ void MikanServer::getModelStencilList(
 	writeTypedJsonResponse(request.requestId, stencilListResult, response);
 }
 
-void MikanServer::getModelStencil(
+void MikanServer::getModelStencilHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1455,7 +1530,7 @@ void MikanServer::getModelStencil(
 	}
 }
 
-void MikanServer::getModelStencilRenderGeometry(const ClientRequest& request, ClientResponse& response)
+void MikanServer::getModelStencilRenderGeometryHandler(const ClientRequest& request, ClientResponse& response)
 {
 	GetModelStencilRenderGeometry stencilRequest;
 	if (!readTypedRequest(request.utf8RequestString, stencilRequest))
@@ -1479,7 +1554,7 @@ void MikanServer::getModelStencilRenderGeometry(const ClientRequest& request, Cl
 	}
 }
 
-void MikanServer::getSpatialAnchorList(
+void MikanServer::getSpatialAnchorListHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1494,7 +1569,7 @@ void MikanServer::getSpatialAnchorList(
 	writeTypedJsonResponse(request.requestId, anchorListResult, response);
 }
 
-void MikanServer::getSpatialAnchorInfo(
+void MikanServer::getSpatialAnchorInfoHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1518,7 +1593,7 @@ void MikanServer::getSpatialAnchorInfo(
 	writeTypedJsonResponse(request.requestId, anchorInfoResponse, response);
 }
 
-void MikanServer::findSpatialAnchorInfoByName(
+void MikanServer::findSpatialAnchorInfoByNameHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
