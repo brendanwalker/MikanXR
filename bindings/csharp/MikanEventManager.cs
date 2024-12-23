@@ -70,39 +70,7 @@ namespace MikanXR
 		{
 			MikanEvent mikanEvent= null;
 
-			if (utf8ResponseString.StartsWith(WEBSOCKET_CONNECT_EVENT))
-			{
-				int clientVersion = MikanCoreNative.Mikan_GetClientAPIVersion();
-				int serverVersion= 0;
-				int minClientVersion= 0;
-
-				string[] tokens = utf8ResponseString.Split(new char[] {':'});
-				if (tokens.Length >= 3)
-				{
-					int.TryParse(tokens[1], out serverVersion);
-					int.TryParse(tokens[2], out minClientVersion);
-				}
-
-				// Make sure the client version isn't too old
-				if (clientVersion >= minClientVersion)
-				{
-					var connectEventPtr = new MikanConnectedEvent();
-					connectEventPtr.serverVersion.version = serverVersion;
-					connectEventPtr.minClientVersion.version = minClientVersion;
-
-					mikanEvent = connectEventPtr;
-				}
-				else
-				{
-					// Disconnect since we have incompatible client
-					// This will trigger an WEBSOCKET_DISCONNECT_EVENT
-					MikanCoreNative.Mikan_Disconnect(
-						_mikanContext,
-						(ushort)MikanDisconnectCode.IncompatibleVersion,
-						"Incompatible client version");
-				}
-			}
-			else if (utf8ResponseString.StartsWith(WEBSOCKET_DISCONNECT_EVENT))
+			if (utf8ResponseString.StartsWith(WEBSOCKET_DISCONNECT_EVENT))
 			{
 				int disconnectCode = 0;
 				string disconnectReason = "";
@@ -114,23 +82,13 @@ namespace MikanXR
 					disconnectReason = tokens[2];
 				}
 
-				var disconnectEventPtr = new MikanDisconnectedEvent();
-				disconnectEventPtr.code = (MikanDisconnectCode)disconnectCode;
-				disconnectEventPtr.reason= disconnectReason;
-			}
-			else if (utf8ResponseString.StartsWith(WEBSOCKET_ERROR_EVENT))
-			{
-				_nativeLogCallback(
-					(int)MikanLogLevel.Error,
-					"Received websocket ERROR: " + utf8ResponseString);
-			}
-			else if (utf8ResponseString.StartsWith(WEBSOCKET_PING_EVENT))
-			{
-				_nativeLogCallback((int)MikanLogLevel.Info, "Received websocket PING");
-			}
-			else if (utf8ResponseString.StartsWith(WEBSOCKET_PONG_EVENT))
-			{
-				_nativeLogCallback((int)MikanLogLevel.Info, "Received websocket PONG");
+				var disconnectEvent = new MikanDisconnectedEvent();
+				disconnectEvent.eventTypeId = MikanDisconnectedEvent.classId;
+				disconnectEvent.eventTypeName = typeof(MikanDisconnectedEvent).Name;
+				disconnectEvent.code = (MikanDisconnectCode)disconnectCode;
+				disconnectEvent.reason= disconnectReason;
+
+				mikanEvent = disconnectEvent;
 			}
 			else
 			{
