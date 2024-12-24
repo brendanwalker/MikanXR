@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -92,7 +90,7 @@ namespace MikanXR
 				string fieldName = accessor.ValueName;
 
 				// Read the runtime class info
-				string elementRuntimeTypeName = readUTF8String();
+				string elementRuntimeTypeName = _reader.ReadUTF8String();
 				_ = _reader.ReadUInt64();
 
 				bool isValidObject = _reader.ReadBoolean();
@@ -129,7 +127,7 @@ namespace MikanXR
 
 			public void visitEnum(ValueAccessor accessor)
 			{
-				string enumStringValue = readUTF8String();
+				string enumStringValue = _reader.ReadUTF8String();
 				var enumValue= Enum.Parse(accessor.ValueType, enumStringValue);
 
 				accessor.setValueObject(enumValue);
@@ -214,17 +212,9 @@ namespace MikanXR
 
 			public void visitString(ValueAccessor accessor)
 			{
-				string value = readUTF8String();
+				string value = _reader.ReadUTF8String();
 
 				accessor.setValue(value);
-			}
-
-			protected string readUTF8String()
-			{
-				Int32 byteCount= _reader.ReadInt32();
-				byte[] bytes= _reader.ReadBytes(byteCount);
-
-				return System.Text.Encoding.UTF8.GetString(bytes);
 			}
 		}
 
@@ -240,7 +230,7 @@ namespace MikanXR
 		{
 			try
 			{
-				var binaryReader = new BinaryReader(new MemoryStream(inBytes));
+				var binaryReader = new BinaryReader(inBytes);
 				var visitor = new BinaryReadVisitor(binaryReader);
 				Utils.visitObject(instance, structType, visitor);
 

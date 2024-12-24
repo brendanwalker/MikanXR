@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.IO;
 
 namespace MikanXR
 {
@@ -90,7 +89,7 @@ namespace MikanXR
 				Type instanceType = instance.GetType();
 				var instanceClassName = instanceType.Name;
 
-				writeUTF8String(instanceClassName);
+				_writer.WriteUTF8String(instanceClassName);
 				_writer.Write(instanceClassId);
 
 				bool isValidObject = instance != null;
@@ -108,7 +107,7 @@ namespace MikanXR
 				object enumObjectValue = accessor.getValueObject();
 				string enumStringValue = Enum.GetName(accessor.ValueType, enumObjectValue);
 
-				writeUTF8String(enumStringValue);
+				_writer.WriteUTF8String(enumStringValue);
 			}
 
 			public void visitBool(ValueAccessor accessor)
@@ -168,21 +167,9 @@ namespace MikanXR
 
 			public void visitString(ValueAccessor accessor)
 			{
-				writeUTF8String(accessor.getValue<string>());
+				_writer.WriteUTF8String(accessor.getValue<string>());
 			}
 
-			protected void writeUTF8String(string unicodeString)
-			{
-				byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(unicodeString);
-				
-				Int32 stringLength= utf8Bytes.Length;
-				_writer.Write(stringLength);
-
-				if (stringLength > 0)
-				{
-					_writer.Write(utf8Bytes);
-				}
-			}
 		}
 
 		public static byte[] SerializeToBytes<T>(T instance) where T : class
@@ -192,13 +179,12 @@ namespace MikanXR
 
 		public static byte[] SerializeToBytes(object instance, Type structType)
 		{
-			var memoryStream = new MemoryStream();
-			var writer = new BinaryWriter(memoryStream);
+			var writer = new BinaryWriter();
 			var visitor = new BinaryWriteVisitor(writer);
 
 			Utils.visitObject(instance, structType, visitor);
 
-			return memoryStream.ToArray();
+			return writer.ToArray();
 		}
 	}
 }

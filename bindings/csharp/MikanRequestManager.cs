@@ -1,9 +1,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Linq;
@@ -230,7 +228,7 @@ namespace MikanXR
 			byte[] managedBuffer = new byte[bufferSizeInt];
 			Marshal.Copy(buffer, managedBuffer, 0, bufferSizeInt);
 
-			var binaryReader = new BinaryReader(new MemoryStream(managedBuffer));
+			var binaryReader = new BinaryReader(managedBuffer);
 
 			try
 			{
@@ -298,13 +296,6 @@ namespace MikanXR
 			catch (Exception e)
 			{
 				_nativeLogCallback((int)MikanLogLevel.Error, $"Malformed binary response: {e.Message}");
-			}
-			finally
-			{
-				if (binaryReader != null)
-				{
-					binaryReader.Dispose();
-				}
 			}
 		}
 	}

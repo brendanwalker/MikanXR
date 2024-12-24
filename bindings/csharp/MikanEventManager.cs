@@ -9,11 +9,7 @@ namespace MikanXR
 {
 	public class MikanEventManager
 	{
-		private static readonly string WEBSOCKET_CONNECT_EVENT = "connect";
 		private static readonly string WEBSOCKET_DISCONNECT_EVENT = "disconnect";
-		private static readonly string WEBSOCKET_ERROR_EVENT = "error";
-		private static readonly string WEBSOCKET_PING_EVENT = "ping";
-		private static readonly string WEBSOCKET_PONG_EVENT = "pong";
 
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
 		private IntPtr _mikanContext = IntPtr.Zero;
