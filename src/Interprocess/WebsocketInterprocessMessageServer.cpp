@@ -12,6 +12,7 @@
 #include "ThreadUtils.h"
 #include "JsonSerializer.h"
 #include "JsonDeserializer.h"
+#include "Version.h"
 
 #include "IxWebSocket/IXConnectionState.h"
 #include "IxWebSocket/IxNetSystem.h"
@@ -255,6 +256,17 @@ bool WebsocketInterprocessMessageServer::initialize()
 
 			// Bind the websocket to the connection state
 			clientConnectionState->bindWebSocket(webSocketWeakPtr);
+
+			// TODO: Need to modify ixwebsocket to respond with the same protocol that the client requested
+			// For now we just respond with the latest version of the protocol
+			{
+				std::stringstream ss;
+				ss << WEBSOCKET_PROTOCOL_PREFIX << MIKAN_SERVER_API_VERSION;
+
+				ix::WebSocketHttpHeaders extraHeaders;
+				extraHeaders["Sec-WebSocket-Protocol"] = ss.str();
+				webSocket->setExtraHeaders(extraHeaders);
+			}
 
 			// Bind the message handler to the connection
 			webSocket->setOnMessageCallback([clientConnectionState](const ix::WebSocketMessagePtr& msg) {
