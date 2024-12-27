@@ -1,5 +1,4 @@
 using System;
-using System.Buffers.Binary;
 
 namespace MikanXR
 {
@@ -49,35 +48,40 @@ namespace MikanXR
 		public void Write(short value)
 		{
 			EnsureCapacity(sizeof(short));
-			BinaryPrimitives.WriteInt16LittleEndian(_writeBuffer.AsSpan(_bytesWritten), value);
+			byte[] valueBytes = BitConverter.GetBytes(value);
+			valueBytes.CopyTo(_writeBuffer, _bytesWritten);
 			_bytesWritten += sizeof(short);
 		}
 
 		public void Write(ushort value)
 		{
 			EnsureCapacity(sizeof(ushort));
-			BinaryPrimitives.WriteUInt16LittleEndian(_writeBuffer.AsSpan(_bytesWritten), value);
+			byte[] valueBytes = BitConverter.GetBytes(value);
+			valueBytes.CopyTo(_writeBuffer, _bytesWritten);
 			_bytesWritten += sizeof(ushort);
 		}
 
 		public void Write(int value)
 		{
 			EnsureCapacity(sizeof(int));
-			BinaryPrimitives.WriteInt32LittleEndian(_writeBuffer.AsSpan(_bytesWritten), value);
+			byte[] valueBytes = BitConverter.GetBytes(value);
+			valueBytes.CopyTo(_writeBuffer, _bytesWritten);
 			_bytesWritten += sizeof(int);
 		}
 
 		public void Write(uint value)
 		{
 			EnsureCapacity(sizeof(uint));
-			BinaryPrimitives.WriteUInt32LittleEndian(_writeBuffer.AsSpan(_bytesWritten), value);
+			byte[] valueBytes = BitConverter.GetBytes(value);
+			valueBytes.CopyTo(_writeBuffer, _bytesWritten);
 			_bytesWritten += sizeof(uint);
 		}
 
 		public void Write(ulong value)
 		{
 			EnsureCapacity(sizeof(ulong));
-			BinaryPrimitives.WriteUInt64LittleEndian(_writeBuffer.AsSpan(_bytesWritten), value);
+			byte[] valueBytes = BitConverter.GetBytes(value);
+			valueBytes.CopyTo(_writeBuffer, _bytesWritten);
 			_bytesWritten += sizeof(ulong);
 		}
 
@@ -119,7 +123,12 @@ namespace MikanXR
 
 		public byte[] ToArray()
 		{
-			return new Span<byte>(_writeBuffer, 0, _bytesWritten).ToArray();
+			if (_writeBuffer.Length != _bytesWritten)
+			{
+				Array.Resize(ref _writeBuffer, _bytesWritten);
+			}
+
+			return _writeBuffer;
 		}
 	}
 }

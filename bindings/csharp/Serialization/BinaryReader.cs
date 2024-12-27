@@ -1,5 +1,4 @@
 using System;
-using System.Buffers.Binary;
 
 namespace MikanXR
 {
@@ -39,7 +38,7 @@ namespace MikanXR
 
 		public short ReadInt16()
 		{
-			short value = BinaryPrimitives.ReadInt16LittleEndian(_readBuffer.AsSpan(_readBufferIndex));
+			short value = BitConverter.ToInt16(_readBuffer, _readBufferIndex);
 			_readBufferIndex += sizeof(short);
 
 			return value;
@@ -47,7 +46,7 @@ namespace MikanXR
 
 		public ushort ReadUInt16()
 		{
-			ushort value = BinaryPrimitives.ReadUInt16LittleEndian(_readBuffer.AsSpan(_readBufferIndex));
+			ushort value = BitConverter.ToUInt16(_readBuffer, _readBufferIndex);
 			_readBufferIndex += sizeof(ushort);
 
 			return value;
@@ -55,7 +54,7 @@ namespace MikanXR
 
 		public int ReadInt32()
 		{
-			int value = BinaryPrimitives.ReadInt32LittleEndian(_readBuffer.AsSpan(_readBufferIndex));
+			int value = BitConverter.ToInt32(_readBuffer, _readBufferIndex);
 			_readBufferIndex += sizeof(int);
 
 			return value;
@@ -63,7 +62,7 @@ namespace MikanXR
 
 		public uint ReadUInt32()
 		{
-			uint value = BinaryPrimitives.ReadUInt32LittleEndian(_readBuffer.AsSpan(_readBufferIndex));
+			uint value = BitConverter.ToUInt32(_readBuffer, _readBufferIndex);
 			_readBufferIndex += sizeof(uint);
 
 			return value;
@@ -71,7 +70,7 @@ namespace MikanXR
 
 		public long ReadInt64()
 		{
-			long value = BinaryPrimitives.ReadInt64LittleEndian(_readBuffer.AsSpan(_readBufferIndex));
+			long value = BitConverter.ToInt64(_readBuffer, _readBufferIndex);
 			_readBufferIndex += sizeof(long);
 
 			return value;
@@ -79,7 +78,7 @@ namespace MikanXR
 
 		public ulong ReadUInt64()
 		{
-			ulong value = BinaryPrimitives.ReadUInt32LittleEndian(_readBuffer.AsSpan(_readBufferIndex));
+			ulong value = BitConverter.ToUInt64(_readBuffer, _readBufferIndex);
 			_readBufferIndex += sizeof(ulong);
 
 			return value;
@@ -96,7 +95,7 @@ namespace MikanXR
 		public double ReadDouble()
 		{
 			double value= BitConverter.ToDouble(_readBuffer, _readBufferIndex);
-			_readBufferIndex += sizeof(float);
+			_readBufferIndex += sizeof(double);
 
 			return value;
 		}
@@ -104,14 +103,14 @@ namespace MikanXR
 		public string ReadUTF8String()
 		{
 			Int32 byteCount = ReadInt32();
-			byte[] bytes = ReadBytes(byteCount);
+			string utf8String= "";
+			if (byteCount > 0)
+			{
+				utf8String= System.Text.Encoding.UTF8.GetString(_readBuffer, _readBufferIndex, byteCount);
+				_readBufferIndex += byteCount;
+			}
 
-			return System.Text.Encoding.UTF8.GetString(bytes);
-		}
-
-		public byte[] ReadBytes(int count)
-		{
-			return null;
+			return utf8String;
 		}
 	}
 }

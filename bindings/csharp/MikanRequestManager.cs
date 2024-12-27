@@ -236,11 +236,7 @@ namespace MikanXR
 				long responseTypeId = binaryReader.ReadInt64();
 
 				// Read the response type name
-				int requestTypeUTF8StringLength = binaryReader.ReadInt32();
-				string responseTypeName =
-					requestTypeUTF8StringLength > 0
-					? System.Text.Encoding.UTF8.GetString(binaryReader.ReadBytes(requestTypeUTF8StringLength))
-					: "";
+				string responseTypeName = binaryReader.ReadUTF8String();
 
 				// Read the request ID
 				int requestId = binaryReader.ReadInt32();
