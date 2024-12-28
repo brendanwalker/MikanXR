@@ -56,6 +56,7 @@ using GlStateStackUniquePtr = std::unique_ptr<GlStateStack>;
 
 class GlStaticMeshInstance;
 using GlStaticMeshInstancePtr = std::shared_ptr<GlStaticMeshInstance>;
+using GlStaticMeshInstanceConstPtr = std::shared_ptr<const GlStaticMeshInstance>;
 
 class GlTextRenderer;
 using GlTextRendererSharedPtr = std::shared_ptr<GlTextRenderer>;
@@ -65,8 +66,12 @@ class GlTexture;
 using GlTexturePtr = std::shared_ptr<GlTexture>;
 using GlTextureConstPtr = std::shared_ptr<const GlTexture>;
 
+class GlTextureCache;
+using GlTextureCacheUniquePtr = std::unique_ptr<GlTextureCache>;
+
 class GlTriangulatedMesh;
 using GlTriangulatedMeshPtr = std::shared_ptr<GlTriangulatedMesh>;
+using GlTriangulatedMeshConstPtr = std::shared_ptr<const GlTriangulatedMesh>;
 
 class GlViewport;
 using GlViewportPtr = std::shared_ptr<GlViewport>;
@@ -76,9 +81,14 @@ using GlViewportConstPtr = std::shared_ptr<const GlViewport>;
 class GlWireframeMesh;
 using GlWireframeMeshPtr = std::shared_ptr<GlWireframeMesh>;
 
+class IGlMesh;
+using IGlMeshPtr = std::shared_ptr<IGlMesh>;
+using IGlMeshConstPtr = std::shared_ptr<const IGlMesh>;
+
 class IGlSceneRenderable;
 using IGlSceneRenderablePtr= std::shared_ptr<IGlSceneRenderable>;
 using IGlSceneRenderableConstPtr = std::shared_ptr<const IGlSceneRenderable>;
 using IGlSceneRenderableConstWeakPtr = std::weak_ptr<const IGlSceneRenderable>;
 
-struct GlVertexDefinition;
+class GlVertexAttribute;
+class GlVertexDefinition;

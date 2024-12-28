@@ -81,10 +81,8 @@ void AppStage_SpatialAnchors::enter()
 void AppStage_SpatialAnchors::onAddNewAnchor()
 {
 	VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
-	const glm::mat4 anchorXform = (anchorVRDevice) ? anchorVRDevice->getCalibrationPose() : glm::mat4(1.f);
-
-	char newAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
-	StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", m_anchorSystemConfig->nextAnchorId);
+	const glm::mat4 anchorXform = (anchorVRDevice) ? anchorVRDevice->getDefaultComponentPose() : glm::mat4(1.f);
+	const std::string newAnchorName= StringUtils::stringify("Anchor ",m_anchorSystemConfig->nextAnchorId);
 
 	if (m_anchorSystem->addNewAnchor(newAnchorName, anchorXform))
 	{
@@ -100,7 +98,7 @@ void AppStage_SpatialAnchors::onUpdateAnchorPose(int anchorId)
 		VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
 		if (anchorVRDevice != nullptr)
 		{
-			const glm::mat4 anchorXform = anchorVRDevice->getCalibrationPose();
+			const glm::mat4 anchorXform = anchorVRDevice->getDefaultComponentPose();
 
 			anchorComponent->setWorldTransform(anchorXform);
 		}
@@ -176,7 +174,7 @@ void AppStage_SpatialAnchors::render()
 	VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
 	if (anchorVRDevice != nullptr)
 	{
-		const glm::mat4 anchorXform= anchorVRDevice->getCalibrationPose();
+		const glm::mat4 anchorXform= anchorVRDevice->getDefaultComponentPose();
 		const glm::vec3 anchorPos= glm::vec3(anchorXform[3]);
 
 		drawTransformedAxes(anchorXform, 0.2f);
@@ -189,7 +187,7 @@ void AppStage_SpatialAnchors::render()
 	{
 		AnchorComponentPtr anchor= it.second.lock();
 
-		wchar_t wszAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
+		wchar_t wszAnchorName[256];
 		StringUtils::convertMbsToWcs(anchor->getName().c_str(), wszAnchorName, sizeof(wszAnchorName));
 		glm::mat4 anchorXform = anchor->getWorldTransform();
 		glm::vec3 anchorPos(anchorXform[3]);

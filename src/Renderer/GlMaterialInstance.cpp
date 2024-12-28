@@ -2,9 +2,7 @@
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
-#include "GlScene.h"
 #include "GlTexture.h"
-#include "IGlSceneRenderable.h"
 
 GlMaterialInstance::GlMaterialInstance()
 	: m_parentMaterial(nullptr)
@@ -13,6 +11,17 @@ GlMaterialInstance::GlMaterialInstance()
 
 GlMaterialInstance::GlMaterialInstance(GlMaterialConstPtr material)
 	: m_parentMaterial(material)
+{
+}
+
+GlMaterialInstance::GlMaterialInstance(GlMaterialInstanceConstPtr materialInstance)
+	: m_parentMaterial(materialInstance->getMaterial())
+	, m_floatSources(materialInstance->m_floatSources)
+	, m_float2Sources(materialInstance->m_float2Sources)
+	, m_float3Sources(materialInstance->m_float3Sources)
+	, m_float4Sources(materialInstance->m_float4Sources)
+	, m_mat4Sources(materialInstance->m_mat4Sources)
+	, m_textureSources(materialInstance->m_textureSources)
 {
 }
 
@@ -352,63 +361,34 @@ static void mark_uniform_as_bound(const std::string& uniformName, UniformNameSet
 
 GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 	const GlScopedMaterialBinding& materialBinding,
-	IGlSceneRenderableConstPtr renderable) const
+	BindUniformCallback callback) const
 {
 	bool bMaterialInstanceFailure= false;
+	UniformNameSet unboundUniforms = materialBinding.getUnboundUniforms();
 
 	if (m_parentMaterial != nullptr && 
 		materialBinding.getBoundMaterial() == m_parentMaterial)
 	{
-		UniformNameSet unboundUniforms= materialBinding.getUnboundUniforms();
 		GlProgramPtr program= m_parentMaterial->getProgram();
 
-		// Auto-apply renderable specific uniforms
-		for (auto it = program->getUniformBegin(); it != program->getUniformEnd(); it++)
+		// Auto-apply callback specific uniform bindings first
+		if (callback)
 		{
-			const std::string& uniformName= it->first;
-			const GlProgramUniform& uniform = it->second;
-
-			switch (uniform.semantic)
+			for (auto it = program->getUniformBegin(); it != program->getUniformEnd(); it++)
 			{
-				case eUniformSemantic::modelMatrix:
-					{
-						const glm::mat4 modelMat = renderable->getModelMatrix();
+				const std::string& uniformName = it->first;
+				eUniformSemantic uniformSemantic = it->second.semantic;
+				eUniformDataType uniformDataType = GlProgram::getUniformSemanticDataType(uniformSemantic);
 
-						if (program->setMatrix4x4Uniform(uniformName, modelMat))
-							mark_uniform_as_bound(uniformName, unboundUniforms);
-						else
-							bMaterialInstanceFailure= true;
-					}
-					break;
-				case eUniformSemantic::normalMatrix:
-					{
-						const glm::mat4 normalMat = renderable->getNormalMatrix();
-
-						if (program->setMatrix4x4Uniform(uniformName, normalMat))
-							mark_uniform_as_bound(uniformName, unboundUniforms);
-						else
-							bMaterialInstanceFailure= true;
-					}
-					break;
-				case eUniformSemantic::modelViewProjectionMatrix:
-					{
-						GlCameraConstPtr cameraPtr= materialBinding.getBoundCamera();
-
-						if (cameraPtr != nullptr)
-						{
-							const glm::mat4 viewProjMat = cameraPtr->getViewProjectionMatrix();
-							const glm::mat4 modelMat = renderable->getModelMatrix();
-							const glm::mat4 modelViewProjMatrix = viewProjMat * modelMat;
-
-							if (program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix))
-								mark_uniform_as_bound(uniformName, unboundUniforms);
-							else
-								bMaterialInstanceFailure= true;
-						}
-					}
-					break;
-				default:
-					break;
+				eUniformBindResult bindResult = callback(program, uniformDataType, uniformSemantic, uniformName);
+				if (bindResult == eUniformBindResult::bound)
+				{
+					mark_uniform_as_bound(uniformName, unboundUniforms);
+				}
+				else if (bindResult == eUniformBindResult::error)
+				{
+					bMaterialInstanceFailure = true;
+				}
 			}
 		}
 
@@ -480,7 +460,14 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 		// Apply texture overrides
 		for (auto it = m_textureSources.getMap().begin(); it != m_textureSources.getMap().end(); ++it)
 		{
-			if (program->setTextureUniform(it->first))
+			const std::string& uniformName= it->first;
+			GlTexturePtr texture= it->second;
+			int textureUnit= 0;
+
+			if (texture &&
+				program->getUniformTextureUnit(uniformName, textureUnit) &&
+				program->setTextureUniform(uniformName) &&
+				texture->bindTexture(textureUnit))
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
 			}
@@ -502,7 +489,7 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 		bMaterialInstanceFailure= true;
 	}
 
-	return GlScopedMaterialInstanceBinding(shared_from_this(), bMaterialInstanceFailure);
+	return GlScopedMaterialInstanceBinding(shared_from_this(), unboundUniforms, bMaterialInstanceFailure);
 }
 
 void GlMaterialInstance::unbindMaterialInstance() const
@@ -516,7 +503,7 @@ void GlMaterialInstance::unbindMaterialInstance() const
 		const std::string& uniformName = it->first;
 		GlTexturePtr texture = it->second;
 
-		int textureUnit;
+		int textureUnit= 0;
 		if (m_parentMaterial->getProgram()->getUniformTextureUnit(uniformName, textureUnit))
 		{
 			it->second->clearTexture(textureUnit);

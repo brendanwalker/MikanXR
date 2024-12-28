@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RendererFwd.h"
 #include "TextStyle.h"
 
 #include <vector>
@@ -16,21 +17,43 @@
 class GlTextRenderer
 {
 public:
-	GlTextRenderer();
+	GlTextRenderer(class IGlWindow* ownerWindow);
+	virtual ~GlTextRenderer();
 
-	void render(class IGlWindow* window);
+	bool startup();
+	void render();
+	void shutdown();
+
 	void addTextAtScreenPosition(const TextStyle& style, const glm::vec2& screenCoords, const std::wstring& text);
 
 protected:
 	struct BakedTextQuad
 	{
-		glm::vec2 screenCoords;
-		class GlTexture* texture;
-		eHorizontalTextAlignment horizontalAlignment;
-		eVerticalTextAlignment verticalAlignment;
+		GlTexturePtr texture;
+		int startVertexIndex;
 	};
 
+	struct TextQuadVertex
+	{
+		glm::vec2 position;
+		glm::vec2 texCoords;
+	};
+
+	int allocateTextQuadVertices(int vertexCount);
+	void setTextQuadVertex(int index, const glm::vec2& position, const glm::vec2& texCoords);
+
+private:
+	static const int kMaxTextQuads= 1024;
+	class IGlWindow* m_ownerWindow= nullptr;
+
 	std::vector<BakedTextQuad> m_bakedTextQuads;
+	unsigned int m_textQuadVAO= 0;
+	unsigned int m_textQuadVBO= 0;
+	int m_textQuadVertexCount= 0;
+	int m_maxTextQuadVertexCount;
+	TextQuadVertex* m_textQuadVertices;
+	GlMaterialConstPtr m_textMaterial;
+	GlMaterialInstancePtr m_textMaterialInstance;
 };
 
 //-- drawing methods -----
@@ -46,4 +69,9 @@ void drawTextAtCameraPosition(
 	const TextStyle& style,
 	const float cameraWidth, const float cameraHeight,
 	const glm::vec2& cameraCoords,
+	const wchar_t* format, ...) GLYPH_PRINTFARGS(2);
+void drawTextAtTrackerPosition(
+	const TextStyle& style,
+	const float trackerWidth, const float trackerHeight,
+	const glm::vec2& trackerCoords,
 	const wchar_t* format, ...) GLYPH_PRINTFARGS(2);

@@ -30,7 +30,7 @@ public:
 	void setMaterialAssetReference(MaterialAssetReferencePtr inAssetRef);
 	inline MaterialAssetReferencePtr getMaterialAssetReference() const { return m_materialAssetRef; }
 
-	inline GlMaterialPtr getMaterialResource() const { return m_materialResource; }
+	inline GlMaterialConstPtr getMaterialResource() const { return m_materialResource; }
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
@@ -38,7 +38,7 @@ public:
 
 protected:
 	MaterialAssetReferencePtr m_materialAssetRef;
-	GlMaterialPtr m_materialResource;
+	GlMaterialConstPtr m_materialResource;
 };
 
 using GraphMaterialPropertyFactory = TypedGraphPropertyFactory<GraphMaterialProperty, GraphMaterialPropertyConfig>;

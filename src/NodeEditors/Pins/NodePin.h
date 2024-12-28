@@ -26,6 +26,7 @@ public:
 	t_node_id ownerNodeId;
 	std::vector<t_node_link_id> connectedLinkIds;
 	bool hasDefaultValue = false;
+	bool isDynamic= false;
 };
 
 class NodePin  : public std::enable_shared_from_this<NodePin>
@@ -61,6 +62,11 @@ public:
 	inline void setHasDefaultValue(bool bOptional) { m_bHasDefaultValue = bOptional; }
 	inline bool getHasDefaultValue() const { return m_bHasDefaultValue; }
 
+	// This is used that the pin that is dynamically created due to another pin
+	// (Like a material input pin that creates other parameter pins)
+	inline void setIsDynamicPin(bool bIsDynamic) { m_bIsDynamic = bIsDynamic; }
+	inline bool getIsDynamicPin() const { return m_bIsDynamic; }
+
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
 
@@ -89,6 +95,7 @@ protected:
 	NodePtr m_ownerNode;
 	std::vector<NodeLinkPtr> m_connectedLinks;
 	bool m_bHasDefaultValue = false;
+	bool m_bIsDynamic= false;
 
 	// Editor Flags
 	bool m_bEditorShowPinName= true;

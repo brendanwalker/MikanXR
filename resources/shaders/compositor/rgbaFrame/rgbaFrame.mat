@@ -1,9 +1,22 @@
 {
     "materialName": "rgbaFrame",
-    "vertexShaderPath": "rgbaFrame.vert",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
     "fragmentShaderPath": "rgbaFrame.frag",
-    "uniforms":
+	"vertexAttributes":
+	[
+		{
+			"name": "aPos",
+			"dataType": "vec2",
+			"semantic": "position"
+		},
+		{
+			"name": "aTexCoords",
+			"dataType": "vec2",
+			"semantic": "texCoord"
+		}		
+	],	
+    "uniformSemanticMap":
     {
-        "rgbaTexture": "texture0"
+        "rgbaTexture": "rgbaTexture"
     }
 }

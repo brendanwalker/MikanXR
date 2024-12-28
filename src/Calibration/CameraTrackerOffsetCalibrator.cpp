@@ -8,7 +8,6 @@
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
-#include "MikanClientTypes.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
 #include "VRDeviceView.h"
@@ -50,7 +49,7 @@ struct CameraTrackerOffsetCalibrationState
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
 
-		inputCameraIntrinsics = cameraIntrinsics.intrinsics.mono;
+		inputCameraIntrinsics = cameraIntrinsics.getMonoIntrinsics();
 		desiredSampleCount = patternCount;
 
 		resetCalibration();
@@ -133,7 +132,7 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 	}
 
 	// Fetch the calibration poses from the devices
-	const glm::dmat4 cameraPuckXform= glm::dmat4(m_cameraTrackingPuckView->getCalibrationPose());
+	const glm::dmat4 cameraPuckXform= glm::dmat4(m_cameraTrackingPuckView->getDefaultComponentPose());
 
 	// Look for the calibration pattern in the latest video frame
 	if (!m_patternFinder->findNewCalibrationPattern())
@@ -143,7 +142,8 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 
 	cv::Point2f boundingQuad[4];
 	t_opencv_point2d_list imagePoints;
-	m_patternFinder->fetchLastFoundCalibrationPattern(imagePoints, boundingQuad);
+	t_opencv_pointID_list imagePointIDs;
+	m_patternFinder->fetchLastFoundCalibrationPattern(imagePoints, imagePointIDs, boundingQuad);
 
 	// Given an object model and the image points samples we could be able to compute 
 	// a position and orientation of the calibration pattern relative to the camera
@@ -206,7 +206,7 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 glm::mat4 CameraTrackerOffsetCalibrator::getLastCameraPose(VRDeviceViewPtr attachedVRDevicePtr) const
 {
 	const glm::mat4 cameraOffsetXform = glm::mat4(m_calibrationState->cameraToCameraPuckXform);
-	const glm::mat4 vrDevicePose = attachedVRDevicePtr->getCalibrationPose();
+	const glm::mat4 vrDevicePose = attachedVRDevicePtr->getDefaultComponentPose();
 	const glm::mat4 cameraPose = vrDevicePose * cameraOffsetXform;
 
 	return cameraPose;
@@ -283,7 +283,7 @@ void CameraTrackerOffsetCalibrator::renderVRSpaceCalibrationState()
 	m_patternFinder->renderSolvePnPPattern3D(m_calibrationState->patternXform);
 
 	// Draw the camera puck transform
-	const glm::mat4 cameraPuckXform = glm::dmat4(m_cameraTrackingPuckView->getCalibrationPose());
+	const glm::mat4 cameraPuckXform = glm::dmat4(m_cameraTrackingPuckView->getDefaultComponentPose());
 	drawTransformedAxes(cameraPuckXform, 0.1f);
 
 	// Draw the most recently derived camera transform derived from the mat puck

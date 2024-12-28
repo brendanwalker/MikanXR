@@ -51,11 +51,16 @@ const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT] = {
 };
 const std::string* k_stencilCullModeStrings = g_stencilCullModeStrings;
 
-const std::string g_clientTextureTypeStrings[(int)eClientTextureType::COUNT] = {
-	"color",
-	"depth"
+const std::string g_clientColorTextureTypeStrings[(int)eClientColorTextureType::COUNT] = {
+	"colorRGB",
+	"colorRGBA"
 };
-const std::string* k_clientTextureTypeStrings = g_clientTextureTypeStrings;
+const std::string* k_clientColorTextureTypeStrings = g_clientColorTextureTypeStrings;
+
+const std::string g_clientDepthTextureTypeStrings[(int)eClientDepthTextureType::COUNT] = {
+	"depthPackRGBA"
+};
+const std::string* k_clientDepthTextureTypeStrings = g_clientDepthTextureTypeStrings;
 
 const std::string g_compositorEvaluatorWindow[(int)eCompositorEvaluatorWindow::COUNT] = {
 	"mainWindow",

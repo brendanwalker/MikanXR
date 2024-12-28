@@ -56,7 +56,7 @@ void ArrayNode::saveToConfig(NodeConfigPtr nodeConfig) const
 
 bool ArrayNode::evaluateNode(NodeEvaluator& evaluator)
 {
-	// Nothing to do
+	rebuildOutputArrayValue();
 	return true;
 }
 
@@ -150,15 +150,21 @@ void ArrayNode::setElementClassName(const std::string inElementClassName)
 			propPin->setPropertyClassName(inElementClassName);
 		}
 
-		assert(m_pinsOut.size() == 1);
-		auto arrayPin= std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
-		arrayPin->setElementClassName(inElementClassName);
+		if (m_pinsOut.size() == 1)
+		{
+			auto arrayPin = std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
+			arrayPin->setElementClassName(inElementClassName);
+		}
 	}
 }
 
 void ArrayNode::rebuildOutputArrayValue()
 {
-	std::vector<GraphPropertyPtr> newArrayValue;
+	assert(m_pinsOut.size() == 1);
+	auto arrayPin = std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
+	auto& graphPropertyArray= arrayPin->getArrayMutable();
+
+	graphPropertyArray.clear();
 	for (const NodePinPtr& pin : m_pinsIn)
 	{
 		auto propPin = std::static_pointer_cast<PropertyPin>(pin);
@@ -167,13 +173,9 @@ void ArrayNode::rebuildOutputArrayValue()
 		// Only bother with non empty properties
 		if (property)
 		{
-			newArrayValue.push_back(property);
+			graphPropertyArray.push_back(property);
 		}
 	}
-
-	assert(m_pinsOut.size() == 1);
-	auto arrayPin = std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
-	arrayPin->setArray(newArrayValue);
 }
 
 // -- ArrayNode Factory -----

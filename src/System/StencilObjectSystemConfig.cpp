@@ -98,7 +98,7 @@ void StencilObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 
 bool StencilObjectSystemConfig::canAddStencil() const
 {
-	return (boxStencilList.size() + quadStencilList.size() + modelStencilList.size() < MAX_MIKAN_STENCILS);
+	return true;
 }
 
 bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
@@ -232,12 +232,12 @@ QuadStencilDefinitionPtr StencilObjectSystemConfig::getQuadStencilConfig(MikanSt
 	return std::const_pointer_cast<QuadStencilDefinition>(getQuadStencilConfigConst(stencilId));
 }
 
-MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQuad& quadInfo)
+MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQuadInfo& quadInfo)
 {
 	if (!canAddStencil())
 		return INVALID_MIKAN_ID;
 
-	MikanStencilQuad localQuadInfo= quadInfo;
+	MikanStencilQuadInfo localQuadInfo= quadInfo;
 	localQuadInfo.stencil_id= nextStencilId;
 	nextStencilId++;
 
@@ -271,12 +271,12 @@ BoxStencilDefinitionPtr StencilObjectSystemConfig::getBoxStencilConfig(MikanSten
 	return std::const_pointer_cast<BoxStencilDefinition>(getBoxStencilConfigConst(stencilId));
 }
 
-MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBox& boxInfo)
+MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBoxInfo& boxInfo)
 {
 	if (!canAddStencil())
 		return INVALID_MIKAN_ID;
 
-	MikanStencilBox localBoxInfo = boxInfo;
+	MikanStencilBoxInfo localBoxInfo = boxInfo;
 	localBoxInfo.stencil_id = nextStencilId;
 	nextStencilId++;
 
@@ -313,12 +313,12 @@ ModelStencilDefinitionPtr StencilObjectSystemConfig::getModelStencilConfig(Mikan
 	return std::const_pointer_cast<ModelStencilDefinition>(getModelStencilConfigConst(stencilId));
 }
 
-MikanStencilID StencilObjectSystemConfig::addNewModelStencil(const MikanStencilModel& modelInfo)
+MikanStencilID StencilObjectSystemConfig::addNewModelStencil(const MikanStencilModelInfo& modelInfo)
 {
 	if (!canAddStencil())
 		return INVALID_MIKAN_ID;
 
-	MikanStencilModel localModelInfo = modelInfo;
+	MikanStencilModelInfo localModelInfo = modelInfo;
 	localModelInfo.stencil_id = nextStencilId;
 	nextStencilId++;
 

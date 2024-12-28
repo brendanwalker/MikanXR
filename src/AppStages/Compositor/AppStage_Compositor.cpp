@@ -281,10 +281,12 @@ bool AppStage_Compositor::startRecording()
 	switch (compositorTexture->getBufferFormat())
 	{
 	case GL_RGB:
+	case GL_BGR:
 		matType = CV_8UC3;
 		bpp = 24;
 		break;
 	case GL_RGBA:
+	case GL_BGRA:
 		matType = CV_8UC4;
 		bpp = 32;
 		break;
@@ -357,8 +359,7 @@ bool AppStage_Compositor::startStreaming()
 	if (compositorTexture->getBufferFormat() != GL_RGBA)
 		return false;
 
-	MikanRenderTargetDescriptor descriptor;
-	memset(&descriptor, 0, sizeof(MikanRenderTargetDescriptor));
+	MikanRenderTargetDescriptor descriptor = {};
 	descriptor.color_buffer_type= MikanColorBuffer_RGBA32;
 	descriptor.depth_buffer_type= MikanDepthBuffer_NODEPTH;
 	descriptor.width= compositorTexture->getTextureWidth();
@@ -398,7 +399,7 @@ void AppStage_Compositor::onNewStreamingFrameReady()
 		{
 			GLuint textureId= frameTexture->getGlTextureId();
 
-			m_renderTargetWriteAccessor->writeRenderTargetTexture(&textureId);
+			m_renderTargetWriteAccessor->writeColorFrameTexture(&textureId);
 		}
 	}
 }
@@ -433,6 +434,10 @@ void AppStage_Compositor::setupCameras()
 		inputManager->fetchOrAddKeyBindings(SDLK_2)->OnKeyPressed +=
 			MakeDelegate(this, &AppStage_Compositor::setVRCamera);
 	}
+
+	// Set camera names
+	getViewpointCamera(eCompositorViewpointMode::vrViewpoint)->setName("vrViewpoint");
+	getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint)->setName("mixedRealityViewpoint");
 }
 
 void AppStage_Compositor::setXRCamera()
@@ -520,21 +525,12 @@ void AppStage_Compositor::onToggleSettingsWindowEvent()
 // Compositor Layers UI Events
 void AppStage_Compositor::onGraphEditEvent()
 {
-	App* app= App::getInstance();
-	CompositorNodeEditorWindow* appWindow= App::getInstance()->createAppWindow<CompositorNodeEditorWindow>();
+	App* app= App::getInstance();	
 
-	auto graphAssetPath= m_frameCompositor->getCompositorGraphAssetPath();
-	if (graphAssetPath.empty())
+	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
 	{
-		appWindow->newGraph();
+		app->createAppWindow<CompositorNodeEditorWindow>();
 	}
-	else
-	{
-		appWindow->loadGraph(graphAssetPath);
-	}
-
-	// Pop back to the main window GL context
-	app->popCurrentWindow(appWindow);
 }
 
 void AppStage_Compositor::onGraphFileSelectEvent()

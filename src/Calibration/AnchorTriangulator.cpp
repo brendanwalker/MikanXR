@@ -14,7 +14,6 @@
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
-#include "MikanClientTypes.h"
 #include "SceneComponent.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
@@ -51,8 +50,7 @@ struct AnchorTriangulationState
 		// Get the current mono camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
-		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-		inputCameraIntrinsics= cameraIntrinsics.intrinsics.mono;
+		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 
 		initialCameraPoseSample = glm::mat4(1.f);
 		resetCalibration();
@@ -211,23 +209,7 @@ bool AnchorTriangulator::computeAnchorTransform(AnchorTriangulatorInfo& anchorIn
 			glm::vec4(yAxis, 0.f),
 			glm::vec4(zAxis, 0.f),
 			glm::vec4(origin, 1.f));
-
-	// Convert triangulated world space points into local space of origin anchor
-	AnchorComponentPtr originAnchorComponentPtr =
-		AnchorObjectSystem::getSystem()->getOriginSpatialAnchor();
-
-	if (originAnchorComponentPtr->getAnchorDefinition()->getAnchorId() != anchorInfo.anchorId)
-	{
-		// Compute transform relative to origin anchor
-		const glm::mat4 originWorldXform = originAnchorComponentPtr->getWorldTransform();
-		
-		anchorInfo.relativeTransform = glm_relative_xform(originWorldXform, m_calibrationState->anchorWorldXform);
-	}
-	else
-	{
-		// Target anchor is origin anchor, so relative transform == world transform
-		anchorInfo.relativeTransform= m_calibrationState->anchorWorldXform;
-	}
+	anchorInfo.worldTransform= m_calibrationState->anchorWorldXform;
 
 	return true;
 }

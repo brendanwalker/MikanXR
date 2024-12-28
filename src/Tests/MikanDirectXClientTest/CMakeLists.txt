@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 # Mikan Client Test App
 file(GLOB MIKAN_DX_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
@@ -11,8 +9,12 @@ file(GLOB MIKAN_DX_TEST_SRC
 list(APPEND MIKAN_DX_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${ROOT_DIR}/src/AppCore/
-  ${ROOT_DIR}/src/Client/
-  ${STB_INCLUDE_DIRS})
+  ${ROOT_DIR}/src/ClientAPI/Public
+  ${ROOT_DIR}/src/ClientCore/Public
+  ${ROOT_DIR}/src/Serialization/Public
+  ${NLOHMANN_JSON_INCLUDE_DIR}
+  ${STB_INCLUDE_DIRS}
+  ${RFK_INCLUDE_DIR})
 
 list(APPEND MIKAN_DX_TEST_REQ_LIBS
   d3d11 
@@ -20,7 +22,9 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
   dxguid 
   comctl32
   ${MIKAN_EXTRA_LIBS}
-  Mikan_CAPI)
+  MikanCore
+  MikanAPI
+  MikanSerialization)
 
 add_executable(MikanDX_Test WIN32 ${MIKAN_DX_TEST_SRC})
 target_include_directories(MikanDX_Test PUBLIC ${MIKAN_DX_TEST_INCL_DIRS})
@@ -41,7 +45,17 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET MikanDX_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:Mikan_CAPI>/Mikan_CAPI.dll
+          $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll
+          $<TARGET_FILE_DIR:MikanDX_Test>)
+  add_custom_command(
+    TARGET MikanDX_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
+          $<TARGET_FILE_DIR:MikanDX_Test>)
+  add_custom_command(
+    TARGET MikanDX_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
           $<TARGET_FILE_DIR:MikanDX_Test>)
 ELSE() #Linux/Darwin
 ENDIF()
@@ -49,23 +63,12 @@ ENDIF()
 # Install
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
   install(TARGETS MikanDX_Test
-      CONFIGURATIONS Debug
-      RUNTIME DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/lib)
-  install(TARGETS MikanDX_Test
-      CONFIGURATIONS Release
-      RUNTIME DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/lib)
+      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
+      LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
       
   install(FILES 
       "${CMAKE_CURRENT_LIST_DIR}/shader.fxh"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${CMAKE_CURRENT_LIST_DIR}/shader.fxh"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 ELSE() #Linux/Darwin
 ENDIF()

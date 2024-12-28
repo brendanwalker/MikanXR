@@ -7,6 +7,7 @@
 #include "InputManager.h"
 #include "MathGLM.h"
 #include "MikanObject.h"
+#include "SelectionComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -112,9 +113,9 @@ void GizmoTransformComponent::selectScaleMode()
 		setGizmoMode(eGizmoMode::scale);
 }
 
-SceneComponentPtr GizmoTransformComponent::getTransformTarget() const
+SelectionComponentPtr GizmoTransformComponent::getSelectionTarget() const
 {
-	return m_targetSceneComponent.lock();
+	return m_selectionTarget.lock();
 }
 
 void GizmoTransformComponent::onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation)
@@ -161,15 +162,25 @@ void GizmoTransformComponent::onSelectionScaleRequested(const glm::vec3& objectS
 	applyTransformToTarget();
 }
 
-void GizmoTransformComponent::setTransformTarget(SceneComponentPtr sceneComponentTarget)
+void GizmoTransformComponent::setSelectionTarget(SelectionComponentPtr selectionTarget)
 {
-	assert(sceneComponentTarget);
-
-	// Remember the new transform target
-	m_targetSceneComponent= sceneComponentTarget;
+	assert(selectionTarget);
 
 	eGizmoMode oldGizmoMode = getGizmoMode();
 	eGizmoMode newGizmoMode = eGizmoMode::none;
+
+	// Clean up old selection target state
+	clearSelectionTarget();
+
+	// Apply transforms to the root component of the mikan object that owns the selection target
+	SceneComponentPtr transformTarget= selectionTarget->getOwnerObject()->getRootComponent();
+
+	// Tell the new selection target that the gizmo is bound to it
+	selectionTarget->notifyTransformGizmoBound();
+
+	// Remember the new selection and transform target
+	m_selectionTarget= selectionTarget;
+	m_transformTarget= transformTarget;
 
 	// Default to a transform mode gizmo if the gizmo wasn't active before
 	if (oldGizmoMode != eGizmoMode::none)
@@ -184,22 +195,30 @@ void GizmoTransformComponent::setTransformTarget(SceneComponentPtr sceneComponen
 	applyTransformToGizmo();
 
 	// Listen for scene component transform changes committed by the UI
-	sceneComponentTarget->getDefinition()->OnMarkedDirty+= 
+	transformTarget->getDefinition()->OnMarkedDirty+= 
 		MakeDelegate(this, &GizmoTransformComponent::onTransformTargetConfigChange);
 }
 
-void GizmoTransformComponent::clearTransformTarget()
+void GizmoTransformComponent::clearSelectionTarget()
 {
-	SceneComponentPtr oldSceneComponentTarget= m_targetSceneComponent.lock();
+	SceneComponentPtr oldTransformTarget= m_transformTarget.lock();
+	SelectionComponentPtr oldSelectionTarget= m_selectionTarget.lock();
+
+	// Tell the old selection target that the gizmo is no longer bound to it
+	if (oldSelectionTarget)
+	{
+		oldSelectionTarget->notifyTransformGizmoUnbound();
+	}
 
 	// Stop listen for scene component transform changes committed by the UI
-	if (oldSceneComponentTarget)
+	if (oldTransformTarget)
 	{
-		oldSceneComponentTarget->getDefinition()->OnMarkedDirty -=
+		oldTransformTarget->getDefinition()->OnMarkedDirty -=
 			MakeDelegate(this, &GizmoTransformComponent::onTransformTargetConfigChange);
 	}
 
-	m_targetSceneComponent.reset();
+	m_transformTarget.reset();
+	m_selectionTarget.reset();
 	setGizmoMode(eGizmoMode::none);
 	setWorldTransform(glm::mat4(1.f));
 }
@@ -208,7 +227,7 @@ void GizmoTransformComponent::applyTransformToGizmo()
 {
 	assert(!m_bIsApplyingTransformToTarget);
 
-	SceneComponentPtr sceneComponentTarget = m_targetSceneComponent.lock();
+	SceneComponentPtr sceneComponentTarget = m_transformTarget.lock();
 
 	if (sceneComponentTarget)
 	{
@@ -238,7 +257,7 @@ void GizmoTransformComponent::applyTransformToGizmo()
 
 void GizmoTransformComponent::applyTransformToTarget()
 {
-	SceneComponentPtr sceneComponentTarget= m_targetSceneComponent.lock();
+	SceneComponentPtr sceneComponentTarget= m_transformTarget.lock();
 
 	if (sceneComponentTarget)
 	{

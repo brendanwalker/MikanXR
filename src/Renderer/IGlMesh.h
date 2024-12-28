@@ -9,11 +9,12 @@ class IGlMesh
 {
 public:
 	virtual void drawElements() const = 0;
-	virtual bool createBuffers() = 0;
-	virtual void deleteBuffers() = 0;
+	virtual bool createResources() = 0;
+	virtual void deleteResources() = 0;
 
 	virtual std::string getName() const = 0;
-	virtual const GlVertexDefinition* getVertexDefinition() const = 0;
+	virtual class IGlWindow* getOwnerWindow() const = 0;
+	virtual std::shared_ptr<class GlMaterialInstance> getMaterialInstance() const = 0;
 	virtual const uint8_t* getVertexData() const = 0;
 	virtual const uint32_t getVertexCount() const = 0;
 

@@ -104,3 +104,17 @@ void SelectionComponent::notifyUnselected()
 	if (OnInteractionUnselected)
 		OnInteractionUnselected();
 }
+
+void SelectionComponent::notifyTransformGizmoBound()
+{
+	m_bIsTransformGizmoBound= true;
+	if (OnTransformGizmoBound)
+		OnTransformGizmoBound();
+}
+
+void SelectionComponent::notifyTransformGizmoUnbound()
+{
+	m_bIsTransformGizmoBound= true;
+	if (OnTransformGizmoUnbound)
+		OnTransformGizmoUnbound();
+}

@@ -102,18 +102,6 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-echo "Downloading Boost..."
-curl -L https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip > boost_1_78_0.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading boost_1_78_0.zip"
-  goto failure
-)
-7z e boost_1_78_0.zip -y -r -spf        
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping boost_1_78_0.zip"
-  goto failure
-)
-
 echo "Downloading glew..."
 curl -L https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip --output glew-2.2.0-win32.zip
 IF %ERRORLEVEL% NEQ 0 (
@@ -175,49 +163,22 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-:: Download and make a build of RmlUi with some custom build settings
-echo "Downloading RML source..."
-curl -L https://github.com/mikke89/RmlUi/archive/refs/tags/4.4.zip --output RML.zip
+:: Download pre-compiled Refureku libraries
+echo "Downloading Refureku..."
+curl -L https://github.com/MikanXR/Refureku/releases/download/v2.2.1/rfk_v2.2.1_windows.zip --output rfk_v2.2.1_windows.zip
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error RML.zip"
+  echo "Error downloading rfk_v2.2.1_windows.zip"
   goto failure
 )
-7z e RML.zip -y -r -spf -oRML
+7z e rfk_v2.2.1_windows.zip -y -r -spf -orfk
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping RML.zip"
+  echo "Error unzipping rfk_v2.2.1_windows.zip"
   goto failure
 )
-set LUA_DIR=%~dp0\thirdparty\lua
-pushd RML\RmlUi-4.4
-pushd Dependencies
-mkdir lib
-copy ..\..\..\freetype-windows-binaries-2.10.4\win64\freetype.lib lib\freetype.lib
-robocopy ..\..\..\freetype-windows-binaries-2.10.4\include include /s /e
-popd
-echo "Configuring RML project..."
-cmake -B Build -S . -DBUILD_SAMPLES=OFF -DBUILD_LUA_BINDINGS=ON
-echo "Building RML Debug config..."
-cmake --build Build --config Debug
-echo "Building RML Release config..."
-cmake --build Build --config Release
-popd
-set "LUA_DIR="
 
-: Download prebuilt SWIG
-set(SWIG_VERSION "4.1.1")
-        # Download and install pre-compiled SWIG for Windows into deps folder
-        set(SWIG_DOWNLOAD_URL "http://sourceforge.net/projects/swig/files/swigwin/swigwin-${SWIG_VERSION}/swigwin-${SWIG_VERSION}.zip")
-echo "Downloading FreeType Binaries..."
-curl -L http://sourceforge.net/projects/swig/files/swigwin/swigwin-4.1.1/swigwin-4.1.1.zip --output swigwin-4.1.1.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error swigwin-4.1.1.zip"
-  goto failure
-)
-7z e swigwin-4.1.1.zip -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping swigwin-4.1.1.zip"
-  goto failure
-)
+:: NuGet tool used to fetch c# packages
+echo "Downloading nuget..."
+curl -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe --output nuget.exe
 
 :: Exit back out of the deps folder
 popd

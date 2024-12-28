@@ -23,7 +23,26 @@ bool CompositorNodeEditorWindow::startup()
 	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
 	frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::editorWindow);
 
-	return NodeEditorWindow::startup();
+	// Start the node editor window
+	if (!NodeEditorWindow::startup())
+	{
+		return false;
+	}
+
+	// Load the graph from the asset path on the main window's frame compositor (if any)
+	auto graphAssetPath = frameCompositor->getCompositorGraphAssetPath();
+	if (!graphAssetPath.empty() && !loadGraph(graphAssetPath))
+	{
+		return false;
+	}
+
+	// Create a new graph if none was loaded
+	if (!m_editorState.nodeGraph)
+	{
+		newGraph();
+	}
+
+	return true;
 }
 
 void CompositorNodeEditorWindow::update(float deltaSeconds)
@@ -33,18 +52,22 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 	if (m_isRunningCompositor)
 	{
 		MainWindow* mainWindow = MainWindow::getInstance();
-		VideoSourceViewPtr videoSourceView= mainWindow->getFrameCompositor()->getVideoSource();
 
-		NodeEvaluator evaluator = {};
-		evaluator
-			.setCurrentWindow(this)
-			.setDeltaSeconds(deltaSeconds)
-			.setCurrentVideoSourceView(videoSourceView);
-
-		auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
-		if (!node_graph->compositeFrame(evaluator))
+		if (mainWindow != nullptr)
 		{
-			m_lastNodeEvalErrors= evaluator.getErrors();
+			VideoSourceViewPtr videoSourceView = mainWindow->getFrameCompositor()->getVideoSource();
+
+			NodeEvaluator evaluator = {};
+			evaluator
+				.setCurrentWindow(this)
+				.setDeltaSeconds(deltaSeconds)
+				.setCurrentVideoSourceView(videoSourceView);
+
+			auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
+			if (!node_graph->compositeFrame(evaluator))
+			{
+				m_lastNodeEvalErrors = evaluator.getErrors();
+			}
 		}
 	}
 }
@@ -52,8 +75,12 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 void CompositorNodeEditorWindow::shutdown()
 {
 	// Tell the frame compositor to free the editor compositor texture
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::mainWindow);
+	MainWindow* mainWindow= MainWindow::getInstance();
+	if (mainWindow != nullptr)
+	{
+		GlFrameCompositor* frameCompositor = mainWindow->getFrameCompositor();
+		frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::mainWindow);
+	}
 
 	NodeEditorWindow::shutdown();
 }

@@ -1,9 +1,16 @@
 #include "OpenCVManager.h"
+#include "DeepNeuralNetwork.h"
 #include "Logger.h"
 
 #include "opencv2/core.hpp"
 #include "opencv2/core/ocl.hpp"
 #include "opencv2/core/utils/logger.hpp"
+
+#include "opencv2/calib3d/calib3d.hpp"
+#include <opencv2/aruco/charuco.hpp>
+#include <opencv2/imgcodecs.hpp>
+
+#include <filesystem>
 
 static void setOpencvLoggingLevel(LogSeverityLevel logLevel)
 {
@@ -32,8 +39,19 @@ static void setOpencvLoggingLevel(LogSeverityLevel logLevel)
 
 bool OpenCVManager::startup()
 {
-	bool success= true;
+	if (!parseOpenCLBuildInfo())
+	{
+		MIKAN_LOG_ERROR("OpenCVManager::init") << "Unable to initialize OpenCL";
+		return false;
+	}
 
+	parseOpenCVBuildInfo();
+
+	return true;
+}
+
+bool OpenCVManager::parseOpenCLBuildInfo()
+{
 	if (cv::ocl::haveOpenCL())
 	{
 		// Test for OpenCL availability
@@ -75,17 +93,66 @@ bool OpenCVManager::startup()
 
 		// Set the log level in OpenCV
 		setOpencvLoggingLevel(LogSeverityLevel::warning);
-	}
-	else
-	{
-		MIKAN_LOG_ERROR("Renderer::init") << "Unable to initialize OpenCL";
-		success = false;
+		return true;
 	}
 
-	return success;
+	return false;
+}
+
+// https://stackoverflow.com/questions/17347308/how-to-check-if-opencv-was-compiled-with-tbb-cuda-or-qt-support
+void OpenCVManager::parseOpenCVBuildInfo()
+{
+	// Fetch full OpenCV build information report
+	const cv::String str = cv::getBuildInformation();
+
+	MIKAN_LOG_INFO("OpenCV") << "OpenCV Build Info";
+	MIKAN_LOG_INFO("OpenCV") << "=================";
+
+	// Parse the report line by line
+	std::string line;
+	std::istringstream strStream(str);
+	while (std::getline(strStream, line))
+	{
+		// Enable this to see all the options. (Remember to remove the break)
+		MIKAN_LOG_INFO("OpenCV") << line;
+
+		if (line.find("cuDNN") != std::string::npos)
+		{
+			std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+			if (line.find("yes") != std::string::npos)
+			{
+				m_bHasCudaDNN = true;
+				break;
+			}
+		}
+	}
 }
 
 void OpenCVManager::shutdown()
 {
+	m_dnnMap.clear();
+}
 
+DeepNeuralNetworkPtr OpenCVManager::fetchDeepNeuralNetwork(const std::string& dnnFileName)
+{
+	auto it = m_dnnMap.find(dnnFileName);
+	if (it != m_dnnMap.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		auto dnn = std::make_shared<DeepNeuralNetwork>();
+
+		std::filesystem::path dnnPath = DeepNeuralNetwork::getOnnxFilePath(dnnFileName);
+		if (dnn->loadOnnxFile(dnnPath))
+		{
+			dnn->setName(dnnFileName);
+			m_dnnMap.insert({dnnFileName, dnn});
+
+			return dnn;
+		}
+	}
+
+	return DeepNeuralNetworkPtr();
 }

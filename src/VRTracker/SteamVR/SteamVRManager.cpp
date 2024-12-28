@@ -17,7 +17,7 @@ const int SteamVRManager::k_maxReconnectAttempts = 5;
 struct DeviceSetPoseSample
 {
 	vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
-	uint64_t frameCounter;
+	int64_t frameCounter;
 };
 
 class DeviceSetPoseHistory
@@ -40,15 +40,15 @@ public:
 		return m_samples[m_head];
 	}
 
-	const DeviceSetPoseSample* findSampleOfAge(uint64_t framesOld) const
+	const DeviceSetPoseSample* findSampleOfAge(int64_t framesOld) const
 	{
 		if (isEmpty())
 		{
 			return nullptr;
 		}
 
-		const uint64_t newestFrameAge = m_samples[m_head].frameCounter;
-		const uint64_t targetFrameAge = (newestFrameAge >= framesOld) ? newestFrameAge - framesOld : 0;
+		const int64_t newestFrameAge = m_samples[m_head].frameCounter;
+		const int64_t targetFrameAge = (newestFrameAge >= framesOld) ? newestFrameAge - framesOld : 0;
 
 		// Walk backwards looking for an old enough sample
 		size_t sampleIndex = m_head;
@@ -128,9 +128,11 @@ SteamVRManager::~SteamVRManager()
 {
 }
 
-bool SteamVRManager::startup()
+bool SteamVRManager::startup(class IGlWindow* ownerWindow)
 {
 	EASY_FUNCTION();
+
+	m_resourceManager->init(ownerWindow);
 
 	if (!tryConnect())
 	{

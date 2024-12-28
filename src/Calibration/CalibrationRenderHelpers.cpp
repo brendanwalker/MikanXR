@@ -1,21 +1,56 @@
+#include "App.h"
+#include "GlViewport.h"
 #include "ColorUtils.h"
 #include "CalibrationRenderHelpers.h"
 #include "GlLineRenderer.h"
-#include "MainWindow.h"
 #include "MathUtility.h"
 
-glm::vec2 remapPointIntoSubWindow(
-	const float screenWidth, const float screenHeight,
-	const float windowLeft, const float windowTop,
-	const float windowRight, const float windowBottom,
-	const glm::vec2& in_point)
+GlLineRenderer* getLineRenderer()
 {
-	const float u = in_point.x / screenWidth;
-	const float v = in_point.y / screenHeight;
+	IGlWindow* window = App::getInstance()->getCurrentGlContext();
+	assert(window != nullptr);
+
+	return window->getLineRenderer();
+}
+
+GlLineRenderer* getLineRendererAndViewportBounds(
+	float& outViewportX0, float& outViewportY0,
+	float& outViewportX1, float& outViewportY1)
+{
+	IGlWindow* window = App::getInstance()->getCurrentGlContext();
+	assert(window != nullptr);
+	GlLineRenderer* lineRenderer = window->getLineRenderer();
+	if (lineRenderer == nullptr)
+		return nullptr;
+
+	assert(window->getIsRenderingStage());
+	glm::i32vec2 renderingOrigin;
+	glm::i32vec2 renderingSize;
+	GlViewportConstPtr viewport = window->getRenderingViewport();
+	if (viewport == nullptr ||
+		!viewport->getRenderingViewport(renderingOrigin, renderingSize))
+		return nullptr;
+
+	outViewportX0 = renderingOrigin.x;
+	outViewportY0 = renderingOrigin.y;
+	outViewportX1 = renderingOrigin.x + renderingSize.x - 1.f;
+	outViewportY1 = renderingOrigin.y + renderingSize.y - 1.f;
+
+	return lineRenderer;
+}
+
+glm::vec2 remapPointIntoTarget(
+	const float sourceWidth, const float sourceHeight,
+	const float targetX0, const float targetY0,
+	const float targetX1, const float targetY1,
+	const glm::vec2& sourcePoint)
+{
+	const float u = sourcePoint.x / sourceWidth;
+	const float v = sourcePoint.y / sourceHeight;
 
 	return glm::vec2(
-		(1.f - u) * windowLeft + u * windowRight,
-		(1.f - v) * windowTop + v * windowBottom);
+		(1.f - u) * targetX0 + u * targetX1,
+		(1.f - v) * targetY0 + v * targetY1);
 }
 
 void drawSegment2d(
@@ -23,28 +58,28 @@ void drawSegment2d(
 	const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd,
 	const glm::vec3& colorStart, const glm::vec3& colorEnd)
 {
-	MainWindow* mainWindow = MainWindow::getInstance();
-	assert(mainWindow->getIsRenderingStage());
-	const float windowWidth = mainWindow->getWidth();
-	const float windowHeight = mainWindow->getHeight();
-	const float windowX0 = 0.0f, windowY0 = 0.f;
-	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
+	float viewportX0, viewportY0, viewportX1, viewportY1;
+	GlLineRenderer* lineRenderer= getLineRendererAndViewportBounds(
+		viewportX0, viewportY0,
+		viewportX1, viewportY1);
+	if (lineRenderer == nullptr)
+		return;
 
 	// Remaps the camera relative segment to window relative coordinates
 	const glm::vec2 windowSegmentStart =
-		remapPointIntoSubWindow(
+		remapPointIntoTarget(
 			cameraWidth, cameraHeight,
-			windowX0, windowY0,
-			windowX1, windowY1,
+			viewportX0, viewportY0,
+			viewportX1, viewportY1,
 			cameraSegmentStart);
 	const glm::vec2 windowSegmentEnd =
-		remapPointIntoSubWindow(
+		remapPointIntoTarget(
 			cameraWidth, cameraHeight,
-			windowX0, windowY0,
-			windowX1, windowY1,
+			viewportX0, viewportY0,
+			viewportX1, viewportY1,
 			cameraSegmentEnd);
 
-	mainWindow->getLineRenderer()->addSegment2d(windowSegmentStart, colorStart, windowSegmentEnd, colorEnd);
+	lineRenderer->addSegment2d(windowSegmentStart, colorStart, windowSegmentEnd, colorEnd);
 }
 
 void drawPointList2d(
@@ -54,22 +89,20 @@ void drawPointList2d(
 	const glm::vec3& color,
 	const float point_size)
 {
-	MainWindow* mainWindow = MainWindow::getInstance();
-	assert(mainWindow->getIsRenderingStage());
-	const float windowWidth = mainWindow->getWidth();
-	const float windowHeight = mainWindow->getHeight();
-	const float windowX0 = 0.0f, windowY0 = 0.f;
-	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
-
-	GlLineRenderer* lineRenderer = mainWindow->getLineRenderer();
+	float viewportX0, viewportY0, viewportX1, viewportY1;
+	GlLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+		viewportX0, viewportY0,
+		viewportX1, viewportY1);
+	if (lineRenderer == nullptr)
+		return;
 
 	for (int point_index = 0; point_index < trackerPointCount; ++point_index)
 	{
 		glm::vec2 windowPoint =
-			remapPointIntoSubWindow(
+			remapPointIntoTarget(
 				trackerWidth, trackerHeight,
-				windowX0, windowY0,
-				windowX1, windowY1,
+				viewportX0, viewportY0,
+				viewportX1, viewportY1,
 				trackerPoints2D[point_index]);
 
 		lineRenderer->addPoint2d(windowPoint, color, point_size);
@@ -84,14 +117,12 @@ void drawQuadList2d(
 {
 	assert((trackerPointCount % 4) == 0);
 
-	MainWindow* mainWindow = MainWindow::getInstance();
-	assert(mainWindow->getIsRenderingStage());
-	const float windowWidth = mainWindow->getWidth();
-	const float windowHeight = mainWindow->getHeight();
-	const float windowX0 = 0.0f, windowY0 = 0.f;
-	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
-
-	GlLineRenderer* lineRenderer = mainWindow->getLineRenderer();
+	float viewportX0, viewportY0, viewportX1, viewportY1;
+	GlLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+		viewportX0, viewportY0,
+		viewportX1, viewportY1);
+	if (lineRenderer == nullptr)
+		return;
 
 	// Draw line strip connecting all of the points on the line strip
 	for (int point_index = 0; point_index < trackerPointCount; point_index += 4) // 4 points per quad
@@ -109,16 +140,16 @@ void drawQuadList2d(
 				0.5f);
 
 			glm::vec2 prevWindowPoint =
-				remapPointIntoSubWindow(
+				remapPointIntoTarget(
 					trackerWidth, trackerHeight,
-					windowX0, windowY0,
-					windowX1, windowY1,
+					viewportX0, viewportY0,
+					viewportX1, viewportY1,
 					prevTrackerPoint);
 			glm::vec2 windowPoint =
-				remapPointIntoSubWindow(
+				remapPointIntoTarget(
 					trackerWidth, trackerHeight,
-					windowX0, windowY0,
-					windowX1, windowY1,
+					viewportX0, viewportY0,
+					viewportX1, viewportY1,
 					trackerPoint);
 
 			lineRenderer->addSegment2d(prevWindowPoint, color, windowPoint, color);
@@ -133,14 +164,12 @@ void drawOpenCVChessBoard2D(
 	const float* trackerPoints2d, const int trackerPointCount,
 	bool validPoints)
 {
-	MainWindow* mainWindow = MainWindow::getInstance();
-	assert(mainWindow->getIsRenderingStage());
-	const float windowWidth = mainWindow->getWidth();
-	const float windowHeight = mainWindow->getHeight();
-	const float windowX0 = 0.0f, windowY0 = 0.f;
-	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
-
-	GlLineRenderer* lineRenderer = mainWindow->getLineRenderer();
+	float viewportX0, viewportY0, viewportX1, viewportY1;
+	GlLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+		viewportX0, viewportY0,
+		viewportX1, viewportY1);
+	if (lineRenderer == nullptr)
+		return;
 
 	// Draw line strip connecting all of the corners on the chessboard
 	{
@@ -163,10 +192,10 @@ void drawOpenCVChessBoard2D(
 				trackerPoints2d[sampleIndex * 2 + 0],
 				trackerPoints2d[sampleIndex * 2 + 1]);
 			const glm::vec2 windowPoint =
-				remapPointIntoSubWindow(
+				remapPointIntoTarget(
 					trackerWidth, trackerHeight,
-					windowX0, windowY0,
-					windowX1, windowY1,
+					viewportX0, viewportY0,
+					viewportX1, viewportY1,
 					trackerPoint);
 
 			if (sampleIndex > 0)
@@ -204,10 +233,10 @@ void drawOpenCVChessBoard2D(
 				radius * cosf(angle) + trackerPoints2d[sampleIndex * 2 + 0],
 				radius * sinf(angle) + trackerPoints2d[sampleIndex * 2 + 1]);
 			glm::vec2 windowPoint =
-				remapPointIntoSubWindow(
+				remapPointIntoTarget(
 					trackerWidth, trackerHeight,
-					windowX0, windowY0,
-					windowX1, windowY1,
+					viewportX0, viewportY0,
+					viewportX1, viewportY1,
 					trackerPoint);
 
 			if (index > 0)
@@ -227,9 +256,9 @@ void drawOpenCVChessBoard3D(
 	const int pointCount,
 	bool validPoints)
 {
-	MainWindow* mainWindow = MainWindow::getInstance();
-	assert(mainWindow->getIsRenderingStage());
-	GlLineRenderer* lineRenderer = mainWindow->getLineRenderer();
+	GlLineRenderer* lineRenderer = getLineRenderer();
+	if (lineRenderer == nullptr)
+		return;
 
 	// Draw line strip connecting all of the corners on the chessboard
 	{

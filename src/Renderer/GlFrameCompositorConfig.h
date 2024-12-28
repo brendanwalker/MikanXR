@@ -14,9 +14,7 @@ typedef int32_t MikanStencilID;
 class CompositorPreset : public CommonConfig
 {
 public:
-	CompositorPreset(const std::string& fnamebase = "CompositorPreset")
-		: CommonConfig(fnamebase)
-	{}
+	CompositorPreset(const std::string& fnamebase = "CompositorPreset");
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

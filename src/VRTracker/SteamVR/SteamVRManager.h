@@ -30,7 +30,7 @@ public:
 	SteamVRManager(IVRSystemEventListener* listener);
 	virtual ~SteamVRManager();
 
-	bool startup();
+	bool startup(class IGlWindow* ownerWindow);
 	void update(float deltaTime);
 	void shutdown();
 
@@ -61,7 +61,7 @@ protected:
 	int m_reconnectAttemptCount= 0;
 	std::unique_ptr< class DeviceSetPoseHistory > m_devicePoseHistory;
 	const struct DeviceSetPoseSample* m_currentPoseSet;
-	uint64_t m_vrFrameCounter;
+	int64_t m_vrFrameCounter;
 	std::unique_ptr< class SteamVRResourceManager > m_resourceManager;
 	IVRSystemEventListener* m_eventListener= nullptr;
 	SteamVRIdSet m_activeSteamVRDeviceIdSet;

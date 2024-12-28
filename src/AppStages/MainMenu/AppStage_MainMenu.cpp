@@ -1,7 +1,6 @@
 //-- inludes -----
 #include "Compositor/AppStage_Compositor.h"
 #include "MainMenu/AppStage_MainMenu.h"
-#include "CalibrationPatternSettings/AppStage_CalibrationPatternSettings.h"
 #include "CameraSettings/AppStage_CameraSettings.h"
 #include "VRDeviceSettings/AppStage_VRDeviceSettings.h"
 #include "App.h"
@@ -35,10 +34,6 @@ void AppStage_MainMenu::onRmlClickEvent(const std::string& value)
 	if (value == "goto_compositor")
 	{
 		m_ownerWindow->pushAppStage<AppStage_Compositor>();
-	}
-	else if (value == "goto_pattern_settings")
-	{
-		m_ownerWindow->pushAppStage<AppStage_CalibrationPatternSettings>();
 	}
 	else if (value == "goto_camera_settings")
 	{

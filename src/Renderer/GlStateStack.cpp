@@ -1,5 +1,6 @@
 #include "GlStateStack.h"
 #include "GlCommon.h"
+#include "IGlWindow.h"
 #include <assert.h>
 
 GLenum g_glFlagTypeMapping[(int)eGlStateFlagType::COUNT] = {
@@ -23,67 +24,102 @@ GlState::GlState(GlStateStack& ownerStack, const int stackDepth)
 	{
 		// init our stack state with a copy of our parent state
 		memcpy(m_flags, m_parentState->m_flags, sizeof(m_flags));
+
+		// Copy all the modifiers from the parent state
+		m_modifiers = m_parentState->m_modifiers;
 	}
 	else
 	{
-		// Initialize all stack vars with defaults
-		memset(&m_flags, 0, sizeof(m_flags));
+		// Fetch the initial state of all the flags
+		for (int flagIndex = 0; flagIndex < (int)eGlStateFlagType::COUNT; ++flagIndex)
+		{
+			const GLenum glFlag = g_glFlagTypeMapping[flagIndex];
+
+			m_flags[flagIndex] = (glIsEnabled(glFlag) == GL_TRUE);
+		}
 	}
 }
 
 GlState::~GlState()
 {
-	for (int flagIndex = 0; flagIndex < (int)eGlStateFlagType::COUNT; ++flagIndex)
+	// Restore to the parent flags, if there is a parent state
+	if (m_parentState != nullptr)
 	{
-		const eGlStateFlagValue flagValue = m_flags[flagIndex];
-		const eGlStateFlagValue parentFlagValue= 
-			(m_parentState != nullptr) 
-			? m_parentState->m_flags[flagIndex] 
-			: eGlStateFlagValue::unset;
-
-		if (flagValue != parentFlagValue)
+		for (int flagIndex = 0; flagIndex < (int)eGlStateFlagType::COUNT; ++flagIndex)
 		{
-			GLenum glFlag= g_glFlagTypeMapping[flagIndex];
+			const GLenum glFlag = g_glFlagTypeMapping[flagIndex];
+			const bool parentFlagValue = m_parentState->m_flags[flagIndex];
 
-			if (flagValue == eGlStateFlagValue::enabled)
-			{
-				glDisable(glFlag);
-			}
-			else if (flagValue == eGlStateFlagValue::disabled)
+			if (parentFlagValue)
 			{
 				glEnable(glFlag);
 			}
+			else
+			{
+				glDisable(glFlag);
+			}
+		}
+	}
+
+	// Revert the effect of the modifiers applied in this state
+	for (auto modifierIt = m_modifiers.begin(); modifierIt != m_modifiers.end(); ++modifierIt)
+	{
+		GlStateModifierPtr modifer= modifierIt->second;
+
+		// If this modifier was first created in this state, revert it
+		if (modifer->getOwnerStateStackDepth() == m_stackDepth)
+		{
+			modifierIt->second->revert();
 		}
 	}
 }
 
 GlState& GlState::enableFlag(eGlStateFlagType flagType)
 {
-	const eGlStateFlagValue flagValue= m_flags[(int)flagType];
-	if (flagValue != eGlStateFlagValue::enabled)
-	{
-		glEnable(g_glFlagTypeMapping[(int)flagType]);
-		m_flags[(int)flagType]= eGlStateFlagValue::enabled;
-	}
+	glEnable(g_glFlagTypeMapping[(int)flagType]);
+	m_flags[(int)flagType]= true;
 
 	return *this;
 }
 
 GlState& GlState::disableFlag(eGlStateFlagType flagType)
 {
-	const eGlStateFlagValue flagValue = m_flags[(int)flagType];
-	if (flagValue != eGlStateFlagValue::disabled)
+	glDisable(g_glFlagTypeMapping[(int)flagType]);
+	m_flags[(int)flagType] = false;
+
+	return *this;
+}
+
+GlState& GlState::addModifier(GlStateModifierPtr modifier)
+{
+	if (modifier)
 	{
-		glDisable(g_glFlagTypeMapping[(int)flagType]);
-		m_flags[(int)flagType] = eGlStateFlagValue::disabled;
+		auto existingModifierIt= m_modifiers.find(modifier->getModifierID());
+		if (existingModifierIt != m_modifiers.end())
+		{
+			GlStateModifierPtr parentModifier= existingModifierIt->second;
+			modifier->apply(parentModifier);
+		}
+		else
+		{
+			modifier->apply(GlStateModifierPtr());
+		}
+
+		m_modifiers[modifier->getModifierID()]= modifier;
 	}
 
 	return *this;
 }
 
 // -- GlScopedState -----
-GlScopedState::GlScopedState(GlState& state) : m_state(state)
+GlScopedState::GlScopedState(const std::string& scopeName, GlState& state) 
+	: m_scopeName(scopeName)
+	, m_state(state)
 {
+	if (!m_scopeName.empty())
+	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, m_scopeName.c_str());
+	}
 }
 
 GlScopedState::~GlScopedState()
@@ -91,9 +127,19 @@ GlScopedState::~GlScopedState()
 	// Make sure we are deleting the state on the top of the stack
 	assert(m_state.getOwnerStateStack().getCurrentStackDepth() == m_state.getStackDepth());
 	m_state.getOwnerStateStack().popState();
+
+	if (!m_scopeName.empty())
+	{
+		glPopDebugGroup();
+	}
 }
 
 // -- GlStateStack -----
+GlStateStack::GlStateStack(IGlWindow* ownerWindow) 
+	: m_ownerWindow(ownerWindow)
+{
+}
+
 GlStateStack::~GlStateStack()
 {
 	while (!m_stateStack.empty())
@@ -137,8 +183,8 @@ void GlStateStack::popState()
 	}
 }
 
-GlScopedState GlStateStack::createScopedState()
+GlScopedState GlStateStack::createScopedState(const std::string& scopeName)
 {
 	// Create a state that will get auto cleaned up when GLScopedState goes out of scope
-	return GlScopedState(pushState());
+	return GlScopedState(scopeName, pushState());
 }

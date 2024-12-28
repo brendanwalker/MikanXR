@@ -1,7 +1,7 @@
 #pragma once
 
 // -- includes -----
-#include "MikanClientTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
 #include "WMFConfig.h"

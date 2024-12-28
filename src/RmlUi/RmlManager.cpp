@@ -7,7 +7,8 @@
 #include "FrameCompositorConstants.h"
 #include "Logger.h"
 #include "MainWindow.h"
-#include "MikanClientTypes.h"
+#include "MikanSpatialAnchorTypes.h"
+#include "MikanStencilTypes.h"
 #include "ProfileConfig.h"
 #include "PropertyInterface.h"
 #include "PathUtils.h"
@@ -16,14 +17,14 @@
 #include "StencilObjectSystem.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
+#include "VideoSourceManager.h"
+#include "VideoSourceView.h"
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/EventListenerInstancer.h>
-// Mikan extensions for RmlUI
-#include "RmlMikanPlugin.h"
 
 #include "SDL_clipboard.h"
 #include "SDL_timer.h"
@@ -157,7 +158,6 @@ bool RmlManager::preRendererStartup()
 	// Tell the UI libary this class implements the RML System Interface
 	Rml::SetSystemInterface(this);
 	Rml::SetFileInterface(new RmlMikanFileInterface());
-	Rml::Mikan::Initialise();
 	Rml::Factory::RegisterEventListenerInstancer(m_rmlEventInstancer);
 
 	return true;
@@ -319,6 +319,24 @@ void RmlManager::registerCommonDataModelTypes()
 
 			return true;
 		});
+
+	// Transform function for converting full file path to a trimmed path
+	constructor.RegisterTransformFunc(
+		"to_video_source_friendly_name",
+		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+		const Rml::String devicePath = variant.Get<Rml::String>("");
+
+		VideoSourceViewPtr videoSourceView = VideoSourceManager::getInstance()->getVideoSourceViewByPath(devicePath);
+		if (videoSourceView)
+		{
+			const Rml::String friendlyName = videoSourceView->getFriendlyName();
+
+			variant = friendlyName;
+			return true;
+		}
+
+		return false;
+	});
 
 	// Transform function for converting full file path to a trimmed path
 	constructor.RegisterTransformFunc(

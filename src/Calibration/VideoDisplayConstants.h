@@ -25,6 +25,8 @@ enum class eVideoTextureSource : int
 
 	video_texture,
 	distortion_texture,
+	float_depth_texture,
+	color_mapped_depth_texture,
 
 	COUNT
 };

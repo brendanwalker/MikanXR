@@ -5,6 +5,7 @@
 #include "InputManager.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
+#include "MikanVideoSourceTypes.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -284,21 +285,21 @@ void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntri
 	{
 	case MONO_CAMERA_INTRINSICS:
 		{
-			const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->intrinsics.mono;
+			const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->getMonoIntrinsics();
 
 			aspectRatio= (float)(monoIntrinsics.pixel_width / monoIntrinsics.pixel_height);
 			m_vFOVDegrees = (float)monoIntrinsics.vfov;
-			m_hFOVDegrees = m_vFOVDegrees * aspectRatio;
+			m_hFOVDegrees = (float)monoIntrinsics.hfov;
 			m_zNear = (float)monoIntrinsics.znear;
 			m_zFar = (float)monoIntrinsics.zfar;
 		} break;
 	case STEREO_CAMERA_INTRINSICS:
 		{
-			const MikanStereoIntrinsics& stereoIntrinsics = cameraIntrinsics->intrinsics.stereo;
+			const MikanStereoIntrinsics& stereoIntrinsics = cameraIntrinsics->getStereoIntrinsics();
 
 			aspectRatio = (float)(stereoIntrinsics.pixel_width / stereoIntrinsics.pixel_height);
 			m_vFOVDegrees = (float)stereoIntrinsics.vfov;
-			m_hFOVDegrees = m_vFOVDegrees * aspectRatio;
+			m_hFOVDegrees = (float)stereoIntrinsics.hfov;
 			m_zNear = (float)stereoIntrinsics.znear;
 			m_zFar = (float)stereoIntrinsics.zfar;
 		} break;

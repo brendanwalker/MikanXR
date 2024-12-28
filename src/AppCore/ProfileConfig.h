@@ -2,6 +2,7 @@
 
 // -- includes -----
 #include "CommonConfig.h"
+#include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProfileConfigConstants.h"
 
@@ -22,14 +23,18 @@ public:
 	int chessbordRows;
 	int chessbordCols;
 	float squareLengthMM;
-	int circleGridRows;
-	int circleGridCols;
-	float circleSpacingMM;
-	float circleDiameterMM;
+	int charucoRows;
+	int charucoCols;
+	float charucoSquareLengthMM;
+	float charucoMarkerLengthMM;
+	eCharucoDictionaryType charucoDictionaryType;
 	float puckHorizontalOffsetMM;
 	float puckVerticalOffsetMM;
 	float puckDepthOffsetMM;
+	int vrCenterArucoId;
+	float vrCenterMarkerLengthMM;
 
+	static const std::string k_videoSourcePathPropertyId;
 	std::string videoSourcePath;
 
 	static const std::string k_cameraVRDevicePathPropertyId;
@@ -38,11 +43,8 @@ public:
 	static const std::string k_matVRDevicePathPropertyId;
 	std::string matVRDevicePath;
 
-	static const std::string k_originVRDevicePathPropertyId;
-	std::string originVRDevicePath;
-
-	static const std::string k_originVerticalAlignFlagPropertyId;
-	bool originVerticalAlignFlag= false;
+	static const std::string k_vrDevicePoseOffsetPropertyId;
+	MikanMatrix4f vrDevicePoseOffset;
 
 	static const std::string k_renderOriginFlagPropertyId;
 	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }
@@ -52,7 +54,7 @@ public:
 	inline int getVRFrameDelay() const { return m_vrFrameDelay; }
 	void setVRFrameDelay(int frameDelay);
 
-	std::string calibrationComponentName;
+	std::string vivePuckDefaultComponentName;
 	int videoFrameQueueSize;
 
 	std::filesystem::path compositorScriptFilePath;

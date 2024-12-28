@@ -10,9 +10,6 @@
 [submodule "thirdparty/stb"]
 	path = thirdparty/stb
 	url = https://github.com/nothings/stb.git
-[submodule "thirdparty/OBJ-loader"]
-	path = thirdparty/OBJ-loader
-	url = https://github.com/Bly7/OBJ-Loader.git
 [submodule "thirdparty/fast-cpp-csv-parser"]
 	path = thirdparty/fast-cpp-csv-parser
 	url = https://github.com/ben-strasser/fast-cpp-csv-parser.git
@@ -25,3 +22,15 @@
 [submodule "thirdparty/imnodes"]
 	path = thirdparty/imnodes
 	url = https://github.com/Nelarius/imnodes.git
+[submodule "thirdparty/fast_obj"]
+	path = thirdparty/fast_obj
+	url = https://github.com/thisistherk/fast_obj.git
+[submodule "thirdparty/IXWebSocket"]
+	path = thirdparty/IXWebSocket
+	url = https://github.com/MikanXR/IXWebSocket.git
+[submodule "thirdparty/readerwriterqueue"]
+	path = thirdparty/readerwriterqueue
+	url = https://github.com/cameron314/readerwriterqueue.git
+[submodule "thirdparty/nlohmann_json"]
+	path = thirdparty/nlohmann_json
+	url = https://github.com/nlohmann/json.git

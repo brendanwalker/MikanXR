@@ -1,24 +1,26 @@
 #include "App.h"
 #include "GlCommon.h"
 #include "GlMaterial.h"
+#include "GlMaterialInstance.h"
 #include "GlTriangulatedMesh.h"
 #include "GlTexture.h"
 #include "GlProgram.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
+#include "MainWindow.h"
 #include "SteamVRRenderModelResource.h"
 #include "ThreadUtils.h"
 
 #include "openvr.h"
 
 SteamVRRenderModelResource::SteamVRRenderModelResource(
-	const std::string& renderModelName)
-	: m_renderModelName(renderModelName)
+	class IGlWindow* ownerWindow)
+	: m_ownerWindow(ownerWindow)
 	, m_steamVRRenderModel(nullptr)
 	, m_steamVRTextureMap(nullptr)
 	, m_glMesh(nullptr)
 	, m_glDiffuseTexture(nullptr)
-	, m_glMaterial(nullptr)
+	, m_glMaterialInstance(nullptr)
 {
 }
 
@@ -34,11 +36,11 @@ bool SteamVRRenderModelResource::createRenderResources()
 	if (loadSteamVRResources())
 	{
 		m_glDiffuseTexture= createTextureResource(m_steamVRTextureMap);
-		m_glMaterial = createMaterial(getShaderCode(), m_glDiffuseTexture);
+		m_glMaterialInstance = createMaterialInstance(m_glDiffuseTexture);
 		m_glMesh = createTriangulatedMeshResource(
-			m_renderModelName, getVertexDefinition(), m_steamVRRenderModel);
+			m_renderModelName, m_glMaterialInstance, m_steamVRRenderModel);
 
-		bSuccess= (m_glDiffuseTexture != nullptr && m_glMaterial != nullptr && m_glMesh != nullptr);
+		bSuccess= (m_glDiffuseTexture != nullptr && m_glMaterialInstance != nullptr && m_glMesh != nullptr);
 	}
 
 	if (!bSuccess)
@@ -52,67 +54,12 @@ bool SteamVRRenderModelResource::createRenderResources()
 void SteamVRRenderModelResource::disposeRenderResources()
 {
 	m_glMesh= nullptr;
-	m_glMaterial= nullptr;
+	m_glMaterialInstance= nullptr;
 	m_glDiffuseTexture= nullptr;
 
 	disposeSteamVRResources();
 }
 
-const GlProgramCode* SteamVRRenderModelResource::getShaderCode()
-{
-	static GlProgramCode x_shaderCode= GlProgramCode(
-		"steamvr render model",
-		// vertex shader
-		R""""(
-		#version 410 
-		uniform mat4 matrix; 
-		layout(location = 0) in vec4 position; 
-		layout(location = 1) in vec3 v3NormalIn; 
-		layout(location = 2) in vec2 v2TexCoordsIn; 
-		out vec2 v2TexCoord; 
-		void main() 
-		{ 
-			v2TexCoord = v2TexCoordsIn; 
-			gl_Position = matrix * vec4(position.xyz, 1); 
-		}
-		)"""",
-		//fragment shader
-		R""""(
-		#version 410 core
-		uniform sampler2D diffuse;
-		uniform vec4 modelColor;
-		in vec2 v2TexCoord;
-		out vec4 outputColor;
-		void main()
-		{
-			outputColor = texture(diffuse, v2TexCoord) * modelColor;
-		}
-		)"""")
-		.addUniform("matrix", eUniformSemantic::modelViewProjectionMatrix)
-		.addUniform("diffuse", eUniformSemantic::texture0)
-		.addUniform("modelColor", eUniformSemantic::diffuseColorRGBA);
-
-	return &x_shaderCode;
-}
-
-const GlVertexDefinition* SteamVRRenderModelResource::getVertexDefinition()
-{
-	static GlVertexDefinition x_vertexDefinition;
-
-	if (x_vertexDefinition.attributes.size() == 0)
-	{
-		const int32_t vertexSize= (int32_t)sizeof(vr::RenderModel_Vertex_t);
-		std::vector<GlVertexAttribute> &attribs= x_vertexDefinition.attributes;
-
-		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, offsetof(vr::RenderModel_Vertex_t, vPosition)));
-		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::normal3f, false, vertexSize, offsetof(vr::RenderModel_Vertex_t, vNormal)));
-		attribs.push_back(GlVertexAttribute(2, eVertexSemantic::texel2f, false, vertexSize, offsetof(vr::RenderModel_Vertex_t, rfTextureCoord)));
-
-		x_vertexDefinition.vertexSize = vertexSize;
-	}
-
-	return &x_vertexDefinition;
-}
 
 bool SteamVRRenderModelResource::loadSteamVRResources()
 {
@@ -198,36 +145,27 @@ GlTexturePtr SteamVRRenderModelResource::createTextureResource(
 	return glTexture;
 }
 
-GlMaterialPtr SteamVRRenderModelResource::createMaterial(
-	const GlProgramCode* code,
+GlMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	GlTexturePtr texture)
 {
-	GlShaderCache* resourceManager = GlShaderCache::getInstance();
-	GlProgramPtr program = resourceManager->fetchCompiledGlProgram(code);
-	
-	if (program != nullptr)
-	{
-		const std::string materialName = m_renderModelName + "_" + code->getProgramName();
-		GlMaterialPtr material = std::make_shared<GlMaterial>(materialName, program);
+	auto* shaderCache= m_ownerWindow->getShaderCache();
+	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
+	assert(material != nullptr);
+	GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
 
-		// Fill in material parameter defaults
-		if (texture)
-		{
-			material->setTextureBySemantic(eUniformSemantic::texture0, texture);
-		}
-		material->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
-
-		return material;
-	}
-	else
+	// Fill in material parameter defaults
+	if (texture)
 	{
-		return nullptr;
+		materialInstance->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
 	}
+	materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
+
+	return materialInstance;
 }
 
 GlTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource(
 	const std::string& meshName,
-	const GlVertexDefinition* vertexDefinition,
+	GlMaterialInstancePtr materialInstance,
 	const vr::RenderModel_t* steamVRRenderModel)
 {
 	GlTriangulatedMeshPtr glMesh= nullptr;
@@ -235,15 +173,18 @@ GlTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource
 	if (steamVRRenderModel != nullptr)
 	{
 		glMesh = std::make_shared<GlTriangulatedMesh>(
+			m_ownerWindow,
 			meshName,
-			*vertexDefinition,
 			(const uint8_t*)steamVRRenderModel->rVertexData,
+			sizeof(vr::RenderModel_Vertex_t),
 			steamVRRenderModel->unVertexCount,
 			(const uint8_t*)steamVRRenderModel->rIndexData,
+			sizeof(uint16_t),
 			steamVRRenderModel->unTriangleCount,
 			false); // <-- triangulated mesh does not own vertex data
 
-		if (!glMesh->createBuffers())
+		if (!glMesh->setMaterialInstance(materialInstance) ||
+			!glMesh->createResources())
 		{
 			glMesh= nullptr;
 		}

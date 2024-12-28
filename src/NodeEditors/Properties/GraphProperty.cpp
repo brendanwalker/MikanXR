@@ -2,6 +2,8 @@
 #include "Graphs/NodeGraph.h"
 #include "NodeEditorUI.h"
 
+#include "imgui.h"
+
 // -- GraphPropertyConfig ------
 configuru::Config GraphPropertyConfig::writeToJSON()
 {

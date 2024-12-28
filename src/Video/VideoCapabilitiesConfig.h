@@ -3,7 +3,7 @@
 // -- includes -----
 #include "CommonConfig.h"
 #include "DeviceInterface.h"
-#include "MikanClientTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "VideoFwd.h"
 
 // -- constants -----
@@ -50,6 +50,8 @@ public:
 
 	int findVideoModeIndex(const std::string& mode_name) const;
 	const VideoModeConfig* findVideoMode(const std::string &mode_name) const;
+	const VideoModeConfig* findMostCompatibleVideoMode(
+		int width, int height, float fps, const std::string& bufferFormat) const;
 	void getAvailableVideoModes(std::vector<std::string> &out_mode_names) const;
 
 	std::string friendlyName;
@@ -63,7 +65,6 @@ class VideoCapabilitiesSet
 {
 public:
 	bool reloadSupportedVideoCapabilities();
-	bool supportsVideoSource(unsigned short vendor_id, unsigned short product_id) const;
 	VideoCapabilitiesConfigConstPtr getVideoSourceCapabilities(unsigned short vendor_id, unsigned short product_id) const;
 
 private:

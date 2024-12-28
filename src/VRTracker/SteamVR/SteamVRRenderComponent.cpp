@@ -46,10 +46,9 @@ bool SteamVRRenderComponent::initComponent()
 {
 	if (m_bIsRenderable)
 	{
-		std::unique_ptr<SteamVRResourceManager>& resourceManager=
-			MainWindow::getInstance()->getVRDeviceManager()->getSteamVRManager()->getResourceManager();
-		SteamVRRenderModelResource* modelResource =
-			resourceManager->fetchRenderModel(m_renderModelName);
+		VRDeviceManager* ownerDeviceManager= m_ownerDevice->getOwnerDeviceManager();
+		auto& resourceManager= ownerDeviceManager->getSteamVRManager()->getResourceManager();
+		SteamVRRenderModelResource* modelResource = resourceManager->fetchRenderModel(m_renderModelName);
 
 		if (modelResource != nullptr)
 		{
@@ -79,8 +78,7 @@ bool SteamVRRenderComponent::initComponent()
 
 			m_glMeshInstance = std::make_shared<GlStaticMeshInstance>(
 				szInstanceName,
-				modelResource->getTriangulatedMesh(),
-				modelResource->getMaterial());
+				modelResource->getTriangulatedMesh());
 
 			return true;
 		}

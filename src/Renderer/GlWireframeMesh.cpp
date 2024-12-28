@@ -1,40 +1,44 @@
 #include "App.h"
 #include "GlCommon.h"
 #include "GlCamera.h"
-#include "GlShaderCache.h"
 #include "GlProgram.h"
+#include "GlShaderCache.h"
+#include "GlMaterial.h"
+#include "GlMaterialInstance.h"
 #include "GlWireframeMesh.h"
 #include "GlViewport.h"
 #include "Logger.h"
 
-#define WIREFRAME_MVP_MATRIX_UNIFORM_NAME	"mvpMatrix"
-#define WIREFRAME_COLOR_UNIFORM_NAME		"wireframeColor"
+GlWireframeMesh::GlWireframeMesh(IGlWindow* ownerWindow)
+	: m_ownerWindow(ownerWindow)
+{
+}
 
 GlWireframeMesh::GlWireframeMesh(
+	IGlWindow* ownerWindow,
 	std::string name,
 	const uint8_t* vertexData,
+	const size_t vertexSize,
 	uint32_t vertexCount,
 	const uint8_t* indexData,
+	const size_t indexSize,
 	uint32_t lineCount,
 	bool bOwnsVertexData)
+	: m_ownerWindow(ownerWindow)
 {
-	m_program = GlShaderCache::getInstance()->fetchCompiledGlProgram(getShaderCode());
-	if (m_program == nullptr)
-	{
-		MIKAN_LOG_ERROR("GlWireframeMesh") << "Failed to build shader program";
-	}
-
 	m_name = name;
 	m_vertexData = vertexData;
+	m_vertexSize = vertexSize;
 	m_vertexCount = vertexCount;
 	m_indexData = indexData;
+	m_indexSize = indexSize;
 	m_lineCount = lineCount;
 	m_bOwnsVertexData = bOwnsVertexData;
 }
 
 GlWireframeMesh::~GlWireframeMesh()
 {
-	deleteBuffers();
+	deleteResources();
 
 	if (m_bOwnsVertexData)
 	{
@@ -48,49 +52,82 @@ GlWireframeMesh::~GlWireframeMesh()
 
 void GlWireframeMesh::drawElements() const
 {
+	GLenum indexType = GL_UNSIGNED_SHORT;
+	switch (m_indexSize)
+	{
+		case 4:
+			indexType = GL_UNSIGNED_INT;
+			break;
+		case 2:
+			indexType = GL_UNSIGNED_SHORT;
+			break;
+		case 1:
+			indexType = GL_UNSIGNED_BYTE;
+			break;
+	}
+
 	glBindVertexArray(m_glVertArray);
-	glDrawElements(GL_LINES, (int)m_lineCount * 2, GL_UNSIGNED_SHORT, nullptr);
+	glDrawElements(GL_LINES, (int)m_lineCount * 2, indexType, nullptr);
 	glBindVertexArray(0);
 }
 
-bool GlWireframeMesh::createBuffers()
+bool GlWireframeMesh::createResources()
 {
-	if (m_vertexData != nullptr && m_vertexCount > 0 &&
-		m_indexData != nullptr && m_lineCount > 0)
+	if (m_vertexData == nullptr || m_vertexCount == 0 ||
+		m_indexData == nullptr || m_lineCount == 0)
 	{
-		const GlVertexDefinition* vertexDefinition= getVertexDefinition();
-		const uint32_t vertexSize = vertexDefinition->vertexSize;
-
-		// create and bind a Vertex Array Object(VAO) to hold state for this model
-		glGenVertexArrays(1, &m_glVertArray);
-		glBindVertexArray(m_glVertArray);
-
-		// Populate a vertex buffer
-		glGenBuffers(1, &m_glVertBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, m_glVertBuffer);
-		glBufferData(GL_ARRAY_BUFFER, vertexSize * m_vertexCount, m_vertexData, GL_STATIC_DRAW);
-
-		// Identify the components in the vertex buffer
-		vertexDefinition->applyVertexDefintion();
-
-		// Create and populate the index buffer
-		glGenBuffers(1, &m_glIndexBuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_glIndexBuffer);
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER, 
-			getElementCount() * getIndexPerElementCount() * getIndexSize(), // index array size in bytes
-			m_indexData, 
-			GL_STATIC_DRAW);
-
-		glBindVertexArray(0);
-
-		return true;
+		return false;
 	}
 
-	return false;
+	GlShaderCache* shaderCache = getOwnerWindow()->getShaderCache();
+	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
+	if (!material)
+	{
+		return false;
+	}
+
+	const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
+	const size_t vertexSize = vertexDefinition.getVertexSize();
+	if (vertexSize != m_vertexSize)
+	{
+		return false;
+	}
+
+	// create a material instance from the default wireframe material
+	m_materialInstance = std::make_shared<GlMaterialInstance>(material);
+	m_materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
+
+	// create and bind a Vertex Array Object(VAO) to hold state for this model
+	glGenVertexArrays(1, &m_glVertArray);
+	glBindVertexArray(m_glVertArray);
+	if (!m_name.empty())
+	{
+		glObjectLabel(GL_VERTEX_ARRAY, m_glVertArray, -1, m_name.c_str());
+	}
+
+	// Populate a vertex buffer
+	glGenBuffers(1, &m_glVertBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_glVertBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertexSize * m_vertexCount, m_vertexData, GL_STATIC_DRAW);
+
+	// Identify the components in the vertex buffer
+	vertexDefinition.applyVertexDefintion();
+
+	// Create and populate the index buffer
+	glGenBuffers(1, &m_glIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_glIndexBuffer);
+	glBufferData(
+		GL_ELEMENT_ARRAY_BUFFER, 
+		getElementCount() * getIndexPerElementCount() * getIndexSize(), // index array size in bytes
+		m_indexData, 
+		GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
+
+	return true;
 }
 
-void GlWireframeMesh::deleteBuffers()
+void GlWireframeMesh::deleteResources()
 {
 	if (m_glIndexBuffer != 0)
 		glDeleteBuffers(1, &m_glIndexBuffer);
@@ -107,75 +144,28 @@ void GlWireframeMesh::deleteBuffers()
 	m_vertexCount = 0;
 }
 
-const GlProgramCode* GlWireframeMesh::getShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		"wireframe shader",
-		// vertex shader
-		R""""(
-		#version 410 
-		uniform mat4 mvpMatrix; 
-		uniform vec3 wireframeColor;
-		layout(location = 0) in vec3 in_position; 
-		out vec4 v_Color; 
-		void main() 
-		{ 
-			gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
-			v_Color = vec4(wireframeColor, 1.0);
-		}
-		)"""",
-		//fragment shader
-		R""""(
-		#version 410 core
-		in vec4 v_Color;
-		out vec4 out_FragColor;
-		void main()
-		{
-			out_FragColor = v_Color;
-		}
-		)"""")
-		.addUniform(WIREFRAME_MVP_MATRIX_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix)
-		.addUniform(WIREFRAME_COLOR_UNIFORM_NAME, eUniformSemantic::diffuseColorRGB);
-
-	return &x_shaderCode;
-}
-
-const GlVertexDefinition* GlWireframeMesh::getVertexDefinitionInternal()
-{
-	static GlVertexDefinition x_vertexDefinition;
-
-	if (x_vertexDefinition.attributes.size() == 0)
-	{
-		const int32_t vertexSize = (int32_t)sizeof(float)*3;
-		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
-
-		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, 0));
-
-		x_vertexDefinition.vertexSize = vertexSize;
-	}
-
-	return &x_vertexDefinition;
-}
-
 void drawTransformedWireframeMesh(
 	GlCameraConstPtr camera,
 	const glm::mat4& transform,
 	const GlWireframeMesh* wireframeMesh,
 	const glm::vec3& color)
 {
-	GlProgramPtr shader= wireframeMesh->getDefaultWireframeShader();
-
-	shader->bindProgram();
-
-	if (camera != nullptr)
+	if (camera != nullptr && wireframeMesh != nullptr)
 	{
-		const glm::mat4 vpMatrix = camera->getViewProjectionMatrix();
+		GlMaterialInstancePtr materialInstance = wireframeMesh->getMaterialInstance();
+		GlMaterialConstPtr material = materialInstance->getMaterial();
 
-		shader->setMatrix4x4Uniform(WIREFRAME_MVP_MATRIX_UNIFORM_NAME, vpMatrix * transform);
-		shader->setVector3Uniform(WIREFRAME_COLOR_UNIFORM_NAME, color);
+		if (auto materialBinding = material->bindMaterial())
+		{
+			const glm::mat4 vpMatrix = camera->getViewProjectionMatrix();
 
-		wireframeMesh->drawElements();
+			materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(color, 1.f));
+			materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * transform);
+			
+			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			{
+				wireframeMesh->drawElements();
+			}
+		}
 	}
-
-	shader->unbindProgram();
 }

@@ -2,7 +2,6 @@
 
 //-- includes -----
 #include "CommonConfigFwd.h"
-#include "MikanClientTypes.h"
 #include "DeviceInterface.h"
 #include "MulticastDelegate.h"
 
@@ -193,132 +192,182 @@ public:
 		const std::string& mapName,
 		std::map<std::string, t_value_type>& nameValueMap)
 	{
-		const configuru::Config::ConfigObject& configObject= pt[mapName].as_object();
-
-        nameValueMap.clear();
-		for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+		if (pt.has_key(mapName))
 		{
-			const std::string& name = it.key();
-			const configuru::Config& config = it.value();
-            const t_value_type& value= config.get<t_value_type>();
+			const configuru::Config::ConfigObject& configObject = pt[mapName].as_object();
 
-            nameValueMap.insert({name, value});
+			nameValueMap.clear();
+			for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+			{
+				const std::string& name = it.key();
+				const configuru::Config& config = it.value();
+				const t_value_type& value = config.get<t_value_type>();
+
+				nameValueMap.insert({name, value});
+			}
+		}
+	}
+
+	template<typename t_value_type, int N>
+	static void writeStdArrayMap(
+		configuru::Config& pt,
+		const std::string& mapName,
+		const std::map<std::string, std::array<t_value_type, N>>& nameValueMap)
+	{
+		pt[mapName] = configuru::Config::object();
+
+		for (auto it = nameValueMap.begin(); it != nameValueMap.end(); ++it)
+		{
+			const std::string& name = it->first;
+			const std::array<t_value_type, N>& valueArray = it->second;
+
+			pt[mapName][name] = configuru::Config::array(valueArray);
+		}
+	}
+
+	template<typename t_value_type, int N>
+	static void readStdArrayMap(
+		const configuru::Config& pt,
+		const std::string& mapName,
+		std::map<std::string, std::array<t_value_type, N>>& nameValueMap)
+	{
+		if (pt.has_key(mapName))
+		{
+			const configuru::Config::ConfigObject& configObject = pt[mapName].as_object();
+
+			nameValueMap.clear();
+			for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+			{
+				const std::string& name = it.key();
+				const configuru::Config& configValue = it.value();
+				if (configValue.is_array() && configValue.array_size() == N)
+				{
+					std::array<t_value_type, N> valueArray;
+
+					for (int i = 0; i < N; i++)
+					{
+						valueArray[i] = configValue[i].get<t_value_type>();
+					}
+
+					nameValueMap.insert({name, valueArray});
+				}
+			}
 		}
 	}
 
 	static void writeMonoTrackerIntrinsics(
 		configuru::Config& pt,
-		const MikanMonoIntrinsics& tracker_intrinsics);
+		const struct MikanMonoIntrinsics& tracker_intrinsics);
 	static void readMonoTrackerIntrinsics(
 		const configuru::Config& pt,
-		MikanMonoIntrinsics& tracker_intrinsics);
+		struct MikanMonoIntrinsics& tracker_intrinsics);
 
 	static void writeStereoTrackerIntrinsics(
 		configuru::Config& pt,
-		const MikanStereoIntrinsics& tracker_intrinsics);
+		const struct MikanStereoIntrinsics& tracker_intrinsics);
 	static void readStereoTrackerIntrinsics(
 		const configuru::Config& pt,
-        MikanStereoIntrinsics& tracker_intrinsics);
+		struct MikanStereoIntrinsics& tracker_intrinsics);
 
-    static void writeDistortionCoefficients(
-        configuru::Config& pt,
-        const char* coefficients_name,
-        const MikanDistortionCoefficients* coefficients);
-    static void readDistortionCoefficients(
-        const configuru::Config& pt,
-        const char* coefficients_name,
-        MikanDistortionCoefficients* outCoefficients,
-        const MikanDistortionCoefficients* defaultCoefficients);
+	static void writeDistortionCoefficients(
+		configuru::Config& pt,
+		const char* coefficients_name,
+		const struct MikanDistortionCoefficients* coefficients);
+	static void readDistortionCoefficients(
+		const configuru::Config& pt,
+		const char* coefficients_name,
+		struct MikanDistortionCoefficients* outCoefficients,
+		const struct MikanDistortionCoefficients* defaultCoefficients);
 
-    static void writeMatrix3d(
-        configuru::Config &pt,
-        const char *matrix_name,
-        const MikanMatrix3d& matrix);
-    static void readMatrix3d(
-        const configuru::Config &pt,
-        const char *matrix_name,
-        MikanMatrix3d& outMatrix);
+	static void writeMatrix3d(
+		configuru::Config& pt,
+		const char* matrix_name,
+		const struct MikanMatrix3d& matrix);
+	static void readMatrix3d(
+		const configuru::Config& pt,
+		const char* matrix_name,
+		struct MikanMatrix3d& outMatrix);
 
-    static void writeMatrix43d(
-        configuru::Config& pt,
-        const char* matrix_name,
-        const MikanMatrix4x3d& matrix);
-    static void readMatrix43d(
-        const configuru::Config& pt,
-        const char* matrix_name,
-        MikanMatrix4x3d& outMatrix);
+	static void writeMatrix43d(
+		configuru::Config& pt,
+		const char* matrix_name,
+		const struct MikanMatrix4x3d& matrix);
+	static void readMatrix43d(
+		const configuru::Config& pt,
+		const char* matrix_name,
+		struct MikanMatrix4x3d& outMatrix);
 
-    static void writeMatrix4d(
-        configuru::Config& pt,
-        const char* matrix_name,
-        const MikanMatrix4d& matrix);
-    static void readMatrix4d(
-        const configuru::Config& pt,
-        const char* matrix_name,
-        MikanMatrix4d& outMatrix);
+	static void writeMatrix4d(
+		configuru::Config& pt,
+		const char* matrix_name,
+		const struct MikanMatrix4d& matrix);
+	static void readMatrix4d(
+		const configuru::Config& pt,
+		const char* matrix_name,
+		struct MikanMatrix4d& outMatrix);
 
 	static void writeMatrix4f(
 		configuru::Config& pt,
 		const char* matrix_name,
-		const MikanMatrix4f& matrix);
+		const struct MikanMatrix4f& matrix);
 	static void readMatrix4f(
 		const configuru::Config& pt,
 		const char* matrix_name,
-		MikanMatrix4f& outMatrix);
+		struct MikanMatrix4f& outMatrix);
 
 	static void writeQuaderntiond(
 		configuru::Config& pt,
 		const char* quat_name,
-		const MikanQuatd& quat);
+		const struct MikanQuatd& quat);
 	static void readQuaterniond(
 		const configuru::Config& pt,
 		const char* quat_name,
-        MikanQuatd& outQuat);
+		struct MikanQuatd& outQuat);
 
-    static void writeVector3d(
-        configuru::Config& pt,
-        const char* vector_name,
-        const MikanVector3d& vector);
-    static void readVector3d(
-        const configuru::Config& pt,
-        const char* vector_name,
-        MikanVector3d& outVector);
+	static void writeVector3d(
+		configuru::Config& pt,
+		const char* vector_name,
+		const struct MikanVector3d& vector);
+	static void readVector3d(
+		const configuru::Config& pt,
+		const char* vector_name,
+		struct MikanVector3d& outVector);
 
 	static void writeVector3f(
 		configuru::Config& pt,
 		const char* vector_name,
-		const MikanVector3f& rotator);
+		const struct MikanVector3f& rotator);
 	static void readVector3f(
 		const configuru::Config& pt,
 		const char* vector_name,
-		MikanVector3f& outVector);
+		struct MikanVector3f& outVector);
 
 	static void writeVector2f(
 		configuru::Config& pt,
 		const char* vector_name,
-		const MikanVector2f& rotator);
+		const struct MikanVector2f& rotator);
 	static void readVector2f(
 		const configuru::Config& pt,
 		const char* vector_name,
-		MikanVector2f& outVector);
+		struct MikanVector2f& outVector);
 
 	static void writeRotator3f(
 		configuru::Config& pt,
 		const char* vector_name,
-		const MikanRotator3f& vector);
+		const struct MikanRotator3f& vector);
 	static void readRotator3f(
 		const configuru::Config& pt,
 		const char* vector_name,
-		MikanRotator3f& outVector);
+		struct MikanRotator3f& outVector);
 
 	static void writeQuatf(
 		configuru::Config& pt,
 		const char* quat_name,
-		const MikanQuatf& quat);
+		const struct MikanQuatf& quat);
 	static void readQuatf(
 		const configuru::Config& pt,
 		const char* quat_name,
-		MikanQuatf& outQuat);
+		struct MikanQuatf& outQuat);
 
 	static void writeDeviceType(
 		configuru::Config& pt,

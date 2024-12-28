@@ -960,11 +960,7 @@ STDMETHODIMP WMFVideoFrameProcessor::OnProcessSample(REFGUID guidMajorMediaType,
 {
 	if (m_videoSourceListener)
 	{
-		// TODO: $HACK Gross hack to send frames at 30fps
-		if ((m_sampleIndex % 2) == 0)
-		{
-			m_videoSourceListener->notifyVideoFrameReceived(static_cast<const unsigned char*>(pSampleBuffer));
-		}
+		m_videoSourceListener->notifyVideoFrameReceived(static_cast<const unsigned char*>(pSampleBuffer));
 	}
 
 	m_sampleIndex++;

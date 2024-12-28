@@ -1,0 +1,24 @@
+{
+    "materialName": "rgbaDepthKeyFrame",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
+    "fragmentShaderPath": "rgbaDepthKeyFrame.frag",
+	"vertexAttributes":
+	[
+		{
+			"name": "aPos",
+			"dataType": "vec2",
+			"semantic": "position"
+		},
+		{
+			"name": "aTexCoords",
+			"dataType": "vec2",
+			"semantic": "texCoord"
+		}		
+	],	
+    "uniformSemanticMap":
+    {
+		"zThreshold": "floatConstant0",
+        "rgbaTexture": "rgbaTexture",
+		"depthTexture": "depthTexture"
+    }
+}

@@ -1,7 +1,7 @@
 #pragma once
 
 // -- includes -----
-#include "MikanClientTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "CommonVideoConfig.h"
 
 // -- definitions -----

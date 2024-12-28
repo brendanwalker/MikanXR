@@ -19,11 +19,12 @@ public:
 	virtual bool getIsRenderingStage() const= 0;
 	virtual bool getIsRenderingUI() const= 0;
 
-	virtual GlViewportConstPtr getRenderingViewport() const = 0;
+	virtual GlViewportPtr getRenderingViewport() const = 0;
 	virtual GlStateStack& getGlStateStack() = 0;
 	virtual GlLineRenderer* getLineRenderer() = 0;
 	virtual GlTextRenderer* getTextRenderer() = 0;
 	virtual GlShaderCache* getShaderCache() = 0;
+	virtual GlTextureCache* getTextureCache() = 0;
 	virtual GlModelResourceManager* getModelResourceManager() = 0;
 	virtual SdlWindow& getSdlWindow() = 0;
 

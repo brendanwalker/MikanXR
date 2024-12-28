@@ -259,8 +259,7 @@ bool VideoWriter::write(GlTexture* bgrTexture)
 		return false;
 
 	if (bgrTexture->getTextureWidth() != m_frameWidth ||
-		bgrTexture->getTextureHeight() != m_frameHeight ||
-		(size_t)bgrTexture->getBufferSize() != m_bgrFrameSizeBytes)
+		bgrTexture->getTextureHeight() != m_frameHeight)
 	{
 		MIKAN_LOG_ERROR("VideoWriter::write") << "Texture format doesn't match video format";
 		return false;
@@ -277,7 +276,7 @@ bool VideoWriter::write(GlTexture* bgrTexture)
 	}
 
 	// Fetch bgr texture data from the GPU and copy into the encoding circular buffer
-	bgrTexture->copyTextureIntoBuffer(m_bgrFrameCirularBuffer[m_frameWriteIndex]);
+	bgrTexture->copyTextureIntoBuffer(m_bgrFrameCirularBuffer[m_frameWriteIndex], m_bgrFrameSizeBytes);
 	m_frameWriteIndex= nextWriteIndex;
 
 	m_frameConsumerWait.notify_one();

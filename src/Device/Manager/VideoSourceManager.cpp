@@ -45,18 +45,18 @@ VideoSourceManager::VideoSourceManager()
 	, m_supportedTrackers(new VideoCapabilitiesSet)
 {
 	// Share the supported tracker list with the tracker enumerators
-	WMFCameraEnumerator::s_supportedTrackers = m_supportedTrackers;
+	WMFCameraEnumerator::s_videoCapabilitiesSet = m_supportedTrackers;
 }
 
 VideoSourceManager::~VideoSourceManager()
 {
 }
 
-bool VideoSourceManager::startup()
+bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 {
 	EASY_FUNCTION();
 
-	bool bSuccess = DeviceManager::startup();
+	bool bSuccess = DeviceManager::startup(ownerWindow);
 
 	if (bSuccess)
 	{
@@ -127,6 +127,21 @@ VideoSourceViewPtr VideoSourceManager::getVideoSourceViewPtr(int device_id) cons
 	assert(m_deviceViews != nullptr);
 
 	return std::static_pointer_cast<VideoSourceView>(m_deviceViews[device_id]);
+}
+
+VideoSourceViewPtr VideoSourceManager::getVideoSourceViewByPath(const std::string& devicePath) const
+{
+	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
+	{
+		VideoSourceViewPtr videoSourcePtr = getVideoSourceViewPtr(videoSourceId);
+
+		if (videoSourcePtr->getIsOpen() && videoSourcePtr->getUSBDevicePath() == devicePath)
+		{
+			return videoSourcePtr;
+		}	
+	}
+
+	return VideoSourceViewPtr();
 }
 
 VideoSourceList VideoSourceManager::getVideoSourceList() const

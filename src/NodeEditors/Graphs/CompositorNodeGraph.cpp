@@ -1,12 +1,16 @@
 #include "CompositorNodeGraph.h"
 #include "GlCommon.h"
 #include "GlFrameBuffer.h"
+#include "GlMaterial.h"
 #include "GlProgram.h"
 #include "GlRenderModelResource.h"
+#include "GlScopedObjectBinding.h"
 #include "GlModelResourceManager.h"
+#include "GlMaterialInstance.h"
 #include "GlStateStack.h"
 #include "GlTriangulatedMesh.h"
 #include "GlShaderCache.h"
+#include "GlTextureCache.h"
 #include "GlVertexDefinition.h"
 #include "IGlWindow.h"
 #include "Logger.h"
@@ -28,7 +32,9 @@
 
 // Nodes
 #include "Nodes/ArrayNode.h"
-#include "Nodes/ClientTextureNode.h"
+#include "Nodes/ClientColorTextureNode.h"
+#include "Nodes/ClientDepthTextureNode.h"
+#include "Nodes/DepthMaskNode.h"
 #include "Nodes/DrawLayerNode.h"
 #include "Nodes/EventNode.h"
 #include "Nodes/MaterialNode.h"
@@ -61,8 +67,10 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 
 	// Nodes this graph can spawn
 	addNodeFactory<ArrayNodeFactory>();
-	addNodeFactory<ClientTextureNodeFactory>();
+	addNodeFactory<ClientColorTextureNodeFactory>();
+	addNodeFactory<ClientDepthTextureNodeFactory>();
 	addNodeFactory<DrawLayerNodeFactory>();
+	addNodeFactory<DepthMaskNodeFactory>();
 	addNodeFactory<EventNodeFactory>();
 	addNodeFactory<MousePosNodeFactory>();
 	addNodeFactory<MaterialNodeFactory>();
@@ -83,14 +91,12 @@ bool CompositorNodeGraph::createResources()
 	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty +=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
-	// Create rendering resources
-	bool bSuccess = createStencilShader();
-
 	// Create triangulated mesh used to render the layer onto
-	bSuccess &= createLayerQuadMeshes();
+	bool bSuccess = createLayerQuadMeshes();
 
-	// Create meshes used to draw quad and box stencils
-	bSuccess &= createStencilMeshes();
+	// Create meshes used to draw quad and box stencils and depth masks
+	bSuccess &= createQuadMeshes();
+	bSuccess &= createBoxMeshes();
 
 	return bSuccess;
 }
@@ -105,9 +111,10 @@ void CompositorNodeGraph::disposeResources()
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Free rendering resources
-	m_stencilShader = nullptr;
 	m_stencilBoxMesh = nullptr;
 	m_stencilQuadMesh = nullptr;
+	m_depthBoxMesh = nullptr;
+	m_depthQuadMesh = nullptr;
 	m_layerVFlippedMesh = nullptr;
 	m_layerMesh = nullptr;
 }
@@ -152,19 +159,26 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 	{
 		// Make sure the frame buffer is the correct size
 		updateCompositingFrameBufferSize(evaluator);
-		
-		// Bind the frame buffer that we render the composited frame to
-		m_compositingFrameBuffer->bindFrameBuffer();
 
-		// Turn off depth testing for compositing
-		GlScopedState updateCompositeGlStateScope = evaluator.getCurrentWindow()->getGlStateStack().createScopedState();
-		updateCompositeGlStateScope.getStackState().disableFlag(eGlStateFlagType::depthTest);
+		// Create a scoped binding for the video export framebuffer
+		GlScopedObjectBinding compositorFramebufferBinding(
+			*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
+			m_compositingFrameBuffer);
+		if (compositorFramebufferBinding)
+		{
+			// Turn off depth testing for compositing
+			compositorFramebufferBinding.getGlState().disableFlag(eGlStateFlagType::depthTest);
 
-		// Evaluate the composite frame nodes
-		evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
-
-		// Unbind the layer frame buffer
-		m_compositingFrameBuffer->unbindFrameBuffer();
+			// Evaluate the composite frame nodes
+			evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
+		}
+		else
+		{
+			evaluator.addError(
+				NodeEvaluationError(
+					eNodeEvaluationErrorCode::evaluationError,
+					"Broken frame buffer"));
+		}
 	}
 	else
 	{
@@ -179,12 +193,12 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 GlTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
 {
-	return m_compositingFrameBuffer->getTexture();
+	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getColorTexture() : GlTextureConstPtr();
 }
 
 void CompositorNodeGraph::setExternalCompositedFrameTexture(GlTexturePtr externalTexture)
 {
-	m_compositingFrameBuffer->setExternalTexture(externalTexture);
+	m_compositingFrameBuffer->setExternalColorTexture(externalTexture);
 }
 
 GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
@@ -199,35 +213,67 @@ GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 	}
 	else
 	{
-		if (m_stencilMeshCache.find(stencilId) == m_stencilMeshCache.end())
+		// Load the stencil model and render it using the flat textured material
+		auto stencilMaterial= 
+			getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+		auto renderModelPtr= 
+			getOwnerWindow()->getModelResourceManager()->fetchRenderModel(
+				stencilDefinition->getModelPath(), stencilMaterial);
+
+		if (renderModelPtr)
 		{
-			const GlVertexDefinition& vertexDefinition = getStencilModelVertexDefinition();
-			GlModelResourceManager* modelResourceManager = getOwnerWindow()->getModelResourceManager();
-
-			// It's possible that the model path isn't valid, 
-			// in which case renderModelResource will be null.
-			// Go ahead an occupy a slot in the m_stencilMeshCache until
-			// the entry us explicitly cleared by flushStencilRenderModel.
-			GlRenderModelResourcePtr renderModelResource =
-				modelResourceManager->fetchRenderModel(
-					stencilDefinition->getModelPath(),
-					&vertexDefinition);
-
-			m_stencilMeshCache.insert({stencilId, renderModelResource});
+			m_stencilMeshCache.insert({stencilId, renderModelPtr});
 		}
 	}
 
-	return nullptr;
+	return GlRenderModelResourcePtr();
+}
+
+GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition)
+{
+	MikanStencilID stencilId = stencilDefinition->getStencilId();
+	auto it = m_depthMeshCache.find(stencilId);
+
+	if (it != m_depthMeshCache.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		// Load the depth model and render it using the simple depth material
+		auto depthMaterial =
+			getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+		auto renderModelPtr =
+			getOwnerWindow()->getModelResourceManager()->fetchRenderModel(
+				stencilDefinition->getModelPath(), depthMaterial);
+
+		if (renderModelPtr)
+		{
+			m_depthMeshCache.insert({stencilId, renderModelPtr});
+		}
+	}
+
+	return GlRenderModelResourcePtr();
 }
 
 void CompositorNodeGraph::flushStencilRenderModel(MikanStencilID stencilId)
 {
-	auto it = m_stencilMeshCache.find(stencilId);
-
-	if (it != m_stencilMeshCache.end())
 	{
-		// updateStencils() will reload the meshes if the model path is still valid for this stencil
-		m_stencilMeshCache.erase(it);
+		auto it = m_stencilMeshCache.find(stencilId);
+		if (it != m_stencilMeshCache.end())
+		{
+			// Remove the entry from the stencil id -> stencil render resource table
+			m_stencilMeshCache.erase(it);
+		}
+	}
+
+	{
+		auto it = m_depthMeshCache.find(stencilId);
+		if (it != m_depthMeshCache.end())
+		{
+			// Remove the entry from the stencil id -> depth render resource table
+			m_depthMeshCache.erase(it);
+		}
 	}
 }
 
@@ -241,66 +287,26 @@ void CompositorNodeGraph::onStencilSystemConfigMarkedDirty(
 	{
 		if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilObjPathPropertyId))
 		{
-			// Flush the model we have loaded for the given stencil.
+			// Flush the models we have loaded for the given stencil.
 			// We'll reload it next time the compositor renders the stencil.
 			flushStencilRenderModel(modelStencilConfig->getStencilId());
 		}
 	}
 }
 
-const GlVertexDefinition& CompositorNodeGraph::getStencilModelVertexDefinition()
-{
-	static GlVertexDefinition x_vertexDefinition;
-
-	if (x_vertexDefinition.attributes.size() == 0)
-	{
-		const int32_t vertexSize = (int32_t)sizeof(CompositorNodeGraph::StencilVertex);
-		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
-
-		attribs.push_back(
-			GlVertexAttribute(
-				0, eVertexSemantic::position3f, false, vertexSize, 
-				offsetof(CompositorNodeGraph::StencilVertex, aPos)));
-
-		x_vertexDefinition.vertexSize = vertexSize;
-	}
-
-	return x_vertexDefinition;
-}
-
-bool CompositorNodeGraph::createStencilShader()
-{
-	m_stencilShader = getOwnerWindow()->getShaderCache()->fetchCompiledGlProgram(getStencilShaderCode());
-	if (!m_stencilShader)
-	{
-		MIKAN_LOG_ERROR("DrawLayerNode::createStencilShader()") << "Failed to compile stencil shader";
-		return false;
-	}
-
-	return true;
-}
-
-const GlVertexDefinition& CompositorNodeGraph::getLayerQuadVertexDefinition()
-{
-	static GlVertexDefinition x_vertexDefinition;
-
-	if (x_vertexDefinition.attributes.size() == 0)
-	{
-		const int32_t vertexSize = (int32_t)sizeof(CompositorNodeGraph::QuadVertex);
-		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
-
-		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position2f, false, vertexSize, offsetof(CompositorNodeGraph::QuadVertex, aPos)));
-		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::texel2f, false, vertexSize, offsetof(CompositorNodeGraph::QuadVertex, aTexCoords)));
-
-		x_vertexDefinition.vertexSize = vertexSize;
-	}
-
-	return x_vertexDefinition;
-}
-
 bool CompositorNodeGraph::createLayerQuadMeshes()
 {
 	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+
+	auto material = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
+	assert(material);
+
+	struct QuadVertex
+	{
+		glm::vec2 aPos;
+		glm::vec2 aTexCoords;
+	};
+	size_t vertexSize = sizeof(QuadVertex);
 
 	// Create triangulated quad mesh to draw the layer on
 	{
@@ -312,16 +318,22 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 				{glm::vec2(1.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
 		};
 
-		m_layerMesh = std::make_shared<GlTriangulatedMesh>("layer_quad_mesh",
-														   getLayerQuadVertexDefinition(),
-														   (const uint8_t*)x_vertices,
-														   4, // 4 verts
-														   (const uint8_t*)x_indices,
-														   2, // 2 tris
-														   false); // mesh doesn't own quad vert data
-		if (!m_layerMesh->createBuffers())
+		m_layerMesh = 
+			std::make_shared<GlTriangulatedMesh>(
+				getOwnerWindow(),
+				"layer_quad_mesh",
+				(const uint8_t*)x_vertices,
+				vertexSize,
+				4, // 4 verts
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				2, // 2 tris
+				false); // mesh doesn't own quad vert data
+
+		if (!m_layerMesh->setMaterial(material) ||
+			!m_layerMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create layer mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createLayerQuadMeshes()") << "Failed to create layer mesh";
 			return false;
 		}
 	}
@@ -331,22 +343,28 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 	{
 		static QuadVertex x_vertices[] = {
 			//   positions                texCoords (flipped v coordinated)
-				{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
-				{glm::vec2(1.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
+			{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+			{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+			{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+			{glm::vec2(1.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
 		};
 
-		m_layerVFlippedMesh = std::make_shared<GlTriangulatedMesh>("layer_vflipped_quad_mesh",
-																   getLayerQuadVertexDefinition(),
-																   (const uint8_t*)x_vertices,
-																   4, // 4 verts
-																   (const uint8_t*)x_indices,
-																   2, // 2 tris
-																   false); // mesh doesn't own quad vert data
-		if (!m_layerVFlippedMesh->createBuffers())
+		m_layerVFlippedMesh = 
+			std::make_shared<GlTriangulatedMesh>(
+				getOwnerWindow(),
+				"layer_vflipped_quad_mesh",
+				(const uint8_t*)x_vertices,
+				vertexSize,
+				4, // 4 verts
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				2, // 2 tris
+				false); // mesh doesn't own quad vert data
+
+		if (!m_layerVFlippedMesh->setMaterial(material) ||
+			!m_layerVFlippedMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createLayerQuadMeshes()") << "Failed to create vflipped layer mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createLayerQuadMeshes()") << "Failed to create vflipped layer mesh";
 			return false;
 		}
 	}
@@ -354,11 +372,22 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 	return true;
 }
 
-bool CompositorNodeGraph::createStencilMeshes()
+bool CompositorNodeGraph::createQuadMeshes()
 {
+	auto stencilMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+	assert(stencilMaterial);
+	auto depthMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+	assert(depthMaterial);
+
+	struct QuadlVertex
+	{
+		glm::vec3 aPos;
+	};
+	size_t vertexSize = sizeof(QuadlVertex);
+
 	// Create triangulated quad mesh to draw the quad stencils
 	{
-		static CompositorNodeGraph::StencilVertex x_vertices[] = {
+		static QuadlVertex x_vertices[] = {
 			//   positions
 			{glm::vec3(-0.5f,  0.5f, 0.0f)},
 			{glm::vec3(-0.5f, -0.5f, 0.0f)},
@@ -367,23 +396,62 @@ bool CompositorNodeGraph::createStencilMeshes()
 		};
 		static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 
-		m_stencilQuadMesh = std::make_shared<GlTriangulatedMesh>("quad_stencil_mesh",
-																 CompositorNodeGraph::getStencilModelVertexDefinition(),
-																 (const uint8_t*)x_vertices,
-																 4, // 4 verts in a quad
-																 (const uint8_t*)x_indices,
-																 2, // 2 tris in a quad
-																 false); // mesh doesn't own quad vertex data
-		if (!m_stencilQuadMesh->createBuffers())
+		m_stencilQuadMesh = std::make_shared<GlTriangulatedMesh>(
+			getOwnerWindow(),
+			"quad_stencil_mesh",
+			(const uint8_t*)x_vertices,
+			vertexSize,
+			4, // 4 verts in a quad
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			2, // 2 tris in a quad
+			false); // mesh doesn't own quad vertex data
+
+		if (!m_stencilQuadMesh->setMaterial(stencilMaterial) ||
+			!m_stencilQuadMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create quad stencil mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createQuadMeshes()") << "Failed to create quad stencil mesh";
+			return false;
+		}
+
+		m_depthQuadMesh = std::make_shared<GlTriangulatedMesh>(
+			getOwnerWindow(),
+			"quad_depth_mesh",
+			(const uint8_t*)x_vertices,
+			vertexSize,
+			4, // 4 verts in a quad
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			2, // 2 tris in a quad
+			false); // mesh doesn't own quad vertex data
+
+		if (!m_depthQuadMesh->setMaterial(depthMaterial) ||
+			!m_depthQuadMesh->createResources())
+		{
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createQuadMeshes()") << "Failed to create quad depth mesh";
 			return false;
 		}
 	}
 
+	return true;
+}
+
+bool CompositorNodeGraph::createBoxMeshes()
+{
+	auto stencilMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+	assert(stencilMaterial);
+	auto depthMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+	assert(depthMaterial);
+
+	struct BoxVertex
+	{
+		glm::vec3 aPos;
+	};
+	size_t vertexSize = sizeof(BoxVertex);
+
 	// Create triangulated box mesh to draw the box stencils
 	{
-		static CompositorNodeGraph::StencilVertex x_vertices[] = {
+		static BoxVertex x_vertices[] = {
 			//   positions
 			{glm::vec3(-0.5f,  0.5f, -0.5f)},
 			{glm::vec3(-0.5f,  0.5f,  0.5f)},
@@ -403,16 +471,37 @@ bool CompositorNodeGraph::createStencilMeshes()
 			3, 0, 1, 1, 2, 3  // +Y Face 
 		};
 
-		m_stencilBoxMesh = std::make_shared<GlTriangulatedMesh>("box_stencil_mesh",
-																CompositorNodeGraph::getStencilModelVertexDefinition(),
-																(const uint8_t*)x_vertices,
-																8, // 8 verts in a cube
-																(const uint8_t*)x_indices,
-																12, // 12 tris in a cube (6 faces * 2 tris/face)
-																false); // mesh doesn't own box vertex data
-		if (!m_stencilBoxMesh->createBuffers())
+		m_stencilBoxMesh = std::make_shared<GlTriangulatedMesh>(
+			getOwnerWindow(),
+			"box_stencil_mesh",
+			(const uint8_t*)x_vertices,
+			vertexSize,
+			8, // 8 verts in a cube
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			12, // 12 tris in a cube (6 faces * 2 tris/face)
+			false); // mesh doesn't own box vertex data
+		if (!m_stencilBoxMesh->setMaterial(stencilMaterial) ||
+			!m_stencilBoxMesh->createResources())
 		{
-			MIKAN_LOG_ERROR("DrawLayerNode::createStencilMeshes()") << "Failed to create box stencil mesh";
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createBoxMeshes()") << "Failed to create box stencil mesh";
+			return false;
+		}
+
+		m_depthBoxMesh = std::make_shared<GlTriangulatedMesh>(
+			getOwnerWindow(),
+			"box_depth_mesh",
+			(const uint8_t*)x_vertices,
+			vertexSize,
+			8, // 8 verts in a cube
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			12, // 12 tris in a cube (6 faces * 2 tris/face)
+			false); // mesh doesn't own box vertex data
+		if (!m_depthBoxMesh->setMaterial(depthMaterial) ||
+			!m_depthBoxMesh->createResources())
+		{
+			MIKAN_LOG_ERROR("CompositorNodeGraph::createBoxMeshes()") << "Failed to create box stencil mesh";
 			return false;
 		}
 	}
@@ -434,38 +523,10 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 	}
 
 	// (Re)Initialize the frame buffer if it's in an invalid state
-	m_compositingFrameBuffer->createResources();
-}
-
-const GlProgramCode* CompositorNodeGraph::getStencilShaderCode()
-{
-	static GlProgramCode x_shaderCode = GlProgramCode(
-		"Internal Stencil Shader Code",
-		// vertex shader
-		R""""(
-			#version 330 core
-			layout (location = 0) in vec3 aPos;
-
-			uniform mat4 mvpMatrix;
-
-			void main()
-			{
-				gl_Position = mvpMatrix * vec4(aPos, 1.0);
-			}
-			)"""",
-		//fragment shader
-		R""""(
-			#version 330 core
-			out vec4 FragColor;
-
-			void main()
-			{    
-				FragColor = vec4(1, 1, 1, 1);
-			}
-			)"""")
-		.addUniform(STENCIL_MVP_UNIFORM_NAME, eUniformSemantic::modelViewProjectionMatrix);
-
-	return &x_shaderCode;
+	if (!m_compositingFrameBuffer->isValid())
+	{
+		m_compositingFrameBuffer->createResources();
+	}
 }
 
 // -- CompositorNodeGraphFactory ----

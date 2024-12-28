@@ -1,6 +1,11 @@
 #pragma once
 
+#include "IGLStateModifier.h"
+
+#include <memory>
+#include <string>
 #include <vector>
+#include <map>
 
 enum class eGlStateFlagType : int
 {
@@ -18,13 +23,6 @@ enum class eGlStateFlagType : int
 	COUNT
 };
 
-enum class eGlStateFlagValue : unsigned char
-{
-	unset,
-	enabled,
-	disabled
-};
-
 class GlState
 {
 public:
@@ -36,32 +34,36 @@ public:
 
 	GlState& enableFlag(eGlStateFlagType flagType);
 	GlState& disableFlag(eGlStateFlagType flagType);
+	GlState& addModifier(GlStateModifierPtr modifier);
 
 private:
 	class GlStateStack& m_ownerStack;
 	const GlState* m_parentState;
 	int m_stackDepth = -1;
 
-	eGlStateFlagValue m_flags[(int)eGlStateFlagType::COUNT];
+	bool m_flags[(int)eGlStateFlagType::COUNT];
+	std::map<std::string, GlStateModifierPtr> m_modifiers;
 };
 
 class GlScopedState
 {
 public:
-	GlScopedState(class GlState& state);
+	GlScopedState(const std::string& scopeName, class GlState& state);
 	virtual ~GlScopedState();
 
 	inline GlState& getStackState() const { return m_state; }
 	inline int getStackDepth() const { return m_state.getStackDepth(); }
 
 private:
+	std::string m_scopeName;
 	GlState& m_state;
 };
 
 class GlStateStack
 {
 public:
-	GlStateStack() = default;
+	GlStateStack() = delete;
+	GlStateStack(class IGlWindow* ownerWindow);
 	virtual ~GlStateStack();
 
 	GlState& pushState();
@@ -70,8 +72,12 @@ public:
 	int getCurrentStackDepth() const;
 	GlState* getState(const int depth) const;
 
-	GlScopedState createScopedState();
+	inline GlState* getCurrentState() const { return getState(getCurrentStackDepth()); }
+	inline class IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
+
+	GlScopedState createScopedState(const std::string& scopeName);
 
 private:
+	class IGlWindow* m_ownerWindow= nullptr;
 	std::vector<class GlState*> m_stateStack;
 };

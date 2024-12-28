@@ -39,24 +39,6 @@ namespace PathUtils
 		return full_path;
 	}
 
-	std::string makeNativePathString(const std::filesystem::path& path)
-	{
-		std::string res= path.string();
-	#if defined(_WIN32)
-		std::replace(res.begin(), res.end(), '/', '\\');
-	#else
-		std::replace(res.begin(), res.end(), '\\', '/');
-	#endif
-		return res;
-	}
-
-	std::string makeUniversalPathString(const std::filesystem::path& path)
-	{
-		std::string res= path.string();
-		std::replace(res.begin(), res.end(), '\\', '/');
-		return res;
-	}
-
 	std::filesystem::path getHomeDirectory()
 	{
 		std::filesystem::path home_dir;
@@ -95,7 +77,7 @@ namespace PathUtils
 
 				if (extension_filter.empty() || filename.extension() == extension_filter)
 				{
-					filenames.push_back(filename.string());
+					filenames.push_back(filename.u8string());
 				}
 			}
 		}
@@ -114,7 +96,7 @@ namespace PathUtils
 			{
 				const std::filesystem::path& filename = dir_entry.path().filename();
 
-				dirnames.push_back(filename.string());
+				dirnames.push_back(filename.u8string());
 			}
 		}
 
@@ -171,7 +153,7 @@ namespace PathUtils
 		const std::filesystem::path& path,
 		const size_t maxLength)
 	{
-		const std::string pathString = path.string();
+		const std::string pathString = path.u8string();
 
 		if (pathString.length() > maxLength)
 		{

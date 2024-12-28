@@ -11,6 +11,7 @@ public:
 	virtual ~RmlModel();
 
 	inline Rml::Context* getContext() { return m_context; }
+	inline Rml::DataModelHandle& getModelHandle() { return m_modelHandle; }
 
 	Rml::DataModelConstructor init(Rml::Context* rmlContext, const Rml::String& modelName);
 	virtual void dispose();

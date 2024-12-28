@@ -1,7 +1,10 @@
 //-- includes -----
+#include "App.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceEnumerator.h"
 #include "Logger.h"
+#include "MathTypeConversion.h"
+#include "ProfileConfig.h"
 #include "SteamVRManager.h"
 #include "VRDeviceView.h"
 
@@ -23,17 +26,21 @@ VRDeviceManager::~VRDeviceManager()
 	m_instance = nullptr;
 }
 
-bool VRDeviceManager::startup()
+bool VRDeviceManager::startup(class IGlWindow *ownerWindow)
 {
 	EASY_FUNCTION();
 
-	bool bSuccess = DeviceManager::startup();
+	bool bSuccess = DeviceManager::startup(ownerWindow);
 
-	if (bSuccess && !m_steamVRManager->startup())
+	if (bSuccess && !m_steamVRManager->startup(ownerWindow))
 	{
 		MIKAN_LOG_ERROR("VRTrackerManager::init") << "Failed to initialize the SteamVR manager";
 		bSuccess = false;
 	}
+
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	profileConfig->OnMarkedDirty += MakeDelegate(this, &VRDeviceManager::onProfileConfigMarkedDirty);
+	onVRTrackingOffsetChanged(profileConfig);
 
 	return bSuccess;
 }
@@ -47,9 +54,27 @@ void VRDeviceManager::update(float deltaTime)
 
 void VRDeviceManager::shutdown()
 {
+	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	profileConfig->OnMarkedDirty -= MakeDelegate(this, &VRDeviceManager::onProfileConfigMarkedDirty);
+
 	m_steamVRManager->shutdown();
 
 	DeviceManager::shutdown();
+}
+
+void VRDeviceManager::onProfileConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(ProfileConfig::k_vrDevicePoseOffsetPropertyId))
+	{
+		onVRTrackingOffsetChanged(std::static_pointer_cast<ProfileConfig>(configPtr));
+	}
+}
+
+void VRDeviceManager::onVRTrackingOffsetChanged(ProfileConfigPtr config)
+{
+	m_vrDevicePoseOffset= MikanMatrix4f_to_glm_mat4(config->vrDevicePoseOffset);
 }
 
 void VRDeviceManager::closeAllVRTrackers()
@@ -67,7 +92,7 @@ void VRDeviceManager::closeAllVRTrackers()
 
 DeviceEnumerator* VRDeviceManager::allocateDeviceEnumerator()
 {
-	return new VRDeviceEnumerator();
+	return new VRDeviceEnumerator(this);
 }
 
 void VRDeviceManager::freeDeviceEnumerator(DeviceEnumerator* enumerator)
@@ -156,7 +181,7 @@ void VRDeviceManager::onDevicePropertyChanged(int deviceId)
 	}
 }
 
-void VRDeviceManager::onDevicePosesChanged(uint64_t newVRFrameIndex)
+void VRDeviceManager::onDevicePosesChanged(int64_t newVRFrameIndex)
 {
 	for (int VRTrackerId = 0; VRTrackerId < k_max_devices; ++VRTrackerId)
 	{

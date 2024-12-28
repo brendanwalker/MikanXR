@@ -8,8 +8,9 @@
 // -- globals -----
 
 // -- TrackerDeviceEnumerator -----
-VRDeviceEnumerator::VRDeviceEnumerator()
+VRDeviceEnumerator::VRDeviceEnumerator(class VRDeviceManager* ownerDeviceManager)
 	: DeviceEnumerator()
+	, m_ownerDeviceManager(ownerDeviceManager)
 	, m_enumeratorIndex(0)
 {
 	m_enumerators.push_back({ eVRTrackerDeviceApi::STEAMVR, nullptr });

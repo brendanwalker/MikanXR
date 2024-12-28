@@ -31,7 +31,7 @@ public:
 	GlTexture* setTextureMapData(const uint8_t* textureMapData)
 	{ m_textureMapData= textureMapData; return this; }
 	GlTexture* setTextureFormat(uint32_t textureFormat)
-	{ m_textureFormat= textureFormat; m_bufferFormat= textureFormat; return this; }
+	{ m_textureFormat= textureFormat; m_bufferFormat= textureFormat; determinePixelType(); return this; }
 	GlTexture* setBufferFormat(uint32_t bufferFormat)
 	{ m_bufferFormat = bufferFormat; return this; }
 	GlTexture* setPixelType(uint32_t pixelType)
@@ -46,13 +46,11 @@ public:
 	bool reloadTextureFromImagePath();
 
 	bool createTexture();
-	void copyFloatBufferIntoTexture(const float* buffer);
-	void copyBufferIntoTexture(const uint8_t* pixels);
-	void copyTextureIntoBuffer(uint8_t* outPixels);
+	void copyBufferIntoTexture(const uint8_t* buffer, size_t bufferSize);
+	void copyTextureIntoBuffer(uint8_t* outBuffer, size_t bufferSize);
 	void disposeTexture();
 
 	bool bindTexture(int textureUnit = 0) const;
-	void renderFullscreen() const;
 	void clearTexture(int textureUnit = 0) const;
 
 	const std::string getName() const { return m_name; }
@@ -60,10 +58,12 @@ public:
 	uint16_t getTextureWidth() const { return m_width; }
 	uint16_t getTextureHeight() const { return m_height; }
 	uint32_t getTextureFormat() const { return m_textureFormat; }
-	uint32_t getBufferFormat() const { return m_textureFormat; }
-	uint32_t getBufferSize() const;
+	uint32_t getBufferFormat() const { return m_bufferFormat; }
 
 private:
+	void determinePixelType();
+	static size_t getBytesPerPixel(uint32_t format, uint32_t type);
+
 	std::string m_name;
 	uint32_t m_glTextureId = 0;
 	uint16_t m_width = 0;
@@ -74,6 +74,7 @@ private:
 	uint32_t m_glPixelBufferObjectIDs[2] = {0, 0};
 	uint16_t m_pboWriteIndex = 0;
 	PixelBufferObjectMode m_pboMode= PixelBufferObjectMode::NoPBO;	
+	size_t m_PBOByteSize = 0;
 	bool m_bGenerateMipMap= true;
 	const uint8_t* m_textureMapData;
 	std::filesystem::path m_imagePath;

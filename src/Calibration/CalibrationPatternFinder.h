@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ObjectSystemConfigFwd.h"
+#include "OpenCVFwd.h"
 #include "ProfileConfig.h"
 
 #include <memory>
@@ -10,9 +11,6 @@
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
-typedef std::vector<cv::Point2f> t_opencv_point2d_list;
-typedef std::vector<cv::Point3f> t_opencv_point3d_list;
 
 typedef std::vector<glm::vec3> t_opengl_point3d_list;
 
@@ -26,6 +24,9 @@ struct OpenGLCalibrationGeometry
 	t_opengl_point3d_list points;
 };
 
+class CalibrationPatternFinder;
+typedef std::shared_ptr<CalibrationPatternFinder> CalibrationPatternFinderPtr;
+
 // Helper use to implement OpenCV camera lens intrinsic/distortion calibration method.
 // See https://docs.opencv.org/3.3.0/dc/dbb/tutorial_py_calibration.html for details.
 class CalibrationPatternFinder
@@ -37,17 +38,33 @@ public:
 	static CalibrationPatternFinder* allocatePatternFinder(
 		ProfileConfigConstPtr profileConfig, 
 		class VideoFrameDistortionView* distortionView);
+	static CalibrationPatternFinderPtr allocatePatternFinderSharedPtr(
+		ProfileConfigConstPtr profileConfig,
+		class VideoFrameDistortionView* distortionView);
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const = 0;
 	virtual bool findNewCalibrationPattern(const float minSeperationDist= 0.f) = 0;
+	virtual bool estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform);
 	virtual bool fetchLastFoundCalibrationPattern(
-		t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) = 0;
+		t_opencv_point2d_list& outImagePoints, 
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) = 0;
+	virtual bool calibrateCamera(
+		const struct MikanMonoIntrinsics& inputCameraIntrinsics,
+		const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+		const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+		struct MikanMonoIntrinsics& outIntrinsics,
+		double& outReprojectionError) const;
 
 	bool areCurrentImagePointsValid() const;
+	inline float getFrameWidth() const { return m_frameWidth; }
+	inline float getFrameHeight() const { return m_frameHeight; }
+	inline VideoFrameDistortionView* getDistortionView() const { return m_distortionView; }
 	inline void getOpenCVLensCalibrationGeometry(OpenCVCalibrationGeometry* outGeometry) { *outGeometry = m_opencvLensCalibrationGeometry; };
 	inline void getOpenCVSolvePnPGeometry(OpenCVCalibrationGeometry* outGeometry) { *outGeometry= m_opencvSolvePnPGeometry; };
-	void renderCalibrationPattern2D() const;
-	void renderSolvePnPPattern3D(const glm::mat4& xform) const;
+	inline void getOpenGLSolvePnPGeometry(OpenGLCalibrationGeometry* outGeometry) { *outGeometry= m_openglSolvePnPGeometry; };
+	virtual void renderCalibrationPattern2D() const;
+	virtual void renderSolvePnPPattern3D(const glm::mat4& xform) const;
 
 protected:
 	// Video buffer state
@@ -59,7 +76,7 @@ protected:
 	// Internal Calibration State
 	OpenCVCalibrationGeometry m_opencvLensCalibrationGeometry;
 	OpenCVCalibrationGeometry m_opencvSolvePnPGeometry;
-	OpenGLCalibrationGeometry m_openglGeometry;
+	OpenGLCalibrationGeometry m_openglSolvePnPGeometry;
 	t_opencv_point2d_list m_lastValidQuad;
 	t_opencv_point2d_list m_lastValidImagePoints;
 	t_opencv_point2d_list m_currentImagePoints;
@@ -74,11 +91,12 @@ public:
 		int m_chessbordCols,
 		float squareLengthMM);
 
-	float* getSquareLengthMMPtr() { return &m_squareLengthMM; }
-
 	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_chessboard; }
-	virtual bool findNewCalibrationPattern(const float minSeperationDist) override;
-	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
+	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
+	virtual bool fetchLastFoundCalibrationPattern(
+		t_opencv_point2d_list& outImagePoints,
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) override;
 
 protected:
 	int m_chessbordRows;
@@ -86,26 +104,57 @@ protected:
 	float m_squareLengthMM;
 };
 
-class CalibrationPatternFinder_CircleGrid : public CalibrationPatternFinder
+class CalibrationPatternFinder_Charuco : public CalibrationPatternFinder
 {
 public:
-	CalibrationPatternFinder_CircleGrid(
+	CalibrationPatternFinder_Charuco(
 		VideoFrameDistortionView* distortionView,
-		int circleGridRows,
-		int circleGridCols,
-		float circleSpacingMM,
-		float circleDiameterMM);
+		int charucoRows,
+		int charucoCols,
+		float charucoSquareLengthMM,
+		float charucoMarkerLengthMM,
+		eCharucoDictionaryType charucoDictionaryType);
+	virtual ~CalibrationPatternFinder_Charuco();
 
-	float* getCircleSpacingMMPtr() { return &m_circleSpacingMM; }
-	float* getCircleDiameterMMPtr() { return &m_circleDiameterMM; }
-
-	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_circlegrid; }
-	virtual bool findNewCalibrationPattern(const float minSeperationDist) override;
-	virtual bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints, cv::Point2f outBoundingQuad[4]) override;
+	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_charuco; }
+	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
+	virtual bool fetchLastFoundCalibrationPattern(
+		t_opencv_point2d_list& outImagePoints, 
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) override;
+	virtual void renderCalibrationPattern2D() const override;
+	virtual void renderSolvePnPPattern3D(const glm::mat4& xform) const override;
 
 protected:
-	int m_circleGridRows;
-	int m_circleGridCols;
-	float m_circleSpacingMM;
-	float m_circleDiameterMM;
+	class CharucoBoardData* m_markerData;
+};
+
+class CalibrationPatternFinder_Aruco : public CalibrationPatternFinder
+{
+public:
+	CalibrationPatternFinder_Aruco(
+		VideoFrameDistortionView* distortionView,
+		int desiredArucoId,
+		float markerLengthMM,
+		eCharucoDictionaryType charucoDictionaryType);
+	virtual ~CalibrationPatternFinder_Aruco();
+
+	virtual eCalibrationPatternType getCalibrationPatternType() const override 
+	{ return eCalibrationPatternType::mode_aruco; }
+	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
+	virtual bool fetchLastFoundCalibrationPattern(
+		t_opencv_point2d_list& outImagePoints,
+		t_opencv_pointID_list& outImagePointIDs,
+		cv::Point2f outBoundingQuad[4]) override;
+	virtual bool calibrateCamera(
+		const struct MikanMonoIntrinsics& inputCameraIntrinsics,
+		const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+		const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+		struct MikanMonoIntrinsics& outIntrinsics,
+		double& outReprojectionError) const 
+	{ return false; }
+	virtual void renderCalibrationPattern2D() const override;
+
+protected:
+	class ArucoBoardData* m_markerData;
 };

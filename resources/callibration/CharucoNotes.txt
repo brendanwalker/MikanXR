@@ -1,0 +1,9 @@
+	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+	cv::aruco::CharucoBoard board(cv::Size(11, 8), 0.16f, 0.12f, dictionary);
+
+	float size_ratio = 11.0f / 8.f;
+	float imageWidth = 1280;
+	float imageHeight = imageWidth * size_ratio;
+	cv::Mat charucoImage;
+	board.generateImage(cv::Size(imageWidth, imageHeight), charucoImage);
+	cv::imwrite("charuco.png", charucoImage);

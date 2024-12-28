@@ -1,34 +1,19 @@
 #include "GlStaticMeshInstance.h"
+#include "GlCamera.h"
 #include "GlScene.h"
 #include "GlTriangulatedMesh.h"
 #include "GlMaterialInstance.h"
 
 GlStaticMeshInstance::GlStaticMeshInstance(
 	const std::string& name, 
-	IGlMeshConstPtr mesh, 
-	GlMaterialConstPtr material)
+	IGlMeshConstPtr mesh)
 	: m_name(name)
 	, m_visible(true)
 	, m_mesh(mesh)
-	, m_materialInstance(std::make_shared<GlMaterialInstance>(material))
+	, m_materialInstance(std::make_shared<GlMaterialInstance>(mesh->getMaterialInstance()))
 	, m_modelMatrix(glm::mat4(1.f))
 	, m_normalMatrix(glm::mat4(1.f))
 {
-
-}
-
-GlStaticMeshInstance::GlStaticMeshInstance(
-	const std::string& name,
-	IGlMeshConstPtr mesh,
-	GlMaterialInstancePtr materialInstance)
-	: m_name(name)
-	, m_visible(true)
-	, m_mesh(mesh)
-	, m_materialInstance(materialInstance)
-	, m_modelMatrix(glm::mat4(1.f))
-	, m_normalMatrix(glm::mat4(1.f))
-{
-
 }
 
 GlStaticMeshInstance::~GlStaticMeshInstance()
@@ -56,6 +41,14 @@ void GlStaticMeshInstance::removeFromBoundScene()
 	}
 }
 
+void GlStaticMeshInstance::setIsVisibleToCamera(const std::string& cameraName, bool bVisible)
+{
+	if (bVisible)
+		m_visibileToCameras.insert(cameraName);
+	else
+		m_visibileToCameras.erase(cameraName);
+}
+
 // -- IGlSceneRenderable
 IGlSceneRenderableConstPtr GlStaticMeshInstance::getConstSelfPointer() const
 {
@@ -70,6 +63,18 @@ bool GlStaticMeshInstance::getVisible() const
 void GlStaticMeshInstance::setVisible(bool bNewVisible) 
 { 
 	m_visible = bNewVisible; 
+}
+
+bool GlStaticMeshInstance::canCameraSee(GlCameraConstPtr renderingCamera) const
+{
+	if (m_visibileToCameras.size() > 0)
+	{
+		const std::string& cameraName = renderingCamera->getName();
+
+		return m_visibileToCameras.find(cameraName) != m_visibileToCameras.end();
+	}
+
+	return true;
 }
 
 const glm::mat4& GlStaticMeshInstance::getModelMatrix() const 

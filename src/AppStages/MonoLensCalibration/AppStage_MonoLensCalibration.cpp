@@ -8,7 +8,6 @@
 #include "InputManager.h"
 #include "MainWindow.h"
 #include "MonoLensDistortionCalibrator.h"
-#include "MikanClientTypes.h"
 #include "CalibrationPatternFinder.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -64,7 +63,10 @@ void AppStage_MonoLensCalibration::enter()
 	if (m_videoSourceView->startVideoStream())
 	{
 		// Allocate all distortion and video buffers
-		m_monoDistortionView = new VideoFrameDistortionView(m_videoSourceView, VIDEO_FRAME_HAS_ALL);
+		m_monoDistortionView = new VideoFrameDistortionView(
+			m_ownerWindow,
+			m_videoSourceView, 
+			VIDEO_FRAME_HAS_ALL);
 
 		// Create a calibrator to do the actual pattern recording and calibration
 		m_monoLensCalibrator =
@@ -77,10 +79,12 @@ void AppStage_MonoLensCalibration::enter()
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
 			newState= eMonoLensCalibrationMenuState::testCalibration;
+			m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 		}
 		else
 		{
 			newState= eMonoLensCalibrationMenuState::capture;
+			m_monoDistortionView->setGrayscaleUndistortDisabled(true);
 		}
 	}
 	else
@@ -100,9 +104,8 @@ void AppStage_MonoLensCalibration::enter()
 		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onReturnEvent);
 
 		// Init camera settings model
-		m_cameraSettingsModel->init(context, m_videoSourceView);
+		m_cameraSettingsModel->init(context);
 		m_cameraSettingsModel->OnVideoDisplayModeChanged = MakeDelegate(this, &AppStage_MonoLensCalibration::onVideoDisplayModeChanged);
-		m_cameraSettingsModel->OnBrightnessChanged = MakeDelegate(this, &AppStage_MonoLensCalibration::onBrightnessChanged);
 
 		// Init calibration view now that the dependent model has been created
 		m_calibrationView = addRmlDocument("mono_lens_calibration.rml");
@@ -197,12 +200,12 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 					{
 						// Update the camera intrinsics for this camera
 						MikanVideoSourceIntrinsics cameraIntrinsics;
-						cameraIntrinsics.intrinsics.mono = new_mono_intrinsics;
-						cameraIntrinsics.intrinsics_type = MONO_CAMERA_INTRINSICS;
+						cameraIntrinsics.setMonoIntrinsics(new_mono_intrinsics);
 						m_videoSourceView->setCameraIntrinsics(cameraIntrinsics);
 
 						// Rebuild the distortion map to reflect the updated calibration
 						m_monoDistortionView->rebuildDistortionMap(&new_mono_intrinsics);
+						m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 
 						// Switch back to the color video feed
 						m_cameraSettingsModel->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
@@ -308,6 +311,9 @@ void AppStage_MonoLensCalibration::onRestartEvent()
 	// Reset the distortion map back to the camera intrinsics we started with
 	m_monoLensCalibrator->resetDistortionView();
 
+	// Turn back off grayscale undistortion mode
+	m_monoDistortionView->setGrayscaleUndistortDisabled(false);
+
 	// Go back to the capture state
 	setMenuState(eMonoLensCalibrationMenuState::capture);
 }
@@ -326,9 +332,4 @@ void AppStage_MonoLensCalibration::onCancelEvent()
 void AppStage_MonoLensCalibration::onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode)
 {
 	m_monoDistortionView->setVideoDisplayMode(newDisplayMode);
-}
-
-void AppStage_MonoLensCalibration::onBrightnessChanged(int newBrightness)
-{
-	m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, newBrightness, false);
 }

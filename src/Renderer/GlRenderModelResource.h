@@ -7,81 +7,39 @@
 #include <string>
 #include <vector>
 
-namespace objl
-{
-	class Loader;
-	struct Mesh;
-	struct Material;
-};
-
 class GlRenderModelResource
 {
 public:
-	GlRenderModelResource();
-	GlRenderModelResource(const struct GlVertexDefinition* vertexDefinition);
-	GlRenderModelResource(const std::filesystem::path& modelFilePath);
-	GlRenderModelResource(
-		const std::filesystem::path& modelFilePath,
-		const struct GlVertexDefinition* vertexDefinition);
+	GlRenderModelResource(class IGlWindow* ownerWindow);
 	virtual ~GlRenderModelResource();
-
-	bool createRenderResources(GlModelResourceManager* modelResourceManager);
-	void disposeRenderResources();
-
-	const std::filesystem::path& getRenderModelFilepath() const { return m_renderModelFilepath; }
-	const GlVertexDefinition* getVertexDefinition() const { return m_vertexDefinition; }
-	static const GlVertexDefinition* getDefaultVertexDefinition();
 
 	inline const std::string& getName() const { return m_name; }
 	inline void setName(const std::string& inName) { m_name= inName; }
 
-	size_t getTriangulatedMeshCount() const 
-	{ return m_glTriMeshResources.size(); }
-	GlTriangulatedMeshPtr getTriangulatedMesh(int meshIndex) const 
-	{ return m_glTriMeshResources[meshIndex].glMesh; }
-	GlMaterialInstancePtr getTriangulatedMeshMaterial(int meshIndex) const
-	{ return m_glTriMeshResources[meshIndex].glMaterialInstance; }
+	inline const std::filesystem::path& getModelFilePath() const { return m_renderModelFilepath; }
+	inline void setModelFilePath(const std::filesystem::path& inModelFilePath) 
+	{ m_renderModelFilepath= inModelFilePath; }
 
-	size_t getWireframeMeshCount() const { return m_glWireframeMeshResources.size(); }
+	void addTriangulatedMesh(GlTriangulatedMeshPtr mesh);
+	void addWireframeMesh(GlWireframeMeshPtr mesh);
+
+	int getTriangulatedMeshCount() const 
+	{ return (int)m_triangulatedMeshes.size(); }
+	GlTriangulatedMeshPtr getTriangulatedMesh(int meshIndex) const 
+	{ return m_triangulatedMeshes[meshIndex]; }
+
+	size_t getWireframeMeshCount() const { return m_wireframeMeshes.size(); }
 	GlWireframeMeshPtr getWireframeMesh(int meshIndex) const 
-	{ return m_glWireframeMeshResources[meshIndex].glMesh; }
-	GlMaterialInstancePtr getWireframeMeshMaterial(int meshIndex) const
-	{ return m_glWireframeMeshResources[meshIndex].glMaterialInstance; }
+	{ return m_wireframeMeshes[meshIndex]; }
 
 protected:
-	bool loadObjFileResources();
-	void disposeObjFileResources();
+	void disposeMeshRenderResources();
 
-	GlTriangulatedMeshPtr createTriangulatedMeshResource(
-		const std::string& meshName,
-		const struct GlVertexDefinition* vertexDefinition,
-		const objl::Mesh* objMesh);
-	GlMaterialInstancePtr createTriMeshMaterialInstance(
-		GlMaterialConstPtr material,
-		const objl::Material* objMaterial);
-	GlWireframeMeshPtr createWireframeMeshResource(
-		const std::string& meshName,
-		const objl::Mesh* objMesh);
-	GlMaterialInstancePtr createWireframeMeshMaterialInstance(
-		GlMaterialConstPtr wireframeMaterial);
-
-	objl::Loader* m_objLoader= nullptr;
+	class IGlWindow* m_ownerWindow= nullptr;
 
 	std::string m_name;
-	const std::filesystem::path m_renderModelFilepath;
-	struct GlVertexDefinition* m_vertexDefinition= nullptr;
+	std::filesystem::path m_renderModelFilepath;
 
-	struct TriMeshResourceEntry
-	{
-		GlTriangulatedMeshPtr glMesh;
-		GlMaterialInstancePtr glMaterialInstance;
-	};
-	std::vector<TriMeshResourceEntry> m_glTriMeshResources;
-
-	struct WireframeMeshResourceEntry
-	{
-		GlWireframeMeshPtr glMesh;
-		GlMaterialInstancePtr glMaterialInstance;
-	};
-	std::vector<WireframeMeshResourceEntry> m_glWireframeMeshResources;
+	std::vector<GlTriangulatedMeshPtr> m_triangulatedMeshes;
+	std::vector<GlWireframeMeshPtr> m_wireframeMeshes;
 };

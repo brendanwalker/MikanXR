@@ -1,5 +1,27 @@
 #include "GlProgramConfig.h"
-#include "GlProgram.h"
+
+// -- GlVertexAttributeConfig ------
+configuru::Config GlVertexAttributeConfig::writeToJSON()
+{
+	configuru::Config pt;
+
+	pt["name"]= name;
+	pt["dataType"]= VertexConstantUtils::vertexDataTypeToString(dataType);
+	pt["semantic"]= VertexConstantUtils::vertexSemanticToString(semantic);
+
+	return pt;
+}
+
+void GlVertexAttributeConfig::readFromJSON(const configuru::Config& pt)
+{
+	name= pt.get_or<std::string>("name", name);
+
+	std::string dataTypeString = pt.get_or<std::string>("dataType", "INVALID");
+	dataType= VertexConstantUtils::vertexDataTypeFromString(dataTypeString);
+	
+	std::string semanticString = pt.get_or<std::string>("semantic", "INVALID");
+	semantic= VertexConstantUtils::vertexSemanticFromString(semanticString);
+}
 
 // -- CompositorLayerConfig ------
 configuru::Config GlProgramConfig::writeToJSON()
@@ -9,8 +31,8 @@ configuru::Config GlProgramConfig::writeToJSON()
 	pt["materialName"]= materialName;
 	pt["vertexShaderPath"]= vertexShaderPath.string();
 	pt["fragmentShaderPath"]= fragmentShaderPath.string();
-
-	CommonConfig::writeStdMap(pt, "uniforms", uniforms);
+	CommonConfig::writeStdConfigVector(pt, "vertexAttributes", vertexAttributes);
+	CommonConfig::writeStdMap(pt, "uniformSemanticMap", uniformSemanticMap);
 
 	return pt;
 }
@@ -22,14 +44,6 @@ void GlProgramConfig::readFromJSON(const configuru::Config& pt)
 	materialName = pt.get_or<std::string>("materialName", materialName);
 	vertexShaderPath = pt.get_or<std::string>("vertexShaderPath", vertexShaderPath.string());
 	fragmentShaderPath = pt.get_or<std::string>("fragmentShaderPath", fragmentShaderPath.string());
-	CommonConfig::readStdMap(pt, "uniforms", uniforms);
-}
-
-bool GlProgramConfig::loadGlProgramCode(GlProgramCode* outProgramCode)
-{
-	return outProgramCode->loadFromConfigData(
-		getLoadedConfigPath(),
-		vertexShaderPath,
-		fragmentShaderPath,
-		uniforms);
+	CommonConfig::readStdConfigVector(pt, "vertexAttributes", vertexAttributes);
+	CommonConfig::readStdMap(pt, "uniformSemanticMap", uniformSemanticMap);
 }

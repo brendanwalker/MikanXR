@@ -1,4 +1,21 @@
-cmake_minimum_required(VERSION 3.0)
+## Mikan Libraries
+## =======================
+
+# Reflection based serialization library
+add_subdirectory(Serialization)
+
+# Mikan Client Core C API
+add_subdirectory(ClientCore)
+
+# Mikan Client C++ API
+add_subdirectory(ClientAPI)
+
+# Mikan Client Code Gen
+add_subdirectory(ClientCodeGen)
+
+## Mikan App
+## =======================
+MESSAGE(STATUS "Generating Mikan App Project")
 
 # Dependencies
 set(MIKAN_INCL_DIRS)
@@ -31,12 +48,6 @@ file(GLOB MIKAN_APP_STAGES_ANCHOR_CALIBRATION_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/AnchorTriangulation/*.h"
 )
 source_group("AppStages\\AnchorTriangulation" FILES ${MIKAN_APP_STAGES_ANCHOR_CALIBRATION_SRC})
-## CalibrationPatternSetings
-file(GLOB MIKAN_APP_STAGES_CALIBRATION_PATTERN_SETTINGS_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/CalibrationPatternSettings/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/CalibrationPatternSettings/*.h"
-)
-source_group("AppStages\\CalibrationPatternSettings" FILES ${MIKAN_APP_STAGES_CALIBRATION_PATTERN_SETTINGS_SRC})
 ## CameraSettings
 file(GLOB MIKAN_APP_STAGES_CAMERA_SETTINGS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/CameraSettings/*.cpp"
@@ -55,6 +66,12 @@ file(GLOB MIKAN_APP_STAGES_CTOFFSET_CALIBRATION_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/CTOffsetCalibration/*.h"
 )
 source_group("AppStages\\CTOffsetCalibration" FILES ${MIKAN_APP_STAGES_CTOFFSET_CALIBRATION_SRC})
+## DepthMeshCapture
+file(GLOB MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/DepthMeshCapture/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/DepthMeshCapture/*.h"
+)
+source_group("AppStages\\DepthMeshCapture" FILES ${MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC})
 ## FileBrowser
 file(GLOB MIKAN_APP_STAGES_FILE_BROWSER_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/FileBrowser/*.cpp"
@@ -91,28 +108,43 @@ file(GLOB MIKAN_APP_STAGES_SPATIAL_ANCHORS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/SpatialAnchors/*.h"
 )
 source_group("AppStages\\SpatialAnchors" FILES ${MIKAN_APP_STAGES_SPATIAL_ANCHORS_SRC})
+## StencilAlignment
+file(GLOB MIKAN_APP_STAGES_STENCIL_ALIGNMENT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/StencilAlignment/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/StencilAlignment/*.h"
+)
+source_group("AppStages\\StencilAlignment" FILES ${MIKAN_APP_STAGES_STENCIL_ALIGNMENT_SRC})
 ## VRDeviceSettings
 file(GLOB MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRDeviceSettings/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRDeviceSettings/*.h"
 )
 source_group("AppStages\\VRDeviceSettings" FILES ${MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC})
+## VRTrackingRecenter
+file(GLOB MIKAN_APP_STAGES_VR_TRACKING_RECENTER_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRTrackingRecenter/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRTrackingRecenter/*.h"
+)
+source_group("AppStages\\VRTrackingRecenter" FILES ${MIKAN_APP_STAGES_VR_TRACKING_RECENTER_SRC})
+
 ## Mikan All AppStage Source
 set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_ROOT_SRC}
     ${MIKAN_APP_STAGES_ALIGNMENT_CALIBRATION_SRC}
     ${MIKAN_APP_STAGES_ANCHOR_CALIBRATION_SRC}
-    ${MIKAN_APP_STAGES_CALIBRATION_PATTERN_SETTINGS_SRC}
     ${MIKAN_APP_STAGES_CAMERA_SETTINGS_SRC}
     ${MIKAN_APP_STAGES_COMPOSITOR_SRC}
     ${MIKAN_APP_STAGES_CTOFFSET_CALIBRATION_SRC}
+	${MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC}
     ${MIKAN_APP_STAGES_FILE_BROWSER_SRC}
     ${MIKAN_APP_STAGES_MAIN_MENU_SRC}
     ${MIKAN_APP_STAGES_MODAL_CONFIRM_SRC}
     ${MIKAN_APP_STAGES_MONO_LENS_CALIBRATION_SRC}
     ${MIKAN_APP_STAGES_SHARED_SRC}
     ${MIKAN_APP_STAGES_SPATIAL_ANCHORS_SRC}
+	${MIKAN_APP_STAGES_STENCIL_ALIGNMENT_SRC}
     ${MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC}
+	${MIKAN_APP_STAGES_VR_TRACKING_RECENTER_SRC}
 )
 
 # Asset
@@ -121,6 +153,18 @@ file(GLOB MIKAN_ASSET_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Asset/*.h"
 )
 source_group("Asset" FILES ${MIKAN_ASSET_SRC})
+## Asset/Import
+file(GLOB MIKAN_ASSET_IMPORT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Import/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Import/*.h"
+)
+source_group("Asset\\Import" FILES ${MIKAN_ASSET_IMPORT_SRC})
+## Asset/Export
+file(GLOB MIKAN_ASSET_EXPORT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Export/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Export/*.h"
+)
+source_group("Asset\\Export" FILES ${MIKAN_ASSET_EXPORT_SRC})
 
 # Calibration
 file(GLOB MIKAN_CALIBRATION_SRC
@@ -128,26 +172,6 @@ file(GLOB MIKAN_CALIBRATION_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Calibration/*.h"
 )
 source_group("Calibration" FILES ${MIKAN_CALIBRATION_SRC})
-
-# Client
-## Client-Unity
-file(GLOB MIKAN_CLIENT_UNITY_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Unity/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/Unity/*.h"
-)
-source_group("Client\\Unity" FILES ${MIKAN_CLIENT_UNITY_SRC})
-## Client Spout
-file(GLOB MIKAN_CLIENT_SPOUT2_DX_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Client/SpoutDX/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/SpoutDX/*.h"
-)
-source_group("Client\\SpoutDX" FILES ${MIKAN_CLIENT_SPOUT2_DX_SRC})
-## Client Types
-file(GLOB MIKAN_CLIENT_TYPES_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Client/MikanClientTypes.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/MikanMathTypes.h"
-)
-source_group("Client" FILES ${MIKAN_CLIENT_TYPES_SRC})
 
 # Components
 file(GLOB MIKAN_COMPONENTS_SRC
@@ -202,12 +226,14 @@ source_group("ImNodes" FILES ${IMNODES_SOURCE})
 file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.h"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp"    
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp"
 )
 source_group("Interprocess" FILES ${MIKAN_INTERPROCESS_SRC})
 
@@ -246,6 +272,12 @@ file(GLOB MIKAN_NODE_EDITORS_ROOT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/*.h"
 )
 source_group("NodeEditors" FILES ${MIKAN_NODE_EDITORS_ROOT_SRC})
+## DataSources
+file(GLOB MIKAN_NODE_EDITORS_DATASOURCES_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/DataSources/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/DataSources/*.h"
+)
+source_group("NodeEditors\\DataSources" FILES ${MIKAN_NODE_EDITORS_DATASOURCES_SRC})
 ## Graphs
 file(GLOB MIKAN_NODE_EDITORS_GRAPHS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/NodeEditors/Graphs/*.cpp"
@@ -280,6 +312,7 @@ source_group("NodeEditors\\Windows" FILES ${MIKAN_NODE_EDITORS_WINDOWS_SRC})
 ## Node Editor Full Source
 set(MIKAN_NODE_EDITORS_SRC
     ${MIKAN_NODE_EDITORS_ROOT_SRC}
+	${MIKAN_NODE_EDITORS_DATASOURCES_SRC}
     ${MIKAN_NODE_EDITORS_GRAPHS_SRC}
     ${MIKAN_NODE_EDITORS_NODES_SRC}
     ${MIKAN_NODE_EDITORS_PINS_SRC}
@@ -384,9 +417,9 @@ set(MIKAN_SRC
     ${MIKAN_APP_CORE_SRC}
     ${MIKAN_APP_STAGES_SRC}
     ${MIKAN_ASSET_SRC}
+	${MIKAN_ASSET_IMPORT_SRC}
+	${MIKAN_ASSET_EXPORT_SRC}
     ${MIKAN_CALIBRATION_SRC}
-    ${MIKAN_CLIENT_SRC}
-    ${MIKAN_CLIENT_TYPES_SRC}
     ${MIKAN_COMPONENTS_SRC}
     ${MIKAN_CONFIG_SRC}
     ${MIKAN_DEVICE_ENUM_SRC}
@@ -413,21 +446,25 @@ set(MIKAN_SRC
     ${MIKAN_VRTRACKER_STEAMVR_SRC}
     ${IMGUI_SOURCE}
 	${IMNODES_SOURCE}
-	${TINYFILEDIALOGS_SOURCE}
+	${TINYFILEDIALOGS_SOURCE}	
 )
 
 list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/AppCore
   ${CMAKE_CURRENT_LIST_DIR}/AppStages
   ${CMAKE_CURRENT_LIST_DIR}/Asset
+  ${CMAKE_CURRENT_LIST_DIR}/Asset/Import
+  ${CMAKE_CURRENT_LIST_DIR}/Asset/Export
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Components
   ${CMAKE_CURRENT_LIST_DIR}/Config
-  ${CMAKE_CURRENT_LIST_DIR}/Client
+  ${CMAKE_CURRENT_LIST_DIR}/ClientAPI/Public
+  ${CMAKE_CURRENT_LIST_DIR}/ClientCore/Public
   ${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator
   ${CMAKE_CURRENT_LIST_DIR}/Device/Interface
   ${CMAKE_CURRENT_LIST_DIR}/Device/Manager
   ${CMAKE_CURRENT_LIST_DIR}/Device/View
+  ${CMAKE_CURRENT_LIST_DIR}/Generated
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
@@ -438,6 +475,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/RmlUi
   ${CMAKE_CURRENT_LIST_DIR}/Scene
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
+  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public/
   ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/System
   ${CMAKE_CURRENT_LIST_DIR}/Utility
@@ -446,11 +484,18 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Video/WMF
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker
   ${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR
+  ${RFK_GENERATED_ROOT_DIR}/MikanCore
+  ${RFK_GENERATED_ROOT_DIR}/MikanAPI
+  ${RFK_GENERATED_ROOT_DIR}/Serialization
   ${IMGUI_DIR}
   ${IMNODES_DIR}
+  ${IXWEBSOCKET_INCLUDE_DIR}
+  ${LOCKFREEQUEUE_INCLUDE_DIR}
+  ${RFK_INCLUDE_DIR}
   ${RMLUI_INCLUDE_DIR}
   ${ROOT_DIR}/thirdparty/glm/
-  ${ROOT_DIR}/thirdparty/Configuru/
+  ${CONFIGURU_INCLUDE_DIR}
+  ${NLOHMANN_JSON_INCLUDE_DIR}  
   ${OpenCV_INCLUDE_DIR} 
   ${OPENVR_INCLUDE_DIR} 
   ${SDL2_INCLUDE_DIR} 
@@ -462,10 +507,9 @@ list(APPEND MIKAN_INCL_DIRS
   ${FastCSV_INCLUDE_DIRS}
   ${FFMPEG_INCLUDE_DIRS}
   ${SPOUT2_INCLUDE_DIRS}
-  ${BOOST_INTERPROCESS_INCLUDE_DIRS}
-  ${OBJ_LOADER_INCLUDE_DIRS}
   ${LUA_INCLUDE_DIRS}
-  ${LUA_BRIDGE_INCLUDE_DIRS})
+  ${LUA_BRIDGE_INCLUDE_DIRS}
+  ${FAST_OBJ_LOADER_INCLUDE_DIRS})
 
 list(APPEND MIKAN_REQ_LIBS 
   ${OpenCV_LIBS}
@@ -482,15 +526,26 @@ list(APPEND MIKAN_REQ_LIBS
   ${FFMPEG_avformat_LIBRARY}
   ${FFMPEG_avutil_LIBRARY}
   ${FFMPEG_swscale_LIBRARY}
+  ${FREETYPE_LIBRARIES}
   ${LUA_LIBRARIES}
-  ${RMLUI_LIBRARIES}
-  easy_profiler)
+  ${RFK_LIBRARIES}
+  easy_profiler
+  fast_obj_lib
+  ixwebsocket
+  MikanCore
+  MikanAPI
+  MikanSerialization
+  RmlCore
+  RmlDebugger)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/OpenCVCameraEnumerator.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageClient.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Math/MathGLM.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
 set(APP_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/winapp_resources.rc")
@@ -501,58 +556,15 @@ ENDIF()
 
 target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
 target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
-
-# Mikan C-API shared library
-file(GLOB MIKAN_CLIENT_LIBRARY_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.h"
-    "${CMAKE_CURRENT_LIST_DIR}/AppCore/Logger.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/*.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Client/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessMessages.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetShared.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Utility/RandomUtils.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Utility/RandomUtils.cpp"
-    ${MIKAN_CLIENT_UNITY_SRC}
-    ${MIKAN_CLIENT_SPOUT2_DX_SRC}
-)
-
-file(GLOB MIKAN_INTERPROCESS_WRITER_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.h"
-    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/InterprocessRenderTargetWriter.cpp"
-)
-source_group("Interprocess" FILES ${MIKAN_INTERPROCESS_WRITER_SRC})
-
-list(APPEND MIKAN_CLIENT_INCL_DIRS
-  ${CMAKE_CURRENT_LIST_DIR}/AppCore
-  ${CMAKE_CURRENT_LIST_DIR}/Client
-  ${CMAKE_CURRENT_LIST_DIR}/Client/SpoutDX
-  ${CMAKE_CURRENT_LIST_DIR}/Interprocess
-  ${CMAKE_CURRENT_LIST_DIR}/Utility
-  ${SPOUT2_INCLUDE_DIRS}
-  ${BOOST_INTERPROCESS_INCLUDE_DIRS})
-
-list(APPEND MIKAN_CLIENT_REQ_LIBS
-  ${SPOUT2_LIBRARIES}
-  ${MIKAN_EXTRA_LIBS})
-  
-set_source_files_properties(${MIKAN_CLIENT_SPOUT2_DX_SRC} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
-
-add_library(Mikan_CAPI SHARED ${MIKAN_CLIENT_LIBRARY_SRC})
-target_include_directories(Mikan_CAPI PRIVATE ${MIKAN_CLIENT_INCL_DIRS})
-target_link_libraries(Mikan_CAPI PRIVATE ${MIKAN_CLIENT_REQ_LIBS})
-set_target_properties(Mikan_CAPI PROPERTIES PUBLIC_HEADER "Client/MikanClientTypes.h;Client/MikanMathTypes.h;Client/MikanClient_CAPI.h;Client/MikanClient_export.h")
-set_target_properties(Mikan_CAPI PROPERTIES CXX_VISIBILITY_PRESET hidden)
-set_target_properties(Mikan_CAPI PROPERTIES C_VISIBILITY_PRESET hidden)
-target_compile_definitions(Mikan_CAPI PRIVATE MIKAN_CLIENT_CAPI_EXPORTS)
-target_compile_definitions(Mikan_CAPI PRIVATE ENABLE_SPOUT_DX)
+target_compile_definitions(Mikan PRIVATE ENABLE_SERIALIZATION_REFLECTION)
+target_compile_definitions(Mikan PRIVATE ENABLE_MIKANCORE_REFLECTION)
+target_compile_definitions(Mikan PRIVATE ENABLE_MIKANAPI_REFLECTION)
+target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
+target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 # Runtime dependencies
 set(FFMPEG_DLL_FOLDER ${ROOT_DIR}/deps/ffmpeg-4.4.1-full_build-shared/bin)
-set(OPENCV_VIDEOIO_DLL ${OpenCV_DIR}/bin/opencv_videoio_ffmpeg455_64.dll)
+set(OPENCV_VIDEOIO_DLL ${OpenCV_DIR}/x64/vc17/bin/opencv_videoio_ffmpeg490_64.dll)
 set(OPENVR_DLL ${OPENVR_ROOT_DIR}/bin/${OPENVR_PLATFORM}/openvr_api.dll)
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
 set(SDL2_IMAGE_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_image-2.0.5/lib/x64)
@@ -565,13 +577,29 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   add_custom_command(
     TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
+          $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.pdb
+          $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${OPENCV_VIDEOIO_DLL} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc15/bin/opencv_world455d.dll $<TARGET_FILE_DIR:Mikan>)
+    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc17/bin/opencv_world490d.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc15/bin/opencv_world455.dll $<TARGET_FILE_DIR:Mikan>)
+    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc17/bin/opencv_world490.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
@@ -622,30 +650,22 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
     "${LUA_SHARED_LIBRARIES}" 
-    $<TARGET_FILE_DIR:Mikan>)
+    $<TARGET_FILE_DIR:Mikan>)	
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
-    "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-    "${RMLUI_BINARIES_DIR}/RmlLua.dll"
-    "${FREETYPE_SHARED_LIBRARY}"
-    $<TARGET_FILE_DIR:Mikan>)
+	TARGET Mikan POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy
+	"${RFK_SHARED_LIBRARIES}"
+	$<TARGET_FILE_DIR:Mikan>)	
+	
 ELSE() #Linux/Darwin
 ENDIF()
 
 # Install - copy runtime dependencies to dist folder (for release)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
   install(TARGETS Mikan
-      CONFIGURATIONS Debug
-      RUNTIME DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/lib)
-  install(TARGETS Mikan
-      CONFIGURATIONS Release
-      RUNTIME DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/lib)
+      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
+      LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
 
   install(FILES 
       "${FFMPEG_DLL_FOLDER}/avcodec-58.dll"
@@ -656,78 +676,31 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       "${FFMPEG_DLL_FOLDER}/avutil-56.dll"
       "${FFMPEG_DLL_FOLDER}/swresample-3.dll"
       "${FFMPEG_DLL_FOLDER}/swscale-5.dll"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${FFMPEG_DLL_FOLDER}/avcodec-58.dll"
-      "${FFMPEG_DLL_FOLDER}/avcodec-58.dll"
-      "${FFMPEG_DLL_FOLDER}/avdevice-58.dll"
-      "${FFMPEG_DLL_FOLDER}/avfilter-7.dll"
-      "${FFMPEG_DLL_FOLDER}/avformat-58.dll"
-      "${FFMPEG_DLL_FOLDER}/avutil-56.dll"
-      "${FFMPEG_DLL_FOLDER}/swresample-3.dll"
-      "${FFMPEG_DLL_FOLDER}/swscale-5.dll"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES "${OPENCV_VIDEOIO_DLL}"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES "${OPENCV_VIDEOIO_DLL}"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES 
-      "${OpenCV_DIR}/x64/vc15/bin/opencv_world455d.dll"
-      "${OpenCV_DIR}/x64/vc15/bin/opencv_world455d.pdb"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES "${OpenCV_DIR}/x64/vc15/bin/opencv_world455.dll"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      "${OpenCV_DIR}/x64/vc17/bin/opencv_world490d.dll"
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
+  install(FILES "${OpenCV_DIR}/x64/vc17/bin/opencv_world490.dll"
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
       
   install(FILES "${OPENVR_DLL}"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES "${OPENVR_DLL}"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
   
   install(FILES "${SDL2_DLL}"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES "${SDL2_DLL}"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES "${SPOUT2_SHARED_LIBRARIES}"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES "${SPOUT2_SHARED_LIBRARIES}"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
       
   install(FILES "${LUA_SHARED_LIBRARIES}"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES "${LUA_SHARED_LIBRARIES}"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
-      
-  install(FILES 
-      "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlLua.dll"
-      "${FREETYPE_SHARED_LIBRARY}"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${RMLUI_BINARIES_DIR}/RmlCore.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlDebugger.dll" 
-      "${RMLUI_BINARIES_DIR}/RmlLua.dll"
-      "${FREETYPE_SHARED_LIBRARY}"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
+	  
+  install(FILES "${RFK_SHARED_LIBRARIES}"
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})	  
       
   install(FILES 
       "${SDL2_IMAGE_DLL_FOLDER}/libjpeg-9.dll" 
@@ -736,78 +709,25 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       "${SDL2_IMAGE_DLL_FOLDER}/libwebp-7.dll"
       "${SDL2_IMAGE_DLL_FOLDER}/SDL2_image.dll"
       "${SDL2_IMAGE_DLL_FOLDER}/zlib1.dll"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${SDL2_IMAGE_DLL_FOLDER}/libjpeg-9.dll" 
-      "${SDL2_IMAGE_DLL_FOLDER}/libpng16-16.dll"
-      "${SDL2_IMAGE_DLL_FOLDER}/libtiff-5.dll"
-      "${SDL2_IMAGE_DLL_FOLDER}/libwebp-7.dll"
-      "${SDL2_IMAGE_DLL_FOLDER}/SDL2_image.dll"
-      "${SDL2_IMAGE_DLL_FOLDER}/zlib1.dll"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES 
       "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
       "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
-      "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
       
   install(FILES 
       "${GLEW_SHARED_LIBRARIES}"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${GLEW_SHARED_LIBRARIES}"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES 
       "${EASY_PROFILER_FOLDER}/easy_profiler.dll"
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH})
-  install(FILES 
-      "${EASY_PROFILER_FOLDER}/easy_profiler.dll"
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(DIRECTORY ${ROOT_DIR}/resources
-    CONFIGURATIONS Debug
-    DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.rml" PATTERN "*.rcss")
-  install(DIRECTORY ${ROOT_DIR}/resources
-    CONFIGURATIONS Release
-    DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.rml" PATTERN "*.rcss")
+    DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
+    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.rml" PATTERN "*.rcss" PATTERN "*.onnx")
     
-  install(TARGETS Mikan_CAPI
-      CONFIGURATIONS Debug
-      RUNTIME DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/lib
-      PUBLIC_HEADER DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}/include)
-  install(TARGETS Mikan_CAPI
-      CONFIGURATIONS Release
-      RUNTIME DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/lib
-      PUBLIC_HEADER DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}/include)
-
-  install(DIRECTORY ${ROOT_DIR}/bindings/csharp
-      CONFIGURATIONS Debug
-      DESTINATION ${MIKAN_DEBUG_INSTALL_PATH}
-      FILES_MATCHING PATTERN "*.cs")
-  install(DIRECTORY ${ROOT_DIR}/bindings/csharp
-      CONFIGURATIONS Release
-      DESTINATION ${MIKAN_RELEASE_INSTALL_PATH}
-      FILES_MATCHING PATTERN "*.cs")
-
 ELSE() #Linux/Darwin
 ENDIF()
 

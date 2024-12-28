@@ -1,23 +1,22 @@
 #include "CommonConfig.h"
 #include "Logger.h"
+#include "MikanVideoSourceTypes.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
 
 #include <iostream>
 #include <string>
 
-// Suppress unhelpful configuru warnings
 #ifdef _MSC_VER
-    #pragma warning (push)
-    #pragma warning (disable: 4996) // This function or variable may be unsafe
-    #pragma warning (disable: 4244) // 'return': conversion from 'const int64_t' to 'float', possible loss of data
-    #pragma warning (disable: 4701) // potentially uninitialized local variable
-    #pragma warning (disable: 4715) // configuru::Config::operator[]': not all control paths return a value
+#pragma warning (push)
+#pragma warning (disable: 4996) // This function or variable may be unsafe
+#pragma warning (disable: 4244) // 'return': conversion from 'const int64_t' to 'float', possible loss of data
+#pragma warning (disable: 4715) // configuru::Config::operator[]': not all control paths return a value
 #endif
 #define CONFIGURU_IMPLEMENTATION 1
-#include <configuru.hpp>
+#include "configuru.hpp"
 #ifdef _MSC_VER
-    #pragma warning (pop)
+#pragma warning (pop)
 #endif
 
 // -- ConfigPropertyChangeSet -----
@@ -108,8 +107,7 @@ void CommonConfig::save()
     save(getDefaultConfigPath());
 }
 
-void 
-CommonConfig::save(const std::filesystem::path& path)
+void CommonConfig::save(const std::filesystem::path& path)
 {
     m_configFullFilePath= path;
 
@@ -117,14 +115,12 @@ CommonConfig::save(const std::filesystem::path& path)
     clearDirty();
 }
 
-bool
-CommonConfig::load()
+bool CommonConfig::load()
 {
     return load(getDefaultConfigPath());
 }
 
-bool 
-CommonConfig::load(const std::filesystem::path& path)
+bool CommonConfig::load(const std::filesystem::path& path)
 {
     bool bLoadedOk = false;
     
@@ -132,10 +128,17 @@ CommonConfig::load(const std::filesystem::path& path)
     {
         m_configFullFilePath= path;
 
-        configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
-        readFromJSON(cfg);
-        clearDirty();
-        bLoadedOk = true;
+        try
+        {
+			configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
+			readFromJSON(cfg);
+			clearDirty();
+			bLoadedOk = true;
+        }
+        catch (std::exception& e)
+        {
+            MIKAN_LOG_ERROR("CommonConfig::load") << "Failed to load config file: " << path << " - " << e.what();
+        }
     }
 
     return bLoadedOk;
@@ -174,11 +177,10 @@ void CommonConfig::readMonoTrackerIntrinsics(
 	tracker_intrinsics.pixel_height = pt.get_or<double>("frame_height", 480.f);
     tracker_intrinsics.hfov = pt.get_or<double>("hfov", 60.f);
     tracker_intrinsics.vfov = pt.get_or<double>("vfov", 45.f);
-    tracker_intrinsics.znear = pt.get_or<double>("zNear", 0.01f);
-    tracker_intrinsics.zfar = pt.get_or<double>("zFar", 200.f);
+    tracker_intrinsics.znear = pt.get_or<double>("zNear", 0.1f);
+    tracker_intrinsics.zfar = pt.get_or<double>("zFar", 20.f);
 
-	MikanDistortionCoefficients default_distortion_coefficients;
-	memset(&default_distortion_coefficients, 0, sizeof(MikanDistortionCoefficients));
+	MikanDistortionCoefficients default_distortion_coefficients = {};
 
     readMatrix3d(pt, "camera_matrix", tracker_intrinsics.camera_matrix);
     readDistortionCoefficients(pt, "distortion", 
@@ -227,8 +229,7 @@ void CommonConfig::readStereoTrackerIntrinsics(
     tracker_intrinsics.znear = pt.get_or<double>("zNear", 10.f);
     tracker_intrinsics.zfar = pt.get_or<double>("zFar", 200.f);
 
-    MikanDistortionCoefficients default_distortion_coefficients;
-	memset(&default_distortion_coefficients, 0, sizeof(MikanDistortionCoefficients));
+    MikanDistortionCoefficients default_distortion_coefficients = {};
 
     readMatrix3d(pt, "left_camera_matrix", tracker_intrinsics.left_camera_matrix);
     readMatrix3d(pt, "right_camera_matrix", tracker_intrinsics.right_camera_matrix);

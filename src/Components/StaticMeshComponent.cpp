@@ -1,7 +1,12 @@
 #include "GlModelResourceManager.h"
+#include "GlMaterialInstance.h"
+#include "GlMaterial.h"
+#include "GlProgram.h"
 #include "GlStaticMeshInstance.h"
+#include "GlVertexDefinition.h"
 #include "StaticMeshComponent.h"
 #include "MikanObject.h"
+#include "MikanStencilTypes.h"
 
 StaticMeshComponent::StaticMeshComponent(MikanObjectWeakPtr owner)
 	: SceneComponent(owner)
@@ -21,5 +26,91 @@ void StaticMeshComponent::setStaticMesh(GlStaticMeshInstancePtr meshInstance)
 		StaticMeshComponentWeakPtr meshComponent= getSelfWeakPtr<StaticMeshComponent>();
 
 		OnMeshChanged(meshComponent);
+	}
+}
+
+void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderGeometry)
+{
+	GlStaticMeshInstancePtr meshInstance= getStaticMesh();
+
+	IGlMeshConstPtr glMesh = meshInstance->getMesh();
+	if (glMesh->getIndexPerElementCount() != 3)
+	{
+		// Only support triangle meshes
+		return;
+	}
+
+	GlMaterialInstanceConstPtr materialInst= meshInstance->getMaterialInstanceConst();
+	GlMaterialConstPtr material= materialInst->getMaterial();
+	const GlVertexDefinition& vertexDefinition= material->getProgram()->getVertexDefinition();
+	const size_t vertexSize = vertexDefinition.getVertexSize();
+	const uint32_t vertexCount = glMesh->getVertexCount();
+	const uint8_t* vertexData = glMesh->getVertexData();
+
+	// Write out the vertices
+	const GlVertexAttribute* posAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
+	if (posAttrib != nullptr)
+	{
+		const uint8_t* posData = vertexData + posAttrib->getOffset();
+		for (uint32_t i = 0; i < vertexCount; i++)
+		{
+			const MikanVector3f& pos = *(const MikanVector3f*)posData;
+
+			outRenderGeometry.vertices.push_back(pos);
+			posData += vertexSize;
+		}
+	}
+
+	// Write out the normals
+	const GlVertexAttribute* normalAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::normal);
+	if (normalAttrib != nullptr)
+	{
+		const uint8_t* normalData = vertexData + normalAttrib->getOffset();
+		for (uint32_t i = 0; i < vertexCount; i++)
+		{
+			const MikanVector3f& normal = *(const MikanVector3f*)normalData;
+
+			outRenderGeometry.normals.push_back(normal);
+			normalData += vertexSize;
+		}
+	}
+
+	// Write out the texture coordinates
+	const GlVertexAttribute* texCoordAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texCoord);
+	if (texCoordAttrib != nullptr)
+	{
+		const uint8_t* texCoordData = vertexData + texCoordAttrib->getOffset();
+		for (uint32_t i = 0; i < vertexCount; i++)
+		{
+			const MikanVector2f& texel = *(const MikanVector2f*)texCoordData;
+
+			outRenderGeometry.texels.push_back(texel);
+			texCoordData += vertexSize;
+		}
+	}
+
+	// Write out the indices
+	const uint32_t indexCount = (uint32_t)(glMesh->getElementCount() * glMesh->getIndexPerElementCount());
+	const uint8_t* indexData = glMesh->getIndexData();
+	const size_t indexSize = glMesh->getIndexSize();
+	if (indexSize == sizeof(uint16_t))
+	{
+		for (uint32_t i = 0; i < indexCount; i++)
+		{
+			const uint16_t index = *(const uint16_t*)indexData;
+
+			outRenderGeometry.indices.push_back((int)index);
+			indexData += indexSize;
+		}
+	}
+	else
+	{
+		for (uint32_t i = 0; i < indexCount; i++)
+		{
+			const uint32_t index = *(const uint32_t*)indexData;
+
+			outRenderGeometry.indices.push_back((int)index);
+			indexData += indexSize;
+		}
 	}
 }

@@ -26,7 +26,9 @@ public:
 	inline const std::string& getElementClassName() const { return m_elementClassName; }
 
 	inline const std::vector<GraphPropertyPtr>& getArray() const { return m_array; }
+	inline std::vector<GraphPropertyPtr>& getArrayMutable() { return m_array; }
 	inline void setArray(const std::vector<GraphPropertyPtr>& inArray) { m_array = inArray; }
+	inline void clearArray() { m_array.clear(); }
 
 	inline static const std::string k_pinClassName = "ArrayPin";
 	virtual std::string getClassName() const override { return k_pinClassName; }

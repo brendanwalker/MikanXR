@@ -1,8 +1,10 @@
 #include "App.h"
 #include "Colors.h"
 #include "GlCommon.h"
+#include "GlFrameBuffer.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
+#include "GlScopedObjectBinding.h"
 #include "GlTexture.h"
 #include "GlTextRenderer.h"
 #include "GlProgramConfig.h"
@@ -13,6 +15,7 @@
 #include "MikanServer.h"
 #include "MainWindow.h"
 #include "ModelStencilComponent.h"
+#include "OpenCVManager.h"
 #include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "StringUtils.h"
@@ -23,6 +26,7 @@
 #include "GlRenderModelResource.h"
 #include "GlTriangulatedMesh.h"
 #include "GlVertexDefinition.h"
+#include "SyntheticDepthEstimator.h"
 #include "VideoSourceManager.h"
 #include "VideoSourceView.h"
 #include "VideoFrameDistortionView.h"
@@ -41,14 +45,21 @@ GlFrameCompositor* GlFrameCompositor::m_instance= nullptr;
 
 GlFrameCompositor::GlFrameCompositor()
 {
+	m_instance = this;
+
 	m_config= std::make_shared<GlFrameCompositorConfig>();
-	m_instance= this;
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
+	m_editorFrameBufferTexture = std::make_shared<GlTexture>();
+	m_videoExportFramebuffer = std::make_shared<GlFrameBuffer>();
 }
 
 GlFrameCompositor::~GlFrameCompositor()
 {
+	m_videoExportFramebuffer= nullptr;
+	m_editorFrameBufferTexture= nullptr;
+	m_nodeGraphAssetRef= nullptr;
 	m_config= nullptr;
+
 	m_instance = nullptr;
 }
 
@@ -60,14 +71,14 @@ bool GlFrameCompositor::startup(IGlWindow* ownerWindow)
 
 	reloadAllCompositorPresets();
 
-	m_rgbFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBFrameShaderCode());
+	m_rgbFrameShader = ownerWindow->getShaderCache()->fetchCompiledGlProgram(getRGBFrameShaderCode());
 	if (m_rgbFrameShader == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb frame shader";
 		return false;
 	}
 
-	m_rgbToBgrFrameShader = GlShaderCache::getInstance()->fetchCompiledGlProgram(getRGBtoBGRVideoFrameShaderCode());
+	m_rgbToBgrFrameShader = ownerWindow->getShaderCache()->fetchCompiledGlProgram(getRGBtoBGRVideoFrameShaderCode());
 	if (m_rgbToBgrFrameShader == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb-to-gbr frame shader";
@@ -366,16 +377,16 @@ bool GlFrameCompositor::start()
 		MikanServer* mikanServer = MikanServer::getInstance();
 
 		// Create layers for all connected clients with allocated render targets
-		std::vector<MikanClientConnectionInfo> clientList;
+		std::vector<const MikanClientConnectionInfo*> clientList;
 		mikanServer->getConnectedClientInfoList(clientList);
-		for (const MikanClientConnectionInfo& connectionInfo : clientList)
+		for (const MikanClientConnectionInfo* connectionInfo : clientList)
 		{
-			if (connectionInfo.hasAllocatedRenderTarget())
+			if (connectionInfo->hasAllocatedRenderTarget())
 			{
 				onClientRenderTargetAllocated(
-					connectionInfo.clientId, 
-					connectionInfo.clientInfo,
-					connectionInfo.renderTargetReadAccessor);
+					connectionInfo->getClientId(), 
+					connectionInfo->getClientInfo(),
+					connectionInfo->getRenderTargetReadAccessor());
 			}
 		}
 
@@ -416,6 +427,39 @@ bool GlFrameCompositor::getVideoSourceCameraPose(glm::mat4& outCameraMat) const
 	return false;
 }
 
+bool GlFrameCompositor::getVideoSourceView(glm::mat4& outCameraView) const
+{
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckView != nullptr)
+	{
+		outCameraView = m_videoSourceView->getCameraViewMatrix(m_cameraTrackingPuckView);
+		return true;
+	}
+
+	return false;
+}
+
+bool GlFrameCompositor::getVideoSourceProjection(
+	glm::mat4& outCameraProjection,
+	bool verticalFlip) const
+{
+	if (m_videoSourceView != nullptr)
+	{
+		outCameraProjection = m_videoSourceView->getCameraProjectionMatrix();
+
+		if (verticalFlip)
+		{
+			// Flip the projection matrix to account for OpenGL's inverted Y-axis
+			outCameraProjection = 
+				glm::scale(glm::mat4(1.0), glm::vec3(1.f, -1.f, 1.f)) *
+				outCameraProjection;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) const
 {
 	if (m_videoSourceView != nullptr && m_cameraTrackingPuckView != nullptr)
@@ -427,23 +471,53 @@ bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) con
 	return false;
 }
 
+bool GlFrameCompositor::getVideoSourceZRange(float& outZNear, float& outZFar) const
+{
+	if (m_videoSourceView != nullptr)
+	{
+		m_videoSourceView->getZRange(outZNear, outZFar);
+		return true;
+	}
+
+	return false;
+}
+
 GlTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textureSource) const
 {
-	if (m_videoDistortionView != nullptr)
+	switch (textureSource)
 	{
-		switch (textureSource)
-		{
-			case eVideoTextureSource::video_texture:
-				return m_videoDistortionView->getVideoTexture();
-			case eVideoTextureSource::distortion_texture:
-				return m_videoDistortionView->getDistortionTexture();
-		}
+		case eVideoTextureSource::video_texture:
+			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getVideoTexture() : GlTexturePtr();
+		case eVideoTextureSource::distortion_texture:
+			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : GlTexturePtr();
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
+		case eVideoTextureSource::float_depth_texture:
+			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getFloatDepthTexture() : GlTexturePtr();
+		case eVideoTextureSource::color_mapped_depth_texture:
+			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : GlTexturePtr();
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 	}
 
 	return GlTexturePtr();
 }
 
-GlTexturePtr GlFrameCompositor::getClientSourceTexture(int clientIndex, eClientTextureType clientTextureType) const
+GlTexturePtr GlFrameCompositor::getVideoPreviewTexture(eVideoTextureSource textureSource) const
+{
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
+	if (textureSource == eVideoTextureSource::float_depth_texture)
+	{
+		// Special case for float_depth_texture, use the color mapped depth texture instead for preview
+		return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : GlTexturePtr();
+	}
+	else
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
+	{
+		// In all other cases, the preview texture is the same as the source texture
+		return getVideoSourceTexture(textureSource);
+	}
+}
+
+GlTexturePtr GlFrameCompositor::getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const
 {
 	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
 	{
@@ -453,9 +527,39 @@ GlTexturePtr GlFrameCompositor::getClientSourceTexture(int clientIndex, eClientT
 		{
 			switch (clientTextureType)
 			{
-				case eClientTextureType::color:
+				case eClientColorTextureType::colorRGB:
+					if (clientSource->colorTexture && 
+						(clientSource->colorTexture->getTextureFormat() == GL_RGB ||
+						 clientSource->colorTexture->getTextureFormat() == GL_BGR))
+					{
+						return clientSource->colorTexture;
+					}
 					return clientSource->colorTexture;
-				case eClientTextureType::depth:
+				case eClientColorTextureType::colorRGBA:
+					if (clientSource->colorTexture &&
+						(clientSource->colorTexture->getTextureFormat() == GL_RGBA ||
+						 clientSource->colorTexture->getTextureFormat() == GL_BGRA))
+					{
+						return clientSource->colorTexture;
+					}
+			}
+		}
+	}
+
+	return GlTexturePtr();
+}
+
+GlTexturePtr GlFrameCompositor::getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const
+{
+	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
+	{
+		ClientSource* clientSource = it->second;
+
+		if (clientSource->clientSourceIndex == clientIndex)
+		{
+			switch (clientTextureType)
+			{
+				case eClientDepthTextureType::depthPackRGBA:
 					return clientSource->depthTexture;
 			}
 		}
@@ -522,7 +626,6 @@ void GlFrameCompositor::update(float deltaSeconds)
 			m_lastReadVideoFrameIndex = m_videoDistortionView->readNextVideoFrame();
 
 			MikanVideoSourceNewFrameEvent newFrameEvent;
-			memset(&newFrameEvent, 0, sizeof(MikanVideoSourceNewFrameEvent));
 			newFrameEvent.frame = m_lastReadVideoFrameIndex;
 
 			const glm::vec3 cameraUp(cameraXform[1]); // Camera up is along the y-axis
@@ -588,6 +691,18 @@ void GlFrameCompositor::updateCompositeFrame()
 	// Compute the next undistorted video frame
 	m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex);
 
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
+	// If we have a synthetic depth estimator active, compute the synthetic depth
+	if (m_syntheticDepthEstimator)
+	{
+		// I think we always want to generate depth from undistorted video frames
+		// but maybe we should make this an option in the future?
+		cv::Mat* bgrUndistortBuffer = m_videoDistortionView->getBGRUndistortBuffer();
+
+		m_syntheticDepthEstimator->computeSyntheticDepth(bgrUndistortBuffer);
+	}
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
+
 	// Perform the compositor evaluation if in MainWindow mode
 	// (Editor window runs graph evaluation in its own update loop)
 	if (m_evaluatorWindow == eCompositorEvaluatorWindow::mainWindow)
@@ -600,35 +715,39 @@ void GlFrameCompositor::updateCompositeFrame()
 	}
 
 	// Optionally bake our a BGR video frame, if requested
-	if (m_bGenerateBGRVideoTexture)
+	if (m_bGenerateBGRVideoTexture && m_videoExportFramebuffer->isValid())
 	{
 		EASY_BLOCK("Render BGR Frame")
 
-		// bind to bgr framebuffer and draw composited frame, but use shader to convert from RGB to BGR
-		glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
-
-		m_rgbToBgrFrameShader->bindProgram();
-		
-		std::string uniformName;
-		m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::texture0, uniformName);
-		m_rgbToBgrFrameShader->setTextureUniform(uniformName);
-
-		GlTextureConstPtr compositedFrameTexture= getCompositedFrameTexture();
-		if (compositedFrameTexture)
+		// Create a scoped binding for the video export framebuffer
+		GlScopedObjectBinding videoExportFramebufferBinding(
+			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			m_videoExportFramebuffer);
+		if (videoExportFramebufferBinding)
 		{
-			compositedFrameTexture->bindTexture(0);
+			// Turn off depth testing for compositing
+			videoExportFramebufferBinding.getGlState().disableFlag(eGlStateFlagType::depthTest);
 
-			glBindVertexArray(m_videoQuadVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindVertexArray(0);
+			m_rgbToBgrFrameShader->bindProgram();
 
-			compositedFrameTexture->clearTexture(0);
+			std::string uniformName;
+			m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::rgbTexture, uniformName);
+			m_rgbToBgrFrameShader->setTextureUniform(uniformName);
+
+			GlTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
+			if (compositedFrameTexture)
+			{
+				compositedFrameTexture->bindTexture(0);
+
+				glBindVertexArray(m_videoQuadVAO);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+				glBindVertexArray(0);
+
+				compositedFrameTexture->clearTexture(0);
+			}
+
+			m_rgbToBgrFrameShader->unbindProgram();
 		}
-
-		m_rgbToBgrFrameShader->unbindProgram();
-
-		// unbind the bgr frame buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	// Remember the index of the last frame we composited
@@ -672,19 +791,17 @@ GlTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
 	switch (m_evaluatorWindow)
 	{
 		case eCompositorEvaluatorWindow::mainWindow:
-			{
-				// TODO: Simplify this once the switch to only using the node graph
-				if (m_nodeGraph)
-					return m_nodeGraph->getCompositedFrameTexture();
-				else
-					return m_mainWindowFrameBufferTexture;
-			}
-			break;
+			return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : GlTextureConstPtr();
 		case eCompositorEvaluatorWindow::editorWindow:
 			return m_editorFrameBufferTexture;
 	}
 
 	return GlTextureConstPtr();
+}
+
+GlTexturePtr GlFrameCompositor::getBGRVideoFrameTexture() 
+{
+	return m_videoExportFramebuffer->isValid() ? m_videoExportFramebuffer->getColorTexture() : GlTexturePtr(); 
 }
 
 void GlFrameCompositor::updateCompositeFrameNodeGraph()
@@ -714,7 +831,7 @@ void GlFrameCompositor::render() const
 	GlTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
 	if (compositedFrameTexture)
 	{
-		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState();
+		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState("GlFrameCompositorRender");
 		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 		// Draw the composited video frame
@@ -746,13 +863,7 @@ bool GlFrameCompositor::openVideoSource()
 	{
 		frameWidth = (uint16_t)m_videoSourceView->getFrameWidth();
 		frameHeight = (uint16_t)m_videoSourceView->getFrameHeight();
-		bSuccess= createLayerCompositingFrameBuffer(frameWidth, frameHeight);
-	}
-
-	// Create a frame buffer and texture to convert composited texture to BGR video frame
-	if (bSuccess)
-	{
-		bSuccess = createBGRVideoFrameBuffer(frameWidth, frameHeight);
+		bSuccess= createCompositingTextures(frameWidth, frameHeight);
 	}
 
 	if (bSuccess)
@@ -760,9 +871,27 @@ bool GlFrameCompositor::openVideoSource()
 		// Create a distortion view to read the incoming video frames into a texture
 		m_videoDistortionView =
 			new VideoFrameDistortionView(
+				m_ownerWindow,
 				m_videoSourceView,
 				VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG,
 				profileConfig->videoFrameQueueSize);
+
+		// Create a synthetic depth estimator if the hardware supports it
+		// TODO: and requested from the profile config settings
+#if SUPPORT_REALTIME_DEPTH_ESTIMATION
+		auto openCVManager= App::getInstance()->getMainWindow()->getOpenCVManager();
+		if (openCVManager->supportsHardwareAcceleratedDNN())
+		{
+			m_syntheticDepthEstimator = 
+				std::make_shared<SyntheticDepthEstimator>(
+					openCVManager, DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
+			if (!m_syntheticDepthEstimator->initialize())
+			{
+				MIKAN_LOG_ERROR("GlFrameCompositor::openVideoSource") << "Failed to create depth estimator";
+				m_syntheticDepthEstimator= nullptr;
+			}
+		}
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
 		// Just pass the raw video frame straight to the bgr texture
 		// The frame compositor will do the undistortion work in a shader
@@ -780,8 +909,8 @@ bool GlFrameCompositor::openVideoSource()
 
 void GlFrameCompositor::closeVideoSource()
 {
-	freeLayerFrameBuffer();
-	freeBGRVideoFrameBuffer();
+	m_editorFrameBufferTexture->disposeTexture();
+	m_videoExportFramebuffer->disposeResources();
 
 	if (m_videoDistortionView != nullptr)
 	{
@@ -814,8 +943,7 @@ bool GlFrameCompositor::addClientSource(
 	if (m_clientSources.hasValue(clientId))
 		return false;
 
-	GlFrameCompositor::ClientSource* clientSource = new GlFrameCompositor::ClientSource;
-	memset(clientSource, 0, sizeof(GlFrameCompositor::ClientSource));
+	GlFrameCompositor::ClientSource* clientSource = new GlFrameCompositor::ClientSource();
 
 	const MikanRenderTargetDescriptor& desc= readAccessor->getRenderTargetDescriptor();
 	clientSource->clientSourceIndex= m_clientSources.getNumEntries();
@@ -838,7 +966,7 @@ bool GlFrameCompositor::addClientSource(
 		break;
 	case MikanColorBuffer_BGRA32:
 		clientSource->colorTexture = std::make_shared<GlTexture>();
-		clientSource->colorTexture->setTextureFormat(GL_BGRA);
+		clientSource->colorTexture->setTextureFormat(GL_RGBA);
 		clientSource->colorTexture->setBufferFormat(GL_BGRA);
 		break;
 	}
@@ -858,15 +986,16 @@ bool GlFrameCompositor::addClientSource(
 
 	switch (desc.depth_buffer_type)
 	{
-	case MikanDepthBuffer_DEPTH16:
+	case MikanDepthBuffer_FLOAT_DEVICE_DEPTH:
+	case MikanDepthBuffer_FLOAT_SCENE_DEPTH:
 		clientSource->depthTexture = std::make_shared<GlTexture>();
-		clientSource->depthTexture->setTextureFormat(GL_DEPTH_COMPONENT16);
-		clientSource->depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
+		clientSource->depthTexture->setTextureFormat(GL_R32F);
+		clientSource->depthTexture->setBufferFormat(GL_RED);
 		break;
-	case MikanDepthBuffer_DEPTH32:
+	case MikanDepthBuffer_PACK_DEPTH_RGBA:
 		clientSource->depthTexture = std::make_shared<GlTexture>();
-		clientSource->depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
-		clientSource->depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
+		clientSource->depthTexture->setTextureFormat(GL_RGBA);
+		clientSource->depthTexture->setBufferFormat(GL_RGBA);
 		break;
 	}
 
@@ -914,115 +1043,26 @@ bool GlFrameCompositor::removeClientSource(
 	return true;
 }
 
-bool GlFrameCompositor::createLayerCompositingFrameBuffer(uint16_t width, uint16_t height)
+bool GlFrameCompositor::createCompositingTextures(uint16_t width, uint16_t height)
 {
 	bool bSuccess = true;
 
-	glGenFramebuffers(1, &m_layerFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_layerFramebuffer);
-
-	// create a color attachment texture
-	m_mainWindowFrameBufferTexture = std::make_shared<GlTexture>();
-	m_mainWindowFrameBufferTexture->setSize(width, height);
-	m_mainWindowFrameBufferTexture->setTextureFormat(GL_RGBA);
-	m_mainWindowFrameBufferTexture->setBufferFormat(GL_RGBA);
-	m_mainWindowFrameBufferTexture->setGenerateMipMap(false);
-	m_mainWindowFrameBufferTexture->createTexture();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_mainWindowFrameBufferTexture->getGlTextureId(), 0);
-
-	// Also create a for the editor to render to when the editor is active
-	m_editorFrameBufferTexture = std::make_shared<GlTexture>();
+	// Also create a texture a for the editor to render to when the editor is active
 	m_editorFrameBufferTexture->setSize(width, height);
 	m_editorFrameBufferTexture->setTextureFormat(GL_RGBA);
 	m_editorFrameBufferTexture->setBufferFormat(GL_RGBA);
 	m_editorFrameBufferTexture->setGenerateMipMap(false);
-	// Don't create texture until we need it
+	// ... but don't allocate it create texture until we need it
 
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glGenRenderbuffers(1, &m_layerRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_layerRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_layerRBO); // now actually attach it
-
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	m_videoExportFramebuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+	m_videoExportFramebuffer->setSize(width, height);
+	if (!m_videoExportFramebuffer->createResources())
 	{
 		MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
 		bSuccess = false;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	return bSuccess;
-}
-
-void GlFrameCompositor::freeLayerFrameBuffer()
-{
-	if (m_layerRBO != 0)
-	{
-		glDeleteRenderbuffers(1, &m_layerRBO);
-		m_layerRBO = 0;
-	}
-
-	m_mainWindowFrameBufferTexture = nullptr;
-
-	if (m_layerFramebuffer != 0)
-	{
-		glDeleteFramebuffers(1, &m_layerFramebuffer);
-		m_layerFramebuffer = 0;
-	}
-}
-
-bool GlFrameCompositor::createBGRVideoFrameBuffer(uint16_t width, uint16_t height)
-{
-	bool bSuccess = true;
-
-	glGenFramebuffers(1, &m_bgrFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_bgrFramebuffer);
-
-	// create a color attachment texture with a double buffered pixel-buffer-object for reading
-	m_bgrVideoFrame = std::make_shared<GlTexture>();
-	m_bgrVideoFrame->setSize(width, height);
-	m_bgrVideoFrame->setTextureFormat(GL_RGB);
-	m_bgrVideoFrame->setBufferFormat(GL_RGB);
-	m_bgrVideoFrame->setGenerateMipMap(false);
-	m_bgrVideoFrame->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
-	m_bgrVideoFrame->createTexture();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_bgrVideoFrame->getGlTextureId(), 0);
-
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glGenRenderbuffers(1, &m_bgrRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_bgrRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_bgrRBO); // now actually attach it
-
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		MIKAN_LOG_ERROR("createBGRVideoFrameBuffer") << "Framebuffer is not complete!";
-		bSuccess = false;
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	return bSuccess;
-}
-
-void GlFrameCompositor::freeBGRVideoFrameBuffer()
-{
-	if (m_bgrRBO != 0)
-	{
-		glDeleteRenderbuffers(1, &m_bgrRBO);
-		m_bgrRBO = 0;
-	}
-
-	m_bgrVideoFrame = nullptr;
-
-	if (m_bgrFramebuffer != 0)
-	{
-		glDeleteFramebuffers(1, &m_bgrFramebuffer);
-		m_bgrFramebuffer = 0;
-	}
 }
 
 void GlFrameCompositor::createVertexBuffers()
@@ -1054,6 +1094,7 @@ void GlFrameCompositor::createVertexBuffers()
 	glGenVertexArrays(1, &m_layerQuadVAO);
 	glGenBuffers(1, &m_layerQuadVBO);
 	glBindVertexArray(m_layerQuadVAO);
+	glObjectLabel(GL_VERTEX_ARRAY, m_layerQuadVAO, -1, "FrameCompositorLayerQuad");
 	glBindBuffer(GL_ARRAY_BUFFER, m_layerQuadVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(layerQuadVertices), &layerQuadVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
@@ -1065,6 +1106,7 @@ void GlFrameCompositor::createVertexBuffers()
 	glGenVertexArrays(1, &m_videoQuadVAO);
 	glGenBuffers(1, &m_videoQuadVBO);
 	glBindVertexArray(m_videoQuadVAO);
+	glObjectLabel(GL_VERTEX_ARRAY, m_videoQuadVAO, -1, "FrameCompositorVideoQuad");
 	glBindBuffer(GL_ARRAY_BUFFER, m_videoQuadVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(videoQuadVertices), &videoQuadVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
@@ -1116,7 +1158,7 @@ void GlFrameCompositor::onClientRenderTargetReleased(
 
 void GlFrameCompositor::onClientRenderTargetUpdated(
 	const std::string& clientId, 
-	uint64_t frameIndex)
+	int64_t frameIndex)
 {
 	EASY_FUNCTION();
 
@@ -1167,7 +1209,9 @@ const GlProgramCode* GlFrameCompositor::getRGBFrameShaderCode()
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
-		.addUniform("rgbTexture", eUniformSemantic::texture0);
+		.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+		.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+		.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
 
 	return &x_shaderCode;
 }
@@ -1205,7 +1249,9 @@ const GlProgramCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
-		.addUniform("rgbTexture", eUniformSemantic::texture0);
+		.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+		.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+		.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
 
 	return &x_shaderCode;
 }

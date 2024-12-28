@@ -2,7 +2,6 @@
 
 #include "ColliderQuery.h"
 #include "MikanComponent.h"
-#include "MikanClientTypes.h"
 #include "MulticastDelegate.h"
 
 #include <vector>
@@ -40,9 +39,16 @@ public:
 	MulticastDelegate<void()> OnInteractionUnselected;
 	bool getIsSelected() const { return m_bIsSelected; }
 
+	void notifyTransformGizmoBound();
+	MulticastDelegate<void()> OnTransformGizmoBound;
+	void notifyTransformGizmoUnbound();
+	MulticastDelegate<void()> OnTransformGizmoUnbound;
+	bool getIsTransformGizmoAttached() const { return m_bIsTransformGizmoBound; }
+
 protected:
 	std::vector<ColliderComponentWeakPtr> m_colliders;
 	bool m_bIsHovered = false;
 	bool m_bIsGrabbed = false;
 	bool m_bIsSelected= false;
+	bool m_bIsTransformGizmoBound = false;
 };

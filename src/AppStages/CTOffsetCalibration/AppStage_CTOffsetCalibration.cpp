@@ -100,6 +100,7 @@ void AppStage_CTOffsetCalibration::enter()
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
+				m_ownerWindow,
 				m_videoSourceView, 
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);		
@@ -123,12 +124,10 @@ void AppStage_CTOffsetCalibration::enter()
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
 			newState = eCTOffsetCalibrationMenuState::testCalibration;
-			m_monoDistortionView->setGrayscaleUndistortDisabled(true);
 		}
 		else
 		{
 			newState = eCTOffsetCalibrationMenuState::verifySetup;
-			m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 		}
 	}
 	else
@@ -298,7 +297,6 @@ void AppStage_CTOffsetCalibration::update(float deltaSeconds)
 						m_bHasModifiedCameraSettings = true;
 
 						// Go to the test calibration state
-						m_monoDistortionView->setGrayscaleUndistortDisabled(true);
 						m_cameraSettingsModel->setViewpointMode(eCTOffsetCalibrationViewpointMode::mixedRealityViewpoint);
 						setMenuState(eCTOffsetCalibrationMenuState::testCalibration);
 					}
@@ -438,9 +436,6 @@ void AppStage_CTOffsetCalibration::onRestartEvent()
 
 	// Go back to the camera viewpoint (in case we are in VR view)
 	m_cameraSettingsModel->setViewpointMode(eCTOffsetCalibrationViewpointMode::cameraViewpoint);
-
-	// Re-enable gray scale undistort mode
-	m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 
 	// Return to the capture state
 	setMenuState(eCTOffsetCalibrationMenuState::verifySetup);

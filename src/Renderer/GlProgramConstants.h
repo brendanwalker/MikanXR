@@ -1,6 +1,8 @@
 #pragma once
 
+#include <functional>
 #include <string>
+#include <memory>
 
 enum class eUniformDataType : int
 {
@@ -18,6 +20,7 @@ enum class eUniformDataType : int
 	datatype_texture,
 };
 
+// Don't forget to update GlProgram::getUniformSemanticDataType if chaning this enum
 enum class eUniformSemantic : int
 {
 	INVALID = -1,
@@ -28,53 +31,49 @@ enum class eUniformSemantic : int
 	viewMatrix,
 	projectionMatrix,
 	modelViewProjectionMatrix,
-	cameraPosition,
-	ambientColorRGBA,
 	diffuseColorRGBA,
+	cameraPosition,
+	ambientColorRGB,
 	diffuseColorRGB,
-	specularColorRGBA,
-	lightColor,
+	specularColorRGB,
+	lightColorRGB,
 	lightDirection,
 	screenPosition,
-	shininess,
+	screenSize,
+	specularHighlights,
+	opticalDensity,
+	dissolve,
+	zNear,
+	zFar,
 	floatConstant0,
 	floatConstant1,
 	floatConstant2,
 	floatConstant3,
-	texture0,
-	texture1,
-	texture2,
-	texture3,
-	texture4,
-	texture5,
-	texture6,
-	texture7,
-	texture8,
-	texture9,
-	texture10,
-	texture11,
-	texture12,
-	texture13,
-	texture14,
-	texture15,
-	texture16,
-	texture17,
-	texture18,
-	texture19,
-	texture20,
-	texture21,
-	texture22,
-	texture23,
-	texture24,
-	texture25,
-	texture26,
-	texture27,
-	texture28,
-	texture29,
-	texture30,
-	texture31,
+	ambientTexture,
+	diffuseTexture,
+	specularTexture,
+	specularHightlightTexture,
+	alphaTexture,
+	bumpTexture,
+	rgbTexture, // 24-bit RGB texture
+	rgbaTexture, // 32-bit RGBA texture
+	distortionTexture, // vec2f texture applying lens undistortion
+	depthTexture, // float texture with depth values
 
 	COUNT
 };
 extern const std::string* k_UniformSemanticName;
 
+// Uniform binding callback
+enum class eUniformBindResult : int
+{
+	bound,
+	unbound,
+	error
+};
+using BindUniformCallback =
+	std::function<eUniformBindResult(
+		std::shared_ptr<class GlProgram>, // Source program to bind the uniform for
+		eUniformDataType, // Data type of the uniform
+		eUniformSemantic, // Semantic of the uniform
+		const std::string&)>; // Name of the uniform

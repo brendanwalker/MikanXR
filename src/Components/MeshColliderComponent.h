@@ -6,6 +6,9 @@
 #include "ObjectFwd.h"
 #include "RendererFwd.h"
 
+class StaticMeshKdTree;
+using StaticMeshKdTreePtr = std::shared_ptr<StaticMeshKdTree>;
+
 class MeshColliderComponent : public ColliderComponent
 {
 public:
@@ -16,16 +19,15 @@ public:
 	void setStaticMeshComponent(StaticMeshComponentWeakPtr meshComponent);
 	inline StaticMeshComponentWeakPtr getStaticMeshComponent() const { return m_staticMeshWeakPtr; }
 
+	virtual bool getBoundingSphere(glm::vec3& outCenter, float& outRadius) const override;
 	virtual bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
 		ColliderRaycastHitResult& outResult) const override;
 
 private:
 	void onStaticMeshChanged(StaticMeshComponentWeakPtr meshComponent);
-	void rebuildCollionGeometry();
+	void rebuildCollisionGeometry();
 
 	StaticMeshComponentWeakPtr m_staticMeshWeakPtr;
-	std::vector<GlmTriangle> m_meshTriangles;
-	glm::vec3 m_meshCenterPoint;
-	glm::vec3 m_meshMaxCornerPoint;
+	StaticMeshKdTreePtr m_kdTree;
 };

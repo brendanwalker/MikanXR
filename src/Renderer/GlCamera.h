@@ -1,10 +1,11 @@
 #pragma once
 
-#include "MikanClientTypes.h"
 #include "RendererFwd.h"
 
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/vector_float3.hpp"
+
+#include <string>
 
 enum eCameraMovementMode : int
 {
@@ -18,6 +19,9 @@ class GlCamera
 public:
 	GlCamera();
 	virtual ~GlCamera() = default;
+
+	void setName(const std::string& name) { m_cameraName = name; }
+	const std::string& getName() const { return m_cameraName; }
 
 	const glm::mat4& getProjectionMatrix() const { return m_projectionMatrix; }
 	const glm::mat4& getViewMatrix() const { return m_viewMatrix; }
@@ -37,7 +41,7 @@ public:
 	eCameraMovementMode getCameraMovementMode() const { return m_movementMode; }
 	void setCameraMovementMode(eCameraMovementMode mode);
 
-	void applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics);
+	void applyMonoCameraIntrinsics(struct MikanVideoSourceIntrinsics* cameraIntrinsics);
 
 	void setCameraTransform(const glm::mat4& poseXform);
 	void setPosition(const glm::vec3& location);
@@ -74,6 +78,8 @@ protected:
 	const float k_default_camera_z_near = 0.1f;
 	const float k_default_camera_z_far = 5000.f;
 	const float k_camera_min_zoom = 0.01f;
+
+	std::string m_cameraName;
 
 	float m_hFOVDegrees;
 	float m_vFOVDegrees;

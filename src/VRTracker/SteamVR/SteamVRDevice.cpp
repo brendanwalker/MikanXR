@@ -137,8 +137,8 @@ bool SteamVRDevice::open(const DeviceEnumerator* enumerator)
 	}
 	else
 	{
-
 		MIKAN_LOG_INFO("SteamVRTracker::open") << "Opening SteamVRTracker(" << devicePath << ", steamVRDeviceId=" << steamVRDeviceId << ")";
+		m_ownerDeviceManager= vrDeviceEnumerator->getOwnerDeviceManager();
 		m_devicePath = devicePath;
 		m_deviceType= deviceType;
 

@@ -7,8 +7,14 @@
 #include "AlignmentCalibration/RmlModel_AlignmentCameraSettings.h"
 #include "App.h"
 #include "GlCamera.h"
+#include "GlFrameBuffer.h"
 #include "GlLineRenderer.h"
+#include "GlMaterial.h"
+#include "GlMaterialInstance.h"
 #include "GlScene.h"
+#include "GlScopedObjectBinding.h"
+#include "GlStateStack.h"
+#include "GlTriangulatedMesh.h"
 #include "GlTextRenderer.h"
 #include "GlViewport.h"
 #include "MainWindow.h"
@@ -51,6 +57,8 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(MainWindow* ownerWi
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<GlScene>())
 	, m_camera(nullptr)
+	, m_frameBuffer(std::make_shared<GlFrameBuffer>())
+	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
 }
 
@@ -94,6 +102,13 @@ void AppStage_AlignmentCalibration::enter()
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
+	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
+	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
+	m_frameBuffer->setName("AlignmentCalibration");
+	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
+	m_frameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+	m_frameBuffer->createResources();
+
 	// Fire up the video scene in the background + pose calibrator
 	eAlignmentCalibrationMenuState newState;
 	if (m_videoSourceView->startVideoStream())
@@ -101,9 +116,10 @@ void AppStage_AlignmentCalibration::enter()
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
+				m_ownerWindow,
 				m_videoSourceView, 
 				VIDEO_FRAME_HAS_ALL);
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);		
+		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 		// Create a calibrator to do the actual pattern recording and calibration
 		m_trackerPoseCalibrator =
@@ -125,12 +141,10 @@ void AppStage_AlignmentCalibration::enter()
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
 			newState = eAlignmentCalibrationMenuState::testCalibration;
-			m_monoDistortionView->setGrayscaleUndistortDisabled(true);
 		}
 		else
 		{
 			newState = eAlignmentCalibrationMenuState::verifySetup;
-			m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 		}
 	}
 	else
@@ -300,7 +314,6 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 						m_bHasModifiedCameraSettings = true;
 
 						// Go to the test calibration state
-						m_monoDistortionView->setGrayscaleUndistortDisabled(true);
 						m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
 						setMenuState(eAlignmentCalibrationMenuState::testCalibration);
 					}
@@ -318,43 +331,79 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 
 void AppStage_AlignmentCalibration::render()
 {
-	switch (m_calibrationModel->getMenuState())
+	// Render the scene into the frame buffer
+	if (m_frameBuffer->isValid())
 	{
-		case eAlignmentCalibrationMenuState::verifySetup:
+		GlScopedObjectBinding colorFramebufferBinding(
+			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			m_frameBuffer);
+
+		if (colorFramebufferBinding)
+		{
+			switch (m_calibrationModel->getMenuState())
 			{
-				switch (m_cameraSettingsModel->getViewpointMode())
-				{
-					case eAlignmentCalibrationViewpointMode::cameraViewpoint:
+				case eAlignmentCalibrationMenuState::verifySetup:
+					{
+						switch (m_cameraSettingsModel->getViewpointMode())
+						{
+							case eAlignmentCalibrationViewpointMode::cameraViewpoint:
+								m_monoDistortionView->renderSelectedVideoBuffers();
+								m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
+								break;
+							case eAlignmentCalibrationViewpointMode::vrViewpoint:
+								m_trackerPoseCalibrator->renderVRSpaceCalibrationState();
+								renderVRScene();
+								break;
+							case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
+								m_monoDistortionView->renderSelectedVideoBuffers();
+								renderVRScene();
+								break;
+						}
+					}
+					break;
+				case eAlignmentCalibrationMenuState::capture:
+					{
 						m_monoDistortionView->renderSelectedVideoBuffers();
 						m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
-						break;
-					case eAlignmentCalibrationViewpointMode::vrViewpoint:
-						m_trackerPoseCalibrator->renderVRSpaceCalibrationState();
-						renderVRScene();
-						break;
-					case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
-						m_monoDistortionView->renderSelectedVideoBuffers();
-						renderVRScene();
-						break;
-				}
-			}
-			break;
-		case eAlignmentCalibrationMenuState::capture:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
-			}
-			break;
-		case eAlignmentCalibrationMenuState::testCalibration:
-			{
-				if (m_cameraSettingsModel->getViewpointMode() == eAlignmentCalibrationViewpointMode::mixedRealityViewpoint)
-				{
-					m_monoDistortionView->renderSelectedVideoBuffers();
-				}
+					}
+					break;
+				case eAlignmentCalibrationMenuState::testCalibration:
+					{
+						if (m_cameraSettingsModel->getViewpointMode() == eAlignmentCalibrationViewpointMode::mixedRealityViewpoint)
+						{
+							m_monoDistortionView->renderSelectedVideoBuffers();
+						}
 
-				renderVRScene();
+						renderVRScene();
+					}
+					break;
 			}
-			break;
+		}
+
+		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
+		m_ownerWindow->getLineRenderer()->render();
+		m_ownerWindow->getTextRenderer()->render();
+	}
+
+	// Render the frame buffer to the screen
+	if (m_frameBuffer->isValid())
+	{
+		GlMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
+		GlMaterialConstPtr material = materialInstance->getMaterial();
+
+		if (auto materialBinding = material->bindMaterial())
+		{
+			auto colorTexture= m_frameBuffer->getColorTexture();
+
+			// Bind the color texture
+			materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
+
+			// Draw the color texture
+			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			{
+				m_fullscreenQuad->drawElements();
+			}
+		}
 	}
 }
 
@@ -423,9 +472,6 @@ void AppStage_AlignmentCalibration::onRestartEvent()
 
 	// Go back to the camera viewpoint (in case we are in VR view)
 	m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
-
-	// Re-enable gray scale undistort mode
-	m_monoDistortionView->setGrayscaleUndistortDisabled(false);
 
 	// Return to the capture state
 	setMenuState(eAlignmentCalibrationMenuState::verifySetup);

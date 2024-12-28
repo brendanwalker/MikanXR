@@ -10,8 +10,9 @@ SteamVRResourceManager::~SteamVRResourceManager()
 	cleanup();
 }
 
-void SteamVRResourceManager::init()
+void SteamVRResourceManager::init(IGlWindow* ownerWindow)
 {
+	m_ownerWindow = ownerWindow;
 }
 
 void SteamVRResourceManager::cleanup()
@@ -36,8 +37,9 @@ SteamVRRenderModelResource* SteamVRResourceManager::fetchRenderModel(
 	}
 	else
 	{
-		SteamVRRenderModelResource* resource = new SteamVRRenderModelResource(renderModelName);
+		SteamVRRenderModelResource* resource = new SteamVRRenderModelResource(m_ownerWindow);
 
+		resource->setRenderModelName(renderModelName);
 		if (resource->createRenderResources())
 		{
 			m_renderModelCache[renderModelName]= resource;

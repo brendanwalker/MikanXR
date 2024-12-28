@@ -1,0 +1,356 @@
+{
+	"class_name":      "CompositorNodeGraph",
+	"next_id":         105,
+	"properties":      [
+		{
+			"class_name":      "GraphMaterialProperty",
+			"id":              14,
+			"parent_id":       0,
+			"name":            "GraphMaterialProperty14",
+			"asset_ref_index": -1
+		},
+		{
+			"class_name":   "GraphStencilProperty",
+			"id":           33,
+			"parent_id":    0,
+			"name":         "Stencil33",
+			"stencil_type": "model",
+			"stencil_name": "Desk"
+		},
+		{
+			"class_name":      "GraphMaterialProperty",
+			"id":              87,
+			"parent_id":       0,
+			"name":            "GraphMaterialProperty87",
+			"asset_ref_index": 1
+		}
+	],
+	"assetReferences": [
+		{
+			"class_name": "MaterialAssetReference",
+			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbaDepthKeyFrame/rgbaDepthKeyFrame.mat"
+		},
+		{
+			"class_name": "MaterialAssetReference",
+			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/videoClientInvAlphaDepthBlend/videoClientInvAlphaDepthBlend.mat"
+		}
+	],
+	"nodes":           [
+		{
+			"class_name": "EventNode",
+			"id":         0,
+			"pins_in":    [ ],
+			"pins_out":   [ 1 ],
+			"pos":        [ 2.0, 16.0 ],
+			"event_name": "OnCompositeFrame"
+		},
+		{
+			"class_name":             "DepthMaskNode",
+			"id":                     40,
+			"pins_in":                [ 41 ],
+			"pins_out":               [ 42 ],
+			"pos":                    [ 255.00003, 412.0 ],
+			"disable_quad_stencils":  false,
+			"disable_box_stencils":   false,
+			"disable_model_stencils": false
+		},
+		{
+			"class_name":           "VideoTextureNode",
+			"id":                   44,
+			"pins_in":              [ ],
+			"pins_out":             [ 45 ],
+			"pos":                  [ 274.00003, 596.0 ],
+			"video_texture_source": "Video Texture"
+		},
+		{
+			"class_name":          "ClientColorTextureNode",
+			"id":                  48,
+			"pins_in":             [ ],
+			"pins_out":            [ 49 ],
+			"pos":                 [ 224.92896, 246.263 ],
+			"client_texture_type": "colorRGBA",
+			"client_index":        0,
+			"vertical_flip":       false
+		},
+		{
+			"class_name":          "ClientDepthTextureNode",
+			"id":                  51,
+			"pins_in":             [ ],
+			"pins_out":            [ 52 ],
+			"pos":                 [ 227.02026, 77.780045 ],
+			"client_texture_type": "depthPackRGBA",
+			"client_index":        0,
+			"vertical_flip":       false
+		},
+		{
+			"class_name":          "StencilNode",
+			"id":                  78,
+			"pins_in":             [ ],
+			"pins_out":            [ 79 ],
+			"pos":                 [ -123.56702, 479.82422 ],
+			"stencil_property_id": 33
+		},
+		{
+			"class_name":         "ArrayNode",
+			"id":                 82,
+			"pins_in":            [ 84 ],
+			"pins_out":           [ 83 ],
+			"pos":                [ 51.839661, 449.01062 ],
+			"element_class_name": "GraphStencilProperty"
+		},
+		{
+			"class_name":           "MaterialNode",
+			"id":                   88,
+			"pins_in":              [ ],
+			"pins_out":             [ 89 ],
+			"pos":                  [ 653.94482, -40.053116 ],
+			"material_property_id": 87
+		},
+		{
+			"class_name":                "DrawLayerNode",
+			"id":                        90,
+			"pins_in":                   [ 91, 92, 93, 96, 97, 98, 99 ],
+			"pins_out":                  [ 94 ],
+			"pos":                       [ 658.94482, 22.946884 ],
+			"blend_mode":                "blendOn",
+			"stencil_mode":              "insideStencil",
+			"vertical_flip":             true,
+			"invert_when_camera_inside": false,
+			"float_defaults":            { },
+			"float2_defaults":           { },
+			"float3_defaults":           { },
+			"float4_defaults":           { }
+		}
+	],
+	"pins":            [
+		{
+			"class_name":        "FlowPin",
+			"pin_name":          "flowOut",
+			"id":                1,
+			"direction":         "output",
+			"owner_node_id":     0,
+			"connected_links":   [ 104 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":         "ArrayPin",
+			"pin_name":           "stencils",
+			"id":                 41,
+			"direction":          "input",
+			"owner_node_id":      40,
+			"connected_links":    [ 86 ],
+			"has_default_value":  true,
+			"is_dynamic":         false,
+			"element_class_name": "GraphStencilProperty"
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "texture",
+			"id":                42,
+			"direction":         "output",
+			"owner_node_id":     40,
+			"connected_links":   [ 102 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "texture",
+			"id":                45,
+			"direction":         "output",
+			"owner_node_id":     44,
+			"connected_links":   [ 103 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "texture",
+			"id":                49,
+			"direction":         "output",
+			"owner_node_id":     48,
+			"connected_links":   [ 101 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "texture",
+			"id":                52,
+			"direction":         "output",
+			"owner_node_id":     51,
+			"connected_links":   [ 100 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":          "PropertyPin",
+			"pin_name":            "Stencil",
+			"id":                  79,
+			"direction":           "output",
+			"owner_node_id":       78,
+			"connected_links":     [ 85 ],
+			"has_default_value":   false,
+			"is_dynamic":          false,
+			"property_class_name": "GraphStencilProperty"
+		},
+		{
+			"class_name":         "ArrayPin",
+			"pin_name":           "array",
+			"id":                 83,
+			"direction":          "output",
+			"owner_node_id":      82,
+			"connected_links":    [ 86 ],
+			"has_default_value":  false,
+			"is_dynamic":         false,
+			"element_class_name": "GraphStencilProperty"
+		},
+		{
+			"class_name":          "PropertyPin",
+			"pin_name":            "[0]",
+			"id":                  84,
+			"direction":           "input",
+			"owner_node_id":       82,
+			"connected_links":     [ 85 ],
+			"has_default_value":   false,
+			"is_dynamic":          false,
+			"property_class_name": "GraphStencilProperty"
+		},
+		{
+			"class_name":          "PropertyPin",
+			"pin_name":            "material",
+			"id":                  89,
+			"direction":           "output",
+			"owner_node_id":       88,
+			"connected_links":     [ 95 ],
+			"has_default_value":   false,
+			"is_dynamic":          false,
+			"property_class_name": "GraphMaterialProperty"
+		},
+		{
+			"class_name":        "FlowPin",
+			"pin_name":          "flowIn",
+			"id":                91,
+			"direction":         "input",
+			"owner_node_id":     90,
+			"connected_links":   [ 104 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":          "PropertyPin",
+			"pin_name":            "material",
+			"id":                  92,
+			"direction":           "input",
+			"owner_node_id":       90,
+			"connected_links":     [ 95 ],
+			"has_default_value":   false,
+			"is_dynamic":          false,
+			"property_class_name": "GraphMaterialProperty"
+		},
+		{
+			"class_name":         "ArrayPin",
+			"pin_name":           "stencils",
+			"id":                 93,
+			"direction":          "input",
+			"owner_node_id":      90,
+			"connected_links":    [ ],
+			"has_default_value":  true,
+			"is_dynamic":         false,
+			"element_class_name": "GraphStencilProperty"
+		},
+		{
+			"class_name":        "FlowPin",
+			"pin_name":          "flowOut",
+			"id":                94,
+			"direction":         "output",
+			"owner_node_id":     90,
+			"connected_links":   [ ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "clientDepth",
+			"id":                96,
+			"direction":         "input",
+			"owner_node_id":     90,
+			"connected_links":   [ 100 ],
+			"has_default_value": false,
+			"is_dynamic":        true
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "clientRGBA",
+			"id":                97,
+			"direction":         "input",
+			"owner_node_id":     90,
+			"connected_links":   [ 101 ],
+			"has_default_value": false,
+			"is_dynamic":        true
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "videoDepth",
+			"id":                98,
+			"direction":         "input",
+			"owner_node_id":     90,
+			"connected_links":   [ 102 ],
+			"has_default_value": false,
+			"is_dynamic":        true
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "videoRGB",
+			"id":                99,
+			"direction":         "input",
+			"owner_node_id":     90,
+			"connected_links":   [ 103 ],
+			"has_default_value": false,
+			"is_dynamic":        true
+		}
+	],
+	"links":           [
+		{
+			"id":           85,
+			"start_pin_id": 79,
+			"end_pin_id":   84
+		},
+		{
+			"id":           86,
+			"start_pin_id": 83,
+			"end_pin_id":   41
+		},
+		{
+			"id":           95,
+			"start_pin_id": 92,
+			"end_pin_id":   89
+		},
+		{
+			"id":           100,
+			"start_pin_id": 52,
+			"end_pin_id":   96
+		},
+		{
+			"id":           101,
+			"start_pin_id": 49,
+			"end_pin_id":   97
+		},
+		{
+			"id":           102,
+			"start_pin_id": 42,
+			"end_pin_id":   98
+		},
+		{
+			"id":           103,
+			"start_pin_id": 45,
+			"end_pin_id":   99
+		},
+		{
+			"id":           104,
+			"start_pin_id": 1,
+			"end_pin_id":   91
+		}
+	]
+}

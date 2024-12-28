@@ -4,6 +4,10 @@
 #include "GlTexture.h"
 #include "Logger.h"
 
+#ifdef ENABLE_GL_PROGRAM_CONFIG
+#include "GlProgramConfig.h"
+#endif
+
 #include "glm/gtc/type_ptr.hpp"
 
 #include <iostream>
@@ -32,23 +36,22 @@ GlProgramCode::GlProgramCode(
 	m_shaderCodeHash= hasher(vertexCode + fragmentCode);
 }
 
-bool GlProgramCode::loadFromConfigData(
-	const std::filesystem::path& shaderConfigPath,
-	const std::filesystem::path& vertexShaderFileName,
-	const std::filesystem::path& fragmentShaderFileName,
-	const std::map<std::string, std::string>& uniforms)
+#ifdef ENABLE_GL_PROGRAM_CONFIG
+bool GlProgramCode::loadFromConfigData(const class GlProgramConfig& config)
 {
 	bool bSuccess= true;
 
-	m_programName = shaderConfigPath.string();
+	const std::filesystem::path& shaderConfigPath= config.getLoadedConfigPath();
 	
-	std::filesystem::path shaderFolderPath = m_programName;
+	std::filesystem::path shaderFolderPath = shaderConfigPath;
 	shaderFolderPath.remove_filename();
+
+	m_programName = shaderConfigPath.stem().string();
 
 	try
 	{
 		m_vertexShaderFilePath = shaderFolderPath;
-		m_vertexShaderFilePath/= vertexShaderFileName;
+		m_vertexShaderFilePath/= config.vertexShaderPath;
 
 		std::ifstream t(m_vertexShaderFilePath.string());
 		std::stringstream buffer;
@@ -60,7 +63,7 @@ bool GlProgramCode::loadFromConfigData(
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
-			<< m_programName
+			<< m_vertexShaderFilePath.string()
 			<< " - unable to load vertex shader file!";
 		bSuccess= false;
 	}
@@ -68,7 +71,7 @@ bool GlProgramCode::loadFromConfigData(
 	try
 	{
 		m_fragmentShaderFilePath = shaderFolderPath;
-		m_fragmentShaderFilePath /= fragmentShaderFileName;
+		m_fragmentShaderFilePath /= config.fragmentShaderPath;
 
 		std::ifstream t(m_fragmentShaderFilePath.string());
 		std::stringstream buffer;
@@ -78,17 +81,41 @@ bool GlProgramCode::loadFromConfigData(
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
-			<< m_programName
+			<< m_fragmentShaderFilePath.string()
 			<< " - unable to load fragment shader file!";
 		bSuccess = false;
 	}
 
-	for (const auto& [name, semanticString] : uniforms)
+	for (const GlVertexAttributeConfigPtr attribConfig : config.vertexAttributes)
+	{
+		if (attribConfig->dataType == eVertexDataType::INVALID ||
+			attribConfig->semantic == eVertexSemantic::INVALID)
+		{
+			MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
+				<< "Invalid vertex attribute("
+				<< attribConfig->name
+				<< ") dataType="
+				<< VertexConstantUtils::vertexDataTypeToString(attribConfig->dataType)
+				<< ", semantic="
+				<< VertexConstantUtils::vertexSemanticToString(attribConfig->semantic);
+			bSuccess = false;
+		}
+		else
+		{
+			m_vertexAttributes.push_back({
+				attribConfig->name,
+				attribConfig->dataType,
+				attribConfig->semantic
+			});
+		}
+	}
+
+	for (const auto& [uniformName, semanticName] : config.uniformSemanticMap)
 	{
 		eUniformSemantic semantic= eUniformSemantic::INVALID;
 		for (int enumIntValue = 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
 		{
-			if (k_UniformSemanticName[enumIntValue] == semanticString)
+			if (k_UniformSemanticName[enumIntValue] == semanticName)
 			{
 				semantic= (eUniformSemantic)enumIntValue;
 				break;
@@ -97,15 +124,15 @@ bool GlProgramCode::loadFromConfigData(
 
 		if (semantic != eUniformSemantic::INVALID)
 		{
-			m_uniformList.push_back({name, semantic});
+			m_uniformList.push_back({uniformName, semantic});
 		}
 		else
 		{
 			MIKAN_LOG_ERROR("GlProgramCode::loadFromConfigData")
 				<< "Invalid semantic: "
-				<< name
+				<< uniformName
 				<< " -> "
-				<< semanticString;
+				<< semanticName;
 			bSuccess = false;
 		}
 	}
@@ -119,6 +146,7 @@ bool GlProgramCode::loadFromConfigData(
 
 	return bSuccess;
 }
+#endif
 
 // -- GlProgram -----
 GlProgram::GlProgram(const std::string& programName)
@@ -152,6 +180,7 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 {
 	eUniformDataType dataType= eUniformDataType::INVALID;
 
+	static_assert((int)eUniformSemantic::COUNT == 34, "getUniformSemanticDataType out of date with eUniformSemantic");
 	switch (semantic)
 	{
 		case eUniformSemantic::transformMatrix:
@@ -162,59 +191,42 @@ eUniformDataType GlProgram::getUniformSemanticDataType(eUniformSemantic semantic
 		case eUniformSemantic::modelViewProjectionMatrix:
 			dataType= eUniformDataType::datatype_mat4;
 			break;
-		case eUniformSemantic::ambientColorRGBA:
 		case eUniformSemantic::diffuseColorRGBA:
-		case eUniformSemantic::specularColorRGBA:
-		case eUniformSemantic::lightColor:
 			dataType= eUniformDataType::datatype_float4;
 			break;
+		case eUniformSemantic::lightColorRGB:
+		case eUniformSemantic::ambientColorRGB:
 		case eUniformSemantic::diffuseColorRGB:
+		case eUniformSemantic::specularColorRGB:
 		case eUniformSemantic::cameraPosition:
 		case eUniformSemantic::lightDirection:
 			dataType= eUniformDataType::datatype_float3;
 			break;
 		case eUniformSemantic::screenPosition:
+		case eUniformSemantic::screenSize:
 			dataType= eUniformDataType::datatype_float2;
 			break;
-		case eUniformSemantic::shininess:
+		case eUniformSemantic::specularHighlights:
+		case eUniformSemantic::opticalDensity:
+		case eUniformSemantic::dissolve:
+		case eUniformSemantic::zNear:
+		case eUniformSemantic::zFar:
 		case eUniformSemantic::floatConstant0:
 		case eUniformSemantic::floatConstant1:
 		case eUniformSemantic::floatConstant2:
 		case eUniformSemantic::floatConstant3:
 			dataType = eUniformDataType::datatype_float;
 			break;
-		case eUniformSemantic::texture0:
-		case eUniformSemantic::texture1:
-		case eUniformSemantic::texture2:
-		case eUniformSemantic::texture3:
-		case eUniformSemantic::texture4:
-		case eUniformSemantic::texture5:
-		case eUniformSemantic::texture6:
-		case eUniformSemantic::texture7:
-		case eUniformSemantic::texture8:
-		case eUniformSemantic::texture9:
-		case eUniformSemantic::texture10:
-		case eUniformSemantic::texture11:
-		case eUniformSemantic::texture12:
-		case eUniformSemantic::texture13:
-		case eUniformSemantic::texture14:
-		case eUniformSemantic::texture15:
-		case eUniformSemantic::texture16:
-		case eUniformSemantic::texture17:
-		case eUniformSemantic::texture18:
-		case eUniformSemantic::texture19:
-		case eUniformSemantic::texture20:
-		case eUniformSemantic::texture21:
-		case eUniformSemantic::texture22:
-		case eUniformSemantic::texture23:
-		case eUniformSemantic::texture24:
-		case eUniformSemantic::texture25:
-		case eUniformSemantic::texture26:
-		case eUniformSemantic::texture27:
-		case eUniformSemantic::texture28:
-		case eUniformSemantic::texture29:
-		case eUniformSemantic::texture30:
-		case eUniformSemantic::texture31:
+		case eUniformSemantic::ambientTexture:
+		case eUniformSemantic::diffuseTexture:
+		case eUniformSemantic::specularTexture:
+		case eUniformSemantic::specularHightlightTexture:
+		case eUniformSemantic::alphaTexture:
+		case eUniformSemantic::bumpTexture:
+		case eUniformSemantic::rgbTexture:
+		case eUniformSemantic::rgbaTexture:
+		case eUniformSemantic::distortionTexture:
+		case eUniformSemantic::depthTexture:
 			dataType= eUniformDataType::datatype_texture;
 			break;
 		default:
@@ -268,27 +280,20 @@ bool GlProgram::getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::st
 	return false;
 }
 
-bool GlProgram::getTextureUniformUnit(eUniformSemantic semantic, int& outTextureUnit)
+bool GlProgram::getFirstTextureUnitOfSemantic(eUniformSemantic semantic, int& outTextureUnit) const
 {
-	const int enumValue = (int)semantic;
-	const int startTextureIndex = (int)eUniformSemantic::texture0;
-	const int endTextureIndex = (int)eUniformSemantic::texture31;
+	std::string uniformName;
 
-	if (enumValue >= startTextureIndex && enumValue < endTextureIndex)
-	{
-		outTextureUnit= enumValue - startTextureIndex;
-		return true;
-	}
-
-	return false;
+	return getFirstUniformNameOfSemantic(semantic, uniformName) &&
+			getUniformTextureUnit(uniformName, outTextureUnit);
 }
 
 bool GlProgram::getUniformTextureUnit(const std::string uniformName, int& outTextureUnit) const
 {
-	eUniformSemantic semantic = eUniformSemantic::INVALID;
-	if (getUniformSemantic(uniformName, semantic) &&
-		getTextureUniformUnit(semantic, outTextureUnit))
+	auto it = m_textureUnitMap.find(uniformName);
+	if (it != m_textureUnitMap.end())
 	{
+		outTextureUnit = it->second;
 		return true;
 	}
 
@@ -424,18 +429,15 @@ bool GlProgram::setVector4Uniform(
 bool GlProgram::setTextureUniform(
 	const std::string uniformName)
 {
+	GLint textureUnit= 0;
 	auto iter = m_uniformLocationMap.find(uniformName);
-	if (iter != m_uniformLocationMap.end())
+	if (iter != m_uniformLocationMap.end() &&
+		getUniformTextureUnit(uniformName, textureUnit))
 	{
-		GLint textureUnit;
-		if (getTextureUniformUnit(iter->second.semantic, textureUnit))
-		{
-			const GLint uniformId = iter->second.locationId;
-			//int debugUniformId = glGetUniformLocation(m_programID,uniformName.c_str());
+		const GLint uniformId = iter->second.locationId;
 
-			glUniform1i(uniformId, textureUnit);
-			return !checkHasAnyGLError("GlProgram::setTextureUniform()", __FILE__, __LINE__);
-		}
+		glUniform1i(uniformId, textureUnit);
+		return !checkHasAnyGLError("GlProgram::setTextureUniform()", __FILE__, __LINE__);
 	}
 
 	return false;
@@ -443,6 +445,8 @@ bool GlProgram::setTextureUniform(
 
 bool GlProgram::compileProgram()
 {
+	const std::string& programName= m_code.getProgramName();
+
 	// Nuke any existing program
 	deleteProgram();
 
@@ -453,13 +457,22 @@ bool GlProgram::compileProgram()
 		{
 			MIKAN_LOG_ERROR("GlProgram::createProgram") << "glCreateProgram failed";
 			return false;
-		}		
+		}
+
+		if (!programName.empty())
+		{
+			glObjectLabel(GL_PROGRAM, m_programID, -1, programName.c_str());
+		}
 
 		uint32_t nSceneVertexShader = glCreateShader(GL_VERTEX_SHADER);
 		if (nSceneVertexShader == 0)
 		{
 			checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 			return false;
+		}
+		if (!programName.empty())
+		{
+			glObjectLabel(GL_SHADER, nSceneVertexShader, -1, programName.c_str());
 		}
 
 		const GLchar* vertexShaderSource = (const GLchar*)m_code.getVertexShaderCode();
@@ -507,6 +520,11 @@ bool GlProgram::compileProgram()
 		glShaderSource(nSceneFragmentShader, 1, &fragmentShaderSource, nullptr);
 		glCompileShader(nSceneFragmentShader);
 		checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+
+		if (!programName.empty())
+		{
+			glObjectLabel(GL_SHADER, nSceneFragmentShader, -1, programName.c_str());
+		}
 
 		int fShaderCompiled = 0;
 		glGetShaderiv(nSceneFragmentShader, GL_COMPILE_STATUS, &fShaderCompiled);
@@ -556,6 +574,7 @@ bool GlProgram::compileProgram()
 			return false;
 		}
 
+		// Create the uniform and texture unit map
 		for (const GlProgramCode::Uniform& codeUniform : m_code.getUniformList())
 		{
 			GLint uniformId = glGetUniformLocation(m_programID, codeUniform.name.c_str());
@@ -563,10 +582,19 @@ bool GlProgram::compileProgram()
 
 			if (uniformId != -1)
 			{
+				eUniformDataType dataType= getUniformSemanticDataType(codeUniform.semantic);
+
 				m_uniformLocationMap.insert({
 					codeUniform.name, // key=Uniform name
 					{ codeUniform.semantic, uniformId } // value=GlProgramUniform
 				});
+
+				// Assign texture units in order the uniforms were specified
+				if (dataType == eUniformDataType::datatype_texture)
+				{
+					GLint textureUnit = (GLint)m_textureUnitMap.size();
+					m_textureUnitMap.insert({ codeUniform.name, textureUnit });
+				}
 			}
 			else
 			{
@@ -576,13 +604,14 @@ bool GlProgram::compileProgram()
 			}
 		}
 
-		// Extract vertex attributes
-		rebuildVertexDefinition();
-
 		glUseProgram(m_programID);
 		glUseProgram(0);
 
-		return true;
+		// Create the vertex definition from the vertex attributes set on the program code
+		m_vertexDefinition = GlVertexDefinition(m_code.getVertexAttributes());
+
+		// Last step: check that the vertex definition is compatible with the program
+		return m_vertexDefinition.isCompatibleProgram(*this);
 	}
 
 	return false;
@@ -617,94 +646,3 @@ void GlProgram::unbindProgram() const
 	}
 }
 
-void GlProgram::rebuildVertexDefinition()
-{
-	if (m_programID == 0)
-		return;
-
-	GLint numAttributes;
-	glGetProgramiv(m_programID, GL_ACTIVE_ATTRIBUTES, &numAttributes);
-
-	m_vertexDefinition.vertexSize = 0;
-
-	for (int attribIndex = 0; attribIndex < numAttributes; ++attribIndex)
-	{
-		GLchar attribName[256];
-		GLint unusedSize;
-		GLenum unusedType;
-
-		glGetActiveAttrib(
-			m_programID, 
-			GLuint(attribIndex), 
-			(GLsizei)sizeof(attribName), 
-			nullptr, 
-			&unusedSize, 
-			&unusedType, 
-			attribName);
-		GLint location = glGetAttribLocation(m_programID, attribName);
-
-		if (location != -1)
-		{
-			// Query the size of the attribute
-			GLint attributeSize;
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_SIZE, &attributeSize);
-
-			// Calculate the size in bytes
-			GLint componentStride;
-			GLenum componentType;
-			GLint componentNormalized = 0;
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_TYPE, (GLint*)&componentType);
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &componentStride);
-			glGetVertexAttribiv(location, GL_VERTEX_ATTRIB_ARRAY_NORMALIZED, &componentNormalized);
-
-			// Convert component type to size in bytes
-			GLsizei componentSizeInBytes = 0;
-			switch (componentType)
-			{
-				case GL_BYTE:
-					componentSizeInBytes = sizeof(GLbyte);
-					break;
-				case GL_UNSIGNED_BYTE:
-					componentSizeInBytes = sizeof(GLubyte);
-					break;
-				case GL_SHORT:
-					componentSizeInBytes = sizeof(GLshort);
-					break;
-				case GL_UNSIGNED_SHORT:
-					componentSizeInBytes = sizeof(GLushort);
-					break;
-				case GL_INT:
-					componentSizeInBytes = sizeof(GLint);
-					break;
-				case GL_UNSIGNED_INT:
-					componentSizeInBytes = sizeof(GLuint);
-					break;
-				case GL_FLOAT:
-					componentSizeInBytes = sizeof(GLfloat);
-					break;
-				case GL_DOUBLE:
-					componentSizeInBytes = sizeof(GLdouble);
-					break;
-
-				default:
-					MIKAN_LOG_WARNING("GlProgram::compileProgram")
-						<< m_code.getProgramName()
-						<< " - Unknown vertex component type " << componentType << " uniform!";
-					break;
-			}
-
-			if (componentSizeInBytes > 0)
-			{
-				m_vertexDefinition.vertexSize += attributeSize * componentSizeInBytes;
-				m_vertexDefinition.attributes.push_back(
-					GlVertexAttribute(
-						location,
-						componentSizeInBytes,
-						componentType,
-						componentNormalized != 0,
-						componentStride,
-						m_vertexDefinition.vertexSize));
-			}
-		}
-	}
-}

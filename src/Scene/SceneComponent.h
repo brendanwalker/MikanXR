@@ -3,6 +3,7 @@
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "MikanComponent.h"
+#include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Transform.h"
 #include "IGlSceneRenderable.h"

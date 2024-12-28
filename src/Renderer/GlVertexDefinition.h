@@ -1,117 +1,70 @@
 #pragma once
 
+#include "GlTypesFwd.h"
+#include "GlVertexConstants.h"
+
 #include "stdint.h"
 #include <string>
 #include <vector>
 
-enum class eVertexSemantic : int
+
+class GlVertexAttribute
 {
-	INVALID = -1,
+public:
+	GlVertexAttribute();
+	GlVertexAttribute(
+		const std::string& name, 
+		eVertexDataType dataType, 
+		eVertexSemantic semantic, 
+		bool isNormalized= false);
 
-	// Specific Semantic Types
-	position2f,
-	position3f,
-	normal3f,
-	color3f,
-	color4f,
-	color4b,
-	colorAndSize4f,
-	texel2f,
-};
-
-enum class eVertexDataType : int
-{
-	INVALID = -1,
-
-	// Generic Float Types
-	datatype_float,
-	datatype_vec2f,
-	datatype_vec3f,
-	datatype_vec4f,
-	datatype_mat2f,
-	datatype_mat3f,
-	datatype_mat4f,
-	datatype_mat2x3f,
-	datatype_mat2x4f,
-	datatype_mat3x2f,
-	datatype_mat3x4f,
-	datatype_mat4x2f,
-	datatype_mat4x3f,
-
-	// Generic Unsigned Byte Types
-	datatype_ubyte,
-	datatype_vec2ub,
-	datatype_vec3ub,
-	datatype_vec4ub,
-
-	// Generic Int Types
-	datatype_int,
-	datatype_vec2i,
-	datatype_vec3i,
-	datatype_vec4i,
-
-	// Generic Unsigned Int Types
-	datatype_uint,
-	datatype_vec2ui,
-	datatype_vec3ui,
-	datatype_vec4ui,
-
-	// Generic Double Types
-	datatype_double,
-	datatype_vec2d,
-	datatype_vec3d,
-	datatype_vec4d,
-	datatype_mat2d,
-	datatype_mat3d,
-	datatype_mat4d,
-	datatype_mat2x3d,
-	datatype_mat2x4d,
-	datatype_mat3x2d,
-	datatype_mat3x4d,
-	datatype_mat4x2d,
-	datatype_mat4x3d
-};
-
-struct GlVertexAttribute
-{
-	uint32_t index;
-	int32_t size;
-	uint32_t type;
-	bool normalized;
-	int32_t stride;
-	size_t offset;
-	eVertexSemantic semantic;
-	eVertexDataType dataType;
-	std::string desc;
-
-	GlVertexAttribute() = default;
-	GlVertexAttribute(uint32_t _index, int32_t _size, uint32_t _type, bool _normalized, int32_t _stride, size_t _offset);
-	GlVertexAttribute(uint32_t _index, eVertexSemantic _semantic, bool _normalized, int32_t _stride, size_t _offset);
-	GlVertexAttribute(uint32_t _index, eVertexDataType _dataType, bool _normalized, int32_t _stride, size_t _offset);
-
-	void init(uint32_t _index, int32_t _size, uint32_t _type, bool _normalized, int32_t _stride, size_t _offset);
 	bool isCompatibleAttribute(const GlVertexAttribute& other) const;
+	const std::string& getName() const { return m_name; }
+	int getLocation() const { return m_location; }
+	size_t getAttributeSize() const { return m_attributeSize; }
+	size_t getOffset() const { return m_offset; }
+	eVertexSemantic getSemantic() const { return m_semantic; }
+	eVertexDataType getDataType() const { return m_dataType; }
+	bool getIsNormalized() const { return m_bIsNormalized; }
+
+private:
+	// OpenGL specific
+	std::string m_name;
+	GLint m_numComponents; // 1, 2, 3, 4
+	GLenum m_componentType; // GL_FLOAT, GL_UNSIGNED_BYTE, GL_INT, GL_UNSIGNED_INT, GL_DOUBLE
+	bool m_bIsNormalized; // Fixed point data (like ubyte colors) normalized to [0, 1] or [-1, 1]
+
+	// Derived data
+	GLuint m_location; // Attribute index in the vertex definition
+	size_t m_attributeSize;
+	size_t m_offset;
+	eVertexSemantic m_semantic;
+	eVertexDataType m_dataType;
+
+	friend class GlVertexDefinition;
 };
 
-struct GlVertexDefinition
+class GlVertexDefinition
 {
+public:
 	GlVertexDefinition() = default;
-	GlVertexDefinition(const GlVertexDefinition& vertexDefinition)
-	{
-		this->attributes= vertexDefinition.attributes;
-		this->vertexSize= vertexDefinition.vertexSize;
-	}
-	GlVertexDefinition(const std::vector<GlVertexAttribute>&_attribtes, uint32_t _vertexSize)
-	{
-		attributes = _attribtes;
-		vertexSize = _vertexSize;
-	}
+	GlVertexDefinition(const GlVertexDefinition& vertexDefinition);
+	GlVertexDefinition(const std::vector<GlVertexAttribute>&_attribtes);
 
-	std::vector<GlVertexAttribute> attributes;
-	uint32_t vertexSize;
+	bool getIsValid() const { return m_bIsValid; }
+	const std::vector<GlVertexAttribute>& getAttributes() const { return m_attributes; }
+	size_t getVertexSize() const { return m_vertexSize; }
 
 	void applyVertexDefintion() const;
-	std::string getVertexDefinitionDesc() const;
+	const std::string& getVertexDefinitionDesc() const { return m_description; }
 	const GlVertexAttribute* getFirstAttributeBySemantic(eVertexSemantic semantic) const;
+	const GlVertexAttribute* getAttributeByName(const std::string& name) const;
 	bool isCompatibleDefinition(const GlVertexDefinition& other) const;
+	bool isCompatibleProgram(const class GlProgram& program) const;
+
+private:
+	std::vector<GlVertexAttribute> m_attributes;
+	std::string m_description;
+	size_t m_vertexSize;
+	bool m_bIsValid;
 };

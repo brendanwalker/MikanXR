@@ -1,170 +1,80 @@
 #pragma once
 
-#include "MikanClientTypes.h"
+#include "MikanCoreTypes.h"
 
 #include <functional>
-#include <map>
 #include <string>
 
-#include <stdint.h>
+#define WEBSOCKET_SERVER_ADDRESS			"ws://127.0.0.1"
+#define WEBSOCKET_SERVER_PORT				"8080"
+#define WEBSOCKET_PROTOCOL_PREFIX			"Mikan-"
 
-#include <boost/interprocess/interprocess_fwd.hpp>
+#define WEBSOCKET_CONNECT_EVENT				"connect"
+#define WEBSOCKET_DISCONNECT_EVENT			"disconnect"
+#define WEBSOCKET_ERROR_EVENT				"error"
+#define WEBSOCKET_PING_EVENT				"ping"
+#define WEBSOCKET_PONG_EVENT				"pong"
 
-#define FUNCTION_CALL_QUEUE_NAME			"MikanFunctionCallQueue"
-#define SERVER_EVENT_QUEUE_PREFIX			"MikanServerEventQueue_"
-#define FUNCTION_RESPONSE_QUEUE_PREFIX		"MikanFunctionResponseQueue_"
-
-#define CONNECT_FUNCTION_NAME				"connect"
-#define DISCONNECT_FUNCTION_NAME			"disconnect"
-
-class MikanRemoteFunctionCall
+struct ClientSocketEvent
 {
-public:
-	MikanRemoteFunctionCall();
-	MikanRemoteFunctionCall(const char* clientId, const char* functionName);
-	MikanRemoteFunctionCall(const char* clientId, const char* functionName, uint8_t* buffer, size_t bufferSize);
-
-	void setClientId(const char* clientId);
-	void setFunctionName(const char* functionName);
-	void setParameterBuffer(uint8_t* buffer, size_t bufferSize);
-
-	const char* getClientId() const { return m_header.clientId; }
-	const char* getFunctionName() const { return m_header.functionName; }
-	uint32_t getRequestId() const { return m_header.requestId; }
-	size_t getTotalSize() const;
-
-	template <typename t_parameter_type>
-	bool extractParameters(t_parameter_type& outParameter) const
-	{
-		if (sizeof(t_parameter_type) == m_header.parameterBufferSize)
-		{
-			memcpy(&outParameter, m_parameterBuffer, m_header.parameterBufferSize);
-			return true;
-		}
-
-		return false;
-	}
-
-private:
-	struct
-	{
-		char clientId[64];
-		char functionName[64];
-		uint32_t requestId;
-		size_t parameterBufferSize;
-	} m_header;
-	uint8_t m_parameterBuffer[1024];
-
-	static uint32_t m_nextRequestId;
+	std::string connectionId;
+	std::string eventType;
+	std::vector<std::string> eventArgs;
 };
 
-class MikanRemoteFunctionResult
+struct ClientRequest
 {
-public:
-	MikanRemoteFunctionResult();
-	MikanRemoteFunctionResult(MikanResult result, uint32_t requestId);
-	MikanRemoteFunctionResult(MikanResult result, uint32_t requestId, uint8_t* buffer, size_t bufferSize);
-
-	void setResultCode(MikanResult result);
-	void setRequestId(uint32_t requestId);
-	void setResultBuffer(uint8_t* buffer, size_t bufferSize);
-
-	MikanResult getResultCode() const { return m_header.resultCode; }
-	uint32_t getRequestId() const { return m_header.requestId; }
-	size_t getTotalSize() const;
-
-	template <typename t_result_type>
-	bool extractResult(t_result_type& outResult) const
-	{
-		if (sizeof(t_result_type) == m_header.resultBufferSize)
-		{
-			memcpy(&outResult, m_resultBuffer, m_header.resultBufferSize);
-			return true;
-		}
-
-		return false;
-	}
-
-private:
-	struct
-	{
-		MikanResult resultCode;
-		uint32_t requestId;
-		size_t resultBufferSize;
-	} m_header;
-	uint8_t m_resultBuffer[2048];
+	std::string connectionId;
+	MikanRequestID requestId;
+	std::string utf8RequestString;
 };
 
-class InterprocessMessageClient
+struct ClientResponse
 {
-public:
-	InterprocessMessageClient();
-	~InterprocessMessageClient();
-
-	MikanResult connect(const std::string& clientId, MikanClientInfo* client);
-	void disconnect();
-
-	bool tryFetchNextServerEvent(MikanEvent* outEvent);
-	MikanResult callRemoteFunction(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult);
-	MikanResult callRemoteFunction(const char* functionName, MikanRemoteFunctionResult* outResult);
-	MikanResult callRemoteFunction(const char* functionName, uint8_t* buffer, size_t bufferSize, MikanRemoteFunctionResult* outResult);
-
-	const std::string& getClientId() const { return m_clientId; }
-	const MikanClientInfo& getClientInfo() const { return m_clientInfo; }
-	const bool getIsConnected() const { return m_isConnected; }
-
-private:
-	std::string m_clientId;
-	MikanClientInfo m_clientInfo;
-	std::string m_serverEventQueueName;
-	std::string m_functionResponseQueueName;
-	boost::interprocess::message_queue* m_severEventQueue;
-	boost::interprocess::message_queue* m_functionCallQueue;
-	boost::interprocess::message_queue* m_functionResponseQueue;
-	bool m_isConnected;
+	std::string utf8String;
+	std::vector<uint8_t> binaryData;
 };
 
-class InterprocessMessageConnection
+using SocketEventHandler = std::function<void(const ClientSocketEvent& event)>;
+using RequestHandler = std::function<void(const ClientRequest& request, ClientResponse& response)>;
+
+class IInterprocessMessageClient
 {
 public:
-	InterprocessMessageConnection();
-	~InterprocessMessageConnection();
+	using TextResponseHandler = std::function<void(const std::string& utf8ResponseString)>;
+	using BinaryResponseHandler = std::function<void(const uint8_t* buffer, size_t bufferSize)>;
 
-	bool initialize(const std::string& clientId);
-	void dispose();
+	virtual ~IInterprocessMessageClient() {}
 
-	const std::string getClientId() const { return m_clientId; }
+	virtual MikanCoreResult initialize() = 0;
+	virtual void dispose() = 0;
 
-	bool sendEvent(MikanEvent* event);
-	bool sendFunctionResponse(MikanRemoteFunctionResult* result);
+	virtual void setTextResponseHandler(TextResponseHandler handler) = 0;
+	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) = 0;
 
-private:
-	std::string m_clientId;
-	std::string m_serverEventQueueName;
-	std::string m_functionResponseQueueName;
-	boost::interprocess::message_queue* m_eventQueue;
-	boost::interprocess::message_queue* m_functionResponseQueue;
+	virtual MikanCoreResult connect(const std::string& host, const std::string& port) = 0;
+	virtual void disconnect(uint16_t code, const std::string& reason) = 0;
+	virtual const bool getIsConnected() const = 0;
+
+	virtual MikanCoreResult fetchNextEvent(
+		size_t utf8BufferSize,
+		char* outUtf8Buffer,
+		size_t* outUtf8BufferSizeNeeded) = 0;
+	virtual MikanCoreResult sendRequest(const std::string& utf8RequestString) = 0;
 };
 
-class InterprocessMessageServer
+class IInterprocessMessageServer
 {
 public:
-	using RPCHandler = std::function<void(const MikanRemoteFunctionCall* inFunctionCall, MikanRemoteFunctionResult* outResult)>;
+	virtual ~IInterprocessMessageServer() {}
 
-	InterprocessMessageServer();
-	~InterprocessMessageServer();
+	virtual bool initialize() = 0;
+	virtual void dispose() = 0;
+	virtual void setSocketEventHandler(const std::string& eventType, SocketEventHandler handler) = 0;
+	virtual void setRequestHandler(std::size_t requestTypeId, RequestHandler handler) = 0;
 
-	bool initialize();
-	void dispose();
-	void setRPCHandler(const std::string& functionName, RPCHandler handler);
-
-	void sendServerEventToClient(const std::string& clientId, MikanEvent* event);
-	void sendServerEventToAllClients(MikanEvent* event);
-	void processRemoteFunctionCalls();
-
-private:
-	boost::interprocess::message_queue* m_functionCallQueue;
-	std::map<std::string, InterprocessMessageConnection*> m_connections;
-	std::map<std::string, RPCHandler> m_functionHandlers;
+	virtual void sendMessageToClient(const std::string& connectionId, const std::string& message) = 0;
+	virtual void sendMessageToAllClients(const std::string& message) = 0;
+	virtual void processSocketEvents() = 0;
+	virtual void processRequests() = 0;
 };
-

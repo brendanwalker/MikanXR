@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <set>
 
 #include "glm/ext/matrix_float4x4.hpp"
 
@@ -16,12 +17,7 @@ public:
 	GlStaticMeshInstance() = default;
 	GlStaticMeshInstance(
 		const std::string& name, 
-		IGlMeshConstPtr mesh, 
-		GlMaterialConstPtr material);
-	GlStaticMeshInstance(
-		const std::string& name,
-		IGlMeshConstPtr mesh,
-		GlMaterialInstancePtr materialInstance);
+		IGlMeshConstPtr mesh);
 	virtual ~GlStaticMeshInstance();
 
 	const std::string& getName() const { return m_name; }
@@ -29,10 +25,13 @@ public:
 	void bindToScene(GlScenePtr scene);
 	void removeFromBoundScene();
 
+	void setIsVisibleToCamera(const std::string& cameraName, bool bVisible);
+
 	inline IGlMeshConstPtr getMesh() const { return m_mesh; }
 
 	// -- IGlSceneRenderable
 	virtual IGlSceneRenderableConstPtr getConstSelfPointer() const override;
+	virtual bool canCameraSee(GlCameraConstPtr renderingCamera) const override;
 	virtual bool getVisible() const override;
 	virtual void setVisible(bool bNewVisible) override;
 	virtual const glm::mat4& getModelMatrix() const override;
@@ -50,4 +49,5 @@ private:
 	GlMaterialInstancePtr m_materialInstance= nullptr;
 	IGlMeshConstPtr m_mesh= nullptr;
 	GlSceneWeakPtr m_boundScene;
+	std::set<std::string> m_visibileToCameras;
 };

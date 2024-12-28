@@ -33,7 +33,9 @@
 #include "GlShaderCache.h"
 #include "GlProgram.h"
 #include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlVertexDefinition.h"
+#include "GlViewport.h"
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -111,6 +113,9 @@ namespace RmlGfx {
 		shader_main_vertex,
 		//fragment shader
 		shader_main_fragment_color)
+		.addVertexAttributes("inPosition", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+		.addVertexAttributes("inColor0", eVertexDataType::datatype_ubvec4, eVertexSemantic::color, true)
+		.addVertexAttributes("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
 		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix);
 
@@ -120,9 +125,12 @@ namespace RmlGfx {
 		shader_main_vertex,
 		//fragment shader
 		shader_main_fragment_texture)
+		.addVertexAttributes("inPosition", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+		.addVertexAttributes("inColor0", eVertexDataType::datatype_ubvec4, eVertexSemantic::color, true)
+		.addVertexAttributes("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
 		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix)
-		.addUniform(TEXTURE_UNIFORM_NAME, eUniformSemantic::texture0);
+		.addUniform(TEXTURE_UNIFORM_NAME, eUniformSemantic::rgbaTexture);
 
 	struct CompiledGeometryData {
 		GLuint texture;
@@ -137,37 +145,18 @@ namespace RmlGfx {
 		GlProgramPtr program_texture;
 	};
 
-	const GlVertexDefinition* GetVertexDefinition()
-	{
-		static GlVertexDefinition x_vertexDefinition;
-
-		if (x_vertexDefinition.attributes.size() == 0)
-		{
-			const int32_t vertexSize = (int32_t)sizeof(Rml::Vertex);
-			std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
-
-			attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position2f, false, vertexSize, offsetof(Rml::Vertex, position)));
-			attribs.push_back(GlVertexAttribute(1, eVertexSemantic::color4b, true, vertexSize, offsetof(Rml::Vertex, colour)));
-			attribs.push_back(GlVertexAttribute(2, eVertexSemantic::texel2f, false, vertexSize, offsetof(Rml::Vertex, tex_coord)));
-
-			x_vertexDefinition.vertexSize = vertexSize;
-		}
-
-		return &x_vertexDefinition;
-	}
-
-	static bool CreateShaders(ShadersData& out_shaders)
+	static bool CreateShaders(IGlWindow* ownerWindow, ShadersData& out_shaders)
 	{
 		out_shaders = {};
 
-		out_shaders.program_color = GlShaderCache::getInstance()->fetchCompiledGlProgram(&color_program_code);
+		out_shaders.program_color = ownerWindow->getShaderCache()->fetchCompiledGlProgram(&color_program_code);
 		if (out_shaders.program_color == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
 			return false;
 		}
 
-		out_shaders.program_texture = GlShaderCache::getInstance()->fetchCompiledGlProgram(&texture_program_code);
+		out_shaders.program_texture = ownerWindow->getShaderCache()->fetchCompiledGlProgram(&texture_program_code);
 		if (out_shaders.program_texture == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
@@ -353,7 +342,7 @@ GlRmlUiRender::~GlRmlUiRender()
 
 bool GlRmlUiRender::startup()
 {
-	if (!RmlGfx::CreateShaders(*shaders))
+	if (!RmlGfx::CreateShaders(&m_ownerWindow, *shaders))
 		return false;
 
 	viewport_width = m_ownerWindow.getWidth();
@@ -371,7 +360,7 @@ void GlRmlUiRender::shutdown()
 
 bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 {
-	bool bHandled = false;
+	bool bKeepPropagating = true;
 
 	SdlWindow& sdlWindow= m_ownerWindow.getSdlWindow();
 	const bool bHasKeyboardFocus= sdlWindow.hasKeyboardFocus();
@@ -385,13 +374,13 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		case SDL_MOUSEMOTION:
 			if (bHasMouseFocus)
 			{
-				bHandled = context->ProcessMouseMove(event->motion.x, event->motion.y, RmlInput::GetKeyModifierState());
+				bKeepPropagating = context->ProcessMouseMove(event->motion.x, event->motion.y, RmlInput::GetKeyModifierState());
 			}
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			if (bHasMouseFocus)
 			{
-				bHandled = context->ProcessMouseButtonDown(
+				bKeepPropagating = context->ProcessMouseButtonDown(
 					RmlInput::ConvertMouseButton(event->button.button),
 					RmlInput::GetKeyModifierState());
 				SDL_CaptureMouse(SDL_TRUE);
@@ -401,7 +390,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 			if (bHasMouseFocus)
 			{
 				SDL_CaptureMouse(SDL_FALSE);
-				bHandled = context->ProcessMouseButtonUp(
+				bKeepPropagating = context->ProcessMouseButtonUp(
 					RmlInput::ConvertMouseButton(event->button.button),
 					RmlInput::GetKeyModifierState());
 			}
@@ -409,7 +398,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		case SDL_MOUSEWHEEL:
 			if (bHasMouseFocus)
 			{
-				bHandled = context->ProcessMouseWheel(
+				bKeepPropagating = context->ProcessMouseWheel(
 					float(-event->wheel.y),
 					RmlInput::GetKeyModifierState());
 			}
@@ -417,18 +406,18 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		case SDL_KEYDOWN:
 			if (bHasKeyboardFocus)
 			{
-				bHandled = context->ProcessKeyDown(
+				bKeepPropagating = context->ProcessKeyDown(
 					RmlInput::ConvertKey(event->key.keysym.sym),
 					RmlInput::GetKeyModifierState());
 
 				if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER)
-					bHandled &= context->ProcessTextInput('\n');
+					bKeepPropagating &= context->ProcessTextInput('\n');
 			}
 			break;
 		case SDL_KEYUP:
 			if (bHasKeyboardFocus)
 			{
-				bHandled = context->ProcessKeyUp(
+				bKeepPropagating = context->ProcessKeyUp(
 					RmlInput::ConvertKey(event->key.keysym.sym),
 					RmlInput::GetKeyModifierState());
 			}
@@ -436,7 +425,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		case SDL_TEXTINPUT:
 			if (bHasKeyboardFocus)
 			{
-				bHandled = context->ProcessTextInput(Rml::String(&event->text.text[0]));
+				bKeepPropagating = context->ProcessTextInput(Rml::String(&event->text.text[0]));
 			}
 			break;
 		case SDL_WINDOWEVENT:
@@ -457,7 +446,7 @@ bool GlRmlUiRender::onSDLEvent(const SDL_Event* event)
 		}
 	}
 
-	return bHandled;
+	return !bKeepPropagating;
 }
 
 void GlRmlUiRender::setViewport(int width, int height)
@@ -472,26 +461,26 @@ void GlRmlUiRender::setViewport(int width, int height)
 	viewport_height = height;
 }
 
-void GlRmlUiRender::beginFrame()
+void GlRmlUiRender::beginFrame(GlState& glState)
 {
-	GlState& glState= m_ownerWindow.getGlStateStack().pushState();
-
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
-	glViewport(0, 0, viewport_width, viewport_height);
+	glStateSetViewport(glState, 0, 0, viewport_width, viewport_height);
 
 	glState.disableFlag(eGlStateFlagType::depthTest);
-
-	glClearStencil(0);
-	glClearColor(0, 0, 0, 1);
 	glState.disableFlag(eGlStateFlagType::cullFace);
-
+	glState.disableFlag(eGlStateFlagType::scissorTest);
 	glState.enableFlag(eGlStateFlagType::stencilTest);
-	glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
-	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
 	glState.enableFlag(eGlStateFlagType::blend);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glStateSetClearColor(glState, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	glStateSetColorMask(glState, glm::bvec4(true, true, true, true));
+
+	glStateSetStencilBufferClearValue(glState, 0);
+	glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFFFFFFFF);
+	glStateSetStencilOp(glState, eGlStencilOp::KEEP, eGlStencilOp::KEEP, eGlStencilOp::KEEP);
+
+	glStateSetBlendEquation(glState, eGlBlendEquation::ADD);
+	glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);
 
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 
@@ -500,16 +489,6 @@ void GlRmlUiRender::beginFrame()
 
 void GlRmlUiRender::endFrame() 
 {
-	glViewport(0, 0, (int)viewport_width, (int)viewport_height);
-	
-	m_ownerWindow.getGlStateStack().popState();
-}
-
-void GlRmlUiRender::clear()
-{
-	glClearStencil(0);
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void GlRmlUiRender::RenderGeometry(
@@ -542,17 +521,18 @@ Rml::CompiledGeometryHandle GlRmlUiRender::CompileGeometry(
 	glGenBuffers(1, &vbo);
 	glGenBuffers(1, &ibo);
 	glBindVertexArray(vao);
+	glObjectLabel(GL_VERTEX_ARRAY, vao, -1, "RmlUICompileGeometry");
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Rml::Vertex) * num_vertices, (const void*)vertices, draw_usage);
 
-	RmlGfx::GetVertexDefinition()->applyVertexDefintion();
+	shaders->program_color->getVertexDefinition().applyVertexDefintion();
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, (const void*)indices, draw_usage);
 	glBindVertexArray(0);
 
-	checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+	checkHasAnyGLError("GlRmlUiRender::CompileGeometry", __FILE__, __LINE__);
 
 	RmlGfx::CompiledGeometryData* geometry = new RmlGfx::CompiledGeometryData;
 	geometry->texture = (GLuint)texture;
@@ -574,6 +554,7 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 		program= shaders->program_texture;
 		program->bindProgram();
 
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, geometry->texture);
 		SubmitTransformUniform(ProgramId::Texture);
 
@@ -592,6 +573,12 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 
 	glBindVertexArray(geometry->vao);
 	glDrawElements(GL_TRIANGLES, geometry->draw_count, GL_UNSIGNED_INT, (const GLvoid*)0);
+	glBindVertexArray(0);
+
+	if (geometry->texture)
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 
 	checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
 
@@ -623,13 +610,13 @@ void GlRmlUiRender::EnableScissorRegion(bool enable)
 		if (scissoring_state == ScissoringState::Scissor)
 			glDisable(GL_SCISSOR_TEST);
 		else if (scissoring_state == ScissoringState::Stencil)
-			glStencilFunc(GL_ALWAYS, 1, GLuint(-1));
+			glStencilFunc(GL_ALWAYS, 1, GLuint(0xFFFFFFFF));
 
 		// Enable new
 		if (new_state == ScissoringState::Scissor)
 			glEnable(GL_SCISSOR_TEST);
 		else if (new_state == ScissoringState::Stencil)
-			glStencilFunc(GL_EQUAL, 1, GLuint(-1));
+			glStencilFunc(GL_EQUAL, 1, GLuint(0xFFFFFFFF));
 
 		scissoring_state = new_state;
 	}

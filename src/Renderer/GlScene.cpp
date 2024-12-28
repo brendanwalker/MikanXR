@@ -5,9 +5,14 @@
 #include "GlProgram.h"
 #include "GlScene.h"
 #include "GlShaderCache.h"
+#include "GlStaticMeshInstance.h"
 #include "GlViewport.h"
+#include "IGlMesh.h"
 
 #include <algorithm>
+#include <functional>
+
+using namespace std::placeholders;
 
 GlScene::GlScene()
 	: m_lightColor(glm::vec4(1.f))
@@ -17,8 +22,7 @@ GlScene::GlScene()
 
 GlScene::~GlScene()
 {
-	// Clean up all draw calls
-	m_drawCalls.clear();
+	removeAllInstances();
 }
 
 void GlScene::addInstance(IGlSceneRenderableConstPtr instance)
@@ -61,6 +65,11 @@ void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 	}
 }
 
+void GlScene::removeAllInstances()
+{
+	m_drawCalls.clear();;
+}
+
 void GlScene::render(GlCameraConstPtr camera) const
 {
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
@@ -75,7 +84,9 @@ void GlScene::render(GlCameraConstPtr camera) const
 		{
 			IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
-			if (renderableInstance->getVisible())
+			if (renderableInstance != nullptr && 
+				renderableInstance->getVisible() && 
+				renderableInstance->canCameraSee(camera))
 			{
 				bAnyInstancesVisible= true;
 				break;
@@ -86,7 +97,19 @@ void GlScene::render(GlCameraConstPtr camera) const
 		{
 			// Bind material program.
 			// Unbound when materialBinding goes out of scope.
-			auto materialBinding = material->bindMaterial(shared_from_this(), camera);
+			auto materialBinding = 
+				material->bindMaterial(
+					// Scene specific material binding callback for camera and scene parameters
+					[this, camera](
+						GlProgramPtr program,
+						eUniformDataType uniformDataType,
+						eUniformSemantic uniformSemantic,
+						const std::string& uniformName)
+					{
+						return materialBindCallback(
+							camera, 
+							program, uniformDataType, uniformSemantic, uniformName);
+					});
 			if (materialBinding)
 			{
 				for (auto instanceIter = drawCall->instances.begin();
@@ -95,7 +118,9 @@ void GlScene::render(GlCameraConstPtr camera) const
 				{
 					IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
-					if (renderableInstance != nullptr && renderableInstance->getVisible())
+					if (renderableInstance != nullptr && 
+						renderableInstance->getVisible() &&
+						renderableInstance->canCameraSee(camera))
 					{
 						GlMaterialInstanceConstPtr materialInstance = renderableInstance->getMaterialInstanceConst();
 
@@ -104,7 +129,16 @@ void GlScene::render(GlCameraConstPtr camera) const
 						auto materialInstanceBinding =
 							materialInstance->bindMaterialInstance(
 								materialBinding,
-								renderableInstance);
+								[this, camera, renderableInstance](
+									GlProgramPtr program,
+									eUniformDataType uniformDataType,
+									eUniformSemantic uniformSemantic,
+									const std::string& uniformName) 
+								{
+									return materialInstanceBindCallback(
+										camera, renderableInstance, 
+										program, uniformDataType, uniformSemantic, uniformName);
+								});
 
 						if (materialInstanceBinding)
 						{
@@ -116,4 +150,118 @@ void GlScene::render(GlCameraConstPtr camera) const
 			}
 		}
 	}
+}
+
+eUniformBindResult GlScene::materialBindCallback(
+	GlCameraConstPtr camera,
+	GlProgramPtr program,
+	eUniformDataType uniformDataType,
+	eUniformSemantic uniformSemantic,
+	const std::string& uniformName) const
+{
+	eUniformBindResult bindResult= eUniformBindResult::unbound;
+
+	switch (uniformSemantic)
+	{
+	case eUniformSemantic::lightColorRGB:
+		{
+			bindResult =
+				program->setVector3Uniform(uniformName, getLightColor())
+				? eUniformBindResult::bound
+				: eUniformBindResult::error;
+		} break;
+	case eUniformSemantic::lightDirection:
+		{
+			bindResult =
+				program->setVector3Uniform(uniformName, getLightDirection())
+				? eUniformBindResult::bound
+				: eUniformBindResult::error;
+		} break;
+	case eUniformSemantic::viewMatrix:
+		{
+			if (camera != nullptr)
+			{
+				bindResult =
+					program->setMatrix4x4Uniform(uniformName, camera->getViewMatrix())
+					? eUniformBindResult::bound
+					: eUniformBindResult::error;
+			}
+			else
+			{
+				bindResult = eUniformBindResult::error;
+			}
+		} break;
+	case eUniformSemantic::projectionMatrix:
+		{
+			if (camera != nullptr)
+			{
+				bindResult =
+					program->setMatrix4x4Uniform(uniformName, camera->getProjectionMatrix())
+					? eUniformBindResult::bound
+					: eUniformBindResult::error;
+			}
+			else
+			{
+				bindResult = eUniformBindResult::error;
+			}
+		} break;
+	}
+
+	return bindResult;
+}
+
+eUniformBindResult GlScene::materialInstanceBindCallback(
+	GlCameraConstPtr camera,
+	IGlSceneRenderableConstPtr renderableInstance,
+	GlProgramPtr program,
+	eUniformDataType uniformDataType,
+	eUniformSemantic uniformSemantic,
+	const std::string& uniformName) const
+{
+	eUniformBindResult bindResult= eUniformBindResult::unbound;
+
+	switch (uniformSemantic)
+	{
+		case eUniformSemantic::modelMatrix:
+			{
+				const glm::mat4 modelMat = renderableInstance->getModelMatrix();
+
+				bindResult= 
+					program->setMatrix4x4Uniform(uniformName, modelMat)
+					? eUniformBindResult::bound
+					: eUniformBindResult::error;
+			}
+			break;
+		case eUniformSemantic::normalMatrix:
+			{
+				const glm::mat4 normalMat = renderableInstance->getNormalMatrix();
+
+				bindResult= 
+					program->setMatrix4x4Uniform(uniformName, normalMat)
+					? eUniformBindResult::bound
+					: eUniformBindResult::error;
+			}
+			break;
+		case eUniformSemantic::modelViewProjectionMatrix:
+			{
+				if (camera != nullptr)
+				{
+					const glm::mat4 viewProjMat = camera->getViewProjectionMatrix();
+					const glm::mat4 modelMat = renderableInstance->getModelMatrix();
+					const glm::mat4 modelViewProjMatrix = viewProjMat * modelMat;
+
+					bindResult= 
+						program->setMatrix4x4Uniform(uniformName, modelViewProjMatrix)
+							? eUniformBindResult::bound
+							: eUniformBindResult::error;
+				}
+				else
+				{
+					bindResult = eUniformBindResult::error;
+				}
+			}
+			break;
+	}
+
+	return bindResult;
 }

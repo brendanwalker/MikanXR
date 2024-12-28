@@ -1,10 +1,23 @@
 {
     "materialName": "rgbColorKeyFrame",
-    "vertexShaderPath": "rgbColorKeyFrame.vert",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
     "fragmentShaderPath": "rgbColorKeyFrame.frag",
-    "uniforms":
+	"vertexAttributes":
+	[
+		{
+			"name": "aPos",
+			"dataType": "vec2",
+			"semantic": "position"
+		},
+		{
+			"name": "aTexCoords",
+			"dataType": "vec2",
+			"semantic": "texCoord"
+		}		
+	],	
+    "uniformSemanticMap":
     {
         "colorKey": "diffuseColorRGB",
-        "colorKeyTexture": "texture0"
+        "colorKeyTexture": "rgbTexture"
     }
 }

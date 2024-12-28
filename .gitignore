@@ -26,6 +26,10 @@
 *.a
 *.lib
 
+# Deep Neural Network Models
+*.pt
+*.onnx
+
 # Executables
 *.exe
 *.out
@@ -36,14 +40,9 @@
 
 # Build directories
 build*
-bin*
 dist*
 !OBJ-loader
 !resources/models/*/*.obj
-
-# C# Binding directory
-!bindings
-bindings/csharp
 
 # Third Party
 !thirdparty/lua/*.lib

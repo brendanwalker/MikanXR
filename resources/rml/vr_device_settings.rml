@@ -28,20 +28,6 @@
         </div>  
         <panel id="controls" data-model="vr_device_settings">
             <br/>
-            <h2>Origin VR Device</h2>
-            <div data-if="tracker_devices.size > 0">
-                <select id="select" name="origin_tracker_device" style="width: 250dp" data-value="origin_vr_device_path" data-event-change="update_origin_tracker_device()">
-                    <option data-for="device_path : tracker_devices" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
-                </select>
-                <br/>
-                <label>
-                    <input type="checkbox" name="vertical_align" data-event-change="update_vertical_align_flag()" data-checked="origin_vertical_align_flag" />
-                    Vertical Align 
-                </label>
-            </div>
-            <div data-if="tracker_devices.size == 0">
-                {{origin_vr_device_path}}
-            </div> 
             <h2>Camera VR Device</h2>
             <div data-if="tracker_devices.size > 0">
                 <div>
@@ -67,6 +53,9 @@
                 <button style="width: 260dp" onclick="calibrate_vr_camera_alignment">Calibrate VR/Camera Alignment</button>
                 <button style="width: 260dp" onclick="test_vr_camera_alignment">Test VR/Camera Alignment</button>
             </div>
+            <div data-if="tracker_devices.size >= 1">
+                <button style="width: 260dp" onclick="goto_vr_tracking_recenter">Recenter VR Tracking</button>
+            </div>						
             <div>
                 <button onclick="goto_spatial_anchor_setup">Spatial Anchor Setup</button>
             </div>

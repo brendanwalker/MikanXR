@@ -1,7 +1,10 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
+#include "BoxStencilComponent.h"
 #include "EditorObjectSystem.h"
 #include "MikanObject.h"
+#include "ModelStencilComponent.h"
+#include "QuadStencilComponent.h"
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
 #include "StencilComponent.h"
@@ -144,10 +147,64 @@ void RmlModel_CompositorOutliner::onObjectDisposed(
 
 void RmlModel_CompositorOutliner::rebuildComponentList()
 {
-	SceneComponentPtr rootComponentPtr= m_anchorSystemPtr->getOriginSpatialAnchor();
-
 	m_componentOutliner.clear();
-	addSceneComponent(rootComponentPtr, 0);
+
+	// Add all root anchors to the outliner
+	for (const auto it : m_anchorSystemPtr->getAnchorMap())
+	{
+		AnchorComponentPtr anchorComponentPtr= it.second.lock();
+		if (anchorComponentPtr)
+		{
+			SceneComponentPtr rootComponent= anchorComponentPtr->getOwnerObject()->getRootComponent();
+
+			if (rootComponent->getParentComponent() == nullptr)
+			{
+				addSceneComponent(rootComponent, 0);
+			}
+		}
+	}
+
+	// Add all root stencils to the outliner
+	for (const auto it : m_stencilSystemPtr->getQuadStencilMap())
+	{
+		QuadStencilComponentPtr stencilComponentPtr = it.second.lock();
+		if (stencilComponentPtr)
+		{
+			SceneComponentPtr rootComponent = stencilComponentPtr->getOwnerObject()->getRootComponent();
+
+			if (rootComponent->getParentComponent() == nullptr)
+			{
+				addSceneComponent(rootComponent, 0);
+			}
+		}
+	}
+	for (const auto it : m_stencilSystemPtr->getBoxStencilMap())
+	{
+		BoxStencilComponentPtr stencilComponentPtr = it.second.lock();
+		if (stencilComponentPtr)
+		{
+			SceneComponentPtr rootComponent = stencilComponentPtr->getOwnerObject()->getRootComponent();
+
+			if (rootComponent->getParentComponent() == nullptr)
+			{
+				addSceneComponent(rootComponent, 0);
+			}
+		}
+	}
+	for (const auto it : m_stencilSystemPtr->getModelStencilMap())
+	{
+		ModelStencilComponentPtr stencilComponentPtr= it.second.lock();
+		if (stencilComponentPtr)
+		{
+			SceneComponentPtr rootComponent= stencilComponentPtr->getOwnerObject()->getRootComponent();
+
+			if (rootComponent->getParentComponent() == nullptr)
+			{
+				addSceneComponent(rootComponent, 0);
+			}
+		}
+	}
+
 	m_modelHandle.DirtyVariable("objects");
 
 	updateSelection();
@@ -209,10 +266,9 @@ void RmlModel_CompositorOutliner::addNewAnchor(
 	const Rml::VariantList& parameters)
 {
 	const glm::mat4 anchorXform = glm::mat4(1.f);
-	char newAnchorName[MAX_MIKAN_ANCHOR_NAME_LEN];
 
 	AnchorObjectSystemConfigPtr anchorSystemConfig= m_anchorSystemPtr->getAnchorSystemConfig();
-	StringUtils::formatString(newAnchorName, sizeof(newAnchorName), "Anchor %d", anchorSystemConfig->nextAnchorId);
+	const std::string newAnchorName= StringUtils::stringify("Anchor ", anchorSystemConfig->nextAnchorId);
 
 	m_anchorSystemPtr->addNewAnchor(newAnchorName, anchorXform);
 }
@@ -222,11 +278,10 @@ void RmlModel_CompositorOutliner::addNewQuad(
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
 {
-	MikanStencilQuad quad;
-	memset(&quad, 0, sizeof(MikanStencilQuad));
+	MikanStencilQuadInfo quad = {};
 
 	quad.is_double_sided = true;
-	quad.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
+	quad.parent_anchor_id = INVALID_MIKAN_ID;
 	quad.relative_transform.position = {0.f, 0.f, 0.f};
 	quad.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
 	quad.relative_transform.scale = {1.f, 1.f, 1.f};
@@ -234,7 +289,7 @@ void RmlModel_CompositorOutliner::addNewQuad(
 	quad.quad_height = 0.25f;
 
 	StencilObjectSystemConfigPtr stencilSystemConfig = m_stencilSystemPtr->getStencilSystemConfig();
-	StringUtils::formatString(quad.stencil_name, sizeof(quad.stencil_name), "Quad %d", stencilSystemConfig->nextStencilId);
+	quad.stencil_name= StringUtils::stringify("Quad ", stencilSystemConfig->nextStencilId);
 
 	m_stencilSystemPtr->addNewQuadStencil(quad);
 }
@@ -244,10 +299,9 @@ void RmlModel_CompositorOutliner::addNewBox(
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
 {
-	MikanStencilBox box;
-	memset(&box, 0, sizeof(MikanStencilBox));
+	MikanStencilBoxInfo box = {};
 
-	box.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
+	box.parent_anchor_id = INVALID_MIKAN_ID;
 	box.relative_transform.position = {0.f, 0.f, 0.f};
 	box.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
 	box.relative_transform.scale = {1.f, 1.f, 1.f};
@@ -256,7 +310,7 @@ void RmlModel_CompositorOutliner::addNewBox(
 	box.box_z_size = 0.25f;
 
 	StencilObjectSystemConfigPtr stencilSystemConfig= m_stencilSystemPtr->getStencilSystemConfig();
-	StringUtils::formatString(box.stencil_name, sizeof(box.stencil_name), "Box %d", stencilSystemConfig->nextStencilId);
+	box.stencil_name= StringUtils::stringify("Box ", stencilSystemConfig->nextStencilId);
 
 	m_stencilSystemPtr->addNewBoxStencil(box);
 }
@@ -266,17 +320,16 @@ void RmlModel_CompositorOutliner::addNewModel(
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
 {
-	MikanStencilModel model;
-	memset(&model, 0, sizeof(MikanStencilModel));
+	MikanStencilModelInfo model;
 
 	model.is_disabled = false;
-	model.parent_anchor_id = m_anchorSystemPtr->getAnchorSystemConfig()->originAnchorId;
+	model.parent_anchor_id = INVALID_MIKAN_ID;
 	model.relative_transform.position = {0.f, 0.f, 0.f};
 	model.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
 	model.relative_transform.scale = {1.f, 1.f, 1.f};
 
 	StencilObjectSystemConfigPtr stencilSystemConfig = m_stencilSystemPtr->getStencilSystemConfig();
-	StringUtils::formatString(model.stencil_name, sizeof(model.stencil_name), "Model %d", stencilSystemConfig->nextStencilId);
+	model.stencil_name= StringUtils::stringify("Model ", stencilSystemConfig->nextStencilId);
 
 	m_stencilSystemPtr->addNewModelStencil(model);
 }

@@ -346,31 +346,30 @@ void EditorObjectSystem::onSelectionChanged(
 		oldSelectedComponentPtr->notifyUnselected();
 	}
 
-	// Tell the new selection that it's getting selected
+	// Handle the new selection
 	if (newSelectedComponentPtr)
 	{
+		// Tell the new selection that it's getting selected
 		newSelectedComponentPtr->notifySelected();
 
-		// Is the component selected NOT the gizmo?
-		if (newSelectedComponentPtr->getOwnerObject() != m_gizmoObjectWeakPtr.lock())
+		// Is the component selected not owned by the gizmo object?
+		if (newSelectedComponentPtr->getOwnerObject() != gizmoComponentPtr->getOwnerObject())
 		{
-			// Get the gizmo's current transform target
-			SceneComponentPtr oldGizmoTargetPtr= gizmoComponentPtr->getTransformTarget();
+			SelectionComponentPtr oldGizmoTargetPtr= gizmoComponentPtr->getSelectionTarget();
+			SelectionComponentPtr newGizmoTargetPtr = newSelectedComponentPtr;
 
-			// Get the root scene component for the newly selected object
-			SceneComponentPtr newGizmoTargetPtr = newSelectedComponentPtr->getOwnerObject()->getRootComponent();
-
-			// Is the newly selected object not the one the transform gizmo is currently attached to?
+			// Is the newly selected component not the one the transform gizmo is currently attached to?
 			if (newGizmoTargetPtr && oldGizmoTargetPtr != newGizmoTargetPtr)
 			{
 				// Snap gizmo to the newly selected component
-				gizmoComponentPtr->setTransformTarget(newGizmoTargetPtr);
+				gizmoComponentPtr->setSelectionTarget(newGizmoTargetPtr);
 			}
 		}
 	}
 	else
 	{
-		gizmoComponentPtr->clearTransformTarget();
+		// Clean up the gizmo
+		gizmoComponentPtr->clearSelectionTarget();
 	}
 
 	// Send an event for the selection changing

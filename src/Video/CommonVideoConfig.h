@@ -3,7 +3,7 @@
 // -- includes -----
 #include "VideoSourceInterface.h"
 #include "CommonConfig.h"
-#include "MikanClientTypes.h"
+#include "MikanMathTypes.h"
 
 // -- definitions -----
 class CommonVideoConfig : public CommonConfig

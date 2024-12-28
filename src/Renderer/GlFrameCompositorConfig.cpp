@@ -5,6 +5,12 @@
 // -- CompositorPreset ------
 const std::string CompositorPreset::k_compositorGraphAssetRefPropertyId= "compositorGraphAssetRef";
 
+CompositorPreset::CompositorPreset(const std::string& fnamebase)
+	: CommonConfig(fnamebase)
+	, compositorGraphAssetRefConfig(std::make_shared<AssetReferenceConfig>("CompositorGraph"))
+{
+}
+
 configuru::Config CompositorPreset::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();

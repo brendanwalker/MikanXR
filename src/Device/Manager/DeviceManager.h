@@ -16,7 +16,7 @@ public:
     DeviceManager();
     virtual ~DeviceManager();
 
-    virtual bool startup();
+    virtual bool startup(class IGlWindow *ownerWindow);
 	virtual void update(float deltaTime);
     virtual void shutdown();
 
@@ -46,5 +46,6 @@ protected:
     int findFirstClosedDeviceId();
     int findOpenDeviceId(const class DeviceEnumerator* enumerator);
 
+	class IGlWindow* m_ownerWindow = nullptr;
     DeviceViewPtr* m_deviceViews;
 };

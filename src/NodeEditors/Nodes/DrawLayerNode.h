@@ -4,6 +4,10 @@
 #include "RendererFwd.h"
 #include "FrameCompositorConstants.h"
 
+#include <array>
+#include <map>
+#include <string>
+
 /// The ID of a stencil
 typedef int32_t MikanStencilID;
 
@@ -20,6 +24,10 @@ public:
 	eCompositorStencilMode stencilMode = eCompositorStencilMode::insideStencil;
 	bool bVerticalFlip= false;
 	bool bInvertWhenCameraInside= false;
+	std::map<std::string, float> m_floatDefaults;
+	std::map<std::string, std::array<float, 2> > m_float2Defaults;
+	std::map<std::string, std::array<float, 3> > m_float3Defaults;
+	std::map<std::string, std::array<float, 4> > m_float4Defaults;
 };
 
 class DrawLayerNode : public Node
@@ -42,9 +50,9 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateQuadStencils(GlState& glState);
-	void evaluateBoxStencils(GlState& glState);
-	void evaluateModelStencils(GlState& glState);
+	void evaluateQuadStencils(GlState& glParentState);
+	void evaluateBoxStencils(GlState& glParentState);
+	void evaluateModelStencils(GlState& glParentState);
 
 	virtual std::string editorGetTitle() const override { return "Draw Layer"; }
 
@@ -52,23 +60,27 @@ protected:
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;
 	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
 	void rebuildInputPins();
+	void applyDynamicPinDefaultValues();
 
 	void setMaterialPin(PropertyPinPtr inPin);
-	void setMaterial(GlMaterialPtr inMaterial);
+	void setMaterial(GlMaterialConstPtr inMaterial);
 
 	void setStencilsPin(ArrayPinPtr inPin);
 	void rebuildStencilLists();
 
 protected:
-	std::vector<NodePinPtr> m_dynamicMaterialPins;
-	
 	ArrayPinPtr m_stencilsPin;
 	std::vector<MikanStencilID> m_quadStencilIds;
 	std::vector<MikanStencilID> m_boxStencilIds;
 	std::vector<MikanStencilID> m_modelStencilIds;
 
 	PropertyPinPtr m_materialPin;
-	GlMaterialPtr m_material;
+	GlMaterialConstPtr m_material;
+	GlMaterialInstancePtr m_materialInstance;
+	std::map<std::string, float> m_floatDefaults;
+	std::map<std::string, std::array<float, 2> > m_float2Defaults;
+	std::map<std::string, std::array<float, 3> > m_float3Defaults;
+	std::map<std::string, std::array<float, 4> > m_float4Defaults;
 
 	eCompositorBlendMode m_blendMode = eCompositorBlendMode::blendOn;
 	eCompositorStencilMode m_stencilMode = eCompositorStencilMode::insideStencil;

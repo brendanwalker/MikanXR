@@ -26,6 +26,9 @@ public:
 	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds) { m_deltaSeconds= inDeltaSeconds; return *this; }
 	inline float getDeltaSeconds() const { return m_deltaSeconds; }
 
+	inline void setDisableInputEvaluation(bool bDisable) { m_bDisableInputEvaluation= bDisable; }
+	inline bool getIsInputEvaluationDisabled() const { return m_bDisableInputEvaluation; }
+
 	inline void addError(const NodeEvaluationError& error) { m_errors.push_back(error); }
 	inline bool hasErrors() const { return !m_errors.empty(); }
 	inline const std::vector<NodeEvaluationError>& getErrors() const { return m_errors; }
@@ -38,8 +41,9 @@ protected:
 	VideoSourceViewPtr m_currentVideoSourceView;
 
 	NodePtr m_currentNode;
-	int m_evaluatedNodeCount;
+	int m_evaluatedNodeCount= 0;
 	std::vector<NodeEvaluationError> m_errors;
+	bool m_bDisableInputEvaluation= false;
 
 	static const int kInifiniteLoopThreshold= 1000;
 };

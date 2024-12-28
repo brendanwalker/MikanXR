@@ -14,8 +14,10 @@
 #include "GlCommon.h"
 #include "GlCamera.h"
 #include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlTexture.h"
 #include "GlShaderCache.h"
+#include "GlTextureCache.h"
 #include "GlTextRenderer.h"
 #include "GlLineRenderer.h"
 #include "GlViewport.h"
@@ -37,12 +39,6 @@
 #include <algorithm>
 
 #include <easy/profiler.h>
-
-#ifdef _MSC_VER
-#pragma warning (disable: 4505) // unreferenced local function has been removed (stb stuff)
-#pragma warning (disable: 4996) // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
-#define snprintf _snprintf
-#endif
 
 //-- constants -----
 static const int k_window_pixel_width = 1280 + 350;
@@ -67,20 +63,20 @@ MainWindow::MainWindow()
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
-	, m_lineRenderer(GlLineRendererUniquePtr(new GlLineRenderer))
-	, m_textRenderer(GlTextRendererUniquePtr(new GlTextRenderer))
-	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager))
+	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
+	, m_lineRenderer(GlLineRendererUniquePtr(new GlLineRenderer(this)))
+	, m_textRenderer(GlTextRendererUniquePtr(new GlTextRenderer(this)))
+	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
+	, m_textureCache(GlTextureCacheUniquePtr(new GlTextureCache))
 {}
 
 MainWindow::~MainWindow()
 {
 	m_objectSystemManager = nullptr;
-	m_openCVManager = nullptr;
-
+	delete m_openCVManager;
 	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
 	delete m_inputManager;
@@ -108,6 +104,11 @@ GlShaderCache* MainWindow::getShaderCache()
 	return m_shaderCache.get();
 }
 
+GlTextureCache* MainWindow::getTextureCache()
+{
+	return m_textureCache.get();
+}
+
 GlModelResourceManager* MainWindow::getModelResourceManager()
 {
 	return m_modelResourceManager.get();
@@ -118,7 +119,7 @@ SdlWindow& MainWindow::getSdlWindow()
 	return *m_sdlWindow.get();
 }
 
-GlViewportConstPtr MainWindow::getRenderingViewport() const
+GlViewportPtr MainWindow::getRenderingViewport() const
 {
 	return m_renderingViewport;
 }
@@ -158,6 +159,12 @@ bool MainWindow::startup()
 		success = false;
 	}
 
+	if (success && !m_textureCache->startup())
+	{
+		MIKAN_LOG_ERROR("MainWindow::startup") << "Failed to initialize texture cache!";
+		success = false;
+	}
+
 	if (success && !m_shaderCache->startup())
 	{
 		MIKAN_LOG_ERROR("MainWindow::startup") << "Failed to initialize shader cache!";
@@ -176,19 +183,25 @@ bool MainWindow::startup()
 		success = false;
 	}
 
+	if (success && !m_textRenderer->startup())
+	{
+		MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize line renderer";
+		success = false;
+	}
+
 	if (success && !m_fontManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";
 		success = false;
 	}
 
-	if (success && !m_videoSourceManager->startup())
+	if (success && !m_videoSourceManager->startup(this))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the video source manager";
 		success = false;
 	}
 
-	if (success && !m_vrDeviceManager->startup())
+	if (success && !m_vrDeviceManager->startup(this))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the vr tracker manager";
 		success = false;
@@ -230,17 +243,18 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		glClearColor(k_clear_color.r, k_clear_color.g, k_clear_color.b, k_clear_color.a);
-		glViewport(0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
+		// Create the base GL state for the window
+		GlState& glState= m_glStateStack->pushState();
+		assert(glState.getStackDepth() == 0);
 
 		// Set default state flags at the base of the stack
-		m_glStateStack->pushState()
-			.enableFlag(eGlStateFlagType::light0)
-			.enableFlag(eGlStateFlagType::texture2d)
-			.enableFlag(eGlStateFlagType::depthTest)
-			.disableFlag(eGlStateFlagType::cullFace)
-			// This has to be enabled since the point drawing shader will use gl_PointSize.
-			.enableFlag(eGlStateFlagType::programPointSize);
+		glState.disableFlag(eGlStateFlagType::cullFace);
+
+		// Set the default clear color
+		glStateSetClearColor(glState, k_clear_color);
+
+		// Default to the full window viewport
+		glStateSetViewport(glState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
 		m_uiViewport = 
@@ -302,7 +316,10 @@ void MainWindow::render()
 		{
 			EASY_BLOCK("appStage render");
 
-			renderStageBegin(viewpoint);
+			GlScopedState scopedState = m_glStateStack->createScopedState("appStage render");
+			GlState& glState= scopedState.getStackState();
+
+			renderStageBegin(viewpoint, glState);
 			appStage->render();
 			renderStageEnd();
 		}
@@ -310,7 +327,11 @@ void MainWindow::render()
 		// Render the UI on top
 		{
 			EASY_BLOCK("appStage renderUI");
-			renderUIBegin();
+
+			GlScopedState scopedState = m_glStateStack->createScopedState("appStage renderUI");
+			GlState& glState = scopedState.getStackState();
+
+			renderUIBegin(glState);
 
 			appStage->renderUI();
 
@@ -384,6 +405,12 @@ void MainWindow::shutdown()
 	{
 		m_shaderCache->shutdown();
 		m_shaderCache= nullptr;
+	}
+
+	if (m_textureCache != nullptr)
+	{
+		m_textureCache->shutdown();
+		m_textureCache = nullptr;
 	}
 
 	if (m_sdlWindow != nullptr)
@@ -513,12 +540,12 @@ void MainWindow::processPendingAppStageOps()
 	bAppStackOperationAllowed = true;
 }
 
-void MainWindow::renderStageBegin(GlViewportConstPtr targetViewport)
+void MainWindow::renderStageBegin(GlViewportPtr targetViewport, GlState& glState)
 {
 	EASY_FUNCTION();
 
 	m_renderingViewport = targetViewport;
-	m_renderingViewport->applyViewport();
+	m_renderingViewport->applyRenderingViewport(glState);
 
 	m_isRenderingStage = true;
 }
@@ -528,23 +555,23 @@ void MainWindow::renderStageEnd()
 	EASY_FUNCTION();
 
 	// Render any line segments emitted by the AppStage
-	m_lineRenderer->render(this);
+	m_lineRenderer->render();
 
 	// Render any glyphs emitted by the AppStage
-	m_textRenderer->render(this);
+	m_textRenderer->render();
 
 	m_renderingViewport = nullptr;
 	m_isRenderingStage = false;
 }
 
-void MainWindow::renderUIBegin()
+void MainWindow::renderUIBegin(GlState& glState)
 {
 	EASY_FUNCTION();
 
 	m_renderingViewport = m_uiViewport;
-	m_renderingViewport->applyViewport();
+	m_renderingViewport->applyRenderingViewport(glState);
 
-	m_rmlUiRenderer->beginFrame();
+	m_rmlUiRenderer->beginFrame(glState);
 
 	m_isRenderingUI = true;
 }
@@ -556,10 +583,10 @@ void MainWindow::renderUIEnd()
 	m_rmlUiRenderer->endFrame();
 
 	// Render any line segments emitted by the AppStage renderUI phase
-	m_lineRenderer->render(this);
+	m_lineRenderer->render();
 
 	// Render any glyphs emitted by the AppStage renderUI phase
-	m_textRenderer->render(this);
+	m_textRenderer->render();
 
 	m_renderingViewport = nullptr;
 	m_isRenderingUI = false;

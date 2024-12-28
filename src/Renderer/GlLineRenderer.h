@@ -14,11 +14,11 @@ typedef std::shared_ptr<GlProgram> GlProgramPtr;
 class GlLineRenderer
 {
 public:
-	GlLineRenderer();
+	GlLineRenderer(class IGlWindow* m_ownerWindow);
 	virtual ~GlLineRenderer();
 
 	bool startup();
-	void render(class IGlWindow* window);
+	void render();
 	void shutdown();
 
 	void setDisable3dDepth(bool bFlag) { m_bDisable3dDepth= bFlag; }
@@ -44,10 +44,9 @@ public:
 		float size0 = 1.f, float size1 = 1.f);
 
 protected:
+	class IGlWindow* m_ownerWindow= nullptr;
+
 	static const class GlProgramCode* getShaderCode();
-	static const struct GlVertexDefinition* getVertexDefinition();
-	void drawPointList(const glm::mat4& VPMatrix);
-	void drawSegmentList(const glm::mat4& VPMatrix);
 
 	struct Point
 	{
@@ -61,7 +60,7 @@ protected:
 		PointBufferState(int maxPoints);
 		virtual ~PointBufferState();
 
-		void createGlBufferState();
+		void createGlBufferState(GlProgramPtr program);
 		void drawGlBufferState(unsigned int glEnumMode);
 		void destroyGlBufferState();
 
@@ -93,8 +92,8 @@ protected:
 	PointBufferState m_lines2d;
 
 	bool m_bDisable3dDepth = false;
-};
 
+};
 //-- drawing methods -----
 void drawPoint(const glm::mat4& transform, const glm::vec3& point, const glm::vec3& color, const float size);
 void drawSegment(const glm::mat4& transform, const glm::vec3& start, const glm::vec3& end, const glm::vec3& color);
@@ -111,12 +110,14 @@ void drawTransformedSpiralArc(
 	float radiusFractionPerCircle,
 	float totalAngle,
 	const glm::vec3& color);
-void drawTransformedAxes(const glm::mat4& transform, float scale);
-void drawTransformedAxes(const glm::mat4& transform, float xScale, float yScale, float zScale);
+void drawTransformedAxes(const glm::mat4& transform, float scale, bool drawLabels= false);
+void drawTransformedAxes(const glm::mat4& transform, float xScale, float yScale, float zScale, bool drawLabels= false);
 void drawTransformedAxes(
 	const glm::mat4& transform,
 	float xScale, float yScale, float zScale,
-	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor);
+	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor,
+	bool drawLabels= false);
+void drawTransformedTriangle(const glm::mat4& transform, const struct GlmTriangle& tri, const glm::vec3& color);
 void drawTransformedBox(const glm::mat4& transform, const glm::vec3& half_extents, const glm::vec3& color);
 void drawTransformedBox(const glm::mat4& transform, const glm::vec3& box_min, const glm::vec3& box_max, const glm::vec3& color);
 void drawTransformedFrustum(

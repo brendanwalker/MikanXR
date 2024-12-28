@@ -23,8 +23,6 @@ bool RmlModel_VRDeviceSettings::init(
 	constructor.Bind("tracker_devices", &m_vrDeviceList);
 	constructor.Bind("camera_vr_device_path", &m_cameraVRDevicePath);
 	constructor.Bind("mat_vr_device_path", &m_matVRDevicePath);
-	constructor.Bind("origin_vr_device_path", &m_originVRDevicePath);
-	constructor.Bind("origin_vertical_align_flag", &m_originVerticalAlignFlag);
 
 	// Bind data model callbacks	
 	constructor.BindEventCallback(
@@ -39,30 +37,11 @@ bool RmlModel_VRDeviceSettings::init(
 			const std::string vrDevicePath = ev.GetParameter<Rml::String>("value", "");
 			if (OnUpdateMatVRDevicePath) OnUpdateMatVRDevicePath(vrDevicePath);
 		});
-	constructor.BindEventCallback(
-		"update_origin_tracker_device",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const std::string vrDevicePath = ev.GetParameter<Rml::String>("value", "");
-			if (OnUpdateOriginVRDevicePath) OnUpdateOriginVRDevicePath(vrDevicePath);
-		});
-	constructor.BindEventCallback(
-		"update_vertical_align_flag",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			if (OnUpdateOriginVerticalAlignFlag)
-			{
-				const std::string value = ev.GetParameter<Rml::String>("value", "");
-				const bool bIsChecked = !value.empty();
-
-				OnUpdateOriginVerticalAlignFlag(bIsChecked);
-			}
-		});
 
 	// Fill in the data model
 	rebuildVRDeviceList(vrDeviceManager);
 	m_cameraVRDevicePath = profile->cameraVRDevicePath;
 	m_matVRDevicePath = profile->matVRDevicePath;
-	m_originVRDevicePath = profile->originVRDevicePath;
-	m_originVerticalAlignFlag = profile->originVerticalAlignFlag;
 
 	return true;
 }
@@ -71,7 +50,6 @@ void RmlModel_VRDeviceSettings::dispose()
 {
 	OnUpdateCameraVRDevicePath.Clear();
 	OnUpdateMatVRDevicePath.Clear();
-	OnUpdateOriginVRDevicePath.Clear();
 
 	RmlModel::dispose();
 }

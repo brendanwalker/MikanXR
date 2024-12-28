@@ -36,6 +36,7 @@ public:
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
 	inline class InputManager* getInputManager() const { return m_inputManager; }
 	inline class GlFrameCompositor* getFrameCompositor() const { return m_frameCompositor; }
+	inline class OpenCVManager* getOpenCVManager() const { return m_openCVManager; }
 
 	inline AppStage* getCurrentAppStage() const
 	{
@@ -97,21 +98,22 @@ public:
 	virtual bool getIsRenderingStage() const override { return m_isRenderingStage; }
 	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
-	virtual GlViewportConstPtr getRenderingViewport() const override;
+	virtual GlViewportPtr getRenderingViewport() const override;
 	virtual GlStateStack& getGlStateStack() override;
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual GlTextRenderer* getTextRenderer() override;
 	virtual GlModelResourceManager* getModelResourceManager() override;
 	virtual GlShaderCache* getShaderCache() override;
+	virtual GlTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;
 
 protected:
 	void renderBegin();
-	void renderStageBegin(GlViewportConstPtr targetViewport);
+	void renderStageBegin(GlViewportPtr targetViewport, GlState& glState);
 	void renderStageEnd();
-	void renderUIBegin();
+	void renderUIBegin(GlState& glState);
 	void renderUIEnd();
 	void renderEnd();
 
@@ -132,7 +134,7 @@ private:
 	ObjectSystemManagerPtr m_objectSystemManager;
 
 	// OpenCV management
-	std::unique_ptr<class OpenCVManager> m_openCVManager;
+	class OpenCVManager* m_openCVManager;
 
 	// OpenGL/SDL font/baked text string texture cache
 	class FontManager* m_fontManager = nullptr;
@@ -149,7 +151,7 @@ private:
 
 	SdlWindowUniquePtr m_sdlWindow;
 	GlViewportPtr m_uiViewport;
-	GlViewportConstPtr m_renderingViewport;
+	GlViewportPtr m_renderingViewport;
 
 	GlStateStackUniquePtr m_glStateStack;
 	GlLineRendererUniquePtr m_lineRenderer;
@@ -177,6 +179,9 @@ private:
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;
+
+	// OpenGL texture program cache
+	GlTextureCacheUniquePtr m_textureCache;
 
 	static MainWindow* m_instance;
 };

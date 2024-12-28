@@ -37,7 +37,7 @@ private:
 	bool addVideoStream();
 	bool getIsReadyToWrite();
 
-	uint64_t m_presentationTimestamp = 1;
+	int64_t m_presentationTimestamp = 1;
 	struct AVIOContext* m_avioContext = nullptr;
 	struct AVCodecContext* m_avCodecContext = nullptr;
 	struct AVFormatContext* m_avFormatContext = nullptr;

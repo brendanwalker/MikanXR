@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
-#include "MikanClientTypes.h"
+#include "MikanAPITypes.h"
 #include "LuaMath.h"
 
 #include <vector>

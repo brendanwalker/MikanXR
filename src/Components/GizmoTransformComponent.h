@@ -28,16 +28,17 @@ public:
 	void selectRotateMode();
 	void selectScaleMode();
 
-	SceneComponentPtr getTransformTarget() const;
-	void setTransformTarget(SceneComponentPtr sceneComponentTarget);
-	void clearTransformTarget();
+	SelectionComponentPtr getSelectionTarget() const;
+	void setSelectionTarget(SelectionComponentPtr selectionTarget);
+	void clearSelectionTarget();
 
 protected:
 	eGizmoMode m_gizmoMode= eGizmoMode::none;
 	GizmoTranslateComponentWeakPtr m_translateComponent;
 	GizmoRotateComponentWeakPtr m_rotateComponent;
 	GizmoScaleComponentWeakPtr m_scaleComponent;
-	SceneComponentWeakPtr m_targetSceneComponent;
+	SelectionComponentWeakPtr m_selectionTarget;
+	SceneComponentWeakPtr m_transformTarget;
 
 	glm::vec3 m_targetScale;
 	bool m_bIsApplyingTransformToTarget= false;

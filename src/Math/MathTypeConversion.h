@@ -1,7 +1,8 @@
 #pragma once
 
 //-- includes -----
-#include "MikanClientTypes.h"
+#include "MikanMathTypes.h"
+#include "MikanVideoSourceTypes.h"
 #include "OpenCVFwd.h"
 
 #include <opencv2/opencv.hpp>

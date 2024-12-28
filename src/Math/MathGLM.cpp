@@ -1,5 +1,6 @@
 //-- includes -----
 #include "MathGLM.h"
+#include <glm/common.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -437,4 +438,54 @@ bool glm_intersect_obb_with_ray(
 	outIntNormal= (outIntDistance > k_normal_epsilon) ? normal : -ray_unit_direction;
 
 	return true;
+}
+
+bool glm_intersect_aabb_with_ray(
+	const glm::vec3 ray_start,
+	const glm::vec3 ray_direction,
+	const glm::vec3 aabb_min,
+	const glm::vec3 aabb_max,
+	float& outIntDistance)
+{
+	const glm::vec3 tMin = (aabb_min - ray_start) / ray_direction;
+	const glm::vec3 tMax = (aabb_max - ray_start) / ray_direction;
+	const glm::vec3 t1 = glm::min(tMin, tMax);
+	const glm::vec3 t2 = glm::max(tMin, tMax);
+	const float tNear = glm::max(glm::max(t1.x, t1.y), t1.z);
+	const float tFar = glm::min(glm::min(t2.x, t2.y), t2.z);
+
+	outIntDistance = glm::max(tNear, 0.f);
+
+	return tFar >= tNear && (tNear >= 0.f || tFar >= 0.f);
+}
+
+// https://stackoverflow.com/questions/33532860/merge-two-spheres-to-get-a-new-one
+void glm_sphere_union(
+	const glm::vec3& c1, const float r1,
+	const glm::vec3& c2, const float r2,
+	glm::vec3& outC, float& outR)
+{
+	const glm::vec3 c1_to_c2 = c2 - c1;
+	const float dist = glm::length(c1_to_c2);
+
+	// Is sphere 1 completely inside sphere 2?
+	if (dist + r1 <= r2)
+	{
+		outC = c2;
+		outR = r2;
+	}
+	// Is sphere 2 completely inside sphere 1?
+	else if (dist + r2 <= r1)
+	{
+		outC = c1;
+		outR = r1;
+	}
+	// Otherwise compute the new bounding sphere that overlaps both
+	else
+	{
+		const float R = (r1 + r2 + dist) / 2.f;
+
+		outC = c1 + (c1_to_c2 * (R - r1) / dist);
+		outR = R;
+	}
 }

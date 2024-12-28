@@ -44,9 +44,12 @@ void log_default_callback(int log_level, const char* line)
 #ifdef WIN32
 bool RedirectIOToConsole()
 {
-	if (!AllocConsole())
+	if (GetConsoleWindow() == NULL)
 	{
-		return false;
+		if (!AllocConsole())
+		{
+			return false;
+		}
 	}
 
 	FILE* fDummy;

@@ -32,13 +32,8 @@
 			<div class="picker">
 				<span data-for="anchor : spatial_anchors">
 					<button style="width: 100dp" data-event-click="update_anchor_pose(anchor.anchor_id)">Set Pose</button>
-                    <div data-if="anchor.anchor_id == origin_anchor_id">
-                        {{anchor.anchor_name}}
-                    </div>
-                    <div data-if="anchor.anchor_id != origin_anchor_id">
-                        <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="update_anchor_name(anchor.anchor_id)" data-value="anchor.anchor_name"/>
-                        <button style="width: 40dp" data-event-click="erase_anchor(anchor.anchor_id)">x</button>
-                    </div>
+					<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -12dp;" data-event-change="update_anchor_name(anchor.anchor_id)" data-value="anchor.anchor_name"/>
+					<button style="width: 40dp" data-event-click="erase_anchor(anchor.anchor_id)">x</button>
                     <br/>
 				</span>
 			</div>

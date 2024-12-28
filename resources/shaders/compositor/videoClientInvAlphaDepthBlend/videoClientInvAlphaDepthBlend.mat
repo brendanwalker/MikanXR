@@ -1,0 +1,23 @@
+{
+    "materialName": "videoClientInvAlphaDepthBlend",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
+    "fragmentShaderPath": "videoClientInvAlphaDepthBlend.frag",
+    "vertexAttributes": [
+        {
+            "name": "aPos",
+            "dataType": "vec2",
+            "semantic": "position"
+        },
+        {
+            "name": "aTexCoords",
+            "dataType": "vec2",
+            "semantic": "texCoord"
+        }
+    ],
+    "uniformSemanticMap": {
+        "videoRGB": "rgbTexture",
+        "videoDepth": "depthTexture",
+        "clientRGBA": "rgbaTexture",
+        "clientDepth": "depthTexture"
+    }
+}

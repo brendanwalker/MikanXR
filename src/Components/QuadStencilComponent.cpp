@@ -34,11 +34,11 @@ QuadStencilDefinition::QuadStencilDefinition()
 {
 }
 
-QuadStencilDefinition::QuadStencilDefinition(const MikanStencilQuad& quadInfo)
+QuadStencilDefinition::QuadStencilDefinition(const MikanStencilQuadInfo& quadInfo)
 	: StencilComponentDefinition(
 		quadInfo.stencil_id,
 		quadInfo.parent_anchor_id,
-		quadInfo.stencil_name,
+		quadInfo.stencil_name.getValue(),
 		quadInfo.relative_transform)
 {
 	m_quadWidth= quadInfo.quad_width;
@@ -66,13 +66,12 @@ void QuadStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_bIsDoubleSided = pt.get_or<bool>("is_double_sided", false);
 }
 
-MikanStencilQuad QuadStencilDefinition::getQuadInfo() const
+MikanStencilQuadInfo QuadStencilDefinition::getQuadInfo() const
 {
 	const std::string& quadName = getComponentName();
 	GlmTransform xform = getRelativeTransform();
 
-	MikanStencilQuad quadInfo;
-	memset(&quadInfo, 0, sizeof(MikanStencilQuad));
+	MikanStencilQuadInfo quadInfo= {};
 	quadInfo.stencil_id = m_stencilId;
 	quadInfo.parent_anchor_id = m_parentAnchorId;
 	quadInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
@@ -80,7 +79,7 @@ MikanStencilQuad QuadStencilDefinition::getQuadInfo() const
 	quadInfo.quad_height= m_quadHeight;
 	quadInfo.is_double_sided= m_bIsDoubleSided;
 	quadInfo.is_disabled= m_bIsDisabled;
-	strncpy(quadInfo.stencil_name, quadName.c_str(), sizeof(quadInfo.stencil_name) - 1);
+	quadInfo.stencil_name= quadName;
 
 	return quadInfo;
 }

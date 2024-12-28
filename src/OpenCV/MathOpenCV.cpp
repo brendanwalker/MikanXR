@@ -1,5 +1,33 @@
 #include "MathOpenCV.h"
 
+bool opencv_point2f_compute_average(
+	const std::vector<cv::Point2f>& points,
+	cv::Point2f& outAveragePoint)
+{
+	bool success = false;
+	const int count = (int)points.size();
+
+	if (count == 1)
+	{
+		outAveragePoint = points[0];
+		success = true;
+	}
+	else if (count > 1)
+	{
+		outAveragePoint = cv::Point2f(0, 0);
+		for (int i = 0; i < count; ++i)
+		{
+			const cv::Point2f& v = points[i];
+
+			outAveragePoint += v;
+		}
+		outAveragePoint /= (double)points.size();
+		success = true;
+	}
+
+	return success;
+}
+
 bool opencv_vec3d_compute_average(
 	const std::vector<cv::Vec3d>& vectors,
 	cv::Vec3d& outAverageVec)

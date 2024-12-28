@@ -1,11 +1,13 @@
 #include "AnchorObjectSystem.h"
 #include "Colors.h"
+#include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "GlLineRenderer.h"
 #include "GlMaterialInstance.h"
 #include "GlModelResourceManager.h"
 #include "GlRenderModelResource.h"
 #include "GlTriangulatedMesh.h"
 #include "GlTextRenderer.h"
+#include "GlShaderCache.h"
 #include "GlStaticMeshInstance.h"
 #include "GlWireframeMesh.h"
 #include "AnchorComponent.h"
@@ -20,7 +22,9 @@
 #include "MathTypeConversion.h"
 #include "MeshColliderComponent.h"
 #include "MikanObject.h"
+#include "MikanStencilTypes.h"
 #include "ModelStencilComponent.h"
+#include "MulticastDelegate.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/Types.h>
@@ -30,17 +34,18 @@
 
 // -- ModelStencilConfig -----
 const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId = "model_path";
+const std::string ModelStencilDefinition::k_modelStencilIsDepthMeshPropertyId = "is_depth_mesh";
 
 ModelStencilDefinition::ModelStencilDefinition()
 	: StencilComponentDefinition()
 {
 }
 
-ModelStencilDefinition::ModelStencilDefinition(const MikanStencilModel& modelInfo)
+ModelStencilDefinition::ModelStencilDefinition(const MikanStencilModelInfo& modelInfo)
 	: StencilComponentDefinition(
 		modelInfo.stencil_id, 
 		modelInfo.parent_anchor_id, 
-		modelInfo.stencil_name, 
+		modelInfo.stencil_name.getValue(), 
 		modelInfo.relative_transform)
 {
 }
@@ -50,6 +55,7 @@ configuru::Config ModelStencilDefinition::writeToJSON()
 	configuru::Config pt = StencilComponentDefinition::writeToJSON();
 
 	pt["model_path"] = m_modelPath.string();
+	pt["is_depth_mesh"] = m_bIsDepthMesh;
 
 	return pt;
 }
@@ -58,27 +64,49 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 {
 	StencilComponentDefinition::readFromJSON(pt);
 
-	m_modelPath = pt.get<std::string>("model_path");
+	m_modelPath = pt.get_or<std::string>("model_path", "");
+	m_bIsDepthMesh = pt.get_or<bool>("is_depth_mesh", false);
 }
 
-void ModelStencilDefinition::setModelPath(const std::filesystem::path& path)
+void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, bool bForceDirty)
 {
-	m_modelPath= path;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
+	if (path != m_modelPath || bForceDirty)
+	{
+		m_modelPath = path;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
+	}
 }
 
-MikanStencilModel ModelStencilDefinition::getModelInfo() const
+void ModelStencilDefinition::setIsDepthMesh(bool isDepthMesh)
+{
+	if (m_bIsDepthMesh != isDepthMesh)
+	{
+		m_bIsDepthMesh = isDepthMesh;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilIsDepthMeshPropertyId));
+	}
+}
+
+bool ModelStencilDefinition::hasValidDepthMesh() const
+{
+	if (m_bIsDepthMesh && !m_modelPath.empty() && std::filesystem::exists(m_modelPath))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+MikanStencilModelInfo ModelStencilDefinition::getModelInfo() const
 {
 	const std::string& modelName = getComponentName();
 	GlmTransform xform = getRelativeTransform();
 
-	MikanStencilModel modelnfo;
-	memset(&modelnfo, 0, sizeof(MikanStencilModel));
+	MikanStencilModelInfo modelnfo = {};
 	modelnfo.stencil_id = m_stencilId;
 	modelnfo.parent_anchor_id = m_parentAnchorId;
 	modelnfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
 	modelnfo.is_disabled = m_bIsDisabled;
-	strncpy(modelnfo.stencil_name, modelName.c_str(), sizeof(modelnfo.stencil_name) - 1);
+	modelnfo.stencil_name= modelName;
 
 	return modelnfo;
 }
@@ -94,6 +122,10 @@ void ModelStencilComponent::init()
 {
 	StencilComponent::init();
 
+	// Listen for stencil model path changes
+	getModelStencilDefinition()->OnMarkedDirty+=
+		MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
+
 	// Create a selection component so that we can selection the mesh collision geometry
 	SelectionComponentPtr selectionComponentPtr = getOwnerObject()->getComponentOfType<SelectionComponent>();
 	if (selectionComponentPtr)
@@ -103,6 +135,8 @@ void ModelStencilComponent::init()
 		selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
 		selectionComponentPtr->OnInteractionSelected += MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
 		selectionComponentPtr->OnInteractionUnselected += MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound += MakeDelegate(this, &ModelStencilComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound += MakeDelegate(this, &ModelStencilComponent::onTransformGizmoUnbound);
 
 		// Remember the selection component
 		m_selectionComponentWeakPtr = selectionComponentPtr;
@@ -131,6 +165,9 @@ void ModelStencilComponent::customRender()
 
 void ModelStencilComponent::dispose()
 {
+	getModelStencilDefinition()->OnMarkedDirty -=
+		MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
+
 	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
 	if (selectionComponentPtr)
 	{
@@ -138,6 +175,8 @@ void ModelStencilComponent::dispose()
 		selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
 		selectionComponentPtr->OnInteractionSelected -= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
 		selectionComponentPtr->OnInteractionUnselected -= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound -= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound -= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoUnbound);
 
 		m_selectionComponentWeakPtr = selectionComponentPtr;
 	}
@@ -153,6 +192,54 @@ void ModelStencilComponent::setRenderStencilsFlag(bool flag)
 	}
 }
 
+void ModelStencilComponent::updateWireframeMeshColor()
+{
+	glm::vec3 newColor= Colors::White;
+
+	if (m_bIsTransformGizmoBound)
+	{
+		newColor= Colors::GreenYellow;
+	}
+	else if (m_bIsSelected)
+	{
+		newColor= Colors::Yellow;
+	}
+	else if (m_bIsHovered)
+	{
+		newColor= Colors::LightGray;
+	}
+	else
+	{
+		newColor= Colors::DarkGray;
+	}
+
+	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
+	if (selectionComponentPtr)
+	{
+		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+		{
+			meshPtr->getMaterialInstance()->setVec4BySemantic(
+				eUniformSemantic::diffuseColorRGBA,
+				glm::vec4(newColor, 1.f));
+		}
+	}
+}
+
+void ModelStencilComponent::onStencilDefinitionMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	ModelStencilDefinitionPtr modelStencilConfig = std::dynamic_pointer_cast<ModelStencilDefinition>(configPtr);
+
+	if (modelStencilConfig != nullptr)
+	{
+		if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilObjPathPropertyId))
+		{
+			rebuildMeshComponents();
+		}
+	}
+}
+
 void ModelStencilComponent::setModelPath(const std::filesystem::path& path)
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
@@ -160,8 +247,29 @@ void ModelStencilComponent::setModelPath(const std::filesystem::path& path)
 	if (path == modelStencilDefinition->getModelPath())
 		return;
 
+	// This fires off a config change event, which causes rebuildMeshComponents to be called
 	modelStencilDefinition->setModelPath(path);
-	rebuildMeshComponents();
+}
+
+void ModelStencilComponent::disposeMeshComponents()
+{
+	// Clean up any previously created mesh components
+	while (m_meshComponents.size() > 0)
+	{
+		SceneComponentPtr componentPtr = m_meshComponents[m_meshComponents.size() - 1];
+		componentPtr->dispose();
+
+		m_meshComponents.pop_back();
+	}
+
+	// Forget about any collider components
+	m_colliderComponents.clear();
+
+	// Forget about the triangulated meshes
+	m_triMeshComponents.clear();
+
+	// Forget about any wireframe meshes
+	m_wireframeMeshes.clear();
 }
 
 void ModelStencilComponent::rebuildMeshComponents()
@@ -171,46 +279,36 @@ void ModelStencilComponent::rebuildMeshComponents()
 	StencilComponentPtr stencilComponentPtr= getSelfPtr<StencilComponent>();
 
 	// Clean up any previously created mesh components
-	while (m_meshComponents.size() > 0)
-	{
-		SceneComponentPtr componentPtr= m_meshComponents[m_meshComponents.size() - 1];
-		componentPtr->dispose();
+	disposeMeshComponents();
 
-		m_meshComponents.pop_back();
-	}
-
-	// Forget about any wireframe meshes
-	m_wireframeMeshes.clear();
-
-	// Fetch the model resource
-	GlRenderModelResourcePtr modelResourcePtr;
-	if (!modelStencilDefinition->getModelPath().empty())
-	{
-		//TODO: Need to consider how model resources are managed across multiple windows.
-		// For now, we are assuming that models are only rendered in the Main Window.
-		auto* modelResourceManager = MainWindow::getInstance()->getModelResourceManager();
-		modelResourcePtr = modelResourceManager->fetchRenderModel(
-			modelStencilDefinition->getModelPath(),
-			GlRenderModelResource::getDefaultVertexDefinition());
-	}
+	// Fetch the stencil model resource
+	// TODO: Need to consider how MikanObjects are rendered across multiple windows,
+	// since each window needs to own its own models and shader resources.
+	// For now, we are assuming that models are only rendered in the Main Window.
+	MainWindow* mainWindow= MainWindow::getInstance();
+	GlModelResourceManager* modelResourceManager= mainWindow->getModelResourceManager();
+	GlMaterialConstPtr stencilMaterial= 
+		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+	GlRenderModelResourcePtr modelResourcePtr= 
+		modelResourceManager->fetchRenderModel(
+			modelStencilDefinition->getModelPath(), stencilMaterial);
 
 	// If a model loaded, create meshes and colliders for it
 	if (modelResourcePtr)
 	{
 		// Add static tri meshes
-		for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
+		for (int meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
 		{
 			// Fetch the mesh and material resources
-			GlTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh((int)meshIndex);
-			GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getTriangulatedMeshMaterial((int)meshIndex);
+			GlTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
 
 			// Create a new static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr triMeshInstancePtr =
 				std::make_shared<GlStaticMeshInstance>(
 					triMeshPtr->getName(),
-					triMeshPtr,
-					materialInstancePtr);
-			triMeshInstancePtr->setVisible(false);
+					triMeshPtr);
+			triMeshInstancePtr->setVisible(true);
+			triMeshInstancePtr->setIsVisibleToCamera("vrViewpoint", true);
 
 			// Create a static mesh component to hold the mesh instance
 			StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
@@ -218,31 +316,28 @@ void ModelStencilComponent::rebuildMeshComponents()
 			meshComponentPtr->setStaticMesh(triMeshInstancePtr);
 			meshComponentPtr->attachToComponent(stencilComponentPtr);
 			m_meshComponents.push_back(meshComponentPtr);
+			m_triMeshComponents.push_back(meshComponentPtr);
 
 			// Add a mesh collider component that generates collision from the mesh data
 			MeshColliderComponentPtr colliderPtr = stencilObject->addComponent<MeshColliderComponent>();
 			colliderPtr->setName(triMeshPtr->getName());
 			colliderPtr->setStaticMeshComponent(meshComponentPtr);
 			colliderPtr->attachToComponent(stencilComponentPtr);
+			m_colliderComponents.push_back(colliderPtr);
 			m_meshComponents.push_back(colliderPtr);
 		}
 
 		// Add static wireframe meshes
-		for (size_t meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
+		for (int meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
 		{
 			// Fetch the mesh and material resources
-			GlWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh((int)meshIndex);
-			GlMaterialInstancePtr materialInstancePtr = modelResourcePtr->getWireframeMeshMaterial((int)meshIndex);
+			GlWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh(meshIndex);
 
 			// Create a new (hidden) static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr wireframeMeshInstancePtr =
 				std::make_shared<GlStaticMeshInstance>(
 					"wireframe",
-					wireframeMeshPtr,
-					materialInstancePtr);
-			wireframeMeshInstancePtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA,
-				glm::vec4(Colors::DarkGray, 1.f));
+					wireframeMeshPtr);
 			m_wireframeMeshes.push_back(wireframeMeshInstancePtr);
 
 			// Create a static mesh component to hold the mesh instance
@@ -252,6 +347,9 @@ void ModelStencilComponent::rebuildMeshComponents()
 			meshComponentPtr->attachToComponent(stencilComponentPtr);
 			m_meshComponents.push_back(meshComponentPtr);
 		}
+
+		// Update colors of all attached wireframe meshes
+		updateWireframeMeshColor();
 
 		// Initialize all of the newly created components
 		for (SceneComponentPtr childComponentPtr : m_meshComponents)
@@ -268,77 +366,51 @@ void ModelStencilComponent::rebuildMeshComponents()
 	}
 }
 
+void ModelStencilComponent::extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry)
+{
+	for (StaticMeshComponentPtr mesh : m_triMeshComponents)
+	{
+		MikanTriagulatedMesh mikanMesh= {};
+		mesh->extractRenderGeometry(mikanMesh);
+
+		outRenderGeometry.meshes.push_back(mikanMesh);
+	}
+}
+
 void ModelStencilComponent::onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult)
 {
-	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr && !selectionComponentPtr->getIsSelected())
-	{
-		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-		{
-			meshPtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA, 
-				glm::vec4(Colors::LightGray, 1.f));
-			//meshPtr->setVisible(true);
-		}
-	}
+	m_bIsHovered= true;
+	updateWireframeMeshColor();
 }
 
 void ModelStencilComponent::onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult)
 {
-	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr && !selectionComponentPtr->getIsSelected())
-	{
-		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-		{
-			meshPtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA,
-				glm::vec4(Colors::DarkGray, 1.f));
-			//meshPtr->setVisible(false);
-		}
-	}
+	m_bIsHovered = false;
+	updateWireframeMeshColor();
 }
 
 void ModelStencilComponent::onInteractionSelected()
 {
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr)
-	{
-		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-		{
-			meshPtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA, 
-				glm::vec4(Colors::Yellow, 1.f));
-			//meshPtr->setVisible(true);
-		}
-	}
+	m_bIsSelected = true;
+	updateWireframeMeshColor();
 }
 
 void ModelStencilComponent::onInteractionUnselected()
 {
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr)
-	{
-		if (selectionComponentPtr->getIsHovered())
-		{
-			for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-			{
-				meshPtr->getMaterialInstance()->setVec4BySemantic(
-					eUniformSemantic::diffuseColorRGBA, 
-					glm::vec4(Colors::LightGray, 1.f));
-				//meshPtr->setVisible(true);
-			}
-		}
-		else
-		{
-			for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
-			{
-				meshPtr->getMaterialInstance()->setVec4BySemantic(
-					eUniformSemantic::diffuseColorRGBA,
-					glm::vec4(Colors::DarkGray, 1.f));
-				//meshPtr->setVisible(false);
-			}
-		}
-	}
+	m_bIsSelected = false;
+	updateWireframeMeshColor();
+}
+
+void ModelStencilComponent::onTransformGizmoBound()
+{
+	m_bIsTransformGizmoBound= true;
+	updateWireframeMeshColor();
+}
+
+void ModelStencilComponent::onTransformGizmoUnbound()
+{
+	m_bIsTransformGizmoBound = false;
+	updateWireframeMeshColor();
 }
 
 // -- IPropertyInterface ----
@@ -414,4 +486,50 @@ bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, co
 	}
 
 	return false;
+}
+// -- IFunctionInterface ----
+const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
+
+void ModelStencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	StencilComponent::getFunctionNames(outPropertyNames);
+
+	outPropertyNames.push_back(k_alignStencilFunctionId);
+}
+
+bool ModelStencilComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
+{
+	if (StencilComponent::getFunctionDescriptor(functionName, outDescriptor))
+		return true;
+
+	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
+	{
+		outDescriptor = {ModelStencilComponent::k_alignStencilFunctionId, "Align Stencil"};
+		return true;
+	}
+
+	return false;
+}
+
+bool ModelStencilComponent::invokeFunction(const std::string& functionName)
+{
+	if (StencilComponent::invokeFunction(functionName))
+		return true;
+
+	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
+	{
+		alignStencil();
+	}
+
+	return false;
+}
+
+void ModelStencilComponent::alignStencil()
+{
+	// Show Anchor Triangulation Tool
+	auto* stencilAligner = MainWindow::getInstance()->pushAppStage<AppStage_StencilAlignment>();
+	if (stencilAligner)
+	{
+		stencilAligner->setTargetStencil(getSelfPtr<ModelStencilComponent>());
+	}
 }

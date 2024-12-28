@@ -30,11 +30,11 @@ BoxStencilDefinition::BoxStencilDefinition()
 }
 
 BoxStencilDefinition::BoxStencilDefinition(
-	const MikanStencilBox& boxInfo)
+	const MikanStencilBoxInfo& boxInfo)
 	: StencilComponentDefinition(
 		boxInfo.stencil_id,
 		boxInfo.parent_anchor_id,
-		boxInfo.stencil_name,
+		boxInfo.stencil_name.getValue(),
 		boxInfo.relative_transform)
 {
 	m_boxSize= {boxInfo.box_x_size, boxInfo.box_y_size, boxInfo.box_z_size};
@@ -60,13 +60,12 @@ void BoxStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_boxSize.z = pt.get_or<float>("box_z_size", 0.25f);
 }
 
-MikanStencilBox BoxStencilDefinition::getBoxInfo() const
+MikanStencilBoxInfo BoxStencilDefinition::getBoxInfo() const
 {
 	const std::string& boxName = getComponentName();
 	GlmTransform xform = getRelativeTransform();
 
-	MikanStencilBox boxInfo;
-	memset(&boxInfo, 0, sizeof(MikanStencilBox));
+	MikanStencilBoxInfo boxInfo= {};
 	boxInfo.stencil_id = m_stencilId;
 	boxInfo.parent_anchor_id = m_parentAnchorId;
 	boxInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
@@ -74,7 +73,7 @@ MikanStencilBox BoxStencilDefinition::getBoxInfo() const
 	boxInfo.box_y_size = m_boxSize.y;
 	boxInfo.box_z_size = m_boxSize.z;
 	boxInfo.is_disabled = m_bIsDisabled;
-	strncpy(boxInfo.stencil_name, boxName.c_str(), sizeof(boxInfo.stencil_name) - 1);
+	boxInfo.stencil_name= boxName;
 
 	return boxInfo;
 }

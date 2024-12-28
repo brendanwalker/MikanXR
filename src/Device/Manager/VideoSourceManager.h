@@ -36,7 +36,7 @@ public:
 
 	inline static VideoSourceManager* getInstance() { return m_instance; }
 
-	bool startup() override;
+	bool startup(class IGlWindow *ownerWindow) override;
 	void update(float deltaTime) override;
 	void shutdown() override;
 
@@ -49,6 +49,7 @@ public:
 	}
 
 	VideoSourceViewPtr getVideoSourceViewPtr(int device_id) const;
+	VideoSourceViewPtr getVideoSourceViewByPath(const std::string& devicePath) const;
 	VideoSourceList getVideoSourceList() const;
 
 protected:

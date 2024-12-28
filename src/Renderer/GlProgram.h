@@ -32,11 +32,9 @@ public:
 		const std::string& vertexCode, 
 		const std::string& fragmentCode);
 
-	bool loadFromConfigData(
-		const std::filesystem::path& shaderConfigPath,
-		const std::filesystem::path& vertexShaderFileName,
-		const std::filesystem::path& fragmentShaderFileName,
-		const std::map<std::string, std::string>& uniforms);
+#ifdef ENABLE_GL_PROGRAM_CONFIG
+	bool loadFromConfigData(const class GlProgramConfig& config);
+#endif
 
 	const std::string& getProgramName() const { return m_programName; }
 	void setProgramName(const std::string& inName) { m_programName= inName; }
@@ -46,6 +44,17 @@ public:
 	inline const char* getFragmentShaderCode() const { return m_fragmentShaderCode.c_str(); }
 	inline const std::filesystem::path& getFragmeShaderFilePath() const { return m_fragmentShaderFilePath; }
 	inline size_t getCodeHash() const { return m_shaderCodeHash; }
+
+	inline const std::vector<GlVertexAttribute>& getVertexAttributes() const { return m_vertexAttributes; }
+	inline GlProgramCode& addVertexAttributes(
+		const std::string& name, 
+		eVertexDataType dataType, 
+		eVertexSemantic semantic= eVertexSemantic::generic,
+		bool isNormalized= false)
+	{
+		m_vertexAttributes.push_back(GlVertexAttribute(name, dataType, semantic, isNormalized));
+		return *this;
+	}
 
 	inline const std::vector<Uniform>& getUniformList() const { return m_uniformList; }
 	inline GlProgramCode& addUniform(const std::string& name, eUniformSemantic semantic)
@@ -75,6 +84,7 @@ protected:
 	std::filesystem::path m_vertexShaderFilePath;
 	std::string m_fragmentShaderCode;
 	std::filesystem::path m_fragmentShaderFilePath;
+	std::vector<GlVertexAttribute> m_vertexAttributes;
 	std::vector<Uniform> m_uniformList;
 	size_t m_shaderCodeHash;
 };
@@ -84,8 +94,11 @@ struct GlProgramUniform
 	eUniformSemantic semantic;
 	int locationId;
 };
-typedef std::map<std::string, GlProgramUniform> GlProgramUniformMap;
-typedef std::map<std::string, GlProgramUniform>::const_iterator GlProgramUniformIter;
+using GlProgramUniformMap= std::map<std::string, GlProgramUniform>;
+using GlProgramUniformIter= std::map<std::string, GlProgramUniform>::const_iterator;
+
+using GlUniformNameTextureUnitMap= std::map<std::string, int>;
+using GlUniformNameTextureUnitMapIter= std::map<std::string, int>::const_iterator;
 
 class GlProgram
 {
@@ -103,7 +116,7 @@ public:
 	bool getUniformSemantic(const std::string uniformName, eUniformSemantic& outSemantic) const;
 	bool getUniformDataType(const std::string uniformName, eUniformDataType& outDataType) const;
 	std::vector<std::string> getUniformNamesOfDataType(const eUniformDataType dataType) const;
-	static bool getTextureUniformUnit(eUniformSemantic semantic, int& outTextureUnit);
+	bool getFirstTextureUnitOfSemantic(eUniformSemantic semantic, int& outTextureUnit) const;
 	bool getUniformTextureUnit(const std::string uniformName, int& outTextureUnit) const;
 	GlProgramUniformIter getUniformBegin() const { return m_uniformLocationMap.begin(); }
 	GlProgramUniformIter getUniformEnd() const { return m_uniformLocationMap.end(); }
@@ -129,11 +142,9 @@ public:
 	void unbindProgram() const;
 
 protected:
-	void rebuildVertexDefinition();
-
-protected:
 	GlProgramCode m_code;
 	uint32_t m_programID = 0;
 	GlProgramUniformMap m_uniformLocationMap;
+	GlUniformNameTextureUnitMap m_textureUnitMap;
 	GlVertexDefinition m_vertexDefinition{};
 };

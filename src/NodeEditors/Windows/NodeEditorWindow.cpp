@@ -6,8 +6,10 @@
 #include "GlCommon.h"
 #include "GlModelResourceManager.h"
 #include "GlStateStack.h"
+#include "GlStateModifiers.h"
 #include "GlShaderCache.h"
 #include "GlTexture.h"
+#include "GlTextureCache.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
@@ -43,9 +45,10 @@
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow()
 	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack))
-	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager))
+	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
+	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
+	, m_textureCache(GlTextureCacheUniquePtr(new GlTextureCache))
 {}
 
 NodeEditorWindow::~NodeEditorWindow()
@@ -70,6 +73,11 @@ GlModelResourceManager* NodeEditorWindow::getModelResourceManager()
 GlShaderCache* NodeEditorWindow::getShaderCache()
 {
 	return m_shaderCache.get();
+}
+
+GlTextureCache* NodeEditorWindow::getTextureCache()
+{
+	return m_textureCache.get();
 }
 
 GlStateStack& NodeEditorWindow::getGlStateStack()
@@ -167,6 +175,12 @@ bool NodeEditorWindow::startup()
 		}
 	}
 
+	if (success && !m_textureCache->startup())
+	{
+		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize texture cache!";
+		success = false;
+	}
+
 	if (success && !m_shaderCache->startup())
 	{
 		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize shader cache!";
@@ -184,19 +198,18 @@ bool NodeEditorWindow::startup()
 
 	if (success)
 	{
-		static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
-
-		glClearColor(k_clear_color.r, k_clear_color.g, k_clear_color.b, k_clear_color.a);
-		glViewport(0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
-
 		// Set default state flags at the base of the stack
-		m_glStateStack->pushState()
-			.enableFlag(eGlStateFlagType::light0)
-			.enableFlag(eGlStateFlagType::texture2d)
-			.enableFlag(eGlStateFlagType::depthTest)
-			.disableFlag(eGlStateFlagType::cullFace)
-			// This has to be enabled since the point drawing shader will use gl_PointSize.
-			.enableFlag(eGlStateFlagType::programPointSize);
+		GlState& glBaseState= m_glStateStack->pushState();
+		assert(glBaseState.getStackDepth() == 0);
+
+		glBaseState
+		.enableFlag(eGlStateFlagType::texture2d)
+		.enableFlag(eGlStateFlagType::depthTest)
+		.disableFlag(eGlStateFlagType::cullFace);
+
+		static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
+		glStateSetClearColor(glBaseState, k_clear_color);
+		glStateSetViewport(glBaseState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
 	}
 
 	return success;
@@ -339,8 +352,8 @@ void NodeEditorWindow::renderMainFrame()
 		handleMainFrameDragDrop(editorStateCopy);
 	}
 
-	// Delete key event
-	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+	// Delete key event (and not focused on a text input)
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false) && !ImGui::IsAnyItemActive())
 	{
 		deleteSelectedItem();
 	}
@@ -353,11 +366,14 @@ void NodeEditorWindow::renderNodeEvalErrors()
 		size_t errorIter= 0;
 		while (errorIter < m_lastNodeEvalErrors.size())
 		{
-			const NodeEvaluationError& currentError= m_lastNodeEvalErrors[errorIter];
-			const std::string evalWindowId= StringUtils::stringify("Eval Error##Node", currentError.errorNodeId);
+			const NodeEvaluationError* currentError= &m_lastNodeEvalErrors[errorIter];
+			const std::string evalWindowId= StringUtils::stringify("Eval Error##Node", currentError->errorNodeId);
 
 			static const float k_errorWindowOffset = 50.f;
-			ImVec2 errorPos = ImNodes::GetNodeScreenSpacePos(currentError.errorNodeId);
+			ImVec2 errorPos = 
+				currentError->errorNodeId != -1 
+				? ImNodes::GetNodeScreenSpacePos(currentError->errorNodeId)
+				: ImVec2(0, 0);
 			errorPos.y -= k_errorWindowOffset;
 
 			ImGui::SetNextWindowPos(errorPos);
@@ -371,7 +387,7 @@ void NodeEditorWindow::renderNodeEvalErrors()
 			while (errorIter < m_lastNodeEvalErrors.size())
 			{
 				// Add a bullet point for each error on the same node
-				ImGui::BulletText(currentError.errorMessage.c_str());
+				ImGui::BulletText(currentError->errorMessage.c_str());
 
 				// Advance to the next error message on this node
 				errorIter++;
@@ -379,8 +395,13 @@ void NodeEditorWindow::renderNodeEvalErrors()
 				// If the next error is on a different node, move on to the next error window
 				if (errorIter < m_lastNodeEvalErrors.size())
 				{
-					const NodeEvaluationError& nextError= m_lastNodeEvalErrors[errorIter];
-					if (nextError.errorNodeId != currentError.errorNodeId)
+					const NodeEvaluationError* nextError= &m_lastNodeEvalErrors[errorIter];
+
+					if (nextError->errorNodeId == currentError->errorNodeId)
+					{
+						currentError= nextError;
+					}
+					else
 					{
 						break;
 					}
@@ -1023,12 +1044,17 @@ void NodeEditorWindow::onNodeGraphCreated()
 
 void NodeEditorWindow::onNodeGraphDeleted()
 {
-	getNodeGraph()->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
-	getNodeGraph()->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
-	getNodeGraph()->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
-	getNodeGraph()->OnPropertyCreated -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
-	getNodeGraph()->OnPropertyModifed -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
-	getNodeGraph()->OnPropertyDeleted -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	NodeGraphPtr graph= getNodeGraph();
+
+	if (graph)
+	{
+		graph->OnNodeCreated -= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
+		graph->OnNodeDeleted -= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+		graph->OnLinkDeleted -= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+		graph->OnPropertyCreated -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
+		graph->OnPropertyModifed -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
+		graph->OnPropertyDeleted -= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	}
 }
 
 void NodeEditorWindow::onNodeCreated(t_node_id id)
@@ -1082,6 +1108,12 @@ void NodeEditorWindow::shutdown()
 	{
 		m_shaderCache->shutdown();
 		m_shaderCache = nullptr;
+	}
+
+	if (m_textureCache != nullptr)
+	{
+		m_textureCache->shutdown();
+		m_textureCache = nullptr;
 	}
 
 	if (m_imnodesContext != nullptr)

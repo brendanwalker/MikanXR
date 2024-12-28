@@ -30,8 +30,8 @@ WMFMonoVideoConfig::WMFMonoVideoConfig(const std::string &fnamebase)
 	tracker_intrinsics.pixel_height= 480;
     tracker_intrinsics.hfov= 60.0; // degrees
     tracker_intrinsics.vfov= 45.0; // degrees
-    tracker_intrinsics.znear= 0.01; // meters
-    tracker_intrinsics.zfar= 200.0; // meters
+    tracker_intrinsics.znear= 0.1; // meters
+    tracker_intrinsics.zfar= 20.0; // meters
     tracker_intrinsics.camera_matrix= {
 		554.2563, 0, 320.0, // f_x, 0, c_x
 		0, 554.2563, 240.0, // 0, f_y, c_y
@@ -144,7 +144,9 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
 		const WMFCameraEnumerator *wmf_enumerator= cameraEnumerator->getWMFCameraEnumerator();
 		const char *unique_id= wmf_enumerator->getUniqueIdentifier();
 
-        MIKAN_LOG_INFO("WMFMonoTracker::open") << "Opening WMFMonoTracker(" << curDevPath << ", camera_index=" << cameraIndex << ")";
+        MIKAN_LOG_INFO("WMFMonoTracker::open") << 
+			"Opening WMFMonoTracker(" << curDevPath << 
+			", camera_index=" << cameraIndex << ")";
 
 		// Remember the path to this camera
         m_device_identifier = curDevPath;
@@ -171,6 +173,12 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
 
 		    // Find the camera mode by name
 		    m_currentMode= m_capabilities->findVideoMode(m_cfg->current_mode);
+			if (m_currentMode == nullptr)
+			{
+				m_currentMode= 
+					m_capabilities->findMostCompatibleVideoMode(
+						1280, 720, 30, CAMERA_BUFFER_FORMAT_MJPG);
+			}
 		    if (m_currentMode != nullptr)
 		    {
 			    // Copy the tracker intrinsics over from the capabilities
@@ -178,7 +186,7 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
 				if (bWasModeUnset || !m_cfg->areIntrinsicsUserCalibrated)
 				{
 					m_cfg->areIntrinsicsUserCalibrated= false;
-					m_cfg->tracker_intrinsics = m_currentMode->intrinsics.intrinsics.mono;
+					m_cfg->tracker_intrinsics = m_currentMode->intrinsics.getMonoIntrinsics();
 				}
 
 			    // Attempt to find a compatible WMF video format
@@ -286,7 +294,7 @@ bool WMFMonoVideoSource::getVideoFrameDimensions(
 
     if (out_width != nullptr)
     {
-        int width = (int)m_currentMode->intrinsics.intrinsics.mono.pixel_width;
+        int width = (int)m_currentMode->bufferPixelWidth;
 
         if (out_stride != nullptr)
         {
@@ -299,7 +307,7 @@ bool WMFMonoVideoSource::getVideoFrameDimensions(
 
     if (out_height != nullptr)
     {
-        int height = (int)m_currentMode->intrinsics.intrinsics.mono.pixel_height;
+        int height = (int)m_currentMode->bufferPixelHeight;
 
         *out_height = height;
     }
@@ -386,7 +394,7 @@ bool WMFMonoVideoSource::setVideoMode(const std::string mode_name)
 			mfvideoformat.c_str());
 
 		m_cfg->areIntrinsicsUserCalibrated= false;
-		m_cfg->tracker_intrinsics= new_mode->intrinsics.intrinsics.mono;
+		m_cfg->tracker_intrinsics= new_mode->intrinsics.getMonoIntrinsics();
 		m_currentMode= new_mode;
 
 		if (desiredFormatIndex != INVALID_DEVICE_FORMAT_INDEX)
@@ -404,12 +412,12 @@ bool WMFMonoVideoSource::setVideoMode(const std::string mode_name)
 
 double WMFMonoVideoSource::getFrameWidth() const
 {
-	return (double)m_currentMode->intrinsics.intrinsics.mono.pixel_width;
+	return (double)m_currentMode->bufferPixelWidth;
 }
 
 double WMFMonoVideoSource::getFrameHeight() const
 {
-	return (double)m_currentMode->intrinsics.intrinsics.mono.pixel_height;
+	return (double)m_currentMode->bufferPixelHeight;
 }
 
 double WMFMonoVideoSource::getFrameRate() const
@@ -442,14 +450,14 @@ void WMFMonoVideoSource::getCameraIntrinsics(
 	MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= MONO_CAMERA_INTRINSICS;
-    out_tracker_intrinsics.intrinsics.mono= m_cfg->tracker_intrinsics;
+    out_tracker_intrinsics.setMonoIntrinsics(m_cfg->tracker_intrinsics);
 }
 
 void WMFMonoVideoSource::setCameraIntrinsics(
     const MikanVideoSourceIntrinsics& tracker_intrinsics)
 {
     assert(tracker_intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-    m_cfg->tracker_intrinsics= tracker_intrinsics.intrinsics.mono;
+    m_cfg->tracker_intrinsics= tracker_intrinsics.getMonoIntrinsics();
 	m_cfg->areIntrinsicsUserCalibrated = true;
 }
 

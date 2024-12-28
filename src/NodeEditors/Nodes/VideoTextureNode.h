@@ -27,6 +27,7 @@ public:
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
 	GlTexturePtr getTextureResource() const;
+	GlTexturePtr getPreviewTextureResource() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;

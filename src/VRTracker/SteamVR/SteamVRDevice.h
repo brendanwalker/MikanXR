@@ -25,6 +25,7 @@ public:
 	void setPoseMatrix(const glm::mat4& mat);
 	inline const glm::mat4& getPoseMatrix() const { return m_poseMatrix; }
 
+	class VRDeviceManager* getOwnerDeviceManager() const { return m_ownerDeviceManager; }
 	class SteamVRDeviceProperties* getSteamVRDeviceProperties() const { return m_deviceProperties; }
 
 	// -- IDeviceInterface
@@ -60,6 +61,7 @@ private:
 	void rebuildRenderComponents();
 	void disposeRenderComponents();
 
+	class VRDeviceManager* m_ownerDeviceManager= nullptr;
 	class SteamVRDeviceProperties *m_deviceProperties;
 	std::string m_devicePath;
 	IVRDeviceInterface::eDriverType m_driverType;

@@ -2,7 +2,7 @@
 
 #include "CommonConfig.h"
 #include "StencilComponent.h"
-#include "MikanClientTypes.h"
+#include "MikanStencilTypes.h"
 #include "ComponentFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
@@ -17,12 +17,12 @@ class BoxStencilDefinition : public StencilComponentDefinition
 {
 public:
 	BoxStencilDefinition();
-	BoxStencilDefinition(const MikanStencilBox& box);
+	BoxStencilDefinition(const MikanStencilBoxInfo& box);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStencilBox getBoxInfo() const;
+	MikanStencilBoxInfo getBoxInfo() const;
 
 	static const std::string k_boxStencilXSizePropertyId;
 	float getBoxXSize() const { return m_boxSize.x; }

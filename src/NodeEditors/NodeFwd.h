@@ -61,6 +61,10 @@ class MousePosNode;
 using MousePosNodePtr = std::shared_ptr<MousePosNode>;
 using MousePosNodeConstPtr = std::shared_ptr<const MousePosNode>;
 
+class DepthMaskNode;
+using DepthMaskNodePtr = std::shared_ptr<DepthMaskNode>;
+using DepthMaskNodeConstPtr = std::shared_ptr<const DepthMaskNode>;
+
 class DrawLayerNode;
 using DrawLayerNodePtr = std::shared_ptr<DrawLayerNode>;
 using DrawLayerNodeConstPtr = std::shared_ptr<const DrawLayerNode>;

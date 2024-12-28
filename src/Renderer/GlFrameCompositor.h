@@ -3,7 +3,9 @@
 #include "AssetFwd.h"
 #include "NodeFwd.h"
 
+#include "MikanAPITypes.h"
 #include "MikanClientTypes.h"
+#include "MikanVideoSourceEvents.h"
 #include "MulticastDelegate.h"
 #include "RendererFwd.h"
 #include "NamedValueTable.h"
@@ -29,20 +31,23 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class VRDeviceView;
 typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
+class SyntheticDepthEstimator;
+typedef std::shared_ptr<SyntheticDepthEstimator> SyntheticDepthEstimatorPtr;
+
 class GlFrameCompositor
 {
 public:
 
 	struct ClientSource
 	{
-		int clientSourceIndex;
+		int clientSourceIndex= -1;
 		std::string clientId;
 		MikanClientInfo clientInfo;
 		MikanRenderTargetDescriptor desc;
 		GlTexturePtr colorTexture;
 		GlTexturePtr depthTexture;
-		uint64_t frameIndex;
-		bool bIsPendingRender;
+		int64_t frameIndex= 0;
+		bool bIsPendingRender= false;
 	};
 
 	static GlFrameCompositor* getInstance() { return m_instance; }
@@ -78,24 +83,30 @@ public:
 	void render() const;
 
 	bool getVideoSourceCameraPose(glm::mat4& outCameraMat) const;
+	bool getVideoSourceView(glm::mat4& outCameraView) const;
+	bool getVideoSourceProjection(glm::mat4& outCameraProjection, bool verticalFlip= false) const;
 	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
+	bool getVideoSourceZRange(float& outZNear, float& outZFar) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
+	inline SyntheticDepthEstimatorPtr getSyntheticDepthEstimator() const { return m_syntheticDepthEstimator; }
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 	GlTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
+	GlTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
-	GlTexturePtr getClientSourceTexture(int clientIndex, eClientTextureType clientTextureType) const;
+	GlTexturePtr getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const;
+	GlTexturePtr getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const;
 
 	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
 	GlTexturePtr getEditorWritableFrameTexture() const;
 	GlTextureConstPtr getCompositedFrameTexture() const;
-	inline uint64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
-	void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
-	inline GlTexturePtr getBGRVideoFrameTexture() { return m_bgrVideoFrame; }
-	void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
+	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
+	inline void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
+	GlTexturePtr getBGRVideoFrameTexture();
+	inline void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
 
 	MulticastDelegate<void()> OnNewFrameComposited;
-
-	static const struct GlVertexDefinition* getStencilModelVertexDefinition();
 
 protected:
 	bool openVideoSource();
@@ -103,11 +114,7 @@ protected:
 
 	bool bindCameraVRTracker();
 
-	bool createLayerCompositingFrameBuffer(uint16_t width, uint16_t height);
-	void freeLayerFrameBuffer();
-
-	bool createBGRVideoFrameBuffer(uint16_t width, uint16_t height);
-	void freeBGRVideoFrameBuffer();
+	bool createCompositingTextures(uint16_t width, uint16_t height);
 
 	void createVertexBuffers();
 	void freeVertexBuffers();
@@ -117,16 +124,14 @@ protected:
 \
 	void updateCompositeFrame();
 	void updateCompositeFrameNodeGraph();
-	void updateCompositeFrameLayers();
 
 	static const class GlProgramCode* getRGBFrameShaderCode();
 	static const class GlProgramCode* getRGBtoBGRVideoFrameShaderCode();
-	static const class GlProgramCode* getStencilShaderCode();
 
 	// MikanServer Events
 	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
 	void onClientRenderTargetReleased(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
-	void onClientRenderTargetUpdated(const std::string& clientId, uint64_t frameIndex);
+	void onClientRenderTargetUpdated(const std::string& clientId, int64_t frameIndex);
 
 	// Preset Config Events
 	void onPresetConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
@@ -146,15 +151,15 @@ private:
 
 	VideoSourceViewPtr m_videoSourceView;
 	VideoFrameDistortionView* m_videoDistortionView = nullptr;
+#if REALTIME_DEPTH_ESTIMATION_ENABLED
+	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
+#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
 	VRDeviceViewPtr m_cameraTrackingPuckView;
 
 	class IGlWindow* m_ownerWindow= nullptr;
 
-	unsigned int m_layerFramebuffer = 0;	
-	unsigned int m_layerRBO = 0;
-	unsigned int m_bgrFramebuffer = 0;
-	unsigned int m_bgrRBO = 0;
+	GlFrameBufferPtr m_videoExportFramebuffer;
 	unsigned int m_videoQuadVAO = 0, m_videoQuadVBO = 0;
 	unsigned int m_layerQuadVAO = 0, m_layerQuadVBO = 0;
 	bool m_bGenerateBGRVideoTexture = false;
@@ -163,8 +168,6 @@ private:
 
 	eCompositorEvaluatorWindow m_evaluatorWindow = eCompositorEvaluatorWindow::mainWindow;
 	GlTexturePtr m_editorFrameBufferTexture = nullptr;
-	GlTexturePtr m_mainWindowFrameBufferTexture = nullptr;
-	GlTexturePtr m_bgrVideoFrame = nullptr; // BGR, flipped video frame
 
 	// Compositor Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
@@ -177,9 +180,9 @@ private:
 	NamedValueTable<ClientSource*> m_clientSources;
 
 	bool m_bIsRunning= false;
-	uint64_t m_lastReadVideoFrameIndex = 0;
-	uint64_t m_droppedFrameCounter = 0;
-	uint64_t m_lastCompositedFrameIndex = 0;
-	uint64_t m_pendingCompositeFrameIndex = 0;
+	int64_t m_lastReadVideoFrameIndex = 0;
+	int64_t m_droppedFrameCounter = 0;
+	int64_t m_lastCompositedFrameIndex = 0;
+	int64_t m_pendingCompositeFrameIndex = 0;
 	float m_timeSinceLastFrameComposited= 0.f;
 };

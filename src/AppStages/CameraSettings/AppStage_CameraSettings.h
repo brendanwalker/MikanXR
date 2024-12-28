@@ -7,7 +7,12 @@
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-typedef std::vector<VideoSourceViewPtr> VideoSourceList;
+
+class VideoFrameDistortionView;
+typedef std::shared_ptr<VideoFrameDistortionView> VideoFrameDistortionViewPtr;
+
+class RmlModel_CameraSettings;
+using RmlModel_CameraSettingsPtr = std::shared_ptr<RmlModel_CameraSettings>;
 
 //-- definitions -----
 class AppStage_CameraSettings : public AppStage
@@ -28,11 +33,14 @@ public:
 	static const char* APP_STAGE_NAME;
 
 protected:
-	void startVideoSource(VideoSourceViewPtr videoSource);
-	void stopVideoSource(VideoSourceViewPtr videoSource);
+	void startVideoSource();
+	void stopVideoSource();
 
-	struct CameraSettingsDataModel* m_dataModel = nullptr;
+	void onVideoSourceChanged(const std::string& newVideoSourcePath);	
 
-	class VideoSourceListIterator* m_videoSourceIterator= nullptr;
-	class VideoFrameDistortionView* m_videoBufferView = nullptr;
+	RmlModel_CameraSettingsPtr m_cameraSettingsModel = nullptr;
+	Rml::ElementDocument* m_cameraSettingsView = nullptr;
+
+	VideoSourceViewPtr m_videoSourceView;
+	VideoFrameDistortionViewPtr m_videoBufferView;
 };

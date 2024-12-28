@@ -6,19 +6,22 @@
 #include "GlProgram.h"
 #include "GlStateStack.h"
 #include "GlShaderCache.h"
+#include "GlTextRenderer.h"
 #include "GlVertexDefinition.h"
 #include "GlViewport.h"
 #include "IGlWindow.h"
 #include "Logger.h"
 #include "MathGLM.h"
+#include "TextStyle.h"
 
 #include "glm/ext/matrix_clip_space.hpp"
 
 const int k_max_segments = 0x8000;
 const int k_max_points = 0x8000;
 
-GlLineRenderer::GlLineRenderer()
-	: m_program(nullptr)
+GlLineRenderer::GlLineRenderer(IGlWindow* m_ownerWindow)
+	: m_ownerWindow(m_ownerWindow)
+	, m_program(nullptr)
 	, m_points3d(k_max_points)
 	, m_lines3d(k_max_segments*2)
 	, m_points2d(k_max_points)
@@ -59,32 +62,16 @@ const GlProgramCode* GlLineRenderer::getShaderCode()
 			out_FragColor = v_Color;
 		}
 		)"""")
+		.addVertexAttributes("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+		.addVertexAttributes("in_colorPointSize", eVertexDataType::datatype_vec4, eVertexSemantic::colorAndSize)
 		.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
 
 	return &x_shaderCode;
 }
 
-const GlVertexDefinition* GlLineRenderer::getVertexDefinition()
-{
-	static GlVertexDefinition x_vertexDefinition;
-
-	if (x_vertexDefinition.attributes.size() == 0)
-	{
-		const int32_t vertexSize = (int32_t)sizeof(GlLineRenderer::Point);
-		std::vector<GlVertexAttribute>& attribs = x_vertexDefinition.attributes;
-
-		attribs.push_back(GlVertexAttribute(0, eVertexSemantic::position3f, false, vertexSize, offsetof(GlLineRenderer::Point, position)));
-		attribs.push_back(GlVertexAttribute(1, eVertexSemantic::colorAndSize4f, false, vertexSize, offsetof(GlLineRenderer::Point, colorAndSize)));
-
-		x_vertexDefinition.vertexSize = vertexSize;
-	}
-
-	return &x_vertexDefinition;
-}
-
 bool GlLineRenderer::startup()
 {
-	m_program = GlShaderCache::getInstance()->fetchCompiledGlProgram(getShaderCode());
+	m_program = m_ownerWindow->getShaderCache()->fetchCompiledGlProgram(getShaderCode());
 	if (m_program == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to build shader program";
@@ -97,32 +84,42 @@ bool GlLineRenderer::startup()
 		return false;
 	}
 
-	m_points2d.createGlBufferState();
-	m_lines2d.createGlBufferState();
+	m_points2d.createGlBufferState(m_program);
+	m_lines2d.createGlBufferState(m_program);
 
-	m_points3d.createGlBufferState();
-	m_lines3d.createGlBufferState();
+	m_points3d.createGlBufferState(m_program);
+	m_lines3d.createGlBufferState(m_program);
 
 	return true;
 }
 
 
-void GlLineRenderer::render(IGlWindow* window)
+void GlLineRenderer::render()
 {
+	if (m_ownerWindow == nullptr)
+		return;
+
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
 	{
+		GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer");
+		GlState& glState = stateScope.getStackState();
+
+		// This has to be enabled since the point drawing shader will use gl_PointSize.
+		glState.enableFlag(eGlStateFlagType::programPointSize);
+
 		m_program->bindProgram();
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints())
-		{
-			GlCameraPtr camera = window->getRenderingViewport()->getCurrentCamera();
+		{		
+			GlViewportConstPtr viewport = m_ownerWindow->getRenderingViewport();
+			GlCameraPtr camera= (viewport != nullptr) ? viewport->getCurrentCamera() : nullptr;
 
 			if (camera != nullptr)
 			{
 				const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-				GlScopedState scopedState = window->getGlStateStack().createScopedState();
+				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer_3dLines");
 				if (m_bDisable3dDepth)
 				{
 					scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
@@ -137,15 +134,37 @@ void GlLineRenderer::render(IGlWindow* window)
 
 		if (m_points2d.hasPoints() || m_lines2d.hasPoints())
 		{
-			const float windowWidth = window->getWidth();
-			const float windowHeight = window->getHeight();
-			const glm::mat4 orthoMat = glm::ortho(0.f, windowWidth, windowHeight, 0.0f, 1.0f, -1.0f);
+			float left = 0;
+			float right = 0;
+			float top = 0;
+			float bottom = 0;
+
+			glm::i32vec2 renderingOrigin;
+			glm::i32vec2 renderingSize;
+			GlViewportConstPtr viewport = m_ownerWindow->getRenderingViewport();
+			if (viewport != nullptr && 
+				viewport->getRenderingViewport(renderingOrigin, renderingSize))
+			{
+				left = renderingOrigin.x;
+				right = renderingOrigin.x + renderingSize.x;
+				top = renderingOrigin.y;
+				bottom = renderingOrigin.y + renderingSize.y;
+			}
+			else
+			{
+				left = 0;
+				right = m_ownerWindow->getWidth();
+				top = 0;
+				bottom = m_ownerWindow->getHeight();
+			}
+
+			const glm::mat4 orthoMat = glm::ortho(left, right, bottom, top, 1.0f, -1.0f);
 
 			m_program->setMatrix4x4Uniform(m_modelViewUniformName, orthoMat);
 
 			{
 				// disable the depth buffer to allow overdraw 
-				GlScopedState scopedState = window->getGlStateStack().createScopedState();
+				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer_2dLines");
 				scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
 
 				m_points2d.drawGlBufferState(GL_POINTS);
@@ -218,19 +237,20 @@ GlLineRenderer::PointBufferState::~PointBufferState()
 	delete[] m_points;
 }
 
-void GlLineRenderer::PointBufferState::createGlBufferState()
+void GlLineRenderer::PointBufferState::createGlBufferState(GlProgramPtr program)
 {
 	glGenVertexArrays(1, &m_pointVAO);
 	glGenBuffers(1, &m_pointVBO);
 	checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
 	glBindVertexArray(m_pointVAO);
+	glObjectLabel(GL_VERTEX_ARRAY, m_pointVAO, -1, "LineRendererPoints");
 	glBindBuffer(GL_ARRAY_BUFFER, m_pointVBO);
 
 	glBufferData(GL_ARRAY_BUFFER, m_maxPoints * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
 	checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
-	getVertexDefinition()->applyVertexDefintion();
+	program->getVertexDefinition().applyVertexDefintion();
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -298,8 +318,8 @@ void GlLineRenderer::PointBufferState::addPoint2d(
 
 //-- Drawing Methods -----
 #define GET_LINE_RENDERER_OR_RETURN()										\
-	IGlWindow* window= App::getInstance()->getCurrentlyRenderingWindow();	\
-	assert(window->getIsRenderingStage());									\
+	IGlWindow* window= App::getInstance()->getCurrentGlContext();			\
+	assert(window != nullptr);												\
 	GlLineRenderer* lineRenderer = window->getLineRenderer();				\
 	if (lineRenderer == nullptr)											\
 		return;																\
@@ -374,25 +394,28 @@ void drawArrow(
 	lineRenderer->addSegment3d(transform, headYPos, color, headYNeg, color);
 }
 
-void drawTransformedAxes(const glm::mat4& transform, float scale)
+void drawTransformedAxes(const glm::mat4& transform, float scale, bool drawLabels)
 {
-	drawTransformedAxes(transform, scale, scale, scale);
+	drawTransformedAxes(transform, scale, scale, scale, drawLabels);
 }
 
 void drawTransformedAxes(
 	const glm::mat4& transform,
-	float xScale, float yScale, float zScale)
+	float xScale, float yScale, float zScale, 
+	bool drawLabels)
 {
 	drawTransformedAxes(
 		transform,
 		xScale, yScale, zScale,
-		Colors::Red, Colors::Green, Colors::Blue);
+		Colors::Red, Colors::Green, Colors::Blue,
+		drawLabels);
 }
 
 void drawTransformedAxes(
 	const glm::mat4& transform,
 	float xScale, float yScale, float zScale,
-	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor)
+	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor,
+	bool drawLabels)
 {
 	GET_LINE_RENDERER_OR_RETURN()
 
@@ -404,6 +427,14 @@ void drawTransformedAxes(
 	lineRenderer->addSegment3d(transform, origin, Colors::Red, xAxis, xColor);
 	lineRenderer->addSegment3d(transform, origin, Colors::Green, yAxis, yColor);
 	lineRenderer->addSegment3d(transform, origin, Colors::Blue, zAxis, zColor);
+
+	if (drawLabels)
+	{
+		TextStyle style = getDefaultTextStyle();
+		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(xAxis, 1.0f)), L"X");
+		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(yAxis, 1.0f)), L"Y");
+		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(zAxis, 1.0f)), L"Z");
+	}
 }
 
 void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::vec3& color)
@@ -494,6 +525,15 @@ void drawTransformedQuad(const glm::mat4& transform, float xSize, float ySize, c
 	lineRenderer->addSegment3d(transform, p1, color, p2, color);
 	lineRenderer->addSegment3d(transform, p2, color, p3, color);
 	lineRenderer->addSegment3d(transform, p3, color, p0, color);	
+}
+
+void drawTransformedTriangle(const glm::mat4& transform, const GlmTriangle& tri, const glm::vec3& color)
+{
+	GET_LINE_RENDERER_OR_RETURN()
+
+	lineRenderer->addSegment3d(transform, tri.v0, color, tri.v1, color);
+	lineRenderer->addSegment3d(transform, tri.v1, color, tri.v2, color);
+	lineRenderer->addSegment3d(transform, tri.v2, color, tri.v0, color);
 }
 
 void drawTransformedBox(const glm::mat4& transform, const glm::vec3& half_extents, const glm::vec3& color)

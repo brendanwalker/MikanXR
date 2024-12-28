@@ -3,7 +3,6 @@
 #include <string>
 
 #define DEFAULT_COMPOSITOR_CONFIG_NAME			"Alpha Channel"
-#define STENCIL_MVP_UNIFORM_NAME				"mvpMatrix"
 #define MAX_CLIENT_SOURCES						8
 #define EMPTY_SOURCE_NAME						"empty"
 
@@ -70,16 +69,26 @@ enum class eStencilCullMode
 };
 extern const std::string* k_stencilCullModeStrings;
 
-enum class eClientTextureType
+enum class eClientColorTextureType
 {
 	INVALID = -1,
 
-	color,
-	depth,
+	colorRGB,
+	colorRGBA,
 
 	COUNT
 };
-extern const std::string* k_clientTextureTypeStrings;
+extern const std::string* k_clientColorTextureTypeStrings;
+
+enum class eClientDepthTextureType
+{
+	INVALID = -1,
+
+	depthPackRGBA,
+
+	COUNT
+};
+extern const std::string* k_clientDepthTextureTypeStrings;
 
 enum class eCompositorEvaluatorWindow
 {

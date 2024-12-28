@@ -3,18 +3,24 @@
 #include "StaticMeshComponent.h"
 #include "MulticastDelegate.h"
 #include "GlStaticMeshInstance.h"
+#include "GlMaterialInstance.h"
+#include "GlMaterial.h"
+#include "GlProgram.h"
+#include "Logger.h"
+#include "StaticMeshKdTree.h"
 
 #include <glm/gtx/intersect.hpp>
 
 MeshColliderComponent::MeshColliderComponent(MikanObjectWeakPtr owner)
 	: ColliderComponent(owner)
+	, m_kdTree(std::make_shared<StaticMeshKdTree>())
 {
-	m_meshCenterPoint= glm::vec3();
-	m_meshMaxCornerPoint= glm::vec3();
 }
 
 void MeshColliderComponent::dispose()
 {
+	m_kdTree= nullptr;
+
 	auto staticMeshPtr= m_staticMeshWeakPtr.lock();
 	if (staticMeshPtr)
 	{
@@ -26,71 +32,71 @@ void MeshColliderComponent::dispose()
 	ColliderComponent::dispose();
 }
 
+bool MeshColliderComponent::getBoundingSphere(glm::vec3& outCenter, float& outRadius) const
+{
+	if (!m_kdTree)
+		return false;
+
+	glm::vec3 localMin, localMax;
+	if (!m_kdTree->getLocalAABB(localMin, localMax))
+		return false;
+
+	const glm::mat4& worldXform= getWorldTransform();
+	const glm::vec3 minBounds= worldXform * glm::vec4(localMin, 1.f);
+	const glm::vec3 maxBounds= worldXform * glm::vec4(localMax, 1.f);
+
+	outCenter = (minBounds + maxBounds) * 0.5f;
+	outRadius = glm::distance(minBounds, outCenter);
+
+	return true;
+}
+
 bool MeshColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {
-	outResult.hitValid = false;
-	outResult.hitLocation = glm::vec3(0.f);
-	outResult.hitNormal = glm::vec3(0.f);
-	outResult.hitDistance = -1.f;
-	outResult.hitPriority = m_priority;
-	outResult.hitComponent.reset();
-
-	if (!m_bEnabled)
+	if (!m_bEnabled || !m_kdTree)
 		return false;
 
 	// Get the world transform of this component
 	const glm::mat4& worldXform= getWorldTransform();
+	const glm::mat4& invWorldXform= glm::inverse(worldXform);
 
-	// Apply component world transform to bounds geometry
-	const glm::vec3 worldBoundCenter= worldXform * glm::vec4(m_meshCenterPoint, 1.f);
-	const glm::vec3 worldBoundMax= worldXform * glm::vec4(m_meshMaxCornerPoint, 1.f);
-	const float worldRadius= glm::length(worldBoundMax - worldBoundCenter);
+	KdTreeRaycastRequest kdTreeRequest;
+	kdTreeRequest.worldMatrix= worldXform;
+	kdTreeRequest.origin= invWorldXform * glm::vec4(request.rayOrigin, 1.f);
+	kdTreeRequest.direction= invWorldXform * glm::vec4(request.rayDirection, 0.f);
+	kdTreeRequest.debugDraw= false;
+	KdTreeRaycastResult kdTreeResult;
 
-	// Early out if the ray doesn't hit the bounding sphere of the mesh
-	float unusedIntDistance= 0.f;
-	if (glm::intersectRaySphere(
-		request.rayOrigin, request.rayDirection,
-		worldBoundCenter, worldRadius * worldRadius,
-		unusedIntDistance))
+	if (m_kdTree->computeRayIntersection(kdTreeRequest, kdTreeResult))
 	{
-		float closestDistance = k_real_max;
-		for (const GlmTriangle& tri : m_meshTriangles)
-		{
-			// Apply component world transform to triangle geometry
-			GlmTriangle worldTri= {
-				worldXform * glm::vec4(tri.v0, 1.f),
-				worldXform * glm::vec4(tri.v1, 1.f),
-				worldXform * glm::vec4(tri.v2, 1.f)
-			};
-
-			// See if ray intersect with tri and is closer than any intersection found so far
-			// TODO: Parallelize this intersection calculations
-			float triIntDistance;
-			glm::vec3 triIntPoint;
-			glm::vec3 triIntNormal;
-			if (glm_intersect_tri_with_ray(
-				worldTri,
-				request.rayOrigin, request.rayDirection,
-				triIntDistance, triIntPoint, triIntNormal))
-			{
-				if (triIntDistance < closestDistance && triIntDistance >= 0.f)
-				{
-					outResult.hitLocation = triIntPoint;
-					outResult.hitNormal = triIntNormal;
-					outResult.hitDistance = triIntDistance;
-					outResult.hitValid = true;
-				}
-			}
-		}
-	}
-
-	if (outResult.hitValid)
-	{
+		outResult.hitValid = true;
+		outResult.hitLocation = worldXform * glm::vec4(kdTreeResult.position, 1.f);
+		outResult.hitNormal = worldXform * glm::vec4(kdTreeResult.normal, 0.f);
+		outResult.hitDistance = glm::distance(request.rayOrigin, outResult.hitLocation);
+		outResult.hitPriority = m_priority;
 		outResult.hitComponent =
 			std::const_pointer_cast<ColliderComponent>(
 				getSelfPtr<const ColliderComponent>());
+
+		// Compute closest vertex to the collision point in the local space of the mesh
+		glm::vec3 localClosestVertex;
+		if (m_kdTree->computeClosestVertex(
+			kdTreeResult.position,
+			kdTreeResult.triangleIndex,
+			localClosestVertex))
+		{
+			outResult.closestVertexLocal = localClosestVertex;
+			outResult.closestVertexWorld = worldXform * glm::vec4(localClosestVertex, 1.f);
+			outResult.closestVertexValid = true;
+		}
+		else
+		{
+			outResult.closestVertexLocal = glm::vec3(0.f);
+			outResult.closestVertexWorld = outResult.hitLocation;
+			outResult.closestVertexValid = false;
+		}
 	}
 
 	return outResult.hitValid;
@@ -114,21 +120,19 @@ void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr st
 			staticMeshPtr->OnMeshChanged += MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
 		}
 
-		rebuildCollionGeometry();
+		rebuildCollisionGeometry();
 	}
 }
 
 void MeshColliderComponent::onStaticMeshChanged(StaticMeshComponentWeakPtr meshComponentWeakPtr)
 {
 	assert(m_staticMeshWeakPtr.lock() != meshComponentWeakPtr.lock());
-	rebuildCollionGeometry();
+	rebuildCollisionGeometry();
 }
 
-void MeshColliderComponent::rebuildCollionGeometry()
+void MeshColliderComponent::rebuildCollisionGeometry()
 {
-	m_meshTriangles.clear();
-	m_meshCenterPoint= glm::vec3(0.f);
-	m_meshMaxCornerPoint= glm::vec3(0.f);
+	m_kdTree->dispose();
 
 	auto staticMeshPtr = m_staticMeshWeakPtr.lock();
 	if (!staticMeshPtr)
@@ -142,61 +146,10 @@ void MeshColliderComponent::rebuildCollionGeometry()
 	if (!glMeshDataPtr)
 		return;
 
-	// TODO: For the moment, we are only supporting triangulated meshes with 16-bit indices
-	assert(glMeshDataPtr->getIndexPerElementCount() == 3);
-	assert(glMeshDataPtr->getIndexSize() == sizeof(uint16_t));
-
-	auto vertexDefinition= glMeshDataPtr->getVertexDefinition();
-	auto vertexAttrib= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position3f);
-	if (!vertexAttrib)
-		return;
-
-	const size_t triangleCount = glMeshDataPtr->getElementCount();
-	if (triangleCount <= 0)
-		return;
-
-	const uint8_t* vertexData= glMeshDataPtr->getVertexData();
-	const uint8_t* indexData= glMeshDataPtr->getIndexData();
-	const size_t triangleStride= glMeshDataPtr->getIndexSize() * 3;
-	const size_t vertexStride= vertexAttrib->stride;
-	const size_t positionOffset= vertexAttrib->offset;
-
-	// Extract the triangle and bounding points from the mesh data
-	auto extractPosition3f = [vertexData, vertexStride, positionOffset](uint16_t vertexIndex) -> glm::vec3 {
-		const size_t positionDataOffset= vertexStride*vertexIndex + positionOffset;
-		const glm::vec3* positionAccess= (const glm::vec3*)(vertexData + positionDataOffset);
-
-		return *positionAccess;
-	};
-
-	glm::vec3 minPoint= glm::vec3(k_real_max, k_real_max, k_real_max);
-	glm::vec3 maxPoint= glm::vec3(k_real_min, k_real_min, k_real_min);
-	const uint8_t* indexPtr= indexData;
-	for (size_t triIndex= 0; triIndex < triangleCount; ++triIndex)
+	m_kdTree->setMesh(glMeshDataPtr);
+	if (!m_kdTree->init())
 	{
-		const uint16_t* indexPtrUint16= (const uint16_t*)indexPtr;
-		const uint16_t i0= indexPtrUint16[0];
-		const uint16_t i1= indexPtrUint16[1];
-		const uint16_t i2= indexPtrUint16[2];
-
-		GlmTriangle tri;
-		tri.v0= extractPosition3f(i0);
-		tri.v1= extractPosition3f(i1);
-		tri.v2= extractPosition3f(i2);
-		m_meshTriangles.push_back(tri);
-
-		minPoint= glm::min(minPoint, tri.v0);
-		minPoint= glm::min(minPoint, tri.v1);
-		minPoint= glm::min(minPoint, tri.v2);
-
-		maxPoint = glm::max(maxPoint, tri.v0);
-		maxPoint = glm::max(maxPoint, tri.v1);
-		maxPoint = glm::max(maxPoint, tri.v2);
-
-		indexPtr+= triangleStride;
+		MIKAN_LOG_ERROR("MeshColliderComponent::rebuildCollisionGeometry") 
+			<< "Failed to build kd-tree for mesh collider " << getName();
 	}
-
-	// Save off the mid and max point so that we can compute a bounding sphere later
-	m_meshCenterPoint= (maxPoint + minPoint) * 0.5f;
-	m_meshMaxCornerPoint= maxPoint;
 }
