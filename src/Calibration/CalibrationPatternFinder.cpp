@@ -15,8 +15,8 @@
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
-#include "opencv2/aruco.hpp"
-#include "opencv2/aruco/charuco.hpp"
+#include "opencv2/objdetect/aruco_detector.hpp"
+#include "opencv2/objdetect/charuco_detector.hpp"
 
 //-- CalibrationPatternFinder_Chessboard -----
 CalibrationPatternFinder::CalibrationPatternFinder(
@@ -408,10 +408,8 @@ public:
 	int cols;
 	float squareLengthMM;
 	float markerLengthMM;
-	cv::Ptr<cv::aruco::CharucoBoard> board;
-	cv::Ptr<cv::aruco::Dictionary> dictionary;
-	cv::Ptr<cv::aruco::DetectorParameters> params;
 
+	cv::Ptr<cv::aruco::CharucoDetector> detector;
 	std::vector<t_opencv_point2d_list> markerCorners;
 	std::vector<int> markerVisibleIds;
 	t_opencv_point2d_list charucoCorners;
@@ -483,17 +481,17 @@ CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
 	}
 
 	cv::aruco::Dictionary dictionary= cv::aruco::getPredefinedDictionary(cvCharucoDictionary);
-	m_markerData->board= new cv::aruco::CharucoBoard(
+	cv::aruco::CharucoBoard board(
 		cv::Size(charucoCols, charucoRows),
 		charucoSquareLengthMM * k_millimeters_to_meters, 
 		charucoMarkerLengthMM * k_millimeters_to_meters,
 		dictionary);
-	m_markerData->dictionary = cv::makePtr<cv::aruco::Dictionary>(dictionary);
-	m_markerData->params = cv::makePtr<cv::aruco::DetectorParameters>();
+	m_markerData->detector = cv::makePtr<cv::aruco::CharucoDetector>(board);
 	m_markerData->rows = charucoRows;
 	m_markerData->cols = charucoCols;
 	m_markerData->squareLengthMM = charucoSquareLengthMM;
 	m_markerData->markerLengthMM = charucoMarkerLengthMM;
+
 }
 
 CalibrationPatternFinder_Charuco::~CalibrationPatternFinder_Charuco()
@@ -510,7 +508,7 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	bool bImagePointsValid = false;
 	m_currentImagePoints.clear();
 
-	// Use the original source buffer for the grayscale image (NOT the undistorted one)
+	// Use the original source buffer for the grayscale image if undistorted source is not available
 	cv::Mat* gsSourceBuffer =
 		m_distortionView->isGrayscaleUndistortDisabled()
 		? m_distortionView->getGrayscaleSourceBuffer()
@@ -518,25 +516,18 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	if (gsSourceBuffer == nullptr)
 		return false;
 
-	// Find Arcuo marker corners on the small image
+	// Find Charucuo marker corners in the source image
 	m_markerData->markerCorners.clear();
-	cv::aruco::detectMarkers(
-		*gsSourceBuffer,
-		m_markerData->dictionary,
-		m_markerData->markerCorners,
-		m_markerData->markerVisibleIds,
-		m_markerData->params);
+	m_markerData->markerVisibleIds.clear();
+	m_markerData->detector->detectBoard(
+		*gsSourceBuffer, 
+		m_markerData->markerCorners, 
+		m_markerData->charucoIds);
 	const bool bFoundMarkers = m_markerData->markerVisibleIds.size() > 0;
 
 	if (bFoundMarkers)
 	{
-		cv::Matx33d cvIntrinsicMatrix;
-		cv::Mat cvDistCoeffsRowVector;
-
-		cv::aruco::interpolateCornersCharuco(
-			m_markerData->markerCorners, m_markerData->markerVisibleIds,
-			*gsSourceBuffer, m_markerData->board,
-			m_markerData->charucoCorners, m_markerData->charucoIds);
+		// Remember the last valid captured points
 		m_currentImagePoints= m_markerData->charucoCorners;
 
 		// Append the new chessboard corner pixels into the image_points matrix
@@ -660,7 +651,7 @@ void CalibrationPatternFinder_Charuco::renderSolvePnPPattern3D(const glm::mat4& 
 	CalibrationPatternFinder::renderSolvePnPPattern3D(xform);
 }
 
-//-- CalibrationPatternFinder_Charuco -----
+//-- CalibrationPatternFinder_Aruco -----
 class ArucoBoardData
 {
 public:
@@ -668,9 +659,8 @@ public:
 
 	int desiredArucoId;
 	float markerLengthMM;
-	cv::Ptr<cv::aruco::Dictionary> dictionary;
-	cv::Ptr<cv::aruco::DetectorParameters> params;
 
+	cv::Ptr<cv::aruco::ArucoDetector> detector;
 	std::vector<t_opencv_point2d_list> markerCorners;
 	std::vector<int> markerVisibleIds;
 	t_opencv_point2d_list charucoCorners;
@@ -703,12 +693,15 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 		default:
 			break;
 	}
-
 	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cvCharucoDictionary);
-	m_markerData->dictionary = cv::makePtr<cv::aruco::Dictionary>(dictionary);
-	m_markerData->params = cv::makePtr<cv::aruco::DetectorParameters>();
+
+	// Use corner refinement to get the best possible corner locations
+	cv::aruco::DetectorParameters detectorParams;
+	detectorParams.cornerRefinementMethod= cv::aruco::CORNER_REFINE_SUBPIX;
+
 	m_markerData->desiredArucoId = desiredArucoId;
 	m_markerData->markerLengthMM = markerLengthMM;
+	m_markerData->detector = cv::makePtr<cv::aruco::ArucoDetector>(dictionary, detectorParams);
 
 	// The Aruco board is a square, so we can hardcode the points in ARUCO_CCW_CENTER style
 	// Solve PnP points are on the XZ Plane
@@ -764,12 +757,10 @@ bool CalibrationPatternFinder_Aruco::findNewCalibrationPattern(const float minSe
 
 	// Find Arcuo marker corners on the small image
 	m_markerData->markerCorners.clear();
-	cv::aruco::detectMarkers(
+	m_markerData->detector->detectMarkers(
 		*gsSourceBuffer,
-		m_markerData->dictionary,
 		m_markerData->markerCorners,
-		m_markerData->markerVisibleIds,
-		m_markerData->params);
+		m_markerData->markerVisibleIds);
 	const bool bFoundMarkers = m_markerData->markerVisibleIds.size() > 0;
 
 	// Re-clear out the image points if we decided the latest captured onces are invalid

@@ -8,7 +8,7 @@ set DEPS_ROOT_PATH=%~dp0/deps
 set THIRDPARTY_ROOT_PATH=%~dp0\thirdparty
 
 cmake .. -G "Visual Studio 17 2022" -A x64 ^
--DOpenCV_DIR=%DEPS_ROOT_PATH%\opencv_cuda ^
+-DOpenCV_DIR=%DEPS_ROOT_PATH%\opencv\build ^
 -DOPENVR_ROOT_DIR=%THIRDPARTY_ROOT_PATH%\openvr ^
 -DOPENVR_HEADERS_ROOT_DIR=%THIRDPARTY_ROOT_PATH%openvr\include ^
 -DSDL2_LIBRARY="%DEPS_ROOT_PATH%\SDL2-2.0.10\lib\x64\sdl2.lib" ^

@@ -91,14 +91,14 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 echo "Downloading OpenCV..."
-curl -L https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-vc14_vc15.exe > opencv-4.5.5-vc14_vc15.exe
+curl -L https://github.com/opencv/opencv/releases/download/4.10.0/opencv-4.10.0-windows.exe > opencv-4.10.0-windows.exe
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading opencv-4.5.5-vc14_vc15.exe"
+  echo "Error downloading opencv-4.10.0-windows.exe"
   goto failure
 )
-opencv-4.5.5-vc14_vc15.exe -o"." -y
+opencv-4.10.0-windows.exe -o"." -y
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error running self extracting zip opencv-4.5.5-vc14_vc15.exe"
+  echo "Error running self extracting zip opencv-4.10.0-windows.exe"
   goto failure
 )
 
