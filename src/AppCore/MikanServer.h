@@ -5,7 +5,13 @@
 #include "CommonConfigFwd.h"
 #include "ScriptingFwd.h"
 #include "MikanAPITypes.h"
-#include "MikanEventTypes.h"
+#include "MikanClientTypes.h"
+#include "MikanClientEvents.h"
+#include "MikanScriptEvents.h"
+#include "MikanStencilEvents.h"
+#include "MikanSpatialAnchorEvents.h"
+#include "MikanVideoSourceEvents.h"
+#include "MikanVRDeviceEvents.h"
 #include "MulticastDelegate.h"
 #include "InterprocessMessages.h"
 #include "glm/ext/matrix_float4x4.hpp"
@@ -18,12 +24,32 @@ class MikanClientConnectionState;
 using MikanClientConnectionStatePtr= std::shared_ptr<MikanClientConnectionState>;
 
 //-- definitions -----
-struct MikanClientConnectionInfo
+class MikanClientConnectionInfo
 {
-	MikanClientInfo clientInfo;
-	class InterprocessRenderTargetReadAccessor* renderTargetReadAccessor;
+public:
+	MikanClientConnectionInfo();
+	virtual ~MikanClientConnectionInfo();
+
+	void clearMikanClientInfo();
+	void setClientInfo(const MikanClientInfo& clientInfo);
+	const MikanClientInfo& getClientInfo() const;
+
+	const std::string& getClientId() const;
+	bool isClientInfoValid() const;
 
 	bool hasAllocatedRenderTarget() const;
+	inline class InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const 
+	{ return m_renderTargetReadAccessor; }
+	bool allocateRenderTargetTextures(const MikanRenderTargetDescriptor& desc);
+	void freeRenderTargetTexturesHandler();
+
+protected:
+	void allocateRenderTargetAccessor();
+	void disposeRenderTargetAccessor();
+
+private:
+	MikanClientInfo m_clientInfo;
+	class InterprocessRenderTargetReadAccessor* m_renderTargetReadAccessor= nullptr;
 };
 
 class MikanServer
@@ -62,50 +88,61 @@ public:
 	void publishStencilPoseUpdatedEvent(const MikanStencilPoseUpdateEvent& newPoseEvent);
 	void handleStencilSystemConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
-	void getConnectedClientInfoList(std::vector<MikanClientConnectionInfo>& outClientList) const;
+	void getConnectedClientInfoList(std::vector<const MikanClientConnectionInfo*>& outClientList) const;
 
-	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientConnected;
-	MulticastDelegate<void(const std::string& clientId)> OnClientDisconnected;
+	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientInitialized;
+	MulticastDelegate<void(const std::string& clientId)> OnClientDisposed;
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor) > OnClientRenderTargetAllocated;
 	MulticastDelegate<void(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor)> OnClientRenderTargetReleased;
-	MulticastDelegate<void(const std::string& clientId, uint64_t frameIndex)> OnClientRenderTargetUpdated;
+	MulticastDelegate<void(const std::string& clientId, int64_t frameIndex)> OnClientRenderTargetUpdated;
 
 protected:
+	// Connection State Management
+	MikanClientConnectionStatePtr allocateClientConnectionState(const std::string& connectionId);
+	void disposeClientConnectionState(const std::string& connectionId);
+	void initClientInfo(MikanClientConnectionStatePtr connectionState, const MikanClientInfo& clientInfo);
+	bool disposeClientInfo(MikanClientConnectionStatePtr connectionState);
+
+	// Websocket Event Handlers
+	void onClientConnectedHandler(const ClientSocketEvent& event);
+	void onClientDisconnectedHandler(const ClientSocketEvent& event);
+	void onClientErrorHandler(const ClientSocketEvent& event);
+
 	// Request Callbacks
-	void connectHandler(const ClientRequest& request, ClientResponse& response);
-	void disconnectHandler(const ClientRequest& request, ClientResponse& response);
+	void initClientHandler(const ClientRequest& request, ClientResponse& response);
+	void disposeClientHandler(const ClientRequest& request, ClientResponse& response);
 
 	void invokeScriptMessageHandler(const ClientRequest& request, ClientResponse& response);
 	
-	void getVideoSourceIntrinsics(const ClientRequest& request, ClientResponse& response);
-	void getVideoSourceMode(const ClientRequest& request, ClientResponse& response);
-	void getVideoSourceAttachment(const ClientRequest& request, ClientResponse& response);
+	void getVideoSourceIntrinsicsHandler(const ClientRequest& request, ClientResponse& response);
+	void getVideoSourceModeHandler(const ClientRequest& request, ClientResponse& response);
+	void getVideoSourceAttachmentHandler(const ClientRequest& request, ClientResponse& response);
 
-	void getVRDeviceList(const ClientRequest& request, ClientResponse& response);
-	void getVRDeviceInfo(const ClientRequest& request, ClientResponse& response);
-	void subscribeToVRDevicePoseUpdates(const ClientRequest& request, ClientResponse& response);
-	void unsubscribeFromVRDevicePoseUpdates(const ClientRequest& request, ClientResponse& response);
+	void getVRDeviceListHandler(const ClientRequest& request, ClientResponse& response);
+	void getVRDeviceInfoHandler(const ClientRequest& request, ClientResponse& response);
+	void subscribeToVRDevicePoseUpdatesHandler(const ClientRequest& request, ClientResponse& response);
+	void unsubscribeFromVRDevicePoseUpdatesHandler(const ClientRequest& request, ClientResponse& response);
 
-	void allocateRenderTargetTextures(const ClientRequest& request, ClientResponse& response);
-	void freeRenderTargetTextures(const ClientRequest& request, ClientResponse& response);
-	void frameRendered(const ClientRequest& request, ClientResponse& response);
+	void allocateRenderTargetTexturesHandler(const ClientRequest& request, ClientResponse& response);
+	void freeRenderTargetTexturesHandler(const ClientRequest& request, ClientResponse& response);
+	void frameRenderedHandler(const ClientRequest& request, ClientResponse& response);
 
-	void getQuadStencilList(const ClientRequest& request, ClientResponse& response);
-	void getQuadStencil(const ClientRequest& request, ClientResponse& response);
-	void getBoxStencilList(const ClientRequest& request, ClientResponse& response);
-	void getBoxStencil(const ClientRequest& request, ClientResponse& response);
-	void getModelStencilList(const ClientRequest& request, ClientResponse& response);
-	void getModelStencil(const ClientRequest& request, ClientResponse& response);
-	void getModelStencilRenderGeometry(const ClientRequest& request, ClientResponse& response);
+	void getQuadStencilListHandler(const ClientRequest& request, ClientResponse& response);
+	void getQuadStencilHandler(const ClientRequest& request, ClientResponse& response);
+	void getBoxStencilListHandler(const ClientRequest& request, ClientResponse& response);
+	void getBoxStencilHandler(const ClientRequest& request, ClientResponse& response);
+	void getModelStencilListHandler(const ClientRequest& request, ClientResponse& response);
+	void getModelStencilHandler(const ClientRequest& request, ClientResponse& response);
+	void getModelStencilRenderGeometryHandler(const ClientRequest& request, ClientResponse& response);
 
-	void getSpatialAnchorList(const ClientRequest& request, ClientResponse& response);
-	void getSpatialAnchorInfo(const ClientRequest& request, ClientResponse& response);
-	void findSpatialAnchorInfoByName(const ClientRequest& request, ClientResponse& response);
+	void getSpatialAnchorListHandler(const ClientRequest& request, ClientResponse& response);
+	void getSpatialAnchorInfoHandler(const ClientRequest& request, ClientResponse& response);
+	void findSpatialAnchorInfoByNameHandler(const ClientRequest& request, ClientResponse& response);
 
 	// VRManager Callbacks
 	void publishVRDeviceListChanged();
-	void publishVRDevicePoses(uint64_t newFrameIndex);
+	void publishVRDevicePoses(int64_t newFrameIndex);
 
 private:
 	static MikanServer* m_instance;

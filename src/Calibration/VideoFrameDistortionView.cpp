@@ -113,8 +113,8 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	// Generate the distortion map from the current camera intrinsics
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
-	assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-	rebuildDistortionMap(&cameraIntrinsics.intrinsics.mono);
+	const auto& monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
+	rebuildDistortionMap(&monoIntrinsics);
 
 	// Create a mesh used to render the video frame
 	m_fullscreenQuad= createFullscreenQuadMesh(m_ownerWindow, true);
@@ -173,7 +173,7 @@ bool VideoFrameDistortionView::hasNewVideoFrame() const
 	return m_videoSourceView->hasNewVideoFrameAvailable(VideoFrameSection::Primary);
 }
 
-uint64_t VideoFrameDistortionView::readNextVideoFrame()
+int64_t VideoFrameDistortionView::readNextVideoFrame()
 {
 	EASY_FUNCTION();
 
@@ -195,7 +195,7 @@ uint64_t VideoFrameDistortionView::readNextVideoFrame()
 	return m_lastVideoFrameReadIndex;
 }
 
-bool VideoFrameDistortionView::processVideoFrame(uint64_t desiredFrameIndex)
+bool VideoFrameDistortionView::processVideoFrame(int64_t desiredFrameIndex)
 {
 	EASY_FUNCTION();
 
@@ -310,7 +310,7 @@ bool VideoFrameDistortionView::readAndProcessVideoFrame()
 
 	if (hasNewVideoFrame())
 	{
-		const uint64_t newestFrameIndex= readNextVideoFrame();
+		const int64_t newestFrameIndex= readNextVideoFrame();
 		bool bUndistortedFrame= processVideoFrame(newestFrameIndex);
 		assert(bUndistortedFrame);
 

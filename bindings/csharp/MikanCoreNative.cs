@@ -4,6 +4,16 @@ using System.Text;
 
 namespace MikanXR
 {
+	[StructLayout(LayoutKind.Sequential)]
+	public struct MikanRenderTargetDescriptor_Native
+	{
+		public MikanColorBufferType color_buffer_type;
+		public MikanDepthBufferType depth_buffer_type;
+		public uint width;
+		public uint height;
+		public MikanClientGraphicsApi graphicsAPI;
+	};
+
 	public class MikanCoreNative
 	{
 		[global::System.Runtime.InteropServices.UnmanagedFunctionPointer(global::System.Runtime.InteropServices.CallingConvention.Cdecl)]
@@ -26,92 +36,106 @@ namespace MikanXR
 			IntPtr userdata);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_Initialize(MikanLogLevel min_log_level, NativeLogCallback log_callback);
+		public static extern int Mikan_Initialize(
+			MikanLogLevel min_log_level, 
+			NativeLogCallback log_callback, 
+			out IntPtr out_context);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_GetCoreSDKVersion();
+		public static extern int Mikan_GetClientAPIVersion();
 
 		[DllImport("MikanCore.dll")]
-		public static extern IntPtr Mikan_GetClientUniqueID();
-		public static string GetClientUniqueID()
+		public static extern IntPtr Mikan_GetClientUniqueID(IntPtr context);
+		public static string GetClientUniqueID(IntPtr context)
 		{
-			return Marshal.PtrToStringAnsi(Mikan_GetClientUniqueID());
+			return Marshal.PtrToStringAnsi(Mikan_GetClientUniqueID(context));
 		}
 
 		[DllImport("MikanCore.dll")]
-		public static extern bool Mikan_GetIsInitialized();
+		public static extern bool Mikan_GetIsInitialized(IntPtr context);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_SetGraphicsDeviceInterface(
+			IntPtr context,
 			MikanClientGraphicsApi api, 
 			IntPtr graphicsDeviceInterface);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_GetGraphicsDeviceInterface(
+			IntPtr context,
 			MikanClientGraphicsApi api, 
 			out IntPtr outGraphicsDeviceInterface);
 
 		[DllImport("MikanCore.dll")]
+		public static extern int Mikan_GetRenderTargetDescriptor(
+			IntPtr context,
+			out MikanRenderTargetDescriptor_Native out_descriptor);
+
+		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_AllocateRenderTargetTextures(
-			ref MikanRenderTargetDescriptor descriptor, 
-			out int out_request_id);
+			IntPtr context,
+			ref MikanRenderTargetDescriptor_Native descriptor);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_WriteColorRenderTargetTexture(IntPtr ApiColorTexturePtr);
+		public static extern int Mikan_FreeRenderTargetTextures(IntPtr context);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_WriteDepthRenderTargetTexture(IntPtr ApiColorTexturePtr, float zNear, float zFar);
+		public static extern int Mikan_WriteColorRenderTargetTexture(
+			IntPtr context,
+			IntPtr api_color_texture_ptr);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_PublishRenderTargetTextures(ref MikanClientFrameRendered frame_info);
+		public static extern int Mikan_WriteDepthRenderTargetTexture(
+			IntPtr context,
+			IntPtr api_depth_texture_ptr, 
+			float zNear, 
+			float zFar);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_FreeRenderTargetTextures(out int out_request_id);
-
-		[DllImport("MikanCore.dll")]
-		public static extern IntPtr Mikan_GetPackDepthTextureResourcePtr();
+		public static extern IntPtr Mikan_GetPackDepthTextureResourcePtr(IntPtr context);
 
 		[DllImport("MikanCore.dll", CharSet = CharSet.Ansi)]
-		public static extern int Mikan_SetClientInfo(
-			[MarshalAs(UnmanagedType.LPUTF8Str)]
-			string clientInfo);
+		public static extern int Mikan_Connect(
+			IntPtr context,
+			string host, 
+			string port);
 
 		[DllImport("MikanCore.dll", CharSet = CharSet.Ansi)]
-		public static extern int Mikan_Connect(string host, string port);
+		public static extern int Mikan_Disconnect(
+			IntPtr context,
+			UInt16 code,
+			string reason);
 
 		[DllImport("MikanCore.dll")]
-		public static extern bool Mikan_GetIsConnected();
+		public static extern bool Mikan_GetIsConnected(IntPtr context);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_FetchNextEvent(
+			IntPtr context,
 			UIntPtr utf8_buffer_size,
 			[MarshalAs(UnmanagedType.LPUTF8Str)] 
 			StringBuilder out_utf8_buffer,
 			out UIntPtr out_utf8_bytes_written);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_SendRequest(
+		public static extern int Mikan_SendRequestJSON(
+			IntPtr context,
 			[MarshalAs(UnmanagedType.LPUTF8Str)]
-			string utf8_request_name, 
-			[MarshalAs(UnmanagedType.LPUTF8Str)]
-			string utf8_payload,
-			int request_version,
-			out int out_request_id);
+			string utf8_request_json);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_SetTextResponseCallback(
+			IntPtr context,
 			NativeTextResponseCallback callback, 
 			IntPtr callback_userdata);
 
 		[DllImport("MikanCore.dll")]
 		public static extern int Mikan_SetBinaryResponseCallback(
+			IntPtr context,
 			NativeBinaryResponseCallback callback,
 			IntPtr callback_userdata);
 
 		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_Disconnect();
-
-		[DllImport("MikanCore.dll")]
-		public static extern int Mikan_Shutdown();
+		public static extern int Mikan_Shutdown(IntPtr context);
 	}
 }

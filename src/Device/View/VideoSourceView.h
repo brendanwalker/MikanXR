@@ -80,7 +80,7 @@ public:
 	void setVideoProperty(const VideoPropertyType property_type, int desired_value, bool save_setting);
 
 	bool hasNewVideoFrameAvailable(VideoFrameSection section) const;
-	uint64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer);
+	int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer);
 
 	void getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
 	void setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
@@ -107,7 +107,7 @@ protected:
 	void recomputeCameraProjectionMatrix();
 
 private:
-	uint64_t m_lastVideoFrameReadIndex;
+	int64_t m_lastVideoFrameReadIndex;
 	class OpenCVBufferState* m_opencv_buffer_state[MAX_PROJECTION_COUNT];
 	IVideoSourceInterface* m_device;
 	glm::mat4 m_projectionMatrix;

@@ -93,15 +93,15 @@ public:
 		m_lastVideoFrameWriteIndex++;
 	}
 
-	uint64_t getLastVideoFrameWriteIndex() const
+	int64_t getLastVideoFrameWriteIndex() const
 	{
 		return m_lastVideoFrameWriteIndex.load();
 	}
 
-	uint64_t readVideoFrame(cv::Mat* outBGRBuffer, uint64_t lastReadFrameIndex)
+	int64_t readVideoFrame(cv::Mat* outBGRBuffer, int64_t lastReadFrameIndex)
 	{
 		EASY_FUNCTION();
-		uint64_t lastVideoFrameWriteIndex= getLastVideoFrameWriteIndex();
+		int64_t lastVideoFrameWriteIndex= getLastVideoFrameWriteIndex();
 
 		if (lastVideoFrameWriteIndex != lastReadFrameIndex)
 		{
@@ -123,7 +123,7 @@ private:
 
 	std::mutex m_bufferMutex;
 	cv::Mat* m_bgrBuffer; // source video frame
-	std::atomic_uint64_t m_lastVideoFrameWriteIndex;
+	std::atomic_int64_t m_lastVideoFrameWriteIndex;
 };
 
 //-- public implementation -----
@@ -260,8 +260,9 @@ void VideoSourceView::notifyVideoFrameReceived(const unsigned char* raw_video_fr
 	if (m_device->getIsStereoCamera())
 	{
 		const VideoModeConfig* mode_config = m_device->getVideoMode();
-		const int section_width = (int)mode_config->intrinsics.intrinsics.stereo.pixel_width;
-		const int section_height = (int)mode_config->intrinsics.intrinsics.stereo.pixel_height;
+		const auto& stereoIntrinsics= mode_config->intrinsics.getStereoIntrinsics();
+		const int section_width = (int)stereoIntrinsics.pixel_width;
+		const int section_height = (int)stereoIntrinsics.pixel_height;
 
 		cv::Rect left_bounds;
 		cv::Rect right_bounds;
@@ -594,7 +595,7 @@ void VideoSourceView::recomputeCameraProjectionMatrix()
 	{
 	case MONO_CAMERA_INTRINSICS:
 		{
-			const MikanMonoIntrinsics& monoIntrinsics = camera_intrinsics.intrinsics.mono;
+			const MikanMonoIntrinsics& monoIntrinsics = camera_intrinsics.getMonoIntrinsics();
 
 			videoSourcePixelWidth = (float)monoIntrinsics.pixel_width;
 			videoSourcePixelHeight = (float)monoIntrinsics.pixel_height;
@@ -604,7 +605,7 @@ void VideoSourceView::recomputeCameraProjectionMatrix()
 		} break;
 	case STEREO_CAMERA_INTRINSICS:
 		{
-			const MikanStereoIntrinsics& stereoIntrinsics = camera_intrinsics.intrinsics.stereo;
+			const MikanStereoIntrinsics& stereoIntrinsics = camera_intrinsics.getStereoIntrinsics();
 
 			videoSourcePixelWidth = (float)stereoIntrinsics.pixel_width;
 			videoSourcePixelHeight = (float)stereoIntrinsics.pixel_height;
@@ -664,7 +665,7 @@ void VideoSourceView::getZRange(float& outZNear, float& outZFar) const
 
 bool VideoSourceView::hasNewVideoFrameAvailable(VideoFrameSection section) const
 {
-	uint64_t lastFrameWriteIndex = 0;
+	int64_t lastFrameWriteIndex = 0;
 
 	if (m_device->getIsStereoCamera())
 	{
@@ -686,7 +687,7 @@ bool VideoSourceView::hasNewVideoFrameAvailable(VideoFrameSection section) const
 	return lastFrameWriteIndex != m_lastVideoFrameReadIndex;
 }
 
-uint64_t VideoSourceView::readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer)
+int64_t VideoSourceView::readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer)
 {
 	EASY_FUNCTION();
 

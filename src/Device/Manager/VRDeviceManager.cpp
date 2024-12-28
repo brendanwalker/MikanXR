@@ -181,7 +181,7 @@ void VRDeviceManager::onDevicePropertyChanged(int deviceId)
 	}
 }
 
-void VRDeviceManager::onDevicePosesChanged(uint64_t newVRFrameIndex)
+void VRDeviceManager::onDevicePosesChanged(int64_t newVRFrameIndex)
 {
 	for (int VRTrackerId = 0; VRTrackerId < k_max_devices; ++VRTrackerId)
 	{

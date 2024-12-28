@@ -163,16 +163,24 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+:: Download pre-compiled Refureku libraries
+echo "Downloading Refureku..."
+curl -L https://github.com/MikanXR/Refureku/releases/download/v2.2.1/rfk_v2.2.1_windows.zip --output rfk_v2.2.1_windows.zip
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading rfk_v2.2.1_windows.zip"
+  goto failure
+)
+7z e rfk_v2.2.1_windows.zip -y -r -spf -orfk
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping rfk_v2.2.1_windows.zip"
+  goto failure
+)
+
 :: NuGet tool used to fetch c# packages
 echo "Downloading nuget..."
 curl -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe --output nuget.exe
 
 :: Exit back out of the deps folder
-popd
-
-:: Download deep neural network models
-pushd resources\dnn
-curl -L https://github.com/isl-org/MiDaS/releases/download/v2_1/model-f6b98070.onnx --output midas_v21_384x384.onnx
 popd
 
 EXIT /B 0

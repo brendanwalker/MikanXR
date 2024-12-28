@@ -44,7 +44,7 @@ struct StencilAlignmentState
 		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-		inputCameraIntrinsics= cameraIntrinsics.intrinsics.mono;
+		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 
 		resetCalibration();
 	}
@@ -131,8 +131,9 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 	// a position and orientation of the calibration pattern relative to the camera
 	cv::Quatd cv_cameraToStencilRot;
 	cv::Vec3d cv_cameraToStencilVecMM; // Millimeters
+	const auto& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	if (!computeOpenCVCameraRelativePatternTransform(
-		cameraIntrinsics.intrinsics.mono,
+		monoIntrinsics,
 		m_calibrationState->pixelSamples,
 		m_calibrationState->cvLocalVertexSamples,
 		cv_cameraToStencilRot,

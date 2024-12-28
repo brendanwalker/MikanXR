@@ -40,7 +40,6 @@
 
 # Build directories
 build*
-bin*
 dist*
 !OBJ-loader
 !resources/models/*/*.obj
@@ -59,4 +58,3 @@ deps
 imgui.ini
 MikanXR.log
 !src/Object
-/src/NodeEditors/Nodes/DrawLayerNode.cpp

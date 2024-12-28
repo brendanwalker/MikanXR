@@ -50,8 +50,7 @@ struct AnchorTriangulationState
 		// Get the current mono camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
-		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-		inputCameraIntrinsics= cameraIntrinsics.intrinsics.mono;
+		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 
 		initialCameraPoseSample = glm::mat4(1.f);
 		resetCalibration();

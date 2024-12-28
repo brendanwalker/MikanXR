@@ -140,7 +140,7 @@ InterprocessRenderTargetReadAccessor::InterprocessRenderTargetReadAccessor(const
 	, m_depthTexture(nullptr)
 	, m_readerImpl(new RenderTargetReaderImpl)
 {
-	memset(&m_descriptor, 0, sizeof(MikanRenderTargetDescriptor));
+	m_descriptor = MikanRenderTargetDescriptor();
 	m_readerImpl->readerApi.spoutTextureReader= nullptr;
 	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 }
@@ -149,6 +149,7 @@ InterprocessRenderTargetReadAccessor::~InterprocessRenderTargetReadAccessor()
 {
 	dispose();
 	delete m_readerImpl;
+	m_readerImpl= nullptr;
 }
 
 bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDescriptor* descriptor)
@@ -158,7 +159,7 @@ bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDes
 	dispose();
 
 	m_descriptor= *descriptor;
-	m_lastFrameInfo= {};
+	m_lastFrameRenderedIndex= 0;
 
 	if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
 		descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
@@ -176,6 +177,7 @@ bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDes
 
 void InterprocessRenderTargetReadAccessor::dispose()
 {
+	assert(m_readerImpl != nullptr);
 	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
@@ -190,10 +192,11 @@ void InterprocessRenderTargetReadAccessor::dispose()
 	}
 
 	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
+	m_descriptor = {};
 }
 
 bool InterprocessRenderTargetReadAccessor::readRenderTargetTextures(
-	const MikanClientFrameRendered& frameInfo)
+	const int64_t newFrameIndex)
 {
 	bool bSuccess = false;
 
@@ -202,7 +205,7 @@ bool InterprocessRenderTargetReadAccessor::readRenderTargetTextures(
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
-		m_lastFrameInfo = frameInfo;
+		m_lastFrameRenderedIndex = newFrameIndex;
 
 		if (m_readerImpl->readerApi.spoutTextureReader != nullptr &&
 			m_readerImpl->readerApi.spoutTextureReader->readRenderTargetTexture())

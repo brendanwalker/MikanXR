@@ -202,7 +202,7 @@ bool WMFStereoVideoSource::open(const DeviceEnumerator *enumerator)
 		    if (m_currentMode != nullptr)
 		    {
 			    // Copy the tracker intrinsics over from the capabilities
-			    m_cfg->tracker_intrinsics= m_currentMode->intrinsics.intrinsics.stereo;
+			    m_cfg->tracker_intrinsics= m_currentMode->intrinsics.getStereoIntrinsics();
 
 			    // Attempt to find a compatible WMF video format
 			    std::string mfvideoformat= std::string("MFVideoFormat_")+m_currentMode->bufferFormat;
@@ -309,7 +309,7 @@ bool WMFStereoVideoSource::getVideoFrameDimensions(
 
     if (out_width != nullptr)
     {
-        int width = (int)m_currentMode->intrinsics.intrinsics.stereo.pixel_width;
+        int width = (int)m_currentMode->intrinsics.getStereoIntrinsics().pixel_width;
 
         if (out_stride != nullptr)
         {
@@ -322,7 +322,7 @@ bool WMFStereoVideoSource::getVideoFrameDimensions(
 
     if (out_height != nullptr)
     {
-        int height = (int)m_currentMode->intrinsics.intrinsics.stereo.pixel_height;
+        int height = (int)m_currentMode->intrinsics.getStereoIntrinsics().pixel_height;
 
         *out_height = height;
     }
@@ -408,7 +408,7 @@ bool WMFStereoVideoSource::setVideoMode(const std::string mode_name)
 			(unsigned int)new_mode->frameRate,
 			mfvideoformat.c_str());
 
-		m_cfg->tracker_intrinsics= new_mode->intrinsics.intrinsics.stereo;
+		m_cfg->tracker_intrinsics= new_mode->intrinsics.getStereoIntrinsics();
 		m_currentMode= new_mode;
 
 		if (desiredFormatIndex != INVALID_DEVICE_FORMAT_INDEX)
@@ -426,12 +426,12 @@ bool WMFStereoVideoSource::setVideoMode(const std::string mode_name)
 
 double WMFStereoVideoSource::getFrameWidth() const
 {
-	return (double)m_currentMode->intrinsics.intrinsics.stereo.pixel_width;
+	return (double)m_currentMode->intrinsics.getStereoIntrinsics().pixel_width;
 }
 
 double WMFStereoVideoSource::getFrameHeight() const
 {
-	return (double)m_currentMode->intrinsics.intrinsics.stereo.pixel_height;
+	return (double)m_currentMode->intrinsics.getStereoIntrinsics().pixel_height;
 }
 
 double WMFStereoVideoSource::getFrameRate() const
@@ -463,14 +463,14 @@ void WMFStereoVideoSource::getCameraIntrinsics(
     MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= STEREO_CAMERA_INTRINSICS;
-    out_tracker_intrinsics.intrinsics.stereo= m_cfg->tracker_intrinsics;
+    out_tracker_intrinsics.setStereoIntrinsics(m_cfg->tracker_intrinsics);
 }
 
 void WMFStereoVideoSource::setCameraIntrinsics(
     const MikanVideoSourceIntrinsics& tracker_intrinsics)
 {
     assert(tracker_intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS);
-    m_cfg->tracker_intrinsics= tracker_intrinsics.intrinsics.stereo;
+    m_cfg->tracker_intrinsics= tracker_intrinsics.getStereoIntrinsics();
 }
 
 MikanQuatd WMFStereoVideoSource::getCameraOffsetOrientation() const

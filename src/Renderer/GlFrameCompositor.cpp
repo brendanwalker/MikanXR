@@ -377,16 +377,16 @@ bool GlFrameCompositor::start()
 		MikanServer* mikanServer = MikanServer::getInstance();
 
 		// Create layers for all connected clients with allocated render targets
-		std::vector<MikanClientConnectionInfo> clientList;
+		std::vector<const MikanClientConnectionInfo*> clientList;
 		mikanServer->getConnectedClientInfoList(clientList);
-		for (const MikanClientConnectionInfo& connectionInfo : clientList)
+		for (const MikanClientConnectionInfo* connectionInfo : clientList)
 		{
-			if (connectionInfo.hasAllocatedRenderTarget())
+			if (connectionInfo->hasAllocatedRenderTarget())
 			{
 				onClientRenderTargetAllocated(
-					connectionInfo.clientInfo.clientId, 
-					connectionInfo.clientInfo,
-					connectionInfo.renderTargetReadAccessor);
+					connectionInfo->getClientId(), 
+					connectionInfo->getClientInfo(),
+					connectionInfo->getRenderTargetReadAccessor());
 			}
 		}
 
@@ -943,8 +943,7 @@ bool GlFrameCompositor::addClientSource(
 	if (m_clientSources.hasValue(clientId))
 		return false;
 
-	GlFrameCompositor::ClientSource* clientSource = new GlFrameCompositor::ClientSource;
-	memset(clientSource, 0, sizeof(GlFrameCompositor::ClientSource));
+	GlFrameCompositor::ClientSource* clientSource = new GlFrameCompositor::ClientSource();
 
 	const MikanRenderTargetDescriptor& desc= readAccessor->getRenderTargetDescriptor();
 	clientSource->clientSourceIndex= m_clientSources.getNumEntries();
@@ -1159,7 +1158,7 @@ void GlFrameCompositor::onClientRenderTargetReleased(
 
 void GlFrameCompositor::onClientRenderTargetUpdated(
 	const std::string& clientId, 
-	uint64_t frameIndex)
+	int64_t frameIndex)
 {
 	EASY_FUNCTION();
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "MikanVideoSourceTypes.h"
 #include "RendererFwd.h"
 
 #include "glm/ext/matrix_float4x4.hpp"
@@ -42,7 +41,7 @@ public:
 	eCameraMovementMode getCameraMovementMode() const { return m_movementMode; }
 	void setCameraMovementMode(eCameraMovementMode mode);
 
-	void applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics);
+	void applyMonoCameraIntrinsics(struct MikanVideoSourceIntrinsics* cameraIntrinsics);
 
 	void setCameraTransform(const glm::mat4& poseXform);
 	void setPosition(const glm::vec3& location);

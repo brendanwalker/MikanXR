@@ -27,8 +27,8 @@ public:
 		, m_depthFrameSenderName(clientName+"_depth")
 		, m_spoutColorFrame(nullptr)
 		, m_spoutDepthFrame(nullptr)
+		, m_descriptor()
 	{
-		memset(&m_descriptor, 0, sizeof(MikanRenderTargetDescriptor));
 	}
 
 	virtual ~SpoutOpenGLTextureWriter()
@@ -521,6 +521,13 @@ private:
 //-- InterprocessRenderTargetWriteAccessor -----
 struct RenderTargetWriterImpl
 {
+	RenderTargetWriterImpl()
+		: renderTargetDescriptor()
+		, writerApi()
+		, graphicsAPI(MikanClientGraphicsApi_UNKNOWN)
+	{
+	}
+
 	MikanRenderTargetDescriptor renderTargetDescriptor;
 
 	union
@@ -536,10 +543,8 @@ struct RenderTargetWriterImpl
 
 InterprocessRenderTargetWriteAccessor::InterprocessRenderTargetWriteAccessor(const std::string& clientName)
 	: m_clientName(clientName)
-	, m_writerImpl(new RenderTargetWriterImpl)
+	, m_writerImpl(new RenderTargetWriterImpl())
 {
-	memset(m_writerImpl, 0, sizeof(RenderTargetWriterImpl));
-	memset(&m_writerImpl->renderTargetDescriptor, 0, sizeof(MikanRenderTargetDescriptor));
 }
 
 InterprocessRenderTargetWriteAccessor::~InterprocessRenderTargetWriteAccessor()

@@ -48,7 +48,7 @@ struct MonoLensDistortionCalibrationState
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
 
-		inputCameraIntrinsics= cameraIntrinsics.intrinsics.mono;
+		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 		desiredPatternCount = patternCount;
 
 		resetCalibration();

@@ -34,7 +34,7 @@ BoxStencilDefinition::BoxStencilDefinition(
 	: StencilComponentDefinition(
 		boxInfo.stencil_id,
 		boxInfo.parent_anchor_id,
-		boxInfo.stencil_name,
+		boxInfo.stencil_name.getValue(),
 		boxInfo.relative_transform)
 {
 	m_boxSize= {boxInfo.box_x_size, boxInfo.box_y_size, boxInfo.box_z_size};

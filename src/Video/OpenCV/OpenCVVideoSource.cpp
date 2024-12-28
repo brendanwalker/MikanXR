@@ -6,6 +6,8 @@
 #include "VideoCapabilitiesConfig.h"
 #include "OpenCVCameraEnumerator.h"
 
+#include <memory>
+
 #ifdef _MSC_VER
     #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strncpy
 #endif
@@ -321,15 +323,18 @@ int OpenCVVideoSource::getVideoProperty(const VideoPropertyType property_type) c
 void OpenCVVideoSource::getCameraIntrinsics(
 	MikanVideoSourceIntrinsics& outCameraIntrinsics) const
 {
-	outCameraIntrinsics.intrinsics_type = MONO_CAMERA_INTRINSICS;
-	outCameraIntrinsics.intrinsics.mono = m_cfg->cameraIntrinsics;
+	outCameraIntrinsics.setMonoIntrinsics(m_cfg->cameraIntrinsics);
 }
 
 void OpenCVVideoSource::setCameraIntrinsics(
-	const MikanVideoSourceIntrinsics& cameraIntrinsics)
+	const MikanVideoSourceIntrinsics& videoSourceIntrinsics)
 {
-	assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-	m_cfg->cameraIntrinsics = cameraIntrinsics.intrinsics.mono;
+	assert(videoSourceIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
+
+	auto cameraIntrinsics= videoSourceIntrinsics.intrinsics_ptr.getSharedPointer();
+	auto monoIntrinsics= std::static_pointer_cast<MikanMonoIntrinsics>(cameraIntrinsics);
+
+	m_cfg->cameraIntrinsics = *monoIntrinsics.get();
 }
 
 MikanQuatd OpenCVVideoSource::getCameraOffsetOrientation() const

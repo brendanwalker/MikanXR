@@ -209,12 +209,12 @@ VideoCapabilitiesConfigConstPtr WMFDeviceInfo::convertToVideoCapabilites() const
 			mode.frameSections.push_back({0, 0}); // Only one frame section for mono video sources
 
 			// Set default camera intrinsic properties
-			memset(&mode.intrinsics, 0, sizeof(MikanVideoSourceIntrinsics));
-			mode.intrinsics.intrinsics_type = MONO_CAMERA_INTRINSICS;
+			MikanMonoIntrinsics monoIntrinsics = {};
 			createDefautMonoIntrinsics(
 				info.width,
 				info.height,
-				mode.intrinsics.intrinsics.mono);
+				monoIntrinsics);
+			mode.intrinsics.setMonoIntrinsics(monoIntrinsics);
 
 			videoCapabilities->supportedModes.push_back(mode);
 		}

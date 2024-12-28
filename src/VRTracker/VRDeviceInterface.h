@@ -40,7 +40,7 @@ public:
 
 	virtual void onActiveDeviceListChanged() = 0;
 	virtual void onDevicePropertyChanged(int deviceId) = 0;
-    virtual void onDevicePosesChanged(uint64_t newFrameId) = 0;
+    virtual void onDevicePosesChanged(int64_t newFrameId) = 0;
 };
 
 /// Abstract class for VRDevice interface. Implemented by VRDevices

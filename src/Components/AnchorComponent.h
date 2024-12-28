@@ -3,7 +3,7 @@
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "SceneComponent.h"
-#include "MikanSpatialAnchorTypes.h"
+#include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
@@ -44,7 +44,7 @@ public:
 		return std::static_pointer_cast<AnchorDefinition>(m_definition);
 	}
 
-	void extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outAnchorInfo) const;
+	void extractAnchorInfoForClientAPI(struct MikanSpatialAnchorInfo& outAnchorInfo) const;
 
 	// -- IFunctionInterface ----
 	static const std::string k_editAnchorFunctionId;

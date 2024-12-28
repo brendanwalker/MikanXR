@@ -8,7 +8,12 @@
 
 #include "Logger.h"
 #include "MikanAPI.h"
-#include "MikanEventTypes.h"
+#include "MikanRenderTargetRequests.h"
+#include "MikanVideoSourceEvents.h"
+#include "MikanVideoSourceRequests.h"
+#include "MikanClientRequests.h"
+#include "MikanClientEvents.h"
+#include "MikanVideoSourceEvents.h"
 #include "MikanMathTypes.h"
 #include "MikanStencilTypes.h"
 #include "MikanVideoSourceTypes.h"
@@ -42,9 +47,9 @@ ID3D11ShaderResourceView* g_shaderResourceView = nullptr;
 
 IMikanAPIPtr g_mikanAPI;
 uint32_t g_lastFrameTimestamp= 0;
-uint64_t m_lastReceivedVideoSourceFrame= 0;
+int64_t m_lastReceivedVideoSourceFrame= 0;
 bool g_mikanInitialized = true;
-uint64_t g_lastReceivedVideoSourceFrame= 0;
+int64_t g_lastReceivedVideoSourceFrame= 0;
 float g_mikanReconnectTimeout = 0.f; // seconds
 float g_zNear = 0.1f;
 float g_zFar = 1000.f;
@@ -141,18 +146,9 @@ bool initMikan()
 
     g_mikanAPI= IMikanAPI::createMikanAPI();
 
-	if (g_mikanAPI->init(MikanLogLevel_Info, onMikanLog) == MikanResult_Success)
+	if (g_mikanAPI->init(MikanLogLevel_Info, onMikanLog) == MikanAPIResult::Success)
 	{
-		MikanClientInfo ClientInfo = {};
-		ClientInfo.engineName = "MikanXR Test";
-		ClientInfo.engineVersion= "1.0";
-		ClientInfo.applicationName= "MikanXR Test";
-		ClientInfo.applicationVersion= "1.0";
-		ClientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
-		ClientInfo.supportsRGB24 = true;
-		g_mikanAPI->setClientInfo(ClientInfo);
-
-        g_mikanAPI->getRenderTargetAPI()->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
+        g_mikanAPI->setGraphicsDeviceInterface(MikanClientGraphicsApi_Direct3D11, g_pd3dDevice);
 		g_mikanInitialized = true;
 	}
 	else
@@ -175,25 +171,38 @@ void updateMikan()
 	if (g_mikanAPI->getIsConnected())
 	{
 		MikanEventPtr event;
-		while (g_mikanAPI->fetchNextEvent(event) == MikanResult_Success)
+		while (g_mikanAPI->fetchNextEvent(event) == MikanAPIResult::Success)
 		{
-			if (event->eventType == MikanConnectedEvent::k_typeName)
+			if (typeid(*event) == typeid(MikanConnectedEvent))
+            {
+				MikanClientInfo clientInfo = g_mikanAPI->allocateClientInfo();
+				clientInfo.engineName = "MikanXR Test";
+				clientInfo.engineVersion = "1.0";
+				clientInfo.applicationName = "MikanXR Test";
+				clientInfo.applicationVersion = "1.0";
+				clientInfo.graphicsAPI = MikanClientGraphicsApi_OpenGL;
+				clientInfo.supportsRGB24 = true;
+
+				InitClientRequest initClientRequest = {};
+                initClientRequest.clientInfo = clientInfo;
+
+                g_mikanAPI->sendRequest(initClientRequest).awaitResponse();
+
+				reallocateRenderBuffers();
+				updateCameraProjectionMatrix();
+            }
+			else if (typeid(*event) == typeid(MikanVideoSourceOpenedEvent))
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
             }
-			else if (event->eventType == MikanVideoSourceOpenedEvent::k_typeName)
-            {
-				reallocateRenderBuffers();
-				updateCameraProjectionMatrix();
-            }
-            else if (event->eventType == MikanVideoSourceNewFrameEvent::k_typeName)
+            else if (typeid(*event) == typeid(MikanVideoSourceNewFrameEvent))
             {
 				auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(event);
 				processNewVideoSourceFrame(*newFrameEvent.get());
             }
-			else if (event->eventType == MikanVideoSourceModeChangedEvent::k_typeName ||
-					 event->eventType == MikanVideoSourceIntrinsicsChangedEvent::k_typeName)
+			else if (typeid(*event) == typeid(MikanVideoSourceModeChangedEvent) ||
+					 typeid(*event) == typeid(MikanVideoSourceIntrinsicsChangedEvent))
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
@@ -204,7 +213,7 @@ void updateMikan()
 	{
 		if (g_mikanReconnectTimeout <= 0.f)
 		{
-			if (g_mikanAPI->connect() != MikanResult_Success || !g_mikanAPI->getIsConnected())
+			if (g_mikanAPI->connect() != MikanAPIResult::Success || !g_mikanAPI->getIsConnected())
 			{
 				// timeout between reconnect attempts
 				g_mikanReconnectTimeout = 1.0f;
@@ -234,14 +243,21 @@ void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEve
 	// Render out a new frame
 	render();
 
-	// Publish the new video frame back to Mikan
-    {
-		MikanClientFrameRendered frameRendered = {newFrameEvent.frame};
+	// Write the color texture to the shared texture
+	{
+		WriteColorRenderTargetTexture writeTextureRequest;
 
-        auto renderTargetAPI = g_mikanAPI->getRenderTargetAPI();
-        renderTargetAPI->writeColorRenderTargetTexture(g_renderTargetTexture);
-        renderTargetAPI->publishRenderTargetTextures(frameRendered);
-    }
+		writeTextureRequest.apiColorTexturePtr = g_renderTargetTexture;
+		g_mikanAPI->sendRequest(writeTextureRequest);
+	}
+
+	// Publish the new video frame back to Mikan
+	{
+		PublishRenderTargetTextures frameRendered;
+
+		frameRendered.frameIndex = newFrameEvent.frame;
+		g_mikanAPI->sendRequest(frameRendered);
+	}
 
 	// Remember the frame index of the last frame we published
     g_lastReceivedVideoSourceFrame = newFrameEvent.frame;
@@ -259,16 +275,16 @@ void reallocateRenderBuffers()
 {
 	freeFrameBuffer();
 
-	g_mikanAPI->getRenderTargetAPI()->freeRenderTargetTextures().wait();
+    FreeRenderTargetTextures freeRequest;
+	g_mikanAPI->sendRequest(freeRequest).awaitResponse();
 
-	auto future = g_mikanAPI->getVideoSourceAPI()->getVideoSourceMode();
-	auto response = future.get();
-	if (response->resultCode == MikanResult_Success)
+    GetVideoSourceMode getModeRequest;
+	auto response = g_mikanAPI->sendRequest(getModeRequest).fetchResponse();
+	if (response->resultCode == MikanAPIResult::Success)
 	{
-        auto mode = std::static_pointer_cast<MikanVideoSourceMode>(response);
+        auto mode = std::static_pointer_cast<MikanVideoSourceModeResponse>(response);
 
-		MikanRenderTargetDescriptor desc;
-		memset(&desc, 0, sizeof(MikanRenderTargetDescriptor));
+		MikanRenderTargetDescriptor desc = {};
 		desc.width = mode->resolution_x;
 		desc.height = mode->resolution_y;
 		desc.color_buffer_type = MikanColorBuffer_BGRA32;
@@ -276,7 +292,9 @@ void reallocateRenderBuffers()
 		desc.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
 		// Tell the server to allocate new render target buffers
-		g_mikanAPI->getRenderTargetAPI()->allocateRenderTargetTextures(desc).wait();
+        AllocateRenderTargetTextures allocateRequest;
+        allocateRequest.descriptor = desc;
+		g_mikanAPI->sendRequest(allocateRequest).awaitResponse();
 
         // Create a new frame buffer to render to
 		createFrameBuffer(mode->resolution_x, mode->resolution_y);
@@ -285,19 +303,19 @@ void reallocateRenderBuffers()
 
 void updateCameraProjectionMatrix()
 {
-	auto future = g_mikanAPI->getVideoSourceAPI()->getVideoSourceIntrinsics();
-	auto response = future.get();
+    GetVideoSourceIntrinsics getIntrinsicsRequest;
+	auto response = g_mikanAPI->sendRequest(getIntrinsicsRequest).fetchResponse();
 
-	if (response->resultCode == MikanResult_Success)
+	if (response->resultCode == MikanAPIResult::Success)
 	{
-        auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsics>(response);
+        auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
+        auto cameraIntrinsics= videoSourceIntrinsics->intrinsics.intrinsics_ptr.getSharedPointer();
 
-        const MikanMonoIntrinsics& monoIntrinsics= videoSourceIntrinsics->intrinsics.mono;
-		const float videoSourcePixelWidth = monoIntrinsics.pixel_width;
-		const float videoSourcePixelHeight = monoIntrinsics.pixel_height;
+		const float videoSourcePixelWidth = cameraIntrinsics->pixel_width;
+		const float videoSourcePixelHeight = cameraIntrinsics->pixel_height;
 
-        g_zNear = (float)monoIntrinsics.znear;
-        g_zFar = (float)monoIntrinsics.zfar;
+        g_zNear = (float)cameraIntrinsics->znear;
+        g_zFar = (float)cameraIntrinsics->zfar;
 		//m_projectionMatrix =
 		//	glm::perspective(
 		//		(float)degrees_to_radians(monoIntrinsics.vfov),
@@ -395,6 +413,15 @@ void cleanupMikan()
 {
 	if (g_mikanInitialized)
 	{
+		// If we are currently connected, 
+		// gracefully cleanup the client info on the server first
+		if (g_mikanAPI->getIsConnected())
+		{
+			DisposeClientRequest disposeRequest = {};
+			g_mikanAPI->sendRequest(disposeRequest).awaitResponse();
+		}
+
+        // Disconnect and deallocate the API
 		g_mikanAPI->shutdown();
         g_mikanInitialized = false;
 	}

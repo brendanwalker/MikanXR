@@ -148,6 +148,36 @@ public:
 	}
 };
 
+// Searcher for classId values
+class JsonSaxInt64ValueSearcher : public JsonSaxValueSearcherBase<int64_t>
+{
+public:
+	JsonSaxInt64ValueSearcher() = default;
+
+	bool number_integer(number_integer_t val) override
+	{
+		if (m_keyValueFound)
+		{
+			m_resultValue = (int64_t)val;
+			return false; // stop parsing
+		}
+
+		return true; // keep parsing
+	}
+
+	bool number_unsigned(number_unsigned_t val) override
+	{
+		if (m_keyValueFound)
+		{
+			m_resultValue = (int64_t)val;
+			return false; // stop parsing
+		}
+
+		return true; // keep parsing
+	}
+};
+
+
 // Searcher for string values
 class JsonSaxStringValueSearcher : public JsonSaxValueSearcherBase<std::string>
 {
@@ -165,4 +195,3 @@ public:
 		return true; // keep parsing
 	}
 };
-

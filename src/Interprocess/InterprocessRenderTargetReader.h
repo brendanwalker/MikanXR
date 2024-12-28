@@ -20,16 +20,16 @@ public:
 	void setDepthTexture(GlTexturePtr texture) { m_depthTexture = texture; }
 	inline GlTexturePtr getColorTexture() { return m_colorTexture; }
 	inline GlTexturePtr getDepthTexture() { return m_depthTexture; }
-	inline const MikanClientFrameRendered& getLastFrameInfo() const { return m_lastFrameInfo; }
-	bool readRenderTargetTextures(const MikanClientFrameRendered& frameInfo);
+	inline int64_t getLastFrameRenderedIndex() const { return m_lastFrameRenderedIndex; }
+	bool readRenderTargetTextures(const int64_t newFrameIndex);
 	
 	MikanClientGraphicsApi getClientGraphicsAPI() const { return m_descriptor.graphicsAPI; }
-	MikanRenderTargetDescriptor& getRenderTargetDescriptor() { return m_descriptor; }
+	const MikanRenderTargetDescriptor& getRenderTargetDescriptor() { return m_descriptor; }
 
 private:
 	std::string m_clientName;
 	MikanRenderTargetDescriptor m_descriptor;
-	MikanClientFrameRendered m_lastFrameInfo;
+	int64_t m_lastFrameRenderedIndex;
 	GlTexturePtr m_colorTexture;
 	GlTexturePtr m_depthTexture;
 	struct RenderTargetReaderImpl* m_readerImpl;
