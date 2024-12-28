@@ -5,9 +5,11 @@ pushd build
 
 echo "Rebuilding Mikan x64 Project files..."
 set DEPS_ROOT_PATH=%~dp0/deps
-set THIRDPARTY_ROOT_PATH=%~dp0\thirdparty
+set THIRDPARTY_ROOT_PATH=%~dp0/thirdparty
+set DIST_ROOT_PATH=%~dp0/dist/Win64
 
 cmake .. -G "Visual Studio 17 2022" -A x64 ^
+-DCMAKE_INSTALL_PREFIX=%DIST_ROOT_PATH% ^
 -DOpenCV_DIR=%DEPS_ROOT_PATH%\opencv\build ^
 -DOPENVR_ROOT_DIR=%THIRDPARTY_ROOT_PATH%\openvr ^
 -DOPENVR_HEADERS_ROOT_DIR=%THIRDPARTY_ROOT_PATH%openvr\include ^
