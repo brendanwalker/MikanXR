@@ -1,6 +1,7 @@
 #include "App.h"
 #include "AppStage.h"
 #include "GlViewport.h"
+#include "GlRmlUiRenderer.h"
 #include "MainWindow.h"
 #include "RmlManager.h"
 #include "SdlWindow.h"
@@ -204,14 +205,14 @@ void AppStage::update(float deltaSeconds)
 
 void AppStage::render() 
 {
+	// Override this method in derived classes to render the stage specific 3D geometry
 }
 
 void AppStage::renderUI() 
 {
-	if (getRmlContext() != nullptr)
-	{
-		getRmlContext()->Render();
-	}
+	// Override this method in derived classes to render the stage specific UI
+	// By default, always render the RmlUi in every app stage
+	m_ownerWindow->getRmlUiRenderer()->render();
 }
 
 void AppStage::popModalDialog()

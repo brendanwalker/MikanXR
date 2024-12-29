@@ -461,8 +461,12 @@ void GlRmlUiRender::setViewport(int width, int height)
 	viewport_height = height;
 }
 
-void GlRmlUiRender::beginFrame(GlState& glState)
+void GlRmlUiRender::render()
 {
+	GlStateStack& glStateStack= m_ownerWindow.getGlStateStack();
+	GlScopedState scopedState = glStateStack.createScopedState("GlRmlUiRender renderUI");
+	GlState& glState = scopedState.getStackState();
+
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
 	glStateSetViewport(glState, 0, 0, viewport_width, viewport_height);
 
@@ -485,10 +489,13 @@ void GlRmlUiRender::beginFrame(GlState& glState)
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 
 	SetTransform(nullptr);
-}
 
-void GlRmlUiRender::endFrame() 
-{
+	// Invoke the UI rendering callbacks from inside the Rml Library
+	Rml::Context* context = m_ownerWindow.getCurrentAppStage()->getRmlContext();
+	if (context != nullptr)
+	{
+		context->Render();
+	}
 }
 
 void GlRmlUiRender::RenderGeometry(

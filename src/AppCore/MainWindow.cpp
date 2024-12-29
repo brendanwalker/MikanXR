@@ -309,45 +309,18 @@ void MainWindow::render()
 
 	if (appStage != nullptr)
 	{
-		renderBegin();
+		m_sdlWindow->renderBegin();
 
 		// Render all 3d viewports for the app state
 		for (GlViewportPtr viewpoint : appStage->getViewportList())
 		{
-			EASY_BLOCK("appStage render");
-
-			GlScopedState scopedState = m_glStateStack->createScopedState("appStage render");
-			GlState& glState= scopedState.getStackState();
-
-			renderStageBegin(viewpoint, glState);
-			appStage->render();
-			renderStageEnd();
+			renderStageViewport(appStage, viewpoint);
 		}
 
 		// Render the UI on top
-		{
-			EASY_BLOCK("appStage renderUI");
+		renderStageUI(appStage);
 
-			GlScopedState scopedState = m_glStateStack->createScopedState("appStage renderUI");
-			GlState& glState = scopedState.getStackState();
-
-			renderUIBegin(glState);
-
-			appStage->renderUI();
-
-			// Always draw the FPS in the lower right
-			TextStyle style = getDefaultTextStyle();
-			style.horizontalAlignment = eHorizontalTextAlignment::Right;
-			style.verticalAlignment = eVerticalTextAlignment::Bottom;
-			drawTextAtScreenPosition(
-				style,
-				glm::vec2(getWidth() - 1, getHeight() - 1),
-				L"%.1ffps", App::getInstance()->getFPS());
-
-			renderUIEnd();
-		}
-
-		renderEnd();
+		m_sdlWindow->renderEnd();
 	}
 }
 
@@ -435,11 +408,6 @@ float MainWindow::getHeight() const
 float MainWindow::getAspectRatio() const
 {
 	return (float)m_sdlWindow->getAspectRatio();
-}
-
-void MainWindow::renderBegin()
-{
-	m_sdlWindow->renderBegin();
 }
 
 bool MainWindow::onSDLEvent(const SDL_Event* event)
@@ -540,59 +508,72 @@ void MainWindow::processPendingAppStageOps()
 	bAppStackOperationAllowed = true;
 }
 
-void MainWindow::renderStageBegin(GlViewportPtr targetViewport, GlState& glState)
+void MainWindow::renderStageViewport(AppStage* appStage, GlViewportPtr targetViewport)
 {
 	EASY_FUNCTION();
 
+	GlScopedState scopedState = m_glStateStack->createScopedState("appStage viewport render");
+	GlState& glState = scopedState.getStackState();
+
+	// Set the rendering viewport used to render the stage
+	// (adds GLStateSetViewport Modifier to the glState)
 	m_renderingViewport = targetViewport;
 	m_renderingViewport->applyRenderingViewport(glState);
 
-	m_isRenderingStage = true;
-}
+		// Set window state flag that we are in the middle of rendering a stage
+		// Used for safety checks in the render functions
+		m_isRenderingStage = true;
 
-void MainWindow::renderStageEnd()
-{
-	EASY_FUNCTION();
+			// Render the 3d geometry of the AppStage
+			appStage->render();
 
-	// Render any line segments emitted by the AppStage
-	m_lineRenderer->render();
+			// Render any 3D line segments emitted by the AppStage
+			m_lineRenderer->render();
 
-	// Render any glyphs emitted by the AppStage
-	m_textRenderer->render();
+			// Render any glyphs emitted by the AppStage
+			m_textRenderer->render();
 
+		// Rendering the state is done
+		m_isRenderingStage = false;
+
+	// Forget about the target viewport
+	// (will be deleted when glState goes out of scope)
 	m_renderingViewport = nullptr;
-	m_isRenderingStage = false;
 }
 
-void MainWindow::renderUIBegin(GlState& glState)
+void MainWindow::renderStageUI(AppStage* appStage)
 {
 	EASY_FUNCTION();
 
+	GlScopedState scopedState = m_glStateStack->createScopedState("appStage renderUI");
+	GlState& glState = scopedState.getStackState();
+
+	// Set the rendering viewport used to render the stage
+	// (adds GLStateSetViewport Modifier to the glState)
 	m_renderingViewport = m_uiViewport;
 	m_renderingViewport->applyRenderingViewport(glState);
 
-	m_rmlUiRenderer->beginFrame(glState);
+		m_isRenderingUI = true;
 
-	m_isRenderingUI = true;
-}
+			// Render the UI of the AppStage
+			appStage->renderUI();
 
-void MainWindow::renderUIEnd()
-{
-	EASY_FUNCTION();
+			// Always draw the FPS in the lower right
+			TextStyle style = getDefaultTextStyle();
+			style.horizontalAlignment = eHorizontalTextAlignment::Right;
+			style.verticalAlignment = eVerticalTextAlignment::Bottom;
+			drawTextAtScreenPosition(
+				style,
+				glm::vec2(getWidth() - 1, getHeight() - 1),
+				L"%.1ffps", App::getInstance()->getFPS());
 
-	m_rmlUiRenderer->endFrame();
+			// Render any 2D line segments emitted by the AppStage renderUI phase
+			m_lineRenderer->render();
 
-	// Render any line segments emitted by the AppStage renderUI phase
-	m_lineRenderer->render();
+			// Render any glyphs emitted by the AppStage renderUI phase
+			m_textRenderer->render();
 
-	// Render any glyphs emitted by the AppStage renderUI phase
-	m_textRenderer->render();
+		m_isRenderingUI = false;
 
 	m_renderingViewport = nullptr;
-	m_isRenderingUI = false;
-}
-
-void MainWindow::renderEnd()
-{
-	m_sdlWindow->renderEnd();
 }

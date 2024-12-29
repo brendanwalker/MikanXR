@@ -34,6 +34,7 @@ public:
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
+	inline class GlRmlUiRender* getRmlUiRenderer() const { return m_rmlUiRenderer.get(); }
 	inline class InputManager* getInputManager() const { return m_inputManager; }
 	inline class GlFrameCompositor* getFrameCompositor() const { return m_frameCompositor; }
 	inline class OpenCVManager* getOpenCVManager() const { return m_openCVManager; }
@@ -110,12 +111,8 @@ public:
 	virtual bool onSDLEvent(const SDL_Event* event) override;
 
 protected:
-	void renderBegin();
-	void renderStageBegin(GlViewportPtr targetViewport, GlState& glState);
-	void renderStageEnd();
-	void renderUIBegin(GlState& glState);
-	void renderUIEnd();
-	void renderEnd();
+	void renderStageViewport(AppStage* appStage, GlViewportPtr targetViewport);
+	void renderStageUI(AppStage* appStage);
 
 private:
 	// Mikan API Server

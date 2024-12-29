@@ -49,9 +49,8 @@ public:
 	bool onSDLEvent(const SDL_Event* event);
 	void setViewport(int viewport_width, int viewport_height);
 
-	// Sets up OpenGL states for taking rendering commands from RmlUi.
-	void beginFrame(GlState& glState);
-	void endFrame();
+	// Top level function for invoking Rml UI rendering from the owner Window.
+	void render();
 
 	// -- Inherited from Rml::RenderInterface --
 	void RenderGeometry(

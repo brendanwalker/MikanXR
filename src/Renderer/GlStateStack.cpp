@@ -187,6 +187,10 @@ GlState& GlState::addModifier(GlStateModifierPtr modifier)
 		auto existingModifierIt= m_modifiers.find(modifier->getModifierID());
 		if (existingModifierIt != m_modifiers.end())
 		{
+			MIKAN_LOG_WARNING("addModifier") 
+				<< "Redundant modifier of ID: " << modifier->getModifierID() 
+				<< " in same scope: " << m_scopeName;
+
 			//TODO: Add an efficiency warning that we should really make a new GlStateScope
 			// so that we aren't needlessly stomp on the existing modifier in the same scope
 			existingModifierIt->second->revert();
