@@ -199,7 +199,7 @@ bool NodeEditorWindow::startup()
 	if (success)
 	{
 		// Set default state flags at the base of the stack
-		GlState& glBaseState= m_glStateStack->pushState();
+		GlState& glBaseState= m_glStateStack->pushState("NodeEditor Root Scope");
 		assert(glBaseState.getStackDepth() == 0);
 
 		glBaseState

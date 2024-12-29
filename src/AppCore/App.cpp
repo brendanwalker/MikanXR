@@ -5,6 +5,7 @@
 #include "GlCommon.h"
 #include "GlShaderCache.h"
 #include "GlFrameCompositor.h"
+#include "GlStateStack.h"
 #include "GlTextRenderer.h"
 #include "LocalizationManager.h"
 #include "Logger.h"
@@ -205,7 +206,9 @@ void App::tickWindows(const float deltaSeconds)
 
 	assert(m_glContextStack.size() == 0);
 
+
 	// Update each window
+	static bool bDebugPrintStack = false;
 	for (IGlWindow* window : m_appWindows)
 	{
 		// Mark this window as the current window getting updated
@@ -220,14 +223,21 @@ void App::tickWindows(const float deltaSeconds)
 		// Render the window
 		{
 			EASY_BLOCK("RenderWindow");
+
+			GlStateStack& glStateStack = window->getGlStateStack();
+			glStateStack.setDebugPrintEnabled(bDebugPrintStack);
+
 			m_renderingWindow = window;
 			window->render();
 			m_renderingWindow = nullptr;
+
+			glStateStack.setDebugPrintEnabled(false);
 		}
 
 		// Restore back to the main window
 		popCurrentGlContext(window);
 	}
+	bDebugPrintStack = false;
 
 	// Destroy any windows that have been marked for destruction
 	for (int windowIndex= (int)m_appWindows.size() - 1; windowIndex >= 0; windowIndex--)

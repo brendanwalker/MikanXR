@@ -21,6 +21,7 @@ class LoggerStream
 protected:
 	std::ostringstream m_lineBuffer;
 	LogSeverityLevel m_level;
+	bool m_hasWrittenLog= false;
 
 public:
 	LoggerStream(LogSeverityLevel level);
@@ -33,6 +34,7 @@ public:
 		if (log_can_emit_level(m_level))
 		{
 			m_lineBuffer << x;
+			m_hasWrittenLog= true;
 		}
 
 		return *this;

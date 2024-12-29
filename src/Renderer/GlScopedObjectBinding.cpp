@@ -5,9 +5,10 @@
 
 GlScopedObjectBinding::GlScopedObjectBinding(
 	GlState& parentGLState,
+	const std::string& scopeName,
 	GlBindableObjectPtr bindableObject)
 	: m_boundObject(bindableObject)
-	, m_glState(parentGLState.getOwnerStateStack().pushState())
+	, m_glState(parentGLState.getOwnerStateStack().pushState(scopeName))
 {
 	if (m_boundObject)
 	{

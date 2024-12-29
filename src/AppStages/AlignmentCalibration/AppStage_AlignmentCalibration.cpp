@@ -336,6 +336,7 @@ void AppStage_AlignmentCalibration::render()
 	{
 		GlScopedObjectBinding colorFramebufferBinding(
 			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			"Color Framebuffer Scope",
 			m_frameBuffer);
 
 		if (colorFramebufferBinding)

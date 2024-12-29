@@ -233,6 +233,7 @@ void AppStage_VRTrackingRecenter::render()
 	{
 		GlScopedObjectBinding colorFramebufferBinding(
 			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			"Color Framebuffer Scope",
 			m_frameBuffer);
 
 		if (colorFramebufferBinding)

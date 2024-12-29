@@ -222,6 +222,7 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 		// Bind the depth frame buffer
 		GlScopedObjectBinding depthFramebufferBinding(
 			*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
+			"Depth Mask Framebuffer Scope",
 			m_linearDepthFrameBuffer);
 		if (depthFramebufferBinding)
 		{

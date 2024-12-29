@@ -207,6 +207,7 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, Gl
 	{
 		GlScopedObjectBinding colorFramebufferBinding(
 			*ownerWindow->getGlStateStack().getCurrentState(),
+			"Color Texture Framebuffer Scope",
 			m_colorFrameBuffer);
 		if (colorFramebufferBinding)
 		{

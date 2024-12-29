@@ -152,6 +152,7 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 	IGlWindow* ownerWindow= evaluator.getCurrentWindow();
 	GlScopedObjectBinding depthFramebufferBinding(
 		*ownerWindow->getGlStateStack().getCurrentState(),
+		"Depth Texture Framebuffer Scope",
 		m_linearDepthFrameBuffer);
 	if (depthFramebufferBinding)
 	{

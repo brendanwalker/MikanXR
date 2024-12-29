@@ -159,7 +159,10 @@ LoggerStream::~LoggerStream()
 
 void LoggerStream::write_line()
 {
-	if (g_is_initialized && g_logger_callback != nullptr && log_can_emit_level(m_level))
+	if (g_is_initialized && 
+		g_logger_callback != nullptr && 
+		m_hasWrittenLog &&
+		log_can_emit_level(m_level))
 	{
 		const std::string line = m_lineBuffer.str();
 

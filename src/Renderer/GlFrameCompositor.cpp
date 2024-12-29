@@ -722,6 +722,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		// Create a scoped binding for the video export framebuffer
 		GlScopedObjectBinding videoExportFramebufferBinding(
 			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			"Video Export Framebuffer Scope",
 			m_videoExportFramebuffer);
 		if (videoExportFramebufferBinding)
 		{

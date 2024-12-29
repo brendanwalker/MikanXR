@@ -244,7 +244,7 @@ bool MainWindow::startup()
 	if (success)
 	{
 		// Create the base GL state for the window
-		GlState& glState= m_glStateStack->pushState();
+		GlState& glState= m_glStateStack->pushState("MainWindow Root");
 		assert(glState.getStackDepth() == 0);
 
 		// Set default state flags at the base of the stack

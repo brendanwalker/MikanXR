@@ -19,8 +19,13 @@ public:
 	{}
 
 	inline GlState& getOwnerGlState() { return m_ownerGlState; }
-	inline IGlWindow* getOwnerWindow() { return m_ownerGlState.getOwnerStateStack().getOwnerWindow(); }
+	inline GlStateStack& getOwnerGlStateStack() { return m_ownerGlState.getOwnerStateStack(); }
+	inline IGlWindow* getOwnerWindow() { return getOwnerGlStateStack().getOwnerWindow(); }
 	virtual int getOwnerStateStackDepth() const override { return m_ownerStateStackDepth; }
+	GlStateLog getStateLog()
+	{
+		return GlStateLog(m_ownerGlState);
+	}
 
 protected:
 	GlState& m_ownerGlState;
@@ -64,6 +69,7 @@ public:
 		}
 
 		glViewport(m_x, m_y, m_width, m_height);
+		getStateLog() << "Apply Viewport: " << m_x << ", " << m_y << ", " << m_width << ", " << m_height;
 
 		// Tell the owner window that we are applying new viewport bounds
 		GlViewportPtr viewport= getOwnerWindow()->getRenderingViewport();
@@ -72,9 +78,11 @@ public:
 			viewport->onRenderingViewportApply(m_x, m_y, m_width, m_height);
 		}
 	}
+
 	virtual void revert() override
 	{
 		glViewport(m_prevX, m_prevY, m_prevWidth, m_prevHeight);
+		getStateLog() << "Revert Viewport: " << m_prevX << ", " << m_prevY << ", " << m_prevWidth << ", " << m_prevHeight;
 
 		// Tell the owner window that we are restoring previous viewport bounds
 		GlViewportPtr viewport = getOwnerWindow()->getRenderingViewport();
@@ -126,10 +134,16 @@ public:
 		}
 
 		glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
+		getStateLog() << "Apply Clear Color: " 
+			<< m_clearColor.r << ", " << m_clearColor.g << ", " 
+			<< m_clearColor.b << ", " << m_clearColor.a;
 	}
 	virtual void revert() override
 	{
 		glClearColor(m_prevClearColor.r, m_prevClearColor.g, m_prevClearColor.b, m_prevClearColor.a);
+		getStateLog() << "Revert Clear Color: "
+			<< m_prevClearColor.r << ", " << m_prevClearColor.g << ", " 
+			<< m_prevClearColor.b << ", " << m_prevClearColor.a;
 	}
 
 private:
@@ -178,6 +192,9 @@ public:
 			m_colorMask[1] ? GL_TRUE : GL_FALSE, 
 			m_colorMask[2] ? GL_TRUE : GL_FALSE, 
 			m_colorMask[3] ? GL_TRUE : GL_FALSE);
+		getStateLog() << "Apply Color Write Mask: "
+			<< m_colorMask[0] << ", " << m_colorMask[1] << ", "
+			<< m_colorMask[2] << ", " << m_colorMask[2];
 	}
 	virtual void revert() override
 	{
@@ -186,6 +203,9 @@ public:
 			m_prevColorMask[1] ? GL_TRUE : GL_FALSE, 
 			m_prevColorMask[2] ? GL_TRUE : GL_FALSE, 
 			m_prevColorMask[3] ? GL_TRUE : GL_FALSE);
+		getStateLog() << "Revert Color Write Mask: "
+			<< m_prevColorMask[0] << ", " << m_prevColorMask[1] << ", "
+			<< m_prevColorMask[2] << ", " << m_prevColorMask[2];
 	}
 
 private:
@@ -227,10 +247,12 @@ public:
 		}
 
 		glDepthMask(m_depthMask ? GL_TRUE : GL_FALSE);
+		getStateLog() << "Apply Depth Write Mask: " << m_depthMask;
 	}
 	virtual void revert() override
 	{
 		glDepthMask(m_prevDepthMask ? GL_TRUE : GL_FALSE);
+		getStateLog() << "Revert Depth Write Mask: " << m_prevDepthMask;
 	}
 
 private:
@@ -270,10 +292,12 @@ public:
 		}
 
 		glClearStencil(m_value);
+		getStateLog() << "Apply Stencil Clear Value: " << m_value;
 	}
 	virtual void revert() override
 	{
 		glClearStencil(m_prevValue);
+		getStateLog() << "Revert Stencil Clear Value: " << m_prevValue;
 	}
 
 private:
@@ -313,10 +337,12 @@ public:
 		}
 
 		glStencilMask(m_mask);
+		getStateLog() << "Apply Stencil Write Mask: " << m_mask;
 	}
 	virtual void revert() override
 	{
 		glStencilMask(m_prevMask);
+		getStateLog() << "Revert Stencil Write Mask: " << m_prevMask;
 	}
 
 private:
@@ -364,10 +390,12 @@ public:
 		}
 
 		glStencilFunc(m_func, m_ref, m_mask);
+		getStateLog() << "Apply Stencil Function: " << m_func << ", " << m_ref << ", " << m_mask;
 	}
 	virtual void revert() override
 	{
 		glStencilFunc(m_prevFunc, m_prevRef, m_prevMask);
+		getStateLog() << "Revert Stencil Function: " << m_prevFunc << ", " << m_prevRef << ", " << m_prevMask;
 	}
 
 	static GLenum convertToGLenum(eGlStencilFunction func)
@@ -439,11 +467,14 @@ public:
 			glGetIntegerv(GL_STENCIL_PASS_DEPTH_PASS, (GLint*)(&m_prevDepthStencilPass));
 		}
 
-		glStencilOp(m_stencilTestFail, m_prevDepthTestFail, m_depthStencilPass);
+		glStencilOp(m_stencilTestFail, m_depthTestFail, m_depthStencilPass);
+		getStateLog() << "Apply Stencil Op: " << m_stencilTestFail << ", " << m_depthTestFail << ", " << m_depthStencilPass;
 	}
 	virtual void revert() override
 	{
 		glStencilOp(m_prevStencilTestFail, m_prevDepthTestFail, m_prevDepthStencilPass);
+		getStateLog() << "Revert Stencil Op: " << 
+			m_prevStencilTestFail << ", " << m_prevDepthTestFail << ", " << m_prevDepthStencilPass;
 	}
 
 	static GLenum convertToGLenum(eGlStencilOp op)
@@ -502,10 +533,12 @@ public:
 		}
 
 		glBlendEquation(m_mode);
+		getStateLog() << "Apply Blend Eq: " << m_mode;
 	}
 	virtual void revert() override
 	{
 		glBlendEquation(m_prevMode);
+		getStateLog() << "Revert Blend Eq: " << m_prevMode;
 	}
 
 	static GLenum convertToGLenum(eGlBlendEquation mode)
@@ -563,10 +596,12 @@ public:
 		}
 
 		glBlendFunc(m_sourceFactor, m_destFactor);
+		getStateLog() << "Apply Blend Func: " << m_sourceFactor << ", " << m_destFactor;
 	}
 	virtual void revert() override
 	{
 		glBlendFunc(m_prevSourceFactor, m_prevDestFactor);
+		getStateLog() << "Revert Blend Func: " << m_prevSourceFactor << ", " << m_prevDestFactor;
 	}
 
 	static GLenum convertToGLenum(eGlBlendFunction mode)
@@ -665,10 +700,12 @@ public:
 		}
 
 		glDrawBuffer(m_mode);
+		getStateLog() << "Apply Draw Buffer Mode: " << m_mode;
 	}
 	virtual void revert() override
 	{
 		glDrawBuffer(m_prevMode);
+		getStateLog() << "Revert Draw Buffer Mode: " << m_prevMode;
 	}
 
 private:
@@ -708,10 +745,12 @@ public:
 		}
 
 		glReadBuffer(m_mode);
+		getStateLog() << "Apply Read Buffer Mode: " << m_mode;
 	}
 	virtual void revert() override
 	{
 		glReadBuffer(m_prevMode);
+		getStateLog() << "Revert Read Buffer Mode: " << m_prevMode;
 	}
 
 private:
