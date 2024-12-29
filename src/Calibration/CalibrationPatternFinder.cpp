@@ -410,10 +410,10 @@ public:
 	float markerLengthMM;
 
 	cv::Ptr<cv::aruco::CharucoDetector> detector;
-	std::vector<t_opencv_point2d_list> markerCorners;
-	std::vector<int> markerVisibleIds;
 	t_opencv_point2d_list charucoCorners;
 	std::vector<int> charucoIds;
+	std::vector<t_opencv_point2d_list> markerCorners;
+	std::vector<int> markerVisibleIds;
 };
 
 CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
@@ -516,13 +516,15 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	if (gsSourceBuffer == nullptr)
 		return false;
 
-	// Find Charucuo marker corners in the source image
+	// Find Charuco marker corners in the source image
 	m_markerData->markerCorners.clear();
 	m_markerData->markerVisibleIds.clear();
 	m_markerData->detector->detectBoard(
 		*gsSourceBuffer, 
+		m_markerData->charucoCorners,
+		m_markerData->charucoIds,
 		m_markerData->markerCorners, 
-		m_markerData->charucoIds);
+		m_markerData->markerVisibleIds);
 	const bool bFoundMarkers = m_markerData->markerVisibleIds.size() > 0;
 
 	if (bFoundMarkers)
