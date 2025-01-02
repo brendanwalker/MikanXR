@@ -19,7 +19,7 @@ enum class VideoFrameSection : int
 	Primary = 0  ///< The only frame from a stereo camera
 };
 
-/// The list of possible camera drivers used by PSVRService
+/// The list of possible camera drivers used by Mikan
 enum class VideoPropertyType : int
 {
 	Brightness,

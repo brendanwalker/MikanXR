@@ -229,7 +229,7 @@ bool WMFStereoVideoSource::open(const DeviceEnumerator *enumerator)
         }
         else
         {
-            MIKAN_LOG_ERROR("PS3EyeTracker::open") << "Unable to WMFStereoTracker(" << cur_dev_path << "). Unable to get tracker capabilities.";
+            MIKAN_LOG_ERROR("WMFStereoVideoSource::open") << "Unable to WMFStereoTracker(" << cur_dev_path << "). Unable to get tracker capabilities.";
             bSuccess= false;
         }
     }

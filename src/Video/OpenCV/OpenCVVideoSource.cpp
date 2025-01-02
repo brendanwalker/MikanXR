@@ -13,7 +13,6 @@
 #endif
 
 
-// -- PS3EYE Tracker
 OpenCVVideoSource::OpenCVVideoSource()
     : m_videoCapabilities()
 	, m_currentModeIndex(-1)
@@ -32,7 +31,6 @@ OpenCVVideoSource::~OpenCVVideoSource()
     }
 }
 
-// PSVRTracker
 bool OpenCVVideoSource::open() // Opens the first OpenCV camera port
 {
     OpenCVCameraEnumerator enumerator;

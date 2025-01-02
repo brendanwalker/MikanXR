@@ -17,8 +17,7 @@ public:
     OpenCVVideoSource();
     virtual ~OpenCVVideoSource();
         
-    // PSVRTracker
-    bool open(); // Opens the first HID device for the controller
+    bool open();
     
     // -- IDeviceInterface
     bool matchesDeviceEnumerator(const DeviceEnumerator *enumerator) const override;
