@@ -13,6 +13,9 @@
 
 #include <easy/profiler.h>
 
+#include <gst/gst.h>
+#include <gst/gstparse.h>
+
 VideoSourceManager* VideoSourceManager::m_instance= nullptr;
 
 //-- Video Source Manager Config -----
@@ -60,6 +63,10 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 
 	if (bSuccess)
 	{
+		// Initialize GStreamer
+		// Intentionally don't pass in the command line arguments
+		gst_init(nullptr, nullptr);
+
 		// Load the config file (if it exists)
 		m_cfg.load();
 
@@ -89,9 +96,11 @@ void VideoSourceManager::update(float deltaTime)
 
 void VideoSourceManager::shutdown()
 {
-	m_instance = nullptr;
+	// Clean up the GStreamer library
+	gst_deinit();
 
 	DeviceManager::shutdown();
+	m_instance = nullptr;
 }
 
 void VideoSourceManager::closeAllVideoSources()
