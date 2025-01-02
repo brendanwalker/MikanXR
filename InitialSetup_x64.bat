@@ -138,6 +138,18 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+echo "Downloading gstreamer"
+curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.24.10/msvc/gstreamer-1.0-devel-msvc-x86_64-1.24.10.msi --output gstreamer-1.0-devel-msvc-x86_64-1.24.10.msi
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading gstreamer-1.0-devel-msvc-x86_64-1.24.10.msi"
+  goto failure
+)
+msiexec /i gstreamer-1.0-devel-msvc-x86_64-1.24.10.msi /qb
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error installing gstreamer"
+  goto failure
+)
+
 echo "Downloading easy_profiler..."
 curl -L https://github.com/yse/easy_profiler/releases/download/v2.1.0/easy_profiler-v2.1.0-msvc15-win64.zip --output easy_profiler-v2.1.0-msvc15-win64.zip
 IF %ERRORLEVEL% NEQ 0 (

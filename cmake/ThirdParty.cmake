@@ -124,6 +124,12 @@ option(IXWEBSOCKET_INSTALL "Install IXWebSocket" FALSE)
 set (IXWEBSOCKET_DIR ${ROOT_DIR}/thirdparty/IXWebSocket/)
 set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
 
+# GStreamer
+find_package(GStreamer REQUIRED COMPONENTS base)
+find_package(GStreamerPluginsBase COMPONENTS video)
+find_package(GLIB2 REQUIRED)
+find_package(GObject REQUIRED)
+
 # Nlohmann JSON
 set (NLOHMANN_JSON_INCLUDE_DIR ${ROOT_DIR}/thirdparty/nlohmann_json/include)
 
