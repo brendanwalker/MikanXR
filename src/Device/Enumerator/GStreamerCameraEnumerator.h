@@ -5,6 +5,7 @@
 #include "VideoFwd.h"
 
 #include <string>
+#include <vector>
 
 // -- definitions -----
 // Enumerates over valid camera streams via the GStreamer API
@@ -18,20 +19,16 @@ public:
 	bool next() override;
 	int getUsbVendorId() const override { return -1; }
 	int getUsbProductId() const override { return -1; }
-	const char* getDevicePath() const override 
-	{ return m_devicePath.c_str(); }
+	const char* getDevicePath() const override;
 	eDeviceType getDeviceType() const override;
 
-	inline int getDeviceIndex() const { return m_deviceIndex; }
-	VideoCapabilitiesConfigConstPtr getVideoCapabilities() const
-	{ return m_currentDeviceCapabilities; }
+	inline int getDeviceIndex() const { return m_cameraIndex; }
 
 private:
-	bool tryFetchDeviceCapabilities();
+	void rebuildCameraURIList();
 
-	VideoCapabilitiesConfigPtr m_currentDeviceCapabilities;
-	std::string m_devicePath;
-	int m_deviceIndex;
+	std::vector<std::string> m_cameraURIList;
+	int m_cameraIndex;
 };
 
 

@@ -34,11 +34,15 @@ public:
     virtual configuru::Config writeToJSON() override;
     virtual void readFromJSON(const configuru::Config &pt) override;
 
-	bool buildGStreamerPipelineString(std::string& outPipelineString) const;
+	std::string getSourcePluginString() const;
+	std::string getFullURIPath() const;
+	std::string getURIProtocolString() const;
+	std::string getCodecString() const;
 
 	GStreamerProtocol protocol;
 	std::string address;
 	std::string path;
+	int port;
 	GStreamerCodec codec;
 	MikanMonoIntrinsics cameraIntrinsics;
 };

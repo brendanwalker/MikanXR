@@ -8,11 +8,6 @@
 
 #include <memory>
 
-#ifdef _MSC_VER
-#pragma warning (disable: 4996) // 'This function or variable may be unsafe': strncpy
-#endif
-
-
 GStreamerVideoSource::GStreamerVideoSource()
 	: m_videoCapabilities()
 	, m_currentModeIndex(-1)
@@ -68,16 +63,15 @@ bool GStreamerVideoSource::open(const DeviceEnumerator* enumerator)
 	{
 		const GStreamerCameraEnumerator* cameraEnumerator = videoDeviceEnumerator->getGStreamerCameraEnumerator();
 
-		MIKAN_LOG_INFO("GStreamerVideoSource::open") << "Opening GStreamerVideoSource(" << devicePath << ", camera_index=" << cameraIndex << ")";
+		MIKAN_LOG_INFO("GStreamerVideoSource::open") << 
+			"Opening GStreamerVideoSource(" << devicePath << 
+			", camera_index=" << cameraIndex << ")";
 
 		// Remember the path to this camera
 		m_deviceIdentifier = devicePath;
 
 		// TODO: Get the underlying driver type from the GStreamer enumerator
 		m_driverType = IVideoSourceInterface::eDriverType::GStreamer;
-
-		// Copy the video capabilities from the enumerator
-		m_videoCapabilities = cameraEnumerator->getVideoCapabilities();
 
 		// Load the config file for the tracker
 		m_cfg = std::make_shared<GStreamerVideoConfig>(m_deviceIdentifier);
@@ -93,7 +87,7 @@ bool GStreamerVideoSource::open(const DeviceEnumerator* enumerator)
 		m_videoDevice =
 			new GStreamerVideoDevice(
 				cameraIndex,
-				cameraEnumerator->getVideoCapabilities());
+				cameraEnumerator->getDevicePath());
 
 		// Set the video mode based on what was loaded from the config
 		bSuccess = setVideoMode(m_cfg->current_mode);
@@ -149,6 +143,17 @@ void GStreamerVideoSource::stopVideoStream()
 	}
 }
 
+bool GStreamerVideoSource::wantsUpdate() const
+{
+	return getIsVideoStreaming();
+}
+
+void GStreamerVideoSource::update(float deltaTime)
+{
+	assert(getIsVideoStreaming());
+	m_videoDevice->tryPullSample();
+}
+
 eDeviceType GStreamerVideoSource::getDeviceType() const
 {
 	return eDeviceType::MonoVideoSource;
@@ -200,35 +205,7 @@ bool GStreamerVideoSource::getVideoFrameDimensions(
 
 void GStreamerVideoSource::loadSettings()
 {
-	//const VideoPropertyConstraint *constraints= m_videoDevice->getVideoPropertyConstraints();
-
 	m_cfg->load();
-
-	//for (int prop_index = 0; prop_index < (int)VideoPropertyType::COUNT; ++prop_index)
-	//{
-	//	const VideoPropertyType prop_type = (VideoPropertyType)prop_index;
-	//	const VideoPropertyConstraint &constraint= constraints[prop_index];
-
-	//	if (constraint.is_supported)
-	//	{
-	//		int currentValue= getVideoProperty(prop_type);
-	//		int desiredValue= m_cfg->video_properties[prop_index];
-
-	//		if (desiredValue != currentValue)
-	//		{
-	//			bool bUpdateConfig= false;
-
-	//			if (desiredValue < constraint.min_value || 
-	//				desiredValue > constraint.max_value)
-	//			{
-	//				desiredValue= constraint.default_value;
-	//				bUpdateConfig= true;
-	//			}
-
-	//			setVideoProperty(prop_type, desiredValue, bUpdateConfig);
-	//		}
-	//	}
-	//}
 }
 
 void GStreamerVideoSource::saveSettings()
@@ -249,30 +226,6 @@ const VideoModeConfig* GStreamerVideoSource::getVideoMode() const
 
 bool GStreamerVideoSource::setVideoMode(const std::string mode_name)
 {
-	//const int newModeIndex= m_videoCapabilities->findVideoModeIndex(mode_name);
-
-	//if (newModeIndex != -1 && newModeIndex != m_currentModeIndex)
-	//{	
-	//	const VideoModeConfig &newVideoMode= m_videoCapabilities->supportedModes[newModeIndex];
-
-	//	if (m_videoDevice->open(newModeIndex, m_cfg, m_listener))
-	//	{
-	//		// TODO: Update the intrinsics in the config
-	//		//m_cfg.trackerIntrinsics= new_mode->intrinsics.intrinsics.mono;
-
-	//		// Update the current mode name on the config
-	//		m_cfg->current_mode= newVideoMode.modeName;
-
-	//		// Remember the index of the currently selected video mode
-	//		m_currentModeIndex = newModeIndex;
-
-	//		// Save the config back to disk
-	//		m_cfg->save();
-
-	//		return true;
-	//	}
-	//}
-
 	return false;
 }
 
@@ -299,22 +252,16 @@ double GStreamerVideoSource::getFrameRate() const
 
 bool GStreamerVideoSource::getVideoPropertyConstraint(const VideoPropertyType property_type, VideoPropertyConstraint& outConstraint) const
 {
-	return m_videoDevice->getVideoPropertyConstraint(property_type, outConstraint);
+	return false;
 }
 
 void GStreamerVideoSource::setVideoProperty(const VideoPropertyType property_type, int desired_value, bool bUpdateConfig)
 {
-	m_videoDevice->setVideoProperty(property_type, desired_value);
-
-	if (bUpdateConfig)
-	{
-		m_cfg->video_properties[(int)property_type] = desired_value;
-	}
 }
 
 int GStreamerVideoSource::getVideoProperty(const VideoPropertyType property_type) const
 {
-	return m_videoDevice->getVideoProperty(property_type);
+	return 0;
 }
 
 void GStreamerVideoSource::getCameraIntrinsics(

@@ -36,6 +36,8 @@ public:
 	bool startVideoStream() override;
 	bool getIsVideoStreaming() const override;
 	void stopVideoStream() override;
+	bool wantsUpdate() const override;
+	void update(float deltaTime) override;
 	IVideoSourceInterface::eDriverType getDriverType() const override;
 	std::string getUSBDevicePath() const override;
 	bool getVideoFrameDimensions(int* out_width, int* out_height, int* out_stride) const override;

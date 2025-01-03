@@ -121,6 +121,9 @@ public:
 		return result;
 	}
 
+	virtual bool wantsUpdate() const { return false; }
+	virtual void update(float deltaTime) {}
+	
 	virtual void loadSettings() = 0;
 	virtual void saveSettings() = 0;
 

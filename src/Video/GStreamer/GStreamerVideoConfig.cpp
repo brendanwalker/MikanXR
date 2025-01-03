@@ -59,12 +59,71 @@ void GStreamerVideoConfig::readFromJSON(const configuru::Config& pt)
 							   &cameraIntrinsics.distortion_coefficients);
 }
 
-bool GStreamerVideoConfig::buildGStreamerPipelineString(std::string& outPipelineString) const
+std::string GStreamerVideoConfig::getSourcePluginString() const
 {
-	// TODO: Build a GStreamer pipeline string based on the configuration
-	std::stringstream ss;
-	ss << "rtspsrc location = \"rtsp://192.168.1.134:8554/cam\" latency = 0 buffer - mode = auto !rtph264depay !h264parse !d3d11h264dec !video.";
-	outPipelineString = ss.str();
+	std::string result;
 
-	return true;
+	switch (protocol)
+	{
+		case GStreamerProtocol::RTMP:
+			result = "rtmpsrc";
+			break;
+		case GStreamerProtocol::RTSP:
+			result = "rtspsrc";
+			break;
+		default:
+			result = "UNKNOWN";
+	}
+
+	return result;
+}
+
+std::string GStreamerVideoConfig::getURIProtocolString() const
+{
+	std::string result;
+
+	switch (protocol)
+	{
+		case GStreamerProtocol::RTMP:
+			result = "rtmp";
+			break;
+		case GStreamerProtocol::RTSP:
+			result = "rtsp";
+			break;
+		default:
+			result = "UNKNOWN";
+	}
+
+	return result;
+}
+
+std::string GStreamerVideoConfig::getFullURIPath() const
+{
+	std::stringstream ss;
+
+	ss << getURIProtocolString() << "://" << address << ":" << port << "/" << path;
+
+	return ss.str();
+}
+
+std::string GStreamerVideoConfig::getCodecString() const
+{
+	std::string result;
+
+	switch (codec)
+	{
+		case GStreamerCodec::MJPEG:
+			result = "MJPEG";
+			break;
+		case GStreamerCodec::H264:
+			result = "H264";
+			break;
+		case GStreamerCodec::H265:
+			result = "H265";
+			break;
+		default:
+			result = "UNKNOWN";
+	}
+
+	return result;
 }

@@ -1,101 +1,38 @@
 #include "GStreamerCameraEnumerator.h"
-#include "VideoCapabilitiesConfig.h"
-#include "StringUtils.h"
+#include "VideoSourceManager.h"
 
 GStreamerCameraEnumerator::GStreamerCameraEnumerator()
 	: DeviceEnumerator()
-	, m_currentDeviceCapabilities(nullptr)
-	, m_devicePath("")
-	, m_deviceIndex(-1)
+	, m_cameraURIList()
+	, m_cameraIndex(-1)
 {
+	rebuildCameraURIList();
 	next();
+}
+
+void GStreamerCameraEnumerator::rebuildCameraURIList()
+{
+	m_cameraURIList= VideoSourceManager::getInstance()->getConfig().videoSourceURIs;
 }
 
 bool GStreamerCameraEnumerator::isValid() const
 {
-	return m_currentDeviceCapabilities != nullptr;
+	return m_cameraIndex >= 0 && m_cameraIndex < (int)m_cameraURIList.size();
+}
+
+const char* GStreamerCameraEnumerator::getDevicePath() const
+{
+	return isValid() ? m_cameraURIList[m_cameraIndex].c_str() : nullptr;
 }
 
 eDeviceType GStreamerCameraEnumerator::getDeviceType() const
 {
-	return isValid() ? m_currentDeviceCapabilities->deviceType : eDeviceType::INVALID;
+	return isValid() ? eDeviceType::MonoVideoSource : eDeviceType::INVALID;
 }
 
 bool GStreamerCameraEnumerator::next()
 {
-	bool bFoundValid = false;
-	++m_deviceIndex;
+	++m_cameraIndex;
 
-	#if 0
-	while (!bFoundValid && m_deviceIndex < MAX_GStreamer_CAMERA_PORTS)
-	{
-		if (tryFetchDeviceCapabilities())
-		{			
-			bFoundValid = true;
-		}
-		else
-		{
-			++m_deviceIndex;
-		}
-	}
-	#endif
-
-	return bFoundValid;
-}
-
-bool GStreamerCameraEnumerator::tryFetchDeviceCapabilities()
-{
-	m_currentDeviceCapabilities.reset();
-
-	#if 0
-	cv::VideoCapture videoSource;
-	if (videoSource.open(m_deviceIndex))
-	{
-		cv::Mat frame;
-		if (videoSource.read(frame))
-		{
-			char szDeviceName[128];
-			StringUtils::formatString(
-				szDeviceName, sizeof(szDeviceName), 
-				"GStreamer_%s_%d", 
-				videoSource.getBackendName().c_str(),
-				m_deviceIndex);
-
-			m_devicePath= szDeviceName;
-
-			m_currentDeviceCapabilities = std::make_shared<VideoCapabilitiesConfig>(m_devicePath);
-			m_currentDeviceCapabilities->friendlyName = m_devicePath;
-			m_currentDeviceCapabilities->deviceType = eDeviceType::MonoVideoSource;
-
-			VideoModeConfig videoMode;
-			videoMode.frameRate = (float)videoSource.get(cv::CAP_PROP_FPS);
-			videoMode.isFrameMirrored = false;
-			videoMode.isBufferMirrored = false;
-			videoMode.bufferPixelWidth = (int)videoSource.get(cv::CAP_PROP_FRAME_WIDTH);
-			videoMode.bufferPixelHeight = (int)videoSource.get(cv::CAP_PROP_FRAME_HEIGHT);
-			// 4 character string property packed into a double. Gross.
-			double formatValue = videoSource.get(cv::CAP_PROP_FOURCC);
-			videoMode.bufferFormat= ((char*)(&formatValue));
-			videoMode.frameSections.push_back({0, 0});
-			// Invalid camera intrinsics
-			videoMode.intrinsics= MikanVideoSourceIntrinsics();
-
-			char szModeName[128];
-			StringUtils::formatString(
-				szModeName, sizeof(szModeName),
-				"%s_%dx%d@%.2ffps",
-				videoMode.bufferFormat.c_str(),
-				videoMode.bufferPixelWidth,
-				videoMode.bufferPixelHeight,
-				videoMode.frameRate);
-			videoMode.modeName = szModeName;
-
-			m_currentDeviceCapabilities->supportedModes.push_back(videoMode);
-		}
-
-		videoSource.release();
-	}
-	#endif
-
-	return m_currentDeviceCapabilities != nullptr;
+	return isValid();
 }

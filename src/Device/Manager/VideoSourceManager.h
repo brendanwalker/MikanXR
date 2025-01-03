@@ -24,8 +24,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	// See https://en.wikipedia.org/wiki/Real-Time_Messaging_Protocol#:~:text=The%20RTMP%20protocol%20has%20multiple,(TLS%2FSSL)%20connection.
-	unsigned int rtmp_server_port= 1935;
+	std::vector<std::string> videoSourceURIs;
 };
 
 class VideoSourceManager : public DeviceManager
@@ -35,6 +34,7 @@ public:
 	virtual ~VideoSourceManager();
 
 	inline static VideoSourceManager* getInstance() { return m_instance; }
+	const VideoSourceManagerConfig& getConfig() const { return m_cfg; }
 
 	bool startup(class IGlWindow *ownerWindow) override;
 	void update(float deltaTime) override;

@@ -29,7 +29,7 @@ configuru::Config VideoSourceManagerConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
-	pt["rtmp_server_port"]= rtmp_server_port;
+	writeStdValueVector<std::string>(pt, "video_source_uris", videoSourceURIs);
 
 	return pt;
 }
@@ -38,7 +38,7 @@ void VideoSourceManagerConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	rtmp_server_port = pt.get_or<unsigned int>("rtmp_server_port", rtmp_server_port);
+	readStdValueVector<std::string>(pt, "video_source_uris", videoSourceURIs);
 }
 
 //-- Video Source Manager -----
@@ -92,6 +92,21 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 
 void VideoSourceManager::update(float deltaTime)
 {
+	EASY_FUNCTION();
+
+	DeviceManager::update(deltaTime);
+
+	// Update any video sources that do their processing on the main thread
+	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
+	{
+		VideoSourceViewPtr videoSourceView = getVideoSourceViewPtr(videoSourceId);
+		IVideoSourceInterface* videoSourceInterface= videoSourceView->getVideoSourceInterface();
+
+		if (videoSourceInterface != nullptr && videoSourceInterface->wantsUpdate())
+		{
+			videoSourceInterface->update(deltaTime);
+		}
+	}
 }
 
 void VideoSourceManager::shutdown()
