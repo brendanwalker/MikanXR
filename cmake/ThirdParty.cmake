@@ -126,9 +126,11 @@ set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
 
 # GStreamer
 find_package(GStreamer REQUIRED COMPONENTS base)
+find_package(GStreamerPluginsBase COMPONENTS app)
 find_package(GStreamerPluginsBase COMPONENTS video)
 find_package(GLIB2 REQUIRED)
 find_package(GObject REQUIRED)
+set (GSTREAMER_BIN_DIR ${GSTREAMER_ROOT}/bin)
 
 # Nlohmann JSON
 set (NLOHMANN_JSON_INCLUDE_DIR ${ROOT_DIR}/thirdparty/nlohmann_json/include)
