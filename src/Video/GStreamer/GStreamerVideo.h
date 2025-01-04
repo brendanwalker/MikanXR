@@ -7,24 +7,32 @@
 #include "WorkerThread.h"
 #include "VideoFwd.h"
 
+#include <functional>
+
 // -- definitions -----
 class GStreamerVideoDevice
 {
 public:
-	GStreamerVideoDevice(const int deviceIndex, const std::string& cameraURI);
+	GStreamerVideoDevice(
+		const int cameraIndex,
+		GStreamerVideoConfigPtr cfg,
+		class IVideoSourceListener* listener);
 	~GStreamerVideoDevice();
 
-	bool open(GStreamerVideoConfigPtr cfg, class IVideoSourceListener* trackerListener);
+	bool open();
 	bool getIsOpen() const;
-	void tryPullSample();
 	void close();
+
+	using VideoModeChangedCallback = std::function<void(VideoModeConfigPtr newVideoMode)>;
+	void tryPullSample(VideoModeConfigPtr inVideoMode, VideoModeChangedCallback onVideoModeChanged);
 
 	bool startVideoStream();
 	bool getIsVideoStreaming();
 	void stopVideoStream();
 
-public:
-	int m_deviceIndex;
-	std::string m_cameraURI;
+private:
+	int m_cameraIndex;
+	GStreamerVideoConfigPtr m_cfg;
+	class IVideoSourceListener* m_videoSourceListener;
 	class GStreamerVideoDeviceImpl* m_impl;
 };

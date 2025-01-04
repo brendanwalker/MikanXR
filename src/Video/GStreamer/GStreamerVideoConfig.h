@@ -34,6 +34,8 @@ public:
     virtual configuru::Config writeToJSON() override;
     virtual void readFromJSON(const configuru::Config &pt) override;
 
+	bool applyDevicePath(const std::string& devicePath);
+
 	std::string getSourcePluginString() const;
 	std::string getFullURIPath() const;
 	std::string getURIProtocolString() const;

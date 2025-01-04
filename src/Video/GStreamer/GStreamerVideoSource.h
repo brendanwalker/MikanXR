@@ -15,7 +15,7 @@
 class GStreamerVideoSource : public IVideoSourceInterface
 {
 public:
-	GStreamerVideoSource();
+	GStreamerVideoSource(IVideoSourceListener* listener);
 	virtual ~GStreamerVideoSource();
 
 	// Open the GStreamer video pipeline
@@ -39,6 +39,7 @@ public:
 	bool wantsUpdate() const override;
 	void update(float deltaTime) override;
 	IVideoSourceInterface::eDriverType getDriverType() const override;
+	std::string getFriendlyName() const override;
 	std::string getUSBDevicePath() const override;
 	bool getVideoFrameDimensions(int* out_width, int* out_height, int* out_stride) const override;
 	bool getIsStereoCamera() const override { return false; }
@@ -62,7 +63,6 @@ public:
 	void setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p) override;
 	void getFOV(float& outHFOV, float& outVFOV) const override;
 	void getZRange(float& outZNear, float& outZFar) const override;
-	void setVideoSourceListener(IVideoSourceListener* listener) override;
 
 	// -- Getters
 	inline GStreamerVideoConfigConstPtr getConfig() const
@@ -71,13 +71,12 @@ public:
 	}
 
 private:
-	VideoCapabilitiesConfigConstPtr m_videoCapabilities;
-	int m_currentModeIndex;
-
+	IVideoSourceListener* m_listener;
 	GStreamerVideoConfigPtr m_cfg;
+	VideoModeConfigPtr m_currentVideoMode;
+	std::string m_devicePath;
 	std::string m_deviceIdentifier;
-
 	class GStreamerVideoDevice* m_videoDevice;
 	IVideoSourceInterface::eDriverType m_driverType;
-	IVideoSourceListener* m_listener;
+
 };

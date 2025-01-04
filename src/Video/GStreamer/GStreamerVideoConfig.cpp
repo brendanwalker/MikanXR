@@ -59,6 +59,73 @@ void GStreamerVideoConfig::readFromJSON(const configuru::Config& pt)
 							   &cameraIntrinsics.distortion_coefficients);
 }
 
+bool GStreamerVideoConfig::applyDevicePath(const std::string& devicePath)
+{
+	// Parse the device path
+	std::string protocolStr;
+	GStreamerProtocol protocolEnum;
+	std::string addressStr;
+	std::string pathStr;
+	int portValue= 0;
+
+	// Find the protocol
+	size_t protocolEnd = devicePath.find("://");
+	if (protocolEnd != std::string::npos)
+	{
+		protocolStr = devicePath.substr(0, protocolEnd);
+	}
+
+	// Find the address
+	size_t addressStart = protocolEnd + 3;
+	size_t addressEnd = devicePath.find(":", addressStart);
+	if (addressEnd != std::string::npos)
+	{
+		addressStr = devicePath.substr(addressStart, addressEnd - addressStart);
+	}
+
+	// Find the port
+	size_t portStart = addressEnd + 1;
+	size_t portEnd = devicePath.find("/", portStart);
+	if (portEnd != std::string::npos)
+	{
+		portValue = std::stoi(devicePath.substr(portStart, portEnd - portStart));
+	}
+
+	// Find the path
+	size_t pathStart = portEnd + 1;
+	pathStr = devicePath.substr(pathStart);
+
+	// Apply the parsed values
+	if (protocolStr == "rtmp")
+	{
+		protocolEnum = GStreamerProtocol::RTMP;
+	}
+	else if (protocolStr == "rtsp")
+	{
+		protocolEnum = GStreamerProtocol::RTSP;
+	}
+	else
+	{
+		protocolEnum = GStreamerProtocol::INVALID;
+	}
+
+	// Apply the parsed values if the address and port are valid
+	if (protocolEnum != protocol || 
+		addressStr != address ||
+		portValue != port ||
+		pathStr != path)
+	{
+		protocol = protocolEnum;
+		address = addressStr;
+		path = pathStr;
+		port = portValue;
+
+		return true;
+	}
+
+	return false;
+}
+
 std::string GStreamerVideoConfig::getSourcePluginString() const
 {
 	std::string result;

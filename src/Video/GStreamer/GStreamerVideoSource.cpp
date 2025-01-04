@@ -6,12 +6,13 @@
 #include "VideoCapabilitiesConfig.h"
 #include "GStreamerCameraEnumerator.h"
 
+#include <algorithm>
 #include <memory>
 
-GStreamerVideoSource::GStreamerVideoSource()
-	: m_videoCapabilities()
-	, m_currentModeIndex(-1)
+GStreamerVideoSource::GStreamerVideoSource(IVideoSourceListener* listener)
+	: m_listener(listener)
 	, m_cfg()
+	, m_currentVideoMode()
 	, m_deviceIdentifier()
 	, m_videoDevice(nullptr)
 	, m_driverType(IVideoSourceInterface::eDriverType::INVALID)
@@ -50,50 +51,50 @@ bool GStreamerVideoSource::matchesDeviceEnumerator(const DeviceEnumerator* enume
 bool GStreamerVideoSource::open(const DeviceEnumerator* enumerator)
 {
 	const VideoDeviceEnumerator* videoDeviceEnumerator = static_cast<const VideoDeviceEnumerator*>(enumerator);
-	const char* devicePath = videoDeviceEnumerator->getDevicePath();
 	const int cameraIndex = videoDeviceEnumerator->getCameraIndex();
 
 	bool bSuccess = true;
 
+	// Remember the device path
+	m_devicePath = videoDeviceEnumerator->getDevicePath();
+
 	if (getIsOpen())
 	{
-		MIKAN_LOG_WARNING("GStreamerVideoSource::open") << "GStreamerVideoSource(" << devicePath << ") already open. Ignoring request.";
+		MIKAN_LOG_WARNING("GStreamerVideoSource::open") 
+			<< "GStreamerVideoSource(" << m_devicePath 
+			<< ") already open. Ignoring request.";
 	}
 	else
 	{
 		const GStreamerCameraEnumerator* cameraEnumerator = videoDeviceEnumerator->getGStreamerCameraEnumerator();
 
 		MIKAN_LOG_INFO("GStreamerVideoSource::open") << 
-			"Opening GStreamerVideoSource(" << devicePath << 
+			"Opening GStreamerVideoSource(" << m_devicePath << 
 			", camera_index=" << cameraIndex << ")";
 
-		// Remember the path to this camera
-		m_deviceIdentifier = devicePath;
+		// Use the device URI as the identifier, but sanitize it for use as a filename
+		m_deviceIdentifier = m_devicePath;
+		std::replace(m_deviceIdentifier.begin(), m_deviceIdentifier.end(), '.', '_');
+		std::replace(m_deviceIdentifier.begin(), m_deviceIdentifier.end(), ',', '_');
+		std::replace(m_deviceIdentifier.begin(), m_deviceIdentifier.end(), ':', '_');
+		std::replace(m_deviceIdentifier.begin(), m_deviceIdentifier.end(), '/', '_');
 
-		// TODO: Get the underlying driver type from the GStreamer enumerator
+		// Get the underlying driver type from the GStreamer enumerator
 		m_driverType = IVideoSourceInterface::eDriverType::GStreamer;
 
 		// Load the config file for the tracker
 		m_cfg = std::make_shared<GStreamerVideoConfig>(m_deviceIdentifier);
 		m_cfg->load();
 
-		// If no mode is specified, then default to the first mode
-		if (m_cfg->current_mode == "")
+		// Apply the IPAddress/port/path to the config if it's unset/changes
+		if (m_cfg->applyDevicePath(m_devicePath))
 		{
-			m_cfg->current_mode = m_videoCapabilities->supportedModes[0].modeName;
+			m_cfg->save();
 		}
 
 		// Create a new GStreamer video device to manage the video stream
-		m_videoDevice =
-			new GStreamerVideoDevice(
-				cameraIndex,
-				cameraEnumerator->getDevicePath());
-
-		// Set the video mode based on what was loaded from the config
-		bSuccess = setVideoMode(m_cfg->current_mode);
-
-		// Save the config back out again in case defaults changed
-		m_cfg->save();
+		m_videoDevice = new GStreamerVideoDevice(cameraIndex, m_cfg, m_listener);
+		m_videoDevice->open();
 	}
 
 	if (!bSuccess)
@@ -111,7 +112,7 @@ bool GStreamerVideoSource::getIsOpen() const
 
 void GStreamerVideoSource::close()
 {
-	m_currentModeIndex = -1;
+	m_currentVideoMode= nullptr;
 
 	if (m_videoDevice != nullptr)
 	{
@@ -151,7 +152,18 @@ bool GStreamerVideoSource::wantsUpdate() const
 void GStreamerVideoSource::update(float deltaTime)
 {
 	assert(getIsVideoStreaming());
-	m_videoDevice->tryPullSample();
+
+	m_videoDevice->tryPullSample(
+		m_currentVideoMode,
+		[this](VideoModeConfigPtr newVideoMode) {
+			// Store the new video mode first so that getVideoMode() calls return a valid pointer
+			m_currentVideoMode = newVideoMode;
+
+			// Tell the listener that the video frame size has changed
+			// So that it can rebuild buffers BEFORE the next frame is received
+			// later in the tryPullSample function
+			m_listener->notifyVideoFrameSizeChanged();
+		});
 }
 
 eDeviceType GStreamerVideoSource::getDeviceType() const
@@ -162,6 +174,11 @@ eDeviceType GStreamerVideoSource::getDeviceType() const
 IVideoSourceInterface::eDriverType GStreamerVideoSource::getDriverType() const
 {
 	return m_driverType;
+}
+
+std::string GStreamerVideoSource::getFriendlyName() const
+{
+	return m_devicePath;
 }
 
 std::string GStreamerVideoSource::getUSBDevicePath() const
@@ -215,17 +232,17 @@ void GStreamerVideoSource::saveSettings()
 
 bool GStreamerVideoSource::getAvailableTrackerModes(std::vector<std::string>& out_mode_names) const
 {
-	m_videoCapabilities->getAvailableVideoModes(out_mode_names);
-	return true;
+	return false;
 }
 
 const VideoModeConfig* GStreamerVideoSource::getVideoMode() const
 {
-	return m_currentModeIndex != -1 ? &m_videoCapabilities->supportedModes[m_currentModeIndex] : nullptr;
+	return m_currentVideoMode.get();
 }
 
 bool GStreamerVideoSource::setVideoMode(const std::string mode_name)
 {
+	// Mode is determined by the stream
 	return false;
 }
 
@@ -308,9 +325,4 @@ void GStreamerVideoSource::getZRange(float& outZNear, float& outZFar) const
 {
 	outZNear = static_cast<float>(m_cfg->cameraIntrinsics.znear);
 	outZFar = static_cast<float>(m_cfg->cameraIntrinsics.zfar);
-}
-
-void GStreamerVideoSource::setVideoSourceListener(IVideoSourceListener* listener)
-{
-	m_listener = listener;
 }

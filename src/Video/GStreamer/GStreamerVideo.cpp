@@ -11,18 +11,127 @@
 class GStreamerVideoDeviceImpl
 {
 public:
-
-	IVideoSourceListener* videoSourceListener= nullptr;
 	GstElement* pipeline= nullptr;
 	GstElement* appsink= nullptr;
 
 	GStreamerVideoDeviceImpl() = default;
 };
 
+struct GstVideoFrameInfo
+{
+	int width= 0;
+	int height= 0;
+	double framerate= 0;
+	std::string bufferFormat;
+	std::string modeName;
+
+	GstVideoFrameInfo() = default;
+	
+	bool isValid() const { 
+		return 
+		width > 0 && 
+		height > 0 && 
+		framerate > 0 && 
+		!bufferFormat.empty() &&
+		!modeName.empty(); 
+	}
+};
+
+namespace GStreamerUtils
+{
+	bool extractVideoFrameInfo(GstCaps* caps, GstVideoFrameInfo& outFrameInfo)
+	{
+		outFrameInfo= GstVideoFrameInfo();
+
+		if (!caps || gst_caps_is_empty(caps))
+		{
+			return false;
+		}
+
+		for (guint i = 0; i < gst_caps_get_size(caps); ++i)
+		{
+			GstStructure* structure = gst_caps_get_structure(caps, i);
+
+			// Iterate over each field
+			//{
+			//	int num_fields = gst_structure_n_fields(structure);
+			//	for (int i = 0; i < num_fields; ++i)
+			//	{
+			//		// Get the field name
+			//		const gchar* field_name = gst_structure_nth_field_name(structure, i);
+			//		MIKAN_LOG_INFO("extractVideoFrameInfo") << "Field name: " << field_name;
+			//	}
+			//}
+
+			if (gst_structure_has_field(structure, "framerate"))
+			{
+				int numerator, denominator;
+
+				// Extract the framerate as a fraction
+				if (gst_structure_get_fraction(structure, "framerate", &numerator, &denominator))
+				{
+					outFrameInfo.framerate = static_cast<double>(numerator) / denominator;
+				}
+			}
+
+			if (gst_structure_has_field(structure, "width"))
+			{
+				gst_structure_get_int(structure, "width", &outFrameInfo.width);
+			}
+
+			if (gst_structure_has_field(structure, "height"))
+			{
+				gst_structure_get_int(structure, "height", &outFrameInfo.height);
+			}
+
+			if (gst_structure_has_field(structure, "format"))
+			{
+				outFrameInfo.bufferFormat = gst_structure_get_string(structure, "format");
+				outFrameInfo.modeName = gst_structure_get_name(structure);
+			}
+		}
+
+		return outFrameInfo.isValid();
+	}
+
+	bool hasFrameInfoChanged(VideoModeConfigConstPtr videoMode, const GstVideoFrameInfo& frameInfo)
+	{
+		return !videoMode ||
+			videoMode->bufferPixelWidth != frameInfo.width ||
+			videoMode->bufferPixelHeight != frameInfo.height ||
+			videoMode->frameRate != frameInfo.framerate ||
+			videoMode->bufferFormat != frameInfo.bufferFormat;
+	}
+
+	VideoModeConfigPtr createVideoModeConfig(
+		const GstVideoFrameInfo& frameInfo,
+		GStreamerVideoConfigPtr cfg)
+	{
+		VideoModeConfigPtr outVideoMode = std::make_shared<VideoModeConfig>();
+
+		outVideoMode->modeName= frameInfo.modeName;
+		outVideoMode->frameRate= frameInfo.framerate;
+		outVideoMode->bufferPixelWidth= frameInfo.width;
+		outVideoMode->bufferPixelHeight= frameInfo.height;
+		outVideoMode->bufferFormat= frameInfo.bufferFormat;
+		outVideoMode->isBufferMirrored= false;
+		outVideoMode->isFrameMirrored= false;
+		outVideoMode->frameSections.push_back({0, 0});
+
+		outVideoMode->intrinsics.setMonoIntrinsics(cfg->cameraIntrinsics);
+
+		return outVideoMode;
+	}
+}
+
 // -- GStreamer Video Device -----
-GStreamerVideoDevice::GStreamerVideoDevice(const int deviceIndex, const std::string& cameraURI)
-	: m_deviceIndex(deviceIndex)
-	, m_cameraURI(cameraURI)
+GStreamerVideoDevice::GStreamerVideoDevice(
+	const int cameraIndex,
+	GStreamerVideoConfigPtr cfg,
+	class IVideoSourceListener* listener)
+	: m_cameraIndex(cameraIndex)
+	, m_cfg(cfg)
+	, m_videoSourceListener(listener)
 	, m_impl(new GStreamerVideoDeviceImpl)
 {
 }
@@ -38,36 +147,32 @@ static std::string buildGStreamerPipelineString(GStreamerVideoConfigPtr cfg)
 	std::stringstream ss;
 	ss << cfg->getSourcePluginString() << " ";
 	ss << "location=" << cfg->getFullURIPath() << " ";
-	ss << "latency = 0 ";
-	ss << "buffer-mode=auto ";
-	ss << "! decodebin ";
-	ss << "! videoconvert ";
-	ss << "! appsink name=sink";
+	//ss << "latency = 0 ";
+	//ss << "buffer-mode=auto ";
 	//ss << "!rtph264depay ";
 	//ss << "!h264parse ";
+	//ss << "!avdec_h264 ";
+	//ss << "!d3d11h264dec ";
+	ss << "!decodebin ";
+	ss << "!videoconvert ";
+	ss << "!video/x-raw,format=RGB ";
+	ss << "!appsink name=sink";
+
 	//ss << "!d3d11h264dec ";
 	//ss << "!video.";
 
 	return ss.str();
 }
 
-bool GStreamerVideoDevice::open(
-	GStreamerVideoConfigPtr cfg,
-	IVideoSourceListener* videoSourceListener)
+bool GStreamerVideoDevice::open()
 {
 	if (getIsOpen())
 	{
 		return true;
 	}
 
-	// Close the device if it's currently open
-	if (getIsOpen())
-	{
-		close();
-	}
-
 	GError* error = nullptr;
-	std::string pipelineString= buildGStreamerPipelineString(cfg);
+	std::string pipelineString= buildGStreamerPipelineString(m_cfg);
 	m_impl->pipeline = gst_parse_launch(pipelineString.c_str(), &error);
 	if (error)
 	{
@@ -89,9 +194,6 @@ bool GStreamerVideoDevice::open(
 	gst_app_sink_set_drop(GST_APP_SINK(m_impl->appsink), TRUE);
 	gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 1);
 
-	// Remember the video source listener to post frames back to 
-	m_impl->videoSourceListener = videoSourceListener;
-
 	return true;
 }
 
@@ -100,7 +202,9 @@ bool GStreamerVideoDevice::getIsOpen() const
 	return m_impl->pipeline != nullptr && m_impl->appsink != nullptr;
 }
 
-void GStreamerVideoDevice::tryPullSample()
+void GStreamerVideoDevice::tryPullSample(
+	VideoModeConfigPtr inVideoMode,
+	VideoModeChangedCallback onVideoModeChanged)
 {
 	assert(getIsOpen());
 
@@ -109,20 +213,28 @@ void GStreamerVideoDevice::tryPullSample()
 	{
 		GstBuffer* buffer = gst_sample_get_buffer(sample);
 		GstCaps* caps = gst_sample_get_caps(sample);
-		if (caps)
+		GstVideoFrameInfo frameInfo;
+		if (GStreamerUtils::extractVideoFrameInfo(caps, frameInfo))
 		{
-			GstStructure* structure = gst_caps_get_structure(caps, 0);
-			int width, height;
-			gst_structure_get_int(structure, "width", &width);
-			gst_structure_get_int(structure, "height", &height);
-			//TODO: Bit Depth
-			//TODO: Frame Rate
+			// See if the new frame info is different from the current video mode settings
+			if (GStreamerUtils::hasFrameInfoChanged(inVideoMode, frameInfo))
+			{
+				// Let the caller know about the new video mode
+				// so that it can apply it before the next frame is received
+				VideoModeConfigPtr newVideoMode= 
+					GStreamerUtils::createVideoModeConfig(frameInfo, m_cfg);
+				onVideoModeChanged(newVideoMode);
+			}
 
 			GstMapInfo map;
 			if (gst_buffer_map(buffer, &map, GST_MAP_READ))
 			{
+				IVideoSourceListener::FrameBuffer bufferInfo;
+				bufferInfo.data= map.data;
+				bufferInfo.byte_count = map.size;
+
 				// Notify the listener that a new frame has been received
-				m_impl->videoSourceListener->notifyVideoFrameReceived(map.data);
+				m_videoSourceListener->notifyVideoFrameReceived(bufferInfo);
 
 				// Create an OpenCV Mat from the buffer data
 				gst_buffer_unmap(buffer, &map);
