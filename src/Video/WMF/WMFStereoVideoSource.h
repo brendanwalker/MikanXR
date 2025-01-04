@@ -29,7 +29,7 @@ public:
 
 class WMFStereoVideoSource : public IVideoSourceInterface {
 public:
-    WMFStereoVideoSource();
+    WMFStereoVideoSource(IVideoSourceListener* listener);
     virtual ~WMFStereoVideoSource();
         
     // Stereo Tracker
@@ -73,20 +73,20 @@ public:
 	void setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p) override;
     void getFOV(float &outHFOV, float &outVFOV) const override;
     void getZRange(float &outZNear, float &outZFar) const override;
-	void setVideoSourceListener(IVideoSourceListener *listener) override;
 
     // -- Getters
     inline WMFStereoVideoConfigConstPtr getConfig() const
     { return m_cfg; }
 
 protected:
+    IVideoSourceListener* m_listener;
+
 	VideoCapabilitiesConfigConstPtr m_capabilities;
 	const struct VideoModeConfig *m_currentMode;
 
     WMFStereoVideoConfigPtr m_cfg;
     std::string m_device_identifier;
 
-	class WMFVideoDevice *m_videoDevice;
+	class WMFVideoDevice* m_videoDevice;
     IVideoSourceInterface::eDriverType m_DriverType;
-    IVideoSourceListener*m_listener;
 };

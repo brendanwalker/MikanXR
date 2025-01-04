@@ -1,6 +1,7 @@
 //-- includes -----
 #include "CameraMath.h"
 #include "DeviceEnumerator.h"
+#include "GStreamerVideoSource.h"
 #include "VideoSourceView.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
@@ -8,6 +9,7 @@
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"
+#include "ThreadUtils.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoDeviceEnumerator.h"
 #include "VRDeviceView.h"
@@ -37,6 +39,7 @@ public:
 		, m_lastVideoFrameWriteIndex(0)
 	{
 		const VideoModeConfig* mode = device->getVideoMode();
+		assert(mode != nullptr);
 
 		m_srcBufferWidth = mode->bufferPixelWidth;
 		m_srcBufferHeight = mode->bufferPixelHeight;
@@ -180,20 +183,13 @@ std::string VideoSourceView::getUSBDevicePath() const
 	return m_device->getUSBDevicePath();
 }
 
-bool VideoSourceView::open(const class DeviceEnumerator* enumerator)
+bool VideoSourceView::open(const DeviceEnumerator* enumerator)
 {
 	bool bSuccess = DeviceView::open(enumerator);
 
-	if (bSuccess)
+	if (bSuccess && m_device != nullptr && m_device->getVideoMode() != nullptr)
 	{
-		// Allocate the open cv buffers used for tracking filtering
-		reallocateOpencvBufferState();
-
-		// Recompute the projection matrix
-		recomputeCameraProjectionMatrix();
-
-		// Let any connected clients know that the video source opened
-		MikanServer::getInstance()->publishVideoSourceOpenedEvent();
+		notifyVideoFrameSizeChanged();
 	}
 
 	return bSuccess;
@@ -246,20 +242,39 @@ void VideoSourceView::stopVideoStream()
 	}
 }
 
-void VideoSourceView::notifyVideoFrameReceived(const unsigned char* raw_video_frame_buffer)
+void VideoSourceView::notifyVideoFrameSizeChanged()
 {
+	// At the moment, this function should only be called from video sources that
+	// update their video frame size on the main thread.
+	// If this changes, we will need to refactor this function to be thread safe.
+	assert(ThreadUtils::isRunningInMainThread());
+
+	// Device should be open and have a valid video mode
+	assert(m_device != nullptr);
+	const VideoModeConfig* mode_config = m_device->getVideoMode();
+	assert(mode_config != nullptr);
+
+	// Allocate the open cv buffers used for tracking filtering
+	reallocateOpencvBufferState();
+
+	// Recompute the projection matrix
+	recomputeCameraProjectionMatrix();
+
+	MikanServer::getInstance()->publishVideoSourceModeChangedEvent();
+}
+
+void VideoSourceView::notifyVideoFrameReceived(const IVideoSourceListener::FrameBuffer& frameInfo)
+{
+	assert(m_device != nullptr);
+	const VideoModeConfig* mode_config = m_device->getVideoMode();
+	assert(mode_config != nullptr);
+
 	const bool is_frame_flipped = m_device->getIsFrameMirrored();
 	const bool is_buffer_flipped = m_device->getIsBufferMirrored();
-
-	if (m_device == nullptr)
-	{
-		return;
-	}
 
 	// Fetch the latest video buffer frame from the device
 	if (m_device->getIsStereoCamera())
 	{
-		const VideoModeConfig* mode_config = m_device->getVideoMode();
 		const auto& stereoIntrinsics= mode_config->intrinsics.getStereoIntrinsics();
 		const int section_width = (int)stereoIntrinsics.pixel_width;
 		const int section_height = (int)stereoIntrinsics.pixel_height;
@@ -285,7 +300,7 @@ void VideoSourceView::notifyVideoFrameReceived(const unsigned char* raw_video_fr
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Left] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Left]->writeStereoVideoFrameSection(
-				raw_video_frame_buffer,
+				frameInfo.data,
 				is_buffer_flipped ? right_bounds : left_bounds,
 				is_frame_flipped);
 		}
@@ -294,7 +309,7 @@ void VideoSourceView::notifyVideoFrameReceived(const unsigned char* raw_video_fr
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Right] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Right]->writeStereoVideoFrameSection(
-				raw_video_frame_buffer,
+				frameInfo.data,
 				is_buffer_flipped ? left_bounds : right_bounds,
 				is_frame_flipped);
 		}
@@ -305,84 +320,82 @@ void VideoSourceView::notifyVideoFrameReceived(const unsigned char* raw_video_fr
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Primary]->writeVideoFrame(
-				raw_video_frame_buffer, is_frame_flipped);
+				frameInfo.data, is_frame_flipped);
 		}
 	}
 }
 
-void VideoSourceView::reallocateOpencvBufferState()
+bool VideoSourceView::reallocateOpencvBufferState()
 {
-	// Delete any existing opencv buffers
-	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
+	if (m_device->getVideoMode() != nullptr)
 	{
-		if (m_opencv_buffer_state[i] != nullptr)
+		// Delete any existing opencv buffers
+		for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
 		{
-			delete m_opencv_buffer_state[i];
-			m_opencv_buffer_state[i] = nullptr;
+			if (m_opencv_buffer_state[i] != nullptr)
+			{
+				delete m_opencv_buffer_state[i];
+				m_opencv_buffer_state[i] = nullptr;
+			}
 		}
+
+		// Allocate the OpenCV scratch buffers used for finding tracking blobs
+		if (m_device->getIsStereoCamera())
+		{
+			m_opencv_buffer_state[(int)VideoFrameSection::Left] =
+				new OpenCVBufferState(m_device, VideoFrameSection::Left);
+			m_opencv_buffer_state[(int)VideoFrameSection::Right] =
+				new OpenCVBufferState(m_device, VideoFrameSection::Right);
+		}
+		else
+		{
+			m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
+				new OpenCVBufferState(m_device, VideoFrameSection::Primary);
+		}
+
+		return true;
 	}
 
-	// Allocate the OpenCV scratch buffers used for finding tracking blobs
-	if (m_device->getIsStereoCamera())
-	{
-		m_opencv_buffer_state[(int)VideoFrameSection::Left] =
-			new OpenCVBufferState(m_device, VideoFrameSection::Left);
-		m_opencv_buffer_state[(int)VideoFrameSection::Right] =
-			new OpenCVBufferState(m_device, VideoFrameSection::Right);
-	}
-	else
-	{
-		m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
-			new OpenCVBufferState(m_device, VideoFrameSection::Primary);
-	}
+	return false;
 }
 
-bool VideoSourceView::allocateDeviceInterface(const class DeviceEnumerator* enumerator)
-{
-	m_device = VideoSourceView::allocateVideoSourceInterface(enumerator);
-
-	if (m_device != nullptr)
-	{
-		m_device->setVideoSourceListener(this);
-	}
-
-	return m_device != nullptr;
-}
-
-IVideoSourceInterface* VideoSourceView::allocateVideoSourceInterface(const DeviceEnumerator* enumerator)
+bool VideoSourceView::allocateDeviceInterface(const DeviceEnumerator* enumerator)
 {
 	const VideoDeviceEnumerator* videoEnumerator = static_cast<const VideoDeviceEnumerator*>(enumerator);
-	IVideoSourceInterface* tracker_interface = nullptr;
 
 	switch (videoEnumerator->getVideoApi())
 	{
-	case eVideoDeviceApi::OPENCV:
-		{
-			tracker_interface = new OpenCVVideoSource();
-		} break;
-#ifdef _WIN32
-	case eVideoDeviceApi::WMF:
-		{
-			switch (enumerator->getDeviceType())
+		case eVideoDeviceApi::GSTREAMER:
 			{
-			case eDeviceType::MonoVideoSource:
+				m_device = new GStreamerVideoSource(this);
+			} break;
+		case eVideoDeviceApi::OPENCV:
+			{
+				m_device = new OpenCVVideoSource(this);
+			} break;
+		#ifdef _WIN32
+		case eVideoDeviceApi::WMF:
+			{
+				switch (enumerator->getDeviceType())
 				{
-					tracker_interface = new WMFMonoVideoSource();
-				} break;
-			case eDeviceType::StereoVideoSource:
-				{
-					tracker_interface = new WMFStereoVideoSource();
-				} break;
-			default:
-				break;
-			}
-		} break;
-#endif
-	default:
-		break;
+					case eDeviceType::MonoVideoSource:
+						{
+							m_device = new WMFMonoVideoSource(this);
+						} break;
+					case eDeviceType::StereoVideoSource:
+						{
+							m_device = new WMFStereoVideoSource(this);
+						} break;
+					default:
+						break;
+				}
+			} break;
+		#endif
+		default:
+			break;
 	}
 
-	return tracker_interface;
+	return m_device != nullptr;
 }
 
 void VideoSourceView::freeDeviceInterface()
@@ -431,15 +444,7 @@ bool VideoSourceView::setVideoMode(const std::string& new_mode)
 
 		if (m_device->setVideoMode(new_mode))
 		{
-			// Resize the opencv buffers
-			reallocateOpencvBufferState();
-
-			// Recompute the projection matrix
-			recomputeCameraProjectionMatrix();
-
-			// Let any connected clients know that the video mode changed
-			MikanServer::getInstance()->publishVideoSourceModeChangedEvent();
-
+			notifyVideoFrameSizeChanged();
 			bUpdatedMode= true;
 		}
 

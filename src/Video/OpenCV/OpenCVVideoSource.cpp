@@ -13,8 +13,9 @@
 #endif
 
 
-OpenCVVideoSource::OpenCVVideoSource()
-    : m_videoCapabilities()
+OpenCVVideoSource::OpenCVVideoSource(IVideoSourceListener* listener)
+    : m_listener(listener)
+	, m_videoCapabilities()
 	, m_currentModeIndex(-1)
 	, m_cfg()
     , m_deviceIdentifier()
@@ -362,9 +363,4 @@ void OpenCVVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
     outZNear = static_cast<float>(m_cfg->cameraIntrinsics.znear);
     outZFar = static_cast<float>(m_cfg->cameraIntrinsics.zfar);
-}
-
-void OpenCVVideoSource::setVideoSourceListener(IVideoSourceListener *listener)
-{
-	m_listener= listener;
 }

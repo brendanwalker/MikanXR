@@ -14,7 +14,7 @@
 // -- definitions -----
 class OpenCVVideoSource : public IVideoSourceInterface {
 public:
-    OpenCVVideoSource();
+    OpenCVVideoSource(IVideoSourceListener* listener);
     virtual ~OpenCVVideoSource();
         
     bool open();
@@ -56,20 +56,20 @@ public:
 	void setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p) override;
     void getFOV(float &outHFOV, float &outVFOV) const override;
     void getZRange(float &outZNear, float &outZFar) const override;
-	void setVideoSourceListener(IVideoSourceListener* listener) override;
 
     // -- Getters
     inline OpenCVVideoConfigConstPtr getConfig() const
     { return m_cfg; }
 
 private:
-	VideoCapabilitiesConfigConstPtr m_videoCapabilities;
+	IVideoSourceListener* m_listener;
+
+    VideoCapabilitiesConfigConstPtr m_videoCapabilities;
 	int m_currentModeIndex;
 
     OpenCVVideoConfigPtr m_cfg;
     std::string m_deviceIdentifier;
 
     class OpenCVVideoDevice *m_videoDevice;
-    IVideoSourceInterface::eDriverType m_driverType;    
-	IVideoSourceListener *m_listener;
+    IVideoSourceInterface::eDriverType m_driverType;
 };

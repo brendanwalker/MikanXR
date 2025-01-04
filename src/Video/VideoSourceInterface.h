@@ -59,8 +59,17 @@ struct VideoPropertyConstraint
 class IVideoSourceListener
 {
 public:
+	struct FrameBuffer
+	{
+		const uint8_t* data;
+		size_t byte_count;
+	};
+
+	// Called when the video source has updated its dimensions
+	virtual void notifyVideoFrameSizeChanged() = 0;
+
 	// Called when new video frame has been received from the video source
-	virtual void notifyVideoFrameReceived(const unsigned char*) = 0;
+	virtual void notifyVideoFrameReceived(const FrameBuffer& bufferInfo) = 0;
 };
 
 /// Interface class for VideoSources
@@ -153,7 +162,4 @@ public:
 
 	virtual void getFOV(float& outHFOV, float& outVFOV) const = 0;
 	virtual void getZRange(float& outZNear, float& outZFar) const = 0;
-
-	// Assign a Tracker listener to send Tracker events to
-	virtual void setVideoSourceListener(IVideoSourceListener* listener) = 0;
 };

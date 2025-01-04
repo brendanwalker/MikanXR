@@ -105,8 +105,9 @@ void WMFStereoVideoConfig::readFromJSON(const configuru::Config &pt)
 }
 
 // -- WMFStereoTracker
-WMFStereoVideoSource::WMFStereoVideoSource()
-    : m_cfg()
+WMFStereoVideoSource::WMFStereoVideoSource(IVideoSourceListener* listener)
+    : m_listener(listener)
+	, m_cfg()
 	, m_videoDevice(nullptr)
     , m_DriverType(WMFStereoVideoSource::WindowsMediaFramework)
 {
@@ -499,9 +500,4 @@ void WMFStereoVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
     outZNear = static_cast<float>(m_cfg->tracker_intrinsics.znear);
     outZFar = static_cast<float>(m_cfg->tracker_intrinsics.zfar);
-}
-
-void WMFStereoVideoSource::setVideoSourceListener(IVideoSourceListener *listener)
-{
-	m_listener= listener;
 }

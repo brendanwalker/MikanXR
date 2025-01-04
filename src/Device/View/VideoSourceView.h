@@ -33,8 +33,6 @@ public:
 	VideoSourceView(const int device_id);
 	~VideoSourceView();
 
-	static IVideoSourceInterface* allocateVideoSourceInterface(const class DeviceEnumerator* enumerator);
-
 	bool open(const class DeviceEnumerator* enumerator) override;
 	void close() override;
 
@@ -97,11 +95,12 @@ public:
 	void getFOV(float& outHFOV, float& outVFOV) const;
 	void getZRange(float& outZNear, float& outZFar) const;
 
-	//-- ITrackerListener
-	virtual void notifyVideoFrameReceived(const unsigned char* raw_video_frame_buffer) override;
+	//-- IVideoSourceListener
+	virtual void notifyVideoFrameSizeChanged() override;
+	virtual void notifyVideoFrameReceived(const IVideoSourceListener::FrameBuffer& frameInfo) override;
 
 protected:
-	void reallocateOpencvBufferState();
+	bool reallocateOpencvBufferState();
 	bool allocateDeviceInterface(const class DeviceEnumerator* enumerator) override;
 	void freeDeviceInterface() override;
 	void recomputeCameraProjectionMatrix();

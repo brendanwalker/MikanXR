@@ -426,7 +426,11 @@ bool OpenCVVideoFrameProcessor::doWork()
 	{
 		if (m_videoCapture->read(*m_videoFrame))
 		{
-			m_videoSourceListener->notifyVideoFrameReceived(m_videoFrame->data);
+			IVideoSourceListener::FrameBuffer frameInfo;
+			frameInfo.data = m_videoFrame->data;
+			frameInfo.byte_count = m_videoFrame->elemSize() * m_videoFrame->total();
+
+			m_videoSourceListener->notifyVideoFrameReceived(frameInfo);
 		}
 	}
 	else

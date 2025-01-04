@@ -75,8 +75,9 @@ void WMFMonoVideoConfig::readFromJSON(const configuru::Config &pt)
 }
 
 // -- WMFMonoTracker
-WMFMonoVideoSource::WMFMonoVideoSource()
-    : m_cfg()
+WMFMonoVideoSource::WMFMonoVideoSource(IVideoSourceListener* listener)
+    : m_listener(listener)
+	, m_cfg()
 	, m_videoDevice(nullptr)
     , m_DriverType(WMFMonoVideoSource::WindowsMediaFramework)
 {
@@ -488,9 +489,4 @@ void WMFMonoVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
     outZNear = static_cast<float>(m_cfg->tracker_intrinsics.znear);
     outZFar = static_cast<float>(m_cfg->tracker_intrinsics.zfar);
-}
-
-void WMFMonoVideoSource::setVideoSourceListener(IVideoSourceListener *listener)
-{
-	m_listener= listener;
 }
