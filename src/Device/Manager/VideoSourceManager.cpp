@@ -63,6 +63,9 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 
 	if (bSuccess)
 	{
+		// Set the singleton pointer
+		m_instance = this;
+
 		// Initialize GStreamer
 		// Intentionally don't pass in the command line arguments
 		gst_init(nullptr, nullptr);
@@ -82,9 +85,6 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 
 		// Refresh the tracker list
 		updateConnectedDeviceViews();
-
-		// Set the singleton pointer
-		m_instance= this;
 	}
 
 	return bSuccess;
