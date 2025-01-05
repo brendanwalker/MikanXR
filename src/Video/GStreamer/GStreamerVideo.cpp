@@ -13,8 +13,43 @@ class GStreamerVideoDeviceImpl
 public:
 	GstElement* pipeline= nullptr;
 	GstElement* appsink= nullptr;
+	GstBus* bus = nullptr;
 
 	GStreamerVideoDeviceImpl() = default;
+
+	static gboolean busCallback(GstBus* bus, GstMessage* msg, gpointer data)
+	{
+		GStreamerVideoDevice* videoDevice = reinterpret_cast<GStreamerVideoDevice*>(data);
+
+		switch (GST_MESSAGE_TYPE(msg))
+		{
+			case GST_MESSAGE_EOS:
+				{
+					MIKAN_LOG_INFO("bus_call") << "End of stream";
+					videoDevice->stopVideoStream();
+				} break;
+
+			case GST_MESSAGE_ERROR:
+				{
+					GError* err;
+					gchar* debug_info;
+
+					gst_message_parse_error(msg, &err, &debug_info);
+					MIKAN_LOG_ERROR("gstreamer::bus_call") << "Error received from element " << GST_OBJECT_NAME(msg->src) << ": " << err->message;
+					MIKAN_LOG_ERROR("gstreamer::bus_call") << "Debugging information: " << (debug_info ? debug_info : "none");
+					g_clear_error(&err);
+					g_free(debug_info);
+
+					videoDevice->close();
+				} break;
+
+			default:
+				break;
+		}
+
+		return TRUE;
+
+	}
 };
 
 struct GstVideoFrameInfo
@@ -133,6 +168,7 @@ GStreamerVideoDevice::GStreamerVideoDevice(
 	, m_cfg(cfg)
 	, m_videoSourceListener(listener)
 	, m_impl(new GStreamerVideoDeviceImpl)
+	, m_bIsStreaming(false)
 {
 }
 
@@ -147,19 +183,12 @@ static std::string buildGStreamerPipelineString(GStreamerVideoConfigPtr cfg)
 	std::stringstream ss;
 	ss << cfg->getSourcePluginString() << " ";
 	ss << "location=" << cfg->getFullURIPath() << " ";
-	//ss << "latency = 0 ";
-	//ss << "buffer-mode=auto ";
-	//ss << "!rtph264depay ";
-	//ss << "!h264parse ";
-	//ss << "!avdec_h264 ";
-	//ss << "!d3d11h264dec ";
+	ss << "latency = 0 ";
+	ss << "buffer-mode=auto ";
 	ss << "!decodebin ";
 	ss << "!videoconvert ";
-	ss << "!video/x-raw,format=RGB ";
+	ss << "!video/x-raw,format=BGR ";
 	ss << "!appsink name=sink";
-
-	//ss << "!d3d11h264dec ";
-	//ss << "!video.";
 
 	return ss.str();
 }
@@ -190,6 +219,18 @@ bool GStreamerVideoDevice::open()
 		return false;
 	}
 
+	// add a message handler
+	m_impl->bus = gst_pipeline_get_bus(GST_PIPELINE(m_impl->pipeline));
+	if (!m_impl->bus)
+	{
+		MIKAN_LOG_INFO("GStreamerVideoDevice::open") << "Failed to get bus from pipeline!";
+		close();
+		return false;
+	}
+
+	// Register the bus callback
+	gst_bus_add_watch(m_impl->bus, GStreamerVideoDeviceImpl::busCallback, this);
+
 	gst_app_sink_set_emit_signals(GST_APP_SINK(m_impl->appsink), FALSE);
 	gst_app_sink_set_drop(GST_APP_SINK(m_impl->appsink), TRUE);
 	gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 1);
@@ -199,8 +240,9 @@ bool GStreamerVideoDevice::open()
 
 bool GStreamerVideoDevice::getIsOpen() const
 {
-	return m_impl->pipeline != nullptr && m_impl->appsink != nullptr;
+	return m_impl->pipeline != nullptr && m_impl->appsink != nullptr && m_impl->bus != nullptr;
 }
+
 
 void GStreamerVideoDevice::tryPullSample(
 	VideoModeConfigPtr inVideoMode,
@@ -251,17 +293,27 @@ void GStreamerVideoDevice::tryPullSample(
 
 void GStreamerVideoDevice::close()
 {
+	// Make sure the pipeline is stopped first
 	if (m_impl->pipeline != nullptr)
 	{
 		gst_element_set_state(m_impl->pipeline, GST_STATE_NULL);
 	}
 
+	// Destroy the bus
+	if (m_impl->bus != nullptr)
+	{
+		gst_object_unref(m_impl->bus);
+		m_impl->bus= nullptr;
+	}
+
+	// Destroy the appsink
 	if (m_impl->appsink != nullptr)
 	{	
 		gst_object_unref(m_impl->appsink);
 		m_impl->appsink= nullptr;
 	}
 
+	// Destroy the pipeline
 	if (m_impl->pipeline != nullptr)
 	{
 		gst_object_unref(m_impl->pipeline);
@@ -271,9 +323,11 @@ void GStreamerVideoDevice::close()
 
 bool GStreamerVideoDevice::startVideoStream()
 {
-	if (getIsOpen() && !getIsVideoStreaming())
+	if (getIsOpen())
 	{
 		gst_element_set_state(m_impl->pipeline, GST_STATE_PLAYING);
+		m_bIsStreaming= true;
+		return true;
 	}
 
 	return false;
@@ -281,24 +335,15 @@ bool GStreamerVideoDevice::startVideoStream()
 
 bool GStreamerVideoDevice::getIsVideoStreaming()
 {
-	if (getIsOpen())
-	{
-		GstState state;
-		GstStateChangeReturn ret = gst_element_get_state(m_impl->pipeline, &state, nullptr, 0);
-
-		if (ret == GST_STATE_CHANGE_SUCCESS)
-		{
-			return state == GST_STATE_PLAYING;
-		}
-	}
-
-	return false;
+	return m_bIsStreaming;
 }
 
 void GStreamerVideoDevice::stopVideoStream()
 {
 	if (getIsOpen())
 	{
-		gst_element_set_state(m_impl->pipeline, GST_STATE_NULL);
+		gst_element_set_state(m_impl->pipeline, GST_STATE_PAUSED);
 	}
+
+	m_bIsStreaming= false;
 }

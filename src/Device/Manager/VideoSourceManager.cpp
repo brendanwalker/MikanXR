@@ -111,10 +111,12 @@ void VideoSourceManager::update(float deltaTime)
 
 void VideoSourceManager::shutdown()
 {
+	// Close all video sources
+	DeviceManager::shutdown();
+
 	// Clean up the GStreamer library
 	gst_deinit();
 
-	DeviceManager::shutdown();
 	m_instance = nullptr;
 }
 

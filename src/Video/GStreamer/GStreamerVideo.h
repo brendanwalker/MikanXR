@@ -35,4 +35,5 @@ private:
 	GStreamerVideoConfigPtr m_cfg;
 	class IVideoSourceListener* m_videoSourceListener;
 	class GStreamerVideoDeviceImpl* m_impl;
+	bool m_bIsStreaming;
 };

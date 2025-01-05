@@ -257,7 +257,7 @@ double GStreamerVideoSource::getFrameHeight() const
 {
 	const VideoModeConfig* videoMode = getVideoMode();
 
-	return videoMode != nullptr ? (double)videoMode->bufferPixelWidth : 0.0;
+	return videoMode != nullptr ? (double)videoMode->bufferPixelHeight : 0.0;
 }
 
 double GStreamerVideoSource::getFrameRate() const
