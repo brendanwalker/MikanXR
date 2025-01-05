@@ -141,7 +141,8 @@ void MonoLensDistortionCalibrator::resetCalibrationState()
 
 void MonoLensDistortionCalibrator::resetDistortionView()
 {
-	m_distortionView->rebuildDistortionMap(&m_calibrationState->inputCameraIntrinsics);
+	m_distortionView->applyMonoCameraIntrinsics(&m_calibrationState->inputCameraIntrinsics);
+	m_distortionView->setVideoDisplayMode(eVideoDisplayMode::mode_bgr);
 }
 
 void MonoLensDistortionCalibrator::computeCameraCalibration()
