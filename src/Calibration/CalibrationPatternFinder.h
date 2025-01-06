@@ -56,6 +56,7 @@ public:
 		struct MikanMonoIntrinsics& outIntrinsics,
 		double& outReprojectionError) const;
 
+	bool isUsingUndistortedView() const;
 	bool areCurrentImagePointsValid() const;
 	inline float getFrameWidth() const { return m_frameWidth; }
 	inline float getFrameHeight() const { return m_frameHeight; }

@@ -198,11 +198,20 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 		return false;
 	}
 
+	// Make a local copy of the mono camera intrinsics
+	MikanMonoIntrinsics monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
+	if (isUsingUndistortedView())
+	{ 
+		// If we're using an undistorted view, then we need to zero out the distortion coefficients.
+		// Otherwise the solvePnP calculation will be thrown off since we'd effectively be applying
+		// the un-distortion twice
+		monoIntrinsics.distortion_coefficients = MikanDistortionCoefficients();
+	}
+
 	// Given an object model and the image points samples we could be able to compute 
 	// a position and orientation of the calibration pattern relative to the camera
 	cv::Quatd cv_cameraToPatternRot;
 	cv::Vec3d cv_cameraToPatternVecMM; // Millimeters
-	const auto& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	if (!computeOpenCVCameraRelativePatternTransform(
 		monoIntrinsics,
 		imagePoints,
@@ -219,6 +228,11 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 		outCameraToPatternXform);
 
 	return true;
+}
+
+bool CalibrationPatternFinder::isUsingUndistortedView() const
+{
+	return !m_distortionView->isGrayscaleUndistortDisabled();
 }
 
 bool CalibrationPatternFinder::areCurrentImagePointsValid() const
@@ -304,9 +318,9 @@ bool CalibrationPatternFinder_Chessboard::findNewCalibrationPattern(const float 
 	m_currentImagePoints.clear();
 
 	cv::Mat* gsSourceBuffer =
-		m_distortionView->isGrayscaleUndistortDisabled()
-		? m_distortionView->getGrayscaleSourceBuffer()
-		: m_distortionView->getGrayscaleUndistortBuffer();
+		isUsingUndistortedView()
+		? m_distortionView->getGrayscaleUndistortBuffer()
+		: m_distortionView->getGrayscaleSourceBuffer();
 	if (gsSourceBuffer == nullptr)
 		return false;
 
@@ -518,9 +532,9 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 
 	// Use the original source buffer for the grayscale image if undistorted source is not available
 	cv::Mat* gsSourceBuffer =
-		m_distortionView->isGrayscaleUndistortDisabled()
-		? m_distortionView->getGrayscaleSourceBuffer()
-		: m_distortionView->getGrayscaleUndistortBuffer();
+		isUsingUndistortedView()
+		? m_distortionView->getGrayscaleUndistortBuffer()
+		: m_distortionView->getGrayscaleSourceBuffer();
 	if (gsSourceBuffer == nullptr)
 		return false;
 
@@ -759,9 +773,9 @@ bool CalibrationPatternFinder_Aruco::findNewCalibrationPattern(const float minSe
 
 	// Use the original source buffer for the grayscale image (NOT the undistorted one)
 	cv::Mat* gsSourceBuffer =
-		m_distortionView->isGrayscaleUndistortDisabled()
-		? m_distortionView->getGrayscaleSourceBuffer()
-		: m_distortionView->getGrayscaleUndistortBuffer();
+		isUsingUndistortedView()
+		? m_distortionView->getGrayscaleUndistortBuffer()
+		: m_distortionView->getGrayscaleSourceBuffer();
 	if (gsSourceBuffer == nullptr)
 		return false;
 
