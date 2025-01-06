@@ -86,7 +86,8 @@ CalibrationPatternFinderPtr CalibrationPatternFinder::allocatePatternFinderShare
 }
 
 bool CalibrationPatternFinder::calibrateCamera(
-	const MikanMonoIntrinsics& inputCameraIntrinsics,
+	const int frameWidth,
+	const int frameHeight,
 	const std::vector<t_opencv_point2d_list>& cvImagePointsList,
 	const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
 	MikanMonoIntrinsics &outIntrinsics,
@@ -94,22 +95,24 @@ bool CalibrationPatternFinder::calibrateCamera(
 {
 	bool bSuccess = true;
 
-	const int frameWidth = (int)inputCameraIntrinsics.pixel_width;
-	const int frameHeight = (int)inputCameraIntrinsics.pixel_height;
-
-	// We maintain some properties of the existing intrinsic matrix 
-	// so we need to use the current intrinsics as input (see options below)
-	const MikanMatrix3d& mikanIntrinsicMatrix = inputCameraIntrinsics.camera_matrix;
-	cv::Matx33d cvIntrinsicMatrix = MikanMatrix3d_to_cv_mat33d(mikanIntrinsicMatrix);
-
-	// Get the image point sets we captured during calibration
-	const size_t imagePointSetCount = cvImagePointsList.size();
+	// Initialize the output intrinsics with default values
+	outIntrinsics = MikanMonoIntrinsics();
 
 	// Each 2d image point set should have a corresponding 3d object point set
+	const size_t imagePointSetCount = cvImagePointsList.size();
 	std::vector< t_opencv_point3d_list > cvObjectPointsList(imagePointSetCount);
 	std::fill(cvObjectPointsList.begin(), cvObjectPointsList.end(), m_opencvLensCalibrationGeometry.points);
 
-	// Compute the camera intrinsic matrix and distortion parameters
+	// Compute an initial guess for the camera intrinsic matrix
+	// using correspondence between the object points and the image points
+	cv::Size cvImageSize(frameWidth, frameHeight);
+	cv::Matx33d cvIntrinsicMatrix = 
+		cv::initCameraMatrix2D(
+			cvObjectPointsList,
+			cvImagePointsList,
+			cvImageSize);
+
+	// Refine the camera intrinsic matrix and compute distortion parameters
 	cv::Mat cvDistCoeffsRowVector;
 	try
 	{
@@ -117,7 +120,7 @@ bool CalibrationPatternFinder::calibrateCamera(
 			cv::calibrateCamera(
 				cvObjectPointsList,
 				cvImagePointsList,
-				cv::Size(frameWidth, frameHeight),
+				cvImageSize,
 				cvIntrinsicMatrix, // Input/Output camera intrinsic matrix 
 				cvDistCoeffsRowVector, // Output distortion coefficients
 				cv::noArray(), cv::noArray(), // best fit board poses as rvec/tvec pairs
@@ -142,24 +145,29 @@ bool CalibrationPatternFinder::calibrateCamera(
 		cv::Mat cvDistCoeffsColVector;
 		cv::transpose(cvDistCoeffsRowVector.colRange(cv::Range(0, 8)), cvDistCoeffsColVector);
 
-		// Write the calibration output state
-		outIntrinsics = inputCameraIntrinsics;
-		outIntrinsics.camera_matrix = cv_mat33d_to_MikanMatrix3d(cvIntrinsicMatrix);
-		outIntrinsics.distortion_coefficients = cv_vec8_to_Mikan_distortion(cvDistCoeffsColVector);
-
 		// Derive the FoV angles from the image size and the newly computed intrinsic matrix
+		double hfov, vfov;
 		double unusedFocalLength;
 		cv::Point2d ununsedPrincipalPoint;
 		double unusedAspectRatio;
 		cv::calibrationMatrixValues(
 			cvIntrinsicMatrix,
-			cv::Size(frameWidth, frameHeight),
-			0.0, 0.0, // Don't know (and don't need) the physical aperture size of the lens
-			outIntrinsics.hfov,
-			outIntrinsics.vfov,
+			cvImageSize,
+			0.0, 0.0, // Don't know (and don't need) the physical aperture size of the lens 
+			hfov, vfov,
 			unusedFocalLength,
 			ununsedPrincipalPoint,
 			unusedAspectRatio);
+
+		// Write the calibration output state
+		outIntrinsics.pixel_width = (double)frameWidth;
+		outIntrinsics.pixel_height = (double)frameHeight;
+		outIntrinsics.hfov = hfov;
+		outIntrinsics.vfov = vfov;
+		outIntrinsics.znear = DEFAULT_MONO_ZNEAR;
+		outIntrinsics.zfar = DEFAULT_MONO_ZFAR;
+		outIntrinsics.camera_matrix = cv_mat33d_to_MikanMatrix3d(cvIntrinsicMatrix);
+		outIntrinsics.distortion_coefficients = cv_vec8_to_Mikan_distortion(cvDistCoeffsColVector);
 	}
 
 	return bSuccess;

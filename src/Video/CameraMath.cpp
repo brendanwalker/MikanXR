@@ -9,10 +9,6 @@
 
 #include "opencv2/opencv.hpp"
 
-#define DEFAULT_MONO_HFOV   60.0   // 60 degrees
-#define DEFAULT_MONO_ZNEAR  0.1    // 10cm
-#define DEFAULT_MONO_ZFAR   20.0   // 20m
-
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
 {
 	// Convert the camera pose transform into a modelview matrix
@@ -265,7 +261,7 @@ void createDefautMonoIntrinsics(
 	outIntrinsics.hfov= hfov;
 	outIntrinsics.vfov= vfov;
 	outIntrinsics.znear= DEFAULT_MONO_ZNEAR;
-	outIntrinsics.zfar= DEFAULT_MONO_ZFAR;	
+	outIntrinsics.zfar= DEFAULT_MONO_ZFAR;
 	outIntrinsics.camera_matrix = {
 		f_x, 0.0, c_x,
 		0.0, f_y, c_y,

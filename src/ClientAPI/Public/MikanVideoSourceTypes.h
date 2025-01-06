@@ -75,9 +75,9 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCamera
 	FIELD()
 	double vfov = 0.0;         ///< The vertical field of view camera in degrees
 	FIELD()
-	double znear = 0.0;        ///< The distance of the near clipping plane in cm
+	double znear = 0.0;        ///< The distance of the near clipping plane in meters
 	FIELD()
-	double zfar = 0.0;         ///< The distance of the far clipping plane in cm
+	double zfar = 0.0;         ///< The distance of the far clipping plane in meters
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanCameraIntrinsics_GENERATED

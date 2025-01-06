@@ -5,7 +5,7 @@
 #include "CommonVideoConfig.h"
 
 // -- definitions -----
-enum class GStreamerProtocol
+enum class eGStreamerProtocol
 {
 	INVALID= -1,
 
@@ -14,17 +14,7 @@ enum class GStreamerProtocol
 
 	COUNT
 };
-
-enum class GStreamerCodec
-{
-	INVALID= -1,
-
-	MJPEG,
-	H264,
-	H265,
-
-	COUNT
-};
+extern const std::string* k_GStreamerProtocolStrings;
 
 class GStreamerVideoConfig : public CommonVideoConfig
 {
@@ -39,12 +29,10 @@ public:
 	std::string getSourcePluginString() const;
 	std::string getFullURIPath() const;
 	std::string getURIProtocolString() const;
-	std::string getCodecString() const;
 
-	GStreamerProtocol protocol;
+	eGStreamerProtocol protocol;
 	std::string address;
 	std::string path;
 	int port;
-	GStreamerCodec codec;
 	MikanMonoIntrinsics cameraIntrinsics;
 };

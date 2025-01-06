@@ -9,6 +9,10 @@
 
 #include <memory>
 
+#define DEFAULT_MONO_HFOV   60.0   // 60 degrees
+#define DEFAULT_MONO_ZNEAR  0.1    // 0.1 meters (10cm)
+#define DEFAULT_MONO_ZFAR   20.0   // 20 meters
+
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 

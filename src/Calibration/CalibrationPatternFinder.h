@@ -50,7 +50,7 @@ public:
 		t_opencv_pointID_list& outImagePointIDs,
 		cv::Point2f outBoundingQuad[4]) = 0;
 	virtual bool calibrateCamera(
-		const struct MikanMonoIntrinsics& inputCameraIntrinsics,
+		const int frameWidth, const int frameHeight,
 		const std::vector<t_opencv_point2d_list>& cvImagePointsList,
 		const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
 		struct MikanMonoIntrinsics& outIntrinsics,
@@ -146,14 +146,18 @@ public:
 		t_opencv_point2d_list& outImagePoints,
 		t_opencv_pointID_list& outImagePointIDs,
 		cv::Point2f outBoundingQuad[4]) override;
+	virtual void renderCalibrationPattern2D() const override;
+
+	// Can't use this pattern type for camera calibration
 	virtual bool calibrateCamera(
-		const struct MikanMonoIntrinsics& inputCameraIntrinsics,
+		const int frameWidth, const int frameHeight,
 		const std::vector<t_opencv_point2d_list>& cvImagePointsList,
 		const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
 		struct MikanMonoIntrinsics& outIntrinsics,
-		double& outReprojectionError) const 
-	{ return false; }
-	virtual void renderCalibrationPattern2D() const override;
+		double& outReprojectionError) const override
+	{
+		return false;
+	}
 
 protected:
 	class ArucoBoardData* m_markerData;

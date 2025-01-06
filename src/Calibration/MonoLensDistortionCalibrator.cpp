@@ -24,7 +24,8 @@ struct MonoLensDistortionCalibrationState
 	};
 
 	// Static Input
-	MikanMonoIntrinsics inputCameraIntrinsics;
+	MikanMonoIntrinsics originalCameraIntrinsics;
+	int frameWidth, frameHeight;
 	int desiredPatternCount;
 
 	// Capture State
@@ -43,12 +44,8 @@ struct MonoLensDistortionCalibrationState
 
 	void init(VideoSourceViewPtr videoSourceView, int patternCount)
 	{
-		// Get the current camera intrinsics being used by the video source
-		MikanVideoSourceIntrinsics cameraIntrinsics;
-		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
-		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-
-		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
+		frameWidth= videoSourceView->getFrameWidth();
+		frameHeight= videoSourceView->getFrameHeight();
 		desiredPatternCount = patternCount;
 
 		resetCalibration();
@@ -66,7 +63,7 @@ struct MonoLensDistortionCalibrationState
 		asyncComputeTaskStatus = NotStarted;
 
 		// Reset the output
-		outputCameraIntrinsics = inputCameraIntrinsics;
+		outputCameraIntrinsics = originalCameraIntrinsics;
 		reprojectionError = 0.0;
 	}
 };
@@ -141,7 +138,7 @@ void MonoLensDistortionCalibrator::resetCalibrationState()
 
 void MonoLensDistortionCalibrator::resetDistortionView()
 {
-	m_distortionView->applyMonoCameraIntrinsics(&m_calibrationState->inputCameraIntrinsics);
+	m_distortionView->applyMonoCameraIntrinsics(&m_calibrationState->originalCameraIntrinsics);
 	m_distortionView->setVideoDisplayMode(eVideoDisplayMode::mode_bgr);
 }
 
@@ -158,7 +155,8 @@ void MonoLensDistortionCalibrator::computeCameraCalibration()
 	calibrationState->asyncComputeTask = new std::thread([patternFinder, calibrationState]
 	{
 		bool bSuccess= patternFinder->calibrateCamera(
-			calibrationState->inputCameraIntrinsics,
+			calibrationState->frameWidth, 
+			calibrationState->frameHeight,
 			calibrationState->imagePointsList,
 			calibrationState->imagePointIDList,
 			calibrationState->outputCameraIntrinsics,
