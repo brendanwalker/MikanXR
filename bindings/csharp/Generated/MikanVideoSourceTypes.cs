@@ -55,7 +55,8 @@ namespace MikanXR
 		public static new readonly long classId= 4896055255137140914;
 
 		public MikanDistortionCoefficients distortion_coefficients;
-		public MikanMatrix3d camera_matrix;
+		public MikanMatrix3d distorted_camera_matrix;
+		public MikanMatrix3d undistorted_camera_matrix;
 	};
 
 	public class MikanStereoIntrinsics : MikanCameraIntrinsics

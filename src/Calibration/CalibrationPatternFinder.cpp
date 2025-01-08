@@ -85,92 +85,14 @@ CalibrationPatternFinderPtr CalibrationPatternFinder::allocatePatternFinderShare
 	return nullptr;
 }
 
-bool CalibrationPatternFinder::calibrateCamera(
-	const int frameWidth,
-	const int frameHeight,
-	const std::vector<t_opencv_point2d_list>& cvImagePointsList,
-	const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
-	MikanMonoIntrinsics &outIntrinsics,
-	double& outReprojectionError) const
+cv::Mat* CalibrationPatternFinder::getGrayscaleVideoFrameInput() const
 {
-	bool bSuccess = true;
-
-	// Initialize the output intrinsics with default values
-	outIntrinsics = MikanMonoIntrinsics();
-
-	// Each 2d image point set should have a corresponding 3d object point set
-	const size_t imagePointSetCount = cvImagePointsList.size();
-	std::vector< t_opencv_point3d_list > cvObjectPointsList(imagePointSetCount);
-	std::fill(cvObjectPointsList.begin(), cvObjectPointsList.end(), m_opencvLensCalibrationGeometry.points);
-
-	// Compute an initial guess for the camera intrinsic matrix
-	// using correspondence between the object points and the image points
-	cv::Size cvImageSize(frameWidth, frameHeight);
-	cv::Matx33d cvIntrinsicMatrix = 
-		cv::initCameraMatrix2D(
-			cvObjectPointsList,
-			cvImagePointsList,
-			cvImageSize);
-
-	// Refine the camera intrinsic matrix and compute distortion parameters
-	cv::Mat cvDistCoeffsRowVector;
-	try
-	{
-		outReprojectionError =
-			cv::calibrateCamera(
-				cvObjectPointsList,
-				cvImagePointsList,
-				cvImageSize,
-				cvIntrinsicMatrix, // Input/Output camera intrinsic matrix 
-				cvDistCoeffsRowVector, // Output distortion coefficients
-				cv::noArray(), cv::noArray(), // best fit board poses as rvec/tvec pairs
-				cv::CALIB_FIX_ASPECT_RATIO + // The functions considers only fy as a free parameter
-				cv::CALIB_FIX_PRINCIPAL_POINT + // The principal point is not changed during the global optimization
-				cv::CALIB_ZERO_TANGENT_DIST + // Tangential distortion coefficients (p1,p2) are set to zeros and stay zero
-				cv::CALIB_RATIONAL_MODEL + // Coefficients k4, k5, and k6 are enabled
-				cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5, // radial distortion coefficients k3, k4, & k5 are not changed during the optimization
-				cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, DBL_EPSILON));
-
-		bSuccess = is_valid_float(outReprojectionError);
-	}
-	catch (cv::Exception* e)
-	{
-		MIKAN_MT_LOG_ERROR("computeCameraCalibration") << "Error computing lens calibration: " << e->msg;
-		bSuccess = false;
-	}
-
-	if (bSuccess)
-	{
-		// cv::calibrateCamera() will return all 14 distortion parameters, but we only want the first 8
-		cv::Mat cvDistCoeffsColVector;
-		cv::transpose(cvDistCoeffsRowVector.colRange(cv::Range(0, 8)), cvDistCoeffsColVector);
-
-		// Derive the FoV angles from the image size and the newly computed intrinsic matrix
-		double hfov, vfov;
-		double unusedFocalLength;
-		cv::Point2d ununsedPrincipalPoint;
-		double unusedAspectRatio;
-		cv::calibrationMatrixValues(
-			cvIntrinsicMatrix,
-			cvImageSize,
-			0.0, 0.0, // Don't know (and don't need) the physical aperture size of the lens 
-			hfov, vfov,
-			unusedFocalLength,
-			ununsedPrincipalPoint,
-			unusedAspectRatio);
-
-		// Write the calibration output state
-		outIntrinsics.pixel_width = (double)frameWidth;
-		outIntrinsics.pixel_height = (double)frameHeight;
-		outIntrinsics.hfov = hfov;
-		outIntrinsics.vfov = vfov;
-		outIntrinsics.znear = DEFAULT_MONO_ZNEAR;
-		outIntrinsics.zfar = DEFAULT_MONO_ZFAR;
-		outIntrinsics.camera_matrix = cv_mat33d_to_MikanMatrix3d(cvIntrinsicMatrix);
-		outIntrinsics.distortion_coefficients = cv_vec8_to_Mikan_distortion(cvDistCoeffsColVector);
-	}
-
-	return bSuccess;
+	// By default use the undistorted grayscale image unless explicitly disabled
+	// (which should only be the case during distortion calibration)
+	return 
+		m_distortionView->isGrayscaleUndistortDisabled()
+		? m_distortionView->getGrayscaleSourceBuffer()
+		: m_distortionView->getGrayscaleUndistortBuffer();
 }
 
 bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform)
@@ -200,24 +122,19 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 
 	// Make a local copy of the mono camera intrinsics
 	MikanMonoIntrinsics monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
-	if (isUsingUndistortedView())
-	{ 
-		// If we're using an undistorted view, then we need to zero out the distortion coefficients.
-		// Otherwise the solvePnP calculation will be thrown off since we'd effectively be applying
-		// the un-distortion twice
-		monoIntrinsics.distortion_coefficients = MikanDistortionCoefficients();
-	}
 
 	// Given an object model and the image points samples we could be able to compute 
 	// a position and orientation of the calibration pattern relative to the camera
 	cv::Quatd cv_cameraToPatternRot;
 	cv::Vec3d cv_cameraToPatternVecMM; // Millimeters
+	double meanReprojectionError = 0.0;
 	if (!computeOpenCVCameraRelativePatternTransform(
 		monoIntrinsics,
 		imagePoints,
 		m_opencvSolvePnPGeometry.points,
 		cv_cameraToPatternRot,
-		cv_cameraToPatternVecMM))
+		cv_cameraToPatternVecMM,
+		&meanReprojectionError))
 	{
 		return false;
 	}
@@ -228,11 +145,6 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 		outCameraToPatternXform);
 
 	return true;
-}
-
-bool CalibrationPatternFinder::isUsingUndistortedView() const
-{
-	return !m_distortionView->isGrayscaleUndistortDisabled();
 }
 
 bool CalibrationPatternFinder::areCurrentImagePointsValid() const
@@ -317,10 +229,8 @@ bool CalibrationPatternFinder_Chessboard::findNewCalibrationPattern(const float 
 	bool bImagePointsValid = false;
 	m_currentImagePoints.clear();
 
-	cv::Mat* gsSourceBuffer =
-		isUsingUndistortedView()
-		? m_distortionView->getGrayscaleUndistortBuffer()
-		: m_distortionView->getGrayscaleSourceBuffer();
+	// Fetch the source image buffer we are searching for the pattern in
+	cv::Mat* gsSourceBuffer = getGrayscaleVideoFrameInput();
 	if (gsSourceBuffer == nullptr)
 		return false;
 
@@ -530,11 +440,8 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	bool bImagePointsValid = false;
 	m_currentImagePoints.clear();
 
-	// Use the original source buffer for the grayscale image if undistorted source is not available
-	cv::Mat* gsSourceBuffer =
-		isUsingUndistortedView()
-		? m_distortionView->getGrayscaleUndistortBuffer()
-		: m_distortionView->getGrayscaleSourceBuffer();
+	// Fetch the source image buffer we are searching for the pattern in
+	cv::Mat* gsSourceBuffer = getGrayscaleVideoFrameInput();
 	if (gsSourceBuffer == nullptr)
 		return false;
 
@@ -771,11 +678,8 @@ bool CalibrationPatternFinder_Aruco::findNewCalibrationPattern(const float minSe
 	bool bImagePointsValid = false;
 	m_currentImagePoints.clear();
 
-	// Use the original source buffer for the grayscale image (NOT the undistorted one)
-	cv::Mat* gsSourceBuffer =
-		isUsingUndistortedView()
-		? m_distortionView->getGrayscaleUndistortBuffer()
-		: m_distortionView->getGrayscaleSourceBuffer();
+	// Fetch the source image buffer we are searching for the pattern in
+	cv::Mat* gsSourceBuffer = getGrayscaleVideoFrameInput();
 	if (gsSourceBuffer == nullptr)
 		return false;
 

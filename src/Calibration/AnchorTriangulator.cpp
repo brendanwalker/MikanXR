@@ -335,12 +335,14 @@ void AnchorTriangulator::computeCameraRayAtPixel(
 	float focal_length_y;
 	float principal_point_x;
 	float principal_point_y;
+	float skew;
 	extractCameraIntrinsicMatrixParameters(
-		m_calibrationState->inputCameraIntrinsics.camera_matrix,
+		m_calibrationState->inputCameraIntrinsics.undistorted_camera_matrix,
 		focal_length_x,
 		focal_length_y,
 		principal_point_x,
-		principal_point_y);
+		principal_point_y,
+		skew);
 
 	const float local_x = (imagePoint.x - principal_point_x) / focal_length_x;
 	const float local_y = (principal_point_y - imagePoint.y) / focal_length_y; // flip y-axis

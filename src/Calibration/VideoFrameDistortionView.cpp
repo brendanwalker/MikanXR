@@ -24,19 +24,15 @@
 
 struct OpenCVMonoCameraIntrinsics
 {
-	cv::Matx33d intrinsic_matrix;
+	cv::Matx33d distorted_intrinsic_matrix;
 	cv::Matx81d distortion_coeffs;
-	cv::Rect undistortBufferROI;
+	cv::Matx33d undistorted_intrinsic_matrix;
 
 	void init(const MikanMonoIntrinsics& monoIntrinsics)
 	{
-		intrinsic_matrix = MikanMatrix3d_to_cv_mat33d(monoIntrinsics.camera_matrix);
+		distorted_intrinsic_matrix = MikanMatrix3d_to_cv_mat33d(monoIntrinsics.distorted_camera_matrix);
 		distortion_coeffs = Mikan_distortion_to_cv_vec8(monoIntrinsics.distortion_coefficients);
-		
-		undistortBufferROI.x = 0;
-		undistortBufferROI.y = 0;
-		undistortBufferROI.width = monoIntrinsics.pixel_width;
-		undistortBufferROI.height = monoIntrinsics.pixel_height;
+		undistorted_intrinsic_matrix = MikanMatrix3d_to_cv_mat33d(monoIntrinsics.undistorted_camera_matrix);
 	}
 };
 
@@ -404,22 +400,12 @@ void VideoFrameDistortionView::rebuildDistortionMap()
 
 	if (m_distortionMapX != nullptr && m_distortionMapY != nullptr)
 	{
-		// Create a modified camera intrinsic matrix to crop out the unwanted border
-		cv::Mat optimalIntrinsicMatrix =
-			cv::getOptimalNewCameraMatrix(
-				m_intrinsics->intrinsic_matrix,
-				m_intrinsics->distortion_coeffs,
-				cv::Size(m_frameWidth, m_frameHeight),
-				0.f, // We want 0% of the garbage border
-				cv::Size(m_frameWidth, m_frameHeight),
-				&m_intrinsics->undistortBufferROI); // The valid pixel region of the undistortion buffer
-
 		// (Re)create the X and Y undistortion maps used by cv::remap
 		cv::initUndistortRectifyMap(
-			m_intrinsics->intrinsic_matrix,
+			m_intrinsics->distorted_intrinsic_matrix,
 			m_intrinsics->distortion_coeffs,
 			cv::noArray(), // unneeded rectification transformation computed by stereoRectify()
-			optimalIntrinsicMatrix,
+			m_intrinsics->undistorted_intrinsic_matrix,
 			cv::Size(m_frameWidth, m_frameHeight),
 			CV_32FC1, // Distortion map type
 			*m_distortionMapX, *m_distortionMapY);

@@ -179,6 +179,7 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 				m_monoDistortionView->readAndProcessVideoFrame();
 
 				// Update the chess board capture state
+				assert(m_monoDistortionView->isGrayscaleUndistortDisabled());
 				m_monoLensCalibrator->findNewCalibrationPattern(BOARD_NEW_LOCATION_PIXEL_DIST);
 
 				// See if we have gotten all the samples we require

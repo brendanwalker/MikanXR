@@ -71,6 +71,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCamera
 	FIELD()
 	double pixel_height = 0.0; ///< Height of the camera buffer in pixels
 	FIELD()
+	double aspect_ratio = 0.0; ///< The aspect ratio of each pixel (y focal length / x focal length)
+	FIELD()
 	double hfov = 0.0;         ///< The horizontal field of view camera in degrees
 	FIELD()
 	double vfov = 0.0;         ///< The vertical field of view camera in degrees
@@ -88,10 +90,16 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCamera
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
 struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanMonoIntrinsics : public MikanCameraIntrinsics
 {
+	// Distortion coefficients computed for the physical camera lens
 	FIELD()
-	MikanDistortionCoefficients distortion_coefficients;   ///< Lens distortion coefficients
+	MikanDistortionCoefficients distortion_coefficients;
+	// Intrinsic camera matrix containing focal lengths and principal point for the raw distorted image
 	FIELD()
-	MikanMatrix3d camera_matrix;   ///< Intrinsic camera matrix containing focal lengths and principal point
+	MikanMatrix3d distorted_camera_matrix;
+	// Intrinsic camera matrix containing focal lengths and principal point for the undistorted image
+	// NOTE: The hfov and vfov are computed from this matrix
+	FIELD()
+	MikanMatrix3d undistorted_camera_matrix;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMonoIntrinsics_GENERATED
