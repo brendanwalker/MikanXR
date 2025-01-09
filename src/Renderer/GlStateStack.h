@@ -36,6 +36,7 @@ public:
 
 	GlState& enableFlag(eGlStateFlagType flagType);
 	GlState& disableFlag(eGlStateFlagType flagType);
+	bool isFlagEnabled(eGlStateFlagType flagType) const;
 	GlStateModifierPtr findParentModifier(GlStateModifierPtr modifier) const;
 	GlState& addModifier(GlStateModifierPtr modifier);
 

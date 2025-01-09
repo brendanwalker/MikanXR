@@ -161,6 +161,11 @@ GlState& GlState::disableFlag(eGlStateFlagType flagType)
 	return *this;
 }
 
+bool GlState::isFlagEnabled(eGlStateFlagType flagType) const
+{
+	return m_flags[(int)flagType];
+}
+
 GlStateModifierPtr GlState::findParentModifier(GlStateModifierPtr modifier) const
 {
 	if (modifier && m_parentState)
