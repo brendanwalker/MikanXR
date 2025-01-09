@@ -351,7 +351,7 @@ void AppStage_StencilAlignment::render()
 
 void AppStage_StencilAlignment::renderStencilScene()
 {
-	m_scene->render(m_camera);
+	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
 
 	if (m_targetStencilComponent)
 	{

@@ -356,7 +356,7 @@ void AppStage_CTOffsetCalibration::render()
 
 void AppStage_CTOffsetCalibration::renderVRScene()
 {
-	m_scene->render(m_camera);
+	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 
