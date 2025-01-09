@@ -560,24 +560,27 @@ void VideoSourceView::setCameraPoseOffset(const MikanQuatd& q, const MikanVector
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
 }
 
-glm::mat4 VideoSourceView::getCameraPose(
-	VRDeviceViewPtr attachedVRDevicePtr,
-	bool bApplyVRDeviceOffset) const
+bool VideoSourceView::getCameraPose(
+	VRDevicePoseViewPtr attachedVRDevicePtr,
+	glm::mat4& outCameraPose) const
 {
 	// Get the pose of the VR device we want to compute the camera pose from
-	const glm::mat4 vrDevicePose = attachedVRDevicePtr->getDefaultComponentPose(bApplyVRDeviceOffset);
+	glm::mat4 vrDevicePose;	
+	if (attachedVRDevicePtr->getPose(vrDevicePose))
+	{
+		// Get the offset from the puck to the camera
+		const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(getCameraOffsetPosition());
+		const glm::quat cameraOffsetQuat = MikanQuatd_to_glm_dquat(getCameraOffsetOrientation());
+		const glm::mat4 cameraOffsetXform =
+			glm::translate(glm::mat4(1.0), cameraOffsetPos) *
+			glm::mat4_cast(cameraOffsetQuat);
 
-	// Get the offset from the puck to the camera
-	const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(getCameraOffsetPosition());
-	const glm::quat cameraOffsetQuat = MikanQuatd_to_glm_dquat(getCameraOffsetOrientation());
-	const glm::mat4 cameraOffsetXform =
-		glm::translate(glm::mat4(1.0), cameraOffsetPos) *
-		glm::mat4_cast(cameraOffsetQuat);
+		// Update the transform of the camera so that vr models align over the tracking puck
+		outCameraPose = vrDevicePose * cameraOffsetXform;
+		return true;
+	}
 
-	// Update the transform of the camera so that vr models align over the tracking puck
-	const glm::mat4 cameraPose = vrDevicePose * cameraOffsetXform;
-
-	return cameraPose;
+	return false;
 }
 
 glm::mat4 VideoSourceView::getCameraProjectionMatrix() const 
@@ -632,20 +635,32 @@ void VideoSourceView::recomputeCameraProjectionMatrix()
 	}
 }
 
-glm::mat4 VideoSourceView::getCameraViewMatrix(VRDeviceViewPtr attachedVRDevicePtr) const
+bool VideoSourceView::getCameraViewMatrix(
+	VRDevicePoseViewPtr attachedVRDevicePtr,
+	glm::mat4& outViewMatrix) const
 {
-	const glm::mat4 cameraPose = VideoSourceView::getCameraPose(attachedVRDevicePtr);
-	const glm::mat4 viewMatrix = computeGLMCameraViewMatrix(cameraPose);
+	glm::mat4 cameraPose;	
+	if (VideoSourceView::getCameraPose(attachedVRDevicePtr, cameraPose))
+	{ 
+		outViewMatrix = computeGLMCameraViewMatrix(cameraPose);
+		return true;
+	}
 
-	return viewMatrix;
+	return false;
 }
 
-glm::mat4 VideoSourceView::getCameraViewProjectionMatrix(VRDeviceViewPtr attachedVRDevicePtr) const
+bool VideoSourceView::getCameraViewProjectionMatrix(
+	VRDevicePoseViewPtr attachedVRDevicePtr,
+	glm::mat4& outVPMatrix) const
 {
-	const glm::mat4 viewMatrix = getCameraViewMatrix(attachedVRDevicePtr);
-	const glm::mat4 vpMatrix = m_projectionMatrix * viewMatrix;
+	glm::mat4 viewMatrix;
+	if (getCameraViewMatrix(attachedVRDevicePtr, viewMatrix))
+	{
+		outVPMatrix = m_projectionMatrix * viewMatrix;
+		return true;
+	}
 
-	return vpMatrix;
+	return false;
 }
 
 void VideoSourceView::getPixelDimensions(float& outWidth, float& outHeight) const

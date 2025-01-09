@@ -2,10 +2,12 @@
 
 //-- includes -----
 #include "DeviceInterface.h"
+#include "DeviceViewFwd.h"
+
 #include <chrono>
 
 // -- declarations -----
-class DeviceView
+class DeviceView : public std::enable_shared_from_this<DeviceView>
 {
 public:
 	DeviceView(const int device_id);
@@ -23,6 +25,30 @@ public:
 	}
 
 	virtual IDeviceInterface* getDevice() const = 0;
+
+	template <class t_derived_type>
+	std::shared_ptr<t_derived_type> getSelfPtr()
+	{
+		return std::dynamic_pointer_cast<t_derived_type>(shared_from_this());
+	}
+
+	template <class t_derived_type>
+	std::shared_ptr<const t_derived_type> getSelfPtr() const
+	{
+		return std::dynamic_pointer_cast<const t_derived_type>(shared_from_this());
+	}
+
+	template <class t_derived_type>
+	std::weak_ptr<t_derived_type> getSelfWeakPtr()
+	{
+		return getSelfPtr<t_derived_type>();
+	}
+
+	template <class t_derived_type>
+	std::weak_ptr<const t_derived_type> getSelfWeakPtr() const
+	{
+		return getSelfPtr<const t_derived_type>();
+	}
 
 	// Used for when you have to get device specific data
 	template <class t_device_subclass>

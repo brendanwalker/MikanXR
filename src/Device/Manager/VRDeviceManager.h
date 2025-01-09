@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "CommonConfig.h"
+#include "DeviceViewFwd.h"
 #include "DeviceManager.h"
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
@@ -16,9 +17,7 @@
 #include <glm/ext/matrix_float4x4.hpp>
 
 //-- typedefs -----
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-typedef std::vector<VRDeviceViewPtr> VRDeviceList;
+using VRDeviceList = std::vector<VRDeviceViewPtr>;
 
 //-- definitions -----
 class VRDeviceManager : public DeviceManager, public IVRSystemEventListener
