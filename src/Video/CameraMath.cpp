@@ -36,18 +36,25 @@ glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
     return modelView;
 }
 
-void computeOpenCVCameraExtrinsicMatrix(
+bool computeOpenCVCameraExtrinsicMatrix(
     VideoSourceViewPtr videoSource, 
-    VRDeviceViewPtr trackingPuck,
+    VRDevicePoseViewPtr trackingPuck,
     cv::Matx34f &out)
 {
     // Extrinsic matrix is the inverse of the camera pose matrix
-    const glm::mat4 glm_camera_xform = videoSource->getCameraPose(trackingPuck);
-    const glm::mat4 glm_mat = glm::inverse(glm_camera_xform);
+    glm::mat4 glm_camera_xform;
+	if (videoSource->getCameraPose(trackingPuck, glm_camera_xform))
+	{
+		const glm::mat4 glm_mat = glm::inverse(glm_camera_xform);
 
-    out(0, 0) = glm_mat[0][0]; out(0, 1) = glm_mat[1][0]; out(0, 2) = glm_mat[2][0]; out(0, 3) = glm_mat[3][0];
-    out(1, 0) = glm_mat[0][1]; out(1, 1) = glm_mat[1][1]; out(1, 2) = glm_mat[2][1]; out(1, 3) = glm_mat[3][1];
-    out(2, 0) = glm_mat[0][2]; out(2, 1) = glm_mat[1][2]; out(2, 2) = glm_mat[2][2]; out(2, 3) = glm_mat[3][2];
+		out(0, 0) = glm_mat[0][0]; out(0, 1) = glm_mat[1][0]; out(0, 2) = glm_mat[2][0]; out(0, 3) = glm_mat[3][0];
+		out(1, 0) = glm_mat[0][1]; out(1, 1) = glm_mat[1][1]; out(1, 2) = glm_mat[2][1]; out(1, 3) = glm_mat[3][1];
+		out(2, 0) = glm_mat[0][2]; out(2, 1) = glm_mat[1][2]; out(2, 2) = glm_mat[2][2]; out(2, 3) = glm_mat[3][2];
+
+		return true;
+	}
+
+	return false;
 }
 
 bool computeMonoLensCameraCalibration(

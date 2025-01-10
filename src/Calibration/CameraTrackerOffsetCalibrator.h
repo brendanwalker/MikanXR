@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanMathTypes.h"
+#include "DeviceViewFwd.h"
 #include "ObjectSystemConfigFwd.h"
 
 #include <memory>
@@ -9,18 +10,12 @@
 #include "glm/ext/vector_double3.hpp"
 #include "glm/ext/matrix_double4x4.hpp"
 
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 class CameraTrackerOffsetCalibrator
 {
 public:
 	CameraTrackerOffsetCalibrator(
 		ProfileConfigConstPtr profileConfig,
-		VRDeviceViewPtr cameraTrackingPuckView,
+		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 		class VideoFrameDistortionView* distortionView,
 		int desiredSampleCount);
 	virtual ~CameraTrackerOffsetCalibrator();
@@ -32,7 +27,7 @@ public:
 	void resetCalibrationState();
 
 	bool computeCameraToPuckXform();
-	glm::mat4 getLastCameraPose(VRDeviceViewPtr attachedVRDevicePtr) const;
+	bool getLastCameraPose(VRDevicePoseViewPtr attachedVRDevicePtr, glm::mat4& outCameraPose) const;
 	void sampleLastCameraToPuckXform();
 	bool computeCalibratedCameraTrackerOffset(MikanQuatd& outRotationOffset, MikanVector3d& outTranslationOffset);
 
@@ -48,7 +43,7 @@ protected:
 	struct CameraTrackerOffsetCalibrationState* m_calibrationState;
 
 	// Tracking pucks used for calibration
-	VRDeviceViewPtr m_cameraTrackingPuckView;
+	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

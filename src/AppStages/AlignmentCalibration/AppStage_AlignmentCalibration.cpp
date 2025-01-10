@@ -81,12 +81,13 @@ void AppStage_AlignmentCalibration::enter()
 
 	// Get the current video source based on the config
 	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	m_videoSourceView = 
-		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	m_cameraTrackingPuckView= 
-		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-	m_matTrackingPuckView =
-		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->matVRDevicePath);
+	auto* vrDeviceManager= VRDeviceManager::getInstance();
+	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	auto matTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->matVRDevicePath);
+
+	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
+	m_matTrackingPuckPoseView = matTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
 
 	// Add all VR devices to the 3d scene
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
@@ -128,8 +129,8 @@ void AppStage_AlignmentCalibration::enter()
 		m_trackerPoseCalibrator =
 			new MonoLensTrackerPoseCalibrator(
 				profileConfig,
-				m_cameraTrackingPuckView,
-				m_matTrackingPuckView,
+				m_cameraTrackingPuckPoseView,
+				m_matTrackingPuckPoseView,
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
 
@@ -252,20 +253,26 @@ void AppStage_AlignmentCalibration::updateCamera()
 		break;
 	case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
 		{
+			bool bValidPose= false;
+
 			// Update the transform of the camera so that vr models align over the tracking puck
 			glm::mat4 cameraPose;
 			if (m_calibrationModel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
-				cameraPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
+
+				bValidPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
 			}
 			else
 			{
 				// Use the last computed preview camera alignment
-				cameraPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckView);
+				bValidPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
 			}
 
-			m_camera->setCameraTransform(cameraPose);
+			if (bValidPose)
+			{
+				m_camera->setCameraTransform(cameraPose);
+			}
 		}
 		break;
 	}

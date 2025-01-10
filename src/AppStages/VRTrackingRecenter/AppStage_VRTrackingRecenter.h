@@ -45,7 +45,7 @@ private:
 	VideoSourceViewPtr m_videoSourceView;
 
 	// Tracking pucks used for calibration
-	VRDeviceViewPtr m_cameraTrackingPuckView;
+	VRDeviceViewPtr m_cameraTrackingPuckPoseView;
 
 	class ArucoMarkerPoseSampler* m_markerPoseSampler;
 	class VideoFrameDistortionView* m_monoDistortionView;

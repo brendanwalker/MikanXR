@@ -64,7 +64,7 @@ void AppStage_VRTrackingRecenter::enter()
 	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	m_cameraTrackingPuckView= 
+	m_cameraTrackingPuckPoseView= 
 		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 
 	// Fetch the new camera associated with the viewport
@@ -99,10 +99,10 @@ void AppStage_VRTrackingRecenter::enter()
 		m_markerPoseSampler =
 			new ArucoMarkerPoseSampler(
 				profileConfig,
-				m_cameraTrackingPuckView,
+				m_cameraTrackingPuckPoseView,
 				m_monoDistortionView,
 				DESIRED_MARKER_SAMPLE_COUNT,
-				false); // Don't apply the VR device offset since that's what we're calibrating
+				eVRDevicePoseSpace::VRTrackingSystem); // Don't apply the VR device offset since that's what we're calibrating
 	}
 	else
 	{

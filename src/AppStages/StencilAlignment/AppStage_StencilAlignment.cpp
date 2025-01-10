@@ -75,8 +75,11 @@ void AppStage_StencilAlignment::enter()
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	m_cameraTrackingPuckView =
-		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+
+	// Get the pose view for the camera tracking puck in Mikan Scene space
+	auto* vrDeviceManager = VRDeviceManager::getInstance();
+	auto cameraTrackingPuckView = vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	m_cameraTrackingPuckPoseView = cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
 	// Listen for mouse ray events
 	GlViewportPtr viewport= getFirstViewport();
@@ -127,7 +130,7 @@ void AppStage_StencilAlignment::enter()
 		// Create a aligner to calibrate the stencil
 		m_stencilAligner =
 			new StencilAligner(
-				m_cameraTrackingPuckView,
+				m_cameraTrackingPuckPoseView,
 				m_monoDistortionView,
 				m_targetStencilComponent);
 
@@ -201,9 +204,11 @@ void AppStage_StencilAlignment::exit()
 void AppStage_StencilAlignment::updateXRCamera()
 {
 	// Update the transform of the camera so that vr models align over the tracking puck
-	const glm::mat4 cameraPose = m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
-
-	m_camera->setCameraTransform(cameraPose);
+	glm::mat4 cameraPose;	
+	if (m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose))
+	{
+		m_camera->setCameraTransform(cameraPose);
+	}
 }
 
 void AppStage_StencilAlignment::updateVRCamera()

@@ -25,7 +25,6 @@ struct ArucoMarkerPoseSamplerState
 	MikanMonoIntrinsics inputCameraIntrinsics;
 	ProfileConfigConstPtr profileConfig;
 	int desiredSampleCount;
-	bool bApplyVRDeviceOffset;
 
 	// Computed every frame
 	glm::dmat4 cameraToMarkerXform;
@@ -44,8 +43,7 @@ struct ArucoMarkerPoseSamplerState
 	void init(
 		ProfileConfigConstPtr config, 
 		VideoSourceViewPtr videoSourceView, 
-		int sampleCount,
-		bool applyVRDeviceOffset)
+		int sampleCount)
 	{
 		profileConfig= config;
 
@@ -56,7 +54,6 @@ struct ArucoMarkerPoseSamplerState
 
 		inputCameraIntrinsics = cameraIntrinsics.getMonoIntrinsics();
 		desiredSampleCount = sampleCount;
-		bApplyVRDeviceOffset = applyVRDeviceOffset;
 
 		resetCalibration();
 	}
@@ -84,9 +81,9 @@ ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
 	VRDeviceViewPtr cameraTrackingPuckView,
 	VideoFrameDistortionView* distortionView,
 	int desiredSampleCount,
-	bool bApplyVRDeviceOffset)
+	eVRDevicePoseSpace space)
 	: m_calibrationState(new ArucoMarkerPoseSamplerState)
-	, m_cameraTrackingPuckView(cameraTrackingPuckView)
+	, m_cameraTrackingPuckPoseView(cameraTrackingPuckView->makePoseView(space))
 	, m_distortionView(distortionView)
 	, m_markerFinder(new CalibrationPatternFinder_Aruco(
 		distortionView,
@@ -101,8 +98,7 @@ ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
 	m_calibrationState->init(
 		profileConfig, 
 		distortionView->getVideoSourceView(), 
-		desiredSampleCount,
-		bApplyVRDeviceOffset);
+		desiredSampleCount);
 }
 
 ArucoMarkerPoseSampler::~ArucoMarkerPoseSampler()
@@ -139,15 +135,18 @@ bool ArucoMarkerPoseSampler::computeVRSpaceMarkerXform()
 	m_calibrationState->hasValidCapture= false;
 
 	// Get tracking puck poses
-	if (!m_cameraTrackingPuckView->getIsPoseValid())
+	if (!m_cameraTrackingPuckPoseView->getIsPoseValid())
 	{
 		return false;
 	}
 
 	// Compute the camera pose in VRSpace
-	const glm::dmat4 cameraXform_VRSpace=
-		m_distortionView->getVideoSourceView()->getCameraPose(
-			m_cameraTrackingPuckView, m_calibrationState->bApplyVRDeviceOffset);
+	glm::dmat4 cameraXform_VRSpace;
+	auto videoSourceView= m_distortionView->getVideoSourceView();
+	if (!videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraXform_VRSpace))
+	{
+		return false;
+	}
 
 	// Look for the calibration pattern in the latest video frame
 	glm::dmat4 cameraToPatternXform;
@@ -226,24 +225,24 @@ void ArucoMarkerPoseSampler::renderCameraSpaceCalibrationState()
 void ArucoMarkerPoseSampler::renderVRSpaceCalibrationState()
 {
 	// Compute the camera pose in VRSpace
-	const glm::dmat4 cameraXform_VRSpace =
-		m_distortionView->getVideoSourceView()->getCameraPose(
-			m_cameraTrackingPuckView,
-			m_calibrationState->bApplyVRDeviceOffset);
+	glm::dmat4 cameraXform_VRSpace;
+	auto videoSourceView= m_distortionView->getVideoSourceView();
+	if (videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraXform_VRSpace))
+	{
+		// Draw the marker transform
+		const glm::mat4 markerXform = glm::mat4(m_calibrationState->vrSpaceMarkerXform);
+		drawTransformedAxes(markerXform, 0.1f);
 
-	// Draw the marker transform
-	const glm::mat4 markerXform = glm::mat4(m_calibrationState->vrSpaceMarkerXform);
-	drawTransformedAxes(markerXform, 0.1f);
-
-	// Draw the most recently derived camera transform derived from the mat puck
-	const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
-	const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
-	const float zNear= fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
-	const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
-	drawTransformedFrustum(
-		cameraXform_VRSpace,
-		hfov_radians, vfov_radians,
-		zNear, zFar,
-		Colors::Yellow);
-	drawTransformedAxes(cameraXform_VRSpace, 0.1f);
+		// Draw the most recently derived camera transform derived from the mat puck
+		const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
+		const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
+		const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
+		const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
+		drawTransformedFrustum(
+			cameraXform_VRSpace,
+			hfov_radians, vfov_radians,
+			zNear, zFar,
+			Colors::Yellow);
+		drawTransformedAxes(cameraXform_VRSpace, 0.1f);
+	}
 }

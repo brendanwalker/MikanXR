@@ -74,8 +74,11 @@ void AppStage_CTOffsetCalibration::enter()
 	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	m_cameraTrackingPuckView= 
-		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+
+	// Create the camera tracking puck pose view in VR Tracker space
+	auto* vrDeviceManager = VRDeviceManager::getInstance();
+	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
 
 	// Add all VR devices to the 3d scene
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
@@ -109,7 +112,7 @@ void AppStage_CTOffsetCalibration::enter()
 		m_trackerPoseCalibrator =
 			new CameraTrackerOffsetCalibrator(
 				profileConfig,
-				m_cameraTrackingPuckView,
+				m_cameraTrackingPuckPoseView,
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
 
@@ -232,20 +235,25 @@ void AppStage_CTOffsetCalibration::updateCamera()
 		break;
 	case eCTOffsetCalibrationViewpointMode::mixedRealityViewpoint:
 		{
+			bool bValidPose = false;
+
 			// Update the transform of the camera so that vr models align over the tracking puck
 			glm::mat4 cameraPose;
 			if (m_calibrationModel->getMenuState() == eCTOffsetCalibrationMenuState::testCalibration)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
-				cameraPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
+				bValidPose = m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
 			}
 			else
 			{
 				// Use the last computed preview camera CTOffset
-				cameraPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckView);
+				bValidPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
 			}
 
-			m_camera->setCameraTransform(cameraPose);
+			if (bValidPose)
+			{
+				m_camera->setCameraTransform(cameraPose);
+			}
 		}
 		break;
 	}

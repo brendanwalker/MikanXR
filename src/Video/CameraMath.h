@@ -2,6 +2,7 @@
 
 // -- includes -----
 #include "OpenCVFwd.h"
+#include "DeviceViewFwd.h"
 #include "VideoSourceInterface.h"
 
 #include "glm/ext/quaternion_float.hpp"
@@ -12,12 +13,6 @@
 #define DEFAULT_MONO_HFOV   60.0   // 60 degrees
 #define DEFAULT_MONO_ZNEAR  0.1    // 0.1 meters (10cm)
 #define DEFAULT_MONO_ZFAR   20.0   // 20 meters
-
-class VideoSourceView;
-using VideoSourceViewPtr = std::shared_ptr<VideoSourceView>;
-
-class VRDeviceView;
-using VRDeviceViewPtr = std::shared_ptr<VRDeviceView>;
 
 using t_opengl_point3d_list = std::vector<glm::vec3>;
 
@@ -33,7 +28,7 @@ struct OpenGLCalibrationGeometry
 
 // -- interface -----
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform);
-void computeOpenCVCameraExtrinsicMatrix(VideoSourceViewPtr videoSource, VRDeviceViewPtr trackingPuck, cv::Matx34f &out);
+bool computeOpenCVCameraExtrinsicMatrix(VideoSourceViewPtr videoSource, VRDevicePoseViewPtr trackingPuck, cv::Matx34f &out);
 
 bool computeMonoLensCameraCalibration(
 	const int frameWidth,

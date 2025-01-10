@@ -583,6 +583,20 @@ bool VideoSourceView::getCameraPose(
 	return false;
 }
 
+bool VideoSourceView::getCameraPose(
+	VRDevicePoseViewPtr attachedVRDevicePtr, 
+	glm::dmat4& outCameraPose) const
+{
+	glm::mat4 cameraPose;
+	if (getCameraPose(attachedVRDevicePtr, cameraPose))
+	{
+		outCameraPose = glm::dmat4(cameraPose);
+		return true;
+	}
+
+	return false;
+}
+
 glm::mat4 VideoSourceView::getCameraProjectionMatrix() const 
 {
 	return m_projectionMatrix;

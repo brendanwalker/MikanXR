@@ -13,8 +13,8 @@ class MonoLensTrackerPoseCalibrator
 public:
 	MonoLensTrackerPoseCalibrator(
 		ProfileConfigConstPtr profileConfig,
-		VRDeviceViewPtr cameraTrackingPuckView,
-		VRDeviceViewPtr matTrackingPuckView,
+		VRDevicePoseViewPtr cameraTrackingPuckView,
+		VRDevicePoseViewPtr matTrackingPuckView,
 		class VideoFrameDistortionView* distortionView,
 		int desiredSampleCount);
 	virtual ~MonoLensTrackerPoseCalibrator();
@@ -42,8 +42,8 @@ protected:
 	struct MonoLensTrackerCalibrationState* m_calibrationState;
 
 	// Tracking pucks used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckView;
-	VRDevicePoseViewPtr m_matTrackingPuckView;
+	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	VRDevicePoseViewPtr m_matTrackingPuckPoseView;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

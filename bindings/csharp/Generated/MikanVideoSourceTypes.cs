@@ -30,6 +30,7 @@ namespace MikanXR
 
 		public double pixel_width;
 		public double pixel_height;
+		public double aspect_ratio;
 		public double hfov;
 		public double vfov;
 		public double znear;

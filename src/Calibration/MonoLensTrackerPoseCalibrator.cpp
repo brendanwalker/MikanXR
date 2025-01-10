@@ -82,13 +82,13 @@ struct MonoLensTrackerCalibrationState
 //-- MonoDistortionCalibrator ----
 MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 	ProfileConfigConstPtr profileConfig,
-	VRDeviceViewPtr cameraTrackingPuckView,
-	VRDeviceViewPtr matTrackingPuckView,
+	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+	VRDevicePoseViewPtr matTrackingPuckPoseView,
 	VideoFrameDistortionView* distortionView,
 	int desiredSampleCount)
 	: m_calibrationState(new MonoLensTrackerCalibrationState)
-	, m_cameraTrackingPuckView(cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem))
-	, m_matTrackingPuckView(matTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem))
+	, m_cameraTrackingPuckPoseView(cameraTrackingPuckPoseView)
+	, m_matTrackingPuckPoseView(matTrackingPuckPoseView)
 	, m_distortionView(distortionView)
 	, m_patternFinder(CalibrationPatternFinder::allocatePatternFinder(profileConfig, distortionView))
 {
@@ -133,19 +133,19 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	m_calibrationState->hasValidCapture= false;
 
 	// Get tracking puck poses
-	if (!m_cameraTrackingPuckView->getIsPoseValid() || !m_matTrackingPuckView->getIsPoseValid())
+	if (!m_cameraTrackingPuckPoseView->getIsPoseValid() || !m_matTrackingPuckPoseView->getIsPoseValid())
 	{
 		return false;
 	}
 
 	// Fetch the calibration poses from the devices
 	glm::dmat4 cameraPuckXform_VRSpace;
-	if (!m_cameraTrackingPuckView->getPose(cameraPuckXform_VRSpace))
+	if (!m_cameraTrackingPuckPoseView->getPose(cameraPuckXform_VRSpace))
 	{
 		return false;
 	}
 	glm::dmat4 matPuckXform_VRSpace;
-	if (!m_matTrackingPuckView->getPose(matPuckXform_VRSpace))
+	if (!m_matTrackingPuckPoseView->getPose(matPuckXform_VRSpace))
 	{
 		return false;
 	}
@@ -295,14 +295,14 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 
 	// Draw the camera puck transform
 	glm::mat4 cameraPuckXform;
-	if (m_cameraTrackingPuckView->getPose(cameraPuckXform))
+	if (m_cameraTrackingPuckPoseView->getPose(cameraPuckXform))
 	{
 		drawTransformedAxes(cameraPuckXform, 0.1f);
 	}
 
 	// Draw the mat puck transform
 	glm::mat4 matPuckXform;
-	if (m_matTrackingPuckView->getPose(matPuckXform))
+	if (m_matTrackingPuckPoseView->getPose(matPuckXform))
 	{
 		drawTransformedAxes(matPuckXform, 0.1f);
 	}
