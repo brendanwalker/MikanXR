@@ -331,7 +331,7 @@ void AppStage_DepthMeshCapture::renderVRScene()
 	}
 
 	// Draw any meshes added to the scene (inlcuding the depth capture mesh)
-	m_scene->render(vrCamera, m_ownerWindow->getGlStateStack());
+	m_scene->render(vrCamera);
 }
 
 void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState)

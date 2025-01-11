@@ -170,7 +170,7 @@ void AppStage_SpatialAnchors::render()
 {
 	TextStyle style = getDefaultTextStyle();
 
-	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
+	m_scene->render(m_camera);
 
 	drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
 	drawTransformedAxes(glm::translate(glm::mat4(1.0), glm::vec3(0.f, 0.001f, 0.f)), 0.5f);
