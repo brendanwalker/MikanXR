@@ -130,17 +130,22 @@ bool VRDeviceView::getComponentPoseByName(
 bool VRDeviceView::getDefaultComponentPose(glm::mat4& outPose) const
 {
 	bool bIsPoseValid = false;
-	glm::mat4 vrTrackingSpacePose = glm::mat4(1.f);
 
 	if (m_device != nullptr &&
 		m_device->getDeviceType() == eDeviceType::VRTracker)
 	{
 		ProfileConfigConstPtr config = App::getInstance()->getProfileConfig();
 
-		if (config &&
-			getComponentPoseByName(
-				config->vivePuckDefaultComponentName, 
-				vrTrackingSpacePose))
+		if (config)
+		{
+			// Get the vive puck default pose in VR Tracking space
+			bIsPoseValid= getComponentPoseByName(
+				config->vivePuckDefaultComponentName,
+				outPose);
+		}
+
+		// Fallback to the device pose if the vive puck devault pose is not valid
+		if (!bIsPoseValid)
 		{
 			const glm::vec3 devicePos = m_device->getPosition();
 			const glm::quat deviceQuat = m_device->getOrientation();
