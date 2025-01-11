@@ -6,6 +6,7 @@
 #include "AlignmentCalibration/RmlModel_AlignmentCalibration.h"
 #include "AlignmentCalibration/RmlModel_AlignmentCameraSettings.h"
 #include "App.h"
+#include "Colors.h"
 #include "GlCamera.h"
 #include "GlFrameBuffer.h"
 #include "GlLineRenderer.h"
@@ -32,6 +33,7 @@
 #include "SDL_keycode.h"
 
 #include "glm/gtc/quaternion.hpp"
+#include "glm/ext/vector_float4.hpp"
 
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
@@ -109,6 +111,7 @@ void AppStage_AlignmentCalibration::enter()
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
 	m_frameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
 	m_frameBuffer->createResources();
+	m_frameBuffer->setClearColor(glm::vec4(Colors::CornflowerBlue, 1.f));
 
 	// Fire up the video scene in the background + pose calibrator
 	eAlignmentCalibrationMenuState newState;
@@ -417,7 +420,7 @@ void AppStage_AlignmentCalibration::render()
 
 void AppStage_AlignmentCalibration::renderVRScene()
 {
-	m_scene->render(m_camera);
+	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 

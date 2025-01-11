@@ -714,7 +714,9 @@ void AppStage_Compositor::render()
 			m_frameCompositor->render();
 
 			// Render the editor scene
-			EditorObjectSystem::getSystem()->getEditorScene()->render(currentCamera);
+			EditorObjectSystem::getSystem()->getEditorScene()->render(
+				currentCamera, 
+				m_ownerWindow->getGlStateStack());
 
 			// Perform component custom rendering
 			m_ownerWindow->getObjectSystemManager()->customRender();
@@ -723,7 +725,9 @@ void AppStage_Compositor::render()
 	case eCompositorViewpointMode::vrViewpoint:
 		{
 			// Render the editor scene
-			EditorObjectSystem::getSystem()->getEditorScene()->render(currentCamera);
+			EditorObjectSystem::getSystem()->getEditorScene()->render(
+				currentCamera,
+				m_ownerWindow->getGlStateStack());
 
 			// Perform component custom rendering
 			m_ownerWindow->getObjectSystemManager()->customRender();
