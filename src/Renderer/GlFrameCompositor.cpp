@@ -892,10 +892,8 @@ bool GlFrameCompositor::openVideoSource()
 		}
 #endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
-		// Just pass the raw video frame straight to the bgr texture
-		// The frame compositor will do the undistortion work in a shader
-		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_bgr);
-		m_videoDistortionView->setColorUndistortDisabled(true);
+		// Always use the undistorted video frame for compositing
+		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 	}
 	else
 	{
