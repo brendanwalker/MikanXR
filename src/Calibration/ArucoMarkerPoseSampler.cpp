@@ -78,12 +78,11 @@ struct ArucoMarkerPoseSamplerState
 //-- MonoDistortionCalibrator ----
 ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
 	ProfileConfigConstPtr profileConfig,
-	VRDeviceViewPtr cameraTrackingPuckView,
+	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 	VideoFrameDistortionView* distortionView,
-	int desiredSampleCount,
-	eVRDevicePoseSpace space)
+	int desiredSampleCount)
 	: m_calibrationState(new ArucoMarkerPoseSamplerState)
-	, m_cameraTrackingPuckPoseView(cameraTrackingPuckView->makePoseView(space))
+	, m_cameraTrackingPuckPoseView(cameraTrackingPuckPoseView)
 	, m_distortionView(distortionView)
 	, m_markerFinder(new CalibrationPatternFinder_Aruco(
 		distortionView,

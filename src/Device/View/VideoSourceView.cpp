@@ -571,12 +571,11 @@ bool VideoSourceView::getCameraPose(
 		// Get the offset from the puck to the camera
 		const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(getCameraOffsetPosition());
 		const glm::quat cameraOffsetQuat = MikanQuatd_to_glm_dquat(getCameraOffsetOrientation());
-		const glm::mat4 cameraOffsetXform =
-			glm::translate(glm::mat4(1.0), cameraOffsetPos) *
-			glm::mat4_cast(cameraOffsetQuat);
+		const glm::mat4 cameraOffsetXform = glm_mat4_from_pose(cameraOffsetQuat, cameraOffsetPos);
 
 		// Update the transform of the camera so that vr models align over the tracking puck
-		outCameraPose = vrDevicePose * cameraOffsetXform;
+		outCameraPose= glm_composite_xform(cameraOffsetXform, vrDevicePose);
+
 		return true;
 	}
 

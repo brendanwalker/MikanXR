@@ -14,10 +14,9 @@ class ArucoMarkerPoseSampler
 public:
 	ArucoMarkerPoseSampler(
 		ProfileConfigConstPtr profileConfig,
-		VRDeviceViewPtr cameraTrackingPuckView,
+		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 		class VideoFrameDistortionView* distortionView,
-		int desiredSampleCount,
-		eVRDevicePoseSpace space);
+		int desiredSampleCount);
 	virtual ~ArucoMarkerPoseSampler();
 
 	inline class CalibrationPatternFinder_Aruco* getPatternFinder() const { return m_markerFinder; }

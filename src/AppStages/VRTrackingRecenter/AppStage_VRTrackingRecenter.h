@@ -2,16 +2,11 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "DeviceViewFwd.h"
 #include "Constants_VRTrackingRecenter.h"
 #include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
-
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
 //-- definitions -----
 class AppStage_VRTrackingRecenter : public AppStage
@@ -29,6 +24,7 @@ public:
 
 protected:
 	void setMenuState(eVRTrackingRecenterMenuState newState);
+	void updateCameraPose();
 
 	// Calibration Model UI Events
 	void onBeginEvent();
@@ -45,7 +41,8 @@ private:
 	VideoSourceViewPtr m_videoSourceView;
 
 	// Tracking pucks used for calibration
-	VRDeviceViewPtr m_cameraTrackingPuckPoseView;
+	VRDevicePoseViewPtr m_cameraTrackingPuckRawPoseView;
+	VRDevicePoseViewPtr m_cameraTrackingPuckScenePoseView;
 
 	class ArucoMarkerPoseSampler* m_markerPoseSampler;
 	class VideoFrameDistortionView* m_monoDistortionView;
