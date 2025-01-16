@@ -606,45 +606,25 @@ void VideoSourceView::recomputeCameraProjectionMatrix()
 	MikanVideoSourceIntrinsics camera_intrinsics;
 	m_device->getCameraIntrinsics(camera_intrinsics);
 
-	float videoSourcePixelWidth = 0.f;
-	float videoSourcePixelHeight = 0.f;
-	float vFov = 0.f;
-	float zNear = 0.f;
-	float zFar = 0.f;
-
 	switch (camera_intrinsics.intrinsics_type)
 	{
 	case MONO_CAMERA_INTRINSICS:
 		{
 			const MikanMonoIntrinsics& monoIntrinsics = camera_intrinsics.getMonoIntrinsics();
 
-			videoSourcePixelWidth = (float)monoIntrinsics.pixel_width;
-			videoSourcePixelHeight = (float)monoIntrinsics.pixel_height;
-			vFov = (float)monoIntrinsics.vfov;
-			zNear = (float)monoIntrinsics.znear;
-			zFar = (float)monoIntrinsics.zfar;
+			computeOpenGLProjMatFromCameraIntrinsics(
+				monoIntrinsics,
+				m_projectionMatrix);
 		} break;
 	case STEREO_CAMERA_INTRINSICS:
 		{
 			const MikanStereoIntrinsics& stereoIntrinsics = camera_intrinsics.getStereoIntrinsics();
 
-			videoSourcePixelWidth = (float)stereoIntrinsics.pixel_width;
-			videoSourcePixelHeight = (float)stereoIntrinsics.pixel_height;
-			vFov = (float)stereoIntrinsics.vfov;
-			zNear = (float)stereoIntrinsics.znear;
-			zFar = (float)stereoIntrinsics.zfar;
+			computeOpenGLProjMatFromCameraIntrinsics(
+				stereoIntrinsics,
+				eStereoIntrinsicsSide::left,
+				m_projectionMatrix);
 		} break;
-	}
-
-	if (videoSourcePixelWidth > 0 && videoSourcePixelHeight > 0 &&
-		vFov > 0 && zNear > 0 && zFar > 0)
-	{
-		m_projectionMatrix =
-			glm::perspective(
-				degrees_to_radians(vFov),
-				videoSourcePixelWidth / videoSourcePixelHeight,
-				zNear,
-				zFar);
 	}
 }
 

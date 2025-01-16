@@ -364,15 +364,19 @@ void createDefautMonoIntrinsics(
 // Great articles on the subject: 
 //     https://amytabb.com/tips/tutorials/2019/06/28/OpenCV-to-OpenGL-tutorial-essentials/
 //     https://ksimek.github.io/2013/06/03/calibrated_cameras_in_opengl/
-void computeOpenGLProjMatFromCameraIntrinsics(
-	const MikanMonoIntrinsics &intrinsics,
-	glm::mat4& outProjection, 
+static void computeOpenGLProjMatFromCameraMatrix(
+	const double pixelWidth,
+	const double pixelHeight,
+	const MikanMatrix3d& cameraMatrix,
+	const float zNear,
+	const float zFar,
+	glm::mat4& outProjection,
 	int* outViewport)
 {
 	// Extract the 5 OpenCV camera intrinsic parameters
 	float alpha, beta, skew, u0, v0;
 	extractCameraIntrinsicMatrixParameters(
-		intrinsics.undistorted_camera_matrix,
+		cameraMatrix,
 		alpha,	// focal length x
 		beta,	// focal length y
 		u0,		// principal point x (usually image center x)
@@ -381,33 +385,33 @@ void computeOpenGLProjMatFromCameraIntrinsics(
 
 	// These parameters define the final viewport that is rendered into by
 	// the camera.
-	float L = 0;
-	float R = intrinsics.pixel_width;
-	float B = 0;
-	float T = intrinsics.pixel_height;
+	const float& L = 0;
+	const float& R = pixelWidth;
+	const float& B = 0;
+	const float& T = pixelHeight;
 
 	// near and far clipping planes, these only matter for the mapping from
 	// world-space z-coordinate into the depth coordinate for OpenGL
-	float N = intrinsics.znear;
-	float F = intrinsics.zfar;
+	const float& N = zNear;
+	const float& F = zFar;
 
 	// Construct an orthographic matrix which maps from projected
 	// coordinates to normalized device coordinates in the range [-1, 1].
 	// OpenGL then maps coordinates in NDC to the current viewport
 	glm::mat4 NDC = glm::mat4(0);
-	NDC[0][0] =  2.0/(R - L);                                                     NDC[3][0] = -(R + L)/(R - L);
-	                          NDC[1][1] =  2.0/(T - B);                           NDC[3][1] = -(T + B)/(T - B);
-	                                                    NDC[2][2] = -2.0/(F - N); NDC[3][2] = -(F + N)/(F - N);
-	                                                                              NDC[3][3] =  1.0;
+	NDC[0][0] = 2.0 / (R - L);                                                     NDC[3][0] = -(R + L) / (R - L);
+	NDC[1][1] = 2.0 / (T - B);                           NDC[3][1] = -(T + B) / (T - B);
+	NDC[2][2] = -2.0 / (F - N); NDC[3][2] = -(F + N) / (F - N);
+	NDC[3][3] = 1.0;
 
 	// construct a projection matrix, this is identical to the 
 	// projection matrix computed for the intrinsics, except an
 	// additional row is inserted to map the z-coordinate to OpenGL. 
 	glm::mat4 persp = glm::mat4(0);
 	persp[0][0] = alpha; persp[1][0] = skew; persp[2][0] = -u0;
-	                     persp[1][1] = beta; persp[2][1] = -v0;
-	                                         persp[2][2] = N + F; persp[3][2] = N * F;
-	                                         persp[2][3] = -1.0;
+	persp[1][1] = beta; persp[2][1] = -v0;
+	persp[2][2] = N + F; persp[3][2] = N * F;
+	persp[2][3] = -1.0;
 
 	// resulting OpenGL frustum is the product of the orthographic
 	// mapping to normalized device coordinates and the augmented
@@ -422,4 +426,37 @@ void computeOpenGLProjMatFromCameraIntrinsics(
 		outViewport[2] = R - L;
 		outViewport[3] = T - B;
 	}
+}
+
+void computeOpenGLProjMatFromCameraIntrinsics(
+	const MikanMonoIntrinsics &intrinsics,
+	glm::mat4& outProjection, 
+	int* outViewport)
+{
+	computeOpenGLProjMatFromCameraMatrix(
+		intrinsics.pixel_width,
+		intrinsics.pixel_height,
+		intrinsics.undistorted_camera_matrix,
+		intrinsics.znear,
+		intrinsics.zfar,
+		outProjection,
+		outViewport);
+}
+
+void computeOpenGLProjMatFromCameraIntrinsics(
+	const MikanStereoIntrinsics& intrinsics,
+	eStereoIntrinsicsSide side,
+	glm::mat4& outProjection,
+	int* outViewport)
+{
+	computeOpenGLProjMatFromCameraMatrix(
+		intrinsics.pixel_width,
+		intrinsics.pixel_height,
+		(side == eStereoIntrinsicsSide::left)
+			? intrinsics.left_camera_matrix
+			: intrinsics.right_camera_matrix,
+		intrinsics.znear,
+		intrinsics.zfar,
+		outProjection,
+		outViewport);
 }

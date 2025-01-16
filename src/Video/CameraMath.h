@@ -77,6 +77,13 @@ void createDefautMonoIntrinsics(
 	struct MikanMonoIntrinsics& outIntrinsics);
 
 void computeOpenGLProjMatFromCameraIntrinsics(
-	const MikanMonoIntrinsics& intrinsics,
+	const struct MikanMonoIntrinsics& intrinsics,
 	glm::mat4& outProjection,
 	int* outViewport= nullptr);
+
+enum class eStereoIntrinsicsSide { left, right };
+void computeOpenGLProjMatFromCameraIntrinsics(
+	const struct MikanStereoIntrinsics& intrinsics,
+	eStereoIntrinsicsSide side,
+	glm::mat4& outProjection,
+	int* outViewport = nullptr);
