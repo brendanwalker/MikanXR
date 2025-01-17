@@ -3,6 +3,8 @@
 #include "MikanGStreamerExport.h"
 #include "MikanGStreamerConstants.h"
 
+#include <memory>
+
 struct MikanGStreamerSettings
 {
 	eGStreamerProtocol protocol;
@@ -39,7 +41,7 @@ public:
 	
 	// Start / Stop an opened pipeline
 	virtual bool startVideoStream()= 0;
-	virtual bool getIsVideoStreaming()= 0;
+	virtual bool getIsVideoStreaming() const= 0;
 	virtual void stopVideoStream()= 0;
 
 	// Try and fetch the next video frame from a started pipeline
@@ -49,7 +51,4 @@ public:
 		void (*onVideoFrameReceived)(const MikanGStreamerBuffer& newBuffer, void* userdata),
 		void* userdata)= 0;
 };
-
-// C-API
-MIKAN_GSTREAMER_CAPI(IMikanGStreamerVideoDevice*) MikanGStreamerVideoDeviceAllocate(const MikanGStreamerSettings& settings);
-MIKAN_GSTREAMER_CAPI(void) MikanGStreamerVideoDeviceDispose(IMikanGStreamerVideoDevice* device);
+using MikanGStreamerVideoDevicePtr = std::shared_ptr<IMikanGStreamerVideoDevice>;
