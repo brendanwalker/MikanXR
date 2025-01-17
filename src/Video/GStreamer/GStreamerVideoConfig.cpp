@@ -7,12 +7,6 @@
 
 #include <sstream>
 
-const std::string g_GStreamerProtocolStrings[(int)eGStreamerProtocol::COUNT] = {
-	"rtmp",
-	"rtsp"
-};
-const std::string* k_GStreamerProtocolStrings = g_GStreamerProtocolStrings;
-
 GStreamerVideoConfig::GStreamerVideoConfig(const std::string& fnamebase)
 	: CommonVideoConfig(fnamebase)
 {
@@ -29,7 +23,7 @@ configuru::Config GStreamerVideoConfig::writeToJSON()
 
 	pt["protocol"] = 
 		protocol != eGStreamerProtocol::INVALID 
-		? g_GStreamerProtocolStrings[(int)protocol]
+		? k_szGStreamerProtocolStrings[(int)protocol]
 		: "INVALID";
 	pt["address"] = address;
 	pt["path"] = path;
@@ -47,7 +41,7 @@ void GStreamerVideoConfig::readFromJSON(const configuru::Config& pt)
 	protocol =
 		StringUtils::FindEnumValue<eGStreamerProtocol>(
 			pt.get_or<std::string>("protocol", "INVALID"),
-			g_GStreamerProtocolStrings);
+			k_szGStreamerProtocolStrings);
 	address= pt.get_or<std::string>("address", "");
 	path= pt.get_or<std::string>("path", "");
 	port= pt.get_or<int>("port", 0);
@@ -97,7 +91,7 @@ bool GStreamerVideoConfig::applyDevicePath(const std::string& devicePath)
 	protocolEnum =
 		StringUtils::FindEnumValue<eGStreamerProtocol>(
 			protocolStr,
-			g_GStreamerProtocolStrings);
+			k_szGStreamerProtocolStrings);
 
 	// Apply the parsed values if the address and port are valid
 	if (protocolEnum != protocol || 
@@ -114,33 +108,4 @@ bool GStreamerVideoConfig::applyDevicePath(const std::string& devicePath)
 	}
 
 	return false;
-}
-
-std::string GStreamerVideoConfig::getSourcePluginString() const
-{
-	if (protocol != eGStreamerProtocol::INVALID)
-	{
-		return g_GStreamerProtocolStrings[(int)protocol] + "src";
-	}
-
-	return "UNKNOWN";
-}
-
-std::string GStreamerVideoConfig::getURIProtocolString() const
-{
-	if (protocol != eGStreamerProtocol::INVALID)
-	{
-		return g_GStreamerProtocolStrings[(int)protocol];
-	}
-
-	return "UNKNOWN";
-}
-
-std::string GStreamerVideoConfig::getFullURIPath() const
-{
-	std::stringstream ss;
-
-	ss << getURIProtocolString() << "://" << address << ":" << port << "/" << path;
-
-	return ss.str();
 }
