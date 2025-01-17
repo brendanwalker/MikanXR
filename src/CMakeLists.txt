@@ -539,6 +539,7 @@ list(APPEND MIKAN_REQ_LIBS
   ${FREETYPE_LIBRARIES}
   ${LUA_LIBRARIES}
   ${RFK_LIBRARIES}
+  dylib
   easy_profiler
   fast_obj_lib
   ixwebsocket
