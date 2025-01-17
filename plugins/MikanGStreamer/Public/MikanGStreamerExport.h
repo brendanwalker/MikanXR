@@ -32,16 +32,8 @@
                 #define MIKAN_GSTREAMER_API
             #endif
         #endif  //defined _WIN32 || defined __CYGWIN__
-    #elif defined(MIKAN_GSTREAMER_NOEXPORT) || defined(MIKAN_GSTREAMER_CAPI_NOEXPORT)  // Building static lib
+    #else 
         #define MIKAN_GSTREAMER_CAPI(rval)           MIKAN_EXTERN_C                                          rval    MIKAN_CALL
         #define MIKAN_GSTREAMER_API
-    #else //This DLL/so/dylib is being imported
-        #if defined _WIN32 || defined __CYGWIN__
-            #define MIKAN_GSTREAMER_CAPI(rval)       MIKAN_EXTERN_C  __declspec(dllimport)                   rval    MIKAN_CALL
-            #define MIKAN_GSTREAMER_API                              __declspec(dllimport)
-        #else  // Not Windows
-            #define MIKAN_GSTREAMER_CAPI(rval)       MIKAN_EXTERN_C                                          rval    MIKAN_CALL
-            #define MIKAN_GSTREAMER_API
-        #endif  //defined _WIN32 || defined __CYGWIN__
     #endif //MIKAN_CORE_EXPORTS
 #endif //!defined(MIKAN_GSTREAMER_CAPI)

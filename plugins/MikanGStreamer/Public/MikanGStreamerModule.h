@@ -15,5 +15,6 @@ public:
 };
 
 // C-API
-MIKAN_GSTREAMER_CAPI(IMikanGStreamerModule*) AllocateModule();
-MIKAN_GSTREAMER_CAPI(void) FreeModule(IMikanGStreamerModule* module);
+//#define TEST_GSTREAMER_CAPI(rval)  rval
+MIKAN_GSTREAMER_CAPI(IMikanGStreamerModule*) AllocatePluginModule();
+MIKAN_GSTREAMER_CAPI(void) FreePluginModule(IMikanGStreamerModule* module);

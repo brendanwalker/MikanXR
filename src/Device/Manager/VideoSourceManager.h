@@ -36,6 +36,8 @@ public:
 	inline static VideoSourceManager* getInstance() { return m_instance; }
 	const VideoSourceManagerConfig& getConfig() const { return m_cfg; }
 
+	class IMikanGStreamerModule* getGStreamerModule() const;
+
 	bool startup(class IGlWindow *ownerWindow) override;
 	void update(float deltaTime) override;
 	void shutdown() override;
@@ -60,6 +62,7 @@ protected:
 private:
 	static VideoSourceManager* m_instance;
 
+	class MikanGStreamerPlugin* m_mikanGStreamerPlugin;
 	VideoSourceManagerConfig m_cfg;
 	class VideoCapabilitiesSet* m_supportedTrackers;
 };

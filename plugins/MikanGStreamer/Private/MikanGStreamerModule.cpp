@@ -62,12 +62,12 @@ private:
 };
 
 // C-API
-IMikanGStreamerModule* AllocateModule()
+IMikanGStreamerModule* AllocatePluginModule()
 {
 	return new MikanGStreamerModule();
 }
 
-void FreeModule(IMikanGStreamerModule* module)
+void FreePluginModule(IMikanGStreamerModule* module)
 {
 	delete module;
 }
