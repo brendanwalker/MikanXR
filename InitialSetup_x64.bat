@@ -138,6 +138,30 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+echo "Downloading gstreamer-runtime installer"
+curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.24.11/mingw/gstreamer-1.0-mingw-x86_64-1.24.11.msi --output gstreamer-1.0-mingw-x86_64-1.24.11.msi
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading gstreamer-1.0-mingw-x86_64-1.24.11.msi"
+  goto failure
+)
+msiexec /i gstreamer-1.0-mingw-x86_64-1.24.11.msi /qb
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error installing gstreamer-runtime installer"
+  goto failure
+)
+
+echo "Downloading gstreamer-devel installer"
+curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.24.11/mingw/gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi --output gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi"
+  goto failure
+)
+msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi /qb
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error installing gstreamer-devel installer"
+  goto failure
+)
+
 echo "Downloading easy_profiler..."
 curl -L https://github.com/yse/easy_profiler/releases/download/v2.1.0/easy_profiler-v2.1.0-msvc15-win64.zip --output easy_profiler-v2.1.0-msvc15-win64.zip
 IF %ERRORLEVEL% NEQ 0 (

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "DeviceViewFwd.h"
 #include "RendererFwd.h"
 #include "Transform.h"
 
@@ -13,17 +14,11 @@
 
 typedef int32_t MikanStencilID;
 
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 class StencilAligner
 {
 public:
 	StencilAligner(
-		VRDeviceViewPtr cameraTrackingPuckView,
+		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 		class VideoFrameDistortionView* distortionView,
 		ModelStencilComponentPtr modelStencil);
 	virtual ~StencilAligner();
@@ -48,7 +43,7 @@ protected:
 	struct StencilAlignmentState* m_calibrationState;
 
 	// Tracking puck used for calibration
-	VRDeviceViewPtr m_cameraTrackingPuckView;
+	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

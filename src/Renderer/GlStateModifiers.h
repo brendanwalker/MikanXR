@@ -1,7 +1,15 @@
 #pragma once
 
+#include "EnumUtils.h"
+
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/vector_bool4.hpp"
+
+enum class eGLFrontFaceMode : int
+{
+	CW,		// Clockwise wound triangles are front facing.
+	CCW,	// Counter-clockwise wound triangles are front facing.
+};
 
 enum class eGlStencilFunction : int
 {
@@ -96,6 +104,17 @@ enum class eGlFrameBuffer : int
 	COLOR_ATTACHMENT15
 };
 
+enum class eGlClearFlags : uint32_t
+{
+	none = 0,
+	color = 1 << 0,
+	depth = 1 << 1,
+	stencil = 1 << 2,
+};
+DEFINE_ENUM_BITMASK_OPERATORS(eGlClearFlags);
+
+void glStateSetFrontFace(GlState& glState, eGLFrontFaceMode mode);
+
 void glStateSetViewport(GlState& glState, int x, int y, int width, int height);
 void glStateSetClearColor(GlState& glState, const glm::vec4& color);
 void glStateSetColorMask(GlState& glState, const glm::bvec4& color_mask);
@@ -112,3 +131,4 @@ void glStateSetBlendFunc(GlState& glState, eGlBlendFunction source_factor, eGlBl
 
 void glStateSetDrawBuffer(GlState& glState, eGlFrameBuffer mode);
 void glStateSetReadBuffer(GlState& glState, eGlFrameBuffer mode);
+void glStateClearBuffer(GlState& glState, eGlClearFlags flags);

@@ -73,10 +73,10 @@ struct AnchorTriangulationState
 
 //-- MonoDistortionCalibrator ----
 AnchorTriangulator::AnchorTriangulator(
-	VRDeviceViewPtr cameraTrackingPuckView,
+	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 	VideoFrameDistortionView* distortionView)
 	: m_calibrationState(new AnchorTriangulationState)
-	, m_cameraTrackingPuckView(cameraTrackingPuckView)
+	, m_cameraTrackingPuckPoseView(cameraTrackingPuckPoseView)
 	, m_distortionView(distortionView)
 {
 	m_frameWidth = distortionView->getFrameWidth();
@@ -145,9 +145,11 @@ glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 void AnchorTriangulator::sampleCameraPose()
 {
 	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
-	const glm::mat4 glm_camera_xform = videoSource->getCameraPose(m_cameraTrackingPuckView);
-
-	m_calibrationState->initialCameraPoseSample= glm_camera_xform;
+	glm::mat4 glm_camera_xform;
+	if (videoSource->getCameraPose(m_cameraTrackingPuckPoseView, glm_camera_xform))
+	{
+		m_calibrationState->initialCameraPoseSample = glm_camera_xform;
+	}
 }
 
 void AnchorTriangulator::computeCurrentTriangulation()
@@ -166,28 +168,31 @@ void AnchorTriangulator::computeCurrentTriangulation()
 		initialPointRayDirection);
 
 	// Compute a ray for triangulating new sample pixel
-	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
-	const glm::mat4 triangulatingCameraXform = videoSource->getCameraPose(m_cameraTrackingPuckView);
-	const glm::vec2 triangulatingPointSample = computeMouseScreenPosition();
-	glm::vec3 triangulatingPointRayStart;
-	glm::vec3 triangulatingPointRayDirection;
-	computeCameraRayAtPixel(
-		triangulatingCameraXform,
-		triangulatingPointSample,
-		triangulatingPointRayStart,
-		triangulatingPointRayDirection);
-
-	// Triangulate the two points by finding the point on the 
-	// initial ray closest to the triangulating ray
-	float closestTime;
-	glm::vec3 closesPoint;
-	if (glm_closest_point_on_ray_to_ray(
-		initialPointRayStart, initialPointRayDirection,
-		triangulatingPointRayStart, triangulatingPointRayDirection,
-		closestTime, closesPoint) 
-		&& closestTime >= 0.f)
+	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();	
+	glm::mat4 triangulatingCameraXform;
+	if (videoSource->getCameraPose(m_cameraTrackingPuckPoseView, triangulatingCameraXform))
 	{
-		m_calibrationState->lastWorldTriangulatedPoint= closesPoint;
+		const glm::vec2 triangulatingPointSample = computeMouseScreenPosition();
+		glm::vec3 triangulatingPointRayStart;
+		glm::vec3 triangulatingPointRayDirection;
+		computeCameraRayAtPixel(
+			triangulatingCameraXform,
+			triangulatingPointSample,
+			triangulatingPointRayStart,
+			triangulatingPointRayDirection);
+
+		// Triangulate the two points by finding the point on the 
+		// initial ray closest to the triangulating ray
+		float closestTime;
+		glm::vec3 closesPoint;
+		if (glm_closest_point_on_ray_to_ray(
+			initialPointRayStart, initialPointRayDirection,
+			triangulatingPointRayStart, triangulatingPointRayDirection,
+			closestTime, closesPoint)
+			&& closestTime >= 0.f)
+		{
+			m_calibrationState->lastWorldTriangulatedPoint = closesPoint;
+		}
 	}
 }
 
@@ -335,12 +340,14 @@ void AnchorTriangulator::computeCameraRayAtPixel(
 	float focal_length_y;
 	float principal_point_x;
 	float principal_point_y;
+	float skew;
 	extractCameraIntrinsicMatrixParameters(
-		m_calibrationState->inputCameraIntrinsics.camera_matrix,
+		m_calibrationState->inputCameraIntrinsics.undistorted_camera_matrix,
 		focal_length_x,
 		focal_length_y,
 		principal_point_x,
-		principal_point_y);
+		principal_point_y,
+		skew);
 
 	const float local_x = (imagePoint.x - principal_point_x) / focal_length_x;
 	const float local_y = (principal_point_y - imagePoint.y) / focal_length_y; // flip y-axis
@@ -371,17 +378,21 @@ void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 	if (bShowCameraFrustum)
 	{
 		// Draw the most recently derived camera transform derived from the mat puck
-		const glm::mat4 glm_camera_xform = m_distortionView->getVideoSourceView()->getCameraPose(m_cameraTrackingPuckView);
-		const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
-		const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
-		const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
-		const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
-		drawTransformedFrustum(
-			glm_camera_xform,
-			hfov_radians, vfov_radians,
-			zNear, zFar,
-			Colors::Yellow);
-		drawTransformedAxes(glm_camera_xform, 0.1f);
+		glm::mat4 glm_camera_xform;
+		if (m_distortionView->getVideoSourceView()->getCameraPose(m_cameraTrackingPuckPoseView, glm_camera_xform))
+		{
+			const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
+			const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
+			const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
+			const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
+
+			drawTransformedFrustum(
+				glm_camera_xform,
+				hfov_radians, vfov_radians,
+				zNear, zFar,
+				Colors::Yellow);
+			drawTransformedAxes(glm_camera_xform, 0.1f);
+		}
 	}
 }
 

@@ -279,40 +279,22 @@ void GlCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
 
 void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
 {
-	float aspectRatio= 1.f;
+	assert (cameraIntrinsics->intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 
-	switch (cameraIntrinsics->intrinsics_type)
-	{
-	case MONO_CAMERA_INTRINSICS:
-		{
-			const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->getMonoIntrinsics();
+	const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->getMonoIntrinsics();
+	monoIntrinsics.undistorted_camera_matrix;
 
-			aspectRatio= (float)(monoIntrinsics.pixel_width / monoIntrinsics.pixel_height);
-			m_vFOVDegrees = (float)monoIntrinsics.vfov;
-			m_hFOVDegrees = (float)monoIntrinsics.hfov;
-			m_zNear = (float)monoIntrinsics.znear;
-			m_zFar = (float)monoIntrinsics.zfar;
-		} break;
-	case STEREO_CAMERA_INTRINSICS:
-		{
-			const MikanStereoIntrinsics& stereoIntrinsics = cameraIntrinsics->getStereoIntrinsics();
+	int unusedViewport[4];
+	computeOpenGLProjMatFromCameraIntrinsics(
+		cameraIntrinsics->getMonoIntrinsics(),
+		m_projectionMatrix,
+		unusedViewport);
 
-			aspectRatio = (float)(stereoIntrinsics.pixel_width / stereoIntrinsics.pixel_height);
-			m_vFOVDegrees = (float)stereoIntrinsics.vfov;
-			m_hFOVDegrees = (float)stereoIntrinsics.hfov;
-			m_zNear = (float)stereoIntrinsics.znear;
-			m_zFar = (float)stereoIntrinsics.zfar;
-		} break;
-	default:
-		break;
-	} 
-
-	m_projectionMatrix =
-		glm::perspective(
-			degrees_to_radians(m_vFOVDegrees),
-			aspectRatio,
-			m_zNear,
-			m_zFar);
+	m_aspectRatio = (float)monoIntrinsics.aspect_ratio;
+	m_vFOVDegrees = (float)monoIntrinsics.vfov;
+	m_hFOVDegrees = (float)monoIntrinsics.hfov;
+	m_zNear = (float)monoIntrinsics.znear;
+	m_zFar = (float)monoIntrinsics.zfar;
 }
 
 void GlCamera::applyStationaryParamsToViewMatrix()

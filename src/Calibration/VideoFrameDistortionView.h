@@ -47,11 +47,13 @@ public:
 	int64_t readNextVideoFrame();
 	bool processVideoFrame(int64_t desiredFrameIndex);
 	bool readAndProcessVideoFrame();
-	void rebuildDistortionMap(const struct MikanMonoIntrinsics* instrinsics);
+	void applyMonoCameraIntrinsics(const struct MikanMonoIntrinsics* instrinsics);
 
 	void renderSelectedVideoBuffers();
 
 protected:
+	void ensureFrameBufferSize(int width, int height);
+	void rebuildDistortionMap();
 	void computeUndistortion(cv::Mat* bgrSourceBuffer);
 
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture);
@@ -61,6 +63,7 @@ protected:
 
 	eVideoDisplayMode m_videoDisplayMode;
 	VideoSourceViewPtr m_videoSourceView;
+	unsigned int m_bufferBitmask;
 	int m_frameWidth;
 	int m_frameHeight;
 	float m_fps;

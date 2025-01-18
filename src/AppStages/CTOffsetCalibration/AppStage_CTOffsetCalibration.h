@@ -3,15 +3,10 @@
 //-- includes -----
 #include "AppStage.h"
 #include "Constants_CTOffsetCalibration.h"
+#include "DeviceViewFwd.h"
 #include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
-
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
 //-- definitions -----
 class AppStage_CTOffsetCalibration : public AppStage
@@ -57,7 +52,7 @@ private:
 	VideoSourceViewPtr m_videoSourceView;
 
 	// Tracking pucks used for calibration
-	VRDeviceViewPtr m_cameraTrackingPuckView;
+	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
 	class CameraTrackerOffsetCalibrator* m_trackerPoseCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;

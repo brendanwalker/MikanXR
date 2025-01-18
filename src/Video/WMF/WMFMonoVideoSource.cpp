@@ -32,11 +32,12 @@ WMFMonoVideoConfig::WMFMonoVideoConfig(const std::string &fnamebase)
     tracker_intrinsics.vfov= 45.0; // degrees
     tracker_intrinsics.znear= 0.1; // meters
     tracker_intrinsics.zfar= 20.0; // meters
-    tracker_intrinsics.camera_matrix= {
+    tracker_intrinsics.distorted_camera_matrix= {
 		554.2563, 0, 320.0, // f_x, 0, c_x
 		0, 554.2563, 240.0, // 0, f_y, c_y
 		0.0, 0.0, 1.0 
 	};
+	tracker_intrinsics.undistorted_camera_matrix = tracker_intrinsics.distorted_camera_matrix;
     tracker_intrinsics.distortion_coefficients= {
         -0.10771770030260086, 0.1213262677192688, 0.04875476285815239, // K1, K2, K3
         0.00091733073350042105, 0.00010589254816295579};  // P1, P2
@@ -75,8 +76,9 @@ void WMFMonoVideoConfig::readFromJSON(const configuru::Config &pt)
 }
 
 // -- WMFMonoTracker
-WMFMonoVideoSource::WMFMonoVideoSource()
-    : m_cfg()
+WMFMonoVideoSource::WMFMonoVideoSource(IVideoSourceListener* listener)
+    : m_listener(listener)
+	, m_cfg()
 	, m_videoDevice(nullptr)
     , m_DriverType(WMFMonoVideoSource::WindowsMediaFramework)
 {
@@ -488,9 +490,4 @@ void WMFMonoVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
     outZNear = static_cast<float>(m_cfg->tracker_intrinsics.znear);
     outZFar = static_cast<float>(m_cfg->tracker_intrinsics.zfar);
-}
-
-void WMFMonoVideoSource::setVideoSourceListener(IVideoSourceListener *listener)
-{
-	m_listener= listener;
 }

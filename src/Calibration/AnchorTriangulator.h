@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DeviceViewFwd.h"
 #include "Transform.h"
 
 #include <memory>
@@ -10,12 +11,6 @@
 #include "glm/ext/matrix_double4x4.hpp"
 
 typedef int32_t MikanSpatialAnchorID;
-
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
 struct AnchorTriangulatorInfo
 {
@@ -28,7 +23,7 @@ class AnchorTriangulator
 {
 public:
 	AnchorTriangulator(
-		VRDeviceViewPtr cameraTrackingPuckView,
+		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 		class VideoFrameDistortionView* distortionView);
 	virtual ~AnchorTriangulator();
 
@@ -62,7 +57,7 @@ protected:
 	struct AnchorTriangulationState* m_calibrationState;
 
 	// Tracking puck used for calibration
-	VRDeviceViewPtr m_cameraTrackingPuckView;
+	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

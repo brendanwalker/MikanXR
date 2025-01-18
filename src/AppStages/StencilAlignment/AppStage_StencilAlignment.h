@@ -54,7 +54,7 @@ private:
 	VideoSourceViewPtr m_videoSourceView;
 
 	// Tracking puck used for calibration
-	VRDeviceViewPtr m_cameraTrackingPuckView;
+	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
 	StencilAligner* m_stencilAligner;
 	class VideoFrameDistortionView* m_monoDistortionView;
