@@ -12,7 +12,12 @@ GStreamerCameraEnumerator::GStreamerCameraEnumerator()
 
 void GStreamerCameraEnumerator::rebuildCameraURIList()
 {
-	m_cameraURIList= VideoSourceManager::getInstance()->getConfig().videoSourceURIs;
+	auto* videoSourceManager= VideoSourceManager::getInstance();
+
+	if (videoSourceManager->getGStreamerModule() != nullptr)
+	{
+		m_cameraURIList = videoSourceManager->getConfig().videoSourceURIs;
+	}
 }
 
 bool GStreamerCameraEnumerator::isValid() const
