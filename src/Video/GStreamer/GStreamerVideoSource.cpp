@@ -1,9 +1,10 @@
 // -- includes -----
 #include "GStreamerVideoSource.h"
 #include "Logger.h"
-#include "GStreamerVideo.h"
+#include "MikanGStreamerModule.h"
 #include "VideoDeviceEnumerator.h"
 #include "VideoCapabilitiesConfig.h"
+#include "VideoSourceManager.h"
 #include "GStreamerCameraEnumerator.h"
 
 #include <algorithm>
@@ -12,11 +13,13 @@
 GStreamerVideoSource::GStreamerVideoSource(IVideoSourceListener* listener)
 	: m_listener(listener)
 	, m_cfg()
-	, m_currentVideoMode()
+	, m_videoModeConfig()
 	, m_deviceIdentifier()
 	, m_videoDevice(nullptr)
 	, m_driverType(IVideoSourceInterface::eDriverType::INVALID)
-{}
+{
+	std::memset(&m_gstreamerVideoMode, 0, sizeof(MikanGStreamerVideoMode));
+}
 
 GStreamerVideoSource::~GStreamerVideoSource()
 {
@@ -93,7 +96,14 @@ bool GStreamerVideoSource::open(const DeviceEnumerator* enumerator)
 		}
 
 		// Create a new GStreamer video device to manage the video stream
-		m_videoDevice = new GStreamerVideoDevice(cameraIndex, m_cfg, m_listener);
+		MikanGStreamerSettings settings;
+		settings.protocol = m_cfg->protocol;
+		settings.address = m_cfg->address.c_str();
+		settings.path = m_cfg->path.c_str();
+		settings.port = m_cfg->port;
+
+		IMikanGStreamerModule* gstreamerModule= VideoSourceManager::getInstance()->getGStreamerModule();
+		m_videoDevice = gstreamerModule->createVideoDevice(settings);
 		m_videoDevice->open();
 	}
 
@@ -112,13 +122,8 @@ bool GStreamerVideoSource::getIsOpen() const
 
 void GStreamerVideoSource::close()
 {
-	m_currentVideoMode= nullptr;
-
-	if (m_videoDevice != nullptr)
-	{
-		delete m_videoDevice;
-		m_videoDevice = nullptr;
-	}
+	m_videoModeConfig= nullptr;
+	m_videoDevice = nullptr;
 }
 
 bool GStreamerVideoSource::startVideoStream()
@@ -154,16 +159,40 @@ void GStreamerVideoSource::update(float deltaTime)
 	assert(getIsVideoStreaming());
 
 	m_videoDevice->tryPullSample(
-		m_currentVideoMode,
-		[this](VideoModeConfigPtr newVideoMode) {
-			// Store the new video mode first so that getVideoMode() calls return a valid pointer
-			m_currentVideoMode = newVideoMode;
+		m_gstreamerVideoMode,
+		&GStreamerVideoSource::onVideoModeChanged,
+		&GStreamerVideoSource::onVideoFrameReceived,
+		this);
+}
 
-			// Tell the listener that the video frame size has changed
-			// So that it can rebuild buffers BEFORE the next frame is received
-			// later in the tryPullSample function
-			m_listener->notifyVideoFrameSizeChanged();
-		});
+void GStreamerVideoSource::onVideoModeChanged(const struct MikanGStreamerVideoMode& newVideoMode, void* userdata)
+{
+	auto* gstreamerVideoSource= reinterpret_cast<GStreamerVideoSource *>(userdata);
+
+	VideoModeConfigPtr videoModeConfig= std::make_shared<VideoModeConfig>();
+	videoModeConfig->modeName= newVideoMode.modeName;
+	videoModeConfig->frameRate= newVideoMode.frameRate;
+	videoModeConfig->bufferPixelWidth= newVideoMode.bufferPixelWidth;
+	videoModeConfig->bufferPixelHeight= newVideoMode.bufferPixelHeight;
+	videoModeConfig->bufferFormat= newVideoMode.bufferFormat;
+	videoModeConfig->frameSections.push_back({0, 0});
+	videoModeConfig->intrinsics.setMonoIntrinsics(gstreamerVideoSource->m_cfg->cameraIntrinsics);
+
+	// Store the new video mode
+	gstreamerVideoSource->m_gstreamerVideoMode = newVideoMode;
+	gstreamerVideoSource->m_videoModeConfig = videoModeConfig;
+
+	// Notify the listener that the video frame size has changed
+	gstreamerVideoSource->m_listener->notifyVideoFrameSizeChanged();
+}
+
+void GStreamerVideoSource::onVideoFrameReceived(const struct MikanGStreamerBuffer& newBuffer, void* userdata)
+{
+	auto* gstreamerVideoSource= reinterpret_cast<GStreamerVideoSource *>(userdata);
+
+	// Notify the listener that a new video frame has been received
+	IVideoSourceListener::FrameBuffer frameInfo = {newBuffer.data, newBuffer.byte_count};
+	gstreamerVideoSource->m_listener->notifyVideoFrameReceived(frameInfo); 
 }
 
 eDeviceType GStreamerVideoSource::getDeviceType() const
@@ -237,7 +266,7 @@ bool GStreamerVideoSource::getAvailableTrackerModes(std::vector<std::string>& ou
 
 const VideoModeConfig* GStreamerVideoSource::getVideoMode() const
 {
-	return m_currentVideoMode.get();
+	return m_videoModeConfig.get();
 }
 
 bool GStreamerVideoSource::setVideoMode(const std::string mode_name)

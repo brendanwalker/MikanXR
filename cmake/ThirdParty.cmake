@@ -1,4 +1,5 @@
 include(FindPackageHandleStandardArgs)
+include(FetchContent)
 
 if (POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
@@ -33,6 +34,13 @@ endif()
 
 # Configuru
 set (CONFIGURU_INCLUDE_DIR ${ROOT_DIR}/thirdparty/Configuru)
+
+FetchContent_Declare(
+    dylib
+    GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
+    GIT_TAG        "v2.2.1"
+)
+FetchContent_MakeAvailable(dylib)
 
 # OpenCV
 # Override by adding "-DOpenCV_DIR=C:\path\to\opencv\build" to your cmake command

@@ -138,15 +138,27 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-echo "Downloading gstreamer"
-curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.24.10/msvc/gstreamer-1.0-devel-msvc-x86_64-1.24.10.msi --output gstreamer-1.0-devel-msvc-x86_64-1.24.10.msi
+echo "Downloading gstreamer-runtime installer"
+curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.24.11/mingw/gstreamer-1.0-mingw-x86_64-1.24.11.msi --output gstreamer-1.0-mingw-x86_64-1.24.11.msi
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading gstreamer-1.0-devel-msvc-x86_64-1.24.10.msi"
+  echo "Error downloading gstreamer-1.0-mingw-x86_64-1.24.11.msi"
   goto failure
 )
-msiexec /i gstreamer-1.0-devel-msvc-x86_64-1.24.10.msi /qb
+msiexec /i gstreamer-1.0-mingw-x86_64-1.24.11.msi /qb
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer"
+  echo "Error installing gstreamer-runtime installer"
+  goto failure
+)
+
+echo "Downloading gstreamer-devel installer"
+curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.24.11/mingw/gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi --output gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi"
+  goto failure
+)
+msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi /qb
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error installing gstreamer-devel installer"
   goto failure
 )
 
