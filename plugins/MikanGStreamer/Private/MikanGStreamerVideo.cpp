@@ -15,27 +15,38 @@
 #pragma warning (disable: 4996) // 'This function or variable may be unsafe': strncpy
 #endif
 
+const std::string g_GStreamerProtocolStrings[(int)eGStreamerProtocol::COUNT] = {
+	"rtmp",
+	"rtsp"
+};
+
 struct GStreamerImpl
 {
-	MikanGStreamerSettings settings;
+	eGStreamerProtocol protocol;
+	std::string address;
+	std::string path;
+	int port;
+	
 	GstElement* pipeline;
 	GstElement* appsink;
 	GstBus* bus;
 
-	GStreamerImpl(const MikanGStreamerSettings& settings)
-		: settings(settings)
+	GStreamerImpl(const MikanGStreamerSettings& inSettings)
+		: protocol(inSettings.protocol)
+		, address(inSettings.address)
+		, path(inSettings.path)
+		, port(inSettings.port)
 		, pipeline(nullptr)
 		, appsink(nullptr)
 		, bus(nullptr)
 	{
-
 	}
 
 	std::string getSourcePluginString() const
 	{
-		if (settings.protocol != eGStreamerProtocol::INVALID)
+		if (protocol != eGStreamerProtocol::INVALID)
 		{
-			std::string protocolString = k_szGStreamerProtocolStrings[(int)settings.protocol];
+			std::string protocolString = g_GStreamerProtocolStrings[(int)protocol];
 
 			return protocolString + "src";
 		}
@@ -45,9 +56,9 @@ struct GStreamerImpl
 
 	std::string getURIProtocolString() const
 	{
-		if (settings.protocol != eGStreamerProtocol::INVALID)
+		if (protocol != eGStreamerProtocol::INVALID)
 		{
-			return k_szGStreamerProtocolStrings[(int)settings.protocol];
+			return g_GStreamerProtocolStrings[(int)protocol];
 		}
 
 		return "UNKNOWN";
@@ -58,9 +69,9 @@ struct GStreamerImpl
 		std::stringstream ss;
 
 		ss << getURIProtocolString() << "://";
-		ss << settings.address << ":";
-		ss << settings.port << "/";
-		ss << settings.path;
+		ss << address << ":";
+		ss << port << "/";
+		ss << path;
 
 		return ss.str();
 	}

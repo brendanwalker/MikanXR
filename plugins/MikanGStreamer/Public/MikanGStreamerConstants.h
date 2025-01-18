@@ -11,4 +11,3 @@ enum class eGStreamerProtocol
 
 	COUNT
 };
-MIKAN_GSTREAMER_API extern const char** k_szGStreamerProtocolStrings;

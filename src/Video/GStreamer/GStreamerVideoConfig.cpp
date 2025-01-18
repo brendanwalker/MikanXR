@@ -7,6 +7,11 @@
 
 #include <sstream>
 
+const std::string g_GStreamerProtocolStrings[(int)eGStreamerProtocol::COUNT] = {
+	"rtmp",
+	"rtsp"
+};
+
 GStreamerVideoConfig::GStreamerVideoConfig(const std::string& fnamebase)
 	: CommonVideoConfig(fnamebase)
 {
@@ -23,7 +28,7 @@ configuru::Config GStreamerVideoConfig::writeToJSON()
 
 	pt["protocol"] = 
 		protocol != eGStreamerProtocol::INVALID 
-		? k_szGStreamerProtocolStrings[(int)protocol]
+		? g_GStreamerProtocolStrings[(int)protocol]
 		: "INVALID";
 	pt["address"] = address;
 	pt["path"] = path;
@@ -41,7 +46,7 @@ void GStreamerVideoConfig::readFromJSON(const configuru::Config& pt)
 	protocol =
 		StringUtils::FindEnumValue<eGStreamerProtocol>(
 			pt.get_or<std::string>("protocol", "INVALID"),
-			k_szGStreamerProtocolStrings);
+			g_GStreamerProtocolStrings);
 	address= pt.get_or<std::string>("address", "");
 	path= pt.get_or<std::string>("path", "");
 	port= pt.get_or<int>("port", 0);
@@ -91,7 +96,7 @@ bool GStreamerVideoConfig::applyDevicePath(const std::string& devicePath)
 	protocolEnum =
 		StringUtils::FindEnumValue<eGStreamerProtocol>(
 			protocolStr,
-			k_szGStreamerProtocolStrings);
+			g_GStreamerProtocolStrings);
 
 	// Apply the parsed values if the address and port are valid
 	if (protocolEnum != protocol || 

@@ -4,12 +4,14 @@
 #include "GStreamerVideoConfig.h"
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
+#include "MikanGStreamerVideoInterface.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoFwd.h"
 
+#include <memory>
+#include <deque>
 #include <string>
 #include <vector>
-#include <deque>
 
 // -- definitions -----
 class GStreamerVideoSource : public IVideoSourceInterface
@@ -70,13 +72,18 @@ public:
 		return m_cfg;
 	}
 
+protected:
+	static void onVideoModeChanged(const MikanGStreamerVideoMode& newVideoMode, void* userdata);
+	static void onVideoFrameReceived(const MikanGStreamerBuffer& newBuffer, void* userdata);
+
 private:
 	IVideoSourceListener* m_listener;
 	GStreamerVideoConfigPtr m_cfg;
-	VideoModeConfigPtr m_currentVideoMode;
+	VideoModeConfigPtr m_videoModeConfig;
+	MikanGStreamerVideoMode m_gstreamerVideoMode;
 	std::string m_devicePath;
 	std::string m_deviceIdentifier;
-	class GStreamerVideoDevice* m_videoDevice;
+	std::shared_ptr<class IMikanGStreamerVideoDevice> m_videoDevice;
 	IVideoSourceInterface::eDriverType m_driverType;
 
 };
