@@ -1,5 +1,6 @@
 #include "CameraMath.h"
 #include "DeviceInterface.h"
+#include "Logger.h"
 #include "MikanMathTypes.h"
 #include "MikanVideoSourceTypes.h"
 #include "MathGLM.h"
@@ -8,10 +9,6 @@
 #include "VRDeviceView.h"
 
 #include "opencv2/opencv.hpp"
-
-#define DEFAULT_MONO_HFOV   60.0   // 60 degrees
-#define DEFAULT_MONO_ZNEAR  0.1    // 10cm
-#define DEFAULT_MONO_ZFAR   20.0   // 20m
 
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
 {
@@ -39,59 +36,181 @@ glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
     return modelView;
 }
 
-void computeOpenCVCameraExtrinsicMatrix(
+bool computeOpenCVCameraExtrinsicMatrix(
     VideoSourceViewPtr videoSource, 
-    VRDeviceViewPtr trackingPuck,
+    VRDevicePoseViewPtr trackingPuck,
     cv::Matx34f &out)
 {
     // Extrinsic matrix is the inverse of the camera pose matrix
-    const glm::mat4 glm_camera_xform = videoSource->getCameraPose(trackingPuck);
-    const glm::mat4 glm_mat = glm::inverse(glm_camera_xform);
+    glm::mat4 glm_camera_xform;
+	if (videoSource->getCameraPose(trackingPuck, glm_camera_xform))
+	{
+		const glm::mat4 glm_mat = glm::inverse(glm_camera_xform);
 
-    out(0, 0) = glm_mat[0][0]; out(0, 1) = glm_mat[1][0]; out(0, 2) = glm_mat[2][0]; out(0, 3) = glm_mat[3][0];
-    out(1, 0) = glm_mat[0][1]; out(1, 1) = glm_mat[1][1]; out(1, 2) = glm_mat[2][1]; out(1, 3) = glm_mat[3][1];
-    out(2, 0) = glm_mat[0][2]; out(2, 1) = glm_mat[1][2]; out(2, 2) = glm_mat[2][2]; out(2, 3) = glm_mat[3][2];
+		out(0, 0) = glm_mat[0][0]; out(0, 1) = glm_mat[1][0]; out(0, 2) = glm_mat[2][0]; out(0, 3) = glm_mat[3][0];
+		out(1, 0) = glm_mat[0][1]; out(1, 1) = glm_mat[1][1]; out(1, 2) = glm_mat[2][1]; out(1, 3) = glm_mat[3][1];
+		out(2, 0) = glm_mat[0][2]; out(2, 1) = glm_mat[1][2]; out(2, 2) = glm_mat[2][2]; out(2, 3) = glm_mat[3][2];
+
+		return true;
+	}
+
+	return false;
+}
+
+bool computeMonoLensCameraCalibration(
+	const int frameWidth,
+	const int frameHeight,
+	const OpenCVCalibrationGeometry& opencvLensCalibrationGeometry,
+	const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+	const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+	MikanMonoIntrinsics& outIntrinsics,
+	double& outReprojectionError)
+{
+	bool bSuccess = true;
+
+	// Initialize the output intrinsics with default values
+	outIntrinsics = MikanMonoIntrinsics();
+
+	// Each 2d image point set should have a corresponding 3d object point set
+	const size_t imagePointSetCount = cvImagePointsList.size();
+	std::vector< t_opencv_point3d_list > cvObjectPointsList(imagePointSetCount);
+	std::fill(cvObjectPointsList.begin(), cvObjectPointsList.end(), opencvLensCalibrationGeometry.points);
+
+	// Compute an initial guess for the distorted camera intrinsic matrix
+	// using correspondence between the object points and the image points
+	cv::Size cvImageSize(frameWidth, frameHeight);
+	cv::Matx33d cvDistortedIntrinsicMatrix =
+		cv::initCameraMatrix2D(
+			cvObjectPointsList,
+			cvImagePointsList,
+			cvImageSize);
+
+	// Refine the camera intrinsic matrix and compute distortion parameters
+	cv::Mat cvDistCoeffsRowVector;
+	try
+	{
+		outReprojectionError =
+			cv::calibrateCamera(
+				cvObjectPointsList,
+				cvImagePointsList,
+				cvImageSize,
+				cvDistortedIntrinsicMatrix, // Input/Output camera intrinsic matrix 
+				cvDistCoeffsRowVector, // Output distortion coefficients
+				cv::noArray(), cv::noArray(), // best fit board poses as rvec/tvec pairs
+				cv::CALIB_FIX_ASPECT_RATIO + // The functions considers only fy as a free parameter
+				cv::CALIB_FIX_PRINCIPAL_POINT + // The principal point is not changed during the global optimization
+				cv::CALIB_ZERO_TANGENT_DIST + // Tangential distortion coefficients (p1,p2) are set to zeros and stay zero
+				cv::CALIB_RATIONAL_MODEL + // Coefficients k4, k5, and k6 are enabled
+				cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5, // radial distortion coefficients k3, k4, & k5 are not changed during the optimization
+				cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, DBL_EPSILON));
+
+		bSuccess = is_valid_float(outReprojectionError);
+	}
+	catch (cv::Exception* e)
+	{
+		MIKAN_MT_LOG_ERROR("computeCameraCalibration") << "Error computing lens calibration: " << e->msg;
+		bSuccess = false;
+	}
+
+	if (bSuccess)
+	{
+		// Create a modified camera intrinsic matrix to crop out the unwanted border
+		cv::Mat cvUndistortedIntrinsicMatrix =
+			cv::getOptimalNewCameraMatrix(
+				cvDistortedIntrinsicMatrix,
+				cvDistCoeffsRowVector,
+				cv::Size(frameWidth, frameHeight),
+				0.f); // We want 0% of the garbage border
+
+		// Derive the FoV angles from the image size and the newly computed undistorted intrinsic matrix
+		double hfov, vfov;
+		double unusedFocalLength;
+		cv::Point2d ununsedPrincipalPoint;
+		double aspectRatio;
+		cv::calibrationMatrixValues(
+			cvUndistortedIntrinsicMatrix,
+			cvImageSize,
+			0.0, 0.0, // Don't know (and don't need) the physical aperture size of the lens 
+			hfov, vfov,
+			unusedFocalLength,
+			ununsedPrincipalPoint,
+			aspectRatio);
+
+		// cv::calibrateCamera() will return all 14 distortion parameters, but we only want the first 8
+		// Also convert from a row vector (OpenCV format) back to a column vector (Mikan format)
+		cv::Mat cvDistCoeffsColVector;
+		cv::transpose(cvDistCoeffsRowVector.colRange(cv::Range(0, 8)), cvDistCoeffsColVector);
+
+		// Write the calibration output state
+		outIntrinsics.pixel_width = (double)frameWidth;
+		outIntrinsics.pixel_height = (double)frameHeight;
+		outIntrinsics.hfov = hfov;
+		outIntrinsics.vfov = vfov;
+		outIntrinsics.aspect_ratio = aspectRatio;
+		outIntrinsics.znear = DEFAULT_MONO_ZNEAR;
+		outIntrinsics.zfar = DEFAULT_MONO_ZFAR;
+		outIntrinsics.distortion_coefficients = cv_vec8_to_Mikan_distortion(cvDistCoeffsColVector);
+		outIntrinsics.distorted_camera_matrix = cv_mat33d_to_MikanMatrix3d(cvDistortedIntrinsicMatrix);
+		outIntrinsics.undistorted_camera_matrix = cv_mat33d_to_MikanMatrix3d(cvUndistortedIntrinsicMatrix);
+	}
+
+	return bSuccess;
 }
 
 bool computeOpenCVCameraRelativePatternTransform(
 	const MikanMonoIntrinsics& intrinsics,
-    const t_opencv_point2d_list& imagePoints,
+    const t_opencv_point2d_list& undistortedImagePoints,
     const t_opencv_point3d_list& objectPointsMM,
     cv::Quatd& outOrientation,
-    cv::Vec3d& outPositionMM)
+    cv::Vec3d& outPositionMM,
+	double *outMeanError)
 {
     // Bail if there isn't a corresponding world point for every image point
-	if (imagePoints.size() != objectPointsMM.size() || imagePoints.size() == 0)
+	if (undistortedImagePoints.size() != objectPointsMM.size() || undistortedImagePoints.size() == 0)
 	{
 		return false;
 	}
 
-	// Fetch the 3x3 GLM camera intrinsic matrix and store into a 3x3 openCV matrix
-	const MikanMatrix3d& glmIntrinsicMatrix = intrinsics.camera_matrix;
+	// Fetch the 3x3 GLM camera undistorted intrinsic matrix and store into a 3x3 openCV matrix
+	const MikanMatrix3d& glmIntrinsicMatrix = intrinsics.undistorted_camera_matrix;
 	cv::Matx33d cvIntrinsicMatrix = MikanMatrix3d_to_cv_mat33d(glmIntrinsicMatrix);
 
-	// Store the distortion parameters in a row vector with 8 values: [k1, k2, p1, p2, k3, k4, k5, k6]
-	const MikanDistortionCoefficients& distortion_coeffs = intrinsics.distortion_coefficients;
-	cv::Matx81d cvDistCoeffsColVector = Mikan_distortion_to_cv_vec8(distortion_coeffs);
-	cv::Mat cvDistCoeffsRowVector;
-	cv::transpose(cvDistCoeffsColVector, cvDistCoeffsRowVector);
+	// Zero out the distortion coefficients since we are working with undistorted image points
+	cv::Matx<double, 1, 8> cvDistCoeffsRowVector= cv::Matx<double, 1, 8>::zeros();
 
     // Use AP3P solver if we have exactly 4 points, otherwise use the iterative solver
     // since the iterative solver needs at least 6 points
-	int solver = imagePoints.size() == 4 ? cv::SOLVEPNP_AP3P : cv::SOLVEPNP_ITERATIVE;
+	int solver = undistortedImagePoints.size() == 4 ? cv::SOLVEPNP_AP3P : cv::SOLVEPNP_ITERATIVE;
 
 	// Given an object model and the image points samples we could be able to compute 
 	// a position and orientation of the mat relative to the camera
 	cv::Mat rvec;
 	cv::Mat tvecMM; // Mat position in millimeters
 	if (!cv::solvePnP(
-		objectPointsMM, imagePoints,
+		objectPointsMM, undistortedImagePoints,
 		cvIntrinsicMatrix, cvDistCoeffsRowVector,
 		rvec, tvecMM, 
         false, // useExtrinsicGuess
         solver))
 	{
 		return false;
+	}
+
+	if (outMeanError != nullptr)
+	{
+		// Project the 3D points to 2D using the obtained transformation
+		std::vector<cv::Point2f> projectedPoints;
+		cv::projectPoints(objectPointsMM, rvec, tvecMM, cvIntrinsicMatrix, cvDistCoeffsRowVector, projectedPoints);
+
+		// Calculate the reprojection error
+		double totalError = 0.0;
+		for (size_t i = 0; i < undistortedImagePoints.size(); ++i)
+		{
+			double error = cv::norm(undistortedImagePoints[i] - projectedPoints[i]);
+			totalError += error;
+		}
+
+		*outMeanError = totalError / undistortedImagePoints.size();
 	}
 
     outOrientation = cv::Quatd::createFromRvec(rvec);
@@ -139,53 +258,19 @@ void convertOpenCVCameraRelativePoseToGLMMat(
 	outXform = RTMat * flipAboutX;
 }
 
-void computeOpenCVCameraIntrinsicMatrix(
-    VideoSourceViewPtr videoSource,
-    VideoFrameSection section,
-    cv::Matx33f& intrinsicOut)
-{
-    MikanVideoSourceIntrinsics tracker_intrinsics;
-    videoSource->getCameraIntrinsics(tracker_intrinsics);
-
-    MikanMatrix3d camera_matrix;
-    bool validCameraMatrix= false;
-
-    if (tracker_intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
-    {
-        if (section == VideoFrameSection::Left)
-        {
-            camera_matrix= tracker_intrinsics.getStereoIntrinsics().left_camera_matrix;
-            validCameraMatrix= true;
-        }
-        else if (section == VideoFrameSection::Right)
-        {
-            camera_matrix= tracker_intrinsics.getStereoIntrinsics().right_camera_matrix;
-            validCameraMatrix= true;
-        }
-    }
-    else if (tracker_intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
-    {
-        camera_matrix = tracker_intrinsics.getMonoIntrinsics().camera_matrix;
-        validCameraMatrix= true;
-    }
-
-    if (validCameraMatrix)
-    {  
-        intrinsicOut= MikanMatrix3d_to_cv_mat33f(camera_matrix);
-    }
-}
-
 void extractCameraIntrinsicMatrixParameters(
     const MikanMatrix3d& intrinsic_matrix,
     float& out_focal_length_x,
     float& out_focal_length_y,
     float& out_principal_point_x,
-    float& out_principal_point_y)
+    float& out_principal_point_y,
+	float& out_skew)
 {
 	out_focal_length_x = intrinsic_matrix.x0;
 	out_focal_length_y = intrinsic_matrix.y1;
 	out_principal_point_x = intrinsic_matrix.z0;
 	out_principal_point_y = intrinsic_matrix.z1;
+	out_skew= intrinsic_matrix.y0;
 }
 
 void extractCameraIntrinsicMatrixParameters(
@@ -193,12 +278,14 @@ void extractCameraIntrinsicMatrixParameters(
     float &out_focal_length_x,
     float &out_focal_length_y,
     float &out_principal_point_x,
-    float &out_principal_point_y)
+    float &out_principal_point_y,
+	float& out_skew)
 {
 	out_focal_length_x= intrinsic_matrix(0, 0);
 	out_focal_length_y= intrinsic_matrix(1, 1);
 	out_principal_point_x= intrinsic_matrix(0, 2);
 	out_principal_point_y= intrinsic_matrix(1, 2);
+	out_skew= intrinsic_matrix(0, 1);
 }
 
 bool computeOpenCVCameraRectification(
@@ -265,10 +352,111 @@ void createDefautMonoIntrinsics(
 	outIntrinsics.hfov= hfov;
 	outIntrinsics.vfov= vfov;
 	outIntrinsics.znear= DEFAULT_MONO_ZNEAR;
-	outIntrinsics.zfar= DEFAULT_MONO_ZFAR;	
-	outIntrinsics.camera_matrix = {
+	outIntrinsics.zfar= DEFAULT_MONO_ZFAR;
+	outIntrinsics.distorted_camera_matrix = {
 		f_x, 0.0, c_x,
 		0.0, f_y, c_y,
 		0.0, 0.0, 1.0
 	};
+	outIntrinsics.undistorted_camera_matrix = outIntrinsics.distorted_camera_matrix;
+}
+// Adapted from https://jamesgregson.blogspot.com/2011/11/matching-calibrated-cameras-with-opengl.html
+// Great articles on the subject: 
+//     https://amytabb.com/tips/tutorials/2019/06/28/OpenCV-to-OpenGL-tutorial-essentials/
+//     https://ksimek.github.io/2013/06/03/calibrated_cameras_in_opengl/
+static void computeOpenGLProjMatFromCameraMatrix(
+	const double pixelWidth,
+	const double pixelHeight,
+	const MikanMatrix3d& cameraMatrix,
+	const float zNear,
+	const float zFar,
+	glm::mat4& outProjection,
+	int* outViewport)
+{
+	// Extract the 5 OpenCV camera intrinsic parameters
+	float alpha, beta, skew, u0, v0;
+	extractCameraIntrinsicMatrixParameters(
+		cameraMatrix,
+		alpha,	// focal length x
+		beta,	// focal length y
+		u0,		// principal point x (usually image center x)
+		v0,		// principal point y (usually image center y)
+		skew);	// skew (usually 0)
+
+	// These parameters define the final viewport that is rendered into by
+	// the camera.
+	const float& L = 0;
+	const float& R = pixelWidth;
+	const float& B = 0;
+	const float& T = pixelHeight;
+
+	// near and far clipping planes, these only matter for the mapping from
+	// world-space z-coordinate into the depth coordinate for OpenGL
+	const float& N = zNear;
+	const float& F = zFar;
+
+	// Construct an orthographic matrix which maps from projected
+	// coordinates to normalized device coordinates in the range [-1, 1].
+	// OpenGL then maps coordinates in NDC to the current viewport
+	glm::mat4 NDC = glm::mat4(0);
+	NDC[0][0] = 2.0 / (R - L);                                                     NDC[3][0] = -(R + L) / (R - L);
+	NDC[1][1] = 2.0 / (T - B);                           NDC[3][1] = -(T + B) / (T - B);
+	NDC[2][2] = -2.0 / (F - N); NDC[3][2] = -(F + N) / (F - N);
+	NDC[3][3] = 1.0;
+
+	// construct a projection matrix, this is identical to the 
+	// projection matrix computed for the intrinsics, except an
+	// additional row is inserted to map the z-coordinate to OpenGL. 
+	glm::mat4 persp = glm::mat4(0);
+	persp[0][0] = alpha; persp[1][0] = skew; persp[2][0] = -u0;
+	persp[1][1] = beta; persp[2][1] = -v0;
+	persp[2][2] = N + F; persp[3][2] = N * F;
+	persp[2][3] = -1.0;
+
+	// resulting OpenGL frustum is the product of the orthographic
+	// mapping to normalized device coordinates and the augmented
+	// camera intrinsic matrix
+	outProjection = NDC * persp;
+
+	// set the viewport parameters
+	if (outViewport != nullptr)
+	{
+		outViewport[0] = L;
+		outViewport[1] = B;
+		outViewport[2] = R - L;
+		outViewport[3] = T - B;
+	}
+}
+
+void computeOpenGLProjMatFromCameraIntrinsics(
+	const MikanMonoIntrinsics &intrinsics,
+	glm::mat4& outProjection, 
+	int* outViewport)
+{
+	computeOpenGLProjMatFromCameraMatrix(
+		intrinsics.pixel_width,
+		intrinsics.pixel_height,
+		intrinsics.undistorted_camera_matrix,
+		intrinsics.znear,
+		intrinsics.zfar,
+		outProjection,
+		outViewport);
+}
+
+void computeOpenGLProjMatFromCameraIntrinsics(
+	const MikanStereoIntrinsics& intrinsics,
+	eStereoIntrinsicsSide side,
+	glm::mat4& outProjection,
+	int* outViewport)
+{
+	computeOpenGLProjMatFromCameraMatrix(
+		intrinsics.pixel_width,
+		intrinsics.pixel_height,
+		(side == eStereoIntrinsicsSide::left)
+			? intrinsics.left_camera_matrix
+			: intrinsics.right_camera_matrix,
+		intrinsics.znear,
+		intrinsics.zfar,
+		outProjection,
+		outViewport);
 }

@@ -79,8 +79,10 @@ void AppStage_DepthMeshCapture::enter()
 	m_profile = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(m_profile->videoSourcePath).getCurrent();
-	m_cameraTrackingPuckView= 
-		VRDeviceManager::getInstance()->getVRDeviceViewByPath(m_profile->cameraVRDevicePath);
+
+	auto* vrDeviceManager = VRDeviceManager::getInstance();
+	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(m_profile->cameraVRDevicePath);
+	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
 	// Add all VR devices to the 3d scene
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
@@ -268,10 +270,11 @@ void AppStage_DepthMeshCapture::update(float deltaSeconds)
 	if (m_calibrationModel->getMenuState() != eDepthMeshCaptureMenuState::failedToStart)
 	{
 		// Get the transform of the video source
-		m_videoSourceXform= 
-			m_cameraTrackingPuckView
-			? m_videoSourceView->getCameraPose(m_cameraTrackingPuckView)
-			: glm::mat4(1.f);
+		if (!m_cameraTrackingPuckPoseView ||
+			!m_cameraTrackingPuckPoseView->getPose(m_videoSourceXform))
+		{
+			m_videoSourceXform= glm::mat4(1.f);
+		}
 
 		// Read the next video frame
 		m_monoDistortionView->readAndProcessVideoFrame();
@@ -328,7 +331,7 @@ void AppStage_DepthMeshCapture::renderVRScene()
 	}
 
 	// Draw any meshes added to the scene (inlcuding the depth capture mesh)
-	m_scene->render(vrCamera);
+	m_scene->render(vrCamera, m_ownerWindow->getGlStateStack());
 }
 
 void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState)

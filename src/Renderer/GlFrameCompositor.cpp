@@ -31,6 +31,7 @@
 #include "VideoSourceView.h"
 #include "VideoFrameDistortionView.h"
 #include "VRDeviceManager.h"
+#include "VRDeviceView.h"
 
 #include "NodeGraphAssetReference.h"
 #include "Graphs/CompositorNodeGraph.h"
@@ -418,10 +419,9 @@ void GlFrameCompositor::stop()
 
 bool GlFrameCompositor::getVideoSourceCameraPose(glm::mat4& outCameraMat) const
 {
-	if (m_videoSourceView != nullptr && m_cameraTrackingPuckView != nullptr)
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckPoseView != nullptr)
 	{
-		outCameraMat= m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
-		return true;
+		return m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, outCameraMat);
 	}
 	
 	return false;
@@ -429,10 +429,9 @@ bool GlFrameCompositor::getVideoSourceCameraPose(glm::mat4& outCameraMat) const
 
 bool GlFrameCompositor::getVideoSourceView(glm::mat4& outCameraView) const
 {
-	if (m_videoSourceView != nullptr && m_cameraTrackingPuckView != nullptr)
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckPoseView != nullptr)
 	{
-		outCameraView = m_videoSourceView->getCameraViewMatrix(m_cameraTrackingPuckView);
-		return true;
+		return m_videoSourceView->getCameraViewMatrix(m_cameraTrackingPuckPoseView, outCameraView);
 	}
 
 	return false;
@@ -462,10 +461,9 @@ bool GlFrameCompositor::getVideoSourceProjection(
 
 bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) const
 {
-	if (m_videoSourceView != nullptr && m_cameraTrackingPuckView != nullptr)
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckPoseView != nullptr)
 	{
-		outCameraVP = m_videoSourceView->getCameraViewProjectionMatrix(m_cameraTrackingPuckView);
-		return true;
+		return m_videoSourceView->getCameraViewProjectionMatrix(m_cameraTrackingPuckPoseView, outCameraVP);
 	}
 
 	return false;
@@ -575,7 +573,7 @@ void GlFrameCompositor::update(float deltaSeconds)
 	if (!getIsRunning())
 		return;
 
-	if (!m_cameraTrackingPuckView)
+	if (!m_cameraTrackingPuckPoseView)
 	{
 		bindCameraVRTracker();
 	}
@@ -894,10 +892,8 @@ bool GlFrameCompositor::openVideoSource()
 		}
 #endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
-		// Just pass the raw video frame straight to the bgr texture
-		// The frame compositor will do the undistortion work in a shader
-		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_bgr);
-		m_videoDistortionView->setColorUndistortDisabled(true);
+		// Always use the undistorted video frame for compositing
+		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 	}
 	else
 	{
@@ -930,10 +926,11 @@ bool GlFrameCompositor::bindCameraVRTracker()
 {
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
-	m_cameraTrackingPuckView= 
-		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	auto* vrDeviceManager= VRDeviceManager::getInstance();
+	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
-	return m_cameraTrackingPuckView != nullptr;
+	return m_cameraTrackingPuckPoseView != nullptr;
 }
 
 bool GlFrameCompositor::addClientSource(

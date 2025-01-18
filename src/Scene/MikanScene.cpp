@@ -116,7 +116,7 @@ void MikanScene::removeMikanComponent(MikanComponentConstPtr componentPtr)
 	}
 }
 
-void MikanScene::render(GlCameraConstPtr camera) const
+void MikanScene::render(GlCameraConstPtr camera, GlStateStack& glStateStack) const
 {
-	m_glScene->render(camera);
+	m_glScene->render(camera, glStateStack);
 }

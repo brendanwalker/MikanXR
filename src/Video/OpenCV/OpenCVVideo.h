@@ -65,7 +65,7 @@ public:
 	void setVideoProperty(const VideoPropertyType property_type, int desired_value);
 	int getVideoProperty(const VideoPropertyType property_type) const;
 
-public:
+protected:
 	int m_deviceIndex;
 	VideoCapabilitiesConfigConstPtr m_videoCapabilities;
 	int m_deviceModeIndex;

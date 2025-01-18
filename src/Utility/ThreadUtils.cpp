@@ -1,6 +1,8 @@
 // -- includes -----
 #include "ThreadUtils.h"
 
+#include <thread>
+
 #if defined WIN32 || defined _WIN32 || defined WINCE
 #include <windows.h>
 
@@ -19,6 +21,18 @@
 // -- public methods -----
 namespace ThreadUtils
 {
+	std::thread::id MAIN_THREAD_ID;
+
+	void initMainThreadId()
+	{
+		MAIN_THREAD_ID = std::this_thread::get_id();
+	}
+
+	bool isRunningInMainThread()
+	{
+		return MAIN_THREAD_ID == std::this_thread::get_id();
+	}
+
 #if defined WIN32 || defined _WIN32 || defined WINCE
 	const DWORD MS_VC_EXCEPTION = 0x406D1388;
 

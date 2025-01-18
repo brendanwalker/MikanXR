@@ -16,7 +16,10 @@
 class WMFVideoFrameProcessor : public IMFSampleGrabberSinkCallback, public WorkerThread
 {
 public:
-	WMFVideoFrameProcessor(const WMFDeviceFormatInfo &deviceFormat, class IVideoSourceListener *listener);
+	WMFVideoFrameProcessor(
+		int deviceIndex,
+		const WMFDeviceFormatInfo &deviceFormat, 
+		class IVideoSourceListener *listener);
 	~WMFVideoFrameProcessor();
 
 	HRESULT init(IMFMediaSource *pSource);
@@ -63,17 +66,17 @@ protected:
         DWORD dwSampleSize);
 
 private:
+	int m_deviceIndex;
+	const WMFDeviceFormatInfo& m_deviceFormat;
+	class IVideoSourceListener* m_videoSourceListener;
+
 	long m_referenceCount;
 
-	unsigned int m_deviceIndex;
-	
 	IMFMediaSession *m_pSession;
 	IMFTopology *m_pTopology;
 	
 	bool m_bIsRunning;
-	int64_t m_sampleIndex= 0;
-
-	class IVideoSourceListener *m_videoSourceListener;
+	int64_t m_sampleIndex;
 };
 
 class WMFVideoDevice

@@ -9,7 +9,7 @@
 
 #include "glm/gtc/quaternion.hpp"
 
-//-- public implementation -----
+// -- VRDeviceView -----
 VRDeviceView::VRDeviceView(const int device_id)
 	: DeviceView(device_id)
 	, m_device(nullptr)
@@ -113,54 +113,131 @@ void VRDeviceView::getComponentNames(std::vector<std::string>& outComponentName)
 
 bool VRDeviceView::getComponentPoseByName(
 	const std::string& componentName, 
-	bool bApplyVRDeviceOffset,
 	glm::mat4& outPose) const
 {
-	glm::mat4 rawComponentPose = glm::mat4(1.f);
+	glm::mat4 vrTrackingSpacePose = glm::mat4(1.f);
 
 	if (m_device != nullptr &&
-		m_device->getComponentPoseByName(componentName, rawComponentPose))
+		m_device->getComponentPoseByName(componentName, vrTrackingSpacePose))
 	{
-		outPose = bApplyVRDeviceOffset ? applyVRDeviceOffset(rawComponentPose) : rawComponentPose;
-
+		outPose = vrTrackingSpacePose;
 		return true;
 	}
 
 	return false;
 }
 
-glm::mat4 VRDeviceView::getDefaultComponentPose(bool bApplyVRDeviceOffset) const
+bool VRDeviceView::getDefaultComponentPose(glm::mat4& outPose) const
 {
-	glm::mat4 resultPose = glm::mat4(1.f);
-	if (m_device != nullptr)
+	bool bIsPoseValid = false;
+
+	if (m_device != nullptr &&
+		m_device->getDeviceType() == eDeviceType::VRTracker)
 	{
 		ProfileConfigConstPtr config = App::getInstance()->getProfileConfig();
 
-		std::string componentName= "";
-		if (m_device->getDeviceType() == eDeviceType::VRTracker)
+		if (config)
 		{
-			componentName = config->vivePuckDefaultComponentName;
+			// Get the vive puck default pose in VR Tracking space
+			bIsPoseValid= getComponentPoseByName(
+				config->vivePuckDefaultComponentName,
+				outPose);
 		}
 
-		if (!getComponentPoseByName(componentName, bApplyVRDeviceOffset, resultPose))
+		// Fallback to the device pose if the vive puck devault pose is not valid
+		if (!bIsPoseValid)
 		{
 			const glm::vec3 devicePos = m_device->getPosition();
 			const glm::quat deviceQuat = m_device->getOrientation();
-			const glm::mat4 rawDevicePose= glm_composite_xform(
-				glm::mat4_cast(deviceQuat), 
-				glm::translate(glm::mat4(1.0), devicePos));
 
-			resultPose = bApplyVRDeviceOffset ? applyVRDeviceOffset(rawDevicePose) : rawDevicePose;
+			outPose = glm_composite_xform(
+				glm::mat4_cast(deviceQuat),
+				glm::translate(glm::mat4(1.0), devicePos));
+			bIsPoseValid = true;
 		}
 	}
 
-	return resultPose;
+	return bIsPoseValid;
 }
 
-glm::mat4 VRDeviceView::applyVRDeviceOffset(const glm::mat4& rawDevicePose)
+VRDevicePoseViewPtr VRDeviceView::makePoseView(
+	eVRDevicePoseSpace space, 
+	const std::string& subComponentName) const
 {
-	ProfileConfigConstPtr config = App::getInstance()->getProfileConfig();
-	const glm::mat4 glmVRDevicePoseOffset = MikanMatrix4f_to_glm_mat4(config->vrDevicePoseOffset);
+	return std::make_shared<VRDevicePoseView>(this, space, subComponentName);
+}
 
-	return glm_composite_xform(rawDevicePose, glmVRDevicePoseOffset);
+// -- VRDevicePoseView -----
+VRDevicePoseView::VRDevicePoseView(
+	const VRDeviceView* deviceView,
+	eVRDevicePoseSpace space,
+	const std::string& subComponentName)
+	: m_deviceView(deviceView->getSelfWeakPtr<VRDeviceView>())
+	, m_poseSpace(space)
+	, m_subComponentName(subComponentName)
+{
+}
+
+const VRDeviceView* VRDevicePoseView::getDeviceView() const
+{
+	return m_deviceView.lock().get();
+}
+
+bool VRDevicePoseView::getIsPoseValid() const
+{
+	const VRDeviceView* deviceView = getDeviceView();
+
+	return deviceView != nullptr && deviceView->getIsPoseValid();
+}
+
+bool VRDevicePoseView::getPose(glm::mat4& outPoseInSpace) const
+{
+	bool bIsPoseValid = false;
+	const VRDeviceView* deviceView = getDeviceView();
+
+	if (deviceView != nullptr)
+	{
+		// Get the raw device pose
+		glm::mat4 vrTrackingSpacePose = glm::mat4(1.f);
+		if (!m_subComponentName.empty())
+		{
+			bIsPoseValid= deviceView->getComponentPoseByName(m_subComponentName, vrTrackingSpacePose);
+		}
+		else
+		{
+			bIsPoseValid = deviceView->getDefaultComponentPose(vrTrackingSpacePose);
+		}
+
+		if (bIsPoseValid)
+		{
+			if (m_poseSpace == eVRDevicePoseSpace::MikanScene)
+			{
+				ProfileConfigConstPtr config = App::getInstance()->getProfileConfig();
+				const glm::mat4 glmVRDevicePoseOffset = MikanMatrix4f_to_glm_mat4(config->vrDevicePoseOffset);
+
+				// Convert the vr tracking space pose to Mikan scene space
+				outPoseInSpace = glm_composite_xform(vrTrackingSpacePose, glmVRDevicePoseOffset);
+			}
+			else
+			{
+				// Return the vr tracking space pose
+				outPoseInSpace = vrTrackingSpacePose;
+			}
+		}
+	}
+
+	return bIsPoseValid;
+}
+
+bool VRDevicePoseView::getPose(glm::dmat4& outPoseInSpace) const
+{
+	glm::mat4 poseInSpace;
+
+	if (getPose(poseInSpace))
+	{
+		outPoseInSpace = glm::dmat4(poseInSpace);
+		return true;
+	}
+
+	return false;
 }

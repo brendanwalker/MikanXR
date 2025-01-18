@@ -2,17 +2,14 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "DeviceViewFwd.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "RendererFwd.h"
 #include "RmlFwd.h"
 
-#include <memory>
-#include <vector>
-
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-typedef std::vector<VRDeviceViewPtr> VRDeviceList;
+//-- typedefs -----
+using VRDeviceList = std::vector<VRDeviceViewPtr>;
 
 //-- definitions -----
 class AppStage_SpatialAnchors : public AppStage
@@ -39,6 +36,7 @@ protected:
 	void onGotoMainMenu();
 
 	VRDeviceViewPtr getSelectedAnchorVRTracker() const;
+	VRDevicePoseViewPtr getSelectedAnchorVRTrackerPoseView() const;
 
 	VRDeviceList m_vrTrackers;
 	GlScenePtr m_scene;
