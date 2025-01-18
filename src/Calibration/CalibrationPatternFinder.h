@@ -2,7 +2,6 @@
 
 #include "ObjectSystemConfigFwd.h"
 #include "OpenCVFwd.h"
-#include "CameraMath.h"
 #include "ProfileConfig.h"
 
 #include <memory>
@@ -12,6 +11,18 @@
 
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
+typedef std::vector<glm::vec3> t_opengl_point3d_list;
+
+struct OpenCVCalibrationGeometry
+{
+	t_opencv_point3d_list points;
+};
+
+struct OpenGLCalibrationGeometry
+{
+	t_opengl_point3d_list points;
+};
 
 class CalibrationPatternFinder;
 typedef std::shared_ptr<CalibrationPatternFinder> CalibrationPatternFinderPtr;
@@ -31,8 +42,6 @@ public:
 		ProfileConfigConstPtr profileConfig,
 		class VideoFrameDistortionView* distortionView);
 
-	cv::Mat* getGrayscaleVideoFrameInput() const;
-
 	virtual eCalibrationPatternType getCalibrationPatternType() const = 0;
 	virtual bool findNewCalibrationPattern(const float minSeperationDist= 0.f) = 0;
 	virtual bool estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform);
@@ -40,14 +49,20 @@ public:
 		t_opencv_point2d_list& outImagePoints, 
 		t_opencv_pointID_list& outImagePointIDs,
 		cv::Point2f outBoundingQuad[4]) = 0;
+	virtual bool calibrateCamera(
+		const struct MikanMonoIntrinsics& inputCameraIntrinsics,
+		const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+		const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+		struct MikanMonoIntrinsics& outIntrinsics,
+		double& outReprojectionError) const;
 
 	bool areCurrentImagePointsValid() const;
 	inline float getFrameWidth() const { return m_frameWidth; }
 	inline float getFrameHeight() const { return m_frameHeight; }
 	inline VideoFrameDistortionView* getDistortionView() const { return m_distortionView; }
-	inline void getOpenCVLensCalibrationGeometry(OpenCVCalibrationGeometry* outGeometry) const { *outGeometry = m_opencvLensCalibrationGeometry; };
-	inline void getOpenCVSolvePnPGeometry(OpenCVCalibrationGeometry* outGeometry) const { *outGeometry= m_opencvSolvePnPGeometry; };
-	inline void getOpenGLSolvePnPGeometry(OpenGLCalibrationGeometry* outGeometry) const { *outGeometry= m_openglSolvePnPGeometry; };
+	inline void getOpenCVLensCalibrationGeometry(OpenCVCalibrationGeometry* outGeometry) { *outGeometry = m_opencvLensCalibrationGeometry; };
+	inline void getOpenCVSolvePnPGeometry(OpenCVCalibrationGeometry* outGeometry) { *outGeometry= m_opencvSolvePnPGeometry; };
+	inline void getOpenGLSolvePnPGeometry(OpenGLCalibrationGeometry* outGeometry) { *outGeometry= m_openglSolvePnPGeometry; };
 	virtual void renderCalibrationPattern2D() const;
 	virtual void renderSolvePnPPattern3D(const glm::mat4& xform) const;
 
@@ -131,6 +146,13 @@ public:
 		t_opencv_point2d_list& outImagePoints,
 		t_opencv_pointID_list& outImagePointIDs,
 		cv::Point2f outBoundingQuad[4]) override;
+	virtual bool calibrateCamera(
+		const struct MikanMonoIntrinsics& inputCameraIntrinsics,
+		const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+		const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+		struct MikanMonoIntrinsics& outIntrinsics,
+		double& outReprojectionError) const 
+	{ return false; }
 	virtual void renderCalibrationPattern2D() const override;
 
 protected:

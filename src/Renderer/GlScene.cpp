@@ -4,8 +4,6 @@
 #include "GlMaterialInstance.h"
 #include "GlProgram.h"
 #include "GlScene.h"
-#include "GlStateModifiers.h"
-#include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlStaticMeshInstance.h"
 #include "GlViewport.h"
@@ -69,24 +67,11 @@ void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 
 void GlScene::removeAllInstances()
 {
-	m_drawCalls.clear();
+	m_drawCalls.clear();;
 }
 
-void GlScene::render(GlCameraConstPtr camera, GlStateStack& glStateStack) const
+void GlScene::render(GlCameraConstPtr camera) const
 {
-	GlScopedState scopedState= glStateStack.createScopedState("GlScene");
-	GlState& glState= scopedState.getStackState();
-
-	// Enable front face culling while drawing the scene
-	glState.enableFlag(eGlStateFlagType::cullFace);
-	glStateSetFrontFace(glState, eGLFrontFaceMode::CCW);
-
-	// Enable Depth Test while drawing the scene
-	glState.enableFlag(eGlStateFlagType::depthTest);
-
-	// Clear the depth buffer before drawing the scene
-	glStateClearBuffer(glState, eGlClearFlags::depth);
-
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
 	{
 		GlMaterialConstPtr material = drawCallIter->first;

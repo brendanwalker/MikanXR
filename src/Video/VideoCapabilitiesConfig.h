@@ -39,8 +39,6 @@ struct VideoModeConfig
 	
 	MikanVideoSourceIntrinsics intrinsics;
 };
-using VideoModeConfigPtr = std::shared_ptr<VideoModeConfig>;
-using VideoModeConfigConstPtr = std::shared_ptr<const VideoModeConfig>;
 
 class VideoCapabilitiesConfig : public CommonConfig
 {

@@ -13,9 +13,9 @@
 #endif
 
 
-OpenCVVideoSource::OpenCVVideoSource(IVideoSourceListener* listener)
-    : m_listener(listener)
-	, m_videoCapabilities()
+// -- PS3EYE Tracker
+OpenCVVideoSource::OpenCVVideoSource()
+    : m_videoCapabilities()
 	, m_currentModeIndex(-1)
 	, m_cfg()
     , m_deviceIdentifier()
@@ -32,6 +32,7 @@ OpenCVVideoSource::~OpenCVVideoSource()
     }
 }
 
+// PSVRTracker
 bool OpenCVVideoSource::open() // Opens the first OpenCV camera port
 {
     OpenCVCameraEnumerator enumerator;
@@ -363,4 +364,9 @@ void OpenCVVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
     outZNear = static_cast<float>(m_cfg->cameraIntrinsics.znear);
     outZFar = static_cast<float>(m_cfg->cameraIntrinsics.zfar);
+}
+
+void OpenCVVideoSource::setVideoSourceListener(IVideoSourceListener *listener)
+{
+	m_listener= listener;
 }

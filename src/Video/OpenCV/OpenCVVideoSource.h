@@ -14,10 +14,11 @@
 // -- definitions -----
 class OpenCVVideoSource : public IVideoSourceInterface {
 public:
-    OpenCVVideoSource(IVideoSourceListener* listener);
+    OpenCVVideoSource();
     virtual ~OpenCVVideoSource();
         
-    bool open();
+    // PSVRTracker
+    bool open(); // Opens the first HID device for the controller
     
     // -- IDeviceInterface
     bool matchesDeviceEnumerator(const DeviceEnumerator *enumerator) const override;
@@ -56,20 +57,20 @@ public:
 	void setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p) override;
     void getFOV(float &outHFOV, float &outVFOV) const override;
     void getZRange(float &outZNear, float &outZFar) const override;
+	void setVideoSourceListener(IVideoSourceListener* listener) override;
 
     // -- Getters
     inline OpenCVVideoConfigConstPtr getConfig() const
     { return m_cfg; }
 
 private:
-	IVideoSourceListener* m_listener;
-
-    VideoCapabilitiesConfigConstPtr m_videoCapabilities;
+	VideoCapabilitiesConfigConstPtr m_videoCapabilities;
 	int m_currentModeIndex;
 
     OpenCVVideoConfigPtr m_cfg;
     std::string m_deviceIdentifier;
 
     class OpenCVVideoDevice *m_videoDevice;
-    IVideoSourceInterface::eDriverType m_driverType;
+    IVideoSourceInterface::eDriverType m_driverType;    
+	IVideoSourceListener *m_listener;
 };

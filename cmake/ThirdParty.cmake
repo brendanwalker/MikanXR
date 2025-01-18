@@ -1,5 +1,4 @@
 include(FindPackageHandleStandardArgs)
-include(FetchContent)
 
 if (POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
@@ -34,13 +33,6 @@ endif()
 
 # Configuru
 set (CONFIGURU_INCLUDE_DIR ${ROOT_DIR}/thirdparty/Configuru)
-
-FetchContent_Declare(
-    dylib
-    GIT_REPOSITORY "https://github.com/martin-olivier/dylib"
-    GIT_TAG        "v2.2.1"
-)
-FetchContent_MakeAvailable(dylib)
 
 # OpenCV
 # Override by adding "-DOpenCV_DIR=C:\path\to\opencv\build" to your cmake command
@@ -131,14 +123,6 @@ option(USE_ZLIB "Add ZLib support" FALSE)
 option(IXWEBSOCKET_INSTALL "Install IXWebSocket" FALSE)
 set (IXWEBSOCKET_DIR ${ROOT_DIR}/thirdparty/IXWebSocket/)
 set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
-
-# GStreamer
-find_package(GStreamer REQUIRED COMPONENTS base)
-find_package(GStreamerPluginsBase COMPONENTS app)
-find_package(GStreamerPluginsBase COMPONENTS video)
-find_package(GLIB2 REQUIRED)
-find_package(GObject REQUIRED)
-set (GSTREAMER_BIN_DIR ${GSTREAMER_ROOT}/bin)
 
 # Nlohmann JSON
 set (NLOHMANN_JSON_INCLUDE_DIR ${ROOT_DIR}/thirdparty/nlohmann_json/include)

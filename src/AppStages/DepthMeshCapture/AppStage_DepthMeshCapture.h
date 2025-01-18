@@ -4,7 +4,6 @@
 #include "AppStage.h"
 #include "ComponentFwd.h"
 #include "Constants_DepthMeshCapture.h"
-#include "DeviceViewFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "RendererFwd.h"
@@ -13,6 +12,12 @@
 
 #include <filesystem>
 #include <memory>
+
+class VideoSourceView;
+typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
+class VRDeviceView;
+typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
 class SyntheticDepthEstimator;
 typedef std::shared_ptr<SyntheticDepthEstimator> SyntheticDepthEstimatorPtr;
@@ -73,7 +78,7 @@ private:
 	VideoSourceViewPtr m_videoSourceView;
 	glm::mat4 m_videoSourceXform;
 
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	VRDeviceViewPtr m_cameraTrackingPuckView;
 
 	DepthMeshGeneratorPtr m_depthMeshCapture;
 	VideoFrameDistortionViewPtr m_monoDistortionView;

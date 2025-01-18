@@ -74,11 +74,8 @@ void AppStage_CTOffsetCalibration::enter()
 	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-
-	// Create the camera tracking puck pose view in VR Tracker space
-	auto* vrDeviceManager = VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
+	m_cameraTrackingPuckView= 
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 
 	// Add all VR devices to the 3d scene
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
@@ -112,7 +109,7 @@ void AppStage_CTOffsetCalibration::enter()
 		m_trackerPoseCalibrator =
 			new CameraTrackerOffsetCalibrator(
 				profileConfig,
-				m_cameraTrackingPuckPoseView,
+				m_cameraTrackingPuckView,
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
 
@@ -235,25 +232,20 @@ void AppStage_CTOffsetCalibration::updateCamera()
 		break;
 	case eCTOffsetCalibrationViewpointMode::mixedRealityViewpoint:
 		{
-			bool bValidPose = false;
-
 			// Update the transform of the camera so that vr models align over the tracking puck
 			glm::mat4 cameraPose;
 			if (m_calibrationModel->getMenuState() == eCTOffsetCalibrationMenuState::testCalibration)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
-				bValidPose = m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
+				cameraPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
 			}
 			else
 			{
 				// Use the last computed preview camera CTOffset
-				bValidPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
+				cameraPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckView);
 			}
 
-			if (bValidPose)
-			{
-				m_camera->setCameraTransform(cameraPose);
-			}
+			m_camera->setCameraTransform(cameraPose);
 		}
 		break;
 	}
@@ -364,7 +356,7 @@ void AppStage_CTOffsetCalibration::render()
 
 void AppStage_CTOffsetCalibration::renderVRScene()
 {
-	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
+	m_scene->render(m_camera);
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 

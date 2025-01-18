@@ -4,10 +4,15 @@
 #include "AppStage.h"
 #include "AnchorTriangulator.h"
 #include "Constants_AnchorTriangulation.h"
-#include "DeviceViewFwd.h"
 #include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
+
+class VideoSourceView;
+typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
+class VRDeviceView;
+typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
 //-- definitions -----
 class AppStage_AnchorTriangulation : public AppStage
@@ -45,7 +50,7 @@ private:
 	VideoSourceViewPtr m_videoSourceView;
 
 	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	VRDeviceViewPtr m_cameraTrackingPuckView;
 
 	AnchorTriangulator* m_anchorTriangulator;
 	class VideoFrameDistortionView* m_monoDistortionView;

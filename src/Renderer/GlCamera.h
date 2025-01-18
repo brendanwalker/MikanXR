@@ -27,7 +27,6 @@ public:
 	const glm::mat4& getViewMatrix() const { return m_viewMatrix; }
 	const glm::mat4 getViewProjectionMatrix() const { return m_projectionMatrix*m_viewMatrix; }
 
-	float getAspectRatio() const { return m_aspectRatio; }
 	float getHorizontalFOVDegrees() const { return m_hFOVDegrees; }
 	float getVerticalFOVDegrees() const { return m_vFOVDegrees; }
 	float getZNear() const { return m_zNear; }
@@ -82,7 +81,6 @@ protected:
 
 	std::string m_cameraName;
 
-	float m_aspectRatio;
 	float m_hFOVDegrees;
 	float m_vFOVDegrees;
 	float m_zNear;

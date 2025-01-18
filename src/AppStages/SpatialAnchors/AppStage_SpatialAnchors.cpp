@@ -80,13 +80,8 @@ void AppStage_SpatialAnchors::enter()
 
 void AppStage_SpatialAnchors::onAddNewAnchor()
 {
-	VRDevicePoseViewPtr anchorVRDevicePose = getSelectedAnchorVRTrackerPoseView();
-
-	glm::mat4 anchorXform = glm::mat4(1.f);
-	if (anchorVRDevicePose == nullptr)
-	{
-		anchorVRDevicePose->getPose(anchorXform);
-	}
+	VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
+	const glm::mat4 anchorXform = (anchorVRDevice) ? anchorVRDevice->getDefaultComponentPose() : glm::mat4(1.f);
 	const std::string newAnchorName= StringUtils::stringify("Anchor ",m_anchorSystemConfig->nextAnchorId);
 
 	if (m_anchorSystem->addNewAnchor(newAnchorName, anchorXform))
@@ -100,11 +95,11 @@ void AppStage_SpatialAnchors::onUpdateAnchorPose(int anchorId)
 	AnchorComponentPtr anchorComponent = m_anchorSystem->getSpatialAnchorById(anchorId);
 	if (anchorComponent != nullptr)
 	{
-		glm::mat4 anchorXform;
-		VRDevicePoseViewPtr anchorVRDevicePoseView = getSelectedAnchorVRTrackerPoseView();
-		if (anchorVRDevicePoseView != nullptr &&
-			anchorVRDevicePoseView->getPose(anchorXform))
+		VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
+		if (anchorVRDevice != nullptr)
 		{
+			const glm::mat4 anchorXform = anchorVRDevice->getDefaultComponentPose();
+
 			anchorComponent->setWorldTransform(anchorXform);
 		}
 	}
@@ -170,17 +165,16 @@ void AppStage_SpatialAnchors::render()
 {
 	TextStyle style = getDefaultTextStyle();
 
-	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
+	m_scene->render(m_camera);
 
 	drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
 	drawTransformedAxes(glm::translate(glm::mat4(1.0), glm::vec3(0.f, 0.001f, 0.f)), 0.5f);
 
 	// Highlight the VR device we are using for anchor placement
-	glm::mat4 anchorXform;
-	VRDevicePoseViewPtr anchorVRDevice = getSelectedAnchorVRTrackerPoseView();
-	if (anchorVRDevice != nullptr && 
-		anchorVRDevice->getPose(anchorXform))
+	VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
+	if (anchorVRDevice != nullptr)
 	{
+		const glm::mat4 anchorXform= anchorVRDevice->getDefaultComponentPose();
 		const glm::vec3 anchorPos= glm::vec3(anchorXform[3]);
 
 		drawTransformedAxes(anchorXform, 0.2f);
@@ -208,11 +202,4 @@ VRDeviceViewPtr AppStage_SpatialAnchors::getSelectedAnchorVRTracker() const
 	const std::string vrDevicePath= m_dataModel->getAnchorVRDevicePath();
 
 	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(vrDevicePath);
-}
-
-VRDevicePoseViewPtr AppStage_SpatialAnchors::getSelectedAnchorVRTrackerPoseView() const
-{
-	VRDeviceViewPtr anchorVRDevice = getSelectedAnchorVRTracker();
-
-	return (anchorVRDevice) ? anchorVRDevice->makePoseView(eVRDevicePoseSpace::MikanScene) : nullptr;
 }

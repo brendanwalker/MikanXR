@@ -39,7 +39,7 @@ public:
 	void setLightDirection(const glm::vec3& lightDirection) { m_lightDirection = lightDirection; }
 	const glm::vec3& getLightDirection() const { return m_lightDirection; }
 
-	void render(GlCameraConstPtr camera, class GlStateStack& glStateStack) const;
+	void render(GlCameraConstPtr camera) const;
 
 protected:
 	eUniformBindResult materialBindCallback(

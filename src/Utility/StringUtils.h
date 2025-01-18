@@ -22,22 +22,6 @@ namespace StringUtils
 		return t_enum_class::INVALID;
 	}
 
-	template <typename t_enum_class>
-	static t_enum_class FindEnumValue(const std::string& stringValue, const char **enumStrings)
-	{
-		for (int enumIntValue = 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
-		{
-			std::string enumStringValue = enumStrings[enumIntValue];
-
-			if (enumStringValue == stringValue)
-			{
-				return (t_enum_class)enumIntValue;
-			}
-		}
-
-		return t_enum_class::INVALID;
-	}
-
 	bool convertWcsToMbs(const wchar_t* wc_string, char* out_mb_string, const size_t mb_buffer_size);
 	bool convertMbsToWcs(const char* mb_string, wchar_t* out_wc_string, const size_t wc_buffer_size);
 

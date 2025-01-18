@@ -256,17 +256,15 @@ public:
 			if (vrDeviceView && vrDeviceView->getIsOpen() && vrDeviceView->getIsPoseValid())
 			{
 				// TODO: We should provide option to select which component we want the pose updates for
-				glm::mat4 xform;
-				if (vrDeviceView->getDefaultComponentPose(xform))
-				{
-					// Send a pose update to the client
-					MikanVRDevicePoseUpdateEvent poseUpdate;
-					poseUpdate.transform = glm_mat4_to_MikanMatrix4f(xform);
-					poseUpdate.device_id = deviceId;
-					poseUpdate.frame = newVRFrameIndex;
+				glm::mat4 xform= vrDeviceView->getDefaultComponentPose();
 
-					m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(poseUpdate));
-				}
+				// Send a pose update to the client
+				MikanVRDevicePoseUpdateEvent poseUpdate;
+				poseUpdate.transform= glm_mat4_to_MikanMatrix4f(xform);
+				poseUpdate.device_id= deviceId;
+				poseUpdate.frame= newVRFrameIndex;
+
+				m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(poseUpdate));
 			}
 		}
 	}

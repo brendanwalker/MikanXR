@@ -2,11 +2,16 @@
 
 //-- includes -----
 #include "AppStage.h"
-#include "DeviceViewFwd.h"
 #include "Constants_AlignmentCalibration.h"
 #include "RendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
+
+class VideoSourceView;
+typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
+class VRDeviceView;
+typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
 //-- definitions -----
 class AppStage_AlignmentCalibration : public AppStage
@@ -52,8 +57,8 @@ private:
 	VideoSourceViewPtr m_videoSourceView;
 
 	// Tracking pucks used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
-	VRDevicePoseViewPtr m_matTrackingPuckPoseView;
+	VRDeviceViewPtr m_cameraTrackingPuckView;
+	VRDeviceViewPtr m_matTrackingPuckView;
 
 	class MonoLensTrackerPoseCalibrator* m_trackerPoseCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;

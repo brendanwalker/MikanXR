@@ -6,7 +6,6 @@
 #include "AlignmentCalibration/RmlModel_AlignmentCalibration.h"
 #include "AlignmentCalibration/RmlModel_AlignmentCameraSettings.h"
 #include "App.h"
-#include "Colors.h"
 #include "GlCamera.h"
 #include "GlFrameBuffer.h"
 #include "GlLineRenderer.h"
@@ -33,7 +32,6 @@
 #include "SDL_keycode.h"
 
 #include "glm/gtc/quaternion.hpp"
-#include "glm/ext/vector_float4.hpp"
 
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
@@ -81,13 +79,12 @@ void AppStage_AlignmentCalibration::enter()
 
 	// Get the current video source based on the config
 	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	auto* vrDeviceManager= VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-	auto matTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->matVRDevicePath);
-
-	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
-	m_matTrackingPuckPoseView = matTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
+	m_videoSourceView = 
+		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	m_cameraTrackingPuckView= 
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	m_matTrackingPuckView =
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->matVRDevicePath);
 
 	// Add all VR devices to the 3d scene
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
@@ -111,7 +108,6 @@ void AppStage_AlignmentCalibration::enter()
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
 	m_frameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
 	m_frameBuffer->createResources();
-	m_frameBuffer->setClearColor(glm::vec4(Colors::CornflowerBlue, 1.f));
 
 	// Fire up the video scene in the background + pose calibrator
 	eAlignmentCalibrationMenuState newState;
@@ -129,8 +125,8 @@ void AppStage_AlignmentCalibration::enter()
 		m_trackerPoseCalibrator =
 			new MonoLensTrackerPoseCalibrator(
 				profileConfig,
-				m_cameraTrackingPuckPoseView,
-				m_matTrackingPuckPoseView,
+				m_cameraTrackingPuckView,
+				m_matTrackingPuckView,
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
 
@@ -253,26 +249,20 @@ void AppStage_AlignmentCalibration::updateCamera()
 		break;
 	case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
 		{
-			bool bValidPose= false;
-
 			// Update the transform of the camera so that vr models align over the tracking puck
 			glm::mat4 cameraPose;
 			if (m_calibrationModel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
-
-				bValidPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
+				cameraPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
 			}
 			else
 			{
 				// Use the last computed preview camera alignment
-				bValidPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
+				cameraPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckView);
 			}
 
-			if (bValidPose)
-			{
-				m_camera->setCameraTransform(cameraPose);
-			}
+			m_camera->setCameraTransform(cameraPose);
 		}
 		break;
 	}
@@ -420,7 +410,7 @@ void AppStage_AlignmentCalibration::render()
 
 void AppStage_AlignmentCalibration::renderVRScene()
 {
-	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
+	m_scene->render(m_camera);
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 

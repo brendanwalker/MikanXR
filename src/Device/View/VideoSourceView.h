@@ -33,6 +33,8 @@ public:
 	VideoSourceView(const int device_id);
 	~VideoSourceView();
 
+	static IVideoSourceInterface* allocateVideoSourceInterface(const class DeviceEnumerator* enumerator);
+
 	bool open(const class DeviceEnumerator* enumerator) override;
 	void close() override;
 
@@ -86,22 +88,20 @@ public:
 	MikanQuatd getCameraOffsetOrientation() const;
 	MikanVector3d getCameraOffsetPosition() const;
 	void setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p);
-	bool getCameraPose(VRDevicePoseViewPtr attachedVRDevicePtr, glm::mat4& outCameraPose) const;
-	bool getCameraPose(VRDevicePoseViewPtr attachedVRDevicePtr, glm::dmat4& outCameraPose) const;
+	glm::mat4 getCameraPose(VRDeviceViewPtr attachedVRDevicePtr, bool bApplyVRDeviceOffset= true) const;
 	glm::mat4 getCameraProjectionMatrix() const;
-	bool getCameraViewMatrix(VRDevicePoseViewPtr attachedVRDevicePtr, glm::mat4& outViewMatrix) const;
-	bool getCameraViewProjectionMatrix(VRDevicePoseViewPtr attachedVRDevicePtr, glm::mat4& outVPMatrix) const;
+	glm::mat4 getCameraViewMatrix(VRDeviceViewPtr attachedVRDevicePtr) const;
+	glm::mat4 getCameraViewProjectionMatrix(VRDeviceViewPtr attachedVRDevicePtr) const;
 
 	void getPixelDimensions(float& outWidth, float& outHeight) const;
 	void getFOV(float& outHFOV, float& outVFOV) const;
 	void getZRange(float& outZNear, float& outZFar) const;
 
-	//-- IVideoSourceListener
-	virtual void notifyVideoFrameSizeChanged() override;
-	virtual void notifyVideoFrameReceived(const IVideoSourceListener::FrameBuffer& frameInfo) override;
+	//-- ITrackerListener
+	virtual void notifyVideoFrameReceived(const unsigned char* raw_video_frame_buffer) override;
 
 protected:
-	bool reallocateOpencvBufferState();
+	void reallocateOpencvBufferState();
 	bool allocateDeviceInterface(const class DeviceEnumerator* enumerator) override;
 	void freeDeviceInterface() override;
 	void recomputeCameraProjectionMatrix();

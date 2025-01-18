@@ -6,10 +6,6 @@ class VideoCapabilitiesConfig;
 using VideoCapabilitiesConfigPtr = std::shared_ptr<VideoCapabilitiesConfig>;
 using VideoCapabilitiesConfigConstPtr = std::shared_ptr<const VideoCapabilitiesConfig>;
 
-class GStreamerVideoConfig;
-using GStreamerVideoConfigPtr = std::shared_ptr<GStreamerVideoConfig>;
-using GStreamerVideoConfigConstPtr = std::shared_ptr<const GStreamerVideoConfig>;
-
 class OpenCVVideoConfig;
 using OpenCVVideoConfigPtr = std::shared_ptr<OpenCVVideoConfig>;
 using OpenCVVideoConfigConstPtr = std::shared_ptr<const OpenCVVideoConfig>;

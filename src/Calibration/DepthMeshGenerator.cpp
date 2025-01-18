@@ -298,7 +298,7 @@ private:
 		}
 
 		// Fetch the camera intrinsics to project pixel coordinates to 3D space
-		cv::Matx33d intrinsicMatrix = MikanMatrix3d_to_cv_mat33d(inputCameraIntrinsics.undistorted_camera_matrix);
+		cv::Matx33d intrinsicMatrix = MikanMatrix3d_to_cv_mat33d(inputCameraIntrinsics.camera_matrix);
 		cv::Matx33d invIntrinsicMatrix = intrinsicMatrix.inv();
 
 		// Fetch the synthetic disparity map and the frame dimensions

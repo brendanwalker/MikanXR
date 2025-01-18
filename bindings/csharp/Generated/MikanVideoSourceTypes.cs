@@ -30,7 +30,6 @@ namespace MikanXR
 
 		public double pixel_width;
 		public double pixel_height;
-		public double aspect_ratio;
 		public double hfov;
 		public double vfov;
 		public double znear;
@@ -56,8 +55,7 @@ namespace MikanXR
 		public static new readonly long classId= 4896055255137140914;
 
 		public MikanDistortionCoefficients distortion_coefficients;
-		public MikanMatrix3d distorted_camera_matrix;
-		public MikanMatrix3d undistorted_camera_matrix;
+		public MikanMatrix3d camera_matrix;
 	};
 
 	public class MikanStereoIntrinsics : MikanCameraIntrinsics
