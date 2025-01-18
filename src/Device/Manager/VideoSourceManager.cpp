@@ -183,7 +183,7 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 		{
 			MIKAN_LOG_INFO("VideoSourceManager::startup") << "Found GStreamer install: " << envVar;
 
-			if (m_mikanGStreamerPlugin->startup())
+			if (!m_mikanGStreamerPlugin->startup())
 			{
 				MIKAN_LOG_WARNING("VideoSourceManager::startup") << "Failed to load any GStreamer library!";
 			}
