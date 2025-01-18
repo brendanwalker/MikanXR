@@ -64,16 +64,11 @@ void AppStage_VRTrackingRecenter::enter()
 	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-
-	// Get the camera tracking puck pose view
-	auto vrDeviceManager = VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-	m_cameraTrackingPuckRawPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
-	m_cameraTrackingPuckScenePoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+	m_cameraTrackingPuckView= 
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 
 	// Fetch the new camera associated with the viewport
 	m_camera= getFirstViewport()->getCurrentCamera();
-	m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
@@ -104,9 +99,10 @@ void AppStage_VRTrackingRecenter::enter()
 		m_markerPoseSampler =
 			new ArucoMarkerPoseSampler(
 				profileConfig,
-				m_cameraTrackingPuckRawPoseView,
+				m_cameraTrackingPuckView,
 				m_monoDistortionView,
-				DESIRED_MARKER_SAMPLE_COUNT);
+				DESIRED_MARKER_SAMPLE_COUNT,
+				false); // Don't apply the VR device offset since that's what we're calibrating
 	}
 	else
 	{
@@ -168,35 +164,8 @@ void AppStage_VRTrackingRecenter::exit()
 	AppStage::exit();
 }
 
-void AppStage_VRTrackingRecenter::updateCameraPose()
-{
-	switch (m_calibrationModel->getMenuState())
-	{
-		case eVRTrackingRecenterMenuState::verifySetup:
-		case eVRTrackingRecenterMenuState::capture:
-			{
-				// All debug rendering during calibration is camera relative
-				// so zero out the camera transform
-				m_camera->setCameraTransform(glm::mat4(1.f));
-			}
-			break;
-		case eVRTrackingRecenterMenuState::testCalibration:
-			{
-				// Use the re-centered scene space for the camera
-				glm::mat4 cameraPose;
-				if (m_videoSourceView->getCameraPose(m_cameraTrackingPuckScenePoseView, cameraPose))
-				{
-					m_camera->setCameraTransform(cameraPose);
-				}
-			}
-			break;
-	}
-}
-
 void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 {
-	updateCameraPose();
-
 	switch(m_calibrationModel->getMenuState())
 	{
 		case eVRTrackingRecenterMenuState::verifySetup:
@@ -269,29 +238,8 @@ void AppStage_VRTrackingRecenter::render()
 
 		if (colorFramebufferBinding)
 		{
-			// Draw the camera view no matter the calibration state
 			m_monoDistortionView->renderSelectedVideoBuffers();
-
-			switch (m_calibrationModel->getMenuState())
-			{
-				case eVRTrackingRecenterMenuState::verifySetup:
-				case eVRTrackingRecenterMenuState::capture:
-					{
-						// draw the camera relative calibration state when calibrating
-						m_markerPoseSampler->renderCameraSpaceCalibrationState();
-					}
-					break;
-				case eVRTrackingRecenterMenuState::testCalibration:
-					{
-						// Draw the origin after calibrating
-						glm::mat4 origin(1.f);
-						drawTransformedAxes(origin, 0.1f);
-
-						TextStyle style = getDefaultTextStyle();
-						drawTextAtWorldPosition(style, glm_mat4_get_position(origin), L"Origin");
-					}
-					break;
-			}
+			m_markerPoseSampler->renderCameraSpaceCalibrationState();
 		}
 
 		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport

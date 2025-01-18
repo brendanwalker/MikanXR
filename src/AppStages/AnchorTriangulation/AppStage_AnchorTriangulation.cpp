@@ -72,13 +72,8 @@ void AppStage_AnchorTriangulation::enter()
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-
-	// Create a pose view for the camera tracking puck in MikanScene space
-	auto* vrDeviceManager = VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView = 
-		vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-	m_cameraTrackingPuckPoseView = 
-		cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+	m_cameraTrackingPuckView =
+		VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 
 	// Create a new camera to view the scene
 	m_camera = getFirstViewport()->getCurrentCamera();
@@ -105,7 +100,7 @@ void AppStage_AnchorTriangulation::enter()
 		// Create a calibrator to do the actual triangulation
 		m_anchorTriangulator =
 			new AnchorTriangulator(
-				m_cameraTrackingPuckPoseView,
+				m_cameraTrackingPuckView,
 				m_monoDistortionView);
 
 		// If bypassing the calibration, then jump straight to the test calibration state
@@ -185,11 +180,9 @@ void AppStage_AnchorTriangulation::exit()
 void AppStage_AnchorTriangulation::updateCamera()
 {
 	// Update the transform of the camera so that vr models align over the tracking puck
-	glm::mat4 cameraPose;
-	if (m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose))
-	{
-		m_camera->setCameraTransform(cameraPose);
-	}
+	const glm::mat4 cameraPose = m_videoSourceView->getCameraPose(m_cameraTrackingPuckView);
+	
+	m_camera->setCameraTransform(cameraPose);
 }
 
 void AppStage_AnchorTriangulation::update(float deltaSeconds)

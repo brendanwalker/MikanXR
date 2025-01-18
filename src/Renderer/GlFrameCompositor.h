@@ -10,7 +10,6 @@
 #include "RendererFwd.h"
 #include "NamedValueTable.h"
 #include "GlFrameCompositorConfig.h"
-#include "DeviceViewFwd.h"
 #include "FrameCompositorConstants.h"
 #include "ProfileConfigConstants.h"
 #include "VideoDisplayConstants.h"
@@ -25,6 +24,12 @@
 #include <stdint.h>
 
 class VideoFrameDistortionView;
+
+class VideoSourceView;
+typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
+class VRDeviceView;
+typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
 
 class SyntheticDepthEstimator;
 typedef std::shared_ptr<SyntheticDepthEstimator> SyntheticDepthEstimatorPtr;
@@ -150,7 +155,7 @@ private:
 	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
 #endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	VRDeviceViewPtr m_cameraTrackingPuckView;
 
 	class IGlWindow* m_ownerWindow= nullptr;
 

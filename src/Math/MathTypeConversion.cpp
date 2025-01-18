@@ -96,7 +96,7 @@ cv::Quatd glm_dquat_to_cv_quatd(const glm::dquat& in)
 	return cv::Quatd(in.w, in.x, in.y, in.z);
 }
 
-// OpenCV types to Mikan types
+// OpenCV types to PSVR types
 glm::mat3 cv_mat33f_to_glm_mat3(const cv::Matx33f& in)
 {
 	glm::mat3 out;

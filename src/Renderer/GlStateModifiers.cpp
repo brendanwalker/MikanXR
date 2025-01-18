@@ -32,62 +32,6 @@ protected:
 	int m_ownerStateStackDepth;
 };
 
-// -- GLStateSetFrontFace --
-class GLStateSetFrontFaceImpl : public GLStateModifierBase
-{
-public:
-	GLStateSetFrontFaceImpl() = delete;
-	GLStateSetFrontFaceImpl(GlState& glState, const eGLFrontFaceMode mode)
-		: GLStateModifierBase(glState)
-		, m_prevMode(convertToGLenum(mode))
-		, m_mode(m_prevMode)
-	{}
-
-	inline static const std::string k_modifierID = "SetFrontFace";
-	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
-	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetFrontFaceImpl>(parentModifier);
-		if (parentTypedModifier)
-		{
-			m_prevMode = parentTypedModifier->m_mode;
-		}
-		else
-		{
-			glGetIntegerv(GL_FRONT_FACE, (GLint*)(&m_prevMode));
-		}
-
-		glFrontFace(m_mode);
-		getStateLog() << "Apply Front Face: " << m_mode;
-	}
-	virtual void revert() override
-	{
-		glFrontFace(m_prevMode);
-		getStateLog() << "Revert Front Face: " << m_prevMode;
-	}
-
-	static GLenum convertToGLenum(eGLFrontFaceMode mode)
-	{
-		switch (mode)
-		{
-			case eGLFrontFaceMode::CW: return GL_CW;
-			case eGLFrontFaceMode::CCW: return GL_CCW;
-		}
-
-		return GL_CW;
-	}
-
-private:
-	GLenum m_prevMode;
-	GLenum m_mode;
-};
-
-void glStateSetFrontFace(GlState& glState, eGLFrontFaceMode mode)
-{
-	glState.addModifier(std::make_shared<GLStateSetFrontFaceImpl>(glState, mode));
-}
-
 // -- GlStateSetViewport --
 class GLStateSetViewportImpl : public GLStateModifierBase
 {
@@ -562,7 +506,6 @@ void glStateSetStencilOp(GlState& glState,
 		std::make_shared<GLStateSetStencilOpImpl>(
 			glState, stencil_fail, depth_fail, depth_stencil_pass));
 }
-
 // -- GLStateSetBlendEquation --
 class GLStateSetBlendEquationImpl : public GLStateModifierBase
 {
@@ -818,54 +761,4 @@ private:
 void glStateSetReadBuffer(GlState& glState, eGlFrameBuffer mode)
 {
 	glState.addModifier(std::make_shared<GLStateSetReadBufferModeImpl>(glState, mode));
-}
-
-// -- GLStateClearBuffer --
-class GLStateClearBufferImpl : public GLStateModifierBase
-{
-public:
-	GLStateClearBufferImpl() = delete;
-	GLStateClearBufferImpl(GlState& glState, const eGlClearFlags flags)
-		: GLStateModifierBase(glState)
-		, m_flags(flags)
-	{
-	}
-
-	inline static const std::string k_modifierID = "ClearBuffer";
-	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
-	{
-		GLbitfield bitfield = 0;
-
-		if (has_any_bits_set(m_flags & eGlClearFlags::color))
-		{
-			bitfield |= GL_COLOR_BUFFER_BIT;
-			getStateLog() << "Clear Color Buffer";
-		}
-
-		if (has_any_bits_set(m_flags & eGlClearFlags::depth))
-		{
-			bitfield |= GL_DEPTH_BUFFER_BIT;
-			getStateLog() << "Clear Depth Buffer";
-		}
-
-		if (has_any_bits_set(m_flags & eGlClearFlags::stencil))
-		{
-			bitfield |= GL_STENCIL_BUFFER_BIT;
-			getStateLog() << "Clear Stencil Buffer";
-		}
-
-		if (bitfield != 0)
-		{
-			glClear(bitfield);
-		}
-	}
-
-private:
-	eGlClearFlags m_flags;
-};
-
-void glStateClearBuffer(GlState& glState, eGlClearFlags flags)
-{
-	glState.addModifier(std::make_shared<GLStateClearBufferImpl>(glState, flags));
 }

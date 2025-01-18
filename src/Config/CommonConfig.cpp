@@ -161,12 +161,10 @@ void CommonConfig::writeMonoTrackerIntrinsics(
     pt["frame_height"]= tracker_intrinsics.pixel_height;
     pt["hfov"]= tracker_intrinsics.hfov;
     pt["vfov"]= tracker_intrinsics.vfov;
-    pt["aspect_ratio"]= tracker_intrinsics.aspect_ratio;
     pt["zNear"]= tracker_intrinsics.znear;
     pt["zFar"]= tracker_intrinsics.zfar;
 
-    writeMatrix3d(pt, "undistorted_camera_matrix", tracker_intrinsics.undistorted_camera_matrix);
-    writeMatrix3d(pt, "distorted_camera_matrix", tracker_intrinsics.distorted_camera_matrix);
+    writeMatrix3d(pt, "camera_matrix", tracker_intrinsics.camera_matrix);
     writeDistortionCoefficients(pt, "distortion", &tracker_intrinsics.distortion_coefficients);
 }
 
@@ -175,18 +173,16 @@ void CommonConfig::readMonoTrackerIntrinsics(
 	MikanMonoIntrinsics& tracker_intrinsics)
 {
 
-	tracker_intrinsics.pixel_width = pt.get_or<double>("frame_width", 640.0);
-	tracker_intrinsics.pixel_height = pt.get_or<double>("frame_height", 480.0);
-    tracker_intrinsics.hfov = pt.get_or<double>("hfov", 60.0);
-    tracker_intrinsics.vfov = pt.get_or<double>("vfov", 45.0);
-    tracker_intrinsics.aspect_ratio = pt.get_or<double>("aspect_ratio", 1.0);
-    tracker_intrinsics.znear = pt.get_or<double>("zNear", 0.1);
-    tracker_intrinsics.zfar = pt.get_or<double>("zFar", 20.0);
+	tracker_intrinsics.pixel_width = pt.get_or<double>("frame_width", 640.f);
+	tracker_intrinsics.pixel_height = pt.get_or<double>("frame_height", 480.f);
+    tracker_intrinsics.hfov = pt.get_or<double>("hfov", 60.f);
+    tracker_intrinsics.vfov = pt.get_or<double>("vfov", 45.f);
+    tracker_intrinsics.znear = pt.get_or<double>("zNear", 0.1f);
+    tracker_intrinsics.zfar = pt.get_or<double>("zFar", 20.f);
 
 	MikanDistortionCoefficients default_distortion_coefficients = {};
 
-    readMatrix3d(pt, "undistorted_camera_matrix", tracker_intrinsics.undistorted_camera_matrix);
-    readMatrix3d(pt, "distorted_camera_matrix", tracker_intrinsics.distorted_camera_matrix);
+    readMatrix3d(pt, "camera_matrix", tracker_intrinsics.camera_matrix);
     readDistortionCoefficients(pt, "distortion", 
         &tracker_intrinsics.distortion_coefficients, 
         &default_distortion_coefficients);
@@ -200,7 +196,6 @@ void CommonConfig::writeStereoTrackerIntrinsics(
     pt["frame_height"]= tracker_intrinsics.pixel_height;
     pt["hfov"]= tracker_intrinsics.hfov;
     pt["vfov"]= tracker_intrinsics.vfov;
-    pt["aspect_ratio"]= tracker_intrinsics.aspect_ratio;
     pt["zNear"]= tracker_intrinsics.znear;
     pt["zFar"]= tracker_intrinsics.zfar;
 
@@ -227,13 +222,12 @@ void CommonConfig::readStereoTrackerIntrinsics(
 	const configuru::Config& pt,
 	MikanStereoIntrinsics& tracker_intrinsics)
 {
-	tracker_intrinsics.pixel_width = pt.get_or<double>("frame_width", 640.0);
-	tracker_intrinsics.pixel_height = pt.get_or<double>("frame_height", 480.0);
-    tracker_intrinsics.hfov = pt.get_or<double>("hfov", 60.0);
-    tracker_intrinsics.vfov = pt.get_or<double>("vfov", 45.0);
-    tracker_intrinsics.aspect_ratio = pt.get_or<double>("aspect_ratio", 1.0);
-    tracker_intrinsics.znear = pt.get_or<double>("zNear", 0.1);
-    tracker_intrinsics.zfar = pt.get_or<double>("zFar", 20.0);
+	tracker_intrinsics.pixel_width = pt.get_or<double>("frame_width", 640.f);
+	tracker_intrinsics.pixel_height = pt.get_or<double>("frame_height", 480.f);
+    tracker_intrinsics.hfov = pt.get_or<double>("hfov", 60.f);
+    tracker_intrinsics.vfov = pt.get_or<double>("vfov", 45.f);
+    tracker_intrinsics.znear = pt.get_or<double>("zNear", 10.f);
+    tracker_intrinsics.zfar = pt.get_or<double>("zFar", 200.f);
 
     MikanDistortionCoefficients default_distortion_coefficients = {};
 

@@ -179,7 +179,6 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 				m_monoDistortionView->readAndProcessVideoFrame();
 
 				// Update the chess board capture state
-				assert(m_monoDistortionView->isGrayscaleUndistortDisabled());
 				m_monoLensCalibrator->findNewCalibrationPattern(BOARD_NEW_LOCATION_PIXEL_DIST);
 
 				// See if we have gotten all the samples we require
@@ -205,9 +204,8 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 						m_videoSourceView->setCameraIntrinsics(cameraIntrinsics);
 
 						// Rebuild the distortion map to reflect the updated calibration
-						m_monoDistortionView->applyMonoCameraIntrinsics(&new_mono_intrinsics);
+						m_monoDistortionView->rebuildDistortionMap(&new_mono_intrinsics);
 						m_monoDistortionView->setGrayscaleUndistortDisabled(false);
-						m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_bgr);
 
 						// Switch back to the color video feed
 						m_cameraSettingsModel->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);

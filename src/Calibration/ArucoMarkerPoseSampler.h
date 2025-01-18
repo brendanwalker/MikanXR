@@ -2,21 +2,28 @@
 
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "VRDeviceView.h"
+
 #include <memory>
 
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
 #include "glm/ext/matrix_double4x4.hpp"
 
+class VRDeviceView;
+typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
+
+class VideoSourceView;
+typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
 class ArucoMarkerPoseSampler
 {
 public:
 	ArucoMarkerPoseSampler(
 		ProfileConfigConstPtr profileConfig,
-		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+		VRDeviceViewPtr cameraTrackingPuckView,
 		class VideoFrameDistortionView* distortionView,
-		int desiredSampleCount);
+		int desiredSampleCount,
+		bool bApplyVRDeviceOffset);
 	virtual ~ArucoMarkerPoseSampler();
 
 	inline class CalibrationPatternFinder_Aruco* getPatternFinder() const { return m_markerFinder; }
@@ -41,7 +48,7 @@ protected:
 	struct ArucoMarkerPoseSamplerState* m_calibrationState;
 
 	// Tracking pucks used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	VRDeviceViewPtr m_cameraTrackingPuckView;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

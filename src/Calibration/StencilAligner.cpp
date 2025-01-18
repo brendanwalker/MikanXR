@@ -59,11 +59,11 @@ struct StencilAlignmentState
 
 //-- MonoDistortionCalibrator ----
 StencilAligner::StencilAligner(
-	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+	VRDeviceViewPtr cameraTrackingPuckView,
 	VideoFrameDistortionView* distortionView,
 	ModelStencilComponentPtr modelStencil)
 	: m_calibrationState(new StencilAlignmentState)
-	, m_cameraTrackingPuckPoseView(cameraTrackingPuckPoseView)
+	, m_cameraTrackingPuckView(cameraTrackingPuckView)
 	, m_distortionView(distortionView)
 	, m_modelStencil(modelStencil)
 {
@@ -149,13 +149,8 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 		cameraToStencilXform);
 
 	// Compute world transform from the current camera pose
-	glm::mat4 cameraPose;
-	if (!m_distortionView->getVideoSourceView()->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose))
-	{
-		return false;
-	}
-
-	outStencilTransform = glm_composite_xform(cameraToStencilXform, cameraPose);
+	glm::mat4 cameraPose= m_distortionView->getVideoSourceView()->getCameraPose(m_cameraTrackingPuckView);
+	outStencilTransform= glm_composite_xform(cameraToStencilXform, cameraPose);
 
 	return true;
 }

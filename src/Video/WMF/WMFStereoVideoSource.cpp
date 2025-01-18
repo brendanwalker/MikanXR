@@ -105,9 +105,8 @@ void WMFStereoVideoConfig::readFromJSON(const configuru::Config &pt)
 }
 
 // -- WMFStereoTracker
-WMFStereoVideoSource::WMFStereoVideoSource(IVideoSourceListener* listener)
-    : m_listener(listener)
-	, m_cfg()
+WMFStereoVideoSource::WMFStereoVideoSource()
+    : m_cfg()
 	, m_videoDevice(nullptr)
     , m_DriverType(WMFStereoVideoSource::WindowsMediaFramework)
 {
@@ -230,7 +229,7 @@ bool WMFStereoVideoSource::open(const DeviceEnumerator *enumerator)
         }
         else
         {
-            MIKAN_LOG_ERROR("WMFStereoVideoSource::open") << "Unable to WMFStereoTracker(" << cur_dev_path << "). Unable to get tracker capabilities.";
+            MIKAN_LOG_ERROR("PS3EyeTracker::open") << "Unable to WMFStereoTracker(" << cur_dev_path << "). Unable to get tracker capabilities.";
             bSuccess= false;
         }
     }
@@ -500,4 +499,9 @@ void WMFStereoVideoSource::getZRange(float &outZNear, float &outZFar) const
 {
     outZNear = static_cast<float>(m_cfg->tracker_intrinsics.znear);
     outZFar = static_cast<float>(m_cfg->tracker_intrinsics.zfar);
+}
+
+void WMFStereoVideoSource::setVideoSourceListener(IVideoSourceListener *listener)
+{
+	m_listener= listener;
 }

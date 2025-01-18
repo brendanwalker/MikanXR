@@ -26,12 +26,11 @@ OpenCVVideoConfig::OpenCVVideoConfig(const std::string &fnamebase)
 	cameraIntrinsics.pixel_width= 640.f;
 	cameraIntrinsics.pixel_height= 480.f;
 
-	cameraIntrinsics.distorted_camera_matrix = {
+	cameraIntrinsics.camera_matrix = {
 	   604.1783809256024, 0.0, 320.0,
 	   0.0, 604.1783809256024, 240.0,
 	   0.0, 0.0, 1.0
 	};
-	cameraIntrinsics.undistorted_camera_matrix = cameraIntrinsics.distorted_camera_matrix;
 
     cameraIntrinsics.hfov= 60.0; // degrees
     cameraIntrinsics.vfov= 45.0; // degrees
@@ -54,8 +53,7 @@ configuru::Config OpenCVVideoConfig::writeToJSON()
 	pt["flip_horizontal"]= flip_horizontal;
 	pt["flip_vertical"]= flip_vertical;
 
-    writeMatrix3d(pt, "undistorted_camera_matrix", cameraIntrinsics.undistorted_camera_matrix);
-	writeMatrix3d(pt, "distorted_camera_matrix", cameraIntrinsics.distorted_camera_matrix);
+    writeMatrix3d(pt, "camera_matrix", cameraIntrinsics.camera_matrix);
     writeDistortionCoefficients(pt, "distortion", &cameraIntrinsics.distortion_coefficients);
 
     return pt;
@@ -72,8 +70,7 @@ void OpenCVVideoConfig::readFromJSON(const configuru::Config &pt)
 	cameraIntrinsics.pixel_width = pt.get_or<float>("frame_width", 640.f);
 	cameraIntrinsics.pixel_height = pt.get_or<float>("frame_height", 480.f);
 
-    readMatrix3d(pt, "undistorted_camera_matrix", cameraIntrinsics.undistorted_camera_matrix);
-	readMatrix3d(pt, "distorted_camera_matrix", cameraIntrinsics.distorted_camera_matrix);
+    readMatrix3d(pt, "camera_matrix", cameraIntrinsics.camera_matrix);
     readDistortionCoefficients(pt, "distortion", 
         &cameraIntrinsics.distortion_coefficients,
         &cameraIntrinsics.distortion_coefficients);

@@ -117,9 +117,7 @@ bool WMFVideoDevice::open(
 			const WMFDeviceFormatInfo &deviceFormat= 
 				m_deviceInfo.deviceAvailableFormats[desiredFormatIndex];
 
-			m_videoFrameProcessor = 
-				new WMFVideoFrameProcessor(
-					m_deviceInfo.wmfDeviceIndex, deviceFormat, videoSourceListener);
+			m_videoFrameProcessor = new WMFVideoFrameProcessor(deviceFormat, videoSourceListener);
 			hr= m_videoFrameProcessor->init(m_mediaSource);
 		}
 
@@ -593,18 +591,13 @@ const WMFDeviceFormatInfo *WMFVideoDevice::getCurrentDeviceFormat() const
 
 // -- WMF Video Frame Processor -----
 WMFVideoFrameProcessor::WMFVideoFrameProcessor(
-	int deviceIndex,
-	const WMFDeviceFormatInfo &deviceFormat, 
-	IVideoSourceListener *listener)
+	const WMFDeviceFormatInfo &deviceFormat, IVideoSourceListener *listener)
 	: WorkerThread("WMFVideoFrameProcessor")
-	, m_deviceIndex(deviceIndex)
-	, m_deviceFormat(deviceFormat)
-	, m_videoSourceListener(listener)
 	, m_referenceCount(1)
 	, m_pSession(nullptr)
 	, m_pTopology(nullptr)
 	, m_bIsRunning(false)
-	, m_sampleIndex(0)
+	, m_videoSourceListener(listener)
 {
 }
 
@@ -967,11 +960,7 @@ STDMETHODIMP WMFVideoFrameProcessor::OnProcessSample(REFGUID guidMajorMediaType,
 {
 	if (m_videoSourceListener)
 	{
-		IVideoSourceListener::FrameBuffer frameBuffer;
-		frameBuffer.data= static_cast<const uint8_t*>(pSampleBuffer);
-		frameBuffer.byte_count= static_cast<size_t>(dwSampleSize);
-
-		m_videoSourceListener->notifyVideoFrameReceived(frameBuffer);
+		m_videoSourceListener->notifyVideoFrameReceived(static_cast<const unsigned char*>(pSampleBuffer));
 	}
 
 	m_sampleIndex++;

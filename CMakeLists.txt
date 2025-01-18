@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
 set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
-set(PLUGIN_DIR "${ROOT_DIR}/plugins")
 set(MIKAN_PROJECT_NAME "Mikan_${MIKAN_VERSION_STRING}")
 set(MIKAN_ROOT_INSTALL_PATH "${ROOT_DIR}/dist")
 file(MAKE_DIRECTORY "${MIKAN_ROOT_INSTALL_PATH}")
@@ -23,7 +22,6 @@ include(cmake/Installer.cmake)
 set(MIKAN_ARCH_INSTALL_PATH "${MIKAN_ROOT_INSTALL_PATH}/${ARCH_LABEL}")
 
 # Step into the subdirectories
-add_subdirectory(plugins)
 add_subdirectory(src)
 add_subdirectory(bindings)
 add_subdirectory(thirdparty)

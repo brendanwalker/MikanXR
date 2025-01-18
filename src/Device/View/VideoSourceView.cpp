@@ -1,7 +1,6 @@
 //-- includes -----
 #include "CameraMath.h"
 #include "DeviceEnumerator.h"
-#include "GStreamerVideoSource.h"
 #include "VideoSourceView.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
@@ -9,7 +8,6 @@
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"
-#include "ThreadUtils.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoDeviceEnumerator.h"
 #include "VRDeviceView.h"
@@ -39,7 +37,6 @@ public:
 		, m_lastVideoFrameWriteIndex(0)
 	{
 		const VideoModeConfig* mode = device->getVideoMode();
-		assert(mode != nullptr);
 
 		m_srcBufferWidth = mode->bufferPixelWidth;
 		m_srcBufferHeight = mode->bufferPixelHeight;
@@ -183,13 +180,20 @@ std::string VideoSourceView::getUSBDevicePath() const
 	return m_device->getUSBDevicePath();
 }
 
-bool VideoSourceView::open(const DeviceEnumerator* enumerator)
+bool VideoSourceView::open(const class DeviceEnumerator* enumerator)
 {
 	bool bSuccess = DeviceView::open(enumerator);
 
-	if (bSuccess && m_device != nullptr && m_device->getVideoMode() != nullptr)
+	if (bSuccess)
 	{
-		notifyVideoFrameSizeChanged();
+		// Allocate the open cv buffers used for tracking filtering
+		reallocateOpencvBufferState();
+
+		// Recompute the projection matrix
+		recomputeCameraProjectionMatrix();
+
+		// Let any connected clients know that the video source opened
+		MikanServer::getInstance()->publishVideoSourceOpenedEvent();
 	}
 
 	return bSuccess;
@@ -242,39 +246,20 @@ void VideoSourceView::stopVideoStream()
 	}
 }
 
-void VideoSourceView::notifyVideoFrameSizeChanged()
+void VideoSourceView::notifyVideoFrameReceived(const unsigned char* raw_video_frame_buffer)
 {
-	// At the moment, this function should only be called from video sources that
-	// update their video frame size on the main thread.
-	// If this changes, we will need to refactor this function to be thread safe.
-	assert(ThreadUtils::isRunningInMainThread());
-
-	// Device should be open and have a valid video mode
-	assert(m_device != nullptr);
-	const VideoModeConfig* mode_config = m_device->getVideoMode();
-	assert(mode_config != nullptr);
-
-	// Allocate the open cv buffers used for tracking filtering
-	reallocateOpencvBufferState();
-
-	// Recompute the projection matrix
-	recomputeCameraProjectionMatrix();
-
-	MikanServer::getInstance()->publishVideoSourceModeChangedEvent();
-}
-
-void VideoSourceView::notifyVideoFrameReceived(const IVideoSourceListener::FrameBuffer& frameInfo)
-{
-	assert(m_device != nullptr);
-	const VideoModeConfig* mode_config = m_device->getVideoMode();
-	assert(mode_config != nullptr);
-
 	const bool is_frame_flipped = m_device->getIsFrameMirrored();
 	const bool is_buffer_flipped = m_device->getIsBufferMirrored();
+
+	if (m_device == nullptr)
+	{
+		return;
+	}
 
 	// Fetch the latest video buffer frame from the device
 	if (m_device->getIsStereoCamera())
 	{
+		const VideoModeConfig* mode_config = m_device->getVideoMode();
 		const auto& stereoIntrinsics= mode_config->intrinsics.getStereoIntrinsics();
 		const int section_width = (int)stereoIntrinsics.pixel_width;
 		const int section_height = (int)stereoIntrinsics.pixel_height;
@@ -300,7 +285,7 @@ void VideoSourceView::notifyVideoFrameReceived(const IVideoSourceListener::Frame
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Left] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Left]->writeStereoVideoFrameSection(
-				frameInfo.data,
+				raw_video_frame_buffer,
 				is_buffer_flipped ? right_bounds : left_bounds,
 				is_frame_flipped);
 		}
@@ -309,7 +294,7 @@ void VideoSourceView::notifyVideoFrameReceived(const IVideoSourceListener::Frame
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Right] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Right]->writeStereoVideoFrameSection(
-				frameInfo.data,
+				raw_video_frame_buffer,
 				is_buffer_flipped ? left_bounds : right_bounds,
 				is_frame_flipped);
 		}
@@ -320,82 +305,84 @@ void VideoSourceView::notifyVideoFrameReceived(const IVideoSourceListener::Frame
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Primary]->writeVideoFrame(
-				frameInfo.data, is_frame_flipped);
+				raw_video_frame_buffer, is_frame_flipped);
 		}
 	}
 }
 
-bool VideoSourceView::reallocateOpencvBufferState()
+void VideoSourceView::reallocateOpencvBufferState()
 {
-	if (m_device->getVideoMode() != nullptr)
+	// Delete any existing opencv buffers
+	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
 	{
-		// Delete any existing opencv buffers
-		for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
+		if (m_opencv_buffer_state[i] != nullptr)
 		{
-			if (m_opencv_buffer_state[i] != nullptr)
-			{
-				delete m_opencv_buffer_state[i];
-				m_opencv_buffer_state[i] = nullptr;
-			}
+			delete m_opencv_buffer_state[i];
+			m_opencv_buffer_state[i] = nullptr;
 		}
-
-		// Allocate the OpenCV scratch buffers used for finding tracking blobs
-		if (m_device->getIsStereoCamera())
-		{
-			m_opencv_buffer_state[(int)VideoFrameSection::Left] =
-				new OpenCVBufferState(m_device, VideoFrameSection::Left);
-			m_opencv_buffer_state[(int)VideoFrameSection::Right] =
-				new OpenCVBufferState(m_device, VideoFrameSection::Right);
-		}
-		else
-		{
-			m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
-				new OpenCVBufferState(m_device, VideoFrameSection::Primary);
-		}
-
-		return true;
 	}
 
-	return false;
+	// Allocate the OpenCV scratch buffers used for finding tracking blobs
+	if (m_device->getIsStereoCamera())
+	{
+		m_opencv_buffer_state[(int)VideoFrameSection::Left] =
+			new OpenCVBufferState(m_device, VideoFrameSection::Left);
+		m_opencv_buffer_state[(int)VideoFrameSection::Right] =
+			new OpenCVBufferState(m_device, VideoFrameSection::Right);
+	}
+	else
+	{
+		m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
+			new OpenCVBufferState(m_device, VideoFrameSection::Primary);
+	}
 }
 
-bool VideoSourceView::allocateDeviceInterface(const DeviceEnumerator* enumerator)
+bool VideoSourceView::allocateDeviceInterface(const class DeviceEnumerator* enumerator)
 {
-	const VideoDeviceEnumerator* videoEnumerator = static_cast<const VideoDeviceEnumerator*>(enumerator);
+	m_device = VideoSourceView::allocateVideoSourceInterface(enumerator);
 
-	switch (videoEnumerator->getVideoApi())
+	if (m_device != nullptr)
 	{
-		case eVideoDeviceApi::GSTREAMER:
-			{
-				m_device = new GStreamerVideoSource(this);
-			} break;
-		case eVideoDeviceApi::OPENCV:
-			{
-				m_device = new OpenCVVideoSource(this);
-			} break;
-		#ifdef _WIN32
-		case eVideoDeviceApi::WMF:
-			{
-				switch (enumerator->getDeviceType())
-				{
-					case eDeviceType::MonoVideoSource:
-						{
-							m_device = new WMFMonoVideoSource(this);
-						} break;
-					case eDeviceType::StereoVideoSource:
-						{
-							m_device = new WMFStereoVideoSource(this);
-						} break;
-					default:
-						break;
-				}
-			} break;
-		#endif
-		default:
-			break;
+		m_device->setVideoSourceListener(this);
 	}
 
 	return m_device != nullptr;
+}
+
+IVideoSourceInterface* VideoSourceView::allocateVideoSourceInterface(const DeviceEnumerator* enumerator)
+{
+	const VideoDeviceEnumerator* videoEnumerator = static_cast<const VideoDeviceEnumerator*>(enumerator);
+	IVideoSourceInterface* tracker_interface = nullptr;
+
+	switch (videoEnumerator->getVideoApi())
+	{
+	case eVideoDeviceApi::OPENCV:
+		{
+			tracker_interface = new OpenCVVideoSource();
+		} break;
+#ifdef _WIN32
+	case eVideoDeviceApi::WMF:
+		{
+			switch (enumerator->getDeviceType())
+			{
+			case eDeviceType::MonoVideoSource:
+				{
+					tracker_interface = new WMFMonoVideoSource();
+				} break;
+			case eDeviceType::StereoVideoSource:
+				{
+					tracker_interface = new WMFStereoVideoSource();
+				} break;
+			default:
+				break;
+			}
+		} break;
+#endif
+	default:
+		break;
+	}
+
+	return tracker_interface;
 }
 
 void VideoSourceView::freeDeviceInterface()
@@ -444,7 +431,15 @@ bool VideoSourceView::setVideoMode(const std::string& new_mode)
 
 		if (m_device->setVideoMode(new_mode))
 		{
-			notifyVideoFrameSizeChanged();
+			// Resize the opencv buffers
+			reallocateOpencvBufferState();
+
+			// Recompute the projection matrix
+			recomputeCameraProjectionMatrix();
+
+			// Let any connected clients know that the video mode changed
+			MikanServer::getInstance()->publishVideoSourceModeChangedEvent();
+
 			bUpdatedMode= true;
 		}
 
@@ -560,40 +555,24 @@ void VideoSourceView::setCameraPoseOffset(const MikanQuatd& q, const MikanVector
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
 }
 
-bool VideoSourceView::getCameraPose(
-	VRDevicePoseViewPtr attachedVRDevicePtr,
-	glm::mat4& outCameraPose) const
+glm::mat4 VideoSourceView::getCameraPose(
+	VRDeviceViewPtr attachedVRDevicePtr,
+	bool bApplyVRDeviceOffset) const
 {
 	// Get the pose of the VR device we want to compute the camera pose from
-	glm::mat4 vrDevicePose;	
-	if (attachedVRDevicePtr->getPose(vrDevicePose))
-	{
-		// Get the offset from the puck to the camera
-		const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(getCameraOffsetPosition());
-		const glm::quat cameraOffsetQuat = MikanQuatd_to_glm_dquat(getCameraOffsetOrientation());
-		const glm::mat4 cameraOffsetXform = glm_mat4_from_pose(cameraOffsetQuat, cameraOffsetPos);
+	const glm::mat4 vrDevicePose = attachedVRDevicePtr->getDefaultComponentPose(bApplyVRDeviceOffset);
 
-		// Update the transform of the camera so that vr models align over the tracking puck
-		outCameraPose= glm_composite_xform(cameraOffsetXform, vrDevicePose);
+	// Get the offset from the puck to the camera
+	const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(getCameraOffsetPosition());
+	const glm::quat cameraOffsetQuat = MikanQuatd_to_glm_dquat(getCameraOffsetOrientation());
+	const glm::mat4 cameraOffsetXform =
+		glm::translate(glm::mat4(1.0), cameraOffsetPos) *
+		glm::mat4_cast(cameraOffsetQuat);
 
-		return true;
-	}
+	// Update the transform of the camera so that vr models align over the tracking puck
+	const glm::mat4 cameraPose = vrDevicePose * cameraOffsetXform;
 
-	return false;
-}
-
-bool VideoSourceView::getCameraPose(
-	VRDevicePoseViewPtr attachedVRDevicePtr, 
-	glm::dmat4& outCameraPose) const
-{
-	glm::mat4 cameraPose;
-	if (getCameraPose(attachedVRDevicePtr, cameraPose))
-	{
-		outCameraPose = glm::dmat4(cameraPose);
-		return true;
-	}
-
-	return false;
+	return cameraPose;
 }
 
 glm::mat4 VideoSourceView::getCameraProjectionMatrix() const 
@@ -606,54 +585,62 @@ void VideoSourceView::recomputeCameraProjectionMatrix()
 	MikanVideoSourceIntrinsics camera_intrinsics;
 	m_device->getCameraIntrinsics(camera_intrinsics);
 
+	float videoSourcePixelWidth = 0.f;
+	float videoSourcePixelHeight = 0.f;
+	float vFov = 0.f;
+	float zNear = 0.f;
+	float zFar = 0.f;
+
 	switch (camera_intrinsics.intrinsics_type)
 	{
 	case MONO_CAMERA_INTRINSICS:
 		{
 			const MikanMonoIntrinsics& monoIntrinsics = camera_intrinsics.getMonoIntrinsics();
 
-			computeOpenGLProjMatFromCameraIntrinsics(
-				monoIntrinsics,
-				m_projectionMatrix);
+			videoSourcePixelWidth = (float)monoIntrinsics.pixel_width;
+			videoSourcePixelHeight = (float)monoIntrinsics.pixel_height;
+			vFov = (float)monoIntrinsics.vfov;
+			zNear = (float)monoIntrinsics.znear;
+			zFar = (float)monoIntrinsics.zfar;
 		} break;
 	case STEREO_CAMERA_INTRINSICS:
 		{
 			const MikanStereoIntrinsics& stereoIntrinsics = camera_intrinsics.getStereoIntrinsics();
 
-			computeOpenGLProjMatFromCameraIntrinsics(
-				stereoIntrinsics,
-				eStereoIntrinsicsSide::left,
-				m_projectionMatrix);
+			videoSourcePixelWidth = (float)stereoIntrinsics.pixel_width;
+			videoSourcePixelHeight = (float)stereoIntrinsics.pixel_height;
+			vFov = (float)stereoIntrinsics.vfov;
+			zNear = (float)stereoIntrinsics.znear;
+			zFar = (float)stereoIntrinsics.zfar;
 		} break;
 	}
-}
 
-bool VideoSourceView::getCameraViewMatrix(
-	VRDevicePoseViewPtr attachedVRDevicePtr,
-	glm::mat4& outViewMatrix) const
-{
-	glm::mat4 cameraPose;	
-	if (VideoSourceView::getCameraPose(attachedVRDevicePtr, cameraPose))
-	{ 
-		outViewMatrix = computeGLMCameraViewMatrix(cameraPose);
-		return true;
-	}
-
-	return false;
-}
-
-bool VideoSourceView::getCameraViewProjectionMatrix(
-	VRDevicePoseViewPtr attachedVRDevicePtr,
-	glm::mat4& outVPMatrix) const
-{
-	glm::mat4 viewMatrix;
-	if (getCameraViewMatrix(attachedVRDevicePtr, viewMatrix))
+	if (videoSourcePixelWidth > 0 && videoSourcePixelHeight > 0 &&
+		vFov > 0 && zNear > 0 && zFar > 0)
 	{
-		outVPMatrix = m_projectionMatrix * viewMatrix;
-		return true;
+		m_projectionMatrix =
+			glm::perspective(
+				degrees_to_radians(vFov),
+				videoSourcePixelWidth / videoSourcePixelHeight,
+				zNear,
+				zFar);
 	}
+}
 
-	return false;
+glm::mat4 VideoSourceView::getCameraViewMatrix(VRDeviceViewPtr attachedVRDevicePtr) const
+{
+	const glm::mat4 cameraPose = VideoSourceView::getCameraPose(attachedVRDevicePtr);
+	const glm::mat4 viewMatrix = computeGLMCameraViewMatrix(cameraPose);
+
+	return viewMatrix;
+}
+
+glm::mat4 VideoSourceView::getCameraViewProjectionMatrix(VRDeviceViewPtr attachedVRDevicePtr) const
+{
+	const glm::mat4 viewMatrix = getCameraViewMatrix(attachedVRDevicePtr);
+	const glm::mat4 vpMatrix = m_projectionMatrix * viewMatrix;
+
+	return vpMatrix;
 }
 
 void VideoSourceView::getPixelDimensions(float& outWidth, float& outHeight) const

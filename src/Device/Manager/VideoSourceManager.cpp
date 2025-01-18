@@ -9,14 +9,9 @@
 #include "VideoCapabilitiesConfig.h"
 #include "WMFCameraEnumerator.h"
 
-#include <cstdlib>
 #include <fstream>
-#include <type_traits>
 
 #include <easy/profiler.h>
-
-#include "dylib.hpp"
-#include "MikanGStreamerModule.h"
 
 VideoSourceManager* VideoSourceManager::m_instance= nullptr;
 
@@ -31,7 +26,7 @@ configuru::Config VideoSourceManagerConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
-	writeStdValueVector<std::string>(pt, "video_source_uris", videoSourceURIs);
+	pt["rtmp_server_port"]= rtmp_server_port;
 
 	return pt;
 }
@@ -40,107 +35,12 @@ void VideoSourceManagerConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	readStdValueVector<std::string>(pt, "video_source_uris", videoSourceURIs);
+	rtmp_server_port = pt.get_or<unsigned int>("rtmp_server_port", rtmp_server_port);
 }
-
-//-- Video Source Manager Private Implementation -----
-class MikanGStreamerPlugin
-{
-public:
-	using AllocModuleFunctionPtr = std::add_pointer<IMikanGStreamerModule*()>::type;
-	using FreeModuleFunctionPtr = std::add_pointer<void(IMikanGStreamerModule*)>::type;
-
-	MikanGStreamerPlugin()
-		: m_gstreamerLib(nullptr)
-		, m_allocModule(nullptr)
-		, m_freeModule(nullptr)
-		, m_moduleInterface(nullptr)
-	{
-	}
-
-	~MikanGStreamerPlugin()
-	{
-		shutdown();	
-	}
-
-	inline IMikanGStreamerModule* getModuleInterface() const
-	{
-		return m_moduleInterface;
-	}
-
-	bool startup()
-	{
-		bool success = false;
-
-		try
-		{
-			// Load the GStreamer library
-			m_gstreamerLib = new dylib("./", "MikanGStreamer");
-
-			// Fetch the functions we need
-			m_allocModule= m_gstreamerLib->get_function<IMikanGStreamerModule*()>("AllocatePluginModule");
-			m_freeModule= m_gstreamerLib->get_function<void(IMikanGStreamerModule*)>("FreePluginModule");
-			
-			// Attempt to allocate the module
-			m_moduleInterface= m_allocModule();
-
-			// Attempt to initiate the module
-			if (m_moduleInterface != nullptr)
-			{
-				success= m_moduleInterface->startup();
-				if (!success)
-				{
-					MIKAN_LOG_ERROR("VideoSourceManagerImpl::startup") << "Failed to initialize GStreamer module!";
-				}
-			}
-		}
-		catch (std::exception* e)
-		{
-			MIKAN_LOG_ERROR("VideoSourceManagerImpl::startup") << "Failed to load GStreamer module: " << e->what();
-			return false;
-		}
-
-		if (!success)
-		{
-			shutdown();
-		}
-
-		return success;
-	}
-
-	void shutdown()
-	{
-		// Clean up the GStreamer library
-		if (m_gstreamerLib != nullptr)
-		{
-			if (m_freeModule != nullptr)
-			{
-				if (m_moduleInterface != nullptr)
-				{
-					m_freeModule(m_moduleInterface);
-				}
-			}
-
-			delete m_gstreamerLib;
-		}
-
-		m_gstreamerLib = nullptr;
-		m_allocModule = nullptr;
-		m_freeModule = nullptr;
-		m_moduleInterface = nullptr;
-	}
-
-private:
-	dylib* m_gstreamerLib;
-	AllocModuleFunctionPtr m_allocModule;
-	FreeModuleFunctionPtr m_freeModule;
-	IMikanGStreamerModule* m_moduleInterface;
-};
 
 //-- Video Source Manager -----
 VideoSourceManager::VideoSourceManager()
 	: DeviceManager()
-	, m_mikanGStreamerPlugin(new MikanGStreamerPlugin)
 	, m_cfg()
 	, m_supportedTrackers(new VideoCapabilitiesSet)
 {
@@ -150,7 +50,6 @@ VideoSourceManager::VideoSourceManager()
 
 VideoSourceManager::~VideoSourceManager()
 {
-	delete m_mikanGStreamerPlugin;
 }
 
 bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
@@ -161,9 +60,6 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 
 	if (bSuccess)
 	{
-		// Set the singleton pointer
-		m_instance = this;
-
 		// Load the config file (if it exists)
 		m_cfg.load();
 
@@ -177,24 +73,11 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 			return false;
 		}
 
-		// Attempt to load the GStreamer module
-		const char* envVar = std::getenv("GSTREAMER_1_0_ROOT_MINGW_X86_64");
-		if (envVar != nullptr)
-		{
-			MIKAN_LOG_INFO("VideoSourceManager::startup") << "Found GStreamer install: " << envVar;
-
-			if (!m_mikanGStreamerPlugin->startup())
-			{
-				MIKAN_LOG_WARNING("VideoSourceManager::startup") << "Failed to load any GStreamer library!";
-			}
-		}
-		else
-		{
-			MIKAN_LOG_WARNING("VideoSourceManager::startup") << "GStreamer not installed. Skipping MikanGStreamer module load.";
-		}
-
 		// Refresh the tracker list
 		updateConnectedDeviceViews();
+
+		// Set the singleton pointer
+		m_instance= this;
 	}
 
 	return bSuccess;
@@ -202,37 +85,13 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 
 void VideoSourceManager::update(float deltaTime)
 {
-	EASY_FUNCTION();
-
-	DeviceManager::update(deltaTime);
-
-	// Update any video sources that do their processing on the main thread
-	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
-	{
-		VideoSourceViewPtr videoSourceView = getVideoSourceViewPtr(videoSourceId);
-		IVideoSourceInterface* videoSourceInterface= videoSourceView->getVideoSourceInterface();
-
-		if (videoSourceInterface != nullptr && videoSourceInterface->wantsUpdate())
-		{
-			videoSourceInterface->update(deltaTime);
-		}
-	}
 }
 
 void VideoSourceManager::shutdown()
 {
-	// Close all video sources
-	DeviceManager::shutdown();
-
-	// Close down the GStreamer plugin after all streams are stopped
-	m_mikanGStreamerPlugin->shutdown();
-
 	m_instance = nullptr;
-}
 
-class IMikanGStreamerModule* VideoSourceManager::getGStreamerModule() const
-{
-	return m_mikanGStreamerPlugin->getModuleInterface();
+	DeviceManager::shutdown();
 }
 
 void VideoSourceManager::closeAllVideoSources()

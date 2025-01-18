@@ -24,15 +24,19 @@
 
 struct OpenCVMonoCameraIntrinsics
 {
-	cv::Matx33d distorted_intrinsic_matrix;
+	cv::Matx33d intrinsic_matrix;
 	cv::Matx81d distortion_coeffs;
-	cv::Matx33d undistorted_intrinsic_matrix;
+	cv::Rect undistortBufferROI;
 
 	void init(const MikanMonoIntrinsics& monoIntrinsics)
 	{
-		distorted_intrinsic_matrix = MikanMatrix3d_to_cv_mat33d(monoIntrinsics.distorted_camera_matrix);
+		intrinsic_matrix = MikanMatrix3d_to_cv_mat33d(monoIntrinsics.camera_matrix);
 		distortion_coeffs = Mikan_distortion_to_cv_vec8(monoIntrinsics.distortion_coefficients);
-		undistorted_intrinsic_matrix = MikanMatrix3d_to_cv_mat33d(monoIntrinsics.undistorted_camera_matrix);
+		
+		undistortBufferROI.x = 0;
+		undistortBufferROI.y = 0;
+		undistortBufferROI.width = monoIntrinsics.pixel_width;
+		undistortBufferROI.height = monoIntrinsics.pixel_height;
 	}
 };
 
@@ -44,9 +48,8 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	: m_ownerWindow(ownerWindow)
 	, m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceView(view)
-	, m_bufferBitmask(bufferBitmask)
-	, m_frameWidth(0)
-	, m_frameHeight(0)
+	, m_frameWidth((int)view->getFrameWidth())
+	, m_frameHeight((int)view->getFrameHeight())
 	, m_fps(0.f)
 	// Video frame buffers
 	, m_bgrSourceBuffers(nullptr)
@@ -67,25 +70,51 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_distortionTextureMap(nullptr)
 	, m_videoTexture(nullptr)
 {
-	// Get the current camera intrinsics being used by the video source
-	MikanVideoSourceIntrinsics mikanIntrinsics;
-	m_videoSourceView->getCameraIntrinsics(mikanIntrinsics);
-	m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
-
 	// Source Video Frame data
 	m_bgrSourceBuffers = new SourceBufferEntry[m_bgrSourceBufferCount];
 	for (unsigned int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
 	{
 		SourceBufferEntry& frameEntry= m_bgrSourceBuffers[queueIndex];
 
-		frameEntry.bgrSourceBuffer = nullptr;
+		frameEntry.bgrSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
 		frameEntry.frameIndex= 0;
 	}
+	
+	// Distortion state
+	if (bufferBitmask & VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG)
+	{
+		m_bgrUndistortBuffer = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_8UC3);
+		m_distortionMapX = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
+		m_distortionMapY = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
+	}
 
-	// Resize all desired video frame buffers to match the current video source view size
-	// It's possible that the video source doesn't have a valid size yet if it's a stream source
-	// So we'll have to resize once the first valid frame is read.
-	ensureFrameBufferSize((int)view->getFrameWidth(), (int)view->getFrameHeight());
+	// Grayscale video frame buffers
+	if (bufferBitmask & VIDEO_FRAME_HAS_GRAYSCALE_FLAG)
+	{
+		m_gsSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC1);
+		m_gsUndistortBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC1);
+		m_bgrGsDisplayBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
+	}
+
+	// Create a texture to render the video frame to
+	if (bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
+	{
+		m_videoTexture = std::make_shared<GlTexture>(
+			m_frameWidth,
+			m_frameHeight,
+			nullptr,
+			GL_RGB, // texture format
+			GL_BGR); // buffer format
+		m_videoTexture->setGenerateMipMap(false);
+		m_videoTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
+		m_videoTexture->createTexture();
+	}
+
+	// Generate the distortion map from the current camera intrinsics
+	MikanVideoSourceIntrinsics cameraIntrinsics;
+	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+	const auto& monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
+	rebuildDistortionMap(&monoIntrinsics);
 
 	// Create a mesh used to render the video frame
 	m_fullscreenQuad= createFullscreenQuadMesh(m_ownerWindow, true);
@@ -139,96 +168,6 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 	}
 }
 
-void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
-{
-	// If the frame size hasn't changed, then bail
-	if (m_frameWidth == width && m_frameHeight == height)
-	{
-		return;
-	}
-
-	// Update the frame size
-	m_frameWidth = width;
-	m_frameHeight = height;
-
-	// Source Video Frame data
-	assert(m_bgrSourceBuffers != nullptr);
-	for (unsigned int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
-	{
-		SourceBufferEntry& frameEntry = m_bgrSourceBuffers[queueIndex];
-
-		// Free any existing buffer
-		if (frameEntry.bgrSourceBuffer != nullptr)
-		{
-			delete frameEntry.bgrSourceBuffer;
-		}
-
-		// Allocate a new bgr source buffer
-		frameEntry.bgrSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
-	}
-
-	// Distortion state
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG)
-	{
-		if (m_bgrUndistortBuffer != nullptr)
-		{
-			delete m_bgrUndistortBuffer;
-		}
-		m_bgrUndistortBuffer = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_8UC3);
-
-		if (m_distortionMapX != nullptr)
-		{
-			delete m_distortionMapX;
-		}
-		m_distortionMapX = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
-
-		if (m_distortionMapY != nullptr)
-		{
-			delete m_distortionMapY;
-		}
-		m_distortionMapY = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
-	}
-
-	// Grayscale video frame buffers
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_GRAYSCALE_FLAG)
-	{
-		if (m_gsSourceBuffer != nullptr)
-		{
-			delete m_gsSourceBuffer;
-		}
-		m_gsSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC1);
-
-		if (m_gsUndistortBuffer != nullptr)
-		{
-			delete m_gsUndistortBuffer;
-		}
-		m_gsUndistortBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC1);
-
-		if (m_bgrGsDisplayBuffer != nullptr)
-		{
-			delete m_bgrGsDisplayBuffer;
-		}
-		m_bgrGsDisplayBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
-	}
-
-	// Create a texture to render the video frame to
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
-	{
-		m_videoTexture = std::make_shared<GlTexture>(
-			m_frameWidth,
-			m_frameHeight,
-			nullptr,
-			GL_RGB, // texture format
-			GL_BGR); // buffer format
-		m_videoTexture->setGenerateMipMap(false);
-		m_videoTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
-		m_videoTexture->createTexture();
-	}
-
-	// Generate the distortion map for the new frame size
-	rebuildDistortionMap();
-}
-
 bool VideoFrameDistortionView::hasNewVideoFrame() const
 {
 	return m_videoSourceView->hasNewVideoFrameAvailable(VideoFrameSection::Primary);
@@ -239,6 +178,7 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 	EASY_FUNCTION();
 
 	// Copy the image from the video view
+	cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].bgrSourceBuffer;
 	if (m_videoSourceView->hasNewVideoFrameAvailable(VideoFrameSection::Primary))
 	{
 		const uint32_t now = SDL_GetTicks();
@@ -247,13 +187,6 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 		m_fps = (m_fps * 0.9f) + (fps * 0.1f);
 		m_lastFrameTimestamp = now;
 
-		// Reallocate the frame buffer if the video source has changed resolution
-		// (This can happen on streaming video sources)
-		int frameWidth= (int)m_videoSourceView->getFrameWidth();
-		int frameHeight= (int)m_videoSourceView->getFrameHeight();
-		ensureFrameBufferSize(frameWidth, frameHeight);
-
-		cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].bgrSourceBuffer;
 		m_lastVideoFrameReadIndex= m_videoSourceView->readVideoFrameSectionBuffer(VideoFrameSection::Primary, bgrSourceBuffer);
 		m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].frameIndex= m_lastVideoFrameReadIndex;
 		m_bgrSourceBufferWriteIndex = (m_bgrSourceBufferWriteIndex + 1) % m_bgrSourceBufferCount;
@@ -387,25 +320,33 @@ bool VideoFrameDistortionView::readAndProcessVideoFrame()
 	return bIsNewFrame;
 }
 
-void VideoFrameDistortionView::applyMonoCameraIntrinsics(
-	const struct MikanMonoIntrinsics* instrinsics)
-{
-	m_intrinsics->init(*instrinsics);
-	rebuildDistortionMap();
-}
-
-void VideoFrameDistortionView::rebuildDistortionMap()
+void VideoFrameDistortionView::rebuildDistortionMap(
+	const MikanMonoIntrinsics* instrinsics)
 {
 	m_distortionTextureMap= nullptr;
 
+	m_videoDisplayMode = eVideoDisplayMode::mode_bgr;
+
+	m_intrinsics->init(*instrinsics);
+
 	if (m_distortionMapX != nullptr && m_distortionMapY != nullptr)
 	{
+		// Create a modified camera intrinsic matrix to crop out the unwanted border
+		cv::Mat optimalIntrinsicMatrix =
+			cv::getOptimalNewCameraMatrix(
+				m_intrinsics->intrinsic_matrix,
+				m_intrinsics->distortion_coeffs,
+				cv::Size(m_frameWidth, m_frameHeight),
+				0.f, // We want 0% of the garbage border
+				cv::Size(m_frameWidth, m_frameHeight),
+				&m_intrinsics->undistortBufferROI); // The valid pixel region of the undistortion buffer
+
 		// (Re)create the X and Y undistortion maps used by cv::remap
 		cv::initUndistortRectifyMap(
-			m_intrinsics->distorted_intrinsic_matrix,
+			m_intrinsics->intrinsic_matrix,
 			m_intrinsics->distortion_coeffs,
 			cv::noArray(), // unneeded rectification transformation computed by stereoRectify()
-			m_intrinsics->undistorted_intrinsic_matrix,
+			optimalIntrinsicMatrix,
 			cv::Size(m_frameWidth, m_frameHeight),
 			CV_32FC1, // Distortion map type
 			*m_distortionMapX, *m_distortionMapY);
