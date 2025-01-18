@@ -9,6 +9,7 @@
 #include "VideoCapabilitiesConfig.h"
 #include "WMFCameraEnumerator.h"
 
+#include <cstdlib>
 #include <fstream>
 #include <type_traits>
 
@@ -177,9 +178,19 @@ bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
 		}
 
 		// Attempt to load the GStreamer module
-		if (m_mikanGStreamerPlugin->startup())
+		const char* envVar = std::getenv("GSTREAMER_1_0_ROOT_MINGW_X86_64");
+		if (envVar != nullptr)
 		{
-			MIKAN_LOG_WARNING("VideoSourceManager::startup") << "Failed to load any GStreamer library!";
+			MIKAN_LOG_INFO("VideoSourceManager::startup") << "Found GStreamer install: " << envVar;
+
+			if (m_mikanGStreamerPlugin->startup())
+			{
+				MIKAN_LOG_WARNING("VideoSourceManager::startup") << "Failed to load any GStreamer library!";
+			}
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("VideoSourceManager::startup") << "GStreamer not installed. Skipping MikanGStreamer module load.";
 		}
 
 		// Refresh the tracker list
