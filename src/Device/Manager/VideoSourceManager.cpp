@@ -5,6 +5,7 @@
 #include "DeviceView.h"
 #include "Logger.h"
 #include "MathUtility.h"
+#include "PathUtils.h"
 #include "VideoSourceView.h"
 #include "VideoCapabilitiesConfig.h"
 #include "WMFCameraEnumerator.h"
@@ -74,8 +75,11 @@ public:
 
 		try
 		{
+			// Assume plugin module is in the same place as the executable
+			std::string modulePath = PathUtils::getModulePath().string();
+
 			// Load the GStreamer library
-			m_gstreamerLib = new dylib("./", "MikanGStreamer");
+			m_gstreamerLib = new dylib(modulePath.c_str(), "MikanGStreamer");
 
 			// Fetch the functions we need
 			m_allocModule= m_gstreamerLib->get_function<IMikanGStreamerModule*()>("AllocatePluginModule");

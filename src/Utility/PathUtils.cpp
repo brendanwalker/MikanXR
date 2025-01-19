@@ -20,6 +20,42 @@
 // -- public methods -----
 namespace PathUtils
 {
+	void addDllSearchDirectory(const std::filesystem::path& dllPath)
+	{
+#if defined WIN32 || defined _WIN32 || defined WINCE
+		HMODULE hKernel32 = GetModuleHandle("kernel32.dll");
+
+		if (hKernel32 != NULL) 
+		{
+			typedef DLL_DIRECTORY_COOKIE(WINAPI* AddDllDirectoryFunc)(PCWSTR);
+			AddDllDirectoryFunc addDllDirectory = (AddDllDirectoryFunc)GetProcAddress(hKernel32, "AddDllDirectory");
+
+			if (addDllDirectory != NULL) 
+			{
+				const std::wstring wideDllPath= StringUtils::convertUTF8StringToWString(dllPath.string());
+
+				addDllDirectory(wideDllPath.c_str());
+			}
+		}
+#endif
+	}
+
+	std::filesystem::path getModulePath()
+	{
+		std::filesystem::path moduleFilePath;
+
+#if defined WIN32 || defined _WIN32 || defined WINCE
+		char result[MAX_PATH];
+
+		GetModuleFileName(NULL, result, MAX_PATH);
+		moduleFilePath= std::filesystem::path(result);
+#else
+		moduleFilePath= std::filesystem::canonical("/proc/self/exe");
+#endif 
+
+		return moduleFilePath.parent_path();
+	}
+
 	std::filesystem::path getResourceDirectory()
 	{
 		std::filesystem::path resourceDir= std::filesystem::current_path();

@@ -7,6 +7,12 @@
 //-- utility methods -----
 namespace PathUtils
 {
+	// Add the given directory to the DLL search path
+	void addDllSearchDirectory(const std::filesystem::path& dllPath);
+
+	/// Get the location of the owning module path
+	std::filesystem::path getModulePath();
+
 	/// Get the location of resource files 
 	std::filesystem::path getResourceDirectory();
 
