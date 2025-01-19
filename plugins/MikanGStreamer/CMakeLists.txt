@@ -38,7 +38,7 @@ list(APPEND MIKAN_GSTREAMER_REQ_LIBS
 add_library(MikanGStreamer SHARED ${MIKAN_GSTREAMER_SRC})
 target_include_directories(MikanGStreamer PRIVATE ${MIKAN_GSTREAMER_INCL_DIRS})
 target_link_libraries(MikanGStreamer PRIVATE ${MIKAN_GSTREAMER_REQ_LIBS})
-set_target_properties(MikanGStreamer PROPERTIES FOLDER GSTREAMERAPI)
+set_target_properties(MikanGStreamer PROPERTIES FOLDER Plugins)
 set_target_properties(MikanGStreamer PROPERTIES PUBLIC_HEADER "${MIKAN_GSTREAMER_HEADER}")
 set_target_properties(MikanGStreamer PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanGStreamer PRIVATE MIKAN_GSTREAMER_EXPORTS)
