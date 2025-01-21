@@ -1,10 +1,12 @@
 #pragma once
 
+#include <MikanCoreAppExport.h>
+
 #include <atomic>
 #include <string>
 #include <thread>
 
-class WorkerThread
+class MIKAN_COREAPP_CLASS WorkerThread
 {
 public:
 	WorkerThread(const std::string thread_name);

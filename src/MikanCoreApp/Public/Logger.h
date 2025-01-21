@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 
+#include "MikanCoreAppExport.h"
+
 //-- constants -----
 enum class LogSeverityLevel : int
 {
@@ -16,7 +18,7 @@ enum class LogSeverityLevel : int
 };
 
 //-- classes -----
-class LoggerStream
+class MIKAN_COREAPP_CLASS LoggerStream
 {
 protected:
 	std::ostringstream m_lineBuffer;
@@ -44,7 +46,7 @@ protected:
 	virtual void write_line();
 };
 
-class ThreadSafeLoggerStream : public LoggerStream
+class MIKAN_COREAPP_CLASS ThreadSafeLoggerStream : public LoggerStream
 {
 public:
 	ThreadSafeLoggerStream(LogSeverityLevel level);
@@ -64,10 +66,10 @@ struct LoggerSettings
 };
 
 //-- interface -----
-void log_init(const LoggerSettings& settings);
-void log_dispose();
-bool log_can_emit_level(LogSeverityLevel level);
-std::string log_get_timestamp_prefix();
+MIKAN_COREAPP_FUNC(void) log_init(const LoggerSettings& settings);
+MIKAN_COREAPP_FUNC(void) log_dispose();
+MIKAN_COREAPP_FUNC(bool) log_can_emit_level(LogSeverityLevel level);
+MIKAN_COREAPP_FUNC(std::string) log_get_timestamp_prefix();
 
 //-- macros -----
 #define SELECT_LOG_STREAM(level) LoggerStream(level)

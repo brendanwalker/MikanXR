@@ -25,12 +25,7 @@ list(APPEND MIKAN_UTILITY_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Private
 )
 
-## list(APPEND MIKAN_UTILITY_REQ_LIBS
-##	${SOME_RANDOM_LIBRARIES}
-##)
-
 add_library(MikanUtility STATIC ${MIKAN_UTILITY_SRC})
 target_include_directories(MikanUtility PRIVATE ${MIKAN_UTILITY_INCL_DIRS})
-#target_link_libraries(MikanUtility PRIVATE ${MIKAN_UTILITY_REQ_LIBS})
 set_target_properties(MikanUtility PROPERTIES FOLDER MikanLibraries)
 set_target_properties(MikanUtility PROPERTIES PUBLIC_HEADER "${MIKAN_UTILITY_HEADER}")

@@ -14,7 +14,10 @@ add_subdirectory(ClientAPI)
 add_subdirectory(ClientCodeGen)
 
 # Mikan Utility Static LIB
-add_subdirectory(Utility)
+add_subdirectory(MikanUtility)
+
+# Mikan Core Application DLL
+add_subdirectory(MikanCoreApp)
 
 ## Mikan App
 ## =======================
@@ -471,6 +474,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
+  ${CMAKE_CURRENT_LIST_DIR}/MikanCoreApp
   ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/Object
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV
@@ -540,6 +544,7 @@ list(APPEND MIKAN_REQ_LIBS
   ixwebsocket
   MikanCore
   MikanAPI
+  MikanCoreApp
   MikanSerialization
   MikanUtility
   RmlCore
