@@ -13,6 +13,9 @@ add_subdirectory(ClientAPI)
 # Mikan Client Code Gen
 add_subdirectory(ClientCodeGen)
 
+# Mikan Utility Static LIB
+add_subdirectory(Utility)
+
 ## Mikan App
 ## =======================
 MESSAGE(STATUS "Generating Mikan App Project")
@@ -365,13 +368,6 @@ source_group("System" FILES ${MIKAN_SYSTEM_SRC})
 # TinyFileDialogs's source files are included in directly, rather than linking against a lib
 source_group("TinyFileDialogs" FILES ${TINYFILEDIALOGS_SOURCE})
 
-# Utilities
-file(GLOB MIKAN_UTILS_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Utility/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Utility/*.h"
-)
-source_group("Utility" FILES ${MIKAN_UTILS_SRC})
-
 # Video
 file(GLOB MIKAN_VIDEO_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Video/*.cpp"
@@ -445,7 +441,6 @@ set(MIKAN_SRC
     ${MIKAN_SCRIPTING_SRC}
     ${MIKAN_SDL_SRC}
     ${MIKAN_SYSTEM_SRC}
-    ${MIKAN_UTILS_SRC}
     ${MIKAN_VIDEO_SRC}
     ${MIKAN_VIDEO_GSTREAMER_SRC}
     ${MIKAN_VIDEO_OPENCV_SRC}
@@ -486,7 +481,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public/
   ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/System
-  ${CMAKE_CURRENT_LIST_DIR}/Utility
+  ${CMAKE_CURRENT_LIST_DIR}/Utility/Public/
   ${CMAKE_CURRENT_LIST_DIR}/Video
   ${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer
   ${CMAKE_CURRENT_LIST_DIR}/Video/OpenCV
@@ -546,6 +541,7 @@ list(APPEND MIKAN_REQ_LIBS
   MikanCore
   MikanAPI
   MikanSerialization
+  MikanUtility
   RmlCore
   RmlDebugger)
 
