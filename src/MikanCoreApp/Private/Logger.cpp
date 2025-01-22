@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 #include <mutex>
+#include <sstream>
 #include <ostream>
 
 #ifdef _MSC_VER
@@ -147,28 +148,80 @@ std::string log_get_timestamp_prefix()
 }
 
 //-- member functions -----
-LoggerStream::LoggerStream(LogSeverityLevel level) :
-	m_level(level)
+class LoggerStreamImpl
+{
+private:
+	std::ostringstream m_lineBuffer;
+	LogSeverityLevel m_level;
+	bool m_hasWrittenLog;
+
+public:
+	LoggerStreamImpl(LogSeverityLevel level) 
+		: m_lineBuffer()
+		, m_level(level)
+		, m_hasWrittenLog(false)
+	{
+	}
+
+	template<class T>
+	void operator<<(const T &x)
+	{
+		if (log_can_emit_level(m_level))
+		{
+			m_lineBuffer << x;
+			m_hasWrittenLog= true;
+		}
+	}
+
+	void write_line()
+	{
+		if (g_is_initialized &&
+			g_logger_callback != nullptr &&
+			m_hasWrittenLog &&
+			log_can_emit_level(m_level))
+		{
+			const std::string line = m_lineBuffer.str();
+
+			(*g_logger_callback)((int)m_level, line.c_str());
+		}
+	}
+
+};
+
+LoggerStream::LoggerStream(LogSeverityLevel level) 
+	: m_impl(new LoggerStreamImpl(level))
 {
 }
 
 LoggerStream::~LoggerStream()
 {
 	write_line();
+	delete m_impl;
 }
 
 void LoggerStream::write_line()
 {
-	if (g_is_initialized && 
-		g_logger_callback != nullptr && 
-		m_hasWrittenLog &&
-		log_can_emit_level(m_level))
-	{
-		const std::string line = m_lineBuffer.str();
-
-		(*g_logger_callback)((int)m_level, line.c_str());
-	}
+	m_impl->write_line();
 }
+
+// Wrapper for forwarding value
+LoggerStream& LoggerStream::operator<<(bool value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(char value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(short value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(unsigned short value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(int value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(unsigned int value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(long value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(unsigned long value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(long long value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(unsigned long long value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(float value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(double value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(long double value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(const void* value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(const char* value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(const std::string& value) { *m_impl << value; return *this; }
+LoggerStream& LoggerStream::operator<<(const std::filesystem::path& value) { *m_impl << value; return *this; }
 
 ThreadSafeLoggerStream::ThreadSafeLoggerStream(LogSeverityLevel level) :
 	LoggerStream(level)

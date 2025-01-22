@@ -19,28 +19,19 @@ file(GLOB MIKAN_CLIENT_CORE_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/../Interprocess/WebsocketInterprocessMessageClient.cpp"
 )
 
-file(GLOB MIKAN_CLIENT_CORE_UTILITY_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/../AppCore/Logger.h"
-    "${CMAKE_CURRENT_LIST_DIR}/../AppCore/Logger.cpp"
-	"${CMAKE_CURRENT_LIST_DIR}/../Utility/JsonUtils.h"
-    "${CMAKE_CURRENT_LIST_DIR}/../Utility/RandomUtils.h"
-    "${CMAKE_CURRENT_LIST_DIR}/../Utility/RandomUtils.cpp"
-)
-
 file(GLOB MIKAN_CLIENT_CORE_SPOUT2_DX_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Private/SpoutDX/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Private/SpoutDX/*.h"
 )
 
 file(GLOB MIKAN_CLIENT_CORE_PUBLIC
-	"${CMAKE_CURRENT_LIST_DIR}/Public/*.h"
+    "${CMAKE_CURRENT_LIST_DIR}/Public/*.h"
 )
 
 file(GLOB MIKAN_CLIENT_CORE_LIBRARY_SRC
-	${MIKAN_CLIENT_CORE_PUBLIC}
-	${MIKAN_CLIENT_CORE_PRIVATE_SRC}
-	${MIKAN_CLIENT_CORE_INTERPROCESS_SRC}
-	${MIKAN_CLIENT_CORE_UTILITY_SRC}
+    ${MIKAN_CLIENT_CORE_PUBLIC}
+    ${MIKAN_CLIENT_CORE_PRIVATE_SRC}
+    ${MIKAN_CLIENT_CORE_INTERPROCESS_SRC}
     ${MIKAN_CLIENT_CORE_SPOUT2_DX_SRC}
 )
 
@@ -61,9 +52,10 @@ list(APPEND MIKAN_CLIENT_CORE_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Public
   ${CMAKE_CURRENT_LIST_DIR}/Private
   ${CMAKE_CURRENT_LIST_DIR}/Private/SpoutDX
-  ${CMAKE_CURRENT_LIST_DIR}/../Serialization/Public/
+  ${CMAKE_CURRENT_LIST_DIR}/../Serialization/Public
   ${CMAKE_CURRENT_LIST_DIR}/../Interprocess
-  ${CMAKE_CURRENT_LIST_DIR}/../Utility
+  ${CMAKE_CURRENT_LIST_DIR}/../MikanCoreApp/Public
+  ${CMAKE_CURRENT_LIST_DIR}/../MikanUtility/Public
   ${RFK_GENERATED_ROOT_DIR}/MikanCore
   ${RFK_GENERATED_ROOT_DIR}/Serialization
   ${NLOHMANN_JSON_INCLUDE_DIR}
@@ -77,7 +69,9 @@ list(APPEND MIKAN_CLIENT_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${RFK_LIBRARIES}
   ixwebsocket
-  MikanSerialization)
+  MikanCoreAppDll
+  MikanSerialization
+  MikanUtilityLib)
 
 add_library(MikanCore SHARED ${MIKAN_CLIENT_CORE_LIBRARY_SRC})
 target_include_directories(MikanCore PRIVATE ${MIKAN_CLIENT_CORE_INCL_DIRS})

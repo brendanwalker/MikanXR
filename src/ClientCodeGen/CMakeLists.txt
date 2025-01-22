@@ -2,10 +2,6 @@
 file(GLOB CLIENT_CODEGEN_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
-    "${ROOT_DIR}/src/AppCore/Logger.h"
-    "${ROOT_DIR}/src/AppCore/Logger.cpp"
-    "${ROOT_DIR}/src/Utility/StringUtils.h"
-    "${ROOT_DIR}/src/Utility/StringUtils.cpp"
 )
 
 list(APPEND CLIENT_CODEGEN_INCL_DIRS
@@ -13,6 +9,8 @@ list(APPEND CLIENT_CODEGEN_INCL_DIRS
   ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/ClientAPI/Public
   ${ROOT_DIR}/src/ClientCore/Public
+  ${ROOT_DIR}/src/MikanCoreApp/Public
+  ${ROOT_DIR}/src/MikanUtility/Public
   ${ROOT_DIR}/src/Serialization/Public
   ${ROOT_DIR}/src/Utility/
   ${RFK_GENERATED_ROOT_DIR}/MikanAPI
@@ -25,7 +23,9 @@ list(APPEND CLIENT_CODEGEN_REQ_LIBS
   ${RFK_LIBRARIES}
   MikanCore
   MikanAPI
-  MikanSerialization)
+  MikanCoreAppLib
+  MikanSerialization
+  MikanUtilityLib)
 
 add_executable(MikanClientCodeGen ${CLIENT_CODEGEN_SRC})
 target_include_directories(MikanClientCodeGen PUBLIC ${CLIENT_CODEGEN_INCL_DIRS})

@@ -2,8 +2,6 @@
 file(GLOB UNIT_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
-    "${ROOT_DIR}/src/AppCore/Logger.h"
-    "${ROOT_DIR}/src/AppCore/Logger.cpp"
     "${ROOT_DIR}/src/Math/MathGLM.h"
     "${ROOT_DIR}/src/Math/MathUtility.h"
     "${ROOT_DIR}/src/Math/MathGLM.cpp"    
@@ -18,9 +16,9 @@ list(APPEND UNIT_TEST_INCL_DIRS
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${RFK_GENERATED_ROOT_DIR}/UnitTests
   ${RFK_GENERATED_ROOT_DIR}/Serialization
-  ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/Client/
   ${ROOT_DIR}/src/Math/
+  ${ROOT_DIR}/src/MikanCoreApp/Public
   ${ROOT_DIR}/src/Serialization/Public/
   ${ROOT_DIR}/src/Utility/
   ${ROOT_DIR}/thirdparty/glm/
@@ -28,6 +26,7 @@ list(APPEND UNIT_TEST_INCL_DIRS
 
 list(APPEND UNIT_TEST_LIBS 
   ${RFK_LIBRARIES}
+  MikanCoreAppLib
   MikanSerialization
 )
 

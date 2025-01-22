@@ -10,17 +10,10 @@ class MIKAN_COREAPP_CLASS WorkerThread
 {
 public:
 	WorkerThread(const std::string thread_name);
+	virtual ~WorkerThread();
 
-	inline bool hasThreadStarted() const
-	{
-		return m_threadStarted;
-	}
-
-	inline bool hasThreadEnded() const
-	{
-		return m_threadEnded.load();
-	}
-
+	bool hasThreadStarted() const;
+	bool hasThreadEnded() const;
     void startThread();
     void stopThread();
 
@@ -34,12 +27,5 @@ private:
 	void threadFunc();
 
 protected:
-    // Multithreaded state
-	const std::string m_threadName;
-    std::atomic_bool m_exitSignaled;
-	std::atomic_bool m_threadEnded;
-
-	// Main Thread State
-    bool m_threadStarted;
-    std::thread m_workerThread;
+	class WorkerThreadImpl* m_impl;
 };

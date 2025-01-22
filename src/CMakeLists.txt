@@ -474,7 +474,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
-  ${CMAKE_CURRENT_LIST_DIR}/MikanCoreApp
+  ${CMAKE_CURRENT_LIST_DIR}/MikanCoreApp/Public
+  ${CMAKE_CURRENT_LIST_DIR}/MikanUtility/Public
   ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/Object
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV
@@ -482,10 +483,9 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/RmlUi
   ${CMAKE_CURRENT_LIST_DIR}/Scene
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
-  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public/
+  ${CMAKE_CURRENT_LIST_DIR}/Serialization/Public
   ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/System
-  ${CMAKE_CURRENT_LIST_DIR}/Utility/Public/
   ${CMAKE_CURRENT_LIST_DIR}/Video
   ${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer
   ${CMAKE_CURRENT_LIST_DIR}/Video/OpenCV
@@ -544,9 +544,9 @@ list(APPEND MIKAN_REQ_LIBS
   ixwebsocket
   MikanCore
   MikanAPI
-  MikanCoreApp
+  MikanCoreAppDll
   MikanSerialization
-  MikanUtility
+  MikanUtilityLib
   RmlCore
   RmlDebugger)
 

@@ -26,11 +26,18 @@ list(APPEND MIKAN_CORE_APP_INCL_DIRS
 )
 
 list(APPEND MIKAN_CORE_APP_REQ_LIBS
-	MikanUtility
+	MikanUtilityLib
 )
 
-add_library(MikanCoreApp SHARED ${MIKAN_CORE_APP_SRC})
-target_include_directories(MikanCoreApp PRIVATE ${MIKAN_CORE_APP_INCL_DIRS})
-target_link_libraries(MikanCoreApp PRIVATE ${MIKAN_CORE_APP_REQ_LIBS})
-set_target_properties(MikanCoreApp PROPERTIES FOLDER MikanLibraries)
-set_target_properties(MikanCoreApp PROPERTIES PUBLIC_HEADER "${MIKAN_CORE_APP_HEADER}")
+add_library(MikanCoreAppDll SHARED ${MIKAN_CORE_APP_SRC})
+target_include_directories(MikanCoreAppDll PRIVATE ${MIKAN_CORE_APP_INCL_DIRS})
+target_compile_definitions(MikanCoreAppDll PRIVATE MIKAN_COREAPP_EXPORTS)
+target_link_libraries(MikanCoreAppDll PRIVATE ${MIKAN_CORE_APP_REQ_LIBS})
+set_target_properties(MikanCoreAppDll PROPERTIES FOLDER MikanLibraries)
+set_target_properties(MikanCoreAppDll PROPERTIES PUBLIC_HEADER "${MIKAN_CORE_APP_HEADER}")
+
+add_library(MikanCoreAppLib STATIC ${MIKAN_CORE_APP_SRC})
+target_include_directories(MikanCoreAppLib PRIVATE ${MIKAN_CORE_APP_INCL_DIRS})
+target_link_libraries(MikanCoreAppLib PRIVATE ${MIKAN_CORE_APP_REQ_LIBS})
+set_target_properties(MikanCoreAppLib PROPERTIES FOLDER MikanLibraries)
+set_target_properties(MikanCoreAppLib PROPERTIES PUBLIC_HEADER "${MIKAN_CORE_APP_HEADER}")

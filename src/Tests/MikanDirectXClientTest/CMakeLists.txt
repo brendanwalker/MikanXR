@@ -2,15 +2,14 @@
 file(GLOB MIKAN_DX_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
-    "${ROOT_DIR}/src/AppCore/Logger.h"
-    "${ROOT_DIR}/src/AppCore/Logger.cpp"
 )
 
 list(APPEND MIKAN_DX_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
-  ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/ClientAPI/Public
   ${ROOT_DIR}/src/ClientCore/Public
+  ${ROOT_DIR}/src/MikanCoreApp/Public
+  ${ROOT_DIR}/src/MikanUtility/Public
   ${ROOT_DIR}/src/Serialization/Public
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${STB_INCLUDE_DIRS}
@@ -24,7 +23,9 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   MikanCore
   MikanAPI
-  MikanSerialization)
+  MikanCoreAppLib
+  MikanSerialization
+  MikanUtilityLib)
 
 add_executable(MikanDX_Test WIN32 ${MIKAN_DX_TEST_SRC})
 target_include_directories(MikanDX_Test PUBLIC ${MIKAN_DX_TEST_INCL_DIRS})

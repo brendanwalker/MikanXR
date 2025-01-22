@@ -22,6 +22,9 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <sstream>
+#include <ostream>
 #include <string>
 #include <map>
 #include <memory>

@@ -2,8 +2,6 @@
 file(GLOB MIKAN_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
-    "${ROOT_DIR}/src/AppCore/Logger.h"
-    "${ROOT_DIR}/src/AppCore/Logger.cpp"
     "${ROOT_DIR}/src/Renderer/GlBufferBlock.h"
     "${ROOT_DIR}/src/Renderer/GlBufferBlock.cpp"
     "${ROOT_DIR}/src/Renderer/GlCommon.h"
@@ -22,15 +20,14 @@ file(GLOB MIKAN_TEST_SRC
     "${ROOT_DIR}/src/Renderer/GlVertexConstants.cpp"
     "${ROOT_DIR}/src/Renderer/GlVertexDefinition.h"
     "${ROOT_DIR}/src/Renderer/GlVertexDefinition.cpp"
-    "${ROOT_DIR}/src/Utility/StringUtils.h"
-    "${ROOT_DIR}/src/Utility/StringUtils.cpp"
 )
 
 list(APPEND MIKAN_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
-  ${ROOT_DIR}/src/AppCore/
   ${ROOT_DIR}/src/ClientAPI/Public
   ${ROOT_DIR}/src/ClientCore/Public
+  ${ROOT_DIR}/src/MikanCoreApp/Public
+  ${ROOT_DIR}/src/MikanUtility/Public
   ${ROOT_DIR}/src/Serialization/Public
   ${ROOT_DIR}/src/Renderer/
   ${ROOT_DIR}/src/Utility/
@@ -48,7 +45,9 @@ list(APPEND MIKAN_TEST_REQ_LIBS
   ${FFMPEG_LIBRARIES}
   MikanCore
   MikanAPI
-  MikanSerialization)
+  MikanCoreAppLib
+  MikanSerialization
+  MikanUtilityLib)
 
 add_executable(Mikan_Test ${MIKAN_TEST_SRC})
 target_include_directories(Mikan_Test PUBLIC ${MIKAN_TEST_INCL_DIRS})

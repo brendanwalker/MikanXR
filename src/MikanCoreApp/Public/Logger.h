@@ -2,7 +2,7 @@
 
 //-- includes -----
 #include <string>
-#include <sstream>
+#include <filesystem>
 
 #include "MikanCoreAppExport.h"
 
@@ -21,26 +21,29 @@ enum class LogSeverityLevel : int
 class MIKAN_COREAPP_CLASS LoggerStream
 {
 protected:
-	std::ostringstream m_lineBuffer;
-	LogSeverityLevel m_level;
-	bool m_hasWrittenLog= false;
+	class LoggerStreamImpl* m_impl;
 
 public:
 	LoggerStream(LogSeverityLevel level);
 	virtual ~LoggerStream();
 
-	// accepts just about anything
-	template<class T>
-	LoggerStream &operator<<(const T &x)
-	{
-		if (log_can_emit_level(m_level))
-		{
-			m_lineBuffer << x;
-			m_hasWrittenLog= true;
-		}
-
-		return *this;
-	}
+	LoggerStream& operator<<(bool value);
+	LoggerStream& operator<<(char value);
+	LoggerStream& operator<<(short value);
+	LoggerStream& operator<<(unsigned short value);
+	LoggerStream& operator<<(int value);
+	LoggerStream& operator<<(unsigned int value);
+	LoggerStream& operator<<(long value);
+	LoggerStream& operator<<(unsigned long value);
+	LoggerStream& operator<<(long long value);
+	LoggerStream& operator<<(unsigned long long value);
+	LoggerStream& operator<<(float value);
+	LoggerStream& operator<<(double value);
+	LoggerStream& operator<<(long double value);
+	LoggerStream& operator<<(const void* value);
+	LoggerStream& operator<<(const char* value);
+	LoggerStream& operator<<(const std::string& value);
+	LoggerStream& operator<<(const std::filesystem::path& value);
 
 protected:
 	virtual void write_line();

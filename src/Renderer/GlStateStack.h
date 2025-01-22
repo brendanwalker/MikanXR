@@ -92,11 +92,11 @@ private:
 };
 
 
-class GlStateLog : public LoggerStream
+class GlStateLog
 {
 public:
 	GlStateLog(const GlState& state)
-		: LoggerStream(LogSeverityLevel::info)
+		: m_loggerStream(LogSeverityLevel::info)
 		, m_state(state) 
 	{}
 
@@ -105,13 +105,13 @@ public:
 	{
 		if (m_state.getOwnerStateStack().isDebugPrintEnabled())
 		{
-			m_lineBuffer << m_state.getDebugPrefix() << x;
-			m_hasWrittenLog = true;
+			m_loggerStream << m_state.getDebugPrefix() << x;
 		}
 
 		return *this;
 	}
 
 protected:
+	LoggerStream m_loggerStream;
 	const GlState& m_state;
 };
