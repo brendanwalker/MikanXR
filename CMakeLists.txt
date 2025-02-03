@@ -23,7 +23,6 @@ include(cmake/Installer.cmake)
 set(MIKAN_ARCH_INSTALL_PATH "${MIKAN_ROOT_INSTALL_PATH}/${ARCH_LABEL}")
 
 # Step into the subdirectories
-add_subdirectory(plugins)
 add_subdirectory(src)
 add_subdirectory(bindings)
 add_subdirectory(thirdparty)

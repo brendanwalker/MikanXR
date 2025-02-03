@@ -207,10 +207,17 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_objectSystemManager->startup())
+	if (success)
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
-		success = false;
+		m_objectSystemManager->addSystem<AnchorObjectSystem>();
+		m_objectSystemManager->addSystem<StencilObjectSystem>();
+		m_objectSystemManager->addSystem<EditorObjectSystem>();
+		
+		if (!m_objectSystemManager->startup())
+		{			
+			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
+			success = false;
+		}
 	}
 
 	if (success && !m_frameCompositor->startup(this))
