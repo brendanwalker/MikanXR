@@ -6,11 +6,11 @@ file(GLOB MIKAN_DX_TEST_SRC
 
 list(APPEND MIKAN_DX_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
-  ${ROOT_DIR}/src/ClientAPI/Public
-  ${ROOT_DIR}/src/ClientCore/Public
-  ${ROOT_DIR}/src/MikanCoreApp/Public
-  ${ROOT_DIR}/src/MikanUtility/Public
-  ${ROOT_DIR}/src/Serialization/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${STB_INCLUDE_DIRS}
   ${RFK_INCLUDE_DIR})
@@ -21,16 +21,16 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
   dxguid 
   comctl32
   ${MIKAN_EXTRA_LIBS}
-  MikanCore
-  MikanAPI
-  MikanCoreAppLib
+  MikanClientCore
+  MikanClientAPI
+  MikanCoreApp
   MikanSerialization
-  MikanUtilityLib)
+  MikanUtility)
 
 add_executable(MikanDX_Test WIN32 ${MIKAN_DX_TEST_SRC})
 target_include_directories(MikanDX_Test PUBLIC ${MIKAN_DX_TEST_INCL_DIRS})
 target_link_libraries(MikanDX_Test ${MIKAN_DX_TEST_REQ_LIBS})
-SET_TARGET_PROPERTIES(MikanDX_Test PROPERTIES FOLDER Test)
+SET_TARGET_PROPERTIES(MikanDX_Test PROPERTIES FOLDER Programs)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
@@ -46,17 +46,32 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET MikanDX_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll
+          $<TARGET_FILE_DIR:MikanClientCore>/MikanClientCore.dll
           $<TARGET_FILE_DIR:MikanDX_Test>)
   add_custom_command(
     TARGET MikanDX_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
+          $<TARGET_FILE_DIR:MikanClientAPI>/MikanClientAPI.dll
+          $<TARGET_FILE_DIR:MikanDX_Test>)
+  add_custom_command(
+    TARGET MikanDX_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll
+          $<TARGET_FILE_DIR:MikanDX_Test>)
+  add_custom_command(
+    TARGET MikanDX_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll
           $<TARGET_FILE_DIR:MikanDX_Test>)
   add_custom_command(
     TARGET MikanDX_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
+          $<TARGET_FILE_DIR:MikanDX_Test>)
+  add_custom_command(
+    TARGET MikanDX_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll
           $<TARGET_FILE_DIR:MikanDX_Test>)
 ELSE() #Linux/Darwin
 ENDIF()

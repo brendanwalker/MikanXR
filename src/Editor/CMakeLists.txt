@@ -410,6 +410,9 @@ list(APPEND MIKAN_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${MIKAN_PLUGINS_DIR}/MikanGStreamer/Public
+  ${MIKAN_THIRDPARTY_DIR}/OpenCV/Public
+  ${MIKAN_THIRDPARTY_DIR}/RmlUi/Public
+  ${MIKAN_THIRDPARTY_DIR}/SDL/Public
   ${RFK_GENERATED_ROOT_DIR}/MikanCore
   ${RFK_GENERATED_ROOT_DIR}/MikanAPI
   ${RFK_GENERATED_ROOT_DIR}/Serialization
@@ -459,11 +462,14 @@ list(APPEND MIKAN_REQ_LIBS
   easy_profiler
   fast_obj_lib
   ixwebsocket
-  MikanClientAPILib
-  MikanCoreLib
-  MikanCoreAppLib
-  MikanSerializationLib
-  MikanUtilityLib
+  MikanClientAPI
+  MikanClientCore
+  MikanCoreApp
+  MikanOpenCV
+  MikanRmlUI
+  MikanSDL
+  MikanSerialization
+  MikanUtility
   RmlCore
   RmlDebugger)
 
@@ -506,24 +512,28 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanCore>/MikanClientCoreDll.dll $<TARGET_FILE_DIR:Mikan>)
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanClientAPI>/MikanClientAPI.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanAPI>/MikanClientAPI.dll $<TARGET_FILE_DIR:Mikan>)
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanClientCore>/MikanClientCore.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:MikanSerialization>/MikanSerializationDll.dll
-          $<TARGET_FILE_DIR:Mikan>)		  
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll $<TARGET_FILE_DIR:Mikan>)
   set( MIKANSERIALIZATION_PDB_COPY_CMD 
-	${CMAKE_COMMAND} -E
-	copy 
-	"$<TARGET_FILE_DIR:MikanSerialization>/$<TARGET_FILE_BASE_NAME:MikanSerialization>.pdb"
-	"$<TARGET_FILE_DIR:Mikan>")		  
+    ${CMAKE_COMMAND} -E
+    copy 
+    "$<TARGET_FILE_DIR:MikanSerialization>/$<TARGET_FILE_BASE_NAME:MikanSerialization>.pdb"
+    "$<TARGET_FILE_DIR:Mikan>")
   add_custom_command( TARGET Mikan POST_BUILD 
     COMMAND "$<$<CONFIG:Debug,RelWithDebInfo>:${MIKANSERIALIZATION_PDB_COPY_CMD}>"
     DEPENDS MikanSerialization
-	COMMAND_EXPAND_LISTS)
+    COMMAND_EXPAND_LISTS)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${OPENCV_VIDEOIO_DLL} $<TARGET_FILE_DIR:Mikan>)

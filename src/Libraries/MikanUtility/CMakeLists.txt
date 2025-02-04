@@ -1,7 +1,7 @@
-## Mikan Utility Static LIB
-## ========================
+## Mikan Utility DLL
+## =================
 
-MESSAGE(STATUS "Generating Mikan Utility Static LIB Project")
+MESSAGE(STATUS "Generating Mikan Utility DLL Project")
 
 file(GLOB MIKAN_UTILITY_HEADER
 	"${CMAKE_CURRENT_LIST_DIR}/Public/*.h"
@@ -25,7 +25,17 @@ list(APPEND MIKAN_UTILITY_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Private
 )
 
-add_library(MikanUtilityLib STATIC ${MIKAN_UTILITY_SRC})
-target_include_directories(MikanUtilityLib PRIVATE ${MIKAN_UTILITY_INCL_DIRS})
-set_target_properties(MikanUtilityLib PROPERTIES FOLDER MikanLibraries)
-set_target_properties(MikanUtilityLib PROPERTIES PUBLIC_HEADER "${MIKAN_UTILITY_HEADER}")
+add_library(MikanUtility SHARED ${MIKAN_UTILITY_SRC})
+target_include_directories(MikanUtility PRIVATE ${MIKAN_UTILITY_INCL_DIRS})
+set_target_properties(MikanUtility PROPERTIES FOLDER MikanLibraries)
+set_target_properties(MikanUtility PROPERTIES PUBLIC_HEADER "${MIKAN_UTILITY_HEADER}")
+
+# Install - copy runtime dependencies to dist folder (for release)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+  install(TARGETS MikanUtility
+      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
+      LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)	  
+ELSE() #Linux/Darwin
+ENDIF()

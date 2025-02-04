@@ -2,35 +2,16 @@
 file(GLOB MIKAN_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
-    "${ROOT_DIR}/src/Renderer/GlBufferBlock.h"
-    "${ROOT_DIR}/src/Renderer/GlBufferBlock.cpp"
-    "${ROOT_DIR}/src/Renderer/GlCommon.h"
-    "${ROOT_DIR}/src/Renderer/GlCommon.cpp"
-    "${ROOT_DIR}/src/Renderer/GlProgram.h"
-    "${ROOT_DIR}/src/Renderer/GlProgram.cpp"
-    "${ROOT_DIR}/src/Renderer/GlProgramConstants.h"
-    "${ROOT_DIR}/src/Renderer/GlProgramConstants.cpp"
-    "${ROOT_DIR}/src/Renderer/GlShaderVar.h"
-    "${ROOT_DIR}/src/Renderer/GlShaderVar.cpp"
-    "${ROOT_DIR}/src/Renderer/GlTexture.h"
-    "${ROOT_DIR}/src/Renderer/GlTexture.cpp"
-    "${ROOT_DIR}/src/Renderer/GlUniformBlock.h"
-    "${ROOT_DIR}/src/Renderer/GlUniformBlock.cpp"
-    "${ROOT_DIR}/src/Renderer/GlVertexConstants.h"
-    "${ROOT_DIR}/src/Renderer/GlVertexConstants.cpp"
-    "${ROOT_DIR}/src/Renderer/GlVertexDefinition.h"
-    "${ROOT_DIR}/src/Renderer/GlVertexDefinition.cpp"
 )
 
 list(APPEND MIKAN_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
-  ${ROOT_DIR}/src/ClientAPI/Public
-  ${ROOT_DIR}/src/ClientCore/Public
-  ${ROOT_DIR}/src/MikanCoreApp/Public
-  ${ROOT_DIR}/src/MikanUtility/Public
-  ${ROOT_DIR}/src/Serialization/Public
-  ${ROOT_DIR}/src/Renderer/
-  ${ROOT_DIR}/src/Utility/
+  ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${ROOT_DIR}/thirdparty/glm/
   ${GLEW_INCLUDE_DIRS}
   ${NLOHMANN_JSON_INCLUDE_DIR}
@@ -43,16 +24,17 @@ list(APPEND MIKAN_TEST_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${FFMPEG_LIBRARIES}
-  MikanCore
-  MikanAPI
-  MikanCoreAppLib
+  MikanClientCore
+  MikanClientAPI
+  MikanCoreApp
+  MikanRenderer
   MikanSerialization
-  MikanUtilityLib)
+  MikanUtility)
 
 add_executable(Mikan_Test ${MIKAN_TEST_SRC})
 target_include_directories(Mikan_Test PUBLIC ${MIKAN_TEST_INCL_DIRS})
 target_link_libraries(Mikan_Test ${MIKAN_TEST_REQ_LIBS})
-SET_TARGET_PROPERTIES(Mikan_Test PROPERTIES FOLDER Test)
+SET_TARGET_PROPERTIES(Mikan_Test PROPERTIES FOLDER Programs)
 
 # Runtime dependencies
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
@@ -76,17 +58,32 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:MikanCore>/MikanCore.dll
+          $<TARGET_FILE_DIR:MikanClientCore>/MikanClientCore.dll
           $<TARGET_FILE_DIR:Mikan_Test>)
   add_custom_command(
     TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-          $<TARGET_FILE_DIR:MikanAPI>/MikanAPI.dll
+          $<TARGET_FILE_DIR:MikanClientAPI>/MikanClientAPI.dll
+          $<TARGET_FILE_DIR:Mikan_Test>)
+  add_custom_command(
+    TARGET Mikan_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll
+          $<TARGET_FILE_DIR:Mikan_Test>)
+  add_custom_command(
+    TARGET Mikan_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll
           $<TARGET_FILE_DIR:Mikan_Test>)
   add_custom_command(
     TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
+          $<TARGET_FILE_DIR:Mikan_Test>)
+  add_custom_command(
+    TARGET Mikan_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll
           $<TARGET_FILE_DIR:Mikan_Test>)
   add_custom_command(
     TARGET Mikan_Test POST_BUILD

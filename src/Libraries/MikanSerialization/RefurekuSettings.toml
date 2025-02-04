@@ -25,7 +25,7 @@ ignoredFiles = []
 
 [CodeGenUnitSettings]
 # Generated files will be located here
-outputDirectory = '''../../build/RfkGenerated/Serialization'''
+outputDirectory = '''../../../build/RfkGenerated/MikanSerialization'''
 
 generatedHeaderFileNamePattern = "##FILENAME##.rfkh.h"
 generatedSourceFileNamePattern = "##FILENAME##.rfks.h"
@@ -42,10 +42,10 @@ cppVersion = 17
 
 # Include directories of the project
 projectIncludeDirectories = [
-	'''../../deps/rfk/Include''',
-	'''../../thirdparty/nlohmann_json/include''',
-	'''../../build/RfkGenerated/Serialization''',
-	'''./Public'''
+	'''./Public''',
+	'''../../../build/RfkGenerated/MikanSerialization''',
+	'''../../../deps/rfk/Include''',
+	'''../../../thirdparty/nlohmann_json/include'''
 ]
 
 # Must be one of "msvc", "clang++", "g++"
