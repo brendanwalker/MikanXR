@@ -2,6 +2,7 @@
 #include "InterprocessRenderTargetWriter.h"
 #include "InterprocessMessages.h"
 #include "WebsocketInterprocessMessageClient.h"
+#include "MikanClientLogger.h"
 #include "MikanClient.h"
 #include "MikanCoreCAPI.h"
 #include "MikanCoreTypes.h"
@@ -47,11 +48,11 @@ MikanCoreResult MikanClient::startup(LogSeverityLevel log_level, t_logCallback l
 	// Reset status flags
 	m_bIsConnected= false;
 
-	LoggerSettings settings = {};
+	ClientLoggerSettings settings = {};
 	settings.min_log_level = log_level;
 	settings.log_callback= log_callback;
 
-	log_init(settings);
+	client_log_init(settings);
 
 	if (!ix::initNetSystem())
 	{
@@ -177,7 +178,7 @@ MikanCoreResult MikanClient::shutdown()
 		m_messageClient->disconnect(0, "");
 	}
 	ix::uninitNetSystem();
-	log_dispose();
+	client_log_dispose();
 
 	return MikanCoreResult_Success;
 }
