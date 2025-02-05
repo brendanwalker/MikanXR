@@ -222,6 +222,13 @@ source_group("ImGui" FILES ${IMGUI_SOURCE})
 # ImNodes's source files are included in directly, rather than linking against a lib
 source_group("ImNodes" FILES ${IMNODES_SOURCE})
 
+# Interprocess
+file(GLOB MIKAN_INTERPROCESS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Interprocess/*.h"
+)
+source_group("Interprocess" FILES ${MIKAN_INTERPROCESS_SRC})
+
 # Localization
 file(GLOB MIKAN_LOCALIZATION_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Localization/*.cpp"
@@ -373,9 +380,7 @@ set(MIKAN_SRC
     ${MIKAN_DEVICE_VIEW_SRC}
     ${MIKAN_INTERPROCESS_SRC}
     ${MIKAN_LOCALIZATION_SRC}
-    ${MIKAN_MATH_SRC}
     ${MIKAN_NODE_EDITORS_SRC}
-    ${MIKAN_OBJECT_SRC}
     ${MIKAN_SCENE_SRC}
     ${MIKAN_SCRIPTING_SRC}
     ${MIKAN_SYSTEM_SRC}
@@ -405,6 +410,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Device/Interface
   ${CMAKE_CURRENT_LIST_DIR}/Device/Manager
   ${CMAKE_CURRENT_LIST_DIR}/Device/View
+  ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/Profile

@@ -13,6 +13,11 @@ file(GLOB MIKAN_CLIENT_CORE_SPOUT2_DX_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Private/SpoutDX/*.h"
 )
 
+file(GLOB MIKAN_CLIENT_CORE_INTERPROCESS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Private/Interprocess/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Private/Interprocess/*.h"
+)
+
 file(GLOB MIKAN_CLIENT_CORE_PUBLIC
     "${CMAKE_CURRENT_LIST_DIR}/Public/*.h"
 )
@@ -21,6 +26,7 @@ file(GLOB MIKAN_CLIENT_CORE_LIBRARY_SRC
     ${MIKAN_CLIENT_CORE_PUBLIC}
     ${MIKAN_CLIENT_CORE_PRIVATE_SRC}
     ${MIKAN_CLIENT_CORE_SPOUT2_DX_SRC}
+    ${MIKAN_CLIENT_CORE_INTERPROCESS_SRC}
 )
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
@@ -30,14 +36,14 @@ set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Private/MikanClient.cpp PR
 source_group("Public" FILES ${MIKAN_CLIENT_CORE_PUBLIC})
 source_group("Private" FILES ${MIKAN_CLIENT_CORE_PRIVATE_SRC})
 source_group("Private\\SpoutDX" FILES ${MIKAN_CLIENT_CORE_SPOUT2_DX_SRC})
+source_group("Private\\Interprocess" FILES ${MIKAN_CLIENT_CORE_INTERPROCESS_SRC})
 
 list(APPEND MIKAN_CLIENT_CORE_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Public
   ${CMAKE_CURRENT_LIST_DIR}/Private
   ${CMAKE_CURRENT_LIST_DIR}/Private/SpoutDX
-  ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
+  ${CMAKE_CURRENT_LIST_DIR}/Private/Interprocess
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
-  ${MIKAN_LIBRARIES_DIR}/MikanInterprocessClient/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${RFK_GENERATED_ROOT_DIR}/MikanClientCore
   ${RFK_GENERATED_ROOT_DIR}/Serialization
@@ -52,9 +58,7 @@ list(APPEND MIKAN_CLIENT_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${RFK_LIBRARIES}
   ixwebsocket
-  MikanCoreApp
   MikanSerialization
-  MikanInterprocessClient
   MikanUtility)
 
 add_library(MikanClientCore SHARED ${MIKAN_CLIENT_CORE_LIBRARY_SRC})
@@ -71,9 +75,7 @@ target_compile_definitions(MikanClientCore PRIVATE ENABLE_SPOUT_DX)
 target_compile_definitions(MikanClientCore PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 # Add dependencies
-add_dependencies(MikanClientCore MikanCoreApp)
 add_dependencies(MikanClientCore MikanSerialization)
-add_dependencies(MikanClientCore MikanInterprocessClient)
 add_dependencies(MikanClientCore MikanUtility)
 
 # Create the command to run RefurekuGenerator

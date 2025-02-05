@@ -2,7 +2,6 @@
 
 //-- includes -----
 #include "MikanCoreTypes.h"
-#include "Logger.h"
 
 #include <map>
 #include <mutex>
