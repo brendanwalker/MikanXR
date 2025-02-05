@@ -12,8 +12,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "openvr.h"
-
 #define k_meters_to_millimeters		1000.0
 #define k_millimeters_to_meters		(1.0 / k_meters_to_millimeters)
 
