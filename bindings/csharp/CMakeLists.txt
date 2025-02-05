@@ -57,7 +57,7 @@ set (CODEGEN_EXE $<TARGET_FILE_DIR:MikanClientCodeGen>/$<TARGET_NAME:MikanClient
 add_custom_target(MikanCSharpCodeGen
 					WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
 					COMMAND "${CODEGEN_EXE}" "${CMAKE_CURRENT_LIST_DIR}/CSharpCodeGenConfig.json") 
-set_target_properties(MikanCSharpCodeGen PROPERTIES FOLDER ClientAPI)
+set_target_properties(MikanCSharpCodeGen PROPERTIES FOLDER Programs)
 
 # Run the RefurekuGenerator BEFORE building the project to refresh generated files
 add_dependencies(${PROJECT_NAME} MikanCSharpCodeGen)

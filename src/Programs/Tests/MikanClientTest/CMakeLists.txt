@@ -34,7 +34,7 @@ list(APPEND MIKAN_TEST_REQ_LIBS
 add_executable(Mikan_Test ${MIKAN_TEST_SRC})
 target_include_directories(Mikan_Test PUBLIC ${MIKAN_TEST_INCL_DIRS})
 target_link_libraries(Mikan_Test ${MIKAN_TEST_REQ_LIBS})
-SET_TARGET_PROPERTIES(Mikan_Test PROPERTIES FOLDER Programs)
+SET_TARGET_PROPERTIES(Mikan_Test PROPERTIES FOLDER Test)
 
 # Runtime dependencies
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)

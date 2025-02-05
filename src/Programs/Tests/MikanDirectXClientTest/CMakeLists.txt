@@ -30,7 +30,7 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
 add_executable(MikanDX_Test WIN32 ${MIKAN_DX_TEST_SRC})
 target_include_directories(MikanDX_Test PUBLIC ${MIKAN_DX_TEST_INCL_DIRS})
 target_link_libraries(MikanDX_Test ${MIKAN_DX_TEST_REQ_LIBS})
-SET_TARGET_PROPERTIES(MikanDX_Test PROPERTIES FOLDER Programs)
+SET_TARGET_PROPERTIES(MikanDX_Test PROPERTIES FOLDER Test)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 

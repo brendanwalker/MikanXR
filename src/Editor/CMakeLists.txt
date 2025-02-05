@@ -696,7 +696,3 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     
 ELSE() #Linux/Darwin
 ENDIF()
-
-MESSAGE(STATUS "Stepping into tests")
-add_subdirectory(Tests)
-MESSAGE(STATUS "Stepping into ")
