@@ -23,10 +23,16 @@ source_group("Private" FILES ${MIKAN_MATH_PRIVATE_SRC})
 list(APPEND MIKAN_MATH_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Public
 	${CMAKE_CURRENT_LIST_DIR}/Private
+	${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
+	${ROOT_DIR}/thirdparty/glm/
 )
+
+list(APPEND MIKAN_MATH_REQ_LIBS
+  MikanClientAPI)
 
 add_library(MikanMath SHARED ${MIKAN_MATH_SRC})
 target_include_directories(MikanMath PRIVATE ${MIKAN_MATH_INCL_DIRS})
+target_link_libraries(MikanMath PRIVATE ${MIKAN_MATH_REQ_LIBS})
 target_compile_definitions(MikanMath PRIVATE MIKAN_MATH_EXPORTS)
 set_target_properties(MikanMath PROPERTIES FOLDER MikanLibraries)
 set_target_properties(MikanMath PROPERTIES PUBLIC_HEADER "${MIKAN_MATH_HEADER}")

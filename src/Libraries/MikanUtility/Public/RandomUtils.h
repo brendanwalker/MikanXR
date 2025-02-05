@@ -1,8 +1,11 @@
 #pragma once
+
+#include "MikanUtilityExport.h"
+
 #include <string>
 
 //-- utility methods -----
 namespace RandomUtils
 {
-	std::string RandomHexString(const unsigned int length);
+	MIKAN_UTILITY_FUNC(std::string) RandomHexString(const unsigned int length);
 }
