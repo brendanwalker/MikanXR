@@ -1,6 +1,6 @@
 #include "ModelNode.h"
 #include "GlMaterial.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Logger.h"
 #include "ModelAssetReference.h"
 #include "NodeEditorState.h"

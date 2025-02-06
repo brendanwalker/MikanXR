@@ -25,7 +25,7 @@
 #include "GlRenderModelResource.h"
 #include "GlViewport.h"
 #include "GlWireframeMesh.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "InterprocessRenderTargetReader.h"
 #include "InputManager.h"
 #include "MainWindow.h"

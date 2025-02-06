@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GlTypesFwd.h"
+#include "MkRendererFwd.h"
 #include <memory>
 
 class GlRmlUiRender;

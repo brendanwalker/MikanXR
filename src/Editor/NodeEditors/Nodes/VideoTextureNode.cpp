@@ -1,6 +1,6 @@
 #include "App.h"
 #include "GlFrameCompositor.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"

@@ -5,7 +5,7 @@
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
 #include "GlScopedObjectBinding.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlTextRenderer.h"
 #include "GlProgramConfig.h"
 #include "InterprocessRenderTargetReader.h"
@@ -50,7 +50,7 @@ GlFrameCompositor::GlFrameCompositor()
 
 	m_config= std::make_shared<GlFrameCompositorConfig>();
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
-	m_editorFrameBufferTexture = std::make_shared<GlTexture>();
+	m_editorFrameBufferTexture = CreateMkTexture();
 	m_videoExportFramebuffer = std::make_shared<GlFrameBuffer>();
 }
 
@@ -953,17 +953,17 @@ bool GlFrameCompositor::addClientSource(
 	switch (desc.color_buffer_type)
 	{
 	case MikanColorBuffer_RGB24:
-		clientSource->colorTexture = std::make_shared<GlTexture>();
+		clientSource->colorTexture = CreateMkTexture();
 		clientSource->colorTexture->setTextureFormat(GL_RGB);
 		clientSource->colorTexture->setBufferFormat(GL_RGB);
 		break;
 	case MikanColorBuffer_RGBA32:
-		clientSource->colorTexture = std::make_shared<GlTexture>();
+		clientSource->colorTexture = CreateMkTexture();
 		clientSource->colorTexture->setTextureFormat(GL_RGBA);
 		clientSource->colorTexture->setBufferFormat(GL_RGBA);
 		break;
 	case MikanColorBuffer_BGRA32:
-		clientSource->colorTexture = std::make_shared<GlTexture>();
+		clientSource->colorTexture = CreateMkTexture();
 		clientSource->colorTexture->setTextureFormat(GL_RGBA);
 		clientSource->colorTexture->setBufferFormat(GL_BGRA);
 		break;
@@ -975,8 +975,8 @@ bool GlFrameCompositor::addClientSource(
 		clientSource->colorTexture->setGenerateMipMap(false);
 		clientSource->colorTexture->setPixelBufferObjectMode(
 			desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN 
-			? GlTexture::PixelBufferObjectMode::DoublePBOWrite
-			: GlTexture::PixelBufferObjectMode::NoPBO);
+			? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
+			: IMkTexture::PixelBufferObjectMode::NoPBO);
 		clientSource->colorTexture->createTexture();
 
 		readAccessor->setColorTexture(clientSource->colorTexture);
@@ -986,12 +986,12 @@ bool GlFrameCompositor::addClientSource(
 	{
 	case MikanDepthBuffer_FLOAT_DEVICE_DEPTH:
 	case MikanDepthBuffer_FLOAT_SCENE_DEPTH:
-		clientSource->depthTexture = std::make_shared<GlTexture>();
+		clientSource->depthTexture = CreateMkTexture();
 		clientSource->depthTexture->setTextureFormat(GL_R32F);
 		clientSource->depthTexture->setBufferFormat(GL_RED);
 		break;
 	case MikanDepthBuffer_PACK_DEPTH_RGBA:
-		clientSource->depthTexture = std::make_shared<GlTexture>();
+		clientSource->depthTexture = CreateMkTexture();
 		clientSource->depthTexture->setTextureFormat(GL_RGBA);
 		clientSource->depthTexture->setBufferFormat(GL_RGBA);
 		break;
@@ -1002,8 +1002,8 @@ bool GlFrameCompositor::addClientSource(
 		clientSource->depthTexture->setSize(desc.width, desc.height);
 		clientSource->depthTexture->setPixelBufferObjectMode(
 			desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
-			? GlTexture::PixelBufferObjectMode::DoublePBOWrite
-			: GlTexture::PixelBufferObjectMode::NoPBO);
+			? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
+			: IMkTexture::PixelBufferObjectMode::NoPBO);
 		clientSource->depthTexture->createTexture();
 
 		readAccessor->setDepthTexture(clientSource->depthTexture);

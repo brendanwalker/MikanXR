@@ -1,6 +1,6 @@
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 
 #include "imnodes.h"
 #include "imnodes_internal.h"

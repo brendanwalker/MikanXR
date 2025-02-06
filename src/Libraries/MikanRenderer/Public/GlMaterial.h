@@ -31,7 +31,7 @@ public:
 	inline const NamedValueTable<glm::vec3>& getFloat3Sources() const { return m_float3Sources; }
 	inline const NamedValueTable<glm::vec4>& getFloat4Sources() const { return m_float4Sources; }
 	inline const NamedValueTable<glm::mat4>& getMat4Sources() const { return m_mat4Sources; }
-	inline const NamedValueTable<GlTexturePtr>& getTextureSources() const { return m_textureSources; }
+	inline const NamedValueTable<IMkTexturePtr>& getTextureSources() const { return m_textureSources; }
 
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
@@ -58,10 +58,10 @@ public:
 	bool setMat4ByUniformName(const std::string uniformName, const glm::mat4& value);
 	bool getMat4ByUniformName(const std::string uniformName, glm::mat4& outValue) const;
 
-	bool setTextureBySemantic(eUniformSemantic semantic, GlTexturePtr texture);
-	bool getTextureBySemantic(eUniformSemantic semantic, GlTexturePtr& outTexture) const;
-	bool setTextureByUniformName(const std::string uniformName, GlTexturePtr texture);
-	bool getTextureByUniformName(const std::string uniformName, GlTexturePtr& outTexture) const;
+	bool setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture);
+	bool getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const;
+	bool setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture);
+	bool getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const;
 
 	GlScopedMaterialBinding bindMaterial(BindUniformCallback callback= BindUniformCallback()) const;
 
@@ -79,5 +79,5 @@ private:
 	NamedValueTable<glm::vec3> m_float3Sources;
 	NamedValueTable<glm::vec4> m_float4Sources;
 	NamedValueTable<glm::mat4> m_mat4Sources;
-	NamedValueTable<GlTexturePtr> m_textureSources;
+	NamedValueTable<IMkTexturePtr> m_textureSources;
 };

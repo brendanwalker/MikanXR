@@ -3,7 +3,7 @@
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
 #include "GlTriangulatedMesh.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlProgram.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
@@ -122,14 +122,14 @@ void SteamVRRenderModelResource::disposeSteamVRResources()
 	}
 }
 
-GlTexturePtr SteamVRRenderModelResource::createTextureResource(
+IMkTexturePtr SteamVRRenderModelResource::createTextureResource(
 	const vr::RenderModel_TextureMap_t* steamvrTexture)
 {
-	GlTexturePtr glTexture = nullptr;
+	IMkTexturePtr glTexture = nullptr;
 
 	if (steamvrTexture != nullptr)
 	{
-		glTexture = std::make_shared<GlTexture>(
+		glTexture = CreateMkTexture(
 			steamvrTexture->unWidth,
 			steamvrTexture->unHeight,
 			steamvrTexture->rubTextureMapData,
@@ -146,7 +146,7 @@ GlTexturePtr SteamVRRenderModelResource::createTextureResource(
 }
 
 GlMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
-	GlTexturePtr texture)
+	IMkTexturePtr texture)
 {
 	auto* shaderCache= m_ownerWindow->getShaderCache();
 	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);

@@ -1,6 +1,6 @@
 #include "MaterialNode.h"
 #include "GlMaterial.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Logger.h"
 #include "MaterialAssetReference.h"
 #include "NodeEditorState.h"

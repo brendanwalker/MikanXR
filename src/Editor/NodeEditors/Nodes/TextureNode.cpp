@@ -1,5 +1,5 @@
 #include "TextureNode.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"

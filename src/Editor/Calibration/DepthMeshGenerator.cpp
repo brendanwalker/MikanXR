@@ -12,7 +12,7 @@
 #include "GlProgram.h"
 #include "GlShaderCache.h"
 #include "GlScene.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlTriangulatedMesh.h"
 #include "IMkWindow.h"
 #include "Logger.h"
@@ -420,7 +420,7 @@ private:
 	{
 		// Create a texture for the mesh
 		cv::Mat* bgrUndistortBuffer = distortionView->getBGRUndistortBuffer();
-		auto depthMeshTexture = std::make_shared<GlTexture>(
+		auto depthMeshTexture = CreateMkTexture(
 			bgrUndistortBuffer->cols,
 			bgrUndistortBuffer->rows,
 			bgrUndistortBuffer->data,

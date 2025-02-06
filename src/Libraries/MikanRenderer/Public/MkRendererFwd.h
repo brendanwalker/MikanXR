@@ -41,9 +41,9 @@ class GlStaticMeshInstance;
 using GlStaticMeshInstancePtr = std::shared_ptr<GlStaticMeshInstance>;
 using GlStaticMeshInstanceConstPtr = std::shared_ptr<const GlStaticMeshInstance>;
 
-class GlTexture;
-using GlTexturePtr = std::shared_ptr<GlTexture>;
-using GlTextureConstPtr = std::shared_ptr<const GlTexture>;
+class IMkTexture;
+using IMkTexturePtr = std::shared_ptr<IMkTexture>;
+using IMkTextureConstPtr = std::shared_ptr<const IMkTexture>;
 
 class GlTextureCache;
 using GlTextureCacheUniquePtr = std::unique_ptr<GlTextureCache>;

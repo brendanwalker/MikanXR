@@ -1,4 +1,4 @@
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "SdlCommon.h"
 
 #if defined(_WIN32)

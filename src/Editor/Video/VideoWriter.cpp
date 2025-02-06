@@ -1,4 +1,4 @@
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "VideoWriter.h"
 #include "Logger.h"
 

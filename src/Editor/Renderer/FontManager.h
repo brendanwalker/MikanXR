@@ -1,7 +1,7 @@
 #pragma once
 
 #include "TextStyle.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include <string>
 #include <map>
@@ -21,14 +21,14 @@ public:
 	void garbageCollect();
 	void shutdown();
 
-	GlTexturePtr fetchBakedText(const TextStyle& style, const std::wstring& text);
+	IMkTexturePtr fetchBakedText(const TextStyle& style, const std::wstring& text);
 
 private:
 	void* fetchFont(const std::string& fontName, int pointSize);
 
 	struct GlBakedText
 	{
-		GlTexturePtr texture;
+		IMkTexturePtr texture;
 		std::wstring text;
 		int lifetime;
 	};

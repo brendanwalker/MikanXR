@@ -21,11 +21,11 @@ public:
 	bool startup();
 	void shutdown();
 
-	GlTexturePtr tryGetTextureByName(const std::string& textureName);
-	GlTexturePtr loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef);
-	GlTexturePtr loadTexturePath(const std::filesystem::path& texturePath, const std::string& overrideName= "");
-	bool removeTexureFromCache(GlTexturePtr texture);
+	IMkTexturePtr tryGetTextureByName(const std::string& textureName);
+	IMkTexturePtr loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef);
+	IMkTexturePtr loadTexturePath(const std::filesystem::path& texturePath, const std::string& overrideName= "");
+	bool removeTexureFromCache(IMkTexturePtr texture);
 
 private:
-	std::map<std::string, GlTexturePtr> m_textureCache;
+	std::map<std::string, IMkTexturePtr> m_textureCache;
 };

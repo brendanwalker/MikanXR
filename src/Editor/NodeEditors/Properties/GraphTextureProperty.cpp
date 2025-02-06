@@ -1,5 +1,5 @@
 #include "GraphTextureProperty.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
 #include "NodeEditorUI.h"
@@ -158,13 +158,13 @@ void GraphTextureProperty::setTextureAssetReference(TextureAssetReferencePtr inA
 		// re-create a texture from the asset reference
 		if (m_textureAssetRef->isValid())
 		{
-			m_texture = std::make_shared<GlTexture>();
+			m_texture = CreateMkTexture();
 			m_texture->setImagePath(inAssetRef->getAssetPath());
 			m_texture->reloadTextureFromImagePath();
 		}
 		else
 		{
-			m_texture = GlTexturePtr();
+			m_texture = IMkTexturePtr();
 		}
 	}
 }

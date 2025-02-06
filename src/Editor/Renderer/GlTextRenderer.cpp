@@ -11,7 +11,7 @@
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
 #include "GlTextRenderer.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlViewport.h"
 #include "IMkWindow.h"
 #include "Logger.h"

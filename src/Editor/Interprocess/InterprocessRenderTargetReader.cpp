@@ -1,5 +1,5 @@
 #include "InterprocessRenderTargetReader.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Logger.h"
 #include "SpoutLibrary.h"
 

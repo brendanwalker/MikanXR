@@ -40,15 +40,15 @@ public:
 	void setSize(int width, int height);
 	void setColorFormat(eColorFormat colorFormat);
 	void setClearColor(const glm::vec4& clearColor) { m_clearColor = clearColor; }
-	void setExternalColorTexture(GlTexturePtr texture);
+	void setExternalColorTexture(IMkTexturePtr texture);
 
 	std::string getName() const { return m_name; }
 	GLuint getGlFrameBufferId() const { return m_glFrameBufferId; }
 	int getWidth() const { return m_width; }
 	int getHeight() const { return m_height; }
 	eColorFormat getColorFormat() const { return m_colorFormat; }
-	GlTexturePtr getColorTexture() const;
-	GlTexturePtr getDepthTexture() const;
+	IMkTexturePtr getColorTexture() const;
+	IMkTexturePtr getDepthTexture() const;
 	GlState* getGlState() const { return m_glState; }
 
 private:
@@ -71,9 +71,9 @@ private:
 	int m_width= 800;
 	int m_height= 600;
 
-	GlTexturePtr m_colorTexture;
+	IMkTexturePtr m_colorTexture;
 	bool m_bIsExternalTexture= false;
-	GlTexturePtr m_depthTexture;
+	IMkTexturePtr m_depthTexture;
 	GLuint m_glRenderBufferID= -1;
 
 	// Cached GLState

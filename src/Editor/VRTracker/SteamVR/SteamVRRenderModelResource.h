@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include <memory>
 #include <string>
@@ -29,9 +29,9 @@ protected:
 	bool loadSteamVRResources();
 	void disposeSteamVRResources();
 
-	GlTexturePtr createTextureResource(
+	IMkTexturePtr createTextureResource(
 		const struct vr::RenderModel_TextureMap_t* steamvrTexture);
-	GlMaterialInstancePtr createMaterialInstance(GlTexturePtr texture);
+	GlMaterialInstancePtr createMaterialInstance(IMkTexturePtr texture);
 	GlTriangulatedMeshPtr createTriangulatedMeshResource(
 		const std::string& meshName,
 		GlMaterialInstancePtr materialInstance,
@@ -44,6 +44,6 @@ protected:
 	vr::RenderModel_TextureMap_t* m_steamVRTextureMap= nullptr;
 
 	GlTriangulatedMeshPtr m_glMesh = nullptr;
-	GlTexturePtr m_glDiffuseTexture = nullptr;
+	IMkTexturePtr m_glDiffuseTexture = nullptr;
 	GlMaterialInstancePtr m_glMaterialInstance= nullptr;
 };

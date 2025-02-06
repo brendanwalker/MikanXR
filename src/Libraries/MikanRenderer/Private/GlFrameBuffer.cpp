@@ -2,7 +2,7 @@
 #include "GlCommon.h"
 #include "GLStateStack.h"
 #include "GlStateModifiers.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Logger.h"
 
 #include <assert.h>
@@ -74,12 +74,12 @@ bool GlFrameBuffer::createColorFrameBuffer()
 		const GLenum glColorFormat = GlFrameBufferUtils::getGlColorFormat(m_colorFormat);
 
 		assert(!m_bIsExternalTexture);
-		m_colorTexture = std::make_shared<GlTexture>();
+		m_colorTexture = CreateMkTexture();
 		m_colorTexture->setSize(m_width, m_height);
 		m_colorTexture->setTextureFormat(glColorFormat);
 		m_colorTexture->setBufferFormat(glColorFormat);
 		m_colorTexture->setGenerateMipMap(false);
-		m_colorTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
+		m_colorTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBORead);
 		m_colorTexture->createTexture();
 	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(), 0);
@@ -135,13 +135,13 @@ bool GlFrameBuffer::createDepthFrameBuffer()
 	if (!m_depthTexture)
 	{
 		assert(!m_bIsExternalTexture);
-		m_depthTexture = std::make_shared<GlTexture>();
+		m_depthTexture = CreateMkTexture();
 		m_depthTexture->setSize(m_width, m_height);
 		m_depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
 		m_depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
 		m_depthTexture->setGenerateMipMap(false);
 		// Assumption: Depth textures are not read back to the CPU, so no PBO is needed
-		m_depthTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
+		m_depthTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::NoPBO);
 		m_depthTexture->createTexture();
 	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->getGlTextureId(), 0);
@@ -177,12 +177,12 @@ bool GlFrameBuffer::createColorAndDepthFrameBuffer()
 		const GLenum glColorFormat = GlFrameBufferUtils::getGlColorFormat(m_colorFormat);
 
 		assert(!m_bIsExternalTexture);
-		m_colorTexture = std::make_shared<GlTexture>();
+		m_colorTexture = CreateMkTexture();
 		m_colorTexture->setSize(m_width, m_height);
 		m_colorTexture->setTextureFormat(glColorFormat);
 		m_colorTexture->setBufferFormat(glColorFormat);
 		m_colorTexture->setGenerateMipMap(false);
-		m_colorTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBORead);
+		m_colorTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBORead);
 		m_colorTexture->createTexture();
 	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(), 0);
@@ -190,13 +190,13 @@ bool GlFrameBuffer::createColorAndDepthFrameBuffer()
 	// Create a depth attachment texture with a double buffered pixel-buffer-object for reading
 	if (!m_depthTexture)
 	{
-		m_depthTexture = std::make_shared<GlTexture>();
+		m_depthTexture = CreateMkTexture();
 		m_depthTexture->setSize(m_width, m_height);
 		m_depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
 		m_depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
 		m_depthTexture->setGenerateMipMap(false);
 		// Assumption: Depth textures are not read back to the CPU, so no PBO is needed
-		m_depthTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::NoPBO);
+		m_depthTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::NoPBO);
 		m_depthTexture->createTexture();
 	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->getGlTextureId(), 0);
@@ -240,7 +240,7 @@ void GlFrameBuffer::setColorFormat(eColorFormat colorFormat)
 	}
 }
 
-void GlFrameBuffer::setExternalColorTexture(GlTexturePtr texture)
+void GlFrameBuffer::setExternalColorTexture(IMkTexturePtr texture)
 {
 	if (m_colorTexture != texture)
 	{
@@ -258,12 +258,12 @@ void GlFrameBuffer::setExternalColorTexture(GlTexturePtr texture)
 	}
 }
 
-GlTexturePtr GlFrameBuffer::getColorTexture() const
+IMkTexturePtr GlFrameBuffer::getColorTexture() const
 {
 	return m_colorTexture;
 }
 
-GlTexturePtr GlFrameBuffer::getDepthTexture() const
+IMkTexturePtr GlFrameBuffer::getDepthTexture() const
 {
 	return m_depthTexture;
 }

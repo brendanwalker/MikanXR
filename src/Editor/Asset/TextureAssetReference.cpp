@@ -1,5 +1,5 @@
 #include "TextureAssetReference.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "NodeEditorState.h"
 #include "PathUtils.h"
 #include "NodeEditorUI.h"
@@ -17,7 +17,7 @@ void TextureAssetReference::rebuildPreview()
 {
 	if (!m_previewTexture)
 	{
-		m_previewTexture = std::make_shared<GlTexture>();
+		m_previewTexture = CreateMkTexture();
 	}
 
 	m_previewTexture->setImagePath(getAssetPath());

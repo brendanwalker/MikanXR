@@ -1,7 +1,7 @@
 #include "GlCommon.h"
 #include "GlProgram.h"
 #include "GlProgramConstants.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Logger.h"
 
 #ifdef ENABLE_GL_PROGRAM_CONFIG

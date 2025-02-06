@@ -6,7 +6,7 @@
 #include "GlMaterialInstance.h"
 #include "GlShaderCache.h"
 #include "GlStateStack.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlTextureCache.h"
 #include "GlTriangulatedMesh.h"
 #include "Logger.h"

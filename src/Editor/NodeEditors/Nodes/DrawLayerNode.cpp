@@ -7,7 +7,7 @@
 #include "GlShaderCache.h"	
 #include "GlStateStack.h"	
 #include "GlStateModifiers.h"	
-#include "GlTexture.h"	
+#include "IMkTexture.h"	
 #include "GlTriangulatedMesh.h"	
 #include "GlMaterialInstance.h"	
 #include "IMkWindow.h"	

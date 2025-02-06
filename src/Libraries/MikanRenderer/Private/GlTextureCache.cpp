@@ -1,5 +1,5 @@
 #include "GlTextureCache.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "TextureAssetReference.h"
 #include "Logger.h"
 #include "PathUtils.h"
@@ -22,7 +22,7 @@ void GlTextureCache::shutdown()
 	m_textureCache.clear();
 }
 
-GlTexturePtr GlTextureCache::tryGetTextureByName(const std::string& textureName)
+IMkTexturePtr GlTextureCache::tryGetTextureByName(const std::string& textureName)
 {
 	auto it = m_textureCache.find(textureName);
 	if (it != m_textureCache.end())
@@ -30,19 +30,19 @@ GlTexturePtr GlTextureCache::tryGetTextureByName(const std::string& textureName)
 		return it->second;
 	}
 
-	return GlTexturePtr();
+	return IMkTexturePtr();
 }
 
-GlTexturePtr GlTextureCache::loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef)
+IMkTexturePtr GlTextureCache::loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef)
 {
 	return loadTexturePath(textureAssetRef->getAssetPath());
 }
 
-GlTexturePtr GlTextureCache::loadTexturePath(
+IMkTexturePtr GlTextureCache::loadTexturePath(
 	const std::filesystem::path& texturePath,
 	const std::string& overrideName)
 {
-	GlTexturePtr texture;
+	IMkTexturePtr texture;
 
 	if (!texturePath.empty() && std::filesystem::exists(texturePath))
 	{
@@ -50,7 +50,7 @@ GlTexturePtr GlTextureCache::loadTexturePath(
 
 		if (texture == nullptr)
 		{
-			texture = std::make_shared<GlTexture>();
+			texture = CreateMkTexture();
 			texture->setImagePath(texturePath);
 			if (texture->reloadTextureFromImagePath())
 			{
@@ -69,7 +69,7 @@ GlTexturePtr GlTextureCache::loadTexturePath(
 	return texture;
 }
 
-bool GlTextureCache::removeTexureFromCache(GlTexturePtr texture)
+bool GlTextureCache::removeTexureFromCache(IMkTexturePtr texture)
 {
 	if (texture)
 	{

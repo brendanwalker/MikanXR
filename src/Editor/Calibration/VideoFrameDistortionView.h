@@ -2,7 +2,7 @@
 
 #include "VideoDisplayConstants.h"
 #include "OpenCVFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include <memory>
 
 class VideoSourceView;
@@ -40,8 +40,8 @@ public:
 	inline cv::Mat* getGrayscaleUndistortBuffer() const { return m_gsUndistortBuffer; }
 	inline cv::Mat* getBGRUndistortBuffer() const { return m_bgrUndistortBuffer; }
 	inline cv::Mat* getBGRGsDisplayBuffer() const { return m_bgrGsDisplayBuffer; }
-	inline GlTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
-	inline GlTexturePtr getVideoTexture() const { return m_videoTexture; }
+	inline IMkTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
+	inline IMkTexturePtr getVideoTexture() const { return m_videoTexture; }
 
 	bool hasNewVideoFrame() const;
 	int64_t readNextVideoFrame();
@@ -56,7 +56,7 @@ protected:
 	void rebuildDistortionMap();
 	void computeUndistortion(cv::Mat* bgrSourceBuffer);
 
-	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture);
+	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture);
 
 protected:
 	IGlWindow* m_ownerWindow= nullptr;
@@ -95,10 +95,10 @@ protected:
 	// Distortion preview
 	cv::Mat* m_distortionMapX;
 	cv::Mat* m_distortionMapY;
-	GlTexturePtr m_distortionTextureMap= nullptr;
+	IMkTexturePtr m_distortionTextureMap= nullptr;
 
 	// Texture used for display
-	GlTexturePtr m_videoTexture = nullptr;
+	IMkTexturePtr m_videoTexture = nullptr;
 
 	// Quad used for fullscreen rendering
 	GlTriangulatedMeshPtr m_fullscreenQuad;

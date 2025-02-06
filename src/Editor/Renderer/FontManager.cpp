@@ -2,7 +2,7 @@
 #include "SdlCommon.h"
 #include "GlShaderCache.h"
 #include "GlProgram.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Logger.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
@@ -89,7 +89,7 @@ size_t computeTextHash(const TextStyle& style, const std::wstring& text)
 	return hasher(text + szStyleString);
 }
 
-GlTexturePtr FontManager::fetchBakedText(
+IMkTexturePtr FontManager::fetchBakedText(
 	const TextStyle& style, 
 	const std::wstring& text)
 {
@@ -121,8 +121,8 @@ GlTexturePtr FontManager::fetchBakedText(
 
 			if (sdlSurface != nullptr)
 			{
-				GlTexturePtr texture =
-					std::make_shared<GlTexture>(
+				IMkTexturePtr texture =
+					CreateMkTexture(
 						(uint16_t)sdlSurface->w, (uint16_t)sdlSurface->h,
 						(const uint8_t *)sdlSurface->pixels,
 						GL_RGBA, GL_BGRA);

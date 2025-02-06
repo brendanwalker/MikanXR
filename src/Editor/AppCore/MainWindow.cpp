@@ -15,7 +15,7 @@
 #include "GlCamera.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlShaderCache.h"
 #include "GlTextureCache.h"
 #include "GlTextRenderer.h"

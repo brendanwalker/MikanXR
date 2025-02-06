@@ -2,7 +2,7 @@
 #include "SdlCommon.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlTriangulatedMesh.h"
 #include "GlShaderCache.h"
 #include "Logger.h"
@@ -214,14 +214,14 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 	// Create a texture to render the video frame to
 	if (m_bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
 	{
-		m_videoTexture = std::make_shared<GlTexture>(
+		m_videoTexture = CreateMkTexture(
 			m_frameWidth,
 			m_frameHeight,
 			nullptr,
 			GL_RGB, // texture format
 			GL_BGR); // buffer format
 		m_videoTexture->setGenerateMipMap(false);
-		m_videoTexture->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
+		m_videoTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
 		m_videoTexture->createTexture();
 	}
 
@@ -426,7 +426,7 @@ void VideoFrameDistortionView::rebuildDistortionMap()
 				}
 			}
 
-			m_distortionTextureMap = std::make_shared<GlTexture>(m_frameWidth, m_frameHeight, (uint8_t *)data, GL_RG32F, GL_RG);
+			m_distortionTextureMap = CreateMkTexture(m_frameWidth, m_frameHeight, (uint8_t *)data, GL_RG32F, GL_RG);
 			m_distortionTextureMap->createTexture();
 
 			delete[] data;
@@ -455,7 +455,7 @@ void VideoFrameDistortionView::renderSelectedVideoBuffers()
 	}
 }
 
-void VideoFrameDistortionView::copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture)
+void VideoFrameDistortionView::copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture)
 {
 	size_t bufferSize = mat.step[0] * mat.rows;
 

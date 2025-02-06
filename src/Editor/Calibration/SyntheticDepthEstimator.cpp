@@ -1,6 +1,6 @@
 #include "SyntheticDepthEstimator.h"
 #include "SdlCommon.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "Logger.h"
 #include "OpenCVManager.h"
 #include "DeepNeuralNetwork.h"
@@ -73,25 +73,25 @@ bool SyntheticDepthEstimator::initialize()
 	if (m_optionBitmask & DEPTH_OPTION_HAS_GL_TEXTURE_FLAG)
 	{
 		// Used by shaders for frame masking/compositing
-		m_floatDepthTextureMap = std::make_shared<GlTexture>(
+		m_floatDepthTextureMap = CreateMkTexture(
 			m_depthDnn->getOutputWidth(),
 			m_depthDnn->getOutputHeight(),
 			nullptr,
 			GL_R32F, // texture format
 			GL_RED); // buffer format
 		m_floatDepthTextureMap->setGenerateMipMap(false);
-		m_floatDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
+		m_floatDepthTextureMap->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
 		m_floatDepthTextureMap->createTexture();
 
 		// Used by node editor preview of depth
-		m_colorMappedDepthTextureMap = std::make_shared<GlTexture>(
+		m_colorMappedDepthTextureMap = CreateMkTexture(
 			m_depthDnn->getOutputWidth(),
 			m_depthDnn->getOutputHeight(),
 			nullptr,
 			GL_RGB, // texture format
 			GL_BGR); // buffer format
 		m_colorMappedDepthTextureMap->setGenerateMipMap(false);
-		m_colorMappedDepthTextureMap->setPixelBufferObjectMode(GlTexture::PixelBufferObjectMode::DoublePBOWrite);
+		m_colorMappedDepthTextureMap->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
 		m_colorMappedDepthTextureMap->createTexture();
 	}
 

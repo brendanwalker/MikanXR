@@ -8,7 +8,7 @@
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
 #include "GlShaderCache.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlTextureCache.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"

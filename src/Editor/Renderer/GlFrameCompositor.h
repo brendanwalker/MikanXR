@@ -7,7 +7,7 @@
 #include "MikanClientTypes.h"
 #include "MikanVideoSourceEvents.h"
 #include "MulticastDelegate.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "NamedValueTable.h"
 #include "GlFrameCompositorConfig.h"
 #include "DeviceViewFwd.h"
@@ -39,8 +39,8 @@ public:
 		std::string clientId;
 		MikanClientInfo clientInfo;
 		MikanRenderTargetDescriptor desc;
-		GlTexturePtr colorTexture;
-		GlTexturePtr depthTexture;
+		IMkTexturePtr colorTexture;
+		IMkTexturePtr depthTexture;
 		int64_t frameIndex= 0;
 		bool bIsPendingRender= false;
 	};
@@ -86,19 +86,19 @@ public:
 #if REALTIME_DEPTH_ESTIMATION_ENABLED
 	inline SyntheticDepthEstimatorPtr getSyntheticDepthEstimator() const { return m_syntheticDepthEstimator; }
 #endif // REALTIME_DEPTH_ESTIMATION_ENABLED
-	GlTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
-	GlTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
+	IMkTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
+	IMkTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
-	GlTexturePtr getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const;
-	GlTexturePtr getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const;
+	IMkTexturePtr getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const;
+	IMkTexturePtr getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const;
 
 	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
-	GlTexturePtr getEditorWritableFrameTexture() const;
-	GlTextureConstPtr getCompositedFrameTexture() const;
+	IMkTexturePtr getEditorWritableFrameTexture() const;
+	IMkTextureConstPtr getCompositedFrameTexture() const;
 	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
 	inline void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
-	GlTexturePtr getBGRVideoFrameTexture();
+	IMkTexturePtr getBGRVideoFrameTexture();
 	inline void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
 
 	MulticastDelegate<void()> OnNewFrameComposited;
@@ -162,7 +162,7 @@ private:
 	GlProgramPtr m_rgbToBgrFrameShader = nullptr; // Keep
 
 	eCompositorEvaluatorWindow m_evaluatorWindow = eCompositorEvaluatorWindow::mainWindow;
-	GlTexturePtr m_editorFrameBufferTexture = nullptr;
+	IMkTexturePtr m_editorFrameBufferTexture = nullptr;
 
 	// Compositor Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;

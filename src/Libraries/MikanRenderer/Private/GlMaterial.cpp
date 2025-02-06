@@ -1,6 +1,6 @@
 #include "GlMaterial.h"
 #include "GlProgram.h"
-#include "GlTexture.h"
+#include "IMkTexture.h"
 
 GlMaterial::GlMaterial(
 	const std::string& name, 
@@ -280,7 +280,7 @@ bool GlMaterial::getMat4ByUniformName(const std::string uniformName, glm::mat4& 
 	return false;
 }
 
-bool GlMaterial::setTextureBySemantic(eUniformSemantic semantic, GlTexturePtr texture)
+bool GlMaterial::setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture)
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -292,7 +292,7 @@ bool GlMaterial::setTextureBySemantic(eUniformSemantic semantic, GlTexturePtr te
 	return false;
 }
 
-bool GlMaterial::getTextureBySemantic(eUniformSemantic semantic, GlTexturePtr& outTexture) const
+bool GlMaterial::getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -304,7 +304,7 @@ bool GlMaterial::getTextureBySemantic(eUniformSemantic semantic, GlTexturePtr& o
 	return false;
 }
 
-bool GlMaterial::setTextureByUniformName(const std::string uniformName, GlTexturePtr texture)
+bool GlMaterial::setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture)
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -318,7 +318,7 @@ bool GlMaterial::setTextureByUniformName(const std::string uniformName, GlTextur
 	return false;
 }
 
-bool GlMaterial::getTextureByUniformName(const std::string uniformName, GlTexturePtr& outTexture) const
+bool GlMaterial::getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -411,7 +411,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 				break;
 			case eUniformDataType::datatype_texture:
 				{
-					GlTexturePtr texture;
+					IMkTexturePtr texture;
 					int textureUnit= 0;
 					if (m_textureSources.tryGetValue(uniformName, texture) && 
 						m_program->getUniformTextureUnit(uniformName, textureUnit))
@@ -466,7 +466,7 @@ void GlMaterial::unbindMaterial() const
 	for (auto it = m_textureSources.getMap().begin(); it != m_textureSources.getMap().end(); ++it)
 	{
 		const std::string& uniformName= it->first;
-		GlTexturePtr texture= it->second;
+		IMkTexturePtr texture= it->second;
 
 		int textureUnit= -1;
 		if (m_program->getUniformTextureUnit(uniformName, textureUnit))

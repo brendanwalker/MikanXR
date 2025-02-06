@@ -49,7 +49,7 @@
 	#endif
 #endif
 
-#include "GlTexture.h"
+#include "IMkTexture.h"
 #include "GlProgram.h"
 #include "Logger.h"
 
