@@ -55,6 +55,10 @@ using GlTriangulatedMeshConstPtr = std::shared_ptr<const GlTriangulatedMesh>;
 class GlWireframeMesh;
 using GlWireframeMeshPtr = std::shared_ptr<GlWireframeMesh>;
 
+class IMkBindableObject;
+using GlBindableObjectPtr = std::shared_ptr<IMkBindableObject>;
+using GlBindableObjectConstPtr = std::shared_ptr<const IMkBindableObject>;
+
 class IMkCamera;
 using IMkCameraPtr = std::shared_ptr<IMkCamera>;
 using IMkCameraConstPtr = std::shared_ptr<const IMkCamera>;

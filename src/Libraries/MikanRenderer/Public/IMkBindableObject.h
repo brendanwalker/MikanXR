@@ -1,8 +1,6 @@
 #pragma once
 
-#include <memory>
-
-class IGlBindableObject
+class IMkBindableObject
 {
 protected:
 	virtual void bindObject(class GlState& glParentState) = 0;
@@ -11,5 +9,3 @@ protected:
 
 	friend class GlScopedObjectBinding;
 };
-using GlBindableObjectPtr = std::shared_ptr<IGlBindableObject>;
-using GlBindableObjectConstPtr = std::shared_ptr<const IGlBindableObject>;

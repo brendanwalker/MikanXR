@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IGlBindableObject.h"
+#include "IMkBindableObject.h"
 
 class GlScopedObjectBinding
 {

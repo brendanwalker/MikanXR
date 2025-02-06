@@ -1,8 +1,8 @@
 #pragma once
 
 #include "GlTypesFwd.h"
-#include "GlRendererFwd.h"
-#include "IGlBindableObject.h"
+#include "MkRendererFwd.h"
+#include "IMkBindableObject.h"
 
 #include <glm/ext/vector_float4.hpp>
 
@@ -10,7 +10,7 @@
 #include <vector>
 #include <stdint.h>
 
-class GlFrameBuffer : public IGlBindableObject
+class GlFrameBuffer : public IMkBindableObject
 {
 public:
 	enum class eFrameBufferType
