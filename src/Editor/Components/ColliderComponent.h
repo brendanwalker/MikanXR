@@ -3,7 +3,7 @@
 #include "ColliderQuery.h"
 #include "ColliderComponent.h"
 #include "SceneComponent.h"
-#include "IGlMesh.h"
+#include "IMkMesh.h"
 #include "ObjectFwd.h"
 
 #include <memory>

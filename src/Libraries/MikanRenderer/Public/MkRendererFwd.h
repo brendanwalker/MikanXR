@@ -59,9 +59,9 @@ class IMkCamera;
 using IMkCameraPtr = std::shared_ptr<IMkCamera>;
 using IMkCameraConstPtr = std::shared_ptr<const IMkCamera>;
 
-class IGlMesh;
-using IGlMeshPtr = std::shared_ptr<IGlMesh>;
-using IGlMeshConstPtr = std::shared_ptr<const IGlMesh>;
+class IMkMesh;
+using IMkMeshPtr = std::shared_ptr<IMkMesh>;
+using IMkMeshConstPtr = std::shared_ptr<const IMkMesh>;
 
 class IMkSceneRenderable;
 using IMkSceneRenderablePtr= std::shared_ptr<IMkSceneRenderable>;

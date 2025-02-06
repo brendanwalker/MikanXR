@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IGlMesh.h"
+#include "IMkMesh.h"
 #include "GlVertexDefinition.h"
 #include "RendererFwd.h"
 
@@ -12,7 +12,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-class GlWireframeMesh : public IGlMesh
+class GlWireframeMesh : public IMkMesh
 {
 public:
 	GlWireframeMesh(class IMkWindow* ownerWindow);

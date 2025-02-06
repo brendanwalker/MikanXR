@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IGlMesh.h"
+#include "IMkMesh.h"
 #include "RendererFwd.h"
 
 #include "stdint.h"
@@ -8,7 +8,7 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 
-class GlTriangulatedMesh : public IGlMesh
+class GlTriangulatedMesh : public IMkMesh
 {
 public:
 	GlTriangulatedMesh(class IMkWindow* ownerWindow); 

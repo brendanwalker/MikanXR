@@ -1,10 +1,10 @@
 #pragma once
 
 #include "ColliderComponent.h"
-#include "IGlMesh.h"
+#include "IMkMesh.h"
 #include "MathGLM.h"
 #include "ObjectFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 class StaticMeshKdTree;
 using StaticMeshKdTreePtr = std::shared_ptr<StaticMeshKdTree>;

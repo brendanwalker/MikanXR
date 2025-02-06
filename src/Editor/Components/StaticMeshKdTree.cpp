@@ -1,7 +1,7 @@
 #include "StaticMeshKdTree.h"
 #include "ColliderQuery.h"
 #include "Colors.h"
-#include "IGlMesh.h"
+#include "IMkMesh.h"
 #include "GlLineRenderer.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"

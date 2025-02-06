@@ -2,7 +2,7 @@
 
 #include "ComponentFwd.h"
 #include "MulticastDelegate.h"
-#include "IGlMesh.h"
+#include "IMkMesh.h"
 #include "ObjectSystemFwd.h"
 #include "RendererFwd.h"
 #include "SceneComponent.h"

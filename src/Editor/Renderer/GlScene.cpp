@@ -9,7 +9,7 @@
 #include "GlShaderCache.h"
 #include "GlStaticMeshInstance.h"
 #include "GlViewport.h"
-#include "IGlMesh.h"
+#include "IMkMesh.h"
 
 #include <algorithm>
 #include <functional>

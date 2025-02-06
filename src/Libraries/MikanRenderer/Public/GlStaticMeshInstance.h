@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IMkSceneRenderable.h"
-#include "IGlMesh.h"
+#include "IMkMesh.h"
 #include "RendererFwd.h"
 
 #include <memory>
@@ -17,7 +17,7 @@ public:
 	GlStaticMeshInstance() = default;
 	GlStaticMeshInstance(
 		const std::string& name, 
-		IGlMeshConstPtr mesh);
+		IMkMeshConstPtr mesh);
 	virtual ~GlStaticMeshInstance();
 
 	const std::string& getName() const { return m_name; }
@@ -27,7 +27,7 @@ public:
 
 	void setIsVisibleToCamera(const std::string& cameraName, bool bVisible);
 
-	inline IGlMeshConstPtr getMesh() const { return m_mesh; }
+	inline IMkMeshConstPtr getMesh() const { return m_mesh; }
 
 	// -- IGlSceneRenderable
 	virtual IMkSceneRenderableConstPtr getConstSelfPointer() const override;
@@ -47,7 +47,7 @@ private:
 	glm::mat4 m_modelMatrix;
 	glm::mat4 m_normalMatrix;
 	GlMaterialInstancePtr m_materialInstance= nullptr;
-	IGlMeshConstPtr m_mesh= nullptr;
+	IMkMeshConstPtr m_mesh= nullptr;
 	GlSceneWeakPtr m_boundScene;
 	std::set<std::string> m_visibileToCameras;
 };

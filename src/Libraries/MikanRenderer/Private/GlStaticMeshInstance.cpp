@@ -6,7 +6,7 @@
 
 GlStaticMeshInstance::GlStaticMeshInstance(
 	const std::string& name, 
-	IGlMeshConstPtr mesh)
+	IMkMeshConstPtr mesh)
 	: m_name(name)
 	, m_visible(true)
 	, m_mesh(mesh)
