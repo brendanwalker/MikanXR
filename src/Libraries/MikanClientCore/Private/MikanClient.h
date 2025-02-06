@@ -18,7 +18,7 @@ public:
 	const std::string& getClientUniqueID() const;
 
     // -- ClientMikanAPI System -----
-    MikanCoreResult startup(LogSeverityLevel log_level, t_logCallback log_callback);
+    MikanCoreResult startup(ClientLogSeverityLevel log_level, t_logCallback log_callback);
 	MikanCoreResult connect(const std::string& host, const std::string& port);
 	MikanCoreResult disconnect(uint16_t code, const std::string& reason);
 	MikanCoreResult fetchNextEvent(size_t utf8_buffer_size, char* out_utf8_buffer, size_t* out_utf8_bytes_written);

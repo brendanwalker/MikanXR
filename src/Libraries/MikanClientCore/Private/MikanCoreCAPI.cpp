@@ -1,7 +1,7 @@
 // -- includes -----
 #include "MikanCoreCAPI.h"
 #include "MikanClient.h"
-#include "Logger.h"
+#include "MikanClientLogger.h"
 
 #include <map>
 #include <assert.h>
@@ -25,7 +25,7 @@ MikanCoreResult Mikan_Initialize(
 
     MikanClient* context = new MikanClient();
 
-	MikanCoreResult resultCode= context->startup((LogSeverityLevel)log_level, log_callback);
+	MikanCoreResult resultCode= context->startup((ClientLogSeverityLevel)log_level, log_callback);
     if (resultCode != MikanCoreResult_Success)
     {
         delete context;

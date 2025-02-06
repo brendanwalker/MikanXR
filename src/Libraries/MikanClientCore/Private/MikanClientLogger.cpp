@@ -1,5 +1,5 @@
 //-- includes -----
-#include "Logger.h"
+#include "MikanClientLogger.h"
 
 #include <chrono>
 #include <fstream>
@@ -19,28 +19,17 @@
 
 //-- globals -----
 bool g_is_initialized= false;
-LogSeverityLevel g_min_log_level= LogSeverityLevel::info;
+ClientLogSeverityLevel g_min_log_level= ClientLogSeverityLevel::info;
 std::mutex* g_logger_mutex = nullptr;
 t_logCallback g_logger_callback = nullptr;
 
 static void log_default_callback(int log_level, const char* line)
 {
-	if (g_is_console_log_enabled)
-	{
-		if (log_level >= (int)LogSeverityLevel::error)
-			std::cerr << line << std::endl;
-		else
-			std::cout << line << std::endl;
-	}
-
-	if (g_file_stream != nullptr)
-	{
-		*g_file_stream << line << std::endl;
-	}
+	// Drop the log on the floor
 }
 
 //-- public implementation -----
-void client_log_init(const LoggerSettings& settings)
+void client_log_init(const ClientLoggerSettings& settings)
 {
 	if (!g_is_initialized)
 	{
@@ -72,7 +61,7 @@ void client_log_dispose()
 	g_is_initialized = false;
 }
 
-bool client_log_can_emit_level(LogSeverityLevel level)
+bool client_log_can_emit_level(ClientLogSeverityLevel level)
 {
     return (level >= g_min_log_level);
 }
@@ -91,15 +80,15 @@ std::string client_log_get_timestamp_prefix()
 }
 
 //-- member functions -----
-class ClientClientLoggerStreamImpl
+class ClientLoggerStreamImpl
 {
 private:
 	std::ostringstream m_lineBuffer;
-	LogSeverityLevel m_level;
+	ClientLogSeverityLevel m_level;
 	bool m_hasWrittenLog;
 
 public:
-	ClientClientLoggerStreamImpl(LogSeverityLevel level) 
+	ClientLoggerStreamImpl(ClientLogSeverityLevel level) 
 		: m_lineBuffer()
 		, m_level(level)
 		, m_hasWrittenLog(false)
@@ -109,7 +98,7 @@ public:
 	template<class T>
 	void operator<<(const T &x)
 	{
-		if (log_can_emit_level(m_level))
+		if (client_log_can_emit_level(m_level))
 		{
 			m_lineBuffer << x;
 			m_hasWrittenLog= true;
@@ -121,7 +110,7 @@ public:
 		if (g_is_initialized &&
 			g_logger_callback != nullptr &&
 			m_hasWrittenLog &&
-			log_can_emit_level(m_level))
+			client_log_can_emit_level(m_level))
 		{
 			const std::string line = m_lineBuffer.str();
 
@@ -131,8 +120,8 @@ public:
 
 };
 
-ClientLoggerStream::ClientLoggerStream(LogSeverityLevel level) 
-	: m_impl(new ClientClientLoggerStreamImpl(level))
+ClientLoggerStream::ClientLoggerStream(ClientLogSeverityLevel level) 
+	: m_impl(new ClientLoggerStreamImpl(level))
 {
 }
 
@@ -166,7 +155,7 @@ ClientLoggerStream& ClientLoggerStream::operator<<(const char* value) { *m_impl 
 ClientLoggerStream& ClientLoggerStream::operator<<(const std::string& value) { *m_impl << value; return *this; }
 ClientLoggerStream& ClientLoggerStream::operator<<(const std::filesystem::path& value) { *m_impl << value; return *this; }
 
-ThreadSafeClientLoggerStream::ThreadSafeClientLoggerStream(LogSeverityLevel level) :
+ThreadSafeClientLoggerStream::ThreadSafeClientLoggerStream(ClientLogSeverityLevel level) :
 	ClientLoggerStream(level)
 {
 }

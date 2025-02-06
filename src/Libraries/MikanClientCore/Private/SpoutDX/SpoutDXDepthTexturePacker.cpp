@@ -1,5 +1,5 @@
 #include "SpoutDXDepthTexturePacker.h"
-#include "Logger.h"
+#include "MikanClientLogger.h"
 
 #include <d3dcompiler.h>
 #include <DirectXMath.h>

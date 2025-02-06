@@ -46,7 +46,7 @@ list(APPEND MIKAN_CLIENT_CORE_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${RFK_GENERATED_ROOT_DIR}/MikanClientCore
-  ${RFK_GENERATED_ROOT_DIR}/Serialization
+  ${RFK_GENERATED_ROOT_DIR}/MikanSerialization
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${RFK_INCLUDE_DIR}
   ${SPOUT2_INCLUDE_DIRS}
@@ -69,7 +69,7 @@ set_target_properties(MikanClientCore PROPERTIES PUBLIC_HEADER "${MIKAN_CLIENT_C
 set_target_properties(MikanClientCore PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(MikanClientCore PROPERTIES C_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanClientCore PRIVATE MIKAN_CORE_EXPORTS)
-target_compile_definitions(MikanClientCore PRIVATE ENABLE_MikanClientCore_REFLECTION)
+target_compile_definitions(MikanClientCore PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(MikanClientCore PRIVATE ENABLE_SERIALIZATION_REFLECTION)
 target_compile_definitions(MikanClientCore PRIVATE ENABLE_SPOUT_DX)
 target_compile_definitions(MikanClientCore PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)

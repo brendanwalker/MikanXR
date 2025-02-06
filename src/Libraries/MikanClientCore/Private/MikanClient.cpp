@@ -1,6 +1,5 @@
 //-- includes -----
 #include "InterprocessRenderTargetWriter.h"
-#include "InterprocessMessages.h"
 #include "WebsocketInterprocessMessageClient.h"
 #include "MikanClientLogger.h"
 #include "MikanClient.h"
@@ -41,7 +40,7 @@ MikanClient::~MikanClient()
 }
 
 // -- ClientMikanAPI System -----
-MikanCoreResult MikanClient::startup(LogSeverityLevel log_level, t_logCallback log_callback)
+MikanCoreResult MikanClient::startup(ClientLogSeverityLevel log_level, t_logCallback log_callback)
 {
 	MikanCoreResult resultCode= MikanCoreResult_Success;
 

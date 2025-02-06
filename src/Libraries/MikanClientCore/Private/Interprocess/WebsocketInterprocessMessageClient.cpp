@@ -1,6 +1,6 @@
 #include "WebsocketInterprocessMessageClient.h"
 #include "JsonUtils.h"
-#include "Logger.h"
+#include "MikanClientLogger.h"
 #include "StringUtils.h"
 
 #include "readerwriterqueue.h"

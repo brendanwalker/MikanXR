@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MikanCoreTypes.h"
+
 #include <functional>
 #include <string>
 

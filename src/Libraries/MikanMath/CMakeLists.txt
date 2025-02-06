@@ -24,11 +24,13 @@ list(APPEND MIKAN_MATH_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Public
 	${CMAKE_CURRENT_LIST_DIR}/Private
 	${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
+	${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
 	${ROOT_DIR}/thirdparty/glm/
 )
 
 list(APPEND MIKAN_MATH_REQ_LIBS
-  MikanClientAPI)
+  MikanClientAPI
+  MikanSerialization)
 
 add_library(MikanMath SHARED ${MIKAN_MATH_SRC})
 target_include_directories(MikanMath PRIVATE ${MIKAN_MATH_INCL_DIRS})
