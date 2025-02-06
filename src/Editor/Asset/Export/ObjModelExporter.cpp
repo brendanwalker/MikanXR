@@ -9,7 +9,7 @@
 #include "GlShaderCache.h"
 #include "GlTextureCache.h"
 #include "GlTriangulatedMesh.h"
-#include "GlWireframeMesh.h"
+#include "IMkWireframeMesh.h"
 #include "Logger.h"
 #include "SdlUtility.h"
 #include "StringUtils.h"

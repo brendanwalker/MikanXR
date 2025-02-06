@@ -8,6 +8,8 @@
 class IMkMesh
 {
 public:
+	virtual ~IMkMesh() = default;
+
 	virtual void drawElements() const = 0;
 	virtual bool createResources() = 0;
 	virtual void deleteResources() = 0;

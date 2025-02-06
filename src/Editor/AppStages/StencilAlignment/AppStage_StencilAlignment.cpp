@@ -19,7 +19,7 @@
 #include "GlTextRenderer.h"
 #include "GlTriangulatedMesh.h"
 #include "GlViewport.h"
-#include "GlWireframeMesh.h"
+#include "IMkWireframeMesh.h"
 #include "InputManager.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"

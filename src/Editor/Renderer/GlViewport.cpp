@@ -123,7 +123,7 @@ void GlViewport::update(float deltaSeconds)
 	}
 }
 
-GlCameraPtr GlViewport::getCurrentCamera() const
+IMkCameraPtr GlViewport::getCurrentCamera() const
 {
 	return m_cameraPool[m_currentCameraIndex];
 }
@@ -133,7 +133,7 @@ int GlViewport::getCurrentCameraIndex() const
 	return m_currentCameraIndex;
 }
 
-GlCameraPtr GlViewport::addCamera()
+IMkCameraPtr GlViewport::addCamera()
 {
 	GlCameraPtr newCamera = std::make_shared<GlCamera>();
 	m_cameraPool.push_back(newCamera);
@@ -146,7 +146,7 @@ int GlViewport::getCameraCount() const
 	return (int)m_cameraPool.size();
 }
 
-GlCameraPtr GlViewport::getCameraByIndex(int cameraIndex)
+IMkCameraPtr GlViewport::getCameraByIndex(int cameraIndex)
 {
 	if (cameraIndex >= 0 && cameraIndex < getCameraCount())
 	{

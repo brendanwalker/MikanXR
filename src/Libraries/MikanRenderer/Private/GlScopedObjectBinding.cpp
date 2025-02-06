@@ -6,7 +6,7 @@
 GlScopedObjectBinding::GlScopedObjectBinding(
 	GlState& parentGLState,
 	const std::string& scopeName,
-	GlBindableObjectPtr bindableObject)
+	IMkBindableObjectPtr bindableObject)
 	: m_boundObject(bindableObject)
 	, m_glState(parentGLState.getOwnerStateStack().pushState(scopeName))
 {

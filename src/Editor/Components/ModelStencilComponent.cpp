@@ -9,7 +9,7 @@
 #include "GlTextRenderer.h"
 #include "GlShaderCache.h"
 #include "GlStaticMeshInstance.h"
-#include "GlWireframeMesh.h"
+#include "IMkWireframeMesh.h"
 #include "AnchorComponent.h"
 #include "SceneComponent.h"
 #include "SelectionComponent.h"

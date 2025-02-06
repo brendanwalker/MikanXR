@@ -21,7 +21,7 @@ public:
 	{ m_renderModelFilepath= inModelFilePath; }
 
 	void addTriangulatedMesh(GlTriangulatedMeshPtr mesh);
-	void addWireframeMesh(GlWireframeMeshPtr mesh);
+	void addWireframeMesh(IMkWireframeMeshPtr mesh);
 
 	int getTriangulatedMeshCount() const 
 	{ return (int)m_triangulatedMeshes.size(); }
@@ -29,7 +29,7 @@ public:
 	{ return m_triangulatedMeshes[meshIndex]; }
 
 	size_t getWireframeMeshCount() const { return m_wireframeMeshes.size(); }
-	GlWireframeMeshPtr getWireframeMesh(int meshIndex) const 
+	IMkWireframeMeshPtr getWireframeMesh(int meshIndex) const 
 	{ return m_wireframeMeshes[meshIndex]; }
 
 protected:
@@ -41,5 +41,5 @@ protected:
 	std::filesystem::path m_renderModelFilepath;
 
 	std::vector<GlTriangulatedMeshPtr> m_triangulatedMeshes;
-	std::vector<GlWireframeMeshPtr> m_wireframeMeshes;
+	std::vector<IMkWireframeMeshPtr> m_wireframeMeshes;
 };

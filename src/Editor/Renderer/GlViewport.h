@@ -1,7 +1,8 @@
 #pragma once
 
 #include "MulticastDelegate.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
+#include "IMkViewport.h"
 
 #include "memory"
 #include "vector"
@@ -11,34 +12,34 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/vector_float4.hpp"
 
-class GlViewport : public std::enable_shared_from_this<GlViewport>
+class GlViewport : public IMkViewport, public std::enable_shared_from_this<GlViewport>
 {
 public:
 	GlViewport(const glm::i32vec2& windowSize);
 	virtual ~GlViewport();
 
-	glm::i32vec2 getViewportOrigin() const { return m_viewportOrigin; }
-	glm::i32vec2 getViewportSize() const { return m_viewportSize; }
+	virtual glm::i32vec2 getViewportOrigin() const override { return m_viewportOrigin; }
+	virtual glm::i32vec2 getViewportSize() const override { return m_viewportSize; }
 
-	void setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize);
-	void setBackgroundColor(const glm::vec3& color);
+	virtual void setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize) override;
+	virtual void setBackgroundColor(const glm::vec3& color) override;
 
 	void bindInput();
 	void unbindInput();
 
-	void applyRenderingViewport(GlState& glState) const;
-	void onRenderingViewportApply(int x, int y, int width, int height);
-	void onRenderingViewportRevert(int x, int y, int width, int height);
-	bool getRenderingViewport(glm::i32vec2 &outOrigin, glm::i32vec2 &outSize) const;
+	virtual void applyRenderingViewport(GlState& glState) const override;
+	virtual void onRenderingViewportApply(int x, int y, int width, int height) override;
+	virtual void onRenderingViewportRevert(int x, int y, int width, int height) override;
+	virtual bool getRenderingViewport(glm::i32vec2 &outOrigin, glm::i32vec2 &outSize) const override;
 
 	void update(float deltaSeconds);
 
-	GlCameraPtr getCurrentCamera() const;
-	int getCurrentCameraIndex() const;
-	GlCameraPtr addCamera();
-	int getCameraCount() const;
-	GlCameraPtr getCameraByIndex(int cameraIndex);
-	void setCurrentCamera(int cameraIndex);
+	virtual IMkCameraPtr getCurrentCamera() const override;
+	virtual int getCurrentCameraIndex() const override;
+	virtual IMkCameraPtr addCamera() override;
+	virtual int getCameraCount() const override;
+	virtual IMkCameraPtr getCameraByIndex(int cameraIndex) override;
+	virtual void setCurrentCamera(int cameraIndex) override;
 	bool getIsMouseInViewport() const { return m_isMouseInViewport; }
 
 	// Convert cursor pixel position from app window relative to viewport relative

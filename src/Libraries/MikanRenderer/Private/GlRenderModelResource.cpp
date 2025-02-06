@@ -1,6 +1,6 @@
 #include "GlModelResourceManager.h"
 #include "GlTriangulatedMesh.h"
-#include "GlWireframeMesh.h"
+#include "IMkWireframeMesh.h"
 #include "GlRenderModelResource.h"
 
 
@@ -22,7 +22,7 @@ void GlRenderModelResource::addTriangulatedMesh(GlTriangulatedMeshPtr mesh)
 	}
 }
 
-void GlRenderModelResource::addWireframeMesh(GlWireframeMeshPtr mesh)
+void GlRenderModelResource::addWireframeMesh(IMkWireframeMeshPtr mesh)
 {
 	if (mesh != nullptr)
 	{
@@ -38,7 +38,7 @@ void GlRenderModelResource::disposeMeshRenderResources()
 	}
 	m_triangulatedMeshes.clear();
 
-	for (GlWireframeMeshPtr wireframeMesh : m_wireframeMeshes)
+	for (IMkWireframeMeshPtr wireframeMesh : m_wireframeMeshes)
 	{
 		wireframeMesh->deleteResources();
 	}

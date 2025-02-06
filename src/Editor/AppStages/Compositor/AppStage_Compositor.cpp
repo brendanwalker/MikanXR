@@ -24,7 +24,7 @@
 #include "GlTextRenderer.h"
 #include "GlRenderModelResource.h"
 #include "GlViewport.h"
-#include "GlWireframeMesh.h"
+#include "IMkWireframeMesh.h"
 #include "IMkTexture.h"
 #include "InterprocessRenderTargetReader.h"
 #include "InputManager.h"

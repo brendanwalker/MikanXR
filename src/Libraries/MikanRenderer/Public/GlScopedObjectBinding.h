@@ -6,7 +6,7 @@ class GlScopedObjectBinding
 {
 public:
 	GlScopedObjectBinding() = default;
-	GlScopedObjectBinding(class GlState& parentGLState, const std::string& scopeName, GlBindableObjectPtr bindableObject);
+	GlScopedObjectBinding(class GlState& parentGLState, const std::string& scopeName, IMkBindableObjectPtr bindableObject);
 	virtual ~GlScopedObjectBinding();
 
 	template <class t_bindable_object>
@@ -19,6 +19,6 @@ public:
 	inline GlState& getGlState() { return m_glState; }
 
 private:
-	GlBindableObjectPtr m_boundObject;
+	IMkBindableObjectPtr m_boundObject;
 	class GlState& m_glState;
 }; 
