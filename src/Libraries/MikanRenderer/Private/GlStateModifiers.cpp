@@ -2,14 +2,14 @@
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
 #include "GlViewport.h"
-#include "IGlStateModifier.h"
+#include "IMkStateModifier.h"
 #include "IMkWindow.h"
 
 #include "memory"
 #include "vector"
 
 // -- GlStateModifierBase --
-class GLStateModifierBase : public IGlStateModifier
+class GLStateModifierBase : public IMkStateModifier
 {
 public:
 	GLStateModifierBase() = delete;
@@ -45,7 +45,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetFrontFace";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier =
 			std::static_pointer_cast<GLStateSetFrontFaceImpl>(parentModifier);
@@ -103,7 +103,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetViewport";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentViewportModifier = std::static_pointer_cast<GLStateSetViewportImpl>(parentModifier);
 		if (parentViewportModifier)
@@ -171,7 +171,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetBackgroundColor";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentBackgroundColorModifier = std::static_pointer_cast<GLStateSetClearColorImpl>(parentModifier);
 		if (parentBackgroundColorModifier)
@@ -225,7 +225,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetColorMask";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentBackgroundColorModifier = std::static_pointer_cast<GLStateSetColorMaskImpl>(parentModifier);
 		if (parentBackgroundColorModifier)
@@ -287,7 +287,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetDepthMask";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier = std::static_pointer_cast<GLStateSetDepthMaskImpl>(parentModifier);
 		if (parentTypedModifier)
@@ -334,7 +334,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetStencilBufferClearValue";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier = 
 			std::static_pointer_cast<GLStateSetStencilBufferClearValueImpl>(parentModifier);
@@ -379,7 +379,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetStencilMask";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier =
 			std::static_pointer_cast<GLStateSetStencilMaskImpl>(parentModifier);
@@ -428,7 +428,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetStencilFunc";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier =
 			std::static_pointer_cast<GLStateSetStencilFuncImpl>(parentModifier);
@@ -506,7 +506,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetStencilOp";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier =
 			std::static_pointer_cast<GLStateSetStencilOpImpl>(parentModifier);
@@ -576,7 +576,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetBlendEquation";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier =
 			std::static_pointer_cast<GLStateSetBlendEquationImpl>(parentModifier);
@@ -637,7 +637,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetBlendFunc";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier =
 			std::static_pointer_cast<GLStateSetBlendFuncImpl>(parentModifier);
@@ -743,7 +743,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetDrawBufferMode";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier =
 			std::static_pointer_cast<GLStateSetDrawBufferModeImpl>(parentModifier);
@@ -788,7 +788,7 @@ public:
 
 	inline static const std::string k_modifierID = "SetReadBufferMode";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		auto parentTypedModifier =
 			std::static_pointer_cast<GLStateSetReadBufferModeImpl>(parentModifier);
@@ -833,7 +833,7 @@ public:
 
 	inline static const std::string k_modifierID = "ClearBuffer";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IGlStateModifier> parentModifier) override
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
 	{
 		GLbitfield bitfield = 0;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IGLStateModifier.h"
+#include "IMkStateModifier.h"
 #include "Logger.h"
 
 #include <memory>
@@ -37,8 +37,8 @@ public:
 	GlState& enableFlag(eGlStateFlagType flagType);
 	GlState& disableFlag(eGlStateFlagType flagType);
 	bool isFlagEnabled(eGlStateFlagType flagType) const;
-	GlStateModifierPtr findParentModifier(GlStateModifierPtr modifier) const;
-	GlState& addModifier(GlStateModifierPtr modifier);
+	MkStateModifierPtr findParentModifier(MkStateModifierPtr modifier) const;
+	GlState& addModifier(MkStateModifierPtr modifier);
 
 private:
 	class GlStateStack& m_ownerStack;
@@ -48,7 +48,7 @@ private:
 	std::string m_debugPrefix;
 
 	bool m_flags[(int)eGlStateFlagType::COUNT];
-	std::map<std::string, GlStateModifierPtr> m_modifiers;
+	std::map<std::string, MkStateModifierPtr> m_modifiers;
 };
 
 class GlScopedState

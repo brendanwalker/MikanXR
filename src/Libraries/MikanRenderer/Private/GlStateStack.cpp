@@ -101,7 +101,7 @@ GlState::~GlState()
 	// Revert the effect of the modifiers applied in this state
 	for (auto modifierIt = m_modifiers.begin(); modifierIt != m_modifiers.end(); ++modifierIt)
 	{
-		GlStateModifierPtr modifer= modifierIt->second;
+		MkStateModifierPtr modifer= modifierIt->second;
 
 		// Revert the modifier
 		assert(modifer->getOwnerStateStackDepth() == m_stackDepth);
@@ -166,7 +166,7 @@ bool GlState::isFlagEnabled(eGlStateFlagType flagType) const
 	return m_flags[(int)flagType];
 }
 
-GlStateModifierPtr GlState::findParentModifier(GlStateModifierPtr modifier) const
+MkStateModifierPtr GlState::findParentModifier(MkStateModifierPtr modifier) const
 {
 	if (modifier && m_parentState)
 	{
@@ -181,10 +181,10 @@ GlStateModifierPtr GlState::findParentModifier(GlStateModifierPtr modifier) cons
 		return m_parentState->findParentModifier(modifier);
 	}
 
-	return GlStateModifierPtr();
+	return MkStateModifierPtr();
 }
 
-GlState& GlState::addModifier(GlStateModifierPtr modifier)
+GlState& GlState::addModifier(MkStateModifierPtr modifier)
 {
 	if (modifier)
 	{
@@ -205,7 +205,7 @@ GlState& GlState::addModifier(GlStateModifierPtr modifier)
 		}
 
 		// See if a modifier of the same type is applied in any parent state
-		GlStateModifierPtr parentModifier = findParentModifier(modifier);
+		MkStateModifierPtr parentModifier = findParentModifier(modifier);
 
 		// Apply the new modifier
 		modifier->apply(parentModifier);
