@@ -4,7 +4,7 @@
 #include "Graphs/NodeEvaluator.h"
 #include "Pins/NodePin.h"
 #include "Pins/FloatPin.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "GlViewport.h"
 
 #include "imgui.h"

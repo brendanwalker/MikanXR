@@ -1,4 +1,4 @@
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "SdlCommon.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"

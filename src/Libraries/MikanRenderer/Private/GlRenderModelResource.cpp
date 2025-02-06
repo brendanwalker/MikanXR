@@ -4,7 +4,7 @@
 #include "GlRenderModelResource.h"
 
 
-GlRenderModelResource::GlRenderModelResource(IGlWindow* ownerWindow)
+GlRenderModelResource::GlRenderModelResource(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
 }

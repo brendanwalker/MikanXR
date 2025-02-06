@@ -9,7 +9,7 @@
 #include "GlTextRenderer.h"
 #include "GlVertexDefinition.h"
 #include "GlViewport.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "Logger.h"
 #include "MathGLM.h"
 #include "TextStyle.h"
@@ -19,7 +19,7 @@
 const int k_max_segments = 0x8000;
 const int k_max_points = 0x8000;
 
-GlLineRenderer::GlLineRenderer(IGlWindow* m_ownerWindow)
+GlLineRenderer::GlLineRenderer(IMkWindow* m_ownerWindow)
 	: m_ownerWindow(m_ownerWindow)
 	, m_program(nullptr)
 	, m_points3d(k_max_points)

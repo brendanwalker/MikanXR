@@ -6,7 +6,7 @@
 #include "MaterialAssetReference.h"
 #include "NodeEditorUI.h"
 #include "Nodes/MaterialNode.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "GlShaderCache.h"
 
 #include "imgui.h"

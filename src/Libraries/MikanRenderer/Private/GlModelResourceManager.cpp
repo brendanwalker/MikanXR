@@ -4,12 +4,12 @@
 #include "GlProgram.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "Logger.h"
 #include "ObjModelImporter.h"
 #include "ObjModelExporter.h"
 
-GlModelResourceManager::GlModelResourceManager(IGlWindow* ownerWindow)
+GlModelResourceManager::GlModelResourceManager(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
 	// Register model importers

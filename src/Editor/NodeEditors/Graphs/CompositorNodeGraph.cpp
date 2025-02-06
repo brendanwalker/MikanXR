@@ -12,7 +12,7 @@
 #include "GlShaderCache.h"
 #include "GlTextureCache.h"
 #include "GlVertexDefinition.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "Logger.h"
 #include "ModelStencilComponent.h"
 #include "StencilObjectSystem.h"

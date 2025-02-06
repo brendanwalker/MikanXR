@@ -6,16 +6,16 @@
 #include "GlProgram.h"
 #include "GlShaderCache.h"
 #include "GlVertexDefinition.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "Logger.h"
 
-GlTriangulatedMesh::GlTriangulatedMesh(class IGlWindow* ownerWindow) 
+GlTriangulatedMesh::GlTriangulatedMesh(class IMkWindow* ownerWindow) 
 	: m_ownerWindow(ownerWindow)
 {
 }
 
 GlTriangulatedMesh::GlTriangulatedMesh(
-	class IGlWindow* ownerWindow,
+	class IMkWindow* ownerWindow,
 	std::string name,
 	const uint8_t* vertexData,
 	const size_t vertexSize,
@@ -168,7 +168,7 @@ void GlTriangulatedMesh::deleteResources()
 }
 
 // -- Drawing Helpers ---
-GlTriangulatedMeshPtr createFullscreenQuadMesh(IGlWindow* ownerWindow, bool vFlipped)
+GlTriangulatedMeshPtr createFullscreenQuadMesh(IMkWindow* ownerWindow, bool vFlipped)
 {
 	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 

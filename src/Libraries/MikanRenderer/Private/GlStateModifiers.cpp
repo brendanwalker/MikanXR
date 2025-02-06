@@ -3,7 +3,7 @@
 #include "GlStateModifiers.h"
 #include "GlViewport.h"
 #include "IGlStateModifier.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 
 #include "memory"
 #include "vector"
@@ -20,7 +20,7 @@ public:
 
 	inline GlState& getOwnerGlState() { return m_ownerGlState; }
 	inline GlStateStack& getOwnerGlStateStack() { return m_ownerGlState.getOwnerStateStack(); }
-	inline IGlWindow* getOwnerWindow() { return getOwnerGlStateStack().getOwnerWindow(); }
+	inline IMkWindow* getOwnerWindow() { return getOwnerGlStateStack().getOwnerWindow(); }
 	virtual int getOwnerStateStackDepth() const override { return m_ownerStateStackDepth; }
 	GlStateLog getStateLog()
 	{

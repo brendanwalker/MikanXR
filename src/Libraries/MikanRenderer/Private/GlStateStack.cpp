@@ -1,6 +1,6 @@
 #include "GlStateStack.h"
 #include "GlCommon.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include <assert.h>
 
 #define GL_STATE_DEBUG_PRINT_TAB	"  "
@@ -233,7 +233,7 @@ GlScopedState::~GlScopedState()
 }
 
 // -- GlStateStack -----
-GlStateStack::GlStateStack(IGlWindow* ownerWindow) 
+GlStateStack::GlStateStack(IMkWindow* ownerWindow) 
 	: m_ownerWindow(ownerWindow)
 {
 }

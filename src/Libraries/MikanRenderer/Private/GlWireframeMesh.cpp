@@ -9,13 +9,13 @@
 #include "GlViewport.h"
 #include "Logger.h"
 
-GlWireframeMesh::GlWireframeMesh(IGlWindow* ownerWindow)
+GlWireframeMesh::GlWireframeMesh(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
 }
 
 GlWireframeMesh::GlWireframeMesh(
-	IGlWindow* ownerWindow,
+	IMkWindow* ownerWindow,
 	std::string name,
 	const uint8_t* vertexData,
 	const size_t vertexSize,

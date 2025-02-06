@@ -3,7 +3,7 @@
 //-- includes -----
 #include "AssetFwd.h"
 #include "SdlFwd.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"

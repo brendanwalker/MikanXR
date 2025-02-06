@@ -1,6 +1,6 @@
 #include "ObjModelImporter.h"
 #include "Colors.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "GlRenderModelResource.h"
 #include "GlModelResourceManager.h"
 #include "GlMaterialInstance.h"

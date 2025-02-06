@@ -12,14 +12,14 @@
 #include "GlTextRenderer.h"
 #include "GlTexture.h"
 #include "GlViewport.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MathGLM.h"
 
 #include "glm/ext/matrix_projection.hpp"
 
-GlTextRenderer::GlTextRenderer(IGlWindow* ownerWindow)
+GlTextRenderer::GlTextRenderer(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 	, m_maxTextQuadVertexCount(kMaxTextQuads*6) // 6 vertices per quad
 	, m_textQuadVertices(new TextQuadVertex[m_maxTextQuadVertexCount])
@@ -226,7 +226,7 @@ void drawTextAtWorldPosition(
 	const wchar_t* format,
 	...)
 {
-	IGlWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
 	GlTextRenderer * textRenderer = window->getTextRenderer();
@@ -272,7 +272,7 @@ void drawTextAtScreenPosition(
 	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
 	va_end(args);
 
-	IGlWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
 	GlTextRenderer* textRenderer = window->getTextRenderer();
@@ -289,7 +289,7 @@ void drawTextAtTrackerPosition(
 	const wchar_t* format,
 	...)
 {
-	IGlWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
 	GlTextRenderer* textRenderer = window->getTextRenderer();
@@ -333,7 +333,7 @@ void drawTextAtCameraPosition(
 	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
 	va_end(args);
 
-	IGlWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
 	GlTextRenderer* textRenderer = window->getTextRenderer();

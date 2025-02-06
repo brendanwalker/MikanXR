@@ -1,12 +1,11 @@
 #pragma once
 
-#include "RendererFwd.h"
-#include "SdlFwd.h"
+#include "GlRendererFwd.h"
 
-class IGlWindow
+class IMkWindow
 {
 public:
-	virtual ~IGlWindow() {}
+	virtual ~IMkWindow() {}
 
 	virtual bool startup()= 0;
 	virtual void update(float deltaSeconds) = 0;
@@ -26,7 +25,4 @@ public:
 	virtual GlShaderCache* getShaderCache() = 0;
 	virtual GlTextureCache* getTextureCache() = 0;
 	virtual GlModelResourceManager* getModelResourceManager() = 0;
-	virtual SdlWindow& getSdlWindow() = 0;
-
-	virtual bool onSDLEvent(const SDL_Event* event)= 0;
 };

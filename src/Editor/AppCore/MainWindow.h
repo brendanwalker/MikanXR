@@ -3,7 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include "SdlFwd.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"

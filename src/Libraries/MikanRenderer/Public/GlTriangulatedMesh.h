@@ -11,9 +11,9 @@
 class GlTriangulatedMesh : public IGlMesh
 {
 public:
-	GlTriangulatedMesh(class IGlWindow* ownerWindow); 
+	GlTriangulatedMesh(class IMkWindow* ownerWindow); 
 	GlTriangulatedMesh(
-		class IGlWindow* ownerWindow,
+		class IMkWindow* ownerWindow,
 		std::string name,
 		const uint8_t* vertexData,
 		const size_t vertexSize,
@@ -33,7 +33,7 @@ public:
 
 	virtual std::string getName() const override { return m_name; }
 	virtual std::shared_ptr<class GlMaterialInstance> getMaterialInstance() const { return m_materialInstance; };
-	virtual class IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
+	virtual class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
 
@@ -43,7 +43,7 @@ public:
 	virtual const size_t getIndexSize() const override { return m_indexSize; }
 
 protected:
-	class IGlWindow* m_ownerWindow= nullptr;
+	class IMkWindow* m_ownerWindow= nullptr;
 	GlMaterialInstancePtr m_materialInstance;
 	std::string m_name;
 
@@ -61,7 +61,7 @@ protected:
 };
 
 // -- Drawing Helpers ---
-GlTriangulatedMeshPtr createFullscreenQuadMesh(IGlWindow* ownerWindow, bool vFlipped);
+GlTriangulatedMeshPtr createFullscreenQuadMesh(IMkWindow* ownerWindow, bool vFlipped);
 void drawTransformedTriangulatedMesh(
 	GlCameraConstPtr camera,
 	const glm::mat4& transform,

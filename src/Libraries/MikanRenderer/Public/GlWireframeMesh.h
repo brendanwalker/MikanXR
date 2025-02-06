@@ -15,9 +15,9 @@
 class GlWireframeMesh : public IGlMesh
 {
 public:
-	GlWireframeMesh(class IGlWindow* ownerWindow);
+	GlWireframeMesh(class IMkWindow* ownerWindow);
 	GlWireframeMesh(
-		class IGlWindow* ownerWindow,
+		class IMkWindow* ownerWindow,
 		std::string name,
 		const uint8_t* vertexData,
 		const size_t vertexSize,
@@ -30,7 +30,7 @@ public:
 
 	virtual std::string getName() const override { return m_name; }
 	virtual std::shared_ptr<class GlMaterialInstance> getMaterialInstance() const { return m_materialInstance; };
-	virtual class IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
+	virtual class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
 
@@ -44,7 +44,7 @@ public:
 	virtual void deleteResources() override;
 
 protected:
-	class IGlWindow* m_ownerWindow = nullptr;
+	class IMkWindow* m_ownerWindow = nullptr;
 	GlMaterialInstancePtr m_materialInstance;
 
 	std::string m_name;

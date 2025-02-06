@@ -9,7 +9,7 @@
 #include "GlTextRenderer.h"
 #include "GlProgramConfig.h"
 #include "InterprocessRenderTargetReader.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"

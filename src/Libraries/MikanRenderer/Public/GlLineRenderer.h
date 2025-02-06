@@ -14,7 +14,7 @@ typedef std::shared_ptr<GlProgram> GlProgramPtr;
 class GlLineRenderer
 {
 public:
-	GlLineRenderer(class IGlWindow* m_ownerWindow);
+	GlLineRenderer(class IMkWindow* m_ownerWindow);
 	virtual ~GlLineRenderer();
 
 	bool startup();
@@ -44,7 +44,7 @@ public:
 		float size0 = 1.f, float size1 = 1.f);
 
 protected:
-	class IGlWindow* m_ownerWindow= nullptr;
+	class IMkWindow* m_ownerWindow= nullptr;
 
 	static const class GlProgramCode* getShaderCode();
 

@@ -36,7 +36,7 @@
 #include "GlStateModifiers.h"
 #include "GlVertexDefinition.h"
 #include "GlViewport.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "PathUtils.h"

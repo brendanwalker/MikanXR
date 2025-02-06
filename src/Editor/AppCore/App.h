@@ -2,7 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "ObjectSystemConfigFwd.h"
 
 #include <memory>

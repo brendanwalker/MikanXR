@@ -10,7 +10,7 @@
 class GlRenderModelResource
 {
 public:
-	GlRenderModelResource(class IGlWindow* ownerWindow);
+	GlRenderModelResource(class IMkWindow* ownerWindow);
 	virtual ~GlRenderModelResource();
 
 	inline const std::string& getName() const { return m_name; }
@@ -35,7 +35,7 @@ public:
 protected:
 	void disposeMeshRenderResources();
 
-	class IGlWindow* m_ownerWindow= nullptr;
+	class IMkWindow* m_ownerWindow= nullptr;
 
 	std::string m_name;
 	std::filesystem::path m_renderModelFilepath;

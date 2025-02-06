@@ -14,7 +14,7 @@
 #include "GlScene.h"
 #include "GlTexture.h"
 #include "GlTriangulatedMesh.h"
-#include "IGlWindow.h"
+#include "IMkWindow.h"
 #include "Logger.h"
 #include "DepthMeshGenerator.h"
 #include "MathTypeConversion.h"

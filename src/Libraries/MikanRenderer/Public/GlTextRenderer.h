@@ -17,7 +17,7 @@
 class GlTextRenderer
 {
 public:
-	GlTextRenderer(class IGlWindow* ownerWindow);
+	GlTextRenderer(class IMkWindow* ownerWindow);
 	virtual ~GlTextRenderer();
 
 	bool startup();
@@ -44,7 +44,7 @@ protected:
 
 private:
 	static const int kMaxTextQuads= 1024;
-	class IGlWindow* m_ownerWindow= nullptr;
+	class IMkWindow* m_ownerWindow= nullptr;
 
 	std::vector<BakedTextQuad> m_bakedTextQuads;
 	unsigned int m_textQuadVAO= 0;

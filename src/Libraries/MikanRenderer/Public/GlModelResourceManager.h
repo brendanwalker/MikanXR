@@ -11,13 +11,13 @@
 class GlModelResourceManager
 {
 public:
-	GlModelResourceManager(class IGlWindow* ownerWindow);
+	GlModelResourceManager(class IMkWindow* ownerWindow);
 	virtual ~GlModelResourceManager();
 
 	bool startup();
 	void shutdown();
 
-	inline IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
+	inline IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
 
 	GlRenderModelResourcePtr fetchRenderModel(
 		const std::filesystem::path& modelFilePath,
@@ -29,7 +29,7 @@ public:
 		const std::filesystem::path& modelPath);
 
 private:
-	class IGlWindow* m_ownerWindow= nullptr;
+	class IMkWindow* m_ownerWindow= nullptr;
 
 	std::map<std::string, GlRenderModelResourcePtr> m_renderModelCache;
 	std::map<std::string, IModelImporterPtr> m_modelImporters;
