@@ -6,7 +6,7 @@
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Transform.h"
-#include "IGlSceneRenderable.h"
+#include "IMkSceneRenderable.h"
 #include "ComponentFwd.h"
 #include "ObjectFwd.h"
 #include "SceneFwd.h"

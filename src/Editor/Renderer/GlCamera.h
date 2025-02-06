@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GlRendererFwd.h"
+#include "MikanRendererFwd.h"
+#include "IMkCamera.h"
 
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/vector_float3.hpp"
@@ -14,30 +15,30 @@ enum eCameraMovementMode : int
 	stationary,
 };
 
-class GlCamera
+class GlCamera : public IMkCamera
 {
 public:
 	GlCamera();
 	virtual ~GlCamera() = default;
 
-	void setName(const std::string& name) { m_cameraName = name; }
-	const std::string& getName() const { return m_cameraName; }
+	virtual void setName(const std::string& name) override { m_cameraName = name; }
+	virtual const std::string& getName() const override { return m_cameraName; }
 
-	const glm::mat4& getProjectionMatrix() const { return m_projectionMatrix; }
-	const glm::mat4& getViewMatrix() const { return m_viewMatrix; }
-	const glm::mat4 getViewProjectionMatrix() const { return m_projectionMatrix*m_viewMatrix; }
+	virtual const glm::mat4& getProjectionMatrix() const override { return m_projectionMatrix; }
+	virtual const glm::mat4& getViewMatrix() const override { return m_viewMatrix; }
+	virtual glm::mat4 getViewProjectionMatrix() const override { return m_projectionMatrix * m_viewMatrix; }
 
-	float getAspectRatio() const { return m_aspectRatio; }
-	float getHorizontalFOVDegrees() const { return m_hFOVDegrees; }
-	float getVerticalFOVDegrees() const { return m_vFOVDegrees; }
-	float getZNear() const { return m_zNear; }
-	float getZFar() const { return m_zFar; }
+	virtual float getAspectRatio() const override { return m_aspectRatio; }
+	virtual float getHorizontalFOVDegrees() const override { return m_hFOVDegrees; }
+	virtual float getVerticalFOVDegrees() const override { return m_vFOVDegrees; }
+	virtual float getZNear() const override { return m_zNear; }
+	virtual float getZFar() const override { return m_zFar; }
 
-	const glm::vec3 getCameraPositionFromViewMatrix() const;
-	const glm::vec3 getCameraForwardFromViewMatrix() const;
-	const glm::vec3 getCameraRightFromViewMatrix() const;
-	const glm::vec3 getCameraUpFromViewMatrix() const;
-	const glm::mat4 getCameraTransformFromViewMatrix() const;
+	virtual glm::vec3 getCameraPositionFromViewMatrix() const override;
+	virtual glm::vec3 getCameraForwardFromViewMatrix() const override;
+	virtual glm::vec3 getCameraRightFromViewMatrix() const override;
+	virtual glm::vec3 getCameraUpFromViewMatrix() const override;
+	virtual glm::mat4 getCameraTransformFromViewMatrix() const override;
 
 	eCameraMovementMode getCameraMovementMode() const { return m_movementMode; }
 	void setCameraMovementMode(eCameraMovementMode mode);

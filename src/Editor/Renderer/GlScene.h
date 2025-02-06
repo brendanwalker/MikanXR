@@ -1,7 +1,8 @@
 #pragma once
 
-#include "IGLSceneRenderable.h"
+#include "IMkSceneRenderable.h"
 #include "GlProgramConstants.h"
+#include "IMkScene.h"
 
 #include <map>
 #include <memory>
@@ -17,7 +18,7 @@ struct GlDrawCall
 using GlDrawCallPtr = std::shared_ptr<GlDrawCall>;
 using GlDrawCallConstPtr = std::shared_ptr<const GlDrawCall>;
 
-class GlScene : public std::enable_shared_from_this<GlScene>
+class GlScene : public IMkScene, public std::enable_shared_from_this<GlScene>
 {
 public:
 	const glm::vec4 k_clear_color = glm::vec4(0.447f, 0.565f, 0.604f, 1.0f);
@@ -29,27 +30,27 @@ public:
 	GlScene();
 	virtual ~GlScene();
 
-	void addInstance(IGlSceneRenderableConstPtr instance);
-	void removeInstance(IGlSceneRenderableConstPtr instance);
-	void removeAllInstances();
+	virtual void addInstance(IGlSceneRenderableConstPtr instance) override;
+	virtual void removeInstance(IGlSceneRenderableConstPtr instance) override;
+	virtual void removeAllInstances() override;
 
-	void setLightColor(const glm::vec4& lightColor) { m_lightColor= lightColor; }
-	const glm::vec4& getLightColor() const { return m_lightColor; }
+	virtual void setLightColor(const glm::vec4& lightColor) override { m_lightColor= lightColor; }
+	virtual const glm::vec4& getLightColor() const override { return m_lightColor; }
 
-	void setLightDirection(const glm::vec3& lightDirection) { m_lightDirection = lightDirection; }
-	const glm::vec3& getLightDirection() const { return m_lightDirection; }
+	virtual void setLightDirection(const glm::vec3& lightDirection) override { m_lightDirection = lightDirection; }
+	virtual const glm::vec3& getLightDirection() const override { return m_lightDirection; }
 
-	void render(GlCameraConstPtr camera, class GlStateStack& glStateStack) const;
+	virtual void render(IMkCameraConstPtr camera, class GlStateStack& glStateStack) const override;
 
 protected:
 	eUniformBindResult materialBindCallback(
-		GlCameraConstPtr camera,
+		IMkCameraConstPtr camera,
 		GlProgramPtr program,
 		eUniformDataType uniformDataType,
 		eUniformSemantic uniformSemantic,
 		const std::string& uniformName) const;
 	eUniformBindResult materialInstanceBindCallback(
-		GlCameraConstPtr camera,
+		IMkCameraConstPtr camera,
 		IGlSceneRenderableConstPtr renderableInstance,
 		GlProgramPtr program,
 		eUniformDataType uniformDataType,

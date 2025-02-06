@@ -1,6 +1,6 @@
 #include "GlStaticMeshInstance.h"
-#include "GlCamera.h"
-#include "GlScene.h"
+#include "IMkCamera.h"
+//#include "GlScene.h"
 #include "GlTriangulatedMesh.h"
 #include "GlMaterialInstance.h"
 
@@ -50,9 +50,9 @@ void GlStaticMeshInstance::setIsVisibleToCamera(const std::string& cameraName, b
 }
 
 // -- IGlSceneRenderable
-IGlSceneRenderableConstPtr GlStaticMeshInstance::getConstSelfPointer() const
+IMkSceneRenderableConstPtr GlStaticMeshInstance::getConstSelfPointer() const
 {
-	return std::static_pointer_cast<const IGlSceneRenderable>(shared_from_this());
+	return std::static_pointer_cast<const IMkSceneRenderable>(shared_from_this());
 }
 
 bool GlStaticMeshInstance::getVisible() const 
@@ -65,7 +65,7 @@ void GlStaticMeshInstance::setVisible(bool bNewVisible)
 	m_visible = bNewVisible; 
 }
 
-bool GlStaticMeshInstance::canCameraSee(GlCameraConstPtr renderingCamera) const
+bool GlStaticMeshInstance::canCameraSee(IMkCameraConstPtr renderingCamera) const
 {
 	if (m_visibileToCameras.size() > 0)
 	{

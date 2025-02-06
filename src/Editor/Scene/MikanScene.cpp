@@ -2,7 +2,7 @@
 #include "MikanObject.h"
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
-#include "IGLSceneRenderable.h"
+#include "IMkSceneRenderable.h"
 #include "GlScene.h"
 
 MikanScene::MikanScene()

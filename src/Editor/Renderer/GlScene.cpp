@@ -72,7 +72,7 @@ void GlScene::removeAllInstances()
 	m_drawCalls.clear();
 }
 
-void GlScene::render(GlCameraConstPtr camera, GlStateStack& glStateStack) const
+void GlScene::render(IMkCameraConstPtr camera, GlStateStack& glStateStack) const
 {
 	GlScopedState scopedState= glStateStack.createScopedState("GlScene");
 	GlState& glState= scopedState.getStackState();
@@ -168,7 +168,7 @@ void GlScene::render(GlCameraConstPtr camera, GlStateStack& glStateStack) const
 }
 
 eUniformBindResult GlScene::materialBindCallback(
-	GlCameraConstPtr camera,
+	IMkCameraConstPtr camera,
 	GlProgramPtr program,
 	eUniformDataType uniformDataType,
 	eUniformSemantic uniformSemantic,
@@ -226,7 +226,7 @@ eUniformBindResult GlScene::materialBindCallback(
 }
 
 eUniformBindResult GlScene::materialInstanceBindCallback(
-	GlCameraConstPtr camera,
+	IMkCameraConstPtr camera,
 	IGlSceneRenderableConstPtr renderableInstance,
 	GlProgramPtr program,
 	eUniformDataType uniformDataType,
