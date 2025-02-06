@@ -3,7 +3,7 @@
 #include "GlCamera.h"
 #include "MkError.h"
 #include "SdlCommon.h"
-#include "GlLineRenderer.h"
+#include "MikanLineRenderer.h"
 #include "GlProgram.h"
 #include "GlStateStack.h"
 #include "GlShaderCache.h"

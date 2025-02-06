@@ -45,6 +45,10 @@ class IMkTexture;
 using IMkTexturePtr = std::shared_ptr<IMkTexture>;
 using IMkTextureConstPtr = std::shared_ptr<const IMkTexture>;
 
+class IMkLineRenderer;
+using IMkLineRendererPtr = std::shared_ptr<IMkLineRenderer>;
+using IMkLineRendererConstPtr = std::shared_ptr<const IMkLineRenderer>;
+
 class GlTextureCache;
 using GlTextureCacheUniquePtr = std::unique_ptr<GlTextureCache>;
 
@@ -67,6 +71,10 @@ using IMkBindableObjectConstPtr = std::shared_ptr<const IMkBindableObject>;
 class IMkCamera;
 using IMkCameraPtr = std::shared_ptr<IMkCamera>;
 using IMkCameraConstPtr = std::shared_ptr<const IMkCamera>;
+
+class IMkWindow;
+using IMkWindowPtr = std::shared_ptr<IMkWindow>;
+using IMkWindowConstPtr = std::shared_ptr<const IMkWindow>;
 
 class IMkMesh;
 using IMkMeshPtr = std::shared_ptr<IMkMesh>;
