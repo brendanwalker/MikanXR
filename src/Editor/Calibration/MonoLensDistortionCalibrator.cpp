@@ -1,7 +1,7 @@
 #include "CalibrationRenderHelpers.h"
 #include "CalibrationPatternFinder.h"
 #include "Colors.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "Logger.h"
 #include "MathUtility.h"
 #include "MonoLensDistortionCalibrator.h"

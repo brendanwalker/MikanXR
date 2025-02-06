@@ -3,7 +3,7 @@
 #include "Logger.h"
 
 #include "AssetReference.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlModelResourceManager.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"

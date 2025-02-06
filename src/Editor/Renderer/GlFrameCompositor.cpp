@@ -1,6 +1,6 @@
 #include "App.h"
 #include "Colors.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlFrameBuffer.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"

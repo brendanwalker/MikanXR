@@ -1,5 +1,5 @@
 #include "IGlWindow.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
 #include "GlTexture.h"

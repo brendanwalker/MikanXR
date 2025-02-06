@@ -23,17 +23,32 @@
 
 #define SDL_MAIN_HANDLED
 
+#include <GL/glew.h>
+
 #if defined(_WIN32)
 	#include <SDL.h>
 	#include <SDL_events.h>
 	#include <SDL_syswm.h>
+	#if defined(IMGUI_IMPL_OPENGL_ES2)
+		#include <SDL_opengles2.h>
+		#include <SDL_opengles2_gl2.h>
+	#else
+		#include <SDL_opengl.h>
+		#include <SDL_opengl_glext.h>
+	#endif
 #else
 	#include <SDL2/SDL.h>
 	#include <SDL2/SDL_events.h>
 	#include <SDL2/SDL_syswm.h>
+	#if defined(IMGUI_IMPL_OPENGL_ES2)
+		#include <SDL2/SDL_opengles2.h>
+		#include <SDL2/SDL_opengles2_gl2.h>
+	#else
+		#include <SDL2/SDL_opengl.h>
+		#include <SDL2/SDL_opengl_glext.h>
+	#endif
 #endif
 
-#include "GlCommon.h"
 #include "GlTexture.h"
 #include "GlProgram.h"
 #include "Logger.h"

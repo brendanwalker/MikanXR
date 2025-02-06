@@ -38,9 +38,6 @@ class GlRenderModelResource;
 using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
 using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;
 
-class GlRmlUiRender;
-using GlRmlUiRenderUniquePtr = std::unique_ptr<GlRmlUiRender>;
-
 class GlScene;
 using GlScenePtr = std::shared_ptr<GlScene>;
 using GlSceneWeakPtr = std::weak_ptr<GlScene>;

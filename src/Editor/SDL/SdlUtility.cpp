@@ -1,5 +1,5 @@
 #include "GlTexture.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 
 #if defined(_WIN32)
 #include <SDL.h>

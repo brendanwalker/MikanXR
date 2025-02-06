@@ -3,7 +3,7 @@
 #include "CalibrationPatternFinder.h"
 #include "CameraMath.h"
 #include "Colors.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "InputManager.h"

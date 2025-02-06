@@ -15,7 +15,7 @@
 #include <SDL2/SDL_syswm.h>
 #endif
 
-#include "GlCommon.h"
+#include "SdlCommon.h"
 
 #include <algorithm>
 #include <assert.h>

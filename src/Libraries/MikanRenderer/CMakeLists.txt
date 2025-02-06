@@ -23,6 +23,7 @@ source_group("Private" FILES ${MIKAN_RENDERER_PRIVATE_SRC})
 list(APPEND MIKAN_RENDERER_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Public
 	${CMAKE_CURRENT_LIST_DIR}/Private
+	${ROOT_DIR}/thirdparty/glm/
 )
 
 add_library(MikanRenderer SHARED ${MIKAN_RENDERER_SRC})

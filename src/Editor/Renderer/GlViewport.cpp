@@ -1,7 +1,7 @@
 #include "App.h"
 #include "EditorObjectSystem.h"
 #include "GlViewport.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlCamera.h"
 #include "GlScene.h"
 #include "GlStateStack.h"

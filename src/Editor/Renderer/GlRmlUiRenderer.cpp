@@ -29,7 +29,7 @@
 
 #include "App.h"
 #include "AppStage.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlShaderCache.h"
 #include "GlProgram.h"
 #include "GlStateStack.h"

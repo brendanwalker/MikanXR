@@ -3,7 +3,7 @@
 #include "Graphs/CompositorNodeGraph.h"
 #include "CameraMath.h"
 #include "Colors.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlLineRenderer.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"

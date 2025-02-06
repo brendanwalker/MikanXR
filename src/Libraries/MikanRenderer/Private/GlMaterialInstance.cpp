@@ -1,4 +1,3 @@
-#include "GlCamera.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"

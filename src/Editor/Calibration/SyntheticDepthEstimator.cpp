@@ -1,5 +1,5 @@
 #include "SyntheticDepthEstimator.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlTexture.h"
 #include "Logger.h"
 #include "OpenCVManager.h"

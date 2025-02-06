@@ -11,7 +11,7 @@
 #include "AppStage.h"
 #include "FontManager.h"
 #include "GlFrameCompositor.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlCamera.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"

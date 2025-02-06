@@ -1,5 +1,5 @@
 #include "FontManager.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlShaderCache.h"
 #include "GlProgram.h"
 #include "GlTexture.h"

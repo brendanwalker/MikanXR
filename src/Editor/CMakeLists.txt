@@ -305,6 +305,13 @@ file(GLOB MIKAN_OBJECT_SRC
 )
 source_group("Object" FILES ${MIKAN_OBJECT_SRC})
 
+# OpenCV
+file(GLOB MIKAN_OPENCV_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/OpenCV/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/OpenCV/*.h"
+)
+source_group("OpenCV" FILES ${MIKAN_OPENCV_SRC})
+
 # Scene
 file(GLOB MIKAN_SCENE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Scene/*.cpp"
@@ -312,12 +319,33 @@ file(GLOB MIKAN_SCENE_SRC
 )
 source_group("Scene" FILES ${MIKAN_SCENE_SRC})
 
+# Renderer
+file(GLOB MIKAN_RENDERER_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Renderer/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Renderer/*.h"
+)
+source_group("Renderer" FILES ${MIKAN_RENDERER_SRC})
+
+# RmlUI
+file(GLOB MIKAN_RMLUI_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/RmlUI/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/RmlUI/*.h"
+)
+source_group("RmlUI" FILES ${MIKAN_RMLUI_SRC})
+
 # Scripting
 file(GLOB MIKAN_SCRIPTING_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Scripting/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Scripting/*.h"
 )
 source_group("Scripting" FILES ${MIKAN_SCRIPTING_SRC})
+
+# SDL
+file(GLOB MIKAN_SDL_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/SDL/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/SDL/*.h"
+)
+source_group("SDL" FILES ${MIKAN_SDL_SRC})
 
 # System
 file(GLOB MIKAN_SYSTEM_SRC
@@ -397,8 +425,12 @@ set(MIKAN_SRC
     ${MIKAN_MATH_SRC}
     ${MIKAN_NODE_EDITORS_SRC}
     ${MIKAN_OBJECT_SRC}
+    ${MIKAN_OPENCV_SRC}
+    ${MIKAN_RENDERER_SRC}
+    ${MIKAN_RMLUI_SRC}
     ${MIKAN_SCENE_SRC}
     ${MIKAN_SCRIPTING_SRC}
+    ${MIKAN_SDL_SRC}
     ${MIKAN_SYSTEM_SRC}
     ${MIKAN_VIDEO_SRC}
     ${MIKAN_VIDEO_GSTREAMER_SRC}
@@ -431,8 +463,12 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Math
   ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/Object
+  ${CMAKE_CURRENT_LIST_DIR}/OpenCV
   ${CMAKE_CURRENT_LIST_DIR}/Profile
+  ${CMAKE_CURRENT_LIST_DIR}/Renderer
+  ${CMAKE_CURRENT_LIST_DIR}/RmlUI
   ${CMAKE_CURRENT_LIST_DIR}/Scene
+  ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
   ${CMAKE_CURRENT_LIST_DIR}/System
   ${CMAKE_CURRENT_LIST_DIR}/Video
@@ -507,9 +543,7 @@ list(APPEND MIKAN_REQ_LIBS
   MikanClientAPI
   MikanClientCore
   MikanCoreApp
-  MikanOpenCV
-  MikanRmlUI
-  MikanSDL
+  MikanRenderer
   MikanSerialization
   MikanUtility
   RmlCore

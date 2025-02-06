@@ -2,7 +2,7 @@
 #include "App.h"
 #include "FrameTimer.h"
 #include "Graphs/CompositorNodeGraph.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlShaderCache.h"
 #include "GlFrameCompositor.h"
 #include "GlStateStack.h"

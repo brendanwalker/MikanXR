@@ -1,5 +1,5 @@
 #include "CompositorNodeGraph.h"
-#include "GlCommon.h"
+#include "SdlCommon.h"
 #include "GlFrameBuffer.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"

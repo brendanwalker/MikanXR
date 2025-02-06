@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GlTypesFwd.h"
-#include "RendererFwd.h"
+#include "GlRendererFwd.h"
 #include "IGlBindableObject.h"
 
 #include <glm/ext/vector_float4.hpp>
