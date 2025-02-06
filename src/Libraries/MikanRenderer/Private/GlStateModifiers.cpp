@@ -21,7 +21,12 @@ public:
 	inline GlState& getOwnerGlState() { return m_ownerGlState; }
 	inline GlStateStack& getOwnerGlStateStack() { return m_ownerGlState.getOwnerStateStack(); }
 	inline IMkWindow* getOwnerWindow() { return getOwnerGlStateStack().getOwnerWindow(); }
+
 	virtual int getOwnerStateStackDepth() const override { return m_ownerStateStackDepth; }
+	virtual const std::string& getModifierID() const override { return "<INVALID>"; }
+	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override {}
+	virtual void revert() override {}
+
 	GlStateLog getStateLog()
 	{
 		return GlStateLog(m_ownerGlState);
