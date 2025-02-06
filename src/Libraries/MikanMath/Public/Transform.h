@@ -1,10 +1,12 @@
 #pragma once
 
+#include "MikanMathExport.h"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include "glm/ext/vector_float3.hpp"
 
-class GlmTransform
+class MIKAN_MATH_CLASS GlmTransform
 {
 public:
 	GlmTransform();

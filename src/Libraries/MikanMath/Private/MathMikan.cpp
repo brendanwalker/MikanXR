@@ -1,6 +1,7 @@
 #include "MathMikan.h"
 #include "MathUtility.h"
-#include "MathTypeConversion.h"
+#include "MikanMathTypes.h"
+
 #include <glm/gtx/euler_angles.hpp>
 
 void MikanOrientationToEulerAngles(
@@ -8,9 +9,9 @@ void MikanOrientationToEulerAngles(
 	float& out_x_angle, float& out_y_angle, float& out_z_angle)
 {
 	const glm::mat3 R= glm::mat3(
-		MikanVector3f_to_glm_vec3(x_axis), 
-		MikanVector3f_to_glm_vec3(y_axis),
-		MikanVector3f_to_glm_vec3(z_axis));
+		glm::vec3(x_axis.x, x_axis.y, x_axis.z), 
+		glm::vec3(y_axis.x, y_axis.y, y_axis.z),
+		glm::vec3(z_axis.x, z_axis.y, z_axis.z));
 
 	float xRadians= 0, yRadians= 0, zRadians= 0;
 	glm::extractEulerAngleXYZ(glm::mat4(R), xRadians, yRadians, zRadians);
@@ -29,7 +30,7 @@ void EulerAnglesToMikanOrientation(
 	const float zRadians = z_angle * k_degrees_to_radians;
 	const glm::mat3 R = glm::mat3(glm::eulerAngleXYZ(xRadians, yRadians, zRadians));
 
-	out_x_axis = glm_vec3_to_MikanVector3f(R[0]);
-	out_y_axis = glm_vec3_to_MikanVector3f(R[1]);
-	out_z_axis = glm_vec3_to_MikanVector3f(R[2]);
+	out_x_axis = {R[0].x, R[0].y, R[0].z};
+	out_y_axis = {R[1].x, R[1].y, R[1].z};
+	out_z_axis = {R[2].x, R[2].y, R[2].z};
 }

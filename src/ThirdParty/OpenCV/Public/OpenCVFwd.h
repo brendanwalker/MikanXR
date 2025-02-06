@@ -17,6 +17,7 @@ namespace cv {
 	using Matx33f = Matx<float, 3, 3>;
 	using Matx34d = Matx<double, 3, 4>;
 	using Matx33d = Matx<double, 3, 3>;
+	using Matx44d = Matx<double, 4, 4>;
 	using Matx81f = Matx<float, 8, 1>;
 	using Matx81d = Matx<double, 8, 1>;
 

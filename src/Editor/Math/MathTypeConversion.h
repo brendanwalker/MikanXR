@@ -15,6 +15,11 @@
 #define k_meters_to_millimeters		1000.0
 #define k_millimeters_to_meters		(1.0 / k_meters_to_millimeters)
 
+// pre-declarations
+namespace vr
+{
+	struct HmdMatrix34_t;
+};
 class GlmTransform;
 
 //-- methods -----

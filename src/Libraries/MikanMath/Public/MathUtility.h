@@ -1,6 +1,8 @@
 #pragma once
 
 //-- includes -----
+#include "MikanMathExport.h"
+
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -57,26 +59,26 @@
 #endif
 
 //-- int methods -----
-int int_min(int a, int b);
-int int_max(int a, int b);
-int int_clamp(int x, int lo, int hi);
+MIKAN_MATH_FUNC(int) int_min(int a, int b);
+MIKAN_MATH_FUNC(int) int_max(int a, int b);
+MIKAN_MATH_FUNC(int) int_clamp(int x, int lo, int hi);
 
 //-- float methods -----
-float safe_divide_with_default(float numerator, float denomenator, float default_result);
-float safe_sqrt_with_default(float square, float default_result);
-float remap_float_to_float(float inA, float inB, float outA, float outB, float inValue);
-int remap_float_to_int(float inA, float inB, int outA, int outB, float inValue);
-float remap_int_to_float(int intA, int intB, float outA, float outB, int inValue);
-int remap_int_to_int(int inA, int inB, int outA, int outB, int inValue);
-float clampf(float x, float lo, float hi);
-double clampd(double x, double lo, double hi);
-float clampf01(float x);
-float lerpf(float a, float b, float u);
-float lerp_clampf(float a, float b, float u);
-float degrees_to_radians(float x);
-float radians_to_degrees(float x);
-float wrap_radians(float angle);
-float wrap_degrees(float angle);
-float wrap_range(float value, float range_min, float range_max);
-double wrap_ranged(double value, double range_min, double range_max);
-float wrap_lerpf(float a, float b, float u, float range_min, float range_max);
+MIKAN_MATH_FUNC(float) safe_divide_with_default(float numerator, float denomenator, float default_result);
+MIKAN_MATH_FUNC(float) safe_sqrt_with_default(float square, float default_result);
+MIKAN_MATH_FUNC(float) remap_float_to_float(float inA, float inB, float outA, float outB, float inValue);
+MIKAN_MATH_FUNC(int) remap_float_to_int(float inA, float inB, int outA, int outB, float inValue);
+MIKAN_MATH_FUNC(float) remap_int_to_float(int intA, int intB, float outA, float outB, int inValue);
+MIKAN_MATH_FUNC(int) remap_int_to_int(int inA, int inB, int outA, int outB, int inValue);
+MIKAN_MATH_FUNC(float) clampf(float x, float lo, float hi);
+MIKAN_MATH_FUNC(double) clampd(double x, double lo, double hi);
+MIKAN_MATH_FUNC(float) clampf01(float x);
+MIKAN_MATH_FUNC(float) lerpf(float a, float b, float u);
+MIKAN_MATH_FUNC(float) lerp_clampf(float a, float b, float u);
+MIKAN_MATH_FUNC(float) degrees_to_radians(float x);
+MIKAN_MATH_FUNC(float) radians_to_degrees(float x);
+MIKAN_MATH_FUNC(float) wrap_radians(float angle);
+MIKAN_MATH_FUNC(float) wrap_degrees(float angle);
+MIKAN_MATH_FUNC(float) wrap_range(float value, float range_min, float range_max);
+MIKAN_MATH_FUNC(double) wrap_ranged(double value, double range_min, double range_max);
+MIKAN_MATH_FUNC(float) wrap_lerpf(float a, float b, float u, float range_min, float range_max);

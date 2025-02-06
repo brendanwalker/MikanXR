@@ -265,10 +265,10 @@ bool glm_intersect_tri_with_ray(
 }
 
 bool glm_intersect_disk_with_ray(
-	const glm::vec3 ray_start,		// Ray origin, in world space
-	const glm::vec3 ray_direction,	// Ray direction, in world space. 
-	const glm::vec3 disk_center,
-	const glm::vec3 disk_normal,
+	const glm::vec3& ray_start,		// Ray origin, in world space
+	const glm::vec3& ray_direction,	// Ray direction, in world space. 
+	const glm::vec3& disk_center,
+	const glm::vec3& disk_normal,
 	const float disk_radius,
 	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
 	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
@@ -299,11 +299,11 @@ bool glm_intersect_disk_with_ray(
 
 // Adapted from: https://github.com/opengl-tutorials/ogl/blob/master/misc05_picking/misc05_picking_custom.cpp
 bool glm_intersect_obb_with_ray(
-	const glm::vec3 ray_start,		// Ray origin, in world space
-	const glm::vec3 ray_direction,	// Ray direction, in world space. 
-	const glm::vec3 aabb_min,		// Minimum X,Y,Z coords of the mesh when not transformed at all.
-	const glm::vec3 aabb_max,		// Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
-	const glm::mat4 xform,			// Transformation applied to the mesh (which will thus be also applied to its bounding box)
+	const glm::vec3& ray_start,		// Ray origin, in world space
+	const glm::vec3& ray_direction,	// Ray direction, in world space. 
+	const glm::vec3& aabb_min,		// Minimum X,Y,Z coords of the mesh when not transformed at all.
+	const glm::vec3& aabb_max,		// Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+	const glm::mat4& xform,			// Transformation applied to the mesh (which will thus be also applied to its bounding box)
 	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
 	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
 	glm::vec3& outIntNormal)		// Output: intersection normal on the surface of the OBB
@@ -441,10 +441,10 @@ bool glm_intersect_obb_with_ray(
 }
 
 bool glm_intersect_aabb_with_ray(
-	const glm::vec3 ray_start,
-	const glm::vec3 ray_direction,
-	const glm::vec3 aabb_min,
-	const glm::vec3 aabb_max,
+	const glm::vec3& ray_start,
+	const glm::vec3& ray_direction,
+	const glm::vec3& aabb_min,
+	const glm::vec3& aabb_max,
 	float& outIntDistance)
 {
 	const glm::vec3 tMin = (aabb_min - ray_start) / ray_direction;
