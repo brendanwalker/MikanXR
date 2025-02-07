@@ -17,7 +17,7 @@
 #include "GlStateStack.h"
 #include "GlTriangulatedMesh.h"
 #include "GlTextRenderer.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"

@@ -12,11 +12,11 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/vector_float4.hpp"
 
-class GlViewport : public IMkViewport, public std::enable_shared_from_this<GlViewport>
+class MikanViewport : public std::enable_shared_from_this<MikanViewport>, public IMkViewport
 {
 public:
-	GlViewport(const glm::i32vec2& windowSize);
-	virtual ~GlViewport();
+	MikanViewport(const glm::i32vec2& windowSize);
+	virtual ~MikanViewport();
 
 	virtual glm::i32vec2 getViewportOrigin() const override { return m_viewportOrigin; }
 	virtual glm::i32vec2 getViewportSize() const override { return m_viewportSize; }

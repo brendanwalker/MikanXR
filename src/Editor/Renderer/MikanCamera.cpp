@@ -1,7 +1,7 @@
 #include "App.h"
 #include "CameraMath.h"
 #include "MikanCamera.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "InputManager.h"
 #include "MathUtility.h"
 #include "MathGLM.h"

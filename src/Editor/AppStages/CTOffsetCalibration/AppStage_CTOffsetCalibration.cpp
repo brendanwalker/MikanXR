@@ -12,7 +12,7 @@
 #include "GlLineRenderer.h"
 #include "GlScene.h"
 #include "GlTextRenderer.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"

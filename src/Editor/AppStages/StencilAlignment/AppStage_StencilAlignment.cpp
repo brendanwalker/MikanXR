@@ -18,7 +18,7 @@
 #include "GlStateStack.h"
 #include "GlTextRenderer.h"
 #include "GlTriangulatedMesh.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "IMkWireframeMesh.h"
 #include "InputManager.h"
 #include "MainWindow.h"

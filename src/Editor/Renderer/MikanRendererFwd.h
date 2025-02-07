@@ -15,10 +15,10 @@ using GlScenePtr = std::shared_ptr<GlScene>;
 using GlSceneWeakPtr = std::weak_ptr<GlScene>;
 using GlSceneConstPtr = std::shared_ptr<const GlScene>;
 
-class GlViewport;
-using GlViewportPtr = std::shared_ptr<GlViewport>;
-using GlViewportWeakPtr = std::weak_ptr<GlViewport>;
-using GlViewportConstPtr = std::shared_ptr<const GlViewport>;
+class MikanViewport;
+using GlViewportPtr = std::shared_ptr<MikanViewport>;
+using GlViewportWeakPtr = std::weak_ptr<MikanViewport>;
+using GlViewportConstPtr = std::shared_ptr<const MikanViewport>;
 
 class MikanShaderCache;
 using MikanShaderCacheUniquePtr = std::unique_ptr<MikanShaderCache>;

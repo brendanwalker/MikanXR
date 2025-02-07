@@ -15,7 +15,7 @@
 #include "GlStaticMeshInstance.h"
 #include "GlTextRenderer.h"
 #include "GlTriangulatedMesh.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"

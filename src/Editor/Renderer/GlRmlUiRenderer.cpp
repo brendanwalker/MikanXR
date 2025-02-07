@@ -35,7 +35,7 @@
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
 #include "GlVertexDefinition.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "IMkWindow.h"
 #include "Logger.h"
 #include "MainWindow.h"

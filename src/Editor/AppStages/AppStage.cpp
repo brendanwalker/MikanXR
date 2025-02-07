@@ -1,6 +1,6 @@
 #include "App.h"
 #include "AppStage.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "GlRmlUiRenderer.h"
 #include "MainWindow.h"
 #include "RmlManager.h"
@@ -31,7 +31,7 @@ AppStage::~AppStage()
 GlViewportPtr AppStage::addViewport()
 {
 	GlViewportPtr viewport= 
-		std::make_shared<GlViewport>(
+		std::make_shared<MikanViewport>(
 			glm::i32vec2(m_ownerWindow->getWidth(), m_ownerWindow->getHeight()));
 	m_viewports.push_back(viewport);
 

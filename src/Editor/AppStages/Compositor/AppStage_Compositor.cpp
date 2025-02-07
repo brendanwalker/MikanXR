@@ -23,7 +23,7 @@
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
 #include "GlRenderModelResource.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "IMkWireframeMesh.h"
 #include "IMkTexture.h"
 #include "InterprocessRenderTargetReader.h"

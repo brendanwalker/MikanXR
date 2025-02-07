@@ -8,7 +8,7 @@
 #include "GizmoScaleComponent.h"
 #include "GizmoTransformComponent.h"
 #include "GizmoTranslateComponent.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "InputManager.h"
 #include "ObjectSystemManager.h"
 #include "MainWindow.h"

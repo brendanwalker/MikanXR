@@ -1,6 +1,6 @@
 #include "App.h"
 #include "EditorObjectSystem.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "SdlCommon.h"
 #include "MikanCamera.h"
 #include "GlScene.h"
@@ -17,7 +17,7 @@
 #endif
 
 // -- GlViewport --
-GlViewport::GlViewport(const glm::i32vec2& windowSize)
+MikanViewport::MikanViewport(const glm::i32vec2& windowSize)
 	: m_windowSize(windowSize)
 	, m_backgroundColor(Colors::CornflowerBlue, 1.f)
 {
@@ -25,7 +25,7 @@ GlViewport::GlViewport(const glm::i32vec2& windowSize)
 	addCamera();
 }
 
-void GlViewport::setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize)
+void MikanViewport::setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize)
 {
 	m_viewportOrigin = glm::max(glm::min(viewportOrigin, m_windowSize), glm::i32vec2(0, 0));
 	m_viewportSize = glm::min((m_viewportOrigin + viewportSize), m_windowSize) - m_viewportOrigin;
@@ -35,17 +35,17 @@ void GlViewport::setViewport(const glm::i32vec2& viewportOrigin, const glm::i32v
 	m_renderSize= glm::i32vec2();
 }
 
-void GlViewport::setBackgroundColor(const glm::vec3& color)
+void MikanViewport::setBackgroundColor(const glm::vec3& color)
 {
 	m_backgroundColor= glm::vec4(color, 1.f);
 }
 
-GlViewport::~GlViewport()
+MikanViewport::~MikanViewport()
 {
 	unbindInput();
 }
 
-void GlViewport::applyRenderingViewport(GlState& glState) const
+void MikanViewport::applyRenderingViewport(GlState& glState) const
 {
 	glStateSetClearColor(glState, m_backgroundColor);
 
@@ -57,19 +57,19 @@ void GlViewport::applyRenderingViewport(GlState& glState) const
 		m_viewportSize.x, m_viewportSize.y);
 }
 
-void GlViewport::onRenderingViewportApply(int x, int y, int width, int height)
+void MikanViewport::onRenderingViewportApply(int x, int y, int width, int height)
 {
 	m_renderOrigin = glm::i32vec2(x, y);
 	m_renderSize = glm::i32vec2(width, height);
 }
 
-void GlViewport::onRenderingViewportRevert(int x, int y, int width, int height)
+void MikanViewport::onRenderingViewportRevert(int x, int y, int width, int height)
 {
 	m_renderOrigin = glm::i32vec2(x, y);
 	m_renderSize = glm::i32vec2(width, height);
 }
 
-bool GlViewport::getRenderingViewport(glm::i32vec2& outOrigin, glm::i32vec2& outSize) const
+bool MikanViewport::getRenderingViewport(glm::i32vec2& outOrigin, glm::i32vec2& outSize) const
 {
 	if (m_renderSize.x > 0 && m_renderSize.y > 0)
 	{
@@ -81,7 +81,7 @@ bool GlViewport::getRenderingViewport(glm::i32vec2& outOrigin, glm::i32vec2& out
 	return false;
 }
 
-void GlViewport::update(float deltaSeconds)
+void MikanViewport::update(float deltaSeconds)
 {
 	// Don't process input if the cursor isn't in the viewport
 	glm::vec2 viewportLocation;
@@ -123,17 +123,17 @@ void GlViewport::update(float deltaSeconds)
 	}
 }
 
-IMkCameraPtr GlViewport::getCurrentCamera() const
+IMkCameraPtr MikanViewport::getCurrentCamera() const
 {
 	return m_cameraPool[m_currentCameraIndex];
 }
 
-int GlViewport::getCurrentCameraIndex() const
+int MikanViewport::getCurrentCameraIndex() const
 {
 	return m_currentCameraIndex;
 }
 
-IMkCameraPtr GlViewport::addCamera()
+IMkCameraPtr MikanViewport::addCamera()
 {
 	GlCameraPtr newCamera = std::make_shared<MikanCamera>();
 	m_cameraPool.push_back(newCamera);
@@ -141,12 +141,12 @@ IMkCameraPtr GlViewport::addCamera()
 	return newCamera;
 }
 
-int GlViewport::getCameraCount() const
+int MikanViewport::getCameraCount() const
 {
 	return (int)m_cameraPool.size();
 }
 
-IMkCameraPtr GlViewport::getCameraByIndex(int cameraIndex)
+IMkCameraPtr MikanViewport::getCameraByIndex(int cameraIndex)
 {
 	if (cameraIndex >= 0 && cameraIndex < getCameraCount())
 	{
@@ -156,7 +156,7 @@ IMkCameraPtr GlViewport::getCameraByIndex(int cameraIndex)
 	return nullptr;
 }
 
-void GlViewport::setCurrentCamera(int cameraIndex)
+void MikanViewport::setCurrentCamera(int cameraIndex)
 {
 	if (cameraIndex >= 0 && cameraIndex < getCameraCount())
 	{
@@ -164,93 +164,93 @@ void GlViewport::setCurrentCamera(int cameraIndex)
 	}
 }
 
-void GlViewport::bindInput()
+void MikanViewport::bindInput()
 {
 	if (!m_bIsInputBound)
 	{
 		InputManager* inputManager= InputManager::getInstance();
 		EventBindingSet* bindingSet = inputManager->getCurrentEventBindingSet();
 
-		bindingSet->OnMouseButtonPressedEvent += MakeDelegate(this, &GlViewport::onMouseButtonPressed);
-		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &GlViewport::onMouseButtonReleased);
-		bindingSet->OnMouseMotionEvent += MakeDelegate(this, &GlViewport::onMouseMotion);
-		bindingSet->OnMouseWheelScrolledEvent += MakeDelegate(this, &GlViewport::onMouseWheel);
+		bindingSet->OnMouseButtonPressedEvent += MakeDelegate(this, &MikanViewport::onMouseButtonPressed);
+		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &MikanViewport::onMouseButtonReleased);
+		bindingSet->OnMouseMotionEvent += MakeDelegate(this, &MikanViewport::onMouseMotion);
+		bindingSet->OnMouseWheelScrolledEvent += MakeDelegate(this, &MikanViewport::onMouseWheel);
 
 		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyPressed += 
-			MakeDelegate(this, &GlViewport::onLeftButtonPressed);
+			MakeDelegate(this, &MikanViewport::onLeftButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyReleased += 
-			MakeDelegate(this, &GlViewport::onLeftButtonReleased);
+			MakeDelegate(this, &MikanViewport::onLeftButtonReleased);
 		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyPressed += 
-			MakeDelegate(this, &GlViewport::onRightButtonPressed);
+			MakeDelegate(this, &MikanViewport::onRightButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyReleased += 
-			MakeDelegate(this, &GlViewport::onRightButtonReleased);
+			MakeDelegate(this, &MikanViewport::onRightButtonReleased);
 
 		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed +=
-			MakeDelegate(this, &GlViewport::onForwardButtonPressed);
+			MakeDelegate(this, &MikanViewport::onForwardButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyReleased +=
-			MakeDelegate(this, &GlViewport::onForwardButtonReleased);
+			MakeDelegate(this, &MikanViewport::onForwardButtonReleased);
 		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyPressed +=
-			MakeDelegate(this, &GlViewport::onBackwardButtonPressed);
+			MakeDelegate(this, &MikanViewport::onBackwardButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyReleased +=
-			MakeDelegate(this, &GlViewport::onBackwardButtonReleased);
+			MakeDelegate(this, &MikanViewport::onBackwardButtonReleased);
 
 		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed +=
-			MakeDelegate(this, &GlViewport::onUpButtonPressed);
+			MakeDelegate(this, &MikanViewport::onUpButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyReleased +=
-			MakeDelegate(this, &GlViewport::onUpButtonReleased);
+			MakeDelegate(this, &MikanViewport::onUpButtonReleased);
 		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyPressed +=
-			MakeDelegate(this, &GlViewport::onDownButtonPressed);
+			MakeDelegate(this, &MikanViewport::onDownButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyReleased +=
-			MakeDelegate(this, &GlViewport::onDownButtonReleased);
+			MakeDelegate(this, &MikanViewport::onDownButtonReleased);
 
 		m_bIsInputBound = true;
 	}
 }
 
-void GlViewport::unbindInput()
+void MikanViewport::unbindInput()
 {
 	if (m_bIsInputBound)
 	{
 		InputManager* inputManager = InputManager::getInstance();
 		EventBindingSet* bindingSet = inputManager->getCurrentEventBindingSet();
 
-		bindingSet->OnMouseButtonPressedEvent -= MakeDelegate(this, &GlViewport::onMouseButtonPressed);
-		bindingSet->OnMouseButtonReleasedEvent -= MakeDelegate(this, &GlViewport::onMouseButtonReleased);
-		bindingSet->OnMouseMotionEvent -= MakeDelegate(this, &GlViewport::onMouseMotion);
-		bindingSet->OnMouseWheelScrolledEvent -= MakeDelegate(this, &GlViewport::onMouseWheel);
+		bindingSet->OnMouseButtonPressedEvent -= MakeDelegate(this, &MikanViewport::onMouseButtonPressed);
+		bindingSet->OnMouseButtonReleasedEvent -= MakeDelegate(this, &MikanViewport::onMouseButtonReleased);
+		bindingSet->OnMouseMotionEvent -= MakeDelegate(this, &MikanViewport::onMouseMotion);
+		bindingSet->OnMouseWheelScrolledEvent -= MakeDelegate(this, &MikanViewport::onMouseWheel);
 
 		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyPressed -=
-			MakeDelegate(this, &GlViewport::onLeftButtonPressed);
+			MakeDelegate(this, &MikanViewport::onLeftButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyReleased -=
-			MakeDelegate(this, &GlViewport::onLeftButtonReleased);
+			MakeDelegate(this, &MikanViewport::onLeftButtonReleased);
 		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyPressed -=
-			MakeDelegate(this, &GlViewport::onRightButtonPressed);
+			MakeDelegate(this, &MikanViewport::onRightButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyReleased -=
-			MakeDelegate(this, &GlViewport::onRightButtonReleased);
+			MakeDelegate(this, &MikanViewport::onRightButtonReleased);
 
 		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed -=
-			MakeDelegate(this, &GlViewport::onForwardButtonPressed);
+			MakeDelegate(this, &MikanViewport::onForwardButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyReleased -=
-			MakeDelegate(this, &GlViewport::onForwardButtonReleased);
+			MakeDelegate(this, &MikanViewport::onForwardButtonReleased);
 		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyPressed -=
-			MakeDelegate(this, &GlViewport::onBackwardButtonPressed);
+			MakeDelegate(this, &MikanViewport::onBackwardButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyReleased -=
-			MakeDelegate(this, &GlViewport::onBackwardButtonReleased);
+			MakeDelegate(this, &MikanViewport::onBackwardButtonReleased);
 
 		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed -=
-			MakeDelegate(this, &GlViewport::onUpButtonPressed);
+			MakeDelegate(this, &MikanViewport::onUpButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyReleased -=
-			MakeDelegate(this, &GlViewport::onUpButtonReleased);
+			MakeDelegate(this, &MikanViewport::onUpButtonReleased);
 		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyPressed -=
-			MakeDelegate(this, &GlViewport::onDownButtonPressed);
+			MakeDelegate(this, &MikanViewport::onDownButtonPressed);
 		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyReleased -=
-			MakeDelegate(this, &GlViewport::onDownButtonReleased);
+			MakeDelegate(this, &MikanViewport::onDownButtonReleased);
 
 		m_bIsInputBound = false;
 	}
 }
 
-bool GlViewport::getCursorViewportPixelPos(glm::vec2& outViewportLocation) const
+bool MikanViewport::getCursorViewportPixelPos(glm::vec2& outViewportLocation) const
 {
 	int mouse_x, mouse_y;
 	InputManager::getInstance()->getMouseScreenPosition(mouse_x, mouse_y);
@@ -270,7 +270,7 @@ bool GlViewport::getCursorViewportPixelPos(glm::vec2& outViewportLocation) const
 	return false;
 }
 
-void GlViewport::onMouseMotion(int deltaX, int deltaY)
+void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 {
 	GlCameraPtr camera = getCurrentCamera();
 
@@ -326,7 +326,7 @@ void GlViewport::onMouseMotion(int deltaX, int deltaY)
 	}
 }
 
-void GlViewport::onMouseButtonPressed(int button)
+void MikanViewport::onMouseButtonPressed(int button)
 {
 	GlCameraPtr camera = getCurrentCamera();
 
@@ -347,7 +347,7 @@ void GlViewport::onMouseButtonPressed(int button)
 	}
 }
 
-void GlViewport::onMouseButtonReleased(int button)
+void MikanViewport::onMouseButtonReleased(int button)
 {
 	GlCameraPtr camera = getCurrentCamera();
 
@@ -368,7 +368,7 @@ void GlViewport::onMouseButtonReleased(int button)
 	}
 }
 
-void GlViewport::onMouseWheel(int scrollAmount)
+void MikanViewport::onMouseWheel(int scrollAmount)
 {
 	float deltaRadius = (float)scrollAmount * k_camera_mouse_zoom_scalar;
 

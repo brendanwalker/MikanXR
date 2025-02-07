@@ -12,7 +12,7 @@
 #include "GlStateModifiers.h"
 #include "MikanTextRenderer.h"
 #include "IMkTexture.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "IMkWindow.h"
 #include "Logger.h"
 #include "MainWindow.h"

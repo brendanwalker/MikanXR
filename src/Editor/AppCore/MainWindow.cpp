@@ -20,7 +20,7 @@
 #include "GlTextureCache.h"
 #include "IMkTextRenderer.h"
 #include "IMkLineRenderer.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "GlModelResourceManager.h"
 #include "InputManager.h"
 #include "MathUtility.h"
@@ -265,7 +265,7 @@ bool MainWindow::startup()
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
 		m_uiViewport = 
-			std::make_shared<GlViewport>(
+			std::make_shared<MikanViewport>(
 				glm::i32vec2(k_window_pixel_width, k_window_pixel_height));
 	}
 

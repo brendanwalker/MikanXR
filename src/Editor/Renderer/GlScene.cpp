@@ -8,7 +8,7 @@
 #include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlStaticMeshInstance.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "IMkMesh.h"
 
 #include <algorithm>

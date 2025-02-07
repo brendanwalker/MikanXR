@@ -1,7 +1,7 @@
 #include "GlCommon.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
-#include "GlViewport.h"
+#include "IMkViewport.h"
 #include "IMkStateModifier.h"
 #include "IMkWindow.h"
 
@@ -22,8 +22,9 @@ public:
 	inline GlStateStack& getOwnerGlStateStack() { return m_ownerGlState.getOwnerStateStack(); }
 	inline IMkWindow* getOwnerWindow() { return getOwnerGlStateStack().getOwnerWindow(); }
 
+	inline static const std::string k_modifierID = "<INVALID>";
+	virtual const std::string& getModifierID() const override { return k_modifierID; }
 	virtual int getOwnerStateStackDepth() const override { return m_ownerStateStackDepth; }
-	virtual const std::string& getModifierID() const override { return "<INVALID>"; }
 	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override {}
 	virtual void revert() override {}
 
@@ -133,7 +134,7 @@ public:
 		getStateLog() << "Apply Viewport: " << m_x << ", " << m_y << ", " << m_width << ", " << m_height;
 
 		// Tell the owner window that we are applying new viewport bounds
-		GlViewportPtr viewport= getOwnerWindow()->getRenderingViewport();
+		IMkViewportPtr viewport= getOwnerWindow()->getRenderingViewport();
 		if (viewport)
 		{
 			viewport->onRenderingViewportApply(m_x, m_y, m_width, m_height);
@@ -146,7 +147,7 @@ public:
 		getStateLog() << "Revert Viewport: " << m_prevX << ", " << m_prevY << ", " << m_prevWidth << ", " << m_prevHeight;
 
 		// Tell the owner window that we are restoring previous viewport bounds
-		GlViewportPtr viewport = getOwnerWindow()->getRenderingViewport();
+		IMkViewportPtr viewport = getOwnerWindow()->getRenderingViewport();
 		if (viewport)
 		{
 			viewport->onRenderingViewportRevert(m_x, m_y, m_width, m_height);

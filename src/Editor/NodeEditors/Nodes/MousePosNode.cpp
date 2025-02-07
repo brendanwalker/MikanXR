@@ -5,7 +5,7 @@
 #include "Pins/NodePin.h"
 #include "Pins/FloatPin.h"
 #include "IMkWindow.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 
 #include "imgui.h"
 #include "imnodes.h"

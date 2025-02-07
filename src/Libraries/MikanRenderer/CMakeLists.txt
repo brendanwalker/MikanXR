@@ -24,6 +24,7 @@ list(APPEND MIKAN_RENDERER_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Public
 	${CMAKE_CURRENT_LIST_DIR}/Private
 	${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
+	${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
 	${ROOT_DIR}/thirdparty/glm/
 	${GLEW_INCLUDE_DIRS}
 	${STB_INCLUDE_DIRS}
@@ -31,7 +32,8 @@ list(APPEND MIKAN_RENDERER_INCL_DIRS
 
 list(APPEND MIKAN_RENDERER_REQ_LIBS 
   ${GLEW_LIBRARIES}
-  MikanCoreApp)
+  MikanCoreApp
+  MikanUtility)
 
 add_library(MikanRenderer SHARED ${MIKAN_RENDERER_SRC})
 target_link_libraries(MikanRenderer ${MIKAN_RENDERER_REQ_LIBS})

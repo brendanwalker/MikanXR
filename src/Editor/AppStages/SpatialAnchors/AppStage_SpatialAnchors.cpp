@@ -9,7 +9,7 @@
 #include "GlScene.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "MainWindow.h"
 #include "MathUtility.h"
 #include "ObjectSystemManager.h"

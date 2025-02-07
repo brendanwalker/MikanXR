@@ -9,7 +9,7 @@
 #include "MikanCamera.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"
-#include "GlViewport.h"
+#include "MikanViewport.h"
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulator.h"
