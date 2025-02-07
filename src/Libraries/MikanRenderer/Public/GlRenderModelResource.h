@@ -20,12 +20,12 @@ public:
 	inline void setModelFilePath(const std::filesystem::path& inModelFilePath) 
 	{ m_renderModelFilepath= inModelFilePath; }
 
-	void addTriangulatedMesh(GlTriangulatedMeshPtr mesh);
+	void addTriangulatedMesh(IMkTriangulatedMeshPtr mesh);
 	void addWireframeMesh(IMkWireframeMeshPtr mesh);
 
 	int getTriangulatedMeshCount() const 
 	{ return (int)m_triangulatedMeshes.size(); }
-	GlTriangulatedMeshPtr getTriangulatedMesh(int meshIndex) const 
+	IMkTriangulatedMeshPtr getTriangulatedMesh(int meshIndex) const 
 	{ return m_triangulatedMeshes[meshIndex]; }
 
 	size_t getWireframeMeshCount() const { return m_wireframeMeshes.size(); }
@@ -40,6 +40,6 @@ protected:
 	std::string m_name;
 	std::filesystem::path m_renderModelFilepath;
 
-	std::vector<GlTriangulatedMeshPtr> m_triangulatedMeshes;
+	std::vector<IMkTriangulatedMeshPtr> m_triangulatedMeshes;
 	std::vector<IMkWireframeMeshPtr> m_wireframeMeshes;
 };

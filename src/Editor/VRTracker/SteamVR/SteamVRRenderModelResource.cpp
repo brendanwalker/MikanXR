@@ -163,16 +163,16 @@ GlMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	return materialInstance;
 }
 
-GlTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource(
+IMkTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource(
 	const std::string& meshName,
 	GlMaterialInstancePtr materialInstance,
 	const vr::RenderModel_t* steamVRRenderModel)
 {
-	GlTriangulatedMeshPtr glMesh= nullptr;
+	IMkTriangulatedMeshPtr glMesh= nullptr;
 
 	if (steamVRRenderModel != nullptr)
 	{
-		glMesh = std::make_shared<GlTriangulatedMesh>(
+		glMesh = createMkTriangulatedMesh(
 			m_ownerWindow,
 			meshName,
 			(const uint8_t*)steamVRRenderModel->rVertexData,

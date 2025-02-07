@@ -14,7 +14,7 @@ GlRenderModelResource::~GlRenderModelResource()
 	disposeMeshRenderResources();
 }
 
-void GlRenderModelResource::addTriangulatedMesh(GlTriangulatedMeshPtr mesh)
+void GlRenderModelResource::addTriangulatedMesh(IMkTriangulatedMeshPtr mesh)
 {
 	if (mesh != nullptr)
 	{
@@ -32,7 +32,7 @@ void GlRenderModelResource::addWireframeMesh(IMkWireframeMeshPtr mesh)
 
 void GlRenderModelResource::disposeMeshRenderResources()
 {
-	for (GlTriangulatedMeshPtr triMesh : m_triangulatedMeshes)
+	for (IMkTriangulatedMeshPtr triMesh : m_triangulatedMeshes)
 	{
 		triMesh->deleteResources();
 	}

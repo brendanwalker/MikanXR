@@ -370,7 +370,7 @@ void DepthMaskNode::evaluateQuadDepthMasks(GlState& glState)
 		return;
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	GlTriangulatedMeshPtr depthQuadMesh = compositorGraph->getDepthQuadMesh();
+	IMkTriangulatedMeshPtr depthQuadMesh = compositorGraph->getDepthQuadMesh();
 
 	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
 	if (!frameCompositor)
@@ -455,7 +455,7 @@ void DepthMaskNode::evaluateBoxDepthMasks(GlState& glState)
 		return;
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	GlTriangulatedMeshPtr stencilBoxMesh = compositorGraph->getDepthBoxMesh();
+	IMkTriangulatedMeshPtr stencilBoxMesh = compositorGraph->getDepthBoxMesh();
 
 	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
 	if (!frameCompositor)
@@ -589,7 +589,7 @@ void DepthMaskNode::evaluateModelDepthMasks(GlState& glState)
 
 			for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
 			{
-				GlTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
+				IMkTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
 				GlMaterialInstancePtr materialInst = mesh->getMaterialInstance();
 				GlMaterialConstPtr material = materialInst->getMaterial();
 

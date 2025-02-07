@@ -6,9 +6,9 @@
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
-#include "GlShaderCache.h"
+#include "MikanShaderCache.h"
 #include "GlTextureCache.h"
-#include "GlTriangulatedMesh.h"
+#include "IMkTriangulatedMesh.h"
 #include "IMkWireframeMesh.h"
 
 #include "fast_obj.h"
@@ -153,14 +153,14 @@ namespace ObjUtils
 	using MaterialTriMeshDataConstPtr = std::shared_ptr<const MaterialTriMeshData>;
 
 	GlMaterialInstancePtr createTriMeshMaterialInstance(
-		IGlWindow* ownerWindow,
+		IMkWindow* ownerWindow,
 		GlMaterialConstPtr material,
 		const fastObjMaterial& objMaterial);
-	GlTriangulatedMeshPtr createTriangulatedMeshResource(
-		IGlWindow* ownerWindow,
+	IMkTriangulatedMeshPtr createTriangulatedMeshResource(
+		IMkWindow* ownerWindow,
 		MaterialTriMeshDataConstPtr triMeshData);
-	GlWireframeMeshPtr createWireframeMeshResource(
-		IGlWindow* ownerWindow,
+	IMkWireframeMeshPtr createWireframeMeshResource(
+		IMkWindow* ownerWindow,
 		MaterialTriMeshDataConstPtr triMeshData);
 };
 
@@ -168,8 +168,8 @@ GlRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	const std::filesystem::path& modelPath,
 	GlMaterialConstPtr overrideMaterial)
 {
-	IGlWindow* ownerWindow= m_ownerManager->getOwnerWindow();
-	GlShaderCache* shaderCache= ownerWindow->getShaderCache();
+	IMkWindow* ownerWindow= m_ownerManager->getOwnerWindow();
+	IMkShaderCache* shaderCache= ownerWindow->getShaderCache();
 
 	GlRenderModelResourcePtr modelResource;
 
@@ -271,8 +271,8 @@ GlRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 		// Create the meshes for each material instance
 		for (ObjUtils::MaterialTriMeshDataPtr triMeshData : materialToTrimeshMap)
 		{
-			GlTriangulatedMeshPtr trimesh= ObjUtils::createTriangulatedMeshResource(ownerWindow, triMeshData);
-			GlWireframeMeshPtr wiremesh= ObjUtils::createWireframeMeshResource(ownerWindow, triMeshData);
+			IMkTriangulatedMeshPtr trimesh= ObjUtils::createTriangulatedMeshResource(ownerWindow, triMeshData);
+			IMkWireframeMeshPtr wiremesh= ObjUtils::createWireframeMeshResource(ownerWindow, triMeshData);
 
 			modelResource->addTriangulatedMesh(trimesh);
 			modelResource->addWireframeMesh(wiremesh);
@@ -303,7 +303,7 @@ namespace ObjUtils
 			program->getUniformSemanticDataType(semantic) == eUniformDataType::datatype_texture)
 		{
 			// Try loading the texture using the relative path
-			GlTexturePtr texture;
+			IMkTexturePtr texture;
 			if (objTexture.path != nullptr && objTexture.path[0] != '\0')
 			{
 				texture = textureCache->loadTexturePath(objTexture.path);
@@ -334,7 +334,7 @@ namespace ObjUtils
 	}
 
 	GlMaterialInstancePtr createTriMeshMaterialInstance(
-		IGlWindow* ownerWindow,
+		IMkWindow* ownerWindow,
 		GlMaterialConstPtr material,
 		const fastObjMaterial& objMaterial)
 	{
@@ -383,13 +383,13 @@ namespace ObjUtils
 	}
 
 
-	GlTriangulatedMeshPtr createTriangulatedMeshResource(
-		IGlWindow* ownerWindow,
+	IMkTriangulatedMeshPtr createTriangulatedMeshResource(
+		IMkWindow* ownerWindow,
 		MaterialTriMeshDataConstPtr triMeshData)
 	{
 		if (!triMeshData->isValid())
 		{
-			return GlTriangulatedMeshPtr();
+			return IMkTriangulatedMeshPtr();
 		}
 
 		// Copy over the vertex data into a correctly size vertex buffer
@@ -407,7 +407,7 @@ namespace ObjUtils
 		uint8_t* indexBuffer = new uint8_t[indexBufferSize];
 		std::memcpy(indexBuffer, triMeshData->getIndexData(), indexBufferSize);
 
-		GlTriangulatedMeshPtr triMesh = std::make_shared<GlTriangulatedMesh>(
+		IMkTriangulatedMeshPtr triMesh = createMkTriangulatedMesh(
 			ownerWindow,
 			triMeshData->getMaterialName(),
 			(const uint8_t*)vertexBuffer,
@@ -429,13 +429,13 @@ namespace ObjUtils
 		return triMesh;
 	}
 
-	GlWireframeMeshPtr createWireframeMeshResource(
-		IGlWindow* ownerWindow,
+	IMkWireframeMeshPtr createWireframeMeshResource(
+		IMkWindow* ownerWindow,
 		MaterialTriMeshDataConstPtr triMeshData)
 	{
 		if (!triMeshData->isValid())
 		{
-			return GlWireframeMeshPtr();
+			return IMkWireframeMeshPtr();
 		}
 
 		// Copy over the position data into the wireframe vertex buffer
@@ -490,7 +490,7 @@ namespace ObjUtils
 			}
 		}
 
-		GlWireframeMeshPtr wireMesh = std::make_shared<GlWireframeMesh>(
+		IMkWireframeMeshPtr wireMesh = CreateMkWireframeMesh(
 			ownerWindow,
 			triMeshData->getMaterialName(),
 			(const uint8_t*)writeVertexData,

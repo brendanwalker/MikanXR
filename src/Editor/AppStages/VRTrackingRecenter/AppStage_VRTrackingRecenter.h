@@ -49,5 +49,5 @@ private:
 
 	GlCameraPtr m_camera;
 	GlFrameBufferPtr m_frameBuffer;
-	GlTriangulatedMeshPtr m_fullscreenQuad;
+	IMkTriangulatedMeshPtr m_fullscreenQuad;
 };

@@ -101,7 +101,7 @@ protected:
 	IMkTexturePtr m_videoTexture = nullptr;
 
 	// Quad used for fullscreen rendering
-	GlTriangulatedMeshPtr m_fullscreenQuad;
+	IMkTriangulatedMeshPtr m_fullscreenQuad;
 
 	// Runtime flags
 	bool m_bColorUndistortDisabled= false;

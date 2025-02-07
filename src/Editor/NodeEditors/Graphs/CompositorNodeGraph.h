@@ -29,12 +29,12 @@ public:
 	GlRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);
 	GlRenderModelResourcePtr getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition);
 	void flushStencilRenderModel(MikanStencilID stencilId);
-	inline GlTriangulatedMeshPtr getStencilQuadMesh() const { return m_stencilQuadMesh; }
-	inline GlTriangulatedMeshPtr getStencilBoxMesh() const { return m_stencilBoxMesh; }
-	inline GlTriangulatedMeshPtr getDepthQuadMesh() const { return m_depthQuadMesh; }
-	inline GlTriangulatedMeshPtr getDepthBoxMesh() const { return m_depthBoxMesh; }
-	inline GlTriangulatedMeshPtr getLayerVFlippedMesh() const { return m_layerVFlippedMesh; }
-	inline GlTriangulatedMeshPtr getLayerMesh() const { return m_layerMesh; }
+	inline IMkTriangulatedMeshPtr getStencilQuadMesh() const { return m_stencilQuadMesh; }
+	inline IMkTriangulatedMeshPtr getStencilBoxMesh() const { return m_stencilBoxMesh; }
+	inline IMkTriangulatedMeshPtr getDepthQuadMesh() const { return m_depthQuadMesh; }
+	inline IMkTriangulatedMeshPtr getDepthBoxMesh() const { return m_depthBoxMesh; }
+	inline IMkTriangulatedMeshPtr getLayerVFlippedMesh() const { return m_layerVFlippedMesh; }
+	inline IMkTriangulatedMeshPtr getLayerMesh() const { return m_layerMesh; }
 
 protected:
 
@@ -51,12 +51,12 @@ protected:
 protected:
 	GlFrameBufferPtr m_compositingFrameBuffer;
 	GlProgramPtr m_vertexOnlyStencilShader;
-	GlTriangulatedMeshPtr m_stencilQuadMesh;
-	GlTriangulatedMeshPtr m_stencilBoxMesh;
-	GlTriangulatedMeshPtr m_depthQuadMesh;
-	GlTriangulatedMeshPtr m_depthBoxMesh;
-	GlTriangulatedMeshPtr m_layerVFlippedMesh;
-	GlTriangulatedMeshPtr m_layerMesh;
+	IMkTriangulatedMeshPtr m_stencilQuadMesh;
+	IMkTriangulatedMeshPtr m_stencilBoxMesh;
+	IMkTriangulatedMeshPtr m_depthQuadMesh;
+	IMkTriangulatedMeshPtr m_depthBoxMesh;
+	IMkTriangulatedMeshPtr m_layerVFlippedMesh;
+	IMkTriangulatedMeshPtr m_layerMesh;
 	std::map<MikanStencilID, GlRenderModelResourcePtr> m_stencilMeshCache;
 	std::map<MikanStencilID, GlRenderModelResourcePtr> m_depthMeshCache;
 	NodePtr m_compositeFrameEventNode;

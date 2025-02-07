@@ -207,7 +207,7 @@ struct DepthMeshCaptureState
 		materialInstance->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
 
 		// Create a triangulated mesh from the synthetic depth map
-		GlTriangulatedMeshPtr triMesh = 
+		IMkTriangulatedMeshPtr triMesh = 
 			createTriangulatedDepthMesh(
 				distortionView, depthEstimator, materialInstance);
 		if (!triMesh)
@@ -279,7 +279,7 @@ struct DepthMeshCaptureState
 	}
 
 private:
-	GlTriangulatedMeshPtr createTriangulatedDepthMesh(
+	IMkTriangulatedMeshPtr createTriangulatedDepthMesh(
 		VideoFrameDistortionViewPtr distortionView,
 		SyntheticDepthEstimatorPtr depthEstimator,
 		GlMaterialInstancePtr materialInstance)
@@ -294,7 +294,7 @@ private:
 		{
 			MIKAN_LOG_ERROR("DepthMeshCaptureState::createTriangulatedDepthMesh()") 
 				<< "Material vertex definition missing needed attributes";
-			return GlTriangulatedMeshPtr();
+			return IMkTriangulatedMeshPtr();
 		}
 
 		// Fetch the camera intrinsics to project pixel coordinates to 3D space
@@ -393,7 +393,7 @@ private:
 		}
 
 		// Get the vertex definition associated with the material
-		auto depthMeshPtr = std::make_shared<GlTriangulatedMesh>(
+		auto depthMeshPtr = createMkTriangulatedMesh(
 			ownerWindow,
 			"depth_mesh",
 			(const uint8_t*)meshVertices,
@@ -410,7 +410,7 @@ private:
 		if (!depthMeshPtr->createResources())
 		{
 			MIKAN_LOG_ERROR("DepthMeshCaptureState::createTriangulatedDepthMesh()") << "Failed to create depth mesh";
-			return GlTriangulatedMeshPtr();
+			return IMkTriangulatedMeshPtr();
 		}
 
 		return depthMeshPtr;

@@ -300,7 +300,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 		for (int meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
 		{
 			// Fetch the mesh and material resources
-			GlTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
+			IMkTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
 
 			// Create a new static mesh instance from the mesh resources
 			GlStaticMeshInstancePtr triMeshInstancePtr =

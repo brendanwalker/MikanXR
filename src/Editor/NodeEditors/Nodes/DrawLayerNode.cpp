@@ -652,7 +652,7 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glParentState)
 	EASY_FUNCTION();	
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());	
-	GlTriangulatedMeshPtr stencilQuadMesh = compositorGraph->getStencilQuadMesh();	
+	IMkTriangulatedMeshPtr stencilQuadMesh = compositorGraph->getStencilQuadMesh();	
 
 	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();	
 	if (!frameCompositor)	
@@ -775,7 +775,7 @@ void DrawLayerNode::evaluateBoxStencils(GlState& glParentState)
 	EASY_FUNCTION();	
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());	
-	GlTriangulatedMeshPtr stencilBoxMesh= compositorGraph->getStencilBoxMesh();	
+	IMkTriangulatedMeshPtr stencilBoxMesh= compositorGraph->getStencilBoxMesh();	
 
 	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();	
 	if (!frameCompositor)	
@@ -931,7 +931,7 @@ void DrawLayerNode::evaluateModelStencils(GlState& glParentState)
 
 				for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)	
 				{	
-					GlTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);	
+					IMkTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);	
 					GlMaterialInstancePtr materialInst = mesh->getMaterialInstance();	
 					GlMaterialConstPtr material = materialInst->getMaterial();	
 

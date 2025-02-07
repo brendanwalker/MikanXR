@@ -145,7 +145,7 @@ bool ObjModelExporter::exportModelToFile(
 		// Write out each mesh and corresponding material definition
 		for (int triMeshIndex= 0; triMeshIndex < modelResource->getTriangulatedMeshCount(); triMeshIndex++)
 		{
-			const GlTriangulatedMeshPtr triMesh = modelResource->getTriangulatedMesh(triMeshIndex);
+			const IMkTriangulatedMeshPtr triMesh = modelResource->getTriangulatedMesh(triMeshIndex);
 
 			// Make sure the material vertex definition has the needed attributes
 			GlMaterialInstanceConstPtr materialInstance = triMesh->getMaterialInstance();
