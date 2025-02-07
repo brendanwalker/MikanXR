@@ -2,7 +2,7 @@
 
 #include "ComponentFwd.h"
 #include "ObjectFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include <vector>
 

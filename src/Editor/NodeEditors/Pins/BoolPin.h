@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "ValuePin.h"
 
 class BoolPin : public TypedValuePin<bool>

@@ -2,7 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
-#include "IMkWindow.h"
+#include "ISdlMkWindow.h"
 #include "ObjectSystemConfigFwd.h"
 
 #include <memory>
@@ -22,7 +22,7 @@ public:
 	inline ProfileConfigPtr getProfileConfig() const { return m_profileConfig; }
 	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
 	inline class SdlManager* getSdlManager() const { return m_sdlManager; }
-	inline class IGlWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
+	inline class ISdlMkWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
 
 	inline float getFPS() const { return m_fps; }
 
@@ -90,7 +90,7 @@ public:
 	template<typename t_app_window>
 	bool hasWindowOfType() const
 	{
-		for (IGlWindow* window : m_appWindows)
+		for (ISdlMkWindow* window : m_appWindows)
 		{
 			if (dynamic_cast<t_app_window*>(window) != nullptr)
 			{
@@ -101,9 +101,9 @@ public:
 		return false;
 	}
 
-	void pushCurrentGLContext(class IGlWindow* window);
-	class IGlWindow* getCurrentGlContext() const;
-	void popCurrentGlContext(class IGlWindow* window);
+	void pushCurrentGLContext(class ISdlMkWindow* window);
+	class ISdlMkWindow* getCurrentGlContext() const;
+	void popCurrentGlContext(class ISdlMkWindow* window);
 
 protected:
 	bool startup(int argc, char** argv);
@@ -127,13 +127,13 @@ private:
 	class SdlManager* m_sdlManager;
 
 	// Open windows (including the MainWindow)
-	std::vector<IGlWindow*> m_appWindows;
+	std::vector<ISdlMkWindow*> m_appWindows;
 
 	// The stack of current windows being updated
-	std::vector<IGlWindow*> m_glContextStack;
+	std::vector<ISdlMkWindow*> m_glContextStack;
 
 	// The window being currently rendered
-	IGlWindow* m_renderingWindow = nullptr;
+	ISdlMkWindow* m_renderingWindow = nullptr;
 
 	// The main window for the application
 	class MainWindow* m_mainWindow= nullptr;

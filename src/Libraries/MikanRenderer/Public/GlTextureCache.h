@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AssetFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include <filesystem>
 #include <memory>

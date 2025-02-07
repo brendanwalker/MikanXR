@@ -6,7 +6,7 @@
 #include "ColliderQuery.h"
 #include "Constants_StencilAlignment.h"
 #include "ComponentFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 

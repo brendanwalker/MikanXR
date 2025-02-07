@@ -2,7 +2,7 @@
 
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include "glm/ext/matrix_float4x4.hpp"
 

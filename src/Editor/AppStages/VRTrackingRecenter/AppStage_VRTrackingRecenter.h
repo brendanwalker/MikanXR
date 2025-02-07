@@ -4,7 +4,7 @@
 #include "AppStage.h"
 #include "DeviceViewFwd.h"
 #include "Constants_VRTrackingRecenter.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 

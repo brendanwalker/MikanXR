@@ -8,7 +8,7 @@
 #include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "SceneFwd.h"
 
 #include <vector>

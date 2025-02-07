@@ -5,7 +5,7 @@
 #include "AnchorTriangulator.h"
 #include "Constants_AnchorTriangulation.h"
 #include "DeviceViewFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 

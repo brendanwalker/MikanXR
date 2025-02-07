@@ -5,7 +5,7 @@
 #include "DeviceViewFwd.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "RmlFwd.h"
 
 //-- typedefs -----

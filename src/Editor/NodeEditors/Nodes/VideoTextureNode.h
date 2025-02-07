@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Node.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 
 class VideoTextureNodeConfig : public NodeConfig

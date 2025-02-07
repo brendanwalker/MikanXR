@@ -7,7 +7,7 @@
 #include "DeviceViewFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include "glm/ext/matrix_float4x4.hpp"
 

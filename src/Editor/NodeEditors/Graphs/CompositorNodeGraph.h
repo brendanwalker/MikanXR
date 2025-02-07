@@ -2,7 +2,7 @@
 
 #include "NodeGraph.h"
 #include "ComponentFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include <map>
 #include <string>

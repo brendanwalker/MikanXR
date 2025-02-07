@@ -4,7 +4,7 @@
 #include "AppStage.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "RmlFwd.h"
 #include "SceneFwd.h"
 #include "ScriptingFwd.h"

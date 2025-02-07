@@ -4,7 +4,7 @@
 #include "AppStage.h"
 #include "Constants_CTOffsetCalibration.h"
 #include "DeviceViewFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 

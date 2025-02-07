@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AssetFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "GraphProperty.h"
 
 class GraphMaterialPropertyConfig : public GraphPropertyConfig

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LocalizationManager.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "RmlFwd.h"
 
 #include <string>

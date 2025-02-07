@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "GraphProperty.h"
 
 template <typename t_data_type>

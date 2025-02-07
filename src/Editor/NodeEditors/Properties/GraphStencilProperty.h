@@ -2,7 +2,7 @@
 
 #include "AssetFwd.h"
 #include "ComponentFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "GraphProperty.h"
 #include "ProfileConfigConstants.h"
 

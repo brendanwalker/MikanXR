@@ -7,7 +7,7 @@
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include "Graphs/GraphObjectSelection.h"
 #include "Graphs/NodeError.h"

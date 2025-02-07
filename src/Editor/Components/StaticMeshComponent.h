@@ -4,7 +4,7 @@
 #include "MulticastDelegate.h"
 #include "IMkMesh.h"
 #include "ObjectSystemFwd.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "SceneComponent.h"
 
 class StaticMeshComponent : public SceneComponent

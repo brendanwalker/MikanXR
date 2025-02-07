@@ -3,7 +3,7 @@
 #include "ColliderQuery.h"
 #include "ComponentFwd.h"
 #include "MikanStencilTypes.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "StencilComponent.h"
 #include "Transform.h"
 

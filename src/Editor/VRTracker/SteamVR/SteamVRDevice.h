@@ -1,7 +1,7 @@
 #pragma once
 
 // -- includes -----
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "SteamVRDevice.h"
 #include "VRDeviceInterface.h"
 

@@ -3,10 +3,11 @@
 #include "FrameTimer.h"
 #include "Graphs/CompositorNodeGraph.h"
 #include "SdlCommon.h"
-#include "GlShaderCache.h"
+#include "MikanShaderCache.h"
 #include "GlFrameCompositor.h"
 #include "GlStateStack.h"
-#include "GlTextRenderer.h"
+#include "MkError.h"
+#include "MikanTextRenderer.h"
 #include "LocalizationManager.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -145,7 +146,7 @@ void App::shutdown()
 	// Dispose all app windows (but the main window)
 	while (m_appWindows.size() > 0)
 	{
-		IGlWindow* appWindow= m_appWindows[0];
+		ISdlMkWindow* appWindow= m_appWindows[0];
 
 		if (m_mainWindow != appWindow)
 		{
@@ -209,7 +210,7 @@ void App::tickWindows(const float deltaSeconds)
 
 	// Update each window
 	static bool bDebugPrintStack = false;
-	for (IGlWindow* window : m_appWindows)
+	for (ISdlMkWindow* window : m_appWindows)
 	{
 		// Mark this window as the current window getting updated
 		pushCurrentGLContext(window);
@@ -242,7 +243,7 @@ void App::tickWindows(const float deltaSeconds)
 	// Destroy any windows that have been marked for destruction
 	for (int windowIndex= (int)m_appWindows.size() - 1; windowIndex >= 0; windowIndex--)
 	{
-		IGlWindow* window = m_appWindows[windowIndex];
+		ISdlMkWindow* window = m_appWindows[windowIndex];
 
 		if (window->getSdlWindow().wantsDestroy())
 		{
@@ -252,7 +253,7 @@ void App::tickWindows(const float deltaSeconds)
 	}
 }
 
-void App::pushCurrentGLContext(IGlWindow* window)
+void App::pushCurrentGLContext(ISdlMkWindow* window)
 {
 	if (m_glContextStack.size() == 0 || m_glContextStack.back() != window)
 	{
@@ -271,12 +272,12 @@ void App::pushCurrentGLContext(IGlWindow* window)
 	}
 }
 
-IGlWindow* App::getCurrentGlContext() const
+ISdlMkWindow* App::getCurrentGlContext() const
 {
 	return m_glContextStack.size() > 0 ? m_glContextStack.back() : nullptr;
 }
 
-void App::popCurrentGlContext(IGlWindow* window)
+void App::popCurrentGlContext(ISdlMkWindow* window)
 {
 	if (checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__))
 	{

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 #include "NodePin.h"
 
 class PropertyPinConfig : public NodePinConfig
