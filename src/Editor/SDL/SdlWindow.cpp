@@ -19,7 +19,7 @@
 	#include <SDL2/SDL_syswm.h>
 #endif
 
-#include "GlCommon.h"
+#include "SdlCommon.h"
 
 #include <easy/profiler.h>
 
@@ -32,7 +32,7 @@ static void APIENTRY GLDebugMessageCallback(
 	const GLchar* message,
 	const void* userParam);
 
-SdlWindow::SdlWindow(class IGlWindow *ownerWindowInterface)
+SdlWindow::SdlWindow(class ISdlMkWindow* ownerWindowInterface)
 	: m_owner(ownerWindowInterface)
 	, m_title("Mikan Window")
 {

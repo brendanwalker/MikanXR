@@ -4,11 +4,13 @@
 #include "MikanRendererFwd.h"
 #include "IMkShaderCache.h"
 
-class MikanShaderCache
+class MikanShaderCache 
 {
 public:
 	MikanShaderCache()= delete;
 	MikanShaderCache(IMkWindow* ownerWindow);
+
+	inline IMkShaderCachePtr getMkShaderCache() { return m_shaderCache; }
 
 	bool startup();
 	void shutdown();

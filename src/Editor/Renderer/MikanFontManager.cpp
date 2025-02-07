@@ -1,4 +1,4 @@
-#include "FontManager.h"
+#include "MikanFontManager.h"
 #include "SdlCommon.h"
 #include "GlShaderCache.h"
 #include "GlProgram.h"
@@ -13,15 +13,15 @@
 
 #include <easy/profiler.h>
 
-FontManager::FontManager()
+MikanFontManager::MikanFontManager()
 {
 }
 
-FontManager::~FontManager()
+MikanFontManager::~MikanFontManager()
 {
 }
 
-bool FontManager::startup()
+bool MikanFontManager::startup()
 {
 	EASY_FUNCTION();
 
@@ -37,13 +37,13 @@ bool FontManager::startup()
 	return true;
 }
 
-void FontManager::garbageCollect()
+void MikanFontManager::garbageCollect()
 {
 	EASY_FUNCTION();
 
 	for (auto it = m_bakedTextCache.begin(); it != m_bakedTextCache.end(); )
 	{
-		FontManager::GlBakedText& bakedText = it->second;
+		MikanFontManager::MkBakedText& bakedText = it->second;
 
 		// Age the baked text
 		--bakedText.lifetime;
@@ -62,7 +62,7 @@ void FontManager::garbageCollect()
 	}
 }
 
-void FontManager::shutdown()
+void MikanFontManager::shutdown()
 {	
 	// Flush any remaining baked textures
 	m_bakedTextCache.clear();
@@ -89,7 +89,7 @@ size_t computeTextHash(const TextStyle& style, const std::wstring& text)
 	return hasher(text + szStyleString);
 }
 
-IMkTexturePtr FontManager::fetchBakedText(
+IMkTexturePtr MikanFontManager::fetchBakedText(
 	const TextStyle& style, 
 	const std::wstring& text)
 {
@@ -98,7 +98,7 @@ IMkTexturePtr FontManager::fetchBakedText(
 
 	if (m_bakedTextCache.find(hash) != m_bakedTextCache.end())
 	{
-		GlBakedText& bakedText= m_bakedTextCache[hash];
+		MkBakedText& bakedText= m_bakedTextCache[hash];
 
 		// Reset the cache lifetime if we just requested the texture again
 		bakedText.lifetime= defaultLifetime;
@@ -129,7 +129,7 @@ IMkTexturePtr FontManager::fetchBakedText(
 
 				if (texture->createTexture())
 				{
-					GlBakedText bakedText = { texture, text, defaultLifetime };
+					MkBakedText bakedText = { texture, text, defaultLifetime };
 					m_bakedTextCache.insert({ hash, bakedText });
 				}
 				else
@@ -160,7 +160,7 @@ size_t computeFontHash(const std::string& fontName, int pointSize)
 	return hasher(szStyleString);
 }
 
-void* FontManager::fetchFont(const std::string& fontName, int pointSize)
+void* MikanFontManager::fetchFont(const std::string& fontName, int pointSize)
 {
 	const size_t hash = computeFontHash(fontName, pointSize);
 

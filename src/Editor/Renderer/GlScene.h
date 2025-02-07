@@ -13,7 +13,7 @@
 
 struct GlDrawCall
 {
-	std::vector<IGlSceneRenderableConstWeakPtr> instances;
+	std::vector<IMkSceneRenderableConstWeakPtr> instances;
 };
 using GlDrawCallPtr = std::shared_ptr<GlDrawCall>;
 using GlDrawCallConstPtr = std::shared_ptr<const GlDrawCall>;
@@ -30,8 +30,8 @@ public:
 	GlScene();
 	virtual ~GlScene();
 
-	virtual void addInstance(IGlSceneRenderableConstPtr instance) override;
-	virtual void removeInstance(IGlSceneRenderableConstPtr instance) override;
+	virtual void addInstance(IMkSceneRenderableConstPtr instance) override;
+	virtual void removeInstance(IMkSceneRenderableConstPtr instance) override;
 	virtual void removeAllInstances() override;
 
 	virtual void setLightColor(const glm::vec4& lightColor) override { m_lightColor= lightColor; }
@@ -51,7 +51,7 @@ protected:
 		const std::string& uniformName) const;
 	eUniformBindResult materialInstanceBindCallback(
 		IMkCameraConstPtr camera,
-		IGlSceneRenderableConstPtr renderableInstance,
+		IMkSceneRenderableConstPtr renderableInstance,
 		GlProgramPtr program,
 		eUniformDataType uniformDataType,
 		eUniformSemantic uniformSemantic,

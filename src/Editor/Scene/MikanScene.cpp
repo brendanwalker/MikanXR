@@ -57,7 +57,7 @@ void MikanScene::addMikanComponent(MikanComponentPtr componentPtr)
 	SceneComponentPtr sceneComponent= std::dynamic_pointer_cast<SceneComponent>(componentPtr);
 	if (sceneComponent != nullptr)
 	{
-		IGlSceneRenderableConstPtr renderable = sceneComponent->getGlSceneRenderableConst();
+		IMkSceneRenderableConstPtr renderable = sceneComponent->getGlSceneRenderableConst();
 		if (renderable)
 		{
 			// If the scene component has a renderable, add it to the GL Scene
@@ -94,7 +94,7 @@ void MikanScene::removeMikanComponent(MikanComponentConstPtr componentPtr)
 	SceneComponentConstPtr sceneComponent = std::dynamic_pointer_cast<const SceneComponent>(componentPtr);
 	if (sceneComponent != nullptr)
 	{
-		IGlSceneRenderableConstPtr renderable = sceneComponent->getGlSceneRenderableConst();
+		IMkSceneRenderableConstPtr renderable = sceneComponent->getGlSceneRenderableConst();
 		if (renderable)
 		{
 			// If the scene component has a renderable, remove it from the GL Scene

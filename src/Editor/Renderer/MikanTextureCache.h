@@ -13,10 +13,13 @@
 #define INTERNAL_TEXTURE_WHITE_RGBA		"Internal_White_RGBA"
 #define INTERNAL_TEXTURE_BLACK_RGBA		"Internal_Black_RGBA"
 
-class GlTextureCache
+class MikanTextureCache
 {
 public:
-	GlTextureCache()= default;
+	MikanTextureCache()= delete;
+	MikanTextureCache(IMkWindow* ownerWindow);
+
+	inline IMkTextureCachePtr getMkTextureCache() { return m_textureCache; }
 
 	bool startup();
 	void shutdown();
@@ -27,5 +30,5 @@ public:
 	bool removeTexureFromCache(IMkTexturePtr texture);
 
 private:
-	std::map<std::string, IMkTexturePtr> m_textureCache;
+	IMkTextureCachePtr m_textureCache;
 };

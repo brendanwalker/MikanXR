@@ -4,7 +4,7 @@
 #include "IMkCamera.h"
 #include "GlProgram.h"
 #include "GlStateStack.h"
-#include "GlShaderCache.h"
+#include "IMkShaderCache.h"
 #include "GlVertexDefinition.h"
 #include "IMkViewport.h"
 #include "IMkWindow.h"
@@ -310,6 +310,11 @@ public:
 		m_program = nullptr;
 	}
 
+	virtual void setDisable3dDepth(bool bFlag) override
+	{
+		m_bDisable3dDepth = bFlag;
+	}
+
 	virtual void addPoint3d(
 		const glm::mat4& xform,
 		const glm::vec3& pos,
@@ -346,7 +351,7 @@ public:
 	}
 };
 
-IMkLineRendererPtr CreateMkLineRenderer(IMkWindow* ownerWindow)
+IMkLineRendererPtr createMkLineRenderer(IMkWindow* ownerWindow)
 {
 	return std::make_shared<GlLineRenderer>(ownerWindow);
 }

@@ -49,8 +49,12 @@ class IMkLineRenderer;
 using IMkLineRendererPtr = std::shared_ptr<IMkLineRenderer>;
 using IMkLineRendererConstPtr = std::shared_ptr<const IMkLineRenderer>;
 
-class GlTextureCache;
-using GlTextureCacheUniquePtr = std::unique_ptr<GlTextureCache>;
+class IMkTextRenderer;
+using IMkTextRendererPtr = std::shared_ptr<IMkTextRenderer>;
+using IMkTextRendererConstPtr = std::shared_ptr<const IMkTextRenderer>;
+
+class IMkTextureCache;
+using IMkTextureCachePtr = std::shared_ptr<IMkTextureCache>;
 
 class IMkTriangulatedMesh;
 using IMkTriangulatedMeshPtr = std::shared_ptr<IMkTriangulatedMesh>;

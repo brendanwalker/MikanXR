@@ -88,7 +88,7 @@ void MikanViewport::update(float deltaSeconds)
 	if (!getCursorViewportPixelPos(viewportLocation))
 		return;
 
-	GlCameraPtr camera= getCurrentCamera();
+	MikanCameraPtr camera= std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 	if (!camera)
 		return;
 
@@ -135,7 +135,7 @@ int MikanViewport::getCurrentCameraIndex() const
 
 IMkCameraPtr MikanViewport::addCamera()
 {
-	GlCameraPtr newCamera = std::make_shared<MikanCamera>();
+	MikanCameraPtr newCamera = std::make_shared<MikanCamera>();
 	m_cameraPool.push_back(newCamera);
 
 	return newCamera;
@@ -272,7 +272,7 @@ bool MikanViewport::getCursorViewportPixelPos(glm::vec2& outViewportLocation) co
 
 void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 {
-	GlCameraPtr camera = getCurrentCamera();
+	MikanCameraPtr camera = std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 
 	glm::vec2 viewportPos;
 	if (camera && getCursorViewportPixelPos(viewportPos))
@@ -328,7 +328,7 @@ void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 
 void MikanViewport::onMouseButtonPressed(int button)
 {
-	GlCameraPtr camera = getCurrentCamera();
+	MikanCameraPtr camera = std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 
 	glm::vec2 viewportPos;
 	if (camera && getCursorViewportPixelPos(viewportPos))
@@ -349,7 +349,7 @@ void MikanViewport::onMouseButtonPressed(int button)
 
 void MikanViewport::onMouseButtonReleased(int button)
 {
-	GlCameraPtr camera = getCurrentCamera();
+	MikanCameraPtr camera = std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 
 	glm::vec2 viewportPos;
 	if (camera && getCursorViewportPixelPos(viewportPos))
@@ -372,7 +372,7 @@ void MikanViewport::onMouseWheel(int scrollAmount)
 {
 	float deltaRadius = (float)scrollAmount * k_camera_mouse_zoom_scalar;
 
-	GlCameraPtr camera = getCurrentCamera();
+	MikanCameraPtr camera = std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 	if (camera)
 	{
 		camera->adjustOrbitRadius(deltaRadius);

@@ -10,7 +10,7 @@
 #include "GlStateStack.h"
 #include "GlTriangulatedMesh.h"
 #include "GlShaderCache.h"
-#include "GlTextureCache.h"
+#include "MikanTextureCache.h"
 #include "GlVertexDefinition.h"
 #include "IMkWindow.h"
 #include "Logger.h"

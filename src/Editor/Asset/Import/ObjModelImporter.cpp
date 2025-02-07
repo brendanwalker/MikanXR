@@ -7,7 +7,7 @@
 #include "GlMaterial.h"
 #include "GlProgram.h"
 #include "MikanShaderCache.h"
-#include "GlTextureCache.h"
+#include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkWireframeMesh.h"
 
@@ -290,7 +290,7 @@ GlRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 namespace ObjUtils
 {
 	bool addTextureToMaterialInstance(
-		GlTextureCache* textureCache,
+		MikanTextureCache* textureCache,
 		GlMaterialInstancePtr materialInstance,
 		const fastObjTexture& objTexture,
 		const eUniformSemantic semantic)
@@ -338,7 +338,7 @@ namespace ObjUtils
 		GlMaterialConstPtr material,
 		const fastObjMaterial& objMaterial)
 	{
-		GlTextureCache* textureCache = ownerWindow->getTextureCache();
+		MikanTextureCache* textureCache = ownerWindow->getTextureCache();
 		GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
 
 		materialInstance->setVec3BySemantic(

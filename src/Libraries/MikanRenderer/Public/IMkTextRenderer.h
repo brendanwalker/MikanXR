@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MkRendererFwd.h"
+#include "MkRendererExport.h"
 
 #include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
@@ -37,6 +38,18 @@ struct TextStyle
 	glm::vec3 color;
 };
 
+class IMkFontManager
+{
+public:
+	virtual ~IMkFontManager() {}
+
+	virtual bool startup()= 0;
+	virtual void garbageCollect()= 0;
+	virtual void shutdown()= 0;
+
+	virtual IMkTexturePtr fetchBakedText(const TextStyle& style, const std::wstring& text)= 0;
+};
+
 class IMkTextRenderer
 {
 public:
@@ -51,3 +64,5 @@ public:
 		const glm::vec2& screenCoords, 
 		const std::wstring& text) = 0;
 };
+
+MIKAN_RENDERER_FUNC(IMkTextRendererPtr) createMkTextRenderer(IMkWindow* ownerWindow, IMkFontManager* fontManager);

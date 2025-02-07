@@ -5,13 +5,6 @@
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-#include <memory>
-#include <string>
-
-class GlProgram;
-typedef std::shared_ptr<GlProgram> GlProgramPtr;
-
-//-- drawing methods -----
 void drawPoint(const glm::mat4& transform, const glm::vec3& point, const glm::vec3& color, const float size);
 void drawSegment(const glm::mat4& transform, const glm::vec3& start, const glm::vec3& end, const glm::vec3& color);
 void drawSegment(const glm::mat4& transform, 

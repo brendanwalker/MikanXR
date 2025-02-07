@@ -1,6 +1,6 @@
 #include "App.h"
 #include "CalibrationRenderHelpers.h"
-#include "FontManager.h"
+#include "MikanFontManager.h"
 #include "MikanCamera.h"
 #include "MkError.h"
 #include "SdlCommon.h"

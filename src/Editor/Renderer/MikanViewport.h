@@ -90,7 +90,7 @@ private:
 	glm::i32vec2 m_renderSize;
 	glm::vec4 m_backgroundColor;
 
-	std::vector<GlCameraPtr> m_cameraPool;
+	std::vector<MikanCameraPtr> m_cameraPool;
 	int m_currentCameraIndex= 0;
 
 	const float k_camera_mouse_zoom_scalar = 0.1f;

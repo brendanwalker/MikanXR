@@ -9,7 +9,7 @@
 
 #include "App.h"
 #include "AppStage.h"
-#include "FontManager.h"
+#include "MikanFontManager.h"
 #include "GlFrameCompositor.h"
 #include "SdlCommon.h"
 #include "MikanCamera.h"
@@ -17,7 +17,7 @@
 #include "GlStateModifiers.h"
 #include "IMkTexture.h"
 #include "MikanShaderCache.h"
-#include "GlTextureCache.h"
+#include "MikanTextureCache.h"
 #include "IMkTextRenderer.h"
 #include "IMkLineRenderer.h"
 #include "MikanViewport.h"
@@ -59,18 +59,18 @@ MainWindow::MainWindow()
 	, m_rmlManager(new RmlManager(this))
 	, m_objectSystemManager(std::make_shared<ObjectSystemManager>())
 	, m_openCVManager(new OpenCVManager())
-	, m_fontManager(new FontManager())
+	, m_fontManager(new MikanFontManager())
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
-	, m_lineRenderer(GlLineRendererUniquePtr(new GlLineRenderer(this)))
-	, m_textRenderer(GlTextRendererUniquePtr(new GlTextRenderer(this)))
+	, m_lineRenderer(createMkLineRenderer(this))
+	, m_textRenderer(createMkTextRenderer(this, m_fontManager))
 	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
 	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
-	, m_textureCache(GlTextureCacheUniquePtr(new GlTextureCache))
+	, m_textureCache(MikanTextureCacheUniquePtr(new MikanTextureCache(this)))
 {}
 
 MainWindow::~MainWindow()
@@ -89,24 +89,24 @@ MainWindow::~MainWindow()
 	assert(m_lineRenderer == nullptr);
 }
 
-GlLineRenderer* MainWindow::getLineRenderer()
+IMkLineRenderer* MainWindow::getLineRenderer()
 {
 	return m_lineRenderer.get();
 }
 
-GlTextRenderer* MainWindow::getTextRenderer()
+IMkTextRenderer* MainWindow::getTextRenderer()
 {
 	return m_textRenderer.get();
 }
 
-GlShaderCache* MainWindow::getShaderCache()
+IMkShaderCache* MainWindow::getShaderCache()
 {
-	return m_shaderCache.get();
+	return m_shaderCache->getMkShaderCache().get();
 }
 
-GlTextureCache* MainWindow::getTextureCache()
+IMkTextureCache* MainWindow::getTextureCache()
 {
-	return m_textureCache.get();
+	return m_textureCache.getMkTextureCache().get();
 }
 
 GlModelResourceManager* MainWindow::getModelResourceManager()
@@ -119,7 +119,7 @@ SdlWindow& MainWindow::getSdlWindow()
 	return *m_sdlWindow.get();
 }
 
-GlViewportPtr MainWindow::getRenderingViewport() const
+IMkViewportPtr MainWindow::getRenderingViewport() const
 {
 	return m_renderingViewport;
 }
@@ -515,7 +515,7 @@ void MainWindow::processPendingAppStageOps()
 	bAppStackOperationAllowed = true;
 }
 
-void MainWindow::renderStageViewport(AppStage* appStage, GlViewportPtr targetViewport)
+void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetViewport)
 {
 	EASY_FUNCTION();
 

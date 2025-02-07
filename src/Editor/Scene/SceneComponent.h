@@ -68,7 +68,7 @@ public:
 		return m_sceneRenderable;
 	}
 
-	inline IGlSceneRenderableConstPtr getGlSceneRenderableConst() const
+	inline IMkSceneRenderableConstPtr getGlSceneRenderableConst() const
 	{
 		return m_sceneRenderable;
 	}

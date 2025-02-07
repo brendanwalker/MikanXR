@@ -56,7 +56,7 @@ public:
 	virtual GlTextRenderer* getTextRenderer() override;
 	virtual GlModelResourceManager* getModelResourceManager() override;
 	virtual GlShaderCache* getShaderCache() override;
-	virtual GlTextureCache* getTextureCache() override;
+	virtual MikanTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;

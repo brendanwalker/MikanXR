@@ -1,5 +1,3 @@
-//#include "FontManager.h"
-//#include "GlCamera.h"
 #include "MkError.h"
 #include "GlCommon.h"
 #include "GlMaterial.h"
@@ -19,13 +17,15 @@
 class GlTextRenderer : public IMkTextRenderer
 {
 public:
-	GlTextRenderer(IMkWindow* ownerWindow)
+	GlTextRenderer() = delete;
+	GlTextRenderer(IMkWindow* ownerWindow, IMkFontManager* fontManager)
 		: m_ownerWindow(ownerWindow)
+		, m_fontManager(fontManager)
 		, m_maxTextQuadVertexCount(kMaxTextQuads * 6) // 6 vertices per quad
 		, m_textQuadVertices(new TextQuadVertex[m_maxTextQuadVertexCount])
 	{}
 
-	~GlTextRenderer()
+	virtual ~GlTextRenderer()
 	{
 		delete[] m_textQuadVertices;
 	}
@@ -132,40 +132,13 @@ public:
 		m_textQuadVertexCount = 0;
 	}
 
-	int GlTextRenderer::allocateTextQuadVertices(int vertexCount)
-	{
-		if (m_textQuadVertexCount + vertexCount < m_maxTextQuadVertexCount)
-		{
-			int startVertexIndex = m_textQuadVertexCount;
-
-			m_textQuadVertexCount += vertexCount;
-
-			return startVertexIndex;
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("GlTextRenderer::allocateTextQuadVertices") << "Exceeded maximum text quad vertex count";
-
-			return -1;
-		}
-	}
-
-	void GlTextRenderer::setTextQuadVertex(int index, const glm::vec2& position, const glm::vec2& texCoords)
-	{
-		if (index >= 0 && index < m_textQuadVertexCount)
-		{
-			m_textQuadVertices[index].position = position;
-			m_textQuadVertices[index].texCoords = texCoords;
-		}
-	}
-
-	void GlTextRenderer::addTextAtScreenPosition(
+	virtual void addTextAtScreenPosition(
 		const TextStyle& style,
 		const glm::vec2& screenCoords,
-		const std::wstring& text)
+		const std::wstring& text) override
 	{
 		BakedTextQuad bakedQuad;
-		bakedQuad.texture = MainWindow::getInstance()->getFontManager()->fetchBakedText(style, text);
+		bakedQuad.texture = m_fontManager->fetchBakedText(style, text);
 		bakedQuad.startVertexIndex = allocateTextQuadVertices(6);
 
 		if (bakedQuad.texture != nullptr && bakedQuad.startVertexIndex != -1)
@@ -231,12 +204,37 @@ protected:
 		glm::vec2 texCoords;
 	};
 
-	int allocateTextQuadVertices(int vertexCount);
-	void setTextQuadVertex(int index, const glm::vec2& position, const glm::vec2& texCoords);
+	int allocateTextQuadVertices(int vertexCount)
+	{
+		if (m_textQuadVertexCount + vertexCount < m_maxTextQuadVertexCount)
+		{
+			int startVertexIndex = m_textQuadVertexCount;
+
+			m_textQuadVertexCount += vertexCount;
+
+			return startVertexIndex;
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("GlTextRenderer::allocateTextQuadVertices") << "Exceeded maximum text quad vertex count";
+
+			return -1;
+		}
+	}
+
+	void setTextQuadVertex(int index, const glm::vec2& position, const glm::vec2& texCoords)
+	{
+		if (index >= 0 && index < m_textQuadVertexCount)
+		{
+			m_textQuadVertices[index].position = position;
+			m_textQuadVertices[index].texCoords = texCoords;
+		}
+	}
 
 private:
 	static const int kMaxTextQuads = 1024;
-	class IMkWindow* m_ownerWindow = nullptr;
+	IMkWindow* m_ownerWindow = nullptr;
+	IMkFontManager* m_fontManager = nullptr;
 
 	std::vector<BakedTextQuad> m_bakedTextQuads;
 	unsigned int m_textQuadVAO = 0;
@@ -247,3 +245,10 @@ private:
 	GlMaterialConstPtr m_textMaterial;
 	GlMaterialInstancePtr m_textMaterialInstance;
 };
+
+IMkTextRendererPtr createMkTextRenderer(
+	IMkWindow* ownerWindow,
+	IMkFontManager* fontManager)
+{
+	return std::make_shared<GlTextRenderer>(ownerWindow, fontManager);
+}

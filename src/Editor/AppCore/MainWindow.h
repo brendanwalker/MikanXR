@@ -2,8 +2,9 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "MikanRendererFwd.h"
 #include "SdlFwd.h"
-#include "IMkWindow.h"
+#include "ISdlMkWindow.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
@@ -16,7 +17,7 @@
 #include <assert.h>
 
 //-- definitions -----
-class MainWindow : public IGlWindow
+class MainWindow : public ISdlMkWindow
 {
 public:
 	MainWindow();
@@ -30,7 +31,7 @@ public:
 	// -- MainWindow --
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
 	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemManager; }
-	inline class FontManager* getFontManager() const { return m_fontManager; }
+	inline class MikanFontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
@@ -99,19 +100,19 @@ public:
 	virtual bool getIsRenderingStage() const override { return m_isRenderingStage; }
 	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
-	virtual GlViewportPtr getRenderingViewport() const override;
+	virtual IMkViewportPtr getRenderingViewport() const override;
 	virtual GlStateStack& getGlStateStack() override;
-	virtual GlLineRenderer* getLineRenderer() override;
-	virtual GlTextRenderer* getTextRenderer() override;
+	virtual IMkLineRenderer* getLineRenderer() override;
+	virtual IMkTextRenderer* getTextRenderer() override;
 	virtual GlModelResourceManager* getModelResourceManager() override;
-	virtual GlShaderCache* getShaderCache() override;
-	virtual GlTextureCache* getTextureCache() override;
+	virtual IMkShaderCache* getShaderCache() override;
+	virtual IMkTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;
 
 protected:
-	void renderStageViewport(AppStage* appStage, GlViewportPtr targetViewport);
+	void renderStageViewport(AppStage* appStage, IMkViewportPtr targetViewport);
 	void renderStageUI(AppStage* appStage);
 
 private:
@@ -134,7 +135,7 @@ private:
 	class OpenCVManager* m_openCVManager;
 
 	// OpenGL/SDL font/baked text string texture cache
-	class FontManager* m_fontManager = nullptr;
+	class MikanFontManager* m_fontManager = nullptr;
 
 	// Keeps track of currently connected camera
 	class VideoSourceManager* m_videoSourceManager = nullptr;
@@ -147,12 +148,12 @@ private:
 	std::vector<AppStage*> m_appStageStack;
 
 	SdlWindowUniquePtr m_sdlWindow;
-	GlViewportPtr m_uiViewport;
-	GlViewportPtr m_renderingViewport;
+	IMkViewportPtr m_uiViewport;
+	IMkViewportPtr m_renderingViewport;
 
 	GlStateStackUniquePtr m_glStateStack;
-	GlLineRendererUniquePtr m_lineRenderer;
-	GlTextRendererUniquePtr m_textRenderer;
+	IMkLineRendererPtr m_lineRenderer;
+	IMkTextRendererPtr m_textRenderer;
 	GlModelResourceManagerUniquePtr m_modelResourceManager;
 	GlRmlUiRenderUniquePtr m_rmlUiRenderer;
 
@@ -175,10 +176,10 @@ private:
 	bool m_isRenderingUI;
 
 	// OpenGL shader program cache
-	GlShaderCacheUniquePtr m_shaderCache;
+	MikanShaderCacheUniquePtr m_shaderCache;
 
 	// OpenGL texture program cache
-	GlTextureCacheUniquePtr m_textureCache;
+	MikanTextureCacheUniquePtr m_textureCache;
 
 	static MainWindow* m_instance;
 };

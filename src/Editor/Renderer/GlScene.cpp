@@ -6,7 +6,7 @@
 #include "GlScene.h"
 #include "GlStateModifiers.h"
 #include "GlStateStack.h"
-#include "GlShaderCache.h"
+#include "IMkShaderCache.h"
 #include "GlStaticMeshInstance.h"
 #include "MikanViewport.h"
 #include "IMkMesh.h"
@@ -27,7 +27,7 @@ GlScene::~GlScene()
 	removeAllInstances();
 }
 
-void GlScene::addInstance(IGlSceneRenderableConstPtr instance)
+void GlScene::addInstance(IMkSceneRenderableConstPtr instance)
 {
 	GlMaterialConstPtr material= instance->getMaterialInstanceConst()->getMaterial();
 
@@ -39,7 +39,7 @@ void GlScene::addInstance(IGlSceneRenderableConstPtr instance)
 	m_drawCalls[material]->instances.push_back(instance);
 }
 
-void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
+void GlScene::removeInstance(IMkSceneRenderableConstPtr instance)
 {
 	GlMaterialConstPtr material = instance->getMaterialInstanceConst()->getMaterial();
 
@@ -51,7 +51,7 @@ void GlScene::removeInstance(IGlSceneRenderableConstPtr instance)
 		// Remove any existing instances from the draw call
 		for (auto it = drawCall->instances.begin(); it != drawCall->instances.end(); it++)
 		{
-			IGlSceneRenderableConstPtr existingInstance= it->lock();
+			IMkSceneRenderableConstPtr existingInstance= it->lock();
 
 			if (existingInstance == instance)
 			{
@@ -97,7 +97,7 @@ void GlScene::render(IMkCameraConstPtr camera, GlStateStack& glStateStack) const
 			 instanceIter != drawCall->instances.end();
 			 instanceIter++)
 		{
-			IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
+			IMkSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
 			if (renderableInstance != nullptr && 
 				renderableInstance->getVisible() && 
@@ -131,7 +131,7 @@ void GlScene::render(IMkCameraConstPtr camera, GlStateStack& glStateStack) const
 					 instanceIter != drawCall->instances.end();
 					 instanceIter++)
 				{
-					IGlSceneRenderableConstPtr renderableInstance = instanceIter->lock();
+					IMkSceneRenderableConstPtr renderableInstance = instanceIter->lock();
 
 					if (renderableInstance != nullptr && 
 						renderableInstance->getVisible() &&
@@ -227,7 +227,7 @@ eUniformBindResult GlScene::materialBindCallback(
 
 eUniformBindResult GlScene::materialInstanceBindCallback(
 	IMkCameraConstPtr camera,
-	IGlSceneRenderableConstPtr renderableInstance,
+	IMkSceneRenderableConstPtr renderableInstance,
 	GlProgramPtr program,
 	eUniformDataType uniformDataType,
 	eUniformSemantic uniformSemantic,

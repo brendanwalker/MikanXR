@@ -40,4 +40,4 @@ public:
 		float size0 = 1.f, float size1 = 1.f) = 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkLineRendererPtr) CreateMkLineRenderer(IMkWindow* ownerWindow);
+MIKAN_RENDERER_FUNC(IMkLineRendererPtr) createMkLineRenderer(IMkWindow* ownerWindow);

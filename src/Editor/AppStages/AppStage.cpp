@@ -28,9 +28,9 @@ AppStage::~AppStage()
 {
 }
 
-GlViewportPtr AppStage::addViewport()
+MikanViewportPtr AppStage::addViewport()
 {
-	GlViewportPtr viewport= 
+	auto viewport= 
 		std::make_shared<MikanViewport>(
 			glm::i32vec2(m_ownerWindow->getWidth(), m_ownerWindow->getHeight()));
 	m_viewports.push_back(viewport);
@@ -41,9 +41,9 @@ GlViewportPtr AppStage::addViewport()
 	return viewport;
 }
 
-GlViewportConstPtr AppStage::getRenderingViewport() const
+MikanViewportConstPtr AppStage::getRenderingViewport() const
 {
-	return MainWindow::getInstance()->getRenderingViewport();
+	return std::static_pointer_cast<const MikanViewport>(MainWindow::getInstance()->getRenderingViewport());
 }
 
 Rml::Context* AppStage::getRmlContext() const 
@@ -67,7 +67,7 @@ void AppStage::exit()
 	if (m_bIsEntered)
 	{
 		// Destroy all viewports
-		for (GlViewportPtr viewport : m_viewports)
+		for (MikanViewportPtr viewport : m_viewports)
 		{
 			viewport->unbindInput();
 		}
@@ -192,7 +192,7 @@ void AppStage::update(float deltaSeconds)
 	}
 
 	// Process input in each viewport
-	for (GlViewportPtr viewport : m_viewports)
+	for (MikanViewportPtr viewport : m_viewports)
 	{
 		viewport->update(deltaSeconds);
 	}

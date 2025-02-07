@@ -9,7 +9,7 @@
 #include "GlStateModifiers.h"
 #include "GlShaderCache.h"
 #include "IMkTexture.h"
-#include "GlTextureCache.h"
+#include "MikanTextureCache.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
@@ -48,7 +48,7 @@ NodeEditorWindow::NodeEditorWindow()
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
 	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
-	, m_textureCache(GlTextureCacheUniquePtr(new GlTextureCache))
+	, m_textureCache(GlTextureCacheUniquePtr(new MikanTextureCache))
 {}
 
 NodeEditorWindow::~NodeEditorWindow()
@@ -75,7 +75,7 @@ GlShaderCache* NodeEditorWindow::getShaderCache()
 	return m_shaderCache.get();
 }
 
-GlTextureCache* NodeEditorWindow::getTextureCache()
+MikanTextureCache* NodeEditorWindow::getTextureCache()
 {
 	return m_textureCache.get();
 }

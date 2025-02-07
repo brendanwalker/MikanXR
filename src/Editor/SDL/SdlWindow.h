@@ -11,7 +11,7 @@ class SdlWindow
 {
 public:
 	SdlWindow()= default;
-	SdlWindow(class IGlWindow *ownerWindowInterface);
+	SdlWindow(class ISdlMkWindow* ownerWindowInterface);
 
 	bool startup();
 	void shutdown();
@@ -51,7 +51,7 @@ protected:
 	bool handleSDLWindowEvent(const SDL_Event* event);
 
 private:
-	class IGlWindow *m_owner= nullptr;
+	class ISdlMkWindow* m_owner= nullptr;
 	SDL_Window* m_sdlWindow= nullptr;
 	void* m_glContext = nullptr;
 	int m_windowId= -1;

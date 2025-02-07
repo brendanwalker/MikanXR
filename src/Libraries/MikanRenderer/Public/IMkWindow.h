@@ -23,6 +23,6 @@ public:
 	virtual class IMkLineRenderer* getLineRenderer() = 0;
 	virtual class IMkTextRenderer* getTextRenderer() = 0;
 	virtual IMkShaderCache* getShaderCache() = 0;
-	virtual GlTextureCache* getTextureCache() = 0;
+	virtual IMkTextureCache* getTextureCache() = 0;
 	virtual GlModelResourceManager* getModelResourceManager() = 0;
 };

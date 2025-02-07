@@ -7,7 +7,7 @@
 #include "GlShaderCache.h"
 #include "GlStateStack.h"
 #include "IMkTexture.h"
-#include "GlTextureCache.h"
+#include "MikanTextureCache.h"
 #include "GlTriangulatedMesh.h"
 #include "Logger.h"
 #include "MainWindow.h"
