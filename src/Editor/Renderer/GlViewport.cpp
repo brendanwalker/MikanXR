@@ -2,7 +2,7 @@
 #include "EditorObjectSystem.h"
 #include "GlViewport.h"
 #include "SdlCommon.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlScene.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
@@ -135,7 +135,7 @@ int GlViewport::getCurrentCameraIndex() const
 
 IMkCameraPtr GlViewport::addCamera()
 {
-	GlCameraPtr newCamera = std::make_shared<GlCamera>();
+	GlCameraPtr newCamera = std::make_shared<MikanCamera>();
 	m_cameraPool.push_back(newCamera);
 
 	return newCamera;

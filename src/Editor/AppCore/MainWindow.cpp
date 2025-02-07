@@ -12,7 +12,7 @@
 #include "FontManager.h"
 #include "GlFrameCompositor.h"
 #include "SdlCommon.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
 #include "IMkTexture.h"

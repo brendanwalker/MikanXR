@@ -1,7 +1,7 @@
 #include "App.h"
 #include "CalibrationRenderHelpers.h"
 #include "FontManager.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "MkError.h"
 #include "SdlCommon.h"
 #include "GlMaterial.h"

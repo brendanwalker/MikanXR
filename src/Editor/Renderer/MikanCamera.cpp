@@ -1,6 +1,6 @@
 #include "App.h"
 #include "CameraMath.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlViewport.h"
 #include "InputManager.h"
 #include "MathUtility.h"
@@ -17,7 +17,7 @@
 #endif
 
 
-GlCamera::GlCamera()
+MikanCamera::MikanCamera()
 {
 	m_viewMatrix = glm::mat4(1.f);
 
@@ -52,7 +52,7 @@ GlCamera::GlCamera()
 	applyFlyParamsToViewMatrix();
 }
 
-void GlCamera::setOrbitLocation(float yawDegrees, float pitchDegrees, float radius)
+void MikanCamera::setOrbitLocation(float yawDegrees, float pitchDegrees, float radius)
 {
 	m_orbitYawDegrees = wrap_degrees(yawDegrees);
 	m_orbitPitchDegrees = clampf(pitchDegrees, 0.0f, 90.0f);
@@ -60,7 +60,7 @@ void GlCamera::setOrbitLocation(float yawDegrees, float pitchDegrees, float radi
 	applyOrbitParamsToViewMatrix();
 }
 
-void GlCamera::setCameraMovementMode(eCameraMovementMode newMode)
+void MikanCamera::setCameraMovementMode(eCameraMovementMode newMode)
 {
 	if (newMode != m_movementMode)
 	{
@@ -80,7 +80,7 @@ void GlCamera::setCameraMovementMode(eCameraMovementMode newMode)
 	}
 }
 
-void GlCamera::setCameraTransform(const glm::mat4& xform)
+void MikanCamera::setCameraTransform(const glm::mat4& xform)
 {
 	switch (m_movementMode)
 	{
@@ -98,7 +98,7 @@ void GlCamera::setCameraTransform(const glm::mat4& xform)
 	}
 }
 
-void GlCamera::setPosition(const glm::vec3& location)
+void MikanCamera::setPosition(const glm::vec3& location)
 {
 	switch (m_movementMode)
 	{
@@ -116,7 +116,7 @@ void GlCamera::setPosition(const glm::vec3& location)
 	}
 }
 
-void GlCamera::lookAt(const glm::vec3& target)
+void MikanCamera::lookAt(const glm::vec3& target)
 {
 	switch (m_movementMode)
 	{
@@ -146,7 +146,7 @@ void GlCamera::lookAt(const glm::vec3& target)
 	}
 }
 
-void GlCamera::adjustFlyForward(float distance)
+void MikanCamera::adjustFlyForward(float distance)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
@@ -158,7 +158,7 @@ void GlCamera::adjustFlyForward(float distance)
 	}
 }
 
-void GlCamera::adjustFlyRight(float distance)
+void MikanCamera::adjustFlyRight(float distance)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
@@ -170,7 +170,7 @@ void GlCamera::adjustFlyRight(float distance)
 	}
 }
 
-void GlCamera::adjustFlyUp(float distance)
+void MikanCamera::adjustFlyUp(float distance)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
@@ -182,7 +182,7 @@ void GlCamera::adjustFlyUp(float distance)
 	}
 }
 
-void GlCamera::adjustFlyYaw(float deltaDegrees)
+void MikanCamera::adjustFlyYaw(float deltaDegrees)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
@@ -202,7 +202,7 @@ void GlCamera::adjustFlyYaw(float deltaDegrees)
 	}
 }
 
-void GlCamera::adjustFlyPitch(float deltaDegrees)
+void MikanCamera::adjustFlyPitch(float deltaDegrees)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
@@ -222,31 +222,31 @@ void GlCamera::adjustFlyPitch(float deltaDegrees)
 	}
 }
 
-void GlCamera::setOrbitYaw(float yawDegrees)
+void MikanCamera::setOrbitYaw(float yawDegrees)
 {
 	m_orbitYawDegrees= yawDegrees;
 	applyOrbitParamsToViewMatrix();
 }
 
-void GlCamera::setOrbitPitch(float pitchDegrees)
+void MikanCamera::setOrbitPitch(float pitchDegrees)
 {
 	m_orbitPitchDegrees= pitchDegrees;
 	applyOrbitParamsToViewMatrix();
 }
 
-void GlCamera::setOrbitRadius(float radius)
+void MikanCamera::setOrbitRadius(float radius)
 {
 	m_orbitRadius= radius;
 	applyOrbitParamsToViewMatrix();
 }
 
-void GlCamera::setOrbitTargetPosition(const glm::vec3& cameraTarget)
+void MikanCamera::setOrbitTargetPosition(const glm::vec3& cameraTarget)
 {
 	m_orbitTargetPosition = cameraTarget;
 	applyOrbitParamsToViewMatrix();
 }
 
-void GlCamera::adjustOrbitAngles(float deltaYaw, float deltaPitch)
+void MikanCamera::adjustOrbitAngles(float deltaYaw, float deltaPitch)
 {
 	if (m_movementMode == eCameraMovementMode::orbit)
 	{
@@ -257,7 +257,7 @@ void GlCamera::adjustOrbitAngles(float deltaYaw, float deltaPitch)
 	}
 }
 
-void GlCamera::adjustOrbitRadius(float deltaRadius)
+void MikanCamera::adjustOrbitRadius(float deltaRadius)
 {
 	if (m_movementMode == eCameraMovementMode::orbit)
 	{
@@ -268,7 +268,7 @@ void GlCamera::adjustOrbitRadius(float deltaRadius)
 	}
 }
 
-void GlCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
+void MikanCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
 {
 	if (m_movementMode == eCameraMovementMode::orbit)
 	{
@@ -277,7 +277,7 @@ void GlCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
 	}
 }
 
-void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
+void MikanCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
 {
 	assert (cameraIntrinsics->intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 
@@ -297,17 +297,17 @@ void GlCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntri
 	m_zFar = (float)monoIntrinsics.zfar;
 }
 
-void GlCamera::applyStationaryParamsToViewMatrix()
+void MikanCamera::applyStationaryParamsToViewMatrix()
 {
 	m_viewMatrix = computeGLMCameraViewMatrix(m_stationaryTransform);
 }
 
-void GlCamera::applyFlyParamsToViewMatrix()
+void MikanCamera::applyFlyParamsToViewMatrix()
 {
 	m_viewMatrix = computeGLMCameraViewMatrix(m_flyTransform);
 }
 
-void GlCamera::applyOrbitParamsToViewMatrix()
+void MikanCamera::applyOrbitParamsToViewMatrix()
 {
 	const float yawRadians = degrees_to_radians(m_orbitYawDegrees);
 	const float pitchRadians = degrees_to_radians(m_orbitPitchDegrees);
@@ -335,7 +335,7 @@ void GlCamera::applyOrbitParamsToViewMatrix()
 	}
 }
 
-const glm::vec3 GlCamera::getCameraPositionFromViewMatrix() const
+const glm::vec3 MikanCamera::getCameraPositionFromViewMatrix() const
 {
 	// Assumes no scaling 
 	const glm::mat3 rotMat(m_viewMatrix);
@@ -345,23 +345,23 @@ const glm::vec3 GlCamera::getCameraPositionFromViewMatrix() const
 	return position;
 }
 
-const glm::vec3 GlCamera::getCameraRightFromViewMatrix() const
+const glm::vec3 MikanCamera::getCameraRightFromViewMatrix() const
 {
 	return glm::vec3(m_viewMatrix[0][0], m_viewMatrix[1][0], m_viewMatrix[2][0]);
 }
 
-const glm::vec3 GlCamera::getCameraUpFromViewMatrix() const
+const glm::vec3 MikanCamera::getCameraUpFromViewMatrix() const
 {
 	return glm::vec3(m_viewMatrix[0][1], m_viewMatrix[1][1], m_viewMatrix[2][1]);
 }
 
-const glm::vec3 GlCamera::getCameraForwardFromViewMatrix() const
+const glm::vec3 MikanCamera::getCameraForwardFromViewMatrix() const
 {
 	// Camera forward is along negative Z-axis
 	return glm::vec3(m_viewMatrix[0][2], m_viewMatrix[1][2], m_viewMatrix[2][2]) * -1.f;
 }
 
-const glm::mat4 GlCamera::getCameraTransformFromViewMatrix() const
+const glm::mat4 MikanCamera::getCameraTransformFromViewMatrix() const
 {
 	return
 		glm::mat4(
@@ -371,7 +371,7 @@ const glm::mat4 GlCamera::getCameraTransformFromViewMatrix() const
 			glm::vec4(getCameraPositionFromViewMatrix(), 1.f));
 }
 
-void GlCamera::computeCameraRayThruPixel(
+void MikanCamera::computeCameraRayThruPixel(
 	GlViewportConstPtr viewport,
 	const glm::vec2& viewportPixelPos,
 	glm::vec3& outRayOrigin,

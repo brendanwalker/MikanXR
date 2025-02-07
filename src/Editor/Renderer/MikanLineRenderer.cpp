@@ -1,6 +1,6 @@
 #include "App.h"
 #include "Colors.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "MkError.h"
 #include "SdlCommon.h"
 #include "MikanLineRenderer.h"

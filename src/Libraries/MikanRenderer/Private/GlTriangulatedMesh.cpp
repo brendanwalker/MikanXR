@@ -1,10 +1,10 @@
 #include "GlCommon.h"
-#include "GlCamera.h"
+#include "IMkCamera.h"
 #include "GlTriangulatedMesh.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
 #include "GlProgram.h"
-#include "GlShaderCache.h"
+#include "IMkShaderCache.h"
 #include "GlVertexDefinition.h"
 #include "IMkWindow.h"
 #include "Logger.h"
@@ -223,7 +223,7 @@ GlTriangulatedMeshPtr createFullscreenQuadMesh(IMkWindow* ownerWindow, bool vFli
 }
 
 void drawTransformedTriangulatedMesh(
-	GlCameraConstPtr camera,
+	IMkCameraConstPtr camera,
 	const glm::mat4& transform,
 	GlTriangulatedMeshConstPtr triangulatedMesh)
 {

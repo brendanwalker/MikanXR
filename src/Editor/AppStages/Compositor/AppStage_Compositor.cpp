@@ -18,7 +18,7 @@
 #include "CompositorScriptContext.h"
 #include "EditorObjectSystem.h"
 #include "SdlCommon.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlFrameCompositor.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"

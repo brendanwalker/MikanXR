@@ -7,7 +7,7 @@
 #include "Colors.h"
 #include "DepthMeshGenerator.h"
 #include "EditorObjectSystem.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlLineRenderer.h"
 #include "GlFrameCompositor.h"
 #include "GlRenderModelResource.h"

@@ -5,7 +5,7 @@
 #include "AnchorObjectSystem.h"
 #include "App.h"
 #include "Colors.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlScene.h"
 #include "GlLineRenderer.h"
 #include "GlTextRenderer.h"

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "IMkMesh.h"
-#include "MikanRendererFwd.h"
+#include "MkRendererFwd.h"
+#include "MkRendererExport.h"
 
 #include "stdint.h"
 #include <string>
@@ -61,8 +62,8 @@ protected:
 };
 
 // -- Drawing Helpers ---
-GlTriangulatedMeshPtr createFullscreenQuadMesh(IMkWindow* ownerWindow, bool vFlipped);
-void drawTransformedTriangulatedMesh(
-	GlCameraConstPtr camera,
+MIKAN_RENDERER_FUNC(GlTriangulatedMeshPtr) createFullscreenQuadMesh(IMkWindow* ownerWindow, bool vFlipped);
+MIKAN_RENDERER_FUNC(void) drawTransformedTriangulatedMesh(
+	IMkCameraConstPtr camera,
 	const glm::mat4& transform,
 	GlTriangulatedMeshConstPtr wireframeMesh);

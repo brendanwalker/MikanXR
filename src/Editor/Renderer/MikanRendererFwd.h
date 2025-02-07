@@ -6,9 +6,9 @@
 class GlRmlUiRender;
 using GlRmlUiRenderUniquePtr = std::unique_ptr<GlRmlUiRender>;
 
-class GlCamera;
-using GlCameraPtr = std::shared_ptr<GlCamera>;
-using GlCameraConstPtr = std::shared_ptr<const GlCamera>;
+class MikanCamera;
+using GlCameraPtr = std::shared_ptr<MikanCamera>;
+using GlCameraConstPtr = std::shared_ptr<const MikanCamera>;
 
 class GlScene;
 using GlScenePtr = std::shared_ptr<GlScene>;

@@ -3,7 +3,7 @@
 #include "VRTrackingRecenter/RmlModel_VRTrackingRecenter.h"
 #include "ArucoMarkerPoseSampler.h"
 #include "App.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlFrameBuffer.h"
 #include "GlLineRenderer.h"
 #include "GlMaterial.h"

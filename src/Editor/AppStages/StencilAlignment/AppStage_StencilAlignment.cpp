@@ -5,7 +5,7 @@
 #include "App.h"
 #include "Colors.h"
 #include "CalibrationRenderHelpers.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlFrameBuffer.h"
 #include "GlLineRenderer.h"
 #include "GlMaterial.h"

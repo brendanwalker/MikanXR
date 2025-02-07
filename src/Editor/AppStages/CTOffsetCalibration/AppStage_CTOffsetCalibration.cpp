@@ -8,7 +8,7 @@
 #include "CTOffsetCalibration/RmlModel_CTOffsetCalibration.h"
 #include "CTOffsetCalibration/RmlModel_CTOffsetCameraSettings.h"
 #include "App.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlLineRenderer.h"
 #include "GlScene.h"
 #include "GlTextRenderer.h"

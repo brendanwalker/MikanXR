@@ -1,5 +1,5 @@
 #include "App.h"
-#include "GlCamera.h"
+#include "MikanCamera.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
 #include "GlProgram.h"

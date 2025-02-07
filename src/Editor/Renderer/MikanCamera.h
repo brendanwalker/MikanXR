@@ -15,11 +15,11 @@ enum eCameraMovementMode : int
 	stationary,
 };
 
-class GlCamera : public IMkCamera
+class MikanCamera : public IMkCamera
 {
 public:
-	GlCamera();
-	virtual ~GlCamera() = default;
+	MikanCamera();
+	virtual ~MikanCamera() = default;
 
 	virtual void setName(const std::string& name) override { m_cameraName = name; }
 	virtual const std::string& getName() const override { return m_cameraName; }
