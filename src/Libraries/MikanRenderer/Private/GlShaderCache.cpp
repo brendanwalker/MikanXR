@@ -1,130 +1,116 @@
+#include "IMkShaderCache.h"
 #include "GlMaterial.h"
-#include "GlShaderCache.h"
 #include "GlProgram.h"
-#include "GlProgramConfig.h"
-#include "MaterialAssetReference.h"
 #include "Logger.h"
 
 namespace InternalShaders
 {
-	bool registerInternalShaders(GlShaderCache& shaderCache);
+	bool registerInternalShaders(IMkShaderCache* shaderCache);
 }
 
-bool GlShaderCache::startup()
+class GlShaderCache : public IMkShaderCache
 {
-	return InternalShaders::registerInternalShaders(*this);
-}
-
-void GlShaderCache::shutdown()
-{
-	m_programCache.clear();
-}
-
-GlMaterialPtr GlShaderCache::loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef)
-{
-	GlMaterialPtr material;
-
-	if (materialAssetRef && materialAssetRef->isValid())
+public:
+	GlShaderCache() = delete;
+	GlShaderCache(IMkWindow* ownerWindow)
+		: m_ownerWindow(ownerWindow)
 	{
-		auto shaderFilePath = materialAssetRef->getAssetPath();
+	}
+	virtual ~GlShaderCache()
+	{
+		shutdown();
+	}
 
-		GlProgramConfig programConfig;
-		if (programConfig.load(shaderFilePath))
+	virtual bool startup() override
+	{
+		return InternalShaders::registerInternalShaders(this);
+	}
+
+	virtual void shutdown() override
+	{
+		m_programCache.clear();
+	}
+
+	GlMaterialPtr GlShaderCache::registerMaterial(const GlProgramCode& code)
+	{
+		const std::string materialName = code.getProgramName();
+
+		auto it = m_materialCache.find(materialName);
+		if (it != m_materialCache.end())
 		{
-			GlProgramCode programCode;
-			if (programCode.loadFromConfigData(programConfig))
+			MIKAN_LOG_ERROR("GlShaderCache::registerMaterial") << "Material already exists: " << materialName;
+			return GlMaterialPtr();
+		}
+
+		GlProgramPtr program = fetchCompiledGlProgram(&code);
+		if (program)
+		{
+			auto material = std::make_shared<GlMaterial>(materialName, program);
+
+			m_materialCache.insert({materialName, material});
+			return material;
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("GlShaderCache::registerMaterial") << "Failed to compile material: " << materialName;
+			return GlMaterialPtr();
+		}
+	}
+
+	GlMaterialConstPtr GlShaderCache::getMaterialByName(const std::string& name)
+	{
+		auto it = m_materialCache.find(name);
+		if (it != m_materialCache.end())
+		{
+			return it->second;
+		}
+
+		return GlMaterialConstPtr();
+	}
+
+	GlProgramPtr GlShaderCache::fetchCompiledGlProgram(
+		const GlProgramCode* code)
+	{
+		auto it = m_programCache.find(code->getProgramName());
+		if (it != m_programCache.end())
+		{
+			GlProgramPtr existingProgram = it->second;
+
+			if (existingProgram->getProgramCode().getCodeHash() == code->getCodeHash())
 			{
-				material = registerMaterial(programCode);
+				// Found a compiled version of the code
+				return existingProgram;
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GlShaderCache::loadMaterialAssetReference")
-					<< "Failed material program code: " << shaderFilePath;
+				// Old compiled program is stale so delete it
+				m_programCache.erase(it);
 			}
 		}
-		else
+
+		// (Re)compile program and add it to the cache
+		GlProgramPtr program = std::make_shared<GlProgram>(*code);
+		if (program->compileProgram())
 		{
-			MIKAN_LOG_ERROR("GlShaderCache::loadMaterialAssetReference")
-				<< "Failed material config load: " << shaderFilePath;
-		}
-	}
-	else
-	{
-		MIKAN_LOG_ERROR("GlShaderCache::loadMaterialAssetReference") << "Invalid material asset ref";
-	}
-
-	return material;
-}
-
-GlMaterialPtr GlShaderCache::registerMaterial(const GlProgramCode& code)
-{
-	const std::string materialName= code.getProgramName();
-
-	auto it = m_materialCache.find(materialName);
-	if (it != m_materialCache.end())
-	{
-		MIKAN_LOG_ERROR("GlShaderCache::registerMaterial") << "Material already exists: " << materialName;
-		return GlMaterialPtr();
-	}
-
-	GlProgramPtr program = fetchCompiledGlProgram(&code);
-	if (program)
-	{
-		auto material= std::make_shared<GlMaterial>(materialName, program);
-
-		m_materialCache.insert({materialName, material});
-		return material;
-	}
-	else
-	{
-		MIKAN_LOG_ERROR("GlShaderCache::registerMaterial") << "Failed to compile material: " << materialName;
-		return GlMaterialPtr();
-	}
-}
-
-GlMaterialConstPtr GlShaderCache::getMaterialByName(const std::string& name)
-{
-	auto it = m_materialCache.find(name);
-	if (it != m_materialCache.end())
-	{
-		return it->second;
-	}
-
-	return GlMaterialConstPtr();
-}
-
-GlProgramPtr GlShaderCache::fetchCompiledGlProgram(
-	const GlProgramCode* code)
-{
-	auto it = m_programCache.find(code->getProgramName());
-	if (it != m_programCache.end())
-	{
-		GlProgramPtr existingProgram= it->second;
-
-		if (existingProgram->getProgramCode().getCodeHash() == code->getCodeHash())
-		{
-			// Found a compiled version of the code
-			return existingProgram;
+			m_programCache[code->getProgramName()] = program;
+			return program;
 		}
 		else
 		{
-			// Old compiled program is stale so delete it
-			m_programCache.erase(it);
+			// Clean up the program if it failed to compile
+			return nullptr;
 		}
 	}
 
-	// (Re)compile program and add it to the cache
-	GlProgramPtr program = std::make_shared<GlProgram>(*code);
-	if (program->compileProgram())
-	{
-		m_programCache[code->getProgramName()] = program;
-		return program;
-	}
-	else
-	{
-		// Clean up the program if it failed to compile
-		return nullptr;
-	}
+private:
+	IMkWindow* m_ownerWindow;
+	std::map<std::string, GlProgramPtr> m_programCache;
+	std::map<std::string, GlMaterialPtr> m_materialCache;
+};
+
+IMkShaderCachePtr CreateMkShaderCache(class IMkWindow* ownerWindow)
+{
+	return std::make_shared<GlShaderCache>(ownerWindow);
 }
 
 namespace InternalShaders
@@ -542,7 +528,7 @@ namespace InternalShaders
 		return &x_shaderCode;
 	}
 
-	bool registerInternalShaders(GlShaderCache& shaderCache)
+	bool registerInternalShaders(IMkShaderCache* shaderCache)
 	{
 		std::vector<const GlProgramCode*> internalShaders = {
 			getPTTexturedFullScreenRGBQuad(),
@@ -559,7 +545,7 @@ namespace InternalShaders
 		bool bSuccess = true;
 		for (const GlProgramCode* code : internalShaders)
 		{
-			if (!shaderCache.registerMaterial(*code))
+			if (!shaderCache->registerMaterial(*code))
 			{
 				MIKAN_LOG_ERROR("InternalShaders::registerInternalShaders()") <<
 					"Failed to compile " << code->getProgramName();

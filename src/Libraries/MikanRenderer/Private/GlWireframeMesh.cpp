@@ -93,7 +93,7 @@ public:
 			return false;
 		}
 
-		GlShaderCache* shaderCache = getOwnerWindow()->getShaderCache();
+		IMkShaderCache* shaderCache = getOwnerWindow()->getShaderCache();
 		GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
 		if (!material)
 		{

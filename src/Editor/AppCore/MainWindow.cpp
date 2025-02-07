@@ -16,10 +16,10 @@
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
 #include "IMkTexture.h"
-#include "GlShaderCache.h"
+#include "MikanShaderCache.h"
 #include "GlTextureCache.h"
-#include "GlTextRenderer.h"
-#include "GlLineRenderer.h"
+#include "IMkTextRenderer.h"
+#include "IMkLineRenderer.h"
 #include "GlViewport.h"
 #include "GlModelResourceManager.h"
 #include "InputManager.h"
@@ -69,7 +69,7 @@ MainWindow::MainWindow()
 	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
-	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
+	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
 	, m_textureCache(GlTextureCacheUniquePtr(new GlTextureCache))
 {}
 

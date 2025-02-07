@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AssetFwd.h"
+#include "MkRendererExport.h"
 #include "MkRendererFwd.h"
 
 #include <memory>
@@ -17,22 +17,18 @@
 #define INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED		"Internal_PNT_TexturedLitColored"
 #define INTERNAL_MATERIAL_P_LINEAR_DEPTH				"Internal_P_LinearDepth"
 
-class GlShaderCache
+class IMkShaderCache
 {
 public:
-	GlShaderCache()= default;
+	virtual	~IMkShaderCache() {}
 
-	bool startup();
-	void shutdown();
+	virtual bool startup() = 0;
+	virtual void shutdown() = 0;
 
-	GlMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef);
+	virtual GlMaterialPtr registerMaterial(const GlProgramCode& code) = 0;
+	virtual GlMaterialConstPtr getMaterialByName(const std::string& name) = 0;
 
-	GlMaterialPtr registerMaterial(const GlProgramCode& code);
-	GlMaterialConstPtr getMaterialByName(const std::string& name);
-
-	GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code);
-
-private:
-	std::map<std::string, GlProgramPtr> m_programCache;
-	std::map<std::string, GlMaterialPtr> m_materialCache;
+	virtual GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code) = 0;
 };
+
+MIKAN_RENDERER_FUNC(IMkShaderCachePtr) CreateMkShaderCache(class IMkWindow* ownerWindow);

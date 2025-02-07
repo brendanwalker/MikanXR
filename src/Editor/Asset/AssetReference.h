@@ -2,7 +2,7 @@
 
 #include "AssetFwd.h"
 #include "CommonConfig.h"
-#include "RendererFwd.h"
+#include "MikanRendererFwd.h"
 
 #include <memory>
 #include <filesystem>
@@ -33,7 +33,7 @@ public:
 	virtual void saveToConfig(AssetReferenceConfigPtr config) const;
 
 	virtual std::string getAssetTypeName() const { return "Asset"; }
-	inline GlTexturePtr getPreviewTexture() const { return m_previewTexture; }
+	inline IMkTexturePtr getPreviewTexture() const { return m_previewTexture; }
 
 	inline const std::filesystem::path& getAssetPath() const { return m_assetPath; }
 	virtual void setAssetPath(const std::filesystem::path& inPath);
@@ -51,7 +51,7 @@ protected:
 
 protected:
 	std::filesystem::path m_assetPath;
-	GlTexturePtr m_previewTexture;
+	IMkTexturePtr m_previewTexture;
 };
 
 class AssetReferenceFactory

@@ -29,8 +29,8 @@ class GlRenderModelResource;
 using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
 using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;
 
-class GlShaderCache;
-using GlShaderCacheUniquePtr = std::unique_ptr<GlShaderCache>;
+class IMkShaderCache;
+using IMkShaderCachePtr = std::shared_ptr<IMkShaderCache>;
 
 class GlState;
 class GlStateStack;
