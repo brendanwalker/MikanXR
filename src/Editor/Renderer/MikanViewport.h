@@ -42,6 +42,10 @@ public:
 	virtual void setCurrentCamera(int cameraIndex) override;
 	bool getIsMouseInViewport() const { return m_isMouseInViewport; }
 
+	MikanCameraPtr getCurrentMikanCamera() const;
+	MikanCameraPtr addMikanCamera();
+	MikanCameraPtr getMikanCameraByIndex(int cameraIndex);
+
 	// Convert cursor pixel position from app window relative to viewport relative
 	bool getCursorViewportPixelPos(glm::vec2& outViewportLocation) const;
 

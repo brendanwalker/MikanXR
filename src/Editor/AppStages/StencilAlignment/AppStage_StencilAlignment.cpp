@@ -13,7 +13,7 @@
 #include "GlModelResourceManager.h"
 #include "GlRenderModelResource.h"
 #include "GlScopedObjectBinding.h"
-#include "GlStaticMeshInstance.h"
+#include "IMkStaticMeshInstance.h"
 #include "GlScene.h"
 #include "GlStateStack.h"
 #include "GlTextRenderer.h"
@@ -109,7 +109,7 @@ void AppStage_StencilAlignment::enter()
 	// Add the stencil's wireframe meshes to the scene
 	if (m_targetStencilComponent)
 	{
-		for (GlStaticMeshInstancePtr meshInstance : m_targetStencilComponent->getWireframeMeshes())
+		for (IMkStaticMeshInstancePtr meshInstance : m_targetStencilComponent->getWireframeMeshes())
 		{
 			m_scene->addInstance(meshInstance);
 		}
@@ -437,7 +437,7 @@ void AppStage_StencilAlignment::onMouseRayChanged(const glm::vec3& rayOrigin, co
 
 			// Update the color of the wireframe meshes based on the hover result
 			glm::vec3 newColor = m_hoverResult.hitValid ? Colors::LightGray : Colors::DarkGray;
-			for (GlStaticMeshInstancePtr meshInstance : m_targetStencilComponent->getWireframeMeshes())
+			for (IMkStaticMeshInstancePtr meshInstance : m_targetStencilComponent->getWireframeMeshes())
 			{
 				meshInstance->getMaterialInstance()->setVec4BySemantic(
 					eUniformSemantic::diffuseColorRGBA,

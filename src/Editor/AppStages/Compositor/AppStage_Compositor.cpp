@@ -20,8 +20,8 @@
 #include "SdlCommon.h"
 #include "MikanCamera.h"
 #include "GlFrameCompositor.h"
-#include "GlLineRenderer.h"
-#include "GlTextRenderer.h"
+#include "IMkLineRenderer.h"
+#include "IMkTextRenderer.h"
 #include "GlRenderModelResource.h"
 #include "MikanViewport.h"
 #include "IMkWireframeMesh.h"
@@ -33,6 +33,7 @@
 #include "MikanObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathMikan.h"
+#include "MikanLineRenderer.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
 #include "MikanScene.h"
@@ -130,9 +131,9 @@ void AppStage_Compositor::enter()
 		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 
-		for (GlViewportPtr viewport : getViewportList())
+		for (MikanViewportPtr viewport : getViewportList())
 		{
-			GlCameraPtr camera= getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+			MikanCameraPtr camera= getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
 
 			camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 		}
@@ -272,7 +273,7 @@ bool AppStage_Compositor::startRecording()
 	if (!videoSource)
 		return false;
 
-	GlTexturePtr compositorTexture= m_frameCompositor->getBGRVideoFrameTexture();
+	IMkTexturePtr compositorTexture= m_frameCompositor->getBGRVideoFrameTexture();
 	if (compositorTexture == nullptr)
 		return false;
 
@@ -338,7 +339,7 @@ void AppStage_Compositor::onNewRecordingFrameReady()
 
 	if (m_compositorRecordingModel->getIsRecording())
 	{		
-		GlTexturePtr bgrTexture = m_frameCompositor->getBGRVideoFrameTexture();
+		IMkTexturePtr bgrTexture = m_frameCompositor->getBGRVideoFrameTexture();
 
 		if (bgrTexture != nullptr && m_videoWriter != nullptr && m_videoWriter->getIsOpened())
 		{
@@ -352,7 +353,7 @@ bool AppStage_Compositor::startStreaming()
 	if (m_compositorRecordingModel->getIsStreaming())
 		return true;
 
-	GlTextureConstPtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
+	IMkTextureConstPtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
 	if (compositorTexture == nullptr)
 		return false;
 
@@ -415,7 +416,7 @@ void AppStage_Compositor::setupCameras()
 		}
 
 		// Use fly-cam input control for every camera except for the first one (the XR camera)
-		GlCameraPtr camera= m_viewport->getCameraByIndex(cameraIndex);
+		MikanCameraPtr camera= m_viewport->getMikanCameraByIndex(cameraIndex);
 		if (cameraIndex == 0)
 			camera->setCameraMovementMode(eCameraMovementMode::stationary);
 		else
@@ -467,15 +468,15 @@ eCompositorViewpointMode AppStage_Compositor::getCurrentCameraMode() const
 	return (eCompositorViewpointMode)m_viewport->getCurrentCameraIndex();
 }
 
-GlCameraPtr AppStage_Compositor::getViewpointCamera(eCompositorViewpointMode viewportMode) const
+MikanCameraPtr AppStage_Compositor::getViewpointCamera(eCompositorViewpointMode viewportMode) const
 {
-	return m_viewport->getCameraByIndex((int)viewportMode);
+	return m_viewport->getMikanCameraByIndex((int)viewportMode);
 }
 
 void AppStage_Compositor::updateCamera()
 {
 	// Copy the compositor's camera pose to the app stage's camera for debug rendering
-	GlCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+	MikanCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
 	if (camera)
 	{
 		glm::mat4 cameraXform;
@@ -704,7 +705,7 @@ void AppStage_Compositor::onInvokeScriptTriggerEvent(const std::string& triggerE
 
 void AppStage_Compositor::render()
 {
-	GlCameraPtr currentCamera= m_viewport->getCurrentCamera();
+	MikanCameraPtr currentCamera= m_viewport->getCurrentMikanCamera();
 
 	switch (getCurrentCameraMode())
 	{
@@ -733,7 +734,7 @@ void AppStage_Compositor::render()
 			m_ownerWindow->getObjectSystemManager()->customRender();
 
 			// Draw the mouse cursor ray from the pov of the xr camera
-			GlCameraPtr xrCamera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+			MikanCameraPtr xrCamera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
 			if (xrCamera)
 			{
 				const glm::mat4 glmCameraXform= xrCamera->getCameraTransformFromViewMatrix();

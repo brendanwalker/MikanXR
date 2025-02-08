@@ -79,7 +79,7 @@ private:
 	VideoFrameDistortionViewPtr m_monoDistortionView;
 	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
 
-	std::vector<GlStaticMeshInstancePtr> m_depthMeshInstances;
+	std::vector<IMkStaticMeshInstancePtr> m_depthMeshInstances;
 	GlScenePtr m_scene;
 	GlViewportPtr m_viewport;
 };

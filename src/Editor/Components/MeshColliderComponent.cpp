@@ -2,7 +2,7 @@
 #include "MikanObject.h"
 #include "StaticMeshComponent.h"
 #include "MulticastDelegate.h"
-#include "GlStaticMeshInstance.h"
+#include "IMkStaticMeshInstance.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"

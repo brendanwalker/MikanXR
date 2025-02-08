@@ -164,6 +164,21 @@ void MikanViewport::setCurrentCamera(int cameraIndex)
 	}
 }
 
+MikanCameraPtr MikanViewport::getCurrentMikanCamera() const
+{
+	return std::static_pointer_cast<MikanCamera>(getCurrentCamera());
+}
+
+MikanCameraPtr MikanViewport::addMikanCamera()
+{
+	return std::static_pointer_cast<MikanCamera>(addCamera());
+}
+
+MikanCameraPtr MikanViewport::getMikanCameraByIndex(int cameraIndex)
+{
+	return std::static_pointer_cast<MikanCamera>(getCameraByIndex(cameraIndex));
+}
+
 void MikanViewport::bindInput()
 {
 	if (!m_bIsInputBound)

@@ -2,7 +2,7 @@
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "GlProgram.h"
-#include "GlStaticMeshInstance.h"
+#include "IMkStaticMeshInstance.h"
 #include "GlVertexDefinition.h"
 #include "StaticMeshComponent.h"
 #include "MikanObject.h"
@@ -13,12 +13,12 @@ StaticMeshComponent::StaticMeshComponent(MikanObjectWeakPtr owner)
 {
 }
 
-GlStaticMeshInstancePtr StaticMeshComponent::getStaticMesh() const 
+IMkStaticMeshInstancePtr StaticMeshComponent::getStaticMesh() const 
 { 
 	return std::dynamic_pointer_cast<GlStaticMeshInstance>(m_sceneRenderable); 
 }
 
-void StaticMeshComponent::setStaticMesh(GlStaticMeshInstancePtr meshInstance)
+void StaticMeshComponent::setStaticMesh(IMkStaticMeshInstancePtr meshInstance)
 {
 	m_sceneRenderable= meshInstance;
 	if (OnMeshChanged)
@@ -31,7 +31,7 @@ void StaticMeshComponent::setStaticMesh(GlStaticMeshInstancePtr meshInstance)
 
 void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderGeometry)
 {
-	GlStaticMeshInstancePtr meshInstance= getStaticMesh();
+	IMkStaticMeshInstancePtr meshInstance= getStaticMesh();
 
 	IGlMeshConstPtr glMesh = meshInstance->getMesh();
 	if (glMesh->getIndexPerElementCount() != 3)

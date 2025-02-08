@@ -1,5 +1,5 @@
 #include "GlMaterialInstance.h"
-#include "GlStaticMeshInstance.h"
+#include "IMkStaticMeshInstance.h"
 #include "GlTriangulatedMesh.h"
 #include "GlScene.h"
 #include "MainWindow.h"
@@ -76,7 +76,7 @@ bool SteamVRRenderComponent::initComponent()
 					m_renderModelName.c_str());
 			}
 
-			m_glMeshInstance = std::make_shared<GlStaticMeshInstance>(
+			m_glMeshInstance = createMkStaticMeshInstance(
 				szInstanceName,
 				modelResource->getTriangulatedMesh());
 

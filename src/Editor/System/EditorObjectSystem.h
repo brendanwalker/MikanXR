@@ -41,7 +41,7 @@ public:
 	EditorObjectSystemConfigPtr getEditorSystemConfig();
 	MikanSceneConstPtr getEditorScene() const { return m_scene; }
 
-	void bindViewport(GlViewportWeakPtr viewportWeakPtr);
+	void bindViewport(MikanViewportWeakPtr viewportWeakPtr);
 	void clearViewports();
 
 	SelectionComponentPtr getSelection() const { return m_selectedComponentWeakPtr.lock(); }
@@ -53,7 +53,7 @@ public:
 protected:
 
 	MikanScenePtr m_scene;
-	std::vector<GlViewportWeakPtr> m_viewports;
+	std::vector<MikanViewportWeakPtr> m_viewports;
 	
 	ColliderRaycastHitResult m_lastestRaycastResult;
 	SelectionComponentWeakPtr m_hoverComponentWeakPtr;

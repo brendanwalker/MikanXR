@@ -12,8 +12,8 @@ class StaticMeshComponent : public SceneComponent
 public:
 	StaticMeshComponent(MikanObjectWeakPtr owner);
 
-	GlStaticMeshInstancePtr getStaticMesh() const;
-	void setStaticMesh(GlStaticMeshInstancePtr meshInstance);
+	IMkStaticMeshInstancePtr getStaticMesh() const;
+	void setStaticMesh(IMkStaticMeshInstancePtr meshInstance);
 
 	void extractRenderGeometry(struct MikanTriagulatedMesh& outRenderGeometry);
 

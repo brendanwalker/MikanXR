@@ -1,14 +1,14 @@
 #include "AnchorObjectSystem.h"
 #include "Colors.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
-#include "GlLineRenderer.h"
+#include "IMkLineRenderer.h"
 #include "GlMaterialInstance.h"
 #include "GlModelResourceManager.h"
 #include "GlRenderModelResource.h"
-#include "GlTriangulatedMesh.h"
-#include "GlTextRenderer.h"
-#include "GlShaderCache.h"
-#include "GlStaticMeshInstance.h"
+#include "IMkTriangulatedMesh.h"
+#include "IMkTextRenderer.h"
+#include "MikanShaderCache.h"
+#include "IMkStaticMeshInstance.h"
 #include "IMkWireframeMesh.h"
 #include "AnchorComponent.h"
 #include "SceneComponent.h"
@@ -21,11 +21,14 @@
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MeshColliderComponent.h"
+#include "MikanLineRenderer.h"
+#include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MikanStencilTypes.h"
 #include "ModelStencilComponent.h"
 #include "MulticastDelegate.h"
 #include "StringUtils.h"
+#include "TextStyle.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -186,7 +189,7 @@ void ModelStencilComponent::dispose()
 
 void ModelStencilComponent::setRenderStencilsFlag(bool flag)
 {
-	for (GlStaticMeshInstancePtr mesh : m_wireframeMeshes)
+	for (IMkStaticMeshInstancePtr mesh : m_wireframeMeshes)
 	{
 		mesh->setVisible(flag);
 	}
@@ -216,7 +219,7 @@ void ModelStencilComponent::updateWireframeMeshColor()
 	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
 	if (selectionComponentPtr)
 	{
-		for (GlStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+		for (IMkStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
 		{
 			meshPtr->getMaterialInstance()->setVec4BySemantic(
 				eUniformSemantic::diffuseColorRGBA,
@@ -303,8 +306,8 @@ void ModelStencilComponent::rebuildMeshComponents()
 			IMkTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
 
 			// Create a new static mesh instance from the mesh resources
-			GlStaticMeshInstancePtr triMeshInstancePtr =
-				std::make_shared<GlStaticMeshInstance>(
+			IMkStaticMeshInstancePtr triMeshInstancePtr =
+				createMkStaticMeshInstance(
 					triMeshPtr->getName(),
 					triMeshPtr);
 			triMeshInstancePtr->setVisible(true);
@@ -331,11 +334,11 @@ void ModelStencilComponent::rebuildMeshComponents()
 		for (int meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
 		{
 			// Fetch the mesh and material resources
-			GlWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh(meshIndex);
+			IMkWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh(meshIndex);
 
 			// Create a new (hidden) static mesh instance from the mesh resources
-			GlStaticMeshInstancePtr wireframeMeshInstancePtr =
-				std::make_shared<GlStaticMeshInstance>(
+			IMkStaticMeshInstancePtr wireframeMeshInstancePtr =
+				createMkStaticMeshInstance(
 					"wireframe",
 					wireframeMeshPtr);
 			m_wireframeMeshes.push_back(wireframeMeshInstancePtr);

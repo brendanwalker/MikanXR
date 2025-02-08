@@ -8,13 +8,13 @@
 #include "DepthMeshGenerator.h"
 #include "EditorObjectSystem.h"
 #include "MikanCamera.h"
-#include "GlLineRenderer.h"
+#include "IMkLineRenderer.h"
 #include "GlFrameCompositor.h"
 #include "GlRenderModelResource.h"
 #include "GlScene.h"
-#include "GlStaticMeshInstance.h"
-#include "GlTextRenderer.h"
-#include "GlTriangulatedMesh.h"
+#include "IMkStaticMeshInstance.h"
+#include "IMkTextRenderer.h"
+#include "IMkTriangulatedMesh.h"
 #include "MikanViewport.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -244,7 +244,7 @@ void AppStage_DepthMeshCapture::setupCameras()
 		}
 
 		// Use fly-cam input control for every camera except for the first one
-		GlCameraPtr camera = m_viewport->getCameraByIndex(cameraIndex);
+		IMkCameraPtr camera = m_viewport->getCameraByIndex(cameraIndex);
 		if (cameraIndex == 0)
 			camera->setCameraMovementMode(eCameraMovementMode::stationary);
 		else
@@ -437,8 +437,7 @@ void AppStage_DepthMeshCapture::addDepthMeshResourcesToScene()
 		for (int meshIndex = 0; meshIndex < depthMeshResource->getTriangulatedMeshCount(); meshIndex++)
 		{
 			auto mesh= depthMeshResource->getTriangulatedMesh(meshIndex);
-			GlStaticMeshInstancePtr meshInstance= 
-				std::make_shared<GlStaticMeshInstance>(mesh->getName(), mesh);
+			IMkStaticMeshInstancePtr meshInstance= createMkStaticMeshInstance(mesh->getName(), mesh);
 
 			// Set the model matrix to the video source transform 
 			// since that is what the depth data is relative to
@@ -457,7 +456,7 @@ void AppStage_DepthMeshCapture::addDepthMeshResourcesToScene()
 
 void AppStage_DepthMeshCapture::removeDepthMeshResourceFromScene()
 {
-	for (GlStaticMeshInstancePtr depthMeshInstance : m_depthMeshInstances)
+	for (IMkStaticMeshInstancePtr depthMeshInstance : m_depthMeshInstances)
 	{
 		m_scene->removeInstance(depthMeshInstance);
 	}

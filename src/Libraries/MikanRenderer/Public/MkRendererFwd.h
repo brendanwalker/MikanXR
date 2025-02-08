@@ -37,9 +37,9 @@ class GlStateStack;
 using GlStateStackSharedPtr = std::shared_ptr<GlStateStack>;
 using GlStateStackUniquePtr = std::unique_ptr<GlStateStack>;
 
-class GlStaticMeshInstance;
-using GlStaticMeshInstancePtr = std::shared_ptr<GlStaticMeshInstance>;
-using GlStaticMeshInstanceConstPtr = std::shared_ptr<const GlStaticMeshInstance>;
+class IMkStaticMeshInstance;
+using IMkStaticMeshInstancePtr = std::shared_ptr<IMkStaticMeshInstance>;
+using IMkStaticMeshInstanceConstPtr = std::shared_ptr<const IMkStaticMeshInstance>;
 
 class IMkTexture;
 using IMkTexturePtr = std::shared_ptr<IMkTexture>;
@@ -83,6 +83,11 @@ using IMkWindowConstPtr = std::shared_ptr<const IMkWindow>;
 class IMkMesh;
 using IMkMeshPtr = std::shared_ptr<IMkMesh>;
 using IMkMeshConstPtr = std::shared_ptr<const IMkMesh>;
+
+class IMkScene;
+using IMkScenePtr = std::shared_ptr<IMkScene>;
+using IMkSceneWeakPtr = std::weak_ptr<IMkScene>;
+using IMkSceneConstPtr = std::shared_ptr<const IMkScene>;
 
 class IMkSceneRenderable;
 using IMkSceneRenderablePtr= std::shared_ptr<IMkSceneRenderable>;

@@ -533,7 +533,7 @@ bool DepthMeshGenerator::captureMesh()
 		imagePoints);
 
 	// Convert the true depth map to a textured mesh
-	// Store data in a GlStaticMeshInstancePtr for temp rendering
+	// Store data in a IMkStaticMeshInstancePtr for temp rendering
 	m_calibrationState->createRenderModelResource(m_distortionView, m_depthEstimator);
 
 	return true;

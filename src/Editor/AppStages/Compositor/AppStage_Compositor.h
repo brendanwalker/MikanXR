@@ -52,7 +52,7 @@ protected:
 	void setupCameras();
 	void setCurrentCameraMode(eCompositorViewpointMode viewportMode);
 	eCompositorViewpointMode getCurrentCameraMode() const;
-	GlCameraPtr getViewpointCamera(eCompositorViewpointMode viewportMode) const;
+	MikanCameraPtr getViewpointCamera(eCompositorViewpointMode viewportMode) const;
 	void updateCamera();
 	void setXRCamera();
 	void setVRCamera();
@@ -120,7 +120,7 @@ protected:
 	CompositorScriptContextPtr m_scriptContext;
 	class GlFrameCompositor* m_frameCompositor= nullptr;
 
-	GlViewportPtr m_viewport;
+	MikanViewportPtr m_viewport;
 	eCompositorViewpointMode m_viewportMode= eCompositorViewpointMode::mixedRealityViewpoint;
 
 	bool m_bAddingNewConfig= false;

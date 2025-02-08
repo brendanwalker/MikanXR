@@ -18,6 +18,7 @@
 #include "ProfileConfig.h"
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
+#include "Transform.h"
 
 // -- AnchorObjectSystemConfig -----
 configuru::Config EditorObjectSystemConfig::writeToJSON()
@@ -172,9 +173,9 @@ EditorObjectSystemConfigPtr EditorObjectSystem::getEditorSystemConfig()
 	return std::const_pointer_cast<EditorObjectSystemConfig>(getEditorSystemConfigConst());
 }
 
-void EditorObjectSystem::bindViewport(GlViewportWeakPtr viewportWeakPtr)
+void EditorObjectSystem::bindViewport(MikanViewportWeakPtr viewportWeakPtr)
 {
-	GlViewportPtr viewportPtr= viewportWeakPtr.lock();
+	MikanViewportPtr viewportPtr= viewportWeakPtr.lock();
 	if (!viewportPtr)
 		return;
 
@@ -188,9 +189,9 @@ void EditorObjectSystem::bindViewport(GlViewportWeakPtr viewportWeakPtr)
 
 void EditorObjectSystem::clearViewports()
 {
-	for (GlViewportWeakPtr& viewportWeakPtr : m_viewports)
+	for (MikanViewportWeakPtr& viewportWeakPtr : m_viewports)
 	{
-		GlViewportPtr viewportPtr = viewportWeakPtr.lock();
+		MikanViewportPtr viewportPtr = viewportWeakPtr.lock();
 		if (viewportPtr)
 		{
 			viewportPtr->OnMouseExited-= MakeDelegate(this, &EditorObjectSystem::onMouseExited);

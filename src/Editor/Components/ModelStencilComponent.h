@@ -55,7 +55,7 @@ public:
 	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const { 
 		return m_triMeshComponents; 
 	}
-	inline const std::vector<GlStaticMeshInstancePtr>& getWireframeMeshes() const { 
+	inline const std::vector<IMkStaticMeshInstancePtr>& getWireframeMeshes() const { 
 		return m_wireframeMeshes; 
 	}
 	inline const std::vector<MeshColliderComponentPtr>& getColliderComponents() const
@@ -98,7 +98,7 @@ protected:
 
 protected:
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
-	std::vector<GlStaticMeshInstancePtr> m_wireframeMeshes;
+	std::vector<IMkStaticMeshInstancePtr> m_wireframeMeshes;
 	std::vector<SceneComponentPtr> m_meshComponents;
 	std::vector<StaticMeshComponentPtr> m_triMeshComponents;
 	std::vector<MeshColliderComponentPtr> m_colliderComponents;

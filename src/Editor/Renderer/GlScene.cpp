@@ -7,7 +7,7 @@
 #include "GlStateModifiers.h"
 #include "GlStateStack.h"
 #include "IMkShaderCache.h"
-#include "GlStaticMeshInstance.h"
+#include "IMkStaticMeshInstance.h"
 #include "MikanViewport.h"
 #include "IMkMesh.h"
 
