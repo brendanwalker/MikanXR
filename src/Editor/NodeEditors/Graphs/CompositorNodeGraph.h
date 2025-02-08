@@ -26,8 +26,8 @@ public:
 	void setExternalCompositedFrameTexture(GlTexturePtr externalTexture);
 
 	// Stencil Models
-	GlRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);
-	GlRenderModelResourcePtr getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition);
+	MikanRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);
+	MikanRenderModelResourcePtr getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition);
 	void flushStencilRenderModel(MikanStencilID stencilId);
 	inline IMkTriangulatedMeshPtr getStencilQuadMesh() const { return m_stencilQuadMesh; }
 	inline IMkTriangulatedMeshPtr getStencilBoxMesh() const { return m_stencilBoxMesh; }
@@ -57,8 +57,8 @@ protected:
 	IMkTriangulatedMeshPtr m_depthBoxMesh;
 	IMkTriangulatedMeshPtr m_layerVFlippedMesh;
 	IMkTriangulatedMeshPtr m_layerMesh;
-	std::map<MikanStencilID, GlRenderModelResourcePtr> m_stencilMeshCache;
-	std::map<MikanStencilID, GlRenderModelResourcePtr> m_depthMeshCache;
+	std::map<MikanStencilID, MikanRenderModelResourcePtr> m_stencilMeshCache;
+	std::map<MikanStencilID, MikanRenderModelResourcePtr> m_depthMeshCache;
 	NodePtr m_compositeFrameEventNode;
 
 	friend class CompositorNodeGraphFactory;

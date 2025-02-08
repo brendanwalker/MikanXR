@@ -3,8 +3,8 @@
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "IMkLineRenderer.h"
 #include "GlMaterialInstance.h"
-#include "GlModelResourceManager.h"
-#include "GlRenderModelResource.h"
+#include "MikanModelResourceManager.h"
+#include "MikanRenderModelResource.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkTextRenderer.h"
 #include "MikanShaderCache.h"
@@ -289,10 +289,10 @@ void ModelStencilComponent::rebuildMeshComponents()
 	// since each window needs to own its own models and shader resources.
 	// For now, we are assuming that models are only rendered in the Main Window.
 	MainWindow* mainWindow= MainWindow::getInstance();
-	GlModelResourceManager* modelResourceManager= mainWindow->getModelResourceManager();
+	MikanModelResourceManager* modelResourceManager= mainWindow->getModelResourceManager();
 	GlMaterialConstPtr stencilMaterial= 
 		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
-	GlRenderModelResourcePtr modelResourcePtr= 
+	MikanRenderModelResourcePtr modelResourcePtr= 
 		modelResourceManager->fetchRenderModel(
 			modelStencilDefinition->getModelPath(), stencilMaterial);
 

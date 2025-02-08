@@ -1,20 +1,20 @@
-#include "GlModelResourceManager.h"
-#include "GlTriangulatedMesh.h"
+#include "MikanModelResourceManager.h"
+#include "IMkTriangulatedMesh.h"
 #include "IMkWireframeMesh.h"
-#include "GlRenderModelResource.h"
+#include "MikanRenderModelResource.h"
 
 
-GlRenderModelResource::GlRenderModelResource(IMkWindow* ownerWindow)
+MikanRenderModelResource::MikanRenderModelResource(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
 }
 
-GlRenderModelResource::~GlRenderModelResource()
+MikanRenderModelResource::~MikanRenderModelResource()
 {
 	disposeMeshRenderResources();
 }
 
-void GlRenderModelResource::addTriangulatedMesh(IMkTriangulatedMeshPtr mesh)
+void MikanRenderModelResource::addTriangulatedMesh(IMkTriangulatedMeshPtr mesh)
 {
 	if (mesh != nullptr)
 	{
@@ -22,7 +22,7 @@ void GlRenderModelResource::addTriangulatedMesh(IMkTriangulatedMeshPtr mesh)
 	}
 }
 
-void GlRenderModelResource::addWireframeMesh(IMkWireframeMeshPtr mesh)
+void MikanRenderModelResource::addWireframeMesh(IMkWireframeMeshPtr mesh)
 {
 	if (mesh != nullptr)
 	{
@@ -30,7 +30,7 @@ void GlRenderModelResource::addWireframeMesh(IMkWireframeMeshPtr mesh)
 	}
 }
 
-void GlRenderModelResource::disposeMeshRenderResources()
+void MikanRenderModelResource::disposeMeshRenderResources()
 {
 	for (IMkTriangulatedMeshPtr triMesh : m_triangulatedMeshes)
 	{

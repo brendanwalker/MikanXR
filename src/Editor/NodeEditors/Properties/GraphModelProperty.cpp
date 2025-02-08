@@ -1,5 +1,5 @@
 #include "GraphModelProperty.h"
-#include "GlRenderModelResource.h"
+#include "MikanRenderModelResource.h"
 #include "IMkVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"

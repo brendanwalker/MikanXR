@@ -8,30 +8,30 @@
 #include <map>
 #include <string>
 
-class GlModelResourceManager
+class MikanModelResourceManager
 {
 public:
-	GlModelResourceManager(class IMkWindow* ownerWindow);
-	virtual ~GlModelResourceManager();
+	MikanModelResourceManager(class IMkWindow* ownerWindow);
+	virtual ~MikanModelResourceManager();
 
 	bool startup();
 	void shutdown();
 
 	inline IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
 
-	GlRenderModelResourcePtr fetchRenderModel(
+	MikanRenderModelResourcePtr fetchRenderModel(
 		const std::filesystem::path& modelFilePath,
 		GlMaterialConstPtr overrideMaterial= GlMaterialConstPtr());
 	bool flushModelByFilePathFromCache(const std::filesystem::path& modelFilePath);
 
 	bool exportModelToFile(
-		GlRenderModelResourcePtr modelResource,
+		MikanRenderModelResourcePtr modelResource,
 		const std::filesystem::path& modelPath);
 
 private:
 	class IMkWindow* m_ownerWindow= nullptr;
 
-	std::map<std::string, GlRenderModelResourcePtr> m_renderModelCache;
+	std::map<std::string, MikanRenderModelResourcePtr> m_renderModelCache;
 	std::map<std::string, IModelImporterPtr> m_modelImporters;
 	std::map<std::string, IModelExporterPtr> m_modelExporters;
 };

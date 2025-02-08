@@ -85,9 +85,9 @@ void ModelNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
-GlRenderModelResourcePtr ModelNode::getModelResource() const
+MikanRenderModelResourcePtr ModelNode::getModelResource() const
 {
-	return m_sourceProperty ? m_sourceProperty->getModelResource() : GlRenderModelResourcePtr();
+	return m_sourceProperty ? m_sourceProperty->getModelResource() : MikanRenderModelResourcePtr();
 }
 
 void ModelNode::setModelSource(GraphModelPropertyPtr inModelProperty)

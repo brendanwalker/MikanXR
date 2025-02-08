@@ -2,14 +2,14 @@
 #include "GlFrameCompositor.h"
 #include "GlFrameBuffer.h"
 #include "GlMaterial.h"
-#include "GlRenderModelResource.h"
-#include "GlModelResourceManager.h"
+#include "MikanRenderModelResource.h"
+#include "MikanModelResourceManager.h"
 #include "IMkShader.h"
 #include "GlScopedObjectBinding.h"
-#include "GlShaderCache.h"
+#include "MikanShaderCache.h"
 #include "GlStateStack.h"
 #include "IMkTexture.h"
-#include "GlTriangulatedMesh.h"
+#include "IMkTriangulatedMesh.h"
 #include "GlMaterialInstance.h"
 #include "IMkWindow.h"
 #include "Logger.h"
@@ -579,7 +579,7 @@ void DepthMaskNode::evaluateModelDepthMasks(GlState& glState)
 	{
 		auto stencilConfig = stencil->getModelStencilDefinition();
 		const MikanStencilID stencilId = stencilConfig->getStencilId();
-		GlRenderModelResourcePtr renderModelResource =
+		MikanRenderModelResourcePtr renderModelResource =
 			compositorGraph->getOrLoadDepthRenderModel(stencilConfig);
 
 		if (renderModelResource)

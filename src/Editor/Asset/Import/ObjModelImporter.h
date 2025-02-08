@@ -6,9 +6,9 @@ class ObjModelImporter : public IModelImporter
 {
 public:
 	ObjModelImporter() = default;
-	ObjModelImporter(class GlModelResourceManager* ownerManager) : IModelImporter(ownerManager) {}
+	ObjModelImporter(class MikanModelResourceManager* ownerManager) : IModelImporter(ownerManager) {}
 
-	virtual GlRenderModelResourcePtr importModelFromFile(
+	virtual MikanRenderModelResourcePtr importModelFromFile(
 		const std::filesystem::path& modelPath,
 		GlMaterialConstPtr overrideMaterial) override;
 };

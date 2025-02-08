@@ -3,13 +3,13 @@
 #include "GlFrameBuffer.h"
 #include "GlMaterial.h"
 #include "IMkShader.h"
-#include "GlRenderModelResource.h"
+#include "MikanRenderModelResource.h"
 #include "GlScopedObjectBinding.h"
-#include "GlModelResourceManager.h"
+#include "MikanModelResourceManager.h"
 #include "GlMaterialInstance.h"
 #include "GlStateStack.h"
-#include "GlTriangulatedMesh.h"
-#include "GlShaderCache.h"
+#include "IMkTriangulatedMesh.h"
+#include "MikanShaderCache.h"
 #include "MikanTextureCache.h"
 #include "IMkVertexDefinition.h"
 #include "IMkWindow.h"
@@ -202,7 +202,7 @@ void CompositorNodeGraph::setExternalCompositedFrameTexture(GlTexturePtr externa
 	m_compositingFrameBuffer->setExternalColorTexture(externalTexture);
 }
 
-GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
+MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 	ModelStencilDefinitionPtr stencilDefinition)
 {
 	MikanStencilID stencilId= stencilDefinition->getStencilId();
@@ -227,10 +227,10 @@ GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 		}
 	}
 
-	return GlRenderModelResourcePtr();
+	return MikanRenderModelResourcePtr();
 }
 
-GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition)
+MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition)
 {
 	MikanStencilID stencilId = stencilDefinition->getStencilId();
 	auto it = m_depthMeshCache.find(stencilId);
@@ -254,7 +254,7 @@ GlRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(ModelSte
 		}
 	}
 
-	return GlRenderModelResourcePtr();
+	return MikanRenderModelResourcePtr();
 }
 
 void CompositorNodeGraph::flushStencilRenderModel(MikanStencilID stencilId)

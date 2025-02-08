@@ -21,7 +21,7 @@
 #include "IMkTextRenderer.h"
 #include "IMkLineRenderer.h"
 #include "MikanViewport.h"
-#include "GlModelResourceManager.h"
+#include "MikanModelResourceManager.h"
 #include "InputManager.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
@@ -66,7 +66,7 @@ MainWindow::MainWindow()
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
 	, m_lineRenderer(createMkLineRenderer(this))
 	, m_textRenderer(createMkTextRenderer(this, m_fontManager))
-	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
+	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
 	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
@@ -109,7 +109,7 @@ IMkTextureCache* MainWindow::getTextureCache()
 	return m_textureCache.getMkTextureCache().get();
 }
 
-GlModelResourceManager* MainWindow::getModelResourceManager()
+MikanModelResourceManager* MainWindow::getModelResourceManager()
 {
 	return m_modelResourceManager.get();
 }

@@ -31,7 +31,7 @@ public:
 	inline GraphModelPropertyPtr getModelSource() const { return m_sourceProperty; }
 	void setModelSource(GraphModelPropertyPtr inModelProperty);
 
-	GlRenderModelResourcePtr getModelResource() const;
+	MikanRenderModelResourcePtr getModelResource() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;

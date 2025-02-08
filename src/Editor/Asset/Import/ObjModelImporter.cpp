@@ -1,8 +1,8 @@
 #include "ObjModelImporter.h"
 #include "Colors.h"
 #include "IMkWindow.h"
-#include "GlRenderModelResource.h"
-#include "GlModelResourceManager.h"
+#include "MikanRenderModelResource.h"
+#include "MikanModelResourceManager.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "IMkShader.h"
@@ -164,14 +164,14 @@ namespace ObjUtils
 		MaterialTriMeshDataConstPtr triMeshData);
 };
 
-GlRenderModelResourcePtr ObjModelImporter::importModelFromFile(
+MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	const std::filesystem::path& modelPath,
 	GlMaterialConstPtr overrideMaterial)
 {
 	IMkWindow* ownerWindow= m_ownerManager->getOwnerWindow();
 	IMkShaderCache* shaderCache= ownerWindow->getShaderCache();
 
-	GlRenderModelResourcePtr modelResource;
+	MikanRenderModelResourcePtr modelResource;
 
 	if (modelPath.empty())
 		return false;
@@ -196,7 +196,7 @@ GlRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	if (objData != nullptr)
 	{
 		// Create a new model resource
-		modelResource = std::make_shared<GlRenderModelResource>(m_ownerManager->getOwnerWindow());
+		modelResource = std::make_shared<MikanRenderModelResource>(m_ownerManager->getOwnerWindow());
 		modelResource->setName(modelNameString);
 		modelResource->setModelFilePath(modelPath);
 

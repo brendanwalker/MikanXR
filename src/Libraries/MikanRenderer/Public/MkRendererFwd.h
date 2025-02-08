@@ -34,9 +34,9 @@ class IMkShaderCode;
 using IMkShaderCodePtr = std::shared_ptr<IMkShaderCode>;
 using IMkShaderCodeConstPtr = std::shared_ptr<const IMkShaderCode>;
 
-class GlRenderModelResource;
-using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;
-using GlRenderModelResourceWeakPtr = std::weak_ptr<GlRenderModelResource>;
+class MikanRenderModelResource;
+using MikanRenderModelResourcePtr = std::shared_ptr<MikanRenderModelResource>;
+using MikanRenderModelResourceWeakPtr = std::weak_ptr<MikanRenderModelResource>;
 
 class IMkShaderCache;
 using IMkShaderCachePtr = std::shared_ptr<IMkShaderCache>;

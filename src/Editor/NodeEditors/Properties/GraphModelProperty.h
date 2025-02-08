@@ -30,8 +30,8 @@ public:
 	inline void setModelAssetReference(ModelAssetReferencePtr inAssetRef) { m_modelAssetRef= inAssetRef; }
 	inline ModelAssetReferencePtr getModelAssetReference() const { return m_modelAssetRef; }
 
-	inline void setModelResource(GlRenderModelResourcePtr inModelResource) { m_modelResource= inModelResource; }
-	inline GlRenderModelResourcePtr getModelResource() const { return m_modelResource; }
+	inline void setModelResource(MikanRenderModelResourcePtr inModelResource) { m_modelResource= inModelResource; }
+	inline MikanRenderModelResourcePtr getModelResource() const { return m_modelResource; }
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
@@ -39,7 +39,7 @@ public:
 
 protected:
 	ModelAssetReferencePtr m_modelAssetRef;
-	GlRenderModelResourcePtr m_modelResource;
+	MikanRenderModelResourcePtr m_modelResource;
 };
 
 using GraphModelPropertyFactory = TypedGraphPropertyFactory<GraphModelProperty, GraphModelPropertyConfig>;

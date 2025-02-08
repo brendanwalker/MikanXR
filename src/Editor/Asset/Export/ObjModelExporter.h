@@ -6,9 +6,9 @@ class ObjModelExporter : public IModelExporter
 {
 public:
 	ObjModelExporter() = default;
-	ObjModelExporter(class GlModelResourceManager* ownerManager) : IModelExporter(ownerManager) {}
+	ObjModelExporter(class MikanModelResourceManager* ownerManager) : IModelExporter(ownerManager) {}
 
 	virtual bool exportModelToFile(
-		GlRenderModelResourcePtr modelResource,
+		MikanRenderModelResourcePtr modelResource,
 		const std::filesystem::path& modelPath) override;
 };

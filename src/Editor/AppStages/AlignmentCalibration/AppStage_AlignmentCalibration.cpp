@@ -15,7 +15,7 @@
 #include "GlScene.h"
 #include "GlScopedObjectBinding.h"
 #include "GlStateStack.h"
-#include "GlTriangulatedMesh.h"
+#include "IMkTriangulatedMesh.h"
 #include "GlTextRenderer.h"
 #include "MikanViewport.h"
 #include "MainWindow.h"

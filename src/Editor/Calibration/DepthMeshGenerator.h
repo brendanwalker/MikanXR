@@ -37,7 +37,7 @@ public:
 	void resetCalibrationState();
 
 	bool captureMesh();
-	GlRenderModelResourcePtr getCapturedDepthMeshResource() const;
+	MikanRenderModelResourcePtr getCapturedDepthMeshResource() const;
 
 	void renderCameraSpaceCalibrationState();
 

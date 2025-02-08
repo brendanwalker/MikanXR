@@ -1,14 +1,14 @@
 #include "ObjModelExporter.h"
 #include "Colors.h"
 #include "IMkWindow.h"
-#include "GlRenderModelResource.h"
-#include "GlModelResourceManager.h"
+#include "MikanRenderModelResource.h"
+#include "MikanModelResourceManager.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
 #include "IMkShader.h"
-#include "GlShaderCache.h"
+#include "MikanShaderCache.h"
 #include "MikanTextureCache.h"
-#include "GlTriangulatedMesh.h"
+#include "IMkTriangulatedMesh.h"
 #include "IMkWireframeMesh.h"
 #include "Logger.h"
 #include "SdlUtility.h"
@@ -116,7 +116,7 @@ namespace ObjUtils
 	}
 };
 bool ObjModelExporter::exportModelToFile(
-	GlRenderModelResourcePtr modelResource,
+	MikanRenderModelResourcePtr modelResource,
 	const std::filesystem::path& modelPath)
 {
 	if (modelPath.empty())

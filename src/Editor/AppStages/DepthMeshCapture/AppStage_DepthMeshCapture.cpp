@@ -10,7 +10,7 @@
 #include "MikanCamera.h"
 #include "IMkLineRenderer.h"
 #include "GlFrameCompositor.h"
-#include "GlRenderModelResource.h"
+#include "MikanRenderModelResource.h"
 #include "GlScene.h"
 #include "IMkStaticMeshInstance.h"
 #include "IMkTextRenderer.h"

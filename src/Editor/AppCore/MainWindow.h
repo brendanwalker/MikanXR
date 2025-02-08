@@ -104,7 +104,7 @@ public:
 	virtual GlStateStack& getGlStateStack() override;
 	virtual IMkLineRenderer* getLineRenderer() override;
 	virtual IMkTextRenderer* getTextRenderer() override;
-	virtual GlModelResourceManager* getModelResourceManager() override;
+	virtual MikanModelResourceManager* getModelResourceManager() override;
 	virtual IMkShaderCache* getShaderCache() override;
 	virtual IMkTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;

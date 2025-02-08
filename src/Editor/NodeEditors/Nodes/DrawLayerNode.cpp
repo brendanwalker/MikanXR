@@ -1,14 +1,14 @@
 #include "DrawLayerNode.h"	
 #include "GlFrameCompositor.h"	
 #include "GlMaterial.h"	
-#include "GlRenderModelResource.h"	
-#include "GlModelResourceManager.h"	
+#include "MikanRenderModelResource.h"	
+#include "MikanModelResourceManager.h"	
 #include "IMkShader.h"	
-#include "GlShaderCache.h"	
+#include "MikanShaderCache.h"	
 #include "GlStateStack.h"	
 #include "GlStateModifiers.h"	
 #include "IMkTexture.h"	
-#include "GlTriangulatedMesh.h"	
+#include "IMkTriangulatedMesh.h"	
 #include "GlMaterialInstance.h"	
 #include "IMkWindow.h"	
 #include "Logger.h"	
@@ -920,7 +920,7 @@ void DrawLayerNode::evaluateModelStencils(GlState& glParentState)
 		{	
 			auto stencilConfig = stencil->getModelStencilDefinition();	
 			const MikanStencilID stencilId = stencilConfig->getStencilId();	
-			GlRenderModelResourcePtr renderModelResource =	
+			MikanRenderModelResourcePtr renderModelResource =	
 				compositorGraph->getOrLoadStencilRenderModel(stencilConfig);	
 
 			if (renderModelResource)	

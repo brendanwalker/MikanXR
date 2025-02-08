@@ -1,15 +1,15 @@
 #include "GlMaterial.h"
-#include "GlModelResourceManager.h"
-#include "GlRenderModelResource.h"
+#include "MikanModelResourceManager.h"
+#include "MikanRenderModelResource.h"
 #include "IMkShader.h"
-#include "GlShaderCache.h"
+#include "MikanShaderCache.h"
 #include "IMkVertexDefinition.h"
 #include "IMkWindow.h"
 #include "Logger.h"
 #include "ObjModelImporter.h"
 #include "ObjModelExporter.h"
 
-GlModelResourceManager::GlModelResourceManager(IMkWindow* ownerWindow)
+MikanModelResourceManager::MikanModelResourceManager(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
 	// Register model importers
@@ -19,22 +19,22 @@ GlModelResourceManager::GlModelResourceManager(IMkWindow* ownerWindow)
 	m_modelExporters.insert({".obj", std::make_shared<ObjModelExporter>(this)});
 }
 
-GlModelResourceManager::~GlModelResourceManager()
+MikanModelResourceManager::~MikanModelResourceManager()
 {
 	shutdown();
 }
 
-bool GlModelResourceManager::startup()
+bool MikanModelResourceManager::startup()
 {
 	return true;
 }
 
-void GlModelResourceManager::shutdown()
+void MikanModelResourceManager::shutdown()
 {
 	m_renderModelCache.clear();
 }
 
-GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
+MikanRenderModelResourcePtr MikanModelResourceManager::fetchRenderModel(
 	const std::filesystem::path& modelFilePath,
 	GlMaterialConstPtr overrideMaterial)
 {
@@ -58,7 +58,7 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 				IModelImporterPtr importer= importerIt->second;
 				if (importer)
 				{
-					GlRenderModelResourcePtr resource= 
+					MikanRenderModelResourcePtr resource= 
 						importer->importModelFromFile(modelFilePath, overrideMaterial);
 					if (resource)
 					{
@@ -80,7 +80,7 @@ GlRenderModelResourcePtr GlModelResourceManager::fetchRenderModel(
 	return nullptr;
 }
 
-bool GlModelResourceManager::flushModelByFilePathFromCache(const std::filesystem::path& modelFilePath)
+bool MikanModelResourceManager::flushModelByFilePathFromCache(const std::filesystem::path& modelFilePath)
 {
 	std::string modelPathString = modelFilePath.string();
 	auto it = m_renderModelCache.find(modelPathString);
@@ -93,8 +93,8 @@ bool GlModelResourceManager::flushModelByFilePathFromCache(const std::filesystem
 	return false;
 }
 
-bool GlModelResourceManager::exportModelToFile(
-	GlRenderModelResourcePtr modelResource,
+bool MikanModelResourceManager::exportModelToFile(
+	MikanRenderModelResourcePtr modelResource,
 	const std::filesystem::path& modelPath)
 {
 	std::string modelPathString = modelPath.string();

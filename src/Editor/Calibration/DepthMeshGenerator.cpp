@@ -7,13 +7,13 @@
 #include "GlLineRenderer.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
-#include "GlModelResourceManager.h"
-#include "GlRenderModelResource.h"
+#include "MikanModelResourceManager.h"
+#include "MikanRenderModelResource.h"
 #include "IMkShader.h"
-#include "GlShaderCache.h"
+#include "MikanShaderCache.h"
 #include "GlScene.h"
 #include "IMkTexture.h"
-#include "GlTriangulatedMesh.h"
+#include "IMkTriangulatedMesh.h"
 #include "IMkWindow.h"
 #include "Logger.h"
 #include "DepthMeshGenerator.h"
@@ -50,7 +50,7 @@ struct DepthMeshCaptureState
 	// Generated mesh
 	double disparityBias;
 	double disparityScale;
-	GlRenderModelResourcePtr depthMeshResource;
+	MikanRenderModelResourcePtr depthMeshResource;
 
 	void init(
 		IGlWindow* owner,
@@ -191,7 +191,7 @@ struct DepthMeshCaptureState
 		VideoFrameDistortionViewPtr distortionView,
 		SyntheticDepthEstimatorPtr depthEstimator)
 	{
-		GlModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
+		MikanModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
 		GlShaderCache* shaderCache= ownerWindow->getShaderCache();
 
 		// Create a texture from the undistorted video frame
@@ -216,7 +216,7 @@ struct DepthMeshCaptureState
 		}
 
 		// Create a render model resource from the mesh and material
-		depthMeshResource = std::make_shared<GlRenderModelResource>(ownerWindow);
+		depthMeshResource = std::make_shared<MikanRenderModelResource>(ownerWindow);
 		depthMeshResource->addTriangulatedMesh(triMesh);
 
 		return true;
@@ -228,7 +228,7 @@ struct DepthMeshCaptureState
 			return false;
 
 		// Use the internal basic textured material to render the mesh
-		GlModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
+		MikanModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
 		GlShaderCache* shaderCache = ownerWindow->getShaderCache();
 		GlMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 
@@ -539,7 +539,7 @@ bool DepthMeshGenerator::captureMesh()
 	return true;
 }
 
-GlRenderModelResourcePtr DepthMeshGenerator::getCapturedDepthMeshResource() const
+MikanRenderModelResourcePtr DepthMeshGenerator::getCapturedDepthMeshResource() const
 {
 	return m_calibrationState->depthMeshResource;
 }

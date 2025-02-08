@@ -4,10 +4,10 @@
 
 #include "AssetReference.h"
 #include "SdlCommon.h"
-#include "GlModelResourceManager.h"
+#include "MikanModelResourceManager.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
-#include "GlShaderCache.h"
+#include "MikanShaderCache.h"
 #include "IMkTexture.h"
 #include "MikanTextureCache.h"
 #include "Graphs/NodeGraph.h"
@@ -46,7 +46,7 @@
 NodeEditorWindow::NodeEditorWindow()
 	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
-	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new GlModelResourceManager(this)))
+	, m_modelResourceManager(GlModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
 	, m_textureCache(GlTextureCacheUniquePtr(new MikanTextureCache))
 {}
@@ -65,7 +65,7 @@ GlTextRenderer* NodeEditorWindow::getTextRenderer()
 	return nullptr;
 }
 
-GlModelResourceManager* NodeEditorWindow::getModelResourceManager()
+MikanModelResourceManager* NodeEditorWindow::getModelResourceManager()
 {
 	return m_modelResourceManager.get();
 }

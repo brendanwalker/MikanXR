@@ -1,6 +1,6 @@
 #include "GlMaterialInstance.h"
 #include "IMkStaticMeshInstance.h"
-#include "GlTriangulatedMesh.h"
+#include "IMkTriangulatedMesh.h"
 #include "GlScene.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"

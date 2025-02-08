@@ -7,11 +7,11 @@
 #include <string>
 #include <vector>
 
-class GlRenderModelResource
+class MikanRenderModelResource
 {
 public:
-	GlRenderModelResource(class IMkWindow* ownerWindow);
-	virtual ~GlRenderModelResource();
+	MikanRenderModelResource(class IMkWindow* ownerWindow);
+	virtual ~MikanRenderModelResource();
 
 	inline const std::string& getName() const { return m_name; }
 	inline void setName(const std::string& inName) { m_name= inName; }

@@ -22,7 +22,7 @@
 #include "GlFrameCompositor.h"
 #include "IMkLineRenderer.h"
 #include "IMkTextRenderer.h"
-#include "GlRenderModelResource.h"
+#include "MikanRenderModelResource.h"
 #include "MikanViewport.h"
 #include "IMkWireframeMesh.h"
 #include "IMkTexture.h"
