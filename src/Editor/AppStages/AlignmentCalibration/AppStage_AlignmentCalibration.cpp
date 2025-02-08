@@ -13,7 +13,7 @@
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
 #include "GlScene.h"
-#include "GlScopedObjectBinding.h"
+#include "MkScopedObjectBinding.h"
 #include "GlStateStack.h"
 #include "IMkTriangulatedMesh.h"
 #include "GlTextRenderer.h"
@@ -344,7 +344,7 @@ void AppStage_AlignmentCalibration::render()
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())
 	{
-		GlScopedObjectBinding colorFramebufferBinding(
+		MkScopedObjectBinding colorFramebufferBinding(
 			*m_ownerWindow->getGlStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);

@@ -4,7 +4,7 @@
 #include "GlMaterial.h"
 #include "IMkShader.h"
 #include "MikanRenderModelResource.h"
-#include "GlScopedObjectBinding.h"
+#include "MkScopedObjectBinding.h"
 #include "MikanModelResourceManager.h"
 #include "GlMaterialInstance.h"
 #include "GlStateStack.h"
@@ -161,7 +161,7 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 		updateCompositingFrameBufferSize(evaluator);
 
 		// Create a scoped binding for the video export framebuffer
-		GlScopedObjectBinding compositorFramebufferBinding(
+		MkScopedObjectBinding compositorFramebufferBinding(
 			*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
 			"Compositor Framebuffer Scope",
 			m_compositingFrameBuffer);

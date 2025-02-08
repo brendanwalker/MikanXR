@@ -1,7 +1,7 @@
-#include "GlScopedMaterialBinding.h"
+#include "MkScopedMaterialBinding.h"
 #include "GlMaterial.h"
 
-GlScopedMaterialBinding::~GlScopedMaterialBinding()
+MkScopedMaterialBinding::~MkScopedMaterialBinding()
 {
 	if (m_boundMaterial != nullptr)
 	{

@@ -7,5 +7,5 @@ protected:
 	virtual bool getIsBound() const = 0;
 	virtual void unbindObject() = 0;
 
-	friend class GlScopedObjectBinding;
+	friend class MkScopedObjectBinding;
 };

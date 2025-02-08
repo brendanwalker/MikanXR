@@ -359,7 +359,7 @@ static void mark_uniform_as_bound(const std::string& uniformName, UniformNameSet
 }
 
 GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
-	const GlScopedMaterialBinding& materialBinding,
+	const MkScopedMaterialBinding& materialBinding,
 	BindUniformCallback callback) const
 {
 	bool bMaterialInstanceFailure= false;

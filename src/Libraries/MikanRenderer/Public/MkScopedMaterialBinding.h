@@ -1,17 +1,18 @@
 #pragma once
 
+#include "MkRendererFwd.h"
+#include "MkRendererExport.h"
+
 #include <string>
 #include <set>
 
-#include "MkRendererFwd.h"
-
 using UniformNameSet = std::set<std::string>;
 
-class GlScopedMaterialBinding
+class MIKAN_RENDERER_CLASS MkScopedMaterialBinding
 {
 public:
-	GlScopedMaterialBinding() = default;
-	GlScopedMaterialBinding(
+	MkScopedMaterialBinding() = default;
+	MkScopedMaterialBinding(
 		GlMaterialConstPtr material,
 		UniformNameSet unboundUniformNames,
 		bool bMaterialFailure)
@@ -19,7 +20,7 @@ public:
 		, m_unboundUniformNames(unboundUniformNames)
 		, m_bMaterialFailure(bMaterialFailure)
 	{}
-	virtual ~GlScopedMaterialBinding();
+	virtual ~MkScopedMaterialBinding();
 
 	inline GlMaterialConstPtr getBoundMaterial() const { return m_boundMaterial; }
 	inline const UniformNameSet& getUnboundUniforms() const { return m_unboundUniformNames; }

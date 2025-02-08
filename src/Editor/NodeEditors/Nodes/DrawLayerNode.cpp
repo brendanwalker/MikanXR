@@ -336,7 +336,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 
 			// Bind the layer shader program and uniform parameters.	
 			// This will fail unless all of the shader uniform parameters are bound.	
-			GlScopedMaterialBinding materialBinding = m_material->bindMaterial();	
+			MkScopedMaterialBinding materialBinding = m_material->bindMaterial();	
 			if (materialBinding)	
 			{	
 				GlScopedMaterialInstanceBinding materialInstanceBinding = 	

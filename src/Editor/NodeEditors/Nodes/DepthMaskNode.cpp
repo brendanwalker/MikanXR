@@ -5,7 +5,7 @@
 #include "MikanRenderModelResource.h"
 #include "MikanModelResourceManager.h"
 #include "IMkShader.h"
-#include "GlScopedObjectBinding.h"
+#include "MkScopedObjectBinding.h"
 #include "MikanShaderCache.h"
 #include "GlStateStack.h"
 #include "IMkTexture.h"
@@ -220,7 +220,7 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 	if (bSuccess && (bAnyQuadStencils || bAnyBoxStencils || bAnyModelStencils))
 	{
 		// Bind the depth frame buffer
-		GlScopedObjectBinding depthFramebufferBinding(
+		MkScopedObjectBinding depthFramebufferBinding(
 			*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
 			"Depth Mask Framebuffer Scope",
 			m_linearDepthFrameBuffer);

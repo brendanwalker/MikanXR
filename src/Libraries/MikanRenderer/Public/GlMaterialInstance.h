@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MkShaderConstants.h"
-#include "GlScopedMaterialBinding.h"
+#include "MkScopedMaterialBinding.h"
 #include "NamedValueTable.h"
 #include "MkRendererFwd.h"
 
@@ -79,7 +79,7 @@ public:
 	bool getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const;
 
 	GlScopedMaterialInstanceBinding bindMaterialInstance(
-		const GlScopedMaterialBinding& materialBinding,
+		const MkScopedMaterialBinding& materialBinding,
 		BindUniformCallback callback= BindUniformCallback()) const;
 
 protected: 

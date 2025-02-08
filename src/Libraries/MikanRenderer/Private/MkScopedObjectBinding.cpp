@@ -1,9 +1,9 @@
-#include "GlScopedObjectBinding.h"
+#include "MkScopedObjectBinding.h"
 #include "GlStateStack.h"
 
 #include <assert.h>
 
-GlScopedObjectBinding::GlScopedObjectBinding(
+MkScopedObjectBinding::MkScopedObjectBinding(
 	GlState& parentGLState,
 	const std::string& scopeName,
 	IMkBindableObjectPtr bindableObject)
@@ -17,7 +17,7 @@ GlScopedObjectBinding::GlScopedObjectBinding(
 	}
 }
 
-GlScopedObjectBinding::~GlScopedObjectBinding()
+MkScopedObjectBinding::~MkScopedObjectBinding()
 {
 	// Restore all the GL state we modified
 	assert(m_glState.getOwnerStateStack().getCurrentStackDepth() == m_glState.getStackDepth());

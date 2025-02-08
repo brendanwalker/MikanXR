@@ -332,7 +332,7 @@ bool GlMaterial::getTextureByUniformName(const std::string uniformName, IMkTextu
 	return false;
 }
 
-GlScopedMaterialBinding GlMaterial::bindMaterial(
+MkScopedMaterialBinding GlMaterial::bindMaterial(
 	BindUniformCallback callback) const
 {	
 	bool bMaterialFailure= false;
@@ -457,7 +457,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 		bMaterialFailure= true;
 	}
 
-	return GlScopedMaterialBinding(shared_from_this(), unboundUniformNames, bMaterialFailure);
+	return MkScopedMaterialBinding(shared_from_this(), unboundUniformNames, bMaterialFailure);
 }
 
 void GlMaterial::unbindMaterial() const

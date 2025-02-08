@@ -12,7 +12,7 @@
 #include "GlMaterialInstance.h"
 #include "MikanModelResourceManager.h"
 #include "MikanRenderModelResource.h"
-#include "GlScopedObjectBinding.h"
+#include "MkScopedObjectBinding.h"
 #include "IMkStaticMeshInstance.h"
 #include "GlScene.h"
 #include "GlStateStack.h"
@@ -288,7 +288,7 @@ void AppStage_StencilAlignment::render()
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())
 	{
-		GlScopedObjectBinding colorFramebufferBinding(
+		MkScopedObjectBinding colorFramebufferBinding(
 			*m_ownerWindow->getGlStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);

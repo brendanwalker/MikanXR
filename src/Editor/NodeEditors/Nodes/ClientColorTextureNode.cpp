@@ -1,5 +1,5 @@
 #include "ClientColorTextureNode.h"
-#include "GlScopedObjectBinding.h"
+#include "MkScopedObjectBinding.h"
 #include "GlFrameCompositor.h"
 #include "GlFrameBuffer.h"
 #include "GlMaterial.h"
@@ -205,7 +205,7 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, Gl
 	// Render the color texture to the frame buffer
 	if (m_bVerticalFlip && m_colorMaterialInstance)
 	{
-		GlScopedObjectBinding colorFramebufferBinding(
+		MkScopedObjectBinding colorFramebufferBinding(
 			*ownerWindow->getGlStateStack().getCurrentState(),
 			"Color Texture Framebuffer Scope",
 			m_colorFrameBuffer);

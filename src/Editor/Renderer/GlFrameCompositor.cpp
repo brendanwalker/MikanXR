@@ -4,7 +4,7 @@
 #include "GlFrameBuffer.h"
 #include "GlFrameCompositor.h"
 #include "GlMaterial.h"
-#include "GlScopedObjectBinding.h"
+#include "MkScopedObjectBinding.h"
 #include "IMkTexture.h"
 #include "GlTextRenderer.h"
 #include "MikanShaderConfig.h"
@@ -718,7 +718,7 @@ void GlFrameCompositor::updateCompositeFrame()
 		EASY_BLOCK("Render BGR Frame")
 
 		// Create a scoped binding for the video export framebuffer
-		GlScopedObjectBinding videoExportFramebufferBinding(
+		MkScopedObjectBinding videoExportFramebufferBinding(
 			*m_ownerWindow->getGlStateStack().getCurrentState(),
 			"Video Export Framebuffer Scope",
 			m_videoExportFramebuffer);

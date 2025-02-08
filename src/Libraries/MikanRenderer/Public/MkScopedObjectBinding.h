@@ -1,13 +1,18 @@
 #pragma once
 
+#include "MkRendererFwd.h"
+#include "MkRendererExport.h"
 #include "IMkBindableObject.h"
 
-class GlScopedObjectBinding
+#include <memory>
+#include <string>
+
+class MIKAN_RENDERER_CLASS MkScopedObjectBinding
 {
 public:
-	GlScopedObjectBinding() = default;
-	GlScopedObjectBinding(class GlState& parentGLState, const std::string& scopeName, IMkBindableObjectPtr bindableObject);
-	virtual ~GlScopedObjectBinding();
+	MkScopedObjectBinding() = default;
+	MkScopedObjectBinding(class GlState& parentGLState, const std::string& scopeName, IMkBindableObjectPtr bindableObject);
+	virtual ~MkScopedObjectBinding();
 
 	template <class t_bindable_object>
 	inline std::shared_ptr<t_bindable_object> getBoundObject() const

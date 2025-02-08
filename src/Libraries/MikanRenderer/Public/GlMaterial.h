@@ -2,7 +2,7 @@
 
 #include "NamedValueTable.h"
 #include "MkShaderConstants.h"
-#include "GlScopedMaterialBinding.h"
+#include "MkScopedMaterialBinding.h"
 #include "MkRendererFwd.h"
 
 #include <functional>
@@ -77,10 +77,10 @@ public:
 	bool setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture);
 	bool getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const;
 
-	GlScopedMaterialBinding bindMaterial(BindUniformCallback callback= BindUniformCallback()) const;
+	MkScopedMaterialBinding bindMaterial(BindUniformCallback callback= BindUniformCallback()) const;
 
 protected:
-	friend class GlScopedMaterialBinding;
+	friend class MkScopedMaterialBinding;
 	void unbindMaterial() const;
 
 private:

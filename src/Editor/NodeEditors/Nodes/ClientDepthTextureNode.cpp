@@ -1,5 +1,5 @@
 #include "ClientDepthTextureNode.h"
-#include "GlScopedObjectBinding.h"
+#include "MkScopedObjectBinding.h"
 #include "GlFrameCompositor.h"
 #include "GlFrameBuffer.h"
 #include "GlMaterial.h"
@@ -150,7 +150,7 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 	}
 
 	IGlWindow* ownerWindow= evaluator.getCurrentWindow();
-	GlScopedObjectBinding depthFramebufferBinding(
+	MkScopedObjectBinding depthFramebufferBinding(
 		*ownerWindow->getGlStateStack().getCurrentState(),
 		"Depth Texture Framebuffer Scope",
 		m_linearDepthFrameBuffer);
