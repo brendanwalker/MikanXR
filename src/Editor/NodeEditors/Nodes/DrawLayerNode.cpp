@@ -3,7 +3,7 @@
 #include "GlMaterial.h"	
 #include "GlRenderModelResource.h"	
 #include "GlModelResourceManager.h"	
-#include "GlProgram.h"	
+#include "IMkShader.h"	
 #include "GlShaderCache.h"	
 #include "GlStateStack.h"	
 #include "GlStateModifiers.h"	
@@ -512,7 +512,7 @@ void DrawLayerNode::rebuildInputPins()
 		{	
 			const std::string& uniformName = it->first;	
 			eUniformSemantic uniformSemantic = it->second.semantic;	
-			eUniformDataType uniformDataType = GlProgram::getUniformSemanticDataType(uniformSemantic);	
+			eUniformDataType uniformDataType = getUniformSemanticDataType(uniformSemantic);	
 			NodePinPtr newPin;	
 
 			switch (uniformDataType)	

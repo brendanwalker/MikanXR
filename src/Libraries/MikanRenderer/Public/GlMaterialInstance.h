@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GlProgramConstants.h"
+#include "MkShaderConstants.h"
 #include "GlScopedMaterialBinding.h"
 #include "NamedValueTable.h"
 #include "MkRendererFwd.h"

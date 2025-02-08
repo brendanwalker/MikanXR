@@ -1,21 +1,21 @@
 #include "GlMaterial.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "IMkTexture.h"
 
 GlMaterial::GlMaterial(
 	const std::string& name, 
-	GlProgramPtr program)
+	IMkShaderPtr program)
 	: m_name(name)
 	, m_program(program)
 {
 }
 
-void GlMaterial::setProgram(GlProgramPtr program) 
+void GlMaterial::setProgram(IMkShaderPtr program) 
 { 
 	m_program = program; 
 }
 
-GlProgramPtr GlMaterial::getProgram() const 
+IMkShaderPtr GlMaterial::getProgram() const 
 {
 	return m_program; 
 }
@@ -344,7 +344,7 @@ GlScopedMaterialBinding GlMaterial::bindMaterial(
 		{
 			const std::string& uniformName= it->first;
 			eUniformSemantic uniformSemantic= it->second.semantic;
-			eUniformDataType uniformDataType= GlProgram::getUniformSemanticDataType(uniformSemantic);
+			eUniformDataType uniformDataType= getUniformSemanticDataType(uniformSemantic);
 			eUniformBindResult bindResult= eUniformBindResult::unbound;
 
 			switch (uniformDataType)

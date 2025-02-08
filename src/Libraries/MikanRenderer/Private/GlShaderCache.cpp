@@ -1,6 +1,7 @@
 #include "IMkShaderCache.h"
 #include "GlMaterial.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
+#include "IMkShaderCode.h"
 #include "Logger.h"
 
 namespace InternalShaders
@@ -31,9 +32,9 @@ public:
 		m_programCache.clear();
 	}
 
-	GlMaterialPtr GlShaderCache::registerMaterial(const GlProgramCode& code)
+	GlMaterialPtr GlShaderCache::registerMaterial(IMkShaderCodeConstPtr code)
 	{
-		const std::string materialName = code.getProgramName();
+		const std::string materialName = code->getProgramName();
 
 		auto it = m_materialCache.find(materialName);
 		if (it != m_materialCache.end())
@@ -42,7 +43,7 @@ public:
 			return GlMaterialPtr();
 		}
 
-		GlProgramPtr program = fetchCompiledGlProgram(&code);
+		IMkShaderPtr program = fetchCompiledIMkShader(code);
 		if (program)
 		{
 			auto material = std::make_shared<GlMaterial>(materialName, program);
@@ -68,15 +69,15 @@ public:
 		return GlMaterialConstPtr();
 	}
 
-	GlProgramPtr GlShaderCache::fetchCompiledGlProgram(
-		const GlProgramCode* code)
+	IMkShaderPtr GlShaderCache::fetchCompiledIMkShader(
+		IMkShaderCodeConstPtr code)
 	{
 		auto it = m_programCache.find(code->getProgramName());
 		if (it != m_programCache.end())
 		{
-			GlProgramPtr existingProgram = it->second;
+			IMkShaderPtr existingProgram = it->second;
 
-			if (existingProgram->getProgramCode().getCodeHash() == code->getCodeHash())
+			if (existingProgram->getProgramCode()->getCodeHash() == code->getCodeHash())
 			{
 				// Found a compiled version of the code
 				return existingProgram;
@@ -89,7 +90,7 @@ public:
 		}
 
 		// (Re)compile program and add it to the cache
-		GlProgramPtr program = std::make_shared<GlProgram>(*code);
+		IMkShaderPtr program = std::make_shared<IMkShader>(*code);
 		if (program->compileProgram())
 		{
 			m_programCache[code->getProgramName()] = program;
@@ -104,7 +105,7 @@ public:
 
 private:
 	IMkWindow* m_ownerWindow;
-	std::map<std::string, GlProgramPtr> m_programCache;
+	std::map<std::string, IMkShaderPtr> m_programCache;
 	std::map<std::string, GlMaterialPtr> m_materialCache;
 };
 
@@ -115,9 +116,9 @@ IMkShaderCachePtr CreateMkShaderCache(class IMkWindow* ownerWindow)
 
 namespace InternalShaders
 {
-	const GlProgramCode* getPTTexturedFullScreenRGBQuad()
+	const IMkShaderCode* getPTTexturedFullScreenRGBQuad()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE,
 			// vertex shader
 			R""""(
@@ -148,16 +149,16 @@ namespace InternalShaders
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
 
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getPTTexturedFullScreenRGBAQuad()
+	const IMkShaderCode* getPTTexturedFullScreenRGBAQuad()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE,
 			// vertex shader
 			R""""(
@@ -187,16 +188,16 @@ namespace InternalShaders
 				FragColor = texture(rgbaTexture, TexCoords).rgba;
 			} 
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("rgbaTexture", eUniformSemantic::rgbaTexture);
 
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getTextShaderCode()
+	const IMkShaderCode* getTextShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_TEXT,
 			// vertex shader
 			R""""(
@@ -229,17 +230,17 @@ namespace InternalShaders
 				FragColor = col;
 			} 
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("glyphTexture", eUniformSemantic::rgbaTexture)
 			.addUniform("screenSize", eUniformSemantic::screenSize);
 
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getUnpackRGBALinearDepthTextureShaderCode()
+	const IMkShaderCode* getUnpackRGBALinearDepthTextureShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE,
 			// vertex shader
 			R""""(
@@ -276,16 +277,16 @@ namespace InternalShaders
 				gl_FragDepth = linearDepth;
 			} 
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
+			.addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("rgbaPackedDepthTexture", eUniformSemantic::rgbaTexture);
 
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getPWireframeShaderCode()
+	const IMkShaderCode* getPWireframeShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_P_WIREFRAME,
 			// vertex shader
 			R""""(
@@ -307,16 +308,16 @@ namespace InternalShaders
 				out_FragColor = diffuseColor;
 			}
 			)"""")
-			.addVertexAttributes("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttribute("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position)
 			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
 			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getPSolidColorShaderCode()
+	const IMkShaderCode* getPSolidColorShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_P_SOLID_COLOR,
 			// vertex shader
 			R""""(
@@ -342,16 +343,16 @@ namespace InternalShaders
 				FragColor = diffuseColor;
 			}
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
 			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
 			.addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getPTTexturedShaderCode()
+	const IMkShaderCode* getPTTexturedShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_PT_TEXTURED,
 			// vertex shader
 			R""""(
@@ -384,17 +385,17 @@ namespace InternalShaders
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix)
 			.addUniform("rgbTexture", eUniformSemantic::diffuseTexture);
 
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getPNTTexturedColoredShaderCode()
+	const IMkShaderCode* getPNTTexturedColoredShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED,
 			// vertex shader
 			R""""(
@@ -455,9 +456,9 @@ namespace InternalShaders
 				FragColor = texture(diffuse_tex, TexCoords) * lighting * modelColor;
 			}
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
-			.addVertexAttributes("v3NormalIn", eVertexDataType::datatype_vec3, eVertexSemantic::normal)
-			.addVertexAttributes("v2TexCoordsIn", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
+			.addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttribute("v3NormalIn", eVertexDataType::datatype_vec3, eVertexSemantic::normal)
+			.addVertexAttribute("v2TexCoordsIn", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
 			.addUniform("model", eUniformSemantic::modelMatrix)
 			.addUniform("view", eUniformSemantic::viewMatrix)
 			.addUniform("projection", eUniformSemantic::projectionMatrix)
@@ -469,9 +470,9 @@ namespace InternalShaders
 		return &x_shaderCode;
 	}
 
-	const GlProgramCode* getPLinearDepthShaderCode()
+	const IMkShaderCode* getPLinearDepthShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			INTERNAL_MATERIAL_P_LINEAR_DEPTH,
 			// vertex shader
 			R""""(
@@ -520,7 +521,7 @@ namespace InternalShaders
 				gl_FragDepth = linearDepth;
 			} 
 			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
 			.addUniform("modelMatrix", eUniformSemantic::modelMatrix)
 			.addUniform("viewMatrix", eUniformSemantic::viewMatrix)
 			.addUniform("projMatrix", eUniformSemantic::projectionMatrix);
@@ -530,7 +531,7 @@ namespace InternalShaders
 
 	bool registerInternalShaders(IMkShaderCache* shaderCache)
 	{
-		std::vector<const GlProgramCode*> internalShaders = {
+		std::vector<const IMkShaderCode*> internalShaders = {
 			getPTTexturedFullScreenRGBQuad(),
 			getPTTexturedFullScreenRGBAQuad(),
 			getTextShaderCode(),
@@ -543,7 +544,7 @@ namespace InternalShaders
 		};
 
 		bool bSuccess = true;
-		for (const GlProgramCode* code : internalShaders)
+		for (const IMkShaderCode* code : internalShaders)
 		{
 			if (!shaderCache->registerMaterial(*code))
 			{

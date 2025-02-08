@@ -1,6 +1,6 @@
 #include "GraphMaterialProperty.h"
 #include "GlMaterial.h"
-#include "GlVertexDefinition.h"
+#include "IMkVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
 #include "MaterialAssetReference.h"

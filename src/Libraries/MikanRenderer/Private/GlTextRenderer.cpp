@@ -2,7 +2,7 @@
 #include "GlCommon.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "IMkShaderCache.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
@@ -44,14 +44,14 @@ public:
 
 		glGenVertexArrays(1, &m_textQuadVAO);
 		glGenBuffers(1, &m_textQuadVBO);
-		checkHasAnyGLError("GlTextRenderer::startup()", __FILE__, __LINE__);
+		checkHasAnyMkError("GlTextRenderer::startup()", __FILE__, __LINE__);
 
 		glBindVertexArray(m_textQuadVAO);
 		glObjectLabel(GL_VERTEX_ARRAY, m_textQuadVAO, -1, "TextRendererQuads");
 		glBindBuffer(GL_ARRAY_BUFFER, m_textQuadVBO);
 
 		glBufferData(GL_ARRAY_BUFFER, m_maxTextQuadVertexCount * sizeof(TextQuadVertex), nullptr, GL_DYNAMIC_DRAW);
-		checkHasAnyGLError("GlTextRenderer::startup()", __FILE__, __LINE__);
+		checkHasAnyMkError("GlTextRenderer::startup()", __FILE__, __LINE__);
 
 		m_textMaterial->getProgram()->getVertexDefinition().applyVertexDefintion();
 
@@ -125,7 +125,7 @@ public:
 			// Unbind the vertex array and buffer
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
-			checkHasAnyGLError("GlLineRenderer::PointBufferState::drawGlBufferState", __FILE__, __LINE__);
+			checkHasAnyMkError("GlLineRenderer::PointBufferState::drawGlBufferState", __FILE__, __LINE__);
 		}
 
 		m_bakedTextQuads.clear();

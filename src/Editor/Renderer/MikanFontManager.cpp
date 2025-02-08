@@ -1,7 +1,7 @@
 #include "MikanFontManager.h"
 #include "SdlCommon.h"
 #include "GlShaderCache.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "IMkTexture.h"
 #include "Logger.h"
 #include "PathUtils.h"

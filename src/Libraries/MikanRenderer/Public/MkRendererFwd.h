@@ -18,12 +18,21 @@ class GlModelResourceManager;
 using GlModelResourceManagerSharedPtr = std::shared_ptr<GlModelResourceManager>;
 using GlModelResourceManagerUniquePtr = std::unique_ptr<GlModelResourceManager>;
 
-class GlProgram;
-using GlProgramPtr= std::shared_ptr<GlProgram>;
-using GlProgramConstPtr= std::shared_ptr<const GlProgram>;
+class IMkVertexAttribute;
+using IMkVertexAttributePtr = std::shared_ptr<IMkVertexAttribute>;
+using IMkVertexAttributeConstPtr = std::shared_ptr<const IMkVertexAttribute>;
 
-class GlProgramCode;
-using GlProgramCodePtr = std::shared_ptr<GlProgramCode>;
+class IMkVertexDefinition;
+using IMkVertexDefinitionPtr = std::shared_ptr<IMkVertexDefinition>;
+using IMkVertexDefinitionConstPtr = std::shared_ptr<const IMkVertexDefinition>;
+
+class IMkShader;
+using IMkShaderPtr= std::shared_ptr<IMkShader>;
+using IMkShaderConstPtr= std::shared_ptr<const IMkShader>;
+
+class IMkShaderCode;
+using IMkShaderCodePtr = std::shared_ptr<IMkShaderCode>;
+using IMkShaderCodeConstPtr = std::shared_ptr<const IMkShaderCode>;
 
 class GlRenderModelResource;
 using GlRenderModelResourcePtr = std::shared_ptr<GlRenderModelResource>;

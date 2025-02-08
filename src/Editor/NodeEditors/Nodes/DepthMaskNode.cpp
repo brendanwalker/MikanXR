@@ -4,7 +4,7 @@
 #include "GlMaterial.h"
 #include "GlRenderModelResource.h"
 #include "GlModelResourceManager.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlScopedObjectBinding.h"
 #include "GlShaderCache.h"
 #include "GlStateStack.h"

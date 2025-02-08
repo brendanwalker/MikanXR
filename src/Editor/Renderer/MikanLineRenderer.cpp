@@ -4,11 +4,11 @@
 #include "MkError.h"
 #include "SdlCommon.h"
 #include "MikanLineRenderer.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlStateStack.h"
 #include "GlShaderCache.h"
 #include "GlTextRenderer.h"
-#include "GlVertexDefinition.h"
+#include "IMkVertexDefinition.h"
 #include "MikanViewport.h"
 #include "IMkWindow.h"
 #include "Logger.h"
@@ -35,9 +35,9 @@ GlLineRenderer::~GlLineRenderer()
 	m_program= nullptr;
 }
 
-const GlProgramCode* GlLineRenderer::getShaderCode()
+const IMkShaderCode* GlLineRenderer::getShaderCode()
 {
-	static GlProgramCode x_shaderCode = GlProgramCode(
+	static IMkShaderCode x_shaderCode = IMkShaderCode(
 		"line shader",
 		// vertex shader
 		R""""(
@@ -72,7 +72,7 @@ const GlProgramCode* GlLineRenderer::getShaderCode()
 
 bool GlLineRenderer::startup()
 {
-	m_program = m_ownerWindow->getShaderCache()->fetchCompiledGlProgram(getShaderCode());
+	m_program = m_ownerWindow->getShaderCache()->fetchCompiledIMkShader(getShaderCode());
 	if (m_program == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to build shader program";
@@ -238,7 +238,7 @@ GlLineRenderer::PointBufferState::~PointBufferState()
 	delete[] m_points;
 }
 
-void GlLineRenderer::PointBufferState::createGlBufferState(GlProgramPtr program)
+void GlLineRenderer::PointBufferState::createGlBufferState(IMkShaderPtr program)
 {
 	glGenVertexArrays(1, &m_pointVAO);
 	glGenBuffers(1, &m_pointVBO);

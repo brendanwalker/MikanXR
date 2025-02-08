@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NamedValueTable.h"
-#include "GlProgramConstants.h"
+#include "MkShaderConstants.h"
 #include "GlScopedMaterialBinding.h"
 #include "MkRendererFwd.h"
 
@@ -15,16 +15,30 @@
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
+// Uniform binding callback
+enum class eUniformBindResult : int
+{
+	bound,
+	unbound,
+	error
+};
+using BindUniformCallback =
+std::function<eUniformBindResult(
+	std::shared_ptr<class IMkShader>, // Source program to bind the uniform for
+	eUniformDataType, // Data type of the uniform
+	eUniformSemantic, // Semantic of the uniform
+	const std::string&)>; // Name of the uniform
+
 class GlMaterial : public std::enable_shared_from_this<GlMaterial>
 {
 public:
 	GlMaterial() = default;
-	GlMaterial(const std::string& name, GlProgramPtr program);
+	GlMaterial(const std::string& name, IMkShaderPtr program);
 
 	const std::string& getName() const { return m_name; }
 
-	void setProgram(GlProgramPtr program);
-	GlProgramPtr getProgram() const;
+	void setProgram(IMkShaderPtr program);
+	IMkShaderPtr getProgram() const;
 
 	inline const NamedValueTable<float>& getFloatSources() const { return m_floatSources; }
 	inline const NamedValueTable<glm::vec2>& getFloat2Sources() const { return m_float2Sources; }
@@ -71,7 +85,7 @@ protected:
 
 private:
 	std::string m_name;
-	GlProgramPtr m_program = nullptr;
+	IMkShaderPtr m_program = nullptr;
 
 	// Program Parameters
 	NamedValueTable<float> m_floatSources;

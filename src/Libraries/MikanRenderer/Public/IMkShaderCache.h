@@ -25,10 +25,10 @@ public:
 	virtual bool startup() = 0;
 	virtual void shutdown() = 0;
 
-	virtual GlMaterialPtr registerMaterial(const GlProgramCode& code) = 0;
+	virtual GlMaterialPtr registerMaterial(IMkShaderCodeConstPtr code) = 0;
 	virtual GlMaterialConstPtr getMaterialByName(const std::string& name) = 0;
 
-	virtual GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code) = 0;
+	virtual IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code) = 0;
 };
 
 MIKAN_RENDERER_FUNC(IMkShaderCachePtr) CreateMkShaderCache(class IMkWindow* ownerWindow);

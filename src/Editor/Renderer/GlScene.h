@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IMkSceneRenderable.h"
-#include "GlProgramConstants.h"
+#include "MkShaderConstants.h"
 #include "IMkScene.h"
 
 #include <map>
@@ -45,14 +45,14 @@ public:
 protected:
 	eUniformBindResult materialBindCallback(
 		IMkCameraConstPtr camera,
-		GlProgramPtr program,
+		IMkShaderPtr program,
 		eUniformDataType uniformDataType,
 		eUniformSemantic uniformSemantic,
 		const std::string& uniformName) const;
 	eUniformBindResult materialInstanceBindCallback(
 		IMkCameraConstPtr camera,
 		IMkSceneRenderableConstPtr renderableInstance,
-		GlProgramPtr program,
+		IMkShaderPtr program,
 		eUniformDataType uniformDataType,
 		eUniformSemantic uniformSemantic,
 		const std::string& uniformName) const;

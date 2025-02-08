@@ -1,4 +1,4 @@
-#include "GlProgramConstants.h"
+#include "MkShaderConstants.h"
 
 const std::string g_UniformSemanticName[(int)eUniformSemantic::COUNT] = {
 	"transformMatrix",

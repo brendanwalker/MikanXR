@@ -2,10 +2,10 @@
 #include "GlCommon.h"
 #include "IMkLineRenderer.h"
 #include "IMkCamera.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlStateStack.h"
 #include "IMkShaderCache.h"
-#include "GlVertexDefinition.h"
+#include "IMkVertexDefinition.h"
 #include "IMkViewport.h"
 #include "IMkWindow.h"
 #include "Logger.h"
@@ -40,18 +40,18 @@ protected:
 			delete[] m_points;
 		}
 
-		void createGlBufferState(GlProgramPtr program)
+		void createGlBufferState(IMkShaderPtr program)
 		{
 			glGenVertexArrays(1, &m_pointVAO);
 			glGenBuffers(1, &m_pointVBO);
-			checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
+			checkHasAnyMkError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
 			glBindVertexArray(m_pointVAO);
 			glObjectLabel(GL_VERTEX_ARRAY, m_pointVAO, -1, "LineRendererPoints");
 			glBindBuffer(GL_ARRAY_BUFFER, m_pointVBO);
 
 			glBufferData(GL_ARRAY_BUFFER, m_maxPoints * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
-			checkHasAnyGLError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
+			checkHasAnyMkError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
 			program->getVertexDefinition().applyVertexDefintion();
 
@@ -74,7 +74,7 @@ protected:
 
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
 				glBindVertexArray(0);
-				checkHasAnyGLError("GlLineRenderer::PointBufferState::drawGlBufferState", __FILE__, __LINE__);
+				checkHasAnyMkError("GlLineRenderer::PointBufferState::drawGlBufferState", __FILE__, __LINE__);
 			}
 
 			m_pointCount = 0;
@@ -129,9 +129,9 @@ protected:
 		unsigned int m_pointVBO;
 	};
 
-	static const GlProgramCode* getShaderCode()
+	static const IMkShaderCode* getShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			"line shader",
 			// vertex shader
 			R""""(
@@ -157,8 +157,8 @@ protected:
 			out_FragColor = v_Color;
 		}
 		)"""")
-			.addVertexAttributes("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position)
-			.addVertexAttributes("in_colorPointSize", eVertexDataType::datatype_vec4, eVertexSemantic::colorAndSize)
+			.addVertexAttribute("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position)
+			.addVertexAttribute("in_colorPointSize", eVertexDataType::datatype_vec4, eVertexSemantic::colorAndSize)
 			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
 
 		return &x_shaderCode;
@@ -167,7 +167,7 @@ protected:
 private:
 	class IMkWindow* m_ownerWindow = nullptr;
 
-	GlProgramPtr m_program = nullptr;
+	IMkShaderPtr m_program = nullptr;
 	std::string m_modelViewUniformName;
 
 	PointBufferState m_points3d;
@@ -194,7 +194,7 @@ public:
 
 	virtual bool startup() override
 	{
-		m_program = m_ownerWindow->getShaderCache()->fetchCompiledGlProgram(getShaderCode());
+		m_program = m_ownerWindow->getShaderCache()->fetchCompiledIMkShader(getShaderCode());
 		if (m_program == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to build shader program";

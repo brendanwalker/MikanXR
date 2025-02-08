@@ -2,7 +2,7 @@
 #include "MikanCamera.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlScene.h"
 #include "GlStateModifiers.h"
 #include "GlStateStack.h"
@@ -116,7 +116,7 @@ void GlScene::render(IMkCameraConstPtr camera, GlStateStack& glStateStack) const
 				material->bindMaterial(
 					// Scene specific material binding callback for camera and scene parameters
 					[this, camera](
-						GlProgramPtr program,
+						IMkShaderPtr program,
 						eUniformDataType uniformDataType,
 						eUniformSemantic uniformSemantic,
 						const std::string& uniformName)
@@ -145,7 +145,7 @@ void GlScene::render(IMkCameraConstPtr camera, GlStateStack& glStateStack) const
 							materialInstance->bindMaterialInstance(
 								materialBinding,
 								[this, camera, renderableInstance](
-									GlProgramPtr program,
+									IMkShaderPtr program,
 									eUniformDataType uniformDataType,
 									eUniformSemantic uniformSemantic,
 									const std::string& uniformName) 
@@ -169,7 +169,7 @@ void GlScene::render(IMkCameraConstPtr camera, GlStateStack& glStateStack) const
 
 eUniformBindResult GlScene::materialBindCallback(
 	IMkCameraConstPtr camera,
-	GlProgramPtr program,
+	IMkShaderPtr program,
 	eUniformDataType uniformDataType,
 	eUniformSemantic uniformSemantic,
 	const std::string& uniformName) const
@@ -228,7 +228,7 @@ eUniformBindResult GlScene::materialBindCallback(
 eUniformBindResult GlScene::materialInstanceBindCallback(
 	IMkCameraConstPtr camera,
 	IMkSceneRenderableConstPtr renderableInstance,
-	GlProgramPtr program,
+	IMkShaderPtr program,
 	eUniformDataType uniformDataType,
 	eUniformSemantic uniformSemantic,
 	const std::string& uniformName) const

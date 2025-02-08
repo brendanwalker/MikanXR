@@ -1,6 +1,6 @@
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "IMkTexture.h"
 
 GlMaterialInstance::GlMaterialInstance()
@@ -368,7 +368,7 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 	if (m_parentMaterial != nullptr && 
 		materialBinding.getBoundMaterial() == m_parentMaterial)
 	{
-		GlProgramPtr program= m_parentMaterial->getProgram();
+		IMkShaderPtr program= m_parentMaterial->getProgram();
 
 		// Auto-apply callback specific uniform bindings first
 		if (callback)
@@ -377,7 +377,7 @@ GlScopedMaterialInstanceBinding GlMaterialInstance::bindMaterialInstance(
 			{
 				const std::string& uniformName = it->first;
 				eUniformSemantic uniformSemantic = it->second.semantic;
-				eUniformDataType uniformDataType = GlProgram::getUniformSemanticDataType(uniformSemantic);
+				eUniformDataType uniformDataType = getUniformSemanticDataType(uniformSemantic);
 
 				eUniformBindResult bindResult = callback(program, uniformDataType, uniformSemantic, uniformName);
 				if (bindResult == eUniformBindResult::bound)

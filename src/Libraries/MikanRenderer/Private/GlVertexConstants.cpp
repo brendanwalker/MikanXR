@@ -1,4 +1,4 @@
-#include "GlVertexConstants.h"
+#include "MkVertexConstants.h"
 #include "StringUtils.h"
 
 const std::string g_VertexSemanticNames[(int)eVertexSemantic::COUNT] = {

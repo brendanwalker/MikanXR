@@ -1,6 +1,6 @@
 #include "GraphStencilProperty.h"
 #include "GlMaterial.h"
-#include "GlVertexDefinition.h"
+#include "IMkVertexDefinition.h"
 #include "Logger.h"
 #include "NodeEditorUI.h"
 #include "ProfileConfigConstants.h"

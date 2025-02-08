@@ -1,8 +1,8 @@
 #pragma once
 
-#include <functional>
+#include "MkRendererExport.h"
+
 #include <string>
-#include <memory>
 
 enum class eUniformDataType : int
 {
@@ -20,7 +20,7 @@ enum class eUniformDataType : int
 	datatype_texture,
 };
 
-// Don't forget to update GlProgram::getUniformSemanticDataType if chaning this enum
+// Don't forget to update IMkShader::getUniformSemanticDataType if chaning this enum
 enum class eUniformSemantic : int
 {
 	INVALID = -1,
@@ -64,16 +64,5 @@ enum class eUniformSemantic : int
 };
 extern const std::string* k_UniformSemanticName;
 
-// Uniform binding callback
-enum class eUniformBindResult : int
-{
-	bound,
-	unbound,
-	error
-};
-using BindUniformCallback =
-	std::function<eUniformBindResult(
-		std::shared_ptr<class GlProgram>, // Source program to bind the uniform for
-		eUniformDataType, // Data type of the uniform
-		eUniformSemantic, // Semantic of the uniform
-		const std::string&)>; // Name of the uniform
+
+MIKAN_RENDERER_FUNC(eUniformDataType) getUniformSemanticDataType(eUniformSemantic semantic);

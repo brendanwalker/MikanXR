@@ -1,14 +1,14 @@
 #pragma once
 
 #include "CommonConfig.h"
-#include "GlVertexConstants.h"
+#include "MkVertexConstants.h"
 
 #include <filesystem>
 #include <map>
 #include <string>
 #include <vector>
 
-class GlVertexAttributeConfig : public CommonConfig
+class MikanVertexAttributeConfig : public CommonConfig
 {
 public:
 	virtual configuru::Config writeToJSON();
@@ -18,9 +18,9 @@ public:
 	eVertexDataType dataType= eVertexDataType::INVALID;
 	eVertexSemantic semantic= eVertexSemantic::INVALID;
 };
-using GlVertexAttributeConfigPtr = std::shared_ptr<GlVertexAttributeConfig>;
+using GlVertexAttributeConfigPtr = std::shared_ptr<MikanVertexAttributeConfig>;
 
-class GlProgramConfig : public CommonConfig
+class MikanShaderConfig : public CommonConfig
 {
 public:
 	virtual configuru::Config writeToJSON() override;

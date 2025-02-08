@@ -17,10 +17,13 @@ public:
 
 	GlMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef);
 
-	GlMaterialPtr registerMaterial(const GlProgramCode& code);
+	GlMaterialPtr registerMaterial(IMkShaderCodeConstPtr code);
 	GlMaterialConstPtr getMaterialByName(const std::string& name);
 
-	GlProgramPtr fetchCompiledGlProgram(const GlProgramCode* code);
+	IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code);
+
+protected:
+	IMkShaderCodeConstPtr loadShaderCodeFromConfigData(const MikanShaderConfig& config);
 
 private:
 	IMkShaderCachePtr m_shaderCache;

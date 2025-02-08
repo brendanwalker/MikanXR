@@ -5,7 +5,7 @@
 #include "GlModelResourceManager.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlShaderCache.h"
 #include "MikanTextureCache.h"
 #include "GlTriangulatedMesh.h"
@@ -87,7 +87,7 @@ namespace ObjUtils
 		const eUniformSemantic semantic,
 		std::string& outRelativeTexturePath)
 	{
-		GlProgramPtr program = materialInstance->getMaterial()->getProgram();
+		IMkShaderPtr program = materialInstance->getMaterial()->getProgram();
 
 		std::string uniformName;
 		GlTexturePtr texture;

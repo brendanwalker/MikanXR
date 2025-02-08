@@ -3,9 +3,9 @@
 #include "IMkTriangulatedMesh.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "IMkShaderCache.h"
-#include "GlVertexDefinition.h"
+#include "IMkVertexDefinition.h"
 #include "IMkWindow.h"
 #include "Logger.h"
 

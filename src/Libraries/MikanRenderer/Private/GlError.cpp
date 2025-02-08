@@ -24,7 +24,7 @@ static inline const char* errorToString(const GLenum errorCode)
 	} 
 }
 
-bool checkHasAnyGLError(const char* context, const char* file, const int line)
+bool checkHasAnyMkError(const char* context, const char* file, const int line)
 {
 	bool bHasAnyError= false;
 

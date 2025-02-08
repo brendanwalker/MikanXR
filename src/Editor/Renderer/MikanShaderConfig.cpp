@@ -1,7 +1,7 @@
-#include "GlProgramConfig.h"
+#include "MikanShaderConfig.h"
 
 // -- GlVertexAttributeConfig ------
-configuru::Config GlVertexAttributeConfig::writeToJSON()
+configuru::Config MikanVertexAttributeConfig::writeToJSON()
 {
 	configuru::Config pt;
 
@@ -12,7 +12,7 @@ configuru::Config GlVertexAttributeConfig::writeToJSON()
 	return pt;
 }
 
-void GlVertexAttributeConfig::readFromJSON(const configuru::Config& pt)
+void MikanVertexAttributeConfig::readFromJSON(const configuru::Config& pt)
 {
 	name= pt.get_or<std::string>("name", name);
 
@@ -24,7 +24,7 @@ void GlVertexAttributeConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- CompositorLayerConfig ------
-configuru::Config GlProgramConfig::writeToJSON()
+configuru::Config MikanShaderConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
@@ -37,7 +37,7 @@ configuru::Config GlProgramConfig::writeToJSON()
 	return pt;
 }
 
-void GlProgramConfig::readFromJSON(const configuru::Config& pt)
+void MikanShaderConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 

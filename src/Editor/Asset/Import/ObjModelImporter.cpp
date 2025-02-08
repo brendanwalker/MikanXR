@@ -5,7 +5,7 @@
 #include "GlModelResourceManager.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "MikanShaderCache.h"
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
@@ -295,12 +295,12 @@ namespace ObjUtils
 		const fastObjTexture& objTexture,
 		const eUniformSemantic semantic)
 	{
-		GlProgramPtr program = materialInstance->getMaterial()->getProgram();
+		IMkShaderPtr program = materialInstance->getMaterial()->getProgram();
 
 		// See if the shader has a uniform that wants to bind to a texture with the given semantic
 		std::string uniformName;
 		if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
-			program->getUniformSemanticDataType(semantic) == eUniformDataType::datatype_texture)
+			getUniformSemanticDataType(semantic) == eUniformDataType::datatype_texture)
 		{
 			// Try loading the texture using the relative path
 			IMkTexturePtr texture;

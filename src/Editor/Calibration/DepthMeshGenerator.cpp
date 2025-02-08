@@ -9,7 +9,7 @@
 #include "GlMaterialInstance.h"
 #include "GlModelResourceManager.h"
 #include "GlRenderModelResource.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlShaderCache.h"
 #include "GlScene.h"
 #include "IMkTexture.h"

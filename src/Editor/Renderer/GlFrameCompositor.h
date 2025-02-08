@@ -120,8 +120,8 @@ protected:
 	void updateCompositeFrame();
 	void updateCompositeFrameNodeGraph();
 
-	static const class GlProgramCode* getRGBFrameShaderCode();
-	static const class GlProgramCode* getRGBtoBGRVideoFrameShaderCode();
+	static const class IMkShaderCode* getRGBFrameShaderCode();
+	static const class IMkShaderCode* getRGBtoBGRVideoFrameShaderCode();
 
 	// MikanServer Events
 	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
@@ -158,8 +158,8 @@ private:
 	unsigned int m_videoQuadVAO = 0, m_videoQuadVBO = 0;
 	unsigned int m_layerQuadVAO = 0, m_layerQuadVBO = 0;
 	bool m_bGenerateBGRVideoTexture = false;
-	GlProgramPtr m_rgbFrameShader = nullptr;
-	GlProgramPtr m_rgbToBgrFrameShader = nullptr; // Keep
+	IMkShaderPtr m_rgbFrameShader = nullptr;
+	IMkShaderPtr m_rgbToBgrFrameShader = nullptr; // Keep
 
 	eCompositorEvaluatorWindow m_evaluatorWindow = eCompositorEvaluatorWindow::mainWindow;
 	IMkTexturePtr m_editorFrameBufferTexture = nullptr;

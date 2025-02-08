@@ -1,7 +1,7 @@
 #include "GlCommon.h"
 #include "IMkCamera.h"
 #include "IMkWindow.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlShaderCache.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"

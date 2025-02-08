@@ -5,7 +5,7 @@
 #include "GlLineRenderer.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
 

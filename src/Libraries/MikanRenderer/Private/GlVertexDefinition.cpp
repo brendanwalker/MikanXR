@@ -1,6 +1,6 @@
 #include "GlCommon.h"
-#include "GlVertexDefinition.h"
-#include "GlProgram.h"
+#include "IMkVertexDefinition.h"
+#include "IMkShader.h"
 #include "Logger.h"
 #include "StringUtils.h"
 
@@ -12,6 +12,88 @@ namespace VertexDefinitionUtils
 	size_t getDataTypeSize(eVertexDataType dataType);
 	eVertexSemantic determineSemanticFromName(const std::string& name);
 };
+
+class GlVertexAttribute : public IMkVertexAttribute
+{
+public:
+	GlVertexAttribute();
+	GlVertexAttribute(
+		const std::string& name,
+		eVertexDataType dataType,
+		eVertexSemantic semantic,
+		bool isNormalized = false);
+
+	bool isCompatibleAttribute(const GlVertexAttribute& other) const;
+	const std::string& getName() const { return m_name; }
+	int getLocation() const { return m_location; }
+	size_t getAttributeSize() const { return m_attributeSize; }
+	size_t getOffset() const { return m_offset; }
+	eVertexSemantic getSemantic() const { return m_semantic; }
+	eVertexDataType getDataType() const { return m_dataType; }
+	bool getIsNormalized() const { return m_bIsNormalized; }
+
+private:
+	// OpenGL specific
+	std::string m_name;
+	GLint m_numComponents; // 1, 2, 3, 4
+	GLenum m_componentType; // GL_FLOAT, GL_UNSIGNED_BYTE, GL_INT, GL_UNSIGNED_INT, GL_DOUBLE
+	bool m_bIsNormalized; // Fixed point data (like ubyte colors) normalized to [0, 1] or [-1, 1]
+
+	// Derived data
+	GLuint m_location; // Attribute index in the vertex definition
+	size_t m_attributeSize;
+	size_t m_offset;
+	eVertexSemantic m_semantic;
+	eVertexDataType m_dataType;
+
+	friend class GlVertexDefinition;
+};
+
+class GlVertexDefinition : public IMkVertexDefinition
+{
+public:
+	GlVertexDefinition() = default;
+	GlVertexDefinition(IMkVertexDefinitionConstPtr vertexDefinition);
+	GlVertexDefinition(const std::vector<IMkVertexAttributeConstPtr>& _attribtes);
+
+	bool getIsValid() const { return m_bIsValid; }
+	const std::vector<IMkVertexAttributePtr>& getAttributes() const { return m_attributes; }
+	size_t getVertexSize() const { return m_vertexSize; }
+
+	void applyVertexDefintion() const;
+	const std::string& getVertexDefinitionDesc() const { return m_description; }
+	const GlVertexAttribute* getFirstAttributeBySemantic(eVertexSemantic semantic) const;
+	const GlVertexAttribute* getAttributeByName(const std::string& name) const;
+	bool isCompatibleDefinition(const GlVertexDefinition& other) const;
+	bool isCompatibleProgram(const class IMkShader& program) const;
+
+private:
+	std::vector<IMkVertexAttributePtr> m_attributes;
+	std::string m_description;
+	size_t m_vertexSize;
+	bool m_bIsValid;
+};
+
+IMkVertexAttributePtr createMkVertexAttribute(
+	const std::string& name,
+	eVertexDataType dataType,
+	eVertexSemantic semantic,
+	bool isNormalized)
+{
+	return std::make_shared<GlVertexAttribute>(name, dataType, semantic, isNormalized);
+}
+
+IMkVertexDefinitionPtr createMkVertexDefinition(
+	IMkVertexDefinitionConstPtr vertexDefinition)
+{
+	return std::make_shared<GlVertexDefinition>(vertexDefinition);
+}
+
+IMkVertexDefinitionPtr createMkVertexDefinition(
+	const std::vector<IMkVertexAttributeConstPtr>& attribtes)
+{
+	return std::make_shared<GlVertexDefinition>(attribtes);
+}
 
 // -- GlVertexAttribute ------
 GlVertexAttribute::GlVertexAttribute()
@@ -162,9 +244,9 @@ bool GlVertexDefinition::isCompatibleDefinition(const GlVertexDefinition& other)
 	return true;
 }
 
-bool GlVertexDefinition::isCompatibleProgram(const GlProgram& program) const
+bool GlVertexDefinition::isCompatibleProgram(const IMkShader& program) const
 {
-	uint32_t programId = program.getGlProgramId();
+	uint32_t programId = program.getIMkShaderId();
 	const std::string programName = program.getProgramCode().getProgramName();
 
 	if (programId == 0)
@@ -191,7 +273,7 @@ bool GlVertexDefinition::isCompatibleProgram(const GlProgram& program) const
 			attribName);
 		if (attribArraySize != 1)
 		{
-			MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+			MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") <<
 				"Program " << programName <<
 				" has unsupported array[" << attribArraySize <<"] attribute " << attribName;
 			bSuccess = false;
@@ -210,7 +292,7 @@ bool GlVertexDefinition::isCompatibleProgram(const GlProgram& program) const
 				eVertexDataType actualDataType = VertexDefinitionUtils::determineDataType(attribType);
 				if (actualDataType == eVertexDataType::INVALID)
 				{
-					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") <<
 						"Program " << programName <<
 						" has attribute " << attribName <<
 						" using unsupported GL datatype 0x" << std::hex << attribType;
@@ -251,7 +333,7 @@ bool GlVertexDefinition::isCompatibleProgram(const GlProgram& program) const
 
 				if (!bHasCompatibleTypes)
 				{
-					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") <<
 						"Program " << programName <<
 						" has attribute " << attribName <<
 						" with mismatched data type " <<
@@ -263,7 +345,7 @@ bool GlVertexDefinition::isCompatibleProgram(const GlProgram& program) const
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") <<
 					"Program " << programName <<
 					" has out of range attribute " << attribName;
 				bSuccess = false;
@@ -272,7 +354,7 @@ bool GlVertexDefinition::isCompatibleProgram(const GlProgram& program) const
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("GlVertexDefinition::extractFromGlProgram") <<
+			MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") <<
 				"Program " << programName <<
 				" has missing location for attrib " << attribName;
 			bSuccess = false;

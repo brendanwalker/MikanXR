@@ -31,10 +31,10 @@
 #include "AppStage.h"
 #include "SdlCommon.h"
 #include "GlShaderCache.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"
-#include "GlVertexDefinition.h"
+#include "IMkVertexDefinition.h"
 #include "MikanViewport.h"
 #include "IMkWindow.h"
 #include "Logger.h"
@@ -107,7 +107,7 @@ namespace RmlGfx {
 			}
 		)"""";
 
-	static GlProgramCode color_program_code = GlProgramCode(
+	static IMkShaderCode color_program_code = IMkShaderCode(
 		"Rml UI Color Program",
 		// vertex shader
 		shader_main_vertex,
@@ -119,7 +119,7 @@ namespace RmlGfx {
 		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
 		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix);
 
-	static GlProgramCode texture_program_code = GlProgramCode(
+	static IMkShaderCode texture_program_code = IMkShaderCode(
 		"Rml UI Texture Program",
 		// vertex shader`
 		shader_main_vertex,
@@ -141,22 +141,22 @@ namespace RmlGfx {
 	};
 
 	struct ShadersData {
-		GlProgramPtr program_color;
-		GlProgramPtr program_texture;
+		IMkShaderPtr program_color;
+		IMkShaderPtr program_texture;
 	};
 
 	static bool CreateShaders(IGlWindow* ownerWindow, ShadersData& out_shaders)
 	{
 		out_shaders = {};
 
-		out_shaders.program_color = ownerWindow->getShaderCache()->fetchCompiledGlProgram(&color_program_code);
+		out_shaders.program_color = ownerWindow->getShaderCache()->fetchCompiledIMkShader(&color_program_code);
 		if (out_shaders.program_color == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
 			return false;
 		}
 
-		out_shaders.program_texture = ownerWindow->getShaderCache()->fetchCompiledGlProgram(&texture_program_code);
+		out_shaders.program_texture = ownerWindow->getShaderCache()->fetchCompiledIMkShader(&texture_program_code);
 		if (out_shaders.program_texture == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
@@ -554,7 +554,7 @@ Rml::CompiledGeometryHandle GlRmlUiRender::CompileGeometry(
 void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation)
 {
 	RmlGfx::CompiledGeometryData* geometry = (RmlGfx::CompiledGeometryData*)handle;
-	GlProgramPtr program= nullptr;
+	IMkShaderPtr program= nullptr;
 
 	if (geometry->texture)
 	{
@@ -587,7 +587,7 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__);
+	checkHasAnyGLError("IMkShader::createProgram()", __FILE__, __LINE__);
 
 	assert(program != nullptr);
 	program->unbindProgram();
@@ -753,7 +753,7 @@ void GlRmlUiRender::SubmitTransformUniform(ProgramId program_id)
 {
 	if ((int)program_id & (int)transform_dirty_state)
 	{
-		GlProgramPtr program= nullptr;
+		IMkShaderPtr program= nullptr;
 
 		switch (program_id)
 		{

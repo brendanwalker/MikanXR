@@ -50,7 +50,7 @@ protected:
 
 protected:
 	GlFrameBufferPtr m_compositingFrameBuffer;
-	GlProgramPtr m_vertexOnlyStencilShader;
+	IMkShaderPtr m_vertexOnlyStencilShader;
 	IMkTriangulatedMeshPtr m_stencilQuadMesh;
 	IMkTriangulatedMeshPtr m_stencilBoxMesh;
 	IMkTriangulatedMeshPtr m_depthQuadMesh;

@@ -1,9 +1,9 @@
 #include "GlModelResourceManager.h"
 #include "GlMaterialInstance.h"
 #include "GlMaterial.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "IMkStaticMeshInstance.h"
-#include "GlVertexDefinition.h"
+#include "IMkVertexDefinition.h"
 #include "StaticMeshComponent.h"
 #include "MikanObject.h"
 #include "MikanStencilTypes.h"
@@ -15,7 +15,7 @@ StaticMeshComponent::StaticMeshComponent(MikanObjectWeakPtr owner)
 
 IMkStaticMeshInstancePtr StaticMeshComponent::getStaticMesh() const 
 { 
-	return std::dynamic_pointer_cast<GlStaticMeshInstance>(m_sceneRenderable); 
+	return std::dynamic_pointer_cast<IMkStaticMeshInstance>(m_sceneRenderable); 
 }
 
 void StaticMeshComponent::setStaticMesh(IMkStaticMeshInstancePtr meshInstance)
@@ -33,7 +33,7 @@ void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderG
 {
 	IMkStaticMeshInstancePtr meshInstance= getStaticMesh();
 
-	IGlMeshConstPtr glMesh = meshInstance->getMesh();
+	IMkMeshConstPtr glMesh = meshInstance->getMesh();
 	if (glMesh->getIndexPerElementCount() != 3)
 	{
 		// Only support triangle meshes

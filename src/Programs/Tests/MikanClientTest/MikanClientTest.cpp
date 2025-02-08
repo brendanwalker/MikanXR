@@ -50,7 +50,7 @@
 #endif
 
 #include "IMkTexture.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "Logger.h"
 
 #include <glm/glm.hpp>
@@ -1027,9 +1027,9 @@ protected:
 		SDL_GL_SwapWindow(m_sdlWindow);
 	}
 
-	const GlProgramCode& getShaderCode()
+	const IMkShaderCode& getShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			"Scene Shader Code",
 			// vertex shader
 			R""""(
@@ -1069,9 +1069,9 @@ protected:
 		return x_shaderCode;
 	}
 
-	const GlProgramCode& getScreenShaderCode()
+	const IMkShaderCode& getScreenShaderCode()
 	{
-		static GlProgramCode x_shaderCode = GlProgramCode(
+		static IMkShaderCode x_shaderCode = IMkShaderCode(
 			"Screen Shader Code",
 			// vertex shader
 			R""""(
@@ -1109,9 +1109,9 @@ protected:
 		return x_shaderCode;
 	}
 
-	GlProgram* compileShader(const GlProgramCode& shaderCode)
+	IMkShader* compileShader(const IMkShaderCode& shaderCode)
 	{
-		GlProgram* shader = new GlProgram(shaderCode);
+		IMkShader* shader = new IMkShader(shaderCode);
 
 		if (!shader->compileProgram())
 		{			
@@ -1424,8 +1424,8 @@ private:
 	glm::mat4 m_viewMatrix;
 	float m_zNear, m_zFar;
 
-	GlProgram* m_shader= nullptr;
-	GlProgram* m_screenShader= nullptr;
+	IMkShader* m_shader= nullptr;
+	IMkShader* m_screenShader= nullptr;
 
 	unsigned int m_cubeVAO= 0, m_cubeVBO= 0;
 	unsigned int m_planeVAO= 0, m_planeVBO= 0;

@@ -6,7 +6,7 @@
 #include "SdlCommon.h"
 #include "GlMaterial.h"
 #include "GlMaterialInstance.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "MikanShaderCache.h"
 #include "GlStateStack.h"
 #include "GlStateModifiers.h"

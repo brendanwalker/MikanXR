@@ -7,7 +7,7 @@
 #include "GlScopedObjectBinding.h"
 #include "IMkTexture.h"
 #include "GlTextRenderer.h"
-#include "GlProgramConfig.h"
+#include "MikanShaderConfig.h"
 #include "InterprocessRenderTargetReader.h"
 #include "IMkWindow.h"
 #include "Logger.h"
@@ -21,11 +21,11 @@
 #include "StringUtils.h"
 #include "GlShaderCache.h"
 #include "GlStateStack.h"
-#include "GlProgram.h"
+#include "IMkShader.h"
 #include "GlModelResourceManager.h"
 #include "GlRenderModelResource.h"
 #include "GlTriangulatedMesh.h"
-#include "GlVertexDefinition.h"
+#include "IMkVertexDefinition.h"
 #include "SyntheticDepthEstimator.h"
 #include "VideoSourceManager.h"
 #include "VideoSourceView.h"
@@ -72,14 +72,14 @@ bool GlFrameCompositor::startup(IGlWindow* ownerWindow)
 
 	reloadAllCompositorPresets();
 
-	m_rgbFrameShader = ownerWindow->getShaderCache()->fetchCompiledGlProgram(getRGBFrameShaderCode());
+	m_rgbFrameShader = ownerWindow->getShaderCache()->fetchCompiledIMkShader(getRGBFrameShaderCode());
 	if (m_rgbFrameShader == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb frame shader";
 		return false;
 	}
 
-	m_rgbToBgrFrameShader = ownerWindow->getShaderCache()->fetchCompiledGlProgram(getRGBtoBGRVideoFrameShaderCode());
+	m_rgbToBgrFrameShader = ownerWindow->getShaderCache()->fetchCompiledIMkShader(getRGBtoBGRVideoFrameShaderCode());
 	if (m_rgbToBgrFrameShader == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb-to-gbr frame shader";
@@ -1174,9 +1174,9 @@ void GlFrameCompositor::onClientRenderTargetUpdated(
 	}
 }
 
-const GlProgramCode* GlFrameCompositor::getRGBFrameShaderCode()
+const IMkShaderCode* GlFrameCompositor::getRGBFrameShaderCode()
 {
-	static GlProgramCode x_shaderCode = GlProgramCode(
+	static IMkShaderCode x_shaderCode = IMkShaderCode(
 		"Internal RGB Frame Shader Code",
 		// vertex shader
 		R""""(
@@ -1214,9 +1214,9 @@ const GlProgramCode* GlFrameCompositor::getRGBFrameShaderCode()
 	return &x_shaderCode;
 }
 
-const GlProgramCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
+const IMkShaderCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 {
-	static GlProgramCode x_shaderCode = GlProgramCode(
+	static IMkShaderCode x_shaderCode = IMkShaderCode(
 		"Internal BGR Frame Shader Code",
 		// vertex shader
 		R""""(

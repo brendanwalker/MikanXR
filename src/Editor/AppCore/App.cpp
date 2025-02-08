@@ -279,7 +279,7 @@ ISdlMkWindow* App::getCurrentGlContext() const
 
 void App::popCurrentGlContext(ISdlMkWindow* window)
 {
-	if (checkHasAnyGLError("GlProgram::createProgram()", __FILE__, __LINE__))
+	if (checkHasAnyGLError("IMkShader::createProgram()", __FILE__, __LINE__))
 	{
 		MIKAN_LOG_ERROR("App::popCurrentWindow") << "Unhandled GL error found before popping window";
 	}
