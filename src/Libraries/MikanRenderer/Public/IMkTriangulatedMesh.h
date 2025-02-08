@@ -12,8 +12,8 @@
 class IMkTriangulatedMesh : public IMkMesh
 {
 public:
-	virtual bool setMaterial(GlMaterialConstPtr material) = 0;
-	virtual bool setMaterialInstance(GlMaterialInstancePtr materialInstance) = 0;
+	virtual bool setMaterial(MkMaterialConstPtr material) = 0;
+	virtual bool setMaterialInstance(MkMaterialInstancePtr materialInstance) = 0;
 };
 
 // -- Drawing Helpers ---

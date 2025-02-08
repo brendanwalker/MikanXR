@@ -1,5 +1,5 @@
 #include "GraphStencilProperty.h"
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 #include "IMkVertexDefinition.h"
 #include "Logger.h"
 #include "NodeEditorUI.h"

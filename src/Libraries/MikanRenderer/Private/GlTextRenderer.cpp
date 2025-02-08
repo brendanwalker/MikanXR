@@ -1,7 +1,7 @@
 #include "MkError.h"
 #include "GlCommon.h"
-#include "GlMaterial.h"
-#include "GlMaterialInstance.h"
+#include "MkMaterial.h"
+#include "MkMaterialInstance.h"
 #include "IMkShader.h"
 #include "IMkShaderCache.h"
 #include "GlStateStack.h"
@@ -40,7 +40,7 @@ public:
 			return false;
 		}
 
-		m_textMaterialInstance = std::make_shared<GlMaterialInstance>(m_textMaterial);
+		m_textMaterialInstance = std::make_shared<MkMaterialInstance>(m_textMaterial);
 
 		glGenVertexArrays(1, &m_textQuadVAO);
 		glGenBuffers(1, &m_textQuadVBO);
@@ -242,8 +242,8 @@ private:
 	int m_textQuadVertexCount = 0;
 	int m_maxTextQuadVertexCount;
 	TextQuadVertex* m_textQuadVertices;
-	GlMaterialConstPtr m_textMaterial;
-	GlMaterialInstancePtr m_textMaterialInstance;
+	MkMaterialConstPtr m_textMaterial;
+	MkMaterialInstancePtr m_textMaterialInstance;
 };
 
 IMkTextRendererPtr createMkTextRenderer(

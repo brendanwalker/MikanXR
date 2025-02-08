@@ -2,7 +2,7 @@
 #include "IMkCamera.h"
 #include "IMkScene.h"
 #include "IMkTriangulatedMesh.h"
-#include "GlMaterialInstance.h"
+#include "MkMaterialInstance.h"
 
 class GlStaticMeshInstance : 
 	public std::enable_shared_from_this<GlStaticMeshInstance>, 
@@ -17,7 +17,7 @@ public:
 		: m_name(name)
 		, m_visible(true)
 		, m_mesh(mesh)
-		, m_materialInstance(std::make_shared<GlMaterialInstance>(mesh->getMaterialInstance()))
+		, m_materialInstance(std::make_shared<MkMaterialInstance>(mesh->getMaterialInstance()))
 		, m_modelMatrix(glm::mat4(1.f))
 		, m_normalMatrix(glm::mat4(1.f))
 	{}
@@ -113,12 +113,12 @@ public:
 		m_normalMatrix = glm::transpose(glm::inverse(glm::mat3(mat)));
 	}
 
-	virtual const GlMaterialInstanceConstPtr getMaterialInstanceConst() const override
+	virtual const MkMaterialInstanceConstPtr getMaterialInstanceConst() const override
 	{
 		return m_materialInstance;
 	}
 
-	virtual GlMaterialInstancePtr getMaterialInstance() const override
+	virtual MkMaterialInstancePtr getMaterialInstance() const override
 	{
 		return m_materialInstance;
 	}
@@ -133,7 +133,7 @@ private:
 	bool m_visible = false;
 	glm::mat4 m_modelMatrix;
 	glm::mat4 m_normalMatrix;
-	GlMaterialInstancePtr m_materialInstance = nullptr;
+	MkMaterialInstancePtr m_materialInstance = nullptr;
 	IMkMeshConstPtr m_mesh = nullptr;
 	IMkSceneWeakPtr m_boundScene;
 	std::set<std::string> m_visibileToCameras;

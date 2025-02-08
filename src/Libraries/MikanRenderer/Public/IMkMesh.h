@@ -16,7 +16,7 @@ public:
 
 	virtual std::string getName() const = 0;
 	virtual class IMkWindow* getOwnerWindow() const = 0;
-	virtual GlMaterialInstancePtr getMaterialInstance() const = 0;
+	virtual MkMaterialInstancePtr getMaterialInstance() const = 0;
 	virtual const uint8_t* getVertexData() const = 0;
 	virtual const uint32_t getVertexCount() const = 0;
 

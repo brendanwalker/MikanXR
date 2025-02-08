@@ -15,9 +15,9 @@ public:
 	bool startup();
 	void shutdown();
 
-	GlMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef);
+	MkMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef);
 
-	GlMaterialPtr registerMaterial(IMkShaderCodeConstPtr code);
+	MkMaterialPtr registerMaterial(IMkShaderCodeConstPtr code);
 	GlMaterialConstPtr getMaterialByName(const std::string& name);
 
 	IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code);

@@ -16,7 +16,7 @@ public:
 	virtual const glm::mat4& getModelMatrix() const = 0;
 	virtual const glm::mat4& getNormalMatrix() const = 0;
 	virtual void setModelMatrix(const glm::mat4& mat) = 0;
-	virtual GlMaterialInstancePtr getMaterialInstance() const = 0;
-	virtual const GlMaterialInstanceConstPtr getMaterialInstanceConst() const = 0;
+	virtual MkMaterialInstancePtr getMaterialInstance() const = 0;
+	virtual const MkMaterialInstanceConstPtr getMaterialInstanceConst() const = 0;
 	virtual void render() const = 0;
 };

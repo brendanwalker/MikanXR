@@ -1,8 +1,8 @@
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 #include "IMkShader.h"
 #include "IMkTexture.h"
 
-GlMaterial::GlMaterial(
+MkMaterial::MkMaterial(
 	const std::string& name, 
 	IMkShaderPtr program)
 	: m_name(name)
@@ -10,17 +10,17 @@ GlMaterial::GlMaterial(
 {
 }
 
-void GlMaterial::setProgram(IMkShaderPtr program) 
+void MkMaterial::setProgram(IMkShaderPtr program) 
 { 
 	m_program = program; 
 }
 
-IMkShaderPtr GlMaterial::getProgram() const 
+IMkShaderPtr MkMaterial::getProgram() const 
 {
 	return m_program; 
 }
 
-bool GlMaterial::setFloatBySemantic(eUniformSemantic semantic, float value)
+bool MkMaterial::setFloatBySemantic(eUniformSemantic semantic, float value)
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -32,7 +32,7 @@ bool GlMaterial::setFloatBySemantic(eUniformSemantic semantic, float value)
 	return false;
 }
 
-bool GlMaterial::getFloatBySemantic(eUniformSemantic semantic, float& outValue) const
+bool MkMaterial::getFloatBySemantic(eUniformSemantic semantic, float& outValue) const
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -44,7 +44,7 @@ bool GlMaterial::getFloatBySemantic(eUniformSemantic semantic, float& outValue) 
 	return false;
 }
 
-bool GlMaterial::setFloatByUniformName(const std::string uniformName, float value)
+bool MkMaterial::setFloatByUniformName(const std::string uniformName, float value)
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -58,7 +58,7 @@ bool GlMaterial::setFloatByUniformName(const std::string uniformName, float valu
 	return false;
 }
 
-bool GlMaterial::getFloatByUniformName(const std::string uniformName, float& outValue) const
+bool MkMaterial::getFloatByUniformName(const std::string uniformName, float& outValue) const
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -72,7 +72,7 @@ bool GlMaterial::getFloatByUniformName(const std::string uniformName, float& out
 	return false;
 }
 
-bool GlMaterial::setVec2BySemantic(eUniformSemantic semantic, const glm::vec2& value)
+bool MkMaterial::setVec2BySemantic(eUniformSemantic semantic, const glm::vec2& value)
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -84,7 +84,7 @@ bool GlMaterial::setVec2BySemantic(eUniformSemantic semantic, const glm::vec2& v
 	return false;
 }
 
-bool GlMaterial::getVec2BySemantic(eUniformSemantic semantic, glm::vec2& outValue) const
+bool MkMaterial::getVec2BySemantic(eUniformSemantic semantic, glm::vec2& outValue) const
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -96,7 +96,7 @@ bool GlMaterial::getVec2BySemantic(eUniformSemantic semantic, glm::vec2& outValu
 	return false;
 }
 
-bool GlMaterial::setVec2ByUniformName(const std::string uniformName, const glm::vec2& value)
+bool MkMaterial::setVec2ByUniformName(const std::string uniformName, const glm::vec2& value)
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -110,7 +110,7 @@ bool GlMaterial::setVec2ByUniformName(const std::string uniformName, const glm::
 	return false;
 }
 
-bool GlMaterial::getVec2ByUniformName(const std::string uniformName, glm::vec2& outValue) const
+bool MkMaterial::getVec2ByUniformName(const std::string uniformName, glm::vec2& outValue) const
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -124,7 +124,7 @@ bool GlMaterial::getVec2ByUniformName(const std::string uniformName, glm::vec2& 
 	return false;
 }
 
-bool GlMaterial::setVec3BySemantic(eUniformSemantic semantic, const glm::vec3& value)
+bool MkMaterial::setVec3BySemantic(eUniformSemantic semantic, const glm::vec3& value)
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -136,7 +136,7 @@ bool GlMaterial::setVec3BySemantic(eUniformSemantic semantic, const glm::vec3& v
 	return false;
 }
 
-bool GlMaterial::getVec3BySemantic(eUniformSemantic semantic, glm::vec3& outValue) const
+bool MkMaterial::getVec3BySemantic(eUniformSemantic semantic, glm::vec3& outValue) const
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -148,7 +148,7 @@ bool GlMaterial::getVec3BySemantic(eUniformSemantic semantic, glm::vec3& outValu
 	return false;
 }
 
-bool GlMaterial::setVec3ByUniformName(const std::string uniformName, const glm::vec3& value)
+bool MkMaterial::setVec3ByUniformName(const std::string uniformName, const glm::vec3& value)
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -162,7 +162,7 @@ bool GlMaterial::setVec3ByUniformName(const std::string uniformName, const glm::
 	return false;
 }
 
-bool GlMaterial::getVec3ByUniformName(const std::string uniformName, glm::vec3& outValue) const
+bool MkMaterial::getVec3ByUniformName(const std::string uniformName, glm::vec3& outValue) const
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -176,7 +176,7 @@ bool GlMaterial::getVec3ByUniformName(const std::string uniformName, glm::vec3& 
 	return false;
 }
 
-bool GlMaterial::setVec4BySemantic(eUniformSemantic semantic, const glm::vec4& value)
+bool MkMaterial::setVec4BySemantic(eUniformSemantic semantic, const glm::vec4& value)
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -188,7 +188,7 @@ bool GlMaterial::setVec4BySemantic(eUniformSemantic semantic, const glm::vec4& v
 	return false;
 }
 
-bool GlMaterial::getVec4BySemantic(eUniformSemantic semantic, glm::vec4& outValue) const
+bool MkMaterial::getVec4BySemantic(eUniformSemantic semantic, glm::vec4& outValue) const
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -200,7 +200,7 @@ bool GlMaterial::getVec4BySemantic(eUniformSemantic semantic, glm::vec4& outValu
 	return false;
 }
 
-bool GlMaterial::setVec4ByUniformName(const std::string uniformName, const glm::vec4& value)
+bool MkMaterial::setVec4ByUniformName(const std::string uniformName, const glm::vec4& value)
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -214,7 +214,7 @@ bool GlMaterial::setVec4ByUniformName(const std::string uniformName, const glm::
 	return false;
 }
 
-bool GlMaterial::getVec4ByUniformName(const std::string uniformName, glm::vec4& outValue) const
+bool MkMaterial::getVec4ByUniformName(const std::string uniformName, glm::vec4& outValue) const
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -228,7 +228,7 @@ bool GlMaterial::getVec4ByUniformName(const std::string uniformName, glm::vec4& 
 	return false;
 }
 
-bool GlMaterial::setMat4BySemantic(eUniformSemantic semantic, const glm::mat4& value)
+bool MkMaterial::setMat4BySemantic(eUniformSemantic semantic, const glm::mat4& value)
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -240,7 +240,7 @@ bool GlMaterial::setMat4BySemantic(eUniformSemantic semantic, const glm::mat4& v
 	return false;
 }
 
-bool GlMaterial::getMat4BySemantic(eUniformSemantic semantic, glm::mat4& outValue) const
+bool MkMaterial::getMat4BySemantic(eUniformSemantic semantic, glm::mat4& outValue) const
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -252,7 +252,7 @@ bool GlMaterial::getMat4BySemantic(eUniformSemantic semantic, glm::mat4& outValu
 	return false;
 }
 
-bool GlMaterial::setMat4ByUniformName(const std::string uniformName, const glm::mat4& value)
+bool MkMaterial::setMat4ByUniformName(const std::string uniformName, const glm::mat4& value)
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -266,7 +266,7 @@ bool GlMaterial::setMat4ByUniformName(const std::string uniformName, const glm::
 	return false;
 }
 
-bool GlMaterial::getMat4ByUniformName(const std::string uniformName, glm::mat4& outValue) const
+bool MkMaterial::getMat4ByUniformName(const std::string uniformName, glm::mat4& outValue) const
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -280,7 +280,7 @@ bool GlMaterial::getMat4ByUniformName(const std::string uniformName, glm::mat4& 
 	return false;
 }
 
-bool GlMaterial::setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture)
+bool MkMaterial::setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture)
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -292,7 +292,7 @@ bool GlMaterial::setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr t
 	return false;
 }
 
-bool GlMaterial::getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const
+bool MkMaterial::getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const
 {
 	std::string uniformName;
 	if (m_program != nullptr &&
@@ -304,7 +304,7 @@ bool GlMaterial::getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& 
 	return false;
 }
 
-bool GlMaterial::setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture)
+bool MkMaterial::setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture)
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -318,7 +318,7 @@ bool GlMaterial::setTextureByUniformName(const std::string uniformName, IMkTextu
 	return false;
 }
 
-bool GlMaterial::getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const
+bool MkMaterial::getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const
 {
 	eUniformDataType datatype;
 	if (m_program != nullptr &&
@@ -332,7 +332,7 @@ bool GlMaterial::getTextureByUniformName(const std::string uniformName, IMkTextu
 	return false;
 }
 
-MkScopedMaterialBinding GlMaterial::bindMaterial(
+MkScopedMaterialBinding MkMaterial::bindMaterial(
 	BindUniformCallback callback) const
 {	
 	bool bMaterialFailure= false;
@@ -460,7 +460,7 @@ MkScopedMaterialBinding GlMaterial::bindMaterial(
 	return MkScopedMaterialBinding(shared_from_this(), unboundUniformNames, bMaterialFailure);
 }
 
-void GlMaterial::unbindMaterial() const
+void MkMaterial::unbindMaterial() const
 {
 	// Unbind all textures
 	for (auto it = m_textureSources.getMap().begin(); it != m_textureSources.getMap().end(); ++it)

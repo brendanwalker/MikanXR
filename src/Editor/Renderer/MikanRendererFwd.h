@@ -27,3 +27,7 @@ class MikanTextureCache;
 using MikanTextureCacheUniquePtr = std::unique_ptr<MikanTextureCache>;
 
 class MikanShaderConfig;
+
+class MikanModelResourceManager;
+using MikanModelResourceManagerSharedPtr = std::shared_ptr<MikanModelResourceManager>;
+using MikanModelResourceManagerUniquePtr = std::unique_ptr<MikanModelResourceManager>;

@@ -1,4 +1,4 @@
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 #include "MikanShaderCache.h"
 #include "IMkShader.h"
 #include "IMkShaderCode.h"
@@ -26,9 +26,9 @@ void MikanShaderCache::shutdown()
 	m_shaderCache->shutdown();
 }
 
-GlMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef)
+MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef)
 {
-	GlMaterialPtr material;
+	MkMaterialPtr material;
 
 	if (materialAssetRef && materialAssetRef->isValid())
 	{
@@ -168,7 +168,7 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 	return programCode;
 }
 
-GlMaterialPtr MikanShaderCache::registerMaterial(IMkShaderCodeConstPtr code)
+MkMaterialPtr MikanShaderCache::registerMaterial(IMkShaderCodeConstPtr code)
 {
 	return m_shaderCache->registerMaterial(code);
 }

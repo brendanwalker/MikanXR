@@ -6,17 +6,13 @@ class GlFrameBuffer;
 using GlFrameBufferPtr = std::shared_ptr<GlFrameBuffer>;
 using GlFrameBufferConstPtr = std::shared_ptr<const GlFrameBuffer>;
 
-class GlMaterial;
-using GlMaterialPtr = std::shared_ptr<GlMaterial>;
-using GlMaterialConstPtr = std::shared_ptr<const GlMaterial>;
+class MkMaterial;
+using MkMaterialPtr = std::shared_ptr<MkMaterial>;
+using MkMaterialConstPtr = std::shared_ptr<const MkMaterial>;
 
-class GlMaterialInstance;
-using GlMaterialInstancePtr = std::shared_ptr<GlMaterialInstance>;
-using GlMaterialInstanceConstPtr = std::shared_ptr<const GlMaterialInstance>;
-
-class GlModelResourceManager;
-using GlModelResourceManagerSharedPtr = std::shared_ptr<GlModelResourceManager>;
-using GlModelResourceManagerUniquePtr = std::unique_ptr<GlModelResourceManager>;
+class MkMaterialInstance;
+using MkMaterialInstancePtr = std::shared_ptr<MkMaterialInstance>;
+using MkMaterialInstanceConstPtr = std::shared_ptr<const MkMaterialInstance>;
 
 class IMkVertexAttribute;
 using IMkVertexAttributePtr = std::shared_ptr<IMkVertexAttribute>;

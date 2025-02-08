@@ -3,7 +3,7 @@
 #include "SdlCommon.h"
 #include "GlFrameBuffer.h"
 #include "GlFrameCompositor.h"
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 #include "MkScopedObjectBinding.h"
 #include "IMkTexture.h"
 #include "GlTextRenderer.h"

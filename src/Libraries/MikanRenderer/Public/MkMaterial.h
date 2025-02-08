@@ -1,57 +1,56 @@
 #pragma once
 
+#include "NamedValueTable.h"
 #include "MkShaderConstants.h"
 #include "MkScopedMaterialBinding.h"
-#include "NamedValueTable.h"
 #include "MkRendererFwd.h"
 
+#include <functional>
 #include <string>
-#include <map>
 #include <memory>
+#include <map>
 
 #include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-
-class GlScopedMaterialInstanceBinding
+// Uniform binding callback
+enum class eUniformBindResult : int
 {
-public:
-	GlScopedMaterialInstanceBinding() : m_boundMaterialInstance(nullptr) {}
-	GlScopedMaterialInstanceBinding(
-		GlMaterialInstanceConstPtr materialInstance,
-		UniformNameSet unboundUniformNames,
-		bool bMaterialInstanceFailure) 
-		: m_boundMaterialInstance(materialInstance) 
-		, m_unboundUniformNames(unboundUniformNames)
-		, m_bMaterialInstanceFailure(bMaterialInstanceFailure)
-	{}
-	virtual ~GlScopedMaterialInstanceBinding();
-
-	inline GlMaterialInstanceConstPtr getBoundMaterialInstance() const { return m_boundMaterialInstance; }
-	inline const UniformNameSet& getUnboundUniforms() const { return m_unboundUniformNames; }
-	inline operator bool() const { return !m_bMaterialInstanceFailure; }
-
-private:
-	GlMaterialInstanceConstPtr m_boundMaterialInstance = nullptr;
-	UniformNameSet m_unboundUniformNames;
-	bool m_bMaterialInstanceFailure= false;
+	bound,
+	unbound,
+	error
 };
+using BindUniformCallback =
+std::function<eUniformBindResult(
+	std::shared_ptr<class IMkShader>, // Source program to bind the uniform for
+	eUniformDataType, // Data type of the uniform
+	eUniformSemantic, // Semantic of the uniform
+	const std::string&)>; // Name of the uniform
 
-class GlMaterialInstance : public std::enable_shared_from_this<GlMaterialInstance>
+class MkMaterial : public std::enable_shared_from_this<MkMaterial>
 {
 public:
-	GlMaterialInstance();
-	GlMaterialInstance(GlMaterialConstPtr material);
-	GlMaterialInstance(GlMaterialInstanceConstPtr materialInstance);
+	MkMaterial() = default;
+	MkMaterial(const std::string& name, IMkShaderPtr program);
 
-	GlMaterialConstPtr getMaterial() const { return m_parentMaterial; }
+	const std::string& getName() const { return m_name; }
+
+	void setProgram(IMkShaderPtr program);
+	IMkShaderPtr getProgram() const;
+
+	inline const NamedValueTable<float>& getFloatSources() const { return m_floatSources; }
+	inline const NamedValueTable<glm::vec2>& getFloat2Sources() const { return m_float2Sources; }
+	inline const NamedValueTable<glm::vec3>& getFloat3Sources() const { return m_float3Sources; }
+	inline const NamedValueTable<glm::vec4>& getFloat4Sources() const { return m_float4Sources; }
+	inline const NamedValueTable<glm::mat4>& getMat4Sources() const { return m_mat4Sources; }
+	inline const NamedValueTable<IMkTexturePtr>& getTextureSources() const { return m_textureSources; }
 
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
 	bool setFloatByUniformName(const std::string uniformName, float value);
-	bool getFloatByUniformName(const std::string uniformName, float& outValue) const;
+	bool getFloatByUniformName(const std::string uniformName, float &outValue) const;
 
 	bool setVec2BySemantic(eUniformSemantic semantic, const glm::vec2& value);
 	bool getVec2BySemantic(eUniformSemantic semantic, glm::vec2& outValue) const;
@@ -78,18 +77,17 @@ public:
 	bool setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture);
 	bool getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const;
 
-	GlScopedMaterialInstanceBinding bindMaterialInstance(
-		const MkScopedMaterialBinding& materialBinding,
-		BindUniformCallback callback= BindUniformCallback()) const;
+	MkScopedMaterialBinding bindMaterial(BindUniformCallback callback= BindUniformCallback()) const;
 
-protected: 
-	friend class GlScopedMaterialInstanceBinding;
-	void unbindMaterialInstance() const;
+protected:
+	friend class MkScopedMaterialBinding;
+	void unbindMaterial() const;
 
 private:
-	GlMaterialConstPtr m_parentMaterial = nullptr;
+	std::string m_name;
+	IMkShaderPtr m_program = nullptr;
 
-	// Material Override Parameters
+	// Program Parameters
 	NamedValueTable<float> m_floatSources;
 	NamedValueTable<glm::vec2> m_float2Sources;
 	NamedValueTable<glm::vec3> m_float3Sources;

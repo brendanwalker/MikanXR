@@ -3,8 +3,8 @@
 #include "IMkWindow.h"
 #include "IMkShader.h"
 #include "MikanShaderCache.h"
-#include "GlMaterial.h"
-#include "GlMaterialInstance.h"
+#include "MkMaterial.h"
+#include "MkMaterialInstance.h"
 #include "IMKWireframeMesh.h"
 //#include "GlViewport.h"
 #include "Logger.h"
@@ -54,7 +54,7 @@ public:
 	}
 
 	virtual std::string getName() const override { return m_name; }
-	virtual GlMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; };
+	virtual MkMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; };
 	virtual class IMkWindow* getOwnerWindow() const override { return m_ownerWindow; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
@@ -94,7 +94,7 @@ public:
 		}
 
 		IMkShaderCache* shaderCache = getOwnerWindow()->getShaderCache();
-		GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
+		MkMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
 		if (!material)
 		{
 			return false;
@@ -108,7 +108,7 @@ public:
 		}
 
 		// create a material instance from the default wireframe material
-		m_materialInstance = std::make_shared<GlMaterialInstance>(material);
+		m_materialInstance = std::make_shared<MkMaterialInstance>(material);
 		m_materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
 
 		// create and bind a Vertex Array Object(VAO) to hold state for this model
@@ -160,7 +160,7 @@ public:
 
 protected:
 	class IMkWindow* m_ownerWindow = nullptr;
-	GlMaterialInstancePtr m_materialInstance;
+	MkMaterialInstancePtr m_materialInstance;
 
 	std::string m_name;
 
@@ -213,8 +213,8 @@ void drawTransformedWireframeMesh(
 {
 	if (camera != nullptr && wireframeMesh != nullptr)
 	{
-		GlMaterialInstancePtr materialInstance = wireframeMesh->getMaterialInstance();
-		GlMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance = wireframeMesh->getMaterialInstance();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())
 		{

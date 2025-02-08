@@ -154,7 +154,7 @@ private:
 	GlStateStackUniquePtr m_glStateStack;
 	IMkLineRendererPtr m_lineRenderer;
 	IMkTextRendererPtr m_textRenderer;
-	GlModelResourceManagerUniquePtr m_modelResourceManager;
+	MikanModelResourceManagerUniquePtr m_modelResourceManager;
 	GlRmlUiRenderUniquePtr m_rmlUiRenderer;
 
 	enum class AppStageOperation : int

@@ -1,4 +1,4 @@
-#include "GlMaterialInstance.h"
+#include "MkMaterialInstance.h"
 #include "IMkStaticMeshInstance.h"
 #include "IMkTriangulatedMesh.h"
 #include "GlScene.h"

@@ -1,5 +1,5 @@
 #include "GraphMaterialProperty.h"
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 #include "IMkVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
@@ -166,7 +166,7 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 		}
 		else
 		{
-			m_materialResource= GlMaterialPtr();
+			m_materialResource= MkMaterialPtr();
 		}
 	}
 }

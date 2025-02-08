@@ -1,6 +1,6 @@
 #include "MikanModelResourceManager.h"
-#include "GlMaterialInstance.h"
-#include "GlMaterial.h"
+#include "MkMaterialInstance.h"
+#include "MkMaterial.h"
 #include "IMkShader.h"
 #include "IMkStaticMeshInstance.h"
 #include "IMkVertexDefinition.h"

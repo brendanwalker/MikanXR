@@ -2,7 +2,7 @@
 #include "Colors.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "IMkLineRenderer.h"
-#include "GlMaterialInstance.h"
+#include "MkMaterialInstance.h"
 #include "MikanModelResourceManager.h"
 #include "MikanRenderModelResource.h"
 #include "IMkTriangulatedMesh.h"

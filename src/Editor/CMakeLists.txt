@@ -173,13 +173,6 @@ file(GLOB MIKAN_CONFIG_SRC
 )
 source_group("Config" FILES ${MIKAN_CONFIG_SRC})
 
-# DataTypes
-file(GLOB MIKAN_DATATYPES_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/DataTypes/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/DataTypes/*.h"
-)
-source_group("DataTypes" FILES ${MIKAN_DATATYPES_SRC})
-
 # Delegates
 file(GLOB MIKAN_DELEGATES_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Delegates/*.cpp"
@@ -414,7 +407,6 @@ set(MIKAN_SRC
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_COMPONENTS_SRC}
     ${MIKAN_CONFIG_SRC}
-    ${MIKAN_DATATYPES_SRC}
     ${MIKAN_DELEGATES_SRC}
     ${MIKAN_DEVICE_ENUM_SRC}
     ${MIKAN_DEVICE_INTERFACE_SRC}
@@ -452,7 +444,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Components
   ${CMAKE_CURRENT_LIST_DIR}/Config
-  ${CMAKE_CURRENT_LIST_DIR}/DataTypes
   ${CMAKE_CURRENT_LIST_DIR}/Delegates
   ${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator
   ${CMAKE_CURRENT_LIST_DIR}/Device/Interface
@@ -480,7 +471,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
-  ${MIKAN_LIBRARIES_DIR}/MikanDataTypes/Public
   ${MIKAN_LIBRARIES_DIR}/MikanInterprocessServer/Public
   ${MIKAN_LIBRARIES_DIR}/MikanMath/Public
   ${MIKAN_LIBRARIES_DIR}/MikanObject/Public

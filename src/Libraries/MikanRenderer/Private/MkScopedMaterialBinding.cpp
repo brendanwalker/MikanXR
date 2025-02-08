@@ -1,5 +1,5 @@
 #include "MkScopedMaterialBinding.h"
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 
 MkScopedMaterialBinding::~MkScopedMaterialBinding()
 {

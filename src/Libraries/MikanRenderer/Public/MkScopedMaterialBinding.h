@@ -13,7 +13,7 @@ class MIKAN_RENDERER_CLASS MkScopedMaterialBinding
 public:
 	MkScopedMaterialBinding() = default;
 	MkScopedMaterialBinding(
-		GlMaterialConstPtr material,
+		MkMaterialConstPtr material,
 		UniformNameSet unboundUniformNames,
 		bool bMaterialFailure)
 		: m_boundMaterial(material) 
@@ -22,12 +22,12 @@ public:
 	{}
 	virtual ~MkScopedMaterialBinding();
 
-	inline GlMaterialConstPtr getBoundMaterial() const { return m_boundMaterial; }
+	inline MkMaterialConstPtr getBoundMaterial() const { return m_boundMaterial; }
 	inline const UniformNameSet& getUnboundUniforms() const { return m_unboundUniformNames; }
 	inline operator bool() const { return !m_bMaterialFailure; }
 
 private:
-	GlMaterialConstPtr m_boundMaterial;
+	MkMaterialConstPtr m_boundMaterial;
 	UniformNameSet m_unboundUniformNames;
 	bool m_bMaterialFailure;
 };

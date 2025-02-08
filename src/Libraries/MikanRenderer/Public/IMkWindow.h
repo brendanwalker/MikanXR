@@ -24,5 +24,5 @@ public:
 	virtual class IMkTextRenderer* getTextRenderer() = 0;
 	virtual IMkShaderCache* getShaderCache() = 0;
 	virtual IMkTextureCache* getTextureCache() = 0;
-	virtual GlModelResourceManager* getModelResourceManager() = 0;
+	virtual MikanModelResourceManager* getModelResourceManager() = 0;
 };

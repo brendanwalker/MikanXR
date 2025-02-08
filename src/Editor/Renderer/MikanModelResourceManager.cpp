@@ -1,4 +1,4 @@
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 #include "MikanModelResourceManager.h"
 #include "MikanRenderModelResource.h"
 #include "IMkShader.h"

@@ -106,7 +106,7 @@ protected:
 	GraphObjectSelection m_objectSelection;
 
 	// Models loaded by the shader graph
-	GlModelResourceManagerUniquePtr m_modelResourceManager;
+	MikanModelResourceManagerUniquePtr m_modelResourceManager;
 
 	// OpenGL shader program cache
 	GlShaderCacheUniquePtr m_shaderCache;

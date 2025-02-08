@@ -1,5 +1,5 @@
 #include "IMkShaderCache.h"
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 #include "IMkShader.h"
 #include "IMkShaderCode.h"
 #include "Logger.h"
@@ -32,7 +32,7 @@ public:
 		m_programCache.clear();
 	}
 
-	GlMaterialPtr GlShaderCache::registerMaterial(IMkShaderCodeConstPtr code)
+	MkMaterialPtr GlShaderCache::registerMaterial(IMkShaderCodeConstPtr code)
 	{
 		const std::string materialName = code->getProgramName();
 
@@ -40,13 +40,13 @@ public:
 		if (it != m_materialCache.end())
 		{
 			MIKAN_LOG_ERROR("GlShaderCache::registerMaterial") << "Material already exists: " << materialName;
-			return GlMaterialPtr();
+			return MkMaterialPtr();
 		}
 
 		IMkShaderPtr program = fetchCompiledIMkShader(code);
 		if (program)
 		{
-			auto material = std::make_shared<GlMaterial>(materialName, program);
+			auto material = std::make_shared<MkMaterial>(materialName, program);
 
 			m_materialCache.insert({materialName, material});
 			return material;
@@ -54,11 +54,11 @@ public:
 		else
 		{
 			MIKAN_LOG_ERROR("GlShaderCache::registerMaterial") << "Failed to compile material: " << materialName;
-			return GlMaterialPtr();
+			return MkMaterialPtr();
 		}
 	}
 
-	GlMaterialConstPtr GlShaderCache::getMaterialByName(const std::string& name)
+	MkMaterialConstPtr GlShaderCache::getMaterialByName(const std::string& name)
 	{
 		auto it = m_materialCache.find(name);
 		if (it != m_materialCache.end())
@@ -66,7 +66,7 @@ public:
 			return it->second;
 		}
 
-		return GlMaterialConstPtr();
+		return MkMaterialConstPtr();
 	}
 
 	IMkShaderPtr GlShaderCache::fetchCompiledIMkShader(
@@ -106,7 +106,7 @@ public:
 private:
 	IMkWindow* m_ownerWindow;
 	std::map<std::string, IMkShaderPtr> m_programCache;
-	std::map<std::string, GlMaterialPtr> m_materialCache;
+	std::map<std::string, MkMaterialPtr> m_materialCache;
 };
 
 IMkShaderCachePtr CreateMkShaderCache(class IMkWindow* ownerWindow)

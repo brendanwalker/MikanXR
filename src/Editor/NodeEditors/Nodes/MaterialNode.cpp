@@ -1,5 +1,5 @@
 #include "MaterialNode.h"
-#include "GlMaterial.h"
+#include "MkMaterial.h"
 #include "IMkTexture.h"
 #include "Logger.h"
 #include "MaterialAssetReference.h"

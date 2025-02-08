@@ -1,8 +1,8 @@
 #include "GlCommon.h"
 #include "IMkCamera.h"
 #include "IMkTriangulatedMesh.h"
-#include "GlMaterial.h"
-#include "GlMaterialInstance.h"
+#include "MkMaterial.h"
+#include "MkMaterialInstance.h"
 #include "IMkShader.h"
 #include "IMkShaderCache.h"
 #include "IMkVertexDefinition.h"
@@ -51,19 +51,19 @@ public:
 		}
 	}
 
-	virtual bool setMaterial(GlMaterialConstPtr material) override
+	virtual bool setMaterial(MkMaterialConstPtr material) override
 	{
 		if (material &&
 			material->getProgram()->getVertexDefinition().getVertexSize() == m_vertexSize)
 		{
-			m_materialInstance = std::make_shared<GlMaterialInstance>(material);
+			m_materialInstance = std::make_shared<MkMaterialInstance>(material);
 			return true;
 		}
 
 		return false;
 	}
 
-	virtual bool setMaterialInstance(GlMaterialInstancePtr materialInstance) override
+	virtual bool setMaterialInstance(MkMaterialInstancePtr materialInstance) override
 	{
 		if (materialInstance &&
 			materialInstance->getMaterial()->getProgram()->getVertexDefinition().getVertexSize() == m_vertexSize)
@@ -113,7 +113,7 @@ public:
 			return false;
 		}
 
-		GlMaterialConstPtr material = m_materialInstance->getMaterial();
+		MkMaterialConstPtr material = m_materialInstance->getMaterial();
 		const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
 		const size_t vertexSize = vertexDefinition.getVertexSize();
 		if (vertexSize != m_vertexSize)
@@ -170,7 +170,7 @@ public:
 
 
 	virtual std::string getName() const override { return m_name; }
-	virtual std::shared_ptr<class GlMaterialInstance> getMaterialInstance() const { return m_materialInstance; };
+	virtual std::shared_ptr<class MkMaterialInstance> getMaterialInstance() const { return m_materialInstance; };
 	virtual class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
@@ -182,7 +182,7 @@ public:
 
 protected:
 	class IMkWindow* m_ownerWindow = nullptr;
-	GlMaterialInstancePtr m_materialInstance;
+	MkMaterialInstancePtr m_materialInstance;
 	std::string m_name;
 
 	const uint8_t* m_vertexData = nullptr;
@@ -287,8 +287,8 @@ void drawTransformedTriangulatedMesh(
 {
 	if (camera != nullptr && triangulatedMesh != nullptr)
 	{
-		GlMaterialInstancePtr materialInstance = triangulatedMesh->getMaterialInstance();
-		GlMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance = triangulatedMesh->getMaterialInstance();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())
 		{
