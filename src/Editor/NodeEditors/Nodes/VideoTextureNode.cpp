@@ -63,7 +63,7 @@ void VideoTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
-GlTexturePtr VideoTextureNode::getTextureResource() const
+IMkTexturePtr VideoTextureNode::getTextureResource() const
 {
 	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
@@ -71,10 +71,10 @@ GlTexturePtr VideoTextureNode::getTextureResource() const
 		return compositor->getVideoSourceTexture(m_videoTextureSource);
 	}
 
-	return GlTexturePtr();
+	return IMkTexturePtr();
 }
 
-GlTexturePtr VideoTextureNode::getPreviewTextureResource() const
+IMkTexturePtr VideoTextureNode::getPreviewTextureResource() const
 {
 	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
@@ -82,7 +82,7 @@ GlTexturePtr VideoTextureNode::getPreviewTextureResource() const
 		return compositor->getVideoPreviewTexture(m_videoTextureSource);
 	}
 
-	return GlTexturePtr();
+	return IMkTexturePtr();
 }
 
 bool VideoTextureNode::evaluateNode(NodeEvaluator& evaluator)
@@ -114,7 +114,7 @@ void VideoTextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	GlTexturePtr textureResource = getPreviewTextureResource();
+	IMkTexturePtr textureResource = getPreviewTextureResource();
 	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();

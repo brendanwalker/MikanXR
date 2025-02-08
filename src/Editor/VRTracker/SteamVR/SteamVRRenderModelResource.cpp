@@ -145,13 +145,13 @@ IMkTexturePtr SteamVRRenderModelResource::createTextureResource(
 	return glTexture;
 }
 
-GlMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
+MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	IMkTexturePtr texture)
 {
 	auto* shaderCache= m_ownerWindow->getShaderCache();
 	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
 	assert(material != nullptr);
-	GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
+	MkMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
 
 	// Fill in material parameter defaults
 	if (texture)
@@ -165,7 +165,7 @@ GlMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 
 IMkTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource(
 	const std::string& meshName,
-	GlMaterialInstancePtr materialInstance,
+	MkMaterialInstancePtr materialInstance,
 	const vr::RenderModel_t* steamVRRenderModel)
 {
 	IMkTriangulatedMeshPtr glMesh= nullptr;

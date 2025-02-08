@@ -2,9 +2,9 @@
 
 #include <memory>
 
-class GlFrameBuffer;
-using GlFrameBufferPtr = std::shared_ptr<GlFrameBuffer>;
-using GlFrameBufferConstPtr = std::shared_ptr<const GlFrameBuffer>;
+class IMkFrameBuffer;
+using IMkFrameBufferPtr = std::shared_ptr<IMkFrameBuffer>;
+using IMkFrameBufferConstPtr = std::shared_ptr<const IMkFrameBuffer>;
 
 class MkMaterial;
 using MkMaterialPtr = std::shared_ptr<MkMaterial>;
@@ -99,5 +99,5 @@ using IMkSceneRenderablePtr= std::shared_ptr<IMkSceneRenderable>;
 using IMkSceneRenderableConstPtr = std::shared_ptr<const IMkSceneRenderable>;
 using IMkSceneRenderableConstWeakPtr = std::weak_ptr<const IMkSceneRenderable>;
 
-class GlVertexAttribute;
-class GlVertexDefinition;
+class IMkVertexAttribute;
+class IMkVertexDefinition;

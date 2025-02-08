@@ -1,6 +1,6 @@
 #include "DepthMaskNode.h"
 #include "GlFrameCompositor.h"
-#include "GlFrameBuffer.h"
+#include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
 #include "MikanRenderModelResource.h"
 #include "MikanModelResourceManager.h"
@@ -69,8 +69,8 @@ DepthMaskNode::DepthMaskNode() : Node()
 {
 	// Create the frame buffer, but don't init its internals yet.
 	// Wait until evaluation to get the right output texture size.
-	m_linearDepthFrameBuffer = std::make_shared<GlFrameBuffer>("DepthMask Frame Buffer");
-	m_linearDepthFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH);
+	m_linearDepthFrameBuffer = createMkFrameBuffer("DepthMask Frame Buffer");
+	m_linearDepthFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH);
 	m_linearDepthFrameBuffer->setClearColor(glm::vec4(1.f, 1.f, 1.f, 1.f));
 }
 
@@ -205,7 +205,7 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 			}
 			else
 			{
-				m_outDepthTexturePin->setValue(GlTexturePtr());
+				m_outDepthTexturePin->setValue(IMkTexturePtr());
 				evaluator.addError(
 					NodeEvaluationError(
 						eNodeEvaluationErrorCode::evaluationError,
@@ -267,8 +267,8 @@ void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture Preview
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));	
-	GlTexturePtr colorTexture =
-		m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getColorTexture() : GlTexturePtr();
+	IMkTexturePtr colorTexture =
+		m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getColorTexture() : IMkTexturePtr();
 	uint32_t glTextureId =
 		colorTexture ? colorTexture->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
@@ -395,7 +395,7 @@ void DepthMaskNode::evaluateQuadDepthMasks(GlState& glState)
 	if (quadStencilList.size() == 0)
 		return;
 	
-	GlMaterialInstancePtr materialInstance= depthQuadMesh->getMaterialInstance();
+	MkMaterialInstancePtr materialInstance= depthQuadMesh->getMaterialInstance();
 	GlMaterialConstPtr material= materialInstance->getMaterial();
 
 	if (auto materialBinding = material->bindMaterial())
@@ -480,7 +480,7 @@ void DepthMaskNode::evaluateBoxDepthMasks(GlState& glState)
 	if (boxStencilList.size() == 0)
 		return;
 
-	GlMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();
+	MkMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();
 	GlMaterialConstPtr material = materialInstance->getMaterial();
 
 	// Then draw stencil boxes ...
@@ -590,7 +590,7 @@ void DepthMaskNode::evaluateModelDepthMasks(GlState& glState)
 			for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
 			{
 				IMkTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
-				GlMaterialInstancePtr materialInst = mesh->getMaterialInstance();
+				MkMaterialInstancePtr materialInst = mesh->getMaterialInstance();
 				GlMaterialConstPtr material = materialInst->getMaterial();
 
 				// Set the model-view-projection matrix on the stencil material instance

@@ -8,15 +8,15 @@
 #include "App.h"
 #include "Colors.h"
 #include "MikanCamera.h"
-#include "GlFrameBuffer.h"
-#include "GlLineRenderer.h"
+#include "IMkFrameBuffer.h"
+#include "MikanLineRenderer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "GlScene.h"
 #include "MkScopedObjectBinding.h"
 #include "GlStateStack.h"
 #include "IMkTriangulatedMesh.h"
-#include "GlTextRenderer.h"
+#include "MikanTextRenderer.h"
 #include "MikanViewport.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
@@ -59,7 +59,7 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(MainWindow* ownerWi
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<GlScene>())
 	, m_camera(nullptr)
-	, m_frameBuffer(std::make_shared<GlFrameBuffer>())
+	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
 }
@@ -109,7 +109,7 @@ void AppStage_AlignmentCalibration::enter()
 	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	m_frameBuffer->setName("AlignmentCalibration");
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
-	m_frameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+	m_frameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 	m_frameBuffer->createResources();
 	m_frameBuffer->setClearColor(glm::vec4(Colors::CornflowerBlue, 1.f));
 
@@ -399,7 +399,7 @@ void AppStage_AlignmentCalibration::render()
 	// Render the frame buffer to the screen
 	if (m_frameBuffer->isValid())
 	{
-		GlMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
+		MkMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
 		GlMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())

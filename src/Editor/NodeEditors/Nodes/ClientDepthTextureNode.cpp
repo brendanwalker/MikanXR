@@ -1,7 +1,7 @@
 #include "ClientDepthTextureNode.h"
 #include "MkScopedObjectBinding.h"
 #include "GlFrameCompositor.h"
-#include "GlFrameBuffer.h"
+#include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanShaderCache.h"
@@ -84,9 +84,9 @@ void ClientDepthTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
-GlTexturePtr ClientDepthTextureNode::getTextureResource() const
+IMkTexturePtr ClientDepthTextureNode::getTextureResource() const
 {
-	return m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getDepthTexture() : GlTexturePtr();
+	return m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getDepthTexture() : IMkTexturePtr();
 }
 
 bool ClientDepthTextureNode::evaluateNode(NodeEvaluator& evaluator)
@@ -96,22 +96,22 @@ bool ClientDepthTextureNode::evaluateNode(NodeEvaluator& evaluator)
 	auto outputPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
 
 	// Update the linear depth texture from the client depth texture
-	GlTexturePtr clientDepthTexture= getClientDepthSourceTexture();
+	IMkTexturePtr clientDepthTexture= getClientDepthSourceTexture();
 	updateLinearDepthFrameBuffer(evaluator, clientDepthTexture);
 
 	// Return the linear depth texture from the frame buffer
-	GlTexturePtr linearDepthTexture= getTextureResource();
+	IMkTexturePtr linearDepthTexture= getTextureResource();
 	outputPin->setValue(linearDepthTexture);
 
 	return true;
 }
 
-GlTexturePtr ClientDepthTextureNode::getClientDepthSourceTexture() const
+IMkTexturePtr ClientDepthTextureNode::getClientDepthSourceTexture() const
 {
 	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
 	{
-		GlTexturePtr clientTexture = compositor->getClientDepthSourceTexture(m_clientIndex, m_clientTextureType);
+		IMkTexturePtr clientTexture = compositor->getClientDepthSourceTexture(m_clientIndex, m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
@@ -129,17 +129,17 @@ GlTexturePtr ClientDepthTextureNode::getClientDepthSourceTexture() const
 		}
 	}
 
-	return GlTexturePtr();
+	return IMkTexturePtr();
 }
 
-void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, GlTexturePtr clientTexture)
+void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture)
 {
 	assert(m_clientTextureType == eClientDepthTextureType::depthPackRGBA);
 
 	if (m_linearDepthFrameBuffer == nullptr)
 	{
-		m_linearDepthFrameBuffer = std::make_shared<GlFrameBuffer>("ClientDepthTextureNode");
-		m_linearDepthFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH);
+		m_linearDepthFrameBuffer = createMkFrameBuffer("ClientDepthTextureNode");
+		m_linearDepthFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH);
 	}
 
 	// Update render target size
@@ -163,7 +163,7 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 
 		if (depthUnpackMaterial != nullptr)
 		{
-			m_depthMaterialInstance = std::make_shared<GlMaterialInstance>(depthUnpackMaterial);
+			m_depthMaterialInstance = std::make_shared<MkMaterialInstance>(depthUnpackMaterial);
 		}
 
 		if (m_depthMaterialInstance)
@@ -173,12 +173,12 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 	}
 }
 
-void ClientDepthTextureNode::evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture)
+void ClientDepthTextureNode::evaluateDepthTexture(GlState& glState, IMkTexturePtr depthTexture)
 {
 	assert(depthTexture);
 	assert(m_depthMaterialInstance);
 
-	GlMaterialConstPtr material = m_depthMaterialInstance->getMaterial();
+	MkMaterialConstPtr material = m_depthMaterialInstance->getMaterial();
 	if (auto materialBinding = material->bindMaterial())
 	{
 		// Bind the depth texture
@@ -228,8 +228,8 @@ void ClientDepthTextureNode::editorRenderNode(const NodeEditorState& editorState
 
 	// Texture Preview (color texture of the frame buffer)
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	GlTexturePtr colorTexture =
-		m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getColorTexture() : GlTexturePtr();
+	IMkTexturePtr colorTexture =
+		m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getColorTexture() : IMkTexturePtr();
 	uint32_t glTextureId =
 		colorTexture ? colorTexture->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));

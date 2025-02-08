@@ -4,7 +4,7 @@
 #include "CameraMath.h"
 #include "Colors.h"
 #include "SdlCommon.h"
-#include "GlLineRenderer.h"
+#include "MikanLineRenderer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanModelResourceManager.h"
@@ -195,7 +195,7 @@ struct DepthMeshCaptureState
 		GlShaderCache* shaderCache= ownerWindow->getShaderCache();
 
 		// Create a texture from the undistorted video frame
-		GlTexturePtr texture = createDepthMeshTexture(distortionView);
+		IMkTexturePtr texture = createDepthMeshTexture(distortionView);
 		if (!texture)
 		{
 			return false;
@@ -203,7 +203,7 @@ struct DepthMeshCaptureState
 
 		// Use the internal basic textured material to render the mesh
 		GlMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
-		GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(stencilMaterial);
+		MkMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(stencilMaterial);
 		materialInstance->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
 
 		// Create a triangulated mesh from the synthetic depth map
@@ -282,7 +282,7 @@ private:
 	IMkTriangulatedMeshPtr createTriangulatedDepthMesh(
 		VideoFrameDistortionViewPtr distortionView,
 		SyntheticDepthEstimatorPtr depthEstimator,
-		GlMaterialInstancePtr materialInstance)
+		MkMaterialInstancePtr materialInstance)
 	{
 		// Make sure the material vertex definition has the needed attributes
 		GlMaterialConstPtr material = materialInstance->getMaterial();
@@ -416,7 +416,7 @@ private:
 		return depthMeshPtr;
 	}
 
-	GlTexturePtr createDepthMeshTexture(VideoFrameDistortionViewPtr distortionView)
+	IMkTexturePtr createDepthMeshTexture(VideoFrameDistortionViewPtr distortionView)
 	{
 		// Create a texture for the mesh
 		cv::Mat* bgrUndistortBuffer = distortionView->getBGRUndistortBuffer();
@@ -431,7 +431,7 @@ private:
 			return depthMeshTexture;
 		}
 
-		return GlTexturePtr();
+		return IMkTexturePtr();
 	}
 };
 

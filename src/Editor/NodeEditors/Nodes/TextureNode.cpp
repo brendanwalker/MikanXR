@@ -85,9 +85,9 @@ void TextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
-GlTexturePtr TextureNode::getTextureResource() const
+IMkTexturePtr TextureNode::getTextureResource() const
 {
-	return m_sourceProperty ? m_sourceProperty->getTextureResource() : GlTexturePtr();
+	return m_sourceProperty ? m_sourceProperty->getTextureResource() : IMkTexturePtr();
 }
 
 void TextureNode::setTextureSource(GraphTexturePropertyPtr inTextureProperty) 
@@ -146,7 +146,7 @@ void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	GlTexturePtr textureResource = getTextureResource();
+	IMkTexturePtr textureResource = getTextureResource();
 	uint32_t glTextureId= textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();

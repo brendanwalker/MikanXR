@@ -79,7 +79,7 @@ public:
 	{
 		bool bSuccess = false;
 
-		GlTexturePtr colorTexture = m_parentAccessor->getColorTexture();
+		IMkTexturePtr colorTexture = m_parentAccessor->getColorTexture();
 		if (colorTexture != nullptr)
 		{
 			EASY_BLOCK("receive color texture");
@@ -96,7 +96,7 @@ public:
 			bSuccess= m_spoutColorFrame->ReceiveTexture(colorTexture->getGlTextureId(), GL_TEXTURE_2D);
 		}
 
-		GlTexturePtr depthTexture = m_parentAccessor->getDepthTexture();
+		IMkTexturePtr depthTexture = m_parentAccessor->getDepthTexture();
 		if (depthTexture != nullptr)
 		{
 			EASY_BLOCK("receive depth texture");

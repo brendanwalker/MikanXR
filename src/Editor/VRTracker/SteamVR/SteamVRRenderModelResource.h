@@ -22,7 +22,7 @@ public:
 
 	void setRenderModelName(const std::string& inRenderModelName) { m_renderModelName= inRenderModelName; }
 	const std::string& getRenderModelName() const { return m_renderModelName; }
-	GlMaterialInstancePtr getMaterial() const { return m_glMaterialInstance; }
+	MkMaterialInstancePtr getMaterial() const { return m_glMaterialInstance; }
 	const IMkTriangulatedMeshPtr getTriangulatedMesh() const { return m_glMesh; }
 
 protected:
@@ -31,10 +31,10 @@ protected:
 
 	IMkTexturePtr createTextureResource(
 		const struct vr::RenderModel_TextureMap_t* steamvrTexture);
-	GlMaterialInstancePtr createMaterialInstance(IMkTexturePtr texture);
+	MkMaterialInstancePtr createMaterialInstance(IMkTexturePtr texture);
 	IMkTriangulatedMeshPtr createTriangulatedMeshResource(
 		const std::string& meshName,
-		GlMaterialInstancePtr materialInstance,
+		MkMaterialInstancePtr materialInstance,
 		const struct vr::RenderModel_t* steamVRRenderModel);
 
 	IGlWindow* m_ownerWindow= nullptr;
@@ -45,5 +45,5 @@ protected:
 
 	IMkTriangulatedMeshPtr m_glMesh = nullptr;
 	IMkTexturePtr m_glDiffuseTexture = nullptr;
-	GlMaterialInstancePtr m_glMaterialInstance= nullptr;
+	MkMaterialInstancePtr m_glMaterialInstance= nullptr;
 };

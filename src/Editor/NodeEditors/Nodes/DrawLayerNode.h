@@ -76,7 +76,7 @@ protected:
 
 	PropertyPinPtr m_materialPin;
 	GlMaterialConstPtr m_material;
-	GlMaterialInstancePtr m_materialInstance;
+	MkMaterialInstancePtr m_materialInstance;
 	std::map<std::string, float> m_floatDefaults;
 	std::map<std::string, std::array<float, 2> > m_float2Defaults;
 	std::map<std::string, std::array<float, 3> > m_float3Defaults;

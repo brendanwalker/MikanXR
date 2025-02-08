@@ -1,7 +1,7 @@
 #include "ClientColorTextureNode.h"
 #include "MkScopedObjectBinding.h"
 #include "GlFrameCompositor.h"
-#include "GlFrameBuffer.h"
+#include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanShaderCache.h"
@@ -84,7 +84,7 @@ void ClientColorTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
-GlTexturePtr ClientColorTextureNode::getTextureResource() const
+IMkTexturePtr ClientColorTextureNode::getTextureResource() const
 {
 	return 
 		m_bVerticalFlip && m_colorFrameBuffer 
@@ -110,12 +110,12 @@ bool ClientColorTextureNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-GlTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
+IMkTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
 {
 	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
 	if (compositor != nullptr)
 	{
-		GlTexturePtr clientTexture = compositor->getClientColorSourceTexture(m_clientIndex, m_clientTextureType);
+		IMkTexturePtr clientTexture = compositor->getClientColorSourceTexture(m_clientIndex, m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
@@ -137,10 +137,10 @@ GlTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
 		}
 	}
 
-	return GlTexturePtr();
+	return IMkTexturePtr();
 }
 
-void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, GlTexturePtr clientTexture)
+void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture)
 {
 	IGlWindow* ownerWindow = evaluator.getCurrentWindow();
 
@@ -150,16 +150,16 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, Gl
 	// Create the color frame buffer if it doesn't exist yet and we want to flip the Y axis
 	if (m_colorFrameBuffer == nullptr && m_bVerticalFlip)
 	{
-		m_colorFrameBuffer = std::make_shared<GlFrameBuffer>("ClientColorTextureNode");
-		m_colorFrameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+		m_colorFrameBuffer = createMkFrameBuffer("ClientColorTextureNode");
+		m_colorFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 
 		switch (m_clientTextureType)
 		{
 		case eClientColorTextureType::colorRGB:
-			m_colorFrameBuffer->setColorFormat(GlFrameBuffer::eColorFormat::RGB);
+			m_colorFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGB);
 			break;
 		case eClientColorTextureType::colorRGBA:
-			m_colorFrameBuffer->setColorFormat(GlFrameBuffer::eColorFormat::RGBA);
+			m_colorFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
 			break;
 		}
 	}
@@ -218,7 +218,7 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, Gl
 	}
 }
 
-void ClientColorTextureNode::evaluateFlippedColorTexture(GlState& glState, GlTexturePtr colorTexture)
+void ClientColorTextureNode::evaluateFlippedColorTexture(GlState& glState, IMkTexturePtr colorTexture)
 {
 	assert(colorTexture);
 	assert(m_colorMaterialInstance);
@@ -274,7 +274,7 @@ void ClientColorTextureNode::editorRenderNode(const NodeEditorState& editorState
 
 	// Texture Preview
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	GlTexturePtr textureResource = getTextureResource();
+	IMkTexturePtr textureResource = getTextureResource();
 	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();

@@ -204,7 +204,7 @@ void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState
 		}
 
 		// Texture
-		GlTexturePtr texture= getTextureResource();
+		IMkTexturePtr texture= getTextureResource();
 		NodeEditorUI::DrawImageProperty("Preview", texture);
 	}
 }

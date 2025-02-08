@@ -6,8 +6,8 @@
 #include "Colors.h"
 #include "CalibrationRenderHelpers.h"
 #include "MikanCamera.h"
-#include "GlFrameBuffer.h"
-#include "GlLineRenderer.h"
+#include "IMkFrameBuffer.h"
+#include "MikanLineRenderer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanModelResourceManager.h"
@@ -16,7 +16,7 @@
 #include "IMkStaticMeshInstance.h"
 #include "GlScene.h"
 #include "GlStateStack.h"
-#include "GlTextRenderer.h"
+#include "MikanTextRenderer.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanViewport.h"
 #include "IMkWireframeMesh.h"
@@ -57,7 +57,7 @@ AppStage_StencilAlignment::AppStage_StencilAlignment(MainWindow* ownerWindow)
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<GlScene>())
 	, m_camera(nullptr)
-	, m_frameBuffer(std::make_shared<GlFrameBuffer>())
+	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
 }
@@ -103,7 +103,7 @@ void AppStage_StencilAlignment::enter()
 	const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
 	m_frameBuffer->setName("StencilAlignment");
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
-	m_frameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+	m_frameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 	m_frameBuffer->createResources();
 
 	// Add the stencil's wireframe meshes to the scene
@@ -335,7 +335,7 @@ void AppStage_StencilAlignment::render()
 	// Render the frame buffer to the screen
 	if (m_frameBuffer->isValid())
 	{
-		GlMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
+		MkMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
 		GlMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())

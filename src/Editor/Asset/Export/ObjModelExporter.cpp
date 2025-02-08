@@ -90,7 +90,7 @@ namespace ObjUtils
 		IMkShaderPtr program = materialInstance->getMaterial()->getProgram();
 
 		std::string uniformName;
-		GlTexturePtr texture;
+		IMkTexturePtr texture;
 		if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
 			materialInstance->getTextureBySemantic(semantic, texture) &&
 			texture != nullptr)

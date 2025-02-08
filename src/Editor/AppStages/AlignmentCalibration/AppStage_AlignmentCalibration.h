@@ -59,7 +59,7 @@ private:
 	class VideoFrameDistortionView* m_monoDistortionView;
 
 	GlScenePtr m_scene;
-	GlCameraPtr m_camera;
-	GlFrameBufferPtr m_frameBuffer;
+	MikanCameraPtr m_camera;
+	IMkFrameBufferPtr m_frameBuffer;
 	IMkTriangulatedMeshPtr m_fullscreenQuad;
 };

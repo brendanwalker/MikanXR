@@ -35,7 +35,7 @@ namespace NodeEditorUI
 		const std::string label,
 		const char* items,
 		int& inout_selectedIdex);
-	void DrawImageProperty(const std::string label, GlTexturePtr image);
+	void DrawImageProperty(const std::string label, IMkTexturePtr image);
 
 	class ComboBoxDataSource
 	{

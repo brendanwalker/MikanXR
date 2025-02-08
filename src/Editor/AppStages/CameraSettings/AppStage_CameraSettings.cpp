@@ -5,7 +5,7 @@
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
-#include "GlTextRenderer.h"
+#include "MikanTextRenderer.h"
 #include "MainWindow.h"
 #include "ProfileConfig.h"
 #include "TextStyle.h"

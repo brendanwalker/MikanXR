@@ -14,18 +14,18 @@
 
 #include "glm/ext/matrix_projection.hpp"
 
-class GlTextRenderer : public IMkTextRenderer
+class MikanTextRenderer : public IMkTextRenderer
 {
 public:
-	GlTextRenderer() = delete;
-	GlTextRenderer(IMkWindow* ownerWindow, IMkFontManager* fontManager)
+	MikanTextRenderer() = delete;
+	MikanTextRenderer(IMkWindow* ownerWindow, IMkFontManager* fontManager)
 		: m_ownerWindow(ownerWindow)
 		, m_fontManager(fontManager)
 		, m_maxTextQuadVertexCount(kMaxTextQuads * 6) // 6 vertices per quad
 		, m_textQuadVertices(new TextQuadVertex[m_maxTextQuadVertexCount])
 	{}
 
-	virtual ~GlTextRenderer()
+	virtual ~MikanTextRenderer()
 	{
 		delete[] m_textQuadVertices;
 	}
@@ -36,7 +36,7 @@ public:
 
 		if (m_textMaterial == nullptr)
 		{
-			MIKAN_LOG_ERROR("GlTextRenderer::startup") << "Failed to fetch text material";
+			MIKAN_LOG_ERROR("MikanTextRenderer::startup") << "Failed to fetch text material";
 			return false;
 		}
 
@@ -44,14 +44,14 @@ public:
 
 		glGenVertexArrays(1, &m_textQuadVAO);
 		glGenBuffers(1, &m_textQuadVBO);
-		checkHasAnyMkError("GlTextRenderer::startup()", __FILE__, __LINE__);
+		checkHasAnyMkError("MikanTextRenderer::startup()", __FILE__, __LINE__);
 
 		glBindVertexArray(m_textQuadVAO);
 		glObjectLabel(GL_VERTEX_ARRAY, m_textQuadVAO, -1, "TextRendererQuads");
 		glBindBuffer(GL_ARRAY_BUFFER, m_textQuadVBO);
 
 		glBufferData(GL_ARRAY_BUFFER, m_maxTextQuadVertexCount * sizeof(TextQuadVertex), nullptr, GL_DYNAMIC_DRAW);
-		checkHasAnyMkError("GlTextRenderer::startup()", __FILE__, __LINE__);
+		checkHasAnyMkError("MikanTextRenderer::startup()", __FILE__, __LINE__);
 
 		m_textMaterial->getProgram()->getVertexDefinition().applyVertexDefintion();
 
@@ -89,7 +89,7 @@ public:
 		// Same material used for all text quads
 		if (auto materialBinding = m_textMaterial->bindMaterial())
 		{
-			GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("GlTextRenderer");
+			GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("MikanTextRenderer");
 			GlState& glState = stateScope.getStackState();
 
 			// Render text ove rtop of everything with alpha blending
@@ -216,7 +216,7 @@ protected:
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("GlTextRenderer::allocateTextQuadVertices") << "Exceeded maximum text quad vertex count";
+			MIKAN_LOG_ERROR("MikanTextRenderer::allocateTextQuadVertices") << "Exceeded maximum text quad vertex count";
 
 			return -1;
 		}
@@ -250,5 +250,5 @@ IMkTextRendererPtr createMkTextRenderer(
 	IMkWindow* ownerWindow,
 	IMkFontManager* fontManager)
 {
-	return std::make_shared<GlTextRenderer>(ownerWindow, fontManager);
+	return std::make_shared<MikanTextRenderer>(ownerWindow, fontManager);
 }

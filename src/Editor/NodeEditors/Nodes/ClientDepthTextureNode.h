@@ -28,23 +28,23 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
-	GlTexturePtr getTextureResource() const;
+	IMkTexturePtr getTextureResource() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	GlTexturePtr getClientDepthSourceTexture() const;
-	void updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, GlTexturePtr clientTexture);
-	void evaluateDepthTexture(GlState& glState, GlTexturePtr depthTexture);
+	IMkTexturePtr getClientDepthSourceTexture() const;
+	void updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
+	void evaluateDepthTexture(GlState& glState, IMkTexturePtr depthTexture);
 
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 protected:
-	GlFrameBufferPtr m_linearDepthFrameBuffer;
-	GlMaterialInstancePtr m_depthMaterialInstance;
+	IMkFrameBufferPtr m_linearDepthFrameBuffer;
+	MkMaterialInstancePtr m_depthMaterialInstance;
 	eClientDepthTextureType m_clientTextureType= eClientDepthTextureType::depthPackRGBA;
 	int m_clientIndex= 0;
 	bool m_bVerticalFlip= false;

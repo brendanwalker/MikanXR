@@ -706,32 +706,32 @@ static GLenum convertGlFrameBufferToGLenum(eGlFrameBuffer mode)
 {
 	switch (mode)
 	{
-		case eGlFrameBuffer::FRONT: return GL_FRONT;
-		case eGlFrameBuffer::BACK: return GL_BACK;
-		case eGlFrameBuffer::LEFT: return GL_LEFT;
-		case eGlFrameBuffer::RIGHT: return GL_RIGHT;
-		case eGlFrameBuffer::FRONT_LEFT: return GL_FRONT_LEFT;
-		case eGlFrameBuffer::FRONT_RIGHT: return GL_FRONT_RIGHT;
-		case eGlFrameBuffer::BACK_LEFT: return GL_BACK_LEFT;
-		case eGlFrameBuffer::BACK_RIGHT: return GL_BACK_RIGHT;
-		case eGlFrameBuffer::FRONT_AND_BACK: return GL_FRONT_AND_BACK;
-		case eGlFrameBuffer::NONE: return GL_NONE;
-		case eGlFrameBuffer::COLOR_ATTACHMENT0: return GL_COLOR_ATTACHMENT0;
-		case eGlFrameBuffer::COLOR_ATTACHMENT1: return GL_COLOR_ATTACHMENT1;
-		case eGlFrameBuffer::COLOR_ATTACHMENT2: return GL_COLOR_ATTACHMENT2;
-		case eGlFrameBuffer::COLOR_ATTACHMENT3: return GL_COLOR_ATTACHMENT3;
-		case eGlFrameBuffer::COLOR_ATTACHMENT4: return GL_COLOR_ATTACHMENT4;
-		case eGlFrameBuffer::COLOR_ATTACHMENT5: return GL_COLOR_ATTACHMENT5;
-		case eGlFrameBuffer::COLOR_ATTACHMENT6: return GL_COLOR_ATTACHMENT6;
-		case eGlFrameBuffer::COLOR_ATTACHMENT7: return GL_COLOR_ATTACHMENT7;
-		case eGlFrameBuffer::COLOR_ATTACHMENT8: return GL_COLOR_ATTACHMENT8;
-		case eGlFrameBuffer::COLOR_ATTACHMENT9: return GL_COLOR_ATTACHMENT9;
-		case eGlFrameBuffer::COLOR_ATTACHMENT10: return GL_COLOR_ATTACHMENT10;
-		case eGlFrameBuffer::COLOR_ATTACHMENT11: return GL_COLOR_ATTACHMENT11;
-		case eGlFrameBuffer::COLOR_ATTACHMENT12: return GL_COLOR_ATTACHMENT12;
-		case eGlFrameBuffer::COLOR_ATTACHMENT13: return GL_COLOR_ATTACHMENT13;
-		case eGlFrameBuffer::COLOR_ATTACHMENT14: return GL_COLOR_ATTACHMENT14;
-		case eGlFrameBuffer::COLOR_ATTACHMENT15: return GL_COLOR_ATTACHMENT15;
+		case eIMkFrameBuffer::FRONT: return GL_FRONT;
+		case eIMkFrameBuffer::BACK: return GL_BACK;
+		case eIMkFrameBuffer::LEFT: return GL_LEFT;
+		case eIMkFrameBuffer::RIGHT: return GL_RIGHT;
+		case eIMkFrameBuffer::FRONT_LEFT: return GL_FRONT_LEFT;
+		case eIMkFrameBuffer::FRONT_RIGHT: return GL_FRONT_RIGHT;
+		case eIMkFrameBuffer::BACK_LEFT: return GL_BACK_LEFT;
+		case eIMkFrameBuffer::BACK_RIGHT: return GL_BACK_RIGHT;
+		case eIMkFrameBuffer::FRONT_AND_BACK: return GL_FRONT_AND_BACK;
+		case eIMkFrameBuffer::NONE: return GL_NONE;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT0: return GL_COLOR_ATTACHMENT0;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT1: return GL_COLOR_ATTACHMENT1;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT2: return GL_COLOR_ATTACHMENT2;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT3: return GL_COLOR_ATTACHMENT3;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT4: return GL_COLOR_ATTACHMENT4;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT5: return GL_COLOR_ATTACHMENT5;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT6: return GL_COLOR_ATTACHMENT6;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT7: return GL_COLOR_ATTACHMENT7;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT8: return GL_COLOR_ATTACHMENT8;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT9: return GL_COLOR_ATTACHMENT9;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT10: return GL_COLOR_ATTACHMENT10;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT11: return GL_COLOR_ATTACHMENT11;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT12: return GL_COLOR_ATTACHMENT12;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT13: return GL_COLOR_ATTACHMENT13;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT14: return GL_COLOR_ATTACHMENT14;
+		case eIMkFrameBuffer::COLOR_ATTACHMENT15: return GL_COLOR_ATTACHMENT15;
 	}
 
 	return GL_ONE;

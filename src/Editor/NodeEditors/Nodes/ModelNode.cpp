@@ -147,7 +147,7 @@ void ModelNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	GlTexturePtr textureResource = m_sourceProperty->getModelAssetReference()->getPreviewTexture();
+	IMkTexturePtr textureResource = m_sourceProperty->getModelAssetReference()->getPreviewTexture();
 	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();

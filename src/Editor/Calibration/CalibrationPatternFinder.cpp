@@ -2,7 +2,7 @@
 #include "CalibrationRenderHelpers.h"
 #include "Colors.h"
 #include "CameraMath.h"
-#include "GlTextRenderer.h"
+#include "MikanTextRenderer.h"
 #include "Logger.h"
 #include "MathOpenCV.h"
 #include "MathTypeConversion.h"

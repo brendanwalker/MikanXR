@@ -60,7 +60,7 @@ GlLineRenderer* NodeEditorWindow::getLineRenderer()
 	return nullptr;
 }
 
-GlTextRenderer* NodeEditorWindow::getTextRenderer()
+MikanTextRenderer* NodeEditorWindow::getTextRenderer()
 {
 	return nullptr;
 }
@@ -835,7 +835,7 @@ void NodeEditorWindow::renderAssetsPanel()
 
 					if (!itemDeleted)
 					{
-						GlTexturePtr texture= assetRefPtr->getPreviewTexture();
+						IMkTexturePtr texture= assetRefPtr->getPreviewTexture();
 
 						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
 						ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);

@@ -23,7 +23,7 @@ namespace ObjUtils
 		MaterialTriMeshData(
 			int materialId, 
 			const std::string& materialName,
-			GlMaterialInstancePtr materialInst) 
+			MkMaterialInstancePtr materialInst) 
 			: m_materialId(materialId)
 			, m_materialName(materialName)
 			, m_materialInstance(materialInst) 
@@ -51,7 +51,7 @@ namespace ObjUtils
 		}
 
 		inline const std::string& getMaterialName() const { return m_materialName; }
-		inline GlMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; }
+		inline MkMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; }
 		const GlVertexAttribute* getPositionAttribute() const { return m_positionAttribute; }
 		inline uint32_t getVertexCount() const { return m_vertexCount; }
 		inline size_t getVertexSize() const { return m_vertexSize; }
@@ -137,7 +137,7 @@ namespace ObjUtils
 	private:
 		int m_materialId= -1;
 		std::string m_materialName;
-		GlMaterialInstancePtr m_materialInstance;
+		MkMaterialInstancePtr m_materialInstance;
 		const GlVertexAttribute* m_positionAttribute= nullptr;
 		const GlVertexAttribute* m_normalAttribute= nullptr;
 		const GlVertexAttribute* m_texCoordAttribute= nullptr;
@@ -152,7 +152,7 @@ namespace ObjUtils
 	using MaterialTriMeshDataPtr = std::shared_ptr<MaterialTriMeshData>;
 	using MaterialTriMeshDataConstPtr = std::shared_ptr<const MaterialTriMeshData>;
 
-	GlMaterialInstancePtr createTriMeshMaterialInstance(
+	MkMaterialInstancePtr createTriMeshMaterialInstance(
 		IMkWindow* ownerWindow,
 		GlMaterialConstPtr material,
 		const fastObjMaterial& objMaterial);
@@ -206,7 +206,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 			const fastObjMaterial& objMaterial= objData->materials[materialIndex];
 			const std::string materialName= objMaterial.name;
 
-			GlMaterialInstancePtr materialInst= 
+			MkMaterialInstancePtr materialInst= 
 				ObjUtils::createTriMeshMaterialInstance(
 					ownerWindow,
 					triMeshMaterial,
@@ -291,7 +291,7 @@ namespace ObjUtils
 {
 	bool addTextureToMaterialInstance(
 		MikanTextureCache* textureCache,
-		GlMaterialInstancePtr materialInstance,
+		MkMaterialInstancePtr materialInstance,
 		const fastObjTexture& objTexture,
 		const eUniformSemantic semantic)
 	{
@@ -333,13 +333,13 @@ namespace ObjUtils
 		}
 	}
 
-	GlMaterialInstancePtr createTriMeshMaterialInstance(
+	MkMaterialInstancePtr createTriMeshMaterialInstance(
 		IMkWindow* ownerWindow,
 		GlMaterialConstPtr material,
 		const fastObjMaterial& objMaterial)
 	{
 		MikanTextureCache* textureCache = ownerWindow->getTextureCache();
-		GlMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
+		MkMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
 
 		materialInstance->setVec3BySemantic(
 			eUniformSemantic::ambientColorRGB,

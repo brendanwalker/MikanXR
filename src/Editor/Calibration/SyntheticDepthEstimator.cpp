@@ -216,7 +216,7 @@ cv::Mat SyntheticDepthEstimator::getFloatDepthDnnBufferAccessor() const
 	return cv::Mat(2, &size[0], CV_32F, m_floatDepthDnnOutput->ptr<float>());
 }
 
-void SyntheticDepthEstimator::copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture)
+void SyntheticDepthEstimator::copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture)
 {
 	size_t bufferSize = mat.step[0] * mat.rows;
 

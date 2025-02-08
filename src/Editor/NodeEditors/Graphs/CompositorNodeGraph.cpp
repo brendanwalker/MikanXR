@@ -1,6 +1,6 @@
 #include "CompositorNodeGraph.h"
 #include "SdlCommon.h"
-#include "GlFrameBuffer.h"
+#include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
 #include "IMkShader.h"
 #include "MikanRenderModelResource.h"
@@ -85,7 +85,7 @@ bool CompositorNodeGraph::createResources()
 	assert(getOwnerWindow());
 
 	// Create the frame buffer, but don't init it's resources yet
-	m_compositingFrameBuffer = std::make_shared<GlFrameBuffer>("Compositing Node Graph Frame Buffer");
+	m_compositingFrameBuffer = createMkFrameBuffer("Compositing Node Graph Frame Buffer");
 
 	// Start listening for Model stencil changes
 	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty +=
@@ -197,7 +197,7 @@ GlTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
 	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getColorTexture() : GlTextureConstPtr();
 }
 
-void CompositorNodeGraph::setExternalCompositedFrameTexture(GlTexturePtr externalTexture)
+void CompositorNodeGraph::setExternalCompositedFrameTexture(IMkTexturePtr externalTexture)
 {
 	m_compositingFrameBuffer->setExternalColorTexture(externalTexture);
 }

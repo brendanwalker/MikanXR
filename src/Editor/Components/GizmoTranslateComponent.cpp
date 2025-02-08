@@ -3,7 +3,7 @@
 #include "BoxColliderComponent.h"
 #include "Colors.h"
 #include "GizmoTranslateComponent.h"
-#include "GlLineRenderer.h"
+#include "MikanLineRenderer.h"
 #include "SelectionComponent.h"
 #include "MathGLM.h"
 #include "MikanObject.h"

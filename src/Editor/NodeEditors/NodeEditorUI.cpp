@@ -147,7 +147,7 @@ namespace NodeEditorUI
 		return bChanged;
 	}
 
-	void DrawImageProperty(const std::string label, GlTexturePtr image)
+	void DrawImageProperty(const std::string label, IMkTexturePtr image)
 	{
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);

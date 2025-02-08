@@ -124,7 +124,7 @@ void StencilNode::editorRenderNode(const NodeEditorState& editorState)
 
 	//TODO - Preview Texture from stencil model
 	//ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	//GlTexturePtr textureResource = m_sourceProperty->getStencilAssetReference()->getPreviewTexture();
+	//IMkTexturePtr textureResource = m_sourceProperty->getStencilAssetReference()->getPreviewTexture();
 	//uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
 	//ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	//ImGui::SameLine();

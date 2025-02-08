@@ -2,7 +2,7 @@
 #include "MikanViewport.h"
 #include "ColorUtils.h"
 #include "CalibrationRenderHelpers.h"
-#include "GlLineRenderer.h"
+#include "MikanLineRenderer.h"
 #include "MathUtility.h"
 
 GlLineRenderer* getLineRenderer()

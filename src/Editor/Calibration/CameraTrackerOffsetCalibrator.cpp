@@ -3,7 +3,7 @@
 #include "CameraMath.h"
 #include "Colors.h"
 #include "SdlCommon.h"
-#include "GlLineRenderer.h"
+#include "MikanLineRenderer.h"
 #include "CameraTrackerOffsetCalibrator.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"

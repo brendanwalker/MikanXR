@@ -438,7 +438,7 @@ void VideoFrameDistortionView::renderSelectedVideoBuffers()
 {
 	if (m_videoTexture != nullptr && m_fullscreenQuad != nullptr)
 	{
-		GlMaterialInstancePtr materialInstance= m_fullscreenQuad->getMaterialInstance();
+		MkMaterialInstancePtr materialInstance= m_fullscreenQuad->getMaterialInstance();
 		GlMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())

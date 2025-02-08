@@ -28,23 +28,23 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
-	GlTexturePtr getTextureResource() const;
+	IMkTexturePtr getTextureResource() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	GlTexturePtr getClientColorSourceTexture() const;
-	void updateColorFrameBuffer(NodeEvaluator& evaluator, GlTexturePtr clientTexture);
-	void evaluateFlippedColorTexture(GlState& glState, GlTexturePtr depthTexture);
+	IMkTexturePtr getClientColorSourceTexture() const;
+	void updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
+	void evaluateFlippedColorTexture(GlState& glState, IMkTexturePtr depthTexture);
 
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 protected:
-	GlFrameBufferPtr m_colorFrameBuffer;
-	GlMaterialInstancePtr m_colorMaterialInstance;
+	IMkFrameBufferPtr m_colorFrameBuffer;
+	MkMaterialInstancePtr m_colorMaterialInstance;
 	eClientColorTextureType m_clientTextureType= eClientColorTextureType::colorRGB;
 	int m_clientIndex= 0;
 	bool m_bVerticalFlip= false;

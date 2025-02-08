@@ -154,7 +154,7 @@ private:
 
 	class IGlWindow* m_ownerWindow= nullptr;
 
-	GlFrameBufferPtr m_videoExportFramebuffer;
+	IMkFrameBufferPtr m_videoExportFramebuffer;
 	unsigned int m_videoQuadVAO = 0, m_videoQuadVBO = 0;
 	unsigned int m_layerQuadVAO = 0, m_layerQuadVBO = 0;
 	bool m_bGenerateBGRVideoTexture = false;

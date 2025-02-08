@@ -7,7 +7,7 @@
 #include "IMkShader.h"
 #include "GlStateStack.h"
 #include "MikanShaderCache.h"
-#include "GlTextRenderer.h"
+#include "MikanTextRenderer.h"
 #include "IMkVertexDefinition.h"
 #include "MikanViewport.h"
 #include "IMkWindow.h"

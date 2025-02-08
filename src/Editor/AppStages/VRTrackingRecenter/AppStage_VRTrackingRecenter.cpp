@@ -4,15 +4,15 @@
 #include "ArucoMarkerPoseSampler.h"
 #include "App.h"
 #include "MikanCamera.h"
-#include "GlFrameBuffer.h"
-#include "GlLineRenderer.h"
+#include "IMkFrameBuffer.h"
+#include "MikanLineRenderer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "GlScene.h"
 #include "MkScopedObjectBinding.h"
 #include "GlStateStack.h"
 #include "IMkTriangulatedMesh.h"
-#include "GlTextRenderer.h"
+#include "MikanTextRenderer.h"
 #include "MikanViewport.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
@@ -45,7 +45,7 @@ AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(MainWindow* ownerWindow
 	, m_markerPoseSampler(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_camera(nullptr)
-	, m_frameBuffer(std::make_shared<GlFrameBuffer>())
+	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
 }
@@ -85,7 +85,7 @@ void AppStage_VRTrackingRecenter::enter()
 	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	m_frameBuffer->setName("VRTrackingRecenter");
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
-	m_frameBuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+	m_frameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 	m_frameBuffer->createResources();
 
 	// Fire up the video scene in the background + pose calibrator
@@ -302,7 +302,7 @@ void AppStage_VRTrackingRecenter::render()
 	// Render the frame buffer to the screen
 	if (m_frameBuffer->isValid())
 	{
-		GlMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
+		MkMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
 		GlMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())

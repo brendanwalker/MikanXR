@@ -31,7 +31,7 @@ public:
 	inline GraphTexturePropertyPtr getTextureSource() const { return m_sourceProperty; }
 	void setTextureSource(GraphTexturePropertyPtr inTextureProperty);
 
-	GlTexturePtr getTextureResource() const;
+	IMkTexturePtr getTextureResource() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;

@@ -61,8 +61,8 @@ protected:
 	std::vector<MikanStencilID> m_modelStencilIds;
 	TexturePinPtr m_outDepthTexturePin;
 
-	GlMaterialInstancePtr m_depthMaterialInstance;
-	GlFrameBufferPtr m_linearDepthFrameBuffer;
+	MkMaterialInstancePtr m_depthMaterialInstance;
+	IMkFrameBufferPtr m_linearDepthFrameBuffer;
 
 	bool m_bDisableQuadStencil = false;
 	bool m_bDisableBoxStencil = false;

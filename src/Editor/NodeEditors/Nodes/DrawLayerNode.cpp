@@ -225,7 +225,7 @@ void DrawLayerNode::setMaterial(GlMaterialConstPtr inMaterial)
 	m_materialInstance = 	
 		m_material 	
 		? std::make_shared<GlMaterialInstance>(inMaterial)	
-		: GlMaterialInstancePtr();	
+		: MkMaterialInstancePtr();	
 }	
 
 bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)	
@@ -291,7 +291,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			//}	
 			else if (TexturePinPtr texturePin = std::dynamic_pointer_cast<TexturePin>(pin))	
 			{	
-				GlTexturePtr texturePtr = texturePin->getValue();	
+				IMkTexturePtr texturePtr = texturePin->getValue();	
 				if (texturePtr)	
 				{	
 					m_materialInstance->setTextureByUniformName(pin->getName(), texturePtr);	
@@ -733,7 +733,7 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glParentState)
 		// Make every test succeed	
 		glStateSetStencilOp(glState, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE);	
 
-		GlMaterialInstancePtr materialInstance = stencilQuadMesh->getMaterialInstance();	
+		MkMaterialInstancePtr materialInstance = stencilQuadMesh->getMaterialInstance();	
 		GlMaterialConstPtr material = materialInstance->getMaterial();	
 
 		if (auto materialBinding = material->bindMaterial())	
@@ -824,7 +824,7 @@ void DrawLayerNode::evaluateBoxStencils(GlState& glParentState)
 		// Make every test succeed	
 		glStateSetStencilOp(glState, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE);	
 
-		GlMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();	
+		MkMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();	
 		GlMaterialConstPtr material = materialInstance->getMaterial();	
 
 		// Then draw stencil boxes ...	
@@ -932,7 +932,7 @@ void DrawLayerNode::evaluateModelStencils(GlState& glParentState)
 				for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)	
 				{	
 					IMkTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);	
-					GlMaterialInstancePtr materialInst = mesh->getMaterialInstance();	
+					MkMaterialInstancePtr materialInst = mesh->getMaterialInstance();	
 					GlMaterialConstPtr material = materialInst->getMaterial();	
 
 					// Set the model-view-projection matrix on the stencil material instance	

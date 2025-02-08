@@ -1,12 +1,12 @@
 #include "App.h"
 #include "Colors.h"
 #include "SdlCommon.h"
-#include "GlFrameBuffer.h"
+#include "IMkFrameBuffer.h"
 #include "GlFrameCompositor.h"
 #include "MkMaterial.h"
 #include "MkScopedObjectBinding.h"
 #include "IMkTexture.h"
-#include "GlTextRenderer.h"
+#include "MikanTextRenderer.h"
 #include "MikanShaderConfig.h"
 #include "InterprocessRenderTargetReader.h"
 #include "IMkWindow.h"
@@ -51,7 +51,7 @@ GlFrameCompositor::GlFrameCompositor()
 	m_config= std::make_shared<GlFrameCompositorConfig>();
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 	m_editorFrameBufferTexture = CreateMkTexture();
-	m_videoExportFramebuffer = std::make_shared<GlFrameBuffer>();
+	m_videoExportFramebuffer = createMkFrameBuffer();
 }
 
 GlFrameCompositor::~GlFrameCompositor()
@@ -480,32 +480,32 @@ bool GlFrameCompositor::getVideoSourceZRange(float& outZNear, float& outZFar) co
 	return false;
 }
 
-GlTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textureSource) const
+IMkTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textureSource) const
 {
 	switch (textureSource)
 	{
 		case eVideoTextureSource::video_texture:
-			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getVideoTexture() : GlTexturePtr();
+			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getVideoTexture() : IMkTexturePtr();
 		case eVideoTextureSource::distortion_texture:
-			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : GlTexturePtr();
+			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : IMkTexturePtr();
 #if REALTIME_DEPTH_ESTIMATION_ENABLED
 		case eVideoTextureSource::float_depth_texture:
-			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getFloatDepthTexture() : GlTexturePtr();
+			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getFloatDepthTexture() : IMkTexturePtr();
 		case eVideoTextureSource::color_mapped_depth_texture:
-			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : GlTexturePtr();
+			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : IMkTexturePtr();
 #endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 	}
 
-	return GlTexturePtr();
+	return IMkTexturePtr();
 }
 
-GlTexturePtr GlFrameCompositor::getVideoPreviewTexture(eVideoTextureSource textureSource) const
+IMkTexturePtr GlFrameCompositor::getVideoPreviewTexture(eVideoTextureSource textureSource) const
 {
 #if REALTIME_DEPTH_ESTIMATION_ENABLED
 	if (textureSource == eVideoTextureSource::float_depth_texture)
 	{
 		// Special case for float_depth_texture, use the color mapped depth texture instead for preview
-		return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : GlTexturePtr();
+		return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : IMkTexturePtr();
 	}
 	else
 #endif // REALTIME_DEPTH_ESTIMATION_ENABLED
@@ -515,7 +515,7 @@ GlTexturePtr GlFrameCompositor::getVideoPreviewTexture(eVideoTextureSource textu
 	}
 }
 
-GlTexturePtr GlFrameCompositor::getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const
+IMkTexturePtr GlFrameCompositor::getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const
 {
 	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
 	{
@@ -544,10 +544,10 @@ GlTexturePtr GlFrameCompositor::getClientColorSourceTexture(int clientIndex, eCl
 		}
 	}
 
-	return GlTexturePtr();
+	return IMkTexturePtr();
 }
 
-GlTexturePtr GlFrameCompositor::getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const
+IMkTexturePtr GlFrameCompositor::getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const
 {
 	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
 	{
@@ -563,7 +563,7 @@ GlTexturePtr GlFrameCompositor::getClientDepthSourceTexture(int clientIndex, eCl
 		}
 	}
 
-	return GlTexturePtr();
+	return IMkTexturePtr();
 }
 
 void GlFrameCompositor::update(float deltaSeconds)
@@ -780,7 +780,7 @@ void GlFrameCompositor::setCompositorEvaluatorWindow(eCompositorEvaluatorWindow 
 	}
 }
 
-GlTexturePtr GlFrameCompositor::getEditorWritableFrameTexture() const
+IMkTexturePtr GlFrameCompositor::getEditorWritableFrameTexture() const
 {
 	return m_editorFrameBufferTexture;
 }
@@ -798,9 +798,9 @@ GlTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
 	return GlTextureConstPtr();
 }
 
-GlTexturePtr GlFrameCompositor::getBGRVideoFrameTexture() 
+IMkTexturePtr GlFrameCompositor::getBGRVideoFrameTexture() 
 {
-	return m_videoExportFramebuffer->isValid() ? m_videoExportFramebuffer->getColorTexture() : GlTexturePtr(); 
+	return m_videoExportFramebuffer->isValid() ? m_videoExportFramebuffer->getColorTexture() : IMkTexturePtr(); 
 }
 
 void GlFrameCompositor::updateCompositeFrameNodeGraph()
@@ -1052,7 +1052,7 @@ bool GlFrameCompositor::createCompositingTextures(uint16_t width, uint16_t heigh
 	m_editorFrameBufferTexture->setGenerateMipMap(false);
 	// ... but don't allocate it create texture until we need it
 
-	m_videoExportFramebuffer->setFrameBufferType(GlFrameBuffer::eFrameBufferType::COLOR);
+	m_videoExportFramebuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 	m_videoExportFramebuffer->setSize(width, height);
 	if (!m_videoExportFramebuffer->createResources())
 	{

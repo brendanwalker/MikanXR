@@ -30,7 +30,7 @@ public:
 	void setTextureAssetReference(TextureAssetReferencePtr inAssetRef);
 	inline TextureAssetReferencePtr getTextureAssetReference() const { return m_textureAssetRef; }
 
-	inline GlTexturePtr getTextureResource() const { return m_texture; }
+	inline IMkTexturePtr getTextureResource() const { return m_texture; }
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
@@ -39,7 +39,7 @@ public:
 
 protected:
 	TextureAssetReferencePtr m_textureAssetRef;
-	GlTexturePtr m_texture;
+	IMkTexturePtr m_texture;
 };
 
 using GraphTexturePropertyFactory = TypedGraphPropertyFactory<GraphTextureProperty, GraphTexturePropertyConfig>;

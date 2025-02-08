@@ -28,14 +28,14 @@ public:
 	void dispose();
 
 	cv::Mat getFloatDepthDnnBufferAccessor() const;
-	inline GlTexturePtr getFloatDepthTexture() const { return m_floatDepthTextureMap; }
-	inline GlTexturePtr getColorMappedDepthTexture() const { return m_colorMappedDepthTextureMap; }
+	inline IMkTexturePtr getFloatDepthTexture() const { return m_floatDepthTextureMap; }
+	inline IMkTexturePtr getColorMappedDepthTexture() const { return m_colorMappedDepthTextureMap; }
 
 	bool computeSyntheticDepth(cv::Mat* bgrSourceBuffer);
 	bool saveVideoFrameToPngFile(const std::filesystem::path& pngPath);
 
 protected:
-	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, GlTexturePtr texture);
+	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture);
 
 protected:
 	class OpenCVManager* m_opencvManager= nullptr;
@@ -48,6 +48,6 @@ protected:
 	cv::Mat* m_floatNormalizedDepth = nullptr; // Normalized float depth debug buffer
 	cv::Mat* m_gsDepth = nullptr; // 8-BPP Grayscale depth buffer
 	cv::Mat* m_bgrDepth = nullptr; // 24-BPP(BGR color format) color-coded depth buffer
-	GlTexturePtr m_floatDepthTextureMap = nullptr; // GL Texture filled in m_floatDepthDnnOutput
-	GlTexturePtr m_colorMappedDepthTextureMap = nullptr; // GL Texture filled in m_bgrGsDepth
+	IMkTexturePtr m_floatDepthTextureMap = nullptr; // GL Texture filled in m_floatDepthDnnOutput
+	IMkTexturePtr m_colorMappedDepthTextureMap = nullptr; // GL Texture filled in m_bgrGsDepth
 };

@@ -23,7 +23,7 @@ public:
 	virtual bool loadFromConfig(const NodeGraphConfig& config) override;
 	bool compositeFrame(NodeEvaluator& evaluator);
 	GlTextureConstPtr getCompositedFrameTexture() const;
-	void setExternalCompositedFrameTexture(GlTexturePtr externalTexture);
+	void setExternalCompositedFrameTexture(IMkTexturePtr externalTexture);
 
 	// Stencil Models
 	MikanRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);
@@ -49,7 +49,7 @@ protected:
 	void onStencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
-	GlFrameBufferPtr m_compositingFrameBuffer;
+	IMkFrameBufferPtr m_compositingFrameBuffer;
 	IMkShaderPtr m_vertexOnlyStencilShader;
 	IMkTriangulatedMeshPtr m_stencilQuadMesh;
 	IMkTriangulatedMeshPtr m_stencilBoxMesh;
