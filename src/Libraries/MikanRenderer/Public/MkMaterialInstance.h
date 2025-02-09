@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MkShaderConstants.h"
+#include "MkMaterial.h"
 #include "MkScopedMaterialBinding.h"
 #include "NamedValueTable.h"
 #include "MkRendererFwd.h"
@@ -46,7 +47,7 @@ public:
 	MkMaterialInstance(MkMaterialConstPtr material);
 	MkMaterialInstance(MkMaterialInstanceConstPtr materialInstance);
 
-	MkMaterialConstPtr getMaterial() const { return m_parentMaterial; }
+	MkMaterialConstPtr getMaterial() const;
 
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
@@ -87,13 +88,5 @@ protected:
 	void unbindMaterialInstance() const;
 
 private:
-	MkMaterialConstPtr m_parentMaterial = nullptr;
-
-	// Material Override Parameters
-	NamedValueTable<float> m_floatSources;
-	NamedValueTable<glm::vec2> m_float2Sources;
-	NamedValueTable<glm::vec3> m_float3Sources;
-	NamedValueTable<glm::vec4> m_float4Sources;
-	NamedValueTable<glm::mat4> m_mat4Sources;
-	NamedValueTable<IMkTexturePtr> m_textureSources;
+	struct MkMaterialInstanceImpl* m_impl;
 };
