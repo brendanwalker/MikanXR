@@ -53,7 +53,7 @@ private:
 	void* m_binaryResponseCallbackUserData= nullptr;
 
 	std::string m_clientUniqueID;
-	class InterprocessRenderTargetWriteAccessor* m_renderTargetWriter;
+	class SharedTextureWriteAccessor* m_renderTargetWriter;
 	class IInterprocessMessageClient* m_messageClient;
 	bool m_bIsConnected;
 };

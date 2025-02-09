@@ -471,11 +471,11 @@ list(APPEND MIKAN_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
-  ${MIKAN_LIBRARIES_DIR}/MikanInterprocessServer/Public
   ${MIKAN_LIBRARIES_DIR}/MikanMath/Public
   ${MIKAN_LIBRARIES_DIR}/MikanObject/Public
   ${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanSharedTexture/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${MIKAN_PLUGINS_DIR}/MikanGStreamer/Public
   ${CMAKE_CURRENT_LIST_DIR}/RmlUi/Public
@@ -534,6 +534,7 @@ list(APPEND MIKAN_REQ_LIBS
   MikanCoreApp
   MikanRenderer
   MikanSerialization
+  MikanSharedTexture
   MikanUtility
   RmlCore
   RmlDebugger)
@@ -580,6 +581,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll $<TARGET_FILE_DIR:Mikan>)

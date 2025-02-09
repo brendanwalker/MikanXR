@@ -3,6 +3,7 @@
 
 //-- includes -----
 #include "CommonConfigFwd.h"
+#include "InterprocessMessageServerInterface.h"
 #include "ScriptingFwd.h"
 #include "MikanAPITypes.h"
 #include "MikanClientTypes.h"
@@ -13,7 +14,6 @@
 #include "MikanVideoSourceEvents.h"
 #include "MikanVRDeviceEvents.h"
 #include "MulticastDelegate.h"
-#include "InterprocessMessages.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "stdint.h"
 
@@ -38,7 +38,7 @@ public:
 	bool isClientInfoValid() const;
 
 	bool hasAllocatedRenderTarget() const;
-	inline class InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const 
+	inline class SharedTextureReadAccessor* getRenderTargetReadAccessor() const 
 	{ return m_renderTargetReadAccessor; }
 	bool allocateRenderTargetTextures(const MikanRenderTargetDescriptor& desc);
 	void freeRenderTargetTexturesHandler();
@@ -49,7 +49,7 @@ protected:
 
 private:
 	MikanClientInfo m_clientInfo;
-	class InterprocessRenderTargetReadAccessor* m_renderTargetReadAccessor= nullptr;
+	class SharedTextureReadAccessor* m_renderTargetReadAccessor= nullptr;
 };
 
 class MikanServer
@@ -93,8 +93,8 @@ public:
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientInitialized;
 	MulticastDelegate<void(const std::string& clientId)> OnClientDisposed;
 
-	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor) > OnClientRenderTargetAllocated;
-	MulticastDelegate<void(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor)> OnClientRenderTargetReleased;
+	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor) > OnClientRenderTargetAllocated;
+	MulticastDelegate<void(const std::string& clientId, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetReleased;
 	MulticastDelegate<void(const std::string& clientId, int64_t frameIndex)> OnClientRenderTargetUpdated;
 
 protected:

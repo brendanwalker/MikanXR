@@ -1,9 +1,10 @@
 #include "SpoutDXDepthTexturePacker.h"
-#include "MikanClientLogger.h"
 
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include <DirectXColors.h>
+
+#include <sstream>
 
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -122,8 +123,12 @@ namespace SpoutDXDepthPackerShaderCode
 	)"""";
 }
 
-SpoutDXDepthTexturePacker::SpoutDXDepthTexturePacker(spoutDX& spout, const MikanRenderTargetDescriptor* descriptor)
-	: m_spout(spout)
+SpoutDXDepthTexturePacker::SpoutDXDepthTexturePacker(
+	SharedTextureLogger& logger,
+	spoutDX& spout, 
+	const SharedTextureDescriptor* descriptor)
+	: m_logger(logger)
+	, m_spout(spout)
 	, m_mikanDescriptor(*descriptor)
 	, m_inFloatDepthTextureDesc(D3D11_TEXTURE2D_DESC())
 {}
@@ -139,7 +144,7 @@ bool SpoutDXDepthTexturePacker::init()
 	ID3D11Device* d3dDevice = m_spout.GetDX11Device();
 	if (d3dDevice == nullptr)
 	{
-		MIKAN_LOG_ERROR("init") << "Failed to get DX11 device";
+		m_logger.log(SharedTextureLogLevel::error, "init - Failed to get DX11 device");
 		return false;
 	}
 
@@ -164,7 +169,7 @@ ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(
 	ID3D11DeviceContext* d3dContext = m_spout.GetDX11Context();
 	if (d3dDevice == nullptr || d3dContext == nullptr)
 	{
-		MIKAN_LOG_ERROR("packDepthTexture") << "Failed to get DX11 device/context";
+		m_logger.log(SharedTextureLogLevel::error, "packDepthTexture - Failed to get DX11 device/context");
 		return nullptr;
 	}
 
@@ -173,7 +178,7 @@ ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(
 	{
 		if (!initInputDepthTextureSRV(d3dDevice, inDepthTexture))
 		{
-			MIKAN_LOG_ERROR("packDepthTexture") << "Failed to initialize input depth texture SRV";
+			m_logger.log(SharedTextureLogLevel::error, "packDepthTexture - Failed to initialize input depth texture SRV");
 			return nullptr;
 		}
 
@@ -189,7 +194,7 @@ ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(
 	{
 		if (!initRenderTargetResources(d3dDevice, inDepthTexture))
 		{
-			MIKAN_LOG_ERROR("packDepthTexture") << "Failed to initialize render target resources";
+			m_logger.log(SharedTextureLogLevel::error, "packDepthTexture - Failed to initialize render target resources");
 			return nullptr;
 		}
 
@@ -329,7 +334,7 @@ bool SpoutDXDepthTexturePacker::initQuadGeometry(ID3D11Device* d3dDevice)
 	HRESULT hr = d3dDevice->CreateBuffer(&bufferDesc, &initData, &m_quadVertexBuffer);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("initQuadGeometry") << "Failed to create quad geometry";
+		m_logger.log(SharedTextureLogLevel::error, "initQuadGeometry - Failed to create quad vertex buffer");
 		return false;
 	}
 
@@ -339,7 +344,7 @@ bool SpoutDXDepthTexturePacker::initQuadGeometry(ID3D11Device* d3dDevice)
 bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 {
 	const std::string shaderCodeString = 
-		m_mikanDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_SCENE_DEPTH 
+		m_mikanDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH 
 		? SpoutDXDepthPackerShaderCode::packSceneDepthShaderCode 
 		: SpoutDXDepthPackerShaderCode::pacDeviceDepthShaderCode;
 
@@ -347,7 +352,7 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 	HRESULT hr = compileShaderFromString(shaderCodeString, "vs_main", "vs_4_0", &m_vertexShaderByteCode);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to compile vertex shader";
+		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to compile vertex shader");
 		return false;
 	}
 
@@ -355,7 +360,7 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 	hr = compileShaderFromString(shaderCodeString, "ps_main", "ps_4_0", &m_pixelShaderByteCode);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to compile pixel shader";
+		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to compile pixel shader");
 		return false;
 	}
 
@@ -367,7 +372,7 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 		&m_vertexShader);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create vertex shader";
+		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to create vertex shader");
 		return false;
 	}
 
@@ -379,7 +384,7 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 		&m_pixelShader);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create vertex shader";
+		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to create pixel shader");
 		return false;
 	}
 
@@ -394,7 +399,7 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 	hr= d3dDevice->CreateBuffer(&bufferDesc, nullptr, &m_constantBuffer);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create constants buffer";
+		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to create constants buffer");
 		return false;
 	}
 
@@ -412,7 +417,7 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 		&m_quadInputLayout);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to fetch vertex input layout";
+		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to fetch vertex input layout");
 		return false;
 	}
 
@@ -429,7 +434,7 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 	hr = d3dDevice->CreateSamplerState(&samplerDesc, &m_samplerState);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create sampler state";
+		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to create sampler state");
 		return false;
 	}
 
@@ -464,7 +469,10 @@ HRESULT SpoutDXDepthTexturePacker::compileShaderFromString(
 		if (pErrorBlob)
 		{
 			const char* szErrorString = (char*)pErrorBlob->GetBufferPointer();
-			MIKAN_LOG_ERROR("CompileShaderFromMemory") << szErrorString;
+			std::stringstream ss;
+			ss << "CompileShaderFromMemory failed with error: " << szErrorString;
+			m_logger.log(SharedTextureLogLevel::error, ss.str());
+
 			pErrorBlob->Release();
 		}
 
@@ -497,7 +505,7 @@ bool SpoutDXDepthTexturePacker::initInputDepthTextureSRV(ID3D11Device* d3dDevice
 	HRESULT hr = d3dDevice->CreateShaderResourceView(inDepthTexture, &inSrvDesc, &m_inFloatDepthTextureSRV);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXcolorTexturePacker") << "Failed to create SRV for input depth texture";
+		m_logger.log(SharedTextureLogLevel::error, "initInputDepthTextureSRV - Failed to create SRV for input depth texture");
 		return false;
 	}
 
@@ -540,7 +548,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 	HRESULT hr = d3dDevice->CreateTexture2D(&textureDesc, nullptr, &m_colorTargetTexture);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXcolorTexturePacker") << "Failed to create color target texture";
+		m_logger.log(SharedTextureLogLevel::error, "initRenderTargetResources - Failed to create color target texture");
 		return false;
 	}
 
@@ -551,7 +559,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 	hr = d3dDevice->CreateRenderTargetView(m_colorTargetTexture, &rtvDesc, &m_colorTargetView);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXcolorTexturePacker") << "Failed to create color target view";
+		m_logger.log(SharedTextureLogLevel::error, "initRenderTargetResources - Failed to create color target view");
 		return false;
 	}
 
@@ -563,7 +571,7 @@ bool SpoutDXDepthTexturePacker::initRenderTargetResources(ID3D11Device* d3dDevic
 	hr = d3dDevice->CreateShaderResourceView(m_colorTargetTexture, &colorSrvDesc, &m_colorTargetSRV);
 	if (FAILED(hr))
 	{
-		MIKAN_LOG_ERROR("SpoutDXcolorTexturePacker") << "Failed to create color target SRV";
+		m_logger.log(SharedTextureLogLevel::error, "initRenderTargetResources - Failed to create color target SRV");
 		return false;
 	}
 

@@ -1,12 +1,16 @@
 #pragma once
 
+#include "SharedTextureLogger.h"
+#include "SharedTextureWriter.h"
 #include "SpoutDX.h"
-#include "MikanCoreTypes.h"
 
 class SpoutDXDepthTexturePacker
 {
 public:
-	SpoutDXDepthTexturePacker(spoutDX& spout, const MikanRenderTargetDescriptor* descriptor);
+	SpoutDXDepthTexturePacker(
+		SharedTextureLogger& logger,
+		spoutDX& spout, 
+		const struct SharedTextureDescriptor* descriptor);
 	virtual ~SpoutDXDepthTexturePacker();
 
 	bool init();
@@ -32,8 +36,9 @@ protected:
 	static DXGI_FORMAT GetDepthSRVFormat(DXGI_FORMAT depthformat);
 
 private:
+	SharedTextureLogger& m_logger;
 	spoutDX& m_spout;
-	MikanRenderTargetDescriptor m_mikanDescriptor;
+	SharedTextureDescriptor m_mikanDescriptor;
 
 	ID3D11Texture2D* m_inFloatDepthTexture = nullptr;
 	ID3D11ShaderResourceView* m_inFloatDepthTextureSRV = nullptr;

@@ -1,5 +1,4 @@
 //-- includes -----
-#include "InterprocessRenderTargetWriter.h"
 #include "WebsocketInterprocessMessageClient.h"
 #include "MikanClientLogger.h"
 #include "MikanClient.h"
@@ -8,6 +7,7 @@
 #include "JsonUtils.h"
 #include "JsonSerializer.h"
 #include "RandomUtils.h"
+#include "SharedTextureWriter.h"
 
 #include "ixwebsocket/IXNetSystem.h"
 
@@ -16,7 +16,7 @@
 // -- methods -----
 MikanClient::MikanClient()
 	: m_clientUniqueID(RandomUtils::RandomHexString(16))
-	, m_renderTargetWriter(new InterprocessRenderTargetWriteAccessor(m_clientUniqueID))
+	, m_renderTargetWriter(new SharedTextureWriteAccessor(m_clientUniqueID))
 	, m_messageClient(new WebsocketInterprocessMessageClient(MikanConstants_ClientAPIVersion))
 {
 	for (int i = 0; i < MikanClientGraphicsApi_COUNT; i++)

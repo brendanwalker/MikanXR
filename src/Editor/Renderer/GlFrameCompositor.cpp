@@ -8,7 +8,7 @@
 #include "IMkTexture.h"
 #include "MikanTextRenderer.h"
 #include "MikanShaderConfig.h"
-#include "InterprocessRenderTargetReader.h"
+#include "SharedTextureReader.h"
 #include "IMkWindow.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
@@ -938,7 +938,7 @@ bool GlFrameCompositor::bindCameraVRTracker()
 bool GlFrameCompositor::addClientSource(
 	const std::string& clientId, 
 	const MikanClientInfo& clientInfo,
-	InterprocessRenderTargetReadAccessor* readAccessor)
+	SharedTextureReadAccessor* readAccessor)
 {
 	if (m_clientSources.hasValue(clientId))
 		return false;
@@ -1019,7 +1019,7 @@ bool GlFrameCompositor::addClientSource(
 
 bool GlFrameCompositor::removeClientSource(
 	const std::string& clientId,
-	InterprocessRenderTargetReadAccessor* readAccessor)
+	SharedTextureReadAccessor* readAccessor)
 {
 	GlFrameCompositor::ClientSource* clientSource = m_clientSources.getValueOrDefault(clientId, nullptr);
 	if (clientSource == nullptr)
@@ -1144,14 +1144,14 @@ void GlFrameCompositor::freeVertexBuffers()
 void GlFrameCompositor::onClientRenderTargetAllocated(
 	const std::string& clientId, 
 	const MikanClientInfo& clientInfo,
-	InterprocessRenderTargetReadAccessor* readAccessor)
+	SharedTextureReadAccessor* readAccessor)
 {
 	addClientSource(clientId, clientInfo, readAccessor);
 }
 
 void GlFrameCompositor::onClientRenderTargetReleased(
 	const std::string& clientId,
-	InterprocessRenderTargetReadAccessor* readAccessor)
+	SharedTextureReadAccessor* readAccessor)
 {
 	removeClientSource(clientId, readAccessor);
 }

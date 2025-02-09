@@ -9,11 +9,11 @@
 class IMkTexture;
 typedef std::shared_ptr<IMkTexture> IMkTexturePtr;
 
-class InterprocessRenderTargetReadAccessor
+class SharedTextureReadAccessor
 {
 public:
-	InterprocessRenderTargetReadAccessor(const std::string& clientName);
-	~InterprocessRenderTargetReadAccessor();
+	SharedTextureReadAccessor(const std::string& clientName);
+	~SharedTextureReadAccessor();
 
 	bool initialize(const MikanRenderTargetDescriptor* descriptor);
 	void dispose();

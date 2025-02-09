@@ -5,8 +5,7 @@
 #include "BinaryUtility.h"
 #include "BoxStencilComponent.h"
 #include "CommonScriptContext.h"
-#include "InterprocessRenderTargetReader.h"
-#include "InterprocessMessages.h"
+#include "SharedTextureReader.h"
 #include "MathTypeConversion.h"
 #include "Logger.h"
 #include "MikanAPITypes.h"
@@ -110,7 +109,7 @@ public:
 		return getRenderTargetReadAccessor()->readRenderTargetTextures(newFrameIndex);
 	}
 
-	InterprocessRenderTargetReadAccessor* getRenderTargetReadAccessor() const
+	SharedTextureReadAccessor* getRenderTargetReadAccessor() const
 	{
 		return m_connectionInfo->getRenderTargetReadAccessor();
 	}
@@ -322,7 +321,7 @@ void MikanClientConnectionInfo::allocateRenderTargetAccessor()
 {
 	assert(m_renderTargetReadAccessor == nullptr);
 	assert(isClientInfoValid());
-	m_renderTargetReadAccessor = new InterprocessRenderTargetReadAccessor(getClientId());
+	m_renderTargetReadAccessor = new SharedTextureReadAccessor(getClientId());
 }
 
 void MikanClientConnectionInfo::disposeRenderTargetAccessor()

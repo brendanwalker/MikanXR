@@ -26,7 +26,7 @@
 #include "MikanViewport.h"
 #include "IMkWireframeMesh.h"
 #include "IMkTexture.h"
-#include "InterprocessRenderTargetReader.h"
+#include "SharedTextureReader.h"
 #include "InputManager.h"
 #include "MainWindow.h"
 #include "MathGLM.h"
@@ -78,7 +78,7 @@ AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 	, m_videoWriter(new VideoWriter)
-	, m_renderTargetWriteAccessor(new InterprocessRenderTargetWriteAccessor("MikanXR"))
+	, m_renderTargetWriteAccessor(new SharedTextureWriteAccessor("MikanXR"))
 {
 }
 

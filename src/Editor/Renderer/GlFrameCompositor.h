@@ -117,8 +117,8 @@ protected:
 	void createVertexBuffers();
 	void freeVertexBuffers();
 
-	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
-	bool removeClientSource(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
+	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
+	bool removeClientSource(const std::string& clientId, class SharedTextureReadAccessor* readAccessor);
 \
 	void updateCompositeFrame();
 	void updateCompositeFrameNodeGraph();
@@ -127,8 +127,8 @@ protected:
 	static IMkShaderCodeConstPtr getRGBtoBGRVideoFrameShaderCode();
 
 	// MikanServer Events
-	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
-	void onClientRenderTargetReleased(const std::string& clientId, class InterprocessRenderTargetReadAccessor* readAccessor);
+	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
+	void onClientRenderTargetReleased(const std::string& clientId, class SharedTextureReadAccessor* readAccessor);
 	void onClientRenderTargetUpdated(const std::string& clientId, int64_t frameIndex);
 
 	// Preset Config Events

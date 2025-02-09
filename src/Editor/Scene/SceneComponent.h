@@ -63,7 +63,7 @@ public:
 		return m_childComponents;
 	}
 
-	inline IGlSceneRenderablePtr getGlSceneRenderable() const
+	inline IMkSceneRenderablePtr getGlSceneRenderable() const
 	{
 		return m_sceneRenderable;
 	}
@@ -128,5 +128,5 @@ protected:
 	glm::mat4 m_worldTransform;
 	SceneComponentWeakPtr m_parentComponent;
 	SceneComponentList m_childComponents;
-	IGlSceneRenderablePtr m_sceneRenderable;
+	IMkSceneRenderablePtr m_sceneRenderable;
 };

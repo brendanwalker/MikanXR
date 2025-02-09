@@ -9,7 +9,7 @@ class SpoutTextureReader
 {
 public:
 	SpoutTextureReader(
-		InterprocessRenderTargetReadAccessor* parentAccessor,
+		SharedTextureReadAccessor* parentAccessor,
 		const std::string& clientName)
 		: m_parentAccessor(parentAccessor)
 		, m_colorSenderName(clientName+"_color")
@@ -117,14 +117,14 @@ public:
 	}
 
 private:
-	InterprocessRenderTargetReadAccessor* m_parentAccessor;
+	SharedTextureReadAccessor* m_parentAccessor;
 	std::string m_colorSenderName;
 	std::string m_depthSenderName;
 	SPOUTLIBRARY* m_spoutColorFrame;
 	SPOUTLIBRARY* m_spoutDepthFrame;
 };
 
-//-- InterprocessRenderTargetReadAccessor -----
+//-- SharedTextureReadAccessor -----
 struct RenderTargetReaderImpl
 {
 	union
@@ -134,7 +134,7 @@ struct RenderTargetReaderImpl
 	MikanClientGraphicsApi graphicsAPI;
 };
 
-InterprocessRenderTargetReadAccessor::InterprocessRenderTargetReadAccessor(const std::string& clientName)
+SharedTextureReadAccessor::SharedTextureReadAccessor(const std::string& clientName)
 	: m_clientName(clientName)
 	, m_colorTexture(nullptr)
 	, m_depthTexture(nullptr)
@@ -145,14 +145,14 @@ InterprocessRenderTargetReadAccessor::InterprocessRenderTargetReadAccessor(const
 	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
 }
 
-InterprocessRenderTargetReadAccessor::~InterprocessRenderTargetReadAccessor()
+SharedTextureReadAccessor::~SharedTextureReadAccessor()
 {
 	dispose();
 	delete m_readerImpl;
 	m_readerImpl= nullptr;
 }
 
-bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDescriptor* descriptor)
+bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* descriptor)
 {
 	bool bSuccess = false;
 
@@ -175,7 +175,7 @@ bool InterprocessRenderTargetReadAccessor::initialize(const MikanRenderTargetDes
 	return bSuccess;
 }
 
-void InterprocessRenderTargetReadAccessor::dispose()
+void SharedTextureReadAccessor::dispose()
 {
 	assert(m_readerImpl != nullptr);
 	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
@@ -195,7 +195,7 @@ void InterprocessRenderTargetReadAccessor::dispose()
 	m_descriptor = {};
 }
 
-bool InterprocessRenderTargetReadAccessor::readRenderTargetTextures(
+bool SharedTextureReadAccessor::readRenderTargetTextures(
 	const int64_t newFrameIndex)
 {
 	bool bSuccess = false;
