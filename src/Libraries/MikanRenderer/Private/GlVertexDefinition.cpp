@@ -218,7 +218,7 @@ public:
 		return true;
 	}
 
-	virtual bool isCompatibleProgram(IMkShaderConstPtr program) const override
+	virtual bool isCompatibleProgram(const IMkShader* program) const override
 	{
 		uint32_t programId = program->getIMkShaderId();
 		const std::string programName = program->getProgramCode()->getProgramName();

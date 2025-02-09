@@ -454,7 +454,7 @@ public:
 			m_vertexDefinition = createMkVertexDefinition(m_code->getVertexAttributes());
 
 			// Last step: check that the vertex definition is compatible with the program
-			return m_vertexDefinition->isCompatibleProgram(*this);
+			return m_vertexDefinition->isCompatibleProgram(this);
 		}
 
 		return false;

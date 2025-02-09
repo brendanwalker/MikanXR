@@ -41,7 +41,7 @@ public:
 	virtual const IMkVertexAttribute* getFirstAttributeBySemantic(eVertexSemantic semantic) const = 0;
 	virtual const IMkVertexAttribute* getAttributeByName(const std::string& name) const = 0;
 	virtual bool isCompatibleDefinition(IMkVertexDefinitionConstPtr other) const = 0;
-	virtual bool isCompatibleProgram(IMkShaderConstPtr program) const = 0;
+	virtual bool isCompatibleProgram(const IMkShader* program) const = 0;
 };
 
 MIKAN_RENDERER_FUNC(IMkVertexAttributePtr) createMkVertexAttribute(
