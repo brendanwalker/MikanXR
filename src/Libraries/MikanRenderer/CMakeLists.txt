@@ -3,6 +3,18 @@
 
 MESSAGE(STATUS "Generating Mikan Renderer DLL Project")
 
+# OpenGL Libraries
+set(OPENGL_LIBS "")
+if (WIN32) 
+  list(APPEND OPENGL_LIBS opengl32)
+elseif (APPLE)
+  find_library(opengl_library OpenGL)
+  list(APPEND OPENGL_LIBS ${opengl_library})
+elseif(CMAKE_SYSTEM MATCHES "Linux")
+  list(APPEND OPENGL_LIBS GL)
+endif()
+list(APPEND OPENGL_LIBS ${GLEW_LIBRARIES})
+
 file(GLOB MIKAN_RENDERER_HEADER
 	"${CMAKE_CURRENT_LIST_DIR}/Public/*.h"
 )
@@ -31,7 +43,7 @@ list(APPEND MIKAN_RENDERER_INCL_DIRS
 )
 
 list(APPEND MIKAN_RENDERER_REQ_LIBS 
-  ${GLEW_LIBRARIES}
+  ${OPENGL_LIBS}
   MikanCoreApp
   MikanUtility)
 
