@@ -4,6 +4,7 @@
 #include "MkMaterialInstance.h"
 #include "IMkShader.h"
 #include "IMkShaderCache.h"
+#include "IMkState.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
 #include "IMkTextRenderer.h"
@@ -53,7 +54,7 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, m_maxTextQuadVertexCount * sizeof(TextQuadVertex), nullptr, GL_DYNAMIC_DRAW);
 		checkHasAnyMkError("MikanTextRenderer::startup()", __FILE__, __LINE__);
 
-		m_textMaterial->getProgram()->getVertexDefinition().applyVertexDefintion();
+		m_textMaterial->getProgram()->getVertexDefinition()->applyVertexDefintion();
 
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -90,12 +91,12 @@ public:
 		if (auto materialBinding = m_textMaterial->bindMaterial())
 		{
 			MkScopedState stateScope = m_ownerWindow->getMkStateStack().createScopedState("MikanTextRenderer");
-			IMkStatePtr glState = stateScope.getStackState();
+			IMkStatePtr mkState = stateScope.getStackState();
 
-			// Render text ove rtop of everything with alpha blending
-			glState.disableFlag(eMkStateFlagType::depthTest);
-			glState.enableFlag(eMkStateFlagType::blend);
-			mkStateSetBlendFunc(glState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
+			// Render text over top of everything with alpha blending
+			mkState->disableFlag(eMkStateFlagType::depthTest);
+			mkState->enableFlag(eMkStateFlagType::blend);
+			mkStateSetBlendFunc(mkState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
 
 			// Bind the vertex array and buffer
 			glBindVertexArray(m_textQuadVAO);
