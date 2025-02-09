@@ -28,7 +28,7 @@ namespace ObjUtils
 			, m_materialName(materialName)
 			, m_materialInstance(materialInst) 
 		{
-			GlMaterialConstPtr material = m_materialInstance->getMaterial();
+			MkMaterialConstPtr material = m_materialInstance->getMaterial();
 			const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
 
 			m_positionAttribute = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
@@ -154,7 +154,7 @@ namespace ObjUtils
 
 	MkMaterialInstancePtr createTriMeshMaterialInstance(
 		IMkWindow* ownerWindow,
-		GlMaterialConstPtr material,
+		MkMaterialConstPtr material,
 		const fastObjMaterial& objMaterial);
 	IMkTriangulatedMeshPtr createTriangulatedMeshResource(
 		IMkWindow* ownerWindow,
@@ -166,7 +166,7 @@ namespace ObjUtils
 
 MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	const std::filesystem::path& modelPath,
-	GlMaterialConstPtr overrideMaterial)
+	MkMaterialConstPtr overrideMaterial)
 {
 	IMkWindow* ownerWindow= m_ownerManager->getOwnerWindow();
 	IMkShaderCache* shaderCache= ownerWindow->getShaderCache();
@@ -176,7 +176,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	if (modelPath.empty())
 		return false;
 
-	GlMaterialConstPtr triMeshMaterial = overrideMaterial;
+	MkMaterialConstPtr triMeshMaterial = overrideMaterial;
 	if (!triMeshMaterial)
 	{
 		triMeshMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
@@ -335,7 +335,7 @@ namespace ObjUtils
 
 	MkMaterialInstancePtr createTriMeshMaterialInstance(
 		IMkWindow* ownerWindow,
-		GlMaterialConstPtr material,
+		MkMaterialConstPtr material,
 		const fastObjMaterial& objMaterial)
 	{
 		MikanTextureCache* textureCache = ownerWindow->getTextureCache();

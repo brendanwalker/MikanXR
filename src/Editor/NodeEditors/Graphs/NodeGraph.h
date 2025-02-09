@@ -45,8 +45,8 @@ public:
 
 	virtual std::string getClassName() const { return "NodeGraph"; }
 
-	inline void setOwnerWindow(class IGlWindow* window) { m_ownerWindow= window; }
-	inline class IGlWindow* getOwnerWindow() const { return m_ownerWindow; }
+	inline void setOwnerWindow(class IMkWindow* window) { m_ownerWindow= window; }
+	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
 
 	virtual bool createResources() { return true; }
 	virtual void disposeResources() {}
@@ -300,7 +300,7 @@ public:
 
 protected:
 	// The window that created this node graph
-	class IGlWindow* m_ownerWindow= nullptr;
+	class IMkWindow* m_ownerWindow= nullptr;
 
 	// Defines all of the asset references that nodes in this graph can use
 	std::map<std::string, AssetReferenceFactoryPtr> m_assetRefFactories;
@@ -337,9 +337,9 @@ public:
 	inline std::string getNodeClassName() const { return m_nodeGraphDefaultObject->getClassName(); }
 
 	virtual NodeGraphPtr allocateNodeGraph() const;
-	virtual NodeGraphPtr initialCreateNodeGraph(class IGlWindow* ownerWindow) const;
+	virtual NodeGraphPtr initialCreateNodeGraph(class IMkWindow* ownerWindow) const;
 
-	static NodeGraphPtr loadNodeGraph(class IGlWindow* ownerWindow, const std::filesystem::path& path);
+	static NodeGraphPtr loadNodeGraph(class IMkWindow* ownerWindow, const std::filesystem::path& path);
 	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);
 
 	template <class t_node_factory_class>

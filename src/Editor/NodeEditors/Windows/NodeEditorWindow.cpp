@@ -5,8 +5,8 @@
 #include "AssetReference.h"
 #include "SdlCommon.h"
 #include "MikanModelResourceManager.h"
-#include "GlStateStack.h"
-#include "GlStateModifiers.h"
+#include "MkStateStack.h"
+#include "MkStateModifiers.h"
 #include "MikanShaderCache.h"
 #include "IMkTexture.h"
 #include "MikanTextureCache.h"
@@ -45,7 +45,7 @@
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow()
 	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
+	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
 	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
 	, m_textureCache(GlTextureCacheUniquePtr(new MikanTextureCache))
@@ -80,9 +80,9 @@ MikanTextureCache* NodeEditorWindow::getTextureCache()
 	return m_textureCache.get();
 }
 
-GlStateStack& NodeEditorWindow::getGlStateStack()
+MkStateStack& NodeEditorWindow::getMkStateStack()
 {
-	return *m_glStateStack.get();
+	return *m_MkStateStack.get();
 }
 
 SdlWindow& NodeEditorWindow::getSdlWindow()
@@ -199,17 +199,17 @@ bool NodeEditorWindow::startup()
 	if (success)
 	{
 		// Set default state flags at the base of the stack
-		GlState& glBaseState= m_glStateStack->pushState("NodeEditor Root Scope");
+		IMkStatePtr glBaseState= m_MkStateStack->pushState("NodeEditor Root Scope");
 		assert(glBaseState.getStackDepth() == 0);
 
 		glBaseState
-		.enableFlag(eGlStateFlagType::texture2d)
-		.enableFlag(eGlStateFlagType::depthTest)
-		.disableFlag(eGlStateFlagType::cullFace);
+		.enableFlag(eMkStateFlagType::texture2d)
+		.enableFlag(eMkStateFlagType::depthTest)
+		.disableFlag(eMkStateFlagType::cullFace);
 
 		static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
-		glStateSetClearColor(glBaseState, k_clear_color);
-		glStateSetViewport(glBaseState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
+		mkStateSetClearColor(glBaseState, k_clear_color);
+		mkStateSetViewport(glBaseState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
 	}
 
 	return success;
@@ -1102,7 +1102,7 @@ void NodeEditorWindow::shutdown()
 	m_editorState.nodeGraph= nullptr;
 	m_editorState.nodeGraphPath.clear();
 
-	m_glStateStack = nullptr;
+	m_MkStateStack = nullptr;
 
 	if (m_shaderCache != nullptr)
 	{

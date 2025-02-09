@@ -14,7 +14,7 @@
 #include "MkMaterialInstance.h"
 #include "GlScene.h"
 #include "MkScopedObjectBinding.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
@@ -345,7 +345,7 @@ void AppStage_AlignmentCalibration::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			*m_ownerWindow->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 
@@ -400,7 +400,7 @@ void AppStage_AlignmentCalibration::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
-		GlMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())
 		{
@@ -420,7 +420,7 @@ void AppStage_AlignmentCalibration::render()
 
 void AppStage_AlignmentCalibration::renderVRScene()
 {
-	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
+	m_scene->render(m_camera, m_ownerWindow->getMkStateStack());
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 

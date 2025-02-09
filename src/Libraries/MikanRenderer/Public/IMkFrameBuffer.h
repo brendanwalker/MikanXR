@@ -47,7 +47,6 @@ public:
 	virtual eColorFormat getColorFormat() const = 0;
 	virtual IMkTexturePtr getColorTexture() const = 0;
 	virtual IMkTexturePtr getDepthTexture() const = 0;
-	virtual GlState* getGlState() const = 0;
 };
 
 MIKAN_RENDERER_FUNC(IMkFrameBufferPtr) createMkFrameBuffer();

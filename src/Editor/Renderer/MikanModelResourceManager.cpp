@@ -36,7 +36,7 @@ void MikanModelResourceManager::shutdown()
 
 MikanRenderModelResourcePtr MikanModelResourceManager::fetchRenderModel(
 	const std::filesystem::path& modelFilePath,
-	GlMaterialConstPtr overrideMaterial)
+	MkMaterialConstPtr overrideMaterial)
 {
 	if (!modelFilePath.empty())
 	{

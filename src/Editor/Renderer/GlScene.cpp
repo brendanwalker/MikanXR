@@ -4,8 +4,8 @@
 #include "MkMaterialInstance.h"
 #include "IMkShader.h"
 #include "GlScene.h"
-#include "GlStateModifiers.h"
-#include "GlStateStack.h"
+#include "MkStateModifiers.h"
+#include "MkStateStack.h"
 #include "IMkShaderCache.h"
 #include "IMkStaticMeshInstance.h"
 #include "MikanViewport.h"
@@ -29,7 +29,7 @@ GlScene::~GlScene()
 
 void GlScene::addInstance(IMkSceneRenderableConstPtr instance)
 {
-	GlMaterialConstPtr material= instance->getMaterialInstanceConst()->getMaterial();
+	MkMaterialConstPtr material= instance->getMaterialInstanceConst()->getMaterial();
 
 	if (m_drawCalls.find(material) == m_drawCalls.end())
 	{
@@ -41,7 +41,7 @@ void GlScene::addInstance(IMkSceneRenderableConstPtr instance)
 
 void GlScene::removeInstance(IMkSceneRenderableConstPtr instance)
 {
-	GlMaterialConstPtr material = instance->getMaterialInstanceConst()->getMaterial();
+	MkMaterialConstPtr material = instance->getMaterialInstanceConst()->getMaterial();
 
 	auto drawCallIter= m_drawCalls.find(material);
 	if (drawCallIter != m_drawCalls.end())
@@ -72,24 +72,24 @@ void GlScene::removeAllInstances()
 	m_drawCalls.clear();
 }
 
-void GlScene::render(IMkCameraConstPtr camera, GlStateStack& glStateStack) const
+void GlScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
 {
-	GlScopedState scopedState= glStateStack.createScopedState("GlScene");
-	GlState& glState= scopedState.getStackState();
+	GlScopedState scopedState= MkStateStack.createScopedState("GlScene");
+	IMkStatePtr glState= scopedState.getStackState();
 
 	// Enable front face culling while drawing the scene
-	glState.enableFlag(eGlStateFlagType::cullFace);
+	glState.enableFlag(eMkStateFlagType::cullFace);
 	glStateSetFrontFace(glState, eGLFrontFaceMode::CCW);
 
 	// Enable Depth Test while drawing the scene
-	glState.enableFlag(eGlStateFlagType::depthTest);
+	glState.enableFlag(eMkStateFlagType::depthTest);
 
 	// Clear the depth buffer before drawing the scene
 	glStateClearBuffer(glState, eGlClearFlags::depth);
 
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
 	{
-		GlMaterialConstPtr material = drawCallIter->first;
+		MkMaterialConstPtr material = drawCallIter->first;
 		GlDrawCallConstPtr drawCall = drawCallIter->second;
 
 		bool bAnyInstancesVisible= false;

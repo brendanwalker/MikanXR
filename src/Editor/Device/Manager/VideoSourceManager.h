@@ -38,7 +38,7 @@ public:
 
 	class IMikanGStreamerModule* getGStreamerModule() const;
 
-	bool startup(class IGlWindow *ownerWindow) override;
+	bool startup(class IMkWindow *ownerWindow) override;
 	void update(float deltaTime) override;
 	void shutdown() override;
 

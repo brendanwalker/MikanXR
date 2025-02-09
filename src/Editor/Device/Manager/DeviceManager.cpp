@@ -18,7 +18,7 @@ DeviceManager::~DeviceManager()
 }
 
 /// Override if the device type needs to initialize any services (e.g., hid_init)
-bool DeviceManager::startup(class IGlWindow* ownerWindow)
+bool DeviceManager::startup(class IMkWindow* ownerWindow)
 {
 	assert(m_deviceViews == nullptr);
 

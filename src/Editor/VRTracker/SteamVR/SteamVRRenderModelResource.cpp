@@ -14,7 +14,7 @@
 #include "openvr.h"
 
 SteamVRRenderModelResource::SteamVRRenderModelResource(
-	class IGlWindow* ownerWindow)
+	class IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 	, m_steamVRRenderModel(nullptr)
 	, m_steamVRTextureMap(nullptr)
@@ -149,7 +149,7 @@ MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	IMkTexturePtr texture)
 {
 	auto* shaderCache= m_ownerWindow->getShaderCache();
-	GlMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
+	MkMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
 	assert(material != nullptr);
 	MkMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
 

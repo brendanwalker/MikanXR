@@ -4,8 +4,8 @@
 #include "MkMaterialInstance.h"
 #include "IMkShader.h"
 #include "IMkShaderCache.h"
-#include "GlStateStack.h"
-#include "GlStateModifiers.h"
+#include "MkStateStack.h"
+#include "MkStateModifiers.h"
 #include "IMkTextRenderer.h"
 #include "IMkTexture.h"
 #include "IMkViewport.h"
@@ -89,13 +89,13 @@ public:
 		// Same material used for all text quads
 		if (auto materialBinding = m_textMaterial->bindMaterial())
 		{
-			GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("MikanTextRenderer");
-			GlState& glState = stateScope.getStackState();
+			MkScopedState stateScope = m_ownerWindow->getMkStateStack().createScopedState("MikanTextRenderer");
+			IMkStatePtr glState = stateScope.getStackState();
 
 			// Render text ove rtop of everything with alpha blending
-			glState.disableFlag(eGlStateFlagType::depthTest);
-			glState.enableFlag(eGlStateFlagType::blend);
-			glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);
+			glState.disableFlag(eMkStateFlagType::depthTest);
+			glState.enableFlag(eMkStateFlagType::blend);
+			mkStateSetBlendFunc(glState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
 
 			// Bind the vertex array and buffer
 			glBindVertexArray(m_textQuadVAO);

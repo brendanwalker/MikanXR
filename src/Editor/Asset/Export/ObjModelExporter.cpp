@@ -149,7 +149,7 @@ bool ObjModelExporter::exportModelToFile(
 
 			// Make sure the material vertex definition has the needed attributes
 			GlMaterialInstanceConstPtr materialInstance = triMesh->getMaterialInstance();
-			GlMaterialConstPtr material = materialInstance->getMaterial();
+			MkMaterialConstPtr material = materialInstance->getMaterial();
 			const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
 			const size_t vertexSize = vertexDefinition.getVertexSize();
 			const GlVertexAttribute* posAttrib =

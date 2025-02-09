@@ -27,7 +27,7 @@ public:
 	void bindInput();
 	void unbindInput();
 
-	virtual void applyRenderingViewport(GlState& glState) const override;
+	virtual void applyRenderingViewport(IMkStatePtr mkState) const override;
 	virtual void onRenderingViewportApply(int x, int y, int width, int height) override;
 	virtual void onRenderingViewportRevert(int x, int y, int width, int height) override;
 	virtual bool getRenderingViewport(glm::i32vec2 &outOrigin, glm::i32vec2 &outSize) const override;

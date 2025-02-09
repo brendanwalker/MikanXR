@@ -28,7 +28,7 @@ public:
 
 	inline static VRDeviceManager* getInstance() { return m_instance; }
 
-	bool startup(class IGlWindow *ownerWindow) override;
+	bool startup(class IMkWindow *ownerWindow) override;
 	void update(float deltaTime) override;
 	void shutdown() override;
 

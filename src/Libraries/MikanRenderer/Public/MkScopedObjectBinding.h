@@ -4,26 +4,29 @@
 #include "MkRendererExport.h"
 #include "IMkBindableObject.h"
 
-#include <memory>
 #include <string>
 
 class MIKAN_RENDERER_CLASS MkScopedObjectBinding
 {
 public:
 	MkScopedObjectBinding() = default;
-	MkScopedObjectBinding(class GlState& parentGLState, const std::string& scopeName, IMkBindableObjectPtr bindableObject);
+	MkScopedObjectBinding(
+		IMkStatePtr parentMkState, 
+		const std::string& scopeName, 
+		IMkBindableObjectPtr bindableObject);
 	virtual ~MkScopedObjectBinding();
 
+	IMkBindableObjectPtr getBoundObject() const;
+
 	template <class t_bindable_object>
-	inline std::shared_ptr<t_bindable_object> getBoundObject() const
+	inline std::shared_ptr<t_bindable_object> getTypedBoundObject() const
 	{
-		return std::static_pointer_cast<t_bindable_object>(m_boundObject);
+		return std::static_pointer_cast<t_bindable_object>(getBoundObject());
 	}
 
-	inline operator bool() const { return m_boundObject->getIsBound(); }
-	inline GlState& getGlState() { return m_glState; }
+	operator bool() const;
+	IMkStatePtr getMkState();
 
 private:
-	IMkBindableObjectPtr m_boundObject;
-	class GlState& m_glState;
+	struct MkScopedObjectBindingData* m_data;
 }; 

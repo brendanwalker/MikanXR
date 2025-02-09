@@ -19,10 +19,9 @@ public:
 	virtual bool getIsRenderingUI() const= 0;
 
 	virtual IMkViewportPtr getRenderingViewport() const = 0;
-	virtual GlStateStack& getGlStateStack() = 0;
+	virtual MkStateStack& getMkStateStack() = 0;
 	virtual class IMkLineRenderer* getLineRenderer() = 0;
 	virtual class IMkTextRenderer* getTextRenderer() = 0;
 	virtual IMkShaderCache* getShaderCache() = 0;
 	virtual IMkTextureCache* getTextureCache() = 0;
-	virtual MikanModelResourceManager* getModelResourceManager() = 0;
 };

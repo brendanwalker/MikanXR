@@ -14,7 +14,7 @@ namespace vr
 class SteamVRRenderModelResource
 {
 public:
-	SteamVRRenderModelResource(class IGlWindow* ownerWindow);
+	SteamVRRenderModelResource(class IMkWindow* ownerWindow);
 	virtual ~SteamVRRenderModelResource();
 
 	bool createRenderResources();

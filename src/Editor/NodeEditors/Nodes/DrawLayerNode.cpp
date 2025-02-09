@@ -5,8 +5,9 @@
 #include "MikanModelResourceManager.h"	
 #include "IMkShader.h"	
 #include "MikanShaderCache.h"	
-#include "GlStateStack.h"	
-#include "GlStateModifiers.h"	
+#include "MkStateStack.h"	
+#include "MkStateModifiers.h"
+#include "IMkState.h"
 #include "IMkTexture.h"	
 #include "IMkTriangulatedMesh.h"	
 #include "MkMaterialInstance.h"	
@@ -219,12 +220,12 @@ void DrawLayerNode::setStencilsPin(ArrayPinPtr inPin)
 	m_stencilsPin = inPin;	
 }	
 
-void DrawLayerNode::setMaterial(GlMaterialConstPtr inMaterial)	
+void DrawLayerNode::setMaterial(MkMaterialConstPtr inMaterial)	
 {	
 	m_material = inMaterial;	
 	m_materialInstance = 	
 		m_material 	
-		? std::make_shared<GlMaterialInstance>(inMaterial)	
+		? std::make_shared<MkMaterialInstance>(inMaterial)	
 		: MkMaterialInstancePtr();	
 }	
 
@@ -300,16 +301,16 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 		}	
 
 		{	
-			GlScopedState glStateScope = 	
-				evaluator.getCurrentWindow()->getGlStateStack().createScopedState("Draw Layer Node");	
-			GlState& glState = glStateScope.getStackState();	
+			MkScopedState mkStateScope = 	
+				evaluator.getCurrentWindow()->getMkStateStack().createScopedState("Draw Layer Node");	
+			IMkStatePtr mkState = mkStateScope.getStackState();	
 
 			// Set the blend mode	
 			switch (m_blendMode)	
 			{	
 				case eCompositorBlendMode::blendOff:	
 					{	
-						glState.disableFlag(eGlStateFlagType::blend);	
+						mkState->disableFlag(eMkStateFlagType::blend);	
 					}	
 					break;	
 				case eCompositorBlendMode::blendOn:	
@@ -319,7 +320,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 						// (sG*sA) + (dG*(1-sA)) = rG	
 						// (sB*sA) + (dB*(1-sA)) = rB	
 						// (sA*sA) + (dA*(1-sA)) = rA	
-						glState.enableFlag(eGlStateFlagType::blend);	
+						mkState->enableFlag(eMkStateFlagType::blend);	
 						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	
 						glBlendEquation(GL_FUNC_ADD);	
 					}	
@@ -329,9 +330,9 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			// Apply any Stencils assigned to the node	
 			if (m_stencilMode != eCompositorStencilMode::noStencil)	
 			{	
-				evaluateQuadStencils(glState);	
-				evaluateBoxStencils(glState);	
-				evaluateModelStencils(glState);	
+				evaluateQuadStencils(mkState);	
+				evaluateBoxStencils(mkState);	
+				evaluateModelStencils(mkState);	
 			}	
 
 			// Bind the layer shader program and uniform parameters.	
@@ -339,7 +340,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			MkScopedMaterialBinding materialBinding = m_material->bindMaterial();	
 			if (materialBinding)	
 			{	
-				GlScopedMaterialInstanceBinding materialInstanceBinding = 	
+				MkScopedMaterialInstanceBinding materialInstanceBinding = 	
 					m_materialInstance->bindMaterialInstance(materialBinding);	
 
 				if (materialInstanceBinding)	
@@ -469,7 +470,7 @@ void DrawLayerNode::onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin)
 {	
 	if (pin == m_materialPin)	
 	{	
-		setMaterial(GlMaterialConstPtr());	
+		setMaterial(MkMaterialConstPtr());	
 
 		// Rebuild the pins since the material changed	
 		if (!isPendingDeletion())	
@@ -647,7 +648,7 @@ void DrawLayerNode::rebuildStencilLists()
 	}	
 }	
 
-void DrawLayerNode::evaluateQuadStencils(GlState& glParentState)	
+void DrawLayerNode::evaluateQuadStencils(IMkStatePtr glParentState)	
 {	
 	EASY_FUNCTION();	
 
@@ -716,25 +717,25 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glParentState)
 	}	
 
 	{	
-		GlScopedState stateScope= glParentState.getOwnerStateStack().createScopedState("evaluateQuadStencils");	
-		GlState& glState= stateScope.getStackState();	
+		MkScopedState stateScope= glParentState->getOwnerStateStack().createScopedState("evaluateQuadStencils");	
+		IMkStatePtr mkState= stateScope.getStackState();	
 
-		glStateSetStencilBufferClearValue(glState, 0);	
+		mkStateSetStencilBufferClearValue(mkState, 0);	
 		glClear(GL_STENCIL_BUFFER_BIT);	
 
 		// Do not draw any pixels on the back buffer	
-		glStateSetColorMask(glState, glm::bvec4(false));	
-		glStateSetDepthMask(glState, false);	
+		mkStateSetColorMask(mkState, glm::bvec4(false));	
+		mkStateSetDepthMask(mkState, false);	
 		// Enables testing AND writing functionalities	
-		glState.enableFlag(eGlStateFlagType::stencilTest);	
+		mkState->enableFlag(eMkStateFlagType::stencilTest);	
 		// Do not test the current value in the stencil buffer, always accept any value on there for drawing	
-		glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFF);	
-		glStateSetStencilMask(glState, 0xFF);	
+		mkStateSetStencilFunc(mkState, eMkStencilFunction::ALWAYS, 1, 0xFF);	
+		mkStateSetStencilMask(mkState, 0xFF);	
 		// Make every test succeed	
-		glStateSetStencilOp(glState, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE);	
+		mkStateSetStencilOp(mkState, eMkStencilOp::REPLACE, eMkStencilOp::REPLACE, eMkStencilOp::REPLACE);	
 
 		MkMaterialInstancePtr materialInstance = stencilQuadMesh->getMaterialInstance();	
-		GlMaterialConstPtr material = materialInstance->getMaterial();	
+		MkMaterialConstPtr material = materialInstance->getMaterial();	
 
 		if (auto materialBinding = material->bindMaterial())	
 		{	
@@ -770,7 +771,7 @@ void DrawLayerNode::evaluateQuadStencils(GlState& glParentState)
 	}	
 }	
 
-void DrawLayerNode::evaluateBoxStencils(GlState& glParentState)	
+void DrawLayerNode::evaluateBoxStencils(IMkStatePtr glParentState)	
 {	
 	EASY_FUNCTION();	
 
@@ -807,25 +808,25 @@ void DrawLayerNode::evaluateBoxStencils(GlState& glParentState)
 		return;	
 
 	{	
-		GlScopedState stateScope = glParentState.getOwnerStateStack().createScopedState("evaluateBoxStencils");	
-		GlState& glState = stateScope.getStackState();	
+		MkScopedState stateScope = glParentState->getOwnerStateStack().createScopedState("evaluateBoxStencils");	
+		IMkStatePtr mkState = stateScope.getStackState();	
 
-		glStateSetStencilBufferClearValue(glState, 0);	
+		mkStateSetStencilBufferClearValue(mkState, 0);	
 		glClear(GL_STENCIL_BUFFER_BIT);	
 
 		// Do not draw any pixels on the back buffer	
-		glStateSetColorMask(glState, glm::bvec4(false));	
-		glStateSetDepthMask(glState, false);	
+		mkStateSetColorMask(mkState, glm::bvec4(false));	
+		mkStateSetDepthMask(mkState, false);	
 		// Enables testing AND writing functionalities	
-		glState.enableFlag(eGlStateFlagType::stencilTest);	
+		mkState->enableFlag(eMkStateFlagType::stencilTest);	
 		// Do not test the current value in the stencil buffer, always accept any value on there for drawing	
-		glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFF);	
-		glStateSetStencilMask(glState, 0xFF);	
+		mkStateSetStencilFunc(mkState, eMkStencilFunction::ALWAYS, 1, 0xFF);	
+		mkStateSetStencilMask(mkState, 0xFF);	
 		// Make every test succeed	
-		glStateSetStencilOp(glState, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE);	
+		mkStateSetStencilOp(mkState, eMkStencilOp::REPLACE, eMkStencilOp::REPLACE, eMkStencilOp::REPLACE);	
 
 		MkMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();	
-		GlMaterialConstPtr material = materialInstance->getMaterial();	
+		MkMaterialConstPtr material = materialInstance->getMaterial();	
 
 		// Then draw stencil boxes ...	
 		if (auto materialBinding = material->bindMaterial())	
@@ -861,7 +862,7 @@ void DrawLayerNode::evaluateBoxStencils(GlState& glParentState)
 	}	
 }	
 
-void DrawLayerNode::evaluateModelStencils(GlState& glParentState)	
+void DrawLayerNode::evaluateModelStencils(IMkStatePtr glParentState)	
 {	
 	EASY_FUNCTION();	
 
@@ -897,22 +898,22 @@ void DrawLayerNode::evaluateModelStencils(GlState& glParentState)
 		return;	
 
 	{	
-		GlScopedState stateScope = glParentState.getOwnerStateStack().createScopedState("evaluateModelStencils");	
-		GlState& glState = stateScope.getStackState();	
+		MkScopedState stateScope = glParentState->getOwnerStateStack().createScopedState("evaluateModelStencils");	
+		IMkStatePtr mkState = stateScope.getStackState();	
 
-		glStateSetStencilBufferClearValue(glState, 0);	
+		mkStateSetStencilBufferClearValue(mkState, 0);	
 		glClear(GL_STENCIL_BUFFER_BIT);	
 
 		// Do not draw any pixels on the back buffer	
-		glStateSetColorMask(glState, glm::bvec4(false));	
-		glStateSetDepthMask(glState, false);	
+		mkStateSetColorMask(mkState, glm::bvec4(false));	
+		mkStateSetDepthMask(mkState, false);	
 		// Enables testing AND writing functionalities	
-		glState.enableFlag(eGlStateFlagType::stencilTest);	
+		mkState->enableFlag(eMkStateFlagType::stencilTest);	
 		// Do not test the current value in the stencil buffer, always accept any value on there for drawing	
-		glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFF);	
-		glStateSetStencilMask(glState, 0xFF);	
+		mkStateSetStencilFunc(mkState, eMkStencilFunction::ALWAYS, 1, 0xFF);	
+		mkStateSetStencilMask(mkState, 0xFF);	
 		// Make every test succeed	
-		glStateSetStencilOp(glState, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE, eGlStencilOp::REPLACE);	
+		mkStateSetStencilOp(mkState, eMkStencilOp::REPLACE, eMkStencilOp::REPLACE, eMkStencilOp::REPLACE);	
 
 
 		// Then draw stencil models	
@@ -933,7 +934,7 @@ void DrawLayerNode::evaluateModelStencils(GlState& glParentState)
 				{	
 					IMkTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);	
 					MkMaterialInstancePtr materialInst = mesh->getMaterialInstance();	
-					GlMaterialConstPtr material = materialInst->getMaterial();	
+					MkMaterialConstPtr material = materialInst->getMaterial();	
 
 					// Set the model-view-projection matrix on the stencil material instance	
 					materialInst->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, mvpMatrix);	

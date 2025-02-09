@@ -5,7 +5,7 @@
 #include "SdlCommon.h"
 #include "MikanLineRenderer.h"
 #include "IMkShader.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "MikanShaderCache.h"
 #include "MikanTextRenderer.h"
 #include "IMkVertexDefinition.h"
@@ -103,11 +103,11 @@ void GlLineRenderer::render()
 	if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 		m_points2d.hasPoints() || m_lines2d.hasPoints())
 	{
-		GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer");
-		GlState& glState = stateScope.getStackState();
+		GlScopedState stateScope = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer");
+		IMkStatePtr glState = stateScope.getStackState();
 
 		// This has to be enabled since the point drawing shader will use gl_PointSize.
-		glState.enableFlag(eGlStateFlagType::programPointSize);
+		glState.enableFlag(eMkStateFlagType::programPointSize);
 
 		m_program->bindProgram();
 
@@ -120,10 +120,10 @@ void GlLineRenderer::render()
 			{
 				const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer_3dLines");
+				GlScopedState scopedState = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer_3dLines");
 				if (m_bDisable3dDepth)
 				{
-					scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+					scopedState.getStackState().disableFlag(eMkStateFlagType::depthTest);
 				}
 
 				m_program->setMatrix4x4Uniform(m_modelViewUniformName, cameraVPMatrix);
@@ -165,8 +165,8 @@ void GlLineRenderer::render()
 
 			{
 				// disable the depth buffer to allow overdraw 
-				GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer_2dLines");
-				scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+				GlScopedState scopedState = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer_2dLines");
+				scopedState.getStackState().disableFlag(eMkStateFlagType::depthTest);
 
 				m_points2d.drawGlBufferState(GL_POINTS);
 				m_lines2d.drawGlBufferState(GL_LINES);

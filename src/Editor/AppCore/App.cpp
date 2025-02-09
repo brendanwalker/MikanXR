@@ -5,7 +5,7 @@
 #include "SdlCommon.h"
 #include "MikanShaderCache.h"
 #include "GlFrameCompositor.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "MkError.h"
 #include "MikanTextRenderer.h"
 #include "LocalizationManager.h"
@@ -225,14 +225,14 @@ void App::tickWindows(const float deltaSeconds)
 		{
 			EASY_BLOCK("RenderWindow");
 
-			GlStateStack& glStateStack = window->getGlStateStack();
-			glStateStack.setDebugPrintEnabled(bDebugPrintStack);
+			MkStateStack& MkStateStack = window->getMkStateStack();
+			MkStateStack.setDebugPrintEnabled(bDebugPrintStack);
 
 			m_renderingWindow = window;
 			window->render();
 			m_renderingWindow = nullptr;
 
-			glStateStack.setDebugPrintEnabled(false);
+			MkStateStack.setDebugPrintEnabled(false);
 		}
 
 		// Restore back to the main window

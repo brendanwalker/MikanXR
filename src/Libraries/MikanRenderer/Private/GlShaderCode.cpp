@@ -74,14 +74,13 @@ public:
 		return m_vertexAttributes; 
 	}
 
-	virtual IMkShaderCode& addVertexAttribute(
+	virtual void addVertexAttribute(
 		const std::string& name,
 		eVertexDataType dataType,
 		eVertexSemantic semantic,
 		bool isNormalized) override
 	{
 		m_vertexAttributes.push_back(createMkVertexAttribute(name, dataType, semantic, isNormalized));
-		return *this;
 	}
 
 	virtual const std::vector<Uniform>& getUniformList() const override
@@ -89,10 +88,9 @@ public:
 		return m_uniformList;
 	}
 
-	virtual IMkShaderCode& addUniform(const std::string& name, eUniformSemantic semantic) override
+	virtual void addUniform(const std::string& name, eUniformSemantic semantic) override
 	{
 		m_uniformList.push_back({name, semantic});
-		return *this;
 	}
 
 	virtual bool hasCode() const override

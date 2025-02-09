@@ -13,11 +13,13 @@
 #include "GlFrameCompositor.h"
 #include "SdlCommon.h"
 #include "MikanCamera.h"
-#include "GlStateStack.h"
-#include "GlStateModifiers.h"
+#include "MkStateStack.h"
+#include "MkStateModifiers.h"
+#include "IMkState.h"
 #include "IMkTexture.h"
 #include "MikanShaderCache.h"
 #include "MikanTextureCache.h"
+#include "MikanTextRenderer.h"
 #include "IMkTextRenderer.h"
 #include "IMkLineRenderer.h"
 #include "MikanViewport.h"
@@ -63,7 +65,7 @@ MainWindow::MainWindow()
 	, m_videoSourceManager(new VideoSourceManager())
 	, m_vrDeviceManager(new VRDeviceManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_glStateStack(GlStateStackUniquePtr(new GlStateStack(this)))
+	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_lineRenderer(createMkLineRenderer(this))
 	, m_textRenderer(createMkTextRenderer(this, m_fontManager))
 	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
@@ -106,7 +108,7 @@ IMkShaderCache* MainWindow::getShaderCache()
 
 IMkTextureCache* MainWindow::getTextureCache()
 {
-	return m_textureCache.getMkTextureCache().get();
+	return m_textureCache->getMkTextureCache().get();
 }
 
 MikanModelResourceManager* MainWindow::getModelResourceManager()
@@ -123,9 +125,9 @@ IMkViewportPtr MainWindow::getRenderingViewport() const
 {
 	return m_renderingViewport;
 }
-GlStateStack& MainWindow::getGlStateStack()
+MkStateStack& MainWindow::getMkStateStack()
 {
-	return *m_glStateStack.get();
+	return *m_MkStateStack.get();
 }
 
 bool MainWindow::startup()
@@ -251,17 +253,17 @@ bool MainWindow::startup()
 	if (success)
 	{
 		// Create the base GL state for the window
-		GlState& glState= m_glStateStack->pushState("MainWindow Root");
-		assert(glState.getStackDepth() == 0);
+		IMkStatePtr mkState= m_MkStateStack->pushState("MainWindow Root");
+		assert(mkState->getStackDepth() == 0);
 
 		// Set default state flags at the base of the stack
-		glState.disableFlag(eGlStateFlagType::cullFace);
+		mkState->disableFlag(eMkStateFlagType::cullFace);
 
 		// Set the default clear color
-		glStateSetClearColor(glState, k_clear_color);
+		mkStateSetClearColor(mkState, k_clear_color);
 
 		// Default to the full window viewport
-		glStateSetViewport(glState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
+		mkStateSetViewport(mkState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
 		m_uiViewport = 
@@ -319,7 +321,7 @@ void MainWindow::render()
 		m_sdlWindow->renderBegin();
 
 		// Render all 3d viewports for the app state
-		for (GlViewportPtr viewpoint : appStage->getViewportList())
+		for (MikanViewportPtr viewpoint : appStage->getViewportList())
 		{
 			renderStageViewport(appStage, viewpoint);
 		}
@@ -334,7 +336,7 @@ void MainWindow::render()
 void MainWindow::shutdown()
 {
 	m_uiViewport = nullptr;
-	m_glStateStack= nullptr;
+	m_MkStateStack= nullptr;
 
 	// Tear down all active app stages
 	while (getCurrentAppStage() != nullptr)
@@ -519,11 +521,11 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 {
 	EASY_FUNCTION();
 
-	GlScopedState scopedState = m_glStateStack->createScopedState("appStage viewport render");
-	GlState& glState = scopedState.getStackState();
+	MkScopedState scopedState = m_MkStateStack->createScopedState("appStage viewport render");
+	IMkStatePtr glState = scopedState.getStackState();
 
 	// Set the rendering viewport used to render the stage
-	// (adds GLStateSetViewport Modifier to the glState)
+	// (adds mkStateSetViewport Modifier to the glState)
 	m_renderingViewport = targetViewport;
 	m_renderingViewport->applyRenderingViewport(glState);
 
@@ -552,11 +554,11 @@ void MainWindow::renderStageUI(AppStage* appStage)
 {
 	EASY_FUNCTION();
 
-	GlScopedState scopedState = m_glStateStack->createScopedState("appStage renderUI");
-	GlState& glState = scopedState.getStackState();
+	MkScopedState scopedState = m_MkStateStack->createScopedState("appStage renderUI");
+	IMkStatePtr glState = scopedState.getStackState();
 
 	// Set the rendering viewport used to render the stage
-	// (adds GLStateSetViewport Modifier to the glState)
+	// (adds mkStateSetViewport Modifier to the glState)
 	m_renderingViewport = m_uiViewport;
 	m_renderingViewport->applyRenderingViewport(glState);
 

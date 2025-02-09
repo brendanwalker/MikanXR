@@ -20,5 +20,5 @@ public:
 	virtual void setLightDirection(const glm::vec3& lightDirection) = 0;
 	virtual const glm::vec3& getLightDirection() const = 0;
 
-	virtual void render(IMkCameraConstPtr camera, class GlStateStack& glStateStack) const = 0;
+	virtual void render(IMkCameraConstPtr camera, class MkStateStack& MkStateStack) const = 0;
 };

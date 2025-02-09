@@ -101,7 +101,7 @@ public:
 	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
 	virtual IMkViewportPtr getRenderingViewport() const override;
-	virtual GlStateStack& getGlStateStack() override;
+	virtual MkStateStack& getMkStateStack() override;
 	virtual IMkLineRenderer* getLineRenderer() override;
 	virtual IMkTextRenderer* getTextRenderer() override;
 	virtual MikanModelResourceManager* getModelResourceManager() override;
@@ -151,7 +151,7 @@ private:
 	IMkViewportPtr m_uiViewport;
 	IMkViewportPtr m_renderingViewport;
 
-	GlStateStackUniquePtr m_glStateStack;
+	MkStateStackUniquePtr m_MkStateStack;
 	IMkLineRendererPtr m_lineRenderer;
 	IMkTextRendererPtr m_textRenderer;
 	MikanModelResourceManagerUniquePtr m_modelResourceManager;

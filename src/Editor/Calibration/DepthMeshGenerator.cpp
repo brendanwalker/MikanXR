@@ -202,7 +202,7 @@ struct DepthMeshCaptureState
 		}
 
 		// Use the internal basic textured material to render the mesh
-		GlMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+		MkMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 		MkMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(stencilMaterial);
 		materialInstance->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
 
@@ -230,7 +230,7 @@ struct DepthMeshCaptureState
 		// Use the internal basic textured material to render the mesh
 		MikanModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
 		GlShaderCache* shaderCache = ownerWindow->getShaderCache();
-		GlMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+		MkMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 
 		depthMeshResource= 
 			modelResourceManager->fetchRenderModel(
@@ -285,7 +285,7 @@ private:
 		MkMaterialInstancePtr materialInstance)
 	{
 		// Make sure the material vertex definition has the needed attributes
-		GlMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
 		const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
 		const size_t vertexSize = (size_t)vertexDefinition.getVertexSize();
 		const GlVertexAttribute* posAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);

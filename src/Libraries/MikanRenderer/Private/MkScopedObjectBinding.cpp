@@ -1,31 +1,57 @@
 #include "MkScopedObjectBinding.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
+#include "IMkState.h"
 
 #include <assert.h>
 
+struct MkScopedObjectBindingData
+{
+	IMkBindableObjectPtr boundObject;
+	IMkStatePtr mkState;
+};
+
 MkScopedObjectBinding::MkScopedObjectBinding(
-	GlState& parentGLState,
+	IMkStatePtr parentMkState,
 	const std::string& scopeName,
 	IMkBindableObjectPtr bindableObject)
-	: m_boundObject(bindableObject)
-	, m_glState(parentGLState.getOwnerStateStack().pushState(scopeName))
+	: m_data(new MkScopedObjectBindingData())
 {
-	if (m_boundObject)
+	m_data->boundObject= bindableObject;
+	m_data->mkState= parentMkState->getOwnerStateStack().pushState(scopeName);
+
+	if (m_data->boundObject)
 	{
-		assert(!m_boundObject->getIsBound());
-		m_boundObject->bindObject(m_glState);
+		assert(!m_data->boundObject->getIsBound());
+		m_data->boundObject->bindObject(m_data->mkState);
 	}
 }
 
 MkScopedObjectBinding::~MkScopedObjectBinding()
 {
 	// Restore all the GL state we modified
-	assert(m_glState.getOwnerStateStack().getCurrentStackDepth() == m_glState.getStackDepth());
-	m_glState.getOwnerStateStack().popState();
+	assert(m_data->mkState->getOwnerStateStack().getCurrentStackDepth() == m_data->mkState->getStackDepth());
+	m_data->mkState->getOwnerStateStack().popState();
 
-	if (m_boundObject)
+	if (m_data->boundObject)
 	{
-		assert(m_boundObject->getIsBound());
-		m_boundObject->unbindObject();
+		assert(m_data->boundObject->getIsBound());
+		m_data->boundObject->unbindObject();
 	}
+
+	delete m_data;
+}
+
+IMkBindableObjectPtr MkScopedObjectBinding::getBoundObject() const 
+{ 
+	return m_data->boundObject; 
+}
+
+MkScopedObjectBinding::operator bool() const 
+{ 
+	return m_data->boundObject->getIsBound(); 
+}
+
+IMkStatePtr MkScopedObjectBinding::getMkState() 
+{ 
+	return m_data->mkState; 
 }

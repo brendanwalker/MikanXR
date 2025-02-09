@@ -1,9 +1,11 @@
 #pragma once
 
+#include "MkRendererFwd.h"
+
 class IMkBindableObject
 {
 protected:
-	virtual void bindObject(class GlState& glParentState) = 0;
+	virtual void bindObject(IMkStatePtr glParentState) = 0;
 	virtual bool getIsBound() const = 0;
 	virtual void unbindObject() = 0;
 

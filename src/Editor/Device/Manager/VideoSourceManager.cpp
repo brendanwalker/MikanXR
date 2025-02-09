@@ -9,6 +9,7 @@
 #include "VideoSourceView.h"
 #include "VideoCapabilitiesConfig.h"
 #include "WMFCameraEnumerator.h"
+#include "IMkWindow.h"
 
 #include <cstdlib>
 #include <fstream>
@@ -157,7 +158,7 @@ VideoSourceManager::~VideoSourceManager()
 	delete m_mikanGStreamerPlugin;
 }
 
-bool VideoSourceManager::startup(class IGlWindow *ownerWindow)
+bool VideoSourceManager::startup(IMkWindow *ownerWindow)
 {
 	EASY_FUNCTION();
 

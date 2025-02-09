@@ -18,7 +18,7 @@ public:
 	MkMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef);
 
 	MkMaterialPtr registerMaterial(IMkShaderCodeConstPtr code);
-	GlMaterialConstPtr getMaterialByName(const std::string& name);
+	MkMaterialConstPtr getMaterialByName(const std::string& name);
 
 	IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code);
 

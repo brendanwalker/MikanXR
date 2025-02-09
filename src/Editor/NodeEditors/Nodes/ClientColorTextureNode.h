@@ -37,7 +37,7 @@ public:
 protected:
 	IMkTexturePtr getClientColorSourceTexture() const;
 	void updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
-	void evaluateFlippedColorTexture(GlState& glState, IMkTexturePtr depthTexture);
+	void evaluateFlippedColorTexture(IMkStatePtr glState, IMkTexturePtr depthTexture);
 
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;

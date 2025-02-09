@@ -51,7 +51,7 @@ public:
 	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
 	virtual GlViewportPtr getRenderingViewport() const override { return nullptr; }
-	virtual GlStateStack& getGlStateStack() override;
+	virtual MkStateStack& getMkStateStack() override;
 	virtual GlLineRenderer* getLineRenderer() override;
 	virtual MikanTextRenderer* getTextRenderer() override;
 	virtual MikanModelResourceManager* getModelResourceManager() override;
@@ -95,7 +95,7 @@ protected:
 
 protected:
 	SdlWindowUniquePtr m_sdlWindow;
-	GlStateStackUniquePtr m_glStateStack;
+	MkStateStackUniquePtr m_MkStateStack;
 	struct ImGuiContext* m_imguiContext= nullptr;
 	struct ImNodesContext* m_imnodesContext= nullptr;
 	struct ImFont* m_NormalIconFont= nullptr;

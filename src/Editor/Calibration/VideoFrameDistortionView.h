@@ -12,7 +12,7 @@ class VideoFrameDistortionView
 {
 public:
 	VideoFrameDistortionView(
-		class IGlWindow* ownerWindow,
+		class IMkWindow* ownerWindow,
 		VideoSourceViewPtr view, 
 		unsigned int bufferBitmask, 
 		unsigned int frameQueueSize=1);

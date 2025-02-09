@@ -37,10 +37,17 @@ using MikanRenderModelResourceWeakPtr = std::weak_ptr<MikanRenderModelResource>;
 class IMkShaderCache;
 using IMkShaderCachePtr = std::shared_ptr<IMkShaderCache>;
 
-class GlState;
-class GlStateStack;
-using GlStateStackSharedPtr = std::shared_ptr<GlStateStack>;
-using GlStateStackUniquePtr = std::unique_ptr<GlStateStack>;
+class IMkState;
+using IMkStatePtr = std::shared_ptr<IMkState>;
+using IMkStateConstPtr = std::shared_ptr<const IMkState>;
+
+class IMkStateModifier;
+using IMkStateModifierPtr = std::shared_ptr<IMkStateModifier>;
+using IMkStateModifierConstPtr = std::shared_ptr<const IMkStateModifier>;
+
+class MkStateStack;
+using MkStateStackSharedPtr = std::shared_ptr<MkStateStack>;
+using MkStateStackUniquePtr = std::unique_ptr<MkStateStack>;
 
 class IMkStaticMeshInstance;
 using IMkStaticMeshInstancePtr = std::shared_ptr<IMkStaticMeshInstance>;

@@ -15,8 +15,8 @@ class NodeEvaluator
 public:
 	NodeEvaluator()= default;
 
-	inline NodeEvaluator& setCurrentWindow(class IGlWindow* inWindow) { m_currentWindow= inWindow; return *this; }
-	inline class IGlWindow* getCurrentWindow() const { return m_currentWindow; }
+	inline NodeEvaluator& setCurrentWindow(class IMkWindow* inWindow) { m_currentWindow= inWindow; return *this; }
+	inline class IMkWindow* getCurrentWindow() const { return m_currentWindow; }
 
 	inline NodeEvaluator& setCurrentVideoSourceView(VideoSourceViewPtr inVideoSourceView) 
 	{ m_currentVideoSourceView= inVideoSourceView; return *this; }
@@ -36,7 +36,7 @@ public:
 	bool evaluateFlowPinChain(NodePtr startNode);
 
 protected:
-	class IGlWindow* m_currentWindow= nullptr;
+	class IMkWindow* m_currentWindow= nullptr;
 	float m_deltaSeconds= 0.f;
 	VideoSourceViewPtr m_currentVideoSourceView;
 

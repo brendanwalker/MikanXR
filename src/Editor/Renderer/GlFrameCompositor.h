@@ -29,6 +29,9 @@ class VideoFrameDistortionView;
 class SyntheticDepthEstimator;
 typedef std::shared_ptr<SyntheticDepthEstimator> SyntheticDepthEstimatorPtr;
 
+class IMkShaderCode;
+using IMkShaderCodeConstPtr = std::shared_ptr<const IMkShaderCode>;
+
 class GlFrameCompositor
 {
 public:
@@ -50,7 +53,7 @@ public:
 	GlFrameCompositor();
 	virtual ~GlFrameCompositor();
 
-	bool startup(class IGlWindow* ownerWindow);
+	bool startup(class IMkWindow* ownerWindow);
 	void shutdown();
 
 	GlFrameCompositorConfigConstPtr getConfig() const { return m_config; }
@@ -120,8 +123,8 @@ protected:
 	void updateCompositeFrame();
 	void updateCompositeFrameNodeGraph();
 
-	static const class IMkShaderCode* getRGBFrameShaderCode();
-	static const class IMkShaderCode* getRGBtoBGRVideoFrameShaderCode();
+	static IMkShaderCodeConstPtr getRGBFrameShaderCode();
+	static IMkShaderCodeConstPtr getRGBtoBGRVideoFrameShaderCode();
 
 	// MikanServer Events
 	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class InterprocessRenderTargetReadAccessor* readAccessor);
@@ -152,7 +155,7 @@ private:
 
 	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
-	class IGlWindow* m_ownerWindow= nullptr;
+	class IMkWindow* m_ownerWindow= nullptr;
 
 	IMkFrameBufferPtr m_videoExportFramebuffer;
 	unsigned int m_videoQuadVAO = 0, m_videoQuadVBO = 0;

@@ -394,7 +394,7 @@ void AppStage_Compositor::onNewStreamingFrameReady()
 
 	if (m_compositorRecordingModel->getIsStreaming())
 	{
-		GlTextureConstPtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
+		IMkTextureConstPtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
 
 		if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
 		{
@@ -717,7 +717,7 @@ void AppStage_Compositor::render()
 			// Render the editor scene
 			EditorObjectSystem::getSystem()->getEditorScene()->render(
 				currentCamera, 
-				m_ownerWindow->getGlStateStack());
+				m_ownerWindow->getMkStateStack());
 
 			// Perform component custom rendering
 			m_ownerWindow->getObjectSystemManager()->customRender();
@@ -728,7 +728,7 @@ void AppStage_Compositor::render()
 			// Render the editor scene
 			EditorObjectSystem::getSystem()->getEditorScene()->render(
 				currentCamera,
-				m_ownerWindow->getGlStateStack());
+				m_ownerWindow->getMkStateStack());
 
 			// Perform component custom rendering
 			m_ownerWindow->getObjectSystemManager()->customRender();

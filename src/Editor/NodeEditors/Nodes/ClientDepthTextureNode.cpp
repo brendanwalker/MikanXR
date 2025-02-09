@@ -5,7 +5,7 @@
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanShaderCache.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "IMkTexture.h"
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
@@ -151,13 +151,13 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 
 	IGlWindow* ownerWindow= evaluator.getCurrentWindow();
 	MkScopedObjectBinding depthFramebufferBinding(
-		*ownerWindow->getGlStateStack().getCurrentState(),
+		*ownerWindow->getMkStateStack().getCurrentState(),
 		"Depth Texture Framebuffer Scope",
 		m_linearDepthFrameBuffer);
 	if (depthFramebufferBinding)
 	{
-		GlState& glState = depthFramebufferBinding.getGlState();
-		GlMaterialConstPtr depthUnpackMaterial =
+		IMkStatePtr glState = depthFramebufferBinding.getGlState();
+		MkMaterialConstPtr depthUnpackMaterial =
 			ownerWindow->getShaderCache()->getMaterialByName(
 				INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
 
@@ -173,7 +173,7 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 	}
 }
 
-void ClientDepthTextureNode::evaluateDepthTexture(GlState& glState, IMkTexturePtr depthTexture)
+void ClientDepthTextureNode::evaluateDepthTexture(IMkStatePtr glState, IMkTexturePtr depthTexture)
 {
 	assert(depthTexture);
 	assert(m_depthMaterialInstance);

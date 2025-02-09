@@ -32,8 +32,8 @@
 #include "SdlCommon.h"
 #include "MikanShaderCache.h"
 #include "IMkShader.h"
-#include "GlStateStack.h"
-#include "GlStateModifiers.h"
+#include "MkStateStack.h"
+#include "MkStateModifiers.h"
 #include "IMkVertexDefinition.h"
 #include "MikanViewport.h"
 #include "IMkWindow.h"
@@ -463,25 +463,25 @@ void GlRmlUiRender::setViewport(int width, int height)
 
 void GlRmlUiRender::render()
 {
-	GlStateStack& glStateStack= m_ownerWindow.getGlStateStack();
-	GlScopedState scopedState = glStateStack.createScopedState("GlRmlUiRender renderUI");
-	GlState& glState = scopedState.getStackState();
+	MkStateStack& MkStateStack= m_ownerWindow.getMkStateStack();
+	GlScopedState scopedState = MkStateStack.createScopedState("GlRmlUiRender renderUI");
+	IMkStatePtr glState = scopedState.getStackState();
 
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
-	glStateSetViewport(glState, 0, 0, viewport_width, viewport_height);
+	mkStateSetViewport(glState, 0, 0, viewport_width, viewport_height);
 
-	glState.disableFlag(eGlStateFlagType::depthTest);
-	glState.disableFlag(eGlStateFlagType::cullFace);
-	glState.disableFlag(eGlStateFlagType::scissorTest);
-	glState.enableFlag(eGlStateFlagType::stencilTest);
-	glState.enableFlag(eGlStateFlagType::blend);
+	glState.disableFlag(eMkStateFlagType::depthTest);
+	glState.disableFlag(eMkStateFlagType::cullFace);
+	glState.disableFlag(eMkStateFlagType::scissorTest);
+	glState.enableFlag(eMkStateFlagType::stencilTest);
+	glState.enableFlag(eMkStateFlagType::blend);
 
-	glStateSetClearColor(glState, glm::vec4(0.f, 0.f, 0.f, 1.f));
-	glStateSetColorMask(glState, glm::bvec4(true, true, true, true));
+	mkStateSetClearColor(glState, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	mkStateSetColorMask(glState, glm::bvec4(true, true, true, true));
 
-	glStateSetStencilBufferClearValue(glState, 0);
-	glStateSetStencilFunc(glState, eGlStencilFunction::ALWAYS, 1, 0xFFFFFFFF);
-	glStateSetStencilOp(glState, eGlStencilOp::KEEP, eGlStencilOp::KEEP, eGlStencilOp::KEEP);
+	mkStateSetStencilBufferClearValue(glState, 0);
+	mkStateSetStencilFunc(glState, eMkStencilFunction::ALWAYS, 1, 0xFFFFFFFF);
+	mkStateSetStencilOp(glState, eMkStencilOp::KEEP, eMkStencilOp::KEEP, eMkStencilOp::KEEP);
 
 	glStateSetBlendEquation(glState, eGlBlendEquation::ADD);
 	glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);

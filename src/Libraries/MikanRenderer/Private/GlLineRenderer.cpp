@@ -3,8 +3,10 @@
 #include "IMkLineRenderer.h"
 #include "IMkCamera.h"
 #include "IMkShader.h"
-#include "GlStateStack.h"
+#include "IMkState.h"
+#include "MkStateStack.h"
 #include "IMkShaderCache.h"
+#include "IMkShaderCode.h"
 #include "IMkVertexDefinition.h"
 #include "IMkViewport.h"
 #include "IMkWindow.h"
@@ -53,7 +55,7 @@ protected:
 			glBufferData(GL_ARRAY_BUFFER, m_maxPoints * sizeof(Point), nullptr, GL_DYNAMIC_DRAW);
 			checkHasAnyMkError("GlLineRenderer::PointBufferState::createGlBufferState()", __FILE__, __LINE__);
 
-			program->getVertexDefinition().applyVertexDefintion();
+			program->getVertexDefinition()->applyVertexDefintion();
 
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -129,39 +131,44 @@ protected:
 		unsigned int m_pointVBO;
 	};
 
-	static const IMkShaderCode* getShaderCode()
+	static IMkShaderCodeConstPtr getShaderCode()
 	{
-		static IMkShaderCode x_shaderCode = IMkShaderCode(
-			"line shader",
-			// vertex shader
-			R""""(
-		#version 410 
-		uniform mat4 mvpMatrix; 
-		layout(location = 0) in vec3 in_position; 
-		layout(location = 1) in vec4 in_colorPointSize; 
-		out vec4 v_Color; 
-		void main() 
-		{ 
-			gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
-			gl_PointSize = in_colorPointSize.w;
-			v_Color = vec4(in_colorPointSize.xyz, 1.0);
-		}
-		)"""",
-			//fragment shader
-			R""""(
-		#version 410 core
-		in vec4 v_Color;
-		out vec4 out_FragColor;
-		void main()
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+		
+		if (x_shaderCode == nullptr)
 		{
-			out_FragColor = v_Color;
+			x_shaderCode= createIMkShaderCode(
+				"line shader",
+				// vertex shader
+				R""""(
+				#version 410 
+				uniform mat4 mvpMatrix; 
+				layout(location = 0) in vec3 in_position; 
+				layout(location = 1) in vec4 in_colorPointSize; 
+				out vec4 v_Color; 
+				void main() 
+				{ 
+					gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
+					gl_PointSize = in_colorPointSize.w;
+					v_Color = vec4(in_colorPointSize.xyz, 1.0);
+				}
+				)"""",
+						//fragment shader
+						R""""(
+				#version 410 core
+				in vec4 v_Color;
+				out vec4 out_FragColor;
+				void main()
+				{
+					out_FragColor = v_Color;
+				}
+				)"""");
+			x_shaderCode->addVertexAttribute("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("in_colorPointSize", eVertexDataType::datatype_vec4, eVertexSemantic::colorAndSize);
+			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
 		}
-		)"""")
-			.addVertexAttribute("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position)
-			.addVertexAttribute("in_colorPointSize", eVertexDataType::datatype_vec4, eVertexSemantic::colorAndSize)
-			.addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
 
-		return &x_shaderCode;
+		return x_shaderCode;
 	}
 
 private:
@@ -225,11 +232,11 @@ public:
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 			m_points2d.hasPoints() || m_lines2d.hasPoints())
 		{
-			GlScopedState stateScope = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer");
-			GlState& glState = stateScope.getStackState();
+			MkScopedState stateScope = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer");
+			IMkStatePtr mkState = stateScope.getStackState();
 
 			// This has to be enabled since the point drawing shader will use gl_PointSize.
-			glState.enableFlag(eGlStateFlagType::programPointSize);
+			mkState->enableFlag(eMkStateFlagType::programPointSize);
 
 			m_program->bindProgram();
 
@@ -242,10 +249,10 @@ public:
 				{
 					const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-					GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer_3dLines");
+					MkScopedState scopedState = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer_3dLines");
 					if (m_bDisable3dDepth)
 					{
-						scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+						scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 					}
 
 					m_program->setMatrix4x4Uniform(m_modelViewUniformName, cameraVPMatrix);
@@ -287,8 +294,8 @@ public:
 
 				{
 					// disable the depth buffer to allow overdraw 
-					GlScopedState scopedState = m_ownerWindow->getGlStateStack().createScopedState("GlLineRenderer_2dLines");
-					scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+					MkScopedState scopedState = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer_2dLines");
+					scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 					m_points2d.drawGlBufferState(GL_POINTS);
 					m_lines2d.drawGlBufferState(GL_LINES);

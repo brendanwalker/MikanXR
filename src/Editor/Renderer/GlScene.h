@@ -40,7 +40,7 @@ public:
 	virtual void setLightDirection(const glm::vec3& lightDirection) override { m_lightDirection = lightDirection; }
 	virtual const glm::vec3& getLightDirection() const override { return m_lightDirection; }
 
-	virtual void render(IMkCameraConstPtr camera, class GlStateStack& glStateStack) const override;
+	virtual void render(IMkCameraConstPtr camera, class MkStateStack& MkStateStack) const override;
 
 protected:
 	eUniformBindResult materialBindCallback(
@@ -61,5 +61,5 @@ private:
 	glm::vec4 m_lightColor;
 	glm::vec3 m_lightDirection;
 
-	class std::map<GlMaterialConstPtr, GlDrawCallPtr> m_drawCalls;
+	class std::map<MkMaterialConstPtr, GlDrawCallPtr> m_drawCalls;
 };

@@ -1,7 +1,8 @@
 #include "IMkFrameBuffer.h"
 #include "GlCommon.h"
-#include "GLStateStack.h"
-#include "GlStateModifiers.h"
+#include "IMkState.h"
+#include "MkStateStack.h"
+#include "MkStateModifiers.h"
 #include "IMkTexture.h"
 #include "Logger.h"
 
@@ -348,17 +349,12 @@ public:
 		return m_depthTexture;
 	}
 
-	virtual GlState* getGlState() const override
-	{ 
-		return m_glState; 
-	}
-
-	virtual void bindObject(GlState& glState) override
+	virtual void bindObject(IMkStatePtr mkState) override
 	{
 		if (!m_bIsBound && m_glFrameBufferId != -1)
 		{
 			// Change the viewport to match the frame buffer texture
-			glStateSetViewport(glState, 0, 0, m_width, m_height);
+			mkStateSetViewport(mkState, 0, 0, m_width, m_height);
 
 			// Cache the last frame buffer binding
 			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_lastGlFrameBufferId);
@@ -370,28 +366,28 @@ public:
 			{
 				case IMkFrameBuffer::eFrameBufferType::COLOR:
 					{
-						glStateSetDrawBuffer(glState, eIMkFrameBuffer::COLOR_ATTACHMENT0);
-						glStateSetReadBuffer(glState, eIMkFrameBuffer::COLOR_ATTACHMENT0);
-						glStateSetClearColor(glState, m_clearColor);
+						mkStateSetDrawBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
+						mkStateSetReadBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
+						mkStateSetClearColor(mkState, m_clearColor);
 						glClear(GL_COLOR_BUFFER_BIT);
 					}
 					break;
 				case IMkFrameBuffer::eFrameBufferType::DEPTH:
 					{
 						// Since we only care about depth, tell OpenGL we're not going to render any color data
-						glStateSetDrawBuffer(glState, eIMkFrameBuffer::NONE);
-						glStateSetReadBuffer(glState, eIMkFrameBuffer::NONE);
+						mkStateSetDrawBuffer(mkState, eMkFrameBuffer::NONE);
+						mkStateSetReadBuffer(mkState, eMkFrameBuffer::NONE);
 						glClear(GL_DEPTH_BUFFER_BIT);
-						glState.enableFlag(eGlStateFlagType::depthTest);
+						mkState->enableFlag(eMkStateFlagType::depthTest);
 					}
 					break;
 				case IMkFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH:
 					{
-						glStateSetDrawBuffer(glState, eIMkFrameBuffer::COLOR_ATTACHMENT0);
-						glStateSetReadBuffer(glState, eIMkFrameBuffer::COLOR_ATTACHMENT0);
-						glStateSetClearColor(glState, m_clearColor);
+						mkStateSetDrawBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
+						mkStateSetReadBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
+						mkStateSetClearColor(mkState, m_clearColor);
 						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-						glState.enableFlag(eGlStateFlagType::depthTest);
+						mkState->enableFlag(eMkStateFlagType::depthTest);
 					}
 					break;
 				default:
@@ -419,8 +415,6 @@ public:
 	}
 
 private:
-	GlState* m_glState = nullptr;
-
 	std::string m_name;
 	IMkFrameBuffer::eFrameBufferType m_frameBufferType = IMkFrameBuffer::eFrameBufferType::COLOR;
 	IMkFrameBuffer::eColorFormat m_colorFormat = IMkFrameBuffer::eColorFormat::RGB;

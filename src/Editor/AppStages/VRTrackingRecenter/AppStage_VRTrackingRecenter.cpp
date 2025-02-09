@@ -10,7 +10,7 @@
 #include "MkMaterialInstance.h"
 #include "GlScene.h"
 #include "MkScopedObjectBinding.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
@@ -263,7 +263,7 @@ void AppStage_VRTrackingRecenter::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			*m_ownerWindow->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 
@@ -303,7 +303,7 @@ void AppStage_VRTrackingRecenter::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
-		GlMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())
 		{

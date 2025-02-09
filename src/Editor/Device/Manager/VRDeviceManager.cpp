@@ -26,7 +26,7 @@ VRDeviceManager::~VRDeviceManager()
 	m_instance = nullptr;
 }
 
-bool VRDeviceManager::startup(class IGlWindow *ownerWindow)
+bool VRDeviceManager::startup(class IMkWindow *ownerWindow)
 {
 	EASY_FUNCTION();
 

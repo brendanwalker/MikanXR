@@ -226,7 +226,7 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 			m_linearDepthFrameBuffer);
 		if (depthFramebufferBinding)
 		{
-			GlState& glState= depthFramebufferBinding.getGlState();
+			IMkStatePtr glState= depthFramebufferBinding.getGlState();
 
 			// Apply any Stencils assigned to the node
 			if (bAnyQuadStencils)
@@ -362,7 +362,7 @@ void DepthMaskNode::rebuildDepthMaskLists()
 	}
 }
 
-void DepthMaskNode::evaluateQuadDepthMasks(GlState& glState)
+void DepthMaskNode::evaluateQuadDepthMasks(IMkStatePtr glState)
 {
 	EASY_FUNCTION();
 
@@ -396,7 +396,7 @@ void DepthMaskNode::evaluateQuadDepthMasks(GlState& glState)
 		return;
 	
 	MkMaterialInstancePtr materialInstance= depthQuadMesh->getMaterialInstance();
-	GlMaterialConstPtr material= materialInstance->getMaterial();
+	MkMaterialConstPtr material= materialInstance->getMaterial();
 
 	if (auto materialBinding = material->bindMaterial())
 	{
@@ -447,7 +447,7 @@ void DepthMaskNode::evaluateQuadDepthMasks(GlState& glState)
 	}
 }
 
-void DepthMaskNode::evaluateBoxDepthMasks(GlState& glState)
+void DepthMaskNode::evaluateBoxDepthMasks(IMkStatePtr glState)
 {
 	EASY_FUNCTION();
 
@@ -481,7 +481,7 @@ void DepthMaskNode::evaluateBoxDepthMasks(GlState& glState)
 		return;
 
 	MkMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();
-	GlMaterialConstPtr material = materialInstance->getMaterial();
+	MkMaterialConstPtr material = materialInstance->getMaterial();
 
 	// Then draw stencil boxes ...
 	if (auto materialBinding = material->bindMaterial())
@@ -532,7 +532,7 @@ void DepthMaskNode::evaluateBoxDepthMasks(GlState& glState)
 	}
 }
 
-void DepthMaskNode::evaluateModelDepthMasks(GlState& glState)
+void DepthMaskNode::evaluateModelDepthMasks(IMkStatePtr glState)
 {
 	EASY_FUNCTION();
 
@@ -591,7 +591,7 @@ void DepthMaskNode::evaluateModelDepthMasks(GlState& glState)
 			{
 				IMkTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
 				MkMaterialInstancePtr materialInst = mesh->getMaterialInstance();
-				GlMaterialConstPtr material = materialInst->getMaterial();
+				MkMaterialConstPtr material = materialInst->getMaterial();
 
 				// Set the model-view-projection matrix on the stencil material instance
 				materialInst->setMat4BySemantic(

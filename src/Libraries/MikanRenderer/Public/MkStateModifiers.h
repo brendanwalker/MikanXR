@@ -2,16 +2,19 @@
 
 #include "EnumUtils.h"
 
+#include "MkRendererExport.h"
+#include "MkRendererFwd.h"
+
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/vector_bool4.hpp"
 
-enum class eGLFrontFaceMode : int
+enum class eMkFrontFaceMode : int
 {
 	CW,		// Clockwise wound triangles are front facing.
 	CCW,	// Counter-clockwise wound triangles are front facing.
 };
 
-enum class eGlStencilFunction : int
+enum class eMkStencilFunction : int
 {
 	NEVER,
 	LESS,
@@ -23,7 +26,7 @@ enum class eGlStencilFunction : int
 	ALWAYS
 };
 
-enum class eGlStencilOp : int
+enum class eMkStencilOp : int
 {
 	KEEP,		// Keeps the current value.
 	ZERO,		// Sets the stencil buffer value to 0.
@@ -39,7 +42,7 @@ enum class eGlStencilOp : int
 	INVERT		// Bitwise inverts the current stencil buffer value.
 };
 
-enum class eGlBlendEquation : int
+enum class eMkBlendEquation : int
 {
 	ADD,
 	SUBTRACT,
@@ -48,7 +51,7 @@ enum class eGlBlendEquation : int
 	MAX
 };
 
-enum class eGlBlendFunction : int
+enum class eMkBlendFunction : int
 {
 	ZERO,
 	ONE,
@@ -71,7 +74,7 @@ enum class eGlBlendFunction : int
 	ONE_MINUS_SRC1_ALPHA
 };
 
-enum class eGlFrameBuffer : int
+enum class eMkFrameBuffer : int
 {
 	// Default FrameBuffer Objects
 	FRONT,
@@ -104,31 +107,31 @@ enum class eGlFrameBuffer : int
 	COLOR_ATTACHMENT15
 };
 
-enum class eGlClearFlags : uint32_t
+enum class eMkClearFlags : uint32_t
 {
 	none = 0,
 	color = 1 << 0,
 	depth = 1 << 1,
 	stencil = 1 << 2,
 };
-DEFINE_ENUM_BITMASK_OPERATORS(eGlClearFlags);
+DEFINE_ENUM_BITMASK_OPERATORS(eMkClearFlags);
 
-void glStateSetFrontFace(GlState& glState, eGLFrontFaceMode mode);
+MIKAN_RENDERER_FUNC(void) mkStateSetFrontFace(IMkStatePtr mkState, eMkFrontFaceMode mode);
 
-void glStateSetViewport(GlState& glState, int x, int y, int width, int height);
-void glStateSetClearColor(GlState& glState, const glm::vec4& color);
-void glStateSetColorMask(GlState& glState, const glm::bvec4& color_mask);
-void glStateSetDepthMask(GlState& glState, bool depth_mask);
+MIKAN_RENDERER_FUNC(void) mkStateSetViewport(IMkStatePtr mkState, int x, int y, int width, int height);
+MIKAN_RENDERER_FUNC(void) mkStateSetClearColor(IMkStatePtr mkState, const glm::vec4& color);
+MIKAN_RENDERER_FUNC(void) mkStateSetColorMask(IMkStatePtr mkState, const glm::bvec4& color_mask);
+MIKAN_RENDERER_FUNC(void) mkStateSetDepthMask(IMkStatePtr mkState, bool depth_mask);
 
-void glStateSetStencilBufferClearValue(GlState& glState, int value);
-void glStateSetStencilMask(GlState& glState, uint32_t mask);
-void glStateSetStencilFunc(GlState& glState, eGlStencilFunction func, int ref, uint32_t mask);
-void glStateSetStencilOp(GlState& glState, 
-						 eGlStencilOp stencil_fail, eGlStencilOp depth_fail, eGlStencilOp depth_stencil_pass);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilBufferClearValue(IMkStatePtr mkState, int value);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilMask(IMkStatePtr mkState, uint32_t mask);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilFunc(IMkStatePtr mkState, eMkStencilFunction func, int ref, uint32_t mask);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilOp(IMkStatePtr mkState, 
+						 eMkStencilOp stencil_fail, eMkStencilOp depth_fail, eMkStencilOp depth_stencil_pass);
 
-void glStateSetBlendEquation(GlState& glState, eGlBlendEquation mode);
-void glStateSetBlendFunc(GlState& glState, eGlBlendFunction source_factor, eGlBlendFunction dest_factor);
+MIKAN_RENDERER_FUNC(void) mkStateSetBlendEquation(IMkStatePtr mkState, eMkBlendEquation mode);
+MIKAN_RENDERER_FUNC(void) mkStateSetBlendFunc(IMkStatePtr mkState, eMkBlendFunction source_factor, eMkBlendFunction dest_factor);
 
-void glStateSetDrawBuffer(GlState& glState, eGlFrameBuffer mode);
-void glStateSetReadBuffer(GlState& glState, eGlFrameBuffer mode);
-void glStateClearBuffer(GlState& glState, eGlClearFlags flags);
+MIKAN_RENDERER_FUNC(void) mkStateSetDrawBuffer(IMkStatePtr mkState, eMkFrameBuffer mode);
+MIKAN_RENDERER_FUNC(void) mkStateSetReadBuffer(IMkStatePtr mkState, eMkFrameBuffer mode);
+MIKAN_RENDERER_FUNC(void) mkStateClearBuffer(IMkStatePtr mkState, eMkClearFlags flags);

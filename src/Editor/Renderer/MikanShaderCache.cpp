@@ -173,7 +173,7 @@ MkMaterialPtr MikanShaderCache::registerMaterial(IMkShaderCodeConstPtr code)
 	return m_shaderCache->registerMaterial(code);
 }
 
-GlMaterialConstPtr MikanShaderCache::getMaterialByName(const std::string& name)
+MkMaterialConstPtr MikanShaderCache::getMaterialByName(const std::string& name)
 {
 	return m_shaderCache->getMaterialByName(name);
 }

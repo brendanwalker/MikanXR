@@ -22,7 +22,7 @@ public:
 	virtual std::string getClassName() const override { return "CompositorNodeGraph"; }
 	virtual bool loadFromConfig(const NodeGraphConfig& config) override;
 	bool compositeFrame(NodeEvaluator& evaluator);
-	GlTextureConstPtr getCompositedFrameTexture() const;
+	IMkTextureConstPtr getCompositedFrameTexture() const;
 	void setExternalCompositedFrameTexture(IMkTexturePtr externalTexture);
 
 	// Stencil Models
@@ -69,5 +69,5 @@ class CompositorNodeGraphFactory : public TypedNodeGraphFactory<CompositorNodeGr
 public:
 	CompositorNodeGraphFactory() = default;
 
-	virtual NodeGraphPtr initialCreateNodeGraph(class IGlWindow* ownerWindow) const override;
+	virtual NodeGraphPtr initialCreateNodeGraph(class IMkWindow* ownerWindow) const override;
 };

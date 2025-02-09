@@ -50,9 +50,9 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateQuadStencils(GlState& glParentState);
-	void evaluateBoxStencils(GlState& glParentState);
-	void evaluateModelStencils(GlState& glParentState);
+	void evaluateQuadStencils(IMkStatePtr glParentState);
+	void evaluateBoxStencils(IMkStatePtr glParentState);
+	void evaluateModelStencils(IMkStatePtr glParentState);
 
 	virtual std::string editorGetTitle() const override { return "Draw Layer"; }
 
@@ -63,7 +63,7 @@ protected:
 	void applyDynamicPinDefaultValues();
 
 	void setMaterialPin(PropertyPinPtr inPin);
-	void setMaterial(GlMaterialConstPtr inMaterial);
+	void setMaterial(MkMaterialConstPtr inMaterial);
 
 	void setStencilsPin(ArrayPinPtr inPin);
 	void rebuildStencilLists();
@@ -75,7 +75,7 @@ protected:
 	std::vector<MikanStencilID> m_modelStencilIds;
 
 	PropertyPinPtr m_materialPin;
-	GlMaterialConstPtr m_material;
+	MkMaterialConstPtr m_material;
 	MkMaterialInstancePtr m_materialInstance;
 	std::map<std::string, float> m_floatDefaults;
 	std::map<std::string, std::array<float, 2> > m_float2Defaults;

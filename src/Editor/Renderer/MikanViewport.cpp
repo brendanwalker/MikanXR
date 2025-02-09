@@ -4,8 +4,8 @@
 #include "SdlCommon.h"
 #include "MikanCamera.h"
 #include "GlScene.h"
-#include "GlStateStack.h"
-#include "GlStateModifiers.h"
+#include "MkStateStack.h"
+#include "MkStateModifiers.h"
 #include "MathUtility.h"
 #include "Colors.h"
 #include "InputManager.h"
@@ -45,13 +45,13 @@ MikanViewport::~MikanViewport()
 	unbindInput();
 }
 
-void MikanViewport::applyRenderingViewport(GlState& glState) const
+void MikanViewport::applyRenderingViewport(IMkStatePtr glState) const
 {
-	glStateSetClearColor(glState, m_backgroundColor);
+	mkStateSetClearColor(glState, m_backgroundColor);
 
-	// This calls onRenderingViewportApply from GLStateSetViewportImpl
+	// This calls onRenderingViewportApply from mkStateSetViewportImpl
 	// onRenderingViewportRevert is called when the state is popped
-	glStateSetViewport(
+	mkStateSetViewport(
 		glState, 
 		m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y), 
 		m_viewportSize.x, m_viewportSize.y);

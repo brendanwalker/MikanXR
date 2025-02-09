@@ -15,7 +15,7 @@
 #include "MkScopedObjectBinding.h"
 #include "IMkStaticMeshInstance.h"
 #include "GlScene.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "MikanTextRenderer.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanViewport.h"
@@ -289,7 +289,7 @@ void AppStage_StencilAlignment::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			*m_ownerWindow->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 
@@ -336,7 +336,7 @@ void AppStage_StencilAlignment::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
-		GlMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())
 		{
@@ -356,7 +356,7 @@ void AppStage_StencilAlignment::render()
 
 void AppStage_StencilAlignment::renderStencilScene()
 {
-	m_scene->render(m_camera, m_ownerWindow->getGlStateStack());
+	m_scene->render(m_camera, m_ownerWindow->getMkStateStack());
 
 	if (m_targetStencilComponent)
 	{

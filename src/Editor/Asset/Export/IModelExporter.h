@@ -6,8 +6,8 @@
 class MikanRenderModelResource;
 using MikanRenderModelResourcePtr = std::shared_ptr<MikanRenderModelResource>;
 
-class GlMaterial;
-using GlMaterialConstPtr = std::shared_ptr<const GlMaterial>;
+class MkMaterial;
+using MkMaterialConstPtr = std::shared_ptr<const MkMaterial>;
 
 class IModelExporter
 {

@@ -41,7 +41,7 @@ void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderG
 	}
 
 	GlMaterialInstanceConstPtr materialInst= meshInstance->getMaterialInstanceConst();
-	GlMaterialConstPtr material= materialInst->getMaterial();
+	MkMaterialConstPtr material= materialInst->getMaterial();
 	const GlVertexDefinition& vertexDefinition= material->getProgram()->getVertexDefinition();
 	const size_t vertexSize = vertexDefinition.getVertexSize();
 	const uint32_t vertexCount = glMesh->getVertexCount();

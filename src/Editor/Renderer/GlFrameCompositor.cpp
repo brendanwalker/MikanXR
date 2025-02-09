@@ -20,7 +20,9 @@
 #include "ProfileConfig.h"
 #include "StringUtils.h"
 #include "MikanShaderCache.h"
-#include "GlStateStack.h"
+#include "IMkShaderCode.h"
+#include "MkStateStack.h"
+#include "IMkState.h"
 #include "IMkShader.h"
 #include "MikanModelResourceManager.h"
 #include "MikanRenderModelResource.h"
@@ -64,7 +66,7 @@ GlFrameCompositor::~GlFrameCompositor()
 	m_instance = nullptr;
 }
 
-bool GlFrameCompositor::startup(IGlWindow* ownerWindow)
+bool GlFrameCompositor::startup(IMkWindow* ownerWindow)
 {
 	EASY_FUNCTION();
 
@@ -719,13 +721,13 @@ void GlFrameCompositor::updateCompositeFrame()
 
 		// Create a scoped binding for the video export framebuffer
 		MkScopedObjectBinding videoExportFramebufferBinding(
-			*m_ownerWindow->getGlStateStack().getCurrentState(),
+			m_ownerWindow->getMkStateStack().getCurrentState(),
 			"Video Export Framebuffer Scope",
 			m_videoExportFramebuffer);
 		if (videoExportFramebufferBinding)
 		{
 			// Turn off depth testing for compositing
-			videoExportFramebufferBinding.getGlState().disableFlag(eGlStateFlagType::depthTest);
+			videoExportFramebufferBinding.getMkState()->disableFlag(eMkStateFlagType::depthTest);
 
 			m_rgbToBgrFrameShader->bindProgram();
 
@@ -733,7 +735,7 @@ void GlFrameCompositor::updateCompositeFrame()
 			m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::rgbTexture, uniformName);
 			m_rgbToBgrFrameShader->setTextureUniform(uniformName);
 
-			GlTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
+			IMkTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
 			if (compositedFrameTexture)
 			{
 				compositedFrameTexture->bindTexture(0);
@@ -785,17 +787,17 @@ IMkTexturePtr GlFrameCompositor::getEditorWritableFrameTexture() const
 	return m_editorFrameBufferTexture;
 }
 
-GlTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
+IMkTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
 {
 	switch (m_evaluatorWindow)
 	{
 		case eCompositorEvaluatorWindow::mainWindow:
-			return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : GlTextureConstPtr();
+			return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : IMkTextureConstPtr();
 		case eCompositorEvaluatorWindow::editorWindow:
 			return m_editorFrameBufferTexture;
 	}
 
-	return GlTextureConstPtr();
+	return IMkTextureConstPtr();
 }
 
 IMkTexturePtr GlFrameCompositor::getBGRVideoFrameTexture() 
@@ -827,11 +829,11 @@ void GlFrameCompositor::render() const
 	if (!getIsRunning())
 		return;
 
-	GlTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
+	IMkTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
 	if (compositedFrameTexture)
 	{
-		GlScopedState scopedState= MainWindow::getInstance()->getGlStateStack().createScopedState("GlFrameCompositorRender");
-		scopedState.getStackState().disableFlag(eGlStateFlagType::depthTest);
+		MkScopedState scopedState= MainWindow::getInstance()->getMkStateStack().createScopedState("GlFrameCompositorRender");
+		scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 		// Draw the composited video frame
 		m_rgbFrameShader->bindProgram();
@@ -1174,12 +1176,16 @@ void GlFrameCompositor::onClientRenderTargetUpdated(
 	}
 }
 
-const IMkShaderCode* GlFrameCompositor::getRGBFrameShaderCode()
+IMkShaderCodeConstPtr GlFrameCompositor::getRGBFrameShaderCode()
 {
-	static IMkShaderCode x_shaderCode = IMkShaderCode(
-		"Internal RGB Frame Shader Code",
-		// vertex shader
-		R""""(
+	static IMkShaderCodePtr x_shaderCode = nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			"Internal RGB Frame Shader Code",
+			// vertex shader
+			R""""(
 			#version 330 core
 			layout (location = 0) in vec2 aPos;
 			layout (location = 1) in vec2 aTexCoords;
@@ -1192,8 +1198,8 @@ const IMkShaderCode* GlFrameCompositor::getRGBFrameShaderCode()
 				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 			}  
 			)"""",
-		//fragment shader
-		R""""(
+			//fragment shader
+			R""""(
 			#version 330 core
 			out vec4 FragColor;
 
@@ -1206,20 +1212,25 @@ const IMkShaderCode* GlFrameCompositor::getRGBFrameShaderCode()
 				vec3 col = texture(rgbTexture, TexCoords).rgb;
 				FragColor = vec4(col, 1.0);
 			} 
-			)"""")
-		.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-		.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-		.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+			)"""");		
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+	}
 
-	return &x_shaderCode;
+	return x_shaderCode;
 }
 
-const IMkShaderCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
+IMkShaderCodeConstPtr GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 {
-	static IMkShaderCode x_shaderCode = IMkShaderCode(
-		"Internal BGR Frame Shader Code",
-		// vertex shader
-		R""""(
+	static IMkShaderCodePtr x_shaderCode = nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			"Internal BGR Frame Shader Code",
+			// vertex shader
+			R""""(
 			#version 330 core
 			layout (location = 0) in vec2 aPos;
 			layout (location = 1) in vec2 aTexCoords;
@@ -1232,8 +1243,8 @@ const IMkShaderCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 			}  
 			)"""",
-		//fragment shader
-		R""""(
+			//fragment shader
+			R""""(
 			#version 330 core
 			out vec4 FragColor;
 
@@ -1246,10 +1257,11 @@ const IMkShaderCode* GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
 				vec3 col = texture(rgbTexture, TexCoords).bgr;
 				FragColor = vec4(col, 1.0);
 			} 
-			)"""")
-		.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-		.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-		.addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+			)"""");
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+	}
 
-	return &x_shaderCode;
+	return x_shaderCode;
 }

@@ -1,8 +1,10 @@
 #include "GlCommon.h"
-#include "GlStateStack.h"
-#include "GlStateModifiers.h"
-#include "IMkViewport.h"
+#include "MkStateStack.h"
+#include "MkStateLog.h"
+#include "MkStateModifiers.h"
+#include "IMkState.h"
 #include "IMkStateModifier.h"
+#include "IMkViewport.h"
 #include "IMkWindow.h"
 
 #include "memory"
@@ -13,28 +15,28 @@ class GLStateModifierBase : public IMkStateModifier
 {
 public:
 	GLStateModifierBase() = delete;
-	GLStateModifierBase(GlState& glState)
-	: m_ownerGlState(glState)
-	, m_ownerStateStackDepth(glState.getStackDepth())
+	GLStateModifierBase(IMkStatePtr mkState)
+	: m_ownerGlState(mkState)
+	, m_ownerStateStackDepth(mkState->getStackDepth())
 	{}
 
-	inline GlState& getOwnerGlState() { return m_ownerGlState; }
-	inline GlStateStack& getOwnerGlStateStack() { return m_ownerGlState.getOwnerStateStack(); }
-	inline IMkWindow* getOwnerWindow() { return getOwnerGlStateStack().getOwnerWindow(); }
+	inline IMkStatePtr getOwnerGlState() { return m_ownerGlState; }
+	inline MkStateStack& getOwnerMkStateStack() { return m_ownerGlState->getOwnerStateStack(); }
+	inline IMkWindow* getOwnerWindow() { return getOwnerMkStateStack().getOwnerWindow(); }
 
 	inline static const std::string k_modifierID = "<INVALID>";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
 	virtual int getOwnerStateStackDepth() const override { return m_ownerStateStackDepth; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override {}
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override {}
 	virtual void revert() override {}
 
-	GlStateLog getStateLog()
+	MkStateLog getStateLog()
 	{
-		return GlStateLog(m_ownerGlState);
+		return MkStateLog(m_ownerGlState.get());
 	}
 
 protected:
-	GlState& m_ownerGlState;
+	IMkStatePtr m_ownerGlState;
 	int m_ownerStateStackDepth;
 };
 
@@ -43,18 +45,18 @@ class GLStateSetFrontFaceImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetFrontFaceImpl() = delete;
-	GLStateSetFrontFaceImpl(GlState& glState, const eGLFrontFaceMode mode)
-		: GLStateModifierBase(glState)
+	GLStateSetFrontFaceImpl(IMkStatePtr mkState, const eMkFrontFaceMode mode)
+		: GLStateModifierBase(mkState)
 		, m_prevMode(convertToGLenum(mode))
 		, m_mode(m_prevMode)
 	{}
 
 	inline static const std::string k_modifierID = "SetFrontFace";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetFrontFaceImpl>(parentModifier);
+		const auto parentTypedModifier =
+			std::static_pointer_cast<const GLStateSetFrontFaceImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevMode = parentTypedModifier->m_mode;
@@ -73,12 +75,12 @@ public:
 		getStateLog() << "Revert Front Face: " << m_prevMode;
 	}
 
-	static GLenum convertToGLenum(eGLFrontFaceMode mode)
+	static GLenum convertToGLenum(eMkFrontFaceMode mode)
 	{
 		switch (mode)
 		{
-			case eGLFrontFaceMode::CW: return GL_CW;
-			case eGLFrontFaceMode::CCW: return GL_CCW;
+			case eMkFrontFaceMode::CW: return GL_CW;
+			case eMkFrontFaceMode::CCW: return GL_CCW;
 		}
 
 		return GL_CW;
@@ -89,18 +91,18 @@ private:
 	GLenum m_mode;
 };
 
-void glStateSetFrontFace(GlState& glState, eGLFrontFaceMode mode)
+void mkStateSetFrontFace(IMkStatePtr mkState, eMkFrontFaceMode mode)
 {
-	glState.addModifier(std::make_shared<GLStateSetFrontFaceImpl>(glState, mode));
+	mkState->addModifier(std::make_shared<GLStateSetFrontFaceImpl>(mkState, mode));
 }
 
-// -- GlStateSetViewport --
-class GLStateSetViewportImpl : public GLStateModifierBase
+// -- mkStateSetViewport --
+class mkStateSetViewportImpl : public GLStateModifierBase
 {
 public:
-	GLStateSetViewportImpl() = delete;
-	GLStateSetViewportImpl(GlState& glState, int x, int y, int width, int height)
-		: GLStateModifierBase(glState)
+	mkStateSetViewportImpl() = delete;
+	mkStateSetViewportImpl(IMkStatePtr mkState, int x, int y, int width, int height)
+		: GLStateModifierBase(mkState)
 		, m_prevX(x), m_prevY(y), m_prevWidth(width), m_prevHeight(height)
 		, m_x(x), m_y(y), m_width(width), m_height(height)
 	{
@@ -109,9 +111,10 @@ public:
 
 	inline static const std::string k_modifierID = "SetViewport";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentViewportModifier = std::static_pointer_cast<GLStateSetViewportImpl>(parentModifier);
+		const auto parentViewportModifier = 
+			std::static_pointer_cast<const mkStateSetViewportImpl>(parentModifier);
 		if (parentViewportModifier)
 		{
 			m_prevX = parentViewportModifier->m_x;
@@ -159,27 +162,28 @@ private:
 	int32_t m_x, m_y, m_width, m_height;
 };
 
-void glStateSetViewport(GlState& glState, int x, int y, int width, int height)
+void mkStateSetViewport(IMkStatePtr mkState, int x, int y, int width, int height)
 {
-	glState.addModifier(std::make_shared<GLStateSetViewportImpl>(glState, x, y, width, height));
+	mkState->addModifier(std::make_shared<mkStateSetViewportImpl>(mkState, x, y, width, height));
 }
 
-// -- GLStateSetClearColor --
-class GLStateSetClearColorImpl : public GLStateModifierBase
+// -- mkStateSetClearColor --
+class mkStateSetClearColorImpl : public GLStateModifierBase
 {
 public:
-	GLStateSetClearColorImpl() = delete;
-	GLStateSetClearColorImpl(GlState& glState, const glm::vec4& color)
-		: GLStateModifierBase(glState)
+	mkStateSetClearColorImpl() = delete;
+	mkStateSetClearColorImpl(IMkStatePtr mkState, const glm::vec4& color)
+		: GLStateModifierBase(mkState)
 		, m_prevClearColor(color)
 		, m_clearColor(color)
 	{}
 
 	inline static const std::string k_modifierID = "SetBackgroundColor";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentBackgroundColorModifier = std::static_pointer_cast<GLStateSetClearColorImpl>(parentModifier);
+		const auto parentBackgroundColorModifier = 
+			std::static_pointer_cast<const mkStateSetClearColorImpl>(parentModifier);
 		if (parentBackgroundColorModifier)
 		{
 			m_prevClearColor = parentBackgroundColorModifier->m_clearColor;
@@ -213,27 +217,28 @@ private:
 	glm::vec4 m_clearColor;
 };
 
-void glStateSetClearColor(GlState& glState, const glm::vec4& color)
+void mkStateSetClearColor(IMkStatePtr mkState, const glm::vec4& color)
 {
-	glState.addModifier(std::make_shared<GLStateSetClearColorImpl>(glState, color));
+	mkState->addModifier(std::make_shared<mkStateSetClearColorImpl>(mkState, color));
 }
 
-// -- GLStateSetColorMask --
+// -- mkStateSetColorMask --
 class GLStateSetColorMaskImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetColorMaskImpl() = delete;
-	GLStateSetColorMaskImpl(GlState& glState, const glm::bvec4& colorMask)
-		: GLStateModifierBase(glState)
+	GLStateSetColorMaskImpl(IMkStatePtr mkState, const glm::bvec4& colorMask)
+		: GLStateModifierBase(mkState)
 		, m_prevColorMask(colorMask)
 		, m_colorMask(colorMask)
 	{}
 
 	inline static const std::string k_modifierID = "SetColorMask";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentBackgroundColorModifier = std::static_pointer_cast<GLStateSetColorMaskImpl>(parentModifier);
+		const auto parentBackgroundColorModifier = 
+			std::static_pointer_cast<const GLStateSetColorMaskImpl>(parentModifier);
 		if (parentBackgroundColorModifier)
 		{
 			m_prevColorMask = parentBackgroundColorModifier->m_colorMask;
@@ -275,27 +280,28 @@ private:
 	glm::bvec4 m_colorMask;
 };
 
-void glStateSetColorMask(GlState& glState, const glm::bvec4& color_mask)
+void mkStateSetColorMask(IMkStatePtr mkState, const glm::bvec4& color_mask)
 {
-	glState.addModifier(std::make_shared<GLStateSetColorMaskImpl>(glState, color_mask));
+	mkState->addModifier(std::make_shared<GLStateSetColorMaskImpl>(mkState, color_mask));
 }
 
-// -- GLStateSetDepthMask --
+// -- mkStateSetDepthMask --
 class GLStateSetDepthMaskImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetDepthMaskImpl() = delete;
-	GLStateSetDepthMaskImpl(GlState& glState, bool depthMask)
-		: GLStateModifierBase(glState)
+	GLStateSetDepthMaskImpl(IMkStatePtr mkState, bool depthMask)
+		: GLStateModifierBase(mkState)
 		, m_prevDepthMask(depthMask)
 		, m_depthMask(depthMask)
 	{}
 
 	inline static const std::string k_modifierID = "SetDepthMask";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier = std::static_pointer_cast<GLStateSetDepthMaskImpl>(parentModifier);
+		const auto parentTypedModifier = 
+			std::static_pointer_cast<const GLStateSetDepthMaskImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevDepthMask = parentTypedModifier->m_depthMask;
@@ -322,28 +328,28 @@ private:
 	bool m_depthMask;
 };
 
-void glStateSetDepthMask(GlState& glState, bool depth_mask)
+void mkStateSetDepthMask(IMkStatePtr mkState, bool depth_mask)
 {
-	glState.addModifier(std::make_shared<GLStateSetDepthMaskImpl>(glState, depth_mask));
+	mkState->addModifier(std::make_shared<GLStateSetDepthMaskImpl>(mkState, depth_mask));
 }
 
-// -- GLStateSetStencilBufferClearValue --
+// -- mkStateSetStencilBufferClearValue --
 class GLStateSetStencilBufferClearValueImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetStencilBufferClearValueImpl() = delete;
-	GLStateSetStencilBufferClearValueImpl(GlState& glState, const int value)
-		: GLStateModifierBase(glState)
+	GLStateSetStencilBufferClearValueImpl(IMkStatePtr mkState, const int value)
+		: GLStateModifierBase(mkState)
 		, m_prevValue(value)
 		, m_value(value)
 	{}
 
 	inline static const std::string k_modifierID = "SetStencilBufferClearValue";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier = 
-			std::static_pointer_cast<GLStateSetStencilBufferClearValueImpl>(parentModifier);
+		const auto parentTypedModifier = 
+			std::static_pointer_cast<const GLStateSetStencilBufferClearValueImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevValue = parentTypedModifier->m_value;
@@ -367,9 +373,9 @@ private:
 	GLint m_value;
 };
 
-void glStateSetStencilBufferClearValue(GlState& glState, int value)
+void mkStateSetStencilBufferClearValue(IMkStatePtr mkState, int value)
 {
-	glState.addModifier(std::make_shared<GLStateSetStencilBufferClearValueImpl>(glState, value));
+	mkState->addModifier(std::make_shared<GLStateSetStencilBufferClearValueImpl>(mkState, value));
 }
 
 // -- GLStateSetStencilMaskImpl --
@@ -377,18 +383,18 @@ class GLStateSetStencilMaskImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetStencilMaskImpl() = delete;
-	GLStateSetStencilMaskImpl(GlState& glState, const uint32_t mask)
-		: GLStateModifierBase(glState)
+	GLStateSetStencilMaskImpl(IMkStatePtr mkState, const uint32_t mask)
+		: GLStateModifierBase(mkState)
 		, m_prevMask(mask)
 		, m_mask(mask)
 	{}
 
 	inline static const std::string k_modifierID = "SetStencilMask";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetStencilMaskImpl>(parentModifier);
+		const auto parentTypedModifier =
+			std::static_pointer_cast<const GLStateSetStencilMaskImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevMask = parentTypedModifier->m_mask;
@@ -412,18 +418,18 @@ private:
 	GLuint m_mask;
 };
 
-void glStateSetStencilMask(GlState& glState, uint32_t mask)
+void mkStateSetStencilMask(IMkStatePtr mkState, uint32_t mask)
 {
-	glState.addModifier(std::make_shared<GLStateSetStencilMaskImpl>(glState, mask));
+	mkState->addModifier(std::make_shared<GLStateSetStencilMaskImpl>(mkState, mask));
 }
 
-// -- GLStateSetStencilFunc --
+// -- mkStateSetStencilFunc --
 class GLStateSetStencilFuncImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetStencilFuncImpl() = delete;
-	GLStateSetStencilFuncImpl(GlState& glState, eGlStencilFunction func, int ref, uint32_t mask)
-		: GLStateModifierBase(glState)
+	GLStateSetStencilFuncImpl(IMkStatePtr mkState, eMkStencilFunction func, int ref, uint32_t mask)
+		: GLStateModifierBase(mkState)
 		, m_prevFunc(convertToGLenum(func))
 		, m_func(m_prevFunc)
 		, m_prevRef(ref)
@@ -434,10 +440,10 @@ public:
 
 	inline static const std::string k_modifierID = "SetStencilFunc";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetStencilFuncImpl>(parentModifier);
+		const auto parentTypedModifier =
+			std::static_pointer_cast<const GLStateSetStencilFuncImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevFunc = parentTypedModifier->m_func;
@@ -460,18 +466,18 @@ public:
 		getStateLog() << "Revert Stencil Function: " << m_prevFunc << ", " << m_prevRef << ", " << m_prevMask;
 	}
 
-	static GLenum convertToGLenum(eGlStencilFunction func)
+	static GLenum convertToGLenum(eMkStencilFunction func)
 	{
 		switch (func)
 		{
-		case eGlStencilFunction::NEVER: return GL_NEVER;
-		case eGlStencilFunction::LESS: return GL_LESS;
-		case eGlStencilFunction::LEQUAL: return GL_LEQUAL;
-		case eGlStencilFunction::GREATER: return GL_GREATER;
-		case eGlStencilFunction::GEQUAL: return GL_GEQUAL;
-		case eGlStencilFunction::EQUAL: return GL_EQUAL;
-		case eGlStencilFunction::NOTEQUAL: return GL_NOTEQUAL;
-		case eGlStencilFunction::ALWAYS: return GL_ALWAYS;
+		case eMkStencilFunction::NEVER: return GL_NEVER;
+		case eMkStencilFunction::LESS: return GL_LESS;
+		case eMkStencilFunction::LEQUAL: return GL_LEQUAL;
+		case eMkStencilFunction::GREATER: return GL_GREATER;
+		case eMkStencilFunction::GEQUAL: return GL_GEQUAL;
+		case eMkStencilFunction::EQUAL: return GL_EQUAL;
+		case eMkStencilFunction::NOTEQUAL: return GL_NOTEQUAL;
+		case eMkStencilFunction::ALWAYS: return GL_ALWAYS;
 		}
 
 		return GL_ALWAYS;
@@ -486,22 +492,22 @@ private:
 	GLuint m_mask;
 };
 
-void glStateSetStencilFunc(GlState& glState, eGlStencilFunction func, int ref, uint32_t mask)
+void mkStateSetStencilFunc(IMkStatePtr mkState, eMkStencilFunction func, int ref, uint32_t mask)
 {
-	glState.addModifier(std::make_shared<GLStateSetStencilFuncImpl>(glState, func, ref, mask));
+	mkState->addModifier(std::make_shared<GLStateSetStencilFuncImpl>(mkState, func, ref, mask));
 }
 
-// -- GLStateSetStencilOp --
+// -- mkStateSetStencilOp --
 class GLStateSetStencilOpImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetStencilOpImpl() = delete;
 	GLStateSetStencilOpImpl(
-		GlState& glState, 
-		eGlStencilOp stencil_fail, 
-		eGlStencilOp depth_fail, 
-		eGlStencilOp depth_stencil_pass)
-		: GLStateModifierBase(glState)
+		IMkStatePtr mkState, 
+		eMkStencilOp stencil_fail, 
+		eMkStencilOp depth_fail, 
+		eMkStencilOp depth_stencil_pass)
+		: GLStateModifierBase(mkState)
 		, m_prevStencilTestFail(convertToGLenum(stencil_fail))
 		, m_prevDepthTestFail(convertToGLenum(depth_fail))
 		, m_prevDepthStencilPass(convertToGLenum(depth_stencil_pass))
@@ -512,10 +518,10 @@ public:
 
 	inline static const std::string k_modifierID = "SetStencilOp";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetStencilOpImpl>(parentModifier);
+		const auto parentTypedModifier =
+			std::static_pointer_cast<const GLStateSetStencilOpImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevStencilTestFail = parentTypedModifier->m_stencilTestFail;
@@ -539,18 +545,18 @@ public:
 			m_prevStencilTestFail << ", " << m_prevDepthTestFail << ", " << m_prevDepthStencilPass;
 	}
 
-	static GLenum convertToGLenum(eGlStencilOp op)
+	static GLenum convertToGLenum(eMkStencilOp op)
 	{
 		switch (op)
 		{
-			case eGlStencilOp::KEEP: return GL_KEEP;
-			case eGlStencilOp::ZERO: return GL_ZERO;
-			case eGlStencilOp::REPLACE: return GL_REPLACE;
-			case eGlStencilOp::INCR: return GL_INCR;
-			case eGlStencilOp::INCR_WRAP: return GL_INCR_WRAP;
-			case eGlStencilOp::DECR: return GL_DECR;
-			case eGlStencilOp::DECR_WRAP: return GL_DECR_WRAP;
-			case eGlStencilOp::INVERT: return GL_INVERT;
+			case eMkStencilOp::KEEP: return GL_KEEP;
+			case eMkStencilOp::ZERO: return GL_ZERO;
+			case eMkStencilOp::REPLACE: return GL_REPLACE;
+			case eMkStencilOp::INCR: return GL_INCR;
+			case eMkStencilOp::INCR_WRAP: return GL_INCR_WRAP;
+			case eMkStencilOp::DECR: return GL_DECR;
+			case eMkStencilOp::DECR_WRAP: return GL_DECR_WRAP;
+			case eMkStencilOp::INVERT: return GL_INVERT;
 		}
 
 		return GL_KEEP;
@@ -561,12 +567,12 @@ private:
 	GLenum m_stencilTestFail, m_depthTestFail, m_depthStencilPass;
 };
 
-void glStateSetStencilOp(GlState& glState, 
-						 eGlStencilOp stencil_fail, eGlStencilOp depth_fail, eGlStencilOp depth_stencil_pass)
+void mkStateSetStencilOp(IMkStatePtr mkState, 
+						 eMkStencilOp stencil_fail, eMkStencilOp depth_fail, eMkStencilOp depth_stencil_pass)
 {
-	glState.addModifier(
+	mkState->addModifier(
 		std::make_shared<GLStateSetStencilOpImpl>(
-			glState, stencil_fail, depth_fail, depth_stencil_pass));
+			mkState, stencil_fail, depth_fail, depth_stencil_pass));
 }
 
 // -- GLStateSetBlendEquation --
@@ -574,18 +580,18 @@ class GLStateSetBlendEquationImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetBlendEquationImpl() = delete;
-	GLStateSetBlendEquationImpl(GlState& glState, const eGlBlendEquation mode)
-		: GLStateModifierBase(glState)
+	GLStateSetBlendEquationImpl(IMkStatePtr mkState, const eMkBlendEquation mode)
+		: GLStateModifierBase(mkState)
 		, m_prevMode(convertToGLenum(mode))
 		, m_mode(m_prevMode)
 	{}
 
 	inline static const std::string k_modifierID = "SetBlendEquation";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetBlendEquationImpl>(parentModifier);
+		const auto parentTypedModifier =
+			std::static_pointer_cast<const GLStateSetBlendEquationImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevMode = parentTypedModifier->m_mode;
@@ -604,15 +610,15 @@ public:
 		getStateLog() << "Revert Blend Eq: " << m_prevMode;
 	}
 
-	static GLenum convertToGLenum(eGlBlendEquation mode)
+	static GLenum convertToGLenum(eMkBlendEquation mode)
 	{
 		switch (mode)
 		{
-		case eGlBlendEquation::ADD: return GL_FUNC_ADD;
-		case eGlBlendEquation::SUBTRACT: return GL_FUNC_SUBTRACT;
-		case eGlBlendEquation::REVERSE_SUBTRACT: return GL_FUNC_REVERSE_SUBTRACT;
-		case eGlBlendEquation::MIN: return GL_MIN;
-		case eGlBlendEquation::MAX: return GL_MAX;
+		case eMkBlendEquation::ADD: return GL_FUNC_ADD;
+		case eMkBlendEquation::SUBTRACT: return GL_FUNC_SUBTRACT;
+		case eMkBlendEquation::REVERSE_SUBTRACT: return GL_FUNC_REVERSE_SUBTRACT;
+		case eMkBlendEquation::MIN: return GL_MIN;
+		case eMkBlendEquation::MAX: return GL_MAX;
 		}
 
 		return GL_FUNC_ADD;
@@ -623,9 +629,9 @@ private:
 	GLenum m_mode;
 };
 
-void glStateSetBlendEquation(GlState& glState, eGlBlendEquation mode)
+void mkStateSetBlendEquation(IMkStatePtr mkState, eMkBlendEquation mode)
 {
-	glState.addModifier(std::make_shared<GLStateSetBlendEquationImpl>(glState, mode));
+	mkState->addModifier(std::make_shared<GLStateSetBlendEquationImpl>(mkState, mode));
 }
 
 // -- GLStateSetBlendFunc --
@@ -633,8 +639,8 @@ class GLStateSetBlendFuncImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetBlendFuncImpl() = delete;
-	GLStateSetBlendFuncImpl(GlState& glState, eGlBlendFunction source_factor, eGlBlendFunction dest_factor)
-		: GLStateModifierBase(glState)
+	GLStateSetBlendFuncImpl(IMkStatePtr mkState, eMkBlendFunction source_factor, eMkBlendFunction dest_factor)
+		: GLStateModifierBase(mkState)
 		, m_prevSourceFactor(convertToGLenum(source_factor))
 		, m_prevDestFactor(convertToGLenum(dest_factor))
 		, m_sourceFactor(m_prevSourceFactor)
@@ -643,10 +649,10 @@ public:
 
 	inline static const std::string k_modifierID = "SetBlendFunc";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetBlendFuncImpl>(parentModifier);
+		const auto parentTypedModifier =
+			std::static_pointer_cast<const GLStateSetBlendFuncImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevSourceFactor = parentTypedModifier->m_sourceFactor;
@@ -667,25 +673,25 @@ public:
 		getStateLog() << "Revert Blend Func: " << m_prevSourceFactor << ", " << m_prevDestFactor;
 	}
 
-	static GLenum convertToGLenum(eGlBlendFunction mode)
+	static GLenum convertToGLenum(eMkBlendFunction mode)
 	{
 		switch (mode)
 		{
-		case eGlBlendFunction::ZERO: return GL_ZERO;
-		case eGlBlendFunction::ONE: return GL_ONE;
-		case eGlBlendFunction::SRC_COLOR: return GL_SRC_COLOR;
-		case eGlBlendFunction::ONE_MINUS_SRC_COLOR: return GL_ONE_MINUS_SRC_COLOR;
-		case eGlBlendFunction::DST_COLOR: return GL_DST_COLOR;
-		case eGlBlendFunction::ONE_MINUS_DST_COLOR: return GL_ONE_MINUS_DST_COLOR;
-		case eGlBlendFunction::SRC_ALPHA: return GL_SRC_ALPHA;
-		case eGlBlendFunction::ONE_MINUS_SRC_ALPHA: return GL_ONE_MINUS_SRC_ALPHA;
-		case eGlBlendFunction::DST_ALPHA: return GL_DST_ALPHA;
-		case eGlBlendFunction::ONE_MINUS_DST_ALPHA: return GL_ONE_MINUS_DST_ALPHA;
-		case eGlBlendFunction::CONSTANT_COLOR: return GL_CONSTANT_COLOR;
-		case eGlBlendFunction::ONE_MINUS_CONSTANT_COLOR: return GL_ONE_MINUS_CONSTANT_COLOR;
-		case eGlBlendFunction::CONSTANT_ALPHA: return GL_CONSTANT_ALPHA;
-		case eGlBlendFunction::ONE_MINUS_CONSTANT_ALPHA: return GL_ONE_MINUS_CONSTANT_ALPHA;
-		case eGlBlendFunction::SRC_ALPHA_SATURATE: return GL_SRC_ALPHA_SATURATE;
+		case eMkBlendFunction::ZERO: return GL_ZERO;
+		case eMkBlendFunction::ONE: return GL_ONE;
+		case eMkBlendFunction::SRC_COLOR: return GL_SRC_COLOR;
+		case eMkBlendFunction::ONE_MINUS_SRC_COLOR: return GL_ONE_MINUS_SRC_COLOR;
+		case eMkBlendFunction::DST_COLOR: return GL_DST_COLOR;
+		case eMkBlendFunction::ONE_MINUS_DST_COLOR: return GL_ONE_MINUS_DST_COLOR;
+		case eMkBlendFunction::SRC_ALPHA: return GL_SRC_ALPHA;
+		case eMkBlendFunction::ONE_MINUS_SRC_ALPHA: return GL_ONE_MINUS_SRC_ALPHA;
+		case eMkBlendFunction::DST_ALPHA: return GL_DST_ALPHA;
+		case eMkBlendFunction::ONE_MINUS_DST_ALPHA: return GL_ONE_MINUS_DST_ALPHA;
+		case eMkBlendFunction::CONSTANT_COLOR: return GL_CONSTANT_COLOR;
+		case eMkBlendFunction::ONE_MINUS_CONSTANT_COLOR: return GL_ONE_MINUS_CONSTANT_COLOR;
+		case eMkBlendFunction::CONSTANT_ALPHA: return GL_CONSTANT_ALPHA;
+		case eMkBlendFunction::ONE_MINUS_CONSTANT_ALPHA: return GL_ONE_MINUS_CONSTANT_ALPHA;
+		case eMkBlendFunction::SRC_ALPHA_SATURATE: return GL_SRC_ALPHA_SATURATE;
 		}
 
 		return GL_ONE;
@@ -696,42 +702,42 @@ private:
 	GLenum m_sourceFactor, m_destFactor;
 };
 
-void glStateSetBlendFunc(GlState& glState, eGlBlendFunction source_factor, eGlBlendFunction dest_factor)
+void mkStateSetBlendFunc(IMkStatePtr mkState, eMkBlendFunction source_factor, eMkBlendFunction dest_factor)
 {
-	glState.addModifier(std::make_shared<GLStateSetBlendFuncImpl>(glState, source_factor, dest_factor));
+	mkState->addModifier(std::make_shared<GLStateSetBlendFuncImpl>(mkState, source_factor, dest_factor));
 }
 
 // -- GLStateSetDrawBufferModeFunc --
-static GLenum convertGlFrameBufferToGLenum(eGlFrameBuffer mode)
+static GLenum convertGlFrameBufferToGLenum(eMkFrameBuffer mode)
 {
 	switch (mode)
 	{
-		case eIMkFrameBuffer::FRONT: return GL_FRONT;
-		case eIMkFrameBuffer::BACK: return GL_BACK;
-		case eIMkFrameBuffer::LEFT: return GL_LEFT;
-		case eIMkFrameBuffer::RIGHT: return GL_RIGHT;
-		case eIMkFrameBuffer::FRONT_LEFT: return GL_FRONT_LEFT;
-		case eIMkFrameBuffer::FRONT_RIGHT: return GL_FRONT_RIGHT;
-		case eIMkFrameBuffer::BACK_LEFT: return GL_BACK_LEFT;
-		case eIMkFrameBuffer::BACK_RIGHT: return GL_BACK_RIGHT;
-		case eIMkFrameBuffer::FRONT_AND_BACK: return GL_FRONT_AND_BACK;
-		case eIMkFrameBuffer::NONE: return GL_NONE;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT0: return GL_COLOR_ATTACHMENT0;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT1: return GL_COLOR_ATTACHMENT1;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT2: return GL_COLOR_ATTACHMENT2;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT3: return GL_COLOR_ATTACHMENT3;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT4: return GL_COLOR_ATTACHMENT4;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT5: return GL_COLOR_ATTACHMENT5;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT6: return GL_COLOR_ATTACHMENT6;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT7: return GL_COLOR_ATTACHMENT7;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT8: return GL_COLOR_ATTACHMENT8;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT9: return GL_COLOR_ATTACHMENT9;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT10: return GL_COLOR_ATTACHMENT10;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT11: return GL_COLOR_ATTACHMENT11;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT12: return GL_COLOR_ATTACHMENT12;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT13: return GL_COLOR_ATTACHMENT13;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT14: return GL_COLOR_ATTACHMENT14;
-		case eIMkFrameBuffer::COLOR_ATTACHMENT15: return GL_COLOR_ATTACHMENT15;
+		case eMkFrameBuffer::FRONT: return GL_FRONT;
+		case eMkFrameBuffer::BACK: return GL_BACK;
+		case eMkFrameBuffer::LEFT: return GL_LEFT;
+		case eMkFrameBuffer::RIGHT: return GL_RIGHT;
+		case eMkFrameBuffer::FRONT_LEFT: return GL_FRONT_LEFT;
+		case eMkFrameBuffer::FRONT_RIGHT: return GL_FRONT_RIGHT;
+		case eMkFrameBuffer::BACK_LEFT: return GL_BACK_LEFT;
+		case eMkFrameBuffer::BACK_RIGHT: return GL_BACK_RIGHT;
+		case eMkFrameBuffer::FRONT_AND_BACK: return GL_FRONT_AND_BACK;
+		case eMkFrameBuffer::NONE: return GL_NONE;
+		case eMkFrameBuffer::COLOR_ATTACHMENT0: return GL_COLOR_ATTACHMENT0;
+		case eMkFrameBuffer::COLOR_ATTACHMENT1: return GL_COLOR_ATTACHMENT1;
+		case eMkFrameBuffer::COLOR_ATTACHMENT2: return GL_COLOR_ATTACHMENT2;
+		case eMkFrameBuffer::COLOR_ATTACHMENT3: return GL_COLOR_ATTACHMENT3;
+		case eMkFrameBuffer::COLOR_ATTACHMENT4: return GL_COLOR_ATTACHMENT4;
+		case eMkFrameBuffer::COLOR_ATTACHMENT5: return GL_COLOR_ATTACHMENT5;
+		case eMkFrameBuffer::COLOR_ATTACHMENT6: return GL_COLOR_ATTACHMENT6;
+		case eMkFrameBuffer::COLOR_ATTACHMENT7: return GL_COLOR_ATTACHMENT7;
+		case eMkFrameBuffer::COLOR_ATTACHMENT8: return GL_COLOR_ATTACHMENT8;
+		case eMkFrameBuffer::COLOR_ATTACHMENT9: return GL_COLOR_ATTACHMENT9;
+		case eMkFrameBuffer::COLOR_ATTACHMENT10: return GL_COLOR_ATTACHMENT10;
+		case eMkFrameBuffer::COLOR_ATTACHMENT11: return GL_COLOR_ATTACHMENT11;
+		case eMkFrameBuffer::COLOR_ATTACHMENT12: return GL_COLOR_ATTACHMENT12;
+		case eMkFrameBuffer::COLOR_ATTACHMENT13: return GL_COLOR_ATTACHMENT13;
+		case eMkFrameBuffer::COLOR_ATTACHMENT14: return GL_COLOR_ATTACHMENT14;
+		case eMkFrameBuffer::COLOR_ATTACHMENT15: return GL_COLOR_ATTACHMENT15;
 	}
 
 	return GL_ONE;
@@ -741,18 +747,18 @@ class GLStateSetDrawBufferModeImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetDrawBufferModeImpl() = delete;
-	GLStateSetDrawBufferModeImpl(GlState& glState, eGlFrameBuffer mode)
-		: GLStateModifierBase(glState)
+	GLStateSetDrawBufferModeImpl(IMkStatePtr mkState, eMkFrameBuffer mode)
+		: GLStateModifierBase(mkState)
 		, m_prevMode(convertGlFrameBufferToGLenum(mode))
 		, m_mode(m_prevMode)
 	{}
 
 	inline static const std::string k_modifierID = "SetDrawBufferMode";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetDrawBufferModeImpl>(parentModifier);
+		const auto parentTypedModifier =
+			std::static_pointer_cast<const GLStateSetDrawBufferModeImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevMode = parentTypedModifier->m_mode;
@@ -776,9 +782,9 @@ private:
 	GLenum m_mode;
 };
 
-void glStateSetDrawBuffer(GlState& glState, eGlFrameBuffer mode)
+void mkStateSetDrawBuffer(IMkStatePtr mkState, eMkFrameBuffer mode)
 {
-	glState.addModifier(std::make_shared<GLStateSetDrawBufferModeImpl>(glState, mode));
+	mkState->addModifier(std::make_shared<GLStateSetDrawBufferModeImpl>(mkState, mode));
 }
 
 // -- GLStateSetReadBufferMode --
@@ -786,18 +792,18 @@ class GLStateSetReadBufferModeImpl : public GLStateModifierBase
 {
 public:
 	GLStateSetReadBufferModeImpl() = delete;
-	GLStateSetReadBufferModeImpl(GlState& glState, eGlFrameBuffer mode)
-		: GLStateModifierBase(glState)
+	GLStateSetReadBufferModeImpl(IMkStatePtr mkState, eMkFrameBuffer mode)
+		: GLStateModifierBase(mkState)
 		, m_prevMode(convertGlFrameBufferToGLenum(mode))
 		, m_mode(m_prevMode)
 	{}
 
 	inline static const std::string k_modifierID = "SetReadBufferMode";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
-		auto parentTypedModifier =
-			std::static_pointer_cast<GLStateSetReadBufferModeImpl>(parentModifier);
+		const auto parentTypedModifier =
+			std::static_pointer_cast<const GLStateSetReadBufferModeImpl>(parentModifier);
 		if (parentTypedModifier)
 		{
 			m_prevMode = parentTypedModifier->m_mode;
@@ -821,9 +827,9 @@ private:
 	GLenum m_mode;
 };
 
-void glStateSetReadBuffer(GlState& glState, eGlFrameBuffer mode)
+void mkStateSetReadBuffer(IMkStatePtr mkState, eMkFrameBuffer mode)
 {
-	glState.addModifier(std::make_shared<GLStateSetReadBufferModeImpl>(glState, mode));
+	mkState->addModifier(std::make_shared<GLStateSetReadBufferModeImpl>(mkState, mode));
 }
 
 // -- GLStateClearBuffer --
@@ -831,31 +837,31 @@ class GLStateClearBufferImpl : public GLStateModifierBase
 {
 public:
 	GLStateClearBufferImpl() = delete;
-	GLStateClearBufferImpl(GlState& glState, const eGlClearFlags flags)
-		: GLStateModifierBase(glState)
+	GLStateClearBufferImpl(IMkStatePtr mkState, const eMkClearFlags flags)
+		: GLStateModifierBase(mkState)
 		, m_flags(flags)
 	{
 	}
 
 	inline static const std::string k_modifierID = "ClearBuffer";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
-	virtual void apply(std::shared_ptr<IMkStateModifier> parentModifier) override
+	virtual void apply(IMkStateModifierConstPtr parentModifier) override
 	{
 		GLbitfield bitfield = 0;
 
-		if (has_any_bits_set(m_flags & eGlClearFlags::color))
+		if (has_any_bits_set(m_flags & eMkClearFlags::color))
 		{
 			bitfield |= GL_COLOR_BUFFER_BIT;
 			getStateLog() << "Clear Color Buffer";
 		}
 
-		if (has_any_bits_set(m_flags & eGlClearFlags::depth))
+		if (has_any_bits_set(m_flags & eMkClearFlags::depth))
 		{
 			bitfield |= GL_DEPTH_BUFFER_BIT;
 			getStateLog() << "Clear Depth Buffer";
 		}
 
-		if (has_any_bits_set(m_flags & eGlClearFlags::stencil))
+		if (has_any_bits_set(m_flags & eMkClearFlags::stencil))
 		{
 			bitfield |= GL_STENCIL_BUFFER_BIT;
 			getStateLog() << "Clear Stencil Buffer";
@@ -868,10 +874,10 @@ public:
 	}
 
 private:
-	eGlClearFlags m_flags;
+	eMkClearFlags m_flags;
 };
 
-void glStateClearBuffer(GlState& glState, eGlClearFlags flags)
+void mkStateClearBuffer(IMkStatePtr mkState, eMkClearFlags flags)
 {
-	glState.addModifier(std::make_shared<GLStateClearBufferImpl>(glState, flags));
+	mkState->addModifier(std::make_shared<GLStateClearBufferImpl>(mkState, flags));
 }

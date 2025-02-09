@@ -7,7 +7,7 @@
 #include "MkScopedObjectBinding.h"
 #include "MikanModelResourceManager.h"
 #include "MkMaterialInstance.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanShaderCache.h"
 #include "MikanTextureCache.h"
@@ -162,13 +162,13 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 		// Create a scoped binding for the video export framebuffer
 		MkScopedObjectBinding compositorFramebufferBinding(
-			*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
+			*evaluator.getCurrentWindow()->getMkStateStack().getCurrentState(),
 			"Compositor Framebuffer Scope",
 			m_compositingFrameBuffer);
 		if (compositorFramebufferBinding)
 		{
 			// Turn off depth testing for compositing
-			compositorFramebufferBinding.getGlState().disableFlag(eGlStateFlagType::depthTest);
+			compositorFramebufferBinding.getGlState().disableFlag(eMkStateFlagType::depthTest);
 
 			// Evaluate the composite frame nodes
 			evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
@@ -192,9 +192,9 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 	return !evaluator.hasErrors();
 }
 
-GlTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
+IMkTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
 {
-	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getColorTexture() : GlTextureConstPtr();
+	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getColorTexture() : IMkTextureConstPtr();
 }
 
 void CompositorNodeGraph::setExternalCompositedFrameTexture(IMkTexturePtr externalTexture)

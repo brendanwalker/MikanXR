@@ -290,7 +290,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 	// For now, we are assuming that models are only rendered in the Main Window.
 	MainWindow* mainWindow= MainWindow::getInstance();
 	MikanModelResourceManager* modelResourceManager= mainWindow->getModelResourceManager();
-	GlMaterialConstPtr stencilMaterial= 
+	MkMaterialConstPtr stencilMaterial= 
 		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 	MikanRenderModelResourcePtr modelResourcePtr= 
 		modelResourceManager->fetchRenderModel(

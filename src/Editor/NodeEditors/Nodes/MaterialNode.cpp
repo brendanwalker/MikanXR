@@ -93,9 +93,9 @@ void MaterialNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
-GlMaterialConstPtr MaterialNode::getMaterialResource() const
+MkMaterialConstPtr MaterialNode::getMaterialResource() const
 {
-	return m_sourceProperty ? m_sourceProperty->getMaterialResource() : GlMaterialConstPtr();
+	return m_sourceProperty ? m_sourceProperty->getMaterialResource() : MkMaterialConstPtr();
 }
 
 void MaterialNode::setMaterialSource(GraphMaterialPropertyPtr inMaterialProperty) 

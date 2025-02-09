@@ -128,7 +128,7 @@ SteamVRManager::~SteamVRManager()
 {
 }
 
-bool SteamVRManager::startup(class IGlWindow* ownerWindow)
+bool SteamVRManager::startup(class IMkWindow* ownerWindow)
 {
 	EASY_FUNCTION();
 

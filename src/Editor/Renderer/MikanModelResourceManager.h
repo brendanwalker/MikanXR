@@ -21,7 +21,7 @@ public:
 
 	MikanRenderModelResourcePtr fetchRenderModel(
 		const std::filesystem::path& modelFilePath,
-		GlMaterialConstPtr overrideMaterial= GlMaterialConstPtr());
+		MkMaterialConstPtr overrideMaterial= MkMaterialConstPtr());
 	bool flushModelByFilePathFromCache(const std::filesystem::path& modelFilePath);
 
 	bool exportModelToFile(

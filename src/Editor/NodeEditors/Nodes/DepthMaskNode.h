@@ -40,9 +40,9 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateQuadDepthMasks(GlState& glState);
-	void evaluateBoxDepthMasks(GlState& glState);
-	void evaluateModelDepthMasks(GlState& glState);
+	void evaluateQuadDepthMasks(IMkStatePtr glState);
+	void evaluateBoxDepthMasks(IMkStatePtr glState);
+	void evaluateModelDepthMasks(IMkStatePtr glState);
 
 	virtual std::string editorGetTitle() const override { return "Depth Mask"; }
 

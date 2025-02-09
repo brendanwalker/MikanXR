@@ -5,7 +5,7 @@
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanShaderCache.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "IMkTexture.h"
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
@@ -188,7 +188,7 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 				m_clientTextureType == eClientColorTextureType::colorRGBA
 				? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
 				: INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
-			GlMaterialConstPtr colorMaterial =
+			MkMaterialConstPtr colorMaterial =
 				ownerWindow->getShaderCache()->getMaterialByName(colorMaterialName);
 			if (colorMaterial != nullptr)
 			{
@@ -206,24 +206,24 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 	if (m_bVerticalFlip && m_colorMaterialInstance)
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			*ownerWindow->getGlStateStack().getCurrentState(),
+			*ownerWindow->getMkStateStack().getCurrentState(),
 			"Color Texture Framebuffer Scope",
 			m_colorFrameBuffer);
 		if (colorFramebufferBinding)
 		{
-			GlState& glState = colorFramebufferBinding.getGlState();
+			IMkStatePtr glState = colorFramebufferBinding.getGlState();
 
 			evaluateFlippedColorTexture(glState, clientTexture);
 		}
 	}
 }
 
-void ClientColorTextureNode::evaluateFlippedColorTexture(GlState& glState, IMkTexturePtr colorTexture)
+void ClientColorTextureNode::evaluateFlippedColorTexture(IMkStatePtr glState, IMkTexturePtr colorTexture)
 {
 	assert(colorTexture);
 	assert(m_colorMaterialInstance);
 
-	GlMaterialConstPtr material = m_colorMaterialInstance->getMaterial();
+	MkMaterialConstPtr material = m_colorMaterialInstance->getMaterial();
 	if (auto materialBinding = material->bindMaterial())
 	{
 		// Bind the color texture
