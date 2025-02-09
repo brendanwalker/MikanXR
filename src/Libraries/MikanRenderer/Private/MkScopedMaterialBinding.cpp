@@ -1,10 +1,51 @@
 #include "MkScopedMaterialBinding.h"
 #include "MkMaterial.h"
 
+struct MkScopedMaterialBindingImpl
+{
+	MkMaterialConstPtr boundMaterial;
+	UniformNameSet unboundUniformNames;
+	bool bMaterialFailure;
+};
+
+MkScopedMaterialBinding::MkScopedMaterialBinding()
+	: m_impl(new MkScopedMaterialBindingImpl())
+{
+	m_impl->boundMaterial= MkMaterialConstPtr();
+	m_impl->unboundUniformNames= UniformNameSet();
+	m_impl->bMaterialFailure= true;
+}
+
+MkScopedMaterialBinding::MkScopedMaterialBinding(
+	MkMaterialConstPtr material,
+	UniformNameSet unboundUniformNames,
+	bool bMaterialFailure)
+	: m_impl(new MkScopedMaterialBindingImpl())
+{
+	m_impl->boundMaterial= material;
+	m_impl->unboundUniformNames= unboundUniformNames;
+	m_impl->bMaterialFailure= bMaterialFailure;
+}
+
 MkScopedMaterialBinding::~MkScopedMaterialBinding()
 {
-	if (m_boundMaterial != nullptr)
+	if (m_impl->boundMaterial != nullptr)
 	{
-		m_boundMaterial->unbindMaterial();
+		m_impl->boundMaterial->unbindMaterial();
 	}
+}
+
+MkMaterialConstPtr MkScopedMaterialBinding::getBoundMaterial() const
+{ 
+	return m_impl->boundMaterial; 
+}
+
+const UniformNameSet& MkScopedMaterialBinding::getUnboundUniforms() const 
+{ 
+	return m_impl->unboundUniformNames; 
+}
+
+MkScopedMaterialBinding::operator bool() const 
+{ 
+	return !m_impl->bMaterialFailure; 
 }

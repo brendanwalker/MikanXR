@@ -11,23 +11,17 @@ using UniformNameSet = std::set<std::string>;
 class MIKAN_RENDERER_CLASS MkScopedMaterialBinding
 {
 public:
-	MkScopedMaterialBinding() = default;
+	MkScopedMaterialBinding();
 	MkScopedMaterialBinding(
 		MkMaterialConstPtr material,
 		UniformNameSet unboundUniformNames,
-		bool bMaterialFailure)
-		: m_boundMaterial(material) 
-		, m_unboundUniformNames(unboundUniformNames)
-		, m_bMaterialFailure(bMaterialFailure)
-	{}
+		bool bMaterialFailure);
 	virtual ~MkScopedMaterialBinding();
 
-	inline MkMaterialConstPtr getBoundMaterial() const { return m_boundMaterial; }
-	inline const UniformNameSet& getUnboundUniforms() const { return m_unboundUniformNames; }
-	inline operator bool() const { return !m_bMaterialFailure; }
+	MkMaterialConstPtr getBoundMaterial() const;
+	const UniformNameSet& getUnboundUniforms() const;
+	operator bool() const;
 
 private:
-	MkMaterialConstPtr m_boundMaterial;
-	UniformNameSet m_unboundUniformNames;
-	bool m_bMaterialFailure;
+	struct MkScopedMaterialBindingImpl* m_impl;
 };

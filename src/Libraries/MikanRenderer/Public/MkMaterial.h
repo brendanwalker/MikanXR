@@ -32,20 +32,20 @@ std::function<eUniformBindResult(
 class MkMaterial : public std::enable_shared_from_this<MkMaterial>
 {
 public:
-	MkMaterial() = default;
+	MkMaterial();
 	MkMaterial(const std::string& name, IMkShaderPtr program);
 
-	const std::string& getName() const { return m_name; }
+	const std::string& getName() const;
 
 	void setProgram(IMkShaderPtr program);
 	IMkShaderPtr getProgram() const;
 
-	inline const NamedValueTable<float>& getFloatSources() const { return m_floatSources; }
-	inline const NamedValueTable<glm::vec2>& getFloat2Sources() const { return m_float2Sources; }
-	inline const NamedValueTable<glm::vec3>& getFloat3Sources() const { return m_float3Sources; }
-	inline const NamedValueTable<glm::vec4>& getFloat4Sources() const { return m_float4Sources; }
-	inline const NamedValueTable<glm::mat4>& getMat4Sources() const { return m_mat4Sources; }
-	inline const NamedValueTable<IMkTexturePtr>& getTextureSources() const { return m_textureSources; }
+	const NamedValueTable<float>& getFloatSources() const;
+	const NamedValueTable<glm::vec2>& getFloat2Sources() const;
+	const NamedValueTable<glm::vec3>& getFloat3Sources() const;
+	const NamedValueTable<glm::vec4>& getFloat4Sources() const;
+	const NamedValueTable<glm::mat4>& getMat4Sources() const;
+	const NamedValueTable<IMkTexturePtr>& getTextureSources() const;
 
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
@@ -84,14 +84,5 @@ protected:
 	void unbindMaterial() const;
 
 private:
-	std::string m_name;
-	IMkShaderPtr m_program = nullptr;
-
-	// Program Parameters
-	NamedValueTable<float> m_floatSources;
-	NamedValueTable<glm::vec2> m_float2Sources;
-	NamedValueTable<glm::vec3> m_float3Sources;
-	NamedValueTable<glm::vec4> m_float4Sources;
-	NamedValueTable<glm::mat4> m_mat4Sources;
-	NamedValueTable<IMkTexturePtr> m_textureSources;
+	struct MkMaterialImpl* m_impl;
 };
