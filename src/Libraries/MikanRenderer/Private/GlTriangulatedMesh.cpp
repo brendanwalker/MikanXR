@@ -9,14 +9,14 @@
 #include "IMkWindow.h"
 #include "Logger.h"
 
-class IMkTriangulatedMesh : public IMkTriangulatedMesh
+class GlTriangulatedMesh : public IMkTriangulatedMesh
 {
 public:
-	IMkTriangulatedMesh(class IMkWindow* ownerWindow)
+	GlTriangulatedMesh(class IMkWindow* ownerWindow)
 		: m_ownerWindow(ownerWindow)
 	{}
 
-	IMkTriangulatedMesh(
+	GlTriangulatedMesh(
 		class IMkWindow* ownerWindow,
 		std::string name,
 		const uint8_t* vertexData,
@@ -37,7 +37,7 @@ public:
 		, m_bOwnsVertexData(bOwnsVertexData)
 	{}
 
-	virtual ~IMkTriangulatedMesh()
+	virtual ~GlTriangulatedMesh()
 	{
 		deleteResources();
 
@@ -54,7 +54,7 @@ public:
 	virtual bool setMaterial(MkMaterialConstPtr material) override
 	{
 		if (material &&
-			material->getProgram()->getVertexDefinition().getVertexSize() == m_vertexSize)
+			material->getProgram()->getVertexDefinition()->getVertexSize() == m_vertexSize)
 		{
 			m_materialInstance = std::make_shared<MkMaterialInstance>(material);
 			return true;
@@ -66,7 +66,7 @@ public:
 	virtual bool setMaterialInstance(MkMaterialInstancePtr materialInstance) override
 	{
 		if (materialInstance &&
-			materialInstance->getMaterial()->getProgram()->getVertexDefinition().getVertexSize() == m_vertexSize)
+			materialInstance->getMaterial()->getProgram()->getVertexDefinition()->getVertexSize() == m_vertexSize)
 		{
 			m_materialInstance = materialInstance;
 			return true;
@@ -114,8 +114,8 @@ public:
 		}
 
 		MkMaterialConstPtr material = m_materialInstance->getMaterial();
-		const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
-		const size_t vertexSize = vertexDefinition.getVertexSize();
+		IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
+		const size_t vertexSize = vertexDefinition->getVertexSize();
 		if (vertexSize != m_vertexSize)
 		{
 			return false;
@@ -135,7 +135,7 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, vertexSize * m_vertexCount, m_vertexData, GL_STATIC_DRAW);
 
 		// Identify the components in the vertex buffer
-		vertexDefinition.applyVertexDefintion();
+		vertexDefinition->applyVertexDefintion();
 
 		// Create and populate the index buffer
 		glGenBuffers(1, &m_glIndexBuffer);
@@ -200,7 +200,7 @@ protected:
 
 IMkTriangulatedMeshPtr createMkTriangulatedMesh(class IMkWindow* ownerWindow)
 {
-	return std::make_shared<IMkTriangulatedMesh>(ownerWindow);
+	return std::make_shared<GlTriangulatedMesh>(ownerWindow);
 }
 
 IMkTriangulatedMeshPtr createMkTriangulatedMesh(
@@ -214,7 +214,7 @@ IMkTriangulatedMeshPtr createMkTriangulatedMesh(
 	uint32_t triangleCount,
 	bool bOwnsVertexData)
 {
-	return std::make_shared<IMkTriangulatedMesh>(
+	return std::make_shared<GlTriangulatedMesh>(
 		ownerWindow,
 		name,
 		vertexData,

@@ -2,7 +2,7 @@
 #include "IMkCamera.h"
 #include "IMkWindow.h"
 #include "IMkShader.h"
-#include "MikanShaderCache.h"
+#include "IMkShaderCache.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMKWireframeMesh.h"
@@ -100,8 +100,8 @@ public:
 			return false;
 		}
 
-		const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
-		const size_t vertexSize = vertexDefinition.getVertexSize();
+		IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
+		const size_t vertexSize = vertexDefinition->getVertexSize();
 		if (vertexSize != m_vertexSize)
 		{
 			return false;
@@ -125,7 +125,7 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, vertexSize * m_vertexCount, m_vertexData, GL_STATIC_DRAW);
 
 		// Identify the components in the vertex buffer
-		vertexDefinition.applyVertexDefintion();
+		vertexDefinition->applyVertexDefintion();
 
 		// Create and populate the index buffer
 		glGenBuffers(1, &m_glIndexBuffer);
