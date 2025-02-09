@@ -16,7 +16,7 @@
 // -- methods -----
 MikanClient::MikanClient()
 	: m_clientUniqueID(RandomUtils::RandomHexString(16))
-	, m_renderTargetWriter(new SharedTextureWriteAccessor(m_clientUniqueID))
+	, m_renderTargetWriter(createSharedTextureWriteAccessor(m_clientUniqueID))
 	, m_messageClient(new WebsocketInterprocessMessageClient(MikanConstants_ClientAPIVersion))
 {
 	for (int i = 0; i < MikanClientGraphicsApi_COUNT; i++)
@@ -35,7 +35,6 @@ MikanClient::MikanClient()
 MikanClient::~MikanClient()
 {
 	freeRenderTargetTextures();
-	delete m_renderTargetWriter;
 	delete m_messageClient;
 }
 
@@ -183,21 +182,83 @@ MikanCoreResult MikanClient::shutdown()
 }
 
 MikanCoreResult MikanClient::allocateRenderTargetTextures(
-	const MikanRenderTargetDescriptor& desiredDescriptor)
+	const MikanRenderTargetDescriptor& mkDesiredDescriptor)
 {
 	MikanCoreResult resultCode;
 
 	// Fetch the cached graphics API interface, if any
 	void* apiInterface = nullptr;
-	if (desiredDescriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
+	if (mkDesiredDescriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
 	{
-		Mikan_GetGraphicsDeviceInterface(this, desiredDescriptor.graphicsAPI, &apiInterface);
+		Mikan_GetGraphicsDeviceInterface(this, mkDesiredDescriptor.graphicsAPI, &apiInterface);
 	}
+
+	SharedTextureDescriptor descriptor;
+
+	switch (mkDesiredDescriptor.color_buffer_type)
+	{
+		case MikanColorBuffer_NOCOLOR:
+			descriptor.color_buffer_type = SharedColorBufferType::NOCOLOR;
+			break;
+		case MikanColorBuffer_RGB24:
+			descriptor.color_buffer_type = SharedColorBufferType::RGB24;
+			break;
+		case MikanColorBuffer_RGBA32:
+			descriptor.color_buffer_type = SharedColorBufferType::RGBA32;
+			break;
+		case MikanColorBuffer_BGRA32:
+			descriptor.color_buffer_type = SharedColorBufferType::BGRA32;
+			break;
+	}
+
+	switch (mkDesiredDescriptor.depth_buffer_type)
+	{
+		case MikanDepthBuffer_NODEPTH:
+			descriptor.depth_buffer_type = SharedDepthBufferType::NODEPTH;
+			break;
+		case MikanDepthBuffer_FLOAT_DEVICE_DEPTH:
+			descriptor.depth_buffer_type = SharedDepthBufferType::FLOAT_DEVICE_DEPTH;
+			break;
+		case MikanDepthBuffer_FLOAT_SCENE_DEPTH:
+			descriptor.depth_buffer_type = SharedDepthBufferType::FLOAT_SCENE_DEPTH;
+			break;
+		case MikanDepthBuffer_PACK_DEPTH_RGBA:
+			descriptor.depth_buffer_type = SharedDepthBufferType::PACK_DEPTH_RGBA;
+			break;
+	}
+
+	switch (mkDesiredDescriptor.graphicsAPI)
+	{
+		case MikanClientGraphicsApi_Direct3D9:
+			descriptor.graphicsAPI = SharedClientGraphicsApi::Direct3D9;
+			break;
+		case MikanClientGraphicsApi_Direct3D11:
+			descriptor.graphicsAPI = SharedClientGraphicsApi::Direct3D11;
+			break;
+		case MikanClientGraphicsApi_Direct3D12:
+			descriptor.graphicsAPI = SharedClientGraphicsApi::Direct3D12;
+			break;
+		case MikanClientGraphicsApi_OpenGL:
+			descriptor.graphicsAPI = SharedClientGraphicsApi::OpenGL;
+			break;
+		case MikanClientGraphicsApi_Metal:
+			descriptor.graphicsAPI = SharedClientGraphicsApi::Metal;
+			break;
+		case MikanClientGraphicsApi_Vulkan:
+			descriptor.graphicsAPI = SharedClientGraphicsApi::Vulkan;
+			break;
+		default:
+			descriptor.graphicsAPI = SharedClientGraphicsApi::UNKNOWN;
+			break;
+	}
+
+	descriptor.width = mkDesiredDescriptor.width;
+	descriptor.height = mkDesiredDescriptor.height;
 
 	// Create the shared texture
 	bool bSuccess = false;
 	const bool bEnableFrameCounter = false; // use frameRendered RPC to send frame index
-	if (m_renderTargetWriter->initialize(&desiredDescriptor, bEnableFrameCounter, apiInterface))
+	if (m_renderTargetWriter->initialize(&descriptor, bEnableFrameCounter, apiInterface))
 	{
 		resultCode = MikanCoreResult_Success;
 	}
@@ -211,10 +272,68 @@ MikanCoreResult MikanClient::allocateRenderTargetTextures(
 
 MikanCoreResult MikanClient::getRenderTargetDescriptor(MikanRenderTargetDescriptor& outDescriptor)
 {
-	const MikanRenderTargetDescriptor* desc= m_renderTargetWriter->getRenderTargetDescriptor();
+	const SharedTextureDescriptor* desc= m_renderTargetWriter->getRenderTargetDescriptor();
 	if (desc != nullptr)
 	{
-		outDescriptor= *desc;
+		switch (desc->color_buffer_type)
+		{
+			case SharedColorBufferType::NOCOLOR:
+				outDescriptor.color_buffer_type= MikanColorBuffer_NOCOLOR;
+				break;
+			case SharedColorBufferType::RGB24:
+				outDescriptor.color_buffer_type= MikanColorBuffer_RGB24;
+				break;
+			case SharedColorBufferType::RGBA32:
+				outDescriptor.color_buffer_type= MikanColorBuffer_RGBA32;
+				break;
+			case SharedColorBufferType::BGRA32:
+				outDescriptor.color_buffer_type= MikanColorBuffer_BGRA32;
+				break;
+		}
+
+		switch (desc->depth_buffer_type)
+		{
+			case SharedDepthBufferType::NODEPTH:
+				outDescriptor.depth_buffer_type= MikanDepthBuffer_NODEPTH;
+				break;
+			case SharedDepthBufferType::FLOAT_DEVICE_DEPTH:
+				outDescriptor.depth_buffer_type= MikanDepthBuffer_FLOAT_DEVICE_DEPTH;
+				break;
+			case SharedDepthBufferType::FLOAT_SCENE_DEPTH:
+				outDescriptor.depth_buffer_type= MikanDepthBuffer_FLOAT_SCENE_DEPTH;
+				break;
+			case SharedDepthBufferType::PACK_DEPTH_RGBA:
+				outDescriptor.depth_buffer_type= MikanDepthBuffer_PACK_DEPTH_RGBA;
+				break;
+		}
+
+		switch (desc->graphicsAPI)
+		{
+			case SharedClientGraphicsApi::Direct3D9:
+				outDescriptor.graphicsAPI= MikanClientGraphicsApi_Direct3D9;
+				break;
+			case SharedClientGraphicsApi::Direct3D11:
+				outDescriptor.graphicsAPI= MikanClientGraphicsApi_Direct3D11;
+				break;
+			case SharedClientGraphicsApi::Direct3D12:
+				outDescriptor.graphicsAPI= MikanClientGraphicsApi_Direct3D12;
+				break;
+			case SharedClientGraphicsApi::OpenGL:
+				outDescriptor.graphicsAPI= MikanClientGraphicsApi_OpenGL;
+				break;
+			case SharedClientGraphicsApi::Metal:
+				outDescriptor.graphicsAPI= MikanClientGraphicsApi_Metal;
+				break;
+			case SharedClientGraphicsApi::Vulkan:
+				outDescriptor.graphicsAPI= MikanClientGraphicsApi_Vulkan;
+				break;
+			default:
+				outDescriptor.graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
+				break;
+		}
+
+		outDescriptor.width = desc->width;
+		outDescriptor.height = desc->height;
 
 		return MikanCoreResult_Success;
 	}
@@ -242,9 +361,9 @@ MikanCoreResult MikanClient::writeColorRenderTargetTexture(void* apiColorTexture
 
 MikanCoreResult MikanClient::writeDepthRenderTargetTexture(void* apiDepthTexturePtr, float zNear, float zFar)
 {
-	MikanDepthBufferType depthBufferType = m_renderTargetWriter->getRenderTargetDescriptor()->depth_buffer_type;
+	SharedDepthBufferType depthBufferType = m_renderTargetWriter->getRenderTargetDescriptor()->depth_buffer_type;
 
-	if (depthBufferType != MikanDepthBuffer_NODEPTH)
+	if (depthBufferType != SharedDepthBufferType::NODEPTH)
 	{
 		if (m_renderTargetWriter->writeDepthFrameTexture(apiDepthTexturePtr, zNear, zFar))
 		{

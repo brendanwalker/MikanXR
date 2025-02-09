@@ -1,6 +1,7 @@
 #pragma once
 
 //-- includes -----
+#include "SharedTextureFwd.h"
 #include "MikanCoreTypes.h"
 
 #include <map>
@@ -53,7 +54,7 @@ private:
 	void* m_binaryResponseCallbackUserData= nullptr;
 
 	std::string m_clientUniqueID;
-	class SharedTextureWriteAccessor* m_renderTargetWriter;
+	ISharedTextureWriteAccessorPtr m_renderTargetWriter;
 	class IInterprocessMessageClient* m_messageClient;
 	bool m_bIsConnected;
 };
