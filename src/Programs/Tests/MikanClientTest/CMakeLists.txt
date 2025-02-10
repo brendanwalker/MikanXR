@@ -38,6 +38,7 @@ SET_TARGET_PROPERTIES(Mikan_Test PROPERTIES FOLDER Test)
 
 # Runtime dependencies
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
+set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
