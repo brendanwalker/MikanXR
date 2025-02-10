@@ -106,12 +106,12 @@ IMkTextRenderer* MainWindow::getTextRenderer()
 
 IMkShaderCache* MainWindow::getShaderCache()
 {
-	return m_shaderCache->getMkShaderCache().get();
+	return m_shaderCache.get();
 }
 
 IMkTextureCache* MainWindow::getTextureCache()
 {
-	return m_textureCache->getMkTextureCache().get();
+	return m_textureCache.get();
 }
 
 MikanModelResourceManager* MainWindow::getModelResourceManager()

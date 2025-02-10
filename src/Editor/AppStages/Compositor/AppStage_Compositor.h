@@ -8,6 +8,7 @@
 #include "RmlFwd.h"
 #include "SceneFwd.h"
 #include "ScriptingFwd.h"
+#include "SharedTextureFwd.h"
 
 #include <filesystem>
 #include <memory>

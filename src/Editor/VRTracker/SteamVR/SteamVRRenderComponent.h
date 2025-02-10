@@ -31,7 +31,7 @@ public:
 	void updateComponent();
 	void disposeComponent();
 
-	void bindToScene(GlScenePtr scene);
+	void bindToScene(IMkScenePtr scene);
 	void removeFromBoundScene();
 
 	inline class SteamVRDevice* getOwnerDevice() const { return m_ownerDevice; }

@@ -17,6 +17,8 @@
 #include "GlScene.h"
 #include "MkStateStack.h"
 #include "MikanTextRenderer.h"
+#include "IMkLineRenderer.h"
+#include "IMkTextRenderer.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanViewport.h"
 #include "IMkWireframeMesh.h"
@@ -82,12 +84,12 @@ void AppStage_StencilAlignment::enter()
 	m_cameraTrackingPuckPoseView = cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
 	// Listen for mouse ray events
-	GlViewportPtr viewport= getFirstViewport();
+	MikanViewportPtr viewport= getFirstViewport();
 	viewport->OnMouseRayChanged+= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayChanged);
 	viewport->OnMouseRayButtonUp+= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayButtonUp);
 
 	// Create a new camera to view the scene
-	m_camera = viewport->getCurrentCamera();
+	m_camera = viewport->getCurrentMikanCamera();
 	m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Center the orbit camera on the stencil model
@@ -164,7 +166,7 @@ void AppStage_StencilAlignment::exit()
 	setMenuState(eStencilAlignmentMenuState::inactive);
 
 	// Stop listening to mouse ray events
-	GlViewportPtr viewport = getFirstViewport();
+	MikanViewportPtr viewport = getFirstViewport();
 	viewport->OnMouseRayChanged -= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayChanged);
 	viewport->OnMouseRayButtonUp -= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayButtonUp);
 
@@ -289,7 +291,7 @@ void AppStage_StencilAlignment::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			*m_ownerWindow->getMkStateStack().getCurrentState(),
+			m_ownerWindow->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 
@@ -465,7 +467,7 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 			case eStencilAlignmentMenuState::captureYAxisPixel:
 			case eStencilAlignmentMenuState::captureZAxisPixel:
 				{
-					GlViewportPtr viewport= getFirstViewport();
+					MikanViewportPtr viewport= getFirstViewport();
 
 					// Get the cursor position in the window viewport
 					glm::vec2 viewportPixel;

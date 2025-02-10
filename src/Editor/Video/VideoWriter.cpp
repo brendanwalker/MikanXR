@@ -249,7 +249,7 @@ bool VideoWriter::addVideoStream()
 	return true;
 }
 
-bool VideoWriter::write(GlTexture* bgrTexture)
+bool VideoWriter::write(IMkTexturePtr bgrTexture)
 {
 	EASY_FUNCTION();
 

@@ -40,7 +40,7 @@ protected:
 
 	VRDeviceList m_vrTrackers;
 	GlScenePtr m_scene;
-	GlCameraPtr m_camera;
+	MikanCameraPtr m_camera;
 
 	ProfileConfigPtr m_profile;
 	AnchorObjectSystemConfigPtr m_anchorSystemConfig;

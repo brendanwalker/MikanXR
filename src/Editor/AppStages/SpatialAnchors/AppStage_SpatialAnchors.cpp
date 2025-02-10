@@ -60,7 +60,7 @@ void AppStage_SpatialAnchors::enter()
 	}
 
 	// Setup orbit camera
-	m_camera = getFirstViewport()->getCurrentCamera();
+	m_camera = getFirstViewport()->getCurrentMikanCamera();
 	m_camera->setOrbitPitch(20.0f);
 	m_camera->setOrbitYaw(45.0f);
 	m_camera->setOrbitRadius(3.5f);

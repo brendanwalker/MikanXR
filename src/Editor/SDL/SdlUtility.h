@@ -1,6 +1,11 @@
 #pragma once
 
+#include <memory>
+
+class IMkTexture;
+typedef std::shared_ptr<IMkTexture> IMkTexturePtr;
+
 namespace SdlUtility
 {
-	bool saveTextureToPNG(class GlTexture* texture, const char* filename);
+	bool saveTextureToPNG(IMkTexturePtr texture, const char* filename);
 };

@@ -5,6 +5,7 @@
 #include "MkScopedMaterialBinding.h"
 #include "NamedValueTable.h"
 #include "MkRendererFwd.h"
+#include "MkRendererExport.h"
 
 #include <string>
 #include <map>
@@ -21,7 +22,7 @@ class MkScopedMaterialInstanceBinding
 public:
 	MkScopedMaterialInstanceBinding() : m_boundMaterialInstance(nullptr) {}
 	MkScopedMaterialInstanceBinding(
-		MkMaterialInstanceConstPtr materialInstance,
+		const MkMaterialInstance* materialInstance,
 		UniformNameSet unboundUniformNames,
 		bool bMaterialInstanceFailure) 
 		: m_boundMaterialInstance(materialInstance) 
@@ -30,17 +31,17 @@ public:
 	{}
 	virtual ~MkScopedMaterialInstanceBinding();
 
-	inline MkMaterialInstanceConstPtr getBoundMaterialInstance() const { return m_boundMaterialInstance; }
+	inline const MkMaterialInstance* getBoundMaterialInstance() const { return m_boundMaterialInstance; }
 	inline const UniformNameSet& getUnboundUniforms() const { return m_unboundUniformNames; }
 	inline operator bool() const { return !m_bMaterialInstanceFailure; }
 
 private:
-	MkMaterialInstanceConstPtr m_boundMaterialInstance = nullptr;
+	const MkMaterialInstance* m_boundMaterialInstance = nullptr;
 	UniformNameSet m_unboundUniformNames;
 	bool m_bMaterialInstanceFailure= false;
 };
 
-class MkMaterialInstance : public std::enable_shared_from_this<MkMaterialInstance>
+class MIKAN_RENDERER_CLASS MkMaterialInstance 
 {
 public:
 	MkMaterialInstance();

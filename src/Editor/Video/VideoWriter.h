@@ -7,6 +7,9 @@
 
 #include "WorkerThread.h"
 
+class IMkTexture;
+typedef std::shared_ptr<IMkTexture> IMkTexturePtr;
+
 // Adapted from https://github.com/dataplayer12/video-writer
 class VideoWriter : public WorkerThread
 {
@@ -18,7 +21,7 @@ public:
 	bool getIsOpened() const { return m_bIsOpened; }
 	void close();
 
-	bool write(class GlTexture* bgrTexture);
+	bool write(IMkTexturePtr bgrTexture);
 
 protected:
 	virtual bool doWork() override;

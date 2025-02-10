@@ -7,7 +7,7 @@
 #include "IMkShader.h"
 #include "MkScopedObjectBinding.h"
 #include "MikanShaderCache.h"
-#include "GlStateStack.h"
+#include "MkStateStack.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
 #include "MkMaterialInstance.h"
@@ -221,12 +221,12 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 	{
 		// Bind the depth frame buffer
 		MkScopedObjectBinding depthFramebufferBinding(
-			*evaluator.getCurrentWindow()->getGlStateStack().getCurrentState(),
+			evaluator.getCurrentWindow()->getMkStateStack().getCurrentState(),
 			"Depth Mask Framebuffer Scope",
 			m_linearDepthFrameBuffer);
 		if (depthFramebufferBinding)
 		{
-			IMkStatePtr glState= depthFramebufferBinding.getGlState();
+			IMkStatePtr glState= depthFramebufferBinding.getMkState();
 
 			// Apply any Stencils assigned to the node
 			if (bAnyQuadStencils)

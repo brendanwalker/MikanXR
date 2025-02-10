@@ -192,7 +192,7 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 				ownerWindow->getShaderCache()->getMaterialByName(colorMaterialName);
 			if (colorMaterial != nullptr)
 			{
-				m_colorMaterialInstance = std::make_shared<GlMaterialInstance>(colorMaterial);
+				m_colorMaterialInstance = std::make_shared<MkMaterialInstance>(colorMaterial);
 			}
 			else
 			{
@@ -206,12 +206,12 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 	if (m_bVerticalFlip && m_colorMaterialInstance)
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			*ownerWindow->getMkStateStack().getCurrentState(),
+			ownerWindow->getMkStateStack().getCurrentState(),
 			"Color Texture Framebuffer Scope",
 			m_colorFrameBuffer);
 		if (colorFramebufferBinding)
 		{
-			IMkStatePtr glState = colorFramebufferBinding.getGlState();
+			IMkStatePtr glState = colorFramebufferBinding.getMkState();
 
 			evaluateFlippedColorTexture(glState, clientTexture);
 		}

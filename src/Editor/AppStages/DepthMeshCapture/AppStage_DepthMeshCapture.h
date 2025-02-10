@@ -8,6 +8,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "MikanRendererFwd.h"
+#include "SceneFwd.h"
 
 #include "glm/ext/matrix_float4x4.hpp"
 
@@ -41,7 +42,7 @@ public:
 
 protected:
 	void setupCameras();
-	GlCameraPtr getViewpointCamera(eDepthMeshCaptureViewpointMode viewportMode) const;
+	MikanCameraPtr getViewpointCamera(eDepthMeshCaptureViewpointMode viewportMode) const;
 	void renderVRScene();
 	void setMenuState(eDepthMeshCaptureMenuState newState);
 
@@ -80,6 +81,6 @@ private:
 	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
 
 	std::vector<IMkStaticMeshInstancePtr> m_depthMeshInstances;
-	GlScenePtr m_scene;
-	GlViewportPtr m_viewport;
+	MikanScenePtr m_scene;
+	MikanViewportPtr m_viewport;
 };

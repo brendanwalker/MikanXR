@@ -5,6 +5,8 @@
 
 #include "glm/gtx/euler_angles.hpp"
 
+#include "openvr.h"
+
 // GLM types to OpenCV types
 cv::Matx33f glm_mat3_to_cv_mat33f(const glm::mat3& in)
 {

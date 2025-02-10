@@ -3,10 +3,11 @@
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
 #include "IMkSceneRenderable.h"
+#include "MikanCamera.h"
 #include "GlScene.h"
 
 MikanScene::MikanScene()
-	: m_glScene(std::make_shared<GlScene>())
+	: m_mkScene(std::make_shared<GlScene>())
 {
 
 }
@@ -22,7 +23,7 @@ void MikanScene::init()
 
 void MikanScene::dispose()
 {
-	m_glScene= nullptr;
+	m_mkScene= nullptr;
 	m_selectionComponents.clear();
 }
 
@@ -61,7 +62,7 @@ void MikanScene::addMikanComponent(MikanComponentPtr componentPtr)
 		if (renderable)
 		{
 			// If the scene component has a renderable, add it to the GL Scene
-			m_glScene->addInstance(renderable);
+			m_mkScene->addInstance(renderable);
 		}
 	}
 	// See if the given component is a selection component
@@ -98,7 +99,7 @@ void MikanScene::removeMikanComponent(MikanComponentConstPtr componentPtr)
 		if (renderable)
 		{
 			// If the scene component has a renderable, remove it from the GL Scene
-			m_glScene->removeInstance(renderable);
+			m_mkScene->removeInstance(renderable);
 		}
 	}
 	// See if the given component is a selection component
@@ -116,7 +117,7 @@ void MikanScene::removeMikanComponent(MikanComponentConstPtr componentPtr)
 	}
 }
 
-void MikanScene::render(GlCameraConstPtr camera, MkStateStack& MkStateStack) const
+void MikanScene::render(MikanCameraConstPtr camera, MkStateStack& MkStateStack) const
 {
-	m_glScene->render(camera, MkStateStack);
+	m_mkScene->render(camera, MkStateStack);
 }

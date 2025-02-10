@@ -29,12 +29,12 @@ namespace ObjUtils
 			, m_materialInstance(materialInst) 
 		{
 			MkMaterialConstPtr material = m_materialInstance->getMaterial();
-			const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
+			IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
 
-			m_positionAttribute = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
-			m_normalAttribute = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::normal);
-			m_texCoordAttribute = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texCoord);
-			m_vertexSize = vertexDefinition.getVertexSize();
+			m_positionAttribute = vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position);
+			m_normalAttribute = vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::normal);
+			m_texCoordAttribute = vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::texCoord);
+			m_vertexSize = vertexDefinition->getVertexSize();
 
 			assert(m_positionAttribute != nullptr && 
 				   m_positionAttribute->getDataType() == eVertexDataType::datatype_vec3);
@@ -52,7 +52,7 @@ namespace ObjUtils
 
 		inline const std::string& getMaterialName() const { return m_materialName; }
 		inline MkMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; }
-		const GlVertexAttribute* getPositionAttribute() const { return m_positionAttribute; }
+		const IMkVertexAttribute* getPositionAttribute() const { return m_positionAttribute; }
 		inline uint32_t getVertexCount() const { return m_vertexCount; }
 		inline size_t getVertexSize() const { return m_vertexSize; }
 		inline const uint8_t* getVertexData() const { return m_vertexData; }
@@ -138,9 +138,9 @@ namespace ObjUtils
 		int m_materialId= -1;
 		std::string m_materialName;
 		MkMaterialInstancePtr m_materialInstance;
-		const GlVertexAttribute* m_positionAttribute= nullptr;
-		const GlVertexAttribute* m_normalAttribute= nullptr;
-		const GlVertexAttribute* m_texCoordAttribute= nullptr;
+		const IMkVertexAttribute* m_positionAttribute= nullptr;
+		const IMkVertexAttribute* m_normalAttribute= nullptr;
+		const IMkVertexAttribute* m_texCoordAttribute= nullptr;
 		uint8_t* m_vertexData= 0;
 		size_t m_vertexSize= 0;
 		uint32_t m_vertexCount= 0;
@@ -338,8 +338,8 @@ namespace ObjUtils
 		MkMaterialConstPtr material,
 		const fastObjMaterial& objMaterial)
 	{
-		MikanTextureCache* textureCache = ownerWindow->getTextureCache();
-		MkMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
+		MikanTextureCache* textureCache = static_cast<MikanTextureCache *>(ownerWindow->getTextureCache());
+		MkMaterialInstancePtr materialInstance = std::make_shared<MkMaterialInstance>(material);
 
 		materialInstance->setVec3BySemantic(
 			eUniformSemantic::ambientColorRGB,
@@ -439,7 +439,7 @@ namespace ObjUtils
 		}
 
 		// Copy over the position data into the wireframe vertex buffer
-		const GlVertexAttribute* posAttribute = triMeshData->getPositionAttribute();
+		const IMkVertexAttribute* posAttribute = triMeshData->getPositionAttribute();
 		const size_t posAttribSize = posAttribute->getAttributeSize();
 
 		const size_t writeVertexSize = posAttribSize; // [x, y, z], [x, y, z], ...

@@ -512,7 +512,7 @@ MkScopedMaterialBinding MkMaterial::bindMaterial(
 		bMaterialFailure= true;
 	}
 
-	return MkScopedMaterialBinding(shared_from_this(), unboundUniformNames, bMaterialFailure);
+	return MkScopedMaterialBinding(this, unboundUniformNames, bMaterialFailure);
 }
 
 void MkMaterial::unbindMaterial() const

@@ -4,6 +4,7 @@
 #include "MkShaderConstants.h"
 #include "MkScopedMaterialBinding.h"
 #include "MkRendererFwd.h"
+#include "MkRendererExport.h"
 
 #include <functional>
 #include <string>
@@ -29,7 +30,7 @@ std::function<eUniformBindResult(
 	eUniformSemantic, // Semantic of the uniform
 	const std::string&)>; // Name of the uniform
 
-class MkMaterial : public std::enable_shared_from_this<MkMaterial>
+class MIKAN_RENDERER_CLASS MkMaterial 
 {
 public:
 	MkMaterial();

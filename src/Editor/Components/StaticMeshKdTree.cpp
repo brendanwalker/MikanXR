@@ -124,19 +124,19 @@ class KdTreeMeshAccessor
 public :
 	KdTreeMeshAccessor()= default;
 
-	inline IGlMeshConstPtr getMesh() const { return m_mesh; }
+	inline IMkMeshConstPtr getMesh() const { return m_mesh; }
 	inline size_t getVertexCount() const { return m_vertexCount; }
 	inline size_t getTriangleCount() const { return m_triangleCount; }
 	inline bool isValid() const { return m_vertexCount > 0 && m_triangleCount > 0; }
 
-	bool setMesh(IGlMeshConstPtr mesh)
+	bool setMesh(IMkMeshConstPtr mesh)
 	{
 		if (mesh->getIndexPerElementCount() != 3)
 			return false;
 
 		auto material = mesh->getMaterialInstance()->getMaterial();
 		auto vertexDefinition = material->getProgram()->getVertexDefinition();
-		auto vertexAttrib = vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
+		auto vertexAttrib = vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position);
 		if (!vertexAttrib)
 			return false;
 
@@ -151,7 +151,7 @@ public :
 		m_triangleCount = m_mesh->getElementCount();
 		m_indexSize = m_mesh->getIndexSize();
 		m_triangleStride = m_mesh->getIndexSize() * 3;
-		m_vertexSize = vertexDefinition.getVertexSize();
+		m_vertexSize = vertexDefinition->getVertexSize();
 		m_positionOffset = vertexAttrib->getOffset();
 
 		return m_vertexCount > 0 && m_triangleCount > 0;
@@ -192,7 +192,7 @@ public :
 	}	
 
 private:
-	IGlMeshConstPtr m_mesh= nullptr;
+	IMkMeshConstPtr m_mesh= nullptr;
 	const uint8_t* m_vertexData = nullptr;
 	const uint8_t* m_indexData = nullptr;
 	size_t m_vertexCount = 0;
@@ -398,12 +398,12 @@ bool StaticMeshKdTree::isInitialized() const
 	return m_meshAccessor->isValid();
 }
 
-IGlMeshConstPtr StaticMeshKdTree::getMesh() const
+IMkMeshConstPtr StaticMeshKdTree::getMesh() const
 { 
 	return m_meshAccessor->getMesh(); 
 }
 
-bool StaticMeshKdTree::setMesh(IGlMeshConstPtr mesh)
+bool StaticMeshKdTree::setMesh(IMkMeshConstPtr mesh)
 {
 	if (m_meshAccessor->getMesh() != mesh)
 	{

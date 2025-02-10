@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InterprocessMessages.h"
+#include "InterprocessMessageServerInterface.h"
 
 #include <map>
 #include <memory>

@@ -14,6 +14,8 @@ public:
 	MikanScene();
 	~MikanScene();
 
+	inline IMkScenePtr getMkScene() const { return m_mkScene; }
+
 	void init();
 	void dispose();
 
@@ -24,9 +26,9 @@ public:
 	void addMikanComponent(MikanComponentPtr componentPtr);
 	void removeMikanComponent(MikanComponentConstPtr componentPtr);
 
-	void render(GlCameraConstPtr camera, class MkStateStack& MkStateStack) const;
+	void render(MikanCameraConstPtr camera, class MkStateStack& MkStateStack) const;
 
 private:
-	GlScenePtr m_glScene;
+	IMkScenePtr m_mkScene;
 	SelectionComponentWeakList m_selectionComponents;
 };

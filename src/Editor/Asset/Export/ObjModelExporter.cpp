@@ -100,7 +100,7 @@ namespace ObjUtils
 			const std::filesystem::path textureFullPath = mtlPath.parent_path() / textureFileName;
 			const std::string texturePathString = textureFullPath.string();
 
-			if (SdlUtility::saveTextureToPNG(texture.get(), texturePathString.c_str()))
+			if (SdlUtility::saveTextureToPNG(texture, texturePathString.c_str()))
 			{
 				outRelativeTexturePath = textureFileName;
 				return true;
@@ -150,14 +150,14 @@ bool ObjModelExporter::exportModelToFile(
 			// Make sure the material vertex definition has the needed attributes
 			MkMaterialInstanceConstPtr materialInstance = triMesh->getMaterialInstance();
 			MkMaterialConstPtr material = materialInstance->getMaterial();
-			const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
-			const size_t vertexSize = vertexDefinition.getVertexSize();
-			const GlVertexAttribute* posAttrib =
-				vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
-			const GlVertexAttribute* normalAttrib =
-				vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::normal);
-			const GlVertexAttribute* texelAttrib =
-				vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texCoord);
+			IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
+			const size_t vertexSize = vertexDefinition->getVertexSize();
+			const IMkVertexAttribute* posAttrib =
+				vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position);
+			const IMkVertexAttribute* normalAttrib =
+				vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::normal);
+			const IMkVertexAttribute* texelAttrib =
+				vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::texCoord);
 			if (posAttrib == nullptr)
 			{
 				MIKAN_LOG_ERROR("GlRenderModelResource::saveToRenderModelFilePath()")

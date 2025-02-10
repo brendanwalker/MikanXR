@@ -6,6 +6,7 @@
 #include "AnchorTriangulation/RmlModel_AnchorTriangulation.h"
 #include "App.h"
 #include "Colors.h"
+#include "IMkLineRenderer.h"
 #include "MikanCamera.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
@@ -81,7 +82,7 @@ void AppStage_AnchorTriangulation::enter()
 		cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
 	// Create a new camera to view the scene
-	m_camera = getFirstViewport()->getCurrentCamera();
+	m_camera = getFirstViewport()->getCurrentMikanCamera();
 	m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Make sure the camera doing the 3d rendering has the same

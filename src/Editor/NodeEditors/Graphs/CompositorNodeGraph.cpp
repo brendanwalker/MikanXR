@@ -12,7 +12,8 @@
 #include "MikanShaderCache.h"
 #include "MikanTextureCache.h"
 #include "IMkVertexDefinition.h"
-#include "IMkWindow.h"
+#include "IMkState.h"
+#include "ISdlMkWindow.h"
 #include "Logger.h"
 #include "ModelStencilComponent.h"
 #include "StencilObjectSystem.h"
@@ -162,13 +163,13 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 		// Create a scoped binding for the video export framebuffer
 		MkScopedObjectBinding compositorFramebufferBinding(
-			*evaluator.getCurrentWindow()->getMkStateStack().getCurrentState(),
+			evaluator.getCurrentWindow()->getMkStateStack().getCurrentState(),
 			"Compositor Framebuffer Scope",
 			m_compositingFrameBuffer);
 		if (compositorFramebufferBinding)
 		{
 			// Turn off depth testing for compositing
-			compositorFramebufferBinding.getGlState().disableFlag(eMkStateFlagType::depthTest);
+			compositorFramebufferBinding.getMkState()->disableFlag(eMkStateFlagType::depthTest);
 
 			// Evaluate the composite frame nodes
 			evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
@@ -214,11 +215,13 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 	}
 	else
 	{
+		ISdlMkWindow* ownerWindow= static_cast<ISdlMkWindow*>(getOwnerWindow());
+
 		// Load the stencil model and render it using the flat textured material
 		auto stencilMaterial= 
-			getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+			ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 		auto renderModelPtr= 
-			getOwnerWindow()->getModelResourceManager()->fetchRenderModel(
+			ownerWindow->getModelResourceManager()->fetchRenderModel(
 				stencilDefinition->getModelPath(), stencilMaterial);
 
 		if (renderModelPtr)
@@ -241,11 +244,13 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(Model
 	}
 	else
 	{
+		ISdlMkWindow* ownerWindow= static_cast<ISdlMkWindow*>(getOwnerWindow());
+
 		// Load the depth model and render it using the simple depth material
 		auto depthMaterial =
-			getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+			ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
 		auto renderModelPtr =
-			getOwnerWindow()->getModelResourceManager()->fetchRenderModel(
+			ownerWindow->getModelResourceManager()->fetchRenderModel(
 				stencilDefinition->getModelPath(), depthMaterial);
 
 		if (renderModelPtr)
@@ -320,7 +325,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 		};
 
 		m_layerMesh = 
-			std::make_shared<GlTriangulatedMesh>(
+			createMkTriangulatedMesh(
 				getOwnerWindow(),
 				"layer_quad_mesh",
 				(const uint8_t*)x_vertices,
@@ -351,7 +356,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 		};
 
 		m_layerVFlippedMesh = 
-			std::make_shared<GlTriangulatedMesh>(
+			createMkTriangulatedMesh(
 				getOwnerWindow(),
 				"layer_vflipped_quad_mesh",
 				(const uint8_t*)x_vertices,
@@ -397,16 +402,17 @@ bool CompositorNodeGraph::createQuadMeshes()
 		};
 		static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 
-		m_stencilQuadMesh = std::make_shared<GlTriangulatedMesh>(
-			getOwnerWindow(),
-			"quad_stencil_mesh",
-			(const uint8_t*)x_vertices,
-			vertexSize,
-			4, // 4 verts in a quad
-			(const uint8_t*)x_indices,
-			sizeof(uint16_t), // 2 bytes per index
-			2, // 2 tris in a quad
-			false); // mesh doesn't own quad vertex data
+		m_stencilQuadMesh = 
+			createMkTriangulatedMesh(
+				getOwnerWindow(),
+				"quad_stencil_mesh",
+				(const uint8_t*)x_vertices,
+				vertexSize,
+				4, // 4 verts in a quad
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				2, // 2 tris in a quad
+				false); // mesh doesn't own quad vertex data
 
 		if (!m_stencilQuadMesh->setMaterial(stencilMaterial) ||
 			!m_stencilQuadMesh->createResources())
@@ -415,16 +421,17 @@ bool CompositorNodeGraph::createQuadMeshes()
 			return false;
 		}
 
-		m_depthQuadMesh = std::make_shared<GlTriangulatedMesh>(
-			getOwnerWindow(),
-			"quad_depth_mesh",
-			(const uint8_t*)x_vertices,
-			vertexSize,
-			4, // 4 verts in a quad
-			(const uint8_t*)x_indices,
-			sizeof(uint16_t), // 2 bytes per index
-			2, // 2 tris in a quad
-			false); // mesh doesn't own quad vertex data
+		m_depthQuadMesh = 
+			createMkTriangulatedMesh(
+				getOwnerWindow(),
+				"quad_depth_mesh",
+				(const uint8_t*)x_vertices,
+				vertexSize,
+				4, // 4 verts in a quad
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				2, // 2 tris in a quad
+				false); // mesh doesn't own quad vertex data
 
 		if (!m_depthQuadMesh->setMaterial(depthMaterial) ||
 			!m_depthQuadMesh->createResources())
@@ -472,16 +479,17 @@ bool CompositorNodeGraph::createBoxMeshes()
 			3, 0, 1, 1, 2, 3  // +Y Face 
 		};
 
-		m_stencilBoxMesh = std::make_shared<GlTriangulatedMesh>(
-			getOwnerWindow(),
-			"box_stencil_mesh",
-			(const uint8_t*)x_vertices,
-			vertexSize,
-			8, // 8 verts in a cube
-			(const uint8_t*)x_indices,
-			sizeof(uint16_t), // 2 bytes per index
-			12, // 12 tris in a cube (6 faces * 2 tris/face)
-			false); // mesh doesn't own box vertex data
+		m_stencilBoxMesh = 
+			createMkTriangulatedMesh(
+				getOwnerWindow(),
+				"box_stencil_mesh",
+				(const uint8_t*)x_vertices,
+				vertexSize,
+				8, // 8 verts in a cube
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				12, // 12 tris in a cube (6 faces * 2 tris/face)
+				false); // mesh doesn't own box vertex data
 		if (!m_stencilBoxMesh->setMaterial(stencilMaterial) ||
 			!m_stencilBoxMesh->createResources())
 		{
@@ -489,16 +497,17 @@ bool CompositorNodeGraph::createBoxMeshes()
 			return false;
 		}
 
-		m_depthBoxMesh = std::make_shared<GlTriangulatedMesh>(
-			getOwnerWindow(),
-			"box_depth_mesh",
-			(const uint8_t*)x_vertices,
-			vertexSize,
-			8, // 8 verts in a cube
-			(const uint8_t*)x_indices,
-			sizeof(uint16_t), // 2 bytes per index
-			12, // 12 tris in a cube (6 faces * 2 tris/face)
-			false); // mesh doesn't own box vertex data
+		m_depthBoxMesh = 
+			createMkTriangulatedMesh(
+				getOwnerWindow(),
+				"box_depth_mesh",
+				(const uint8_t*)x_vertices,
+				vertexSize,
+				8, // 8 verts in a cube
+				(const uint8_t*)x_indices,
+				sizeof(uint16_t), // 2 bytes per index
+				12, // 12 tris in a cube (6 faces * 2 tris/face)
+				false); // mesh doesn't own box vertex data
 		if (!m_depthBoxMesh->setMaterial(depthMaterial) ||
 			!m_depthBoxMesh->createResources())
 		{

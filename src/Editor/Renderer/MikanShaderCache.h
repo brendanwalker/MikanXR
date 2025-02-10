@@ -4,23 +4,19 @@
 #include "MikanRendererFwd.h"
 #include "IMkShaderCache.h"
 
-class MikanShaderCache 
+class MikanShaderCache : public IMkShaderCache
 {
 public:
 	MikanShaderCache()= delete;
 	MikanShaderCache(IMkWindow* ownerWindow);
 
-	inline IMkShaderCachePtr getMkShaderCache() { return m_shaderCache; }
-
-	bool startup();
-	void shutdown();
+	virtual bool startup() override;
+	virtual void shutdown() override;
+	virtual MkMaterialPtr registerMaterial(IMkShaderCodeConstPtr code) override;
+	virtual MkMaterialConstPtr getMaterialByName(const std::string& name) override;
+	virtual IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code) override;
 
 	MkMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef);
-
-	MkMaterialPtr registerMaterial(IMkShaderCodeConstPtr code);
-	MkMaterialConstPtr getMaterialByName(const std::string& name);
-
-	IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code);
 
 protected:
 	IMkShaderCodeConstPtr loadShaderCodeFromConfigData(const MikanShaderConfig& config);

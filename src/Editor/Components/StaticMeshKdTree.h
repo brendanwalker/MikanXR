@@ -34,8 +34,8 @@ public:
 
 	bool isInitialized() const;
 
-	bool setMesh(IGlMeshConstPtr mesh);
-	inline IGlMeshConstPtr getMesh() const;
+	bool setMesh(IMkMeshConstPtr mesh);
+	inline IMkMeshConstPtr getMesh() const;
 
 	bool getLocalAABB(
 		glm::vec3& outMin, 

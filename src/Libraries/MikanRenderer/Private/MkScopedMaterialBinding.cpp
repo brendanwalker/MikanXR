@@ -3,7 +3,7 @@
 
 struct MkScopedMaterialBindingImpl
 {
-	MkMaterialConstPtr boundMaterial;
+	const MkMaterial* boundMaterial;
 	UniformNameSet unboundUniformNames;
 	bool bMaterialFailure;
 };
@@ -11,13 +11,13 @@ struct MkScopedMaterialBindingImpl
 MkScopedMaterialBinding::MkScopedMaterialBinding()
 	: m_impl(new MkScopedMaterialBindingImpl())
 {
-	m_impl->boundMaterial= MkMaterialConstPtr();
+	m_impl->boundMaterial= nullptr;
 	m_impl->unboundUniformNames= UniformNameSet();
 	m_impl->bMaterialFailure= true;
 }
 
 MkScopedMaterialBinding::MkScopedMaterialBinding(
-	MkMaterialConstPtr material,
+	const MkMaterial* material,
 	UniformNameSet unboundUniformNames,
 	bool bMaterialFailure)
 	: m_impl(new MkScopedMaterialBindingImpl())
@@ -35,7 +35,7 @@ MkScopedMaterialBinding::~MkScopedMaterialBinding()
 	}
 }
 
-MkMaterialConstPtr MkScopedMaterialBinding::getBoundMaterial() const
+const MkMaterial* MkScopedMaterialBinding::getBoundMaterial() const
 { 
 	return m_impl->boundMaterial; 
 }

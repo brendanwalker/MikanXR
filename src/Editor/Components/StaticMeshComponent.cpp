@@ -42,13 +42,13 @@ void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderG
 
 	MkMaterialInstanceConstPtr materialInst= meshInstance->getMaterialInstanceConst();
 	MkMaterialConstPtr material= materialInst->getMaterial();
-	const GlVertexDefinition& vertexDefinition= material->getProgram()->getVertexDefinition();
-	const size_t vertexSize = vertexDefinition.getVertexSize();
+	IMkVertexDefinitionConstPtr vertexDefinition= material->getProgram()->getVertexDefinition();
+	const size_t vertexSize = vertexDefinition->getVertexSize();
 	const uint32_t vertexCount = glMesh->getVertexCount();
 	const uint8_t* vertexData = glMesh->getVertexData();
 
 	// Write out the vertices
-	const GlVertexAttribute* posAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
+	const IMkVertexAttribute* posAttrib= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position);
 	if (posAttrib != nullptr)
 	{
 		const uint8_t* posData = vertexData + posAttrib->getOffset();
@@ -62,7 +62,7 @@ void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderG
 	}
 
 	// Write out the normals
-	const GlVertexAttribute* normalAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::normal);
+	const IMkVertexAttribute* normalAttrib= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::normal);
 	if (normalAttrib != nullptr)
 	{
 		const uint8_t* normalData = vertexData + normalAttrib->getOffset();
@@ -76,7 +76,7 @@ void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderG
 	}
 
 	// Write out the texture coordinates
-	const GlVertexAttribute* texCoordAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texCoord);
+	const IMkVertexAttribute* texCoordAttrib= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::texCoord);
 	if (texCoordAttrib != nullptr)
 	{
 		const uint8_t* texCoordData = vertexData + texCoordAttrib->getOffset();

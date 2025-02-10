@@ -12,6 +12,7 @@
 #include "MkScopedObjectBinding.h"
 #include "MkStateStack.h"
 #include "IMkTriangulatedMesh.h"
+#include "IMkLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
 #include "MainWindow.h"
@@ -72,7 +73,7 @@ void AppStage_VRTrackingRecenter::enter()
 	m_cameraTrackingPuckScenePoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
 	// Fetch the new camera associated with the viewport
-	m_camera= getFirstViewport()->getCurrentCamera();
+	m_camera= getFirstViewport()->getCurrentMikanCamera();
 	m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Make sure the camera doing the 3d rendering has the same
@@ -263,7 +264,7 @@ void AppStage_VRTrackingRecenter::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			*m_ownerWindow->getMkStateStack().getCurrentState(),
+			m_ownerWindow->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 

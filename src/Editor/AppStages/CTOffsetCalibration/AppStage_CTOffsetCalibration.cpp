@@ -88,7 +88,7 @@ void AppStage_CTOffsetCalibration::enter()
 	}
 
 	// Fetch the new camera associated with the viewport
-	m_camera= getFirstViewport()->getCurrentCamera();
+	m_camera= getFirstViewport()->getCurrentMikanCamera();
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera

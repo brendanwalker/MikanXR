@@ -58,5 +58,5 @@ private:
 	class VideoFrameDistortionView* m_monoDistortionView;
 
 	GlScenePtr m_scene;
-	GlCameraPtr m_camera;
+	MikanCameraPtr m_camera;
 };

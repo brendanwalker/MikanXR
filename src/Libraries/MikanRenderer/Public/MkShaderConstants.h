@@ -62,7 +62,7 @@ enum class eUniformSemantic : int
 
 	COUNT
 };
-extern const std::string* k_UniformSemanticName;
+extern MIKAN_RENDERER_CLASS const std::string* k_UniformSemanticName;
 
 
 MIKAN_RENDERER_FUNC(eUniformDataType) getUniformSemanticDataType(eUniformSemantic semantic);

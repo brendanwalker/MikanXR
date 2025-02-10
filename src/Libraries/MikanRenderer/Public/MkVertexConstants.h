@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MkRendererExport.h"
+
 #include <string>
 
 enum class eVertexSemantic : int
@@ -16,7 +18,7 @@ enum class eVertexSemantic : int
 
 	COUNT
 };
-extern const std::string* k_VertexSemanticNames;
+extern MIKAN_RENDERER_CLASS const std::string* k_VertexSemanticNames;
 
 enum class eVertexDataType : int
 {
@@ -54,13 +56,13 @@ enum class eVertexDataType : int
 
 	COUNT
 };
-extern const std::string* k_VertexDataTypeNames;
+extern MIKAN_RENDERER_CLASS const std::string* k_VertexDataTypeNames;
 
 namespace VertexConstantUtils
 {
-	const std::string& vertexSemanticToString(eVertexSemantic semantic);
-	eVertexSemantic vertexSemanticFromString(const std::string& semanticName);
+	MIKAN_RENDERER_FUNC(const std::string&) vertexSemanticToString(eVertexSemantic semantic);
+	MIKAN_RENDERER_FUNC(eVertexSemantic) vertexSemanticFromString(const std::string& semanticName);
 
-	const std::string& vertexDataTypeToString(eVertexDataType dataType);
-	eVertexDataType vertexDataTypeFromString(const std::string& dataTypeName);
+	MIKAN_RENDERER_FUNC(const std::string&) vertexDataTypeToString(eVertexDataType dataType);
+	MIKAN_RENDERER_FUNC(eVertexDataType) vertexDataTypeFromString(const std::string& dataTypeName);
 };

@@ -1,4 +1,4 @@
-#include "InterprocessRenderTargetReader.h"
+#include "SharedTextureReader.h"
 #include "IMkTexture.h"
 #include "Logger.h"
 #include "SpoutLibrary.h"

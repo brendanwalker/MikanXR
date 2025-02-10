@@ -14,7 +14,7 @@
 #include "GlScene.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
-#include "IMkWindow.h"
+#include "ISdlMkWindow.h"
 #include "Logger.h"
 #include "DepthMeshGenerator.h"
 #include "MathTypeConversion.h"
@@ -35,7 +35,7 @@
 
 struct DepthMeshCaptureState
 {
-	IMkWindow* ownerWindow;
+	ISdlMkWindow* ownerWindow;
 
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
@@ -53,7 +53,7 @@ struct DepthMeshCaptureState
 	MikanRenderModelResourcePtr depthMeshResource;
 
 	void init(
-		IMkWindow* owner,
+		ISdlMkWindow* owner,
 		ProfileConfigConstPtr config, 
 		VideoSourceViewPtr videoSourceView)
 	{
@@ -192,7 +192,7 @@ struct DepthMeshCaptureState
 		SyntheticDepthEstimatorPtr depthEstimator)
 	{
 		MikanModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
-		GlShaderCache* shaderCache= ownerWindow->getShaderCache();
+		IMkShaderCache* shaderCache= ownerWindow->getShaderCache();
 
 		// Create a texture from the undistorted video frame
 		IMkTexturePtr texture = createDepthMeshTexture(distortionView);
@@ -203,7 +203,7 @@ struct DepthMeshCaptureState
 
 		// Use the internal basic textured material to render the mesh
 		MkMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
-		MkMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(stencilMaterial);
+		MkMaterialInstancePtr materialInstance = std::make_shared<MkMaterialInstance>(stencilMaterial);
 		materialInstance->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
 
 		// Create a triangulated mesh from the synthetic depth map
@@ -229,7 +229,7 @@ struct DepthMeshCaptureState
 
 		// Use the internal basic textured material to render the mesh
 		MikanModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
-		GlShaderCache* shaderCache = ownerWindow->getShaderCache();
+		IMkShaderCache* shaderCache = ownerWindow->getShaderCache();
 		MkMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 
 		depthMeshResource= 
@@ -286,10 +286,10 @@ private:
 	{
 		// Make sure the material vertex definition has the needed attributes
 		MkMaterialConstPtr material = materialInstance->getMaterial();
-		const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
-		const size_t vertexSize = (size_t)vertexDefinition.getVertexSize();
-		const GlVertexAttribute* posAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::position);
-		const GlVertexAttribute* texelAttrib= vertexDefinition.getFirstAttributeBySemantic(eVertexSemantic::texCoord);
+		IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
+		const size_t vertexSize = (size_t)vertexDefinition->getVertexSize();
+		const IMkVertexAttribute* posAttrib= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position);
+		const IMkVertexAttribute* texelAttrib= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::texCoord);
 		if (posAttrib == nullptr || texelAttrib == nullptr)
 		{
 			MIKAN_LOG_ERROR("DepthMeshCaptureState::createTriangulatedDepthMesh()") 
@@ -437,7 +437,7 @@ private:
 
 //-- MonoDistortionCalibrator ----
 DepthMeshGenerator::DepthMeshGenerator(
-	IMkWindow* ownerWindow,
+	ISdlMkWindow* ownerWindow,
 	ProfileConfigConstPtr profileConfig,
 	VideoFrameDistortionViewPtr distortionView,
 	SyntheticDepthEstimatorPtr depthEstimator)

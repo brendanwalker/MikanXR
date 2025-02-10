@@ -8,13 +8,15 @@
 #include "DepthMeshGenerator.h"
 #include "EditorObjectSystem.h"
 #include "MikanCamera.h"
-#include "IMkLineRenderer.h"
 #include "GlFrameCompositor.h"
-#include "MikanRenderModelResource.h"
 #include "GlScene.h"
+#include "IMkLineRenderer.h"
 #include "IMkStaticMeshInstance.h"
 #include "IMkTextRenderer.h"
 #include "IMkTriangulatedMesh.h"
+#include "MikanLineRenderer.h"
+#include "MikanTextRenderer.h"
+#include "MikanRenderModelResource.h"
 #include "MikanViewport.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -51,7 +53,7 @@ AppStage_DepthMeshCapture::AppStage_DepthMeshCapture(MainWindow* ownerWindow)
 	, m_videoSourceView()
 	, m_depthMeshCapture(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_scene(std::make_shared<GlScene>())
+	, m_scene(std::make_shared<MikanScene>())
 	, m_viewport(nullptr)
 {
 }
@@ -88,7 +90,7 @@ void AppStage_DepthMeshCapture::enter()
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
 	for (auto it : vrDeviceList)
 	{
-		it->getVRDeviceInterface()->bindToScene(m_scene);
+		it->getVRDeviceInterface()->bindToScene(m_scene->getMkScene());
 	}
 
 	// Setup viewport
@@ -244,7 +246,7 @@ void AppStage_DepthMeshCapture::setupCameras()
 		}
 
 		// Use fly-cam input control for every camera except for the first one
-		IMkCameraPtr camera = m_viewport->getCameraByIndex(cameraIndex);
+		MikanCameraPtr camera = m_viewport->getMikanCameraByIndex(cameraIndex);
 		if (cameraIndex == 0)
 			camera->setCameraMovementMode(eCameraMovementMode::stationary);
 		else
@@ -258,9 +260,9 @@ void AppStage_DepthMeshCapture::setupCameras()
 	onViewportModeChanged(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
 }
 
-GlCameraPtr AppStage_DepthMeshCapture::getViewpointCamera(eDepthMeshCaptureViewpointMode viewportMode) const
+MikanCameraPtr AppStage_DepthMeshCapture::getViewpointCamera(eDepthMeshCaptureViewpointMode viewportMode) const
 {
-	return m_viewport->getCameraByIndex((int)viewportMode);
+	return m_viewport->getMikanCameraByIndex((int)viewportMode);
 }
 
 void AppStage_DepthMeshCapture::update(float deltaSeconds)
@@ -300,10 +302,10 @@ void AppStage_DepthMeshCapture::render()
 void AppStage_DepthMeshCapture::renderVRScene()
 {
 	// Render the editor scene
-	GlCameraPtr vrCamera = getViewpointCamera(eDepthMeshCaptureViewpointMode::vrViewpoint);
+	MikanCameraPtr vrCamera = getViewpointCamera(eDepthMeshCaptureViewpointMode::vrViewpoint);
 
 	// Draw where the tracked camera is
-	GlCameraPtr videoSourceCamera = getViewpointCamera(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
+	MikanCameraPtr videoSourceCamera = getViewpointCamera(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
 	if (videoSourceCamera)
 	{
 		// Draw the frustum for the initial camera pose
@@ -445,7 +447,7 @@ void AppStage_DepthMeshCapture::addDepthMeshResourcesToScene()
 			meshInstance->setVisible(true);
 
 			// Register the mesh instance with the scene
-			m_scene->addInstance(meshInstance);
+			m_scene->getMkScene()->addInstance(meshInstance);
 
 			// Need to keep track of mesh instances locally
 			// since the scene uses weak pointers
@@ -458,7 +460,7 @@ void AppStage_DepthMeshCapture::removeDepthMeshResourceFromScene()
 {
 	for (IMkStaticMeshInstancePtr depthMeshInstance : m_depthMeshInstances)
 	{
-		m_scene->removeInstance(depthMeshInstance);
+		m_scene->getMkScene()->removeInstance(depthMeshInstance);
 	}
 	m_depthMeshInstances.clear();
 }

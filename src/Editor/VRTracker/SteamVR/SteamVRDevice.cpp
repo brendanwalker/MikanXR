@@ -93,7 +93,7 @@ void SteamVRDevice::updatePose()
 	}
 }
 
-void SteamVRDevice::bindToScene(GlScenePtr scene)
+void SteamVRDevice::bindToScene(IMkScenePtr scene)
 {
 	removeFromBoundScene();
 
@@ -240,7 +240,7 @@ void SteamVRDevice::rebuildRenderComponents()
 			renderComponent->initComponent();
 			renderComponent->updateComponent();
 
-			GlScenePtr boundScene= m_boundScene.lock();
+			IMkScenePtr boundScene= m_boundScene.lock();
 			if (boundScene != nullptr)
 			{
 				renderComponent->bindToScene(boundScene);

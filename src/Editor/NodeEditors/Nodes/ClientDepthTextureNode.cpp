@@ -151,12 +151,12 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 
 	IMkWindow* ownerWindow= evaluator.getCurrentWindow();
 	MkScopedObjectBinding depthFramebufferBinding(
-		*ownerWindow->getMkStateStack().getCurrentState(),
+		ownerWindow->getMkStateStack().getCurrentState(),
 		"Depth Texture Framebuffer Scope",
 		m_linearDepthFrameBuffer);
 	if (depthFramebufferBinding)
 	{
-		IMkStatePtr glState = depthFramebufferBinding.getGlState();
+		IMkStatePtr glState = depthFramebufferBinding.getMkState();
 		MkMaterialConstPtr depthUnpackMaterial =
 			ownerWindow->getShaderCache()->getMaterialByName(
 				INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);

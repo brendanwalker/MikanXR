@@ -52,5 +52,5 @@ private:
 
 	AnchorTriangulatorInfo m_targetAnchor;
 
-	GlCameraPtr m_camera;
+	MikanCameraPtr m_camera;
 };

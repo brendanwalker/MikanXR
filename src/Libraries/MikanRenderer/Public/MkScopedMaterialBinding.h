@@ -13,12 +13,12 @@ class MIKAN_RENDERER_CLASS MkScopedMaterialBinding
 public:
 	MkScopedMaterialBinding();
 	MkScopedMaterialBinding(
-		MkMaterialConstPtr material,
+		const class MkMaterial* material,
 		UniformNameSet unboundUniformNames,
 		bool bMaterialFailure);
 	virtual ~MkScopedMaterialBinding();
 
-	MkMaterialConstPtr getBoundMaterial() const;
+	const MkMaterial* getBoundMaterial() const;
 	const UniformNameSet& getUnboundUniforms() const;
 	operator bool() const;
 

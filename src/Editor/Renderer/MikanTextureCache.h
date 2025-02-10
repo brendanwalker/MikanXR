@@ -2,6 +2,7 @@
 
 #include "AssetFwd.h"
 #include "MikanRendererFwd.h"
+#include "IMkTextureCache.h"
 
 #include <filesystem>
 #include <memory>
@@ -13,21 +14,21 @@
 #define INTERNAL_TEXTURE_WHITE_RGBA		"Internal_White_RGBA"
 #define INTERNAL_TEXTURE_BLACK_RGBA		"Internal_Black_RGBA"
 
-class MikanTextureCache
+class MikanTextureCache : public IMkTextureCache
 {
 public:
 	MikanTextureCache()= delete;
 	MikanTextureCache(IMkWindow* ownerWindow);
 
-	inline IMkTextureCachePtr getMkTextureCache() { return m_textureCache; }
-
-	bool startup();
-	void shutdown();
-
-	IMkTexturePtr tryGetTextureByName(const std::string& textureName);
 	IMkTexturePtr loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef);
-	IMkTexturePtr loadTexturePath(const std::filesystem::path& texturePath, const std::string& overrideName= "");
-	bool removeTexureFromCache(IMkTexturePtr texture);
+
+	virtual bool startup() override;
+	virtual void shutdown() override;
+	virtual IMkTexturePtr tryGetTextureByName(const std::string& textureName) override;
+	virtual IMkTexturePtr loadTexturePath(
+		const std::filesystem::path& texturePath, 
+		const std::string& overrideName= "") override;
+	virtual bool removeTexureFromCache(IMkTexturePtr texture) override;
 
 private:
 	IMkTextureCachePtr m_textureCache;

@@ -1,5 +1,6 @@
 //-- includes -----
 #include "MikanAPI.h"
+
 #include "MikanClientRequests.h"
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
@@ -51,6 +52,7 @@
 
 #include "IMkTexture.h"
 #include "IMkShader.h"
+#include "IMkShaderCode.h"
 #include "Logger.h"
 
 #include <glm/glm.hpp>
@@ -336,26 +338,22 @@ protected:
 		if (m_cubeTexture != nullptr)
 		{
 			m_cubeTexture->disposeTexture();
-			delete m_cubeTexture;
 			m_cubeTexture = nullptr;
 		}
 
 		if (m_floorTexture != nullptr)
 		{
 			m_floorTexture->disposeTexture();
-			delete m_floorTexture;
 			m_floorTexture= nullptr;
 		}
 
 		if (m_shader != nullptr)
 		{
-			delete m_shader;
 			m_shader= nullptr;
 		}
 
 		if (m_screenShader != nullptr)
 		{
-			delete m_screenShader;
 			m_screenShader = nullptr;
 		}
 
@@ -1027,54 +1025,63 @@ protected:
 		SDL_GL_SwapWindow(m_sdlWindow);
 	}
 
-	const IMkShaderCode& getShaderCode()
+	const IMkShaderCodePtr getShaderCode()
 	{
-		static IMkShaderCode x_shaderCode = IMkShaderCode(
-			"Scene Shader Code",
-			// vertex shader
-			R""""(
-			#version 330 core
-			layout (location = 0) in vec3 aPos;
-			layout (location = 1) in vec2 aTexCoords;
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+		
+		if (x_shaderCode == nullptr)
+		{
+			x_shaderCode= createIMkShaderCode(
+				"Scene Shader Code",
+				// vertex shader
+				R""""(
+				#version 330 core
+				layout (location = 0) in vec3 aPos;
+				layout (location = 1) in vec2 aTexCoords;
 
-			out vec2 TexCoords;
+				out vec2 TexCoords;
 
-			uniform mat4 mvpMatrix;
+				uniform mat4 mvpMatrix;
 
-			void main()
-			{
-				TexCoords = aTexCoords;    
-				gl_Position = mvpMatrix * vec4(aPos, 1.0);
-			}
-			)"""",
-			//fragment shader
-			R""""(
-			#version 330 core
-			out vec4 FragColor;
+				void main()
+				{
+					TexCoords = aTexCoords;    
+					gl_Position = mvpMatrix * vec4(aPos, 1.0);
+				}
+				)"""",
+					//fragment shader
+					R""""(
+				#version 330 core
+				out vec4 FragColor;
 
-			in vec2 TexCoords;
+				in vec2 TexCoords;
 
-			uniform sampler2D diffuse;
+				uniform sampler2D diffuse;
 
-			void main()
-			{    
-				FragColor = texture(diffuse, TexCoords);
-			}
-			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-			.addUniform(SCENE_SHADER_MVP_UNIFORM, eUniformSemantic::modelViewProjectionMatrix)
-			.addUniform(SCENE_SHADER_DIFFUSE_UNIFORM, eUniformSemantic::rgbTexture);
+				void main()
+				{    
+					FragColor = texture(diffuse, TexCoords);
+				}
+				)"""");
+			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+			x_shaderCode->addUniform(SCENE_SHADER_MVP_UNIFORM, eUniformSemantic::modelViewProjectionMatrix);
+			x_shaderCode->addUniform(SCENE_SHADER_DIFFUSE_UNIFORM, eUniformSemantic::rgbTexture);
+		}
 
 		return x_shaderCode;
 	}
 
-	const IMkShaderCode& getScreenShaderCode()
+	const IMkShaderCodePtr getScreenShaderCode()
 	{
-		static IMkShaderCode x_shaderCode = IMkShaderCode(
-			"Screen Shader Code",
-			// vertex shader
-			R""""(
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+
+		if (x_shaderCode == nullptr)
+		{
+			x_shaderCode= createIMkShaderCode(
+				"Screen Shader Code",
+				// vertex shader
+				R""""(
 			#version 330 core
 			layout (location = 0) in vec2 aPos;
 			layout (location = 1) in vec2 aTexCoords;
@@ -1087,8 +1094,8 @@ protected:
 				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 			}  
 			)"""",
-			//fragment shader
-			R""""(
+				//fragment shader
+				R""""(
 			#version 330 core
 			out vec4 FragColor;
 
@@ -1101,36 +1108,35 @@ protected:
 				vec3 col = texture(screenTexture, TexCoords).rgb;
 				FragColor = vec4(col, 1.0);
 			} 
-			)"""")
-			.addVertexAttributes("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-			.addVertexAttributes("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-			.addUniform("screenTexture", eUniformSemantic::rgbTexture);
+			)"""");
+			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+			x_shaderCode->addUniform("screenTexture", eUniformSemantic::rgbTexture);
+		}
 
 		return x_shaderCode;
 	}
 
-	IMkShader* compileShader(const IMkShaderCode& shaderCode)
+	IMkShaderPtr compileShader(IMkShaderCodeConstPtr shaderCode)
 	{
-		IMkShader* shader = new IMkShader(shaderCode);
+		IMkShaderPtr shader = createIMkShader(shaderCode);
 
 		if (!shader->compileProgram())
 		{			
-			delete shader;
 			shader= nullptr;
 		}
 
 		return shader;
 	}
 
-	GlTexture* loadTexture(char const* path)
+	IMkTexturePtr loadTexture(char const* path)
 	{
-		GlTexture* texture= new GlTexture();
+		IMkTexturePtr texture= CreateMkTexture();
 
 		texture->setImagePath(path);
 		if (!texture->reloadTextureFromImagePath())
 		{
 			MIKAN_LOG_ERROR("loadTexture") << "Texture failed to load at path: " << path;
-			delete texture;
 			texture= nullptr;
 		}
 
@@ -1284,10 +1290,9 @@ protected:
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 		
 		// create a color attachment texture
-		m_textureColorbuffer =
-			(new GlTexture())
-			->setSize(width, height)
-			->setTextureFormat(GL_RGBA);
+		m_textureColorbuffer = CreateMkTexture();
+		m_textureColorbuffer->setSize(width, height);
+		m_textureColorbuffer->setTextureFormat(GL_RGBA);
 		m_textureColorbuffer->createTexture();
 		m_textureColorbuffer->bindTexture();
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureColorbuffer->getGlTextureId(), 0);
@@ -1321,7 +1326,6 @@ protected:
 		if (m_textureColorbuffer != nullptr)
 		{
 			m_textureColorbuffer->disposeTexture();
-			delete m_textureColorbuffer;
 			m_textureColorbuffer= nullptr;
 		}
 
@@ -1424,17 +1428,17 @@ private:
 	glm::mat4 m_viewMatrix;
 	float m_zNear, m_zFar;
 
-	IMkShader* m_shader= nullptr;
-	IMkShader* m_screenShader= nullptr;
+	IMkShaderPtr m_shader= nullptr;
+	IMkShaderPtr m_screenShader= nullptr;
 
 	unsigned int m_cubeVAO= 0, m_cubeVBO= 0;
 	unsigned int m_planeVAO= 0, m_planeVBO= 0;
 	unsigned int m_quadVAO= 0, m_quadVBO= 0;
 
-	GlTexture* m_cubeTexture= nullptr;
-	GlTexture* m_floorTexture= nullptr;
+	IMkTexturePtr m_cubeTexture= nullptr;
+	IMkTexturePtr m_floorTexture= nullptr;
 
-	GlTexture* m_textureColorbuffer= nullptr;
+	IMkTexturePtr m_textureColorbuffer= nullptr;
 	unsigned int m_framebuffer= 0;
 	unsigned int m_rbo= 0;
 

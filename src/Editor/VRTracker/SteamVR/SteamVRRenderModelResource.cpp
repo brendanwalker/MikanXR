@@ -125,24 +125,24 @@ void SteamVRRenderModelResource::disposeSteamVRResources()
 IMkTexturePtr SteamVRRenderModelResource::createTextureResource(
 	const vr::RenderModel_TextureMap_t* steamvrTexture)
 {
-	IMkTexturePtr glTexture = nullptr;
+	IMkTexturePtr mkTexture = nullptr;
 
 	if (steamvrTexture != nullptr)
 	{
-		glTexture = CreateMkTexture(
+		mkTexture = CreateMkTexture(
 			steamvrTexture->unWidth,
 			steamvrTexture->unHeight,
 			steamvrTexture->rubTextureMapData,
 			GL_RGBA,
 			GL_RGBA);
 
-		if (!glTexture->createTexture())
+		if (!mkTexture->createTexture())
 		{
-			glTexture = nullptr;
+			mkTexture = nullptr;
 		}
 	}
 
-	return glTexture;
+	return mkTexture;
 }
 
 MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
@@ -151,7 +151,7 @@ MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	auto* shaderCache= m_ownerWindow->getShaderCache();
 	MkMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
 	assert(material != nullptr);
-	MkMaterialInstancePtr materialInstance = std::make_shared<GlMaterialInstance>(material);
+	MkMaterialInstancePtr materialInstance = std::make_shared<MkMaterialInstance>(material);
 
 	// Fill in material parameter defaults
 	if (texture)

@@ -159,7 +159,9 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 		// re-create a material from the asset reference
 		if (m_materialAssetRef->isValid())
 		{
-			GlShaderCache* shaderCache = getOwnerGraph()->getOwnerWindow()->getShaderCache();
+			MikanShaderCache* shaderCache = 
+				reinterpret_cast<MikanShaderCache*>(
+					getOwnerGraph()->getOwnerWindow()->getShaderCache());
 			assert(shaderCache);
 
 			m_materialResource = shaderCache->loadMaterialAssetReference(m_materialAssetRef);

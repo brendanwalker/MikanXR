@@ -35,6 +35,7 @@
 #include "MathTypeConversion.h"
 #include "MathMikan.h"
 #include "MikanLineRenderer.h"
+#include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
 #include "MikanScene.h"
@@ -343,7 +344,7 @@ void AppStage_Compositor::onNewRecordingFrameReady()
 
 		if (bgrTexture != nullptr && m_videoWriter != nullptr && m_videoWriter->getIsOpened())
 		{
-			m_videoWriter->write(bgrTexture.get());
+			m_videoWriter->write(bgrTexture);
 		}
 	}
 }
@@ -619,7 +620,7 @@ void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clien
 	{		
 		if (clientSource->colorTexture != nullptr)
 		{
-			SdlUtility::saveTextureToPNG(clientSource->colorTexture.get(), "layerScreenshot.png");
+			SdlUtility::saveTextureToPNG(clientSource->colorTexture, "layerScreenshot.png");
 		}
 	}
 }

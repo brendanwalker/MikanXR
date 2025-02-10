@@ -6,23 +6,25 @@
 #include "AlignmentCalibration/RmlModel_AlignmentCalibration.h"
 #include "AlignmentCalibration/RmlModel_AlignmentCameraSettings.h"
 #include "App.h"
+#include "CalibrationPatternFinder.h"
 #include "Colors.h"
-#include "MikanCamera.h"
-#include "IMkFrameBuffer.h"
-#include "MikanLineRenderer.h"
-#include "MkMaterial.h"
-#include "MkMaterialInstance.h"
 #include "GlScene.h"
-#include "MkScopedObjectBinding.h"
-#include "MkStateStack.h"
+#include "IMkFrameBuffer.h"
 #include "IMkTriangulatedMesh.h"
+#include "IMkLineRenderer.h"
+#include "IMkTextRenderer.h"
+#include "MathTypeConversion.h"
+#include "MathUtility.h"
+#include "MikanCamera.h"
+#include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
 #include "MainWindow.h"
-#include "MathTypeConversion.h"
-#include "MathUtility.h"
+#include "MkMaterial.h"
+#include "MkMaterialInstance.h"
+#include "MkScopedObjectBinding.h"
+#include "MkStateStack.h"
 #include "MonoLensTrackerPoseCalibrator.h"
-#include "CalibrationPatternFinder.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -97,7 +99,7 @@ void AppStage_AlignmentCalibration::enter()
 	}
 
 	// Fetch the new camera associated with the viewport
-	m_camera= getFirstViewport()->getCurrentCamera();
+	m_camera= getFirstViewport()->getCurrentMikanCamera();
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
@@ -345,7 +347,7 @@ void AppStage_AlignmentCalibration::render()
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			*m_ownerWindow->getMkStateStack().getCurrentState(),
+			m_ownerWindow->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 

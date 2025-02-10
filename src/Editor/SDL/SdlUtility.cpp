@@ -11,7 +11,7 @@
 
 namespace SdlUtility
 {
-	bool saveTextureToPNG(GlTexture* texture, const char* filename)
+	bool saveTextureToPNG(IMkTexturePtr texture, const char* filename)
 	{
 		int depth = 0;
 		bool bIsBGR = false;

@@ -388,7 +388,7 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 	UniformNameSet unboundUniforms = materialBinding.getUnboundUniforms();
 
 	if (m_impl->parentMaterial != nullptr && 
-		materialBinding.getBoundMaterial() == m_impl->parentMaterial)
+		materialBinding.getBoundMaterial() == m_impl->parentMaterial.get())
 	{
 		IMkShaderPtr program= m_impl->parentMaterial->getProgram();
 
@@ -510,7 +510,7 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 		bMaterialInstanceFailure= true;
 	}
 
-	return MkScopedMaterialInstanceBinding(shared_from_this(), unboundUniforms, bMaterialInstanceFailure);
+	return MkScopedMaterialInstanceBinding(this, unboundUniforms, bMaterialInstanceFailure);
 }
 
 void MkMaterialInstance::unbindMaterialInstance() const

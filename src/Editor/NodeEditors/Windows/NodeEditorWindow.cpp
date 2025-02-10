@@ -73,12 +73,12 @@ MikanModelResourceManager* NodeEditorWindow::getModelResourceManager()
 
 IMkShaderCache* NodeEditorWindow::getShaderCache()
 {
-	return m_shaderCache->getMkShaderCache().get();
+	return m_shaderCache.get();
 }
 
 IMkTextureCache* NodeEditorWindow::getTextureCache()
 {
-	return m_textureCache->getMkTextureCache().get();
+	return m_textureCache.get();
 }
 
 MkStateStack& NodeEditorWindow::getMkStateStack()
