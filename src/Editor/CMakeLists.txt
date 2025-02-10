@@ -532,6 +532,7 @@ list(APPEND MIKAN_REQ_LIBS
   MikanClientAPI
   MikanClientCore
   MikanCoreApp
+  MikanMath
   MikanRenderer
   MikanSerialization
   MikanSharedTexture
