@@ -17,28 +17,22 @@
 #include "glm/ext/matrix_float4x4.hpp"
 
 
-class MkScopedMaterialInstanceBinding
+class MIKAN_RENDERER_CLASS MkScopedMaterialInstanceBinding
 {
 public:
-	MkScopedMaterialInstanceBinding() : m_boundMaterialInstance(nullptr) {}
+	MkScopedMaterialInstanceBinding();
 	MkScopedMaterialInstanceBinding(
 		const MkMaterialInstance* materialInstance,
 		UniformNameSet unboundUniformNames,
-		bool bMaterialInstanceFailure) 
-		: m_boundMaterialInstance(materialInstance) 
-		, m_unboundUniformNames(unboundUniformNames)
-		, m_bMaterialInstanceFailure(bMaterialInstanceFailure)
-	{}
+		bool bMaterialInstanceFailure);
 	virtual ~MkScopedMaterialInstanceBinding();
 
-	inline const MkMaterialInstance* getBoundMaterialInstance() const { return m_boundMaterialInstance; }
-	inline const UniformNameSet& getUnboundUniforms() const { return m_unboundUniformNames; }
-	inline operator bool() const { return !m_bMaterialInstanceFailure; }
+	const MkMaterialInstance* getBoundMaterialInstance() const;
+	const UniformNameSet& getUnboundUniforms() const;
+	operator bool() const;
 
 private:
-	const MkMaterialInstance* m_boundMaterialInstance = nullptr;
-	UniformNameSet m_unboundUniformNames;
-	bool m_bMaterialInstanceFailure= false;
+	struct MkScopedMaterialInstanceBindingImpl* m_impl;
 };
 
 class MIKAN_RENDERER_CLASS MkMaterialInstance 

@@ -3,6 +3,58 @@
 #include "IMkShader.h"
 #include "IMkTexture.h"
 
+// -- MkScopedMaterialInstanceBinding ------
+struct MkScopedMaterialInstanceBindingImpl
+{
+	const MkMaterialInstance* boundMaterialInstance;
+	UniformNameSet unboundUniformNames;
+	bool bMaterialInstanceFailure;
+};
+
+MkScopedMaterialInstanceBinding::MkScopedMaterialInstanceBinding() 
+	: m_impl(new MkScopedMaterialInstanceBindingImpl)
+{
+	m_impl->boundMaterialInstance = nullptr;
+	m_impl->bMaterialInstanceFailure = true;
+}
+
+MkScopedMaterialInstanceBinding::MkScopedMaterialInstanceBinding(
+	const MkMaterialInstance* materialInstance,
+	UniformNameSet unboundUniformNames,
+	bool bMaterialInstanceFailure)
+	: m_impl(new MkScopedMaterialInstanceBindingImpl)
+{
+	m_impl->boundMaterialInstance= materialInstance;
+	m_impl->unboundUniformNames= unboundUniformNames;
+	m_impl->bMaterialInstanceFailure= bMaterialInstanceFailure;
+}
+
+MkScopedMaterialInstanceBinding::~MkScopedMaterialInstanceBinding()
+{
+	if (m_impl->boundMaterialInstance != nullptr)
+	{
+		m_impl->boundMaterialInstance->unbindMaterialInstance();
+	}
+
+	delete m_impl;
+}
+
+const MkMaterialInstance* MkScopedMaterialInstanceBinding::getBoundMaterialInstance() const 
+{
+	return m_impl->boundMaterialInstance; 
+}
+
+const UniformNameSet& MkScopedMaterialInstanceBinding::getUnboundUniforms() const 
+{
+	return m_impl->unboundUniformNames; 
+}
+
+MkScopedMaterialInstanceBinding::operator bool() const 
+{ 
+	return !m_impl->bMaterialInstanceFailure; 
+}
+
+// -- MkMaterialInstance ------
 struct MkMaterialInstanceImpl
 {
 	MkMaterialConstPtr parentMaterial;
@@ -529,14 +581,5 @@ void MkMaterialInstance::unbindMaterialInstance() const
 		{
 			it->second->clearTexture(textureUnit);
 		}
-	}
-}
-
-// -- GlScopedMaterialInstanceBinding ------
-MkScopedMaterialInstanceBinding::~MkScopedMaterialInstanceBinding()
-{
-	if (m_boundMaterialInstance != nullptr)
-	{
-		m_boundMaterialInstance->unbindMaterialInstance();
 	}
 }
