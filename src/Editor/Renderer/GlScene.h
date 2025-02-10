@@ -2,6 +2,7 @@
 
 #include "IMkSceneRenderable.h"
 #include "MkShaderConstants.h"
+#include "MkMaterial.h"
 #include "IMkScene.h"
 
 #include <map>

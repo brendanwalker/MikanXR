@@ -35,7 +35,7 @@
 
 struct DepthMeshCaptureState
 {
-	IGlWindow* ownerWindow;
+	IMkWindow* ownerWindow;
 
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
@@ -53,7 +53,7 @@ struct DepthMeshCaptureState
 	MikanRenderModelResourcePtr depthMeshResource;
 
 	void init(
-		IGlWindow* owner,
+		IMkWindow* owner,
 		ProfileConfigConstPtr config, 
 		VideoSourceViewPtr videoSourceView)
 	{
@@ -437,7 +437,7 @@ private:
 
 //-- MonoDistortionCalibrator ----
 DepthMeshGenerator::DepthMeshGenerator(
-	IGlWindow* ownerWindow,
+	IMkWindow* ownerWindow,
 	ProfileConfigConstPtr profileConfig,
 	VideoFrameDistortionViewPtr distortionView,
 	SyntheticDepthEstimatorPtr depthEstimator)

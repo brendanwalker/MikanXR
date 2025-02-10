@@ -3,7 +3,7 @@
 //-- includes -----
 #include "AssetFwd.h"
 #include "SdlFwd.h"
-#include "IMkWindow.h"
+#include "ISdlMkWindow.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
@@ -23,7 +23,7 @@
 #include <vector>
 
 //-- definitions -----
-class NodeEditorWindow : public IGlWindow
+class NodeEditorWindow : public ISdlMkWindow
 {
 public:
 	NodeEditorWindow();
@@ -38,7 +38,7 @@ public:
 	virtual bool saveGraph(bool bShowFileDialog);
 	virtual void undo();
 
-	// -- IGlWindow ----
+	// -- IMkWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
@@ -50,13 +50,13 @@ public:
 	virtual bool getIsRenderingStage() const override { return false; }
 	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
-	virtual GlViewportPtr getRenderingViewport() const override { return nullptr; }
+	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
 	virtual MkStateStack& getMkStateStack() override;
-	virtual GlLineRenderer* getLineRenderer() override;
-	virtual MikanTextRenderer* getTextRenderer() override;
+	virtual IMkLineRenderer* getLineRenderer() override;
+	virtual IMkTextRenderer* getTextRenderer() override;
 	virtual MikanModelResourceManager* getModelResourceManager() override;
-	virtual GlShaderCache* getShaderCache() override;
-	virtual MikanTextureCache* getTextureCache() override;
+	virtual IMkShaderCache* getShaderCache() override;
+	virtual IMkTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;
@@ -109,10 +109,10 @@ protected:
 	MikanModelResourceManagerUniquePtr m_modelResourceManager;
 
 	// OpenGL shader program cache
-	GlShaderCacheUniquePtr m_shaderCache;
+	MikanShaderCacheUniquePtr m_shaderCache;
 
 	// OpenGL texture cache
-	GlTextureCacheUniquePtr m_textureCache;
+	MikanTextureCacheUniquePtr m_textureCache;
 
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;

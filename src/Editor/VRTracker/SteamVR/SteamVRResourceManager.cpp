@@ -10,7 +10,7 @@ SteamVRResourceManager::~SteamVRResourceManager()
 	cleanup();
 }
 
-void SteamVRResourceManager::init(IGlWindow* ownerWindow)
+void SteamVRResourceManager::init(IMkWindow* ownerWindow)
 {
 	m_ownerWindow = ownerWindow;
 }

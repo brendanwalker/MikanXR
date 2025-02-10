@@ -40,7 +40,7 @@ protected:
 	int m_ownerStateStackDepth;
 };
 
-// -- GLStateSetFrontFace --
+// -- mkStateSetFrontFace --
 class GLStateSetFrontFaceImpl : public GLStateModifierBase
 {
 public:
@@ -575,7 +575,7 @@ void mkStateSetStencilOp(IMkStatePtr mkState,
 			mkState, stencil_fail, depth_fail, depth_stencil_pass));
 }
 
-// -- GLStateSetBlendEquation --
+// -- mkStateSetBlendEquation --
 class GLStateSetBlendEquationImpl : public GLStateModifierBase
 {
 public:
@@ -634,7 +634,7 @@ void mkStateSetBlendEquation(IMkStatePtr mkState, eMkBlendEquation mode)
 	mkState->addModifier(std::make_shared<GLStateSetBlendEquationImpl>(mkState, mode));
 }
 
-// -- GLStateSetBlendFunc --
+// -- mkStateSetBlendFunc --
 class GLStateSetBlendFuncImpl : public GLStateModifierBase
 {
 public:
@@ -832,7 +832,7 @@ void mkStateSetReadBuffer(IMkStatePtr mkState, eMkFrameBuffer mode)
 	mkState->addModifier(std::make_shared<GLStateSetReadBufferModeImpl>(mkState, mode));
 }
 
-// -- GLStateClearBuffer --
+// -- mkStateClearBuffer --
 class GLStateClearBufferImpl : public GLStateModifierBase
 {
 public:

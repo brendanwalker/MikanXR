@@ -142,7 +142,7 @@ IMkTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
 
 void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture)
 {
-	IGlWindow* ownerWindow = evaluator.getCurrentWindow();
+	IMkWindow* ownerWindow = evaluator.getCurrentWindow();
 
 	assert(m_clientTextureType == eClientColorTextureType::colorRGBA || 
 		   m_clientTextureType == eClientColorTextureType::colorRGB);

@@ -2,31 +2,32 @@
 #include "MikanViewport.h"
 #include "ColorUtils.h"
 #include "CalibrationRenderHelpers.h"
+#include "IMkLineRenderer.h"
 #include "MikanLineRenderer.h"
 #include "MathUtility.h"
 
-GlLineRenderer* getLineRenderer()
+IMkLineRenderer* getLineRenderer()
 {
-	IGlWindow* window = App::getInstance()->getCurrentGlContext();
+	IMkWindow* window = App::getInstance()->getCurrentGlContext();
 	assert(window != nullptr);
 
 	return window->getLineRenderer();
 }
 
-GlLineRenderer* getLineRendererAndViewportBounds(
+IMkLineRenderer* getLineRendererAndViewportBounds(
 	float& outViewportX0, float& outViewportY0,
 	float& outViewportX1, float& outViewportY1)
 {
-	IGlWindow* window = App::getInstance()->getCurrentGlContext();
+	IMkWindow* window = App::getInstance()->getCurrentGlContext();
 	assert(window != nullptr);
-	GlLineRenderer* lineRenderer = window->getLineRenderer();
+	IMkLineRenderer* lineRenderer = window->getLineRenderer();
 	if (lineRenderer == nullptr)
 		return nullptr;
 
 	assert(window->getIsRenderingStage());
 	glm::i32vec2 renderingOrigin;
 	glm::i32vec2 renderingSize;
-	GlViewportConstPtr viewport = window->getRenderingViewport();
+	IMkViewportConstPtr viewport = window->getRenderingViewport();
 	if (viewport == nullptr ||
 		!viewport->getRenderingViewport(renderingOrigin, renderingSize))
 		return nullptr;
@@ -59,7 +60,7 @@ void drawSegment2d(
 	const glm::vec3& colorStart, const glm::vec3& colorEnd)
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
-	GlLineRenderer* lineRenderer= getLineRendererAndViewportBounds(
+	IMkLineRenderer* lineRenderer= getLineRendererAndViewportBounds(
 		viewportX0, viewportY0,
 		viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
@@ -90,7 +91,7 @@ void drawPointList2d(
 	const float point_size)
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
-	GlLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+	IMkLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
 		viewportX0, viewportY0,
 		viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
@@ -118,7 +119,7 @@ void drawQuadList2d(
 	assert((trackerPointCount % 4) == 0);
 
 	float viewportX0, viewportY0, viewportX1, viewportY1;
-	GlLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+	IMkLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
 		viewportX0, viewportY0,
 		viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
@@ -165,7 +166,7 @@ void drawOpenCVChessBoard2D(
 	bool validPoints)
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
-	GlLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+	IMkLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
 		viewportX0, viewportY0,
 		viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
@@ -256,7 +257,7 @@ void drawOpenCVChessBoard3D(
 	const int pointCount,
 	bool validPoints)
 {
-	GlLineRenderer* lineRenderer = getLineRenderer();
+	IMkLineRenderer* lineRenderer = getLineRenderer();
 	if (lineRenderer == nullptr)
 		return;
 

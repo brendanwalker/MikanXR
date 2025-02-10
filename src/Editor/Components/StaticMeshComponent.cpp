@@ -40,7 +40,7 @@ void StaticMeshComponent::extractRenderGeometry(MikanTriagulatedMesh& outRenderG
 		return;
 	}
 
-	GlMaterialInstanceConstPtr materialInst= meshInstance->getMaterialInstanceConst();
+	MkMaterialInstanceConstPtr materialInst= meshInstance->getMaterialInstanceConst();
 	MkMaterialConstPtr material= materialInst->getMaterial();
 	const GlVertexDefinition& vertexDefinition= material->getProgram()->getVertexDefinition();
 	const size_t vertexSize = vertexDefinition.getVertexSize();

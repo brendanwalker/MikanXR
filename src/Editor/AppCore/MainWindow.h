@@ -88,7 +88,7 @@ public:
 	MulticastDelegate<void(AppStage* appStage)> OnAppStageEntered;
 	MulticastDelegate<void(AppStage* appStage)> OnAppStageExited;
 
-	// -- IGlWindow ----
+	// -- IMkWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;

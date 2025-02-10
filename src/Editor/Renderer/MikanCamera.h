@@ -65,7 +65,7 @@ public:
 	void adjustOrbitTargetPosition(const glm::vec3& deltaTarget);
 	
 	void computeCameraRayThruPixel(
-		GlViewportConstPtr viewportPtr,
+		MikanViewportConstPtr viewportPtr,
 		const glm::vec2& pixelLocation,
 		glm::vec3& outRayOrigin,
 		glm::vec3& outRayDirection) const;

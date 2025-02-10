@@ -6,6 +6,7 @@
 #include "SdlCommon.h"
 #include "MikanModelResourceManager.h"
 #include "MkStateStack.h"
+#include "IMkState.h"
 #include "MkStateModifiers.h"
 #include "MikanShaderCache.h"
 #include "IMkTexture.h"
@@ -47,20 +48,20 @@ NodeEditorWindow::NodeEditorWindow()
 	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
-	, m_shaderCache(GlShaderCacheUniquePtr(new GlShaderCache))
-	, m_textureCache(GlTextureCacheUniquePtr(new MikanTextureCache))
+	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
+	, m_textureCache(MikanTextureCacheUniquePtr(new MikanTextureCache(this)))
 {}
 
 NodeEditorWindow::~NodeEditorWindow()
 {
 }
 
-GlLineRenderer* NodeEditorWindow::getLineRenderer()
+IMkLineRenderer* NodeEditorWindow::getLineRenderer()
 {
 	return nullptr;
 }
 
-MikanTextRenderer* NodeEditorWindow::getTextRenderer()
+IMkTextRenderer* NodeEditorWindow::getTextRenderer()
 {
 	return nullptr;
 }
@@ -70,14 +71,14 @@ MikanModelResourceManager* NodeEditorWindow::getModelResourceManager()
 	return m_modelResourceManager.get();
 }
 
-GlShaderCache* NodeEditorWindow::getShaderCache()
+IMkShaderCache* NodeEditorWindow::getShaderCache()
 {
-	return m_shaderCache.get();
+	return m_shaderCache->getMkShaderCache().get();
 }
 
-MikanTextureCache* NodeEditorWindow::getTextureCache()
+IMkTextureCache* NodeEditorWindow::getTextureCache()
 {
-	return m_textureCache.get();
+	return m_textureCache->getMkTextureCache().get();
 }
 
 MkStateStack& NodeEditorWindow::getMkStateStack()
@@ -199,17 +200,17 @@ bool NodeEditorWindow::startup()
 	if (success)
 	{
 		// Set default state flags at the base of the stack
-		IMkStatePtr glBaseState= m_MkStateStack->pushState("NodeEditor Root Scope");
-		assert(glBaseState.getStackDepth() == 0);
+		IMkStatePtr mkBaseState= m_MkStateStack->pushState("NodeEditor Root Scope");
+		assert(mkBaseState->getStackDepth() == 0);
 
-		glBaseState
-		.enableFlag(eMkStateFlagType::texture2d)
-		.enableFlag(eMkStateFlagType::depthTest)
-		.disableFlag(eMkStateFlagType::cullFace);
+		mkBaseState
+		->enableFlag(eMkStateFlagType::texture2d)
+		->enableFlag(eMkStateFlagType::depthTest)
+		->disableFlag(eMkStateFlagType::cullFace);
 
 		static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
-		mkStateSetClearColor(glBaseState, k_clear_color);
-		mkStateSetViewport(glBaseState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
+		mkStateSetClearColor(mkBaseState, k_clear_color);
+		mkStateSetViewport(mkBaseState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
 	}
 
 	return success;

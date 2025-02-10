@@ -149,7 +149,7 @@ void ClientDepthTextureNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 		m_linearDepthFrameBuffer->createResources();
 	}
 
-	IGlWindow* ownerWindow= evaluator.getCurrentWindow();
+	IMkWindow* ownerWindow= evaluator.getCurrentWindow();
 	MkScopedObjectBinding depthFramebufferBinding(
 		*ownerWindow->getMkStateStack().getCurrentState(),
 		"Depth Texture Framebuffer Scope",

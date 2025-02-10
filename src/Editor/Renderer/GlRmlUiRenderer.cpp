@@ -32,8 +32,11 @@
 #include "SdlCommon.h"
 #include "MikanShaderCache.h"
 #include "IMkShader.h"
+#include "IMkShaderCode.h"
 #include "MkStateStack.h"
+#include "IMkState.h"
 #include "MkStateModifiers.h"
+#include "MkError.h"
 #include "IMkVertexDefinition.h"
 #include "MikanViewport.h"
 #include "IMkWindow.h"
@@ -107,30 +110,50 @@ namespace RmlGfx {
 			}
 		)"""";
 
-	static IMkShaderCode color_program_code = IMkShaderCode(
-		"Rml UI Color Program",
-		// vertex shader
-		shader_main_vertex,
-		//fragment shader
-		shader_main_fragment_color)
-		.addVertexAttributes("inPosition", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-		.addVertexAttributes("inColor0", eVertexDataType::datatype_ubvec4, eVertexSemantic::color, true)
-		.addVertexAttributes("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
-		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix);
+	static IMkShaderCodePtr getColorProgramCode()
+	{
+		static IMkShaderCodePtr color_program_code = nullptr;
 
-	static IMkShaderCode texture_program_code = IMkShaderCode(
-		"Rml UI Texture Program",
-		// vertex shader`
-		shader_main_vertex,
-		//fragment shader
-		shader_main_fragment_texture)
-		.addVertexAttributes("inPosition", eVertexDataType::datatype_vec2, eVertexSemantic::position)
-		.addVertexAttributes("inColor0", eVertexDataType::datatype_ubvec4, eVertexSemantic::color, true)
-		.addVertexAttributes("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord)
-		.addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition)
-		.addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix)
-		.addUniform(TEXTURE_UNIFORM_NAME, eUniformSemantic::rgbaTexture);
+		if (color_program_code == nullptr)
+		{
+			color_program_code = createIMkShaderCode(
+				"Rml UI Color Program",
+				// vertex shader
+				shader_main_vertex,
+				//fragment shader
+				shader_main_fragment_color);
+			color_program_code->addVertexAttribute("inPosition", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+			color_program_code->addVertexAttribute("inColor0", eVertexDataType::datatype_ubvec4, eVertexSemantic::color, true);
+			color_program_code->addVertexAttribute("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+			color_program_code->addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition);
+			color_program_code->addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix);
+		}
+
+		return color_program_code;
+	}
+
+	static IMkShaderCodePtr getTextureProgramCode()
+	{
+		static IMkShaderCodePtr texture_program_code = nullptr;
+
+		if (texture_program_code == nullptr)
+		{
+			texture_program_code = createIMkShaderCode(
+				"Rml UI Texture Program",
+				// vertex shader`
+				shader_main_vertex,
+				//fragment shader
+				shader_main_fragment_texture);
+			texture_program_code->addVertexAttribute("inPosition", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+			texture_program_code->addVertexAttribute("inColor0", eVertexDataType::datatype_ubvec4, eVertexSemantic::color, true);
+			texture_program_code->addVertexAttribute("inTexCoord0", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+			texture_program_code->addUniform(SCREEN_POSITION_UNIFORM_NAME, eUniformSemantic::screenPosition);
+			texture_program_code->addUniform(TRANSFORM_UNIFORM_NAME, eUniformSemantic::transformMatrix);
+			texture_program_code->addUniform(TEXTURE_UNIFORM_NAME, eUniformSemantic::rgbaTexture);
+		}
+
+		return texture_program_code;
+	}
 
 	struct CompiledGeometryData {
 		GLuint texture;
@@ -145,18 +168,20 @@ namespace RmlGfx {
 		IMkShaderPtr program_texture;
 	};
 
-	static bool CreateShaders(IGlWindow* ownerWindow, ShadersData& out_shaders)
+	static bool CreateShaders(IMkWindow* ownerWindow, ShadersData& out_shaders)
 	{
 		out_shaders = {};
 
-		out_shaders.program_color = ownerWindow->getShaderCache()->fetchCompiledIMkShader(&color_program_code);
+		IMkShaderCodePtr color_program_code = getColorProgramCode();
+		out_shaders.program_color = ownerWindow->getShaderCache()->fetchCompiledIMkShader(color_program_code);
 		if (out_shaders.program_color == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
 			return false;
 		}
 
-		out_shaders.program_texture = ownerWindow->getShaderCache()->fetchCompiledIMkShader(&texture_program_code);
+		IMkShaderCodePtr texture_program_code = getTextureProgramCode();
+		out_shaders.program_texture = ownerWindow->getShaderCache()->fetchCompiledIMkShader(texture_program_code);
 		if (out_shaders.program_texture == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
@@ -464,27 +489,27 @@ void GlRmlUiRender::setViewport(int width, int height)
 void GlRmlUiRender::render()
 {
 	MkStateStack& MkStateStack= m_ownerWindow.getMkStateStack();
-	GlScopedState scopedState = MkStateStack.createScopedState("GlRmlUiRender renderUI");
-	IMkStatePtr glState = scopedState.getStackState();
+	MkScopedState scopedState = MkStateStack.createScopedState("GlRmlUiRender renderUI");
+	IMkStatePtr mkState = scopedState.getStackState();
 
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
-	mkStateSetViewport(glState, 0, 0, viewport_width, viewport_height);
+	mkStateSetViewport(mkState, 0, 0, viewport_width, viewport_height);
 
-	glState.disableFlag(eMkStateFlagType::depthTest);
-	glState.disableFlag(eMkStateFlagType::cullFace);
-	glState.disableFlag(eMkStateFlagType::scissorTest);
-	glState.enableFlag(eMkStateFlagType::stencilTest);
-	glState.enableFlag(eMkStateFlagType::blend);
+	mkState->disableFlag(eMkStateFlagType::depthTest);
+	mkState->disableFlag(eMkStateFlagType::cullFace);
+	mkState->disableFlag(eMkStateFlagType::scissorTest);
+	mkState->enableFlag(eMkStateFlagType::stencilTest);
+	mkState->enableFlag(eMkStateFlagType::blend);
 
-	mkStateSetClearColor(glState, glm::vec4(0.f, 0.f, 0.f, 1.f));
-	mkStateSetColorMask(glState, glm::bvec4(true, true, true, true));
+	mkStateSetClearColor(mkState, glm::vec4(0.f, 0.f, 0.f, 1.f));
+	mkStateSetColorMask(mkState, glm::bvec4(true, true, true, true));
 
-	mkStateSetStencilBufferClearValue(glState, 0);
-	mkStateSetStencilFunc(glState, eMkStencilFunction::ALWAYS, 1, 0xFFFFFFFF);
-	mkStateSetStencilOp(glState, eMkStencilOp::KEEP, eMkStencilOp::KEEP, eMkStencilOp::KEEP);
+	mkStateSetStencilBufferClearValue(mkState, 0);
+	mkStateSetStencilFunc(mkState, eMkStencilFunction::ALWAYS, 1, 0xFFFFFFFF);
+	mkStateSetStencilOp(mkState, eMkStencilOp::KEEP, eMkStencilOp::KEEP, eMkStencilOp::KEEP);
 
-	glStateSetBlendEquation(glState, eGlBlendEquation::ADD);
-	glStateSetBlendFunc(glState, eGlBlendFunction::SRC_ALPHA, eGlBlendFunction::ONE_MINUS_SRC_ALPHA);
+	mkStateSetBlendEquation(mkState, eMkBlendEquation::ADD);
+	mkStateSetBlendFunc(mkState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
 
 	projection = Rml::Matrix4f::ProjectOrtho(0, (float)viewport_width, (float)viewport_height, 0, -10000, 10000);
 
@@ -533,13 +558,13 @@ Rml::CompiledGeometryHandle GlRmlUiRender::CompileGeometry(
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Rml::Vertex) * num_vertices, (const void*)vertices, draw_usage);
 
-	shaders->program_color->getVertexDefinition().applyVertexDefintion();
+	shaders->program_color->getVertexDefinition()->applyVertexDefintion();
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, (const void*)indices, draw_usage);
 	glBindVertexArray(0);
 
-	checkHasAnyGLError("GlRmlUiRender::CompileGeometry", __FILE__, __LINE__);
+	checkHasAnyMkError("GlRmlUiRender::CompileGeometry", __FILE__, __LINE__);
 
 	RmlGfx::CompiledGeometryData* geometry = new RmlGfx::CompiledGeometryData;
 	geometry->texture = (GLuint)texture;
@@ -587,7 +612,7 @@ void GlRmlUiRender::RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, c
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	checkHasAnyGLError("IMkShader::createProgram()", __FILE__, __LINE__);
+	checkHasAnyMkError("IMkShader::createProgram()", __FILE__, __LINE__);
 
 	assert(program != nullptr);
 	program->unbindProgram();

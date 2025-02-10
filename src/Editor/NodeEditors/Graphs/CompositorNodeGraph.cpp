@@ -531,7 +531,7 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 }
 
 // -- CompositorNodeGraphFactory ----
-NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph(IGlWindow* ownerWindow) const
+NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph(IMkWindow* ownerWindow) const
 {
 	auto nodeGraph= NodeGraphFactory::initialCreateNodeGraph(ownerWindow);
 	if (!nodeGraph)

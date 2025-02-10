@@ -126,5 +126,5 @@ protected:
 	bool m_bAddingNewConfig= false;
 
 	class VideoWriter* m_videoWriter= nullptr;
-	class SharedTextureWriteAccessor* m_renderTargetWriteAccessor= nullptr;
+	ISharedTextureWriteAccessorPtr m_renderTargetWriteAccessor;
 };

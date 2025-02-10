@@ -6,7 +6,7 @@ class CompositorNodeEditorWindow : public NodeEditorWindow
 public:
 	CompositorNodeEditorWindow();
 
-	// -- IGlWindow ----
+	// -- IMkWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void shutdown() override;

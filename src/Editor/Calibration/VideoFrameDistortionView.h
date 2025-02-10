@@ -59,7 +59,7 @@ protected:
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture);
 
 protected:
-	IGlWindow* m_ownerWindow= nullptr;
+	IMkWindow* m_ownerWindow= nullptr;
 
 	eVideoDisplayMode m_videoDisplayMode;
 	VideoSourceViewPtr m_videoSourceView;

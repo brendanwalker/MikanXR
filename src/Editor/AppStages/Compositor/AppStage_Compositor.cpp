@@ -27,6 +27,7 @@
 #include "IMkWireframeMesh.h"
 #include "IMkTexture.h"
 #include "SharedTextureReader.h"
+#include "SharedTextureWriter.h"
 #include "InputManager.h"
 #include "MainWindow.h"
 #include "MathGLM.h"
@@ -78,7 +79,7 @@ AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 	, m_videoWriter(new VideoWriter)
-	, m_renderTargetWriteAccessor(new SharedTextureWriteAccessor("MikanXR"))
+	, m_renderTargetWriteAccessor(createSharedTextureWriteAccessor("MikanXR"))
 {
 }
 
@@ -95,7 +96,6 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorSettingsModel;
 	m_scriptContext.reset();
 	delete m_videoWriter;
-	delete m_renderTargetWriteAccessor;
 }
 
 void AppStage_Compositor::enter()
@@ -360,14 +360,14 @@ bool AppStage_Compositor::startStreaming()
 	if (compositorTexture->getBufferFormat() != GL_RGBA)
 		return false;
 
-	MikanRenderTargetDescriptor descriptor = {};
-	descriptor.color_buffer_type= MikanColorBuffer_RGBA32;
-	descriptor.depth_buffer_type= MikanDepthBuffer_NODEPTH;
-	descriptor.width= compositorTexture->getTextureWidth();
-	descriptor.height= compositorTexture->getTextureHeight();
-	descriptor.graphicsAPI= MikanClientGraphicsApi_OpenGL;
+	SharedTextureDescriptor sharedTextureDescriptor;
+	sharedTextureDescriptor.color_buffer_type = SharedColorBufferType::RGBA32;
+	sharedTextureDescriptor.depth_buffer_type = SharedDepthBufferType::NODEPTH;
+	sharedTextureDescriptor.width = compositorTexture->getTextureWidth();
+	sharedTextureDescriptor.height = compositorTexture->getTextureHeight();
+	sharedTextureDescriptor.graphicsAPI = SharedClientGraphicsApi::OpenGL;
 
-	m_renderTargetWriteAccessor->initialize(&descriptor, true, nullptr);
+	m_renderTargetWriteAccessor->initialize(&sharedTextureDescriptor, true, nullptr);
 
 	// Listen for new frames to write out
 	m_frameCompositor->OnNewFrameComposited += MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);

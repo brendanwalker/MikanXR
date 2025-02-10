@@ -1018,7 +1018,7 @@ int NodeGraph::allocateId()
 std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
 
 NodeGraphPtr NodeGraphFactory::loadNodeGraph(
-	IGlWindow* ownerWindow,
+	IMkWindow* ownerWindow,
 	const std::filesystem::path& path)
 {
 	// Load the node graph config from the file path
@@ -1081,7 +1081,7 @@ NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
 	return std::make_shared<NodeGraph>();
 }
 
-NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IGlWindow* ownerWindow) const
+NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IMkWindow* ownerWindow) const
 {
 	// Derived node graph types override this method to create properties and nodes
 	// on initial creation of the graph.

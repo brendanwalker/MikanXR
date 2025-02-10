@@ -22,7 +22,7 @@ class DepthMeshGenerator
 {
 public:
 	DepthMeshGenerator(
-		IGlWindow* ownerWindow,
+		IMkWindow* ownerWindow,
 		ProfileConfigConstPtr profileConfig,
 		VideoFrameDistortionViewPtr distortionView,
 		SyntheticDepthEstimatorPtr depthEstimator);

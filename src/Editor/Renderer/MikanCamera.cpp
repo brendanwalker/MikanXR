@@ -335,7 +335,7 @@ void MikanCamera::applyOrbitParamsToViewMatrix()
 	}
 }
 
-const glm::vec3 MikanCamera::getCameraPositionFromViewMatrix() const
+glm::vec3 MikanCamera::getCameraPositionFromViewMatrix() const
 {
 	// Assumes no scaling 
 	const glm::mat3 rotMat(m_viewMatrix);
@@ -345,23 +345,23 @@ const glm::vec3 MikanCamera::getCameraPositionFromViewMatrix() const
 	return position;
 }
 
-const glm::vec3 MikanCamera::getCameraRightFromViewMatrix() const
+glm::vec3 MikanCamera::getCameraRightFromViewMatrix() const
 {
 	return glm::vec3(m_viewMatrix[0][0], m_viewMatrix[1][0], m_viewMatrix[2][0]);
 }
 
-const glm::vec3 MikanCamera::getCameraUpFromViewMatrix() const
+glm::vec3 MikanCamera::getCameraUpFromViewMatrix() const
 {
 	return glm::vec3(m_viewMatrix[0][1], m_viewMatrix[1][1], m_viewMatrix[2][1]);
 }
 
-const glm::vec3 MikanCamera::getCameraForwardFromViewMatrix() const
+glm::vec3 MikanCamera::getCameraForwardFromViewMatrix() const
 {
 	// Camera forward is along negative Z-axis
 	return glm::vec3(m_viewMatrix[0][2], m_viewMatrix[1][2], m_viewMatrix[2][2]) * -1.f;
 }
 
-const glm::mat4 MikanCamera::getCameraTransformFromViewMatrix() const
+glm::mat4 MikanCamera::getCameraTransformFromViewMatrix() const
 {
 	return
 		glm::mat4(
@@ -372,7 +372,7 @@ const glm::mat4 MikanCamera::getCameraTransformFromViewMatrix() const
 }
 
 void MikanCamera::computeCameraRayThruPixel(
-	GlViewportConstPtr viewport,
+	MikanViewportConstPtr viewport,
 	const glm::vec2& viewportPixelPos,
 	glm::vec3& outRayOrigin,
 	glm::vec3& outRayDirection) const

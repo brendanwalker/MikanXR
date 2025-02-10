@@ -16,7 +16,7 @@ CompositorNodeEditorWindow::CompositorNodeEditorWindow() : NodeEditorWindow()
 {
 }
 
-// -- IGlWindow ----
+// -- IMkWindow ----
 bool CompositorNodeEditorWindow::startup()
 {
 	// Tell the frame compositor to create a texture for the editor compositor to write to

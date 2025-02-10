@@ -3,6 +3,7 @@
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMkShader.h"
+#include "IMkState.h"
 #include "GlScene.h"
 #include "MkStateModifiers.h"
 #include "MkStateStack.h"
@@ -74,18 +75,18 @@ void GlScene::removeAllInstances()
 
 void GlScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
 {
-	GlScopedState scopedState= MkStateStack.createScopedState("GlScene");
-	IMkStatePtr glState= scopedState.getStackState();
+	MkScopedState scopedState= MkStateStack.createScopedState("GlScene");
+	IMkStatePtr mkState= scopedState.getStackState();
 
 	// Enable front face culling while drawing the scene
-	glState.enableFlag(eMkStateFlagType::cullFace);
-	glStateSetFrontFace(glState, eGLFrontFaceMode::CCW);
+	mkState->enableFlag(eMkStateFlagType::cullFace);
+	mkStateSetFrontFace(mkState, eMkFrontFaceMode::CCW);
 
 	// Enable Depth Test while drawing the scene
-	glState.enableFlag(eMkStateFlagType::depthTest);
+	mkState->enableFlag(eMkStateFlagType::depthTest);
 
 	// Clear the depth buffer before drawing the scene
-	glStateClearBuffer(glState, eGlClearFlags::depth);
+	mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
 	{
@@ -137,7 +138,7 @@ void GlScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
 						renderableInstance->getVisible() &&
 						renderableInstance->canCameraSee(camera))
 					{
-						GlMaterialInstanceConstPtr materialInstance = renderableInstance->getMaterialInstanceConst();
+						MkMaterialInstanceConstPtr materialInstance = renderableInstance->getMaterialInstanceConst();
 
 						// Bind material instance parameters 
 						// Unbound when materialInstanceBinding goes out of scope.

@@ -37,7 +37,7 @@ struct OpenCVMonoCameraIntrinsics
 };
 
 VideoFrameDistortionView::VideoFrameDistortionView(
-	IGlWindow* ownerWindow,
+	IMkWindow* ownerWindow,
 	VideoSourceViewPtr view,
 	unsigned int bufferBitmask,
 	unsigned int frameQueueSize)

@@ -82,7 +82,7 @@ private:
 namespace ObjUtils
 {
 	bool writeMaterialInstanceTextureToFile(
-		GlMaterialInstanceConstPtr materialInstance,
+		MkMaterialInstanceConstPtr materialInstance,
 		const std::filesystem::path& mtlPath,
 		const eUniformSemantic semantic,
 		std::string& outRelativeTexturePath)
@@ -148,7 +148,7 @@ bool ObjModelExporter::exportModelToFile(
 			const IMkTriangulatedMeshPtr triMesh = modelResource->getTriangulatedMesh(triMeshIndex);
 
 			// Make sure the material vertex definition has the needed attributes
-			GlMaterialInstanceConstPtr materialInstance = triMesh->getMaterialInstance();
+			MkMaterialInstanceConstPtr materialInstance = triMesh->getMaterialInstance();
 			MkMaterialConstPtr material = materialInstance->getMaterial();
 			const GlVertexDefinition& vertexDefinition = material->getProgram()->getVertexDefinition();
 			const size_t vertexSize = vertexDefinition.getVertexSize();
