@@ -305,12 +305,12 @@ file(GLOB MIKAN_OPENCV_SRC
 )
 source_group("OpenCV" FILES ${MIKAN_OPENCV_SRC})
 
-# Scene
-file(GLOB MIKAN_SCENE_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Scene/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Scene/*.h"
+# Profile
+file(GLOB MIKAN_PROFILE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Profile/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Profile/*.h"
 )
-source_group("Scene" FILES ${MIKAN_SCENE_SRC})
+source_group("Profile" FILES ${MIKAN_PROFILE_SRC})
 
 # Renderer
 file(GLOB MIKAN_RENDERER_SRC
@@ -325,6 +325,13 @@ file(GLOB MIKAN_RMLUI_SRC
     "${CMAKE_CURRENT_LIST_DIR}/RmlUI/*.h"
 )
 source_group("RmlUI" FILES ${MIKAN_RMLUI_SRC})
+
+# Scene
+file(GLOB MIKAN_SCENE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Scene/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Scene/*.h"
+)
+source_group("Scene" FILES ${MIKAN_SCENE_SRC})
 
 # Scripting
 file(GLOB MIKAN_SCRIPTING_SRC
@@ -418,6 +425,7 @@ set(MIKAN_SRC
     ${MIKAN_NODE_EDITORS_SRC}
     ${MIKAN_OBJECT_SRC}
     ${MIKAN_OPENCV_SRC}
+    ${MIKAN_PROFILE_SRC}
     ${MIKAN_RENDERER_SRC}
     ${MIKAN_RMLUI_SRC}
     ${MIKAN_SCENE_SRC}

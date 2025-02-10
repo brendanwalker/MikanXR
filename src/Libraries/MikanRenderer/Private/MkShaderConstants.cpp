@@ -97,7 +97,7 @@ eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic)
 	return dataType;
 }
 
-const std::string getUniformSemanticName(eUniformSemantic semantic)
+std::string getUniformSemanticName(eUniformSemantic semantic)
 {
 	int semanticIndex = (int)semantic;
 
