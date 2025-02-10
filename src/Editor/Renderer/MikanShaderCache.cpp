@@ -143,7 +143,9 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 		eUniformSemantic semantic = eUniformSemantic::INVALID;
 		for (int enumIntValue = 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
 		{
-			if (k_UniformSemanticName[enumIntValue] == semanticName)
+			const std::string enumSemanticName= getUniformSemanticName((eUniformSemantic)enumIntValue);
+
+			if (enumSemanticName == semanticName)
 			{
 				semantic = (eUniformSemantic)enumIntValue;
 				break;
