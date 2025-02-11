@@ -24,6 +24,7 @@ using IMkVertexDefinitionConstPtr = std::shared_ptr<const IMkVertexDefinition>;
 
 class IMkShader;
 using IMkShaderPtr= std::shared_ptr<IMkShader>;
+using IMkShaderWeakPtr = std::weak_ptr<IMkShader>;
 using IMkShaderConstPtr= std::shared_ptr<const IMkShader>;
 
 class IMkShaderCode;
