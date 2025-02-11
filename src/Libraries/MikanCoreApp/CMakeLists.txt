@@ -23,10 +23,12 @@ source_group("Private" FILES ${MIKAN_CORE_APP_PRIVATE_SRC})
 list(APPEND MIKAN_CORE_APP_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Public
 	${CMAKE_CURRENT_LIST_DIR}/Private
+	${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
 )
 
 list(APPEND MIKAN_CORE_APP_REQ_LIBS
 	MikanUtility
+	dylib
 )
 
 add_library(MikanCoreApp SHARED ${MIKAN_CORE_APP_SRC})

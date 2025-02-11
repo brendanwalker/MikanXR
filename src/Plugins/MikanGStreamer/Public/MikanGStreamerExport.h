@@ -18,22 +18,24 @@
     #endif
 #endif
 
-#ifndef MIKAN_GSTREAMER_API
+#ifndef MIKAN_GSTREAMER_CLASS
     #if defined(MIKAN_GSTREAMER_EXPORTS)
         #if defined _WIN32 || defined __CYGWIN__
-            #define MIKAN_GSTREAMER_CAPI(rval)       MIKAN_EXTERN_C  __declspec(dllexport)                   rval    MIKAN_CALL
-            #define MIKAN_GSTREAMER_API                              __declspec(dllexport)
+            #define MIKAN_GSTREAMER_FUNC(rval)       MIKAN_EXTERN_C  __declspec(dllexport)                   rval    MIKAN_CALL
+            #define MIKAN_GSTREAMER_CLASS                              __declspec(dllexport)
         #else  // Not Windows
             #if __GNUC__ >= 4
-                #define MIKAN_GSTREAMER_CAPI(rval)   MIKAN_EXTERN_C  __attribute__((visibility("default")))  rval    MIKAN_CALL
-                #define MIKAN_GSTREAMER_API                          __attribute__((visibility("default")))
+                #define MIKAN_GSTREAMER_FUNC(rval)   MIKAN_EXTERN_C  __attribute__((visibility("default")))  rval    MIKAN_CALL
+                #define MIKAN_GSTREAMER_CLASS                          __attribute__((visibility("default")))
             #else
-                #define MIKAN_GSTREAMER_CAPI(rval)   MIKAN_EXTERN_C rval MIKAN_CALL
-                #define MIKAN_GSTREAMER_API
+                #define MIKAN_GSTREAMER_FUNC(rval)   MIKAN_EXTERN_C rval MIKAN_CALL
+                #define MIKAN_GSTREAMER_CLASS
             #endif
         #endif  //defined _WIN32 || defined __CYGWIN__
     #else 
-        #define MIKAN_GSTREAMER_CAPI(rval)           MIKAN_EXTERN_C                                          rval    MIKAN_CALL
-        #define MIKAN_GSTREAMER_API
+        #define MIKAN_GSTREAMER_FUNC(rval)           MIKAN_EXTERN_C                                          rval    MIKAN_CALL
+        #define MIKAN_GSTREAMER_CLASS
     #endif //MIKAN_CORE_EXPORTS
-#endif //!defined(MIKAN_GSTREAMER_CAPI)
+#endif //!defined(MIKAN_GSTREAMER_FUNC)
+
+#pragma once

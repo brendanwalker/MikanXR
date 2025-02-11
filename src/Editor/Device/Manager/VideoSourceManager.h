@@ -31,7 +31,6 @@ class VideoSourceManager : public DeviceManager
 {
 public:
 	VideoSourceManager();
-	virtual ~VideoSourceManager();
 
 	inline static VideoSourceManager* getInstance() { return m_instance; }
 	const VideoSourceManagerConfig& getConfig() const { return m_cfg; }
@@ -62,7 +61,7 @@ protected:
 private:
 	static VideoSourceManager* m_instance;
 
-	class MikanGStreamerPlugin* m_mikanGStreamerPlugin;
+	class IMikanGStreamerModule* m_mikanGStreamerModule;
 	VideoSourceManagerConfig m_cfg;
 	class VideoCapabilitiesSet* m_supportedTrackers;
 };

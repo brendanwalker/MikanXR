@@ -11,6 +11,7 @@
 #include "LocalizationManager.h"
 #include "Logger.h"
 #include "MainWindow.h"
+#include "MikanModuleManager.h"
 #include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "SdlManager.h"
@@ -107,8 +108,19 @@ bool App::startup(int argc, char** argv)
 	}
 #endif // _WIN32
 
+	// Initialize the module manager
+	if (success && !initMikanModuleManager())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize module manager!";
+		success = false;
+	}
+
 	// Load any saved config
-	m_profileConfig->load();
+	if (success && !m_profileConfig->load())
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to load profile config!";
+		success = false;
+	}
 
 	if (success && !m_localizationManager->startup())
 	{
@@ -174,6 +186,9 @@ void App::shutdown()
 
 	assert(m_localizationManager != nullptr);
 	m_localizationManager->shutdown();
+
+	// Shutdown the module manager
+	shutdownMikanModuleManager();
 
 #ifdef _WIN32
 	CoUninitialize();

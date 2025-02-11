@@ -11,13 +11,9 @@
 #include "WMFCameraEnumerator.h"
 #include "IMkWindow.h"
 
-#include <cstdlib>
-#include <fstream>
-#include <type_traits>
-
 #include <easy/profiler.h>
 
-#include "dylib.hpp"
+#include "MikanModuleManager.h"
 #include "MikanGStreamerModule.h"
 
 VideoSourceManager* VideoSourceManager::m_instance= nullptr;
@@ -45,117 +41,14 @@ void VideoSourceManagerConfig::readFromJSON(const configuru::Config& pt)
 	readStdValueVector<std::string>(pt, "video_source_uris", videoSourceURIs);
 }
 
-//-- Video Source Manager Private Implementation -----
-class MikanGStreamerPlugin
-{
-public:
-	using AllocModuleFunctionPtr = std::add_pointer<IMikanGStreamerModule*()>::type;
-	using FreeModuleFunctionPtr = std::add_pointer<void(IMikanGStreamerModule*)>::type;
-
-	MikanGStreamerPlugin()
-		: m_gstreamerLib(nullptr)
-		, m_allocModule(nullptr)
-		, m_freeModule(nullptr)
-		, m_moduleInterface(nullptr)
-	{
-	}
-
-	~MikanGStreamerPlugin()
-	{
-		shutdown();	
-	}
-
-	inline IMikanGStreamerModule* getModuleInterface() const
-	{
-		return m_moduleInterface;
-	}
-
-	bool startup()
-	{
-		bool success = false;
-
-		try
-		{
-			// Assume plugin module is in the same place as the executable
-			std::string modulePath = PathUtils::getModulePath().string();
-
-			// Load the GStreamer library
-			m_gstreamerLib = new dylib(modulePath.c_str(), "MikanGStreamer");
-
-			// Fetch the functions we need
-			m_allocModule= m_gstreamerLib->get_function<IMikanGStreamerModule*()>("AllocatePluginModule");
-			m_freeModule= m_gstreamerLib->get_function<void(IMikanGStreamerModule*)>("FreePluginModule");
-			
-			// Attempt to allocate the module
-			m_moduleInterface= m_allocModule();
-
-			// Attempt to initiate the module
-			if (m_moduleInterface != nullptr)
-			{
-				success= m_moduleInterface->startup();
-				if (!success)
-				{
-					MIKAN_LOG_ERROR("VideoSourceManagerImpl::startup") << "Failed to initialize GStreamer module!";
-				}
-			}
-		}
-		catch (std::exception* e)
-		{
-			MIKAN_LOG_ERROR("VideoSourceManagerImpl::startup") << "Failed to load GStreamer module: " << e->what();
-			return false;
-		}
-
-		if (!success)
-		{
-			shutdown();
-		}
-
-		return success;
-	}
-
-	void shutdown()
-	{
-		// Clean up the GStreamer library
-		if (m_gstreamerLib != nullptr)
-		{
-			if (m_freeModule != nullptr)
-			{
-				if (m_moduleInterface != nullptr)
-				{
-					m_freeModule(m_moduleInterface);
-				}
-			}
-
-			delete m_gstreamerLib;
-		}
-
-		m_gstreamerLib = nullptr;
-		m_allocModule = nullptr;
-		m_freeModule = nullptr;
-		m_moduleInterface = nullptr;
-	}
-
-private:
-	dylib* m_gstreamerLib;
-	AllocModuleFunctionPtr m_allocModule;
-	FreeModuleFunctionPtr m_freeModule;
-	IMikanGStreamerModule* m_moduleInterface;
-};
-
 //-- Video Source Manager -----
 VideoSourceManager::VideoSourceManager()
 	: DeviceManager()
-	, m_mikanGStreamerPlugin(new MikanGStreamerPlugin)
 	, m_cfg()
 	, m_supportedTrackers(new VideoCapabilitiesSet)
 {
 	// Share the supported tracker list with the tracker enumerators
 	WMFCameraEnumerator::s_videoCapabilitiesSet = m_supportedTrackers;
-}
-
-VideoSourceManager::~VideoSourceManager()
-{
-	delete m_mikanGStreamerPlugin;
 }
 
 bool VideoSourceManager::startup(IMkWindow *ownerWindow)
@@ -188,7 +81,9 @@ bool VideoSourceManager::startup(IMkWindow *ownerWindow)
 		{
 			MIKAN_LOG_INFO("VideoSourceManager::startup") << "Found GStreamer install: " << envVar;
 
-			if (!m_mikanGStreamerPlugin->startup())
+			// Attempt to load the GStreamer module
+			m_mikanGStreamerModule= getMikanModuleManager()->getModule<IMikanGStreamerModule>("MikanGStreamer");
+			if (!m_mikanGStreamerModule)
 			{
 				MIKAN_LOG_WARNING("VideoSourceManager::startup") << "Failed to load any GStreamer library!";
 			}
@@ -230,14 +125,14 @@ void VideoSourceManager::shutdown()
 	DeviceManager::shutdown();
 
 	// Close down the GStreamer plugin after all streams are stopped
-	m_mikanGStreamerPlugin->shutdown();
+	m_mikanGStreamerModule->shutdown();
 
 	m_instance = nullptr;
 }
 
 class IMikanGStreamerModule* VideoSourceManager::getGStreamerModule() const
 {
-	return m_mikanGStreamerPlugin->getModuleInterface();
+	return m_mikanGStreamerModule;
 }
 
 void VideoSourceManager::closeAllVideoSources()
