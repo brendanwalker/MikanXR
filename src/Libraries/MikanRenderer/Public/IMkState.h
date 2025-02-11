@@ -36,7 +36,8 @@ public:
 	virtual IMkStateModifierPtr findParentModifier(IMkStateModifierPtr modifier) const = 0;
 	virtual IMkState* addModifier(IMkStateModifierPtr modifier) = 0;
 };
-MIKAN_RENDERER_FUNC(IMkStatePtr) createMkState(
+MIKAN_RENDERER_FUNC(IMkState*) createMkState(
 	class MkStateStack& ownerStack,
 	const std::string& scopeName,
 	const int stackDepth);
+MIKAN_RENDERER_FUNC(void) destroyMkState(IMkState* mkState);

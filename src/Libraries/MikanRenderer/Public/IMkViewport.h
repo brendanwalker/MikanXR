@@ -21,7 +21,7 @@ public:
 	virtual void setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize) = 0;
 	virtual void setBackgroundColor(const glm::vec3& color) = 0;
 
-	virtual void applyRenderingViewport(IMkStatePtr glState) const = 0;
+	virtual void applyRenderingViewport(IMkState* glState) const = 0;
 	virtual void onRenderingViewportApply(int x, int y, int width, int height) = 0;
 	virtual void onRenderingViewportRevert(int x, int y, int width, int height) = 0;
 	virtual bool getRenderingViewport(glm::i32vec2 &outOrigin, glm::i32vec2 &outSize) const = 0;

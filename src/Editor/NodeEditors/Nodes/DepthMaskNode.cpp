@@ -226,7 +226,7 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 			m_linearDepthFrameBuffer);
 		if (depthFramebufferBinding)
 		{
-			IMkStatePtr glState= depthFramebufferBinding.getMkState();
+			IMkState* glState= depthFramebufferBinding.getMkState();
 
 			// Apply any Stencils assigned to the node
 			if (bAnyQuadStencils)
@@ -362,7 +362,7 @@ void DepthMaskNode::rebuildDepthMaskLists()
 	}
 }
 
-void DepthMaskNode::evaluateQuadDepthMasks(IMkStatePtr glState)
+void DepthMaskNode::evaluateQuadDepthMasks(IMkState* glState)
 {
 	EASY_FUNCTION();
 
@@ -447,7 +447,7 @@ void DepthMaskNode::evaluateQuadDepthMasks(IMkStatePtr glState)
 	}
 }
 
-void DepthMaskNode::evaluateBoxDepthMasks(IMkStatePtr glState)
+void DepthMaskNode::evaluateBoxDepthMasks(IMkState* glState)
 {
 	EASY_FUNCTION();
 
@@ -532,7 +532,7 @@ void DepthMaskNode::evaluateBoxDepthMasks(IMkStatePtr glState)
 	}
 }
 
-void DepthMaskNode::evaluateModelDepthMasks(IMkStatePtr glState)
+void DepthMaskNode::evaluateModelDepthMasks(IMkState* glState)
 {
 	EASY_FUNCTION();
 

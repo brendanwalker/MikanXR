@@ -349,7 +349,7 @@ public:
 		return m_depthTexture;
 	}
 
-	virtual void bindObject(IMkStatePtr mkState) override
+	virtual void bindObject(IMkState* mkState) override
 	{
 		if (!m_bIsBound && m_glFrameBufferId != -1)
 		{

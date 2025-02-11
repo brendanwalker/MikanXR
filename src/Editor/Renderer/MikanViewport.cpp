@@ -45,7 +45,7 @@ MikanViewport::~MikanViewport()
 	unbindInput();
 }
 
-void MikanViewport::applyRenderingViewport(IMkStatePtr glState) const
+void MikanViewport::applyRenderingViewport(IMkState* glState) const
 {
 	mkStateSetClearColor(glState, m_backgroundColor);
 

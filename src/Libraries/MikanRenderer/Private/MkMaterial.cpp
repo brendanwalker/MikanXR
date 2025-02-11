@@ -30,6 +30,13 @@ MkMaterial::MkMaterial(
 	m_impl->program= program;
 }
 
+MkMaterial::~MkMaterial()
+{
+	m_impl->program= nullptr;
+	m_impl->textureSources.clear();
+	delete m_impl;
+}
+
 const std::string& MkMaterial::getName() const 
 { 
 	return m_impl->name; 

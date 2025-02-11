@@ -13,13 +13,13 @@ public:
 	MkStateStack(IMkWindow* ownerWindow);
 	virtual ~MkStateStack();
 
-	IMkStatePtr pushState(const std::string& scopeName);
+	IMkState* pushState(const std::string& scopeName);
 	void popState();
 
 	int getCurrentStackDepth() const;
-	IMkStatePtr getState(const int depth) const;
+	IMkState* getState(const int depth) const;
 
-	IMkStatePtr getCurrentState() const;
+	IMkState* getCurrentState() const;
 	IMkWindow* getOwnerWindow() const;
 
 	void setDebugPrintEnabled(bool bDebugPrint);

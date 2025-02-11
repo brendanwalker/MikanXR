@@ -7,11 +7,11 @@
 struct MkScopedObjectBindingData
 {
 	IMkBindableObjectPtr boundObject;
-	IMkStatePtr mkState;
+	IMkState* mkState;
 };
 
 MkScopedObjectBinding::MkScopedObjectBinding(
-	IMkStatePtr parentMkState,
+	IMkState* parentMkState,
 	const std::string& scopeName,
 	IMkBindableObjectPtr bindableObject)
 	: m_data(new MkScopedObjectBindingData())
@@ -38,6 +38,8 @@ MkScopedObjectBinding::~MkScopedObjectBinding()
 		m_data->boundObject->unbindObject();
 	}
 
+	m_data->boundObject= nullptr;
+	m_data->mkState= nullptr;
 	delete m_data;
 }
 
@@ -51,7 +53,7 @@ MkScopedObjectBinding::operator bool() const
 	return m_data->boundObject->getIsBound(); 
 }
 
-IMkStatePtr MkScopedObjectBinding::getMkState() 
+IMkState* MkScopedObjectBinding::getMkState() 
 { 
 	return m_data->mkState; 
 }

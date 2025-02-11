@@ -256,7 +256,7 @@ bool MainWindow::startup()
 	if (success)
 	{
 		// Create the base GL state for the window
-		IMkStatePtr mkState= m_MkStateStack->pushState("MainWindow Root");
+		IMkState* mkState= m_MkStateStack->pushState("MainWindow Root");
 		assert(mkState->getStackDepth() == 0);
 
 		// Set default state flags at the base of the stack
@@ -525,7 +525,7 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 	EASY_FUNCTION();
 
 	MkScopedState scopedState = m_MkStateStack->createScopedState("appStage viewport render");
-	IMkStatePtr glState = scopedState.getStackState();
+	IMkState* glState = scopedState.getStackState();
 
 	// Set the rendering viewport used to render the stage
 	// (adds mkStateSetViewport Modifier to the glState)
@@ -558,7 +558,7 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	EASY_FUNCTION();
 
 	MkScopedState scopedState = m_MkStateStack->createScopedState("appStage renderUI");
-	IMkStatePtr glState = scopedState.getStackState();
+	IMkState* glState = scopedState.getStackState();
 
 	// Set the rendering viewport used to render the stage
 	// (adds mkStateSetViewport Modifier to the glState)

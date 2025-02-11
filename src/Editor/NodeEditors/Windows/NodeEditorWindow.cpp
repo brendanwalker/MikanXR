@@ -200,7 +200,7 @@ bool NodeEditorWindow::startup()
 	if (success)
 	{
 		// Set default state flags at the base of the stack
-		IMkStatePtr mkBaseState= m_MkStateStack->pushState("NodeEditor Root Scope");
+		IMkState* mkBaseState= m_MkStateStack->pushState("NodeEditor Root Scope");
 		assert(mkBaseState->getStackDepth() == 0);
 
 		mkBaseState

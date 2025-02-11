@@ -233,7 +233,7 @@ public:
 			m_points2d.hasPoints() || m_lines2d.hasPoints())
 		{
 			MkScopedState stateScope = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer");
-			IMkStatePtr mkState = stateScope.getStackState();
+			IMkState* mkState = stateScope.getStackState();
 
 			// This has to be enabled since the point drawing shader will use gl_PointSize.
 			mkState->enableFlag(eMkStateFlagType::programPointSize);

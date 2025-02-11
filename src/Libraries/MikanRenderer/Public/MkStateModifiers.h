@@ -116,22 +116,22 @@ enum class eMkClearFlags : uint32_t
 };
 DEFINE_ENUM_BITMASK_OPERATORS(eMkClearFlags);
 
-MIKAN_RENDERER_FUNC(void) mkStateSetFrontFace(IMkStatePtr mkState, eMkFrontFaceMode mode);
+MIKAN_RENDERER_FUNC(void) mkStateSetFrontFace(IMkState* mkState, eMkFrontFaceMode mode);
 
-MIKAN_RENDERER_FUNC(void) mkStateSetViewport(IMkStatePtr mkState, int x, int y, int width, int height);
-MIKAN_RENDERER_FUNC(void) mkStateSetClearColor(IMkStatePtr mkState, const glm::vec4& color);
-MIKAN_RENDERER_FUNC(void) mkStateSetColorMask(IMkStatePtr mkState, const glm::bvec4& color_mask);
-MIKAN_RENDERER_FUNC(void) mkStateSetDepthMask(IMkStatePtr mkState, bool depth_mask);
+MIKAN_RENDERER_FUNC(void) mkStateSetViewport(IMkState* mkState, int x, int y, int width, int height);
+MIKAN_RENDERER_FUNC(void) mkStateSetClearColor(IMkState* mkState, const glm::vec4& color);
+MIKAN_RENDERER_FUNC(void) mkStateSetColorMask(IMkState* mkState, const glm::bvec4& color_mask);
+MIKAN_RENDERER_FUNC(void) mkStateSetDepthMask(IMkState* mkState, bool depth_mask);
 
-MIKAN_RENDERER_FUNC(void) mkStateSetStencilBufferClearValue(IMkStatePtr mkState, int value);
-MIKAN_RENDERER_FUNC(void) mkStateSetStencilMask(IMkStatePtr mkState, uint32_t mask);
-MIKAN_RENDERER_FUNC(void) mkStateSetStencilFunc(IMkStatePtr mkState, eMkStencilFunction func, int ref, uint32_t mask);
-MIKAN_RENDERER_FUNC(void) mkStateSetStencilOp(IMkStatePtr mkState, 
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilBufferClearValue(IMkState* mkState, int value);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilMask(IMkState* mkState, uint32_t mask);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilFunc(IMkState* mkState, eMkStencilFunction func, int ref, uint32_t mask);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilOp(IMkState* mkState, 
 						 eMkStencilOp stencil_fail, eMkStencilOp depth_fail, eMkStencilOp depth_stencil_pass);
 
-MIKAN_RENDERER_FUNC(void) mkStateSetBlendEquation(IMkStatePtr mkState, eMkBlendEquation mode);
-MIKAN_RENDERER_FUNC(void) mkStateSetBlendFunc(IMkStatePtr mkState, eMkBlendFunction source_factor, eMkBlendFunction dest_factor);
+MIKAN_RENDERER_FUNC(void) mkStateSetBlendEquation(IMkState* mkState, eMkBlendEquation mode);
+MIKAN_RENDERER_FUNC(void) mkStateSetBlendFunc(IMkState* mkState, eMkBlendFunction source_factor, eMkBlendFunction dest_factor);
 
-MIKAN_RENDERER_FUNC(void) mkStateSetDrawBuffer(IMkStatePtr mkState, eMkFrameBuffer mode);
-MIKAN_RENDERER_FUNC(void) mkStateSetReadBuffer(IMkStatePtr mkState, eMkFrameBuffer mode);
-MIKAN_RENDERER_FUNC(void) mkStateClearBuffer(IMkStatePtr mkState, eMkClearFlags flags);
+MIKAN_RENDERER_FUNC(void) mkStateSetDrawBuffer(IMkState* mkState, eMkFrameBuffer mode);
+MIKAN_RENDERER_FUNC(void) mkStateSetReadBuffer(IMkState* mkState, eMkFrameBuffer mode);
+MIKAN_RENDERER_FUNC(void) mkStateClearBuffer(IMkState* mkState, eMkClearFlags flags);

@@ -60,7 +60,7 @@ public:
 		if (m_parentState != nullptr)
 		{
 			// init our stack state with a copy of our parent state
-			const GlState* parentGlState= static_cast<const GlState*>(m_parentState.get());
+			const GlState* parentGlState= static_cast<const GlState*>(m_parentState);
 			memcpy(m_flags, parentGlState->m_flags, sizeof(m_flags));
 		}
 		else
@@ -82,7 +82,7 @@ public:
 		// Restore to the parent flags, if there is a parent state
 		if (m_parentState != nullptr)
 		{
-			const GlState* parentGlState= static_cast<const GlState*>(m_parentState.get());
+			const GlState* parentGlState= static_cast<const GlState*>(m_parentState);
 
 			for (int flagIndex = 0; flagIndex < (int)eMkStateFlagType::COUNT; ++flagIndex)
 			{
@@ -194,7 +194,7 @@ public:
 	{
 		if (modifier && m_parentState)
 		{
-			const GlState* parentGlState= static_cast<const GlState*>(m_parentState.get());
+			const GlState* parentGlState= static_cast<const GlState*>(m_parentState);
 
 			// See if out parent state has a modifier with the same ID
 			auto existingModifierIt = parentGlState->m_modifiers.find(modifier->getModifierID());
@@ -245,7 +245,7 @@ public:
 
 private:
 	class MkStateStack& m_ownerStack;
-	IMkStateConstPtr m_parentState;
+	const IMkState* m_parentState;
 	std::string m_scopeName;
 	int m_stackDepth = -1;
 	std::string m_debugPrefix;
@@ -254,10 +254,18 @@ private:
 	std::map<std::string, IMkStateModifierPtr> m_modifiers;
 };
 
-IMkStatePtr createMkState(
+IMkState* createMkState(
 	class MkStateStack& ownerStack,
 	const std::string& scopeName,
 	const int stackDepth)
 {
-	return std::make_shared<GlState>(ownerStack, scopeName, stackDepth);
+	return new GlState(ownerStack, scopeName, stackDepth);
+}
+
+void destroyMkState(IMkState* mkState)
+{
+	if (mkState != nullptr)
+	{
+		delete mkState;
+	}
 }

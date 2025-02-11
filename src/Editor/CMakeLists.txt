@@ -581,7 +581,7 @@ set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
-  set_property(TARGET Mikan PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "../..")
+  set_property(TARGET Mikan PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "../../..")
 
   add_custom_command(
     TARGET Mikan POST_BUILD
@@ -592,6 +592,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanMath>/MikanMath.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll $<TARGET_FILE_DIR:Mikan>)

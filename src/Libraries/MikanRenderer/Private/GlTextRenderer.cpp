@@ -91,7 +91,7 @@ public:
 		if (auto materialBinding = m_textMaterial->bindMaterial())
 		{
 			MkScopedState stateScope = m_ownerWindow->getMkStateStack().createScopedState("MikanTextRenderer");
-			IMkStatePtr mkState = stateScope.getStackState();
+			IMkState* mkState = stateScope.getStackState();
 
 			// Render text over top of everything with alpha blending
 			mkState->disableFlag(eMkStateFlagType::depthTest);

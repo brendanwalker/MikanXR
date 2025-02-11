@@ -33,6 +33,8 @@ MkScopedMaterialBinding::~MkScopedMaterialBinding()
 	{
 		m_impl->boundMaterial->unbindMaterial();
 	}
+
+	delete m_impl;
 }
 
 const MkMaterial* MkScopedMaterialBinding::getBoundMaterial() const

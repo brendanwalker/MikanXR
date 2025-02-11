@@ -38,8 +38,6 @@ class IMkShaderCache;
 using IMkShaderCachePtr = std::shared_ptr<IMkShaderCache>;
 
 class IMkState;
-using IMkStatePtr = std::shared_ptr<IMkState>;
-using IMkStateConstPtr = std::shared_ptr<const IMkState>;
 
 class IMkStateModifier;
 using IMkStateModifierPtr = std::shared_ptr<IMkStateModifier>;

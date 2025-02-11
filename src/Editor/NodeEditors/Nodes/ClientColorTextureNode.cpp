@@ -211,14 +211,14 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 			m_colorFrameBuffer);
 		if (colorFramebufferBinding)
 		{
-			IMkStatePtr glState = colorFramebufferBinding.getMkState();
+			IMkState* glState = colorFramebufferBinding.getMkState();
 
 			evaluateFlippedColorTexture(glState, clientTexture);
 		}
 	}
 }
 
-void ClientColorTextureNode::evaluateFlippedColorTexture(IMkStatePtr glState, IMkTexturePtr colorTexture)
+void ClientColorTextureNode::evaluateFlippedColorTexture(IMkState* glState, IMkTexturePtr colorTexture)
 {
 	assert(colorTexture);
 	assert(m_colorMaterialInstance);

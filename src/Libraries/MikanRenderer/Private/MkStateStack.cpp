@@ -6,7 +6,7 @@
 
 struct MkStateStackData
 {
-	std::vector<IMkStatePtr> stateStack;
+	std::vector<IMkState*> stateStack;
 	class IMkWindow* ownerWindow = nullptr;
 	bool bDebugPrint = false;
 };
@@ -28,10 +28,10 @@ MkStateStack::~MkStateStack()
 	delete m_data;
 }
 
-IMkStatePtr MkStateStack::pushState(const std::string& scopeName)
+IMkState* MkStateStack::pushState(const std::string& scopeName)
 {
 	// Create a new GlState and initialize it from the parent state on this stack
-	IMkStatePtr state = createMkState(*this, scopeName, (int)m_data->stateStack.size());
+	IMkState* state = createMkState(*this, scopeName, (int)m_data->stateStack.size());
 
 	// Add it to the top of the stack
 	m_data->stateStack.push_back(state);
@@ -44,7 +44,7 @@ int MkStateStack::getCurrentStackDepth() const
 	return (int)m_data->stateStack.size() - 1;
 }
 
-IMkStatePtr MkStateStack::getState(const int depth) const
+IMkState* MkStateStack::getState(const int depth) const
 {
 	return 
 		(depth >= 0 && depth < (int)m_data->stateStack.size()) 
@@ -52,7 +52,7 @@ IMkStatePtr MkStateStack::getState(const int depth) const
 		: nullptr;
 }
 
-IMkStatePtr MkStateStack::getCurrentState() const 
+IMkState* MkStateStack::getCurrentState() const 
 {
 	return getState(getCurrentStackDepth()); 
 }
@@ -78,6 +78,9 @@ void MkStateStack::popState()
 
 	if (currentDepth >= 0)
 	{
+		// Cleaning up the state will undo all the flags it set
+		destroyMkState(m_data->stateStack[currentDepth]);
+
 		// Remove the state from the top of the stack
 		// Cleaning up the state will undo all the flags it set
 		m_data->stateStack.pop_back();

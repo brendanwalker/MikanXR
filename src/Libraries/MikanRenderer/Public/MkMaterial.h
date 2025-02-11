@@ -35,6 +35,7 @@ class MIKAN_RENDERER_CLASS MkMaterial
 public:
 	MkMaterial();
 	MkMaterial(const std::string& name, IMkShaderPtr program);
+	virtual ~MkMaterial();
 
 	const std::string& getName() const;
 

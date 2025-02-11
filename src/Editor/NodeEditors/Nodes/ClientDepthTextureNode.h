@@ -37,7 +37,7 @@ public:
 protected:
 	IMkTexturePtr getClientDepthSourceTexture() const;
 	void updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
-	void evaluateDepthTexture(IMkStatePtr glState, IMkTexturePtr depthTexture);
+	void evaluateDepthTexture(IMkState* glState, IMkTexturePtr depthTexture);
 
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;

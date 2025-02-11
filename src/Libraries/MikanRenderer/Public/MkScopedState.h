@@ -6,10 +6,10 @@
 class MIKAN_RENDERER_CLASS MkScopedState
 {
 public:
-	MkScopedState(IMkStatePtr state);
+	MkScopedState(IMkState* state);
 	virtual ~MkScopedState();
 
-	IMkStatePtr getStackState() const;
+	IMkState* getStackState() const;
 	int getStackDepth() const;
 
 private:

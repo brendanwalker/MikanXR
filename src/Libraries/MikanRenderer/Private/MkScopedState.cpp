@@ -5,10 +5,10 @@
 
 struct MkScopedStateImpl
 {
-	IMkStatePtr mkState;
+	IMkState* mkState;
 };
 
-MkScopedState::MkScopedState(IMkStatePtr state) : 
+MkScopedState::MkScopedState(IMkState* state) : 
 	m_impl(new MkScopedStateImpl())
 {
 	m_impl->mkState= state;
@@ -22,10 +22,11 @@ MkScopedState::~MkScopedState()
 	// Pop the state last since this will invalidate the state reference
 	m_impl->mkState->getOwnerStateStack().popState();
 
+	m_impl->mkState= nullptr;
 	delete m_impl;
 }
 
-IMkStatePtr MkScopedState::getStackState() const 
+IMkState* MkScopedState::getStackState() const 
 { 
 	return m_impl->mkState; 
 }

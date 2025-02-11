@@ -303,7 +303,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 		{	
 			MkScopedState mkStateScope = 	
 				evaluator.getCurrentWindow()->getMkStateStack().createScopedState("Draw Layer Node");	
-			IMkStatePtr mkState = mkStateScope.getStackState();	
+			IMkState* mkState = mkStateScope.getStackState();	
 
 			// Set the blend mode	
 			switch (m_blendMode)	
@@ -648,7 +648,7 @@ void DrawLayerNode::rebuildStencilLists()
 	}	
 }	
 
-void DrawLayerNode::evaluateQuadStencils(IMkStatePtr glParentState)	
+void DrawLayerNode::evaluateQuadStencils(IMkState* glParentState)	
 {	
 	EASY_FUNCTION();	
 
@@ -718,7 +718,7 @@ void DrawLayerNode::evaluateQuadStencils(IMkStatePtr glParentState)
 
 	{	
 		MkScopedState stateScope= glParentState->getOwnerStateStack().createScopedState("evaluateQuadStencils");	
-		IMkStatePtr mkState= stateScope.getStackState();	
+		IMkState* mkState= stateScope.getStackState();	
 
 		mkStateSetStencilBufferClearValue(mkState, 0);	
 		glClear(GL_STENCIL_BUFFER_BIT);	
@@ -771,7 +771,7 @@ void DrawLayerNode::evaluateQuadStencils(IMkStatePtr glParentState)
 	}	
 }	
 
-void DrawLayerNode::evaluateBoxStencils(IMkStatePtr glParentState)	
+void DrawLayerNode::evaluateBoxStencils(IMkState* glParentState)	
 {	
 	EASY_FUNCTION();	
 
@@ -809,7 +809,7 @@ void DrawLayerNode::evaluateBoxStencils(IMkStatePtr glParentState)
 
 	{	
 		MkScopedState stateScope = glParentState->getOwnerStateStack().createScopedState("evaluateBoxStencils");	
-		IMkStatePtr mkState = stateScope.getStackState();	
+		IMkState* mkState = stateScope.getStackState();	
 
 		mkStateSetStencilBufferClearValue(mkState, 0);	
 		glClear(GL_STENCIL_BUFFER_BIT);	
@@ -862,7 +862,7 @@ void DrawLayerNode::evaluateBoxStencils(IMkStatePtr glParentState)
 	}	
 }	
 
-void DrawLayerNode::evaluateModelStencils(IMkStatePtr glParentState)	
+void DrawLayerNode::evaluateModelStencils(IMkState* glParentState)	
 {	
 	EASY_FUNCTION();	
 
@@ -899,7 +899,7 @@ void DrawLayerNode::evaluateModelStencils(IMkStatePtr glParentState)
 
 	{	
 		MkScopedState stateScope = glParentState->getOwnerStateStack().createScopedState("evaluateModelStencils");	
-		IMkStatePtr mkState = stateScope.getStackState();	
+		IMkState* mkState = stateScope.getStackState();	
 
 		mkStateSetStencilBufferClearValue(mkState, 0);	
 		glClear(GL_STENCIL_BUFFER_BIT);	

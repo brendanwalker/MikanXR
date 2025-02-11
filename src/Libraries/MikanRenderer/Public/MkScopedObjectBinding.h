@@ -11,7 +11,7 @@ class MIKAN_RENDERER_CLASS MkScopedObjectBinding
 public:
 	MkScopedObjectBinding() = default;
 	MkScopedObjectBinding(
-		IMkStatePtr parentMkState, 
+		IMkState* parentMkState, 
 		const std::string& scopeName, 
 		IMkBindableObjectPtr bindableObject);
 	virtual ~MkScopedObjectBinding();
@@ -25,7 +25,7 @@ public:
 	}
 
 	operator bool() const;
-	IMkStatePtr getMkState();
+	IMkState* getMkState();
 
 private:
 	struct MkScopedObjectBindingData* m_data;

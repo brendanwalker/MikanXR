@@ -490,7 +490,7 @@ void GlRmlUiRender::render()
 {
 	MkStateStack& MkStateStack= m_ownerWindow.getMkStateStack();
 	MkScopedState scopedState = MkStateStack.createScopedState("GlRmlUiRender renderUI");
-	IMkStatePtr mkState = scopedState.getStackState();
+	IMkState* mkState = scopedState.getStackState();
 
 	RMLUI_ASSERT(viewport_width > 0 && viewport_height > 0);
 	mkStateSetViewport(mkState, 0, 0, viewport_width, viewport_height);

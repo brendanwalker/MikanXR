@@ -76,7 +76,7 @@ void GlScene::removeAllInstances()
 void GlScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
 {
 	MkScopedState scopedState= MkStateStack.createScopedState("GlScene");
-	IMkStatePtr mkState= scopedState.getStackState();
+	IMkState* mkState= scopedState.getStackState();
 
 	// Enable front face culling while drawing the scene
 	mkState->enableFlag(eMkStateFlagType::cullFace);

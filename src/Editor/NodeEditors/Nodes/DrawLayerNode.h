@@ -50,9 +50,9 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateQuadStencils(IMkStatePtr glParentState);
-	void evaluateBoxStencils(IMkStatePtr glParentState);
-	void evaluateModelStencils(IMkStatePtr glParentState);
+	void evaluateQuadStencils(IMkState* glParentState);
+	void evaluateBoxStencils(IMkState* glParentState);
+	void evaluateModelStencils(IMkState* glParentState);
 
 	virtual std::string editorGetTitle() const override { return "Draw Layer"; }
 
