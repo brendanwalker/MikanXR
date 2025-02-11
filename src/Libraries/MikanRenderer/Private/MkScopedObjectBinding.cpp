@@ -6,7 +6,7 @@
 
 struct MkScopedObjectBindingData
 {
-	IMkBindableObjectPtr boundObject;
+	IMkBindableObjectWeakPtr boundObject;
 	IMkState* mkState;
 };
 
@@ -19,10 +19,11 @@ MkScopedObjectBinding::MkScopedObjectBinding(
 	m_data->boundObject= bindableObject;
 	m_data->mkState= parentMkState->getOwnerStateStack().pushState(scopeName);
 
-	if (m_data->boundObject)
+	IMkBindableObjectPtr boundObject= getBoundObject();
+	if (boundObject)
 	{
-		assert(!m_data->boundObject->getIsBound());
-		m_data->boundObject->bindObject(m_data->mkState);
+		assert(!boundObject->getIsBound());
+		boundObject->bindObject(m_data->mkState);
 	}
 }
 
@@ -32,25 +33,28 @@ MkScopedObjectBinding::~MkScopedObjectBinding()
 	assert(m_data->mkState->getOwnerStateStack().getCurrentStackDepth() == m_data->mkState->getStackDepth());
 	m_data->mkState->getOwnerStateStack().popState();
 
-	if (m_data->boundObject)
+	IMkBindableObjectPtr boundObject= getBoundObject();
+	if (boundObject)
 	{
-		assert(m_data->boundObject->getIsBound());
-		m_data->boundObject->unbindObject();
+		assert(boundObject->getIsBound());
+		boundObject->unbindObject();
 	}
 
-	m_data->boundObject= nullptr;
+	m_data->boundObject.reset();
 	m_data->mkState= nullptr;
 	delete m_data;
 }
 
 IMkBindableObjectPtr MkScopedObjectBinding::getBoundObject() const 
 { 
-	return m_data->boundObject; 
+	return m_data->boundObject.lock(); 
 }
 
 MkScopedObjectBinding::operator bool() const 
 { 
-	return m_data->boundObject->getIsBound(); 
+	IMkBindableObjectPtr boundObject= getBoundObject();
+
+	return boundObject && boundObject->getIsBound(); 
 }
 
 IMkState* MkScopedObjectBinding::getMkState() 

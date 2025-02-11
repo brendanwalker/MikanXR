@@ -81,6 +81,7 @@ using IMkWireframeMeshPtr = std::shared_ptr<IMkWireframeMesh>;
 
 class IMkBindableObject;
 using IMkBindableObjectPtr = std::shared_ptr<IMkBindableObject>;
+using IMkBindableObjectWeakPtr = std::weak_ptr<IMkBindableObject>;
 using IMkBindableObjectConstPtr = std::shared_ptr<const IMkBindableObject>;
 
 class IMkCamera;
