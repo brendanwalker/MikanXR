@@ -3,7 +3,7 @@
 #include "MikanViewport.h"
 #include "SdlCommon.h"
 #include "MikanCamera.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
 #include "MathUtility.h"

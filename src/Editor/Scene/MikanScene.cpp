@@ -4,10 +4,10 @@
 #include "SelectionComponent.h"
 #include "IMkSceneRenderable.h"
 #include "MikanCamera.h"
-#include "GlScene.h"
+#include "MkScene.h"
 
 MikanScene::MikanScene()
-	: m_mkScene(std::make_shared<GlScene>())
+	: m_mkScene(std::make_shared<MkScene>())
 {
 
 }

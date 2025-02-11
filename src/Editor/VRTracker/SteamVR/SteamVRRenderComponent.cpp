@@ -1,7 +1,7 @@
 #include "MkMaterialInstance.h"
 #include "IMkStaticMeshInstance.h"
 #include "IMkTriangulatedMesh.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "SteamVRDevice.h"

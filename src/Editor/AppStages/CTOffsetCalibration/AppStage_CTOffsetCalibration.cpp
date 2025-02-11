@@ -10,7 +10,7 @@
 #include "App.h"
 #include "MikanCamera.h"
 #include "MikanLineRenderer.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
 #include "MainWindow.h"
@@ -50,7 +50,7 @@ AppStage_CTOffsetCalibration::AppStage_CTOffsetCalibration(MainWindow* ownerWind
 	, m_videoSourceView()
 	, m_trackerPoseCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_scene(std::make_shared<GlScene>())
+	, m_scene(std::make_shared<MkScene>())
 	, m_camera(nullptr)
 {
 }

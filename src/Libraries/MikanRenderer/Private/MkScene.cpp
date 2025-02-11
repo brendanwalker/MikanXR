@@ -1,53 +1,88 @@
-#include "App.h"
-#include "MikanCamera.h"
-#include "MkMaterial.h"
 #include "MkMaterialInstance.h"
+#include "MkScene.h"
+#include "MkScopedState.h"
+#include "MkStateStack.h"
+#include "MkStateModifiers.h"
+#include "IMkCamera.h"
+#include "IMkSceneRenderable.h"
 #include "IMkShader.h"
 #include "IMkState.h"
-#include "GlScene.h"
-#include "MkStateModifiers.h"
-#include "MkStateStack.h"
-#include "IMkShaderCache.h"
-#include "IMkStaticMeshInstance.h"
-#include "MikanViewport.h"
-#include "IMkMesh.h"
 
 #include <algorithm>
 #include <functional>
+#include <map>
+#include <vector>
 
 using namespace std::placeholders;
 
-GlScene::GlScene()
-	: m_lightColor(glm::vec4(1.f))
-	, m_lightDirection(glm::vec3(0.f, 0.f, -1.f))
+struct MkDrawCall
 {
+	std::vector<IMkSceneRenderableConstWeakPtr> instances;
+};
+using MkDrawCallPtr = std::shared_ptr<MkDrawCall>;
+using MkDrawCallConstPtr = std::shared_ptr<const MkDrawCall>;
+
+struct MkSceneImpl
+{
+	glm::vec4 lightColor;
+	glm::vec3 lightDirection;
+
+	class std::map<MkMaterialConstPtr, MkDrawCallPtr> drawCalls;
+};
+
+MkScene::MkScene()
+	: m_impl(new MkSceneImpl())
+{
+	m_impl->lightColor= glm::vec4(1.f);
+	m_impl->lightDirection= glm::vec3(0.f, 0.f, -1.f);
 }
 
-GlScene::~GlScene()
+MkScene::~MkScene()
 {
 	removeAllInstances();
+	delete m_impl;
 }
 
-void GlScene::addInstance(IMkSceneRenderableConstPtr instance)
+void MkScene::setLightColor(const glm::vec4& lightColor)
+{
+	m_impl->lightColor = lightColor; 
+}
+
+const glm::vec4&  MkScene::getLightColor() const
+{ 
+	return m_impl->lightColor; 
+}
+
+void MkScene::setLightDirection(const glm::vec3& lightDirection)
+{
+	m_impl->lightDirection = lightDirection; 
+}
+
+const glm::vec3& MkScene::getLightDirection() const 
+{ 
+	return m_impl->lightDirection; 
+}
+
+void MkScene::addInstance(IMkSceneRenderableConstPtr instance)
 {
 	MkMaterialConstPtr material= instance->getMaterialInstanceConst()->getMaterial();
 
-	if (m_drawCalls.find(material) == m_drawCalls.end())
+	if (m_impl->drawCalls.find(material) == m_impl->drawCalls.end())
 	{
-		m_drawCalls.insert({material, std::make_shared<GlDrawCall>()});
+		m_impl->drawCalls.insert({material, std::make_shared<MkDrawCall>()});
 	}
 
-	m_drawCalls[material]->instances.push_back(instance);
+	m_impl->drawCalls[material]->instances.push_back(instance);
 }
 
-void GlScene::removeInstance(IMkSceneRenderableConstPtr instance)
+void MkScene::removeInstance(IMkSceneRenderableConstPtr instance)
 {
 	MkMaterialConstPtr material = instance->getMaterialInstanceConst()->getMaterial();
 
-	auto drawCallIter= m_drawCalls.find(material);
-	if (drawCallIter != m_drawCalls.end())
+	auto drawCallIter= m_impl->drawCalls.find(material);
+	if (drawCallIter != m_impl->drawCalls.end())
 	{
-		GlDrawCallPtr drawCall = drawCallIter->second;
+		MkDrawCallPtr drawCall = drawCallIter->second;
 
 		// Remove any existing instances from the draw call
 		for (auto it = drawCall->instances.begin(); it != drawCall->instances.end(); it++)
@@ -63,17 +98,17 @@ void GlScene::removeInstance(IMkSceneRenderableConstPtr instance)
 
 		if (drawCall->instances.size() == 0)
 		{
-			m_drawCalls.erase(drawCallIter);
+			m_impl->drawCalls.erase(drawCallIter);
 		}
 	}
 }
 
-void GlScene::removeAllInstances()
+void MkScene::removeAllInstances()
 {
-	m_drawCalls.clear();
+	m_impl->drawCalls.clear();
 }
 
-void GlScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
+void MkScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
 {
 	MkScopedState scopedState= MkStateStack.createScopedState("GlScene");
 	IMkState* mkState= scopedState.getStackState();
@@ -88,10 +123,10 @@ void GlScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
 	// Clear the depth buffer before drawing the scene
 	mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
-	for (auto drawCallIter= m_drawCalls.begin(); drawCallIter != m_drawCalls.end(); drawCallIter++)
+	for (auto drawCallIter= m_impl->drawCalls.begin(); drawCallIter != m_impl->drawCalls.end(); drawCallIter++)
 	{
 		MkMaterialConstPtr material = drawCallIter->first;
-		GlDrawCallConstPtr drawCall = drawCallIter->second;
+		MkDrawCallConstPtr drawCall = drawCallIter->second;
 
 		bool bAnyInstancesVisible= false;
 		for (auto instanceIter = drawCall->instances.begin();
@@ -168,7 +203,7 @@ void GlScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
 	}
 }
 
-eUniformBindResult GlScene::materialBindCallback(
+eUniformBindResult MkScene::materialBindCallback(
 	IMkCameraConstPtr camera,
 	IMkShaderPtr program,
 	eUniformDataType uniformDataType,
@@ -226,7 +261,7 @@ eUniformBindResult GlScene::materialBindCallback(
 	return bindResult;
 }
 
-eUniformBindResult GlScene::materialInstanceBindCallback(
+eUniformBindResult MkScene::materialInstanceBindCallback(
 	IMkCameraConstPtr camera,
 	IMkSceneRenderableConstPtr renderableInstance,
 	IMkShaderPtr program,

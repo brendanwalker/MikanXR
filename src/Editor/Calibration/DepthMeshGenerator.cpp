@@ -11,7 +11,7 @@
 #include "MikanRenderModelResource.h"
 #include "IMkShader.h"
 #include "MikanShaderCache.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
 #include "ISdlMkWindow.h"

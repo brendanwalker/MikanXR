@@ -8,7 +8,7 @@
 #include "App.h"
 #include "CalibrationPatternFinder.h"
 #include "Colors.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "IMkFrameBuffer.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkLineRenderer.h"
@@ -59,7 +59,7 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(MainWindow* ownerWi
 	, m_videoSourceView()
 	, m_trackerPoseCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_scene(std::make_shared<GlScene>())
+	, m_scene(std::make_shared<MkScene>())
 	, m_camera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))

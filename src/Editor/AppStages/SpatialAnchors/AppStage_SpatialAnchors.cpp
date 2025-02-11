@@ -6,7 +6,7 @@
 #include "App.h"
 #include "Colors.h"
 #include "MikanCamera.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
@@ -30,7 +30,7 @@ const char* AppStage_SpatialAnchors::APP_STAGE_NAME = "Spatial Anchor Setup";
 AppStage_SpatialAnchors::AppStage_SpatialAnchors(MainWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_SpatialAnchors::APP_STAGE_NAME)
 	, m_dataModel(new RmlModel_SpatialAnchors)
-	, m_scene(std::make_shared<GlScene>())
+	, m_scene(std::make_shared<MkScene>())
 	, m_camera(nullptr)
 	, m_profile(nullptr)
 { 

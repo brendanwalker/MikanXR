@@ -9,7 +9,7 @@
 #include "EditorObjectSystem.h"
 #include "MikanCamera.h"
 #include "GlFrameCompositor.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "IMkLineRenderer.h"
 #include "IMkStaticMeshInstance.h"
 #include "IMkTextRenderer.h"

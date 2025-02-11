@@ -14,7 +14,7 @@
 #include "MikanRenderModelResource.h"
 #include "MkScopedObjectBinding.h"
 #include "IMkStaticMeshInstance.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "MkStateStack.h"
 #include "MikanTextRenderer.h"
 #include "IMkLineRenderer.h"
@@ -57,7 +57,7 @@ AppStage_StencilAlignment::AppStage_StencilAlignment(MainWindow* ownerWindow)
 	, m_videoSourceView()
 	, m_stencilAligner(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_scene(std::make_shared<GlScene>())
+	, m_scene(std::make_shared<MkScene>())
 	, m_camera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))

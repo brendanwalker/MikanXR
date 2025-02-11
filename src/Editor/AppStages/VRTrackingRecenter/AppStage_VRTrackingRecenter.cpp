@@ -8,7 +8,7 @@
 #include "MikanLineRenderer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
-#include "GlScene.h"
+#include "MkScene.h"
 #include "MkScopedObjectBinding.h"
 #include "MkStateStack.h"
 #include "IMkTriangulatedMesh.h"
