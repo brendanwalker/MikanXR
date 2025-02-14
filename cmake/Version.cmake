@@ -3,7 +3,7 @@
 #------------------------
 
 # Retrieve version from header file
-set(MIKAN_VERSION_HEADER_FILE "${ROOT_DIR}/src/AppCore/Version.h")
+set(MIKAN_VERSION_HEADER_FILE "${ROOT_DIR}/src/Editor/AppCore/Version.h")
 
 file(STRINGS ${MIKAN_VERSION_HEADER_FILE} MIKAN_VERSION_PARTS
   REGEX "^#define[ \t]+MIKAN_RELEASE_VERSION_(PRODUCT|MAJOR|MINOR|RELEASE)[ \t]+[0-9a-z]+$")

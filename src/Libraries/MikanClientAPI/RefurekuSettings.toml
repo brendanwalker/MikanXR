@@ -1,0 +1,103 @@
+[CodeGenManagerSettings]
+# List of supported extensions
+supportedFileExtensions = [".h", ".hpp"]
+
+# Files contained in the directories of this list will be parsed
+toProcessDirectories = [
+]
+
+# Files to parse which are not included in any directory of toParseDirectories
+toProcessFiles = [
+	'''./Public/MikanAPI.h''',
+	'''./Public/MikanAPITypes.h''',
+	'''./Public/MikanClientEvents.h''',
+	'''./Public/MikanClientTypes.h''',
+	'''./Public/MikanClientRequests.h''',
+	'''./Public/MikanMathTypes.h''',
+	'''./Public/MikanRenderTargetRequests.h''',
+	'''./Public/MikanScriptEvents.h''',
+	'''./Public/MikanScriptTypes.h''',
+	'''./Public/MikanScriptRequests.h''',
+	'''./Public/MikanStencilEvents.h''',
+	'''./Public/MikanStencilRequests.h''',
+	'''./Public/MikanStencilTypes.h''',	
+	'''./Public/MikanSpatialAnchorEvents.h''',
+	'''./Public/MikanSpatialAnchorRequests.h''',
+	'''./Public/MikanSpatialAnchorTypes.h''',
+	'''./Public/MikanVideoSourceEvents.h''',
+	'''./Public/MikanVideoSourceTypes.h''',
+	'''./Public/MikanVideoSourceRequests.h''',
+	'''./Public/MikanVRDeviceEvents.h''',
+	'''./Public/MikanVRDeviceTypes.h''',
+	'''./Public/MikanVRDeviceRequests.h'''
+]
+
+# Files contained in the directories of this list will be ignored
+ignoredDirectories = [
+]
+
+# Files not to parse which are not included in any directory of ignoredDirectories
+ignoredFiles = []
+
+[CodeGenUnitSettings]
+# Generated files will be located here
+outputDirectory = '''../../../build/RfkGenerated/MikanClientAPI'''
+
+generatedHeaderFileNamePattern = "##FILENAME##.rfkh.h"
+generatedSourceFileNamePattern = "##FILENAME##.rfks.h"
+classFooterMacroPattern = "##CLASSFULLNAME##_GENERATED"
+headerFileFooterMacroPattern = "File_##FILENAME##_GENERATED"
+
+# Uncomment if you use Refureku on a dynamic library (.dll/.so/.dylib)
+# Define the export macro so that Refureku can export relevant generated code
+exportSymbolMacroName = "MIKAN_API"
+
+[ParsingSettings]
+# Used c++ version (supported values are: 17, 20)
+cppVersion = 17
+
+# Include directories of the project
+projectIncludeDirectories = [
+	'''./Public''',
+	'''../MikanClientCore/Public''',
+	'''../MikanSerialization/Public''',
+	'''../../../deps/rfk/Include''',
+	'''../../../thirdparty/nlohmann_json/include''',
+	'''../../../build/RfkGenerated/MikanClientAPI''',
+	'''../../../build/RfkGenerated/MikanClientCore''',
+	'''../../../build/RfkGenerated/MikanSerialization'''
+]
+
+# Must be one of "msvc", "clang++", "g++"
+compilerExeName = "msvc"
+
+# Abort parsing on first encountered error
+shouldAbortParsingOnFirstError = true
+
+# Should all entities be parsed whether they are annotated or not
+shouldParseAllNamespaces = false
+shouldParseAllClasses = false
+shouldParseAllStructs = false
+shouldParseAllVariables = false
+shouldParseAllFields = false
+shouldParseAllFunctions = false
+shouldParseAllMethods = false
+shouldParseAllEnums = false
+shouldParseAllEnumValues = true
+
+shouldLogDiagnostic = true
+
+propertySeparator = ","
+subPropertySeparator = ","
+subPropertyStartEncloser = "("
+subPropertyEndEncloser = ")"
+
+namespaceMacroName = "NAMESPACE"
+classMacroName = "CLASS"
+structMacroName = "STRUCT"
+variableMacroName = "VARIABLE"
+fieldMacroName = "FIELD"
+functionMacroName = "FUNCTION"
+methodMacroName = "METHOD"
+enumMacroName = "ENUM"
+enumValueMacroName = "ENUMVALUE"

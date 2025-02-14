@@ -55,7 +55,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 # Put in an "ClientAPI" folder in the project viewer
-set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ClientAPI)
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Test)
 
 # Build MikanClientCSharp dependency first
 add_dependencies(${PROJECT_NAME} MikanClientCSharp)
