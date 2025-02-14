@@ -2,11 +2,13 @@
 #include "App.h"
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
+#include "BinarySerializer.h"
 #include "BinaryUtility.h"
 #include "BoxStencilComponent.h"
 #include "CommonScriptContext.h"
-#include "SharedTextureReader.h"
 #include "MathTypeConversion.h"
+#include "JsonDeserializer.h"
+#include "JsonSerializer.h"
 #include "Logger.h"
 #include "MikanAPITypes.h"
 #include "MikanCoreTypes.h"
@@ -22,9 +24,9 @@
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
-#include "JsonDeserializer.h"
-#include "JsonSerializer.h"
-#include "BinarySerializer.h"
+#include "RemoteControlRequestHandler.h"
+#include "ServerResponseHelpers.h"
+#include "SharedTextureReader.h"
 #include "StencilObjectSystemConfig.h"
 #include "StencilObjectSystem.h"
 #include "StringUtils.h"
@@ -34,7 +36,6 @@
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
 #include "Version.h"
-
 #include "WebsocketInterprocessMessageServer.h"
 
 #include <set>
@@ -411,12 +412,14 @@ MikanServer* MikanServer::m_instance= nullptr;
 
 MikanServer::MikanServer()
 	: m_messageServer(new WebsocketInterprocessMessageServer())
+	, m_remoteControlRequestHandler(new RemoteControlRequestHandler(this))
 {
 	m_instance= this;
 }
 
 MikanServer::~MikanServer()
 {
+	delete m_remoteControlRequestHandler;
 	delete m_messageServer;
 	m_instance= nullptr;
 }
@@ -440,6 +443,13 @@ bool MikanServer::startup()
 	if (!m_messageServer->initialize())
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to initialize interprocess message server";
+		return false;
+	}
+
+	// Bind the remote control request handlers
+	if (!m_remoteControlRequestHandler->startup())
+	{
+		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind remote control request handlers";
 		return false;
 	}
 
@@ -791,83 +801,6 @@ static VRDeviceViewPtr getCurrentCameraVRDevice()
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-}
-
-template <typename t_mikan_type>
-bool readTypedRequest(const std::string& utf8RequestString, t_mikan_type& outParameters)
-{
-	EASY_FUNCTION();
-
-	try
-	{
-		return Serialization::deserializeFromJsonString(utf8RequestString, outParameters);
-	}
-	catch (json::exception& e)
-	{
-		MIKAN_LOG_ERROR("MikanServer::readRequestPayload") << "Failed to parse JSON: " << e.what();
-		return false;
-	}
-}
-
-template <typename t_mikan_type>
-void writeTypedJsonResponse(MikanRequestID requestId, t_mikan_type& result, ClientResponse& response)
-{
-	EASY_FUNCTION();
-
-	result.requestId= requestId;
-	result.resultCode= MikanAPIResult::Success;
-
-	Serialization::serializeToJsonString(result, response.utf8String);
-}
-
-void writeSimpleJsonResponse(MikanRequestID requestId, MikanAPIResult result, ClientResponse& response)
-{
-	EASY_FUNCTION();
-
-	// Only write a response if the request ID is valid (i.e. the client expects a response)
-	if (requestId != INVALID_MIKAN_ID)
-	{
-		MikanResponse mikanResponse;
-		mikanResponse.requestId = requestId;
-		mikanResponse.resultCode = result;
-
-		Serialization::serializeToJsonString(mikanResponse, response.utf8String);
-	}
-	else
-	{
-		response.utf8String= "";
-	}
-}
-
-template <typename t_mikan_type>
-void writeTypedBinaryResponse(
-	MikanRequestID requestId, 
-	t_mikan_type& result,
-	ClientResponse& response)
-{
-	EASY_FUNCTION();
-
-	result.requestId= requestId;
-	result.resultCode= MikanAPIResult::Success;
-
-	Serialization::serializeToBytes<t_mikan_type>(result, response.binaryData);
-}
-
-void writeSimpleBinaryResponse(MikanRequestID requestId, MikanAPIResult result, ClientResponse& response)
-{
-	// Only write a response if the request ID is valid (i.e. the client expects a response)
-	if (requestId != INVALID_MIKAN_ID)
-	{
-		MikanResponse mikanResponse;
-		mikanResponse.requestId = requestId;
-		mikanResponse.resultCode = result;
-
-		Serialization::serializeToBytes<MikanResponse>(mikanResponse, response.binaryData);
-	}
-	else
-	{
-		response.binaryData.clear();
-	}
 }
 
 // Connection State Management
