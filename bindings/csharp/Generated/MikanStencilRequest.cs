@@ -50,6 +50,13 @@ namespace MikanXR
 
 	};
 
+	public class MikanAppStageInfoResponse : MikanResponse
+	{
+		public static new readonly long classId= -6661996497938081679;
+
+		public MikanAppStageInfo app_stage_info;
+	};
+
 	public class MikanStencilBoxInfoResponse : MikanResponse
 	{
 		public static new readonly long classId= 8416540735772150643;
