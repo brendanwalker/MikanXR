@@ -1,3 +1,5 @@
+#pragma once
+
 #include "IMikanModule.h"
 
 #include <type_traits>
