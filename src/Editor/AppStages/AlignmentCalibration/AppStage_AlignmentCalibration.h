@@ -4,12 +4,15 @@
 #include "AppStage.h"
 #include "DeviceViewFwd.h"
 #include "Constants_AlignmentCalibration.h"
+#include "IRemoteControllableAppStage.h"
 #include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
 //-- definitions -----
-class AppStage_AlignmentCalibration : public AppStage
+class AppStage_AlignmentCalibration : 
+	public AppStage, 
+	public IRemoteControllableAppStage
 {
 public:
 	static const char* APP_STAGE_NAME;

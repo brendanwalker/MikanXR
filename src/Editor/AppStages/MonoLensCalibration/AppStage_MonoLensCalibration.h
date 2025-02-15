@@ -3,6 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include "Constants_MonoLensCalibration.h"
+#include "IRemoteControllableAppStage.h"
 #include "RmlFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
@@ -11,7 +12,9 @@ class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
 //-- definitions -----
-class AppStage_MonoLensCalibration : public AppStage
+class AppStage_MonoLensCalibration : 
+	public AppStage,
+	public IRemoteControllableAppStage
 {
 public:
 	static const char* APP_STAGE_NAME;

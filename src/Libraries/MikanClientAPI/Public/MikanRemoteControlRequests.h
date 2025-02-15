@@ -9,23 +9,37 @@
 #include "MikanRemoteControlRequests.rfkh.h"
 #endif
 
-// Remtoe Control Request Types
+// Remote Control Request Types
 // ------
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) GotoAppStage :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) PushAppStage :
 	public MikanRequest
 {
 public:
-	GotoAppStage()
+	PushAppStage()
 	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GotoAppStage)
+		MIKAN_REQUEST_TYPE_INFO_INIT(PushAppStage)
 	}
 	
 	FIELD()
 	Serialization::String app_state_name;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	GotoAppStage_GENERATED
+	PushAppStage_GENERATED
+	#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) PopAppStage :
+	public MikanRequest
+{
+public:
+	PopAppStage()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(PopAppStage)
+	}
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	PopAppStage_GENERATED
 	#endif
 };
 

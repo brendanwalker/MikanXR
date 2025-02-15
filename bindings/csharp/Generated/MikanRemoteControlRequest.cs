@@ -10,9 +10,15 @@ namespace MikanXR
 
 	};
 
-	public class GotoAppStage : MikanRequest
+	public class PopAppStage : MikanRequest
 	{
-		public static new readonly long classId= 8238193662371887039;
+		public static new readonly long classId= -589658948136412267;
+
+	};
+
+	public class PushAppStage : MikanRequest
+	{
+		public static new readonly long classId= -7872424436528764660;
 
 		public string app_state_name;
 	};
