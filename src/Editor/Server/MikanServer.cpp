@@ -24,7 +24,7 @@
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
-#include "RemoteControlRequestHandler.h"
+#include "RemoteControlManager.h"
 #include "ServerResponseHelpers.h"
 #include "SharedTextureReader.h"
 #include "StencilObjectSystemConfig.h"
@@ -417,14 +417,14 @@ MikanServer* MikanServer::m_instance= nullptr;
 
 MikanServer::MikanServer()
 	: m_messageServer(new WebsocketInterprocessMessageServer())
-	, m_remoteControlRequestHandler(new RemoteControlRequestHandler(this))
+	, m_remoteControlManager(new RemoteControlManager(this))
 {
 	m_instance= this;
 }
 
 MikanServer::~MikanServer()
 {
-	delete m_remoteControlRequestHandler;
+	delete m_remoteControlManager;
 	delete m_messageServer;
 	m_instance= nullptr;
 }
@@ -452,7 +452,7 @@ bool MikanServer::startup()
 	}
 
 	// Bind the remote control request handlers
-	if (!m_remoteControlRequestHandler->startup())
+	if (!m_remoteControlManager->startup())
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind remote control request handlers";
 		return false;

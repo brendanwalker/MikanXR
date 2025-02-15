@@ -6,10 +6,10 @@
 #include <memory>
 #include <string>
 
-class RemoteControlRequestHandler : public IServerRequestHandler
+class RemoteControlManager : public IServerRequestHandler
 {
 public:
-	RemoteControlRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	RemoteControlManager(class MikanServer* owner) : IServerRequestHandler(owner) {}
 
 	virtual bool startup() override;
 

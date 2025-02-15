@@ -5,7 +5,7 @@
 #include "MikanServer.h"
 #include "MikanRemoteControlEvents.h"
 #include "MikanRemoteControlRequests.h"
-#include "RemoteControlRequestHandler.h"
+#include "RemoteControlManager.h"
 #include "ServerResponseHelpers.h"
 
 // Remote Controllable AppStages
@@ -42,20 +42,20 @@ public:
 };
 
 // -- RemoteControlRequestHandler -- //
-bool RemoteControlRequestHandler::startup()
+bool RemoteControlManager::startup()
 {
 	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	// Register remote control request handlers
 	messageServer->setRequestHandler(
 		PushAppStage::staticGetArchetype().getId(),
-		std::bind(&RemoteControlRequestHandler::pushAppStageHandler, this, _1, _2));
+		std::bind(&RemoteControlManager::pushAppStageHandler, this, _1, _2));
 	messageServer->setRequestHandler(
 		PopAppStage::staticGetArchetype().getId(),
-		std::bind(&RemoteControlRequestHandler::popAppStageHandler, this, _1, _2));
+		std::bind(&RemoteControlManager::popAppStageHandler, this, _1, _2));
 	messageServer->setRequestHandler(
 		GetAppStageInfo::staticGetArchetype().getId(),
-		std::bind(&RemoteControlRequestHandler::getAppStageInfoHandler, this, _1, _2));
+		std::bind(&RemoteControlManager::getAppStageInfoHandler, this, _1, _2));
 
 	// Create the factories for the remote-controllable app stages
 	m_remoteControllableAppStageFactories[AppStage_AlignmentCalibration::APP_STAGE_NAME]=
@@ -66,12 +66,12 @@ bool RemoteControlRequestHandler::startup()
 		TypedRemoteControllableAppStageFactory<AppStage_VRTrackingRecenter>::createFactory();
 
 	MainWindow* mainWindow= App::getInstance()->getMainWindow();
-	mainWindow->OnAppStageEntered += MakeDelegate(this, &RemoteControlRequestHandler::onAppStageEntered);
+	mainWindow->OnAppStageEntered += MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
 
 	return true;
 }
 
-void RemoteControlRequestHandler::pushAppStageHandler(
+void RemoteControlManager::pushAppStageHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -101,7 +101,7 @@ void RemoteControlRequestHandler::pushAppStageHandler(
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void RemoteControlRequestHandler::popAppStageHandler(
+void RemoteControlManager::popAppStageHandler(
 	const ClientRequest& request, 
 	ClientResponse& response)
 {
@@ -125,7 +125,7 @@ void RemoteControlRequestHandler::popAppStageHandler(
 	}
 }
 
-void RemoteControlRequestHandler::getAppStageInfoHandler(
+void RemoteControlManager::getAppStageInfoHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -145,21 +145,21 @@ void RemoteControlRequestHandler::getAppStageInfoHandler(
 }
 
 // -- App Events ----
-void RemoteControlRequestHandler::onAppStageEntered(AppStage* oldAppStage, AppStage* newAppStage)
+void RemoteControlManager::onAppStageEntered(AppStage* oldAppStage, AppStage* newAppStage)
 {
 	publishAppStageChangedEvent(
 		oldAppStage != nullptr ? oldAppStage->getAppStageName() : "",
 		newAppStage != nullptr ? newAppStage->getAppStageName() : "");
 }
 
-void RemoteControlRequestHandler::onAppStageExited(AppStage* oldAppStage, AppStage* newAppStage)
+void RemoteControlManager::onAppStageExited(AppStage* oldAppStage, AppStage* newAppStage)
 {
 	publishAppStageChangedEvent(
 		oldAppStage != nullptr ? oldAppStage->getAppStageName() : "",
 		newAppStage != nullptr ? newAppStage->getAppStageName() : "");
 }
 
-void RemoteControlRequestHandler::publishAppStageChangedEvent(
+void RemoteControlManager::publishAppStageChangedEvent(
 	const std::string& oldAppStageName,
 	const std::string& newAppStageName)
 {

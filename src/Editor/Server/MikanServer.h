@@ -60,7 +60,7 @@ public:
 
 	static MikanServer* getInstance() { return m_instance; }
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
-	inline class RemoteControlRequestHandler* getRemoteControlHandler() const { return m_remoteControlRequestHandler; }
+	inline class RemoteControlManager* getRemoteControlManager() const { return m_remoteControlManager; }
 
 	bool startup();
 	void update();
@@ -149,7 +149,7 @@ protected:
 
 private:
 	static MikanServer* m_instance;
-	class RemoteControlRequestHandler* m_remoteControlRequestHandler;
+	class RemoteControlManager* m_remoteControlManager;
 
 	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
 	std::map<std::string, MikanClientConnectionStatePtr> m_clientConnections;
