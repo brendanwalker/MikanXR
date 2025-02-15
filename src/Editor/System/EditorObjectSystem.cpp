@@ -204,9 +204,9 @@ void EditorObjectSystem::clearViewports()
 }
 
 // App Events
-void EditorObjectSystem::onAppStageEntered(class AppStage* appStage)
+void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class AppStage* newAppStage)
 {
-	if (appStage->getAppStageName() == AppStage_Compositor::APP_STAGE_NAME)
+	if (newAppStage->getAppStageName() == AppStage_Compositor::APP_STAGE_NAME)
 	{
 		m_gizmoComponentWeakPtr.lock()->bindInput();
 

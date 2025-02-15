@@ -186,11 +186,16 @@ public:
 		return jsonStr;
 	}
 
+	void publishMikanJsonEvent(const std::string& mikanJsonEvent)
+	{
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanJsonEvent);
+	}
+
 	template <typename t_mikan_type>
 	void publishSimpleEvent()
 	{
 		t_mikan_type mikanEvent;
-		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(mikanEvent));
+		publishMikanJsonEvent(mikanTypeToJsonString(mikanEvent));
 	}
 
 	// Connection Events
@@ -580,6 +585,14 @@ void MikanServer::shutdown()
 
 	m_clientConnections.clear();
 	m_messageServer->dispose();
+}
+
+void MikanServer::publishMikanJsonEvent(const std::string& mikanJsonEvent)
+{
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishMikanJsonEvent(mikanJsonEvent);
+	}
 }
 
 // Scripting

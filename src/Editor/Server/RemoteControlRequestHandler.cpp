@@ -3,6 +3,7 @@
 #include "IRemoteControllableAppStage.h"
 #include "MainWindow.h"
 #include "MikanServer.h"
+#include "MikanRemoteControlEvents.h"
 #include "MikanRemoteControlRequests.h"
 #include "RemoteControlRequestHandler.h"
 #include "ServerResponseHelpers.h"
@@ -63,6 +64,9 @@ bool RemoteControlRequestHandler::startup()
 		TypedRemoteControllableAppStageFactory<AppStage_MonoLensCalibration>::createFactory();
 	m_remoteControllableAppStageFactories[AppStage_VRTrackingRecenter::APP_STAGE_NAME] =
 		TypedRemoteControllableAppStageFactory<AppStage_VRTrackingRecenter>::createFactory();
+
+	MainWindow* mainWindow= App::getInstance()->getMainWindow();
+	mainWindow->OnAppStageEntered += MakeDelegate(this, &RemoteControlRequestHandler::onAppStageEntered);
 
 	return true;
 }
@@ -138,4 +142,32 @@ void RemoteControlRequestHandler::getAppStageInfoHandler(
 	appStageInfoResult.app_stage_info.app_state_name = currentAppStage->getAppStageName();
 
 	writeTypedJsonResponse(request.requestId, appStageInfoResult, response);
+}
+
+// -- App Events ----
+void RemoteControlRequestHandler::onAppStageEntered(AppStage* oldAppStage, AppStage* newAppStage)
+{
+	publishAppStageChangedEvent(
+		oldAppStage->getAppStageName(),
+		newAppStage->getAppStageName());
+}
+
+void RemoteControlRequestHandler::onAppStageExited(AppStage* oldAppStage, AppStage* newAppStage)
+{
+	publishAppStageChangedEvent(
+		oldAppStage->getAppStageName(),
+		newAppStage->getAppStageName());
+}
+
+void RemoteControlRequestHandler::publishAppStageChangedEvent(
+	const std::string& oldAppStageName,
+	const std::string& newAppStageName)
+{
+	MikanAppStageChagedEvent appStageChangedEvent = {};
+	appStageChangedEvent.old_app_state_name.setValue(oldAppStageName);
+	appStageChangedEvent.new_app_state_name.setValue(newAppStageName);
+
+	std::string jsonStr;
+	Serialization::serializeToJsonString(appStageChangedEvent, jsonStr);
+	m_owner->publishMikanJsonEvent(jsonStr);
 }

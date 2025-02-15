@@ -63,7 +63,7 @@ protected:
 	GizmoTransformComponentWeakPtr m_gizmoComponentWeakPtr;
 
 	// App Events
-	void onAppStageEntered(class AppStage* appStage);
+	void onAppStageEntered(class AppStage* oldAppStage, class AppStage* newAppStage);
 
 	// Object System Events
 	void onComponentInitialized(MikanObjectSystemPtr system, MikanComponentPtr component);

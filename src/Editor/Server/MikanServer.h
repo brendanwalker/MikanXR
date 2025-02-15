@@ -60,10 +60,13 @@ public:
 
 	static MikanServer* getInstance() { return m_instance; }
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
+	inline class RemoteControlRequestHandler* getRemoteControlHandler() const { return m_remoteControlRequestHandler; }
 
 	bool startup();
 	void update();
 	void shutdown();
+
+	void publishMikanJsonEvent(const std::string& mikanJsonEvent);
 
 	// Scripting
 	void bindScriptContect(CommonScriptContextPtr scriptContext);
@@ -77,7 +80,6 @@ public:
 	void publishVideoSourceAttachmentChangedEvent();
 	void publishVideoSourceIntrinsicsChangedEvent();
 	void publishVideoSourceModeChangedEvent();
-
 
 	// Spatial Anchor Events
 	void publishAnchorNameUpdatedEvent(const MikanAnchorNameUpdateEvent& newPoseEvent);

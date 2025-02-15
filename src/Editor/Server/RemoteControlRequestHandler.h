@@ -18,6 +18,11 @@ protected:
 	void popAppStageHandler(const ClientRequest& request, ClientResponse& response);
 	void getAppStageInfoHandler(const ClientRequest& request, ClientResponse& response);
 
+	// App Events
+	void onAppStageEntered(class AppStage* oldAppStage, class AppStage* newAppStage);
+	void onAppStageExited(class AppStage* oldAppStage, class AppStage* newAppStage);
+	void publishAppStageChangedEvent(const std::string& oldAppStageName, const std::string& newAppStageName);
+
 	using RemoteControllableAppStageFactoryPtr = std::shared_ptr<class RemoteControllableAppStageFactory>;
 	std::map<std::string, RemoteControllableAppStageFactoryPtr> m_remoteControllableAppStageFactories;
 };
