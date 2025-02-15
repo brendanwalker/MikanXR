@@ -56,6 +56,9 @@ bool RemoteControlManager::startup()
 	messageServer->setRequestHandler(
 		GetAppStageInfo::staticGetArchetype().getId(),
 		std::bind(&RemoteControlManager::getAppStageInfoHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		MikanRemoteControlCommand::staticGetArchetype().getId(),
+		std::bind(&RemoteControlManager::remoteControlCommandHandler, this, _1, _2));
 
 	// Create the factories for the remote-controllable app stages
 	m_remoteControllableAppStageFactories[AppStage_AlignmentCalibration::APP_STAGE_NAME]=
@@ -144,9 +147,60 @@ void RemoteControlManager::getAppStageInfoHandler(
 	writeTypedJsonResponse(request.requestId, appStageInfoResult, response);
 }
 
+void RemoteControlManager::remoteControlCommandHandler(
+	const ClientRequest& request, 
+	ClientResponse& response)
+{
+	MikanRemoteControlCommand remoteControlCommand;
+	if (!readTypedRequest(request.utf8RequestString, remoteControlCommand))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Get the current app stage and check if it is remote controllable
+	MainWindow* mainWindow= App::getInstance()->getMainWindow();
+	AppStage* appStage= mainWindow->getCurrentAppStage();
+	auto* remoteControllableAppStage= dynamic_cast<IRemoteControllableAppStage*>(appStage);
+
+	if (remoteControllableAppStage != nullptr)
+	{
+		// Pull args out of Serialization types
+		const std::string& command = remoteControlCommand.command.getValue();
+		std::vector<std::string> parameters;
+		for (const auto& parameter : remoteControlCommand.parameters)
+		{
+			parameters.push_back(parameter.getValue());
+		}
+
+		// Pass the command to the app stage
+		// If the command is not recognized/supported, return an error
+		if (remoteControllableAppStage->handleRemoteControlCommand(command, parameters))
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+		}
+		else
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidParam, response);
+		}
+	}
+	else
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidParam, response);
+	}
+}
+
 // -- App Events ----
 void RemoteControlManager::onAppStageEntered(AppStage* oldAppStage, AppStage* newAppStage)
 {
+	// If the new app stage is remote-controllable, 
+	// store a reference to the remote control manager on it so that post reote control events
+	auto remoteControllable= dynamic_cast<IRemoteControllableAppStage*>(newAppStage);
+	if (remoteControllable != nullptr)
+	{
+		remoteControllable->setRemoteControlManager(this);
+	}
+
 	publishAppStageChangedEvent(
 		oldAppStage != nullptr ? oldAppStage->getAppStageName() : "",
 		newAppStage != nullptr ? newAppStage->getAppStageName() : "");
@@ -169,5 +223,28 @@ void RemoteControlManager::publishAppStageChangedEvent(
 
 	std::string jsonStr;
 	Serialization::serializeToJsonString(appStageChangedEvent, jsonStr);
+	m_owner->publishMikanJsonEvent(jsonStr);
+}
+
+void RemoteControlManager::sendRemoteControlEvent(
+	const std::string& event,
+	const std::vector<std::string>& parameters)
+{
+	MikanRemoteControlEvent remoteControlEvent = {};
+	remoteControlEvent.remoteControlEvent.setValue(event);
+
+	const size_t parameterCount = parameters.size();
+	if (parameterCount > 0)
+	{
+		remoteControlEvent.parameters.resize(parameterCount);
+
+		for (size_t i = 0; i < parameterCount; i++)
+		{
+			remoteControlEvent.parameters[i].setValue(parameters[i]);
+		}
+	}
+
+	std::string jsonStr;
+	Serialization::serializeToJsonString(remoteControlEvent, jsonStr);
 	m_owner->publishMikanJsonEvent(jsonStr);
 }

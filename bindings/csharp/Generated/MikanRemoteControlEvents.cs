@@ -12,4 +12,12 @@ namespace MikanXR
 		public string old_app_state_name;
 	};
 
+	public class MikanRemoteControlEvent : MikanEvent
+	{
+		public static new readonly long classId= -1767585761143530576;
+
+		public string remoteControlEvent;
+		public List<string> parameters;
+	};
+
 }

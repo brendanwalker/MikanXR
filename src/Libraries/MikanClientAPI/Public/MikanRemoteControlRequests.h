@@ -57,6 +57,25 @@ public:
 	#endif
 };
 
+struct STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanRemoteControlCommand : 
+	public MikanRequest
+{
+	MikanRemoteControlCommand()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(MikanRemoteControlCommand)
+	}
+
+	FIELD()
+	Serialization::String command;
+
+	FIELD()
+	Serialization::List<Serialization::String> parameters;
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanRemoteControlCommand_GENERATED
+	#endif
+};
+
 // Remote Control Response Types
 // ------
 

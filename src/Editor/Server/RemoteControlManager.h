@@ -13,10 +13,15 @@ public:
 
 	virtual bool startup() override;
 
+	void sendRemoteControlEvent(
+		const std::string& event,
+		const std::vector<std::string>& parameters);
+
 protected:
 	void pushAppStageHandler(const ClientRequest& request, ClientResponse& response);
 	void popAppStageHandler(const ClientRequest& request, ClientResponse& response);
 	void getAppStageInfoHandler(const ClientRequest& request, ClientResponse& response);
+	void remoteControlCommandHandler(const ClientRequest& request, ClientResponse& response);
 
 	// App Events
 	void onAppStageEntered(class AppStage* oldAppStage, class AppStage* newAppStage);
