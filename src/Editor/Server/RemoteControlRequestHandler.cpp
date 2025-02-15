@@ -148,15 +148,15 @@ void RemoteControlRequestHandler::getAppStageInfoHandler(
 void RemoteControlRequestHandler::onAppStageEntered(AppStage* oldAppStage, AppStage* newAppStage)
 {
 	publishAppStageChangedEvent(
-		oldAppStage->getAppStageName(),
-		newAppStage->getAppStageName());
+		oldAppStage != nullptr ? oldAppStage->getAppStageName() : "",
+		newAppStage != nullptr ? newAppStage->getAppStageName() : "");
 }
 
 void RemoteControlRequestHandler::onAppStageExited(AppStage* oldAppStage, AppStage* newAppStage)
 {
 	publishAppStageChangedEvent(
-		oldAppStage->getAppStageName(),
-		newAppStage->getAppStageName());
+		oldAppStage != nullptr ? oldAppStage->getAppStageName() : "",
+		newAppStage != nullptr ? newAppStage->getAppStageName() : "");
 }
 
 void RemoteControlRequestHandler::publishAppStageChangedEvent(
