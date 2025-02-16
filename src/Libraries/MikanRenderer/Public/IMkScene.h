@@ -5,7 +5,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/vector_float4.hpp"
 
-class IMkScene
+class MIKAN_RENDERER_CLASS IMkScene
 {
 public:
 	virtual ~IMkScene() {}
