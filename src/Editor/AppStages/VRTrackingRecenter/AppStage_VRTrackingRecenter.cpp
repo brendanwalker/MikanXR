@@ -125,6 +125,8 @@ void AppStage_VRTrackingRecenter::enter()
 		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onRestartEvent);
 		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onCancelEvent);
 		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onReturnEvent);
+		m_calibrationModel->OnMarkerStabilityChangedEvent =
+			MakeDelegate(this, &AppStage_VRTrackingRecenter::onMarkerStabilityChangedEvent);
 
 		// Init calibration view now that the dependent model has been created
 		m_calibrationView = addRmlDocument("vr_tracking_recenter.rml");
@@ -207,6 +209,12 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 
 				// Look for a marker pose so that we can preview if it's in frame
 				m_markerPoseSampler->computeVRSpaceMarkerXform();
+
+				// See if we can compute a valid marker pose
+				m_calibrationModel->setCurrentMarkerValid(m_markerPoseSampler->hasValidVRSpaceMarkerXform());
+
+				// Update the time that the chessboard has been stable for
+				m_calibrationModel->updateMarkerStabilityTimer(deltaSeconds);
 			}
 			break;
 		case eVRTrackingRecenterMenuState::capture:
@@ -326,34 +334,69 @@ void AppStage_VRTrackingRecenter::setMenuState(eVRTrackingRecenterMenuState newS
 {
 	if (m_calibrationModel->getMenuState() != newState)
 	{
+		eVRTrackingRecenterMenuState oldState= m_calibrationModel->getMenuState();
+
 		// Update menu state on the data models
 		m_calibrationModel->setMenuState(newState);
+
+		// Broadcast the menu state change to the remote control manager
+		{
+			std::vector<std::string> parameters;
+			parameters.push_back(k_VRTrackingRecenterMenuStateStrings[(int)oldState]);
+			parameters.push_back(k_VRTrackingRecenterMenuStateStrings[(int)newState]);
+
+			sendRemoteControlEvent("menu_state_changed", parameters);
+		}
 	}
 }
 
 // Calibration Model UI Events
 void AppStage_VRTrackingRecenter::onBeginEvent()
 {
-	// Clear out all of the calibration data we recorded
-	m_markerPoseSampler->resetCalibrationState();
+	tryBeginCapture();
+}
 
-	// Reset all calibration state on the calibration UI model
-	m_calibrationModel->setCalibrationFraction(0.f);
+bool AppStage_VRTrackingRecenter::tryBeginCapture()
+{
+	if (m_calibrationModel->getMenuState() == eVRTrackingRecenterMenuState::verifySetup)
+	{
+		// Clear out all of the calibration data we recorded
+		m_markerPoseSampler->resetCalibrationState();
 
-	// Advance to the capture state
-	setMenuState(eVRTrackingRecenterMenuState::capture);
+		// Reset all calibration state on the calibration UI model
+		m_calibrationModel->setCalibrationFraction(0.f);
+
+		// Advance to the capture state
+		setMenuState(eVRTrackingRecenterMenuState::capture);
+
+		return true;
+	}
+
+	return false;
 }
 
 void AppStage_VRTrackingRecenter::onRestartEvent()
 {
-	// Clear out all of the calibration data we recorded
-	m_markerPoseSampler->resetCalibrationState();
+	tryRestartCapture();
+}
 
-	// Reset all calibration state on the calibration UI model
-	m_calibrationModel->setCalibrationFraction(0.f);
+bool AppStage_VRTrackingRecenter::tryRestartCapture()
+{
+	if (m_calibrationModel->getMenuState() != eVRTrackingRecenterMenuState::verifySetup)
+	{
+		// Clear out all of the calibration data we recorded
+		m_markerPoseSampler->resetCalibrationState();
 
-	// Return to the capture state
-	setMenuState(eVRTrackingRecenterMenuState::verifySetup);
+		// Reset all calibration state on the calibration UI model
+		m_calibrationModel->setCalibrationFraction(0.f);
+
+		// Return to the capture state
+		setMenuState(eVRTrackingRecenterMenuState::verifySetup);
+
+		return true;
+	}
+
+	return false;
 }
 
 void AppStage_VRTrackingRecenter::onCancelEvent()
@@ -364,4 +407,89 @@ void AppStage_VRTrackingRecenter::onCancelEvent()
 void AppStage_VRTrackingRecenter::onReturnEvent()
 {
 	m_ownerWindow->popAppState();
+}
+
+void AppStage_VRTrackingRecenter::onMarkerStabilityChangedEvent(bool bIsStable)
+{
+	std::vector<std::string> parameters;
+	parameters.push_back(bIsStable ? "true" : "false");
+
+	sendRemoteControlEvent("marker_stability_changed", parameters);
+}
+
+// Remote Control
+bool AppStage_VRTrackingRecenter::handleRemoteControlCommand(
+	const std::string& command,
+	const std::vector<std::string>& parameters,
+	std::vector<std::string>& outResults)
+{
+	if (!IRemoteControllableAppStage::handleRemoteControlCommand(command, parameters, outResults))
+	{
+		if (command == "get_state")
+		{
+			return handleGetStateCommand(outResults);
+		}
+		else if (command == "get_marker_stability")
+		{
+			return handleGetChessboardStabilityCommand(outResults);
+		}
+		else if (command == "begin")
+		{
+			return handleBeginCommand(outResults);
+		}
+		else if (command == "restart")
+		{
+			return handleRestartCommand(outResults);
+		}
+	}
+
+	return false;
+}
+
+bool AppStage_VRTrackingRecenter::handleGetStateCommand(
+	std::vector<std::string>& outResults)
+{
+	const eVRTrackingRecenterMenuState menuState = m_calibrationModel->getMenuState();
+	const std::string& stateName = k_VRTrackingRecenterMenuStateStrings[(int)menuState];
+
+	outResults.push_back(stateName);
+
+	return true;
+}
+
+bool AppStage_VRTrackingRecenter::handleGetChessboardStabilityCommand(
+	std::vector<std::string>& outResults)
+{
+	const bool bIsStable = m_calibrationModel->getCurrentMarkerStable();
+	outResults.push_back(bIsStable ? "true" : "false");
+
+	return true;
+}
+
+bool AppStage_VRTrackingRecenter::handleBeginCommand(std::vector<std::string>& outResults)
+{
+	if (tryBeginCapture())
+	{
+		outResults.push_back("success");
+	}
+	else
+	{
+		outResults.push_back("failure");
+	}
+
+	return true;
+}
+
+bool AppStage_VRTrackingRecenter::handleRestartCommand(std::vector<std::string>& outResults)
+{
+	if (tryRestartCapture())
+	{
+		outResults.push_back("success");
+	}
+	else
+	{
+		outResults.push_back("failure");
+	}
+
+	return true;
 }

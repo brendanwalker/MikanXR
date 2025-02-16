@@ -19,6 +19,8 @@ bool RmlModel_AlignmentCalibration::init(
 	constructor.Bind("menu_state", &m_menuState);
 	constructor.Bind("calibration_percent", &m_calibrationPercent);
 	constructor.Bind("bypass_calibration_flag", &m_bypassCalibrationFlag);
+	constructor.Bind("is_current_chessboard_valid", &m_isCurrentChessboardValid);
+	constructor.Bind("is_current_chessboard_stable", &m_isCurrentChessboardStable);
 	constructor.BindEventCallback(
 		"begin",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
@@ -125,7 +127,7 @@ void RmlModel_AlignmentCalibration::setCurrentChessboardValid(const bool bNewIma
 	if (m_isCurrentChessboardValid != bNewImagePointsValid)
 	{
 		m_isCurrentChessboardValid = bNewImagePointsValid;
-		m_modelHandle.DirtyVariable("are_current_image_points_valid");
+		m_modelHandle.DirtyVariable("is_current_chessboard_valid");
 	}
 }
 
@@ -151,7 +153,7 @@ void RmlModel_AlignmentCalibration::setCurrentChessboardStable(const bool bNewIm
 	if (m_isCurrentChessboardStable != bNewImagePointsStability)
 	{
 		m_isCurrentChessboardStable = bNewImagePointsStability;
-		m_modelHandle.DirtyVariable("are_current_image_points_valid");
+		m_modelHandle.DirtyVariable("is_current_chessboard_stable");
 		if (OnChessboardStabilityChangedEvent)
 		{
 			OnChessboardStabilityChangedEvent(m_isCurrentChessboardStable);

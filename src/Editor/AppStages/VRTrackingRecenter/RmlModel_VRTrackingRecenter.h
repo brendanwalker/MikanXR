@@ -16,12 +16,23 @@ public:
 	float getCalibrationFraction() const;
 	void setCalibrationFraction(const float newFraction);
 
+	bool getCurrentMarkerValid() const;
+	void setCurrentMarkerValid(const bool bNewChessboardValid);
+
+	void updateMarkerStabilityTimer(float deltaTime);
+	void setCurrentMarkerStable(const bool bNewChessboardStability);
+	bool getCurrentMarkerStable() const;
+
 	SinglecastDelegate<void()> OnBeginEvent;
 	SinglecastDelegate<void()> OnRestartEvent;
 	SinglecastDelegate<void()> OnCancelEvent;
 	SinglecastDelegate<void()> OnReturnEvent;
+	SinglecastDelegate<void(bool)> OnMarkerStabilityChangedEvent;
 
 private:
 	Rml::String m_menuState;
 	float m_calibrationPercent = 0.f;
+	bool m_isCurrentMarkerValid = false;
+	bool m_isCurrentMarkerStable = false;
+	float m_markerStabilityTimer = 0.f;
 };

@@ -165,6 +165,11 @@ bool ArucoMarkerPoseSampler::computeVRSpaceMarkerXform()
 	return true;
 }
 
+bool ArucoMarkerPoseSampler::hasValidVRSpaceMarkerXform() const
+{
+	return m_calibrationState->hasValidCapture;
+}
+
 void ArucoMarkerPoseSampler::sampleLastVRSpaceMarkerXform()
 {
 	if (!m_calibrationState->hasValidCapture)
