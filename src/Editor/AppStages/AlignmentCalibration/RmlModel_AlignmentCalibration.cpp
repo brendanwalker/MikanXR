@@ -6,6 +6,8 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
+static const float kChessboardStabilityDuration = 1.0f;
+
 bool RmlModel_AlignmentCalibration::init(
 	Rml::Context* rmlContext)
 {
@@ -105,4 +107,59 @@ void RmlModel_AlignmentCalibration::setCalibrationFraction(const float newFracti
 		m_calibrationPercent = newPercent;
 		m_modelHandle.DirtyVariable("calibration_percent");
 	}
+}
+
+bool RmlModel_AlignmentCalibration::getCurrentChessboardValid() const
+{
+	return m_isCurrentChessboardValid;
+}
+
+void RmlModel_AlignmentCalibration::setCurrentChessboardValid(const bool bNewImagePointsValid)
+{
+	// Reset the stability timer if the image points are no longer valid
+	if (m_isCurrentChessboardStable && !bNewImagePointsValid)
+	{
+		setCurrentChessboardStable(false);
+	}
+
+	if (m_isCurrentChessboardValid != bNewImagePointsValid)
+	{
+		m_isCurrentChessboardValid = bNewImagePointsValid;
+		m_modelHandle.DirtyVariable("are_current_image_points_valid");
+	}
+}
+
+void RmlModel_AlignmentCalibration::updateChessboardStabilityTimer(float deltaTime)
+{
+	if (m_isCurrentChessboardValid && !m_isCurrentChessboardStable)
+	{
+		m_chessboardStabilityTimer += deltaTime;
+		if (m_chessboardStabilityTimer >= kChessboardStabilityDuration)
+		{
+			setCurrentChessboardStable(true);
+		}
+	}
+}
+
+void RmlModel_AlignmentCalibration::setCurrentChessboardStable(const bool bNewImagePointsStability)
+{
+	if (!bNewImagePointsStability)
+	{
+		m_chessboardStabilityTimer = 0.f;
+	}
+
+	if (m_isCurrentChessboardStable != bNewImagePointsStability)
+	{
+		m_isCurrentChessboardStable = bNewImagePointsStability;
+		m_modelHandle.DirtyVariable("are_current_image_points_valid");
+		if (OnChessboardStabilityChangedEvent)
+		{
+			OnChessboardStabilityChangedEvent(m_isCurrentChessboardStable);
+		}
+	}
+}
+
+bool RmlModel_AlignmentCalibration::getCurrentChessboardStable() const
+{
+	return m_isCurrentChessboardStable;
 }

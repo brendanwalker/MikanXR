@@ -208,6 +208,11 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	return true;
 }
 
+bool MonoLensTrackerPoseCalibrator::hasValidCameraToPuckXform() const
+{
+	return m_calibrationState->hasValidCapture;
+}
+
 bool MonoLensTrackerPoseCalibrator::getLastCameraPose(
 	VRDevicePoseViewPtr attachedVRDevicePtr,
 	glm::mat4& outCameraPose) const

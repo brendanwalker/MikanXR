@@ -50,7 +50,6 @@ static const char* k_calibration_pattern_names[] = {
 	"Circle Grid",
 };
 
-
 //-- public methods -----
 AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(MainWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_AlignmentCalibration::APP_STAGE_NAME)
@@ -169,6 +168,8 @@ void AppStage_AlignmentCalibration::enter()
 		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onRestartEvent);
 		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onCancelEvent);
 		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onReturnEvent);
+		m_calibrationModel->OnChessboardStabilityChangedEvent = 
+			MakeDelegate(this, &AppStage_AlignmentCalibration::onChessboardStabilityChangedEvent);
 
 		// Init camera settings model
 		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
@@ -293,6 +294,12 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 
 				// Look for a calibration pattern so that we can preview if it's in frame
 				m_trackerPoseCalibrator->computeCameraToPuckXform();
+
+				// See if we can compute a camera to puck transform this frame
+				m_calibrationModel->setCurrentChessboardValid(m_trackerPoseCalibrator->hasValidCameraToPuckXform());
+
+				// Update the time tha the chessboard has been stable for
+				m_calibrationModel->updateChessboardStabilityTimer(deltaSeconds);
 			}
 			break;
 		case eAlignmentCalibrationMenuState::capture:
@@ -436,6 +443,8 @@ void AppStage_AlignmentCalibration::setMenuState(eAlignmentCalibrationMenuState 
 {
 	if (m_calibrationModel->getMenuState() != newState)
 	{
+		eAlignmentCalibrationMenuState oldState= m_calibrationModel->getMenuState();
+
 		// Update menu state on the data models
 		m_calibrationModel->setMenuState(newState);
 		m_cameraSettingsModel->setMenuState(newState);
@@ -456,38 +465,71 @@ void AppStage_AlignmentCalibration::setMenuState(eAlignmentCalibrationMenuState 
 				m_cameraSettingsView->Hide();
 			}
 		}
+
+		// Broadcast the menu state change to the remote control manager
+		{
+			std::vector<std::string> parameters;
+			parameters.push_back(k_alignmentCalibrationMenuStateStrings[(int)oldState]);
+			parameters.push_back(k_alignmentCalibrationMenuStateStrings[(int)newState]);
+
+			sendRemoteControlEvent("menu_state_changed", parameters);
+		}
 	}
 }
 
 // Calibration Model UI Events
 void AppStage_AlignmentCalibration::onBeginEvent()
 {
-	// Clear out all of the calibration data we recorded
-	m_trackerPoseCalibrator->resetCalibrationState();
+	tryBeginCapture();
+}
 
-	// Reset all calibration state on the calibration UI model
-	m_calibrationModel->setCalibrationFraction(0.f);
+bool AppStage_AlignmentCalibration::tryBeginCapture()
+{
+	if (m_calibrationModel->getMenuState() == eAlignmentCalibrationMenuState::verifySetup)
+	{
+		// Clear out all of the calibration data we recorded
+		m_trackerPoseCalibrator->resetCalibrationState();
 
-	// Go back to the camera viewpoint (in case we are in VR view)
-	m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+		// Reset all calibration state on the calibration UI model
+		m_calibrationModel->setCalibrationFraction(0.f);
 
-	// Advance to the capture state
-	setMenuState(eAlignmentCalibrationMenuState::capture);
+		// Go back to the camera viewpoint (in case we are in VR view)
+		m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+
+		// Advance to the capture state
+		setMenuState(eAlignmentCalibrationMenuState::capture);
+
+		return true;
+	}
+
+	return false;
 }
 
 void AppStage_AlignmentCalibration::onRestartEvent()
 {
-	// Clear out all of the calibration data we recorded
-	m_trackerPoseCalibrator->resetCalibrationState();
+	tryRestartCapture();
+}
 
-	// Reset all calibration state on the calibration UI model
-	m_calibrationModel->setCalibrationFraction(0.f);
+bool AppStage_AlignmentCalibration::tryRestartCapture()
+{
+	if (m_calibrationModel->getMenuState() != eAlignmentCalibrationMenuState::verifySetup)
+	{
+		// Clear out all of the calibration data we recorded
+		m_trackerPoseCalibrator->resetCalibrationState();
 
-	// Go back to the camera viewpoint (in case we are in VR view)
-	m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+		// Reset all calibration state on the calibration UI model
+		m_calibrationModel->setCalibrationFraction(0.f);
 
-	// Return to the capture state
-	setMenuState(eAlignmentCalibrationMenuState::verifySetup);
+		// Go back to the camera viewpoint (in case we are in VR view)
+		m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+
+		// Return to the capture state
+		setMenuState(eAlignmentCalibrationMenuState::verifySetup);
+
+		return true;
+	}
+
+	return false;
 }
 
 void AppStage_AlignmentCalibration::onCancelEvent()
@@ -498,6 +540,14 @@ void AppStage_AlignmentCalibration::onCancelEvent()
 void AppStage_AlignmentCalibration::onReturnEvent()
 {
 	m_ownerWindow->popAppState();
+}
+
+void AppStage_AlignmentCalibration::onChessboardStabilityChangedEvent(bool bIsStable)
+{
+	std::vector<std::string> parameters;
+	parameters.push_back(bIsStable ? "true" : "false");
+
+	sendRemoteControlEvent("chessboard_stability_changed", parameters);
 }
 
 // Camera Settings Model UI Events
@@ -534,4 +584,81 @@ void AppStage_AlignmentCalibration::onVRFrameDelayChanged(int newVRFrameDelay)
 
 	profileConfig->setVRFrameDelay(newVRFrameDelay);
 	m_bHasModifiedCameraSettings = true;
+}
+
+// Remote Control
+bool AppStage_AlignmentCalibration::handleRemoteControlCommand(
+	const std::string& command,
+	const std::vector<std::string>& parameters,
+	std::vector<std::string>& outResults)
+{
+	if (!IRemoteControllableAppStage::handleRemoteControlCommand(command, parameters, outResults))
+	{
+		if (command == "get_state")
+		{
+			return handleGetStateCommand(outResults);
+		}
+		else if (command == "get_chessboard_stability")
+		{
+			return handleGetChessboardStabilityCommand(outResults);
+		}
+		else if (command == "begin")
+		{
+			return handleBeginCommand(outResults);
+		}
+		else if (command == "restart")
+		{
+			return handleRestartCommand(outResults);
+		}
+	}
+
+	return false;
+}
+
+bool AppStage_AlignmentCalibration::handleGetStateCommand(
+	std::vector<std::string>& outResults)
+{
+	const eAlignmentCalibrationMenuState menuState = m_calibrationModel->getMenuState();
+	const std::string& stateName = k_alignmentCalibrationMenuStateStrings[(int)menuState];
+
+	outResults.push_back(stateName);
+
+	return true;
+}
+
+bool AppStage_AlignmentCalibration::handleGetChessboardStabilityCommand(
+	std::vector<std::string>& outResults)
+{
+	const bool bIsStable = m_calibrationModel->getCurrentChessboardStable();
+	outResults.push_back(bIsStable ? "true" : "false");
+
+	return true;
+}
+
+bool AppStage_AlignmentCalibration::handleBeginCommand(std::vector<std::string>& outResults)
+{
+	if (tryBeginCapture())
+	{
+		outResults.push_back("success");
+	}
+	else
+	{
+		outResults.push_back("failure");
+	}
+
+	return true;
+}
+
+bool AppStage_AlignmentCalibration::handleRestartCommand(std::vector<std::string>& outResults)
+{
+	if (tryRestartCapture())
+	{
+		outResults.push_back("success");
+	}
+	else
+	{
+		outResults.push_back("failure");
+	}
+
+	return true;
 }
