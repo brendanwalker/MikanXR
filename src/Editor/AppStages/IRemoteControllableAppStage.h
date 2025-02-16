@@ -20,7 +20,8 @@ public:
 
 	virtual bool handleRemoteControlCommand(
 		const std::string& command, 
-		const std::vector<std::string>& parameters);
+		const std::vector<std::string>& parameters,
+		std::vector<std::string>& outResults);
 
 private:
 	class RemoteControlManager* m_pRemoteControlManager= nullptr;

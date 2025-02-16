@@ -31,15 +31,26 @@ public:
 
 protected:
 	void setMenuState(eMonoLensCalibrationMenuState newState);
-	void captureRequested();
+	void onCaptureKeyPressed();
+	bool tryCapture();
 
 	// Calibration Model UI Events
 	void onRestartEvent();
 	void onReturnEvent();
 	void onCancelEvent();
+	void onImagePointStabilityChangedEvent(bool areImagePointsStable);
 
 	// Camera Settings Model UI Events
 	void onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode);
+
+	// Remote Control
+	virtual bool handleRemoteControlCommand(
+		const std::string& command,
+		const std::vector<std::string>& parameters,
+		std::vector<std::string>& outResults) override;
+	bool handleGetStateCommand(std::vector<std::string>& outResults);
+	bool handleGetImagePointStabilityCommand(std::vector<std::string>& outResults);
+	bool handleCaptureCommand(std::vector<std::string>& outResults);
 
 private:
 	class RmlModel_MonoLensCalibration* m_calibrationModel = nullptr;

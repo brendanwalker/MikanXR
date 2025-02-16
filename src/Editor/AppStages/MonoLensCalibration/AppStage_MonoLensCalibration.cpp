@@ -23,6 +23,15 @@
 //-- statics ----
 const char* AppStage_MonoLensCalibration::APP_STAGE_NAME = "MonoCalibration";
 
+const std::string g_monoLensCalibrationMenuStateStrings[(int)eMonoLensCalibrationMenuState::COUNT] = {
+	"inactive",
+	"capture",
+	"processingCalibration",
+	"testCalibration",
+	"failedCalibration",
+	"failedVideoStartStreamRequest",
+};
+
 //-- public methods -----
 AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(MainWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_MonoLensCalibration::APP_STAGE_NAME)
@@ -52,7 +61,7 @@ void AppStage_MonoLensCalibration::enter()
 	// Bind to space bar to capture frames
 	// (Auto cleared on AppStage exit)
 	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_SPACE)->OnKeyPressed +=
-		MakeDelegate(this, &AppStage_MonoLensCalibration::captureRequested);
+		MakeDelegate(this, &AppStage_MonoLensCalibration::onCaptureKeyPressed);
 
 	// Get the current video source based on the config
 	ProfileConfigConstPtr profileConfig= App::getInstance()->getProfileConfig();
@@ -102,6 +111,8 @@ void AppStage_MonoLensCalibration::enter()
 		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onCancelEvent);
 		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onRestartEvent);
 		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onReturnEvent);
+		m_calibrationModel->OnImagePointStabilityChangedEvent = 
+			MakeDelegate(this, &AppStage_MonoLensCalibration::onImagePointStabilityChangedEvent);
 
 		// Init camera settings model
 		m_cameraSettingsModel->init(context);
@@ -174,6 +185,9 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 
 				// Update image points valid flag UI data binding
 				m_calibrationModel->setCurrentImagePointsValid(m_monoLensCalibrator->areCurrentImagePointsValid());
+
+				// Update the image point stability timer / flag
+				m_calibrationModel->updateImagePointStabilityTimer(deltaSeconds);
 
 				// Update the video frame buffers
 				m_monoDistortionView->readAndProcessVideoFrame();
@@ -261,7 +275,12 @@ void AppStage_MonoLensCalibration::render()
 	}
 }
 
-void AppStage_MonoLensCalibration::captureRequested()
+void AppStage_MonoLensCalibration::onCaptureKeyPressed()
+{
+	tryCapture();
+}
+
+bool AppStage_MonoLensCalibration::tryCapture()
 {
 	eMonoLensCalibrationMenuState menuState = m_calibrationModel->getMenuState();
 
@@ -270,15 +289,19 @@ void AppStage_MonoLensCalibration::captureRequested()
 		// Update the chess board capture state
 		if (m_monoLensCalibrator != nullptr)
 		{
-			m_monoLensCalibrator->captureLastFoundCalibrationPattern();
+			return m_monoLensCalibrator->captureLastFoundCalibrationPattern();
 		}
 	}
+
+	return false;
 }
 
 void AppStage_MonoLensCalibration::setMenuState(eMonoLensCalibrationMenuState newState)
 {
 	if (m_calibrationModel->getMenuState() != newState)
 	{
+		eMonoLensCalibrationMenuState oldState= m_calibrationModel->getMenuState();
+
 		// Update menu state on the data model
 		m_calibrationModel->setMenuState(newState);
 
@@ -297,6 +320,15 @@ void AppStage_MonoLensCalibration::setMenuState(eMonoLensCalibrationMenuState ne
 			{
 				m_cameraSettingsView->Hide();
 			}
+		}
+
+		// Broadcast the menu state change to the remote control manager
+		{
+			std::vector<std::string> parameters;
+			parameters.push_back(g_monoLensCalibrationMenuStateStrings[(int)oldState]);
+			parameters.push_back(g_monoLensCalibrationMenuStateStrings[(int)newState]);
+
+			sendRemoteControlEvent("menu_state_changed", parameters);
 		}
 	}
 }
@@ -330,8 +362,77 @@ void AppStage_MonoLensCalibration::onCancelEvent()
 	m_ownerWindow->popAppState();
 }
 
+void AppStage_MonoLensCalibration::onImagePointStabilityChangedEvent(bool bIsStable)
+{
+	std::vector<std::string> parameters;
+	parameters.push_back(bIsStable ? "true" : "false");
+
+	sendRemoteControlEvent("image_point_stability_changed", parameters);
+}
+
 // Camera Settings Model UI Events
 void AppStage_MonoLensCalibration::onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode)
 {
 	m_monoDistortionView->setVideoDisplayMode(newDisplayMode);
+}
+
+bool AppStage_MonoLensCalibration::handleRemoteControlCommand(
+	const std::string& command,
+	const std::vector<std::string>& parameters,
+	std::vector<std::string>& outResults)
+{
+	if (!IRemoteControllableAppStage::handleRemoteControlCommand(command, parameters, outResults))
+	{
+		if (command == "get_state")
+		{
+			return handleGetStateCommand(outResults);
+		}
+		else if (command == "get_image_point_stability")
+		{
+			return handleGetImagePointStabilityCommand(outResults);
+		}
+		else if (command == "capture")
+		{
+			return handleCaptureCommand(outResults);
+		}
+	}
+
+	return false;
+}
+
+bool AppStage_MonoLensCalibration::handleGetStateCommand(
+	std::vector<std::string>& outResults)
+{
+	const eMonoLensCalibrationMenuState menuState = m_calibrationModel->getMenuState();
+	const std::string& stateName= g_monoLensCalibrationMenuStateStrings[(int)menuState];
+
+	outResults.push_back(stateName);
+
+	return true;
+}
+
+bool AppStage_MonoLensCalibration::handleGetImagePointStabilityCommand(
+	std::vector<std::string>& outResults)
+{
+	const bool bIsStable = m_calibrationModel->getCurrentImagePointsStable();
+	outResults.push_back(bIsStable ? "true" : "false");
+
+	return true;
+}
+
+bool AppStage_MonoLensCalibration::handleCaptureCommand(std::vector<std::string>& outResults)
+{
+	if (tryCapture())
+	{
+		outResults.push_back("success");
+	}
+	else
+	{
+		outResults.push_back("failure");
+	}
+
+	float calibrationFraction = m_calibrationModel->getCalibrationFraction();
+	outResults.push_back(std::to_string(calibrationFraction));
+
+	return true;
 }

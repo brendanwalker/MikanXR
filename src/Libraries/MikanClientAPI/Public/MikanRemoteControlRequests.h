@@ -95,6 +95,22 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanAppStage
 	#endif
 };
 
+struct STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanRemoteControlCommandResult :
+	public MikanResponse
+{
+	MikanRemoteControlCommandResult()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanRemoteControlCommandResult)
+	}
+
+	FIELD()
+	Serialization::List<Serialization::String> results;
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanRemoteControlCommandResult_GENERATED
+	#endif
+};
+
 #ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanRemoteControlRequests_GENERATED
 #endif

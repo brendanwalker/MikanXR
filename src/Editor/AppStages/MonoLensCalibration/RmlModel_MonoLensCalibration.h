@@ -23,6 +23,10 @@ public:
 	bool getCurrentImagePointsValid() const;
 	void setCurrentImagePointsValid(const bool bNewImagePointsValid);
 
+	void updateImagePointStabilityTimer(float deltaTime);
+	void setCurrentImagePointsStable(const bool bNewImagePointsStability);
+	bool getCurrentImagePointsStable() const;
+
 	float getReprojectionError() const;
 	void setReprojectionError(const float newReprojectionError);
 
@@ -31,12 +35,15 @@ public:
 	SinglecastDelegate<void()> OnCancelEvent;
 	SinglecastDelegate<void()> OnRestartEvent;
 	SinglecastDelegate<void()> OnReturnEvent;
+	SinglecastDelegate<void(bool)> OnImagePointStabilityChangedEvent;
 
 private:
 	class MonoLensDistortionCalibrator* m_monoLensCalibrator;
 
 	int m_menuState = 0;
 	bool m_areCurrentImagePointsValid = false;
+	bool m_areCurrentImagePointsStable = false;
+	float m_imagePointsStabilityTimer = 0.f;
 	float m_calibrationPercent = 0.f;
 	float m_reprojectionError = 0.f;
 	bool m_bypassCalibrationFlag = false;

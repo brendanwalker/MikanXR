@@ -175,9 +175,21 @@ void RemoteControlManager::remoteControlCommandHandler(
 
 		// Pass the command to the app stage
 		// If the command is not recognized/supported, return an error
-		if (remoteControllableAppStage->handleRemoteControlCommand(command, parameters))
+		std::vector<std::string> results;
+		if (remoteControllableAppStage->handleRemoteControlCommand(command, parameters, results))
 		{
-			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+			MikanRemoteControlCommandResult commandResponse= {};
+			const size_t resultCount = results.size();
+			if (resultCount > 0)
+			{
+				commandResponse.results.resize(resultCount);
+				for (size_t i = 0; i < resultCount; i++)
+				{
+					commandResponse.results[i].setValue(results[i]);
+				}
+			}
+
+			writeTypedJsonResponse(request.requestId, commandResponse, response);
 		}
 		else
 		{

@@ -18,6 +18,13 @@ namespace MikanXR
 		public List<string> parameters;
 	};
 
+	public class MikanRemoteControlCommandResult : MikanResponse
+	{
+		public static new readonly long classId= -9034381214596710800;
+
+		public List<string> results;
+	};
+
 	public class PopAppStage : MikanRequest
 	{
 		public static new readonly long classId= -589658948136412267;

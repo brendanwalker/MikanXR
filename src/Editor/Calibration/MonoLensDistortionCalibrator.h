@@ -21,7 +21,7 @@ public:
 
 	inline class CalibrationPatternFinder* getPatternFinder() const { return m_patternFinder; }
 	void findNewCalibrationPattern(const float minSeperationDist);
-	void captureLastFoundCalibrationPattern();
+	bool captureLastFoundCalibrationPattern();
 
 	bool hasSampledAllCalibrationPatterns() const;
 	bool areCurrentImagePointsValid() const;

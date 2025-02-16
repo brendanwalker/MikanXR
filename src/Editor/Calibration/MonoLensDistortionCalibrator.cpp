@@ -99,8 +99,9 @@ void MonoLensDistortionCalibrator::findNewCalibrationPattern(const float minSepe
 	m_patternFinder->findNewCalibrationPattern(minSeperationDist);
 }
 
-void MonoLensDistortionCalibrator::captureLastFoundCalibrationPattern()
+bool MonoLensDistortionCalibrator::captureLastFoundCalibrationPattern()
 {
+	bool bCaptured = false;
 	t_opencv_point2d_list imagePoints;
 	t_opencv_pointID_list imagePointIDs;
 	cv::Point2f boundingQuad[4];
@@ -115,7 +116,10 @@ void MonoLensDistortionCalibrator::captureLastFoundCalibrationPattern()
 		}
 
 		++m_calibrationState->capturedPatternCount;
+		bCaptured = true;
 	}
+
+	return bCaptured;
 }
 
 bool MonoLensDistortionCalibrator::hasSampledAllCalibrationPatterns() const
