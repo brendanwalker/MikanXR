@@ -42,7 +42,7 @@ public:
 };
 
 // -- RemoteControlRequestHandler -- //
-bool RemoteControlManager::startup()
+bool RemoteControlManager::startup(MainWindow* mainWindow)
 {
 	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
@@ -68,7 +68,6 @@ bool RemoteControlManager::startup()
 	m_remoteControllableAppStageFactories[AppStage_VRTrackingRecenter::APP_STAGE_NAME] =
 		TypedRemoteControllableAppStageFactory<AppStage_VRTrackingRecenter>::createFactory();
 
-	MainWindow* mainWindow= App::getInstance()->getMainWindow();
 	mainWindow->OnAppStageEntered += MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
 
 	return true;

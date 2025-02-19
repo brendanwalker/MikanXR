@@ -231,7 +231,7 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_mikanServer->startup())
+	if (success && !m_mikanServer->startup(this))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
 		success = false;

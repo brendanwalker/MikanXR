@@ -441,7 +441,7 @@ void publishSimpleEvent(std::map<std::string, MikanClientConnectionStatePtr>& cl
 	}
 }
 
-bool MikanServer::startup()
+bool MikanServer::startup(MainWindow* mainWindow)
 {
 	EASY_FUNCTION();
 
@@ -452,7 +452,7 @@ bool MikanServer::startup()
 	}
 
 	// Bind the remote control request handlers
-	if (!m_remoteControlManager->startup())
+	if (!m_remoteControlManager->startup(mainWindow))
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind remote control request handlers";
 		return false;

@@ -62,7 +62,7 @@ public:
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
 	inline class RemoteControlManager* getRemoteControlManager() const { return m_remoteControlManager; }
 
-	bool startup();
+	bool startup(class MainWindow* mainWindow);
 	void update();
 	void shutdown();
 

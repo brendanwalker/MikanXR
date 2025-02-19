@@ -11,7 +11,7 @@ class RemoteControlManager : public IServerRequestHandler
 public:
 	RemoteControlManager(class MikanServer* owner) : IServerRequestHandler(owner) {}
 
-	virtual bool startup() override;
+	virtual bool startup(class MainWindow* mainWindow) override;
 
 	void sendRemoteControlEvent(
 		const std::string& event,
