@@ -228,7 +228,7 @@ void RemoteControlManager::publishAppStageChangedEvent(
 	const std::string& oldAppStageName,
 	const std::string& newAppStageName)
 {
-	MikanAppStageChagedEvent appStageChangedEvent = {};
+	MikanAppStageChangedEvent appStageChangedEvent = {};
 	appStageChangedEvent.old_app_state_name.setValue(oldAppStageName);
 	appStageChangedEvent.new_app_state_name.setValue(newAppStageName);
 
