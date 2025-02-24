@@ -30,7 +30,8 @@ public:
 	void resetDistortionView();
 
 	void computeCameraCalibration();
-	bool getIsCameraCalibrationComplete();
+	bool getIsCameraCalibrationComplete() const;
+	int getDesiredPatternCount() const;
 	bool getCameraCalibration(MikanMonoIntrinsics* out_mono_intrinsics);
 	float getReprojectionError() const;
 

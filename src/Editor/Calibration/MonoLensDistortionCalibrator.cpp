@@ -182,13 +182,18 @@ void MonoLensDistortionCalibrator::computeCameraCalibration()
 	});
 }
 
-bool MonoLensDistortionCalibrator::getIsCameraCalibrationComplete()
+bool MonoLensDistortionCalibrator::getIsCameraCalibrationComplete() const
 {
 	auto status= m_calibrationState->asyncComputeTaskStatus.load();
 	
 	return 
 		status == MonoLensDistortionCalibrationState::Succeded ||
 		status == MonoLensDistortionCalibrationState::Failed;
+}
+
+int MonoLensDistortionCalibrator::getDesiredPatternCount() const
+{
+	return m_calibrationState->desiredPatternCount;
 }
 
 bool MonoLensDistortionCalibrator::getCameraCalibration(MikanMonoIntrinsics* out_mono_intrinsics)

@@ -391,6 +391,10 @@ bool AppStage_MonoLensCalibration::handleRemoteControlCommand(
 		{
 			return handleGetImagePointStabilityCommand(outResults);
 		}
+		else if (command == "get_samples_needed")
+		{
+			return handleGetSamplesNeededCommand(outResults);
+		}
 		else if (command == "capture")
 		{
 			return handleCaptureCommand(outResults);
@@ -414,8 +418,17 @@ bool AppStage_MonoLensCalibration::handleGetStateCommand(
 bool AppStage_MonoLensCalibration::handleGetImagePointStabilityCommand(
 	std::vector<std::string>& outResults)
 {
-	const bool bIsStable = m_calibrationModel->getCurrentImagePointsStable();
+	const bool bIsStable = m_monoLensCalibrator->getIsCameraCalibrationComplete();
 	outResults.push_back(bIsStable ? "true" : "false");
+
+	return true;
+}
+
+bool AppStage_MonoLensCalibration::handleGetSamplesNeededCommand(
+	std::vector<std::string>& outResults)
+{
+	const int samplesNeeded = m_monoLensCalibrator->getDesiredPatternCount();
+	outResults.push_back(std::to_string(samplesNeeded));
 
 	return true;
 }

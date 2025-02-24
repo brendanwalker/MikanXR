@@ -50,6 +50,7 @@ protected:
 		std::vector<std::string>& outResults) override;
 	bool handleGetStateCommand(std::vector<std::string>& outResults);
 	bool handleGetImagePointStabilityCommand(std::vector<std::string>& outResults);
+	bool handleGetSamplesNeededCommand(std::vector<std::string>& outResults);
 	bool handleCaptureCommand(std::vector<std::string>& outResults);
 
 private:
