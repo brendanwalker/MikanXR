@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "MikanRemoteControlRequests.h"
+
 #include "BinarySerializer.h"
 #include "BinaryDeserializer.h"
 #include "BinaryUtility.h"
@@ -23,6 +25,7 @@ bool run_serialization_unit_tests()
 		UNIT_TEST_MODULE_CALL_TEST(serialization_utility_test_endian_swap);
 		UNIT_TEST_MODULE_CALL_TEST(serialization_utility_test_reflection_from_json);
 		UNIT_TEST_MODULE_CALL_TEST(serialization_utility_test_reflection_from_bytes);
+		UNIT_TEST_MODULE_CALL_TEST(serialization_utility_test_remote_control);
 	UNIT_TEST_MODULE_END()
 }
 
@@ -228,5 +231,33 @@ bool serialization_utility_test_reflection_from_bytes()
 		bool bCanDeserialize = Serialization::deserializeFromBytes(bytes, actual);
 
 		verify_serialization_test_struct(actual, expected);
+	UNIT_TEST_COMPLETE()
+}
+
+bool serialization_utility_test_remote_control()
+{
+	UNIT_TEST_BEGIN("remote control")
+		MikanRemoteControlCommand expected= {};
+		expected.command = "test_command";
+		expected.parameters.push_back("param1");
+		expected.parameters.push_back("param2");
+
+		std::string jsonString;
+		bool bCanSerialize= Serialization::serializeToJsonString(expected, jsonString);
+		assert(bCanSerialize);
+
+		MikanRemoteControlCommand actual= {};
+		bool bCanDeserialize = Serialization::deserializeFromJsonString(jsonString, actual);
+
+		assert(actual.command == expected.command);
+
+		assert(actual.parameters.size() == expected.parameters.size());
+		for (int i= 0; i < expected.parameters.size(); ++i)
+		{
+			const std::string& actualValue = actual.parameters[i].getValue();
+			const std::string& expectedValue = expected.parameters[i].getValue();
+
+			assert(actualValue == expectedValue);
+		}
 	UNIT_TEST_COMPLETE()
 }
