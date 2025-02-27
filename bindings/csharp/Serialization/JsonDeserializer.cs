@@ -10,12 +10,14 @@ namespace MikanXR
 	{
 		private class JsonReadVisitor : IVisitor
 		{
+			private Assembly _contextAssembly;
 			private JToken _jsonToken;
 			public JToken jsonToken => _jsonToken;
 
-			public JsonReadVisitor(JToken jsonToken)
+			public JsonReadVisitor(JToken jsonToken, Assembly contextAssembly)
 			{
 				_jsonToken = jsonToken;
+				_contextAssembly = contextAssembly;
 			}
 
 			public void visitClass(ValueAccessor accessor)
@@ -29,7 +31,7 @@ namespace MikanXR
 					accessor.ensureValueAllocated();
 					object fieldInstance = accessor.getValueObject();
 
-					JsonReadVisitor jsonVisitor = new JsonReadVisitor(jsonToken as JObject);
+					JsonReadVisitor jsonVisitor = new JsonReadVisitor(jsonToken as JObject, _contextAssembly);
 					Utils.visitObject(fieldInstance, fieldType, jsonVisitor);
 				}
 				else
@@ -61,7 +63,7 @@ namespace MikanXR
 						var elementAccessor = new ValueAccessor(null, elementType);
 
 						// Deserialize the element
-						JsonReadVisitor elementVisitor = new JsonReadVisitor(jsonElement);
+						JsonReadVisitor elementVisitor = new JsonReadVisitor(jsonElement, _contextAssembly);
 						Utils.visitValue(elementAccessor, elementVisitor);
 
 						// Add the element to the list
@@ -99,7 +101,7 @@ namespace MikanXR
 
 						// Deserialize the key
 						var jsonKey= jsonPair["key"];
-						JsonReadVisitor keyVisitor = new JsonReadVisitor(jsonKey);
+						JsonReadVisitor keyVisitor = new JsonReadVisitor(jsonKey, _contextAssembly);
 						Utils.visitValue(keyAccessor, keyVisitor);
 
 						// Make a fake "field" for the value
@@ -107,7 +109,7 @@ namespace MikanXR
 
 						// Deserialize the value
 						var jsonValue = jsonPair["value"];
-						JsonReadVisitor valueVisitor = new JsonReadVisitor(jsonValue);
+						JsonReadVisitor valueVisitor = new JsonReadVisitor(jsonValue, _contextAssembly);
 						Utils.visitValue(valueAccessor, valueVisitor);
 
 						// Add the key-value pair to the map
@@ -132,29 +134,27 @@ namespace MikanXR
 				object fieldInstance = accessor.getValueObject();
 
 				// Allocate the element instance using the runtime class name
-				Type elementStaticType = fieldType.GenericTypeArguments[0];
 				var elementRuntimeTypeName = (string)jsonToken["class_name"];
 				var elementRuntimeTypes = 
-						from t in elementStaticType.Assembly.GetTypes()
+						from t in _contextAssembly.GetTypes()
 						where 
 							t.IsClass && 
 							t.Name == elementRuntimeTypeName &&
-							t.IsSubclassOf(elementStaticType)
+							t.IsSubclassOf(typeof(PolymorphicStruct))
 						select t;
 				var elementRuntimeType = elementRuntimeTypes.FirstOrDefault();
 				if (elementRuntimeType == null)
 				{
 					throw new Exception(
 							"JsonReadVisitor::visitPolymorphicObject() " +
-							"ObjectPtr Accessor " + fieldName +
-							" used an unknown runtime class_name: " + elementRuntimeTypeName +
-							", static class_name: " + elementStaticType.Name);
+							"TypedObjectPtr Accessor " + fieldName +
+							" used an unknown runtime class_name: " + elementRuntimeTypeName);
 				}
 				var elementInstance = Activator.CreateInstance(elementRuntimeType);
 
 				// Deserialize the element into the newly allocated instance
 				JObject elementJson = jsonToken["value"] as JObject;
-				var elementVisitor = new JsonReadVisitor(elementJson);
+				var elementVisitor = new JsonReadVisitor(elementJson, _contextAssembly);
 				Utils.visitObject(elementInstance, elementRuntimeType, elementVisitor);
 
 				// Assign the child object to the SerializableObject field
@@ -462,7 +462,7 @@ namespace MikanXR
 		{
 			try
 			{
-				var visitor = new JsonReadVisitor(jsonObject);
+				var visitor = new JsonReadVisitor(jsonObject, structType.Assembly);
 
 				Utils.visitObject(instance, structType, visitor);
 

@@ -11,8 +11,9 @@
 #include "MikanRemoteControlEvents.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanRemoteControlEvents")) MikanAppStageChangedEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlEvents")) MikanAppStageChangedEvent : public MikanEvent
 {
+public:
 	MikanAppStageChangedEvent()
 	{
 		MIKAN_EVENT_TYPE_INFO_INIT(MikanAppStageChangedEvent)
@@ -29,8 +30,9 @@ struct STRUCT(Serialization::CodeGenModule("MikanRemoteControlEvents")) MikanApp
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanRemoteControlEvents")) MikanRemoteControlEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlEvents")) MikanRemoteControlEvent : public MikanEvent
 {
+public:
 	MikanRemoteControlEvent()
 	{
 		MIKAN_EVENT_TYPE_INFO_INIT(MikanRemoteControlEvent)

@@ -22,79 +22,69 @@ namespace Serialization NAMESPACE()
 	SERIALIZATION_API MikanClassId toMikanClassId(RfkClassId classId);
 	SERIALIZATION_API RfkClassId toRfkClassId(MikanClassId classId);
 
-	template <class t_base_class>
-	class CLASS() ObjectPtr
+	struct SERIALIZATION_API STRUCT() PolymorphicStruct
+	{
+		#ifdef SERIALIZATION_REFLECTION_ENABLED
+		Serialization_PolymorphicStruct_GENERATED
+		#endif
+	};
+
+	class SERIALIZATION_API CLASS() PolymorphicObjectPtr
 	{
 	public:
-		ObjectPtr()= default;
+		PolymorphicObjectPtr();
+		virtual ~PolymorphicObjectPtr();
 
-		// We can only assign a shared pointer to a ObjectPtr 
-		// if we have access to serialization reflection structures
-		// (needed for fetching the runtime class id)
-		#ifdef SERIALIZATION_REFLECTION_ENABLED
-		template <class t_derived_class>
-		ObjectPtr(std::shared_ptr<t_derived_class>& objectPtr)
+		template <typename t_derived_class>
+		t_derived_class* allocatedByType()
 		{
-			setSharedPointer(objectPtr);
+			auto derivedObjectPtr = std::make_shared<t_derived_class>();
+			auto baseObjectPtr = std::static_pointer_cast<PolymorphicStruct>(derivedObjectPtr);
+
+			setPolymorphicStructPtrInternal(
+				baseObjectPtr,
+				t_derived_class::staticGetArchetype());
+
+			return getTypedPointerMutable<t_derived_class>();
 		}
 
-		template <class t_derived_class>
-		void setSharedPointer(std::shared_ptr<t_derived_class>& objectPtr)
+		template <typename t_derived_class>
+		const t_derived_class* getTypedPointer() const
 		{
-			m_runtimeClassId = t_derived_class::staticGetArchetype().getId();
-			m_objectPtr = std::move(objectPtr);
+			return reinterpret_cast<const t_derived_class*>(getRawPtr());
 		}
-		#endif
 
-		std::shared_ptr<t_base_class> getSharedPointer() const
+		template <typename t_derived_class>
+		t_derived_class* getTypedPointerMutable()
 		{
-			return m_objectPtr;
+			return reinterpret_cast<t_derived_class*>(getRawPtrMutable());
 		}
+
+		void freeObject();
+
+		// Methods invoked by reflection (serialization code)
+		METHOD()
+		void* allocateByClassId(const std::size_t && rfkClassId);
 
 		METHOD()
-		std::size_t getRuntimeClassId() const
-		{
-			return m_runtimeClassId;
-		}
+		const void* getRawPtr() const;
 
 		METHOD()
-		const void* getRawPtr() const
-		{
-			return m_objectPtr.get();
-		}
+		void* getRawPtrMutable();
 
-		// Only want this method defined when:
-		// * When we have access to serialization reflection structures
-		// * When we are generating the serialization reflection code
-		#if defined(ENABLE_SERIALIZATION_REFLECTION) || defined(KODGEN_PARSING)
 		METHOD()
-		void* allocate(const std::size_t&& rfkClassId)
-		{
-			// If we are generating the serialization reflection code, we don't want to include Refureku
-			// Just need the function signature to exist
-			#ifndef KODGEN_PARSING
-			rfk::Struct const* objectClass = rfk::getDatabase().getStructById(rfkClassId);
-
-			if (objectClass != nullptr)
-			{
-				m_objectPtr= objectClass->makeSharedInstance<t_base_class>();
-				m_runtimeClassId = rfkClassId;
-
-				return m_objectPtr.get();
-			}
-			#endif
-
-			return nullptr;
-		}
-		#endif
+		std::size_t getRuntimeClassId() const;
 
 		#ifdef SERIALIZATION_REFLECTION_ENABLED
-		Serialization_ObjectPtr_GENERATED
+		Serialization_PolymorphicObjectPtr_GENERATED
 		#endif
 
-	private:
-		RfkClassId m_runtimeClassId = 0;
-		std::shared_ptr<t_base_class> m_objectPtr;
+	protected:
+		void setPolymorphicStructPtrInternal(
+			std::shared_ptr<PolymorphicStruct> objPtr,
+			rfk::Struct const& objectClass);
+
+		struct PolymorphicObjectPtrImpl* m_impl= nullptr;
 	};
 };
 

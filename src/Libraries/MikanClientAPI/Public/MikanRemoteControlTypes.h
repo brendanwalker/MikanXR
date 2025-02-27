@@ -11,8 +11,9 @@
 #include "MikanRemoteControlTypes.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanRemoteControlTypes")) MikanAppStageInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlTypes")) MikanAppStageInfo
 {
+public:
 	FIELD()
 	Serialization::String app_state_name;
 

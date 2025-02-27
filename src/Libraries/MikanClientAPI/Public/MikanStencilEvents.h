@@ -10,7 +10,8 @@
 #include "MikanStencilEvents.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilNameUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilNameUpdateEvent : 
+	public MikanEvent
 {
 	MikanStencilNameUpdateEvent()
 	{
@@ -27,7 +28,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilNa
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilPoseUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilPoseUpdateEvent : 
+	public MikanEvent
 {
 	MikanStencilPoseUpdateEvent()
 	{
@@ -44,7 +46,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanStencilPo
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanQuadStencilListUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanQuadStencilListUpdateEvent : 
+	public MikanEvent
 {
 	MikanQuadStencilListUpdateEvent()
 	{
@@ -56,7 +59,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanQuadStenc
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanBoxStencilListUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanBoxStencilListUpdateEvent : 
+	public MikanEvent
 {
 	MikanBoxStencilListUpdateEvent()
 	{
@@ -68,7 +72,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanBoxStenci
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanModelStencilListUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilEvents")) MikanModelStencilListUpdateEvent : 
+	public MikanEvent
 {
 	MikanModelStencilListUpdateEvent()
 	{

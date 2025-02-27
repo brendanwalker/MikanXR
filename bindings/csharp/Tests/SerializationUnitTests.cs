@@ -12,7 +12,7 @@ namespace MikanXR
 		Value3,
 	};
 
-	class SerializationPoint
+	class SerializationPoint : PolymorphicStruct
 	{
 		public static readonly long classId= 0;
 	};
@@ -71,7 +71,7 @@ namespace MikanXR
 		public string string_field;
 		public SerializationTestEnum enum_field;
 		public SerializationPoint2d point2d_field;
-		public SerializableObject<SerializationPoint> point_ptr_field;
+		public PolymorphicObject point_ptr_field;
 		public List<bool> bool_array;
 		public List<int> int_array;
 		public List<SerializationPoint2d> point2d_array;
@@ -113,7 +113,7 @@ namespace MikanXR
 			testObject.string_field= "hello";
 			testObject.enum_field= SerializationTestEnum.Value2;
 			testObject.point2d_field= new SerializationPoint2d(1.2345f, 5.4321f);
-			testObject.point_ptr_field = new SerializableObject<SerializationPoint>();
+			testObject.point_ptr_field = new PolymorphicObject();
 			testObject.point_ptr_field.setInstance(new SerializationPoint3d(1.2345f, 5.4321f, 9.8765f));
 			testObject.bool_array= boolArray;
 			testObject.int_array= intArray;

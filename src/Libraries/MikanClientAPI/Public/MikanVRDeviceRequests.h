@@ -81,7 +81,7 @@ public:
 // VR Device Response Types
 // ------
 
-struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceListResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceListResponse : 
 	public MikanResponse
 {
 	MikanVRDeviceListResponse()
@@ -97,7 +97,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceL
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceInfoResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) MikanVRDeviceInfoResponse : 
 	public MikanResponse
 {
 	MikanVRDeviceInfoResponse()

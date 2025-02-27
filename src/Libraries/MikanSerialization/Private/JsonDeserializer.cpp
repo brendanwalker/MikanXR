@@ -64,19 +64,10 @@ namespace Serialization
 			}
 			else if (fieldJsonObject.is_object())
 			{
-				if (classKind == rfk::EClassKind::TemplateInstantiation)
+				if (fieldType == rfk::getType<PolymorphicObjectPtr>())
 				{
-					void* objectInstance = accessor.getUntypedValueMutablePtr();
-					const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
-					std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
-
-					// See if the field is a Serialization::ObjectPtr<T>
-					if (templateTypeName == "ObjectPtr" &&
-						templateClassInstanceType->getTemplateArgumentsCount() == 1)
-					{
-						visitObjectPtr(accessor, *templateClassInstanceType, fieldJsonObject);
-						return;
-					}
+					visitObjectPtr(accessor, fieldJsonObject);
+					return;
 				}
 			}
 			else if (fieldJsonObject.is_string())
@@ -103,19 +94,12 @@ namespace Serialization
 		}
 
 		void visitObjectPtr(
-			ValueAccessor const& sharedPtrAccessor,
-			rfk::ClassTemplateInstantiation const& templatedArrayType,
+			ValueAccessor const& accessor,
 			const json& ownerJsonObject)
 		{
 			// Get the shared pointer we are writing 
-			void* sharedPtrInstance = sharedPtrAccessor.getUntypedValueMutablePtr();
-
-			// Get the type of the elements in the array from the template argument
-			auto const& templateArg =
-				static_cast<rfk::TypeTemplateArgument const&>(
-					templatedArrayType.getTemplateArgumentAt(0));
-			rfk::Type const& elementType = templateArg.getType();
-			rfk::Archetype const* elementArchetype = elementType.getArchetype();
+			void* objPtrInstance = accessor.getUntypedValueMutablePtr();
+			rfk::Class const* objPtrClassType = accessor.getClassType();
 
 			// Get the class for the object by type id
 			std::string objectClassName = ownerJsonObject["class_name"].get<std::string>();
@@ -127,19 +111,20 @@ namespace Serialization
 			{
 				throw std::runtime_error(
 					stringify("JsonReadVisitor::visitObjectPtr() ",
-							  "ObjectPtr Accessor ", sharedPtrAccessor.getName(),
+							  "TypedObjectPtr Accessor ", accessor.getName(),
 							  " used an unknown runtime class_name: ", objectClassName,
-							  " (runtime class_id: ", rfkClassId,
-							  "), static class_name: ", elementArchetype->getName()));
+							  " (runtime class_id: ", rfkClassId, ")"));
 			}
 
 			// Use reflection to get the methods to create and initialize the object
-			rfk::Method const* allocateMethod = templatedArrayType.getMethodByName("allocate");
+			rfk::Method const* allocateMethod = 
+				objPtrClassType->getMethodByName(
+					"allocateByClassId", rfk::EMethodFlags::Default, true);
 
 			// Allocate a default instance of the object assigned to the shared pointer
 			void* objectInstance =
 				allocateMethod->invokeUnsafe<void*, const std::size_t&>(
-					sharedPtrInstance, rfkClassId);
+					objPtrInstance, rfkClassId);
 
 			// Deserialize the object from the json
 			json objectJson= ownerJsonObject["value"];

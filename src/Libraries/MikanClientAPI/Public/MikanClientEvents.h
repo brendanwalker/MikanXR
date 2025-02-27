@@ -11,7 +11,8 @@
 #include "MikanClientEvents.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedEvent : 
+	public MikanEvent
 {
 	MikanConnectedEvent()
 	{
@@ -32,7 +33,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedE
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanDisconnectedEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanDisconnectedEvent : 
+	public MikanEvent
 {
 	MikanDisconnectedEvent()
 	{

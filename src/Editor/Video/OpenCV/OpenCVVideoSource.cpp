@@ -328,12 +328,7 @@ void OpenCVVideoSource::getCameraIntrinsics(
 void OpenCVVideoSource::setCameraIntrinsics(
 	const MikanVideoSourceIntrinsics& videoSourceIntrinsics)
 {
-	assert(videoSourceIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-
-	auto cameraIntrinsics= videoSourceIntrinsics.intrinsics_ptr.getSharedPointer();
-	auto monoIntrinsics= std::static_pointer_cast<MikanMonoIntrinsics>(cameraIntrinsics);
-
-	m_cfg->cameraIntrinsics = *monoIntrinsics.get();
+	m_cfg->cameraIntrinsics = videoSourceIntrinsics.getMonoIntrinsics();
 }
 
 MikanQuatd OpenCVVideoSource::getCameraOffsetOrientation() const

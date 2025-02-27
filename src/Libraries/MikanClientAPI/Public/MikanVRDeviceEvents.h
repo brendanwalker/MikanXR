@@ -10,7 +10,8 @@
 #include "MikanVRDeviceEvents.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceEvents")) MikanVRDevicePoseUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceEvents")) MikanVRDevicePoseUpdateEvent : 
+	public MikanEvent
 {
 	MikanVRDevicePoseUpdateEvent()
 	{
@@ -29,7 +30,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceEvents")) MikanVRDevice
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceEvents")) MikanVRDeviceListUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceEvents")) MikanVRDeviceListUpdateEvent : 
+	public MikanEvent
 {
 	MikanVRDeviceListUpdateEvent()
 	{

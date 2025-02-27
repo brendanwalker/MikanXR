@@ -3,24 +3,28 @@ using System.Reflection;
 
 namespace MikanXR
 {
-	public class SerializableObject<T> where T : class
+	public class PolymorphicStruct 
+	{
+	}
+
+	public class PolymorphicObject
 	{
 		private long _runtimeClassId= 0;
 		public long RuntimeClassId => _runtimeClassId;
 
-		private object _instance;
-		public T Instance => _instance as T;
+		private PolymorphicStruct _instance;
+		public PolymorphicStruct Instance => _instance;
 
-		public SerializableObject() 
+		public PolymorphicObject() 
 		{ 
 		}
 
-		public SerializableObject(T instance)
+		public PolymorphicObject(PolymorphicStruct instance)
 		{
 			setInstance(instance);
 		}
 
-		public void setInstance(T instance)
+		public void setInstance(PolymorphicStruct instance)
 		{
 			Type instanceType = instance.GetType();
 			FieldInfo classIdField= 

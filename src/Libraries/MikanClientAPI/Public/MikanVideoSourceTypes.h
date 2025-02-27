@@ -38,7 +38,7 @@ enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanIntrinsics
 
 /// Radial and tangential lens distortion coefficients computed during lens lens calibration
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistortionCoefficients
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistortionCoefficients
 {
 	FIELD()
 	double k1 = 0.0; ///< Radial Distortion Parameter 1 (r^2 numerator constant)
@@ -64,7 +64,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistor
 
 /// Camera intrinsic common properties
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCameraIntrinsics
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCameraIntrinsics
+	: public Serialization::PolymorphicStruct
 {
 	FIELD()
 	double pixel_width = 0.0;  ///< Width of the camera buffer in pixels
@@ -88,7 +89,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanCamera
 
 /// Camera intrinsic properties for a monoscopic camera
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanMonoIntrinsics : public MikanCameraIntrinsics
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanMonoIntrinsics 
+	: public MikanCameraIntrinsics
 {
 	// Distortion coefficients computed for the physical camera lens
 	FIELD()
@@ -108,7 +110,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanMonoIn
 
 /// Camera intrinsic properties for a stereoscopic camera
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanStereoIntrinsics : public MikanCameraIntrinsics
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanStereoIntrinsics 
+	: public MikanCameraIntrinsics
 {
 	FIELD()
 	MikanDistortionCoefficients left_distortion_coefficients; ///< Left lens distortion coefficients
@@ -144,10 +147,11 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanStereo
 };
 
 /// Bundle containing all intrinsic video source properties
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceIntrinsics
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceIntrinsics
 {
+	// MikanCameraIntrinsics derived type
 	FIELD()
-	Serialization::ObjectPtr<MikanCameraIntrinsics> intrinsics_ptr;
+	Serialization::PolymorphicObjectPtr intrinsics_ptr;
 
 	FIELD()
 	MikanIntrinsicsType intrinsics_type;
@@ -160,37 +164,29 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoS
 	const MikanMonoIntrinsics& getMonoIntrinsics() const
 	{
 		assert(intrinsics_type == MONO_CAMERA_INTRINSICS);
-		auto monoIntrinsicsPtr= 
-			std::static_pointer_cast<MikanMonoIntrinsics>(
-				intrinsics_ptr.getSharedPointer());
+		auto* monoIntrinsicsPtr= intrinsics_ptr.getTypedPointer<MikanMonoIntrinsics>();
 			
-		return *monoIntrinsicsPtr.get();
+		return *monoIntrinsicsPtr;
 	}
 
 	const MikanStereoIntrinsics& getStereoIntrinsics() const
 	{
 		assert(intrinsics_type == STEREO_CAMERA_INTRINSICS);
-		auto stereoIntrinsicsPtr =
-			std::static_pointer_cast<MikanStereoIntrinsics>(
-				intrinsics_ptr.getSharedPointer());
+		auto stereoIntrinsicsPtr = intrinsics_ptr.getTypedPointer<MikanStereoIntrinsics>();
 
-		return *stereoIntrinsicsPtr.get();
+		return *stereoIntrinsicsPtr;
 	}
 
 	#if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
 	void setMonoIntrinsics(const MikanMonoIntrinsics& mono_intrinsics)
 	{
-		auto monoIntrinsics = std::make_shared<MikanMonoIntrinsics>(mono_intrinsics);
-
-		intrinsics_ptr.setSharedPointer(monoIntrinsics);
+		intrinsics_ptr.allocatedByType<MikanMonoIntrinsics>();
 		intrinsics_type = MONO_CAMERA_INTRINSICS;
 	}
 
 	void setStereoIntrinsics(const MikanStereoIntrinsics& stereo_intrinsics)
 	{
-		auto stereoIntrinsics = std::make_shared<MikanStereoIntrinsics>(stereo_intrinsics);
-
-		intrinsics_ptr.setSharedPointer(stereoIntrinsics);
+		intrinsics_ptr.allocatedByType<MikanStereoIntrinsics>();
 		intrinsics_type = STEREO_CAMERA_INTRINSICS;
 	}
 	#endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED

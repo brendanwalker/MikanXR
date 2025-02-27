@@ -10,7 +10,8 @@
 #include "MikanScriptEvents.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanScriptEvents")) MikanScriptMessagePostedEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptEvents")) MikanScriptMessagePostedEvent : 
+	public MikanEvent
 {
 	MikanScriptMessagePostedEvent()
 	{

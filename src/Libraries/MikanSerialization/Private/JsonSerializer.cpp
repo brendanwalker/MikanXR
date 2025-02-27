@@ -32,19 +32,17 @@ namespace Serialization
 			{
 				visitBoolList(accessor, m_jsonObject);
 			}
+			else if (fieldType == rfk::getType<Serialization::PolymorphicObjectPtr>())
+			{
+				visitObjectPtr(accessor, m_jsonObject);
+			}
 			else if (classKind == rfk::EClassKind::TemplateInstantiation)
 			{
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
-				// See if the field is a Serialization::ObjectPtr<T>
-				if (templateTypeName == "ObjectPtr" &&
-					templateClassInstanceType->getTemplateArgumentsCount() == 1)
-				{
-					visitObjectPtr(accessor, *templateClassInstanceType, m_jsonObject);
-				}
 				// See if the field is a Serialization::List<T>
-				else if (templateTypeName == "List" &&
+				if (templateTypeName == "List" &&
 						 templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
 					visitList(accessor, *templateClassInstanceType, m_jsonObject);
@@ -71,17 +69,19 @@ namespace Serialization
 		}
 
 		void visitObjectPtr(
-			ValueAccessor const& objectPtrAccessor,
-			rfk::ClassTemplateInstantiation const& templatedArrayType,
+			ValueAccessor const& accessor,
 			json& ownerJsonObject)
 		{
 			// Get the shared pointer instance
-			const void* sharedPtrInstance = objectPtrAccessor.getUntypedValuePtr();
+			const void* objPtrInstance = accessor.getUntypedValuePtr();
+			rfk::Class const* objPtrClassType = accessor.getClassType();
 
 			// Use reflection to get the runtime class id of the object pointed at
-			rfk::Method const* getRuntimeClassIdMethod = templatedArrayType.getMethodByName("getRuntimeClassId");
+			rfk::Method const* getRuntimeClassIdMethod = 
+				objPtrClassType->getMethodByName(
+					"getRuntimeClassId", rfk::EMethodFlags::Default, true);
 			const Serialization::RfkClassId rfkClassId= 
-				getRuntimeClassIdMethod->invokeUnsafe<std::size_t>(sharedPtrInstance);
+				getRuntimeClassIdMethod->invokeUnsafe<std::size_t>(objPtrInstance);
 			const Serialization::MikanClassId mikanClassId=
 				Serialization::toMikanClassId(rfkClassId);
 
@@ -91,7 +91,7 @@ namespace Serialization
 			{
 				throw std::runtime_error(
 					stringify("JsonWriteVisitor::visitObjectPtr() ",
-							  "ObjectPtr Accessor ", objectPtrAccessor.getName(),
+							  "TypedObjectPtr Accessor ", accessor.getName(),
 							  " has an invalid class id ", rfkClassId));
 			}
 
@@ -106,8 +106,10 @@ namespace Serialization
 			objectPtrJson["class_id"] = mikanClassId;
 
 			// Get the raw pointer to the object pointed to by the shared pointer
-			rfk::Method const* getRawPtrMethod = templatedArrayType.getMethodByName("getRawPtr");
-			const void* objectInstance = getRawPtrMethod->invokeUnsafe<const void*>(sharedPtrInstance);
+			rfk::Method const* getRawPtrMethod = 
+				objPtrClassType->getMethodByName(
+					"getRawPtr", rfk::EMethodFlags::Default, true);
+			const void* objectInstance = getRawPtrMethod->invokeUnsafe<const void*>(objPtrInstance);
 
 			// Serialize the object into json
 			json objectJson = json::object();
@@ -121,7 +123,7 @@ namespace Serialization
 			objectPtrJson["value"] = objectJson;
 
 			// Add the json array to the owner json object
-			ownerJsonObject[objectPtrAccessor.getName()] = objectPtrJson;
+			ownerJsonObject[accessor.getName()] = objectPtrJson;
 		}
 
 		void visitBoolList(

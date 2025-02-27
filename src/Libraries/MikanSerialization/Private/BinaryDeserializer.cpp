@@ -31,18 +31,16 @@ namespace Serialization
 			{
 				visitBoolList(accessor);
 			}
+			else if (fieldType == rfk::getType<Serialization::PolymorphicObjectPtr>())
+			{
+				visitObjectPtr(accessor);
+			}
 			else if (classKind == rfk::EClassKind::TemplateInstantiation)
 			{
 				void* arrayInstance = accessor.getUntypedValueMutablePtr();
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
-				// See if the field is a Serialization::ObjectPtr<T>
-				if (templateTypeName == "ObjectPtr" &&
-					templateClassInstanceType->getTemplateArgumentsCount() == 1)
-				{
-					visitObjectPtr(accessor, *templateClassInstanceType);
-				}
 				// See if the field is a Serialization::List<T>
 				if (templateTypeName == "List" &&
 					templateClassInstanceType->getTemplateArgumentsCount() == 1)
@@ -74,19 +72,11 @@ namespace Serialization
 			variablePtr->setValue(value);
 		}
 
-		void visitObjectPtr(
-			ValueAccessor const& sharedPtrAccessor,
-			rfk::ClassTemplateInstantiation const& templatedObjectType)
+		void visitObjectPtr(ValueAccessor const& accessor)
 		{
 			// Get the shared pointer we are writing 
-			void* sharedPtrInstance = sharedPtrAccessor.getUntypedValueMutablePtr();
-
-			// Get the type of the elements in the array from the template argument
-			auto const& templateArg =
-				static_cast<rfk::TypeTemplateArgument const&>(
-					templatedObjectType.getTemplateArgumentAt(0));
-			rfk::Type const& elementType = templateArg.getType();
-			rfk::Archetype const* elementArchetype = elementType.getArchetype();
+			void* objPtrInstance = accessor.getUntypedValueMutablePtr();
+			rfk::Class const* objPtrClassType = accessor.getClassType();
 
 			// Get the class for the object by type id
 			std::string objectClassName;
@@ -99,18 +89,17 @@ namespace Serialization
 			{
 				throw std::runtime_error(
 					stringify("BinaryReadVisitor::visitObjectPtr() ",
-							  "ObjectPtr Accessor ", sharedPtrAccessor.getName(),
-							  " used an unknown class_id ", mikanObjectClassId,
-							  ", archetype name: ", elementArchetype->getName()));
+							  "TypedObjectPtr Accessor ", accessor.getName(),
+							  " used an unknown class_id ", mikanObjectClassId));
 			}
 
 			// Use reflection to get the methods to create and initialize the object
-			rfk::Method const* allocateMethod = templatedObjectType.getMethodByName("allocate");
+			rfk::Method const* allocateMethod = objPtrClassType->getMethodByName("allocateByClassId");
 
 			// Allocate a default instance of the object assigned to the shared pointer
 			void* objectInstance =
 				allocateMethod->invokeUnsafe<void*, const std::size_t&>(
-					sharedPtrInstance, rfkClassId);
+					objPtrInstance, rfkClassId);
 
 			// See if the serialized object is not null
 			bool isValid = false;

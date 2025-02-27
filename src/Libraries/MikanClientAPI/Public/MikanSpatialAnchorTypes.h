@@ -10,7 +10,7 @@
 #include "MikanSpatialAnchorTypes.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorTypes")) MikanSpatialAnchorInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorTypes")) MikanSpatialAnchorInfo
 {
 	FIELD()
 	MikanSpatialAnchorID anchor_id;

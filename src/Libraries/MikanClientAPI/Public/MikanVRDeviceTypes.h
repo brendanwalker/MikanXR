@@ -30,7 +30,7 @@ enum ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceType
 
 
 // VR Device Response Types
-struct STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceInfo
 {
 	FIELD()
 	MikanVRDeviceApi vr_device_api;

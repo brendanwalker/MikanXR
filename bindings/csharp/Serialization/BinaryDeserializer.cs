@@ -9,11 +9,13 @@ namespace MikanXR
 	{
 		private class BinaryReadVisitor : IVisitor
 		{
+			private Assembly _contextAssembly;
 			private BinaryReader _reader;
 
-			public BinaryReadVisitor(BinaryReader reader)
+			public BinaryReadVisitor(BinaryReader reader, Assembly contextAssembly)
 			{
 				_reader = reader;
+				_contextAssembly = contextAssembly;
 			}
 
 			public void visitClass(ValueAccessor accessor)
@@ -97,29 +99,27 @@ namespace MikanXR
 				if (isValidObject)
 				{
 					// Allocate instance by class name
-					Type elementStaticType = serializableObjectType.GenericTypeArguments[0];
 					var elementRuntimeTypes =
-							from t in elementStaticType.Assembly.GetTypes()
+							from t in _contextAssembly.GetTypes()
 							where
 								t.IsClass &&
 								t.Name == elementRuntimeTypeName &&
-								t.IsSubclassOf(elementStaticType)
+								t.IsSubclassOf(typeof(PolymorphicStruct))
 							select t;
 					var elementRuntimeType = elementRuntimeTypes.FirstOrDefault();
 					if (elementRuntimeType == null)
 					{
 						throw new Exception(
 								"BinaryDeserializer::visitPolymorphicObject() " +
-								"ObjectPtr Accessor " + fieldName +
-								" used an unknown runtime class_name: " + elementRuntimeTypeName +
-								", static class_name: " + elementStaticType.Name);
+								"TypedObjectPtr Accessor " + fieldName +
+								" used an unknown runtime class_name: " + elementRuntimeTypeName);
 					}
 					var elementInstance = Activator.CreateInstance(elementRuntimeType);
 
 					// Deserialize the instance
 					Utils.visitObject(elementInstance, elementRuntimeType, this);
 
-					// Assign the child object to the SerializableObject field
+					// Assign the child object to the PolymorphicObject field
 					MethodInfo setInstanceMethod = serializableObjectType.GetMethod("setInstance");
 					setInstanceMethod.Invoke(serializableObject, new object[] { elementInstance });
 				}
@@ -231,7 +231,7 @@ namespace MikanXR
 			try
 			{
 				var binaryReader = new BinaryReader(inBytes);
-				var visitor = new BinaryReadVisitor(binaryReader);
+				var visitor = new BinaryReadVisitor(binaryReader, structType.Assembly);
 				Utils.visitObject(instance, structType, visitor);
 
 				return true;

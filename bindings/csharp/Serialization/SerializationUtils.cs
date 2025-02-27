@@ -205,15 +205,14 @@ namespace MikanXR
 					{
 						visitor.visitDictionary(accessor);
 					}
-					else if (fieldType.Name.StartsWith("SerializableObject") &&
-							fieldType.GenericTypeArguments.Length == 1)
-					{
-						visitor.visitPolymorphicObject(accessor);
-					}
 					else
 					{
 						visitor.visitClass(accessor);
 					}
+				}
+				else if (fieldType.Name.StartsWith("PolymorphicObject"))
+				{
+					visitor.visitPolymorphicObject(accessor);
 				}
 				else if (fieldType == typeof(string))
 				{

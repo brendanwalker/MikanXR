@@ -10,7 +10,8 @@
 #include "MikanSpatialAnchorEvents.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorNameUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorNameUpdateEvent : 
+	public MikanEvent
 {
 	MikanAnchorNameUpdateEvent()
 	{
@@ -27,7 +28,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnc
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorPoseUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorPoseUpdateEvent : 
+	public MikanEvent
 {
 	MikanAnchorPoseUpdateEvent()
 	{
@@ -44,7 +46,8 @@ struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnc
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorListUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorEvents")) MikanAnchorListUpdateEvent : 
+	public MikanEvent
 {
 	MikanAnchorListUpdateEvent()
 	{
