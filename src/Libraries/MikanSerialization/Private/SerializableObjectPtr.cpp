@@ -16,22 +16,69 @@ namespace Serialization
 	struct PolymorphicObjectPtrImpl
 	{
 		std::shared_ptr<PolymorphicStruct> serializableStructPtr;
-		MikanClassId runtimeClassId = 0;
-		void* runtimeClassRawPtr= nullptr;
+		MikanClassId runtimeClassId;
+		void* runtimeClassRawPtr;
 	};
 
-	PolymorphicObjectPtr::PolymorphicObjectPtr() : m_impl(new PolymorphicObjectPtrImpl())
+	PolymorphicObjectPtr::PolymorphicObjectPtr()
 	{
+		m_impl= new PolymorphicObjectPtrImpl;
+		m_impl->serializableStructPtr = nullptr;
+		m_impl->runtimeClassId = 0;
+		m_impl->runtimeClassRawPtr = nullptr;
+	}
+
+	PolymorphicObjectPtr::PolymorphicObjectPtr(PolymorphicObjectPtr&& other) noexcept
+		: m_impl(std::move(other.m_impl))
+	{
+		other.m_impl = nullptr;
+	}
+
+	PolymorphicObjectPtr::PolymorphicObjectPtr(const PolymorphicObjectPtr& other)
+	{
+		m_impl = new PolymorphicObjectPtrImpl;
+		m_impl->serializableStructPtr = other.m_impl->serializableStructPtr;
+		m_impl->runtimeClassId = other.m_impl->runtimeClassId;
+		m_impl->runtimeClassRawPtr = other.m_impl->runtimeClassRawPtr;
+	}
+
+	PolymorphicObjectPtr& PolymorphicObjectPtr::operator=(PolymorphicObjectPtr&& other) noexcept
+	{
+		if (this != &other)
+		{
+			reset();
+			m_impl = std::move(other.m_impl);
+			other.m_impl = nullptr;
+		}
+
+		return *this;
+	}
+
+	PolymorphicObjectPtr& PolymorphicObjectPtr::operator=(const PolymorphicObjectPtr& other)
+	{
+		if (this != &other)
+		{
+			reset();
+			m_impl->serializableStructPtr = other.m_impl->serializableStructPtr;
+			m_impl->runtimeClassId = other.m_impl->runtimeClassId;
+			m_impl->runtimeClassRawPtr = other.m_impl->runtimeClassRawPtr;
+		}
+
+		return *this;
 	}
 
 	PolymorphicObjectPtr::~PolymorphicObjectPtr()
 	{
-		freeObject();
-		delete m_impl;
+		if (m_impl != nullptr)
+		{
+			delete m_impl;
+			m_impl = nullptr;
+		}
 	}
 
-	void PolymorphicObjectPtr::freeObject()
+	void PolymorphicObjectPtr::reset()
 	{
+		assert(m_impl != nullptr);
 		m_impl->serializableStructPtr.reset();
 		m_impl->runtimeClassId= 0;
 		m_impl->runtimeClassRawPtr = nullptr;

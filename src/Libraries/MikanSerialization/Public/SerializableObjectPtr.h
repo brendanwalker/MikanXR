@@ -33,7 +33,12 @@ namespace Serialization NAMESPACE()
 	{
 	public:
 		PolymorphicObjectPtr();
+		PolymorphicObjectPtr(PolymorphicObjectPtr&& other) noexcept;
+		PolymorphicObjectPtr(const PolymorphicObjectPtr& other);
 		virtual ~PolymorphicObjectPtr();
+
+		PolymorphicObjectPtr& operator=(PolymorphicObjectPtr&& other) noexcept;
+		PolymorphicObjectPtr& operator=(const PolymorphicObjectPtr& other);
 
 		template <typename t_derived_class>
 		t_derived_class* allocatedByType()
@@ -60,7 +65,7 @@ namespace Serialization NAMESPACE()
 			return reinterpret_cast<t_derived_class*>(getRawPtrMutable());
 		}
 
-		void freeObject();
+		void reset();
 
 		// Methods invoked by reflection (serialization code)
 		METHOD()

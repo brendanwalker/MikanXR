@@ -69,7 +69,7 @@ void VideoModeConfig::readFromJSON(const configuru::Config &pt)
 		bufferPixelWidth= pt.get_or<int>("buffer_pixel_width", (int)monoIntrinsics.pixel_width);
 		bufferPixelHeight= pt.get_or<int>("buffer_pixel_height", (int)monoIntrinsics.pixel_height);
 
-		intrinsics.setMonoIntrinsics(monoIntrinsics);
+		intrinsics.makeMonoIntrinsics()= monoIntrinsics;
 	}
 	else if (intrinsics_type == "stereo")
 	{
@@ -80,7 +80,7 @@ void VideoModeConfig::readFromJSON(const configuru::Config &pt)
 		bufferPixelWidth= pt.get_or<int>("buffer_pixel_width", (int)stereoIntrinsics.pixel_width);
 		bufferPixelHeight= pt.get_or<int>("buffer_pixel_height", (int)stereoIntrinsics.pixel_height);
 
-		intrinsics.setStereoIntrinsics(stereoIntrinsics);
+		intrinsics.makeStereoIntrinsics()= stereoIntrinsics;
 	}
 
 	if (pt.has_key("frame_sections"))

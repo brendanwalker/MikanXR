@@ -322,7 +322,7 @@ int OpenCVVideoSource::getVideoProperty(const VideoPropertyType property_type) c
 void OpenCVVideoSource::getCameraIntrinsics(
 	MikanVideoSourceIntrinsics& outCameraIntrinsics) const
 {
-	outCameraIntrinsics.setMonoIntrinsics(m_cfg->cameraIntrinsics);
+	outCameraIntrinsics.makeMonoIntrinsics()= m_cfg->cameraIntrinsics;
 }
 
 void OpenCVVideoSource::setCameraIntrinsics(

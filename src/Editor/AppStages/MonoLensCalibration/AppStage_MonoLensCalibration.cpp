@@ -215,7 +215,7 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 					{
 						// Update the camera intrinsics for this camera
 						MikanVideoSourceIntrinsics cameraIntrinsics;
-						cameraIntrinsics.setMonoIntrinsics(new_mono_intrinsics);
+						cameraIntrinsics.makeMonoIntrinsics()= new_mono_intrinsics;
 						m_videoSourceView->setCameraIntrinsics(cameraIntrinsics);
 
 						// Rebuild the distortion map to reflect the updated calibration

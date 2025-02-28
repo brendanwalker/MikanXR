@@ -169,6 +169,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 		return *monoIntrinsicsPtr;
 	}
 
+	MikanMonoIntrinsics& getMonoIntrinsicsMutable()
+	{
+		return const_cast<MikanMonoIntrinsics&>(getMonoIntrinsics());
+	}
+
 	const MikanStereoIntrinsics& getStereoIntrinsics() const
 	{
 		assert(intrinsics_type == STEREO_CAMERA_INTRINSICS);
@@ -177,17 +182,26 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 		return *stereoIntrinsicsPtr;
 	}
 
-	#if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
-	void setMonoIntrinsics(const MikanMonoIntrinsics& mono_intrinsics)
+	MikanStereoIntrinsics& getStereoIntrinsicsMutable()
 	{
-		intrinsics_ptr.allocatedByType<MikanMonoIntrinsics>();
-		intrinsics_type = MONO_CAMERA_INTRINSICS;
+		return const_cast<MikanStereoIntrinsics&>(getStereoIntrinsics());
 	}
 
-	void setStereoIntrinsics(const MikanStereoIntrinsics& stereo_intrinsics)
+	#if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
+	MikanMonoIntrinsics& makeMonoIntrinsics()
 	{
-		intrinsics_ptr.allocatedByType<MikanStereoIntrinsics>();
+		auto* monoIntrinsics= intrinsics_ptr.allocatedByType<MikanMonoIntrinsics>();
+		intrinsics_type = MONO_CAMERA_INTRINSICS;
+
+		return *monoIntrinsics;
+	}
+
+	MikanStereoIntrinsics& makeStereoIntrinsics()
+	{
+		auto* stereoIntrinsics= intrinsics_ptr.allocatedByType<MikanStereoIntrinsics>();
 		intrinsics_type = STEREO_CAMERA_INTRINSICS;
+
+		return *stereoIntrinsics;
 	}
 	#endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
 
