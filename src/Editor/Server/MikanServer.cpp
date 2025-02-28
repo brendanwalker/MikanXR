@@ -1090,28 +1090,35 @@ void MikanServer::getVideoSourceModeHandler(
 		const IVideoSourceInterface::eDriverType driverType= videoSourceView->getVideoSourceDriverType();
 		const VideoModeConfig* modeConfig= videoSourceView->getVideoMode();
 
-		MikanVideoSourceModeResponse info;
-		info.device_path = devicePath;
-		info.frame_rate = modeConfig->frameRate;
-		info.resolution_x = modeConfig->bufferPixelWidth;
-		info.resolution_y = modeConfig->bufferPixelHeight;
-		info.video_mode_name = modeConfig->modeName;
-		switch (driverType)
+		if (modeConfig != nullptr)
 		{
-		case IVideoSourceInterface::OpenCV:
-			info.video_source_api = MikanVideoSourceApi_INVALID;
-			break;
-		case IVideoSourceInterface::WindowsMediaFramework:
-			info.video_source_api = MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION;
-			break;
-		case IVideoSourceInterface::INVALID:
-		default:
-			info.video_source_api= MikanVideoSourceApi_INVALID;
-			break;
-		}
-		info.video_source_type= videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;
+			MikanVideoSourceModeResponse info;
+			info.device_path = devicePath;
+			info.frame_rate = modeConfig->frameRate;
+			info.resolution_x = modeConfig->bufferPixelWidth;
+			info.resolution_y = modeConfig->bufferPixelHeight;
+			info.video_mode_name = modeConfig->modeName;
+			switch (driverType)
+			{
+				case IVideoSourceInterface::OpenCV:
+					info.video_source_api = MikanVideoSourceApi_INVALID;
+					break;
+				case IVideoSourceInterface::WindowsMediaFramework:
+					info.video_source_api = MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION;
+					break;
+				case IVideoSourceInterface::INVALID:
+				default:
+					info.video_source_api = MikanVideoSourceApi_INVALID;
+					break;
+			}
+			info.video_source_type = videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;
 
-		writeTypedJsonResponse(request.requestId, info, response);
+			writeTypedJsonResponse(request.requestId, info, response);
+		}
+		else
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+		}
 	}
 	else
 	{
