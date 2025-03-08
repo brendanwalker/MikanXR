@@ -10,7 +10,7 @@
 #include "MikanVideoSourceEvents.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceOpenedEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceOpenedEvent : 
 	public MikanEvent
 {
 	MikanVideoSourceOpenedEvent()
@@ -23,7 +23,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideo
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceClosedEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceClosedEvent : 
 	public MikanEvent
 {
 	MikanVideoSourceClosedEvent()
@@ -36,7 +36,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideo
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceNewFrameEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceNewFrameEvent : 
 	public MikanEvent
 {
 	MikanVideoSourceNewFrameEvent()
@@ -58,7 +58,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideo
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceAttachmentChangedEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceAttachmentChangedEvent : 
 	public MikanEvent
 {
 	MikanVideoSourceAttachmentChangedEvent()
@@ -71,7 +71,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideo
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceIntrinsicsChangedEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceIntrinsicsChangedEvent : 
 	public MikanEvent
 {
 	MikanVideoSourceIntrinsicsChangedEvent()
@@ -84,7 +84,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideo
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceModeChangedEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceModeChangedEvent : 
 	public MikanEvent
 {
 	MikanVideoSourceModeChangedEvent()

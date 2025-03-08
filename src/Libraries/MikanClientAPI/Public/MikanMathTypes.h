@@ -15,7 +15,7 @@
 #define MIKAN_CENTIMETERS_TO_METERS  0.01f
 
 /// A 3D vector with double components.
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3d
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3d
 {
 	FIELD()
 	double x;
@@ -30,7 +30,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3d
 };
 
 /// A 2D vector with float components.
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector2f
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector2f
 {
 	FIELD()
 	float x;
@@ -43,7 +43,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector2f
 };
 
 /// A 3D vector with float components.
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3f
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3f
 {
 	FIELD()
     float x;
@@ -59,7 +59,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3f
 };
 
 /// A 3-tuple of Euler angles with float components.
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanRotator3f
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanRotator3f
 {
 	FIELD()
 	float x_angle;
@@ -81,7 +81,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanRotator3f
     | x2 y2 z2 w2 |
     | x3 y3 z3 w3 |
  */
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4f
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4f
 {
 	FIELD()
 	float x0;
@@ -128,7 +128,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4f
     | x1 y1 z1 |
     | x2 y2 z2 |
  */
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix3d
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix3d
 {
 	FIELD()
 	double x0;
@@ -161,7 +161,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix3d
     | x1 y1 z1 w1|
     | x2 y2 z2 w2|
  */
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4x3d
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4x3d
 {
 	FIELD()
 	double x0;
@@ -201,7 +201,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4x3d
     | x2 y2 z2 w2 |
     | x3 y3 z3 w3 |
  */
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4d
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4d
 {
 	FIELD()
 	double x0;
@@ -242,7 +242,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4d
 };
 
 /// A double-precision quaternion rotation.
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQuatf
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQuatf
 {
 	FIELD()
 	float w;
@@ -259,7 +259,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQuatf
 };
 
 /// A double-precision quaternion rotation.
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQuatd
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQuatd
 {
 	FIELD()
     double w;
@@ -276,7 +276,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQuatd
 };
 
 /// A single-precision Scale-Rotation-Translation transform.
-struct STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanTransform
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanTransform
 {
 	FIELD()
 	MikanVector3f scale;

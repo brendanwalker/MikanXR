@@ -58,7 +58,7 @@ public:
 // ------
 
 /// Bundle containing all intrinsic video source properties
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceIntrinsicsResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceIntrinsicsResponse : 
 	public MikanResponse
 {
 	MikanVideoSourceIntrinsicsResponse()
@@ -76,7 +76,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVide
 };
 
 /// Static properties about video source tracker attachment
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceAttachmentInfoResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceAttachmentInfoResponse : 
 	public MikanResponse
 {
 	MikanVideoSourceAttachmentInfoResponse()
@@ -95,7 +95,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVide
 };
 
 /// Static properties about a video source
-struct STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceModeResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceModeResponse : 
 	public MikanResponse
 {
 	MikanVideoSourceModeResponse()

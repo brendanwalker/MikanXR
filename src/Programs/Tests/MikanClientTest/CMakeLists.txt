@@ -84,6 +84,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan_Test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll
+          $<TARGET_FILE_DIR:Mikan_Test>)
+  add_custom_command(
+    TARGET Mikan_Test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll
           $<TARGET_FILE_DIR:Mikan_Test>)
   add_custom_command(

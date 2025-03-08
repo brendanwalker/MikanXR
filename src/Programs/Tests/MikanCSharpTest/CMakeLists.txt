@@ -102,7 +102,17 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET MikanCSharpTest POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll
+          $<TARGET_FILE_DIR:MikanCSharpTest>)
+  add_custom_command(
+    TARGET MikanCSharpTest POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll
+          $<TARGET_FILE_DIR:MikanCSharpTest>)
+  add_custom_command(
+    TARGET MikanCSharpTest POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          "${RFK_SHARED_LIBRARIES}"
           $<TARGET_FILE_DIR:MikanCSharpTest>)
 ELSE() #Linux/Darwin
 ENDIF()

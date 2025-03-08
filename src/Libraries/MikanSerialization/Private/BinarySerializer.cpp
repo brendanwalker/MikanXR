@@ -30,19 +30,17 @@ namespace Serialization
 			{
 				visitBoolList(accessor);
 			}
+			else if (fieldType == rfk::getType<Serialization::PolymorphicObjectPtr>())
+			{
+				visitObjectPtr(accessor);
+			}
 			else if (classKind == rfk::EClassKind::TemplateInstantiation)
 			{
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
 				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
-				// See if the field is a Serialization::ObjectPtr<T>
-				if (templateTypeName == "ObjectPtr" &&
-					templateClassInstanceType->getTemplateArgumentsCount() == 1)
-				{
-					visitObjectPtr(accessor, *templateClassInstanceType);
-				}
 				// See if the field is a Serialization::List<T>
-				else if (templateTypeName == "List" &&
+				if (templateTypeName == "List" &&
 					templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
 					visitList(accessor, *templateClassInstanceType);
@@ -75,17 +73,18 @@ namespace Serialization
 			to_binary(m_binaryWriter, stringPtr->getValue());
 		}
 
-		void visitObjectPtr(
-			ValueAccessor const& objectPtrAccessor,
-			rfk::ClassTemplateInstantiation const& templatedArrayType)
+		void visitObjectPtr(ValueAccessor const& accessor)
 		{
 			// Get the shared pointer instance
-			const void* sharedPtrInstance = objectPtrAccessor.getUntypedValuePtr();
+			const void* objPtrInstance = accessor.getUntypedValuePtr();
+			rfk::Class const* objPtrClassType = accessor.getClassType();
 
 			// Use reflection to get the runtime class id of the object pointed at
-			rfk::Method const* getRuntimeClassIdMethod = templatedArrayType.getMethodByName("getRuntimeClassId");
+			rfk::Method const* getRuntimeClassIdMethod = 
+				objPtrClassType->getMethodByName(
+					"getRuntimeClassId", rfk::EMethodFlags::Default, true);
 			const Serialization::RfkClassId rfkClassId = 
-				getRuntimeClassIdMethod->invokeUnsafe<std::size_t>(sharedPtrInstance);
+				getRuntimeClassIdMethod->invokeUnsafe<std::size_t>(objPtrInstance);
 			const Serialization::MikanClassId mikanClassId = Serialization::toMikanClassId(rfkClassId);
 
 			// Get the runtime class for the object
@@ -94,7 +93,7 @@ namespace Serialization
 			{
 				throw std::runtime_error(
 					stringify("BinaryWriteVisitor::visitObjectPtr() ",
-							  "ObjectPtr Accessor ", objectPtrAccessor.getName(),
+							  "TypedObjectPtr Accessor ", accessor.getName(),
 							  " has an invalid class id ", rfkClassId));
 			}
 
@@ -106,8 +105,10 @@ namespace Serialization
 			to_binary(m_binaryWriter, mikanClassId);
 
 			// Get the raw pointer to the object pointed to by the shared pointer
-			rfk::Method const* getRawPtrMethod = templatedArrayType.getMethodByName("getRawPtr");
-			const void* objectInstance = getRawPtrMethod->invokeUnsafe<const void*>(sharedPtrInstance);
+			rfk::Method const* getRawPtrMethod = 
+				objPtrClassType->getMethodByName(
+					"getRawPtr", rfk::EMethodFlags::Default, true);
+			const void* objectInstance = getRawPtrMethod->invokeUnsafe<const void*>(objPtrInstance);
 
 			// Write out whether the object is valid or not
 			bool isValidObject = objectInstance != nullptr;

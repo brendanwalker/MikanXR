@@ -2,11 +2,13 @@
 #include "App.h"
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
+#include "BinarySerializer.h"
 #include "BinaryUtility.h"
 #include "BoxStencilComponent.h"
 #include "CommonScriptContext.h"
-#include "SharedTextureReader.h"
 #include "MathTypeConversion.h"
+#include "JsonDeserializer.h"
+#include "JsonSerializer.h"
 #include "Logger.h"
 #include "MikanAPITypes.h"
 #include "MikanCoreTypes.h"
@@ -22,9 +24,9 @@
 #include "ModelStencilComponent.h"
 #include "ProfileConfig.h"
 #include "QuadStencilComponent.h"
-#include "JsonDeserializer.h"
-#include "JsonSerializer.h"
-#include "BinarySerializer.h"
+#include "RemoteControlManager.h"
+#include "ServerResponseHelpers.h"
+#include "SharedTextureReader.h"
 #include "StencilObjectSystemConfig.h"
 #include "StencilObjectSystem.h"
 #include "StringUtils.h"
@@ -34,7 +36,6 @@
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
 #include "Version.h"
-
 #include "WebsocketInterprocessMessageServer.h"
 
 #include <set>
@@ -185,11 +186,16 @@ public:
 		return jsonStr;
 	}
 
+	void publishMikanJsonEvent(const std::string& mikanJsonEvent)
+	{
+		m_messageServer->sendMessageToClient(getConnectionId(), mikanJsonEvent);
+	}
+
 	template <typename t_mikan_type>
 	void publishSimpleEvent()
 	{
 		t_mikan_type mikanEvent;
-		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(mikanEvent));
+		publishMikanJsonEvent(mikanTypeToJsonString(mikanEvent));
 	}
 
 	// Connection Events
@@ -411,12 +417,14 @@ MikanServer* MikanServer::m_instance= nullptr;
 
 MikanServer::MikanServer()
 	: m_messageServer(new WebsocketInterprocessMessageServer())
+	, m_remoteControlManager(new RemoteControlManager(this))
 {
 	m_instance= this;
 }
 
 MikanServer::~MikanServer()
 {
+	delete m_remoteControlManager;
 	delete m_messageServer;
 	m_instance= nullptr;
 }
@@ -433,13 +441,20 @@ void publishSimpleEvent(std::map<std::string, MikanClientConnectionStatePtr>& cl
 	}
 }
 
-bool MikanServer::startup()
+bool MikanServer::startup(MainWindow* mainWindow)
 {
 	EASY_FUNCTION();
 
 	if (!m_messageServer->initialize())
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to initialize interprocess message server";
+		return false;
+	}
+
+	// Bind the remote control request handlers
+	if (!m_remoteControlManager->startup(mainWindow))
+	{
+		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind remote control request handlers";
 		return false;
 	}
 
@@ -570,6 +585,14 @@ void MikanServer::shutdown()
 
 	m_clientConnections.clear();
 	m_messageServer->dispose();
+}
+
+void MikanServer::publishMikanJsonEvent(const std::string& mikanJsonEvent)
+{
+	for (auto& connection_it : m_clientConnections)
+	{
+		connection_it.second->publishMikanJsonEvent(mikanJsonEvent);
+	}
 }
 
 // Scripting
@@ -791,83 +814,6 @@ static VRDeviceViewPtr getCurrentCameraVRDevice()
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-}
-
-template <typename t_mikan_type>
-bool readTypedRequest(const std::string& utf8RequestString, t_mikan_type& outParameters)
-{
-	EASY_FUNCTION();
-
-	try
-	{
-		return Serialization::deserializeFromJsonString(utf8RequestString, outParameters);
-	}
-	catch (json::exception& e)
-	{
-		MIKAN_LOG_ERROR("MikanServer::readRequestPayload") << "Failed to parse JSON: " << e.what();
-		return false;
-	}
-}
-
-template <typename t_mikan_type>
-void writeTypedJsonResponse(MikanRequestID requestId, t_mikan_type& result, ClientResponse& response)
-{
-	EASY_FUNCTION();
-
-	result.requestId= requestId;
-	result.resultCode= MikanAPIResult::Success;
-
-	Serialization::serializeToJsonString(result, response.utf8String);
-}
-
-void writeSimpleJsonResponse(MikanRequestID requestId, MikanAPIResult result, ClientResponse& response)
-{
-	EASY_FUNCTION();
-
-	// Only write a response if the request ID is valid (i.e. the client expects a response)
-	if (requestId != INVALID_MIKAN_ID)
-	{
-		MikanResponse mikanResponse;
-		mikanResponse.requestId = requestId;
-		mikanResponse.resultCode = result;
-
-		Serialization::serializeToJsonString(mikanResponse, response.utf8String);
-	}
-	else
-	{
-		response.utf8String= "";
-	}
-}
-
-template <typename t_mikan_type>
-void writeTypedBinaryResponse(
-	MikanRequestID requestId, 
-	t_mikan_type& result,
-	ClientResponse& response)
-{
-	EASY_FUNCTION();
-
-	result.requestId= requestId;
-	result.resultCode= MikanAPIResult::Success;
-
-	Serialization::serializeToBytes<t_mikan_type>(result, response.binaryData);
-}
-
-void writeSimpleBinaryResponse(MikanRequestID requestId, MikanAPIResult result, ClientResponse& response)
-{
-	// Only write a response if the request ID is valid (i.e. the client expects a response)
-	if (requestId != INVALID_MIKAN_ID)
-	{
-		MikanResponse mikanResponse;
-		mikanResponse.requestId = requestId;
-		mikanResponse.resultCode = result;
-
-		Serialization::serializeToBytes<MikanResponse>(mikanResponse, response.binaryData);
-	}
-	else
-	{
-		response.binaryData.clear();
-	}
 }
 
 // Connection State Management
@@ -1144,28 +1090,35 @@ void MikanServer::getVideoSourceModeHandler(
 		const IVideoSourceInterface::eDriverType driverType= videoSourceView->getVideoSourceDriverType();
 		const VideoModeConfig* modeConfig= videoSourceView->getVideoMode();
 
-		MikanVideoSourceModeResponse info;
-		info.device_path = devicePath;
-		info.frame_rate = modeConfig->frameRate;
-		info.resolution_x = modeConfig->bufferPixelWidth;
-		info.resolution_y = modeConfig->bufferPixelHeight;
-		info.video_mode_name = modeConfig->modeName;
-		switch (driverType)
+		if (modeConfig != nullptr)
 		{
-		case IVideoSourceInterface::OpenCV:
-			info.video_source_api = MikanVideoSourceApi_INVALID;
-			break;
-		case IVideoSourceInterface::WindowsMediaFramework:
-			info.video_source_api = MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION;
-			break;
-		case IVideoSourceInterface::INVALID:
-		default:
-			info.video_source_api= MikanVideoSourceApi_INVALID;
-			break;
-		}
-		info.video_source_type= videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;
+			MikanVideoSourceModeResponse info;
+			info.device_path = devicePath;
+			info.frame_rate = modeConfig->frameRate;
+			info.resolution_x = modeConfig->bufferPixelWidth;
+			info.resolution_y = modeConfig->bufferPixelHeight;
+			info.video_mode_name = modeConfig->modeName;
+			switch (driverType)
+			{
+				case IVideoSourceInterface::OpenCV:
+					info.video_source_api = MikanVideoSourceApi_INVALID;
+					break;
+				case IVideoSourceInterface::WindowsMediaFramework:
+					info.video_source_api = MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION;
+					break;
+				case IVideoSourceInterface::INVALID:
+				default:
+					info.video_source_api = MikanVideoSourceApi_INVALID;
+					break;
+			}
+			info.video_source_type = videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;
 
-		writeTypedJsonResponse(request.requestId, info, response);
+			writeTypedJsonResponse(request.requestId, info, response);
+		}
+		else
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+		}
 	}
 	else
 	{

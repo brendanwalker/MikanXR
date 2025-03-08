@@ -231,7 +231,7 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_mikanServer->startup())
+	if (success && !m_mikanServer->startup(this))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
 		success = false;
@@ -489,7 +489,7 @@ void MainWindow::processPendingAppStageOps()
 
 					// Notify any object systems that care about app stage transitions 
 					if (OnAppStageEntered)
-						OnAppStageEntered(pendingAppStageOp.appStage);
+						OnAppStageEntered(pendingAppStageOp.parentAppStage, pendingAppStageOp.appStage);
 				} break;
 			case AppStageOperation::exit:
 				{
@@ -497,7 +497,7 @@ void MainWindow::processPendingAppStageOps()
 
 					// Notify any object systems that care about app stage transitions 
 					if (OnAppStageExited)
-						OnAppStageEntered(pendingAppStageOp.appStage);
+						OnAppStageExited(pendingAppStageOp.appStage, pendingAppStageOp.parentAppStage);
 
 					// Exit the app stage we are leaving
 					pendingAppStageOp.appStage->exit();

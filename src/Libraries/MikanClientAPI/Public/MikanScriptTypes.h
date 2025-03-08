@@ -9,7 +9,7 @@
 #endif
 
 // Script Event Types
-struct STRUCT(Serialization::CodeGenModule("MikanScriptTypes")) MikanScriptMessageInfo 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptTypes")) MikanScriptMessageInfo 
 {
 	FIELD()
 	Serialization::String content;

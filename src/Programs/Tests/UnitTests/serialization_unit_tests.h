@@ -20,7 +20,7 @@ enum ENUM() SerializationTestEnum
 	SerializationTestEnum_Value3 ENUMVALUE_STRING("Value3"),
 };
 
-struct STRUCT() SerializationPointStruct
+struct STRUCT() SerializationPointStruct : public Serialization::PolymorphicStruct
 {
 	virtual ~SerializationPointStruct() = default;
 
@@ -107,8 +107,9 @@ struct STRUCT() SerializationTestStruct
 	FIELD()
 	SerializationPoint2dStruct point2d_field;
 
+	// SerializationPointStruct derived type
 	FIELD()
-	Serialization::ObjectPtr<SerializationPointStruct> point_ptr_field;
+	Serialization::PolymorphicObjectPtr point_ptr_field;
 
 	FIELD()
 	Serialization::BoolList bool_array;

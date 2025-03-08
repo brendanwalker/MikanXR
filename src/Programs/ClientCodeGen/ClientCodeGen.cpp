@@ -433,25 +433,16 @@ protected:
 			{
 				return "List<bool>";
 			}
+			else if (cppType == "PolymorphicObjectPtr")
+			{
+				return "PolymorphicObject";
+			}
 			else if (classKind == rfk::EClassKind::TemplateInstantiation)
 			{
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(classType);
 				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
 
-				if (templateTypeName == "ObjectPtr" && 
-					templateClassInstanceType->getTemplateArgumentsCount() == 1)
-				{
-					auto const& templateArg =
-						static_cast<rfk::TypeTemplateArgument const&>(
-							templateClassInstanceType->getTemplateArgumentAt(0));
-					rfk::Type const& objectBaseType = templateArg.getType();
-					std::string objectBaseTypeString= getCSharpType(objectBaseType);
-
-					// Field type can be ObjectPtr template type since 
-					// it's the base class for the pointer type
-					return "SerializableObject<" + objectBaseTypeString + ">";
-				}
-				else if (templateTypeName == "List" &&
+				if (templateTypeName == "List" &&
 						 templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
 					auto const& templateArg =

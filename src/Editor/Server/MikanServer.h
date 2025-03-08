@@ -59,10 +59,14 @@ public:
 	virtual ~MikanServer();
 
 	static MikanServer* getInstance() { return m_instance; }
+	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
+	inline class RemoteControlManager* getRemoteControlManager() const { return m_remoteControlManager; }
 
-	bool startup();
+	bool startup(class MainWindow* mainWindow);
 	void update();
 	void shutdown();
+
+	void publishMikanJsonEvent(const std::string& mikanJsonEvent);
 
 	// Scripting
 	void bindScriptContect(CommonScriptContextPtr scriptContext);
@@ -76,7 +80,6 @@ public:
 	void publishVideoSourceAttachmentChangedEvent();
 	void publishVideoSourceIntrinsicsChangedEvent();
 	void publishVideoSourceModeChangedEvent();
-
 
 	// Spatial Anchor Events
 	void publishAnchorNameUpdatedEvent(const MikanAnchorNameUpdateEvent& newPoseEvent);
@@ -146,6 +149,7 @@ protected:
 
 private:
 	static MikanServer* m_instance;
+	class RemoteControlManager* m_remoteControlManager;
 
 	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
 	std::map<std::string, MikanClientConnectionStatePtr> m_clientConnections;

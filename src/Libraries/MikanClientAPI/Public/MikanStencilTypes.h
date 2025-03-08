@@ -11,7 +11,7 @@
 #include "MikanStencilTypes.rfkh.h"
 #endif
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilQuadInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilQuadInfo
 {
 	FIELD()
 	MikanStencilID stencil_id; // filled in on allocation
@@ -35,7 +35,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilQua
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilBoxInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilBoxInfo
 {
 	FIELD()
 	MikanStencilID stencil_id; // filled in on allocation
@@ -59,7 +59,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilBox
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelInfo
 {
 	FIELD()
 	MikanStencilID stencil_id; // filled in on allocation
@@ -77,7 +77,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilMod
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanTriagulatedMesh
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanTriagulatedMesh
 {
 	FIELD()
 	Serialization::List<MikanVector3f> vertices;
@@ -93,7 +93,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanTriagulate
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelRenderGeometry
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelRenderGeometry
 {
 	FIELD()
 	Serialization::List<MikanTriagulatedMesh> meshes;

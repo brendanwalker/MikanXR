@@ -10,6 +10,10 @@ list(APPEND UNIT_TEST_INCL_DIRS
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${RFK_GENERATED_ROOT_DIR}/UnitTests
   ${RFK_GENERATED_ROOT_DIR}/MikanSerialization
+  ${RFK_GENERATED_ROOT_DIR}/MikanClientCore
+  ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
+  ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
   ${MIKAN_LIBRARIES_DIR}/MikanMath/Public
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
@@ -19,6 +23,8 @@ list(APPEND UNIT_TEST_INCL_DIRS
 
 list(APPEND UNIT_TEST_LIBS 
   ${RFK_LIBRARIES}
+  MikanClientCore
+  MikanClientAPI
   MikanCoreApp
   MikanMath
   MikanSerialization
@@ -30,6 +36,8 @@ target_include_directories(unit_test_suite PUBLIC ${UNIT_TEST_INCL_DIRS})
 target_link_libraries(unit_test_suite ${UNIT_TEST_LIBS})
 target_compile_definitions(unit_test_suite PRIVATE ENABLE_SERIALIZATION_REFLECTION)
 target_compile_definitions(unit_test_suite PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
+target_compile_definitions(unit_test_suite PRIVATE ENABLE_MIKANCORE_REFLECTION)
+target_compile_definitions(unit_test_suite PRIVATE ENABLE_MIKANAPI_REFLECTION)
 SET_TARGET_PROPERTIES(unit_test_suite PROPERTIES FOLDER Test)
 
 # Create the command to run RefurekuGenerator
@@ -40,13 +48,35 @@ set_target_properties(unit_test_suite_reflection PROPERTIES FOLDER Test)
 
 # Run the RefurekuGenerator BEFORE building the project to refresh generated files
 add_dependencies(unit_test_suite unit_test_suite_reflection)
+add_dependencies(unit_test_suite MikanClientCore)
+add_dependencies(unit_test_suite MikanClientAPI)
+add_dependencies(unit_test_suite MikanCoreApp)
+add_dependencies(unit_test_suite MikanMath)
+add_dependencies(unit_test_suite MikanSerialization)
+add_dependencies(unit_test_suite MikanSharedTexture)
+add_dependencies(unit_test_suite MikanUtility)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
   add_custom_command(
+    TARGET unit_test_suite POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+	$<TARGET_FILE_DIR:MikanClientAPI>/MikanClientAPI.dll 
+	$<TARGET_FILE_DIR:unit_test_suite>)
+  add_custom_command(
+    TARGET unit_test_suite POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+	$<TARGET_FILE_DIR:MikanClientCore>/MikanClientCore.dll 
+	$<TARGET_FILE_DIR:unit_test_suite>)
+  add_custom_command(
 	TARGET unit_test_suite POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
 	$<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll
+	$<TARGET_FILE_DIR:unit_test_suite>)
+  add_custom_command(
+	TARGET unit_test_suite POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy
+	$<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll
 	$<TARGET_FILE_DIR:unit_test_suite>)
   add_custom_command(
 	TARGET unit_test_suite POST_BUILD
@@ -63,6 +93,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	COMMAND ${CMAKE_COMMAND} -E copy
 	$<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll
 	$<TARGET_FILE_DIR:unit_test_suite>)
+  add_custom_command(
+    TARGET unit_test_suite POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+    "${SPOUT2_SHARED_LIBRARIES}" 
+    $<TARGET_FILE_DIR:unit_test_suite>)
   add_custom_command(
 	TARGET unit_test_suite POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy

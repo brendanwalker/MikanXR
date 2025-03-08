@@ -176,7 +176,7 @@ void GStreamerVideoSource::onVideoModeChanged(const struct MikanGStreamerVideoMo
 	videoModeConfig->bufferPixelHeight= newVideoMode.bufferPixelHeight;
 	videoModeConfig->bufferFormat= newVideoMode.bufferFormat;
 	videoModeConfig->frameSections.push_back({0, 0});
-	videoModeConfig->intrinsics.setMonoIntrinsics(gstreamerVideoSource->m_cfg->cameraIntrinsics);
+	videoModeConfig->intrinsics.makeMonoIntrinsics() = gstreamerVideoSource->m_cfg->cameraIntrinsics;
 
 	// Store the new video mode
 	gstreamerVideoSource->m_gstreamerVideoMode = newVideoMode;
@@ -313,18 +313,13 @@ int GStreamerVideoSource::getVideoProperty(const VideoPropertyType property_type
 void GStreamerVideoSource::getCameraIntrinsics(
 	MikanVideoSourceIntrinsics& outCameraIntrinsics) const
 {
-	outCameraIntrinsics.setMonoIntrinsics(m_cfg->cameraIntrinsics);
+	outCameraIntrinsics.makeMonoIntrinsics()= m_cfg->cameraIntrinsics;
 }
 
 void GStreamerVideoSource::setCameraIntrinsics(
 	const MikanVideoSourceIntrinsics& videoSourceIntrinsics)
 {
-	assert(videoSourceIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
-
-	auto cameraIntrinsics = videoSourceIntrinsics.intrinsics_ptr.getSharedPointer();
-	auto monoIntrinsics = std::static_pointer_cast<MikanMonoIntrinsics>(cameraIntrinsics);
-
-	m_cfg->cameraIntrinsics = *monoIntrinsics.get();
+	m_cfg->cameraIntrinsics = videoSourceIntrinsics.getMonoIntrinsics();
 }
 
 MikanQuatd GStreamerVideoSource::getCameraOffsetOrientation() const

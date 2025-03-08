@@ -309,13 +309,13 @@ void updateCameraProjectionMatrix()
 	if (response->resultCode == MikanAPIResult::Success)
 	{
         auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
-        auto cameraIntrinsics= videoSourceIntrinsics->intrinsics.intrinsics_ptr.getSharedPointer();
+        const auto& cameraIntrinsics= videoSourceIntrinsics->intrinsics.getMonoIntrinsics();
 
-		const float videoSourcePixelWidth = cameraIntrinsics->pixel_width;
-		const float videoSourcePixelHeight = cameraIntrinsics->pixel_height;
+		const float videoSourcePixelWidth = cameraIntrinsics.pixel_width;
+		const float videoSourcePixelHeight = cameraIntrinsics.pixel_height;
 
-        g_zNear = (float)cameraIntrinsics->znear;
-        g_zFar = (float)cameraIntrinsics->zfar;
+        g_zNear = (float)cameraIntrinsics.znear;
+        g_zFar = (float)cameraIntrinsics.zfar;
 		//m_projectionMatrix =
 		//	glm::perspective(
 		//		(float)degrees_to_radians(monoIntrinsics.vfov),

@@ -26,6 +26,7 @@ public:
 	void resetCalibrationState();
 
 	bool computeCameraToPuckXform();
+	bool hasValidCameraToPuckXform() const;
 	bool getLastCameraPose(VRDevicePoseViewPtr attachedVRDevicePtr, glm::mat4& outCameraPose) const;
 	void sampleLastCameraToPuckXform();
 	bool computeCalibratedCameraTrackerOffset(MikanQuatd& outRotationOffset, MikanVector3d& outTranslationOffset);

@@ -125,7 +125,7 @@ public:
 // Stencil Response Types
 // ------
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilQuadInfoResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilQuadInfoResponse : 
 	public MikanResponse
 {
 	MikanStencilQuadInfoResponse()
@@ -141,7 +141,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilQ
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilBoxInfoResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilBoxInfoResponse : 
 	public MikanResponse
 {
 	MikanStencilBoxInfoResponse()
@@ -157,7 +157,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilB
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilModelInfoResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilModelInfoResponse : 
 	public MikanResponse
 {
 	MikanStencilModelInfoResponse()
@@ -173,7 +173,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilM
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilListResponse 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilListResponse 
 	: public MikanResponse
 {
 	MikanStencilListResponse()
@@ -189,7 +189,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilL
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilModelRenderGeometryResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilModelRenderGeometryResponse : 
 	public MikanResponse
 {
 	MikanStencilModelRenderGeometryResponse()

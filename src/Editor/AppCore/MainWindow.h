@@ -85,8 +85,8 @@ public:
 		}
 	}
 
-	MulticastDelegate<void(AppStage* appStage)> OnAppStageEntered;
-	MulticastDelegate<void(AppStage* appStage)> OnAppStageExited;
+	MulticastDelegate<void(AppStage* oldAppStage, AppStage* newAppStage)> OnAppStageEntered;
+	MulticastDelegate<void(AppStage* oldAppStage, AppStage* newAppStage)> OnAppStageExited;
 
 	// -- IMkWindow ----
 	virtual bool startup() override;

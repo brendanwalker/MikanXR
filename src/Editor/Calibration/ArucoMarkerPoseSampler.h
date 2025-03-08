@@ -26,6 +26,7 @@ public:
 	void resetCalibrationState();
 
 	bool computeVRSpaceMarkerXform();
+	bool hasValidVRSpaceMarkerXform() const;
 	void sampleLastVRSpaceMarkerXform();
 	bool computeCalibratedMarkerPose(MikanQuatd& outRotation, MikanVector3d& outTranslation);
 

@@ -464,7 +464,7 @@ void WMFStereoVideoSource::getCameraIntrinsics(
     MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= STEREO_CAMERA_INTRINSICS;
-    out_tracker_intrinsics.setStereoIntrinsics(m_cfg->tracker_intrinsics);
+    out_tracker_intrinsics.makeStereoIntrinsics()= m_cfg->tracker_intrinsics;
 }
 
 void WMFStereoVideoSource::setCameraIntrinsics(

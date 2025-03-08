@@ -77,6 +77,14 @@ namespace MikanXR
 			_bytesWritten += sizeof(uint);
 		}
 
+		public void Write(long value)
+		{
+			EnsureCapacity(sizeof(long));
+			byte[] valueBytes = BitConverter.GetBytes(value);
+			valueBytes.CopyTo(_writeBuffer, _bytesWritten);
+			_bytesWritten += sizeof(long);
+		}
+
 		public void Write(ulong value)
 		{
 			EnsureCapacity(sizeof(ulong));

@@ -4,12 +4,15 @@
 #include "AppStage.h"
 #include "DeviceViewFwd.h"
 #include "Constants_AlignmentCalibration.h"
+#include "IRemoteControllableAppStage.h"
 #include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
 //-- definitions -----
-class AppStage_AlignmentCalibration : public AppStage
+class AppStage_AlignmentCalibration : 
+	public AppStage, 
+	public IRemoteControllableAppStage
 {
 public:
 	static const char* APP_STAGE_NAME;
@@ -34,11 +37,25 @@ protected:
 	void onRestartEvent();
 	void onCancelEvent();
 	void onReturnEvent();
+	void onChessboardStabilityChangedEvent(bool bIsStable);
+
+	bool tryBeginCapture();
+	bool tryRestartCapture();
 
 	// Camera Settings Model UI Events
 	void onViewportModeChanged(eAlignmentCalibrationViewpointMode newViewMode);
 	void onBrightnessChanged(int newBrightness);
 	void onVRFrameDelayChanged(int newVRFrameDelay);
+
+	// Remote Control
+	virtual bool handleRemoteControlCommand(
+		const std::string& command,
+		const std::vector<std::string>& parameters,
+		std::vector<std::string>& outResults) override;
+	bool handleGetStateCommand(std::vector<std::string>& outResults);
+	bool handleGetChessboardStabilityCommand(std::vector<std::string>& outResults);
+	bool handleBeginCommand(std::vector<std::string>& outResults);
+	bool handleRestartCommand(std::vector<std::string>& outResults);
 	
 private:
 	class RmlModel_AlignmentCalibration* m_calibrationModel = nullptr;

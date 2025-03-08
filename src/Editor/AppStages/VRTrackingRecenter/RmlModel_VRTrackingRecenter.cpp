@@ -6,6 +6,8 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
+static const float kMarkerStabilityDuration = 1.0f;
+
 bool RmlModel_VRTrackingRecenter::init(
 	Rml::Context* rmlContext)
 {
@@ -16,6 +18,8 @@ bool RmlModel_VRTrackingRecenter::init(
 
 	constructor.Bind("menu_state", &m_menuState);
 	constructor.Bind("calibration_percent", &m_calibrationPercent);
+	constructor.Bind("is_current_marker_valid", &m_isCurrentMarkerValid);
+	constructor.Bind("is_current_marker_stable", &m_isCurrentMarkerStable);
 	constructor.BindEventCallback(
 		"begin",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
@@ -85,4 +89,59 @@ void RmlModel_VRTrackingRecenter::setCalibrationFraction(const float newFraction
 		m_calibrationPercent = newPercent;
 		m_modelHandle.DirtyVariable("calibration_percent");
 	}
+}
+
+bool RmlModel_VRTrackingRecenter::getCurrentMarkerValid() const
+{
+	return m_isCurrentMarkerValid;
+}
+
+void RmlModel_VRTrackingRecenter::setCurrentMarkerValid(const bool bNewMarkerValid)
+{
+	// Reset the stability timer if the image points are no longer valid
+	if (m_isCurrentMarkerStable && !bNewMarkerValid)
+	{
+		setCurrentMarkerStable(false);
+	}
+
+	if (m_isCurrentMarkerValid != bNewMarkerValid)
+	{
+		m_isCurrentMarkerValid = bNewMarkerValid;
+		m_modelHandle.DirtyVariable("are_current_image_points_valid");
+	}
+}
+
+void RmlModel_VRTrackingRecenter::updateMarkerStabilityTimer(float deltaTime)
+{
+	if (m_isCurrentMarkerValid && !m_isCurrentMarkerStable)
+	{
+		m_markerStabilityTimer += deltaTime;
+		if (m_markerStabilityTimer >= kMarkerStabilityDuration)
+		{
+			setCurrentMarkerStable(true);
+		}
+	}
+}
+
+void RmlModel_VRTrackingRecenter::setCurrentMarkerStable(const bool bNewImagePointsStability)
+{
+	if (!bNewImagePointsStability)
+	{
+		m_markerStabilityTimer = 0.f;
+	}
+
+	if (m_isCurrentMarkerStable != bNewImagePointsStability)
+	{
+		m_isCurrentMarkerStable = bNewImagePointsStability;
+		m_modelHandle.DirtyVariable("are_current_image_points_valid");
+		if (OnMarkerStabilityChangedEvent)
+		{
+			OnMarkerStabilityChangedEvent(m_isCurrentMarkerStable);
+		}
+	}
+}
+
+bool RmlModel_VRTrackingRecenter::getCurrentMarkerStable() const
+{
+	return m_isCurrentMarkerStable;
 }

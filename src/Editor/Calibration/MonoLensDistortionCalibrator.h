@@ -21,7 +21,7 @@ public:
 
 	inline class CalibrationPatternFinder* getPatternFinder() const { return m_patternFinder; }
 	void findNewCalibrationPattern(const float minSeperationDist);
-	void captureLastFoundCalibrationPattern();
+	bool captureLastFoundCalibrationPattern();
 
 	bool hasSampledAllCalibrationPatterns() const;
 	bool areCurrentImagePointsValid() const;
@@ -30,7 +30,8 @@ public:
 	void resetDistortionView();
 
 	void computeCameraCalibration();
-	bool getIsCameraCalibrationComplete();
+	bool getIsCameraCalibrationComplete() const;
+	int getDesiredPatternCount() const;
 	bool getCameraCalibration(MikanMonoIntrinsics* out_mono_intrinsics);
 	float getReprojectionError() const;
 

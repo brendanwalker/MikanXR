@@ -452,7 +452,7 @@ void WMFMonoVideoSource::getCameraIntrinsics(
 	MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= MONO_CAMERA_INTRINSICS;
-    out_tracker_intrinsics.setMonoIntrinsics(m_cfg->tracker_intrinsics);
+    out_tracker_intrinsics.makeMonoIntrinsics()= m_cfg->tracker_intrinsics;
 }
 
 void WMFMonoVideoSource::setCameraIntrinsics(

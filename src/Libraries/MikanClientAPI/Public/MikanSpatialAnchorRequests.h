@@ -62,7 +62,7 @@ public:
 };
 
 // Spatial Anchor Response Types
-struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorListResponse")) MikanSpatialAnchorListResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorListResponse")) MikanSpatialAnchorListResponse : 
 	public MikanResponse
 {
 	MikanSpatialAnchorListResponse()
@@ -78,7 +78,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorListResponse")) Mi
 	#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorInfoResponse")) MikanSpatialAnchorInfoResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialAnchorInfoResponse")) MikanSpatialAnchorInfoResponse : 
 	public MikanResponse
 {
 	MikanSpatialAnchorInfoResponse()

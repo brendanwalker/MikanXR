@@ -24,9 +24,9 @@ namespace MikanXR
 		STEREO= 1,
 	};
 
-	public class MikanCameraIntrinsics
+	public class MikanCameraIntrinsics : PolymorphicStruct
 	{
-		public static readonly long classId= -1980224418616951122;
+		public static new readonly long classId= -1980224418616951122;
 
 		public double pixel_width;
 		public double pixel_height;
@@ -83,7 +83,7 @@ namespace MikanXR
 	{
 		public static readonly long classId= -5073913459979558727;
 
-		public SerializableObject<MikanCameraIntrinsics> intrinsics_ptr;
+		public PolymorphicObject intrinsics_ptr;
 		public MikanIntrinsicsType intrinsics_type;
 	};
 

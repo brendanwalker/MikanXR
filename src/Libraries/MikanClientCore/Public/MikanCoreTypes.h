@@ -100,7 +100,7 @@ enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanDepthBufferTy
 	MikanDepthBuffer_PACK_DEPTH_RGBA ENUMVALUE_STRING("PACK_DEPTH_RGBA"), 
 };
 
-struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientAPIVersion
+struct MIKAN_CORE_API STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientAPIVersion
 {
 	FIELD()
 	int version = 0;
@@ -111,7 +111,7 @@ struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientAPIVers
 };
 
 
-struct STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetDescriptor
+struct MIKAN_CORE_API STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetDescriptor
 {
 	FIELD()
 	MikanColorBufferType color_buffer_type = MikanColorBufferType::MikanColorBuffer_NOCOLOR;
