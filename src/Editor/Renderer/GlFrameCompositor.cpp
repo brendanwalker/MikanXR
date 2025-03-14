@@ -618,7 +618,7 @@ void GlFrameCompositor::update(float deltaSeconds)
 	}
 
 	// Fetch new video frames if the video frame queue isn't full
-	if (m_videoDistortionView->hasNewVideoFrame())
+	if (m_videoDistortionView != nullptr && m_videoDistortionView->hasNewVideoFrame())
 	{
 		// If the queue is full, drop all queued frames to catch up
 		if (m_frameEventQueue.size() < m_videoDistortionView->getMaxFrameQueueSize())
@@ -854,7 +854,8 @@ bool GlFrameCompositor::openVideoSource()
 	bool bSuccess= m_videoSourceView != nullptr;
 
 	// Start streaming the video
-	if (bSuccess && !m_videoSourceView->startVideoStream())
+	//TODO: Handle pendingStart
+	if (bSuccess && (int)m_videoSourceView->startVideoStream() <= 0)
 		bSuccess= false;
 
 	// Create a frame buffer and texture to do the compositing work in
@@ -930,7 +931,10 @@ bool GlFrameCompositor::bindCameraVRTracker()
 
 	auto* vrDeviceManager= VRDeviceManager::getInstance();
 	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+	if (cameraTrackingPuckView)
+	{
+		m_cameraTrackingPuckPoseView = cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+	}
 
 	return m_cameraTrackingPuckPoseView != nullptr;
 }

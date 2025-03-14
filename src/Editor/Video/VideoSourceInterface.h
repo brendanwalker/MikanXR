@@ -11,6 +11,14 @@
 #include <vector>
 
 // -- definitions -----
+enum class eVideoStreamingStatus : int
+{
+	failed= -1,
+	stopped= 0,
+	pendingStart= 1,
+	started= 2,
+};
+
 /// The list of possible sub sections to extract from a video frame
 enum class VideoFrameSection : int
 {
@@ -140,8 +148,8 @@ public:
 	virtual const struct VideoModeConfig* getVideoMode() const = 0;
 	virtual bool setVideoMode(const std::string modeName) = 0;
 
-	virtual bool startVideoStream() = 0;
-	virtual bool getIsVideoStreaming() const = 0;
+	virtual eVideoStreamingStatus startVideoStream() = 0;
+	virtual eVideoStreamingStatus getVideoStreamingStatus() const = 0;
 	virtual void stopVideoStream() = 0;
 
 	virtual double getFrameWidth() const = 0;

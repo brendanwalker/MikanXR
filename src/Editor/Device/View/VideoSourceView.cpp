@@ -212,31 +212,27 @@ void VideoSourceView::close()
 	MikanServer::getInstance()->publishVideoSourceClosedEvent();
 }
 
-bool VideoSourceView::startVideoStream()
+eVideoStreamingStatus VideoSourceView::startVideoStream()
 {
 	if (m_device != nullptr)
 	{
-		if (!m_device->getIsVideoStreaming())
-		{
-			return m_device->startVideoStream();
-		}
-		else
-		{
-			return true;
-		}
+		return m_device->startVideoStream();
 	}
 
-	return false;
+	return eVideoStreamingStatus::failed;
 }
 
-bool VideoSourceView::getIsVideoStreaming() const
+eVideoStreamingStatus VideoSourceView::getVideoStreamingStatus() const
 {
-	return (m_device != nullptr && m_device->getIsVideoStreaming());
+	return (m_device != nullptr) ? m_device->getVideoStreamingStatus() : eVideoStreamingStatus::failed;
 }
 
 void VideoSourceView::stopVideoStream()
 {
-	if (getIsVideoStreaming())
+	eVideoStreamingStatus status = getVideoStreamingStatus();
+
+	if (status == eVideoStreamingStatus::pendingStart ||
+		status == eVideoStreamingStatus::started)
 	{
 		m_device->stopVideoStream();
 	}
@@ -434,7 +430,10 @@ bool VideoSourceView::setVideoMode(const std::string& new_mode)
 {
 	if (m_device != nullptr && m_device->getIsOpen())
 	{
-		bool bWasStreaming = getIsVideoStreaming();
+		const eVideoStreamingStatus status= getVideoStreamingStatus();
+		const bool bWasStreaming = 
+			status == eVideoStreamingStatus::pendingStart || 
+			status == eVideoStreamingStatus::started;
 		bool bUpdatedMode= false;
 
 		if (bWasStreaming)

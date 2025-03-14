@@ -98,7 +98,8 @@ void AppStage_CameraSettings::startVideoSource()
 {
 	assert(m_videoBufferView == nullptr);
 
-	if (m_videoSourceView && m_videoSourceView->startVideoStream())
+	//TODO: Handle pendingStart
+	if (m_videoSourceView && (int)m_videoSourceView->startVideoStream() > 0)
 	{
 		// Create a texture to hold the video frame
 		m_videoBufferView = std::make_shared<VideoFrameDistortionView>(

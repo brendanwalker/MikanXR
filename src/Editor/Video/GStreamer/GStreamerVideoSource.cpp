@@ -126,19 +126,31 @@ void GStreamerVideoSource::close()
 	m_videoDevice = nullptr;
 }
 
-bool GStreamerVideoSource::startVideoStream()
+eVideoStreamingStatus GStreamerVideoSource::startVideoStream()
 {
 	if (getIsOpen())
 	{
-		return m_videoDevice->startVideoStream();
+		m_videoDevice->startVideoStream();
 	}
 
-	return false;
+	return getVideoStreamingStatus();
 }
 
-bool GStreamerVideoSource::getIsVideoStreaming() const
+eVideoStreamingStatus GStreamerVideoSource::getVideoStreamingStatus() const
 {
-	return getIsOpen() && m_videoDevice->getIsVideoStreaming();
+	// Not open yet?
+	if (!getIsOpen())
+		return eVideoStreamingStatus::stopped;
+
+	// Haven't requested streaming to start?
+	if (!m_videoDevice->getIsVideoStreaming())
+		return eVideoStreamingStatus::stopped;
+
+	// Haven't received a valid video mode config from stream yet?
+	if (!hasValidVideoModeConfig())
+		return eVideoStreamingStatus::pendingStart;
+
+	return eVideoStreamingStatus::started;
 }
 
 void GStreamerVideoSource::stopVideoStream()
@@ -151,12 +163,16 @@ void GStreamerVideoSource::stopVideoStream()
 
 bool GStreamerVideoSource::wantsUpdate() const
 {
-	return getIsVideoStreaming();
+	const eVideoStreamingStatus status = getVideoStreamingStatus();
+
+	return 
+		status == eVideoStreamingStatus::pendingStart ||
+		status == eVideoStreamingStatus::started;
 }
 
 void GStreamerVideoSource::update(float deltaTime)
 {
-	assert(getIsVideoStreaming());
+	assert(wantsUpdate());
 
 	m_videoDevice->tryPullSample(
 		m_gstreamerVideoMode,

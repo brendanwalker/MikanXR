@@ -45,8 +45,8 @@ public:
     eDeviceType getDeviceType() const override;
     
     // -- IVideoSourceInterface
-	bool startVideoStream() override;
-    bool getIsVideoStreaming() const override;
+	eVideoStreamingStatus startVideoStream() override;
+    eVideoStreamingStatus getVideoStreamingStatus() const override;
 	void stopVideoStream() override;
     IVideoSourceInterface::eDriverType getDriverType() const override;
     std::string getFriendlyName() const override;

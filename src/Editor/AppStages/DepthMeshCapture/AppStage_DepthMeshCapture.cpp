@@ -104,7 +104,8 @@ void AppStage_DepthMeshCapture::enter()
 
 	// Fire up the video scene in the background + depth estimator + mesh capture
 	bool depthCaptureReady= false;
-	if (m_videoSourceView->startVideoStream())
+	//TODO: Handle pendingStart
+	if ((int)m_videoSourceView->startVideoStream() > 0)
 	{
 		auto glFrameCompositor = m_ownerWindow->getFrameCompositor();
 

@@ -36,8 +36,8 @@ public:
 	bool open(const class DeviceEnumerator* enumerator) override;
 	void close() override;
 
-	bool startVideoStream();
-	bool getIsVideoStreaming() const;
+	eVideoStreamingStatus startVideoStream();
+	eVideoStreamingStatus getVideoStreamingStatus() const;
 	void stopVideoStream();
 
 	IDeviceInterface* getDevice() const override { return m_device; }

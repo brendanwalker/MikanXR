@@ -244,19 +244,22 @@ void WMFMonoVideoSource::close()
 	}
 }
 
-bool WMFMonoVideoSource::startVideoStream()
+eVideoStreamingStatus WMFMonoVideoSource::startVideoStream()
 {
-	if (getIsOpen())
+	if (getIsOpen() && m_videoDevice->startVideoStream())
 	{
-		return m_videoDevice->startVideoStream();
+		return eVideoStreamingStatus::started;
 	}
 
-	return false;
+	return eVideoStreamingStatus::stopped;
 }
 
-bool WMFMonoVideoSource::getIsVideoStreaming() const
+eVideoStreamingStatus WMFMonoVideoSource::getVideoStreamingStatus() const
 {
-	return getIsOpen() && m_videoDevice->getIsVideoStreaming();
+	return
+		getIsOpen() && m_videoDevice->getIsVideoStreaming()
+		? eVideoStreamingStatus::started
+		: eVideoStreamingStatus::stopped;
 }
 
 void WMFMonoVideoSource::stopVideoStream()
