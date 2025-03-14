@@ -200,20 +200,48 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 		modelResource->setName(modelNameString);
 		modelResource->setModelFilePath(modelPath);
 
-		// Create a material instance for each material in the obj file
-		for (int materialIndex = 0; materialIndex < objData->material_count; materialIndex++)
+		if (objData->material_count > 0)
 		{
-			const fastObjMaterial& objMaterial= objData->materials[materialIndex];
-			const std::string materialName= objMaterial.name;
+			// Create a material instance for each material in the obj file
+			for (int materialIndex = 0; materialIndex < objData->material_count; materialIndex++)
+			{
+				const fastObjMaterial& objMaterial = objData->materials[materialIndex];
+				const std::string materialName = objMaterial.name;
 
-			MkMaterialInstancePtr materialInst= 
+				MkMaterialInstancePtr materialInst =
+					ObjUtils::createTriMeshMaterialInstance(
+						ownerWindow,
+						triMeshMaterial,
+						objMaterial);
+				ObjUtils::MaterialTriMeshDataPtr triMeshData =
+					std::make_shared<ObjUtils::MaterialTriMeshData>(
+						materialIndex, materialName, materialInst);
+
+				materialToTrimeshMap.push_back(triMeshData);
+			}
+		}
+		else
+		{
+			// Create a default material
+			const std::string materialName = "default-material";
+			fastObjMaterial defaultObjMaterial;
+			memset(&defaultObjMaterial, 0, sizeof(fastObjMaterial));
+			defaultObjMaterial.Ka[0] = defaultObjMaterial.Ka[1] = defaultObjMaterial.Ka[2] = 1.f;
+			defaultObjMaterial.Kd[0] = defaultObjMaterial.Kd[1] = defaultObjMaterial.Kd[2] = 0.8f;
+			defaultObjMaterial.Ks[0] = defaultObjMaterial.Ks[1] = defaultObjMaterial.Ks[2] = 0.5f;
+			defaultObjMaterial.Ns = 250.f;
+			defaultObjMaterial.Ni = 1.45f;
+			defaultObjMaterial.illum = 2;
+			defaultObjMaterial.d = 1.0;
+
+			MkMaterialInstancePtr materialInst =
 				ObjUtils::createTriMeshMaterialInstance(
 					ownerWindow,
 					triMeshMaterial,
-					objMaterial);
+					defaultObjMaterial);
 			ObjUtils::MaterialTriMeshDataPtr triMeshData =
 				std::make_shared<ObjUtils::MaterialTriMeshData>(
-					materialIndex, materialName, materialInst);
+					0, materialName, materialInst);
 
 			materialToTrimeshMap.push_back(triMeshData);
 		}
