@@ -58,3 +58,4 @@ public:
 // Property Attributes
 extern const std::string* k_PropertyAttributeFileBrowseTitle;
 extern const std::string* k_PropertyAttributeFileBrowseFilter;
+extern const std::string* k_PropertyAttributeFileBrowseFilterDesc;

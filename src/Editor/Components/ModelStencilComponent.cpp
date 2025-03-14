@@ -469,6 +469,10 @@ bool ModelStencilComponent::getPropertyAttribute(const std::string& propertyName
 		{
 			outValue = ".obj";
 		}
+		else if (attributeName == *k_PropertyAttributeFileBrowseFilterDesc)
+		{
+			outValue = "Obj Model Files (.obj)";
+		}
 	}
 
 	return false;

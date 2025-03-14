@@ -12,7 +12,6 @@
 #include "Compositor/RmlModel_CompositorSelection.h"
 #include "Compositor/RmlModel_CompositorSettings.h"
 #include "EditorObjectSystem.h"
-#include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
@@ -666,23 +665,29 @@ void AppStage_Compositor::onScriptFileChangeEvent(
 
 void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
-	std::filesystem::path current_dir;
-	std::filesystem::path current_file;
-
+	std::string defaultFileAndPath;
 	if (!m_profile->compositorScriptFilePath.empty())
 	{
-		current_file = m_profile->compositorScriptFilePath;
-		current_dir = current_file.remove_filename();
+		defaultFileAndPath= m_profile->compositorScriptFilePath.string();
+	}
+	else
+	{
+		defaultFileAndPath= PathUtils::getHomeDirectory().string();
 	}
 
-	ModalDialog_FileBrowser::browseFile(
-		"Select Scene Script",
-		current_dir,
-		current_file,
-		{".lua"},
-		[this](const std::filesystem::path& filepath) {
-			onScriptFileChangeEvent(filepath);
-		});
+	const char* filterItems[1] = {"*.lua"};
+	const char* filterDesc = "Scene Scripts (*.lua)";
+	char* path = 
+		tinyfd_openFileDialog(
+			"Select Scene Script", 
+			defaultFileAndPath.c_str(), 
+			1, filterItems, 
+			filterDesc, 
+			0); // Don't allow multiple selects
+	if (path)
+	{
+		onScriptFileChangeEvent(path);
+	}
 }
 
 void AppStage_Compositor::onReloadCompositorScriptFileEvent()
