@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "DeviceView.h"
+#include "MulticastDelegate.h"
 #include "VideoSourceInterface.h"
 #include "OpenCVFwd.h"
 #include "glm/ext/matrix_float4x4.hpp"
@@ -99,6 +100,11 @@ public:
 	//-- IVideoSourceListener
 	virtual void notifyVideoFrameSizeChanged() override;
 	virtual void notifyVideoFrameReceived(const IVideoSourceListener::FrameBuffer& frameInfo) override;
+
+	MulticastDelegate<void(const VideoSourceView* videoSource)> OnFrameSizeChanged;
+	MulticastDelegate<void(const VideoSourceView* videoSource)> OnClosed;
+	MulticastDelegate<void(const VideoSourceView* videoSource)> OnIntrinsicsChanged;
+	MulticastDelegate<void(const VideoSourceView* videoSource)> OnCameraPoseOffsetChanged;
 
 protected:
 	bool reallocateOpencvBufferState();

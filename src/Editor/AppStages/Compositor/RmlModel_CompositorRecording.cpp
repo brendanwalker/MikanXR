@@ -20,7 +20,7 @@ bool RmlModel_CompositorRecording::init(
 	// Register Data Model Fields
 	constructor.Bind("video_source_name", &m_videoSourceName);
 	constructor.Bind("has_valid_video_source", &m_bHasValidVideoSource);
-	constructor.Bind("video_mode_name", &m_videoSourceName);
+	constructor.Bind("video_mode_name", &m_videoModeName);
 	constructor.Bind("video_codecs", &m_videoCodecs);
 	constructor.Bind("selected_codec", &m_selectedCodec);
 	constructor.Bind("is_recording", &m_bIsRecording);
@@ -60,11 +60,13 @@ bool RmlModel_CompositorRecording::init(
 	m_bIsRecording= false;
 	m_bIsStreaming= false;
 
-	VideoSourceViewPtr videoSource= compositor->getVideoSource();
-	if (videoSource)
+	m_videoSource= compositor->getVideoSource();
+	if (m_videoSource)
 	{
-		m_videoSourceName = videoSource->getFriendlyName();
-		m_videoModeName = videoSource->getVideoMode()->modeName;
+		m_videoSourceName = m_videoSource->getFriendlyName();
+		m_videoSource->OnFrameSizeChanged += MakeDelegate(this, &RmlModel_CompositorRecording::onVideoFrameSizeChanged);
+		onVideoFrameSizeChanged(m_videoSource.get());
+
 		m_bHasValidVideoSource= true;
 	}
 	else
@@ -79,9 +81,29 @@ bool RmlModel_CompositorRecording::init(
 
 void RmlModel_CompositorRecording::dispose()
 {
+	if (m_videoSource)
+	{
+		m_videoSource->OnFrameSizeChanged -= MakeDelegate(this, &RmlModel_CompositorRecording::onVideoFrameSizeChanged);
+	}
+
 	OnToggleRecordingEvent.Clear();
 	OnVideoCodecChangedEvent.Clear();
 	RmlModel::dispose();
+}
+
+void RmlModel_CompositorRecording::onVideoFrameSizeChanged(const VideoSourceView* videoSourceView)
+{
+	const VideoModeConfig* modeConfig= videoSourceView->getVideoMode();
+
+	if (modeConfig != nullptr)
+	{
+		m_videoModeName = modeConfig->modeName;
+	}
+	else
+	{
+		m_videoModeName = "INVALID";
+	}
+	m_modelHandle.DirtyVariable("video_mode_name");
 }
 
 const Rml::String& RmlModel_CompositorRecording::getVideoSourceName() const

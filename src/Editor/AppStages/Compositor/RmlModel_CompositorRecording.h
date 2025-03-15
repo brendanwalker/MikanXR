@@ -4,6 +4,9 @@
 #include "SinglecastDelegate.h"
 #include "FrameCompositorConstants.h"
 
+class VideoSourceView;
+typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+
 class RmlModel_CompositorRecording : public RmlModel
 {
 public:
@@ -29,7 +32,12 @@ public:
 	SinglecastDelegate<void()> OnToggleStreamingEvent;
 	SinglecastDelegate<void(eSupportedCodec)> OnVideoCodecChangedEvent;
 
+protected:
+	void onVideoFrameSizeChanged(const class VideoSourceView* videoSourceView);
+
 private:
+	VideoSourceViewPtr m_videoSource;
+
 	// Recording UI
 	Rml::String m_videoSourceName;
 	bool m_bHasValidVideoSource= false;

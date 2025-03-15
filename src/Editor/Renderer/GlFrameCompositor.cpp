@@ -850,25 +850,33 @@ bool GlFrameCompositor::openVideoSource()
 {
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
-	m_videoSourceView= VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	bool bSuccess= m_videoSourceView != nullptr;
-
 	// Start streaming the video
-	//TODO: Handle pendingStart
-	if (bSuccess && (int)m_videoSourceView->startVideoStream() <= 0)
-		bSuccess= false;
-
-	// Create a frame buffer and texture to do the compositing work in
-	uint16_t frameWidth= 0;
-	uint16_t frameHeight= 0;
-	if (bSuccess)
+	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	if (m_videoSourceView != nullptr)
 	{
-		frameWidth = (uint16_t)m_videoSourceView->getFrameWidth();
-		frameHeight = (uint16_t)m_videoSourceView->getFrameHeight();
-		bSuccess= createCompositingTextures(frameWidth, frameHeight);
+		// Bind video source events
+		m_videoSourceView->OnFrameSizeChanged += MakeDelegate(this, &GlFrameCompositor::onVideoFrameSizeChanged);
+
+		if (m_videoSourceView->startVideoStream() == eVideoStreamingStatus::started)
+		{
+			onVideoFrameSizeChanged(m_videoSourceView.get());
+		}
+
+		return true;
 	}
 
-	if (bSuccess)
+	return false;
+}
+
+void GlFrameCompositor::onVideoFrameSizeChanged(const VideoSourceView* videoSourceView)
+{
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+
+	// Create a frame buffer and texture to do the compositing work in
+	uint16_t frameWidth = (uint16_t)m_videoSourceView->getFrameWidth();
+	uint16_t frameHeight = (uint16_t)m_videoSourceView->getFrameHeight();
+
+	if (createCompositingTextures(frameWidth, frameHeight))
 	{
 		// Create a distortion view to read the incoming video frames into a texture
 		m_videoDistortionView =
@@ -880,20 +888,20 @@ bool GlFrameCompositor::openVideoSource()
 
 		// Create a synthetic depth estimator if the hardware supports it
 		// TODO: and requested from the profile config settings
-#if SUPPORT_REALTIME_DEPTH_ESTIMATION
-		auto openCVManager= App::getInstance()->getMainWindow()->getOpenCVManager();
+	#if SUPPORT_REALTIME_DEPTH_ESTIMATION
+		auto openCVManager = App::getInstance()->getMainWindow()->getOpenCVManager();
 		if (openCVManager->supportsHardwareAcceleratedDNN())
 		{
-			m_syntheticDepthEstimator = 
+			m_syntheticDepthEstimator =
 				std::make_shared<SyntheticDepthEstimator>(
 					openCVManager, DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
 			if (!m_syntheticDepthEstimator->initialize())
 			{
 				MIKAN_LOG_ERROR("GlFrameCompositor::openVideoSource") << "Failed to create depth estimator";
-				m_syntheticDepthEstimator= nullptr;
+				m_syntheticDepthEstimator = nullptr;
 			}
 		}
-#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
+	#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
 		// Always use the undistorted video frame for compositing
 		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
@@ -903,14 +911,11 @@ bool GlFrameCompositor::openVideoSource()
 		// Clean up the partially opened compositor
 		closeVideoSource();
 	}
-
-	return bSuccess;
 }
 
 void GlFrameCompositor::closeVideoSource()
 {
-	m_editorFrameBufferTexture->disposeTexture();
-	m_videoExportFramebuffer->disposeResources();
+	disposeCompositingTextures();
 
 	if (m_videoDistortionView != nullptr)
 	{
@@ -920,6 +925,7 @@ void GlFrameCompositor::closeVideoSource()
 
 	if (m_videoSourceView)
 	{
+		m_videoSourceView->OnFrameSizeChanged -= MakeDelegate(this, &GlFrameCompositor::onVideoFrameSizeChanged);
 		m_videoSourceView->stopVideoStream();
 		m_videoSourceView= nullptr;
 	}
@@ -1051,6 +1057,9 @@ bool GlFrameCompositor::createCompositingTextures(uint16_t width, uint16_t heigh
 {
 	bool bSuccess = true;
 
+	// Destroy any existing textures
+	disposeCompositingTextures();
+
 	// Also create a texture a for the editor to render to when the editor is active
 	m_editorFrameBufferTexture->setSize(width, height);
 	m_editorFrameBufferTexture->setTextureFormat(GL_RGBA);
@@ -1067,6 +1076,12 @@ bool GlFrameCompositor::createCompositingTextures(uint16_t width, uint16_t heigh
 	}
 
 	return bSuccess;
+}
+
+void GlFrameCompositor::disposeCompositingTextures()
+{
+	m_editorFrameBufferTexture->disposeTexture();
+	m_videoExportFramebuffer->disposeResources();
 }
 
 void GlFrameCompositor::createVertexBuffers()

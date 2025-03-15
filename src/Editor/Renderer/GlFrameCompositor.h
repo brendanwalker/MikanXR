@@ -108,11 +108,13 @@ public:
 
 protected:
 	bool openVideoSource();
+	void onVideoFrameSizeChanged(const class VideoSourceView* videoSourceView);
 	void closeVideoSource();
 
 	bool bindCameraVRTracker();
 
 	bool createCompositingTextures(uint16_t width, uint16_t height);
+	void disposeCompositingTextures();
 
 	void createVertexBuffers();
 	void freeVertexBuffers();
@@ -135,11 +137,9 @@ protected:
 	void onPresetConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 	void onCompositorGraphAssetRefChanged(const std::string& assetRefPath);
 
-private:
-	//void rebuildAllLayerSettings(bool bForceConfigSave=false);
 	void clearAllCompositorConfigurations();
 
-
+private:
 	static GlFrameCompositor* m_instance;
 
 	GlFrameCompositorConfigPtr m_config;
