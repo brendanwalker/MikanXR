@@ -46,12 +46,6 @@ file(GLOB MIKAN_APP_STAGES_COMPOSITOR_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/Compositor/*.h"
 )
 source_group("AppStages\\Compositor" FILES ${MIKAN_APP_STAGES_COMPOSITOR_SRC})
-## CTOffsetCalibration
-file(GLOB MIKAN_APP_STAGES_CTOFFSET_CALIBRATION_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/CTOffsetCalibration/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/CTOffsetCalibration/*.h"
-)
-source_group("AppStages\\CTOffsetCalibration" FILES ${MIKAN_APP_STAGES_CTOFFSET_CALIBRATION_SRC})
 ## DepthMeshCapture
 file(GLOB MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/DepthMeshCapture/*.cpp"
