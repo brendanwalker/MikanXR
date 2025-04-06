@@ -164,19 +164,19 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	// Compute the VR tracking space offset from matPuck to calibration pattern
 	// using the measured offsets on the paper calibration mat
 	ProfileConfigConstPtr config= m_calibrationState->profileConfig;
-	const double horizOffset = (double)config->puckHorizontalOffsetMM * k_millimeters_to_meters;
-	const double vertOffset = (double)config->puckVerticalOffsetMM * k_millimeters_to_meters;
-	const double depthOffset = (double)config->puckDepthOffsetMM * k_millimeters_to_meters;
-	const glm::dmat4 puckYawRot90 = 
+	const double puckToPatternX = (double)config->puckHorizontalOffsetMM * k_millimeters_to_meters;
+	const double puckToPatternY = (double)config->puckVerticalOffsetMM * k_millimeters_to_meters;
+	const double puckToPatternZ = (double)config->puckDepthOffsetMM * k_millimeters_to_meters;
+	const glm::dmat4 puckYawRot180 = 
 		glm::rotate(
 			glm::dmat4(1.f), 
-			k_real64_half_pi, 
+			k_real64_pi, 
 			glm::dvec3(0.0, 1.f, 0.f));
 	const glm::dmat4 translateToPatternXform =
 		glm::translate(
 			glm::dmat4(1.0),
-			glm::dvec3(horizOffset, depthOffset, vertOffset));
-	const glm::dmat4 matPuckToPatternXform = glm_composite_xform(puckYawRot90, translateToPatternXform);
+			glm::dvec3(puckToPatternX, puckToPatternZ, puckToPatternY));
+	const glm::dmat4 matPuckToPatternXform = glm_composite_xform(puckYawRot180, translateToPatternXform);
 
 	// Compute the transform from the camera to the mat puck
 	const glm::dmat4 patternToMatPuckXform = glm::inverse(matPuckToPatternXform);
