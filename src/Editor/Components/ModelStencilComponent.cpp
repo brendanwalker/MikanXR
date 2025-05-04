@@ -291,7 +291,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 	MainWindow* mainWindow= MainWindow::getInstance();
 	MikanModelResourceManager* modelResourceManager= mainWindow->getModelResourceManager();
 	MkMaterialConstPtr stencilMaterial= 
-		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 	MikanRenderModelResourcePtr modelResourcePtr= 
 		modelResourceManager->fetchRenderModel(
 			modelStencilDefinition->getModelPath(), stencilMaterial);

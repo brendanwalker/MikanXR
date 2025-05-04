@@ -202,7 +202,7 @@ struct DepthMeshCaptureState
 		}
 
 		// Use the internal basic textured material to render the mesh
-		MkMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+		MkMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 		MkMaterialInstancePtr materialInstance = std::make_shared<MkMaterialInstance>(stencilMaterial);
 		materialInstance->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
 
@@ -230,7 +230,7 @@ struct DepthMeshCaptureState
 		// Use the internal basic textured material to render the mesh
 		MikanModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
 		IMkShaderCache* shaderCache = ownerWindow->getShaderCache();
-		MkMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+		MkMaterialConstPtr stencilMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 
 		depthMeshResource= 
 			modelResourceManager->fetchRenderModel(

@@ -219,7 +219,7 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 
 		// Load the stencil model and render it using the flat textured material
 		auto stencilMaterial= 
-			ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+			ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 		auto renderModelPtr= 
 			ownerWindow->getModelResourceManager()->fetchRenderModel(
 				stencilDefinition->getModelPath(), stencilMaterial);
