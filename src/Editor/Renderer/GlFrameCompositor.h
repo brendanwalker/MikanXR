@@ -100,9 +100,6 @@ public:
 	IMkTexturePtr getEditorWritableFrameTexture() const;
 	IMkTextureConstPtr getCompositedFrameTexture() const;
 	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
-	inline void setGenerateCompositedVideoFrame(bool bFlag) { m_bGenerateBGRVideoTexture = bFlag; }
-	IMkTexturePtr getBGRVideoFrameTexture();
-	inline void setGenerateBGRVideoTexture(bool bFlag) { m_bGenerateBGRVideoTexture= bFlag; }
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 
@@ -126,7 +123,6 @@ protected:
 	void updateCompositeFrameNodeGraph();
 
 	static IMkShaderCodeConstPtr getRGBFrameShaderCode();
-	static IMkShaderCodeConstPtr getRGBtoBGRVideoFrameShaderCode();
 
 	// MikanServer Events
 	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
@@ -157,12 +153,8 @@ private:
 
 	class IMkWindow* m_ownerWindow= nullptr;
 
-	IMkFrameBufferPtr m_videoExportFramebuffer;
-	unsigned int m_videoQuadVAO = 0, m_videoQuadVBO = 0;
 	unsigned int m_layerQuadVAO = 0, m_layerQuadVBO = 0;
-	bool m_bGenerateBGRVideoTexture = false;
 	IMkShaderPtr m_rgbFrameShader = nullptr;
-	IMkShaderPtr m_rgbToBgrFrameShader = nullptr; // Keep
 
 	eCompositorEvaluatorWindow m_evaluatorWindow = eCompositorEvaluatorWindow::mainWindow;
 	IMkTexturePtr m_editorFrameBufferTexture = nullptr;

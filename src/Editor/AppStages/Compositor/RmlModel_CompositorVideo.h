@@ -7,7 +7,7 @@
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
-class RmlModel_CompositorRecording : public RmlModel
+class RmlModel_CompositorVideo : public RmlModel
 {
 public:
 	bool init(Rml::Context* rmlContext, const class GlFrameCompositor* compositor);
@@ -19,18 +19,10 @@ public:
 	const Rml::String& getVideoModeName() const;
 	void setVideoModeName(const Rml::String& newName);
 
-	eSupportedCodec getSelectedVideoCodec() const;
-	void setSelectedVideoCodec(eSupportedCodec newCodec);
-
-	bool getIsRecording() const;
-	void setIsRecording(bool bNewFlag);
-
 	bool getIsStreaming() const;
 	void setIsStreaming(bool bNewFlag);
 
-	SinglecastDelegate<void()> OnToggleRecordingEvent;
 	SinglecastDelegate<void()> OnToggleStreamingEvent;
-	SinglecastDelegate<void(eSupportedCodec)> OnVideoCodecChangedEvent;
 
 protected:
 	void onVideoFrameSizeChanged(const class VideoSourceView* videoSourceView);
@@ -38,12 +30,9 @@ protected:
 private:
 	VideoSourceViewPtr m_videoSource;
 
-	// Recording UI
+	// Video UI
 	Rml::String m_videoSourceName;
 	bool m_bHasValidVideoSource= false;
 	Rml::String m_videoModeName;
-	Rml::Vector<Rml::String> m_videoCodecs;
-	Rml::String m_selectedCodec;
-	bool m_bIsRecording= false;
 	bool m_bIsStreaming= false;
 };

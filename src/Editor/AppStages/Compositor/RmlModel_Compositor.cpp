@@ -31,9 +31,9 @@ bool RmlModel_Compositor::init(
 			if (OnToggleLayersEvent) OnToggleLayersEvent();
 		});
 	constructor.BindEventCallback(
-		"toggle_recording",
+		"toggle_video",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			if (OnToggleRecordingEvent) OnToggleRecordingEvent();
+			if (OnToggleVideoEvent) OnToggleVideoEvent();
 		});
 	constructor.BindEventCallback(
 		"toggle_scripting",
@@ -61,7 +61,7 @@ void RmlModel_Compositor::dispose()
 	OnReturnEvent.Clear();
 	OnToggleOutlinerEvent.Clear();
 	OnToggleLayersEvent.Clear();
-	OnToggleRecordingEvent.Clear();
+	OnToggleVideoEvent.Clear();
 	OnToggleScriptingEvent.Clear();
 	OnToggleSourcesEvent.Clear();
 	OnToggleSettingsEvent.Clear();

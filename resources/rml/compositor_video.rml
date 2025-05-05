@@ -3,7 +3,7 @@
         <link type="text/rcss" href="rml.rcss"/>
         <link type="text/rcss" href="mikan.rcss"/>
         <link type="text/template" href="window.rml" />
-        <title>Layers</title>
+        <title>Video</title>
         <style>
             body
             {
@@ -16,7 +16,7 @@
         </style>
 	</head>
 	<body template="window">
-        <panel id="controls" data-model="compositor_recording">
+        <panel id="video" data-model="compositor_video">
             <div data-if="has_valid_video_source">
                 <label>Video Source: {{video_source_name}}</label>
                 <br/>
@@ -24,19 +24,6 @@
             </div>
             <div data-if="!has_valid_video_source">
                 <label>No Video Source</label>
-            </div>            
-            <br/>
-            <div>
-                <select id="select" name="codec_select" data-value="selected_codec" data-event-change="changed_codec()">
-                    <option data-for="video_codec : video_codecs" data-value="video_codec">{{video_codec}}</option>
-                </select>
-            </div>
-            <br/>
-            <div data-if="!is_recording">
-                <button data-event-click="toggle_recording()">Start Recording</button>
-            </div>
-            <div data-if="is_recording">
-                <button data-event-click="toggle_recording()">Stop Recording</button>
             </div>
             <br/>
             <div data-if="!is_streaming">
