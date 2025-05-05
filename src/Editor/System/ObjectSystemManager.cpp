@@ -7,12 +7,17 @@
 
 bool ObjectSystemManager::startup()
 {
+	// Allocate all systems, in the order we want to perform init and updates
+	// Init EditorSystem first so that it get component creation events 
+	// from Anchor and Stencil Systems triggered during init call
+	addSystem<EditorObjectSystem>();
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
-	addSystem<EditorObjectSystem>();
 
-	for (MikanObjectSystemPtr system : m_systems)
+	for (size_t i= 0; i < m_systems.size(); i++)
 	{
+		MikanObjectSystemPtr system = m_systems[i];
+
 		if (!system->init())
 		{
 			return false;
@@ -24,8 +29,13 @@ bool ObjectSystemManager::startup()
 
 void ObjectSystemManager::shutdown()
 {
-	for (MikanObjectSystemPtr system : m_systems)
+	// Call dispose in reverse order 
+	// so that Editor system gets component destroy events
+	// from the Anchor and Stencil Systems triggered during dispose call
+	for (size_t i = m_systems.size() - 1; i >= 0; i--)
 	{
+		MikanObjectSystemPtr system = m_systems[i];
+
 		system->dispose();
 	}
 	m_systems.clear();

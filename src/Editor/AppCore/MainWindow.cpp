@@ -214,10 +214,6 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		m_objectSystemManager->addSystem<AnchorObjectSystem>();
-		m_objectSystemManager->addSystem<StencilObjectSystem>();
-		m_objectSystemManager->addSystem<EditorObjectSystem>();
-		
 		if (!m_objectSystemManager->startup())
 		{			
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
