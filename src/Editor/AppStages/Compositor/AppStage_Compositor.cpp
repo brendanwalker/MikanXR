@@ -357,8 +357,9 @@ bool AppStage_Compositor::startStreaming()
 	if (compositorTexture == nullptr)
 		return false;
 
-	if (compositorTexture->getBufferFormat() != GL_RGBA)
-		return false;
+	// Compositing buffer should always be RGBA 32BPP
+	// Spout can only support RGBA32 and BGRA32
+	assert(compositorTexture->getBufferFormat() == GL_RGBA);
 
 	SharedTextureDescriptor sharedTextureDescriptor;
 	sharedTextureDescriptor.color_buffer_type = SharedColorBufferType::RGBA32;

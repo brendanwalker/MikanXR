@@ -85,8 +85,10 @@ bool CompositorNodeGraph::createResources()
 {
 	assert(getOwnerWindow());
 
-	// Create the frame buffer, but don't init it's resources yet
+	// Create the RGBA frame buffer, but don't init it's resources yet
 	m_compositingFrameBuffer = createMkFrameBuffer("Compositing Node Graph Frame Buffer");
+	m_compositingFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
+	m_compositingFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
 
 	// Start listening for Model stencil changes
 	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty +=
