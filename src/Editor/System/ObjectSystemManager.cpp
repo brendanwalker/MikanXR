@@ -14,7 +14,7 @@ bool ObjectSystemManager::startup()
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
 
-	for (size_t i= 0; i < m_systems.size(); i++)
+	for (int i= 0; i < (int)m_systems.size(); i++)
 	{
 		MikanObjectSystemPtr system = m_systems[i];
 
@@ -32,7 +32,7 @@ void ObjectSystemManager::shutdown()
 	// Call dispose in reverse order 
 	// so that Editor system gets component destroy events
 	// from the Anchor and Stencil Systems triggered during dispose call
-	for (size_t i = m_systems.size() - 1; i >= 0; i--)
+	for (int i = (int)m_systems.size() - 1; i >= 0; i--)
 	{
 		MikanObjectSystemPtr system = m_systems[i];
 
