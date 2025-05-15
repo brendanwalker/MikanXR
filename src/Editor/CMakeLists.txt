@@ -58,12 +58,6 @@ file(GLOB MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/DepthMeshCapture/*.h"
 )
 source_group("AppStages\\DepthMeshCapture" FILES ${MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC})
-## FileBrowser
-file(GLOB MIKAN_APP_STAGES_FILE_BROWSER_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/FileBrowser/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/FileBrowser/*.h"
-)
-source_group("AppStages\\FileBrowser" FILES ${MIKAN_APP_STAGES_FILE_BROWSER_SRC})
 ## MainMenu
 file(GLOB MIKAN_APP_STAGES_MAIN_MENU_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/MainMenu/*.cpp"
@@ -122,7 +116,6 @@ set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_COMPOSITOR_SRC}
     ${MIKAN_APP_STAGES_CTOFFSET_CALIBRATION_SRC}
     ${MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC}
-    ${MIKAN_APP_STAGES_FILE_BROWSER_SRC}
     ${MIKAN_APP_STAGES_MAIN_MENU_SRC}
     ${MIKAN_APP_STAGES_MODAL_CONFIRM_SRC}
     ${MIKAN_APP_STAGES_MONO_LENS_CALIBRATION_SRC}
@@ -518,7 +511,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${TINYFILEDIALOGS_DIR}
   ${GLEW_INCLUDE_DIRS}
   ${FastCSV_INCLUDE_DIRS}
-  ${FFMPEG_INCLUDE_DIRS}
   ${SPOUT2_INCLUDE_DIRS}
   ${LUA_INCLUDE_DIRS}
   ${LUA_BRIDGE_INCLUDE_DIRS}
@@ -533,12 +525,6 @@ list(APPEND MIKAN_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${SPOUT2_LIBRARIES}
-  ${FFMPEG_avcodec_LIBRARY}
-  ${FFMPEG_avdevice_LIBRARY}
-  ${FFMPEG_avfilter_LIBRARY}
-  ${FFMPEG_avformat_LIBRARY}
-  ${FFMPEG_avutil_LIBRARY}
-  ${FFMPEG_swscale_LIBRARY}
   ${FREETYPE_LIBRARIES}
   ${LUA_LIBRARIES}
   ${RFK_LIBRARIES}
@@ -580,7 +566,6 @@ target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
 target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 # Runtime dependencies
-set(FFMPEG_DLL_FOLDER ${ROOT_DIR}/deps/ffmpeg-4.4.1-full_build-shared/bin)
 set(OPENCV_VIDEOIO_DLL ${OpenCV_DIR}/x64/vc16/bin/opencv_videoio_ffmpeg4100_64.dll)
 set(OPENVR_DLL ${OPENVR_ROOT_DIR}/bin/${OPENVR_PLATFORM}/openvr_api.dll)
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
@@ -634,17 +619,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc16/bin/opencv_world4100.dll $<TARGET_FILE_DIR:Mikan>)
-  add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${FFMPEG_DLL_FOLDER}/avcodec-58.dll"
-    "${FFMPEG_DLL_FOLDER}/avdevice-58.dll"
-    "${FFMPEG_DLL_FOLDER}/avfilter-7.dll"
-    "${FFMPEG_DLL_FOLDER}/avformat-58.dll"
-    "${FFMPEG_DLL_FOLDER}/avutil-56.dll"
-    "${FFMPEG_DLL_FOLDER}/swresample-3.dll"
-    "${FFMPEG_DLL_FOLDER}/swscale-5.dll"
-    $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGStreamer>/MikanGStreamer.dll $<TARGET_FILE_DIR:Mikan>)
@@ -703,17 +677,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
       ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
-
-  install(FILES 
-      "${FFMPEG_DLL_FOLDER}/avcodec-58.dll"
-      "${FFMPEG_DLL_FOLDER}/avcodec-58.dll"
-      "${FFMPEG_DLL_FOLDER}/avdevice-58.dll"
-      "${FFMPEG_DLL_FOLDER}/avfilter-7.dll"
-      "${FFMPEG_DLL_FOLDER}/avformat-58.dll"
-      "${FFMPEG_DLL_FOLDER}/avutil-56.dll"
-      "${FFMPEG_DLL_FOLDER}/swresample-3.dll"
-      "${FFMPEG_DLL_FOLDER}/swscale-5.dll"
-      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES "${OPENCV_VIDEOIO_DLL}"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})

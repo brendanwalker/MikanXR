@@ -1,7 +1,6 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "EditorObjectSystem.h"
-#include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "MikanObject.h"
 #include "MathTypeConversion.h"
 #include "SelectionComponent.h"
@@ -9,12 +8,15 @@
 #include "SceneComponent.h"
 #include "StencilComponent.h"
 #include "RmlModel_CompositorSelection.h"
+#include "PathUtils.h"
 #include "ProfileConfig.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
+
+#include "tinyfiledialogs.h"
 
 bool RmlModel_CompositorSelection::s_bHasRegisteredTypes = false;
 
@@ -337,8 +339,11 @@ bool RmlModel_CompositorSelection::init(
 				SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
 				if (selectedComponent)
 				{					
-					std::filesystem::path current_file= rmlFieldModel.valueContainer.Get<Rml::String>();
-					std::filesystem::path current_dir= current_file.remove_filename();
+					std::string defaultFileAndPath= rmlFieldModel.valueContainer.Get<Rml::String>();
+					if (defaultFileAndPath.empty())
+					{
+						defaultFileAndPath = PathUtils::getHomeDirectory().string();
+					}
 
 					Rml::Variant titleValue;
 					titleValue= "Select File";
@@ -354,16 +359,27 @@ bool RmlModel_CompositorSelection::init(
 						*k_PropertyAttributeFileBrowseFilter, 
 						filterValue);
 
-					ModalDialog_FileBrowser::browseFile(
-						titleValue.Get<Rml::String>(),
-						current_dir,
-						current_file,
-						{filterValue.Get<Rml::String>()},
-						[this, selectedComponent, propertyName](const std::filesystem::path& filepath) {
-							Rml::Variant pathValue;
-							pathValue= filepath.string();
-							selectedComponent->setPropertyValue(propertyName, pathValue);
-					});
+					Rml::Variant filterValueDesc;
+					filterValueDesc = "Any File (*.*)";
+					selectedComponent->getPropertyAttribute(
+						propertyName,
+						*k_PropertyAttributeFileBrowseFilterDesc,
+						filterValueDesc);
+
+					const char* filterItems[1] = {filterValue.Get<Rml::String>().c_str()};
+					char* path =
+						tinyfd_openFileDialog(
+							titleValue.Get<Rml::String>().c_str(),
+							defaultFileAndPath.c_str(),
+							1, filterItems,
+							filterValueDesc.Get<Rml::String>().c_str(),
+							0); // Don't allow multiple selects
+					if (path)
+					{
+						Rml::Variant pathValue;
+						pathValue= Rml::String(path);
+						selectedComponent->setPropertyValue(propertyName, pathValue);
+					}
 
 				}
 			}

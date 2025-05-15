@@ -53,12 +53,10 @@ GlFrameCompositor::GlFrameCompositor()
 	m_config= std::make_shared<GlFrameCompositorConfig>();
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 	m_editorFrameBufferTexture = CreateMkTexture();
-	m_videoExportFramebuffer = createMkFrameBuffer();
 }
 
 GlFrameCompositor::~GlFrameCompositor()
 {
-	m_videoExportFramebuffer= nullptr;
 	m_editorFrameBufferTexture= nullptr;
 	m_nodeGraphAssetRef= nullptr;
 	m_config= nullptr;
@@ -78,13 +76,6 @@ bool GlFrameCompositor::startup(IMkWindow* ownerWindow)
 	if (m_rgbFrameShader == nullptr)
 	{
 		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb frame shader";
-		return false;
-	}
-
-	m_rgbToBgrFrameShader = ownerWindow->getShaderCache()->fetchCompiledIMkShader(getRGBtoBGRVideoFrameShaderCode());
-	if (m_rgbToBgrFrameShader == nullptr)
-	{
-		MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile rgb-to-gbr frame shader";
 		return false;
 	}
 
@@ -618,7 +609,7 @@ void GlFrameCompositor::update(float deltaSeconds)
 	}
 
 	// Fetch new video frames if the video frame queue isn't full
-	if (m_videoDistortionView->hasNewVideoFrame())
+	if (m_videoDistortionView != nullptr && m_videoDistortionView->hasNewVideoFrame())
 	{
 		// If the queue is full, drop all queued frames to catch up
 		if (m_frameEventQueue.size() < m_videoDistortionView->getMaxFrameQueueSize())
@@ -714,43 +705,6 @@ void GlFrameCompositor::updateCompositeFrame()
 		}
 	}
 
-	// Optionally bake our a BGR video frame, if requested
-	if (m_bGenerateBGRVideoTexture && m_videoExportFramebuffer->isValid())
-	{
-		EASY_BLOCK("Render BGR Frame")
-
-		// Create a scoped binding for the video export framebuffer
-		MkScopedObjectBinding videoExportFramebufferBinding(
-			m_ownerWindow->getMkStateStack().getCurrentState(),
-			"Video Export Framebuffer Scope",
-			m_videoExportFramebuffer);
-		if (videoExportFramebufferBinding)
-		{
-			// Turn off depth testing for compositing
-			videoExportFramebufferBinding.getMkState()->disableFlag(eMkStateFlagType::depthTest);
-
-			m_rgbToBgrFrameShader->bindProgram();
-
-			std::string uniformName;
-			m_rgbToBgrFrameShader->getFirstUniformNameOfSemantic(eUniformSemantic::rgbTexture, uniformName);
-			m_rgbToBgrFrameShader->setTextureUniform(uniformName);
-
-			IMkTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
-			if (compositedFrameTexture)
-			{
-				compositedFrameTexture->bindTexture(0);
-
-				glBindVertexArray(m_videoQuadVAO);
-				glDrawArrays(GL_TRIANGLES, 0, 6);
-				glBindVertexArray(0);
-
-				compositedFrameTexture->clearTexture(0);
-			}
-
-			m_rgbToBgrFrameShader->unbindProgram();
-		}
-	}
-
 	// Remember the index of the last frame we composited
 	m_lastCompositedFrameIndex = m_pendingCompositeFrameIndex;
 
@@ -800,11 +754,6 @@ IMkTextureConstPtr GlFrameCompositor::getCompositedFrameTexture() const
 	return IMkTextureConstPtr();
 }
 
-IMkTexturePtr GlFrameCompositor::getBGRVideoFrameTexture() 
-{
-	return m_videoExportFramebuffer->isValid() ? m_videoExportFramebuffer->getColorTexture() : IMkTexturePtr(); 
-}
-
 void GlFrameCompositor::updateCompositeFrameNodeGraph()
 {
 	MainWindow* mainWindow = MainWindow::getInstance();
@@ -850,24 +799,33 @@ bool GlFrameCompositor::openVideoSource()
 {
 	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
-	m_videoSourceView= VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	bool bSuccess= m_videoSourceView != nullptr;
-
 	// Start streaming the video
-	if (bSuccess && !m_videoSourceView->startVideoStream())
-		bSuccess= false;
-
-	// Create a frame buffer and texture to do the compositing work in
-	uint16_t frameWidth= 0;
-	uint16_t frameHeight= 0;
-	if (bSuccess)
+	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	if (m_videoSourceView != nullptr)
 	{
-		frameWidth = (uint16_t)m_videoSourceView->getFrameWidth();
-		frameHeight = (uint16_t)m_videoSourceView->getFrameHeight();
-		bSuccess= createCompositingTextures(frameWidth, frameHeight);
+		// Bind video source events
+		m_videoSourceView->OnFrameSizeChanged += MakeDelegate(this, &GlFrameCompositor::onVideoFrameSizeChanged);
+
+		if (m_videoSourceView->startVideoStream() == eVideoStreamingStatus::started)
+		{
+			onVideoFrameSizeChanged(m_videoSourceView.get());
+		}
+
+		return true;
 	}
 
-	if (bSuccess)
+	return false;
+}
+
+void GlFrameCompositor::onVideoFrameSizeChanged(const VideoSourceView* videoSourceView)
+{
+	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+
+	// Create a frame buffer and texture to do the compositing work in
+	uint16_t frameWidth = (uint16_t)m_videoSourceView->getFrameWidth();
+	uint16_t frameHeight = (uint16_t)m_videoSourceView->getFrameHeight();
+
+	if (createCompositingTextures(frameWidth, frameHeight))
 	{
 		// Create a distortion view to read the incoming video frames into a texture
 		m_videoDistortionView =
@@ -879,20 +837,20 @@ bool GlFrameCompositor::openVideoSource()
 
 		// Create a synthetic depth estimator if the hardware supports it
 		// TODO: and requested from the profile config settings
-#if SUPPORT_REALTIME_DEPTH_ESTIMATION
-		auto openCVManager= App::getInstance()->getMainWindow()->getOpenCVManager();
+	#if SUPPORT_REALTIME_DEPTH_ESTIMATION
+		auto openCVManager = App::getInstance()->getMainWindow()->getOpenCVManager();
 		if (openCVManager->supportsHardwareAcceleratedDNN())
 		{
-			m_syntheticDepthEstimator = 
+			m_syntheticDepthEstimator =
 				std::make_shared<SyntheticDepthEstimator>(
 					openCVManager, DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
 			if (!m_syntheticDepthEstimator->initialize())
 			{
 				MIKAN_LOG_ERROR("GlFrameCompositor::openVideoSource") << "Failed to create depth estimator";
-				m_syntheticDepthEstimator= nullptr;
+				m_syntheticDepthEstimator = nullptr;
 			}
 		}
-#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
+	#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
 		// Always use the undistorted video frame for compositing
 		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
@@ -902,14 +860,11 @@ bool GlFrameCompositor::openVideoSource()
 		// Clean up the partially opened compositor
 		closeVideoSource();
 	}
-
-	return bSuccess;
 }
 
 void GlFrameCompositor::closeVideoSource()
 {
-	m_editorFrameBufferTexture->disposeTexture();
-	m_videoExportFramebuffer->disposeResources();
+	disposeCompositingTextures();
 
 	if (m_videoDistortionView != nullptr)
 	{
@@ -919,6 +874,7 @@ void GlFrameCompositor::closeVideoSource()
 
 	if (m_videoSourceView)
 	{
+		m_videoSourceView->OnFrameSizeChanged -= MakeDelegate(this, &GlFrameCompositor::onVideoFrameSizeChanged);
 		m_videoSourceView->stopVideoStream();
 		m_videoSourceView= nullptr;
 	}
@@ -930,7 +886,10 @@ bool GlFrameCompositor::bindCameraVRTracker()
 
 	auto* vrDeviceManager= VRDeviceManager::getInstance();
 	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+	if (cameraTrackingPuckView)
+	{
+		m_cameraTrackingPuckPoseView = cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+	}
 
 	return m_cameraTrackingPuckPoseView != nullptr;
 }
@@ -1047,6 +1006,9 @@ bool GlFrameCompositor::createCompositingTextures(uint16_t width, uint16_t heigh
 {
 	bool bSuccess = true;
 
+	// Destroy any existing textures
+	disposeCompositingTextures();
+
 	// Also create a texture a for the editor to render to when the editor is active
 	m_editorFrameBufferTexture->setSize(width, height);
 	m_editorFrameBufferTexture->setTextureFormat(GL_RGBA);
@@ -1054,15 +1016,12 @@ bool GlFrameCompositor::createCompositingTextures(uint16_t width, uint16_t heigh
 	m_editorFrameBufferTexture->setGenerateMipMap(false);
 	// ... but don't allocate it create texture until we need it
 
-	m_videoExportFramebuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
-	m_videoExportFramebuffer->setSize(width, height);
-	if (!m_videoExportFramebuffer->createResources())
-	{
-		MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
-		bSuccess = false;
-	}
-
 	return bSuccess;
+}
+
+void GlFrameCompositor::disposeCompositingTextures()
+{
+	m_editorFrameBufferTexture->disposeTexture();
 }
 
 void GlFrameCompositor::createVertexBuffers()
@@ -1101,18 +1060,6 @@ void GlFrameCompositor::createVertexBuffers()
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
-	// video quad VAO/VBO
-	glGenVertexArrays(1, &m_videoQuadVAO);
-	glGenBuffers(1, &m_videoQuadVBO);
-	glBindVertexArray(m_videoQuadVAO);
-	glObjectLabel(GL_VERTEX_ARRAY, m_videoQuadVAO, -1, "FrameCompositorVideoQuad");
-	glBindBuffer(GL_ARRAY_BUFFER, m_videoQuadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(videoQuadVertices), &videoQuadVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
 
 void GlFrameCompositor::freeVertexBuffers()
@@ -1126,17 +1073,6 @@ void GlFrameCompositor::freeVertexBuffers()
 	{
 		glDeleteBuffers(1, &m_layerQuadVBO);
 		m_layerQuadVBO = 0;
-	}
-
-	if (m_videoQuadVAO != 0)
-	{
-		glDeleteVertexArrays(1, &m_videoQuadVAO);
-		m_videoQuadVAO = 0;
-	}
-	if (m_videoQuadVBO != 0)
-	{
-		glDeleteBuffers(1, &m_videoQuadVBO);
-		m_videoQuadVBO = 0;
 	}
 }
 
@@ -1213,51 +1149,6 @@ IMkShaderCodeConstPtr GlFrameCompositor::getRGBFrameShaderCode()
 				FragColor = vec4(col, 1.0);
 			} 
 			)"""");		
-		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
-		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
-	}
-
-	return x_shaderCode;
-}
-
-IMkShaderCodeConstPtr GlFrameCompositor::getRGBtoBGRVideoFrameShaderCode()
-{
-	static IMkShaderCodePtr x_shaderCode = nullptr;
-
-	if (x_shaderCode == nullptr)
-	{
-		x_shaderCode= createIMkShaderCode(
-			"Internal BGR Frame Shader Code",
-			// vertex shader
-			R""""(
-			#version 330 core
-			layout (location = 0) in vec2 aPos;
-			layout (location = 1) in vec2 aTexCoords;
-
-			out vec2 TexCoords;
-
-			void main()
-			{
-				TexCoords = aTexCoords;
-				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
-			}  
-			)"""",
-			//fragment shader
-			R""""(
-			#version 330 core
-			out vec4 FragColor;
-
-			in vec2 TexCoords;
-
-			uniform sampler2D rgbTexture;
-
-			void main()
-			{
-				vec3 col = texture(rgbTexture, TexCoords).bgr;
-				FragColor = vec4(col, 1.0);
-			} 
-			)"""");
 		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
 		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
 		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);

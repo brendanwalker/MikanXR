@@ -85,8 +85,10 @@ bool CompositorNodeGraph::createResources()
 {
 	assert(getOwnerWindow());
 
-	// Create the frame buffer, but don't init it's resources yet
+	// Create the RGBA frame buffer, but don't init it's resources yet
 	m_compositingFrameBuffer = createMkFrameBuffer("Compositing Node Graph Frame Buffer");
+	m_compositingFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
+	m_compositingFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
 
 	// Start listening for Model stencil changes
 	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty +=
@@ -219,7 +221,7 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 
 		// Load the stencil model and render it using the flat textured material
 		auto stencilMaterial= 
-			ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+			ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 		auto renderModelPtr= 
 			ownerWindow->getModelResourceManager()->fetchRenderModel(
 				stencilDefinition->getModelPath(), stencilMaterial);

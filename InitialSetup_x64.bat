@@ -1,6 +1,8 @@
 @echo off
 setlocal
 
+set UNZIP_EXE=%~dp0/tools/7zip/7za.exe
+
 ::Clean up the old build folder
 IF EXIST build (
 del /f /s /q build > nul
@@ -24,7 +26,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading SDL2-2.0.10-win32-x64.zip"
   goto failure
 )
-7z e sdl2.zip -obuild/debug -y -r -spf
+%UNZIP_EXE% e sdl2.zip -obuild/debug -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping SDL2-2.0.10-win32-x64.zip"
   goto failure
@@ -36,7 +38,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading SDL2-devel-2.0.10-VC.zip"
   goto failure
 )
-7z e sdl2-devel.zip -y -r -spf
+%UNZIP_EXE% e sdl2-devel.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping SDL2-devel-2.0.10-VC.zip"
   goto failure
@@ -48,7 +50,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading SDL2_image-2.0.5-win32-x64.zip"
   goto failure
 )
-7z e sdl2img.zip -obuild/debug -y -r -spf
+%UNZIP_EXE% e sdl2img.zip -obuild/debug -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping SDL2_image-2.0.5-win32-x64.zip"
   goto failure
@@ -60,7 +62,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading SDL2_image-devel-2.0.5-VC.zip"
   goto failure
 )
-7z e sdl2img-devel.zip -y -r -spf
+%UNZIP_EXE% e sdl2img-devel.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping SDL2_image-devel-2.0.5-VC.zip"
   goto failure
@@ -72,7 +74,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading SDL2_ttf-2.0.15-win32-x64.zip"
   goto failure
 )
-7z e sdl2ttf.zip -obuild/debug -y -r -spf
+%UNZIP_EXE% e sdl2ttf.zip -obuild/debug -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping SDL2_ttf-2.0.15-win32-x64.zip"
   goto failure
@@ -84,7 +86,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading SDL2_ttf-devel-2.0.15-VC.zip"
   goto failure
 )
-7z e sdl2ttf-devel.zip -y -r -spf        
+%UNZIP_EXE% e sdl2ttf-devel.zip -y -r -spf        
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping SDL2_ttf-devel-2.0.15-VC.zip"
   goto failure
@@ -108,7 +110,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading glew-2.2.0-win32.zip"
   goto failure
 )
-7z e glew-2.2.0-win32.zip -y -r -spf
+%UNZIP_EXE% e glew-2.2.0-win32.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping glew-2.2.0-win32.zip"
   goto failure
@@ -120,21 +122,9 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading SPOUT.zip"
   goto failure
 )
-7z e SPOUT.zip -y -r -spf
+%UNZIP_EXE% e SPOUT.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping SPOUT.zip"
-  goto failure
-)
-
-echo "Downloading FFMpeg-Shared"
-curl -L https://github.com/GyanD/codexffmpeg/releases/download/4.4.1/ffmpeg-4.4.1-full_build-shared.7z --output ffmpeg-4.4.1-full_build-shared.7z
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading ffmpeg-4.4.1-full_build-shared.7z"
-  goto failure
-)
-7z e ffmpeg-4.4.1-full_build-shared.7z -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping ffmpeg-4.4.1-full_build-shared.7z"
   goto failure
 )
 
@@ -168,7 +158,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error easy_profiler-v2.1.0-msvc15-win64.zip"
   goto failure
 )
-7z e easy_profiler-v2.1.0-msvc15-win64.zip -y -r -spf -oeasy_profiler
+%UNZIP_EXE% e easy_profiler-v2.1.0-msvc15-win64.zip -y -r -spf -oeasy_profiler
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping easy_profiler-v2.1.0-msvc15-win64.zip"
   goto failure
@@ -181,7 +171,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error FreeType.zip"
   goto failure
 )
-7z e freetype-windows-binaries-2.10.4.zip -y -r -spf
+%UNZIP_EXE% e freetype-windows-binaries-2.10.4.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping FreeType.zip"
   goto failure
@@ -194,7 +184,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading rfk_v2.2.1_windows.zip"
   goto failure
 )
-7z e rfk_v2.2.1_windows.zip -y -r -spf -orfk
+%UNZIP_EXE% e rfk_v2.2.1_windows.zip -y -r -spf -orfk
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping rfk_v2.2.1_windows.zip"
   goto failure

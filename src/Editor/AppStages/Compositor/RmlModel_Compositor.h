@@ -12,7 +12,7 @@ public:
 	SinglecastDelegate<void()> OnReturnEvent;
 	SinglecastDelegate<void()> OnToggleOutlinerEvent;
 	SinglecastDelegate<void()> OnToggleLayersEvent;
-	SinglecastDelegate<void()> OnToggleRecordingEvent;
+	SinglecastDelegate<void()> OnToggleVideoEvent;
 	SinglecastDelegate<void()> OnToggleScriptingEvent;
 	SinglecastDelegate<void()> OnToggleSourcesEvent;
 	SinglecastDelegate<void()> OnToggleSettingsEvent;

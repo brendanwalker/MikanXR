@@ -7,12 +7,11 @@
 #include "Compositor/RmlModel_Compositor.h"
 #include "Compositor/RmlModel_CompositorLayers.h"
 #include "Compositor/RmlModel_CompositorOutliner.h"
-#include "Compositor/RmlModel_CompositorRecording.h"
+#include "Compositor/RmlModel_CompositorVideo.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSelection.h"
 #include "Compositor/RmlModel_CompositorSettings.h"
 #include "EditorObjectSystem.h"
-#include "FileBrowser/ModalDialog_FileBrowser.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
@@ -50,7 +49,6 @@
 #include "TextStyle.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoSourceView.h"
-#include "VideoWriter.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
 #include "Windows/CompositorNodeEditorWindow.h"
@@ -73,13 +71,12 @@ AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	: AppStage(window, AppStage_Compositor::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
 	, m_compositorLayersModel(new RmlModel_CompositorLayers)
-	, m_compositorRecordingModel(new RmlModel_CompositorRecording)
+	, m_compositorVideoModel(new RmlModel_CompositorVideo)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorOutlinerModel(new RmlModel_CompositorOutliner)
 	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
-	, m_videoWriter(new VideoWriter)
 	, m_renderTargetWriteAccessor(createSharedTextureWriteAccessor("MikanXR"))
 {
 }
@@ -90,13 +87,12 @@ AppStage_Compositor::~AppStage_Compositor()
 
 	delete m_compositorModel;
 	delete m_compositorLayersModel;
-	delete m_compositorRecordingModel;
+	delete m_compositorVideoModel;
 	delete m_compositorScriptingModel;
 	delete m_compositorOutlinerModel;
 	delete m_compositorSelectionModel;
 	delete m_compositorSettingsModel;
 	m_scriptContext.reset();
-	delete m_videoWriter;
 }
 
 void AppStage_Compositor::enter()
@@ -164,7 +160,7 @@ void AppStage_Compositor::enter()
 		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
 		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Compositor::onToggleOutlinerWindowEvent);
 		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersWindowEvent);
-		m_compositorModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingWindowEvent);
+		m_compositorModel->OnToggleVideoEvent = MakeDelegate(this, &AppStage_Compositor::onToggleVideoWindowEvent);
 		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingWindowEvent);
 		m_compositorModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSettingsWindowEvent);
 		m_compositiorView = addRmlDocument("compositor.rml");
@@ -187,11 +183,10 @@ void AppStage_Compositor::enter()
 		m_compositiorLayersView->Hide();
 
 		// Init Recording UI
-		m_compositorRecordingModel->init(context, m_frameCompositor);
-		m_compositorRecordingModel->OnToggleRecordingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleRecordingEvent);
-		m_compositorRecordingModel->OnToggleStreamingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleStreamingEvent);
-		m_compositiorRecordingView = addRmlDocument("compositor_recording.rml");
-		m_compositiorRecordingView->Hide();
+		m_compositorVideoModel->init(context, m_frameCompositor);
+		m_compositorVideoModel->OnToggleStreamingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleStreamingEvent);
+		m_compositiorVideoView = addRmlDocument("compositor_video.rml");
+		m_compositiorVideoView->Hide();
 
 		// Init Scripting UI
 		m_compositorScriptingModel->init(context, m_profile, m_scriptContext);
@@ -219,13 +214,12 @@ void AppStage_Compositor::exit()
 	// Unregister the script context with the mikan server
 	MikanServer::getInstance()->unbindScriptContect(m_scriptContext);
 
-	stopRecording();
 	stopStreaming();
 
 	m_compositorSelectionModel->dispose();
 	m_compositorOutlinerModel->dispose();
 	m_compositorLayersModel->dispose();
-	m_compositorRecordingModel->dispose();
+	m_compositorVideoModel->dispose();
 	m_compositorScriptingModel->dispose();
 	m_compositorModel->dispose();
 	m_compositorSettingsModel->dispose();
@@ -266,100 +260,18 @@ void AppStage_Compositor::update(float deltaSeconds)
 	m_scriptContext->updateScript();
 }
 
-bool AppStage_Compositor::startRecording()
-{
-	stopRecording();
-
-	VideoSourceViewPtr videoSource= m_frameCompositor->getVideoSource();
-	if (!videoSource)
-		return false;
-
-	IMkTexturePtr compositorTexture= m_frameCompositor->getBGRVideoFrameTexture();
-	if (compositorTexture == nullptr)
-		return false;
-
-	unsigned int matType= 0;
-	unsigned int bpp= 0;
-	switch (compositorTexture->getBufferFormat())
-	{
-	case GL_RGB:
-	case GL_BGR:
-		matType = CV_8UC3;
-		bpp = 24;
-		break;
-	case GL_RGBA:
-	case GL_BGRA:
-		matType = CV_8UC4;
-		bpp = 32;
-		break;
-	default:
-		break;
-	}
-
-	if (matType == 0)
-		return false;
-	
-	const eSupportedCodec selectedCodex= m_compositorRecordingModel->getSelectedVideoCodec();
-	const std::string suffix= k_supportedCodecFileSuffix[(int)selectedCodex];
-	const int fourcc = k_supportedCodecFourCC[(int)selectedCodex];
-	const std::filesystem::path outputFile = m_profile->generateTimestampedFilePath("video", suffix);
-	const int width = compositorTexture->getTextureWidth();
-	const int height = compositorTexture->getTextureHeight();
-	const cv::Size size(width, height);
-	//TODO: $HACK - Force write out 30fps
-	const double fps = 30.0; //videoSource->getFrameRate();
-
-	m_videoWriter->open(outputFile, fps, width, height, bpp);
-
-	// Tell the frame compositor to also generate BGR video frames
-	m_frameCompositor->setGenerateBGRVideoTexture(true);
-
-	// Listen for new frames to write out
-	m_frameCompositor->OnNewFrameComposited+= MakeDelegate(this, &AppStage_Compositor::onNewRecordingFrameReady);
-	m_compositorRecordingModel->setIsRecording(true);
-
-	return true;
-}
-
-void AppStage_Compositor::stopRecording()
-{
-	// Stop listening for new frames to write out
-	if (m_compositorRecordingModel->getIsRecording())
-	{
-		m_frameCompositor->setGenerateBGRVideoTexture(false);
-		m_frameCompositor->OnNewFrameComposited -= MakeDelegate(this, &AppStage_Compositor::onNewRecordingFrameReady);
-	}
-
-	m_videoWriter->close();
-	m_compositorRecordingModel->setIsRecording(false);
-}
-
-void AppStage_Compositor::onNewRecordingFrameReady()
-{
-	EASY_FUNCTION();
-
-	if (m_compositorRecordingModel->getIsRecording())
-	{		
-		IMkTexturePtr bgrTexture = m_frameCompositor->getBGRVideoFrameTexture();
-
-		if (bgrTexture != nullptr && m_videoWriter != nullptr && m_videoWriter->getIsOpened())
-		{
-			m_videoWriter->write(bgrTexture);
-		}
-	}
-}
-
 bool AppStage_Compositor::startStreaming()
 {
-	if (m_compositorRecordingModel->getIsStreaming())
+	if (m_compositorVideoModel->getIsStreaming())
 		return true;
 
 	IMkTextureConstPtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
 	if (compositorTexture == nullptr)
 		return false;
 
-	if (compositorTexture->getBufferFormat() != GL_RGBA)
-		return false;
+	// Compositing buffer should always be RGBA 32BPP
+	// Spout can only support RGBA32 and BGRA32
+	assert(compositorTexture->getBufferFormat() == GL_RGBA);
 
 	SharedTextureDescriptor sharedTextureDescriptor;
 	sharedTextureDescriptor.color_buffer_type = SharedColorBufferType::RGBA32;
@@ -372,7 +284,7 @@ bool AppStage_Compositor::startStreaming()
 
 	// Listen for new frames to write out
 	m_frameCompositor->OnNewFrameComposited += MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
-	m_compositorRecordingModel->setIsStreaming(true);
+	m_compositorVideoModel->setIsStreaming(true);
 
 	return true;
 }
@@ -380,20 +292,20 @@ bool AppStage_Compositor::startStreaming()
 void AppStage_Compositor::stopStreaming()
 {
 	// Stop listening for new frames to write out
-	if (m_compositorRecordingModel->getIsStreaming())
+	if (m_compositorVideoModel->getIsStreaming())
 	{
 		m_frameCompositor->OnNewFrameComposited -= MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
 	}
 
 	m_renderTargetWriteAccessor->dispose();
-	m_compositorRecordingModel->setIsStreaming(false);
+	m_compositorVideoModel->setIsStreaming(false);
 }
 
 void AppStage_Compositor::onNewStreamingFrameReady()
 {
 	EASY_FUNCTION();
 
-	if (m_compositorRecordingModel->getIsStreaming())
+	if (m_compositorVideoModel->getIsStreaming())
 	{
 		IMkTextureConstPtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
 
@@ -506,10 +418,10 @@ void AppStage_Compositor::onToggleLayersWindowEvent()
 	if (m_compositiorLayersView) m_compositiorLayersView->Show();
 }
 
-void AppStage_Compositor::onToggleRecordingWindowEvent()
+void AppStage_Compositor::onToggleVideoWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_compositiorRecordingView) m_compositiorRecordingView->Show();
+	if (m_compositiorVideoView) m_compositiorVideoView->Show();
 }
 
 void AppStage_Compositor::onToggleScriptingWindowEvent()
@@ -629,23 +541,15 @@ void AppStage_Compositor::hideAllSubWindows()
 {
 	if (m_compositiorOutlinerView) m_compositiorOutlinerView->Hide();
 	if (m_compositiorLayersView) m_compositiorLayersView->Hide();
-	if (m_compositiorRecordingView) m_compositiorRecordingView->Hide();
+	if (m_compositiorVideoView) m_compositiorVideoView->Hide();
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Hide();
 	if (m_compositiorSettingsView) m_compositiorSettingsView->Hide();
 }
 
 // Recording UI Events
-void AppStage_Compositor::onToggleRecordingEvent()
-{
-	if (m_compositorRecordingModel->getIsRecording())
-		stopRecording();
-	else
-		startRecording();
-}
-
 void AppStage_Compositor::onToggleStreamingEvent()
 {
-	if (m_compositorRecordingModel->getIsStreaming())
+	if (m_compositorVideoModel->getIsStreaming())
 		stopStreaming();
 	else
 		startStreaming();
@@ -666,23 +570,29 @@ void AppStage_Compositor::onScriptFileChangeEvent(
 
 void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
-	std::filesystem::path current_dir;
-	std::filesystem::path current_file;
-
+	std::string defaultFileAndPath;
 	if (!m_profile->compositorScriptFilePath.empty())
 	{
-		current_file = m_profile->compositorScriptFilePath;
-		current_dir = current_file.remove_filename();
+		defaultFileAndPath= m_profile->compositorScriptFilePath.string();
+	}
+	else
+	{
+		defaultFileAndPath= PathUtils::getHomeDirectory().string();
 	}
 
-	ModalDialog_FileBrowser::browseFile(
-		"Select Scene Script",
-		current_dir,
-		current_file,
-		{".lua"},
-		[this](const std::filesystem::path& filepath) {
-			onScriptFileChangeEvent(filepath);
-		});
+	const char* filterItems[1] = {"*.lua"};
+	const char* filterDesc = "Scene Scripts (*.lua)";
+	char* path = 
+		tinyfd_openFileDialog(
+			"Select Scene Script", 
+			defaultFileAndPath.c_str(), 
+			1, filterItems, 
+			filterDesc, 
+			0); // Don't allow multiple selects
+	if (path)
+	{
+		onScriptFileChangeEvent(path);
+	}
 }
 
 void AppStage_Compositor::onReloadCompositorScriptFileEvent()

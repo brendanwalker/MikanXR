@@ -69,7 +69,8 @@ void AppStage_MonoLensCalibration::enter()
 
 	// Initialize video stream + lens calibrator
 	eMonoLensCalibrationMenuState newState;
-	if (m_videoSourceView->startVideoStream())
+	//TODO: Handle pendingStart
+	if ((int)m_videoSourceView->startVideoStream() > 0)
 	{
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = new VideoFrameDistortionView(

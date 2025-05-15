@@ -13,7 +13,7 @@
 #define INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE		"Internal_UnpackRGBADepthTexture"
 #define INTERNAL_MATERIAL_P_WIREFRAME					"Internal_P_Wireframe"
 #define INTERNAL_MATERIAL_P_SOLID_COLOR					"Internal_P_SolidColor"
-#define INTERNAL_MATERIAL_PT_TEXTURED					"Internal_PT_Textured"
+#define INTERNAL_MATERIAL_PNT_TEXTURED					"Internal_PNT_Textured"
 #define INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED		"Internal_PNT_TexturedLitColored"
 #define INTERNAL_MATERIAL_P_LINEAR_DEPTH				"Internal_P_LinearDepth"
 

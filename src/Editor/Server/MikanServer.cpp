@@ -106,8 +106,14 @@ public:
 	bool readRenderTargetTextures(const int64_t newFrameIndex)
 	{
 		EASY_FUNCTION();
+		
+		SharedTextureReadAccessor* readAccessor= getRenderTargetReadAccessor();
+		if (readAccessor)
+		{
+			return readAccessor->readRenderTargetTextures(newFrameIndex);
+		}
 
-		return getRenderTargetReadAccessor()->readRenderTargetTextures(newFrameIndex);
+		return false;
 	}
 
 	SharedTextureReadAccessor* getRenderTargetReadAccessor() const

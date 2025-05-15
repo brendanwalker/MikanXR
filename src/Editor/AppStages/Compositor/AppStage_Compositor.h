@@ -43,9 +43,6 @@ public:
 	virtual void render() override;
 
 protected:
-	bool startRecording();
-	void stopRecording();
-
 	bool startStreaming();
 	void stopStreaming();
 
@@ -59,14 +56,13 @@ protected:
 	void setVRCamera();
 
 	// Compositor Events
-	void onNewRecordingFrameReady();
 	void onNewStreamingFrameReady();
 
 	// Main Compositor UI Events
 	void onReturnEvent();
 	void onToggleOutlinerWindowEvent();
 	void onToggleLayersWindowEvent();
-	void onToggleRecordingWindowEvent();
+	void onToggleVideoWindowEvent();
 	void onToggleScriptingWindowEvent();
 	void onToggleSettingsWindowEvent();
 	void hideAllSubWindows();
@@ -105,8 +101,8 @@ protected:
 	class RmlModel_CompositorLayers* m_compositorLayersModel = nullptr;
 	Rml::ElementDocument* m_compositiorLayersView = nullptr;
 
-	class RmlModel_CompositorRecording* m_compositorRecordingModel = nullptr;
-	Rml::ElementDocument* m_compositiorRecordingView = nullptr;
+	class RmlModel_CompositorVideo* m_compositorVideoModel = nullptr;
+	Rml::ElementDocument* m_compositiorVideoView = nullptr;
 
 	class RmlModel_CompositorScripting* m_compositorScriptingModel = nullptr;
 	Rml::ElementDocument* m_compositiorScriptingView = nullptr;
@@ -126,6 +122,5 @@ protected:
 
 	bool m_bAddingNewConfig= false;
 
-	class VideoWriter* m_videoWriter= nullptr;
 	ISharedTextureWriteAccessorPtr m_renderTargetWriteAccessor;
 };

@@ -1,0 +1,37 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Video</title>
+        <style>
+            body
+            {
+                position:absolute; 
+                right:0px;
+                top: -45dp;
+                width: 350dp;
+                height: 100%;
+            }         
+        </style>
+	</head>
+	<body template="window">
+        <panel id="video" data-model="compositor_video">
+            <div data-if="has_valid_video_source">
+                <label>Video Source: {{video_source_name}}</label>
+                <br/>
+                <label>Video Mode: {{video_mode_name}}</label>
+            </div>
+            <div data-if="!has_valid_video_source">
+                <label>No Video Source</label>
+            </div>
+            <br/>
+            <div data-if="!is_streaming">
+                <button data-event-click="toggle_streaming()">Start Streaming</button>
+            </div>
+            <div data-if="is_streaming">
+                <button data-event-click="toggle_streaming()">Stop Streaming</button>
+            </div>
+        </panel>
+    </body>
+</rml>

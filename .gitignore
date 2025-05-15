@@ -58,3 +58,6 @@ deps
 imgui.ini
 MikanXR.log
 !src/Object
+
+#Tools
+!tools/*/*.exe

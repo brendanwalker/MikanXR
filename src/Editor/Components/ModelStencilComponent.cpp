@@ -291,7 +291,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 	MainWindow* mainWindow= MainWindow::getInstance();
 	MikanModelResourceManager* modelResourceManager= mainWindow->getModelResourceManager();
 	MkMaterialConstPtr stencilMaterial= 
-		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 	MikanRenderModelResourcePtr modelResourcePtr= 
 		modelResourceManager->fetchRenderModel(
 			modelStencilDefinition->getModelPath(), stencilMaterial);
@@ -468,6 +468,10 @@ bool ModelStencilComponent::getPropertyAttribute(const std::string& propertyName
 		else if (attributeName == *k_PropertyAttributeFileBrowseFilter)
 		{
 			outValue = ".obj";
+		}
+		else if (attributeName == *k_PropertyAttributeFileBrowseFilterDesc)
+		{
+			outValue = "Obj Model Files (.obj)";
 		}
 	}
 

@@ -210,33 +210,33 @@ void VideoSourceView::close()
 
 	// Let any connected clients know that the video source closed
 	MikanServer::getInstance()->publishVideoSourceClosedEvent();
+	if (OnClosed)
+	{
+		OnClosed(this);
+	}
 }
 
-bool VideoSourceView::startVideoStream()
+eVideoStreamingStatus VideoSourceView::startVideoStream()
 {
 	if (m_device != nullptr)
 	{
-		if (!m_device->getIsVideoStreaming())
-		{
-			return m_device->startVideoStream();
-		}
-		else
-		{
-			return true;
-		}
+		return m_device->startVideoStream();
 	}
 
-	return false;
+	return eVideoStreamingStatus::failed;
 }
 
-bool VideoSourceView::getIsVideoStreaming() const
+eVideoStreamingStatus VideoSourceView::getVideoStreamingStatus() const
 {
-	return (m_device != nullptr && m_device->getIsVideoStreaming());
+	return (m_device != nullptr) ? m_device->getVideoStreamingStatus() : eVideoStreamingStatus::failed;
 }
 
 void VideoSourceView::stopVideoStream()
 {
-	if (getIsVideoStreaming())
+	eVideoStreamingStatus status = getVideoStreamingStatus();
+
+	if (status == eVideoStreamingStatus::pendingStart ||
+		status == eVideoStreamingStatus::started)
 	{
 		m_device->stopVideoStream();
 	}
@@ -260,7 +260,12 @@ void VideoSourceView::notifyVideoFrameSizeChanged()
 	// Recompute the projection matrix
 	recomputeCameraProjectionMatrix();
 
+	// Let any listeners know that the video frame sized changed
 	MikanServer::getInstance()->publishVideoSourceModeChangedEvent();
+	if (OnFrameSizeChanged)
+	{
+		OnFrameSizeChanged(this);
+	}
 }
 
 void VideoSourceView::notifyVideoFrameReceived(const IVideoSourceListener::FrameBuffer& frameInfo)
@@ -434,7 +439,10 @@ bool VideoSourceView::setVideoMode(const std::string& new_mode)
 {
 	if (m_device != nullptr && m_device->getIsOpen())
 	{
-		bool bWasStreaming = getIsVideoStreaming();
+		const eVideoStreamingStatus status= getVideoStreamingStatus();
+		const bool bWasStreaming = 
+			status == eVideoStreamingStatus::pendingStart || 
+			status == eVideoStreamingStatus::started;
 		bool bUpdatedMode= false;
 
 		if (bWasStreaming)
@@ -540,6 +548,10 @@ void VideoSourceView::setCameraIntrinsics(const MikanVideoSourceIntrinsics& came
 
 	// Let any connected clients know that the video source intrinsics changed
 	MikanServer::getInstance()->publishVideoSourceIntrinsicsChangedEvent();
+	if (OnIntrinsicsChanged)
+	{
+		OnIntrinsicsChanged(this);
+	}
 }
 
 MikanQuatd VideoSourceView::getCameraOffsetOrientation() const
@@ -558,6 +570,10 @@ void VideoSourceView::setCameraPoseOffset(const MikanQuatd& q, const MikanVector
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
+	if (OnCameraPoseOffsetChanged)
+	{
+		OnCameraPoseOffsetChanged(this);
+	}
 }
 
 bool VideoSourceView::getCameraPose(

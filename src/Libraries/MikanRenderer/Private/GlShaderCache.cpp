@@ -380,19 +380,20 @@ namespace InternalShaders
 		return x_shaderCode;
 	}
 
-	IMkShaderCodeConstPtr getPTTexturedShaderCode()
+	IMkShaderCodeConstPtr getPNTTexturedShaderCode()
 	{
 		static IMkShaderCodePtr x_shaderCode = nullptr;
 		
 		if (x_shaderCode == nullptr)
 		{
 			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PT_TEXTURED,
+				INTERNAL_MATERIAL_PNT_TEXTURED,
 				// vertex shader
 				R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
-				layout (location = 1) in vec2 aTexCoords;
+				layout(location = 1) in vec3 v3NormalIn; 
+				layout (location = 2) in vec2 aTexCoords;
 
 				uniform mat4 mvpMatrix;
 
@@ -420,6 +421,7 @@ namespace InternalShaders
 				} 
 				)"""");
 			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("v3NormalIn", eVertexDataType::datatype_vec3, eVertexSemantic::normal);
 			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
 			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
 			x_shaderCode->addUniform("rgbTexture", eUniformSemantic::diffuseTexture);
@@ -583,7 +585,7 @@ namespace InternalShaders
 			getUnpackRGBALinearDepthTextureShaderCode(),
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),
-			getPTTexturedShaderCode(),
+			getPNTTexturedShaderCode(),
 			getPNTTexturedColoredShaderCode(),
 			getPLinearDepthShaderCode(),
 		};

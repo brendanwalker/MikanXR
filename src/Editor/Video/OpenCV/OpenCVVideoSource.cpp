@@ -128,19 +128,22 @@ void OpenCVVideoSource::close()
     }
 }
 
-bool OpenCVVideoSource::startVideoStream()
+eVideoStreamingStatus OpenCVVideoSource::startVideoStream()
 {
-	if (getIsOpen())
+	if (getIsOpen() && m_videoDevice->startVideoStream())
 	{
-		return m_videoDevice->startVideoStream();
+		return eVideoStreamingStatus::started;
 	}
 
-	return false;
+	return eVideoStreamingStatus::stopped;
 }
 
-bool OpenCVVideoSource::getIsVideoStreaming() const
+eVideoStreamingStatus OpenCVVideoSource::getVideoStreamingStatus() const
 {
-	return getIsOpen() && m_videoDevice->getIsVideoStreaming();
+	return 
+		getIsOpen() && m_videoDevice->getIsVideoStreaming()
+		? eVideoStreamingStatus::started
+		: eVideoStreamingStatus::stopped;
 }
 
 void OpenCVVideoSource::stopVideoStream()

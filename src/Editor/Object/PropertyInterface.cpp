@@ -20,3 +20,6 @@ const std::string* k_PropertyAttributeFileBrowseTitle = &g_PropertyAttributeFile
 
 const std::string g_PropertyAttributeFileBrowseFilter= "filebrowse_filter";
 const std::string* k_PropertyAttributeFileBrowseFilter = &g_PropertyAttributeFileBrowseFilter;
+
+const std::string g_PropertyAttributeFileBrowseFilterDesc= "filebrowse_filter_desc";
+const std::string* k_PropertyAttributeFileBrowseFilterDesc = &g_PropertyAttributeFileBrowseFilterDesc;

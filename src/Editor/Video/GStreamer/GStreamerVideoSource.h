@@ -35,8 +35,8 @@ public:
 	eDeviceType getDeviceType() const override;
 
 	// -- IVideoSourceInterface
-	bool startVideoStream() override;
-	bool getIsVideoStreaming() const override;
+	eVideoStreamingStatus startVideoStream() override;
+	eVideoStreamingStatus getVideoStreamingStatus() const override;
 	void stopVideoStream() override;
 	bool wantsUpdate() const override;
 	void update(float deltaTime) override;
@@ -71,6 +71,10 @@ public:
 	{
 		return m_cfg;
 	}
+	inline bool hasValidVideoModeConfig() const
+	{
+		return m_videoModeConfig != nullptr;
+	}
 
 protected:
 	static void onVideoModeChanged(const MikanGStreamerVideoMode& newVideoMode, void* userdata);
@@ -85,5 +89,4 @@ private:
 	std::string m_deviceIdentifier;
 	std::shared_ptr<class IMikanGStreamerVideoDevice> m_videoDevice;
 	IVideoSourceInterface::eDriverType m_driverType;
-
 };
