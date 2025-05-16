@@ -2,7 +2,7 @@
 #include "App.h"
 #include "MathTypeConversion.h"
 #include "MathGLM.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "SteamVRDevice.h"
 #include "VRDeviceView.h"
 #include "VRDeviceEnumerator.h"

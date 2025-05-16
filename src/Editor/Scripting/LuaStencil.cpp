@@ -4,7 +4,7 @@
 #include "MathTypeConversion.h"
 #include "MikanStencilTypes.h"
 #include "ModelStencilComponent.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "QuadStencilComponent.h"
 #include "StencilObjectSystem.h"
 #include "StencilObjectSystemConfig.h"

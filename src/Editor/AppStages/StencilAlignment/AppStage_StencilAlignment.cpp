@@ -28,7 +28,7 @@
 #include "MathUtility.h"
 #include "MeshColliderComponent.h"
 #include "ModelStencilComponent.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StencilObjectSystem.h"
 #include "StencilComponent.h"
 #include "StringUtils.h"

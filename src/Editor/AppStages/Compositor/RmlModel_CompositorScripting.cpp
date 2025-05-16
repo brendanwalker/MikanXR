@@ -1,6 +1,6 @@
 #include "RmlModel_CompositorScripting.h"
 #include "CompositorScriptContext.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>

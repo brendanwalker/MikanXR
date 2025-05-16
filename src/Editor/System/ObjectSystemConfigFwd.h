@@ -2,10 +2,10 @@
 
 #include <memory>
 
-class ProfileConfig;
-using ProfileConfigPtr = std::shared_ptr<ProfileConfig>;
-using ProfileConfigConstPtr = std::shared_ptr<const ProfileConfig>;
-using ProfileConfigWeakPtr = std::weak_ptr<ProfileConfig>;
+class ProjectConfig;
+using ProfileConfigPtr = std::shared_ptr<ProjectConfig>;
+using ProfileConfigConstPtr = std::shared_ptr<const ProjectConfig>;
+using ProfileConfigWeakPtr = std::weak_ptr<ProjectConfig>;
 
 class AnchorObjectSystemConfig;
 using AnchorObjectSystemConfigPtr = std::shared_ptr<AnchorObjectSystemConfig>;

@@ -8,7 +8,7 @@
 #include "App.h"
 #include "MainWindow.h"
 #include "MikanServer.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "VRDeviceManager.h"
 
 #include <RmlUi/Core/Core.h>
@@ -72,7 +72,7 @@ void AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath(const std::string& de
 	profileConfig->cameraVRDevicePath= devicePath;
 	profileConfig->markDirty(
 		ConfigPropertyChangeSet()
-		.addPropertyName(ProfileConfig::k_cameraVRDevicePathPropertyId));
+		.addPropertyName(ProjectConfig::k_cameraVRDevicePathPropertyId));
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
@@ -84,7 +84,7 @@ void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devic
 	profileConfig->matVRDevicePath = devicePath;
 	profileConfig->markDirty(
 		ConfigPropertyChangeSet()
-		.addPropertyName(ProfileConfig::k_matVRDevicePathPropertyId));
+		.addPropertyName(ProjectConfig::k_matVRDevicePathPropertyId));
 
 	// Let any connected clients know that the video source attachment settings changed
 	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();

@@ -15,7 +15,7 @@
 #include "MathUtility.h"
 #include "MikanObject.h"
 #include "MikanScene.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
 #include "Transform.h"

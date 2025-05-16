@@ -4,7 +4,7 @@
 #include "VRDeviceEnumerator.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "SteamVRManager.h"
 #include "VRDeviceView.h"
 
@@ -66,9 +66,9 @@ void VRDeviceManager::onProfileConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(ProfileConfig::k_vrDevicePoseOffsetPropertyId))
+	if (changedPropertySet.hasPropertyName(ProjectConfig::k_vrDevicePoseOffsetPropertyId))
 	{
-		onVRTrackingOffsetChanged(std::static_pointer_cast<ProfileConfig>(configPtr));
+		onVRTrackingOffsetChanged(std::static_pointer_cast<ProjectConfig>(configPtr));
 	}
 }
 

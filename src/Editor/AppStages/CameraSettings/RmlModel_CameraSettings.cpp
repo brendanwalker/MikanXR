@@ -1,6 +1,6 @@
 #include "RmlModel_CameraSettings.h"
 #include "MathMikan.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "RmlDataBinding_CameraBrightness.h"
 #include "StringUtils.h"
 #include "VideoSourceManager.h"

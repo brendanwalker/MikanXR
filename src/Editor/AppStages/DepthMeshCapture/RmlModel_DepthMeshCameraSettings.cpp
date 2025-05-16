@@ -1,6 +1,6 @@
 #include "RmlModel_DepthMeshCameraSettings.h"
 #include "Constants_DepthMeshCapture.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceInterface.h"

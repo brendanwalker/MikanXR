@@ -251,7 +251,7 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 						profileConfig->vrDevicePoseOffset = glm_mat4_to_MikanMatrix4f(glmVRDevicePoseOffset);
 						profileConfig->markDirty(
 							ConfigPropertyChangeSet()
-							.addPropertyName(ProfileConfig::k_vrDevicePoseOffsetPropertyId));
+							.addPropertyName(ProjectConfig::k_vrDevicePoseOffsetPropertyId));
 
 						setMenuState(eVRTrackingRecenterMenuState::testCalibration);
 					}

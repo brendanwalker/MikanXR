@@ -17,7 +17,7 @@
 #include "ModelStencilComponent.h"
 #include "OpenCVManager.h"
 #include "PathUtils.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "MikanShaderCache.h"
 #include "IMkShaderCode.h"

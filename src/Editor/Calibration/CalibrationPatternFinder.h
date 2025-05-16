@@ -3,7 +3,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "OpenCVFwd.h"
 #include "CameraMath.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 
 #include <memory>
 #include "opencv2/core/types.hpp"

@@ -12,7 +12,7 @@
 #include "GlFrameCompositorConfig.h"
 #include "DeviceViewFwd.h"
 #include "FrameCompositorConstants.h"
-#include "ProfileConfigConstants.h"
+#include "ProjectConfigConstants.h"
 #include "VideoDisplayConstants.h"
 
 #include <filesystem>

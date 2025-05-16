@@ -7,7 +7,7 @@
 #include "App.h"
 #include "MikanTextRenderer.h"
 #include "MainWindow.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
@@ -160,7 +160,7 @@ void AppStage_CameraSettings::onVideoSourceChanged(const std::string& newVideoSo
 		profileConfig->videoSourcePath = newVideoSourcePath;
 		profileConfig->markDirty(
 			ConfigPropertyChangeSet()
-			.addPropertyName(ProfileConfig::k_cameraVRDevicePathPropertyId));
+			.addPropertyName(ProjectConfig::k_cameraVRDevicePathPropertyId));
 	}
 }
 

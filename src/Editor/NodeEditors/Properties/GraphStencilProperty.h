@@ -4,7 +4,7 @@
 #include "ComponentFwd.h"
 #include "MikanRendererFwd.h"
 #include "GraphProperty.h"
-#include "ProfileConfigConstants.h"
+#include "ProjectConfigConstants.h"
 
 class GraphStencilPropertyConfig : public GraphPropertyConfig
 {

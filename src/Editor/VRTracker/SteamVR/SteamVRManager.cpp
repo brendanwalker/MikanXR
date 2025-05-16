@@ -3,7 +3,7 @@
 #include "SteamVRResourceManager.h"
 #include "Logger.h"
 #include "PathUtils.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 
 #include "openvr.h"

@@ -25,7 +25,7 @@
 #include "MikanScene.h"
 #include "ModelStencilComponent.h"
 #include "ObjectSystemManager.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "SyntheticDepthEstimator.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"

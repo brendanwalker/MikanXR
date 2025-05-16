@@ -11,7 +11,7 @@
 #include "SceneComponent.h"
 #include "StencilObjectSystemConfig.h"
 #include "RmlModel_CompositorOutliner.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>

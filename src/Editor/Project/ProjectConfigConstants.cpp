@@ -1,4 +1,4 @@
-#include "ProfileConfigConstants.h"
+#include "ProjectConfigConstants.h"
 
 const std::string g_patternTypeStrings[(int)eCalibrationPatternType::COUNT] = {
 	"chessboard",

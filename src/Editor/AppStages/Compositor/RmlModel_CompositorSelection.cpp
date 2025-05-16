@@ -9,7 +9,7 @@
 #include "StencilComponent.h"
 #include "RmlModel_CompositorSelection.h"
 #include "PathUtils.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>

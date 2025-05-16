@@ -4,7 +4,7 @@
 #include "MikanStencilTypes.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
-#include "ProfileConfigConstants.h"
+#include "ProjectConfigConstants.h"
 
 #include <filesystem>
 

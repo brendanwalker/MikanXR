@@ -7,7 +7,7 @@
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 

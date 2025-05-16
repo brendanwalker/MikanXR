@@ -1,6 +1,6 @@
 #include "RmlModel_VRDeviceSettings.h"
 #include "MathMikan.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"

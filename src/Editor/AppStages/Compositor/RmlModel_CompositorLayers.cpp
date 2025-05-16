@@ -1,7 +1,7 @@
 #include "AssetReference.h"
 #include "RmlModel_CompositorLayers.h"
 #include "GlFrameCompositor.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>

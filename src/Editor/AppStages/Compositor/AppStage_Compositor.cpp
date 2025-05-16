@@ -39,7 +39,7 @@
 #include "MikanServer.h"
 #include "MikanScene.h"
 #include "ObjectSystemManager.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "PathUtils.h"
 #include "RmlUtility.h"
 #include "SdlUtility.h"

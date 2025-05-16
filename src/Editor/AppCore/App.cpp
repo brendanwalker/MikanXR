@@ -13,7 +13,7 @@
 #include "MainWindow.h"
 #include "MikanModuleManager.h"
 #include "PathUtils.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
 #include "VideoSourceManager.h"
@@ -37,7 +37,7 @@ App* App::m_instance= nullptr;
 
 //-- App -----
 App::App()
-	: m_profileConfig(std::make_shared<ProfileConfig>())
+	: m_profileConfig(std::make_shared<ProjectConfig>())
 	, m_localizationManager(new LocalizationManager())	
 	, m_sdlManager(new SdlManager)
 	, m_bShutdownRequested(false)

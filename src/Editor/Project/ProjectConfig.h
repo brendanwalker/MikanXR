@@ -4,15 +4,15 @@
 #include "CommonConfig.h"
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "ProfileConfigConstants.h"
+#include "ProjectConfigConstants.h"
 
 #include <filesystem>
 
 // -- definitions -----
-class ProfileConfig : public CommonConfig
+class ProjectConfig : public CommonConfig
 {
 public:
-	ProfileConfig(const std::string& fnamebase = "ProfileConfig");
+	ProjectConfig(const std::string& fnamebase = "ProfileConfig");
 
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;

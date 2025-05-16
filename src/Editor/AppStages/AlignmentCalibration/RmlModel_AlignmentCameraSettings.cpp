@@ -1,6 +1,6 @@
 #include "RmlModel_AlignmentCameraSettings.h"
 #include "Constants_AlignmentCalibration.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceInterface.h"

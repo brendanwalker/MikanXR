@@ -7,7 +7,7 @@
 #include "MikanTextRenderer.h"
 #include "MainWindow.h"
 #include "MathGLM.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "SceneComponent.h"
 #include "SelectionComponent.h"
 #include "MikanObject.h"

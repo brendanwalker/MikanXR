@@ -2,7 +2,7 @@
 #include "AnchorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "PathUtils.h"
 #include "StencilObjectSystem.h"
 #include "StringUtils.h"
@@ -26,15 +26,15 @@
 #define DEFAULT_VR_CENTER_MARKER_LEN_MM  100
 
 // -- Profile Config
-const std::string ProfileConfig::k_videoSourcePathPropertyId= "videoSourcePath";
-const std::string ProfileConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
-const std::string ProfileConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
-const std::string ProfileConfig::k_vrDevicePoseOffsetPropertyId= "vrDevicePoseOffset";
-const std::string ProfileConfig::k_renderOriginFlagPropertyId= "renderOrigin";
-const std::string ProfileConfig::k_vrFrameDelayPropertyId= "vrFrameDelay";
+const std::string ProjectConfig::k_videoSourcePathPropertyId= "videoSourcePath";
+const std::string ProjectConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
+const std::string ProjectConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
+const std::string ProjectConfig::k_vrDevicePoseOffsetPropertyId= "vrDevicePoseOffset";
+const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
+const std::string ProjectConfig::k_vrFrameDelayPropertyId= "vrFrameDelay";
 
 
-ProfileConfig::ProfileConfig(const std::string& fnamebase)
+ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
 	// Pattern Defaults
 	, calibrationPatternType(eCalibrationPatternType::mode_chessboard)
@@ -80,7 +80,7 @@ ProfileConfig::ProfileConfig(const std::string& fnamebase)
 	addChildConfig(stencilConfig);
 };
 
-configuru::Config ProfileConfig::writeToJSON()
+configuru::Config ProjectConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
@@ -128,7 +128,7 @@ configuru::Config ProfileConfig::writeToJSON()
 	return pt;
 }
 
-void ProfileConfig::readFromJSON(const configuru::Config& pt)
+void ProjectConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
@@ -204,7 +204,7 @@ void ProfileConfig::readFromJSON(const configuru::Config& pt)
 	outputFilePath = pt.get_or<std::string>("outputPath", outputFilePath.string());
 }
 
-std::filesystem::path ProfileConfig::generateTimestampedFilePath(
+std::filesystem::path ProjectConfig::generateTimestampedFilePath(
 	const std::string& prefix, 
 	const std::string& suffix) const
 {
@@ -213,7 +213,7 @@ std::filesystem::path ProfileConfig::generateTimestampedFilePath(
 	return PathUtils::makeTimestampedFilePath(parentDir, prefix, suffix);
 }
 
-void ProfileConfig::setRenderOriginFlag(bool flag)
+void ProjectConfig::setRenderOriginFlag(bool flag)
 {
 	if (m_bRenderOrigin != flag)
 	{
@@ -222,7 +222,7 @@ void ProfileConfig::setRenderOriginFlag(bool flag)
 	}
 }
 
-void ProfileConfig::setVRFrameDelay(int frameDelay)
+void ProjectConfig::setVRFrameDelay(int frameDelay)
 {
 	if (m_vrFrameDelay != frameDelay)
 	{

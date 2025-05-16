@@ -22,7 +22,7 @@
 #include "MikanScriptTypes.h"
 #include "MikanServer.h"
 #include "ModelStencilComponent.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "QuadStencilComponent.h"
 #include "RemoteControlManager.h"
 #include "ServerResponseHelpers.h"

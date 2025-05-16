@@ -1,6 +1,6 @@
 #include "RmlModel_CTOffsetCameraSettings.h"
 #include "Constants_CTOffsetCalibration.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceInterface.h"

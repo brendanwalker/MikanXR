@@ -6,7 +6,7 @@
 #include "VideoDisplayConstants.h"
 #include "Constants_DepthMeshCapture.h"
 
-class ProfileConfig;
+class ProjectConfig;
 
 class VideoSourceView;
 typedef std::shared_ptr<const VideoSourceView> VideoSourceViewConstPtr;

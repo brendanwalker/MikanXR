@@ -10,7 +10,7 @@
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
 #include "ModelStencilComponent.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "QuadStencilComponent.h"
 #include "StencilObjectSystem.h"
 

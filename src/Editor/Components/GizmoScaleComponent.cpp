@@ -8,7 +8,7 @@
 #include "SelectionComponent.h"
 #include "MathGLM.h"
 #include "MikanObject.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 
 #include "SDL_mouse.h"
 

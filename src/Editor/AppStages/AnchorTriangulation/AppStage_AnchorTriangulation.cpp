@@ -18,7 +18,7 @@
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 #include "VideoSourceView.h"

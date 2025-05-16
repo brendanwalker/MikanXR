@@ -3,7 +3,7 @@
 #include "IMkVertexDefinition.h"
 #include "Logger.h"
 #include "NodeEditorUI.h"
-#include "ProfileConfigConstants.h"
+#include "ProjectConfigConstants.h"
 #include "StringUtils.h"
 
 #include "Graphs/NodeGraph.h"

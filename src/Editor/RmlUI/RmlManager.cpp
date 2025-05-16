@@ -9,7 +9,7 @@
 #include "MainWindow.h"
 #include "MikanSpatialAnchorTypes.h"
 #include "MikanStencilTypes.h"
-#include "ProfileConfig.h"
+#include "ProjectConfig.h"
 #include "PropertyInterface.h"
 #include "PathUtils.h"
 #include "SdlManager.h"
