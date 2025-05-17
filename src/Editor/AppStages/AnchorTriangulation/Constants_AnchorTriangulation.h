@@ -18,6 +18,7 @@ enum class eAnchorTriangulationMenuState : int
 	captureYAxis2,
 	verifyTriangulatedPoints,
 	testCalibration,
+	pendingVideoStartStreamRequest,
 	failedVideoStartStreamRequest,
 
 	COUNT

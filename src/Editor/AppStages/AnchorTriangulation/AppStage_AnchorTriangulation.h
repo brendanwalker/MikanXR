@@ -27,6 +27,8 @@ public:
 	virtual void render() override;
 
 protected:
+	void onVideoSourceReady(const class VideoSourceView* videoSourceView);
+	void setupDistortionView();
 	void updateCamera();
 	void setMenuState(eAnchorTriangulationMenuState newState);
 

@@ -15,6 +15,7 @@ const std::string g_AnchorTriangulationMenuStateStrings[(int)eAnchorTriangulatio
 	"captureYAxis2",
 	"verifyTriangulatedPoints",
 	"testCalibration",
+	"pendingVideoStartStreamRequest",
 	"failedVideoStartStreamRequest",
 };
 const std::string* k_AnchorTriangulationMenuStateStrings = g_AnchorTriangulationMenuStateStrings;

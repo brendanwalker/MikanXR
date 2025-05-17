@@ -95,32 +95,25 @@ void AppStage_AnchorTriangulation::enter()
 
 	// Fire up the video scene in the background + pose calibrator
 	eAnchorTriangulationMenuState newState;
-	//TODO: Handle pendingStart
-	if ((int)m_videoSourceView->startVideoStream() > 0)
+	eVideoStreamingStatus streamingStatus= m_videoSourceView->startVideoStream();
+	if (streamingStatus == eVideoStreamingStatus::started)
 	{
-		// Allocate all distortion and video buffers
-		m_monoDistortionView = 
-			new VideoFrameDistortionView(
-				m_ownerWindow,
-				m_videoSourceView, 
-				VIDEO_FRAME_HAS_ALL);
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+		setupDistortionView();
 
-		// Create a calibrator to do the actual triangulation
-		m_anchorTriangulator =
-			new AnchorTriangulator(
-				m_cameraTrackingPuckPoseView,
-				m_monoDistortionView);
-
-		// If bypassing the calibration, then jump straight to the test calibration state
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
-			newState = eAnchorTriangulationMenuState::testCalibration;
+			newState= eAnchorTriangulationMenuState::testCalibration;
 		}
 		else
 		{
-			newState = eAnchorTriangulationMenuState::verifyInitialCameraSetup;
+			newState= eAnchorTriangulationMenuState::verifyInitialCameraSetup;
 		}
+	}
+	else if (streamingStatus == eVideoStreamingStatus::pendingStart)
+	{
+		m_videoSourceView->OnFrameSizeChanged += 
+			MakeDelegate(this, &AppStage_AnchorTriangulation::onVideoSourceReady);
+		newState= eAnchorTriangulationMenuState::pendingVideoStartStreamRequest;
 	}
 	else
 	{
@@ -151,6 +144,41 @@ void AppStage_AnchorTriangulation::enter()
 	}
 
 	setMenuState(newState);
+}
+
+void AppStage_AnchorTriangulation::onVideoSourceReady(const VideoSourceView* videoSourceView)
+{
+	m_videoSourceView->OnFrameSizeChanged -=
+		MakeDelegate(this, &AppStage_AnchorTriangulation::onVideoSourceReady);
+
+	setupDistortionView();
+
+	// If bypassing the calibration, then jump straight to the test calibration state
+	if (m_calibrationModel->getBypassCalibrationFlag())
+	{
+		setMenuState(eAnchorTriangulationMenuState::testCalibration);
+	}
+	else
+	{
+		setMenuState(eAnchorTriangulationMenuState::verifyInitialCameraSetup);
+	}
+}
+
+void AppStage_AnchorTriangulation::setupDistortionView()
+{
+	// Allocate all distortion and video buffers
+	m_monoDistortionView =
+		new VideoFrameDistortionView(
+			m_ownerWindow,
+			m_videoSourceView,
+			VIDEO_FRAME_HAS_ALL);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+
+	// Create a calibrator to do the actual triangulation
+	m_anchorTriangulator =
+		new AnchorTriangulator(
+			m_cameraTrackingPuckPoseView,
+			m_monoDistortionView);
 }
 
 void AppStage_AnchorTriangulation::exit()
@@ -203,15 +231,18 @@ void AppStage_AnchorTriangulation::update(float deltaSeconds)
 	updateCamera();
 
 	// Update the video frame buffers to preview the calibration mat
-	m_monoDistortionView->readAndProcessVideoFrame();
-
-	// Update triangulation during triangulation states
-	eAnchorTriangulationMenuState calibrationState= m_calibrationModel->getMenuState();
-	if (calibrationState == eAnchorTriangulationMenuState::captureOrigin2 || 
-		calibrationState == eAnchorTriangulationMenuState::captureXAxis2 ||
-		calibrationState == eAnchorTriangulationMenuState::captureYAxis2)
+	if (m_monoDistortionView != nullptr)
 	{
-		m_anchorTriangulator->computeCurrentTriangulation();
+		m_monoDistortionView->readAndProcessVideoFrame();
+
+		// Update triangulation during triangulation states
+		eAnchorTriangulationMenuState calibrationState = m_calibrationModel->getMenuState();
+		if (calibrationState == eAnchorTriangulationMenuState::captureOrigin2 ||
+			calibrationState == eAnchorTriangulationMenuState::captureXAxis2 ||
+			calibrationState == eAnchorTriangulationMenuState::captureYAxis2)
+		{
+			m_anchorTriangulator->computeCurrentTriangulation();
+		}
 	}
 }
 
