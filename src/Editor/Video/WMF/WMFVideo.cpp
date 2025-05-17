@@ -229,8 +229,11 @@ void WMFVideoDevice::close()
 
 bool WMFVideoDevice::startVideoStream()
 {
-	if (getIsOpen() && !getIsVideoStreaming())
+	if (getIsOpen())
 	{
+		if (getIsVideoStreaming())
+			return true;
+
 		return m_videoFrameProcessor->startVideoFrameThread();
 	}
 
