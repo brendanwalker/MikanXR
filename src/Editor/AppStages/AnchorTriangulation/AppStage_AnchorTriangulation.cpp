@@ -79,7 +79,9 @@ void AppStage_AnchorTriangulation::enter()
 	auto cameraTrackingPuckView = 
 		vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 	m_cameraTrackingPuckPoseView = 
-		cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+		cameraTrackingPuckView
+		? cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene)
+		: VRDevicePoseView::makeInvalidPoseView();
 
 	// Create a new camera to view the scene
 	m_camera = getFirstViewport()->getCurrentMikanCamera();

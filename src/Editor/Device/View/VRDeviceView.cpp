@@ -168,6 +168,13 @@ VRDevicePoseViewPtr VRDeviceView::makePoseView(
 }
 
 // -- VRDevicePoseView -----
+VRDevicePoseView::VRDevicePoseView()
+	: m_deviceView()
+	, m_poseSpace(eVRDevicePoseSpace::INVALID)
+	, m_subComponentName("")
+{
+}
+
 VRDevicePoseView::VRDevicePoseView(
 	const VRDeviceView* deviceView,
 	eVRDevicePoseSpace space,
@@ -176,6 +183,19 @@ VRDevicePoseView::VRDevicePoseView(
 	, m_poseSpace(space)
 	, m_subComponentName(subComponentName)
 {
+}
+
+VRDevicePoseViewPtr VRDevicePoseView::makePoseView(
+	const VRDeviceView* deviceView,
+	eVRDevicePoseSpace space,
+	const std::string& subComponentName)
+{
+	return std::make_shared<VRDevicePoseView>(deviceView, space, subComponentName);
+}
+
+VRDevicePoseViewPtr VRDevicePoseView::makeInvalidPoseView() 
+{
+	return std::make_shared<VRDevicePoseView>(); 
 }
 
 const VRDeviceView* VRDevicePoseView::getDeviceView() const

@@ -63,10 +63,17 @@ private:
 class VRDevicePoseView
 {
 public:
+	VRDevicePoseView();
 	VRDevicePoseView(
 		const VRDeviceView* deviceView, 
 		eVRDevicePoseSpace space, 
 		const std::string& subComponentName= "");
+
+	static VRDevicePoseViewPtr makePoseView(
+		const VRDeviceView* deviceView,
+		eVRDevicePoseSpace space,
+		const std::string& subComponentName = "");
+	static VRDevicePoseViewPtr makeInvalidPoseView();
 
 	inline eVRDevicePoseSpace getPoseSpace() const { return m_poseSpace; }
 
