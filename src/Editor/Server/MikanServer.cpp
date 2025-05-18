@@ -810,14 +810,14 @@ void MikanServer::getConnectedClientInfoList(std::vector<const MikanClientConnec
 
 static VideoSourceViewPtr getCurrentVideoSource()
 {
-	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	return VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 }
 
 static VRDeviceViewPtr getCurrentCameraVRDevice()
 {
-	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	return VRDeviceManager::getInstance()->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 }

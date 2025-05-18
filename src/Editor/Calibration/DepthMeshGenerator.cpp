@@ -41,7 +41,7 @@ struct DepthMeshCaptureState
 	MikanMonoIntrinsics inputCameraIntrinsics;
 	OpenCVCalibrationGeometry inputCVObjectGeometry;
 	OpenGLCalibrationGeometry inputGLObjectGeometry;
-	ProfileConfigConstPtr profileConfig;
+	ProjectConfigConstPtr profileConfig;
 
 	// Rendering state
 	glm::dmat4 cameraToPatternXform;
@@ -54,7 +54,7 @@ struct DepthMeshCaptureState
 
 	void init(
 		ISdlMkWindow* owner,
-		ProfileConfigConstPtr config, 
+		ProjectConfigConstPtr config, 
 		VideoSourceViewPtr videoSourceView)
 	{
 		ownerWindow= owner;
@@ -438,7 +438,7 @@ private:
 //-- MonoDistortionCalibrator ----
 DepthMeshGenerator::DepthMeshGenerator(
 	ISdlMkWindow* ownerWindow,
-	ProfileConfigConstPtr profileConfig,
+	ProjectConfigConstPtr profileConfig,
 	VideoFrameDistortionViewPtr distortionView,
 	SyntheticDepthEstimatorPtr depthEstimator)
 	: m_calibrationState(new DepthMeshCaptureState)
@@ -556,7 +556,7 @@ void DepthMeshGenerator::renderCameraSpaceCalibrationState()
 		const glm::mat4 patternXform = glm::mat4(m_calibrationState->cameraToPatternXform);
 
 		// Compute the mat puck location relative to the mat transform we computed
-		ProfileConfigConstPtr config = m_calibrationState->profileConfig;
+		ProjectConfigConstPtr config = m_calibrationState->profileConfig;
 		const float xOffset = -config->puckHorizontalOffsetMM * k_millimeters_to_meters;
 		const float yOffset = config->puckDepthOffsetMM * k_millimeters_to_meters;
 		const float zOffset = config->puckVerticalOffsetMM * k_millimeters_to_meters;

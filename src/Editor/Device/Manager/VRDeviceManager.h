@@ -73,7 +73,7 @@ protected:
 	void onProfileConfigMarkedDirty(
 		CommonConfigPtr configPtr,
 		const ConfigPropertyChangeSet& changedPropertySet);
-	void onVRTrackingOffsetChanged(ProfileConfigPtr config);
+	void onVRTrackingOffsetChanged(ProjectConfigPtr config);
 };
 
 class VRDeviceListIterator

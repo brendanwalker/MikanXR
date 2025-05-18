@@ -40,7 +40,7 @@ void AppStage_VRDeviceSettings::enter()
 
 	// Init the UI
 	{
-		ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+		ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 		Rml::Context* context = getRmlContext();
 
 		// Init the vr device settings model
@@ -68,7 +68,7 @@ void AppStage_VRDeviceSettings::exit()
 // VR Device Setting Model UI Events
 void AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath(const std::string& devicePath)
 {
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->cameraVRDevicePath= devicePath;
 	profileConfig->markDirty(
 		ConfigPropertyChangeSet()
@@ -80,7 +80,7 @@ void AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath(const std::string& de
 
 void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devicePath)
 {
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->matVRDevicePath = devicePath;
 	profileConfig->markDirty(
 		ConfigPropertyChangeSet()

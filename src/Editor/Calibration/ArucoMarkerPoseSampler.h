@@ -13,7 +13,7 @@ class ArucoMarkerPoseSampler
 {
 public:
 	ArucoMarkerPoseSampler(
-		ProfileConfigConstPtr profileConfig,
+		ProjectConfigConstPtr profileConfig,
 		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 		class VideoFrameDistortionView* distortionView,
 		int desiredSampleCount);

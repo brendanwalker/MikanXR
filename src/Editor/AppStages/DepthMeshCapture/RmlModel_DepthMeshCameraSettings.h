@@ -17,7 +17,7 @@ public:
 	bool init(
 		Rml::Context* rmlContext,
 		VideoSourceViewConstPtr videoSourceView,
-		ProfileConfigConstPtr profileConfig);
+		ProjectConfigConstPtr profileConfig);
 	virtual void dispose() override;
 
 	eDepthMeshCaptureMenuState getMenuState() const;

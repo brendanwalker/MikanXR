@@ -3,6 +3,7 @@
 #include "StencilObjectSystem.h"
 #include "CompositorScriptContext.h"
 #include "ProjectConfig.h"
+#include "RmlUtility.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -10,9 +11,9 @@
 
 bool RmlModel_CompositorSettings::init(
 	Rml::Context* rmlContext,
-	ProfileConfigPtr profile)
+	ProjectConfigPtr project)
 {
-	m_profile = profile;
+	m_project = project;
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_settings");
@@ -20,6 +21,8 @@ bool RmlModel_CompositorSettings::init(
 		return false;
 
 	// Register Data Model Fields
+	constructor.Bind("is_streaming", &m_bIsStreaming);
+	constructor.Bind("spout_output_name", &m_spoutOutputName);
 	constructor.Bind("render_origin", &m_bRenderOrigin);
 	constructor.Bind("render_anchors", &m_bRenderAnchors);
 	constructor.Bind("render_stencils", &m_bRenderStencils);
@@ -27,40 +30,51 @@ bool RmlModel_CompositorSettings::init(
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
+		"update_streaming_flag",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			m_bIsStreaming= Rml::Utilities::GetBoolValueFromEvent(ev);
+			m_project->setIsSpoutOutputStreaming(m_bIsStreaming);
+		});
+	constructor.BindEventCallback(
+		"update_spout_output_name",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			if (Rml::String spoutOutputName;
+				Rml::Utilities::TryGetStringValueFromEvent(ev, spoutOutputName))
+			{
+				m_project->setIsSpoutOutputStreaming(m_bIsStreaming);
+			}
+		});
+	constructor.BindEventCallback(
 		"update_render_origin_flag",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const std::string stringValue = ev.GetParameter<Rml::String>("value", "");
-
-			m_bRenderOrigin= !stringValue.empty();
-			m_profile->setRenderOriginFlag(m_bRenderOrigin);
+			m_bRenderOrigin= Rml::Utilities::GetBoolValueFromEvent(ev);
+			m_project->setRenderOriginFlag(m_bRenderOrigin);
 		});
 	constructor.BindEventCallback(
 		"update_render_anchors_flag",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const std::string stringValue = ev.GetParameter<Rml::String>("value", "");
-
-			m_bRenderAnchors = !stringValue.empty();
-			m_profile->anchorConfig->setRenderAnchorsFlag(m_bRenderAnchors);
+			m_bRenderAnchors = Rml::Utilities::GetBoolValueFromEvent(ev);
+			m_project->anchorConfig->setRenderAnchorsFlag(m_bRenderAnchors);
 		});
 	constructor.BindEventCallback(
 		"update_render_stencils_flag",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const std::string stringValue = ev.GetParameter<Rml::String>("value", "");
-
-			m_bRenderStencils = !stringValue.empty();
+			m_bRenderStencils = Rml::Utilities::GetBoolValueFromEvent(ev);
 			StencilObjectSystem::getSystem()->setRenderStencilsFlag(m_bRenderStencils);
 		});
 	constructor.BindEventCallback(
 		"update_vr_frame_delay",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			m_vrFrameDelay = ev.GetParameter<int>("value", 0);
-			m_profile->setVRFrameDelay(m_vrFrameDelay);
+			m_vrFrameDelay = Rml::Utilities::GetIntValueFromEvent(ev);
+			m_project->setVRFrameDelay(m_vrFrameDelay);
 		});
 
-	m_bRenderOrigin= m_profile->getRenderOriginFlag();
-	m_bRenderAnchors= m_profile->anchorConfig->getRenderAnchorsFlag();
-	m_bRenderStencils= m_profile->stencilConfig->getRenderStencilsFlag();
-	m_vrFrameDelay= m_profile->getVRFrameDelay();
+	m_bIsStreaming = m_project->getIsSpoutOutputStreaming();
+	m_spoutOutputName= m_project->getSpoutOutputName();
+	m_bRenderOrigin= m_project->getRenderOriginFlag();
+	m_bRenderAnchors= m_project->anchorConfig->getRenderAnchorsFlag();
+	m_bRenderStencils= m_project->stencilConfig->getRenderStencilsFlag();
+	m_vrFrameDelay= m_project->getVRFrameDelay();
 	m_modelHandle.DirtyAllVariables();
 
 	return true;
@@ -68,7 +82,7 @@ bool RmlModel_CompositorSettings::init(
 
 void RmlModel_CompositorSettings::dispose()
 {
-	m_profile.reset();
+	m_project.reset();
 
 	RmlModel::dispose();
 }

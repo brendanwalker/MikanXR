@@ -71,7 +71,7 @@ void AppStage_CTOffsetCalibration::enter()
 	AppStage::enter();
 
 	// Get the current video source based on the config
-	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
@@ -490,7 +490,7 @@ void AppStage_CTOffsetCalibration::onBrightnessChanged(int newBrightness)
 
 void AppStage_CTOffsetCalibration::onVRFrameDelayChanged(int newVRFrameDelay)
 {
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	profileConfig->setVRFrameDelay(newVRFrameDelay);
 	m_bHasModifiedCameraSettings = true;

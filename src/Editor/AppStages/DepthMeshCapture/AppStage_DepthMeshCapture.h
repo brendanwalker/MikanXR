@@ -59,7 +59,7 @@ protected:
 	void removeDepthMeshResourceFromScene();
 
 private:
-	ProfileConfigPtr m_profile;
+	ProjectConfigPtr m_profile;
 
 	EditorObjectSystemPtr m_editorSystem;
 

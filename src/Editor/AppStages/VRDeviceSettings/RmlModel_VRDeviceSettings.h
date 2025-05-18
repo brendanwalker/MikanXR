@@ -10,7 +10,7 @@ class RmlModel_VRDeviceSettings : public RmlModel
 {
 public:
 	bool init(Rml::Context* rmlContext, 
-			  ProfileConfigConstPtr profile,
+			  ProjectConfigConstPtr profile,
 			  const class VRDeviceManager* vrDeviceManager);
 	virtual void dispose() override;
 

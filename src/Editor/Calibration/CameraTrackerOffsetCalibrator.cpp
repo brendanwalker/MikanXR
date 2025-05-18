@@ -21,7 +21,7 @@ struct CameraTrackerOffsetCalibrationState
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
 	OpenCVCalibrationGeometry inputObjectGeometry;
-	ProfileConfigConstPtr profileConfig;
+	ProjectConfigConstPtr profileConfig;
 	int desiredSampleCount;
 
 	// Computed every frame
@@ -40,7 +40,7 @@ struct CameraTrackerOffsetCalibrationState
 	glm::dquat rotationOffset;
 	glm::dvec3 translationOffset;
 
-	void init(ProfileConfigConstPtr config, VideoSourceViewPtr videoSourceView, int patternCount)
+	void init(ProjectConfigConstPtr config, VideoSourceViewPtr videoSourceView, int patternCount)
 	{
 		profileConfig= config;
 
@@ -76,7 +76,7 @@ struct CameraTrackerOffsetCalibrationState
 
 //-- MonoDistortionCalibrator ----
 CameraTrackerOffsetCalibrator::CameraTrackerOffsetCalibrator(
-	ProfileConfigConstPtr profileConfig,
+	ProjectConfigConstPtr profileConfig,
 	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 	VideoFrameDistortionView* distortionView,
 	int desiredSampleCount)
@@ -274,7 +274,7 @@ void CameraTrackerOffsetCalibrator::renderCameraSpaceCalibrationState()
 		const glm::mat4 patternXform = glm::mat4(m_calibrationState->cameraToPatternXform);
 
 		// Compute the mat puck location relative to the mat transform we computed
-		ProfileConfigConstPtr config = m_calibrationState->profileConfig;
+		ProjectConfigConstPtr config = m_calibrationState->profileConfig;
 		const float xOffset = -config->puckHorizontalOffsetMM * k_millimeters_to_meters;
 		const float yOffset = config->puckDepthOffsetMM * k_millimeters_to_meters;
 		const float zOffset = config->puckVerticalOffsetMM * k_millimeters_to_meters;

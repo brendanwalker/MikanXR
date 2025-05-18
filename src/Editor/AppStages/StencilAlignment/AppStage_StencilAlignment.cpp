@@ -74,7 +74,7 @@ void AppStage_StencilAlignment::enter()
 	AppStage::enter();
 
 	// Get the current video source based on the config
-	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 

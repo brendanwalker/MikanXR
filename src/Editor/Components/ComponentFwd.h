@@ -22,6 +22,15 @@ class AnchorComponent;
 using AnchorComponentPtr = std::shared_ptr<AnchorComponent>;
 using AnchorComponentWeakPtr = std::weak_ptr<AnchorComponent>;
 
+class CameraDefinition;
+using CameraDefinitionPtr = std::shared_ptr<CameraDefinition>;
+using CameraDefinitionConstPtr = std::shared_ptr<const CameraDefinition>;
+using CameraDefinitionWeakPtr = std::weak_ptr<CameraDefinition>;
+
+class CameraComponent;
+using CameraComponentPtr = std::shared_ptr<CameraComponent>;
+using CameraComponentWeakPtr = std::weak_ptr<CameraComponent>;
+
 class SelectionComponent;
 using SelectionComponentPtr = std::shared_ptr<SelectionComponent>;
 using SelectionComponentConstPtr = std::shared_ptr<const SelectionComponent>;

@@ -9,7 +9,7 @@
 
 bool RmlModel_CompositorScripting::init(
 	Rml::Context* rmlContext,
-	ProfileConfigPtr profile,
+	ProjectConfigPtr profile,
 	CompositorScriptContextPtr scriptContext)
 {
 	m_profile= profile;

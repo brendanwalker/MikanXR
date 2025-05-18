@@ -17,7 +17,7 @@
 // -- LuaQuadStencilList -----
 LuaQuadStencilList::LuaQuadStencilList()
 {
-	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profile = App::getInstance()->getProfileConfig();
 
 	for (QuadStencilDefinitionPtr quadConfig : profile->stencilConfig->quadStencilList)
 	{
@@ -38,7 +38,7 @@ void LuaQuadStencilList::bindFunctions(lua_State* L)
 // -- LuaBoxStencilList -----
 LuaBoxStencilList::LuaBoxStencilList()
 {
-	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profile = App::getInstance()->getProfileConfig();
 
 	for (BoxStencilDefinitionPtr boxStencil : profile->stencilConfig->boxStencilList)
 	{
@@ -59,7 +59,7 @@ void LuaBoxStencilList::bindFunctions(lua_State* L)
 // -- LuaModelStencilList -----
 LuaModelStencilList::LuaModelStencilList()
 {
-	ProfileConfigPtr profile = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profile = App::getInstance()->getProfileConfig();
 
 	for (ModelStencilDefinitionPtr modelStencil : profile->stencilConfig->modelStencilList)
 	{

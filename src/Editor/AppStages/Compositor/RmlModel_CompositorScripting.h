@@ -13,7 +13,7 @@ class RmlModel_CompositorScripting : public RmlModel
 public:
 	bool init(
 		Rml::Context* rmlContext,
-		ProfileConfigPtr profile,
+		ProjectConfigPtr profile,
 		CompositorScriptContextPtr scriptContext);
 	virtual void dispose() override;
 
@@ -27,7 +27,7 @@ public:
 	SinglecastDelegate<void(const std::string&)> OnInvokeScriptTriggerEvent;
 
 private:
-	ProfileConfigPtr m_profile;
+	ProjectConfigPtr m_profile;
 	CompositorScriptContextPtr m_scriptContext;
 	Rml::String m_compositorScriptPath;
 	bool m_bHasValidCompositorScriptPath;

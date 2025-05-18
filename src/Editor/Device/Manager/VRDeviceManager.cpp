@@ -38,7 +38,7 @@ bool VRDeviceManager::startup(class IMkWindow *ownerWindow)
 		bSuccess = false;
 	}
 
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->OnMarkedDirty += MakeDelegate(this, &VRDeviceManager::onProfileConfigMarkedDirty);
 	onVRTrackingOffsetChanged(profileConfig);
 
@@ -54,7 +54,7 @@ void VRDeviceManager::update(float deltaTime)
 
 void VRDeviceManager::shutdown()
 {
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	profileConfig->OnMarkedDirty -= MakeDelegate(this, &VRDeviceManager::onProfileConfigMarkedDirty);
 
 	m_steamVRManager->shutdown();
@@ -72,7 +72,7 @@ void VRDeviceManager::onProfileConfigMarkedDirty(
 	}
 }
 
-void VRDeviceManager::onVRTrackingOffsetChanged(ProfileConfigPtr config)
+void VRDeviceManager::onVRTrackingOffsetChanged(ProjectConfigPtr config)
 {
 	m_vrDevicePoseOffset= MikanMatrix4f_to_glm_mat4(config->vrDevicePoseOffset);
 }

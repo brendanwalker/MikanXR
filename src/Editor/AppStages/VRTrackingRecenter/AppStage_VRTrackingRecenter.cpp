@@ -62,7 +62,7 @@ void AppStage_VRTrackingRecenter::enter()
 	AppStage::enter();
 
 	// Get the current video source based on the config
-	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
@@ -247,7 +247,7 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 						glm::mat4 glmVRDevicePoseOffset= glm::inverse(glmXform);
 
 						// Publish the new VR device pose offset to the profile config
-						const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+						const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 						profileConfig->vrDevicePoseOffset = glm_mat4_to_MikanMatrix4f(glmVRDevicePoseOffset);
 						profileConfig->markDirty(
 							ConfigPropertyChangeSet()

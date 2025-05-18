@@ -40,7 +40,7 @@ void AppStage_CameraSettings::enter()
 {
 	AppStage::enter();
 
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	VideoSourceManager* videoSourceManager= m_ownerWindow->getVideoSourceManager();
 
 	// Create app stage UI models and views
@@ -150,7 +150,7 @@ void AppStage_CameraSettings::onVideoSourceChanged(const std::string& newVideoSo
 	
 	if (newVideoSourceView != m_videoSourceView)
 	{
-		ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+		ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
 		stopVideoSource();
 		m_videoSourceView= newVideoSourceView;

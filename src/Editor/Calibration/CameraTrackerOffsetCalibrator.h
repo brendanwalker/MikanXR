@@ -14,7 +14,7 @@ class CameraTrackerOffsetCalibrator
 {
 public:
 	CameraTrackerOffsetCalibrator(
-		ProfileConfigConstPtr profileConfig,
+		ProjectConfigConstPtr profileConfig,
 		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 		class VideoFrameDistortionView* distortionView,
 		int desiredSampleCount);

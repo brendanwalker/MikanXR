@@ -1,64 +1,75 @@
 <rml>
-    <head>
-        <link type="text/rcss" href="rml.rcss"/>
-        <link type="text/rcss" href="mikan.rcss"/>
-        <link type="text/template" href="window.rml" />
-        <title>Settings</title>
-        <style>
-            body
-            {
-                position:absolute; 
-                right:0px;
-                top: -45dp;
-                width: 350dp;
-                height: 100%;
-            }
-            tbody tr {
-                height: 1.5em;
-            }
-            .property_tr {
-                height: 2.5em;
-            }            
-            tbody td
-            {
-                padding-top: 0.0em;
-                height: 1.5em;
-                text-align: left;
-                white-space: nowrap;
-                overflow: hidden;
-            }
-        </style>
+	<head>
+		<link type="text/rcss" href="rml.rcss"/>
+		<link type="text/rcss" href="mikan.rcss"/>
+		<link type="text/template" href="window.rml" />
+		<title>Settings</title>
+		<style>
+			body
+			{
+				position:absolute;
+				right:0px;
+				top: -45dp;
+				width: 350dp;
+				height: 100%;
+			}
+			tbody tr {
+				height: 1.5em;
+			}
+			.property_tr {
+				height: 2.5em;
+			}
+			tbody td
+			{
+				padding-top: 0.0em;
+				height: 1.5em;
+				text-align: left;
+				white-space: nowrap;
+				overflow: hidden;
+			}
+		</style>
 	</head>
 	<body template="window">
-        <panel id="controls" data-model="compositor_settings">
-            <table>
-                <thead>
-                    <tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
-                </thead>
-                <tbody>
-                    <tr class="property_tr">
-                        <td>                                
-                            <label><input type="checkbox" name="render_origin_flag" data-event-change="update_render_origin_flag()" data-checked="render_origin" />Draw Origin</label>
-                        </td>
-                    </tr>                        
-                    <tr class="property_tr">                        
-                        <td>                                
-                            <label><input type="checkbox" name="render_anchors_flag" data-event-change="update_render_anchors_flag()" data-checked="render_anchors" />Draw Anchors</label>
-                        </td>
-                    </tr>                        
-                    <tr class="property_tr">                        
-                        <td>                                
-                            <label><input type="checkbox" name="render_stencils_flag" data-event-change="update_render_stencils_flag()" data-checked="render_stencils" />Draw Stencils</label>
-                        </td>
-                    </tr>                        
-                    <tr class="property_tr">                        
-                        <td>                                
-                            VR Frame Delay&nbsp;
-                            <numeric type="int" min="0" max="60" step="1" data-event-submit="update_vr_frame_delay()" data-value="vr_frame_delay"/>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </panel>
-    </body>
+		<panel id="controls" data-model="compositor_settings">
+			<table>
+				<thead>
+					<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+				</thead>
+				<tbody>
+					<tr class="property_tr">
+						<td>
+							<label><input type="checkbox" name="streaming_flag" data-event-change="update_streaming_flag()" data-checked="render_origin" />Draw Origin</label>
+						</td>
+					</tr>
+					<tr class="property_tr">
+						<td>
+							Spout Output Name&nbsp;
+							<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-event-change="update_spout_output_name()" data-value="spout_output_name"/>
+						</td>
+					</tr>
+					<tr class="property_tr">
+						<td>
+							<label><input type="checkbox" name="render_origin_flag" data-event-change="update_render_origin_flag()" data-checked="render_origin" />Draw Origin</label>
+						</td>
+					</tr>
+					<tr class="property_tr">
+						<td>
+							<label><input type="checkbox" name="render_anchors_flag" data-event-change="update_render_anchors_flag()" data-checked="render_anchors" />Draw Anchors</label>
+						</td>
+					</tr>
+					<tr class="property_tr">
+						<td>
+							<label><input type="checkbox" name="render_stencils_flag" data-event-change="update_render_stencils_flag()" data-checked="render_stencils" />Draw Stencils</label>
+						</td>
+					</tr>
+					<tr class="property_tr">
+						<td>
+							VR Frame Delay&nbsp;
+							<numeric type="int" min="0" max="60" step="1" data-event-submit="update_vr_frame_delay()" data-value="vr_frame_delay"/>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</panel>
+	</body>
 </rml>

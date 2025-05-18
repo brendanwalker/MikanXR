@@ -5,9 +5,10 @@
 #include "BoxStencilComponent.h"
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
+#include "Compositor/RmlModel_CompositorCameras.h"
 #include "Compositor/RmlModel_CompositorLayers.h"
 #include "Compositor/RmlModel_CompositorOutliner.h"
-#include "Compositor/RmlModel_CompositorVideo.h"
+#include "Compositor/RmlModel_CompositorSources.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSelection.h"
 #include "Compositor/RmlModel_CompositorSettings.h"
@@ -15,7 +16,6 @@
 #include "ModalConfirm/ModalDialog_Confirm.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
-#include "EditorObjectSystem.h"
 #include "SdlCommon.h"
 #include "MikanCamera.h"
 #include "GlFrameCompositor.h"
@@ -46,6 +46,7 @@
 #include "SceneComponent.h"
 #include "StringUtils.h"
 #include "StencilObjectSystem.h"
+#include "SceneObjectSystem.h"
 #include "TextStyle.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoSourceView.h"
@@ -71,23 +72,26 @@ AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	: AppStage(window, AppStage_Compositor::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
 	, m_compositorLayersModel(new RmlModel_CompositorLayers)
-	, m_compositorVideoModel(new RmlModel_CompositorVideo)
+	, m_compositorCamerasModel(new RmlModel_CompositorCameras)
+	, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorOutlinerModel(new RmlModel_CompositorOutliner)
 	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
-	, m_renderTargetWriteAccessor(createSharedTextureWriteAccessor("MikanXR"))
+	, m_renderTargetWriteAccessor()
 {
 }
 
 AppStage_Compositor::~AppStage_Compositor()
 {
+	m_renderTargetWriteAccessor= nullptr;
 	m_viewport= nullptr;
 
 	delete m_compositorModel;
 	delete m_compositorLayersModel;
-	delete m_compositorVideoModel;
+	delete m_compositorCamerasModel;
+	delete m_compositorSourcesModel;
 	delete m_compositorScriptingModel;
 	delete m_compositorOutlinerModel;
 	delete m_compositorSelectionModel;
@@ -99,11 +103,17 @@ void AppStage_Compositor::enter()
 {
 	AppStage::enter();
 
+	// Cache a ref to the project
+	m_project = App::getInstance()->getProfileConfig();
+	m_project->OnMarkedDirty +=
+		MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
+
 	// Cache object systems we'll be accessing
 	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
 	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
 	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
 	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
+	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
 
 	// Start the frame compositor
 	m_frameCompositor= GlFrameCompositor::getInstance();
@@ -140,13 +150,12 @@ void AppStage_Compositor::enter()
 	MikanServer::getInstance()->bindScriptContect(m_scriptContext);
 
 	// Load the compositor script
-	m_profile = App::getInstance()->getProfileConfig();
-	if (!m_profile->compositorScriptFilePath.empty())
+	if (!m_project->compositorScriptFilePath.empty())
 	{
-		if (!m_scriptContext->loadScript(m_profile->compositorScriptFilePath))
+		if (!m_scriptContext->loadScript(m_project->compositorScriptFilePath))
 		{
-			m_profile->compositorScriptFilePath = "";
-			m_profile->save();
+			m_project->compositorScriptFilePath = "";
+			m_project->save();
 		}
 	}
 
@@ -160,7 +169,8 @@ void AppStage_Compositor::enter()
 		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
 		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Compositor::onToggleOutlinerWindowEvent);
 		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersWindowEvent);
-		m_compositorModel->OnToggleVideoEvent = MakeDelegate(this, &AppStage_Compositor::onToggleVideoWindowEvent);
+		m_compositorModel->OnToggleCamerasEvent = MakeDelegate(this, &AppStage_Compositor::onToggleCamerasWindowEvent);
+		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesEvent);
 		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingWindowEvent);
 		m_compositorModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSettingsWindowEvent);
 		m_compositiorView = addRmlDocument("compositor.rml");
@@ -182,14 +192,18 @@ void AppStage_Compositor::enter()
 		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
 		m_compositiorLayersView->Hide();
 
-		// Init Recording UI
-		m_compositorVideoModel->init(context, m_frameCompositor);
-		m_compositorVideoModel->OnToggleStreamingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleStreamingEvent);
-		m_compositiorVideoView = addRmlDocument("compositor_video.rml");
-		m_compositiorVideoView->Hide();
+		// Init Cameras UI
+		m_compositorCamerasModel->init(context, m_frameCompositor);
+		m_compositiorSourcesView = addRmlDocument("compositor_cameras.rml");
+		m_compositiorSourcesView->Hide();
+
+		// Init Sources UI
+		m_compositorSourcesModel->init(context, m_frameCompositor);
+		m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
+		m_compositiorSourcesView->Hide();
 
 		// Init Scripting UI
-		m_compositorScriptingModel->init(context, m_profile, m_scriptContext);
+		m_compositorScriptingModel->init(context, m_project, m_scriptContext);
 		m_compositorScriptingModel->OnScriptFileChangeEvent = MakeDelegate(this, &AppStage_Compositor::onScriptFileChangeEvent);
 		m_compositorScriptingModel->OnSelectCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onSelectCompositorScriptFileEvent);
 		m_compositorScriptingModel->OnReloadCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onReloadCompositorScriptFileEvent);
@@ -198,10 +212,15 @@ void AppStage_Compositor::enter()
 		m_compositiorScriptingView->Hide();
 
 		// Init Settings UI
-		m_compositorSettingsModel->init(context, m_profile);
+		m_compositorSettingsModel->init(context, m_project);
 		m_compositiorSettingsView = addRmlDocument("compositor_settings.rml");
 		m_compositiorSettingsView->Hide();
 	}
+
+	// Setup render target write accessor
+	m_renderTargetWriteAccessor =
+		createSharedTextureWriteAccessor(m_project->getSpoutOutputName());
+	onSpoutStreamingFlagChanged();
 }
 
 void AppStage_Compositor::exit()
@@ -214,17 +233,23 @@ void AppStage_Compositor::exit()
 	// Unregister the script context with the mikan server
 	MikanServer::getInstance()->unbindScriptContect(m_scriptContext);
 
+	// Clean up spout output stream
 	stopStreaming();
+	m_renderTargetWriteAccessor= nullptr;
 
 	m_compositorSelectionModel->dispose();
 	m_compositorOutlinerModel->dispose();
 	m_compositorLayersModel->dispose();
-	m_compositorVideoModel->dispose();
+	m_compositorSourcesModel->dispose();
 	m_compositorScriptingModel->dispose();
 	m_compositorModel->dispose();
 	m_compositorSettingsModel->dispose();
 
 	m_frameCompositor->stop();
+
+	// Stop listening for project config changes
+	m_project->OnMarkedDirty -=
+		MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
 
 	AppStage::exit();
 }
@@ -262,7 +287,7 @@ void AppStage_Compositor::update(float deltaSeconds)
 
 bool AppStage_Compositor::startStreaming()
 {
-	if (m_compositorVideoModel->getIsStreaming())
+	if (getIsStreaming())
 		return true;
 
 	IMkTextureConstPtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
@@ -284,28 +309,31 @@ bool AppStage_Compositor::startStreaming()
 
 	// Listen for new frames to write out
 	m_frameCompositor->OnNewFrameComposited += MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
-	m_compositorVideoModel->setIsStreaming(true);
 
 	return true;
+}
+
+bool AppStage_Compositor::getIsStreaming()
+{
+	return m_renderTargetWriteAccessor->getIsInitialized();
 }
 
 void AppStage_Compositor::stopStreaming()
 {
 	// Stop listening for new frames to write out
-	if (m_compositorVideoModel->getIsStreaming())
+	if (getIsStreaming())
 	{
 		m_frameCompositor->OnNewFrameComposited -= MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
 	}
 
 	m_renderTargetWriteAccessor->dispose();
-	m_compositorVideoModel->setIsStreaming(false);
 }
 
 void AppStage_Compositor::onNewStreamingFrameReady()
 {
 	EASY_FUNCTION();
 
-	if (m_compositorVideoModel->getIsStreaming())
+	if (getIsStreaming())
 	{
 		IMkTextureConstPtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
 
@@ -315,6 +343,42 @@ void AppStage_Compositor::onNewStreamingFrameReady()
 
 			m_renderTargetWriteAccessor->writeColorFrameTexture(&textureId);
 		}
+	}
+}
+
+// Project Config Events
+void AppStage_Compositor::onProjectConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const class ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(ProjectConfig::k_spoutOutputIsStreamingNamePropertyId))
+	{
+		onSpoutStreamingFlagChanged();
+	}
+	else if (changedPropertySet.hasPropertyName(ProjectConfig::k_spoutOutputNamePropertyId))
+	{
+		onSpoutOutputNameChanged();
+	}
+}
+
+// Spout Streaming Config Events
+void AppStage_Compositor::onSpoutOutputNameChanged()
+{
+	m_renderTargetWriteAccessor->setClientName(m_project->getSpoutOutputName());
+}
+
+void AppStage_Compositor::onSpoutStreamingFlagChanged()
+{
+	const bool bIsStreaming = getIsStreaming();
+	const bool bWantsStreaming = m_project->getIsSpoutOutputStreaming();
+
+	if (!bIsStreaming && bWantsStreaming)
+	{
+		startStreaming();
+	}
+	else if (bIsStreaming && !bWantsStreaming)
+	{
+		stopStreaming();
 	}
 }
 
@@ -406,6 +470,25 @@ void AppStage_Compositor::onReturnEvent()
 	m_ownerWindow->popAppState();
 }
 
+void AppStage_Compositor::onToggleCamerasWindowEvent()
+{
+	hideAllSubWindows();
+	if (m_compositiorSourcesView) m_compositiorCamerasView->Show();
+}
+
+void AppStage_Compositor::onToggleSourcesEvent()
+{
+	hideAllSubWindows();
+	if (m_compositiorSourcesView) m_compositiorSourcesView->Show();
+}
+
+void AppStage_Compositor::onToggleSettingsWindowEvent()
+{
+	hideAllSubWindows();
+	if (m_compositiorSettingsView) m_compositiorSettingsView->Show();
+}
+
+//-- Deprecated --
 void AppStage_Compositor::onToggleOutlinerWindowEvent()
 {
 	hideAllSubWindows();
@@ -418,23 +501,12 @@ void AppStage_Compositor::onToggleLayersWindowEvent()
 	if (m_compositiorLayersView) m_compositiorLayersView->Show();
 }
 
-void AppStage_Compositor::onToggleVideoWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorVideoView) m_compositiorVideoView->Show();
-}
-
 void AppStage_Compositor::onToggleScriptingWindowEvent()
 {
 	hideAllSubWindows();
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Show();
 }
-
-void AppStage_Compositor::onToggleSettingsWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorSettingsView) m_compositiorSettingsView->Show();
-}
+//-- Deprecated --
 
 // Compositor Layers UI Events
 void AppStage_Compositor::onGraphEditEvent()
@@ -541,18 +613,9 @@ void AppStage_Compositor::hideAllSubWindows()
 {
 	if (m_compositiorOutlinerView) m_compositiorOutlinerView->Hide();
 	if (m_compositiorLayersView) m_compositiorLayersView->Hide();
-	if (m_compositiorVideoView) m_compositiorVideoView->Hide();
+	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
 	if (m_compositiorScriptingView) m_compositiorScriptingView->Hide();
 	if (m_compositiorSettingsView) m_compositiorSettingsView->Hide();
-}
-
-// Recording UI Events
-void AppStage_Compositor::onToggleStreamingEvent()
-{
-	if (m_compositorVideoModel->getIsStreaming())
-		stopStreaming();
-	else
-		startStreaming();
 }
 
 // Scripting UI Events
@@ -561,8 +624,8 @@ void AppStage_Compositor::onScriptFileChangeEvent(
 {
 	if (m_scriptContext->loadScript(filepath))
 	{
-		m_profile->compositorScriptFilePath = filepath;
-		m_profile->save();
+		m_project->compositorScriptFilePath = filepath;
+		m_project->save();
 
 		m_compositorScriptingModel->setCompositorScriptPath(filepath);
 	}
@@ -571,9 +634,9 @@ void AppStage_Compositor::onScriptFileChangeEvent(
 void AppStage_Compositor::onSelectCompositorScriptFileEvent()
 {
 	std::string defaultFileAndPath;
-	if (!m_profile->compositorScriptFilePath.empty())
+	if (!m_project->compositorScriptFilePath.empty())
 	{
-		defaultFileAndPath= m_profile->compositorScriptFilePath.string();
+		defaultFileAndPath= m_project->compositorScriptFilePath.string();
 	}
 	else
 	{
@@ -666,7 +729,7 @@ void AppStage_Compositor::render()
 
 			// Draw tracking space
 			drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
-			if (m_profile->getRenderOriginFlag())
+			if (m_project->getRenderOriginFlag())
 			{
 				debugRenderOrigin();
 			}

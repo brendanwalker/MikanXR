@@ -25,10 +25,10 @@ public:
 	virtual ~CalibrationPatternFinder();
 
 	static CalibrationPatternFinder* allocatePatternFinder(
-		ProfileConfigConstPtr profileConfig, 
+		ProjectConfigConstPtr profileConfig, 
 		class VideoFrameDistortionView* distortionView);
 	static CalibrationPatternFinderPtr allocatePatternFinderSharedPtr(
-		ProfileConfigConstPtr profileConfig,
+		ProjectConfigConstPtr profileConfig,
 		class VideoFrameDistortionView* distortionView);
 
 	cv::Mat* getGrayscaleVideoFrameInput() const;

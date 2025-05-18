@@ -10,6 +10,9 @@ toProcessDirectories = [
 toProcessFiles = [
 	'''./Public/MikanAPI.h''',
 	'''./Public/MikanAPITypes.h''',
+	'''./Public/MikanCameraEvents.h''',
+	'''./Public/MikanCameraRequests.h''',
+	'''./Public/MikanCameraTypes.h''',
 	'''./Public/MikanClientEvents.h''',
 	'''./Public/MikanClientTypes.h''',
 	'''./Public/MikanClientRequests.h''',

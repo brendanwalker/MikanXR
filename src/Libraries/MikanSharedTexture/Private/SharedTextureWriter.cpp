@@ -558,6 +558,40 @@ public:
 		m_logger.setLogCallback(callback);
 	}
 
+	virtual bool setClientName(const std::string& clientName) override
+	{
+		if (!clientName.empty())
+		{
+			if (m_clientName != clientName)
+			{
+				if (getIsInitialized())
+				{
+					// Backup the existing settings
+					const SharedTextureDescriptor descriptor = m_renderTargetDescriptor;
+					bool bEnableFrameCounter = m_bEnableFrameCounter;
+					void* apiDeviceInterface = m_apiDeviceInterface;
+
+					// Clean up the old writer
+					dispose();
+
+					// Set the new client name
+					m_clientName = clientName;
+
+					// Restart the writer with the new name, but same settings
+					initialize(&descriptor, bEnableFrameCounter, apiDeviceInterface);
+				}
+				else
+				{
+					m_clientName = clientName;
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
 	virtual bool initialize(
 		const SharedTextureDescriptor* descriptor,
 		bool bEnableFrameCounter,
@@ -566,6 +600,8 @@ public:
 		dispose();
 
 		m_renderTargetDescriptor = *descriptor;
+		m_bEnableFrameCounter = bEnableFrameCounter;
+		m_apiDeviceInterface = apiDeviceInterface;
 
 		if (descriptor->graphicsAPI == SharedClientGraphicsApi::OpenGL)
 		{
@@ -636,6 +672,8 @@ public:
 			}
 		}
 
+		m_bEnableFrameCounter = false;
+		m_apiDeviceInterface = nullptr;
 		m_graphicsAPI = SharedClientGraphicsApi::UNKNOWN;
 		m_bIsInitialized = false;
 	}
@@ -732,6 +770,8 @@ private:
 	bool m_bIsInitialized = false;
 	std::string m_clientName;
 	SharedTextureDescriptor m_renderTargetDescriptor;
+	bool m_bEnableFrameCounter= false;
+	void* m_apiDeviceInterface= nullptr;
 	union
 	{
 		SpoutDX11TextureWriter* spoutDX11TextureWriter;

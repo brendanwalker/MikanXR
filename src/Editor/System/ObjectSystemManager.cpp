@@ -3,6 +3,7 @@
 #include "ObjectSystemManager.h"
 #include "AnchorObjectSystem.h"
 #include "EditorObjectSystem.h"
+#include "SceneObjectSystem.h"
 #include "StencilObjectSystem.h"
 
 bool ObjectSystemManager::startup()
@@ -13,6 +14,7 @@ bool ObjectSystemManager::startup()
 	addSystem<EditorObjectSystem>();
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
+	addSystem<SceneObjectSystem>();
 
 	for (int i= 0; i < (int)m_systems.size(); i++)
 	{

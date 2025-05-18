@@ -5,6 +5,7 @@
 #include "ProjectConfig.h"
 #include "PathUtils.h"
 #include "StencilObjectSystem.h"
+#include "SceneObjectSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
 
@@ -25,7 +26,11 @@
 #define DEFAULT_VR_CENTER_ARUCO_ID  0
 #define DEFAULT_VR_CENTER_MARKER_LEN_MM  100
 
+#define DEFAULT_SPOUT_OUTPUT_NAME "MikanXR"
+
 // -- Profile Config
+const std::string ProjectConfig::k_spoutOutputIsStreamingNamePropertyId= "spoutOutputIsStreaming";
+const std::string ProjectConfig::k_spoutOutputNamePropertyId= "spoutOutputName";
 const std::string ProjectConfig::k_videoSourcePathPropertyId= "videoSourcePath";
 const std::string ProjectConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
 const std::string ProjectConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
@@ -51,6 +56,9 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	, puckDepthOffsetMM(DEFAULT_PUCK_DEPTH_OFFSET_MM)
 	, vrCenterArucoId(DEFAULT_VR_CENTER_ARUCO_ID)
 	, vrCenterMarkerLengthMM(DEFAULT_VR_CENTER_MARKER_LEN_MM)
+	// Spout Output Defaults
+	, m_bIsSpoutOutputStreaming(false)
+	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)
 	// VideoSource Defaults
 	, videoSourcePath("")
 	// Tracker
@@ -78,6 +86,9 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 
 	stencilConfig= std::make_shared<StencilObjectSystemConfig>("stencils");
 	addChildConfig(stencilConfig);
+
+	sceneConfig = std::make_shared<SceneObjectSystemConfig>("scene");
+	addChildConfig(sceneConfig);
 };
 
 configuru::Config ProjectConfig::writeToJSON()
@@ -99,6 +110,9 @@ configuru::Config ProjectConfig::writeToJSON()
 	pt["puckDepthOffsetMM"]= puckDepthOffsetMM;
 	pt["vrCenterArucoId"]= vrCenterArucoId;
 	pt["vrCenterMarkerLengthMM"]= vrCenterMarkerLengthMM;
+	// Spout Output Settings
+	pt[k_spoutOutputIsStreamingNamePropertyId]= m_bIsSpoutOutputStreaming;
+	pt[k_spoutOutputNamePropertyId]= m_spoutOutputName;
 	// VideoSource Defaults
 	pt["videoSourcePath"]= videoSourcePath;
 	// Tracker
@@ -124,6 +138,10 @@ configuru::Config ProjectConfig::writeToJSON()
 
 	// Write the stencil system config
 	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
+
+	// Write the scene system config
+	pt[sceneConfig->getConfigName()] = sceneConfig->writeToJSON();
+
 
 	return pt;
 }
@@ -165,6 +183,12 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	vrCenterArucoId = pt.get_or<int>("vrCenterArucoId", vrCenterArucoId);
 	vrCenterMarkerLengthMM = pt.get_or<float>("vrCenterMarkerLengthMM", vrCenterMarkerLengthMM);
 
+	// Spout Output Settings
+	m_bIsSpoutOutputStreaming= pt.get_or<bool>(k_spoutOutputNamePropertyId, m_bIsSpoutOutputStreaming);
+	m_spoutOutputName= pt.get_or<std::string>(k_spoutOutputNamePropertyId, m_spoutOutputName);
+	if (m_spoutOutputName.empty())
+		m_spoutOutputName= DEFAULT_SPOUT_OUTPUT_NAME;
+
 	// VideoSource Defaults
 	videoSourcePath = pt.get_or<std::string>("videoSourcePath", videoSourcePath);
 
@@ -197,11 +221,35 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
 	}
 
+	// Read the scene system config
+	if (pt.has_key(sceneConfig->getConfigName()))
+	{
+		sceneConfig->readFromJSON(pt[sceneConfig->getConfigName()]);
+	}
+
 	// Compositor
 	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
 
 	// Output Path
 	outputFilePath = pt.get_or<std::string>("outputPath", outputFilePath.string());
+}
+
+void ProjectConfig::setIsSpoutOutputStreaming(bool bIsStreaming)
+{
+	if (m_bIsSpoutOutputStreaming != bIsStreaming)
+	{
+		m_bIsSpoutOutputStreaming= bIsStreaming;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputIsStreamingNamePropertyId));
+	}
+}
+
+void ProjectConfig::setSpoutOutputName(const std::string& spoutOutputName)
+{
+	if (m_spoutOutputName != spoutOutputName)
+	{
+		m_spoutOutputName = spoutOutputName;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputNamePropertyId));
+	}
 }
 
 std::filesystem::path ProjectConfig::generateTimestampedFilePath(

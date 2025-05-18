@@ -44,6 +44,7 @@ public:
 
 protected:
 	bool startStreaming();
+	bool getIsStreaming();
 	void stopStreaming();
 
 	// Camera
@@ -58,13 +59,23 @@ protected:
 	// Compositor Events
 	void onNewStreamingFrameReady();
 
+	// Project Config Events
+	void onProjectConfigMarkedDirty(
+		CommonConfigPtr configPtr, 
+		const class ConfigPropertyChangeSet& changedPropertySet);
+	void onSpoutOutputNameChanged();
+	void onSpoutStreamingFlagChanged();
+
 	// Main Compositor UI Events
 	void onReturnEvent();
+	void onToggleCamerasWindowEvent();
+	void onToggleSourcesEvent();
+	void onToggleSettingsWindowEvent();
+	// Deprecated
 	void onToggleOutlinerWindowEvent();
 	void onToggleLayersWindowEvent();
-	void onToggleVideoWindowEvent();
 	void onToggleScriptingWindowEvent();
-	void onToggleSettingsWindowEvent();
+	// Deprecated
 	void hideAllSubWindows();
 
 	// Layers UI Events
@@ -76,10 +87,6 @@ protected:
 	void onConfigSelectEvent(const std::string& configName);
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
-	// Recording UI Events
-	void onToggleRecordingEvent();
-	void onToggleStreamingEvent();
-
 	// Scripting UI Events
 	void onScriptFileChangeEvent(const std::filesystem::path& scriptFileChangeEvent);
 	void onSelectCompositorScriptFileEvent();
@@ -89,20 +96,24 @@ protected:
 	// Debug Rendering
 	void debugRenderOrigin() const;
 
-	ProfileConfigPtr m_profile;
+	ProjectConfigPtr m_project;
 
 	AnchorObjectSystemPtr m_anchorObjectSystem;
 	StencilObjectSystemPtr m_stencilObjectSystem;
 	EditorObjectSystemPtr m_editorSystem;
+	SceneObjectSystemPtr m_sceneObjectSystem;
 
 	class RmlModel_Compositor* m_compositorModel = nullptr;
 	Rml::ElementDocument* m_compositiorView = nullptr;
 
 	class RmlModel_CompositorLayers* m_compositorLayersModel = nullptr;
 	Rml::ElementDocument* m_compositiorLayersView = nullptr;
+	
+	class RmlModel_CompositorCameras* m_compositorCamerasModel = nullptr;
+	Rml::ElementDocument* m_compositiorCamerasView = nullptr;
 
-	class RmlModel_CompositorVideo* m_compositorVideoModel = nullptr;
-	Rml::ElementDocument* m_compositiorVideoView = nullptr;
+	class RmlModel_CompositorSources* m_compositorSourcesModel = nullptr;
+	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
 
 	class RmlModel_CompositorScripting* m_compositorScriptingModel = nullptr;
 	Rml::ElementDocument* m_compositiorScriptingView = nullptr;

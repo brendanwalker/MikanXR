@@ -23,7 +23,7 @@ struct MonoLensTrackerCalibrationState
 {
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
-	ProfileConfigConstPtr profileConfig;
+	ProjectConfigConstPtr profileConfig;
 	int desiredSampleCount;
 
 	// Computed every frame
@@ -44,7 +44,7 @@ struct MonoLensTrackerCalibrationState
 	glm::dquat rotationOffset;
 	glm::dvec3 translationOffset;
 
-	void init(ProfileConfigConstPtr config, VideoSourceViewPtr videoSourceView, int patternCount)
+	void init(ProjectConfigConstPtr config, VideoSourceViewPtr videoSourceView, int patternCount)
 	{
 		profileConfig= config;
 
@@ -81,7 +81,7 @@ struct MonoLensTrackerCalibrationState
 
 //-- MonoDistortionCalibrator ----
 MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
-	ProfileConfigConstPtr profileConfig,
+	ProjectConfigConstPtr profileConfig,
 	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 	VRDevicePoseViewPtr matTrackingPuckPoseView,
 	VideoFrameDistortionView* distortionView,
@@ -163,7 +163,7 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 
 	// Compute the VR tracking space offset from matPuck to calibration pattern
 	// using the measured offsets on the paper calibration mat
-	ProfileConfigConstPtr config= m_calibrationState->profileConfig;
+	ProjectConfigConstPtr config= m_calibrationState->profileConfig;
 	const double puckToPatternX = (double)config->puckHorizontalOffsetMM * k_millimeters_to_meters;
 	const double puckToPatternY = (double)config->puckVerticalOffsetMM * k_millimeters_to_meters;
 	const double puckToPatternZ = (double)config->puckDepthOffsetMM * k_millimeters_to_meters;

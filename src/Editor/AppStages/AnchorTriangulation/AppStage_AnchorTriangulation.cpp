@@ -70,7 +70,7 @@ void AppStage_AnchorTriangulation::enter()
 	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(true);
 
 	// Get the current video source based on the config
-	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 	m_videoSourceView = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 

@@ -42,7 +42,7 @@ protected:
 	GlScenePtr m_scene;
 	MikanCameraPtr m_camera;
 
-	ProfileConfigPtr m_profile;
+	ProjectConfigPtr m_profile;
 	AnchorObjectSystemConfigPtr m_anchorSystemConfig;
 	AnchorObjectSystemPtr m_anchorSystem;
 };

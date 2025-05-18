@@ -1,0 +1,33 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="rml.rcss"/>
+        <link type="text/rcss" href="mikan.rcss"/>
+        <link type="text/template" href="window.rml" />
+        <title>Video</title>
+        <style>
+            body
+            {
+                position:absolute; 
+                right:0px;
+                top: -45dp;
+                width: 350dp;
+                height: 100%;
+            }         
+        </style>
+	</head>
+	<body template="window">
+        <panel id="video" data-model="compositor_cameras">
+			<tr data-for="camera_name : camera_names" class="property_tr">
+				<td>
+					Cull Mode&nbsp;
+					<select id="select" name="camera_list" data-value="anchor_vr_device_path" data-event-change="modify_field(field.field_name)" style="width: 200dp; vertical-align: -12dp">
+						<option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
+					</select>
+				</td>
+				                <select id="select" name="vr_device_list" data-value="anchor_vr_device_path" data-event-change="update_anchor_vr_device_path()" style="width: 200dp">
+                    <option data-for="device_path : vr_device_list" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
+                </select>
+			</tr>
+        </panel>
+    </body>
+</rml>

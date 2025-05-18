@@ -134,7 +134,7 @@ bool VRDeviceView::getDefaultComponentPose(glm::mat4& outPose) const
 	if (m_device != nullptr &&
 		m_device->getDeviceType() == eDeviceType::VRTracker)
 	{
-		ProfileConfigConstPtr config = App::getInstance()->getProfileConfig();
+		ProjectConfigConstPtr config = App::getInstance()->getProfileConfig();
 
 		if (config)
 		{
@@ -232,7 +232,7 @@ bool VRDevicePoseView::getPose(glm::mat4& outPoseInSpace) const
 		{
 			if (m_poseSpace == eVRDevicePoseSpace::MikanScene)
 			{
-				ProfileConfigConstPtr config = App::getInstance()->getProfileConfig();
+				ProjectConfigConstPtr config = App::getInstance()->getProfileConfig();
 				const glm::mat4 glmVRDevicePoseOffset = MikanMatrix4f_to_glm_mat4(config->vrDevicePoseOffset);
 
 				// Convert the vr tracking space pose to Mikan scene space

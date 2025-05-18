@@ -454,7 +454,7 @@ void SteamVRManager::updateDevicePoses()
 	EASY_FUNCTION();
 
 	vr::IVRSystem* vrSystem = vr::VRSystem();
-	ProfileConfigPtr config= App::getInstance()->getProfileConfig();
+	ProjectConfigPtr config= App::getInstance()->getProfileConfig();
 
 	// Fetch the latest tracking data for all devices at once
 	{

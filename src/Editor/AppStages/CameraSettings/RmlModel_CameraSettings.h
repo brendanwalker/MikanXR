@@ -13,7 +13,7 @@ public:
 	RmlModel_CameraSettings();
 
 	bool init(Rml::Context* rmlContext,
-			  ProfileConfigConstPtr profile,
+			  ProjectConfigConstPtr profile,
 			  const class VideoSourceManager* videoSourceManager);
 	virtual void dispose() override;
 

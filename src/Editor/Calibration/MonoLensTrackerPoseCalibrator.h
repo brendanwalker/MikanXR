@@ -12,7 +12,7 @@ class MonoLensTrackerPoseCalibrator
 {
 public:
 	MonoLensTrackerPoseCalibrator(
-		ProfileConfigConstPtr profileConfig,
+		ProjectConfigConstPtr profileConfig,
 		VRDevicePoseViewPtr cameraTrackingPuckView,
 		VRDevicePoseViewPtr matTrackingPuckView,
 		class VideoFrameDistortionView* distortionView,

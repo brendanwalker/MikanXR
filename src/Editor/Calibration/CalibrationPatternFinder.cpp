@@ -32,7 +32,7 @@ CalibrationPatternFinder::~CalibrationPatternFinder()
 }
 
 CalibrationPatternFinder* CalibrationPatternFinder::allocatePatternFinder(
-	ProfileConfigConstPtr profileConfig,
+	ProjectConfigConstPtr profileConfig,
 	VideoFrameDistortionView* distortionView)
 {
 	switch (profileConfig->calibrationPatternType)
@@ -59,7 +59,7 @@ CalibrationPatternFinder* CalibrationPatternFinder::allocatePatternFinder(
 }
 
 CalibrationPatternFinderPtr CalibrationPatternFinder::allocatePatternFinderSharedPtr(
-	ProfileConfigConstPtr profileConfig,
+	ProjectConfigConstPtr profileConfig,
 	VideoFrameDistortionView* distortionView)
 {
 	switch (profileConfig->calibrationPatternType)

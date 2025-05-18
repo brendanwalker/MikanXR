@@ -14,7 +14,7 @@ class MonoLensDistortionCalibrator
 {
 public:
 	MonoLensDistortionCalibrator(
-		ProfileConfigConstPtr profileConfig,
+		ProjectConfigConstPtr profileConfig,
 		class VideoFrameDistortionView* distortionView, 
 		int desiredBoardCount);
 	virtual ~MonoLensDistortionCalibrator();

@@ -797,7 +797,7 @@ void GlFrameCompositor::render() const
 
 bool GlFrameCompositor::openVideoSource()
 {
-	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	// Start streaming the video
 	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
@@ -819,7 +819,7 @@ bool GlFrameCompositor::openVideoSource()
 
 void GlFrameCompositor::onVideoFrameSizeChanged(const VideoSourceView* videoSourceView)
 {
-	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	// Create a frame buffer and texture to do the compositing work in
 	uint16_t frameWidth = (uint16_t)m_videoSourceView->getFrameWidth();
@@ -882,7 +882,7 @@ void GlFrameCompositor::closeVideoSource()
 
 bool GlFrameCompositor::bindCameraVRTracker()
 {
-	ProfileConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	auto* vrDeviceManager= VRDeviceManager::getInstance();
 	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);

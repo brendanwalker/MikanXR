@@ -81,7 +81,7 @@ void AppStage_AlignmentCalibration::enter()
 	AppStage::enter();
 
 	// Get the current video source based on the config
-	const ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 	auto* vrDeviceManager= VRDeviceManager::getInstance();
 	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
 	auto matTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->matVRDevicePath);
@@ -581,7 +581,7 @@ void AppStage_AlignmentCalibration::onBrightnessChanged(int newBrightness)
 
 void AppStage_AlignmentCalibration::onVRFrameDelayChanged(int newVRFrameDelay)
 {
-	ProfileConfigPtr profileConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	profileConfig->setVRFrameDelay(newVRFrameDelay);
 	m_bHasModifiedCameraSettings = true;

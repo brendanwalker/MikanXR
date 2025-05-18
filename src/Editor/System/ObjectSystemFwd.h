@@ -18,6 +18,10 @@ class ObjectSystemManager;
 using ObjectSystemManagerPtr = std::shared_ptr<ObjectSystemManager>;
 using ObjectSystemManagerWeakPtr = std::weak_ptr<ObjectSystemManager>;
 
+class SceneObjectSystem;
+using SceneObjectSystemPtr = std::shared_ptr<SceneObjectSystem>;
+using SceneObjectSystemWeakPtr = std::weak_ptr<SceneObjectSystem>;
+
 class StencilObjectSystem;
 using StencilObjectSystemPtr = std::shared_ptr<StencilObjectSystem>;
 using StencilObjectSystemWeakPtr = std::weak_ptr<StencilObjectSystem>;

@@ -23,7 +23,7 @@ class DepthMeshGenerator
 public:
 	DepthMeshGenerator(
 		ISdlMkWindow* ownerWindow,
-		ProfileConfigConstPtr profileConfig,
+		ProjectConfigConstPtr profileConfig,
 		VideoFrameDistortionViewPtr distortionView,
 		SyntheticDepthEstimatorPtr depthEstimator);
 	virtual ~DepthMeshGenerator();

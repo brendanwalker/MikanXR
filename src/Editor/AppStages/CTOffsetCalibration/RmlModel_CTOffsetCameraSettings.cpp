@@ -13,7 +13,7 @@
 bool RmlModel_CTOffsetCameraSettings::init(
 	Rml::Context* rmlContext,
 	VideoSourceViewConstPtr videoSourceView,
-	ProfileConfigConstPtr profileConfig)
+	ProjectConfigConstPtr profileConfig)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "CTOffset_camera_settings");

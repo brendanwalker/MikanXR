@@ -10,9 +10,9 @@ public:
 	virtual void dispose() override;
 
 	SinglecastDelegate<void()> OnReturnEvent;
+	SinglecastDelegate<void()> OnToggleCamerasEvent;
 	SinglecastDelegate<void()> OnToggleOutlinerEvent;
 	SinglecastDelegate<void()> OnToggleLayersEvent;
-	SinglecastDelegate<void()> OnToggleVideoEvent;
 	SinglecastDelegate<void()> OnToggleScriptingEvent;
 	SinglecastDelegate<void()> OnToggleSourcesEvent;
 	SinglecastDelegate<void()> OnToggleSettingsEvent;

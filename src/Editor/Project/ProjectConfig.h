@@ -34,6 +34,14 @@ public:
 	int vrCenterArucoId;
 	float vrCenterMarkerLengthMM;
 
+	static const std::string k_spoutOutputIsStreamingNamePropertyId;
+	inline bool getIsSpoutOutputStreaming() const { return m_bIsSpoutOutputStreaming; }
+	void setIsSpoutOutputStreaming(bool bIsStreaming);
+
+	static const std::string k_spoutOutputNamePropertyId;
+	inline const std::string& getSpoutOutputName() const { return m_spoutOutputName; }
+	void setSpoutOutputName(const std::string& spoutOutputName);
+
 	static const std::string k_videoSourcePathPropertyId;
 	std::string videoSourcePath;
 
@@ -63,8 +71,11 @@ public:
 	AnchorObjectSystemConfigPtr anchorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
+	SceneObjectSystemConfigPtr sceneConfig;
 
 protected:
+	bool m_bIsSpoutOutputStreaming= false;
+	std::string m_spoutOutputName;
 	bool m_bRenderOrigin= true;
 	int m_vrFrameDelay = 0;
 };

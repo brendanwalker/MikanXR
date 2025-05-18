@@ -11,7 +11,7 @@
 
 bool RmlModel_VRDeviceSettings::init(
 	Rml::Context* rmlContext,
-	const ProfileConfigConstPtr profile,
+	const ProjectConfigConstPtr profile,
 	const VRDeviceManager* vrDeviceManager)
 {
 	// Create Datamodel

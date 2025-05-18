@@ -23,7 +23,7 @@ struct ArucoMarkerPoseSamplerState
 {
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
-	ProfileConfigConstPtr profileConfig;
+	ProjectConfigConstPtr profileConfig;
 	int desiredSampleCount;
 
 	// Computed every frame
@@ -41,7 +41,7 @@ struct ArucoMarkerPoseSamplerState
 	glm::dvec3 translationOffset;
 
 	void init(
-		ProfileConfigConstPtr config, 
+		ProjectConfigConstPtr config, 
 		VideoSourceViewPtr videoSourceView, 
 		int sampleCount)
 	{
@@ -77,7 +77,7 @@ struct ArucoMarkerPoseSamplerState
 
 //-- MonoDistortionCalibrator ----
 ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
-	ProfileConfigConstPtr profileConfig,
+	ProjectConfigConstPtr profileConfig,
 	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
 	VideoFrameDistortionView* distortionView,
 	int desiredSampleCount)

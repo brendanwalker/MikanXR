@@ -17,7 +17,7 @@ RmlModel_CameraSettings::RmlModel_CameraSettings()
 
 bool RmlModel_CameraSettings::init(
 	Rml::Context* rmlContext,
-	const ProfileConfigConstPtr profile,
+	const ProjectConfigConstPtr profile,
 	const VideoSourceManager* videoSourceManager)
 {
 	// Create Datamodel
