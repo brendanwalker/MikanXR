@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "CommonConfigFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "MikanRendererFwd.h"

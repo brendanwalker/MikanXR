@@ -1,7 +1,7 @@
 //-- inludes -----
 #include "CameraSettings/AppStage_CameraSettings.h"
-#include "CameraSettings/RmlDataBinding_CameraBrightness.h"
 #include "CameraSettings/RmlModel_CameraSettings.h"
+#include "Shared/RmlDataBinding_CameraBrightness.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
