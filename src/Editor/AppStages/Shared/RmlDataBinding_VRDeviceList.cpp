@@ -1,5 +1,6 @@
 #include "RmlDataBinding_VRDeviceList.h"
 #include "MathUtility.h"
+#include "MulticastDelegate.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
 
@@ -21,13 +22,13 @@ bool RmlDataBinding_VRDeviceList::init(Rml::DataModelConstructor constructor)
 
 	// Start listening for tracker device changes
 	VRDeviceManager* vrDeviceManager = VRDeviceManager::getInstance();
-	vrDeviceManager->OnDeviceListChanged += MakeDelegate(this, &RmlDataBinding_VRDeviceList::rebuildVRTrackerList);
+	vrDeviceManager->OnDeviceListChanged += MakeDelegate(this, &RmlDataBinding_VRDeviceList::rebuildVRDeviceList);
 
 	// Register Data Model Fields
 	constructor.Bind("vr_device_list", &m_vrDeviceList);
 
 	// Fill in the data model
-	rebuildVRDevicePaths();
+	rebuildVRDeviceList();
 
 	return true;
 }
@@ -36,12 +37,12 @@ void RmlDataBinding_VRDeviceList::dispose()
 {
 	// Stop listening for tracker device changes
 	VRDeviceManager* vrDeviceManager = VRDeviceManager::getInstance();
-	vrDeviceManager->OnDeviceListChanged -= MakeDelegate(this, &RmlDataBinding_VRDeviceList::rebuildVRTrackerList);
+	vrDeviceManager->OnDeviceListChanged -= MakeDelegate(this, &RmlDataBinding_VRDeviceList::rebuildVRDeviceList);
 
 	RmlDataBinding::dispose();
 }
 
-void RmlDataBinding_VRDeviceList::rebuildVRDevicePaths()
+void RmlDataBinding_VRDeviceList::rebuildVRDeviceList()
 {
 	VRDeviceList vrTrackers = VRDeviceManager::getInstance()->getFilteredVRDeviceList(eDeviceType::VRTracker);
 

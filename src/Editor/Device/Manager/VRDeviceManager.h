@@ -11,6 +11,7 @@
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
 #include "MulticastDelegate.h"
+#include "ObjectSystemConfigFwd.h"
 #include "SteamVRManager.h"
 #include "stdint.h"
 

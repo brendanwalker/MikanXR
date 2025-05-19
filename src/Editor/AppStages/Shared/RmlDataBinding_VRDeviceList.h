@@ -14,5 +14,8 @@ public:
 	const Rml::Vector<Rml::String>& getVideoDeviceList() const { return m_vrDeviceList; }
 
 protected:
+	void rebuildVRDeviceList();
+
+private:
 	Rml::Vector<Rml::String> m_vrDeviceList;
 };
