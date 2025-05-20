@@ -11,7 +11,7 @@
 #include "IMkStaticMeshInstance.h"
 #include "IMkWireframeMesh.h"
 #include "AnchorComponent.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
 #include "StencilObjectSystem.h"
@@ -259,7 +259,7 @@ void ModelStencilComponent::disposeMeshComponents()
 	// Clean up any previously created mesh components
 	while (m_meshComponents.size() > 0)
 	{
-		SceneComponentPtr componentPtr = m_meshComponents[m_meshComponents.size() - 1];
+		TransformComponentPtr componentPtr = m_meshComponents[m_meshComponents.size() - 1];
 		componentPtr->dispose();
 
 		m_meshComponents.pop_back();
@@ -355,7 +355,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 		updateWireframeMeshColor();
 
 		// Initialize all of the newly created components
-		for (SceneComponentPtr childComponentPtr : m_meshComponents)
+		for (TransformComponentPtr childComponentPtr : m_meshComponents)
 		{
 			childComponentPtr->init();
 		}

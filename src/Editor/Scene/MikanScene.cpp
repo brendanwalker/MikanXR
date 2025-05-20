@@ -1,6 +1,6 @@
 #include "MikanScene.h"
 #include "MikanObject.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "SelectionComponent.h"
 #include "IMkSceneRenderable.h"
 #include "MikanCamera.h"
@@ -55,10 +55,10 @@ void MikanScene::addMikanComponent(MikanComponentPtr componentPtr)
 		return;
 
 	// See if the given component is a scene component
-	SceneComponentPtr sceneComponent= std::dynamic_pointer_cast<SceneComponent>(componentPtr);
-	if (sceneComponent != nullptr)
+	TransformComponentPtr transformComponent= std::dynamic_pointer_cast<TransformComponent>(componentPtr);
+	if (transformComponent != nullptr)
 	{
-		IMkSceneRenderableConstPtr renderable = sceneComponent->getGlSceneRenderableConst();
+		IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
 		if (renderable)
 		{
 			// If the scene component has a renderable, add it to the GL Scene
@@ -92,10 +92,10 @@ void MikanScene::removeMikanComponent(MikanComponentConstPtr componentPtr)
 		return;
 
 	// See if the given component is a scene component
-	SceneComponentConstPtr sceneComponent = std::dynamic_pointer_cast<const SceneComponent>(componentPtr);
-	if (sceneComponent != nullptr)
+	TransformComponentConstPtr transformComponent = std::dynamic_pointer_cast<const TransformComponent>(componentPtr);
+	if (transformComponent != nullptr)
 	{
-		IMkSceneRenderableConstPtr renderable = sceneComponent->getGlSceneRenderableConst();
+		IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
 		if (renderable)
 		{
 			// If the scene component has a renderable, remove it from the GL Scene

@@ -1,4 +1,4 @@
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "MikanObject.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
@@ -11,11 +11,11 @@
 #include <RmlUi/Core/Vector3.h>
 
 // -- ModelStencilConfig -----
-const std::string SceneComponentDefinition::k_relativeScalePropertyId = "relative_scale";
-const std::string SceneComponentDefinition::k_relativeRotationPropertyId = "relative_rotation";
-const std::string SceneComponentDefinition::k_relativePositionPropertyId = "relative_position";
+const std::string TransformComponentDefinition::k_relativeScalePropertyId = "relative_scale";
+const std::string TransformComponentDefinition::k_relativeRotationPropertyId = "relative_rotation";
+const std::string TransformComponentDefinition::k_relativePositionPropertyId = "relative_position";
 
-SceneComponentDefinition::SceneComponentDefinition()
+TransformComponentDefinition::TransformComponentDefinition()
 	: MikanComponentDefinition()
 {
 	m_relativeTransform.scale = {1.f, 1.f, 1.f};
@@ -23,7 +23,7 @@ SceneComponentDefinition::SceneComponentDefinition()
 	m_relativeTransform.position= {0.f, 0.f, 0.f};
 }
 
-SceneComponentDefinition::SceneComponentDefinition(
+TransformComponentDefinition::TransformComponentDefinition(
 	const std::string& componentName,
 	const MikanTransform& xform)
 	: MikanComponentDefinition(componentName)
@@ -31,7 +31,7 @@ SceneComponentDefinition::SceneComponentDefinition(
 	m_relativeTransform= xform;
 }
 
-configuru::Config SceneComponentDefinition::writeToJSON()
+configuru::Config TransformComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
@@ -42,7 +42,7 @@ configuru::Config SceneComponentDefinition::writeToJSON()
 	return pt;
 }
 
-void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
+void TransformComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
@@ -55,17 +55,17 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 	readVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
 }
 
-const glm::mat4 SceneComponentDefinition::getRelativeMat4() const
+const glm::mat4 TransformComponentDefinition::getRelativeMat4() const
 {
 	return getRelativeTransform().getMat4();
 }
 
-void SceneComponentDefinition::setRelativeMat4(const glm::mat4& mat4)
+void TransformComponentDefinition::setRelativeMat4(const glm::mat4& mat4)
 {
 	setRelativeTransform(GlmTransform(mat4));
 }
 
-const GlmTransform SceneComponentDefinition::getRelativeTransform() const
+const GlmTransform TransformComponentDefinition::getRelativeTransform() const
 {
 	return GlmTransform(
 		MikanVector3f_to_glm_vec3(m_relativeTransform.position),
@@ -73,7 +73,7 @@ const GlmTransform SceneComponentDefinition::getRelativeTransform() const
 		MikanVector3f_to_glm_vec3(m_relativeTransform.scale));
 }
 
-void SceneComponentDefinition::setRelativeTransform(const GlmTransform& transform)
+void TransformComponentDefinition::setRelativeTransform(const GlmTransform& transform)
 {
 	glm::mat4 xform = transform.getMat4();
 
@@ -87,43 +87,43 @@ void SceneComponentDefinition::setRelativeTransform(const GlmTransform& transfor
 			  .addPropertyName(k_relativePositionPropertyId));
 }
 
-void SceneComponentDefinition::setRelativeScale(const MikanVector3f& scale)
+void TransformComponentDefinition::setRelativeScale(const MikanVector3f& scale)
 {
 	m_relativeTransform.scale = scale;
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativeScalePropertyId));
 }
 
-void SceneComponentDefinition::setRelativeRotation(const MikanQuatf& quat)
+void TransformComponentDefinition::setRelativeRotation(const MikanQuatf& quat)
 {
 	m_relativeTransform.rotation = quat;
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativeRotationPropertyId));
 }
 
-void SceneComponentDefinition::setRelativePosition(const MikanVector3f& translation)
+void TransformComponentDefinition::setRelativePosition(const MikanVector3f& translation)
 {
 	m_relativeTransform.position = translation;
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativePositionPropertyId));
 }
 
 // -- Scene Component -----
-SceneComponent::SceneComponent(MikanObjectWeakPtr owner)
+TransformComponent::TransformComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 	, m_relativeTransform()
 	, m_worldTransform(glm::mat4(1.f))
 {
 }
 
-void SceneComponent::init()
+void TransformComponent::init()
 {
 	MikanComponent::init();
 }
 
-void SceneComponent::dispose()
+void TransformComponent::dispose()
 {
 	// Detach all children from this scene component first
 	while (m_childComponents.size() > 0)
 	{
-		SceneComponentPtr childComponent= m_childComponents[0].lock();
+		TransformComponentPtr childComponent= m_childComponents[0].lock();
 
 		if (childComponent)
 		{
@@ -140,21 +140,21 @@ void SceneComponent::dispose()
 	MikanComponent::dispose();
 }
 
-void SceneComponent::setDefinition(MikanComponentDefinitionPtr config)
+void TransformComponent::setDefinition(MikanComponentDefinitionPtr config)
 {
 	MikanComponent::setDefinition(config);
 
-	auto sceneComponentConfigPtr= std::static_pointer_cast<SceneComponentDefinition>(config);
+	auto transformComponentConfigPtr= std::static_pointer_cast<TransformComponentDefinition>(config);
 
 	// Initially the model component isn't attached to anything
 	assert(m_parentComponent.lock() == nullptr);
-	m_worldTransform = sceneComponentConfigPtr->getRelativeMat4();
+	m_worldTransform = transformComponentConfigPtr->getRelativeMat4();
 	m_relativeTransform = GlmTransform(m_worldTransform);
 }
 
-bool SceneComponent::attachToComponent(SceneComponentPtr newParentComponent)
+bool TransformComponent::attachToComponent(TransformComponentPtr newParentComponent)
 {
-	SceneComponentPtr oldParentComponent= m_parentComponent.lock();
+	TransformComponentPtr oldParentComponent= m_parentComponent.lock();
 
 	if (!newParentComponent || newParentComponent == oldParentComponent)
 		return false;
@@ -166,9 +166,9 @@ bool SceneComponent::attachToComponent(SceneComponentPtr newParentComponent)
 	}
 
 	// Attach to new parent
-	SceneComponentList& parentChildList= newParentComponent->m_childComponents;
+	TransformComponentList& parentChildList= newParentComponent->m_childComponents;
 
-	parentChildList.push_back(getSelfWeakPtr<SceneComponent>());
+	parentChildList.push_back(getSelfWeakPtr<TransformComponent>());
 	m_parentComponent = newParentComponent;
 
 	// Refresh world transform
@@ -177,19 +177,19 @@ bool SceneComponent::attachToComponent(SceneComponentPtr newParentComponent)
 	return true;
 }
 
-void SceneComponent::detachFromParent(eDetachReason reason)
+void TransformComponent::detachFromParent(eDetachReason reason)
 {
 	// Remove ourselves from our current parent's child list
-	SceneComponentPtr parent= m_parentComponent.lock();
+	TransformComponentPtr parent= m_parentComponent.lock();
 	if (parent != nullptr)
 	{
-		SceneComponentList& parentChildList= parent->m_childComponents;
+		TransformComponentList& parentChildList= parent->m_childComponents;
 
 		for (auto it = parentChildList.begin(); it != parentChildList.end(); ++it)
 		{
-			SceneComponentPtr sceneComponent= it->lock(); 
+			TransformComponentPtr transformComponent= it->lock(); 
 
-			if (sceneComponent.get() == this)
+			if (transformComponent.get() == this)
 			{
 				parentChildList.erase(it);
 				break;
@@ -198,7 +198,7 @@ void SceneComponent::detachFromParent(eDetachReason reason)
 	}
 
 	// Forget about our parent
-	m_parentComponent = SceneComponentPtr();
+	m_parentComponent = TransformComponentPtr();
 
 	// World transform is now the same as relative transform
 	m_worldTransform= m_relativeTransform.getMat4();
@@ -211,7 +211,7 @@ void SceneComponent::detachFromParent(eDetachReason reason)
 	}
 }
 
-void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
+void TransformComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 {
 	// Set the new relative transform directly
 	m_relativeTransform= newRelativeXform;
@@ -219,59 +219,59 @@ void SceneComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
 
 	if (m_bWasInitialized)
 	{
-		SceneComponentDefinitionPtr definitionPtr= getSceneComponentDefinition();
+		TransformComponentDefinitionPtr definitionPtr= getTransformComponentDefinition();
 		if (definitionPtr)
 			definitionPtr->setRelativeTransform(newRelativeXform);
 	}
 }
 
-void SceneComponent::setRelativePosition(const glm::vec3& position)
+void TransformComponent::setRelativePosition(const glm::vec3& position)
 {
 	m_relativeTransform.setPosition(position);
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	if (m_bWasInitialized)
 	{
-		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
+		TransformComponentDefinitionPtr definitionPtr = getTransformComponentDefinition();
 		if (definitionPtr)
 			definitionPtr->setRelativePosition(glm_vec3_to_MikanVector3f(position));
 	}
 }
 
-void SceneComponent::setRelativeRotation(const glm::quat& quat)
+void TransformComponent::setRelativeRotation(const glm::quat& quat)
 {
 	m_relativeTransform.setRotation(quat);
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	if (m_bWasInitialized)
 	{
-		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
+		TransformComponentDefinitionPtr definitionPtr = getTransformComponentDefinition();
 		if (definitionPtr)
 			definitionPtr->setRelativeRotation(glm_quat_to_MikanQuatf(quat));
 	}
 }
 
-void SceneComponent::setRelativeScale(const glm::vec3& scale)
+void TransformComponent::setRelativeScale(const glm::vec3& scale)
 {
 	m_relativeTransform.setScale(scale);
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	if (m_bWasInitialized)
 	{
-		SceneComponentDefinitionPtr definitionPtr = getSceneComponentDefinition();
+		TransformComponentDefinitionPtr definitionPtr = getTransformComponentDefinition();
 		if (definitionPtr)
 			definitionPtr->setRelativeScale(glm_vec3_to_MikanVector3f(scale));
 	}
 }
 
-void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
+void TransformComponent::setWorldTransform(const glm::mat4& newWorldXform)
 {
 	// Set the new world transform directly
 	m_worldTransform= newWorldXform;
 
 	// Subtract our new world transform from out parent to compute new relative transform
 	glm::mat4 invParentXform= glm::mat4(1.f);
-	SceneComponentPtr parent = m_parentComponent.lock();
+	TransformComponentPtr parent = m_parentComponent.lock();
 	if (parent != nullptr)
 	{
 		invParentXform= glm::inverse(parent->getWorldTransform());
@@ -284,7 +284,7 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	// If this component has an associated definition, update it too
 	if (m_bWasInitialized)
 	{
-		SceneComponentDefinitionPtr definitionPtr= getSceneComponentDefinition();
+		TransformComponentDefinitionPtr definitionPtr= getTransformComponentDefinition();
 
 		if (definitionPtr)
 		{
@@ -293,18 +293,18 @@ void SceneComponent::setWorldTransform(const glm::mat4& newWorldXform)
 	}
 }
 
-const glm::vec3 SceneComponent::getWorldLocation() const
+const glm::vec3 TransformComponent::getWorldLocation() const
 {
 	return glm_mat4_get_position(m_worldTransform);
 }
 
-void SceneComponent::propogateWorldTransformChange(eTransformChangeType reason)
+void TransformComponent::propogateWorldTransformChange(eTransformChangeType reason)
 {
 	// Recompute our world transform, if requested
 	if (reason == eTransformChangeType::recomputeWorldTransformAndPropogate)
 	{
 		// Concat our transform to our parent's world transform
-		SceneComponentPtr parent = m_parentComponent.lock();
+		TransformComponentPtr parent = m_parentComponent.lock();
 		if (parent != nullptr)
 		{
 			m_worldTransform = glm_composite_xform(m_relativeTransform.getMat4(), parent->getWorldTransform());
@@ -322,9 +322,9 @@ void SceneComponent::propogateWorldTransformChange(eTransformChangeType reason)
 	}
 
 	// Propagate our updated world transform to our children
-	for (SceneComponentWeakPtr childComponentWeakPtr : m_childComponents)
+	for (TransformComponentWeakPtr childComponentWeakPtr : m_childComponents)
 	{
-		SceneComponentPtr childComponent= childComponentWeakPtr.lock();
+		TransformComponentPtr childComponent= childComponentWeakPtr.lock();
 
 		if (childComponent != nullptr)
 		{
@@ -335,51 +335,51 @@ void SceneComponent::propogateWorldTransformChange(eTransformChangeType reason)
 }
 
 // -- IPropertyInterface ----
-void SceneComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void TransformComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
 {
 	MikanComponent::getPropertyNames(outPropertyNames);
 
-	outPropertyNames.push_back(SceneComponentDefinition::k_relativeScalePropertyId);
-	outPropertyNames.push_back(SceneComponentDefinition::k_relativeRotationPropertyId);
-	outPropertyNames.push_back(SceneComponentDefinition::k_relativePositionPropertyId);
+	outPropertyNames.push_back(TransformComponentDefinition::k_relativeScalePropertyId);
+	outPropertyNames.push_back(TransformComponentDefinition::k_relativeRotationPropertyId);
+	outPropertyNames.push_back(TransformComponentDefinition::k_relativePositionPropertyId);
 }
 
-bool SceneComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
+bool TransformComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
 {
 	if (MikanComponent::getPropertyDescriptor(propertyName, outDescriptor))
 		return true;
 
-	if (propertyName == SceneComponentDefinition::k_relativeScalePropertyId)
+	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
-		outDescriptor = {SceneComponentDefinition::k_relativeScalePropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::scale};
+		outDescriptor = {TransformComponentDefinition::k_relativeScalePropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::scale};
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeRotationPropertyId)
+	else if (propertyName == TransformComponentDefinition::k_relativeRotationPropertyId)
 	{
-		outDescriptor = {SceneComponentDefinition::k_relativeRotationPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::rotation};
+		outDescriptor = {TransformComponentDefinition::k_relativeRotationPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::rotation};
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativePositionPropertyId)
+	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
 	{
-		outDescriptor = {SceneComponentDefinition::k_relativePositionPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
+		outDescriptor = {TransformComponentDefinition::k_relativePositionPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
 		return true;
 	}
 
 	return false;
 }
 
-bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+bool TransformComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
 {
 	if (MikanComponent::getPropertyValue(propertyName, outValue))
 		return true;
 
-	if (propertyName == SceneComponentDefinition::k_relativeScalePropertyId)
+	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
 		const glm::vec3& scale = getRelativeScale();
 		outValue = Rml::Vector3f(scale.x, scale.y, scale.z);
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeRotationPropertyId)
+	else if (propertyName == TransformComponentDefinition::k_relativeRotationPropertyId)
 	{
 		const glm::quat& model_orientation = getRelativeRotation();
 
@@ -392,7 +392,7 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 		outValue = Rml::Vector3f(angles[0], angles[1], angles[2]);
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativePositionPropertyId)
+	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
 	{
 		const glm::vec3& pos = getRelativePosition();
 		outValue = Rml::Vector3f(pos.x, pos.y, pos.z);
@@ -402,19 +402,19 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 	return false;
 }
 
-bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool TransformComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
 {
 	if (MikanComponent::setPropertyValue(propertyName, inValue))
 		return true;
 
-	if (propertyName == SceneComponentDefinition::k_relativeScalePropertyId)
+	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
 		Rml::Vector3 scale = inValue.Get<Rml::Vector3f>();
 
 		setRelativeScale(glm::vec3(scale.x, scale.y, scale.z));
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativeRotationPropertyId)
+	else if (propertyName == TransformComponentDefinition::k_relativeRotationPropertyId)
 	{
 		Rml::Vector3 angles = inValue.Get<Rml::Vector3f>();
 
@@ -427,7 +427,7 @@ bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml
 		setRelativeRotation(quat);
 		return true;
 	}
-	else if (propertyName == SceneComponentDefinition::k_relativePositionPropertyId)
+	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
 	{
 		Rml::Vector3 pos = inValue.Get<Rml::Vector3f>();
 

@@ -101,8 +101,8 @@ public:
 	}
 
 	inline MikanObjectSystemPtr getOwnerSystem() const { return m_ownerObjectSystem.lock(); }
-	inline SceneComponentPtr getRootComponent() const { return m_rootSceneComponent.lock(); }
-	inline void setRootComponent(SceneComponentWeakPtr sceneComponent) { m_rootSceneComponent= sceneComponent; }
+	inline TransformComponentPtr getRootComponent() const { return m_rootTransformComponent.lock(); }
+	inline void setRootComponent(TransformComponentWeakPtr transformComponent) { m_rootTransformComponent= transformComponent; }
 
 	// Called from owning object system
 	void init();
@@ -115,6 +115,6 @@ public:
 protected:
 	std::string m_name;
 	MikanObjectSystemWeakPtr m_ownerObjectSystem;
-	SceneComponentWeakPtr m_rootSceneComponent;
+	TransformComponentWeakPtr m_rootTransformComponent;
 	std::vector<MikanComponentPtr> m_components;
 };

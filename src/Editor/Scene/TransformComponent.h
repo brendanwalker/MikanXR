@@ -15,13 +15,13 @@
 
 #include <vector>
 
-using SceneComponentList= std::vector<SceneComponentWeakPtr>;
+using TransformComponentList= std::vector<TransformComponentWeakPtr>;
 
-class SceneComponentDefinition : public MikanComponentDefinition
+class TransformComponentDefinition : public MikanComponentDefinition
 {
 public:
-	SceneComponentDefinition();
-	SceneComponentDefinition(const std::string& componentName, const MikanTransform& xform);
+	TransformComponentDefinition();
+	TransformComponentDefinition(const std::string& componentName, const MikanTransform& xform);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -48,17 +48,17 @@ protected:
 	MikanTransform m_relativeTransform;
 };
 
-class SceneComponent : public MikanComponent
+class TransformComponent : public MikanComponent
 {
 public:
-	SceneComponent(MikanObjectWeakPtr owner);
+	TransformComponent(MikanObjectWeakPtr owner);
 
-	inline SceneComponentPtr getParentComponent() const
+	inline TransformComponentPtr getParentComponent() const
 	{
 		return m_parentComponent.lock();
 	}
 
-	inline const SceneComponentList& getChildComponents() const
+	inline const TransformComponentList& getChildComponents() const
 	{
 		return m_childComponents;
 	}
@@ -77,15 +77,15 @@ public:
 	virtual void dispose() override;
 
 	virtual void setDefinition(MikanComponentDefinitionPtr config) override;
-	inline SceneComponentDefinitionConstPtr getSceneComponentDefinitionConst() const
+	inline TransformComponentDefinitionConstPtr getTransformComponentDefinitionConst() const
 	{
-		return std::static_pointer_cast<const SceneComponentDefinition>(m_definition);
+		return std::static_pointer_cast<const TransformComponentDefinition>(m_definition);
 	}
-	inline SceneComponentDefinitionPtr getSceneComponentDefinition() { 
-		return std::static_pointer_cast<SceneComponentDefinition>(m_definition); 
+	inline TransformComponentDefinitionPtr getTransformComponentDefinition() { 
+		return std::static_pointer_cast<TransformComponentDefinition>(m_definition); 
 	}
 	
-	bool attachToComponent(SceneComponentPtr newParentComponent);
+	bool attachToComponent(TransformComponentPtr newParentComponent);
 	enum class eDetachReason : int
 	{
 		selfDisposed,
@@ -126,7 +126,7 @@ protected:
 
 	GlmTransform m_relativeTransform;
 	glm::mat4 m_worldTransform;
-	SceneComponentWeakPtr m_parentComponent;
-	SceneComponentList m_childComponents;
+	TransformComponentWeakPtr m_parentComponent;
+	TransformComponentList m_childComponents;
 	IMkSceneRenderablePtr m_sceneRenderable;
 };

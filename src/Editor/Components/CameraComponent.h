@@ -2,7 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
@@ -14,7 +14,7 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 
-class CameraDefinition : public SceneComponentDefinition
+class CameraDefinition : public TransformComponentDefinition
 {
 public:
 	CameraDefinition();
@@ -32,7 +32,7 @@ private:
 	MikanCameraID m_CameraId;
 };
 
-class CameraComponent : public SceneComponent
+class CameraComponent : public TransformComponent
 {
 public:
 	CameraComponent(MikanObjectWeakPtr owner);

@@ -12,14 +12,14 @@
 #include "SDL_keycode.h"
 
 GizmoTransformComponent::GizmoTransformComponent(MikanObjectWeakPtr owner)
-	: SceneComponent(owner)
+	: TransformComponent(owner)
 {
 	m_bWantsCustomRender= true;
 }
 
 void GizmoTransformComponent::init()
 {
-	SceneComponent::init();
+	TransformComponent::init();
 
 	MikanObjectPtr owner= getOwnerObject();
 
@@ -173,7 +173,7 @@ void GizmoTransformComponent::setSelectionTarget(SelectionComponentPtr selection
 	clearSelectionTarget();
 
 	// Apply transforms to the root component of the mikan object that owns the selection target
-	SceneComponentPtr transformTarget= selectionTarget->getOwnerObject()->getRootComponent();
+	TransformComponentPtr transformTarget= selectionTarget->getOwnerObject()->getRootComponent();
 
 	// Tell the new selection target that the gizmo is bound to it
 	selectionTarget->notifyTransformGizmoBound();
@@ -201,7 +201,7 @@ void GizmoTransformComponent::setSelectionTarget(SelectionComponentPtr selection
 
 void GizmoTransformComponent::clearSelectionTarget()
 {
-	SceneComponentPtr oldTransformTarget= m_transformTarget.lock();
+	TransformComponentPtr oldTransformTarget= m_transformTarget.lock();
 	SelectionComponentPtr oldSelectionTarget= m_selectionTarget.lock();
 
 	// Tell the old selection target that the gizmo is no longer bound to it
@@ -227,12 +227,12 @@ void GizmoTransformComponent::applyTransformToGizmo()
 {
 	assert(!m_bIsApplyingTransformToTarget);
 
-	SceneComponentPtr sceneComponentTarget = m_transformTarget.lock();
+	TransformComponentPtr transformComponentTarget = m_transformTarget.lock();
 
-	if (sceneComponentTarget)
+	if (transformComponentTarget)
 	{
 		// Extract scale from rotation&translation on target world transform
-		const glm::mat4 srtTransform = sceneComponentTarget->getWorldTransform();
+		const glm::mat4 srtTransform = transformComponentTarget->getWorldTransform();
 		const glm::vec3 xAxis = glm_mat4_get_x_axis(srtTransform);
 		const glm::vec3 yAxis = glm_mat4_get_y_axis(srtTransform);
 		const glm::vec3 zAxis = glm_mat4_get_z_axis(srtTransform);
@@ -257,9 +257,9 @@ void GizmoTransformComponent::applyTransformToGizmo()
 
 void GizmoTransformComponent::applyTransformToTarget()
 {
-	SceneComponentPtr sceneComponentTarget= m_transformTarget.lock();
+	TransformComponentPtr transformComponentTarget= m_transformTarget.lock();
 
-	if (sceneComponentTarget)
+	if (transformComponentTarget)
 	{
 		// Apply scale back to rotation&translation on target world transform
 		const glm::mat4 rtTransform = getWorldTransform();
@@ -274,7 +274,7 @@ void GizmoTransformComponent::applyTransformToTarget()
 			glm::vec4(position, 1.f));
 
 		m_bIsApplyingTransformToTarget = true;
-		sceneComponentTarget->setWorldTransform(srtTransform);
+		transformComponentTarget->setWorldTransform(srtTransform);
 		m_bIsApplyingTransformToTarget = false;
 	}
 }
@@ -284,9 +284,9 @@ void GizmoTransformComponent::onTransformTargetConfigChange(
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
 	// Did a transform property of the gizmo target change?
-	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
-		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeRotationPropertyId) ||
-		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
+	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId) ||
+		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeRotationPropertyId) ||
+		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId))
 	{
 		// Ignore if this gizmo was the one applying the change (in applyTransformToTarget)
 		// Otherwise this was a change committed by the UI

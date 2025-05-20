@@ -15,7 +15,7 @@
 #include "MathUtility.h"
 #include "MathGLM.h"
 #include "ModelStencilComponent.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"

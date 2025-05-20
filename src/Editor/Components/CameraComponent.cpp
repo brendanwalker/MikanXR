@@ -7,7 +7,7 @@
 #include "MainWindow.h"
 #include "MathGLM.h"
 #include "ProjectConfig.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "SelectionComponent.h"
 #include "MikanObject.h"
 #include "MikanCameraTypes.h"
@@ -18,7 +18,7 @@
 
 // -- CameraConfig -----
 CameraDefinition::CameraDefinition()
-	: SceneComponentDefinition()
+	: TransformComponentDefinition()
 {
 	m_CameraId = INVALID_MIKAN_ID;
 }
@@ -27,14 +27,14 @@ CameraDefinition::CameraDefinition(
 	MikanCameraID cameraId,
 	const std::string& cameraName,
 	const MikanTransform& xform)
-	: SceneComponentDefinition(cameraName, xform)
+	: TransformComponentDefinition(cameraName, xform)
 	, m_CameraId(cameraId)
 {
 }
 
 configuru::Config CameraDefinition::writeToJSON()
 {
-	configuru::Config pt = SceneComponentDefinition::writeToJSON();
+	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt["id"] = m_CameraId;
 
@@ -43,7 +43,7 @@ configuru::Config CameraDefinition::writeToJSON()
 
 void CameraDefinition::readFromJSON(const configuru::Config& pt)
 {
-	SceneComponentDefinition::readFromJSON(pt);
+	TransformComponentDefinition::readFromJSON(pt);
 
 	if (pt.has_key("id"))
 	{
@@ -54,7 +54,7 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 
 // -- CameraComponent -----
 CameraComponent::CameraComponent(MikanObjectWeakPtr owner)
-	: SceneComponent(owner)
+	: TransformComponent(owner)
 {
 	m_bWantsCustomRender= true;
 }
@@ -110,7 +110,7 @@ const std::string CameraComponent::k_deleteCameraFunctionId = "delete_camera";
 
 void CameraComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
 {
-	SceneComponent::getFunctionNames(outPropertyNames);
+	TransformComponent::getFunctionNames(outPropertyNames);
 
 	outPropertyNames.push_back(k_editCameraFunctionId);
 	outPropertyNames.push_back(k_deleteCameraFunctionId);
@@ -118,7 +118,7 @@ void CameraComponent::getFunctionNames(std::vector<std::string>& outPropertyName
 
 bool CameraComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
 {
-	if (SceneComponent::getFunctionDescriptor(functionName, outDescriptor))
+	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
 		return true;
 
 	if (functionName == CameraComponent::k_editCameraFunctionId)
@@ -137,7 +137,7 @@ bool CameraComponent::getFunctionDescriptor(const std::string& functionName, Fun
 
 bool CameraComponent::invokeFunction(const std::string& functionName)
 {
-	if (SceneComponent::invokeFunction(functionName))
+	if (TransformComponent::invokeFunction(functionName))
 		return true;
 
 	if (functionName == CameraComponent::k_editCameraFunctionId)

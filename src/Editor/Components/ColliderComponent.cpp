@@ -1,7 +1,7 @@
 #include "ColliderComponent.h"
 
 ColliderComponent::ColliderComponent(MikanObjectWeakPtr owner)
-	: SceneComponent(owner)
+	: TransformComponent(owner)
 {
 }
 

@@ -36,7 +36,7 @@ private:
 
 	void rebuildComponentList();
 	void updateSelection();
-	void addSceneComponent(SceneComponentPtr sceneComponentPtr, int depth);
+	void addTransformComponent(TransformComponentPtr transformComponentPtr, int depth);
 
 	AnchorObjectSystemPtr m_anchorSystemPtr;
 	EditorObjectSystemPtr m_editorSystemPtr;

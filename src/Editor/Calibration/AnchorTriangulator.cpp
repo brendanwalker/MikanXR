@@ -14,7 +14,7 @@
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"

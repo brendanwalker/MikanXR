@@ -2,7 +2,7 @@
 #include "AnchorComponent.h"
 #include "StencilComponent.h"
 #include "StencilObjectSystem.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "MikanObject.h"
 #include "StringUtils.h"
 
@@ -26,7 +26,7 @@ StencilComponentDefinition::StencilComponentDefinition(
 	MikanSpatialAnchorID parentAnchorId,
 	const std::string& componentName, 
 	const MikanTransform& xform)
-	: SceneComponentDefinition(componentName, xform)
+	: TransformComponentDefinition(componentName, xform)
 	, m_stencilId(stencilId)
 	, m_parentAnchorId(parentAnchorId)
 	, m_bIsDisabled(false)
@@ -35,7 +35,7 @@ StencilComponentDefinition::StencilComponentDefinition(
 
 configuru::Config StencilComponentDefinition::writeToJSON()
 {
-	configuru::Config pt = SceneComponentDefinition::writeToJSON();
+	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt["stencil_id"] = m_stencilId;
 	pt[k_parentAnchorPropertyId] = m_parentAnchorId;
@@ -47,7 +47,7 @@ configuru::Config StencilComponentDefinition::writeToJSON()
 
 void StencilComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
-	SceneComponentDefinition::readFromJSON(pt);
+	TransformComponentDefinition::readFromJSON(pt);
 
 	m_stencilId = pt.get<int>("stencil_id");
 	m_parentAnchorId = pt.get_or<int>(k_parentAnchorPropertyId, INVALID_MIKAN_ID);
@@ -86,21 +86,21 @@ void StencilComponentDefinition::setCullMode(eStencilCullMode mode)
 
 // -- StencilComponent -----
 StencilComponent::StencilComponent(MikanObjectWeakPtr owner)
-	: SceneComponent(owner)
+	: TransformComponent(owner)
 {
 }
 
 void StencilComponent::setDefinition(MikanComponentDefinitionPtr definition)
 {
-	SceneComponent::setDefinition(definition);
+	TransformComponent::setDefinition(definition);
 
 	// Setup initial attachment
 	auto stencilComponentConfigPtr = std::static_pointer_cast<StencilComponentDefinition>(definition);
 	MikanSpatialAnchorID currentParentId = stencilComponentConfigPtr->getParentAnchorId();
-	attachSceneComponentToAnchor(currentParentId);
+	attachTransformComponentToAnchor(currentParentId);
 }
 
-void StencilComponent::attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId)
+void StencilComponent::attachTransformComponentToAnchor(MikanSpatialAnchorID newParentId)
 {
 	if (newParentId != INVALID_MIKAN_ID)
 	{
@@ -129,7 +129,7 @@ void StencilComponent::attachSceneComponentToAnchor(MikanSpatialAnchorID newPare
 // -- IPropertyInterface ----
 void StencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
 {
-	SceneComponent::getPropertyNames(outPropertyNames);
+	TransformComponent::getPropertyNames(outPropertyNames);
 
 	outPropertyNames.push_back(StencilComponentDefinition::k_stencilDisabledPropertyId);
 	outPropertyNames.push_back(StencilComponentDefinition::k_parentAnchorPropertyId);
@@ -138,7 +138,7 @@ void StencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNam
 
 bool StencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
 {
-	if (SceneComponent::getPropertyDescriptor(propertyName, outDescriptor))
+	if (TransformComponent::getPropertyDescriptor(propertyName, outDescriptor))
 		return true;
 
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
@@ -162,7 +162,7 @@ bool StencilComponent::getPropertyDescriptor(const std::string& propertyName, Pr
 
 bool StencilComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
 {
-	if (SceneComponent::getPropertyValue(propertyName, outValue))
+	if (TransformComponent::getPropertyValue(propertyName, outValue))
 		return true;
 
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
@@ -186,7 +186,7 @@ bool StencilComponent::getPropertyValue(const std::string& propertyName, Rml::Va
 
 bool StencilComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
 {
-	if (SceneComponent::setPropertyValue(propertyName, inValue))
+	if (TransformComponent::setPropertyValue(propertyName, inValue))
 		return true;
 
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
@@ -200,7 +200,7 @@ bool StencilComponent::setPropertyValue(const std::string& propertyName, const R
 	{
 		MikanSpatialAnchorID anchorId = inValue.Get<int>();
 
-		attachSceneComponentToAnchor(anchorId);
+		attachTransformComponentToAnchor(anchorId);
 		return true;
 	}
 	else if (propertyName == StencilComponentDefinition::k_stencilCullModePropertyId)
@@ -219,14 +219,14 @@ const std::string StencilComponent::k_deleteStencilFunctionId= "delete_stencil";
 
 void StencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
 {
-	SceneComponent::getFunctionNames(outPropertyNames);
+	TransformComponent::getFunctionNames(outPropertyNames);
 
 	outPropertyNames.push_back(k_deleteStencilFunctionId);
 }
 
 bool StencilComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
 {
-	if (SceneComponent::getFunctionDescriptor(functionName, outDescriptor))
+	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
 		return true;
 
 	if (functionName == StencilComponent::k_deleteStencilFunctionId)
@@ -240,7 +240,7 @@ bool StencilComponent::getFunctionDescriptor(const std::string& functionName, Fu
 
 bool StencilComponent::invokeFunction(const std::string& functionName)
 {
-	if (SceneComponent::invokeFunction(functionName))
+	if (TransformComponent::invokeFunction(functionName))
 		return true;
 
 	if (functionName == StencilComponent::k_deleteStencilFunctionId)

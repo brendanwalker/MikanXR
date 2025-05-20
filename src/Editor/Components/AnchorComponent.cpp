@@ -8,7 +8,7 @@
 #include "MainWindow.h"
 #include "MathGLM.h"
 #include "ProjectConfig.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "SelectionComponent.h"
 #include "MikanObject.h"
 #include "MikanSpatialAnchorTypes.h"
@@ -19,7 +19,7 @@
 
 // -- AnchorConfig -----
 AnchorDefinition::AnchorDefinition()
-	: SceneComponentDefinition()
+	: TransformComponentDefinition()
 {
 	m_anchorId = INVALID_MIKAN_ID;
 }
@@ -28,14 +28,14 @@ AnchorDefinition::AnchorDefinition(
 	MikanSpatialAnchorID anchorId,
 	const std::string& anchorName,
 	const MikanTransform& xform)
-	: SceneComponentDefinition(StringUtils::stringify("Anchor_", anchorId), xform)
+	: TransformComponentDefinition(StringUtils::stringify("Anchor_", anchorId), xform)
 	, m_anchorId(anchorId)
 {
 }
 
 configuru::Config AnchorDefinition::writeToJSON()
 {
-	configuru::Config pt = SceneComponentDefinition::writeToJSON();
+	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt["id"] = m_anchorId;
 
@@ -44,7 +44,7 @@ configuru::Config AnchorDefinition::writeToJSON()
 
 void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 {
-	SceneComponentDefinition::readFromJSON(pt);
+	TransformComponentDefinition::readFromJSON(pt);
 
 	if (pt.has_key("id"))
 	{
@@ -55,7 +55,7 @@ void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 
 // -- AnchorComponent -----
 AnchorComponent::AnchorComponent(MikanObjectWeakPtr owner)
-	: SceneComponent(owner)
+	: TransformComponent(owner)
 {
 	m_bWantsCustomRender= true;
 }
@@ -114,7 +114,7 @@ const std::string AnchorComponent::k_deleteAnchorFunctionId = "delete_anchor";
 
 void AnchorComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
 {
-	SceneComponent::getFunctionNames(outPropertyNames);
+	TransformComponent::getFunctionNames(outPropertyNames);
 
 	AnchorObjectSystemPtr anchorSystemPtr = AnchorObjectSystem::getSystem();
 
@@ -124,7 +124,7 @@ void AnchorComponent::getFunctionNames(std::vector<std::string>& outPropertyName
 
 bool AnchorComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
 {
-	if (SceneComponent::getFunctionDescriptor(functionName, outDescriptor))
+	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
 		return true;
 
 	if (functionName == AnchorComponent::k_editAnchorFunctionId)
@@ -143,7 +143,7 @@ bool AnchorComponent::getFunctionDescriptor(const std::string& functionName, Fun
 
 bool AnchorComponent::invokeFunction(const std::string& functionName)
 {
-	if (SceneComponent::invokeFunction(functionName))
+	if (TransformComponent::invokeFunction(functionName))
 		return true;
 
 	if (functionName == AnchorComponent::k_editAnchorFunctionId)

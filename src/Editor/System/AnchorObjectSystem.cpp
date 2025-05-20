@@ -2,7 +2,7 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
 #include "BoxColliderComponent.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"

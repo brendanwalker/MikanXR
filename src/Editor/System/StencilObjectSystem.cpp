@@ -6,7 +6,7 @@
 #include "BoxColliderComponent.h"
 #include "MeshColliderComponent.h"
 #include "MikanObject.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
 #include "ModelStencilComponent.h"

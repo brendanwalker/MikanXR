@@ -3,14 +3,14 @@
 #include "MikanComponent.h"
 #include "MikanStencilTypes.h"
 #include "FrameCompositorConstants.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 
 #include <string>
 
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-class StencilComponentDefinition : public SceneComponentDefinition
+class StencilComponentDefinition : public TransformComponentDefinition
 {
 public:
 	StencilComponentDefinition();
@@ -44,7 +44,7 @@ protected:
 	eStencilCullMode m_cullMode= eStencilCullMode::none;
 };
 
-class StencilComponent : public SceneComponent
+class StencilComponent : public TransformComponent
 {
 public:
 	StencilComponent(MikanObjectWeakPtr owner);
@@ -55,8 +55,7 @@ public:
 
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
-	MikanStencilID getParentAnchorId() const;
-	void attachSceneComponentToAnchor(MikanSpatialAnchorID newParentId);
+	void attachTransformComponentToAnchor(MikanSpatialAnchorID newParentId);
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;

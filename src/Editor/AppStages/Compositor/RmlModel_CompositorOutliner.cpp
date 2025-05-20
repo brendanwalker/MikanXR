@@ -8,7 +8,7 @@
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
 #include "StencilComponent.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "StencilObjectSystemConfig.h"
 #include "RmlModel_CompositorOutliner.h"
 #include "ProjectConfig.h"
@@ -155,11 +155,11 @@ void RmlModel_CompositorOutliner::rebuildComponentList()
 		AnchorComponentPtr anchorComponentPtr= it.second.lock();
 		if (anchorComponentPtr)
 		{
-			SceneComponentPtr rootComponent= anchorComponentPtr->getOwnerObject()->getRootComponent();
+			TransformComponentPtr rootComponent= anchorComponentPtr->getOwnerObject()->getRootComponent();
 
 			if (rootComponent->getParentComponent() == nullptr)
 			{
-				addSceneComponent(rootComponent, 0);
+				addTransformComponent(rootComponent, 0);
 			}
 		}
 	}
@@ -170,11 +170,11 @@ void RmlModel_CompositorOutliner::rebuildComponentList()
 		QuadStencilComponentPtr stencilComponentPtr = it.second.lock();
 		if (stencilComponentPtr)
 		{
-			SceneComponentPtr rootComponent = stencilComponentPtr->getOwnerObject()->getRootComponent();
+			TransformComponentPtr rootComponent = stencilComponentPtr->getOwnerObject()->getRootComponent();
 
 			if (rootComponent->getParentComponent() == nullptr)
 			{
-				addSceneComponent(rootComponent, 0);
+				addTransformComponent(rootComponent, 0);
 			}
 		}
 	}
@@ -183,11 +183,11 @@ void RmlModel_CompositorOutliner::rebuildComponentList()
 		BoxStencilComponentPtr stencilComponentPtr = it.second.lock();
 		if (stencilComponentPtr)
 		{
-			SceneComponentPtr rootComponent = stencilComponentPtr->getOwnerObject()->getRootComponent();
+			TransformComponentPtr rootComponent = stencilComponentPtr->getOwnerObject()->getRootComponent();
 
 			if (rootComponent->getParentComponent() == nullptr)
 			{
-				addSceneComponent(rootComponent, 0);
+				addTransformComponent(rootComponent, 0);
 			}
 		}
 	}
@@ -196,11 +196,11 @@ void RmlModel_CompositorOutliner::rebuildComponentList()
 		ModelStencilComponentPtr stencilComponentPtr= it.second.lock();
 		if (stencilComponentPtr)
 		{
-			SceneComponentPtr rootComponent= stencilComponentPtr->getOwnerObject()->getRootComponent();
+			TransformComponentPtr rootComponent= stencilComponentPtr->getOwnerObject()->getRootComponent();
 
 			if (rootComponent->getParentComponent() == nullptr)
 			{
-				addSceneComponent(rootComponent, 0);
+				addTransformComponent(rootComponent, 0);
 			}
 		}
 	}
@@ -227,13 +227,13 @@ void RmlModel_CompositorOutliner::updateSelection()
 	m_modelHandle.DirtyVariable("selection_index");
 }
 
-void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneComponentPtr, int depth)
+void RmlModel_CompositorOutliner::addTransformComponent(TransformComponentPtr transformComponentPtr, int depth)
 {
-	if (!sceneComponentPtr || sceneComponentPtr->getWasDisposed())
+	if (!transformComponentPtr || transformComponentPtr->getWasDisposed())
 		return;
 
-	MikanObjectPtr ownerObject= sceneComponentPtr->getOwnerObject();
-	if (ownerObject->getRootComponent() == sceneComponentPtr)
+	MikanObjectPtr ownerObject= transformComponentPtr->getOwnerObject();
+	if (ownerObject->getRootComponent() == transformComponentPtr)
 	{
 		const std::string& name= ownerObject->getRootComponent()->getName();
 		SelectionComponentPtr selectionComponent= ownerObject->getComponentOfType<SelectionComponent>();
@@ -242,20 +242,20 @@ void RmlModel_CompositorOutliner::addSceneComponent(SceneComponentPtr sceneCompo
 		m_componentOutliner.push_back(object);
 	}
 
-	for (SceneComponentWeakPtr childSceneComponentWeakPtr : sceneComponentPtr->getChildComponents())
+	for (TransformComponentWeakPtr childTransformComponentWeakPtr : transformComponentPtr->getChildComponents())
 	{
-		SceneComponentPtr childSceneComponentPtr= childSceneComponentWeakPtr.lock();
+		TransformComponentPtr childTransformComponentPtr= childTransformComponentWeakPtr.lock();
 		
-		if (childSceneComponentPtr)
+		if (childTransformComponentPtr)
 		{
 			int objectDepth= depth;
 
-			if (childSceneComponentPtr->getOwnerObject() != ownerObject)
+			if (childTransformComponentPtr->getOwnerObject() != ownerObject)
 			{
 				objectDepth++;
 			}
 
-			addSceneComponent(childSceneComponentPtr, objectDepth);
+			addTransformComponent(childTransformComponentPtr, objectDepth);
 		}
 	}
 }

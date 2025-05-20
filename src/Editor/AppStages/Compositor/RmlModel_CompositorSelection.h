@@ -70,7 +70,7 @@ public:
 		StencilObjectSystemPtr stencilSystemPtr);
 	virtual void dispose() override;
 
-	inline SceneComponentPtr getSelectedComponent() { return m_selectedComponentWeakPtr.lock(); }
+	inline TransformComponentPtr getSelectedComponent() { return m_selectedComponentWeakPtr.lock(); }
 
 private:
 	void anchorSystemConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
@@ -92,7 +92,7 @@ private:
 	Rml::Vector<int> m_spatialAnchorIds;
 	Rml::Vector<int> m_stencilCullModeValues;
 
-	SceneComponentWeakPtr m_selectedComponentWeakPtr;
+	TransformComponentWeakPtr m_selectedComponentWeakPtr;
 
 	Rml::Vector<RmlModel_ComponentField> m_componentNameFieldModels;
 	Rml::Vector<RmlModel_ComponentField> m_componentAnchorIdFieldModels;

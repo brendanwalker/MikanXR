@@ -1,7 +1,7 @@
 #include "App.h"
 #include "CameraObjectSystem.h"
 #include "CameraComponent.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"

@@ -5,7 +5,7 @@
 #include "MathTypeConversion.h"
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "StencilComponent.h"
 #include "RmlModel_CompositorSelection.h"
 #include "PathUtils.h"
@@ -273,7 +273,7 @@ bool RmlModel_CompositorSelection::init(
 			RmlModel_ComponentField* rmlFieldModel= getFieldByPropertyName(fieldName);
 			if (rmlFieldModel != nullptr)
 			{
-				SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
+				TransformComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
 				if (selectedComponent)
 				{
 					if (rmlFieldModel->semantic_type == ePropertySemantic::anchor_id)
@@ -336,7 +336,7 @@ bool RmlModel_CompositorSelection::init(
 				const RmlModel_ComponentField& rmlFieldModel = m_componentFilenameFieldModels[field_index];
 				const std::string propertyName = rmlFieldModel.field_name;
 
-				SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
+				TransformComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
 				if (selectedComponent)
 				{					
 					std::string defaultFileAndPath= rmlFieldModel.valueContainer.Get<Rml::String>();
@@ -390,7 +390,7 @@ bool RmlModel_CompositorSelection::init(
 			const int function_index = (arguments.size() == 1 ? arguments[0].Get<int>(-1) : -1);
 			if (function_index >= 0)
 			{			
-				SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
+				TransformComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
 				if (selectedComponent)
 				{
 					const RmlModel_ComponentFunction& rmlFunctionModel = m_componentFunctionModels[function_index];
@@ -458,7 +458,7 @@ void RmlModel_CompositorSelection::applyConfigChangesToSelection(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	SceneComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
+	TransformComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
 
 	if (configPtr && selectedComponent && selectedComponent->getDefinition() == configPtr)
 	{
@@ -529,8 +529,8 @@ RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldByPropertyName(co
 
 void RmlModel_CompositorSelection::updateSelection()
 {
-	SceneComponentPtr oldSelection = m_selectedComponentWeakPtr.lock();
-	SceneComponentPtr newSelection= oldSelection;
+	TransformComponentPtr oldSelection = m_selectedComponentWeakPtr.lock();
+	TransformComponentPtr newSelection= oldSelection;
 
 	SelectionComponentPtr selectionComponent= m_editorSystemPtr->getSelection();
 	if (selectionComponent)
@@ -569,7 +569,7 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 	m_componentFilenameFieldModels.clear();
 	m_componentCullModeFieldModels.clear();
 
-	SceneComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
+	TransformComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
 	if (currentSelection)
 	{
 		std::vector<std::string> propertyNames;
@@ -691,7 +691,7 @@ void RmlModel_CompositorSelection::rebuildFunctionList()
 {
 	m_componentFunctionModels.clear();
 
-	SceneComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
+	TransformComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
 	if (currentSelection)
 	{
 		std::vector<std::string> functionNames;

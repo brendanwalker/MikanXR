@@ -5,9 +5,9 @@
 #include "IMkMesh.h"
 #include "ObjectSystemFwd.h"
 #include "MikanRendererFwd.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 
-class StaticMeshComponent : public SceneComponent
+class StaticMeshComponent : public TransformComponent
 {
 public:
 	StaticMeshComponent(MikanObjectWeakPtr owner);

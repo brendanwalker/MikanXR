@@ -2,13 +2,13 @@
 
 #include "ColliderQuery.h"
 #include "ColliderComponent.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "IMkMesh.h"
 #include "ObjectFwd.h"
 
 #include <memory>
 
-class ColliderComponent : public SceneComponent
+class ColliderComponent : public TransformComponent
 {
 public:
 	ColliderComponent(MikanObjectWeakPtr owner);

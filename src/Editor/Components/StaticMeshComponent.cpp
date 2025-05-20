@@ -9,7 +9,7 @@
 #include "MikanStencilTypes.h"
 
 StaticMeshComponent::StaticMeshComponent(MikanObjectWeakPtr owner)
-	: SceneComponent(owner)
+	: TransformComponent(owner)
 {
 }
 

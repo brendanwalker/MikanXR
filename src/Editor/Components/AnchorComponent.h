@@ -2,7 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
@@ -14,7 +14,7 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 
-class AnchorDefinition : public SceneComponentDefinition
+class AnchorDefinition : public TransformComponentDefinition
 {
 public:
 	AnchorDefinition();
@@ -32,7 +32,7 @@ private:
 	MikanSpatialAnchorID m_anchorId;
 };
 
-class AnchorComponent : public SceneComponent
+class AnchorComponent : public TransformComponent
 {
 public:
 	AnchorComponent(MikanObjectWeakPtr owner);

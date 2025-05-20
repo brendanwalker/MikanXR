@@ -3,7 +3,7 @@
 #include "ObjectSystemFwd.h"
 #include "ComponentFwd.h"
 #include "GizmoFwd.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 
 enum class eGizmoMode : int
 {
@@ -13,7 +13,7 @@ enum class eGizmoMode : int
 	scale
 };
 
-class GizmoTransformComponent : public SceneComponent
+class GizmoTransformComponent : public TransformComponent
 {
 public:
 	GizmoTransformComponent(MikanObjectWeakPtr owner);
@@ -38,7 +38,7 @@ protected:
 	GizmoRotateComponentWeakPtr m_rotateComponent;
 	GizmoScaleComponentWeakPtr m_scaleComponent;
 	SelectionComponentWeakPtr m_selectionTarget;
-	SceneComponentWeakPtr m_transformTarget;
+	TransformComponentWeakPtr m_transformTarget;
 
 	glm::vec3 m_targetScale;
 	bool m_bIsApplyingTransformToTarget= false;

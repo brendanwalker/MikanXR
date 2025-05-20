@@ -7,12 +7,12 @@ using MikanScenePtr = std::shared_ptr<MikanScene>;
 using MikanSceneConstPtr = std::shared_ptr<const MikanScene>;
 using MikanSceneWeakPtr = std::weak_ptr<MikanScene>;
 
-class SceneComponentDefinition;
-using SceneComponentDefinitionPtr = std::shared_ptr<SceneComponentDefinition>;
-using SceneComponentDefinitionConstPtr = std::shared_ptr<const SceneComponentDefinition>;
-using SceneComponentDefinitionWeakPtr = std::weak_ptr<SceneComponentDefinition>;
+class TransformComponentDefinition;
+using TransformComponentDefinitionPtr = std::shared_ptr<TransformComponentDefinition>;
+using TransformComponentDefinitionConstPtr = std::shared_ptr<const TransformComponentDefinition>;
+using TransformComponentDefinitionWeakPtr = std::weak_ptr<TransformComponentDefinition>;
 
-class SceneComponent;
-using SceneComponentPtr = std::shared_ptr<SceneComponent>;
-using SceneComponentConstPtr = std::shared_ptr<const SceneComponent>;
-using SceneComponentWeakPtr = std::weak_ptr<SceneComponent>;
+class TransformComponent;
+using TransformComponentPtr = std::shared_ptr<TransformComponent>;
+using TransformComponentConstPtr = std::shared_ptr<const TransformComponent>;
+using TransformComponentWeakPtr = std::weak_ptr<TransformComponent>;

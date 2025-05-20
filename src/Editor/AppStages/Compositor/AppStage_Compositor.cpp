@@ -43,7 +43,7 @@
 #include "PathUtils.h"
 #include "RmlUtility.h"
 #include "SdlUtility.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "StringUtils.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"

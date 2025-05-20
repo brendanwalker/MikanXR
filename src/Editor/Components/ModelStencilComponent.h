@@ -99,7 +99,7 @@ protected:
 protected:
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<IMkStaticMeshInstancePtr> m_wireframeMeshes;
-	std::vector<SceneComponentPtr> m_meshComponents;
+	std::vector<TransformComponentPtr> m_meshComponents;
 	std::vector<StaticMeshComponentPtr> m_triMeshComponents;
 	std::vector<MeshColliderComponentPtr> m_colliderComponents;
 	bool m_bIsHovered= false;

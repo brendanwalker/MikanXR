@@ -4,7 +4,7 @@
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "AnchorComponent.h"
-#include "SceneComponent.h"
+#include "TransformComponent.h"
 #include "BoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MikanObject.h"

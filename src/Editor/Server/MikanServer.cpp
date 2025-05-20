@@ -702,9 +702,9 @@ void MikanServer::handleAnchorSystemConfigChange(
 
 		publishAnchorNameUpdatedEvent(nameUpdateEvent);
 	}
-	else if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
-		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeRotationPropertyId) ||
-		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
+	else if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId) ||
+		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeRotationPropertyId) ||
+		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId))
 	{
 		AnchorDefinitionPtr anchorConfig= std::static_pointer_cast<AnchorDefinition>(configPtr);
 
@@ -756,9 +756,9 @@ void MikanServer::handleStencilSystemConfigChange(
 
 		publishStencilNameUpdatedEvent(nameUpdateEvent);
 	}
-	else if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativePositionPropertyId) ||
-		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeRotationPropertyId) ||
-		changedPropertySet.hasPropertyName(SceneComponentDefinition::k_relativeScalePropertyId))
+	else if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId) ||
+		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeRotationPropertyId) ||
+		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId))
 	{
 		auto anchorConfig = std::static_pointer_cast<StencilComponentDefinition>(configPtr);
 
