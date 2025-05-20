@@ -1,5 +1,6 @@
 // -- includes -----
 #include "AnchorObjectSystem.h"
+#include "CameraObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
 #include "ProjectConfig.h"
@@ -78,17 +79,20 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 		0.f, 0.f, 0.f, 1.f,
 	};
 
+	editorConfig = std::make_shared<EditorObjectSystemConfig>("editor");
+	addChildConfig(editorConfig);
+
+	sceneConfig = std::make_shared<SceneObjectSystemConfig>("scenes");
+	addChildConfig(sceneConfig);
+
+	cameraConfig = std::make_shared<CameraObjectSystemConfig>("cameras");
+	addChildConfig(cameraConfig);
+
 	anchorConfig= std::make_shared<AnchorObjectSystemConfig>("anchors");
 	addChildConfig(anchorConfig);
 
-	editorConfig= std::make_shared<EditorObjectSystemConfig>("editor");
-	addChildConfig(editorConfig);
-
 	stencilConfig= std::make_shared<StencilObjectSystemConfig>("stencils");
 	addChildConfig(stencilConfig);
-
-	sceneConfig = std::make_shared<SceneObjectSystemConfig>("scene");
-	addChildConfig(sceneConfig);
 };
 
 configuru::Config ProjectConfig::writeToJSON()
@@ -130,17 +134,20 @@ configuru::Config ProjectConfig::writeToJSON()
 
 	writeMatrix4f(pt, "vrDevicePoseOffset", vrDevicePoseOffset);
 
-	// Write the anchor system config
-	pt[anchorConfig->getConfigName()]= anchorConfig->writeToJSON();
-
 	// Write the editor system config
 	pt[editorConfig->getConfigName()] = editorConfig->writeToJSON();
 
-	// Write the stencil system config
-	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
-
 	// Write the scene system config
 	pt[sceneConfig->getConfigName()] = sceneConfig->writeToJSON();
+
+	// Write the camera system config
+	pt[cameraConfig->getConfigName()] = cameraConfig->writeToJSON();
+
+	// Write the anchor system config
+	pt[anchorConfig->getConfigName()]= anchorConfig->writeToJSON();
+
+	// Write the stencil system config
+	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
 
 
 	return pt;
@@ -203,28 +210,34 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 
 	readMatrix4f(pt, "vrDevicePoseOffset", vrDevicePoseOffset);
 
-	// Read the anchor system config
-	if (pt.has_key(anchorConfig->getConfigName()))
-	{
-		anchorConfig->readFromJSON(pt[anchorConfig->getConfigName()]);
-	}
-
 	// Read the editor system config
 	if (pt.has_key(editorConfig->getConfigName()))
 	{
 		editorConfig->readFromJSON(pt[editorConfig->getConfigName()]);
 	}
 
-	// Read the stencil system config
-	if (pt.has_key(stencilConfig->getConfigName()))
-	{
-		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
-	}
-
 	// Read the scene system config
 	if (pt.has_key(sceneConfig->getConfigName()))
 	{
 		sceneConfig->readFromJSON(pt[sceneConfig->getConfigName()]);
+	}
+
+	// Read the camera system config
+	if (pt.has_key(cameraConfig->getConfigName()))
+	{
+		cameraConfig->readFromJSON(pt[cameraConfig->getConfigName()]);
+	}
+
+	// Read the anchor system config
+	if (pt.has_key(anchorConfig->getConfigName()))
+	{
+		anchorConfig->readFromJSON(pt[anchorConfig->getConfigName()]);
+	}
+
+	// Read the stencil system config
+	if (pt.has_key(stencilConfig->getConfigName()))
+	{
+		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
 	}
 
 	// Compositor

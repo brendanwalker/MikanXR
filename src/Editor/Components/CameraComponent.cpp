@@ -1,5 +1,5 @@
 #include "CameraComponent.h"
-#include "SceneObjectSystem.h"
+#include "CameraObjectSystem.h"
 #include "App.h"
 #include "Colors.h"
 #include "MikanLineRenderer.h"
@@ -167,7 +167,7 @@ void CameraComponent::editCamera()
 {
 	CameraDefinitionPtr definition= getCameraDefinition();
 	MikanCameraID CameraId= definition->getCameraId();
-	CameraComponentPtr CameraComponent = SceneObjectSystem::getSystem()->getCameraById(CameraId);
+	CameraComponentPtr CameraComponent = CameraObjectSystem::getSystem()->getCameraById(CameraId);
 	if (CameraComponent != nullptr)
 	{
 		//TODO

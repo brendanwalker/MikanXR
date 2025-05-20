@@ -12,6 +12,11 @@ using AnchorObjectSystemConfigPtr = std::shared_ptr<AnchorObjectSystemConfig>;
 using AnchorObjectSystemConfigConstPtr = std::shared_ptr<const AnchorObjectSystemConfig>;
 using AnchorObjectSystemConfigWeakPtr = std::weak_ptr<AnchorObjectSystemConfig>;
 
+class CameraObjectSystemConfig;
+using CameraObjectSystemConfigPtr = std::shared_ptr<CameraObjectSystemConfig>;
+using CameraObjectSystemConfigConstPtr = std::shared_ptr<const CameraObjectSystemConfig>;
+using CameraObjectSystemConfigWeakPtr = std::weak_ptr<CameraObjectSystemConfig>;
+
 class EditorObjectSystemConfig;
 using EditorObjectSystemConfigPtr = std::shared_ptr<EditorObjectSystemConfig>;
 using EditorObjectSystemConfigConstPtr = std::shared_ptr<const EditorObjectSystemConfig>;

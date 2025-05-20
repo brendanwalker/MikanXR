@@ -2,6 +2,8 @@
 
 #include <memory>
 
+class ConfigPropertyChangeSet;
+
 class CommonConfig;
 using CommonConfigPtr = std::shared_ptr<CommonConfig>;
 using CommonConfigConstPtr = std::shared_ptr<const CommonConfig>;

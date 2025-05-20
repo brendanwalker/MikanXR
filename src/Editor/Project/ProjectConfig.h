@@ -72,6 +72,7 @@ public:
 	EditorObjectSystemConfigPtr editorConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 	SceneObjectSystemConfigPtr sceneConfig;
+	CameraObjectSystemConfigPtr cameraConfig;
 
 protected:
 	bool m_bIsSpoutOutputStreaming= false;

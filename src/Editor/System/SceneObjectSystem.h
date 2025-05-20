@@ -28,41 +28,19 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-
-	CameraDefinitionPtr getCameraConfig(MikanCameraID cameraId) const;
-	CameraDefinitionPtr getCameraConfigByName(const std::string& cameraName) const;
-	MikanCameraID addNewCamera(const std::string& cameraName, const struct MikanTransform& xform);
-	bool removeCamera(MikanCameraID anchorId);
-
-	static const std::string k_cameraListPropertyId;
-	std::vector<CameraDefinitionPtr> cameraList;
-
-	MikanCameraID nextCameraId= 0;
 };
 
 class SceneObjectSystem : public MikanObjectSystem
 {
 public:
-	static SceneObjectSystemPtr getSystem() { return s_SceneObjectSystem.lock(); }
+	static SceneObjectSystemPtr getSystem() { return s_sceneObjectSystem.lock(); }
 
 	virtual bool init() override;
 	virtual void dispose() override;
-	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
 	SceneObjectSystemConfigConstPtr getSceneSystemConfigConst() const;
 	SceneObjectSystemConfigPtr getSceneSystemConfig();
 
-	const CameraMap& getCameraMap() const { return m_cameraComponents; }
-	CameraComponentPtr getCameraById(MikanCameraID cameraId) const;
-	CameraComponentPtr getCameraByName(const std::string& cameraName) const;
-	CameraComponentPtr addNewCamera(const std::string& cameraName, const GlmTransform& xform);
-	bool removeCamera(MikanCameraID anchorId);
-
 protected:
-	CameraComponentPtr createCameraObject(CameraDefinitionPtr cameraConfig);
-	void disposeCameraObject(MikanCameraID cameraId);
-
-	CameraMap m_cameraComponents;
-
-	static SceneObjectSystemWeakPtr s_SceneObjectSystem;
+	static SceneObjectSystemWeakPtr s_sceneObjectSystem;
 };

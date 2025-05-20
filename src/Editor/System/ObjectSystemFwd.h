@@ -6,6 +6,10 @@ class AnchorObjectSystem;
 using AnchorObjectSystemPtr = std::shared_ptr<AnchorObjectSystem>;
 using AnchorObjectSystemWeakPtr = std::weak_ptr<AnchorObjectSystem>;
 
+class CameraObjectSystem;
+using CameraObjectSystemPtr = std::shared_ptr<CameraObjectSystem>;
+using CameraObjectSystemWeakPtr = std::weak_ptr<CameraObjectSystem>;
+
 class MikanObjectSystem;
 using MikanObjectSystemPtr= std::shared_ptr<MikanObjectSystem>;
 using MikanObjectSystemWeakPtr= std::weak_ptr<MikanObjectSystem>;

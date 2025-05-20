@@ -4,6 +4,8 @@
 #include "AnchorObjectSystem.h"
 #include "App.h"
 #include "AppStage.h"
+#include "CameraObjectSystem.h"
+#include "CameraComponent.h"
 #include "FrameCompositorConstants.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -15,6 +17,7 @@
 #include "SdlManager.h"
 #include "StencilComponent.h"
 #include "StencilObjectSystem.h"
+#include "SceneObjectSystem.h"
 #include "VRDeviceManager.h"
 #include "VRDeviceView.h"
 #include "VideoSourceManager.h"
@@ -303,6 +306,21 @@ void RmlManager::registerCommonDataModelTypes()
 			if (stencilComponent != nullptr)
 			{
 				variant = stencilComponent->getName();
+				return true;
+			}
+			return false;
+		});
+
+	// Transform function for converting stencil id to stencil name
+	constructor.RegisterTransformFunc(
+		"to_camera_name",
+		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanCameraID cameraId = variant.Get<int>(-1);
+
+			auto cameraComponent = CameraObjectSystem::getSystem()->getCameraById(cameraId);
+			if (cameraComponent != nullptr)
+			{
+				variant = cameraComponent->getName();
 				return true;
 			}
 			return false;
