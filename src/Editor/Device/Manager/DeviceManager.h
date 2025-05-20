@@ -9,7 +9,7 @@ class DeviceView;
 typedef std::shared_ptr<DeviceView> DeviceViewPtr;
 
 //-- definitions -----
-/// ABC for device managers for controllers, trackers, hmds.
+/// Abstract Base Class for device managers for controllers, trackers, hmds.
 class DeviceManager
 {
 public:

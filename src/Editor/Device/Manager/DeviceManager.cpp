@@ -70,7 +70,7 @@ void DeviceManager::updateConnectedDeviceViews()
 {
 	const int maxDeviceCount = getMaxDevices();
 	bool exists_in_enumerator[64];
-	bool bSendControllerUpdatedNotification = false;
+	bool bSendDeviceUpdatedNotification = false;
 
 	// Initialize temp table used to keep track of open devices
 	// still found in the enumerator
@@ -114,7 +114,7 @@ void DeviceManager::updateConnectedDeviceViews()
 						exists_in_enumerator[device_id_] = true;
 
 						// Send notification to clients that a new device was added
-						bSendControllerUpdatedNotification = true;
+						bSendDeviceUpdatedNotification = true;
 					}
 					else
 					{
@@ -149,7 +149,7 @@ void DeviceManager::updateConnectedDeviceViews()
 			MIKAN_LOG_WARNING("DeviceTypeManager::update_connected_devices") << "Closing device "
 				<< device_id << " since it's no longer in the device list.";
 			existingDevice->close();
-			bSendControllerUpdatedNotification = true;
+			bSendDeviceUpdatedNotification = true;
 		}
 	}
 }
