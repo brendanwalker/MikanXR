@@ -19,9 +19,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneEvents")) MikanS
 	}
 
 	FIELD()
-	MikanSceneID stencil_id;
+	MikanSceneID scene_id;
 	FIELD()
-	Serialization::String stencil_name;
+	Serialization::String scene_name;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSceneNameUpdateEvent_GENERATED

@@ -36,7 +36,7 @@ public:
 	}
 
 	FIELD()
-	MikanStencilID stencilId;
+	MikanSceneID scene_id;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetScene_GENERATED
@@ -63,7 +63,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneRequest")) Mikan
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanSceneListResponse :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneRequest")) MikanSceneListResponse :
 	public MikanResponse
 {
 	MikanSceneListResponse()

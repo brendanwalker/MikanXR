@@ -28,7 +28,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) Mikan
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialCameraEvents")) MikanCameraPoseUpdateEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraPoseUpdateEvent : 
 	public MikanEvent
 {
 	MikanCameraPoseUpdateEvent()
@@ -46,7 +46,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialCameraEvents")
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialCameraEvents")) MikanCameraListUpdateEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraListUpdateEvent : 
 	public MikanEvent
 {
 	MikanCameraListUpdateEvent()

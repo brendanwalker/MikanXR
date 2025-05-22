@@ -37,7 +37,7 @@ public:
 	}
 
 	FIELD()
-	MikanCameraID cameraId;
+	MikanCameraID camera_id;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetCameraInfo_GENERATED
@@ -54,7 +54,7 @@ public:
 	}
 
 	FIELD()
-	Serialization::String anchorName;
+	Serialization::String camera_name;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	FindCameraByName_GENERATED
