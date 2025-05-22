@@ -32,6 +32,7 @@ enum class ePropertySemantic : int
 	filename,
 	name,
 	anchor_id,
+	stage_id,
 	stencilCullMode,
 
 	COUNT

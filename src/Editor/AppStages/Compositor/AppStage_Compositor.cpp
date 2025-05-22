@@ -37,7 +37,7 @@
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
-#include "MikanScene.h"
+#include "SceneComponent.h"
 #include "ObjectSystemManager.h"
 #include "ProjectConfig.h"
 #include "PathUtils.h"

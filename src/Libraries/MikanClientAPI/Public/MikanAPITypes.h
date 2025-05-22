@@ -45,6 +45,9 @@ enum class ENUM(Serialization::CodeGenModule("MikanAPITypes")) MikanAPIResult
 	InvalidDeviceId ENUMVALUE_STRING("InvalidDeviceId") = 102,
 	InvalidStencilID ENUMVALUE_STRING("InvalidStencilID") = 103,
 	InvalidAnchorID ENUMVALUE_STRING("InvalidAnchorID") = 104,
+	InvalidCameraID ENUMVALUE_STRING("InvalidCameraID") = 105,
+	InvalidSceneID ENUMVALUE_STRING("InvalidSceneID") = 106,
+	InvalidStageID ENUMVALUE_STRING("InvalidStageID") = 106,
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

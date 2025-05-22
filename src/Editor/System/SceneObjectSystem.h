@@ -7,6 +7,7 @@
 #include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
+#include "SceneFwd.h"
 
 #include <map>
 #include <memory>
@@ -17,7 +18,7 @@
 
 class GlmTransform;
 
-using CameraMap = std::map<MikanCameraID, CameraComponentWeakPtr>;
+using SceneMap = std::map<MikanSceneID, SceneComponentWeakPtr>;
 
 class SceneObjectSystemConfig : public CommonConfig
 {
@@ -28,6 +29,16 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+
+	SceneComponentDefinitionPtr getSceneConfig(MikanSpatialAnchorID sceneId) const;
+	SceneComponentDefinitionPtr getSceneConfigByName(const std::string& sceneName) const;
+	MikanSpatialAnchorID addNewScene(const std::string& sceneName, MikanStageID parentStageId);
+	bool removeScene(MikanSceneID sceneId);
+
+	static const std::string k_sceneListPropertyId;
+	std::vector<SceneComponentDefinitionPtr> sceneList;
+
+	MikanSceneID nextSceneId = 0;
 };
 
 class SceneObjectSystem : public MikanObjectSystem
@@ -41,6 +52,17 @@ public:
 	SceneObjectSystemConfigConstPtr getSceneSystemConfigConst() const;
 	SceneObjectSystemConfigPtr getSceneSystemConfig();
 
+	const SceneMap& getSceneMap() const { return m_sceneComponents; }
+	SceneComponentPtr getSceneById(MikanSceneID sceneId) const;
+	SceneComponentPtr getSceneByName(const std::string& sceneName) const;
+	SceneComponentPtr addNewScene(const std::string& sceneName, MikanStageID parentStageId);
+	bool removeScene(MikanSceneID sceneId);
+
+
 protected:
+	SceneComponentPtr createSceneObject(SceneComponentDefinitionPtr sceneConfig);
+	void disposeSceneObject(MikanSceneID sceneId);
+
+	SceneMap m_sceneComponents;
 	static SceneObjectSystemWeakPtr s_sceneObjectSystem;
 };

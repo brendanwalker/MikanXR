@@ -22,7 +22,7 @@
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
-#include "MikanScene.h"
+#include "SceneComponent.h"
 #include "ModelStencilComponent.h"
 #include "ObjectSystemManager.h"
 #include "ProjectConfig.h"
@@ -53,7 +53,7 @@ AppStage_DepthMeshCapture::AppStage_DepthMeshCapture(MainWindow* ownerWindow)
 	, m_videoSourceView()
 	, m_depthMeshCapture(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_scene(std::make_shared<MikanScene>())
+	, m_mkScene(std::make_shared<MkScene>())
 	, m_viewport(nullptr)
 {
 }
@@ -90,7 +90,7 @@ void AppStage_DepthMeshCapture::enter()
 	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
 	for (auto it : vrDeviceList)
 	{
-		it->getVRDeviceInterface()->bindToScene(m_scene->getMkScene());
+		it->getVRDeviceInterface()->bindToScene(m_mkScene);
 	}
 
 	// Setup viewport
@@ -334,7 +334,7 @@ void AppStage_DepthMeshCapture::renderVRScene()
 	}
 
 	// Draw any meshes added to the scene (inlcuding the depth capture mesh)
-	m_scene->render(vrCamera, m_ownerWindow->getMkStateStack());
+	m_mkScene->render(vrCamera, m_ownerWindow->getMkStateStack());
 }
 
 void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState)
@@ -448,7 +448,7 @@ void AppStage_DepthMeshCapture::addDepthMeshResourcesToScene()
 			meshInstance->setVisible(true);
 
 			// Register the mesh instance with the scene
-			m_scene->getMkScene()->addInstance(meshInstance);
+			m_mkScene->addInstance(meshInstance);
 
 			// Need to keep track of mesh instances locally
 			// since the scene uses weak pointers
@@ -461,7 +461,7 @@ void AppStage_DepthMeshCapture::removeDepthMeshResourceFromScene()
 {
 	for (IMkStaticMeshInstancePtr depthMeshInstance : m_depthMeshInstances)
 	{
-		m_scene->getMkScene()->removeInstance(depthMeshInstance);
+		m_mkScene->removeInstance(depthMeshInstance);
 	}
 	m_depthMeshInstances.clear();
 }

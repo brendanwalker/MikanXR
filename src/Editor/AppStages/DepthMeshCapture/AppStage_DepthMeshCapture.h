@@ -81,6 +81,6 @@ private:
 	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
 
 	std::vector<IMkStaticMeshInstancePtr> m_depthMeshInstances;
-	MikanScenePtr m_scene;
+	IMkScenePtr m_mkScene;
 	MikanViewportPtr m_viewport;
 };

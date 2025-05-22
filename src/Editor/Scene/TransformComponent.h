@@ -16,6 +16,8 @@
 #include <vector>
 
 using TransformComponentList= std::vector<TransformComponentWeakPtr>;
+using TransformComponentVisitor = std::function<void(TransformComponent* transformComponentPtr)>;
+using TransformComponentConstVisitor = std::function<void(const TransformComponent* transformComponentPtr)>;
 
 class TransformComponentDefinition : public MikanComponentDefinition
 {
@@ -108,6 +110,9 @@ public:
 	void setWorldTransform(const glm::mat4& newWorldXform);
 	inline const glm::mat4& getWorldTransform() const { return m_worldTransform; }
 	const glm::vec3 getWorldLocation() const;
+
+	void visitAllTransformComponents(TransformComponentVisitor visitor);
+	void visitAllTransformComponentsConst(TransformComponentConstVisitor visitor) const;
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;

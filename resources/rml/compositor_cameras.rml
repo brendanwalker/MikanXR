@@ -24,10 +24,21 @@
 						<option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
 					</select>
 				</td>
-				                <select id="select" name="vr_device_list" data-value="anchor_vr_device_path" data-event-change="update_anchor_vr_device_path()" style="width: 200dp">
+				<select id="select" name="vr_device_list" data-value="anchor_vr_device_path" data-event-change="update_anchor_vr_device_path()" style="width: 200dp">
                     <option data-for="device_path : vr_device_list" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
                 </select>
 			</tr>
+            <br/>
+            <h1>Tracker</h1>
+            <div data-if="vr_device_list.size > 0">
+                <select id="select" name="vr_device_list" data-value="camera_vr_device_path" data-event-change="update_camera_vr_device_path()" style="width: 200dp">
+                    <option data-for="device_path : vr_device_list" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
+                </select>
+            </div>
+            <div data-if="vr_device_list.size == 0" style="width: 500dp">
+                {{anchor_vr_device_path}}
+            </div>
+            <br/>
         </panel>
     </body>
 </rml>

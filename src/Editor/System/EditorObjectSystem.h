@@ -26,7 +26,17 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	static const std::string k_cameraSpeedPropertyId;
+	float getCameraSpeed() const { return cameraSpeed; }
+	void setCameraSpeed(float speed);
+
+	static const std::string k_currentSceneNamePropertyId;
+	const std::string& getCurrentSceneName() const { return currentSceneName; }
+	void setCurrentSceneName(const std::string& sceneName);
+
+private:
 	float cameraSpeed= 1.f;
+	std::string currentSceneName;
 };
 
 class EditorObjectSystem : public MikanObjectSystem
@@ -39,7 +49,7 @@ public:
 
 	EditorObjectSystemConfigConstPtr getEditorSystemConfigConst() const;
 	EditorObjectSystemConfigPtr getEditorSystemConfig();
-	MikanSceneConstPtr getEditorScene() const { return m_scene; }
+	SceneComponentConstPtr getEditorScene() const { return m_sceneWeakPtr.lock(); }
 
 	void bindViewport(MikanViewportWeakPtr viewportWeakPtr);
 	void clearViewports();
@@ -52,7 +62,7 @@ public:
 
 protected:
 
-	MikanScenePtr m_scene;
+	SceneComponentWeakPtr m_sceneWeakPtr;
 	std::vector<MikanViewportWeakPtr> m_viewports;
 	
 	ColliderRaycastHitResult m_lastestRaycastResult;
@@ -66,8 +76,8 @@ protected:
 	void onAppStageEntered(class AppStage* oldAppStage, class AppStage* newAppStage);
 
 	// Object System Events
-	void onComponentInitialized(MikanObjectSystemPtr system, MikanComponentPtr component);
-	void onComponentDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component);
+	void onSceneDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component);
+	void onSceneObjectDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component);
 
 	// Keyboard Events
 	void onDeletePressed();

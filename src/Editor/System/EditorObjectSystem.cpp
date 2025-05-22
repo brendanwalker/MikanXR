@@ -14,18 +14,23 @@
 #include "MainWindow.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
-#include "MikanScene.h"
+#include "SceneObjectSystem.h"
+#include "SceneComponent.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StencilObjectSystem.h"
 #include "Transform.h"
 
 // -- AnchorObjectSystemConfig -----
+const std::string EditorObjectSystemConfig::k_cameraSpeedPropertyId= "cameraSpeed";
+const std::string EditorObjectSystemConfig::k_currentSceneNamePropertyId= "currentSceneName";
+
 configuru::Config EditorObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
 	pt["cameraSpeed"] = cameraSpeed;
+	pt["currentSceneName"]= currentSceneName;
 
 	return pt;
 }
@@ -35,6 +40,25 @@ void EditorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	CommonConfig::readFromJSON(pt);
 
 	cameraSpeed = pt.get_or<float>("cameraSpeed", cameraSpeed);
+	currentSceneName = pt.get_or<std::string>("currentSceneName", currentSceneName);
+}
+
+void EditorObjectSystemConfig::setCameraSpeed(float speed)
+{
+	if (cameraSpeed != speed)
+	{
+		cameraSpeed = speed;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraSpeedPropertyId));
+	}
+}
+
+void EditorObjectSystemConfig::setCurrentSceneName(const std::string& sceneName)
+{
+	if (currentSceneName != sceneName)
+	{
+		currentSceneName = sceneName;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_currentSceneNamePropertyId));
+	}
 }
 
 // -- EditorObjectSystem -----
@@ -44,32 +68,44 @@ bool EditorObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
+	auto editorConfig= getEditorSystemConfig();
+
 	MainWindow::getInstance()->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
-
-	m_lastestRaycastResult= ColliderRaycastHitResult();
-	m_hoverComponentWeakPtr.reset();
-	m_selectedComponentWeakPtr.reset();
-
-	m_scene = std::make_shared<MikanScene>();
-	m_scene->init();
 
 	ObjectSystemManagerPtr objSystemMgr= MainWindow::getInstance()->getObjectSystemManager();
 
+	SceneObjectSystemPtr sceneObjectSystem = objSystemMgr->getSystemOfType<SceneObjectSystem>();
+	sceneObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onSceneDisposed);
+
 	AnchorObjectSystemPtr anchorObjectSystem= objSystemMgr->getSystemOfType<AnchorObjectSystem>();
-	anchorObjectSystem->OnComponentInitialized+= MakeDelegate(this, &EditorObjectSystem::onComponentInitialized);
-	anchorObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onComponentDisposed);
-	for (MikanObjectPtr objectPtr : anchorObjectSystem->getObjectList())
-	{
-		m_scene->addMikanObject(objectPtr);
-	}
+	anchorObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
 
 	StencilObjectSystemPtr stencilObjectSystem= objSystemMgr->getSystemOfType<StencilObjectSystem>();
-	stencilObjectSystem->OnComponentInitialized += MakeDelegate(this, &EditorObjectSystem::onComponentInitialized);
-	stencilObjectSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onComponentDisposed);
-	for (MikanObjectPtr objectPtr : stencilObjectSystem->getObjectList())
+	stencilObjectSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
+
+	SceneComponentPtr currentScene = sceneObjectSystem->getSceneByName(editorConfig->getCurrentSceneName());
+
+	// If we don't have a current scene selected, pick the first one
+	if (!currentScene)
 	{
-		m_scene->addMikanObject(objectPtr);
+		const SceneMap& sceneMap = sceneObjectSystem->getSceneMap();
+
+		if (sceneMap.size() > 0)
+		{
+			auto it= sceneMap.begin();
+			currentScene= it->second.lock();
+
+			if (currentScene)
+			{
+				editorConfig->setCurrentSceneName(currentScene->getName());
+			}
+		}
 	}
+	m_sceneWeakPtr= currentScene;
+
+	m_lastestRaycastResult = ColliderRaycastHitResult();
+	m_hoverComponentWeakPtr.reset();
+	m_selectedComponentWeakPtr.reset();
 
 	createTransformGizmo();
 
@@ -79,6 +115,10 @@ bool EditorObjectSystem::init()
 
 void EditorObjectSystem::createTransformGizmo()
 {
+	SceneComponentPtr editorScene= m_sceneWeakPtr.lock();
+	if (!editorScene)
+		return;
+
 	m_gizmoObjectWeakPtr = newObject();
 	MikanObjectPtr gizmoObjectPtr= m_gizmoObjectWeakPtr.lock();
 	gizmoObjectPtr->setName("Gizmo");
@@ -115,7 +155,8 @@ void EditorObjectSystem::createTransformGizmo()
 
 	gizmoObjectPtr->init();
 
-	m_scene->addMikanObject(gizmoObjectPtr);
+	// Attach the gizmo to the scene
+	gizmoObjectPtr->getRootComponent()->attachToComponent(editorScene);
 }
 
 void EditorObjectSystem::createGizmoBoxCollider(
@@ -158,7 +199,7 @@ void EditorObjectSystem::dispose()
 
 	m_gizmoObjectWeakPtr.reset();
 	m_gizmoComponentWeakPtr.reset();
-	m_scene= nullptr;
+	m_sceneWeakPtr.reset();
 
 	MikanObjectSystem::dispose();
 }
@@ -229,15 +270,13 @@ void EditorObjectSystem::onDeletePressed()
 }
 
 // Object System Events
-void EditorObjectSystem::onComponentInitialized(MikanObjectSystemPtr system, MikanComponentPtr component)
+void EditorObjectSystem::onSceneDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
 {
-	m_scene->addMikanComponent(component);
+
 }
 
-void EditorObjectSystem::onComponentDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
+void EditorObjectSystem::onSceneObjectDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
 {
-	m_scene->removeMikanComponent(component);
-
 	SelectionComponentPtr hoverComponentPtr= m_hoverComponentWeakPtr.lock();
 	if (hoverComponentPtr == component)
 	{
@@ -404,21 +443,12 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 	outRaycastResult.hitLocation = glm::vec3();
 	outRaycastResult.hitNormal = glm::vec3();
 
-	for (SelectionComponentWeakPtr selectionComponentWeakPtr : m_scene->getSelectionComponentList())
+	SceneComponentConstPtr editorScene= getEditorScene();
+	if (editorScene)
 	{
-		SelectionComponentPtr selectionComponentPtr= selectionComponentWeakPtr.lock();
-		if (!selectionComponentPtr)
-			continue;
-
-		ColliderRaycastHitRequest request= { rayOrigin, rayDir };
-		ColliderRaycastHitResult result;
-
-		if (selectionComponentPtr->computeRayIntersection(request, result) && 
-			(result.hitDistance < outRaycastResult.hitDistance || result.hitPriority > outRaycastResult.hitPriority))
-		{
-			closestSelectionComponent= selectionComponentPtr;
-			outRaycastResult= result;
-		}
+		closestSelectionComponent= 
+			editorScene->findClosestSelectionTarget(
+				rayOrigin, rayDir, outRaycastResult);
 	}
 
 	return closestSelectionComponent;

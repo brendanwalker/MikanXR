@@ -94,7 +94,7 @@ void MikanViewport::update(float deltaSeconds)
 
 	if (camera->getCameraMovementMode() == fly)
 	{
-		const float cameraSpeed = EditorObjectSystem::getSystem()->getEditorSystemConfig()->cameraSpeed;
+		const float cameraSpeed = EditorObjectSystem::getSystem()->getEditorSystemConfig()->getCameraSpeed();
 		const float moveDelta = cameraSpeed * deltaSeconds;
 
 		if (m_isLeftPressed || m_isRightPressed)

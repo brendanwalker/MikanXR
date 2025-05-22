@@ -10,6 +10,8 @@
 #include <RmlUi/Core/Variant.h>
 #include <RmlUi/Core/Vector3.h>
 
+#include <queue>
+
 // -- ModelStencilConfig -----
 const std::string TransformComponentDefinition::k_relativeScalePropertyId = "relative_scale";
 const std::string TransformComponentDefinition::k_relativeRotationPropertyId = "relative_rotation";
@@ -332,6 +334,42 @@ void TransformComponent::propogateWorldTransformChange(eTransformChangeType reas
 			childComponent->propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 		}
 	}
+}
+
+template<typename t_component_type>
+void visitAllTransformComponentsHelper(
+	t_component_type* rootTransformComponent,
+	std::function<void(t_component_type* transformComponentPtr)> visitor)
+{
+	std::queue<t_component_type*> transformComponentStack;
+	transformComponentStack.push(rootTransformComponent);
+
+	while (transformComponentStack.size() > 0)
+	{
+		t_component_type* currentTransformComponent = transformComponentStack.front();
+		transformComponentStack.pop();
+
+		visitor(currentTransformComponent);
+
+		for (TransformComponentWeakPtr childTransformWeakPtr : currentTransformComponent->getChildComponents())
+		{
+			TransformComponentPtr childTransformPtr = childTransformWeakPtr.lock();
+			if (childTransformPtr)
+			{
+				transformComponentStack.push(childTransformPtr.get());
+			}
+		}
+	}
+}
+
+void TransformComponent::visitAllTransformComponents(TransformComponentVisitor visitor)
+{
+	visitAllTransformComponentsHelper(this, visitor);
+}
+
+void TransformComponent::visitAllTransformComponentsConst(TransformComponentConstVisitor visitor) const
+{
+	visitAllTransformComponentsHelper(this, visitor);
 }
 
 // -- IPropertyInterface ----
