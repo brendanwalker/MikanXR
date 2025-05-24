@@ -75,7 +75,7 @@ void AppStage_VRDeviceSettings::onUpdateCameraVRDevicePath(const std::string& de
 		.addPropertyName(ProjectConfig::k_cameraVRDevicePathPropertyId));
 
 	// Let any connected clients know that the video source attachment settings changed
-	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
+	MikanServer::getInstance()->publishCameraAttachmentChangedEvent();
 }
 
 void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devicePath)
@@ -87,7 +87,7 @@ void AppStage_VRDeviceSettings::onUpdateMatVRDevicePath(const std::string& devic
 		.addPropertyName(ProjectConfig::k_matVRDevicePathPropertyId));
 
 	// Let any connected clients know that the video source attachment settings changed
-	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
+	MikanServer::getInstance()->publishCameraAttachmentChangedEvent();
 }
 
 void AppStage_VRDeviceSettings::onRmlClickEvent(const std::string& value)

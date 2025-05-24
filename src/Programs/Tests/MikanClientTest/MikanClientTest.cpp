@@ -462,13 +462,9 @@ protected:
 				{
 					handleVideoSourceModeChanged();
 				}
-				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceIntrinsicsChangedEvent))
+				else if (typeid(*mikanEvent) == typeid(MikanCameraIntrinsicsChangedEvent))
 				{
-					handleVideoSourceIntrinsicsChanged();
-				}
-				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceAttachmentChangedEvent))
-				{
-					handleVideoSourceAttachmentChanged();
+					handleCameraIntrinsicsChanged();
 				}
 				else if (typeid(*mikanEvent) == typeid(MikanCameraNewFrameEvent))
 				{
@@ -476,9 +472,9 @@ protected:
 
 					handleNewVideoSourceFrame(*newFrameEvent);
 				}
-				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceAttachmentChangedEvent))
+				else if (typeid(*mikanEvent) == typeid(MikanCameraAttachmentChangedEvent))
 				{
-					handleVideoSourceAttachmentChanged();
+					handleCameraAttachmentChanged();
 				}
 				// VR Device Events
 				else if (typeid(*mikanEvent) == typeid(MikanVRDeviceListUpdateEvent))
@@ -620,7 +616,7 @@ protected:
 		updateCameraProjectionMatrix();
 	}
 
-	void handleVideoSourceIntrinsicsChanged()
+	void handleCameraIntrinsicsChanged()
 	{
 		reallocateRenderBuffers();
 		updateCameraProjectionMatrix();
@@ -631,7 +627,7 @@ protected:
 		processNewVideoSourceFrame(newFrameEvent);
 	}
 
-	void handleVideoSourceAttachmentChanged()
+	void handleCameraAttachmentChanged()
 	{
 	}
 

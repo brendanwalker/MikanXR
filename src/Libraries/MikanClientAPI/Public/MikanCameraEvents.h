@@ -50,21 +50,29 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) Mikan
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraPoseUpdateEvent : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraAttachmentChangedEvent :
 	public MikanEvent
 {
-	MikanCameraPoseUpdateEvent()
+	MikanCameraAttachmentChangedEvent()
 	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraPoseUpdateEvent)
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraAttachmentChangedEvent)
 	}
 
-	FIELD()
-	MikanTransform transform;
-	FIELD()
-	MikanCameraID camera_id;
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanCameraAttachmentChangedEvent_GENERATED
+	#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraIntrinsicsChangedEvent :
+	public MikanEvent
+{
+	MikanCameraIntrinsicsChangedEvent()
+	{
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraIntrinsicsChangedEvent)
+	}
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanCameraPoseUpdateEvent_GENERATED
+	MikanCameraIntrinsicsChangedEvent_GENERATED
 	#endif
 };
 

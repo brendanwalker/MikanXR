@@ -36,32 +36,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) 
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceAttachmentChangedEvent : 
-	public MikanEvent
-{
-	MikanVideoSourceAttachmentChangedEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanVideoSourceAttachmentChangedEvent)
-	}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVideoSourceAttachmentChangedEvent_GENERATED
-	#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceIntrinsicsChangedEvent : 
-	public MikanEvent
-{
-	MikanVideoSourceIntrinsicsChangedEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanVideoSourceIntrinsicsChangedEvent)
-	}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVideoSourceIntrinsicsChangedEvent_GENERATED
-	#endif
-};
-
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceModeChangedEvent : 
 	public MikanEvent
 {

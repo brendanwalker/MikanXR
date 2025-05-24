@@ -202,7 +202,7 @@ void updateMikan()
 				processNewVideoSourceFrame(*newFrameEvent.get());
             }
 			else if (typeid(*event) == typeid(MikanVideoSourceModeChangedEvent) ||
-					 typeid(*event) == typeid(MikanVideoSourceIntrinsicsChangedEvent))
+					 typeid(*event) == typeid(MikanCameraIntrinsicsChangedEvent))
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();

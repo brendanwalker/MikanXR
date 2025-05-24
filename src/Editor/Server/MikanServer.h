@@ -78,8 +78,8 @@ public:
 	void publishVideoSourceOpenedEvent();
 	void publishVideoSourceClosedEvent();
 	void publishCameraNewFrameEvent(const MikanCameraNewFrameEvent& newFrameEvent);
-	void publishVideoSourceAttachmentChangedEvent();
-	void publishVideoSourceIntrinsicsChangedEvent();
+	void publishCameraAttachmentChangedEvent();
+	void publishCameraIntrinsicsChangedEvent();
 	void publishVideoSourceModeChangedEvent();
 
 	// Spatial Anchor Events

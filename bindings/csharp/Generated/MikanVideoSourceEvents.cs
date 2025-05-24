@@ -4,21 +4,9 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class MikanVideoSourceAttachmentChangedEvent : MikanEvent
-	{
-		public static new readonly long classId= -1389242778064515596;
-
-	};
-
 	public class MikanVideoSourceClosedEvent : MikanEvent
 	{
 		public static new readonly long classId= -5465858161967922385;
-
-	};
-
-	public class MikanVideoSourceIntrinsicsChangedEvent : MikanEvent
-	{
-		public static new readonly long classId= -4388222824097463291;
 
 	};
 

@@ -850,7 +850,7 @@ namespace Mikan
 						break;
 					}
 					else if (nextEvent is MikanVideoSourceModeChangedEvent ||
-							nextEvent is MikanVideoSourceIntrinsicsChangedEvent)
+							nextEvent is MikanCameraIntrinsicsChangedEvent)
 					{
 						ReallocateRenderBuffers();
 						UpdateCameraProjectionMatrix();

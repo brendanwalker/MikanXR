@@ -241,14 +241,14 @@ public:
 		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newFrameEvent));
 	}
 
-	void publishVideoSourceAttachmentChangedEvent()
+	void publishCameraAttachmentChangedEvent()
 	{
-		publishSimpleEvent<MikanVideoSourceAttachmentChangedEvent>();
+		publishSimpleEvent<MikanCameraAttachmentChangedEvent>();
 	}
 
-	void publishVideoSourceIntrinsicsChangedEvent()
+	void publishCameraIntrinsicsChangedEvent()
 	{
-		publishSimpleEvent<MikanVideoSourceIntrinsicsChangedEvent>();
+		publishSimpleEvent<MikanCameraIntrinsicsChangedEvent>();
 	}
 
 	void publishVideoSourceModeChangedEvent()
@@ -653,14 +653,14 @@ void MikanServer::publishCameraNewFrameEvent(const MikanCameraNewFrameEvent& new
 	}
 }
 
-void MikanServer::publishVideoSourceAttachmentChangedEvent()
+void MikanServer::publishCameraAttachmentChangedEvent()
 {
-	publishSimpleEvent<MikanVideoSourceAttachmentChangedEvent>(m_clientConnections);
+	publishSimpleEvent<MikanCameraAttachmentChangedEvent>(m_clientConnections);
 }
 
-void MikanServer::publishVideoSourceIntrinsicsChangedEvent()
+void MikanServer::publishCameraIntrinsicsChangedEvent()
 {
-	publishSimpleEvent<MikanVideoSourceIntrinsicsChangedEvent>(m_clientConnections);
+	publishSimpleEvent<MikanCameraIntrinsicsChangedEvent>(m_clientConnections);
 }
 
 void MikanServer::publishVideoSourceModeChangedEvent()

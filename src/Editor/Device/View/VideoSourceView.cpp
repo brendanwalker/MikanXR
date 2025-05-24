@@ -547,7 +547,7 @@ void VideoSourceView::setCameraIntrinsics(const MikanVideoSourceIntrinsics& came
 	recomputeCameraProjectionMatrix();
 
 	// Let any connected clients know that the video source intrinsics changed
-	MikanServer::getInstance()->publishVideoSourceIntrinsicsChangedEvent();
+	MikanServer::getInstance()->publishCameraIntrinsicsChangedEvent();
 	if (OnIntrinsicsChanged)
 	{
 		OnIntrinsicsChanged(this);
@@ -569,7 +569,7 @@ void VideoSourceView::setCameraPoseOffset(const MikanQuatd& q, const MikanVector
 	m_device->setCameraPoseOffset(q, p);
 
 	// Let any connected clients know that the video source attachment settings changed
-	MikanServer::getInstance()->publishVideoSourceAttachmentChangedEvent();
+	MikanServer::getInstance()->publishCameraAttachmentChangedEvent();
 	if (OnCameraPoseOffsetChanged)
 	{
 		OnCameraPoseOffsetChanged(this);
