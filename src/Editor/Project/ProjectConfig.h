@@ -69,10 +69,11 @@ public:
 	std::filesystem::path outputFilePath;
 
 	AnchorObjectSystemConfigPtr anchorConfig;
+	CameraObjectSystemConfigPtr cameraConfig;
 	EditorObjectSystemConfigPtr editorConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 	SceneObjectSystemConfigPtr sceneConfig;
-	CameraObjectSystemConfigPtr cameraConfig;
+	StageObjectSystemConfigPtr stageConfig;
 
 protected:
 	bool m_bIsSpoutOutputStreaming= false;

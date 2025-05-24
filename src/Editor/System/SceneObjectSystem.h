@@ -30,7 +30,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	SceneComponentDefinitionPtr getSceneConfig(MikanSpatialAnchorID sceneId) const;
+	SceneComponentDefinitionPtr getSceneConfig(MikanSceneID sceneId) const;
 	SceneComponentDefinitionPtr getSceneConfigByName(const std::string& sceneName) const;
 	MikanSpatialAnchorID addNewScene(const std::string& sceneName, MikanStageID parentStageId);
 	bool removeScene(MikanSceneID sceneId);

@@ -4,30 +4,12 @@
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
 #include "ProjectConfig.h"
+#include "ProjectConfigConstants.h"
 #include "PathUtils.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
-
-#define CHESSBOARD_PATTERN_W 7 // Internal corners
-#define CHESSBOARD_PATTERN_H 5
-#define DEFAULT_SQUARE_LEN_MM 30
-
-#define CHARUCO_PATTERN_W 11
-#define CHARUCO_PATTERN_H 8
-#define DEFAULT_CHARUCO_SQUARE_LEN_MM 16
-#define DEFAULT_CHARUCO_MARKER_LEN_MM 12
-#define DEFAULT_CHARUCO_DICTIONARY_TYPE eCharucoDictionaryType::DICT_6X6
-
-#define DEFAULT_PUCK_HORIZONTAL_OFFSET_MM  211 // 51mm puck to pattern + 16mm squares *10squares
-#define DEFAULT_PUCK_VERTICAL_OFFSET_MM  48 // 16mm square * 3 squares
-#define DEFAULT_PUCK_DEPTH_OFFSET_MM  0
-
-#define DEFAULT_VR_CENTER_ARUCO_ID  0
-#define DEFAULT_VR_CENTER_MARKER_LEN_MM  100
-
-#define DEFAULT_SPOUT_OUTPUT_NAME "MikanXR"
 
 // -- Profile Config
 const std::string ProjectConfig::k_spoutOutputIsStreamingNamePropertyId= "spoutOutputIsStreaming";
@@ -55,8 +37,8 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	, puckHorizontalOffsetMM(DEFAULT_PUCK_HORIZONTAL_OFFSET_MM)
 	, puckVerticalOffsetMM(DEFAULT_PUCK_VERTICAL_OFFSET_MM)
 	, puckDepthOffsetMM(DEFAULT_PUCK_DEPTH_OFFSET_MM)
-	, vrCenterArucoId(DEFAULT_VR_CENTER_ARUCO_ID)
-	, vrCenterMarkerLengthMM(DEFAULT_VR_CENTER_MARKER_LEN_MM)
+	, vrCenterArucoId(DEFAULT_ORIGIN_MARKER_ID)
+	, vrCenterMarkerLengthMM(DEFAULT_MARKER_SIZE_MM)
 	// Spout Output Defaults
 	, m_bIsSpoutOutputStreaming(false)
 	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)

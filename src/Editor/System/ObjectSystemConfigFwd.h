@@ -27,6 +27,11 @@ using SceneObjectSystemConfigPtr = std::shared_ptr<SceneObjectSystemConfig>;
 using SceneObjectSystemConfigConstPtr = std::shared_ptr<const SceneObjectSystemConfig>;
 using SceneObjectSystemConfigWeakPtr = std::weak_ptr<SceneObjectSystemConfig>;
 
+class StageObjectSystemConfig;
+using StageObjectSystemConfigPtr = std::shared_ptr<StageObjectSystemConfig>;
+using StageObjectSystemConfigConstPtr = std::shared_ptr<const StageObjectSystemConfig>;
+using StageObjectSystemConfigWeakPtr = std::weak_ptr<StageObjectSystemConfig>;
+
 class StencilObjectSystemConfig;
 using StencilObjectSystemConfigPtr = std::shared_ptr<StencilObjectSystemConfig>;
 using StencilObjectSystemConfigConstPtr = std::shared_ptr<const StencilObjectSystemConfig>;

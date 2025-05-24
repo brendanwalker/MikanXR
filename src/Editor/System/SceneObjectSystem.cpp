@@ -20,7 +20,7 @@ void SceneObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- SceneObjectSystemConfig -----
-SceneComponentDefinitionPtr SceneObjectSystemConfig::getSceneConfig(MikanSpatialAnchorID sceneId) const
+SceneComponentDefinitionPtr SceneObjectSystemConfig::getSceneConfig(MikanSceneID sceneId) const
 {
 	auto it = std::find_if(
 		sceneList.begin(), sceneList.end(),

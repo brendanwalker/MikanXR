@@ -1,4 +1,5 @@
 #include "SceneComponent.h"
+#include "StageComponent.h"
 #include "MikanObject.h"
 #include "TransformComponent.h"
 #include "SelectionComponent.h"
@@ -7,6 +8,7 @@
 #include "MathUtility.h"
 #include "MikanCamera.h"
 #include "MkScene.h"
+#include "StageObjectSystem.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -76,29 +78,28 @@ void SceneComponent::setDefinition(MikanComponentDefinitionPtr definition)
 
 void SceneComponent::attachTransformComponentToStage(MikanStageID newParentId)
 {
-	//TODO
-	//if (newParentId != INVALID_MIKAN_ID)
-	//{
-	//	StageComponentPtr stage = StageObjectSystem::getSystem()->getStageById(newParentId);
+	if (newParentId != INVALID_MIKAN_ID)
+	{
+		StageComponentPtr stage = StageObjectSystem::getSystem()->getStageById(newParentId);
 
-	//	if (stage)
-	//	{
-	//		if (attachToComponent(stage->getOwnerObject()->getRootComponent()))
-	//		{
-	//			getSceneComponentDefinition()->setParentStageId(newParentId);
-	//		}
-	//	}
-	//	else
-	//	{
-	//		detachFromParent(eDetachReason::detachFromParent);
-	//		getSceneComponentDefinition()->setParentStageId(INVALID_MIKAN_ID);
-	//	}
-	//}
-	//else
-	//{
-	//	detachFromParent(eDetachReason::detachFromParent);
-	//	getSceneComponentDefinition()->setParentStageId(INVALID_MIKAN_ID);
-	//}
+		if (stage)
+		{
+			if (attachToComponent(stage->getOwnerObject()->getRootComponent()))
+			{
+				getSceneComponentDefinition()->setParentStageId(newParentId);
+			}
+		}
+		else
+		{
+			detachFromParent(eDetachReason::detachFromParent);
+			getSceneComponentDefinition()->setParentStageId(INVALID_MIKAN_ID);
+		}
+	}
+	else
+	{
+		detachFromParent(eDetachReason::detachFromParent);
+		getSceneComponentDefinition()->setParentStageId(INVALID_MIKAN_ID);
+	}
 }
 
 void SceneComponent::init()

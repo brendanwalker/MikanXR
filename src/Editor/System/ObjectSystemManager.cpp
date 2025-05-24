@@ -2,9 +2,11 @@
 
 #include "ObjectSystemManager.h"
 #include "AnchorObjectSystem.h"
+#include "CameraObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "SceneObjectSystem.h"
 #include "StencilObjectSystem.h"
+#include "StageObjectSystem.h"
 
 bool ObjectSystemManager::startup()
 {
@@ -12,9 +14,11 @@ bool ObjectSystemManager::startup()
 	// Init EditorSystem first so that it get component creation events 
 	// from Anchor and Stencil Systems triggered during init call
 	addSystem<EditorObjectSystem>();
+	addSystem<SceneObjectSystem>();
+	addSystem<StageObjectSystem>();
+	addSystem<CameraObjectSystem>();
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
-	addSystem<SceneObjectSystem>();
 
 	for (int i= 0; i < (int)m_systems.size(); i++)
 	{

@@ -2,6 +2,7 @@
 
 const std::string g_PropertySemanticNames[(int)ePropertySemantic::COUNT] = {
 	"checkbox",
+	"enumeration",
 	"position",
 	"rotation",
 	"scale",
@@ -12,6 +13,7 @@ const std::string g_PropertySemanticNames[(int)ePropertySemantic::COUNT] = {
 	"name",
 	"anchor_id",
 	"stage_id",
+	"marker_id",
 	"stencil_cull_mode"
 };
 const std::string* k_PropertySemanticNames = g_PropertySemanticNames;

@@ -26,6 +26,10 @@ class SceneObjectSystem;
 using SceneObjectSystemPtr = std::shared_ptr<SceneObjectSystem>;
 using SceneObjectSystemWeakPtr = std::weak_ptr<SceneObjectSystem>;
 
+class StageObjectSystem;
+using StageObjectSystemPtr = std::shared_ptr<StageObjectSystem>;
+using StageObjectSystemWeakPtr = std::weak_ptr<StageObjectSystem>;
+
 class StencilObjectSystem;
 using StencilObjectSystemPtr = std::shared_ptr<StencilObjectSystem>;
 using StencilObjectSystemWeakPtr = std::weak_ptr<StencilObjectSystem>;

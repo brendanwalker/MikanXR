@@ -23,6 +23,7 @@ enum class ePropertySemantic : int
 	INVALID = -1,
 
 	checkbox,
+	enumeration,
 	position,
 	rotation,
 	scale,
@@ -33,6 +34,7 @@ enum class ePropertySemantic : int
 	name,
 	anchor_id,
 	stage_id,
+	marker_id,
 	stencilCullMode,
 
 	COUNT
