@@ -5,6 +5,9 @@
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
 
+#include "MikanCameraEvents.h"
+#include "MikanCameraRequests.h"
+
 #include "MikanRenderTargetRequests.h"
 
 #include "MikanSpatialAnchorEvents.h"
@@ -467,9 +470,9 @@ protected:
 				{
 					handleVideoSourceAttachmentChanged();
 				}
-				else if (typeid(*mikanEvent) == typeid(MikanVideoSourceNewFrameEvent))
+				else if (typeid(*mikanEvent) == typeid(MikanCameraNewFrameEvent))
 				{
-					auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(mikanEvent);
+					auto newFrameEvent = std::static_pointer_cast<MikanCameraNewFrameEvent>(mikanEvent);
 
 					handleNewVideoSourceFrame(*newFrameEvent);
 				}
@@ -623,7 +626,7 @@ protected:
 		updateCameraProjectionMatrix();
 	}
 
-	void handleNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEvent)
+	void handleNewVideoSourceFrame(const MikanCameraNewFrameEvent& newFrameEvent)
 	{
 		processNewVideoSourceFrame(newFrameEvent);
 	}
@@ -832,7 +835,7 @@ protected:
 	}
 
 	// Actions
-	void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEvent)
+	void processNewVideoSourceFrame(const MikanCameraNewFrameEvent& newFrameEvent)
 	{
 		if (newFrameEvent.frame == m_lastReceivedVideoSourceFrame)
 			return;

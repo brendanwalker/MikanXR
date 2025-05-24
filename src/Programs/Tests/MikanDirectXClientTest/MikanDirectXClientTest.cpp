@@ -13,7 +13,7 @@
 #include "MikanVideoSourceRequests.h"
 #include "MikanClientRequests.h"
 #include "MikanClientEvents.h"
-#include "MikanVideoSourceEvents.h"
+#include "MikanCameraEvents.h"
 #include "MikanMathTypes.h"
 #include "MikanStencilTypes.h"
 #include "MikanVideoSourceTypes.h"
@@ -60,7 +60,7 @@ LRESULT CALLBACK wndProc(HWND, UINT, WPARAM, LPARAM);
 void cleanupDevice();
 bool initMikan();
 void updateMikan();
-void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEvent);
+void processNewVideoSourceFrame(const MikanCameraNewFrameEvent& newFrameEvent);
 void reallocateRenderBuffers();
 void updateCameraProjectionMatrix();
 bool createFrameBuffer(uint16_t width, uint16_t height);
@@ -196,9 +196,9 @@ void updateMikan()
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();
             }
-            else if (typeid(*event) == typeid(MikanVideoSourceNewFrameEvent))
+            else if (typeid(*event) == typeid(MikanCameraNewFrameEvent))
             {
-				auto newFrameEvent = std::static_pointer_cast<MikanVideoSourceNewFrameEvent>(event);
+				auto newFrameEvent = std::static_pointer_cast<MikanCameraNewFrameEvent>(event);
 				processNewVideoSourceFrame(*newFrameEvent.get());
             }
 			else if (typeid(*event) == typeid(MikanVideoSourceModeChangedEvent) ||
@@ -229,7 +229,7 @@ void updateMikan()
 	}
 }
 
-void processNewVideoSourceFrame(const MikanVideoSourceNewFrameEvent& newFrameEvent)
+void processNewVideoSourceFrame(const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	if (newFrameEvent.frame == m_lastReceivedVideoSourceFrame)
 		return;

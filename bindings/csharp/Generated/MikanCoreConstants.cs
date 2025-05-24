@@ -26,7 +26,7 @@ namespace MikanXR
 	public enum MikanConstants
 	{
 		InvalidMikanID= -1,
-		ClientAPIVersion= 0,
+		ClientAPIVersion= 1,
 	};
 
 	public enum MikanCoreResult

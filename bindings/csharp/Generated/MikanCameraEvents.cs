@@ -4,18 +4,22 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class MikanCameraListUpdateEvent : MikanEvent
-	{
-		public static new readonly long classId= -4014800876341333635;
-
-	};
-
 	public class MikanCameraNameUpdateEvent : MikanEvent
 	{
 		public static new readonly long classId= 6712693634199996648;
 
 		public int camera_id;
 		public string camera_name;
+	};
+
+	public class MikanCameraNewFrameEvent : MikanEvent
+	{
+		public static new readonly long classId= -514294351884360997;
+
+		public MikanVector3f cameraForward;
+		public MikanVector3f cameraUp;
+		public MikanVector3f cameraPosition;
+		public long frame;
 	};
 
 	public class MikanCameraPoseUpdateEvent : MikanEvent

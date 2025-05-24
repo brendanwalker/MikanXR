@@ -8,6 +8,7 @@
 #include "MikanAPITypes.h"
 #include "MikanClientTypes.h"
 #include "MikanClientEvents.h"
+#include "MikanCameraEvents.h"
 #include "MikanScriptEvents.h"
 #include "MikanStencilEvents.h"
 #include "MikanSpatialAnchorEvents.h"
@@ -76,7 +77,7 @@ public:
 	// Video Source Events
 	void publishVideoSourceOpenedEvent();
 	void publishVideoSourceClosedEvent();
-	void publishVideoSourceNewFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent);
+	void publishCameraNewFrameEvent(const MikanCameraNewFrameEvent& newFrameEvent);
 	void publishVideoSourceAttachmentChangedEvent();
 	void publishVideoSourceIntrinsicsChangedEvent();
 	void publishVideoSourceModeChangedEvent();

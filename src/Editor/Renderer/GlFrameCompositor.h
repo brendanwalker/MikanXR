@@ -5,7 +5,7 @@
 
 #include "MikanAPITypes.h"
 #include "MikanClientTypes.h"
-#include "MikanVideoSourceEvents.h"
+#include "MikanCameraEvents.h"
 #include "MulticastDelegate.h"
 #include "MikanRendererFwd.h"
 #include "NamedValueTable.h"
@@ -141,7 +141,7 @@ private:
 	GlFrameCompositorConfigPtr m_config;
 	CompositorPresetPtr m_currentPresetConfig;
 
-	std::queue<MikanVideoSourceNewFrameEvent> m_frameEventQueue;
+	std::queue<MikanCameraNewFrameEvent> m_frameEventQueue;
 
 	VideoSourceViewPtr m_videoSourceView;
 	VideoFrameDistortionView* m_videoDistortionView = nullptr;

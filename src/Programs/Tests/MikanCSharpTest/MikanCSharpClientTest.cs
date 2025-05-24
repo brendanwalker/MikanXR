@@ -842,9 +842,9 @@ namespace Mikan
 						ReallocateRenderBuffers();
 						UpdateCameraProjectionMatrix();
 					}
-					else if (nextEvent is MikanVideoSourceNewFrameEvent)
+					else if (nextEvent is MikanCameraNewFrameEvent)
 					{
-						var newFrameEvent = nextEvent as MikanVideoSourceNewFrameEvent;
+						var newFrameEvent = nextEvent as MikanCameraNewFrameEvent;
 
 						ProcessNewVideoSourceFrame(newFrameEvent);
 						break;
@@ -958,7 +958,7 @@ namespace Mikan
 			return new Vector3(v.x, v.y, -v.z);
 		}
 
-		void ProcessNewVideoSourceFrame(MikanVideoSourceNewFrameEvent newFrameEvent)
+		void ProcessNewVideoSourceFrame(MikanCameraNewFrameEvent newFrameEvent)
 		{
 			if (newFrameEvent.frame == lastReceivedVideoSourceFrame)
 				return;

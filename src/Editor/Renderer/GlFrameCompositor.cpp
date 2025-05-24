@@ -616,7 +616,7 @@ void GlFrameCompositor::update(float deltaSeconds)
 		{
 			m_lastReadVideoFrameIndex = m_videoDistortionView->readNextVideoFrame();
 
-			MikanVideoSourceNewFrameEvent newFrameEvent;
+			MikanCameraNewFrameEvent newFrameEvent;
 			newFrameEvent.frame = m_lastReadVideoFrameIndex;
 
 			const glm::vec3 cameraUp(cameraXform[1]); // Camera up is along the y-axis
@@ -654,7 +654,7 @@ void GlFrameCompositor::update(float deltaSeconds)
 	if (m_pendingCompositeFrameIndex == 0 && m_frameEventQueue.size() > 0)
 	{
 		// Grab the next frame event off the queue
-		MikanVideoSourceNewFrameEvent newFrameEvent= m_frameEventQueue.front();
+		MikanCameraNewFrameEvent newFrameEvent= m_frameEventQueue.front();
 
 		// Mark all client sources as pending
 		for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
@@ -669,7 +669,7 @@ void GlFrameCompositor::update(float deltaSeconds)
 
 		// Tell all clients that we have a new frame to render
 		MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Send frame " << m_pendingCompositeFrameIndex;
-		MikanServer::getInstance()->publishVideoSourceNewFrameEvent(newFrameEvent);
+		MikanServer::getInstance()->publishCameraNewFrameEvent(newFrameEvent);
 	}
 }
 

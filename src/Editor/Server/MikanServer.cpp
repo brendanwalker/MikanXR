@@ -13,6 +13,7 @@
 #include "MikanAPITypes.h"
 #include "MikanCoreTypes.h"
 #include "MikanRenderTargetRequests.h"
+#include "MikanCameraEvents.h"
 #include "MikanClientRequests.h"
 #include "MikanScriptRequests.h"
 #include "MikanSpatialAnchorRequests.h"
@@ -235,7 +236,7 @@ public:
 		publishSimpleEvent<MikanVideoSourceClosedEvent>();
 	}
 
-	void publishNewVideoFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent)
+	void publishNewCameraFrameEvent(const MikanCameraNewFrameEvent& newFrameEvent)
 	{
 		m_messageServer->sendMessageToClient(getConnectionId(), mikanTypeToJsonString(newFrameEvent));
 	}
@@ -642,13 +643,13 @@ void MikanServer::publishVideoSourceClosedEvent()
 	publishSimpleEvent<MikanVideoSourceClosedEvent>(m_clientConnections);
 }
 
-void MikanServer::publishVideoSourceNewFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent)
+void MikanServer::publishCameraNewFrameEvent(const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	EASY_FUNCTION();
 
 	for (auto& connection_it : m_clientConnections)
 	{
-		connection_it.second->publishNewVideoFrameEvent(newFrameEvent);
+		connection_it.second->publishNewCameraFrameEvent(newFrameEvent);
 	}
 }
 

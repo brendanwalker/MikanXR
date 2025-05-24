@@ -28,16 +28,6 @@ namespace MikanXR
 
 	};
 
-	public class MikanVideoSourceNewFrameEvent : MikanEvent
-	{
-		public static new readonly long classId= 1235622184979266446;
-
-		public MikanVector3f cameraForward;
-		public MikanVector3f cameraUp;
-		public MikanVector3f cameraPosition;
-		public long frame;
-	};
-
 	public class MikanVideoSourceOpenedEvent : MikanEvent
 	{
 		public static new readonly long classId= 5034499706629648632;

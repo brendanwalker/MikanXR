@@ -36,28 +36,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) 
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceNewFrameEvent : 
-	public MikanEvent
-{
-	MikanVideoSourceNewFrameEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanVideoSourceNewFrameEvent)
-	}
-
-	FIELD()
-	MikanVector3f cameraForward;
-	FIELD()
-	MikanVector3f cameraUp;
-	FIELD()
-	MikanVector3f cameraPosition;
-	FIELD()
-	int64_t frame;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVideoSourceNewFrameEvent_GENERATED
-	#endif
-};
-
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceEvents")) MikanVideoSourceAttachmentChangedEvent : 
 	public MikanEvent
 {
