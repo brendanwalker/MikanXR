@@ -6,6 +6,7 @@
 #include "MathUtility.h"
 #include "MathGLM.h"
 #include "MikanVideoSourceTypes.h"
+#include "MikanCameraTypes.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -277,7 +278,7 @@ void MikanCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
 	}
 }
 
-void MikanCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
+void MikanCamera::applyMonoCameraIntrinsics(MikanCameraIntrinsics* cameraIntrinsics)
 {
 	assert (cameraIntrinsics->intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 

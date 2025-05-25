@@ -5,6 +5,8 @@
 #include "BinarySerializer.h"
 #include "BinaryUtility.h"
 #include "BoxStencilComponent.h"
+#include "CameraComponent.h"
+#include "CameraObjectSystem.h"
 #include "CommonScriptContext.h"
 #include "MathTypeConversion.h"
 #include "JsonDeserializer.h"
@@ -14,6 +16,8 @@
 #include "MikanCoreTypes.h"
 #include "MikanRenderTargetRequests.h"
 #include "MikanCameraEvents.h"
+#include "MikanCameraTypes.h"
+#include "MikanCameraRequests.h"
 #include "MikanClientRequests.h"
 #include "MikanScriptRequests.h"
 #include "MikanSpatialAnchorRequests.h"
@@ -534,16 +538,18 @@ bool MikanServer::startup(MainWindow* mainWindow)
 		GetModelStencilRenderGeometry::staticGetArchetype().getId(), 
 		std::bind(&MikanServer::getModelStencilRenderGeometryHandler, this, _1, _2));
 
-	// Video Source Requests
+	// Camera Requests
 	m_messageServer->setRequestHandler(
-		GetVideoSourceIntrinsics::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getVideoSourceIntrinsicsHandler, this, _1, _2));
+		GetCameraIntrinsics::staticGetArchetype().getId(),
+		std::bind(&MikanServer::getCameraIntrinsicsHandler, this, _1, _2));
+	m_messageServer->setRequestHandler(
+		GetCameraAttachment::staticGetArchetype().getId(),
+		std::bind(&MikanServer::getCameraAttachmentHandler, this, _1, _2));
+
+	// Video Source Requests
 	m_messageServer->setRequestHandler(
 		GetVideoSourceMode::staticGetArchetype().getId(), 
 		std::bind(&MikanServer::getVideoSourceModeHandler, this, _1, _2));
-	m_messageServer->setRequestHandler(
-		GetVideoSourceAttachment::staticGetArchetype().getId(), 
-		std::bind(&MikanServer::getVideoSourceAttachmentHandler, this, _1, _2));
 
 	// VR Device Requests
 	m_messageServer->setRequestHandler(
@@ -1066,7 +1072,33 @@ void MikanServer::invokeScriptMessageHandler(
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void MikanServer::getVideoSourceIntrinsicsHandler(
+void MikanServer::getCameraInfoHandler(
+	const ClientRequest& request,
+	ClientResponse& response)
+{
+	GetCameraInfo cameraInfoRequest;
+	if (!readTypedRequest(request.utf8RequestString, cameraInfoRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	auto cameraSystemConfig = App::getInstance()->getProfileConfig()->cameraConfig;
+	auto cameraConfig = cameraSystemConfig->getCameraConfig(cameraInfoRequest.camera_id);
+	if (cameraConfig != nullptr)
+	{
+		MikanCameraInfoResponse cameraResponse = {};
+		cameraResponse.camera_info = cameraConfig->getCameraInfo();
+
+		writeTypedJsonResponse(request.requestId, cameraResponse, response);
+	}
+	else
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidStencilID, response);
+	}
+}
+
+void MikanServer::getCameraIntrinsicsHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
@@ -1074,10 +1106,48 @@ void MikanServer::getVideoSourceIntrinsicsHandler(
 
 	if (videoSourceView)
 	{
-		MikanVideoSourceIntrinsicsResponse intrinsicsResponse;
+		MikanCameraIntrinsicsResponse intrinsicsResponse;
 		videoSourceView->getCameraIntrinsics(intrinsicsResponse.intrinsics);
 
 		writeTypedJsonResponse(request.requestId, intrinsicsResponse, response);
+	}
+	else
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+	}
+}
+
+void MikanServer::getCameraAttachmentHandler(
+	const ClientRequest& request,
+	ClientResponse& response)
+{
+	VideoSourceViewPtr videoSourceView = getCurrentVideoSource();
+
+	if (videoSourceView)
+	{
+		VRDeviceViewPtr vrDeviceView = getCurrentCameraVRDevice();
+
+		if (vrDeviceView)
+		{
+			MikanCameraAttachmentInfoResponse info;
+
+			// Get the ID of the VR tracker device
+			info.attached_vr_device_id = (vrDeviceView) ? vrDeviceView->getDeviceID() : INVALID_MIKAN_ID;
+
+			// Get the camera offset
+			const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(videoSourceView->getCameraOffsetPosition());
+			const glm::quat cameraOffsetQuat = MikanQuatd_to_glm_dquat(videoSourceView->getCameraOffsetOrientation());
+			const glm::mat4 cameraOffsetXform =
+				glm::translate(glm::mat4(1.0), cameraOffsetPos) *
+				glm::mat4_cast(cameraOffsetQuat);
+			info.vr_device_offset_xform = glm_mat4_to_MikanMatrix4f(cameraOffsetXform);
+
+			writeTypedJsonResponse(request.requestId, info, response);
+		}
+		else
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+		}
 	}
 	else
 	{
@@ -1119,44 +1189,6 @@ void MikanServer::getVideoSourceModeHandler(
 					break;
 			}
 			info.video_source_type = videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;
-
-			writeTypedJsonResponse(request.requestId, info, response);
-		}
-		else
-		{
-			writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
-		}
-	}
-	else
-	{
-		writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
-	}
-}
-
-void MikanServer::getVideoSourceAttachmentHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
-{
-	VideoSourceViewPtr videoSourceView = getCurrentVideoSource();
-
-	if (videoSourceView)
-	{
-		VRDeviceViewPtr vrDeviceView = getCurrentCameraVRDevice();
-
-		if (vrDeviceView)
-		{
-			MikanVideoSourceAttachmentInfoResponse info;
-
-			// Get the ID of the VR tracker device
-			info.attached_vr_device_id = (vrDeviceView) ? vrDeviceView->getDeviceID() : INVALID_MIKAN_ID;
-
-			// Get the camera offset
-			const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(videoSourceView->getCameraOffsetPosition());
-			const glm::quat cameraOffsetQuat = MikanQuatd_to_glm_dquat(videoSourceView->getCameraOffsetOrientation());
-			const glm::mat4 cameraOffsetXform =
-				glm::translate(glm::mat4(1.0), cameraOffsetPos) *
-				glm::mat4_cast(cameraOffsetQuat);
-			info.vr_device_offset_xform = glm_mat4_to_MikanMatrix4f(cameraOffsetXform);
 
 			writeTypedJsonResponse(request.requestId, info, response);
 		}

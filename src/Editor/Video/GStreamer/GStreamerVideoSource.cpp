@@ -327,13 +327,13 @@ int GStreamerVideoSource::getVideoProperty(const VideoPropertyType property_type
 }
 
 void GStreamerVideoSource::getCameraIntrinsics(
-	MikanVideoSourceIntrinsics& outCameraIntrinsics) const
+	MikanCameraIntrinsics& outCameraIntrinsics) const
 {
 	outCameraIntrinsics.makeMonoIntrinsics()= m_cfg->cameraIntrinsics;
 }
 
 void GStreamerVideoSource::setCameraIntrinsics(
-	const MikanVideoSourceIntrinsics& videoSourceIntrinsics)
+	const MikanCameraIntrinsics& videoSourceIntrinsics)
 {
 	m_cfg->cameraIntrinsics = videoSourceIntrinsics.getMonoIntrinsics();
 }

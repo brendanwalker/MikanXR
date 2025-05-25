@@ -23,6 +23,7 @@
 #include "MikanVRDeviceRequests.h"
 
 #include "MikanMathTypes.h"
+#include "MikanCameraTypes.h"
 #include "MikanVideoSourceTypes.h"
 
 #define SDL_MAIN_HANDLED
@@ -910,12 +911,12 @@ protected:
 
 	void updateCameraProjectionMatrix()
 	{
-		GetVideoSourceIntrinsics intrinsicsRequest;
+		GetCameraIntrinsics intrinsicsRequest;
 		auto response= m_mikanApi->sendRequest(intrinsicsRequest).fetchResponse();
 
 		if (response->resultCode == MikanAPIResult::Success)
 		{
-			auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
+			auto videoSourceIntrinsics= std::static_pointer_cast<MikanCameraIntrinsicsResponse>(response);
 			const auto& cameraIntrinsics= videoSourceIntrinsics->intrinsics.getMonoIntrinsics();
 			const float videoSourcePixelWidth = cameraIntrinsics.pixel_width;
 			const float videoSourcePixelHeight = cameraIntrinsics.pixel_height;

@@ -4,6 +4,7 @@
 #include "CommonConfig.h"
 #include "DeviceInterface.h"
 #include "MikanVideoSourceTypes.h"
+#include "MikanCameraTypes.h"
 #include "VideoFwd.h"
 
 // -- constants -----
@@ -37,7 +38,7 @@ struct VideoModeConfig
 	std::string bufferFormat;
 	std::vector<VideoFrameSectionInfo> frameSections;
 	
-	MikanVideoSourceIntrinsics intrinsics;
+	MikanCameraIntrinsics intrinsics;
 };
 using VideoModeConfigPtr = std::shared_ptr<VideoModeConfig>;
 using VideoModeConfigConstPtr = std::shared_ptr<const VideoModeConfig>;

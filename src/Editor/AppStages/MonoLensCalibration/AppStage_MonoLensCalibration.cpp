@@ -215,7 +215,7 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 					if (m_monoLensCalibrator->getCameraCalibration(&new_mono_intrinsics))
 					{
 						// Update the camera intrinsics for this camera
-						MikanVideoSourceIntrinsics cameraIntrinsics;
+						MikanCameraIntrinsics cameraIntrinsics;
 						cameraIntrinsics.makeMonoIntrinsics()= new_mono_intrinsics;
 						m_videoSourceView->setCameraIntrinsics(cameraIntrinsics);
 

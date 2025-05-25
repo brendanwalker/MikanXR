@@ -81,8 +81,8 @@ public:
 	bool hasNewVideoFrameAvailable(VideoFrameSection section) const;
 	int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer);
 
-	void getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
-	void setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
+	void getCameraIntrinsics(MikanCameraIntrinsics& out_camera_intrinsics) const;
+	void setCameraIntrinsics(const MikanCameraIntrinsics& camera_intrinsics);
 
 	MikanQuatd getCameraOffsetOrientation() const;
 	MikanVector3d getCameraOffsetPosition() const;

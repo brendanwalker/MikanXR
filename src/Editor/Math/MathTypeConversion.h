@@ -3,6 +3,7 @@
 //-- includes -----
 #include "MikanMathTypes.h"
 #include "MikanVideoSourceTypes.h"
+#include "MikanCameraTypes.h"
 #include "OpenCVFwd.h"
 
 #include <opencv2/opencv.hpp>

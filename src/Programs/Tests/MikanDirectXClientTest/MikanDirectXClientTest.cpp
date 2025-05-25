@@ -9,6 +9,7 @@
 #include "Logger.h"
 #include "MikanAPI.h"
 #include "MikanRenderTargetRequests.h"
+#include "MikanCameraRequests.h"
 #include "MikanVideoSourceEvents.h"
 #include "MikanVideoSourceRequests.h"
 #include "MikanClientRequests.h"
@@ -16,6 +17,7 @@
 #include "MikanCameraEvents.h"
 #include "MikanMathTypes.h"
 #include "MikanStencilTypes.h"
+#include "MikanCameraTypes.h"
 #include "MikanVideoSourceTypes.h"
 
 using namespace DirectX;
@@ -303,12 +305,12 @@ void reallocateRenderBuffers()
 
 void updateCameraProjectionMatrix()
 {
-    GetVideoSourceIntrinsics getIntrinsicsRequest;
+    GetCameraIntrinsics getIntrinsicsRequest;
 	auto response = g_mikanAPI->sendRequest(getIntrinsicsRequest).fetchResponse();
 
 	if (response->resultCode == MikanAPIResult::Success)
 	{
-        auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
+        auto videoSourceIntrinsics= std::static_pointer_cast<MikanCameraIntrinsicsResponse>(response);
         const auto& cameraIntrinsics= videoSourceIntrinsics->intrinsics.getMonoIntrinsics();
 
 		const float videoSourcePixelWidth = cameraIntrinsics.pixel_width;

@@ -3,6 +3,7 @@
 #include "Logger.h"
 #include "MikanMathTypes.h"
 #include "MikanVideoSourceTypes.h"
+#include "MikanCameraTypes.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "VideoSourceView.h"
@@ -294,7 +295,7 @@ bool computeOpenCVCameraRectification(
     cv::Matx33d &rotationOut,
     cv::Matx34d &projectionOut)
 {
-    MikanVideoSourceIntrinsics tracker_intrinsics;
+    MikanCameraIntrinsics tracker_intrinsics;
     videoSource->getCameraIntrinsics(tracker_intrinsics);
 
     MikanMatrix3d rectification_rotation;

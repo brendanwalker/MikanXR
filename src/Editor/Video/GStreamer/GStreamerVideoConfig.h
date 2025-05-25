@@ -3,6 +3,7 @@
 // -- includes -----
 #include "MikanGStreamerConstants.h"
 #include "MikanVideoSourceTypes.h"
+#include "MikanCameraTypes.h"
 #include "CommonVideoConfig.h"
 
 // -- definitions -----

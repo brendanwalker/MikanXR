@@ -119,9 +119,11 @@ protected:
 
 	void invokeScriptMessageHandler(const ClientRequest& request, ClientResponse& response);
 	
-	void getVideoSourceIntrinsicsHandler(const ClientRequest& request, ClientResponse& response);
+	void getCameraInfoHandler(const ClientRequest& request, ClientResponse& response);
+	void getCameraIntrinsicsHandler(const ClientRequest& request, ClientResponse& response);
+	void getCameraAttachmentHandler(const ClientRequest& request, ClientResponse& response);
+
 	void getVideoSourceModeHandler(const ClientRequest& request, ClientResponse& response);
-	void getVideoSourceAttachmentHandler(const ClientRequest& request, ClientResponse& response);
 
 	void getVRDeviceListHandler(const ClientRequest& request, ClientResponse& response);
 	void getVRDeviceInfoHandler(const ClientRequest& request, ClientResponse& response);

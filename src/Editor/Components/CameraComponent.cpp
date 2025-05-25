@@ -20,7 +20,7 @@
 CameraDefinition::CameraDefinition()
 	: TransformComponentDefinition()
 {
-	m_CameraId = INVALID_MIKAN_ID;
+	m_cameraId = INVALID_MIKAN_ID;
 }
 
 CameraDefinition::CameraDefinition(
@@ -28,7 +28,7 @@ CameraDefinition::CameraDefinition(
 	const std::string& cameraName,
 	const MikanTransform& xform)
 	: TransformComponentDefinition(cameraName, xform)
-	, m_CameraId(cameraId)
+	, m_cameraId(cameraId)
 {
 }
 
@@ -36,7 +36,7 @@ configuru::Config CameraDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
-	pt["id"] = m_CameraId;
+	pt["id"] = m_cameraId;
 
 	return pt;
 }
@@ -47,9 +47,22 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 
 	if (pt.has_key("id"))
 	{
-		m_CameraId = pt.get<int>("id");
-		m_configName = StringUtils::stringify("Camera_", m_CameraId);
+		m_cameraId = pt.get<int>("id");
+		m_configName = StringUtils::stringify("Camera_", m_cameraId);
 	}
+}
+
+MikanCameraInfo CameraDefinition::getCameraInfo() const
+{
+	const std::string& cameraName = getComponentName();
+	MikanTransform relativeXform = glm_transform_to_MikanTransform(getRelativeTransform());
+
+	MikanCameraInfo cameraInfo = {};
+	cameraInfo.camera_id = m_cameraId;
+	cameraInfo.camera_name = cameraName;
+	cameraInfo.relative_transform = relativeXform;
+
+	return cameraInfo;
 }
 
 // -- CameraComponent -----
@@ -150,17 +163,6 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 	}
 
 	return false;
-}
-
-void CameraComponent::extractCameraInfoForClientAPI(MikanCameraInfo& outCameraInfo) const
-{
-	const std::string CameraName = getName();
-	const GlmTransform CameraWorldTransform(getWorldTransform());
-	const MikanCameraID CameraId = getCameraDefinition()->getCameraId();
-
-	outCameraInfo.camera_id = getCameraDefinition()->getCameraId();
-	outCameraInfo.camera_name= CameraName;
-	outCameraInfo.world_transform = glm_transform_to_MikanTransform(CameraWorldTransform);
 }
 
 void CameraComponent::editCamera()

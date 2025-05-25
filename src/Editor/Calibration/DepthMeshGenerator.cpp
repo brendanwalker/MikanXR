@@ -61,7 +61,7 @@ struct DepthMeshCaptureState
 		profileConfig= config;
 
 		// Get the current camera intrinsics being used by the video source
-		MikanVideoSourceIntrinsics cameraIntrinsics;
+		MikanCameraIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
 

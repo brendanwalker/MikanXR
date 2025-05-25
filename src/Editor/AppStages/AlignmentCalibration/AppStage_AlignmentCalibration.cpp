@@ -102,7 +102,7 @@ void AppStage_AlignmentCalibration::enter()
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
-	MikanVideoSourceIntrinsics cameraIntrinsics;
+	MikanCameraIntrinsics cameraIntrinsics;
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 

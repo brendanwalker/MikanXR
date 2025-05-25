@@ -98,7 +98,7 @@ cv::Mat* CalibrationPatternFinder::getGrayscaleVideoFrameInput() const
 bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform)
 {
 	// Make sure mono camera intrinsics are available
-	MikanVideoSourceIntrinsics cameraIntrinsics;
+	MikanCameraIntrinsics cameraIntrinsics;
 	m_distortionView->getVideoSourceView()->getCameraIntrinsics(cameraIntrinsics);
 	if (cameraIntrinsics.intrinsics_type != MONO_CAMERA_INTRINSICS)
 	{

@@ -44,6 +44,34 @@ public:
 	#endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) GetCameraIntrinsics :
+	public MikanRequest
+{
+public:
+	GetCameraIntrinsics()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetCameraIntrinsics)
+	}
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	GetCameraIntrinsics_GENERATED
+	#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) GetCameraAttachment :
+	public MikanRequest
+{
+public:
+	GetCameraAttachment()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetCameraAttachment)
+	}
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	GetCameraAttachment_GENERATED
+	#endif
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) FindCameraByName :
 	public MikanRequest
 {
@@ -61,7 +89,7 @@ public:
 	#endif
 };
 
-// Spatial Anchor Response Types
+// Camera Response Types
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) MikanCameraListResponse : 
 	public MikanResponse
 {
@@ -93,6 +121,44 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) Mika
 	MikanCameraInfoResponse_GENERATED
 	#endif
 };
+
+/// Bundle containing all intrinsic video source properties
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) MikanCameraIntrinsicsResponse :
+	public MikanResponse
+{
+	MikanCameraIntrinsicsResponse()
+		: intrinsics()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanCameraIntrinsicsResponse)
+	}
+
+	FIELD()
+	MikanCameraIntrinsics intrinsics;
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanCameraIntrinsicsResponse_GENERATED
+	#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
+/// Static properties about video source tracker attachment
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) MikanCameraAttachmentInfoResponse :
+	public MikanResponse
+{
+	MikanCameraAttachmentInfoResponse()
+	{
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanCameraAttachmentInfoResponse)
+	}
+
+	FIELD()
+	MikanVRDeviceID attached_vr_device_id;
+	FIELD()
+	MikanMatrix4f vr_device_offset_xform;
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanCameraAttachmentInfoResponse_GENERATED
+	#endif
+};
+
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanCameraRequests_GENERATED

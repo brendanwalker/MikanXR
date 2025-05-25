@@ -161,8 +161,8 @@ public:
 	virtual void setVideoProperty(const VideoPropertyType property_type, int desired_value, bool save_setting) = 0;
 	virtual int getVideoProperty(const VideoPropertyType property_type) const = 0;
 
-	virtual void getCameraIntrinsics(struct MikanVideoSourceIntrinsics& out_tracker_intrinsics) const = 0;
-	virtual void setCameraIntrinsics(const struct MikanVideoSourceIntrinsics& tracker_intrinsics) = 0;
+	virtual void getCameraIntrinsics(struct MikanCameraIntrinsics& out_tracker_intrinsics) const = 0;
+	virtual void setCameraIntrinsics(const struct MikanCameraIntrinsics& tracker_intrinsics) = 0;
 
 	virtual MikanQuatd getCameraOffsetOrientation() const = 0;
 	virtual MikanVector3d getCameraOffsetPosition() const = 0;

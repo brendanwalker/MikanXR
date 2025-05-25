@@ -68,7 +68,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_videoTexture(nullptr)
 {
 	// Get the current camera intrinsics being used by the video source
-	MikanVideoSourceIntrinsics mikanIntrinsics;
+	MikanCameraIntrinsics mikanIntrinsics;
 	m_videoSourceView->getCameraIntrinsics(mikanIntrinsics);
 	m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
 

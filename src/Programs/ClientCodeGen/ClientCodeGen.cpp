@@ -12,6 +12,7 @@
 #include "MikanMathTypes.h"
 #include "MikanScriptTypes.h"
 #include "MikanStencilTypes.h"
+#include "MikanCameraTypes.h"
 #include "MikanVideoSourceTypes.h"
 #include "MikanVRDeviceTypes.h"
 

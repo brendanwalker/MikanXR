@@ -4,6 +4,7 @@
 #include "ComponentFwd.h"
 #include "TransformComponent.h"
 #include "MikanTypeFwd.h"
+#include "MikanCameraTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
@@ -26,10 +27,11 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanCameraID getCameraId() const { return m_CameraId; }
+	MikanCameraID getCameraId() const { return m_cameraId; }
+	MikanCameraInfo getCameraInfo() const;
 
 private:
-	MikanCameraID m_CameraId;
+	MikanCameraID m_cameraId;
 };
 
 class CameraComponent : public TransformComponent
@@ -43,8 +45,6 @@ public:
 	{
 		return std::static_pointer_cast<CameraDefinition>(m_definition);
 	}
-
-	void extractCameraInfoForClientAPI(struct MikanCameraInfo& outCameraInfo) const;
 
 	// -- IFunctionInterface ----
 	static const std::string k_editCameraFunctionId;

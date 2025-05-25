@@ -452,14 +452,14 @@ int WMFMonoVideoSource::getVideoProperty(const VideoPropertyType property_type) 
 }
 
 void WMFMonoVideoSource::getCameraIntrinsics(
-	MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
+	MikanCameraIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= MONO_CAMERA_INTRINSICS;
     out_tracker_intrinsics.makeMonoIntrinsics()= m_cfg->tracker_intrinsics;
 }
 
 void WMFMonoVideoSource::setCameraIntrinsics(
-    const MikanVideoSourceIntrinsics& tracker_intrinsics)
+    const MikanCameraIntrinsics& tracker_intrinsics)
 {
     assert(tracker_intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
     m_cfg->tracker_intrinsics= tracker_intrinsics.getMonoIntrinsics();

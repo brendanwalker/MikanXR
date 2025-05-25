@@ -58,8 +58,8 @@ public:
 	bool getVideoPropertyConstraint(const VideoPropertyType property_type, VideoPropertyConstraint& outConstraint) const override;
 	void setVideoProperty(const VideoPropertyType property_type, int desired_value, bool save_setting) override;
 	int getVideoProperty(const VideoPropertyType property_type) const override;
-	void getCameraIntrinsics(MikanVideoSourceIntrinsics& out_tracker_intrinsics) const override;
-	void setCameraIntrinsics(const MikanVideoSourceIntrinsics& tracker_intrinsics) override;
+	void getCameraIntrinsics(MikanCameraIntrinsics& out_tracker_intrinsics) const override;
+	void setCameraIntrinsics(const MikanCameraIntrinsics& tracker_intrinsics) override;
 	MikanQuatd getCameraOffsetOrientation() const override;
 	MikanVector3d getCameraOffsetPosition() const override;
 	void setCameraPoseOffset(const MikanQuatd& q, const MikanVector3d& p) override;

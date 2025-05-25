@@ -2,6 +2,7 @@
 
 #include "ObjectSystemConfigFwd.h"
 #include "MikanVideoSourceTypes.h"
+#include "MikanCameraTypes.h"
 
 #include <memory>
 

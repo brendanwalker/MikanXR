@@ -1,6 +1,7 @@
 #include "CommonConfig.h"
 #include "Logger.h"
 #include "MikanVideoSourceTypes.h"
+#include "MikanCameraTypes.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
 

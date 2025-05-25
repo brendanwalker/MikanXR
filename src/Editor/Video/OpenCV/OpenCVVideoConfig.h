@@ -2,6 +2,7 @@
 
 // -- includes -----
 #include "MikanVideoSourceTypes.h"
+#include "MikanCameraTypes.h"
 #include "CommonVideoConfig.h"
 
 // -- definitions -----

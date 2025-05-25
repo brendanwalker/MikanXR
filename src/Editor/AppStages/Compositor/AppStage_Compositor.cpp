@@ -135,7 +135,7 @@ void AppStage_Compositor::enter()
 	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
 	if (videoSourceView != nullptr)
 	{
-		MikanVideoSourceIntrinsics cameraIntrinsics;
+		MikanCameraIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 
 		for (MikanViewportPtr viewport : getViewportList())

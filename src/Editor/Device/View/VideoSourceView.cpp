@@ -536,12 +536,12 @@ void VideoSourceView::setVideoProperty(const VideoPropertyType property_type, in
 	m_device->setVideoProperty(property_type, desired_value, save_setting);
 }
 
-void VideoSourceView::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const
+void VideoSourceView::getCameraIntrinsics(MikanCameraIntrinsics& out_camera_intrinsics) const
 {
 	m_device->getCameraIntrinsics(out_camera_intrinsics);
 }
 
-void VideoSourceView::setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics)
+void VideoSourceView::setCameraIntrinsics(const MikanCameraIntrinsics& camera_intrinsics)
 {
 	m_device->setCameraIntrinsics(camera_intrinsics);
 	recomputeCameraProjectionMatrix();
@@ -619,7 +619,7 @@ glm::mat4 VideoSourceView::getCameraProjectionMatrix() const
 
 void VideoSourceView::recomputeCameraProjectionMatrix()
 {
-	MikanVideoSourceIntrinsics camera_intrinsics;
+	MikanCameraIntrinsics camera_intrinsics;
 	m_device->getCameraIntrinsics(camera_intrinsics);
 
 	switch (camera_intrinsics.intrinsics_type)
