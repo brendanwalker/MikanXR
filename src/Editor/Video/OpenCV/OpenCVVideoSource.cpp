@@ -4,6 +4,7 @@
 #include "OpenCVVideo.h"
 #include "VideoDeviceEnumerator.h"
 #include "VideoCapabilitiesConfig.h"
+#include "VideoSourceManager.h"
 #include "OpenCVCameraEnumerator.h"
 
 #include <memory>
@@ -85,6 +86,9 @@ bool OpenCVVideoSource::open(const DeviceEnumerator *enumerator)
         m_cfg = std::make_shared<OpenCVVideoConfig>(m_deviceIdentifier);
         m_cfg->load();
 
+		// Register the config with the video source manager
+		VideoSourceManager::getInstance()->getMutableConfig().addNewVideoSourceConfig(m_cfg);
+
 		// If no mode is specified, then default to the first mode
 		if (m_cfg->current_mode == "")
 		{
@@ -164,7 +168,12 @@ IVideoSourceInterface::eDriverType OpenCVVideoSource::getDriverType() const
     return m_driverType;
 }
 
-std::string OpenCVVideoSource::getUSBDevicePath() const
+MikanVideoSourceID OpenCVVideoSource::getVideoSourceId() const
+{
+	return m_cfg->video_source_id;
+}
+
+std::string OpenCVVideoSource::getDevicePath() const
 {
     return m_deviceIdentifier;
 }
@@ -323,13 +332,13 @@ int OpenCVVideoSource::getVideoProperty(const VideoPropertyType property_type) c
 }
 
 void OpenCVVideoSource::getCameraIntrinsics(
-	MikanCameraIntrinsics& outCameraIntrinsics) const
+	MikanVideoSourceIntrinsics& outCameraIntrinsics) const
 {
 	outCameraIntrinsics.makeMonoIntrinsics()= m_cfg->cameraIntrinsics;
 }
 
 void OpenCVVideoSource::setCameraIntrinsics(
-	const MikanCameraIntrinsics& videoSourceIntrinsics)
+	const MikanVideoSourceIntrinsics& videoSourceIntrinsics)
 {
 	m_cfg->cameraIntrinsics = videoSourceIntrinsics.getMonoIntrinsics();
 }

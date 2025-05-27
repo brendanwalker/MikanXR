@@ -235,7 +235,7 @@ void AppStage_DepthMeshCapture::exit()
 // Camera
 void AppStage_DepthMeshCapture::setupCameras()
 {
-	MikanCameraIntrinsics cameraIntrinsics;
+	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 
 	for (int cameraIndex = 0; cameraIndex < (int)eDepthMeshCaptureViewpointMode::COUNT; ++cameraIndex)

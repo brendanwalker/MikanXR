@@ -4,6 +4,7 @@
 #include "StringUtils.h"
 #include "VideoDeviceEnumerator.h"
 #include "VideoCapabilitiesConfig.h"
+#include "VideoSourceManager.h"
 #include "WMFCameraEnumerator.h"
 #include "WorkerThread.h"
 #include "WMFVideo.h"
@@ -211,6 +212,9 @@ bool WMFMonoVideoSource::open(const DeviceEnumerator *enumerator)
 			    }
 		    }
 
+			// Register the config with the video source manager
+			VideoSourceManager::getInstance()->getMutableConfig().addNewVideoSourceConfig(m_cfg);
+
 		    // Save the config back out again in case defaults changed
             m_cfg->save();
         }
@@ -285,7 +289,12 @@ std::string WMFMonoVideoSource::getFriendlyName() const
 	return m_videoDevice->m_deviceInfo.deviceFriendlyName;
 }
 
-std::string WMFMonoVideoSource::getUSBDevicePath() const
+MikanVideoSourceID WMFMonoVideoSource::getVideoSourceId() const
+{
+	return m_cfg->video_source_id;
+}
+
+std::string WMFMonoVideoSource::getDevicePath() const
 {
     return m_device_identifier;
 }
@@ -452,14 +461,14 @@ int WMFMonoVideoSource::getVideoProperty(const VideoPropertyType property_type) 
 }
 
 void WMFMonoVideoSource::getCameraIntrinsics(
-	MikanCameraIntrinsics& out_tracker_intrinsics) const
+	MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= MONO_CAMERA_INTRINSICS;
     out_tracker_intrinsics.makeMonoIntrinsics()= m_cfg->tracker_intrinsics;
 }
 
 void WMFMonoVideoSource::setCameraIntrinsics(
-    const MikanCameraIntrinsics& tracker_intrinsics)
+    const MikanVideoSourceIntrinsics& tracker_intrinsics)
 {
     assert(tracker_intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
     m_cfg->tracker_intrinsics= tracker_intrinsics.getMonoIntrinsics();

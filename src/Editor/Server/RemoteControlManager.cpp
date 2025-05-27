@@ -68,9 +68,19 @@ bool RemoteControlManager::startup(MainWindow* mainWindow)
 	m_remoteControllableAppStageFactories[AppStage_VRTrackingRecenter::APP_STAGE_NAME] =
 		TypedRemoteControllableAppStageFactory<AppStage_VRTrackingRecenter>::createFactory();
 
-	mainWindow->OnAppStageEntered += MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
+	m_mainWindow= mainWindow;
+	m_mainWindow->OnAppStageEntered += MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
 
 	return true;
+}
+
+void RemoteControlManager::shutdown()
+{
+	if (m_mainWindow != nullptr)
+	{
+		m_mainWindow->OnAppStageEntered -= MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
+		m_mainWindow= nullptr;
+	}
 }
 
 void RemoteControlManager::pushAppStageHandler(

@@ -1,4 +1,5 @@
 //-- includes -----
+#include "CommonVideoConfig.h"
 #include "VideoSourceManager.h"
 #include "VideoDeviceEnumerator.h"
 #include "DeviceManager.h"
@@ -19,16 +20,18 @@
 VideoSourceManager* VideoSourceManager::m_instance= nullptr;
 
 //-- Video Source Manager Config -----
+const std::string VideoSourceManagerConfig::k_videoSourceListPropertyId = "videoSources";
+
 VideoSourceManagerConfig::VideoSourceManagerConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
 {
-
-};
+}
 
 configuru::Config VideoSourceManagerConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
+	pt["next_video_source_id"]= nextVideoSourceId;
 	writeStdValueVector<std::string>(pt, "video_source_uris", videoSourceURIs);
 
 	return pt;
@@ -38,7 +41,63 @@ void VideoSourceManagerConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
+	nextVideoSourceId= pt.get_or<int>("next_video_source_id", 0);
 	readStdValueVector<std::string>(pt, "video_source_uris", videoSourceURIs);
+}
+
+CommonVideoConfigPtr VideoSourceManagerConfig::getVideoSourceConfig(MikanVideoSourceID videoSourceId) const
+{
+	auto it = std::find_if(
+		videoSourceConfigList.begin(), videoSourceConfigList.end(),
+		[videoSourceId](CommonVideoConfigPtr configPtr) {
+			return configPtr->video_source_id == videoSourceId;
+		});
+
+	if (it != videoSourceConfigList.end())
+	{
+		return *it;
+	}
+
+	return CommonVideoConfigPtr();
+}
+
+bool VideoSourceManagerConfig::addNewVideoSourceConfig(CommonVideoConfigPtr videoSourceConfig)
+{
+	if (videoSourceConfig->video_source_id != INVALID_MIKAN_ID)
+	{
+		videoSourceConfig->video_source_id = nextVideoSourceId;
+		nextVideoSourceId++;
+
+		videoSourceConfigList.push_back(videoSourceConfig);
+		addChildConfig(videoSourceConfig);
+
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoSourceListPropertyId));
+
+		return true;
+	}
+
+	return false;
+}
+
+bool VideoSourceManagerConfig::removeVideoSourceConfig(MikanVideoSourceID videoSourceId)
+{
+	auto it = std::find_if(
+		videoSourceConfigList.begin(), videoSourceConfigList.end(),
+		[videoSourceId](CommonVideoConfigPtr configPtr) {
+			return configPtr->video_source_id == videoSourceId;
+		});
+
+	if (it != videoSourceConfigList.end())
+	{
+		removeChildConfig(*it);
+
+		videoSourceConfigList.erase(it);
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoSourceListPropertyId));
+
+		return true;
+	}
+
+	return false;
 }
 
 //-- Video Source Manager -----
@@ -109,7 +168,7 @@ void VideoSourceManager::update(float deltaTime)
 	// Update any video sources that do their processing on the main thread
 	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
 	{
-		VideoSourceViewPtr videoSourceView = getVideoSourceViewPtr(videoSourceId);
+		VideoSourceViewPtr videoSourceView = getVideoSourceViewByDeviceIndex(videoSourceId);
 		IVideoSourceInterface* videoSourceInterface= videoSourceView->getVideoSourceInterface();
 
 		if (videoSourceInterface != nullptr && videoSourceInterface->wantsUpdate())
@@ -139,7 +198,7 @@ void VideoSourceManager::closeAllVideoSources()
 {
 	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
 	{
-		VideoSourceViewPtr videoSourceView = getVideoSourceViewPtr(videoSourceId);
+		VideoSourceViewPtr videoSourceView = getVideoSourceViewByDeviceIndex(videoSourceId);
 
 		if (videoSourceView->getIsOpen())
 		{
@@ -163,20 +222,35 @@ DeviceView* VideoSourceManager::allocateDeviceView(int device_id)
 	return new VideoSourceView(device_id);
 }
 
-VideoSourceViewPtr VideoSourceManager::getVideoSourceViewPtr(int device_id) const
+VideoSourceViewPtr VideoSourceManager::getVideoSourceViewByDeviceIndex(int device_id) const
 {
 	assert(m_deviceViews != nullptr);
 
 	return std::static_pointer_cast<VideoSourceView>(m_deviceViews[device_id]);
 }
 
+VideoSourceViewPtr VideoSourceManager::getVideoSourceViewById(MikanVideoSourceID videoSourceId) const
+{
+	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
+	{
+		VideoSourceViewPtr videoSourcePtr = getVideoSourceViewByDeviceIndex(videoSourceId);
+
+		if (videoSourcePtr->getIsOpen() && videoSourcePtr->getVideoSourceId() == videoSourceId)
+		{
+			return videoSourcePtr;
+		}
+	}
+
+	return VideoSourceViewPtr();
+}
+
 VideoSourceViewPtr VideoSourceManager::getVideoSourceViewByPath(const std::string& devicePath) const
 {
 	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
 	{
-		VideoSourceViewPtr videoSourcePtr = getVideoSourceViewPtr(videoSourceId);
+		VideoSourceViewPtr videoSourcePtr = getVideoSourceViewByDeviceIndex(videoSourceId);
 
-		if (videoSourcePtr->getIsOpen() && videoSourcePtr->getUSBDevicePath() == devicePath)
+		if (videoSourcePtr->getIsOpen() && videoSourcePtr->getDevicePath() == devicePath)
 		{
 			return videoSourcePtr;
 		}	
@@ -191,7 +265,7 @@ VideoSourceList VideoSourceManager::getVideoSourceList() const
 
 	for (int videoSourceId = 0; videoSourceId < k_max_devices; ++videoSourceId)
 	{
-		VideoSourceViewPtr videoSourcePtr = getVideoSourceViewPtr(videoSourceId);
+		VideoSourceViewPtr videoSourcePtr = getVideoSourceViewByDeviceIndex(videoSourceId);
 
 		if (videoSourcePtr->getIsOpen())
 		{
@@ -212,7 +286,7 @@ VideoSourceListIterator::VideoSourceListIterator(const std::string& usbPath)
 	{
 		VideoSourceViewPtr videoSourcePtr = m_videoSourceList[testIndex];
 
-		if (videoSourcePtr->getUSBDevicePath() == usbPath)
+		if (videoSourcePtr->getDevicePath() == usbPath)
 		{
 			m_listIndex = testIndex;
 			break;

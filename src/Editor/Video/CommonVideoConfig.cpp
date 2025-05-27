@@ -4,6 +4,7 @@
 // -- WMF Stereo Tracker Config
 CommonVideoConfig::CommonVideoConfig(const std::string &fnamebase)
     : CommonConfig(fnamebase)
+	, video_source_id(-1)
     , is_valid(false)
     , max_poll_failure_count(100)
 	, current_mode("")
@@ -18,6 +19,7 @@ configuru::Config CommonVideoConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
+	pt["video_source_id"]= video_source_id;
 	pt["is_valid"]= is_valid;
 	pt["max_poll_failure_count"]= max_poll_failure_count;
 	pt["current_mode"]= current_mode;
@@ -49,6 +51,8 @@ configuru::Config CommonVideoConfig::writeToJSON()
 void CommonVideoConfig::readFromJSON(const configuru::Config &pt)
 {
 	CommonConfig::readFromJSON(pt);
+
+	video_source_id = pt.get_or<int>("video_source_id", -1);
 
     is_valid = pt.get_or<bool>("is_valid", false);
     max_poll_failure_count = pt.get_or<long>("max_poll_failure_count", 100);

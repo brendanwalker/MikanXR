@@ -89,7 +89,7 @@ void AppStage_AnchorTriangulation::enter()
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
-	MikanCameraIntrinsics cameraIntrinsics;
+	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 

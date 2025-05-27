@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonConfig.h"
+#include "ComponentFwd.h"
 #include "MikanStencilTypes.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"

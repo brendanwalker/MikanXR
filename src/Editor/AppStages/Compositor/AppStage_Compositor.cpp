@@ -44,6 +44,7 @@
 #include "RmlUtility.h"
 #include "SdlUtility.h"
 #include "TransformComponent.h"
+#include "ScriptRequestHandler.h"
 #include "StringUtils.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
@@ -135,7 +136,7 @@ void AppStage_Compositor::enter()
 	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
 	if (videoSourceView != nullptr)
 	{
-		MikanCameraIntrinsics cameraIntrinsics;
+		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 
 		for (MikanViewportPtr viewport : getViewportList())
@@ -147,7 +148,7 @@ void AppStage_Compositor::enter()
 	}
 
 	// Register the script context with the mikan server
-	MikanServer::getInstance()->bindScriptContect(m_scriptContext);
+	MikanServer::getInstance()->getScriptRequestHandler()->bindScriptContect(m_scriptContext);
 
 	// Load the compositor script
 	if (!m_project->compositorScriptFilePath.empty())
@@ -231,7 +232,7 @@ void AppStage_Compositor::exit()
 	editorSystem->clearViewports();
 
 	// Unregister the script context with the mikan server
-	MikanServer::getInstance()->unbindScriptContect(m_scriptContext);
+	MikanServer::getInstance()->getScriptRequestHandler()->unbindScriptContect(m_scriptContext);
 
 	// Clean up spout output stream
 	stopStreaming();

@@ -17,10 +17,18 @@
 #include "VRDeviceView.h"
 
 // -- CameraConfig -----
+const std::string CameraDefinition::k_attachedVRDevicePropertyId = "attached_vr_device_id";
+const std::string CameraDefinition::k_orientationOffsetPropertyId = "orientation_offset";
+const std::string CameraDefinition::k_positionOffsetPropertyId = "position_offset";
+
+
 CameraDefinition::CameraDefinition()
 	: TransformComponentDefinition()
+	, m_cameraId(INVALID_MIKAN_ID)
+	, m_attachedVRDeviceId(INVALID_MIKAN_ID)
+	, m_orientationOffset({1.0, 0.0, 0.0, 0.0})
+	, m_positionOffset({0.0, 0.0, 0.0})
 {
-	m_cameraId = INVALID_MIKAN_ID;
 }
 
 CameraDefinition::CameraDefinition(
@@ -29,6 +37,9 @@ CameraDefinition::CameraDefinition(
 	const MikanTransform& xform)
 	: TransformComponentDefinition(cameraName, xform)
 	, m_cameraId(cameraId)
+	, m_attachedVRDeviceId(INVALID_MIKAN_ID)
+	, m_orientationOffset({1.0, 0.0, 0.0, 0.0})
+	, m_positionOffset({0.0, 0.0, 0.0})
 {
 }
 
@@ -63,6 +74,33 @@ MikanCameraInfo CameraDefinition::getCameraInfo() const
 	cameraInfo.relative_transform = relativeXform;
 
 	return cameraInfo;
+}
+
+void CameraDefinition::setAttachedVRDeviceId(MikanVRDeviceID deviceId)
+{
+	if (deviceId != m_attachedVRDeviceId)
+	{
+		m_attachedVRDeviceId= deviceId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_attachedVRDevicePropertyId));
+	}
+}
+
+void CameraDefinition::setOrientationOffset(MikanQuatd rotation)
+{
+	if (memcmp(&m_orientationOffset, &rotation, sizeof(MikanQuatd)))
+	{
+		m_orientationOffset = rotation;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_orientationOffsetPropertyId));
+	}
+}
+
+void CameraDefinition::setPositionOffset(MikanVector3d translation)
+{
+	if (memcmp(&m_positionOffset, &translation, sizeof(MikanVector3d)))
+	{
+		m_positionOffset = translation;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_positionOffsetPropertyId));
+	}
 }
 
 // -- CameraComponent -----

@@ -43,7 +43,7 @@ public:
 	eCameraMovementMode getCameraMovementMode() const { return m_movementMode; }
 	void setCameraMovementMode(eCameraMovementMode mode);
 
-	void applyMonoCameraIntrinsics(struct MikanCameraIntrinsics* cameraIntrinsics);
+	void applyMonoCameraIntrinsics(struct MikanVideoSourceIntrinsics* cameraIntrinsics);
 
 	void setCameraTransform(const glm::mat4& poseXform);
 	void setPosition(const glm::vec3& location);

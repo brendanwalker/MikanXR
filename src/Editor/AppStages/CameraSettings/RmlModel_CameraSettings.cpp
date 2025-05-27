@@ -63,7 +63,7 @@ void RmlModel_CameraSettings::rebuildVideoSourceList(const VideoSourceManager* v
 	m_videoSourcePathList.clear();
 	for (VideoSourceViewPtr videoSourceView : videoSourceList)
 	{
-		m_videoSourcePathList.push_back(videoSourceView->getUSBDevicePath());
+		m_videoSourcePathList.push_back(videoSourceView->getDevicePath());
 	}
 	m_modelHandle.DirtyVariable("video_sources");
 }

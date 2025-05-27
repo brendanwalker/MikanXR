@@ -295,7 +295,7 @@ bool computeOpenCVCameraRectification(
     cv::Matx33d &rotationOut,
     cv::Matx34d &projectionOut)
 {
-    MikanCameraIntrinsics tracker_intrinsics;
+    MikanVideoSourceIntrinsics tracker_intrinsics;
     videoSource->getCameraIntrinsics(tracker_intrinsics);
 
     MikanMatrix3d rectification_rotation;

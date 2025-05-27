@@ -4,6 +4,7 @@
 #include "VideoSourceInterface.h"
 #include "CommonConfig.h"
 #include "MikanMathTypes.h"
+#include "MikanTypeFwd.h"
 
 // -- definitions -----
 class CommonVideoConfig : public CommonConfig
@@ -13,6 +14,8 @@ public:
     
     virtual configuru::Config writeToJSON();
     virtual void readFromJSON(const configuru::Config &pt);
+
+	MikanVideoSourceID video_source_id;
 
     bool is_valid;
     long max_poll_failure_count;

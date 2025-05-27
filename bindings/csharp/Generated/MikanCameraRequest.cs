@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class FindCameraByName : MikanRequest
+	public class FindCameraInfoByName : MikanRequest
 	{
-		public static new readonly long classId= -454698135979206047;
+		public static new readonly long classId= 5128038528436073941;
 
 		public string camera_name;
 	};
@@ -15,6 +15,7 @@ namespace MikanXR
 	{
 		public static new readonly long classId= 8728192020460588051;
 
+		public int camera_id;
 	};
 
 	public class GetCameraInfo : MikanRequest
@@ -22,12 +23,6 @@ namespace MikanXR
 		public static new readonly long classId= -383140838344567898;
 
 		public int camera_id;
-	};
-
-	public class GetCameraIntrinsics : MikanRequest
-	{
-		public static new readonly long classId= 7200699089540330418;
-
 	};
 
 	public class GetCameraList : MikanRequest
@@ -49,13 +44,6 @@ namespace MikanXR
 		public static new readonly long classId= -1502983427939995947;
 
 		public MikanCameraInfo camera_info;
-	};
-
-	public class MikanCameraIntrinsicsResponse : MikanResponse
-	{
-		public static new readonly long classId= -3291677122109534735;
-
-		public MikanCameraIntrinsics intrinsics;
 	};
 
 	public class MikanCameraListResponse : MikanResponse

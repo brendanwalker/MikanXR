@@ -30,8 +30,23 @@ public:
 	MikanCameraID getCameraId() const { return m_cameraId; }
 	MikanCameraInfo getCameraInfo() const;
 
+	static const std::string k_attachedVRDevicePropertyId;
+	MikanVRDeviceID getAttachedVRDeviceId() const { return m_attachedVRDeviceId; }
+	void setAttachedVRDeviceId(MikanVRDeviceID deviceId);
+
+	static const std::string k_orientationOffsetPropertyId;
+	MikanQuatd getOrientationOffset() const { return m_orientationOffset; }
+	void setOrientationOffset(MikanQuatd rotation);
+
+	static const std::string k_positionOffsetPropertyId;
+	MikanVector3d getPositionOffset() const { return m_positionOffset; }
+	void setPositionOffset(MikanVector3d translation);
+
 private:
 	MikanCameraID m_cameraId;
+	MikanVRDeviceID m_attachedVRDeviceId;
+	MikanQuatd m_orientationOffset;
+	MikanVector3d m_positionOffset;
 };
 
 class CameraComponent : public TransformComponent

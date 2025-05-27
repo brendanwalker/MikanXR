@@ -49,7 +49,7 @@ void RmlDataBinding_SourcesList::rebuildSourcesList()
 	m_sourcePathList.clear();
 	for (VideoSourceViewPtr videoSourcePtr : videoSources)
 	{
-		m_sourcePathList.push_back(videoSourcePtr->getUSBDevicePath());
+		m_sourcePathList.push_back(videoSourcePtr->getDevicePath());
 	}
 	m_modelHandle.DirtyVariable("sources_list");
 }

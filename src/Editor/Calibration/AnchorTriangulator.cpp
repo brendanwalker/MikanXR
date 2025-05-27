@@ -48,7 +48,7 @@ struct AnchorTriangulationState
 	void init(VideoSourceViewPtr videoSourceView)
 	{
 		// Get the current mono camera intrinsics being used by the video source
-		MikanCameraIntrinsics cameraIntrinsics;
+		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
 		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 

@@ -38,7 +38,7 @@ struct VideoModeConfig
 	std::string bufferFormat;
 	std::vector<VideoFrameSectionInfo> frameSections;
 	
-	MikanCameraIntrinsics intrinsics;
+	MikanVideoSourceIntrinsics intrinsics;
 };
 using VideoModeConfigPtr = std::shared_ptr<VideoModeConfig>;
 using VideoModeConfigConstPtr = std::shared_ptr<const VideoModeConfig>;

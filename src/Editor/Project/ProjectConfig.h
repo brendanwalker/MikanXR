@@ -5,6 +5,7 @@
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProjectConfigConstants.h"
+#include "VideoFwd.h"
 
 #include <filesystem>
 
@@ -74,6 +75,7 @@ public:
 	StencilObjectSystemConfigPtr stencilConfig;
 	SceneObjectSystemConfigPtr sceneConfig;
 	StageObjectSystemConfigPtr stageConfig;
+	VideoSourceManagerConfigPtr videoSourcesConfig;
 
 protected:
 	bool m_bIsSpoutOutputStreaming= false;

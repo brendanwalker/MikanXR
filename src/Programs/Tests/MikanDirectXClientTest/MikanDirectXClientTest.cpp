@@ -305,12 +305,14 @@ void reallocateRenderBuffers()
 
 void updateCameraProjectionMatrix()
 {
-    GetCameraIntrinsics getIntrinsicsRequest;
+    GetVideoSourceIntrinsics getIntrinsicsRequest;
+    // TODO: Get current video source id
+    getIntrinsicsRequest.video_source_id= -1;
 	auto response = g_mikanAPI->sendRequest(getIntrinsicsRequest).fetchResponse();
 
 	if (response->resultCode == MikanAPIResult::Success)
 	{
-        auto videoSourceIntrinsics= std::static_pointer_cast<MikanCameraIntrinsicsResponse>(response);
+        auto videoSourceIntrinsics= std::static_pointer_cast<MikanVideoSourceIntrinsicsResponse>(response);
         const auto& cameraIntrinsics= videoSourceIntrinsics->intrinsics.getMonoIntrinsics();
 
 		const float videoSourcePixelWidth = cameraIntrinsics.pixel_width;

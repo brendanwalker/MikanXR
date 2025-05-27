@@ -1,5 +1,6 @@
 #include "App.h"
 #include "Colors.h"
+#include "CameraRequestHandler.h"
 #include "SdlCommon.h"
 #include "IMkFrameBuffer.h"
 #include "GlFrameCompositor.h"
@@ -12,6 +13,7 @@
 #include "IMkWindow.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
+#include "MikanClientConnectionState.h"
 #include "MikanServer.h"
 #include "MainWindow.h"
 #include "ModelStencilComponent.h"
@@ -28,6 +30,7 @@
 #include "MikanRenderModelResource.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkVertexDefinition.h"
+#include "RenderTargetRequestHandler.h"
 #include "SyntheticDepthEstimator.h"
 #include "VideoSourceManager.h"
 #include "VideoSourceView.h"
@@ -371,23 +374,26 @@ bool GlFrameCompositor::start()
 		MikanServer* mikanServer = MikanServer::getInstance();
 
 		// Create layers for all connected clients with allocated render targets
-		std::vector<const MikanClientConnectionInfo*> clientList;
-		mikanServer->getConnectedClientInfoList(clientList);
-		for (const MikanClientConnectionInfo* connectionInfo : clientList)
+		std::vector<MikanClientConnectionStateConstPtr> clientStateList;
+		mikanServer->getConnectedClientStateList(clientStateList);
+		for (MikanClientConnectionStateConstPtr clientState : clientStateList)
 		{
-			if (connectionInfo->hasAllocatedRenderTarget())
+			RenderTargetClientState* renderTargetClientState= clientState->getRenderTargetClientState();
+
+			if (renderTargetClientState->hasAllocatedRenderTarget())
 			{
 				onClientRenderTargetAllocated(
-					connectionInfo->getClientId(), 
-					connectionInfo->getClientInfo(),
-					connectionInfo->getRenderTargetReadAccessor());
+					clientState->getClientId(), 
+					clientState->getMikanClientInfo(),
+					renderTargetClientState->getRenderTargetReadAccessor());
 			}
 		}
 
 		// Listen for new render target events
-		mikanServer->OnClientRenderTargetAllocated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetAllocated);
-		mikanServer->OnClientRenderTargetReleased += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetReleased);
-		mikanServer->OnClientRenderTargetUpdated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
+		auto* renderTargetClientHandler= mikanServer->getRenderTargetRequestHandler();
+		renderTargetClientHandler->OnClientRenderTargetAllocated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetAllocated);
+		renderTargetClientHandler->OnClientRenderTargetReleased += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetReleased);
+		renderTargetClientHandler->OnClientRenderTargetUpdated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
 
 		m_bIsRunning= true;
 		m_timeSinceLastFrameComposited= 0.f;
@@ -401,10 +407,11 @@ void GlFrameCompositor::stop()
 	// Stop listening to render target events
 	{
 		MikanServer* mikanServer = MikanServer::getInstance();
+		auto* renderTargetClientHandler= mikanServer->getRenderTargetRequestHandler();
 
-		mikanServer->OnClientRenderTargetAllocated -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetAllocated);
-		mikanServer->OnClientRenderTargetReleased -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetReleased);
-		mikanServer->OnClientRenderTargetUpdated -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
+		renderTargetClientHandler->OnClientRenderTargetAllocated -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetAllocated);
+		renderTargetClientHandler->OnClientRenderTargetReleased -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetReleased);
+		renderTargetClientHandler->OnClientRenderTargetUpdated -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
 	}
 
 	m_bIsRunning = false;
@@ -669,7 +676,7 @@ void GlFrameCompositor::update(float deltaSeconds)
 
 		// Tell all clients that we have a new frame to render
 		MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Send frame " << m_pendingCompositeFrameIndex;
-		MikanServer::getInstance()->publishCameraNewFrameEvent(newFrameEvent);
+		MikanServer::getInstance()->getCameraRequestHandler()->publishCameraNewFrameEvent(newFrameEvent);
 	}
 }
 

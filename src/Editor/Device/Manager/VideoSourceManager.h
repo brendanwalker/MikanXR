@@ -11,6 +11,10 @@
 #include "DeviceInterface.h"
 
 //-- typedefs -----
+class CommonVideoConfig;
+typedef std::shared_ptr<CommonVideoConfig> CommonVideoConfigPtr;
+typedef std::vector<CommonVideoConfigPtr> VideoSourceConfigList;
+
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 typedef std::vector<VideoSourceViewPtr> VideoSourceList;
@@ -24,6 +28,15 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	CommonVideoConfigPtr getVideoSourceConfig(MikanVideoSourceID videoSourceId) const;
+	bool addNewVideoSourceConfig(CommonVideoConfigPtr videoSourceConfig);
+	bool removeVideoSourceConfig(MikanVideoSourceID sceneId);
+
+	static const std::string k_videoSourceListPropertyId;
+	VideoSourceConfigList videoSourceConfigList;
+
+	MikanVideoSourceID nextVideoSourceId= 0;
+
 	std::vector<std::string> videoSourceURIs;
 };
 
@@ -34,6 +47,7 @@ public:
 
 	inline static VideoSourceManager* getInstance() { return m_instance; }
 	const VideoSourceManagerConfig& getConfig() const { return m_cfg; }
+	VideoSourceManagerConfig& getMutableConfig() { return m_cfg; }
 
 	class IMikanGStreamerModule* getGStreamerModule() const;
 
@@ -49,11 +63,12 @@ public:
 		return VideoSourceManager::k_max_devices;
 	}
 
-	VideoSourceViewPtr getVideoSourceViewPtr(int device_id) const;
+	VideoSourceViewPtr getVideoSourceViewById(MikanVideoSourceID videoSourceId) const;
 	VideoSourceViewPtr getVideoSourceViewByPath(const std::string& devicePath) const;
 	VideoSourceList getVideoSourceList() const;
 
 protected:
+	VideoSourceViewPtr getVideoSourceViewByDeviceIndex(int device_id) const;
 	DeviceEnumerator* allocateDeviceEnumerator() override;
 	void freeDeviceEnumerator(DeviceEnumerator*) override;
 	DeviceView* allocateDeviceView(int device_id) override;

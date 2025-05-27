@@ -44,17 +44,20 @@ public:
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) GetCameraIntrinsics :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) FindCameraInfoByName :
 	public MikanRequest
 {
 public:
-	GetCameraIntrinsics()
+	FindCameraInfoByName()
 	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetCameraIntrinsics)
+		MIKAN_REQUEST_TYPE_INFO_INIT(FindCameraInfoByName)
 	}
 
+	FIELD()
+	Serialization::String camera_name;
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	GetCameraIntrinsics_GENERATED
+	FindCameraInfoByName_GENERATED
 	#endif
 };
 
@@ -67,25 +70,11 @@ public:
 		MIKAN_REQUEST_TYPE_INFO_INIT(GetCameraAttachment)
 	}
 
+	FIELD()
+	MikanCameraID camera_id;
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetCameraAttachment_GENERATED
-	#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) FindCameraByName :
-	public MikanRequest
-{
-public:
-	FindCameraByName()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(FindCameraByName)
-	}
-
-	FIELD()
-	Serialization::String camera_name;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	FindCameraByName_GENERATED
 	#endif
 };
 
@@ -120,24 +109,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) Mika
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanCameraInfoResponse_GENERATED
 	#endif
-};
-
-/// Bundle containing all intrinsic video source properties
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) MikanCameraIntrinsicsResponse :
-	public MikanResponse
-{
-	MikanCameraIntrinsicsResponse()
-		: intrinsics()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanCameraIntrinsicsResponse)
-	}
-
-	FIELD()
-	MikanCameraIntrinsics intrinsics;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanCameraIntrinsicsResponse_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
 /// Static properties about video source tracker attachment

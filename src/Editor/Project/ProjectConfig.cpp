@@ -10,6 +10,7 @@
 #include "SceneObjectSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
+#include "VideoSourceManager.h"
 
 // -- Profile Config
 const std::string ProjectConfig::k_spoutOutputIsStreamingNamePropertyId= "spoutOutputIsStreaming";
@@ -75,6 +76,9 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 
 	stencilConfig= std::make_shared<StencilObjectSystemConfig>("stencils");
 	addChildConfig(stencilConfig);
+
+	videoSourcesConfig= std::make_shared<VideoSourceManagerConfig>("video_sources");
+	addChildConfig(videoSourcesConfig);
 };
 
 configuru::Config ProjectConfig::writeToJSON()
@@ -131,6 +135,8 @@ configuru::Config ProjectConfig::writeToJSON()
 	// Write the stencil system config
 	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
 
+	// Write the video sources config
+	pt[videoSourcesConfig->getConfigName()] = videoSourcesConfig->writeToJSON();
 
 	return pt;
 }
@@ -202,6 +208,12 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(sceneConfig->getConfigName()))
 	{
 		sceneConfig->readFromJSON(pt[sceneConfig->getConfigName()]);
+	}
+
+	// Read the video sources config
+	if (pt.has_key(videoSourcesConfig->getConfigName()))
+	{
+		videoSourcesConfig->readFromJSON(pt[videoSourcesConfig->getConfigName()]);
 	}
 
 	// Read the camera system config

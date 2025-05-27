@@ -2,6 +2,10 @@
 
 #include <memory>
 
+class VideoSourceManagerConfig;
+using VideoSourceManagerConfigPtr = std::shared_ptr<VideoSourceManagerConfig>;
+using VideoSourceManagerConfigConstPtr = std::shared_ptr<const VideoSourceManagerConfig>;
+
 class VideoCapabilitiesConfig;
 using VideoCapabilitiesConfigPtr = std::shared_ptr<VideoCapabilitiesConfig>;
 using VideoCapabilitiesConfigConstPtr = std::shared_ptr<const VideoCapabilitiesConfig>;

@@ -278,7 +278,7 @@ void MikanCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
 	}
 }
 
-void MikanCamera::applyMonoCameraIntrinsics(MikanCameraIntrinsics* cameraIntrinsics)
+void MikanCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
 {
 	assert (cameraIntrinsics->intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 

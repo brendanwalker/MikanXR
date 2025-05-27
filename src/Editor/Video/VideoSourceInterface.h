@@ -3,6 +3,7 @@
 // -- includes -----
 #include "DeviceInterface.h"
 #include "MikanMathTypes.h"
+#include "MikanTypeFwd.h"
 
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
@@ -101,8 +102,11 @@ public:
 	// Returns the friendly name of the device
 	virtual std::string getFriendlyName() const { return ""; }
 
-	// Returns the full usb device path for the tracker
-	virtual std::string getUSBDevicePath() const = 0;
+	// Returns the stable video source id of the device
+	virtual MikanVideoSourceID getVideoSourceId() const = 0;
+
+	// Returns the full device path for the video source
+	virtual std::string getDevicePath() const = 0;
 
 	// Returns the video frame size (used to compute frame buffer size)
 	virtual bool getVideoFrameDimensions(int* out_width, int* out_height, int* out_stride) const = 0;
@@ -161,8 +165,8 @@ public:
 	virtual void setVideoProperty(const VideoPropertyType property_type, int desired_value, bool save_setting) = 0;
 	virtual int getVideoProperty(const VideoPropertyType property_type) const = 0;
 
-	virtual void getCameraIntrinsics(struct MikanCameraIntrinsics& out_tracker_intrinsics) const = 0;
-	virtual void setCameraIntrinsics(const struct MikanCameraIntrinsics& tracker_intrinsics) = 0;
+	virtual void getCameraIntrinsics(struct MikanVideoSourceIntrinsics& out_tracker_intrinsics) const = 0;
+	virtual void setCameraIntrinsics(const struct MikanVideoSourceIntrinsics& tracker_intrinsics) = 0;
 
 	virtual MikanQuatd getCameraOffsetOrientation() const = 0;
 	virtual MikanVector3d getCameraOffsetPosition() const = 0;

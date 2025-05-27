@@ -1,5 +1,6 @@
 //-- includes -----
 #include "CameraMath.h"
+#include "CameraRequestHandler.h"
 #include "DeviceEnumerator.h"
 #include "GStreamerVideoSource.h"
 #include "VideoSourceView.h"
@@ -12,6 +13,7 @@
 #include "ThreadUtils.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoDeviceEnumerator.h"
+#include "VideoSourceRequestHandler.h"
 #include "VRDeviceView.h"
 #include "WMFMonoVideoSource.h"
 #include "WMFStereoVideoSource.h"
@@ -178,9 +180,14 @@ std::string VideoSourceView::getFriendlyName() const
 	return m_device->getFriendlyName();
 }
 
-std::string VideoSourceView::getUSBDevicePath() const
+MikanVideoSourceID VideoSourceView::getVideoSourceId() const
 {
-	return m_device->getUSBDevicePath();
+	return m_device->getVideoSourceId();
+}
+
+std::string VideoSourceView::getDevicePath() const
+{
+	return m_device->getDevicePath();
 }
 
 bool VideoSourceView::open(const DeviceEnumerator* enumerator)
@@ -209,7 +216,7 @@ void VideoSourceView::close()
 	}
 
 	// Let any connected clients know that the video source closed
-	MikanServer::getInstance()->publishVideoSourceClosedEvent();
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceClosedEvent();
 	if (OnClosed)
 	{
 		OnClosed(this);
@@ -261,7 +268,7 @@ void VideoSourceView::notifyVideoFrameSizeChanged()
 	recomputeCameraProjectionMatrix();
 
 	// Let any listeners know that the video frame sized changed
-	MikanServer::getInstance()->publishVideoSourceModeChangedEvent();
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceModeChangedEvent();
 	if (OnFrameSizeChanged)
 	{
 		OnFrameSizeChanged(this);
@@ -536,18 +543,18 @@ void VideoSourceView::setVideoProperty(const VideoPropertyType property_type, in
 	m_device->setVideoProperty(property_type, desired_value, save_setting);
 }
 
-void VideoSourceView::getCameraIntrinsics(MikanCameraIntrinsics& out_camera_intrinsics) const
+void VideoSourceView::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const
 {
 	m_device->getCameraIntrinsics(out_camera_intrinsics);
 }
 
-void VideoSourceView::setCameraIntrinsics(const MikanCameraIntrinsics& camera_intrinsics)
+void VideoSourceView::setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics)
 {
 	m_device->setCameraIntrinsics(camera_intrinsics);
 	recomputeCameraProjectionMatrix();
 
 	// Let any connected clients know that the video source intrinsics changed
-	MikanServer::getInstance()->publishCameraIntrinsicsChangedEvent();
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceIntrinsicsChangedEvent();
 	if (OnIntrinsicsChanged)
 	{
 		OnIntrinsicsChanged(this);
@@ -569,7 +576,7 @@ void VideoSourceView::setCameraPoseOffset(const MikanQuatd& q, const MikanVector
 	m_device->setCameraPoseOffset(q, p);
 
 	// Let any connected clients know that the video source attachment settings changed
-	MikanServer::getInstance()->publishCameraAttachmentChangedEvent();
+	MikanServer::getInstance()->getCameraRequestHandler()->publishCameraAttachmentChangedEvent();
 	if (OnCameraPoseOffsetChanged)
 	{
 		OnCameraPoseOffsetChanged(this);
@@ -619,7 +626,7 @@ glm::mat4 VideoSourceView::getCameraProjectionMatrix() const
 
 void VideoSourceView::recomputeCameraProjectionMatrix()
 {
-	MikanCameraIntrinsics camera_intrinsics;
+	MikanVideoSourceIntrinsics camera_intrinsics;
 	m_device->getCameraIntrinsics(camera_intrinsics);
 
 	switch (camera_intrinsics.intrinsics_type)

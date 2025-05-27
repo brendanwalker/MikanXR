@@ -23,6 +23,9 @@ using MikanSceneID = int32_t;
 /// The ID of a stage
 using MikanStageID = int32_t;
 
+/// The ID of a video source
+using MikanVideoSourceID = int32_t;
+
 /// The ID of a marker
 using MikanMarkerID = int32_t;
 

@@ -932,11 +932,15 @@ namespace Mikan
 
 		void UpdateCameraProjectionMatrix()
 		{
-			MikanResponse response = mikanAPI.SendRequest(new GetCameraIntrinsics()).FetchResponse();
+			var request = new GetVideoSourceIntrinsics();
+			// TODO: Get current video source
+			request.video_source_id= -1;
+
+			MikanResponse response = mikanAPI.SendRequest(request).FetchResponse();
 
 			if (response.resultCode == MikanAPIResult.Success)
 			{
-				var videoSourceIntrinsics = response as MikanCameraIntrinsicsResponse;
+				var videoSourceIntrinsics = response as MikanVideoSourceIntrinsicsResponse;
 				var intrinsics = videoSourceIntrinsics.intrinsics.intrinsics_ptr;
 
 				var monoIntrinsics = intrinsics.Instance as MikanMonoIntrinsics;

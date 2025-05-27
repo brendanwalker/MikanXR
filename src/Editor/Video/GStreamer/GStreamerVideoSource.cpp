@@ -69,6 +69,7 @@ bool GStreamerVideoSource::open(const DeviceEnumerator* enumerator)
 	}
 	else
 	{
+		auto* videoSourceManager= VideoSourceManager::getInstance();
 		const GStreamerCameraEnumerator* cameraEnumerator = videoDeviceEnumerator->getGStreamerCameraEnumerator();
 
 		MIKAN_LOG_INFO("GStreamerVideoSource::open") << 
@@ -90,7 +91,13 @@ bool GStreamerVideoSource::open(const DeviceEnumerator* enumerator)
 		m_cfg->load();
 
 		// Apply the IPAddress/port/path to the config if it's unset/changes
-		if (m_cfg->applyDevicePath(m_devicePath))
+		bool bWriteConfig= m_cfg->applyDevicePath(m_devicePath);
+
+		// Register the config with the video source manager
+		bWriteConfig|= videoSourceManager->getMutableConfig().addNewVideoSourceConfig(m_cfg);
+
+		// Write out the config if it changed
+		if (bWriteConfig)
 		{
 			m_cfg->save();
 		}
@@ -102,7 +109,7 @@ bool GStreamerVideoSource::open(const DeviceEnumerator* enumerator)
 		settings.path = m_cfg->path.c_str();
 		settings.port = m_cfg->port;
 
-		IMikanGStreamerModule* gstreamerModule= VideoSourceManager::getInstance()->getGStreamerModule();
+		IMikanGStreamerModule* gstreamerModule= videoSourceManager->getGStreamerModule();
 		m_videoDevice = gstreamerModule->createVideoDevice(settings);
 		m_videoDevice->open();
 	}
@@ -226,7 +233,12 @@ std::string GStreamerVideoSource::getFriendlyName() const
 	return m_devicePath;
 }
 
-std::string GStreamerVideoSource::getUSBDevicePath() const
+MikanVideoSourceID GStreamerVideoSource::getVideoSourceId() const
+{
+	return m_cfg->video_source_id;
+}
+
+std::string GStreamerVideoSource::getDevicePath() const
 {
 	return m_deviceIdentifier;
 }
@@ -327,13 +339,13 @@ int GStreamerVideoSource::getVideoProperty(const VideoPropertyType property_type
 }
 
 void GStreamerVideoSource::getCameraIntrinsics(
-	MikanCameraIntrinsics& outCameraIntrinsics) const
+	MikanVideoSourceIntrinsics& outCameraIntrinsics) const
 {
 	outCameraIntrinsics.makeMonoIntrinsics()= m_cfg->cameraIntrinsics;
 }
 
 void GStreamerVideoSource::setCameraIntrinsics(
-	const MikanCameraIntrinsics& videoSourceIntrinsics)
+	const MikanVideoSourceIntrinsics& videoSourceIntrinsics)
 {
 	m_cfg->cameraIntrinsics = videoSourceIntrinsics.getMonoIntrinsics();
 }

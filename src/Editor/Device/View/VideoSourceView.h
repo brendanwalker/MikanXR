@@ -56,8 +56,11 @@ public:
 	// Returns a friendly name of the video source
 	std::string getFriendlyName() const;
 
-	// Returns the full usb device path for the controller
-	std::string getUSBDevicePath() const;
+	// Returns the stable id for the video source
+	MikanVideoSourceID getVideoSourceId() const;
+
+	// Returns the full device path for the video source
+	std::string getDevicePath() const;
 
 	void loadSettings();
 	void saveSettings();
@@ -81,8 +84,8 @@ public:
 	bool hasNewVideoFrameAvailable(VideoFrameSection section) const;
 	int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer);
 
-	void getCameraIntrinsics(MikanCameraIntrinsics& out_camera_intrinsics) const;
-	void setCameraIntrinsics(const MikanCameraIntrinsics& camera_intrinsics);
+	void getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
+	void setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
 
 	MikanQuatd getCameraOffsetOrientation() const;
 	MikanVector3d getCameraOffsetPosition() const;

@@ -4,6 +4,7 @@
 #include "StringUtils.h"
 #include "VideoDeviceEnumerator.h"
 #include "VideoCapabilitiesConfig.h"
+#include "VideoSourceManager.h"
 #include "WMFCameraEnumerator.h"
 #include "WorkerThread.h"
 #include "WMFVideo.h"
@@ -225,6 +226,9 @@ bool WMFStereoVideoSource::open(const DeviceEnumerator *enumerator)
 			    }
 		    }
 
+			// Register the config with the video source manager
+			VideoSourceManager::getInstance()->getMutableConfig().addNewVideoSourceConfig(m_cfg);
+
 		    // Save the config back out again in case defaults changed
             m_cfg->save();
         }
@@ -299,7 +303,12 @@ std::string WMFStereoVideoSource::getFriendlyName() const
 	return m_videoDevice->m_deviceInfo.deviceFriendlyName;
 }
 
-std::string WMFStereoVideoSource::getUSBDevicePath() const
+MikanVideoSourceID WMFStereoVideoSource::getVideoSourceId() const
+{
+	return m_cfg->video_source_id;
+}
+
+std::string WMFStereoVideoSource::getDevicePath() const
 {
     return m_device_identifier;
 }
@@ -464,14 +473,14 @@ int WMFStereoVideoSource::getVideoProperty(const VideoPropertyType property_type
 }
 
 void WMFStereoVideoSource::getCameraIntrinsics(
-    MikanCameraIntrinsics& out_tracker_intrinsics) const
+    MikanVideoSourceIntrinsics& out_tracker_intrinsics) const
 {
     out_tracker_intrinsics.intrinsics_type= STEREO_CAMERA_INTRINSICS;
     out_tracker_intrinsics.makeStereoIntrinsics()= m_cfg->tracker_intrinsics;
 }
 
 void WMFStereoVideoSource::setCameraIntrinsics(
-    const MikanCameraIntrinsics& tracker_intrinsics)
+    const MikanVideoSourceIntrinsics& tracker_intrinsics)
 {
     assert(tracker_intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS);
     m_cfg->tracker_intrinsics= tracker_intrinsics.getStereoIntrinsics();

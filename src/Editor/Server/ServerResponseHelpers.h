@@ -12,6 +12,15 @@
 using json = nlohmann::json;
 
 template <typename t_mikan_type>
+std::string mikanTypeToJsonString(const t_mikan_type& mikanType)
+{
+	std::string jsonStr;
+	Serialization::serializeToJsonString(mikanType, jsonStr);
+
+	return jsonStr;
+}
+
+template <typename t_mikan_type>
 bool readTypedRequest(const std::string& utf8RequestString, t_mikan_type& outParameters)
 {
 	try
