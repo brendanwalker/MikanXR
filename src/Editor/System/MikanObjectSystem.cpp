@@ -20,11 +20,7 @@ bool MikanObjectSystem::init()
 
 void MikanObjectSystem::dispose()
 {
-	for (MikanObjectPtr objectPtr : m_objects)
-	{
-		objectPtr->dispose();
-	}
-	m_objects.clear();
+	deleteAllObjects();
 }
 
 void MikanObjectSystem::update()
@@ -59,4 +55,13 @@ void MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr)
 			m_objects.erase(it);
 		}
 	}
+}
+
+void MikanObjectSystem::deleteAllObjects()
+{
+	for (MikanObjectPtr objectPtr : m_objects)
+	{
+		objectPtr->dispose();
+	}
+	m_objects.clear();
 }

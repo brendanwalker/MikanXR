@@ -41,6 +41,16 @@ enum class eStencilType : int
 extern const char** k_szStencilTypeStrings;
 extern const std::string* k_stencilTypeStrings;
 
+enum class eTrackingRuntime : int
+{
+	INVALID = -1,
+
+	SteamVR,
+
+	COUNT
+};
+extern const std::string* k_trackingRuntimeStrings;
+
 #define CHESSBOARD_PATTERN_W				7 // Internal corners
 #define CHESSBOARD_PATTERN_H				5
 #define DEFAULT_SQUARE_LEN_MM				30

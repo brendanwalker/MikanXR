@@ -21,6 +21,7 @@ public:
 
 	MikanObjectPtr newObject();
 	void deleteObject(MikanObjectPtr objectPtr);
+	void deleteAllObjects();
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) { }
 	inline const MikanObjectList& getObjectList() const { return m_objects; }
 

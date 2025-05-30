@@ -11,10 +11,12 @@
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
 #include "VideoSourceManager.h"
+#include "VRObjectSystem.h"
 
 // -- Profile Config
 const std::string ProjectConfig::k_spoutOutputIsStreamingNamePropertyId= "spoutOutputIsStreaming";
 const std::string ProjectConfig::k_spoutOutputNamePropertyId= "spoutOutputName";
+const std::string ProjectConfig::k_trackerRuntimePropertyId= "trackerRuntime";
 const std::string ProjectConfig::k_videoSourcePathPropertyId= "videoSourcePath";
 const std::string ProjectConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
 const std::string ProjectConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
@@ -79,6 +81,9 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 
 	videoSourcesConfig= std::make_shared<VideoSourceManagerConfig>("video_sources");
 	addChildConfig(videoSourcesConfig);
+
+	vrObjectConfig= std::make_shared<VRObjectSystemConfig>("vr_objects");
+	addChildConfig(vrObjectConfig);
 };
 
 configuru::Config ProjectConfig::writeToJSON()
@@ -106,6 +111,7 @@ configuru::Config ProjectConfig::writeToJSON()
 	// VideoSource Defaults
 	pt["videoSourcePath"]= videoSourcePath;
 	// Tracker
+	pt[k_trackerRuntimePropertyId]= k_trackingRuntimeStrings[(int)m_trackingRuntime];
 	pt["cameraVRDevicePath"]= cameraVRDevicePath;
 	pt["matVRDevicePath"]= matVRDevicePath;
 	pt["vivePuckDefaultComponentName"]= vivePuckDefaultComponentName;
@@ -137,6 +143,8 @@ configuru::Config ProjectConfig::writeToJSON()
 
 	// Write the video sources config
 	pt[videoSourcesConfig->getConfigName()] = videoSourcesConfig->writeToJSON();
+
+	// VRObject System Config is runtime only
 
 	return pt;
 }
@@ -188,6 +196,15 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	videoSourcePath = pt.get_or<std::string>("videoSourcePath", videoSourcePath);
 
 	// VR Devices
+	const std::string trackingRuntimeString =
+		pt.get_or<std::string>(
+			k_trackerRuntimePropertyId,
+			k_trackingRuntimeStrings[(int)eTrackingRuntime::SteamVR]);
+	m_trackingRuntime =
+		StringUtils::FindEnumValue<eTrackingRuntime>(
+			trackingRuntimeString,
+			k_trackingRuntimeStrings);
+
 	cameraVRDevicePath = pt.get_or<std::string>("cameraVRDevicePath", cameraVRDevicePath);
 
 	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);
@@ -234,6 +251,8 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
 	}
 
+	// VRObject System Config is runtime only
+
 	// Compositor
 	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
 
@@ -256,6 +275,15 @@ void ProjectConfig::setSpoutOutputName(const std::string& spoutOutputName)
 	{
 		m_spoutOutputName = spoutOutputName;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputNamePropertyId));
+	}
+}
+
+void ProjectConfig::setTrackingRungime(eTrackingRuntime trackingRuntime)
+{
+	if (m_trackingRuntime != trackingRuntime)
+	{
+		m_trackingRuntime = trackingRuntime;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackerRuntimePropertyId));
 	}
 }
 

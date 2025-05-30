@@ -43,6 +43,10 @@ public:
 	inline const std::string& getSpoutOutputName() const { return m_spoutOutputName; }
 	void setSpoutOutputName(const std::string& spoutOutputName);
 
+	static const std::string k_trackerRuntimePropertyId;
+	inline const eTrackingRuntime getTrackerRuntime() const { return m_trackingRuntime; }
+	void setTrackingRungime(eTrackingRuntime trackingRuntime);
+
 	static const std::string k_videoSourcePathPropertyId;
 	std::string videoSourcePath;
 
@@ -76,10 +80,12 @@ public:
 	SceneObjectSystemConfigPtr sceneConfig;
 	StageObjectSystemConfigPtr stageConfig;
 	VideoSourceManagerConfigPtr videoSourcesConfig;
+	VRObjectSystemConfigPtr vrObjectConfig;
 
 protected:
 	bool m_bIsSpoutOutputStreaming= false;
 	std::string m_spoutOutputName;
+	eTrackingRuntime m_trackingRuntime= eTrackingRuntime::SteamVR;
 	bool m_bRenderOrigin= true;
 	int m_vrFrameDelay = 0;
 };

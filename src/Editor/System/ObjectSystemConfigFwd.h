@@ -36,3 +36,8 @@ class StencilObjectSystemConfig;
 using StencilObjectSystemConfigPtr = std::shared_ptr<StencilObjectSystemConfig>;
 using StencilObjectSystemConfigConstPtr = std::shared_ptr<const StencilObjectSystemConfig>;
 using StencilObjectSystemConfigWeakPtr = std::weak_ptr<StencilObjectSystemConfig>;
+
+class VRObjectSystemConfig;
+using VRObjectSystemConfigPtr = std::shared_ptr<VRObjectSystemConfig>;
+using VRObjectSystemConfigConstPtr = std::shared_ptr<const VRObjectSystemConfig>;
+using VRObjectSystemConfigWeakPtr = std::weak_ptr<VRObjectSystemConfig>;

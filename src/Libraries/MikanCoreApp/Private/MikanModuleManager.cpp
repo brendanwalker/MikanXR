@@ -51,6 +51,30 @@ public:
 		return nullptr;	
 	}
 
+	virtual bool disposeModule(IMikanModule* moduleIterface) override
+	{
+		for (auto it = m_modules.begin(); it != m_modules.end();)
+		{
+			MikanModule* module= it->second;
+
+			if (module->getModuleInterface() == moduleIterface)
+			{
+				// Remove the module entry from the map
+				m_modules.erase(it);
+
+				// Unload the module
+				module->unload();
+
+				// Free the module entry object
+				delete module;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 private:
 	std::map<std::string, MikanModule*> m_modules;
 };

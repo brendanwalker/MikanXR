@@ -27,3 +27,8 @@ const std::string g_stencilTypeStrings[(int)eStencilType::COUNT] = {
 };
 extern const char** k_szStencilTypeStrings= g_szStencilTypeStrings;
 const std::string* k_stencilTypeStrings = g_stencilTypeStrings;
+
+const std::string g_trackingRuntimeStrings[(int)eTrackingRuntime::COUNT] = {
+	"SteamVR"
+};
+const std::string* k_trackingRuntimeStrings = g_trackingRuntimeStrings;

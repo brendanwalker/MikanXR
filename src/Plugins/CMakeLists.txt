@@ -1,3 +1,5 @@
 # Step into the subdirectories
 MESSAGE(STATUS "Stepping into MikanGStreamer")
 add_subdirectory(MikanGStreamer)
+MESSAGE(STATUS "Stepping into MikanSteamVR")
+add_subdirectory(MikanSteamVR)

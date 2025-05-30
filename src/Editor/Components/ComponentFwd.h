@@ -98,3 +98,13 @@ class BoxStencilComponent;
 using BoxStencilComponentPtr = std::shared_ptr<BoxStencilComponent>;
 using BoxStencilComponentConstPtr = std::shared_ptr<const BoxStencilComponent>;
 using BoxStencilComponentWeakPtr = std::weak_ptr<BoxStencilComponent>;
+
+// VRDevice Components
+class VRDeviceDefinition;
+using VRDeviceDefinitionPtr = std::shared_ptr<VRDeviceDefinition>;
+using VRDeviceDefinitionConstPtr = std::shared_ptr<const VRDeviceDefinition>;
+using VRDeviceDefinitionWeakPtr = std::weak_ptr<VRDeviceDefinition>;
+
+class VRDeviceComponent;
+using VRDeviceComponentPtr = std::shared_ptr<VRDeviceComponent>;
+using VRDeviceComponentWeakPtr = std::weak_ptr<VRDeviceComponent>;
