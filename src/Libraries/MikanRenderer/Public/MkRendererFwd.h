@@ -78,6 +78,7 @@ using IMkViewportConstPtr = std::shared_ptr<const IMkViewport>;
 
 class IMkWireframeMesh;
 using IMkWireframeMeshPtr = std::shared_ptr<IMkWireframeMesh>;
+using IMkWireframeMeshConstPtr = std::shared_ptr<const IMkWireframeMesh>;
 
 class IMkBindableObject;
 using IMkBindableObjectPtr = std::shared_ptr<IMkBindableObject>;

@@ -14,6 +14,11 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
+	inline bool getIsTransformGizmoAllowed() const
+	{ return m_bIsTransformGizmoAllowed; }
+	inline void setIsTransformGizmoAllowed(bool bAllowed) 
+	{ m_bIsTransformGizmoAllowed= bAllowed; }
+
 	void rebindColliders();
 	bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
@@ -47,6 +52,9 @@ public:
 
 protected:
 	std::vector<ColliderComponentWeakPtr> m_colliders;
+	// Interaction Permissions
+	bool m_bIsTransformGizmoAllowed= true;
+	// Interation Flaga
 	bool m_bIsHovered = false;
 	bool m_bIsGrabbed = false;
 	bool m_bIsSelected= false;

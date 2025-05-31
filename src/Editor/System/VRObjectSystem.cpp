@@ -296,7 +296,15 @@ void VRObjectSystem::onDevicePropertyChanged(int deviceId)
 
 void VRObjectSystem::onDevicePosesChanged(int64_t newFrameId)
 {
+	for (const auto& kvpair : m_vrDeviceComponents)
+	{
+		VRDeviceComponentPtr vrDeviceComponentPtr= kvpair.second.lock();
 
+		if (vrDeviceComponentPtr)
+		{
+			vrDeviceComponentPtr->refreshDevicePose();
+		}
+	}
 }
 
 VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(IVRDevice* vrDeviceInterface)
@@ -344,21 +352,33 @@ VRDeviceComponentPtr VRObjectSystem::createVRObject(
 	VRDeviceComponentPtr vrDeviceComponent = vrObject->addComponent<VRDeviceComponent>();
 	vrObject->setRootComponent(vrDeviceComponent);
 	vrDeviceComponent->setDefinition(vrConfig);
-	// TODO: Assign vrDeviceInterface to vrDeviceComponent
-	m_vrDeviceComponents.insert({vrConfig->getVRDeviceId(), vrDeviceComponent});
+	vrDeviceComponent->setVRDeviceInterface(vrDeviceInterface);
+
+	// Add render meshes
+	for (size_t meshIndex = 0; meshIndex < vrDeviceInterface->getMeshCount(); meshIndex++)
+	{
+		IVRDeviceMesh* vrDeviceMesh= vrDeviceInterface->getMeshByIndex(meshIndex);
+	}
 
 	// Add a selection component
-	vrObject->addComponent<SelectionComponent>();
-
-	// Attach a box collider to quad stencil component
-	const float size = 0.1f;
-	BoxColliderComponentPtr boxColliderPtr = vrObject->addComponent<BoxColliderComponent>();
-	boxColliderPtr->setHalfExtents(glm::vec3(size * 0.5f, size * 0.5f, size * 0.5f));
-	boxColliderPtr->setRelativeTransform(GlmTransform(glm::vec3(size * 0.5f, size * 0.5f, size * 0.5f)));
-	boxColliderPtr->attachToComponent(vrDeviceComponent);
+	SelectionComponentPtr selectionComponent=
+		vrObject->addComponent<SelectionComponent>();
+	selectionComponent->setIsTransformGizmoAllowed(false);
 
 	// Init the object once all components are added
 	vrObject->init();
+
+	// Create mesh and attachment components for all the child vr object meshes
+	vrDeviceComponent->rebuildAttachments();
+	vrDeviceComponent->rebuildMeshComponents();
+
+	// Set initial device pose
+	vrDeviceComponent->refreshDevicePose();
+
+	// Add the VR Device component to the list of vr objects
+	m_vrDeviceComponents.insert({vrConfig->getVRDeviceId(), vrDeviceComponent});
+
+	// TODO: Attach to a Stage
 
 	return vrDeviceComponent;
 }

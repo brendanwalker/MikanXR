@@ -1,4 +1,5 @@
 #include "MikanSteamVRManager.h"
+#include "IMkWindow.h"
 #include "IVRDevice.h"
 
 MikanSteamVRManager::~MikanSteamVRManager()
@@ -23,8 +24,10 @@ void MikanSteamVRManager::removeListener(IVRDeviceManagerListener* eventListener
 	}
 }
 
-bool MikanSteamVRManager::startup()
+bool MikanSteamVRManager::startup(IMkWindow* ownerWindow)
 {
+	m_ownerWindow= ownerWindow;
+
 	return true;
 }
 

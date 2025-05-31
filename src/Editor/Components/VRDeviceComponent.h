@@ -10,6 +10,7 @@
 #include "SceneFwd.h"
 #include "Transform.h"
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -44,7 +45,35 @@ public:
 		return std::static_pointer_cast<VRDeviceDefinition>(m_definition);
 	}
 
+	void setVRDeviceInterface(class IVRDevice* vrDeviceInterface);
+	class IVRDevice* getVRDeviceInterface() const { return m_vrDeviceInterface; }
+	void disposeAttachments();
+	void disposeMeshComponents();
+	void rebuildAttachments();
+	void rebuildMeshComponents();
+	void refreshDevicePose();
+
 protected:
-	VRDeviceViewPtr m_vrDeviceView;
-	SelectionComponentWeakPtr m_selectionComponent;
+	void updateWireframeMeshColor();
+
+	// Selection Events
+	void onInteractionRayOverlapEnter(const struct ColliderRaycastHitResult& hitResult);
+	void onInteractionRayOverlapExit(const struct ColliderRaycastHitResult& hitResult);
+	void onInteractionSelected();
+	void onInteractionUnselected();
+
+protected:
+	struct VRDeviceMeshInfo
+	{
+		StaticMeshComponentPtr wireStaticMeshComponent;
+		StaticMeshComponentPtr triStaticMeshComponent;
+		MeshColliderComponentPtr colliderComponent;
+	};
+
+	class IVRDevice* m_vrDeviceInterface= nullptr;
+	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
+	std::map<std::string, TransformComponentPtr> m_attachmentMap;
+	std::map<std::string, VRDeviceMeshInfo> m_meshComponentMap;
+	bool m_bIsHovered = false;
+	bool m_bIsSelected = false;
 };

@@ -166,37 +166,46 @@ void GizmoTransformComponent::setSelectionTarget(SelectionComponentPtr selection
 {
 	assert(selectionTarget);
 
-	eGizmoMode oldGizmoMode = getGizmoMode();
-	eGizmoMode newGizmoMode = eGizmoMode::none;
-
 	// Clean up old selection target state
 	clearSelectionTarget();
 
-	// Apply transforms to the root component of the mikan object that owns the selection target
-	TransformComponentPtr transformTarget= selectionTarget->getOwnerObject()->getRootComponent();
+	// See if the target allows gizmo modification
+	if (selectionTarget->getIsTransformGizmoAllowed())
+	{
+		eGizmoMode oldGizmoMode = getGizmoMode();
+		eGizmoMode newGizmoMode = eGizmoMode::none;
 
-	// Tell the new selection target that the gizmo is bound to it
-	selectionTarget->notifyTransformGizmoBound();
+		// Apply transforms to the root component of the mikan object that owns the selection target
+		TransformComponentPtr transformTarget = selectionTarget->getOwnerObject()->getRootComponent();
 
-	// Remember the new selection and transform target
-	m_selectionTarget= selectionTarget;
-	m_transformTarget= transformTarget;
+		// Tell the new selection target that the gizmo is bound to it
+		selectionTarget->notifyTransformGizmoBound();
 
-	// Default to a transform mode gizmo if the gizmo wasn't active before
-	if (oldGizmoMode != eGizmoMode::none)
-		newGizmoMode = oldGizmoMode;
+		// Remember the new selection and transform target
+		m_selectionTarget = selectionTarget;
+		m_transformTarget = transformTarget;
+
+		// Default to a transform mode gizmo if the gizmo wasn't active before
+		if (oldGizmoMode != eGizmoMode::none)
+			newGizmoMode = oldGizmoMode;
+		else
+			newGizmoMode = eGizmoMode::translate;
+
+		// Update the desired gizmo state
+		setGizmoMode(newGizmoMode);
+
+		// Fetch target's transform and apply to gizmo
+		applyTransformToGizmo();
+
+		// Listen for scene component transform changes committed by the UI
+		transformTarget->getDefinition()->OnMarkedDirty +=
+			MakeDelegate(this, &GizmoTransformComponent::onTransformTargetConfigChange);
+	}
 	else
-		newGizmoMode = eGizmoMode::translate;
-
-	// Update the desired gizmo state
-	setGizmoMode(newGizmoMode);
-
-	// Fetch target's transform and apply to gizmo
-	applyTransformToGizmo();
-
-	// Listen for scene component transform changes committed by the UI
-	transformTarget->getDefinition()->OnMarkedDirty+= 
-		MakeDelegate(this, &GizmoTransformComponent::onTransformTargetConfigChange);
+	{
+		// Hide the gizmo
+		setGizmoMode(eGizmoMode::none);
+	}
 }
 
 void GizmoTransformComponent::clearSelectionTarget()

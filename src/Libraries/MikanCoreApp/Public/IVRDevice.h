@@ -1,5 +1,8 @@
 #pragma once
 
+#include "VRDeviceMath.h"
+#include "MkRendererFwd.h"
+
 // -- includes -----
 enum class eVRDeviceType : int
 {
@@ -12,53 +15,52 @@ enum class eVRDeviceType : int
 };
 
 // -- definitions -----
-struct VRDevicePosition
+class IVRDeviceAttachment
 {
-	float x = 0.0f;
-	float y = 0.0f;
-	float z = 0.0f;
+public:
+	IVRDeviceAttachment() = default;
+	virtual ~IVRDeviceAttachment() {}
+
+	virtual const char* getName() const = 0;
+	virtual bool getRelativePose(VRDevicePose& outPose) const = 0;
 };
 
-struct VRDeviceQuat
+class IVRDeviceMesh : public IVRDeviceAttachment
 {
-	float w= 1.f;
-	float x= 0.f;
-	float y= 0.f;
-	float z= 0.f;
-};
+public:
+	IVRDeviceMesh() = default;
+	virtual ~IVRDeviceMesh() {}
 
-struct VRDevicePose
-{
-	VRDevicePosition position;
-	VRDeviceQuat orientation;
+	virtual IMkTriangulatedMeshConstPtr getTriangulatedMesh() const = 0;
+	virtual IMkWireframeMeshConstPtr getWireframeMesh() const = 0;
 };
 
 /// VRDevice interface
-class IVRDevice 
+class IVRDevice
 {
 public:
 	IVRDevice() = default;
 	virtual ~IVRDevice() {}
 
-	// Needed?
-    // -- Mutators
-    // Fetch device properties from the VR system
-    //virtual void updateProperties() = 0;
-	// Fetch device pose from the VR system
-	//virtual void updatePose() = 0;
-
-    // -- Getters
-	// Returns what type of device
+    // -- Device Properties
+	virtual size_t getDeviceIndex() const = 0;
 	virtual eVRDeviceType getDeviceType() const = 0;
-    // Returns the full path to the device
-    virtual const char* getDevicePath() const  = 0;
-	// Returns the serial number string of the device
-	virtual const char* getSerialNumber() const = 0;
-	// Returns the assigned "tracking role" the device
-	virtual const char* getTrackerRole() const = 0;
-	// Pose accessors
+	virtual const char* getDevicePath() const = 0;
 	virtual bool getDevicePose(VRDevicePose& outPose) const = 0;
-	virtual size_t getComponentCount() const = 0;
-	virtual const char* getComponentName(size_t componentIndex) const = 0;
-	virtual bool getComponentPoseByName(const char* componentName, VRDevicePose& outPose) const = 0;
+	virtual const char* getSerialNumber() const = 0;
+	virtual const char* getTrackingSystem() const = 0;
+	virtual const char* getTrackerRole() const = 0;
+	virtual const char* getModelLabel() const = 0;
+	virtual const char* getModelNumber() const = 0;
+	virtual const char* getManufacturerName() const = 0;
+
+	// -- Attachment accessors
+	virtual size_t getAttachmentCount() const = 0;
+	virtual IVRDeviceAttachment* getAttachmentByIndex(size_t meshIndex) const = 0;
+	virtual IVRDeviceAttachment* getAttachmentByName(const char* meshName) const = 0;
+
+	// -- Mesh accessors
+	virtual size_t getMeshCount() const = 0;
+	virtual IVRDeviceMesh* getMeshByIndex(size_t meshIndex) const = 0;
+	virtual IVRDeviceMesh* getMeshByName(const char* meshName) const = 0;
 };
