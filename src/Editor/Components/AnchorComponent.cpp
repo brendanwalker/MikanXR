@@ -14,8 +14,6 @@
 #include "MikanSpatialAnchorTypes.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
 
 // -- AnchorConfig -----
 AnchorDefinition::AnchorDefinition()

@@ -33,7 +33,6 @@ public:
 	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemManager; }
 	inline class MikanFontManager* getFontManager() const { return m_fontManager; }
 	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
-	inline class VRDeviceManager* getVRDeviceManager() const { return m_vrDeviceManager; }
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
 	inline class GlRmlUiRender* getRmlUiRenderer() const { return m_rmlUiRenderer.get(); }
 	inline class InputManager* getInputManager() const { return m_inputManager; }
@@ -139,9 +138,6 @@ private:
 
 	// Keeps track of currently connected camera
 	class VideoSourceManager* m_videoSourceManager = nullptr;
-
-	// Keeps track of currently connected VR trackers
-	class VRDeviceManager* m_vrDeviceManager = nullptr;
 
 	// App Stages
 	int m_appStageStackIndex = -1;

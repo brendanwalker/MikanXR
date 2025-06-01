@@ -2,7 +2,7 @@
 
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "VRDeviceView.h"
+#include "DeviceViewFwd.h"
 #include <memory>
 
 #include "glm/ext/quaternion_double.hpp"

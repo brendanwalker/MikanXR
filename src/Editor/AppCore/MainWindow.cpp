@@ -37,7 +37,6 @@
 #include "StencilObjectSystem.h"
 #include "StringUtils.h"
 #include "VideoSourceManager.h"
-#include "VRDeviceManager.h"
 
 #include "MainMenu/AppStage_MainMenu.h"
 
@@ -66,7 +65,6 @@ MainWindow::MainWindow()
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new MikanFontManager())
 	, m_videoSourceManager(new VideoSourceManager())
-	, m_vrDeviceManager(new VRDeviceManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_lineRenderer(createMkLineRenderer(this))
@@ -82,7 +80,6 @@ MainWindow::~MainWindow()
 {
 	m_objectSystemManager = nullptr;
 	delete m_openCVManager;
-	delete m_vrDeviceManager;
 	delete m_videoSourceManager;
 	delete m_inputManager;
 	delete m_rmlManager;
@@ -206,12 +203,6 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_vrDeviceManager->startup(this))
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the vr tracker manager";
-		success = false;
-	}
-
 	if (success)
 	{
 		if (!m_objectSystemManager->startup())
@@ -282,7 +273,6 @@ void MainWindow::update(float deltaSeconds)
 {
 	// Update all connected devices	
 	m_videoSourceManager->update(deltaSeconds);
-	m_vrDeviceManager->update(deltaSeconds);
 
 	// Poll rendered frames from client connections
 	m_mikanServer->update();
@@ -360,9 +350,6 @@ void MainWindow::shutdown()
 
 	assert(m_videoSourceManager != nullptr);
 	m_videoSourceManager->shutdown();
-
-	assert(m_vrDeviceManager != nullptr);
-	m_vrDeviceManager->shutdown();
 
 	assert(m_fontManager != nullptr);
 	m_fontManager->shutdown();

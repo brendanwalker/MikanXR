@@ -22,8 +22,6 @@
 #include "StringUtils.h"
 #include "TransformComponent.h"
 #include "VRDeviceComponent.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
 #include "VRObjectSystem.h"
 
 // -- VRDeviceConfig -----
@@ -103,6 +101,21 @@ MikanStageID VRDeviceComponent::getAssignedStageId() const
 	return currentStage ? currentStage->getStageComponentDefinition()->getStageId() : INVALID_MIKAN_ID;
 }
 
+bool VRDeviceComponent::getDevicePose(VRDevicePose& outPose) const
+{
+	if (m_vrDeviceInterface != nullptr)
+	{
+		return m_vrDeviceInterface->getDevicePose(outPose);
+	}
+
+	return false;
+}
+
+bool VRDeviceComponent::getIsPoseValid() const
+{
+	return m_vrDeviceInterface != nullptr ? m_vrDeviceInterface->getIsDevicePoseValid() : false;
+}
+
 void VRDeviceComponent::disposeSockets()
 {
 	// Clean up any previously created sockets
@@ -145,6 +158,51 @@ void VRDeviceComponent::rebuildSockets()
 			kvpair.second->init();
 		}
 	}
+}
+
+bool VRDeviceComponent::getSocketRelativePoseByName(const std::string& socketName, glm::mat4& outPose) const
+{
+	glm::mat4 vrTrackingSpacePose = glm::mat4(1.f);
+
+	if (m_vrDeviceInterface != nullptr)
+	{
+		IVRDeviceSocket* socket= m_vrDeviceInterface->getSocketByName(socketName.c_str());
+
+		VRDevicePose socketRelativePose;
+		if (socket != nullptr && socket->getRelativePose(socketRelativePose))
+		{
+			outPose= VRDevicePose_to_GlmTransform(socketRelativePose).getMat4();
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool VRDeviceComponent::getDefaultSocketRelativePose(glm::mat4& outPose) const
+{
+	if (m_vrDeviceInterface != nullptr)
+	{
+		auto config = VRObjectSystem::getSystem()->getVRSystemConfigConst();
+		if (config)
+		{
+			// Get the default pose in VR Tracking space
+			return 
+				getSocketRelativePoseByName(
+					config->getDefaultVRObjectSocketName(),
+					outPose);
+		}
+	}
+
+	return false;
+}
+
+VRDevicePoseViewPtr VRDeviceComponent::makePoseView(
+	eVRDevicePoseSpace space,
+	const std::string& socketName) const
+{
+	return std::make_shared<VRDevicePoseView>(this, space, socketName);
 }
 
 void VRDeviceComponent::disposeMeshComponents()
@@ -390,4 +448,104 @@ void VRDeviceComponent::onInteractionUnselected()
 {
 	m_bIsSelected = false;
 	updateWireframeMeshColor();
+}
+
+// -- VRDevicePoseView -----
+VRDevicePoseView::VRDevicePoseView()
+	: m_deviceComponent()
+	, m_poseSpace(eVRDevicePoseSpace::INVALID)
+	, m_socketName("")
+{}
+
+VRDevicePoseView::VRDevicePoseView(
+	const VRDeviceComponent* deviceComponent,
+	eVRDevicePoseSpace space,
+	const std::string& socketName)
+	: m_deviceComponent(deviceComponent->getSelfWeakPtr<const VRDeviceComponent>())
+	, m_poseSpace(space)
+	, m_socketName(socketName)
+{}
+
+VRDevicePoseViewPtr VRDevicePoseView::makePoseView(
+	const VRDeviceComponent* deviceComponent,
+	eVRDevicePoseSpace space,
+	const std::string& socketName)
+{
+	return std::make_shared<VRDevicePoseView>(deviceComponent, space, socketName);
+}
+
+VRDevicePoseViewPtr VRDevicePoseView::makeInvalidPoseView()
+{
+	return std::make_shared<VRDevicePoseView>();
+}
+
+const VRDeviceComponent* VRDevicePoseView::getDeviceComponent() const
+{
+	return m_deviceComponent.lock().get();
+}
+
+bool VRDevicePoseView::getIsPoseValid() const
+{
+	const VRDeviceComponent* deviceComponent = getDeviceComponent();
+
+	return deviceComponent != nullptr && deviceComponent->getIsPoseValid();
+}
+
+bool VRDevicePoseView::getPose(glm::mat4& outXformInSpace) const
+{
+	const VRDeviceComponent* deviceComponent = getDeviceComponent();
+
+	VRDevicePose vrDevicePose;
+	if (deviceComponent != nullptr && 
+		deviceComponent->getDevicePose(vrDevicePose))
+	{
+		// Get the VR Tracking Space transform of the device
+		glm::mat4 vrDeviceXform = VRDevicePose_to_GlmTransform(vrDevicePose).getMat4();
+
+		// Get the relative socket pose (default to identity xform if unavailable)
+		glm::mat4 relativeSocketXform = glm::mat4(1.f);
+		if (!m_socketName.empty())
+		{
+			deviceComponent->getSocketRelativePoseByName(m_socketName, relativeSocketXform);
+		}
+		else
+		{
+			deviceComponent->getDefaultSocketRelativePose(relativeSocketXform);
+		}
+
+		// Compute the vr tracking space transform of the socket
+		glm::mat4 vrTrackingSpaceXform = glm_composite_xform(relativeSocketXform, vrDeviceXform);
+
+		// Convert the VR Tracking Space Xform into the desired tracking space
+		if (m_poseSpace == eVRDevicePoseSpace::MikanScene)
+		{
+			auto config = VRObjectSystem::getSystem()->getVRSystemConfigConst();
+			const glm::mat4 glmVRDevicePoseOffset = MikanMatrix4f_to_glm_mat4(config->getVRDevicePoseOffset());
+
+			// Convert the vr tracking space pose to Mikan scene space
+			outXformInSpace = glm_composite_xform(vrTrackingSpaceXform, glmVRDevicePoseOffset);
+		}
+		else
+		{
+			// Return the vr tracking space pose
+			outXformInSpace = vrTrackingSpaceXform;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool VRDevicePoseView::getPose(glm::dmat4& outPoseInSpace) const
+{
+	glm::mat4 poseInSpace;
+
+	if (getPose(poseInSpace))
+	{
+		outPoseInSpace = glm::dmat4(poseInSpace);
+		return true;
+	}
+
+	return false;
 }

@@ -7,7 +7,7 @@
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "VideoSourceView.h"
-#include "VRDeviceView.h"
+#include "VRDeviceComponent.h"
 
 #include "opencv2/opencv.hpp"
 

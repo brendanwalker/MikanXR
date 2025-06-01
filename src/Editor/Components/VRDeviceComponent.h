@@ -2,7 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "VRDeviceView.h"
+#include "DeviceViewFwd.h"
 #include "TransformComponent.h"
 #include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
@@ -16,6 +16,18 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 
+// -- constants -----
+enum class eVRDevicePoseSpace : int
+{
+	INVALID,
+
+	VRTrackingSystem,
+	MikanScene,
+
+	COUNT,
+};
+
+// -- VRDeviceDefinition -----
 class VRDeviceDefinition : public TransformComponentDefinition
 {
 public:
@@ -33,6 +45,7 @@ private:
 	std::string m_vrDevicePath;
 };
 
+// -- VRDeviceComponent -----
 class VRDeviceComponent : public TransformComponent
 {
 public:
@@ -52,8 +65,16 @@ public:
 	StageComponentPtr getAssignedStage() const;
 	MikanStageID getAssignedStageId() const;
 
+	bool getDevicePose(struct VRDevicePose& outPose) const;
+	bool getIsPoseValid() const;
+
 	void disposeSockets();
 	void rebuildSockets();
+	bool getSocketRelativePoseByName(const std::string& socketName, glm::mat4& outPose) const;
+	bool getDefaultSocketRelativePose(glm::mat4& outPose) const;
+	VRDevicePoseViewPtr makePoseView(
+		eVRDevicePoseSpace space,
+		const std::string& socketName= "") const;
 
 	void disposeMeshComponents();
 	void rebuildMeshComponents();
@@ -83,4 +104,33 @@ protected:
 	std::map<std::string, VRDeviceMeshInfo> m_meshComponentMap;
 	bool m_bIsHovered = false;
 	bool m_bIsSelected = false;
+};
+
+// -- VRDevicePoseView -----
+class VRDevicePoseView
+{
+public:
+	VRDevicePoseView();
+	VRDevicePoseView(
+		const VRDeviceComponent* deviceComponent,
+		eVRDevicePoseSpace space,
+		const std::string& socketName = "");
+
+	static VRDevicePoseViewPtr makePoseView(
+		const VRDeviceComponent* deviceComponent,
+		eVRDevicePoseSpace space,
+		const std::string& socketName = "");
+	static VRDevicePoseViewPtr makeInvalidPoseView();
+
+	inline eVRDevicePoseSpace getPoseSpace() const { return m_poseSpace; }
+
+	const VRDeviceComponent* getDeviceComponent() const;
+	bool getIsPoseValid() const;
+	bool getPose(glm::mat4& outPoseInSpace) const;
+	bool getPose(glm::dmat4& outPoseInSpace) const;
+
+private:
+	VRDeviceComponentConstWeakPtr m_deviceComponent;
+	eVRDevicePoseSpace m_poseSpace;
+	std::string m_socketName;
 };

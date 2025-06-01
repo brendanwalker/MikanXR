@@ -13,8 +13,6 @@
 #include "MikanCameraTypes.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
 
 // -- CameraConfig -----
 const std::string CameraDefinition::k_attachedVRDevicePropertyId = "attached_vr_device_id";

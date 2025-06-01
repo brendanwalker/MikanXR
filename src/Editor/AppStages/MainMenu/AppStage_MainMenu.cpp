@@ -2,7 +2,6 @@
 #include "Compositor/AppStage_Compositor.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "CameraSettings/AppStage_CameraSettings.h"
-#include "VRDeviceSettings/AppStage_VRDeviceSettings.h"
 #include "App.h"
 #include "MainWindow.h"
 #include "PathUtils.h"
@@ -38,10 +37,6 @@ void AppStage_MainMenu::onRmlClickEvent(const std::string& value)
 	else if (value == "goto_camera_settings")
 	{
 		m_ownerWindow->pushAppStage<AppStage_CameraSettings>();
-	}
-	else if (value == "goto_vr_device_settings")
-	{
-		m_ownerWindow->pushAppStage<AppStage_VRDeviceSettings>();
 	}
 	else if (value == "exit_mikan")
 	{

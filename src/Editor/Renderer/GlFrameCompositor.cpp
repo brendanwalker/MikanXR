@@ -35,8 +35,8 @@
 #include "VideoSourceManager.h"
 #include "VideoSourceView.h"
 #include "VideoFrameDistortionView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 
 #include "NodeGraphAssetReference.h"
 #include "Graphs/CompositorNodeGraph.h"
@@ -891,8 +891,8 @@ bool GlFrameCompositor::bindCameraVRTracker()
 {
 	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
-	auto* vrDeviceManager= VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	auto vrObjectSystem= VRObjectSystem::getSystem();
+	auto cameraTrackingPuckView= vrObjectSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
 	if (cameraTrackingPuckView)
 	{
 		m_cameraTrackingPuckPoseView = cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);

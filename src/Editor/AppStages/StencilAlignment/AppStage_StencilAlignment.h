@@ -65,7 +65,7 @@ private:
 
 	ColliderRaycastHitResult m_hoverResult;
 
-	GlScenePtr m_scene;
+	MkScenePtr m_scene;
 	MikanCameraPtr m_camera;
 	IMkFrameBufferPtr m_frameBuffer;
 	IMkTriangulatedMeshPtr m_fullscreenQuad;

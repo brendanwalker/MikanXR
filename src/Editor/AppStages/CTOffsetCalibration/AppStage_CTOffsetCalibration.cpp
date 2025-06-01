@@ -22,8 +22,8 @@
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -76,16 +76,9 @@ void AppStage_CTOffsetCalibration::enter()
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Create the camera tracking puck pose view in VR Tracker space
-	auto* vrDeviceManager = VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	auto vrObjectSystem = VRObjectSystem::getSystem();
+	auto cameraTrackingPuckView= vrObjectSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
 	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
-
-	// Add all VR devices to the 3d scene
-	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
-	{
-		it->getVRDeviceInterface()->bindToScene(m_scene);
-	}
 
 	// Fetch the new camera associated with the viewport
 	m_camera= getFirstViewport()->getCurrentMikanCamera();
@@ -180,12 +173,6 @@ void AppStage_CTOffsetCalibration::exit()
 	setMenuState(eCTOffsetCalibrationMenuState::inactive);
 
 	m_camera= nullptr;
-
-	VRDeviceList vrDeviceList = VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
-	{
-		it->getVRDeviceInterface()->removeFromBoundScene();
-	}
 
 	if (m_videoSourceView)
 	{
@@ -365,6 +352,10 @@ void AppStage_CTOffsetCalibration::render()
 
 void AppStage_CTOffsetCalibration::renderVRScene()
 {
+	m_scene->removeAllInstances();
+
+	addAllVRDevicesToMkScene(m_scene);
+
 	m_scene->render(m_camera, m_ownerWindow->getMkStateStack());
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);

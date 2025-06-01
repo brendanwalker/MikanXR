@@ -7,6 +7,7 @@
 #include "CameraObjectSystem.h"
 #include "CameraComponent.h"
 #include "FrameCompositorConstants.h"
+#include "IVRDevice.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MikanSpatialAnchorTypes.h"
@@ -18,8 +19,8 @@
 #include "StencilComponent.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 #include "VideoSourceManager.h"
 #include "VideoSourceView.h"
 
@@ -362,10 +363,13 @@ void RmlManager::registerCommonDataModelTypes()
 		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const Rml::String devicePath = variant.Get<Rml::String>("");
 
-			VRDeviceViewPtr deviceView= VRDeviceManager::getInstance()->getVRDeviceViewByPath(devicePath);
+			VRDeviceComponentPtr deviceView= VRObjectSystem::getSystem()->getVRDeviceByPath(devicePath);
 			if (deviceView)
 			{
-				const Rml::String friendlyName = deviceView->getTrackerRole() + " - " + deviceView->getSerialNumber();
+				const IVRDevice* deviceInterface= deviceView->getVRDeviceInterface();
+				const std::string trackerRole= deviceInterface->getTrackerRole();
+				const std::string serialNumber = deviceInterface->getSerialNumber();
+				const Rml::String friendlyName = trackerRole + " - " + serialNumber;
 
 				variant= friendlyName;
 				return true;

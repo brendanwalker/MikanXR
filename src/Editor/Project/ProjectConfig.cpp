@@ -16,11 +16,9 @@
 // -- Profile Config
 const std::string ProjectConfig::k_spoutOutputIsStreamingNamePropertyId= "spoutOutputIsStreaming";
 const std::string ProjectConfig::k_spoutOutputNamePropertyId= "spoutOutputName";
-const std::string ProjectConfig::k_trackerRuntimePropertyId= "trackerRuntime";
 const std::string ProjectConfig::k_videoSourcePathPropertyId= "videoSourcePath";
 const std::string ProjectConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
 const std::string ProjectConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
-const std::string ProjectConfig::k_vrDevicePoseOffsetPropertyId= "vrDevicePoseOffset";
 const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
 const std::string ProjectConfig::k_vrFrameDelayPropertyId= "vrFrameDelay";
 
@@ -57,13 +55,6 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	// Output Settings
 	, outputFilePath("")
 {
-	vrDevicePoseOffset= {
-		1.f, 0.f, 0.f, 0.f,
-		0.f, 1.f, 0.f, 0.f,
-		0.f, 0.f, 1.f, 0.f,
-		0.f, 0.f, 0.f, 1.f,
-	};
-
 	editorConfig = std::make_shared<EditorObjectSystemConfig>("editor");
 	addChildConfig(editorConfig);
 
@@ -111,7 +102,6 @@ configuru::Config ProjectConfig::writeToJSON()
 	// VideoSource Defaults
 	pt["videoSourcePath"]= videoSourcePath;
 	// Tracker
-	pt[k_trackerRuntimePropertyId]= k_trackingRuntimeStrings[(int)m_trackingRuntime];
 	pt["cameraVRDevicePath"]= cameraVRDevicePath;
 	pt["matVRDevicePath"]= matVRDevicePath;
 	pt["vivePuckDefaultComponentName"]= vivePuckDefaultComponentName;
@@ -123,8 +113,6 @@ configuru::Config ProjectConfig::writeToJSON()
 	pt["outputPath"]= outputFilePath.string();
 	// Renderer Flags
 	pt[k_renderOriginFlagPropertyId]= m_bRenderOrigin;
-
-	writeMatrix4f(pt, "vrDevicePoseOffset", vrDevicePoseOffset);
 
 	// Write the editor system config
 	pt[editorConfig->getConfigName()] = editorConfig->writeToJSON();
@@ -144,7 +132,8 @@ configuru::Config ProjectConfig::writeToJSON()
 	// Write the video sources config
 	pt[videoSourcesConfig->getConfigName()] = videoSourcesConfig->writeToJSON();
 
-	// VRObject System Config is runtime only
+	// Write the vr object system config
+	pt[vrObjectConfig->getConfigName()] = vrObjectConfig->writeToJSON();
 
 	return pt;
 }
@@ -196,15 +185,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	videoSourcePath = pt.get_or<std::string>("videoSourcePath", videoSourcePath);
 
 	// VR Devices
-	const std::string trackingRuntimeString =
-		pt.get_or<std::string>(
-			k_trackerRuntimePropertyId,
-			k_trackingRuntimeStrings[(int)eTrackingRuntime::SteamVR]);
-	m_trackingRuntime =
-		StringUtils::FindEnumValue<eTrackingRuntime>(
-			trackingRuntimeString,
-			k_trackingRuntimeStrings);
-
 	cameraVRDevicePath = pt.get_or<std::string>("cameraVRDevicePath", cameraVRDevicePath);
 
 	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);
@@ -212,8 +192,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	m_vrFrameDelay = pt.get_or<int>(k_vrFrameDelayPropertyId, m_vrFrameDelay);
 	videoFrameQueueSize = int_min(int_max(pt.get_or<int>("videoFrameQueueSize", videoFrameQueueSize), 1), 8);
 	m_bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_bRenderOrigin);
-
-	readMatrix4f(pt, "vrDevicePoseOffset", vrDevicePoseOffset);
 
 	// Read the editor system config
 	if (pt.has_key(editorConfig->getConfigName()))
@@ -251,7 +229,11 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
 	}
 
-	// VRObject System Config is runtime only
+	// Read the vr object system config
+	if (pt.has_key(vrObjectConfig->getConfigName()))
+	{
+		vrObjectConfig->readFromJSON(pt[vrObjectConfig->getConfigName()]);
+	}
 
 	// Compositor
 	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
@@ -275,15 +257,6 @@ void ProjectConfig::setSpoutOutputName(const std::string& spoutOutputName)
 	{
 		m_spoutOutputName = spoutOutputName;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputNamePropertyId));
-	}
-}
-
-void ProjectConfig::setTrackingRungime(eTrackingRuntime trackingRuntime)
-{
-	if (m_trackingRuntime != trackingRuntime)
-	{
-		m_trackingRuntime = trackingRuntime;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackerRuntimePropertyId));
 	}
 }
 

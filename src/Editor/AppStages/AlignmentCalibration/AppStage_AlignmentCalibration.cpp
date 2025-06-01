@@ -29,8 +29,8 @@
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -82,20 +82,13 @@ void AppStage_AlignmentCalibration::enter()
 
 	// Get the current video source based on the config
 	const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	auto* vrDeviceManager= VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
-	auto matTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->matVRDevicePath);
+	auto vrDeviceSystem= VRObjectSystem::getSystem();
+	auto cameraTrackingPuckView= vrDeviceSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
+	auto matTrackingPuckView= vrDeviceSystem->getVRDeviceByPath(profileConfig->matVRDevicePath);
 
 	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
 	m_matTrackingPuckPoseView = matTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
-
-	// Add all VR devices to the 3d scene
-	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
-	{
-		it->getVRDeviceInterface()->bindToScene(m_scene);
-	}
 
 	// Fetch the new camera associated with the viewport
 	m_camera= getFirstViewport()->getCurrentMikanCamera();
@@ -201,12 +194,6 @@ void AppStage_AlignmentCalibration::exit()
 	setMenuState(eAlignmentCalibrationMenuState::inactive);
 
 	m_camera= nullptr;
-
-	VRDeviceList vrDeviceList = VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
-	{
-		it->getVRDeviceInterface()->removeFromBoundScene();
-	}
 
 	if (m_videoSourceView)
 	{
@@ -430,7 +417,16 @@ void AppStage_AlignmentCalibration::render()
 
 void AppStage_AlignmentCalibration::renderVRScene()
 {
-	m_scene->render(m_camera, m_ownerWindow->getMkStateStack());
+	MkScene* scene= m_scene.get();
+
+	// Rebuild list of renderables
+	scene->removeAllInstances();
+
+	// Add all renderable VR objects
+	addAllVRDevicesToMkScene(m_scene);
+
+	// Render the scene
+	scene->render(m_camera, m_ownerWindow->getMkStateStack());
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 

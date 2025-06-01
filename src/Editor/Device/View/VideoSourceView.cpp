@@ -14,7 +14,7 @@
 #include "VideoCapabilitiesConfig.h"
 #include "VideoDeviceEnumerator.h"
 #include "VideoSourceRequestHandler.h"
-#include "VRDeviceView.h"
+#include "VRDeviceComponent.h"
 #include "WMFMonoVideoSource.h"
 #include "WMFStereoVideoSource.h"
 

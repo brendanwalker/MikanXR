@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IServerRequestHandler.h"
+#include "IVRDeviceManager.h"
 #include "MikanTypeFwd.h"
 
 #include <set>
@@ -20,7 +21,7 @@ protected:
 	std::set<MikanVRDeviceID> m_subscribedVRDevices;
 };
 
-class VRDeviceRequestHandler : public IServerRequestHandler
+class VRDeviceRequestHandler : public IServerRequestHandler, public IVRDeviceManagerListener
 {
 public:
 	VRDeviceRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
@@ -29,9 +30,10 @@ public:
 	virtual void shutdown() override;
 
 protected:
-	// VRDevice Events
-	void publishVRDeviceListChanged();
-	void publishVRDevicePoses(int64_t newFrameIndex);
+	// IVRDeviceManagerListener
+	virtual void onActiveDeviceListChanged() override;
+	virtual void onDevicePropertyChanged(int deviceId) override;
+	virtual void onDevicePosesChanged(int64_t newFrameId) override;
 
 	// VRDevice Requests
 	void getVRDeviceListHandler(const ClientRequest& request, ClientResponse& response);

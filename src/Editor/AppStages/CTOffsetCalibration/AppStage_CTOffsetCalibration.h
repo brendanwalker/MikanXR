@@ -57,6 +57,6 @@ private:
 	class CameraTrackerOffsetCalibrator* m_trackerPoseCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
-	GlScenePtr m_scene;
+	MkScenePtr m_scene;
 	MikanCameraPtr m_camera;
 };

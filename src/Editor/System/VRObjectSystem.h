@@ -4,10 +4,13 @@
 #include "ComponentFwd.h"
 #include "IVRDeviceManager.h"
 #include "MikanTypeFwd.h"
+#include "MikanMathTypes.h"
 #include "MikanObjectSystem.h"
+#include "MkRendererFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
+#include "ProjectConfigConstants.h"
 
 #include <map>
 #include <memory>
@@ -23,28 +26,41 @@ using VRDeviceMap = std::map<MikanVRDeviceID, VRDeviceComponentWeakPtr>;
 class VRObjectSystemConfig : public CommonConfig
 {
 public:
-	VRObjectSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
-	{}
+	VRObjectSystemConfig(const std::string& configName);
 
-	static const std::string k_AssignedStagePropertyId;
+	virtual configuru::Config writeToJSON() override;
+	virtual void readFromJSON(const configuru::Config& pt) override;
+
+	static const std::string k_trackerRuntimePropertyId;
+	eTrackingRuntime getTrackingRuntimeType() const { return m_trackingRuntime; }
+	void setTrackingRuntimeType(eTrackingRuntime runtimeType);
+
+	const std::string& getDefaultVRObjectSocketName() const;
+
+	static const std::string k_vrDevicePoseOffsetPropertyId;
+	MikanMatrix4f getVRDevicePoseOffset() const { return m_vrDevicePoseOffset; }
+	void setVRDevicePoseOffset(const MikanMatrix4f& poseOffset);
+
+	static const std::string k_assignedStagePropertyId;
 	MikanStageID getAssignedStageId() const { return m_assignedStageId; }
 	void setAssignedStageId(MikanStageID stageId);
 
-	static const std::string k_VRDeviceListPropertyId;
+	static const std::string k_vrDeviceListPropertyId;
 	std::vector<VRDeviceDefinitionPtr> vrDeviceList;
 
 	VRDeviceDefinitionPtr getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const;
 	VRDeviceDefinitionPtr getVRDeviceConfigByPath(const std::string& vrDevicePath) const;
 	MikanVRDeviceID addNewVRDevice(
 		const std::string& vrDevicePath,
-		const MikanTransform& xform);
+		const struct MikanTransform& xform);
 	bool removeVRDevice(MikanVRDeviceID vrDeviceId);
 	void removeAllVRDevice();
 
 protected:
+	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	MikanVRDeviceID m_nextVRDeviceId= 0;
 	MikanStageID m_assignedStageId= 0;
+	MikanMatrix4f m_vrDevicePoseOffset;
 	bool m_bDebugRenderVRs = true;
 };
 
@@ -61,9 +77,10 @@ public:
 	VRObjectSystemConfigConstPtr getVRSystemConfigConst() const;
 	VRObjectSystemConfigPtr getVRSystemConfig();
 
+	IVRDeviceManagerPtr getVRDeviceManager() const { return m_vrDeviceManager; }
 	const VRDeviceMap& getVRDeviceMap() const { return m_vrDeviceComponents; }
 	VRDeviceComponentPtr getVRDeviceById(MikanVRDeviceID vrDeviceId) const;
-	VRDeviceComponentPtr getSpatialVRByPath(const std::string& VRDevicePath) const;
+	VRDeviceComponentPtr getVRDeviceByPath(const std::string& VRDevicePath) const;
 
 protected:
 	void createVRDeviceManager(eTrackingRuntime desiredRuntime);
@@ -95,10 +112,12 @@ protected:
 
 private:
 	ProjectConfigWeakPtr m_projectConfigWeakPtr;
-	eTrackingRuntime m_currentTrackingRuntimeType = eTrackingRuntime::INVALID;
 	class IVRDeviceModule* m_vrDeviceModule= nullptr;
 	IVRDeviceManagerPtr m_vrDeviceManager= nullptr;
 	VRDeviceMap m_vrDeviceComponents;
 
 	static VRObjectSystemWeakPtr s_VRObjectSystem;
 };
+
+// -- Utility Methods
+void addAllVRDevicesToMkScene(IMkScenePtr mkScenePtr);

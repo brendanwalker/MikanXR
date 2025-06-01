@@ -24,8 +24,8 @@
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -75,9 +75,9 @@ void AppStage_AnchorTriangulation::enter()
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Create a pose view for the camera tracking puck in MikanScene space
-	auto* vrDeviceManager = VRDeviceManager::getInstance();
+	auto vrObjectSystem = VRObjectSystem::getSystem();
 	auto cameraTrackingPuckView = 
-		vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+		vrObjectSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
 	m_cameraTrackingPuckPoseView = 
 		cameraTrackingPuckView
 		? cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene)

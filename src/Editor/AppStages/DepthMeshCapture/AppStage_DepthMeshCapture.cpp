@@ -31,8 +31,8 @@
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -82,16 +82,9 @@ void AppStage_DepthMeshCapture::enter()
 	m_videoSourceView = 
 		VideoSourceListIterator(m_profile->videoSourcePath).getCurrent();
 
-	auto* vrDeviceManager = VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(m_profile->cameraVRDevicePath);
+	auto vrObjectSystem = VRObjectSystem::getSystem();
+	auto cameraTrackingPuckView= vrObjectSystem->getVRDeviceByPath(m_profile->cameraVRDevicePath);
 	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
-
-	// Add all VR devices to the 3d scene
-	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
-	{
-		it->getVRDeviceInterface()->bindToScene(m_mkScene);
-	}
 
 	// Setup viewport
 	m_viewport = getFirstViewport();
@@ -202,12 +195,6 @@ void AppStage_DepthMeshCapture::exit()
 	// Unregister all viewports from the editor
 	m_editorSystem->clearViewports();
 	m_editorSystem= nullptr;
-
-	VRDeviceList vrDeviceList = VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
-	{
-		it->getVRDeviceInterface()->removeFromBoundScene();
-	}
 
 	if (m_videoSourceView)
 	{
@@ -333,7 +320,16 @@ void AppStage_DepthMeshCapture::renderVRScene()
 		drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
 	}
 
-	// Draw any meshes added to the scene (inlcuding the depth capture mesh)
+	// Rebuild list of renderables
+	m_mkScene->removeAllInstances();
+
+	// Add all vr devices to the scene
+	addAllVRDevicesToMkScene(m_mkScene);
+
+	// Add the captured mesh to the scene (if available)
+	addDepthMeshResourcesToScene();
+
+	// Draw any meshes added to the scene
 	m_mkScene->render(vrCamera, m_ownerWindow->getMkStateStack());
 }
 
@@ -362,16 +358,11 @@ void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState
 			}
 		}
 
-		// Remove any previously captured meshes from the scene
-		removeDepthMeshResourceFromScene();
 
 		if (newState == eDepthMeshCaptureMenuState::testCapture)
 		{
 			// Go to the VR viewpoint by default when we are in the test capture state
 			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::vrViewpoint);
-
-			// If entering the test capture state, then add the captured mesh to the scene
-			addDepthMeshResourcesToScene();
 		}
 		else
 		{
@@ -455,13 +446,4 @@ void AppStage_DepthMeshCapture::addDepthMeshResourcesToScene()
 			m_depthMeshInstances.push_back(meshInstance);
 		}
 	}
-}
-
-void AppStage_DepthMeshCapture::removeDepthMeshResourceFromScene()
-{
-	for (IMkStaticMeshInstancePtr depthMeshInstance : m_depthMeshInstances)
-	{
-		m_mkScene->removeInstance(depthMeshInstance);
-	}
-	m_depthMeshInstances.clear();
 }

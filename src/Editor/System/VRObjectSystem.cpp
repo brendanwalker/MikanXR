@@ -1,5 +1,6 @@
 #include "App.h"
 #include "BoxColliderComponent.h"
+#include "IMkScene.h"
 #include "IVRDeviceModule.h"
 #include "IVRDevice.h"
 #include "TransformComponent.h"
@@ -17,16 +18,86 @@
 #include "VRDeviceComponent.h"
 
 // -- VRObjectSystemConfig -----
-const std::string VRObjectSystemConfig::k_AssignedStagePropertyId = "assignedStageId";
-const std::string VRObjectSystemConfig::k_VRDeviceListPropertyId = "vrDeviceList";
+const std::string VRObjectSystemConfig::k_trackerRuntimePropertyId = "currentTrackingRuntime";
+const std::string VRObjectSystemConfig::k_vrDevicePoseOffsetPropertyId = "vrDevicePoseOffset";
+const std::string VRObjectSystemConfig::k_assignedStagePropertyId = "assignedStageId";
+const std::string VRObjectSystemConfig::k_vrDeviceListPropertyId = "vrDeviceList";
+
+VRObjectSystemConfig::VRObjectSystemConfig(const std::string& configName)
+	: CommonConfig(configName)
+{
+	m_vrDevicePoseOffset = {
+		1.f, 0.f, 0.f, 0.f,
+		0.f, 1.f, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f,
+	};
+}
+
+configuru::Config VRObjectSystemConfig::writeToJSON()
+{
+	configuru::Config pt = CommonConfig::writeToJSON();
+
+	// Tracker
+	pt[k_trackerRuntimePropertyId] = k_trackingRuntimeStrings[(int)m_trackingRuntime];
+	writeMatrix4f(pt, "vrDevicePoseOffset", m_vrDevicePoseOffset);
+
+	return pt;
+}
+
+void VRObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	// VR Devices
+	const std::string trackingRuntimeString =
+		pt.get_or<std::string>(
+			k_trackerRuntimePropertyId,
+			k_trackingRuntimeStrings[(int)eTrackingRuntime::SteamVR]);
+	m_trackingRuntime =
+		StringUtils::FindEnumValue<eTrackingRuntime>(
+			trackingRuntimeString,
+			k_trackingRuntimeStrings);
+
+	readMatrix4f(pt, "vrDevicePoseOffset", m_vrDevicePoseOffset);
+}
+
+void VRObjectSystemConfig::setTrackingRuntimeType(eTrackingRuntime runtimeType)
+{
+	if (runtimeType != m_trackingRuntime)
+	{
+		m_trackingRuntime= runtimeType;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackerRuntimePropertyId));
+	}
+}
+
+const std::string& VRObjectSystemConfig::getDefaultVRObjectSocketName() const
+{
+	static std::string kDefaultInvalidSocketName= "";
+	static std::string kDefaultSteamVRSocketName= "front_rolled";
+
+	switch (m_trackingRuntime)
+	{
+		case eTrackingRuntime::SteamVR:
+			return kDefaultSteamVRSocketName;
+		default:
+			return kDefaultInvalidSocketName;
+	}
+}
 
 void VRObjectSystemConfig::setAssignedStageId(MikanStageID stageId)
 {
 	if (stageId != m_assignedStageId)
 	{
 		m_assignedStageId= stageId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_AssignedStagePropertyId));
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_assignedStagePropertyId));
 	}
+}
+
+void VRObjectSystemConfig::setVRDevicePoseOffset(const MikanMatrix4f& poseOffset)
+{
+	m_vrDevicePoseOffset= poseOffset;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDevicePoseOffsetPropertyId));
 }
 
 VRDeviceDefinitionPtr VRObjectSystemConfig::getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const
@@ -73,7 +144,7 @@ MikanVRDeviceID VRObjectSystemConfig::addNewVRDevice(
 	vrDeviceList.push_back(vrDeviceDefinition);
 	addChildConfig(vrDeviceDefinition);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_VRDeviceListPropertyId));
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
 
 	return vrDeviceDefinition->getVRDeviceId();
 }
@@ -91,7 +162,7 @@ bool VRObjectSystemConfig::removeVRDevice(MikanVRDeviceID vrDeviceId)
 		removeChildConfig(*it);
 
 		vrDeviceList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_VRDeviceListPropertyId));
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
 
 		return true;
 	}
@@ -104,7 +175,7 @@ void VRObjectSystemConfig::removeAllVRDevice()
 	if (vrDeviceList.size() > 0)
 	{
 		vrDeviceList.clear();
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_VRDeviceListPropertyId));
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
 	}
 }
 
@@ -149,7 +220,7 @@ void VRObjectSystem::onProjectConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(ProjectConfig::k_trackerRuntimePropertyId))
+	if (changedPropertySet.hasPropertyName(VRObjectSystemConfig::k_trackerRuntimePropertyId))
 	{
 		onTrackerRuntimeTypeChaged();
 	}
@@ -157,20 +228,17 @@ void VRObjectSystem::onProjectConfigMarkedDirty(
 
 void VRObjectSystem::onTrackerRuntimeTypeChaged()
 {
-	eTrackingRuntime desiredRuntime= getProjectConfig()->getTrackerRuntime();
+	eTrackingRuntime desiredRuntime= getVRSystemConfigConst()->getTrackingRuntimeType();
 
-	if (m_currentTrackingRuntimeType != desiredRuntime)
-	{
-		disposeVRDeviceManager();
-		createVRDeviceManager(desiredRuntime);
-	}
+	disposeVRDeviceManager();
+	createVRDeviceManager(desiredRuntime);
 }
 
 void VRObjectSystem::onVRSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(VRObjectSystemConfig::k_AssignedStagePropertyId))
+	if (changedPropertySet.hasPropertyName(VRObjectSystemConfig::k_assignedStagePropertyId))
 	{
 		onAssignedStageChaged();
 	}
@@ -193,9 +261,6 @@ void VRObjectSystem::onAssignedStageChaged()
 
 void VRObjectSystem::createVRDeviceManager(eTrackingRuntime desiredRuntime)
 {
-	// Clear out the previous runtime type
-	m_currentTrackingRuntimeType= eTrackingRuntime::INVALID;
-
 	// Select the VR Device module to load
 	std::string moduleName;
 	switch (desiredRuntime)
@@ -224,9 +289,6 @@ void VRObjectSystem::createVRDeviceManager(eTrackingRuntime desiredRuntime)
 		MIKAN_LOG_WARNING("VRObjectSystem::createVRTrackingRuntime") << "Failed to create VRDeviceManger";
 		return;
 	}
-
-	// Remember the vr device runtime type we are using
-	m_currentTrackingRuntimeType= desiredRuntime;
 
 	// Listen for device manager changes
 	m_vrDeviceManager->addListener(this);
@@ -273,7 +335,7 @@ VRDeviceComponentPtr VRObjectSystem::getVRDeviceById(MikanVRDeviceID VRId) const
 	return VRDeviceComponentPtr();
 }
 
-VRDeviceComponentPtr VRObjectSystem::getSpatialVRByPath(const std::string& VRName) const
+VRDeviceComponentPtr VRObjectSystem::getVRDeviceByPath(const std::string& VRName) const
 {
 	for (auto it = m_vrDeviceComponents.begin(); it != m_vrDeviceComponents.end(); it++)
 	{
@@ -307,7 +369,7 @@ void VRObjectSystem::onActiveDeviceListChanged()
 
 		if (!devicePath.empty())
 		{
-			VRDeviceComponentPtr existingVRDeice= getSpatialVRByPath(devicePath);
+			VRDeviceComponentPtr existingVRDeice= getVRDeviceByPath(devicePath);
 
 			if (existingVRDeice)
 			{
@@ -462,4 +524,28 @@ VRObjectSystemConfigConstPtr VRObjectSystem::getVRSystemConfigConst() const
 VRObjectSystemConfigPtr VRObjectSystem::getVRSystemConfig()
 {
 	return std::const_pointer_cast<VRObjectSystemConfig>(getVRSystemConfigConst());
+}
+
+// -- Utility Methods
+void addAllVRDevicesToMkScene(IMkScenePtr mkScenePtr)
+{
+	IMkScenePtr scene= mkScenePtr;
+	auto vrDeviceSystem = VRObjectSystem::getSystem();
+
+	for (const auto& kvpair : vrDeviceSystem->getVRDeviceMap())
+	{
+		VRDeviceComponentPtr vrDeviceComponent = kvpair.second.lock();
+
+		if (vrDeviceComponent)
+		{
+			vrDeviceComponent->visitAllTransformComponentsConst(
+				[scene](const TransformComponent* transformComponent) {
+				IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
+				if (renderable)
+				{
+					scene->addInstance(renderable);
+				}
+			});
+		}
+	}
 }

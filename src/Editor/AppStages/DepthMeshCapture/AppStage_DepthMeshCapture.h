@@ -56,7 +56,6 @@ protected:
 	
 	// GlScene Helpers
 	void addDepthMeshResourcesToScene();
-	void removeDepthMeshResourceFromScene();
 
 private:
 	ProjectConfigPtr m_profile;

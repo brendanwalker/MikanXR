@@ -1,6 +1,6 @@
 #include "App.h"
 #include "AppStage.h"
-#include "VRDeviceRequestHandler.h"
+#include "IVRDevice.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"
@@ -9,8 +9,10 @@
 #include "MikanVideoSourceRequests.h"
 #include "MikanVRDeviceRequests.h"
 #include "ServerResponseHelpers.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
+#include "VRDeviceMath.h"
+#include "VRDeviceRequestHandler.h"
 
 #include <functional>
 
@@ -36,23 +38,23 @@ void VRDeviceClientState::unsubscribeFromVRDevicePoseUpdatesHandler(MikanVRDevic
 }
 
 void VRDeviceClientState::publishVRDevicePoses(int64_t newVRFrameIndex)
-{
-	
-	VRDeviceManager* vrDeviceManager = VRDeviceManager::getInstance();
+{	
+	auto vrObjectSystem = VRObjectSystem::getSystem();
 
 	for (auto deviceId : m_subscribedVRDevices)
 	{
-		VRDeviceViewPtr vrDeviceView = vrDeviceManager->getVRDeviceViewById(deviceId);
+		VRDeviceComponentPtr vrDeviceComponent = vrObjectSystem->getVRDeviceById(deviceId);
 
-		if (vrDeviceView && vrDeviceView->getIsOpen() && vrDeviceView->getIsPoseValid())
+		if (vrDeviceComponent && vrDeviceComponent->getIsPoseValid())
 		{
-			// TODO: We should provide option to select which component we want the pose updates for
-			glm::mat4 xform;
-			if (vrDeviceView->getDefaultComponentPose(xform))
+			VRDevicePose devicePose;
+			if (vrDeviceComponent->getDevicePose(devicePose))
 			{
+				GlmTransform glmTransform= VRDevicePose_to_GlmTransform(devicePose);
+
 				// Send a pose update to the client
 				MikanVRDevicePoseUpdateEvent poseUpdate;
-				poseUpdate.transform = glm_mat4_to_MikanMatrix4f(xform);
+				poseUpdate.transform = glm_mat4_to_MikanMatrix4f(glmTransform.getMat4());
 				poseUpdate.device_id = deviceId;
 				poseUpdate.frame = newVRFrameIndex;
 
@@ -65,13 +67,16 @@ void VRDeviceClientState::publishVRDevicePoses(int64_t newVRFrameIndex)
 // -- VRDeviceRequestHandler -- //
 bool VRDeviceRequestHandler::startup(MainWindow* mainWindow)
 {
-	auto* vrDeviceManager= VRDeviceManager::getInstance();
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
-	vrDeviceManager->OnDeviceListChanged
-		+= MakeDelegate(this, &VRDeviceRequestHandler::publishVRDeviceListChanged);
-	vrDeviceManager->OnDevicePosesChanged
-		+= MakeDelegate(this, &VRDeviceRequestHandler::publishVRDevicePoses);
+	// Listen for VR Device events directly from the vr device manager interface
+	auto vrObjectSystem = VRObjectSystem::getSystem();
+	IVRDeviceManagerPtr vrDeviceManager= vrObjectSystem->getVRDeviceManager();
+	if (vrDeviceManager)
+	{
+		vrDeviceManager->addListener(this);
+	}
+	// TODO: listen for VR System API changes
 
 	// VR Device Requests
 	messageServer->setRequestHandler(
@@ -92,22 +97,27 @@ bool VRDeviceRequestHandler::startup(MainWindow* mainWindow)
 
 void VRDeviceRequestHandler::shutdown()
 {
-	auto* vrDeviceManager= VRDeviceManager::getInstance();
-
-	vrDeviceManager->OnDeviceListChanged
-		-= MakeDelegate(this, &VRDeviceRequestHandler::publishVRDeviceListChanged);
-	vrDeviceManager->OnDevicePosesChanged
-		-= MakeDelegate(this, &VRDeviceRequestHandler::publishVRDevicePoses);
+	auto vrObjectSystem = VRObjectSystem::getSystem();
+	IVRDeviceManagerPtr vrDeviceManager = vrObjectSystem->getVRDeviceManager();
+	if (vrDeviceManager)
+	{
+		vrDeviceManager->removeListener(this);
+	}
 }
 
-void VRDeviceRequestHandler::publishVRDeviceListChanged()
+void VRDeviceRequestHandler::onActiveDeviceListChanged()
 {
 	MikanVRDeviceListUpdateEvent listChangedEvent = {};
 
 	m_owner->publishMikanJsonEvent(mikanTypeToJsonString(listChangedEvent));
 }
 
-void VRDeviceRequestHandler::publishVRDevicePoses(int64_t newFrameIndex)
+void VRDeviceRequestHandler::onDevicePropertyChanged(int deviceId)
+{
+
+}
+
+void VRDeviceRequestHandler::onDevicePosesChanged(int64_t newFrameIndex)
 {
 	std::vector<MikanClientConnectionStateConstPtr> clienStatetList;
 	m_owner->getConnectedClientStateList(clienStatetList);
@@ -122,12 +132,17 @@ void VRDeviceRequestHandler::getVRDeviceListHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	VRDeviceList deviceList = VRDeviceManager::getInstance()->getVRDeviceList();
-
 	MikanVRDeviceListResponse vrDeviceListResult = {};
-	for (VRDeviceViewPtr deviceView : deviceList)
+	auto vrObjectSystem = VRObjectSystem::getSystem();
+	for (const auto& kvpair : vrObjectSystem->getVRDeviceMap())
 	{
-		vrDeviceListResult.vr_device_id_list.push_back(deviceView->getDeviceID());
+		VRDeviceComponentPtr deviceComponent= kvpair.second.lock();
+
+		if (deviceComponent)
+		{
+			vrDeviceListResult.vr_device_id_list.push_back(
+				deviceComponent->getVRDeviceDefinition()->getVRDeviceId());
+		}
 	}
 
 	writeTypedJsonResponse(request.requestId, vrDeviceListResult, response);
@@ -144,8 +159,9 @@ void VRDeviceRequestHandler::getVRDeviceInfoHandler(
 		return;
 	}
 
-	VRDeviceViewPtr vrDeviceView = VRDeviceManager::getInstance()->getVRDeviceViewById(deviceRequest.deviceId);
-	if (!vrDeviceView)
+	auto vrObjectSystem = VRObjectSystem::getSystem();
+	VRDeviceComponentPtr vrDeviceComponent= vrObjectSystem->getVRDeviceById(deviceRequest.deviceId);
+	if (!vrDeviceComponent)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidDeviceId, response);
 		return;
@@ -153,26 +169,28 @@ void VRDeviceRequestHandler::getVRDeviceInfoHandler(
 
 	MikanVRDeviceInfoResponse infoResponse = {};
 	MikanVRDeviceInfo& info = infoResponse.vr_device_info;
-	info.device_path = vrDeviceView->getDevicePath();
 
-	switch (vrDeviceView->getVRTrackerDriverType())
+	IVRDevice* vrDeviceInterface= vrDeviceComponent->getVRDeviceInterface();
+	info.device_path = vrDeviceInterface->getDevicePath();
+
+	switch (vrObjectSystem->getVRSystemConfigConst()->getTrackingRuntimeType())
 	{
-		case IVRDeviceInterface::eDriverType::SteamVR:
+		case eTrackingRuntime::SteamVR:
 			info.vr_device_api = MikanVRDeviceApi_STEAM_VR;
 			break;
 		default:
 			info.vr_device_api = MikanVRDeviceApi_INVALID;
 	}
 
-	switch (vrDeviceView->getVRDeviceType())
+	switch (vrDeviceInterface->getDeviceType())
 	{
-		case eDeviceType::HMD:
+		case eVRDeviceType::HMD:
 			info.vr_device_type = MikanVRDeviceType_HMD;
 			break;
-		case eDeviceType::VRController:
+		case eVRDeviceType::VRController:
 			info.vr_device_type = MikanVRDeviceType_CONTROLLER;
 			break;
-		case eDeviceType::VRTracker:
+		case eVRDeviceType::VRTracker:
 			info.vr_device_type = MikanVRDeviceType_TRACKER;
 			break;
 		default:

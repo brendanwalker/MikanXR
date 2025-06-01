@@ -24,8 +24,8 @@
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -67,8 +67,8 @@ void AppStage_VRTrackingRecenter::enter()
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Get the camera tracking puck pose view
-	auto vrDeviceManager = VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	auto vrObjectSystem = VRObjectSystem::getSystem();
+	auto cameraTrackingPuckView= vrObjectSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
 	m_cameraTrackingPuckRawPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
 	m_cameraTrackingPuckScenePoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
@@ -141,12 +141,6 @@ void AppStage_VRTrackingRecenter::exit()
 	setMenuState(eVRTrackingRecenterMenuState::inactive);
 
 	m_camera= nullptr;
-
-	VRDeviceList vrDeviceList = VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
-	{
-		it->getVRDeviceInterface()->removeFromBoundScene();
-	}
 
 	if (m_videoSourceView)
 	{
@@ -247,11 +241,8 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 						glm::mat4 glmVRDevicePoseOffset= glm::inverse(glmXform);
 
 						// Publish the new VR device pose offset to the profile config
-						const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-						profileConfig->vrDevicePoseOffset = glm_mat4_to_MikanMatrix4f(glmVRDevicePoseOffset);
-						profileConfig->markDirty(
-							ConfigPropertyChangeSet()
-							.addPropertyName(ProjectConfig::k_vrDevicePoseOffsetPropertyId));
+						auto vrSystemConfig = VRObjectSystem::getSystem()->getVRSystemConfig();
+						vrSystemConfig->setVRDevicePoseOffset(glm_mat4_to_MikanMatrix4f(glmVRDevicePoseOffset));
 
 						setMenuState(eVRTrackingRecenterMenuState::testCalibration);
 					}

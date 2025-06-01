@@ -43,10 +43,6 @@ public:
 	inline const std::string& getSpoutOutputName() const { return m_spoutOutputName; }
 	void setSpoutOutputName(const std::string& spoutOutputName);
 
-	static const std::string k_trackerRuntimePropertyId;
-	inline const eTrackingRuntime getTrackerRuntime() const { return m_trackingRuntime; }
-	void setTrackingRungime(eTrackingRuntime trackingRuntime);
-
 	static const std::string k_videoSourcePathPropertyId;
 	std::string videoSourcePath;
 
@@ -55,9 +51,6 @@ public:
 
 	static const std::string k_matVRDevicePathPropertyId;
 	std::string matVRDevicePath;
-
-	static const std::string k_vrDevicePoseOffsetPropertyId;
-	MikanMatrix4f vrDevicePoseOffset;
 
 	static const std::string k_renderOriginFlagPropertyId;
 	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }

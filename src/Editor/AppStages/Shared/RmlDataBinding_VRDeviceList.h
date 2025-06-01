@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommonConfigFwd.h"
 #include "Shared\RmlDataBinding.h"
 
 class RmlDataBinding_VRDeviceList : public RmlDataBinding
@@ -14,6 +15,9 @@ public:
 	const Rml::Vector<Rml::String>& getVideoDeviceList() const { return m_vrDeviceList; }
 
 protected:
+	void onVRSystemConfigMarkedDirty(
+		CommonConfigPtr configPtr,
+		const class ConfigPropertyChangeSet& changedPropertySet);
 	void rebuildVRDeviceList();
 
 private:

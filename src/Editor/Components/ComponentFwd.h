@@ -107,4 +107,5 @@ using VRDeviceDefinitionWeakPtr = std::weak_ptr<VRDeviceDefinition>;
 
 class VRDeviceComponent;
 using VRDeviceComponentPtr = std::shared_ptr<VRDeviceComponent>;
+using VRDeviceComponentConstWeakPtr = std::weak_ptr<const VRDeviceComponent>;
 using VRDeviceComponentWeakPtr = std::weak_ptr<VRDeviceComponent>;

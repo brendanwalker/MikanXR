@@ -82,24 +82,12 @@ file(GLOB MIKAN_APP_STAGES_SHARED_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/Shared/*.h"
 )
 source_group("AppStages\\Shared" FILES ${MIKAN_APP_STAGES_SHARED_SRC})
-## SpatialAnchors
-file(GLOB MIKAN_APP_STAGES_SPATIAL_ANCHORS_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/SpatialAnchors/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/SpatialAnchors/*.h"
-)
-source_group("AppStages\\SpatialAnchors" FILES ${MIKAN_APP_STAGES_SPATIAL_ANCHORS_SRC})
 ## StencilAlignment
 file(GLOB MIKAN_APP_STAGES_STENCIL_ALIGNMENT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/StencilAlignment/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/StencilAlignment/*.h"
 )
 source_group("AppStages\\StencilAlignment" FILES ${MIKAN_APP_STAGES_STENCIL_ALIGNMENT_SRC})
-## VRDeviceSettings
-file(GLOB MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRDeviceSettings/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRDeviceSettings/*.h"
-)
-source_group("AppStages\\VRDeviceSettings" FILES ${MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC})
 ## VRTrackingRecenter
 file(GLOB MIKAN_APP_STAGES_VR_TRACKING_RECENTER_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/VRTrackingRecenter/*.cpp"
@@ -120,9 +108,7 @@ set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_MODAL_CONFIRM_SRC}
     ${MIKAN_APP_STAGES_MONO_LENS_CALIBRATION_SRC}
     ${MIKAN_APP_STAGES_SHARED_SRC}
-    ${MIKAN_APP_STAGES_SPATIAL_ANCHORS_SRC}
     ${MIKAN_APP_STAGES_STENCIL_ALIGNMENT_SRC}
-    ${MIKAN_APP_STAGES_VR_DEVICE_SETTINGS_SRC}
     ${MIKAN_APP_STAGES_VR_TRACKING_RECENTER_SRC}
 )
 
@@ -389,21 +375,6 @@ else()
 set(MIKAN_VIDEO_WMF_SRC)
 endif()
 
-# VRTracker
-file(GLOB MIKAN_VRTRACKER_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/VRTracker/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/VRTracker/*.h"
-)
-source_group("VRTracker" FILES ${MIKAN_VRTRACKER_SRC})
-
-# VRTracker SteamVR
-file(GLOB MIKAN_VRTRACKER_STEAMVR_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR/*.h"
-)
-source_group("VRTracker\\SteamVR" FILES ${MIKAN_VRTRACKER_STEAMVR_SRC})
-
-
 # Mikan Executable
 set(MIKAN_SRC
     ${MIKAN_APP_CORE_SRC}
@@ -437,8 +408,6 @@ set(MIKAN_SRC
     ${MIKAN_VIDEO_GSTREAMER_SRC}
     ${MIKAN_VIDEO_OPENCV_SRC}
     ${MIKAN_VIDEO_WMF_SRC}
-    ${MIKAN_VRTRACKER_SRC}
-    ${MIKAN_VRTRACKER_STEAMVR_SRC}
     ${IMGUI_SOURCE}
     ${IMNODES_SOURCE}
     ${TINYFILEDIALOGS_SOURCE}
@@ -476,8 +445,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer
   ${CMAKE_CURRENT_LIST_DIR}/Video/OpenCV
   ${CMAKE_CURRENT_LIST_DIR}/Video/WMF
-  ${CMAKE_CURRENT_LIST_DIR}/VRTracker
-  ${CMAKE_CURRENT_LIST_DIR}/VRTracker/SteamVR
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
@@ -567,7 +534,6 @@ target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 # Runtime dependencies
 set(OPENCV_VIDEOIO_DLL ${OpenCV_DIR}/x64/vc16/bin/opencv_videoio_ffmpeg4100_64.dll)
-set(OPENVR_DLL ${OPENVR_ROOT_DIR}/bin/${OPENVR_PLATFORM}/openvr_api.dll)
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
 set(SDL2_IMAGE_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_image-2.0.5/lib/x64)
 set(SDL2_TTF_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_ttf-2.0.15/lib/x64)
@@ -622,9 +588,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGStreamer>/MikanGStreamer.dll $<TARGET_FILE_DIR:Mikan>)
-  add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OPENVR_DLL} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:Mikan>)
@@ -686,10 +649,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
   install(FILES "${OpenCV_DIR}/x64/vc16/bin/opencv_world4100d.dll"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
-      
-  install(FILES "${OPENVR_DLL}"
-      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
-  
+
   install(FILES "${SDL2_DLL}"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 

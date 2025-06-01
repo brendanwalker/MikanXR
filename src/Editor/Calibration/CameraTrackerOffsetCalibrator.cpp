@@ -10,7 +10,7 @@
 #include "MathUtility.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
-#include "VRDeviceView.h"
+#include "VRDeviceComponent.h"
 
 #include <algorithm>
 #include <atomic>

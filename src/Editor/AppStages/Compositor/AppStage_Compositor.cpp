@@ -51,8 +51,6 @@
 #include "TextStyle.h"
 #include "VideoCapabilitiesConfig.h"
 #include "VideoSourceView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
 #include "Windows/CompositorNodeEditorWindow.h"
 
 #include <RmlUi/Core/Context.h>

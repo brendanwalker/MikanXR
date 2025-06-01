@@ -36,8 +36,8 @@
 #include "VideoSourceView.h"
 #include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -79,8 +79,8 @@ void AppStage_StencilAlignment::enter()
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Get the pose view for the camera tracking puck in Mikan Scene space
-	auto* vrDeviceManager = VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView = vrDeviceManager->getVRDeviceViewByPath(profileConfig->cameraVRDevicePath);
+	auto vrObjectSysten = VRObjectSystem::getSystem();
+	auto cameraTrackingPuckView = vrObjectSysten->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
 	m_cameraTrackingPuckPoseView = cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
 	// Listen for mouse ray events

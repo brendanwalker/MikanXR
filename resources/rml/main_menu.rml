@@ -62,9 +62,6 @@
 			<button onclick="goto_camera_settings">camera_settings</button>
 		</div>
 		<div>
-			<button onclick="goto_vr_device_settings">vr_device_settings</button>
-		</div>
-		<div>
 			<button onclick="exit_mikan">exit</button>
 		</div>
 	</body>

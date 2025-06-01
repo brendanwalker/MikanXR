@@ -1,8 +1,8 @@
 #include "RmlDataBinding_VRDeviceList.h"
 #include "MathUtility.h"
 #include "MulticastDelegate.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VRObjectSystem.h"
+#include "VRDeviceComponent.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -21,8 +21,8 @@ bool RmlDataBinding_VRDeviceList::init(Rml::DataModelConstructor constructor)
 	}
 
 	// Start listening for tracker device changes
-	VRDeviceManager* vrDeviceManager = VRDeviceManager::getInstance();
-	vrDeviceManager->OnDeviceListChanged += MakeDelegate(this, &RmlDataBinding_VRDeviceList::rebuildVRDeviceList);
+	auto vrSystemConfig = VRObjectSystem::getSystem()->getVRSystemConfig();
+	vrSystemConfig->OnMarkedDirty += MakeDelegate(this, &RmlDataBinding_VRDeviceList::onVRSystemConfigMarkedDirty);
 
 	// Register Data Model Fields
 	constructor.Bind("vr_device_list", &m_vrDeviceList);
@@ -36,20 +36,35 @@ bool RmlDataBinding_VRDeviceList::init(Rml::DataModelConstructor constructor)
 void RmlDataBinding_VRDeviceList::dispose()
 {
 	// Stop listening for tracker device changes
-	VRDeviceManager* vrDeviceManager = VRDeviceManager::getInstance();
-	vrDeviceManager->OnDeviceListChanged -= MakeDelegate(this, &RmlDataBinding_VRDeviceList::rebuildVRDeviceList);
+	auto vrSystemConfig = VRObjectSystem::getSystem()->getVRSystemConfig();
+	vrSystemConfig->OnMarkedDirty += MakeDelegate(this, &RmlDataBinding_VRDeviceList::onVRSystemConfigMarkedDirty);
 
 	RmlDataBinding::dispose();
 }
 
+void RmlDataBinding_VRDeviceList::onVRSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const class ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(VRObjectSystemConfig::k_vrDeviceListPropertyId))
+	{
+		rebuildVRDeviceList();
+	}
+}
+
 void RmlDataBinding_VRDeviceList::rebuildVRDeviceList()
 {
-	VRDeviceList vrTrackers = VRDeviceManager::getInstance()->getFilteredVRDeviceList(eDeviceType::VRTracker);
+	auto vrObjectSystem = VRObjectSystem::getSystem();
 
 	m_vrDeviceList.clear();
-	for (VRDeviceViewPtr vrTrackerPtr : vrTrackers)
+	for (const auto& kvpair : vrObjectSystem->getVRDeviceMap())
 	{
-		m_vrDeviceList.push_back(vrTrackerPtr->getDevicePath());
+		VRDeviceComponentPtr vrTrackerPtr= kvpair.second.lock();
+
+		if (vrTrackerPtr)
+		{
+			m_vrDeviceList.push_back(vrTrackerPtr->getVRDeviceDefinition()->getVRDevicePath());
+		}
 	}
 	m_modelHandle.DirtyVariable("vr_device_list");
 }

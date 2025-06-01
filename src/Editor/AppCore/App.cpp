@@ -17,7 +17,6 @@
 #include "SdlManager.h"
 #include "SdlWindow.h"
 #include "VideoSourceManager.h"
-#include "VRDeviceManager.h"
 
 //#include "Windows/TestNodeEditorWindow.h"
 #include "Windows/CompositorNodeEditorWindow.h"

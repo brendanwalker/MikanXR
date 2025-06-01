@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MkRendererExport.h"
 #include "MkRendererFwd.h"
 
 #include "glm/ext/vector_float3.hpp"

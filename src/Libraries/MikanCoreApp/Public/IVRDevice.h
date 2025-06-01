@@ -47,6 +47,7 @@ public:
 	virtual eVRDeviceType getDeviceType() const = 0;
 	virtual const char* getDevicePath() const = 0;
 	virtual bool getDevicePose(VRDevicePose& outPose) const = 0;
+	virtual bool getIsDevicePoseValid() const = 0;
 	virtual const char* getSerialNumber() const = 0;
 	virtual const char* getTrackingSystem() const = 0;
 	virtual const char* getTrackerRole() const = 0;

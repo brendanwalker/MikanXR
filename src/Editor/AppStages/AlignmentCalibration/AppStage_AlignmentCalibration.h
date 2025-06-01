@@ -75,7 +75,7 @@ private:
 	class MonoLensTrackerPoseCalibrator* m_trackerPoseCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
-	GlScenePtr m_scene;
+	MkScenePtr m_scene;
 	MikanCameraPtr m_camera;
 	IMkFrameBufferPtr m_frameBuffer;
 	IMkTriangulatedMeshPtr m_fullscreenQuad;

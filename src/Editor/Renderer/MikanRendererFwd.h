@@ -11,9 +11,9 @@ using MikanCameraPtr = std::shared_ptr<MikanCamera>;
 using MikanCameraConstPtr = std::shared_ptr<const MikanCamera>;
 
 class MkScene;
-using GlScenePtr = std::shared_ptr<MkScene>;
-using GlSceneWeakPtr = std::weak_ptr<MkScene>;
-using GlSceneConstPtr = std::shared_ptr<const MkScene>;
+using MkScenePtr = std::shared_ptr<MkScene>;
+using MkSceneWeakPtr = std::weak_ptr<MkScene>;
+using MkSceneConstPtr = std::shared_ptr<const MkScene>;
 
 class MikanViewport;
 using MikanViewportPtr = std::shared_ptr<MikanViewport>;
