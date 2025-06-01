@@ -27,6 +27,13 @@ public:
 		: CommonConfig(configName)
 	{}
 
+	static const std::string k_AssignedStagePropertyId;
+	MikanStageID getAssignedStageId() const { return m_assignedStageId; }
+	void setAssignedStageId(MikanStageID stageId);
+
+	static const std::string k_VRDeviceListPropertyId;
+	std::vector<VRDeviceDefinitionPtr> vrDeviceList;
+
 	VRDeviceDefinitionPtr getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const;
 	VRDeviceDefinitionPtr getVRDeviceConfigByPath(const std::string& vrDevicePath) const;
 	MikanVRDeviceID addNewVRDevice(
@@ -35,11 +42,9 @@ public:
 	bool removeVRDevice(MikanVRDeviceID vrDeviceId);
 	void removeAllVRDevice();
 
-	static const std::string k_VRDeviceListPropertyId;
-	std::vector<VRDeviceDefinitionPtr> vrDeviceList;
-
 protected:
 	MikanVRDeviceID m_nextVRDeviceId= 0;
+	MikanStageID m_assignedStageId= 0;
 	bool m_bDebugRenderVRs = true;
 };
 
@@ -76,6 +81,12 @@ protected:
 		CommonConfigPtr configPtr,
 		const class ConfigPropertyChangeSet& changedPropertySet);
 	void onTrackerRuntimeTypeChaged();
+
+	// VRSystem Config Events
+	void onVRSystemConfigMarkedDirty(
+		CommonConfigPtr configPtr,
+		const class ConfigPropertyChangeSet& changedPropertySet);
+	void onAssignedStageChaged();
 
 	// IVRDeviceManagerListener
 	virtual void onActiveDeviceListChanged() override;

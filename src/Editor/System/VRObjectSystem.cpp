@@ -17,7 +17,17 @@
 #include "VRDeviceComponent.h"
 
 // -- VRObjectSystemConfig -----
+const std::string VRObjectSystemConfig::k_AssignedStagePropertyId = "assignedStageId";
 const std::string VRObjectSystemConfig::k_VRDeviceListPropertyId = "vrDeviceList";
+
+void VRObjectSystemConfig::setAssignedStageId(MikanStageID stageId)
+{
+	if (stageId != m_assignedStageId)
+	{
+		m_assignedStageId= stageId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_AssignedStagePropertyId));
+	}
+}
 
 VRDeviceDefinitionPtr VRObjectSystemConfig::getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const
 {
@@ -112,6 +122,10 @@ bool VRObjectSystem::init()
 		MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	m_projectConfigWeakPtr= projectConfig;
 
+	VRObjectSystemConfigPtr vrSystemConfig= projectConfig->vrObjectConfig;
+	vrSystemConfig->OnMarkedDirty+= 
+		MakeDelegate(this, &VRObjectSystem::onVRSystemConfigMarkedDirty);
+
 	onTrackerRuntimeTypeChaged();
 
 	return true;
@@ -149,6 +163,31 @@ void VRObjectSystem::onTrackerRuntimeTypeChaged()
 	{
 		disposeVRDeviceManager();
 		createVRDeviceManager(desiredRuntime);
+	}
+}
+
+void VRObjectSystem::onVRSystemConfigMarkedDirty(
+	CommonConfigPtr configPtr,
+	const class ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(VRObjectSystemConfig::k_AssignedStagePropertyId))
+	{
+		onAssignedStageChaged();
+	}
+}
+
+void VRObjectSystem::onAssignedStageChaged()
+{
+	MikanStageID newStageId= getVRSystemConfigConst()->getAssignedStageId();
+
+	for (auto& kvpair : m_vrDeviceComponents)
+	{
+		VRDeviceComponentPtr vrDeviceComponent= kvpair.second.lock();
+
+		if (vrDeviceComponent)
+		{
+			vrDeviceComponent->assignToStage(newStageId);
+		}
 	}
 }
 
@@ -369,7 +408,7 @@ VRDeviceComponentPtr VRObjectSystem::createVRObject(
 	vrObject->init();
 
 	// Create mesh and attachment components for all the child vr object meshes
-	vrDeviceComponent->rebuildAttachments();
+	vrDeviceComponent->rebuildSockets();
 	vrDeviceComponent->rebuildMeshComponents();
 
 	// Set initial device pose

@@ -15,17 +15,17 @@ enum class eVRDeviceType : int
 };
 
 // -- definitions -----
-class IVRDeviceAttachment
+class IVRDeviceSocket
 {
 public:
-	IVRDeviceAttachment() = default;
-	virtual ~IVRDeviceAttachment() {}
+	IVRDeviceSocket() = default;
+	virtual ~IVRDeviceSocket() {}
 
 	virtual const char* getName() const = 0;
 	virtual bool getRelativePose(VRDevicePose& outPose) const = 0;
 };
 
-class IVRDeviceMesh : public IVRDeviceAttachment
+class IVRDeviceMesh : public IVRDeviceSocket
 {
 public:
 	IVRDeviceMesh() = default;
@@ -54,10 +54,10 @@ public:
 	virtual const char* getModelNumber() const = 0;
 	virtual const char* getManufacturerName() const = 0;
 
-	// -- Attachment accessors
-	virtual size_t getAttachmentCount() const = 0;
-	virtual IVRDeviceAttachment* getAttachmentByIndex(size_t meshIndex) const = 0;
-	virtual IVRDeviceAttachment* getAttachmentByName(const char* meshName) const = 0;
+	// -- Socket accessors
+	virtual size_t getSocketCount() const = 0;
+	virtual IVRDeviceSocket* geSocketByIndex(size_t socketIndex) const = 0;
+	virtual IVRDeviceSocket* getSocketByName(const char* socketName) const = 0;
 
 	// -- Mesh accessors
 	virtual size_t getMeshCount() const = 0;

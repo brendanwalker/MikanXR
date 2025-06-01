@@ -15,7 +15,9 @@
 #include "MikanVRDeviceTypes.h"
 #include "MulticastDelegate.h"
 #include "ProjectConfig.h"
+#include "StageComponent.h"
 #include "SelectionComponent.h"
+#include "StageObjectSystem.h"
 #include "StaticMeshComponent.h"
 #include "StringUtils.h"
 #include "TransformComponent.h"
@@ -70,44 +72,75 @@ void VRDeviceComponent::setVRDeviceInterface(IVRDevice* vrDeviceInterface)
 	m_vrDeviceInterface= vrDeviceInterface;
 }
 
-void VRDeviceComponent::disposeAttachments()
+void VRDeviceComponent::assignToStage(MikanStageID newStageId)
 {
-	// Clean up any previously created attachments
-	for (auto& kvpair : m_attachmentMap)
-	{
-		TransformComponentPtr componentPtr = kvpair.second;
-		componentPtr->dispose();
-	}
+	MikanStageID currentStageId = getAssignedStageId();
 
-	// Forget about the attachment components
-	m_attachmentMap.clear();
+	if (currentStageId != newStageId)
+	{
+		StageComponentPtr newStage= StageObjectSystem::getSystem()->getStageById(newStageId);
+
+		if (newStage)
+		{
+			attachToComponent(newStage);
+		}
+		else
+		{
+			detachFromParent(TransformComponent::eDetachReason::detachFromParent);
+		}
+	}
 }
 
-void VRDeviceComponent::rebuildAttachments()
+StageComponentPtr VRDeviceComponent::getAssignedStage() const
+{
+	return std::static_pointer_cast<StageComponent>(getParentComponent());
+}
+
+MikanStageID VRDeviceComponent::getAssignedStageId() const
+{
+	StageComponentPtr currentStage = getAssignedStage();
+
+	return currentStage ? currentStage->getStageComponentDefinition()->getStageId() : INVALID_MIKAN_ID;
+}
+
+void VRDeviceComponent::disposeSockets()
+{
+	// Clean up any previously created sockets
+	for (auto& kvpair : m_socketMap)
+	{
+		TransformComponentPtr socketPtr = kvpair.second;
+		socketPtr->dispose();
+	}
+
+	// Forget about the socket components
+	m_socketMap.clear();
+}
+
+void VRDeviceComponent::rebuildSockets()
 {
 	MikanObjectPtr vrDeviceObject = getOwnerObject();
 	VRDeviceComponentPtr vrDeviceComponentPtr = getSelfPtr<VRDeviceComponent>();
 
-	// Clean up any previously created attachment components
-	disposeAttachments();
+	// Clean up any previously created socket components
+	disposeSockets();
 
-	// If a model loaded, create attachments
+	// Create sockets
 	if (m_vrDeviceInterface != nullptr)
 	{
-		for (int meshIndex = 0; meshIndex < m_vrDeviceInterface->getAttachmentCount(); meshIndex++)
+		for (int socketIndex = 0; socketIndex < m_vrDeviceInterface->getSocketCount(); socketIndex++)
 		{
-			IVRDeviceAttachment* vrDeviceAttachment = m_vrDeviceInterface->getAttachmentByIndex(meshIndex);
-			const std::string attachmentName= vrDeviceAttachment->getName();
+			IVRDeviceSocket* vrDeviceSocket = m_vrDeviceInterface->geSocketByIndex(socketIndex);
+			const std::string socketName= vrDeviceSocket->getName();
 
 			// Create a static mesh component to hold the mesh instance
-			TransformComponentPtr attachmentComponentPtr = vrDeviceObject->addComponent<TransformComponent>();
-			attachmentComponentPtr->setName(attachmentName);
-			attachmentComponentPtr->attachToComponent(vrDeviceComponentPtr);
-			m_attachmentMap.insert({attachmentName, attachmentComponentPtr});
+			TransformComponentPtr socketComponentPtr = vrDeviceObject->addComponent<TransformComponent>();
+			socketComponentPtr->setName(socketName);
+			socketComponentPtr->attachToComponent(vrDeviceComponentPtr);
+			m_socketMap.insert({socketName, socketComponentPtr});
 		}
 
-		// Initialize all of the newly created components
-		for (auto& kvpair : m_attachmentMap)
+		// Initialize all of the newly created sockets
+		for (auto& kvpair : m_socketMap)
 		{
 			kvpair.second->init();
 		}
@@ -246,13 +279,13 @@ void VRDeviceComponent::refreshDevicePose()
 		}
 
 		// Update the child attachment component relative transforms
-		for (size_t attachmentIndex = 0; attachmentIndex < m_vrDeviceInterface->getAttachmentCount(); attachmentIndex++)
+		for (size_t attachmentIndex = 0; attachmentIndex < m_vrDeviceInterface->getSocketCount(); attachmentIndex++)
 		{
-			const IVRDeviceAttachment* attachment = m_vrDeviceInterface->getAttachmentByIndex(attachmentIndex);
+			const IVRDeviceSocket* attachment = m_vrDeviceInterface->geSocketByIndex(attachmentIndex);
 			const std::string attachmentName = attachment->getName();
 
-			auto it = m_attachmentMap.find(attachmentName);
-			if (it != m_attachmentMap.end())
+			auto it = m_socketMap.find(attachmentName);
+			if (it != m_socketMap.end())
 			{
 				TransformComponentPtr attachmentComponent = it->second;
 

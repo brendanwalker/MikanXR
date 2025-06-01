@@ -47,10 +47,17 @@ public:
 
 	void setVRDeviceInterface(class IVRDevice* vrDeviceInterface);
 	class IVRDevice* getVRDeviceInterface() const { return m_vrDeviceInterface; }
-	void disposeAttachments();
+
+	void assignToStage(MikanStageID newStageId);
+	StageComponentPtr getAssignedStage() const;
+	MikanStageID getAssignedStageId() const;
+
+	void disposeSockets();
+	void rebuildSockets();
+
 	void disposeMeshComponents();
-	void rebuildAttachments();
 	void rebuildMeshComponents();
+
 	void refreshDevicePose();
 
 protected:
@@ -72,7 +79,7 @@ protected:
 
 	class IVRDevice* m_vrDeviceInterface= nullptr;
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
-	std::map<std::string, TransformComponentPtr> m_attachmentMap;
+	std::map<std::string, TransformComponentPtr> m_socketMap;
 	std::map<std::string, VRDeviceMeshInfo> m_meshComponentMap;
 	bool m_bIsHovered = false;
 	bool m_bIsSelected = false;
