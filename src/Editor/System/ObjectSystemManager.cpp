@@ -47,11 +47,11 @@ void ObjectSystemManager::shutdown()
 	m_systems.clear();
 }
 
-void ObjectSystemManager::update()
+void ObjectSystemManager::update(float deltaSeconds)
 {
 	for (MikanObjectSystemPtr system : m_systems)
 	{
-		system->update();
+		system->update(deltaSeconds);
 	}
 }
 

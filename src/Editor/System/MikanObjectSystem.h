@@ -16,7 +16,7 @@ public:
 
 	virtual bool init();
 	virtual void dispose();
-	virtual void update();
+	virtual void update(float deltaSeconds);
 	virtual void customRender();
 
 	MikanObjectPtr newObject();
@@ -33,7 +33,7 @@ public:
 protected:
 	MikanObjectList m_objects;
 
-	MulticastDelegate<void()> onUpdate;
+	MulticastDelegate<void(float deltaSeconds)> onUpdate;
 	MulticastDelegate<void()> onCustomRender;
 
 	friend class MikanComponent;

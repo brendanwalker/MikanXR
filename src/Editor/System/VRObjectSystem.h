@@ -70,6 +70,7 @@ public:
 	static VRObjectSystemPtr getSystem() { return s_VRObjectSystem.lock(); }
 
 	virtual bool init() override;
+	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 

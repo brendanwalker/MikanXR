@@ -33,7 +33,7 @@ public:
 	
 	bool startup();
 	void shutdown();
-	void update();
+	void update(float deltaSeconds);
 	void customRender();
 
 protected:

@@ -277,9 +277,6 @@ void AppStage_Compositor::update(float deltaSeconds)
 	// Update the camera pose for the currently active camera
 	updateCamera();
 
-	// Update objects in the object system
-	m_ownerWindow->getObjectSystemManager()->update();
-
 	// tick the compositor lua script (if any is active)
 	m_scriptContext->updateScript();
 }

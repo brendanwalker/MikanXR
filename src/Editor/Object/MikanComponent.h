@@ -76,7 +76,7 @@ public:
 	virtual void dispose();
 	
 	// set m_bWantsUpdate to true in constructor to make this function be called
-	virtual void update() {}
+	virtual void update(float deltaSeconds) {}
 
 	// set m_bWantsCustomRender to true in constructor to make this function be called
 	virtual void customRender() {}

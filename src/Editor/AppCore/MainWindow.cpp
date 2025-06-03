@@ -289,6 +289,9 @@ void MainWindow::update(float deltaSeconds)
 	// Process most recent SDL events (keyboard, mouse, etc)
 	m_sdlWindow->handleSDLEvents();
 
+	// Update objects in the object system
+	m_objectSystemManager->update(deltaSeconds);
+
 	// Update the current app stage last
 	AppStage* appStage = getCurrentAppStage();
 	if (appStage != nullptr && appStage->getIsUpdateActive())

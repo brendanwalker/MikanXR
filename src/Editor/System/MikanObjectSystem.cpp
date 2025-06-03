@@ -23,10 +23,10 @@ void MikanObjectSystem::dispose()
 	deleteAllObjects();
 }
 
-void MikanObjectSystem::update()
+void MikanObjectSystem::update(float deltaSeconds)
 {
 	if (onUpdate)
-		onUpdate();
+		onUpdate(deltaSeconds);
 }
 
 void MikanObjectSystem::customRender()

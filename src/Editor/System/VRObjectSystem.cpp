@@ -202,6 +202,14 @@ bool VRObjectSystem::init()
 	return true;
 }
 
+void VRObjectSystem::update(float deltaSeconds)
+{
+	if (m_vrDeviceManager != nullptr)
+	{
+		m_vrDeviceManager->update(deltaSeconds);
+	}
+}
+
 void VRObjectSystem::dispose()
 {
 	disposeVRDeviceManager();
