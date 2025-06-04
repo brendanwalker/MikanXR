@@ -65,3 +65,7 @@ public:
 	virtual IVRDeviceMesh* getMeshByIndex(size_t meshIndex) const = 0;
 	virtual IVRDeviceMesh* getMeshByName(const char* meshName) const = 0;
 };
+
+using IVRDevicePtr = std::shared_ptr<IVRDevice>;
+using IVRDeviceConstPtr = std::shared_ptr<const IVRDevice>;
+using IVRDeviceWeakPtr = std::weak_ptr<IVRDevice>;

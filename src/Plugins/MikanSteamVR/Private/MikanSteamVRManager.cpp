@@ -1,4 +1,5 @@
 #include "MikanSteamVRManager.h"
+#include "MikanSteamVRDevice.h"
 #include "IMkWindow.h"
 #include "IVRDevice.h"
 #include "Logger.h"
@@ -222,16 +223,26 @@ void MikanSteamVRManager::shutdown()
 
 size_t MikanSteamVRManager::getDeviceCount() const
 {
-	return 0;
+	return m_activeSteamVRDeviceList.size();
 }
 
 IVRDevice* MikanSteamVRManager::getDeviceByIndex(size_t index)
 {
-	return nullptr;
+	return index < m_activeSteamVRDeviceList.size() ? m_activeSteamVRDeviceList[index].get() : nullptr;
 }
 
 IVRDevice* MikanSteamVRManager::getDeviceByPath(const char* devicePath)
 {
+	auto it= std::find_if(
+		m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(), 
+		[devicePath](const IVRDevicePtr& device) {
+			return strncmp(device->getDevicePath(), devicePath, 512) == 0;
+		});
+	if (it != m_activeSteamVRDeviceList.end())
+	{
+		return it->get();
+	}
+
 	return nullptr;
 }
 
@@ -261,6 +272,7 @@ bool MikanSteamVRManager::tryConnect()
 
 	// Fetch the initial set of connected tracked devices we care about
 	m_activeSteamVRDeviceIdSet.clear();
+	m_activeSteamVRDeviceList.clear();
 	addConnectedDeviceIdsOfClass(vr::TrackedDeviceClass_GenericTracker);
 	addConnectedDeviceIdsOfClass(vr::TrackedDeviceClass_HMD);
 	addConnectedDeviceIdsOfClass(vr::TrackedDeviceClass_Controller);
@@ -280,6 +292,7 @@ void MikanSteamVRManager::disconnect()
 {
 	//m_resourceManager->cleanup();
 	m_activeSteamVRDeviceIdSet.clear();
+	m_activeSteamVRDeviceList.clear();
 
 	if (vr::VRSystem() != nullptr)
 	{
@@ -289,34 +302,31 @@ void MikanSteamVRManager::disconnect()
 	}
 }
 
-SteamVRIdList MikanSteamVRManager::getActiveDevices() const
+SteamVRDeviceList MikanSteamVRManager::getActiveDevices() const
 {
-	SteamVRIdList deviceIds;
+	SteamVRDeviceList filteredDevices;
 
-	for (SteamVRIdSetIter it = m_activeSteamVRDeviceIdSet.begin(); it != m_activeSteamVRDeviceIdSet.end(); ++it)
+	for (const auto& devicePtr : m_activeSteamVRDeviceList)
 	{
-		vr::TrackedDeviceIndex_t steamVRDeviceId = (vr::TrackedDeviceIndex_t)(*it);
-
-		deviceIds.push_back((int)steamVRDeviceId);
+		filteredDevices.push_back(devicePtr.get());
 	}
 
-	return deviceIds;
+	return filteredDevices;
 }
 
-SteamVRIdList MikanSteamVRManager::getActiveDevicesOfType(eVRDeviceType deviceType) const
+SteamVRDeviceList MikanSteamVRManager::getActiveDevicesOfType(eVRDeviceType deviceType) const
 {
-	SteamVRIdList filteredDeviceIds;
-	for (SteamVRIdSetIter it = m_activeSteamVRDeviceIdSet.begin(); it != m_activeSteamVRDeviceIdSet.end(); ++it)
-	{
-		vr::TrackedDeviceIndex_t steamVRDeviceId= (vr::TrackedDeviceIndex_t)(*it);
+	SteamVRDeviceList filteredDevices;
 
-		if (getDeviceType(steamVRDeviceId) == deviceType)
+	for (const auto& devicePtr : m_activeSteamVRDeviceList)
+	{
+		if (devicePtr->getDeviceType() == deviceType)
 		{
-			filteredDeviceIds.push_back((int)steamVRDeviceId);
+			filteredDevices.push_back(devicePtr.get());
 		}
 	}
 
-	return filteredDeviceIds;
+	return filteredDevices;
 }
 
 eVRDeviceType MikanSteamVRManager::getDeviceType(vr::TrackedDeviceIndex_t steamVRDeviceId) const
@@ -451,19 +461,23 @@ void MikanSteamVRManager::addConnectedDeviceIdsOfClass(vr::ETrackedDeviceClass d
 
 	for (uint32_t index = 0; index < deviceCount; ++index)
 	{
-		m_activeSteamVRDeviceIdSet.insert(deviceIndices[index]);
+		const vr::TrackedDeviceIndex_t steamVRDeviceId= deviceIndices[index];
+
+		m_activeSteamVRDeviceIdSet.insert(steamVRDeviceId);
+		m_activeSteamVRDeviceList.push_back(std::make_shared<MikanSteamVRDevice>(steamVRDeviceId));
 	}
 }
 
-void MikanSteamVRManager::handleTrackedDeviceActivated(vr::TrackedDeviceIndex_t deviceIndex)
+void MikanSteamVRManager::handleTrackedDeviceActivated(vr::TrackedDeviceIndex_t steamVRDeviceId)
 {
-	const vr::ETrackedDeviceClass deviceClass= vr::VRSystem()->GetTrackedDeviceClass(deviceIndex);
+	const vr::ETrackedDeviceClass deviceClass= vr::VRSystem()->GetTrackedDeviceClass(steamVRDeviceId);
 
 	if (deviceClass == vr::TrackedDeviceClass_HMD ||
 		deviceClass == vr::TrackedDeviceClass_Controller ||
 		deviceClass == vr::TrackedDeviceClass_GenericTracker)
 	{
-		m_activeSteamVRDeviceIdSet.insert((int)deviceIndex);
+		m_activeSteamVRDeviceIdSet.insert(steamVRDeviceId);
+		m_activeSteamVRDeviceList.push_back(std::make_shared<MikanSteamVRDevice>(steamVRDeviceId));
 
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{
@@ -480,7 +494,12 @@ void MikanSteamVRManager::handleTrackedDeviceDeactivated(vr::TrackedDeviceIndex_
 		deviceClass == vr::TrackedDeviceClass_Controller ||
 		deviceClass == vr::TrackedDeviceClass_GenericTracker)
 	{
-		m_activeSteamVRDeviceIdSet.erase((int)deviceIndex);
+		m_activeSteamVRDeviceIdSet.erase(deviceIndex);
+		auto it = std::remove_if(
+			m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
+			[deviceIndex](const IVRDevicePtr& device) {
+			return device->getDeviceIndex() == deviceIndex;
+		});
 
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{
@@ -491,6 +510,16 @@ void MikanSteamVRManager::handleTrackedDeviceDeactivated(vr::TrackedDeviceIndex_
 
 void MikanSteamVRManager::handleTrackedDevicePropertyChanged(vr::TrackedDeviceIndex_t deviceIndex)
 {
+	auto it = std::find_if(
+		m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
+		[deviceIndex](const IVRDevicePtr& device) {
+		return device->getDeviceIndex() == deviceIndex;
+	});
+
+	if (it != m_activeSteamVRDeviceList.end())
+	{
+		it->get()->updateProperties();
+	}
 	//TODO: need a vr::TrackedDeviceIndex_t -> deviceIndex mapping
 	//m_eventListener->onDevicePropertyChanged((int)deviceIndex);
 }

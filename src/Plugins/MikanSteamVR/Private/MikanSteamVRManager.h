@@ -2,25 +2,17 @@
 
 #include "IVRDevice.h"
 #include "IVRDeviceManager.h"
+#include "MikanSteamVRDeviceFwd.h"
+
 #include <set>
 #include <string>
 #include <vector>
 
-//-- typedefs -----
-using SteamVRIdSet= std::set<int>;
-using SteamVRIdSetIter= std::set<int>::iterator;
+using SteamVRIdSet = std::set<int>;
+using SteamVRIdSetIter = std::set<int>::iterator;
 
-using SteamVRIdList= std::vector<int>;
-using SteamVRIdListIter= std::vector<int>::iterator;
-
-namespace vr
-{
-	typedef uint32_t TrackedDeviceIndex_t;
-	enum ETrackedDeviceClass;
-	struct TrackedDevicePose_t;
-	class IVRSystem;
-};
-
+using SteamVRDeviceList = std::vector<IVRDevice*>;
+using SteamVRDeviceListIter = std::vector<IVRDevicePtr*>::iterator;
 
 class MikanSteamVRManager : public IVRDeviceManager
 {
@@ -41,8 +33,8 @@ public:
 	virtual class IVRDevice* getDeviceByPath(const char* devicePath) override;
 
 	// MikanSteamVRManager
-	SteamVRIdList getActiveDevices() const;
-	SteamVRIdList getActiveDevicesOfType(eVRDeviceType deviceType) const;
+	SteamVRDeviceList getActiveDevices() const;
+	SteamVRDeviceList getActiveDevicesOfType(eVRDeviceType deviceType) const;
 	eVRDeviceType getDeviceType(vr::TrackedDeviceIndex_t steamVRDeviceId) const;
 	const vr::TrackedDevicePose_t* getDevicePose(
 		vr::TrackedDeviceIndex_t steamvrDeviceId,
@@ -71,4 +63,5 @@ private:
 	std::unique_ptr< class DeviceSetPoseHistory > m_devicePoseHistory;
 	int64_t m_vrFrameCounter;
 	SteamVRIdSet m_activeSteamVRDeviceIdSet;
+	std::vector<MikanSteamVRDevicePtr> m_activeSteamVRDeviceList;
 };
