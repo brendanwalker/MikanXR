@@ -1,14 +1,18 @@
 #include "MikanSteamVRDevice.h"
+#include "MikanSteamVRManager.h"
+#include "MikanSteamVRMath.h"
 #include "MikanSteamVRDeviceMesh.h"
 #include "MikanSteamVRDeviceSocket.h"
 #include "SteamVRDeviceProperties.h"
 
 #include "openvr.h"
 
-MikanSteamVRDevice::MikanSteamVRDevice(vr::TrackedDeviceIndex_t steamvrDeviceId)
-	: m_deviceProperties(new SteamVRDeviceProperties(steamvrDeviceId))
+MikanSteamVRDevice::MikanSteamVRDevice(
+	MikanSteamVRManager* ownerDeviceManager,
+	vr::TrackedDeviceIndex_t steamvrDeviceId)
+	: m_ownerDeviceManager(ownerDeviceManager)
+	, m_deviceProperties(new SteamVRDeviceProperties(steamvrDeviceId))
 {
-
 }
 
 MikanSteamVRDevice::~MikanSteamVRDevice()
@@ -41,15 +45,21 @@ const char* MikanSteamVRDevice::getDevicePath() const
 	return m_deviceProperties->getDevicePath().c_str();
 }
 
-bool MikanSteamVRDevice::getDevicePose(VRDevicePose& outPose) const
+bool MikanSteamVRDevice::getDevicePose(int vrFrameDelay, VRDevicePose& outPose) const
 {
-	//TODO
-	return false;
-}
+	const vr::TrackedDevicePose_t* rawDevicePose=
+		m_ownerDeviceManager->getDevicePose(
+			m_deviceProperties->getSteamVRDeviceIndex(), vrFrameDelay);
 
-bool MikanSteamVRDevice::getIsDevicePoseValid() const
-{
-	//TODO
+	if (rawDevicePose != nullptr)
+	{
+		// Convert the raw pose to our VRDevicePose format
+		glm::mat4 xform= vr_HmdMatrix34_to_glm_mat4(rawDevicePose->mDeviceToAbsoluteTracking);
+		outPose = glm_mat4_to_VRDevicePose(xform);
+
+		return true;
+	}
+
 	return false;
 }
 

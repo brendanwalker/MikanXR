@@ -65,8 +65,7 @@ public:
 	StageComponentPtr getAssignedStage() const;
 	MikanStageID getAssignedStageId() const;
 
-	bool getDevicePose(struct VRDevicePose& outPose) const;
-	bool getIsPoseValid() const;
+	bool getDevicePose(const int vrFrameDelay, struct VRDevicePose& outPose) const;
 
 	void disposeSockets();
 	void rebuildSockets();
@@ -125,7 +124,6 @@ public:
 	inline eVRDevicePoseSpace getPoseSpace() const { return m_poseSpace; }
 
 	const VRDeviceComponent* getDeviceComponent() const;
-	bool getIsPoseValid() const;
 	bool getPose(glm::mat4& outPoseInSpace) const;
 	bool getPose(glm::dmat4& outPoseInSpace) const;
 

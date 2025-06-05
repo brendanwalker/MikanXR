@@ -17,10 +17,6 @@
 #define k_millimeters_to_meters		(1.0 / k_meters_to_millimeters)
 
 // pre-declarations
-namespace vr
-{
-	struct HmdMatrix34_t;
-};
 class GlmTransform;
 
 //-- methods -----
@@ -46,9 +42,6 @@ glm::dquat cv_quatd_to_glm_dquat(const cv::Quatd& in);
 glm::vec3 VRDevicePosition_to_glm_vec3(const struct VRDevicePosition& in);
 glm::quat VRDeviceQuat_to_glm_quat(const struct VRDeviceQuat& in);
 GlmTransform VRDevicePose_to_GlmTransform(const struct VRDevicePose& in);
-
-// SteamVR types to GLM types
-glm::mat4 vr_HmdMatrix34_to_glm_mat4(const vr::HmdMatrix34_t& in);
 
 // OpenCV <-> Mikan types
 MikanVector3d cv_vec3d_to_MikanVector3d(const cv::Vec3d& in);

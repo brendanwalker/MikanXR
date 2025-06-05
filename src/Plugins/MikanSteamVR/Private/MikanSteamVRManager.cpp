@@ -329,31 +329,6 @@ SteamVRDeviceList MikanSteamVRManager::getActiveDevicesOfType(eVRDeviceType devi
 	return filteredDevices;
 }
 
-eVRDeviceType MikanSteamVRManager::getDeviceType(vr::TrackedDeviceIndex_t steamVRDeviceId) const
-{
-	eVRDeviceType deviceType= eVRDeviceType::INVALID;
-
-	if (m_activeSteamVRDeviceIdSet.find(steamVRDeviceId) != m_activeSteamVRDeviceIdSet.end())
-	{
-		const vr::ETrackedDeviceClass steamVRDeviceClass = vr::VRSystem()->GetTrackedDeviceClass(steamVRDeviceId);
-
-		switch (steamVRDeviceClass)
-		{
-		case vr::TrackedDeviceClass_HMD:
-			deviceType = eVRDeviceType::HMD;
-			break;
-		case vr::TrackedDeviceClass_Controller:
-			deviceType = eVRDeviceType::VRController;
-			break;
-		case vr::TrackedDeviceClass_GenericTracker:
-			deviceType = eVRDeviceType::VRTracker;
-			break;
-		}
-	}
-
-	return deviceType;
-}
-
 const vr::TrackedDevicePose_t* MikanSteamVRManager::getDevicePose(
 	vr::TrackedDeviceIndex_t steamvrDeviceId,
 	int vrFrameDelay) const
@@ -380,76 +355,6 @@ const vr::TrackedDevicePose_t* MikanSteamVRManager::getDevicePose(
 	return nullptr;
 }
 
-int MikanSteamVRManager::getDeviceVendorId(vr::TrackedDeviceIndex_t steamvrDeviceId) const
-{
-	int vendorId= 0;
-
-	if (m_activeSteamVRDeviceIdSet.find(steamvrDeviceId) != m_activeSteamVRDeviceIdSet.end())
-	{
-		vendorId= 
-			vr::VRSystem()->GetInt32TrackedDeviceProperty(
-				(vr::TrackedDeviceIndex_t)steamvrDeviceId,
-				vr::Prop_EdidVendorID_Int32);
-	}
-
-	return vendorId;
-}
-
-int MikanSteamVRManager::getDeviceProductId(vr::TrackedDeviceIndex_t steamvrDeviceId) const
-{
-	int productId = 0;
-
-	if (m_activeSteamVRDeviceIdSet.find(steamvrDeviceId) != m_activeSteamVRDeviceIdSet.end())
-	{
-		productId =
-			vr::VRSystem()->GetInt32TrackedDeviceProperty(
-				(vr::TrackedDeviceIndex_t)steamvrDeviceId,
-				vr::Prop_EdidProductID_Int32);
-	}
-
-	return productId;
-}
-
-std::string MikanSteamVRManager::getDevicePath(vr::TrackedDeviceIndex_t steamvrDeviceId) const
-{
-	vr::IVRSystem* vrSystem = vr::VRSystem();
-	std::string devicePath;
-
-	if (m_activeSteamVRDeviceIdSet.find(steamvrDeviceId) != m_activeSteamVRDeviceIdSet.end())
-	{
-		char serialNumber[128];
-		if (vrSystem->GetStringTrackedDeviceProperty(
-			(vr::TrackedDeviceIndex_t)steamvrDeviceId,
-			vr::Prop_SerialNumber_String,
-			serialNumber, (uint32_t)sizeof(serialNumber)) != 0)
-		{
-			char modelNumber[128];
-			if (vrSystem->GetStringTrackedDeviceProperty(
-				(vr::TrackedDeviceIndex_t)steamvrDeviceId,
-				vr::Prop_ModelNumber_String,
-				modelNumber, (uint32_t)sizeof(modelNumber)) != 0)
-			{
-				char manufacturer[128];
-				if (vrSystem->GetStringTrackedDeviceProperty(
-					(vr::TrackedDeviceIndex_t)steamvrDeviceId,
-					vr::Prop_ManufacturerName_String,
-					manufacturer, (uint32_t)sizeof(manufacturer)) != 0)
-				{
-					char szDevicePath[128*3];
-					StringUtils::formatString(
-						szDevicePath, sizeof(szDevicePath), 
-						"/devices/%s/%s%s",
-						manufacturer, modelNumber, serialNumber);
-
-					devicePath= szDevicePath;
-				}
-			}
-		}
-	}
-
-	return devicePath;
-}
-
 void MikanSteamVRManager::addConnectedDeviceIdsOfClass(vr::ETrackedDeviceClass deviceClass)
 {
 	vr::TrackedDeviceIndex_t deviceIndices[vr::k_unMaxTrackedDeviceCount];
@@ -464,7 +369,7 @@ void MikanSteamVRManager::addConnectedDeviceIdsOfClass(vr::ETrackedDeviceClass d
 		const vr::TrackedDeviceIndex_t steamVRDeviceId= deviceIndices[index];
 
 		m_activeSteamVRDeviceIdSet.insert(steamVRDeviceId);
-		m_activeSteamVRDeviceList.push_back(std::make_shared<MikanSteamVRDevice>(steamVRDeviceId));
+		m_activeSteamVRDeviceList.push_back(std::make_shared<MikanSteamVRDevice>(this, steamVRDeviceId));
 	}
 }
 
@@ -477,7 +382,7 @@ void MikanSteamVRManager::handleTrackedDeviceActivated(vr::TrackedDeviceIndex_t 
 		deviceClass == vr::TrackedDeviceClass_GenericTracker)
 	{
 		m_activeSteamVRDeviceIdSet.insert(steamVRDeviceId);
-		m_activeSteamVRDeviceList.push_back(std::make_shared<MikanSteamVRDevice>(steamVRDeviceId));
+		m_activeSteamVRDeviceList.push_back(std::make_shared<MikanSteamVRDevice>(this, steamVRDeviceId));
 
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{

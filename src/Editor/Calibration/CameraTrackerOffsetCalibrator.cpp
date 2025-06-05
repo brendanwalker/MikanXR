@@ -125,12 +125,6 @@ bool CameraTrackerOffsetCalibrator::computeCameraToPuckXform()
 	// Gather inputs
 	//---------------
 
-	// Get tracking puck poses
-	if (!m_cameraTrackingPuckPoseView->getIsPoseValid())
-	{
-		return false;
-	}
-
 	// Fetch the calibration poses from the devices
 	glm::dmat4 cameraPuckXform;
 	if (!m_cameraTrackingPuckPoseView->getPose(cameraPuckXform))

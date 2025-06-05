@@ -6,8 +6,6 @@
 
 #include "glm/gtx/euler_angles.hpp"
 
-#include "openvr.h"
-
 // GLM types to OpenCV types
 cv::Matx33f glm_mat3_to_cv_mat33f(const glm::mat3& in)
 {
@@ -202,18 +200,6 @@ GlmTransform VRDevicePose_to_GlmTransform(const struct VRDevicePose& in)
 		GlmTransform(
 			VRDevicePosition_to_glm_vec3(in.position),
 			VRDeviceQuat_to_glm_quat(in.orientation));
-}
-
-// SteamVR types to GLM types
-glm::mat4 vr_HmdMatrix34_to_glm_mat4(const vr::HmdMatrix34_t& in)
-{
-	float mat44[16]= {
-		in.m[0][0], in.m[1][0], in.m[2][0], 0.0f,
-		in.m[0][1], in.m[1][1], in.m[2][1], 0.0f,
-		in.m[0][2], in.m[1][2], in.m[2][2], 0.0f,
-		in.m[0][3], in.m[1][3], in.m[2][3], 1.0f};
-
-	return glm::make_mat4(mat44);
 }
 
 // OpenCV to Mikan types

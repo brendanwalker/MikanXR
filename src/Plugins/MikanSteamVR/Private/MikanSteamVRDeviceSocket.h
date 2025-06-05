@@ -11,10 +11,9 @@ public:
 	MikanSteamVRDeviceSocket(
 		MikanSteamVRDevice* ownerDevice,
 		const std::string& socketName);
-	virtual ~MikanSteamVRDeviceSocket();
 
 	virtual const char* getName() const override;
-	virtual bool getRelativePose(VRDevicePose& outPose) const override;
+	virtual bool getSocketState(VRDevicePose& outRelativePose) const override;
 
 private:
 	MikanSteamVRDevice* m_ownerDevice = nullptr;

@@ -133,12 +133,6 @@ bool ArucoMarkerPoseSampler::computeVRSpaceMarkerXform()
 	// Mark the last capture as invalid
 	m_calibrationState->hasValidCapture= false;
 
-	// Get tracking puck poses
-	if (!m_cameraTrackingPuckPoseView->getIsPoseValid())
-	{
-		return false;
-	}
-
 	// Compute the camera pose in VRSpace
 	glm::dmat4 cameraXform_VRSpace;
 	auto videoSourceView= m_distortionView->getVideoSourceView();

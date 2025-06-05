@@ -132,12 +132,6 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	// Mark the last capture as invalid
 	m_calibrationState->hasValidCapture= false;
 
-	// Get tracking puck poses
-	if (!m_cameraTrackingPuckPoseView->getIsPoseValid() || !m_matTrackingPuckPoseView->getIsPoseValid())
-	{
-		return false;
-	}
-
 	// Fetch the calibration poses from the devices
 	glm::dmat4 cameraPuckXform_VRSpace;
 	if (!m_cameraTrackingPuckPoseView->getPose(cameraPuckXform_VRSpace))

@@ -35,13 +35,9 @@ public:
 	// MikanSteamVRManager
 	SteamVRDeviceList getActiveDevices() const;
 	SteamVRDeviceList getActiveDevicesOfType(eVRDeviceType deviceType) const;
-	eVRDeviceType getDeviceType(vr::TrackedDeviceIndex_t steamVRDeviceId) const;
 	const vr::TrackedDevicePose_t* getDevicePose(
 		vr::TrackedDeviceIndex_t steamvrDeviceId,
-		int vrFrameDelay = 0) const;
-	int getDeviceVendorId(vr::TrackedDeviceIndex_t steamvrDeviceId) const;
-	int getDeviceProductId(vr::TrackedDeviceIndex_t steamvrDeviceId) const;
-	std::string getDevicePath(vr::TrackedDeviceIndex_t steamvrDeviceId) const;
+		int vrFrameDelay) const;
 
 protected:
 	bool tryConnect();

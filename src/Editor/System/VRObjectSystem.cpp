@@ -418,10 +418,11 @@ void VRObjectSystem::onDevicePosesChanged(int64_t newFrameId)
 
 VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(IVRDevice* vrDeviceInterface)
 {
+	const int vrFrameDelay = 0; // Use the latest pose for rendering
 	const std::string vrDevicePath= vrDeviceInterface->getDevicePath();
 
 	VRDevicePose pose = {};
-	vrDeviceInterface->getDevicePose(pose);
+	vrDeviceInterface->getDevicePose(vrFrameDelay, pose);
 
 	MikanTransform xform;
 	xform.position= {pose.position.x, pose.position.y, pose.position.z};

@@ -39,27 +39,25 @@ void VRDeviceClientState::unsubscribeFromVRDevicePoseUpdatesHandler(MikanVRDevic
 
 void VRDeviceClientState::publishVRDevicePoses(int64_t newVRFrameIndex)
 {	
+	const int vrFrameDelay = 0; // Use the latest pose for client publishing
 	auto vrObjectSystem = VRObjectSystem::getSystem();
 
 	for (auto deviceId : m_subscribedVRDevices)
 	{
 		VRDeviceComponentPtr vrDeviceComponent = vrObjectSystem->getVRDeviceById(deviceId);
 
-		if (vrDeviceComponent && vrDeviceComponent->getIsPoseValid())
+		VRDevicePose devicePose;
+		if (vrDeviceComponent && vrDeviceComponent->getDevicePose(vrFrameDelay, devicePose))
 		{
-			VRDevicePose devicePose;
-			if (vrDeviceComponent->getDevicePose(devicePose))
-			{
-				GlmTransform glmTransform= VRDevicePose_to_GlmTransform(devicePose);
+			GlmTransform glmTransform= VRDevicePose_to_GlmTransform(devicePose);
 
-				// Send a pose update to the client
-				MikanVRDevicePoseUpdateEvent poseUpdate;
-				poseUpdate.transform = glm_mat4_to_MikanMatrix4f(glmTransform.getMat4());
-				poseUpdate.device_id = deviceId;
-				poseUpdate.frame = newVRFrameIndex;
+			// Send a pose update to the client
+			MikanVRDevicePoseUpdateEvent poseUpdate;
+			poseUpdate.transform = glm_mat4_to_MikanMatrix4f(glmTransform.getMat4());
+			poseUpdate.device_id = deviceId;
+			poseUpdate.frame = newVRFrameIndex;
 
-				m_owner->publishMikanJsonEvent(mikanTypeToJsonString(poseUpdate));
-			}
+			m_owner->publishMikanJsonEvent(mikanTypeToJsonString(poseUpdate));
 		}
 	}
 }

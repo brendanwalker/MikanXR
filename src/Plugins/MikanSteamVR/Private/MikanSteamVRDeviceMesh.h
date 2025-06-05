@@ -14,7 +14,7 @@ public:
 	virtual ~MikanSteamVRDeviceMesh();
 
 	virtual const char* getName() const override;
-	virtual bool getRelativePose(VRDevicePose& outPose) const override;
+	virtual bool getMeshState(VRDevicePose& outRelativePose, bool& outIsVisible) const override;
 	virtual IMkTriangulatedMeshConstPtr getTriangulatedMesh() const override;
 	virtual IMkWireframeMeshConstPtr getWireframeMesh() const override;
 

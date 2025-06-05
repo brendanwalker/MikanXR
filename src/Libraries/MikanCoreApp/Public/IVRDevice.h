@@ -22,15 +22,17 @@ public:
 	virtual ~IVRDeviceSocket() {}
 
 	virtual const char* getName() const = 0;
-	virtual bool getRelativePose(VRDevicePose& outPose) const = 0;
+	virtual bool getSocketState(VRDevicePose& outRelativePose) const = 0;
 };
 
-class IVRDeviceMesh : public IVRDeviceSocket
+class IVRDeviceMesh 
 {
 public:
 	IVRDeviceMesh() = default;
 	virtual ~IVRDeviceMesh() {}
 
+	virtual const char* getName() const = 0;
+	virtual bool getMeshState(VRDevicePose& outRelativePose, bool& outIsVisible) const = 0;
 	virtual IMkTriangulatedMeshConstPtr getTriangulatedMesh() const = 0;
 	virtual IMkWireframeMeshConstPtr getWireframeMesh() const = 0;
 };
@@ -46,8 +48,7 @@ public:
 	virtual size_t getDeviceIndex() const = 0;
 	virtual eVRDeviceType getDeviceType() const = 0;
 	virtual const char* getDevicePath() const = 0;
-	virtual bool getDevicePose(VRDevicePose& outPose) const = 0;
-	virtual bool getIsDevicePoseValid() const = 0;
+	virtual bool getDevicePose(int vrFrameDelay, VRDevicePose& outPose) const = 0;
 	virtual const char* getSerialNumber() const = 0;
 	virtual const char* getTrackingSystem() const = 0;
 	virtual const char* getTrackerRole() const = 0;

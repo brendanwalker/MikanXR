@@ -101,19 +101,14 @@ MikanStageID VRDeviceComponent::getAssignedStageId() const
 	return currentStage ? currentStage->getStageComponentDefinition()->getStageId() : INVALID_MIKAN_ID;
 }
 
-bool VRDeviceComponent::getDevicePose(VRDevicePose& outPose) const
+bool VRDeviceComponent::getDevicePose(const int vrFrameDelay, VRDevicePose& outPose) const
 {
 	if (m_vrDeviceInterface != nullptr)
 	{
-		return m_vrDeviceInterface->getDevicePose(outPose);
+		return m_vrDeviceInterface->getDevicePose(vrFrameDelay, outPose);
 	}
 
 	return false;
-}
-
-bool VRDeviceComponent::getIsPoseValid() const
-{
-	return m_vrDeviceInterface != nullptr ? m_vrDeviceInterface->getIsDevicePoseValid() : false;
 }
 
 void VRDeviceComponent::disposeSockets()
@@ -169,7 +164,7 @@ bool VRDeviceComponent::getSocketRelativePoseByName(const std::string& socketNam
 		IVRDeviceSocket* socket= m_vrDeviceInterface->getSocketByName(socketName.c_str());
 
 		VRDevicePose socketRelativePose;
-		if (socket != nullptr && socket->getRelativePose(socketRelativePose))
+		if (socket != nullptr && socket->getSocketState(socketRelativePose))
 		{
 			outPose= VRDevicePose_to_GlmTransform(socketRelativePose).getMat4();
 
@@ -306,9 +301,10 @@ void VRDeviceComponent::rebuildMeshComponents()
 
 void VRDeviceComponent::refreshDevicePose()
 {
+	const int vrFrameDelay = 0; // Use the latest pose for rendering
 	VRDevicePose vrDevicePose;
 	if (m_vrDeviceInterface != nullptr &&
-		m_vrDeviceInterface->getDevicePose(vrDevicePose))
+		m_vrDeviceInterface->getDevicePose(vrFrameDelay, vrDevicePose))
 	{
 		// Set the parent device transform
 		setRelativeTransform(VRDevicePose_to_GlmTransform(vrDevicePose));
@@ -325,13 +321,17 @@ void VRDeviceComponent::refreshDevicePose()
 				const VRDeviceMeshInfo& meshInfo = it->second;
 
 				VRDevicePose vrMeshPose;
-				if (deviceMesh->getRelativePose(vrMeshPose))
+				bool bIsVisible = false;
+				if (deviceMesh->getMeshState(vrMeshPose, bIsVisible))
 				{
 					const GlmTransform vrMeshTransform = VRDevicePose_to_GlmTransform(vrMeshPose);
 
 					meshInfo.triStaticMeshComponent->setRelativeTransform(vrMeshTransform);
 					meshInfo.wireStaticMeshComponent->setRelativeTransform(vrMeshTransform);
 					meshInfo.colliderComponent->setRelativeTransform(vrMeshTransform);
+
+					meshInfo.triStaticMeshComponent->getStaticMesh()->setVisible(bIsVisible);
+					meshInfo.wireStaticMeshComponent->getStaticMesh()->setVisible(bIsVisible);
 				}
 			}
 		}
@@ -348,7 +348,7 @@ void VRDeviceComponent::refreshDevicePose()
 				TransformComponentPtr attachmentComponent = it->second;
 
 				VRDevicePose attachmentPose;
-				if (attachment->getRelativePose(attachmentPose))
+				if (attachment->getSocketState(attachmentPose))
 				{
 					const GlmTransform attachmentTransform = VRDevicePose_to_GlmTransform(attachmentPose);
 
@@ -484,20 +484,15 @@ const VRDeviceComponent* VRDevicePoseView::getDeviceComponent() const
 	return m_deviceComponent.lock().get();
 }
 
-bool VRDevicePoseView::getIsPoseValid() const
-{
-	const VRDeviceComponent* deviceComponent = getDeviceComponent();
-
-	return deviceComponent != nullptr && deviceComponent->getIsPoseValid();
-}
-
 bool VRDevicePoseView::getPose(glm::mat4& outXformInSpace) const
 {
 	const VRDeviceComponent* deviceComponent = getDeviceComponent();
+	// TODO: use from delta from assigned camera
+	const int vrFrameDelay = App::getInstance()->getProfileConfig()->getVRFrameDelay(); 
 
 	VRDevicePose vrDevicePose;
 	if (deviceComponent != nullptr && 
-		deviceComponent->getDevicePose(vrDevicePose))
+		deviceComponent->getDevicePose(vrFrameDelay, vrDevicePose))
 	{
 		// Get the VR Tracking Space transform of the device
 		glm::mat4 vrDeviceXform = VRDevicePose_to_GlmTransform(vrDevicePose).getMat4();

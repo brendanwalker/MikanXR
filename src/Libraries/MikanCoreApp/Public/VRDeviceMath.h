@@ -15,6 +15,11 @@ struct VRDeviceQuat
 	float z = 0.f;
 };
 
+// OpenGL right-handed coordinate system
+// +X = Right
+// +Y = Up
+// -Z = Forward
+// World Units = Meters
 struct VRDevicePose
 {
 	VRDevicePosition position;

@@ -9,15 +9,16 @@
 class MikanSteamVRDevice : public IVRDevice
 {
 public:
-	MikanSteamVRDevice(vr::TrackedDeviceIndex_t steamvrDeviceId);
+	MikanSteamVRDevice(
+		class MikanSteamVRManager* ownerDeviceManager,
+		vr::TrackedDeviceIndex_t steamvrDeviceId);
 	virtual ~MikanSteamVRDevice();
 
 	// -- Device Properties
 	virtual size_t getDeviceIndex() const override;
 	virtual eVRDeviceType getDeviceType() const override;
 	virtual const char* getDevicePath() const override;
-	virtual bool getDevicePose(VRDevicePose& outPose) const override;
-	virtual bool getIsDevicePoseValid() const override;
+	virtual bool getDevicePose(int vrFrameDelay, VRDevicePose& outPose) const override;
 	virtual const char* getSerialNumber() const override;
 	virtual const char* getTrackingSystem() const override;
 	virtual const char* getTrackerRole() const override;
@@ -36,6 +37,7 @@ public:
 	virtual IVRDeviceMesh* getMeshByName(const char* meshName) const override;
 
 	// -- SteamVR
+	inline class SteamVRDeviceProperties *getProperties() const { return m_deviceProperties; }
 	void updateProperties();
 
 protected:
@@ -43,6 +45,7 @@ protected:
 	void disposeComponents();
 
 private:
+	class MikanSteamVRManager* m_ownerDeviceManager;
 	class SteamVRDeviceProperties *m_deviceProperties;
 	std::map<std::string, MikanSteamVRDeviceSocketPtr> m_sockets;
 	std::map<std::string, MikanSteamVRDeviceMeshPtr> m_meshes;
