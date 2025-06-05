@@ -1,7 +1,13 @@
+#include "IMkStaticMeshInstance.h"
+#include "IMkTriangulatedMesh.h"
 #include "MikanSteamVRDeviceMesh.h"
 #include "MikanSteamVRDevice.h"
 #include "MikanSteamVRMath.h"
+#include "MikanSteamVRManager.h"
 #include "SteamVRDeviceProperties.h"
+#include "SteamVRRenderModelResource.h"
+#include "SteamVRResourceManager.h"
+#include "StringUtils.h"
 
 #include "openvr.h"
 
@@ -13,13 +19,16 @@ MikanSteamVRDeviceMesh::MikanSteamVRDeviceMesh(
 	, m_componentName(componentName)
 	, m_renderModelName(renderModelName)
 {
+	MikanSteamVRManager* ownerDeviceManager = m_ownerDevice->getOwnerDeviceManager();
+	auto& resourceManager = ownerDeviceManager->getResourceManager();
+	SteamVRRenderModelResource* modelResource = resourceManager->fetchRenderModel(m_renderModelName);
+
+	if (modelResource != nullptr)
+	{
+		m_triangulatedMesh = modelResource->getTriangulatedMesh();
+		m_wireframeMesh = modelResource->getWireframeMesh();
+	}
 }
-
-MikanSteamVRDeviceMesh::~MikanSteamVRDeviceMesh()
-{
-
-}
-
 
 const char* MikanSteamVRDeviceMesh::getName() const
 {
@@ -60,10 +69,10 @@ bool MikanSteamVRDeviceMesh::getMeshState(
 
 IMkTriangulatedMeshConstPtr MikanSteamVRDeviceMesh::getTriangulatedMesh() const
 {
-	return IMkTriangulatedMeshConstPtr();
+	return m_triangulatedMesh;
 }
 
 IMkWireframeMeshConstPtr MikanSteamVRDeviceMesh::getWireframeMesh() const
 {
-	return IMkWireframeMeshConstPtr();
+	return m_wireframeMesh;
 }

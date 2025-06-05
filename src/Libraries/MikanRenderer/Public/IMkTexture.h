@@ -6,6 +6,12 @@
 #include <filesystem>
 #include <stdint.h>
 
+// TODO: Replace this with an enum to abstract OpenGL buffer/texture format constants
+#define MK_RGBA					0x1908
+#define MK_RGB					0x1907
+#define MK_BGR					0x80E0
+#define MK_BGRA					0x80E1
+
 class IMkTexture
 {
 public:

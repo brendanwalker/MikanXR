@@ -11,7 +11,6 @@ public:
 		MikanSteamVRDevice* ownerDevice,
 		const std::string& componentName, 
 		const std::string& renderModelName);
-	virtual ~MikanSteamVRDeviceMesh();
 
 	virtual const char* getName() const override;
 	virtual bool getMeshState(VRDevicePose& outRelativePose, bool& outIsVisible) const override;
@@ -22,4 +21,6 @@ private:
 	MikanSteamVRDevice* m_ownerDevice = nullptr;
 	std::string m_componentName;
 	std::string m_renderModelName;
+	IMkTriangulatedMeshPtr m_triangulatedMesh;
+	IMkWireframeMeshPtr m_wireframeMesh;
 };

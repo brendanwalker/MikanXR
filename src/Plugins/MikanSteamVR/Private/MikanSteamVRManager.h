@@ -33,6 +33,8 @@ public:
 	virtual class IVRDevice* getDeviceByPath(const char* devicePath) override;
 
 	// MikanSteamVRManager
+	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
+	inline std::unique_ptr<class SteamVRResourceManager>& getResourceManager() { return m_resourceManager; }
 	SteamVRDeviceList getActiveDevices() const;
 	SteamVRDeviceList getActiveDevicesOfType(eVRDeviceType deviceType) const;
 	const vr::TrackedDevicePose_t* getDevicePose(
@@ -52,12 +54,13 @@ private:
 	static const float k_reconnectTimeoutDuration;
 	static const int k_maxReconnectAttempts;
 
-	class IMkWindow* m_ownerWindow= nullptr;
+	class IMkWindow* m_ownerWindow;
 	std::vector<IVRDeviceManagerListener*> m_listeners;
 	float m_reconnectTimeout;
-	int m_reconnectAttemptCount = 0;
+	int m_reconnectAttemptCount;
 	std::unique_ptr< class DeviceSetPoseHistory > m_devicePoseHistory;
 	int64_t m_vrFrameCounter;
+	std::unique_ptr< class SteamVRResourceManager > m_resourceManager;
 	SteamVRIdSet m_activeSteamVRDeviceIdSet;
 	std::vector<MikanSteamVRDevicePtr> m_activeSteamVRDeviceList;
 };

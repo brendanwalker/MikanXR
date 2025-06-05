@@ -37,6 +37,7 @@ public:
 	virtual IVRDeviceMesh* getMeshByName(const char* meshName) const override;
 
 	// -- SteamVR
+	inline class MikanSteamVRManager* getOwnerDeviceManager() { return m_ownerDeviceManager; }
 	inline class SteamVRDeviceProperties *getProperties() const { return m_deviceProperties; }
 	void updateProperties();
 

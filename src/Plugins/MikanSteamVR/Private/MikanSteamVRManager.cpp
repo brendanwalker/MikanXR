@@ -4,6 +4,7 @@
 #include "IVRDevice.h"
 #include "Logger.h"
 #include "PathUtils.h"
+#include "SteamVRResourceManager.h"
 #include "StringUtils.h"
 
 #include "openvr.h"
@@ -115,9 +116,12 @@ const float MikanSteamVRManager::k_reconnectTimeoutDuration = 1.f;
 const int MikanSteamVRManager::k_maxReconnectAttempts = 5;
 
 MikanSteamVRManager::MikanSteamVRManager()
-	: m_reconnectTimeout(0.f)
+	: m_ownerWindow(nullptr)
+	, m_reconnectTimeout(0.f)
+	, m_reconnectAttemptCount(0)
 	, m_devicePoseHistory(std::unique_ptr<DeviceSetPoseHistory>(new DeviceSetPoseHistory(MAX_POSE_HISTORY_FRAMES)))
 	, m_vrFrameCounter(0)
+	, m_resourceManager(std::unique_ptr<SteamVRResourceManager>(new SteamVRResourceManager()))
 {}
 
 MikanSteamVRManager::~MikanSteamVRManager()
@@ -146,7 +150,7 @@ bool MikanSteamVRManager::startup(IMkWindow* ownerWindow)
 {
 	m_ownerWindow= ownerWindow;
 
-	// m_resourceManager->init(ownerWindow);
+	m_resourceManager->init(ownerWindow);
 
 	if (!tryConnect())
 	{
@@ -290,7 +294,7 @@ bool MikanSteamVRManager::tryConnect()
 
 void MikanSteamVRManager::disconnect()
 {
-	//m_resourceManager->cleanup();
+	m_resourceManager->cleanup();
 	m_activeSteamVRDeviceIdSet.clear();
 	m_activeSteamVRDeviceList.clear();
 
