@@ -61,10 +61,6 @@ public:
 	void setVRDeviceInterface(class IVRDevice* vrDeviceInterface);
 	class IVRDevice* getVRDeviceInterface() const { return m_vrDeviceInterface; }
 
-	void assignToStage(MikanStageID newStageId);
-	StageComponentPtr getAssignedStage() const;
-	MikanStageID getAssignedStageId() const;
-
 	bool getDevicePose(const int vrFrameDelay, struct VRDevicePose& outPose) const;
 
 	void disposeSockets();

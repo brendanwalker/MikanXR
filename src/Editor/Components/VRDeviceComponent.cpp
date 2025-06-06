@@ -70,37 +70,6 @@ void VRDeviceComponent::setVRDeviceInterface(IVRDevice* vrDeviceInterface)
 	m_vrDeviceInterface= vrDeviceInterface;
 }
 
-void VRDeviceComponent::assignToStage(MikanStageID newStageId)
-{
-	MikanStageID currentStageId = getAssignedStageId();
-
-	if (currentStageId != newStageId)
-	{
-		StageComponentPtr newStage= StageObjectSystem::getSystem()->getStageById(newStageId);
-
-		if (newStage)
-		{
-			attachToComponent(newStage);
-		}
-		else
-		{
-			detachFromParent(TransformComponent::eDetachReason::detachFromParent);
-		}
-	}
-}
-
-StageComponentPtr VRDeviceComponent::getAssignedStage() const
-{
-	return std::static_pointer_cast<StageComponent>(getParentComponent());
-}
-
-MikanStageID VRDeviceComponent::getAssignedStageId() const
-{
-	StageComponentPtr currentStage = getAssignedStage();
-
-	return currentStage ? currentStage->getStageComponentDefinition()->getStageId() : INVALID_MIKAN_ID;
-}
-
 bool VRDeviceComponent::getDevicePose(const int vrFrameDelay, VRDevicePose& outPose) const
 {
 	if (m_vrDeviceInterface != nullptr)

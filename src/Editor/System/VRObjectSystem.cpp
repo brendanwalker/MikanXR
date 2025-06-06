@@ -20,7 +20,6 @@
 // -- VRObjectSystemConfig -----
 const std::string VRObjectSystemConfig::k_trackerRuntimePropertyId = "currentTrackingRuntime";
 const std::string VRObjectSystemConfig::k_vrDevicePoseOffsetPropertyId = "vrDevicePoseOffset";
-const std::string VRObjectSystemConfig::k_assignedStagePropertyId = "assignedStageId";
 const std::string VRObjectSystemConfig::k_vrDeviceListPropertyId = "vrDeviceList";
 
 VRObjectSystemConfig::VRObjectSystemConfig(const std::string& configName)
@@ -82,15 +81,6 @@ const std::string& VRObjectSystemConfig::getDefaultVRObjectSocketName() const
 			return kDefaultSteamVRSocketName;
 		default:
 			return kDefaultInvalidSocketName;
-	}
-}
-
-void VRObjectSystemConfig::setAssignedStageId(MikanStageID stageId)
-{
-	if (stageId != m_assignedStageId)
-	{
-		m_assignedStageId= stageId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_assignedStagePropertyId));
 	}
 }
 
@@ -246,25 +236,6 @@ void VRObjectSystem::onVRSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(VRObjectSystemConfig::k_assignedStagePropertyId))
-	{
-		onAssignedStageChaged();
-	}
-}
-
-void VRObjectSystem::onAssignedStageChaged()
-{
-	MikanStageID newStageId= getVRSystemConfigConst()->getAssignedStageId();
-
-	for (auto& kvpair : m_vrDeviceComponents)
-	{
-		VRDeviceComponentPtr vrDeviceComponent= kvpair.second.lock();
-
-		if (vrDeviceComponent)
-		{
-			vrDeviceComponent->assignToStage(newStageId);
-		}
-	}
 }
 
 void VRObjectSystem::createVRDeviceManager(eTrackingRuntime desiredRuntime)

@@ -41,10 +41,6 @@ public:
 	MikanMatrix4f getVRDevicePoseOffset() const { return m_vrDevicePoseOffset; }
 	void setVRDevicePoseOffset(const MikanMatrix4f& poseOffset);
 
-	static const std::string k_assignedStagePropertyId;
-	MikanStageID getAssignedStageId() const { return m_assignedStageId; }
-	void setAssignedStageId(MikanStageID stageId);
-
 	static const std::string k_vrDeviceListPropertyId;
 	std::vector<VRDeviceDefinitionPtr> vrDeviceList;
 
