@@ -18,6 +18,10 @@ class EditorObjectSystem;
 using EditorObjectSystemPtr = std::shared_ptr<EditorObjectSystem>;
 using EditorObjectSystemWeakPtr = std::weak_ptr<EditorObjectSystem>;
 
+class MarkerSystem;
+using MarkerSystemPtr = std::shared_ptr<MarkerSystem>;
+using MarkerSystemWeakPtr = std::weak_ptr<MarkerSystem>;
+
 class ObjectSystemManager;
 using ObjectSystemManagerPtr = std::shared_ptr<ObjectSystemManager>;
 using ObjectSystemManagerWeakPtr = std::weak_ptr<ObjectSystemManager>;

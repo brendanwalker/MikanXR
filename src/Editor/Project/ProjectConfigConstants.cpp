@@ -25,10 +25,29 @@ const std::string g_stencilTypeStrings[(int)eStencilType::COUNT] = {
 	g_szStencilTypeStrings[1],
 	g_szStencilTypeStrings[2],
 };
-extern const char** k_szStencilTypeStrings= g_szStencilTypeStrings;
+const char** k_szStencilTypeStrings= g_szStencilTypeStrings;
 const std::string* k_stencilTypeStrings = g_stencilTypeStrings;
+
+const char* g_szTrackingSystemTypeStrings[(int)eTrackingSystemType::COUNT] = {
+	"marker",
+	"vr",
+};
+const std::string g_TrackingSystemTypeStrings[(int)eTrackingSystemType::COUNT] = {
+	g_szTrackingSystemTypeStrings[0],
+	g_szTrackingSystemTypeStrings[1],
+};
+const char** k_szTrackingSystemTypeStrings= g_szTrackingSystemTypeStrings;
+const std::string* k_trackingSystemTypeStrings= g_TrackingSystemTypeStrings;
 
 const std::string g_trackingRuntimeStrings[(int)eTrackingRuntime::COUNT] = {
 	"SteamVR"
 };
 const std::string* k_trackingRuntimeStrings = g_trackingRuntimeStrings;
+
+const std::string g_videoSourceTypeStrings[(int)eVideoSourceType::COUNT] = {
+	"usb",
+	"networked",
+	"spout"
+};
+extern const char** k_szVideoSourceTypeStrings;
+extern const std::string* k_videoSourceTypeStrings;

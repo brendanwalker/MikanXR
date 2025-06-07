@@ -22,6 +22,11 @@ using EditorObjectSystemConfigPtr = std::shared_ptr<EditorObjectSystemConfig>;
 using EditorObjectSystemConfigConstPtr = std::shared_ptr<const EditorObjectSystemConfig>;
 using EditorObjectSystemConfigWeakPtr = std::weak_ptr<EditorObjectSystemConfig>;
 
+class MarkerSystemConfig;
+using MarkerSystemConfigPtr = std::shared_ptr<MarkerSystemConfig>;
+using MarkerSystemConfigConstPtr = std::shared_ptr<const MarkerSystemConfig>;
+using MarkerSystemConfigWeakPtr = std::weak_ptr<MarkerSystemConfig>;
+
 class SceneObjectSystemConfig;
 using SceneObjectSystemConfigPtr = std::shared_ptr<SceneObjectSystemConfig>;
 using SceneObjectSystemConfigConstPtr = std::shared_ptr<const SceneObjectSystemConfig>;
@@ -36,6 +41,16 @@ class StencilObjectSystemConfig;
 using StencilObjectSystemConfigPtr = std::shared_ptr<StencilObjectSystemConfig>;
 using StencilObjectSystemConfigConstPtr = std::shared_ptr<const StencilObjectSystemConfig>;
 using StencilObjectSystemConfigWeakPtr = std::weak_ptr<StencilObjectSystemConfig>;
+
+class TrackingSystemsConfig;
+using TrackingSystemConfigPtr = std::shared_ptr<TrackingSystemsConfig>;
+using TrackingSystemConfigConstPtr = std::shared_ptr<const TrackingSystemsConfig>;
+using TrackingSystemConfigWeakPtr = std::weak_ptr<TrackingSystemsConfig>;
+
+class VideoSourceSystemConfig;
+using VideoSourceSystemConfigPtr = std::shared_ptr<VideoSourceSystemConfig>;
+using VideoSourceSystemConfigConstPtr = std::shared_ptr<const VideoSourceSystemConfig>;
+using VideoSourceSystemConfigWeakPtr = std::weak_ptr<VideoSourceSystemConfig>;
 
 class VRObjectSystemConfig;
 using VRObjectSystemConfigPtr = std::shared_ptr<VRObjectSystemConfig>;

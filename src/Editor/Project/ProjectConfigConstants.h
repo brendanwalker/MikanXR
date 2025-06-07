@@ -41,6 +41,18 @@ enum class eStencilType : int
 extern const char** k_szStencilTypeStrings;
 extern const std::string* k_stencilTypeStrings;
 
+enum class eTrackingSystemType : int
+{
+	INVALID = -1,
+
+	marker,
+	vr,
+
+	COUNT
+};
+extern const char** k_szTrackingSystemTypeStrings;
+extern const std::string* k_trackingSystemTypeStrings;
+
 enum class eTrackingRuntime : int
 {
 	INVALID = -1,
@@ -50,6 +62,19 @@ enum class eTrackingRuntime : int
 	COUNT
 };
 extern const std::string* k_trackingRuntimeStrings;
+
+enum class eVideoSourceType : int
+{
+	INVALID = -1,
+
+	usb,
+	networked,
+	spout,
+
+	COUNT
+};
+extern const char** k_szVideoSourceTypeStrings;
+extern const std::string* k_videoSourceTypeStrings;
 
 #define CHESSBOARD_PATTERN_W				7 // Internal corners
 #define CHESSBOARD_PATTERN_H				5

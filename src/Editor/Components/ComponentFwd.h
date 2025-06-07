@@ -31,10 +31,51 @@ class CameraComponent;
 using CameraComponentPtr = std::shared_ptr<CameraComponent>;
 using CameraComponentWeakPtr = std::weak_ptr<CameraComponent>;
 
+class MarkerDefinition;
+using MarkerDefinitionPtr = std::shared_ptr<MarkerDefinition>;
+using MarkerDefinitionConstPtr = std::shared_ptr<const MarkerDefinition>;
+using MarkerDefinitionWeakPtr = std::weak_ptr<MarkerDefinition>;
+
 class SelectionComponent;
 using SelectionComponentPtr = std::shared_ptr<SelectionComponent>;
 using SelectionComponentConstPtr = std::shared_ptr<const SelectionComponent>;
 using SelectionComponentWeakPtr = std::weak_ptr<SelectionComponent>;
+
+class TrackingSystemDefinition;
+using TrackingSystemDefinitionPtr = std::shared_ptr<TrackingSystemDefinition>;
+using TrackingSystemDefinitionConstPtr = std::shared_ptr<const TrackingSystemDefinition>;
+using TrackingSystemDefinitionWeakPtr = std::weak_ptr<TrackingSystemDefinition>;
+
+class MarkerTrackingSystemDefinition;
+using MarkerTrackingSystemDefinitionPtr = std::shared_ptr<MarkerTrackingSystemDefinition>;
+using MarkerTrackingSystemDefinitionConstPtr = std::shared_ptr<const MarkerTrackingSystemDefinition>;
+using MarkerTrackingSystemDefinitionWeakPtr = std::weak_ptr<MarkerTrackingSystemDefinition>;
+
+class VRTrackingSystemDefinition;
+using VRTrackingSystemDefinitionPtr = std::shared_ptr<VRTrackingSystemDefinition>;
+using VRTrackingSystemDefinitionConstPtr = std::shared_ptr<const VRTrackingSystemDefinition>;
+using VRTrackingSystemDefinitionWeakPtr = std::weak_ptr<VRTrackingSystemDefinition>;
+
+class TrackingMountDefinition;
+using TrackingMountDefinitionPtr = std::shared_ptr<TrackingMountDefinition>;
+using TrackingMountDefinitionConstPtr = std::shared_ptr<const TrackingMountDefinition>;
+using TrackingMountDefinitionWeakPtr = std::weak_ptr<TrackingMountDefinition>;
+
+// Sources
+class NetworkVideoSourceDefinition;
+using NetworkVideoSourceDefinitionPtr = std::shared_ptr<NetworkVideoSourceDefinition>;
+using NetworkVideoSourceDefinitionConstPtr = std::shared_ptr<const NetworkVideoSourceDefinition>;
+using NetworkVideoSourceDefinitionWeakPtr = std::weak_ptr<NetworkVideoSourceDefinition>;
+
+class SpoutVideoSourceDefinition;
+using SpoutVideoSourceDefinitionPtr = std::shared_ptr<SpoutVideoSourceDefinition>;
+using SpoutVideoSourceDefinitionConstPtr = std::shared_ptr<const SpoutVideoSourceDefinition>;
+using SpoutVideoSourceDefinitionWeakPtr = std::weak_ptr<SpoutVideoSourceDefinition>;
+
+class USBVideoSourceDefinition;
+using USBVideoSourceDefinitionPtr = std::shared_ptr<USBVideoSourceDefinition>;
+using USBVideoSourceDefinitionConstPtr = std::shared_ptr<const USBVideoSourceDefinition>;
+using USBVideoSourceDefinitionWeakPtr = std::weak_ptr<USBVideoSourceDefinition>;
 
 // Mesh Components
 class StaticMeshComponent;

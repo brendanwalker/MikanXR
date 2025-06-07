@@ -187,7 +187,7 @@ bool VRObjectSystem::init()
 	vrSystemConfig->OnMarkedDirty+= 
 		MakeDelegate(this, &VRObjectSystem::onVRSystemConfigMarkedDirty);
 
-	onTrackerRuntimeTypeChaged();
+	createVRDeviceManager(vrSystemConfig->getTrackingRuntimeType());
 
 	return true;
 }
@@ -218,18 +218,6 @@ void VRObjectSystem::onProjectConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const class ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(VRObjectSystemConfig::k_trackerRuntimePropertyId))
-	{
-		onTrackerRuntimeTypeChaged();
-	}
-}
-
-void VRObjectSystem::onTrackerRuntimeTypeChaged()
-{
-	eTrackingRuntime desiredRuntime= getVRSystemConfigConst()->getTrackingRuntimeType();
-
-	disposeVRDeviceManager();
-	createVRDeviceManager(desiredRuntime);
 }
 
 void VRObjectSystem::onVRSystemConfigMarkedDirty(
