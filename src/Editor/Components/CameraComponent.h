@@ -2,6 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "DeviceViewFwd.h"
 #include "TransformComponent.h"
 #include "MikanTypeFwd.h"
 #include "MikanCameraTypes.h"
@@ -20,9 +21,10 @@ class CameraDefinition : public TransformComponentDefinition
 public:
 	CameraDefinition();
 	CameraDefinition(
-		MikanCameraID cameraId, 
 		const std::string& cameraName,
-		const struct MikanTransform& xform);
+		const struct MikanTransform& xform,
+		MikanCameraID cameraId, 
+		MikanStageID stageId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -30,23 +32,28 @@ public:
 	MikanCameraID getCameraId() const { return m_cameraId; }
 	MikanCameraInfo getCameraInfo() const;
 
-	static const std::string k_attachedVRDevicePropertyId;
-	MikanVRDeviceID getAttachedVRDeviceId() const { return m_attachedVRDeviceId; }
-	void setAttachedVRDeviceId(MikanVRDeviceID deviceId);
+	static const std::string k_ownerStageIdPropertyId;
+	inline MikanStageID getOwnerStageId() const { return m_stageId; }
+	void setOwnerStageId(MikanStageID stageId);
 
-	static const std::string k_orientationOffsetPropertyId;
-	MikanQuatd getOrientationOffset() const { return m_orientationOffset; }
-	void setOrientationOffset(MikanQuatd rotation);
+	static const std::string k_trackingMountIdPropertyId;
+	inline MikanTrackingMountID getTrackingMountId() const { return m_trackingMountId; }
+	void setTrackingMountId(MikanTrackingMountID trackingMountId);
 
-	static const std::string k_positionOffsetPropertyId;
-	MikanVector3d getPositionOffset() const { return m_positionOffset; }
-	void setPositionOffset(MikanVector3d translation);
+	static const std::string k_videoSourceIdPropertyId;
+	inline MikanVideoSourceID getVideoSourceId() const { return m_videoSourceId; }
+	void setVideoSourceId(MikanVideoSourceID videoSourceId);
+
+	static const std::string k_trackingFrameDelayPropertyId;
+	inline int getTrackingFrameDelay() const { return m_trackingFrameDelay; }
+	void setTrackingFrameDelay(int trackingFrameDelay);
 
 private:
-	MikanCameraID m_cameraId;
-	MikanVRDeviceID m_attachedVRDeviceId;
-	MikanQuatd m_orientationOffset;
-	MikanVector3d m_positionOffset;
+	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
+	MikanStageID m_stageId = INVALID_MIKAN_ID;
+	MikanTrackingMountID m_trackingMountId = INVALID_MIKAN_ID;
+	MikanVideoSourceID m_videoSourceId = INVALID_MIKAN_ID;
+	int m_trackingFrameDelay= 0;
 };
 
 class CameraComponent : public TransformComponent
@@ -54,23 +61,33 @@ class CameraComponent : public TransformComponent
 public:
 	CameraComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
+	virtual void dispose() override;
+	virtual void update(float deltaSeconds) override;
 	virtual void customRender() override;
 
 	inline CameraDefinitionPtr getCameraDefinition() const
 	{
 		return std::static_pointer_cast<CameraDefinition>(m_definition);
 	}
+	StageComponentConstPtr getOwnerStageComponent() const;
+	VRTrackingSystemDefinitionConstPtr getVRTrackingSystemDefinition() const;
+	TrackingMountDefinitionConstPtr getTrackingMountDefinition() const;
 
 	// -- IFunctionInterface ----
-	static const std::string k_editCameraFunctionId;
+	static const std::string k_alignCameraFunctionId;
 	static const std::string k_deleteCameraFunctionId;
 	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
 	virtual bool invokeFunction(const std::string& functionName) override;
 
-	void editCamera();
+	void alignCamera();
 	void deleteCamera();
 
 protected:
+	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+	void refreshTrackingMount();
+
+private:
 	SelectionComponentWeakPtr m_selectionComponent;
+	VRDevicePoseViewPtr m_trackingMountPoseView;
 };

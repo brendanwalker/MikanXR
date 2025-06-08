@@ -12,11 +12,7 @@
 #include <queue>
 
 // -- StageComponentDefinition -----
-const std::string StageComponentDefinition::k_trackingSystemPropertyId = "tracking_system";
-const std::string StageComponentDefinition::k_originMarkerIdPropertyId = "origin_marker_id";
-const std::string StageComponentDefinition::k_originMarkerSizePropertyId = "origin_marker_size";
-const std::string StageComponentDefinition::k_utilityMarkerIdPropertyId = "utility_marker_id";
-const std::string StageComponentDefinition::k_utilityMarkerSizePropertyId = "utility_marker_size";
+const std::string StageComponentDefinition::k_trackingSystemIdPropertyId = "tracking_system_id";
 
 StageComponentDefinition::StageComponentDefinition(
 	MikanStageID sceneId,
@@ -30,11 +26,7 @@ configuru::Config StageComponentDefinition::writeToJSON()
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt["stage_id"] = m_stageId;
-	pt[k_trackingSystemPropertyId] = (int)m_trackingSystem;
-	pt[k_originMarkerIdPropertyId] = m_originMarkerId;
-	pt[k_originMarkerSizePropertyId] = m_originMarkerSizeMM;
-	pt[k_utilityMarkerIdPropertyId] = m_utilityMarkerId;
-	pt[k_utilityMarkerSizePropertyId] = m_utilityMarkerSizeMM;
+	pt[k_trackingSystemIdPropertyId] = m_trackingSystemId;
 
 	return pt;
 }
@@ -44,55 +36,15 @@ void StageComponentDefinition::readFromJSON(const configuru::Config& pt)
 	TransformComponentDefinition::readFromJSON(pt);
 
 	m_stageId = pt.get<int>("stage_id");
-	m_trackingSystem = (MikanStageTrackingSystem)pt.get<int>("k_trackingSystemPropertyId");
-	m_originMarkerId = pt.get<int>(k_originMarkerIdPropertyId);
-	m_originMarkerSizeMM = pt.get<float>(k_originMarkerSizePropertyId);
-	m_utilityMarkerId = pt.get<int>(k_utilityMarkerIdPropertyId);
-	m_utilityMarkerSizeMM = pt.get<float>(k_utilityMarkerSizePropertyId);
+	m_trackingSystemId = pt.get_or<int>(k_trackingSystemIdPropertyId, INVALID_MIKAN_ID);
 }
 
-void StageComponentDefinition::setTrackingSystem(MikanStageTrackingSystem system)
+void StageComponentDefinition::setTrackingSystemId(MikanTrackingSystemID systemId)
 {
-	if (m_trackingSystem != system)
+	if (m_trackingSystemId != systemId)
 	{
-		m_trackingSystem = system;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingSystemPropertyId));
-	}
-}
-
-void StageComponentDefinition::setOriginMarkerId(MikanMarkerID markerId)
-{
-	if (m_originMarkerId != markerId)
-	{
-		m_originMarkerId = markerId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_originMarkerIdPropertyId));
-	}
-}
-
-void StageComponentDefinition::setOriginMarkerSize(float size)
-{
-	if (m_originMarkerSizeMM != size)
-	{
-		m_originMarkerSizeMM = size;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_originMarkerSizePropertyId));
-	}
-}
-
-void StageComponentDefinition::setUtilityMarkerId(MikanMarkerID markerId)
-{
-	if (m_utilityMarkerId != markerId)
-	{
-		m_utilityMarkerId = markerId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_utilityMarkerIdPropertyId));
-	}
-}
-
-void StageComponentDefinition::setUtilityMarkerSize(float size)
-{
-	if (m_utilityMarkerSizeMM != size)
-	{
-		m_utilityMarkerSizeMM = size;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_utilityMarkerSizePropertyId));
+		m_trackingSystemId = systemId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingSystemIdPropertyId));
 	}
 }
 
@@ -121,11 +73,7 @@ void StageComponent::getPropertyNames(std::vector<std::string>& outPropertyNames
 {
 	TransformComponent::getPropertyNames(outPropertyNames);
 
-	outPropertyNames.push_back(StageComponentDefinition::k_trackingSystemPropertyId);
-	outPropertyNames.push_back(StageComponentDefinition::k_originMarkerIdPropertyId);
-	outPropertyNames.push_back(StageComponentDefinition::k_originMarkerSizePropertyId);
-	outPropertyNames.push_back(StageComponentDefinition::k_utilityMarkerIdPropertyId);
-	outPropertyNames.push_back(StageComponentDefinition::k_utilityMarkerSizePropertyId);
+	outPropertyNames.push_back(StageComponentDefinition::k_trackingSystemIdPropertyId);
 }
 
 bool StageComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -133,29 +81,9 @@ bool StageComponent::getPropertyDescriptor(const std::string& propertyName, Prop
 	if (TransformComponent::getPropertyDescriptor(propertyName, outDescriptor))
 		return true;
 
-	if (propertyName == StageComponentDefinition::k_trackingSystemPropertyId)
+	if (propertyName == StageComponentDefinition::k_trackingSystemIdPropertyId)
 	{
-		outDescriptor = {StageComponentDefinition::k_trackingSystemPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::enumeration};
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_originMarkerIdPropertyId)
-	{
-		outDescriptor = {StageComponentDefinition::k_originMarkerIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id};
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_utilityMarkerIdPropertyId)
-	{
-		outDescriptor = {StageComponentDefinition::k_utilityMarkerIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id};
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_originMarkerSizePropertyId)
-	{
-		outDescriptor = {StageComponentDefinition::k_originMarkerSizePropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_utilityMarkerSizePropertyId)
-	{
-		outDescriptor = {StageComponentDefinition::k_utilityMarkerSizePropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		outDescriptor = {StageComponentDefinition::k_trackingSystemIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::enumeration};
 		return true;
 	}
 
@@ -168,29 +96,9 @@ bool StageComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 		return true;
 
 	StageComponentDefinitionPtr definition = getStageComponentDefinition();
-	if (propertyName == StageComponentDefinition::k_trackingSystemPropertyId)
+	if (propertyName == StageComponentDefinition::k_trackingSystemIdPropertyId)
 	{
-		outValue = (int)definition->getTrackingSystem();
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_originMarkerIdPropertyId)
-	{
-		outValue = definition->getOriginMarkerId();
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_utilityMarkerIdPropertyId)
-	{
-		outValue = definition->getUtilityMarkerId();
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_originMarkerSizePropertyId)
-	{
-		outValue = definition->getOriginMarkerSize();
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_utilityMarkerSizePropertyId)
-	{
-		outValue = definition->getUtilityMarkerSize();
+		outValue = (int)definition->getTrackingSystemId();
 		return true;
 	}
 
@@ -203,29 +111,9 @@ bool StageComponent::setPropertyValue(const std::string& propertyName, const Rml
 		return true;
 
 	StageComponentDefinitionPtr definition = getStageComponentDefinition();
-	if (propertyName == StageComponentDefinition::k_trackingSystemPropertyId)
+	if (propertyName == StageComponentDefinition::k_trackingSystemIdPropertyId)
 	{
-		definition->setTrackingSystem((MikanStageTrackingSystem)inValue.Get<int>());
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_originMarkerIdPropertyId)
-	{
-		definition->setOriginMarkerId(inValue.Get<int>());
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_utilityMarkerIdPropertyId)
-	{
-		definition->setUtilityMarkerId(inValue.Get<int>());
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_originMarkerSizePropertyId)
-	{
-		definition->setOriginMarkerSize(inValue.Get<float>());
-		return true;
-	}
-	else if (propertyName == StageComponentDefinition::k_utilityMarkerSizePropertyId)
-	{
-		definition->setUtilityMarkerSize(inValue.Get<float>());
+		definition->setTrackingSystemId((MikanTrackingSystemID)inValue.Get<int>());
 		return true;
 	}
 

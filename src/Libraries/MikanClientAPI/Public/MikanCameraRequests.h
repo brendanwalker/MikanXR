@@ -61,23 +61,6 @@ public:
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) GetCameraAttachment :
-	public MikanRequest
-{
-public:
-	GetCameraAttachment()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetCameraAttachment)
-	}
-
-	FIELD()
-	MikanCameraID camera_id;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	GetCameraAttachment_GENERATED
-	#endif
-};
-
 // Camera Response Types
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) MikanCameraListResponse : 
 	public MikanResponse
@@ -110,26 +93,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) Mika
 	MikanCameraInfoResponse_GENERATED
 	#endif
 };
-
-/// Static properties about video source tracker attachment
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) MikanCameraAttachmentInfoResponse :
-	public MikanResponse
-{
-	MikanCameraAttachmentInfoResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanCameraAttachmentInfoResponse)
-	}
-
-	FIELD()
-	MikanVRDeviceID attached_vr_device_id;
-	FIELD()
-	MikanMatrix4f vr_device_offset_xform;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanCameraAttachmentInfoResponse_GENERATED
-	#endif
-};
-
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanCameraRequests_GENERATED

@@ -69,9 +69,11 @@ public:
 	AnchorObjectSystemConfigPtr anchorConfig;
 	CameraObjectSystemConfigPtr cameraConfig;
 	EditorObjectSystemConfigPtr editorConfig;
+	MarkerSystemConfigPtr markerSystemConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 	SceneObjectSystemConfigPtr sceneConfig;
 	StageObjectSystemConfigPtr stageConfig;
+	TrackingSystemsConfigPtr trackingSystemsConfig;
 	VideoSourceManagerConfigPtr videoSourcesConfig;
 	VRObjectSystemConfigPtr vrObjectConfig;
 

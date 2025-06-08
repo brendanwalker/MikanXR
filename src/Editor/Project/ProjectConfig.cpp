@@ -3,6 +3,7 @@
 #include "CameraObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
+#include "MarkerSystemConfig.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
 #include "PathUtils.h"
@@ -10,6 +11,7 @@
 #include "SceneObjectSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
+#include "TrackingSystemConfig.h"
 #include "VideoSourceManager.h"
 #include "VRObjectSystem.h"
 
@@ -70,6 +72,12 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	stencilConfig= std::make_shared<StencilObjectSystemConfig>("stencils");
 	addChildConfig(stencilConfig);
 
+	markerSystemConfig = std::make_shared<MarkerSystemConfig>("marker_system");
+	addChildConfig(markerSystemConfig);
+
+	trackingSystemsConfig = std::make_shared<TrackingSystemsConfig>("tracking_systems");
+	addChildConfig(trackingSystemsConfig);
+
 	videoSourcesConfig= std::make_shared<VideoSourceManagerConfig>("video_sources");
 	addChildConfig(videoSourcesConfig);
 
@@ -126,8 +134,14 @@ configuru::Config ProjectConfig::writeToJSON()
 	// Write the anchor system config
 	pt[anchorConfig->getConfigName()]= anchorConfig->writeToJSON();
 
+	// Write the marker system config
+	pt[markerSystemConfig->getConfigName()] = markerSystemConfig->writeToJSON();
+
 	// Write the stencil system config
 	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
+
+	// Write the tracking systems config
+	pt[trackingSystemsConfig->getConfigName()] = trackingSystemsConfig->writeToJSON();
 
 	// Write the video sources config
 	pt[videoSourcesConfig->getConfigName()] = videoSourcesConfig->writeToJSON();
@@ -223,10 +237,22 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 		anchorConfig->readFromJSON(pt[anchorConfig->getConfigName()]);
 	}
 
+	// Read the marker system config
+	if (pt.has_key(markerSystemConfig->getConfigName()))
+	{
+		markerSystemConfig->readFromJSON(pt[markerSystemConfig->getConfigName()]);
+	}
+
 	// Read the stencil system config
 	if (pt.has_key(stencilConfig->getConfigName()))
 	{
 		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
+	}
+
+	// Read the tracking systems config
+	if (pt.has_key(trackingSystemsConfig->getConfigName()))
+	{
+		trackingSystemsConfig->readFromJSON(pt[trackingSystemsConfig->getConfigName()]);
 	}
 
 	// Read the vr object system config

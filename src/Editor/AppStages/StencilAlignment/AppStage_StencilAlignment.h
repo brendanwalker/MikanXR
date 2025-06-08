@@ -13,9 +13,6 @@
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-
 //-- definitions -----
 class AppStage_StencilAlignment : public AppStage
 {

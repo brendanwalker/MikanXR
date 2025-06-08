@@ -31,7 +31,10 @@ public:
 
 	CameraDefinitionPtr getCameraConfig(MikanCameraID cameraId) const;
 	CameraDefinitionPtr getCameraConfigByName(const std::string& cameraName) const;
-	MikanCameraID addNewCamera(const std::string& cameraName, const struct MikanTransform& xform);
+	MikanCameraID addNewCamera(
+		const std::string& cameraName, 
+		const struct MikanTransform& xform,
+		MikanStageID ownerStageId);
 	bool removeCamera(MikanCameraID anchorId);
 
 	static const std::string k_cameraListPropertyId;
@@ -55,7 +58,10 @@ public:
 	const CameraMap& getCameraMap() const { return m_cameraComponents; }
 	CameraComponentPtr getCameraById(MikanCameraID cameraId) const;
 	CameraComponentPtr getCameraByName(const std::string& cameraName) const;
-	CameraComponentPtr addNewCamera(const std::string& cameraName, const GlmTransform& xform);
+	CameraComponentPtr addNewCamera(
+		const std::string& cameraName, 
+		const GlmTransform& xform,
+		const MikanStageID ownerStageId);
 	bool removeCamera(MikanCameraID anchorId);
 
 protected:

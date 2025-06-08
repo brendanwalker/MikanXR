@@ -29,9 +29,6 @@ bool CameraRequestHandler::startup(MainWindow* mainWindow)
 	messageServer->setRequestHandler(
 		GetCameraInfo::staticGetArchetype().getId(),
 		std::bind(&CameraRequestHandler::getCameraInfoHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		GetCameraAttachment::staticGetArchetype().getId(),
-		std::bind(&CameraRequestHandler::getCameraAttachmentHandler, this, _1, _2));
 
 	return true;
 }
@@ -107,41 +104,6 @@ void CameraRequestHandler::getCameraInfoHandler(
 	{
 		MikanCameraInfoResponse cameraResponse = {};
 		cameraResponse.camera_info = cameraConfig->getCameraInfo();
-
-		writeTypedJsonResponse(request.requestId, cameraResponse, response);
-	}
-	else
-	{
-		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidStencilID, response);
-	}
-}
-
-void CameraRequestHandler::getCameraAttachmentHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
-{
-	GetCameraInfo cameraInfoRequest;
-	if (!readTypedRequest(request.utf8RequestString, cameraInfoRequest))
-	{
-		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
-		return;
-	}
-
-	auto cameraSystemConfig = App::getInstance()->getProfileConfig()->cameraConfig;
-	auto cameraConfig = cameraSystemConfig->getCameraConfig(cameraInfoRequest.camera_id);
-	if (cameraConfig != nullptr)
-	{
-		MikanCameraAttachmentInfoResponse cameraResponse = {};
-		cameraResponse.attached_vr_device_id = cameraConfig->getAttachedVRDeviceId();
-
-		// Get the camera offset
-		const glm::vec3 cameraOffsetPos = MikanVector3d_to_glm_dvec3(cameraConfig->getPositionOffset());
-		const glm::quat cameraOffsetQuat = MikanQuatd_to_glm_dquat(cameraConfig->getOrientationOffset());
-		const glm::mat4 cameraOffsetXform =
-			glm::translate(glm::mat4(1.0), cameraOffsetPos) *
-			glm::mat4_cast(cameraOffsetQuat);
-		cameraResponse.vr_device_offset_xform = glm_mat4_to_MikanMatrix4f(cameraOffsetXform);
-
 
 		writeTypedJsonResponse(request.requestId, cameraResponse, response);
 	}

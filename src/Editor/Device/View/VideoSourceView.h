@@ -12,9 +12,6 @@
 
 // -- constants -----
 
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
-
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 

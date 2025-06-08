@@ -1,6 +1,7 @@
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
 #include "App.h"
+#include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "Colors.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
@@ -13,31 +14,39 @@
 #include "MikanCameraTypes.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
+#include "StageObjectSystem.h"
+#include "StageComponent.h"
+#include "TrackingSystemConfig.h"
+#include "VRDeviceComponent.h"
+#include "VRObjectSystem.h"
 
 // -- CameraConfig -----
-const std::string CameraDefinition::k_attachedVRDevicePropertyId = "attached_vr_device_id";
-const std::string CameraDefinition::k_orientationOffsetPropertyId = "orientation_offset";
-const std::string CameraDefinition::k_positionOffsetPropertyId = "position_offset";
-
+const std::string CameraDefinition::k_ownerStageIdPropertyId = "stage_id";
+const std::string CameraDefinition::k_trackingMountIdPropertyId = "tracking_mount_id";
+const std::string CameraDefinition::k_videoSourceIdPropertyId = "video_source_id";
+const std::string CameraDefinition::k_trackingFrameDelayPropertyId = "tracking_frame_delay";
 
 CameraDefinition::CameraDefinition()
 	: TransformComponentDefinition()
 	, m_cameraId(INVALID_MIKAN_ID)
-	, m_attachedVRDeviceId(INVALID_MIKAN_ID)
-	, m_orientationOffset({1.0, 0.0, 0.0, 0.0})
-	, m_positionOffset({0.0, 0.0, 0.0})
+	, m_stageId(INVALID_MIKAN_ID)
+	, m_trackingMountId(INVALID_MIKAN_ID)
+	, m_videoSourceId(INVALID_MIKAN_ID)
+	, m_trackingFrameDelay(0)
 {
 }
 
 CameraDefinition::CameraDefinition(
-	MikanCameraID cameraId,
 	const std::string& cameraName,
-	const MikanTransform& xform)
+	const struct MikanTransform& xform,
+	MikanCameraID cameraId,
+	MikanStageID stageId)
 	: TransformComponentDefinition(cameraName, xform)
 	, m_cameraId(cameraId)
-	, m_attachedVRDeviceId(INVALID_MIKAN_ID)
-	, m_orientationOffset({1.0, 0.0, 0.0, 0.0})
-	, m_positionOffset({0.0, 0.0, 0.0})
+	, m_stageId(stageId)
+	, m_trackingMountId(INVALID_MIKAN_ID)
+	, m_videoSourceId(INVALID_MIKAN_ID)
+	, m_trackingFrameDelay(0)
 {
 }
 
@@ -46,6 +55,10 @@ configuru::Config CameraDefinition::writeToJSON()
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt["id"] = m_cameraId;
+	pt["stage_id"] = m_stageId;
+	pt["tracking_mount_id"] = m_trackingMountId;
+	pt["video_source_id"] = m_videoSourceId;
+	pt["tracking_frame_delay"] = m_trackingFrameDelay;
 
 	return pt;
 }
@@ -54,11 +67,11 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	if (pt.has_key("id"))
-	{
-		m_cameraId = pt.get<int>("id");
-		m_configName = StringUtils::stringify("Camera_", m_cameraId);
-	}
+	m_cameraId = pt.get<int>("id");
+	m_stageId = pt.get_or<int>("stage_id", m_stageId);
+	m_trackingMountId = pt.get_or<int>("tracking_mount_id", m_trackingMountId);
+	m_videoSourceId = pt.get_or<int>("video_source_id", m_videoSourceId);
+	m_trackingFrameDelay = pt.get_or<int>("tracking_frame_delay", m_trackingFrameDelay);
 }
 
 MikanCameraInfo CameraDefinition::getCameraInfo() const
@@ -69,54 +82,94 @@ MikanCameraInfo CameraDefinition::getCameraInfo() const
 	MikanCameraInfo cameraInfo = {};
 	cameraInfo.camera_id = m_cameraId;
 	cameraInfo.camera_name = cameraName;
-	cameraInfo.relative_transform = relativeXform;
+	cameraInfo.stage_id = m_stageId;
+	cameraInfo.tracking_mount_id = m_trackingMountId;
+	cameraInfo.video_source_id = m_videoSourceId;
+	cameraInfo.tracking_frame_delay = m_trackingFrameDelay;
 
 	return cameraInfo;
 }
 
-void CameraDefinition::setAttachedVRDeviceId(MikanVRDeviceID deviceId)
+void CameraDefinition::setOwnerStageId(MikanStageID stageId)
 {
-	if (deviceId != m_attachedVRDeviceId)
+	if (stageId != m_stageId)
 	{
-		m_attachedVRDeviceId= deviceId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_attachedVRDevicePropertyId));
+		m_stageId = stageId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_ownerStageIdPropertyId));
 	}
 }
 
-void CameraDefinition::setOrientationOffset(MikanQuatd rotation)
+void CameraDefinition::setTrackingMountId(MikanTrackingMountID trackingMountId)
 {
-	if (memcmp(&m_orientationOffset, &rotation, sizeof(MikanQuatd)))
+	if (trackingMountId != m_trackingMountId)
 	{
-		m_orientationOffset = rotation;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_orientationOffsetPropertyId));
+		m_trackingMountId = trackingMountId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingMountIdPropertyId));
 	}
 }
 
-void CameraDefinition::setPositionOffset(MikanVector3d translation)
+void CameraDefinition::setVideoSourceId(MikanVideoSourceID videoSourceId)
 {
-	if (memcmp(&m_positionOffset, &translation, sizeof(MikanVector3d)))
+	if (videoSourceId != m_videoSourceId)
 	{
-		m_positionOffset = translation;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_positionOffsetPropertyId));
+		m_videoSourceId = videoSourceId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoSourceIdPropertyId));
+	}
+}
+
+void CameraDefinition::setTrackingFrameDelay(int trackingFrameDelay)
+{
+	if (trackingFrameDelay != m_trackingFrameDelay)
+	{
+		m_trackingFrameDelay = trackingFrameDelay;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingFrameDelayPropertyId));
 	}
 }
 
 // -- CameraComponent -----
+const std::string CameraComponent::k_alignCameraFunctionId = "align_camera";
+const std::string CameraComponent::k_deleteCameraFunctionId = "delete_camera";
+
 CameraComponent::CameraComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
 	m_bWantsCustomRender= true;
+	m_bWantsUpdate = true;
 }
 
 void CameraComponent::init()
 {
-	MikanComponent::init();
-
+	TransformComponent::init();
+	
 	// Watch selection changes
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 
+	// Refresh the pose view for the tracking mount
+	refreshTrackingMount();
+
 	// Push our world transform to all child scene components
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
+
+	// Listen for changes to the tracking mount definition
+	getCameraDefinition()->OnMarkedDirty += MakeDelegate(this, &CameraComponent::onDefinitionChanged);
+}
+
+void CameraComponent::dispose()
+{
+	getCameraDefinition()->OnMarkedDirty -= MakeDelegate(this, &CameraComponent::onDefinitionChanged);
+
+	TransformComponent::dispose();
+}
+
+void CameraComponent::update(float deltaSeconds)
+{
+	TransformComponent::update(deltaSeconds);
+
+	glm::mat4 poseInStageSpace;
+	if (m_trackingMountPoseView && m_trackingMountPoseView->getPose(poseInStageSpace))
+	{
+		setRelativeTransform(GlmTransform(poseInStageSpace));
+	}
 }
 
 void CameraComponent::customRender()
@@ -153,15 +206,81 @@ void CameraComponent::customRender()
 	drawTextAtWorldPosition(style, CameraPos, L"%s", wszCameraName);
 }
 
-// -- IFunctionInterface ----
-const std::string CameraComponent::k_editCameraFunctionId = "edit_camera";
-const std::string CameraComponent::k_deleteCameraFunctionId = "delete_camera";
+StageComponentConstPtr CameraComponent::getOwnerStageComponent() const
+{
+	MikanStageID stageId = getCameraDefinition()->getOwnerStageId();
+
+	return StageObjectSystem::getSystem()->getStageById(stageId);
+}
+
+VRTrackingSystemDefinitionConstPtr CameraComponent::getVRTrackingSystemDefinition() const
+{
+	MikanTrackingSystemID trackingSystemId =
+		getOwnerStageComponent()->getStageComponentDefinition()->getTrackingSystemId();
+
+	if (trackingSystemId != INVALID_MIKAN_ID)
+	{
+		ProjectConfigPtr projectConfig = App::getInstance()->getProfileConfig();
+
+		return projectConfig->trackingSystemsConfig->getVRTrackingSystemConfig(trackingSystemId);
+	}
+
+	return VRTrackingSystemDefinitionConstPtr();
+}
+
+TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() const
+{
+	CameraDefinitionPtr cameraDefinition = getCameraDefinition();
+	MikanTrackingMountID trackingMountId = cameraDefinition->getTrackingMountId();
+
+	if (trackingMountId != INVALID_MIKAN_ID)
+	{
+		VRTrackingSystemDefinitionConstPtr vrTrackingSystem = getVRTrackingSystemDefinition();
+
+		if (vrTrackingSystem)
+		{
+			return vrTrackingSystem->getTrackingMountDefinitionConst(trackingMountId);
+		}
+	}
+
+	return TrackingMountDefinitionConstPtr();
+}
+
+void CameraComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(CameraDefinition::k_trackingMountIdPropertyId))
+	{
+		refreshTrackingMount();
+	}
+}
+
+void CameraComponent::refreshTrackingMount()
+{
+	// Forget the old pose view
+	m_trackingMountPoseView = nullptr;
+
+	// Try and create a new pose view for the tracking mount
+	TrackingMountDefinitionConstPtr trackingMount = getTrackingMountDefinition();
+	if (trackingMount)
+	{
+		VRDeviceComponentPtr vrDeviceComponent =
+			VRObjectSystem::getSystem()->getVRDeviceByPath(trackingMount->getDevicePath());
+
+		if (vrDeviceComponent)
+		{
+			m_trackingMountPoseView = 
+				vrDeviceComponent->makePoseView(
+					eVRDevicePoseSpace::MikanScene,
+					trackingMount->getSocketName());
+		}
+	}
+}
 
 void CameraComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
 {
 	TransformComponent::getFunctionNames(outPropertyNames);
 
-	outPropertyNames.push_back(k_editCameraFunctionId);
+	outPropertyNames.push_back(k_alignCameraFunctionId);
 	outPropertyNames.push_back(k_deleteCameraFunctionId);
 }
 
@@ -170,9 +289,9 @@ bool CameraComponent::getFunctionDescriptor(const std::string& functionName, Fun
 	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
 		return true;
 
-	if (functionName == CameraComponent::k_editCameraFunctionId)
+	if (functionName == CameraComponent::k_alignCameraFunctionId)
 	{
-		outDescriptor = {CameraComponent::k_editCameraFunctionId, "Edit Camera"};
+		outDescriptor = {CameraComponent::k_alignCameraFunctionId, "Align Camera"};
 		return true;
 	}
 	else if (functionName == CameraComponent::k_deleteCameraFunctionId)
@@ -189,9 +308,9 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 	if (TransformComponent::invokeFunction(functionName))
 		return true;
 
-	if (functionName == CameraComponent::k_editCameraFunctionId)
+	if (functionName == CameraComponent::k_alignCameraFunctionId)
 	{
-		editCamera();
+		alignCamera();
 	}
 	else if (functionName == CameraComponent::k_deleteCameraFunctionId)
 	{
@@ -201,23 +320,22 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 	return false;
 }
 
-void CameraComponent::editCamera()
+void CameraComponent::alignCamera()
 {
-	CameraDefinitionPtr definition= getCameraDefinition();
-	MikanCameraID CameraId= definition->getCameraId();
-	CameraComponentPtr CameraComponent = CameraObjectSystem::getSystem()->getCameraById(CameraId);
-	if (CameraComponent != nullptr)
+	TrackingMountDefinitionConstPtr vrTrackingMount= getTrackingMountDefinition();
+
+	if (vrTrackingMount)
+	{
+		auto* alignmentCalibration = MainWindow::getInstance()->pushAppStage<AppStage_AlignmentCalibration>();
+		//TODO
+		//CameraTriangulation->setTargetCameraDefinition(getCameraDefinition());
+	}
+	else
 	{
 		//TODO
 		//// Show Camera Triangulation Tool
 		//AppStage_CameraTriangulation* CameraTriangulation = MainWindow::getInstance()->pushAppStage<AppStage_CameraTriangulation>();
-		//
-		//CameraTriangulatorInfo CameraInfo = {
-		//	definition->getCameraId(),
-		//	definition->getRelativeTransform(),
-		//	definition->getComponentName()
-		//};
-		//CameraTriangulation->setTargetCamera(CameraInfo);
+		//CameraTriangulation->setTargetCameraDefinition(getCameraDefinition());
 	}
 }
 

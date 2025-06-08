@@ -24,33 +24,13 @@ public:
 
 	MikanStageID getStageId() const { return m_stageId; }
 
-	static const std::string k_trackingSystemPropertyId;
-	MikanStageTrackingSystem getTrackingSystem() const { return m_trackingSystem; }
-	void setTrackingSystem(MikanStageTrackingSystem system);
-
-	static const std::string k_originMarkerIdPropertyId;
-	MikanMarkerID getOriginMarkerId() const { return m_originMarkerId; }
-	void setOriginMarkerId(MikanMarkerID markerId);
-
-	static const std::string k_originMarkerSizePropertyId;
-	float getOriginMarkerSize() const { return m_originMarkerSizeMM; }
-	void setOriginMarkerSize(float size);
-
-	static const std::string k_utilityMarkerIdPropertyId;
-	MikanMarkerID getUtilityMarkerId() const { return m_utilityMarkerId; }
-	void setUtilityMarkerId(MikanMarkerID markerId);
-
-	static const std::string k_utilityMarkerSizePropertyId;
-	float getUtilityMarkerSize() const { return m_utilityMarkerSizeMM; }
-	void setUtilityMarkerSize(float size);
+	static const std::string k_trackingSystemIdPropertyId;
+	MikanTrackingSystemID getTrackingSystemId() const { return m_trackingSystemId; }
+	void setTrackingSystemId(MikanTrackingSystemID systemId);
 
 protected:
 	MikanStageID m_stageId = INVALID_MIKAN_ID;
-	MikanStageTrackingSystem m_trackingSystem= MikanStageTrackingSystem::StaticMarker;
-	MikanMarkerID m_originMarkerId = DEFAULT_ORIGIN_MARKER_ID;
-	float m_originMarkerSizeMM= DEFAULT_MARKER_SIZE_MM;
-	MikanMarkerID m_utilityMarkerId = DEFAULT_UTILITY_MARKER_ID;
-	float m_utilityMarkerSizeMM= DEFAULT_MARKER_SIZE_MM;
+	MikanTrackingSystemID m_trackingSystemId = INVALID_MIKAN_ID;
 };
 
 class StageComponent final : public TransformComponent

@@ -85,9 +85,12 @@ CameraDefinitionPtr CameraObjectSystemConfig::getCameraConfigByName(const std::s
 
 MikanCameraID CameraObjectSystemConfig::addNewCamera(
 	const std::string& cameraName, 
-	const struct MikanTransform& xform)
+	const struct MikanTransform& xform,
+	MikanStageID ownerStageId)
 {
-	CameraDefinitionPtr cameraDefinition = std::make_shared<CameraDefinition>(nextCameraId, cameraName, xform);
+	CameraDefinitionPtr cameraDefinition = 
+		std::make_shared<CameraDefinition>(
+			cameraName, xform, nextCameraId, ownerStageId);
 	nextCameraId++;
 
 	cameraList.push_back(cameraDefinition);
@@ -180,11 +183,16 @@ CameraComponentPtr CameraObjectSystem::getCameraByName(const std::string& camera
 	return CameraComponentPtr();
 }
 
-CameraComponentPtr CameraObjectSystem::addNewCamera(const std::string& cameraName, const GlmTransform& xform)
+CameraComponentPtr CameraObjectSystem::addNewCamera(
+	const std::string& cameraName, 
+	const GlmTransform& xform,
+	const MikanStageID ownerStageId)
 {
 	CameraObjectSystemConfigPtr anchorSystemConfig = getCameraSystemConfig();
 
-	MikanCameraID cameraId= anchorSystemConfig->addNewCamera(cameraName, glm_transform_to_MikanTransform(xform));
+	MikanCameraID cameraId= 
+		anchorSystemConfig->addNewCamera(
+			cameraName, glm_transform_to_MikanTransform(xform), ownerStageId);
 	if (cameraId != INVALID_MIKAN_ID)
 	{		
 		CameraDefinitionPtr cameraConfig= anchorSystemConfig->getCameraConfig(cameraId);

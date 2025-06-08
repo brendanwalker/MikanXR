@@ -43,9 +43,9 @@ using StencilObjectSystemConfigConstPtr = std::shared_ptr<const StencilObjectSys
 using StencilObjectSystemConfigWeakPtr = std::weak_ptr<StencilObjectSystemConfig>;
 
 class TrackingSystemsConfig;
-using TrackingSystemConfigPtr = std::shared_ptr<TrackingSystemsConfig>;
-using TrackingSystemConfigConstPtr = std::shared_ptr<const TrackingSystemsConfig>;
-using TrackingSystemConfigWeakPtr = std::weak_ptr<TrackingSystemsConfig>;
+using TrackingSystemsConfigPtr = std::shared_ptr<TrackingSystemsConfig>;
+using TrackingSystemsConfigConstPtr = std::shared_ptr<const TrackingSystemsConfig>;
+using TrackingSystemsConfigWeakPtr = std::weak_ptr<TrackingSystemsConfig>;
 
 class VideoSourceSystemConfig;
 using VideoSourceSystemConfigPtr = std::shared_ptr<VideoSourceSystemConfig>;

@@ -69,10 +69,18 @@ public:
 	inline MikanMarkerID getUtilityMarkerId() const { return m_utilityMarkerId; }
 	void setUtilityMarkerId(MikanMarkerID markerId);
 
+	static const std::string k_trackingMountsPropertyId;
+	TrackingMountDefinitionConstPtr getTrackingMountDefinitionConst(MikanTrackingMountID mountId) const;
+	TrackingMountDefinitionPtr getTrackingMountDefinition(MikanTrackingMountID mountId);
+	MikanTrackingMountID addTrackingMount(const std::string& mountName);
+	bool removeTrackingMount(MikanTrackingMountID mountId);
+
 private:
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	MikanTrackingMountID m_charucoMountId;
 	MikanMarkerID m_utilityMarkerId;
+	std::vector<TrackingMountDefinitionPtr> m_trackingMounts;
+	MikanTrackingMountID m_nextTrackingMountId = 0;
 };
 
 class TrackingMountDefinition : public MikanComponentDefinition
@@ -85,6 +93,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+
+	inline MikanTrackingMountID getTrackingMountId() const { return m_trackingMountId; }
 
 	static const std::string k_devicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }
