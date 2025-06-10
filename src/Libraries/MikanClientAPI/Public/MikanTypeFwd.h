@@ -5,14 +5,8 @@
 #include <functional>
 #include <string>
 
-/// The ID of a VR Device
-using MikanVRDeviceID = int32_t;
-
-/// The ID of a stencil
-using MikanStencilID = int32_t;
-
-/// The ID of a spatial anchor
-using MikanSpatialAnchorID = int32_t;
+/// The ID of a Compositor
+using MikanCompositorID = int32_t;
 
 /// The ID of a camera
 using MikanCameraID = int32_t;
@@ -23,17 +17,26 @@ using MikanMarkerID = int32_t;
 /// The ID of a scene
 using MikanSceneID = int32_t;
 
+/// The ID of a spatial anchor
+using MikanSpatialAnchorID = int32_t;
+
 /// The ID of a stage
 using MikanStageID = int32_t;
 
-/// The ID of a tracking system
-using MikanTrackingSystemID = int32_t;
+/// The ID of a stencil
+using MikanStencilID = int32_t;
 
 /// The ID of a tracking mount
 using MikanTrackingMountID = int32_t;
 
+/// The ID of a tracking system
+using MikanTrackingSystemID = int32_t;
+
 /// The ID of a video source
 using MikanVideoSourceID = int32_t;
+
+/// The ID of a VR Device
+using MikanVRDeviceID = int32_t;
 
 using MikanResponsePtr = std::shared_ptr<struct MikanResponse>;
 using MikanResponsePromise = std::promise<MikanResponsePtr>;

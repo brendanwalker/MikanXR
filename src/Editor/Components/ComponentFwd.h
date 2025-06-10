@@ -31,6 +31,15 @@ class CameraComponent;
 using CameraComponentPtr = std::shared_ptr<CameraComponent>;
 using CameraComponentWeakPtr = std::weak_ptr<CameraComponent>;
 
+class CompositorDefinition;
+using CompositorDefinitionPtr = std::shared_ptr<CompositorDefinition>;
+using CompositorDefinitionConstPtr = std::shared_ptr<const CompositorDefinition>;
+using CompositorDefinitionWeakPtr = std::weak_ptr<CompositorDefinition>;
+
+class CompositorComponent;
+using CompositorComponentPtr = std::shared_ptr<CompositorComponent>;
+using CompositorComponentWeakPtr = std::weak_ptr<CompositorComponent>;
+
 class MarkerDefinition;
 using MarkerDefinitionPtr = std::shared_ptr<MarkerDefinition>;
 using MarkerDefinitionConstPtr = std::shared_ptr<const MarkerDefinition>;
