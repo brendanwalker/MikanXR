@@ -1,10 +1,12 @@
 #include "StageComponent.h"
-#include "MikanObject.h"
-#include "TransformComponent.h"
-#include "SelectionComponent.h"
+#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MikanCamera.h"
+#include "MikanObject.h"
+#include "SelectionComponent.h"
+#include "TransformComponent.h"
+#include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -121,12 +123,14 @@ bool StageComponent::setPropertyValue(const std::string& propertyName, const Rml
 }
 
 // -- IFunctionInterface ----
+const std::string StageComponent::k_alignStageFunctionId = "align_stage";
 const std::string StageComponent::k_deleteStageFunctionId = "delete_stage";
 
 void StageComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
 {
 	TransformComponent::getFunctionNames(outPropertyNames);
 
+	outPropertyNames.push_back(k_alignStageFunctionId);
 	outPropertyNames.push_back(k_deleteStageFunctionId);
 }
 
@@ -135,7 +139,12 @@ bool StageComponent::getFunctionDescriptor(const std::string& functionName, Func
 	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
 		return true;
 
-	if (functionName == StageComponent::k_deleteStageFunctionId)
+	if (functionName == StageComponent::k_alignStageFunctionId)
+	{
+		outDescriptor = {StageComponent::k_alignStageFunctionId, "Align Stage"};
+		return true;
+	}
+	else if (functionName == StageComponent::k_deleteStageFunctionId)
 	{
 		outDescriptor = {StageComponent::k_deleteStageFunctionId, "Delete Stage"};
 		return true;
@@ -149,12 +158,25 @@ bool StageComponent::invokeFunction(const std::string& functionName)
 	if (TransformComponent::invokeFunction(functionName))
 		return true;
 
-	if (functionName == StageComponent::k_deleteStageFunctionId)
+	if (functionName == StageComponent::k_alignStageFunctionId)
+	{
+		alignStage();
+	}
+	else if (functionName == StageComponent::k_deleteStageFunctionId)
 	{
 		deleteStage();
 	}
 
 	return false;
+}
+
+void StageComponent::alignStage()
+{
+	const MikanStageID stageId = getStageComponentDefinition()->getStageId();
+	AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
+		MainWindow::getInstance()->pushAppStage<AppStage_VRTrackingRecenter>();
+
+	vrTrackingRecenterStage->setTargetStageId(stageId);
 }
 
 void StageComponent::deleteStage()

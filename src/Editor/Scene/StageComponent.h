@@ -55,11 +55,13 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 	// -- IFunctionInterface ----
+	static const std::string k_alignStageFunctionId;
 	static const std::string k_deleteStageFunctionId;
 	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	// -- StageComponent ----
+	void alignStage();
 	void deleteStage();
 };

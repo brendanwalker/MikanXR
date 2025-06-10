@@ -5,7 +5,9 @@
 #include "DeviceViewFwd.h"
 #include "Constants_VRTrackingRecenter.h"
 #include "IRemoteControllableAppStage.h"
+#include "MikanTypeFwd.h"
 #include "MikanRendererFwd.h"
+#include "MikanCoreTypes.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
@@ -19,6 +21,8 @@ public:
 
 	AppStage_VRTrackingRecenter(class MainWindow* ownerWindow);
 	virtual ~AppStage_VRTrackingRecenter();
+
+	inline void setTargetStageId(MikanStageID stageId) { m_targetStageId = stageId; }
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -53,6 +57,7 @@ private:
 	class RmlModel_VRTrackingRecenter* m_calibrationModel = nullptr;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 
+	MikanStageID m_targetStageId = INVALID_MIKAN_ID;
 	bool m_bHasModifiedCameraSettings= false;
 
 	VideoSourceViewPtr m_videoSourceView;
