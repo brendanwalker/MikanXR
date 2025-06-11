@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AssetFwd.h"
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "CommonConfigFwd.h"
@@ -9,6 +10,7 @@
 #include "FunctionInterface.h"
 #include "PropertyInterface.h"
 
+#include <filesystem>
 #include <memory>
 #include <typeinfo>
 
@@ -25,8 +27,14 @@ public:
 	const std::string& getComponentName() const { return m_componentName; }
 	void setComponentName(const std::string& stencilName);
 
+	static const std::string k_componentScriptPathPropertyId;
+	bool hasComponentScriptPath() const;
+	const std::filesystem::path& getComponentScriptPath() const;
+	void setComponentScriptPath(const std::filesystem::path& scriptPath);
+
 protected:
 	std::string m_componentName;
+	AssetReferenceConfigPtr m_componentScriptAssetRefConfig;
 };
 
 class MikanComponent : 

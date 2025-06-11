@@ -27,6 +27,10 @@ class ModelAssetReference;
 using ModelAssetReferencePtr = std::shared_ptr<ModelAssetReference>;
 using ModelAssetReferenceConstPtr = std::shared_ptr<const ModelAssetReference>;
 
+class ScriptAssetReference;
+using ScriptAssetReferencePtr = std::shared_ptr<ScriptAssetReference>;
+using ScriptAssetReferenceConstPtr = std::shared_ptr<const ScriptAssetReference>;
+
 class TextureAssetReference;
 using TextureAssetReferencePtr = std::shared_ptr<TextureAssetReference>;
 using TextureAssetReferenceConstPtr = std::shared_ptr<const TextureAssetReference>;
