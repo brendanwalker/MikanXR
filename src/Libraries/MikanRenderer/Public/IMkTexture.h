@@ -7,6 +7,8 @@
 #include <stdint.h>
 
 // TODO: Replace this with an enum to abstract OpenGL buffer/texture format constants
+#define MK_RED					0x1903
+#define MK_R32F					0x822E
 #define MK_RGBA					0x1908
 #define MK_RGB					0x1907
 #define MK_BGR					0x80E0

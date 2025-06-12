@@ -11,13 +11,15 @@ using MikanObjectList = std::vector<MikanObjectPtr>;
 class MikanObjectSystem : public std::enable_shared_from_this<MikanObjectSystem>
 {
 public:
-	MikanObjectSystem();
+	MikanObjectSystem(class ObjectSystemManager* ownerObjectSystem);
 	virtual ~MikanObjectSystem();
 
 	virtual bool init();
 	virtual void dispose();
 	virtual void update(float deltaSeconds);
 	virtual void customRender();
+
+	inline class ObjectSystemManager* getOwnerObjectSystemManager() const { return m_ownerObjectSystemManager; }
 
 	MikanObjectPtr newObject();
 	void deleteObject(MikanObjectPtr objectPtr);
@@ -31,6 +33,7 @@ public:
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentConstPtr)> OnComponentDisposed;
 
 protected:
+	class ObjectSystemManager* m_ownerObjectSystemManager = nullptr;
 	MikanObjectList m_objects;
 
 	MulticastDelegate<void(float deltaSeconds)> onUpdate;

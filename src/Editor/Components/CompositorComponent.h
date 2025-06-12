@@ -6,6 +6,7 @@
 #include "MikanComponent.h"
 #include "MikanCoreTypes.h"
 #include "MikanTypeFwd.h"
+#include "MkRendererFwd.h"
 #include "NodeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
@@ -32,7 +33,7 @@ public:
 
 	static const std::string k_compositorGraphPathPropertyId;
 	bool hasCompositorGraphPath() const;
-	const std::filesystem::path& getCompositorGraphPath() const;
+	std::filesystem::path getCompositorGraphPath() const;
 	void setCompositorGraphPath(const std::filesystem::path& graphPath);
 
 private:
@@ -46,13 +47,12 @@ class CompositorComponent : public MikanComponent
 public:
 	CompositorComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
+	virtual void dispose() override;
 
 	inline CompositorDefinitionPtr getCompositorDefinition() const
 	{
 		return std::static_pointer_cast<CompositorDefinition>(m_definition);
 	}
-	const std::filesystem::path& getCompositorGraphAssetPath() const;
-	void setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath);
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
@@ -62,6 +62,11 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
+	// Compositor Rendering
+	IMkTriangulatedMeshPtr m_layerQuadMesh = nullptr;
+	IMkShaderPtr m_rgbFrameShader = nullptr;
+
 	// Compositor Node Graph
+	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
 	CompositorNodeGraphPtr m_nodeGraph;
 };

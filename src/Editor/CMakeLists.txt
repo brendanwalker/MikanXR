@@ -305,6 +305,28 @@ file(GLOB MIKAN_RMLUI_SRC
 )
 source_group("RmlUI" FILES ${MIKAN_RMLUI_SRC})
 
+# Sources
+## Client Sources
+file(GLOB MIKAN_SOURCES_CLIENT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Sources/Client/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Sources/Client/*.h"
+)
+source_group("Sources\\Client" FILES ${MIKAN_SOURCES_CLIENT_SRC})
+
+## Spout Sources
+file(GLOB MIKAN_SOURCES_SPOUT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Sources/Spout/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Sources/Spout/*.h"
+)
+source_group("Sources\\Spout" FILES ${MIKAN_SOURCES_SPOUT_SRC})
+
+## Video Sources
+file(GLOB MIKAN_SOURCES_VIDEO_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Sources/Video/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Sources/Video/*.h"
+)
+source_group("Sources\\Video" FILES ${MIKAN_SOURCES_VIDEO_SRC})
+
 # Scene
 file(GLOB MIKAN_SCENE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Scene/*.cpp"
@@ -401,6 +423,9 @@ set(MIKAN_SRC
     ${MIKAN_RMLUI_SRC}
     ${MIKAN_SCENE_SRC}
     ${MIKAN_SCRIPTING_SRC}
+    ${MIKAN_SOURCES_CLIENT_SRC}
+    ${MIKAN_SOURCES_SPOUT_SRC}
+    ${MIKAN_SOURCES_VIDEO_SRC}
     ${MIKAN_SDL_SRC}
     ${MIKAN_SERVER_SRC}
     ${MIKAN_SYSTEM_SRC}
@@ -440,6 +465,9 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/Server
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
+  ${CMAKE_CURRENT_LIST_DIR}/Sources/Client
+  ${CMAKE_CURRENT_LIST_DIR}/Sources/Spout
+  ${CMAKE_CURRENT_LIST_DIR}/Sources/Video
   ${CMAKE_CURRENT_LIST_DIR}/System
   ${CMAKE_CURRENT_LIST_DIR}/Video
   ${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer

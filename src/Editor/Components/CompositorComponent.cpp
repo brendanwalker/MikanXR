@@ -1,5 +1,6 @@
 #include "CompositorComponent.h"
 #include "App.h"
+#include "IMkTriangulatedMesh.h"
 #include "MainWindow.h"
 #include "ProjectConfig.h"
 #include "TransformComponent.h"
@@ -64,7 +65,7 @@ bool CompositorDefinition::hasCompositorGraphPath() const
 	return !m_nodeGraphAssetRef->assetPath.empty();
 }
 
-const std::filesystem::path& CompositorDefinition::getCompositorGraphPath() const
+std::filesystem::path CompositorDefinition::getCompositorGraphPath() const
 {
 	return m_nodeGraphAssetRef->assetPath;
 }
@@ -89,6 +90,14 @@ void CompositorComponent::init()
 {
 	MikanComponent::init();
 
+	m_layerQuadMesh = createFullscreenQuadMesh(getOwnerWindow(), false);
+}
+
+void CompositorComponent::dispose()
+{
+	m_layerQuadMesh= nullptr;
+
+	MikanComponent::dispose();
 }
 
 // -- IPropertyInterface ----

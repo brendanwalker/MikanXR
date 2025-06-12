@@ -118,6 +118,9 @@ private:
 	// Mikan API Server
 	class MikanServer* m_mikanServer = nullptr;
 
+	// Client Source Manager
+	class ClientSourceManager* m_clientSourceManager = nullptr;
+
 	// Used to blend video with client render targets
 	class GlFrameCompositor* m_frameCompositor = nullptr;
 

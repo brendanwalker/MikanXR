@@ -5,7 +5,7 @@
 #include "assert.h"
 
 MikanObject::MikanObject(MikanObjectSystemWeakPtr ownerSystemPtr)
-	: m_ownerObjectSystem(ownerSystemPtr)
+	: m_ownerObjectSystemManager(ownerSystemPtr)
 {
 }
 
@@ -22,7 +22,7 @@ void MikanObject::init()
 		component->init();
 	}
 
-	MikanObjectSystemPtr objectSystem= m_ownerObjectSystem.lock();
+	MikanObjectSystemPtr objectSystem= m_ownerObjectSystemManager.lock();
 	if (objectSystem->OnObjectInitialized)
 		objectSystem->OnObjectInitialized(objectSystem, shared_from_this());
 }
@@ -34,12 +34,12 @@ void MikanObject::dispose()
 		component->dispose();
 	}
 
-	MikanObjectSystemPtr objectSystem = m_ownerObjectSystem.lock();
+	MikanObjectSystemPtr objectSystem = m_ownerObjectSystemManager.lock();
 	if (objectSystem->OnObjectDisposed)
 		objectSystem->OnObjectDisposed(objectSystem, shared_from_this());
 
 	m_components.clear();
-	m_ownerObjectSystem.reset();
+	m_ownerObjectSystemManager.reset();
 }
 
 void MikanObject::deleteSelfConfig()

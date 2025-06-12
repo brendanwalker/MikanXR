@@ -2,6 +2,7 @@
 #include "MikanComponent.h"
 #include "MikanObject.h"
 #include "MikanObjectSystem.h"
+#include "ObjectSystemManager.h"
 
 #include "RmlUi/Core/Variant.h"
 #include "RmlUi/Config/Config.h"
@@ -63,7 +64,7 @@ bool MikanComponentDefinition::hasComponentScriptPath() const
 	return !m_componentScriptAssetRefConfig->assetPath.empty(); 
 }
 
-const std::filesystem::path& MikanComponentDefinition::getComponentScriptPath() const 
+const std::filesystem::path MikanComponentDefinition::getComponentScriptPath() const 
 { 
 	return m_componentScriptAssetRefConfig->assetPath; 
 }
@@ -142,6 +143,17 @@ void MikanComponent::setDefinition(MikanComponentDefinitionPtr config)
 
 	// Make the component name match the config name
 	m_name = config->getComponentName();
+}
+
+IMkWindow* MikanComponent::getOwnerWindow() const
+{
+	MikanObjectPtr ownerObject = m_ownerObject.lock();
+	if (ownerObject)
+	{
+		return ownerObject->getOwnerSystem()->getOwnerObjectSystemManager()->getOwnerWindow();
+	}
+
+	return nullptr;
 }
 
 void MikanComponent::setName(const std::string& name)

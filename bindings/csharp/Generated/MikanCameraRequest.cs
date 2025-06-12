@@ -11,13 +11,6 @@ namespace MikanXR
 		public string camera_name;
 	};
 
-	public class GetCameraAttachment : MikanRequest
-	{
-		public static new readonly long classId= 8728192020460588051;
-
-		public int camera_id;
-	};
-
 	public class GetCameraInfo : MikanRequest
 	{
 		public static new readonly long classId= -383140838344567898;
@@ -29,14 +22,6 @@ namespace MikanXR
 	{
 		public static new readonly long classId= -737282717304326718;
 
-	};
-
-	public class MikanCameraAttachmentInfoResponse : MikanResponse
-	{
-		public static new readonly long classId= -6026741417411940752;
-
-		public int attached_vr_device_id;
-		public MikanMatrix4f vr_device_offset_xform;
 	};
 
 	public class MikanCameraInfoResponse : MikanResponse

@@ -39,6 +39,7 @@ public:
 class StageObjectSystem : public MikanObjectSystem
 {
 public:
+	StageObjectSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static StageObjectSystemPtr getSystem() { return s_sceneObjectSystem.lock(); }
 
 	virtual bool init() override;

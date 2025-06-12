@@ -42,6 +42,7 @@ private:
 class EditorObjectSystem : public MikanObjectSystem
 {
 public:
+	EditorObjectSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static EditorObjectSystemPtr getSystem() { return s_editorObjectSystem.lock(); }
 
 	virtual bool init() override;

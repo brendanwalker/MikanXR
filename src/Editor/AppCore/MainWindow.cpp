@@ -10,6 +10,7 @@
 #include "App.h"
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
+#include "ClientSourceManager.h"
 #include "GlFrameCompositor.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
@@ -58,10 +59,11 @@ MainWindow* MainWindow::m_instance = NULL;
 //-- public methods -----
 MainWindow::MainWindow()
 	: m_mikanServer(new MikanServer())
+	, m_clientSourceManager(new ClientSourceManager())
 	, m_frameCompositor(new GlFrameCompositor())
 	, m_inputManager(new InputManager())
 	, m_rmlManager(new RmlManager(this))
-	, m_objectSystemManager(std::make_shared<ObjectSystemManager>())
+	, m_objectSystemManager(std::make_shared<ObjectSystemManager>(this))
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new MikanFontManager())
 	, m_videoSourceManager(new VideoSourceManager())
@@ -84,6 +86,7 @@ MainWindow::~MainWindow()
 	delete m_inputManager;
 	delete m_rmlManager;
 	delete m_mikanServer;
+	delete m_clientSourceManager;
 	delete m_frameCompositor;
 
 	assert(m_instance == nullptr);
@@ -210,6 +213,12 @@ bool MainWindow::startup()
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
 			success = false;
 		}
+	}
+
+	if (success && !m_clientSourceManager->startup(this))
+	{
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the client source manager";
+		success = false;
 	}
 
 	if (success && !m_frameCompositor->startup(this))
@@ -346,6 +355,9 @@ void MainWindow::shutdown()
 
 	assert(m_frameCompositor != nullptr);
 	m_frameCompositor->shutdown();
+
+	assert(m_clientSourceManager != nullptr);
+	m_clientSourceManager->shutdown();
 
 	// Dispose all ObjectSystems
 	assert(m_objectSystemManager != nullptr);

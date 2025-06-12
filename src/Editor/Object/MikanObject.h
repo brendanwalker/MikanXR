@@ -100,7 +100,7 @@ public:
 		}
 	}
 
-	inline MikanObjectSystemPtr getOwnerSystem() const { return m_ownerObjectSystem.lock(); }
+	inline MikanObjectSystemPtr getOwnerSystem() const { return m_ownerObjectSystemManager.lock(); }
 	inline TransformComponentPtr getRootComponent() const { return m_rootTransformComponent.lock(); }
 	inline void setRootComponent(TransformComponentWeakPtr transformComponent) { m_rootTransformComponent= transformComponent; }
 
@@ -114,7 +114,7 @@ public:
 
 protected:
 	std::string m_name;
-	MikanObjectSystemWeakPtr m_ownerObjectSystem;
+	MikanObjectSystemWeakPtr m_ownerObjectSystemManager;
 	TransformComponentWeakPtr m_rootTransformComponent;
 	std::vector<MikanComponentPtr> m_components;
 };

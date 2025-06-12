@@ -4,6 +4,7 @@
 #include "AnchorObjectSystem.h"
 #include "CameraObjectSystem.h"
 #include "EditorObjectSystem.h"
+#include "IMkWindow.h"
 #include "SceneObjectSystem.h"
 #include "StencilObjectSystem.h"
 #include "StageObjectSystem.h"

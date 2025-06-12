@@ -29,7 +29,7 @@ public:
 
 	static const std::string k_componentScriptPathPropertyId;
 	bool hasComponentScriptPath() const;
-	const std::filesystem::path& getComponentScriptPath() const;
+	const std::filesystem::path getComponentScriptPath() const;
 	void setComponentScriptPath(const std::filesystem::path& scriptPath);
 
 protected:
@@ -44,6 +44,8 @@ class MikanComponent :
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
+
+	class IMkWindow* getOwnerWindow() const;
 
 	inline bool getWasInitialized() const { return m_bWasInitialized; }
 	inline bool getWasDisposed() const { return m_bWasDisposed; }
