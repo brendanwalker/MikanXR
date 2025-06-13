@@ -69,10 +69,12 @@ public:
 	bool setMat4ByUniformName(const std::string uniformName, const glm::mat4& value);
 	bool getMat4ByUniformName(const std::string uniformName, glm::mat4& outValue) const;
 
-	bool setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture);
-	bool getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const;
-	bool setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture);
-	bool getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const;
+	bool setTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr texture);
+	bool getTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr& outTexture) const;
+	bool getMutableTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const;
+	bool setTextureByUniformName(const std::string uniformName, IMkTextureConstPtr texture);
+	bool getTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const;
+	bool getMutableTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const;
 
 	MkScopedMaterialInstanceBinding bindMaterialInstance(
 		const MkScopedMaterialBinding& materialBinding,

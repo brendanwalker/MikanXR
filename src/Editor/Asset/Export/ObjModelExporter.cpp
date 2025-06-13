@@ -92,7 +92,7 @@ namespace ObjUtils
 		std::string uniformName;
 		IMkTexturePtr texture;
 		if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
-			materialInstance->getTextureBySemantic(semantic, texture) &&
+			materialInstance->getMutableTextureBySemantic(semantic, texture) &&
 			texture != nullptr)
 		{
 			const std::string modelFileStem = mtlPath.stem().string();

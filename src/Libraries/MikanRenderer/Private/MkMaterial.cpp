@@ -13,7 +13,7 @@ struct MkMaterialImpl
 	NamedValueTable<glm::vec3> float3Sources;
 	NamedValueTable<glm::vec4> float4Sources;
 	NamedValueTable<glm::mat4> mat4Sources;
-	NamedValueTable<IMkTexturePtr> textureSources;
+	NamedValueTable<IMkTextureConstPtr> textureSources;
 };
 
 MkMaterial::MkMaterial()
@@ -67,7 +67,7 @@ const NamedValueTable<glm::mat4>& MkMaterial::getMat4Sources() const
 	return m_impl->mat4Sources; 
 }
 
-const NamedValueTable<IMkTexturePtr>& MkMaterial::getTextureSources() const
+const NamedValueTable<IMkTextureConstPtr>& MkMaterial::getTextureSources() const
 { 
 	return m_impl->textureSources; 
 }
@@ -362,7 +362,7 @@ bool MkMaterial::getMat4ByUniformName(const std::string uniformName, glm::mat4& 
 	return false;
 }
 
-bool MkMaterial::setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture)
+bool MkMaterial::setTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr texture)
 {
 	std::string uniformName;
 	IMkShaderPtr program= getProgram();
@@ -375,7 +375,7 @@ bool MkMaterial::setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr t
 	return false;
 }
 
-bool MkMaterial::getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const
+bool MkMaterial::getTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr& outTexture) const
 {
 	std::string uniformName;
 	IMkShaderPtr program= getProgram();
@@ -388,7 +388,7 @@ bool MkMaterial::getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& 
 	return false;
 }
 
-bool MkMaterial::setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture)
+bool MkMaterial::setTextureByUniformName(const std::string uniformName, IMkTextureConstPtr texture)
 {
 	eUniformDataType datatype;
 	IMkShaderPtr program= getProgram();
@@ -403,7 +403,7 @@ bool MkMaterial::setTextureByUniformName(const std::string uniformName, IMkTextu
 	return false;
 }
 
-bool MkMaterial::getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const
+bool MkMaterial::getTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const
 {
 	eUniformDataType datatype;
 	IMkShaderPtr program= getProgram();
@@ -499,7 +499,7 @@ MkScopedMaterialBinding MkMaterial::bindMaterial(
 				break;
 			case eUniformDataType::datatype_texture:
 				{
-					IMkTexturePtr texture;
+					IMkTextureConstPtr texture;
 					int textureUnit= 0;
 					if (m_impl->textureSources.tryGetValue(uniformName, texture) && 
 						program->getUniformTextureUnit(uniformName, textureUnit))
@@ -557,7 +557,7 @@ void MkMaterial::unbindMaterial() const
 		for (auto it = m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
 		{
 			const std::string& uniformName = it->first;
-			IMkTexturePtr texture = it->second;
+			IMkTextureConstPtr texture = it->second;
 
 			int textureUnit = -1;
 			if (program->getUniformTextureUnit(uniformName, textureUnit))

@@ -65,7 +65,7 @@ struct MkMaterialInstanceImpl
 	NamedValueTable<glm::vec3> float3Sources;
 	NamedValueTable<glm::vec4> float4Sources;
 	NamedValueTable<glm::mat4> mat4Sources;
-	NamedValueTable<IMkTexturePtr> textureSources;
+	NamedValueTable<IMkTextureConstPtr> textureSources;
 };
 
 
@@ -369,7 +369,7 @@ bool MkMaterialInstance::getMat4ByUniformName(const std::string uniformName, glm
 	return false;
 }
 
-bool MkMaterialInstance::setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture)
+bool MkMaterialInstance::setTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr texture)
 {
 	std::string uniformName;
 	if (m_impl->parentMaterial != nullptr &&
@@ -381,7 +381,7 @@ bool MkMaterialInstance::setTextureBySemantic(eUniformSemantic semantic, IMkText
 	return false;
 }
 
-bool MkMaterialInstance::getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const
+bool MkMaterialInstance::getTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr& outTexture) const
 {
 	std::string uniformName;
 	if (m_impl->parentMaterial != nullptr &&
@@ -393,7 +393,30 @@ bool MkMaterialInstance::getTextureBySemantic(eUniformSemantic semantic, IMkText
 	return false;
 }
 
-bool MkMaterialInstance::setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture)
+bool MkMaterialInstance::getMutableTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const
+{
+	IMkTextureConstPtr constTexturePtr;
+	if (getTextureBySemantic(semantic, constTexturePtr))
+	{
+		outTexture = std::const_pointer_cast<IMkTexture>(constTexturePtr);
+		return true;
+	}
+
+	return false;
+}
+
+bool MkMaterialInstance::getMutableTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const
+{
+	IMkTextureConstPtr constTexturePtr;
+	if (getTextureByUniformName(uniformName, constTexturePtr))
+	{
+		outTexture = std::const_pointer_cast<IMkTexture>(constTexturePtr);
+		return true;
+	}
+	return false;
+}
+
+bool MkMaterialInstance::setTextureByUniformName(const std::string uniformName, IMkTextureConstPtr texture)
 {
 	eUniformDataType datatype;
 	if (m_impl->parentMaterial != nullptr &&
@@ -407,7 +430,7 @@ bool MkMaterialInstance::setTextureByUniformName(const std::string uniformName, 
 	return false;
 }
 
-bool MkMaterialInstance::getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const
+bool MkMaterialInstance::getTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const
 {
 	eUniformDataType datatype;
 	if (m_impl->parentMaterial != nullptr &&
@@ -534,7 +557,7 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 		for (auto it = m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
 		{
 			const std::string& uniformName= it->first;
-			IMkTexturePtr texture= it->second;
+			IMkTextureConstPtr texture= it->second;
 			int textureUnit= 0;
 
 			if (texture &&
@@ -574,7 +597,7 @@ void MkMaterialInstance::unbindMaterialInstance() const
 	for (auto it = m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
 	{
 		const std::string& uniformName = it->first;
-		IMkTexturePtr texture = it->second;
+		IMkTextureConstPtr texture = it->second;
 
 		int textureUnit= 0;
 		if (m_impl->parentMaterial->getProgram()->getUniformTextureUnit(uniformName, textureUnit))
