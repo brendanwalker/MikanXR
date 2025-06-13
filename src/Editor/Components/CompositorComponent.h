@@ -24,12 +24,21 @@ public:
 	CompositorDefinition();
 	CompositorDefinition(
 		MikanCompositorID compositorId,
+		MikanSceneID ownerSceneId,
 		const std::string& compositorName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	MikanCompositorID getCompositorId() const { return m_compositorId; }
+
+	static const std::string k_cameraPropertyId;
+	inline MikanCameraID getCameraId() const { return m_cameraId; }
+	void setCameraId(MikanCameraID cameraId);
+
+	static const std::string k_ownerScenePropertyId;
+	inline MikanSceneID getOwnerSceneId() const { return m_ownerSceneId; }
+	void setOwnerSceneId(MikanSceneID sceneId);
 
 	static const std::string k_compositorGraphPathPropertyId;
 	bool hasCompositorGraphPath() const;
@@ -38,6 +47,7 @@ public:
 
 private:
 	MikanCompositorID m_compositorId;
+	MikanSceneID m_ownerSceneId = INVALID_MIKAN_ID;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
 };
@@ -48,11 +58,19 @@ public:
 	CompositorComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 	virtual void dispose() override;
+	virtual void update(float deltaSeconds) override;
+	void render() const;
+
+	bool getIsRunning() const;
+	SceneComponentPtr getOwnerSceneComponent() const;
+	CameraComponentPtr getCameraComponent() const;
 
 	inline CompositorDefinitionPtr getCompositorDefinition() const
 	{
 		return std::static_pointer_cast<CompositorDefinition>(m_definition);
 	}
+
+	IMkTextureConstPtr getCompositedFrameTexture() const;
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
@@ -63,8 +81,7 @@ public:
 
 protected:
 	// Compositor Rendering
-	IMkTriangulatedMeshPtr m_layerQuadMesh = nullptr;
-	IMkShaderPtr m_rgbFrameShader = nullptr;
+	IMkTriangulatedMeshPtr m_layerQuadMesh;
 
 	// Compositor Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;

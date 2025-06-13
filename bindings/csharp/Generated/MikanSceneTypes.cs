@@ -11,6 +11,7 @@ namespace MikanXR
 		public int scene_id;
 		public string scene_name;
 		public int parent_stage_id;
+		public int output_compositor_id;
 	};
 
 }

@@ -1,12 +1,19 @@
-#include "CompositorComponent.h"
 #include "App.h"
+#include "CameraComponent.h"
+#include "CameraObjectSystem.h"
+#include "CompositorComponent.h"
+#include "IMkState.h"
 #include "IMkTriangulatedMesh.h"
 #include "MainWindow.h"
-#include "ProjectConfig.h"
-#include "TransformComponent.h"
-#include "SelectionComponent.h"
-#include "MikanObject.h"
 #include "MathTypeConversion.h"
+#include "MikanObject.h"
+#include "MkMaterialInstance.h"
+#include "MkScopedState.h"
+#include "MkStateStack.h"
+#include "ProjectConfig.h"
+#include "SceneComponent.h"
+#include "SceneObjectSystem.h"
+#include "TransformComponent.h"
 #include "StringUtils.h"
 
 #include "NodeGraphAssetReference.h"
@@ -16,8 +23,12 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
+#include <easy/profiler.h>
+
 // -- CompositorConfig -----
 const std::string CompositorDefinition::k_compositorGraphPathPropertyId = "script_path";
+const std::string CompositorDefinition::k_cameraPropertyId= "camera_id";
+const std::string CompositorDefinition::k_ownerScenePropertyId = "owner_scene_id";
 
 CompositorDefinition::CompositorDefinition()
 	: MikanComponentDefinition()
@@ -28,9 +39,11 @@ CompositorDefinition::CompositorDefinition()
 
 CompositorDefinition::CompositorDefinition(
 	MikanCompositorID compositorId,
+	MikanSceneID ownerSceneId,
 	const std::string& compositorName)
 	: MikanComponentDefinition(compositorName)
 	, m_compositorId(compositorId)
+	, m_ownerSceneId(ownerSceneId)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
 {}
 
@@ -39,6 +52,9 @@ configuru::Config CompositorDefinition::writeToJSON()
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	pt["id"] = m_compositorId;
+	pt[k_cameraPropertyId] = m_cameraId;
+	pt[k_ownerScenePropertyId] = m_ownerSceneId;
+
 	if (m_nodeGraphAssetRef)
 	{
 		pt[k_compositorGraphPathPropertyId] = m_nodeGraphAssetRef->writeToJSON();
@@ -52,11 +68,31 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	MikanComponentDefinition::readFromJSON(pt);
 
 	m_compositorId = pt.get<int>("id");
+	m_cameraId = pt.get_or<int>(k_cameraPropertyId, INVALID_MIKAN_ID);
+	m_ownerSceneId = pt.get_or<int>(k_ownerScenePropertyId, INVALID_MIKAN_ID);
 
 	m_componentScriptAssetRefConfig = NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_compositorGraphPathPropertyId))
 	{
 		m_componentScriptAssetRefConfig->readFromJSON(pt[k_compositorGraphPathPropertyId]);
+	}
+}
+
+void CompositorDefinition::setCameraId(MikanCameraID cameraId)
+{
+	if (m_cameraId != cameraId)
+	{
+		m_cameraId = cameraId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraPropertyId));
+	}
+}
+
+void CompositorDefinition::setOwnerSceneId(MikanSceneID sceneId)
+{
+	if (m_ownerSceneId != sceneId)
+	{
+		m_ownerSceneId = sceneId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_ownerScenePropertyId));
 	}
 }
 
@@ -83,7 +119,7 @@ void CompositorDefinition::setCompositorGraphPath(const std::filesystem::path& g
 CompositorComponent::CompositorComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
-	m_bWantsCustomRender = true;
+	m_bWantsUpdate = true;
 }
 
 void CompositorComponent::init()
@@ -98,6 +134,75 @@ void CompositorComponent::dispose()
 	m_layerQuadMesh= nullptr;
 
 	MikanComponent::dispose();
+}
+
+void CompositorComponent::update(float deltaSeconds)
+{
+	EASY_FUNCTION();
+
+	if (!getIsRunning())
+		return;
+
+}
+
+void CompositorComponent::render() const
+{
+	IMkTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
+	if (compositedFrameTexture)
+	{
+		MkMaterialInstancePtr materialInstance = m_layerQuadMesh->getMaterialInstance();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
+
+		if (auto materialBinding = material->bindMaterial())
+		{
+			// Bind the color texture
+			materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, compositedFrameTexture);
+
+			// Draw the color texture
+			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			{
+				MkScopedState scopedState = 
+					getOwnerWindow()->getMkStateStack().createScopedState("GlFrameCompositorRender");
+				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
+
+				m_layerQuadMesh->drawElements();
+			}
+		}
+	}
+
+}
+
+bool CompositorComponent::getIsRunning() const
+{
+	SceneComponentPtr ownerScene= getOwnerSceneComponent();
+	if (ownerScene)
+	{
+		MikanCompositorID selfCompositorId = getCompositorDefinition()->getCompositorId();
+		MikanCompositorID outputCompositorId = ownerScene->getSceneComponentDefinition()->getOutputCompositorId();
+
+		return (outputCompositorId == selfCompositorId);
+	}
+
+	return false;
+}
+
+SceneComponentPtr CompositorComponent::getOwnerSceneComponent() const
+{
+	MikanSceneID ownerSceneId= getCompositorDefinition()->getOwnerSceneId();
+
+	return SceneObjectSystem::getSystem()->getSceneById(ownerSceneId);
+}
+
+CameraComponentPtr CompositorComponent::getCameraComponent() const
+{
+	MikanCameraID cameraId = getCompositorDefinition()->getCameraId();
+
+	return CameraObjectSystem::getSystem()->getCameraById(cameraId);
+}
+
+IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
+{
+	return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : IMkTextureConstPtr();
 }
 
 // -- IPropertyInterface ----

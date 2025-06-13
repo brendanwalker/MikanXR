@@ -17,10 +17,12 @@
 
 // -- SceneComponentDefinition -----
 const std::string SceneComponentDefinition::k_parentStagePropertyId = "parent_stage_id";
+const std::string SceneComponentDefinition::k_outputCompositorPropertyId = "output_compsitor_id";
 
 SceneComponentDefinition::SceneComponentDefinition()
 	: m_sceneId(INVALID_MIKAN_ID)
 	, m_parentStageId(INVALID_MIKAN_ID)
+	, m_outputCompositorId(INVALID_MIKAN_ID)
 {}
 
 SceneComponentDefinition::SceneComponentDefinition(
@@ -30,6 +32,7 @@ SceneComponentDefinition::SceneComponentDefinition(
 	: TransformComponentDefinition(componentName, glm_transform_to_MikanTransform(GlmTransform()))
 	, m_sceneId(sceneId)
 	, m_parentStageId(parentStageId)
+	, m_outputCompositorId(INVALID_MIKAN_ID)
 {}
 
 configuru::Config SceneComponentDefinition::writeToJSON()
@@ -38,6 +41,7 @@ configuru::Config SceneComponentDefinition::writeToJSON()
 
 	pt["scene_id"] = m_sceneId;
 	pt[k_parentStagePropertyId] = m_parentStageId;
+	pt[k_outputCompositorPropertyId] = m_outputCompositorId;
 
 	return pt;
 }
@@ -48,6 +52,7 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 
 	m_sceneId = pt.get<int>("scene_id");
 	m_parentStageId = pt.get_or<int>(k_parentStagePropertyId, INVALID_MIKAN_ID);
+	m_outputCompositorId = pt.get_or<int>(k_outputCompositorPropertyId, INVALID_MIKAN_ID);
 }
 
 void SceneComponentDefinition::setParentStageId(MikanStageID stageId)
@@ -56,6 +61,15 @@ void SceneComponentDefinition::setParentStageId(MikanStageID stageId)
 	{
 		m_parentStageId = stageId;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_parentStagePropertyId));
+	}
+}
+
+void SceneComponentDefinition::setOutputCompositorId(MikanCompositorID compositorId)
+{
+	if (m_outputCompositorId != compositorId)
+	{
+		m_outputCompositorId = compositorId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_outputCompositorPropertyId));
 	}
 }
 
@@ -184,6 +198,7 @@ void SceneComponent::getPropertyNames(std::vector<std::string>& outPropertyNames
 	TransformComponent::getPropertyNames(outPropertyNames);
 
 	outPropertyNames.push_back(SceneComponentDefinition::k_parentStagePropertyId);
+	outPropertyNames.push_back(SceneComponentDefinition::k_outputCompositorPropertyId);
 }
 
 bool SceneComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -194,6 +209,11 @@ bool SceneComponent::getPropertyDescriptor(const std::string& propertyName, Prop
 	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
 	{
 		outDescriptor = {SceneComponentDefinition::k_parentStagePropertyId, ePropertyDataType::datatype_int, ePropertySemantic::stage_id};
+		return true;
+	}
+	else if (propertyName == SceneComponentDefinition::k_outputCompositorPropertyId)
+	{
+		outDescriptor = {SceneComponentDefinition::k_outputCompositorPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::compositor_id};
 		return true;
 	}
 
@@ -210,6 +230,11 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 		outValue = getSceneComponentDefinition()->getParentStageId();
 		return true;
 	}
+	else if (propertyName == SceneComponentDefinition::k_outputCompositorPropertyId)
+	{
+		outValue = getSceneComponentDefinition()->getOutputCompositorId();
+		return true;
+	}
 
 	return false;
 }
@@ -224,6 +249,12 @@ bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml
 		MikanStageID stageId = inValue.Get<int>();
 
 		attachTransformComponentToStage(stageId);
+		return true;
+	}
+	else if (propertyName == SceneComponentDefinition::k_outputCompositorPropertyId)
+	{
+		MikanCompositorID compositorId = inValue.Get<int>();
+		getSceneComponentDefinition()->setOutputCompositorId(compositorId);
 		return true;
 	}
 

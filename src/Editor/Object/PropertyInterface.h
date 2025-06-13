@@ -35,6 +35,7 @@ enum class ePropertySemantic : int
 	anchor_id,
 	stage_id,
 	marker_id,
+	compositor_id,
 	stencilCullMode,
 
 	COUNT
