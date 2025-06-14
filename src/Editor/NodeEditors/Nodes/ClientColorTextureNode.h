@@ -13,7 +13,7 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	eClientColorTextureType clientTextureType;
-	int clientIndex;
+	std::string clientId;
 	bool bVerticalFlip;
 };
 
@@ -28,6 +28,7 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
+	inline const std::string& getClientId() const { return m_clientId; }
 	IMkTexturePtr getTextureResource() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
@@ -46,7 +47,7 @@ protected:
 	IMkFrameBufferPtr m_colorFrameBuffer;
 	MkMaterialInstancePtr m_colorMaterialInstance;
 	eClientColorTextureType m_clientTextureType= eClientColorTextureType::colorRGB;
-	int m_clientIndex= 0;
+	std::string m_clientId;
 	bool m_bVerticalFlip= false;
 };
 

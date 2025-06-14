@@ -73,33 +73,29 @@ void ClientSourceManager::shutdown()
 }
 
 IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
-	int clientIndex,
+	const std::string& clientId,
 	eClientColorTextureType clientTextureType) const
 {
-	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
+	ClientSource* clientSource= nullptr;
+	if (m_clientSources.tryGetValue(clientId, clientSource))
 	{
-		ClientSource* clientSource = it->second;
-
-		if (clientSource->clientSourceIndex == clientIndex)
+		switch (clientTextureType)
 		{
-			switch (clientTextureType)
-			{
-				case eClientColorTextureType::colorRGB:
-					if (clientSource->colorTexture &&
-						(clientSource->colorTexture->getTextureFormat() == MK_RGB ||
-						 clientSource->colorTexture->getTextureFormat() == MK_BGR))
-					{
-						return clientSource->colorTexture;
-					}
+			case eClientColorTextureType::colorRGB:
+				if (clientSource->colorTexture &&
+					(clientSource->colorTexture->getTextureFormat() == MK_RGB ||
+						clientSource->colorTexture->getTextureFormat() == MK_BGR))
+				{
 					return clientSource->colorTexture;
-				case eClientColorTextureType::colorRGBA:
-					if (clientSource->colorTexture &&
-						(clientSource->colorTexture->getTextureFormat() == MK_RGBA ||
-						 clientSource->colorTexture->getTextureFormat() == MK_BGRA))
-					{
-						return clientSource->colorTexture;
-					}
-			}
+				}
+				return clientSource->colorTexture;
+			case eClientColorTextureType::colorRGBA:
+				if (clientSource->colorTexture &&
+					(clientSource->colorTexture->getTextureFormat() == MK_RGBA ||
+						clientSource->colorTexture->getTextureFormat() == MK_BGRA))
+				{
+					return clientSource->colorTexture;
+				}
 		}
 	}
 
@@ -107,20 +103,16 @@ IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 }
 
 IMkTexturePtr ClientSourceManager::getClientDepthSourceTexture(
-	int clientIndex,
+	const std::string& clientId,
 	eClientDepthTextureType clientTextureType) const
 {
-	for (auto it = m_clientSources.getMap().begin(); it != m_clientSources.getMap().end(); it++)
+	ClientSource* clientSource = nullptr;
+	if (m_clientSources.tryGetValue(clientId, clientSource))
 	{
-		ClientSource* clientSource = it->second;
-
-		if (clientSource->clientSourceIndex == clientIndex)
+		switch (clientTextureType)
 		{
-			switch (clientTextureType)
-			{
-				case eClientDepthTextureType::depthPackRGBA:
-					return clientSource->depthTexture;
-			}
+			case eClientDepthTextureType::depthPackRGBA:
+				return clientSource->depthTexture;
 		}
 	}
 
@@ -138,7 +130,6 @@ bool ClientSourceManager::addClientSource(
 	ClientSource* clientSource = new ClientSource();
 
 	const MikanRenderTargetDescriptor& desc = readAccessor->getRenderTargetDescriptor();
-	clientSource->clientSourceIndex = m_clientSources.getNumEntries();
 	clientSource->clientId = clientId;
 	clientSource->clientInfo = clientInfo;
 	clientSource->desc = desc;

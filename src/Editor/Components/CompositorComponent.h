@@ -86,4 +86,7 @@ protected:
 	// Compositor Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
 	CompositorNodeGraphPtr m_nodeGraph;
+
+	int64_t m_pendingCompositeFrameIndex = 0;
+	float m_timeSinceLastFrameComposited= 0.f;
 };

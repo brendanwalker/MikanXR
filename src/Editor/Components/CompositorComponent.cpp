@@ -1,6 +1,7 @@
 #include "App.h"
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
+#include "ClientSourceManager.h"
 #include "CompositorComponent.h"
 #include "IMkState.h"
 #include "IMkTriangulatedMesh.h"
@@ -143,6 +144,25 @@ void CompositorComponent::update(float deltaSeconds)
 	if (!getIsRunning())
 		return;
 
+	CameraComponentPtr cameraComponent= getCameraComponent();
+	if (!cameraComponent)
+		return;
+
+	const glm::mat4 cameraXform= cameraComponent->getWorldTransform();
+
+	// Keep track of how long it's been since the last frame has been composited
+	// This is used to update the timer in compositorNodeGraph
+	m_timeSinceLastFrameComposited += deltaSeconds;
+
+	// Composite the next frame if we got all the renders back from the clients
+	if (m_pendingCompositeFrameIndex != 0 && m_nodeGraph)
+	{
+		auto* clientSourceManager = ClientSourceManager::getInstance();
+
+		std::set<std::string> clientSourceIds;
+		m_nodeGraph->gatherAllReferencedClientSourceIDs(clientSourceIds);
+		//TODO
+	}
 }
 
 void CompositorComponent::render() const

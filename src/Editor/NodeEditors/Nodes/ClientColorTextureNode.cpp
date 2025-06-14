@@ -1,7 +1,9 @@
 #include "ClientColorTextureNode.h"
+#include "ClientSourceManager.h"
 #include "MkScopedObjectBinding.h"
 #include "GlFrameCompositor.h"
 #include "IMkFrameBuffer.h"
+#include "IMkWindow.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanShaderCache.h"
@@ -10,7 +12,6 @@
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
 #include "Logger.h"
-#include "MainWindow.h"
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
@@ -35,7 +36,7 @@ configuru::Config ClientColorTextureNodeConfig::writeToJSON()
 	configuru::Config pt = NodeConfig::writeToJSON();
 
 	pt["client_texture_type"] = k_clientColorTextureTypeStrings[(int)clientTextureType];
-	pt["client_index"] = clientIndex;
+	pt["client_id"] = clientId;
 	pt["vertical_flip"] = bVerticalFlip;
 
 	return pt;
@@ -54,7 +55,7 @@ void ClientColorTextureNodeConfig::readFromJSON(const configuru::Config& pt)
 			clientTextureTypeString, k_clientColorTextureTypeStrings);
 	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
 
-	clientIndex= pt.get_or<int>("client_index", 0);
+	clientId= pt.get_or<std::string>("client_id", 0);
 }
 
 // -- ClientTextureNode -----
@@ -65,7 +66,7 @@ bool ClientColorTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		auto clientTextureNodeConfig = std::static_pointer_cast<const ClientColorTextureNodeConfig>(nodeConfig);
 
 		m_clientTextureType= clientTextureNodeConfig->clientTextureType;
-		m_clientIndex= clientTextureNodeConfig->clientIndex;
+		m_clientId= clientTextureNodeConfig->clientId;
 		m_bVerticalFlip= clientTextureNodeConfig->bVerticalFlip;
 
 		return true;
@@ -78,7 +79,7 @@ void ClientColorTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
 	auto clientTextureNodeConfig = std::static_pointer_cast<ClientColorTextureNodeConfig>(nodeConfig);
 	clientTextureNodeConfig->clientTextureType = m_clientTextureType;
-	clientTextureNodeConfig->clientIndex = m_clientIndex;
+	clientTextureNodeConfig->clientId = m_clientId;
 	clientTextureNodeConfig->bVerticalFlip = m_bVerticalFlip;
 
 	Node::saveToConfig(nodeConfig);
@@ -112,10 +113,10 @@ bool ClientColorTextureNode::evaluateNode(NodeEvaluator& evaluator)
 
 IMkTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
 {
-	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
-	if (compositor != nullptr)
+	auto* clientSourceManager = ClientSourceManager::getInstance();
+	if (clientSourceManager != nullptr)
 	{
-		IMkTexturePtr clientTexture = compositor->getClientColorSourceTexture(m_clientIndex, m_clientTextureType);
+		IMkTexturePtr clientTexture = clientSourceManager->getClientColorSourceTexture(m_clientId, m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
@@ -257,7 +258,7 @@ std::string ClientColorTextureNode::editorGetTitle() const
 {
 	if (!isDefaultNode())
 	{ 
-		return StringUtils::stringify("Client Color ", m_clientIndex);
+		return StringUtils::stringify("Client Color ", m_clientId);
 	}
 
 	return "Client Color";
@@ -306,11 +307,16 @@ void ClientColorTextureNode::editorRenderPropertySheet(const NodeEditorState& ed
 
 		// Texture Type
 		ClientListDataSource dataSource;
-		NodeEditorUI::DrawComboBoxProperty(
-			"clientSourceIndex",
-			"Source",
-			&dataSource,
-			m_clientIndex);
+		if (dataSource.getEntryCount() > 0)
+		{
+			int selectedIndex = dataSource.getEntryIndex(m_clientId);
+			NodeEditorUI::DrawComboBoxProperty(
+				"clientSourceIndex",
+				"Source",
+				&dataSource,
+				selectedIndex);
+			m_clientId= dataSource.getEntryDisplayString(selectedIndex);
+		}
 
 		// Vertical Flip
 		NodeEditorUI::DrawCheckBoxProperty(

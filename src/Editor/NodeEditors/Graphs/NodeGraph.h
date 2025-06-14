@@ -241,6 +241,9 @@ public:
 	NodePtr getEventNodeByName(const std::string& eventName) const;
 	const std::map<t_node_id, NodePtr>& getNodesMap() const { return m_Nodes; }
 
+	using NodeConstVisitor = std::function<void(NodeConstPtr nodePtr)>;
+	void visitAllNodes(const NodeConstVisitor& visitor) const;
+
 	template <class t_node_class>
 	std::shared_ptr<t_node_class> createTypedNode(const NodeEditorState& nodeEditorState)
 	{

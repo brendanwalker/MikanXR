@@ -14,7 +14,6 @@ class ClientSourceManager
 public:
 	struct ClientSource
 	{
-		int clientSourceIndex = -1;
 		std::string clientId;
 		MikanClientInfo clientInfo;
 		MikanRenderTargetDescriptor desc;
@@ -33,8 +32,8 @@ public:
 	void shutdown();
 
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
-	IMkTexturePtr getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const;
-	IMkTexturePtr getClientDepthSourceTexture(int clientIndex, eClientDepthTextureType clientTextureType) const;
+	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, eClientColorTextureType clientTextureType) const;
+	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, eClientDepthTextureType clientTextureType) const;
 
 protected:
 	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);

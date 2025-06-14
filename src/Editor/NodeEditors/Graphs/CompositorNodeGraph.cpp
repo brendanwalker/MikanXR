@@ -205,6 +205,22 @@ void CompositorNodeGraph::setExternalCompositedFrameTexture(IMkTexturePtr extern
 	m_compositingFrameBuffer->setExternalColorTexture(externalTexture);
 }
 
+void CompositorNodeGraph::gatherAllReferencedClientSourceIDs(
+	std::set<std::string>& outClientSourceIds) const
+{
+	visitAllNodes(
+		[&outClientSourceIds](NodeConstPtr& node) {
+			if (auto clientSourceNode = std::dynamic_pointer_cast<const ClientColorTextureNode>(node))
+			{
+				outClientSourceIds.insert(clientSourceNode->getClientId());
+			}
+			else if (auto clientDepthNode = std::dynamic_pointer_cast<const ClientDepthTextureNode>(node))
+			{
+				outClientSourceIds.insert(clientDepthNode->getClientId());
+			}
+		});
+}
+
 MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 	ModelStencilDefinitionPtr stencilDefinition)
 {

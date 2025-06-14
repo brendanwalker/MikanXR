@@ -8,9 +8,15 @@ class ClientListDataSource : public NodeEditorUI::ComboBoxDataSource
 public:
 	ClientListDataSource();
 
-	inline int getClientIndex(int index)
+	int getEntryIndex(const std::string& entryName) const
 	{
-		return comboEntries[index].clientIndex;
+		auto it= std::find(comboEntries.begin(), comboEntries.end(), entryName);
+		if (it != comboEntries.end())
+		{
+			return static_cast<int>(std::distance(comboEntries.begin(), it));
+		}
+
+		return -1;
 	}
 
 	virtual int getEntryCount() override
@@ -20,15 +26,9 @@ public:
 
 	virtual const std::string& getEntryDisplayString(int index) override
 	{
-		return comboEntries[index].clientEntryName;
+		return comboEntries[index];
 	}
 
 private:
-	struct ComboEntry
-	{
-		int clientIndex;
-		std::string clientEntryName;
-	};
-
-	std::vector<ComboEntry> comboEntries;
+	std::vector<std::string> comboEntries;
 };

@@ -5,6 +5,7 @@
 #include "MikanRendererFwd.h"
 
 #include <map>
+#include <set>
 #include <string>
 
 typedef int32_t MikanStencilID;
@@ -24,6 +25,9 @@ public:
 	bool compositeFrame(NodeEvaluator& evaluator);
 	IMkTextureConstPtr getCompositedFrameTexture() const;
 	void setExternalCompositedFrameTexture(IMkTexturePtr externalTexture);
+
+	// Sources
+	void gatherAllReferencedClientSourceIDs(std::set<std::string>& outClientSourceIds) const;
 
 	// Stencil Models
 	MikanRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);

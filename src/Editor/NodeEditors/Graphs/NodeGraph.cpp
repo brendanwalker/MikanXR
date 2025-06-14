@@ -721,6 +721,14 @@ NodePtr NodeGraph::getEventNodeByName(const std::string& eventName) const
 		});
 }
 
+void NodeGraph::visitAllNodes(const NodeConstVisitor& visitor) const
+{
+	for (const auto& nodePair : m_Nodes)
+	{
+		visitor(nodePair.second);
+	}
+}
+
 NodePinPtr NodeGraph::getPinById(t_node_pin_id id) const
 {
 	auto it = m_Pins.find(id);
