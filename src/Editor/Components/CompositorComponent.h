@@ -3,6 +3,7 @@
 #include "AssetFwd.h"
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "MikanCameraEvents.h"
 #include "MikanComponent.h"
 #include "MikanCoreTypes.h"
 #include "MikanTypeFwd.h"
@@ -14,6 +15,7 @@
 #include "Transform.h"
 
 #include <memory>
+#include <queue>
 #include <string>
 
 #include "glm/ext/matrix_float4x4.hpp"
@@ -80,8 +82,14 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
+	void updateCompositeFrame();
+
+private:
 	// Compositor Rendering
 	IMkTriangulatedMeshPtr m_layerQuadMesh;
+
+	// Pending queue of camera poses awaiting client render
+	std::queue<MikanCameraNewFrameEvent> m_frameEventQueue;
 
 	// Compositor Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;

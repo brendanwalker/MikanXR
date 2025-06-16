@@ -5,6 +5,7 @@
 #include "CompositorComponent.h"
 #include "IMkState.h"
 #include "IMkTriangulatedMesh.h"
+#include "Logger.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
@@ -155,14 +156,42 @@ void CompositorComponent::update(float deltaSeconds)
 	m_timeSinceLastFrameComposited += deltaSeconds;
 
 	// Composite the next frame if we got all the renders back from the clients
+	std::set<std::string> activeClientSourceIds;
 	if (m_pendingCompositeFrameIndex != 0 && m_nodeGraph)
 	{
-		auto* clientSourceManager = ClientSourceManager::getInstance();
+		// Gather all client source IDs that are referenced by the node graph
+		m_nodeGraph->gatherAllReferencedClientSourceIDs(activeClientSourceIds);
 
-		std::set<std::string> clientSourceIds;
-		m_nodeGraph->gatherAllReferencedClientSourceIDs(clientSourceIds);
-		//TODO
+		// See if all client render targets have been updated
+		auto* clientSourceManager = ClientSourceManager::getInstance();
+		size_t clientSourceReadyCount = 0;
+		for (const std::string& clientSourceId : activeClientSourceIds)
+		{
+			// If the client source is not registered, register it
+			if (!clientSourceManager->getIsSourcePendingRender(clientSourceId))
+			{
+				clientSourceReadyCount++;
+			}
+		}
+		
+		// If the video frame and client sources are fresh, composite them together
+		if (clientSourceReadyCount == activeClientSourceIds.size())
+		{
+			// Pop the frame event from the queue now that we are compositing it
+			assert(m_frameEventQueue.front().frame == m_pendingCompositeFrameIndex);
+			m_frameEventQueue.pop();
+
+			MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Composite frame " << m_pendingCompositeFrameIndex;
+			updateCompositeFrame();
+		}
 	}
+
+	// 
+}
+
+void CompositorComponent::updateCompositeFrame()
+{
+
 }
 
 void CompositorComponent::render() const

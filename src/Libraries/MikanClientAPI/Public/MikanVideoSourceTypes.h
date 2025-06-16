@@ -210,6 +210,55 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanClientVideoSourceInfo
+{
+	FIELD()
+	Serialization::String client_source_name; ///< The name of the client video source
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanClientVideoSourceInfo_GENERATED
+	#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanSpoutVideoSourceInfo
+{
+	FIELD()
+	Serialization::String spout_source_name; ///< The name of the spout video source
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanSpoutVideoSourceInfo_GENERATED
+	#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanNetworkVideoSourceInfo
+{
+	FIELD()
+	Serialization::String network_source_name; ///< The name of the network video source
+	FIELD()
+	Serialization::String url; ///< The URL of the video source
+	FIELD()
+	MikanVideoSourceIntrinsics intrinsics; ///< Camera intrinsics for the video source
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanNetworkVideoSourceInfo_GENERATED
+	#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceInfo
+{
+	FIELD()
+	Serialization::String usb_source_name; ///< The name of the network video source
+	FIELD()
+	Serialization::String device_path; ///< The USB device path
+	FIELD()
+	Serialization::String video_mode; ///< Current video mode
+	FIELD()
+	MikanVideoSourceIntrinsics intrinsics; ///< Camera intrinsics for the video source
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanUSBVideoSourceInfo_GENERATED
+	#endif // MIKANAPI_REFLECTION_ENABLED
+};
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanVideoSourceTypes_GENERATED

@@ -145,6 +145,13 @@ file(GLOB MIKAN_COMPONENTS_SRC
 )
 source_group("Components" FILES ${MIKAN_COMPONENTS_SRC})
 
+## Video Source Components
+file(GLOB MIKAN_VIDEO_SOURCE_COMPONENTS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Components/VideoSource/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Components/VideoSource/*.h"
+)
+source_group("Components\\VideoSource" FILES ${MIKAN_VIDEO_SOURCE_COMPONENTS_SRC})
+
 # Config
 file(GLOB MIKAN_CONFIG_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Config/*.cpp"
@@ -406,6 +413,7 @@ set(MIKAN_SRC
     ${MIKAN_ASSET_EXPORT_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_COMPONENTS_SRC}
+    ${MIKAN_VIDEO_SOURCE_COMPONENTS_SRC}
     ${MIKAN_CONFIG_SRC}
     ${MIKAN_DELEGATES_SRC}
     ${MIKAN_DEVICE_ENUM_SRC}
@@ -446,6 +454,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Export
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Components
+  ${CMAKE_CURRENT_LIST_DIR}/Components/VideoSource
   ${CMAKE_CURRENT_LIST_DIR}/Config
   ${CMAKE_CURRENT_LIST_DIR}/Delegates
   ${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator

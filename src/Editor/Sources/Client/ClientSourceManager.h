@@ -34,6 +34,7 @@ public:
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, eClientColorTextureType clientTextureType) const;
 	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, eClientDepthTextureType clientTextureType) const;
+	bool getIsSourcePendingRender(const std::string& clientId) const;
 
 protected:
 	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);

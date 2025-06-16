@@ -70,21 +70,56 @@ using TrackingMountDefinitionPtr = std::shared_ptr<TrackingMountDefinition>;
 using TrackingMountDefinitionConstPtr = std::shared_ptr<const TrackingMountDefinition>;
 using TrackingMountDefinitionWeakPtr = std::weak_ptr<TrackingMountDefinition>;
 
-// Sources
+// Video Sources
+class ClientVideoSourceDefinition;
+using ClientVideoSourceDefinitionPtr = std::shared_ptr<ClientVideoSourceDefinition>;
+using ClientVideoSourceDefinitionConstPtr = std::shared_ptr<const ClientVideoSourceDefinition>;
+using ClientVideoSourceDefinitionWeakPtr = std::weak_ptr<ClientVideoSourceDefinition>;
+
+class ClientVideoSourceComponent;
+using ClientVideoSourceComponentPtr = std::shared_ptr<ClientVideoSourceComponent>;
+using ClientVideoSourceComponentConstPtr = std::shared_ptr<const ClientVideoSourceComponent>;
+using ClientVideoSourceComponentWeakPtr = std::weak_ptr<ClientVideoSourceComponent>;
+
 class NetworkVideoSourceDefinition;
 using NetworkVideoSourceDefinitionPtr = std::shared_ptr<NetworkVideoSourceDefinition>;
 using NetworkVideoSourceDefinitionConstPtr = std::shared_ptr<const NetworkVideoSourceDefinition>;
 using NetworkVideoSourceDefinitionWeakPtr = std::weak_ptr<NetworkVideoSourceDefinition>;
+
+class NetworkVideoSourceComponent;
+using NetworkVideoSourceComponentPtr = std::shared_ptr<NetworkVideoSourceComponent>;
+using NetworkVideoSourceComponentConstPtr = std::shared_ptr<const NetworkVideoSourceComponent>;
+using NetworkVideoSourceComponentWeakPtr = std::weak_ptr<NetworkVideoSourceComponent>;
 
 class SpoutVideoSourceDefinition;
 using SpoutVideoSourceDefinitionPtr = std::shared_ptr<SpoutVideoSourceDefinition>;
 using SpoutVideoSourceDefinitionConstPtr = std::shared_ptr<const SpoutVideoSourceDefinition>;
 using SpoutVideoSourceDefinitionWeakPtr = std::weak_ptr<SpoutVideoSourceDefinition>;
 
+class SpoutVideoSourceComponent;
+using SpoutVideoSourceComponentPtr = std::shared_ptr<SpoutVideoSourceComponent>;
+using SpoutVideoSourceComponentConstPtr = std::shared_ptr<const SpoutVideoSourceComponent>;
+using SpoutVideoSourceComponentWeakPtr = std::weak_ptr<SpoutVideoSourceComponent>;
+
 class USBVideoSourceDefinition;
 using USBVideoSourceDefinitionPtr = std::shared_ptr<USBVideoSourceDefinition>;
 using USBVideoSourceDefinitionConstPtr = std::shared_ptr<const USBVideoSourceDefinition>;
 using USBVideoSourceDefinitionWeakPtr = std::weak_ptr<USBVideoSourceDefinition>;
+
+class USBVideoSourceComponent;
+using USBVideoSourceComponentPtr = std::shared_ptr<USBVideoSourceComponent>;
+using USBVideoSourceComponentConstPtr = std::shared_ptr<const USBVideoSourceComponent>;
+using USBVideoSourceComponentWeakPtr = std::weak_ptr<USBVideoSourceComponent>;
+
+class VideoSourceDefinition;
+using VideoSourceDefinitionPtr = std::shared_ptr<VideoSourceDefinition>;
+using VideoSourceDefinitionConstPtr = std::shared_ptr<const VideoSourceDefinition>;
+using VideoSourceDefinitionWeakPtr = std::weak_ptr<VideoSourceDefinition>;
+
+class VideoSourceComponent;
+using VideoSourceComponentPtr = std::shared_ptr<VideoSourceComponent>;
+using VideoSourceComponentConstPtr = std::shared_ptr<const VideoSourceComponent>;
+using VideoSourceComponentWeakPtr = std::weak_ptr<VideoSourceComponent>;
 
 // Mesh Components
 class StaticMeshComponent;

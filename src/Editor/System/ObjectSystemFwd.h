@@ -38,6 +38,10 @@ class StencilObjectSystem;
 using StencilObjectSystemPtr = std::shared_ptr<StencilObjectSystem>;
 using StencilObjectSystemWeakPtr = std::weak_ptr<StencilObjectSystem>;
 
+class VideoSourceSystem;
+using VideoSourceSystemPtr = std::shared_ptr<VideoSourceSystem>;
+using VideoSourceSystemWeakPtr = std::weak_ptr<VideoSourceSystem>;
+
 class VRObjectSystem;
 using VRObjectSystemPtr = std::shared_ptr<VRObjectSystem>;
 using VRObjectSystemWeakPtr = std::weak_ptr<VRObjectSystem>;

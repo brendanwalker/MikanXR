@@ -18,95 +18,6 @@
 #include <glm/ext/matrix_float4x4.hpp>
 #include <configuru.hpp>
 
-class VideoSourceDefinition : public MikanComponentDefinition
-{
-public:
-	VideoSourceDefinition();
-	VideoSourceDefinition(
-		MikanVideoSourceID videoSourceId,
-		const std::string& videoSourceName);
-
-	virtual configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-
-	inline MikanVideoSourceID getVideoSourceId() const { return m_videoSourceId; }
-
-private:
-	MikanVideoSourceID m_videoSourceId;
-};
-
-class USBVideoSourceDefinition : public VideoSourceDefinition
-{
-public:
-	USBVideoSourceDefinition();
-	USBVideoSourceDefinition(
-		MikanVideoSourceID videoSourceId,
-		const std::string& videoSourceName);
-
-	virtual configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-
-	static const std::string k_devicePathPropertyId;
-	inline const std::string& getDevicePath() const { return m_devicePath; }
-	void setDevicePath(const std::string& devicePath);
-
-	static const std::string k_videoModePropertyId;
-	inline const std::string& getVideoMode() const { return m_videoMode; }
-	void setVideoMode(const std::string& videoMode);
-
-	static const std::string k_brightnessPropertyId;
-	inline float getBrightness() const { return m_brightness; }
-	void setBrightness(const float brightness);
-
-private:
-	std::string m_devicePath;
-	std::string m_videoMode;
-	float m_brightness;
-};
-
-class NetworkVideoSourceDefinition : public VideoSourceDefinition
-{
-public:
-	NetworkVideoSourceDefinition();
-	NetworkVideoSourceDefinition(
-		MikanVideoSourceID videoSourceId,
-		const std::string& videoSourceName);
-
-	virtual configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-
-	static const std::string k_urlPropertyId;
-	inline const std::string& getURL() const { return m_url; }
-	void setURL(const std::string& url);
-
-private:
-	std::string m_url;
-};
-
-class SpoutVideoSourceDefinition : public VideoSourceDefinition
-{
-public:
-	SpoutVideoSourceDefinition();
-	SpoutVideoSourceDefinition(
-		MikanVideoSourceID videoSourceId,
-		const std::string& videoSourceName);
-
-	virtual configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-
-	static const std::string k_spoutSourcePropertyId;
-	inline const std::string& getSpoutSource() const { return m_spoutSource; }
-	void setSpoutSource(const std::string& spoutSource);
-
-	static const std::string k_syncWithCameraPropertyId;
-	inline bool getSyncWithCamera() const { return m_bSyncWithCamera; }
-	void setSyncWithCamera(bool bSyncFlag);
-
-private:
-	std::string m_spoutSource;
-	bool m_bSyncWithCamera;
-};
-
 class VideoSourceSystemConfig : public CommonConfig
 {
 public:
@@ -120,25 +31,36 @@ public:
 	eVideoSourceType getVideoSourceType(MikanVideoSourceID videoSourceId) const;
 	bool removeVideoSource(MikanVideoSourceID videoSourceId);
 
-	static const std::string k_usbVideoSourceListPropertyId;
-	USBVideoSourceDefinitionConstPtr getUSBVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
-	USBVideoSourceDefinitionPtr getUSBVideoSourceConfig(MikanVideoSourceID videoSourceId);
-	MikanVideoSourceID addUSBVideoSource(const std::string& videoSourceName);
-	bool removeUSBVideoSource(MikanVideoSourceID videoSourceId);
+	static const std::string k_clientVideoSourceListPropertyId;
+	const std::vector<ClientVideoSourceDefinitionPtr>& getClientVideoSourceList() const { return m_clientVideoSourceList; }
+	ClientVideoSourceDefinitionConstPtr getClientVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
+	ClientVideoSourceDefinitionPtr getClientVideoSourceConfig(MikanVideoSourceID videoSourceId);
+	MikanVideoSourceID addClientVideoSource(const struct MikanClientVideoSourceInfo& videoSourceInfo);
+	bool removeClientVideoSource(MikanVideoSourceID videoSourceId);
 
 	static const std::string k_networkedVideoSourceListPropertyId;
+	const std::vector<NetworkVideoSourceDefinitionPtr>& getNetworkedVideoSourceList() const { return m_networkedVideoSourceList; }
 	NetworkVideoSourceDefinitionConstPtr getNetworkedVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
 	NetworkVideoSourceDefinitionPtr getNetworkedVideoSourceConfig(MikanVideoSourceID videoSourceId);
-	MikanVideoSourceID addNetworkedVideoSource(const std::string& videoSourceName);
+	MikanVideoSourceID addNetworkedVideoSource(const struct MikanNetworkVideoSourceInfo& videoSourceInfo);
 	bool removeNetworkedVideoSource(MikanVideoSourceID videoSourceId);
 
 	static const std::string k_spoutVideoSourceListPropertyId;
+	const std::vector<SpoutVideoSourceDefinitionPtr>& getSpoutVideoSourceList() const { return m_spoutVideoSourceList; }
 	SpoutVideoSourceDefinitionConstPtr getSpoutVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
 	SpoutVideoSourceDefinitionPtr getSpoutVideoSourceConfig(MikanVideoSourceID videoSourceId);
-	MikanVideoSourceID addSpoutVideoSource(const std::string& videoSourceName);
+	MikanVideoSourceID addSpoutVideoSource(const struct MikanSpoutVideoSourceInfo& videoSourceInfo);
 	bool removeSpoutVideoSource(MikanVideoSourceID videoSourceId);
 
+	static const std::string k_usbVideoSourceListPropertyId;
+	const std::vector<USBVideoSourceDefinitionPtr>& getUSBVideoSourceList() const { return m_usbVideoSourceList; }
+	USBVideoSourceDefinitionConstPtr getUSBVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
+	USBVideoSourceDefinitionPtr getUSBVideoSourceConfig(MikanVideoSourceID videoSourceId);
+	MikanVideoSourceID addUSBVideoSource(const struct MikanUSBVideoSourceInfo& videoSourceInfo);
+	bool removeUSBVideoSource(MikanVideoSourceID videoSourceId);
+
 protected:
+	std::vector<ClientVideoSourceDefinitionPtr> m_clientVideoSourceList;
 	std::vector<USBVideoSourceDefinitionPtr> m_usbVideoSourceList;
 	std::vector<NetworkVideoSourceDefinitionPtr> m_networkedVideoSourceList;
 	std::vector<SpoutVideoSourceDefinitionPtr> m_spoutVideoSourceList;

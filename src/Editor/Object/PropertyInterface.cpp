@@ -15,6 +15,7 @@ const std::string g_PropertySemanticNames[(int)ePropertySemantic::COUNT] = {
 	"stage_id",
 	"marker_id",
 	"compositor_id",
+	"video_source_id",
 	"stencil_cull_mode"
 };
 const std::string* k_PropertySemanticNames = g_PropertySemanticNames;

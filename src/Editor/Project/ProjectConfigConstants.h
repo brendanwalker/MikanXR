@@ -67,6 +67,7 @@ enum class eVideoSourceType : int
 {
 	INVALID = -1,
 
+	client,
 	usb,
 	networked,
 	spout,

@@ -8,6 +8,7 @@
 #include "SceneObjectSystem.h"
 #include "StencilObjectSystem.h"
 #include "StageObjectSystem.h"
+#include "VideoSourceSystem.h"
 
 bool ObjectSystemManager::startup()
 {
@@ -15,6 +16,7 @@ bool ObjectSystemManager::startup()
 	// Init EditorSystem first so that it get component creation events 
 	// from Anchor and Stencil Systems triggered during init call
 	addSystem<EditorObjectSystem>();
+	addSystem<VideoSourceSystem>();
 	addSystem<SceneObjectSystem>();
 	addSystem<StageObjectSystem>();
 	addSystem<CameraObjectSystem>();

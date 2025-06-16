@@ -1,4 +1,8 @@
 #include "App.h"
+#include "ClientVideoSourceComponent.h"
+#include "NetworkVideoSourceComponent.h"
+#include "SpoutVideoSourceComponent.h"
+#include "USBVideoSourceComponent.h"
 #include "VideoSourceSystemConfig.h"
 #include "BoxColliderComponent.h"
 #include "TransformComponent.h"
@@ -10,195 +14,8 @@
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 
-// -- VideoSourceDefinition -----
-VideoSourceDefinition::VideoSourceDefinition()
-	: MikanComponentDefinition()
-	, m_videoSourceId(INVALID_MIKAN_ID)
-{}
-
-VideoSourceDefinition::VideoSourceDefinition(
-	MikanVideoSourceID videoSourceId,
-	const std::string& videoSourceName) 
-	: MikanComponentDefinition(videoSourceName)
-	, m_videoSourceId(videoSourceId)
-{}
-
-configuru::Config VideoSourceDefinition::writeToJSON()
-{
-	configuru::Config pt = MikanComponentDefinition::writeToJSON();
-	
-	pt["video_source_id"] = m_videoSourceId;
-
-	return pt;
-}
-
-void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
-{
-	MikanComponentDefinition::readFromJSON(pt);
-
-	m_videoSourceId = pt.get_or<MikanVideoSourceID>("video_source_id", m_videoSourceId);
-}
-
-// -- USBVideoSourceDefinition -----
-const std::string USBVideoSourceDefinition::k_devicePathPropertyId = "devicePath";
-const std::string USBVideoSourceDefinition::k_videoModePropertyId = "videoMode";
-const std::string USBVideoSourceDefinition::k_brightnessPropertyId = "brightness";
-
-USBVideoSourceDefinition::USBVideoSourceDefinition()
-	: VideoSourceDefinition()
-	, m_devicePath("")
-	, m_videoMode("")
-	, m_brightness(-1.f)
-{}
-
-USBVideoSourceDefinition::USBVideoSourceDefinition(
-	MikanVideoSourceID videoSourceId,
-	const std::string& videoSourceName) 
-	: VideoSourceDefinition(videoSourceId, videoSourceName)
-	, m_devicePath("")
-	, m_videoMode("")
-	, m_brightness(-1.f)
-{}
-
-configuru::Config USBVideoSourceDefinition::writeToJSON()
-{
-	configuru::Config pt = VideoSourceDefinition::writeToJSON();
-
-	pt["device_path"] = m_devicePath;
-	pt["video_mode"] = m_videoMode;
-	pt["brightness"] = m_brightness;
-
-	return pt;
-}
-
-void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
-{
-	VideoSourceDefinition::readFromJSON(pt);
-	m_devicePath = pt.get_or<std::string>("device_path", m_devicePath);
-	m_videoMode = pt.get_or<std::string>("video_mode", m_videoMode);
-	m_brightness = pt.get_or<float>("brightness", m_brightness);
-}
-
-void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
-{
-	if (devicePath != m_devicePath)
-	{
-		m_devicePath = devicePath;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
-	}
-}
-
-void USBVideoSourceDefinition::setVideoMode(const std::string& videoMode)
-{
-	if (videoMode != m_videoMode)
-	{
-		m_videoMode = videoMode;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoModePropertyId));
-	}
-}
-
-void USBVideoSourceDefinition::setBrightness(const float brightness)
-{
-	if (brightness != m_brightness)
-	{
-		m_brightness = brightness;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_brightnessPropertyId));
-	}
-}
-
-// -- NetworkVideoSourceDefinition -----
-const std::string NetworkVideoSourceDefinition::k_urlPropertyId= "url";
-
-NetworkVideoSourceDefinition::NetworkVideoSourceDefinition() 
-	: VideoSourceDefinition() 
-{
-}
-
-NetworkVideoSourceDefinition::NetworkVideoSourceDefinition(
-	MikanVideoSourceID videoSourceId,
-	const std::string& videoSourceName)
-	: VideoSourceDefinition(videoSourceId, videoSourceName)
-{
-
-}
-
-configuru::Config NetworkVideoSourceDefinition::writeToJSON()
-{
-	configuru::Config pt = VideoSourceDefinition::writeToJSON();
-
-	pt["url"] = m_url;
-
-	return pt;
-}
-
-void NetworkVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
-{
-	VideoSourceDefinition::readFromJSON(pt);
-
-	m_url = pt.get_or<std::string>("url", m_url);
-}
-
-void NetworkVideoSourceDefinition::setURL(const std::string& url)
-{
-	if (url != m_url)
-	{
-		m_url = url;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_urlPropertyId));
-	}
-}
-
-// -- SpoutVideoSourceDefinition ------
-const std::string SpoutVideoSourceDefinition::k_spoutSourcePropertyId = "spout_source";
-const std::string SpoutVideoSourceDefinition::k_syncWithCameraPropertyId = "sync_with_camera";
-
-SpoutVideoSourceDefinition::SpoutVideoSourceDefinition()
-	: VideoSourceDefinition()
-{
-}
-
-SpoutVideoSourceDefinition::SpoutVideoSourceDefinition(
-	MikanVideoSourceID videoSourceId,
-	const std::string& videoSourceName)
-	: VideoSourceDefinition(videoSourceId, videoSourceName)
-{
-}
-
-configuru::Config SpoutVideoSourceDefinition::writeToJSON()
-{
-	configuru::Config pt = VideoSourceDefinition::writeToJSON();
-
-	pt["spout_source"] = m_spoutSource;
-
-	return pt;
-}
-
-void SpoutVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
-{
-	VideoSourceDefinition::readFromJSON(pt);
-
-	m_spoutSource = pt.get_or<std::string>("spout_source", m_spoutSource);
-	m_bSyncWithCamera = pt.get_or<bool>("sync_with_camera", m_bSyncWithCamera);
-}
-
-void SpoutVideoSourceDefinition::setSpoutSource(const std::string& spoutSource)
-{
-	if (spoutSource != m_spoutSource)
-	{
-		m_spoutSource = spoutSource;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutSourcePropertyId));
-	}
-}
-
-void SpoutVideoSourceDefinition::setSyncWithCamera(bool bSyncFlag)
-{
-	if (bSyncFlag != m_bSyncWithCamera)
-	{
-		m_bSyncWithCamera = bSyncFlag;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_syncWithCameraPropertyId));
-	}
-}
-
 // -- VideoSourceSystemConfig -----
+const std::string VideoSourceSystemConfig::k_clientVideoSourceListPropertyId= "clientVideoSourceList";
 const std::string VideoSourceSystemConfig::k_usbVideoSourceListPropertyId= "usbVideoSourceList";
 const std::string VideoSourceSystemConfig::k_networkedVideoSourceListPropertyId= "networkVideoSourceList";
 const std::string VideoSourceSystemConfig::k_spoutVideoSourceListPropertyId= "spoutVideoSourceList";
@@ -209,12 +26,12 @@ configuru::Config VideoSourceSystemConfig::writeToJSON()
 
 	pt["next_video_source_id"] = m_nextVideoSourceId;
 
-	std::vector<configuru::Config> usbVideoSourceConfigs;
-	for (auto videoSource : m_usbVideoSourceList)
+	std::vector<configuru::Config> clientVideoSourceConfigs;
+	for (auto videoSource : m_clientVideoSourceList)
 	{
-		usbVideoSourceConfigs.push_back(videoSource->writeToJSON());
+		clientVideoSourceConfigs.push_back(videoSource->writeToJSON());
 	}
-	pt.insert_or_assign(std::string("usb_video_sources"), usbVideoSourceConfigs);
+	pt.insert_or_assign(std::string("client_video_sources"), clientVideoSourceConfigs);
 
 	std::vector<configuru::Config> networkedVideoSourceConfigs;
 	for (auto videoSource : m_networkedVideoSourceList)
@@ -230,6 +47,13 @@ configuru::Config VideoSourceSystemConfig::writeToJSON()
 	}
 	pt.insert_or_assign(std::string("spout_video_sources"), spoutVideoSourceConfigs);
 
+	std::vector<configuru::Config> usbVideoSourceConfigs;
+	for (auto videoSource : m_usbVideoSourceList)
+	{
+		usbVideoSourceConfigs.push_back(videoSource->writeToJSON());
+	}
+	pt.insert_or_assign(std::string("usb_video_sources"), usbVideoSourceConfigs);
+
 	return pt;
 }
 
@@ -239,16 +63,16 @@ void VideoSourceSystemConfig::readFromJSON(const configuru::Config& pt)
 
 	m_nextVideoSourceId = pt.get_or<int>("next_video_source_id", m_nextVideoSourceId);
 
-	// Read in the usb video sources
-	m_usbVideoSourceList.clear();
-	if (pt.has_key("usb_video_sources"))
+	// Read in the client video sources
+	m_clientVideoSourceList.clear();
+	if (pt.has_key("client_video_sources"))
 	{
-		for (const configuru::Config& videoSource_pt : pt["usb_video_sources"].as_array())
+		for (const configuru::Config& videoSource_pt : pt["client_video_sources"].as_array())
 		{
-			auto definitionPtr = std::make_shared<USBVideoSourceDefinition>();
+			auto definitionPtr = std::make_shared<ClientVideoSourceDefinition>();
 
 			definitionPtr->readFromJSON(videoSource_pt);
-			m_usbVideoSourceList.push_back(definitionPtr);
+			m_clientVideoSourceList.push_back(definitionPtr);
 
 			addChildConfig(definitionPtr);
 		}
@@ -283,14 +107,29 @@ void VideoSourceSystemConfig::readFromJSON(const configuru::Config& pt)
 			addChildConfig(definitionPtr);
 		}
 	}
+
+	// Read in the usb video sources
+	m_usbVideoSourceList.clear();
+	if (pt.has_key("usb_video_sources"))
+	{
+		for (const configuru::Config& videoSource_pt : pt["usb_video_sources"].as_array())
+		{
+			auto definitionPtr = std::make_shared<USBVideoSourceDefinition>();
+
+			definitionPtr->readFromJSON(videoSource_pt);
+			m_usbVideoSourceList.push_back(definitionPtr);
+
+			addChildConfig(definitionPtr);
+		}
+	}
 }
 
 eVideoSourceType VideoSourceSystemConfig::getVideoSourceType(MikanVideoSourceID videoSourceId) const
 {
-	auto usbVideoSourcePtr = getUSBVideoSourceConfigConst(videoSourceId);
-	if (usbVideoSourcePtr)
+	auto clientVideoSourcePtr = getClientVideoSourceConfigConst(videoSourceId);
+	if (clientVideoSourcePtr)
 	{
-		return eVideoSourceType::usb;
+		return eVideoSourceType::client;
 	}
 
 	auto networkedVideoSourcePtr = getNetworkedVideoSourceConfigConst(videoSourceId);
@@ -305,6 +144,12 @@ eVideoSourceType VideoSourceSystemConfig::getVideoSourceType(MikanVideoSourceID 
 		return eVideoSourceType::spout;
 	}
 
+	auto usbVideoSourcePtr = getUSBVideoSourceConfigConst(videoSourceId);
+	if (usbVideoSourcePtr)
+	{
+		return eVideoSourceType::usb;
+	}
+
 	return eVideoSourceType::INVALID;
 }
 
@@ -312,6 +157,8 @@ bool VideoSourceSystemConfig::removeVideoSource(MikanVideoSourceID videoSourceId
 {
 	switch (getVideoSourceType(videoSourceId))
 	{
+		case eVideoSourceType::client:
+			return removeClientVideoSource(videoSourceId);
 		case eVideoSourceType::usb:
 			return removeUSBVideoSource(videoSourceId);
 		case eVideoSourceType::networked:
@@ -323,58 +170,62 @@ bool VideoSourceSystemConfig::removeVideoSource(MikanVideoSourceID videoSourceId
 	}
 }
 
-USBVideoSourceDefinitionConstPtr VideoSourceSystemConfig::getUSBVideoSourceConfigConst(
+ClientVideoSourceDefinitionConstPtr VideoSourceSystemConfig::getClientVideoSourceConfigConst(
 	MikanVideoSourceID videoSourceId) const
 {
 	auto it = std::find_if(
-		m_usbVideoSourceList.begin(), m_usbVideoSourceList.end(),
-		[videoSourceId](USBVideoSourceDefinitionPtr configPtr) {
+		m_clientVideoSourceList.begin(), m_clientVideoSourceList.end(),
+		[videoSourceId](ClientVideoSourceDefinitionPtr configPtr) {
 			return configPtr->getVideoSourceId() == videoSourceId;
 		});
-
-	if (it != m_usbVideoSourceList.end())
+	if (it != m_clientVideoSourceList.end())
 	{
-		return USBVideoSourceDefinitionConstPtr(*it);
+		return ClientVideoSourceDefinitionConstPtr(*it);
 	}
-
-	return USBVideoSourceDefinitionConstPtr();
+	return ClientVideoSourceDefinitionConstPtr();
 }
 
-USBVideoSourceDefinitionPtr VideoSourceSystemConfig::getUSBVideoSourceConfig(
+ClientVideoSourceDefinitionPtr VideoSourceSystemConfig::getClientVideoSourceConfig(
 	MikanVideoSourceID videoSourceId)
 {
-	return std::const_pointer_cast<USBVideoSourceDefinition>(
-		getUSBVideoSourceConfigConst(videoSourceId));
+	auto constPtr = getClientVideoSourceConfigConst(videoSourceId);
+	if (constPtr)
+	{
+		return std::const_pointer_cast<ClientVideoSourceDefinition>(constPtr);
+	}
+	return ClientVideoSourceDefinitionPtr();
 }
 
-MikanVideoSourceID VideoSourceSystemConfig::addUSBVideoSource(const std::string& videoSourceName)
+MikanVideoSourceID VideoSourceSystemConfig::addClientVideoSource(
+	const MikanClientVideoSourceInfo& videoSourceInfo)
 {
-	USBVideoSourceDefinitionPtr videoSourcePtr = 
-		std::make_shared<USBVideoSourceDefinition>(m_nextVideoSourceId, videoSourceName);
+	ClientVideoSourceDefinitionPtr videoSourcePtr =
+		std::make_shared<ClientVideoSourceDefinition>(m_nextVideoSourceId, videoSourceInfo);
 	m_nextVideoSourceId++;
 
-	m_usbVideoSourceList.push_back(videoSourcePtr);
+	m_clientVideoSourceList.push_back(videoSourcePtr);
 	addChildConfig(videoSourcePtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_clientVideoSourceListPropertyId));
 
 	return videoSourcePtr->getVideoSourceId();
 }
 
-bool VideoSourceSystemConfig::removeUSBVideoSource(MikanVideoSourceID videoSourceId)
+bool VideoSourceSystemConfig::removeClientVideoSource(
+	MikanVideoSourceID videoSourceId)
 {
 	auto it = std::find_if(
-		m_usbVideoSourceList.begin(), m_usbVideoSourceList.end(),
-		[videoSourceId](USBVideoSourceDefinitionPtr configPtr) {
+		m_clientVideoSourceList.begin(), m_clientVideoSourceList.end(),
+		[videoSourceId](ClientVideoSourceDefinitionPtr configPtr) {
 			return configPtr->getVideoSourceId() == videoSourceId;
 		});
 
-	if (it != m_usbVideoSourceList.end())
+	if (it != m_clientVideoSourceList.end())
 	{
 		removeChildConfig(*it);
 
-		m_usbVideoSourceList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
+		m_clientVideoSourceList.erase(it);
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_clientVideoSourceListPropertyId));
 
 		return true;
 	}
@@ -406,10 +257,11 @@ NetworkVideoSourceDefinitionPtr VideoSourceSystemConfig::getNetworkedVideoSource
 		getNetworkedVideoSourceConfigConst(videoSourceId));
 }
 
-MikanVideoSourceID VideoSourceSystemConfig::addNetworkedVideoSource(const std::string& videoSourceName)
+MikanVideoSourceID VideoSourceSystemConfig::addNetworkedVideoSource(
+	const MikanNetworkVideoSourceInfo& videoSourceInfo)
 {
 	NetworkVideoSourceDefinitionPtr videoSourcePtr =
-		std::make_shared<NetworkVideoSourceDefinition>(m_nextVideoSourceId, videoSourceName);
+		std::make_shared<NetworkVideoSourceDefinition>(m_nextVideoSourceId, videoSourceInfo);
 	m_nextVideoSourceId++;
 
 	m_networkedVideoSourceList.push_back(videoSourcePtr);
@@ -465,10 +317,11 @@ SpoutVideoSourceDefinitionPtr VideoSourceSystemConfig::getSpoutVideoSourceConfig
 		getSpoutVideoSourceConfigConst(videoSourceId));
 }
 
-MikanVideoSourceID VideoSourceSystemConfig::addSpoutVideoSource(const std::string& videoSourceName)
+MikanVideoSourceID VideoSourceSystemConfig::addSpoutVideoSource(
+	const MikanSpoutVideoSourceInfo& videoSourceInfo)
 {
 	SpoutVideoSourceDefinitionPtr videoSourcePtr =
-		std::make_shared<SpoutVideoSourceDefinition>(m_nextVideoSourceId, videoSourceName);
+		std::make_shared<SpoutVideoSourceDefinition>(m_nextVideoSourceId, videoSourceInfo);
 	m_nextVideoSourceId++;
 
 	m_spoutVideoSourceList.push_back(videoSourcePtr);
@@ -493,6 +346,66 @@ bool VideoSourceSystemConfig::removeSpoutVideoSource(MikanVideoSourceID videoSou
 
 		m_spoutVideoSourceList.erase(it);
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutVideoSourceListPropertyId));
+
+		return true;
+	}
+
+	return false;
+}
+
+USBVideoSourceDefinitionConstPtr VideoSourceSystemConfig::getUSBVideoSourceConfigConst(
+	MikanVideoSourceID videoSourceId) const
+{
+	auto it = std::find_if(
+		m_usbVideoSourceList.begin(), m_usbVideoSourceList.end(),
+		[videoSourceId](USBVideoSourceDefinitionPtr configPtr) {
+			return configPtr->getVideoSourceId() == videoSourceId;
+		});
+
+	if (it != m_usbVideoSourceList.end())
+	{
+		return USBVideoSourceDefinitionConstPtr(*it);
+	}
+
+	return USBVideoSourceDefinitionConstPtr();
+}
+
+USBVideoSourceDefinitionPtr VideoSourceSystemConfig::getUSBVideoSourceConfig(
+	MikanVideoSourceID videoSourceId)
+{
+	return std::const_pointer_cast<USBVideoSourceDefinition>(
+		getUSBVideoSourceConfigConst(videoSourceId));
+}
+
+MikanVideoSourceID VideoSourceSystemConfig::addUSBVideoSource(
+	const MikanUSBVideoSourceInfo& videoSourceInfo)
+{
+	USBVideoSourceDefinitionPtr videoSourcePtr =
+		std::make_shared<USBVideoSourceDefinition>(m_nextVideoSourceId, videoSourceInfo);
+	m_nextVideoSourceId++;
+
+	m_usbVideoSourceList.push_back(videoSourcePtr);
+	addChildConfig(videoSourcePtr);
+
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
+
+	return videoSourcePtr->getVideoSourceId();
+}
+
+bool VideoSourceSystemConfig::removeUSBVideoSource(MikanVideoSourceID videoSourceId)
+{
+	auto it = std::find_if(
+		m_usbVideoSourceList.begin(), m_usbVideoSourceList.end(),
+		[videoSourceId](USBVideoSourceDefinitionPtr configPtr) {
+			return configPtr->getVideoSourceId() == videoSourceId;
+		});
+
+	if (it != m_usbVideoSourceList.end())
+	{
+		removeChildConfig(*it);
+
+		m_usbVideoSourceList.erase(it);
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
 
 		return true;
 	}

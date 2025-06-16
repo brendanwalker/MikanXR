@@ -75,6 +75,7 @@ public:
 	StageObjectSystemConfigPtr stageConfig;
 	TrackingSystemsConfigPtr trackingSystemsConfig;
 	VideoSourceManagerConfigPtr videoSourcesConfig;
+	VideoSourceSystemConfigPtr videoSourceSystemConfig;
 	VRObjectSystemConfigPtr vrObjectConfig;
 
 protected:

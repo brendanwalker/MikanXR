@@ -16,6 +16,9 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 
+class VideoFrameDistortionView;
+using VideoFrameDistortionViewPtr = std::shared_ptr<VideoFrameDistortionView>;
+
 class CameraDefinition : public TransformComponentDefinition
 {
 public:

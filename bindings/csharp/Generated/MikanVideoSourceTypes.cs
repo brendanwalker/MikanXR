@@ -39,6 +39,13 @@ namespace MikanXR
 		public double zfar;
 	};
 
+	public class MikanClientVideoSourceInfo
+	{
+		public static readonly long classId= 2304025741573747984;
+
+		public string client_source_name;
+	};
+
 	public class MikanDistortionCoefficients
 	{
 		public static readonly long classId= -2596555002374434624;
@@ -62,6 +69,22 @@ namespace MikanXR
 		public MikanMatrix3d undistorted_camera_matrix;
 	};
 
+	public class MikanNetworkVideoSourceInfo
+	{
+		public static readonly long classId= 446555362386089173;
+
+		public string network_source_name;
+		public string url;
+		public MikanVideoSourceIntrinsics intrinsics;
+	};
+
+	public class MikanSpoutVideoSourceInfo
+	{
+		public static readonly long classId= -1556884157476677884;
+
+		public string spout_source_name;
+	};
+
 	public class MikanStereoIntrinsics : MikanBaseIntrinsics
 	{
 		public static new readonly long classId= -261934067861644075;
@@ -79,6 +102,16 @@ namespace MikanXR
 		public MikanMatrix3d essential_matrix;
 		public MikanMatrix3d fundamental_matrix;
 		public MikanMatrix4d reprojection_matrix;
+	};
+
+	public class MikanUSBVideoSourceInfo
+	{
+		public static readonly long classId= -5452510762721765943;
+
+		public string usb_source_name;
+		public string device_path;
+		public string video_mode;
+		public MikanVideoSourceIntrinsics intrinsics;
 	};
 
 	public class MikanVideoSourceIntrinsics

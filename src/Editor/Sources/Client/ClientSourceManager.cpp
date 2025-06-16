@@ -119,6 +119,18 @@ IMkTexturePtr ClientSourceManager::getClientDepthSourceTexture(
 	return IMkTexturePtr();
 }
 
+bool ClientSourceManager::getIsSourcePendingRender(
+	const std::string& clientId) const
+{
+	ClientSource* clientSource = nullptr;
+	if (m_clientSources.tryGetValue(clientId, clientSource))
+	{
+		return clientSource->bIsPendingRender;
+	}
+
+	return false;
+}
+
 bool ClientSourceManager::addClientSource(
 	const std::string& clientId,
 	const MikanClientInfo& clientInfo,
