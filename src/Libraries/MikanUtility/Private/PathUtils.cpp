@@ -113,7 +113,7 @@ namespace PathUtils
 
 				if (extension_filter.empty() || filename.extension() == extension_filter)
 				{
-					filenames.push_back(filename.u8string());
+					filenames.push_back(filename.string());
 				}
 			}
 		}
@@ -132,7 +132,7 @@ namespace PathUtils
 			{
 				const std::filesystem::path& filename = dir_entry.path().filename();
 
-				dirnames.push_back(filename.u8string());
+				dirnames.push_back(filename.string());
 			}
 		}
 
@@ -189,7 +189,7 @@ namespace PathUtils
 		const std::filesystem::path& path,
 		const size_t maxLength)
 	{
-		const std::string pathString = path.u8string();
+		const std::string pathString = path.string();
 
 		if (pathString.length() > maxLength)
 		{

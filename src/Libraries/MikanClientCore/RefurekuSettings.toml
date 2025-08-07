@@ -33,7 +33,7 @@ exportSymbolMacroName = "MIKAN_CORE_API"
 
 [ParsingSettings]
 # Used c++ version (supported values are: 17, 20)
-cppVersion = 17
+cppVersion = 20
 
 # Include directories of the project
 projectIncludeDirectories = [

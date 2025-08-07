@@ -154,7 +154,7 @@ private:
 class SpoutDX11TextureWriter
 {
 public:
-	SpoutDX11TextureWriter::SpoutDX11TextureWriter(
+	SpoutDX11TextureWriter(
 		SharedTextureLogger& logger,
 		const std::string& clientName)
 		: m_logger(logger)
@@ -317,7 +317,7 @@ private:
 class SpoutDX12TextureWriter
 {
 public:
-	SpoutDX12TextureWriter::SpoutDX12TextureWriter(
+	SpoutDX12TextureWriter(
 		SharedTextureLogger& logger,
 		const std::string& clientName)
 		: m_logger(logger)
@@ -537,13 +537,13 @@ private:
 class SharedTextureWriteAccessor : public ISharedTextureWriteAccessor
 {
 public:
-	SharedTextureWriteAccessor::SharedTextureWriteAccessor(const std::string& clientName)
+	SharedTextureWriteAccessor(const std::string& clientName)
 		: m_clientName(clientName)
 		, m_graphicsAPI(SharedClientGraphicsApi::UNKNOWN)
 	{
 	}
 
-	SharedTextureWriteAccessor::~SharedTextureWriteAccessor()
+	~SharedTextureWriteAccessor()
 	{
 		dispose();
 	}

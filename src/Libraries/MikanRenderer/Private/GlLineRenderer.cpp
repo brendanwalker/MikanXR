@@ -61,7 +61,7 @@ protected:
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 
-		void PointBufferState::drawGlBufferState(unsigned int glEnumMode)
+		void drawGlBufferState(unsigned int glEnumMode)
 		{
 			assert(m_points != nullptr);
 			assert(m_pointCount <= k_max_points);

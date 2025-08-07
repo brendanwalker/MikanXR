@@ -309,14 +309,14 @@ ID3D11On12Device* spoutDX12::CreateDX11on12device(ID3D12Device* pDevice12, IUnkn
 
 	if (FAILED(hRes)) {
 		SpoutLogError("spoutDX12::CreateDX11on12device fail");
-		return false;
+		return nullptr;
 	}
 
 	// Grab interface to the d3d11on12 device from the newly created d3d11 device
 	hRes = pDevice11->QueryInterface(__uuidof(ID3D11On12Device), (void**)&pd3d11On12Device);
 	if (FAILED(hRes)) {
 		SpoutLogError("failed to query 11on12 device");
-		return false;
+		return nullptr;
 	}
 
 	SpoutLogNotice("spoutDX12::CreateDX11on12device");
@@ -554,7 +554,7 @@ ID3D12Device* spoutDX12::CreateDX12device()
 	if (!m_pAdapterDX12) {
 		IDXGIFactory1* factory1 = nullptr;
 		if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory1)))
-			return false;
+			return nullptr;
 		GetHardwareAdapter(factory1, &m_pAdapterDX12);
 		factory1->Release();
 	}
@@ -566,7 +566,7 @@ ID3D12Device* spoutDX12::CreateDX12device()
 
 	if (FAILED(hRes)) {
 		SpoutLogError("spoutDX12::CreateDX12device fail");
-		return false;
+		return nullptr;
 	}
 	SpoutLogNotice("spoutDX12::CreateDX12device - 0x%.7X", PtrToUint(pd3dDevice12));
 

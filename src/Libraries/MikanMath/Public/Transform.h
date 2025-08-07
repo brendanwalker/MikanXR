@@ -10,7 +10,7 @@
 class GlmTransform
 {
 public:
-	GlmTransform::GlmTransform()
+	GlmTransform()
 		: m_position(glm::vec3(0.f))
 		, m_rotation(glm::quat())
 		, m_scale(glm::vec3(1.f, 1.f, 1.f))
@@ -18,7 +18,7 @@ public:
 	{
 	}
 
-	GlmTransform::GlmTransform(
+	GlmTransform(
 		const glm::vec3& position)
 		: m_position(position)
 		, m_rotation(glm::quat())
@@ -27,7 +27,7 @@ public:
 		rebuildMat();
 	}
 
-	GlmTransform::GlmTransform(
+	GlmTransform(
 		const glm::vec3& position,
 		const glm::quat& rotation)
 		: m_position(position)
@@ -37,7 +37,7 @@ public:
 		rebuildMat();
 	}
 
-	GlmTransform::GlmTransform(
+	GlmTransform(
 		const glm::vec3& position,
 		const glm::quat& rotation,
 		const glm::vec3& scale)
@@ -48,7 +48,7 @@ public:
 		rebuildMat();
 	}
 
-	GlmTransform::GlmTransform(
+	GlmTransform(
 		const glm::mat4& mat4)
 		: m_position(glm::vec3(0.f))
 		, m_rotation(glm::quat())

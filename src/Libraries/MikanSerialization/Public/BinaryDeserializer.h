@@ -7,12 +7,6 @@
 
 namespace Serialization
 {
-	template<typename t_object_type>
-	bool deserializeFromBytes(const std::vector<uint8_t>& inBytes, t_object_type& instance)
-	{
-		return deserializeFromBytes(inBytes, &instance, t_object_type::staticGetArchetype());
-	}
-
 	SERIALIZATION_API bool deserializeFromBytes(
 		const std::vector<uint8_t>& inBytes,
 		void* instance,
@@ -22,4 +16,12 @@ namespace Serialization
 		const size_t inSize,
 		void* instance,
 		rfk::Struct const& structType);
+
+#ifdef SERIALIZATION_REFLECTION_ENABLED
+	template<typename t_object_type>
+	bool deserializeFromBytes(const std::vector<uint8_t>& inBytes, t_object_type& instance)
+	{
+		return deserializeFromBytes(inBytes, &instance, t_object_type::staticGetArchetype());
+	}
+#endif // SERIALIZATION_REFLECTION_ENABLED
 };

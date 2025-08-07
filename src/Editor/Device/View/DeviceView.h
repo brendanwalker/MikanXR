@@ -6,6 +6,8 @@
 
 #include <chrono>
 
+#include <assert.h>
+
 // -- declarations -----
 class DeviceView : public std::enable_shared_from_this<DeviceView>
 {

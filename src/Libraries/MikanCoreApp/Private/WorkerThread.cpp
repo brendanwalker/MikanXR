@@ -14,7 +14,7 @@ public:
 	bool threadStarted;
 	std::thread workerThread;
 
-	WorkerThreadImpl::WorkerThreadImpl(const std::string thread_name)
+	WorkerThreadImpl(const std::string thread_name)
 		: threadName(thread_name)
 		, exitSignaled({false})
 		, threadEnded({false})

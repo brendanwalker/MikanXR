@@ -563,7 +563,7 @@ public:
 	uint32_t getBufferFormat() const { return m_bufferFormat; }
 
 protected:
-	void GlTexture::determinePixelType()
+	void determinePixelType()
 	{
 		GLenum pixelType;
 		switch (m_textureFormat)
@@ -583,7 +583,7 @@ protected:
 		}
 	}
 
-	size_t GlTexture::getBytesPerPixel(uint32_t format, uint32_t pixelType)
+	size_t getBytesPerPixel(uint32_t format, uint32_t pixelType)
 	{
 		size_t bytesPerChannel = 0;
 		switch (pixelType)

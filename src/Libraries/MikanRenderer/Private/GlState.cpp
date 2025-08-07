@@ -34,7 +34,7 @@ GLenum g_glFlagTypeMapping[(int)eMkStateFlagType::COUNT] = {
 class GlState : public IMkState
 {
 public:
-	GlState::GlState(MkStateStack& ownerStack, const std::string& scopeName, const int stackDepth)
+	GlState(MkStateStack& ownerStack, const std::string& scopeName, const int stackDepth)
 		: m_ownerStack(ownerStack)
 		, m_parentState(ownerStack.getState(stackDepth - 1))
 		, m_scopeName(scopeName)
@@ -77,7 +77,7 @@ public:
 		}
 	}
 
-	GlState::~GlState()
+	~GlState()
 	{
 		// Restore to the parent flags, if there is a parent state
 		if (m_parentState != nullptr)

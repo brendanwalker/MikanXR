@@ -209,7 +209,7 @@ void CompositorNodeGraph::gatherAllReferencedClientSourceIDs(
 	std::set<std::string>& outClientSourceIds) const
 {
 	visitAllNodes(
-		[&outClientSourceIds](NodeConstPtr& node) {
+		[&outClientSourceIds](NodeConstPtr node) {
 			if (auto clientSourceNode = std::dynamic_pointer_cast<const ClientColorTextureNode>(node))
 			{
 				outClientSourceIds.insert(clientSourceNode->getClientId());

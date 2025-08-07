@@ -2,6 +2,7 @@
 
 #include "ComponentFwd.h"
 #include "MulticastDelegate.h"
+#include "MikanComponent.h"
 #include "ObjectFwd.h"
 #include "ObjectSystemFwd.h"
 #include "SceneFwd.h"

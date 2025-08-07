@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+#include <Refureku/TypeInfo/Type.h>
+#include <Refureku/TypeInfo/Variables/Field.h>
+
 #include "assert.h"
 
 namespace rfk
@@ -138,13 +141,13 @@ namespace Serialization
 	template <typename t_struct_type>
 	void visitStruct(t_struct_type& instance, IVisitor *visitor)
 	{
-		visitStruct(&instance, t_struct_type::staticGetArchetype(), visitor, userdata);
+		visitStruct(&instance, t_struct_type::staticGetArchetype(), visitor);
 	}
 
 	template <typename t_struct_type>
 	void visitStruct(const t_struct_type& instance, IVisitor* visitor)
 	{
-		visitStruct(&instance, t_struct_type::staticGetArchetype(), visitor, userdata);
+		visitStruct(&instance, t_struct_type::staticGetArchetype(), visitor);
 	}
 
 	SERIALIZATION_API void visitStruct(const void* instance, rfk::Struct const& structType, IVisitor *visitor);

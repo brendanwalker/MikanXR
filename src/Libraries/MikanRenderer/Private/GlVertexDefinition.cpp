@@ -96,7 +96,7 @@ class GlVertexDefinition : public IMkVertexDefinition
 public:
 	GlVertexDefinition() = default;
 
-	GlVertexDefinition::GlVertexDefinition(IMkVertexDefinitionConstPtr vertexDefinition)
+	GlVertexDefinition(IMkVertexDefinitionConstPtr vertexDefinition)
 	{
 		this->m_attributes = vertexDefinition->getAttributes();
 		this->m_description = vertexDefinition->getVertexDefinitionDesc();
@@ -104,7 +104,7 @@ public:
 		this->m_bIsValid = vertexDefinition->getIsValid();
 	}
 
-	GlVertexDefinition::GlVertexDefinition(const std::vector<IMkVertexAttributeConstPtr>& attribtes)
+	GlVertexDefinition(const std::vector<IMkVertexAttributeConstPtr>& attribtes)
 		: m_attributes(attribtes)
 		, m_description("")
 		, m_vertexSize(0)

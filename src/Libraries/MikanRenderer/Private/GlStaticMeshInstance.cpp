@@ -11,7 +11,7 @@ class GlStaticMeshInstance :
 public:
 	GlStaticMeshInstance() = delete;
 
-	GlStaticMeshInstance::GlStaticMeshInstance(
+	GlStaticMeshInstance(
 		const std::string& name,
 		IMkMeshConstPtr mesh)
 		: m_name(name)

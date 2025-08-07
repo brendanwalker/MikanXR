@@ -44,7 +44,7 @@ public:
 
 	Rml::Context* getRmlContext() const;
 	Rml::ElementDocument* addRmlDocument(const std::string& docFilename, bool isModal= false);
-	bool AppStage::removeRmlDocument(Rml::ElementDocument* doc);
+	bool removeRmlDocument(Rml::ElementDocument* doc);
 	virtual void onRmlClickEvent(const std::string& value) {}
 
 	inline ModalDialog* getCurrentModalDialog() const

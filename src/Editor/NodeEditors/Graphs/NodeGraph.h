@@ -1,9 +1,13 @@
 #pragma once
 
 #include "AssetFwd.h"
+#include "AssetReference.h"
 #include "CommonConfig.h"
 #include "NodeFwd.h"
+#include "Nodes/Node.h"
+#include "Pins/NodePin.h"
 #include "Pins/NodePinConstants.h"
+#include "Properties/GraphProperty.h"
 #include "MulticastDelegate.h"
 #include "StringUtils.h"
 
@@ -122,18 +126,18 @@ public:
 		return m_assetReferences;
 	}
 
-	template <class t_asset_ref_type>
-	std::shared_ptr<t_asset_ref_type> addTypedAssetReference()
-	{
-		auto assetRef = std::make_shared<t_asset_ref_type>(shared_from_this());
+	//template <class t_asset_ref_type>
+	//std::shared_ptr<t_asset_ref_type> addTypedAssetReference()
+	//{
+	//	auto assetRef = std::make_shared<t_asset_ref_type>(shared_from_this());
 
-		m_assetReferences.push_back(assetRef);
+	//	m_assetReferences.push_back(assetRef);
 
-		if (OnAssetReferenceCreated)
-			OnAssetReferenceCreated(property->getId());
+	//	if (OnAssetReferenceCreated)
+	//		OnAssetReferenceCreated(assetRef->getId());
 
-		return property;
-	}
+	//	return assetRef;
+	//}
 
 	bool deleteAssetReference(AssetReferencePtr assetRef);
 

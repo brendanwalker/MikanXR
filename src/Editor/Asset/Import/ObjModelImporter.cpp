@@ -174,7 +174,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	MikanRenderModelResourcePtr modelResource;
 
 	if (modelPath.empty())
-		return false;
+		return MikanRenderModelResourcePtr();
 
 	MkMaterialConstPtr triMeshMaterial = overrideMaterial;
 	if (!triMeshMaterial)
@@ -183,7 +183,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	}
 
 	if (!triMeshMaterial)
-		return false;
+		return MikanRenderModelResourcePtr();
 
 	std::vector<ObjUtils::MaterialTriMeshDataPtr> materialToTrimeshMap;
 
