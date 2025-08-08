@@ -89,7 +89,6 @@ public:
 	{
 		INVALID,
 
-		OpenCV,
 		WindowsMediaFramework,
 		GStreamer,
 
@@ -126,9 +125,6 @@ public:
 
 		switch (device_type)
 		{
-			case OpenCV:
-				result = "OpenCV";
-				break;
 			case WindowsMediaFramework:
 				result = "Windows Media Framework";
 				break;

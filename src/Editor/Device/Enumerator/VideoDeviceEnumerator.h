@@ -11,7 +11,6 @@ enum class eVideoDeviceApi : int
 {
 	INVALID = -1,
 
-	OPENCV,
 	WMF,
 	GSTREAMER,
 };
@@ -34,7 +33,6 @@ public:
 #ifdef _WIN32
 	const class WMFCameraEnumerator *getWMFCameraEnumerator() const;
 #endif // _WIN32
-	const class OpenCVCameraEnumerator* getOpenCVCameraEnumerator() const;
 	const class GStreamerCameraEnumerator* getGStreamerCameraEnumerator() const;
 
 private:

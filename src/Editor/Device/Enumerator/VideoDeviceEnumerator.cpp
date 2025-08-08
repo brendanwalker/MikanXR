@@ -4,7 +4,6 @@
 #ifdef _WIN32
 #include "WMFCameraEnumerator.h"
 #endif
-#include "OpenCVCameraEnumerator.h"
 
 #include "assert.h"
 #include "string.h"
@@ -19,8 +18,6 @@ VideoDeviceEnumerator::VideoDeviceEnumerator()
 {
 #ifdef _WIN32
 	m_enumerators.push_back({eVideoDeviceApi::WMF, nullptr});
-#else
-	m_enumerators.push_back({eVideoDeviceApi::OPENCV, nullptr});
 #endif
 	m_enumerators.push_back({eVideoDeviceApi::GSTREAMER, nullptr});
 
@@ -94,14 +91,6 @@ const WMFCameraEnumerator* VideoDeviceEnumerator::getWMFCameraEnumerator() const
 }
 #endif // _WIN32
 
-const OpenCVCameraEnumerator* VideoDeviceEnumerator::getOpenCVCameraEnumerator() const
-{
-	return
-		(getVideoApi() == eVideoDeviceApi::OPENCV)
-		? static_cast<OpenCVCameraEnumerator*>(m_enumerators[m_enumeratorIndex].enumerator)
-		: nullptr;
-}
-
 const GStreamerCameraEnumerator* VideoDeviceEnumerator::getGStreamerCameraEnumerator() const
 {
 	return
@@ -158,9 +147,6 @@ void VideoDeviceEnumerator::allocateChildEnumerator()
 
     switch (entry.api_type)
 	{
-	case eVideoDeviceApi::OPENCV:
-		entry.enumerator = new OpenCVCameraEnumerator;
-		break;
 	case eVideoDeviceApi::WMF:
 		#ifdef _WIN32
 		entry.enumerator = new WMFCameraEnumerator;

@@ -6,7 +6,6 @@
 #include "VideoSourceView.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
-#include "OpenCVVideoSource.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanServer.h"
@@ -380,10 +379,6 @@ bool VideoSourceView::allocateDeviceInterface(const DeviceEnumerator* enumerator
 		case eVideoDeviceApi::GSTREAMER:
 			{
 				m_device = new GStreamerVideoSource(this);
-			} break;
-		case eVideoDeviceApi::OPENCV:
-			{
-				m_device = new OpenCVVideoSource(this);
 			} break;
 		#ifdef _WIN32
 		case eVideoDeviceApi::WMF:

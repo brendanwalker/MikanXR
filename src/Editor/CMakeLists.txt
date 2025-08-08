@@ -386,13 +386,6 @@ file(GLOB MIKAN_VIDEO_GSTREAMER_SRC
 )
 source_group("Video\\GStreamer" FILES ${MIKAN_VIDEO_GSTREAMER_SRC})
 
-## Video OpenCV
-file(GLOB MIKAN_VIDEO_OPENCV_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Video/OpenCV/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Video/OpenCV/*.h"
-)
-source_group("Video\\OpenCV" FILES ${MIKAN_VIDEO_OPENCV_SRC})
-
 ## Video WMF
 if (WIN32)
 file(GLOB MIKAN_VIDEO_WMF_SRC
@@ -439,7 +432,6 @@ set(MIKAN_SRC
     ${MIKAN_SYSTEM_SRC}
     ${MIKAN_VIDEO_SRC}
     ${MIKAN_VIDEO_GSTREAMER_SRC}
-    ${MIKAN_VIDEO_OPENCV_SRC}
     ${MIKAN_VIDEO_WMF_SRC}
     ${IMGUI_SOURCE}
     ${IMNODES_SOURCE}
@@ -480,7 +472,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/System
   ${CMAKE_CURRENT_LIST_DIR}/Video
   ${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer
-  ${CMAKE_CURRENT_LIST_DIR}/Video/OpenCV
   ${CMAKE_CURRENT_LIST_DIR}/Video/WMF
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
@@ -570,7 +561,6 @@ target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
 target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 # Runtime dependencies
-set(OPENCV_VIDEOIO_DLL ${OpenCV_DIR}/x64/vc16/bin/opencv_videoio_ffmpeg4100_64.dll)
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
 set(SDL2_IMAGE_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_image-2.0.5/lib/x64)
 set(SDL2_TTF_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_ttf-2.0.15/lib/x64)
@@ -613,9 +603,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll $<TARGET_FILE_DIR:Mikan>)
-  add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OPENCV_VIDEOIO_DLL} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc16/bin/opencv_world4100d.dll $<TARGET_FILE_DIR:Mikan>)
@@ -677,9 +664,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
       ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
-
-  install(FILES "${OPENCV_VIDEOIO_DLL}"
-      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES 
       "${OpenCV_DIR}/x64/vc16/bin/opencv_world4100d.dll"

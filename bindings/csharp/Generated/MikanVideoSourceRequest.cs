@@ -43,7 +43,7 @@ namespace MikanXR
 		public static new readonly long classId= -1059487460754321771;
 
 		public MikanVideoSourceType video_source_type;
-		public MikanVideoSourceApi video_source_api;
+		public string video_source_api;
 		public string device_path;
 		public string video_mode_name;
 		public int resolution_x;

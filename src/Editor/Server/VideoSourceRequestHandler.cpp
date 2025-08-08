@@ -115,15 +115,12 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 			info.video_mode_name = modeConfig->modeName;
 			switch (driverType)
 			{
-				case IVideoSourceInterface::OpenCV:
-					info.video_source_api = MikanVideoSourceApi_INVALID;
-					break;
 				case IVideoSourceInterface::WindowsMediaFramework:
-					info.video_source_api = MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION;
+					info.video_source_api.setValue("WMF");
 					break;
 				case IVideoSourceInterface::INVALID:
 				default:
-					info.video_source_api = MikanVideoSourceApi_INVALID;
+					info.video_source_api.setValue("INVALID");
 					break;
 			}
 			info.video_source_type = videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;

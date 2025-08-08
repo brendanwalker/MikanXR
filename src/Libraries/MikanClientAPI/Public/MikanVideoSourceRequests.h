@@ -91,7 +91,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	FIELD()
 	MikanVideoSourceType video_source_type;
 	FIELD()
-	MikanVideoSourceApi video_source_api;
+	Serialization::String video_source_api;
 	FIELD()
 	Serialization::String device_path;
 	FIELD()

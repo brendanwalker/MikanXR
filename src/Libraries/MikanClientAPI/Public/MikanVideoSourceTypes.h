@@ -17,16 +17,6 @@ enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourc
 	MikanVideoSourceType_STEREO ENUMVALUE_STRING("STEREO")
 };
 
-/// The list of possible video source APIs used by MikanXR
-enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceApi
-{
-	MikanVideoSourceApi_INVALID ENUMVALUE_STRING("INVALID"),
-	MikanVideoSourceApi_OPEN_CV ENUMVALUE_STRING("OPEN_CV"),
-	MikanVideoSourceApi_WINDOWS_MEDIA_FOUNDATION ENUMVALUE_STRING("WINDOWS_MEDIA_FOUNDATION"),
-	MikanVideoSourceApi_GSTREAMER ENUMVALUE_STRING("GSTREAMER"),
-	MikanVideoSourceApi_SPOUT2 ENUMVALUE_STRING("SPOUT2"),
-};
-
 enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanIntrinsicsType
 {
 	INVALID_CAMERA_INTRINSICS ENUMVALUE_STRING("INVALID"),
