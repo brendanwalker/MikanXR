@@ -11,12 +11,21 @@
 
 #include <assert.h>
 
+#define USB_VIDEO_DEVICE_MODULE_NAME "MikanWMFVideo"
+
 bool USBVideoSourceSystem::init()
 {
 	MikanObjectSystem::init();
 
     VideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
         App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+
+    if (!createUsbVideoDeviceManager(USB_VIDEO_DEVICE_MODULE_NAME))
+    {
+        MIKAN_LOG_ERROR("USBVideoSourceSystem::init") << 
+            "Failed to load USB video device module " << USB_VIDEO_DEVICE_MODULE_NAME;
+		return false;
+    }
 
     for (const auto& sourceConfig : videoSourceSystemConfig->getUSBVideoSourceList())
     {
@@ -56,7 +65,7 @@ bool USBVideoSourceSystem::createUsbVideoDeviceManager(const std::string& module
     }
 
     // Listen for device manager changes
-    //m_usbVideoDeviceManager->addListener(this);
+    m_usbVideoDeviceManager->addListener(this);
 
     return true;
 }
@@ -65,7 +74,7 @@ void USBVideoSourceSystem::disposeUsbVideoDeviceManager()
 {
     if (m_usbVideoDeviceManager)
     {
-        //m_usbVideoDeviceManager->removeListener(this);
+        m_usbVideoDeviceManager->removeListener(this);
         m_usbVideoDeviceManager->shutdown();
         m_usbVideoDeviceManager = nullptr;
     }
@@ -167,4 +176,9 @@ bool USBVideoSourceSystem::disposeUSBVideoSourceObject(MikanVideoSourceID videoS
     }
 
     return false;
+}
+
+void USBVideoSourceSystem::onConnectedDeviceListChanged()
+{
+	//TODO: Tell each USBVideoSourceComponent to check if it's device is still connected
 }

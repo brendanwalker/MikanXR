@@ -145,13 +145,6 @@ file(GLOB MIKAN_COMPONENTS_SRC
 )
 source_group("Components" FILES ${MIKAN_COMPONENTS_SRC})
 
-## Video Source Components
-file(GLOB MIKAN_VIDEO_SOURCE_COMPONENTS_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Components/VideoSource/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Components/VideoSource/*.h"
-)
-source_group("Components\\VideoSource" FILES ${MIKAN_VIDEO_SOURCE_COMPONENTS_SRC})
-
 # Config
 file(GLOB MIKAN_CONFIG_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Config/*.cpp"
@@ -194,6 +187,24 @@ file(GLOB MIKAN_DEVICE_VIEW_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Device/View/*.h"
 )
 source_group("Device\\View" FILES ${MIKAN_DEVICE_VIEW_SRC})
+
+# ECS
+file(GLOB MIKAN_ECS_ROOT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/*.h"
+)
+source_group("ECS" FILES ${MIKAN_ECS_ROOT_SRC})
+## Video Source
+file(GLOB MIKAN_ECS_VIDEO_SOURCE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource/*.h"
+)
+source_group("ECS\\VideoSource" FILES ${MIKAN_ECS_VIDEO_SOURCE_SRC})
+## ECS Full Source
+set(MIKAN_ECS_SRC
+    ${MIKAN_ECS_ROOT_SRC}
+    ${MIKAN_ECS_VIDEO_SOURCE_SRC}
+)
 
 # ImGUI's source files are included in directly, rather than linking against a lib
 source_group("ImGui" FILES ${IMGUI_SOURCE})
@@ -406,13 +417,13 @@ set(MIKAN_SRC
     ${MIKAN_ASSET_EXPORT_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_COMPONENTS_SRC}
-    ${MIKAN_VIDEO_SOURCE_COMPONENTS_SRC}
     ${MIKAN_CONFIG_SRC}
     ${MIKAN_DELEGATES_SRC}
     ${MIKAN_DEVICE_ENUM_SRC}
     ${MIKAN_DEVICE_INTERFACE_SRC}
     ${MIKAN_DEVICE_MANAGER_SRC}
     ${MIKAN_DEVICE_VIEW_SRC}
+    ${MIKAN_ECS_SRC}
     ${MIKAN_INTERPROCESS_SRC}
     ${MIKAN_LOCALIZATION_SRC}
     ${MIKAN_MATH_SRC}
@@ -446,13 +457,14 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Export
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Components
-  ${CMAKE_CURRENT_LIST_DIR}/Components/VideoSource
   ${CMAKE_CURRENT_LIST_DIR}/Config
   ${CMAKE_CURRENT_LIST_DIR}/Delegates
   ${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator
   ${CMAKE_CURRENT_LIST_DIR}/Device/Interface
   ${CMAKE_CURRENT_LIST_DIR}/Device/Manager
   ${CMAKE_CURRENT_LIST_DIR}/Device/View
+  ${CMAKE_CURRENT_LIST_DIR}/ECS
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math

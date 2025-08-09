@@ -11,7 +11,7 @@
 
 using USBVideoSourceMap = std::map<MikanVideoSourceID, USBVideoSourceComponentWeakPtr>;
 
-class USBVideoSourceSystem : public MikanObjectSystem
+class USBVideoSourceSystem : public MikanObjectSystem, public IUsbVideoDeviceManagerListener
 {
 public:
     USBVideoSourceSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
@@ -31,6 +31,9 @@ protected:
 
     USBVideoSourceComponentPtr createUSBVideoSourceObject(USBVideoSourceDefinitionPtr sourceConfig);
     bool disposeUSBVideoSourceObject(MikanVideoSourceID videoSourceId);
+
+	// IUsbVideoDeviceManagerListener interface
+	virtual void onConnectedDeviceListChanged() override;
 
 private:
     class IUsbVideoDeviceModule* m_usbVideoDeviceModule = nullptr;
