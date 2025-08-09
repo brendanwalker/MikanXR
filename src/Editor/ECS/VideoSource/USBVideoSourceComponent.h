@@ -1,6 +1,8 @@
 #pragma once
 
 #include "VideoSourceComponent.h"
+#include "IUsbVideoDevice.h"
+#include "MulticastDelegate.h"
 
 class USBVideoSourceDefinition : public VideoSourceDefinition
 {
@@ -31,10 +33,12 @@ private:
 	float m_brightness;
 };
 
-class USBVideoSourceComponent : public VideoSourceComponent
+class USBVideoSourceComponent : public VideoSourceComponent, public IUsbVideoDeviceListener
 {
 public:
 	USBVideoSourceComponent(MikanObjectWeakPtr owner);
+
+	virtual void dispose() override;
 
 	inline USBVideoSourceDefinitionPtr getUSBVideoSourceDefinition() const
 	{
@@ -52,6 +56,11 @@ public:
 	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const override;
 	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;
 
+	// -- IUsbVideoDeviceListener ----
+	virtual void notifyVideoDeviceDisconnected(const IUsbVideoDevice* device) override;
+	virtual void notifyVideoModePropertiesChanged(const IUsbVideoDevice* device) override;
+	virtual void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo) override;
+
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
@@ -67,4 +76,16 @@ public:
 
 	void calibrateIntrinsics();
 	void testIntrinsics();
+
+protected:
+	bool reallocateOpencvBufferState();
+	void releaseOpencvBufferState();
+	void recomputeCameraProjectionMatrix();
+
+protected:
+	int64_t m_lastVideoFrameReadIndex;
+	class OpenCVVideoFrameBuffer* m_opencv_buffer_state[MAX_PROJECTION_COUNT];
+	IUsbVideoDevice* m_usbVideoDevice;
+	glm::mat4 m_projectionMatrix;
+
 };

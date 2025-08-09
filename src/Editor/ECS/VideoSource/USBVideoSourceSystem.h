@@ -19,6 +19,8 @@ public:
     virtual bool init() override;
     virtual void dispose() override;
 
+	IUsbVideoDeviceManagerPtr getUSBVideoDeviceManager() const { return m_usbVideoDeviceManager; }
+
     const USBVideoSourceMap& getUSBVideoSourceMap() const { return m_usbVideoSourceComponents; }
     USBVideoSourceComponentPtr getUSBVideoSourceById(MikanVideoSourceID videoSourceId) const;
     USBVideoSourceComponentPtr getUSBVideoSourceByName(const std::string& videoSourceName) const;

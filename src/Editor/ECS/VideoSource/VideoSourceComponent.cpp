@@ -8,6 +8,8 @@
 // -- VideoSourceDefinition -----
 const std::string VideoSourceDefinition::k_videoSourceIdPropertyId = "video_source_id";
 const std::string VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId= "video_source_intrinsics";
+const std::string VideoSourceDefinition::k_isFrameMirroredPropertyId = "is_frame_mirrored";
+const std::string VideoSourceDefinition::k_isBufferMirroredPropertyId = "is_buffer_mirrored";
 
 VideoSourceDefinition::VideoSourceDefinition()
 	: MikanComponentDefinition()
@@ -35,6 +37,8 @@ configuru::Config VideoSourceDefinition::writeToJSON()
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	pt["video_source_id"] = m_videoSourceId;
+	pt["is_frame_mirrored"] = m_bIsFrameMirrored;
+	pt["is_buffer_mirrored"] = m_bIsBufferMirrored;
 
 	switch (m_intrinsics.intrinsics_type)
 	{
@@ -56,6 +60,8 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	MikanComponentDefinition::readFromJSON(pt);
 
 	m_videoSourceId = pt.get_or<MikanVideoSourceID>("video_source_id", m_videoSourceId);
+	m_bIsFrameMirrored = pt.get_or<bool>("is_frame_mirrored", false);
+	m_bIsBufferMirrored = pt.get_or<bool>("is_buffer_mirrored", false);
 
 	std::string intrinsics_type = pt.get_or<std::string>("intrinsics_type", "");
 	if (intrinsics_type == "mono")
@@ -77,6 +83,18 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	{
 		m_intrinsics = MikanVideoSourceIntrinsics();
 	}
+}
+
+void VideoSourceDefinition::setIsFrameMirrored(bool isFrameMirrored)
+{
+	m_bIsFrameMirrored = isFrameMirrored;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_isFrameMirroredPropertyId));
+}
+
+void VideoSourceDefinition::setIsBufferMirrored(bool isBufferMirrored)
+{
+	m_bIsBufferMirrored = isBufferMirrored;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_isBufferMirroredPropertyId));
 }
 
 void VideoSourceDefinition::setCameraIntrinsics(
@@ -160,6 +178,8 @@ void VideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropert
 	MikanComponent::getPropertyNames(outPropertyNames);
 
 	outPropertyNames.push_back(VideoSourceDefinition::k_videoSourceIdPropertyId);
+	outPropertyNames.push_back(VideoSourceDefinition::k_isFrameMirroredPropertyId);
+	outPropertyNames.push_back(VideoSourceDefinition::k_isBufferMirroredPropertyId);
 }
 
 bool VideoSourceComponent::getPropertyDescriptor(
@@ -172,6 +192,16 @@ bool VideoSourceComponent::getPropertyDescriptor(
 	if (propertyName == VideoSourceDefinition::k_videoSourceIdPropertyId)
 	{
 		outDescriptor = {VideoSourceDefinition::k_videoSourceIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::video_source_id};
+		return true;
+	}
+	else if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
+	{
+		outDescriptor = { VideoSourceDefinition::k_isFrameMirroredPropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox };
+		return true;
+	}
+	else if (propertyName == VideoSourceDefinition::k_isBufferMirroredPropertyId)
+	{
+		outDescriptor = { VideoSourceDefinition::k_isBufferMirroredPropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox };
 		return true;
 	}
 
@@ -188,6 +218,17 @@ bool VideoSourceComponent::getPropertyValue(const std::string& propertyName, Rml
 		outValue = getVideoSourceId();
 		return true;
 	}
+	else if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
+	{
+		outValue = getVideoSourceDefinition()->getIsFrameMirrored();
+		return true;
+	}
+	else if (propertyName == VideoSourceDefinition::k_isBufferMirroredPropertyId)
+	{
+		outValue = getVideoSourceDefinition()->getIsBufferMirrored();
+		return true;
+	}
+
 	return false;
 }
 
@@ -195,6 +236,17 @@ bool VideoSourceComponent::setPropertyValue(const std::string& propertyName, con
 {
 	if (MikanComponent::setPropertyValue(propertyName, inValue))
 		return true;
+
+	if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
+	{
+		getVideoSourceDefinition()->setIsFrameMirrored(inValue.Get<bool>());
+		return true;
+	}
+	else if (propertyName == VideoSourceDefinition::k_isBufferMirroredPropertyId)
+	{
+		getVideoSourceDefinition()->setIsBufferMirrored(inValue.Get<bool>());
+		return true;
+	}
 
 	return false;
 }

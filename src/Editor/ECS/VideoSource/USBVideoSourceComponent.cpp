@@ -1,7 +1,21 @@
+#include "CameraMath.h"
+#include "MikanServer.h"
+#include "OpenCVVideoFrameBuffer.h"
+#include "ThreadUtils.h"
 #include "USBVideoSourceComponent.h"
+#include "USBVideoSourceSystem.h"
+#include "VideoSourceRequestHandler.h"
+#include "VideoSourceSystem.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
+
+#include "opencv2/opencv.hpp"
+#include "opencv2/calib3d/calib3d.hpp"
+
+#include <easy/profiler.h>
+
+#include <assert.h>
 
 // -- USBVideoSourceDefinition -----
 const std::string USBVideoSourceDefinition::k_devicePathPropertyId = "devicePath";
@@ -76,7 +90,24 @@ void USBVideoSourceDefinition::setBrightness(const float brightness)
 // -- USBVideoSourceComponent -----
 USBVideoSourceComponent::USBVideoSourceComponent(MikanObjectWeakPtr owner)
 	: VideoSourceComponent(owner)
-{}
+	, m_lastVideoFrameReadIndex(0)
+	, m_usbVideoDevice(nullptr)
+	, m_projectionMatrix(glm::mat4(1.f))
+{
+	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
+	{
+		m_opencv_buffer_state[i] = nullptr;
+	}
+}
+
+void USBVideoSourceComponent::dispose()
+{
+	// Close the video source if it is open
+	closeVideoSource();
+
+	// Call the base class dispose method
+	MikanComponent::dispose();
+}
 
 void USBVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)
 {
@@ -88,36 +119,359 @@ void USBVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr definiti
 
 bool USBVideoSourceComponent::openVideoSource()
 {
-	return false;
+	// If the video source is already open, do nothing
+	if (m_usbVideoDevice != nullptr)
+		return true;
+
+	// If the device path is empty, return false
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	const std::string& devicePath = definition->getDevicePath();
+	if (devicePath.empty())
+		return false;
+
+	// Find the USB video device by its path
+	VideoSourceSystemPtr videoSourceSystem= VideoSourceSystem::getSystem();
+	USBVideoSourceSystemPtr usbVideoSourceSystem= videoSourceSystem->getUSBVideoSourceSystem();
+	IUsbVideoDeviceManagerPtr usbVideoDeviceManager = usbVideoSourceSystem->getUSBVideoDeviceManager();
+
+	m_usbVideoDevice= usbVideoDeviceManager->getDeviceByPath(devicePath.c_str());
+	if (m_usbVideoDevice == nullptr)
+		return false;
+
+	// Listen for events from the USB video device
+	m_usbVideoDevice->addListener(this);
+
+	// Apply the side effect of video mode changes 
+	notifyVideoModePropertiesChanged(m_usbVideoDevice);
+	if (OnFrameSizeChanged)
+	{
+		OnFrameSizeChanged(this);
+	}
+
+	// Let any connected clients know that the video source closed
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceOpenedEvent();
+	if (OnOpened)
+	{
+		OnOpened(this);
+	}
+
+	return true;
 }
 
 void USBVideoSourceComponent::closeVideoSource()
 {
+	if (m_usbVideoDevice != nullptr)
+	{
+		// Stop the video stream if it is running
+		stopVideoStream();
 
+		// Remove the listener for the USB video device
+		m_usbVideoDevice->removeListener(this);
+
+		// Clear the USB video device pointer
+		m_usbVideoDevice = nullptr;
+	}
+
+	// Release any OpenCV buffer state
+	releaseOpencvBufferState();
+
+	// Let any connected clients know that the video source closed
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceClosedEvent();
+	if (OnClosed)
+	{
+		OnClosed(this);
+	}
+}
+
+static eVideoStreamingStatus usbStatusToVideoStatus(eUsbVideoStreamingStatus usbStatus)
+{
+	switch (usbStatus)
+	{
+	case eUsbVideoStreamingStatus::failed:
+		return eVideoStreamingStatus::failed;
+	case eUsbVideoStreamingStatus::pendingStart:
+		return eVideoStreamingStatus::pendingStart;
+	case eUsbVideoStreamingStatus::started:
+		return eVideoStreamingStatus::started;
+	case eUsbVideoStreamingStatus::stopped:
+		return eVideoStreamingStatus::stopped;
+	default:
+		return eVideoStreamingStatus::failed;
+	}
 }
 
 eVideoStreamingStatus USBVideoSourceComponent::startVideoStream()
 {
+	if (m_usbVideoDevice != nullptr)
+	{
+		auto status= usbStatusToVideoStatus(m_usbVideoDevice->startVideoStream());
+		if (status == eVideoStreamingStatus::started && OnStarted)
+		{
+			OnStarted(this);
+		}
+
+		return status;
+	}
+	
 	return eVideoStreamingStatus::failed;
 }
 
 eVideoStreamingStatus USBVideoSourceComponent::getVideoStreamingStatus() const
 {
+	if (m_usbVideoDevice != nullptr)
+	{
+		return usbStatusToVideoStatus(m_usbVideoDevice->getVideoStreamingStatus());
+	}
+
 	return eVideoStreamingStatus::failed;
 }
 
 void USBVideoSourceComponent::stopVideoStream()
 {
+	if (m_usbVideoDevice != nullptr)
+	{
+		m_usbVideoDevice->stopVideoStream();
+
+		if (OnStopped)
+		{
+			OnStopped(this);
+		}
+	}
 }
 
 bool USBVideoSourceComponent::hasNewVideoFrameAvailable(VideoFrameSection section) const
 {
-	return false;
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	int64_t lastFrameWriteIndex = 0;
+
+	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	{
+		if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
+			m_opencv_buffer_state[(int)section] != nullptr)
+		{
+			lastFrameWriteIndex = m_opencv_buffer_state[(int)section]->getLastVideoFrameWriteIndex();
+		}
+	}
+	else
+	{
+		if (section == VideoFrameSection::Primary &&
+			m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
+		{
+			lastFrameWriteIndex = m_opencv_buffer_state[(int)VideoFrameSection::Primary]->getLastVideoFrameWriteIndex();
+		}
+	}
+
+	return lastFrameWriteIndex != m_lastVideoFrameReadIndex;
 }
 
 int64_t USBVideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer)
 {
-	return 0;
+	EASY_FUNCTION();
+
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	{
+		if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
+			m_opencv_buffer_state[(int)section] != nullptr)
+		{
+			m_lastVideoFrameReadIndex =
+				m_opencv_buffer_state[(int)section]->readVideoFrame(
+					outBuffer,
+					m_lastVideoFrameReadIndex);
+		}
+	}
+	else
+	{
+		if (section == VideoFrameSection::Primary &&
+			m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
+		{
+			m_lastVideoFrameReadIndex =
+				m_opencv_buffer_state[(int)VideoFrameSection::Primary]->readVideoFrame(
+					outBuffer,
+					m_lastVideoFrameReadIndex);
+		}
+	}
+
+	return m_lastVideoFrameReadIndex;
+}
+
+void USBVideoSourceComponent::notifyVideoDeviceDisconnected(const IUsbVideoDevice* device)
+{
+	if (device == m_usbVideoDevice)
+	{
+		// The video source is now already invalidated, so we can clear the pointer
+		// but we still want to clean up the video source state
+		m_usbVideoDevice = nullptr;
+		closeVideoSource();
+	}
+}
+
+void USBVideoSourceComponent::notifyVideoModePropertiesChanged(const class IUsbVideoDevice* device)
+{
+	// Make sure the device is the one we are currently using
+	assert(m_usbVideoDevice == device);
+
+	// At the moment, this function should only be called from video sources that
+	// update their video frame size on the main thread.
+	// If this changes, we will need to refactor this function to be thread safe.
+	assert(ThreadUtils::isRunningInMainThread());
+
+	// Allocate the open cv buffers used for tracking filtering
+	reallocateOpencvBufferState();
+
+	// Recompute the projection matrix
+	recomputeCameraProjectionMatrix();
+
+	// Let any listeners know that the video frame sized changed
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceModeChangedEvent();
+}
+
+bool USBVideoSourceComponent::reallocateOpencvBufferState()
+{
+	releaseOpencvBufferState();
+
+	if (m_usbVideoDevice == nullptr)
+		return false;
+
+	int videoModeIndex= m_usbVideoDevice->getVideoModeIndex();
+	if (videoModeIndex < 0)
+		return false;
+
+	UsbVideoModeProperties videoModeProperties;
+	if (!m_usbVideoDevice->getVideoModeProperties(videoModeIndex, videoModeProperties))
+		return false;
+
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics= definition->getCameraIntrinsics();
+
+	// Allocate the OpenCV scratch buffers used for finding tracking blobs
+	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	{		
+		const MikanStereoIntrinsics& stereoIntrinsics= intrinsics.getStereoIntrinsics();
+		
+		m_opencv_buffer_state[(int)VideoFrameSection::Left] =
+			new OpenCVVideoFrameBuffer(
+				videoModeProperties.width, videoModeProperties.height,
+				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
+				VideoFrameSection::Left);
+		m_opencv_buffer_state[(int)VideoFrameSection::Right] =
+			new OpenCVVideoFrameBuffer(
+				videoModeProperties.width, videoModeProperties.height,
+				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
+				VideoFrameSection::Right);
+	}
+	else
+	{
+		const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
+
+		m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
+			new OpenCVVideoFrameBuffer(
+				videoModeProperties.width, videoModeProperties.height,
+				monoIntrinsics.pixel_width, monoIntrinsics.pixel_width,
+				VideoFrameSection::Primary);
+	}
+
+	return true;
+}
+
+void USBVideoSourceComponent::releaseOpencvBufferState()
+{
+	// Delete any existing OpenCV buffers
+	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
+	{
+		if (m_opencv_buffer_state[i] != nullptr)
+		{
+			delete m_opencv_buffer_state[i];
+			m_opencv_buffer_state[i] = nullptr;
+		}
+	}
+}
+
+void USBVideoSourceComponent::recomputeCameraProjectionMatrix()
+{
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	switch (intrinsics.intrinsics_type)
+	{
+	case MONO_CAMERA_INTRINSICS:
+	{
+		const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
+
+		computeOpenGLProjMatFromCameraIntrinsics(
+			monoIntrinsics,
+			m_projectionMatrix);
+	} break;
+	case STEREO_CAMERA_INTRINSICS:
+	{
+		const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+
+		computeOpenGLProjMatFromCameraIntrinsics(
+			stereoIntrinsics,
+			eStereoIntrinsicsSide::left,
+			m_projectionMatrix);
+	} break;
+	}
+}
+
+void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo)
+{
+	assert(m_usbVideoDevice != nullptr);
+
+	int videoModeIndex = m_usbVideoDevice->getVideoModeIndex();
+	assert(videoModeIndex >= 0);
+
+	UsbVideoModeProperties videoModeProperties;
+	bool bVaildVideoMode= m_usbVideoDevice->getVideoModeProperties(videoModeIndex, videoModeProperties);
+	assert(bVaildVideoMode);
+
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	const bool is_frame_flipped = definition->getIsFrameMirrored();
+	const bool is_buffer_flipped = definition->getIsBufferMirrored();
+
+	// Fetch the latest video buffer frame from the device
+	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	{
+		const auto& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+		const int section_width = (int)stereoIntrinsics.pixel_width;
+		const int section_height = (int)stereoIntrinsics.pixel_height;
+
+		cv::Rect left_bounds = cv::Rect(0, 0, section_width, section_height);
+		cv::Rect right_bounds = cv::Rect(section_width, 0, section_width, section_height);
+
+		// Cache the left raw video frame
+		if (m_opencv_buffer_state[(int)VideoFrameSection::Left] != nullptr)
+		{
+			m_opencv_buffer_state[(int)VideoFrameSection::Left]->writeStereoVideoFrameSection(
+				bufferInfo.data,
+				is_buffer_flipped ? right_bounds : left_bounds,
+				is_frame_flipped);
+		}
+
+		// Cache the right raw video frame
+		if (m_opencv_buffer_state[(int)VideoFrameSection::Right] != nullptr)
+		{
+			m_opencv_buffer_state[(int)VideoFrameSection::Right]->writeStereoVideoFrameSection(
+				bufferInfo.data,
+				is_buffer_flipped ? left_bounds : right_bounds,
+				is_frame_flipped);
+		}
+	}
+	else
+	{
+		// Cache the raw video frame
+		if (m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
+		{
+			m_opencv_buffer_state[(int)VideoFrameSection::Primary]->writeVideoFrame(
+				bufferInfo.data, is_frame_flipped);
+		}
+	}
 }
 
 void USBVideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
@@ -190,6 +544,7 @@ bool USBVideoSourceComponent::setPropertyValue(const std::string& propertyName, 
 	{
 		std::string videoMode = inValue.Get<std::string>();
 		getUSBVideoSourceDefinition()->setVideoMode(videoMode);
+		//TODO: Set the video mode on the USB video device
 		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)

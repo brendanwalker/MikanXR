@@ -67,7 +67,10 @@ struct UsbVideoFrameBuffer
 class IUsbVideoDeviceListener
 {
 public:
-	// Called when the video source has updated its dimensions
+	// Called when the video source has been disconnected
+	virtual void notifyVideoDeviceDisconnected(const class IUsbVideoDevice* device) = 0;
+
+	// Called when the video source has updated its dimensions or other properties
 	virtual void notifyVideoModePropertiesChanged(const class IUsbVideoDevice* device) = 0;
 
 	// Called when new video frame has been received from the video source
@@ -82,8 +85,8 @@ public:
 	virtual ~IUsbVideoDevice() {}
 
 	// -- Device Listener
-	virtual void bindListener(IUsbVideoDeviceListener* listener) = 0;
-	virtual void unbindListener(IUsbVideoDeviceListener* listener) = 0;
+	virtual void addListener(IUsbVideoDeviceListener* listener) = 0;
+	virtual void removeListener(IUsbVideoDeviceListener* listener) = 0;
 
     // -- Device Properties
 	virtual size_t getDeviceIndex() const = 0;
@@ -93,6 +96,8 @@ public:
 	// -- Video Mode
 	virtual size_t getAvailableVideoModesCount() const = 0;
 	virtual bool getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const = 0;
+	virtual int getVideoModeIndex() const = 0;
+	virtual const char* getVideoModeName() const = 0;
 	virtual bool setVideoModeByName(const char* szVideoModeName) = 0;
 	virtual bool setVideoModeByIndex(const char* szVideoModeName) = 0;
 

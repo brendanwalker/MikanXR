@@ -41,6 +41,14 @@ public:
 	static const std::string k_videoSourceIdPropertyId;
 	inline MikanVideoSourceID getVideoSourceId() const { return m_videoSourceId; }
 
+	static const std::string k_isFrameMirroredPropertyId;
+	inline bool getIsFrameMirrored() const { return m_bIsFrameMirrored; }
+	void setIsFrameMirrored(bool isFrameMirrored);
+
+	static const std::string k_isBufferMirroredPropertyId;
+	inline bool getIsBufferMirrored() const { return m_bIsBufferMirrored; }
+	void setIsBufferMirrored(bool isBufferMirrored);
+
 	static const std::string k_videoSourceIntrinsicsPropertyId;
 	inline bool hasCameraIntrinsics() const { return m_intrinsics.intrinsics_type != INVALID_CAMERA_INTRINSICS; }
 	inline const MikanVideoSourceIntrinsics& getCameraIntrinsics() const { return m_intrinsics; }
@@ -48,6 +56,8 @@ public:
 
 private:
 	MikanVideoSourceID m_videoSourceId;
+	bool m_bIsFrameMirrored;
+	bool m_bIsBufferMirrored;
 	MikanVideoSourceIntrinsics m_intrinsics;
 };
 
