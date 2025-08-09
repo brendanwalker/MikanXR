@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "IUsbVideoDeviceManager.h"
 #include "MikanObjectSystem.h"
 #include "MikanVideoSourceTypes.h"
 #include "ObjectSystemFwd.h"
@@ -11,6 +12,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <string>
 
 #include <glm/glm.hpp>
 
@@ -61,6 +63,9 @@ public:
 	bool removeUSBVideoSource(MikanVideoSourceID videoSourceId);
 
 protected:
+	bool createUsbVideoDeviceManager(const std::string& moduleName);
+	void disposeUsbVideoDeviceManager();
+
 	ClientVideoSourceComponentPtr createClientVideoSourceObject(ClientVideoSourceDefinitionPtr sourceConfig);
 	bool disposeClientVideoSourceObject(MikanVideoSourceID videoSourceId);
 
@@ -76,6 +81,9 @@ protected:
 	ClientVideoSourceMap m_clientVideoSourceComponents;
 	NetworkVideoSourceMap m_networkVideoSourceComponents;
 	SpoutVideoSourceMap m_spoutVideoSourceComponents;
+
+	class IUsbVideoDeviceModule* m_usbVideoDeviceModule = nullptr;
+	IUsbVideoDeviceManagerPtr m_usbVideoDeviceManager= nullptr;
 	USBVideoSourceMap m_usbVideoSourceComponents;
 
 	static VideoSourceSystemWeakPtr s_VideoSourceSystem;

@@ -1,7 +1,10 @@
 #include "App.h"
 #include "ClientVideoSourceComponent.h"
+#include "IUsbVideoDeviceModule.h"
+#include "Logger.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
+#include "MikanModuleManager.h"
 #include "NetworkVideoSourceComponent.h"
 #include "SpoutVideoSourceComponent.h"
 #include "ProjectConfig.h"
@@ -50,6 +53,50 @@ void VideoSourceSystem::dispose()
 	m_usbVideoSourceComponents.clear();
 
 	MikanObjectSystem::dispose();
+}
+
+bool VideoSourceSystem::createUsbVideoDeviceManager(const std::string& moduleName)
+{
+	// Bail if we didn't select a valid runtime type to use
+	if (moduleName.empty())
+		return false;
+
+	// Attempt to load the vr device module
+	m_usbVideoDeviceModule = getMikanModuleManager()->getModule<IUsbVideoDeviceModule>(moduleName);
+	if (!m_usbVideoDeviceModule)
+	{
+		MIKAN_LOG_ERROR("VideoSourceSystem::createUsbVideoDeviceManager") << "Failed to load module" << moduleName;
+		return false;
+	}
+
+	// Attempt to create a vr device manager
+	m_usbVideoDeviceManager = m_usbVideoDeviceModule->createUsbVideoDeviceManager();
+	if (!m_usbVideoDeviceManager)
+	{
+		MIKAN_LOG_WARNING("VideoSourceSystem::createUsbVideoDeviceManager") << "Failed to create UsbVideoDeviceManager";
+		return false;
+	}
+
+	// Listen for device manager changes
+	//m_usbVideoDeviceManager->addListener(this);
+
+	return true;
+}
+
+void VideoSourceSystem::disposeUsbVideoDeviceManager()
+{
+	if (m_usbVideoDeviceManager)
+	{
+		//m_usbVideoDeviceManager->removeListener(this);
+		m_usbVideoDeviceManager->shutdown();
+		m_usbVideoDeviceManager = nullptr;
+	}
+
+	if (m_usbVideoDeviceModule)
+	{
+		getMikanModuleManager()->disposeModule(m_usbVideoDeviceModule);
+		m_usbVideoDeviceModule = nullptr;
+	}
 }
 
 void VideoSourceSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
