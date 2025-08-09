@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ComponentFwd.h"
-#include "IUsbVideoDeviceManager.h"
 #include "MikanObjectSystem.h"
 #include "MikanVideoSourceTypes.h"
 #include "ObjectSystemFwd.h"
@@ -9,17 +8,22 @@
 #include "VideoSourceSystemConfig.h"
 
 #include <filesystem>
-#include <map>
 #include <memory>
 #include <vector>
 #include <string>
 
 #include <glm/glm.hpp>
 
-using ClientVideoSourceMap = std::map<MikanVideoSourceID, ClientVideoSourceComponentWeakPtr>;
-using SpoutVideoSourceMap = std::map<MikanVideoSourceID, SpoutVideoSourceComponentWeakPtr>;
-using NetworkVideoSourceMap = std::map<MikanVideoSourceID, NetworkVideoSourceComponentWeakPtr>;
-using USBVideoSourceMap = std::map<MikanVideoSourceID, USBVideoSourceComponentWeakPtr>;
+// Forward declarations
+class ClientVideoSourceSystem;
+class NetworkVideoSourceSystem;
+class SpoutVideoSourceSystem;
+class USBVideoSourceSystem;
+
+using ClientVideoSourceSystemPtr = std::shared_ptr<ClientVideoSourceSystem>;
+using NetworkVideoSourceSystemPtr = std::shared_ptr<NetworkVideoSourceSystem>;
+using SpoutVideoSourceSystemPtr = std::shared_ptr<SpoutVideoSourceSystem>;
+using USBVideoSourceSystemPtr = std::shared_ptr<USBVideoSourceSystem>;
 
 class VideoSourceSystem : public MikanObjectSystem
 {
@@ -38,53 +42,17 @@ public:
 	eVideoSourceType getVideoSourceType(MikanVideoSourceID videoSourceId) const;
 	bool removeVideoSource(MikanVideoSourceID videoSourceId);
 
-	const ClientVideoSourceMap& getClientVideoSourceMap() const { return m_clientVideoSourceComponents; }
-	ClientVideoSourceComponentPtr getClientVideoSourceById(MikanVideoSourceID videoSourceId) const;
-	ClientVideoSourceComponentPtr getClientVideoSourceByName(const std::string& videoSourceName) const;
-	ClientVideoSourceComponentPtr addNewClientVideoSource(const MikanClientVideoSourceInfo& videoSourceInfo);
-	bool removeClientVideoSource(MikanVideoSourceID videoSourceId);
+	// Client Video Source Methods - delegate to ClientVideoSourceSystem
+	ClientVideoSourceSystemPtr getClientVideoSourceSystem() const { return m_clientVideoSourceSystem; }
+	NetworkVideoSourceSystemPtr getNetworkVideoSourceSystem() const { return m_networkVideoSourceSystem; }
+	SpoutVideoSourceSystemPtr getSpoutVideoSourceSystem() const { return m_spoutVideoSourceSystem; }
+	USBVideoSourceSystemPtr getUSBVideoSourceSystem() const { return m_usbVideoSourceSystem; }
 
-	const NetworkVideoSourceMap& getNetworkVideoSourceMap() const { return m_networkVideoSourceComponents; }
-	NetworkVideoSourceComponentPtr getNetworkVideoSourceById(MikanVideoSourceID videoSourceId) const;
-	NetworkVideoSourceComponentPtr getNetworkVideoSourceByName(const std::string& videoSourceName) const;
-	NetworkVideoSourceComponentPtr addNewNetworkVideoSource(const MikanNetworkVideoSourceInfo& videoSourceInfo);
-	bool removeNetworkVideoSource(MikanVideoSourceID videoSourceId);
-
-	const SpoutVideoSourceMap& getSpoutVideoSourceMap() const { return m_spoutVideoSourceComponents; }
-	SpoutVideoSourceComponentPtr getSpoutVideoSourceById(MikanVideoSourceID videoSourceId) const;
-	SpoutVideoSourceComponentPtr getSpoutVideoSourceByName(const std::string& videoSourceName) const;
-	SpoutVideoSourceComponentPtr addNewSpoutVideoSource(const MikanSpoutVideoSourceInfo& videoSourceInfo);
-	bool removeSpoutVideoSource(MikanVideoSourceID videoSourceId);
-
-	const USBVideoSourceMap& getUSBVideoSourceMap() const { return m_usbVideoSourceComponents; }
-	USBVideoSourceComponentPtr getUSBVideoSourceById(MikanVideoSourceID videoSourceId) const;
-	USBVideoSourceComponentPtr getUSBVideoSourceByName(const std::string& videoSourceName) const;
-	USBVideoSourceComponentPtr addNewUSBVideoSource(const MikanUSBVideoSourceInfo& videoSourceInfo);
-	bool removeUSBVideoSource(MikanVideoSourceID videoSourceId);
-
-protected:
-	bool createUsbVideoDeviceManager(const std::string& moduleName);
-	void disposeUsbVideoDeviceManager();
-
-	ClientVideoSourceComponentPtr createClientVideoSourceObject(ClientVideoSourceDefinitionPtr sourceConfig);
-	bool disposeClientVideoSourceObject(MikanVideoSourceID videoSourceId);
-
-	NetworkVideoSourceComponentPtr createNetworkVideoSourceObject(NetworkVideoSourceDefinitionPtr sourceConfig);
-	bool disposeNetworkVideoSourceObject(MikanVideoSourceID videoSourceId);
-
-	SpoutVideoSourceComponentPtr createSpoutVideoSourceObject(SpoutVideoSourceDefinitionPtr sourceConfig);
-	bool disposeSpoutVideoSourceObject(MikanVideoSourceID videoSourceId);
-
-	USBVideoSourceComponentPtr createUSBVideoSourceObject(USBVideoSourceDefinitionPtr sourceConfig);
-	bool disposeUSBVideoSourceObject(MikanVideoSourceID videoSourceId);
-
-	ClientVideoSourceMap m_clientVideoSourceComponents;
-	NetworkVideoSourceMap m_networkVideoSourceComponents;
-	SpoutVideoSourceMap m_spoutVideoSourceComponents;
-
-	class IUsbVideoDeviceModule* m_usbVideoDeviceModule = nullptr;
-	IUsbVideoDeviceManagerPtr m_usbVideoDeviceManager= nullptr;
-	USBVideoSourceMap m_usbVideoSourceComponents;
+private:
+	ClientVideoSourceSystemPtr m_clientVideoSourceSystem;
+	NetworkVideoSourceSystemPtr m_networkVideoSourceSystem;
+	SpoutVideoSourceSystemPtr m_spoutVideoSourceSystem;
+	USBVideoSourceSystemPtr m_usbVideoSourceSystem;
 
 	static VideoSourceSystemWeakPtr s_VideoSourceSystem;
 };

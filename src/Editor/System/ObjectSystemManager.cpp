@@ -2,12 +2,16 @@
 
 #include "ObjectSystemManager.h"
 #include "AnchorObjectSystem.h"
+#include "ClientVideoSourceSystem.h"
 #include "CameraObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "IMkWindow.h"
+#include "NetworkVideoSourceSystem.h"
 #include "SceneObjectSystem.h"
+#include "SpoutVideoSourceSystem.h"
 #include "StencilObjectSystem.h"
 #include "StageObjectSystem.h"
+#include "USBVideoSourceSystem.h"
 #include "VideoSourceSystem.h"
 
 bool ObjectSystemManager::startup()
@@ -16,6 +20,10 @@ bool ObjectSystemManager::startup()
 	// Init EditorSystem first so that it get component creation events 
 	// from Anchor and Stencil Systems triggered during init call
 	addSystem<EditorObjectSystem>();
+	addSystem<ClientVideoSourceSystem>();
+	addSystem<NetworkVideoSourceSystem>();
+	addSystem<SpoutVideoSourceSystem>();
+	addSystem<USBVideoSourceSystem>();
 	addSystem<VideoSourceSystem>();
 	addSystem<SceneObjectSystem>();
 	addSystem<StageObjectSystem>();
