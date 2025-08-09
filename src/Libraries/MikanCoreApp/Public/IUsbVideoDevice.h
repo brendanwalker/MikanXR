@@ -58,12 +58,32 @@ struct UsbVideoModeProperties
 	int frame_rate_demonenator; // denominator of the frame rate (e.g., 1 for 30 fps)
 };
 
-/// UsbVideoDevice interface
+struct UsbVideoFrameBuffer
+{
+	const uint8_t* data;
+	size_t byte_count;
+};
+
+class IUsbVideoDeviceListener
+{
+public:
+	// Called when the video source has updated its dimensions
+	virtual void notifyVideoModePropertiesChanged(const class IUsbVideoDevice* device) = 0;
+
+	// Called when new video frame has been received from the video source
+	virtual void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo) = 0;
+};
+
+// UsbVideoDevice interface
 class IUsbVideoDevice
 {
 public:
 	IUsbVideoDevice() = default;
 	virtual ~IUsbVideoDevice() {}
+
+	// -- Device Listener
+	virtual void bindListener(IUsbVideoDeviceListener* listener) = 0;
+	virtual void unbindListener(IUsbVideoDeviceListener* listener) = 0;
 
     // -- Device Properties
 	virtual size_t getDeviceIndex() const = 0;
