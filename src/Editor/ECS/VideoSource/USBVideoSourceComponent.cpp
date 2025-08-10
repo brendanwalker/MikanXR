@@ -299,6 +299,72 @@ int64_t USBVideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection s
 	return m_lastVideoFrameReadIndex;
 }
 
+size_t USBVideoSourceComponent::getAvailableVideoModesCount() const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->getAvailableVideoModesCount();
+	}
+
+	return 0;
+}
+
+bool USBVideoSourceComponent::getVideoModeProperties(
+	size_t index,
+	UsbVideoModeProperties& outProperties) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->getVideoModeProperties(index, outProperties);
+	}
+
+	return false;
+}
+
+int USBVideoSourceComponent::getVideoModeIndex() const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->getVideoModeIndex();
+	}
+
+	return -1;
+}
+
+const char* USBVideoSourceComponent::getVideoModeName() const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->getVideoModeName();
+	}
+
+	return nullptr;
+}
+
+bool USBVideoSourceComponent::setVideoModeByName(const std::string& videoModeName)
+{
+	if (m_usbVideoDevice != nullptr &&
+		m_usbVideoDevice->setVideoModeByName(videoModeName.c_str()))
+	{
+		getUSBVideoSourceDefinition()->setVideoMode(videoModeName);
+		return true;
+	}
+
+	return false;
+}
+
+bool USBVideoSourceComponent::setVideoModeByIndex(size_t index)
+{
+	if (m_usbVideoDevice != nullptr &&
+		m_usbVideoDevice->setVideoModeByIndex(index))
+	{
+		getUSBVideoSourceDefinition()->setVideoMode(m_usbVideoDevice->getVideoModeName());
+		return true;
+	}
+
+	return false;
+}
+
 void USBVideoSourceComponent::notifyVideoDeviceDisconnected(const IUsbVideoDevice* device)
 {
 	if (device == m_usbVideoDevice)
@@ -543,8 +609,7 @@ bool USBVideoSourceComponent::setPropertyValue(const std::string& propertyName, 
 	else if (propertyName == USBVideoSourceDefinition::k_videoModePropertyId)
 	{
 		std::string videoMode = inValue.Get<std::string>();
-		getUSBVideoSourceDefinition()->setVideoMode(videoMode);
-		//TODO: Set the video mode on the USB video device
+		setVideoModeByName(videoMode);
 		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)

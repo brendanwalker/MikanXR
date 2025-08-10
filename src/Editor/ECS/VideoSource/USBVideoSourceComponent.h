@@ -52,9 +52,16 @@ public:
 	virtual eVideoStreamingStatus startVideoStream() override;
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
-
 	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const override;
 	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;
+
+	// -- USB Video Mode
+	size_t getAvailableVideoModesCount() const;
+	bool getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const;
+	int getVideoModeIndex() const;
+	const char* getVideoModeName() const;
+	bool setVideoModeByName(const std::string& videoModeName);
+	bool setVideoModeByIndex(size_t index);
 
 	// -- IUsbVideoDeviceListener ----
 	virtual void notifyVideoDeviceDisconnected(const IUsbVideoDevice* device) override;
@@ -87,5 +94,4 @@ protected:
 	class OpenCVVideoFrameBuffer* m_opencv_buffer_state[MAX_PROJECTION_COUNT];
 	IUsbVideoDevice* m_usbVideoDevice;
 	glm::mat4 m_projectionMatrix;
-
 };

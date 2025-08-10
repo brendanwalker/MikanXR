@@ -99,7 +99,7 @@ public:
 	virtual int getVideoModeIndex() const = 0;
 	virtual const char* getVideoModeName() const = 0;
 	virtual bool setVideoModeByName(const char* szVideoModeName) = 0;
-	virtual bool setVideoModeByIndex(const char* szVideoModeName) = 0;
+	virtual bool setVideoModeByIndex(size_t index) = 0;
 
 	// -- Camera Settings
 	virtual bool getCameraSettingConstraint(const eUsbCameraSettingType property_type, UsbCameraSettingConstraint& outConstraint) const = 0;
