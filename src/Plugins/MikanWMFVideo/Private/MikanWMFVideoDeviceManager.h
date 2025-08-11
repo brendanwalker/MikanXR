@@ -2,8 +2,13 @@
 
 #include "IUsbVideoDevice.h"
 #include "IUsbVideoDeviceManager.h"
+#include "DeviceHotplugNotifier.h"
 
-class MikanWMFVideoDeviceManager : public IUsbVideoDeviceManager
+#include <vector>
+
+class MikanWMFVideoDeviceManager : 
+	public IUsbVideoDeviceManager, 
+	public IDeviceHotplugListener
 {
 public:
 	MikanWMFVideoDeviceManager();
@@ -21,5 +26,15 @@ public:
 	virtual class IUsbVideoDevice* getDeviceByIndex(size_t index) override;
 	virtual class IUsbVideoDevice* getDeviceByPath(const char* devicePath) override;
 
+	// IDeviceHotplugListener
+	virtual void onDeviceConnected(const std::string& path) override;
+	virtual void onDeviceDisconnected(const std::string& path) override;
+
+protected:
+	void rebuildDeviceList();
+
 private:
+	std::vector<IUsbVideoDeviceManagerListener*> m_eventListeners;
+	class WMFDeviceList* m_wmfDeviceList;
+	class DeviceHotplugNotifier* m_deviceHotplugNotifier;
 };
