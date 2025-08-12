@@ -89,7 +89,6 @@ public:
 	virtual void removeListener(IUsbVideoDeviceListener* listener) = 0;
 
     // -- Device Properties
-	virtual size_t getDeviceIndex() const = 0;
 	virtual const char* getDevicePath() const = 0;
 	virtual const char* getFriendlyName() const = 0;
 
@@ -103,7 +102,7 @@ public:
 
 	// -- Camera Settings
 	virtual bool getCameraSettingConstraint(const eUsbCameraSettingType property_type, UsbCameraSettingConstraint& outConstraint) const = 0;
-	virtual void setCameraSetting(const eUsbCameraSettingType property_type, int desired_value, bool save_setting) = 0;
+	virtual void setCameraSetting(const eUsbCameraSettingType property_type, int desired_value) = 0;
 	virtual int getCameraSetting(const eUsbCameraSettingType property_type) const = 0;
 
 	// -- Video Streaming

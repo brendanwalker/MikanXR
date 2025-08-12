@@ -4,6 +4,7 @@
 
 // -- includes -----
 #include "WMFDeviceList.h"
+#include "WMFDeviceInfo.h"
 #include "Logger.h"
 #include "MemoryUtils.h"
 #include "StringUtils.h"
@@ -25,50 +26,6 @@ static WMFDeviceFormatInfo ParseWMFFormatType(int mediaTypeIndex, IMFMediaType *
 static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes *pAttr, DWORD index, WMFDeviceFormatInfo &outFormatType);
 static HRESULT GetGUIDNameCopy(const GUID& guid, std::wstring &out_guidName);
 static LPCWSTR GetGUIDNameConst(const GUID& guid);
-
-// -- WMF Device Info -----
-int WMFDeviceInfo::findBestDeviceFormatIndex(
-	unsigned int w,
-	unsigned int h,
-	unsigned int frameRate,
-	const char *buffer_format) const
-{
-	wchar_t wcs_buffer_format[256];
-	if (!StringUtils::convertMbsToWcs(buffer_format, wcs_buffer_format, sizeof(wcs_buffer_format)))
-	{
-		return INVALID_DEVICE_FORMAT_INDEX;
-	}
-
-	int result_id= INVALID_DEVICE_FORMAT_INDEX;
-	for (int attempt = 0; attempt < 2; ++attempt)
-	{
-		for (const WMFDeviceFormatInfo &info : deviceAvailableFormats)
-		{
-			unsigned int rounded_frame_rate= info.frame_rate_numerator / info.frame_rate_denominator;
-
-			if ((w == UNSPECIFIED_CAMERA_WIDTH || info.width == w) && 
-				(h == UNSPECIFIED_CAMERA_HEIGHT || info.height == h) && 
-				info.sub_type_name == wcs_buffer_format && 
-				(frameRate == UNSPECIFIED_CAMERA_FPS || rounded_frame_rate == frameRate))
-			{
-				result_id= info.device_format_index;
-				break;
-			}
-		}
-
-		if (result_id != INVALID_DEVICE_FORMAT_INDEX)
-		{
-			break;
-		}
-		else if (attempt == 0)
-		{
-			// Fallback to no FPS restriction on second pass
-			frameRate= UNSPECIFIED_CAMERA_FPS;
-		}
-	}
-
-	return result_id;
-}
 
 // -- WMF Device List -----
 const WMFDeviceInfo* WMFDeviceList::getDeviceByIndex(size_t index) const
@@ -424,18 +381,35 @@ static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes *pAttr, DWORD in
 				{
 					if(guid == MF_MT_AM_FORMAT_TYPE)
 					{
-						hr = GetGUIDNameCopy(*var.puuid, outMediaType.am_format_type_name);
+						std::wstring am_format_type_name;
+						hr = GetGUIDNameCopy(*var.puuid, am_format_type_name);
+						if (hr == S_OK)
+						{
+							outMediaType.am_format_type_name = 
+								StringUtils::convertWStringToUTF8String(am_format_type_name);
+						}
 					}
 
 					if(guid == MF_MT_MAJOR_TYPE)
 					{
-						hr = GetGUIDNameCopy(*var.puuid, outMediaType.major_type_name);
+						std::wstring major_type_name;
+						hr = GetGUIDNameCopy(*var.puuid, major_type_name);
+						if (hr == S_OK)
+						{
+							outMediaType.major_type_name =
+								StringUtils::convertWStringToUTF8String(major_type_name);
+						}
 					}
 
 					if(guid == MF_MT_SUBTYPE)
 					{
-						hr = GetGUIDNameCopy(*var.puuid, outMediaType.sub_type_name);
-
+						std::wstring sub_type_name;
+						hr = GetGUIDNameCopy(*var.puuid, sub_type_name);
+						if (hr == S_OK)
+						{
+							outMediaType.sub_type_name =
+								StringUtils::convertWStringToUTF8String(sub_type_name);
+						}
 					}
 				} break;
 
