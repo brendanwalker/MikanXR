@@ -185,6 +185,10 @@ bool USBVideoSourceComponent::openVideoSource()
 	if (m_usbVideoDevice == nullptr)
 		return false;
 
+	// Attempt to open the USB video device
+	if (!m_usbVideoDevice->open())
+		return false;
+
 	// Apply the desired video mode from the definition to the USB video device
 	if (!updateVideoMode())
 		return false;
@@ -325,6 +329,9 @@ void USBVideoSourceComponent::closeVideoSource()
 	{
 		// Stop the video stream if it is running
 		stopVideoStream();
+
+		// Close the USB video device
+		m_usbVideoDevice->close();
 
 		// Remove the listener for the USB video device
 		m_usbVideoDevice->removeListener(this);

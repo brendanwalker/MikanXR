@@ -92,6 +92,11 @@ public:
 	virtual const char* getDevicePath() const = 0;
 	virtual const char* getFriendlyName() const = 0;
 
+	// -- Device Activation
+	virtual bool getIsOpen() const = 0;
+	virtual bool open() = 0;
+	virtual void close() = 0;
+
 	// -- Video Mode
 	virtual size_t getAvailableVideoModesCount() const = 0;
 	virtual bool getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const = 0;

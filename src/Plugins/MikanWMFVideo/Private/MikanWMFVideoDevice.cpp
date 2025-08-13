@@ -40,6 +40,141 @@ const char* MikanUsbVideoDevice::getFriendlyName() const
 	return m_deviceInfo.deviceFriendlyName.c_str();
 }
 
+// -- Device Activation
+bool MikanUsbVideoDevice::open()
+{
+	HRESULT hr;
+
+	// Close the device if it's currently open
+	if (getIsOpen())
+	{
+		close();
+	}
+
+	if (m_currentVideoModeIndex >= 0 && m_currentVideoModeIndex < m_deviceInfo.deviceAvailableFormats.size())
+	{
+		IMFAttributes* pAttributes = NULL;
+		IMFActivate* vd_pActivate = NULL;
+
+		hr = MFCreateAttributes(&pAttributes, 1);
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pAttributes->SetGUID(
+				MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+				MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+		}
+
+		IMFActivate* deviceActivationInterface = nullptr;
+		if (SUCCEEDED(hr))
+		{
+			IMFActivate** ppDevices = nullptr;
+			UINT32 wmfDeviceCount;
+			hr = MFEnumDeviceSources(pAttributes, &ppDevices, &wmfDeviceCount);
+
+			if (m_deviceInfo.wmfDeviceIndex >= 0 && m_deviceInfo.wmfDeviceIndex < (int)wmfDeviceCount)
+			{
+				deviceActivationInterface = ppDevices[m_deviceInfo.wmfDeviceIndex];
+				deviceActivationInterface->AddRef();
+			}
+
+			for (UINT32 i = 0; i < wmfDeviceCount; i++)
+			{
+				MemoryUtils::safeRelease(&ppDevices[i]);
+			}
+
+			MemoryUtils::safeReleaseAllCount(ppDevices);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			hr = deviceActivationInterface->ActivateObject(
+				__uuidof(IMFMediaSource),
+				(void**)&m_mediaSource);
+		}
+
+		IMFPresentationDescriptor* pPD = nullptr;
+		if (SUCCEEDED(hr))
+			hr = m_mediaSource->CreatePresentationDescriptor(&pPD);
+
+		BOOL fSelected;
+		IMFStreamDescriptor* pSD = nullptr;
+		if (SUCCEEDED(hr))
+			hr = pPD->GetStreamDescriptorByIndex(0, &fSelected, &pSD);
+
+		IMFMediaTypeHandler* pHandler = nullptr;
+		if (SUCCEEDED(hr))
+			hr = pSD->GetMediaTypeHandler(&pHandler);
+
+		DWORD cTypes = 0;
+		if (SUCCEEDED(hr))
+			hr = pHandler->GetMediaTypeCount(&cTypes);
+
+		IMFMediaType* pType = nullptr;
+		if (SUCCEEDED(hr))
+			hr = pHandler->GetMediaTypeByIndex((DWORD)m_currentVideoModeIndex, &pType);
+
+		if (SUCCEEDED(hr))
+			hr = pHandler->SetCurrentMediaType(pType);
+
+		if (SUCCEEDED(hr))
+		{
+			const WMFDeviceFormatInfo& deviceFormat =
+				m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex];
+
+			m_videoFrameProcessor =
+				new WMFVideoFrameProcessor(
+					m_deviceInfo.wmfDeviceIndex, deviceFormat, this);
+			hr = m_videoFrameProcessor->init(m_mediaSource);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			// Update the property constraints for the current video format
+			for (int prop_index = 0; prop_index < (int)eUsbCameraSettingType::COUNT; ++prop_index)
+			{
+				getCameraSettingConstraint(
+					(eUsbCameraSettingType)prop_index,
+					m_videoPropertyConstraints[prop_index]);
+			}
+		}
+
+		MemoryUtils::safeReleaseAllCount(&pPD);
+		MemoryUtils::safeRelease(&pSD);
+		MemoryUtils::safeRelease(&pHandler);
+		MemoryUtils::safeRelease(&pType);
+		MemoryUtils::safeReleaseAllCount(&deviceActivationInterface);
+		MemoryUtils::safeReleaseAllCount(&pAttributes);
+
+		if (!SUCCEEDED(hr))
+		{
+			close();
+		}
+	}
+	else
+	{
+		hr = E_INVALIDARG;
+	}
+
+	return SUCCEEDED(hr);
+
+}
+
+void MikanUsbVideoDevice::close()
+{
+	if (m_videoFrameProcessor != nullptr)
+	{
+		delete m_videoFrameProcessor;
+		m_videoFrameProcessor = nullptr;
+	}
+
+	if (m_mediaSource != nullptr)
+	{
+		m_mediaSource->Stop();
+		MemoryUtils::safeRelease(&m_mediaSource);
+	}
+}
+
 // -- Video Mode
 size_t MikanUsbVideoDevice::getAvailableVideoModesCount() const
 {
@@ -332,140 +467,6 @@ void MikanUsbVideoDevice::stopVideoStream()
 	if (getIsOpen())
 	{
 		m_videoFrameProcessor->stopVideoFrameThread();
-	}
-}
-
-bool MikanUsbVideoDevice::open()
-{
-	HRESULT hr;
-
-	// Close the device if it's currently open
-	if (getIsOpen())
-	{
-		close();
-	}
-
-	if (m_currentVideoModeIndex >= 0 && m_currentVideoModeIndex < m_deviceInfo.deviceAvailableFormats.size())
-	{
-		IMFAttributes* pAttributes = NULL;
-		IMFActivate* vd_pActivate = NULL;
-
-		hr = MFCreateAttributes(&pAttributes, 1);
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pAttributes->SetGUID(
-				MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-				MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
-		}
-
-		IMFActivate* deviceActivationInterface = nullptr;
-		if (SUCCEEDED(hr))
-		{
-			IMFActivate** ppDevices = nullptr;
-			UINT32 wmfDeviceCount;
-			hr = MFEnumDeviceSources(pAttributes, &ppDevices, &wmfDeviceCount);
-
-			if (m_deviceInfo.wmfDeviceIndex >= 0 && m_deviceInfo.wmfDeviceIndex < (int)wmfDeviceCount)
-			{
-				deviceActivationInterface = ppDevices[m_deviceInfo.wmfDeviceIndex];
-				deviceActivationInterface->AddRef();
-			}
-
-			for (UINT32 i = 0; i < wmfDeviceCount; i++)
-			{
-				MemoryUtils::safeRelease(&ppDevices[i]);
-			}
-
-			MemoryUtils::safeReleaseAllCount(ppDevices);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			hr = deviceActivationInterface->ActivateObject(
-				__uuidof(IMFMediaSource),
-				(void**)&m_mediaSource);
-		}
-
-		IMFPresentationDescriptor* pPD = nullptr;
-		if (SUCCEEDED(hr))
-			hr = m_mediaSource->CreatePresentationDescriptor(&pPD);
-
-		BOOL fSelected;
-		IMFStreamDescriptor* pSD = nullptr;
-		if (SUCCEEDED(hr))
-			hr = pPD->GetStreamDescriptorByIndex(0, &fSelected, &pSD);
-
-		IMFMediaTypeHandler* pHandler = nullptr;
-		if (SUCCEEDED(hr))
-			hr = pSD->GetMediaTypeHandler(&pHandler);
-
-		DWORD cTypes = 0;
-		if (SUCCEEDED(hr))
-			hr = pHandler->GetMediaTypeCount(&cTypes);
-
-		IMFMediaType* pType = nullptr;
-		if (SUCCEEDED(hr))
-			hr = pHandler->GetMediaTypeByIndex((DWORD)m_currentVideoModeIndex, &pType);
-
-		if (SUCCEEDED(hr))
-			hr = pHandler->SetCurrentMediaType(pType);
-
-		if (SUCCEEDED(hr))
-		{
-			const WMFDeviceFormatInfo& deviceFormat =
-				m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex];
-
-			m_videoFrameProcessor =
-				new WMFVideoFrameProcessor(
-					m_deviceInfo.wmfDeviceIndex, deviceFormat, this);
-			hr = m_videoFrameProcessor->init(m_mediaSource);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			// Update the property constraints for the current video format
-			for (int prop_index = 0; prop_index < (int)eUsbCameraSettingType::COUNT; ++prop_index)
-			{
-				getCameraSettingConstraint(
-					(eUsbCameraSettingType)prop_index, 
-					m_videoPropertyConstraints[prop_index]);
-			}
-		}
-
-		MemoryUtils::safeReleaseAllCount(&pPD);
-		MemoryUtils::safeRelease(&pSD);
-		MemoryUtils::safeRelease(&pHandler);
-		MemoryUtils::safeRelease(&pType);
-		MemoryUtils::safeReleaseAllCount(&deviceActivationInterface);
-		MemoryUtils::safeReleaseAllCount(&pAttributes);
-
-		if (!SUCCEEDED(hr))
-		{
-			close();
-		}
-	}
-	else
-	{
-		hr = E_INVALIDARG;
-	}
-
-	return SUCCEEDED(hr);
-
-}
-
-void MikanUsbVideoDevice::close()
-{
-	if (m_videoFrameProcessor != nullptr)
-	{
-		delete m_videoFrameProcessor;
-		m_videoFrameProcessor = nullptr;
-	}
-
-	if (m_mediaSource != nullptr)
-	{
-		m_mediaSource->Stop();
-		MemoryUtils::safeRelease(&m_mediaSource);
 	}
 }
 

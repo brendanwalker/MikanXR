@@ -96,6 +96,11 @@ public:
 	virtual const char* getDevicePath() const override;
 	virtual const char* getFriendlyName() const override;
 
+	// -- Device Activation
+	virtual bool getIsOpen() const override { return m_ownerDeviceManager != nullptr; }
+	virtual bool open() override;
+	virtual void close() override;
+
 	// -- Video Mode
 	virtual size_t getAvailableVideoModesCount() const override;
 	virtual bool getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const override;
@@ -117,10 +122,6 @@ public:
 	void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo);
 
 protected:
-	bool getIsOpen() const { return m_ownerDeviceManager != nullptr; }
-	bool open();
-	void close();
-
 	/*
 	  See https://msdn.microsoft.com/en-us/library/windows/desktop/dd407328(v=vs.85).aspx
 	  VideoProcAmp_Brightness		[-10k, 10k]
