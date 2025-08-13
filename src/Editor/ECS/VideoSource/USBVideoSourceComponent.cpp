@@ -1,4 +1,5 @@
 #include "CameraMath.h"
+#include "MathUtility.h"
 #include "MikanServer.h"
 #include "OpenCVVideoFrameBuffer.h"
 #include "ThreadUtils.h"
@@ -20,14 +21,14 @@
 // -- USBVideoSourceDefinition -----
 const std::string USBVideoSourceDefinition::k_devicePathPropertyId = "devicePath";
 const std::string USBVideoSourceDefinition::k_videoModePropertyId = "videoMode";
-const std::string USBVideoSourceDefinition::k_brightnessPropertyId = "brightness";
+const std::string USBVideoSourceDefinition::k_cameraSettingsPropertyId = "cameraSettings";
 
 USBVideoSourceDefinition::USBVideoSourceDefinition()
 	: VideoSourceDefinition()
 	, m_devicePath("")
 	, m_videoMode("")
-	, m_brightness(-1.f)
-{}
+{	
+}
 
 USBVideoSourceDefinition::USBVideoSourceDefinition(
 	MikanVideoSourceID videoSourceId,
@@ -38,8 +39,8 @@ USBVideoSourceDefinition::USBVideoSourceDefinition(
 		videoSourceInfo.intrinsics)
 	, m_devicePath(videoSourceInfo.device_path.getValue())
 	, m_videoMode(videoSourceInfo.video_mode.getValue())
-	, m_brightness(-1.f)
-{}
+{
+}
 
 configuru::Config USBVideoSourceDefinition::writeToJSON()
 {
@@ -47,7 +48,7 @@ configuru::Config USBVideoSourceDefinition::writeToJSON()
 
 	pt["device_path"] = m_devicePath;
 	pt["video_mode"] = m_videoMode;
-	pt["brightness"] = m_brightness;
+	writeStdArrayMap<float, (int)VideoPropertyType::COUNT>(pt, "cameraSettings", m_cameraSettingsMap);
 
 	return pt;
 }
@@ -57,7 +58,7 @@ void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	VideoSourceDefinition::readFromJSON(pt);
 	m_devicePath = pt.get_or<std::string>("device_path", m_devicePath);
 	m_videoMode = pt.get_or<std::string>("video_mode", m_videoMode);
-	m_brightness = pt.get_or<float>("brightness", m_brightness);
+	readStdArrayMap<float, (int)VideoPropertyType::COUNT>(pt, "cameraSettings", m_cameraSettingsMap);
 }
 
 void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
@@ -78,13 +79,59 @@ void USBVideoSourceDefinition::setVideoMode(const std::string& videoMode)
 	}
 }
 
-void USBVideoSourceDefinition::setBrightness(const float brightness)
+bool USBVideoSourceDefinition::getCameraSettingValue(
+	const std::string& modeName,
+	eUsbCameraSettingType settingType,
+	float& outValue) const
 {
-	if (brightness != m_brightness)
+	if (m_cameraSettingsMap.find(modeName) != m_cameraSettingsMap.end())
 	{
-		m_brightness = brightness;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_brightnessPropertyId));
+		const auto& settings = m_cameraSettingsMap.at(modeName);
+		
+		outValue= settings[(int)settingType];
+		return true; // Found the setting value
 	}
+
+	return false; // Default value if not found
+}
+
+void USBVideoSourceDefinition::setCameraSettingValue(
+	const std::string& modeName,
+	eUsbCameraSettingType settingType,
+	float value,
+	bool bBroadcastMarkDirty)
+{
+	bool bIsDirty = false;
+
+	auto it = m_cameraSettingsMap.find(modeName);
+	if (it == m_cameraSettingsMap.end())
+	{
+		 auto settings = std::array<float, (int)eUsbCameraSettingType::COUNT>();
+
+		 settings[(int)settingType] = value;
+		 m_cameraSettingsMap[modeName] = settings;
+		 bIsDirty = true;
+	}
+	else
+	{
+		auto& settings = it->second;
+
+		if (settings[(int)settingType] != value)
+		{
+			settings[(int)settingType] = value;
+			bIsDirty = true;
+		}
+	}
+
+	if (bIsDirty && bBroadcastMarkDirty)
+	{
+		markCameraSettingsDirty();
+	}
+}
+
+void USBVideoSourceDefinition::markCameraSettingsDirty()
+{
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraSettingsPropertyId));
 }
 
 // -- USBVideoSourceComponent -----
@@ -138,6 +185,13 @@ bool USBVideoSourceComponent::openVideoSource()
 	if (m_usbVideoDevice == nullptr)
 		return false;
 
+	// Apply the desired video mode from the definition to the USB video device
+	if (!updateVideoMode())
+		return false;
+
+	// Apply camera settings from the definition to the USB video device
+	updateCameraSettings();
+
 	// Listen for events from the USB video device
 	m_usbVideoDevice->addListener(this);
 
@@ -156,6 +210,113 @@ bool USBVideoSourceComponent::openVideoSource()
 	}
 
 	return true;
+}
+
+bool USBVideoSourceComponent::updateVideoMode()
+{
+	if (m_usbVideoDevice == nullptr)
+		return false;
+
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	const std::string desiredVideoMode = definition->getVideoMode();
+	const std::string currentVideoMode = m_usbVideoDevice->getVideoModeName();
+	if (desiredVideoMode != currentVideoMode)
+	{
+		// If no video mode is set, then set the first available video mode
+		if (currentVideoMode.empty() && desiredVideoMode.empty())
+		{
+			// Set the first available video mode
+			UsbVideoModeProperties modeProperties;
+			if (m_usbVideoDevice->getVideoModeProperties(0, modeProperties) &&
+				m_usbVideoDevice->setVideoModeByIndex(0))
+			{
+				// Update the definition with the video mode name
+				definition->setVideoMode(modeProperties.name);
+			}
+			else
+			{
+				// If no video modes are available, return false
+				return false;
+			}
+		}
+		// If we have a valid desired video mode, apply it
+		else if (!desiredVideoMode.empty())
+		{
+			if (!m_usbVideoDevice->setVideoModeByName(desiredVideoMode.c_str()))
+			{
+				// If the desired video mode could not be set, return false
+				definition->setVideoMode("");
+				return false;
+			}
+		}
+		// If we have a valid current video mode, update the definition
+		else
+		{
+			definition->setVideoMode(currentVideoMode);
+		}
+	}
+
+	return true;
+}
+
+void USBVideoSourceComponent::updateCameraSettings()
+{
+	if (m_usbVideoDevice == nullptr)
+		return;
+
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	const std::string videoMode= m_usbVideoDevice->getVideoModeName();
+	bool bModifiedCameraSettings = false;
+
+	// Apply video property settings stored in config onto the camera
+	// Or store the current camera settings if not set
+	for (int prop_index = 0; prop_index < (int)eUsbCameraSettingType::COUNT; ++prop_index)
+	{
+		const eUsbCameraSettingType prop_type = (eUsbCameraSettingType)prop_index;
+		
+		if (UsbCameraSettingConstraint constraint;
+			m_usbVideoDevice->getCameraSettingConstraint(prop_type, constraint) &&
+			constraint.is_supported)
+		{
+			float desiredFloatValue = 0.f;
+			if (definition->getCameraSettingValue(
+				videoMode,
+				prop_type,
+				desiredFloatValue))
+			{
+				const int desiredIntValue= 
+					remap_float_to_int(
+						0.f, 1.f,
+						constraint.min_value, constraint.max_value,
+						desiredFloatValue);
+
+				// Set the camera setting on the USB video device
+				m_usbVideoDevice->setCameraSetting(prop_type, desiredIntValue);
+			}
+			else
+			{
+				const int currentIntValue= m_usbVideoDevice->getCameraSetting(prop_type);
+				const float currentFloatValue= 
+					remap_int_to_float(
+						constraint.min_value, constraint.max_value,
+						0.f, 1.f,
+						currentIntValue);
+
+				definition->setCameraSettingValue(
+					videoMode, 
+					prop_type, 
+					currentFloatValue, 
+					false); // Do not broadcast dirty state here
+				bModifiedCameraSettings = true;
+			}
+		}
+	}
+
+	if (bModifiedCameraSettings)
+	{
+		// Mark the camera settings as dirty if any settings were modified
+		definition->markCameraSettingsDirty();
+	}
 }
 
 void USBVideoSourceComponent::closeVideoSource()
@@ -546,7 +707,7 @@ void USBVideoSourceComponent::getPropertyNames(std::vector<std::string>& outProp
 
 	outPropertyNames.push_back(USBVideoSourceDefinition::k_devicePathPropertyId);
 	outPropertyNames.push_back(USBVideoSourceDefinition::k_videoModePropertyId);
-	outPropertyNames.push_back(USBVideoSourceDefinition::k_brightnessPropertyId);
+	outPropertyNames.push_back(USBVideoSourceDefinition::k_cameraSettingsPropertyId);
 }
 
 bool USBVideoSourceComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -564,11 +725,13 @@ bool USBVideoSourceComponent::getPropertyDescriptor(const std::string& propertyN
 		outDescriptor = {USBVideoSourceDefinition::k_videoModePropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name};
 		return true;
 	}
-	else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)
-	{
-		outDescriptor = {USBVideoSourceDefinition::k_brightnessPropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
-		return true;
-	}
+	// TODO Camera settings
+	//else if (propertyName == USBVideoSourceDefinition::k_cameraSettingsPropertyId)
+	//{
+	//	outDescriptor = {USBVideoSourceDefinition::k_cameraSettingsPropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+	//	return true;
+	//}
+
 	return false;
 }
 
@@ -587,11 +750,12 @@ bool USBVideoSourceComponent::getPropertyValue(const std::string& propertyName, 
 		outValue = getUSBVideoSourceDefinition()->getVideoMode();
 		return true;
 	}
-	else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)
-	{
-		outValue = getUSBVideoSourceDefinition()->getBrightness();
-		return true;
-	}
+	// TODO Camera settings
+	//else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)
+	//{
+	//	outValue = getUSBVideoSourceDefinition()->getBrightness();
+	//	return true;
+	//}
 	return false;
 }
 
@@ -612,12 +776,13 @@ bool USBVideoSourceComponent::setPropertyValue(const std::string& propertyName, 
 		setVideoModeByName(videoMode);
 		return true;
 	}
-	else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)
-	{
-		float brightness = inValue.Get<float>();
-		getUSBVideoSourceDefinition()->setBrightness(brightness);
-		return true;
-	}
+	// TODO Camera settings
+	//else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)
+	//{
+	//	float brightness = inValue.Get<float>();
+	//	getUSBVideoSourceDefinition()->setBrightness(brightness);
+	//	return true;
+	//}
 
 	return false;
 }

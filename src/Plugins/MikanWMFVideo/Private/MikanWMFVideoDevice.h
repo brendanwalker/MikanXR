@@ -4,6 +4,7 @@
 #include "WMFDeviceInfo.h"
 #include "WorkerThread.h"
 
+#include <array>
 #include <string>
 #include <set>
 
@@ -19,7 +20,7 @@ public:
 	WMFVideoFrameProcessor(
 		int deviceIndex,
 		const WMFDeviceFormatInfo& deviceFormat,
-		class IVideoSourceListener* listener);
+		class MikanUsbVideoDevice* listener);
 	~WMFVideoFrameProcessor();
 
 	HRESULT init(IMFMediaSource* pSource);
@@ -68,7 +69,7 @@ protected:
 private:
 	int m_deviceIndex;
 	const WMFDeviceFormatInfo& m_deviceFormat;
-	class IVideoSourceListener* m_videoSourceListener;
+	class MikanUsbVideoDevice* m_videoSourceListener;
 
 	long m_referenceCount;
 
@@ -113,6 +114,8 @@ public:
 	virtual eUsbVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
 
+	void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo);
+
 protected:
 	bool getIsOpen() const { return m_ownerDeviceManager != nullptr; }
 	bool open();
@@ -151,13 +154,12 @@ protected:
 
 	void notifyVideoDeviceDisconnected();
 	void notifyVideoModePropertiesChanged();
-	void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo);
 
 private:
 	class MikanWMFVideoDeviceManager* m_ownerDeviceManager;
 	WMFDeviceInfo m_deviceInfo;
 	int m_currentVideoModeIndex= -1;
-	UsbCameraSettingConstraint m_videoPropertyConstraints[(int)eUsbCameraSettingType::COUNT];
+	std::array<UsbCameraSettingConstraint, (int)eUsbCameraSettingType::COUNT> m_videoPropertyConstraints;
 	IMFMediaSource* m_mediaSource= nullptr;
 	WMFVideoFrameProcessor* m_videoFrameProcessor= nullptr;
 

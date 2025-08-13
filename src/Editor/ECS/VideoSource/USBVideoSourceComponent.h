@@ -23,14 +23,22 @@ public:
 	inline const std::string& getVideoMode() const { return m_videoMode; }
 	void setVideoMode(const std::string& videoMode);
 
-	static const std::string k_brightnessPropertyId;
-	inline float getBrightness() const { return m_brightness; }
-	void setBrightness(const float brightness);
+	static const std::string k_cameraSettingsPropertyId;
+	bool getCameraSettingValue(
+		const std::string& modeName, 
+		eUsbCameraSettingType settingType,
+		float& outValue) const;
+	void setCameraSettingValue(
+		const std::string& modeName,
+		eUsbCameraSettingType settingType,
+		float value,
+		bool bBroadcastMarkDirty = true);
+	void markCameraSettingsDirty();
 
 private:
 	std::string m_devicePath;
 	std::string m_videoMode;
-	float m_brightness;
+	std::map<std::string, std::array<float, (int)VideoPropertyType::COUNT> > m_cameraSettingsMap;
 };
 
 class USBVideoSourceComponent : public VideoSourceComponent, public IUsbVideoDeviceListener
@@ -85,9 +93,11 @@ public:
 	void testIntrinsics();
 
 protected:
+	bool updateVideoMode();
+	void updateCameraSettings();
 	bool reallocateOpencvBufferState();
 	void releaseOpencvBufferState();
-	void recomputeCameraProjectionMatrix();
+	void recomputeCameraProjectionMatrix();	
 
 protected:
 	int64_t m_lastVideoFrameReadIndex;
