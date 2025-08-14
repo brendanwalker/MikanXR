@@ -28,6 +28,14 @@ static HRESULT GetGUIDNameCopy(const GUID& guid, std::wstring &out_guidName);
 static LPCWSTR GetGUIDNameConst(const GUID& guid);
 
 // -- WMF Device List -----
+bool WMFDeviceList::isDevicePresent(const std::string& devicePath) const
+{
+	return std::any_of(m_deviceList.begin(), m_deviceList.end(),
+		[&devicePath](const WMFDeviceInfo& device) {
+			return device.deviceSymbolicLink == devicePath;
+		});
+}
+
 const WMFDeviceInfo* WMFDeviceList::getDeviceByIndex(size_t index) const
 {
 	return index < m_deviceList.size() ? &m_deviceList[index] : nullptr;

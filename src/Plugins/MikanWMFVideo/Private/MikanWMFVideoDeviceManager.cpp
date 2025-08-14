@@ -58,16 +58,29 @@ void MikanWMFVideoDeviceManager::shutdown()
 
 size_t MikanWMFVideoDeviceManager::getDeviceCount() const
 {
-	return 0;
+	return m_deviceMap.size();
 }
 
 IUsbVideoDevice* MikanWMFVideoDeviceManager::getDeviceByIndex(size_t index)
 {
+	if (index < m_deviceMap.size())
+	{
+		auto it = m_deviceMap.begin();
+		std::advance(it, index);
+		return it->second.get();
+	}
+
 	return nullptr;
 }
 
 IUsbVideoDevice* MikanWMFVideoDeviceManager::getDeviceByPath(const char* devicePath)
 {
+	auto it = m_deviceMap.find(devicePath);
+	if (it != m_deviceMap.end())
+	{
+		return it->second.get();
+	}
+
 	return nullptr;
 }
 
@@ -85,8 +98,40 @@ void MikanWMFVideoDeviceManager::onDeviceDisconnected(const std::string& path)
 
 void MikanWMFVideoDeviceManager::rebuildDeviceList()
 {
+	// Update the WMF device list
 	m_wmfDeviceList->rebuild();
 
+	// Create any new devices that are not already in the map
+	for (const auto& deviceInfo : m_wmfDeviceList->getDevices())
+	{
+		const std::string devicePath = deviceInfo.deviceSymbolicLink;
+
+		if (m_deviceMap.find(devicePath) == m_deviceMap.end())
+		{
+			m_deviceMap[devicePath] = std::make_unique<MikanWMFVideoDevice>(this, deviceInfo);
+
+			MIKAN_LOG_INFO("MikanWMFVideoDeviceManager") << "New device added: " << devicePath;
+		}
+	}
+
+	// Remove devices that are no longer present
+	for (auto it = m_deviceMap.begin(); it != m_deviceMap.end();)
+	{
+		if (!m_wmfDeviceList->isDevicePresent(it->first))
+		{
+			// Ensure the device is properly shutdown and listeners notified before removal
+			it->second->notifyVideoDeviceDisconnected(); 
+
+			MIKAN_LOG_INFO("MikanWMFVideoDeviceManager") << "Device removed: " << it->first;
+			it = m_deviceMap.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	// Notify all listeners that the device list has changed
 	for (IUsbVideoDeviceManagerListener* listener : m_eventListeners)
 	{
 		listener->onConnectedDeviceListChanged();

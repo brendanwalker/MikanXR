@@ -5,7 +5,7 @@
 #include "MemoryUtils.h"
 
 // -- MikanUsbVideoDevice -----
-MikanUsbVideoDevice::MikanUsbVideoDevice(
+MikanWMFVideoDevice::MikanWMFVideoDevice(
 	MikanWMFVideoDeviceManager* ownerDeviceManager,
 	const WMFDeviceInfo& deviceInfo)
 	: m_ownerDeviceManager(ownerDeviceManager)
@@ -13,35 +13,35 @@ MikanUsbVideoDevice::MikanUsbVideoDevice(
 {
 }
 
-MikanUsbVideoDevice::~MikanUsbVideoDevice()
+MikanWMFVideoDevice::~MikanWMFVideoDevice()
 {
 	close();
 }
 
 // -- Device Listener
-void MikanUsbVideoDevice::addListener(IUsbVideoDeviceListener* listener)
+void MikanWMFVideoDevice::addListener(IUsbVideoDeviceListener* listener)
 {
 	m_listeners.insert(listener);
 }
 
-void MikanUsbVideoDevice::removeListener(IUsbVideoDeviceListener* listener)
+void MikanWMFVideoDevice::removeListener(IUsbVideoDeviceListener* listener)
 {
 	m_listeners.erase(listener);
 }
 
 // -- Device Properties
-const char* MikanUsbVideoDevice::getDevicePath() const
+const char* MikanWMFVideoDevice::getDevicePath() const
 {
 	return m_deviceInfo.deviceSymbolicLink.c_str();
 }
 
-const char* MikanUsbVideoDevice::getFriendlyName() const
+const char* MikanWMFVideoDevice::getFriendlyName() const
 {
 	return m_deviceInfo.deviceFriendlyName.c_str();
 }
 
 // -- Device Activation
-bool MikanUsbVideoDevice::open()
+bool MikanWMFVideoDevice::open()
 {
 	HRESULT hr;
 
@@ -160,7 +160,7 @@ bool MikanUsbVideoDevice::open()
 
 }
 
-void MikanUsbVideoDevice::close()
+void MikanWMFVideoDevice::close()
 {
 	if (m_videoFrameProcessor != nullptr)
 	{
@@ -176,12 +176,12 @@ void MikanUsbVideoDevice::close()
 }
 
 // -- Video Mode
-size_t MikanUsbVideoDevice::getAvailableVideoModesCount() const
+size_t MikanWMFVideoDevice::getAvailableVideoModesCount() const
 {
 	return m_deviceInfo.deviceAvailableFormats.size();
 }
 
-bool MikanUsbVideoDevice::getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const
+bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const
 {
 	if(index < m_deviceInfo.deviceAvailableFormats.size())
 	{
@@ -199,12 +199,12 @@ bool MikanUsbVideoDevice::getVideoModeProperties(size_t index, UsbVideoModePrope
 	return false;
 }
 
-int MikanUsbVideoDevice::getVideoModeIndex() const
+int MikanWMFVideoDevice::getVideoModeIndex() const
 {
 	return m_currentVideoModeIndex;
 }
 
-const char* MikanUsbVideoDevice::getVideoModeName() const
+const char* MikanWMFVideoDevice::getVideoModeName() const
 {
 	if (m_currentVideoModeIndex >= 0 && 
 		m_currentVideoModeIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
@@ -215,7 +215,7 @@ const char* MikanUsbVideoDevice::getVideoModeName() const
 	return nullptr;
 }
 
-bool MikanUsbVideoDevice::setVideoModeByName(const char* szVideoModeName)
+bool MikanWMFVideoDevice::setVideoModeByName(const char* szVideoModeName)
 {
 	if (szVideoModeName != nullptr && !m_deviceInfo.deviceAvailableFormats.empty())
 	{
@@ -227,7 +227,7 @@ bool MikanUsbVideoDevice::setVideoModeByName(const char* szVideoModeName)
 	return false;
 }
 
-bool MikanUsbVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
+bool MikanWMFVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 {
 	if (m_currentVideoModeIndex != desiredFormatIndex &&
 		desiredFormatIndex >= 0 &&
@@ -246,7 +246,7 @@ bool MikanUsbVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 }
 
 // -- Camera Settings
-bool MikanUsbVideoDevice::getCameraSettingConstraint(
+bool MikanWMFVideoDevice::getCameraSettingConstraint(
 	const eUsbCameraSettingType property_type,
 	UsbCameraSettingConstraint& outConstraint) const
 {
@@ -310,7 +310,7 @@ bool MikanUsbVideoDevice::getCameraSettingConstraint(
 	return bSuccess;
 }
 
-void MikanUsbVideoDevice::setCameraSetting(const eUsbCameraSettingType property_type, int desired_value)
+void MikanWMFVideoDevice::setCameraSetting(const eUsbCameraSettingType property_type, int desired_value)
 {
 	switch (property_type)
 	{
@@ -367,7 +367,7 @@ void MikanUsbVideoDevice::setCameraSetting(const eUsbCameraSettingType property_
 	}
 }
 
-int MikanUsbVideoDevice::getCameraSetting(const eUsbCameraSettingType property_type) const
+int MikanWMFVideoDevice::getCameraSetting(const eUsbCameraSettingType property_type) const
 {
 	int value = 0;
 
@@ -429,7 +429,7 @@ int MikanUsbVideoDevice::getCameraSetting(const eUsbCameraSettingType property_t
 }
 
 // -- Video Streaming
-eUsbVideoStreamingStatus MikanUsbVideoDevice::startVideoStream()
+eUsbVideoStreamingStatus MikanWMFVideoDevice::startVideoStream()
 {
 	if (getIsOpen())
 	{
@@ -450,7 +450,7 @@ eUsbVideoStreamingStatus MikanUsbVideoDevice::startVideoStream()
 	return eUsbVideoStreamingStatus::failed;
 }
 
-eUsbVideoStreamingStatus MikanUsbVideoDevice::getVideoStreamingStatus() const
+eUsbVideoStreamingStatus MikanWMFVideoDevice::getVideoStreamingStatus() const
 {
 	if (getIsOpen())
 	{
@@ -462,7 +462,7 @@ eUsbVideoStreamingStatus MikanUsbVideoDevice::getVideoStreamingStatus() const
 	return eUsbVideoStreamingStatus::failed;
 }
 
-void MikanUsbVideoDevice::stopVideoStream()
+void MikanWMFVideoDevice::stopVideoStream()
 {
 	if (getIsOpen())
 	{
@@ -483,7 +483,7 @@ void MikanUsbVideoDevice::stopVideoStream()
 	VideoProcAmp_BacklightCompensation		0=off, 1=on
 	VideoProcAmp_Gain				device dependent
 */
-bool MikanUsbVideoDevice::setProcAmpProperty(VideoProcAmpProperty propId, long value, bool bAuto)
+bool MikanWMFVideoDevice::setProcAmpProperty(VideoProcAmpProperty propId, long value, bool bAuto)
 {
 	bool bSuccess = false;
 
@@ -499,7 +499,7 @@ bool MikanUsbVideoDevice::setProcAmpProperty(VideoProcAmpProperty propId, long v
 	return SUCCEEDED(hr);
 }
 
-long MikanUsbVideoDevice::getProcAmpProperty(VideoProcAmpProperty propId, bool* bIsAuto) const
+long MikanWMFVideoDevice::getProcAmpProperty(VideoProcAmpProperty propId, bool* bIsAuto) const
 {
 	long intValue = 0;
 	IAMVideoProcAmp* pProcAmp = NULL;
@@ -521,7 +521,7 @@ long MikanUsbVideoDevice::getProcAmpProperty(VideoProcAmpProperty propId, bool* 
 	return intValue;
 }
 
-bool MikanUsbVideoDevice::getProcAmpRange(VideoProcAmpProperty propId, UsbCameraSettingConstraint& constraint) const
+bool MikanWMFVideoDevice::getProcAmpRange(VideoProcAmpProperty propId, UsbCameraSettingConstraint& constraint) const
 {
 	IAMVideoProcAmp* pProcAmp = NULL;
 	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
@@ -549,7 +549,7 @@ bool MikanUsbVideoDevice::getProcAmpRange(VideoProcAmpProperty propId, UsbCamera
 	return SUCCEEDED(hr);
 }
 
-bool MikanUsbVideoDevice::setCameraControlProperty(CameraControlProperty propId, long value, bool bAuto)
+bool MikanWMFVideoDevice::setCameraControlProperty(CameraControlProperty propId, long value, bool bAuto)
 {
 	bool bSuccess = false;
 
@@ -566,7 +566,7 @@ bool MikanUsbVideoDevice::setCameraControlProperty(CameraControlProperty propId,
 	return SUCCEEDED(hr);
 }
 
-long MikanUsbVideoDevice::getCameraControlProperty(CameraControlProperty propId, bool* bIsAuto) const
+long MikanWMFVideoDevice::getCameraControlProperty(CameraControlProperty propId, bool* bIsAuto) const
 {
 	long intValue = 0;
 	IAMCameraControl* pCameraControl = NULL;
@@ -588,7 +588,7 @@ long MikanUsbVideoDevice::getCameraControlProperty(CameraControlProperty propId,
 	return intValue;
 }
 
-bool MikanUsbVideoDevice::getCameraControlRange(
+bool MikanWMFVideoDevice::getCameraControlRange(
 	CameraControlProperty propId, UsbCameraSettingConstraint& constraint) const
 {
 	double unitValue = 0;
@@ -618,15 +618,17 @@ bool MikanUsbVideoDevice::getCameraControlRange(
 	return SUCCEEDED(hr);
 }
 
-void MikanUsbVideoDevice::notifyVideoDeviceDisconnected()
+void MikanWMFVideoDevice::notifyVideoDeviceDisconnected()
 {
+	close();
+
 	for (auto listener : m_listeners)
 	{
 		listener->notifyVideoDeviceDisconnected(this);
 	}
 }
 
-void MikanUsbVideoDevice::notifyVideoModePropertiesChanged()
+void MikanWMFVideoDevice::notifyVideoModePropertiesChanged()
 {
 	for (auto listener : m_listeners)
 	{
@@ -634,7 +636,7 @@ void MikanUsbVideoDevice::notifyVideoModePropertiesChanged()
 	}
 }
 
-void MikanUsbVideoDevice::notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo)
+void MikanWMFVideoDevice::notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo)
 {
 	for (auto listener : m_listeners)
 	{
@@ -647,7 +649,7 @@ void MikanUsbVideoDevice::notifyVideoFrameReceived(const UsbVideoFrameBuffer& bu
 WMFVideoFrameProcessor::WMFVideoFrameProcessor(
 	int deviceIndex,
 	const WMFDeviceFormatInfo& deviceFormat,
-	MikanUsbVideoDevice* listener)
+	MikanWMFVideoDevice* listener)
 	: WorkerThread("WMFVideoFrameProcessor")
 	, m_deviceIndex(deviceIndex)
 	, m_deviceFormat(deviceFormat)

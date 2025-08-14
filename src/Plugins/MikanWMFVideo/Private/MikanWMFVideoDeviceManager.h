@@ -4,7 +4,11 @@
 #include "IUsbVideoDeviceManager.h"
 #include "DeviceHotplugNotifier.h"
 
+#include <map>
+#include <memory>
 #include <vector>
+
+using MikanWMFVideoDevicePtr = std::shared_ptr<class MikanWMFVideoDevice>;
 
 class MikanWMFVideoDeviceManager : 
 	public IUsbVideoDeviceManager, 
@@ -37,4 +41,5 @@ private:
 	std::vector<IUsbVideoDeviceManagerListener*> m_eventListeners;
 	class WMFDeviceList* m_wmfDeviceList;
 	class DeviceHotplugNotifier* m_deviceHotplugNotifier;
+	std::map<std::string, MikanWMFVideoDevicePtr> m_deviceMap;
 };

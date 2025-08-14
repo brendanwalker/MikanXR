@@ -20,7 +20,7 @@ public:
 	WMFVideoFrameProcessor(
 		int deviceIndex,
 		const WMFDeviceFormatInfo& deviceFormat,
-		class MikanUsbVideoDevice* listener);
+		class MikanWMFVideoDevice* listener);
 	~WMFVideoFrameProcessor();
 
 	HRESULT init(IMFMediaSource* pSource);
@@ -69,7 +69,7 @@ protected:
 private:
 	int m_deviceIndex;
 	const WMFDeviceFormatInfo& m_deviceFormat;
-	class MikanUsbVideoDevice* m_videoSourceListener;
+	class MikanWMFVideoDevice* m_videoSourceListener;
 
 	long m_referenceCount;
 
@@ -80,13 +80,13 @@ private:
 	int64_t m_sampleIndex;
 };
 
-class MikanUsbVideoDevice : public IUsbVideoDevice
+class MikanWMFVideoDevice : public IUsbVideoDevice
 {
 public:
-	MikanUsbVideoDevice(
+	MikanWMFVideoDevice(
 		class MikanWMFVideoDeviceManager* ownerDeviceManager,
 		const WMFDeviceInfo& deviceInfo);
-	virtual ~MikanUsbVideoDevice();
+	virtual ~MikanWMFVideoDevice();
 
 	// -- Device Listener
 	virtual void addListener(IUsbVideoDeviceListener* listener) override;
@@ -119,6 +119,7 @@ public:
 	virtual eUsbVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
 
+	void notifyVideoDeviceDisconnected();
 	void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo);
 
 protected:
@@ -153,7 +154,6 @@ protected:
 	long getCameraControlProperty(CameraControlProperty propId, bool* bIsAuto = nullptr) const;
 	bool getCameraControlRange(CameraControlProperty propId, UsbCameraSettingConstraint& constraint) const;
 
-	void notifyVideoDeviceDisconnected();
 	void notifyVideoModePropertiesChanged();
 
 private:
