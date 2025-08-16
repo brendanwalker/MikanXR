@@ -1,3 +1,4 @@
+#include "CameraMath.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
 #include "VideoSourceComponent.h"
@@ -109,6 +110,7 @@ const std::string VideoSourceComponent::k_deleteVideoSourceFunctionId = "delete_
 
 VideoSourceComponent::VideoSourceComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
+	, m_projectionMatrix(glm::mat4(1.f))
 {
 }
 
@@ -168,8 +170,42 @@ bool VideoSourceComponent::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_c
 bool VideoSourceComponent::setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics)
 {
 	getVideoSourceDefinition()->setCameraIntrinsics(camera_intrinsics);
+	recomputeCameraProjectionMatrix();
 
 	return true;
+}
+
+glm::mat4 VideoSourceComponent::getProjectionMatrix() const
+{
+	return m_projectionMatrix;
+}
+
+void VideoSourceComponent::recomputeCameraProjectionMatrix()
+{
+	MikanVideoSourceIntrinsics intrinsics;
+	if (getCameraIntrinsics(intrinsics))
+	{
+		switch (intrinsics.intrinsics_type)
+		{
+			case MONO_CAMERA_INTRINSICS:
+			{
+				const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
+
+				computeOpenGLProjMatFromCameraIntrinsics(
+					monoIntrinsics,
+					m_projectionMatrix);
+			} break;
+			case STEREO_CAMERA_INTRINSICS:
+			{
+				const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+
+				computeOpenGLProjMatFromCameraIntrinsics(
+					stereoIntrinsics,
+					eStereoIntrinsicsSide::left,
+					m_projectionMatrix);
+			} break;
+		}
+	}
 }
 
 // -- IPropertyInterface ----

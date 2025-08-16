@@ -3,20 +3,19 @@
 #include "ObjectSystemConfigFwd.h"
 #include "SinglecastDelegate.h"
 #include "Shared/RmlModel.h"
-#include "VideoDisplayConstants.h"
 #include "Constants_AlignmentCalibration.h"
 
 class ProjectConfig;
 
-class VideoSourceView;
-typedef std::shared_ptr<const VideoSourceView> VideoSourceViewConstPtr;
+class VideoSourceComponent;
+typedef std::shared_ptr<const VideoSourceComponent> VideoSourceComponentConstPtr;
 
 class RmlModel_AlignmentCameraSettings : public RmlModel
 {
 public:
 	bool init(
 		Rml::Context* rmlContext,
-		VideoSourceViewConstPtr videoSourceView,
+		VideoSourceComponentConstPtr videoSourceComponent,
 		ProjectConfigConstPtr profileConfig);
 	virtual void dispose() override;
 
@@ -26,14 +25,10 @@ public:
 	eAlignmentCalibrationViewpointMode getViewpointMode() const;
 	void setViewpointMode(eAlignmentCalibrationViewpointMode newMode);
 
-	int getBrightness() const;
-	void setBrightness(int newBrightness);
-
 	int getVRFrameDelay() const;
 	void setVRFrameDelay(int newFrameDelay);
 
 	SinglecastDelegate<void(eAlignmentCalibrationViewpointMode)> OnViewpointModeChanged;
-	SinglecastDelegate<void(int)> OnBrightnessChanged;
 	SinglecastDelegate<void(int)> OnVRFrameDelayChanged;
 
 private:
@@ -41,8 +36,4 @@ private:
 	Rml::String m_menuState;
 	Rml::String m_viewpointMode;
 	int m_vrFrameDelay= 0;
-	int m_brightness= 0;
-	int m_brightnessMin= 0;
-	int m_brightnessMax= 0;
-	int m_brightnessStep= 0;
 };

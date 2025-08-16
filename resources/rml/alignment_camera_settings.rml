@@ -30,11 +30,6 @@
             </handle>
         </div>
         <panel id="controls" data-model="alignment_camera_settings">
-            <h2>Brightness</h2>
-            <div>
-                <input type="range" name="brightness" min="0" max="255" step="1" value="128" data-value="brightness" data-event-change="brightness_changed()" />
-                {{brightness}}
-            </div>
             <h2>VR Frame Delay</h2>
             <div>
                 <input type="range" name="vr_frame_delay" min="0" max="100" step="1" value="0" data-value="vr_frame_delay" data-event-change="vr_frame_delay_changed()" />

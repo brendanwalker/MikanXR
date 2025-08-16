@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "ComponentFwd.h"
 #include "DeviceViewFwd.h"
 #include "Constants_AlignmentCalibration.h"
 #include "IRemoteControllableAppStage.h"
@@ -21,6 +22,7 @@ public:
 	virtual ~AppStage_AlignmentCalibration();
 
 	void setBypassCalibrationFlag(bool flag);
+	void setTargetCameraComponent(CameraComponentPtr cameraComponent);
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -44,7 +46,6 @@ protected:
 
 	// Camera Settings Model UI Events
 	void onViewportModeChanged(eAlignmentCalibrationViewpointMode newViewMode);
-	void onBrightnessChanged(int newBrightness);
 	void onVRFrameDelayChanged(int newVRFrameDelay);
 
 	// Remote Control
@@ -64,9 +65,8 @@ private:
 	class RmlModel_AlignmentCameraSettings* m_cameraSettingsModel = nullptr;
 	Rml::ElementDocument* m_cameraSettingsView = nullptr;
 
-	bool m_bHasModifiedCameraSettings= false;
-
-	VideoSourceViewPtr m_videoSourceView;
+	CameraComponentPtr m_targetCameraComponent;
+	VideoSourceComponentPtr m_videoSourceComponent;
 
 	// Tracking pucks used for calibration
 	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;

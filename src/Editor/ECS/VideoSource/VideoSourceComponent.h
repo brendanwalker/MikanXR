@@ -87,6 +87,7 @@ public:
 	virtual bool getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const;
 	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
+	virtual glm::mat4 getProjectionMatrix() const;
 
 	// Video Source Events
 	MulticastDelegate<void(const VideoSourceComponent* videoSource)> OnOpened;
@@ -109,4 +110,10 @@ public:
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void deleteVideoSource();
+
+protected:
+	void recomputeCameraProjectionMatrix();
+
+private:
+	glm::mat4 m_projectionMatrix;
 };

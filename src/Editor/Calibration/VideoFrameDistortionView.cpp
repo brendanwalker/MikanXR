@@ -9,7 +9,7 @@
 #include "MathTypeConversion.h"
 #include "OpenCVManager.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
@@ -38,12 +38,12 @@ struct OpenCVMonoCameraIntrinsics
 
 VideoFrameDistortionView::VideoFrameDistortionView(
 	IMkWindow* ownerWindow,
-	VideoSourceViewPtr view,
+	VideoSourceComponentPtr videoSourceComponent,
 	unsigned int bufferBitmask,
 	unsigned int frameQueueSize)
 	: m_ownerWindow(ownerWindow)
 	, m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
-	, m_videoSourceView(view)
+	, m_videoSourceComponent(videoSourceComponent)
 	, m_bufferBitmask(bufferBitmask)
 	, m_frameWidth(0)
 	, m_frameHeight(0)
@@ -69,7 +69,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 {
 	// Get the current camera intrinsics being used by the video source
 	MikanVideoSourceIntrinsics mikanIntrinsics;
-	m_videoSourceView->getCameraIntrinsics(mikanIntrinsics);
+	m_videoSourceComponent->getCameraIntrinsics(mikanIntrinsics);
 	m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
 
 	// Source Video Frame data
@@ -85,7 +85,9 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	// Resize all desired video frame buffers to match the current video source view size
 	// It's possible that the video source doesn't have a valid size yet if it's a stream source
 	// So we'll have to resize once the first valid frame is read.
-	ensureFrameBufferSize((int)view->getFrameWidth(), (int)view->getFrameHeight());
+	int pixelWidth, pixelHeight;
+	videoSourceComponent->getPixelDimensions(pixelWidth, pixelHeight);
+	ensureFrameBufferSize(pixelWidth, pixelHeight);
 
 	// Create a mesh used to render the video frame
 	m_fullscreenQuad= createFullscreenQuadMesh(m_ownerWindow, true);
@@ -231,7 +233,7 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 
 bool VideoFrameDistortionView::hasNewVideoFrame() const
 {
-	return m_videoSourceView->hasNewVideoFrameAvailable(VideoFrameSection::Primary);
+	return m_videoSourceComponent->hasNewVideoFrameAvailable(VideoFrameSection::Primary);
 }
 
 int64_t VideoFrameDistortionView::readNextVideoFrame()
@@ -239,7 +241,7 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 	EASY_FUNCTION();
 
 	// Copy the image from the video view
-	if (m_videoSourceView->hasNewVideoFrameAvailable(VideoFrameSection::Primary))
+	if (m_videoSourceComponent->hasNewVideoFrameAvailable(VideoFrameSection::Primary))
 	{
 		const uint32_t now = SDL_GetTicks();
 		const float deltaSeconds = fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
@@ -249,12 +251,12 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 
 		// Reallocate the frame buffer if the video source has changed resolution
 		// (This can happen on streaming video sources)
-		int frameWidth= (int)m_videoSourceView->getFrameWidth();
-		int frameHeight= (int)m_videoSourceView->getFrameHeight();
+		int frameWidth, frameHeight;
+		m_videoSourceComponent->getPixelDimensions(frameWidth, frameHeight);
 		ensureFrameBufferSize(frameWidth, frameHeight);
 
 		cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].bgrSourceBuffer;
-		m_lastVideoFrameReadIndex= m_videoSourceView->readVideoFrameSectionBuffer(VideoFrameSection::Primary, bgrSourceBuffer);
+		m_lastVideoFrameReadIndex= m_videoSourceComponent->readVideoFrameSectionBuffer(VideoFrameSection::Primary, bgrSourceBuffer);
 		m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].frameIndex= m_lastVideoFrameReadIndex;
 		m_bgrSourceBufferWriteIndex = (m_bgrSourceBufferWriteIndex + 1) % m_bgrSourceBufferCount;
 	}

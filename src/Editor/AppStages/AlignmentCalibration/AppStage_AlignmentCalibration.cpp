@@ -7,6 +7,7 @@
 #include "AlignmentCalibration/RmlModel_AlignmentCameraSettings.h"
 #include "App.h"
 #include "CalibrationPatternFinder.h"
+#include "CameraComponent.h"
 #include "Colors.h"
 #include "MkScene.h"
 #include "IMkFrameBuffer.h"
@@ -26,9 +27,9 @@
 #include "MkStateStack.h"
 #include "MonoLensTrackerPoseCalibrator.h"
 #include "TextStyle.h"
-#include "VideoSourceView.h"
-#include "VideoSourceManager.h"
+#include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
+#include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
 
@@ -55,7 +56,8 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(MainWindow* ownerWi
 	: AppStage(ownerWindow, AppStage_AlignmentCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_AlignmentCalibration)
 	, m_cameraSettingsModel(new RmlModel_AlignmentCameraSettings)
-	, m_videoSourceView()
+	, m_targetCameraComponent()
+	, m_videoSourceComponent()
 	, m_trackerPoseCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<MkScene>())
@@ -76,9 +78,15 @@ void AppStage_AlignmentCalibration::setBypassCalibrationFlag(bool flag)
 	m_calibrationModel->setBypassCalibrationFlag(flag);
 }
 
+void AppStage_AlignmentCalibration::setTargetCameraComponent(CameraComponentPtr cameraComponent)
+{
+	m_targetCameraComponent = cameraComponent;
+}
+
 void AppStage_AlignmentCalibration::enter()
 {
 	AppStage::enter();
+	assert(m_targetCameraComponent != nullptr);
 
 	// Get the current video source based on the config
 	const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
@@ -86,7 +94,9 @@ void AppStage_AlignmentCalibration::enter()
 	auto cameraTrackingPuckView= vrDeviceSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
 	auto matTrackingPuckView= vrDeviceSystem->getVRDeviceByPath(profileConfig->matVRDevicePath);
 
-	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	m_videoSourceComponent =
+		VideoSourceSystem::getSystem()->getVideoSourceById(
+			m_targetCameraComponent->getCameraDefinition()->getVideoSourceId());
 	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
 	m_matTrackingPuckPoseView = matTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
 
@@ -96,7 +106,7 @@ void AppStage_AlignmentCalibration::enter()
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+	m_videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
@@ -110,13 +120,13 @@ void AppStage_AlignmentCalibration::enter()
 	// Fire up the video scene in the background + pose calibrator
 	eAlignmentCalibrationMenuState newState;
 	//TODO: Handle pendingStart
-	if ((int)m_videoSourceView->startVideoStream() > 0)
+	if ((int)m_videoSourceComponent->startVideoStream() > 0)
 	{
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
 				m_ownerWindow,
-				m_videoSourceView, 
+				m_videoSourceComponent,
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
@@ -128,13 +138,6 @@ void AppStage_AlignmentCalibration::enter()
 				m_matTrackingPuckPoseView,
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
-
-		// Make sure we have a reasonable brightness value when previewing the camera.
-		// This override will get rolled back once we exit this app stage
-		const int newBrightnessValue =
-			(m_videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness) +
-				m_videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness)) / 2;
-		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, newBrightnessValue, false);
 
 		// If bypassing the calibration, then jump straight to the test calibration state
 		if (m_calibrationModel->getBypassCalibrationFlag())
@@ -166,9 +169,8 @@ void AppStage_AlignmentCalibration::enter()
 			MakeDelegate(this, &AppStage_AlignmentCalibration::onChessboardStabilityChangedEvent);
 
 		// Init camera settings model
-		m_cameraSettingsModel->init(context, m_videoSourceView, profileConfig);
+		m_cameraSettingsModel->init(context, m_videoSourceComponent, profileConfig);
 		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onViewportModeChanged);
-		m_cameraSettingsModel->OnBrightnessChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onBrightnessChanged);
 		m_cameraSettingsModel->OnVRFrameDelayChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onVRFrameDelayChanged);
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
@@ -195,24 +197,11 @@ void AppStage_AlignmentCalibration::exit()
 
 	m_camera= nullptr;
 
-	if (m_videoSourceView)
+	if (m_videoSourceComponent)
 	{
-		if (m_bHasModifiedCameraSettings)
-		{
-			// Save updated camera settings:
-			// * intrinsics and distortion coefficients if we completed calibration
-			// * VR frame delay if it was modified in the UI
-			m_videoSourceView->saveSettings();
-		}
-		else
-		{
-			// Restore video source settings back to what was saved 
-			m_videoSourceView->loadSettings();
-		}
-
 		// Turn back off the video feed
-		m_videoSourceView->stopVideoStream();
-		m_videoSourceView = nullptr;
+		m_videoSourceComponent->stopVideoStream();
+		m_videoSourceComponent = nullptr;
 	}
 
 	// Free the calibrator
@@ -251,13 +240,14 @@ void AppStage_AlignmentCalibration::updateCamera()
 			if (m_calibrationModel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
-
-				bValidPose= m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
+				m_targetCameraComponent->getAperturPose(cameraPose);
 			}
 			else
 			{
 				// Use the last computed preview camera alignment
-				bValidPose = m_trackerPoseCalibrator->getLastCameraPose(m_cameraTrackingPuckPoseView, cameraPose);
+				bValidPose = 
+					m_trackerPoseCalibrator->getLastCameraPose(
+						m_cameraTrackingPuckPoseView, cameraPose);
 			}
 
 			if (bValidPose)
@@ -314,14 +304,12 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 						translationOffset))
 					{
 						// Store the calibrated camera offset on the video source settings
-						m_videoSourceView->setCameraPoseOffset(rotationOffset, translationOffset);
-
-						// Flag that calibration has modified camera pose
-						// (Used to decide if we should save settings on state exit)
-						m_bHasModifiedCameraSettings = true;
+						m_targetCameraComponent->getCameraDefinition()->setAperturePoseOffset(
+							rotationOffset, translationOffset);
 
 						// Go to the test calibration state
-						m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
+						m_cameraSettingsModel->setViewpointMode(
+							eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
 						setMenuState(eAlignmentCalibrationMenuState::testCalibration);
 					}
 				}
@@ -570,17 +558,11 @@ void AppStage_AlignmentCalibration::onViewportModeChanged(eAlignmentCalibrationV
 	}
 }
 
-void AppStage_AlignmentCalibration::onBrightnessChanged(int newBrightness)
-{
-	m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, newBrightness, false);
-}
-
 void AppStage_AlignmentCalibration::onVRFrameDelayChanged(int newVRFrameDelay)
 {
 	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	profileConfig->setVRFrameDelay(newVRFrameDelay);
-	m_bHasModifiedCameraSettings = true;
 }
 
 // Remote Control

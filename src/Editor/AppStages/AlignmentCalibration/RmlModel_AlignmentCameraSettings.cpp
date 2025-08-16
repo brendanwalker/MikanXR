@@ -12,7 +12,7 @@
 
 bool RmlModel_AlignmentCameraSettings::init(
 	Rml::Context* rmlContext,
-	VideoSourceViewConstPtr videoSourceView,
+	VideoSourceComponentConstPtr videoSourceComponent,
 	ProjectConfigConstPtr profileConfig)
 {
 	// Create Datamodel
@@ -24,23 +24,6 @@ bool RmlModel_AlignmentCameraSettings::init(
 	constructor.Bind("menu_state", &m_menuState);
 	constructor.Bind("viewpoint_mode", &m_viewpointMode);
 	constructor.Bind("vr_frame_delay", &m_vrFrameDelay);	
-	constructor.Bind("brightness", &m_brightness);
-	constructor.Bind("brightness_min", &m_brightnessMin);
-	constructor.Bind("brightness_max", &m_brightnessMax);
-	constructor.Bind("brightness_step", &m_brightnessStep);
-	constructor.BindEventCallback(
-		"brightness_changed",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			if (ev.GetId() == Rml::EventId::Change)
-			{
-				const float newBrightness = ev.GetParameter<float>("value", 0.f);
-
-				if (OnBrightnessChanged)
-				{
-					OnBrightnessChanged(newBrightness);
-				}
-			}
-		});
 	constructor.BindEventCallback(
 		"vr_frame_delay_changed",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
@@ -79,19 +62,13 @@ bool RmlModel_AlignmentCameraSettings::init(
 	setMenuState(eAlignmentCalibrationMenuState::inactive);
 	setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
 	setVRFrameDelay(profileConfig->getVRFrameDelay());
-	setBrightness(videoSourceView->getVideoProperty(VideoPropertyType::Brightness));
-	m_brightnessMin = videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
-	m_brightnessMax = videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);
-	m_brightnessStep = videoSourceView->getVideoPropertyConstraintStep(VideoPropertyType::Brightness);
 
 	return true;
 }
 
 void RmlModel_AlignmentCameraSettings::dispose()
 {
-
 	OnViewpointModeChanged.Clear();
-	OnBrightnessChanged.Clear();
 	OnVRFrameDelayChanged.Clear();
 	RmlModel::dispose();
 }
@@ -129,20 +106,6 @@ void RmlModel_AlignmentCameraSettings::setViewpointMode(eAlignmentCalibrationVie
 		// Update menu state on the data model
 		m_viewpointMode = newModeString;
 		m_modelHandle.DirtyVariable("viewpoint_mode");
-	}
-}
-
-int RmlModel_AlignmentCameraSettings::getBrightness() const
-{
-	return m_brightness;
-}
-
-void RmlModel_AlignmentCameraSettings::setBrightness(int newBrightness)
-{
-	if (newBrightness != m_brightness)
-	{
-		m_brightness = newBrightness;
-		m_modelHandle.DirtyVariable("brightness");
 	}
 }
 

@@ -51,12 +51,20 @@ public:
 	inline int getTrackingFrameDelay() const { return m_trackingFrameDelay; }
 	void setTrackingFrameDelay(int trackingFrameDelay);
 
+	static const std::string k_apertureOrientationOffsetPropertyId;
+	static const std::string k_aperturePositionOffsetPropertyId;
+	inline MikanQuatd getApertureOffsetOrientation() const { return m_apertureOrientationOffset; }
+	inline MikanVector3d getApertureOffsetPosition() const { return m_aperturePositionOffset; }
+	void setAperturePoseOffset(const MikanQuatd& q, const MikanVector3d& p);
+
 private:
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	MikanStageID m_stageId = INVALID_MIKAN_ID;
 	MikanTrackingMountID m_trackingMountId = INVALID_MIKAN_ID;
 	MikanVideoSourceID m_videoSourceId = INVALID_MIKAN_ID;
 	int m_trackingFrameDelay= 0;
+	MikanQuatd m_apertureOrientationOffset;
+	MikanVector3d m_aperturePositionOffset;
 };
 
 class CameraComponent : public TransformComponent
@@ -75,6 +83,15 @@ public:
 	StageComponentConstPtr getOwnerStageComponent() const;
 	VRTrackingSystemDefinitionConstPtr getVRTrackingSystemDefinition() const;
 	TrackingMountDefinitionConstPtr getTrackingMountDefinition() const;
+	TrackingMountDefinitionPtr getTrackingMountDefinitionMutable();
+	VideoSourceComponentPtr getVideoSourceComponent() const;
+
+	// Helper functions used to compute 
+	bool getAperturPose(glm::mat4& outCameraPose) const;
+	bool getAperturPose(glm::dmat4& outCameraPose) const;
+	bool getAperturProjectionMatrix(glm::mat4& outProjectionMatrix) const;
+	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
+	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix) const;
 
 	// -- IFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;

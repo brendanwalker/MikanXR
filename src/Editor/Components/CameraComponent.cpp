@@ -1,5 +1,6 @@
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
+#include "CameraMath.h"
 #include "App.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "Colors.h"
@@ -17,6 +18,8 @@
 #include "StageObjectSystem.h"
 #include "StageComponent.h"
 #include "TrackingSystemConfig.h"
+#include "VideoSourceSystem.h"
+#include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"
 #include "VRObjectSystem.h"
 
@@ -25,6 +28,8 @@ const std::string CameraDefinition::k_ownerStageIdPropertyId = "stage_id";
 const std::string CameraDefinition::k_trackingMountIdPropertyId = "tracking_mount_id";
 const std::string CameraDefinition::k_videoSourceIdPropertyId = "video_source_id";
 const std::string CameraDefinition::k_trackingFrameDelayPropertyId = "tracking_frame_delay";
+const std::string CameraDefinition::k_apertureOrientationOffsetPropertyId = "aperture_orientation_offset";
+const std::string CameraDefinition::k_aperturePositionOffsetPropertyId = "aperture_position_offset";
 
 CameraDefinition::CameraDefinition()
 	: TransformComponentDefinition()
@@ -60,6 +65,9 @@ configuru::Config CameraDefinition::writeToJSON()
 	pt["video_source_id"] = m_videoSourceId;
 	pt["tracking_frame_delay"] = m_trackingFrameDelay;
 
+	writeQuaderntiond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
+	writeVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
+
 	return pt;
 }
 
@@ -72,6 +80,9 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 	m_trackingMountId = pt.get_or<int>("tracking_mount_id", m_trackingMountId);
 	m_videoSourceId = pt.get_or<int>("video_source_id", m_videoSourceId);
 	m_trackingFrameDelay = pt.get_or<int>("tracking_frame_delay", m_trackingFrameDelay);
+
+	readQuaterniond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
+	readVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
 }
 
 MikanCameraInfo CameraDefinition::getCameraInfo() const
@@ -124,6 +135,15 @@ void CameraDefinition::setTrackingFrameDelay(int trackingFrameDelay)
 		m_trackingFrameDelay = trackingFrameDelay;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingFrameDelayPropertyId));
 	}
+}
+
+void CameraDefinition::setAperturePoseOffset(const MikanQuatd& q, const MikanVector3d& p)
+{
+	m_apertureOrientationOffset = q;
+	m_aperturePositionOffset = p;
+	markDirty(ConfigPropertyChangeSet()
+		.addPropertyName(k_apertureOrientationOffsetPropertyId)
+		.addPropertyName(k_aperturePositionOffsetPropertyId));
 }
 
 // -- CameraComponent -----
@@ -248,6 +268,95 @@ TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() co
 	return TrackingMountDefinitionConstPtr();
 }
 
+TrackingMountDefinitionPtr CameraComponent::getTrackingMountDefinitionMutable()
+{
+	return std::const_pointer_cast<TrackingMountDefinition>(getTrackingMountDefinition());
+}
+
+VideoSourceComponentPtr CameraComponent::getVideoSourceComponent() const
+{
+	CameraDefinitionPtr cameraDefinition = getCameraDefinition();
+	MikanVideoSourceID videoSourceId = cameraDefinition->getVideoSourceId();
+	if (videoSourceId != INVALID_MIKAN_ID)
+	{
+		return VideoSourceSystem::getSystem()->getVideoSourceById(videoSourceId);
+	}
+
+	return VideoSourceComponentPtr();
+}
+
+bool CameraComponent::getAperturPose(glm::mat4& outCameraPose) const
+{
+	// Get the pose of the VR device we want to compute the camera pose from
+	glm::mat4 vrDevicePose;
+	if (m_trackingMountPoseView->getPose(vrDevicePose))
+	{
+		// Get the offset from the puck to the camera
+		CameraDefinitionPtr cameraDefinition= getCameraDefinition();
+		const glm::vec3 cameraOffsetPos = 
+			MikanVector3d_to_glm_dvec3(cameraDefinition->getApertureOffsetPosition());
+		const glm::quat cameraOffsetQuat = 
+			MikanQuatd_to_glm_dquat(cameraDefinition->getApertureOffsetOrientation());
+		const glm::mat4 cameraOffsetXform = glm_mat4_from_pose(cameraOffsetQuat, cameraOffsetPos);
+
+		// Update the transform of the camera so that vr models align over the tracking puck
+		outCameraPose = glm_composite_xform(cameraOffsetXform, vrDevicePose);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool CameraComponent::getAperturPose(glm::dmat4& outCameraPose) const
+{
+	glm::mat4 cameraPose;
+	if (getAperturPose(cameraPose))
+	{
+		outCameraPose = glm::dmat4(cameraPose);
+		return true;
+	}
+
+	return false;
+}
+
+bool CameraComponent::getAperturProjectionMatrix(glm::mat4& outProjectionMatrix) const
+{
+	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();
+	if (videoSourceComponent)
+	{
+		outProjectionMatrix = videoSourceComponent->getProjectionMatrix();
+		return true;
+	}
+
+	return false;
+}
+
+bool CameraComponent::getApertureViewMatrix(glm::mat4& outViewMatrix) const
+{
+	glm::mat4 cameraPose;
+	if (getAperturPose(cameraPose))
+	{
+		outViewMatrix = computeGLMCameraViewMatrix(cameraPose);
+		return true;
+	}
+
+	return false;
+}
+
+bool CameraComponent::getApertureViewProjectionMatrix(glm::mat4& outVPMatrix) const
+{
+	glm::mat4 projMatrix;
+	glm::mat4 viewMatrix;
+	if (getAperturProjectionMatrix(projMatrix) && getApertureViewMatrix(viewMatrix))
+	{
+		outVPMatrix = projMatrix * viewMatrix;
+		return true;
+	}
+
+	return false;
+}
+
 void CameraComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (changedPropertySet.hasPropertyName(CameraDefinition::k_trackingMountIdPropertyId))
@@ -324,13 +433,13 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 
 void CameraComponent::alignCamera()
 {
+	auto* mainWindow = MainWindow::getInstance();
 	TrackingMountDefinitionConstPtr vrTrackingMount= getTrackingMountDefinition();
 
 	if (vrTrackingMount)
 	{
-		auto* alignmentCalibration = MainWindow::getInstance()->pushAppStage<AppStage_AlignmentCalibration>();
-		//TODO
-		//CameraTriangulation->setTargetCameraDefinition(getCameraDefinition());
+		auto* alignmentCalibration = mainWindow->pushAppStage<AppStage_AlignmentCalibration>();
+		alignmentCalibration->setTargetCameraComponent(getSelfPtr<CameraComponent>());
 	}
 	else
 	{

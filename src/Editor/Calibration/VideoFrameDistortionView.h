@@ -5,20 +5,37 @@
 #include "MikanRendererFwd.h"
 #include <memory>
 
+//TODO: Delete me
 class VideoSourceView;
 typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+//TODO: Delete me
+
+class VideoSourceComponent;
+typedef std::shared_ptr<VideoSourceComponent> VideoSourceComponentPtr;
 
 class VideoFrameDistortionView
 {
 public:
+	//TODO: Delete me
 	VideoFrameDistortionView(
 		class IMkWindow* ownerWindow,
-		VideoSourceViewPtr view, 
+		VideoSourceViewPtr view,
+		unsigned int bufferBitmask,
+		unsigned int frameQueueSize = 1) 
+	{ }
+	//TODO: Delete me
+
+	VideoFrameDistortionView(
+		class IMkWindow* ownerWindow,
+		VideoSourceComponentPtr view, 
 		unsigned int bufferBitmask, 
 		unsigned int frameQueueSize=1);
 	virtual ~VideoFrameDistortionView();
 
+	inline VideoSourceComponentPtr getVideoSourceComponent() const { return m_videoSourceComponent; }
+	//TODO: Delete me
 	inline VideoSourceViewPtr getVideoSourceView() const { return m_videoSourceView; }
+	//TODO: Delete me
 
 	inline int getFrameWidth() const { return m_frameWidth; }
 	inline int getFrameHeight() const { return m_frameHeight; }
@@ -62,7 +79,10 @@ protected:
 	IMkWindow* m_ownerWindow= nullptr;
 
 	eVideoDisplayMode m_videoDisplayMode;
+	//TODO: Delete me
 	VideoSourceViewPtr m_videoSourceView;
+	//TODO: Delete me
+	VideoSourceComponentPtr m_videoSourceComponent;
 	unsigned int m_bufferBitmask;
 	int m_frameWidth;
 	int m_frameHeight;
