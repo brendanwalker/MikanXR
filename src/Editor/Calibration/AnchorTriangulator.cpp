@@ -1,6 +1,7 @@
 #include "AnchorComponent.h"
 #include "CalibrationRenderHelpers.h"
 #include "CalibrationPatternFinder.h"
+#include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
 #include "SdlCommon.h"
@@ -17,8 +18,6 @@
 #include "TransformComponent.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceView.h"
-#include "VRDeviceComponent.h"
 
 #include <algorithm>
 #include <atomic>
@@ -45,11 +44,11 @@ struct AnchorTriangulationState
 	// Output State
 	glm::mat4 anchorWorldXform;
 
-	void init(VideoSourceViewPtr videoSourceView)
+	void init(CameraComponentPtr cameraComponent)
 	{
 		// Get the current mono camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
-		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+		cameraComponent->getApertureIntrinsics(cameraIntrinsics);
 		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 
 		initialCameraPoseSample = glm::mat4(1.f);
@@ -73,17 +72,17 @@ struct AnchorTriangulationState
 
 //-- MonoDistortionCalibrator ----
 AnchorTriangulator::AnchorTriangulator(
-	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+	CameraComponentPtr cameraComponent,
 	VideoFrameDistortionView* distortionView)
 	: m_calibrationState(new AnchorTriangulationState)
-	, m_cameraTrackingPuckPoseView(cameraTrackingPuckPoseView)
+	, m_cameraComponent(cameraComponent)
 	, m_distortionView(distortionView)
 {
 	m_frameWidth = distortionView->getFrameWidth();
 	m_frameHeight = distortionView->getFrameHeight();
 
 	// Private calibration state
-	m_calibrationState->init(distortionView->getVideoSourceView());
+	m_calibrationState->init(cameraComponent);
 }
 
 AnchorTriangulator::~AnchorTriangulator()
@@ -146,7 +145,7 @@ void AnchorTriangulator::sampleCameraPose()
 {
 	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
 	glm::mat4 glm_camera_xform;
-	if (videoSource->getCameraPose(m_cameraTrackingPuckPoseView, glm_camera_xform))
+	if (m_cameraComponent->getAperturePose(glm_camera_xform))
 	{
 		m_calibrationState->initialCameraPoseSample = glm_camera_xform;
 	}
@@ -170,7 +169,7 @@ void AnchorTriangulator::computeCurrentTriangulation()
 	// Compute a ray for triangulating new sample pixel
 	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();	
 	glm::mat4 triangulatingCameraXform;
-	if (videoSource->getCameraPose(m_cameraTrackingPuckPoseView, triangulatingCameraXform))
+	if (m_cameraComponent->getAperturePose(triangulatingCameraXform))
 	{
 		const glm::vec2 triangulatingPointSample = computeMouseScreenPosition();
 		glm::vec3 triangulatingPointRayStart;
@@ -379,7 +378,7 @@ void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 	{
 		// Draw the most recently derived camera transform derived from the mat puck
 		glm::mat4 glm_camera_xform;
-		if (m_distortionView->getVideoSourceView()->getCameraPose(m_cameraTrackingPuckPoseView, glm_camera_xform))
+		if (m_cameraComponent->getAperturePose(glm_camera_xform))
 		{
 			const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
 			const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);

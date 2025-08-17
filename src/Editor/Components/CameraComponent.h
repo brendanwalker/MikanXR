@@ -87,9 +87,10 @@ public:
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 
 	// Helper functions used to compute 
-	bool getAperturPose(glm::mat4& outCameraPose) const;
-	bool getAperturPose(glm::dmat4& outCameraPose) const;
-	bool getAperturProjectionMatrix(glm::mat4& outProjectionMatrix) const;
+	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
+	bool getAperturePose(glm::mat4& outCameraPose) const;
+	bool getAperturePose(glm::dmat4& outCameraPose) const;
+	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix) const;
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix) const;
 

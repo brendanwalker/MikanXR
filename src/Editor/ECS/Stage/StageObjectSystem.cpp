@@ -11,24 +11,50 @@ configuru::Config StageObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
+	pt["next_stage_id"] = m_nextStageId;
+
+	std::vector<configuru::Config> stageListConfigs;
+	for (auto definitionPtr : m_stageList)
+	{
+		stageListConfigs.push_back(definitionPtr->writeToJSON());
+	}
+	pt.insert_or_assign(std::string("stages"), stageListConfigs);
+
 	return pt;
 }
 
 void StageObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
+
+	m_nextStageId = pt.get_or<int>("next_stage_id", m_nextStageId);
+
+	// Read in the stage definitions
+	m_stageList.clear();
+	if (pt.has_key("stages"))
+	{
+		for (const configuru::Config& stage_pt : pt["stages"].as_array())
+		{
+			auto definitionPtr = std::make_shared<StageComponentDefinition>();
+
+			definitionPtr->readFromJSON(stage_pt);
+			m_stageList.push_back(definitionPtr);
+
+			addChildConfig(definitionPtr);
+		}
+	}
 }
 
 // -- StageObjectSystemConfig -----
 StageComponentDefinitionPtr StageObjectSystemConfig::getStageConfig(MikanStageID stageId) const
 {
 	auto it = std::find_if(
-		stageList.begin(), stageList.end(),
+		m_stageList.begin(), m_stageList.end(),
 		[stageId](StageComponentDefinitionPtr configPtr) {
 			return configPtr->getStageId() == stageId;
 		});
 
-	if (it != stageList.end())
+	if (it != m_stageList.end())
 	{
 		return StageComponentDefinitionPtr(*it);
 	}
@@ -39,12 +65,12 @@ StageComponentDefinitionPtr StageObjectSystemConfig::getStageConfig(MikanStageID
 StageComponentDefinitionPtr StageObjectSystemConfig::getStageConfigByName(const std::string& stageName) const
 {
 	auto it = std::find_if(
-		stageList.begin(), stageList.end(),
+		m_stageList.begin(), m_stageList.end(),
 		[stageName](StageComponentDefinitionPtr configPtr) {
 			return configPtr->getComponentName() == stageName;
 		});
 
-	if (it != stageList.end())
+	if (it != m_stageList.end())
 	{
 		return StageComponentDefinitionPtr(*it);
 	}
@@ -57,10 +83,10 @@ MikanSpatialAnchorID StageObjectSystemConfig::addNewStage(
 {
 	auto stageDefinitionPtr = 
 		std::make_shared<StageComponentDefinition>(
-			nextStageId, stageName);
-	nextStageId++;
+			m_nextStageId, stageName);
+	m_nextStageId++;
 
-	stageList.push_back(stageDefinitionPtr);
+	m_stageList.push_back(stageDefinitionPtr);
 	addChildConfig(stageDefinitionPtr);
 
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_stageListPropertyId));
@@ -71,16 +97,16 @@ MikanSpatialAnchorID StageObjectSystemConfig::addNewStage(
 bool StageObjectSystemConfig::removeStage(MikanStageID stageId)
 {
 	auto it = std::find_if(
-		stageList.begin(), stageList.end(),
+		m_stageList.begin(), m_stageList.end(),
 		[stageId](StageComponentDefinitionPtr configPtr) {
 			return configPtr->getStageId() == stageId;
 		});
 
-	if (it != stageList.end())
+	if (it != m_stageList.end())
 	{
 		removeChildConfig(*it);
 
-		stageList.erase(it);
+		m_stageList.erase(it);
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_stageListPropertyId));
 
 		return true;

@@ -14,6 +14,7 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulator.h"
+#include "CameraComponent.h"
 #include "InputManager.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
@@ -21,8 +22,8 @@
 #include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
-#include "VideoSourceView.h"
-#include "VideoSourceManager.h"
+#include "VideoSourceComponent.h"
+#include "VideoSourceSystem.h"
 #include "VideoFrameDistortionView.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
@@ -42,7 +43,7 @@ const char* AppStage_AnchorTriangulation::APP_STAGE_NAME = "AnchorTriangulation"
 AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(MainWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_AnchorTriangulation::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_AnchorTriangulation)
-	, m_videoSourceView()
+	, m_currentSceneCameraComponent()
 	, m_anchorTriangulator(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_camera(nullptr)
@@ -70,18 +71,19 @@ void AppStage_AnchorTriangulation::enter()
 	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(true);
 
 	// Get the current video source based on the config
-	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
-	m_videoSourceView = 
-		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	m_currentSceneCameraComponent = 
+		VideoSourceSystem::getSystem()->getCurrentSceneCameraComponent();
+	m_videoSourceComponent = 
+		m_currentSceneCameraComponent->getVideoSourceComponent();
 
 	// Create a pose view for the camera tracking puck in MikanScene space
-	auto vrObjectSystem = VRObjectSystem::getSystem();
-	auto cameraTrackingPuckView = 
-		vrObjectSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
-	m_cameraTrackingPuckPoseView = 
-		cameraTrackingPuckView
-		? cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene)
-		: VRDevicePoseView::makeInvalidPoseView();
+	//auto vrObjectSystem = VRObjectSystem::getSystem();
+	//auto cameraTrackingPuckView = 
+	//	vrObjectSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
+	//m_cameraTrackingPuckPoseView = 
+	//	cameraTrackingPuckView
+	//	? cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene)
+	//	: VRDevicePoseView::makeInvalidPoseView();
 
 	// Create a new camera to view the scene
 	m_camera = getFirstViewport()->getCurrentMikanCamera();
@@ -90,12 +92,12 @@ void AppStage_AnchorTriangulation::enter()
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+	m_currentSceneCameraComponent->getApertureIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Fire up the video scene in the background + pose calibrator
 	eAnchorTriangulationMenuState newState;
-	eVideoStreamingStatus streamingStatus= m_videoSourceView->startVideoStream();
+	eVideoStreamingStatus streamingStatus= m_videoSourceComponent->startVideoStream();
 	if (streamingStatus == eVideoStreamingStatus::started)
 	{
 		setupDistortionView();
@@ -111,7 +113,7 @@ void AppStage_AnchorTriangulation::enter()
 	}
 	else if (streamingStatus == eVideoStreamingStatus::pendingStart)
 	{
-		m_videoSourceView->OnFrameSizeChanged += 
+		m_videoSourceComponent->OnFrameSizeChanged +=
 			MakeDelegate(this, &AppStage_AnchorTriangulation::onVideoSourceReady);
 		newState= eAnchorTriangulationMenuState::pendingVideoStartStreamRequest;
 	}
@@ -146,9 +148,10 @@ void AppStage_AnchorTriangulation::enter()
 	setMenuState(newState);
 }
 
-void AppStage_AnchorTriangulation::onVideoSourceReady(const VideoSourceView* videoSourceView)
+void AppStage_AnchorTriangulation::onVideoSourceReady(
+	const VideoSourceComponent* inVideoSourceComponent)
 {
-	m_videoSourceView->OnFrameSizeChanged -=
+	m_videoSourceComponent->OnFrameSizeChanged -=
 		MakeDelegate(this, &AppStage_AnchorTriangulation::onVideoSourceReady);
 
 	setupDistortionView();
@@ -170,14 +173,14 @@ void AppStage_AnchorTriangulation::setupDistortionView()
 	m_monoDistortionView =
 		new VideoFrameDistortionView(
 			m_ownerWindow,
-			m_videoSourceView,
+			m_videoSourceComponent,
 			VIDEO_FRAME_HAS_ALL);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Create a calibrator to do the actual triangulation
 	m_anchorTriangulator =
 		new AnchorTriangulator(
-			m_cameraTrackingPuckPoseView,
+			m_currentSceneCameraComponent,
 			m_monoDistortionView);
 }
 
@@ -188,13 +191,14 @@ void AppStage_AnchorTriangulation::exit()
 	// Re-Enable depth testing on the line renderer while in this app stage
 	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(false);
 
+	m_currentSceneCameraComponent = nullptr;
 	m_camera= nullptr;
 
-	if (m_videoSourceView)
+	if (m_videoSourceComponent)
 	{
 		// Turn back off the video feed
-		m_videoSourceView->stopVideoStream();
-		m_videoSourceView = nullptr;
+		m_videoSourceComponent->stopVideoStream();
+		m_videoSourceComponent = nullptr;
 	}
 
 	// Free the calibrator
@@ -218,7 +222,7 @@ void AppStage_AnchorTriangulation::updateCamera()
 {
 	// Update the transform of the camera so that vr models align over the tracking puck
 	glm::mat4 cameraPose;
-	if (m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose))
+	if (m_currentSceneCameraComponent->getAperturePose(cameraPose))
 	{
 		m_camera->setCameraTransform(cameraPose);
 	}

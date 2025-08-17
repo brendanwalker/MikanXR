@@ -12,6 +12,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
@@ -30,15 +31,20 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	static const std::string k_sceneListPropertyId;
 	SceneComponentDefinitionPtr getSceneConfig(MikanSceneID sceneId) const;
 	SceneComponentDefinitionPtr getSceneConfigByName(const std::string& sceneName) const;
 	MikanSpatialAnchorID addNewScene(const std::string& sceneName, MikanStageID parentStageId);
 	bool removeScene(MikanSceneID sceneId);
 
-	static const std::string k_sceneListPropertyId;
-	std::vector<SceneComponentDefinitionPtr> sceneList;
+	static const std::string k_currentSceneIdPropertyId;
+	inline MikanSceneID getCurrentSceneId() const { return m_currentSceneId; }
+	void setCurrentSceneId(MikanSceneID sceneId);
 
-	MikanSceneID nextSceneId = 0;
+private:
+	MikanSceneID m_nextSceneId = 0;
+	MikanSceneID m_currentSceneId = -1;
+	std::vector<SceneComponentDefinitionPtr> m_sceneList;
 };
 
 class SceneObjectSystem : public MikanObjectSystem
@@ -53,12 +59,13 @@ public:
 	SceneObjectSystemConfigConstPtr getSceneSystemConfigConst() const;
 	SceneObjectSystemConfigPtr getSceneSystemConfig();
 
+	SceneComponentPtr getCurrentScene() const;
+	void setCurrentScene(SceneComponentPtr scene);
 	const SceneMap& getSceneMap() const { return m_sceneComponents; }
 	SceneComponentPtr getSceneById(MikanSceneID sceneId) const;
 	SceneComponentPtr getSceneByName(const std::string& sceneName) const;
 	SceneComponentPtr addNewScene(const std::string& sceneName, MikanStageID parentStageId);
 	bool removeScene(MikanSceneID sceneId);
-
 
 protected:
 	SceneComponentPtr createSceneObject(SceneComponentDefinitionPtr sceneConfig);

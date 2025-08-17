@@ -1,10 +1,14 @@
 #include "VideoSourceSystem.h"
+#include "CameraComponent.h"
 #include "ClientVideoSourceSystem.h"
 #include "ClientVideoSourceComponent.h"
+#include "CompositorComponent.h"
 #include "MikanObject.h"
 #include "NetworkVideoSourceSystem.h"
 #include "NetworkVideoSourceComponent.h"
 #include "ObjectSystemManager.h"
+#include "SceneObjectSystem.h"
+#include "SceneComponent.h"
 #include "SpoutVideoSourceSystem.h"
 #include "SpoutVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
@@ -85,6 +89,36 @@ VideoSourceSystemConfigConstPtr VideoSourceSystem::getVideoSourceSystemConfigCon
 VideoSourceSystemConfigPtr VideoSourceSystem::getVideoSourceSystemConfig()
 {
 	return std::const_pointer_cast<VideoSourceSystemConfig>(getVideoSourceSystemConfigConst());
+}
+
+CameraComponentPtr VideoSourceSystem::getCurrentSceneCameraComponent() const
+{
+	SceneComponentPtr sceneComponent = SceneObjectSystem::getSystem()->getCurrentScene();
+	if (sceneComponent)
+	{
+		// Get the output compositor from the current scene
+		CompositorComponentPtr compositorComponent = sceneComponent->getOutputCompositor();
+		if (compositorComponent)
+		{
+			// Get the camera component from the compositor
+			return compositorComponent->getCameraComponent();
+		}
+	}
+
+	return CameraComponentPtr();
+}
+
+VideoSourceComponentPtr VideoSourceSystem::getCurrentSceneVideoSource() const
+{
+	// Get the camera component from the compositor
+	CameraComponentPtr cameraComponent = getCurrentSceneCameraComponent();
+	if (cameraComponent)
+	{
+		// Get the video source component from the camera
+		return cameraComponent->getVideoSourceComponent();
+	}
+
+	return VideoSourceComponentPtr();
 }
 
 VideoSourceComponentPtr VideoSourceSystem::getVideoSourceById(MikanVideoSourceID VideoSourceId) const

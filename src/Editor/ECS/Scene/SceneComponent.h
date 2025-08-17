@@ -65,6 +65,8 @@ public:
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	// -- SceneComponent ----
+	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getSceneId(); }
+	CompositorComponentPtr getOutputCompositor() const;
 	void attachTransformComponentToStage(MikanStageID newParentId);
 	SelectionComponentPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin,

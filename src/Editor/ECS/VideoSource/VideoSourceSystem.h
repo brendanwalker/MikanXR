@@ -38,6 +38,8 @@ public:
 	VideoSourceSystemConfigConstPtr getVideoSourceSystemConfigConst() const;
 	VideoSourceSystemConfigPtr getVideoSourceSystemConfig();
 
+	CameraComponentPtr getCurrentSceneCameraComponent() const;
+	VideoSourceComponentPtr getCurrentSceneVideoSource() const;
 	VideoSourceComponentPtr getVideoSourceById(MikanVideoSourceID videoSourceId) const;
 	eVideoSourceType getVideoSourceType(MikanVideoSourceID videoSourceId) const;
 	bool removeVideoSource(MikanVideoSourceID videoSourceId);

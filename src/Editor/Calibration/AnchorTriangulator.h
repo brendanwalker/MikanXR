@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DeviceViewFwd.h"
+#include "ComponentFwd.h"
 #include "Transform.h"
 
 #include <memory>
@@ -23,7 +23,7 @@ class AnchorTriangulator
 {
 public:
 	AnchorTriangulator(
-		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+		CameraComponentPtr cameraComponent,
 		class VideoFrameDistortionView* distortionView);
 	virtual ~AnchorTriangulator();
 
@@ -56,8 +56,8 @@ protected:
 	// Internal Calibration State
 	struct AnchorTriangulationState* m_calibrationState;
 
-	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	// Camera used for calibration
+	CameraComponentPtr m_cameraComponent;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

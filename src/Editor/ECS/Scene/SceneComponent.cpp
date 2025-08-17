@@ -1,3 +1,4 @@
+#include "CompositorObjectSystem.h"
 #include "SceneComponent.h"
 #include "StageComponent.h"
 #include "MikanObject.h"
@@ -88,6 +89,13 @@ void SceneComponent::setDefinition(MikanComponentDefinitionPtr definition)
 	auto sceneComponentConfigPtr = std::static_pointer_cast<SceneComponentDefinition>(definition);
 	MikanStageID currentParentId = sceneComponentConfigPtr->getParentStageId();
 	attachTransformComponentToStage(currentParentId);
+}
+
+CompositorComponentPtr SceneComponent::getOutputCompositor() const
+{
+	MikanCompositorID compositorId= getSceneComponentDefinition()->getOutputCompositorId();
+
+	return CompositorObjectSystem::getSystem()->getCompositorById(compositorId);
 }
 
 void SceneComponent::attachTransformComponentToStage(MikanStageID newParentId)

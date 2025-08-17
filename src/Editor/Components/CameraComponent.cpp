@@ -6,6 +6,7 @@
 #include "Colors.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
+#include "MikanVideoSourceTypes.h"
 #include "MainWindow.h"
 #include "MathGLM.h"
 #include "ProjectConfig.h"
@@ -285,7 +286,18 @@ VideoSourceComponentPtr CameraComponent::getVideoSourceComponent() const
 	return VideoSourceComponentPtr();
 }
 
-bool CameraComponent::getAperturPose(glm::mat4& outCameraPose) const
+bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntrinsics) const
+{
+	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();
+	if (videoSourceComponent)
+	{
+		return videoSourceComponent->getCameraIntrinsics(outIntrinsics);
+	}
+
+	return false;
+}
+
+bool CameraComponent::getAperturePose(glm::mat4& outCameraPose) const
 {
 	// Get the pose of the VR device we want to compute the camera pose from
 	glm::mat4 vrDevicePose;
@@ -308,10 +320,10 @@ bool CameraComponent::getAperturPose(glm::mat4& outCameraPose) const
 	return false;
 }
 
-bool CameraComponent::getAperturPose(glm::dmat4& outCameraPose) const
+bool CameraComponent::getAperturePose(glm::dmat4& outCameraPose) const
 {
 	glm::mat4 cameraPose;
-	if (getAperturPose(cameraPose))
+	if (getAperturePose(cameraPose))
 	{
 		outCameraPose = glm::dmat4(cameraPose);
 		return true;
@@ -320,7 +332,7 @@ bool CameraComponent::getAperturPose(glm::dmat4& outCameraPose) const
 	return false;
 }
 
-bool CameraComponent::getAperturProjectionMatrix(glm::mat4& outProjectionMatrix) const
+bool CameraComponent::getApertureProjectionMatrix(glm::mat4& outProjectionMatrix) const
 {
 	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();
 	if (videoSourceComponent)
@@ -335,7 +347,7 @@ bool CameraComponent::getAperturProjectionMatrix(glm::mat4& outProjectionMatrix)
 bool CameraComponent::getApertureViewMatrix(glm::mat4& outViewMatrix) const
 {
 	glm::mat4 cameraPose;
-	if (getAperturPose(cameraPose))
+	if (getAperturePose(cameraPose))
 	{
 		outViewMatrix = computeGLMCameraViewMatrix(cameraPose);
 		return true;
@@ -348,7 +360,7 @@ bool CameraComponent::getApertureViewProjectionMatrix(glm::mat4& outVPMatrix) co
 {
 	glm::mat4 projMatrix;
 	glm::mat4 viewMatrix;
-	if (getAperturProjectionMatrix(projMatrix) && getApertureViewMatrix(viewMatrix))
+	if (getApertureProjectionMatrix(projMatrix) && getApertureViewMatrix(viewMatrix))
 	{
 		outVPMatrix = projMatrix * viewMatrix;
 		return true;

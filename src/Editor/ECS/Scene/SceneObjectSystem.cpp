@@ -6,10 +6,21 @@
 
 // -- SceneObjectSystemConfig -----
 const std::string SceneObjectSystemConfig::k_sceneListPropertyId= "sceneList";
+const std::string SceneObjectSystemConfig::k_currentSceneIdPropertyId = "currentSceneId";
 
 configuru::Config SceneObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
+
+	pt["next_scene_id"] = m_nextSceneId;
+	pt["current_scene_id"] = m_currentSceneId;
+
+	std::vector<configuru::Config> sceneListConfigs;
+	for (auto definitionPtr : m_sceneList)
+	{
+		sceneListConfigs.push_back(definitionPtr->writeToJSON());
+	}
+	pt.insert_or_assign(std::string("scenes"), sceneListConfigs);
 
 	return pt;
 }
@@ -17,18 +28,44 @@ configuru::Config SceneObjectSystemConfig::writeToJSON()
 void SceneObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
+
+	m_nextSceneId = pt.get_or<int>("next_scene_id", m_nextSceneId);
+	m_currentSceneId = pt.get_or<MikanSceneID>("current_scene_id", m_currentSceneId);
+
+	// Read in the client video sources
+	m_sceneList.clear();
+	if (pt.has_key("scenes"))
+	{
+		for (const configuru::Config& videoSource_pt : pt["scenes"].as_array())
+		{
+			auto definitionPtr = std::make_shared<SceneComponentDefinition>();
+
+			definitionPtr->readFromJSON(videoSource_pt);
+			m_sceneList.push_back(definitionPtr);
+
+			addChildConfig(definitionPtr);
+		}
+	}
 }
 
-// -- SceneObjectSystemConfig -----
+void SceneObjectSystemConfig::setCurrentSceneId(MikanSceneID sceneId)
+{
+	if (sceneId != m_currentSceneId)
+	{
+		m_currentSceneId = sceneId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_currentSceneIdPropertyId));
+	}
+}
+
 SceneComponentDefinitionPtr SceneObjectSystemConfig::getSceneConfig(MikanSceneID sceneId) const
 {
 	auto it = std::find_if(
-		sceneList.begin(), sceneList.end(),
+		m_sceneList.begin(), m_sceneList.end(),
 		[sceneId](SceneComponentDefinitionPtr configPtr) {
 			return configPtr->getSceneId() == sceneId;
 		});
 
-	if (it != sceneList.end())
+	if (it != m_sceneList.end())
 	{
 		return SceneComponentDefinitionPtr(*it);
 	}
@@ -39,12 +76,12 @@ SceneComponentDefinitionPtr SceneObjectSystemConfig::getSceneConfig(MikanSceneID
 SceneComponentDefinitionPtr SceneObjectSystemConfig::getSceneConfigByName(const std::string& sceneName) const
 {
 	auto it = std::find_if(
-		sceneList.begin(), sceneList.end(),
+		m_sceneList.begin(), m_sceneList.end(),
 		[sceneName](SceneComponentDefinitionPtr configPtr) {
 			return configPtr->getComponentName() == sceneName;
 		});
 
-	if (it != sceneList.end())
+	if (it != m_sceneList.end())
 	{
 		return SceneComponentDefinitionPtr(*it);
 	}
@@ -58,10 +95,10 @@ MikanSpatialAnchorID SceneObjectSystemConfig::addNewScene(
 {
 	auto sceneDefinitionPtr = 
 		std::make_shared<SceneComponentDefinition>(
-			nextSceneId, parentStageId, sceneName);
-	nextSceneId++;
+			m_nextSceneId, parentStageId, sceneName);
+	m_nextSceneId++;
 
-	sceneList.push_back(sceneDefinitionPtr);
+	m_sceneList.push_back(sceneDefinitionPtr);
 	addChildConfig(sceneDefinitionPtr);
 
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_sceneListPropertyId));
@@ -72,16 +109,16 @@ MikanSpatialAnchorID SceneObjectSystemConfig::addNewScene(
 bool SceneObjectSystemConfig::removeScene(MikanSceneID sceneId)
 {
 	auto it = std::find_if(
-		sceneList.begin(), sceneList.end(),
+		m_sceneList.begin(), m_sceneList.end(),
 		[sceneId](SceneComponentDefinitionPtr configPtr) {
 			return configPtr->getSceneId() == sceneId;
 		});
 
-	if (it != sceneList.end())
+	if (it != m_sceneList.end())
 	{
 		removeChildConfig(*it);
 
-		sceneList.erase(it);
+		m_sceneList.erase(it);
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_sceneListPropertyId));
 
 		return true;
@@ -118,6 +155,25 @@ SceneObjectSystemConfigConstPtr SceneObjectSystem::getSceneSystemConfigConst() c
 SceneObjectSystemConfigPtr SceneObjectSystem::getSceneSystemConfig()
 {
 	return std::const_pointer_cast<SceneObjectSystemConfig>(getSceneSystemConfigConst());
+}
+
+SceneComponentPtr SceneObjectSystem::getCurrentScene() const
+{
+	SceneObjectSystemConfigConstPtr sceneSystemConfigPtr = getSceneSystemConfigConst();
+	if (sceneSystemConfigPtr)
+	{
+		return getSceneById(sceneSystemConfigPtr->getCurrentSceneId());
+	}
+	return SceneComponentPtr();
+}
+
+void SceneObjectSystem::setCurrentScene(SceneComponentPtr scene)
+{
+	SceneObjectSystemConfigPtr sceneSystemConfig = getSceneSystemConfig();
+	if (sceneSystemConfig && scene)
+	{
+		sceneSystemConfig->setCurrentSceneId(scene->getSceneId());
+	}
 }
 
 SceneComponentPtr SceneObjectSystem::getSceneById(MikanSceneID sceneId) const

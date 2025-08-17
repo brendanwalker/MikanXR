@@ -27,7 +27,7 @@ public:
 	virtual void render() override;
 
 protected:
-	void onVideoSourceReady(const class VideoSourceView* videoSourceView);
+	void onVideoSourceReady(const class VideoSourceComponent* videoSourceComponent);
 	void setupDistortionView();
 	void updateCamera();
 	void setMenuState(eAnchorTriangulationMenuState newState);
@@ -44,10 +44,11 @@ private:
 	class RmlModel_AnchorTriangulation* m_calibrationModel = nullptr;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 
-	VideoSourceViewPtr m_videoSourceView;
+	CameraComponentPtr m_currentSceneCameraComponent;
+	VideoSourceComponentPtr m_videoSourceComponent;
 
 	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	//VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
 	AnchorTriangulator* m_anchorTriangulator;
 	class VideoFrameDistortionView* m_monoDistortionView;

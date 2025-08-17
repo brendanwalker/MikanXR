@@ -68,6 +68,7 @@ public:
 
 	AnchorObjectSystemConfigPtr anchorConfig;
 	CameraObjectSystemConfigPtr cameraConfig;
+	CompositorObjectSystemConfigPtr compositorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
 	MarkerSystemConfigPtr markerSystemConfig;
 	StencilObjectSystemConfigPtr stencilConfig;

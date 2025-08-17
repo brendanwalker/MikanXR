@@ -1,6 +1,7 @@
 // -- includes -----
 #include "AnchorObjectSystem.h"
 #include "CameraObjectSystem.h"
+#include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
 #include "MarkerSystemConfig.h"
@@ -9,6 +10,7 @@
 #include "PathUtils.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
+#include "StageObjectSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
 #include "TrackingSystemConfig.h"
@@ -66,6 +68,12 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 
 	cameraConfig = std::make_shared<CameraObjectSystemConfig>("cameras");
 	addChildConfig(cameraConfig);
+
+	compositorConfig = std::make_shared<CompositorObjectSystemConfig>("compositors");
+	addChildConfig(compositorConfig);
+
+	stageConfig = std::make_shared<StageObjectSystemConfig>("stages");
+	addChildConfig(stageConfig);
 
 	anchorConfig= std::make_shared<AnchorObjectSystemConfig>("anchors");
 	addChildConfig(anchorConfig);
@@ -134,6 +142,12 @@ configuru::Config ProjectConfig::writeToJSON()
 
 	// Write the camera system config
 	pt[cameraConfig->getConfigName()] = cameraConfig->writeToJSON();
+
+	// Write the compositor system config
+	pt[compositorConfig->getConfigName()] = compositorConfig->writeToJSON();
+
+	// Write the stage system config
+	pt[stageConfig->getConfigName()] = stageConfig->writeToJSON();
 
 	// Write the anchor system config
 	pt[anchorConfig->getConfigName()]= anchorConfig->writeToJSON();
@@ -236,6 +250,18 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(cameraConfig->getConfigName()))
 	{
 		cameraConfig->readFromJSON(pt[cameraConfig->getConfigName()]);
+	}
+
+	// Read the compositor system config
+	if (pt.has_key(compositorConfig->getConfigName()))
+	{
+		compositorConfig->readFromJSON(pt[compositorConfig->getConfigName()]);
+	}
+
+	// Read the stage system config
+	if (pt.has_key(stageConfig->getConfigName()))
+	{
+		stageConfig->readFromJSON(pt[stageConfig->getConfigName()]);
 	}
 
 	// Read the anchor system config

@@ -17,10 +17,10 @@ using CameraObjectSystemConfigPtr = std::shared_ptr<CameraObjectSystemConfig>;
 using CameraObjectSystemConfigConstPtr = std::shared_ptr<const CameraObjectSystemConfig>;
 using CameraObjectSystemConfigWeakPtr = std::weak_ptr<CameraObjectSystemConfig>;
 
-class CompositorSystemConfig;
-using CompositorSystemConfigPtr = std::shared_ptr<CompositorSystemConfig>;
-using CompositorSystemConfigConstPtr = std::shared_ptr<const CompositorSystemConfig>;
-using CompositorSystemConfigWeakPtr = std::weak_ptr<CompositorSystemConfig>;
+class CompositorObjectSystemConfig;
+using CompositorObjectSystemConfigPtr = std::shared_ptr<CompositorObjectSystemConfig>;
+using CompositorObjectSystemConfigConstPtr = std::shared_ptr<const CompositorObjectSystemConfig>;
+using CompositorObjectSystemConfigWeakPtr = std::weak_ptr<CompositorObjectSystemConfig>;
 
 class EditorObjectSystemConfig;
 using EditorObjectSystemConfigPtr = std::shared_ptr<EditorObjectSystemConfig>;

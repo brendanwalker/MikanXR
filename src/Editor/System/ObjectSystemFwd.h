@@ -10,6 +10,10 @@ class CameraObjectSystem;
 using CameraObjectSystemPtr = std::shared_ptr<CameraObjectSystem>;
 using CameraObjectSystemWeakPtr = std::weak_ptr<CameraObjectSystem>;
 
+class CompositorObjectSystem;
+using CompositorObjectSystemPtr = std::shared_ptr<CompositorObjectSystem>;
+using CompositorObjectSystemWeakPtr = std::weak_ptr<CompositorObjectSystem>;
+
 class MikanObjectSystem;
 using MikanObjectSystemPtr= std::shared_ptr<MikanObjectSystem>;
 using MikanObjectSystemWeakPtr= std::weak_ptr<MikanObjectSystem>;

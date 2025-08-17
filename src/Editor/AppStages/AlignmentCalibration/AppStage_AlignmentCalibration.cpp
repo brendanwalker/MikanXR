@@ -240,7 +240,7 @@ void AppStage_AlignmentCalibration::updateCamera()
 			if (m_calibrationModel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
-				m_targetCameraComponent->getAperturPose(cameraPose);
+				m_targetCameraComponent->getAperturePose(cameraPose);
 			}
 			else
 			{

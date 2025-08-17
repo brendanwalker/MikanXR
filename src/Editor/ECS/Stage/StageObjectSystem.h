@@ -31,9 +31,10 @@ public:
 	bool removeStage(MikanStageID sceneId);
 
 	static const std::string k_stageListPropertyId;
-	std::vector<StageComponentDefinitionPtr> stageList;
 
-	MikanStageID nextStageId = 0;
+private:
+	MikanStageID m_nextStageId = 0;
+	std::vector<StageComponentDefinitionPtr> m_stageList;
 };
 
 class StageObjectSystem : public MikanObjectSystem
