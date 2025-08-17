@@ -86,9 +86,6 @@ public:
 	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
 	bool getVideoSourceZRange(float& outZNear, float& outZFar) const;
 	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
-#if REALTIME_DEPTH_ESTIMATION_ENABLED
-	inline SyntheticDepthEstimatorPtr getSyntheticDepthEstimator() const { return m_syntheticDepthEstimator; }
-#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 	IMkTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
 	IMkTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 
@@ -145,10 +142,6 @@ private:
 
 	VideoSourceViewPtr m_videoSourceView;
 	VideoFrameDistortionView* m_videoDistortionView = nullptr;
-#if REALTIME_DEPTH_ESTIMATION_ENABLED
-	SyntheticDepthEstimatorPtr m_syntheticDepthEstimator;
-#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
-
 	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
 	class IMkWindow* m_ownerWindow= nullptr;

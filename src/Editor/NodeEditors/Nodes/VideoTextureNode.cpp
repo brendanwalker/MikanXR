@@ -133,11 +133,7 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 {
 	if (NodeEditorUI::DrawPropertySheetHeader("Video Texture Node"))
 	{
-	#if REALTIME_DEPTH_ESTIMATION_ENABLED
-		const char* k_videoSourceOptions= "Video\0Distortion\0Depth(Float)\0Color(RGB)\0";
-	#else
 		const char* k_videoSourceOptions= "Video\0Distortion\0";
-	#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
 		// Texture Source
 		int iTextureSource = (int)m_videoTextureSource;

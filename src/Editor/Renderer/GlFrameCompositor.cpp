@@ -31,7 +31,6 @@
 #include "IMkTriangulatedMesh.h"
 #include "IMkVertexDefinition.h"
 #include "RenderTargetRequestHandler.h"
-#include "SyntheticDepthEstimator.h"
 #include "VideoSourceManager.h"
 #include "VideoSourceView.h"
 #include "VideoFrameDistortionView.h"
@@ -488,12 +487,6 @@ IMkTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textu
 			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getVideoTexture() : IMkTexturePtr();
 		case eVideoTextureSource::distortion_texture:
 			return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : IMkTexturePtr();
-#if REALTIME_DEPTH_ESTIMATION_ENABLED
-		case eVideoTextureSource::float_depth_texture:
-			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getFloatDepthTexture() : IMkTexturePtr();
-		case eVideoTextureSource::color_mapped_depth_texture:
-			return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : IMkTexturePtr();
-#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 	}
 
 	return IMkTexturePtr();
@@ -501,18 +494,7 @@ IMkTexturePtr GlFrameCompositor::getVideoSourceTexture(eVideoTextureSource textu
 
 IMkTexturePtr GlFrameCompositor::getVideoPreviewTexture(eVideoTextureSource textureSource) const
 {
-#if REALTIME_DEPTH_ESTIMATION_ENABLED
-	if (textureSource == eVideoTextureSource::float_depth_texture)
-	{
-		// Special case for float_depth_texture, use the color mapped depth texture instead for preview
-		return (m_syntheticDepthEstimator != nullptr) ? m_syntheticDepthEstimator->getColorMappedDepthTexture() : IMkTexturePtr();
-	}
-	else
-#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
-	{
-		// In all other cases, the preview texture is the same as the source texture
-		return getVideoSourceTexture(textureSource);
-	}
+	return getVideoSourceTexture(textureSource);
 }
 
 IMkTexturePtr GlFrameCompositor::getClientColorSourceTexture(int clientIndex, eClientColorTextureType clientTextureType) const
@@ -689,18 +671,6 @@ void GlFrameCompositor::updateCompositeFrame()
 	// Compute the next undistorted video frame
 	m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex);
 
-#if REALTIME_DEPTH_ESTIMATION_ENABLED
-	// If we have a synthetic depth estimator active, compute the synthetic depth
-	if (m_syntheticDepthEstimator)
-	{
-		// I think we always want to generate depth from undistorted video frames
-		// but maybe we should make this an option in the future?
-		cv::Mat* bgrUndistortBuffer = m_videoDistortionView->getBGRUndistortBuffer();
-
-		m_syntheticDepthEstimator->computeSyntheticDepth(bgrUndistortBuffer);
-	}
-#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
-
 	// Perform the compositor evaluation if in MainWindow mode
 	// (Editor window runs graph evaluation in its own update loop)
 	if (m_evaluatorWindow == eCompositorEvaluatorWindow::mainWindow)
@@ -841,23 +811,6 @@ void GlFrameCompositor::onVideoFrameSizeChanged(const VideoSourceView* videoSour
 				m_videoSourceView,
 				VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG,
 				profileConfig->videoFrameQueueSize);
-
-		// Create a synthetic depth estimator if the hardware supports it
-		// TODO: and requested from the profile config settings
-	#if SUPPORT_REALTIME_DEPTH_ESTIMATION
-		auto openCVManager = App::getInstance()->getMainWindow()->getOpenCVManager();
-		if (openCVManager->supportsHardwareAcceleratedDNN())
-		{
-			m_syntheticDepthEstimator =
-				std::make_shared<SyntheticDepthEstimator>(
-					openCVManager, DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
-			if (!m_syntheticDepthEstimator->initialize())
-			{
-				MIKAN_LOG_ERROR("GlFrameCompositor::openVideoSource") << "Failed to create depth estimator";
-				m_syntheticDepthEstimator = nullptr;
-			}
-		}
-	#endif // REALTIME_DEPTH_ESTIMATION_ENABLED
 
 		// Always use the undistorted video frame for compositing
 		m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
