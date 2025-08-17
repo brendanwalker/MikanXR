@@ -9,6 +9,7 @@
 #include "DeviceManager.h"
 #include "DeviceEnumerator.h"
 #include "DeviceInterface.h"
+#include "MikanTypeFwd.h"
 
 //-- typedefs -----
 class CommonVideoConfig;
