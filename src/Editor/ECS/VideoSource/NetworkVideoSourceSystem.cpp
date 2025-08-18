@@ -29,6 +29,20 @@ void NetworkVideoSourceSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+VideoSourceIdList NetworkVideoSourceSystem::getVideoSourceIdList() const
+{
+	VideoSourceIdList videoSourceIdList;
+	for (const auto& it : m_networkVideoSourceComponents)
+	{
+        NetworkVideoSourceComponentPtr componentPtr = it.second.lock();
+		if (componentPtr)
+		{
+			videoSourceIdList.push_back(componentPtr->getVideoSourceId());
+		}
+	}
+	return videoSourceIdList;
+}
+
 NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::getNetworkVideoSourceById(MikanVideoSourceID videoSourceId) const
 {
     auto iter = m_networkVideoSourceComponents.find(videoSourceId);

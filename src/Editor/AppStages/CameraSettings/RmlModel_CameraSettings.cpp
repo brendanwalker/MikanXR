@@ -3,8 +3,8 @@
 #include "ProjectConfig.h"
 #include "Shared/RmlDataBinding_CameraBrightness.h"
 #include "StringUtils.h"
-#include "VideoSourceManager.h"
-#include "VideoSourceView.h"
+#include "VideoSourceSystem.h"
+#include "VideoSourceComponent.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -17,8 +17,7 @@ RmlModel_CameraSettings::RmlModel_CameraSettings()
 
 bool RmlModel_CameraSettings::init(
 	Rml::Context* rmlContext,
-	const ProjectConfigConstPtr profile,
-	const VideoSourceManager* videoSourceManager)
+	VideoSourceSystemPtr videoSourceManager)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "camera_settings");
@@ -30,20 +29,23 @@ bool RmlModel_CameraSettings::init(
 		return false;
 
 	// Register Data Model Fields
-	constructor.Bind("selected_video_source", &m_videoSourcePath);
-	constructor.Bind("video_sources", &m_videoSourcePathList);
+	constructor.Bind("selected_video_source", &m_videoSourceId);
+	constructor.Bind("video_sources", &m_videoSourceIdList);
 
 	// Bind data model callbacks	
 	constructor.BindEventCallback(
 		"update_video_source",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const std::string devicePath = ev.GetParameter<Rml::String>("value", "");
-			handleVideoSourcePathChanged(devicePath);
+			MikanVideoSourceID videoSourceId = ev.GetParameter<int>("value", -1);
+			handleVideoSourceIdChanged(videoSourceId);
 		});
 
 	// Fill in the data model
 	rebuildVideoSourceList(videoSourceManager);
-	m_videoSourcePath = profile->videoSourcePath;
+
+	// Set the current video source ID
+	VideoSourceComponentPtr currentVideoSource= videoSourceManager->getCurrentSceneVideoSource();
+	m_videoSourceId = currentVideoSource ? currentVideoSource->getVideoSourceId() : -1;
 
 	return true;
 }
@@ -51,32 +53,26 @@ bool RmlModel_CameraSettings::init(
 void RmlModel_CameraSettings::dispose()
 {
 	m_brightnessDataBinding->dispose();
-	OnUpdateVideoSourcePath.Clear();
+	OnUpdateVideoSourceId.Clear();
 
 	RmlModel::dispose();
 }
 
-void RmlModel_CameraSettings::rebuildVideoSourceList(const VideoSourceManager* videoSourceManager)
+void RmlModel_CameraSettings::rebuildVideoSourceList(VideoSourceSystemPtr videoSourceSystem)
 {
-	VideoSourceList videoSourceList= videoSourceManager->getVideoSourceList();
-
-	m_videoSourcePathList.clear();
-	for (VideoSourceViewPtr videoSourceView : videoSourceList)
-	{
-		m_videoSourcePathList.push_back(videoSourceView->getDevicePath());
-	}
+	m_videoSourceIdList = videoSourceSystem->getVideoSourceIdList();
 	m_modelHandle.DirtyVariable("video_sources");
 }
 
-void RmlModel_CameraSettings::handleVideoSourcePathChanged(const std::string& devicePath)
+void RmlModel_CameraSettings::handleVideoSourceIdChanged(MikanVideoSourceID videoSourceId)
 {
-	if (devicePath != m_videoSourcePath)
+	if (videoSourceId != m_videoSourceId)
 	{
-		m_videoSourcePath = devicePath;
+		m_videoSourceId = videoSourceId;
 
-		if (OnUpdateVideoSourcePath)
+		if (OnUpdateVideoSourceId)
 		{
-			OnUpdateVideoSourcePath(devicePath);
+			OnUpdateVideoSourceId(videoSourceId);
 		}
 	}
 }

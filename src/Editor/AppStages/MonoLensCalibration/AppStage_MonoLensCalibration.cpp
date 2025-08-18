@@ -37,7 +37,7 @@ AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(MainWindow* ownerWind
 	: AppStage(ownerWindow, AppStage_MonoLensCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_MonoLensCalibration)
 	, m_cameraSettingsModel(new RmlModel_MonoCameraSettings)
-	, m_videoSourceView()
+	, m_videoSourceComponent()
 	, m_monoLensCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
 {
@@ -65,17 +65,17 @@ void AppStage_MonoLensCalibration::enter()
 
 	// Get the current video source based on the config
 	ProjectConfigConstPtr profileConfig= App::getInstance()->getProfileConfig();
-	m_videoSourceView= VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	m_videoSourceComponent= VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Initialize video stream + lens calibrator
 	eMonoLensCalibrationMenuState newState;
 	//TODO: Handle pendingStart
-	if ((int)m_videoSourceView->startVideoStream() > 0)
+	if ((int)m_videoSourceComponent->startVideoStream() > 0)
 	{
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = new VideoFrameDistortionView(
 			m_ownerWindow,
-			m_videoSourceView, 
+			m_videoSourceComponent, 
 			VIDEO_FRAME_HAS_ALL);
 
 		// Create a calibrator to do the actual pattern recording and calibration
@@ -137,7 +137,7 @@ void AppStage_MonoLensCalibration::exit()
 	// (i.e. camera intrinsics and distortion coefficients)
 	if (!m_calibrationModel->getBypassCalibrationFlag())
 	{
-		m_videoSourceView->saveSettings();
+		m_videoSourceComponent->saveSettings();
 	}
 
 	// Free the calibrator
@@ -155,8 +155,8 @@ void AppStage_MonoLensCalibration::exit()
 	}
 
 	// Turn back off the video feed
-	m_videoSourceView->stopVideoStream();
-	m_videoSourceView = nullptr;
+	m_videoSourceComponent->stopVideoStream();
+	m_videoSourceComponent = nullptr;
 
 	AppStage::exit();
 }
@@ -217,7 +217,7 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 						// Update the camera intrinsics for this camera
 						MikanVideoSourceIntrinsics cameraIntrinsics;
 						cameraIntrinsics.makeMonoIntrinsics()= new_mono_intrinsics;
-						m_videoSourceView->setCameraIntrinsics(cameraIntrinsics);
+						m_videoSourceComponent->setCameraIntrinsics(cameraIntrinsics);
 
 						// Rebuild the distortion map to reflect the updated calibration
 						m_monoDistortionView->applyMonoCameraIntrinsics(&new_mono_intrinsics);

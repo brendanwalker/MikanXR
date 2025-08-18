@@ -18,6 +18,8 @@
 #include <glm/ext/matrix_float4x4.hpp>
 #include <configuru.hpp>
 
+using VideoSourceIdList = std::vector<MikanVideoSourceID>;
+
 class VideoSourceSystemConfig : public CommonConfig
 {
 public:

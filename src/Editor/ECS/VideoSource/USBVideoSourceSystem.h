@@ -5,6 +5,7 @@
 #include "MikanObjectSystem.h"
 #include "MikanVideoSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
+#include "VideoSourceSystemConfig.h"
 
 #include <map>
 #include <string>
@@ -22,6 +23,7 @@ public:
 	IUsbVideoDeviceManagerPtr getUSBVideoDeviceManager() const { return m_usbVideoDeviceManager; }
 
     const USBVideoSourceMap& getUSBVideoSourceMap() const { return m_usbVideoSourceComponents; }
+    VideoSourceIdList getVideoSourceIdList() const;
     USBVideoSourceComponentPtr getUSBVideoSourceById(MikanVideoSourceID videoSourceId) const;
     USBVideoSourceComponentPtr getUSBVideoSourceByName(const std::string& videoSourceName) const;
     USBVideoSourceComponentPtr addNewUSBVideoSource(const MikanUSBVideoSourceInfo& videoSourceInfo);

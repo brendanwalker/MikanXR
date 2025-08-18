@@ -85,6 +85,7 @@ public:
 	TrackingMountDefinitionConstPtr getTrackingMountDefinition() const;
 	TrackingMountDefinitionPtr getTrackingMountDefinitionMutable();
 	VideoSourceComponentPtr getVideoSourceComponent() const;
+	void setVideoSourceById(MikanVideoSourceID videoSourceId);
 
 	// Helper functions used to compute 
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;

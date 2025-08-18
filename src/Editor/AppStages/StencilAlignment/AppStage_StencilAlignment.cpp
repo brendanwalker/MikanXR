@@ -54,7 +54,7 @@ const char* AppStage_StencilAlignment::APP_STAGE_NAME = "StencilAlignment";
 AppStage_StencilAlignment::AppStage_StencilAlignment(MainWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_StencilAlignment::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_StencilAlignment)
-	, m_videoSourceView()
+	, m_videoSourceComponent()
 	, m_stencilAligner(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<MkScene>())
@@ -75,7 +75,7 @@ void AppStage_StencilAlignment::enter()
 
 	// Get the current video source based on the config
 	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
-	m_videoSourceView = 
+	m_videoSourceComponent = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Get the pose view for the camera tracking puck in Mikan Scene space
@@ -98,7 +98,7 @@ void AppStage_StencilAlignment::enter()
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+	m_videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
@@ -120,13 +120,13 @@ void AppStage_StencilAlignment::enter()
 	// Fire up the video scene in the background + pose calibrator
 	eStencilAlignmentMenuState newState;
 	//TODO: Handle pendingStart
-	if ((int)m_videoSourceView->startVideoStream() > 0)
+	if ((int)m_videoSourceComponent->startVideoStream() > 0)
 	{
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
 				m_ownerWindow,
-				m_videoSourceView, 
+				m_videoSourceComponent, 
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
@@ -180,11 +180,11 @@ void AppStage_StencilAlignment::exit()
 	// Forget about the stencil model we added
 	m_scene->removeAllInstances();
 
-	if (m_videoSourceView)
+	if (m_videoSourceComponent)
 	{
 		// Turn back off the video feed
-		m_videoSourceView->stopVideoStream();
-		m_videoSourceView = nullptr;
+		m_videoSourceComponent->stopVideoStream();
+		m_videoSourceComponent = nullptr;
 	}
 
 	// Free the aligner
@@ -208,7 +208,7 @@ void AppStage_StencilAlignment::updateXRCamera()
 {
 	// Update the transform of the camera so that vr models align over the tracking puck
 	glm::mat4 cameraPose;	
-	if (m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose))
+	if (m_videoSourceComponent->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose))
 	{
 		m_camera->setCameraTransform(cameraPose);
 	}

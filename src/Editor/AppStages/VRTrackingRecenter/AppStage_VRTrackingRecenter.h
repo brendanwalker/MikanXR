@@ -60,7 +60,7 @@ private:
 	MikanStageID m_targetStageId = INVALID_MIKAN_ID;
 	bool m_bHasModifiedCameraSettings= false;
 
-	VideoSourceViewPtr m_videoSourceView;
+	VideoSourceViewPtr m_videoSourceComponent;
 
 	// Tracking pucks used for calibration
 	VRDevicePoseViewPtr m_cameraTrackingPuckRawPoseView;

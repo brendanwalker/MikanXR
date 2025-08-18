@@ -1,6 +1,8 @@
 #pragma once
 
+#include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 
@@ -12,21 +14,19 @@ class RmlModel_CameraSettings : public RmlModel
 public:
 	RmlModel_CameraSettings();
 
-	bool init(Rml::Context* rmlContext,
-			  ProjectConfigConstPtr profile,
-			  const class VideoSourceManager* videoSourceManager);
+	bool init(Rml::Context* rmlContext, VideoSourceSystemPtr videoSourceManager);
 	virtual void dispose() override;
 
 	inline RmlDataBinding_CameraBrightnessPtr getBrightnessDataBinding() const { return m_brightnessDataBinding; }
-	void rebuildVideoSourceList(const class VideoSourceManager* videoSourceManager);
+	void rebuildVideoSourceList(VideoSourceSystemPtr videoSourceManager);
 
-	SinglecastDelegate<void(const std::string& devicePath)> OnUpdateVideoSourcePath;
+	SinglecastDelegate<void(const MikanVideoSourceID videoSourceId)> OnUpdateVideoSourceId;
 
 protected:
-	void handleVideoSourcePathChanged(const std::string& devicePath);
+	void handleVideoSourceIdChanged(MikanVideoSourceID videoSourceId);
 
 private:
 	RmlDataBinding_CameraBrightnessPtr m_brightnessDataBinding;
-	Rml::Vector<Rml::String> m_videoSourcePathList;
-	Rml::String m_videoSourcePath;
+	Rml::Vector<int> m_videoSourceIdList;
+	MikanVideoSourceID m_videoSourceId;
 };

@@ -40,6 +40,8 @@ public:
 
 	CameraComponentPtr getCurrentSceneCameraComponent() const;
 	VideoSourceComponentPtr getCurrentSceneVideoSource() const;
+	bool setCurrentSceneVideoSourceById(MikanVideoSourceID videoSourceId);
+	VideoSourceIdList getVideoSourceIdList() const;
 	VideoSourceComponentPtr getVideoSourceById(MikanVideoSourceID videoSourceId) const;
 	eVideoSourceType getVideoSourceType(MikanVideoSourceID videoSourceId) const;
 	bool removeVideoSource(MikanVideoSourceID videoSourceId);

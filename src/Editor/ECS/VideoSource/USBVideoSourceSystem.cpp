@@ -86,6 +86,20 @@ void USBVideoSourceSystem::disposeUsbVideoDeviceManager()
     }
 }
 
+VideoSourceIdList USBVideoSourceSystem::getVideoSourceIdList() const
+{
+	VideoSourceIdList videoSourceIdList;
+	for (const auto& it : m_usbVideoSourceComponents)
+	{
+        USBVideoSourceComponentPtr componentPtr = it.second.lock();
+		if (componentPtr)
+		{
+			videoSourceIdList.push_back(componentPtr->getVideoSourceId());
+		}
+	}
+	return videoSourceIdList;
+}
+
 USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceById(MikanVideoSourceID videoSourceId) const
 {
     auto iter = m_usbVideoSourceComponents.find(videoSourceId);

@@ -29,6 +29,20 @@ void ClientVideoSourceSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+VideoSourceIdList ClientVideoSourceSystem::getVideoSourceIdList() const
+{
+	VideoSourceIdList videoSourceIdList;
+    for (const auto& it : m_clientVideoSourceComponents)
+    {
+        ClientVideoSourceComponentPtr componentPtr = it.second.lock();
+        if (componentPtr)
+        {
+            videoSourceIdList.push_back(componentPtr->getVideoSourceId());
+        }
+    }
+	return videoSourceIdList;
+}
+
 ClientVideoSourceComponentPtr ClientVideoSourceSystem::getClientVideoSourceById(MikanVideoSourceID videoSourceId) const
 {
     auto iter = m_clientVideoSourceComponents.find(videoSourceId);

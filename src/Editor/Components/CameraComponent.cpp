@@ -286,6 +286,13 @@ VideoSourceComponentPtr CameraComponent::getVideoSourceComponent() const
 	return VideoSourceComponentPtr();
 }
 
+void CameraComponent::setVideoSourceById(MikanVideoSourceID videoSourceId)
+{
+	CameraDefinitionPtr cameraDefinition = getCameraDefinition();
+
+	cameraDefinition->setVideoSourceId(videoSourceId);
+}
+
 bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntrinsics) const
 {
 	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();

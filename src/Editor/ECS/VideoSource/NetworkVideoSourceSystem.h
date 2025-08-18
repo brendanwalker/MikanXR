@@ -4,6 +4,7 @@
 #include "MikanObjectSystem.h"
 #include "MikanVideoSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
+#include "VideoSourceSystemConfig.h"
 
 #include <map>
 #include <string>
@@ -19,6 +20,7 @@ public:
     virtual void dispose() override;
 
     const NetworkVideoSourceMap& getNetworkVideoSourceMap() const { return m_networkVideoSourceComponents; }
+    VideoSourceIdList getVideoSourceIdList() const;
     NetworkVideoSourceComponentPtr getNetworkVideoSourceById(MikanVideoSourceID videoSourceId) const;
     NetworkVideoSourceComponentPtr getNetworkVideoSourceByName(const std::string& videoSourceName) const;
     NetworkVideoSourceComponentPtr addNewNetworkVideoSource(const MikanNetworkVideoSourceInfo& videoSourceInfo);

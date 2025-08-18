@@ -1,6 +1,8 @@
 #pragma once
 
 //-- includes -----
+#include "ComponentFwd.h"
+#include "MikanTypeFwd.h"
 #include "AppStage.h"
 #include <memory>
 #include <vector>
@@ -36,11 +38,11 @@ protected:
 	void startVideoSource();
 	void stopVideoSource();
 
-	void onVideoSourceChanged(const std::string& newVideoSourcePath);	
+	void onVideoSourceChanged(MikanVideoSourceID videoSourceId);
 
 	RmlModel_CameraSettingsPtr m_cameraSettingsModel = nullptr;
 	Rml::ElementDocument* m_cameraSettingsView = nullptr;
 
-	VideoSourceViewPtr m_videoSourceView;
+	VideoSourceComponentPtr m_videoSourceComponent;
 	VideoFrameDistortionViewPtr m_videoBufferView;
 };

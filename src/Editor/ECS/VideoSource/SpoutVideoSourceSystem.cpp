@@ -28,6 +28,20 @@ void SpoutVideoSourceSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+VideoSourceIdList SpoutVideoSourceSystem::getVideoSourceIdList() const
+{
+	VideoSourceIdList videoSourceIdList;
+	for (const auto& it : m_spoutVideoSourceComponents)
+	{
+        SpoutVideoSourceComponentPtr componentPtr = it.second.lock();
+		if (componentPtr)
+		{
+			videoSourceIdList.push_back(componentPtr->getVideoSourceId());
+		}
+	}
+	return videoSourceIdList;
+}
+
 SpoutVideoSourceComponentPtr SpoutVideoSourceSystem::getSpoutVideoSourceById(MikanVideoSourceID videoSourceId) const
 {
     auto iter = m_spoutVideoSourceComponents.find(videoSourceId);

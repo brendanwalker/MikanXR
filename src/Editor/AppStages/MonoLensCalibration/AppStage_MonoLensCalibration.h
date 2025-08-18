@@ -60,7 +60,7 @@ private:
 	class RmlModel_MonoCameraSettings* m_cameraSettingsModel = nullptr;
 	Rml::ElementDocument* m_cameraSettingsView= nullptr;
 
-	VideoSourceViewPtr m_videoSourceView;
+	VideoSourceViewPtr m_videoSourceComponent;
 	class MonoLensDistortionCalibrator* m_monoLensCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 };

@@ -31,7 +31,7 @@
       <h2>Video Source</h2>
       <div>
         <select id="select" name="video_source" data-value="selected_video_source" style="width: 200dp" data-event-change="update_video_source()">
-          <option data-for="video_source_path : video_sources" data-value="video_source_path">{{video_source_path | to_video_source_friendly_name}}</option>
+          <option data-for="video_source_id : video_sources" data-value="video_source_id">{{video_source_id | to_video_source_friendly_name}}</option>
         </select>
       </div>
       <div>

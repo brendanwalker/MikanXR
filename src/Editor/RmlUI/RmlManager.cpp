@@ -21,8 +21,8 @@
 #include "SceneObjectSystem.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
-#include "VideoSourceManager.h"
-#include "VideoSourceView.h"
+#include "VideoSourceSystem.h"
+#include "VideoSourceComponent.h"
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
@@ -343,12 +343,13 @@ void RmlManager::registerCommonDataModelTypes()
 	constructor.RegisterTransformFunc(
 		"to_video_source_friendly_name",
 		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
-		const Rml::String devicePath = variant.Get<Rml::String>("");
-
-		VideoSourceViewPtr videoSourceView = VideoSourceManager::getInstance()->getVideoSourceViewByPath(devicePath);
-		if (videoSourceView)
+		const MikanVideoSourceID videoSourceId = variant.Get<int>(-1);
+		
+		VideoSourceComponentPtr videoSourceComponent = 
+			VideoSourceSystem::getSystem()->getVideoSourceById(videoSourceId);
+		if (videoSourceComponent)
 		{
-			const Rml::String friendlyName = videoSourceView->getFriendlyName();
+			const Rml::String friendlyName = videoSourceComponent->getName();
 
 			variant = friendlyName;
 			return true;

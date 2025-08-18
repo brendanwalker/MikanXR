@@ -121,6 +121,36 @@ VideoSourceComponentPtr VideoSourceSystem::getCurrentSceneVideoSource() const
 	return VideoSourceComponentPtr();
 }
 
+bool VideoSourceSystem::setCurrentSceneVideoSourceById(MikanVideoSourceID videoSourceId)
+{
+	// Get the camera component from the compositor
+	CameraComponentPtr cameraComponent = getCurrentSceneCameraComponent();
+	if (cameraComponent)
+	{
+		// Get the video source component from the camera
+		cameraComponent->setVideoSourceById(videoSourceId);
+		return true;
+	}
+
+	return false;
+}
+
+VideoSourceIdList VideoSourceSystem::getVideoSourceIdList() const
+{
+	VideoSourceIdList videoSourceIdList;
+	
+	auto clientVideoSourceIds = m_clientVideoSourceSystem->getVideoSourceIdList();
+	videoSourceIdList.insert(videoSourceIdList.end(), clientVideoSourceIds.begin(), clientVideoSourceIds.end());
+	auto networkVideoSourceIds = m_networkVideoSourceSystem->getVideoSourceIdList();
+	videoSourceIdList.insert(videoSourceIdList.end(), networkVideoSourceIds.begin(), networkVideoSourceIds.end());
+	auto spoutVideoSourceIds = m_spoutVideoSourceSystem->getVideoSourceIdList();
+	videoSourceIdList.insert(videoSourceIdList.end(), spoutVideoSourceIds.begin(), spoutVideoSourceIds.end());
+	auto usbVideoSourceIds = m_usbVideoSourceSystem->getVideoSourceIdList();
+	videoSourceIdList.insert(videoSourceIdList.end(), usbVideoSourceIds.begin(), usbVideoSourceIds.end());
+
+	return videoSourceIdList;
+}
+
 VideoSourceComponentPtr VideoSourceSystem::getVideoSourceById(MikanVideoSourceID VideoSourceId) const
 {
 	auto clientVideoSourcePtr = m_clientVideoSourceSystem->getClientVideoSourceById(VideoSourceId);

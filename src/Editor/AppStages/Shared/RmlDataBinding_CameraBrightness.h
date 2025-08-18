@@ -27,7 +27,7 @@ protected:
 	void handleBrightnessPercentChanged(float newPercentValue);
 
 protected:
-	VideoSourceViewPtr m_videoSourceView;
+	VideoSourceViewPtr m_videoSourceComponent;
 	int m_brightness = 0;
 	int m_brightnessMin = 0;
 	int m_brightnessMax = 0;

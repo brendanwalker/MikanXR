@@ -42,7 +42,7 @@ const char* AppStage_VRTrackingRecenter::APP_STAGE_NAME = "VRTrackingRecenter";
 AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(MainWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_VRTrackingRecenter::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_VRTrackingRecenter)
-	, m_videoSourceView()
+	, m_videoSourceComponent()
 	, m_markerPoseSampler(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_camera(nullptr)
@@ -63,7 +63,7 @@ void AppStage_VRTrackingRecenter::enter()
 
 	// Get the current video source based on the config
 	const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	m_videoSourceView = 
+	m_videoSourceComponent = 
 		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Get the camera tracking puck pose view
@@ -79,7 +79,7 @@ void AppStage_VRTrackingRecenter::enter()
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+	m_videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
 	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
@@ -92,13 +92,13 @@ void AppStage_VRTrackingRecenter::enter()
 	// Fire up the video scene in the background + pose calibrator
 	eVRTrackingRecenterMenuState newState= eVRTrackingRecenterMenuState::verifySetup;
 	//TODO: Handle pendingStart
-	if ((int)m_videoSourceView->startVideoStream() > 0)
+	if ((int)m_videoSourceComponent->startVideoStream() > 0)
 	{
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
 				m_ownerWindow,
-				m_videoSourceView, 
+				m_videoSourceComponent, 
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
@@ -142,11 +142,11 @@ void AppStage_VRTrackingRecenter::exit()
 
 	m_camera= nullptr;
 
-	if (m_videoSourceView)
+	if (m_videoSourceComponent)
 	{
 		// Turn back off the video feed
-		m_videoSourceView->stopVideoStream();
-		m_videoSourceView = nullptr;
+		m_videoSourceComponent->stopVideoStream();
+		m_videoSourceComponent = nullptr;
 	}
 
 	// Free the calibrator
@@ -182,7 +182,7 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 			{
 				// Use the re-centered scene space for the camera
 				glm::mat4 cameraPose;
-				if (m_videoSourceView->getCameraPose(m_cameraTrackingPuckScenePoseView, cameraPose))
+				if (m_videoSourceComponent->getCameraPose(m_cameraTrackingPuckScenePoseView, cameraPose))
 				{
 					m_camera->setCameraTransform(cameraPose);
 				}

@@ -61,12 +61,12 @@ void RmlDataBinding_CameraBrightness::setBrightness(int newBrightness)
 
 VideoSourceViewPtr RmlDataBinding_CameraBrightness::getVideoSourceView() const
 {
-	return m_videoSourceView;
+	return m_videoSourceComponent;
 }
 
 void RmlDataBinding_CameraBrightness::setVideoSourceView(VideoSourceViewPtr videoSourceView)
 {
-	if (m_videoSourceView != videoSourceView)
+	if (m_videoSourceComponent != videoSourceView)
 	{
 		if (videoSourceView != nullptr)
 		{
@@ -82,7 +82,7 @@ void RmlDataBinding_CameraBrightness::setVideoSourceView(VideoSourceViewPtr vide
 			m_modelHandle.DirtyVariable("brightness_valid");
 		}
 
-		m_videoSourceView = videoSourceView;
+		m_videoSourceComponent = videoSourceView;
 	}
 }
 
@@ -91,9 +91,9 @@ void RmlDataBinding_CameraBrightness::handleBrightnessPercentChanged(float newPe
 	m_brightnessPercent = newPercentValue;
 	m_brightness = remap_int_to_int(0, 100, m_brightnessMin, m_brightnessMax, m_brightnessPercent);
 
-	if (m_videoSourceView)
+	if (m_videoSourceComponent)
 	{
-		m_videoSourceView->setVideoProperty(VideoPropertyType::Brightness, m_brightness, true);
+		m_videoSourceComponent->setVideoProperty(VideoPropertyType::Brightness, m_brightness, true);
 	}
 
 	if (OnBrightnessChanged)

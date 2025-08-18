@@ -4,6 +4,7 @@
 #include "MikanObjectSystem.h"
 #include "MikanVideoSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
+#include "VideoSourceSystemConfig.h"
 
 #include <map>
 #include <string>
@@ -19,6 +20,7 @@ public:
     virtual void dispose() override;
 
     const SpoutVideoSourceMap& getSpoutVideoSourceMap() const { return m_spoutVideoSourceComponents; }
+    VideoSourceIdList getVideoSourceIdList() const;
     SpoutVideoSourceComponentPtr getSpoutVideoSourceById(MikanVideoSourceID videoSourceId) const;
     SpoutVideoSourceComponentPtr getSpoutVideoSourceByName(const std::string& videoSourceName) const;
     SpoutVideoSourceComponentPtr addNewSpoutVideoSource(const MikanSpoutVideoSourceInfo& videoSourceInfo);
