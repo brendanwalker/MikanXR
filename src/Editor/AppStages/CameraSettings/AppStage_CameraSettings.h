@@ -7,9 +7,6 @@
 #include <memory>
 #include <vector>
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 class VideoFrameDistortionView;
 typedef std::shared_ptr<VideoFrameDistortionView> VideoFrameDistortionViewPtr;
 
@@ -35,11 +32,6 @@ public:
 	static const char* APP_STAGE_NAME;
 
 protected:
-	void startVideoSource();
-	void stopVideoSource();
-
-	void onVideoSourceChanged(MikanVideoSourceID videoSourceId);
-
 	RmlModel_CameraSettingsPtr m_cameraSettingsModel = nullptr;
 	Rml::ElementDocument* m_cameraSettingsView = nullptr;
 

@@ -49,28 +49,14 @@ void AppStage_CameraSettings::enter()
 		Rml::Context* context = getRmlContext();
 
 		m_cameraSettingsModel->init(context, videoSourceSystem);
-		m_cameraSettingsModel->OnUpdateVideoSourceId = 
-			MakeDelegate(this, &AppStage_CameraSettings::onVideoSourceChanged);
 
 		// Init the camera settings view now that the model is ready
 		m_cameraSettingsView = addRmlDocument("camera_settings.rml");
 	}
-
-	//TODO
-	// Get the current video source based on the config
-	//m_videoSourceComponent = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	//if (m_videoSourceComponent != nullptr)
-	//{
-	//	// Fire up the video stream
-	//	startVideoSource();
-	//}
 }
 
 void AppStage_CameraSettings::exit()
 {
-	// Stop any running video source
-	stopVideoSource();
-
 	// Forget about the video source
 	m_videoSourceComponent = nullptr;
 
@@ -82,51 +68,12 @@ void AppStage_CameraSettings::exit()
 
 void AppStage_CameraSettings::pause()
 {
-	stopVideoSource();
-
 	AppStage::pause();
 }
 
 void AppStage_CameraSettings::resume()
 {
-	startVideoSource();
-
 	AppStage::resume();
-}
-
-void AppStage_CameraSettings::startVideoSource()
-{
-	assert(m_videoBufferView == nullptr);
-
-	//TODO
-	//if (m_videoSourceComponent && (int)m_videoSourceComponent->startVideoStream() > 0)
-	//{
-	//	// Create a texture to hold the video frame
-	//	m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
-	//		m_ownerWindow,
-	//		m_videoSourceComponent, 
-	//		VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
-
-	//	// Update the brightness data binding
-	//	m_cameraSettingsModel->getBrightnessDataBinding()->setVideoSourceView(m_videoSourceComponent);
-	//}
-}
-
-void AppStage_CameraSettings::stopVideoSource()
-{
-	// Free the distortion view buffers
-	m_videoBufferView = nullptr;
-
-	//TODO
-	// Turn back off the video feed
-	//if (m_videoSourceComponent)
-	//{
-	//	m_videoSourceComponent->saveSettings();
-	//	m_videoSourceComponent->stopVideoStream();
-	//}
-
-	// Update the brightness data binding
-	m_cameraSettingsModel->getBrightnessDataBinding()->setVideoSourceView(nullptr);
 }
 
 void AppStage_CameraSettings::update(float deltaSeconds)
@@ -138,24 +85,6 @@ void AppStage_CameraSettings::update(float deltaSeconds)
 	{
 		m_videoBufferView->readAndProcessVideoFrame();
 	}
-}
-
-void AppStage_CameraSettings::onVideoSourceChanged(MikanVideoSourceID videoSourceId)
-{
-	// Ignore event if this happens during RML view loading
-	if (m_cameraSettingsView == nullptr)
-		return;
-
-	//TODO
-	//VideoSourceSystemPtr videoSourceSystem= VideoSourceSystem::getSystem();
-	//if (videoSourceSystem->setCurrentSceneVideoSourceById(videoSourceId))
-	//{
-	//	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-
-	//	stopVideoSource();
-	//	m_videoSourceComponent= newVideoSourceView;
-	//	startVideoSource();
-	//}
 }
 
 void AppStage_CameraSettings::render()
