@@ -35,6 +35,7 @@ public:
 	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, eClientColorTextureType clientTextureType) const;
 	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, eClientDepthTextureType clientTextureType) const;
 	bool getIsSourcePendingRender(const std::string& clientId) const;
+	bool markSourceAsPendingRender(const std::string& clientId);
 
 protected:
 	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);

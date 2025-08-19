@@ -1,6 +1,7 @@
 #include "App.h"
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
+#include "CameraRequestHandler.h"
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
 #include "IMkState.h"
@@ -9,6 +10,7 @@
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
+#include "MikanServer.h"
 #include "MkMaterialInstance.h"
 #include "MkScopedState.h"
 #include "MkStateStack.h"
@@ -17,6 +19,8 @@
 #include "SceneObjectSystem.h"
 #include "TransformComponent.h"
 #include "StringUtils.h"
+#include "VideoFrameDistortionView.h"
+#include "VideoSourceComponent.h"
 
 #include "NodeGraphAssetReference.h"
 #include "Graphs/CompositorNodeGraph.h"
@@ -186,7 +190,107 @@ void CompositorComponent::update(float deltaSeconds)
 		}
 	}
 
-	// 
+	// Fetch new video frames if the video frame queue isn't full
+	if (m_videoDistortionView != nullptr && m_videoDistortionView->hasNewVideoFrame())
+	{
+		// If the queue is full, drop all queued frames to catch up
+		if (m_frameEventQueue.size() < m_videoDistortionView->getMaxFrameQueueSize())
+		{
+			m_lastReadVideoFrameIndex = m_videoDistortionView->readNextVideoFrame();
+
+			MikanCameraNewFrameEvent newFrameEvent;
+			newFrameEvent.frame = m_lastReadVideoFrameIndex;
+
+			const glm::vec3 cameraUp(cameraXform[1]); // Camera up is along the y-axis
+			const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
+			const glm::vec3 cameraPosition(cameraXform[3]); // Camera up is along the y-axis
+			newFrameEvent.cameraForward = glm_vec3_to_MikanVector3f(cameraForward);
+			newFrameEvent.cameraUp = glm_vec3_to_MikanVector3f(cameraUp);
+			newFrameEvent.cameraPosition = glm_vec3_to_MikanVector3f(cameraPosition);
+
+			MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Enqueue frame " << m_lastReadVideoFrameIndex;
+			m_frameEventQueue.push(newFrameEvent);
+			m_droppedFrameCounter = 0;
+		}
+		else
+		{
+			m_droppedFrameCounter++;
+			MIKAN_LOG_WARNING("GlFrameCompositor::update") << "Frame queue overflow. Dropped " << m_droppedFrameCounter << " frames";
+
+			if (m_droppedFrameCounter > 10)
+			{
+				m_droppedFrameCounter = 0;
+				MIKAN_LOG_WARNING("GlFrameCompositor::update") << "Exceeded dropped frame limit. Flushing frame queue.";
+
+				while (m_frameEventQueue.size() > 0)
+				{
+					m_frameEventQueue.pop();
+				}
+				m_pendingCompositeFrameIndex = 0;
+			}
+		}
+	}
+
+	// If we don't have a pending frame to composite and have a queued frame,
+	// the send off the next frame to the clients to render
+	if (m_pendingCompositeFrameIndex == 0 && m_frameEventQueue.size() > 0)
+	{
+		// Grab the next frame event off the queue
+		MikanCameraNewFrameEvent newFrameEvent = m_frameEventQueue.front();
+
+		// Mark all client sources as pending
+		auto* clientSourceManager = ClientSourceManager::getInstance();
+		for (const std::string& clientSourceId : activeClientSourceIds)
+		{
+			clientSourceManager->markSourceAsPendingRender(clientSourceId);
+		}
+
+		// Track the index of the pending frame
+		m_pendingCompositeFrameIndex = newFrameEvent.frame;
+
+		// Tell all clients that we have a new frame to render
+		// TODO: Send this event to the camera system instead
+		MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Send frame " << m_pendingCompositeFrameIndex;
+		MikanServer::getInstance()->getCameraRequestHandler()->publishCameraNewFrameEvent(newFrameEvent);
+	}
+}
+
+void CompositorComponent::handleCameraChange(
+	CameraComponentPtr oldCameraComponent, 
+	CameraComponentPtr newCameraComponent)
+{
+	if (oldCameraComponent)
+	{
+		unbindVideoSourceEvents(oldCameraComponent->getVideoSourceComponent());
+	}
+
+	if (newCameraComponent)
+	{
+		bindVideoSourceEvents(newCameraComponent->getVideoSourceComponent());
+	}
+}
+
+void CompositorComponent::unbindVideoSourceEvents(VideoSourceComponentPtr videoSource)
+{
+	if (videoSource != nullptr)
+	{
+		videoSource->OnFrameSizeChanged 
+			-= MakeDelegate(this, &CompositorComponent::onVideoFrameSizeChanged);
+	}
+}
+
+void CompositorComponent::bindVideoSourceEvents(VideoSourceComponentPtr videoSource)
+{
+	if (videoSource != nullptr)
+	{
+		videoSource->OnFrameSizeChanged 
+			+= MakeDelegate(this, &CompositorComponent::onVideoFrameSizeChanged);
+	}
+}
+
+void CompositorComponent::onVideoFrameSizeChanged(const VideoSourceComponent* videoSource)
+{
+
 }
 
 void CompositorComponent::updateCompositeFrame()
@@ -247,6 +351,22 @@ CameraComponentPtr CompositorComponent::getCameraComponent() const
 	MikanCameraID cameraId = getCompositorDefinition()->getCameraId();
 
 	return CameraObjectSystem::getSystem()->getCameraById(cameraId);
+}
+
+void CompositorComponent::setCameraComponent(CameraComponentPtr newCameraComponent)
+{
+	CameraComponentPtr oldCameraComponent = getCameraComponent();
+	MikanCameraID oldCameraId = oldCameraComponent ? oldCameraComponent->getCameraId() : INVALID_MIKAN_ID;
+	MikanCameraID newCameraId = newCameraComponent ? newCameraComponent->getCameraId() : INVALID_MIKAN_ID;
+
+	if (newCameraId != oldCameraId)
+	{
+		// Rebuild the compositor state since the camera has changed
+		handleCameraChange(oldCameraComponent, newCameraComponent);
+
+		// Update the camera ID in the compositor definition
+		getCompositorDefinition()->setCameraId(newCameraId);
+	}
 }
 
 IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const

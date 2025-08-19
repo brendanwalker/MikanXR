@@ -66,6 +66,7 @@ public:
 	bool getIsRunning() const;
 	SceneComponentPtr getOwnerSceneComponent() const;
 	CameraComponentPtr getCameraComponent() const;
+	void setCameraComponent(CameraComponentPtr cameraComponent);
 
 	inline CompositorDefinitionPtr getCompositorDefinition() const
 	{
@@ -82,6 +83,10 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
+	void handleCameraChange(CameraComponentPtr oldCameraComponent, CameraComponentPtr newCameraComponent);
+	void unbindVideoSourceEvents(VideoSourceComponentPtr videoSource);
+	void bindVideoSourceEvents(VideoSourceComponentPtr videoSource);
+	void onVideoFrameSizeChanged(const VideoSourceComponent* videoSource);
 	void updateCompositeFrame();
 
 private:
@@ -95,6 +100,11 @@ private:
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
 	CompositorNodeGraphPtr m_nodeGraph;
 
+	// Undistorted Video Frame Buffer
+	VideoFrameDistortionViewPtr m_videoDistortionView;
+
+	int64_t m_lastReadVideoFrameIndex = 0;
+	int64_t m_droppedFrameCounter = 0;
 	int64_t m_pendingCompositeFrameIndex = 0;
 	float m_timeSinceLastFrameComposited= 0.f;
 };

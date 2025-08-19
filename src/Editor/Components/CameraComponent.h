@@ -80,6 +80,7 @@ public:
 	{
 		return std::static_pointer_cast<CameraDefinition>(m_definition);
 	}
+	inline MikanCameraID getCameraId() const { return getCameraDefinition()->getCameraId(); }
 	StageComponentConstPtr getOwnerStageComponent() const;
 	VRTrackingSystemDefinitionConstPtr getVRTrackingSystemDefinition() const;
 	TrackingMountDefinitionConstPtr getTrackingMountDefinition() const;

@@ -131,6 +131,18 @@ bool ClientSourceManager::getIsSourcePendingRender(
 	return false;
 }
 
+bool ClientSourceManager::markSourceAsPendingRender(const std::string& clientId)
+{
+	ClientSource* clientSource = nullptr;
+	if (m_clientSources.tryGetValue(clientId, clientSource))
+	{
+		clientSource->bIsPendingRender= true;
+		return true;
+	}
+
+	return false;
+}
+
 bool ClientSourceManager::addClientSource(
 	const std::string& clientId,
 	const MikanClientInfo& clientInfo,
