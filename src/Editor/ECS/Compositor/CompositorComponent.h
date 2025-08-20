@@ -3,6 +3,7 @@
 #include "AssetFwd.h"
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "FrameCompositorConstants.h"
 #include "MikanCameraEvents.h"
 #include "MikanComponent.h"
 #include "MikanCoreTypes.h"
@@ -19,6 +20,9 @@
 #include <string>
 
 #include "glm/ext/matrix_float4x4.hpp"
+
+class VideoFrameDistortionView;
+using VideoFrameDistortionViewPtr = std::shared_ptr<VideoFrameDistortionView>;
 
 class CompositorDefinition : public MikanComponentDefinition
 {
@@ -66,6 +70,7 @@ public:
 	bool getIsRunning() const;
 	SceneComponentPtr getOwnerSceneComponent() const;
 	CameraComponentPtr getCameraComponent() const;
+	VideoSourceComponentPtr getVideoSourceComponent() const;
 	void setCameraComponent(CameraComponentPtr cameraComponent);
 
 	inline CompositorDefinitionPtr getCompositorDefinition() const
@@ -73,7 +78,13 @@ public:
 		return std::static_pointer_cast<CompositorDefinition>(m_definition);
 	}
 
+	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
+	IMkTexturePtr getEditorWritableFrameTexture() const;
 	IMkTextureConstPtr getCompositedFrameTexture() const;
+	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
+
+	MulticastDelegate<void()> OnNewFrameComposited;
+
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
@@ -86,8 +97,13 @@ protected:
 	void handleCameraChange(CameraComponentPtr oldCameraComponent, CameraComponentPtr newCameraComponent);
 	void unbindVideoSourceEvents(VideoSourceComponentPtr videoSource);
 	void bindVideoSourceEvents(VideoSourceComponentPtr videoSource);
-	void onVideoFrameSizeChanged(const VideoSourceComponent* videoSource);
+	void disposeVideoBuffers();
+	void allocateVideoBuffers(VideoSourceComponentPtr videoSource);
+	void createCompositingTextures(int width, int height);
+	void disposeCompositingTextures();
+	void onVideoFrameSizeChanged(VideoSourceComponentPtr videoSource);
 	void updateCompositeFrame();
+	void updateCompositeFrameNodeGraph();
 
 private:
 	// Compositor Rendering
@@ -95,6 +111,10 @@ private:
 
 	// Pending queue of camera poses awaiting client render
 	std::queue<MikanCameraNewFrameEvent> m_frameEventQueue;
+
+	// Shared Texture for editor window rendering
+	eCompositorEvaluatorWindow m_evaluatorWindow = eCompositorEvaluatorWindow::mainWindow;
+	IMkTexturePtr m_editorFrameBufferTexture = nullptr;
 
 	// Compositor Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
@@ -105,6 +125,7 @@ private:
 
 	int64_t m_lastReadVideoFrameIndex = 0;
 	int64_t m_droppedFrameCounter = 0;
+	int64_t m_lastCompositedFrameIndex = 0;
 	int64_t m_pendingCompositeFrameIndex = 0;
 	float m_timeSinceLastFrameComposited= 0.f;
 };

@@ -17,7 +17,7 @@
 #include "Logger.h"
 #include "ModelStencilComponent.h"
 #include "StencilObjectSystem.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 
 // Assets References
 #include "ModelAssetReference.h"
@@ -540,12 +540,11 @@ bool CompositorNodeGraph::createBoxMeshes()
 void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evaluator)
 {
 	// Use the current video source's frame size
-	VideoSourceViewPtr videoSource = evaluator.getCurrentVideoSourceView();
-	if (videoSource)
+	int frameWidth, frameHeight;
+	VideoSourceComponentPtr videoSource = evaluator.getCurrentVideoSourceComponent();
+	if (videoSource && 
+		videoSource->getPixelDimensions(frameWidth, frameHeight))
 	{
-		int frameWidth = (int)videoSource->getFrameWidth();
-		int frameHeight = (int)videoSource->getFrameHeight();
-
 		// Does nothing if the frame buffer is already the correct size
 		m_compositingFrameBuffer->setSize(frameWidth, frameHeight);
 	}

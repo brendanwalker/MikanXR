@@ -1,4 +1,6 @@
 #pragma once
+
+#include "ComponentFwd.h"
 #include "Windows/NodeEditorWindow.h"
 
 class CompositorNodeEditorWindow : public NodeEditorWindow
@@ -22,5 +24,6 @@ public:
 	virtual void renderToolbar() override;
 
 protected:
+	CompositorComponentPtr m_compositorComponent;
 	bool m_isRunningCompositor= true;
 };

@@ -72,7 +72,7 @@ AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	, m_compositorModel(new RmlModel_Compositor)
 	, m_compositorLayersModel(new RmlModel_CompositorLayers)
 	, m_compositorCamerasModel(new RmlModel_CompositorCameras)
-	, m_compositorSourcesModel(new RmlModel_CompositorSources)
+	//, m_compositorSourcesModel(new RmlModel_CompositorSources)
 	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
 	, m_compositorOutlinerModel(new RmlModel_CompositorOutliner)
 	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
@@ -90,7 +90,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	delete m_compositorModel;
 	delete m_compositorLayersModel;
 	delete m_compositorCamerasModel;
-	delete m_compositorSourcesModel;
+	//delete m_compositorSourcesModel;
 	delete m_compositorScriptingModel;
 	delete m_compositorOutlinerModel;
 	delete m_compositorSelectionModel;
@@ -192,14 +192,14 @@ void AppStage_Compositor::enter()
 		m_compositiorLayersView->Hide();
 
 		// Init Cameras UI
-		m_compositorCamerasModel->init(context, m_frameCompositor);
+		m_compositorCamerasModel->init(context);
 		m_compositiorSourcesView = addRmlDocument("compositor_cameras.rml");
 		m_compositiorSourcesView->Hide();
 
 		// Init Sources UI
-		m_compositorSourcesModel->init(context, m_frameCompositor);
-		m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
-		m_compositiorSourcesView->Hide();
+		//m_compositorSourcesModel->init(context);
+		//m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
+		//m_compositiorSourcesView->Hide();
 
 		// Init Scripting UI
 		m_compositorScriptingModel->init(context, m_project, m_scriptContext);
@@ -239,7 +239,7 @@ void AppStage_Compositor::exit()
 	m_compositorSelectionModel->dispose();
 	m_compositorOutlinerModel->dispose();
 	m_compositorLayersModel->dispose();
-	m_compositorSourcesModel->dispose();
+	//m_compositorSourcesModel->dispose();
 	m_compositorScriptingModel->dispose();
 	m_compositorModel->dispose();
 	m_compositorSettingsModel->dispose();

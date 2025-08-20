@@ -49,6 +49,10 @@ public:
 	inline bool getIsBufferMirrored() const { return m_bIsBufferMirrored; }
 	void setIsBufferMirrored(bool isBufferMirrored);
 
+	static const std::string k_videoFrameQueueSizePropertyId;
+	inline int getVideoFrameQueueSize() const { return m_videoFrameQueueSize; }
+	void setVideoFrameQueueSize(int videoFrameQueueSize);
+
 	static const std::string k_videoSourceIntrinsicsPropertyId;
 	inline bool hasCameraIntrinsics() const { return m_intrinsics.intrinsics_type != INVALID_CAMERA_INTRINSICS; }
 	inline const MikanVideoSourceIntrinsics& getCameraIntrinsics() const { return m_intrinsics; }
@@ -58,6 +62,7 @@ private:
 	MikanVideoSourceID m_videoSourceId;
 	bool m_bIsFrameMirrored;
 	bool m_bIsBufferMirrored;
+	int m_videoFrameQueueSize;
 	MikanVideoSourceIntrinsics m_intrinsics;
 };
 
@@ -84,18 +89,19 @@ public:
 	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const = 0;
 	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) = 0;
 
+	virtual bool getVideoModeName(std::string& outVideoModeName) const;
 	virtual bool getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const;
 	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
 	virtual glm::mat4 getProjectionMatrix() const;
 
 	// Video Source Events
-	MulticastDelegate<void(const VideoSourceComponent* videoSource)> OnOpened;
-	MulticastDelegate<void(const VideoSourceComponent* videoSource)> OnClosed;
-	MulticastDelegate<void(const VideoSourceComponent* videoSource)> OnStarted;
-	MulticastDelegate<void(const VideoSourceComponent* videoSource)> OnStopped;
-	MulticastDelegate<void(const VideoSourceComponent* videoSource)> OnFrameSizeChanged;
-	MulticastDelegate<void(const VideoSourceComponent* videoSource)> OnIntrinsicsChanged;
+	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnOpened;
+	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnClosed;
+	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnStarted;
+	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnStopped;
+	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnFrameSizeChanged;
+	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnIntrinsicsChanged;
 
 	// -- IPropertyInterface ----
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;

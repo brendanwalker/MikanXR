@@ -736,7 +736,7 @@ void GlFrameCompositor::updateCompositeFrameNodeGraph()
 	MainWindow* mainWindow = MainWindow::getInstance();
 	NodeEvaluator evaluator = {};
 	evaluator
-		.setCurrentVideoSourceView(m_videoSourceComponent)
+		//.setCurrentVideoSourceComponent(m_videoSourceComponent)
 		.setCurrentWindow(mainWindow)
 		.setDeltaSeconds(m_timeSinceLastFrameComposited);
 

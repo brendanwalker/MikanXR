@@ -1,10 +1,10 @@
 //-- includes -----
 #include "App.h"
 #include "AssetReference.h"
-#include "GlFrameCompositor.h"
+#include "CompositorComponent.h"
+#include "CompositorObjectSystem.h"
 #include "CompositorNodeEditorWindow.h"
 #include "Logger.h"
-#include "MainWindow.h"
 #include "NodeEditorUI.h"
 
 #include "Graphs/CompositorNodeGraph.h"
@@ -19,9 +19,15 @@ CompositorNodeEditorWindow::CompositorNodeEditorWindow() : NodeEditorWindow()
 // -- IMkWindow ----
 bool CompositorNodeEditorWindow::startup()
 {
+	m_compositorComponent = CompositorObjectSystem::getSystem()->getCurrentCompositor();
+	if (!m_compositorComponent)
+	{
+		MIKAN_LOG_ERROR("CompositorNodeEditorWindow::startup") << "No compositor component found.";
+		return false;
+	}
+
 	// Tell the frame compositor to create a texture for the editor compositor to write to
-	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
-	frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::editorWindow);
+	m_compositorComponent->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::editorWindow);
 
 	// Start the node editor window
 	if (!NodeEditorWindow::startup())
@@ -30,7 +36,7 @@ bool CompositorNodeEditorWindow::startup()
 	}
 
 	// Load the graph from the asset path on the main window's frame compositor (if any)
-	auto graphAssetPath = frameCompositor->getCompositorGraphAssetPath();
+	auto graphAssetPath = m_compositorComponent->getCompositorDefinition()->getCompositorGraphPath();
 	if (!graphAssetPath.empty() && !loadGraph(graphAssetPath))
 	{
 		return false;
@@ -51,17 +57,16 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 
 	if (m_isRunningCompositor)
 	{
-		MainWindow* mainWindow = MainWindow::getInstance();
-
-		if (mainWindow != nullptr)
+		if (m_compositorComponent != nullptr)
 		{
-			VideoSourceViewPtr videoSourceView = mainWindow->getFrameCompositor()->getVideoSource();
+			VideoSourceComponentPtr videoSourceComponent = 
+				m_compositorComponent->getVideoSourceComponent();
 
 			NodeEvaluator evaluator = {};
 			evaluator
 				.setCurrentWindow(this)
 				.setDeltaSeconds(deltaSeconds)
-				.setCurrentVideoSourceView(videoSourceView);
+				.setCurrentVideoSourceComponent(videoSourceComponent);
 
 			auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
 			if (!node_graph->compositeFrame(evaluator))
@@ -75,11 +80,10 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 void CompositorNodeEditorWindow::shutdown()
 {
 	// Tell the frame compositor to free the editor compositor texture
-	MainWindow* mainWindow= MainWindow::getInstance();
-	if (mainWindow != nullptr)
+	if (m_compositorComponent)
 	{
-		GlFrameCompositor* frameCompositor = mainWindow->getFrameCompositor();
-		frameCompositor->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::mainWindow);
+		m_compositorComponent->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::mainWindow);
+		m_compositorComponent = nullptr;
 	}
 
 	NodeEditorWindow::shutdown();
@@ -95,22 +99,18 @@ void CompositorNodeEditorWindow::onNodeGraphCreated()
 {
 	NodeEditorWindow::onNodeGraphCreated();
 
-	MainWindow* mainWindow = MainWindow::getInstance();
-	GlFrameCompositor* frameCompositor = mainWindow->getFrameCompositor();
-
 	// Point the compositor to the editor window writable compositor texture shared from the main window
 	// This will allow the main window to editor compositor graph changes in real time
 	auto nodeGraph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
-	nodeGraph->setExternalCompositedFrameTexture(frameCompositor->getEditorWritableFrameTexture());
+	nodeGraph->setExternalCompositedFrameTexture(m_compositorComponent->getEditorWritableFrameTexture());
 }
 
 bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
-		GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();
-
-		frameCompositor->setCompositorGraphAssetPath(m_editorState.nodeGraphPath);
+		m_compositorComponent->getCompositorDefinition()->setCompositorGraphPath(
+			m_editorState.nodeGraphPath);
 	}
 
 	return false;

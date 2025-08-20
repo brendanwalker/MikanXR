@@ -1,7 +1,7 @@
 #include "RmlModel_CompositorSources.h"
-#include "GlFrameCompositor.h"
+#include "CompositorComponent.h"
 #include "StringUtils.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 #include "VideoCapabilitiesConfig.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -10,7 +10,7 @@
 
 bool RmlModel_CompositorSources::init(
 	Rml::Context* rmlContext,
-	const GlFrameCompositor* compositor)
+	CompositorComponentPtr compositor)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_sources");
@@ -24,12 +24,13 @@ bool RmlModel_CompositorSources::init(
 
 	// Bind data model callbacks
 
-	m_videoSource= compositor->getVideoSource();
+	m_videoSource= compositor->getVideoSourceComponent();
 	if (m_videoSource)
 	{
-		m_videoSourceName = m_videoSource->getFriendlyName();
-		m_videoSource->OnFrameSizeChanged += MakeDelegate(this, &RmlModel_CompositorSources::onVideoFrameSizeChanged);
-		onVideoFrameSizeChanged(m_videoSource.get());
+		m_videoSourceName = m_videoSource->getName();
+		m_videoSource->OnFrameSizeChanged += 
+			MakeDelegate(this, &RmlModel_CompositorSources::onVideoFrameSizeChanged);
+		onVideoFrameSizeChanged(m_videoSource);
 
 		m_bHasValidVideoSource= true;
 	}
@@ -47,21 +48,16 @@ void RmlModel_CompositorSources::dispose()
 {
 	if (m_videoSource)
 	{
-		m_videoSource->OnFrameSizeChanged -= MakeDelegate(this, &RmlModel_CompositorSources::onVideoFrameSizeChanged);
+		m_videoSource->OnFrameSizeChanged -= 
+			MakeDelegate(this, &RmlModel_CompositorSources::onVideoFrameSizeChanged);
 	}
 
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorSources::onVideoFrameSizeChanged(const VideoSourceView* videoSourceView)
+void RmlModel_CompositorSources::onVideoFrameSizeChanged(VideoSourceComponentPtr videoSourceComponent)
 {
-	const VideoModeConfig* modeConfig= videoSourceView->getVideoMode();
-
-	if (modeConfig != nullptr)
-	{
-		m_videoModeName = modeConfig->modeName;
-	}
-	else
+	if (!videoSourceComponent->getVideoModeName(m_videoModeName))
 	{
 		m_videoModeName = "INVALID";
 	}

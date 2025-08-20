@@ -14,7 +14,7 @@ class RmlModel_CompositorCameras : public RmlModel
 public:
 	RmlModel_CompositorCameras();
 
-	bool init(Rml::Context* rmlContext, const class GlFrameCompositor* compositor);
+	bool init(Rml::Context* rmlContext);
 	virtual void dispose() override;
 
 	//const Rml::String& getVideoSourceName() const;

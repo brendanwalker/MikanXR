@@ -1,5 +1,4 @@
 #include "RmlModel_CompositorCameras.h"
-#include "GlFrameCompositor.h"
 #include "Shared/RmlDataBinding_VRDeviceList.h"
 #include "StringUtils.h"
 #include "VideoSourceView.h"
@@ -14,8 +13,7 @@ RmlModel_CompositorCameras::RmlModel_CompositorCameras()
 {}
 
 bool RmlModel_CompositorCameras::init(
-	Rml::Context* rmlContext,
-	const GlFrameCompositor* compositor)
+	Rml::Context* rmlContext)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_video");

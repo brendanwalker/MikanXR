@@ -5,6 +5,7 @@
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
 #include "IMkState.h"
+#include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -185,7 +186,7 @@ void CompositorComponent::update(float deltaSeconds)
 			assert(m_frameEventQueue.front().frame == m_pendingCompositeFrameIndex);
 			m_frameEventQueue.pop();
 
-			MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Composite frame " << m_pendingCompositeFrameIndex;
+			MIKAN_LOG_TRACE("CompositorComponent::update") << "Composite frame " << m_pendingCompositeFrameIndex;
 			updateCompositeFrame();
 		}
 	}
@@ -208,19 +209,19 @@ void CompositorComponent::update(float deltaSeconds)
 			newFrameEvent.cameraUp = glm_vec3_to_MikanVector3f(cameraUp);
 			newFrameEvent.cameraPosition = glm_vec3_to_MikanVector3f(cameraPosition);
 
-			MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Enqueue frame " << m_lastReadVideoFrameIndex;
+			MIKAN_LOG_TRACE("CompositorComponent::update") << "Enqueue frame " << m_lastReadVideoFrameIndex;
 			m_frameEventQueue.push(newFrameEvent);
 			m_droppedFrameCounter = 0;
 		}
 		else
 		{
 			m_droppedFrameCounter++;
-			MIKAN_LOG_WARNING("GlFrameCompositor::update") << "Frame queue overflow. Dropped " << m_droppedFrameCounter << " frames";
+			MIKAN_LOG_WARNING("CompositorComponent::update") << "Frame queue overflow. Dropped " << m_droppedFrameCounter << " frames";
 
 			if (m_droppedFrameCounter > 10)
 			{
 				m_droppedFrameCounter = 0;
-				MIKAN_LOG_WARNING("GlFrameCompositor::update") << "Exceeded dropped frame limit. Flushing frame queue.";
+				MIKAN_LOG_WARNING("CompositorComponent::update") << "Exceeded dropped frame limit. Flushing frame queue.";
 
 				while (m_frameEventQueue.size() > 0)
 				{
@@ -250,7 +251,7 @@ void CompositorComponent::update(float deltaSeconds)
 
 		// Tell all clients that we have a new frame to render
 		// TODO: Send this event to the camera system instead
-		MIKAN_LOG_TRACE("GlFrameCompositor::update") << "Send frame " << m_pendingCompositeFrameIndex;
+		MIKAN_LOG_TRACE("CompositorComponent::update") << "Send frame " << m_pendingCompositeFrameIndex;
 		MikanServer::getInstance()->getCameraRequestHandler()->publishCameraNewFrameEvent(newFrameEvent);
 	}
 }
@@ -259,15 +260,20 @@ void CompositorComponent::handleCameraChange(
 	CameraComponentPtr oldCameraComponent, 
 	CameraComponentPtr newCameraComponent)
 {
-	if (oldCameraComponent)
+	VideoSourceComponentPtr oldVideoSourceComponent= oldCameraComponent->getVideoSourceComponent();
+	VideoSourceComponentPtr newVideoSourceComponent = newCameraComponent->getVideoSourceComponent();
+
+	if (oldVideoSourceComponent)
 	{
-		unbindVideoSourceEvents(oldCameraComponent->getVideoSourceComponent());
+		unbindVideoSourceEvents(oldVideoSourceComponent);
 	}
 
-	if (newCameraComponent)
+	if (newVideoSourceComponent)
 	{
-		bindVideoSourceEvents(newCameraComponent->getVideoSourceComponent());
+		bindVideoSourceEvents(newVideoSourceComponent);
 	}
+
+	onVideoFrameSizeChanged(newVideoSourceComponent);
 }
 
 void CompositorComponent::unbindVideoSourceEvents(VideoSourceComponentPtr videoSource)
@@ -288,14 +294,143 @@ void CompositorComponent::bindVideoSourceEvents(VideoSourceComponentPtr videoSou
 	}
 }
 
-void CompositorComponent::onVideoFrameSizeChanged(const VideoSourceComponent* videoSource)
+void CompositorComponent::disposeVideoBuffers()
 {
+	m_videoDistortionView = nullptr;
+}
 
+void CompositorComponent::allocateVideoBuffers(VideoSourceComponentPtr videoSource)
+{
+	// Create a distortion view to read the incoming video frames into a texture
+	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
+		getOwnerWindow(),
+		videoSource,
+		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG,
+		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
+
+	// Always use the undistorted video frame for compositing
+	m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+}
+
+void CompositorComponent::disposeCompositingTextures()
+{
+	m_editorFrameBufferTexture->disposeTexture();
+}
+
+void CompositorComponent::createCompositingTextures(int width, int height)
+{
+	// Also create a texture a for the editor to render to when the editor is active
+	m_editorFrameBufferTexture->setSize(width, height);
+	m_editorFrameBufferTexture->setTextureFormat(MK_RGBA);
+	m_editorFrameBufferTexture->setBufferFormat(MK_RGBA);
+	m_editorFrameBufferTexture->setGenerateMipMap(false);
+	// ... but don't allocate it create texture until we need it
+}
+
+void CompositorComponent::onVideoFrameSizeChanged(VideoSourceComponentPtr videoSource)
+{
+	disposeCompositingTextures();
+	disposeVideoBuffers();
+
+	// Create a frame buffer and texture to do the compositing work in
+	int frameWidth, frameHeight;
+	if (videoSource->getPixelDimensions(frameWidth, frameHeight))
+	{
+		createCompositingTextures(frameWidth, frameHeight);
+		allocateVideoBuffers(videoSource);
+	}
 }
 
 void CompositorComponent::updateCompositeFrame()
 {
+	EASY_FUNCTION();
 
+	assert(m_pendingCompositeFrameIndex != 0);
+
+	// Compute the next undistorted video frame
+	m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex);
+
+	// Perform the compositor evaluation if in MainWindow mode
+	// (Editor window runs graph evaluation in its own update loop)
+	if (m_evaluatorWindow == eCompositorEvaluatorWindow::mainWindow)
+	{
+		// If we have a valid compositor node graph, use that to composite the frame
+		if (m_nodeGraph)
+		{
+			updateCompositeFrameNodeGraph();
+		}
+	}
+
+	// Remember the index of the last frame we composited
+	m_lastCompositedFrameIndex = m_pendingCompositeFrameIndex;
+
+	// Clear the pending composite frame index
+	m_pendingCompositeFrameIndex = 0;
+
+	// Reset the time since the last frame was composited
+	m_timeSinceLastFrameComposited = 0.f;
+
+	// Tell any listeners that a new frame was composited
+	if (OnNewFrameComposited)
+	{
+		OnNewFrameComposited();
+	}
+}
+
+void CompositorComponent::setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow)
+{
+	if (m_evaluatorWindow != evalWindow)
+	{
+		m_editorFrameBufferTexture->disposeTexture();
+
+		if (evalWindow == eCompositorEvaluatorWindow::editorWindow)
+		{
+			m_editorFrameBufferTexture->createTexture();
+		}
+
+		m_evaluatorWindow = evalWindow;
+	}
+}
+
+IMkTexturePtr CompositorComponent::getEditorWritableFrameTexture() const
+{
+	return m_editorFrameBufferTexture;
+}
+
+IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
+{
+	switch (m_evaluatorWindow)
+	{
+	case eCompositorEvaluatorWindow::mainWindow:
+		return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : IMkTextureConstPtr();
+	case eCompositorEvaluatorWindow::editorWindow:
+		return m_editorFrameBufferTexture;
+	}
+
+	return IMkTextureConstPtr();
+}
+
+void CompositorComponent::updateCompositeFrameNodeGraph()
+{
+	VideoSourceComponentPtr videoSourceComponent= getVideoSourceComponent();
+
+	if (videoSourceComponent)
+	{
+		NodeEvaluator evaluator = {};
+		evaluator
+			.setCurrentVideoSourceComponent(videoSourceComponent)
+			.setCurrentWindow(getOwnerWindow())
+			.setDeltaSeconds(m_timeSinceLastFrameComposited);
+
+		if (!m_nodeGraph->compositeFrame(evaluator))
+		{
+			for (const NodeEvaluationError& error : evaluator.getErrors())
+			{
+				MIKAN_LOG_ERROR("CompositorComponent::updateCompositeFrame")
+					<< "Compositor graph eval error: " << error.errorMessage;
+			}
+		}
+	}
 }
 
 void CompositorComponent::render() const
@@ -315,7 +450,7 @@ void CompositorComponent::render() const
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
 				MkScopedState scopedState = 
-					getOwnerWindow()->getMkStateStack().createScopedState("GlFrameCompositorRender");
+					getOwnerWindow()->getMkStateStack().createScopedState("CompositorComponentRender");
 				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 				m_layerQuadMesh->drawElements();
@@ -353,6 +488,17 @@ CameraComponentPtr CompositorComponent::getCameraComponent() const
 	return CameraObjectSystem::getSystem()->getCameraById(cameraId);
 }
 
+VideoSourceComponentPtr CompositorComponent::getVideoSourceComponent() const
+{
+	CameraComponentPtr cameraComponent = getCameraComponent();
+	if (cameraComponent)
+	{
+		return cameraComponent->getVideoSourceComponent();
+	}
+
+	return VideoSourceComponentPtr();
+}
+
 void CompositorComponent::setCameraComponent(CameraComponentPtr newCameraComponent)
 {
 	CameraComponentPtr oldCameraComponent = getCameraComponent();
@@ -367,11 +513,6 @@ void CompositorComponent::setCameraComponent(CameraComponentPtr newCameraCompone
 		// Update the camera ID in the compositor definition
 		getCompositorDefinition()->setCameraId(newCameraId);
 	}
-}
-
-IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
-{
-	return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : IMkTextureConstPtr();
 }
 
 // -- IPropertyInterface ----

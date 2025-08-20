@@ -16,7 +16,7 @@
 #include "MainWindow.h"
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 
 #include "QuadStencilComponent.h"
 #include "BoxStencilComponent.h"
@@ -184,12 +184,11 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 	if (bSuccess)
 	{
 		// Use the current video source's frame size as the depth texture size
-		VideoSourceViewPtr videoSource = evaluator.getCurrentVideoSourceView();
-		if (videoSource)
+		int frameWidth, frameHeight;
+		VideoSourceComponentPtr videoSource = evaluator.getCurrentVideoSourceComponent();
+		if (videoSource &&
+			videoSource->getPixelDimensions(frameWidth, frameHeight))
 		{
-			int frameWidth = (int)videoSource->getFrameWidth();
-			int frameHeight = (int)videoSource->getFrameHeight();
-
 			// Does nothing if the frame buffer is already the correct size
 			// Invalidates the frame buffer if it's not the correct size
 			m_linearDepthFrameBuffer->setSize(frameWidth, frameHeight);

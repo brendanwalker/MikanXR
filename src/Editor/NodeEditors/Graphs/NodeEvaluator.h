@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "NodeFwd.h"
 #include "NodeError.h"
 
@@ -7,24 +8,25 @@
 #include <string>
 #include <vector>
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 class NodeEvaluator
 {
 public:
 	NodeEvaluator()= default;
 
-	inline NodeEvaluator& setCurrentWindow(class IMkWindow* inWindow) { m_currentWindow= inWindow; return *this; }
-	inline class IMkWindow* getCurrentWindow() const { return m_currentWindow; }
+	inline NodeEvaluator& setCurrentWindow(class IMkWindow* inWindow)
+	{ m_currentWindow= inWindow; return *this; }
+	inline class IMkWindow* getCurrentWindow() const 
+	{ return m_currentWindow; }
 
-	inline NodeEvaluator& setCurrentVideoSourceView(VideoSourceViewPtr inVideoSourceView) 
-	{ m_currentVideoSourceView= inVideoSourceView; return *this; }
-	inline VideoSourceViewPtr getCurrentVideoSourceView() const 
-	{ return m_currentVideoSourceView; }
+	inline NodeEvaluator& setCurrentVideoSourceComponent(VideoSourceComponentPtr inVideoSourceComponent)
+	{ m_currentVideoSourceComponent = inVideoSourceComponent; return *this; }
+	inline VideoSourceComponentPtr getCurrentVideoSourceComponent() const 
+	{ return m_currentVideoSourceComponent; }
 
-	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds) { m_deltaSeconds= inDeltaSeconds; return *this; }
-	inline float getDeltaSeconds() const { return m_deltaSeconds; }
+	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds) 
+	{ m_deltaSeconds= inDeltaSeconds; return *this; }
+	inline float getDeltaSeconds() const 
+	{ return m_deltaSeconds; }
 
 	inline void setDisableInputEvaluation(bool bDisable) { m_bDisableInputEvaluation= bDisable; }
 	inline bool getIsInputEvaluationDisabled() const { return m_bDisableInputEvaluation; }
@@ -38,7 +40,7 @@ public:
 protected:
 	class IMkWindow* m_currentWindow= nullptr;
 	float m_deltaSeconds= 0.f;
-	VideoSourceViewPtr m_currentVideoSourceView;
+	VideoSourceComponentPtr m_currentVideoSourceComponent;
 
 	NodePtr m_currentNode;
 	int m_evaluatedNodeCount= 0;

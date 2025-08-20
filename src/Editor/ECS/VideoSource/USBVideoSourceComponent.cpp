@@ -203,14 +203,14 @@ bool USBVideoSourceComponent::openVideoSource()
 	notifyVideoModePropertiesChanged(m_usbVideoDevice);
 	if (OnFrameSizeChanged)
 	{
-		OnFrameSizeChanged(this);
+		OnFrameSizeChanged(getSelfPtr<VideoSourceComponent>());
 	}
 
 	// Let any connected clients know that the video source closed
 	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceOpenedEvent();
 	if (OnOpened)
 	{
-		OnOpened(this);
+		OnOpened(getSelfPtr<VideoSourceComponent>());
 	}
 
 	return true;
@@ -347,7 +347,7 @@ void USBVideoSourceComponent::closeVideoSource()
 	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceClosedEvent();
 	if (OnClosed)
 	{
-		OnClosed(this);
+		OnClosed(getSelfPtr<VideoSourceComponent>());
 	}
 }
 
@@ -375,7 +375,7 @@ eVideoStreamingStatus USBVideoSourceComponent::startVideoStream()
 		auto status= usbStatusToVideoStatus(m_usbVideoDevice->startVideoStream());
 		if (status == eVideoStreamingStatus::started && OnStarted)
 		{
-			OnStarted(this);
+			OnStarted(getSelfPtr<VideoSourceComponent>());
 		}
 
 		return status;
@@ -402,7 +402,7 @@ void USBVideoSourceComponent::stopVideoStream()
 
 		if (OnStopped)
 		{
-			OnStopped(this);
+			OnStopped(getSelfPtr<VideoSourceComponent>());
 		}
 	}
 }
@@ -467,6 +467,17 @@ int64_t USBVideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection s
 	return m_lastVideoFrameReadIndex;
 }
 
+bool USBVideoSourceComponent::getVideoModeName(std::string& outVideoModeName) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		outVideoModeName= m_usbVideoDevice->getVideoModeName();
+		return true;
+	}
+
+	return false;
+}
+
 size_t USBVideoSourceComponent::getAvailableVideoModesCount() const
 {
 	if (m_usbVideoDevice != nullptr)
@@ -497,16 +508,6 @@ int USBVideoSourceComponent::getVideoModeIndex() const
 	}
 
 	return -1;
-}
-
-const char* USBVideoSourceComponent::getVideoModeName() const
-{
-	if (m_usbVideoDevice != nullptr)
-	{
-		return m_usbVideoDevice->getVideoModeName();
-	}
-
-	return nullptr;
 }
 
 bool USBVideoSourceComponent::setVideoModeByName(const std::string& videoModeName)

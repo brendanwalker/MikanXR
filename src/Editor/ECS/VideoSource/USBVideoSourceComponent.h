@@ -61,13 +61,13 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
 	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const override;
-	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;
+	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;	
+	virtual bool getVideoModeName(std::string& outVideoModeName) const override;
 
 	// -- USB Video Mode
 	size_t getAvailableVideoModesCount() const;
 	bool getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const;
 	int getVideoModeIndex() const;
-	const char* getVideoModeName() const;
 	bool setVideoModeByName(const std::string& videoModeName);
 	bool setVideoModeByIndex(size_t index);
 

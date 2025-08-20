@@ -3,6 +3,8 @@
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
 #include "ProjectConfig.h"
+#include "SceneObjectSystem.h"
+#include "SceneComponent.h"
 
 // -- CompositorObjectSystemConfig -----
 const std::string CompositorObjectSystemConfig::k_compositorListPropertyId= "compositorList";
@@ -143,6 +145,17 @@ CompositorObjectSystemConfigConstPtr CompositorObjectSystem::getCompositorSystem
 CompositorObjectSystemConfigPtr CompositorObjectSystem::getCompositorSystemConfig()
 {
 	return std::const_pointer_cast<CompositorObjectSystemConfig>(getCompositorSystemConfigConst());
+}
+
+CompositorComponentPtr CompositorObjectSystem::getCurrentCompositor() const
+{
+	SceneComponentPtr currentScene= SceneObjectSystem::getSystem()->getCurrentScene();
+	if (currentScene)
+	{
+		return currentScene->getOutputCompositor();
+	}
+
+	return CompositorComponentPtr();
 }
 
 CompositorComponentPtr CompositorObjectSystem::getCompositorById(MikanCompositorID compositorId) const

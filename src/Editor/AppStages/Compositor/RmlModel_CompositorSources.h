@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 #include "FrameCompositorConstants.h"
@@ -10,7 +11,7 @@ typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 class RmlModel_CompositorSources : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext, const class GlFrameCompositor* compositor);
+	bool init(Rml::Context* rmlContext, CompositorComponentPtr compositor);
 	virtual void dispose() override;
 
 	const Rml::String& getVideoSourceName() const;
@@ -20,10 +21,10 @@ public:
 	void setVideoModeName(const Rml::String& newName);
 
 protected:
-	void onVideoFrameSizeChanged(const class VideoSourceView* videoSourceView);
+	void onVideoFrameSizeChanged(VideoSourceComponentPtr videoSourceComponent);
 
 private:
-	VideoSourceViewPtr m_videoSource;
+	VideoSourceComponentPtr m_videoSource;
 
 	// camera UI
 	Rml::String m_videoSourceName;

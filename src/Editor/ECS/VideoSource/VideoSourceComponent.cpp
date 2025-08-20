@@ -11,6 +11,7 @@ const std::string VideoSourceDefinition::k_videoSourceIdPropertyId = "video_sour
 const std::string VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId= "video_source_intrinsics";
 const std::string VideoSourceDefinition::k_isFrameMirroredPropertyId = "is_frame_mirrored";
 const std::string VideoSourceDefinition::k_isBufferMirroredPropertyId = "is_buffer_mirrored";
+const std::string VideoSourceDefinition::k_videoFrameQueueSizePropertyId = "video_frame_queue_size";
 
 VideoSourceDefinition::VideoSourceDefinition()
 	: MikanComponentDefinition()
@@ -40,6 +41,7 @@ configuru::Config VideoSourceDefinition::writeToJSON()
 	pt["video_source_id"] = m_videoSourceId;
 	pt["is_frame_mirrored"] = m_bIsFrameMirrored;
 	pt["is_buffer_mirrored"] = m_bIsBufferMirrored;
+	pt["video_frame_queue_size"] = m_videoFrameQueueSize;
 
 	switch (m_intrinsics.intrinsics_type)
 	{
@@ -63,6 +65,7 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_videoSourceId = pt.get_or<MikanVideoSourceID>("video_source_id", m_videoSourceId);
 	m_bIsFrameMirrored = pt.get_or<bool>("is_frame_mirrored", false);
 	m_bIsBufferMirrored = pt.get_or<bool>("is_buffer_mirrored", false);
+	m_videoFrameQueueSize = pt.get_or<int>("video_frame_queue_size", 10);
 
 	std::string intrinsics_type = pt.get_or<std::string>("intrinsics_type", "");
 	if (intrinsics_type == "mono")
@@ -98,6 +101,15 @@ void VideoSourceDefinition::setIsBufferMirrored(bool isBufferMirrored)
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_isBufferMirroredPropertyId));
 }
 
+void VideoSourceDefinition::setVideoFrameQueueSize(int videoFrameQueueSize)
+{
+	if (m_videoFrameQueueSize != videoFrameQueueSize)
+	{
+		m_videoFrameQueueSize = videoFrameQueueSize;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoFrameQueueSizePropertyId));
+	}
+}
+
 void VideoSourceDefinition::setCameraIntrinsics(
 	const MikanVideoSourceIntrinsics& cameraIntrinsics)
 {
@@ -124,6 +136,11 @@ void VideoSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)
 MikanVideoSourceID VideoSourceComponent::getVideoSourceId() const
 {
 	return getVideoSourceDefinition()->getVideoSourceId();
+}
+
+bool VideoSourceComponent::getVideoModeName(std::string& outVideoModeName) const
+{
+	return false;
 }
 
 bool VideoSourceComponent::getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const

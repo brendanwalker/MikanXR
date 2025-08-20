@@ -149,7 +149,7 @@ void AppStage_AnchorTriangulation::enter()
 }
 
 void AppStage_AnchorTriangulation::onVideoSourceReady(
-	const VideoSourceComponent* inVideoSourceComponent)
+	VideoSourceComponentPtr inVideoSourceComponent)
 {
 	m_videoSourceComponent->OnFrameSizeChanged -=
 		MakeDelegate(this, &AppStage_AnchorTriangulation::onVideoSourceReady);

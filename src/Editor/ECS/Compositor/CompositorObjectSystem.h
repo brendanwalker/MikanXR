@@ -50,6 +50,7 @@ public:
 	CompositorObjectSystemConfigConstPtr getCompositorSystemConfigConst() const;
 	CompositorObjectSystemConfigPtr getCompositorSystemConfig();
 
+	CompositorComponentPtr getCurrentCompositor() const;
 	const CompositorMap& getCompositorMap() const { return m_compositorComponents; }
 	CompositorComponentPtr getCompositorById(MikanCompositorID compositorId) const;
 	CompositorComponentPtr getCompositorByName(const std::string& compositorName) const;
