@@ -53,6 +53,7 @@ deps
 
 #vscode
 .vs
+.vscode
 
 #Mikan
 imgui.ini
