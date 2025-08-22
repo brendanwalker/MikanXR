@@ -3,6 +3,7 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
+#include "CameraComponent.h"
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
 #include "Compositor/RmlModel_CompositorCameras.h"
@@ -12,13 +13,14 @@
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSelection.h"
 #include "Compositor/RmlModel_CompositorSettings.h"
+#include "CompositorObjectSystem.h"
+#include "CompositorComponent.h"
 #include "EditorObjectSystem.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
 #include "SdlCommon.h"
 #include "MikanCamera.h"
-#include "GlFrameCompositor.h"
 #include "IMkLineRenderer.h"
 #include "IMkTextRenderer.h"
 #include "MikanRenderModelResource.h"
@@ -50,7 +52,7 @@
 #include "SceneObjectSystem.h"
 #include "TextStyle.h"
 #include "VideoCapabilitiesConfig.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 #include "Windows/CompositorNodeEditorWindow.h"
 
 #include <RmlUi/Core/Context.h>
@@ -113,10 +115,7 @@ void AppStage_Compositor::enter()
 	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
 	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
 	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
-
-	// Start the frame compositor
-	m_frameCompositor= GlFrameCompositor::getInstance();
-	m_frameCompositor->start();
+	m_compositorSystem = objectSystemManager->getSystemOfType<CompositorObjectSystem>();
 
 	// Setup viewport
 	m_viewport = getFirstViewport();
@@ -130,18 +129,19 @@ void AppStage_Compositor::enter()
 	// Register the scene with the primary viewport
 	m_editorSystem->bindViewport(m_viewport);
 
-	// Apply video source camera intrinsics to the camera
-	VideoSourceViewPtr videoSourceView = m_frameCompositor->getVideoSource();
-	if (videoSourceView != nullptr)
+	// Listen for changes to the current active compositor
 	{
-		MikanVideoSourceIntrinsics cameraIntrinsics;
-		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+		CompositorComponentPtr activeCompositor = m_compositorSystem->getCurrentCompositor();
 
-		for (MikanViewportPtr viewport : getViewportList())
+		m_compositorSystem->OnCompositorActivated +=
+			MakeDelegate(this, &AppStage_Compositor::onCompositorActivated);
+		m_compositorSystem->OnCompositorDeactivated +=
+			MakeDelegate(this, &AppStage_Compositor::onCompositorDeactivated);
+		
+		// Apply new compositor settings to the viewports
+		if (activeCompositor)
 		{
-			MikanCameraPtr camera= getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
-
-			camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+			onCompositorActivated(activeCompositor);
 		}
 	}
 
@@ -180,16 +180,17 @@ void AppStage_Compositor::enter()
 		m_compositiorOutlinerView = addRmlDocument("compositor_outliner.rml");
 		m_compositiorOutlinerView->Show();
 
+		// TODO
 		// Init Layers UI
-		m_compositorLayersModel->init(context, m_frameCompositor);
-		m_compositorLayersModel->OnGraphEditEvent = MakeDelegate(this, &AppStage_Compositor::onGraphEditEvent);
-		m_compositorLayersModel->OnGraphFileSelectEvent = MakeDelegate(this, &AppStage_Compositor::onGraphFileSelectEvent);
-		m_compositorLayersModel->OnConfigAddEvent = MakeDelegate(this, &AppStage_Compositor::onConfigAddEvent);
-		m_compositorLayersModel->OnConfigDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onConfigDeleteEvent);
-		m_compositorLayersModel->OnConfigNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onConfigNameChangeEvent);
-		m_compositorLayersModel->OnConfigSelectEvent = MakeDelegate(this, &AppStage_Compositor::onConfigSelectEvent);
-		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
-		m_compositiorLayersView->Hide();
+		//m_compositorLayersModel->init(context, m_frameCompositor);
+		//m_compositorLayersModel->OnGraphEditEvent = MakeDelegate(this, &AppStage_Compositor::onGraphEditEvent);
+		//m_compositorLayersModel->OnGraphFileSelectEvent = MakeDelegate(this, &AppStage_Compositor::onGraphFileSelectEvent);
+		//m_compositorLayersModel->OnConfigAddEvent = MakeDelegate(this, &AppStage_Compositor::onConfigAddEvent);
+		//m_compositorLayersModel->OnConfigDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onConfigDeleteEvent);
+		//m_compositorLayersModel->OnConfigNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onConfigNameChangeEvent);
+		//m_compositorLayersModel->OnConfigSelectEvent = MakeDelegate(this, &AppStage_Compositor::onConfigSelectEvent);
+		//m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
+		//m_compositiorLayersView->Hide();
 
 		// Init Cameras UI
 		m_compositorCamerasModel->init(context);
@@ -224,8 +225,19 @@ void AppStage_Compositor::enter()
 
 void AppStage_Compositor::exit()
 {
+	// Stop listening for changes to the current active compositor
+	if (m_frameCompositor)
+	{
+		// Clean up the current compositor state
+		onCompositorDeactivated(m_frameCompositor);
+	}
+
+	m_compositorSystem->OnCompositorActivated -=
+		MakeDelegate(this, &AppStage_Compositor::onCompositorActivated);
+	m_compositorSystem->OnCompositorDeactivated -=
+		MakeDelegate(this, &AppStage_Compositor::onCompositorDeactivated);
+
 	// Unregister all viewports from the editor
-	App* app= App::getInstance();
 	EditorObjectSystemPtr editorSystem = m_ownerWindow->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
 	editorSystem->clearViewports();
 
@@ -244,11 +256,16 @@ void AppStage_Compositor::exit()
 	m_compositorModel->dispose();
 	m_compositorSettingsModel->dispose();
 
-	m_frameCompositor->stop();
-
 	// Stop listening for project config changes
 	m_project->OnMarkedDirty -=
 		MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
+
+	// Clear cached object systems
+	m_anchorObjectSystem = nullptr;
+	m_editorSystem = nullptr;
+	m_stencilObjectSystem = nullptr;
+	m_sceneObjectSystem = nullptr;
+	m_compositorSystem = nullptr;
 
 	AppStage::exit();
 }
@@ -303,9 +320,6 @@ bool AppStage_Compositor::startStreaming()
 
 	m_renderTargetWriteAccessor->initialize(&sharedTextureDescriptor, true, nullptr);
 
-	// Listen for new frames to write out
-	m_frameCompositor->OnNewFrameComposited += MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
-
 	return true;
 }
 
@@ -316,13 +330,53 @@ bool AppStage_Compositor::getIsStreaming()
 
 void AppStage_Compositor::stopStreaming()
 {
-	// Stop listening for new frames to write out
-	if (getIsStreaming())
+	m_renderTargetWriteAccessor->dispose();
+}
+
+void AppStage_Compositor::onCompositorDeactivated(CompositorComponentPtr oldCompositor)
+{
+	if (m_frameCompositor != oldCompositor)
+		return;
+
+	// Listen for new frames to write out
+	m_frameCompositor->OnNewFrameComposited -= 
+		MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
+	m_frameCompositor = nullptr;
+}
+
+void AppStage_Compositor::onCompositorActivated(CompositorComponentPtr newCompositor)
+{
+	if (newCompositor == nullptr)
+		return;
+
+	// If we already have a compositor, deactivate it first
+	if (m_frameCompositor != nullptr)
 	{
-		m_frameCompositor->OnNewFrameComposited -= MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
+		onCompositorDeactivated(m_frameCompositor);
 	}
 
-	m_renderTargetWriteAccessor->dispose();
+	// Cache the new compositor
+	m_frameCompositor = newCompositor;
+
+	// Apply video source camera intrinsics to the camera
+	VideoSourceComponentPtr videoSourceComponent = m_frameCompositor->getVideoSourceComponent();
+	if (videoSourceComponent != nullptr)
+	{
+		MikanVideoSourceIntrinsics cameraIntrinsics;
+		videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
+
+		for (MikanViewportPtr viewport : getViewportList())
+		{
+			MikanCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+
+			camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+		}
+	}
+
+	// Listen for new frames to write out
+	m_frameCompositor->OnNewFrameComposited += 
+		MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
+
 }
 
 void AppStage_Compositor::onNewStreamingFrameReady()
@@ -449,13 +503,14 @@ MikanCameraPtr AppStage_Compositor::getViewpointCamera(eCompositorViewpointMode 
 void AppStage_Compositor::updateCamera()
 {
 	// Copy the compositor's camera pose to the app stage's camera for debug rendering
-	MikanCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
-	if (camera)
+	MikanCameraPtr mkCamera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
+	if (mkCamera)
 	{
 		glm::mat4 cameraXform;
-		if (m_frameCompositor->getVideoSourceCameraPose(cameraXform))
+		if (CameraComponentPtr cameraComponent= m_frameCompositor->getCameraComponent();
+			cameraComponent->getAperturePose(cameraXform))
 		{
-			camera->setCameraTransform(cameraXform);
+			mkCamera->setCameraTransform(cameraXform);
 		}
 	}
 }
@@ -522,7 +577,7 @@ void AppStage_Compositor::onGraphFileSelectEvent()
 	auto path = tinyfd_openFileDialog("Load Compositor Graph", "", 1, filterItems, filterDesc, 1);
 	if (path)
 	{
-		m_frameCompositor->setCompositorGraphAssetPath(path);
+		m_frameCompositor->getCompositorDefinition()->setCompositorGraphPath(path);
 	}
 }
 
@@ -530,56 +585,59 @@ void AppStage_Compositor::onConfigAddEvent()
 {
 	m_bAddingNewConfig= true;
 
-	if (m_frameCompositor->addNewPreset())
-	{	
-		// Get the name of the newly created preset
-		const std::string newPresetName = m_frameCompositor->getCurrentPresetName();
+	// TODO
+	//if (m_frameCompositor->addNewPreset())
+	//{	
+	//	// Get the name of the newly created preset
+	//	const std::string newPresetName = m_frameCompositor->getCurrentPresetName();
 
-		// Rebuild the layers UI to make sure the new layer exists
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-		getRmlContext()->Update();
+	//	// Rebuild the layers UI to make sure the new layer exists
+	//	m_compositorLayersModel->rebuild(m_frameCompositor);
+	//	getRmlContext()->Update();
 
-		// Force select the new preset (by default RML preserves the current selection)
-		Rml::ElementFormControlSelect* select_element= 
-			rmlui_dynamic_cast< Rml::ElementFormControlSelect* >(
-				m_compositiorLayersView->GetElementById("config_select"));
-		if (select_element != nullptr)
-		{
-			select_element->SetValue(newPresetName);
-		}
-	}
+	//	// Force select the new preset (by default RML preserves the current selection)
+	//	Rml::ElementFormControlSelect* select_element= 
+	//		rmlui_dynamic_cast< Rml::ElementFormControlSelect* >(
+	//			m_compositiorLayersView->GetElementById("config_select"));
+	//	if (select_element != nullptr)
+	//	{
+	//		select_element->SetValue(newPresetName);
+	//	}
+	//}
 
 	m_bAddingNewConfig= false;
 }
 
 void AppStage_Compositor::onConfigDeleteEvent()
 {
-	CompositorPresetConstPtr preset= m_frameCompositor->getCurrentPresetConfig();
-	if (preset == nullptr)
-		return;
+	//TODO
+	//CompositorPresetConstPtr preset= m_frameCompositor->getCurrentPresetConfig();
+	//if (preset == nullptr)
+	//	return;
 
-	char szQuestion[512];
-	StringUtils::formatString(
-		szQuestion, sizeof(szQuestion), 
-		"Are you sure you want to delete config \'%s\'", 
-		preset->name.c_str());
+	//char szQuestion[512];
+	//StringUtils::formatString(
+	//	szQuestion, sizeof(szQuestion), 
+	//	"Are you sure you want to delete config \'%s\'", 
+	//	preset->name.c_str());
 
-	ModalDialog_Confirm::confirmQuestion(
-		"Delete Config", szQuestion,
-		[this]() {
-			if (m_frameCompositor->deleteCurrentPreset())
-			{
-				m_compositorLayersModel->rebuild(m_frameCompositor);
-			}
-		});
+	//ModalDialog_Confirm::confirmQuestion(
+	//	"Delete Config", szQuestion,
+	//	[this]() {
+	//		if (m_frameCompositor->deleteCurrentPreset())
+	//		{
+	//			m_compositorLayersModel->rebuild(m_frameCompositor);
+	//		}
+	//	});
 }
 
 void AppStage_Compositor::onConfigNameChangeEvent(const std::string& newConfigName)
 {
-	if (m_frameCompositor->setCurrentPresetName(newConfigName))
-	{
-		m_compositorLayersModel->rebuild(m_frameCompositor);
-	}
+	//TODO
+	//if (m_frameCompositor->setCurrentPresetName(newConfigName))
+	//{
+	//	m_compositorLayersModel->rebuild(m_frameCompositor);
+	//}
 }
 
 void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
@@ -588,21 +646,23 @@ void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
 	if (m_bAddingNewConfig)
 		return;
 
-	m_frameCompositor->selectPreset(configName);
+	// TODO
+	//m_frameCompositor->selectPreset(configName);
 }
 
 void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
 {
-	const NamedValueTable<GlFrameCompositor::ClientSource*>& clientSources = m_frameCompositor->getClientSources();
+	// TODO
+	//const NamedValueTable<GlFrameCompositor::ClientSource*>& clientSources = m_frameCompositor->getClientSources();
 
-	GlFrameCompositor::ClientSource* clientSource= nullptr;
-	if (clientSources.tryGetValue(clientSourceName, clientSource))
-	{		
-		if (clientSource->colorTexture != nullptr)
-		{
-			SdlUtility::saveTextureToPNG(clientSource->colorTexture, "layerScreenshot.png");
-		}
-	}
+	//GlFrameCompositor::ClientSource* clientSource= nullptr;
+	//if (clientSources.tryGetValue(clientSourceName, clientSource))
+	//{		
+	//	if (clientSource->colorTexture != nullptr)
+	//	{
+	//		SdlUtility::saveTextureToPNG(clientSource->colorTexture, "layerScreenshot.png");
+	//	}
+	//}
 }
 
 void AppStage_Compositor::hideAllSubWindows()

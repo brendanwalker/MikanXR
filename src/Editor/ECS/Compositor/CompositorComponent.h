@@ -67,7 +67,10 @@ public:
 	virtual void update(float deltaSeconds) override;
 	void render() const;
 
-	bool getIsRunning() const;
+	bool start();
+	bool getIsRunning() const { return m_bIsRunning; }
+	void stop();
+
 	SceneComponentPtr getOwnerSceneComponent() const;
 	CameraComponentPtr getCameraComponent() const;
 	VideoSourceComponentPtr getVideoSourceComponent() const;
@@ -76,6 +79,10 @@ public:
 	inline CompositorDefinitionPtr getCompositorDefinition() const
 	{
 		return std::static_pointer_cast<CompositorDefinition>(m_definition);
+	}
+	inline MikanCompositorID getCompositorId() const 
+	{ 
+		return getCompositorDefinition()->getCompositorId(); 
 	}
 
 	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
@@ -123,6 +130,7 @@ private:
 	// Undistorted Video Frame Buffer
 	VideoFrameDistortionViewPtr m_videoDistortionView;
 
+	bool m_bIsRunning = false;
 	int64_t m_lastReadVideoFrameIndex = 0;
 	int64_t m_droppedFrameCounter = 0;
 	int64_t m_lastCompositedFrameIndex = 0;

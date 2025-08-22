@@ -58,6 +58,8 @@ protected:
 	void setVRCamera();
 
 	// Compositor Events
+	void onCompositorDeactivated(CompositorComponentPtr oldCompositor);
+	void onCompositorActivated(CompositorComponentPtr newCompositor);
 	void onNewStreamingFrameReady();
 
 	// Project Config Events
@@ -103,6 +105,7 @@ protected:
 	StencilObjectSystemPtr m_stencilObjectSystem;
 	EditorObjectSystemPtr m_editorSystem;
 	SceneObjectSystemPtr m_sceneObjectSystem;
+	CompositorObjectSystemPtr m_compositorSystem; 
 
 	class RmlModel_Compositor* m_compositorModel = nullptr;
 	Rml::ElementDocument* m_compositiorView = nullptr;
@@ -127,7 +130,7 @@ protected:
 	Rml::ElementDocument* m_compositiorSettingsView = nullptr;
 
 	CompositorScriptContextPtr m_scriptContext;
-	class GlFrameCompositor* m_frameCompositor= nullptr;
+	CompositorComponentPtr m_frameCompositor;
 
 	MikanViewportPtr m_viewport;
 	eCompositorViewpointMode m_viewportMode= eCompositorViewpointMode::mixedRealityViewpoint;

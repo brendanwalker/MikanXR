@@ -460,18 +460,62 @@ void CompositorComponent::render() const
 
 }
 
-bool CompositorComponent::getIsRunning() const
+bool CompositorComponent::start()
 {
-	SceneComponentPtr ownerScene= getOwnerSceneComponent();
-	if (ownerScene)
-	{
-		MikanCompositorID selfCompositorId = getCompositorDefinition()->getCompositorId();
-		MikanCompositorID outputCompositorId = ownerScene->getSceneComponentDefinition()->getOutputCompositorId();
+	if (getIsRunning())
+		return true;
 
-		return (outputCompositorId == selfCompositorId);
+	// TODO
+	//if (!openVideoSource())
+	//	return false;
+
+	// Initialize layers for any active Mikan client connections
+	{
+		//MikanServer* mikanServer = MikanServer::getInstance();
+
+		//// Create layers for all connected clients with allocated render targets
+		//std::vector<MikanClientConnectionStateConstPtr> clientStateList;
+		//mikanServer->getConnectedClientStateList(clientStateList);
+		//for (MikanClientConnectionStateConstPtr clientState : clientStateList)
+		//{
+		//	RenderTargetClientState* renderTargetClientState = clientState->getRenderTargetClientState();
+
+		//	if (renderTargetClientState->hasAllocatedRenderTarget())
+		//	{
+		//		onClientRenderTargetAllocated(
+		//			clientState->getClientId(),
+		//			clientState->getMikanClientInfo(),
+		//			renderTargetClientState->getRenderTargetReadAccessor());
+		//	}
+		//}
+
+		//// Listen for new render target events
+		//auto* renderTargetClientHandler = mikanServer->getRenderTargetRequestHandler();
+		//renderTargetClientHandler->OnClientRenderTargetAllocated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetAllocated);
+		//renderTargetClientHandler->OnClientRenderTargetReleased += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetReleased);
+		//renderTargetClientHandler->OnClientRenderTargetUpdated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
+
+		m_bIsRunning = true;
+		m_timeSinceLastFrameComposited = 0.f;
 	}
 
-	return false;
+	return true;
+}
+
+void CompositorComponent::stop()
+{
+	// Stop listening to render target events
+	{
+		// TODO
+		//MikanServer* mikanServer = MikanServer::getInstance();
+		//auto* renderTargetClientHandler = mikanServer->getRenderTargetRequestHandler();
+
+		//renderTargetClientHandler->OnClientRenderTargetAllocated -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetAllocated);
+		//renderTargetClientHandler->OnClientRenderTargetReleased -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetReleased);
+		//renderTargetClientHandler->OnClientRenderTargetUpdated -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
+	}
+
+	m_bIsRunning = false;
 }
 
 SceneComponentPtr CompositorComponent::getOwnerSceneComponent() const

@@ -27,14 +27,18 @@ public:
 
 	CompositorDefinitionPtr getCompositorConfig(MikanCompositorID compositorId) const;
 	CompositorDefinitionPtr getCompositorConfigByName(const std::string& compositorName) const;
+
+	static const std::string k_compositorListPropertyId;
 	MikanCompositorID addNewCompositor(const std::string& compositorName);
 	bool removeCompositor(MikanCompositorID compositorId);
 
-	static const std::string k_compositorListPropertyId;
-
+	static const std::string k_currentCompositorIdPropertyId;
+	inline MikanCompositorID getCurrentCompositorId() const { return m_currentCompositorId; }
+	void setCurrentCompositorId(MikanSceneID sceneId);
 
 private:
 	MikanCompositorID m_nextCompositorId = 0;
+	MikanCompositorID m_currentCompositorId = -1;
 	std::vector<CompositorDefinitionPtr> m_compositorList;
 };
 
@@ -51,16 +55,24 @@ public:
 	CompositorObjectSystemConfigPtr getCompositorSystemConfig();
 
 	CompositorComponentPtr getCurrentCompositor() const;
+	void setCurrentCompositor(CompositorComponentPtr newCompositor);
 	const CompositorMap& getCompositorMap() const { return m_compositorComponents; }
 	CompositorComponentPtr getCompositorById(MikanCompositorID compositorId) const;
 	CompositorComponentPtr getCompositorByName(const std::string& compositorName) const;
 	CompositorComponentPtr addNewCompositor(const std::string& compositorName);
 	bool removeCompositor(MikanCompositorID compositorId);
 
+	MulticastDelegate<void(CompositorComponentPtr oldCompositor)> OnCompositorDeactivated;
+	MulticastDelegate<void(CompositorComponentPtr newCompositor)> OnCompositorActivated;
+
 protected:
 	CompositorComponentPtr createCompositorObject(CompositorDefinitionPtr compositorConfig);
 	void disposeCompositorObject(MikanCompositorID compositorId);
 
+	void onSceneDeactivated(SceneComponentPtr oldScene);
+	void onSceneActivated(SceneComponentPtr newScene);
+
+private:
 	CompositorMap m_compositorComponents;
 	static CompositorObjectSystemWeakPtr s_compositorObjectSystem;
 };

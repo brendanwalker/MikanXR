@@ -67,6 +67,9 @@ public:
 	SceneComponentPtr addNewScene(const std::string& sceneName, MikanStageID parentStageId);
 	bool removeScene(MikanSceneID sceneId);
 
+	MulticastDelegate<void(SceneComponentPtr oldScene)> OnSceneDeactivated;
+	MulticastDelegate<void(SceneComponentPtr newScene)> OnSceneActivated;
+
 protected:
 	SceneComponentPtr createSceneObject(SceneComponentDefinitionPtr sceneConfig);
 	void disposeSceneObject(MikanSceneID sceneId);

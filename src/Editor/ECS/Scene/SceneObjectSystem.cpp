@@ -167,12 +167,29 @@ SceneComponentPtr SceneObjectSystem::getCurrentScene() const
 	return SceneComponentPtr();
 }
 
-void SceneObjectSystem::setCurrentScene(SceneComponentPtr scene)
+void SceneObjectSystem::setCurrentScene(SceneComponentPtr newScene)
 {
 	SceneObjectSystemConfigPtr sceneSystemConfig = getSceneSystemConfig();
-	if (sceneSystemConfig && scene)
+	if (sceneSystemConfig)
 	{
-		sceneSystemConfig->setCurrentSceneId(scene->getSceneId());
+		MikanSceneID currentSceneId = sceneSystemConfig->getCurrentSceneId();
+		MikanSceneID newSceneId = newScene ? newScene->getSceneId() : INVALID_MIKAN_ID;
+
+		if (currentSceneId != newSceneId)
+		{
+			SceneComponentPtr currentScene = getSceneById(currentSceneId);
+			if (currentScene && OnSceneDeactivated)
+			{
+				OnSceneDeactivated(currentScene);
+			}
+
+			sceneSystemConfig->setCurrentSceneId(newSceneId);
+
+			if (newScene && OnSceneActivated)
+			{
+				OnSceneActivated(newScene);
+			}
+		}
 	}
 }
 
