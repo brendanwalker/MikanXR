@@ -4,6 +4,7 @@
 #include "AnchorObjectSystem.h"
 #include "ClientVideoSourceSystem.h"
 #include "CameraObjectSystem.h"
+#include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "IMkWindow.h"
 #include "NetworkVideoSourceSystem.h"
@@ -13,6 +14,7 @@
 #include "StageObjectSystem.h"
 #include "USBVideoSourceSystem.h"
 #include "VideoSourceSystem.h"
+#include "VRObjectSystem.h"
 
 bool ObjectSystemManager::startup()
 {
@@ -27,9 +29,11 @@ bool ObjectSystemManager::startup()
 	addSystem<VideoSourceSystem>();
 	addSystem<SceneObjectSystem>();
 	addSystem<StageObjectSystem>();
+	addSystem<CompositorObjectSystem>();
 	addSystem<CameraObjectSystem>();
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
+	addSystem<VRObjectSystem>();
 
 	for (int i= 0; i < (int)m_systems.size(); i++)
 	{
