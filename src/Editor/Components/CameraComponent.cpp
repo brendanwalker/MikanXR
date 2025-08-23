@@ -188,8 +188,11 @@ void CameraComponent::update(float deltaSeconds)
 {
 	TransformComponent::update(deltaSeconds);
 
+	// Scene-space pose view is used to update the component transform
+	// of the camera in the scene
 	glm::mat4 poseInStageSpace;
-	if (m_trackingMountPoseView && m_trackingMountPoseView->getPose(poseInStageSpace))
+	if (m_trackingMountPoseView_SceneSpace && 
+		m_trackingMountPoseView_SceneSpace->getPose(poseInStageSpace))
 	{
 		setRelativeTransform(GlmTransform(poseInStageSpace));
 	}
@@ -304,11 +307,25 @@ bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntri
 	return false;
 }
 
-bool CameraComponent::getAperturePose(glm::mat4& outCameraPose) const
+bool CameraComponent::getAperturePose(
+	glm::mat4& outCameraPose,
+	eVRDevicePoseSpace space) const
 {
 	// Get the pose of the VR device we want to compute the camera pose from
+	bool bValidPose = false;
 	glm::mat4 vrDevicePose;
-	if (m_trackingMountPoseView->getPose(vrDevicePose))
+	switch (space)
+	{
+	case eVRDevicePoseSpace::MikanScene:
+		bValidPose = m_trackingMountPoseView_SceneSpace->getPose(vrDevicePose);
+		break;
+	case eVRDevicePoseSpace::VRTrackingSystem:
+		bValidPose = m_trackingMountPoseView_VRSpace->getPose(vrDevicePose);
+		break;
+	}
+
+	// Apply the pre-calibrated offset from the VR device to the camera aperture
+	if (bValidPose)
 	{
 		// Get the offset from the puck to the camera
 		CameraDefinitionPtr cameraDefinition= getCameraDefinition();
@@ -327,10 +344,12 @@ bool CameraComponent::getAperturePose(glm::mat4& outCameraPose) const
 	return false;
 }
 
-bool CameraComponent::getAperturePose(glm::dmat4& outCameraPose) const
+bool CameraComponent::getAperturePose(
+	glm::dmat4& outCameraPose,
+	eVRDevicePoseSpace space) const
 {
 	glm::mat4 cameraPose;
-	if (getAperturePose(cameraPose))
+	if (getAperturePose(cameraPose, space))
 	{
 		outCameraPose = glm::dmat4(cameraPose);
 		return true;
@@ -386,10 +405,11 @@ void CameraComponent::onDefinitionChanged(CommonConfigPtr configPtr, const Confi
 
 void CameraComponent::refreshTrackingMount()
 {
-	// Forget the old pose view
-	m_trackingMountPoseView = nullptr;
+	// Forget the old pose views
+	m_trackingMountPoseView_SceneSpace = nullptr;
+	m_trackingMountPoseView_VRSpace = nullptr;
 
-	// Try and create a new pose view for the tracking mount
+	// Try and create a new pose views for the tracking mount
 	TrackingMountDefinitionConstPtr trackingMount = getTrackingMountDefinition();
 	if (trackingMount)
 	{
@@ -398,9 +418,16 @@ void CameraComponent::refreshTrackingMount()
 
 		if (vrDeviceComponent)
 		{
-			m_trackingMountPoseView = 
+			// Tracking mount pose in the space of the stage the camera is in
+			m_trackingMountPoseView_SceneSpace = 
 				vrDeviceComponent->makePoseView(
 					eVRDevicePoseSpace::MikanScene,
+					trackingMount->getSocketName());
+
+			// Tracking mount pose in the space of the VR tracking system
+			m_trackingMountPoseView_VRSpace =
+				vrDeviceComponent->makePoseView(
+					eVRDevicePoseSpace::VRTrackingSystem,
 					trackingMount->getSocketName());
 		}
 	}

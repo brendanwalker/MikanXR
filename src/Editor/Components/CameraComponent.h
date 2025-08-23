@@ -10,6 +10,7 @@
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
 #include "Transform.h"
+#include  "VRDeviceComponent.h"
 
 #include <memory>
 #include <string>
@@ -90,8 +91,12 @@ public:
 
 	// Helper functions used to compute 
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
-	bool getAperturePose(glm::mat4& outCameraPose) const;
-	bool getAperturePose(glm::dmat4& outCameraPose) const;
+	bool getAperturePose(
+		glm::mat4& outCameraPose, 
+		eVRDevicePoseSpace space = eVRDevicePoseSpace::MikanScene) const;
+	bool getAperturePose(
+		glm::dmat4& outCameraPose, 
+		eVRDevicePoseSpace space = eVRDevicePoseSpace::MikanScene) const;
 	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix) const;
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix) const;
@@ -112,5 +117,6 @@ protected:
 
 private:
 	SelectionComponentWeakPtr m_selectionComponent;
-	VRDevicePoseViewPtr m_trackingMountPoseView;
+	VRDevicePoseViewPtr m_trackingMountPoseView_SceneSpace;
+	VRDevicePoseViewPtr m_trackingMountPoseView_VRSpace;
 };
