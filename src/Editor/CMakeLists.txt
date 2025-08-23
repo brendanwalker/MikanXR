@@ -124,13 +124,6 @@ file(GLOB MIKAN_CALIBRATION_SRC
 )
 source_group("Calibration" FILES ${MIKAN_CALIBRATION_SRC})
 
-# Components
-file(GLOB MIKAN_COMPONENTS_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Components/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Components/*.h"
-)
-source_group("Components" FILES ${MIKAN_COMPONENTS_SRC})
-
 # Config
 file(GLOB MIKAN_CONFIG_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Config/*.cpp"
@@ -180,12 +173,42 @@ file(GLOB MIKAN_ECS_ROOT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/*.h"
 )
 source_group("ECS" FILES ${MIKAN_ECS_ROOT_SRC})
+## Anchor
+file(GLOB MIKAN_ECS_ANCHOR_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Anchor/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Anchor/*.h"
+)
+source_group("ECS\\Anchor" FILES ${MIKAN_ECS_ANCHOR_SRC})
+## Camera
+file(GLOB MIKAN_ECS_CAMERA_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Camera/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Camera/*.h"
+)
+source_group("ECS\\Camera" FILES ${MIKAN_ECS_CAMERA_SRC})
+## Collision
+file(GLOB MIKAN_ECS_COLLISION_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Collision/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Collision/*.h"
+)
+source_group("ECS\\Collision" FILES ${MIKAN_ECS_COLLISION_SRC})
 ## Compositor
 file(GLOB MIKAN_ECS_COMPOSITOR_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/Compositor/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/ECS/Compositor/*.h"
 )
 source_group("ECS\\Compositor" FILES ${MIKAN_ECS_COMPOSITOR_SRC})
+## Editor
+file(GLOB MIKAN_ECS_EDITOR_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Editor/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Editor/*.h"
+)
+source_group("ECS\\Editor" FILES ${MIKAN_ECS_EDITOR_SRC})
+## Marker
+file(GLOB MIKAN_ECS_MARKER_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Marker/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Marker/*.h"
+)
+source_group("ECS\\Marker" FILES ${MIKAN_ECS_MARKER_SRC})
 ## Scene
 file(GLOB MIKAN_ECS_SCENE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/Scene/*.cpp"
@@ -198,6 +221,24 @@ file(GLOB MIKAN_ECS_STAGE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/Stage/*.h"
 )
 source_group("ECS\\Stage" FILES ${MIKAN_ECS_STAGE_SRC})
+## Stencil
+file(GLOB MIKAN_ECS_STENCIL_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Stencil/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Stencil/*.h"
+)
+source_group("ECS\\Stencil" FILES ${MIKAN_ECS_STENCIL_SRC})
+## Tracking
+file(GLOB MIKAN_ECS_TRACKING_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Tracking/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Tracking/*.h"
+)
+source_group("ECS\\Tracking" FILES ${MIKAN_ECS_TRACKING_SRC})
+## VRObject
+file(GLOB MIKAN_ECS_VROBJECT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/VRObject/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/VRObject/*.h"
+)
+source_group("ECS\\VRObject" FILES ${MIKAN_ECS_VROBJECT_SRC})
 ## Video Source
 file(GLOB MIKAN_ECS_VIDEO_SOURCE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource/*.cpp"
@@ -207,9 +248,17 @@ source_group("ECS\\VideoSource" FILES ${MIKAN_ECS_VIDEO_SOURCE_SRC})
 ## ECS Full Source
 set(MIKAN_ECS_SRC
     ${MIKAN_ECS_ROOT_SRC}
+    ${MIKAN_ECS_ANCHOR_SRC}
+    ${MIKAN_ECS_CAMERA_SRC}
+    ${MIKAN_ECS_COLLISION_SRC}
     ${MIKAN_ECS_COMPOSITOR_SRC}
+    ${MIKAN_ECS_EDITOR_SRC}
+    ${MIKAN_ECS_MARKER_SRC}
     ${MIKAN_ECS_SCENE_SRC}
     ${MIKAN_ECS_STAGE_SRC}
+    ${MIKAN_ECS_STENCIL_SRC}
+    ${MIKAN_ECS_TRACKING_SRC}
+    ${MIKAN_ECS_VROBJECT_SRC}
     ${MIKAN_ECS_VIDEO_SOURCE_SRC}
 )
 
@@ -295,13 +344,6 @@ set(MIKAN_NODE_EDITORS_SRC
     ${MIKAN_NODE_EDITORS_WINDOWS_SRC}
 )
 
-# Object
-file(GLOB MIKAN_OBJECT_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Object/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Object/*.h"
-)
-source_group("Object" FILES ${MIKAN_OBJECT_SRC})
-
 # OpenCV
 file(GLOB MIKAN_OPENCV_SRC
     "${CMAKE_CURRENT_LIST_DIR}/OpenCV/*.cpp"
@@ -372,13 +414,6 @@ file(GLOB MIKAN_SERVER_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Server/*.h"
 )
 source_group("Server" FILES ${MIKAN_SERVER_SRC})
-
-# System
-file(GLOB MIKAN_SYSTEM_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/System/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/System/*.h"
-)
-source_group("System" FILES ${MIKAN_SYSTEM_SRC})
 
 # TinyFileDialogs's source files are included in directly, rather than linking against a lib
 source_group("TinyFileDialogs" FILES ${TINYFILEDIALOGS_SOURCE})
@@ -455,7 +490,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Import
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Export
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
-  ${CMAKE_CURRENT_LIST_DIR}/Components
   ${CMAKE_CURRENT_LIST_DIR}/Config
   ${CMAKE_CURRENT_LIST_DIR}/Delegates
   ${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator
@@ -463,15 +497,22 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Device/Manager
   ${CMAKE_CURRENT_LIST_DIR}/Device/View
   ${CMAKE_CURRENT_LIST_DIR}/ECS
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/Anchor
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/Camera
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/Collision
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Compositor
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/Editor
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/Marker
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Scene
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Stage
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/Stencil
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/Tracking
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/VRObject
   ${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
   ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
-  ${CMAKE_CURRENT_LIST_DIR}/Object
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV
   ${CMAKE_CURRENT_LIST_DIR}/Project
   ${CMAKE_CURRENT_LIST_DIR}/Renderer
@@ -482,7 +523,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Sources/Client
   ${CMAKE_CURRENT_LIST_DIR}/Sources/Spout
   ${CMAKE_CURRENT_LIST_DIR}/Sources/Video
-  ${CMAKE_CURRENT_LIST_DIR}/System
   ${CMAKE_CURRENT_LIST_DIR}/Video
   ${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer
   ${CMAKE_CURRENT_LIST_DIR}/Video/WMF
