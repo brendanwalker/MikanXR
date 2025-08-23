@@ -1,14 +1,16 @@
 #include "App.h"
 #include "CameraObjectSystem.h"
+#include "CompositorObjectSystem.h"
 #include "CameraComponent.h"
+#include "CompositorComponent.h"
 #include "TransformComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "ProjectConfig.h"
-#include "SelectionComponent.h"
 #include "StringUtils.h"
+#include "SceneFwd.h"
 
 // -- CameraObjectSystemConfig -----
 const std::string CameraObjectSystemConfig::k_cameraListPropertyId= "cameras";
@@ -155,6 +157,18 @@ void CameraObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 	{
 		removeCamera(anchorComponent->getCameraDefinition()->getCameraId());
 	}
+}
+
+CameraComponentPtr CameraObjectSystem::getCurrentCamera() const
+{
+	CompositorComponentPtr currentCompositor = 
+		CompositorObjectSystem::getSystem()->getCurrentCompositor();
+	if (currentCompositor)
+	{
+		return currentCompositor->getCameraComponent();
+	}
+
+	return CameraComponentPtr();
 }
 
 CameraComponentPtr CameraObjectSystem::getCameraById(MikanCameraID cameraId) const
