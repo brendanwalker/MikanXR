@@ -3,7 +3,6 @@
 #include "MikanComponent.h"
 #include "MulticastDelegate.h"
 #include "CameraObjectSystem.h"
-#include "VideoSourceView.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>

@@ -4,12 +4,14 @@
 #include "IUsbVideoDeviceManager.h"
 #include "MikanObjectSystem.h"
 #include "MikanVideoSourceTypes.h"
+#include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "VideoSourceSystemConfig.h"
 
 #include <map>
 #include <string>
 
+using USBVideoSourcePathList = std::vector<std::string>;
 using USBVideoSourceMap = std::map<MikanVideoSourceID, USBVideoSourceComponentWeakPtr>;
 
 class USBVideoSourceSystem : public MikanObjectSystem, public IUsbVideoDeviceManagerListener
@@ -23,11 +25,14 @@ public:
 	IUsbVideoDeviceManagerPtr getUSBVideoDeviceManager() const { return m_usbVideoDeviceManager; }
 
     const USBVideoSourceMap& getUSBVideoSourceMap() const { return m_usbVideoSourceComponents; }
+	bool getConnectedUSBVideoSourcePaths(USBVideoSourcePathList& outVideoSourcePathList) const;
     VideoSourceIdList getVideoSourceIdList() const;
     USBVideoSourceComponentPtr getUSBVideoSourceById(MikanVideoSourceID videoSourceId) const;
     USBVideoSourceComponentPtr getUSBVideoSourceByName(const std::string& videoSourceName) const;
     USBVideoSourceComponentPtr addNewUSBVideoSource(const MikanUSBVideoSourceInfo& videoSourceInfo);
     bool removeUSBVideoSource(MikanVideoSourceID videoSourceId);
+
+    MulticastDelegate<void()> OnVideoSourceListChanged;
 
 protected:
     bool createUsbVideoDeviceManager(const std::string& moduleName);

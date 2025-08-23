@@ -2,11 +2,11 @@
 
 #include "Shared\RmlDataBinding.h"
 
-class RmlDataBinding_SourcesList : public RmlDataBinding
+class RmlDataBinding_UsbVideoSourcesList : public RmlDataBinding
 {
 public:
-	RmlDataBinding_SourcesList()= default;
-	virtual ~RmlDataBinding_SourcesList();
+	RmlDataBinding_UsbVideoSourcesList()= default;
+	virtual ~RmlDataBinding_UsbVideoSourcesList();
 
 	virtual bool init(Rml::DataModelConstructor constructor) override;
 	virtual void dispose() override;

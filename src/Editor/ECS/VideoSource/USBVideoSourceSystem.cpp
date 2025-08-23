@@ -86,6 +86,26 @@ void USBVideoSourceSystem::disposeUsbVideoDeviceManager()
     }
 }
 
+bool USBVideoSourceSystem::getConnectedUSBVideoSourcePaths(
+    USBVideoSourcePathList& outVideoSourcePathList) const
+{
+	outVideoSourcePathList.clear();
+
+    if (m_usbVideoDeviceManager)
+    {
+        for (size_t index = 0; index < m_usbVideoDeviceManager->getDeviceCount(); index++)
+        {
+            IUsbVideoDevice* usbVideoDevice= m_usbVideoDeviceManager->getDeviceByIndex(index);
+
+            outVideoSourcePathList.push_back(usbVideoDevice->getDevicePath());
+		}
+
+        return true;
+    }
+
+	return false;
+}
+
 VideoSourceIdList USBVideoSourceSystem::getVideoSourceIdList() const
 {
 	VideoSourceIdList videoSourceIdList;
@@ -193,6 +213,10 @@ bool USBVideoSourceSystem::disposeUSBVideoSourceObject(MikanVideoSourceID videoS
 }
 
 void USBVideoSourceSystem::onConnectedDeviceListChanged()
-{
-	//TODO: Tell each USBVideoSourceComponent to check if it's device is still connected
+{	
+	// Broadcast any sources were disconnected
+	if (OnVideoSourceListChanged)
+	{
+		OnVideoSourceListChanged();
+	}
 }
