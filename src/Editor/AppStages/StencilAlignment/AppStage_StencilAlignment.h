@@ -10,9 +10,6 @@
 #include "VideoDisplayConstants.h"
 #include <memory>
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 //-- definitions -----
 class AppStage_StencilAlignment : public AppStage
 {
@@ -61,7 +58,7 @@ private:
 	ColliderRaycastHitResult m_hoverResult;
 
 	MkScenePtr m_scene;
-	MikanCameraPtr m_camera;
+	MikanCameraPtr m_mkCamera;
 	IMkFrameBufferPtr m_frameBuffer;
 	IMkTriangulatedMeshPtr m_fullscreenQuad;
 };

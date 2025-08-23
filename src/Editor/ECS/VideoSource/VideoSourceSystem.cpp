@@ -2,7 +2,9 @@
 #include "CameraComponent.h"
 #include "ClientVideoSourceSystem.h"
 #include "ClientVideoSourceComponent.h"
+#include "CameraObjectSystem.h"
 #include "CompositorComponent.h"
+#include "CompositorObjectSystem.h"
 #include "MikanObject.h"
 #include "NetworkVideoSourceSystem.h"
 #include "NetworkVideoSourceComponent.h"
@@ -91,31 +93,15 @@ VideoSourceSystemConfigPtr VideoSourceSystem::getVideoSourceSystemConfig()
 	return std::const_pointer_cast<VideoSourceSystemConfig>(getVideoSourceSystemConfigConst());
 }
 
-CameraComponentPtr VideoSourceSystem::getCurrentSceneCameraComponent() const
-{
-	SceneComponentPtr sceneComponent = SceneObjectSystem::getSystem()->getCurrentScene();
-	if (sceneComponent)
-	{
-		// Get the output compositor from the current scene
-		CompositorComponentPtr compositorComponent = sceneComponent->getOutputCompositor();
-		if (compositorComponent)
-		{
-			// Get the camera component from the compositor
-			return compositorComponent->getCameraComponent();
-		}
-	}
-
-	return CameraComponentPtr();
-}
-
-VideoSourceComponentPtr VideoSourceSystem::getCurrentSceneVideoSource() const
+VideoSourceComponentPtr VideoSourceSystem::getCurrentVideoSource() const
 {
 	// Get the camera component from the compositor
-	CameraComponentPtr cameraComponent = getCurrentSceneCameraComponent();
-	if (cameraComponent)
+	CompositorComponentPtr compositorComponent = 
+		CompositorObjectSystem::getSystem()->getCurrentCompositor();
+	if (compositorComponent)
 	{
-		// Get the video source component from the camera
-		return cameraComponent->getVideoSourceComponent();
+		// Get the video source component from the compositor
+		return compositorComponent->getVideoSourceComponent();
 	}
 
 	return VideoSourceComponentPtr();
@@ -124,7 +110,7 @@ VideoSourceComponentPtr VideoSourceSystem::getCurrentSceneVideoSource() const
 bool VideoSourceSystem::setCurrentSceneVideoSourceById(MikanVideoSourceID videoSourceId)
 {
 	// Get the camera component from the compositor
-	CameraComponentPtr cameraComponent = getCurrentSceneCameraComponent();
+	CameraComponentPtr cameraComponent = CameraObjectSystem::getSystem()->getCurrentCamera();
 	if (cameraComponent)
 	{
 		// Get the video source component from the camera

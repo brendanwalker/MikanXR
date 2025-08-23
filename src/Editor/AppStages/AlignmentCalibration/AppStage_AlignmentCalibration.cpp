@@ -61,7 +61,7 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(MainWindow* ownerWi
 	, m_trackerPoseCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<MkScene>())
-	, m_camera(nullptr)
+	, m_mkCamera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
@@ -101,13 +101,13 @@ void AppStage_AlignmentCalibration::enter()
 	m_matTrackingPuckPoseView = matTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
 
 	// Fetch the new camera associated with the viewport
-	m_camera= getFirstViewport()->getCurrentMikanCamera();
+	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
-	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
 	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
@@ -195,7 +195,7 @@ void AppStage_AlignmentCalibration::exit()
 {
 	setMenuState(eAlignmentCalibrationMenuState::inactive);
 
-	m_camera= nullptr;
+	m_mkCamera= nullptr;
 
 	if (m_videoSourceComponent)
 	{
@@ -252,7 +252,7 @@ void AppStage_AlignmentCalibration::updateCamera()
 
 			if (bValidPose)
 			{
-				m_camera->setCameraTransform(cameraPose);
+				m_mkCamera->setCameraTransform(cameraPose);
 			}
 		}
 		break;
@@ -414,7 +414,7 @@ void AppStage_AlignmentCalibration::renderVRScene()
 	addAllVRDevicesToMkScene(m_scene);
 
 	// Render the scene
-	scene->render(m_camera, m_ownerWindow->getMkStateStack());
+	scene->render(m_mkCamera, m_ownerWindow->getMkStateStack());
 
 	drawTransformedAxes(glm::mat4(1.f), 1.0f);
 
@@ -542,16 +542,16 @@ void AppStage_AlignmentCalibration::onViewportModeChanged(eAlignmentCalibrationV
 	{
 		case eAlignmentCalibrationViewpointMode::cameraViewpoint:
 			{
-				m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
-				m_camera->setCameraTransform(glm::mat4(1.f));
+				m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
+				m_mkCamera->setCameraTransform(glm::mat4(1.f));
 			} break;
 		case eAlignmentCalibrationViewpointMode::vrViewpoint:
 			{
-				m_camera->setCameraMovementMode(eCameraMovementMode::fly);
+				m_mkCamera->setCameraMovementMode(eCameraMovementMode::fly);
 			} break;
 		case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
 			{
-				m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+				m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 			} break;
 		default:
 			break;

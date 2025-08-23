@@ -5,6 +5,7 @@
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
 #include "AnchorTriangulation/RmlModel_AnchorTriangulation.h"
 #include "App.h"
+#include "CameraObjectSystem.h"
 #include "Colors.h"
 #include "IMkLineRenderer.h"
 #include "MikanCamera.h"
@@ -25,8 +26,6 @@
 #include "VideoSourceComponent.h"
 #include "VideoSourceSystem.h"
 #include "VideoFrameDistortionView.h"
-#include "VRObjectSystem.h"
-#include "VRDeviceComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -46,7 +45,7 @@ AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(MainWindow* ownerWind
 	, m_currentSceneCameraComponent()
 	, m_anchorTriangulator(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_camera(nullptr)
+	, m_mkCamera(nullptr)
 {
 	m_targetAnchor.anchorId = INVALID_MIKAN_ID;
 	m_targetAnchor.anchorName= "";
@@ -71,29 +70,18 @@ void AppStage_AnchorTriangulation::enter()
 	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(true);
 
 	// Get the current video source based on the config
-	m_currentSceneCameraComponent = 
-		VideoSourceSystem::getSystem()->getCurrentSceneCameraComponent();
-	m_videoSourceComponent = 
-		m_currentSceneCameraComponent->getVideoSourceComponent();
-
-	// Create a pose view for the camera tracking puck in MikanScene space
-	//auto vrObjectSystem = VRObjectSystem::getSystem();
-	//auto cameraTrackingPuckView = 
-	//	vrObjectSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
-	//m_cameraTrackingPuckPoseView = 
-	//	cameraTrackingPuckView
-	//	? cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene)
-	//	: VRDevicePoseView::makeInvalidPoseView();
+	m_currentSceneCameraComponent = CameraObjectSystem::getSystem()->getCurrentCamera();
+	m_videoSourceComponent = m_currentSceneCameraComponent->getVideoSourceComponent();
 
 	// Create a new camera to view the scene
-	m_camera = getFirstViewport()->getCurrentMikanCamera();
-	m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+	m_mkCamera = getFirstViewport()->getCurrentMikanCamera();
+	m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_currentSceneCameraComponent->getApertureIntrinsics(cameraIntrinsics);
-	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Fire up the video scene in the background + pose calibrator
 	eAnchorTriangulationMenuState newState;
@@ -192,7 +180,7 @@ void AppStage_AnchorTriangulation::exit()
 	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(false);
 
 	m_currentSceneCameraComponent = nullptr;
-	m_camera= nullptr;
+	m_mkCamera= nullptr;
 
 	if (m_videoSourceComponent)
 	{
@@ -224,7 +212,7 @@ void AppStage_AnchorTriangulation::updateCamera()
 	glm::mat4 cameraPose;
 	if (m_currentSceneCameraComponent->getAperturePose(cameraPose))
 	{
-		m_camera->setCameraTransform(cameraPose);
+		m_mkCamera->setCameraTransform(cameraPose);
 	}
 }
 

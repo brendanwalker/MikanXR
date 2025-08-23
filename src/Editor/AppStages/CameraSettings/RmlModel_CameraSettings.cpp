@@ -44,7 +44,7 @@ bool RmlModel_CameraSettings::init(
 	rebuildVideoSourceList(videoSourceManager);
 
 	// Set the current video source ID
-	VideoSourceComponentPtr currentVideoSource= videoSourceManager->getCurrentSceneVideoSource();
+	VideoSourceComponentPtr currentVideoSource= videoSourceManager->getCurrentVideoSource();
 	m_videoSourceId = currentVideoSource ? currentVideoSource->getVideoSourceId() : -1;
 
 	return true;

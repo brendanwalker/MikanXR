@@ -69,7 +69,7 @@ private:
 	class ArucoMarkerPoseSampler* m_markerPoseSampler;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
-	MikanCameraPtr m_camera;
+	MikanCameraPtr m_mkCamera;
 	IMkFrameBufferPtr m_frameBuffer;
 	IMkTriangulatedMeshPtr m_fullscreenQuad;
 };

@@ -45,7 +45,7 @@ AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(MainWindow* ownerWindow
 	, m_videoSourceComponent()
 	, m_markerPoseSampler(nullptr)
 	, m_monoDistortionView(nullptr)
-	, m_camera(nullptr)
+	, m_mkCamera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
@@ -73,14 +73,14 @@ void AppStage_VRTrackingRecenter::enter()
 	m_cameraTrackingPuckScenePoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
 
 	// Fetch the new camera associated with the viewport
-	m_camera= getFirstViewport()->getCurrentMikanCamera();
-	m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
+	m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
-	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
 	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
@@ -140,7 +140,7 @@ void AppStage_VRTrackingRecenter::exit()
 {
 	setMenuState(eVRTrackingRecenterMenuState::inactive);
 
-	m_camera= nullptr;
+	m_mkCamera= nullptr;
 
 	if (m_videoSourceComponent)
 	{
@@ -175,7 +175,7 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 			{
 				// All debug rendering during calibration is camera relative
 				// so zero out the camera transform
-				m_camera->setCameraTransform(glm::mat4(1.f));
+				m_mkCamera->setCameraTransform(glm::mat4(1.f));
 			}
 			break;
 		case eVRTrackingRecenterMenuState::testCalibration:
@@ -184,7 +184,7 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 				glm::mat4 cameraPose;
 				if (m_videoSourceComponent->getCameraPose(m_cameraTrackingPuckScenePoseView, cameraPose))
 				{
-					m_camera->setCameraTransform(cameraPose);
+					m_mkCamera->setCameraTransform(cameraPose);
 				}
 			}
 			break;

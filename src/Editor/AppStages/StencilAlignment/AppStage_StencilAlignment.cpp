@@ -61,7 +61,7 @@ AppStage_StencilAlignment::AppStage_StencilAlignment(MainWindow* ownerWindow)
 	, m_stencilAligner(nullptr)
 	, m_monoDistortionView(nullptr)
 	, m_scene(std::make_shared<MkScene>())
-	, m_camera(nullptr)
+	, m_mkCamera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
@@ -90,8 +90,8 @@ void AppStage_StencilAlignment::enter()
 	viewport->OnMouseRayButtonUp+= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayButtonUp);
 
 	// Create a new camera to view the scene
-	m_camera = viewport->getCurrentMikanCamera();
-	m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+	m_mkCamera = viewport->getCurrentMikanCamera();
+	m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Center the orbit camera on the stencil model
 	updateVRCamera();
@@ -100,7 +100,7 @@ void AppStage_StencilAlignment::enter()
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
-	m_camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
 	const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
@@ -176,7 +176,7 @@ void AppStage_StencilAlignment::exit()
 	m_targetStencilComponent= nullptr;
 
 	// Forget about the camera
-	m_camera= nullptr;
+	m_mkCamera= nullptr;
 
 	// Forget about the stencil model we added
 	m_scene->removeAllInstances();
@@ -211,7 +211,7 @@ void AppStage_StencilAlignment::updateXRCamera()
 	glm::mat4 cameraPose;	
 	if (m_cameraComponent->getAperturePose(cameraPose))
 	{
-		m_camera->setCameraTransform(cameraPose);
+		m_mkCamera->setCameraTransform(cameraPose);
 	}
 }
 
@@ -250,8 +250,8 @@ void AppStage_StencilAlignment::updateVRCamera()
 
 	if (bValidBoundingSphere)
 	{
-		m_camera->setOrbitTargetPosition(m_boundingSphereCenter);
-		m_camera->setOrbitLocation(0.f, 0.f, m_boundingSphereRadius * 5.0f);
+		m_mkCamera->setOrbitTargetPosition(m_boundingSphereCenter);
+		m_mkCamera->setOrbitLocation(0.f, 0.f, m_boundingSphereRadius * 5.0f);
 	}
 }
 
@@ -360,7 +360,7 @@ void AppStage_StencilAlignment::render()
 
 void AppStage_StencilAlignment::renderStencilScene()
 {
-	m_scene->render(m_camera, m_ownerWindow->getMkStateStack());
+	m_scene->render(m_mkCamera, m_ownerWindow->getMkStateStack());
 
 	if (m_targetStencilComponent)
 	{
@@ -399,10 +399,10 @@ void AppStage_StencilAlignment::setMenuState(eStencilAlignmentMenuState newState
 			case eStencilAlignmentMenuState::captureXAxisVertex:
 			case eStencilAlignmentMenuState::captureYAxisVertex:
 			case eStencilAlignmentMenuState::captureZAxisVertex:
-				m_camera->setCameraMovementMode(eCameraMovementMode::orbit);
+				m_mkCamera->setCameraMovementMode(eCameraMovementMode::orbit);
 				break;
 			default:
-				m_camera->setCameraMovementMode(eCameraMovementMode::stationary);
+				m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 		}
 
 		// Update menu state on the data models
