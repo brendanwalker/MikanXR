@@ -1,10 +1,8 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
-
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
 class RmlDataBinding_VRDeviceList;
 using RmlDataBinding_VRDeviceListPtr = std::shared_ptr<RmlDataBinding_VRDeviceList>;
@@ -23,7 +21,7 @@ public:
 private:
 	RmlDataBinding_VRDeviceListPtr m_vrDeviceBinding;
 	ProjectConfigPtr m_projectConfigPtr;
-	VideoSourceViewPtr m_videoSource;
+	VideoSourceComponentPtr m_videoSource;
 
 	// Cameras UI
 	Rml::String m_cameraVRDevicePath;

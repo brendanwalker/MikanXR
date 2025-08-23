@@ -2,14 +2,12 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "ComponentFwd.h"
 #include "Constants_MonoLensCalibration.h"
 #include "IRemoteControllableAppStage.h"
 #include "RmlFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
-
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
 //-- definitions -----
 class AppStage_MonoLensCalibration : 
@@ -23,6 +21,7 @@ public:
 	virtual ~AppStage_MonoLensCalibration();
 
 	void setBypassCalibrationFlag(bool flag);
+	void setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent);
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -60,7 +59,7 @@ private:
 	class RmlModel_MonoCameraSettings* m_cameraSettingsModel = nullptr;
 	Rml::ElementDocument* m_cameraSettingsView= nullptr;
 
-	VideoSourceViewPtr m_videoSourceComponent;
+	VideoSourceComponentPtr m_videoSourceComponent;
 	class MonoLensDistortionCalibrator* m_monoLensCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 };

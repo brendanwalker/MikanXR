@@ -1,7 +1,7 @@
 #include "RmlModel_CompositorCameras.h"
 #include "Shared/RmlDataBinding_VRDeviceList.h"
 #include "StringUtils.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 #include "VideoCapabilitiesConfig.h"
 
 #include <RmlUi/Core/DataModelHandle.h>

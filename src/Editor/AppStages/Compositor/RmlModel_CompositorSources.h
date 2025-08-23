@@ -5,9 +5,6 @@
 #include "SinglecastDelegate.h"
 #include "FrameCompositorConstants.h"
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 class RmlModel_CompositorSources : public RmlModel
 {
 public:

@@ -9,8 +9,7 @@
 #include "MainWindow.h"
 #include "MonoLensDistortionCalibrator.h"
 #include "CalibrationPatternFinder.h"
-#include "VideoSourceView.h"
-#include "VideoSourceManager.h"
+#include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
 
 #include "SDL_keycode.h"
@@ -54,6 +53,11 @@ void AppStage_MonoLensCalibration::setBypassCalibrationFlag(bool flag)
 	m_calibrationModel->setBypassCalibrationFlag(true);
 }
 
+void AppStage_MonoLensCalibration::setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent)
+{
+	m_videoSourceComponent = videoSourceComponent;
+}
+
 void AppStage_MonoLensCalibration::enter()
 {
 	AppStage::enter();
@@ -65,7 +69,6 @@ void AppStage_MonoLensCalibration::enter()
 
 	// Get the current video source based on the config
 	ProjectConfigConstPtr profileConfig= App::getInstance()->getProfileConfig();
-	m_videoSourceComponent= VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
 
 	// Initialize video stream + lens calibrator
 	eMonoLensCalibrationMenuState newState;
@@ -133,13 +136,6 @@ void AppStage_MonoLensCalibration::exit()
 {
 	setMenuState(eMonoLensCalibrationMenuState::inactive);
 
-	// Save all modified camera config values 
-	// (i.e. camera intrinsics and distortion coefficients)
-	if (!m_calibrationModel->getBypassCalibrationFlag())
-	{
-		m_videoSourceComponent->saveSettings();
-	}
-
 	// Free the calibrator
 	if (m_monoLensCalibrator != nullptr)
 	{
@@ -155,7 +151,7 @@ void AppStage_MonoLensCalibration::exit()
 	}
 
 	// Turn back off the video feed
-	m_videoSourceComponent->stopVideoStream();
+	//m_videoSourceComponent->stopVideoStream();
 	m_videoSourceComponent = nullptr;
 
 	AppStage::exit();
