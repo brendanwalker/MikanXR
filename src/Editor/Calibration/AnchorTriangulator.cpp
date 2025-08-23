@@ -143,7 +143,6 @@ glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 
 void AnchorTriangulator::sampleCameraPose()
 {
-	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
 	glm::mat4 glm_camera_xform;
 	if (m_cameraComponent->getAperturePose(glm_camera_xform))
 	{
@@ -167,7 +166,6 @@ void AnchorTriangulator::computeCurrentTriangulation()
 		initialPointRayDirection);
 
 	// Compute a ray for triangulating new sample pixel
-	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();	
 	glm::mat4 triangulatingCameraXform;
 	if (m_cameraComponent->getAperturePose(triangulatingCameraXform))
 	{
