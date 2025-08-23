@@ -48,7 +48,7 @@ configuru::Config USBVideoSourceDefinition::writeToJSON()
 
 	pt["device_path"] = m_devicePath;
 	pt["video_mode"] = m_videoMode;
-	writeStdArrayMap<float, (int)VideoPropertyType::COUNT>(pt, "cameraSettings", m_cameraSettingsMap);
+	writeStdArrayMap<float, (int)VideoPropertyType::COUNT>(pt, "cameraSettings", m_videoSettingsMap);
 
 	return pt;
 }
@@ -58,7 +58,7 @@ void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	VideoSourceDefinition::readFromJSON(pt);
 	m_devicePath = pt.get_or<std::string>("device_path", m_devicePath);
 	m_videoMode = pt.get_or<std::string>("video_mode", m_videoMode);
-	readStdArrayMap<float, (int)VideoPropertyType::COUNT>(pt, "cameraSettings", m_cameraSettingsMap);
+	readStdArrayMap<float, (int)VideoPropertyType::COUNT>(pt, "cameraSettings", m_videoSettingsMap);
 }
 
 void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
@@ -79,14 +79,14 @@ void USBVideoSourceDefinition::setVideoMode(const std::string& videoMode)
 	}
 }
 
-bool USBVideoSourceDefinition::getCameraSettingValue(
+bool USBVideoSourceDefinition::getVideoSettingValue(
 	const std::string& modeName,
-	eUsbCameraSettingType settingType,
+	eVideoSettingType settingType,
 	float& outValue) const
 {
-	if (m_cameraSettingsMap.find(modeName) != m_cameraSettingsMap.end())
+	if (m_videoSettingsMap.find(modeName) != m_videoSettingsMap.end())
 	{
-		const auto& settings = m_cameraSettingsMap.at(modeName);
+		const auto& settings = m_videoSettingsMap.at(modeName);
 		
 		outValue= settings[(int)settingType];
 		return true; // Found the setting value
@@ -97,19 +97,19 @@ bool USBVideoSourceDefinition::getCameraSettingValue(
 
 void USBVideoSourceDefinition::setCameraSettingValue(
 	const std::string& modeName,
-	eUsbCameraSettingType settingType,
+	eVideoSettingType settingType,
 	float value,
 	bool bBroadcastMarkDirty)
 {
 	bool bIsDirty = false;
 
-	auto it = m_cameraSettingsMap.find(modeName);
-	if (it == m_cameraSettingsMap.end())
+	auto it = m_videoSettingsMap.find(modeName);
+	if (it == m_videoSettingsMap.end())
 	{
-		 auto settings = std::array<float, (int)eUsbCameraSettingType::COUNT>();
+		 auto settings = std::array<float, (int)eVideoSettingType::COUNT>();
 
 		 settings[(int)settingType] = value;
-		 m_cameraSettingsMap[modeName] = settings;
+		 m_videoSettingsMap[modeName] = settings;
 		 bIsDirty = true;
 	}
 	else
@@ -274,16 +274,15 @@ void USBVideoSourceComponent::updateCameraSettings()
 
 	// Apply video property settings stored in config onto the camera
 	// Or store the current camera settings if not set
-	for (int prop_index = 0; prop_index < (int)eUsbCameraSettingType::COUNT; ++prop_index)
+	for (int prop_index = 0; prop_index < (int)eVideoSettingType::COUNT; ++prop_index)
 	{
-		const eUsbCameraSettingType prop_type = (eUsbCameraSettingType)prop_index;
+		const eVideoSettingType prop_type = (eVideoSettingType)prop_index;
 		
-		if (UsbCameraSettingConstraint constraint;
-			m_usbVideoDevice->getCameraSettingConstraint(prop_type, constraint) &&
-			constraint.is_supported)
+		if (VideoSettingConstraint constraint;
+			m_usbVideoDevice->getVideoSettingConstraint(prop_type, constraint))
 		{
 			float desiredFloatValue = 0.f;
-			if (definition->getCameraSettingValue(
+			if (definition->getVideoSettingValue(
 				videoMode,
 				prop_type,
 				desiredFloatValue))
@@ -295,11 +294,11 @@ void USBVideoSourceComponent::updateCameraSettings()
 						desiredFloatValue);
 
 				// Set the camera setting on the USB video device
-				m_usbVideoDevice->setCameraSetting(prop_type, desiredIntValue);
+				m_usbVideoDevice->setVideoSetting(prop_type, desiredIntValue);
 			}
 			else
 			{
-				const int currentIntValue= m_usbVideoDevice->getCameraSetting(prop_type);
+				const int currentIntValue= m_usbVideoDevice->getVideoSetting(prop_type);
 				const float currentFloatValue= 
 					remap_int_to_float(
 						constraint.min_value, constraint.max_value,
@@ -351,28 +350,11 @@ void USBVideoSourceComponent::closeVideoSource()
 	}
 }
 
-static eVideoStreamingStatus usbStatusToVideoStatus(eUsbVideoStreamingStatus usbStatus)
-{
-	switch (usbStatus)
-	{
-	case eUsbVideoStreamingStatus::failed:
-		return eVideoStreamingStatus::failed;
-	case eUsbVideoStreamingStatus::pendingStart:
-		return eVideoStreamingStatus::pendingStart;
-	case eUsbVideoStreamingStatus::started:
-		return eVideoStreamingStatus::started;
-	case eUsbVideoStreamingStatus::stopped:
-		return eVideoStreamingStatus::stopped;
-	default:
-		return eVideoStreamingStatus::failed;
-	}
-}
-
 eVideoStreamingStatus USBVideoSourceComponent::startVideoStream()
 {
 	if (m_usbVideoDevice != nullptr)
 	{
-		auto status= usbStatusToVideoStatus(m_usbVideoDevice->startVideoStream());
+		eVideoStreamingStatus status= m_usbVideoDevice->startVideoStream();
 		if (status == eVideoStreamingStatus::started && OnStarted)
 		{
 			OnStarted(getSelfPtr<VideoSourceComponent>());
@@ -388,7 +370,7 @@ eVideoStreamingStatus USBVideoSourceComponent::getVideoStreamingStatus() const
 {
 	if (m_usbVideoDevice != nullptr)
 	{
-		return usbStatusToVideoStatus(m_usbVideoDevice->getVideoStreamingStatus());
+		return m_usbVideoDevice->getVideoStreamingStatus();
 	}
 
 	return eVideoStreamingStatus::failed;
@@ -465,6 +447,44 @@ int64_t USBVideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection s
 	}
 
 	return m_lastVideoFrameReadIndex;
+}
+
+bool USBVideoSourceComponent::isVideoSettingSupported(const eVideoSettingType property_type) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->isVideoSettingSupported(property_type);
+	}
+
+	return false;
+}
+
+bool USBVideoSourceComponent::getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->getVideoSettingConstraint(property_type, outConstraint);
+	}
+
+	return false;
+}
+
+void USBVideoSourceComponent::setVideoSetting(const eVideoSettingType property_type, int desired_value)
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		m_usbVideoDevice->setVideoSetting(property_type, desired_value);
+	}
+}
+
+int USBVideoSourceComponent::getVideoSetting(const eVideoSettingType property_type) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->getVideoSetting(property_type);
+	}
+
+	return -1;
 }
 
 bool USBVideoSourceComponent::getVideoModeName(std::string& outVideoModeName) const

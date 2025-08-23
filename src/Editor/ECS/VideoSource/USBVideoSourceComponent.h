@@ -24,13 +24,13 @@ public:
 	void setVideoMode(const std::string& videoMode);
 
 	static const std::string k_cameraSettingsPropertyId;
-	bool getCameraSettingValue(
+	bool getVideoSettingValue(
 		const std::string& modeName, 
-		eUsbCameraSettingType settingType,
+		eVideoSettingType settingType,
 		float& outValue) const;
 	void setCameraSettingValue(
 		const std::string& modeName,
-		eUsbCameraSettingType settingType,
+		eVideoSettingType settingType,
 		float value,
 		bool bBroadcastMarkDirty = true);
 	void markCameraSettingsDirty();
@@ -38,7 +38,7 @@ public:
 private:
 	std::string m_devicePath;
 	std::string m_videoMode;
-	std::map<std::string, std::array<float, (int)VideoPropertyType::COUNT> > m_cameraSettingsMap;
+	std::map<std::string, std::array<float, (int)VideoPropertyType::COUNT> > m_videoSettingsMap;
 };
 
 class USBVideoSourceComponent : public VideoSourceComponent, public IUsbVideoDeviceListener
@@ -63,6 +63,10 @@ public:
 	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const override;
 	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;	
 	virtual bool getVideoModeName(std::string& outVideoModeName) const override;
+	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const override;
+	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const override;
+	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value) override;
+	virtual int getVideoSetting(const eVideoSettingType property_type) const override;
 
 	// -- USB Video Mode
 	size_t getAvailableVideoModesCount() const;

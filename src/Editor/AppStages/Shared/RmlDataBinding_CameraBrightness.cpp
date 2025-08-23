@@ -1,6 +1,6 @@
 #include "RmlDataBinding_CameraBrightness.h"
 #include "MathUtility.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -59,21 +59,23 @@ void RmlDataBinding_CameraBrightness::setBrightness(int newBrightness)
 }
 
 
-VideoSourceViewPtr RmlDataBinding_CameraBrightness::getVideoSourceView() const
+VideoSourceComponentPtr RmlDataBinding_CameraBrightness::getVideoSourceComponent() const
 {
 	return m_videoSourceComponent;
 }
 
-void RmlDataBinding_CameraBrightness::setVideoSourceView(VideoSourceViewPtr videoSourceView)
+void RmlDataBinding_CameraBrightness::setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent)
 {
-	if (m_videoSourceComponent != videoSourceView)
+	if (m_videoSourceComponent != videoSourceComponent)
 	{
-		if (videoSourceView != nullptr)
+		VideoSettingConstraint constraint;
+		if (videoSourceComponent != nullptr &&
+			videoSourceComponent->getVideoSettingConstraint(eVideoSettingType::Brightness, constraint))
 		{
 			m_brightnessValid= true;
-			m_brightnessMin = videoSourceView->getVideoPropertyConstraintMinValue(VideoPropertyType::Brightness);
-			m_brightnessMax = videoSourceView->getVideoPropertyConstraintMaxValue(VideoPropertyType::Brightness);
-			setBrightness(videoSourceView->getVideoProperty(VideoPropertyType::Brightness));
+			m_brightnessMin = constraint.min_value;
+			m_brightnessMax = constraint.max_value;
+			setBrightness(videoSourceComponent->getVideoSetting(eVideoSettingType::Brightness));
 			m_modelHandle.DirtyVariable("brightness_valid");
 		}
 		else
@@ -82,7 +84,7 @@ void RmlDataBinding_CameraBrightness::setVideoSourceView(VideoSourceViewPtr vide
 			m_modelHandle.DirtyVariable("brightness_valid");
 		}
 
-		m_videoSourceComponent = videoSourceView;
+		m_videoSourceComponent = videoSourceComponent;
 	}
 }
 
@@ -93,7 +95,7 @@ void RmlDataBinding_CameraBrightness::handleBrightnessPercentChanged(float newPe
 
 	if (m_videoSourceComponent)
 	{
-		m_videoSourceComponent->setVideoProperty(VideoPropertyType::Brightness, m_brightness, true);
+		m_videoSourceComponent->setVideoSetting(eVideoSettingType::Brightness, m_brightness);
 	}
 
 	if (OnBrightnessChanged)

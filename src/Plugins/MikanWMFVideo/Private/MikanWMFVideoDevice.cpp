@@ -131,10 +131,10 @@ bool MikanWMFVideoDevice::open()
 		if (SUCCEEDED(hr))
 		{
 			// Update the property constraints for the current video format
-			for (int prop_index = 0; prop_index < (int)eUsbCameraSettingType::COUNT; ++prop_index)
+			for (int prop_index = 0; prop_index < (int)eVideoSettingType::COUNT; ++prop_index)
 			{
-				getCameraSettingConstraint(
-					(eUsbCameraSettingType)prop_index,
+				getVideoSettingConstraint(
+					(eVideoSettingType)prop_index,
 					m_videoPropertyConstraints[prop_index]);
 			}
 		}
@@ -246,63 +246,70 @@ bool MikanWMFVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 }
 
 // -- Camera Settings
-bool MikanWMFVideoDevice::getCameraSettingConstraint(
-	const eUsbCameraSettingType property_type,
-	UsbCameraSettingConstraint& outConstraint) const
+bool MikanWMFVideoDevice::isVideoSettingSupported(const eVideoSettingType property_type) const
+{
+	VideoSettingConstraint constraint;
+
+	return getVideoSettingConstraint(property_type, constraint);
+}
+
+bool MikanWMFVideoDevice::getVideoSettingConstraint(
+	const eVideoSettingType property_type,
+	VideoSettingConstraint& outConstraint) const
 {
 	bool bSuccess = false;
 
 	switch (property_type)
 	{
-	case eUsbCameraSettingType::Brightness:
+	case eVideoSettingType::Brightness:
 		bSuccess = getProcAmpRange(VideoProcAmp_Brightness, outConstraint);
 		break;
-	case eUsbCameraSettingType::Contrast:
+	case eVideoSettingType::Contrast:
 		bSuccess = getProcAmpRange(VideoProcAmp_Contrast, outConstraint);
 		break;
-	case eUsbCameraSettingType::Hue:
+	case eVideoSettingType::Hue:
 		bSuccess = getProcAmpRange(VideoProcAmp_Hue, outConstraint);
 		break;
-	case eUsbCameraSettingType::Saturation:
+	case eVideoSettingType::Saturation:
 		bSuccess = getProcAmpRange(VideoProcAmp_Saturation, outConstraint);
 		break;
-	case eUsbCameraSettingType::Sharpness:
+	case eVideoSettingType::Sharpness:
 		bSuccess = getProcAmpRange(VideoProcAmp_Sharpness, outConstraint);
 		break;
-	case eUsbCameraSettingType::Gamma:
+	case eVideoSettingType::Gamma:
 		bSuccess = getProcAmpRange(VideoProcAmp_Gamma, outConstraint);
 		break;
-	case eUsbCameraSettingType::WhiteBalance:
+	case eVideoSettingType::WhiteBalance:
 		bSuccess = getProcAmpRange(VideoProcAmp_WhiteBalance, outConstraint);
 		break;
-	case eUsbCameraSettingType::RedBalance:
-	case eUsbCameraSettingType::GreenBalance:
-	case eUsbCameraSettingType::BlueBalance:
-		memset(&outConstraint, 0, sizeof(UsbCameraSettingConstraint));
+	case eVideoSettingType::RedBalance:
+	case eVideoSettingType::GreenBalance:
+	case eVideoSettingType::BlueBalance:
+		memset(&outConstraint, 0, sizeof(VideoSettingConstraint));
 		bSuccess = true;
 		break;
-	case eUsbCameraSettingType::Gain:
+	case eVideoSettingType::Gain:
 		bSuccess = getProcAmpRange(VideoProcAmp_Gain, outConstraint);
 		break;
-	case eUsbCameraSettingType::Pan:
+	case eVideoSettingType::Pan:
 		bSuccess = getCameraControlRange(CameraControl_Pan, outConstraint);
 		break;
-	case eUsbCameraSettingType::Tilt:
+	case eVideoSettingType::Tilt:
 		bSuccess = getCameraControlRange(CameraControl_Tilt, outConstraint);
 		break;
-	case eUsbCameraSettingType::Roll:
+	case eVideoSettingType::Roll:
 		bSuccess = getCameraControlRange(CameraControl_Roll, outConstraint);
 		break;
-	case eUsbCameraSettingType::Zoom:
+	case eVideoSettingType::Zoom:
 		bSuccess = getCameraControlRange(CameraControl_Zoom, outConstraint);
 		break;
-	case eUsbCameraSettingType::Exposure:
+	case eVideoSettingType::Exposure:
 		bSuccess = getCameraControlRange(CameraControl_Exposure, outConstraint);
 		break;
-	case eUsbCameraSettingType::Iris:
+	case eVideoSettingType::Iris:
 		bSuccess = getCameraControlRange(CameraControl_Iris, outConstraint);
 		break;
-	case eUsbCameraSettingType::Focus:
+	case eVideoSettingType::Focus:
 		bSuccess = getCameraControlRange(CameraControl_Focus, outConstraint);
 		break;
 	}
@@ -310,117 +317,117 @@ bool MikanWMFVideoDevice::getCameraSettingConstraint(
 	return bSuccess;
 }
 
-void MikanWMFVideoDevice::setCameraSetting(const eUsbCameraSettingType property_type, int desired_value)
+void MikanWMFVideoDevice::setVideoSetting(const eVideoSettingType property_type, int desired_value)
 {
 	switch (property_type)
 	{
-	case eUsbCameraSettingType::Brightness:
+	case eVideoSettingType::Brightness:
 		setProcAmpProperty(VideoProcAmp_Brightness, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Contrast:
+	case eVideoSettingType::Contrast:
 		setProcAmpProperty(VideoProcAmp_Contrast, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Hue:
+	case eVideoSettingType::Hue:
 		setProcAmpProperty(VideoProcAmp_Hue, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Saturation:
+	case eVideoSettingType::Saturation:
 		setProcAmpProperty(VideoProcAmp_Saturation, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Sharpness:
+	case eVideoSettingType::Sharpness:
 		setProcAmpProperty(VideoProcAmp_Sharpness, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Gamma:
+	case eVideoSettingType::Gamma:
 		setProcAmpProperty(VideoProcAmp_Gamma, desired_value, false);
 		break;
-	case eUsbCameraSettingType::WhiteBalance:
+	case eVideoSettingType::WhiteBalance:
 		setProcAmpProperty(VideoProcAmp_WhiteBalance, desired_value, false);
 		break;
-	case eUsbCameraSettingType::RedBalance:
-	case eUsbCameraSettingType::GreenBalance:
-	case eUsbCameraSettingType::BlueBalance:
+	case eVideoSettingType::RedBalance:
+	case eVideoSettingType::GreenBalance:
+	case eVideoSettingType::BlueBalance:
 		// not supported
 		break;
-	case eUsbCameraSettingType::Gain:
+	case eVideoSettingType::Gain:
 		setProcAmpProperty(VideoProcAmp_Gain, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Pan:
+	case eVideoSettingType::Pan:
 		setCameraControlProperty(CameraControl_Pan, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Tilt:
+	case eVideoSettingType::Tilt:
 		setCameraControlProperty(CameraControl_Tilt, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Roll:
+	case eVideoSettingType::Roll:
 		setCameraControlProperty(CameraControl_Roll, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Zoom:
+	case eVideoSettingType::Zoom:
 		setCameraControlProperty(CameraControl_Zoom, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Exposure:
+	case eVideoSettingType::Exposure:
 		setCameraControlProperty(CameraControl_Exposure, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Iris:
+	case eVideoSettingType::Iris:
 		setCameraControlProperty(CameraControl_Iris, desired_value, false);
 		break;
-	case eUsbCameraSettingType::Focus:
+	case eVideoSettingType::Focus:
 		setCameraControlProperty(CameraControl_Focus, desired_value, false);
 		break;
 	}
 }
 
-int MikanWMFVideoDevice::getCameraSetting(const eUsbCameraSettingType property_type) const
+int MikanWMFVideoDevice::getVideoSetting(const eVideoSettingType property_type) const
 {
 	int value = 0;
 
 	switch (property_type)
 	{
-	case eUsbCameraSettingType::Brightness:
+	case eVideoSettingType::Brightness:
 		value = getProcAmpProperty(VideoProcAmp_Brightness);
 		break;
-	case eUsbCameraSettingType::Contrast:
+	case eVideoSettingType::Contrast:
 		value = getProcAmpProperty(VideoProcAmp_Contrast);
 		break;
-	case eUsbCameraSettingType::Hue:
+	case eVideoSettingType::Hue:
 		value = getProcAmpProperty(VideoProcAmp_Hue);
 		break;
-	case eUsbCameraSettingType::Saturation:
+	case eVideoSettingType::Saturation:
 		value = getProcAmpProperty(VideoProcAmp_Saturation);
 		break;
-	case eUsbCameraSettingType::Sharpness:
+	case eVideoSettingType::Sharpness:
 		value = getProcAmpProperty(VideoProcAmp_Sharpness);
 		break;
-	case eUsbCameraSettingType::Gamma:
+	case eVideoSettingType::Gamma:
 		value = getProcAmpProperty(VideoProcAmp_Gamma);
 		break;
-	case eUsbCameraSettingType::WhiteBalance:
+	case eVideoSettingType::WhiteBalance:
 		value = getProcAmpProperty(VideoProcAmp_WhiteBalance);
 		break;
-	case eUsbCameraSettingType::RedBalance:
-	case eUsbCameraSettingType::GreenBalance:
-	case eUsbCameraSettingType::BlueBalance:
+	case eVideoSettingType::RedBalance:
+	case eVideoSettingType::GreenBalance:
+	case eVideoSettingType::BlueBalance:
 		// not supported
 		break;
-	case eUsbCameraSettingType::Gain:
+	case eVideoSettingType::Gain:
 		value = getProcAmpProperty(VideoProcAmp_Gain);
 		break;
-	case eUsbCameraSettingType::Pan:
+	case eVideoSettingType::Pan:
 		value = getCameraControlProperty(CameraControl_Pan);
 		break;
-	case eUsbCameraSettingType::Tilt:
+	case eVideoSettingType::Tilt:
 		value = getCameraControlProperty(CameraControl_Tilt);
 		break;
-	case eUsbCameraSettingType::Roll:
+	case eVideoSettingType::Roll:
 		value = getCameraControlProperty(CameraControl_Roll);
 		break;
-	case eUsbCameraSettingType::Zoom:
+	case eVideoSettingType::Zoom:
 		value = getCameraControlProperty(CameraControl_Zoom);
 		break;
-	case eUsbCameraSettingType::Exposure:
+	case eVideoSettingType::Exposure:
 		value = getCameraControlProperty(CameraControl_Exposure);
 		break;
-	case eUsbCameraSettingType::Iris:
+	case eVideoSettingType::Iris:
 		value = getCameraControlProperty(CameraControl_Iris);
 		break;
-	case eUsbCameraSettingType::Focus:
+	case eVideoSettingType::Focus:
 		value = getCameraControlProperty(CameraControl_Focus);
 		break;
 	}
@@ -429,37 +436,37 @@ int MikanWMFVideoDevice::getCameraSetting(const eUsbCameraSettingType property_t
 }
 
 // -- Video Streaming
-eUsbVideoStreamingStatus MikanWMFVideoDevice::startVideoStream()
+eVideoStreamingStatus MikanWMFVideoDevice::startVideoStream()
 {
 	if (getIsOpen())
 	{
-		eUsbVideoStreamingStatus status= getVideoStreamingStatus();
+		eVideoStreamingStatus status= getVideoStreamingStatus();
 
-		if (status == eUsbVideoStreamingStatus::stopped ||
-			status == eUsbVideoStreamingStatus::failed)
+		if (status == eVideoStreamingStatus::stopped ||
+			status == eVideoStreamingStatus::failed)
 		{
 			status= 
 				SUCCEEDED(m_videoFrameProcessor->startVideoFrameThread())
-				? eUsbVideoStreamingStatus::started
-				: eUsbVideoStreamingStatus::failed;
+				? eVideoStreamingStatus::started
+				: eVideoStreamingStatus::failed;
 		}
 
 		return status;
 	}
 
-	return eUsbVideoStreamingStatus::failed;
+	return eVideoStreamingStatus::failed;
 }
 
-eUsbVideoStreamingStatus MikanWMFVideoDevice::getVideoStreamingStatus() const
+eVideoStreamingStatus MikanWMFVideoDevice::getVideoStreamingStatus() const
 {
 	if (getIsOpen())
 	{
 		return m_videoFrameProcessor->getIsRunning() 
-			? eUsbVideoStreamingStatus::started 
-			: eUsbVideoStreamingStatus::stopped;
+			? eVideoStreamingStatus::started
+			: eVideoStreamingStatus::stopped;
 	}
 
-	return eUsbVideoStreamingStatus::failed;
+	return eVideoStreamingStatus::failed;
 }
 
 void MikanWMFVideoDevice::stopVideoStream()
@@ -521,12 +528,12 @@ long MikanWMFVideoDevice::getProcAmpProperty(VideoProcAmpProperty propId, bool* 
 	return intValue;
 }
 
-bool MikanWMFVideoDevice::getProcAmpRange(VideoProcAmpProperty propId, UsbCameraSettingConstraint& constraint) const
+bool MikanWMFVideoDevice::getProcAmpRange(VideoProcAmpProperty propId, VideoSettingConstraint& constraint) const
 {
 	IAMVideoProcAmp* pProcAmp = NULL;
 	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
 
-	memset(&constraint, 0, sizeof(UsbCameraSettingConstraint));
+	memset(&constraint, 0, sizeof(VideoSettingConstraint));
 
 	if (SUCCEEDED(hr))
 	{
@@ -539,7 +546,6 @@ bool MikanWMFVideoDevice::getProcAmpRange(VideoProcAmpProperty propId, UsbCamera
 			constraint.min_value = minValue;
 			constraint.max_value = maxValue;
 			constraint.stepping_delta = stepSize;
-			constraint.is_supported = true;
 			constraint.is_automatic = flags == VideoProcAmp_Flags_Auto;
 		}
 
@@ -589,13 +595,13 @@ long MikanWMFVideoDevice::getCameraControlProperty(CameraControlProperty propId,
 }
 
 bool MikanWMFVideoDevice::getCameraControlRange(
-	CameraControlProperty propId, UsbCameraSettingConstraint& constraint) const
+	CameraControlProperty propId, VideoSettingConstraint& constraint) const
 {
 	double unitValue = 0;
 	IAMCameraControl* pCameraControl = NULL;
 	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pCameraControl));
 
-	memset(&constraint, 0, sizeof(UsbCameraSettingConstraint));
+	memset(&constraint, 0, sizeof(VideoSettingConstraint));
 
 	if (SUCCEEDED(hr))
 	{
@@ -608,7 +614,6 @@ bool MikanWMFVideoDevice::getCameraControlRange(
 			constraint.min_value = minValue;
 			constraint.max_value = maxValue;
 			constraint.stepping_delta = stepSize;
-			constraint.is_supported = true;
 			constraint.is_automatic = flags == VideoProcAmp_Flags_Auto;
 		}
 

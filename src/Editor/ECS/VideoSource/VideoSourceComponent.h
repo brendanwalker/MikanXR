@@ -95,6 +95,11 @@ public:
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
 	virtual glm::mat4 getProjectionMatrix() const;
 
+	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const;
+	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const;
+	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value);
+	virtual int getVideoSetting(const eVideoSettingType property_type) const;
+
 	// Video Source Events
 	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnOpened;
 	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnClosed;

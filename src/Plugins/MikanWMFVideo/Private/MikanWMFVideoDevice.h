@@ -110,13 +110,14 @@ public:
 	virtual bool setVideoModeByIndex(size_t index) override;
 
 	// -- Camera Settings
-	virtual bool getCameraSettingConstraint(const eUsbCameraSettingType property_type, UsbCameraSettingConstraint& outConstraint) const override;
-	virtual void setCameraSetting(const eUsbCameraSettingType property_type, int desired_value) override;
-	virtual int getCameraSetting(const eUsbCameraSettingType property_type) const override;
+	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const override;
+	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const override;
+	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value) override;
+	virtual int getVideoSetting(const eVideoSettingType property_type) const override;
 
 	// -- Video Streaming
-	virtual eUsbVideoStreamingStatus startVideoStream() override;
-	virtual eUsbVideoStreamingStatus getVideoStreamingStatus() const override;
+	virtual eVideoStreamingStatus startVideoStream() override;
+	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
 
 	void notifyVideoDeviceDisconnected();
@@ -138,7 +139,7 @@ protected:
 	*/
 	bool setProcAmpProperty(VideoProcAmpProperty propId, long desired_value, bool bAuto);
 	long getProcAmpProperty(VideoProcAmpProperty propId, bool* bIsAuto = nullptr) const;
-	bool getProcAmpRange(VideoProcAmpProperty propId, UsbCameraSettingConstraint& constraint) const;
+	bool getProcAmpRange(VideoProcAmpProperty propId, VideoSettingConstraint& constraint) const;
 
 	/*
 		https://msdn.microsoft.com/en-us/library/windows/desktop/dd318253(v=vs.85).aspx
@@ -152,7 +153,7 @@ protected:
 	*/
 	bool setCameraControlProperty(CameraControlProperty propId, long desired_value, bool bAuto);
 	long getCameraControlProperty(CameraControlProperty propId, bool* bIsAuto = nullptr) const;
-	bool getCameraControlRange(CameraControlProperty propId, UsbCameraSettingConstraint& constraint) const;
+	bool getCameraControlRange(CameraControlProperty propId, VideoSettingConstraint& constraint) const;
 
 	void notifyVideoModePropertiesChanged();
 
@@ -160,7 +161,7 @@ private:
 	class MikanWMFVideoDeviceManager* m_ownerDeviceManager;
 	WMFDeviceInfo m_deviceInfo;
 	int m_currentVideoModeIndex= -1;
-	std::array<UsbCameraSettingConstraint, (int)eUsbCameraSettingType::COUNT> m_videoPropertyConstraints;
+	std::array<VideoSettingConstraint, (int)eVideoSettingType::COUNT> m_videoPropertyConstraints;
 	IMFMediaSource* m_mediaSource= nullptr;
 	WMFVideoFrameProcessor* m_videoFrameProcessor= nullptr;
 

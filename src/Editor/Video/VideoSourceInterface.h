@@ -1,6 +1,7 @@
 #pragma once
 
 // -- includes -----
+#include "IVideoDevice.h"
 #include "DeviceInterface.h"
 #include "MikanMathTypes.h"
 #include "MikanTypeFwd.h"
@@ -10,15 +11,6 @@
 
 #include <string>
 #include <vector>
-
-// -- definitions -----
-enum class eVideoStreamingStatus : int
-{
-	failed= -1,
-	stopped= 0,
-	pendingStart= 1,
-	started= 2,
-};
 
 /// The list of possible sub sections to extract from a video frame
 enum class VideoFrameSection : int

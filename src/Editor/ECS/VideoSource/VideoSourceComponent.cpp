@@ -197,6 +197,25 @@ glm::mat4 VideoSourceComponent::getProjectionMatrix() const
 	return m_projectionMatrix;
 }
 
+bool VideoSourceComponent::isVideoSettingSupported(const eVideoSettingType property_type) const
+{
+	return false;
+}
+
+bool VideoSourceComponent::getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const
+{
+	return false;
+}
+
+void VideoSourceComponent::setVideoSetting(const eVideoSettingType property_type, int desired_value)
+{
+}
+
+int VideoSourceComponent::getVideoSetting(const eVideoSettingType property_type) const
+{
+	return -1;
+}
+
 void VideoSourceComponent::recomputeCameraProjectionMatrix()
 {
 	MikanVideoSourceIntrinsics intrinsics;

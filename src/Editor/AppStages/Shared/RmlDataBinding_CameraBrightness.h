@@ -1,10 +1,8 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "Shared\RmlDataBinding.h"
 #include "SinglecastDelegate.h"
-
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
 
 class RmlDataBinding_CameraBrightness : public RmlDataBinding
 {
@@ -18,8 +16,8 @@ public:
 	int getBrightness() const;
 	void setBrightness(int newBrightness);
 
-	VideoSourceViewPtr getVideoSourceView() const;
-	void setVideoSourceView(VideoSourceViewPtr videoSourceView);
+	VideoSourceComponentPtr getVideoSourceComponent() const;
+	void setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent);
 
 	SinglecastDelegate<void(int)> OnBrightnessChanged;
 
@@ -27,7 +25,7 @@ protected:
 	void handleBrightnessPercentChanged(float newPercentValue);
 
 protected:
-	VideoSourceViewPtr m_videoSourceComponent;
+	VideoSourceComponentPtr m_videoSourceComponent;
 	int m_brightness = 0;
 	int m_brightnessMin = 0;
 	int m_brightnessMax = 0;

@@ -1,52 +1,7 @@
 #pragma once
 
 // -- includes -----
-#include <memory>
-
-// -- definitions -----
-enum class eUsbVideoStreamingStatus : int
-{
-	failed = -1,
-	stopped = 0,
-	pendingStart = 1,
-	started = 2,
-};
-
-/// The list of possible camera drivers used by Mikan
-enum class eUsbCameraSettingType : int
-{
-	Brightness,
-	Contrast,
-	Hue,
-	Saturation,
-	Sharpness,
-	Gamma,
-	WhiteBalance,
-	RedBalance,
-	GreenBalance,
-	BlueBalance,
-	Gain,
-	Pan,
-	Tilt,
-	Roll,
-	Zoom,
-	Exposure,
-	Iris,
-	Focus,
-
-	COUNT
-};
-
-/// Constraints on the values for a single tracker property
-struct UsbCameraSettingConstraint
-{
-	int min_value;
-	int max_value;
-	int stepping_delta;
-	int default_value;
-	bool is_automatic;
-	bool is_supported;
-};
+#include "IVideoDevice.h"
 
 struct UsbVideoModeProperties
 {
@@ -78,7 +33,7 @@ public:
 };
 
 // UsbVideoDevice interface
-class IUsbVideoDevice
+class IUsbVideoDevice : public IVideoDevice
 {
 public:
 	IUsbVideoDevice() = default;
@@ -105,14 +60,9 @@ public:
 	virtual bool setVideoModeByName(const char* szVideoModeName) = 0;
 	virtual bool setVideoModeByIndex(size_t index) = 0;
 
-	// -- Camera Settings
-	virtual bool getCameraSettingConstraint(const eUsbCameraSettingType property_type, UsbCameraSettingConstraint& outConstraint) const = 0;
-	virtual void setCameraSetting(const eUsbCameraSettingType property_type, int desired_value) = 0;
-	virtual int getCameraSetting(const eUsbCameraSettingType property_type) const = 0;
-
 	// -- Video Streaming
-	virtual eUsbVideoStreamingStatus startVideoStream() = 0;
-	virtual eUsbVideoStreamingStatus getVideoStreamingStatus() const = 0;
+	virtual eVideoStreamingStatus startVideoStream() = 0;
+	virtual eVideoStreamingStatus getVideoStreamingStatus() const = 0;
 	virtual void stopVideoStream() = 0;
 };
 
