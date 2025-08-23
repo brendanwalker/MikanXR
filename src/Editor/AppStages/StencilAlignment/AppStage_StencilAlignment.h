@@ -48,10 +48,8 @@ private:
 	class RmlModel_StencilAlignment* m_calibrationModel = nullptr;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 
-	VideoSourceViewPtr m_videoSourceComponent;
-
-	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	CameraComponentPtr m_cameraComponent;
+	VideoSourceComponentPtr m_videoSourceComponent;
 
 	StencilAligner* m_stencilAligner;
 	class VideoFrameDistortionView* m_monoDistortionView;

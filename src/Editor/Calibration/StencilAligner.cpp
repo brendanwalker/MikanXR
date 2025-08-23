@@ -2,6 +2,7 @@
 #include "StencilObjectSystem.h"
 #include "CalibrationRenderHelpers.h"
 #include "CalibrationPatternFinder.h"
+#include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
 #include "SdlCommon.h"
@@ -18,7 +19,7 @@
 #include "TransformComponent.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"
 
 #include <algorithm>
@@ -38,11 +39,11 @@ struct StencilAlignmentState
 	t_opencv_point3d_list cvLocalVertexSamples;
 	std::vector<glm::vec3> glLocalVertexSamples;
 
-	void init(VideoSourceViewPtr videoSourceView)
+	void init(VideoSourceComponentPtr videoSourceComponent)
 	{
 		// Get the current mono camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
-		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+		videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
 		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 
@@ -59,11 +60,11 @@ struct StencilAlignmentState
 
 //-- MonoDistortionCalibrator ----
 StencilAligner::StencilAligner(
-	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+	CameraComponentPtr cameraComponent,
 	VideoFrameDistortionView* distortionView,
 	ModelStencilComponentPtr modelStencil)
 	: m_calibrationState(new StencilAlignmentState)
-	, m_cameraTrackingPuckPoseView(cameraTrackingPuckPoseView)
+	, m_cameraComponent(cameraComponent)
 	, m_distortionView(distortionView)
 	, m_modelStencil(modelStencil)
 {
@@ -71,7 +72,7 @@ StencilAligner::StencilAligner(
 	m_frameHeight = distortionView->getFrameHeight();
 
 	// Private calibration state
-	m_calibrationState->init(distortionView->getVideoSourceView());
+	m_calibrationState->init(distortionView->getVideoSourceComponent());
 }
 
 StencilAligner::~StencilAligner()
@@ -121,7 +122,7 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 
 	// Make sure mono camera intrinsics are available
 	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_distortionView->getVideoSourceView()->getCameraIntrinsics(cameraIntrinsics);
+	m_distortionView->getVideoSourceComponent()->getCameraIntrinsics(cameraIntrinsics);
 	if (cameraIntrinsics.intrinsics_type != MONO_CAMERA_INTRINSICS)
 	{
 		return false;
@@ -150,7 +151,7 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 
 	// Compute world transform from the current camera pose
 	glm::mat4 cameraPose;
-	if (!m_distortionView->getVideoSourceView()->getCameraPose(m_cameraTrackingPuckPoseView, cameraPose))
+	if (!m_cameraComponent->getAperturePose(cameraPose))
 	{
 		return false;
 	}

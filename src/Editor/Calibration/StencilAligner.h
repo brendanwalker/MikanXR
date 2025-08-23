@@ -18,7 +18,7 @@ class StencilAligner
 {
 public:
 	StencilAligner(
-		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+		CameraComponentPtr m_cameraComponent,
 		class VideoFrameDistortionView* distortionView,
 		ModelStencilComponentPtr modelStencil);
 	virtual ~StencilAligner();
@@ -42,8 +42,8 @@ protected:
 	// Internal Calibration State
 	struct StencilAlignmentState* m_calibrationState;
 
-	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	// Camera used for calibration
+	CameraComponentPtr m_cameraComponent;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;
