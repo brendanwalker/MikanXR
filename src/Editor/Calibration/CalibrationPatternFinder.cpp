@@ -17,7 +17,7 @@
 #include "TextStyle.h"
 #include "TrackingSystemDefinition.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 
 #include <algorithm>
 
@@ -107,7 +107,7 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 {
 	// Make sure mono camera intrinsics are available
 	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_distortionView->getVideoSourceView()->getCameraIntrinsics(cameraIntrinsics);
+	m_distortionView->getVideoSourceComponent()->getCameraIntrinsics(cameraIntrinsics);
 	if (cameraIntrinsics.intrinsics_type != MONO_CAMERA_INTRINSICS)
 	{
 		return false;
