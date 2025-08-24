@@ -94,5 +94,6 @@ extern const std::string* k_videoSourceTypeStrings;
 #define DEFAULT_ORIGIN_MARKER_ID			0
 #define DEFAULT_UTILITY_MARKER_ID			16
 #define DEFAULT_MARKER_SIZE_MM				100.f
+#define DEFAULT_ARUCO_DICTIONARY_TYPE		eCharucoDictionaryType::DICT_6X6
 
 #define DEFAULT_SPOUT_OUTPUT_NAME			"MikanXR"

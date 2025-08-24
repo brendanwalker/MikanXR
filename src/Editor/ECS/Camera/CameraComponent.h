@@ -89,7 +89,7 @@ public:
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 	void setVideoSourceById(MikanVideoSourceID videoSourceId);
 
-	// Helper functions used to compute 
+	// Helper functions used to fetch camera lens pose properties
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
 	bool getAperturePose(
 		glm::mat4& outCameraPose, 

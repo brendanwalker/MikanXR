@@ -1,13 +1,14 @@
 #include "CalibrationRenderHelpers.h"
-#include "CalibrationPatternFinder.h"
+#include "CalibrationPatternFinder_Charuco.h"
 #include "Colors.h"
 #include "SdlCommon.h"
 #include "Logger.h"
 #include "MathUtility.h"
+#include "MarkerSystemConfig.h"
 #include "MonoLensDistortionCalibrator.h"
 #include "MathTypeConversion.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 
 #include <algorithm>
 #include <atomic>
@@ -45,11 +46,10 @@ struct MonoLensDistortionCalibrationState
 
 	void init(
 		CalibrationPatternFinder* patternFinder,
-		VideoSourceViewPtr videoSourceView, 
+		VideoSourceComponentPtr videoSourceComponent, 
 		int patternCount)
 	{
-		frameWidth= videoSourceView->getFrameWidth();
-		frameHeight= videoSourceView->getFrameHeight();
+		videoSourceComponent->getPixelDimensions(frameWidth, frameHeight);
 		desiredPatternCount = patternCount;
 		
 		patternFinder->getOpenCVLensCalibrationGeometry(&calibrationGeometry);
@@ -76,17 +76,28 @@ struct MonoLensDistortionCalibrationState
 
 //-- MonoDistortionCalibrator ----
 MonoLensDistortionCalibrator::MonoLensDistortionCalibrator(
-	ProjectConfigConstPtr profileConfig,
 	VideoFrameDistortionView* distortionView,
 	int desiredBoardCount)
 	: m_calibrationState(new MonoLensDistortionCalibrationState)
 	, m_distortionView(distortionView)
-	, m_patternFinder(CalibrationPatternFinder::allocatePatternFinder(profileConfig, distortionView))
 {
+	auto markerConfig= MarkerSystemConfig::getSystemConfig();
+	m_patternFinder= 
+		new CalibrationPatternFinder_Charuco(
+			distortionView,
+			markerConfig->getCharucoRows(),
+			markerConfig->getCharucoCols(),
+			markerConfig->getCharucoSquareLengthMM(),
+			markerConfig->getCharucoMarkerLengthMM(),
+			markerConfig->getCharucoDictionaryType());
+
 	frameWidth = distortionView->getFrameWidth();
 	frameHeight = distortionView->getFrameHeight();
 
-	m_calibrationState->init(m_patternFinder, distortionView->getVideoSourceView(), desiredBoardCount);
+	m_calibrationState->init(
+		m_patternFinder, 
+		distortionView->getVideoSourceComponent(), 
+		desiredBoardCount);
 }
 
 MonoLensDistortionCalibrator::~MonoLensDistortionCalibrator()

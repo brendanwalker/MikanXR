@@ -39,5 +39,5 @@ private:
 	MikanMarkerID m_markerId;
 	int m_arucoId;
 	float m_lengthMM;
-	eCharucoDictionaryType m_dictionaryType;
+	eCharucoDictionaryType m_arucoDictionaryType;
 };

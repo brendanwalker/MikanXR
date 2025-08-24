@@ -52,7 +52,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 
 	int desiredArucoId = originMarker->getArucoId();
 	float markerLengthMM = originMarker->getLengthMM();
-	eCharucoDictionaryType charucoDictionaryType = markerSystem->getDictionaryType();
+	eCharucoDictionaryType charucoDictionaryType = markerSystem->getArucoDictionaryType();
 
 	cv::aruco::PredefinedDictionaryType cvCharucoDictionary = cv::aruco::DICT_6X6_250;
 	switch (charucoDictionaryType)

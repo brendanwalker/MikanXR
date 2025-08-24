@@ -6,16 +6,12 @@
 
 #include <memory>
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 // Helper use to implement OpenCV camera lens intrinsic/distortion calibration method.
 // See https://docs.opencv.org/3.3.0/dc/dbb/tutorial_py_calibration.html for details.
 class MonoLensDistortionCalibrator
 {
 public:
 	MonoLensDistortionCalibrator(
-		ProjectConfigConstPtr profileConfig,
 		class VideoFrameDistortionView* distortionView, 
 		int desiredBoardCount);
 	virtual ~MonoLensDistortionCalibrator();

@@ -4,7 +4,6 @@
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MonoLensCalibration/RmlModel_MonoLensCalibration.h"
 #include "MonoLensCalibration/RmlModel_MonoCameraSettings.h"
-#include "App.h"
 #include "InputManager.h"
 #include "MainWindow.h"
 #include "MonoLensDistortionCalibrator.h"
@@ -67,9 +66,6 @@ void AppStage_MonoLensCalibration::enter()
 	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_SPACE)->OnKeyPressed +=
 		MakeDelegate(this, &AppStage_MonoLensCalibration::onCaptureKeyPressed);
 
-	// Get the current video source based on the config
-	ProjectConfigConstPtr profileConfig= App::getInstance()->getProfileConfig();
-
 	// Initialize video stream + lens calibrator
 	eMonoLensCalibrationMenuState newState;
 	//TODO: Handle pendingStart
@@ -84,7 +80,6 @@ void AppStage_MonoLensCalibration::enter()
 		// Create a calibrator to do the actual pattern recording and calibration
 		m_monoLensCalibrator =
 			new MonoLensDistortionCalibrator(
-				profileConfig,
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
 
