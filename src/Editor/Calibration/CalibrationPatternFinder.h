@@ -11,9 +11,6 @@
 
 #include "glm/ext/vector_float3.hpp"
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 class CalibrationPatternFinder;
 typedef std::shared_ptr<CalibrationPatternFinder> CalibrationPatternFinderPtr;
 

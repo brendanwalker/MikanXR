@@ -326,8 +326,6 @@ void AnchorTriangulator::computeCameraRayAtPixel(
 	glm::vec3& outRayStart,
 	glm::vec3& outRayDirection) const
 {
-	VideoSourceViewPtr videoSource = m_distortionView->getVideoSourceView();
-
 	const glm::vec3 glmCameraRight = cameraXform[0];
 	const glm::vec3 glmCameraUp = cameraXform[1];
 	const glm::vec3 glmCameraForward = cameraXform[2] * -1.f; // camera forward is down -z
