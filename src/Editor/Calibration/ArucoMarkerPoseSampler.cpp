@@ -1,5 +1,6 @@
 #include "CalibrationRenderHelpers.h"
 #include "CalibrationPatternFinder.h"
+#include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
 #include "SdlCommon.h"
@@ -12,8 +13,6 @@
 #include "MathUtility.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceView.h"
-#include "VRDeviceComponent.h"
 
 #include <algorithm>
 #include <atomic>
@@ -41,15 +40,12 @@ struct ArucoMarkerPoseSamplerState
 	glm::dvec3 translationOffset;
 
 	void init(
-		ProjectConfigConstPtr config, 
-		VideoSourceViewPtr videoSourceView, 
+		CameraComponentPtr cameraComponent, 
 		int sampleCount)
 	{
-		profileConfig= config;
-
 		// Get the current camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
-		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+		cameraComponent->getApertureIntrinsics(cameraIntrinsics);
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
 
 		inputCameraIntrinsics = cameraIntrinsics.getMonoIntrinsics();
@@ -77,26 +73,19 @@ struct ArucoMarkerPoseSamplerState
 
 //-- MonoDistortionCalibrator ----
 ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
-	ProjectConfigConstPtr profileConfig,
-	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+	CameraComponentPtr cameraComponent,
 	VideoFrameDistortionView* distortionView,
 	int desiredSampleCount)
 	: m_calibrationState(new ArucoMarkerPoseSamplerState)
-	, m_cameraTrackingPuckPoseView(cameraTrackingPuckPoseView)
-	, m_distortionView(distortionView)
-	, m_markerFinder(new CalibrationPatternFinder_Aruco(
-		distortionView,
-		profileConfig->vrCenterArucoId,
-		profileConfig->vrCenterMarkerLengthMM,
-		profileConfig->charucoDictionaryType))
+	, m_calibrationCamera(cameraComponent)
+	, m_markerFinder(new CalibrationPatternFinder_Aruco(cameraComponent, distortionView))
 {
 	frameWidth = distortionView->getFrameWidth();
 	frameHeight = distortionView->getFrameHeight();
 
 	// Private calibration state
 	m_calibrationState->init(
-		profileConfig, 
-		distortionView->getVideoSourceView(), 
+		cameraComponent,
 		desiredSampleCount);
 }
 
@@ -135,8 +124,7 @@ bool ArucoMarkerPoseSampler::computeVRSpaceMarkerXform()
 
 	// Compute the camera pose in VRSpace
 	glm::dmat4 cameraXform_VRSpace;
-	auto videoSourceView= m_distortionView->getVideoSourceView();
-	if (!videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraXform_VRSpace))
+	if (!m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystem))
 	{
 		return false;
 	}
@@ -224,8 +212,7 @@ void ArucoMarkerPoseSampler::renderVRSpaceCalibrationState()
 {
 	// Compute the camera pose in VRSpace
 	glm::dmat4 cameraXform_VRSpace;
-	auto videoSourceView= m_distortionView->getVideoSourceView();
-	if (videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, cameraXform_VRSpace))
+	if (m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystem))
 	{
 		// Draw the marker transform
 		const glm::mat4 markerXform = glm::mat4(m_calibrationState->vrSpaceMarkerXform);

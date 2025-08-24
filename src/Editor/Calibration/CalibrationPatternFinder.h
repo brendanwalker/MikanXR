@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ObjectSystemConfigFwd.h"
+#include "ComponentFwd.h"
 #include "OpenCVFwd.h"
 #include "CameraMath.h"
 #include "ProjectConfig.h"
@@ -118,10 +119,8 @@ class CalibrationPatternFinder_Aruco : public CalibrationPatternFinder
 {
 public:
 	CalibrationPatternFinder_Aruco(
-		VideoFrameDistortionView* distortionView,
-		int desiredArucoId,
-		float markerLengthMM,
-		eCharucoDictionaryType charucoDictionaryType);
+		CameraComponentConstPtr cameraComponent,
+		VideoFrameDistortionView* distortionView);
 	virtual ~CalibrationPatternFinder_Aruco();
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override 

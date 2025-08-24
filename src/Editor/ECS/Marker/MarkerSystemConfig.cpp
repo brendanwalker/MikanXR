@@ -1,80 +1,28 @@
-#include "App.h"
 #include "MarkerSystemConfig.h"
+#include "App.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "ProjectConfig.h"
 #include "StringUtils.h"
 
-// -- MarkerConfig -----
-const std::string MarkerDefinition::k_arucoIdPropertyId= "aruco_id";
-const std::string MarkerDefinition::k_lengthMMPropertyId= "length_mm";
-
-MarkerDefinition::MarkerDefinition()
-	: MikanComponentDefinition()
-{
-	m_markerId = INVALID_MIKAN_ID;
-}
-
-MarkerDefinition::MarkerDefinition(
-	MikanMarkerID markerId,
-	const std::string& markerName)
-	: MikanComponentDefinition(markerName)
-	, m_markerId(markerId)
-{}
-
-configuru::Config MarkerDefinition::writeToJSON()
-{
-	configuru::Config pt = MikanComponentDefinition::writeToJSON();
-
-	pt["id"] = m_markerId;
-	pt["aruco_id"] = m_arucoId;
-	pt["length_mm"] = m_lengthMM;
-
-	return pt;
-}
-
-void MarkerDefinition::readFromJSON(const configuru::Config& pt)
-{
-	MikanComponentDefinition::readFromJSON(pt);
-
-	if (pt.has_key("id"))
-	{
-		m_markerId = pt.get<int>("id");
-		m_arucoId = pt.get_or<int>("aruco_id", 0);
-		m_lengthMM = pt.get_or<float>("length_mm", 100.0f); // Default length is 100mm
-		m_configName = StringUtils::stringify("Marker_", m_markerId);
-	}
-}
-
-void MarkerDefinition::setArucoId(int arucoId)
-{
-	if (arucoId != m_arucoId)
-	{
-		m_arucoId = arucoId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_arucoIdPropertyId));
-	}
-}
-
-void MarkerDefinition::setLengthMM(float lengthMM)
-{
-	if (lengthMM != m_lengthMM)
-	{
-		m_lengthMM = lengthMM;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_lengthMMPropertyId));
-	}
-}
-
 // -- MarkerSystemConfig -----
-const std::string MarkerSystemConfig::k_markerListPropertyId= "Markers";
+const std::string MarkerSystemConfig::k_markerListPropertyId= "markers";
+const std::string MarkerSystemConfig::k_dictionaryTypePropertyId = "dictionaryType";
+
+MarkerSystemConfigPtr MarkerSystemConfig::getSystemConfig()
+{
+	return App::getInstance()->getProfileConfig()->markerSystemConfig;
+}
 
 configuru::Config MarkerSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
-	pt["nextMarkerId"] = nextMarkerId;
+	pt["nextMarkerId"] = m_nextMarkerId;
+	pt["dictionaryType"] = k_charucoDictionaryStrings[(int)m_dictionaryType];
 
 	std::vector<configuru::Config> markerConfigs;
-	for (MarkerDefinitionPtr MarkerDefinitionPtr : MarkerList)
+	for (MarkerDefinitionPtr MarkerDefinitionPtr : m_markerList)
 	{
 		markerConfigs.push_back(MarkerDefinitionPtr->writeToJSON());
 	}
@@ -87,10 +35,20 @@ void MarkerSystemConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	nextMarkerId = pt.get_or<int>("nextMarkerId", nextMarkerId);
+	m_nextMarkerId = pt.get_or<int>("nextMarkerId", m_nextMarkerId);
+
+	const std::string charcuoDictionaryString =
+		pt.get_or<std::string>(
+			"dictionaryType",
+			k_charucoDictionaryStrings[(int)eCharucoDictionaryType::DICT_6X6]);
+	m_dictionaryType =
+		StringUtils::FindEnumValue<eCharucoDictionaryType>(
+			charcuoDictionaryString,
+			k_charucoDictionaryStrings);
+
 
 	// Read in the spatial markers
-	MarkerList.clear();
+	m_markerList.clear();
 	if (pt.has_key("markers"))
 	{
 		for (const configuru::Config& marker_pt : pt["markers"].as_array())
@@ -98,7 +56,7 @@ void MarkerSystemConfig::readFromJSON(const configuru::Config& pt)
 			MarkerDefinitionPtr MarkerDefinitionPtr = std::make_shared<MarkerDefinition>();
 
 			MarkerDefinitionPtr->readFromJSON(marker_pt);
-			MarkerList.push_back(MarkerDefinitionPtr);
+			m_markerList.push_back(MarkerDefinitionPtr);
 
 			addChildConfig(MarkerDefinitionPtr);
 		}
@@ -108,12 +66,12 @@ void MarkerSystemConfig::readFromJSON(const configuru::Config& pt)
 MarkerDefinitionPtr MarkerSystemConfig::getMarkerConfig(MikanMarkerID markerId) const
 {
 	auto it = std::find_if(
-		MarkerList.begin(), MarkerList.end(),
+		m_markerList.begin(), m_markerList.end(),
 		[markerId](MarkerDefinitionPtr configPtr) {
 			return configPtr->getMarkerId() == markerId;
 		});
 
-	if (it != MarkerList.end())
+	if (it != m_markerList.end())
 	{
 		return MarkerDefinitionPtr(*it);
 	}
@@ -124,12 +82,12 @@ MarkerDefinitionPtr MarkerSystemConfig::getMarkerConfig(MikanMarkerID markerId) 
 MarkerDefinitionPtr MarkerSystemConfig::getMarkerConfigByName(const std::string& markerName) const
 {
 	auto it = std::find_if(
-		MarkerList.begin(), MarkerList.end(),
+		m_markerList.begin(), m_markerList.end(),
 		[markerName](MarkerDefinitionPtr configPtr) {
 			return configPtr->getComponentName() == markerName;
 		});
 
-	if (it != MarkerList.end())
+	if (it != m_markerList.end())
 	{
 		return MarkerDefinitionPtr(*it);
 	}
@@ -139,10 +97,11 @@ MarkerDefinitionPtr MarkerSystemConfig::getMarkerConfigByName(const std::string&
 
 MikanMarkerID MarkerSystemConfig::addNewMarker(const std::string& markerName)
 {
-	MarkerDefinitionPtr MarkerDefinitionPtr = std::make_shared<MarkerDefinition>(nextMarkerId, markerName);
-	nextMarkerId++;
+	MarkerDefinitionPtr MarkerDefinitionPtr = 
+		std::make_shared<MarkerDefinition>(m_nextMarkerId, markerName);
+	m_nextMarkerId++;
 
-	MarkerList.push_back(MarkerDefinitionPtr);
+	m_markerList.push_back(MarkerDefinitionPtr);
 	addChildConfig(MarkerDefinitionPtr);
 
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_markerListPropertyId));
@@ -153,20 +112,29 @@ MikanMarkerID MarkerSystemConfig::addNewMarker(const std::string& markerName)
 bool MarkerSystemConfig::removeMarker(MikanMarkerID markerId)
 {
 	auto it = std::find_if(
-		MarkerList.begin(), MarkerList.end(),
+		m_markerList.begin(), m_markerList.end(),
 		[markerId](MarkerDefinitionPtr configPtr) {
 		return configPtr->getMarkerId() == markerId;
 	});
 
-	if (it != MarkerList.end())
+	if (it != m_markerList.end())
 	{
 		removeChildConfig(*it);
 
-		MarkerList.erase(it);
+		m_markerList.erase(it);
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_markerListPropertyId));
 
 		return true;
 	}
 
 	return false;
+}
+
+void MarkerSystemConfig::setDictionaryType(eCharucoDictionaryType dictionaryType)
+{
+	if (dictionaryType != m_dictionaryType)
+	{
+		m_dictionaryType = dictionaryType;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_dictionaryTypePropertyId));
+	}
 }

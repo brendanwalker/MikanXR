@@ -1,45 +1,12 @@
 #pragma once
 
 #include "CommonConfig.h"
-#include "ComponentFwd.h"
-#include "MikanTypeFwd.h"
-#include "MikanComponent.h"
-#include "MikanObjectSystem.h"
-#include "MulticastDelegate.h"
-#include "ObjectSystemFwd.h"
-#include "ObjectSystemConfigFwd.h"
+#include "MarkerDefinition.h"
+#include "ProjectConfigConstants.h"
 
 #include <map>
 #include <memory>
 #include <string>
-
-
-class MarkerDefinition : public MikanComponentDefinition
-{
-public:
-	MarkerDefinition();
-	MarkerDefinition(
-		MikanMarkerID markerId,
-		const std::string& markerName);
-
-	virtual configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-
-	inline MikanMarkerID getMarkerId() const { return m_markerId; }
-
-	static const std::string k_arucoIdPropertyId;
-	inline int getArucoId() const { return m_arucoId; }
-	void setArucoId(int arucoId);
-
-	static const std::string k_lengthMMPropertyId;
-	inline float getLengthMM() const { return m_lengthMM; }
-	void setLengthMM(float lengthMM);
-
-private:
-	MikanMarkerID m_markerId;
-	int m_arucoId;
-	float m_lengthMM;
-};
 
 class MarkerSystemConfig : public CommonConfig
 {
@@ -48,16 +15,23 @@ public:
 		: CommonConfig(configName)
 	{}
 
+	static MarkerSystemConfigPtr getSystemConfig();
+
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	static const std::string k_markerListPropertyId;
 	MarkerDefinitionPtr getMarkerConfig(MikanMarkerID markerId) const;
 	MarkerDefinitionPtr getMarkerConfigByName(const std::string& MarkerName) const;
 	MikanMarkerID addNewMarker(const std::string& markerName);
 	bool removeMarker(MikanMarkerID markerId);
 
-	static const std::string k_markerListPropertyId;
-	std::vector<MarkerDefinitionPtr> MarkerList;
+	static const std::string k_dictionaryTypePropertyId;
+	inline eCharucoDictionaryType getDictionaryType() const { return m_dictionaryType; }
+	void setDictionaryType(eCharucoDictionaryType dictionaryType);
 
-	MikanMarkerID nextMarkerId = 0;
+protected:
+	MikanMarkerID m_nextMarkerId = 0;
+	eCharucoDictionaryType m_dictionaryType = eCharucoDictionaryType::DICT_6X6;
+	std::vector<MarkerDefinitionPtr> m_markerList;
 };

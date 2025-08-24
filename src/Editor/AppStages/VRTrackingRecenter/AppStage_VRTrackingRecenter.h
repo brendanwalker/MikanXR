@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "ComponentFwd.h"
 #include "DeviceViewFwd.h"
 #include "Constants_VRTrackingRecenter.h"
 #include "IRemoteControllableAppStage.h"
@@ -9,6 +10,7 @@
 #include "MikanRendererFwd.h"
 #include "MikanCoreTypes.h"
 #include "VideoDisplayConstants.h"
+
 #include <memory>
 
 //-- definitions -----
@@ -60,11 +62,8 @@ private:
 	MikanStageID m_targetStageId = INVALID_MIKAN_ID;
 	bool m_bHasModifiedCameraSettings= false;
 
-	VideoSourceViewPtr m_videoSourceComponent;
-
-	// Tracking pucks used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckRawPoseView;
-	VRDevicePoseViewPtr m_cameraTrackingPuckScenePoseView;
+	CameraComponentPtr m_cameraComponent;
+	VideoSourceComponentPtr m_videoSourceComponent;
 
 	class ArucoMarkerPoseSampler* m_markerPoseSampler;
 	class VideoFrameDistortionView* m_monoDistortionView;

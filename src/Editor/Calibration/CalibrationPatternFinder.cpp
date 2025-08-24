@@ -1,13 +1,19 @@
 #include "CalibrationPatternFinder.h"
 #include "CalibrationRenderHelpers.h"
+#include "CameraComponent.h"
 #include "Colors.h"
 #include "CameraMath.h"
 #include "MikanTextRenderer.h"
 #include "Logger.h"
+#include "ArucoMarkerPoseSampler.h"
+#include "MarkerDefinition.h"
+#include "MarkerSystemConfig.h"
 #include "MathOpenCV.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
+#include "StageComponent.h"
 #include "TextStyle.h"
+#include "TrackingSystemDefinition.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceView.h"
 
@@ -599,13 +605,24 @@ public:
 };
 
 CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
-	VideoFrameDistortionView* distortionView,
-	int desiredArucoId,
-	float markerLengthMM,
-	eCharucoDictionaryType charucoDictionaryType)
+	CameraComponentConstPtr cameraComponent,
+	VideoFrameDistortionView* distortionView)
 	: CalibrationPatternFinder(distortionView)
 	, m_markerData(new ArucoBoardData())
 {
+	StageComponentConstPtr ownerStage= cameraComponent->getOwnerStageComponent();
+	assert(ownerStage != nullptr);
+	TrackingSystemDefinitionConstPtr trackingSystem = ownerStage->getTrackingSystemDefinitionConst();
+	assert(trackingSystem != nullptr);
+	MarkerSystemConfigPtr markerSystem= MarkerSystemConfig::getSystemConfig();
+	assert(markerSystem != nullptr);
+	MarkerDefinitionConstPtr originMarker= trackingSystem->getOriginMarker();
+	assert(originMarker != nullptr);
+
+	int desiredArucoId = originMarker->getArucoId();
+	float markerLengthMM = originMarker->getLengthMM();
+	eCharucoDictionaryType charucoDictionaryType = markerSystem->getDictionaryType();
+
 	cv::aruco::PredefinedDictionaryType cvCharucoDictionary = cv::aruco::DICT_6X6_250;
 	switch (charucoDictionaryType)
 	{

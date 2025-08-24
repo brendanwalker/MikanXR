@@ -38,10 +38,16 @@ class StageComponent final : public TransformComponent
 public:
 	StageComponent(MikanObjectWeakPtr owner);
 
-	inline StageComponentDefinitionPtr getStageComponentDefinition() const
+	inline StageComponentDefinitionConstPtr getStageComponentDefinitionConst() const
+	{
+		return std::static_pointer_cast<const StageComponentDefinition>(m_definition);
+	}
+	inline StageComponentDefinitionPtr getStageComponentDefinition()
 	{
 		return std::static_pointer_cast<StageComponentDefinition>(m_definition);
 	}
+
+	TrackingSystemDefinitionConstPtr getTrackingSystemDefinitionConst() const;
 
 	// -- MikanComponent ----
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;

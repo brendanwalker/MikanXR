@@ -3,6 +3,8 @@
 #include "VRTrackingRecenter/RmlModel_VRTrackingRecenter.h"
 #include "ArucoMarkerPoseSampler.h"
 #include "App.h"
+#include "CameraComponent.h"
+#include "CameraObjectSystem.h"
 #include "MikanCamera.h"
 #include "IMkFrameBuffer.h"
 #include "MikanLineRenderer.h"
@@ -21,11 +23,9 @@
 #include "MathGLM.h"
 #include "CalibrationPatternFinder.h"
 #include "TextStyle.h"
-#include "VideoSourceView.h"
-#include "VideoSourceManager.h"
 #include "VideoFrameDistortionView.h"
 #include "VRObjectSystem.h"
-#include "VRDeviceComponent.h"
+#include "VideoSourceComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -62,15 +62,8 @@ void AppStage_VRTrackingRecenter::enter()
 	AppStage::enter();
 
 	// Get the current video source based on the config
-	const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	m_videoSourceComponent = 
-		VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-
-	// Get the camera tracking puck pose view
-	auto vrObjectSystem = VRObjectSystem::getSystem();
-	auto cameraTrackingPuckView= vrObjectSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
-	m_cameraTrackingPuckRawPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
-	m_cameraTrackingPuckScenePoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+	m_cameraComponent = CameraObjectSystem::getSystem()->getCurrentCamera();
+	m_videoSourceComponent = m_cameraComponent->getVideoSourceComponent();
 
 	// Fetch the new camera associated with the viewport
 	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
@@ -79,7 +72,7 @@ void AppStage_VRTrackingRecenter::enter()
 	// Make sure the camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
+	m_cameraComponent->getApertureIntrinsics(cameraIntrinsics);
 	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
@@ -105,8 +98,7 @@ void AppStage_VRTrackingRecenter::enter()
 		// Create a sampler to do the actual marker pose recording
 		m_markerPoseSampler =
 			new ArucoMarkerPoseSampler(
-				profileConfig,
-				m_cameraTrackingPuckRawPoseView,
+				m_cameraComponent,
 				m_monoDistortionView,
 				DESIRED_MARKER_SAMPLE_COUNT);
 	}
@@ -182,7 +174,7 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 			{
 				// Use the re-centered scene space for the camera
 				glm::mat4 cameraPose;
-				if (m_videoSourceComponent->getCameraPose(m_cameraTrackingPuckScenePoseView, cameraPose))
+				if (m_cameraComponent->getAperturePose(cameraPose, eVRDevicePoseSpace::MikanScene))
 				{
 					m_mkCamera->setCameraTransform(cameraPose);
 				}

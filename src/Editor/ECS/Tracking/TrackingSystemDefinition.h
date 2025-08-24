@@ -33,6 +33,7 @@ public:
 
 	static const std::string k_originMarkerPropertyId;
 	inline MikanMarkerID getOriginMarkerId() const { return m_originMarkeId; }
+	MarkerDefinitionConstPtr getOriginMarker() const;
 	void setOriginMarkerId(MikanMarkerID arucoId);
 
 private:

@@ -98,7 +98,7 @@ bool StageComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 	if (TransformComponent::getPropertyValue(propertyName, outValue))
 		return true;
 
-	StageComponentDefinitionPtr definition = getStageComponentDefinition();
+	StageComponentDefinitionConstPtr definition = getStageComponentDefinitionConst();
 	if (propertyName == StageComponentDefinition::k_trackingSystemIdPropertyId)
 	{
 		outValue = (int)definition->getTrackingSystemId();
@@ -123,13 +123,12 @@ bool StageComponent::setPropertyValue(const std::string& propertyName, const Rml
 	return false;
 }
 
-TrackingSystemDefinitionConstPtr StageComponent::getTrackingSystemDefinition() const
+TrackingSystemDefinitionConstPtr StageComponent::getTrackingSystemDefinitionConst() const
 {
-	MikanTrackingSystemID systemId = getStageComponentDefinition()->getTrackingSystemId();
+	MikanTrackingSystemID systemId = getStageComponentDefinitionConst()->getTrackingSystemId();
 	if (systemId != INVALID_MIKAN_ID)
 	{
-		TrackingSystemsConfig::getSystemConfig()->getVRTrackingSystemConfig()
-		return getOwnerObject()->getScene()->getTrackingSystemDefinition(systemId);
+		return TrackingSystemsConfig::getSystemConfig()->getTrackingSystemDefinitionConst(systemId);
 	}
 
 	return nullptr;

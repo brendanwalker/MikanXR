@@ -13,8 +13,7 @@ class ArucoMarkerPoseSampler
 {
 public:
 	ArucoMarkerPoseSampler(
-		ProjectConfigConstPtr profileConfig,
-		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+		CameraComponentPtr cameraComponent,
 		class VideoFrameDistortionView* distortionView,
 		int desiredSampleCount);
 	virtual ~ArucoMarkerPoseSampler();
@@ -41,11 +40,8 @@ protected:
 	// Internal Calibration State
 	struct ArucoMarkerPoseSamplerState* m_calibrationState;
 
-	// Tracking pucks used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
-
-	// Video buffer state
-	class VideoFrameDistortionView* m_distortionView;
+	// Tracked camera used for calibration
+	CameraComponentPtr m_calibrationCamera;
 
 	// Calibration pattern being used
 	class CalibrationPatternFinder_Aruco* m_markerFinder;

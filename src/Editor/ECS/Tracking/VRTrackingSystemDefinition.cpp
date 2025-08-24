@@ -1,5 +1,6 @@
 #include "VRTrackingSystemDefinition.h"
 #include "App.h"
+#include "MarkerSystemConfig.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
@@ -87,6 +88,11 @@ void VRTrackingSystemDefinition::setCharucoTrackingMountId(MikanTrackingMountID 
 	}
 }
 
+TrackingMountDefinitionConstPtr VRTrackingSystemDefinition::getCharucoTrackingMount() const
+{
+	return getTrackingMountDefinitionConst(m_charucoMountId);
+}
+
 void VRTrackingSystemDefinition::setUtilityMarkerId(MikanMarkerID markerId)
 {
 	if (markerId != m_utilityMarkerId)
@@ -152,4 +158,14 @@ bool VRTrackingSystemDefinition::removeTrackingMount(MikanTrackingMountID mountI
 	}
 
 	return false;
+}
+
+MarkerDefinitionConstPtr VRTrackingSystemDefinition::getUtilityMarker() const
+{
+	if (m_utilityMarkerId == INVALID_MIKAN_ID)
+	{
+		return MarkerSystemConfig::getSystemConfig()->getMarkerConfig(m_utilityMarkerId);
+	}
+
+	return MarkerDefinitionConstPtr();
 }

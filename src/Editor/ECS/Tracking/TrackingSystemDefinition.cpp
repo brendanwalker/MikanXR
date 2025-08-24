@@ -1,5 +1,6 @@
 #include "TrackingSystemDefinition.h"
 #include "App.h"
+#include "MarkerSystemConfig.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
@@ -52,4 +53,14 @@ void TrackingSystemDefinition::setOriginMarkerId(MikanMarkerID arucoId)
 		m_originMarkeId = arucoId;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_originMarkerPropertyId));
 	}
+}
+
+MarkerDefinitionConstPtr TrackingSystemDefinition::getOriginMarker() const
+{
+	if (m_originMarkeId == INVALID_MIKAN_ID)
+	{
+		return MarkerSystemConfig::getSystemConfig()->getMarkerConfig(m_originMarkeId);
+	}
+
+	return MarkerDefinitionConstPtr();
 }

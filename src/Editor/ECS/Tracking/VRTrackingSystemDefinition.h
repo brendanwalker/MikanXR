@@ -21,10 +21,12 @@ public:
 	static const std::string k_charucoMountIdPropertyId;
 	inline MikanTrackingMountID getCharucoTrackingMountId() const { return m_charucoMountId; }
 	void setCharucoTrackingMountId(MikanTrackingMountID mountId);
+	TrackingMountDefinitionConstPtr getCharucoTrackingMount() const;
 
 	static const std::string k_utilityMarkerIdPropertyId;
 	inline MikanMarkerID getUtilityMarkerId() const { return m_utilityMarkerId; }
 	void setUtilityMarkerId(MikanMarkerID markerId);
+	MarkerDefinitionConstPtr getUtilityMarker() const;
 
 	static const std::string k_trackingMountsPropertyId;
 	TrackingMountDefinitionConstPtr getTrackingMountDefinitionConst(MikanTrackingMountID mountId) const;
