@@ -1,4 +1,5 @@
 #include "CameraMath.h"
+#include "CameraComponent.h"
 #include "DeviceInterface.h"
 #include "Logger.h"
 #include "MikanMathTypes.h"
@@ -6,8 +7,7 @@
 #include "MikanCameraTypes.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
-#include "VideoSourceView.h"
-#include "VRDeviceComponent.h"
+#include "VideoSourceComponent.h"
 
 #include "opencv2/opencv.hpp"
 
@@ -38,13 +38,12 @@ glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
 }
 
 bool computeOpenCVCameraExtrinsicMatrix(
-    VideoSourceViewPtr videoSource, 
-    VRDevicePoseViewPtr trackingPuck,
+	CameraComponentPtr cameraComponent,
     cv::Matx34f &out)
 {
     // Extrinsic matrix is the inverse of the camera pose matrix
     glm::mat4 glm_camera_xform;
-	if (videoSource->getCameraPose(trackingPuck, glm_camera_xform))
+	if (cameraComponent->getAperturePose(glm_camera_xform))
 	{
 		const glm::mat4 glm_mat = glm::inverse(glm_camera_xform);
 
@@ -290,7 +289,7 @@ void extractCameraIntrinsicMatrixParameters(
 }
 
 bool computeOpenCVCameraRectification(
-    VideoSourceViewPtr videoSource,
+	VideoSourceComponentPtr videoSource,
     VideoFrameSection section,
     cv::Matx33d &rotationOut,
     cv::Matx34d &projectionOut)

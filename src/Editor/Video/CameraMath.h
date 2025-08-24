@@ -2,7 +2,7 @@
 
 // -- includes -----
 #include "OpenCVFwd.h"
-#include "DeviceViewFwd.h"
+#include "ComponentFwd.h"
 #include "VideoSourceInterface.h"
 
 #include "glm/ext/quaternion_float.hpp"
@@ -28,7 +28,9 @@ struct OpenGLCalibrationGeometry
 
 // -- interface -----
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform);
-bool computeOpenCVCameraExtrinsicMatrix(VideoSourceViewPtr videoSource, VRDevicePoseViewPtr trackingPuck, cv::Matx34f &out);
+bool computeOpenCVCameraExtrinsicMatrix(
+	CameraComponentPtr cameraComponent, 
+	cv::Matx34f &out);
 
 bool computeMonoLensCameraCalibration(
 	const int frameWidth,
@@ -66,7 +68,7 @@ void extractCameraIntrinsicMatrixParameters(
 	float& out_principal_point_y,
 	float& out_skew);
 bool computeOpenCVCameraRectification(
-	VideoSourceViewPtr videoSource,
+	VideoSourceComponentPtr videoSource,
 	VideoFrameSection section,
 	cv::Matx33d &rotationOut,
 	cv::Matx34d &projectionOut);
