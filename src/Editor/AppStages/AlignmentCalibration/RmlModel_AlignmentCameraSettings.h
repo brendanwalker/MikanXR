@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "SinglecastDelegate.h"
 #include "Shared/RmlModel.h"
@@ -15,8 +16,7 @@ class RmlModel_AlignmentCameraSettings : public RmlModel
 public:
 	bool init(
 		Rml::Context* rmlContext,
-		VideoSourceComponentConstPtr videoSourceComponent,
-		ProjectConfigConstPtr profileConfig);
+		CameraDefinitionConstPtr cameraDefinition);
 	virtual void dispose() override;
 
 	eAlignmentCalibrationMenuState getMenuState() const;

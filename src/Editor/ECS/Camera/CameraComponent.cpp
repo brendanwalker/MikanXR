@@ -241,14 +241,15 @@ StageComponentConstPtr CameraComponent::getOwnerStageComponent() const
 
 VRTrackingSystemDefinitionConstPtr CameraComponent::getVRTrackingSystemDefinition() const
 {
-	MikanTrackingSystemID trackingSystemId =
-		getOwnerStageComponent()->getStageComponentDefinitionConst()->getTrackingSystemId();
-
-	if (trackingSystemId != INVALID_MIKAN_ID)
+	StageComponentConstPtr ownerStage = getOwnerStageComponent();
+	if (ownerStage != nullptr)
 	{
-		ProjectConfigPtr projectConfig = App::getInstance()->getProfileConfig();
-
-		return projectConfig->trackingSystemsConfig->getVRTrackingSystemConfig(trackingSystemId);
+		TrackingSystemDefinitionConstPtr trackingSystem = ownerStage->getTrackingSystemDefinitionConst();
+		if (trackingSystem != nullptr &&
+			trackingSystem->getTrackingSystemType() == eTrackingSystemType::vr)
+		{
+			return std::static_pointer_cast<const VRTrackingSystemDefinition>(trackingSystem);
+		}
 	}
 
 	return VRTrackingSystemDefinitionConstPtr();

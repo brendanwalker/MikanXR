@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MikanMathTypes.h"
 #include "TrackingSystemDefinition.h"
 #include "TrackingMountDefinition.h"
 #include <vector>
@@ -23,6 +24,10 @@ public:
 	void setCharucoTrackingMountId(MikanTrackingMountID mountId);
 	TrackingMountDefinitionConstPtr getCharucoTrackingMount() const;
 
+	static const std::string k_charucoMountOffsetPropertyId;
+	inline MikanVector3f getCharucoMountOffsetMM() const { return m_charucoMountOffsetMM; }
+	void setCharucoMountOffsetMM(const MikanVector3f& offset);
+
 	static const std::string k_utilityMarkerIdPropertyId;
 	inline MikanMarkerID getUtilityMarkerId() const { return m_utilityMarkerId; }
 	void setUtilityMarkerId(MikanMarkerID markerId);
@@ -37,6 +42,8 @@ public:
 private:
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	MikanTrackingMountID m_charucoMountId;
+	MikanVector3f m_charucoMountOffsetMM;
+
 	MikanMarkerID m_utilityMarkerId;
 	std::vector<TrackingMountDefinitionPtr> m_trackingMounts;
 	MikanTrackingMountID m_nextTrackingMountId = 0;

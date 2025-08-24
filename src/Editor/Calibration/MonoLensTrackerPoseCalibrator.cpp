@@ -1,5 +1,6 @@
 #include "CalibrationRenderHelpers.h"
-#include "CalibrationPatternFinder.h"
+#include "CalibrationPatternFinder_Charuco.h"
+#include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
 #include "SdlCommon.h"
@@ -7,13 +8,15 @@
 #include "MikanTextRenderer.h"
 #include "MathGLM.h"
 #include "MonoLensTrackerPoseCalibrator.h"
+#include "MarkerSystemConfig.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"
+#include "VRTrackingSystemDefinition.h"
 
 #include <algorithm>
 #include <atomic>
@@ -23,7 +26,6 @@ struct MonoLensTrackerCalibrationState
 {
 	// Static Input
 	MikanMonoIntrinsics inputCameraIntrinsics;
-	ProjectConfigConstPtr profileConfig;
 	int desiredSampleCount;
 
 	// Computed every frame
@@ -44,13 +46,11 @@ struct MonoLensTrackerCalibrationState
 	glm::dquat rotationOffset;
 	glm::dvec3 translationOffset;
 
-	void init(ProjectConfigConstPtr config, VideoSourceViewPtr videoSourceView, int patternCount)
+	void init(CameraComponentPtr cameraComponent, int patternCount)
 	{
-		profileConfig= config;
-
 		// Get the current camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
-		videoSourceView->getCameraIntrinsics(cameraIntrinsics);
+		cameraComponent->getApertureIntrinsics(cameraIntrinsics);
 		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
 
 		inputCameraIntrinsics = cameraIntrinsics.getMonoIntrinsics();
@@ -81,22 +81,30 @@ struct MonoLensTrackerCalibrationState
 
 //-- MonoDistortionCalibrator ----
 MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
-	ProjectConfigConstPtr profileConfig,
-	VRDevicePoseViewPtr cameraTrackingPuckPoseView,
+	CameraComponentPtr cameraComponent,
 	VRDevicePoseViewPtr matTrackingPuckPoseView,
 	VideoFrameDistortionView* distortionView,
 	int desiredSampleCount)
 	: m_calibrationState(new MonoLensTrackerCalibrationState)
-	, m_cameraTrackingPuckPoseView(cameraTrackingPuckPoseView)
+	, m_cameraComponent(cameraComponent)
 	, m_matTrackingPuckPoseView(matTrackingPuckPoseView)
 	, m_distortionView(distortionView)
-	, m_patternFinder(CalibrationPatternFinder::allocatePatternFinder(profileConfig, distortionView))
 {
+	auto markerConfig = MarkerSystemConfig::getSystemConfig();
+	m_patternFinder =
+		new CalibrationPatternFinder_Charuco(
+			distortionView,
+			markerConfig->getCharucoRows(),
+			markerConfig->getCharucoCols(),
+			markerConfig->getCharucoSquareLengthMM(),
+			markerConfig->getCharucoMarkerLengthMM(),
+			markerConfig->getCharucoDictionaryType());
+
 	frameWidth = distortionView->getFrameWidth();
 	frameHeight = distortionView->getFrameHeight();
 
 	// Private calibration state
-	m_calibrationState->init(profileConfig, distortionView->getVideoSourceView(), desiredSampleCount);
+	m_calibrationState->init(cameraComponent, desiredSampleCount);
 }
 
 MonoLensTrackerPoseCalibrator::~MonoLensTrackerPoseCalibrator()
@@ -134,11 +142,12 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 
 	// Fetch the calibration poses from the devices
 	glm::dmat4 cameraPuckXform_VRSpace;
-	if (!m_cameraTrackingPuckPoseView->getPose(cameraPuckXform_VRSpace))
+	if (!m_cameraComponent->getAperturePose(cameraPuckXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystem))
 	{
 		return false;
 	}
 	glm::dmat4 matPuckXform_VRSpace;
+	assert(m_matTrackingPuckPoseView->getPoseSpace() == eVRDevicePoseSpace::VRTrackingSystem);
 	if (!m_matTrackingPuckPoseView->getPose(matPuckXform_VRSpace))
 	{
 		return false;
@@ -157,10 +166,12 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 
 	// Compute the VR tracking space offset from matPuck to calibration pattern
 	// using the measured offsets on the paper calibration mat
-	ProjectConfigConstPtr config= m_calibrationState->profileConfig;
-	const double puckToPatternX = (double)config->puckHorizontalOffsetMM * k_millimeters_to_meters;
-	const double puckToPatternY = (double)config->puckVerticalOffsetMM * k_millimeters_to_meters;
-	const double puckToPatternZ = (double)config->puckDepthOffsetMM * k_millimeters_to_meters;
+	VRTrackingSystemDefinitionConstPtr vrTrackingConfig = 
+		m_cameraComponent->getVRTrackingSystemDefinition();
+	MikanVector3f puckOffset= vrTrackingConfig->getCharucoMountOffsetMM();
+	const double puckToPatternX = (double)puckOffset.x * k_millimeters_to_meters;
+	const double puckToPatternY = (double)puckOffset.y * k_millimeters_to_meters;
+	const double puckToPatternZ = (double)puckOffset.z * k_millimeters_to_meters;
 	const glm::dmat4 puckYawRot180 = 
 		glm::rotate(
 			glm::dmat4(1.f), 
@@ -294,7 +305,7 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 
 	// Draw the camera puck transform
 	glm::mat4 cameraPuckXform;
-	if (m_cameraTrackingPuckPoseView->getPose(cameraPuckXform))
+	if (m_cameraComponent->getAperturePose(cameraPuckXform, eVRDevicePoseSpace::VRTrackingSystem))
 	{
 		drawTransformedAxes(cameraPuckXform, 0.1f);
 	}

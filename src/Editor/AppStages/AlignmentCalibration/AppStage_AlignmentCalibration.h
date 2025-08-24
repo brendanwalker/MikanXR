@@ -57,6 +57,8 @@ protected:
 	bool handleGetChessboardStabilityCommand(std::vector<std::string>& outResults);
 	bool handleBeginCommand(std::vector<std::string>& outResults);
 	bool handleRestartCommand(std::vector<std::string>& outResults);
+
+	static VRDevicePoseViewPtr makeMatPoseViewFromCamera(CameraComponentPtr m_targetCameraComponent);
 	
 private:
 	class RmlModel_AlignmentCalibration* m_calibrationModel = nullptr;

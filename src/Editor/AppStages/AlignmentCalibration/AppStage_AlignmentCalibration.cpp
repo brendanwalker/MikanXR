@@ -5,7 +5,6 @@
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "AlignmentCalibration/RmlModel_AlignmentCalibration.h"
 #include "AlignmentCalibration/RmlModel_AlignmentCameraSettings.h"
-#include "App.h"
 #include "CalibrationPatternFinder.h"
 #include "CameraComponent.h"
 #include "Colors.h"
@@ -26,12 +25,14 @@
 #include "MkScopedObjectBinding.h"
 #include "MkStateStack.h"
 #include "MonoLensTrackerPoseCalibrator.h"
+#include "StageComponent.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
+#include "VRTrackingSystemDefinition.h"
 
 #include "SDL_keycode.h"
 
@@ -41,6 +42,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
+
 
 //-- statics ----
 const char* AppStage_AlignmentCalibration::APP_STAGE_NAME = "AlignmentCalibration";
@@ -88,22 +90,14 @@ void AppStage_AlignmentCalibration::enter()
 	AppStage::enter();
 	assert(m_targetCameraComponent != nullptr);
 
-	// Get the current video source based on the config
-	const ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	auto vrDeviceSystem= VRObjectSystem::getSystem();
-	auto cameraTrackingPuckView= vrDeviceSystem->getVRDeviceByPath(profileConfig->cameraVRDevicePath);
-	auto matTrackingPuckView= vrDeviceSystem->getVRDeviceByPath(profileConfig->matVRDevicePath);
+	// Bind components needed for calibration
+	m_videoSourceComponent = m_targetCameraComponent->getVideoSourceComponent();
+	m_matTrackingPuckPoseView = makeMatPoseViewFromCamera(m_targetCameraComponent);
 
-	m_videoSourceComponent =
-		VideoSourceSystem::getSystem()->getVideoSourceById(
-			m_targetCameraComponent->getCameraDefinition()->getVideoSourceId());
-	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
-	m_matTrackingPuckPoseView = matTrackingPuckView->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
-
-	// Fetch the new camera associated with the viewport
+	// Fetch the new mk camera associated with the viewport
 	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
 
-	// Make sure the camera doing the 3d rendering has the same
+	// Make sure the mk camera doing the 3d rendering has the same
 	// fov and aspect ration as the real camera
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
@@ -133,8 +127,7 @@ void AppStage_AlignmentCalibration::enter()
 		// Create a calibrator to do the actual pattern recording and calibration
 		m_trackerPoseCalibrator =
 			new MonoLensTrackerPoseCalibrator(
-				profileConfig,
-				m_cameraTrackingPuckPoseView,
+				m_targetCameraComponent,
 				m_matTrackingPuckPoseView,
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
@@ -169,7 +162,7 @@ void AppStage_AlignmentCalibration::enter()
 			MakeDelegate(this, &AppStage_AlignmentCalibration::onChessboardStabilityChangedEvent);
 
 		// Init camera settings model
-		m_cameraSettingsModel->init(context, m_videoSourceComponent, profileConfig);
+		m_cameraSettingsModel->init(context, m_targetCameraComponent->getCameraDefinition());
 		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onViewportModeChanged);
 		m_cameraSettingsModel->OnVRFrameDelayChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onVRFrameDelayChanged);
 		if (m_calibrationModel->getBypassCalibrationFlag())
@@ -560,9 +553,7 @@ void AppStage_AlignmentCalibration::onViewportModeChanged(eAlignmentCalibrationV
 
 void AppStage_AlignmentCalibration::onVRFrameDelayChanged(int newVRFrameDelay)
 {
-	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-
-	profileConfig->setVRFrameDelay(newVRFrameDelay);
+	m_targetCameraComponent->getCameraDefinition()->setTrackingFrameDelay(newVRFrameDelay);
 }
 
 // Remote Control
@@ -640,4 +631,34 @@ bool AppStage_AlignmentCalibration::handleRestartCommand(std::vector<std::string
 	}
 
 	return true;
+}
+
+VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(CameraComponentPtr m_targetCameraComponent)
+{
+	VRTrackingSystemDefinitionConstPtr vrTrackingSystem =
+		m_targetCameraComponent->getVRTrackingSystemDefinition();
+
+	if (!vrTrackingSystem)
+	{
+		MikanTrackingMountID matMountId = vrTrackingSystem->getCharucoTrackingMountId();
+
+		if (matMountId != INVALID_MIKAN_ID)
+		{
+			TrackingMountDefinitionConstPtr matTrackingMount =
+				vrTrackingSystem->getTrackingMountDefinitionConst(matMountId);
+			if (matTrackingMount)
+			{
+				VRDeviceComponentPtr matTrackingPuck =
+					VRObjectSystem::getSystem()->getVRDeviceByPath(matTrackingMount->getDevicePath());
+
+				if (matTrackingPuck)
+				{
+					return matTrackingPuck->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
+				}
+			}
+		}
+	}
+
+	// Return an empty pose view if we couldn't find the MAT device
+	return std::make_shared<VRDevicePoseView>();
 }

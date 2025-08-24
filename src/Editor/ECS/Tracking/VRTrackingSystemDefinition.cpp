@@ -11,6 +11,7 @@
 
 // -- VRTrackingSystemDefinition -----
 const std::string VRTrackingSystemDefinition::k_charucoMountIdPropertyId= "charucoMountId";
+const std::string VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId = "charucoMountOffsetMM";
 const std::string VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId= "utilityMarkerId";
 const std::string VRTrackingSystemDefinition::k_trackingMountsPropertyId= "trackingMounts";
 
@@ -27,6 +28,11 @@ VRTrackingSystemDefinition::VRTrackingSystemDefinition(
 	, m_trackingRuntime(trackingRuntime)
 	, m_charucoMountId(INVALID_MIKAN_ID)
 	, m_utilityMarkerId(INVALID_MIKAN_ID)
+	, m_charucoMountOffsetMM({
+		DEFAULT_PUCK_HORIZONTAL_OFFSET_MM,
+		DEFAULT_PUCK_VERTICAL_OFFSET_MM,
+		DEFAULT_PUCK_DEPTH_OFFSET_MM
+		})
 {
 }
 
@@ -43,6 +49,8 @@ configuru::Config VRTrackingSystemDefinition::writeToJSON()
 	pt["charuco_mount_id"] = m_charucoMountId;
 	pt["utility_marker_id"] = m_utilityMarkerId;
 	pt["next_tracking_mount_id"] = m_nextTrackingMountId;
+
+	writeVector3f(pt, "charuco_mount_offset_mm", m_charucoMountOffsetMM);
 
 	std::vector<configuru::Config> trackingMountConfigs;
 	for (auto trackingMount : m_trackingMounts)
@@ -64,6 +72,8 @@ void VRTrackingSystemDefinition::readFromJSON(const configuru::Config& pt)
 		StringUtils::FindEnumValue<eTrackingRuntime>(trackingRuntimeString, k_trackingRuntimeStrings);
 	m_charucoMountId = pt.get_or<MikanTrackingMountID>("charuco_mount_id", INVALID_MIKAN_ID);
 	m_utilityMarkerId = pt.get_or<MikanMarkerID>("utility_marker_id", INVALID_MIKAN_ID);
+	
+	readVector3f(pt, "charuco_mount_offset_mm", m_charucoMountOffsetMM);
 
 	if (pt.has_key("tracking_mounts"))
 	{
@@ -91,6 +101,12 @@ void VRTrackingSystemDefinition::setCharucoTrackingMountId(MikanTrackingMountID 
 TrackingMountDefinitionConstPtr VRTrackingSystemDefinition::getCharucoTrackingMount() const
 {
 	return getTrackingMountDefinitionConst(m_charucoMountId);
+}
+
+void VRTrackingSystemDefinition::setCharucoMountOffsetMM(const MikanVector3f& offset)
+{
+	m_charucoMountOffsetMM = offset;
+	markDirty(ConfigPropertyChangeSet().addPropertyName("charucoMountOffsetMM"));
 }
 
 void VRTrackingSystemDefinition::setUtilityMarkerId(MikanMarkerID markerId)

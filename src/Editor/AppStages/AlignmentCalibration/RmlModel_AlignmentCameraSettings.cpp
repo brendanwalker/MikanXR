@@ -1,6 +1,6 @@
+#include "CameraComponent.h"
 #include "RmlModel_AlignmentCameraSettings.h"
 #include "Constants_AlignmentCalibration.h"
-#include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceInterface.h"
@@ -11,8 +11,7 @@
 
 bool RmlModel_AlignmentCameraSettings::init(
 	Rml::Context* rmlContext,
-	VideoSourceComponentConstPtr videoSourceComponent,
-	ProjectConfigConstPtr profileConfig)
+	CameraDefinitionConstPtr cameraDefinition)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "alignment_camera_settings");
@@ -60,7 +59,7 @@ bool RmlModel_AlignmentCameraSettings::init(
 	// Set defaults
 	setMenuState(eAlignmentCalibrationMenuState::inactive);
 	setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
-	setVRFrameDelay(profileConfig->getVRFrameDelay());
+	setVRFrameDelay(cameraDefinition->getTrackingFrameDelay());
 
 	return true;
 }
