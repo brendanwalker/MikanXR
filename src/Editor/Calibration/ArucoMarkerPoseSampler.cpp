@@ -1,5 +1,5 @@
 #include "CalibrationRenderHelpers.h"
-#include "CalibrationPatternFinder.h"
+#include "CalibrationPatternFinder_Aruco.h"
 #include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
