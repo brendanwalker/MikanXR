@@ -242,7 +242,7 @@ StageComponentConstPtr CameraComponent::getOwnerStageComponent() const
 VRTrackingSystemDefinitionConstPtr CameraComponent::getVRTrackingSystemDefinition() const
 {
 	MikanTrackingSystemID trackingSystemId =
-		getOwnerStageComponent()->getStageComponentDefinition()->getTrackingSystemId();
+		getOwnerStageComponent()->getStageComponentDefinitionConst()->getTrackingSystemId();
 
 	if (trackingSystemId != INVALID_MIKAN_ID)
 	{
