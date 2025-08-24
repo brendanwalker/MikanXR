@@ -12,6 +12,7 @@
 #include <RmlUi/Core/Variant.h>
 
 #include <queue>
+#include "TrackingSystemsConfig.h"
 
 // -- StageComponentDefinition -----
 const std::string StageComponentDefinition::k_trackingSystemIdPropertyId = "tracking_system_id";
@@ -120,6 +121,18 @@ bool StageComponent::setPropertyValue(const std::string& propertyName, const Rml
 	}
 
 	return false;
+}
+
+TrackingSystemDefinitionConstPtr StageComponent::getTrackingSystemDefinition() const
+{
+	MikanTrackingSystemID systemId = getStageComponentDefinition()->getTrackingSystemId();
+	if (systemId != INVALID_MIKAN_ID)
+	{
+		TrackingSystemsConfig::getSystemConfig()->getVRTrackingSystemConfig()
+		return getOwnerObject()->getScene()->getTrackingSystemDefinition(systemId);
+	}
+
+	return nullptr;
 }
 
 // -- IFunctionInterface ----

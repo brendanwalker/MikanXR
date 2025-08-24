@@ -13,7 +13,7 @@
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
-#include "TrackingSystemConfig.h"
+#include "TrackingSystemsConfig.h"
 #include "VideoSourceManager.h"
 #include "VideoSourceSystemConfig.h"
 #include "VRObjectSystem.h"
