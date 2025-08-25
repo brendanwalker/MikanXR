@@ -176,7 +176,7 @@ namespace RmlGfx {
 		out_shaders.program_color = ownerWindow->getShaderCache()->fetchCompiledIMkShader(color_program_code);
 		if (out_shaders.program_color == nullptr)
 		{
-			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
+			MIKAN_LOG_ERROR("RmlGfx::CreateShaders()") << "Failed to compile RmlUI color shader";
 			return false;
 		}
 
@@ -184,7 +184,7 @@ namespace RmlGfx {
 		out_shaders.program_texture = ownerWindow->getShaderCache()->fetchCompiledIMkShader(texture_program_code);
 		if (out_shaders.program_texture == nullptr)
 		{
-			MIKAN_LOG_ERROR("GlFrameCompositor::startup()") << "Failed to compile RmlUI color shader";
+			MIKAN_LOG_ERROR("RmlGfx::CreateShaders()") << "Failed to compile RmlUI color shader";
 			return false;
 		}
 
